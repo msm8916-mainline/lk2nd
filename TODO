@@ -1,0 +1,19 @@
+- Bugfixes:
+
+- Error handling / reporting
+	* Report line/column numbers for syntax errors
+	* Better categorization of errors into severity levels
+- Generate mem reserve map
+	* Command line options to place a number of blank entries to be
+	  filled in by bootloader
+	* memory reserve section in source
+- Testsuite
+- Actually number releases, revision control, all that kind of jazz
+
+- Labels:
+	Allow labels in tree source, which will be propogated and
+	exported as symbols in asm output
+- Autogenerate phandles
+	Allow property values to contain a reference to another node
+	(by path or label) which will be turned into a phandle for that node
+	in the output.
