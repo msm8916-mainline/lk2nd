@@ -4,8 +4,6 @@
 	* Report line/column numbers for syntax errors
 	* Better categorization of errors into severity levels
 - Generate mem reserve map
-	* Command line options to place a number of blank entries to be
-	  filled in by bootloader
 	* memory reserve section in source
 - Testsuite
 - Actually number releases, revision control, all that kind of jazz

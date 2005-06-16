@@ -80,9 +80,9 @@ struct emitter {
 	void (*string)(void *, char *, int);
 	void (*align)(void *, int);
 	void (*data)(void *, struct data);
-	void (*beginnode)(void *);
-	void (*endnode)(void *);
-	void (*property)(void *);
+	void (*beginnode)(void *, char *);
+	void (*endnode)(void *, char *);
+	void (*property)(void *, char *);
 };
 
 static void bin_emit_cell(void *e, cell_t val)
@@ -117,17 +117,17 @@ static void bin_emit_data(void *e, struct data d)
 	*dtbuf = data_append_data(*dtbuf, d.val, d.len);
 }
 
-static void bin_emit_beginnode(void *e)
+static void bin_emit_beginnode(void *e, char *label)
 {
 	bin_emit_cell(e, OF_DT_BEGIN_NODE);
 }
 
-static void bin_emit_endnode(void *e)
+static void bin_emit_endnode(void *e, char *label)
 {
 	bin_emit_cell(e, OF_DT_END_NODE);
 }
 
-static void bin_emit_property(void *e)
+static void bin_emit_property(void *e, char *label)
 {
 	bin_emit_cell(e, OF_DT_PROP);
 }
@@ -141,6 +141,13 @@ struct emitter bin_emitter = {
 	.endnode = bin_emit_endnode,
 	.property = bin_emit_property,	
 };
+
+void emit_label(FILE *f, char *prefix, char *label)
+{
+	fprintf(f, "\t.globl\t%s_%s\n", prefix, label);
+	fprintf(f, "%s_%s:\n", prefix, label);
+	fprintf(f, "_%s_%s:\n", prefix, label);
+}
 
 static void asm_emit_cell(void *e, cell_t val)
 {
@@ -199,24 +206,36 @@ static void asm_emit_data(void *e, struct data d)
 	assert(off == d.len);
 }
 
-static void asm_emit_beginnode(void *e)
+static void asm_emit_beginnode(void *e, char *label)
 {
 	FILE *f = e;
 
+	if (label) {
+		fprintf(f, "\t.globl\t%s\n", label);
+		fprintf(f, "%s:\n", label);
+	}
 	fprintf(f, "\t.long\tOF_DT_BEGIN_NODE\n");
 }
 
-static void asm_emit_endnode(void *e)
+static void asm_emit_endnode(void *e, char *label)
 {
 	FILE *f = e;
 
 	fprintf(f, "\t.long\tOF_DT_END_NODE\n");
+	if (label) {
+		fprintf(f, "\t.globl\t%s_end\n", label);
+		fprintf(f, "%s_end:\n", label);
+	}
 }
 
-static void asm_emit_property(void *e)
+static void asm_emit_property(void *e, char *label)
 {
 	FILE *f = e;
 
+	if (label) {
+		fprintf(f, "\t.globl\t%s\n", label);
+		fprintf(f, "%s:\n", label);
+	}
 	fprintf(f, "\t.long\tOF_DT_PROP\n");
 }
 
@@ -253,7 +272,7 @@ static void flatten_tree(struct node *tree, struct emitter *emit,
 	struct node *child;
 	int seen_name_prop = 0;
 
-	emit->beginnode(etarget);
+	emit->beginnode(etarget, tree->label);
 
 	if (vi->flags & FTF_FULLPATH)
 		emit->string(etarget, tree->fullpath, 0);
@@ -270,7 +289,7 @@ static void flatten_tree(struct node *tree, struct emitter *emit,
 
 		nameoff = stringtable_insert(strbuf, prop->name);
 
-		emit->property(etarget);
+		emit->property(etarget, prop->label);
 		emit->cell(etarget, prop->val.len);
 		emit->cell(etarget, nameoff);
 
@@ -282,7 +301,7 @@ static void flatten_tree(struct node *tree, struct emitter *emit,
 	}
 
 	if ((vi->flags & FTF_NAMEPROPS) && !seen_name_prop) {
-		emit->property(etarget);
+		emit->property(etarget, NULL);
 		emit->cell(etarget, tree->basenamelen+1);
 		emit->cell(etarget, stringtable_insert(strbuf, "name"));
 
@@ -296,7 +315,7 @@ static void flatten_tree(struct node *tree, struct emitter *emit,
 		flatten_tree(child, emit, etarget, strbuf, vi);
 	}
 
-	emit->endnode(etarget);
+	emit->endnode(etarget, tree->label);
 }
 
 static void make_bph(struct boot_param_header *bph,
@@ -375,13 +394,6 @@ void dump_stringtable_asm(FILE *f, struct data strbuf)
 		fprintf(f, "\t.string \"%s\"\n", p);
 		p += len+1;
 	}
-}
-
-void emit_label(FILE *f, char *prefix, char *label)
-{
-	fprintf(f, "\t.globl\t%s_%s\n", prefix, label);
-	fprintf(f, "%s_%s:\n", prefix, label);
-	fprintf(f, "_%s_%s:\n", prefix, label);
 }
 
 void write_dt_asm(FILE *f, struct node *tree, int version, int reservenum)
@@ -566,7 +578,7 @@ struct property *flat_read_property(struct inbuf *dtbuf, struct inbuf *strbuf,
 
 	val = flat_read_data(dtbuf, proplen);
 
-	return build_property(name, val);
+	return build_property(name, val, NULL);
 }
 
 static char *nodename_from_path(char *ppath, char *cpath)

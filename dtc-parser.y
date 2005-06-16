@@ -47,6 +47,7 @@ extern struct node *device_tree;
 %token <byte> DT_BYTE
 %token <data> DT_STRING
 %token <str> DT_UNIT
+%token <str> DT_LABEL
 
 %type <data> propdata
 %type <data> celllist
@@ -57,12 +58,16 @@ extern struct node *device_tree;
 %type <node> nodedef
 %type <node> subnode
 %type <nodelist> subnodes
+%type <str> label
+%type <str> nodename
+
+%glr-parser
 
 %%
 
 devicetree:	{
 			assert(device_tree == NULL);
-		} '/' nodedef { device_tree = name_node($3, ""); }
+		} '/' nodedef { device_tree = name_node($3, "", NULL); }
 	;
 
 nodedef:	'{' proplist subnodes '}' ';' {
@@ -78,11 +83,11 @@ proplist:	propdef proplist {
 		}
 	;
 
-propdef:	DT_PROPNAME '=' propdata ';' {
-			$$ = build_property($1, $3);
+propdef:	label DT_PROPNAME '=' propdata ';' {
+			$$ = build_property($2, $4, $1);
 		}
-	|	DT_PROPNAME ';' {
-			$$ = build_empty_property($1);
+	|	label DT_PROPNAME ';' {
+			$$ = build_empty_property($2, $1);
 		}
 	;
 
@@ -105,7 +110,15 @@ subnodes:	subnode subnodes {
 	|	/* empty */ { $$ = NULL; }
 	;
 
-subnode:	DT_NODENAME nodedef { $$ = name_node($2, $1); }
+subnode:	label nodename nodedef { $$ = name_node($3, $2, $1); }
+	;
+
+nodename:	DT_NODENAME	{ $$ = $1; }
+	|	DT_PROPNAME	{ $$ = $1; }
+	;
+
+label:		DT_LABEL	{ $$ = $1; }
+	|	/* empty */	{ $$ = NULL; }
 	;
 
 %%

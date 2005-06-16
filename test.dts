@@ -2,9 +2,9 @@
 	model = "MyBoardName";
 	compatible = "MyBoardFamilyName";
 	#address-cells = <2>;
-	#size-cells = <2>;
+	label1: #size-cells = <2>;
 
-	cpus {
+	label2: cpus {
 		linux,phandle = <1>;
 		#address-cells = <1>;
 		#size-cells = <0>;
@@ -15,12 +15,14 @@
 			clock-frequency = <5f5e1000>;
 			linux,boot-cpu;
 			linux,phandle = <2>;
+			i-cache-size = <10000>;
+			d-cache-size = <8000>;
 		};
 
 	};
 
 	randomnode {
-		string = "\xff\0stuffstuff\t\t\t\n\n\n\n";
+		string = "\xff\0stuffstuff\t\t\t\n\n\n";
 		blob = [0a 0b 0c 0d de ea ad be ef];
 	};
 

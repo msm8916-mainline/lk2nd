@@ -24,7 +24,7 @@
  * Tree building functions
  */
 
-struct property *build_property(char *name, struct data val)
+struct property *build_property(char *name, struct data val, char *label)
 {
 	struct property *new = xmalloc(sizeof(*new));
 
@@ -33,10 +33,12 @@ struct property *build_property(char *name, struct data val)
 
 	new->next = NULL;
 
+	new->label = label;
+
 	return new;
 }
 
-struct property *build_empty_property(char *name)
+struct property *build_empty_property(char *name, char *label)
 {
 	struct property *new = xmalloc(sizeof(*new));
 
@@ -45,6 +47,8 @@ struct property *build_empty_property(char *name)
 	new->val.val = NULL;
 
 	new->next = NULL;
+
+	new->label = label;
 
 	return new;
 }
@@ -74,11 +78,14 @@ struct node *build_node(struct property *proplist, struct node *children)
 	return new;
 }
 
-struct node *name_node(struct node *node, char *name)
+struct node *name_node(struct node *node, char *name, char * label)
 {
 	assert(node->name == NULL);
 
 	node->name = name;
+
+	node->label = label;
+
 	return node;
 }
 

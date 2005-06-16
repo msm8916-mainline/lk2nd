@@ -1,8 +1,10 @@
 TARGETS = dtc
 CFLAGS = -Wall -g
 
+BISON = bison
+
 OBJS = dtc.o livetree.o flattree.o data.o treesource.o fstree.o \
-	y.tab.o lex.yy.o
+	dtc-parser.tab.o lex.yy.o
 
 all: $(TARGETS)
 
@@ -11,13 +13,13 @@ dtc:	$(OBJS)
 
 $(OBJS): dtc.h
 
-y.tab.c y.tab.h: dtc-parser.y
-	$(YACC) -d $<
+dtc-parser.tab.c dtc-parser.tab.h dtc-parser.output: dtc-parser.y
+	$(BISON) -d -v $<
 
 lex.yy.c: dtc-lexer.l
 	$(LEX) $<
 
-lex.yy.o: lex.yy.c y.tab.h
+lex.yy.o: lex.yy.c dtc-parser.tab.h
 
 dtc-parser.c:	dtc-lexer.c
 

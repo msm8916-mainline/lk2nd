@@ -32,9 +32,9 @@ WS		[ \t\n]
 %{
 #include "dtc.h"
 
-#include "y.tab.h"
+#include "dtc-parser.tab.h"
 
-#undef LEXDEBUG	1
+/*#define LEXDEBUG	1 */
 
 %}
 
@@ -83,14 +83,6 @@ WS		[ \t\n]
 			return ']';
 		}
 
-{PROPCHAR}+(@{UNITCHAR}+)?/{WS}*\{ {
-#ifdef LEXDEBUG
-			fprintf(stderr, "NodeName: %s\n", yytext);
-#endif
-			yylval.str = strdup(yytext);
-			return DT_NODENAME;
-		}
-
 {PROPCHAR}+	{
 #ifdef LEXDEBUG
 			fprintf(stderr, "PropName: %s\n", yytext);
@@ -99,6 +91,23 @@ WS		[ \t\n]
 			return DT_PROPNAME;
 		}
 
+{PROPCHAR}+(@{UNITCHAR}+)? {
+#ifdef LEXDEBUG
+			fprintf(stderr, "NodeName: %s\n", yytext);
+#endif
+			yylval.str = strdup(yytext);
+			return DT_NODENAME;
+		}
+
+
+[a-zA-Z_][a-zA-Z0-9_]*:	{
+#ifdef LEXDEBUG
+			fprintf(stderr, "Label: %s\n", yytext);
+#endif
+			yylval.str = strdup(yytext);
+			yylval.str[yyleng-1] = '\0';
+			return DT_LABEL;
+		}
 
 <*>{WS}+	/* eat whitespace */
 

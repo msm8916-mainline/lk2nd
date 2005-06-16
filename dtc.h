@@ -115,6 +115,8 @@ struct property {
 	struct data val;
 
 	struct property *next;
+
+	char *label;
 };
 
 struct node {
@@ -130,6 +132,8 @@ struct node {
 
 	cell_t phandle;
 	int addr_cells, size_cells;
+
+	char *label;
 };
 
 #define for_each_property(n, p) \
@@ -138,12 +142,12 @@ struct node {
 #define for_each_child(n, c)	\
 	for ((c) = (n)->children; (c); (c) = (c)->next_sibling)
 
-struct property *build_property(char *name, struct data val);
-struct property *build_empty_property(char *name);
+struct property *build_property(char *name, struct data val, char *label);
+struct property *build_empty_property(char *name, char *label);
 struct property *chain_property(struct property *first, struct property *list);
 
 struct node *build_node(struct property *proplist, struct node *children);
-struct node *name_node(struct node *node, char *name);
+struct node *name_node(struct node *node, char *name, char *label);
 struct node *chain_node(struct node *first, struct node *list);
 
 void add_property(struct node *node, struct property *prop);

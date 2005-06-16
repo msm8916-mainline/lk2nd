@@ -31,5 +31,8 @@
 	/** try this */
 	prop9;
 	/* and this **/
+	prop10;
+	child /* finally */ {
+	};
 };
 /* final comment */
