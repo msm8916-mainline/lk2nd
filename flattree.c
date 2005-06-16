@@ -598,7 +598,7 @@ static char *nodename_from_path(char *ppath, char *cpath)
 	if ((plen == 0) && streq(ppath, "/"))
 		return strdup(lslash+1);
 
-	if (strncmp(ppath, cpath, plen) != 0)
+	if (! strneq(ppath, cpath, plen))
 		return NULL;
 	
 	return strdup(lslash+1);

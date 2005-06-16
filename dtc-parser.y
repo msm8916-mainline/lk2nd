@@ -48,6 +48,7 @@ extern struct node *device_tree;
 %token <data> DT_STRING
 %token <str> DT_UNIT
 %token <str> DT_LABEL
+%token <str> DT_REF
 
 %type <data> propdata
 %type <data> celllist
@@ -97,6 +98,9 @@ propdata:	DT_STRING { $$ = $1; }
 	;
 
 celllist:	celllist DT_CELL { $$ = data_append_cell($1, $2); }
+	|	celllist DT_REF	{
+			$$ = data_append_cell(data_add_fixup($1, $2), -1);
+		}
 	|	/* empty */ { $$ = empty_data; }
 	;
 

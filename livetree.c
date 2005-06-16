@@ -43,9 +43,7 @@ struct property *build_empty_property(char *name, char *label)
 	struct property *new = xmalloc(sizeof(*new));
 
 	new->name = name;
-	new->val.len = 0;
-	new->val.val = NULL;
-
+	new->val = empty_data;
 	new->next = NULL;
 
 	new->label = label;
@@ -141,8 +139,30 @@ static struct node *get_subnode(struct node *node, char *nodename)
 {
 	struct node *child;
 
-	for_each_child(node, child) {
-		if (strcmp(child->name, nodename) == 0)
+	for_each_child(node, child)
+		if (streq(child->name, nodename))
+			return child;
+
+	return NULL;
+}
+
+static struct node *get_node_by_path(struct node *tree, char *path)
+{
+	char *p;
+	struct node *child;
+
+	if (!path || ! (*path))
+		return tree;
+
+	while (path[0] == '/')
+		path++;
+
+	p = strchr(path, '/');
+
+	for_each_child(tree, child) {
+		if (p && strneq(path, child->name, p-path))
+			return get_node_by_path(child, p+1);
+		else if (!p && streq(path, child->name))
 			return child;
 	}
 
@@ -209,7 +229,7 @@ static int must_be_string(struct property *prop, struct node *node)
 static int name_prop_check(struct property *prop, struct node *node)
 {
 	if ((prop->val.len != node->basenamelen+1)
-	    || (strncmp(prop->val.val, node->name, node->basenamelen) != 0)) {
+	    || !strneq(prop->val.val, node->name, node->basenamelen)) {
 		ERRMSG("name property \"%s\" does not match node basename in %s\n",
 		       prop->val.val,
 		       node->fullpath);
@@ -469,7 +489,7 @@ static int check_memory(struct node *root)
 	int ok = 1;
 
 	for_each_child(root, mem) {
-		if (strncmp(mem->name, "memory", mem->basenamelen) != 0)
+		if (! strneq(mem->name, "memory", mem->basenamelen))
 			continue;
 
 		nnodes++;
@@ -573,6 +593,67 @@ static int check_phandles(struct node *root, struct node *node)
 	return 1;
 }
 
+static cell_t get_node_phandle(struct node *root, struct node *node)
+{
+	static cell_t phandle = 1; /* FIXME: ick, static local */
+
+	fprintf(stderr, "get_node_phandle(%s)   phandle=%x\n",
+		node->fullpath, node->phandle);
+
+	if ((node->phandle != 0) && (node->phandle != -1))
+		return node->phandle;
+
+	assert(! get_property(node, "linux,phandle"));
+
+	while (get_node_by_phandle(root, phandle))
+		phandle++;
+
+	node->phandle = phandle;
+	add_property(node,
+		     build_property("linux,phandle",
+				    data_append_cell(empty_data, phandle),
+				    NULL));
+
+	return node->phandle;
+}
+
+static void apply_fixup(struct node *root, struct property *prop,
+			struct fixup *f)
+{
+	struct node *refnode;
+	cell_t phandle;
+
+	refnode = get_node_by_path(root, f->ref);
+	if (! refnode)
+		die("Reference to non-existent node \"%s\"\n", f->ref);
+
+	phandle = get_node_phandle(root, refnode);
+
+	assert(f->offset + sizeof(cell_t) <= prop->val.len);
+
+	*((cell_t *)(prop->val.val + f->offset)) = cpu_to_be32(phandle);
+}
+
+static void fixup_phandles(struct node *root, struct node *node)
+{
+	struct property *prop;
+	struct node *child;
+
+	for_each_property(node, prop) {
+		struct fixup *f = prop->val.refs;
+
+		while (f) {
+			apply_fixup(root, prop, f);
+			prop->val.refs = f->next;
+			fixup_free(f);
+			f = prop->val.refs;
+		}
+	}
+
+	for_each_child(node, child)
+		fixup_phandles(root, child);
+}
+
 int check_device_tree(struct node *dt)
 {
 	int ok = 1;
@@ -582,6 +663,8 @@ int check_device_tree(struct node *dt)
 
 	ok = ok && check_addr_size_reg(dt, -1, -1);
 	ok = ok && check_phandles(dt, dt);
+
+	fixup_phandles(dt, dt);
 
 	if (! ok)
 		return 0;

@@ -27,6 +27,8 @@ PROPCHAR	[a-zA-Z0-9,._+*#?-]
 UNITCHAR	[0-9a-f,]
 WS		[ \t\n]
 
+REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
+
 %%
 
 %{
@@ -34,14 +36,18 @@ WS		[ \t\n]
 
 #include "dtc-parser.tab.h"
 
-/*#define LEXDEBUG	1 */
+/*#define LEXDEBUG	1*/
+
+#ifdef LEXDEBUG
+#define DPRINT(fmt, ...)	fprintf(stderr, fmt, ##__VA_ARGS__)
+#else
+#define DPRINT(fmt, ...)	do { } while (0)
+#endif
 
 %}
 
 \"[^"]*\"	{
-#ifdef LEXDEBUG
-			fprintf(stderr, "String: %s\n", yytext);
-#endif
+			DPRINT("String: %s\n", yytext);
 			yylval.data = data_copy_escape_string(yytext+1,
 					yyleng-2);
 			return DT_STRING;
@@ -53,57 +59,49 @@ WS		[ \t\n]
 					"Cell value %s too long\n", yytext);
 			}
 			yylval.cval = strtol(yytext, NULL, 16);
-#ifdef LEXDEBUG
-			fprintf(stderr, "Cell: %x\n", yylval.cval);
-#endif
+			DPRINT("Cell: %x\n", yylval.cval);
 			return DT_CELL;
 		}
 
 <CELLDATA>">"	{
-#ifdef LEXDEBUG
-			fprintf(stderr, "/CELLDATA\n");
-#endif
+			DPRINT("/CELLDATA\n");
 			BEGIN(INITIAL);
 			return '>';
 		}
 
+<CELLDATA>\&{REFCHAR}*	{
+			DPRINT("Ref: %s\n", yytext+1);
+			yylval.str = strdup(yytext+1);
+			return DT_REF;
+		}
+
 <BYTESTRING>[0-9a-fA-F]{2} {
 			yylval.byte = strtol(yytext, NULL, 16);
-#ifdef LEXDEBUG
-			fprintf(stderr, "Byte: %02x\n", (int)yylval.byte);
-#endif
+			DPRINT("Byte: %02x\n", (int)yylval.byte);
 			return DT_BYTE;
 		}
 
 <BYTESTRING>"]"	{
-#ifdef LEXDEBUG
-			fprintf(stderr, "/BYTESTRING\n");
-#endif
+			DPRINT("/BYTESTRING\n");
 			BEGIN(INITIAL);
 			return ']';
 		}
 
 {PROPCHAR}+	{
-#ifdef LEXDEBUG
-			fprintf(stderr, "PropName: %s\n", yytext);
-#endif
+			DPRINT("PropName: %s\n", yytext);
 			yylval.str = strdup(yytext);
 			return DT_PROPNAME;
 		}
 
 {PROPCHAR}+(@{UNITCHAR}+)? {
-#ifdef LEXDEBUG
-			fprintf(stderr, "NodeName: %s\n", yytext);
-#endif
+			DPRINT("NodeName: %s\n", yytext);
 			yylval.str = strdup(yytext);
 			return DT_NODENAME;
 		}
 
 
 [a-zA-Z_][a-zA-Z0-9_]*:	{
-#ifdef LEXDEBUG
-			fprintf(stderr, "Label: %s\n", yytext);
-#endif
+			DPRINT("Label: %s\n", yytext);
 			yylval.str = strdup(yytext);
 			yylval.str[yyleng-1] = '\0';
 			return DT_LABEL;
@@ -112,10 +110,8 @@ WS		[ \t\n]
 <*>{WS}+	/* eat whitespace */
 
 <*>"/*"([^*]|\*+[^*/])*\*+"/"	{
-#ifdef LEXDEBUG
-			fprintf(stderr, "Comment: %s\n", yytext);
+			DPRINT("Comment: %s\n", yytext);
 			/* eat comments */
-#endif
 		}
 
 <*>"//".*\n	/* eat line comments */
@@ -123,23 +119,17 @@ WS		[ \t\n]
 .		{
 			switch (yytext[0]) {
 				case '<':
-#ifdef LEXDEBUG
-					fprintf(stderr, "CELLDATA\n");
-#endif
+					DPRINT("CELLDATA\n");
 					BEGIN(CELLDATA);
 					break;
 				case '[':
-#ifdef LEXDEBUG
-					fprintf(stderr, "BYTESTRING\n");
-#endif
+					DPRINT("BYTESTRING\n");
 					BEGIN(BYTESTRING);
 					break;
 				default:
 
-#ifdef LEXDEBUG
-			fprintf(stderr, "Char: %c (\\x%02x)\n", yytext[0],
+			DPRINT("Char: %c (\\x%02x)\n", yytext[0],
 				(unsigned)yytext[0]);
-#endif
 					break;
 			}
 

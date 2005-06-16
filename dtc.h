@@ -76,18 +76,29 @@ typedef u32 cell_t;
 
 
 #define streq(a, b)	(strcmp((a), (b)) == 0)
+#define strneq(a, b, n)	(strncmp((a), (b), (n)) == 0)
+
 #define ALIGN(x, a)	(((x) + (a) - 1) & ~((a) - 1))
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
 /* Data blobs */
+struct fixup {
+	int offset;
+	char *ref;
+	struct fixup *next;
+};
+
 struct data {
 	int len;
 	char *val;
 	int asize;
+	struct fixup *refs;
 };
 
-#define empty_data ((struct data){.len = 0, .val = NULL, .asize = 0})
+#define empty_data \
+	((struct data){.len = 0, .val = NULL, .asize = 0, .refs = NULL})
 
+void fixup_free(struct fixup *f);
 void data_free(struct data d);
 
 struct data data_grow_for(struct data d, int xlen);
@@ -101,6 +112,8 @@ struct data data_append_cell(struct data d, cell_t word);
 struct data data_append_byte(struct data d, uint8_t byte);
 struct data data_append_zeroes(struct data d, int len);
 struct data data_append_align(struct data d, int align);
+
+struct data data_add_fixup(struct data d, char *ref);
 
 int data_is_one_string(struct data d);
 

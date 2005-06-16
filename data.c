@@ -38,8 +38,25 @@ struct data data_ref_string(char *str)
 }
 #endif
 
+void fixup_free(struct fixup *f)
+{
+	free(f->ref);
+	free(f);
+}
+
 void data_free(struct data d)
 {
+	struct fixup *f;
+
+	f = d.refs;
+	while (f) {
+		struct fixup *nf;
+
+		nf = f->next;
+		fixup_free(f);
+		f = nf;
+	}
+
 	assert(!d.val || d.asize);
 
 	if (d.val)
@@ -65,6 +82,7 @@ struct data data_grow_for(struct data d, int xlen)
 	nd.asize = newsize;
 	nd.val = xrealloc(d.val, newsize);
 	nd.len = d.len;
+	nd.refs = d.refs;
 
 	assert(nd.asize >= (d.len + xlen));
 
@@ -229,6 +247,22 @@ struct data data_append_align(struct data d, int align)
 {
 	int newlen = ALIGN(d.len, align);
 	return data_append_zeroes(d, newlen - d.len);
+}
+
+struct data data_add_fixup(struct data d, char *ref)
+{
+	struct fixup *f;
+	struct data nd;
+
+	f = xmalloc(sizeof(*f));
+	f->offset = d.len;
+	f->ref = ref;
+	f->next = d.refs;
+
+	nd = d;
+	nd.refs = f;
+
+	return nd;
 }
 
 int data_is_one_string(struct data d)
