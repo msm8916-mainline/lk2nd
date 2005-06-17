@@ -88,7 +88,7 @@ propdef:	label DT_PROPNAME '=' propdata ';' {
 			$$ = build_property($2, $4, $1);
 		}
 	|	label DT_PROPNAME ';' {
-			$$ = build_empty_property($2, $1);
+			$$ = build_property($2, empty_data, $1);
 		}
 	;
 

@@ -38,19 +38,6 @@ struct property *build_property(char *name, struct data val, char *label)
 	return new;
 }
 
-struct property *build_empty_property(char *name, char *label)
-{
-	struct property *new = xmalloc(sizeof(*new));
-
-	new->name = name;
-	new->val = empty_data;
-	new->next = NULL;
-
-	new->label = label;
-
-	return new;
-}
-
 struct property *chain_property(struct property *first, struct property *list)
 {
 	assert(first->next == NULL);

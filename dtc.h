@@ -156,7 +156,6 @@ struct node {
 	for ((c) = (n)->children; (c); (c) = (c)->next_sibling)
 
 struct property *build_property(char *name, struct data val, char *label);
-struct property *build_empty_property(char *name, char *label);
 struct property *chain_property(struct property *first, struct property *list);
 
 struct node *build_node(struct property *proplist, struct node *children);
