@@ -21,7 +21,7 @@ lex.yy.c: dtc-lexer.l
 
 lex.yy.o: lex.yy.c dtc-parser.tab.h
 
-dtc-parser.c:	dtc-lexer.c
+livetree.o:	flat_dt.h
 
 check: all
 	cd tests && $(MAKE) check

@@ -19,39 +19,7 @@
  */
 
 #include "dtc.h"
-
-#define OF_DT_HEADER            0xd00dfeed      /* 4: version, 4: total size */
-
-#define OF_DT_BEGIN_NODE	0x1             /* Start node: full name */
-#define OF_DT_END_NODE		0x2             /* End node */
-#define OF_DT_PROP		0x3             /* Property: name off,
-                                                   size, content */
-#define OF_DT_END               0x9
-
-struct boot_param_header {
-	u32 magic;                  /* magic word OF_DT_HEADER */
-	u32 totalsize;              /* total size of DT block */
-	u32 off_dt_struct;          /* offset to structure */
-	u32 off_dt_strings;         /* offset to strings */
-	u32 off_mem_rsvmap;         /* offset to memory reserve map */
-	u32 version;                /* format version */
-	u32 last_comp_version;      /* last compatible version */
-
-        /* version 2 fields below */
-	u32 boot_cpuid_phys;        /* Which physical CPU id we're
-					    booting on */
-	/* version 3 fields below */
-        u32 size_dt_strings;        /* size of the strings block */
-};
-
-#define BPH_V1_SIZE	(7*sizeof(u32))
-#define BPH_V2_SIZE	(BPH_V1_SIZE + sizeof(u32))
-#define BPH_V3_SIZE	(BPH_V2_SIZE + sizeof(u32))
-
-struct reserve_entry {
-	u64 address;
-	u64 size;
-};
+#include "flat_dt.h"
 
 #define FTF_FULLPATH	0x1
 #define FTF_VARALIGN	0x2
