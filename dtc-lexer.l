@@ -29,8 +29,6 @@ WS		[ \t\n]
 
 REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 
-%%
-
 %{
 #include "dtc.h"
 
@@ -45,6 +43,8 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 #endif
 
 %}
+
+%%
 
 \"[^"]*\"	{
 			DPRINT("String: %s\n", yytext);
