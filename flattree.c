@@ -229,7 +229,7 @@ static int stringtable_insert(struct data *d, char *str)
 	}
 
 	*d = data_append_data(*d, str, strlen(str)+1);
-	return i; /* i equals the old data length */
+	return i;
 }
 
 static void flatten_tree(struct node *tree, struct emitter *emit,
