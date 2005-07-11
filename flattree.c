@@ -291,6 +291,7 @@ static void make_bph(struct boot_param_header *bph,
 			     int reservenum,
 			     int dtsize, int strsize)
 {
+	int reserve_off;
 	int reservesize = (reservenum+1) * sizeof(struct reserve_entry);
 
 	memset(bph, 0xff, sizeof(*bph));
@@ -299,11 +300,14 @@ static void make_bph(struct boot_param_header *bph,
 	bph->version = vi->version;
 	bph->last_comp_version = vi->last_comp_version;
 
-	bph->off_mem_rsvmap = cpu_to_be32(vi->hdr_size);
-	bph->off_dt_struct = cpu_to_be32(vi->hdr_size + reservesize);
-	bph->off_dt_strings = cpu_to_be32(vi->hdr_size + reservesize
+	/* Reserve map should be doubleword aligned */
+	reserve_off = ALIGN(vi->hdr_size, 8);
+
+	bph->off_mem_rsvmap = cpu_to_be32(reserve_off);
+	bph->off_dt_struct = cpu_to_be32(reserve_off + reservesize);
+	bph->off_dt_strings = cpu_to_be32(reserve_off + reservesize
 					  + dtsize);
-	bph->totalsize = cpu_to_be32(vi->hdr_size + reservesize
+	bph->totalsize = cpu_to_be32(reserve_off + reservesize
 				     + dtsize + strsize);
 		
 	if (vi->flags & FTF_BOOTCPUID)
@@ -335,6 +339,10 @@ void write_dt_blob(FILE *f, struct node *tree, int version, int reservenum)
 	bin_emit_cell(&dtbuf, OF_DT_END);
 
 	make_bph(&bph, vi, reservenum, dtbuf.len, strbuf.len);
+
+	/* Align the reserve map to an 8 byte boundary */
+	for (i = vi->hdr_size; i < be32_to_cpu(bph.off_mem_rsvmap); i++)
+		fputc(0, f);
 
 	fwrite(&bph, vi->hdr_size, 1, f);
 	for (i = 0; i < reservenum+1; i++)
@@ -408,6 +416,8 @@ void write_dt_asm(FILE *f, struct node *tree, int version, int reservenum)
 		fprintf(f, "\t.long\t_%s_strings_end - _%s_strings_start\t/* size_dt_strings */\n",
 			symprefix, symprefix);
 
+	/* align the reserve map to a doubleword boundary */
+	asm_emit_align(f, 8);
 	emit_label(f, symprefix, "reserve_map");
 	/* reserve map entry for the device tree itself */
 	fprintf(f, "\t.long\t0, _%s_blob_start\n", symprefix);
