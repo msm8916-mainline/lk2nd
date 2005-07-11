@@ -18,7 +18,7 @@
  *                                                                   USA 
  */
 
-%option noyywrap
+%option noyywrap nounput
 
 %x CELLDATA
 %x BYTESTRING
