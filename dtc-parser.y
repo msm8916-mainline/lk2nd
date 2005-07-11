@@ -30,7 +30,7 @@ extern struct node *device_tree;
 
 %union {
 	cell_t cval;
-	uint8_t byte;
+	u8 byte;
 	char *str;
 	struct data data;
 	struct property *prop;
