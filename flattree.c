@@ -340,11 +340,12 @@ void write_dt_blob(FILE *f, struct node *tree, int version, int reservenum)
 
 	make_bph(&bph, vi, reservenum, dtbuf.len, strbuf.len);
 
+	fwrite(&bph, vi->hdr_size, 1, f);
+
 	/* Align the reserve map to an 8 byte boundary */
 	for (i = vi->hdr_size; i < be32_to_cpu(bph.off_mem_rsvmap); i++)
 		fputc(0, f);
 
-	fwrite(&bph, vi->hdr_size, 1, f);
 	for (i = 0; i < reservenum+1; i++)
 		fwrite(&re, sizeof(re), 1, f);
 
