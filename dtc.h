@@ -193,11 +193,6 @@ struct boot_info *build_boot_info(struct data mem_reserve_data,
 
 /* Flattened trees */
 
-enum flat_dt_format {
-	FFMT_BIN,
-	FFMT_ASM,
-};
-
 void write_dt_blob(FILE *f, struct boot_info *bi, int version);
 void write_dt_asm(FILE *f, struct boot_info *bi, int version);
 
