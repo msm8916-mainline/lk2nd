@@ -14,7 +14,7 @@ dtc:	$(OBJS)
 	$(LINK.c) -o $@ $^
 
 dtc-parser.tab.c dtc-parser.tab.h dtc-parser.output: dtc-parser.y
-	$(BISON) -d -v $<
+	$(BISON) -d $<
 
 lex.yy.c: dtc-lexer.l
 	$(LEX) $<

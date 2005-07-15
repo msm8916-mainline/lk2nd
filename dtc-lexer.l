@@ -22,6 +22,7 @@
 
 %x CELLDATA
 %x BYTESTRING
+%x MEMRESERVE
 
 PROPCHAR	[a-zA-Z0-9,._+*#?-]
 UNITCHAR	[0-9a-f,]
@@ -51,6 +52,29 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 			yylval.data = data_copy_escape_string(yytext+1,
 					yyleng-2);
 			return DT_STRING;
+		}
+
+"/memreserve/"	{
+			DPRINT("Keyword: /memreserve/\n");
+			BEGIN(MEMRESERVE);
+			return DT_MEMRESERVE;
+		}
+
+<MEMRESERVE>[0-9a-fA-F]+ {
+			if (yyleng > 2*sizeof(yylval.addr)) {
+				fprintf(stderr, "Address value %s too large\n",
+					yytext);
+			}
+			yylval.addr = (u64) strtoull(yytext, NULL, 16);
+			DPRINT("Addr: %llx\n",
+			       (unsigned long long)yylval.addr);
+			return DT_ADDR;
+		}
+
+<MEMRESERVE>";"	{
+			DPRINT("/MEMRESERVE\n");
+			BEGIN(INITIAL);
+			return ';';
 		}
 
 <CELLDATA>[0-9a-fA-F]+	{
@@ -116,7 +140,7 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 
 <*>"//".*\n	/* eat line comments */
 
-.		{
+<*>.		{
 			switch (yytext[0]) {
 				case '<':
 					DPRINT("CELLDATA\n");

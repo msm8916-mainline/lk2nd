@@ -31,6 +31,10 @@
 #include <errno.h>
 #include <unistd.h>
 #include <netinet/in.h>
+#include <endian.h>
+#include <byteswap.h>
+
+#include "flat_dt.h"
 
 static inline void die(char * str, ...)
 {
@@ -74,7 +78,13 @@ typedef u32 cell_t;
 #define cpu_to_be32(x)	htonl(x)
 #define be32_to_cpu(x)	ntohl(x)
 
-
+#if __BYTE_ORDER == __BIG_ENDIAN
+#define cpu_to_be64(x)	(x)
+#define be64_to_cpu(x)	(x)
+#else
+#define cpu_to_be64(x)	bswap_64(x)
+#define be64_to_cpu(x)	bswap_64(x)
+#endif
 
 #define streq(a, b)	(strcmp((a), (b)) == 0)
 #define strneq(a, b, n)	(strncmp((a), (b), (n)) == 0)
@@ -110,6 +120,7 @@ struct data data_copy_file(FILE *f, size_t len);
 
 struct data data_append_data(struct data d, void *p, int len);
 struct data data_append_cell(struct data d, cell_t word);
+struct data data_append_addr(struct data d, u64 addr);
 struct data data_append_byte(struct data d, uint8_t byte);
 struct data data_append_zeroes(struct data d, int len);
 struct data data_append_align(struct data d, int align);
@@ -117,6 +128,8 @@ struct data data_append_align(struct data d, int align);
 struct data data_add_fixup(struct data d, char *ref);
 
 int data_is_one_string(struct data d);
+
+struct data build_mem_reserve(struct data d);
 
 /* DT constraints */
 
@@ -168,6 +181,16 @@ void add_child(struct node *parent, struct node *child);
 
 int check_device_tree(struct node *dt);
 
+/* Boot info (tree plus memreserve information */
+
+struct boot_info {
+	struct data mem_reserve_data;	/* mem reserve from header */
+	struct node *dt;		/* the device tree */
+};
+
+struct boot_info *build_boot_info(struct data mem_reserve_data,
+				  struct node *tree);
+
 /* Flattened trees */
 
 enum flat_dt_format {
@@ -175,20 +198,19 @@ enum flat_dt_format {
 	FFMT_ASM,
 };
 
-void write_dt_blob(FILE *f, struct node *tree, int version, int reservenum);
-void write_dt_asm(FILE *f, struct node *tree, int version, int reservenum);
+void write_dt_blob(FILE *f, struct boot_info *bi, int version);
+void write_dt_asm(FILE *f, struct boot_info *bi, int version);
 
-struct node *dt_from_blob(FILE *f);
+struct boot_info *dt_from_blob(FILE *f);
 
 /* Tree source */
 
-void write_tree_source(FILE *f, struct node *tree, int level);
-
-struct node *dt_from_source(FILE *f);
+void write_tree_source(FILE *f, struct boot_info *bi);
+struct boot_info *dt_from_source(FILE *f);
 
 /* FS trees */
 
-struct node *dt_from_fs(char *dirname);
+struct boot_info *dt_from_fs(char *dirname);
 
 /* misc */
 

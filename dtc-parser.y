@@ -24,7 +24,7 @@
 int yylex (void);
 void yyerror (char const *);
 
-extern struct node *device_tree;
+extern struct boot_info *the_boot_info;
 
 %}
 
@@ -39,8 +39,12 @@ extern struct node *device_tree;
 	struct node *nodelist;
 	int datalen;
 	int hexlen;
+	u64 addr;
+	struct reserve_entry re;
 }
 
+%token DT_MEMRESERVE
+%token <addr> DT_ADDR
 %token <str> DT_PROPNAME
 %token <str> DT_NODENAME
 %token <cval> DT_CELL
@@ -51,11 +55,14 @@ extern struct node *device_tree;
 %token <str> DT_REF
 
 %type <data> propdata
+%type <re> memreserve
+%type <data> memreserves
 %type <data> celllist
 %type <data> bytestring
 %type <prop> propdef
 %type <proplist> proplist
 
+%type <node> devicetree
 %type <node> nodedef
 %type <node> subnode
 %type <nodelist> subnodes
@@ -66,9 +73,33 @@ extern struct node *device_tree;
 
 %%
 
-devicetree:	{
-			assert(device_tree == NULL);
-		} '/' nodedef { device_tree = name_node($3, "", NULL); }
+sourcefile:	memreserves devicetree {
+			the_boot_info = build_boot_info($1, $2);
+		}
+	;
+
+memreserves:	memreserves memreserve {
+			$$ = data_append_addr(data_append_addr($1, $2.address),
+					      $2.size);
+		}
+	|	/* empty */	{
+			$$ = empty_data;
+		}
+	;
+
+memreserve:	DT_MEMRESERVE DT_ADDR DT_ADDR ';' {
+			$$.address = $2;
+			$$.size = $3;
+		}
+	|	DT_MEMRESERVE DT_ADDR '-' DT_ADDR ';' {
+			$$.address = $2;
+			$$.size = $4 - $2 + 1;
+		}
+	;
+
+devicetree:	'/' nodedef {
+			$$ = name_node($2, "", NULL);
+		}
 	;
 
 nodedef:	'{' proplist subnodes '}' ';' {

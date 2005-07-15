@@ -665,3 +665,15 @@ int check_device_tree(struct node *dt)
 
 	return 1;
 }
+
+struct boot_info *build_boot_info(struct data mem_reserve_data,
+				  struct node *tree)
+{
+	struct boot_info *bi;
+
+	bi = xmalloc(sizeof(*bi));
+	bi->mem_reserve_data = mem_reserve_data;
+	bi->dt = tree;
+
+	return bi;
+}

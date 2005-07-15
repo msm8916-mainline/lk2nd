@@ -287,11 +287,12 @@ static void flatten_tree(struct node *tree, struct emitter *emit,
 }
 
 static void make_bph(struct boot_param_header *bph,
-			     struct version_info *vi,
-			     int reservenum,
-			     int dtsize, int strsize)
+		     struct version_info *vi,
+		     struct data *mem_reserve_data,
+		     int dtsize, int strsize)
 {
 	int reserve_off;
+	int reservenum = mem_reserve_data->len / sizeof(struct reserve_entry);
 	int reservesize = (reservenum+1) * sizeof(struct reserve_entry);
 
 	memset(bph, 0xff, sizeof(*bph));
@@ -316,14 +317,14 @@ static void make_bph(struct boot_param_header *bph,
 		bph->size_dt_strings = cpu_to_be32(strsize);
 }
 
-void write_dt_blob(FILE *f, struct node *tree, int version, int reservenum)
+void write_dt_blob(FILE *f, struct boot_info *bi, int version)
 {
 	struct version_info *vi = NULL;
 	int i;
 	struct data dtbuf = empty_data;
 	struct data strbuf = empty_data;
 	struct boot_param_header bph;
-	struct reserve_entry re = {.address = 0, .size = 0};
+	struct reserve_entry termre = {.address = 0, .size = 0};
 
 	for (i = 0; i < ARRAY_SIZE(version_table); i++) {
 		if (version_table[i].version == version)
@@ -335,10 +336,11 @@ void write_dt_blob(FILE *f, struct node *tree, int version, int reservenum)
 	dtbuf = empty_data;
 	strbuf = empty_data;
 
-	flatten_tree(tree, &bin_emitter, &dtbuf, &strbuf, vi);
+	flatten_tree(bi->dt, &bin_emitter, &dtbuf, &strbuf, vi);
 	bin_emit_cell(&dtbuf, OF_DT_END);
 
-	make_bph(&bph, vi, reservenum, dtbuf.len, strbuf.len);
+	/* Make header */
+	make_bph(&bph, vi, &bi->mem_reserve_data, dtbuf.len, strbuf.len);
 
 	fwrite(&bph, vi->hdr_size, 1, f);
 
@@ -346,8 +348,15 @@ void write_dt_blob(FILE *f, struct node *tree, int version, int reservenum)
 	for (i = vi->hdr_size; i < be32_to_cpu(bph.off_mem_rsvmap); i++)
 		fputc(0, f);
 
-	for (i = 0; i < reservenum+1; i++)
-		fwrite(&re, sizeof(re), 1, f);
+	/*
+	 * Reserve map entries.
+	 * Since the blob is relocatable, the address of the map is not
+	 * determinable here, so no entry is made for the DT itself.
+	 * Each entry is an (address, size) pair of u64 values.
+	 * Always supply a zero-sized temination entry.
+	 */
+	fwrite(bi->mem_reserve_data.val, bi->mem_reserve_data.len, 1, f);
+	fwrite(&termre, sizeof(termre), 1, f);
 
 	fwrite(dtbuf.val, dtbuf.len, 1, f);
 	fwrite(strbuf.val, strbuf.len, 1, f);
@@ -373,7 +382,7 @@ void dump_stringtable_asm(FILE *f, struct data strbuf)
 	}
 }
 
-void write_dt_asm(FILE *f, struct node *tree, int version, int reservenum)
+void write_dt_asm(FILE *f, struct boot_info *bi, int version)
 {
 	struct version_info *vi = NULL;
 	int i;
@@ -417,20 +426,30 @@ void write_dt_asm(FILE *f, struct node *tree, int version, int reservenum)
 		fprintf(f, "\t.long\t_%s_strings_end - _%s_strings_start\t/* size_dt_strings */\n",
 			symprefix, symprefix);
 
-	/* align the reserve map to a doubleword boundary */
+	/*
+	 * Reserve map entries.
+	 * Align the reserve map to a doubleword boundary.
+	 * Each entry is an (address, size) pair of u64 values.
+	 * Since the ASM file variant can relocate and compute the address
+	 * and size of the the device tree itself, and an entry for it.
+	 * Always supply a zero-sized temination entry.
+	 */
 	asm_emit_align(f, 8);
 	emit_label(f, symprefix, "reserve_map");
-	/* reserve map entry for the device tree itself */
 	fprintf(f, "\t.long\t0, _%s_blob_start\n", symprefix);
 	fprintf(f, "\t.long\t0, _%s_blob_end - _%s_blob_start\n",
 		symprefix, symprefix);
-	for (i = 0; i < reservenum+1; i++) {
-		fprintf(f, "\t.llong\t0\n");
-		fprintf(f, "\t.llong\t0\n");
+
+	if (bi->mem_reserve_data.len > 0) {
+		fprintf(f, "/* Memory reserve map from source file */\n");
+		asm_emit_data(f, bi->mem_reserve_data);
 	}
 
+	fprintf(f, "\t.llong\t0\n");
+	fprintf(f, "\t.llong\t0\n");
+
 	emit_label(f, symprefix, "struct_start");
-	flatten_tree(tree, &asm_emitter, f, &strbuf, vi);
+	flatten_tree(bi->dt, &asm_emitter, f, &strbuf, vi);
 	fprintf(f, "\t.long\tOF_DT_END\n");
 	emit_label(f, symprefix, "struct_end");
 
@@ -561,6 +580,43 @@ struct property *flat_read_property(struct inbuf *dtbuf, struct inbuf *strbuf,
 	return build_property(name, val, NULL);
 }
 
+
+static struct data flat_read_mem_reserve(struct inbuf *inb)
+{
+	char *p;
+	int len = 0;
+	int done = 0;
+	cell_t cells[4];
+	struct data d;
+
+	d = empty_data;
+
+	/*
+	 * Each entry is a pair of u64 (addr, size) values for 4 cell_t's.
+	 * List terminates at an entry with size equal to zero.
+	 *
+	 * First pass, count entries.
+	 */
+	p = inb->ptr;
+	do {
+		flat_read_chunk(inb, &cells[0], 4 * sizeof(cell_t));
+		if (cells[2] == 0 && cells[3] == 0) {
+			done = 1;
+		} else {
+			++len;
+		}
+	} while (!done);
+
+	/*
+	 * Back up for pass two, reading the whole data value.
+	 */
+	inb->ptr = p;
+	d = flat_read_data(inb, len * 4 * sizeof(cell_t));
+
+	return d;
+}
+
+
 static char *nodename_from_path(char *ppath, char *cpath)
 {
 	char *lslash;
@@ -668,15 +724,19 @@ static struct node *unflatten_tree(struct inbuf *dtbuf,
 	return node;
 }
 
-struct node *dt_from_blob(FILE *f)
+
+struct boot_info *dt_from_blob(FILE *f)
 {
-	u32 magic, totalsize, off_dt, off_str, version, size_str;
+	u32 magic, totalsize, version, size_str;
+	u32 off_dt, off_str, off_mem_rsvmap;
 	int rc;
 	char *blob;
 	struct boot_param_header *bph;
 	char *p;
 	struct inbuf dtbuf, strbuf;
+	struct inbuf memresvbuf;
 	int sizeleft;
+	struct data mem_reserve_data;
 	struct node *tree;
 	u32 val;
 	int flags = 0;
@@ -735,17 +795,20 @@ struct node *dt_from_blob(FILE *f)
 
 	off_dt = be32_to_cpu(bph->off_dt_struct);
 	off_str = be32_to_cpu(bph->off_dt_strings);
+	off_mem_rsvmap = be32_to_cpu(bph->off_mem_rsvmap);
 	version = be32_to_cpu(bph->version);
 
 	fprintf(stderr, "\tmagic:\t\t\t0x%x\n", magic);
 	fprintf(stderr, "\ttotalsize:\t\t%d\n", totalsize);
 	fprintf(stderr, "\toff_dt_struct:\t\t0x%x\n", off_dt);
 	fprintf(stderr, "\toff_dt_strings:\t\t0x%x\n", off_str);
-	fprintf(stderr, "\toff_mem_rsvmap:\t\t0x%x\n",
-		be32_to_cpu(bph->off_mem_rsvmap));
+	fprintf(stderr, "\toff_mem_rsvmap:\t\t0x%x\n", off_mem_rsvmap);
 	fprintf(stderr, "\tversion:\t\t0x%x\n", version );
 	fprintf(stderr, "\tlast_comp_version:\t0x%x\n",
 		be32_to_cpu(bph->last_comp_version));
+
+	if (off_mem_rsvmap >= totalsize)
+		die("Mem Reserve structure offset exceeds total size\n");
 
 	if (off_dt >= totalsize)
 		die("DT structure offset exceeds total size\n");
@@ -768,11 +831,15 @@ struct node *dt_from_blob(FILE *f)
 		flags |= FTF_FULLPATH | FTF_NAMEPROPS | FTF_VARALIGN;
 	}
 
+	inbuf_init(&memresvbuf,
+		   blob + off_mem_rsvmap, blob + totalsize);
 	inbuf_init(&dtbuf, blob + off_dt, blob + totalsize);
 	inbuf_init(&strbuf, blob + off_str, blob + totalsize);
 
 	if (version >= 3)
 		strbuf.limit = strbuf.base + size_str;
+
+	mem_reserve_data = flat_read_mem_reserve(&memresvbuf);
 
 	val = flat_read_word(&dtbuf);
 
@@ -787,5 +854,5 @@ struct node *dt_from_blob(FILE *f)
 
 	free(blob);
 
-	return tree;
+	return build_boot_info(mem_reserve_data, tree);
 }

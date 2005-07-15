@@ -229,6 +229,13 @@ struct data data_append_cell(struct data d, cell_t word)
 	return data_append_data(d, &beword, sizeof(beword));
 }
 
+struct data data_append_addr(struct data d, u64 addr)
+{
+	u64 beaddr = cpu_to_be64(addr);
+
+	return data_append_data(d, &beaddr, sizeof(beaddr));
+}
+
 struct data data_append_byte(struct data d, uint8_t byte)
 {
 	return data_append_data(d, &byte, 1);

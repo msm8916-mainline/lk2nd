@@ -1,3 +1,7 @@
+/memreserve/ 1000000000000000 0000000002000000;
+/memreserve/ 2000000000000000-20ffffffffffffff;
+/memreserve/ 0-13;
+
 / {
 	model = "MyBoardName";
 	compatible = "MyBoardFamilyName";

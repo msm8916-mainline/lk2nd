@@ -102,7 +102,7 @@ static void usage(void)
 
 int main(int argc, char *argv[])
 {
-	struct node *dt;
+	struct boot_info *bi;
 	char *inform = "dts";
 	char *outform = "dts";
 	char *outname = "-";
@@ -151,12 +151,12 @@ int main(int argc, char *argv[])
 
 	if (streq(inform, "dts")) {
 		inf = dtc_open_file(arg);
-		dt = dt_from_source(inf);
+		bi = dt_from_source(inf);
 	} else if (streq(inform, "fs")) {
-		dt = dt_from_fs(arg);
+		bi = dt_from_fs(arg);
 	} else if(streq(inform, "dtb")) {
 		inf = dtc_open_file(arg);
-		dt = dt_from_blob(inf);
+		bi = dt_from_blob(inf);
 	} else {
 		die("Unknown input format \"%s\"\n", inform);
 	}
@@ -164,10 +164,10 @@ int main(int argc, char *argv[])
 	if (inf && (inf != stdin))
 		fclose(inf);
 
-	if (! dt)
+	if (! bi || ! bi->dt)
 		die("Couldn't read input tree\n");
 
-	if (! check_device_tree(dt)) {
+	if (! check_device_tree(bi->dt)) {
 		fprintf(stderr, "Input tree has errors\n");
 		if (! force)
 			exit(1);
@@ -183,11 +183,11 @@ int main(int argc, char *argv[])
 	}
 
 	if (streq(outform, "dts")) {
-		write_tree_source(outf, dt, 0);
+		write_tree_source(outf, bi);
 	} else if (streq(outform, "dtb")) {
-		write_dt_blob(outf, dt, outversion, reservenum);
+		write_dt_blob(outf, bi, outversion);
 	} else if (streq(outform, "asm")) {
-		write_dt_asm(outf, dt, outversion, reservenum);
+		write_dt_asm(outf, bi, outversion);
 	} else if (streq(outform, "null")) {
 		/* do nothing */
 	} else {
