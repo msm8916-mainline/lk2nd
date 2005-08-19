@@ -547,7 +547,7 @@ static char *flat_read_stringtable(struct inbuf *inb, int offset)
 
 	p = inb->base + offset;
 	while (1) {
-		if (p >= inb->limit)
+		if (p >= inb->limit || p < inb->base)
 			die("String offset %d overruns string table\n",
 			    offset);
 
