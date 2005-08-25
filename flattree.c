@@ -277,6 +277,7 @@ static void flatten_tree(struct node *tree, struct emitter *emit,
 			emit->align(etarget, 8);
 
 		emit->string(etarget, tree->name, tree->basenamelen);
+		emit->align(etarget, sizeof(cell_t));
 	}
 
 	for_each_child(tree, child) {
@@ -844,7 +845,7 @@ struct boot_info *dt_from_blob(FILE *f)
 	val = flat_read_word(&dtbuf);
 
 	if (val != OF_DT_BEGIN_NODE)
-		die("Device tree blob doesn't begin with OF_DT_BEGIN_NODE\n");
+		die("Device tree blob doesn't begin with OF_DT_BEGIN_NODE (begins with 0x%08x)\n", val);
 
 	tree = unflatten_tree(&dtbuf, &strbuf, "", flags);
 
