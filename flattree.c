@@ -298,8 +298,8 @@ static void make_bph(struct boot_param_header *bph,
 	memset(bph, 0xff, sizeof(*bph));
 
 	bph->magic = cpu_to_be32(OF_DT_HEADER);
-	bph->version = vi->version;
-	bph->last_comp_version = vi->last_comp_version;
+	bph->version = cpu_to_be32(vi->version);
+	bph->last_comp_version = cpu_to_be32(vi->last_comp_version);
 
 	/* Reserve map should be doubleword aligned */
 	reserve_off = ALIGN(vi->hdr_size, 8);
