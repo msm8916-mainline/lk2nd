@@ -101,21 +101,7 @@ struct data data_copy_mem(char *mem, int len)
 	return d;
 }
 
-char hexval(char c)
-{
-	switch (c) {
-	case '0' ... '9':
-		return c - '0';
-	case 'a' ... 'f':
-		return c - 'a';
-	case 'A' ... 'F':
-		return c - 'A';
-	default:
-		assert(0);
-	}
-}
-
-char get_oct_char(char *s, int *i)
+static char get_oct_char(char *s, int *i)
 {
 	char x[4];
 	char *endx;
@@ -137,7 +123,7 @@ char get_oct_char(char *s, int *i)
 	return val;
 }
 
-char get_hex_char(char *s, int *i)
+static char get_hex_char(char *s, int *i)
 {
 	char x[3];
 	char *endx;

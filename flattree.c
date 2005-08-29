@@ -27,7 +27,7 @@
 #define FTF_BOOTCPUID	0x8
 #define FTF_STRTABSIZE	0x10
 
-struct version_info {
+static struct version_info {
 	int version;
 	int last_comp_version;
 	int hdr_size;
@@ -100,7 +100,7 @@ static void bin_emit_property(void *e, char *label)
 	bin_emit_cell(e, OF_DT_PROP);
 }
 
-struct emitter bin_emitter = {
+static struct emitter bin_emitter = {
 	.cell = bin_emit_cell,
 	.string = bin_emit_string,
 	.align = bin_emit_align,
@@ -110,7 +110,7 @@ struct emitter bin_emitter = {
 	.property = bin_emit_property,	
 };
 
-void emit_label(FILE *f, char *prefix, char *label)
+static void emit_label(FILE *f, char *prefix, char *label)
 {
 	fprintf(f, "\t.globl\t%s_%s\n", prefix, label);
 	fprintf(f, "%s_%s:\n", prefix, label);
@@ -207,7 +207,7 @@ static void asm_emit_property(void *e, char *label)
 	fprintf(f, "\t.long\tOF_DT_PROP\n");
 }
 
-struct emitter asm_emitter = {
+static struct emitter asm_emitter = {
 	.cell = asm_emit_cell,
 	.string = asm_emit_string,
 	.align = asm_emit_align,
@@ -369,7 +369,7 @@ void write_dt_blob(FILE *f, struct boot_info *bi, int version)
 	data_free(strbuf);
 }
 
-void dump_stringtable_asm(FILE *f, struct data strbuf)
+static void dump_stringtable_asm(FILE *f, struct data strbuf)
 {
 	char *p;
 	int len;
@@ -561,8 +561,8 @@ static char *flat_read_stringtable(struct inbuf *inb, int offset)
 	return strdup(inb->base + offset);
 }
 
-struct property *flat_read_property(struct inbuf *dtbuf, struct inbuf *strbuf,
-				    int flags)
+static struct property *flat_read_property(struct inbuf *dtbuf,
+					   struct inbuf *strbuf, int flags)
 {
 	u32 proplen, stroff;
 	char *name;

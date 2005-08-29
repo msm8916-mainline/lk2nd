@@ -97,7 +97,7 @@ void add_child(struct node *parent, struct node *child)
  * Tree accessor functions
  */
 
-char *get_unitname(struct node *node)
+static char *get_unitname(struct node *node)
 {
 	if (node->name[node->basenamelen] == '\0')
 		return "";
@@ -105,7 +105,7 @@ char *get_unitname(struct node *node)
 		return node->name + node->basenamelen + 1;
 }
 
-struct property *get_property(struct node *node, char *propname)
+static struct property *get_property(struct node *node, char *propname)
 {
 	struct property *prop;
 
@@ -226,7 +226,7 @@ static int name_prop_check(struct property *prop, struct node *node)
 	return 1;
 }
 
-struct {
+static struct {
 	char *propname;
 	int (*check_fn)(struct property *prop, struct node *node);
 } prop_checker_table[] = {

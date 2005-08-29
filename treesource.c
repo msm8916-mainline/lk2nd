@@ -91,7 +91,7 @@ static enum proptype guess_type(struct property *prop)
 }
 
 
-void write_tree_source_node(FILE *f, struct node *tree, int level)
+static void write_tree_source_node(FILE *f, struct node *tree, int level)
 {
 	struct property *prop;
 	struct node *child;
