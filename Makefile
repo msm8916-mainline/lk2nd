@@ -1,16 +1,21 @@
-TARGETS = dtc
+TARGETS = dtc ftdump
 CFLAGS = -Wall -g
 
 BISON = bison
 
-OBJS = dtc.o livetree.o flattree.o data.o treesource.o fstree.o \
-	dtc-parser.tab.o lex.yy.o
+DTC_OBJS = dtc.o livetree.o flattree.o data.o treesource.o fstree.o \
+		dtc-parser.tab.o lex.yy.o
 
-DEPFILES = $(OBJS:.o=.d)
+OBJS = $(DTC_OBJS) libdt.o ftdump.o
 
-all: $(DEPFILES) $(TARGETS)
+DEPFILES = $(DTC_OBJS:.o=.d)
 
-dtc:	$(OBJS)
+all: $(TARGETS)
+
+dtc: $(DTC_OBJS)
+	$(LINK.c) -o $@ $^
+
+ftdump:	ftdump.o
 	$(LINK.c) -o $@ $^
 
 dtc-parser.tab.c dtc-parser.tab.h dtc-parser.output: dtc-parser.y

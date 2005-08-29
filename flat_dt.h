@@ -7,7 +7,8 @@
 #define OF_DT_BEGIN_NODE	0x1             /* Start node: full name */
 #define OF_DT_END_NODE		0x2             /* End node */
 #define OF_DT_PROP		0x3             /* Property: name off,
-                                                   size, content */
+						   size, content */
+#define OF_DT_NOP		0x4		/* nop */
 #define OF_DT_END               0x9
 
 struct boot_param_header {
