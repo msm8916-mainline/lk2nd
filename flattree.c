@@ -437,8 +437,8 @@ void write_dt_asm(FILE *f, struct boot_info *bi, int version)
 	 */
 	asm_emit_align(f, 8);
 	emit_label(f, symprefix, "reserve_map");
-	fprintf(f, "\t.long\t0, _%s_blob_start\n", symprefix);
-	fprintf(f, "\t.long\t0, _%s_blob_end - _%s_blob_start\n",
+	fprintf(f, "\t.quad\t0, _%s_blob_start\n", symprefix);
+	fprintf(f, "\t.quad\t0, _%s_blob_end - _%s_blob_start\n",
 		symprefix, symprefix);
 
 	if (bi->mem_reserve_data.len > 0) {
@@ -446,8 +446,8 @@ void write_dt_asm(FILE *f, struct boot_info *bi, int version)
 		asm_emit_data(f, bi->mem_reserve_data);
 	}
 
-	fprintf(f, "\t.llong\t0\n");
-	fprintf(f, "\t.llong\t0\n");
+	fprintf(f, "\t.quad\t0\n");
+	fprintf(f, "\t.quad\t0\n");
 
 	emit_label(f, symprefix, "struct_start");
 	flatten_tree(bi->dt, &asm_emitter, f, &strbuf, vi);
@@ -585,12 +585,8 @@ static struct property *flat_read_property(struct inbuf *dtbuf,
 static struct data flat_read_mem_reserve(struct inbuf *inb)
 {
 	char *p;
-	int len = 0;
-	int done = 0;
-	cell_t cells[4];
-	struct data d;
-
-	d = empty_data;
+	struct reserve_entry re;
+	struct data d = empty_data;
 
 	/*
 	 * Each entry is a pair of u64 (addr, size) values for 4 cell_t's.
@@ -599,20 +595,13 @@ static struct data flat_read_mem_reserve(struct inbuf *inb)
 	 * First pass, count entries.
 	 */
 	p = inb->ptr;
-	do {
-		flat_read_chunk(inb, &cells[0], 4 * sizeof(cell_t));
-		if (cells[2] == 0 && cells[3] == 0) {
-			done = 1;
-		} else {
-			++len;
-		}
-	} while (!done);
+	while (1) {
+		flat_read_chunk(inb, &re, sizeof(re));
+		if (re.size == 0)
+			break;
 
-	/*
-	 * Back up for pass two, reading the whole data value.
-	 */
-	inb->ptr = p;
-	d = flat_read_data(inb, len * 4 * sizeof(cell_t));
+		d = data_append_data(d, &re, sizeof(re));
+	}
 
 	return d;
 }

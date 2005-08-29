@@ -168,8 +168,9 @@ void write_tree_source(FILE *f, struct boot_info *bi)
 					    bi->mem_reserve_data.val) + i;
 
 		fprintf(f, "/memreserve/\t%016llx-%016llx;\n",
-			(unsigned long long)re->address,
-			(unsigned long long)re->address + re->size - 1);
+			(unsigned long long)be64_to_cpu(re->address),
+			(unsigned long long)(be64_to_cpu(re->address)
+					     + be64_to_cpu(re->size) - 1));
 	}
 
 	write_tree_source_node(f, bi->dt, 0);
