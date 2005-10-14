@@ -82,7 +82,7 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 				fprintf(stderr,
 					"Cell value %s too long\n", yytext);
 			}
-			yylval.cval = strtol(yytext, NULL, 16);
+			yylval.cval = strtoul(yytext, NULL, 16);
 			DPRINT("Cell: %x\n", yylval.cval);
 			return DT_CELL;
 		}
