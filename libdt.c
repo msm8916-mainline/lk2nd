@@ -3,32 +3,28 @@
 
 #include "flat_dt.h"
 
-typedef uint32_t u32;
-typedef uint64_t u64;
-
-#define ALIGN(x, a)	(((x) + ((a) - 1)) & ((a) - 1))
+#define ALIGN(x, a)	(((x) + ((a) - 1)) & ~((a) - 1))
 #define PALIGN(p, a)	((void *)(ALIGN((unsigned long)(p), (a))))
-
-#define GET_CELL(p)	(p += 4, *((u32 *)(p-4)))
+#define GET_CELL(p)	(p += 4, *((uint32_t *)(p-4)))
 
 static char *skip_name(char *p)
 {
 	while (*p != '\0')
 		p++;
 
-	return PALIGN(p, sizeof(u32));
+	return PALIGN(p, sizeof(uint32_t));
 }
 
 static char *skip_prop(void *blob, char *p)
 {
 	struct boot_param_header *bph = blob;
-	u32 len, nameoff;
+	uint32_t len, nameoff;
 
 	len = GET_CELL(p);
 	nameoff = GET_CELL(p);
-	if ((bph->version < 0x10) && (len >= sizeof(u64)))
-		p = PALIGN(p, sizeof(u64));
-	return PALIGN(p + len, sizeof(u32));
+	if ((bph->version < 0x10) && (len >= sizeof(uint64_t)))
+		p = PALIGN(p, sizeof(uint64_t));
+	return PALIGN(p + len, sizeof(uint32_t));
 }
 
 static char *get_unit(char *dtpath)
@@ -55,7 +51,7 @@ static int first_seg_len(char *dtpath)
 	return len;
 }
 
-char *flat_dt_get_string(void *blob, u32 offset)
+char *flat_dt_get_string(void *blob, uint32_t offset)
 {
 	struct boot_param_header *bph = blob;
 
@@ -66,7 +62,7 @@ void *flat_dt_get_subnode(void *blob, void *node, char *uname, int unamelen)
 {
 	struct boot_param_header *bph = blob;
 	char *p = node;
-	u32 tag;
+	uint32_t tag;
 	int depth = 0;
 	char *nuname;
 
@@ -121,7 +117,7 @@ void *flat_dt_get_node(void *blob, char *path)
 	int seglen;
 
 	node = blob + bph->off_dt_struct;
-	node += sizeof(u32); /* skip initial OF_DT_BEGIN_NODE */
+	node += sizeof(uint32_t); /* skip initial OF_DT_BEGIN_NODE */
 	node = skip_name(node);	/* skip root node name */
 
 	while (node && (*path)) {
@@ -143,7 +139,7 @@ void flat_dt_traverse(void *blob, int (*fn)(void *blob, void *node, void *priv),
 {
 	struct boot_param_header *bph = blob;
 	char *p;
-	u32 tag;
+	uint32_t tag;
 	int depth = 0;
 	char *uname;
 
@@ -179,14 +175,14 @@ void flat_dt_traverse(void *blob, int (*fn)(void *blob, void *node, void *priv),
 	}
 }
 
-void *flat_dt_get_prop(void *blob, void *node, char *name, u32 *len)
+void *flat_dt_get_prop(void *blob, void *node, char *name, uint32_t *len)
 {
 	struct boot_param_header *bph = blob;
 	char *p = node;
 
 	do {
-		u32 tag = GET_CELL(p);
-		u32 sz, noff;
+		uint32_t tag = GET_CELL(p);
+		uint32_t sz, noff;
 		const char *nstr;
 
 		if (tag != OF_DT_PROP)
@@ -208,6 +204,6 @@ void *flat_dt_get_prop(void *blob, void *node, char *name, u32 *len)
 			return (void *)p;
 		}
 
-		p = PALIGN(p + sz, sizeof(u32));
+		p = PALIGN(p + sz, sizeof(uint32_t));
 	} while(1);
 }
