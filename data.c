@@ -171,7 +171,14 @@ struct data data_copy_escape_string(char *s, int len)
 		case 'r':
 			q[d.len++] = '\r';
 			break;
-		case '0' ... '7':
+		case '0':
+		case '1':
+		case '2':
+		case '3':
+		case '4':
+		case '5':
+		case '6':
+		case '7':
 			i--; /* need to re-read the first digit as
 			      * part of the octal value */
 			q[d.len++] = get_oct_char(s, &i);
