@@ -18,6 +18,9 @@
  *                                                                   USA 
  */
 
+%glr-parser
+%locations
+
 %{
 #include "dtc.h"
 
@@ -68,8 +71,6 @@ extern struct boot_info *the_boot_info;
 %type <nodelist> subnodes
 %type <str> label
 %type <str> nodename
-
-%glr-parser
 
 %%
 
@@ -160,5 +161,5 @@ label:		DT_LABEL	{ $$ = $1; }
 
 void yyerror (char const *s)
 {
-	fprintf (stderr, "%s\n", s);
+	fprintf (stderr, "%s at line %d\n", s, yylloc.first_line);
 }

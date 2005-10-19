@@ -18,7 +18,7 @@
  *                                                                   USA 
  */
 
-%option noyywrap nounput
+%option noyywrap nounput yylineno
 
 %x CELLDATA
 %x BYTESTRING
@@ -43,24 +43,30 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 #define DPRINT(fmt, ...)	do { } while (0)
 #endif
 
+
+
 %}
 
 %%
 
 \"[^"]*\"	{
+			yylloc.first_line = yylineno;
 			DPRINT("String: %s\n", yytext);
 			yylval.data = data_copy_escape_string(yytext+1,
 					yyleng-2);
+			yylloc.first_line = yylineno;
 			return DT_STRING;
 		}
 
 "/memreserve/"	{
+			yylloc.first_line = yylineno;
 			DPRINT("Keyword: /memreserve/\n");
 			BEGIN(MEMRESERVE);
 			return DT_MEMRESERVE;
 		}
 
 <MEMRESERVE>[0-9a-fA-F]+ {
+			yylloc.first_line = yylineno;
 			if (yyleng > 2*sizeof(yylval.addr)) {
 				fprintf(stderr, "Address value %s too large\n",
 					yytext);
@@ -72,12 +78,14 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 		}
 
 <MEMRESERVE>";"	{
+			yylloc.first_line = yylineno;
 			DPRINT("/MEMRESERVE\n");
 			BEGIN(INITIAL);
 			return ';';
 		}
 
 <CELLDATA>[0-9a-fA-F]+	{
+			yylloc.first_line = yylineno;
 			if (yyleng > 2*sizeof(yylval.cval)) {
 				fprintf(stderr,
 					"Cell value %s too long\n", yytext);
@@ -88,36 +96,42 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 		}
 
 <CELLDATA>">"	{
+			yylloc.first_line = yylineno;
 			DPRINT("/CELLDATA\n");
 			BEGIN(INITIAL);
 			return '>';
 		}
 
 <CELLDATA>\&{REFCHAR}*	{
+			yylloc.first_line = yylineno;
 			DPRINT("Ref: %s\n", yytext+1);
 			yylval.str = strdup(yytext+1);
 			return DT_REF;
 		}
 
 <BYTESTRING>[0-9a-fA-F]{2} {
+			yylloc.first_line = yylineno;
 			yylval.byte = strtol(yytext, NULL, 16);
 			DPRINT("Byte: %02x\n", (int)yylval.byte);
 			return DT_BYTE;
 		}
 
 <BYTESTRING>"]"	{
+			yylloc.first_line = yylineno;
 			DPRINT("/BYTESTRING\n");
 			BEGIN(INITIAL);
 			return ']';
 		}
 
 {PROPCHAR}+	{
+			yylloc.first_line = yylineno;
 			DPRINT("PropName: %s\n", yytext);
 			yylval.str = strdup(yytext);
 			return DT_PROPNAME;
 		}
 
 {PROPCHAR}+(@{UNITCHAR}+)? {
+			yylloc.first_line = yylineno;
 			DPRINT("NodeName: %s\n", yytext);
 			yylval.str = strdup(yytext);
 			return DT_NODENAME;
@@ -125,6 +139,7 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 
 
 [a-zA-Z_][a-zA-Z0-9_]*:	{
+			yylloc.first_line = yylineno;
 			DPRINT("Label: %s\n", yytext);
 			yylval.str = strdup(yytext);
 			yylval.str[yyleng-1] = '\0';
@@ -134,6 +149,7 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 <*>{WS}+	/* eat whitespace */
 
 <*>"/*"([^*]|\*+[^*/])*\*+"/"	{
+			yylloc.first_line = yylineno;
 			DPRINT("Comment: %s\n", yytext);
 			/* eat comments */
 		}
@@ -141,6 +157,7 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 <*>"//".*\n	/* eat line comments */
 
 <*>.		{
+			yylloc.first_line = yylineno;
 			switch (yytext[0]) {
 				case '<':
 					DPRINT("CELLDATA\n");
