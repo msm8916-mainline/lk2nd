@@ -1,17 +1,14 @@
 - Bugfixes:
-
+	* Proper handling of boot cpu information
 - Error handling / reporting
-	* Report line/column numbers for syntax errors
 	* Better categorization of errors into severity levels
+	* Don't stop checking for later errors because of earlier ones
+	  whenever possible
 - Generate mem reserve map
-	* memory reserve section in source
-- Testsuite
-- Actually number releases, revision control, all that kind of jazz
+	* linux,reserve-map property
+	* generating reserve entry for device tree itself
+	* generating reserve entries from tce, rtas etc. properties
 
-- Labels:
-	Allow labels in tree source, which will be propogated and
-	exported as symbols in asm output
-- Autogenerate phandles
-	Allow property values to contain a reference to another node
-	(by path or label) which will be turned into a phandle for that node
-	in the output.
+
+- Testsuite
+- Actually number releases, all that kind of jazz
