@@ -262,8 +262,8 @@ static int check_properties(struct node *node)
 
 		/* check name length */
 		if (strlen(prop->name) > MAX_PROPNAME_LEN)
-			DO_ERR("Property name %s is too long in %s\n",
-			      prop->name, node->fullpath);
+			WARNMSG("Property name %s is too long in %s\n",
+				prop->name, node->fullpath);
 			
 		/* check this property */
 		for (i = 0; i < ARRAY_SIZE(prop_checker_table); i++) {
