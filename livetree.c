@@ -84,12 +84,28 @@ struct node *chain_node(struct node *first, struct node *list)
 
 void add_property(struct node *node, struct property *prop)
 {
-	node->proplist = chain_property(prop, node->proplist);
+	struct property **p;
+
+	prop->next = NULL;
+
+	p = &node->proplist;
+	while (*p)
+		p = &((*p)->next);
+
+	*p = prop;
 }
 
 void add_child(struct node *parent, struct node *child)
 {
-	parent->children = chain_node(child, parent->children);
+	struct node **p;
+
+	child->next_sibling = NULL;
+
+	p = &parent->children;
+	while (*p)
+		p = &((*p)->next_sibling);
+
+	*p = child;
 }
 
 
