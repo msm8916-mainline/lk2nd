@@ -26,18 +26,6 @@ extern void yyerror(char const *);
 
 struct boot_info *the_boot_info;
 
-struct data build_mem_reserve(struct data d)
-{
-	/*
-	 * FIXME: Should reconcile the -R parameter here now?
-	 */
-	if (d.len % 16 != 0) {
-		yyerror("Memory Reserve entries are <u64 addr, u64 size>\n");
-	}
-	return d;
-}
-
-
 struct boot_info *dt_from_source(FILE *f)
 {
 	the_boot_info = NULL;
@@ -158,19 +146,12 @@ static void write_tree_source_node(FILE *f, struct node *tree, int level)
 
 void write_tree_source(FILE *f, struct boot_info *bi)
 {
-	int i;
+	struct reserve_info *re;
 
-	assert((bi->mem_reserve_data.len % sizeof(struct reserve_entry)) == 0);
-	for (i = 0;
-	     i < (bi->mem_reserve_data.len / sizeof(struct reserve_entry));
-	     i++) {
-		struct reserve_entry *re = ((struct reserve_entry *)
-					    bi->mem_reserve_data.val) + i;
-
+	for (re = bi->reservelist; re; re = re->next) {
 		fprintf(f, "/memreserve/\t%016llx-%016llx;\n",
-			(unsigned long long)be64_to_cpu(re->address),
-			(unsigned long long)(be64_to_cpu(re->address)
-					     + be64_to_cpu(re->size) - 1));
+			(unsigned long long)re->re.address,
+			(unsigned long long)(re->re.address + re->re.size - 1));
 	}
 
 	write_tree_source_node(f, bi->dt, 0);

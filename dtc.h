@@ -120,6 +120,7 @@ struct data data_copy_file(FILE *f, size_t len);
 
 struct data data_append_data(struct data d, void *p, int len);
 struct data data_append_cell(struct data d, cell_t word);
+struct data data_append_re(struct data d, struct reserve_entry *re);
 struct data data_append_addr(struct data d, u64 addr);
 struct data data_append_byte(struct data d, uint8_t byte);
 struct data data_append_zeroes(struct data d, int len);
@@ -128,8 +129,6 @@ struct data data_append_align(struct data d, int align);
 struct data data_add_fixup(struct data d, char *ref);
 
 int data_is_one_string(struct data d);
-
-struct data build_mem_reserve(struct data d);
 
 /* DT constraints */
 
@@ -183,12 +182,28 @@ int check_device_tree(struct node *dt);
 
 /* Boot info (tree plus memreserve information */
 
+struct reserve_info {
+	struct reserve_entry re;
+
+	struct reserve_info *next;
+
+	char *label;
+};
+
+struct reserve_info *build_reserve_entry(u64 start, u64 len, char *label);
+struct reserve_info *chain_reserve_entry(struct reserve_info *first,
+					 struct reserve_info *list);
+struct reserve_info *add_reserve_entry(struct reserve_info *list,
+				       struct reserve_info *new);
+
+
 struct boot_info {
-	struct data mem_reserve_data;	/* mem reserve from header */
+	struct reserve_info *reservelist;
+/* 	struct data mem_reserve_data;	/\* mem reserve from header *\/ */
 	struct node *dt;		/* the device tree */
 };
 
-struct boot_info *build_boot_info(struct data mem_reserve_data,
+struct boot_info *build_boot_info(struct reserve_info *reservelist,
 				  struct node *tree);
 
 /* Flattened trees */

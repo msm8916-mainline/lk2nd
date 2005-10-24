@@ -287,14 +287,25 @@ static void flatten_tree(struct node *tree, struct emitter *emit,
 	emit->endnode(etarget, tree->label);
 }
 
+static struct data flatten_reserve_list(struct reserve_info *reservelist,
+				 struct version_info *vi)
+{
+	struct reserve_info *re;
+	struct data d = empty_data;
+
+	for (re = reservelist; re; re = re->next) {
+		d = data_append_re(d, &re->re);
+	}
+	
+	return d;
+}
 static void make_bph(struct boot_param_header *bph,
 		     struct version_info *vi,
-		     struct data *mem_reserve_data,
-		     int dtsize, int strsize)
+		     int reservesize, int dtsize, int strsize)
 {
 	int reserve_off;
-	int reservenum = mem_reserve_data->len / sizeof(struct reserve_entry);
-	int reservesize = (reservenum+1) * sizeof(struct reserve_entry);
+
+	reservesize += sizeof(struct reserve_entry);
 
 	memset(bph, 0xff, sizeof(*bph));
 
@@ -324,6 +335,7 @@ void write_dt_blob(FILE *f, struct boot_info *bi, int version)
 	int i;
 	struct data dtbuf = empty_data;
 	struct data strbuf = empty_data;
+	struct data reservebuf;
 	struct boot_param_header bph;
 	struct reserve_entry termre = {.address = 0, .size = 0};
 
@@ -340,8 +352,10 @@ void write_dt_blob(FILE *f, struct boot_info *bi, int version)
 	flatten_tree(bi->dt, &bin_emitter, &dtbuf, &strbuf, vi);
 	bin_emit_cell(&dtbuf, OF_DT_END);
 
+	reservebuf = flatten_reserve_list(bi->reservelist, vi);
+
 	/* Make header */
-	make_bph(&bph, vi, &bi->mem_reserve_data, dtbuf.len, strbuf.len);
+	make_bph(&bph, vi, reservebuf.len, dtbuf.len, strbuf.len);
 
 	fwrite(&bph, vi->hdr_size, 1, f);
 
@@ -356,7 +370,7 @@ void write_dt_blob(FILE *f, struct boot_info *bi, int version)
 	 * Each entry is an (address, size) pair of u64 values.
 	 * Always supply a zero-sized temination entry.
 	 */
-	fwrite(bi->mem_reserve_data.val, bi->mem_reserve_data.len, 1, f);
+	fwrite(reservebuf.val, reservebuf.len, 1, f);
 	fwrite(&termre, sizeof(termre), 1, f);
 
 	fwrite(dtbuf.val, dtbuf.len, 1, f);
@@ -388,6 +402,7 @@ void write_dt_asm(FILE *f, struct boot_info *bi, int version)
 	struct version_info *vi = NULL;
 	int i;
 	struct data strbuf = empty_data;
+	struct reserve_info *re;
 	char *symprefix = "dt";
 
 	for (i = 0; i < ARRAY_SIZE(version_table); i++) {
@@ -441,13 +456,14 @@ void write_dt_asm(FILE *f, struct boot_info *bi, int version)
 	fprintf(f, "\t.quad\t0, _%s_blob_end - _%s_blob_start\n",
 		symprefix, symprefix);
 
-	if (bi->mem_reserve_data.len > 0) {
-		fprintf(f, "/* Memory reserve map from source file */\n");
-		asm_emit_data(f, bi->mem_reserve_data);
+	fprintf(f, "/* Memory reserve map from source file */\n");
+	for (re = bi->reservelist; re; re = re->next) {
+		fprintf(f, "\t.quad\t0x%016llx\n\t.quad\t0x%016llx\n",
+			(unsigned long long)re->re.address,
+			(unsigned long long)re->re.size);
 	}
 
-	fprintf(f, "\t.quad\t0\n");
-	fprintf(f, "\t.quad\t0\n");
+	fprintf(f, "\t.quad\t0\n\t.quad\t0\n");
 
 	emit_label(f, symprefix, "struct_start");
 	flatten_tree(bi->dt, &asm_emitter, f, &strbuf, vi);
@@ -582,11 +598,12 @@ static struct property *flat_read_property(struct inbuf *dtbuf,
 }
 
 
-static struct data flat_read_mem_reserve(struct inbuf *inb)
+static struct reserve_info *flat_read_mem_reserve(struct inbuf *inb)
 {
+	struct reserve_info *reservelist = NULL;
+	struct reserve_info *new;
 	char *p;
 	struct reserve_entry re;
-	struct data d = empty_data;
 
 	/*
 	 * Each entry is a pair of u64 (addr, size) values for 4 cell_t's.
@@ -600,10 +617,11 @@ static struct data flat_read_mem_reserve(struct inbuf *inb)
 		if (re.size == 0)
 			break;
 
-		d = data_append_data(d, &re, sizeof(re));
+		new = build_reserve_entry(re.address, re.size, NULL);
+		reservelist = add_reserve_entry(reservelist, new);
 	}
 
-	return d;
+	return reservelist;
 }
 
 
@@ -726,7 +744,7 @@ struct boot_info *dt_from_blob(FILE *f)
 	struct inbuf dtbuf, strbuf;
 	struct inbuf memresvbuf;
 	int sizeleft;
-	struct data mem_reserve_data;
+	struct reserve_info *reservelist;
 	struct node *tree;
 	u32 val;
 	int flags = 0;
@@ -829,7 +847,7 @@ struct boot_info *dt_from_blob(FILE *f)
 	if (version >= 3)
 		strbuf.limit = strbuf.base + size_str;
 
-	mem_reserve_data = flat_read_mem_reserve(&memresvbuf);
+	reservelist = flat_read_mem_reserve(&memresvbuf);
 
 	val = flat_read_word(&dtbuf);
 
@@ -844,5 +862,5 @@ struct boot_info *dt_from_blob(FILE *f)
 
 	free(blob);
 
-	return build_boot_info(mem_reserve_data, tree);
+	return build_boot_info(reservelist, tree);
 }

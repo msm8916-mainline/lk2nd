@@ -43,7 +43,7 @@ extern struct boot_info *the_boot_info;
 	int datalen;
 	int hexlen;
 	u64 addr;
-	struct reserve_entry re;
+	struct reserve_info *re;
 }
 
 %token DT_MEMRESERVE
@@ -59,7 +59,7 @@ extern struct boot_info *the_boot_info;
 
 %type <data> propdata
 %type <re> memreserve
-%type <data> memreserves
+%type <re> memreserves
 %type <data> celllist
 %type <data> bytestring
 %type <prop> propdef
@@ -79,22 +79,19 @@ sourcefile:	memreserves devicetree {
 		}
 	;
 
-memreserves:	memreserves memreserve {
-			$$ = data_append_addr(data_append_addr($1, $2.address),
-					      $2.size);
+memreserves:	memreserve memreserves {
+			$$ = chain_reserve_entry($1, $2);
 		}
 	|	/* empty */	{
-			$$ = empty_data;
+			$$ = NULL;
 		}
 	;
 
 memreserve:	DT_MEMRESERVE DT_ADDR DT_ADDR ';' {
-			$$.address = $2;
-			$$.size = $3;
+			$$ = build_reserve_entry($2, $3, NULL);
 		}
 	|	DT_MEMRESERVE DT_ADDR '-' DT_ADDR ';' {
-			$$.address = $2;
-			$$.size = $4 - $2 + 1;
+			$$ = build_reserve_entry($2, $4 - $2 + 1, NULL);
 		}
 	;
 

@@ -108,6 +108,46 @@ void add_child(struct node *parent, struct node *child)
 	*p = child;
 }
 
+struct reserve_info *build_reserve_entry(u64 address, u64 size, char *label)
+{
+	struct reserve_info *new = xmalloc(sizeof(*new));
+
+	new->re.address = address;
+	new->re.size = size;
+
+	new->next = NULL;
+
+	new->label = label;
+
+	return new;
+}
+
+struct reserve_info *chain_reserve_entry(struct reserve_info *first,
+					struct reserve_info *list)
+{
+	assert(first->next == NULL);
+
+	first->next = list;
+	return first;
+}
+
+struct reserve_info *add_reserve_entry(struct reserve_info *list,
+				      struct reserve_info *new)
+{
+	struct reserve_info *last;
+
+	new->next = NULL;
+
+	if (! list)
+		return new;
+
+	for (last = list; last->next; last = last->next)
+		;
+
+	last->next = new;
+
+	return list;
+}
 
 /*
  * Tree accessor functions
@@ -682,13 +722,13 @@ int check_device_tree(struct node *dt)
 	return 1;
 }
 
-struct boot_info *build_boot_info(struct data mem_reserve_data,
+struct boot_info *build_boot_info(struct reserve_info *reservelist,
 				  struct node *tree)
 {
 	struct boot_info *bi;
 
 	bi = xmalloc(sizeof(*bi));
-	bi->mem_reserve_data = mem_reserve_data;
+	bi->reservelist = reservelist;
 	bi->dt = tree;
 
 	return bi;
