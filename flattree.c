@@ -329,7 +329,7 @@ static void make_bph(struct boot_param_header *bph,
 		bph->size_dt_strings = cpu_to_be32(strsize);
 }
 
-void write_dt_blob(FILE *f, struct boot_info *bi, int version)
+void dt_to_blob(FILE *f, struct boot_info *bi, int version)
 {
 	struct version_info *vi = NULL;
 	int i;
@@ -397,7 +397,7 @@ static void dump_stringtable_asm(FILE *f, struct data strbuf)
 	}
 }
 
-void write_dt_asm(FILE *f, struct boot_info *bi, int version)
+void dt_to_asm(FILE *f, struct boot_info *bi, int version)
 {
 	struct version_info *vi = NULL;
 	int i;

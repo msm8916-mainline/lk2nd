@@ -208,14 +208,14 @@ struct boot_info *build_boot_info(struct reserve_info *reservelist,
 
 /* Flattened trees */
 
-void write_dt_blob(FILE *f, struct boot_info *bi, int version);
-void write_dt_asm(FILE *f, struct boot_info *bi, int version);
+void dt_to_blob(FILE *f, struct boot_info *bi, int version);
+void dt_to_asm(FILE *f, struct boot_info *bi, int version);
 
 struct boot_info *dt_from_blob(FILE *f);
 
 /* Tree source */
 
-void write_tree_source(FILE *f, struct boot_info *bi);
+void dt_to_source(FILE *f, struct boot_info *bi);
 struct boot_info *dt_from_source(FILE *f);
 
 /* FS trees */

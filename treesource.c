@@ -144,7 +144,7 @@ static void write_tree_source_node(FILE *f, struct node *tree, int level)
 }
 
 
-void write_tree_source(FILE *f, struct boot_info *bi)
+void dt_to_source(FILE *f, struct boot_info *bi)
 {
 	struct reserve_info *re;
 

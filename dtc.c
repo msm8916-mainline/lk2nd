@@ -183,11 +183,11 @@ int main(int argc, char *argv[])
 	}
 
 	if (streq(outform, "dts")) {
-		write_tree_source(outf, bi);
+		dt_to_source(outf, bi);
 	} else if (streq(outform, "dtb")) {
-		write_dt_blob(outf, bi, outversion);
+		dt_to_blob(outf, bi, outversion);
 	} else if (streq(outform, "asm")) {
-		write_dt_asm(outf, bi, outversion);
+		dt_to_asm(outf, bi, outversion);
 	} else if (streq(outform, "null")) {
 		/* do nothing */
 	} else {
