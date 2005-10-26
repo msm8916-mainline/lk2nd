@@ -199,7 +199,6 @@ struct reserve_info *add_reserve_entry(struct reserve_info *list,
 
 struct boot_info {
 	struct reserve_info *reservelist;
-/* 	struct data mem_reserve_data;	/\* mem reserve from header *\/ */
 	struct node *dt;		/* the device tree */
 };
 
