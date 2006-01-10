@@ -1162,6 +1162,9 @@ platforms are moved over to use the flattened-device-tree model.
 
   Required properties:
     - reg : Offset and length of the register set for the device
+    - device_type : Should be "mdio"
+    - compatible : Should define the compatible device type for the
+      mdio.  Currently, this is most likely to be "gianfar"
 
   Example:
 
@@ -1179,7 +1182,7 @@ platforms are moved over to use the flattened-device-tree model.
   Required properties:
 
     - device_type : Should be "network"
-    - model : Model of the device.  Can be "TSEC" or "FEC"
+    - model : Model of the device.  Can be "TSEC", "eTSEC", or "FEC"
     - compatible : Should be "gianfar"
     - reg : Offset and length of the register set for the device
     - address : List of bytes representing the ethernet address of
@@ -1317,6 +1320,8 @@ not necessary as they are usually the same as the root node.
 
 		mdio@24520 {
 			reg = <24520 20>;
+			device_type = "mdio"; 
+			compatible = "gianfar";
 
 			ethernet-phy@0 {
 				linux,phandle = <2452000>
