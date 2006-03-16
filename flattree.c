@@ -121,7 +121,7 @@ static void asm_emit_cell(void *e, cell_t val)
 {
 	FILE *f = e;
 
-	fprintf(f, "\t.long\t0x%x\n", be32_to_cpu(val));
+	fprintf(f, "\t.long\t0x%x\n", val);
 }
 
 static void asm_emit_string(void *e, char *str, int len)
