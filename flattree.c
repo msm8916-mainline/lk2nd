@@ -450,13 +450,21 @@ void dt_to_asm(FILE *f, struct boot_info *bi, int version)
 	emit_label(f, symprefix, "reserve_map");
 
 	fprintf(f, "/* Memory reserve map from source file */\n");
+
+	/*
+	 * Use .long on high and low halfs of u64s to avoid .quad
+	 * as it appears .quad isn't available in some assemblers.
+	 */
 	for (re = bi->reservelist; re; re = re->next) {
-		fprintf(f, "\t.quad\t0x%016llx\n\t.quad\t0x%016llx\n",
-			(unsigned long long)re->re.address,
-			(unsigned long long)re->re.size);
+		fprintf(f, "\t.long\t0x%08x\n\t.long\t0x%08x\n",
+			(unsigned int)(re->re.address >> 32),
+			(unsigned int)(re->re.address & 0xffffffff));
+		fprintf(f, "\t.long\t0x%08x\n\t.long\t0x%08x\n",
+			(unsigned int)(re->re.size >> 32),
+			(unsigned int)(re->re.size & 0xffffffff));
 	}
 
-	fprintf(f, "\t.quad\t0\n\t.quad\t0\n");
+	fprintf(f, "\t.long\t0, 0\n\t.long\t0, 0\n");
 
 	emit_label(f, symprefix, "struct_start");
 	flatten_tree(bi->dt, &asm_emitter, f, &strbuf, vi);
