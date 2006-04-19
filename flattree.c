@@ -365,8 +365,6 @@ void dt_to_blob(FILE *f, struct boot_info *bi, int version)
 
 	/*
 	 * Reserve map entries.
-	 * Since the blob is relocatable, the address of the map is not
-	 * determinable here, so no entry is made for the DT itself.
 	 * Each entry is an (address, size) pair of u64 values.
 	 * Always supply a zero-sized temination entry.
 	 */
@@ -446,15 +444,10 @@ void dt_to_asm(FILE *f, struct boot_info *bi, int version)
 	 * Reserve map entries.
 	 * Align the reserve map to a doubleword boundary.
 	 * Each entry is an (address, size) pair of u64 values.
-	 * Since the ASM file variant can relocate and compute the address
-	 * and size of the the device tree itself, and an entry for it.
 	 * Always supply a zero-sized temination entry.
 	 */
 	asm_emit_align(f, 8);
 	emit_label(f, symprefix, "reserve_map");
-	fprintf(f, "\t.quad\t0, _%s_blob_start\n", symprefix);
-	fprintf(f, "\t.quad\t0, _%s_blob_end - _%s_blob_start\n",
-		symprefix, symprefix);
 
 	fprintf(f, "/* Memory reserve map from source file */\n");
 	for (re = bi->reservelist; re; re = re->next) {
