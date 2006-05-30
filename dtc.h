@@ -178,7 +178,7 @@ struct node *chain_node(struct node *first, struct node *list);
 void add_property(struct node *node, struct property *prop);
 void add_child(struct node *parent, struct node *child);
 
-int check_device_tree(struct node *dt);
+int check_device_tree(struct node *dt, int outversion, int boot_cpuid_phys);
 
 /* Boot info (tree plus memreserve information */
 
@@ -207,8 +207,10 @@ struct boot_info *build_boot_info(struct reserve_info *reservelist,
 
 /* Flattened trees */
 
-void dt_to_blob(FILE *f, struct boot_info *bi, int version);
-void dt_to_asm(FILE *f, struct boot_info *bi, int version);
+void dt_to_blob(FILE *f, struct boot_info *bi, int version,
+		int boot_cpuid_phys);
+void dt_to_asm(FILE *f, struct boot_info *bi, int version,
+	       int boot_cpuid_phys);
 
 struct boot_info *dt_from_blob(FILE *f);
 

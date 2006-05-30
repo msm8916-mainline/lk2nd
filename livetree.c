@@ -456,7 +456,7 @@ static int check_root(struct node *root)
 	return ok;
 }
 
-static int check_cpus(struct node *root)
+static int check_cpus(struct node *root, int outversion, int boot_cpuid_phys)
 {
 	struct node *cpus, *cpu;
 	struct property *prop;
@@ -518,8 +518,15 @@ static int check_cpus(struct node *root)
 		}
 	}
 
-	if (! bootcpu)
-		WARNMSG("No cpu has \"linux,boot-cpu\" property\n");
+	if (outversion < 2) {
+		if (! bootcpu)
+			WARNMSG("No cpu has \"linux,boot-cpu\" property\n");
+	} else {
+		if (bootcpu)
+			WARNMSG("\"linux,boot-cpu\" property is deprecated in blob version 2 or higher\n");
+		if (boot_cpuid_phys == 0xfeedbeef)
+			WARNMSG("physical boot CPU not set.  Use -b option to set\n");
+	}
 
 	return ok;	
 }
@@ -697,7 +704,7 @@ static void fixup_phandles(struct node *root, struct node *node)
 		fixup_phandles(root, child);
 }
 
-int check_device_tree(struct node *dt)
+int check_device_tree(struct node *dt, int outversion, int boot_cpuid_phys)
 {
 	int ok = 1;
 
@@ -713,7 +720,7 @@ int check_device_tree(struct node *dt)
 		return 0;
 
 	ok = ok && check_root(dt);
-	ok = ok && check_cpus(dt);
+	ok = ok && check_cpus(dt, outversion, boot_cpuid_phys);
 	ok = ok && check_memory(dt);
 	ok = ok && check_chosen(dt);
 	if (! ok)

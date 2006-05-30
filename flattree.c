@@ -301,7 +301,8 @@ static struct data flatten_reserve_list(struct reserve_info *reservelist,
 }
 static void make_bph(struct boot_param_header *bph,
 		     struct version_info *vi,
-		     int reservesize, int dtsize, int strsize)
+		     int reservesize, int dtsize, int strsize,
+		     int boot_cpuid_phys)
 {
 	int reserve_off;
 
@@ -324,12 +325,13 @@ static void make_bph(struct boot_param_header *bph,
 				     + dtsize + strsize);
 		
 	if (vi->flags & FTF_BOOTCPUID)
-		bph->boot_cpuid_phys = 0xfeedbeef;
+		bph->boot_cpuid_phys = cpu_to_be32(boot_cpuid_phys);
 	if (vi->flags & FTF_STRTABSIZE)
 		bph->size_dt_strings = cpu_to_be32(strsize);
 }
 
-void dt_to_blob(FILE *f, struct boot_info *bi, int version)
+void dt_to_blob(FILE *f, struct boot_info *bi, int version,
+		int boot_cpuid_phys)
 {
 	struct version_info *vi = NULL;
 	int i;
@@ -355,7 +357,8 @@ void dt_to_blob(FILE *f, struct boot_info *bi, int version)
 	reservebuf = flatten_reserve_list(bi->reservelist, vi);
 
 	/* Make header */
-	make_bph(&bph, vi, reservebuf.len, dtbuf.len, strbuf.len);
+	make_bph(&bph, vi, reservebuf.len, dtbuf.len, strbuf.len,
+		 boot_cpuid_phys);
 
 	fwrite(&bph, vi->hdr_size, 1, f);
 
@@ -395,7 +398,7 @@ static void dump_stringtable_asm(FILE *f, struct data strbuf)
 	}
 }
 
-void dt_to_asm(FILE *f, struct boot_info *bi, int version)
+void dt_to_asm(FILE *f, struct boot_info *bi, int version, int boot_cpuid_phys)
 {
 	struct version_info *vi = NULL;
 	int i;
@@ -434,7 +437,8 @@ void dt_to_asm(FILE *f, struct boot_info *bi, int version)
 		vi->last_comp_version);
 
 	if (vi->flags & FTF_BOOTCPUID)
-		fprintf(f, "\t.long\t0xdeadbeef\t/*boot_cpuid_phys*/\n");
+		fprintf(f, "\t.long\t%i\t/*boot_cpuid_phys*/\n",
+			boot_cpuid_phys);
 
 	if (vi->flags & FTF_STRTABSIZE)
 		fprintf(f, "\t.long\t_%s_strings_end - _%s_strings_start\t/* size_dt_strings */\n",

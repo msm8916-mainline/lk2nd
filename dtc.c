@@ -95,6 +95,8 @@ static void usage(void)
 	fprintf(stderr, "\t\tBlob version to produce, defaults to 3 (relevant for dtb\n\t\tand asm output only)\n");
 	fprintf(stderr, "\t-R <number>\n");
 	fprintf(stderr, "\t\tMake space for <number> reserve map entries (relevant for \n\t\tdtb and asm output only)\n");
+	fprintf(stderr, "\t-b <number>\n");
+	fprintf(stderr, "\t\tSet the physical boot cpu\n");
 	fprintf(stderr, "\t-f\n");
 	fprintf(stderr, "\t\tForce - try to produce output even if the input tree has errors\n");
 	exit(2);
@@ -113,8 +115,9 @@ int main(int argc, char *argv[])
 	FILE *outf = NULL;
 	int outversion = 3;
 	int reservenum = 1;
+	int boot_cpuid_phys = 0xfeedbeef;
 
-	while ((opt = getopt(argc, argv, "I:O:o:V:R:f")) != EOF) {
+	while ((opt = getopt(argc, argv, "I:O:o:V:R:fb:")) != EOF) {
 		switch (opt) {
 		case 'I':
 			inform = optarg;
@@ -133,6 +136,9 @@ int main(int argc, char *argv[])
 			break;
 		case 'f':
 			force = 1;
+			break;
+		case 'b':
+			boot_cpuid_phys = strtol(optarg, NULL, 0);
 			break;
 		default:
 			usage();
@@ -167,7 +173,7 @@ int main(int argc, char *argv[])
 	if (! bi || ! bi->dt)
 		die("Couldn't read input tree\n");
 
-	if (! check_device_tree(bi->dt)) {
+	if (! check_device_tree(bi->dt, outversion, boot_cpuid_phys)) {
 		fprintf(stderr, "Input tree has errors\n");
 		if (! force)
 			exit(1);
@@ -185,9 +191,9 @@ int main(int argc, char *argv[])
 	if (streq(outform, "dts")) {
 		dt_to_source(outf, bi);
 	} else if (streq(outform, "dtb")) {
-		dt_to_blob(outf, bi, outversion);
+		dt_to_blob(outf, bi, outversion, boot_cpuid_phys);
 	} else if (streq(outform, "asm")) {
-		dt_to_asm(outf, bi, outversion);
+		dt_to_asm(outf, bi, outversion, boot_cpuid_phys);
 	} else if (streq(outform, "null")) {
 		/* do nothing */
 	} else {
