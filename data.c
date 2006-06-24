@@ -20,24 +20,6 @@
 
 #include "dtc.h"
 
-#if 0
-static struct data data_init_buf(char *buf, int len)
-{
-	struct data d;
-
-	d.asize = 0;
-	d.len = len;
-	d.val = buf;
-
-	return d;
-}
-
-struct data data_ref_string(char *str)
-{
-	return data_init_buf(str, strlen(str)+1);
-}
-#endif
-
 void fixup_free(struct fixup *f)
 {
 	free(f->ref);
