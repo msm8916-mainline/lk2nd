@@ -619,6 +619,8 @@ static struct reserve_info *flat_read_mem_reserve(struct inbuf *inb)
 	p = inb->ptr;
 	while (1) {
 		flat_read_chunk(inb, &re, sizeof(re));
+		re.address  = be64_to_cpu(re.address);
+		re.size = be64_to_cpu(re.size);
 		if (re.size == 0)
 			break;
 
