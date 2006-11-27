@@ -1,0 +1,108 @@
+/*
+ * libfdt - Flat Device Tree manipulation
+ * Copyright (C) 2006 David Gibson, IBM Corporation.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+#include "libfdt_env.h"
+
+#include <fdt.h>
+#include <libfdt.h>
+
+#include "libfdt_internal.h"
+
+int fdt_setprop_inplace(struct fdt_header *fdt, int nodeoffset, const char *name,
+			const void *val, int len)
+{
+	void *propval;
+	int proplen;
+	int err;
+
+	propval = fdt_getprop(fdt, nodeoffset, name, &proplen);
+	if ((err = fdt_ptr_error(propval)))
+		return err;
+
+	if (proplen != len)
+		return FDT_ERR_SIZE_MISMATCH;
+
+	memcpy(propval, val, len);
+	return 0;
+}
+
+static void nop_region(void *start, int len)
+{
+	uint32_t *p;
+
+	for (p = start; (void *)p < (start + len); p++)
+		*p = FDT_NOP;
+}
+
+int fdt_nop_property(struct fdt_header *fdt, int nodeoffset, const char *name)
+{
+	struct fdt_property *prop;
+	int len;
+	int err;
+
+	prop = _fdt_getprop(fdt, nodeoffset, name, &len);
+	if ((err = fdt_ptr_error(prop)))
+		return err;
+
+	nop_region(prop, len + sizeof(*prop));
+
+	return 0;
+}
+
+int fdt_nop_node(struct fdt_header *fdt, int nodeoffset)
+{
+	int level = 0;
+	int err = 0;
+	uint32_t tag;
+	int offset, nextoffset;
+
+	tag = _fdt_next_tag(fdt, nodeoffset, &nextoffset);
+	if (tag != FDT_BEGIN_NODE)
+		return FDT_ERR_BADOFFSET;
+
+	do {
+		offset = nextoffset;
+		tag = _fdt_next_tag(fdt, offset, &nextoffset);
+
+		switch (tag) {
+		case FDT_END:
+			level = -1;
+			err = FDT_ERR_TRUNCATED;
+			break;
+
+		case FDT_BEGIN_NODE:
+			level++;
+			break;
+
+		case FDT_END_NODE:
+			level--;
+			break;
+
+		case FDT_PROP:
+		case FDT_NOP:
+			break;
+
+		default:
+			return FDT_ERR_BADSTRUCTURE;
+		}
+	} while (level >= 0);
+
+	nop_region(fdt_offset_ptr(fdt, nodeoffset, 0), nextoffset - nodeoffset);
+
+	return err;
+}
