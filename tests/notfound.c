@@ -36,13 +36,14 @@ void check_error(const char *s, int err)
 
 int main(int argc, char *argv[])
 {
-	struct fdt_header *fdt = &_test_tree1;
+	struct fdt_header *fdt;
 	int offset;
 	int subnode1_offset;
 	void *val;
 	int err;
 
 	test_init(argc, argv);
+	fdt = load_blob_arg(argc, argv);
 
 	offset = fdt_property_offset(fdt, 0, "nonexistant-property");
 	check_error("fdt_property_offset(\"nonexistant-property\")",

@@ -31,11 +31,12 @@
 
 int main(int argc, char *argv[])
 {
-	struct fdt_header *fdt = &_test_tree1;
+	struct fdt_header *fdt;
 	int subnode1_offset, subnode2_offset, subsubnode2_offset;
 	int err;
 
 	test_init(argc, argv);
+	fdt = load_blob_arg(argc, argv);
 
 	subnode1_offset = fdt_path_offset(fdt, "/subnode1");
 	if ((err = fdt_offset_error(subnode1_offset)))

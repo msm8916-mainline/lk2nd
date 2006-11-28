@@ -104,6 +104,22 @@ void cleanup(void);
 		exit(RC_BUG);				\
 	} while (0)
 
+static inline void *xmalloc(size_t size)
+{
+	void *p = malloc(size);
+	if (! p)
+		FAIL("malloc() failure");
+	return p;
+}
+
+static inline void *xrealloc(void *p, size_t size)
+{
+	p = realloc(p, size);
+	if (! p)
+		FAIL("realloc() failure");
+	return p;
+}
+
 const char *fdt_strerror(int errval);
 void check_property(struct fdt_header *fdt, int nodeoffset, const char *name,
 		    int len, const void *val);
@@ -121,6 +137,7 @@ void *check_getprop(struct fdt_header *fdt, int nodeoffset, const char *name,
 		typeof(val) x = val; \
 		check_getprop(fdt, nodeoffset, name, sizeof(x), &x); \
 	})
-
+//void *load_blob(const char *filename);
+void *load_blob_arg(int argc, char *argv[]);
 
 #endif /* _TESTS_H */

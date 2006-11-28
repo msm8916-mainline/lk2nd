@@ -1,10 +1,12 @@
 PREFIX = /usr/local
 
-LIB_TESTS = 
-LIBTREE_TESTS = root_node property_offset subnode_offset path_offset getprop \
+LIB_TESTS = root_node property_offset subnode_offset path_offset getprop \
 	notfound \
 	setprop_inplace nop_property nop_node
-TESTS = $(LIB_TESTS) $(LIBTREE_TESTS)
+TESTS = $(LIB_TESTS)
+UTILS = dumptrees
+
+TREES = test_tree1.dtb
 
 CFLAGS = -Wall -g
 CPPFLAGS = -I..
@@ -21,7 +23,7 @@ endif
 
 DEPFILES = $(TESTS:%=%.d) testutils.d
 
-all:	$(TESTS)
+all:	$(TESTS) $(TREES)
 
 %.o: %.c
 	@$(VECHO) CC $@
@@ -31,18 +33,22 @@ all:	$(TESTS)
 	@$(VECHO) AS $@
 	$(CC) -D__ASSEMBLY__ $(CPPFLAGS) -o $@ -c $<
 
-$(LIB_TESTS): %: %.o testutils.o $(LIBFDT)
-	@$(VECHO) LD "(testcase)" $@
-	$(CC) $(LDFLAGS) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+$(TREES): trees.o dumptrees
+	@$(VECHO) DUMPTREES
+	./dumptrees >/dev/null
 
-$(LIBTREE_TESTS): %: %.o testutils.o trees.o $(LIBFDT)
-	@$(VECHO) LD "(testcase + trees)" $@
-	$(CC) $(LDFLAGS) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+%: %.o
+	@$(VECHO) LD $@
+	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+
+dumptrees: trees.o
+
+$(LIB_TESTS): %: testutils.o $(LIBFDT)
 
 clean:
 	@$(VECHO) CLEAN "(tests)"
 	rm -f *~ *.o *.so *.a *.d *.s core a.out
-	rm -f $(TESTS)
+	rm -f $(TESTS) $(UTILS) *.dtb
 
 %.d: %.c
 	@$(CC) $(CPPFLAGS) -MM -MT "$*.o $@" $< > $@

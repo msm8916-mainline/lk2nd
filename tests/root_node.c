@@ -30,11 +30,12 @@
 
 int main(int argc, char *argv[])
 {
-	struct fdt_header *fdt = &_test_tree1;
+	struct fdt_header *fdt;
 	struct fdt_node_header *nh;
 
 	test_init(argc, argv);
-
+	fdt = load_blob_arg(argc, argv);
+	
 	nh = fdt_offset_ptr_typed(fdt, 0, nh);
 
 	if (! nh)

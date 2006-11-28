@@ -57,11 +57,12 @@ int check_subnode(struct fdt_header *fdt, int parent, const char *name)
 
 int main(int argc, char *argv[])
 {
-	struct fdt_header *fdt = &_test_tree1;
+	struct fdt_header *fdt;
 	int subnode1_offset, subnode2_offset;
 	int subsubnode1_offset, subsubnode2_offset;
 
 	test_init(argc, argv);
+	fdt = load_blob_arg(argc, argv);
 
 	subnode1_offset = check_subnode(fdt, 0, "subnode1");
 	subnode2_offset = check_subnode(fdt, 0, "subnode2");

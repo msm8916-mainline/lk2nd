@@ -27,6 +27,7 @@
 #include <errno.h>
 #include <signal.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 #include <libfdt.h>
 
@@ -160,4 +161,44 @@ void *check_getprop(struct fdt_header *fdt, int nodeoffset, const char *name,
 		FAIL("Data mismatch on property \"%s\"", name);
 
 	return propval;
+}
+
+#define CHUNKSIZE	128
+
+void *load_blob(const char *filename)
+{
+	int fd;
+	int offset = 0;
+	int bufsize = 1024;
+	char *p = NULL;
+	int ret;
+
+	fd = open(filename, O_RDONLY);
+	if (fd < 0)
+		CONFIG("Couldn't open blob from \"%s\": %s", filename,
+		       strerror(errno));
+
+	p = xmalloc(bufsize);
+	do {
+		if (offset == bufsize) {
+			bufsize *= 2;
+			p = xrealloc(p, bufsize);
+		}
+
+		ret = read(fd, &p[offset], bufsize - offset);
+		if (ret < 0)
+			CONFIG("Couldn't read from \"%s\": %s", filename,
+			       strerror(errno));
+
+		offset += ret;
+	} while (ret != 0);
+
+	return p;
+}
+
+void *load_blob_arg(int argc, char *argv[])
+{
+	if (argc != 2)
+		CONFIG("Usage: %s <dtb file>", argv[0]);
+	return load_blob(argv[1]);
 }

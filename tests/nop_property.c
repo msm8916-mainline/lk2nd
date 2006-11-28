@@ -31,12 +31,13 @@
 
 int main(int argc, char *argv[])
 {
-	struct fdt_header *fdt = &_test_tree1;
+	struct fdt_header *fdt;
 	uint32_t *intp;
 	char *strp;
 	int err;
 
 	test_init(argc, argv);
+	fdt = load_blob_arg(argc, argv);
 
 	intp = check_getprop_typed(fdt, 0, "prop-int", TEST_VALUE_1);
 	verbose_printf("int value was 0x%08x\n", *intp);

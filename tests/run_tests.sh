@@ -9,19 +9,25 @@ run_test () {
     PATH=".:$PATH" $ENV "$@"
 }
 
-functional_tests () {
+tree1_tests () {
+    TREE=$1
+
     # Read-only tests
-    run_test root_node
-    run_test property_offset
-    run_test subnode_offset
-    run_test path_offset
-    run_test getprop
-    run_test notfound
+    run_test root_node $TREE
+    run_test property_offset $TREE
+    run_test subnode_offset $TREE
+    run_test path_offset $TREE
+    run_test getprop $TREE
+    run_test notfound $TREE
 
     # Write-in-place tests
-    run_test setprop_inplace
-    run_test nop_property
-    run_test nop_node
+    run_test setprop_inplace $TREE
+    run_test nop_property $TREE
+    run_test nop_node $TREE
+}
+
+functional_tests () {
+    tree1_tests test_tree1.dtb
 }
 
 stress_tests () {
