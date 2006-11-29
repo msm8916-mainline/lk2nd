@@ -25,12 +25,24 @@
 
 static int check_header(const struct fdt_header *fdt)
 {
-	if (fdt32_to_cpu(fdt->magic) != FDT_MAGIC)
+	uint32_t magic = fdt32_to_cpu(fdt->magic);
+	uint32_t version = fdt32_to_cpu(fdt->version);
+	uint32_t last_comp_version = fdt32_to_cpu(fdt->last_comp_version);
+
+	if (magic == FDT_MAGIC) {
+		/* Complete tree */
+		if (version < FDT_FIRST_SUPPORTED_VERSION)
+			return FDT_ERR_BADVERSION;
+		if (last_comp_version > FDT_LAST_SUPPORTED_VERSION)
+			return FDT_ERR_BADVERSION;
+	} else if (magic == SW_MAGIC) {
+		/* Unfinished sequential-write blob */
+		if (SW_SIZE_DT_STRUCT(fdt) == 0)
+			return FDT_ERR_BADSTATE;
+	} else {
 		return FDT_ERR_BADMAGIC;
-	if (fdt32_to_cpu(fdt->version) < FDT_FIRST_SUPPORTED_VERSION)
-		return FDT_ERR_BADVERSION;
-	if (fdt32_to_cpu(fdt->last_comp_version) > FDT_LAST_SUPPORTED_VERSION)
-		return FDT_ERR_BADVERSION;
+	}
+
 	return 0;
 }
 

@@ -1,6 +1,6 @@
 PREFIX = /usr/local
 TARGETLIBS = libfdt.a
-LIBOBJS = fdt.o fdt_ro.o fdt_wip.o #fdt_sw.o
+LIBOBJS = fdt.o fdt_ro.o fdt_wip.o fdt_sw.o
 
 SOURCE = $(shell find . -maxdepth 1 ! -name version.h -a -name '*.[h]')
 SOURCE += *.c Makefile

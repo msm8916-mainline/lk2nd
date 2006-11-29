@@ -202,3 +202,29 @@ void *load_blob_arg(int argc, char *argv[])
 		CONFIG("Usage: %s <dtb file>", argv[0]);
 	return load_blob(argv[1]);
 }
+
+void save_blob(const char *filename, struct fdt_header *fdt)
+{
+	int fd;
+	int totalsize;
+	int offset;
+	void *p;
+	int ret;
+
+	fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	if (fd < 0)
+		CONFIG("Couldn't open \"%s\" to write blob: %s", filename,
+		       strerror(errno));
+
+	totalsize = fdt32_to_cpu(fdt->totalsize);
+	offset = 0;
+	p = fdt;
+
+	while (offset < totalsize) {
+		ret = write(fd, p + offset, totalsize - offset);
+		if (ret < 0)
+			CONFIG("Couldn't write to \"%s\": %s", filename,
+			       strerror(errno));
+		offset += ret;
+	}
+}

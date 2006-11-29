@@ -34,6 +34,7 @@ struct fdt_property *_fdt_getprop(const struct fdt_header *fdt, int nodeoffset,
 #define OFFSET_ERROR(code)	-(code)
 #define PTR_ERROR(code)		(void *)(-(code))
 
-#define SW_OFFSET(fdt)		((fdt)->version)
+#define SW_MAGIC		(~FDT_MAGIC)
+#define SW_SIZE_DT_STRUCT(fdt)	((fdt)->version)
 
 #endif /* _LIBFDT_INTERNAL_H */

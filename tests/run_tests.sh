@@ -27,7 +27,15 @@ tree1_tests () {
 }
 
 functional_tests () {
+    # Make sure we don't have stale blobs lying around
+    rm -f *.test.dtb
+
     tree1_tests test_tree1.dtb
+
+    # Sequential write tests
+    run_test sw_tree1
+    tree1_tests sw_tree1.test.dtb
+    tree1_tests unfinished_tree1.test.dtb
 }
 
 stress_tests () {

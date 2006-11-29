@@ -82,16 +82,23 @@ int fdt_setprop_inplace(struct fdt_header *fdt, int nodeoffset, const char *name
 int fdt_nop_property(struct fdt_header *fdt, int nodeoffset, const char *name);
 int fdt_nop_node(struct fdt_header *fdt, int nodeoffset);
 
-#if 0
 /* Sequential-write functions */
 struct fdt_header *fdt_create(void *buf, int bufsize);
 int fdt_add_reservemap_entry(struct fdt_header *fdt, uint64_t addr, uint64_t size);
-int fdt_begin_structure(struct fdt_header *fdt);
+int fdt_finish_reservemap(struct fdt_header *fdt);
 int fdt_begin_node(struct fdt_header *fdt, const char *name);
 int fdt_property(struct fdt_header *fdt, const char *name, const void *val, int len);
+#define fdt_property_typed(fdt, name, val) \
+	({ \
+		typeof(val) x = (val); \
+		fdt_property((fdt), (name), &x, sizeof(x)); \
+	})
+#define fdt_property_string(fdt, name, str) \
+	fdt_property(fdt, name, str, strlen(str)+1)
 int fdt_end_node(struct fdt_header *fdt);
-int fdt_finish_structure(struct fdt_header *fdt);
+int fdt_finish(struct fdt_header *fdt);
 
+#if 0
 /* Read-write functions */
 struct fdt_header *fdt_open(struct fdt_header *fdt, int bufsize);
 int fdt_add_subnode(struct fdt_header *fdtx, void *node, const char *name);

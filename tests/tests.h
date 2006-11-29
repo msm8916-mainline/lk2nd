@@ -139,5 +139,6 @@ void *check_getprop(struct fdt_header *fdt, int nodeoffset, const char *name,
 	})
 //void *load_blob(const char *filename);
 void *load_blob_arg(int argc, char *argv[]);
+void save_blob(const char *filename, struct fdt_header *fdt);
 
 #endif /* _TESTS_H */
