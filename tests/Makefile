@@ -33,17 +33,17 @@ all:	$(TESTS) $(TREES)
 	@$(VECHO) AS $@
 	$(CC) -D__ASSEMBLY__ $(CPPFLAGS) -o $@ -c $<
 
-$(TREES): trees.o dumptrees
-	@$(VECHO) DUMPTREES
-	./dumptrees >/dev/null
-
 %: %.o
 	@$(VECHO) LD $@
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
-dumptrees: trees.o
-
 $(LIB_TESTS): %: testutils.o $(LIBFDT)
+
+dumptrees: %: trees.o
+
+$(TREES): dumptrees
+	@$(VECHO) DUMPTREES
+	./dumptrees >/dev/null
 
 clean:
 	@$(VECHO) CLEAN "(tests)"
