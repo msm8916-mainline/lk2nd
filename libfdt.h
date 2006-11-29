@@ -54,10 +54,9 @@ void *fdt_offset_ptr(const struct fdt_header *fdt, int offset, int checklen);
 #define fdt_ptr_error(ptr) \
 	( (((long)(ptr) < 0) && ((long)(ptr) >= -FDT_ERR_MAX)) ? -(long)(ptr) : 0 )
 
-char *fdt_string(const struct fdt_header *fdt, int stroffset);
-int fdt_string_cmp(const struct fdt_header *fdt, int stroffset, const char *s2);
-
 /* Read-only functions */
+char *fdt_string(const struct fdt_header *fdt, int stroffset);
+
 int fdt_property_offset(const struct fdt_header *fdt, int nodeoffset,
 			const char *name);
 int fdt_subnode_offset_namelen(const struct fdt_header *fdt, int parentoffset,

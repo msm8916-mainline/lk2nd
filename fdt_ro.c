@@ -59,6 +59,11 @@ static int offset_streq(const struct fdt_header *fdt, int offset,
 	return 1;
 }
 
+char *fdt_string(const struct fdt_header *fdt, int stroffset)
+{
+	return (char *)fdt + fdt32_to_cpu(fdt->off_dt_strings) + stroffset;
+}
+
 int fdt_property_offset(const struct fdt_header *fdt, int nodeoffset,
 			const char *name)
 {
@@ -103,7 +108,7 @@ int fdt_property_offset(const struct fdt_header *fdt, int nodeoffset,
 			if (! prop)
 				return OFFSET_ERROR(FDT_ERR_BADSTRUCTURE);
 			namestroff = fdt32_to_cpu(prop->nameoff);
-			if (fdt_string_cmp(fdt, namestroff, name) == 0)
+			if (streq(fdt_string(fdt, namestroff), name))
 				/* Found it! */
 				return offset;
 			break;

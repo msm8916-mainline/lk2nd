@@ -34,26 +34,6 @@ void *fdt_offset_ptr(const struct fdt_header *fdt, int offset, int len)
 	return p;
 }
 
-char *fdt_string(const struct fdt_header *fdt, int stroffset)
-{
-	return (char *)fdt + fdt32_to_cpu(fdt->off_dt_strings) + stroffset;
-}
-
-int fdt_string_cmp(const struct fdt_header *fdt, int stroffset, const char *s2)
-{
-	const char *s1 = fdt_string(fdt, stroffset);
-	int len = strlen(s2) + 1;
-
-	if (! s1)
-		return 0;
-
-	if ((stroffset + len < stroffset)
-	    || (stroffset + len > fdt32_to_cpu(fdt->size_dt_strings)))
-		return -2;
-
-	return strcmp(s1, s2);
-}
-
 uint32_t _fdt_next_tag(const struct fdt_header *fdt, int offset, int *nextoffset)
 {
 	const uint32_t *tagp, *lenp;
