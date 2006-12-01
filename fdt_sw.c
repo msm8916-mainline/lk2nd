@@ -131,19 +131,14 @@ int fdt_end_node(struct fdt_header *fdt)
 static int find_add_string(struct fdt_header *fdt, const char *s)
 {
 	char *strtab = (char *)fdt + fdt_totalsize(fdt);
+	const char *p;
 	int strtabsize = fdt_size_dt_strings(fdt);
 	int len = strlen(s) + 1;
 	int struct_top, offset;
 
-	/* We treat string offsets as negative from the end of our buffer */
-	/* then fix them up in fdt_finish() */
-	offset = -strtabsize;
-	while ((offset < 0) && (memcmp(strtab + offset, s, len) != 0))
-		offset++;
-
-	if (offset < 0)
-		/* Found it */
-		return offset;
+	p = _fdt_find_string(strtab - strtabsize, strtabsize, s);
+	if (p)
+		return p - strtab;
 
 	/* Add it */
 	offset = -strtabsize - len;

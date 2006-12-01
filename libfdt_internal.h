@@ -30,7 +30,7 @@ int _fdt_check_header(const struct fdt_header *fdt);
 uint32_t _fdt_next_tag(const struct fdt_header *fdt, int startoffset, int *nextoffset);
 struct fdt_property *_fdt_getprop(const struct fdt_header *fdt, int nodeoffset,
 				  const char *name, int *lenp);
-
+const char *_fdt_find_string(const char *strtab, int tabsize, const char *s);
 
 #define OFFSET_ERROR(code)	-(code)
 #define PTR_ERROR(code)		(void *)(-(code))

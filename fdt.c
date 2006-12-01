@@ -92,6 +92,18 @@ uint32_t _fdt_next_tag(const struct fdt_header *fdt, int offset, int *nextoffset
 	return tag;
 }
 
+const char *_fdt_find_string(const char *strtab, int tabsize, const char *s)
+{
+	int len = strlen(s) + 1;
+	const char *last = strtab + tabsize - len;
+	const char *p;
+
+	for (p = strtab; p <= last; p++)
+		if (memeq(p, s, len))
+			return p;
+	return NULL;
+}
+
 struct fdt_header *fdt_move(const struct fdt_header *fdt, void *buf, int bufsize)
 {
 	int err = _fdt_check_header(fdt);
