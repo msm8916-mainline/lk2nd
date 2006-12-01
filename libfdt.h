@@ -64,6 +64,8 @@ void *fdt_offset_ptr(const struct fdt_header *fdt, int offset, int checklen);
 #define fdt_ptr_error(ptr) \
 	( (((long)(ptr) < 0) && ((long)(ptr) >= -FDT_ERR_MAX)) ? -(long)(ptr) : 0 )
 
+struct fdt_header *fdt_move(const struct fdt_header *fdt, void *buf, int bufsize);
+
 /* Read-only functions */
 char *fdt_string(const struct fdt_header *fdt, int stroffset);
 
@@ -115,9 +117,6 @@ int fdt_add_subnode(struct fdt_header *fdtx, void *node, const char *name);
 int fdt_set_property(struct fdt_header *fdtx, void *node, const char *name,
 		     const void *val, int len);
 int fdt_del_property(struct fdt_header *fdtx, void *node, const char *name);
-
-/* Misc functions */
-struct fdt_header *fdt_move(struct fdt_header *fdt, void *buf, int bufsize);
 #endif
 
 #endif /* _LIBFDT_H */

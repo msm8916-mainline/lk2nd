@@ -36,6 +36,15 @@ functional_tests () {
     run_test sw_tree1
     tree1_tests sw_tree1.test.dtb
     tree1_tests unfinished_tree1.test.dtb
+
+    # fdt_move tests
+    for tree in test_tree1.dtb sw_tree1.test.dtb unfinished_tree1.test.dtb; do
+	rm -f moved.$tree shunted.$tree deshunted.$tree
+	run_test move_and_save $tree
+	tree1_tests moved.$tree
+	tree1_tests shunted.$tree
+	tree1_tests deshunted.$tree
+    done
 }
 
 stress_tests () {

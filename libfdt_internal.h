@@ -26,6 +26,7 @@
 #define memeq(p, q, n)	(memcmp((p), (q), (n)) == 0)
 #define streq(p, q)	(strcmp((p), (q)) == 0)
 
+int _fdt_check_header(const struct fdt_header *fdt);
 uint32_t _fdt_next_tag(const struct fdt_header *fdt, int startoffset, int *nextoffset);
 struct fdt_property *_fdt_getprop(const struct fdt_header *fdt, int nodeoffset,
 				  const char *name, int *lenp);

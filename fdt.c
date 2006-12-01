@@ -23,6 +23,25 @@
 
 #include "libfdt_internal.h"
 
+int _fdt_check_header(const struct fdt_header *fdt)
+{
+	if (fdt_magic(fdt) == FDT_MAGIC) {
+		/* Complete tree */
+		if (fdt_version(fdt) < FDT_FIRST_SUPPORTED_VERSION)
+			return FDT_ERR_BADVERSION;
+		if (fdt_last_comp_version(fdt) > FDT_LAST_SUPPORTED_VERSION)
+			return FDT_ERR_BADVERSION;
+	} else if (fdt_magic(fdt) == SW_MAGIC) {
+		/* Unfinished sequential-write blob */
+		if (sw_size_dt_struct(fdt) == 0)
+			return FDT_ERR_BADSTATE;
+	} else {
+		return FDT_ERR_BADMAGIC;
+	}
+
+	return 0;
+}
+
 void *fdt_offset_ptr(const struct fdt_header *fdt, int offset, int len)
 {
 	void *p;
@@ -71,4 +90,18 @@ uint32_t _fdt_next_tag(const struct fdt_header *fdt, int offset, int *nextoffset
 		*nextoffset = ALIGN(offset, FDT_TAGSIZE);
 
 	return tag;
+}
+
+struct fdt_header *fdt_move(const struct fdt_header *fdt, void *buf, int bufsize)
+{
+	int err = _fdt_check_header(fdt);
+
+	if (err)
+		return PTR_ERROR(err);
+
+	if (fdt_totalsize(fdt) > bufsize)
+		return PTR_ERROR(FDT_ERR_NOSPACE);
+
+	memmove(buf, fdt, fdt_totalsize(fdt));
+	return (struct fdt_header *)buf;
 }

@@ -3,7 +3,8 @@ PREFIX = /usr/local
 LIB_TESTS = root_node property_offset subnode_offset path_offset getprop \
 	notfound \
 	setprop_inplace nop_property nop_node \
-	sw_tree1
+	sw_tree1 \
+	move_and_save
 TESTS = $(LIB_TESTS)
 UTILS = dumptrees
 

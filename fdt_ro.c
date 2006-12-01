@@ -23,29 +23,10 @@
 
 #include "libfdt_internal.h"
 
-static int check_header(const struct fdt_header *fdt)
-{
-	if (fdt_magic(fdt) == FDT_MAGIC) {
-		/* Complete tree */
-		if (fdt_version(fdt) < FDT_FIRST_SUPPORTED_VERSION)
-			return FDT_ERR_BADVERSION;
-		if (fdt_last_comp_version(fdt) > FDT_LAST_SUPPORTED_VERSION)
-			return FDT_ERR_BADVERSION;
-	} else if (fdt_magic(fdt) == SW_MAGIC) {
-		/* Unfinished sequential-write blob */
-		if (sw_size_dt_struct(fdt) == 0)
-			return FDT_ERR_BADSTATE;
-	} else {
-		return FDT_ERR_BADMAGIC;
-	}
-
-	return 0;
-}
-
 #define OFFSET_CHECK_HEADER(fdt) \
 	{ \
 		int err; \
-		if ((err = check_header(fdt)) != 0) \
+		if ((err = _fdt_check_header(fdt)) != 0) \
 			return OFFSET_ERROR(err); \
 	}
 
