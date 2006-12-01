@@ -57,15 +57,15 @@ int main(int argc, char *argv[])
 			     TEST_STRING_1);
 	verbose_printf("string value was \"%s\"\n", strp);
 	err = fdt_nop_property(fdt, 0, "prop-str");
-	err = fdt_ptr_error(intp);
+	if (err)
+		FAIL("Failed to nop \"prop-str\": %s", fdt_strerror(err));
+
+	strp = fdt_getprop(fdt, 0, "prop-str", NULL);
+	err = fdt_ptr_error(strp);
 	if (! err)
 		FAIL("prop-str still present after nopping");
 	if (err != FDT_ERR_NOTFOUND)
 		FAIL("Unexpected error on second getprop: %s", fdt_strerror(err));
-
-	strp = fdt_getprop(fdt, 0, "prop-str", NULL);
-	if (fdt_ptr_error(intp) != FDT_ERR_NOTFOUND)
-		FAIL("prop-str still present after nopping");
 
 	PASS();
 }
