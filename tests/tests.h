@@ -37,18 +37,6 @@ void test_init(int argc, char *argv[]);
 
 #define streq(s1, s2)	(strcmp((s1),(s2)) == 0)
 
-#if __BYTE_ORDER == __BIG_ENDIAN
-#define fdt32_to_cpu(x)		(x)
-#define cpu_to_fdt32(x)		(x)
-#define fdt64_to_cpu(x)		(x)
-#define cpu_to_fdt64(x)		(x)
-#else
-#define fdt32_to_cpu(x)		(bswap_32((x)))
-#define cpu_to_fdt32(x)		(bswap_32((x)))
-#define fdt64_to_cpu(x)		(bswap_64((x)))
-#define cpu_to_fdt64(x)		(bswap_64((x)))
-#endif
-
 /* Each test case must define this function */
 void cleanup(void);
 

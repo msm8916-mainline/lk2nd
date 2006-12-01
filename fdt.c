@@ -27,7 +27,7 @@ void *fdt_offset_ptr(const struct fdt_header *fdt, int offset, int len)
 {
 	void *p;
 
-	p = (void *)fdt + fdt32_to_cpu(fdt->off_dt_struct) + offset;
+	p = (void *)fdt + fdt_off_dt_struct(fdt) + offset;
 
 	if (p + len < p)
 		return NULL;

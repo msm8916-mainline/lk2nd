@@ -25,19 +25,15 @@
 
 static int check_header(const struct fdt_header *fdt)
 {
-	uint32_t magic = fdt32_to_cpu(fdt->magic);
-	uint32_t version = fdt32_to_cpu(fdt->version);
-	uint32_t last_comp_version = fdt32_to_cpu(fdt->last_comp_version);
-
-	if (magic == FDT_MAGIC) {
+	if (fdt_magic(fdt) == FDT_MAGIC) {
 		/* Complete tree */
-		if (version < FDT_FIRST_SUPPORTED_VERSION)
+		if (fdt_version(fdt) < FDT_FIRST_SUPPORTED_VERSION)
 			return FDT_ERR_BADVERSION;
-		if (last_comp_version > FDT_LAST_SUPPORTED_VERSION)
+		if (fdt_last_comp_version(fdt) > FDT_LAST_SUPPORTED_VERSION)
 			return FDT_ERR_BADVERSION;
-	} else if (magic == SW_MAGIC) {
+	} else if (fdt_magic(fdt) == SW_MAGIC) {
 		/* Unfinished sequential-write blob */
-		if (SW_SIZE_DT_STRUCT(fdt) == 0)
+		if (sw_size_dt_struct(fdt) == 0)
 			return FDT_ERR_BADSTATE;
 	} else {
 		return FDT_ERR_BADMAGIC;
@@ -73,7 +69,7 @@ static int offset_streq(const struct fdt_header *fdt, int offset,
 
 char *fdt_string(const struct fdt_header *fdt, int stroffset)
 {
-	return (char *)fdt + fdt32_to_cpu(fdt->off_dt_strings) + stroffset;
+	return (char *)fdt + fdt_off_dt_strings(fdt) + stroffset;
 }
 
 int fdt_property_offset(const struct fdt_header *fdt, int nodeoffset,

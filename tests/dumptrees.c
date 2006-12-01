@@ -4,8 +4,8 @@
 #include <fcntl.h>
 
 #include <fdt.h>
+#include <libfdt_env.h>
 
-#include "tests.h"
 #include "testdata.h"
 
 struct {

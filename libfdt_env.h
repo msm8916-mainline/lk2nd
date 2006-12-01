@@ -1,3 +1,6 @@
+#ifndef _LIBFDT_ENV_H
+#define _LIBFDT_ENV_H
+
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
@@ -16,4 +19,4 @@
 #define cpu_to_fdt64(x)		(bswap_64((x)))
 #endif
 
-#include "libfdt.h"
+#endif /* _LIBFDT_ENV_H */
