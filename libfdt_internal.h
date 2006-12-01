@@ -36,6 +36,5 @@ const char *_fdt_find_string(const char *strtab, int tabsize, const char *s);
 #define PTR_ERROR(code)		(void *)(-(code))
 
 #define SW_MAGIC		(~FDT_MAGIC)
-#define sw_size_dt_struct(fdt)	(fdt32_to_cpu(((fdt)->version)))
 
 #endif /* _LIBFDT_INTERNAL_H */

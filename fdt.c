@@ -33,7 +33,7 @@ int _fdt_check_header(const struct fdt_header *fdt)
 			return FDT_ERR_BADVERSION;
 	} else if (fdt_magic(fdt) == SW_MAGIC) {
 		/* Unfinished sequential-write blob */
-		if (sw_size_dt_struct(fdt) == 0)
+		if (fdt_size_dt_struct(fdt) == 0)
 			return FDT_ERR_BADSTATE;
 	} else {
 		return FDT_ERR_BADMAGIC;
@@ -45,6 +45,11 @@ int _fdt_check_header(const struct fdt_header *fdt)
 void *fdt_offset_ptr(const struct fdt_header *fdt, int offset, int len)
 {
 	void *p;
+
+	if (fdt_version(fdt) >= 0x11)
+		if (((offset + len) < offset)
+		    || ((offset + len) > fdt_size_dt_struct(fdt)))
+			return NULL;
 
 	p = (void *)fdt + fdt_off_dt_struct(fdt) + offset;
 

@@ -32,7 +32,7 @@ static int check_header_sw(struct fdt_header *fdt)
 
 static void *grab_space(struct fdt_header *fdt, int len)
 {
-	int offset = sw_size_dt_struct(fdt);
+	int offset = fdt_size_dt_struct(fdt);
 	int spaceleft;
 
 	spaceleft = fdt_totalsize(fdt) - fdt_off_dt_struct(fdt)
@@ -41,7 +41,7 @@ static void *grab_space(struct fdt_header *fdt, int len)
 	if ((offset + len < offset) || (offset + len > spaceleft))
 		return NULL;
 
-	fdt->version = cpu_to_fdt32(offset + len);
+	fdt->size_dt_struct = cpu_to_fdt32(offset + len);
 	return fdt_offset_ptr(fdt, offset, len);
 }
 
@@ -55,6 +55,8 @@ struct fdt_header *fdt_create(void *buf, int bufsize)
 	memset(buf, 0, bufsize);
 
 	fdt->magic = cpu_to_fdt32(SW_MAGIC);
+	fdt->version = cpu_to_fdt32(FDT_LAST_SUPPORTED_VERSION);
+	fdt->last_comp_version= cpu_to_fdt32(FDT_FIRST_SUPPORTED_VERSION);
 	fdt->totalsize = cpu_to_fdt32(bufsize);
 
 	fdt->off_mem_rsvmap = cpu_to_fdt32(ALIGN(sizeof(*fdt),
@@ -73,7 +75,7 @@ int fdt_add_reservemap_entry(struct fdt_header *fdt, uint64_t addr, uint64_t siz
 
 	if (err)
 		return err;
-	if (sw_size_dt_struct(fdt))
+	if (fdt_size_dt_struct(fdt))
 		return FDT_ERR_BADSTATE;
 
 	offset = fdt_off_dt_struct(fdt);
@@ -142,7 +144,7 @@ static int find_add_string(struct fdt_header *fdt, const char *s)
 
 	/* Add it */
 	offset = -strtabsize - len;
-	struct_top = fdt_off_dt_struct(fdt) + sw_size_dt_struct(fdt);
+	struct_top = fdt_off_dt_struct(fdt) + fdt_size_dt_struct(fdt);
 	if (fdt_totalsize(fdt) + offset < struct_top)
 		return 0; /* no more room :( */
 
@@ -195,7 +197,7 @@ int fdt_finish(struct fdt_header *fdt)
 
 	/* Relocate the string table */
 	oldstroffset = fdt_totalsize(fdt) - fdt_size_dt_strings(fdt);
-	newstroffset = fdt_off_dt_struct(fdt) + sw_size_dt_struct(fdt);
+	newstroffset = fdt_off_dt_struct(fdt) + fdt_size_dt_struct(fdt);
 	memmove(p + newstroffset, p + oldstroffset, fdt_size_dt_strings(fdt));
 	fdt->off_dt_strings = fdt32_to_cpu(newstroffset);
 
@@ -219,8 +221,6 @@ int fdt_finish(struct fdt_header *fdt)
 
 	/* Finally, adjust the header */
 	fdt->totalsize = cpu_to_fdt32(newstroffset + fdt_size_dt_strings(fdt));
-	fdt->version = cpu_to_fdt32(FDT_LAST_SUPPORTED_VERSION);
-	fdt->last_comp_version= cpu_to_fdt32(FDT_FIRST_SUPPORTED_VERSION);
 	fdt->magic = cpu_to_fdt32(FDT_MAGIC);
 	return 0;
 }

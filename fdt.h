@@ -19,6 +19,9 @@ struct fdt_header {
 					    booting on */
 	/* version 3 fields below */
         uint32_t size_dt_strings;        /* size of the strings block */
+
+	/* version 17 fields below */
+	uint32_t size_dt_struct;         /* size of the structure block */
 };
 
 struct fdt_reserve_entry {
@@ -53,6 +56,7 @@ struct fdt_property {
 #define FDT_V1_SIZE	(7*sizeof(uint32_t))
 #define FDT_V2_SIZE	(FDT_V1_SIZE + sizeof(uint32_t))
 #define FDT_V3_SIZE	(FDT_V2_SIZE + sizeof(uint32_t))
-
+#define FDT_V16_SIZE	FDT_V3_SIZE
+#define FDT_V17_SIZE	(FDT_V16_SIZE + sizeof(uint32_t))
 
 #endif /* _FDT_H */

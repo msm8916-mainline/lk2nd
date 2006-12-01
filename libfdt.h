@@ -23,7 +23,7 @@
 #include <libfdt_env.h>
 
 #define FDT_FIRST_SUPPORTED_VERSION	0x10
-#define FDT_LAST_SUPPORTED_VERSION	0x10
+#define FDT_LAST_SUPPORTED_VERSION	0x11
 
 /* Errors */
 #define FDT_ERR_OK		0
@@ -52,6 +52,7 @@
 #define fdt_last_comp_version(fdt)	(fdt32_to_cpu(fdt)->last_comp_version)
 #define fdt_boot_cpuid_phys(fdt)	(fdt32_to_cpu(fdt)->boot_cpuid_phys)
 #define fdt_size_dt_strings(fdt)	(fdt32_to_cpu(fdt)->size_dt_strings)
+#define fdt_size_dt_struct(fdt)		(fdt32_to_cpu(fdt)->size_dt_struct)
 
 void *fdt_offset_ptr(const struct fdt_header *fdt, int offset, int checklen);
 

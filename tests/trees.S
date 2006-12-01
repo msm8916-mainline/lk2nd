@@ -10,10 +10,11 @@ tree:	\
 	.long	tree##_struct - tree ; \
 	.long	tree##_strings - tree ; \
 	.long	tree##_rsvmap - tree ; \
-	.long	0x10		; \
+	.long	0x11		; \
 	.long	0x10		; \
 	.long	0		; \
-	.long	tree##_end - tree##_strings ;
+	.long	tree##_end - tree##_strings ; \
+	.long	tree##_strings - tree##_struct ;
 
 #define RSVMAP_ENTRY(addr, len) \
 	.quad	addr		; \
