@@ -45,6 +45,19 @@ functional_tests () {
 	tree1_tests shunted.$tree
 	tree1_tests deshunted.$tree
     done
+
+    # Read-write tests
+    for tree in test_tree1.dtb sw_tree1.test.dtb; do
+	rm -f opened.$tree repacked.$tree
+	run_test open_pack $tree
+	tree1_tests opened.$tree
+	tree1_tests repacked.$tree
+    done
+    run_test setprop test_tree1.dtb
+    run_test del_property test_tree1.dtb
+    run_test del_node test_tree1.dtb
+    run_test rw_tree1
+    tree1_tests rw_tree1.test.dtb
 }
 
 stress_tests () {

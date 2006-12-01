@@ -4,7 +4,8 @@ LIB_TESTS = root_node property_offset subnode_offset path_offset getprop \
 	notfound \
 	setprop_inplace nop_property nop_node \
 	sw_tree1 \
-	move_and_save
+	move_and_save \
+	open_pack rw_tree1 setprop del_property del_node
 TESTS = $(LIB_TESTS)
 UTILS = dumptrees
 

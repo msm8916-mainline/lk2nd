@@ -125,6 +125,8 @@ void *check_getprop(struct fdt_header *fdt, int nodeoffset, const char *name,
 		typeof(val) x = val; \
 		check_getprop(fdt, nodeoffset, name, sizeof(x), &x); \
 	})
+#define check_getprop_string(fdt, nodeoffset, name, s) \
+	check_getprop((fdt), (nodeoffset), (name), strlen(s)+1, (s))
 //void *load_blob(const char *filename);
 void *load_blob_arg(int argc, char *argv[]);
 void save_blob(const char *filename, struct fdt_header *fdt);

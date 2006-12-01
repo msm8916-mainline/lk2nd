@@ -40,8 +40,10 @@
 #define FDT_ERR_BADSTATE	11
 #define FDT_ERR_SIZE_MISMATCH	12
 #define FDT_ERR_INTERNAL	13
+#define FDT_ERR_BADLAYOUT	14
+#define FDT_ERR_EXISTS		15
 
-#define FDT_ERR_MAX		13
+#define FDT_ERR_MAX		14
 
 #define fdt_magic(fdt)			(fdt32_to_cpu(fdt)->magic)
 #define fdt_totalsize(fdt)		(fdt32_to_cpu(fdt)->totalsize)
@@ -111,13 +113,23 @@ int fdt_property(struct fdt_header *fdt, const char *name, const void *val, int 
 int fdt_end_node(struct fdt_header *fdt);
 int fdt_finish(struct fdt_header *fdt);
 
-#if 0
 /* Read-write functions */
-struct fdt_header *fdt_open(struct fdt_header *fdt, int bufsize);
-int fdt_add_subnode(struct fdt_header *fdtx, void *node, const char *name);
-int fdt_set_property(struct fdt_header *fdtx, void *node, const char *name,
-		     const void *val, int len);
-int fdt_del_property(struct fdt_header *fdtx, void *node, const char *name);
-#endif
+struct fdt_header *fdt_open_into(struct fdt_header *fdt, void *buf, int bufsize);
+struct fdt_header *fdt_pack(struct fdt_header *fdt);
+
+int fdt_setprop(struct fdt_header *fdt, int nodeoffset, const char *name,
+		const void *val, int len);
+#define fdt_setprop_typed(fdt, nodeoffset, name, val) \
+	({ \
+		typeof(val) x = (val); \
+		fdt_setprop((fdt), (nodeoffset), (name), &x, sizeof(x)); \
+	})
+#define fdt_setprop_string(fdt, nodeoffset, name, str) \
+	fdt_setprop((fdt), (nodeoffset), (name), (str), strlen(str)+1)
+int fdt_delprop(struct fdt_header *fdt, int nodeoffset, const char *name);
+int fdt_add_subnode_namelen(struct fdt_header *fdt, int parentoffset,
+			    const char *name, int namelen);
+int fdt_add_subnode(struct fdt_header *fdt, int parentoffset, const char *name);
+int fdt_del_node(struct fdt_header *fdt, int nodeoffset);
 
 #endif /* _LIBFDT_H */

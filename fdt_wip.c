@@ -64,26 +64,22 @@ int fdt_nop_property(struct fdt_header *fdt, int nodeoffset, const char *name)
 	return 0;
 }
 
-int fdt_nop_node(struct fdt_header *fdt, int nodeoffset)
+int _fdt_node_end_offset(struct fdt_header *fdt, int nodeoffset)
 {
 	int level = 0;
-	int err = 0;
 	uint32_t tag;
 	int offset, nextoffset;
 
 	tag = _fdt_next_tag(fdt, nodeoffset, &nextoffset);
 	if (tag != FDT_BEGIN_NODE)
 		return FDT_ERR_BADOFFSET;
-
 	do {
 		offset = nextoffset;
 		tag = _fdt_next_tag(fdt, offset, &nextoffset);
 
 		switch (tag) {
 		case FDT_END:
-			level = -1;
-			err = FDT_ERR_TRUNCATED;
-			break;
+			return offset;
 
 		case FDT_BEGIN_NODE:
 			level++;
@@ -102,7 +98,18 @@ int fdt_nop_node(struct fdt_header *fdt, int nodeoffset)
 		}
 	} while (level >= 0);
 
-	nop_region(fdt_offset_ptr(fdt, nodeoffset, 0), nextoffset - nodeoffset);
+	return nextoffset;
+}
 
-	return err;
+int fdt_nop_node(struct fdt_header *fdt, int nodeoffset)
+{
+	int endoffset;
+	int err;
+
+	endoffset = _fdt_node_end_offset(fdt, nodeoffset);
+	if ((err = fdt_offset_error(endoffset)))
+		return err;
+
+	nop_region(fdt_offset_ptr(fdt, nodeoffset, 0), endoffset - nodeoffset);
+	return 0;
 }
