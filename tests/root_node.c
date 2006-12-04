@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
 	if (! nh)
 		FAIL("NULL retrieving root node");
 
-	if (nh->tag != FDT_BEGIN_NODE)
+	if (fdt32_to_cpu(nh->tag) != FDT_BEGIN_NODE)
 		FAIL("Wrong tag on root node");
 
 	if (strlen(nh->name) != 0)

@@ -46,7 +46,7 @@ static void nop_region(void *start, int len)
 	uint32_t *p;
 
 	for (p = start; (void *)p < (start + len); p++)
-		*p = FDT_NOP;
+		*p = cpu_to_fdt32(FDT_NOP);
 }
 
 int fdt_nop_property(struct fdt_header *fdt, int nodeoffset, const char *name)

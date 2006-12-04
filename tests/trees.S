@@ -1,32 +1,49 @@
 #include <fdt.h>
 #include "testdata.h"
 
+#define FDTLONG(val) \
+	.byte	((val) >> 24) & 0xff ; \
+	.byte	((val) >> 16) & 0xff ; \
+	.byte	((val) >> 8) & 0xff ; \
+	.byte	(val) & 0xff
+
+#define FDTQUAD(val) \
+	.byte	((val) >> 56) & 0xff ; \
+	.byte	((val) >> 48) & 0xff ; \
+	.byte	((val) >> 40) & 0xff ; \
+	.byte	((val) >> 32) & 0xff ; \
+	.byte	((val) >> 24) & 0xff ; \
+	.byte	((val) >> 16) & 0xff ; \
+	.byte	((val) >> 8) & 0xff ; \
+	.byte	(val) & 0xff
+
 #define TREE_HDR(tree) \
 	.globl	_##tree		; \
 _##tree:	\
 tree:	\
-	.long	FDT_MAGIC	; \
-	.long	tree##_end - tree ; \
-	.long	tree##_struct - tree ; \
-	.long	tree##_strings - tree ; \
-	.long	tree##_rsvmap - tree ; \
-	.long	0x11		; \
-	.long	0x10		; \
-	.long	0		; \
-	.long	tree##_end - tree##_strings ; \
-	.long	tree##_strings - tree##_struct ;
+	FDTLONG(FDT_MAGIC)	; \
+	FDTLONG(tree##_end - tree) ; \
+	FDTLONG(tree##_struct - tree) ; \
+	FDTLONG(tree##_strings - tree) ; \
+	FDTLONG(tree##_rsvmap - tree) ; \
+	FDTLONG(0x11)		; \
+	FDTLONG(0x10)		; \
+	FDTLONG(0)		; \
+	FDTLONG(tree##_end - tree##_strings) ; \
+	FDTLONG(tree##_strings - tree##_struct) ;
 
 #define RSVMAP_ENTRY(addr, len) \
-	.quad	addr		; \
-	.quad	len		;
+	FDTQUAD(addr)		; \
+	FDTQUAD(len)		;
 
 #define PROPHDR(tree, name, len) \
-	.long	FDT_PROP	; \
-	.long	tree##_##name - tree##_strings ; \
-	.long	len		;
+	FDTLONG(FDT_PROP)	; \
+	FDTLONG(tree##_##name - tree##_strings) ; \
+	FDTLONG(len)		;
 
 #define PROP_INT(tree, name, val) \
 	PROPHDR(tree, name, 4) \
+	/* For ease of testing the property values go in native-endian */ \
 	.long	val
 
 #define PROP_STR(tree, name, str) \
@@ -37,12 +54,12 @@ tree:	\
 	.balign	4
 
 #define BEGIN_NODE(name) \
-	.long	FDT_BEGIN_NODE	; \
+	FDTLONG(FDT_BEGIN_NODE)	; \
 	.string	name		; \
 	.balign 4
 
 #define END_NODE \
-	.long	FDT_END_NODE	;
+	FDTLONG(FDT_END_NODE)	;
 
 #define STRING(tree, name, str) \
 tree##_##name:	\
@@ -77,7 +94,7 @@ test_tree1_struct:
 	END_NODE
 
 	END_NODE
-	.long	FDT_END
+	FDTLONG(FDT_END)
 
 test_tree1_strings:
 	STRING(test_tree1, prop_int, "prop-int")

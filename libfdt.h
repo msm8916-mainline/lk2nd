@@ -45,16 +45,16 @@
 
 #define FDT_ERR_MAX		14
 
-#define fdt_magic(fdt)			(fdt32_to_cpu(fdt)->magic)
-#define fdt_totalsize(fdt)		(fdt32_to_cpu(fdt)->totalsize)
-#define fdt_off_dt_struct(fdt)		(fdt32_to_cpu(fdt)->off_dt_struct)
-#define fdt_off_dt_strings(fdt)		(fdt32_to_cpu(fdt)->off_dt_strings)
-#define fdt_off_mem_rsvmap(fdt)		(fdt32_to_cpu(fdt)->off_mem_rsvmap)
-#define fdt_version(fdt)		(fdt32_to_cpu(fdt)->version)
-#define fdt_last_comp_version(fdt)	(fdt32_to_cpu(fdt)->last_comp_version)
-#define fdt_boot_cpuid_phys(fdt)	(fdt32_to_cpu(fdt)->boot_cpuid_phys)
-#define fdt_size_dt_strings(fdt)	(fdt32_to_cpu(fdt)->size_dt_strings)
-#define fdt_size_dt_struct(fdt)		(fdt32_to_cpu(fdt)->size_dt_struct)
+#define fdt_magic(fdt)			(fdt32_to_cpu(fdt->magic))
+#define fdt_totalsize(fdt)		(fdt32_to_cpu(fdt->totalsize))
+#define fdt_off_dt_struct(fdt)		(fdt32_to_cpu(fdt->off_dt_struct))
+#define fdt_off_dt_strings(fdt)		(fdt32_to_cpu(fdt->off_dt_strings))
+#define fdt_off_mem_rsvmap(fdt)		(fdt32_to_cpu(fdt->off_mem_rsvmap))
+#define fdt_version(fdt)		(fdt32_to_cpu(fdt->version))
+#define fdt_last_comp_version(fdt)	(fdt32_to_cpu(fdt->last_comp_version))
+#define fdt_boot_cpuid_phys(fdt)	(fdt32_to_cpu(fdt->boot_cpuid_phys))
+#define fdt_size_dt_strings(fdt)	(fdt32_to_cpu(fdt->size_dt_strings))
+#define fdt_size_dt_struct(fdt)		(fdt32_to_cpu(fdt->size_dt_struct))
 
 void *fdt_offset_ptr(const struct fdt_header *fdt, int offset, int checklen);
 
