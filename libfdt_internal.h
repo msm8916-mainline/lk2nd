@@ -41,7 +41,7 @@ const char *_fdt_find_string(const char *strtab, int tabsize, const char *s);
 int _fdt_node_end_offset(struct fdt_header *fdt, int nodeoffset);
 
 #define OFFSET_ERROR(code)	-(code)
-#define PTR_ERROR(code)		(void *)(-(code))
+#define PTR_ERROR(code)		(void *)(-(long)(code))
 
 #define SW_MAGIC		(~FDT_MAGIC)
 
