@@ -647,9 +647,6 @@ static cell_t get_node_phandle(struct node *root, struct node *node)
 {
 	static cell_t phandle = 1; /* FIXME: ick, static local */
 
-	fprintf(stderr, "get_node_phandle(%s)   phandle=%x\n",
-		node->fullpath, node->phandle);
-
 	if ((node->phandle != 0) && (node->phandle != -1))
 		return node->phandle;
 
