@@ -72,8 +72,6 @@ struct fdt_header *fdt_move(const struct fdt_header *fdt, void *buf, int bufsize
 /* Read-only functions */
 char *fdt_string(const struct fdt_header *fdt, int stroffset);
 
-int fdt_property_offset(const struct fdt_header *fdt, int nodeoffset,
-			const char *name);
 int fdt_subnode_offset_namelen(const struct fdt_header *fdt, int parentoffset,
 			       const char *name, int namelen);
 int fdt_subnode_offset(const struct fdt_header *fdt, int parentoffset,
@@ -81,6 +79,9 @@ int fdt_subnode_offset(const struct fdt_header *fdt, int parentoffset,
 
 int fdt_path_offset(const struct fdt_header *fdt, const char *path);
 
+struct fdt_property *fdt_get_property(const struct fdt_header *fdt,
+				      int nodeoffset,
+				      const char *name, int *lenp);
 void *fdt_getprop(const struct fdt_header *fdt, int nodeoffset,
 		  const char *name, int *lenp);
 

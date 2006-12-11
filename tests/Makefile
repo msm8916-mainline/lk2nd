@@ -1,6 +1,6 @@
 PREFIX = /usr/local
 
-LIB_TESTS = root_node property_offset subnode_offset path_offset getprop \
+LIB_TESTS = root_node find_property subnode_offset path_offset getprop \
 	notfound \
 	setprop_inplace nop_property nop_node \
 	sw_tree1 \

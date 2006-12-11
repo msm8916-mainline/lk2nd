@@ -106,20 +106,12 @@ const char *fdt_strerror(int errval)
 void check_property(struct fdt_header *fdt, int nodeoffset, const char *name,
 		    int len, const void *val)
 {
-	int offset;
 	const struct fdt_property *prop;
 	uint32_t tag, nameoff, proplen;
 	const char *propname;
-	int err;
 
 	verbose_printf("Checking property \"%s\"...", name);
-	offset = fdt_property_offset(fdt, nodeoffset, name);
-	verbose_printf("offset %d...", offset);
-	if ((err = fdt_offset_error(offset)))
-		FAIL("fdt_property_offset(\"%s\"): %s", name,
-		     fdt_strerror(err));
-
-	prop = fdt_offset_ptr_typed(fdt, offset, prop);
+	prop = fdt_get_property(fdt, nodeoffset, name, NULL);
 	verbose_printf("pointer %p\n", prop);
 	if (! prop)
 		FAIL("NULL retreiving \"%s\" pointer", name);

@@ -14,7 +14,7 @@ tree1_tests () {
 
     # Read-only tests
     run_test root_node $TREE
-    run_test property_offset $TREE
+    run_test find_property $TREE
     run_test subnode_offset $TREE
     run_test path_offset $TREE
     run_test getprop $TREE

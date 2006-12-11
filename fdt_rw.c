@@ -126,7 +126,7 @@ static struct fdt_property *_resize_property(struct fdt_header *fdt, int nodeoff
 	int oldlen;
 	int err;
 
-	prop = _fdt_getprop(fdt, nodeoffset, name, &oldlen);
+	prop = fdt_get_property(fdt, nodeoffset, name, &oldlen);
 	if ((err = fdt_ptr_error(prop)))
 		return PTR_ERROR(err);
 
@@ -203,7 +203,7 @@ int fdt_delprop(struct fdt_header *fdt, int nodeoffset, const char *name)
 
 	RW_OFFSET_CHECK_HEADER(fdt);
 
-	prop = _fdt_getprop(fdt, nodeoffset, name, &len);
+	prop = fdt_get_property(fdt, nodeoffset, name, &len);
 	if ((err = fdt_ptr_error(prop)))
 		return err;
 

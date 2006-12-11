@@ -36,6 +36,7 @@ void check_error(const char *s, int err)
 
 int main(int argc, char *argv[])
 {
+	struct fdt_property *prop;
 	struct fdt_header *fdt;
 	int offset;
 	int subnode1_offset;
@@ -45,9 +46,9 @@ int main(int argc, char *argv[])
 	test_init(argc, argv);
 	fdt = load_blob_arg(argc, argv);
 
-	offset = fdt_property_offset(fdt, 0, "nonexistant-property");
-	check_error("fdt_property_offset(\"nonexistant-property\")",
-		    fdt_offset_error(offset));
+	prop = fdt_get_property(fdt, 0, "nonexistant-property", NULL);
+	check_error("fdt_get_property(\"nonexistant-property\")",
+		    fdt_ptr_error(prop));
 
 	val = fdt_getprop(fdt, 0, "nonexistant-property", NULL);
 	check_error("fdt_getprop(\"nonexistant-property\"",

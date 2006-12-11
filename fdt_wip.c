@@ -55,7 +55,7 @@ int fdt_nop_property(struct fdt_header *fdt, int nodeoffset, const char *name)
 	int len;
 	int err;
 
-	prop = _fdt_getprop(fdt, nodeoffset, name, &len);
+	prop = fdt_get_property(fdt, nodeoffset, name, &len);
 	if ((err = fdt_ptr_error(prop)))
 		return err;
 
