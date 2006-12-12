@@ -51,7 +51,7 @@ void *fdt_offset_ptr(const struct fdt_header *fdt, int offset, int len)
 		    || ((offset + len) > fdt_size_dt_struct(fdt)))
 			return NULL;
 
-	p = (void *)fdt + fdt_off_dt_struct(fdt) + offset;
+	p = _fdt_offset_ptr(fdt, offset);
 
 	if (p + len < p)
 		return NULL;

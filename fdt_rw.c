@@ -157,10 +157,7 @@ static struct fdt_property *_add_property(struct fdt_header *fdt, int nodeoffset
 	if (namestroff < 0)
 		return PTR_ERROR(-namestroff);
 
-	prop = fdt_offset_ptr(fdt, nextoffset, 0);
-	if ((err = fdt_ptr_error(prop)))
-		return PTR_ERROR(err);
-
+	prop = _fdt_offset_ptr(fdt, nextoffset);
 	proplen = sizeof(*prop) + ALIGN(len, FDT_TAGSIZE);
 
 	err = _blob_splice_struct(fdt, prop, 0, proplen);
@@ -236,11 +233,9 @@ int fdt_add_subnode_namelen(struct fdt_header *fdt, int parentoffset,
 		tag = _fdt_next_tag(fdt, offset, &nextoffset);
 	} while (tag == FDT_PROP);
 
-	nh = fdt_offset_ptr(fdt, offset, 0);
-	if ((err = fdt_ptr_error(nh)))
-		return OFFSET_ERROR(err);
-
+	nh = _fdt_offset_ptr(fdt, offset);
 	nodelen = sizeof(*nh) + ALIGN(namelen+1, FDT_TAGSIZE) + FDT_TAGSIZE;
+
 	err = _blob_splice_struct(fdt, nh, 0, nodelen);
 	if (err)
 		return OFFSET_ERROR(err);
@@ -261,7 +256,6 @@ int fdt_add_subnode(struct fdt_header *fdt, int parentoffset, const char *name)
 
 int fdt_del_node(struct fdt_header *fdt, int nodeoffset)
 {
-	struct fdt_node_header *nh;
 	int endoffset;
 	int err;
 
@@ -269,11 +263,8 @@ int fdt_del_node(struct fdt_header *fdt, int nodeoffset)
 	if ((err = fdt_offset_error(endoffset)))
 		return err;
 
-	nh = fdt_offset_ptr(fdt, nodeoffset, 0);
-	if ((err = fdt_ptr_error(nh)))
-		return err;
-
-	return _blob_splice_struct(fdt, nh, endoffset - nodeoffset, 0);
+	return _blob_splice_struct(fdt, _fdt_offset_ptr(fdt, nodeoffset),
+				   endoffset - nodeoffset, 0);
 }
 
 struct fdt_header *fdt_open_into(struct fdt_header *fdt, void *buf, int bufsize)
