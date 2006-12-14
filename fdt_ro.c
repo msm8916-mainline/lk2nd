@@ -193,7 +193,7 @@ struct fdt_property *fdt_get_property(const struct fdt_header *fdt,
 				/* Found it! */
 				int len = fdt32_to_cpu(prop->len);
 				prop = fdt_offset_ptr(fdt, offset,
-						      sizeof(prop)+len);
+						      sizeof(*prop)+len);
 				if (! prop)
 					return PTR_ERROR(FDT_ERR_BADSTRUCTURE);
 

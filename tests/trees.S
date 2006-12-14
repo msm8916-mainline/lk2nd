@@ -18,6 +18,7 @@
 	.byte	(val) & 0xff
 
 #define TREE_HDR(tree) \
+	.balign	4		; \
 	.globl	_##tree		; \
 _##tree:	\
 tree:	\
@@ -100,3 +101,16 @@ test_tree1_strings:
 	STRING(test_tree1, prop_int, "prop-int")
 	STRING(test_tree1, prop_str, "prop-str")
 test_tree1_end:
+
+	TREE_HDR(truncated_property)
+truncated_property_rsvmap:
+	RSVMAP_ENTRY(0, 0)
+
+truncated_property_struct:
+	BEGIN_NODE("")
+	PROPHDR(truncated_property, prop_truncated, 4)
+	/* Oops, no actual property data here */
+	
+truncated_property_strings:
+	STRING(truncated_property, prop_truncated, "truncated")
+truncated_property_end:

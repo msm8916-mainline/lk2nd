@@ -5,4 +5,5 @@
 
 #ifndef __ASSEMBLY__
 extern struct fdt_header _test_tree1;
+extern struct fdt_header _truncated_property;
 #endif /* ! __ASSEMBLY */

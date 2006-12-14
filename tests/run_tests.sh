@@ -58,6 +58,9 @@ functional_tests () {
     run_test del_node test_tree1.dtb
     run_test rw_tree1
     tree1_tests rw_tree1.test.dtb
+
+    # Tests for behaviour on various sorts of corrupted trees
+    run_test truncated_property
 }
 
 stress_tests () {

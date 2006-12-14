@@ -6,7 +6,8 @@ LIB_TESTS = root_node find_property subnode_offset path_offset getprop \
 	sw_tree1 \
 	move_and_save \
 	open_pack rw_tree1 setprop del_property del_node
-TESTS = $(LIB_TESTS)
+LIBTREE_TESTS = truncated_property
+TESTS = $(LIB_TESTS) $(LIBTREE_TESTS)
 UTILS = dumptrees
 
 TREES = test_tree1.dtb
@@ -41,6 +42,8 @@ all:	$(TESTS) $(TREES)
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 $(LIB_TESTS): %: testutils.o $(LIBFDT)
+
+$(LIBTREE_TESTS): %: testutils.o trees.o $(LIBFDT)
 
 dumptrees: %: trees.o
 
