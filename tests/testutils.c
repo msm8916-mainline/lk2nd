@@ -140,11 +140,10 @@ void *check_getprop(void *fdt, int nodeoffset, const char *name,
 {
 	void *propval;
 	int proplen;
-	int err;
 
 	propval = fdt_getprop(fdt, nodeoffset, name, &proplen);
-	if ((err = fdt_ptr_error(propval)))
-		FAIL("fdt_getprop(\"%s\"): %s", name, fdt_strerror(err));
+	if (! propval)
+		FAIL("fdt_getprop(\"%s\"): %s", name, fdt_strerror(-proplen));
 
 	if (proplen != len)
 		FAIL("Size mismatch on property \"%s\": %d insead of %d",

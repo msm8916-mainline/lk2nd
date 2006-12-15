@@ -37,7 +37,6 @@ static inline void *_fdt_offset_ptr(const struct fdt_header *fdt, int offset)
 }
 
 #define OFFSET_ERROR(code)	-(code)
-#define PTR_ERROR(code)		(void *)(-(long)(code))
 
 #define SW_MAGIC		(~FDT_MAGIC)
 

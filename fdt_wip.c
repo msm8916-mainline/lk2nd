@@ -28,11 +28,10 @@ int fdt_setprop_inplace(void *fdt, int nodeoffset, const char *name,
 {
 	void *propval;
 	int proplen;
-	int err;
 
 	propval = fdt_getprop(fdt, nodeoffset, name, &proplen);
-	if ((err = fdt_ptr_error(propval)))
-		return err;
+	if (! propval)
+		return -proplen;
 
 	if (proplen != len)
 		return FDT_ERR_SIZE_MISMATCH;
@@ -53,11 +52,10 @@ int fdt_nop_property(void *fdt, int nodeoffset, const char *name)
 {
 	struct fdt_property *prop;
 	int len;
-	int err;
 
 	prop = fdt_get_property(fdt, nodeoffset, name, &len);
-	if ((err = fdt_ptr_error(prop)))
-		return err;
+	if (! prop)
+		return -len;
 
 	nop_region(prop, len + sizeof(*prop));
 

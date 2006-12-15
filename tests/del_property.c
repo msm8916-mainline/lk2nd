@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
 	void *fdt;
 	uint32_t *intp;
 	char *strp;
-	int err;
+	int err, lenerr;
 	int oldsize, delsize, newsize;
 
 	test_init(argc, argv);
@@ -49,11 +49,10 @@ int main(int argc, char *argv[])
 	if (err)
 		FAIL("Failed to delete \"prop-int\": %s", fdt_strerror(err));
 
-	intp = fdt_getprop(fdt, 0, "prop-int", NULL);
-	err = fdt_ptr_error(intp);
-	if (! err)
+	intp = fdt_getprop(fdt, 0, "prop-int", &lenerr);
+	if (intp)
 		FAIL("prop-int still present after deletion");
-	if (err != FDT_ERR_NOTFOUND)
+	if ((err = fdt_ptrlen_error(intp, lenerr)) != FDT_ERR_NOTFOUND)
 		FAIL("Unexpected error on second getprop: %s", fdt_strerror(err));
 
 	strp = check_getprop(fdt, 0, "prop-str", strlen(TEST_STRING_1)+1,
@@ -63,11 +62,10 @@ int main(int argc, char *argv[])
 	if (err)
 		FAIL("Failed to delete \"prop-str\": %s", fdt_strerror(err));
 
-	strp = fdt_getprop(fdt, 0, "prop-str", NULL);
-	err = fdt_ptr_error(strp);
-	if (! err)
+	strp = fdt_getprop(fdt, 0, "prop-str", &lenerr);
+	if (strp)
 		FAIL("prop-str still present after deletion");
-	if (err != FDT_ERR_NOTFOUND)
+	if ((err = fdt_ptrlen_error(strp, lenerr)) != FDT_ERR_NOTFOUND)
 		FAIL("Unexpected error on second getprop: %s", fdt_strerror(err));
 
 	delsize = fdt_totalsize(fdt);

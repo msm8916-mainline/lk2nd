@@ -42,24 +42,25 @@ int main(int argc, char *argv[])
 	int subnode1_offset;
 	void *val;
 	int err;
+	int lenerr;
 
 	test_init(argc, argv);
 	fdt = load_blob_arg(argc, argv);
 
-	prop = fdt_get_property(fdt, 0, "nonexistant-property", NULL);
+	prop = fdt_get_property(fdt, 0, "nonexistant-property", &lenerr);
 	check_error("fdt_get_property(\"nonexistant-property\")",
-		    fdt_ptr_error(prop));
+		    fdt_ptrlen_error(prop, lenerr));
 
-	val = fdt_getprop(fdt, 0, "nonexistant-property", NULL);
+	val = fdt_getprop(fdt, 0, "nonexistant-property", &lenerr);
 	check_error("fdt_getprop(\"nonexistant-property\"",
-		    fdt_ptr_error(val));
+		    fdt_ptrlen_error(val, lenerr));
 
 	subnode1_offset = fdt_subnode_offset(fdt, 0, "subnode1");
 	if ((err = fdt_offset_error(subnode1_offset)))
 		FAIL("Couldn't find subnode1: %s", fdt_strerror(err));
 
-	val = fdt_getprop(fdt, subnode1_offset, "prop-str", NULL);
-	check_error("fdt_getprop(\"prop-str\")", fdt_ptr_error(val));
+	val = fdt_getprop(fdt, subnode1_offset, "prop-str", &lenerr);
+	check_error("fdt_getprop(\"prop-str\")", fdt_ptrlen_error(val, lenerr));
 
 	offset = fdt_subnode_offset(fdt, 0, "nonexistant-subnode");
 	check_error("fdt_subnode_offset(\"nonexistant-subnode\")",

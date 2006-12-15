@@ -35,6 +35,7 @@ int main(int argc, char *argv[])
 	uint32_t *intp;
 	char *strp;
 	int err;
+	int lenerr;
 
 	test_init(argc, argv);
 	fdt = load_blob_arg(argc, argv);
@@ -46,11 +47,10 @@ int main(int argc, char *argv[])
 	if (err)
 		FAIL("Failed to nop \"prop-int\": %s", fdt_strerror(err));
 
-	intp = fdt_getprop(fdt, 0, "prop-int", NULL);
-	err = fdt_ptr_error(intp);
-	if (! err)
+	intp = fdt_getprop(fdt, 0, "prop-int", &lenerr);
+	if (intp)
 		FAIL("prop-int still present after nopping");
-	if (err != FDT_ERR_NOTFOUND)
+	if ((err = fdt_ptrlen_error(intp, lenerr)) != FDT_ERR_NOTFOUND)
 		FAIL("Unexpected error on second getprop: %s", fdt_strerror(err));
 	
 	strp = check_getprop(fdt, 0, "prop-str", strlen(TEST_STRING_1)+1,
@@ -60,11 +60,10 @@ int main(int argc, char *argv[])
 	if (err)
 		FAIL("Failed to nop \"prop-str\": %s", fdt_strerror(err));
 
-	strp = fdt_getprop(fdt, 0, "prop-str", NULL);
-	err = fdt_ptr_error(strp);
-	if (! err)
+	strp = fdt_getprop(fdt, 0, "prop-str", &lenerr);
+	if (strp)
 		FAIL("prop-str still present after nopping");
-	if (err != FDT_ERR_NOTFOUND)
+	if ((err = fdt_ptrlen_error(strp, lenerr)) != FDT_ERR_NOTFOUND)
 		FAIL("Unexpected error on second getprop: %s", fdt_strerror(err));
 
 	PASS();

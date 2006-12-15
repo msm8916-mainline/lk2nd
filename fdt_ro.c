@@ -30,13 +30,6 @@
 			return OFFSET_ERROR(err); \
 	}
 
-#define PTR_CHECK_HEADER(fdt) \
-	{ \
-		int err; \
-		if ((err = _fdt_check_header(fdt)) != 0) \
-			return PTR_ERROR(err); \
-	}
-
 static int offset_streq(const void *fdt, int offset,
 			const char *s, int len)
 {
@@ -153,25 +146,30 @@ struct fdt_property *fdt_get_property(const void *fdt,
 	struct fdt_property *prop;
 	int namestroff;
 	int offset, nextoffset;
+	int err;
 
-	PTR_CHECK_HEADER(fdt);
+	if ((err = _fdt_check_header(fdt)) != 0)
+		goto fail;
 
+	err = FDT_ERR_BADOFFSET;
 	if (nodeoffset % FDT_TAGSIZE)
-		return PTR_ERROR(FDT_ERR_BADOFFSET);
+		goto fail;
 
 	tag = _fdt_next_tag(fdt, nodeoffset, &nextoffset);
 	if (tag != FDT_BEGIN_NODE)
-		return PTR_ERROR(FDT_ERR_BADOFFSET);
+		goto fail;
 
 	do {
 		offset = nextoffset;
+		err = FDT_ERR_INTERNAL;
 		if (offset % FDT_TAGSIZE)
-			return PTR_ERROR(FDT_ERR_INTERNAL);
+			goto fail;
 
 		tag = _fdt_next_tag(fdt, offset, &nextoffset);
 		switch (tag) {
 		case FDT_END:
-			return PTR_ERROR(FDT_ERR_TRUNCATED);
+			err = FDT_ERR_TRUNCATED;
+			goto fail;
 
 		case FDT_BEGIN_NODE:
 			level++;
@@ -185,9 +183,10 @@ struct fdt_property *fdt_get_property(const void *fdt,
 			if (level != 0)
 				continue;
 
+			err = FDT_ERR_BADSTRUCTURE;
 			prop = fdt_offset_ptr_typed(fdt, offset, prop);
 			if (! prop)
-				return PTR_ERROR(FDT_ERR_BADSTRUCTURE);
+				goto fail;
 			namestroff = fdt32_to_cpu(prop->nameoff);
 			if (streq(fdt_string(fdt, namestroff), name)) {
 				/* Found it! */
@@ -195,7 +194,7 @@ struct fdt_property *fdt_get_property(const void *fdt,
 				prop = fdt_offset_ptr(fdt, offset,
 						      sizeof(*prop)+len);
 				if (! prop)
-					return PTR_ERROR(FDT_ERR_BADSTRUCTURE);
+					goto fail;
 
 				if (lenp)
 					*lenp = len;
@@ -208,22 +207,26 @@ struct fdt_property *fdt_get_property(const void *fdt,
 			break;
 
 		default:
-			return PTR_ERROR(FDT_ERR_BADSTRUCTURE);
+			err = FDT_ERR_BADSTRUCTURE;
+			goto fail;
 		}
 	} while (level >= 0);
 
-	return PTR_ERROR(FDT_ERR_NOTFOUND);
+	err = FDT_ERR_NOTFOUND;
+ fail:
+	if (lenp)
+		*lenp = -err;
+	return NULL;
 }
 
 void *fdt_getprop(const void *fdt, int nodeoffset,
 		  const char *name, int *lenp)
 {
 	const struct fdt_property *prop;
-	int err;
 
 	prop = fdt_get_property(fdt, nodeoffset, name, lenp);
-	if ((err = fdt_ptr_error(prop)))
-		return PTR_ERROR(err);
+	if (! prop)
+		return NULL;
 
 	return prop->data;
 }

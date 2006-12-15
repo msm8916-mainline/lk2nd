@@ -117,31 +117,29 @@ static int _find_add_string(void *fdt, const char *s)
 	return (new - strtab);
 }
 
-static struct fdt_property *_resize_property(void *fdt, int nodeoffset,
-					     const char *name, int len)
+static int _resize_property(void *fdt, int nodeoffset, const char *name, int len,
+			    struct fdt_property **prop)
 {
-	struct fdt_property *prop;
 	int oldlen;
 	int err;
 
-	prop = fdt_get_property(fdt, nodeoffset, name, &oldlen);
-	if ((err = fdt_ptr_error(prop)))
-		return PTR_ERROR(err);
+	*prop = fdt_get_property(fdt, nodeoffset, name, &oldlen);
+	if (! (*prop))
+		return -oldlen;
 
-	if ((err = _blob_splice_struct(fdt, prop->data,
+	if ((err = _blob_splice_struct(fdt, (*prop)->data,
 				       ALIGN(oldlen, FDT_TAGSIZE),
 				       ALIGN(len, FDT_TAGSIZE))))
-		return PTR_ERROR(err);
+		return err;
 
-	prop->len = cpu_to_fdt32(len);
-	return prop;
+	(*prop)->len = cpu_to_fdt32(len);
+	return 0;
 }
 
-static struct fdt_property *_add_property(void *fdt, int nodeoffset,
-					  const char *name, int len)
+static int _add_property(void *fdt, int nodeoffset, const char *name, int len,
+			 struct fdt_property **prop)
 {
 	uint32_t tag;
-	struct fdt_property *prop;
 	int proplen;
 	int nextoffset;
 	int namestroff;
@@ -149,23 +147,23 @@ static struct fdt_property *_add_property(void *fdt, int nodeoffset,
 
 	tag = _fdt_next_tag(fdt, nodeoffset, &nextoffset);
 	if (tag != FDT_BEGIN_NODE)
-		return PTR_ERROR(FDT_ERR_BADOFFSET);
+		return FDT_ERR_BADOFFSET;
 
 	namestroff = _find_add_string(fdt, name);
 	if (namestroff < 0)
-		return PTR_ERROR(-namestroff);
+		return -namestroff;
 
-	prop = _fdt_offset_ptr(fdt, nextoffset);
-	proplen = sizeof(*prop) + ALIGN(len, FDT_TAGSIZE);
+	*prop = _fdt_offset_ptr(fdt, nextoffset);
+	proplen = sizeof(**prop) + ALIGN(len, FDT_TAGSIZE);
 
-	err = _blob_splice_struct(fdt, prop, 0, proplen);
+	err = _blob_splice_struct(fdt, *prop, 0, proplen);
 	if (err)
-		return PTR_ERROR(err);
+		return err;
 
-	prop->tag = cpu_to_fdt32(FDT_PROP);
-	prop->nameoff = cpu_to_fdt32(namestroff);
-	prop->len = cpu_to_fdt32(len);
-	return prop;
+	(*prop)->tag = cpu_to_fdt32(FDT_PROP);
+	(*prop)->nameoff = cpu_to_fdt32(namestroff);
+	(*prop)->len = cpu_to_fdt32(len);
+	return 0;
 }
 
 int fdt_setprop(void *fdt, int nodeoffset, const char *name,
@@ -177,12 +175,9 @@ int fdt_setprop(void *fdt, int nodeoffset, const char *name,
 	if ((err = rw_check_header(fdt)))
 		return err;
 
-	prop = _resize_property(fdt, nodeoffset, name, len);
-	err = fdt_ptr_error(prop);
-	if (err == FDT_ERR_NOTFOUND) {
-		prop = _add_property(fdt, nodeoffset, name, len);
-		err = fdt_ptr_error(prop);
-	}
+	err = _resize_property(fdt, nodeoffset, name, len, &prop);
+	if (err == FDT_ERR_NOTFOUND)
+		err = _add_property(fdt, nodeoffset, name, len, &prop);
 	if (err)
 		return err;
 
@@ -194,13 +189,12 @@ int fdt_delprop(void *fdt, int nodeoffset, const char *name)
 {
 	struct fdt_property *prop;
 	int len, proplen;
-	int err;
 
 	RW_OFFSET_CHECK_HEADER(fdt);
 
 	prop = fdt_get_property(fdt, nodeoffset, name, &len);
-	if ((err = fdt_ptr_error(prop)))
-		return err;
+	if (! prop)
+		return -len;
 
 	proplen = sizeof(*prop) + ALIGN(len, FDT_TAGSIZE);
 	return _blob_splice_struct(fdt, prop, proplen, 0);
