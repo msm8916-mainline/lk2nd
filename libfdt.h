@@ -66,12 +66,6 @@ void *fdt_offset_ptr(const void *fdt, int offset, int checklen);
 #define fdt_offset_ptr_typed(fdt, offset, var) \
 	((typeof(var))(fdt_offset_ptr((fdt), (offset), sizeof(*(var)))))
 
-#define fdt_offset_error(offset) \
-	( (offset) < 0 ? -(offset) : 0 )
-
-#define fdt_ptrlen_error(p, len) \
-	( (p) ? 0 : -(len) )
-
 int fdt_move(const void *fdt, void *buf, int bufsize);
 
 /* Read-only functions */

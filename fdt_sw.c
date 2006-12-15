@@ -26,7 +26,7 @@
 static int check_header_sw(void *fdt)
 {
 	if (fdt_magic(fdt) != SW_MAGIC)
-		return FDT_ERR_BADMAGIC;
+		return -FDT_ERR_BADMAGIC;
 	return 0;
 }
 
@@ -50,7 +50,7 @@ int fdt_create(void *buf, int bufsize)
 	void *fdt = buf;
 
 	if (bufsize < sizeof(struct fdt_header))
-		return FDT_ERR_NOSPACE;
+		return -FDT_ERR_NOSPACE;
 
 	memset(buf, 0, bufsize);
 
@@ -64,7 +64,7 @@ int fdt_create(void *buf, int bufsize)
 	fdt_set_header(fdt, off_dt_struct, fdt_off_mem_rsvmap(fdt));
 	fdt_set_header(fdt, off_dt_strings, bufsize);
 
-	return FDT_ERR_OK;
+	return 0;
 }
 
 int fdt_add_reservemap_entry(void *fdt, uint64_t addr, uint64_t size)
@@ -76,11 +76,11 @@ int fdt_add_reservemap_entry(void *fdt, uint64_t addr, uint64_t size)
 	if (err)
 		return err;
 	if (fdt_size_dt_struct(fdt))
-		return FDT_ERR_BADSTATE;
+		return -FDT_ERR_BADSTATE;
 
 	offset = fdt_off_dt_struct(fdt);
 	if ((offset + sizeof(*re)) > fdt_totalsize(fdt))
-		return FDT_ERR_NOSPACE;
+		return -FDT_ERR_NOSPACE;
 
 	re = (struct fdt_reserve_entry *)((void *)fdt + offset);
 	re->address = cpu_to_fdt64(addr);
@@ -107,7 +107,7 @@ int fdt_begin_node(void *fdt, const char *name)
 
 	nh = grab_space(fdt, sizeof(*nh) + ALIGN(namelen, FDT_TAGSIZE));
 	if (! nh)
-		return FDT_ERR_NOSPACE;
+		return -FDT_ERR_NOSPACE;
 
 	nh->tag = cpu_to_fdt32(FDT_BEGIN_NODE);
 	memcpy(nh->name, name, namelen);
@@ -124,7 +124,7 @@ int fdt_end_node(void *fdt)
 
 	en = grab_space(fdt, FDT_TAGSIZE);
 	if (! en)
-		return FDT_ERR_NOSPACE;
+		return -FDT_ERR_NOSPACE;
 
 	*en = cpu_to_fdt32(FDT_END_NODE);
 	return 0;
@@ -164,11 +164,11 @@ int fdt_property(void *fdt, const char *name, const void *val, int len)
 
 	nameoff = find_add_string(fdt, name);
 	if (nameoff == 0)
-		return FDT_ERR_NOSPACE;
+		return -FDT_ERR_NOSPACE;
 
 	prop = grab_space(fdt, sizeof(*prop) + ALIGN(len, FDT_TAGSIZE));
 	if (! prop)
-		return FDT_ERR_NOSPACE;
+		return -FDT_ERR_NOSPACE;
 
 	prop->tag = cpu_to_fdt32(FDT_PROP);
 	prop->nameoff = cpu_to_fdt32(nameoff);
@@ -192,7 +192,7 @@ int fdt_finish(void *fdt)
 	/* Add terminator */
 	end = grab_space(fdt, sizeof(*end));
 	if (! end)
-		return FDT_ERR_NOSPACE;
+		return -FDT_ERR_NOSPACE;
 	*end = cpu_to_fdt32(FDT_END);
 
 	/* Relocate the string table */
@@ -210,7 +210,7 @@ int fdt_finish(void *fdt)
 			int nameoff;
 
 			if (! prop)
-				return FDT_ERR_BADSTRUCTURE;
+				return -FDT_ERR_BADSTRUCTURE;
 
 			nameoff = fdt32_to_cpu(prop->nameoff);
 			nameoff += fdt_size_dt_strings(fdt);

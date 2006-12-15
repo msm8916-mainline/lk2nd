@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 	intp = fdt_getprop(fdt, 0, "prop-int", &lenerr);
 	if (intp)
 		FAIL("prop-int still present after nopping");
-	if ((err = fdt_ptrlen_error(intp, lenerr)) != FDT_ERR_NOTFOUND)
+	if (lenerr != -FDT_ERR_NOTFOUND)
 		FAIL("Unexpected error on second getprop: %s", fdt_strerror(err));
 	
 	strp = check_getprop(fdt, 0, "prop-str", strlen(TEST_STRING_1)+1,
@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
 	strp = fdt_getprop(fdt, 0, "prop-str", &lenerr);
 	if (strp)
 		FAIL("prop-str still present after nopping");
-	if ((err = fdt_ptrlen_error(strp, lenerr)) != FDT_ERR_NOTFOUND)
+	if (lenerr != -FDT_ERR_NOTFOUND)
 		FAIL("Unexpected error on second getprop: %s", fdt_strerror(err));
 
 	PASS();

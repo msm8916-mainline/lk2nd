@@ -40,9 +40,9 @@
 
 #define OFF_CHECK(off, code) \
 	{ \
-		err = fdt_offset_error((off) = (code)); \
-		if (err) \
-			FAIL(#code ": %s", fdt_strerror(err)); \
+		(off) = (code); \
+		if (off < 0) \
+			FAIL(#code ": %s", fdt_strerror(off)); \
 	}
 
 int main(int argc, char *argv[])

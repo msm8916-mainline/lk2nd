@@ -40,10 +40,9 @@ int main(int argc, char *argv[])
 	prop = fdt_getprop(fdt, 0, "truncated", &len);
 	if (prop)
 		FAIL("fdt_getprop() succeeded on truncated property");
-	err = fdt_ptrlen_error(prop, len);
-	if (err != FDT_ERR_BADSTRUCTURE)
+	if (len != -FDT_ERR_BADSTRUCTURE)
 		FAIL("fdt_getprop() failed with \"%s\" instead of \"%s\"",
-		     fdt_strerror(err), fdt_strerror(FDT_ERR_BADSTRUCTURE));
+		     fdt_strerror(err), fdt_strerror(-FDT_ERR_BADSTRUCTURE));
 
 	PASS();
 }

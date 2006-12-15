@@ -97,10 +97,12 @@ static struct errtabent errtable[] = {
 
 const char *fdt_strerror(int errval)
 {
-	if ((errval >= 0) && (errval < ERRTABSIZE))
-		return errtable[errval].str;
+	if (errval > 0)
+		return "<valid offset>";
+	else if (errval < -ERRTABSIZE)
+		return "<unknown error>";
 	else
-		return "Unknown FDT error code";
+		return errtable[-errval].str;
 }
 
 void check_property(void *fdt, int nodeoffset, const char *name,

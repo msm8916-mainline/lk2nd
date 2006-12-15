@@ -28,15 +28,15 @@ int _fdt_check_header(const void *fdt)
 	if (fdt_magic(fdt) == FDT_MAGIC) {
 		/* Complete tree */
 		if (fdt_version(fdt) < FDT_FIRST_SUPPORTED_VERSION)
-			return FDT_ERR_BADVERSION;
+			return -FDT_ERR_BADVERSION;
 		if (fdt_last_comp_version(fdt) > FDT_LAST_SUPPORTED_VERSION)
-			return FDT_ERR_BADVERSION;
+			return -FDT_ERR_BADVERSION;
 	} else if (fdt_magic(fdt) == SW_MAGIC) {
 		/* Unfinished sequential-write blob */
 		if (fdt_size_dt_struct(fdt) == 0)
-			return FDT_ERR_BADSTATE;
+			return -FDT_ERR_BADSTATE;
 	} else {
-		return FDT_ERR_BADMAGIC;
+		return -FDT_ERR_BADMAGIC;
 	}
 
 	return 0;
@@ -117,8 +117,8 @@ int fdt_move(const void *fdt, void *buf, int bufsize)
 		return err;
 
 	if (fdt_totalsize(fdt) > bufsize)
-		return FDT_ERR_NOSPACE;
+		return -FDT_ERR_NOSPACE;
 
 	memmove(buf, fdt, fdt_totalsize(fdt));
-	return FDT_ERR_OK;
+	return 0;
 }

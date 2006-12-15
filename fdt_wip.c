@@ -31,10 +31,10 @@ int fdt_setprop_inplace(void *fdt, int nodeoffset, const char *name,
 
 	propval = fdt_getprop(fdt, nodeoffset, name, &proplen);
 	if (! propval)
-		return -proplen;
+		return proplen;
 
 	if (proplen != len)
-		return FDT_ERR_SIZE_MISMATCH;
+		return -FDT_ERR_SIZE_MISMATCH;
 
 	memcpy(propval, val, len);
 	return 0;
@@ -55,7 +55,7 @@ int fdt_nop_property(void *fdt, int nodeoffset, const char *name)
 
 	prop = fdt_get_property(fdt, nodeoffset, name, &len);
 	if (! prop)
-		return -len;
+		return len;
 
 	nop_region(prop, len + sizeof(*prop));
 
@@ -70,7 +70,7 @@ int _fdt_node_end_offset(void *fdt, int nodeoffset)
 
 	tag = _fdt_next_tag(fdt, nodeoffset, &nextoffset);
 	if (tag != FDT_BEGIN_NODE)
-		return FDT_ERR_BADOFFSET;
+		return -FDT_ERR_BADOFFSET;
 	do {
 		offset = nextoffset;
 		tag = _fdt_next_tag(fdt, offset, &nextoffset);
@@ -92,7 +92,7 @@ int _fdt_node_end_offset(void *fdt, int nodeoffset)
 			break;
 
 		default:
-			return FDT_ERR_BADSTRUCTURE;
+			return -FDT_ERR_BADSTRUCTURE;
 		}
 	} while (level >= 0);
 
@@ -102,11 +102,10 @@ int _fdt_node_end_offset(void *fdt, int nodeoffset)
 int fdt_nop_node(void *fdt, int nodeoffset)
 {
 	int endoffset;
-	int err;
 
 	endoffset = _fdt_node_end_offset(fdt, nodeoffset);
-	if ((err = fdt_offset_error(endoffset)))
-		return err;
+	if (endoffset < 0)
+		return endoffset;
 
 	nop_region(fdt_offset_ptr(fdt, nodeoffset, 0), endoffset - nodeoffset);
 	return 0;

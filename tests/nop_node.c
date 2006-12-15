@@ -39,19 +39,21 @@ int main(int argc, char *argv[])
 	fdt = load_blob_arg(argc, argv);
 
 	subnode1_offset = fdt_path_offset(fdt, "/subnode1");
-	if ((err = fdt_offset_error(subnode1_offset)))
-		FAIL("Couldn't find \"/subnode1\": %s", fdt_strerror(err));
+	if (subnode1_offset < 0)
+		FAIL("Couldn't find \"/subnode1\": %s",
+		     fdt_strerror(subnode1_offset));
 	check_getprop_typed(fdt, subnode1_offset, "prop-int", TEST_VALUE_1);
 
 	subnode2_offset = fdt_path_offset(fdt, "/subnode2");
-	if ((err = fdt_offset_error(subnode2_offset)))
-		FAIL("Couldn't find \"/subnode2\": %s", fdt_strerror(err));
+	if (subnode2_offset < 0)
+		FAIL("Couldn't find \"/subnode2\": %s",
+		     fdt_strerror(subnode2_offset));
 	check_getprop_typed(fdt, subnode2_offset, "prop-int", TEST_VALUE_2);
-	
+
 	subsubnode2_offset = fdt_path_offset(fdt, "/subnode2/subsubnode");
-	if ((err = fdt_offset_error(subsubnode2_offset)))
+	if (subsubnode2_offset < 0)
 		FAIL("Couldn't find \"/subnode2/subsubnode\": %s",
-		     fdt_strerror(err));
+		     fdt_strerror(subsubnode2_offset));
 	check_getprop_typed(fdt, subsubnode2_offset, "prop-int", TEST_VALUE_2);
 
 	err = fdt_nop_node(fdt, subnode1_offset);
@@ -59,19 +61,21 @@ int main(int argc, char *argv[])
 		FAIL("fdt_nop_node(subnode1): %s", fdt_strerror(err));
 
 	subnode1_offset = fdt_path_offset(fdt, "/subnode1");
-	if ((err = fdt_offset_error(subnode1_offset)) != FDT_ERR_NOTFOUND)
+	if (subnode1_offset != -FDT_ERR_NOTFOUND)
 		FAIL("fdt_path_offset(subnode1) returned \"%s\" instead of \"%s\"",
-		     fdt_strerror(err), fdt_strerror(FDT_ERR_NOTFOUND));
+		     fdt_strerror(subnode1_offset),
+		     fdt_strerror(-FDT_ERR_NOTFOUND));
 
 	subnode2_offset = fdt_path_offset(fdt, "/subnode2");
-	if ((err = fdt_offset_error(subnode2_offset)))
-		FAIL("Couldn't find \"/subnode2\": %s", fdt_strerror(err));
+	if (subnode2_offset < 0)
+		FAIL("Couldn't find \"/subnode2\": %s",
+		     fdt_strerror(subnode2_offset));
 	check_getprop_typed(fdt, subnode2_offset, "prop-int", TEST_VALUE_2);
-	
+
 	subsubnode2_offset = fdt_path_offset(fdt, "/subnode2/subsubnode");
-	if ((err = fdt_offset_error(subsubnode2_offset)))
+	if (subsubnode2_offset < 0)
 		FAIL("Couldn't find \"/subnode2/subsubnode\": %s",
-		     fdt_strerror(err));
+		     fdt_strerror(subsubnode2_offset));
 	check_getprop_typed(fdt, subsubnode2_offset, "prop-int", TEST_VALUE_2);
 
 	err = fdt_nop_node(fdt, subnode2_offset);
@@ -79,19 +83,22 @@ int main(int argc, char *argv[])
 		FAIL("fdt_nop_node(subnode2): %s", fdt_strerror(err));
 
 	subnode1_offset = fdt_path_offset(fdt, "/subnode1");
-	if ((err = fdt_offset_error(subnode1_offset)) != FDT_ERR_NOTFOUND)
+	if (subnode1_offset != -FDT_ERR_NOTFOUND)
 		FAIL("fdt_path_offset(subnode1) returned \"%s\" instead of \"%s\"",
-		     fdt_strerror(err), fdt_strerror(FDT_ERR_NOTFOUND));
+		     fdt_strerror(subnode1_offset),
+		     fdt_strerror(-FDT_ERR_NOTFOUND));
 
 	subnode2_offset = fdt_path_offset(fdt, "/subnode2");
-	if ((err = fdt_offset_error(subnode2_offset)) != FDT_ERR_NOTFOUND)
+	if (subnode2_offset != -FDT_ERR_NOTFOUND)
 		FAIL("fdt_path_offset(subnode2) returned \"%s\" instead of \"%s\"",
-		     fdt_strerror(err), fdt_strerror(FDT_ERR_NOTFOUND));
-	
+		     fdt_strerror(subnode2_offset),
+		     fdt_strerror(-FDT_ERR_NOTFOUND));
+
 	subsubnode2_offset = fdt_path_offset(fdt, "/subnode2/subsubnode");
-	if ((err = fdt_offset_error(subsubnode2_offset)) != FDT_ERR_NOTFOUND)
+	if (subsubnode2_offset != -FDT_ERR_NOTFOUND)
 		FAIL("fdt_path_offset(subsubnode2) returned \"%s\" instead of \"%s\"",
-		     fdt_strerror(err), fdt_strerror(FDT_ERR_NOTFOUND));
+		     fdt_strerror(subsubnode2_offset),
+		     fdt_strerror(-FDT_ERR_NOTFOUND));
 
 	PASS();
 }

@@ -30,26 +30,26 @@ static int rw_check_header(void *fdt)
 	if ((err = _fdt_check_header(fdt)))
 		return err;
 	if (fdt_version(fdt) < 0x11)
-		return FDT_ERR_BADVERSION;
+		return -FDT_ERR_BADVERSION;
 	if (fdt_off_mem_rsvmap(fdt) < ALIGN(sizeof(struct fdt_header), 8))
-		return FDT_ERR_BADLAYOUT;
+		return -FDT_ERR_BADLAYOUT;
 	if (fdt_off_dt_struct(fdt) <
 	    (fdt_off_mem_rsvmap(fdt) + sizeof(struct fdt_reserve_entry)))
-		return FDT_ERR_BADLAYOUT;
+		return -FDT_ERR_BADLAYOUT;
 	if (fdt_off_dt_strings(fdt) <
 	    (fdt_off_dt_struct(fdt) + fdt_size_dt_struct(fdt)))
-		return FDT_ERR_BADLAYOUT;
+		return -FDT_ERR_BADLAYOUT;
 	if (fdt_totalsize(fdt) <
 	    (fdt_off_dt_strings(fdt) + fdt_size_dt_strings(fdt)))
-		return FDT_ERR_BADLAYOUT;
+		return -FDT_ERR_BADLAYOUT;
 	return 0;
 }
 
-#define RW_OFFSET_CHECK_HEADER(fdt) \
+#define RW_CHECK_HEADER(fdt) \
 	{ \
 		int err; \
 		if ((err = rw_check_header(fdt)) != 0) \
-			return OFFSET_ERROR(err); \
+			return err; \
 	}
 
 static inline int _blob_data_size(void *fdt)
@@ -62,9 +62,9 @@ static int _blob_splice(void *fdt, void *p, int oldlen, int newlen)
 	void *end = fdt + _blob_data_size(fdt);
 
 	if (((p + oldlen) < p) || ((p + oldlen) > end))
-		return FDT_ERR_BADOFFSET;
+		return -FDT_ERR_BADOFFSET;
 	if ((end - oldlen + newlen) > (fdt + fdt_totalsize(fdt)))
-		return FDT_ERR_NOSPACE;
+		return -FDT_ERR_NOSPACE;
 	memmove(p + newlen, p + oldlen, end - p - oldlen);
 	return 0;
 }
@@ -111,7 +111,7 @@ static int _find_add_string(void *fdt, const char *s)
 	new = strtab + fdt_size_dt_strings(fdt);
 	err = _blob_splice_string(fdt, len);
 	if (err)
-		return -err;
+		return err;
 
 	memcpy(new, s, len);
 	return (new - strtab);
@@ -125,7 +125,7 @@ static int _resize_property(void *fdt, int nodeoffset, const char *name, int len
 
 	*prop = fdt_get_property(fdt, nodeoffset, name, &oldlen);
 	if (! (*prop))
-		return -oldlen;
+		return oldlen;
 
 	if ((err = _blob_splice_struct(fdt, (*prop)->data,
 				       ALIGN(oldlen, FDT_TAGSIZE),
@@ -147,11 +147,11 @@ static int _add_property(void *fdt, int nodeoffset, const char *name, int len,
 
 	tag = _fdt_next_tag(fdt, nodeoffset, &nextoffset);
 	if (tag != FDT_BEGIN_NODE)
-		return FDT_ERR_BADOFFSET;
+		return -FDT_ERR_BADOFFSET;
 
 	namestroff = _find_add_string(fdt, name);
 	if (namestroff < 0)
-		return -namestroff;
+		return namestroff;
 
 	*prop = _fdt_offset_ptr(fdt, nextoffset);
 	proplen = sizeof(**prop) + ALIGN(len, FDT_TAGSIZE);
@@ -176,7 +176,7 @@ int fdt_setprop(void *fdt, int nodeoffset, const char *name,
 		return err;
 
 	err = _resize_property(fdt, nodeoffset, name, len, &prop);
-	if (err == FDT_ERR_NOTFOUND)
+	if (err == -FDT_ERR_NOTFOUND)
 		err = _add_property(fdt, nodeoffset, name, len, &prop);
 	if (err)
 		return err;
@@ -190,11 +190,11 @@ int fdt_delprop(void *fdt, int nodeoffset, const char *name)
 	struct fdt_property *prop;
 	int len, proplen;
 
-	RW_OFFSET_CHECK_HEADER(fdt);
+	RW_CHECK_HEADER(fdt);
 
 	prop = fdt_get_property(fdt, nodeoffset, name, &len);
 	if (! prop)
-		return -len;
+		return len;
 
 	proplen = sizeof(*prop) + ALIGN(len, FDT_TAGSIZE);
 	return _blob_splice_struct(fdt, prop, proplen, 0);
@@ -210,13 +210,13 @@ int fdt_add_subnode_namelen(void *fdt, int parentoffset,
 	uint32_t tag;
 	uint32_t *endtag;
 
-	RW_OFFSET_CHECK_HEADER(fdt);
+	RW_CHECK_HEADER(fdt);
 
 	offset = fdt_subnode_offset_namelen(fdt, parentoffset, name, namelen);
-	if ((err = fdt_offset_error(offset)) == 0)
-		return OFFSET_ERROR(FDT_ERR_EXISTS);
-	else if (err != FDT_ERR_NOTFOUND)
-		return OFFSET_ERROR(err);
+	if (offset >= 0)
+		return -FDT_ERR_EXISTS;
+	else if (offset != -FDT_ERR_NOTFOUND)
+		return offset;
 
 	/* Try to place the new node after the parent's properties */
 	_fdt_next_tag(fdt, parentoffset, &nextoffset); /* skip the BEGIN_NODE */
@@ -230,7 +230,7 @@ int fdt_add_subnode_namelen(void *fdt, int parentoffset,
 
 	err = _blob_splice_struct(fdt, nh, 0, nodelen);
 	if (err)
-		return OFFSET_ERROR(err);
+		return err;
 
 	nh->tag = cpu_to_fdt32(FDT_BEGIN_NODE);
 	memset(nh->name, 0, ALIGN(namelen+1, FDT_TAGSIZE));
@@ -249,11 +249,10 @@ int fdt_add_subnode(void *fdt, int parentoffset, const char *name)
 int fdt_del_node(void *fdt, int nodeoffset)
 {
 	int endoffset;
-	int err;
 
 	endoffset = _fdt_node_end_offset(fdt, nodeoffset);
-	if ((err = fdt_offset_error(endoffset)))
-		return err;
+	if (endoffset < 0)
+		return endoffset;
 
 	return _blob_splice_struct(fdt, _fdt_offset_ptr(fdt, nodeoffset),
 				   endoffset - nodeoffset, 0);
@@ -277,7 +276,7 @@ int fdt_open_into(void *fdt, void *buf, int bufsize)
 	if (err)
 		return err;
 
-	return FDT_ERR_OK;
+	return 0;
 }
 
 int fdt_pack(void *fdt)
@@ -290,5 +289,5 @@ int fdt_pack(void *fdt)
 
 	/* FIXME: pack components */
 	fdt_set_header(fdt, totalsize, _blob_data_size(fdt));
-	return FDT_ERR_OK;
+	return 0;
 }

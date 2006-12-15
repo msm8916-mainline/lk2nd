@@ -29,8 +29,8 @@
 
 void check_error(const char *s, int err)
 {
-	if (err != FDT_ERR_NOTFOUND)
-		FAIL("%s return error %s instead of FDT_ERR_NOTFOUND", s,
+	if (err != -FDT_ERR_NOTFOUND)
+		FAIL("%s return error %s instead of -FDT_ERR_NOTFOUND", s,
 		     fdt_strerror(err));
 }
 
@@ -41,38 +41,32 @@ int main(int argc, char *argv[])
 	int offset;
 	int subnode1_offset;
 	void *val;
-	int err;
 	int lenerr;
 
 	test_init(argc, argv);
 	fdt = load_blob_arg(argc, argv);
 
 	prop = fdt_get_property(fdt, 0, "nonexistant-property", &lenerr);
-	check_error("fdt_get_property(\"nonexistant-property\")",
-		    fdt_ptrlen_error(prop, lenerr));
+	check_error("fdt_get_property(\"nonexistant-property\")", lenerr);
 
 	val = fdt_getprop(fdt, 0, "nonexistant-property", &lenerr);
-	check_error("fdt_getprop(\"nonexistant-property\"",
-		    fdt_ptrlen_error(val, lenerr));
+	check_error("fdt_getprop(\"nonexistant-property\"", lenerr);
 
 	subnode1_offset = fdt_subnode_offset(fdt, 0, "subnode1");
-	if ((err = fdt_offset_error(subnode1_offset)))
-		FAIL("Couldn't find subnode1: %s", fdt_strerror(err));
+	if (subnode1_offset < 0)
+		FAIL("Couldn't find subnode1: %s", fdt_strerror(subnode1_offset));
 
 	val = fdt_getprop(fdt, subnode1_offset, "prop-str", &lenerr);
-	check_error("fdt_getprop(\"prop-str\")", fdt_ptrlen_error(val, lenerr));
+	check_error("fdt_getprop(\"prop-str\")", lenerr);
 
 	offset = fdt_subnode_offset(fdt, 0, "nonexistant-subnode");
-	check_error("fdt_subnode_offset(\"nonexistant-subnode\")",
-		    fdt_offset_error(offset));
+	check_error("fdt_subnode_offset(\"nonexistant-subnode\")", offset);
 
 	offset = fdt_subnode_offset(fdt, 0, "subsubnode");
-	check_error("fdt_subnode_offset(\"subsubnode\")",
-		    fdt_offset_error(offset));
+	check_error("fdt_subnode_offset(\"subsubnode\")", offset);
 
 	offset = fdt_path_offset(fdt, "/nonexistant-subnode");
-	check_error("fdt_path_offset(\"/nonexistant-subnode\")",
-		    fdt_offset_error(offset));
+	check_error("fdt_path_offset(\"/nonexistant-subnode\")", offset);
 	
 	PASS();
 }

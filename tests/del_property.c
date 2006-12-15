@@ -52,8 +52,9 @@ int main(int argc, char *argv[])
 	intp = fdt_getprop(fdt, 0, "prop-int", &lenerr);
 	if (intp)
 		FAIL("prop-int still present after deletion");
-	if ((err = fdt_ptrlen_error(intp, lenerr)) != FDT_ERR_NOTFOUND)
-		FAIL("Unexpected error on second getprop: %s", fdt_strerror(err));
+	if (lenerr != -FDT_ERR_NOTFOUND)
+		FAIL("Unexpected error on second getprop: %s",
+		     fdt_strerror(lenerr));
 
 	strp = check_getprop(fdt, 0, "prop-str", strlen(TEST_STRING_1)+1,
 			     TEST_STRING_1);
@@ -65,8 +66,9 @@ int main(int argc, char *argv[])
 	strp = fdt_getprop(fdt, 0, "prop-str", &lenerr);
 	if (strp)
 		FAIL("prop-str still present after deletion");
-	if ((err = fdt_ptrlen_error(strp, lenerr)) != FDT_ERR_NOTFOUND)
-		FAIL("Unexpected error on second getprop: %s", fdt_strerror(err));
+	if (lenerr != -FDT_ERR_NOTFOUND)
+		FAIL("Unexpected error on second getprop: %s",
+		     fdt_strerror(lenerr));
 
 	delsize = fdt_totalsize(fdt);
 
