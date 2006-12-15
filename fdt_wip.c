@@ -34,7 +34,7 @@ int fdt_setprop_inplace(void *fdt, int nodeoffset, const char *name,
 		return proplen;
 
 	if (proplen != len)
-		return -FDT_ERR_SIZE_MISMATCH;
+		return -FDT_ERR_NOSPACE;
 
 	memcpy(propval, val, len);
 	return 0;

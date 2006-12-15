@@ -25,25 +25,24 @@
 #define FDT_FIRST_SUPPORTED_VERSION	0x10
 #define FDT_LAST_SUPPORTED_VERSION	0x11
 
-/* Errors */
-#define FDT_ERR_OK		0
-#define FDT_ERR_BADMAGIC	1
-#define FDT_ERR_BADVERSION	2
-#define FDT_ERR_BADPOINTER	3
-#define FDT_ERR_BADHEADER	4
-#define FDT_ERR_BADSTRUCTURE	5
-#define FDT_ERR_BADOFFSET	6
-#define FDT_ERR_NOTFOUND	7
-#define FDT_ERR_BADPATH		8
-#define FDT_ERR_TRUNCATED	9
-#define FDT_ERR_NOSPACE		10
-#define FDT_ERR_BADSTATE	11
-#define FDT_ERR_SIZE_MISMATCH	12
-#define FDT_ERR_INTERNAL	13
-#define FDT_ERR_BADLAYOUT	14
-#define FDT_ERR_EXISTS		15
+/* Error codes: informative error codes */
+#define FDT_ERR_NOTFOUND	1
+#define FDT_ERR_EXISTS		2
+#define FDT_ERR_NOSPACE		3
 
-#define FDT_ERR_MAX		14
+/* Error codes: codes for bad parameters */
+#define FDT_ERR_BADOFFSET	4
+#define FDT_ERR_BADPATH		5
+#define FDT_ERR_BADSTATE	6
+
+/* Error codes: codes for bad device tree blobs */
+#define FDT_ERR_TRUNCATED	7
+#define FDT_ERR_BADMAGIC	8
+#define FDT_ERR_BADVERSION	9
+#define FDT_ERR_BADSTRUCTURE	10
+#define FDT_ERR_BADLAYOUT	11
+
+#define FDT_ERR_MAX		11
 
 #define fdt_get_header(fdt, field) \
 	(fdt32_to_cpu(((struct fdt_header *)(fdt))->field))

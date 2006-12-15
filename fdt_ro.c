@@ -161,9 +161,6 @@ struct fdt_property *fdt_get_property(const void *fdt,
 
 	do {
 		offset = nextoffset;
-		err = -FDT_ERR_INTERNAL;
-		if (offset % FDT_TAGSIZE)
-			goto fail;
 
 		tag = _fdt_next_tag(fdt, offset, &nextoffset);
 		switch (tag) {

@@ -77,20 +77,18 @@ struct errtabent {
 	[(val)] = { .str = #val, }
 
 static struct errtabent errtable[] = {
-	ERRTABENT(FDT_ERR_OK),
+	ERRTABENT(FDT_ERR_NOTFOUND),
+	ERRTABENT(FDT_ERR_EXISTS),
+	ERRTABENT(FDT_ERR_NOSPACE),
+
+	ERRTABENT(FDT_ERR_BADOFFSET),
+	ERRTABENT(FDT_ERR_BADPATH),
+	ERRTABENT(FDT_ERR_BADSTATE),
+
+	ERRTABENT(FDT_ERR_TRUNCATED),
 	ERRTABENT(FDT_ERR_BADMAGIC),
 	ERRTABENT(FDT_ERR_BADVERSION),
-	ERRTABENT(FDT_ERR_BADPOINTER),
-	ERRTABENT(FDT_ERR_BADHEADER),
 	ERRTABENT(FDT_ERR_BADSTRUCTURE),
-	ERRTABENT(FDT_ERR_BADOFFSET),
-	ERRTABENT(FDT_ERR_NOTFOUND),
-	ERRTABENT(FDT_ERR_BADPATH),
-	ERRTABENT(FDT_ERR_TRUNCATED),
-	ERRTABENT(FDT_ERR_NOSPACE),
-	ERRTABENT(FDT_ERR_BADSTATE),
-	ERRTABENT(FDT_ERR_SIZE_MISMATCH),
-	ERRTABENT(FDT_ERR_INTERNAL),
 };
 
 #define ERRTABSIZE	(sizeof(errtable) / sizeof(errtable[0]))
@@ -99,10 +97,16 @@ const char *fdt_strerror(int errval)
 {
 	if (errval > 0)
 		return "<valid offset>";
-	else if (errval < -ERRTABSIZE)
-		return "<unknown error>";
-	else
-		return errtable[-errval].str;
+	else if (errval == 0)
+		return "<no error>";
+	else if (errval > -ERRTABSIZE) {
+		const char *s = errtable[-errval].str;
+
+		if (s)
+			return s;
+	}
+
+	return "<unknown error>";
 }
 
 void check_property(void *fdt, int nodeoffset, const char *name,
