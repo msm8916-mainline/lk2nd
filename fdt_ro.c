@@ -37,7 +37,7 @@
 			return PTR_ERROR(err); \
 	}
 
-static int offset_streq(const struct fdt_header *fdt, int offset,
+static int offset_streq(const void *fdt, int offset,
 			const char *s, int len)
 {
 	const char *p = fdt_offset_ptr(fdt, offset, len+1);
@@ -55,12 +55,12 @@ static int offset_streq(const struct fdt_header *fdt, int offset,
 	return 1;
 }
 
-char *fdt_string(const struct fdt_header *fdt, int stroffset)
+char *fdt_string(const void *fdt, int stroffset)
 {
 	return (char *)fdt + fdt_off_dt_strings(fdt) + stroffset;
 }
 
-int fdt_subnode_offset_namelen(const struct fdt_header *fdt, int parentoffset,
+int fdt_subnode_offset_namelen(const void *fdt, int parentoffset,
 			       const char *name, int namelen)
 {
 	int level = 0;
@@ -106,13 +106,13 @@ int fdt_subnode_offset_namelen(const struct fdt_header *fdt, int parentoffset,
 	return OFFSET_ERROR(FDT_ERR_NOTFOUND);
 }
 
-int fdt_subnode_offset(const struct fdt_header *fdt, int parentoffset,
+int fdt_subnode_offset(const void *fdt, int parentoffset,
 		       const char *name)
 {
 	return fdt_subnode_offset_namelen(fdt, parentoffset, name, strlen(name));
 }
 
-int fdt_path_offset(const struct fdt_header *fdt, const char *path)
+int fdt_path_offset(const void *fdt, const char *path)
 {
 	const char *end = path + strlen(path);
 	const char *p = path;
@@ -144,7 +144,7 @@ int fdt_path_offset(const struct fdt_header *fdt, const char *path)
 	return offset;	
 }
 
-struct fdt_property *fdt_get_property(const struct fdt_header *fdt,
+struct fdt_property *fdt_get_property(const void *fdt,
 				      int nodeoffset,
 				      const char *name, int *lenp)
 {
@@ -215,7 +215,7 @@ struct fdt_property *fdt_get_property(const struct fdt_header *fdt,
 	return PTR_ERROR(FDT_ERR_NOTFOUND);
 }
 
-void *fdt_getprop(const struct fdt_header *fdt, int nodeoffset,
+void *fdt_getprop(const void *fdt, int nodeoffset,
 		  const char *name, int *lenp)
 {
 	const struct fdt_property *prop;

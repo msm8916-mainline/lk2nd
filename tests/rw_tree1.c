@@ -38,13 +38,6 @@
 			FAIL(#code ": %s", fdt_strerror(err)); \
 	}
 
-#define PTR_CHECK(ptr, code) \
-	{ \
-		err = fdt_ptr_error((ptr) = (code)); \
-		if (err) \
-			FAIL(#code ": %s", fdt_strerror(err)); \
-	}
-
 #define OFF_CHECK(off, code) \
 	{ \
 		err = fdt_offset_error((off) = (code)); \
@@ -54,17 +47,16 @@
 
 int main(int argc, char *argv[])
 {
-	void *buf;
-	struct fdt_header *fdt;
+	void *fdt;
 	int err;
 	int offset;
 
 	test_init(argc, argv);
 
-	buf = xmalloc(SPACE);
+	fdt = xmalloc(SPACE);
 
 	/* First create empty tree with SW */
-	fdt = fdt_create(buf, SPACE);
+	CHECK(fdt_create(fdt, SPACE));
 
 	CHECK(fdt_finish_reservemap(fdt));
 	CHECK(fdt_begin_node(fdt, ""));
@@ -72,9 +64,9 @@ int main(int argc, char *argv[])
 	CHECK(fdt_finish(fdt));
 
 	verbose_printf("Built empty tree, totalsize = %d\n",
-		       fdt32_to_cpu(fdt->totalsize));
+		       fdt_totalsize(fdt));
 
-	PTR_CHECK(fdt, fdt_open_into(fdt, buf, SPACE));
+	CHECK(fdt_open_into(fdt, fdt, SPACE));
 
 	CHECK(fdt_setprop_typed(fdt, 0, "prop-int", TEST_VALUE_1));
 	CHECK(fdt_setprop_string(fdt, 0, "prop-str", TEST_STRING_1));
@@ -90,7 +82,7 @@ int main(int argc, char *argv[])
 
 	CHECK(fdt_setprop_typed(fdt, offset, "prop-int", TEST_VALUE_2));
 
-	PTR_CHECK(fdt, fdt_pack(fdt));
+	CHECK(fdt_pack(fdt));
 
 	save_blob("rw_tree1.test.dtb", fdt);
 

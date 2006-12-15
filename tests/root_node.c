@@ -30,7 +30,7 @@
 
 int main(int argc, char *argv[])
 {
-	struct fdt_header *fdt;
+	void *fdt;
 	struct fdt_node_header *nh;
 
 	test_init(argc, argv);

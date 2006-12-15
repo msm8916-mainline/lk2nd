@@ -29,7 +29,7 @@
 
 int main(int argc, char *argv[])
 {
-	struct fdt_header *fdt;
+	void *fdt;
 
 	test_init(argc, argv);
 	fdt = load_blob_arg(argc, argv);

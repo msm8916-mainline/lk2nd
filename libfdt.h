@@ -45,18 +45,23 @@
 
 #define FDT_ERR_MAX		14
 
-#define fdt_magic(fdt)			(fdt32_to_cpu(fdt->magic))
-#define fdt_totalsize(fdt)		(fdt32_to_cpu(fdt->totalsize))
-#define fdt_off_dt_struct(fdt)		(fdt32_to_cpu(fdt->off_dt_struct))
-#define fdt_off_dt_strings(fdt)		(fdt32_to_cpu(fdt->off_dt_strings))
-#define fdt_off_mem_rsvmap(fdt)		(fdt32_to_cpu(fdt->off_mem_rsvmap))
-#define fdt_version(fdt)		(fdt32_to_cpu(fdt->version))
-#define fdt_last_comp_version(fdt)	(fdt32_to_cpu(fdt->last_comp_version))
-#define fdt_boot_cpuid_phys(fdt)	(fdt32_to_cpu(fdt->boot_cpuid_phys))
-#define fdt_size_dt_strings(fdt)	(fdt32_to_cpu(fdt->size_dt_strings))
-#define fdt_size_dt_struct(fdt)		(fdt32_to_cpu(fdt->size_dt_struct))
+#define fdt_get_header(fdt, field) \
+	(fdt32_to_cpu(((struct fdt_header *)(fdt))->field))
+#define fdt_magic(fdt) 			(fdt_get_header(fdt, magic))
+#define fdt_totalsize(fdt)		(fdt_get_header(fdt, totalsize))
+#define fdt_off_dt_struct(fdt)		(fdt_get_header(fdt, off_dt_struct))
+#define fdt_off_dt_strings(fdt)		(fdt_get_header(fdt, off_dt_strings))
+#define fdt_off_mem_rsvmap(fdt)		(fdt_get_header(fdt, off_mem_rsvmap))
+#define fdt_version(fdt)		(fdt_get_header(fdt, version))
+#define fdt_last_comp_version(fdt) 	(fdt_get_header(fdt, last_comp_version))
+#define fdt_boot_cpuid_phys(fdt) 	(fdt_get_header(fdt, boot_cpuid_phys))
+#define fdt_size_dt_strings(fdt) 	(fdt_get_header(fdt, size_dt_strings))
+#define fdt_size_dt_struct(fdt)		(fdt_get_header(fdt, size_dt_struct))
 
-void *fdt_offset_ptr(const struct fdt_header *fdt, int offset, int checklen);
+#define fdt_set_header(fdt, field, val) \
+	((struct fdt_header *)(fdt))->field = cpu_to_fdt32(val)
+
+void *fdt_offset_ptr(const void *fdt, int offset, int checklen);
 
 #define fdt_offset_ptr_typed(fdt, offset, var) \
 	((typeof(var))(fdt_offset_ptr((fdt), (offset), sizeof(*(var)))))
@@ -67,26 +72,24 @@ void *fdt_offset_ptr(const struct fdt_header *fdt, int offset, int checklen);
 #define fdt_ptr_error(ptr) \
 	( (((long)(ptr) < 0) && ((long)(ptr) >= -FDT_ERR_MAX)) ? -(long)(ptr) : 0 )
 
-struct fdt_header *fdt_move(const struct fdt_header *fdt, void *buf, int bufsize);
+int fdt_move(const void *fdt, void *buf, int bufsize);
 
 /* Read-only functions */
-char *fdt_string(const struct fdt_header *fdt, int stroffset);
+char *fdt_string(const void *fdt, int stroffset);
 
-int fdt_subnode_offset_namelen(const struct fdt_header *fdt, int parentoffset,
+int fdt_subnode_offset_namelen(const void *fdt, int parentoffset,
 			       const char *name, int namelen);
-int fdt_subnode_offset(const struct fdt_header *fdt, int parentoffset,
-		       const char *name);
+int fdt_subnode_offset(const void *fdt, int parentoffset, const char *name);
 
-int fdt_path_offset(const struct fdt_header *fdt, const char *path);
+int fdt_path_offset(const void *fdt, const char *path);
 
-struct fdt_property *fdt_get_property(const struct fdt_header *fdt,
-				      int nodeoffset,
+struct fdt_property *fdt_get_property(const void *fdt, int nodeoffset,
 				      const char *name, int *lenp);
-void *fdt_getprop(const struct fdt_header *fdt, int nodeoffset,
+void *fdt_getprop(const void *fdt, int nodeoffset,
 		  const char *name, int *lenp);
 
 /* Write-in-place functions */
-int fdt_setprop_inplace(struct fdt_header *fdt, int nodeoffset, const char *name,
+int fdt_setprop_inplace(void *fdt, int nodeoffset, const char *name,
 			const void *val, int len);
 
 #define fdt_setprop_inplace_typed(fdt, nodeoffset, name, val) \
@@ -95,15 +98,15 @@ int fdt_setprop_inplace(struct fdt_header *fdt, int nodeoffset, const char *name
 		fdt_setprop_inplace(fdt, nodeoffset, name, &x, sizeof(x)); \
 	})
 
-int fdt_nop_property(struct fdt_header *fdt, int nodeoffset, const char *name);
-int fdt_nop_node(struct fdt_header *fdt, int nodeoffset);
+int fdt_nop_property(void *fdt, int nodeoffset, const char *name);
+int fdt_nop_node(void *fdt, int nodeoffset);
 
 /* Sequential-write functions */
-struct fdt_header *fdt_create(void *buf, int bufsize);
-int fdt_add_reservemap_entry(struct fdt_header *fdt, uint64_t addr, uint64_t size);
-int fdt_finish_reservemap(struct fdt_header *fdt);
-int fdt_begin_node(struct fdt_header *fdt, const char *name);
-int fdt_property(struct fdt_header *fdt, const char *name, const void *val, int len);
+int fdt_create(void *buf, int bufsize);
+int fdt_add_reservemap_entry(void *fdt, uint64_t addr, uint64_t size);
+int fdt_finish_reservemap(void *fdt);
+int fdt_begin_node(void *fdt, const char *name);
+int fdt_property(void *fdt, const char *name, const void *val, int len);
 #define fdt_property_typed(fdt, name, val) \
 	({ \
 		typeof(val) x = (val); \
@@ -111,14 +114,14 @@ int fdt_property(struct fdt_header *fdt, const char *name, const void *val, int 
 	})
 #define fdt_property_string(fdt, name, str) \
 	fdt_property(fdt, name, str, strlen(str)+1)
-int fdt_end_node(struct fdt_header *fdt);
-int fdt_finish(struct fdt_header *fdt);
+int fdt_end_node(void *fdt);
+int fdt_finish(void *fdt);
 
 /* Read-write functions */
-struct fdt_header *fdt_open_into(struct fdt_header *fdt, void *buf, int bufsize);
-struct fdt_header *fdt_pack(struct fdt_header *fdt);
+int fdt_open_into(void *fdt, void *buf, int bufsize);
+int fdt_pack(void *fdt);
 
-int fdt_setprop(struct fdt_header *fdt, int nodeoffset, const char *name,
+int fdt_setprop(void *fdt, int nodeoffset, const char *name,
 		const void *val, int len);
 #define fdt_setprop_typed(fdt, nodeoffset, name, val) \
 	({ \
@@ -127,10 +130,10 @@ int fdt_setprop(struct fdt_header *fdt, int nodeoffset, const char *name,
 	})
 #define fdt_setprop_string(fdt, nodeoffset, name, str) \
 	fdt_setprop((fdt), (nodeoffset), (name), (str), strlen(str)+1)
-int fdt_delprop(struct fdt_header *fdt, int nodeoffset, const char *name);
-int fdt_add_subnode_namelen(struct fdt_header *fdt, int parentoffset,
+int fdt_delprop(void *fdt, int nodeoffset, const char *name);
+int fdt_add_subnode_namelen(void *fdt, int parentoffset,
 			    const char *name, int namelen);
-int fdt_add_subnode(struct fdt_header *fdt, int parentoffset, const char *name);
-int fdt_del_node(struct fdt_header *fdt, int nodeoffset);
+int fdt_add_subnode(void *fdt, int parentoffset, const char *name);
+int fdt_del_node(void *fdt, int nodeoffset);
 
 #endif /* _LIBFDT_H */

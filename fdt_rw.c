@@ -23,7 +23,7 @@
 
 #include "libfdt_internal.h"
 
-static int rw_check_header(struct fdt_header *fdt)
+static int rw_check_header(void *fdt)
 {
 	int err;
 
@@ -31,7 +31,7 @@ static int rw_check_header(struct fdt_header *fdt)
 		return err;
 	if (fdt_version(fdt) < 0x11)
 		return FDT_ERR_BADVERSION;
-	if (fdt_off_mem_rsvmap(fdt) < ALIGN(sizeof(*fdt), 8))
+	if (fdt_off_mem_rsvmap(fdt) < ALIGN(sizeof(struct fdt_header), 8))
 		return FDT_ERR_BADLAYOUT;
 	if (fdt_off_dt_struct(fdt) <
 	    (fdt_off_mem_rsvmap(fdt) + sizeof(struct fdt_reserve_entry)))
@@ -52,25 +52,24 @@ static int rw_check_header(struct fdt_header *fdt)
 			return OFFSET_ERROR(err); \
 	}
 
-static inline int _blob_data_size(struct fdt_header *fdt)
+static inline int _blob_data_size(void *fdt)
 {
 	return fdt_off_dt_strings(fdt) + fdt_size_dt_strings(fdt);
 }
 
-static int _blob_splice(struct fdt_header *fdt, void *p, int oldlen, int newlen)
+static int _blob_splice(void *fdt, void *p, int oldlen, int newlen)
 {
-	void *blob = fdt;
-	void *end = blob + _blob_data_size(fdt);
+	void *end = fdt + _blob_data_size(fdt);
 
 	if (((p + oldlen) < p) || ((p + oldlen) > end))
 		return FDT_ERR_BADOFFSET;
-	if ((end - oldlen + newlen) > (blob + fdt_totalsize(fdt)))
+	if ((end - oldlen + newlen) > (fdt + fdt_totalsize(fdt)))
 		return FDT_ERR_NOSPACE;
 	memmove(p + newlen, p + oldlen, end - p - oldlen);
 	return 0;
 }
 
-static int _blob_splice_struct(struct fdt_header *fdt, void *p,
+static int _blob_splice_struct(void *fdt, void *p,
 			       int oldlen, int newlen)
 {
 	int delta = newlen - oldlen;
@@ -79,25 +78,24 @@ static int _blob_splice_struct(struct fdt_header *fdt, void *p,
 	if ((err = _blob_splice(fdt, p, oldlen, newlen)))
 		return err;
 
-	fdt->size_dt_struct = cpu_to_fdt32(fdt_size_dt_struct(fdt) + delta);
-	fdt->off_dt_strings = cpu_to_fdt32(fdt_off_dt_strings(fdt) + delta);
+	fdt_set_header(fdt, size_dt_struct, fdt_size_dt_struct(fdt) + delta);
+	fdt_set_header(fdt, off_dt_strings, fdt_off_dt_strings(fdt) + delta);
 	return 0;
 }
 
-static int _blob_splice_string(struct fdt_header *fdt, int newlen)
+static int _blob_splice_string(void *fdt, int newlen)
 {
-	void *blob = fdt;
-	void *p = blob + fdt_off_dt_strings(fdt) + fdt_size_dt_strings(fdt);
+	void *p = fdt + fdt_off_dt_strings(fdt) + fdt_size_dt_strings(fdt);
 	int err;
 
 	if ((err = _blob_splice(fdt, p, 0, newlen)))
 		return err;
 
-	fdt->size_dt_strings = cpu_to_fdt32(fdt_size_dt_strings(fdt) + newlen);
+	fdt_set_header(fdt, size_dt_strings, fdt_size_dt_strings(fdt) + newlen);
 	return 0;
 }
 
-static int _find_add_string(struct fdt_header *fdt, const char *s)
+static int _find_add_string(void *fdt, const char *s)
 {
 	char *strtab = (char *)fdt + fdt_off_dt_strings(fdt);
 	const char *p;
@@ -119,7 +117,7 @@ static int _find_add_string(struct fdt_header *fdt, const char *s)
 	return (new - strtab);
 }
 
-static struct fdt_property *_resize_property(struct fdt_header *fdt, int nodeoffset,
+static struct fdt_property *_resize_property(void *fdt, int nodeoffset,
 					     const char *name, int len)
 {
 	struct fdt_property *prop;
@@ -139,7 +137,7 @@ static struct fdt_property *_resize_property(struct fdt_header *fdt, int nodeoff
 	return prop;
 }
 
-static struct fdt_property *_add_property(struct fdt_header *fdt, int nodeoffset,
+static struct fdt_property *_add_property(void *fdt, int nodeoffset,
 					  const char *name, int len)
 {
 	uint32_t tag;
@@ -170,7 +168,7 @@ static struct fdt_property *_add_property(struct fdt_header *fdt, int nodeoffset
 	return prop;
 }
 
-int fdt_setprop(struct fdt_header *fdt, int nodeoffset, const char *name,
+int fdt_setprop(void *fdt, int nodeoffset, const char *name,
 		const void *val, int len)
 {
 	struct fdt_property *prop;
@@ -192,7 +190,7 @@ int fdt_setprop(struct fdt_header *fdt, int nodeoffset, const char *name,
 	return 0;
 }
 
-int fdt_delprop(struct fdt_header *fdt, int nodeoffset, const char *name)
+int fdt_delprop(void *fdt, int nodeoffset, const char *name)
 {
 	struct fdt_property *prop;
 	int len, proplen;
@@ -208,7 +206,7 @@ int fdt_delprop(struct fdt_header *fdt, int nodeoffset, const char *name)
 	return _blob_splice_struct(fdt, prop, proplen, 0);
 }
 
-int fdt_add_subnode_namelen(struct fdt_header *fdt, int parentoffset,
+int fdt_add_subnode_namelen(void *fdt, int parentoffset,
 			    const char *name, int namelen)
 {
 	struct fdt_node_header *nh;
@@ -249,12 +247,12 @@ int fdt_add_subnode_namelen(struct fdt_header *fdt, int parentoffset,
 	return offset;
 }
 
-int fdt_add_subnode(struct fdt_header *fdt, int parentoffset, const char *name)
+int fdt_add_subnode(void *fdt, int parentoffset, const char *name)
 {
 	return fdt_add_subnode_namelen(fdt, parentoffset, name, strlen(name));
 }
 
-int fdt_del_node(struct fdt_header *fdt, int nodeoffset)
+int fdt_del_node(void *fdt, int nodeoffset)
 {
 	int endoffset;
 	int err;
@@ -267,35 +265,36 @@ int fdt_del_node(struct fdt_header *fdt, int nodeoffset)
 				   endoffset - nodeoffset, 0);
 }
 
-struct fdt_header *fdt_open_into(struct fdt_header *fdt, void *buf, int bufsize)
+int fdt_open_into(void *fdt, void *buf, int bufsize)
 {
 	int err;
 
-	fdt = fdt_move(fdt, buf, bufsize);
-	if ((err = fdt_ptr_error(fdt)))
-		return PTR_ERROR(err);
+	err = fdt_move(fdt, buf, bufsize);
+	if (err)
+		return err;
 
-	fdt->totalsize = cpu_to_fdt32(bufsize);
+	fdt = buf;
+
+	fdt_set_header(fdt, totalsize, bufsize);
 
 	/* FIXME: re-order if necessary */
 
 	err = rw_check_header(fdt);
 	if (err)
-		return PTR_ERROR(err);
+		return err;
 
-	return fdt;
+	return FDT_ERR_OK;
 }
 
-struct fdt_header *fdt_pack(struct fdt_header *fdt)
+int fdt_pack(void *fdt)
 {
 	int err;
 
 	err = rw_check_header(fdt);
 	if (err)
-		return PTR_ERROR(err);
+		return err;
 
 	/* FIXME: pack components */
-
-	fdt->totalsize = cpu_to_fdt32(_blob_data_size(fdt));
-	return fdt;
+	fdt_set_header(fdt, totalsize, _blob_data_size(fdt));
+	return FDT_ERR_OK;
 }

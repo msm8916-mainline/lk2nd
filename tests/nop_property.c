@@ -31,7 +31,7 @@
 
 int main(int argc, char *argv[])
 {
-	struct fdt_header *fdt;
+	void *fdt;
 	uint32_t *intp;
 	char *strp;
 	int err;

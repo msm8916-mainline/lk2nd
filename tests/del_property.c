@@ -31,7 +31,7 @@
 
 int main(int argc, char *argv[])
 {
-	struct fdt_header *fdt;
+	void *fdt;
 	uint32_t *intp;
 	char *strp;
 	int err;
@@ -72,8 +72,8 @@ int main(int argc, char *argv[])
 
 	delsize = fdt_totalsize(fdt);
 
-	fdt = fdt_pack(fdt);
-	if ((err = fdt_ptr_error(fdt)))
+	err = fdt_pack(fdt);
+	if (err)
 		FAIL("fdt_pack(): %s\n", fdt_strerror(err));
 
 	newsize = fdt_totalsize(fdt);

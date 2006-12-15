@@ -27,7 +27,7 @@
 #include "tests.h"
 #include "testdata.h"
 
-int check_subnode(struct fdt_header *fdt, int parent, const char *name)
+int check_subnode(void *fdt, int parent, const char *name)
 {
 	int offset;
 	int err;
@@ -57,7 +57,7 @@ int check_subnode(struct fdt_header *fdt, int parent, const char *name)
 
 int main(int argc, char *argv[])
 {
-	struct fdt_header *fdt;
+	void *fdt;
 	int subnode1_offset, subnode2_offset;
 	int subnode1_offset_p, subnode2_offset_p;
 	int subsubnode1_offset, subsubnode2_offset;

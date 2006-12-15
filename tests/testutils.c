@@ -103,7 +103,7 @@ const char *fdt_strerror(int errval)
 		return "Unknown FDT error code";
 }
 
-void check_property(struct fdt_header *fdt, int nodeoffset, const char *name,
+void check_property(void *fdt, int nodeoffset, const char *name,
 		    int len, const void *val)
 {
 	const struct fdt_property *prop;
@@ -135,7 +135,7 @@ void check_property(struct fdt_header *fdt, int nodeoffset, const char *name,
 	
 }
 
-void *check_getprop(struct fdt_header *fdt, int nodeoffset, const char *name,
+void *check_getprop(void *fdt, int nodeoffset, const char *name,
 		    int len, const void *val)
 {
 	void *propval;
@@ -195,7 +195,7 @@ void *load_blob_arg(int argc, char *argv[])
 	return load_blob(argv[1]);
 }
 
-void save_blob(const char *filename, struct fdt_header *fdt)
+void save_blob(const char *filename, void *fdt)
 {
 	int fd;
 	int totalsize;
@@ -208,7 +208,7 @@ void save_blob(const char *filename, struct fdt_header *fdt)
 		CONFIG("Couldn't open \"%s\" to write blob: %s", filename,
 		       strerror(errno));
 
-	totalsize = fdt32_to_cpu(fdt->totalsize);
+	totalsize = fdt_totalsize(fdt);
 	offset = 0;
 	p = fdt;
 

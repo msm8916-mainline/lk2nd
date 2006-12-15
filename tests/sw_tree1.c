@@ -40,14 +40,13 @@
 
 int main(int argc, char *argv[])
 {
-	void *buf;
-	struct fdt_header *fdt;
+	void *fdt;
 	int err;
 
 	test_init(argc, argv);
 
-	buf = xmalloc(SPACE);
-	fdt = fdt_create(buf, SPACE);
+	fdt = xmalloc(SPACE);
+	CHECK(fdt_create(fdt, SPACE));
 
 	CHECK(fdt_finish_reservemap(fdt));
 	CHECK(fdt_begin_node(fdt, ""));
@@ -75,7 +74,7 @@ int main(int argc, char *argv[])
 	CHECK(fdt_finish(fdt));
 
 	verbose_printf("Completed tree, totalsize = %d\n",
-		       fdt32_to_cpu(fdt->totalsize));
+		       fdt_totalsize(fdt));
 
 	save_blob("sw_tree1.test.dtb", fdt);
 

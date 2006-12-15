@@ -31,7 +31,7 @@
 
 int main(int argc, char *argv[])
 {
-	struct fdt_header *fdt, *fdt1, *fdt2;
+	void *fdt, *fdt1;
 	void *buf;
 	int oldsize, bufsize, packsize;
 	int err;
@@ -48,19 +48,20 @@ int main(int argc, char *argv[])
 
 	buf = xmalloc(bufsize);
 
-	fdt1 = fdt_open_into(fdt, buf, bufsize);
-	if ((err = fdt_ptr_error(fdt1)))
+	fdt1 = buf;
+	err = fdt_open_into(fdt, fdt1, bufsize);
+	if (err)
 		FAIL("fdt_open_into(): %s", fdt_strerror(err));
 	sprintf(outname, "opened.%s", inname);
 	save_blob(outname, fdt1);
 
-	fdt2 = fdt_pack(fdt1);
-	if ((err = fdt_ptr_error(fdt2)))
+	err = fdt_pack(fdt1);
+	if (err)
 		FAIL("fdt_pack(): %s", fdt_strerror(err));
 	sprintf(outname, "repacked.%s", inname);
-	save_blob(outname, fdt2);
+	save_blob(outname, fdt1);
 
-	packsize = fdt_totalsize(fdt2);
+	packsize = fdt_totalsize(fdt1);
 
 	verbose_printf("oldsize = %d, bufsize = %d, packsize = %d\n",
 		       oldsize, bufsize, packsize);

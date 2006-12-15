@@ -31,7 +31,7 @@
 
 int main(int argc, char *argv[])
 {
-	struct fdt_header *fdt;
+	void *fdt;
 	int subnode1_offset, subnode2_offset, subsubnode2_offset;
 	int err;
 	int oldsize, delsize, newsize;
@@ -98,8 +98,8 @@ int main(int argc, char *argv[])
 
 	delsize = fdt_totalsize(fdt);
 
-	fdt = fdt_pack(fdt);
-	if ((err = fdt_ptr_error(fdt)))
+	err = fdt_pack(fdt);
+	if (err)
 		FAIL("fdt_pack(): %s", fdt_strerror(err));
 
 	newsize = fdt_totalsize(fdt);

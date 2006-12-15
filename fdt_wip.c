@@ -23,7 +23,7 @@
 
 #include "libfdt_internal.h"
 
-int fdt_setprop_inplace(struct fdt_header *fdt, int nodeoffset, const char *name,
+int fdt_setprop_inplace(void *fdt, int nodeoffset, const char *name,
 			const void *val, int len)
 {
 	void *propval;
@@ -49,7 +49,7 @@ static void nop_region(void *start, int len)
 		*p = cpu_to_fdt32(FDT_NOP);
 }
 
-int fdt_nop_property(struct fdt_header *fdt, int nodeoffset, const char *name)
+int fdt_nop_property(void *fdt, int nodeoffset, const char *name)
 {
 	struct fdt_property *prop;
 	int len;
@@ -64,7 +64,7 @@ int fdt_nop_property(struct fdt_header *fdt, int nodeoffset, const char *name)
 	return 0;
 }
 
-int _fdt_node_end_offset(struct fdt_header *fdt, int nodeoffset)
+int _fdt_node_end_offset(void *fdt, int nodeoffset)
 {
 	int level = 0;
 	uint32_t tag;
@@ -101,7 +101,7 @@ int _fdt_node_end_offset(struct fdt_header *fdt, int nodeoffset)
 	return nextoffset;
 }
 
-int fdt_nop_node(struct fdt_header *fdt, int nodeoffset)
+int fdt_nop_node(void *fdt, int nodeoffset)
 {
 	int endoffset;
 	int err;

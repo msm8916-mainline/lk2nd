@@ -23,14 +23,14 @@
 
 #include "libfdt_internal.h"
 
-static int check_header_sw(struct fdt_header *fdt)
+static int check_header_sw(void *fdt)
 {
 	if (fdt_magic(fdt) != SW_MAGIC)
 		return FDT_ERR_BADMAGIC;
 	return 0;
 }
 
-static void *grab_space(struct fdt_header *fdt, int len)
+static void *grab_space(void *fdt, int len)
 {
 	int offset = fdt_size_dt_struct(fdt);
 	int spaceleft;
@@ -41,33 +41,33 @@ static void *grab_space(struct fdt_header *fdt, int len)
 	if ((offset + len < offset) || (offset + len > spaceleft))
 		return NULL;
 
-	fdt->size_dt_struct = cpu_to_fdt32(offset + len);
+	fdt_set_header(fdt, size_dt_struct, offset + len);
 	return fdt_offset_ptr(fdt, offset, len);
 }
 
-struct fdt_header *fdt_create(void *buf, int bufsize)
+int fdt_create(void *buf, int bufsize)
 {
-	struct fdt_header *fdt = buf;
+	void *fdt = buf;
 
 	if (bufsize < sizeof(struct fdt_header))
-		return NULL;
+		return FDT_ERR_NOSPACE;
 
 	memset(buf, 0, bufsize);
 
-	fdt->magic = cpu_to_fdt32(SW_MAGIC);
-	fdt->version = cpu_to_fdt32(FDT_LAST_SUPPORTED_VERSION);
-	fdt->last_comp_version= cpu_to_fdt32(FDT_FIRST_SUPPORTED_VERSION);
-	fdt->totalsize = cpu_to_fdt32(bufsize);
+	fdt_set_header(fdt, magic, SW_MAGIC);
+	fdt_set_header(fdt, version, FDT_LAST_SUPPORTED_VERSION);
+	fdt_set_header(fdt, last_comp_version, FDT_FIRST_SUPPORTED_VERSION);
+	fdt_set_header(fdt, totalsize, bufsize);
 
-	fdt->off_mem_rsvmap = cpu_to_fdt32(ALIGN(sizeof(*fdt),
-						 sizeof(struct fdt_reserve_entry)));
-	fdt->off_dt_struct = fdt->off_mem_rsvmap;
-	fdt->off_dt_strings = fdt32_to_cpu(bufsize);
+	fdt_set_header(fdt, off_mem_rsvmap, ALIGN(sizeof(struct fdt_header),
+					      sizeof(struct fdt_reserve_entry)));
+	fdt_set_header(fdt, off_dt_struct, fdt_off_mem_rsvmap(fdt));
+	fdt_set_header(fdt, off_dt_strings, bufsize);
 
-	return fdt;
+	return FDT_ERR_OK;
 }
 
-int fdt_add_reservemap_entry(struct fdt_header *fdt, uint64_t addr, uint64_t size)
+int fdt_add_reservemap_entry(void *fdt, uint64_t addr, uint64_t size)
 {
 	struct fdt_reserve_entry *re;
 	int err = check_header_sw(fdt);
@@ -86,17 +86,17 @@ int fdt_add_reservemap_entry(struct fdt_header *fdt, uint64_t addr, uint64_t siz
 	re->address = cpu_to_fdt64(addr);
 	re->size = cpu_to_fdt64(size);
 
-	fdt->off_dt_struct = cpu_to_fdt32(offset + sizeof(*re));
+	fdt_set_header(fdt, off_dt_struct, offset + sizeof(*re));
 
 	return 0;
 }
 
-int fdt_finish_reservemap(struct fdt_header *fdt)
+int fdt_finish_reservemap(void *fdt)
 {
 	return fdt_add_reservemap_entry(fdt, 0, 0);
 }
 
-int fdt_begin_node(struct fdt_header *fdt, const char *name)
+int fdt_begin_node(void *fdt, const char *name)
 {
 	struct fdt_node_header *nh;
 	int err = check_header_sw(fdt);
@@ -114,7 +114,7 @@ int fdt_begin_node(struct fdt_header *fdt, const char *name)
 	return 0;
 }
 
-int fdt_end_node(struct fdt_header *fdt)
+int fdt_end_node(void *fdt)
 {
 	uint32_t *en;
 	int err = check_header_sw(fdt);
@@ -130,7 +130,7 @@ int fdt_end_node(struct fdt_header *fdt)
 	return 0;
 }
 
-static int find_add_string(struct fdt_header *fdt, const char *s)
+static int find_add_string(void *fdt, const char *s)
 {
 	char *strtab = (char *)fdt + fdt_totalsize(fdt);
 	const char *p;
@@ -149,11 +149,11 @@ static int find_add_string(struct fdt_header *fdt, const char *s)
 		return 0; /* no more room :( */
 
 	memcpy(strtab + offset, s, len);
-	fdt->size_dt_strings = cpu_to_fdt32(strtabsize + len);
+	fdt_set_header(fdt, size_dt_strings, strtabsize + len);
 	return offset;
 }
 
-int fdt_property(struct fdt_header *fdt, const char *name, const void *val, int len)
+int fdt_property(void *fdt, const char *name, const void *val, int len)
 {
 	struct fdt_property *prop;
 	int err = check_header_sw(fdt);
@@ -177,7 +177,7 @@ int fdt_property(struct fdt_header *fdt, const char *name, const void *val, int 
 	return 0;
 }
 
-int fdt_finish(struct fdt_header *fdt)
+int fdt_finish(void *fdt)
 {
 	int err = check_header_sw(fdt);
 	char *p = (char *)fdt;
@@ -199,7 +199,7 @@ int fdt_finish(struct fdt_header *fdt)
 	oldstroffset = fdt_totalsize(fdt) - fdt_size_dt_strings(fdt);
 	newstroffset = fdt_off_dt_struct(fdt) + fdt_size_dt_struct(fdt);
 	memmove(p + newstroffset, p + oldstroffset, fdt_size_dt_strings(fdt));
-	fdt->off_dt_strings = fdt32_to_cpu(newstroffset);
+	fdt_set_header(fdt, off_dt_strings, newstroffset);
 
 	/* Walk the structure, correcting string offsets */
 	offset = 0;
@@ -220,7 +220,7 @@ int fdt_finish(struct fdt_header *fdt)
 	}
 
 	/* Finally, adjust the header */
-	fdt->totalsize = cpu_to_fdt32(newstroffset + fdt_size_dt_strings(fdt));
-	fdt->magic = cpu_to_fdt32(FDT_MAGIC);
+	fdt_set_header(fdt, totalsize, newstroffset + fdt_size_dt_strings(fdt));
+	fdt_set_header(fdt, magic, FDT_MAGIC);
 	return 0;
 }

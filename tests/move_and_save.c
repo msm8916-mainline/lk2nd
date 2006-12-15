@@ -30,7 +30,7 @@
 
 int main(int argc, char *argv[])
 {
-	struct fdt_header *fdt, *fdt1, *fdt2, *fdt3;
+	void *fdt, *fdt1, *fdt2, *fdt3;
 	void *buf;
 	int shuntsize;
 	int bufsize;
@@ -46,22 +46,25 @@ int main(int argc, char *argv[])
 	bufsize = fdt_totalsize(fdt) + shuntsize;
 	buf = xmalloc(bufsize);
 
-	fdt1 = fdt_move(fdt, buf, bufsize);
-	if ((err = fdt_ptr_error(fdt1)))
+	fdt1 = buf;
+	err = fdt_move(fdt, fdt1, bufsize);
+	if (err)
 		FAIL("Failed to move tree into new buffer: %s",
 		     fdt_strerror(err));
 	sprintf(outname, "moved.%s", inname);
 	save_blob(outname, fdt1);
 
-	fdt2 = fdt_move(fdt1, buf + shuntsize, bufsize-shuntsize);
-	if ((err = fdt_ptr_error(fdt2)))
+	fdt2 = buf + shuntsize;
+	err = fdt_move(fdt1, fdt2, bufsize-shuntsize);
+	if (err)
 		FAIL("Failed to shunt tree %d bytes: %s",
 		     shuntsize, fdt_strerror(err));
 	sprintf(outname, "shunted.%s", inname);
 	save_blob(outname, fdt2);
 
-	fdt3 = fdt_move(fdt2, buf, bufsize);
-	if ((err = fdt_ptr_error(fdt3)))
+	fdt3 = buf;
+	err = fdt_move(fdt2, fdt3, bufsize);
+	if (err)
 		FAIL("Failed to deshunt tree %d bytes: %s",
 		     shuntsize, fdt_strerror(err));
 	sprintf(outname, "deshunted.%s", inname);

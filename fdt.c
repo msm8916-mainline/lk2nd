@@ -23,7 +23,7 @@
 
 #include "libfdt_internal.h"
 
-int _fdt_check_header(const struct fdt_header *fdt)
+int _fdt_check_header(const void *fdt)
 {
 	if (fdt_magic(fdt) == FDT_MAGIC) {
 		/* Complete tree */
@@ -42,7 +42,7 @@ int _fdt_check_header(const struct fdt_header *fdt)
 	return 0;
 }
 
-void *fdt_offset_ptr(const struct fdt_header *fdt, int offset, int len)
+void *fdt_offset_ptr(const void *fdt, int offset, int len)
 {
 	void *p;
 
@@ -58,7 +58,7 @@ void *fdt_offset_ptr(const struct fdt_header *fdt, int offset, int len)
 	return p;
 }
 
-uint32_t _fdt_next_tag(const struct fdt_header *fdt, int offset, int *nextoffset)
+uint32_t _fdt_next_tag(const void *fdt, int offset, int *nextoffset)
 {
 	const uint32_t *tagp, *lenp;
 	uint32_t tag;
@@ -109,16 +109,16 @@ const char *_fdt_find_string(const char *strtab, int tabsize, const char *s)
 	return NULL;
 }
 
-struct fdt_header *fdt_move(const struct fdt_header *fdt, void *buf, int bufsize)
+int fdt_move(const void *fdt, void *buf, int bufsize)
 {
 	int err = _fdt_check_header(fdt);
 
 	if (err)
-		return PTR_ERROR(err);
+		return err;
 
 	if (fdt_totalsize(fdt) > bufsize)
-		return PTR_ERROR(FDT_ERR_NOSPACE);
+		return FDT_ERR_NOSPACE;
 
 	memmove(buf, fdt, fdt_totalsize(fdt));
-	return (struct fdt_header *)buf;
+	return FDT_ERR_OK;
 }

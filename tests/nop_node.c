@@ -31,7 +31,7 @@
 
 int main(int argc, char *argv[])
 {
-	struct fdt_header *fdt;
+	void *fdt;
 	int subnode1_offset, subnode2_offset, subsubnode2_offset;
 	int err;
 

@@ -34,7 +34,7 @@
 
 int main(int argc, char *argv[])
 {
-	struct fdt_header *fdt;
+	void *fdt;
 	void *buf;
 	uint32_t *intp;
 	char *strp;
@@ -45,9 +45,11 @@ int main(int argc, char *argv[])
 
 	buf = xmalloc(SPACE);
 
-	fdt = fdt_open_into(fdt, buf, SPACE);
-	if ((err = fdt_ptr_error(fdt)))
+	err = fdt_open_into(fdt, buf, SPACE);
+	if (err)
 		FAIL("fdt_open_into(): %s", fdt_strerror(err));
+
+	fdt = buf;
 
 	intp = check_getprop_typed(fdt, 0, "prop-int", TEST_VALUE_1);
 

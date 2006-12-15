@@ -26,10 +26,10 @@
 #define memeq(p, q, n)	(memcmp((p), (q), (n)) == 0)
 #define streq(p, q)	(strcmp((p), (q)) == 0)
 
-int _fdt_check_header(const struct fdt_header *fdt);
-uint32_t _fdt_next_tag(const struct fdt_header *fdt, int startoffset, int *nextoffset);
+int _fdt_check_header(const void *fdt);
+uint32_t _fdt_next_tag(const void *fdt, int startoffset, int *nextoffset);
 const char *_fdt_find_string(const char *strtab, int tabsize, const char *s);
-int _fdt_node_end_offset(struct fdt_header *fdt, int nodeoffset);
+int _fdt_node_end_offset(void *fdt, int nodeoffset);
 
 static inline void *_fdt_offset_ptr(const struct fdt_header *fdt, int offset)
 {

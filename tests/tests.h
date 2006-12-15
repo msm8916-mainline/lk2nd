@@ -109,7 +109,7 @@ static inline void *xrealloc(void *p, size_t size)
 }
 
 const char *fdt_strerror(int errval);
-void check_property(struct fdt_header *fdt, int nodeoffset, const char *name,
+void check_property(void *fdt, int nodeoffset, const char *name,
 		    int len, const void *val);
 #define check_property_typed(fdt, nodeoffset, name, val) \
 	({ \
@@ -118,7 +118,7 @@ void check_property(struct fdt_header *fdt, int nodeoffset, const char *name,
 	})
 
 
-void *check_getprop(struct fdt_header *fdt, int nodeoffset, const char *name,
+void *check_getprop(void *fdt, int nodeoffset, const char *name,
 		    int len, const void *val);
 #define check_getprop_typed(fdt, nodeoffset, name, val) \
 	({ \
@@ -129,6 +129,6 @@ void *check_getprop(struct fdt_header *fdt, int nodeoffset, const char *name,
 	check_getprop((fdt), (nodeoffset), (name), strlen(s)+1, (s))
 //void *load_blob(const char *filename);
 void *load_blob_arg(int argc, char *argv[]);
-void save_blob(const char *filename, struct fdt_header *fdt);
+void save_blob(const char *filename, void *blob);
 
 #endif /* _TESTS_H */

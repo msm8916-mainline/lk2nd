@@ -4,12 +4,13 @@
 #include <fcntl.h>
 
 #include <fdt.h>
+#include <libfdt.h>
 #include <libfdt_env.h>
 
 #include "testdata.h"
 
 struct {
-	struct fdt_header *fdt;
+	void *blob;
 	const char *filename;
 } trees[] = {
 #define TREE(name)	{ &_##name, #name ".dtb" }
@@ -23,13 +24,13 @@ int main(int argc, char *argv[])
 	int i;
 
 	for (i = 0; i < NUM_TREES; i++) {
-		struct fdt_header *fdt = trees[i].fdt;
+		void *blob = trees[i].blob;
 		const char *filename = trees[i].filename;
 		int size;
 		int fd;
 		int ret;
 
-		size = fdt32_to_cpu(fdt->totalsize);
+		size = fdt_totalsize(blob);
 
 		printf("Tree \"%s\", %d bytes\n", filename, size);
 
@@ -37,7 +38,7 @@ int main(int argc, char *argv[])
 		if (fd < 0)
 			perror("open()");
 
-		ret = write(fd, fdt, size);
+		ret = write(fd, blob, size);
 		if (ret != size)
 			perror("write()");
 
