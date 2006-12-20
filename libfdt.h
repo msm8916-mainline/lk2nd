@@ -129,4 +129,7 @@ int fdt_add_subnode_namelen(void *fdt, int parentoffset,
 int fdt_add_subnode(void *fdt, int parentoffset, const char *name);
 int fdt_del_node(void *fdt, int nodeoffset);
 
+/* Extra functions */
+const char *fdt_strerror(int errval);
+
 #endif /* _LIBFDT_H */

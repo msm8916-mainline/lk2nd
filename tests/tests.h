@@ -108,7 +108,6 @@ static inline void *xrealloc(void *p, size_t size)
 	return p;
 }
 
-const char *fdt_strerror(int errval);
 void check_property(void *fdt, int nodeoffset, const char *name,
 		    int len, const void *val);
 #define check_property_typed(fdt, nodeoffset, name, val) \
