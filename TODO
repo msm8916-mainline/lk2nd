@@ -1,0 +1,6 @@
+- Move fdt_strerror() to core library for convenience
+- Find node by linux,phandle property
+- Tree traversal functions
+- Graft function
+- Merge into dtc
+- Make fdt_open_into() re-arrange properly
