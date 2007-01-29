@@ -568,8 +568,6 @@ static int check_chosen(struct node *root)
 		return 0;
 	}
 
-	CHECK_HAVE_ONECELL(chosen, "linux,platform");
-
 	CHECK_HAVE_WARN_STRING(chosen, "bootargs");
 	CHECK_HAVE_WARN_STRING(chosen, "linux,stdout-path");
 	CHECK_HAVE_WARN_PHANDLE(chosen, "interrupt-controller", root);
