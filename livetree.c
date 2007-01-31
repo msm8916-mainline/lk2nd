@@ -427,9 +427,14 @@ static int check_structure(struct node *tree)
 		struct node *ref; \
 		CHECK_HAVE_WARN_ONECELL((xnode), (propname)); \
 		if (prop) {\
-			ref = get_node_by_phandle((root), propval_cell(prop)); \
-			if (! ref) \
-				DO_ERR("\"%s\" property in %s refers to non-existant phandle %x\n", (propname), (xnode)->fullpath, propval_cell(prop)); \
+			cell_t phandle = propval_cell(prop); \
+			if ((phandle == 0) || (phandle == -1)) { \
+				DO_ERR("\"%s\" property in %s contains an invalid phandle %x\n", (propname), (xnode)->fullpath, phandle); \
+			} else { \
+				ref = get_node_by_phandle((root), propval_cell(prop)); \
+				if (! ref) \
+					DO_ERR("\"%s\" property in %s refers to non-existant phandle %x\n", (propname), (xnode)->fullpath, propval_cell(prop)); \
+			} \
 		} \
 	} while (0)
 
