@@ -212,6 +212,24 @@ static struct node *get_node_by_path(struct node *tree, char *path)
 	return NULL;
 }
 
+static struct node *get_node_by_label(struct node *tree, const char *label)
+{
+	struct node *child, *node;
+
+	assert(label && (strlen(label) > 0));
+
+	if (tree->label && streq(tree->label, label))
+		return tree;
+
+	for_each_child(tree, child) {
+		node = get_node_by_label(child, label);
+		if (node)
+			return node;
+	}
+
+	return NULL;
+}
+
 static struct node *get_node_by_phandle(struct node *tree, cell_t phandle)
 {
 	struct node *child, *node;	
@@ -229,6 +247,7 @@ static struct node *get_node_by_phandle(struct node *tree, cell_t phandle)
 
 	return NULL;
 }
+
 /*
  * Tree checking functions
  */
@@ -673,9 +692,16 @@ static void apply_fixup(struct node *root, struct property *prop,
 	struct node *refnode;
 	cell_t phandle;
 
-	refnode = get_node_by_path(root, f->ref);
-	if (! refnode)
-		die("Reference to non-existent node \"%s\"\n", f->ref);
+	if (f->ref[0] == '/') {
+		/* Reference to full path */
+		refnode = get_node_by_path(root, f->ref);
+		if (! refnode)
+			die("Reference to non-existent node \"%s\"\n", f->ref);
+	} else {
+		refnode = get_node_by_label(root, f->ref);
+		if (! refnode)
+			die("Reference to non-existent node label \"%s\"\n", f->ref);
+	}
 
 	phandle = get_node_phandle(root, refnode);
 
