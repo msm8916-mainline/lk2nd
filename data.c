@@ -197,6 +197,33 @@ struct data data_append_data(struct data d, void *p, int len)
 	return d;
 }
 
+struct data data_merge(struct data d1, struct data d2)
+{
+	struct data d;
+	struct fixup **ff;
+	struct fixup *f, *f2;
+
+	d = data_append_data(d1, d2.val, d2.len);
+
+	/* Extract d2's fixups */
+	f2 = d2.refs;
+	d2.refs = NULL;
+
+	/* Tack them onto d's list of fixups */
+	ff = &d.refs;
+	while (*ff)
+		ff = &((*ff)->next);
+	*ff = f2;
+
+	/* And correct them for their new position */
+	for (f = f2; f; f = f->next)
+		f->offset += d1.len;
+
+	data_free(d2);
+
+	return d;
+}
+
 struct data data_append_cell(struct data d, cell_t word)
 {
 	cell_t beword = cpu_to_be32(word);

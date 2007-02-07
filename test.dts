@@ -4,7 +4,7 @@
 
 / {
 	model = "MyBoardName";
-	compatible = "MyBoardFamilyName";
+	compatible = "MyBoardName", "MyBoardFamilyName";
 	#address-cells = <2>;
 	#size-cells = <2>;
 
@@ -39,6 +39,7 @@
 		string = "\xff\0stuffstuff\t\t\t\n\n\n";
 		blob = [0a 0b 0c 0d de ea ad be ef];
 		ref = < &/memory@0 >;
+		mixed = "abc", [1234], <a b c>;
 	};
 
 	memory@0 {

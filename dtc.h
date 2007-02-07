@@ -119,6 +119,7 @@ struct data data_copy_escape_string(char *s, int len);
 struct data data_copy_file(FILE *f, size_t len);
 
 struct data data_append_data(struct data d, void *p, int len);
+struct data data_merge(struct data d1, struct data d2);
 struct data data_append_cell(struct data d, cell_t word);
 struct data data_append_re(struct data d, struct reserve_entry *re);
 struct data data_append_addr(struct data d, u64 addr);

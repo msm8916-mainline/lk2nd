@@ -58,6 +58,7 @@ extern struct boot_info *the_boot_info;
 %token <str> DT_REF
 
 %type <data> propdata
+%type <data> propdataprefix
 %type <re> memreserve
 %type <re> memreserves
 %type <data> celllist
@@ -121,9 +122,15 @@ propdef:	label DT_PROPNAME '=' propdata ';' {
 		}
 	;
 
-propdata:	DT_STRING { $$ = $1; }
-	|	'<' celllist '>' { $$ = $2; }
-	|	'[' bytestring ']' { $$ = $2; }
+propdata:	propdataprefix DT_STRING { $$ = data_merge($1, $2); }
+	|	propdataprefix '<' celllist '>' {
+			$$ = data_merge(data_append_align($1, sizeof(cell_t)), $3);
+		}
+	|	propdataprefix '[' bytestring ']' { $$ = data_merge($1, $3); }
+	;
+
+propdataprefix:	propdata ',' { $$ = $1; }
+	|	/* empty */ { $$ = empty_data; }
 	;
 
 celllist:	celllist DT_CELL { $$ = data_append_cell($1, $2); }

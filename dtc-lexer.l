@@ -123,6 +123,15 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 			return ']';
 		}
 
+,		{ /* Technically this is a valid property name,
+		     but we'd rather use it as punctuation, so detect it
+		     here in preference */
+			yylloc.first_line = yylineno;
+			DPRINT("Char (propname like): %c (\\x%02x)\n", yytext[0],
+				(unsigned)yytext[0]);
+			return yytext[0];
+		}
+
 {PROPCHAR}+	{
 			yylloc.first_line = yylineno;
 			DPRINT("PropName: %s\n", yytext);
