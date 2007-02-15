@@ -83,15 +83,24 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 			BEGIN(INITIAL);
 			return ';';
 		}
+<CELLDATA>[bodh]# {
+			yylloc.first_line = yylineno;
+			if (*yytext == 'b')
+				yylval.cbase = 2;
+			else if (*yytext == 'o')
+				yylval.cbase = 8;
+			else if (*yytext == 'd')
+				yylval.cbase = 10;
+			else
+				yylval.cbase = 16;
+			DPRINT("Base: %d\n", yylval.cbase);
+			return DT_BASE;
+		}
 
 <CELLDATA>[0-9a-fA-F]+	{
 			yylloc.first_line = yylineno;
-			if (yyleng > 2*sizeof(yylval.cval)) {
-				fprintf(stderr,
-					"Cell value %s too long\n", yytext);
-			}
-			yylval.cval = strtoul(yytext, NULL, 16);
-			DPRINT("Cell: %x\n", yylval.cval);
+			yylval.str = strdup(yytext);
+			DPRINT("Cell: '%s'\n", yylval.str);
 			return DT_CELL;
 		}
 

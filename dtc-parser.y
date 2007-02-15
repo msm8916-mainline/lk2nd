@@ -33,6 +33,7 @@ extern struct boot_info *the_boot_info;
 
 %union {
 	cell_t cval;
+	unsigned int cbase;
 	u8 byte;
 	char *str;
 	struct data data;
@@ -50,7 +51,8 @@ extern struct boot_info *the_boot_info;
 %token <addr> DT_ADDR
 %token <str> DT_PROPNAME
 %token <str> DT_NODENAME
-%token <cval> DT_CELL
+%token <cbase> DT_BASE
+%token <str> DT_CELL
 %token <byte> DT_BYTE
 %token <data> DT_STRING
 %token <str> DT_UNIT
@@ -61,6 +63,7 @@ extern struct boot_info *the_boot_info;
 %type <data> propdataprefix
 %type <re> memreserve
 %type <re> memreserves
+%type <cbase> opt_cell_base
 %type <data> celllist
 %type <data> bytestring
 %type <prop> propdef
@@ -133,7 +136,16 @@ propdataprefix:	propdata ',' { $$ = $1; }
 	|	/* empty */ { $$ = empty_data; }
 	;
 
-celllist:	celllist DT_CELL { $$ = data_append_cell($1, $2); }
+opt_cell_base:
+	  /* empty */
+		{ $$ = 16; }
+	| DT_BASE
+	;
+
+celllist:	celllist opt_cell_base DT_CELL {
+			$$ = data_append_cell($1,
+					      data_convert_cell($3, $2));
+		}
 	|	celllist DT_REF	{
 			$$ = data_append_cell(data_add_fixup($1, $2), -1);
 		}

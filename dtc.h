@@ -118,6 +118,7 @@ struct data data_copy_mem(char *mem, int len);
 struct data data_copy_escape_string(char *s, int len);
 struct data data_copy_file(FILE *f, size_t len);
 
+cell_t data_convert_cell(char *s, unsigned int base);
 struct data data_append_data(struct data d, void *p, int len);
 struct data data_merge(struct data d1, struct data d2);
 struct data data_append_cell(struct data d, cell_t word);
