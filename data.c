@@ -225,26 +225,6 @@ struct data data_merge(struct data d1, struct data d2)
 	return d;
 }
 
-/*
- * Convert a string representation of a numberic cell
- * in the given base into a cell.
- */
-cell_t data_convert_cell(char *s, unsigned int base)
-{
-	cell_t c;
-	extern YYLTYPE yylloc;
-
-	c = strtoul(s, NULL, base);
-	if (errno == EINVAL || errno == ERANGE) {
-		fprintf(stderr,
-			"Line %d: Invalid cell value '%s'; %d assumed\n",
-			yylloc.first_line, s, c);
-	}
-
-	return c;
-}
-
-
 struct data data_append_cell(struct data d, cell_t word)
 {
 	cell_t beword = cpu_to_be32(word);

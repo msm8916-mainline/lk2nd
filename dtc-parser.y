@@ -24,8 +24,9 @@
 %{
 #include "dtc.h"
 
-int yylex (void);
-void yyerror (char const *);
+int yylex(void);
+void yyerror(char const *);
+cell_t cell_from_string(char *s, unsigned int base);
 
 extern struct boot_info *the_boot_info;
 
@@ -144,7 +145,7 @@ opt_cell_base:
 
 celllist:	celllist opt_cell_base DT_CELL {
 			$$ = data_append_cell($1,
-					      data_convert_cell($3, $2));
+					      cell_from_string($3, $2));
 		}
 	|	celllist DT_REF	{
 			$$ = data_append_cell(data_add_fixup($1, $2), -1);
@@ -178,4 +179,27 @@ label:		DT_LABEL	{ $$ = $1; }
 void yyerror (char const *s)
 {
 	fprintf (stderr, "%s at line %d\n", s, yylloc.first_line);
+}
+
+
+/*
+ * Convert a string representation of a numeric cell
+ * in the given base into a cell.
+ *
+ * FIXME: The string "abc123", base 10, should be flagged
+ *        as an error due to the leading "a", but isn't yet.
+ */
+
+cell_t cell_from_string(char *s, unsigned int base)
+{
+	cell_t c;
+
+	c = strtoul(s, NULL, base);
+	if (errno == EINVAL || errno == ERANGE) {
+		fprintf(stderr,
+			"Line %d: Invalid cell value '%s'; %d assumed\n",
+			yylloc.first_line, s, c);
+	}
+
+	return c;
 }
