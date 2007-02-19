@@ -594,9 +594,16 @@ static int check_chosen(struct node *root)
 
 	CHECK_HAVE_WARN_STRING(chosen, "bootargs");
 	CHECK_HAVE_WARN_STRING(chosen, "linux,stdout-path");
-	CHECK_HAVE_WARN_PHANDLE(chosen, "interrupt-controller", root);
 
-	return ok;	
+        /* give warning for obsolete interrupt-controller property */
+	do {
+		if ((prop = get_property(chosen, "interrupt-controller")) != NULL) {
+			WARNMSG("%s has obsolete \"%s\" property\n",
+                                 chosen->fullpath, "interrupt-controller");
+                }
+	} while (0);
+
+	return ok;
 }
 
 static int check_addr_size_reg(struct node *node,
