@@ -83,7 +83,7 @@ uint32_t _fdt_next_tag(const void *fdt, int offset, int *nextoffset)
 			return FDT_END;
 		break;
 	case FDT_PROP:
-		lenp = fdt_offset_ptr(fdt, offset + FDT_TAGSIZE, sizeof(*lenp));
+		lenp = fdt_offset_ptr(fdt, offset, sizeof(*lenp));
 		if (! lenp)
 			return FDT_END;
 		/* skip name offset, length and value */

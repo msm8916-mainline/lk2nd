@@ -39,8 +39,8 @@ tree:	\
 
 #define PROPHDR(tree, name, len) \
 	FDTLONG(FDT_PROP)	; \
-	FDTLONG(tree##_##name - tree##_strings) ; \
-	FDTLONG(len)		;
+	FDTLONG(len)		; \
+	FDTLONG(tree##_##name - tree##_strings) ;
 
 #define PROP_INT(tree, name, val) \
 	PROPHDR(tree, name, 4) \

@@ -36,8 +36,8 @@ struct fdt_node_header {
 
 struct fdt_property {
 	uint32_t tag;
-	uint32_t nameoff;
 	uint32_t len;
+	uint32_t nameoff;
 	char data[0];
 };
 
