@@ -72,14 +72,16 @@ void check_property(void *fdt, int nodeoffset, const char *name,
 		    int len, const void *val)
 {
 	const struct fdt_property *prop;
+	int retlen;
 	uint32_t tag, nameoff, proplen;
 	const char *propname;
 
 	verbose_printf("Checking property \"%s\"...", name);
-	prop = fdt_get_property(fdt, nodeoffset, name, NULL);
+	prop = fdt_get_property(fdt, nodeoffset, name, &retlen);
 	verbose_printf("pointer %p\n", prop);
 	if (! prop)
-		FAIL("NULL retreiving \"%s\" pointer", name);
+		FAIL("Error retreiving \"%s\" pointer: %s", name,
+		     fdt_strerror(retlen));
 
 	tag = fdt32_to_cpu(prop->tag);
 	nameoff = fdt32_to_cpu(prop->nameoff);
@@ -92,6 +94,10 @@ void check_property(void *fdt, int nodeoffset, const char *name,
 	if (!propname || !streq(propname, name))
 		FAIL("Property name mismatch \"%s\" instead of \"%s\"",
 		     propname, name);
+	if (proplen != retlen)
+		FAIL("Length retrieved for \"%s\" by fdt_get_property()"
+		     " differs from stored length (%d != %d)",
+		     name, retlen, proplen);
 	if (proplen != len)
 		FAIL("Size mismatch on property \"%s\": %d insead of %d",
 		     name, proplen, len);
@@ -108,7 +114,7 @@ void *check_getprop(void *fdt, int nodeoffset, const char *name,
 
 	propval = fdt_getprop(fdt, nodeoffset, name, &proplen);
 	if (! propval)
-		FAIL("fdt_getprop(\"%s\"): %s", name, fdt_strerror(-proplen));
+		FAIL("fdt_getprop(\"%s\"): %s", name, fdt_strerror(proplen));
 
 	if (proplen != len)
 		FAIL("Size mismatch on property \"%s\": %d insead of %d",

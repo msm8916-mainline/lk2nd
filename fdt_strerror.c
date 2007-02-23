@@ -43,13 +43,14 @@ static struct errtabent errtable[] = {
 	ERRTABENT(FDT_ERR_BADMAGIC),
 	ERRTABENT(FDT_ERR_BADVERSION),
 	ERRTABENT(FDT_ERR_BADSTRUCTURE),
+	ERRTABENT(FDT_ERR_BADLAYOUT),
 };
 #define ERRTABSIZE	(sizeof(errtable) / sizeof(errtable[0]))
 
 const char *fdt_strerror(int errval)
 {
 	if (errval > 0)
-		return "<valid offset>";
+		return "<valid offset/length>";
 	else if (errval == 0)
 		return "<no error>";
 	else if (errval > -ERRTABSIZE) {
