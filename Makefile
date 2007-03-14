@@ -6,8 +6,6 @@ BISON = bison
 DTC_OBJS = dtc.o livetree.o flattree.o data.o treesource.o fstree.o \
 		dtc-parser.tab.o lex.yy.o
 
-OBJS = $(DTC_OBJS) libdt.o ftdump.o
-
 DEPFILES = $(DTC_OBJS:.o=.d)
 
 all: $(TARGETS)
