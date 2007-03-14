@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
 	int opt;
 	FILE *inf = NULL;
 	FILE *outf = NULL;
-	int outversion = 0x10;
+	int outversion = 17;
 	int reservenum = 1;
 	int boot_cpuid_phys = 0xfeedbeef;
 

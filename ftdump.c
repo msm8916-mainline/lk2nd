@@ -144,7 +144,7 @@ static void dump_blob(void *blob)
 		}
 		sz = GET_CELL(p);
 		s = p_strings + be32_to_cpu(GET_CELL(p));
-		if (version < 0x10 && sz >= 8)
+		if (version < 16 && sz >= 8)
 			p = PALIGN(p, 8);
 		t = p;
 

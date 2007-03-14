@@ -26,6 +26,7 @@
 #define FTF_NAMEPROPS	0x4
 #define FTF_BOOTCPUID	0x8
 #define FTF_STRTABSIZE	0x10
+#define FTF_STRUCTSIZE	0x20
 
 static struct version_info {
 	int version;
@@ -39,8 +40,10 @@ static struct version_info {
 	 FTF_FULLPATH|FTF_VARALIGN|FTF_NAMEPROPS|FTF_BOOTCPUID},
 	{3, 1, BPH_V3_SIZE,
 	 FTF_FULLPATH|FTF_VARALIGN|FTF_NAMEPROPS|FTF_BOOTCPUID|FTF_STRTABSIZE},
-	{0x10, 0x10, BPH_V3_SIZE,
+	{16, 16, BPH_V3_SIZE,
 	 FTF_BOOTCPUID|FTF_STRTABSIZE},
+	{17, 16, BPH_V17_SIZE,
+	 FTF_BOOTCPUID|FTF_STRTABSIZE|FTF_STRUCTSIZE},
 };
 
 struct emitter {
@@ -328,6 +331,8 @@ static void make_bph(struct boot_param_header *bph,
 		bph->boot_cpuid_phys = cpu_to_be32(boot_cpuid_phys);
 	if (vi->flags & FTF_STRTABSIZE)
 		bph->size_dt_strings = cpu_to_be32(strsize);
+	if (vi->flags & FTF_STRUCTSIZE)
+		bph->size_dt_struct = cpu_to_be32(dtsize);
 }
 
 void dt_to_blob(FILE *f, struct boot_info *bi, int version,
@@ -742,7 +747,7 @@ static struct node *unflatten_tree(struct inbuf *dtbuf,
 
 struct boot_info *dt_from_blob(FILE *f)
 {
-	u32 magic, totalsize, version, size_str;
+	u32 magic, totalsize, version, size_str, size_dt;
 	u32 off_dt, off_str, off_mem_rsvmap;
 	int rc;
 	char *blob;
@@ -841,8 +846,15 @@ struct boot_info *dt_from_blob(FILE *f)
 		if (off_str+size_str > totalsize)
 			die("String table extends past total size\n");
 	}
+
+	if (version >= 17) {
+		size_dt = be32_to_cpu(bph->size_dt_struct);
+		fprintf(stderr, "\tsize_dt_struct:\t\t%d\n", size_dt);
+		if (off_dt+size_dt > totalsize)
+			die("Structure block extends past total size\n");
+	}
 			
-	if (version < 0x10) {
+	if (version < 16) {
 		flags |= FTF_FULLPATH | FTF_NAMEPROPS | FTF_VARALIGN;
 	}
 

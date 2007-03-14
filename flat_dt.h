@@ -25,11 +25,15 @@ struct boot_param_header {
 					    booting on */
 	/* version 3 fields below */
         uint32_t size_dt_strings;        /* size of the strings block */
+
+	/* version 17 fields below */
+	uint32_t size_dt_struct;         /* size of the DT structure block */
 };
 
 #define BPH_V1_SIZE	(7*sizeof(uint32_t))
 #define BPH_V2_SIZE	(BPH_V1_SIZE + sizeof(uint32_t))
 #define BPH_V3_SIZE	(BPH_V2_SIZE + sizeof(uint32_t))
+#define BPH_V17_SIZE	(BPH_V3_SIZE + sizeof(uint32_t))
 
 struct reserve_entry {
 	uint64_t address;
