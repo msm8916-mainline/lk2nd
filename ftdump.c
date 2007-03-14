@@ -142,7 +142,7 @@ static void dump_blob(void *blob)
 			fprintf(stderr, "%*s ** Unknown tag 0x%08x\n", depth * shift, "", tag);
 			break;
 		}
-		sz = GET_CELL(p);
+		sz = be32_to_cpu(GET_CELL(p));
 		s = p_strings + be32_to_cpu(GET_CELL(p));
 		if (version < 16 && sz >= 8)
 			p = PALIGN(p, 8);
