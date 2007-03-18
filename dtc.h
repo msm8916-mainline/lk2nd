@@ -36,6 +36,11 @@
 
 #include "flat_dt.h"
 
+/*
+ * Level of quietness
+ */
+int quiet;
+
 static inline void die(char * str, ...)
 {
 	va_list ap;

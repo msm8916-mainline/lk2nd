@@ -81,6 +81,10 @@ static void usage(void)
 	fprintf(stderr, "Usage:\n");
 	fprintf(stderr, "\tdtc [options] <input file>\n");
 	fprintf(stderr, "\nOptions:\n");
+	fprintf(stderr, "\t-h\n");
+	fprintf(stderr, "\t\tThis help text\n");
+	fprintf(stderr, "\t-q\n");
+	fprintf(stderr, "\t\tQuiet: -q suppress warnings, -qq errors, -qqq all\n");
 	fprintf(stderr, "\t-I <input format>\n");
 	fprintf(stderr, "\t\tInput formats are:\n");
 	fprintf(stderr, "\t\t\tdts - device tree source text\n");
@@ -92,7 +96,7 @@ static void usage(void)
 	fprintf(stderr, "\t\t\tdtb - device tree blob\n");
 	fprintf(stderr, "\t\t\tasm - assembler source\n");
 	fprintf(stderr, "\t-V <output version>\n");
-	fprintf(stderr, "\t\tBlob version to produce, defaults to 16 (relevant for dtb\n\t\tand asm output only)\n");
+	fprintf(stderr, "\t\tBlob version to produce, defaults to %d (relevant for dtb\n\t\tand asm output only)\n", OF_DEFAULT_VERSION);
 	fprintf(stderr, "\t-R <number>\n");
 	fprintf(stderr, "\t\tMake space for <number> reserve map entries (relevant for \n\t\tdtb and asm output only)\n");
 	fprintf(stderr, "\t-b <number>\n");
@@ -113,11 +117,13 @@ int main(int argc, char *argv[])
 	int opt;
 	FILE *inf = NULL;
 	FILE *outf = NULL;
-	int outversion = 17;
+	int outversion = OF_DEFAULT_VERSION;
 	int reservenum = 1;
 	int boot_cpuid_phys = 0xfeedbeef;
 
-	while ((opt = getopt(argc, argv, "I:O:o:V:R:fb:")) != EOF) {
+	quiet = 0;
+
+	while ((opt = getopt(argc, argv, "hI:O:o:V:R:fqb:")) != EOF) {
 		switch (opt) {
 		case 'I':
 			inform = optarg;
@@ -137,9 +143,13 @@ int main(int argc, char *argv[])
 		case 'f':
 			force = 1;
 			break;
+		case 'q':
+			quiet++;
+			break;
 		case 'b':
 			boot_cpuid_phys = strtol(optarg, NULL, 0);
 			break;
+		case 'h':
 		default:
 			usage();
 		}
@@ -174,9 +184,12 @@ int main(int argc, char *argv[])
 		die("Couldn't read input tree\n");
 
 	if (! check_device_tree(bi->dt, outversion, boot_cpuid_phys)) {
-		fprintf(stderr, "Input tree has errors\n");
-		if (! force)
+		if ((force) && (quiet < 3))
+			fprintf(stderr, "Input tree has errors, output forced\n");
+		if (! force) {
+			fprintf(stderr, "Input tree has errors, not writing output (use -f to force output)\n");
 			exit(1);
+		}
 	}
 
 	if (streq(outname, "-")) {

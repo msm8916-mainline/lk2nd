@@ -252,8 +252,8 @@ static struct node *get_node_by_phandle(struct node *tree, cell_t phandle)
  * Tree checking functions
  */
 
-#define ERRMSG(...) fprintf(stderr, "ERROR: " __VA_ARGS__)
-#define WARNMSG(...) fprintf(stderr, "Warning: " __VA_ARGS__)
+#define ERRMSG(...) if (quiet < 2) fprintf(stderr, "ERROR: " __VA_ARGS__)
+#define WARNMSG(...) if (quiet < 1) fprintf(stderr, "Warning: " __VA_ARGS__)
 
 static int must_be_one_cell(struct property *prop, struct node *node)
 {
@@ -512,13 +512,14 @@ static int check_cpus(struct node *root, int outversion, int boot_cpuid_phys)
 			char *eptr;
 
 			unitnum = strtol(get_unitname(cpu), &eptr, 16);
-			if (*eptr)
+			if (*eptr) {
 				WARNMSG("%s has bad format unit name %s (should be CPU number\n",
 					cpu->fullpath, get_unitname(cpu));
-			else if (unitnum != propval_cell(prop))
+			} else if (unitnum != propval_cell(prop)) {
 				WARNMSG("%s unit name \"%s\" does not match \"reg\" property <%x>\n",
 				       cpu->fullpath, get_unitname(cpu),
 				       propval_cell(prop));
+			}
 		}
 
 /* 		CHECK_HAVE_ONECELL(cpu, "d-cache-line-size"); */

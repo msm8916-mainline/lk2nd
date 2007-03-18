@@ -2,6 +2,8 @@
 #define _FLAT_DT_H_
 
 
+#define OF_DEFAULT_VERSION	17
+
 #define OF_DT_HEADER            0xd00dfeed      /* 4: version, 4: total size */
 
 #define OF_DT_BEGIN_NODE	0x1             /* Start node: full name */
