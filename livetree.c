@@ -588,13 +588,8 @@ static int check_chosen(struct node *root)
 	int ok = 1;
 
 	chosen = get_subnode(root, "chosen");
-	if (! chosen) {
-		ERRMSG("Missing /chosen node\n");
-		return 0;
-	}
-
-	CHECK_HAVE_WARN_STRING(chosen, "bootargs");
-	CHECK_HAVE_WARN_STRING(chosen, "linux,stdout-path");
+	if (!chosen)
+		return ok;
 
         /* give warning for obsolete interrupt-controller property */
 	do {
