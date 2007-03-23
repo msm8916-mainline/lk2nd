@@ -3,8 +3,6 @@
 
 #ifndef __ASSEMBLY__
 
-#include <stdint.h>
-
 struct fdt_header {
 	uint32_t magic;                  /* magic word FDT_MAGIC */
 	uint32_t totalsize;              /* total size of DT block */

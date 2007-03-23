@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdint.h>
 
 #include <fdt.h>
 #include <libfdt.h>
