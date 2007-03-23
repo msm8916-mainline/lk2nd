@@ -223,7 +223,7 @@ struct boot_info *dt_from_blob(FILE *f);
 /* Tree source */
 
 void dt_to_source(FILE *f, struct boot_info *bi);
-struct boot_info *dt_from_source(FILE *f);
+struct boot_info *dt_from_source(const char *f);
 
 /* FS trees */
 

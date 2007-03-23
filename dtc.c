@@ -19,6 +19,7 @@
  */
 
 #include "dtc.h"
+#include "srcpos.h"
 
 char *join_path(char *path, char *name)
 {
@@ -59,21 +60,6 @@ void fill_fullpaths(struct node *tree, char *prefix)
 
 	for_each_child(tree, child)
 		fill_fullpaths(child, tree->fullpath);
-}
-
-static FILE *dtc_open_file(char *fname)
-{
-	FILE *f;
-
-	if (streq(fname, "-"))
-		f = stdin;
-	else
-		f = fopen(fname, "r");
-
-	if (! f)
-		die("Couldn't open \"%s\": %s\n", fname, strerror(errno));
-
-	return f;
 }
 
 static void usage(void)
@@ -166,8 +152,7 @@ int main(int argc, char *argv[])
 		inform, outform, arg);
 
 	if (streq(inform, "dts")) {
-		inf = dtc_open_file(arg);
-		bi = dt_from_source(inf);
+		bi = dt_from_source(arg);
 	} else if (streq(inform, "fs")) {
 		bi = dt_from_fs(arg);
 	} else if(streq(inform, "dtb")) {

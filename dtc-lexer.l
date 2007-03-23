@@ -20,6 +20,7 @@
 
 %option noyywrap nounput yylineno
 
+%x INCLUDE
 %x CELLDATA
 %x BYTESTRING
 %x MEMRESERVE
@@ -32,8 +33,9 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 
 %{
 #include "dtc.h"
-
 #include "dtc-parser.tab.h"
+#include "srcposstack.h"
+
 
 /*#define LEXDEBUG	1*/
 
@@ -49,7 +51,27 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 
 %%
 
+#[ \t]*include		BEGIN(INCLUDE);
+
+<INCLUDE>[ \t]*		/* whitespace before file name */
+<INCLUDE>\"[^"\n]*\"	{
+			yytext[strlen(yytext) - 1] = 0;
+			if (!push_input_file(yytext + 1)) {
+				/* Some unrecoverable error.*/
+				exit(1);
+			}
+			BEGIN(INITIAL);
+		}
+
+
+<<EOF>>		{
+			if (!pop_input_file()) {
+				yyterminate();
+			}
+		}
+
 \"[^"]*\"	{
+			yylloc.filenum = srcpos_filenum;
 			yylloc.first_line = yylineno;
 			DPRINT("String: %s\n", yytext);
 			yylval.data = data_copy_escape_string(yytext+1,
@@ -59,6 +81,7 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 		}
 
 "/memreserve/"	{
+			yylloc.filenum = srcpos_filenum;
 			yylloc.first_line = yylineno;
 			DPRINT("Keyword: /memreserve/\n");
 			BEGIN(MEMRESERVE);
@@ -66,6 +89,7 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 		}
 
 <MEMRESERVE>[0-9a-fA-F]+ {
+			yylloc.filenum = srcpos_filenum;
 			yylloc.first_line = yylineno;
 			if (yyleng > 2*sizeof(yylval.addr)) {
 				fprintf(stderr, "Address value %s too large\n",
@@ -78,12 +102,14 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 		}
 
 <MEMRESERVE>";"	{
+			yylloc.filenum = srcpos_filenum;
 			yylloc.first_line = yylineno;
 			DPRINT("/MEMRESERVE\n");
 			BEGIN(INITIAL);
 			return ';';
 		}
 <CELLDATA>[bodh]# {
+			yylloc.filenum = srcpos_filenum;
 			yylloc.first_line = yylineno;
 			if (*yytext == 'b')
 				yylval.cbase = 2;
@@ -98,6 +124,7 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 		}
 
 <CELLDATA>[0-9a-fA-F]+	{
+			yylloc.filenum = srcpos_filenum;
 			yylloc.first_line = yylineno;
 			yylval.str = strdup(yytext);
 			DPRINT("Cell: '%s'\n", yylval.str);
@@ -105,6 +132,7 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 		}
 
 <CELLDATA>">"	{
+			yylloc.filenum = srcpos_filenum;
 			yylloc.first_line = yylineno;
 			DPRINT("/CELLDATA\n");
 			BEGIN(INITIAL);
@@ -112,6 +140,7 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 		}
 
 <CELLDATA>\&{REFCHAR}*	{
+			yylloc.filenum = srcpos_filenum;
 			yylloc.first_line = yylineno;
 			DPRINT("Ref: %s\n", yytext+1);
 			yylval.str = strdup(yytext+1);
@@ -119,6 +148,7 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 		}
 
 <BYTESTRING>[0-9a-fA-F]{2} {
+			yylloc.filenum = srcpos_filenum;
 			yylloc.first_line = yylineno;
 			yylval.byte = strtol(yytext, NULL, 16);
 			DPRINT("Byte: %02x\n", (int)yylval.byte);
@@ -126,6 +156,7 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 		}
 
 <BYTESTRING>"]"	{
+			yylloc.filenum = srcpos_filenum;
 			yylloc.first_line = yylineno;
 			DPRINT("/BYTESTRING\n");
 			BEGIN(INITIAL);
@@ -135,6 +166,7 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 ,		{ /* Technically this is a valid property name,
 		     but we'd rather use it as punctuation, so detect it
 		     here in preference */
+			yylloc.filenum = srcpos_filenum;
 			yylloc.first_line = yylineno;
 			DPRINT("Char (propname like): %c (\\x%02x)\n", yytext[0],
 				(unsigned)yytext[0]);
@@ -142,6 +174,7 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 		}
 
 {PROPCHAR}+	{
+			yylloc.filenum = srcpos_filenum;
 			yylloc.first_line = yylineno;
 			DPRINT("PropName: %s\n", yytext);
 			yylval.str = strdup(yytext);
@@ -149,6 +182,7 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 		}
 
 {PROPCHAR}+(@{UNITCHAR}+)? {
+			yylloc.filenum = srcpos_filenum;
 			yylloc.first_line = yylineno;
 			DPRINT("NodeName: %s\n", yytext);
 			yylval.str = strdup(yytext);
@@ -157,6 +191,7 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 
 
 [a-zA-Z_][a-zA-Z0-9_]*:	{
+			yylloc.filenum = srcpos_filenum;
 			yylloc.first_line = yylineno;
 			DPRINT("Label: %s\n", yytext);
 			yylval.str = strdup(yytext);
@@ -167,6 +202,7 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 <*>{WS}+	/* eat whitespace */
 
 <*>"/*"([^*]|\*+[^*/])*\*+"/"	{
+			yylloc.filenum = srcpos_filenum;
 			yylloc.first_line = yylineno;
 			DPRINT("Comment: %s\n", yytext);
 			/* eat comments */
@@ -175,6 +211,7 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 <*>"//".*\n	/* eat line comments */
 
 <*>.		{
+			yylloc.filenum = srcpos_filenum;
 			yylloc.first_line = yylineno;
 			switch (yytext[0]) {
 				case '<':

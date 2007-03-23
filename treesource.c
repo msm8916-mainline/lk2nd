@@ -19,6 +19,7 @@
  */
 
 #include "dtc.h"
+#include "srcpos.h"
 
 extern FILE *yyin;
 extern int yyparse(void);
@@ -26,11 +27,12 @@ extern void yyerror(char const *);
 
 struct boot_info *the_boot_info;
 
-struct boot_info *dt_from_source(FILE *f)
+struct boot_info *dt_from_source(const char *fname)
 {
 	the_boot_info = NULL;
 
-	yyin = f;
+	push_input_file(fname);
+
 	if (yyparse() != 0)
 		return NULL;
 

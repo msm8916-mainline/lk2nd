@@ -3,7 +3,8 @@ CFLAGS = -Wall -g
 
 BISON = bison
 
-DTC_OBJS = dtc.o livetree.o flattree.o data.o treesource.o fstree.o \
+DTC_OBJS = dtc.o flattree.o fstree.o data.o livetree.o \
+		srcpos.o treesource.o \
 		dtc-parser.tab.o lex.yy.o
 
 DEPFILES = $(DTC_OBJS:.o=.d)

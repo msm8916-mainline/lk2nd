@@ -23,6 +23,7 @@
 
 %{
 #include "dtc.h"
+#include "srcpos.h"
 
 int yylex(void);
 void yyerror(char const *);
@@ -178,7 +179,13 @@ label:		DT_LABEL	{ $$ = $1; }
 
 void yyerror (char const *s)
 {
-	fprintf (stderr, "%s at line %d\n", s, yylloc.first_line);
+	const char *fname = srcpos_filename_for_num(yylloc.filenum);
+
+	if (strcmp(fname, "-") == 0)
+		fname = "stdin";
+
+	fprintf(stderr, "%s:%d %s\n",
+		fname, yylloc.first_line, s);
 }
 
 
