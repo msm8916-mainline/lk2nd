@@ -33,8 +33,8 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 
 %{
 #include "dtc.h"
+#include "srcpos.h"
 #include "dtc-parser.tab.h"
-#include "srcposstack.h"
 
 
 /*#define LEXDEBUG	1*/
@@ -51,9 +51,8 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 
 %%
 
-#[ \t]*include		BEGIN(INCLUDE);
+"/include/"		BEGIN(INCLUDE);
 
-<INCLUDE>[ \t]*		/* whitespace before file name */
 <INCLUDE>\"[^"\n]*\"	{
 			yytext[strlen(yytext) - 1] = 0;
 			if (!push_input_file(yytext + 1)) {
@@ -233,3 +232,109 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 		}
 
 %%
+
+
+/*
+ * Stack of nested include file contexts.
+ */
+
+struct incl_file {
+	int filenum;
+	FILE *file;
+	YY_BUFFER_STATE yy_prev_buf;
+	int yy_prev_lineno;
+	struct incl_file *prev;
+};
+
+struct incl_file *incl_file_stack;
+
+
+/*
+ * Detect infinite include recursion.
+ */
+#define MAX_INCLUDE_DEPTH	(100)
+
+static int incl_depth = 0;
+
+
+int push_input_file(const char *filename)
+{
+	FILE *f;
+	struct incl_file *incl_file;
+
+	if (!filename) {
+		yyerror("No include file name given.");
+		return 0;
+	}
+
+	if (incl_depth++ >= MAX_INCLUDE_DEPTH) {
+		yyerror("Includes nested too deeply");
+		return 0;
+	}
+
+	f = dtc_open_file(filename);
+
+	incl_file = malloc(sizeof(struct incl_file));
+	if (!incl_file) {
+		yyerror("Can not allocate include file space.");
+		return 0;
+	}
+
+	/*
+	 * Save current context.
+	 */
+	incl_file->yy_prev_buf = YY_CURRENT_BUFFER;
+	incl_file->yy_prev_lineno = yylineno;
+	incl_file->filenum = srcpos_filenum;
+	incl_file->file = yyin;
+	incl_file->prev = incl_file_stack;
+
+	incl_file_stack = incl_file;
+
+	/*
+	 * Establish new context.
+	 */
+	srcpos_filenum = lookup_file_name(filename, 0);
+	yylineno = 1;
+	yyin = f;
+	yy_switch_to_buffer(yy_create_buffer(yyin, YY_BUF_SIZE));
+
+	return 1;
+}
+
+
+int pop_input_file(void)
+{
+	struct incl_file *incl_file;
+
+	if (incl_file_stack == 0)
+		return 0;
+
+	fclose(yyin);
+
+	/*
+	 * Pop.
+	 */
+	--incl_depth;
+	incl_file = incl_file_stack;
+	incl_file_stack = incl_file->prev;
+
+	/*
+	 * Recover old context.
+	 */
+	yy_delete_buffer(YY_CURRENT_BUFFER);
+	yy_switch_to_buffer(incl_file->yy_prev_buf);
+	yylineno = incl_file->yy_prev_lineno;
+	srcpos_filenum = incl_file->filenum;
+	yyin = incl_file->file;
+
+	/*
+	 * Free old state.
+	 */
+	free(incl_file);
+
+	if (YY_CURRENT_BUFFER == 0)
+		return 0;
+
+	return 1;
+}

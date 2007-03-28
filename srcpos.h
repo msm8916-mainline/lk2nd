@@ -22,7 +22,7 @@
  * array of all opened filenames.
  */
 
-#if ! defined YYLTYPE && ! defined YYLTYPE_IS_DECLARED
+#if ! defined(YYLTYPE) && ! defined(YYLTYPE_IS_DECLARED)
 typedef struct YYLTYPE {
     int first_line;
     int first_column;
@@ -35,6 +35,10 @@ typedef struct YYLTYPE {
 #define YYLTYPE_IS_TRIVIAL	1
 #endif
 
+/* Cater to old parser templates. */
+#ifndef YYID
+#define YYID(n)	(n)
+#endif
 
 #define YYLLOC_DEFAULT(Current, Rhs, N)					\
     do									\
@@ -68,4 +72,3 @@ extern FILE *dtc_open_file(const char *fname);
 extern int lookup_file_name(const char *fname, int add_it);
 extern const char *srcpos_filename_for_num(int filenum);
 const char *srcpos_get_filename(void);
-
