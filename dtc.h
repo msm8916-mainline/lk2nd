@@ -37,9 +37,11 @@
 #include "flat_dt.h"
 
 /*
- * Level of quietness
+ * Command line options
  */
-int quiet;
+extern int quiet;		/* Level of quietness */
+extern int reservenum;		/* Number of memory reservation slots */
+extern int minsize;		/* Minimum blob size */
 
 static inline void die(char * str, ...)
 {

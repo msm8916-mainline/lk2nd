@@ -21,6 +21,13 @@
 #include "dtc.h"
 #include "srcpos.h"
 
+/*
+ * Command line options
+ */
+int quiet;		/* Level of quietness */
+int reservenum;		/* Number of memory reservation slots */
+int minsize;		/* Minimum blob size */
+
 char *join_path(char *path, char *name)
 {
 	int lenp = strlen(path);
@@ -85,6 +92,8 @@ static void usage(void)
 	fprintf(stderr, "\t\tBlob version to produce, defaults to %d (relevant for dtb\n\t\tand asm output only)\n", OF_DEFAULT_VERSION);
 	fprintf(stderr, "\t-R <number>\n");
 	fprintf(stderr, "\t\tMake space for <number> reserve map entries (relevant for \n\t\tdtb and asm output only)\n");
+	fprintf(stderr, "\t-S <bytes>\n");
+	fprintf(stderr, "\t\tMake the blob at least <bytes> long (extra space)\n");
 	fprintf(stderr, "\t-b <number>\n");
 	fprintf(stderr, "\t\tSet the physical boot cpu\n");
 	fprintf(stderr, "\t-f\n");
@@ -104,12 +113,13 @@ int main(int argc, char *argv[])
 	FILE *inf = NULL;
 	FILE *outf = NULL;
 	int outversion = OF_DEFAULT_VERSION;
-	int reservenum = 1;
 	int boot_cpuid_phys = 0xfeedbeef;
 
-	quiet = 0;
+	quiet      = 0;
+	reservenum = 0;
+	minsize    = 0;
 
-	while ((opt = getopt(argc, argv, "hI:O:o:V:R:fqb:")) != EOF) {
+	while ((opt = getopt(argc, argv, "hI:O:o:V:R:S:fqb:")) != EOF) {
 		switch (opt) {
 		case 'I':
 			inform = optarg;
@@ -125,6 +135,9 @@ int main(int argc, char *argv[])
 			break;
 		case 'R':
 			reservenum = strtol(optarg, NULL, 0);
+			break;
+		case 'S':
+			minsize = strtol(optarg, NULL, 0);
 			break;
 		case 'f':
 			force = 1;

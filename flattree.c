@@ -295,9 +295,17 @@ static struct data flatten_reserve_list(struct reserve_info *reservelist,
 {
 	struct reserve_info *re;
 	struct data d = empty_data;
+	static struct reserve_entry null_re = {0,0};
+	int    j;
 
 	for (re = reservelist; re; re = re->next) {
 		d = data_append_re(d, &re->re);
+	}
+	/*
+	 * Add additional reserved slots if the user asked for them.
+	 */
+	for (j = 0; j < reservenum; j++) {
+		d = data_append_re(d, &null_re);
 	}
 	
 	return d;
@@ -324,8 +332,18 @@ static void make_bph(struct boot_param_header *bph,
 	bph->off_dt_struct = cpu_to_be32(reserve_off + reservesize);
 	bph->off_dt_strings = cpu_to_be32(reserve_off + reservesize
 					  + dtsize);
-	bph->totalsize = cpu_to_be32(reserve_off + reservesize
-				     + dtsize + strsize);
+	bph->totalsize = reserve_off + reservesize + dtsize + strsize;
+	if (minsize > 0) {
+		if (bph->totalsize >= minsize) {
+			if (quiet < 1)
+				fprintf(stderr,
+					"Warning: blob size %d >= minimum size %d\n",
+					bph->totalsize, minsize);
+
+		} else
+			bph->totalsize = minsize;
+	}
+	bph->totalsize = cpu_to_be32(bph->totalsize);
 		
 	if (vi->flags & FTF_BOOTCPUID)
 		bph->boot_cpuid_phys = cpu_to_be32(boot_cpuid_phys);
