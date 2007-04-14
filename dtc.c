@@ -83,6 +83,7 @@ static void usage(void)
 	fprintf(stderr, "\t\t\tdts - device tree source text\n");
 	fprintf(stderr, "\t\t\tdtb - device tree blob\n");
 	fprintf(stderr, "\t\t\tfs - /proc/device-tree style directory\n");
+	fprintf(stderr, "\t-o <output file>\n");
 	fprintf(stderr, "\t-O <output format>\n");
 	fprintf(stderr, "\t\tOutput formats are:\n");
 	fprintf(stderr, "\t\t\tdts - device tree source text\n");
