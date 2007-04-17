@@ -490,6 +490,9 @@ void dt_to_asm(FILE *f, struct boot_info *bi, int version, int boot_cpuid_phys)
 			(unsigned int)(re->re.size >> 32),
 			(unsigned int)(re->re.size & 0xffffffff));
 	}
+	for (i = 0; i < reservenum; i++) {
+		fprintf(f, "\t.long\t0, 0\n\t.long\t0, 0\n");
+	}
 
 	fprintf(f, "\t.long\t0, 0\n\t.long\t0, 0\n");
 
