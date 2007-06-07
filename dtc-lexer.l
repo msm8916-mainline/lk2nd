@@ -27,7 +27,7 @@
 
 PROPCHAR	[a-zA-Z0-9,._+*#?-]
 UNITCHAR	[0-9a-f,]
-WS		[ \t\n]
+WS		[[:space:]]
 
 REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 
