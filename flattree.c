@@ -27,6 +27,7 @@
 #define FTF_BOOTCPUID	0x8
 #define FTF_STRTABSIZE	0x10
 #define FTF_STRUCTSIZE	0x20
+#define FTF_NOPS	0x40
 
 static struct version_info {
 	int version;
@@ -41,9 +42,9 @@ static struct version_info {
 	{3, 1, BPH_V3_SIZE,
 	 FTF_FULLPATH|FTF_VARALIGN|FTF_NAMEPROPS|FTF_BOOTCPUID|FTF_STRTABSIZE},
 	{16, 16, BPH_V3_SIZE,
-	 FTF_BOOTCPUID|FTF_STRTABSIZE},
+	 FTF_BOOTCPUID|FTF_STRTABSIZE|FTF_NOPS},
 	{17, 16, BPH_V17_SIZE,
-	 FTF_BOOTCPUID|FTF_STRTABSIZE|FTF_STRUCTSIZE},
+	 FTF_BOOTCPUID|FTF_STRTABSIZE|FTF_STRUCTSIZE|FTF_NOPS},
 };
 
 struct emitter {
@@ -774,6 +775,13 @@ static struct node *unflatten_tree(struct inbuf *dtbuf,
 			die("Premature OF_DT_END in device tree blob\n");
 			break;
 
+		case OF_DT_NOP:
+			if (flags & FTF_NOPS)
+				break;
+
+			die("OF_DT_NOP in device tree blob\n");
+			break;
+
 		default:
 			die("Invalid opcode word %08x in device tree blob\n",
 			    val);
@@ -895,6 +903,8 @@ struct boot_info *dt_from_blob(FILE *f)
 			
 	if (version < 16) {
 		flags |= FTF_FULLPATH | FTF_NAMEPROPS | FTF_VARALIGN;
+	} else {
+		flags |= FTF_NOPS;
 	}
 
 	inbuf_init(&memresvbuf,
