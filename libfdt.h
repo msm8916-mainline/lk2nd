@@ -45,7 +45,7 @@
 #define FDT_ERR_MAX		11
 
 #define fdt_get_header(fdt, field) \
-	(fdt32_to_cpu(((struct fdt_header *)(fdt))->field))
+	(fdt32_to_cpu(((const struct fdt_header *)(fdt))->field))
 #define fdt_magic(fdt) 			(fdt_get_header(fdt, magic))
 #define fdt_totalsize(fdt)		(fdt_get_header(fdt, totalsize))
 #define fdt_off_dt_struct(fdt)		(fdt_get_header(fdt, off_dt_struct))
@@ -60,10 +60,17 @@
 #define fdt_set_header(fdt, field, val) \
 	((struct fdt_header *)(fdt))->field = cpu_to_fdt32(val)
 
-void *fdt_offset_ptr(const void *fdt, int offset, int checklen);
+const void *fdt_offset_ptr(const void *fdt, int offset, int checklen);
+static inline void *fdt_offset_ptr_w(void *fdt, int offset, int checklen)
+{
+	return (void *)fdt_offset_ptr(fdt, offset, checklen);
+}
+
 
 #define fdt_offset_ptr_typed(fdt, offset, var) \
 	((typeof(var))(fdt_offset_ptr((fdt), (offset), sizeof(*(var)))))
+#define fdt_offset_ptr_typed_w(fdt, offset, var) \
+	((typeof(var))(fdt_offset_ptr_w((fdt), (offset), sizeof(*(var)))))
 
 int fdt_move(const void *fdt, void *buf, int bufsize);
 
@@ -76,10 +83,24 @@ int fdt_subnode_offset(const void *fdt, int parentoffset, const char *name);
 
 int fdt_path_offset(const void *fdt, const char *path);
 
-struct fdt_property *fdt_get_property(const void *fdt, int nodeoffset,
-				      const char *name, int *lenp);
-void *fdt_getprop(const void *fdt, int nodeoffset,
-		  const char *name, int *lenp);
+const struct fdt_property *fdt_get_property(const void *fdt, int nodeoffset,
+					    const char *name, int *lenp);
+
+static inline struct fdt_property *fdt_get_property_w(void *fdt, int nodeoffset,
+						      const char *name,
+						      int *lenp)
+{
+	return (struct fdt_property *)fdt_get_property(fdt, nodeoffset,
+						       name, lenp);
+}
+
+const void *fdt_getprop(const void *fdt, int nodeoffset,
+			const char *name, int *lenp);
+static inline void *fdt_getprop_w(void *fdt, int nodeoffset,
+				  const char *name, int *lenp)
+{
+	return (void *)fdt_getprop(fdt, nodeoffset, name, lenp);
+}
 
 /* Write-in-place functions */
 int fdt_setprop_inplace(void *fdt, int nodeoffset, const char *name,

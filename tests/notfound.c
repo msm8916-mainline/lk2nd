@@ -37,11 +37,11 @@ void check_error(const char *s, int err)
 
 int main(int argc, char *argv[])
 {
-	struct fdt_property *prop;
+	const struct fdt_property *prop;
 	void *fdt;
 	int offset;
 	int subnode1_offset;
-	void *val;
+	const void *val;
 	int lenerr;
 
 	test_init(argc, argv);

@@ -117,8 +117,8 @@ void check_property(void *fdt, int nodeoffset, const char *name,
 	})
 
 
-void *check_getprop(void *fdt, int nodeoffset, const char *name,
-		    int len, const void *val);
+const void *check_getprop(void *fdt, int nodeoffset, const char *name,
+			  int len, const void *val);
 #define check_getprop_typed(fdt, nodeoffset, name, val) \
 	({ \
 		typeof(val) x = val; \

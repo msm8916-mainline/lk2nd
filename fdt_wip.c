@@ -29,7 +29,7 @@ int fdt_setprop_inplace(void *fdt, int nodeoffset, const char *name,
 	void *propval;
 	int proplen;
 
-	propval = fdt_getprop(fdt, nodeoffset, name, &proplen);
+	propval = fdt_getprop_w(fdt, nodeoffset, name, &proplen);
 	if (! propval)
 		return proplen;
 
@@ -53,7 +53,7 @@ int fdt_nop_property(void *fdt, int nodeoffset, const char *name)
 	struct fdt_property *prop;
 	int len;
 
-	prop = fdt_get_property(fdt, nodeoffset, name, &len);
+	prop = fdt_get_property_w(fdt, nodeoffset, name, &len);
 	if (! prop)
 		return len;
 
@@ -107,6 +107,6 @@ int fdt_nop_node(void *fdt, int nodeoffset)
 	if (endoffset < 0)
 		return endoffset;
 
-	nop_region(fdt_offset_ptr(fdt, nodeoffset, 0), endoffset - nodeoffset);
+	nop_region(fdt_offset_ptr_w(fdt, nodeoffset, 0), endoffset - nodeoffset);
 	return 0;
 }

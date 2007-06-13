@@ -33,8 +33,9 @@
 int main(int argc, char *argv[])
 {
 	void *fdt;
-	uint32_t *intp;
-	char *strp, *xstr;
+	const uint32_t *intp;
+	const char *strp;
+	char *xstr;
 	int xlen, i;
 	int err;
 

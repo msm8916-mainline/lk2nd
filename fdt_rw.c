@@ -123,7 +123,7 @@ static int _resize_property(void *fdt, int nodeoffset, const char *name, int len
 	int oldlen;
 	int err;
 
-	*prop = fdt_get_property(fdt, nodeoffset, name, &oldlen);
+	*prop = fdt_get_property_w(fdt, nodeoffset, name, &oldlen);
 	if (! (*prop))
 		return oldlen;
 
@@ -153,7 +153,7 @@ static int _add_property(void *fdt, int nodeoffset, const char *name, int len,
 	if (namestroff < 0)
 		return namestroff;
 
-	*prop = _fdt_offset_ptr(fdt, nextoffset);
+	*prop = _fdt_offset_ptr_w(fdt, nextoffset);
 	proplen = sizeof(**prop) + ALIGN(len, FDT_TAGSIZE);
 
 	err = _blob_splice_struct(fdt, *prop, 0, proplen);
@@ -192,7 +192,7 @@ int fdt_delprop(void *fdt, int nodeoffset, const char *name)
 
 	RW_CHECK_HEADER(fdt);
 
-	prop = fdt_get_property(fdt, nodeoffset, name, &len);
+	prop = fdt_get_property_w(fdt, nodeoffset, name, &len);
 	if (! prop)
 		return len;
 
@@ -225,7 +225,7 @@ int fdt_add_subnode_namelen(void *fdt, int parentoffset,
 		tag = _fdt_next_tag(fdt, offset, &nextoffset);
 	} while (tag == FDT_PROP);
 
-	nh = _fdt_offset_ptr(fdt, offset);
+	nh = _fdt_offset_ptr_w(fdt, offset);
 	nodelen = sizeof(*nh) + ALIGN(namelen+1, FDT_TAGSIZE) + FDT_TAGSIZE;
 
 	err = _blob_splice_struct(fdt, nh, 0, nodelen);
@@ -254,7 +254,7 @@ int fdt_del_node(void *fdt, int nodeoffset)
 	if (endoffset < 0)
 		return endoffset;
 
-	return _blob_splice_struct(fdt, _fdt_offset_ptr(fdt, nodeoffset),
+	return _blob_splice_struct(fdt, _fdt_offset_ptr_w(fdt, nodeoffset),
 				   endoffset - nodeoffset, 0);
 }
 

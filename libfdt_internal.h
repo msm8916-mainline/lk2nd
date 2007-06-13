@@ -31,9 +31,14 @@ uint32_t _fdt_next_tag(const void *fdt, int startoffset, int *nextoffset);
 const char *_fdt_find_string(const char *strtab, int tabsize, const char *s);
 int _fdt_node_end_offset(void *fdt, int nodeoffset);
 
-static inline void *_fdt_offset_ptr(const struct fdt_header *fdt, int offset)
+static inline const void *_fdt_offset_ptr(const void *fdt, int offset)
 {
-	return (void *)fdt + fdt_off_dt_struct(fdt) + offset;
+	return fdt + fdt_off_dt_struct(fdt) + offset;
+}
+
+static inline void *_fdt_offset_ptr_w(void *fdt, int offset)
+{
+	return (void *)_fdt_offset_ptr(fdt, offset);
 }
 
 #define SW_MAGIC		(~FDT_MAGIC)

@@ -107,10 +107,10 @@ void check_property(void *fdt, int nodeoffset, const char *name,
 	
 }
 
-void *check_getprop(void *fdt, int nodeoffset, const char *name,
-		    int len, const void *val)
+const void *check_getprop(void *fdt, int nodeoffset, const char *name,
+			  int len, const void *val)
 {
-	void *propval;
+	const void *propval;
 	int proplen;
 
 	propval = fdt_getprop(fdt, nodeoffset, name, &proplen);

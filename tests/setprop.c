@@ -37,8 +37,8 @@ int main(int argc, char *argv[])
 {
 	void *fdt;
 	void *buf;
-	uint32_t *intp;
-	char *strp;
+	const uint32_t *intp;
+	const char *strp;
 	int err;
 
 	test_init(argc, argv);

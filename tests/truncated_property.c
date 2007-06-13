@@ -32,7 +32,7 @@
 int main(int argc, char *argv[])
 {
 	void *fdt = &_truncated_property;
-	void *prop;
+	const void *prop;
 	int err;
 	int len;
 

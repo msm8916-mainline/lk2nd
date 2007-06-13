@@ -137,13 +137,13 @@ int fdt_path_offset(const void *fdt, const char *path)
 	return offset;	
 }
 
-struct fdt_property *fdt_get_property(const void *fdt,
-				      int nodeoffset,
-				      const char *name, int *lenp)
+const struct fdt_property *fdt_get_property(const void *fdt,
+					    int nodeoffset,
+					    const char *name, int *lenp)
 {
 	int level = 0;
 	uint32_t tag;
-	struct fdt_property *prop;
+	const struct fdt_property *prop;
 	int namestroff;
 	int offset, nextoffset;
 	int err;
@@ -216,7 +216,7 @@ struct fdt_property *fdt_get_property(const void *fdt,
 	return NULL;
 }
 
-void *fdt_getprop(const void *fdt, int nodeoffset,
+const void *fdt_getprop(const void *fdt, int nodeoffset,
 		  const char *name, int *lenp)
 {
 	const struct fdt_property *prop;

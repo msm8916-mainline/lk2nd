@@ -42,7 +42,7 @@ static void *grab_space(void *fdt, int len)
 		return NULL;
 
 	fdt_set_header(fdt, size_dt_struct, offset + len);
-	return fdt_offset_ptr(fdt, offset, len);
+	return fdt_offset_ptr_w(fdt, offset, len);
 }
 
 int fdt_create(void *buf, int bufsize)
@@ -82,7 +82,7 @@ int fdt_add_reservemap_entry(void *fdt, uint64_t addr, uint64_t size)
 	if ((offset + sizeof(*re)) > fdt_totalsize(fdt))
 		return -FDT_ERR_NOSPACE;
 
-	re = (struct fdt_reserve_entry *)((void *)fdt + offset);
+	re = (struct fdt_reserve_entry *)(fdt + offset);
 	re->address = cpu_to_fdt64(addr);
 	re->size = cpu_to_fdt64(size);
 
@@ -205,8 +205,8 @@ int fdt_finish(void *fdt)
 	offset = 0;
 	while ((tag = _fdt_next_tag(fdt, offset, &nextoffset)) != FDT_END) {
 		if (tag == FDT_PROP) {
-			struct fdt_property *prop = fdt_offset_ptr(fdt, offset,
-								   sizeof(*prop));
+			struct fdt_property *prop =
+				fdt_offset_ptr_w(fdt, offset, sizeof(*prop));
 			int nameoff;
 
 			if (! prop)

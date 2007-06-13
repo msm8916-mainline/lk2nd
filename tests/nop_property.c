@@ -33,8 +33,8 @@
 int main(int argc, char *argv[])
 {
 	void *fdt;
-	uint32_t *intp;
-	char *strp;
+	const uint32_t *intp;
+	const char *strp;
 	int err;
 	int lenerr;
 

@@ -42,9 +42,9 @@ int _fdt_check_header(const void *fdt)
 	return 0;
 }
 
-void *fdt_offset_ptr(const void *fdt, int offset, int len)
+const void *fdt_offset_ptr(const void *fdt, int offset, int len)
 {
-	void *p;
+	const void *p;
 
 	if (fdt_version(fdt) >= 0x11)
 		if (((offset + len) < offset)
