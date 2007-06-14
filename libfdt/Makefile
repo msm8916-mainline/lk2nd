@@ -26,34 +26,11 @@ endif
 
 DEPFILES = $(LIBOBJS:%.o=%.d)
 
-all:	libs tests
+all:	libs
 
-.PHONY:	tests libs
+.PHONY:	libs
 
 libs:	$(TARGETLIBS)
-
-tests:	tests/all
-
-tests/%: libs
-	$(MAKE) -C tests $*
-
-check:	all
-	cd tests; ./run_tests.sh
-
-checkv:	all
-	cd tests; ./run_tests.sh -v
-
-func:	all
-	cd tests; ./run_tests.sh -t func
-
-funcv:	all
-	cd tests; ./run_tests.sh -t func -v
-
-stress:	all
-	cd tests; ./run_tests.sh -t stress
-
-stressv: all
-	cd tests; ./run_tests.sh -t stress -v
 
 %.o: %.c
 	@$(VECHO) CC $@
@@ -74,7 +51,6 @@ libfdt.a: $(LIBOBJS)
 clean:
 	@$(VECHO) CLEAN
 	rm -f *~ *.o *.so *.a *.d *.i *.s core a.out $(VERSION)
-	$(MAKE) -C tests clean
 
 %.d: %.c
 	@$(CC) $(CPPFLAGS) -MM -MT "$*.o $@" $< > $@
