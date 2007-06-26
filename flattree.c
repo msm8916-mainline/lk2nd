@@ -776,10 +776,12 @@ static struct node *unflatten_tree(struct inbuf *dtbuf,
 			break;
 
 		case OF_DT_NOP:
-			if (flags & FTF_NOPS)
+			if (!(flags & FTF_NOPS))
+				fprintf(stderr, "Warning: NOP tag found in flat tree"
+					" version <16\n");
 				break;
 
-			die("OF_DT_NOP in device tree blob\n");
+			/* Ignore */
 			break;
 
 		default:
