@@ -4,9 +4,24 @@ export QUIET_TEST=1
 
 ENV=/usr/bin/env
 
+tot_tests=0
+tot_pass=0
+tot_fail=0
+tot_config=0
+tot_strange=0
+
 run_test () {
+    tot_tests=$[tot_tests + 1]
     echo -n "$@:	"
-    PATH=".:$PATH" $ENV "$@"
+    if PATH=".:$PATH" $ENV "$@"; then
+	tot_pass=$[tot_pass + 1]
+    elif [ "$?" == "1" ]; then
+	tot_config=$[tot_config + 1]
+    elif [ "$?" == "2" ]; then
+	tot_fail=$[tot_fail + 1]
+    else
+	tot_strange=$[tot_strange + 1]
+    fi
 }
 
 tree1_tests () {
@@ -92,3 +107,12 @@ for set in $TESTSETS; do
 	    ;;
     esac
 done
+
+echo -e "********** TEST SUMMARY"
+echo -e "*     Total testcases:	$tot_tests"
+echo -e "*                PASS:	$tot_pass"
+echo -e "*                FAIL:	$tot_fail"
+echo -e "*   Bad configuration:	$tot_config"
+echo -e "* Strange test result:	$tot_strange"
+echo -e "**********"
+
