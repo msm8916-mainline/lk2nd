@@ -1,0 +1,65 @@
+LIB_TESTS_L = root_node find_property subnode_offset path_offset getprop \
+	notfound \
+	setprop_inplace nop_property nop_node \
+	sw_tree1 \
+	move_and_save \
+	open_pack rw_tree1 setprop del_property del_node
+LIB_TESTS = $(LIB_TESTS_L:%=$(TESTS_PREFIX)%)
+
+LIBTREE_TESTS_L = truncated_property
+LIBTREE_TESTS = $(LIBTREE_TESTS_L:%=$(TESTS_PREFIX)%)
+
+TESTS = $(LIB_TESTS) $(LIBTREE_TESTS)
+
+TESTS_TREES_L = test_tree1.dtb
+TESTS_TREES = $(TESTS_TREES_L:%=$(TESTS_PREFIX)%)
+
+TESTS_TARGETS = $(TESTS) $(TESTS_TREES)
+
+TESTS_DEPFILES = $(TESTS:%=%.d) $(TESTS_PREFIX)testutils.d
+
+TESTS_CLEANFILES_L =  *.output vgcore.* *.dtb
+TESTS_CLEANFILES = $(TESTS_CLEANFILES_L:%=$(TESTS_PREFIX)%)
+
+BIN += $(TESTS) $(TESTS_PREFIX)dumptrees
+
+.PHONY: tests
+tests:	$(TESTS) $(TESTS_TREES)
+
+$(LIB_TESTS): %: $(TESTS_PREFIX)testutils.o $(LIBFDT_LIB)
+
+$(LIBTREE_TESTS): %: $(TESTS_PREFIX)testutils.o $(TESTS_PREFIX)trees.o $(LIBFDT_LIB)
+
+$(TESTS_PREFIX)dumptrees: $(TESTS_PREFIX)trees.o
+
+$(TESTS_TREES): $(TESTS_PREFIX)dumptrees
+	@$(VECHO) DUMPTREES
+	cd $(TESTS_PREFIX); ./dumptrees >/dev/null
+
+tests_clean:
+	@$(VECHO) CLEAN "(tests)"
+	rm -f $(STD_CLEANFILES:%=$(TESTS_PREFIX)%)
+	rm -f $(TESTS_CLEANFILES)
+
+check:	tests
+	cd $(TESTS_PREFIX); ./run_tests.sh
+
+checkv:	tests
+	cd $(TESTS_PREFIX); ./run_tests.sh -v
+
+func:	tests
+	cd $(TESTS_PREFIX); ./run_tests.sh -t func
+
+funcv:	tests
+	cd $(TESTS_PREFIX); ./run_tests.sh -t func -v
+
+stress:	tests
+	cd $(TESTS_PREFIX); ./run_tests.sh -t stress
+
+stressv: tests
+	cd $(TESTS_PREFIX); ./run_tests.sh -t stress -v
+
+ifneq ($(DEPTARGETS),)
+-include $(TESTS_DEPFILES)
+endif
+

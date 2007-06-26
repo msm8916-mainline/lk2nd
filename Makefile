@@ -1,67 +1,115 @@
-TARGETS = dtc ftdump
+CPPFLAGS = -I libfdt
 CFLAGS = -Wall -g
+LDFLAGS = -Llibfdt
 
 BISON = bison
 
-DTC_OBJS = dtc.o flattree.o fstree.o data.o livetree.o \
-		srcpos.o treesource.o \
-		dtc-parser.tab.o lex.yy.o
+#
+# Overall rules
+#
+ifdef V
+VECHO = :
+else
+VECHO = echo "	"
+ARFLAGS = rc
+.SILENT:
+endif
 
-DEPFILES = $(DTC_OBJS:.o=.d)
+NODEPTARGETS = clean
+ifeq ($(MAKECMDGOALS),)
+DEPTARGETS = all
+else
+DEPTARGETS = $(filter-out $(NODEPTARGETS),$(MAKECMDGOALS))
+endif
 
-.PHONY: libfdt tests
+all: dtc ftdump libfdt tests
 
-all: $(TARGETS) tests libfdt
+STD_CLEANFILES = *~ *.o *.d *.a *.i *.s core a.out
 
-dtc: $(DTC_OBJS)
-	$(LINK.c) -o $@ $^
+clean: libfdt_clean tests_clean
+	@$(VECHO) CLEAN
+	rm -f $(STD_CLEANFILES)
+	rm -f *.tab.[ch] lex.yy.c *.output vgcore.*
+	rm -f $(BIN)
 
-ftdump:	ftdump.o
-	$(LINK.c) -o $@ $^
+#
+# General rules
+#
 
-libfdt:
-	cd libfdt && $(MAKE) all
+%.o: %.c
+	@$(VECHO) CC $@
+	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ -c $<
 
-dtc-parser.tab.c dtc-parser.tab.h dtc-parser.output: dtc-parser.y
-	$(BISON) -d $<
-
-lex.yy.c: dtc-lexer.l
-	$(LEX) $<
-
-lex.yy.o: lex.yy.c dtc-parser.tab.h
-
-tests:	tests/all
-
-tests/%: libfdt
-	$(MAKE) -C tests $*
-
-check:	all
-	cd tests; ./run_tests.sh
-
-checkv:	all
-	cd tests; ./run_tests.sh -v
-
-func:	all
-	cd tests; ./run_tests.sh -t func
-
-funcv:	all
-	cd tests; ./run_tests.sh -t func -v
-
-stress:	all
-	cd tests; ./run_tests.sh -t stress
-
-stressv: all
-	cd tests; ./run_tests.sh -t stress -v
-
-clean:
-	rm -f *~ *.o a.out core $(TARGETS)
-	rm -f *.tab.[ch] lex.yy.c
-	rm -f *.i *.output vgcore.*
-	rm -f *.d
-	$(MAKE) -C libfdt clean
-	$(MAKE) -C tests clean
+%.o: %.S
+	@$(VECHO) AS $@
+	$(CC) $(CPPFLAGS) $(AFLAGS) -D__ASSEMBLY__ -o $@ -c $<
 
 %.d: %.c
 	$(CC) $(CPPFLAGS) -MM -MG -MT "$*.o $@" $< > $@
 
--include $(DEPFILES)
+%.i:	%.c
+	@$(VECHO) CPP $@
+	$(CC) $(CPPFLAGS) -E $< > $@
+
+%.s:	%.c
+	@$(VECHO) CC -S $@
+	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ -S $<
+
+%.a:
+	@$(VECHO) AR $@
+	$(AR) $(ARFLAGS) $@ $^
+
+$(BIN): %:
+	@$(VECHO) LD $@
+	$(LINK.c) -o $@ $^
+
+
+#
+# Rules for dtc proper
+#
+DTC_PROGS = dtc ftdump
+DTC_OBJS = dtc.o flattree.o fstree.o data.o livetree.o \
+		srcpos.o treesource.o \
+		dtc-parser.tab.o lex.yy.o
+DTC_DEPFILES = $(DTC_OBJS:%.o=%.d)
+
+dtc-parser.tab.c dtc-parser.tab.h dtc-parser.output: dtc-parser.y
+	@$(VECHO) BISON $@
+	$(BISON) -d $<
+
+lex.yy.c: dtc-lexer.l
+	@$(VECHO) LEX $@
+	$(LEX) $<
+
+BIN += dtc ftdump
+
+dtc: $(DTC_OBJS)
+
+ftdump:	ftdump.o
+
+ifneq ($(DEPTARGETS),)
+-include $(DTC_DEPFILES)
+endif
+
+#
+# Rules for libfdt
+#
+LIBFDT_PREFIX = libfdt/
+include libfdt/Makefile.libfdt
+
+.PHONY: libfdt
+libfdt: $(LIBFDT_LIB)
+
+libfdt_clean:
+	@$(VECHO) CLEAN "(libfdt)"
+	rm -f $(LIBFDT_CLEANFILES)
+
+ifneq ($(DEPTARGETS),)
+-include $(LIBFDT_DEPFILES)
+endif
+
+#
+# Testsuite rules
+#
+TESTS_PREFIX=tests/
+include tests/Makefile.tests
