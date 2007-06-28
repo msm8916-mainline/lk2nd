@@ -779,7 +779,6 @@ static struct node *unflatten_tree(struct inbuf *dtbuf,
 			if (!(flags & FTF_NOPS))
 				fprintf(stderr, "Warning: NOP tag found in flat tree"
 					" version <16\n");
-				break;
 
 			/* Ignore */
 			break;
