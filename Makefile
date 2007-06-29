@@ -4,6 +4,10 @@ LDFLAGS = -Llibfdt
 
 BISON = bison
 
+INSTALL = /usr/bin/install
+DESTDIR =
+BINDIR = /usr/bin
+
 #
 # Overall rules
 #
@@ -113,3 +117,8 @@ endif
 #
 TESTS_PREFIX=tests/
 include tests/Makefile.tests
+
+install: dtc ftdump
+	$(INSTALL) -d $(DESTDIR)$(BINDIR)
+	$(INSTALL) -m 755 dtc $(DESTDIR)$(BINDIR)
+	$(INSTALL) -m 755 ftdump $(DESTDIR)$(BINDIR)
