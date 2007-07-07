@@ -57,6 +57,8 @@ struct data data_grow_for(struct data d, int xlen)
 	if (xlen == 0)
 		return d;
 
+	nd = d;
+
 	newsize = xlen;
 
 	while ((d.len + xlen) > newsize)
@@ -64,8 +66,6 @@ struct data data_grow_for(struct data d, int xlen)
 
 	nd.asize = newsize;
 	nd.val = xrealloc(d.val, newsize);
-	nd.len = d.len;
-	nd.refs = d.refs;
 
 	assert(nd.asize >= (d.len + xlen));
 
