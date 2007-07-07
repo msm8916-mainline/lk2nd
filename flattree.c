@@ -477,6 +477,10 @@ void dt_to_asm(FILE *f, struct boot_info *bi, int version, int boot_cpuid_phys)
 		fprintf(f, "\t.long\t_%s_strings_end - _%s_strings_start\t/* size_dt_strings */\n",
 			symprefix, symprefix);
 
+	if (vi->flags & FTF_STRUCTSIZE)
+		fprintf(f, "\t.long\t_%s_struct_end - _%s_struct_start\t/* size_dt_struct */\n",
+			symprefix, symprefix);
+
 	/*
 	 * Reserve map entries.
 	 * Align the reserve map to a doubleword boundary.
