@@ -192,19 +192,27 @@ void yyerror (char const *s)
  * Convert a string representation of a numeric cell
  * in the given base into a cell.
  *
- * FIXME: The string "abc123", base 10, should be flagged
- *        as an error due to the leading "a", but isn't yet.
+ * FIXME: should these specification errors be fatal instead?
  */
 
 cell_t cell_from_string(char *s, unsigned int base)
 {
 	cell_t c;
+	char *e;
 
-	c = strtoul(s, NULL, base);
+	c = strtoul(s, &e, base);
+	if (*e) {
+		fprintf(stderr,
+			"Line %d: Invalid cell value '%s' : "
+			"%c is not a base %d digit; %d assumed\n",
+			yylloc.first_line, s, *e, base, c);
+	}
+
 	if (errno == EINVAL || errno == ERANGE) {
 		fprintf(stderr,
 			"Line %d: Invalid cell value '%s'; %d assumed\n",
 			yylloc.first_line, s, c);
+		errno = 0;
 	}
 
 	return c;
