@@ -79,6 +79,7 @@ DTC_DEPFILES = $(DTC_OBJS:%.o=%.d)
 
 dtc-parser.tab.c dtc-parser.tab.h dtc-parser.output: dtc-parser.y
 	@$(VECHO) BISON $@
+	@$(VECHO) ---- Expect 2 s/r and 2 r/r. ----
 	$(BISON) -d $<
 
 lex.yy.c: dtc-lexer.l
