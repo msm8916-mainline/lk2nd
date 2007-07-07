@@ -301,16 +301,22 @@ struct data data_add_fixup(struct data d, char *ref)
 
 struct data data_add_label(struct data d, char *label)
 {
-	struct fixup *f;
+	struct fixup *f, **p;
 	struct data nd;
 
 	f = xmalloc(sizeof(*f));
 	f->offset = d.len;
 	f->ref = label;
-	f->next = d.labels;
 
 	nd = d;
-	nd.labels = f;
+	p = &nd.labels;
+
+	/* adding to end keeps them sorted */
+	while (*p)
+		p = &((*p)->next);
+
+	f->next = *p;
+	*p = f;
 
 	return nd;
 }
