@@ -26,7 +26,6 @@
 #include "srcpos.h"
 
 int yylex(void);
-void yyerror(char const *);
 cell_t cell_from_string(char *s, unsigned int base);
 
 extern struct boot_info *the_boot_info;
