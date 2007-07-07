@@ -74,49 +74,6 @@ endif
 
 all: dtc ftdump libfdt tests
 
-
-STD_CLEANFILES = *~ *.o *.d *.a *.i *.s core a.out
-GEN_CLEANFILES = $(VERSION_FILE)
-
-clean: libfdt_clean tests_clean
-	@$(VECHO) CLEAN
-	rm -f $(STD_CLEANFILES)
-	rm -f $(GEN_CLEANFILES)
-	rm -f *.tab.[ch] lex.yy.c *.output vgcore.*
-	rm -f $(BIN)
-
-#
-# General rules
-#
-
-%.o: %.c
-	@$(VECHO) CC $@
-	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ -c $<
-
-%.o: %.S
-	@$(VECHO) AS $@
-	$(CC) $(CPPFLAGS) $(AFLAGS) -D__ASSEMBLY__ -o $@ -c $<
-
-%.d: %.c
-	$(CC) $(CPPFLAGS) -MM -MG -MT "$*.o $@" $< > $@
-
-%.i:	%.c
-	@$(VECHO) CPP $@
-	$(CC) $(CPPFLAGS) -E $< > $@
-
-%.s:	%.c
-	@$(VECHO) CC -S $@
-	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ -S $<
-
-%.a:
-	@$(VECHO) AR $@
-	$(AR) $(ARFLAGS) $@ $^
-
-$(BIN): %:
-	@$(VECHO) LD $@
-	$(LINK.c) -o $@ $^
-
-
 #
 # Rules for dtc proper
 #
@@ -125,6 +82,8 @@ DTC_OBJS = dtc.o flattree.o fstree.o data.o livetree.o \
 		srcpos.o treesource.o \
 		dtc-parser.tab.o lex.yy.o
 DTC_DEPFILES = $(DTC_OBJS:%.o=%.d)
+
+BIN += dtc ftdump
 
 dtc-parser.tab.c dtc-parser.tab.h dtc-parser.output: dtc-parser.y
 	@$(VECHO) BISON $@
@@ -138,9 +97,9 @@ lex.yy.c: dtc-lexer.l
 	@$(VECHO) LEX $@
 	$(LEX) $<
 
-BIN += dtc ftdump
-
 dtc: $(DTC_OBJS)
+	@$(VECHO) LD $@
+	$(LINK.c) -o $@ $^
 
 ftdump:	ftdump.o
 
@@ -171,6 +130,16 @@ endif
 TESTS_PREFIX=tests/
 include tests/Makefile.tests
 
+STD_CLEANFILES = *~ *.o *.d *.a *.i *.s core a.out
+GEN_CLEANFILES = $(VERSION_FILE)
+
+clean: libfdt_clean tests_clean
+	@$(VECHO) CLEAN
+	rm -f $(STD_CLEANFILES)
+	rm -f $(GEN_CLEANFILES)
+	rm -f *.tab.[ch] lex.yy.c *.output vgcore.*
+	rm -f $(BIN)
+
 install: dtc ftdump
 	$(INSTALL) -d $(DESTDIR)$(BINDIR)
 	$(INSTALL) -m 755 dtc $(DESTDIR)$(BINDIR)
@@ -188,5 +157,31 @@ define filechk
 		mv -f $@.tmp $@;		\
 	fi;
 endef
+
+#
+# Generic compile rules
+#
+%.o: %.c
+	@$(VECHO) CC $@
+	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ -c $<
+
+%.o: %.S
+	@$(VECHO) AS $@
+	$(CC) $(CPPFLAGS) $(AFLAGS) -D__ASSEMBLY__ -o $@ -c $<
+
+%.d: %.c
+	$(CC) $(CPPFLAGS) -MM -MG -MT "$*.o $@" $< > $@
+
+%.i:	%.c
+	@$(VECHO) CPP $@
+	$(CC) $(CPPFLAGS) -E $< > $@
+
+%.s:	%.c
+	@$(VECHO) CC -S $@
+	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ -S $<
+
+%.a:
+	@$(VECHO) AR $@
+	$(AR) $(ARFLAGS) $@ $^
 
 FORCE:
