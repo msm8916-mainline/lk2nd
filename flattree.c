@@ -469,21 +469,21 @@ void dt_to_asm(FILE *f, struct boot_info *bi, int version, int boot_cpuid_phys)
 
 	emit_label(f, symprefix, "blob_start");
 	emit_label(f, symprefix, "header");
-	fprintf(f, "\t.long\tOF_DT_HEADER /* magic */\n");
-	fprintf(f, "\t.long\t_%s_blob_abs_end - _%s_blob_start /* totalsize */\n",
+	fprintf(f, "\t.long\tOF_DT_HEADER\t\t\t\t/* magic */\n");
+	fprintf(f, "\t.long\t_%s_blob_abs_end - _%s_blob_start\t/* totalsize */\n",
 		symprefix, symprefix);
-	fprintf(f, "\t.long\t_%s_struct_start - _%s_blob_start /* off_dt_struct */\n",
+	fprintf(f, "\t.long\t_%s_struct_start - _%s_blob_start\t/* off_dt_struct */\n",
 		symprefix, symprefix);
-	fprintf(f, "\t.long\t_%s_strings_start - _%s_blob_start /* off_dt_strings */\n",
+	fprintf(f, "\t.long\t_%s_strings_start - _%s_blob_start\t/* off_dt_strings */\n",
 		symprefix, symprefix);
-	fprintf(f, "\t.long\t_%s_reserve_map - _%s_blob_start /* off_dt_strings */\n",
+	fprintf(f, "\t.long\t_%s_reserve_map - _%s_blob_start\t/* off_dt_strings */\n",
 		symprefix, symprefix);
-	fprintf(f, "\t.long\t%d /* version */\n", vi->version);
-	fprintf(f, "\t.long\t%d /* last_comp_version */\n",
+	fprintf(f, "\t.long\t%d\t\t\t\t\t/* version */\n", vi->version);
+	fprintf(f, "\t.long\t%d\t\t\t\t\t/* last_comp_version */\n",
 		vi->last_comp_version);
 
 	if (vi->flags & FTF_BOOTCPUID)
-		fprintf(f, "\t.long\t%i\t/*boot_cpuid_phys*/\n",
+		fprintf(f, "\t.long\t%i\t\t\t\t\t/* boot_cpuid_phys */\n",
 			boot_cpuid_phys);
 
 	if (vi->flags & FTF_STRTABSIZE)
