@@ -107,6 +107,16 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 			BEGIN(INITIAL);
 			return ';';
 		}
+
+<*>[a-zA-Z_][a-zA-Z0-9_]*:	{
+			yylloc.filenum = srcpos_filenum;
+			yylloc.first_line = yylineno;
+			DPRINT("Label: %s\n", yytext);
+			yylval.str = strdup(yytext);
+			yylval.str[yyleng-1] = '\0';
+			return DT_LABEL;
+		}
+
 <CELLDATA>[bodh]# {
 			yylloc.filenum = srcpos_filenum;
 			yylloc.first_line = yylineno;
@@ -188,15 +198,6 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 			return DT_NODENAME;
 		}
 
-
-[a-zA-Z_][a-zA-Z0-9_]*:	{
-			yylloc.filenum = srcpos_filenum;
-			yylloc.first_line = yylineno;
-			DPRINT("Label: %s\n", yytext);
-			yylval.str = strdup(yytext);
-			yylval.str[yyleng-1] = '\0';
-			return DT_LABEL;
-		}
 
 <*>{WS}+	/* eat whitespace */
 
