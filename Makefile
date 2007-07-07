@@ -1,3 +1,49 @@
+#
+# Device Tree Compiler
+#
+
+#
+# Version information will be constructed in this order:
+# EXTRAVERSION might be "-rc", for example.
+# LOCAL_VERSION is likely from command line.
+# CONFIG_LOCALVERSION from some future config system.
+#
+VERSION = 1
+PATCHLEVEL = 0
+SUBLEVEL = 0
+EXTRAVERSION =
+LOCAL_VERSION =
+CONFIG_LOCALVERSION = 
+
+DTC_VERSION = $(VERSION).$(PATCHLEVEL).$(SUBLEVEL)$(EXTRAVERSION)
+VERSION_FILE = version_gen.h
+
+CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
+	  else if [ -x /bin/bash ]; then echo /bin/bash; \
+	  else echo sh; fi ; fi)
+
+nullstring :=
+space	:= $(nullstring) # end of line
+
+localver_config = $(subst $(space),, $(string) \
+			      $(patsubst "%",%,$(CONFIG_LOCALVERSION)))
+
+localver_cmd = $(subst $(space),, $(string) \
+			      $(patsubst "%",%,$(LOCALVERSION)))
+
+localver_scm = $(shell $(CONFIG_SHELL) ./scripts/setlocalversion)
+localver_full  = $(localver_config)$(localver_cmd)$(localver_scm)
+
+dtc_version = $(DTC_VERSION)$(localver_full)
+
+#
+# Contents of the generated version file.
+#
+define filechk_version
+	(echo "#define DTC_VERSION \"DTC $(dtc_version)\""; )
+endef
+
+
 CPPFLAGS = -I libfdt
 CFLAGS = -Wall -g
 LDFLAGS = -Llibfdt
@@ -28,11 +74,14 @@ endif
 
 all: dtc ftdump libfdt tests
 
+
 STD_CLEANFILES = *~ *.o *.d *.a *.i *.s core a.out
+GEN_CLEANFILES = $(VERSION_FILE)
 
 clean: libfdt_clean tests_clean
 	@$(VECHO) CLEAN
 	rm -f $(STD_CLEANFILES)
+	rm -f $(GEN_CLEANFILES)
 	rm -f *.tab.[ch] lex.yy.c *.output vgcore.*
 	rm -f $(BIN)
 
@@ -82,6 +131,9 @@ dtc-parser.tab.c dtc-parser.tab.h dtc-parser.output: dtc-parser.y
 	@$(VECHO) ---- Expect 2 s/r and 2 r/r. ----
 	$(BISON) -d $<
 
+$(VERSION_FILE): Makefile FORCE
+	$(call filechk,version)
+
 lex.yy.c: dtc-lexer.l
 	@$(VECHO) LEX $@
 	$(LEX) $<
@@ -123,3 +175,18 @@ install: dtc ftdump
 	$(INSTALL) -d $(DESTDIR)$(BINDIR)
 	$(INSTALL) -m 755 dtc $(DESTDIR)$(BINDIR)
 	$(INSTALL) -m 755 ftdump $(DESTDIR)$(BINDIR)
+
+define filechk
+	set -e;					\
+	echo '	CHK $@';			\
+	mkdir -p $(dir $@);			\
+	$(filechk_$(1)) < $< > $@.tmp;		\
+	if [ -r $@ ] && cmp -s $@ $@.tmp; then	\
+		rm -f $@.tmp;			\
+	else					\
+		echo '	UPD $@';		\
+		mv -f $@.tmp $@;		\
+	fi;
+endef
+
+FORCE:

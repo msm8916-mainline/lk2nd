@@ -21,6 +21,8 @@
 #include "dtc.h"
 #include "srcpos.h"
 
+#include "version_gen.h"
+
 /*
  * Command line options
  */
@@ -99,6 +101,8 @@ static void usage(void)
 	fprintf(stderr, "\t\tSet the physical boot cpu\n");
 	fprintf(stderr, "\t-f\n");
 	fprintf(stderr, "\t\tForce - try to produce output even if the input tree has errors\n");
+	fprintf(stderr, "\t-v\n");
+	fprintf(stderr, "\t\tPrint DTC version and exit\n");
 	exit(2);
 }
 
@@ -120,7 +124,7 @@ int main(int argc, char *argv[])
 	reservenum = 0;
 	minsize    = 0;
 
-	while ((opt = getopt(argc, argv, "hI:O:o:V:R:S:fqb:")) != EOF) {
+	while ((opt = getopt(argc, argv, "hI:O:o:V:R:S:fqb:v")) != EOF) {
 		switch (opt) {
 		case 'I':
 			inform = optarg;
@@ -149,6 +153,9 @@ int main(int argc, char *argv[])
 		case 'b':
 			boot_cpuid_phys = strtol(optarg, NULL, 0);
 			break;
+		case 'v':
+		    printf("Version: %s\n", DTC_VERSION);
+		    exit(0);
 		case 'h':
 		default:
 			usage();
