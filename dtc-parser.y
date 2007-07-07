@@ -92,11 +92,11 @@ memreserves:	memreserve memreserves {
 		}
 	;
 
-memreserve:	DT_MEMRESERVE DT_ADDR DT_ADDR ';' {
-			$$ = build_reserve_entry($2, $3, NULL);
+memreserve:	label DT_MEMRESERVE DT_ADDR DT_ADDR ';' {
+			$$ = build_reserve_entry($3, $4, $1);
 		}
-	|	DT_MEMRESERVE DT_ADDR '-' DT_ADDR ';' {
-			$$ = build_reserve_entry($2, $4 - $2 + 1, NULL);
+	|	label DT_MEMRESERVE DT_ADDR '-' DT_ADDR ';' {
+			$$ = build_reserve_entry($3, $5 - $3 + 1, $1);
 		}
 	;
 

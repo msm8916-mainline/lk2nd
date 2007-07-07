@@ -497,6 +497,10 @@ void dt_to_asm(FILE *f, struct boot_info *bi, int version, int boot_cpuid_phys)
 	 * as it appears .quad isn't available in some assemblers.
 	 */
 	for (re = bi->reservelist; re; re = re->next) {
+		if (re->label) {
+			fprintf(f, "\t.globl\t%s\n", re->label);
+			fprintf(f, "%s:\n", re->label);
+		}
 		fprintf(f, "\t.long\t0x%08x\n\t.long\t0x%08x\n",
 			(unsigned int)(re->re.address >> 32),
 			(unsigned int)(re->re.address & 0xffffffff));
