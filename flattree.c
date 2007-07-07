@@ -121,6 +121,12 @@ static void emit_label(FILE *f, char *prefix, char *label)
 	fprintf(f, "_%s_%s:\n", prefix, label);
 }
 
+static void emit_offset_label(FILE *f, char *label, int offset)
+{
+	fprintf(f, "\t.globl\t%s\n", label);
+	fprintf(f, "%s\t= . + %d\n", label, offset);
+}
+
 static void asm_emit_cell(void *e, cell_t val)
 {
 	FILE *f = e;
@@ -157,6 +163,13 @@ static void asm_emit_data(void *e, struct data d)
 {
 	FILE *f = e;
 	int off = 0;
+	struct fixup *l;
+
+	l = d.labels;
+	while (l) {
+		emit_offset_label(f, l->ref, l->offset);
+		l = l->next;
+	}
 
 	while ((d.len - off) >= sizeof(u32)) {
 		fprintf(f, "\t.long\t0x%x\n",

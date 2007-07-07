@@ -131,9 +131,11 @@ propdata:	propdataprefix DT_STRING { $$ = data_merge($1, $2); }
 			$$ = data_merge(data_append_align($1, sizeof(cell_t)), $3);
 		}
 	|	propdataprefix '[' bytestring ']' { $$ = data_merge($1, $3); }
+	|	propdata DT_LABEL { $$ = data_add_label($1, $2); }
 	;
 
 propdataprefix:	propdata ',' { $$ = $1; }
+	|	propdataprefix DT_LABEL { $$ = data_add_label($1, $2); }
 	|	/* empty */ { $$ = empty_data; }
 	;
 
@@ -150,10 +152,12 @@ celllist:	celllist opt_cell_base DT_CELL {
 	|	celllist DT_REF	{
 			$$ = data_append_cell(data_add_fixup($1, $2), -1);
 		}
+	|	celllist DT_LABEL { $$ = data_add_label($1, $2); }
 	|	/* empty */ { $$ = empty_data; }
 	;
 
 bytestring:	bytestring DT_BYTE { $$ = data_append_byte($1, $2); }
+	|	bytestring DT_LABEL { $$ = data_add_label($1, $2); }
 	|	/* empty */ { $$ = empty_data; }
 	;
 

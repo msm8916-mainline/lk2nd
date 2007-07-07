@@ -29,12 +29,17 @@ void fixup_free(struct fixup *f)
 
 void data_free(struct data d)
 {
-	struct fixup *f;
+	struct fixup *f, *nf;
 
 	f = d.refs;
 	while (f) {
-		struct fixup *nf;
+		nf = f->next;
+		fixup_free(f);
+		f = nf;
+	}
 
+	f = d.labels;
+	while (f) {
 		nf = f->next;
 		fixup_free(f);
 		f = nf;
@@ -198,27 +203,36 @@ struct data data_append_data(struct data d, void *p, int len)
 	return d;
 }
 
-struct data data_merge(struct data d1, struct data d2)
+void fixup_merge(struct fixup **fd, struct fixup **fd2, int d1_len)
 {
-	struct data d;
 	struct fixup **ff;
 	struct fixup *f, *f2;
 
-	d = data_append_data(d1, d2.val, d2.len);
-
 	/* Extract d2's fixups */
-	f2 = d2.refs;
-	d2.refs = NULL;
+	f2 = *fd2;
+	*fd2 = NULL;
 
 	/* Tack them onto d's list of fixups */
-	ff = &d.refs;
+	ff = fd;
 	while (*ff)
 		ff = &((*ff)->next);
 	*ff = f2;
 
 	/* And correct them for their new position */
 	for (f = f2; f; f = f->next)
-		f->offset += d1.len;
+		f->offset += d1_len;
+
+
+}
+
+struct data data_merge(struct data d1, struct data d2)
+{
+	struct data d;
+
+	d = data_append_data(d1, d2.val, d2.len);
+
+	fixup_merge(&d.refs, &d2.refs, d1.len);
+	fixup_merge(&d.labels, &d2.labels, d1.len);
 
 	data_free(d2);
 
@@ -281,6 +295,22 @@ struct data data_add_fixup(struct data d, char *ref)
 
 	nd = d;
 	nd.refs = f;
+
+	return nd;
+}
+
+struct data data_add_label(struct data d, char *label)
+{
+	struct fixup *f;
+	struct data nd;
+
+	f = xmalloc(sizeof(*f));
+	f->offset = d.len;
+	f->ref = label;
+	f->next = d.labels;
+
+	nd = d;
+	nd.labels = f;
 
 	return nd;
 }
