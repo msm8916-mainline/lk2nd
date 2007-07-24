@@ -3,12 +3,14 @@
 # This is not a complete Makefile of itself.  Instead, it is designed to
 # be easily embeddable into other systems of Makefiles.
 #
-
 LIBFDT_OBJS_L = fdt.o fdt_ro.o fdt_wip.o fdt_sw.o fdt_rw.o fdt_strerror.o
 LIBFDT_OBJS = $(LIBFDT_OBJS_L:%=$(LIBFDT_PREFIX)%)
 
 LIBFDT_LIB_L = libfdt.a
 LIBFDT_LIB = $(LIBFDT_LIB_L:%=$(LIBFDT_PREFIX)%)
+
+LIBFDT_INCLUDES_L = fdt.h libfdt.h
+LIBFDT_INCLUDES = $(LIBFDT_INCLUDES_L:%=$(LIBFDT_PREFIX)%)
 
 LIBFDT_CLEANFILES_L = *~ *.o *.d *.a $(LIBFDT_LIB) \
 	*.i *.s a.out core

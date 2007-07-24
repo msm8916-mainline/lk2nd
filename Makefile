@@ -52,7 +52,10 @@ BISON = bison
 
 INSTALL = /usr/bin/install
 DESTDIR =
-BINDIR = /usr/bin
+PREFIX = $(HOME)
+BINDIR = $(PREFIX)/bin
+LIBDIR = $(PREFIX)/lib
+INCLUDEDIR = $(PREFIX)/include
 
 #
 # Overall rules
@@ -140,10 +143,14 @@ clean: libfdt_clean tests_clean
 	rm -f *.tab.[ch] lex.yy.c *.output vgcore.*
 	rm -f $(BIN)
 
-install: dtc ftdump
+install: all
+	@$(VECHO) INSTALL
 	$(INSTALL) -d $(DESTDIR)$(BINDIR)
 	$(INSTALL) -m 755 dtc $(DESTDIR)$(BINDIR)
-	$(INSTALL) -m 755 ftdump $(DESTDIR)$(BINDIR)
+	$(INSTALL) -d $(DESTDIR)$(LIBDIR)
+	$(INSTALL) -m 644 $(LIBFDT_LIB) $(DESTDIR)$(LIBDIR)
+	$(INSTALL) -d $(DESTDIR)$(INCLUDEDIR)
+	$(INSTALL) -m 644 $(LIBFDT_INCLUDES) $(DESTDIR)$(INCLUDEDIR)
 
 define filechk
 	set -e;					\
