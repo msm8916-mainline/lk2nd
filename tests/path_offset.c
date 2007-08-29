@@ -58,6 +58,7 @@ int check_subnode(void *fdt, int parent, const char *name)
 int main(int argc, char *argv[])
 {
 	void *fdt;
+	int root_offset;
 	int subnode1_offset, subnode2_offset;
 	int subnode1_offset_p, subnode2_offset_p;
 	int subsubnode1_offset, subsubnode2_offset;
@@ -66,6 +67,13 @@ int main(int argc, char *argv[])
 	test_init(argc, argv);
 	fdt = load_blob_arg(argc, argv);
 
+	root_offset = fdt_path_offset(fdt, "/");
+	if (root_offset < 0)
+		FAIL("fdt_path_offset(\"/\") failed: %s",
+		     fdt_strerror(root_offset));
+	else if (root_offset != 0)
+		FAIL("fdt_path_offset(\"/\") returns incorrect offset %d",
+		     root_offset);
 	subnode1_offset = check_subnode(fdt, 0, "subnode1");
 	subnode2_offset = check_subnode(fdt, 0, "subnode2");
 

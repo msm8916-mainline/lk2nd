@@ -154,7 +154,7 @@ int fdt_path_offset(const void *fdt, const char *path)
 		while (*p == '/')
 			p++;
 		if (! *p)
-			return -FDT_ERR_BADPATH;
+			return offset;
 		q = strchr(p, '/');
 		if (! q)
 			q = end;
