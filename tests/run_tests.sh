@@ -15,12 +15,15 @@ run_test () {
     echo -n "$@:	"
     if PATH=".:$PATH" $ENV "$@"; then
 	tot_pass=$[tot_pass + 1]
-    elif [ "$?" == "1" ]; then
-	tot_config=$[tot_config + 1]
-    elif [ "$?" == "2" ]; then
-	tot_fail=$[tot_fail + 1]
     else
-	tot_strange=$[tot_strange + 1]
+	ret="$?"
+	if [ "$ret" == "1" ]; then
+	    tot_config=$[tot_config + 1]
+	elif [ "$ret" == "2" ]; then
+	    tot_fail=$[tot_fail + 1]
+	else
+	    tot_strange=$[tot_strange + 1]
+	fi
     fi
 }
 
