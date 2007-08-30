@@ -349,3 +349,71 @@ int fdt_get_path(const void *fdt, int nodeoffset, char *buf, int buflen)
 	buf[p] = '\0';
 	return p;
 }
+
+int fdt_supernode_atdepth_offset(const void *fdt, int nodeoffset,
+				 int supernodedepth, int *nodedepth)
+{
+	int level = -1;
+	uint32_t tag;
+	int offset, nextoffset = 0;
+	int supernodeoffset = -FDT_ERR_INTERNAL;
+
+	CHECK_HEADER(fdt);
+
+	if (supernodedepth < 0)
+		return -FDT_ERR_NOTFOUND;
+
+	do {
+		offset = nextoffset;
+		tag = _fdt_next_tag(fdt, offset, &nextoffset);
+		switch (tag) {
+		case FDT_END:
+			return -FDT_ERR_BADOFFSET;
+
+		case FDT_BEGIN_NODE:
+			level++;
+			if (level == supernodedepth)
+				supernodeoffset = offset;
+			break;
+
+		case FDT_END_NODE:
+			level--;
+			break;
+
+		case FDT_PROP:
+		case FDT_NOP:
+			break;
+
+		default:
+			return -FDT_ERR_BADSTRUCTURE;
+		}
+	} while (offset < nodeoffset);
+
+	if (nodedepth)
+		*nodedepth = level;
+
+	if (supernodedepth > level)
+		return -FDT_ERR_NOTFOUND;
+	return supernodeoffset;
+}
+
+int fdt_node_depth(const void *fdt, int nodeoffset)
+{
+	int nodedepth;
+	int err;
+
+	err = fdt_supernode_atdepth_offset(fdt, nodeoffset, 0, &nodedepth);
+	if (err)
+		return (err < 0) ? err : -FDT_ERR_INTERNAL;
+	return nodedepth;
+}
+
+int fdt_parent_offset(const void *fdt, int nodeoffset)
+{
+	int nodedepth = fdt_node_depth(fdt, nodeoffset);
+
+	if (nodedepth < 0)
+		return nodedepth;
+	return fdt_supernode_atdepth_offset(fdt, nodeoffset,
+					    nodedepth - 1, NULL);
+}

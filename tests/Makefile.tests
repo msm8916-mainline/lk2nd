@@ -1,5 +1,5 @@
 LIB_TESTS_L = root_node find_property subnode_offset path_offset \
-	get_name getprop get_path \
+	get_name getprop get_path supernode_atdepth_offset parent_offset \
 	notfound \
 	setprop_inplace nop_property nop_node \
 	sw_tree1 \

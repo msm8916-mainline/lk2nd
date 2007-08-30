@@ -35,6 +35,8 @@ tree1_tests () {
     run_test get_name $TREE
     run_test getprop $TREE
     run_test get_path $TREE
+    run_test supernode_atdepth_offset $TREE
+    run_test parent_offset $TREE
     run_test notfound $TREE
 
     # Write-in-place tests

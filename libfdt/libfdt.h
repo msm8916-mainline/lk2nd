@@ -74,7 +74,10 @@
 #define FDT_ERR_BADSTRUCTURE	10
 #define FDT_ERR_BADLAYOUT	11
 
-#define FDT_ERR_MAX		11
+/* "Can't happen" error indicating a bug in libfdt */
+#define FDT_ERR_INTERNAL	12
+
+#define FDT_ERR_MAX		12
 
 #define fdt_get_header(fdt, field) \
 	(fdt32_to_cpu(((const struct fdt_header *)(fdt))->field))
@@ -137,6 +140,11 @@ static inline void *fdt_getprop_w(void *fdt, int nodeoffset,
 }
 
 int fdt_get_path(const void *fdt, int nodeoffset, char *buf, int buflen);
+
+int fdt_supernode_atdepth_offset(const void *fdt, int nodeoffset,
+				 int supernodedepth, int *nodedepth);
+int fdt_node_depth(const void *fdt, int nodeoffset);
+int fdt_parent_offset(const void *fdt, int nodeoffset);
 
 /* Write-in-place functions */
 int fdt_setprop_inplace(void *fdt, int nodeoffset, const char *name,
