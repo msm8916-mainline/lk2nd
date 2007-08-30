@@ -283,3 +283,69 @@ const void *fdt_getprop(const void *fdt, int nodeoffset,
 
 	return prop->data;
 }
+
+int fdt_get_path(const void *fdt, int nodeoffset, char *buf, int buflen)
+{
+	uint32_t tag;
+	int p = 0, overflow = 0;
+	int offset, nextoffset, namelen;
+	const char *name;
+
+	CHECK_HEADER(fdt);
+
+	tag = _fdt_next_tag(fdt, 0, &nextoffset);
+	if (tag != FDT_BEGIN_NODE)
+		return -FDT_ERR_BADSTRUCTURE;
+
+	if (buflen < 2)
+		return -FDT_ERR_NOSPACE;
+	buf[0] = '/';
+	p = 1;
+
+	while (offset < nodeoffset) {
+		offset = nextoffset;
+		tag = _fdt_next_tag(fdt, offset, &nextoffset);
+		switch (tag) {
+		case FDT_END:
+			return -FDT_ERR_BADOFFSET;
+
+		case FDT_BEGIN_NODE:
+			name = fdt_get_name(fdt, offset, &namelen);
+			if (!name)
+				return namelen;
+			if (overflow || ((p + namelen + 1) > buflen)) {
+				overflow++;
+				break;
+			}
+			memcpy(buf + p, name, namelen);
+			p += namelen;
+			buf[p++] = '/';
+			break;
+
+		case FDT_END_NODE:
+			if (overflow) {
+				overflow--;
+				break;
+			}
+			do {
+				p--;
+			} while  (buf[p-1] != '/');
+			break;
+
+		case FDT_PROP:
+		case FDT_NOP:
+			break;
+
+		default:
+			return -FDT_ERR_BADSTRUCTURE;
+		}
+	}
+
+	if (overflow)
+		return -FDT_ERR_NOSPACE;
+
+	if (p > 1) /* special case so that root path is "/", not "" */
+		p--;
+	buf[p] = '\0';
+	return p;
+}

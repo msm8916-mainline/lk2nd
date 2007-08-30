@@ -34,6 +34,7 @@ tree1_tests () {
     run_test path_offset $TREE
     run_test get_name $TREE
     run_test getprop $TREE
+    run_test get_path $TREE
     run_test notfound $TREE
 
     # Write-in-place tests

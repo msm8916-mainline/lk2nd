@@ -136,6 +136,8 @@ static inline void *fdt_getprop_w(void *fdt, int nodeoffset,
 	return (void *)fdt_getprop(fdt, nodeoffset, name, lenp);
 }
 
+int fdt_get_path(const void *fdt, int nodeoffset, char *buf, int buflen);
+
 /* Write-in-place functions */
 int fdt_setprop_inplace(void *fdt, int nodeoffset, const char *name,
 			const void *val, int len);
