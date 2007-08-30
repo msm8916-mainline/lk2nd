@@ -32,6 +32,7 @@ tree1_tests () {
     run_test find_property $TREE
     run_test subnode_offset $TREE
     run_test path_offset $TREE
+    run_test get_name $TREE
     run_test getprop $TREE
     run_test notfound $TREE
 

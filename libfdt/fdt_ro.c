@@ -169,6 +169,30 @@ int fdt_path_offset(const void *fdt, const char *path)
 	return offset;	
 }
 
+const char *fdt_get_name(const void *fdt, int nodeoffset, int *len)
+{
+	const struct fdt_node_header *nh;
+	int err;
+
+	if ((err = _fdt_check_header(fdt)) != 0)
+		goto fail;
+
+	err = -FDT_ERR_BADOFFSET;
+	nh = fdt_offset_ptr(fdt, nodeoffset, sizeof(*nh));
+	if (!nh || (fdt32_to_cpu(nh->tag) != FDT_BEGIN_NODE))
+		goto fail;
+
+	if (len)
+		*len = strlen(nh->name);
+
+	return nh->name;
+
+ fail:
+	if (len)
+		*len = err;
+	return NULL;
+}
+
 const struct fdt_property *fdt_get_property(const void *fdt,
 					    int nodeoffset,
 					    const char *name, int *lenp)

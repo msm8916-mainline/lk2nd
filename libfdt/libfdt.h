@@ -115,6 +115,8 @@ int fdt_subnode_offset(const void *fdt, int parentoffset, const char *name);
 
 int fdt_path_offset(const void *fdt, const char *path);
 
+const char *fdt_get_name(const void *fdt, int nodeoffset, int *baselen);
+
 const struct fdt_property *fdt_get_property(const void *fdt, int nodeoffset,
 					    const char *name, int *lenp);
 
