@@ -43,7 +43,7 @@ extern int quiet;		/* Level of quietness */
 extern int reservenum;		/* Number of memory reservation slots */
 extern int minsize;		/* Minimum blob size */
 
-static inline void die(char * str, ...)
+static inline void __attribute__((noreturn)) die(char * str, ...)
 {
 	va_list ap;
 

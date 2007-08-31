@@ -33,7 +33,6 @@ int main(int argc, char *argv[])
 {
 	void *fdt = &_truncated_property;
 	const void *prop;
-	int err;
 	int len;
 
 	test_init(argc, argv);
@@ -43,7 +42,7 @@ int main(int argc, char *argv[])
 		FAIL("fdt_getprop() succeeded on truncated property");
 	if (len != -FDT_ERR_BADSTRUCTURE)
 		FAIL("fdt_getprop() failed with \"%s\" instead of \"%s\"",
-		     fdt_strerror(err), fdt_strerror(-FDT_ERR_BADSTRUCTURE));
+		     fdt_strerror(len), fdt_strerror(-FDT_ERR_BADSTRUCTURE));
 
 	PASS();
 }

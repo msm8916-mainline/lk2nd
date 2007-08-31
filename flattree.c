@@ -909,6 +909,7 @@ struct boot_info *dt_from_blob(FILE *f)
 		fprintf(stderr, "\tboot_cpuid_phys:\t0x%x\n",
 			be32_to_cpu(bph->boot_cpuid_phys));
 
+	size_str = -1;
 	if (version >= 3) {
 		size_str = be32_to_cpu(bph->size_dt_strings);
 		fprintf(stderr, "\tsize_dt_strings:\t%d\n", size_str);
@@ -932,10 +933,10 @@ struct boot_info *dt_from_blob(FILE *f)
 	inbuf_init(&memresvbuf,
 		   blob + off_mem_rsvmap, blob + totalsize);
 	inbuf_init(&dtbuf, blob + off_dt, blob + totalsize);
-	inbuf_init(&strbuf, blob + off_str, blob + totalsize);
-
-	if (version >= 3)
-		strbuf.limit = strbuf.base + size_str;
+	if (size_str >= 0)
+		inbuf_init(&strbuf, blob + off_str, blob + off_str + size_str);
+	else
+		inbuf_init(&strbuf, blob + off_str, blob + totalsize);
 
 	reservelist = flat_read_mem_reserve(&memresvbuf);
 

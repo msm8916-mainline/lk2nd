@@ -71,7 +71,7 @@ void fill_fullpaths(struct node *tree, char *prefix)
 		fill_fullpaths(child, tree->fullpath);
 }
 
-static void usage(void)
+static void  __attribute__ ((noreturn)) usage(void)
 {
 	fprintf(stderr, "Usage:\n");
 	fprintf(stderr, "\tdtc [options] <input file>\n");

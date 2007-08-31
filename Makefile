@@ -45,7 +45,7 @@ endef
 
 
 CPPFLAGS = -I libfdt
-CFLAGS = -Wall -g
+CFLAGS = -Wall -g -Os
 LDFLAGS = -Llibfdt
 
 BISON = bison
