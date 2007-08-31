@@ -101,8 +101,6 @@ lex.yy.c: dtc-lexer.l
 	$(LEX) $<
 
 dtc: $(DTC_OBJS)
-	@$(VECHO) LD $@
-	$(LINK.c) -o $@ $^
 
 ftdump:	ftdump.o
 
@@ -168,6 +166,10 @@ endef
 #
 # Generic compile rules
 #
+%: %.o
+	@$(VECHO) LD $@
+	$(LINK.c) -o $@ $^
+
 %.o: %.c
 	@$(VECHO) CC $@
 	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ -c $<
