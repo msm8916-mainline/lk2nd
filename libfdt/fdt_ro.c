@@ -302,7 +302,7 @@ int fdt_get_path(const void *fdt, int nodeoffset, char *buf, int buflen)
 	buf[0] = '/';
 	p = 1;
 
-	while (offset < nodeoffset) {
+	while (nextoffset <= nodeoffset) {
 		offset = nextoffset;
 		tag = _fdt_next_tag(fdt, offset, &nextoffset);
 		switch (tag) {
