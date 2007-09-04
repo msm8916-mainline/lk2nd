@@ -779,6 +779,9 @@ static struct node *unflatten_tree(struct inbuf *dtbuf,
 		val = flat_read_word(dtbuf);
 		switch (val) {
 		case OF_DT_PROP:
+			if (node->children)
+				fprintf(stderr, "Warning: Flat tree input has "
+					"subnodes preceding a property.\n");
 			prop = flat_read_property(dtbuf, strbuf, flags);
 			add_property(node, prop);
 			break;

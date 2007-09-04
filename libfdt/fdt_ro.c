@@ -197,7 +197,6 @@ const struct fdt_property *fdt_get_property(const void *fdt,
 					    int nodeoffset,
 					    const char *name, int *lenp)
 {
-	int level = 0;
 	uint32_t tag;
 	const struct fdt_property *prop;
 	int namestroff;
@@ -225,17 +224,11 @@ const struct fdt_property *fdt_get_property(const void *fdt,
 			goto fail;
 
 		case FDT_BEGIN_NODE:
-			level++;
-			break;
-
 		case FDT_END_NODE:
-			level--;
+		case FDT_NOP:
 			break;
 
 		case FDT_PROP:
-			if (level != 0)
-				continue;
-
 			err = -FDT_ERR_BADSTRUCTURE;
 			prop = fdt_offset_ptr_typed(fdt, offset, prop);
 			if (! prop)
@@ -256,14 +249,11 @@ const struct fdt_property *fdt_get_property(const void *fdt,
 			}
 			break;
 
-		case FDT_NOP:
-			break;
-
 		default:
 			err = -FDT_ERR_BADSTRUCTURE;
 			goto fail;
 		}
-	} while (level >= 0);
+	} while ((tag != FDT_BEGIN_NODE) && (tag != FDT_END_NODE));
 
 	err = -FDT_ERR_NOTFOUND;
  fail:
