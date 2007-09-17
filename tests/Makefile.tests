@@ -49,18 +49,6 @@ check:	tests
 checkv:	tests
 	cd $(TESTS_PREFIX); ./run_tests.sh -v
 
-func:	tests
-	cd $(TESTS_PREFIX); ./run_tests.sh -t func
-
-funcv:	tests
-	cd $(TESTS_PREFIX); ./run_tests.sh -t func -v
-
-stress:	tests
-	cd $(TESTS_PREFIX); ./run_tests.sh -t stress
-
-stressv: tests
-	cd $(TESTS_PREFIX); ./run_tests.sh -t stress -v
-
 ifneq ($(DEPTARGETS),)
 -include $(TESTS_DEPFILES)
 endif

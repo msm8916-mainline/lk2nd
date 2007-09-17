@@ -49,7 +49,7 @@ tree1_tests () {
     run_test nop_node $TREE
 }
 
-functional_tests () {
+libfdt_tests () {
     # Make sure we don't have stale blobs lying around
     rm -f *.test.dtb
 
@@ -86,10 +86,6 @@ functional_tests () {
     run_test truncated_property
 }
 
-stress_tests () {
-    ITERATIONS=10           # Number of iterations for looping tests
-}
-
 while getopts "vdt:" ARG ; do
     case $ARG in
 	"v")
@@ -102,16 +98,13 @@ while getopts "vdt:" ARG ; do
 done
 
 if [ -z "$TESTSETS" ]; then
-    TESTSETS="func stress"
+    TESTSETS="libfdt"
 fi
 
 for set in $TESTSETS; do
     case $set in
-	"func")
-	    functional_tests
-	    ;;
-	"stress")
-	    stress_tests
+	"libfdt")
+	    libfdt_tests
 	    ;;
     esac
 done
