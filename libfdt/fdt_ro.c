@@ -407,3 +407,54 @@ int fdt_parent_offset(const void *fdt, int nodeoffset)
 	return fdt_supernode_atdepth_offset(fdt, nodeoffset,
 					    nodedepth - 1, NULL);
 }
+
+int fdt_node_offset_by_prop_value(const void *fdt, int startoffset,
+				  const char *propname,
+				  const void *propval, int proplen)
+{
+	uint32_t tag;
+	int offset, nextoffset;
+	const void *val;
+	int len;
+
+	CHECK_HEADER(fdt);
+
+	if (startoffset >= 0) {
+		tag = _fdt_next_tag(fdt, startoffset, &nextoffset);
+		if (tag != FDT_BEGIN_NODE)
+			return -FDT_ERR_BADOFFSET;
+	} else {
+		nextoffset = 0;
+	}
+
+	/* FIXME: The algorithm here is pretty horrible: we scan each
+	 * property of a node in fdt_getprop(), then if that didn't
+	 * find what we want, we scan over them again making our way
+	 * to the next node.  Still it's the easiest to implement
+	 * approach; performance can come later. */
+	do {
+		offset = nextoffset;
+		tag = _fdt_next_tag(fdt, offset, &nextoffset);
+
+		switch (tag) {
+		case FDT_BEGIN_NODE:
+			val = fdt_getprop(fdt, offset, propname, &len);
+			if (val
+			    && (len == proplen)
+			    && (memcmp(val, propval, len) == 0))
+				return offset;
+			break;
+
+		case FDT_PROP:
+		case FDT_END:
+		case FDT_END_NODE:
+		case FDT_NOP:
+			break;
+
+		default:
+			return -FDT_ERR_BADSTRUCTURE;
+		}
+	} while (tag != FDT_END);
+
+	return -FDT_ERR_NOTFOUND;
+}

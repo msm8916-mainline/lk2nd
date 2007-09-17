@@ -146,6 +146,10 @@ int fdt_supernode_atdepth_offset(const void *fdt, int nodeoffset,
 int fdt_node_depth(const void *fdt, int nodeoffset);
 int fdt_parent_offset(const void *fdt, int nodeoffset);
 
+int fdt_node_offset_by_prop_value(const void *fdt, int startoffset,
+				  const char *propname,
+				  const void *propval, int proplen);
+
 /* Write-in-place functions */
 int fdt_setprop_inplace(void *fdt, int nodeoffset, const char *name,
 			const void *val, int len);
