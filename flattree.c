@@ -1,7 +1,7 @@
 /*
  * (C) Copyright David Gibson <dwg@au1.ibm.com>, IBM Corporation.  2005.
  *
- * 
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of the
@@ -11,11 +11,11 @@
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  *  General Public License for more details.
- *                                                                       
- *  You should have received a copy of the GNU General Public License    
- *  along with this program; if not, write to the Free Software          
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 
- *                                                                   USA 
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
+ *                                                                   USA
  */
 
 #include "dtc.h"
@@ -111,7 +111,7 @@ static struct emitter bin_emitter = {
 	.data = bin_emit_data,
 	.beginnode = bin_emit_beginnode,
 	.endnode = bin_emit_endnode,
-	.property = bin_emit_property,	
+	.property = bin_emit_property,
 };
 
 static void emit_label(FILE *f, char *prefix, char *label)
@@ -144,7 +144,7 @@ static void asm_emit_string(void *e, char *str, int len)
 		c = str[len];
 		str[len] = '\0';
 	}
-		
+
 	fprintf(f, "\t.string\t\"%s\"\n", str);
 
 	if (len != 0) {
@@ -178,7 +178,7 @@ static void asm_emit_data(void *e, struct data d)
 	}
 
 	if ((d.len - off) >= sizeof(u16)) {
-		fprintf(f, "\t.short\t0x%hx\n", 
+		fprintf(f, "\t.short\t0x%hx\n",
 			be16_to_cpu(*((u16 *)(d.val+off))));
 		off += sizeof(u16);
 	}
@@ -231,7 +231,7 @@ static struct emitter asm_emitter = {
 	.data = asm_emit_data,
 	.beginnode = asm_emit_beginnode,
 	.endnode = asm_emit_endnode,
-	.property = asm_emit_property,	
+	.property = asm_emit_property,
 };
 
 static int stringtable_insert(struct data *d, char *str)
@@ -717,7 +717,7 @@ static char *nodename_from_path(char *ppath, char *cpath)
 
 	if (! strneq(ppath, cpath, plen))
 		return NULL;
-	
+
 	return strdup(lslash+1);
 }
 
@@ -766,7 +766,7 @@ static struct node *unflatten_tree(struct inbuf *dtbuf,
 		node->name = flat_read_string(dtbuf);
 		node->fullpath = join_path(parent_path, node->name);
 	}
-	
+
 	node->basenamelen = check_node_name(node->name);
 	if (node->basenamelen < 0) {
 		fprintf(stderr, "Warning \"%s\" has incorrect format\n", node->name);
@@ -926,7 +926,7 @@ struct boot_info *dt_from_blob(FILE *f)
 		if (off_dt+size_dt > totalsize)
 			die("Structure block extends past total size\n");
 	}
-			
+
 	if (version < 16) {
 		flags |= FTF_FULLPATH | FTF_NAMEPROPS | FTF_VARALIGN;
 	} else {

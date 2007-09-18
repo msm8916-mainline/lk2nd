@@ -1,7 +1,7 @@
 /*
  * (C) Copyright David Gibson <dwg@au1.ibm.com>, IBM Corporation.  2005.
  *
- * 
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of the
@@ -11,11 +11,11 @@
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  *  General Public License for more details.
- *                                                                       
- *  You should have received a copy of the GNU General Public License    
- *  along with this program; if not, write to the Free Software          
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 
- *                                                                   USA 
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
+ *                                                                   USA
  */
 
 #include "dtc.h"
@@ -41,9 +41,9 @@ struct property *build_property(char *name, struct data val, char *label)
 struct property *chain_property(struct property *first, struct property *list)
 {
 	assert(first->next == NULL);
-	
+
 	first->next = list;
-	return first;      
+	return first;
 }
 
 struct node *build_node(struct property *proplist, struct node *children)
@@ -232,7 +232,7 @@ static struct node *get_node_by_label(struct node *tree, const char *label)
 
 static struct node *get_node_by_phandle(struct node *tree, cell_t phandle)
 {
-	struct node *child, *node;	
+	struct node *child, *node;
 
 	assert((phandle != 0) && (phandle != -1));
 
@@ -333,13 +333,12 @@ static int check_properties(struct node *node)
 					prop->name, node->fullpath);
 			}
 		}
-			
 
 		/* check name length */
 		if (strlen(prop->name) > MAX_PROPNAME_LEN)
 			WARNMSG("Property name %s is too long in %s\n",
 				prop->name, node->fullpath);
-			
+
 		/* check this property */
 		for (i = 0; i < ARRAY_SIZE(prop_checker_table); i++) {
 			if (streq(prop->name, prop_checker_table[i].propname))
@@ -426,7 +425,7 @@ static int check_structure(struct node *tree)
 				(node)->fullpath, (propname), \
 				prop->val.val, (value)); \
 	} while (0)
-		 
+
 #define CHECK_HAVE_ONECELL(node, propname) \
 	do { \
 		CHECK_HAVE((node), (propname)); \
@@ -553,7 +552,7 @@ static int check_cpus(struct node *root, int outversion, int boot_cpuid_phys)
 			WARNMSG("physical boot CPU not set.  Use -b option to set\n");
 	}
 
-	return ok;	
+	return ok;
 }
 
 static int check_memory(struct node *root)
@@ -578,7 +577,7 @@ static int check_memory(struct node *root)
 		return 0;
 	}
 
-	return ok;	
+	return ok;
 }
 
 static int check_chosen(struct node *root)

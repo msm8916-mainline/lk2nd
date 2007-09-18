@@ -65,7 +65,7 @@ tree:	\
 #define STRING(tree, name, str) \
 tree##_##name:	\
 	.string	str
-	
+
 	.data
 
 	TREE_HDR(test_tree1)
@@ -77,7 +77,7 @@ test_tree1_struct:
 	BEGIN_NODE("")
 	PROP_INT(test_tree1, prop_int, TEST_VALUE_1)
 	PROP_STR(test_tree1, prop_str, TEST_STRING_1)
-	
+
 	BEGIN_NODE("subnode1")
 	PROP_INT(test_tree1, prop_int, TEST_VALUE_1)
 
@@ -110,7 +110,7 @@ truncated_property_struct:
 	BEGIN_NODE("")
 	PROPHDR(truncated_property, prop_truncated, 4)
 	/* Oops, no actual property data here */
-	
+
 truncated_property_strings:
 	STRING(truncated_property, prop_truncated, "truncated")
 truncated_property_end:

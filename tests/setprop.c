@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
 
 	strp = check_getprop_string(fdt, 0, "prop-int", NEW_STRING);
 	verbose_printf("New value is \"%s\"\n", strp);
-	
+
 	strp = check_getprop(fdt, 0, "prop-str", strlen(TEST_STRING_1)+1,
 			     TEST_STRING_1);
 

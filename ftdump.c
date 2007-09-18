@@ -81,7 +81,7 @@ static void print_data(const void *data, int len)
 static void dump_blob(void *blob)
 {
 	struct boot_param_header *bph = blob;
-	struct reserve_entry *p_rsvmap = 
+	struct reserve_entry *p_rsvmap =
 		(struct reserve_entry *)(blob
 					 + be32_to_cpu(bph->off_mem_rsvmap));
 	char *p_struct = blob + be32_to_cpu(bph->off_dt_struct);

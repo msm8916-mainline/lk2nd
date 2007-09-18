@@ -68,6 +68,6 @@ int main(int argc, char *argv[])
 
 	offset = fdt_path_offset(fdt, "/nonexistant-subnode");
 	check_error("fdt_path_offset(\"/nonexistant-subnode\")", offset);
-	
+
 	PASS();
 }

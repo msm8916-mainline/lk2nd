@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
 		FAIL("prop-int still present after nopping");
 	if (lenerr != -FDT_ERR_NOTFOUND)
 		FAIL("Unexpected error on second getprop: %s", fdt_strerror(err));
-	
+
 	strp = check_getprop(fdt, 0, "prop-str", strlen(TEST_STRING_1)+1,
 			     TEST_STRING_1);
 	verbose_printf("string value was \"%s\"\n", strp);

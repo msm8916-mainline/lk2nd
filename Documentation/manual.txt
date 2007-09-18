@@ -140,7 +140,7 @@ Here is a very rough overview of the layout of a DTS source file:
 
     memreserve:   label 'memreserve' ADDR ADDR ';'
 		| label 'memreserve' ADDR '-' ADDR ';'
-                
+
     devicetree:   '/' nodedef
 
     nodedef:      '{' list_of_property list_of_subnode '}' ';'

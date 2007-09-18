@@ -166,7 +166,7 @@ int fdt_path_offset(const void *fdt, const char *path)
 		p = q;
 	}
 
-	return offset;	
+	return offset;
 }
 
 const char *fdt_get_name(const void *fdt, int nodeoffset, int *len)
@@ -244,7 +244,7 @@ const struct fdt_property *fdt_get_property(const void *fdt,
 
 				if (lenp)
 					*lenp = len;
-				
+
 				return prop;
 			}
 			break;

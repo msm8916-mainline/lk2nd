@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 
 	test_init(argc, argv);
 	fdt = load_blob_arg(argc, argv);
-	
+
 	nh = fdt_offset_ptr_typed(fdt, 0, nh);
 
 	if (! nh)
