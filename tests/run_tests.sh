@@ -86,6 +86,14 @@ libfdt_tests () {
     run_test truncated_property
 }
 
+dtc_tests () {
+    # Make sure we don't have stale blobs lying around
+    rm -f *.test.dtb
+
+    run_test dtc.sh -f -I dts -O dtb -o dtc_tree1.test.dtb test_tree1.dts
+    tree1_tests dtc_tree1.test.dtb
+}
+
 while getopts "vdt:" ARG ; do
     case $ARG in
 	"v")
@@ -98,13 +106,16 @@ while getopts "vdt:" ARG ; do
 done
 
 if [ -z "$TESTSETS" ]; then
-    TESTSETS="libfdt"
+    TESTSETS="libfdt dtc"
 fi
 
 for set in $TESTSETS; do
     case $set in
 	"libfdt")
 	    libfdt_tests
+	    ;;
+	"dtc")
+	    dtc_tests
 	    ;;
     esac
 done

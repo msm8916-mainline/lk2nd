@@ -43,10 +43,10 @@ tests_clean:
 	rm -f $(STD_CLEANFILES:%=$(TESTS_PREFIX)%)
 	rm -f $(TESTS_CLEANFILES)
 
-check:	tests
+check:	tests dtc
 	cd $(TESTS_PREFIX); ./run_tests.sh
 
-checkv:	tests
+checkv:	tests dtc
 	cd $(TESTS_PREFIX); ./run_tests.sh -v
 
 ifneq ($(DEPTARGETS),)

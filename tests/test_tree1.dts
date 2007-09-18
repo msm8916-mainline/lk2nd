@@ -1,0 +1,20 @@
+/ {
+	prop-int = <deadbeef>;
+	prop-str = "hello world";
+
+	subnode1 {
+		prop-int = <deadbeef>;
+
+		subsubnode {
+			prop-int = <deadbeef>;
+		};
+	};
+
+	subnode2 {
+		prop-int = <abcd1234>;
+
+		subsubnode {
+			prop-int = <abcd1234>;
+		};
+	};
+};
