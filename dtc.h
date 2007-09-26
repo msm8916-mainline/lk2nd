@@ -34,8 +34,9 @@
 #include <endian.h>
 #include <byteswap.h>
 
-#include "flat_dt.h"
+#include <fdt.h>
 
+#define DEFAULT_FDT_VERSION	17
 /*
  * Command line options
  */
@@ -128,7 +129,7 @@ struct data data_copy_file(FILE *f, size_t len);
 struct data data_append_data(struct data d, void *p, int len);
 struct data data_merge(struct data d1, struct data d2);
 struct data data_append_cell(struct data d, cell_t word);
-struct data data_append_re(struct data d, struct reserve_entry *re);
+struct data data_append_re(struct data d, struct fdt_reserve_entry *re);
 struct data data_append_addr(struct data d, u64 addr);
 struct data data_append_byte(struct data d, uint8_t byte);
 struct data data_append_zeroes(struct data d, int len);
@@ -192,7 +193,7 @@ int check_device_tree(struct node *dt, int outversion, int boot_cpuid_phys);
 /* Boot info (tree plus memreserve information */
 
 struct reserve_info {
-	struct reserve_entry re;
+	struct fdt_reserve_entry re;
 
 	struct reserve_info *next;
 

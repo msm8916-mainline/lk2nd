@@ -9,7 +9,7 @@
 #include <netinet/in.h>
 #include <byteswap.h>
 
-#include "flat_dt.h"
+#include <fdt.h>
 
 #define cpu_to_be16(x)	htons(x)
 #define be16_to_cpu(x)	ntohs(x)
@@ -80,10 +80,10 @@ static void print_data(const void *data, int len)
 
 static void dump_blob(void *blob)
 {
-	struct boot_param_header *bph = blob;
-	struct reserve_entry *p_rsvmap =
-		(struct reserve_entry *)(blob
-					 + be32_to_cpu(bph->off_mem_rsvmap));
+	struct fdt_header *bph = blob;
+	struct fdt_reserve_entry *p_rsvmap =
+		(struct fdt_reserve_entry *)(blob
+					     + be32_to_cpu(bph->off_mem_rsvmap));
 	char *p_struct = blob + be32_to_cpu(bph->off_dt_struct);
 	char *p_strings = blob + be32_to_cpu(bph->off_dt_strings);
 	uint32_t version = be32_to_cpu(bph->version);
@@ -109,11 +109,11 @@ static void dump_blob(void *blob)
 	}
 
 	p = p_struct;
-	while ((tag = be32_to_cpu(GET_CELL(p))) != OF_DT_END) {
+	while ((tag = be32_to_cpu(GET_CELL(p))) != FDT_END) {
 
 		/* printf("tag: 0x%08x (%d)\n", tag, p - p_struct); */
 
-		if (tag == OF_DT_BEGIN_NODE) {
+		if (tag == FDT_BEGIN_NODE) {
 			s = p;
 			p = PALIGN(p + strlen(s) + 1, 4);
 
@@ -126,19 +126,19 @@ static void dump_blob(void *blob)
 			continue;
 		}
 
-		if (tag == OF_DT_END_NODE) {
+		if (tag == FDT_END_NODE) {
 			depth--;
 
 			printf("%*s};\n", depth * shift, "");
 			continue;
 		}
 
-		if (tag == OF_DT_NOP) {
+		if (tag == FDT_NOP) {
 			printf("%*s// [NOP]\n", depth * shift, "");
 			continue;
 		}
 
-		if (tag != OF_DT_PROP) {
+		if (tag != FDT_PROP) {
 			fprintf(stderr, "%*s ** Unknown tag 0x%08x\n", depth * shift, "", tag);
 			break;
 		}
