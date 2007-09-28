@@ -49,6 +49,15 @@ tree1_tests () {
     run_test nop_node $TREE
 }
 
+tree1_tests_rw () {
+    TREE=$1
+
+    # Read-write tests
+    run_test setprop $TREE
+    run_test del_property $TREE
+    run_test del_node $TREE
+}
+
 libfdt_tests () {
     # Make sure we don't have stale blobs lying around
     rm -f *.test.dtb
@@ -76,11 +85,16 @@ libfdt_tests () {
 	tree1_tests opened.$tree
 	tree1_tests repacked.$tree
     done
-    run_test setprop test_tree1.dtb
-    run_test del_property test_tree1.dtb
-    run_test del_node test_tree1.dtb
+
+    for tree in test_tree1.dtb sw_tree1.test.dtb; do
+	tree1_tests_rw $tree
+	tree1_tests_rw moved.$tree
+	tree1_tests_rw shunted.$tree
+	tree1_tests_rw deshunted.$tree
+    done
     run_test rw_tree1
     tree1_tests rw_tree1.test.dtb
+    tree1_tests_rw rw_tree1.test.dtb
 
     # Tests for behaviour on various sorts of corrupted trees
     run_test truncated_property
@@ -92,6 +106,7 @@ dtc_tests () {
 
     run_test dtc.sh -f -I dts -O dtb -o dtc_tree1.test.dtb test_tree1.dts
     tree1_tests dtc_tree1.test.dtb
+    tree1_tests_rw dtc_tree1.test.dtb
 }
 
 while getopts "vdt:" ARG ; do
