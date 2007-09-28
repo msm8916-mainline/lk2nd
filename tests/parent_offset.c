@@ -77,10 +77,10 @@ int main(int argc, char *argv[])
 	test_init(argc, argv);
 	fdt = load_blob_arg(argc, argv);
 
-	check_path(fdt, "/subnode1");
-	check_path(fdt, "/subnode2");
-	check_path(fdt, "/subnode1/subsubnode");
-	check_path(fdt, "/subnode2/subsubnode");
+	check_path(fdt, "/subnode@1");
+	check_path(fdt, "/subnode@2");
+	check_path(fdt, "/subnode@1/subsubnode");
+	check_path(fdt, "/subnode@2/subsubnode@0");
 	err = fdt_parent_offset(fdt, 0);
 	if (err != -FDT_ERR_NOTFOUND)
 		FAIL("fdt_parent_offset(/) returns %d instead of "

@@ -135,10 +135,10 @@ int main(int argc, char *argv[])
 	fdt = load_blob_arg(argc, argv);
 
 	check_path(fdt, "/");
-	check_path(fdt, "/subnode1");
-	check_path(fdt, "/subnode2");
-	check_path(fdt, "/subnode1/subsubnode");
-	check_path(fdt, "/subnode2/subsubnode");
+	check_path(fdt, "/subnode@1");
+	check_path(fdt, "/subnode@2");
+	check_path(fdt, "/subnode@1/subsubnode");
+	check_path(fdt, "/subnode@2/subsubnode@0");
 
 	PASS();
 }

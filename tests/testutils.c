@@ -125,6 +125,21 @@ const void *check_getprop(void *fdt, int nodeoffset, const char *name,
 	return propval;
 }
 
+int nodename_eq(const char *s1, const char *s2)
+{
+	int len = strlen(s2);
+
+	len = strlen(s2);
+	if (strncmp(s1, s2, len) != 0)
+		return 0;
+	if (s1[len] == '\0')
+		return 1;
+	else if (!memchr(s2, '@', len) && (s1[len] == '@'))
+		return 1;
+	else
+		return 0;
+}
+
 #define CHUNKSIZE	128
 
 void *load_blob(const char *filename)

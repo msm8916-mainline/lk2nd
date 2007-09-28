@@ -72,14 +72,14 @@ int main(int argc, char *argv[])
 	CHECK(fdt_setprop_typed(fdt, 0, "prop-int", TEST_VALUE_1));
 	CHECK(fdt_setprop_string(fdt, 0, "prop-str", TEST_STRING_1));
 
-	OFF_CHECK(offset, fdt_add_subnode(fdt, 0, "subnode1"));
+	OFF_CHECK(offset, fdt_add_subnode(fdt, 0, "subnode@1"));
 	CHECK(fdt_setprop_typed(fdt, offset, "prop-int", TEST_VALUE_1));
 	OFF_CHECK(offset, fdt_add_subnode(fdt, offset, "subsubnode"));
 	CHECK(fdt_setprop_typed(fdt, offset, "prop-int", TEST_VALUE_1));
 
-	OFF_CHECK(offset, fdt_add_subnode(fdt, 0, "subnode2"));
+	OFF_CHECK(offset, fdt_add_subnode(fdt, 0, "subnode@2"));
 	CHECK(fdt_setprop_typed(fdt, offset, "prop-int", TEST_VALUE_2));
-	OFF_CHECK(offset, fdt_add_subnode(fdt, offset, "subsubnode"));
+	OFF_CHECK(offset, fdt_add_subnode(fdt, offset, "subsubnode@0"));
 
 	CHECK(fdt_setprop_typed(fdt, offset, "prop-int", TEST_VALUE_2));
 

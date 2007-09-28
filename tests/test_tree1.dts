@@ -2,7 +2,7 @@
 	prop-int = <deadbeef>;
 	prop-str = "hello world";
 
-	subnode1 {
+	subnode@1 {
 		prop-int = <deadbeef>;
 
 		subsubnode {
@@ -10,10 +10,10 @@
 		};
 	};
 
-	subnode2 {
+	subnode@2 {
 		prop-int = <abcd1234>;
 
-		subsubnode {
+		subsubnode@0 {
 			prop-int = <abcd1234>;
 		};
 	};

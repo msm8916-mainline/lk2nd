@@ -83,10 +83,10 @@ int main(int argc, char *argv[])
 	test_init(argc, argv);
 	fdt = load_blob_arg(argc, argv);
 
-	subnode1_offset = fdt_path_offset(fdt, "/subnode1");
-	subnode2_offset = fdt_path_offset(fdt, "/subnode2");
-	subsubnode1_offset = fdt_path_offset(fdt, "/subnode1/subsubnode");
-	subsubnode2_offset = fdt_path_offset(fdt, "/subnode2/subsubnode");
+	subnode1_offset = fdt_path_offset(fdt, "/subnode@1");
+	subnode2_offset = fdt_path_offset(fdt, "/subnode@2");
+	subsubnode1_offset = fdt_path_offset(fdt, "/subnode@1/subsubnode");
+	subsubnode2_offset = fdt_path_offset(fdt, "/subnode@2/subsubnode@0");
 
 	if ((subnode1_offset < 0) || (subnode2_offset < 0)
 	    || (subsubnode1_offset < 0) || (subsubnode2_offset < 0))

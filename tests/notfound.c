@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
 	val = fdt_getprop(fdt, 0, "nonexistant-property", &lenerr);
 	check_error("fdt_getprop(\"nonexistant-property\"", lenerr);
 
-	subnode1_offset = fdt_subnode_offset(fdt, 0, "subnode1");
+	subnode1_offset = fdt_subnode_offset(fdt, 0, "subnode@1");
 	if (subnode1_offset < 0)
 		FAIL("Couldn't find subnode1: %s", fdt_strerror(subnode1_offset));
 

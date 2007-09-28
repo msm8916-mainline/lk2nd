@@ -62,8 +62,8 @@
 			return err; \
 	}
 
-static int offset_streq(const void *fdt, int offset,
-			const char *s, int len)
+static int nodename_eq(const void *fdt, int offset,
+		       const char *s, int len)
 {
 	const char *p = fdt_offset_ptr(fdt, offset, len+1);
 
@@ -74,10 +74,12 @@ static int offset_streq(const void *fdt, int offset,
 	if (memcmp(p, s, len) != 0)
 		return 0;
 
-	if (p[len] != '\0')
+	if (p[len] == '\0')
+		return 1;
+	else if (!memchr(s, '@', len) && (p[len] == '@'))
+		return 1;
+	else
 		return 0;
-
-	return 1;
 }
 
 char *fdt_string(const void *fdt, int stroffset)
@@ -110,7 +112,7 @@ int fdt_subnode_offset_namelen(const void *fdt, int parentoffset,
 			level++;
 			if (level != 1)
 				continue;
-			if (offset_streq(fdt, offset+FDT_TAGSIZE, name, namelen))
+			if (nodename_eq(fdt, offset+FDT_TAGSIZE, name, namelen))
 				/* Found it! */
 				return offset;
 			break;

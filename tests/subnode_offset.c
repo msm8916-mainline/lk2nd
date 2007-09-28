@@ -48,7 +48,7 @@ int check_subnode(struct fdt_header *fdt, int parent, const char *name)
 
 	if (tag != FDT_BEGIN_NODE)
 		FAIL("Incorrect tag 0x%08x on property \"%s\"", tag, name);
-	if (!streq(nh->name, name))
+	if (!nodename_eq(nh->name, name))
 		FAIL("Subnode name mismatch \"%s\" instead of \"%s\"",
 		     nh->name, name);
 
@@ -59,13 +59,13 @@ int main(int argc, char *argv[])
 {
 	void *fdt;
 	int subnode1_offset, subnode2_offset;
-	int subsubnode1_offset, subsubnode2_offset;
+	int subsubnode1_offset, subsubnode2_offset, subsubnode2_offset2;
 
 	test_init(argc, argv);
 	fdt = load_blob_arg(argc, argv);
 
-	subnode1_offset = check_subnode(fdt, 0, "subnode1");
-	subnode2_offset = check_subnode(fdt, 0, "subnode2");
+	subnode1_offset = check_subnode(fdt, 0, "subnode@1");
+	subnode2_offset = check_subnode(fdt, 0, "subnode@2");
 
 	if (subnode1_offset == subnode2_offset)
 		FAIL("Different subnodes have same offset");
@@ -74,10 +74,15 @@ int main(int argc, char *argv[])
 	check_property_typed(fdt, subnode2_offset, "prop-int", TEST_VALUE_2);
 
 	subsubnode1_offset = check_subnode(fdt, subnode1_offset, "subsubnode");
-	subsubnode2_offset = check_subnode(fdt, subnode2_offset, "subsubnode");
+	subsubnode2_offset = check_subnode(fdt, subnode2_offset, "subsubnode@0");
+	subsubnode2_offset2 = check_subnode(fdt, subnode2_offset, "subsubnode");
 
 	check_property_typed(fdt, subsubnode1_offset, "prop-int", TEST_VALUE_1);
 	check_property_typed(fdt, subsubnode2_offset, "prop-int", TEST_VALUE_2);
+	check_property_typed(fdt, subsubnode2_offset2, "prop-int", TEST_VALUE_2);
+
+	if (subsubnode2_offset != subsubnode2_offset2)
+		FAIL("Different offsets with and without unit address");
 
 	PASS();
 }

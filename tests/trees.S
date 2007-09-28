@@ -78,7 +78,7 @@ test_tree1_struct:
 	PROP_INT(test_tree1, prop_int, TEST_VALUE_1)
 	PROP_STR(test_tree1, prop_str, TEST_STRING_1)
 
-	BEGIN_NODE("subnode1")
+	BEGIN_NODE("subnode@1")
 	PROP_INT(test_tree1, prop_int, TEST_VALUE_1)
 
 	BEGIN_NODE("subsubnode")
@@ -86,10 +86,10 @@ test_tree1_struct:
 	END_NODE
 	END_NODE
 
-	BEGIN_NODE("subnode2")
+	BEGIN_NODE("subnode@2")
 	PROP_INT(test_tree1, prop_int, TEST_VALUE_2)
 
-	BEGIN_NODE("subsubnode")
+	BEGIN_NODE("subsubnode@0")
 	PROP_INT(test_tree1, prop_int, TEST_VALUE_2)
 	END_NODE
 	END_NODE
