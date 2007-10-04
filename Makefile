@@ -15,40 +15,12 @@ EXTRAVERSION =
 LOCAL_VERSION =
 CONFIG_LOCALVERSION =
 
-DTC_VERSION = $(VERSION).$(PATCHLEVEL).$(SUBLEVEL)$(EXTRAVERSION)
-VERSION_FILE = version_gen.h
-
-CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
-	  else if [ -x /bin/bash ]; then echo /bin/bash; \
-	  else echo sh; fi ; fi)
-
-nullstring :=
-space	:= $(nullstring) # end of line
-
-localver_config = $(subst $(space),, $(string) \
-			      $(patsubst "%",%,$(CONFIG_LOCALVERSION)))
-
-localver_cmd = $(subst $(space),, $(string) \
-			      $(patsubst "%",%,$(LOCALVERSION)))
-
-localver_scm = $(shell $(CONFIG_SHELL) ./scripts/setlocalversion)
-localver_full  = $(localver_config)$(localver_cmd)$(localver_scm)
-
-dtc_version = $(DTC_VERSION)$(localver_full)
-
-#
-# Contents of the generated version file.
-#
-define filechk_version
-	(echo "#define DTC_VERSION \"DTC $(dtc_version)\""; )
-endef
-
-
 CPPFLAGS = -I libfdt
 CFLAGS = -Wall -g -Os
 LDFLAGS = -Llibfdt
 
 BISON = bison
+LEX = flex
 
 INSTALL = /usr/bin/install
 DESTDIR =
@@ -77,70 +49,6 @@ endif
 
 all: dtc ftdump libfdt tests
 
-#
-# Rules for dtc proper
-#
-DTC_PROGS = dtc ftdump
-DTC_OBJS = dtc.o flattree.o fstree.o data.o livetree.o \
-		srcpos.o treesource.o \
-		dtc-parser.tab.o lex.yy.o
-DTC_DEPFILES = $(DTC_OBJS:%.o=%.d)
-
-BIN += dtc ftdump
-
-dtc-parser.tab.c dtc-parser.tab.h dtc-parser.output: dtc-parser.y
-	@$(VECHO) BISON $@
-	@$(VECHO) ---- Expect 2 s/r and 2 r/r. ----
-	$(BISON) -d $<
-
-$(VERSION_FILE): Makefile FORCE
-	$(call filechk,version)
-
-lex.yy.c: dtc-lexer.l
-	@$(VECHO) LEX $@
-	$(LEX) $<
-
-dtc: $(DTC_OBJS)
-
-ftdump:	ftdump.o
-
-ifneq ($(DEPTARGETS),)
--include $(DTC_DEPFILES)
-endif
-
-#
-# Rules for libfdt
-#
-LIBFDT_PREFIX = libfdt/
-include libfdt/Makefile.libfdt
-
-.PHONY: libfdt
-libfdt: $(LIBFDT_LIB)
-
-libfdt_clean:
-	@$(VECHO) CLEAN "(libfdt)"
-	rm -f $(LIBFDT_CLEANFILES)
-
-ifneq ($(DEPTARGETS),)
--include $(LIBFDT_DEPFILES)
-endif
-
-#
-# Testsuite rules
-#
-TESTS_PREFIX=tests/
-include tests/Makefile.tests
-
-STD_CLEANFILES = *~ *.o *.d *.a *.i *.s core a.out
-GEN_CLEANFILES = $(VERSION_FILE)
-
-clean: libfdt_clean tests_clean
-	@$(VECHO) CLEAN
-	rm -f $(STD_CLEANFILES)
-	rm -f $(GEN_CLEANFILES)
-	rm -f *.tab.[ch] lex.yy.c *.output vgcore.*
-	rm -f $(BIN)
-
 install: all
 	@$(VECHO) INSTALL
 	$(INSTALL) -d $(DESTDIR)$(BINDIR)
@@ -149,6 +57,36 @@ install: all
 	$(INSTALL) -m 644 $(LIBFDT_LIB) $(DESTDIR)$(LIBDIR)
 	$(INSTALL) -d $(DESTDIR)$(INCLUDEDIR)
 	$(INSTALL) -m 644 $(LIBFDT_INCLUDES) $(DESTDIR)$(INCLUDEDIR)
+
+#
+# Rules for versioning
+#
+
+DTC_VERSION = $(VERSION).$(PATCHLEVEL).$(SUBLEVEL)$(EXTRAVERSION)
+VERSION_FILE = version_gen.h
+
+CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
+	  else if [ -x /bin/bash ]; then echo /bin/bash; \
+	  else echo sh; fi ; fi)
+
+nullstring :=
+space	:= $(nullstring) # end of line
+
+localver_config = $(subst $(space),, $(string) \
+			      $(patsubst "%",%,$(CONFIG_LOCALVERSION)))
+
+localver_cmd = $(subst $(space),, $(string) \
+			      $(patsubst "%",%,$(LOCALVERSION)))
+
+localver_scm = $(shell $(CONFIG_SHELL) ./scripts/setlocalversion)
+localver_full  = $(localver_config)$(localver_cmd)$(localver_scm)
+
+dtc_version = $(DTC_VERSION)$(localver_full)
+
+# Contents of the generated version file.
+define filechk_version
+	(echo "#define DTC_VERSION \"DTC $(dtc_version)\""; )
+endef
 
 define filechk
 	set -e;					\
@@ -162,6 +100,75 @@ define filechk
 		mv -f $@.tmp $@;		\
 	fi;
 endef
+
+$(VERSION_FILE): Makefile FORCE
+	$(call filechk,version)
+
+#
+# Rules for dtc proper
+#
+include Makefile.dtc
+
+BIN += dtc
+
+# This stops make from generating the lex and bison output during
+# auto-dependency computation, but throwing them away as an
+# intermediate target and building them again "for real"
+.SECONDARY: $(DTC_GEN_SRCS)
+
+dtc: $(DTC_OBJS)
+
+ifneq ($(DEPTARGETS),)
+-include $(DTC_OBJS:%.o=%.d)
+endif
+#
+# Rules for ftdump
+#
+BIN += ftdump
+
+ftdump:	ftdump.o
+
+ifneq ($(DEPTARGETS),)
+-include ftdump.d
+endif
+#
+# Rules for libfdt
+#
+LIBFDT_objdir = libfdt
+LIBFDT_srcdir = libfdt
+include libfdt/Makefile.libfdt
+
+.PHONY: libfdt
+libfdt: $(LIBFDT_LIB)
+
+$(LIBFDT_LIB): $(addprefix libfdt/,$(LIBFDT_OBJS))
+
+libfdt_clean:
+	@$(VECHO) CLEAN "(libfdt)"
+	rm -f $(addprefix libfdt/,$(STD_CLEANFILES))
+	rm -f $(addprefix libfdt/,$(LIBFDT_CLEANFILES))
+
+ifneq ($(DEPTARGETS),)
+-include $(LIBFDT_OBJS:%.o=$(LIBFDT_objdir)/%.d)
+endif
+
+#
+# Testsuite rules
+#
+TESTS_PREFIX=tests/
+include tests/Makefile.tests
+
+#
+# Clean rules
+#
+STD_CLEANFILES = *~ *.o *.d *.a *.i *.s core a.out vgcore.* \
+	*.tab.[ch] *.lex.c *.output
+
+clean: libfdt_clean tests_clean
+	@$(VECHO) CLEAN
+	rm -f $(STD_CLEANFILES) $(DTC_CLEANFILES)
+	rm -f $(VERSION_FILE)
+	rm -f $(BIN)
 
 #
 # Generic compile rules
@@ -179,6 +186,7 @@ endef
 	$(CC) $(CPPFLAGS) $(AFLAGS) -D__ASSEMBLY__ -o $@ -c $<
 
 %.d: %.c
+	@$(VECHO) DEP $<
 	$(CC) $(CPPFLAGS) -MM -MG -MT "$*.o $@" $< > $@
 
 %.i:	%.c
@@ -192,5 +200,13 @@ endef
 %.a:
 	@$(VECHO) AR $@
 	$(AR) $(ARFLAGS) $@ $^
+
+%.lex.c: %.l
+	@$(VECHO) LEX $@
+	$(LEX) -o $@ $<
+
+%.tab.c %.tab.h %.output: %.y
+	@$(VECHO) BISON $@
+	$(BISON) -d $<
 
 FORCE:
