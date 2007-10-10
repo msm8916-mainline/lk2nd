@@ -112,6 +112,9 @@ int fdt_move(const void *fdt, void *buf, int bufsize);
 /* Read-only functions */
 char *fdt_string(const void *fdt, int stroffset);
 
+int fdt_get_mem_rsv(const void *fdt, int n, uint64_t *address, uint64_t *size);
+int fdt_num_mem_rsv(const void *fdt);
+
 int fdt_subnode_offset_namelen(const void *fdt, int parentoffset,
 			       const char *name, int namelen);
 int fdt_subnode_offset(const void *fdt, int parentoffset, const char *name);
@@ -182,6 +185,9 @@ int fdt_finish(void *fdt);
 /* Read-write functions */
 int fdt_open_into(void *fdt, void *buf, int bufsize);
 int fdt_pack(void *fdt);
+
+int fdt_add_mem_rsv(void *fdt, uint64_t address, uint64_t size);
+int fdt_del_mem_rsv(void *fdt, int n);
 
 int fdt_setprop(void *fdt, int nodeoffset, const char *name,
 		const void *val, int len);

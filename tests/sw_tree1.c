@@ -49,7 +49,10 @@ int main(int argc, char *argv[])
 	fdt = xmalloc(SPACE);
 	CHECK(fdt_create(fdt, SPACE));
 
+	CHECK(fdt_add_reservemap_entry(fdt, TEST_ADDR_1, TEST_SIZE_1));
+	CHECK(fdt_add_reservemap_entry(fdt, TEST_ADDR_2, TEST_SIZE_2));
 	CHECK(fdt_finish_reservemap(fdt));
+
 	CHECK(fdt_begin_node(fdt, ""));
 	CHECK(fdt_property_typed(fdt, "prop-int", TEST_VALUE_1));
 	CHECK(fdt_property_string(fdt, "prop-str", TEST_STRING_1));

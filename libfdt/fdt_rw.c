@@ -101,6 +101,19 @@ static int _blob_splice(void *fdt, void *p, int oldlen, int newlen)
 	return 0;
 }
 
+static int _blob_splice_mem_rsv(void *fdt, struct fdt_reserve_entry *p,
+				int oldn, int newn)
+{
+	int delta = (newn - oldn) * sizeof(*p);
+	int err;
+	err = _blob_splice(fdt, p, oldn * sizeof(*p), newn * sizeof(*p));
+	if (err)
+		return err;
+	fdt_set_header(fdt, off_dt_struct, fdt_off_dt_struct(fdt) + delta);
+	fdt_set_header(fdt, off_dt_strings, fdt_off_dt_strings(fdt) + delta);
+	return 0;
+}
+
 static int _blob_splice_struct(void *fdt, void *p,
 			       int oldlen, int newlen)
 {
@@ -147,6 +160,40 @@ static int _find_add_string(void *fdt, const char *s)
 
 	memcpy(new, s, len);
 	return (new - strtab);
+}
+
+int fdt_add_mem_rsv(void *fdt, uint64_t address, uint64_t size)
+{
+	struct fdt_reserve_entry *re;
+	int err;
+
+	if ((err = rw_check_header(fdt)))
+		return err;
+
+	re = _fdt_mem_rsv_w(fdt, fdt_num_mem_rsv(fdt));
+	err = _blob_splice_mem_rsv(fdt, re, 0, 1);
+	if (err)
+		return err;
+
+	re->address = cpu_to_fdt64(address);
+	re->size = cpu_to_fdt64(size);
+	return 0;
+}
+
+int fdt_del_mem_rsv(void *fdt, int n)
+{
+	struct fdt_reserve_entry *re = _fdt_mem_rsv_w(fdt, n);
+	int err;
+
+	if ((err = rw_check_header(fdt)))
+		return err;
+	if (n >= fdt_num_mem_rsv(fdt))
+		return -FDT_ERR_NOTFOUND;
+
+	err = _blob_splice_mem_rsv(fdt, re, 1, 0);
+	if (err)
+		return err;
+	return 0;
 }
 
 static int _resize_property(void *fdt, int nodeoffset, const char *name, int len,

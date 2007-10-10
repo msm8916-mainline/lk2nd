@@ -9,6 +9,17 @@
 			 | (((x) << 8) & 0xff0000) | (((x) << 24) & 0xff000000))
 #endif
 
+#ifdef __ASSEMBLY__
+#define ASM_CONST_LL(x)	(x)
+#else
+#define ASM_CONST_LL(x)	(x##ULL)
+#endif
+
+#define TEST_ADDR_1	ASM_CONST_LL(0xdeadbeef00000000)
+#define TEST_SIZE_1	ASM_CONST_LL(0x100000)
+#define TEST_ADDR_2	ASM_CONST_LL(0xabcd1234)
+#define TEST_SIZE_2	ASM_CONST_LL(0x1234)
+
 #define TEST_VALUE_1	cell_to_fdt(0xdeadbeef)
 #define TEST_VALUE_2	cell_to_fdt(0xabcd1234)
 

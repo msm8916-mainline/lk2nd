@@ -1,3 +1,6 @@
+/memreserve/ deadbeef00000000-deadbeef000fffff;
+/memreserve/ abcd1234 00001234;
+
 / {
 	prop-int = <deadbeef>;
 	prop-str = "hello world";

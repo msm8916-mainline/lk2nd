@@ -69,6 +69,21 @@ void test_init(int argc, char *argv[])
 		       test_name, getpid());
 }
 
+void check_mem_rsv(void *fdt, int n, uint64_t addr, uint64_t size)
+{
+	int err;
+	uint64_t addr_v, size_v;
+
+	err = fdt_get_mem_rsv(fdt, n, &addr_v, &size_v);
+	if (err < 0)
+		FAIL("fdt_get_mem_rsv(%d): %s", n, fdt_strerror(err));
+	if ((addr_v != addr) || (size_v != size))
+		FAIL("fdt_get_mem_rsv() returned (0x%llx,0x%llx) "
+		     "instead of (0x%llx,0x%llx)",
+		     (unsigned long long)addr_v, (unsigned long long)size_v,
+		     (unsigned long long)addr, (unsigned long long)size);
+}
+
 void check_property(void *fdt, int nodeoffset, const char *name,
 		    int len, const void *val)
 {

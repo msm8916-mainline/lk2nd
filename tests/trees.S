@@ -37,6 +37,11 @@ tree:	\
 	FDTQUAD(addr)		; \
 	FDTQUAD(len)		;
 
+#define EMPTY_RSVMAP(tree) \
+	.balign	8		; \
+tree##_rsvmap:			; \
+	RSVMAP_ENTRY(0, 0)
+
 #define PROPHDR(tree, name, len) \
 	FDTLONG(FDT_PROP)	; \
 	FDTLONG(len)		; \
@@ -70,7 +75,10 @@ tree##_##name:	\
 
 	TREE_HDR(test_tree1)
 
+	.balign	8
 test_tree1_rsvmap:
+	RSVMAP_ENTRY(TEST_ADDR_1, TEST_SIZE_1)
+	RSVMAP_ENTRY(TEST_ADDR_2, TEST_SIZE_2)
 	RSVMAP_ENTRY(0, 0)
 
 test_tree1_struct:
@@ -103,8 +111,7 @@ test_tree1_strings:
 test_tree1_end:
 
 	TREE_HDR(truncated_property)
-truncated_property_rsvmap:
-	RSVMAP_ENTRY(0, 0)
+	EMPTY_RSVMAP(truncated_property)
 
 truncated_property_struct:
 	BEGIN_NODE("")

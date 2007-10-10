@@ -108,6 +108,8 @@ static inline void *xrealloc(void *p, size_t size)
 	return p;
 }
 
+void check_mem_rsv(void *fdt, int n, uint64_t addr, uint64_t size);
+
 void check_property(void *fdt, int nodeoffset, const char *name,
 		    int len, const void *val);
 #define check_property_typed(fdt, nodeoffset, name, val) \

@@ -69,6 +69,9 @@ int main(int argc, char *argv[])
 
 	CHECK(fdt_open_into(fdt, fdt, SPACE));
 
+	CHECK(fdt_add_mem_rsv(fdt, TEST_ADDR_1, TEST_SIZE_1));
+	CHECK(fdt_add_mem_rsv(fdt, TEST_ADDR_2, TEST_SIZE_2));
+
 	CHECK(fdt_setprop_typed(fdt, 0, "prop-int", TEST_VALUE_1));
 	CHECK(fdt_setprop_string(fdt, 0, "prop-str", TEST_STRING_1));
 

@@ -87,6 +87,23 @@ char *fdt_string(const void *fdt, int stroffset)
 	return (char *)fdt + fdt_off_dt_strings(fdt) + stroffset;
 }
 
+int fdt_get_mem_rsv(const void *fdt, int n, uint64_t *address, uint64_t *size)
+{
+	CHECK_HEADER(fdt);
+	*address = fdt64_to_cpu(_fdt_mem_rsv(fdt, n)->address);
+	*size = fdt64_to_cpu(_fdt_mem_rsv(fdt, n)->size);
+	return 0;
+}
+
+int fdt_num_mem_rsv(const void *fdt)
+{
+	int i = 0;
+
+	while (fdt64_to_cpu(_fdt_mem_rsv(fdt, i)->size) != 0)
+		i++;
+	return i;
+}
+
 int fdt_subnode_offset_namelen(const void *fdt, int parentoffset,
 			       const char *name, int namelen)
 {

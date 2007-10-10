@@ -31,6 +31,7 @@ tree1_tests () {
     TREE=$1
 
     # Read-only tests
+    run_test get_mem_rsv $TREE
     run_test root_node $TREE
     run_test find_property $TREE
     run_test subnode_offset $TREE
