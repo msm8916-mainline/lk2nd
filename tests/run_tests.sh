@@ -60,9 +60,6 @@ tree1_tests_rw () {
 }
 
 libfdt_tests () {
-    # Make sure we don't have stale blobs lying around
-    rm -f *.test.dtb
-
     tree1_tests test_tree1.dtb
 
     # Sequential write tests
@@ -102,9 +99,6 @@ libfdt_tests () {
 }
 
 dtc_tests () {
-    # Make sure we don't have stale blobs lying around
-    rm -f *.test.dtb
-
     run_test dtc.sh -f -I dts -O dtb -o dtc_tree1.test.dtb test_tree1.dts
     tree1_tests dtc_tree1.test.dtb
     tree1_tests_rw dtc_tree1.test.dtb
@@ -124,6 +118,9 @@ done
 if [ -z "$TESTSETS" ]; then
     TESTSETS="libfdt dtc"
 fi
+
+# Make sure we don't have stale blobs lying around
+rm -f *.test.dtb
 
 for set in $TESTSETS; do
     case $set in
