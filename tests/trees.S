@@ -83,13 +83,16 @@ test_tree1_rsvmap:
 
 test_tree1_struct:
 	BEGIN_NODE("")
+	PROP_STR(test_tree1, compatible, "test_tree1")
 	PROP_INT(test_tree1, prop_int, TEST_VALUE_1)
 	PROP_STR(test_tree1, prop_str, TEST_STRING_1)
 
 	BEGIN_NODE("subnode@1")
+	PROP_STR(test_tree1, compatible, "subnode1")
 	PROP_INT(test_tree1, prop_int, TEST_VALUE_1)
 
 	BEGIN_NODE("subsubnode")
+	PROP_STR(test_tree1, compatible, "subsubnode1\0subsubnode")
 	PROP_INT(test_tree1, prop_int, TEST_VALUE_1)
 	END_NODE
 	END_NODE
@@ -98,6 +101,7 @@ test_tree1_struct:
 	PROP_INT(test_tree1, prop_int, TEST_VALUE_2)
 
 	BEGIN_NODE("subsubnode@0")
+	PROP_STR(test_tree1, compatible, "subsubnode2\0subsubnode")
 	PROP_INT(test_tree1, prop_int, TEST_VALUE_2)
 	END_NODE
 	END_NODE
@@ -106,6 +110,7 @@ test_tree1_struct:
 	FDTLONG(FDT_END)
 
 test_tree1_strings:
+	STRING(test_tree1, compatible, "compatible")
 	STRING(test_tree1, prop_int, "prop-int")
 	STRING(test_tree1, prop_str, "prop-str")
 test_tree1_end:

@@ -153,6 +153,11 @@ int fdt_node_offset_by_prop_value(const void *fdt, int startoffset,
 				  const char *propname,
 				  const void *propval, int proplen);
 
+int fdt_node_check_compatible(const void *fdt, int nodeoffset,
+			      const char *compatible);
+int fdt_node_offset_by_compatible(const void *fdt, int startoffset,
+				  const char *compatible);
+
 /* Write-in-place functions */
 int fdt_setprop_inplace(void *fdt, int nodeoffset, const char *name,
 			const void *val, int len);

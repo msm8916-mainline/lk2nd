@@ -42,6 +42,8 @@ tree1_tests () {
     run_test supernode_atdepth_offset $TREE
     run_test parent_offset $TREE
     run_test node_offset_by_prop_value $TREE
+    run_test node_check_compatible $TREE
+    run_test node_offset_by_compatible $TREE
     run_test notfound $TREE
 
     # Write-in-place tests

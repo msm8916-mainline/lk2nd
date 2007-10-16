@@ -72,18 +72,23 @@ int main(int argc, char *argv[])
 	CHECK(fdt_add_mem_rsv(fdt, TEST_ADDR_1, TEST_SIZE_1));
 	CHECK(fdt_add_mem_rsv(fdt, TEST_ADDR_2, TEST_SIZE_2));
 
+	CHECK(fdt_setprop_string(fdt, 0, "compatible", "test_tree1"));
 	CHECK(fdt_setprop_typed(fdt, 0, "prop-int", TEST_VALUE_1));
 	CHECK(fdt_setprop_string(fdt, 0, "prop-str", TEST_STRING_1));
 
 	OFF_CHECK(offset, fdt_add_subnode(fdt, 0, "subnode@1"));
+	CHECK(fdt_setprop_string(fdt, offset, "compatible", "subnode1"));
 	CHECK(fdt_setprop_typed(fdt, offset, "prop-int", TEST_VALUE_1));
 	OFF_CHECK(offset, fdt_add_subnode(fdt, offset, "subsubnode"));
+	CHECK(fdt_setprop(fdt, offset, "compatible",
+			  "subsubnode1\0subsubnode", 23));
 	CHECK(fdt_setprop_typed(fdt, offset, "prop-int", TEST_VALUE_1));
 
 	OFF_CHECK(offset, fdt_add_subnode(fdt, 0, "subnode@2"));
 	CHECK(fdt_setprop_typed(fdt, offset, "prop-int", TEST_VALUE_2));
 	OFF_CHECK(offset, fdt_add_subnode(fdt, offset, "subsubnode@0"));
-
+	CHECK(fdt_setprop(fdt, offset, "compatible",
+			  "subsubnode2\0subsubnode", 23));
 	CHECK(fdt_setprop_typed(fdt, offset, "prop-int", TEST_VALUE_2));
 
 	CHECK(fdt_pack(fdt));

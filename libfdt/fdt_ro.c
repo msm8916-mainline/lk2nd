@@ -477,3 +477,86 @@ int fdt_node_offset_by_prop_value(const void *fdt, int startoffset,
 
 	return -FDT_ERR_NOTFOUND;
 }
+
+int _stringlist_contains(const void *strlist, int listlen, const char *str)
+{
+	int len = strlen(str);
+	const void *p;
+
+	while (listlen >= len) {
+		if (memcmp(str, strlist, len+1) == 0)
+			return 1;
+		p = memchr(strlist, '\0', listlen);
+		if (!p)
+			return 0; /* malformed strlist.. */
+		listlen -= (p-strlist) + 1;
+		strlist = p + 1;
+	}
+	return 0;
+}
+
+int fdt_node_check_compatible(const void *fdt, int nodeoffset,
+			      const char *compatible)
+{
+	const void *prop;
+	int len;
+
+	prop = fdt_getprop(fdt, nodeoffset, "compatible", &len);
+	if (!prop)
+		return len;
+	if (_stringlist_contains(prop, len, compatible))
+		return 0;
+	else
+		return 1;
+}
+
+int fdt_node_offset_by_compatible(const void *fdt, int startoffset,
+				  const char *compatible)
+{
+	uint32_t tag;
+	int offset, nextoffset;
+	int err;
+
+	CHECK_HEADER(fdt);
+
+	if (startoffset >= 0) {
+		tag = _fdt_next_tag(fdt, startoffset, &nextoffset);
+		if (tag != FDT_BEGIN_NODE)
+			return -FDT_ERR_BADOFFSET;
+	} else {
+		nextoffset = 0;
+	}
+
+	/* FIXME: The algorithm here is pretty horrible: we scan each
+	 * property of a node in fdt_node_check_compatible(), then if
+	 * that didn't find what we want, we scan over them again
+	 * making our way to the next node.  Still it's the easiest to
+	 * implement approach; performance can come later. */
+	do {
+		offset = nextoffset;
+		tag = _fdt_next_tag(fdt, offset, &nextoffset);
+
+		switch (tag) {
+		case FDT_BEGIN_NODE:
+			err = fdt_node_check_compatible(fdt, offset,
+							compatible);
+			if ((err < 0)
+			    && (err != -FDT_ERR_NOTFOUND))
+				return err;
+			else if (err == 0)
+				return offset;
+			break;
+
+		case FDT_PROP:
+		case FDT_END:
+		case FDT_END_NODE:
+		case FDT_NOP:
+			break;
+
+		default:
+			return -FDT_ERR_BADSTRUCTURE;
+		}
+	} while (tag != FDT_END);
+
+	return -FDT_ERR_NOTFOUND;
+}

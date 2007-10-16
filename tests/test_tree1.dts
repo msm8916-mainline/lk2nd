@@ -2,13 +2,16 @@
 /memreserve/ abcd1234 00001234;
 
 / {
+	compatible = "test_tree1";
 	prop-int = <deadbeef>;
 	prop-str = "hello world";
 
 	subnode@1 {
+		compatible = "subnode1";
 		prop-int = <deadbeef>;
 
 		subsubnode {
+			compatible = "subsubnode1", "subsubnode";
 			prop-int = <deadbeef>;
 		};
 	};
@@ -17,6 +20,7 @@
 		prop-int = <abcd1234>;
 
 		subsubnode@0 {
+			compatible = "subsubnode2", "subsubnode";
 			prop-int = <abcd1234>;
 		};
 	};
