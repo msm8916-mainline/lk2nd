@@ -24,6 +24,7 @@
 #define TEST_VALUE_2	cell_to_fdt(0xabcd1234)
 
 #define TEST_STRING_1	"hello world"
+#define TEST_STRING_2	"nastystring: \a\b\t\n\v\f\r\\\"\xff"
 
 #ifndef __ASSEMBLY__
 extern struct fdt_header _test_tree1;

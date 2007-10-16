@@ -1,0 +1,4 @@
+/ {
+	compatible = "test_string_escapes";
+	escape-str = "nastystring: \a\b\t\n\v\f\r\\\"\xff";
+};

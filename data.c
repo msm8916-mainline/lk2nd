@@ -150,11 +150,23 @@ struct data data_copy_escape_string(char *s, int len)
 		c = s[i++];
 		assert(c);
 		switch (c) {
+		case 'a':
+			q[d.len++] = '\a';
+			break;
+		case 'b':
+			q[d.len++] = '\b';
+			break;
 		case 't':
 			q[d.len++] = '\t';
 			break;
 		case 'n':
 			q[d.len++] = '\n';
+			break;
+		case 'v':
+			q[d.len++] = '\v';
+			break;
+		case 'f':
+			q[d.len++] = '\f';
 			break;
 		case 'r':
 			q[d.len++] = '\r';

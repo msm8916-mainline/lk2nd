@@ -69,7 +69,7 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 			}
 		}
 
-\"[^"]*\"	{
+\"([^\\"]|\\.)*\"	{
 			yylloc.filenum = srcpos_filenum;
 			yylloc.first_line = yylineno;
 			DPRINT("String: %s\n", yytext);
