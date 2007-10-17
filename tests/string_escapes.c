@@ -37,6 +37,8 @@ int main(int argc, char *argv[])
 
 	check_getprop(fdt, 0, "escape-str",
 		      strlen(TEST_STRING_2)+1, TEST_STRING_2);
+	check_getprop(fdt, 0, "escape-str-2",
+		      strlen(TEST_STRING_3)+1, TEST_STRING_3);
 
 	PASS();
 }
