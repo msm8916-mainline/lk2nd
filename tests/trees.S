@@ -5,7 +5,7 @@
 	.byte	((val) >> 24) & 0xff ; \
 	.byte	((val) >> 16) & 0xff ; \
 	.byte	((val) >> 8) & 0xff ; \
-	.byte	(val) & 0xff
+	.byte	(val) & 0xff	;
 
 #define FDTQUAD(val) \
 	.byte	((val) >> 56) & 0xff ; \
@@ -15,10 +15,10 @@
 	.byte	((val) >> 24) & 0xff ; \
 	.byte	((val) >> 16) & 0xff ; \
 	.byte	((val) >> 8) & 0xff ; \
-	.byte	(val) & 0xff
+	.byte	(val) & 0xff	;
 
 #define TREE_HDR(tree) \
-	.balign	4		; \
+	.balign	8		; \
 	.globl	_##tree		; \
 _##tree:	\
 tree:	\
@@ -30,17 +30,18 @@ tree:	\
 	FDTLONG(0x11)		; \
 	FDTLONG(0x10)		; \
 	FDTLONG(0)		; \
-	FDTLONG(tree##_end - tree##_strings) ; \
-	FDTLONG(tree##_strings - tree##_struct) ;
+	FDTLONG(tree##_strings_end - tree##_strings) ; \
+	FDTLONG(tree##_struct_end - tree##_struct) ;
 
 #define RSVMAP_ENTRY(addr, len) \
 	FDTQUAD(addr)		; \
-	FDTQUAD(len)		;
+	FDTQUAD(len)		; \
 
 #define EMPTY_RSVMAP(tree) \
 	.balign	8		; \
 tree##_rsvmap:			; \
-	RSVMAP_ENTRY(0, 0)
+	RSVMAP_ENTRY(0, 0) \
+tree##_rsvmap_end:		;
 
 #define PROPHDR(tree, name, len) \
 	FDTLONG(FDT_PROP)	; \
@@ -50,26 +51,26 @@ tree##_rsvmap:			; \
 #define PROP_INT(tree, name, val) \
 	PROPHDR(tree, name, 4) \
 	/* For ease of testing the property values go in native-endian */ \
-	.long	val
+	.long	val		;
 
 #define PROP_STR(tree, name, str) \
 	PROPHDR(tree, name, 55f - 54f) \
 54:	\
 	.string	str		; \
 55:	\
-	.balign	4
+	.balign	4		;
 
 #define BEGIN_NODE(name) \
 	FDTLONG(FDT_BEGIN_NODE)	; \
 	.string	name		; \
-	.balign 4
+	.balign 4		;
 
 #define END_NODE \
 	FDTLONG(FDT_END_NODE)	;
 
 #define STRING(tree, name, str) \
-tree##_##name:	\
-	.string	str
+tree##_##name:			; \
+	.string	str		;
 
 	.data
 
@@ -80,6 +81,7 @@ test_tree1_rsvmap:
 	RSVMAP_ENTRY(TEST_ADDR_1, TEST_SIZE_1)
 	RSVMAP_ENTRY(TEST_ADDR_2, TEST_SIZE_2)
 	RSVMAP_ENTRY(0, 0)
+test_tree1_rsvmap_end:
 
 test_tree1_struct:
 	BEGIN_NODE("")
@@ -108,12 +110,15 @@ test_tree1_struct:
 
 	END_NODE
 	FDTLONG(FDT_END)
+test_tree1_struct_end:
 
 test_tree1_strings:
 	STRING(test_tree1, compatible, "compatible")
 	STRING(test_tree1, prop_int, "prop-int")
 	STRING(test_tree1, prop_str, "prop-str")
+test_tree1_strings_end:
 test_tree1_end:
+
 
 	TREE_HDR(truncated_property)
 	EMPTY_RSVMAP(truncated_property)
@@ -122,7 +127,10 @@ truncated_property_struct:
 	BEGIN_NODE("")
 	PROPHDR(truncated_property, prop_truncated, 4)
 	/* Oops, no actual property data here */
+truncated_property_struct_end:
 
 truncated_property_strings:
 	STRING(truncated_property, prop_truncated, "truncated")
+truncated_property_strings_end:
+
 truncated_property_end:
