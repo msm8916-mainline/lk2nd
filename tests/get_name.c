@@ -54,7 +54,7 @@ void check_name(void *fdt, const char *path)
 		     path, getname, checkname);
 
 	if (len != strlen(getname))
-		FAIL("fdt_get_name(%s) returned length %d instead of %d",
+		FAIL("fdt_get_name(%s) returned length %d instead of %zd",
 		     path, len, strlen(getname));
 
 	/* Now check that it doesn't break if we omit len */
