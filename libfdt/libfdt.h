@@ -110,7 +110,7 @@ static inline void *fdt_offset_ptr_w(void *fdt, int offset, int checklen)
 int fdt_move(const void *fdt, void *buf, int bufsize);
 
 /* Read-only functions */
-char *fdt_string(const void *fdt, int stroffset);
+const char *fdt_string(const void *fdt, int stroffset);
 
 int fdt_get_mem_rsv(const void *fdt, int n, uint64_t *address, uint64_t *size);
 int fdt_num_mem_rsv(const void *fdt);

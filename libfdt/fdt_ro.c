@@ -82,7 +82,7 @@ static int nodename_eq(const void *fdt, int offset,
 		return 0;
 }
 
-char *fdt_string(const void *fdt, int stroffset)
+const char *fdt_string(const void *fdt, int stroffset)
 {
 	return (char *)fdt + fdt_off_dt_strings(fdt) + stroffset;
 }
