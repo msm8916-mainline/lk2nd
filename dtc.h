@@ -188,6 +188,10 @@ struct node *chain_node(struct node *first, struct node *list);
 void add_property(struct node *node, struct property *prop);
 void add_child(struct node *parent, struct node *child);
 
+int check_structure(struct node *dt);
+void fixup_references(struct node *dt);
+int check_semantics(struct node *dt, int outversion, int boot_cpuid_phys);
+
 int check_device_tree(struct node *dt, int outversion, int boot_cpuid_phys);
 
 /* Boot info (tree plus memreserve information */

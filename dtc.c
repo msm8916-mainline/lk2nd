@@ -112,19 +112,20 @@ int main(int argc, char *argv[])
 	char *inform = "dts";
 	char *outform = "dts";
 	char *outname = "-";
-	int force = 0;
+	int force = 0, check = 0;
 	char *arg;
 	int opt;
 	FILE *inf = NULL;
 	FILE *outf = NULL;
 	int outversion = DEFAULT_FDT_VERSION;
 	int boot_cpuid_phys = 0xfeedbeef;
+	int structure_ok;
 
 	quiet      = 0;
 	reservenum = 0;
 	minsize    = 0;
 
-	while ((opt = getopt(argc, argv, "hI:O:o:V:R:S:fqb:v")) != EOF) {
+	while ((opt = getopt(argc, argv, "hI:O:o:V:R:S:fcqb:v")) != EOF) {
 		switch (opt) {
 		case 'I':
 			inform = optarg;
@@ -146,6 +147,9 @@ int main(int argc, char *argv[])
 			break;
 		case 'f':
 			force = 1;
+			break;
+		case 'c':
+			check = 1;
 			break;
 		case 'q':
 			quiet++;
@@ -189,12 +193,25 @@ int main(int argc, char *argv[])
 	if (! bi || ! bi->dt)
 		die("Couldn't read input tree\n");
 
-	if (! check_device_tree(bi->dt, outversion, boot_cpuid_phys)) {
-		if ((force) && (quiet < 3))
-			fprintf(stderr, "Input tree has errors, output forced\n");
-		if (! force) {
-			fprintf(stderr, "Input tree has errors, not writing output (use -f to force output)\n");
+	structure_ok = check_structure(bi->dt);
+	if (!structure_ok) {
+		if (!force) {
+			fprintf(stderr, "ERROR: Input tree has structural errors, aborting (use -f to force output)\n");
 			exit(1);
+		} else if (quiet < 3) {
+			fprintf(stderr, "Warning: Input tree has structural errors, output forced\n");
+		}
+	}
+
+	fixup_references(bi->dt);
+
+	if (check) {
+		if (!structure_ok) {
+			fprintf(stderr, "Warning: Skipping semantic checks due to structural errors\n");
+		} else {
+			if (!check_semantics(bi->dt, outversion,
+					     boot_cpuid_phys))
+				fprintf(stderr, "Warning: Input tree has semantic errors\n");
 		}
 	}
 

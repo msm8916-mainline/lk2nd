@@ -101,11 +101,11 @@ libfdt_tests () {
 }
 
 dtc_tests () {
-    run_test dtc.sh -f -I dts -O dtb -o dtc_tree1.test.dtb test_tree1.dts
+    run_test dtc.sh -I dts -O dtb -o dtc_tree1.test.dtb test_tree1.dts
     tree1_tests dtc_tree1.test.dtb
     tree1_tests_rw dtc_tree1.test.dtb
 
-    run_test dtc.sh -f -I dts -O dtb -o dtc_escapes.test.dtb escapes.dts
+    run_test dtc.sh -I dts -O dtb -o dtc_escapes.test.dtb escapes.dts
     run_test string_escapes dtc_escapes.test.dtb
 }
 

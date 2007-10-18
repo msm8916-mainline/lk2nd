@@ -149,6 +149,18 @@ struct reserve_info *add_reserve_entry(struct reserve_info *list,
 	return list;
 }
 
+struct boot_info *build_boot_info(struct reserve_info *reservelist,
+				  struct node *tree)
+{
+	struct boot_info *bi;
+
+	bi = xmalloc(sizeof(*bi));
+	bi->reservelist = reservelist;
+	bi->dt = tree;
+
+	return bi;
+}
+
 /*
  * Tree accessor functions
  */
@@ -248,12 +260,177 @@ static struct node *get_node_by_phandle(struct node *tree, cell_t phandle)
 	return NULL;
 }
 
+static cell_t get_node_phandle(struct node *root, struct node *node)
+{
+	static cell_t phandle = 1; /* FIXME: ick, static local */
+
+	if ((node->phandle != 0) && (node->phandle != -1))
+		return node->phandle;
+
+	assert(! get_property(node, "linux,phandle"));
+
+	while (get_node_by_phandle(root, phandle))
+		phandle++;
+
+	node->phandle = phandle;
+	add_property(node,
+		     build_property("linux,phandle",
+				    data_append_cell(empty_data, phandle),
+				    NULL));
+
+	return node->phandle;
+}
+
 /*
- * Tree checking functions
+ * Structural check functions
  */
 
 #define ERRMSG(...) if (quiet < 2) fprintf(stderr, "ERROR: " __VA_ARGS__)
 #define WARNMSG(...) if (quiet < 1) fprintf(stderr, "Warning: " __VA_ARGS__)
+
+#define DO_ERR(...) do {ERRMSG(__VA_ARGS__); ok = 0; } while (0)
+
+static int check_names(struct node *tree)
+{
+	struct node *child, *child2;
+	struct property *prop, *prop2;
+	int len = strlen(tree->name);
+	int ok = 1;
+
+	if (len == 0 && tree->parent)
+		DO_ERR("Empty, non-root nodename at %s\n", tree->fullpath);
+
+	if (len > MAX_NODENAME_LEN)
+		WARNMSG("Overlength nodename at %s\n", tree->fullpath);
+
+	for_each_property(tree, prop) {
+		/* check for duplicates */
+		/* FIXME: do this more efficiently */
+		for (prop2 = prop->next; prop2; prop2 = prop2->next) {
+			if (streq(prop->name, prop2->name)) {
+				DO_ERR("Duplicate propertyname %s in node %s\n",
+					prop->name, tree->fullpath);
+			}
+		}
+
+		/* check name length */
+		if (strlen(prop->name) > MAX_PROPNAME_LEN)
+			WARNMSG("Property name %s is too long in %s\n",
+				prop->name, tree->fullpath);
+	}
+
+	for_each_child(tree, child) {
+		/* Check for duplicates */
+
+		for (child2 = child->next_sibling;
+		     child2;
+		     child2 = child2->next_sibling) {
+			if (streq(child->name, child2->name))
+				DO_ERR("Duplicate node name %s\n",
+					child->fullpath);
+		}
+		if (! check_names(child))
+			ok = 0;
+	}
+
+	return ok;
+}
+
+static int check_phandles(struct node *root, struct node *node)
+{
+	struct property *prop;
+	struct node *child, *other;
+	cell_t phandle;
+	int ok = 1;
+
+	prop = get_property(node, "linux,phandle");
+	if (prop) {
+		phandle = propval_cell(prop);
+		if ((phandle == 0) || (phandle == -1)) {
+			DO_ERR("%s has invalid linux,phandle %x\n",
+			       node->fullpath, phandle);
+		} else {
+			other = get_node_by_phandle(root, phandle);
+			if (other)
+				DO_ERR("%s has duplicated phandle %x (seen before at %s)\n",
+				       node->fullpath, phandle, other->fullpath);
+
+			node->phandle = phandle;
+		}
+	}
+
+	for_each_child(node, child)
+		ok = ok && check_phandles(root, child);
+
+	return 1;
+}
+
+int check_structure(struct node *dt)
+{
+	int ok = 1;
+
+	ok = ok && check_names(dt);
+	ok = ok && check_phandles(dt, dt);
+
+	return ok;
+}
+
+/*
+ * Reference fixup functions
+ */
+
+static void apply_fixup(struct node *root, struct property *prop,
+			struct fixup *f)
+{
+	struct node *refnode;
+	cell_t phandle;
+
+	if (f->ref[0] == '/') {
+		/* Reference to full path */
+		refnode = get_node_by_path(root, f->ref);
+		if (! refnode)
+			die("Reference to non-existent node \"%s\"\n", f->ref);
+	} else {
+		refnode = get_node_by_label(root, f->ref);
+		if (! refnode)
+			die("Reference to non-existent node label \"%s\"\n", f->ref);
+	}
+
+	phandle = get_node_phandle(root, refnode);
+
+	assert(f->offset + sizeof(cell_t) <= prop->val.len);
+
+	*((cell_t *)(prop->val.val + f->offset)) = cpu_to_be32(phandle);
+}
+
+static void fixup_phandles(struct node *root, struct node *node)
+{
+	struct property *prop;
+	struct node *child;
+
+	for_each_property(node, prop) {
+		struct fixup *f = prop->val.refs;
+
+		while (f) {
+			apply_fixup(root, prop, f);
+			prop->val.refs = f->next;
+			fixup_free(f);
+			f = prop->val.refs;
+		}
+	}
+
+	for_each_child(node, child)
+		fixup_phandles(root, child);
+}
+
+void fixup_references(struct node *dt)
+{
+	fixup_phandles(dt, dt);
+}
+
+/*
+ * Semantic check functions
+ */
 
 static int must_be_one_cell(struct property *prop, struct node *node)
 {
@@ -315,82 +492,24 @@ static struct {
 	{"device_type", must_be_string},
 };
 
-#define DO_ERR(...) do {ERRMSG(__VA_ARGS__); ok = 0; } while (0)
-
 static int check_properties(struct node *node)
 {
-	struct property *prop, *prop2;
+	struct property *prop;
+	struct node *child;
+	int i;
 	int ok = 1;
 
-	for_each_property(node, prop) {
-		int i;
-
-		/* check for duplicates */
-		/* FIXME: do this more efficiently */
-		for (prop2 = prop->next; prop2; prop2 = prop2->next) {
-			if (streq(prop->name, prop2->name)) {
-				DO_ERR("Duplicate propertyname %s in node %s\n",
-					prop->name, node->fullpath);
-			}
-		}
-
-		/* check name length */
-		if (strlen(prop->name) > MAX_PROPNAME_LEN)
-			WARNMSG("Property name %s is too long in %s\n",
-				prop->name, node->fullpath);
-
-		/* check this property */
-		for (i = 0; i < ARRAY_SIZE(prop_checker_table); i++) {
+	for_each_property(node, prop)
+		for (i = 0; i < ARRAY_SIZE(prop_checker_table); i++)
 			if (streq(prop->name, prop_checker_table[i].propname))
 				if (! prop_checker_table[i].check_fn(prop, node)) {
 					ok = 0;
 					break;
 				}
-		}
-	}
 
-	return ok;
-}
-
-static int check_node_name(struct node *node)
-{
-	int ok = 1;
-	int len = strlen(node->name);
-
-	if (len == 0 && node->parent)
-		DO_ERR("Empty, non-root nodename at %s\n", node->fullpath);
-
-	if (len > MAX_NODENAME_LEN)
-		DO_ERR("Overlength nodename at %s\n", node->fullpath);
-
-
-	return ok;
-}
-
-static int check_structure(struct node *tree)
-{
-	struct node *child, *child2;
-	int ok = 1;
-
-	if (! check_node_name(tree))
-		ok = 0;
-
-	if (! check_properties(tree))
-		ok = 0;
-
-	for_each_child(tree, child) {
-		/* Check for duplicates */
-
-		for (child2 = child->next_sibling;
-		     child2;
-		     child2 = child2->next_sibling) {
-			if (streq(child->name, child2->name))
-				DO_ERR("Duplicate node name %s\n",
-					child->fullpath);
-		}
-		if (! check_structure(child))
+	for_each_child(node, child)
+		if (! check_properties(child))
 			ok = 0;
-	}
 
 	return ok;
 }
@@ -638,115 +757,12 @@ static int check_addr_size_reg(struct node *node,
 	return ok;
 }
 
-static int check_phandles(struct node *root, struct node *node)
-{
-	struct property *prop;
-	struct node *child, *other;
-	cell_t phandle;
-	int ok = 1;
-
-	prop = get_property(node, "linux,phandle");
-	if (prop) {
-		phandle = propval_cell(prop);
-		if ((phandle == 0) || (phandle == -1)) {
-			DO_ERR("%s has invalid linux,phandle %x\n",
-			       node->fullpath, phandle);
-		} else {
-			other = get_node_by_phandle(root, phandle);
-			if (other)
-				DO_ERR("%s has duplicated phandle %x (seen before at %s)\n",
-				       node->fullpath, phandle, other->fullpath);
-
-			node->phandle = phandle;
-		}
-	}
-
-	for_each_child(node, child)
-		ok = ok && check_phandles(root, child);
-
-	return 1;
-}
-
-static cell_t get_node_phandle(struct node *root, struct node *node)
-{
-	static cell_t phandle = 1; /* FIXME: ick, static local */
-
-	if ((node->phandle != 0) && (node->phandle != -1))
-		return node->phandle;
-
-	assert(! get_property(node, "linux,phandle"));
-
-	while (get_node_by_phandle(root, phandle))
-		phandle++;
-
-	node->phandle = phandle;
-	add_property(node,
-		     build_property("linux,phandle",
-				    data_append_cell(empty_data, phandle),
-				    NULL));
-
-	return node->phandle;
-}
-
-static void apply_fixup(struct node *root, struct property *prop,
-			struct fixup *f)
-{
-	struct node *refnode;
-	cell_t phandle;
-
-	if (f->ref[0] == '/') {
-		/* Reference to full path */
-		refnode = get_node_by_path(root, f->ref);
-		if (! refnode)
-			die("Reference to non-existent node \"%s\"\n", f->ref);
-	} else {
-		refnode = get_node_by_label(root, f->ref);
-		if (! refnode)
-			die("Reference to non-existent node label \"%s\"\n", f->ref);
-	}
-
-	phandle = get_node_phandle(root, refnode);
-
-	assert(f->offset + sizeof(cell_t) <= prop->val.len);
-
-	*((cell_t *)(prop->val.val + f->offset)) = cpu_to_be32(phandle);
-}
-
-static void fixup_phandles(struct node *root, struct node *node)
-{
-	struct property *prop;
-	struct node *child;
-
-	for_each_property(node, prop) {
-		struct fixup *f = prop->val.refs;
-
-		while (f) {
-			apply_fixup(root, prop, f);
-			prop->val.refs = f->next;
-			fixup_free(f);
-			f = prop->val.refs;
-		}
-	}
-
-	for_each_child(node, child)
-		fixup_phandles(root, child);
-}
-
-int check_device_tree(struct node *dt, int outversion, int boot_cpuid_phys)
+int check_semantics(struct node *dt, int outversion, int boot_cpuid_phys)
 {
 	int ok = 1;
 
-	if (! check_structure(dt))
-		return 0;
-
+	ok = ok && check_properties(dt);
 	ok = ok && check_addr_size_reg(dt, -1, -1);
-	ok = ok && check_phandles(dt, dt);
-
-	fixup_phandles(dt, dt);
-
-	if (! ok)
-		return 0;
-
 	ok = ok && check_root(dt);
 	ok = ok && check_cpus(dt, outversion, boot_cpuid_phys);
 	ok = ok && check_memory(dt);
@@ -755,16 +771,4 @@ int check_device_tree(struct node *dt, int outversion, int boot_cpuid_phys)
 		return 0;
 
 	return 1;
-}
-
-struct boot_info *build_boot_info(struct reserve_info *reservelist,
-				  struct node *tree)
-{
-	struct boot_info *bi;
-
-	bi = xmalloc(sizeof(*bi));
-	bi->reservelist = reservelist;
-	bi->dt = tree;
-
-	return bi;
 }
