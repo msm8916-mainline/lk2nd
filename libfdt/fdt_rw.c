@@ -329,6 +329,8 @@ int fdt_del_node(void *fdt, int nodeoffset)
 {
 	int endoffset;
 
+	RW_CHECK_HEADER(fdt);
+
 	endoffset = _fdt_node_end_offset(fdt, nodeoffset);
 	if (endoffset < 0)
 		return endoffset;
