@@ -18,7 +18,6 @@
  *                                                                   USA
  */
 
-%glr-parser
 %locations
 
 %{
@@ -126,9 +125,9 @@ proplist:
 		{
 			$$ = NULL;
 		}
-	| propdef proplist
+	| proplist propdef
 		{
-			$$ = chain_property($1, $2);
+			$$ = chain_property($2, $1);
 		}
 	;
 

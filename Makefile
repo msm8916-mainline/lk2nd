@@ -207,7 +207,6 @@ clean: libfdt_clean tests_clean
 
 %.tab.c %.tab.h %.output: %.y
 	@$(VECHO) BISON $@
-	@$(VECHO) ---- Expect 2 s/r and 2 r/r. ----
 	$(BISON) -d $<
 
 FORCE:

@@ -46,6 +46,21 @@ struct property *chain_property(struct property *first, struct property *list)
 	return first;
 }
 
+struct property *reverse_properties(struct property *first)
+{
+	struct property *p = first;
+	struct property *head = NULL;
+	struct property *next;
+
+	while (p) {
+		next = p->next;
+		p->next = head;
+		head = p;
+		p = next;
+	}
+	return head;
+}
+
 struct node *build_node(struct property *proplist, struct node *children)
 {
 	struct node *new = xmalloc(sizeof(*new));
@@ -53,7 +68,7 @@ struct node *build_node(struct property *proplist, struct node *children)
 
 	memset(new, 0, sizeof(*new));
 
-	new->proplist = proplist;
+	new->proplist = reverse_properties(proplist);
 	new->children = children;
 
 	for_each_child(new, child) {

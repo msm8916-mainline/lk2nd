@@ -180,6 +180,7 @@ struct node {
 
 struct property *build_property(char *name, struct data val, char *label);
 struct property *chain_property(struct property *first, struct property *list);
+struct property *reverse_properties(struct property *first);
 
 struct node *build_node(struct property *proplist, struct node *children);
 struct node *name_node(struct node *node, char *name, char *label);
