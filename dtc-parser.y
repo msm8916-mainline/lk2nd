@@ -56,7 +56,6 @@ extern struct boot_info *the_boot_info;
 %token <str> DT_CELL
 %token <byte> DT_BYTE
 %token <data> DT_STRING
-%token <str> DT_UNIT
 %token <str> DT_LABEL
 %token <str> DT_REF
 
