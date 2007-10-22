@@ -19,7 +19,6 @@
  */
 
 #include "dtc.h"
-#include "dtc-parser.tab.h"
 
 void fixup_free(struct fixup *f)
 {
