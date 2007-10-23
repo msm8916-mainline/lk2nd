@@ -87,13 +87,13 @@ sourcefile:
 	;
 
 memreserves:
-	  memreserve memreserves
-		{
-			$$ = chain_reserve_entry($1, $2);
-		}
-	| /* empty */
+	  /* empty */
 		{
 			$$ = NULL;
+		}
+	| memreserve memreserves
+		{
+			$$ = chain_reserve_entry($1, $2);
 		}
 	;
 
@@ -123,13 +123,13 @@ nodedef:
 	;
 
 proplist:
-	  propdef proplist
-		{
-			$$ = chain_property($1, $2);
-		}
-	| /* empty */
+	  /* empty */
 		{
 			$$ = NULL;
+		}
+	| propdef proplist
+		{
+			$$ = chain_property($1, $2);
 		}
 	;
 
@@ -165,17 +165,17 @@ propdata:
 	;
 
 propdataprefix:
-	  propdata ','
+	  /* empty */
+		{
+			$$ = empty_data;
+		}
+	| propdata ','
 		{
 			$$ = $1;
 		}
 	| propdataprefix DT_LABEL
 		{
 			$$ = data_add_label($1, $2);
-		}
-	| /* empty */
-		{
-			$$ = empty_data;
 		}
 	;
 
@@ -188,7 +188,11 @@ opt_cell_base:
 	;
 
 celllist:
-	  celllist opt_cell_base DT_CELL
+	  /* empty */
+		{
+			$$ = empty_data;
+		}
+	| celllist opt_cell_base DT_CELL
 		{
 			$$ = data_append_cell($1,
 					      cell_from_string($3, $2));
@@ -201,14 +205,14 @@ celllist:
 		{
 			$$ = data_add_label($1, $2);
 		}
-	| /* empty */
-		{
-			$$ = empty_data;
-		}
 	;
 
 bytestring:
-	  bytestring DT_BYTE
+	  /* empty */
+		{
+			$$ = empty_data;
+		}
+	| bytestring DT_BYTE
 		{
 			$$ = data_append_byte($1, $2);
 		}
@@ -216,20 +220,16 @@ bytestring:
 		{
 			$$ = data_add_label($1, $2);
 		}
-	| /* empty */
-		{
-			$$ = empty_data;
-		}
 	;
 
 subnodes:
-	  subnode subnodes
-		{
-			$$ = chain_node($1, $2);
-		}
-	| /* empty */
+	  /* empty */
 		{
 			$$ = NULL;
+		}
+	|  subnode subnodes
+		{
+			$$ = chain_node($1, $2);
 		}
 	;
 
@@ -252,13 +252,13 @@ nodename:
 	;
 
 label:
-	  DT_LABEL
-		{
-			$$ = $1;
-		}
-	| /* empty */
+	  /* empty */
 		{
 			$$ = NULL;
+		}
+	| DT_LABEL
+		{
+			$$ = $1;
 		}
 	;
 
