@@ -58,7 +58,7 @@
 #define CHECK_HEADER(fdt) \
 	{ \
 		int err; \
-		if ((err = _fdt_check_header(fdt)) != 0) \
+		if ((err = fdt_check_header(fdt)) != 0) \
 			return err; \
 	}
 
@@ -193,7 +193,7 @@ const char *fdt_get_name(const void *fdt, int nodeoffset, int *len)
 	const struct fdt_node_header *nh;
 	int err;
 
-	if ((err = _fdt_check_header(fdt)) != 0)
+	if ((err = fdt_check_header(fdt)) != 0)
 		goto fail;
 
 	err = -FDT_ERR_BADOFFSET;
@@ -222,7 +222,7 @@ const struct fdt_property *fdt_get_property(const void *fdt,
 	int offset, nextoffset;
 	int err;
 
-	if ((err = _fdt_check_header(fdt)) != 0)
+	if ((err = fdt_check_header(fdt)) != 0)
 		goto fail;
 
 	err = -FDT_ERR_BADOFFSET;

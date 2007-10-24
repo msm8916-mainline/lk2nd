@@ -79,6 +79,22 @@
 
 #define FDT_ERR_MAX		12
 
+/* Low-level functions (you probably don't need these) */
+
+const void *fdt_offset_ptr(const void *fdt, int offset, int checklen);
+static inline void *fdt_offset_ptr_w(void *fdt, int offset, int checklen)
+{
+	return (void *)fdt_offset_ptr(fdt, offset, checklen);
+}
+
+
+#define fdt_offset_ptr_typed(fdt, offset, var) \
+	((typeof(var))(fdt_offset_ptr((fdt), (offset), sizeof(*(var)))))
+#define fdt_offset_ptr_typed_w(fdt, offset, var) \
+	((typeof(var))(fdt_offset_ptr_w((fdt), (offset), sizeof(*(var)))))
+
+/* General functions */
+
 #define fdt_get_header(fdt, field) \
 	(fdt32_to_cpu(((const struct fdt_header *)(fdt))->field))
 #define fdt_magic(fdt) 			(fdt_get_header(fdt, magic))
@@ -95,18 +111,7 @@
 #define fdt_set_header(fdt, field, val) \
 	((struct fdt_header *)(fdt))->field = cpu_to_fdt32(val)
 
-const void *fdt_offset_ptr(const void *fdt, int offset, int checklen);
-static inline void *fdt_offset_ptr_w(void *fdt, int offset, int checklen)
-{
-	return (void *)fdt_offset_ptr(fdt, offset, checklen);
-}
-
-
-#define fdt_offset_ptr_typed(fdt, offset, var) \
-	((typeof(var))(fdt_offset_ptr((fdt), (offset), sizeof(*(var)))))
-#define fdt_offset_ptr_typed_w(fdt, offset, var) \
-	((typeof(var))(fdt_offset_ptr_w((fdt), (offset), sizeof(*(var)))))
-
+int fdt_check_header(const void *fdt);
 int fdt_move(const void *fdt, void *buf, int bufsize);
 
 /* Read-only functions */
