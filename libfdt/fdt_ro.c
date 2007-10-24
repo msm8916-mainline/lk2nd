@@ -113,13 +113,13 @@ int fdt_subnode_offset_namelen(const void *fdt, int parentoffset,
 
 	CHECK_HEADER(fdt);
 
-	tag = _fdt_next_tag(fdt, parentoffset, &nextoffset);
+	tag = fdt_next_tag(fdt, parentoffset, &nextoffset);
 	if (tag != FDT_BEGIN_NODE)
 		return -FDT_ERR_BADOFFSET;
 
 	do {
 		offset = nextoffset;
-		tag = _fdt_next_tag(fdt, offset, &nextoffset);
+		tag = fdt_next_tag(fdt, offset, &nextoffset);
 
 		switch (tag) {
 		case FDT_END:
@@ -229,14 +229,14 @@ const struct fdt_property *fdt_get_property(const void *fdt,
 	if (nodeoffset % FDT_TAGSIZE)
 		goto fail;
 
-	tag = _fdt_next_tag(fdt, nodeoffset, &nextoffset);
+	tag = fdt_next_tag(fdt, nodeoffset, &nextoffset);
 	if (tag != FDT_BEGIN_NODE)
 		goto fail;
 
 	do {
 		offset = nextoffset;
 
-		tag = _fdt_next_tag(fdt, offset, &nextoffset);
+		tag = fdt_next_tag(fdt, offset, &nextoffset);
 		switch (tag) {
 		case FDT_END:
 			err = -FDT_ERR_TRUNCATED;
@@ -302,7 +302,7 @@ int fdt_get_path(const void *fdt, int nodeoffset, char *buf, int buflen)
 
 	CHECK_HEADER(fdt);
 
-	tag = _fdt_next_tag(fdt, 0, &nextoffset);
+	tag = fdt_next_tag(fdt, 0, &nextoffset);
 	if (tag != FDT_BEGIN_NODE)
 		return -FDT_ERR_BADSTRUCTURE;
 
@@ -313,7 +313,7 @@ int fdt_get_path(const void *fdt, int nodeoffset, char *buf, int buflen)
 
 	while (nextoffset <= nodeoffset) {
 		offset = nextoffset;
-		tag = _fdt_next_tag(fdt, offset, &nextoffset);
+		tag = fdt_next_tag(fdt, offset, &nextoffset);
 		switch (tag) {
 		case FDT_END:
 			return -FDT_ERR_BADOFFSET;
@@ -374,7 +374,7 @@ int fdt_supernode_atdepth_offset(const void *fdt, int nodeoffset,
 
 	do {
 		offset = nextoffset;
-		tag = _fdt_next_tag(fdt, offset, &nextoffset);
+		tag = fdt_next_tag(fdt, offset, &nextoffset);
 		switch (tag) {
 		case FDT_END:
 			return -FDT_ERR_BADOFFSET;
@@ -439,7 +439,7 @@ int fdt_node_offset_by_prop_value(const void *fdt, int startoffset,
 	CHECK_HEADER(fdt);
 
 	if (startoffset >= 0) {
-		tag = _fdt_next_tag(fdt, startoffset, &nextoffset);
+		tag = fdt_next_tag(fdt, startoffset, &nextoffset);
 		if (tag != FDT_BEGIN_NODE)
 			return -FDT_ERR_BADOFFSET;
 	} else {
@@ -453,7 +453,7 @@ int fdt_node_offset_by_prop_value(const void *fdt, int startoffset,
 	 * approach; performance can come later. */
 	do {
 		offset = nextoffset;
-		tag = _fdt_next_tag(fdt, offset, &nextoffset);
+		tag = fdt_next_tag(fdt, offset, &nextoffset);
 
 		switch (tag) {
 		case FDT_BEGIN_NODE:
@@ -520,7 +520,7 @@ int fdt_node_offset_by_compatible(const void *fdt, int startoffset,
 	CHECK_HEADER(fdt);
 
 	if (startoffset >= 0) {
-		tag = _fdt_next_tag(fdt, startoffset, &nextoffset);
+		tag = fdt_next_tag(fdt, startoffset, &nextoffset);
 		if (tag != FDT_BEGIN_NODE)
 			return -FDT_ERR_BADOFFSET;
 	} else {
@@ -534,7 +534,7 @@ int fdt_node_offset_by_compatible(const void *fdt, int startoffset,
 	 * implement approach; performance can come later. */
 	do {
 		offset = nextoffset;
-		tag = _fdt_next_tag(fdt, offset, &nextoffset);
+		tag = fdt_next_tag(fdt, offset, &nextoffset);
 
 		switch (tag) {
 		case FDT_BEGIN_NODE:

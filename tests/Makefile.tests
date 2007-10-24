@@ -8,7 +8,7 @@ LIB_TESTS_L = get_mem_rsv \
 	sw_tree1 \
 	move_and_save \
 	open_pack rw_tree1 setprop del_property del_node \
-	string_escapes
+	string_escapes dtbs_equal_ordered
 LIB_TESTS = $(LIB_TESTS_L:%=$(TESTS_PREFIX)%)
 
 LIBTREE_TESTS_L = truncated_property

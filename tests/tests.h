@@ -129,7 +129,7 @@ const void *check_getprop(void *fdt, int nodeoffset, const char *name,
 #define check_getprop_string(fdt, nodeoffset, name, s) \
 	check_getprop((fdt), (nodeoffset), (name), strlen(s)+1, (s))
 int nodename_eq(const char *s1, const char *s2);
-//void *load_blob(const char *filename);
+void *load_blob(const char *filename);
 void *load_blob_arg(int argc, char *argv[]);
 void save_blob(const char *filename, void *blob);
 

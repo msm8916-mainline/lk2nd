@@ -90,7 +90,7 @@ const void *fdt_offset_ptr(const void *fdt, int offset, int len)
 	return p;
 }
 
-uint32_t _fdt_next_tag(const void *fdt, int offset, int *nextoffset)
+uint32_t fdt_next_tag(const void *fdt, int offset, int *nextoffset)
 {
 	const uint32_t *tagp, *lenp;
 	uint32_t tag;

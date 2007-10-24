@@ -93,8 +93,9 @@ static inline void *fdt_offset_ptr_w(void *fdt, int offset, int checklen)
 #define fdt_offset_ptr_typed_w(fdt, offset, var) \
 	((typeof(var))(fdt_offset_ptr_w((fdt), (offset), sizeof(*(var)))))
 
-/* General functions */
+uint32_t fdt_next_tag(const void *fdt, int offset, int *nextoffset);
 
+/* General functions */
 #define fdt_get_header(fdt, field) \
 	(fdt32_to_cpu(((const struct fdt_header *)(fdt))->field))
 #define fdt_magic(fdt) 			(fdt_get_header(fdt, magic))
