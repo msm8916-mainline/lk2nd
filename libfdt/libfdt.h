@@ -149,8 +149,23 @@ uint32_t fdt_next_tag(const void *fdt, int offset, int *nextoffset);
 #define fdt_size_dt_strings(fdt) 	(fdt_get_header(fdt, size_dt_strings))
 #define fdt_size_dt_struct(fdt)		(fdt_get_header(fdt, size_dt_struct))
 
-#define fdt_set_header(fdt, field, val) \
-	((struct fdt_header *)(fdt))->field = cpu_to_fdt32(val)
+#define __fdt_set_hdr(name) \
+	static inline void fdt_set_##name(void *fdt, uint32_t val) \
+	{ \
+		struct fdt_header *fdth = fdt; \
+		fdth->name = cpu_to_fdt32(val); \
+	}
+__fdt_set_hdr(magic);
+__fdt_set_hdr(totalsize);
+__fdt_set_hdr(off_dt_struct);
+__fdt_set_hdr(off_dt_strings);
+__fdt_set_hdr(off_mem_rsvmap);
+__fdt_set_hdr(version);
+__fdt_set_hdr(last_comp_version);
+__fdt_set_hdr(boot_cpuid_phys);
+__fdt_set_hdr(size_dt_strings);
+__fdt_set_hdr(size_dt_struct);
+#undef __fdt_set_hdr
 
 /**
  * fdt_check_header - sanity check a device tree or possible device tree

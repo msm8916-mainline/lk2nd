@@ -109,8 +109,8 @@ static int _blob_splice_mem_rsv(void *fdt, struct fdt_reserve_entry *p,
 	err = _blob_splice(fdt, p, oldn * sizeof(*p), newn * sizeof(*p));
 	if (err)
 		return err;
-	fdt_set_header(fdt, off_dt_struct, fdt_off_dt_struct(fdt) + delta);
-	fdt_set_header(fdt, off_dt_strings, fdt_off_dt_strings(fdt) + delta);
+	fdt_set_off_dt_struct(fdt, fdt_off_dt_struct(fdt) + delta);
+	fdt_set_off_dt_strings(fdt, fdt_off_dt_strings(fdt) + delta);
 	return 0;
 }
 
@@ -123,8 +123,8 @@ static int _blob_splice_struct(void *fdt, void *p,
 	if ((err = _blob_splice(fdt, p, oldlen, newlen)))
 		return err;
 
-	fdt_set_header(fdt, size_dt_struct, fdt_size_dt_struct(fdt) + delta);
-	fdt_set_header(fdt, off_dt_strings, fdt_off_dt_strings(fdt) + delta);
+	fdt_set_size_dt_struct(fdt, fdt_size_dt_struct(fdt) + delta);
+	fdt_set_off_dt_strings(fdt, fdt_off_dt_strings(fdt) + delta);
 	return 0;
 }
 
@@ -136,7 +136,7 @@ static int _blob_splice_string(void *fdt, int newlen)
 	if ((err = _blob_splice(fdt, p, 0, newlen)))
 		return err;
 
-	fdt_set_header(fdt, size_dt_strings, fdt_size_dt_strings(fdt) + newlen);
+	fdt_set_size_dt_strings(fdt, fdt_size_dt_strings(fdt) + newlen);
 	return 0;
 }
 
@@ -349,7 +349,7 @@ int fdt_open_into(void *fdt, void *buf, int bufsize)
 
 	fdt = buf;
 
-	fdt_set_header(fdt, totalsize, bufsize);
+	fdt_set_totalsize(fdt, bufsize);
 
 	/* FIXME: re-order if necessary */
 
@@ -369,6 +369,6 @@ int fdt_pack(void *fdt)
 		return err;
 
 	/* FIXME: pack components */
-	fdt_set_header(fdt, totalsize, _blob_data_size(fdt));
+	fdt_set_totalsize(fdt, _blob_data_size(fdt));
 	return 0;
 }
