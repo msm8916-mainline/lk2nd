@@ -78,6 +78,17 @@ libfdt_tests () {
 	tree1_tests deshunted.$tree
     done
 
+    # v16 and alternate layout tests
+    for tree in test_tree1.dtb; do
+	for version in 17 16; do
+	    for layout in mts mst tms tsm smt stm; do
+		run_test mangle-layout $tree $version $layout
+		tree1_tests v$version.$layout.$tree
+		run_test dtbs_equal_ordered $tree v$version.$layout.$tree
+	    done
+	done
+    done
+
     # Read-write tests
     for tree in test_tree1.dtb sw_tree1.test.dtb; do
 	rm -f opened.$tree repacked.$tree
