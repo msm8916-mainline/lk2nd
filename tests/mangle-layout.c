@@ -96,8 +96,6 @@ void add_block(struct bufstate *buf, int version, char block, const void *fdt)
 	}
 
 	offset = ALIGN(buf->size, align);
-	fprintf(stderr, "Moving block %c from %p, to offset %d, size %d\n",
-		block, src, offset, size);
 
 	expand_buf(buf, offset+size);
 
