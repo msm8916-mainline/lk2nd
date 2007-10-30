@@ -61,7 +61,7 @@ static int rw_check_header(void *fdt)
 
 	if ((err = fdt_check_header(fdt)))
 		return err;
-	if (fdt_version(fdt) < 0x11)
+	if (fdt_version(fdt) < 17)
 		return -FDT_ERR_BADVERSION;
 	if (fdt_off_mem_rsvmap(fdt) < ALIGN(sizeof(struct fdt_header), 8))
 		return -FDT_ERR_BADLAYOUT;
@@ -74,6 +74,9 @@ static int rw_check_header(void *fdt)
 	if (fdt_totalsize(fdt) <
 	    (fdt_off_dt_strings(fdt) + fdt_size_dt_strings(fdt)))
 		return -FDT_ERR_BADLAYOUT;
+	if (fdt_version(fdt) > 17)
+		fdt_set_version(fdt, 17);
+
 	return 0;
 }
 
