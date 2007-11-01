@@ -61,6 +61,8 @@ tree1_tests_rw () {
     run_test del_node $TREE
 }
 
+ALL_LAYOUTS="mts mst tms tsm smt stm"
+
 libfdt_tests () {
     tree1_tests test_tree1.dtb
 
@@ -81,7 +83,7 @@ libfdt_tests () {
     # v16 and alternate layout tests
     for tree in test_tree1.dtb; do
 	for version in 17 16; do
-	    for layout in mts mst tms tsm smt stm; do
+	    for layout in $ALL_LAYOUTS; do
 		run_test mangle-layout $tree $version $layout
 		tree1_tests v$version.$layout.$tree
 		run_test dtbs_equal_ordered $tree v$version.$layout.$tree
@@ -90,18 +92,21 @@ libfdt_tests () {
     done
 
     # Read-write tests
-    for tree in test_tree1.dtb sw_tree1.test.dtb; do
-	rm -f opened.$tree repacked.$tree
-	run_test open_pack $tree
-	tree1_tests opened.$tree
-	tree1_tests repacked.$tree
-    done
+    for basetree in test_tree1.dtb; do
+	for version in 17 16; do
+	    for layout in $ALL_LAYOUTS; do
+		tree=v$version.$layout.$basetree
+		rm -f opened.$tree repacked.$tree
+		run_test open_pack $tree
+		tree1_tests $tree
+		tree1_tests opened.$tree
+		tree1_tests repacked.$tree
 
-    for tree in test_tree1.dtb sw_tree1.test.dtb; do
-	tree1_tests_rw $tree
-	tree1_tests_rw moved.$tree
-	tree1_tests_rw shunted.$tree
-	tree1_tests_rw deshunted.$tree
+		tree1_tests_rw $tree
+		tree1_tests_rw opened.$tree
+		tree1_tests_rw repacked.$tree
+	    done
+	done
     done
     run_test rw_tree1
     tree1_tests rw_tree1.test.dtb

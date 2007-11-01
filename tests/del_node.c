@@ -40,6 +40,8 @@ int main(int argc, char *argv[])
 	test_init(argc, argv);
 	fdt = load_blob_arg(argc, argv);
 
+	fdt = open_blob_rw(fdt);
+
 	oldsize = fdt_totalsize(fdt);
 
 	subnode1_offset = fdt_path_offset(fdt, "/subnode@1");

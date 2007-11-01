@@ -41,6 +41,8 @@ int main(int argc, char *argv[])
 	test_init(argc, argv);
 	fdt = load_blob_arg(argc, argv);
 
+	fdt = open_blob_rw(fdt);
+
 	oldsize = fdt_totalsize(fdt);
 
 	intp = check_getprop_typed(fdt, 0, "prop-int", TEST_VALUE_1);

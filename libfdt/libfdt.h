@@ -412,7 +412,7 @@ int fdt_finish(void *fdt);
 /* Read-write functions                                               */
 /**********************************************************************/
 
-int fdt_open_into(void *fdt, void *buf, int bufsize);
+int fdt_open_into(const void *fdt, void *buf, int bufsize);
 int fdt_pack(void *fdt);
 
 int fdt_add_mem_rsv(void *fdt, uint64_t address, uint64_t size);

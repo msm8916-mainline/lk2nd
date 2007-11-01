@@ -220,3 +220,21 @@ void save_blob(const char *filename, void *fdt)
 		offset += ret;
 	}
 }
+
+void *open_blob_rw(void *blob)
+{
+	int err;
+	void *buf = blob;
+
+	err = fdt_open_into(blob, buf, fdt_totalsize(blob));
+	if (err == -FDT_ERR_NOSPACE) {
+		/* Ran out of space converting to v17 */
+		int newsize = fdt_totalsize(blob) + 8;
+
+		buf = xmalloc(newsize);
+		err = fdt_open_into(blob, buf, newsize);
+	}
+	if (err)
+		FAIL("fdt_open_into(): %s", fdt_strerror(err));
+	return buf;
+}
