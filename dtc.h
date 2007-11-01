@@ -189,11 +189,13 @@ struct node *chain_node(struct node *first, struct node *list);
 void add_property(struct node *node, struct property *prop);
 void add_child(struct node *parent, struct node *child);
 
-int check_structure(struct node *dt);
-void fixup_references(struct node *dt);
-int check_semantics(struct node *dt, int outversion, int boot_cpuid_phys);
+char *get_unitname(struct node *node);
+struct property *get_property(struct node *node, char *propname);
+cell_t propval_cell(struct property *prop);
+struct node *get_subnode(struct node *node, char *nodename);
+struct node *get_node_by_phandle(struct node *tree, cell_t phandle);
 
-int check_device_tree(struct node *dt, int outversion, int boot_cpuid_phys);
+void fixup_references(struct node *dt);
 
 /* Boot info (tree plus memreserve information */
 
@@ -219,6 +221,11 @@ struct boot_info {
 
 struct boot_info *build_boot_info(struct reserve_info *reservelist,
 				  struct node *tree);
+
+/* Checks */
+
+int check_structure(struct node *dt);
+int check_semantics(struct node *dt, int outversion, int boot_cpuid_phys);
 
 /* Flattened trees */
 
