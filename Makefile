@@ -55,7 +55,7 @@ install: all
 	$(INSTALL) -d $(DESTDIR)$(LIBDIR)
 	$(INSTALL) -m 644 $(LIBFDT_LIB) $(DESTDIR)$(LIBDIR)
 	$(INSTALL) -d $(DESTDIR)$(INCLUDEDIR)
-	$(INSTALL) -m 644 $(LIBFDT_INCLUDES) $(DESTDIR)$(INCLUDEDIR)
+	$(INSTALL) -m 644 $(addprefix $(LIBFDT_srcdir)/,$(LIBFDT_INCLUDES)) $(DESTDIR)$(INCLUDEDIR)
 
 #
 # Rules for versioning
@@ -135,17 +135,17 @@ endif
 #
 LIBFDT_objdir = libfdt
 LIBFDT_srcdir = libfdt
-include libfdt/Makefile.libfdt
+include $(LIBFDT_srcdir)/Makefile.libfdt
 
 .PHONY: libfdt
 libfdt: $(LIBFDT_LIB)
 
-$(LIBFDT_LIB): $(addprefix libfdt/,$(LIBFDT_OBJS))
+$(LIBFDT_LIB): $(addprefix $(LIBFDT_objdir)/,$(LIBFDT_OBJS))
 
 libfdt_clean:
 	@$(VECHO) CLEAN "(libfdt)"
-	rm -f $(addprefix libfdt/,$(STD_CLEANFILES))
-	rm -f $(addprefix libfdt/,$(LIBFDT_CLEANFILES))
+	rm -f $(addprefix $(LIBFDT_objdir)/,$(STD_CLEANFILES))
+	rm -f $(addprefix $(LIBFDT_objdir)/,$(LIBFDT_CLEANFILES))
 
 ifneq ($(DEPTARGETS),)
 -include $(LIBFDT_OBJS:%.o=$(LIBFDT_objdir)/%.d)
