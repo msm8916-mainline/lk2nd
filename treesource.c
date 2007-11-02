@@ -176,6 +176,8 @@ static void write_tree_source_node(FILE *f, struct node *tree, int level)
 	struct node *child;
 
 	write_prefix(f, level);
+	if (tree->label)
+		fprintf(f, "%s: ", tree->label);
 	if (tree->name && (*tree->name))
 		fprintf(f, "%s {\n", tree->name);
 	else
@@ -184,8 +186,10 @@ static void write_tree_source_node(FILE *f, struct node *tree, int level)
 	for_each_property(tree, prop) {
 		enum proptype type;
 
-		write_prefix(f, level);
-		fprintf(f, "\t%s", prop->name);
+		write_prefix(f, level+1);
+		if (prop->label)
+			fprintf(f, "%s: ", prop->label);
+		fprintf(f, "%s", prop->name);
 		type = guess_type(prop);
 
 		switch (type) {
@@ -220,6 +224,8 @@ void dt_to_source(FILE *f, struct boot_info *bi)
 	struct reserve_info *re;
 
 	for (re = bi->reservelist; re; re = re->next) {
+		if (re->label)
+			fprintf(f, "%s: ", re->label);
 		fprintf(f, "/memreserve/\t%016llx-%016llx;\n",
 			(unsigned long long)re->re.address,
 			(unsigned long long)(re->re.address + re->re.size - 1));
