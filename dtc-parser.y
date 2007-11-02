@@ -149,8 +149,7 @@ propdata:
 		}
 	| propdataprefix '<' celllist '>'
 		{
-			$$ = data_merge(data_append_align($1,
-							  sizeof(cell_t)), $3);
+			$$ = data_merge($1, $3);
 		}
 	| propdataprefix '[' bytestring ']'
 		{
