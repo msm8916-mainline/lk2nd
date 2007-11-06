@@ -23,7 +23,7 @@ TESTS_TARGETS = $(TESTS) $(TESTS_TREES)
 
 TESTS_DEPFILES = $(TESTS:%=%.d) $(TESTS_PREFIX)testutils.d
 
-TESTS_CLEANFILES_L =  *.output vgcore.* *.dtb
+TESTS_CLEANFILES_L =  *.output vgcore.* *.dtb *.test.dts
 TESTS_CLEANFILES = $(TESTS_CLEANFILES_L:%=$(TESTS_PREFIX)%)
 
 BIN += $(TESTS) $(TESTS_PREFIX)dumptrees

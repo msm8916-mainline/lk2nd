@@ -82,7 +82,7 @@ libfdt_tests () {
     done
 
     # v16 and alternate layout tests
-    for tree in test_tree1.dtb; do
+    for tree in test_tree1.dtb sw_tree1.test.dtb; do
 	for version in 17 16; do
 	    for layout in $ALL_LAYOUTS; do
 		run_test mangle-layout $tree $version $layout
@@ -93,7 +93,7 @@ libfdt_tests () {
     done
 
     # Read-write tests
-    for basetree in test_tree1.dtb; do
+    for basetree in test_tree1.dtb sw_tree1.test.dtb; do
 	for version in 17 16; do
 	    for layout in $ALL_LAYOUTS; do
 		tree=v$version.$layout.$basetree
@@ -125,6 +125,13 @@ dtc_tests () {
 
     run_test dtc.sh -I dts -O dtb -o dtc_escapes.test.dtb escapes.dts
     run_test string_escapes dtc_escapes.test.dtb
+
+    # Check -Odts mode preserve all dtb information
+    for tree in test_tree1.dtb dtc_tree1.test.dtb dtc_escapes.test.dtb ; do
+	run_test dtc.sh -I dtb -O dts -o odts_$tree.test.dts $tree
+	run_test dtc.sh -I dts -O dtb -o odts_$tree.test.dtb odts_$tree.test.dts
+	run_test dtbs_equal_ordered $tree odts_$tree.test.dtb
+    done
 }
 
 while getopts "vdt:" ARG ; do
@@ -143,7 +150,7 @@ if [ -z "$TESTSETS" ]; then
 fi
 
 # Make sure we don't have stale blobs lying around
-rm -f *.test.dtb
+rm -f *.test.dtb *.test.dts
 
 for set in $TESTSETS; do
     case $set in
