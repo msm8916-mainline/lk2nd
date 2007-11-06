@@ -60,12 +60,23 @@ static void write_propval_string(FILE *f, struct data val)
 {
 	char *str = val.val;
 	int i;
+	int newchunk = 1;
+	struct fixup *l = val.labels;
 
 	assert(str[val.len-1] == '\0');
 
-	fprintf(f, "\"");
 	for (i = 0; i < (val.len-1); i++) {
 		char c = str[i];
+
+		if (newchunk) {
+			while (l && (l->offset <= i)) {
+				assert(l->offset == i);
+				fprintf(f, "%s: ", l->ref);
+				l = l->next;
+			}
+			fprintf(f, "\"");
+			newchunk = 0;
+		}
 
 		switch (c) {
 		case '\a':
@@ -96,7 +107,8 @@ static void write_propval_string(FILE *f, struct data val)
 			fprintf(f, "\\\"");
 			break;
 		case '\0':
-			fprintf(f, "\", \"");
+			fprintf(f, "\", ");
+			newchunk = 1;
 			break;
 		default:
 			if (isprint(c))
@@ -106,19 +118,40 @@ static void write_propval_string(FILE *f, struct data val)
 		}
 	}
 	fprintf(f, "\"");
+
+	/* Wrap up any labels at the end of the value */
+	while (l) {
+		assert (l->offset == val.len);
+		fprintf(f, " %s:", l->ref);
+		l = l->next;
+	}
 }
 
 static void write_propval_cells(FILE *f, struct data val)
 {
 	void *propend = val.val + val.len;
 	cell_t *cp = (cell_t *)val.val;
+	struct fixup *l = val.labels;
 
 	fprintf(f, "<");
 	for (;;) {
+		while (l && (l->offset <= ((char *)cp - val.val))) {
+			assert(l->offset == ((char *)cp - val.val));
+			fprintf(f, "%s: ", l->ref);
+			l = l->next;
+		}
+
 		fprintf(f, "%x", be32_to_cpu(*cp++));
 		if ((void *)cp >= propend)
 			break;
 		fprintf(f, " ");
+	}
+
+	/* Wrap up any labels at the end of the value */
+	while (l) {
+		assert (l->offset == val.len);
+		fprintf(f, " %s:", l->ref);
+		l = l->next;
 	}
 	fprintf(f, ">");
 }
@@ -127,13 +160,26 @@ static void write_propval_bytes(FILE *f, struct data val)
 {
 	void *propend = val.val + val.len;
 	char *bp = val.val;
+	struct fixup *l = val.labels;
 
 	fprintf(f, "[");
 	for (;;) {
+		while (l && (l->offset == (bp-val.val))) {
+			fprintf(f, "%s: ", l->ref);
+			l = l->next;
+		}
+
 		fprintf(f, "%02hhx", *bp++);
 		if ((void *)bp >= propend)
 			break;
 		fprintf(f, " ");
+	}
+
+	/* Wrap up any labels at the end of the value */
+	while (l) {
+		assert (l->offset == val.len);
+		fprintf(f, " %s:", l->ref);
+		l = l->next;
 	}
 	fprintf(f, "]");
 }
@@ -142,7 +188,9 @@ static void write_propval(FILE *f, struct property *prop)
 {
 	int len = prop->val.len;
 	char *p = prop->val.val;
+	struct fixup *l;
 	int nnotstring = 0, nnul = 0;
+	int nnotstringlbl = 0, nnotcelllbl = 0;
 	int i;
 
 	if (len == 0) {
@@ -157,15 +205,23 @@ static void write_propval(FILE *f, struct property *prop)
 			nnul++;
 	}
 
-	fprintf(f, " = ");
+	for (l = prop->val.labels; l; l = l->next) {
+		if ((l->offset > 0) && (prop->val.val[l->offset - 1] != '\0'))
+			nnotstringlbl++;
+		if ((l->offset % sizeof(cell_t)) != 0)
+			nnotcelllbl++;
+	}
 
-	if ((p[len-1] == '\0') && (nnotstring == 0) && (nnul < (len-nnul))) {
+	fprintf(f, " = ");
+	if ((p[len-1] == '\0') && (nnotstring == 0) && (nnul < (len-nnul))
+	    && (nnotstringlbl == 0)) {
 		write_propval_string(f, prop->val);
-	} else if (((len % sizeof(cell_t)) == 0)) {
+	} else if (((len % sizeof(cell_t)) == 0) && (nnotcelllbl == 0)) {
 		write_propval_cells(f, prop->val);
 	} else {
 		write_propval_bytes(f, prop->val);
 	}
+
 	fprintf(f, ";\n");
 }
 
