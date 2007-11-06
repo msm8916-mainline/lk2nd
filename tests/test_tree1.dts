@@ -1,5 +1,5 @@
 /memreserve/ deadbeef00000000-deadbeef000fffff;
-/memreserve/ abcd1234 00001234;
+/memreserve/ 75bcd15 1000;
 
 / {
 	compatible = "test_tree1";
@@ -8,20 +8,20 @@
 
 	subnode@1 {
 		compatible = "subnode1";
-		prop-int = <deadbeef>;
+		prop-int = [deadbeef];
 
 		subsubnode {
 			compatible = "subsubnode1", "subsubnode";
-			prop-int = <deadbeef>;
+			prop-int = <h# deadbeef>;
 		};
 	};
 
 	subnode@2 {
-		prop-int = <abcd1234>;
+		prop-int = <d# 123456789>;
 
 		subsubnode@0 {
 			compatible = "subsubnode2", "subsubnode";
-			prop-int = <abcd1234>;
+			prop-int = <o# 0726746425>;
 		};
 	};
 };
