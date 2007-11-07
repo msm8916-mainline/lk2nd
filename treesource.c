@@ -141,7 +141,7 @@ static void write_propval_cells(FILE *f, struct data val)
 			l = l->next;
 		}
 
-		fprintf(f, "%x", be32_to_cpu(*cp++));
+		fprintf(f, "0x%x", be32_to_cpu(*cp++));
 		if ((void *)cp >= propend)
 			break;
 		fprintf(f, " ");
@@ -258,12 +258,14 @@ void dt_to_source(FILE *f, struct boot_info *bi)
 {
 	struct reserve_info *re;
 
+	fprintf(f, "/dts-v1/;\n\n");
+
 	for (re = bi->reservelist; re; re = re->next) {
 		if (re->label)
 			fprintf(f, "%s: ", re->label);
-		fprintf(f, "/memreserve/\t%016llx-%016llx;\n",
+		fprintf(f, "/memreserve/\t0x%016llx 0x%016llx;\n",
 			(unsigned long long)re->re.address,
-			(unsigned long long)(re->re.address + re->re.size - 1));
+			(unsigned long long)re->re.size);
 	}
 
 	write_tree_source_node(f, bi->dt, 0);
