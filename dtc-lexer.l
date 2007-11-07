@@ -21,9 +21,8 @@
 %option noyywrap nounput yylineno
 
 %x INCLUDE
-%x CELLDATA
 %x BYTESTRING
-%x MEMRESERVE
+%x PROPNODENAME
 
 PROPCHAR	[a-zA-Z0-9,._+*#?-]
 UNITCHAR	[0-9a-f,]
@@ -51,7 +50,7 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 
 %%
 
-"/include/"		BEGIN(INCLUDE);
+<*>"/include/"		BEGIN(INCLUDE);
 
 <INCLUDE>\"[^"\n]*\"	{
 			yytext[strlen(yytext) - 1] = 0;
@@ -63,13 +62,13 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 		}
 
 
-<<EOF>>		{
+<*><<EOF>>		{
 			if (!pop_input_file()) {
 				yyterminate();
 			}
 		}
 
-\"([^\\"]|\\.)*\"	{
+<*>\"([^\\"]|\\.)*\"	{
 			yylloc.filenum = srcpos_filenum;
 			yylloc.first_line = yylineno;
 			DPRINT("String: %s\n", yytext);
@@ -79,45 +78,24 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 			return DT_STRING;
 		}
 
-"/memreserve/"	{
+<*>"/memreserve/"	{
 			yylloc.filenum = srcpos_filenum;
 			yylloc.first_line = yylineno;
 			DPRINT("Keyword: /memreserve/\n");
-			BEGIN(MEMRESERVE);
-			return DT_MEMRESERVE;
-		}
-
-<MEMRESERVE>[0-9a-fA-F]+ {
-			yylloc.filenum = srcpos_filenum;
-			yylloc.first_line = yylineno;
-			if (yyleng > 2*sizeof(yylval.addr)) {
-				fprintf(stderr, "Address value %s too large\n",
-					yytext);
-			}
-			yylval.addr = (u64) strtoull(yytext, NULL, 16);
-			DPRINT("Addr: %llx\n",
-			       (unsigned long long)yylval.addr);
-			return DT_ADDR;
-		}
-
-<MEMRESERVE>";"	{
-			yylloc.filenum = srcpos_filenum;
-			yylloc.first_line = yylineno;
-			DPRINT("/MEMRESERVE\n");
 			BEGIN(INITIAL);
-			return ';';
+			return DT_MEMRESERVE;
 		}
 
 <*>[a-zA-Z_][a-zA-Z0-9_]*:	{
 			yylloc.filenum = srcpos_filenum;
 			yylloc.first_line = yylineno;
 			DPRINT("Label: %s\n", yytext);
-			yylval.str = strdup(yytext);
-			yylval.str[yyleng-1] = '\0';
+			yylval.labelref = strdup(yytext);
+			yylval.labelref[yyleng-1] = '\0';
 			return DT_LABEL;
 		}
 
-<CELLDATA>[bodh]# {
+[bodh]# {
 			yylloc.filenum = srcpos_filenum;
 			yylloc.first_line = yylineno;
 			if (*yytext == 'b')
@@ -132,27 +110,19 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 			return DT_BASE;
 		}
 
-<CELLDATA>[0-9a-fA-F]+	{
+[0-9a-fA-F]+	{
 			yylloc.filenum = srcpos_filenum;
 			yylloc.first_line = yylineno;
-			yylval.str = strdup(yytext);
-			DPRINT("Cell: '%s'\n", yylval.str);
-			return DT_CELL;
+			yylval.literal = strdup(yytext);
+			DPRINT("Literal: '%s'\n", yylval.literal);
+			return DT_LITERAL;
 		}
 
-<CELLDATA>">"	{
-			yylloc.filenum = srcpos_filenum;
-			yylloc.first_line = yylineno;
-			DPRINT("/CELLDATA\n");
-			BEGIN(INITIAL);
-			return '>';
-		}
-
-<CELLDATA>\&{REFCHAR}*	{
+\&{REFCHAR}*	{
 			yylloc.filenum = srcpos_filenum;
 			yylloc.first_line = yylineno;
 			DPRINT("Ref: %s\n", yytext+1);
-			yylval.str = strdup(yytext+1);
+			yylval.labelref = strdup(yytext+1);
 			return DT_REF;
 		}
 
@@ -172,30 +142,13 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 			return ']';
 		}
 
-,		{ /* Technically this is a valid property name,
-		     but we'd rather use it as punctuation, so detect it
-		     here in preference */
+<PROPNODENAME>{PROPCHAR}+(@{UNITCHAR}+)? {
 			yylloc.filenum = srcpos_filenum;
 			yylloc.first_line = yylineno;
-			DPRINT("Char (propname like): %c (\\x%02x)\n", yytext[0],
-				(unsigned)yytext[0]);
-			return yytext[0];
-		}
-
-{PROPCHAR}+	{
-			yylloc.filenum = srcpos_filenum;
-			yylloc.first_line = yylineno;
-			DPRINT("PropName: %s\n", yytext);
-			yylval.str = strdup(yytext);
-			return DT_PROPNAME;
-		}
-
-{PROPCHAR}+(@{UNITCHAR}+)? {
-			yylloc.filenum = srcpos_filenum;
-			yylloc.first_line = yylineno;
-			DPRINT("NodeName: %s\n", yytext);
-			yylval.str = strdup(yytext);
-			return DT_NODENAME;
+			DPRINT("PropNodeName: %s\n", yytext);
+			yylval.propnodename = strdup(yytext);
+			BEGIN(INITIAL);
+			return DT_PROPNODENAME;
 		}
 
 
@@ -213,21 +166,17 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 <*>.		{
 			yylloc.filenum = srcpos_filenum;
 			yylloc.first_line = yylineno;
-			switch (yytext[0]) {
-				case '<':
-					DPRINT("CELLDATA\n");
-					BEGIN(CELLDATA);
-					break;
-				case '[':
-					DPRINT("BYTESTRING\n");
-					BEGIN(BYTESTRING);
-					break;
-				default:
-
+			if (yytext[0] == '[') {
+				DPRINT("<BYTESTRING>\n");
+				BEGIN(BYTESTRING);
+			}
+			if ((yytext[0] == '{')
+			    || (yytext[0] == ';')) {
+				DPRINT("<PROPNODENAME>\n");
+				BEGIN(PROPNODENAME);
+			}
 			DPRINT("Char: %c (\\x%02x)\n", yytext[0],
 				(unsigned)yytext[0]);
-					break;
-			}
 
 			return yytext[0];
 		}

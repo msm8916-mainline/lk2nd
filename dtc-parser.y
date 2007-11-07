@@ -25,45 +25,46 @@
 #include "srcpos.h"
 
 int yylex(void);
-cell_t cell_from_string(char *s, unsigned int base);
+unsigned long long eval_literal(const char *s, int base, int bits);
 
 extern struct boot_info *the_boot_info;
 
 %}
 
 %union {
-	cell_t cval;
+	char *propnodename;
+	char *literal;
+	char *labelref;
 	unsigned int cbase;
 	u8 byte;
-	char *str;
 	struct data data;
+
+	u64 addr;
+	cell_t cell;
 	struct property *prop;
 	struct property *proplist;
 	struct node *node;
 	struct node *nodelist;
-	int datalen;
-	int hexlen;
-	u64 addr;
 	struct reserve_info *re;
 }
 
 %token DT_MEMRESERVE
-%token <addr> DT_ADDR
-%token <str> DT_PROPNAME
-%token <str> DT_NODENAME
+%token <propnodename> DT_PROPNODENAME
+%token <literal> DT_LITERAL
 %token <cbase> DT_BASE
-%token <str> DT_CELL
 %token <byte> DT_BYTE
 %token <data> DT_STRING
-%token <str> DT_LABEL
-%token <str> DT_REF
+%token <labelref> DT_LABEL
+%token <labelref> DT_REF
 
 %type <data> propdata
 %type <data> propdataprefix
 %type <re> memreserve
 %type <re> memreserves
-%type <cbase> opt_cell_base
+%type <addr> addr
 %type <data> celllist
+%type <cbase> cellbase
+%type <cell> cellval
 %type <data> bytestring
 %type <prop> propdef
 %type <proplist> proplist
@@ -72,8 +73,7 @@ extern struct boot_info *the_boot_info;
 %type <node> nodedef
 %type <node> subnode
 %type <nodelist> subnodes
-%type <str> label
-%type <str> nodename
+%type <labelref> label
 
 %%
 
@@ -96,15 +96,22 @@ memreserves:
 	;
 
 memreserve:
-	  label DT_MEMRESERVE DT_ADDR DT_ADDR ';'
+	  label DT_MEMRESERVE addr addr ';'
 		{
 			$$ = build_reserve_entry($3, $4, $1);
 		}
-	| label DT_MEMRESERVE DT_ADDR '-' DT_ADDR ';'
+	| label DT_MEMRESERVE addr '-' addr ';'
 		{
 			$$ = build_reserve_entry($3, $5 - $3 + 1, $1);
 		}
 	;
+
+addr:
+	  DT_LITERAL
+		{
+			$$ = eval_literal($1, 16, 64);
+		}
+	  ;
 
 devicetree:
 	  '/' nodedef
@@ -132,11 +139,11 @@ proplist:
 	;
 
 propdef:
-	  label DT_PROPNAME '=' propdata ';'
+	  label DT_PROPNODENAME '=' propdata ';'
 		{
 			$$ = build_property($2, $4, $1);
 		}
-	| label DT_PROPNAME ';'
+	| label DT_PROPNODENAME ';'
 		{
 			$$ = build_property($2, empty_data, $1);
 		}
@@ -176,23 +183,14 @@ propdataprefix:
 		}
 	;
 
-opt_cell_base:
-	  /* empty */
-		{
-			$$ = 16;
-		}
-	| DT_BASE
-	;
-
 celllist:
 	  /* empty */
 		{
 			$$ = empty_data;
 		}
-	| celllist opt_cell_base DT_CELL
+	| celllist cellval
 		{
-			$$ = data_append_cell($1,
-					      cell_from_string($3, $2));
+			$$ = data_append_cell($1, $2);
 		}
 	| celllist DT_REF
 		{
@@ -201,6 +199,21 @@ celllist:
 	| celllist DT_LABEL
 		{
 			$$ = data_add_label($1, $2);
+		}
+	;
+
+cellbase:
+	  /* empty */
+		{
+			$$ = 16;
+		}
+	| DT_BASE
+	;
+
+cellval:
+	  cellbase DT_LITERAL
+		{
+			$$ = eval_literal($2, $1, 32);
 		}
 	;
 
@@ -231,20 +244,9 @@ subnodes:
 	;
 
 subnode:
-	  label nodename nodedef
+	  label DT_PROPNODENAME nodedef
 		{
 			$$ = name_node($3, $2, $1);
-		}
-	;
-
-nodename:
-	  DT_NODENAME
-		{
-			$$ = $1;
-		}
-	| DT_PROPNAME
-		{
-			$$ = $1;
 		}
 	;
 
@@ -272,33 +274,19 @@ void yyerror (char const *s)
 		fname, yylloc.first_line, s);
 }
 
-
-/*
- * Convert a string representation of a numeric cell
- * in the given base into a cell.
- *
- * FIXME: should these specification errors be fatal instead?
- */
-
-cell_t cell_from_string(char *s, unsigned int base)
+unsigned long long eval_literal(const char *s, int base, int bits)
 {
-	cell_t c;
+	unsigned long long val;
 	char *e;
 
-	c = strtoul(s, &e, base);
-	if (*e) {
-		fprintf(stderr,
-			"Line %d: Invalid cell value '%s' : "
-			"%c is not a base %d digit; %d assumed\n",
-			yylloc.first_line, s, *e, base, c);
-	}
-
-	if (errno == EINVAL || errno == ERANGE) {
-		fprintf(stderr,
-			"Line %d: Invalid cell value '%s'; %d assumed\n",
-			yylloc.first_line, s, c);
-		errno = 0;
-	}
-
-	return c;
+	errno = 0;
+	val = strtoull(s, &e, base);
+	if (*e)
+		yyerror("bad characters in literal");
+	else if ((errno == ERANGE)
+		 || ((bits < 64) && (val >= (1ULL << bits))))
+		yyerror("literal out of range");
+	else if (errno != 0)
+		yyerror("bad literal");
+	return val;
 }
