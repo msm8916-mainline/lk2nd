@@ -23,6 +23,7 @@
 %x INCLUDE
 %x BYTESTRING
 %x PROPNODENAME
+%s V1
 
 PROPCHAR	[a-zA-Z0-9,._+*#?-]
 UNITCHAR	[0-9a-f,]
@@ -44,12 +45,18 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 #define DPRINT(fmt, ...)	do { } while (0)
 #endif
 
+static int dts_version; /* = 0 */
 
-
+#define BEGIN_DEFAULT()	if (dts_version == 0) { \
+				DPRINT("<INITIAL>\n"); \
+				BEGIN(INITIAL); \
+			} else { \
+				DPRINT("<V1>\n"); \
+				BEGIN(V1); \
+			}
 %}
 
 %%
-
 <*>"/include/"		BEGIN(INCLUDE);
 
 <INCLUDE>\"[^"\n]*\"	{
@@ -58,7 +65,7 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 				/* Some unrecoverable error.*/
 				exit(1);
 			}
-			BEGIN(INITIAL);
+			BEGIN_DEFAULT();
 		}
 
 
@@ -78,11 +85,20 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 			return DT_STRING;
 		}
 
+<*>"/dts-v1/"	{
+			yylloc.filenum = srcpos_filenum;
+			yylloc.first_line = yylineno;
+			DPRINT("Keyword: /dts-v1/\n");
+			dts_version = 1;
+			BEGIN_DEFAULT();
+			return DT_V1;
+		}
+
 <*>"/memreserve/"	{
 			yylloc.filenum = srcpos_filenum;
 			yylloc.first_line = yylineno;
 			DPRINT("Keyword: /memreserve/\n");
-			BEGIN(INITIAL);
+			BEGIN_DEFAULT();
 			return DT_MEMRESERVE;
 		}
 
@@ -95,7 +111,7 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 			return DT_LABEL;
 		}
 
-[bodh]# {
+<INITIAL>[bodh]# {
 			yylloc.filenum = srcpos_filenum;
 			yylloc.first_line = yylineno;
 			if (*yytext == 'b')
@@ -110,7 +126,15 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 			return DT_BASE;
 		}
 
-[0-9a-fA-F]+	{
+<INITIAL>[0-9a-fA-F]+	{
+			yylloc.filenum = srcpos_filenum;
+			yylloc.first_line = yylineno;
+			yylval.literal = strdup(yytext);
+			DPRINT("Literal: '%s'\n", yylval.literal);
+			return DT_LEGACYLITERAL;
+		}
+
+<V1>[0-9]+|0[xX][0-9a-fA-F]+      {
 			yylloc.filenum = srcpos_filenum;
 			yylloc.first_line = yylineno;
 			yylval.literal = strdup(yytext);
@@ -138,7 +162,7 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 			yylloc.filenum = srcpos_filenum;
 			yylloc.first_line = yylineno;
 			DPRINT("/BYTESTRING\n");
-			BEGIN(INITIAL);
+			BEGIN_DEFAULT();
 			return ']';
 		}
 
@@ -147,7 +171,7 @@ REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 			yylloc.first_line = yylineno;
 			DPRINT("PropNodeName: %s\n", yytext);
 			yylval.propnodename = strdup(yytext);
-			BEGIN(INITIAL);
+			BEGIN_DEFAULT();
 			return DT_PROPNODENAME;
 		}
 

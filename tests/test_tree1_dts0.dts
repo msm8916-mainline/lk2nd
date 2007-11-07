@@ -1,11 +1,9 @@
-/dts-v1/;
-
-/memreserve/ 0xdeadbeef00000000 0x100000;
-/memreserve/ 123456789 010000;
+/memreserve/ deadbeef00000000-deadbeef000fffff;
+/memreserve/ 75bcd15 1000;
 
 / {
 	compatible = "test_tree1";
-	prop-int = <0xdeadbeef>;
+	prop-int = <deadbeef>;
 	prop-str = "hello world";
 
 	subnode@1 {
@@ -14,16 +12,16 @@
 
 		subsubnode {
 			compatible = "subsubnode1", "subsubnode";
-			prop-int = <0xdeadbeef>;
+			prop-int = <h# deadbeef>;
 		};
 	};
 
 	subnode@2 {
-		prop-int = <123456789>;
+		prop-int = <d# 123456789>;
 
 		subsubnode@0 {
 			compatible = "subsubnode2", "subsubnode";
-			prop-int = <0726746425>;
+			prop-int = <o# 0726746425>;
 		};
 	};
 };

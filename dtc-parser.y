@@ -48,9 +48,11 @@ extern struct boot_info *the_boot_info;
 	struct reserve_info *re;
 }
 
+%token DT_V1
 %token DT_MEMRESERVE
 %token <propnodename> DT_PROPNODENAME
 %token <literal> DT_LITERAL
+%token <literal> DT_LEGACYLITERAL
 %token <cbase> DT_BASE
 %token <byte> DT_BYTE
 %token <data> DT_STRING
@@ -61,6 +63,8 @@ extern struct boot_info *the_boot_info;
 %type <data> propdataprefix
 %type <re> memreserve
 %type <re> memreserves
+%type <re> v0_memreserve
+%type <re> v0_memreserves
 %type <addr> addr
 %type <data> celllist
 %type <cbase> cellbase
@@ -78,7 +82,11 @@ extern struct boot_info *the_boot_info;
 %%
 
 sourcefile:
-	  memreserves devicetree
+	  DT_V1 ';' memreserves devicetree
+		{
+			the_boot_info = build_boot_info($3, $4);
+		}
+	| v0_memreserves devicetree
 		{
 			the_boot_info = build_boot_info($1, $2);
 		}
@@ -100,6 +108,24 @@ memreserve:
 		{
 			$$ = build_reserve_entry($3, $4, $1);
 		}
+	;
+
+v0_memreserves:
+	  /* empty */
+		{
+			$$ = NULL;
+		}
+	| v0_memreserve v0_memreserves
+		{
+			$$ = chain_reserve_entry($1, $2);
+		};
+	;
+
+v0_memreserve:
+	  memreserve
+		{
+			$$ = $1;
+		}
 	| label DT_MEMRESERVE addr '-' addr ';'
 		{
 			$$ = build_reserve_entry($3, $5 - $3 + 1, $1);
@@ -108,6 +134,10 @@ memreserve:
 
 addr:
 	  DT_LITERAL
+		{
+			$$ = eval_literal($1, 0, 64);
+		}
+	| DT_LEGACYLITERAL
 		{
 			$$ = eval_literal($1, 16, 64);
 		}
@@ -211,7 +241,11 @@ cellbase:
 	;
 
 cellval:
-	  cellbase DT_LITERAL
+	  DT_LITERAL
+		{
+			$$ = eval_literal($1, 0, 32);
+		}
+	| cellbase DT_LEGACYLITERAL
 		{
 			$$ = eval_literal($2, $1, 32);
 		}

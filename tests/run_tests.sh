@@ -123,6 +123,10 @@ dtc_tests () {
     tree1_tests_rw dtc_tree1.test.dtb
     run_test dtbs_equal_ordered dtc_tree1.test.dtb test_tree1.dtb
 
+    run_test dtc.sh -I dts -O dtb -o dtc_tree1_dts0.test.dtb test_tree1_dts0.dts
+    tree1_tests dtc_tree1_dts0.test.dtb
+    tree1_tests_rw dtc_tree1_dts0.test.dtb
+
     run_test dtc.sh -I dts -O dtb -o dtc_escapes.test.dtb escapes.dts
     run_test string_escapes dtc_escapes.test.dtb
 
