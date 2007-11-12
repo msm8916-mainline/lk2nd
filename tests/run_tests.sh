@@ -38,10 +38,12 @@ tree1_tests () {
     run_test path_offset $TREE
     run_test get_name $TREE
     run_test getprop $TREE
+    run_test get_phandle $TREE
     run_test get_path $TREE
     run_test supernode_atdepth_offset $TREE
     run_test parent_offset $TREE
     run_test node_offset_by_prop_value $TREE
+    run_test node_offset_by_phandle $TREE
     run_test node_check_compatible $TREE
     run_test node_offset_by_compatible $TREE
     run_test notfound $TREE
@@ -130,12 +132,16 @@ dtc_tests () {
     run_test dtc.sh -I dts -O dtb -o dtc_escapes.test.dtb escapes.dts
     run_test string_escapes dtc_escapes.test.dtb
 
+    run_test dtc.sh -I dts -O dtb -o dtc_references.test.dtb references.dts
+    run_test references dtc_references.test.dtb
+
     # Check -Odts mode preserve all dtb information
     for tree in test_tree1.dtb dtc_tree1.test.dtb dtc_escapes.test.dtb ; do
 	run_test dtc.sh -I dtb -O dts -o odts_$tree.test.dts $tree
 	run_test dtc.sh -I dts -O dtb -o odts_$tree.test.dtb odts_$tree.test.dts
 	run_test dtbs_equal_ordered $tree odts_$tree.test.dtb
     done
+
 }
 
 while getopts "vdt:" ARG ; do

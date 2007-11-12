@@ -1,7 +1,8 @@
 LIB_TESTS_L = get_mem_rsv \
 	root_node find_property subnode_offset path_offset \
-	get_name getprop get_path supernode_atdepth_offset parent_offset \
-	node_offset_by_prop_value \
+	get_name getprop get_phandle \
+	get_path supernode_atdepth_offset parent_offset \
+	node_offset_by_prop_value node_offset_by_phandle \
 	node_check_compatible node_offset_by_compatible \
 	notfound \
 	setprop_inplace nop_property nop_node \

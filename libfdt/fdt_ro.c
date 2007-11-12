@@ -293,6 +293,18 @@ const void *fdt_getprop(const void *fdt, int nodeoffset,
 	return prop->data;
 }
 
+uint32_t fdt_get_phandle(const void *fdt, int nodeoffset)
+{
+	const uint32_t *php;
+	int len;
+
+	php = fdt_getprop(fdt, nodeoffset, "linux,phandle", &len);
+	if (!php || (len != sizeof(*php)))
+		return 0;
+
+	return fdt32_to_cpu(*php);
+}
+
 int fdt_get_path(const void *fdt, int nodeoffset, char *buf, int buflen)
 {
 	uint32_t tag;
@@ -476,6 +488,15 @@ int fdt_node_offset_by_prop_value(const void *fdt, int startoffset,
 	} while (tag != FDT_END);
 
 	return -FDT_ERR_NOTFOUND;
+}
+
+int fdt_node_offset_by_phandle(const void *fdt, uint32_t phandle)
+{
+	if ((phandle == 0) || (phandle == -1))
+		return -FDT_ERR_BADPHANDLE;
+	phandle = cpu_to_fdt32(phandle);
+	return fdt_node_offset_by_prop_value(fdt, -1, "linux,phandle",
+					     &phandle, sizeof(phandle));
 }
 
 int _stringlist_contains(const void *strlist, int listlen, const char *str)

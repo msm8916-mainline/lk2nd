@@ -23,6 +23,9 @@
 #define TEST_VALUE_1	cell_to_fdt(0xdeadbeef)
 #define TEST_VALUE_2	cell_to_fdt(123456789)
 
+#define PHANDLE_1	0x2000
+#define PHANDLE_2	0x2001
+
 #define TEST_STRING_1	"hello world"
 #define TEST_STRING_2	"nastystring: \a\b\t\n\v\f\r\\\""
 #define TEST_STRING_3	"\xde\xad\xbe\xef"

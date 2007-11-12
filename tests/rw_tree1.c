@@ -85,8 +85,12 @@ int main(int argc, char *argv[])
 	CHECK(fdt_setprop_typed(fdt, offset, "prop-int", TEST_VALUE_1));
 
 	OFF_CHECK(offset, fdt_add_subnode(fdt, 0, "subnode@2"));
+	CHECK(fdt_setprop_typed(fdt, offset, "linux,phandle",
+				cpu_to_fdt32(PHANDLE_1)));
 	CHECK(fdt_setprop_typed(fdt, offset, "prop-int", TEST_VALUE_2));
 	OFF_CHECK(offset, fdt_add_subnode(fdt, offset, "subsubnode@0"));
+	CHECK(fdt_setprop_typed(fdt, offset, "linux,phandle",
+				cpu_to_fdt32(PHANDLE_2)));
 	CHECK(fdt_setprop(fdt, offset, "compatible",
 			  "subsubnode2\0subsubnode", 23));
 	CHECK(fdt_setprop_typed(fdt, offset, "prop-int", TEST_VALUE_2));

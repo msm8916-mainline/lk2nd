@@ -17,9 +17,11 @@
 	};
 
 	subnode@2 {
+		linux,phandle = <2000>;
 		prop-int = <d# 123456789>;
 
 		subsubnode@0 {
+			linux,phandle = <2001>;
 			compatible = "subsubnode2", "subsubnode";
 			prop-int = <o# 0726746425>;
 		};

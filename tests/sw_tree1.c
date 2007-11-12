@@ -69,8 +69,10 @@ int main(int argc, char *argv[])
 	CHECK(fdt_end_node(fdt));
 
 	CHECK(fdt_begin_node(fdt, "subnode@2"));
+	CHECK(fdt_property_typed(fdt, "linux,phandle", cpu_to_fdt32(PHANDLE_1)));
 	CHECK(fdt_property_typed(fdt, "prop-int", TEST_VALUE_2));
 	CHECK(fdt_begin_node(fdt, "subsubnode@0"));
+	CHECK(fdt_property_typed(fdt, "linux,phandle", cpu_to_fdt32(PHANDLE_2)));
 	CHECK(fdt_property(fdt, "compatible", "subsubnode2\0subsubnode",
 			   23));
 	CHECK(fdt_property_typed(fdt, "prop-int", TEST_VALUE_2));

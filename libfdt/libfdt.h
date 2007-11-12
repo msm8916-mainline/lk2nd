@@ -78,29 +78,32 @@
 	/* FDT_ERR_BADPATH: Function was passed a badly formatted path
 	 * (e.g. missing a leading / for a function which requires an
 	 * absolute path) */
-#define FDT_ERR_BADSTATE	6
+#define FDT_ERR_BADPHANDLE	6
+	/* FDT_ERR_BADPHANDLE: Function was passed an invalid phandle
+	 * value.  phandle values of 0 and -1 are not permitted. */
+#define FDT_ERR_BADSTATE	7
 	/* FDT_ERR_BADSTATE: Function was passed an incomplete device
 	 * tree created by the sequential-write functions, which is
 	 * not sufficiently complete for the requested operation. */
 
 /* Error codes: codes for bad device tree blobs */
-#define FDT_ERR_TRUNCATED	7
+#define FDT_ERR_TRUNCATED	8
 	/* FDT_ERR_TRUNCATED: Structure block of the given device tree
 	 * ends without an FDT_END tag. */
-#define FDT_ERR_BADMAGIC	8
+#define FDT_ERR_BADMAGIC	9
 	/* FDT_ERR_BADMAGIC: Given "device tree" appears not to be a
 	 * device tree at all - it is missing the flattened device
 	 * tree magic number. */
-#define FDT_ERR_BADVERSION	9
+#define FDT_ERR_BADVERSION	10
 	/* FDT_ERR_BADVERSION: Given device tree has a version which
 	 * can't be handled by the requested operation.  For
 	 * read-write functions, this may mean that fdt_open_into() is
 	 * required to convert the tree to the expected version. */
-#define FDT_ERR_BADSTRUCTURE	10
+#define FDT_ERR_BADSTRUCTURE	11
 	/* FDT_ERR_BADSTRUCTURE: Given device tree has a corrupt
 	 * structure block or other serious error (e.g. misnested
 	 * nodes, or subnodes preceding properties). */
-#define FDT_ERR_BADLAYOUT	11
+#define FDT_ERR_BADLAYOUT	12
 	/* FDT_ERR_BADLAYOUT: For read-write functions, the given
 	 * device tree has it's sub-blocks in an order that the
 	 * function can't handle (memory reserve map, then structure,
@@ -108,12 +111,12 @@
 	 * into a form suitable for the read-write operations. */
 
 /* "Can't happen" error indicating a bug in libfdt */
-#define FDT_ERR_INTERNAL	12
+#define FDT_ERR_INTERNAL	13
 	/* FDT_ERR_INTERNAL: libfdt has failed an internal assertion.
 	 * Should never be returned, if it is, it indicates a bug in
 	 * libfdt itself. */
 
-#define FDT_ERR_MAX		12
+#define FDT_ERR_MAX		13
 
 /**********************************************************************/
 /* Low-level functions (you probably don't need these)                */
@@ -412,6 +415,20 @@ static inline void *fdt_getprop_w(void *fdt, int nodeoffset,
 }
 
 /**
+ * fdt_get_phandle - retreive the phandle of a given node
+ * @fdt: pointer to the device tree blob
+ * @nodeoffset: structure block offset of the node
+ *
+ * fdt_get_phandle() retrieves the phandle of the device tree node at
+ * structure block offset nodeoffset.
+ *
+ * returns:
+ *	the phandle of the node at nodeoffset, on succes (!= 0, != -1)
+ *	0, if the node has no phandle, or another error occurs
+ */
+uint32_t fdt_get_phandle(const void *fdt, int nodeoffset);
+
+/**
  * fdt_get_path - determine the full path of a node
  * @fdt: pointer to the device tree blob
  * @nodeoffset: offset of the node whose path to find
@@ -556,6 +573,27 @@ int fdt_parent_offset(const void *fdt, int nodeoffset);
 int fdt_node_offset_by_prop_value(const void *fdt, int startoffset,
 				  const char *propname,
 				  const void *propval, int proplen);
+
+/**
+ * fdt_node_offset_by_phandle - find the node with a given phandle
+ * @fdt: pointer to the device tree blob
+ * @phandle: phandle value
+ *
+ * fdt_node_offset_by_prop_value() returns the offset of the node
+ * which has the given phandle value.  If there is more than one node
+ * in the tree with the given phandle (an invalid tree), results are
+ * undefined.
+ *
+ * returns:
+ *	structure block offset of the located node (>= 0), on success
+ *	-FDT_ERR_NOTFOUND, no node with that phandle exists
+ *	-FDT_ERR_BADPHANDLE, given phandle value was invalid (0 or -1)
+ *	-FDT_ERR_BADMAGIC,
+ *	-FDT_ERR_BADVERSION,
+ *	-FDT_ERR_BADSTATE,
+ *	-FDT_ERR_BADSTRUCTURE, standard meanings
+ */
+int fdt_node_offset_by_phandle(const void *fdt, uint32_t phandle);
 
 /**
  * fdt_node_check_compatible: check a node's compatible property
