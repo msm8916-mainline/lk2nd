@@ -21,7 +21,8 @@ TESTS_TREES = $(TESTS_TREES_L:%=$(TESTS_PREFIX)%)
 
 TESTS_TARGETS = $(TESTS) $(TESTS_TREES)
 
-TESTS_DEPFILES = $(TESTS:%=%.d) $(TESTS_PREFIX)testutils.d
+TESTS_DEPFILES = $(TESTS:%=%.d) \
+	$(addprefix $(TESTS_PREFIX),testutils.d trees.d dumptrees.d)
 
 TESTS_CLEANFILES_L =  *.output vgcore.* *.dtb *.test.dts
 TESTS_CLEANFILES = $(TESTS_CLEANFILES_L:%=$(TESTS_PREFIX)%)

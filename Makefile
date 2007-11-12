@@ -188,6 +188,10 @@ clean: libfdt_clean tests_clean
 	@$(VECHO) DEP $<
 	$(CC) $(CPPFLAGS) -MM -MG -MT "$*.o $@" $< > $@
 
+%.d: %.S
+	@$(VECHO) DEP $<
+	$(CC) $(CPPFLAGS) -MM -MG -MT "$*.o $@" $< > $@
+
 %.i:	%.c
 	@$(VECHO) CPP $@
 	$(CC) $(CPPFLAGS) -E $< > $@
