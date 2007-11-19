@@ -128,12 +128,6 @@ static inline void *fdt_offset_ptr_w(void *fdt, int offset, int checklen)
 	return (void *)fdt_offset_ptr(fdt, offset, checklen);
 }
 
-
-#define fdt_offset_ptr_typed(fdt, offset, var) \
-	((typeof(var))(fdt_offset_ptr((fdt), (offset), sizeof(*(var)))))
-#define fdt_offset_ptr_typed_w(fdt, offset, var) \
-	((typeof(var))(fdt_offset_ptr_w((fdt), (offset), sizeof(*(var)))))
-
 uint32_t fdt_next_tag(const void *fdt, int offset, int *nextoffset);
 
 /**********************************************************************/

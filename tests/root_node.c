@@ -32,12 +32,12 @@
 int main(int argc, char *argv[])
 {
 	void *fdt;
-	struct fdt_node_header *nh;
+	const struct fdt_node_header *nh;
 
 	test_init(argc, argv);
 	fdt = load_blob_arg(argc, argv);
 
-	nh = fdt_offset_ptr_typed(fdt, 0, nh);
+	nh = fdt_offset_ptr(fdt, 0, sizeof(*nh));
 
 	if (! nh)
 		FAIL("NULL retrieving root node");

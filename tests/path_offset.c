@@ -31,7 +31,7 @@
 int check_subnode(void *fdt, int parent, const char *name)
 {
 	int offset;
-	struct fdt_node_header *nh;
+	const struct fdt_node_header *nh;
 	uint32_t tag;
 
 	verbose_printf("Checking subnode \"%s\" of %d...", name, parent);
@@ -39,7 +39,7 @@ int check_subnode(void *fdt, int parent, const char *name)
 	verbose_printf("offset %d...", offset);
 	if (offset < 0)
 		FAIL("fdt_subnode_offset(\"%s\"): %s", name, fdt_strerror(offset));
-	nh = fdt_offset_ptr_typed(fdt, offset, nh);
+	nh = fdt_offset_ptr(fdt, offset, sizeof(*nh));
 	verbose_printf("pointer %p\n", nh);
 	if (! nh)
 		FAIL("NULL retrieving subnode \"%s\"", name);

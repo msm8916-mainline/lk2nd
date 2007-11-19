@@ -249,7 +249,7 @@ const struct fdt_property *fdt_get_property(const void *fdt,
 
 		case FDT_PROP:
 			err = -FDT_ERR_BADSTRUCTURE;
-			prop = fdt_offset_ptr_typed(fdt, offset, prop);
+			prop = fdt_offset_ptr(fdt, offset, sizeof(*prop));
 			if (! prop)
 				goto fail;
 			namestroff = fdt32_to_cpu(prop->nameoff);

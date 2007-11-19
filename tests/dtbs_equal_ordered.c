@@ -93,10 +93,10 @@ void compare_structure(const void *fdt1, const void *fdt2)
 			break;
 
 		case FDT_PROP:
-			prop1 = fdt_offset_ptr_typed(fdt1, offset1, prop1);
+			prop1 = fdt_offset_ptr(fdt1, offset1, sizeof(*prop1));
 			if (!prop1)
 				FAIL("Could get fdt1 property at %d", offset1);
-			prop2 = fdt_offset_ptr_typed(fdt2, offset2, prop2);
+			prop2 = fdt_offset_ptr(fdt2, offset2, sizeof(*prop2));
 			if (!prop2)
 				FAIL("Could get fdt2 property at %d", offset2);
 
