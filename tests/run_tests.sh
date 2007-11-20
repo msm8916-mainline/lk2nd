@@ -2,8 +2,6 @@
 
 export QUIET_TEST=1
 
-ENV=/usr/bin/env
-
 tot_tests=0
 tot_pass=0
 tot_fail=0
@@ -13,7 +11,7 @@ tot_strange=0
 run_test () {
     tot_tests=$[tot_tests + 1]
     echo -n "$@:	"
-    if PATH=".:$PATH" $ENV "$@"; then
+    if "./$@"; then
 	tot_pass=$[tot_pass + 1]
     else
 	ret="$?"
