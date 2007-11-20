@@ -142,6 +142,12 @@ dtc_tests () {
 	run_test dtbs_equal_ordered $tree odts_$tree.test.dtb
     done
 
+    # Check some checks
+    run_test dtc-checkfails.sh -I dts -O dtb dup-nodename.dts
+    run_test dtc-checkfails.sh -I dts -O dtb dup-propname.dts
+    run_test dtc-checkfails.sh -I dts -O dtb dup-phandle.dts
+    run_test dtc-checkfails.sh -I dts -O dtb zero-phandle.dts
+    run_test dtc-checkfails.sh -I dts -O dtb minusone-phandle.dts
 }
 
 while getopts "vdt:" ARG ; do

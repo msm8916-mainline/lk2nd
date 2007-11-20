@@ -101,7 +101,7 @@ static int check_phandles(struct node *root, struct node *node)
 	for_each_child(node, child)
 		ok = ok && check_phandles(root, child);
 
-	return 1;
+	return ok;
 }
 
 int check_structure(struct node *dt)
