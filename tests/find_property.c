@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
 	test_init(argc, argv);
 	fdt = load_blob_arg(argc, argv);
 
-	check_property_typed(fdt, 0, "prop-int", TEST_VALUE_1);
+	check_property_cell(fdt, 0, "prop-int", TEST_VALUE_1);
 	check_property(fdt, 0, "prop-str", strlen(TEST_STRING_1)+1, TEST_STRING_1);
 
 	PASS();

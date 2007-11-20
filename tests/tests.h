@@ -112,18 +112,18 @@ void check_mem_rsv(void *fdt, int n, uint64_t addr, uint64_t size);
 
 void check_property(void *fdt, int nodeoffset, const char *name,
 		    int len, const void *val);
-#define check_property_typed(fdt, nodeoffset, name, val) \
+#define check_property_cell(fdt, nodeoffset, name, val) \
 	({ \
-		typeof(val) x = val; \
+		uint32_t x = cpu_to_fdt32(val);			      \
 		check_property(fdt, nodeoffset, name, sizeof(x), &x); \
 	})
 
 
 const void *check_getprop(void *fdt, int nodeoffset, const char *name,
 			  int len, const void *val);
-#define check_getprop_typed(fdt, nodeoffset, name, val) \
+#define check_getprop_cell(fdt, nodeoffset, name, val) \
 	({ \
-		typeof(val) x = val; \
+		uint32_t x = cpu_to_fdt32(val);			     \
 		check_getprop(fdt, nodeoffset, name, sizeof(x), &x); \
 	})
 #define check_getprop_string(fdt, nodeoffset, name, s) \

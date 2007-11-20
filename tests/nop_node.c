@@ -43,19 +43,19 @@ int main(int argc, char *argv[])
 	if (subnode1_offset < 0)
 		FAIL("Couldn't find \"/subnode1\": %s",
 		     fdt_strerror(subnode1_offset));
-	check_getprop_typed(fdt, subnode1_offset, "prop-int", TEST_VALUE_1);
+	check_getprop_cell(fdt, subnode1_offset, "prop-int", TEST_VALUE_1);
 
 	subnode2_offset = fdt_path_offset(fdt, "/subnode@2");
 	if (subnode2_offset < 0)
 		FAIL("Couldn't find \"/subnode2\": %s",
 		     fdt_strerror(subnode2_offset));
-	check_getprop_typed(fdt, subnode2_offset, "prop-int", TEST_VALUE_2);
+	check_getprop_cell(fdt, subnode2_offset, "prop-int", TEST_VALUE_2);
 
 	subsubnode2_offset = fdt_path_offset(fdt, "/subnode@2/subsubnode");
 	if (subsubnode2_offset < 0)
 		FAIL("Couldn't find \"/subnode@2/subsubnode\": %s",
 		     fdt_strerror(subsubnode2_offset));
-	check_getprop_typed(fdt, subsubnode2_offset, "prop-int", TEST_VALUE_2);
+	check_getprop_cell(fdt, subsubnode2_offset, "prop-int", TEST_VALUE_2);
 
 	err = fdt_nop_node(fdt, subnode1_offset);
 	if (err)
@@ -71,13 +71,13 @@ int main(int argc, char *argv[])
 	if (subnode2_offset < 0)
 		FAIL("Couldn't find \"/subnode2\": %s",
 		     fdt_strerror(subnode2_offset));
-	check_getprop_typed(fdt, subnode2_offset, "prop-int", TEST_VALUE_2);
+	check_getprop_cell(fdt, subnode2_offset, "prop-int", TEST_VALUE_2);
 
 	subsubnode2_offset = fdt_path_offset(fdt, "/subnode@2/subsubnode");
 	if (subsubnode2_offset < 0)
 		FAIL("Couldn't find \"/subnode@2/subsubnode\": %s",
 		     fdt_strerror(subsubnode2_offset));
-	check_getprop_typed(fdt, subsubnode2_offset, "prop-int", TEST_VALUE_2);
+	check_getprop_cell(fdt, subsubnode2_offset, "prop-int", TEST_VALUE_2);
 
 	err = fdt_nop_node(fdt, subnode2_offset);
 	if (err)

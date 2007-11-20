@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
 
 	oldsize = fdt_totalsize(fdt);
 
-	intp = check_getprop_typed(fdt, 0, "prop-int", TEST_VALUE_1);
+	intp = check_getprop_cell(fdt, 0, "prop-int", TEST_VALUE_1);
 	verbose_printf("int value was 0x%08x\n", *intp);
 
 	err = fdt_delprop(fdt, 0, "prop-int");

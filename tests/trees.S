@@ -50,8 +50,7 @@ tree##_rsvmap_end:		;
 
 #define PROP_INT(tree, name, val) \
 	PROPHDR(tree, name, 4) \
-	/* For ease of testing the property values go in native-endian */ \
-	.long	val		;
+	FDTLONG(val)		;
 
 #define PROP_STR(tree, name, str) \
 	PROPHDR(tree, name, 55f - 54f) \
@@ -100,11 +99,11 @@ test_tree1_struct:
 	END_NODE
 
 	BEGIN_NODE("subnode@2")
-	PROP_INT(test_tree1, phandle, cell_to_fdt(PHANDLE_1))
+	PROP_INT(test_tree1, phandle, PHANDLE_1)
 	PROP_INT(test_tree1, prop_int, TEST_VALUE_2)
 
 	BEGIN_NODE("subsubnode@0")
-	PROP_INT(test_tree1, phandle, cell_to_fdt(PHANDLE_2))
+	PROP_INT(test_tree1, phandle, PHANDLE_2)
 	PROP_STR(test_tree1, compatible, "subsubnode2\0subsubnode")
 	PROP_INT(test_tree1, prop_int, TEST_VALUE_2)
 	END_NODE

@@ -42,14 +42,14 @@ int main(int argc, char *argv[])
 	test_init(argc, argv);
 	fdt = load_blob_arg(argc, argv);
 
-	intp = check_getprop_typed(fdt, 0, "prop-int", TEST_VALUE_1);
+	intp = check_getprop_cell(fdt, 0, "prop-int", TEST_VALUE_1);
 
 	verbose_printf("Old int value was 0x%08x\n", *intp);
-	err = fdt_setprop_inplace_typed(fdt, 0, "prop-int", ~TEST_VALUE_1);
+	err = fdt_setprop_inplace_cell(fdt, 0, "prop-int", ~TEST_VALUE_1);
 	if (err)
 		FAIL("Failed to set \"prop-int\" to 0x08%x: %s",
 		     ~TEST_VALUE_1, fdt_strerror(err));
-	intp = check_getprop_typed(fdt, 0, "prop-int", ~TEST_VALUE_1);
+	intp = check_getprop_cell(fdt, 0, "prop-int", ~TEST_VALUE_1);
 	verbose_printf("New int value is 0x%08x\n", *intp);
 
 	strp = check_getprop(fdt, 0, "prop-str", strlen(TEST_STRING_1)+1,

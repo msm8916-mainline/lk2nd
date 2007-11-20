@@ -663,12 +663,12 @@ int fdt_node_offset_by_compatible(const void *fdt, int startoffset,
 
 int fdt_setprop_inplace(void *fdt, int nodeoffset, const char *name,
 			const void *val, int len);
-
-#define fdt_setprop_inplace_typed(fdt, nodeoffset, name, val) \
-	({ \
-		typeof(val) x = val; \
-		fdt_setprop_inplace(fdt, nodeoffset, name, &x, sizeof(x)); \
-	})
+static inline int fdt_setprop_inplace_cell(void *fdt, int nodeoffset,
+					   const char *name, uint32_t val)
+{
+	val = cpu_to_fdt32(val);
+	return fdt_setprop_inplace(fdt, nodeoffset, name, &val, sizeof(val));
+}
 
 int fdt_nop_property(void *fdt, int nodeoffset, const char *name);
 int fdt_nop_node(void *fdt, int nodeoffset);
@@ -682,11 +682,11 @@ int fdt_add_reservemap_entry(void *fdt, uint64_t addr, uint64_t size);
 int fdt_finish_reservemap(void *fdt);
 int fdt_begin_node(void *fdt, const char *name);
 int fdt_property(void *fdt, const char *name, const void *val, int len);
-#define fdt_property_typed(fdt, name, val) \
-	({ \
-		typeof(val) x = (val); \
-		fdt_property((fdt), (name), &x, sizeof(x)); \
-	})
+static inline int fdt_property_cell(void *fdt, const char *name, uint32_t val)
+{
+	val = cpu_to_fdt32(val);
+	return fdt_property(fdt, name, &val, sizeof(val));
+}
 #define fdt_property_string(fdt, name, str) \
 	fdt_property(fdt, name, str, strlen(str)+1)
 int fdt_end_node(void *fdt);
@@ -704,11 +704,12 @@ int fdt_del_mem_rsv(void *fdt, int n);
 
 int fdt_setprop(void *fdt, int nodeoffset, const char *name,
 		const void *val, int len);
-#define fdt_setprop_typed(fdt, nodeoffset, name, val) \
-	({ \
-		typeof(val) x = (val); \
-		fdt_setprop((fdt), (nodeoffset), (name), &x, sizeof(x)); \
-	})
+static inline int fdt_setprop_cell(void *fdt, int nodeoffset, const char *name,
+				   uint32_t val)
+{
+	val = cpu_to_fdt32(val);
+	return fdt_setprop(fdt, nodeoffset, name, &val, sizeof(val));
+}
 #define fdt_setprop_string(fdt, nodeoffset, name, str) \
 	fdt_setprop((fdt), (nodeoffset), (name), (str), strlen(str)+1)
 int fdt_delprop(void *fdt, int nodeoffset, const char *name);

@@ -20,8 +20,8 @@
 #define TEST_ADDR_2	ASM_CONST_LL(123456789)
 #define TEST_SIZE_2	ASM_CONST_LL(010000)
 
-#define TEST_VALUE_1	cell_to_fdt(0xdeadbeef)
-#define TEST_VALUE_2	cell_to_fdt(123456789)
+#define TEST_VALUE_1	0xdeadbeef
+#define TEST_VALUE_2	123456789
 
 #define PHANDLE_1	0x2000
 #define PHANDLE_2	0x2001

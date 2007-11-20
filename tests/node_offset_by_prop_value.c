@@ -67,9 +67,9 @@ void check_search_str(void *fdt, const char *propname, const char *propval, ...)
 	va_end(ap);
 }
 
-#define check_search_val(fdt, propname, propval, ...) \
+#define check_search_cell(fdt, propname, propval, ...) \
 	{ \
-		typeof(propval) val = (propval); \
+		uint32_t val = cpu_to_fdt32(propval); \
 		check_search((fdt), (propname), &val, sizeof(val), \
 			     ##__VA_ARGS__); \
 	}
@@ -92,17 +92,17 @@ int main(int argc, char *argv[])
 	    || (subsubnode1_offset < 0) || (subsubnode2_offset < 0))
 		FAIL("Can't find required nodes");
 
-	check_search_val(fdt, "prop-int", TEST_VALUE_1, 0, subnode1_offset,
-			 subsubnode1_offset, -FDT_ERR_NOTFOUND);
+	check_search_cell(fdt, "prop-int", TEST_VALUE_1, 0, subnode1_offset,
+			  subsubnode1_offset, -FDT_ERR_NOTFOUND);
 
-	check_search_val(fdt, "prop-int", TEST_VALUE_2, subnode2_offset,
-			 subsubnode2_offset, -FDT_ERR_NOTFOUND);
+	check_search_cell(fdt, "prop-int", TEST_VALUE_2, subnode2_offset,
+			  subsubnode2_offset, -FDT_ERR_NOTFOUND);
 
 	check_search_str(fdt, "prop-str", TEST_STRING_1, 0, -FDT_ERR_NOTFOUND);
 
 	check_search_str(fdt, "prop-str", "no such string", -FDT_ERR_NOTFOUND);
 
-	check_search_val(fdt, "prop-int", TEST_VALUE_1+1, -FDT_ERR_NOTFOUND);
+	check_search_cell(fdt, "prop-int", TEST_VALUE_1+1, -FDT_ERR_NOTFOUND);
 
 	check_search(fdt, "no-such-prop", NULL, 0, -FDT_ERR_NOTFOUND);
 
