@@ -76,13 +76,13 @@ libfdt_tests () {
     for tree in test_tree1.dtb sw_tree1.test.dtb unfinished_tree1.test.dtb; do
 	rm -f moved.$tree shunted.$tree deshunted.$tree
 	run_test move_and_save $tree
-	tree1_tests moved.$tree
-	tree1_tests shunted.$tree
-	tree1_tests deshunted.$tree
+	run_test dtbs_equal_ordered $tree moved.$tree
+	run_test dtbs_equal_ordered $tree shunted.$tree
+	run_test dtbs_equal_ordered $tree deshunted.$tree
     done
 
     # v16 and alternate layout tests
-    for tree in test_tree1.dtb sw_tree1.test.dtb; do
+    for tree in test_tree1.dtb; do
 	for version in 17 16; do
 	    for layout in $ALL_LAYOUTS; do
 		run_test mangle-layout $tree $version $layout
@@ -93,13 +93,12 @@ libfdt_tests () {
     done
 
     # Read-write tests
-    for basetree in test_tree1.dtb sw_tree1.test.dtb; do
+    for basetree in test_tree1.dtb; do
 	for version in 17 16; do
 	    for layout in $ALL_LAYOUTS; do
 		tree=v$version.$layout.$basetree
 		rm -f opened.$tree repacked.$tree
 		run_test open_pack $tree
-		tree1_tests $tree
 		tree1_tests opened.$tree
 		tree1_tests repacked.$tree
 
