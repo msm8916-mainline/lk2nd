@@ -2,16 +2,26 @@
 
 export QUIET_TEST=1
 
+export VALGRIND=
+VGCODE=126
+
 tot_tests=0
 tot_pass=0
 tot_fail=0
 tot_config=0
+tot_vg=0
 tot_strange=0
 
 run_test () {
     tot_tests=$[tot_tests + 1]
     echo -n "$@:	"
-    if "./$@"; then
+    VGLOCAL="$VALGRIND"
+    if [ -n "$VALGRIND" ]; then
+	if [ -f $1.supp ]; then
+	    VGLOCAL="$VGLOCAL --suppressions=$1.supp"
+	fi
+    fi
+    if $VGLOCAL "./$@"; then
 	tot_pass=$[tot_pass + 1]
     else
 	ret="$?"
@@ -19,6 +29,8 @@ run_test () {
 	    tot_config=$[tot_config + 1]
 	elif [ "$ret" == "2" ]; then
 	    tot_fail=$[tot_fail + 1]
+	elif [ "$ret" == "$VGCODE" ]; then
+	    tot_vg=$[tot_vg + 1]
 	else
 	    tot_strange=$[tot_strange + 1]
 	fi
@@ -147,13 +159,16 @@ dtc_tests () {
     run_test dtc-checkfails.sh -I dts -O dtb minusone-phandle.dts
 }
 
-while getopts "vdt:" ARG ; do
+while getopts "vt:m" ARG ; do
     case $ARG in
 	"v")
 	    unset QUIET_TEST
 	    ;;
 	"t")
 	    TESTSETS=$OPTARG
+	    ;;
+	"m")
+	    VALGRIND="valgrind --tool=memcheck -q --error-exitcode=$VGCODE"
 	    ;;
     esac
 done
@@ -181,6 +196,9 @@ echo -e "*     Total testcases:	$tot_tests"
 echo -e "*                PASS:	$tot_pass"
 echo -e "*                FAIL:	$tot_fail"
 echo -e "*   Bad configuration:	$tot_config"
+if [ -n "$VALGRIND" ]; then
+    echo -e "*    valgrind errors:	$tot_vg"
+fi
 echo -e "* Strange test result:	$tot_strange"
 echo -e "**********"
 
