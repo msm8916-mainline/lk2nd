@@ -25,11 +25,11 @@
 %x PROPNODENAME
 %s V1
 
-PROPCHAR	[a-zA-Z0-9,._+*#?-]
-UNITCHAR	[0-9a-f,]
+PROPNODECHAR	[a-zA-Z0-9,._+*#?@-]
+PATHCHAR	({PROPNODECHAR}|[/])
+LEGACYPATHCHAR	[a-zA-Z0-9_@/]
+LABEL		[a-zA-Z_][a-zA-Z0-9_]*
 WS		[[:space:]]
-
-REFCHAR		({PROPCHAR}|{UNITCHAR}|[/@])
 
 %{
 #include "dtc.h"
@@ -102,7 +102,7 @@ static int dts_version; /* = 0 */
 			return DT_MEMRESERVE;
 		}
 
-<*>[a-zA-Z_][a-zA-Z0-9_]*:	{
+<*>{LABEL}:	{
 			yylloc.filenum = srcpos_filenum;
 			yylloc.first_line = yylineno;
 			DPRINT("Label: %s\n", yytext);
@@ -142,7 +142,24 @@ static int dts_version; /* = 0 */
 			return DT_LITERAL;
 		}
 
-\&{REFCHAR}*	{
+\&{LABEL}	{	/* label reference */
+			yylloc.filenum = srcpos_filenum;
+			yylloc.first_line = yylineno;
+			DPRINT("Ref: %s\n", yytext+1);
+			yylval.labelref = strdup(yytext+1);
+			return DT_REF;
+		}
+
+"&{/"{PATHCHAR}+\}	{	/* new-style path reference */
+			yylloc.filenum = srcpos_filenum;
+			yylloc.first_line = yylineno;
+			yytext[yyleng-1] = '\0';
+			DPRINT("Ref: %s\n", yytext+2);
+			yylval.labelref = strdup(yytext+2);
+			return DT_REF;
+		}
+
+<INITIAL>"&/"{LEGACYPATHCHAR}+ {	/* old-style path reference */
 			yylloc.filenum = srcpos_filenum;
 			yylloc.first_line = yylineno;
 			DPRINT("Ref: %s\n", yytext+1);
@@ -166,7 +183,7 @@ static int dts_version; /* = 0 */
 			return ']';
 		}
 
-<PROPNODENAME>{PROPCHAR}+(@{UNITCHAR}+)? {
+<PROPNODENAME>{PROPNODECHAR}+ {
 			yylloc.filenum = srcpos_filenum;
 			yylloc.first_line = yylineno;
 			DPRINT("PropNodeName: %s\n", yytext);
