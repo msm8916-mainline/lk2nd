@@ -194,7 +194,7 @@ propdata:
 		}
 	| propdata DT_LABEL
 		{
-			$$ = data_add_label($1, $2);
+			$$ = data_add_marker($1, LABEL, $2);
 		}
 	;
 
@@ -209,7 +209,7 @@ propdataprefix:
 		}
 	| propdataprefix DT_LABEL
 		{
-			$$ = data_add_label($1, $2);
+			$$ = data_add_marker($1, LABEL, $2);
 		}
 	;
 
@@ -224,11 +224,12 @@ celllist:
 		}
 	| celllist DT_REF
 		{
-			$$ = data_append_cell(data_add_fixup($1, $2), -1);
+			$$ = data_append_cell(data_add_marker($1, REF_PHANDLE,
+							      $2), -1);
 		}
 	| celllist DT_LABEL
 		{
-			$$ = data_add_label($1, $2);
+			$$ = data_add_marker($1, LABEL, $2);
 		}
 	;
 
@@ -262,7 +263,7 @@ bytestring:
 		}
 	| bytestring DT_LABEL
 		{
-			$$ = data_add_label($1, $2);
+			$$ = data_add_marker($1, LABEL, $2);
 		}
 	;
 

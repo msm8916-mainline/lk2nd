@@ -101,23 +101,34 @@ typedef u32 cell_t;
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
 /* Data blobs */
-struct fixup {
+enum markertype {
+	REF_PHANDLE,
+	LABEL,
+};
+
+struct  marker {
+	enum markertype type;
 	int offset;
 	char *ref;
-	struct fixup *next;
+	struct marker *next;
 };
 
 struct data {
 	int len;
 	char *val;
 	int asize;
-	struct fixup *refs;
-	struct fixup *labels;
+	struct marker *markers;
 };
+
 
 #define empty_data ((struct data){ /* all .members = 0 or NULL */ })
 
-void fixup_free(struct fixup *f);
+#define for_each_marker(m) \
+	for (; (m); (m) = (m)->next)
+#define for_each_marker_of_type(m, t) \
+	for_each_marker(m) \
+		if ((m)->type == (t))
+
 void data_free(struct data d);
 
 struct data data_grow_for(struct data d, int xlen);
@@ -135,8 +146,7 @@ struct data data_append_byte(struct data d, uint8_t byte);
 struct data data_append_zeroes(struct data d, int len);
 struct data data_append_align(struct data d, int align);
 
-struct data data_add_fixup(struct data d, char *ref);
-struct data data_add_label(struct data d, char *label);
+struct data data_add_marker(struct data d, enum markertype type, char *ref);
 
 int data_is_one_string(struct data d);
 

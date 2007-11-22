@@ -243,26 +243,22 @@ NODE_CHECK(explicit_phandles, NULL, ERROR);
 static void fixup_phandle_references(struct check *c, struct node *dt,
 				     struct node *node, struct property *prop)
 {
-      struct fixup *f = prop->val.refs;
+      struct marker *m = prop->val.markers;
       struct node *refnode;
       cell_t phandle;
 
-      while (f) {
-	      assert(f->offset + sizeof(cell_t) <= prop->val.len);
+      for_each_marker_of_type(m, REF_PHANDLE) {
+	      assert(m->offset + sizeof(cell_t) <= prop->val.len);
 
-	      refnode = get_node_by_ref(dt, f->ref);
+	      refnode = get_node_by_ref(dt, m->ref);
 	      if (! refnode) {
 		      FAIL(c, "Reference to non-existent node or label \"%s\"\n",
-			   f->ref);
-	      } else {
-		      phandle = get_node_phandle(dt, refnode);
-
-		      *((cell_t *)(prop->val.val + f->offset)) = cpu_to_be32(phandle);
+			   m->ref);
+		      continue;
 	      }
 
-              prop->val.refs = f->next;
-              fixup_free(f);
-              f = prop->val.refs;
+	      phandle = get_node_phandle(dt, refnode);
+	      *((cell_t *)(prop->val.val + m->offset)) = cpu_to_be32(phandle);
       }
 }
 CHECK(phandle_references, NULL, NULL, fixup_phandle_references, NULL, ERROR,
