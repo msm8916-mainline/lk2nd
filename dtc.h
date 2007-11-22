@@ -193,9 +193,11 @@ char *get_unitname(struct node *node);
 struct property *get_property(struct node *node, char *propname);
 cell_t propval_cell(struct property *prop);
 struct node *get_subnode(struct node *node, char *nodename);
+struct node *get_node_by_path(struct node *tree, char *path);
+struct node *get_node_by_label(struct node *tree, const char *label);
 struct node *get_node_by_phandle(struct node *tree, cell_t phandle);
-
-void fixup_references(struct node *dt);
+struct node *get_node_by_ref(struct node *tree, char *ref);
+cell_t get_node_phandle(struct node *root, struct node *node);
 
 /* Boot info (tree plus memreserve information */
 
@@ -224,7 +226,7 @@ struct boot_info *build_boot_info(struct reserve_info *reservelist,
 
 /* Checks */
 
-int check_structure(struct node *dt);
+void process_checks(int force, struct node *dt);
 int check_semantics(struct node *dt, int outversion, int boot_cpuid_phys);
 
 /* Flattened trees */

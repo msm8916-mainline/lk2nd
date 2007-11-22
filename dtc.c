@@ -193,17 +193,7 @@ int main(int argc, char *argv[])
 	if (! bi || ! bi->dt)
 		die("Couldn't read input tree\n");
 
-	structure_ok = check_structure(bi->dt);
-	if (!structure_ok) {
-		if (!force) {
-			fprintf(stderr, "ERROR: Input tree has structural errors, aborting (use -f to force output)\n");
-			exit(2);
-		} else if (quiet < 3) {
-			fprintf(stderr, "Warning: Input tree has structural errors, output forced\n");
-		}
-	}
-
-	fixup_references(bi->dt);
+	process_checks(force, bi->dt);
 
 	if (check) {
 		if (!structure_ok) {

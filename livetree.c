@@ -216,7 +216,7 @@ struct node *get_subnode(struct node *node, char *nodename)
 	return NULL;
 }
 
-static struct node *get_node_by_path(struct node *tree, char *path)
+struct node *get_node_by_path(struct node *tree, char *path)
 {
 	char *p;
 	struct node *child;
@@ -239,7 +239,7 @@ static struct node *get_node_by_path(struct node *tree, char *path)
 	return NULL;
 }
 
-static struct node *get_node_by_label(struct node *tree, const char *label)
+struct node *get_node_by_label(struct node *tree, const char *label)
 {
 	struct node *child, *node;
 
@@ -275,7 +275,15 @@ struct node *get_node_by_phandle(struct node *tree, cell_t phandle)
 	return NULL;
 }
 
-static cell_t get_node_phandle(struct node *root, struct node *node)
+struct node *get_node_by_ref(struct node *tree, char *ref)
+{
+	if (ref[0] == '/')
+		return get_node_by_path(tree, ref);
+	else
+		return get_node_by_label(tree, ref);
+}
+
+cell_t get_node_phandle(struct node *root, struct node *node)
 {
 	static cell_t phandle = 1; /* FIXME: ick, static local */
 
@@ -294,57 +302,4 @@ static cell_t get_node_phandle(struct node *root, struct node *node)
 				    NULL));
 
 	return node->phandle;
-}
-
-/*
- * Reference fixup functions
- */
-
-static void apply_fixup(struct node *root, struct property *prop,
-			struct fixup *f)
-{
-	struct node *refnode;
-	cell_t phandle;
-
-	if (f->ref[0] == '/') {
-		/* Reference to full path */
-		refnode = get_node_by_path(root, f->ref);
-		if (! refnode)
-			die("Reference to non-existent node \"%s\"\n", f->ref);
-	} else {
-		refnode = get_node_by_label(root, f->ref);
-		if (! refnode)
-			die("Reference to non-existent node label \"%s\"\n", f->ref);
-	}
-
-	phandle = get_node_phandle(root, refnode);
-
-	assert(f->offset + sizeof(cell_t) <= prop->val.len);
-
-	*((cell_t *)(prop->val.val + f->offset)) = cpu_to_be32(phandle);
-}
-
-static void fixup_phandles(struct node *root, struct node *node)
-{
-	struct property *prop;
-	struct node *child;
-
-	for_each_property(node, prop) {
-		struct fixup *f = prop->val.refs;
-
-		while (f) {
-			apply_fixup(root, prop, f);
-			prop->val.refs = f->next;
-			fixup_free(f);
-			f = prop->val.refs;
-		}
-	}
-
-	for_each_child(node, child)
-		fixup_phandles(root, child);
-}
-
-void fixup_references(struct node *dt)
-{
-	fixup_phandles(dt, dt);
 }
