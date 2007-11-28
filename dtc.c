@@ -29,6 +29,7 @@
 int quiet;		/* Level of quietness */
 int reservenum;		/* Number of memory reservation slots */
 int minsize;		/* Minimum blob size */
+int padsize;		/* Additional padding to blob */
 
 char *join_path(char *path, char *name)
 {
@@ -97,6 +98,8 @@ static void  __attribute__ ((noreturn)) usage(void)
 	fprintf(stderr, "\t\tMake space for <number> reserve map entries (relevant for \n\t\tdtb and asm output only)\n");
 	fprintf(stderr, "\t-S <bytes>\n");
 	fprintf(stderr, "\t\tMake the blob at least <bytes> long (extra space)\n");
+	fprintf(stderr, "\t-p <bytes>\n");
+	fprintf(stderr, "\t\tAdd padding to the blob of <bytes> long (extra space)\n");
 	fprintf(stderr, "\t-b <number>\n");
 	fprintf(stderr, "\t\tSet the physical boot cpu\n");
 	fprintf(stderr, "\t-f\n");
@@ -124,8 +127,9 @@ int main(int argc, char *argv[])
 	quiet      = 0;
 	reservenum = 0;
 	minsize    = 0;
+	padsize    = 0;
 
-	while ((opt = getopt(argc, argv, "hI:O:o:V:R:S:fcqb:v")) != EOF) {
+	while ((opt = getopt(argc, argv, "hI:O:o:V:R:S:p:fcqb:v")) != EOF) {
 		switch (opt) {
 		case 'I':
 			inform = optarg;
@@ -144,6 +148,9 @@ int main(int argc, char *argv[])
 			break;
 		case 'S':
 			minsize = strtol(optarg, NULL, 0);
+			break;
+		case 'p':
+			padsize = strtol(optarg, NULL, 0);
 			break;
 		case 'f':
 			force = 1;
@@ -172,6 +179,11 @@ int main(int argc, char *argv[])
 		arg = "-";
 	else
 		arg = argv[optind];
+
+	/* minsize and padsize are mutually exclusive */
+	if ((minsize) && (padsize)) {
+		die("Can't set both -p and -S\n");
+	}
 
 	fprintf(stderr, "DTC: %s->%s  on file \"%s\"\n",
 		inform, outform, arg);

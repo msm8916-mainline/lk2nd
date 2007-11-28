@@ -367,7 +367,7 @@ void dt_to_blob(FILE *f, struct boot_info *bi, int version,
 	struct data dtbuf      = empty_data;
 	struct data strbuf     = empty_data;
 	struct fdt_header fdt;
-	int padlen;
+	int padlen = 0;
 
 	for (i = 0; i < ARRAY_SIZE(version_table); i++) {
 		if (version_table[i].version == version)
@@ -388,15 +388,16 @@ void dt_to_blob(FILE *f, struct boot_info *bi, int version,
 	/*
 	 * If the user asked for more space than is used, adjust the totalsize.
 	 */
-	padlen = minsize - be32_to_cpu(fdt.totalsize);
-	if (padlen > 0) {
-		fdt.totalsize = cpu_to_be32(minsize);
-	} else {
-		if ((minsize > 0) && (quiet < 1))
+	if (minsize > 0) {
+		padlen = minsize - be32_to_cpu(fdt.totalsize);
+		if ((padlen < 0) && (quiet < 1))
 			fprintf(stderr,
 				"Warning: blob size %d >= minimum size %d\n",
 				be32_to_cpu(fdt.totalsize), minsize);
 	}
+
+	if (padsize > 0)
+		padlen = padsize;
 
 	/*
 	 * Assemble the blob: start with the header, add with alignment
@@ -414,8 +415,10 @@ void dt_to_blob(FILE *f, struct boot_info *bi, int version,
 	 * If the user asked for more space than is used, pad out the blob.
 	 */
 	if (padlen > 0) {
+		int tsize = be32_to_cpu(fdt.totalsize);
+		tsize += padlen;
 		blob = data_append_zeroes(blob, padlen);
-		fdt.totalsize = cpu_to_be32(minsize);
+		fdt.totalsize = cpu_to_be32(tsize);
 	}
 
 	fwrite(blob.val, blob.len, 1, f);
@@ -544,6 +547,9 @@ void dt_to_asm(FILE *f, struct boot_info *bi, int version, int boot_cpuid_phys)
 	if (minsize > 0) {
 		fprintf(f, "\t.space\t%d - (_%s_blob_end - _%s_blob_start), 0\n",
 			minsize, symprefix, symprefix);
+	}
+	if (padsize > 0) {
+		fprintf(f, "\t.space\t%d, 0\n", padsize);
 	}
 	emit_label(f, symprefix, "blob_abs_end");
 
