@@ -276,6 +276,11 @@ subnodes:
 		{
 			$$ = chain_node($1, $2);
 		}
+	| subnode propdef
+		{
+			yyerror("syntax error: properties must precede subnodes\n");
+			YYERROR;
+		}
 	;
 
 subnode:
