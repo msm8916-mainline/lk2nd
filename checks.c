@@ -101,11 +101,11 @@ static inline void check_msg(struct check *c, const char *fmt, ...)
 	fprintf(stderr, "\n");
 }
 
-#define FAIL(c, fmt, ...) \
+#define FAIL(c, ...) \
 	do { \
 		TRACE((c), "\t\tFAILED at %s:%d", __FILE__, __LINE__); \
 		(c)->status = FAILED; \
-		check_msg((c), fmt, __VA_ARGS__); \
+		check_msg((c), __VA_ARGS__); \
 	} while (0)
 
 static void check_nodes_props(struct check *c, struct node *dt, struct node *node)
