@@ -29,7 +29,6 @@ PROPNODECHAR	[a-zA-Z0-9,._+*#?@-]
 PATHCHAR	({PROPNODECHAR}|[/])
 LEGACYPATHCHAR	[a-zA-Z0-9_@/]
 LABEL		[a-zA-Z_][a-zA-Z0-9_]*
-WS		[[:space:]]
 
 %{
 #include "dtc.h"
@@ -193,7 +192,7 @@ static int dts_version; /* = 0 */
 		}
 
 
-<*>{WS}+	/* eat whitespace */
+<*>[[:space:]]+	/* eat whitespace */
 
 <*>"/*"([^*]|\*+[^*/])*\*+"/"	{
 			yylloc.filenum = srcpos_filenum;
@@ -207,6 +206,8 @@ static int dts_version; /* = 0 */
 <*>.		{
 			yylloc.filenum = srcpos_filenum;
 			yylloc.first_line = yylineno;
+			DPRINT("Char: %c (\\x%02x)\n", yytext[0],
+				(unsigned)yytext[0]);
 			if (yytext[0] == '[') {
 				DPRINT("<BYTESTRING>\n");
 				BEGIN(BYTESTRING);
@@ -216,9 +217,6 @@ static int dts_version; /* = 0 */
 				DPRINT("<PROPNODENAME>\n");
 				BEGIN(PROPNODENAME);
 			}
-			DPRINT("Char: %c (\\x%02x)\n", yytext[0],
-				(unsigned)yytext[0]);
-
 			return yytext[0];
 		}
 
