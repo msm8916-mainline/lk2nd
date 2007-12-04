@@ -270,8 +270,12 @@ static struct check *check_table[] = {
 	&phandle_references,
 };
 
-void process_checks(int force, struct node *dt)
+int check_semantics(struct node *dt, int outversion, int boot_cpuid_phys);
+
+void process_checks(int force, struct boot_info *bi,
+		    int checkflag, int outversion, int boot_cpuid_phys)
 {
+	struct node *dt = bi->dt;
 	int i;
 	int error = 0;
 
@@ -290,6 +294,16 @@ void process_checks(int force, struct node *dt)
 		} else if (quiet < 3) {
 			fprintf(stderr, "Warning: Input tree has errors, "
 				"output forced\n");
+		}
+	}
+
+	if (checkflag) {
+		if (error) {
+			fprintf(stderr, "Warning: Skipping semantic checks due to structural errors\n");
+		} else {
+			if (!check_semantics(bi->dt, outversion,
+					     boot_cpuid_phys))
+				fprintf(stderr, "Warning: Input tree has semantic errors\n");
 		}
 	}
 }

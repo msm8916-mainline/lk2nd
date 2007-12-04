@@ -122,7 +122,6 @@ int main(int argc, char *argv[])
 	FILE *outf = NULL;
 	int outversion = DEFAULT_FDT_VERSION;
 	int boot_cpuid_phys = 0xfeedbeef;
-	int structure_ok;
 
 	quiet      = 0;
 	reservenum = 0;
@@ -205,17 +204,7 @@ int main(int argc, char *argv[])
 	if (! bi || ! bi->dt)
 		die("Couldn't read input tree\n");
 
-	process_checks(force, bi->dt);
-
-	if (check) {
-		if (!structure_ok) {
-			fprintf(stderr, "Warning: Skipping semantic checks due to structural errors\n");
-		} else {
-			if (!check_semantics(bi->dt, outversion,
-					     boot_cpuid_phys))
-				fprintf(stderr, "Warning: Input tree has semantic errors\n");
-		}
-	}
+	process_checks(force, bi, check, outversion, boot_cpuid_phys);
 
 	if (streq(outname, "-")) {
 		outf = stdout;

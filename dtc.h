@@ -237,8 +237,8 @@ struct boot_info *build_boot_info(struct reserve_info *reservelist,
 
 /* Checks */
 
-void process_checks(int force, struct node *dt);
-int check_semantics(struct node *dt, int outversion, int boot_cpuid_phys);
+void process_checks(int force, struct boot_info *bi,
+		    int checkflag, int outversion, int boot_cpuid_phys);
 
 /* Flattened trees */
 
