@@ -162,6 +162,7 @@ dtc_tests () {
     run_test dtc-checkfails.sh -I dts -O dtb minusone-phandle.dts
     run_test dtc-checkfails.sh -I dts -O dtb nonexist-node-ref.dts
     run_test dtc-checkfails.sh -I dts -O dtb nonexist-label-ref.dts
+    run_test dtc-checkfails.sh -I dts -O dtb bad-name-property.dts
 }
 
 while getopts "vt:m" ARG ; do

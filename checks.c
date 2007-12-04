@@ -170,6 +170,27 @@ out:
 }
 
 /*
+ * Utility check functions
+ */
+
+static void check_is_string(struct check *c, struct node *root,
+			    struct node *node)
+{
+	struct property *prop;
+	char *propname = c->data;
+
+	prop = get_property(node, propname);
+	if (!prop)
+		return; /* Not present, assumed ok */
+
+	if (!data_is_one_string(prop->val))
+		FAIL(c, "\"%s\" property in %s is not a string",
+		     propname, node->fullpath);
+}
+#define CHECK_IS_STRING(nm, propname, lvl) \
+	CHECK(nm, NULL, check_is_string, NULL, (propname), (lvl))
+
+/*
  * Structural check functions
  */
 
@@ -236,6 +257,23 @@ static void check_explicit_phandles(struct check *c, struct node *root,
 }
 NODE_CHECK(explicit_phandles, NULL, ERROR);
 
+static void check_name_properties(struct check *c, struct node *root,
+				  struct node *node)
+{
+	struct property *prop;
+
+	prop = get_property(node, "name");
+	if (!prop)
+		return; /* No name property, that's fine */
+
+	if ((prop->val.len != node->basenamelen+1)
+	    || (memcmp(prop->val.val, node->name, node->basenamelen) != 0))
+		FAIL(c, "\"name\" property in %s is incorrect (\"%s\" instead"
+		     " of base node name)", node->fullpath, prop->val.val);
+}
+CHECK_IS_STRING(name_is_string, "name", ERROR);
+NODE_CHECK(name_properties, NULL, ERROR, &name_is_string);
+
 /*
  * Reference fixup functions
  */
@@ -266,6 +304,7 @@ CHECK(phandle_references, NULL, NULL, fixup_phandle_references, NULL, ERROR,
 
 static struct check *check_table[] = {
 	&duplicate_node_names, &duplicate_property_names,
+	&name_is_string, &name_properties,
 	&explicit_phandles,
 	&phandle_references,
 };
@@ -350,25 +389,10 @@ static int must_be_string(struct property *prop, struct node *node)
 	return 1;
 }
 
-static int name_prop_check(struct property *prop, struct node *node)
-{
-	if ((prop->val.len != node->basenamelen+1)
-	    || !strneq(prop->val.val, node->name, node->basenamelen)) {
-		ERRMSG("name property \"%s\" does not match node basename in %s\n",
-		       prop->val.val,
-		       node->fullpath);
-		return 0;
-	}
-
-	return 1;
-}
-
 static struct {
 	char *propname;
 	int (*check_fn)(struct property *prop, struct node *node);
 } prop_checker_table[] = {
-	{"name", must_be_string},
-	{"name", name_prop_check},
 	{"linux,phandle", must_be_one_cell},
 	{"#address-cells", must_be_one_cell},
 	{"#size-cells", must_be_one_cell},
