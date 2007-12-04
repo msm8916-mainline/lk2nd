@@ -87,6 +87,7 @@ static void dump_blob(void *blob)
 	char *p_struct = blob + be32_to_cpu(bph->off_dt_struct);
 	char *p_strings = blob + be32_to_cpu(bph->off_dt_strings);
 	uint32_t version = be32_to_cpu(bph->version);
+	uint32_t totalsize = be32_to_cpu(bph->totalsize);
 	uint32_t tag;
 	char *p;
 	char *s, *t;
@@ -98,6 +99,7 @@ static void dump_blob(void *blob)
 	shift = 4;
 
 	printf("// Version 0x%x tree\n", version);
+	printf("// Totalsize 0x%x(%d)\n", totalsize, totalsize);
 	for (i = 0; ; i++) {
 		addr = be64_to_cpu(p_rsvmap[i].address);
 		size = be64_to_cpu(p_rsvmap[i].size);
