@@ -399,6 +399,12 @@ void dt_to_blob(FILE *f, struct boot_info *bi, int version,
 	if (padsize > 0)
 		padlen = padsize;
 
+	if (padlen > 0) {
+		int tsize = be32_to_cpu(fdt.totalsize);
+		tsize += padlen;
+		fdt.totalsize = cpu_to_be32(tsize);
+	}
+
 	/*
 	 * Assemble the blob: start with the header, add with alignment
 	 * the reserve buffer, add the reserve map terminating zeroes,
@@ -414,12 +420,8 @@ void dt_to_blob(FILE *f, struct boot_info *bi, int version,
 	/*
 	 * If the user asked for more space than is used, pad out the blob.
 	 */
-	if (padlen > 0) {
-		int tsize = be32_to_cpu(fdt.totalsize);
-		tsize += padlen;
+	if (padlen > 0)
 		blob = data_append_zeroes(blob, padlen);
-		fdt.totalsize = cpu_to_be32(tsize);
-	}
 
 	fwrite(blob.val, blob.len, 1, f);
 
