@@ -147,6 +147,9 @@ dtc_tests () {
     run_test dtc.sh -I dts -O dtb -o dtc_references_dts0.test.dtb references_dts0.dts
     run_test references dtc_references_dts0.test.dtb
 
+    run_test dtc.sh -I dts -O dtb -o dtc_path-references.test.dtb path-references.dts
+    run_test path-references dtc_path-references.test.dtb
+
     # Check -Odts mode preserve all dtb information
     for tree in test_tree1.dtb dtc_tree1.test.dtb dtc_escapes.test.dtb ; do
 	run_test dtc.sh -I dtb -O dts -o odts_$tree.test.dts $tree

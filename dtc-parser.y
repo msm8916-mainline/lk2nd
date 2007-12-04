@@ -192,6 +192,10 @@ propdata:
 		{
 			$$ = data_merge($1, $3);
 		}
+	| propdataprefix DT_REF
+		{
+			$$ = data_add_marker($1, REF_PATH, $2);
+		}
 	| propdata DT_LABEL
 		{
 			$$ = data_add_marker($1, LABEL, $2);

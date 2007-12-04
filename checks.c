@@ -302,11 +302,36 @@ static void fixup_phandle_references(struct check *c, struct node *dt,
 CHECK(phandle_references, NULL, NULL, fixup_phandle_references, NULL, ERROR,
       &duplicate_node_names, &explicit_phandles);
 
+static void fixup_path_references(struct check *c, struct node *dt,
+				  struct node *node, struct property *prop)
+{
+	struct marker *m = prop->val.markers;
+	struct node *refnode;
+	char *path;
+
+	for_each_marker_of_type(m, REF_PATH) {
+		assert(m->offset <= prop->val.len);
+
+		refnode = get_node_by_ref(dt, m->ref);
+		if (!refnode) {
+			FAIL(c, "Reference to non-existent node or label \"%s\"\n",
+			     m->ref);
+			continue;
+		}
+
+		path = refnode->fullpath;
+		prop->val = data_insert_at_marker(prop->val, m, path,
+						  strlen(path) + 1);
+	}
+}
+CHECK(path_references, NULL, NULL, fixup_path_references, NULL, ERROR,
+      &duplicate_node_names);
+
 static struct check *check_table[] = {
 	&duplicate_node_names, &duplicate_property_names,
 	&name_is_string, &name_properties,
 	&explicit_phandles,
-	&phandle_references,
+	&phandle_references, &path_references,
 };
 
 int check_semantics(struct node *dt, int outversion, int boot_cpuid_phys);

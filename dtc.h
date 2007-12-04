@@ -104,6 +104,7 @@ typedef u32 cell_t;
 /* Data blobs */
 enum markertype {
 	REF_PHANDLE,
+	REF_PATH,
 	LABEL,
 };
 
@@ -139,6 +140,8 @@ struct data data_copy_escape_string(const char *s, int len);
 struct data data_copy_file(FILE *f, size_t len);
 
 struct data data_append_data(struct data d, const void *p, int len);
+struct data data_insert_at_marker(struct data d, struct marker *m,
+				  const void *p, int len);
 struct data data_merge(struct data d1, struct data d2);
 struct data data_append_cell(struct data d, cell_t word);
 struct data data_append_re(struct data d, const struct fdt_reserve_entry *re);

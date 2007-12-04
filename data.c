@@ -202,6 +202,21 @@ struct data data_append_data(struct data d, const void *p, int len)
 	return d;
 }
 
+struct data data_insert_at_marker(struct data d, struct marker *m,
+				  const void *p, int len)
+{
+	d = data_grow_for(d, len);
+	memmove(d.val + m->offset + len, d.val + m->offset, d.len - m->offset);
+	memcpy(d.val + m->offset, p, len);
+	d.len += len;
+
+	/* Adjust all markers after the one we're inserting at */
+	m = m->next;
+	for_each_marker(m)
+		m->offset += len;
+	return d;
+}
+
 struct data data_append_markers(struct data d, struct marker *m)
 {
 	struct marker **mp = &d.markers;
