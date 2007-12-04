@@ -58,7 +58,7 @@ int isstring(char c)
 
 static void write_propval_string(FILE *f, struct data val)
 {
-	char *str = val.val;
+	const char *str = val.val;
 	int i;
 	int newchunk = 1;
 	struct marker *m = val.markers;
@@ -161,7 +161,7 @@ static void write_propval_cells(FILE *f, struct data val)
 static void write_propval_bytes(FILE *f, struct data val)
 {
 	void *propend = val.val + val.len;
-	char *bp = val.val;
+	const char *bp = val.val;
 	struct marker *m = val.markers;
 
 	fprintf(f, "[");
@@ -189,7 +189,7 @@ static void write_propval_bytes(FILE *f, struct data val)
 static void write_propval(FILE *f, struct property *prop)
 {
 	int len = prop->val.len;
-	char *p = prop->val.val;
+	const char *p = prop->val.val;
 	struct marker *m = prop->val.markers;
 	int nnotstring = 0, nnul = 0;
 	int nnotstringlbl = 0, nnotcelllbl = 0;

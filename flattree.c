@@ -51,9 +51,9 @@ struct emitter {
 	void (*string)(void *, char *, int);
 	void (*align)(void *, int);
 	void (*data)(void *, struct data);
-	void (*beginnode)(void *, char *);
-	void (*endnode)(void *, char *);
-	void (*property)(void *, char *);
+	void (*beginnode)(void *, const char *);
+	void (*endnode)(void *, const char *);
+	void (*property)(void *, const char *);
 };
 
 static void bin_emit_cell(void *e, cell_t val)
@@ -88,17 +88,17 @@ static void bin_emit_data(void *e, struct data d)
 	*dtbuf = data_append_data(*dtbuf, d.val, d.len);
 }
 
-static void bin_emit_beginnode(void *e, char *label)
+static void bin_emit_beginnode(void *e, const char *label)
 {
 	bin_emit_cell(e, FDT_BEGIN_NODE);
 }
 
-static void bin_emit_endnode(void *e, char *label)
+static void bin_emit_endnode(void *e, const char *label)
 {
 	bin_emit_cell(e, FDT_END_NODE);
 }
 
-static void bin_emit_property(void *e, char *label)
+static void bin_emit_property(void *e, const char *label)
 {
 	bin_emit_cell(e, FDT_PROP);
 }
@@ -113,14 +113,14 @@ static struct emitter bin_emitter = {
 	.property = bin_emit_property,
 };
 
-static void emit_label(FILE *f, char *prefix, char *label)
+static void emit_label(FILE *f, const char *prefix, const char *label)
 {
 	fprintf(f, "\t.globl\t%s_%s\n", prefix, label);
 	fprintf(f, "%s_%s:\n", prefix, label);
 	fprintf(f, "_%s_%s:\n", prefix, label);
 }
 
-static void emit_offset_label(FILE *f, char *label, int offset)
+static void emit_offset_label(FILE *f, const char *label, int offset)
 {
 	fprintf(f, "\t.globl\t%s\n", label);
 	fprintf(f, "%s\t= . + %d\n", label, offset);
@@ -191,7 +191,7 @@ static void asm_emit_data(void *e, struct data d)
 	assert(off == d.len);
 }
 
-static void asm_emit_beginnode(void *e, char *label)
+static void asm_emit_beginnode(void *e, const char *label)
 {
 	FILE *f = e;
 
@@ -202,7 +202,7 @@ static void asm_emit_beginnode(void *e, char *label)
 	fprintf(f, "\t.long\tFDT_BEGIN_NODE\n");
 }
 
-static void asm_emit_endnode(void *e, char *label)
+static void asm_emit_endnode(void *e, const char *label)
 {
 	FILE *f = e;
 
@@ -213,7 +213,7 @@ static void asm_emit_endnode(void *e, char *label)
 	}
 }
 
-static void asm_emit_property(void *e, char *label)
+static void asm_emit_property(void *e, const char *label)
 {
 	FILE *f = e;
 
@@ -234,7 +234,7 @@ static struct emitter asm_emitter = {
 	.property = asm_emit_property,
 };
 
-static int stringtable_insert(struct data *d, char *str)
+static int stringtable_insert(struct data *d, const char *str)
 {
 	int i;
 
@@ -435,7 +435,7 @@ void dt_to_blob(FILE *f, struct boot_info *bi, int version,
 
 static void dump_stringtable_asm(FILE *f, struct data strbuf)
 {
-	char *p;
+	const char *p;
 	int len;
 
 	p = strbuf.val;
@@ -453,7 +453,7 @@ void dt_to_asm(FILE *f, struct boot_info *bi, int version, int boot_cpuid_phys)
 	int i;
 	struct data strbuf = empty_data;
 	struct reserve_info *re;
-	char *symprefix = "dt";
+	const char *symprefix = "dt";
 
 	for (i = 0; i < ARRAY_SIZE(version_table); i++) {
 		if (version_table[i].version == version)
@@ -600,7 +600,7 @@ static void flat_realign(struct inbuf *inb, int align)
 static char *flat_read_string(struct inbuf *inb)
 {
 	int len = 0;
-	char *p = inb->ptr;
+	const char *p = inb->ptr;
 	char *str;
 
 	do {
@@ -637,7 +637,7 @@ static struct data flat_read_data(struct inbuf *inb, int len)
 
 static char *flat_read_stringtable(struct inbuf *inb, int offset)
 {
-	char *p;
+	const char *p;
 
 	p = inb->base + offset;
 	while (1) {
@@ -679,7 +679,7 @@ static struct reserve_info *flat_read_mem_reserve(struct inbuf *inb)
 {
 	struct reserve_info *reservelist = NULL;
 	struct reserve_info *new;
-	char *p;
+	const char *p;
 	struct fdt_reserve_entry re;
 
 	/*
@@ -704,9 +704,9 @@ static struct reserve_info *flat_read_mem_reserve(struct inbuf *inb)
 }
 
 
-static char *nodename_from_path(char *ppath, char *cpath)
+static char *nodename_from_path(const char *ppath, const char *cpath)
 {
-	char *lslash;
+	const char *lslash;
 	int plen;
 
 	lslash = strrchr(cpath, '/');
@@ -730,9 +730,9 @@ static char *nodename_from_path(char *ppath, char *cpath)
 static const char PROPCHAR[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789,._+*#?-";
 static const char UNITCHAR[] = "0123456789abcdef,";
 
-static int check_node_name(char *name)
+static int check_node_name(const char *name)
 {
-	char *atpos;
+	const char *atpos;
 	int basenamelen;
 
 	atpos = strrchr(name, '@');
@@ -754,7 +754,7 @@ static int check_node_name(char *name)
 
 static struct node *unflatten_tree(struct inbuf *dtbuf,
 				   struct inbuf *strbuf,
-				   char *parent_path, int flags)
+				   const char *parent_path, int flags)
 {
 	struct node *node;
 	u32 val;

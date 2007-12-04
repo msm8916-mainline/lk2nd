@@ -23,7 +23,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 
-static struct node *read_fstree(char *dirname)
+static struct node *read_fstree(const char *dirname)
 {
 	DIR *d;
 	struct dirent *de;
@@ -80,7 +80,7 @@ static struct node *read_fstree(char *dirname)
 	return tree;
 }
 
-struct boot_info *dt_from_fs(char *dirname)
+struct boot_info *dt_from_fs(const char *dirname)
 {
 	struct node *tree;
 

@@ -64,7 +64,7 @@ struct data data_grow_for(struct data d, int xlen)
 	return nd;
 }
 
-struct data data_copy_mem(char *mem, int len)
+struct data data_copy_mem(const char *mem, int len)
 {
 	struct data d;
 
@@ -76,7 +76,7 @@ struct data data_copy_mem(char *mem, int len)
 	return d;
 }
 
-static char get_oct_char(char *s, int *i)
+static char get_oct_char(const char *s, int *i)
 {
 	char x[4];
 	char *endx;
@@ -98,7 +98,7 @@ static char get_oct_char(char *s, int *i)
 	return val;
 }
 
-static char get_hex_char(char *s, int *i)
+static char get_hex_char(const char *s, int *i)
 {
 	char x[3];
 	char *endx;
@@ -117,7 +117,7 @@ static char get_hex_char(char *s, int *i)
 	return val;
 }
 
-struct data data_copy_escape_string(char *s, int len)
+struct data data_copy_escape_string(const char *s, int len)
 {
 	int i = 0;
 	struct data d;
@@ -194,7 +194,7 @@ struct data data_copy_file(FILE *f, size_t len)
 	return d;
 }
 
-struct data data_append_data(struct data d, void *p, int len)
+struct data data_append_data(struct data d, const void *p, int len)
 {
 	d = data_grow_for(d, len);
 	memcpy(d.val + d.len, p, len);
@@ -237,7 +237,7 @@ struct data data_append_cell(struct data d, cell_t word)
 	return data_append_data(d, &beword, sizeof(beword));
 }
 
-struct data data_append_re(struct data d, struct fdt_reserve_entry *re)
+struct data data_append_re(struct data d, const struct fdt_reserve_entry *re)
 {
 	struct fdt_reserve_entry bere;
 

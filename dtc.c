@@ -31,7 +31,7 @@ int reservenum;		/* Number of memory reservation slots */
 int minsize;		/* Minimum blob size */
 int padsize;		/* Additional padding to blob */
 
-char *join_path(char *path, char *name)
+char *join_path(const char *path, const char *name)
 {
 	int lenp = strlen(path);
 	int lenn = strlen(name);
@@ -55,10 +55,10 @@ char *join_path(char *path, char *name)
 	return str;
 }
 
-void fill_fullpaths(struct node *tree, char *prefix)
+void fill_fullpaths(struct node *tree, const char *prefix)
 {
 	struct node *child;
-	char *unit;
+	const char *unit;
 
 	tree->fullpath = join_path(prefix, tree->name);
 
@@ -112,11 +112,11 @@ static void  __attribute__ ((noreturn)) usage(void)
 int main(int argc, char *argv[])
 {
 	struct boot_info *bi;
-	char *inform = "dts";
-	char *outform = "dts";
-	char *outname = "-";
+	const char *inform = "dts";
+	const char *outform = "dts";
+	const char *outname = "-";
 	int force = 0, check = 0;
-	char *arg;
+	const char *arg;
 	int opt;
 	FILE *inf = NULL;
 	FILE *outf = NULL;

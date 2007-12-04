@@ -134,14 +134,14 @@ void data_free(struct data d);
 
 struct data data_grow_for(struct data d, int xlen);
 
-struct data data_copy_mem(char *mem, int len);
-struct data data_copy_escape_string(char *s, int len);
+struct data data_copy_mem(const char *mem, int len);
+struct data data_copy_escape_string(const char *s, int len);
 struct data data_copy_file(FILE *f, size_t len);
 
-struct data data_append_data(struct data d, void *p, int len);
+struct data data_append_data(struct data d, const void *p, int len);
 struct data data_merge(struct data d1, struct data d2);
 struct data data_append_cell(struct data d, cell_t word);
-struct data data_append_re(struct data d, struct fdt_reserve_entry *re);
+struct data data_append_re(struct data d, const struct fdt_reserve_entry *re);
 struct data data_append_addr(struct data d, u64 addr);
 struct data data_append_byte(struct data d, uint8_t byte);
 struct data data_append_zeroes(struct data d, int len);
@@ -200,14 +200,14 @@ struct node *chain_node(struct node *first, struct node *list);
 void add_property(struct node *node, struct property *prop);
 void add_child(struct node *parent, struct node *child);
 
-char *get_unitname(struct node *node);
-struct property *get_property(struct node *node, char *propname);
+const char *get_unitname(struct node *node);
+struct property *get_property(struct node *node, const char *propname);
 cell_t propval_cell(struct property *prop);
-struct node *get_subnode(struct node *node, char *nodename);
-struct node *get_node_by_path(struct node *tree, char *path);
+struct node *get_subnode(struct node *node, const char *nodename);
+struct node *get_node_by_path(struct node *tree, const char *path);
 struct node *get_node_by_label(struct node *tree, const char *label);
 struct node *get_node_by_phandle(struct node *tree, cell_t phandle);
-struct node *get_node_by_ref(struct node *tree, char *ref);
+struct node *get_node_by_ref(struct node *tree, const char *ref);
 cell_t get_node_phandle(struct node *root, struct node *node);
 
 /* Boot info (tree plus memreserve information */
@@ -256,11 +256,11 @@ struct boot_info *dt_from_source(const char *f);
 
 /* FS trees */
 
-struct boot_info *dt_from_fs(char *dirname);
+struct boot_info *dt_from_fs(const char *dirname);
 
 /* misc */
 
-char *join_path(char *path, char *name);
-void fill_fullpaths(struct node *tree, char *prefix);
+char *join_path(const char *path, const char *name);
+void fill_fullpaths(struct node *tree, const char *prefix);
 
 #endif /* _DTC_H */

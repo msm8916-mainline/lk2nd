@@ -180,7 +180,7 @@ struct boot_info *build_boot_info(struct reserve_info *reservelist,
  * Tree accessor functions
  */
 
-char *get_unitname(struct node *node)
+const char *get_unitname(struct node *node)
 {
 	if (node->name[node->basenamelen] == '\0')
 		return "";
@@ -188,7 +188,7 @@ char *get_unitname(struct node *node)
 		return node->name + node->basenamelen + 1;
 }
 
-struct property *get_property(struct node *node, char *propname)
+struct property *get_property(struct node *node, const char *propname)
 {
 	struct property *prop;
 
@@ -205,7 +205,7 @@ cell_t propval_cell(struct property *prop)
 	return be32_to_cpu(*((cell_t *)prop->val.val));
 }
 
-struct node *get_subnode(struct node *node, char *nodename)
+struct node *get_subnode(struct node *node, const char *nodename)
 {
 	struct node *child;
 
@@ -216,9 +216,9 @@ struct node *get_subnode(struct node *node, char *nodename)
 	return NULL;
 }
 
-struct node *get_node_by_path(struct node *tree, char *path)
+struct node *get_node_by_path(struct node *tree, const char *path)
 {
-	char *p;
+	const char *p;
 	struct node *child;
 
 	if (!path || ! (*path))
@@ -275,7 +275,7 @@ struct node *get_node_by_phandle(struct node *tree, cell_t phandle)
 	return NULL;
 }
 
-struct node *get_node_by_ref(struct node *tree, char *ref)
+struct node *get_node_by_ref(struct node *tree, const char *ref)
 {
 	if (ref[0] == '/')
 		return get_node_by_path(tree, ref);
