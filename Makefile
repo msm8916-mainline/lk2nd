@@ -206,7 +206,7 @@ clean: libfdt_clean tests_clean
 
 %.lex.c: %.l
 	@$(VECHO) LEX $@
-	$(LEX) -o $@ $<
+	$(LEX) -o$@ $<
 
 %.tab.c %.tab.h %.output: %.y
 	@$(VECHO) BISON $@
