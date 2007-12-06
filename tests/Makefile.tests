@@ -26,7 +26,7 @@ TESTS_TARGETS = $(TESTS) $(TESTS_TREES)
 TESTS_DEPFILES = $(TESTS:%=%.d) \
 	$(addprefix $(TESTS_PREFIX),testutils.d trees.d dumptrees.d)
 
-TESTS_CLEANFILES_L =  *.output vglog.* vgcore.* *.dtb *.test.dts
+TESTS_CLEANFILES_L =  *.output vglog.* vgcore.* *.dtb *.test.dts tmp.*
 TESTS_CLEANFILES = $(TESTS_CLEANFILES_L:%=$(TESTS_PREFIX)%)
 
 BIN += $(TESTS) $(TESTS_PREFIX)dumptrees

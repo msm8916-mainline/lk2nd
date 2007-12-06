@@ -2,21 +2,27 @@
 
 . tests.sh
 
-TMPFILE="tmp.out.$$"
+for x; do
+    shift
+    if [ "$x" = "--" ]; then
+	break;
+    fi
+    CHECKS="$CHECKS $x"
+done
 
-rm -f $TMPFILE
+LOG="tmp.log.$$"
 
-verbose_run "$DTC" -o $TMPFILE "$@"
+rm -f $TMPFILE $LOG
+
+verbose_run_log "$LOG" "$DTC" -o /dev/null "$@"
 ret="$?"
 
-if [ -f $TMPFILE ]; then
-    FAIL "output file was created despite bad input"
-fi
+for c in $CHECKS; do
+    if ! grep -E "^(ERROR)|(Warning) \($c\):" $LOG > /dev/null; then
+	FAIL "Failed to trigger check \"%c\""
+    fi
+done
 
-if [ "$ret" = "2" ]; then
-    PASS
-else
-    FAIL "dtc returned error code $ret instead of 2 (check failed)"
-fi
+rm -f $LOG
 
-rm -f $TMPFILE
+PASS

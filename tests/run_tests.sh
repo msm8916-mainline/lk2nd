@@ -158,14 +158,14 @@ dtc_tests () {
     done
 
     # Check some checks
-    run_test dtc-checkfails.sh -I dts -O dtb dup-nodename.dts
-    run_test dtc-checkfails.sh -I dts -O dtb dup-propname.dts
-    run_test dtc-checkfails.sh -I dts -O dtb dup-phandle.dts
-    run_test dtc-checkfails.sh -I dts -O dtb zero-phandle.dts
-    run_test dtc-checkfails.sh -I dts -O dtb minusone-phandle.dts
-    run_test dtc-checkfails.sh -I dts -O dtb nonexist-node-ref.dts
-    run_test dtc-checkfails.sh -I dts -O dtb nonexist-label-ref.dts
-    run_test dtc-checkfails.sh -I dts -O dtb bad-name-property.dts
+    run_test dtc-checkfails.sh duplicate_node_names -- -I dts -O dtb dup-nodename.dts
+    run_test dtc-checkfails.sh duplicate_property_names -- -I dts -O dtb dup-propname.dts
+    run_test dtc-checkfails.sh explicit_phandles -- -I dts -O dtb dup-phandle.dts
+    run_test dtc-checkfails.sh explicit_phandles -- -I dts -O dtb zero-phandle.dts
+    run_test dtc-checkfails.sh explicit_phandles -- -I dts -O dtb minusone-phandle.dts
+    run_test dtc-checkfails.sh phandle_references -- -I dts -O dtb nonexist-node-ref.dts
+    run_test dtc-checkfails.sh phandle_references -- -I dts -O dtb nonexist-label-ref.dts
+    run_test dtc-checkfails.sh name_properties -- -I dts -O dtb bad-name-property.dts
 }
 
 while getopts "vt:m" ARG ; do

@@ -19,3 +19,14 @@ verbose_run () {
 	"$@" > /dev/null 2> /dev/null
     fi
 }
+
+verbose_run_log () {
+    LOG="$1"
+    shift
+    "$@" &> "$LOG"
+    ret=$?
+    if [ -z "$QUIET_TEST" ]; then
+	cat "$LOG" >&2
+    fi
+    return $ret
+}
