@@ -168,6 +168,8 @@ dtc_tests () {
     run_test dtc-checkfails.sh name_properties -- -I dts -O dtb bad-name-property.dts
 
     run_test dtc-checkfails.sh address_cells_is_cell size_cells_is_cell interrupt_cells_is_cell -- -I dts -O dtb bad-ncells.dts
+    run_test dtc-checkfails.sh device_type_is_string model_is_string status_is_string -- -I dts -O dtb bad-string-props.dts
+
 }
 
 while getopts "vt:m" ARG ; do

@@ -351,6 +351,10 @@ CHECK_IS_CELL(address_cells_is_cell, "#address-cells", WARN);
 CHECK_IS_CELL(size_cells_is_cell, "#size-cells", WARN);
 CHECK_IS_CELL(interrupt_cells_is_cell, "#interrupt-cells", WARN);
 
+CHECK_IS_STRING(device_type_is_string, "device_type", WARN);
+CHECK_IS_STRING(model_is_string, "model", WARN);
+CHECK_IS_STRING(status_is_string, "status", WARN);
+
 static struct check *check_table[] = {
 	&duplicate_node_names, &duplicate_property_names,
 	&name_is_string, &name_properties,
@@ -358,6 +362,7 @@ static struct check *check_table[] = {
 	&phandle_references, &path_references,
 
 	&address_cells_is_cell, &size_cells_is_cell, &interrupt_cells_is_cell,
+	&device_type_is_string, &model_is_string, &status_is_string,
 };
 
 int check_semantics(struct node *dt, int outversion, int boot_cpuid_phys);
@@ -418,24 +423,11 @@ static int must_be_cells(struct property *prop, struct node *node)
 	return 1;
 }
 
-static int must_be_string(struct property *prop, struct node *node)
-{
-	if (! data_is_one_string(prop->val)) {
-		ERRMSG("\"%s\" property in %s is not a string\n",
-		       prop->name, node->fullpath);
-		return 0;
-	}
-
-	return 1;
-}
-
 static struct {
 	char *propname;
 	int (*check_fn)(struct property *prop, struct node *node);
 } prop_checker_table[] = {
 	{"reg", must_be_cells},
-	{"model", must_be_string},
-	{"device_type", must_be_string},
 };
 
 static int check_properties(struct node *node)
