@@ -190,6 +190,23 @@ static void check_is_string(struct check *c, struct node *root,
 #define CHECK_IS_STRING(nm, propname, lvl) \
 	CHECK(nm, NULL, check_is_string, NULL, (propname), (lvl))
 
+static void check_is_cell(struct check *c, struct node *root,
+			  struct node *node)
+{
+	struct property *prop;
+	char *propname = c->data;
+
+	prop = get_property(node, propname);
+	if (!prop)
+		return; /* Not present, assumed ok */
+
+	if (prop->val.len != sizeof(cell_t))
+		FAIL(c, "\"%s\" property in %s is not a single cell",
+		     propname, node->fullpath);
+}
+#define CHECK_IS_CELL(nm, propname, lvl) \
+	CHECK(nm, NULL, check_is_cell, NULL, (propname), (lvl))
+
 /*
  * Structural check functions
  */
@@ -327,11 +344,20 @@ static void fixup_path_references(struct check *c, struct node *dt,
 CHECK(path_references, NULL, NULL, fixup_path_references, NULL, ERROR,
       &duplicate_node_names);
 
+/*
+ * Semantic checks
+ */
+CHECK_IS_CELL(address_cells_is_cell, "#address-cells", WARN);
+CHECK_IS_CELL(size_cells_is_cell, "#size-cells", WARN);
+CHECK_IS_CELL(interrupt_cells_is_cell, "#interrupt-cells", WARN);
+
 static struct check *check_table[] = {
 	&duplicate_node_names, &duplicate_property_names,
 	&name_is_string, &name_properties,
 	&explicit_phandles,
 	&phandle_references, &path_references,
+
+	&address_cells_is_cell, &size_cells_is_cell, &interrupt_cells_is_cell,
 };
 
 int check_semantics(struct node *dt, int outversion, int boot_cpuid_phys);
@@ -381,17 +407,6 @@ void process_checks(int force, struct boot_info *bi,
 
 #define DO_ERR(...) do {ERRMSG(__VA_ARGS__); ok = 0; } while (0)
 
-static int must_be_one_cell(struct property *prop, struct node *node)
-{
-	if (prop->val.len != sizeof(cell_t)) {
-		ERRMSG("\"%s\" property in %s has the wrong length (should be 1 cell)\n",
-		       prop->name, node->fullpath);
-		return 0;
-	}
-
-	return 1;
-}
-
 static int must_be_cells(struct property *prop, struct node *node)
 {
 	if ((prop->val.len % sizeof(cell_t)) != 0) {
@@ -418,9 +433,6 @@ static struct {
 	char *propname;
 	int (*check_fn)(struct property *prop, struct node *node);
 } prop_checker_table[] = {
-	{"linux,phandle", must_be_one_cell},
-	{"#address-cells", must_be_one_cell},
-	{"#size-cells", must_be_one_cell},
 	{"reg", must_be_cells},
 	{"model", must_be_string},
 	{"device_type", must_be_string},

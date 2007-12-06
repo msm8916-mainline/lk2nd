@@ -166,6 +166,8 @@ dtc_tests () {
     run_test dtc-checkfails.sh phandle_references -- -I dts -O dtb nonexist-node-ref.dts
     run_test dtc-checkfails.sh phandle_references -- -I dts -O dtb nonexist-label-ref.dts
     run_test dtc-checkfails.sh name_properties -- -I dts -O dtb bad-name-property.dts
+
+    run_test dtc-checkfails.sh address_cells_is_cell size_cells_is_cell interrupt_cells_is_cell -- -I dts -O dtb bad-ncells.dts
 }
 
 while getopts "vt:m" ARG ; do
