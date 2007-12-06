@@ -412,46 +412,6 @@ void process_checks(int force, struct boot_info *bi,
 
 #define DO_ERR(...) do {ERRMSG(__VA_ARGS__); ok = 0; } while (0)
 
-static int must_be_cells(struct property *prop, struct node *node)
-{
-	if ((prop->val.len % sizeof(cell_t)) != 0) {
-		ERRMSG("\"%s\" property in %s is not a multiple of cell size\n",
-		       prop->name, node->fullpath);
-		return 0;
-	}
-
-	return 1;
-}
-
-static struct {
-	char *propname;
-	int (*check_fn)(struct property *prop, struct node *node);
-} prop_checker_table[] = {
-	{"reg", must_be_cells},
-};
-
-static int check_properties(struct node *node)
-{
-	struct property *prop;
-	struct node *child;
-	int i;
-	int ok = 1;
-
-	for_each_property(node, prop)
-		for (i = 0; i < ARRAY_SIZE(prop_checker_table); i++)
-			if (streq(prop->name, prop_checker_table[i].propname))
-				if (! prop_checker_table[i].check_fn(prop, node)) {
-					ok = 0;
-					break;
-				}
-
-	for_each_child(node, child)
-		if (! check_properties(child))
-			ok = 0;
-
-	return ok;
-}
-
 #define CHECK_HAVE(node, propname) \
 	do { \
 		if (! (prop = get_property((node), (propname)))) \
@@ -672,10 +632,9 @@ static int check_addr_size_reg(struct node *node,
 
 	prop = get_property(node, "reg");
 	if (prop) {
-		int len = prop->val.len / 4;
-
-		if ((len % (addr_cells+size_cells)) != 0)
-			DO_ERR("\"reg\" property in %s has invalid length (%d) for given #address-cells (%d) and #size-cells (%d)\n",
+		int reg_entry_len = (addr_cells + size_cells) * sizeof(cell_t);
+		if ((prop->val.len % reg_entry_len) != 0)
+			DO_ERR("\"reg\" property in %s has invalid length (%d bytes) for given #address-cells (%d) and #size-cells (%d)\n",
 			       node->fullpath, prop->val.len,
 			       addr_cells, size_cells);
 	}
@@ -699,7 +658,6 @@ int check_semantics(struct node *dt, int outversion, int boot_cpuid_phys)
 {
 	int ok = 1;
 
-	ok = ok && check_properties(dt);
 	ok = ok && check_addr_size_reg(dt, -1, -1);
 	ok = ok && check_root(dt);
 	ok = ok && check_cpus(dt, outversion, boot_cpuid_phys);
