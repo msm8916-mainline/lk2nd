@@ -87,6 +87,9 @@ struct check {
 #define BATCH_CHECK(nm, lvl, ...) \
 	CHECK(nm, NULL, NULL, NULL, NULL, lvl, __VA_ARGS__)
 
+#ifdef __GNUC__
+static inline void check_msg(struct check *c, const char *fmt, ...) __attribute__((format (printf, 2, 3)));
+#endif
 static inline void check_msg(struct check *c, const char *fmt, ...)
 {
 	va_list ap;
