@@ -476,6 +476,23 @@ static void check_avoid_default_addr_size(struct check *c, struct node *dt,
 }
 NODE_CHECK(avoid_default_addr_size, NULL, WARN, &addr_size_cells);
 
+static void check_obsolete_chosen_interrupt_controller(struct check *c,
+						       struct node *dt)
+{
+	struct node *chosen;
+	struct property *prop;
+
+	chosen = get_node_by_path(dt, "/chosen");
+	if (!chosen)
+		return;
+
+	prop = get_property(chosen, "interrupt-controller");
+	if (prop)
+		FAIL(c, "/chosen has obsolete \"interrupt-controller\" "
+		     "property");
+}
+TREE_CHECK(obsolete_chosen_interrupt_controller, NULL, WARN);
+
 static struct check *check_table[] = {
 	&duplicate_node_names, &duplicate_property_names,
 	&name_is_string, &name_properties,
@@ -488,6 +505,7 @@ static struct check *check_table[] = {
 	&addr_size_cells, &reg_format, &ranges_format,
 
 	&avoid_default_addr_size,
+	&obsolete_chosen_interrupt_controller,
 };
 
 int check_semantics(struct node *dt, int outversion, int boot_cpuid_phys);
@@ -715,27 +733,6 @@ static int check_memory(struct node *root)
 	return ok;
 }
 
-static int check_chosen(struct node *root)
-{
-	struct node *chosen;
-	struct property *prop;
-	int ok = 1;
-
-	chosen = get_subnode(root, "chosen");
-	if (!chosen)
-		return ok;
-
-        /* give warning for obsolete interrupt-controller property */
-	do {
-		if ((prop = get_property(chosen, "interrupt-controller")) != NULL) {
-			WARNMSG("%s has obsolete \"%s\" property\n",
-                                 chosen->fullpath, "interrupt-controller");
-                }
-	} while (0);
-
-	return ok;
-}
-
 int check_semantics(struct node *dt, int outversion, int boot_cpuid_phys)
 {
 	int ok = 1;
@@ -743,7 +740,6 @@ int check_semantics(struct node *dt, int outversion, int boot_cpuid_phys)
 	ok = ok && check_root(dt);
 	ok = ok && check_cpus(dt, outversion, boot_cpuid_phys);
 	ok = ok && check_memory(dt);
-	ok = ok && check_chosen(dt);
 	if (! ok)
 		return 0;
 

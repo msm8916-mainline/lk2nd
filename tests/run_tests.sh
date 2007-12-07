@@ -172,6 +172,7 @@ dtc_tests () {
     run_test dtc-checkfails.sh reg_format ranges_format -- -I dts -O dtb bad-reg-ranges.dts
     run_test dtc-checkfails.sh ranges_format -- -I dts -O dtb bad-empty-ranges.dts
     run_test dtc-checkfails.sh avoid_default_addr_size -- -I dts -O dtb default-addr-size.dts
+    run_test dtc-checkfails.sh obsolete_chosen_interrupt_controller -- -I dts -O dtb obsolete-chosen-interrupt-controller.dts
 }
 
 while getopts "vt:m" ARG ; do
