@@ -169,7 +169,9 @@ dtc_tests () {
 
     run_test dtc-checkfails.sh address_cells_is_cell size_cells_is_cell interrupt_cells_is_cell -- -I dts -O dtb bad-ncells.dts
     run_test dtc-checkfails.sh device_type_is_string model_is_string status_is_string -- -I dts -O dtb bad-string-props.dts
-
+    run_test dtc-checkfails.sh reg_format ranges_format -- -I dts -O dtb bad-reg-ranges.dts
+    run_test dtc-checkfails.sh ranges_format -- -I dts -O dtb bad-empty-ranges.dts
+    run_test dtc-checkfails.sh avoid_default_addr_size -- -I dts -O dtb default-addr-size.dts
 }
 
 while getopts "vt:m" ARG ; do
