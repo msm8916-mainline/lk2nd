@@ -23,7 +23,7 @@ fi
 
 for c in $CHECKS; do
     if ! grep -E "^(ERROR)|(Warning) \($c\):" $LOG > /dev/null; then
-	FAIL "Failed to trigger check \"%c\""
+	FAIL "Failed to trigger check \"$c\""
     fi
 done
 
