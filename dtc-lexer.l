@@ -27,7 +27,6 @@
 
 PROPNODECHAR	[a-zA-Z0-9,._+*#?@-]
 PATHCHAR	({PROPNODECHAR}|[/])
-LEGACYPATHCHAR	[a-zA-Z0-9_@/]
 LABEL		[a-zA-Z_][a-zA-Z0-9_]*
 
 %{
@@ -158,7 +157,7 @@ static int dts_version; /* = 0 */
 			return DT_REF;
 		}
 
-<INITIAL>"&/"{LEGACYPATHCHAR}+ {	/* old-style path reference */
+<INITIAL>"&/"{PATHCHAR}+ {	/* old-style path reference */
 			yylloc.filenum = srcpos_filenum;
 			yylloc.first_line = yylineno;
 			DPRINT("Ref: %s\n", yytext+1);
