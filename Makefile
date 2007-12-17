@@ -46,7 +46,7 @@ else
 DEPTARGETS = $(filter-out $(NODEPTARGETS),$(MAKECMDGOALS))
 endif
 
-all: dtc ftdump libfdt tests
+all: dtc ftdump libfdt
 
 install: all
 	@$(VECHO) INSTALL
