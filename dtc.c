@@ -204,7 +204,7 @@ int main(int argc, char *argv[])
 	if (! bi || ! bi->dt)
 		die("Couldn't read input tree\n");
 
-	process_checks(force, bi, check, outversion, boot_cpuid_phys);
+	process_checks(force, bi);
 
 	if (streq(outname, "-")) {
 		outf = stdout;
