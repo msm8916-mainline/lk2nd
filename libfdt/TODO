@@ -1,5 +1,3 @@
-- Find node by linux,phandle property
 - Tree traversal functions
 - Graft function
-- Merge into dtc
-- Make fdt_open_into() re-arrange properly
+- Complete libfdt.h documenting comments
