@@ -898,15 +898,6 @@ struct boot_info *dt_from_blob(FILE *f)
 	off_mem_rsvmap = be32_to_cpu(fdt->off_mem_rsvmap);
 	version = be32_to_cpu(fdt->version);
 
-	fprintf(stderr, "\tmagic:\t\t\t0x%x\n", magic);
-	fprintf(stderr, "\ttotalsize:\t\t%d\n", totalsize);
-	fprintf(stderr, "\toff_dt_struct:\t\t0x%x\n", off_dt);
-	fprintf(stderr, "\toff_dt_strings:\t\t0x%x\n", off_str);
-	fprintf(stderr, "\toff_mem_rsvmap:\t\t0x%x\n", off_mem_rsvmap);
-	fprintf(stderr, "\tversion:\t\t0x%x\n", version );
-	fprintf(stderr, "\tlast_comp_version:\t0x%x\n",
-		be32_to_cpu(fdt->last_comp_version));
-
 	if (off_mem_rsvmap >= totalsize)
 		die("Mem Reserve structure offset exceeds total size\n");
 
@@ -916,21 +907,15 @@ struct boot_info *dt_from_blob(FILE *f)
 	if (off_str > totalsize)
 		die("String table offset exceeds total size\n");
 
-	if (version >= 2)
-		fprintf(stderr, "\tboot_cpuid_phys:\t0x%x\n",
-			be32_to_cpu(fdt->boot_cpuid_phys));
-
 	size_str = -1;
 	if (version >= 3) {
 		size_str = be32_to_cpu(fdt->size_dt_strings);
-		fprintf(stderr, "\tsize_dt_strings:\t%d\n", size_str);
 		if (off_str+size_str > totalsize)
 			die("String table extends past total size\n");
 	}
 
 	if (version >= 17) {
 		size_dt = be32_to_cpu(fdt->size_dt_struct);
-		fprintf(stderr, "\tsize_dt_struct:\t\t%d\n", size_dt);
 		if (off_dt+size_dt > totalsize)
 			die("Structure block extends past total size\n");
 	}

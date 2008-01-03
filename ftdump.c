@@ -81,11 +81,13 @@ static void print_data(const void *data, int len)
 static void dump_blob(void *blob)
 {
 	struct fdt_header *bph = blob;
+	uint32_t off_mem_rsvmap = be32_to_cpu(bph->off_mem_rsvmap);
+	uint32_t off_dt = be32_to_cpu(bph->off_dt_struct);
+	uint32_t off_str = be32_to_cpu(bph->off_dt_strings);
 	struct fdt_reserve_entry *p_rsvmap =
-		(struct fdt_reserve_entry *)(blob
-					     + be32_to_cpu(bph->off_mem_rsvmap));
-	char *p_struct = blob + be32_to_cpu(bph->off_dt_struct);
-	char *p_strings = blob + be32_to_cpu(bph->off_dt_strings);
+		(struct fdt_reserve_entry *)(blob + off_mem_rsvmap);
+	char *p_struct = blob + off_dt;
+	char *p_strings = blob + off_str;
 	uint32_t version = be32_to_cpu(bph->version);
 	uint32_t totalsize = be32_to_cpu(bph->totalsize);
 	uint32_t tag;
@@ -98,8 +100,26 @@ static void dump_blob(void *blob)
 	depth = 0;
 	shift = 4;
 
-	printf("// Version 0x%x tree\n", version);
-	printf("// Totalsize 0x%x(%d)\n", totalsize, totalsize);
+	printf("// magic:\t\t0x%x\n", be32_to_cpu(bph->magic));
+	printf("// totalsize:\t\t0x%x (%d)\n", totalsize, totalsize);
+	printf("// off_dt_struct:\t0x%x\n", off_dt);
+	printf("// off_dt_strings:\t0x%x\n", off_str);
+	printf("// off_mem_rsvmap:\t0x%x\n", off_mem_rsvmap);
+	printf("// version:\t\t%d\n", version);
+	printf("// last_comp_version:\t%d\n",
+	       be32_to_cpu(bph->last_comp_version));
+	if (version >= 2)
+		printf("// boot_cpuid_phys:\t0x%x\n",
+		       be32_to_cpu(bph->boot_cpuid_phys));
+
+	if (version >= 3)
+		printf("// size_dt_strings:\t0x%x\n",
+		       be32_to_cpu(bph->size_dt_strings));
+	if (version >= 17)
+		printf("// size_dt_struct:\t0x%x\n",
+		       be32_to_cpu(bph->size_dt_struct));
+	printf("\n");
+
 	for (i = 0; ; i++) {
 		addr = be64_to_cpu(p_rsvmap[i].address);
 		size = be64_to_cpu(p_rsvmap[i].size);
