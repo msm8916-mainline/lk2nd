@@ -307,15 +307,25 @@ label:
 
 %%
 
-void yyerror (char const *s)
+void yyerrorf(char const *s, ...)
 {
 	const char *fname = srcpos_filename_for_num(yylloc.filenum);
+	va_list va;
+	va_start(va, s);
 
 	if (strcmp(fname, "-") == 0)
 		fname = "stdin";
 
-	fprintf(stderr, "%s:%d %s\n",
-		fname, yylloc.first_line, s);
+	fprintf(stderr, "%s:%d ", fname, yylloc.first_line);
+	vfprintf(stderr, s, va);
+	fprintf(stderr, "\n");
+
+	va_end(va);
+}
+
+void yyerror (char const *s)
+{
+	yyerrorf("%s", s);
 }
 
 unsigned long long eval_literal(const char *s, int base, int bits)

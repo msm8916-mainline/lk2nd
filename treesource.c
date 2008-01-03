@@ -23,7 +23,6 @@
 
 extern FILE *yyin;
 extern int yyparse(void);
-extern void yyerror(char const *);
 
 struct boot_info *the_boot_info;
 

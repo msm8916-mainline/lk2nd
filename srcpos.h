@@ -63,6 +63,7 @@ typedef struct YYLTYPE {
 
 
 extern void yyerror(char const *);
+extern void yyerrorf(char const *, ...) __attribute__((format(printf, 1, 2)));
 
 extern int srcpos_filenum;
 
