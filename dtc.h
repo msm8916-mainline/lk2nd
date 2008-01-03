@@ -233,6 +233,7 @@ struct reserve_info *add_reserve_entry(struct reserve_info *list,
 struct boot_info {
 	struct reserve_info *reservelist;
 	struct node *dt;		/* the device tree */
+	int error;
 };
 
 struct boot_info *build_boot_info(struct reserve_info *reservelist,

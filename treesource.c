@@ -25,10 +25,12 @@ extern FILE *yyin;
 extern int yyparse(void);
 
 struct boot_info *the_boot_info;
+int treesource_error;
 
 struct boot_info *dt_from_source(const char *fname)
 {
 	the_boot_info = NULL;
+	treesource_error = 0;
 
 	push_input_file(fname);
 
@@ -37,6 +39,7 @@ struct boot_info *dt_from_source(const char *fname)
 
 	fill_fullpaths(the_boot_info->dt, "");
 
+	the_boot_info->error = treesource_error;
 	return the_boot_info;
 }
 

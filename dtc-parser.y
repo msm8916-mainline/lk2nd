@@ -28,6 +28,7 @@ int yylex(void);
 unsigned long long eval_literal(const char *s, int base, int bits);
 
 extern struct boot_info *the_boot_info;
+extern int treesource_error;
 
 %}
 
@@ -320,6 +321,7 @@ void yyerrorf(char const *s, ...)
 	vfprintf(stderr, s, va);
 	fprintf(stderr, "\n");
 
+	treesource_error = 1;
 	va_end(va);
 }
 
