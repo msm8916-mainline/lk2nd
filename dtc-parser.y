@@ -309,7 +309,7 @@ label:
 
 void yyerrorf(char const *s, ...)
 {
-	const char *fname = srcpos_filename_for_num(yylloc.filenum);
+	const char *fname = srcpos_file ? srcpos_file->name : "<no-file>";
 	va_list va;
 	va_start(va, s);
 

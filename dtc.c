@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
 	int force = 0, check = 0;
 	const char *arg;
 	int opt;
-	FILE *inf = NULL;
+	struct dtc_file *inf = NULL;
 	FILE *outf = NULL;
 	int outversion = DEFAULT_FDT_VERSION;
 	int boot_cpuid_phys = 0xfeedbeef;
@@ -192,14 +192,18 @@ int main(int argc, char *argv[])
 	} else if (streq(inform, "fs")) {
 		bi = dt_from_fs(arg);
 	} else if(streq(inform, "dtb")) {
-		inf = dtc_open_file(arg);
-		bi = dt_from_blob(inf);
+		inf = dtc_open_file(arg, NULL);
+		if (!inf)
+			die("Couldn't open \"%s\": %s\n", arg,
+			    strerror(errno));
+
+		bi = dt_from_blob(inf->file);
 	} else {
 		die("Unknown input format \"%s\"\n", inform);
 	}
 
-	if (inf && (inf != stdin))
-		fclose(inf);
+	if (inf && inf->file != stdin)
+		fclose(inf->file);
 
 	if (! bi || ! bi->dt)
 		die("Couldn't read input tree\n");
