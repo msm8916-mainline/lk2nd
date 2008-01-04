@@ -283,7 +283,7 @@ subnodes:
 		}
 	| subnode propdef
 		{
-			yyerror("syntax error: properties must precede subnodes\n");
+			yyerror("syntax error: properties must precede subnodes");
 			YYERROR;
 		}
 	;
