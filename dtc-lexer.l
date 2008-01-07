@@ -18,7 +18,7 @@
  *                                                                   USA
  */
 
-%option noyywrap nounput yylineno
+%option noyywrap nounput yylineno stack
 
 %x INCLUDE
 %x BYTESTRING
@@ -55,7 +55,7 @@ static int dts_version; /* = 0 */
 %}
 
 %%
-<*>"/include/"		BEGIN(INCLUDE);
+<*>"/include/"		yy_push_state(INCLUDE);
 
 <INCLUDE>\"[^"\n]*\"	{
 			yytext[strlen(yytext) - 1] = 0;
@@ -63,7 +63,7 @@ static int dts_version; /* = 0 */
 				/* Some unrecoverable error.*/
 				exit(1);
 			}
-			BEGIN_DEFAULT();
+			yy_pop_state();
 		}
 
 
