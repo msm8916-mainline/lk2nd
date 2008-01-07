@@ -33,9 +33,7 @@ static int dtc_open_one(struct dtc_file *file,
 	char *fullname;
 
 	if (search) {
-		fullname = malloc(strlen(search) + strlen(fname) + 2);
-		if (!fullname)
-			die("Out of memory\n");
+		fullname = xmalloc(strlen(search) + strlen(fname) + 2);
 
 		strcpy(fullname, search);
 		strcat(fullname, "/");
@@ -63,15 +61,11 @@ struct dtc_file *dtc_open_file(const char *fname,
 	struct dtc_file *file;
 	const char *slash;
 
-	file = malloc(sizeof(struct dtc_file));
-	if (!file)
-		die("Out of memory\n");
+	file = xmalloc(sizeof(struct dtc_file));
 
 	slash = strrchr(fname, '/');
 	if (slash) {
-		char *dir = malloc(slash - fname + 1);
-		if (!dir)
-			die("Out of memory\n");
+		char *dir = xmalloc(slash - fname + 1);
 
 		memcpy(dir, fname, slash - fname);
 		dir[slash - fname] = 0;

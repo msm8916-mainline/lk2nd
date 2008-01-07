@@ -273,11 +273,7 @@ int push_input_file(const char *filename)
 		exit(1);
 	}
 
-	incl_file = malloc(sizeof(struct incl_file));
-	if (!incl_file) {
-		yyerror("Can not allocate include file space.");
-		return 0;
-	}
+	incl_file = xmalloc(sizeof(struct incl_file));
 
 	/*
 	 * Save current context.
