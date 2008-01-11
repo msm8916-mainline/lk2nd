@@ -68,6 +68,7 @@ tree1_tests_rw () {
     TREE=$1
 
     # Read-write tests
+    run_test set_name $TREE
     run_test setprop $TREE
     run_test del_property $TREE
     run_test del_node $TREE

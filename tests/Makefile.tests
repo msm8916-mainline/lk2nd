@@ -8,7 +8,7 @@ LIB_TESTS_L = get_mem_rsv \
 	setprop_inplace nop_property nop_node \
 	sw_tree1 \
 	move_and_save mangle-layout \
-	open_pack rw_tree1 setprop del_property del_node \
+	open_pack rw_tree1 set_name setprop del_property del_node \
 	string_escapes references path-references \
 	dtbs_equal_ordered
 LIB_TESTS = $(LIB_TESTS_L:%=$(TESTS_PREFIX)%)
