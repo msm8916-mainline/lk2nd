@@ -104,7 +104,7 @@ struct dtc_file *dtc_open_file(const char *fname,
 	}
 
 out:
-	free((void *)file->dir);
+	free(file->dir);
 	free(file);
 	return NULL;
 }
@@ -114,6 +114,6 @@ void dtc_close_file(struct dtc_file *file)
 	if (fclose(file->file))
 		die("Error closing \"%s\": %s\n", file->name, strerror(errno));
 
-	free((void *)file->dir);
+	free(file->dir);
 	free(file);
 }

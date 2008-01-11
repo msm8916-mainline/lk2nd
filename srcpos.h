@@ -25,7 +25,7 @@
 #include <stdio.h>
 
 struct dtc_file {
-	const char *dir;
+	char *dir;
 	const char *name;
 	FILE *file;
 };
