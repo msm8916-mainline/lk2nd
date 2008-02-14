@@ -127,6 +127,9 @@ libfdt_tests () {
 
     # Tests for behaviour on various sorts of corrupted trees
     run_test truncated_property
+
+    # Specific bug tests
+    run_test add_subnode_with_nops
 }
 
 dtc_tests () {
