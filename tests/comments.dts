@@ -1,5 +1,6 @@
 /* regexps for lexing comments are.. tricky.  Check if we've actually
  * got it right */
+/dts-v1/;
 
 / {
 	// line comment
