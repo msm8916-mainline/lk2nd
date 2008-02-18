@@ -125,6 +125,13 @@ libfdt_tests () {
     tree1_tests rw_tree1.test.dtb
     tree1_tests_rw rw_tree1.test.dtb
 
+    for basetree in test_tree1.dtb sw_tree1.test.dtb rw_tree1.test.dtb; do
+	run_test nopulate $basetree
+	run_test dtbs_equal_ordered $basetree noppy.$basetree
+	tree1_tests noppy.$basetree
+	tree1_tests_rw noppy.$basetree
+    done
+
     # Tests for behaviour on various sorts of corrupted trees
     run_test truncated_property
 
