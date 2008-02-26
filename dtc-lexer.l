@@ -59,10 +59,7 @@ static int dts_version; /* = 0 */
 
 <INCLUDE>\"[^"\n]*\"	{
 			yytext[strlen(yytext) - 1] = 0;
-			if (!push_input_file(yytext + 1)) {
-				/* Some unrecoverable error.*/
-				exit(1);
-			}
+			push_input_file(yytext + 1);
 			yy_pop_state();
 		}
 
@@ -243,21 +240,16 @@ struct incl_file *incl_file_stack;
 static int incl_depth = 0;
 
 
-int push_input_file(const char *filename)
+void push_input_file(const char *filename)
 {
 	struct incl_file *incl_file;
 	struct dtc_file *newfile;
 	struct search_path search, *searchptr = NULL;
 
-	if (!filename) {
-		yyerror("No include file name given.");
-		return 0;
-	}
+	assert(filename);
 
-	if (incl_depth++ >= MAX_INCLUDE_DEPTH) {
-		yyerror("Includes nested too deeply");
-		return 0;
-	}
+	if (incl_depth++ >= MAX_INCLUDE_DEPTH)
+		die("Includes nested too deeply");
 
 	if (srcpos_file) {
 		search.dir = srcpos_file->dir;
@@ -267,11 +259,9 @@ int push_input_file(const char *filename)
 	}
 
 	newfile = dtc_open_file(filename, searchptr);
-	if (!newfile) {
-		yyerrorf("Couldn't open \"%s\": %s",
-		         filename, strerror(errno));
-		exit(1);
-	}
+	if (!newfile)
+		die("Couldn't open \"%s\": %s", filename, strerror(errno));
+
 
 	incl_file = xmalloc(sizeof(struct incl_file));
 
@@ -292,8 +282,6 @@ int push_input_file(const char *filename)
 	yylineno = 1;
 	yyin = newfile->file;
 	yy_switch_to_buffer(yy_create_buffer(yyin, YY_BUF_SIZE));
-
-	return 1;
 }
 
 

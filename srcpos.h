@@ -75,7 +75,7 @@ extern void yyerrorf(char const *, ...) __attribute__((format(printf, 1, 2)));
 
 extern struct dtc_file *srcpos_file;
 
-extern int push_input_file(const char *filename);
+extern void push_input_file(const char *filename);
 extern int pop_input_file(void);
 
 struct search_path {
