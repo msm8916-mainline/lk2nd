@@ -729,29 +729,14 @@ static char *nodename_from_path(const char *ppath, const char *cpath)
 	return strdup(lslash+1);
 }
 
-static const char PROPCHAR[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789,._+*#?-";
-static const char UNITCHAR[] = "0123456789abcdef,";
-
-static int check_node_name(const char *name)
+static int find_basenamelen(const char *name)
 {
-	const char *atpos;
-	int basenamelen;
-
-	atpos = strrchr(name, '@');
+	const char *atpos = strchr(name, '@');
 
 	if (atpos)
-		basenamelen = atpos - name;
+		return atpos - name;
 	else
-		basenamelen = strlen(name);
-
-	if (strspn(name, PROPCHAR) < basenamelen)
-		return -1;
-
-	if (atpos
-	    && ((basenamelen + 1 + strspn(atpos+1, UNITCHAR)) < strlen(name)))
-		return -1;
-
-	return basenamelen;
+		return strlen(name);
 }
 
 static struct node *unflatten_tree(struct inbuf *dtbuf,
@@ -775,10 +760,7 @@ static struct node *unflatten_tree(struct inbuf *dtbuf,
 		node->fullpath = join_path(parent_path, node->name);
 	}
 
-	node->basenamelen = check_node_name(node->name);
-	if (node->basenamelen < 0) {
-		fprintf(stderr, "Warning \"%s\" has incorrect format\n", node->name);
-	}
+	node->basenamelen = find_basenamelen(node->name);
 
 	do {
 		struct property *prop;

@@ -242,6 +242,42 @@ static void check_duplicate_property_names(struct check *c, struct node *dt,
 }
 NODE_CHECK(duplicate_property_names, NULL, ERROR);
 
+#define LOWERCASE	"abcdefghijklmnopqrstuvwxyz"
+#define UPPERCASE	"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+#define DIGITS		"0123456789"
+#define PROPNODECHARS	LOWERCASE UPPERCASE DIGITS ",._+*#?-"
+
+static void check_node_name_chars(struct check *c, struct node *dt,
+				  struct node *node)
+{
+	int n = strspn(node->name, c->data);
+
+	if (n < strlen(node->name))
+		FAIL(c, "Bad character '%c' in node %s",
+		     node->name[n], node->fullpath);
+}
+NODE_CHECK(node_name_chars, PROPNODECHARS "@", ERROR);
+
+static void check_node_name_format(struct check *c, struct node *dt,
+				   struct node *node)
+{
+	if (strchr(get_unitname(node), '@'))
+		FAIL(c, "Node %s has multiple '@' characters in name",
+		     node->fullpath);
+}
+NODE_CHECK(node_name_format, NULL, ERROR, &node_name_chars);
+
+static void check_property_name_chars(struct check *c, struct node *dt,
+				      struct node *node, struct property *prop)
+{
+	int n = strspn(prop->name, c->data);
+
+	if (n < strlen(prop->name))
+		FAIL(c, "Bad character '%c' in property name \"%s\", node %s",
+		     prop->name[n], prop->name, node->fullpath);
+}
+PROP_CHECK(property_name_chars, PROPNODECHARS, ERROR);
+
 static void check_explicit_phandles(struct check *c, struct node *root,
 					  struct node *node)
 {
@@ -498,6 +534,7 @@ TREE_CHECK(obsolete_chosen_interrupt_controller, NULL, WARN);
 
 static struct check *check_table[] = {
 	&duplicate_node_names, &duplicate_property_names,
+	&node_name_chars, &node_name_format, &property_name_chars,
 	&name_is_string, &name_properties,
 	&explicit_phandles,
 	&phandle_references, &path_references,

@@ -136,3 +136,51 @@ truncated_property_strings:
 truncated_property_strings_end:
 
 truncated_property_end:
+
+
+	TREE_HDR(bad_node_char)
+	EMPTY_RSVMAP(bad_node_char)
+
+bad_node_char_struct:
+	BEGIN_NODE("")
+	BEGIN_NODE("sub$node")
+	END_NODE
+	END_NODE
+	FDTLONG(FDT_END)
+bad_node_char_struct_end:
+
+bad_node_char_strings:
+bad_node_char_strings_end:
+bad_node_char_end:
+
+
+	TREE_HDR(bad_node_format)
+	EMPTY_RSVMAP(bad_node_format)
+
+bad_node_format_struct:
+	BEGIN_NODE("")
+	BEGIN_NODE("subnode@1@2")
+	END_NODE
+	END_NODE
+	FDTLONG(FDT_END)
+bad_node_format_struct_end:
+
+bad_node_format_strings:
+bad_node_format_strings_end:
+bad_node_format_end:
+
+
+	TREE_HDR(bad_prop_char)
+	EMPTY_RSVMAP(bad_prop_char)
+
+bad_prop_char_struct:
+	BEGIN_NODE("")
+	PROP_INT(bad_prop_char, prop, TEST_VALUE_1)
+	END_NODE
+	FDTLONG(FDT_END)
+bad_prop_char_struct_end:
+
+bad_prop_char_strings:
+	STRING(bad_prop_char, prop, "prop$erty")
+bad_prop_char_strings_end:
+bad_prop_char_end:

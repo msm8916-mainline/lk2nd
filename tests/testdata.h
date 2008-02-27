@@ -33,4 +33,7 @@
 #ifndef __ASSEMBLY__
 extern struct fdt_header _test_tree1;
 extern struct fdt_header _truncated_property;
+extern struct fdt_header _bad_node_char;
+extern struct fdt_header _bad_node_format;
+extern struct fdt_header _bad_prop_char;
 #endif /* ! __ASSEMBLY */
