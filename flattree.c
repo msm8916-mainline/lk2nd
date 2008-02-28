@@ -162,14 +162,10 @@ static void asm_emit_data(void *e, struct data d)
 {
 	FILE *f = e;
 	int off = 0;
-	struct marker *m;
+	struct marker *m = d.markers;
 
-	m = d.markers;
-	while (m) {
-		if (m->type == LABEL)
-			emit_offset_label(f, m->ref, m->offset);
-		m = m->next;
-	}
+	for_each_marker_of_type(m, LABEL)
+		emit_offset_label(f, m->ref, m->offset);
 
 	while ((d.len - off) >= sizeof(u32)) {
 		fprintf(f, "\t.long\t0x%x\n",
