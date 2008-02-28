@@ -316,9 +316,14 @@ NODE_CHECK(explicit_phandles, NULL, ERROR);
 static void check_name_properties(struct check *c, struct node *root,
 				  struct node *node)
 {
-	struct property *prop;
+	struct property **pp, *prop = NULL;
 
-	prop = get_property(node, "name");
+	for (pp = &node->proplist; *pp; pp = &((*pp)->next))
+		if (streq((*pp)->name, "name")) {
+			prop = *pp;
+			break;
+		}
+
 	if (!prop)
 		return; /* No name property, that's fine */
 
@@ -326,6 +331,12 @@ static void check_name_properties(struct check *c, struct node *root,
 	    || (memcmp(prop->val.val, node->name, node->basenamelen) != 0))
 		FAIL(c, "\"name\" property in %s is incorrect (\"%s\" instead"
 		     " of base node name)", node->fullpath, prop->val.val);
+
+	/* The name property is correct, and therefore redundant.  Delete it */
+	*pp = prop->next;
+	free(prop->name);
+	data_free(prop->val);
+	free(prop);
 }
 CHECK_IS_STRING(name_is_string, "name", ERROR);
 NODE_CHECK(name_properties, NULL, ERROR, &name_is_string);
