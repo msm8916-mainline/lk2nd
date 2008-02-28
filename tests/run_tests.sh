@@ -172,6 +172,19 @@ dtc_tests () {
 	run_test dtbs_equal_ordered $tree odts_$tree.test.dtb
     done
 
+    # Check version conversions
+    for tree in test_tree1.dtb ; do
+	 for aver in 1 2 3 16 17; do
+	     atree="ov${aver}_$tree.test.dtb"
+	     run_test dtc.sh -I dtb -O dtb -V$aver -o $atree $tree
+	     for bver in 16 17; do
+		 btree="ov${bver}_$atree"
+		 run_test dtc.sh -I dtb -O dtb -V$bver -o $btree $atree
+		 run_test dtbs_equal_ordered $btree $tree
+	     done
+	 done
+    done
+
     # Check some checks
     run_test dtc-checkfails.sh duplicate_node_names -- -I dts -O dtb dup-nodename.dts
     run_test dtc-checkfails.sh duplicate_property_names -- -I dts -O dtb dup-propname.dts

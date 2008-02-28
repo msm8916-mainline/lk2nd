@@ -410,7 +410,7 @@ void dt_to_blob(FILE *f, struct boot_info *bi, int version,
 	 * the reserve buffer, add the reserve map terminating zeroes,
 	 * the device tree itself, and finally the strings.
 	 */
-	blob = data_append_data(blob, &fdt, sizeof(fdt));
+	blob = data_append_data(blob, &fdt, vi->hdr_size);
 	blob = data_append_align(blob, 8);
 	blob = data_merge(blob, reservebuf);
 	blob = data_append_zeroes(blob, sizeof(struct fdt_reserve_entry));
@@ -809,7 +809,7 @@ static struct node *unflatten_tree(struct inbuf *dtbuf,
 
 struct boot_info *dt_from_blob(FILE *f)
 {
-	u32 magic, totalsize, version, size_str, size_dt;
+	u32 magic, totalsize, version, size_dt;
 	u32 off_dt, off_str, off_mem_rsvmap;
 	int rc;
 	char *blob;
@@ -889,11 +889,13 @@ struct boot_info *dt_from_blob(FILE *f)
 	if (off_str > totalsize)
 		die("String table offset exceeds total size\n");
 
-	size_str = -1;
 	if (version >= 3) {
-		size_str = be32_to_cpu(fdt->size_dt_strings);
+		u32 size_str = be32_to_cpu(fdt->size_dt_strings);
 		if (off_str+size_str > totalsize)
 			die("String table extends past total size\n");
+		inbuf_init(&strbuf, blob + off_str, blob + off_str + size_str);
+	} else {
+		inbuf_init(&strbuf, blob + off_str, blob + totalsize);
 	}
 
 	if (version >= 17) {
@@ -911,10 +913,6 @@ struct boot_info *dt_from_blob(FILE *f)
 	inbuf_init(&memresvbuf,
 		   blob + off_mem_rsvmap, blob + totalsize);
 	inbuf_init(&dtbuf, blob + off_dt, blob + totalsize);
-	if (size_str >= 0)
-		inbuf_init(&strbuf, blob + off_str, blob + off_str + size_str);
-	else
-		inbuf_init(&strbuf, blob + off_str, blob + totalsize);
 
 	reservelist = flat_read_mem_reserve(&memresvbuf);
 
