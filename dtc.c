@@ -55,7 +55,7 @@ char *join_path(const char *path, const char *name)
 	return str;
 }
 
-void fill_fullpaths(struct node *tree, const char *prefix)
+static void fill_fullpaths(struct node *tree, const char *prefix)
 {
 	struct node *child;
 	const char *unit;
@@ -208,6 +208,7 @@ int main(int argc, char *argv[])
 	if (! bi || ! bi->dt || bi->error)
 		die("Couldn't read input tree\n");
 
+	fill_fullpaths(bi->dt, "");
 	process_checks(force, bi);
 
 	if (streq(outname, "-")) {

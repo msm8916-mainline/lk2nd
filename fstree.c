@@ -87,8 +87,6 @@ struct boot_info *dt_from_fs(const char *dirname)
 	tree = read_fstree(dirname);
 	tree = name_node(tree, "", NULL);
 
-	fill_fullpaths(tree, "");
-
 	return build_boot_info(NULL, tree);
 }
 

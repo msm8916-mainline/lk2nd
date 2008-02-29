@@ -37,8 +37,6 @@ struct boot_info *dt_from_source(const char *fname)
 	if (yyparse() != 0)
 		return NULL;
 
-	fill_fullpaths(the_boot_info->dt, "");
-
 	the_boot_info->error = treesource_error;
 	return the_boot_info;
 }

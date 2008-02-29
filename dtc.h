@@ -264,6 +264,5 @@ struct boot_info *dt_from_fs(const char *dirname);
 /* misc */
 
 char *join_path(const char *path, const char *name);
-void fill_fullpaths(struct node *tree, const char *prefix);
 
 #endif /* _DTC_H */

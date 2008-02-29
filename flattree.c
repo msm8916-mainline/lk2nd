@@ -704,59 +704,37 @@ static struct reserve_info *flat_read_mem_reserve(struct inbuf *inb)
 
 static char *nodename_from_path(const char *ppath, const char *cpath)
 {
-	const char *lslash;
 	int plen;
 
-	lslash = strrchr(cpath, '/');
-	if (! lslash)
-		return NULL;
+	plen = strlen(ppath);
 
-	plen = lslash - cpath;
+	if (!strneq(ppath, cpath, plen))
+		die("Path \"%s\" is not valid as a child of \"%s\"\n",
+		    cpath, ppath);
 
-	if (streq(cpath, "/") && streq(ppath, ""))
-		return "";
+	/* root node is a special case */
+	if (!streq(ppath, "/"))
+		plen++;
 
-	if ((plen == 0) && streq(ppath, "/"))
-		return strdup(lslash+1);
-
-	if (! strneq(ppath, cpath, plen))
-		return NULL;
-
-	return strdup(lslash+1);
-}
-
-static int find_basenamelen(const char *name)
-{
-	const char *atpos = strchr(name, '@');
-
-	if (atpos)
-		return atpos - name;
-	else
-		return strlen(name);
+	return strdup(cpath + plen);
 }
 
 static struct node *unflatten_tree(struct inbuf *dtbuf,
 				   struct inbuf *strbuf,
-				   const char *parent_path, int flags)
+				   const char *parent_flatname, int flags)
 {
 	struct node *node;
+	char *flatname;
 	u32 val;
 
 	node = build_node(NULL, NULL);
 
-	if (flags & FTF_FULLPATH) {
-		node->fullpath = flat_read_string(dtbuf);
-		node->name = nodename_from_path(parent_path, node->fullpath);
+	flatname = flat_read_string(dtbuf);
 
-		if (! node->name)
-			die("Path \"%s\" is not valid as a child of \"%s\"\n",
-			    node->fullpath, parent_path);
-	} else {
-		node->name = flat_read_string(dtbuf);
-		node->fullpath = join_path(parent_path, node->name);
-	}
-
-	node->basenamelen = find_basenamelen(node->name);
+	if (flags & FTF_FULLPATH)
+		node->name = nodename_from_path(parent_flatname, flatname);
+	else
+		node->name = flatname;
 
 	do {
 		struct property *prop;
@@ -773,8 +751,7 @@ static struct node *unflatten_tree(struct inbuf *dtbuf,
 			break;
 
 		case FDT_BEGIN_NODE:
-			child = unflatten_tree(dtbuf,strbuf, node->fullpath,
-					       flags);
+			child = unflatten_tree(dtbuf,strbuf, flatname, flags);
 			add_child(node, child);
 			break;
 
