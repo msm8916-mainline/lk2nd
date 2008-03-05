@@ -14,11 +14,12 @@ LOG="tmp.log.$$"
 
 rm -f $TMPFILE $LOG
 
-verbose_run_log "$LOG" "$DTC" -o /dev/null "$@"
+verbose_run_log "$LOG" $VALGRIND "$DTC" -o /dev/null "$@"
 ret="$?"
 
 if [ "$ret" -gt 127 ]; then
-    FAIL "dtc killed by signal (ret=$ret)"
+    signame=$(kill -l $[ret - 128])
+    FAIL "Killed by SIG$signame"
 fi
 
 for c in $CHECKS; do
