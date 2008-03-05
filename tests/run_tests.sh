@@ -238,6 +238,17 @@ dtc_tests () {
     run_sh_test dtc-checkfails.sh node_name_chars -- -I dtb -O dtb bad_node_char.dtb
     run_sh_test dtc-checkfails.sh node_name_format -- -I dtb -O dtb bad_node_format.dtb
     run_sh_test dtc-checkfails.sh prop_name_chars -- -I dtb -O dtb bad_prop_char.dtb
+
+    # Check for proper behaviour reading from stdin
+    run_dtc_test -I dts -O dtb -o stdin_dtc_tree1.test.dtb - < test_tree1.dts
+    run_wrap_test cmp stdin_dtc_tree1.test.dtb dtc_tree1.test.dtb
+    run_dtc_test -I dtb -O dts -o stdin_odts_test_tree1.dtb.test.dts - < test_tree1.dtb
+    run_wrap_test cmp stdin_odts_test_tree1.dtb.test.dts odts_test_tree1.dtb.test.dts
+
+    # Check for graceful failure in some error conditions
+    run_sh_test dtc-fatal.sh -I dts -O dtb nosuchfile.dts
+    run_sh_test dtc-fatal.sh -I dtb -O dtb nosuchfile.dtb
+    run_sh_test dtc-fatal.sh -I fs -O dtb nosuchfile
 }
 
 while getopts "vt:m" ARG ; do
