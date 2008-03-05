@@ -24,12 +24,12 @@
 #include "dtc.h"
 #include "srcpos.h"
 
-int yylex(void);
-unsigned long long eval_literal(const char *s, int base, int bits);
+extern int yylex(void);
 
 extern struct boot_info *the_boot_info;
 extern int treesource_error;
 
+static unsigned long long eval_literal(const char *s, int base, int bits);
 %}
 
 %union {
@@ -330,7 +330,7 @@ void yyerror (char const *s)
 	yyerrorf("%s", s);
 }
 
-unsigned long long eval_literal(const char *s, int base, int bits)
+static unsigned long long eval_literal(const char *s, int base, int bits)
 {
 	unsigned long long val;
 	char *e;
