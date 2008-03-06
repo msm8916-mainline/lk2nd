@@ -32,8 +32,6 @@ void data_free(struct data d)
 		m = nm;
 	}
 
-	assert(!d.val || d.asize);
-
 	if (d.val)
 		free(d.val);
 }
@@ -42,9 +40,6 @@ struct data data_grow_for(struct data d, int xlen)
 {
 	struct data nd;
 	int newsize;
-
-	/* we must start with an allocated datum */
-	assert(!d.val || d.asize);
 
 	if (xlen == 0)
 		return d;
@@ -56,10 +51,7 @@ struct data data_grow_for(struct data d, int xlen)
 	while ((d.len + xlen) > newsize)
 		newsize *= 2;
 
-	nd.asize = newsize;
 	nd.val = xrealloc(d.val, newsize);
-
-	assert(nd.asize >= (d.len + xlen));
 
 	return nd;
 }

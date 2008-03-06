@@ -118,7 +118,6 @@ struct  marker {
 struct data {
 	int len;
 	char *val;
-	int asize;
 	struct marker *markers;
 };
 
