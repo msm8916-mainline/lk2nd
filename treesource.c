@@ -32,7 +32,8 @@ struct boot_info *dt_from_source(const char *fname)
 	the_boot_info = NULL;
 	treesource_error = 0;
 
-	push_input_file(fname);
+	srcpos_file = dtc_open_file(fname, NULL);
+	yyin = srcpos_file->file;
 
 	if (yyparse() != 0)
 		return NULL;

@@ -52,6 +52,9 @@ static int dts_version; /* = 0 */
 				DPRINT("<V1>\n"); \
 				BEGIN(V1); \
 			}
+
+static void push_input_file(const char *filename);
+static int pop_input_file(void);
 %}
 
 %%
@@ -229,7 +232,7 @@ struct incl_file {
 	struct incl_file *prev;
 };
 
-struct incl_file *incl_file_stack;
+static struct incl_file *incl_file_stack;
 
 
 /*
@@ -240,7 +243,7 @@ struct incl_file *incl_file_stack;
 static int incl_depth = 0;
 
 
-void push_input_file(const char *filename)
+static void push_input_file(const char *filename)
 {
 	struct incl_file *incl_file;
 	struct dtc_file *newfile;
@@ -282,7 +285,7 @@ void push_input_file(const char *filename)
 }
 
 
-int pop_input_file(void)
+static int pop_input_file(void)
 {
 	struct incl_file *incl_file;
 
@@ -311,9 +314,6 @@ int pop_input_file(void)
 	 * Free old state.
 	 */
 	free(incl_file);
-
-	if (YY_CURRENT_BUFFER == 0)
-		return 0;
 
 	return 1;
 }
