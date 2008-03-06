@@ -31,8 +31,8 @@ static struct node *read_fstree(const char *dirname)
 	struct node *tree;
 
 	d = opendir(dirname);
-	if (! d)
-		die("opendir(): %s\n", strerror(errno));
+	if (!d)
+		die("Couldn't opendir() \"%s\": %s\n", dirname, strerror(errno));
 
 	tree = build_node(NULL, NULL);
 

@@ -259,9 +259,6 @@ void push_input_file(const char *filename)
 	}
 
 	newfile = dtc_open_file(filename, searchptr);
-	if (!newfile)
-		die("Couldn't open \"%s\": %s", filename, strerror(errno));
-
 
 	incl_file = xmalloc(sizeof(struct incl_file));
 

@@ -82,9 +82,8 @@ struct dtc_file *dtc_open_file(const char *fname,
 
 	if (fname[0] == '/') {
 		file->file = fopen(fname, "r");
-
 		if (!file->file)
-			goto out;
+			goto fail;
 
 		file->name = strdup(fname);
 		return file;
@@ -98,15 +97,13 @@ struct dtc_file *dtc_open_file(const char *fname,
 			return file;
 
 		if (errno != ENOENT)
-			goto out;
+			goto fail;
 
 		search = search->next;
 	}
 
-out:
-	free(file->dir);
-	free(file);
-	return NULL;
+fail:
+	die("Couldn't open \"%s\": %s\n", fname, strerror(errno));
 }
 
 void dtc_close_file(struct dtc_file *file)

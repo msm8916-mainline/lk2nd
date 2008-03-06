@@ -193,10 +193,6 @@ int main(int argc, char *argv[])
 		bi = dt_from_fs(arg);
 	} else if(streq(inform, "dtb")) {
 		inf = dtc_open_file(arg, NULL);
-		if (!inf)
-			die("Couldn't open \"%s\": %s\n", arg,
-			    strerror(errno));
-
 		bi = dt_from_blob(inf->file);
 	} else {
 		die("Unknown input format \"%s\"\n", inform);
