@@ -75,16 +75,11 @@ static char get_oct_char(const char *s, int *i)
 	long val;
 
 	x[3] = '\0';
-	x[0] = s[(*i)];
-	if (x[0]) {
-		x[1] = s[(*i)+1];
-		if (x[1])
-			x[2] = s[(*i)+2];
-	}
+	strncpy(x, s + *i, 3);
 
 	val = strtol(x, &endx, 8);
-	if ((endx - x) == 0)
-		fprintf(stderr, "Empty \\nnn escape\n");
+
+	assert(endx > x);
 
 	(*i) += endx - x;
 	return val;
@@ -97,13 +92,11 @@ static char get_hex_char(const char *s, int *i)
 	long val;
 
 	x[2] = '\0';
-	x[0] = s[(*i)];
-	if (x[0])
-		x[1] = s[(*i)+1];
+	strncpy(x, s + *i, 2);
 
 	val = strtol(x, &endx, 16);
-	if ((endx - x) == 0)
-		fprintf(stderr, "Empty \\x escape\n");
+	if (!(endx  > x))
+		die("\\x used with no following hex digits\n");
 
 	(*i) += endx - x;
 	return val;
