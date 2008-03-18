@@ -106,7 +106,7 @@ static void  __attribute__ ((noreturn)) usage(void)
 	fprintf(stderr, "\t\tForce - try to produce output even if the input tree has errors\n");
 	fprintf(stderr, "\t-v\n");
 	fprintf(stderr, "\t\tPrint DTC version and exit\n");
-	exit(2);
+	exit(3);
 }
 
 int main(int argc, char *argv[])
