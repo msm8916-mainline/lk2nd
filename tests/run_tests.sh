@@ -71,6 +71,13 @@ run_dtc_test () {
     base_run_test wrap_test $VALGRIND $DTC "$@"
 }
 
+CONVERT=../convert-dtsv0
+
+run_convert_test () {
+    echo -n "convert-dtsv0 $@:	"
+    base_run_test wrap_test $VALGRIND $CONVERT "$@"
+}
+
 tree1_tests () {
     TREE=$1
 
@@ -259,6 +266,21 @@ dtc_tests () {
     run_sh_test dtc-fatal.sh -I fs -O dtb nosuchfile
 }
 
+convert_tests () {
+    V0_DTS="test_tree1_dts0.dts references_dts0.dts empty.dts escapes.dts \
+	test01.dts label01.dts"
+    for dts in $V0_DTS; do
+	run_dtc_test -I dts -O dtb -o cvtraw_$dts.test.dtb $dts
+	run_dtc_test -I dts -O dts -o cvtdtc_$dts.test.dts $dts
+	run_dtc_test -I dts -O dtb -o cvtdtc_$dts.test.dtb cvtdtc_$dts.test.dts
+	run_convert_test $dts
+	run_dtc_test -I dts -O dtb -o cvtcvt_$dts.test.dtb ${dts}v1
+
+	run_wrap_test cmp cvtraw_$dts.test.dtb cvtdtc_$dts.test.dtb
+	run_wrap_test cmp cvtraw_$dts.test.dtb cvtcvt_$dts.test.dtb
+    done
+}
+
 while getopts "vt:m" ARG ; do
     case $ARG in
 	"v")
@@ -274,7 +296,7 @@ while getopts "vt:m" ARG ; do
 done
 
 if [ -z "$TESTSETS" ]; then
-    TESTSETS="libfdt dtc"
+    TESTSETS="libfdt dtc convert"
 fi
 
 # Make sure we don't have stale blobs lying around
@@ -287,6 +309,9 @@ for set in $TESTSETS; do
 	    ;;
 	"dtc")
 	    dtc_tests
+	    ;;
+	"convert")
+	    convert_tests
 	    ;;
     esac
 done

@@ -46,7 +46,7 @@ else
 DEPTARGETS = $(filter-out $(NODEPTARGETS),$(MAKECMDGOALS))
 endif
 
-all: dtc ftdump libfdt
+all: dtc ftdump convert-dtsv0 libfdt
 
 install: all
 	@$(VECHO) INSTALL
@@ -121,11 +121,15 @@ ifneq ($(DEPTARGETS),)
 -include $(DTC_OBJS:%.o=%.d)
 endif
 #
-# Rules for ftdump
+# Rules for ftdump & convert-dtsv0
 #
-BIN += ftdump
+BIN += ftdump convert-dtsv0
 
 ftdump:	ftdump.o
+
+convert-dtsv0: convert-dtsv0-lexer.lex.o srcpos.o
+	@$(VECHO) LD $@
+	$(LINK.c) -o $@ $^
 
 ifneq ($(DEPTARGETS),)
 -include ftdump.d

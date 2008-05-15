@@ -27,7 +27,7 @@ TESTS_TARGETS = $(TESTS) $(TESTS_TREES)
 TESTS_DEPFILES = $(TESTS:%=%.d) \
 	$(addprefix $(TESTS_PREFIX),testutils.d trees.d dumptrees.d)
 
-TESTS_CLEANFILES_L =  *.output vglog.* vgcore.* *.dtb *.test.dts tmp.*
+TESTS_CLEANFILES_L =  *.output vglog.* vgcore.* *.dtb *.test.dts *.dtsv1 tmp.*
 TESTS_CLEANFILES = $(TESTS_CLEANFILES_L:%=$(TESTS_PREFIX)%)
 
 BIN += $(TESTS) $(TESTS_PREFIX)dumptrees
@@ -50,13 +50,13 @@ tests_clean:
 	rm -f $(STD_CLEANFILES:%=$(TESTS_PREFIX)%)
 	rm -f $(TESTS_CLEANFILES)
 
-check:	tests dtc
+check:	tests dtc convert-dtsv0
 	cd $(TESTS_PREFIX); ./run_tests.sh
 
-checkm: tests dtc
+checkm: tests dtc convert-dtsv0
 	cd $(TESTS_PREFIX); ./run_tests.sh -m 2>&1 | tee vglog.$$$$
 
-checkv:	tests dtc
+checkv:	tests dtc convert-dtsv0
 	cd $(TESTS_PREFIX); ./run_tests.sh -v
 
 ifneq ($(DEPTARGETS),)
