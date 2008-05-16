@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
 	int opt;
 	FILE *outf = NULL;
 	int outversion = DEFAULT_FDT_VERSION;
-	int boot_cpuid_phys = 0xfeedbeef;
+	long long cmdline_boot_cpuid = -1;
 
 	quiet      = 0;
 	reservenum = 0;
@@ -160,7 +160,7 @@ int main(int argc, char *argv[])
 			quiet++;
 			break;
 		case 'b':
-			boot_cpuid_phys = strtol(optarg, NULL, 0);
+			cmdline_boot_cpuid = strtoll(optarg, NULL, 0);
 			break;
 		case 'v':
 			printf("Version: %s\n", DTC_VERSION);
@@ -194,8 +194,12 @@ int main(int argc, char *argv[])
 	else
 		die("Unknown input format \"%s\"\n", inform);
 
+	if (cmdline_boot_cpuid != -1)
+		bi->boot_cpuid_phys = cmdline_boot_cpuid;
+
 	fill_fullpaths(bi->dt, "");
 	process_checks(force, bi);
+
 
 	if (streq(outname, "-")) {
 		outf = stdout;
@@ -209,9 +213,9 @@ int main(int argc, char *argv[])
 	if (streq(outform, "dts")) {
 		dt_to_source(outf, bi);
 	} else if (streq(outform, "dtb")) {
-		dt_to_blob(outf, bi, outversion, boot_cpuid_phys);
+		dt_to_blob(outf, bi, outversion);
 	} else if (streq(outform, "asm")) {
-		dt_to_asm(outf, bi, outversion, boot_cpuid_phys);
+		dt_to_asm(outf, bi, outversion);
 	} else if (streq(outform, "null")) {
 		/* do nothing */
 	} else {

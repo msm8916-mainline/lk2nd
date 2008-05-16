@@ -85,11 +85,11 @@ static unsigned long long eval_literal(const char *s, int base, int bits);
 sourcefile:
 	  DT_V1 ';' memreserves devicetree
 		{
-			the_boot_info = build_boot_info($3, $4);
+			the_boot_info = build_boot_info($3, $4, 0);
 		}
 	| v0_memreserves devicetree
 		{
-			the_boot_info = build_boot_info($1, $2);
+			the_boot_info = build_boot_info($1, $2, 0);
 		}
 	;
 

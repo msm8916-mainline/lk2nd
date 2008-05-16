@@ -165,13 +165,14 @@ struct reserve_info *add_reserve_entry(struct reserve_info *list,
 }
 
 struct boot_info *build_boot_info(struct reserve_info *reservelist,
-				  struct node *tree)
+				  struct node *tree, u32 boot_cpuid_phys)
 {
 	struct boot_info *bi;
 
 	bi = xmalloc(sizeof(*bi));
 	bi->reservelist = reservelist;
 	bi->dt = tree;
+	bi->boot_cpuid_phys = boot_cpuid_phys;
 
 	return bi;
 }

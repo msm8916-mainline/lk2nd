@@ -199,6 +199,14 @@ dtc_tests () {
     run_dtc_test -I dts -O dtb -o dtc_comments-cmp.test.dtb comments-cmp.dts
     run_test dtbs_equal_ordered dtc_comments.test.dtb dtc_comments-cmp.test.dtb
 
+    # Check boot_cpuid_phys handling
+    run_dtc_test -I dts -O dtb -b 17 -o boot_cpuid.test.dtb empty.dts
+    run_test boot-cpuid boot_cpuid.test.dtb 17
+    run_dtc_test -I dtb -O dtb -b 17 -o boot_cpuid_test_tree1.test.dtb test_tree1.dtb
+    run_test boot-cpuid boot_cpuid_test_tree1.test.dtb 17
+    run_dtc_test -I dtb -O dtb -o boot_cpuid_preserved_test_tree1.test.dtb boot_cpuid_test_tree1.test.dtb
+    run_test dtbs_equal_ordered boot_cpuid_preserved_test_tree1.test.dtb boot_cpuid_test_tree1.test.dtb
+
     # Check -Odts mode preserve all dtb information
     for tree in test_tree1.dtb dtc_tree1.test.dtb dtc_escapes.test.dtb ; do
 	run_dtc_test -I dtb -O dts -o odts_$tree.test.dts $tree

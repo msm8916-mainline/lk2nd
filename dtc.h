@@ -232,10 +232,11 @@ struct reserve_info *add_reserve_entry(struct reserve_info *list,
 struct boot_info {
 	struct reserve_info *reservelist;
 	struct node *dt;		/* the device tree */
+	u32 boot_cpuid_phys;
 };
 
 struct boot_info *build_boot_info(struct reserve_info *reservelist,
-				  struct node *tree);
+				  struct node *tree, u32 boot_cpuid_phys);
 
 /* Checks */
 
@@ -243,10 +244,8 @@ void process_checks(int force, struct boot_info *bi);
 
 /* Flattened trees */
 
-void dt_to_blob(FILE *f, struct boot_info *bi, int version,
-		int boot_cpuid_phys);
-void dt_to_asm(FILE *f, struct boot_info *bi, int version,
-	       int boot_cpuid_phys);
+void dt_to_blob(FILE *f, struct boot_info *bi, int version);
+void dt_to_asm(FILE *f, struct boot_info *bi, int version);
 
 struct boot_info *dt_from_blob(const char *fname);
 

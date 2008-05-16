@@ -354,8 +354,7 @@ static void make_fdt_header(struct fdt_header *fdt,
 		fdt->size_dt_struct = cpu_to_be32(dtsize);
 }
 
-void dt_to_blob(FILE *f, struct boot_info *bi, int version,
-		int boot_cpuid_phys)
+void dt_to_blob(FILE *f, struct boot_info *bi, int version)
 {
 	struct version_info *vi = NULL;
 	int i;
@@ -380,7 +379,7 @@ void dt_to_blob(FILE *f, struct boot_info *bi, int version,
 
 	/* Make header */
 	make_fdt_header(&fdt, vi, reservebuf.len, dtbuf.len, strbuf.len,
-			boot_cpuid_phys);
+			bi->boot_cpuid_phys);
 
 	/*
 	 * If the user asked for more space than is used, adjust the totalsize.
@@ -446,7 +445,7 @@ static void dump_stringtable_asm(FILE *f, struct data strbuf)
 	}
 }
 
-void dt_to_asm(FILE *f, struct boot_info *bi, int version, int boot_cpuid_phys)
+void dt_to_asm(FILE *f, struct boot_info *bi, int version)
 {
 	struct version_info *vi = NULL;
 	int i;
@@ -486,7 +485,7 @@ void dt_to_asm(FILE *f, struct boot_info *bi, int version, int boot_cpuid_phys)
 
 	if (vi->flags & FTF_BOOTCPUID)
 		fprintf(f, "\t.long\t%i\t\t\t\t\t/* boot_cpuid_phys */\n",
-			boot_cpuid_phys);
+			bi->boot_cpuid_phys);
 
 	if (vi->flags & FTF_STRTABSIZE)
 		fprintf(f, "\t.long\t_%s_strings_end - _%s_strings_start\t/* size_dt_strings */\n",
@@ -784,7 +783,7 @@ static struct node *unflatten_tree(struct inbuf *dtbuf,
 struct boot_info *dt_from_blob(const char *fname)
 {
 	struct dtc_file *dtcf;
-	u32 magic, totalsize, version, size_dt;
+	u32 magic, totalsize, version, size_dt, boot_cpuid_phys;
 	u32 off_dt, off_str, off_mem_rsvmap;
 	int rc;
 	char *blob;
@@ -856,6 +855,7 @@ struct boot_info *dt_from_blob(const char *fname)
 	off_str = be32_to_cpu(fdt->off_dt_strings);
 	off_mem_rsvmap = be32_to_cpu(fdt->off_mem_rsvmap);
 	version = be32_to_cpu(fdt->version);
+	boot_cpuid_phys = be32_to_cpu(fdt->boot_cpuid_phys);
 
 	if (off_mem_rsvmap >= totalsize)
 		die("Mem Reserve structure offset exceeds total size\n");
@@ -908,5 +908,5 @@ struct boot_info *dt_from_blob(const char *fname)
 
 	dtc_close_file(dtcf);
 
-	return build_boot_info(reservelist, tree);
+	return build_boot_info(reservelist, tree, boot_cpuid_phys);
 }

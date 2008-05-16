@@ -125,6 +125,7 @@ void compare_structure(const void *fdt1, const void *fdt2)
 int main(int argc, char *argv[])
 {
 	void *fdt1, *fdt2;
+	uint32_t cpuid1, cpuid2;
 
 	test_init(argc, argv);
 	if (argc != 3)
@@ -134,6 +135,12 @@ int main(int argc, char *argv[])
 
 	compare_mem_rsv(fdt1, fdt2);
 	compare_structure(fdt1, fdt2);
+
+	cpuid1 = fdt_boot_cpuid_phys(fdt1);
+	cpuid2 = fdt_boot_cpuid_phys(fdt2);
+	if (cpuid1 != cpuid2)
+		FAIL("boot_cpuid_phys mismatch 0x%x != 0x%x",
+		     cpuid1, cpuid2);
 
 	PASS();
 }
