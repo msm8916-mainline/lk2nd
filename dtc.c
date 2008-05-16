@@ -118,7 +118,6 @@ int main(int argc, char *argv[])
 	int force = 0, check = 0;
 	const char *arg;
 	int opt;
-	struct dtc_file *inf = NULL;
 	FILE *outf = NULL;
 	int outversion = DEFAULT_FDT_VERSION;
 	int boot_cpuid_phys = 0xfeedbeef;
@@ -186,19 +185,14 @@ int main(int argc, char *argv[])
 	fprintf(stderr, "DTC: %s->%s  on file \"%s\"\n",
 		inform, outform, arg);
 
-	if (streq(inform, "dts")) {
+	if (streq(inform, "dts"))
 		bi = dt_from_source(arg);
-	} else if (streq(inform, "fs")) {
+	else if (streq(inform, "fs"))
 		bi = dt_from_fs(arg);
-	} else if(streq(inform, "dtb")) {
-		inf = dtc_open_file(arg, NULL);
-		bi = dt_from_blob(inf->file);
-	} else {
+	else if(streq(inform, "dtb"))
+		bi = dt_from_blob(arg);
+	else
 		die("Unknown input format \"%s\"\n", inform);
-	}
-
-	if (inf && inf->file != stdin)
-		fclose(inf->file);
 
 	fill_fullpaths(bi->dt, "");
 	process_checks(force, bi);

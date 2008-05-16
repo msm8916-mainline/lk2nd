@@ -248,7 +248,7 @@ void dt_to_blob(FILE *f, struct boot_info *bi, int version,
 void dt_to_asm(FILE *f, struct boot_info *bi, int version,
 	       int boot_cpuid_phys);
 
-struct boot_info *dt_from_blob(FILE *f);
+struct boot_info *dt_from_blob(const char *fname);
 
 /* Tree source */
 

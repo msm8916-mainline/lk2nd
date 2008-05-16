@@ -19,6 +19,7 @@
  */
 
 #include "dtc.h"
+#include "srcpos.h"
 
 #define FTF_FULLPATH	0x1
 #define FTF_VARALIGN	0x2
@@ -780,8 +781,9 @@ static struct node *unflatten_tree(struct inbuf *dtbuf,
 }
 
 
-struct boot_info *dt_from_blob(FILE *f)
+struct boot_info *dt_from_blob(const char *fname)
 {
+	struct dtc_file *dtcf;
 	u32 magic, totalsize, version, size_dt;
 	u32 off_dt, off_str, off_mem_rsvmap;
 	int rc;
@@ -796,12 +798,14 @@ struct boot_info *dt_from_blob(FILE *f)
 	u32 val;
 	int flags = 0;
 
-	rc = fread(&magic, sizeof(magic), 1, f);
-	if (ferror(f))
+	dtcf = dtc_open_file(fname, NULL);
+
+	rc = fread(&magic, sizeof(magic), 1, dtcf->file);
+	if (ferror(dtcf->file))
 		die("Error reading DT blob magic number: %s\n",
 		    strerror(errno));
 	if (rc < 1) {
-		if (feof(f))
+		if (feof(dtcf->file))
 			die("EOF reading DT blob magic number\n");
 		else
 			die("Mysterious short read reading magic number\n");
@@ -811,11 +815,11 @@ struct boot_info *dt_from_blob(FILE *f)
 	if (magic != FDT_MAGIC)
 		die("Blob has incorrect magic number\n");
 
-	rc = fread(&totalsize, sizeof(totalsize), 1, f);
-	if (ferror(f))
+	rc = fread(&totalsize, sizeof(totalsize), 1, dtcf->file);
+	if (ferror(dtcf->file))
 		die("Error reading DT blob size: %s\n", strerror(errno));
 	if (rc < 1) {
-		if (feof(f))
+		if (feof(dtcf->file))
 			die("EOF reading DT blob size\n");
 		else
 			die("Mysterious short read reading blob size\n");
@@ -835,12 +839,12 @@ struct boot_info *dt_from_blob(FILE *f)
 	p = blob + sizeof(magic)  + sizeof(totalsize);
 
 	while (sizeleft) {
-		if (feof(f))
+		if (feof(dtcf->file))
 			die("EOF before reading %d bytes of DT blob\n",
 			    totalsize);
 
-		rc = fread(p, 1, sizeleft, f);
-		if (ferror(f))
+		rc = fread(p, 1, sizeleft, dtcf->file);
+		if (ferror(dtcf->file))
 			die("Error reading DT blob: %s\n",
 			    strerror(errno));
 
@@ -901,6 +905,8 @@ struct boot_info *dt_from_blob(FILE *f)
 		die("Device tree blob doesn't end with FDT_END\n");
 
 	free(blob);
+
+	dtc_close_file(dtcf);
 
 	return build_boot_info(reservelist, tree);
 }
