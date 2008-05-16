@@ -164,8 +164,8 @@ int main(int argc, char *argv[])
 			boot_cpuid_phys = strtol(optarg, NULL, 0);
 			break;
 		case 'v':
-		    printf("Version: %s\n", DTC_VERSION);
-		    exit(0);
+			printf("Version: %s\n", DTC_VERSION);
+			exit(0);
 		case 'h':
 		default:
 			usage();
@@ -180,9 +180,8 @@ int main(int argc, char *argv[])
 		arg = argv[optind];
 
 	/* minsize and padsize are mutually exclusive */
-	if ((minsize) && (padsize)) {
+	if (minsize && padsize)
 		die("Can't set both -p and -S\n");
-	}
 
 	fprintf(stderr, "DTC: %s->%s  on file \"%s\"\n",
 		inform, outform, arg);
