@@ -172,7 +172,6 @@ struct boot_info *build_boot_info(struct reserve_info *reservelist,
 	bi = xmalloc(sizeof(*bi));
 	bi->reservelist = reservelist;
 	bi->dt = tree;
-	bi->error = 0;
 
 	return bi;
 }

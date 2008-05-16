@@ -201,9 +201,6 @@ int main(int argc, char *argv[])
 	if (inf && inf->file != stdin)
 		fclose(inf->file);
 
-	if (! bi || ! bi->dt || bi->error)
-		die("Couldn't read input tree\n");
-
 	fill_fullpaths(bi->dt, "");
 	process_checks(force, bi);
 

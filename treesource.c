@@ -36,9 +36,11 @@ struct boot_info *dt_from_source(const char *fname)
 	yyin = srcpos_file->file;
 
 	if (yyparse() != 0)
-		return NULL;
+		die("Unable to parse input tree\n");
 
-	the_boot_info->error = treesource_error;
+	if (treesource_error)
+		die("Syntax error parsing input tree\n");
+
 	return the_boot_info;
 }
 
