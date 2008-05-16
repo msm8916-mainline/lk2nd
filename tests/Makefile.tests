@@ -35,9 +35,9 @@ BIN += $(TESTS) $(TESTS_PREFIX)dumptrees
 .PHONY: tests
 tests:	$(TESTS) $(TESTS_TREES)
 
-$(LIB_TESTS): %: $(TESTS_PREFIX)testutils.o $(LIBFDT_LIB)
+$(LIB_TESTS): %: $(TESTS_PREFIX)testutils.o $(LIBFDT_lib)
 
-$(LIBTREE_TESTS): %: $(TESTS_PREFIX)testutils.o $(TESTS_PREFIX)trees.o $(LIBFDT_LIB)
+$(LIBTREE_TESTS): %: $(TESTS_PREFIX)testutils.o $(TESTS_PREFIX)trees.o $(LIBFDT_lib)
 
 $(TESTS_PREFIX)dumptrees: $(TESTS_PREFIX)trees.o
 
