@@ -150,7 +150,6 @@ $(LIBFDT_lib): $(addprefix $(LIBFDT_objdir)/,$(LIBFDT_OBJS))
 libfdt_clean:
 	@$(VECHO) CLEAN "(libfdt)"
 	rm -f $(addprefix $(LIBFDT_objdir)/,$(STD_CLEANFILES))
-	rm -f $(addprefix $(LIBFDT_objdir)/,$(LIBFDT_CLEANFILES))
 
 ifneq ($(DEPTARGETS),)
 -include $(LIBFDT_OBJS:%.o=$(LIBFDT_objdir)/%.d)
@@ -170,7 +169,7 @@ STD_CLEANFILES = *~ *.o *.d *.a *.i *.s core a.out vgcore.* \
 
 clean: libfdt_clean tests_clean
 	@$(VECHO) CLEAN
-	rm -f $(STD_CLEANFILES) $(DTC_CLEANFILES)
+	rm -f $(STD_CLEANFILES)
 	rm -f $(VERSION_FILE)
 	rm -f $(BIN)
 
