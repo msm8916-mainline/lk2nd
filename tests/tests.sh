@@ -23,7 +23,7 @@ verbose_run () {
 verbose_run_log () {
     LOG="$1"
     shift
-    "$@" &> "$LOG"
+    "$@" > "$LOG" 2>&1
     ret=$?
     if [ -z "$QUIET_TEST" ]; then
 	cat "$LOG" >&2

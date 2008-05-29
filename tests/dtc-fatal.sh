@@ -1,6 +1,6 @@
 #! /bin/sh
 
-. tests.sh
+. ./tests.sh
 
 verbose_run $VALGRIND "$DTC" -o/dev/null "$@"
 ret="$?"
