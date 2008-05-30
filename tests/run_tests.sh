@@ -248,6 +248,7 @@ dtc_tests () {
     run_sh_test dtc-checkfails.sh device_type_is_string model_is_string status_is_string -- -I dts -O dtb bad-string-props.dts
     run_sh_test dtc-checkfails.sh reg_format ranges_format -- -I dts -O dtb bad-reg-ranges.dts
     run_sh_test dtc-checkfails.sh ranges_format -- -I dts -O dtb bad-empty-ranges.dts
+    run_sh_test dtc-checkfails.sh reg_format ranges_format -- -I dts -O dtb reg-ranges-root.dts
     run_sh_test dtc-checkfails.sh avoid_default_addr_size -- -I dts -O dtb default-addr-size.dts
     run_sh_test dtc-checkfails.sh obsolete_chosen_interrupt_controller -- -I dts -O dtb obsolete-chosen-interrupt-controller.dts
     run_sh_test dtc-checkfails.sh node_name_chars -- -I dtb -O dtb bad_node_char.dtb
