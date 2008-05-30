@@ -49,7 +49,10 @@ void compare_mem_rsv(const void *fdt1, const void *fdt2)
 		if ((addr1 != addr2) || (size1 != size2))
 			FAIL("Mismatch in reserve entry %d: "
 			     "(0x%llx, 0x%llx) != (0x%llx, 0x%llx)", i,
-			     addr1, size1, addr2, size2);
+			     (unsigned long long)addr1,
+			     (unsigned long long)size1,
+			     (unsigned long long)addr2,
+			     (unsigned long long)size2);
 	}
 }
 

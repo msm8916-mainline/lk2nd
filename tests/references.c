@@ -38,7 +38,7 @@ void check_ref(const void *fdt, int node, uint32_t checkref)
 	if (!p)
 		FAIL("fdt_getprop(%d, \"ref\"): %s", node, fdt_strerror(len));
 	if (len != sizeof(*p))
-		FAIL("'ref' in node at %d has wrong size (%d instead of %d)",
+		FAIL("'ref' in node at %d has wrong size (%d instead of %zd)",
 		     node, len, sizeof(*p));
 	ref = fdt32_to_cpu(*p);
 	if (ref != checkref)
@@ -49,7 +49,7 @@ void check_ref(const void *fdt, int node, uint32_t checkref)
 	if (!p)
 		FAIL("fdt_getprop(%d, \"lref\"): %s", node, fdt_strerror(len));
 	if (len != sizeof(*p))
-		FAIL("'lref' in node at %d has wrong size (%d instead of %d)",
+		FAIL("'lref' in node at %d has wrong size (%d instead of %zd)",
 		     node, len, sizeof(*p));
 	ref = fdt32_to_cpu(*p);
 	if (ref != checkref)
