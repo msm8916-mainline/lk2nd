@@ -167,14 +167,29 @@ struct data data_copy_escape_string(const char *s, int len)
 	return d;
 }
 
-struct data data_copy_file(FILE *f, size_t len)
+struct data data_copy_file(FILE *f, size_t maxlen)
 {
-	struct data d;
+	struct data d = empty_data;
 
-	d = data_grow_for(empty_data, len);
+	while (!feof(f) && (d.len < maxlen)) {
+		size_t chunksize, ret;
 
-	d.len = len;
-	fread(d.val, len, 1, f);
+		if (maxlen == -1)
+			chunksize = 4096;
+		else
+			chunksize = maxlen - d.len;
+
+		d = data_grow_for(d, chunksize);
+		ret = fread(d.val + d.len, 1, chunksize, f);
+
+		if (ferror(f))
+			die("Error reading file into data: %s", strerror(errno));
+
+		if (d.len + ret < d.len)
+			die("Overflow reading file into data\n");
+
+		d.len += ret;
+	}
 
 	return d;
 }

@@ -21,6 +21,8 @@
 %locations
 
 %{
+#include <stdio.h>
+
 #include "dtc.h"
 #include "srcpos.h"
 
@@ -59,6 +61,7 @@ static unsigned long long eval_literal(const char *s, int base, int bits);
 %token <data> DT_STRING
 %token <labelref> DT_LABEL
 %token <labelref> DT_REF
+%token DT_INCBIN
 
 %type <data> propdata
 %type <data> propdataprefix
@@ -196,6 +199,34 @@ propdata:
 	| propdataprefix DT_REF
 		{
 			$$ = data_add_marker($1, REF_PATH, $2);
+		}
+	| propdataprefix DT_INCBIN '(' DT_STRING ',' addr ',' addr ')'
+		{
+			struct search_path path = { srcpos_file->dir, NULL, NULL };
+			struct dtc_file *file = dtc_open_file($4.val, &path);
+			struct data d = empty_data;
+
+			if ($6 != 0)
+				if (fseek(file->file, $6, SEEK_SET) != 0)
+					yyerrorf("Couldn't seek to offset %llu in \"%s\": %s",
+						 (unsigned long long)$6,
+						 $4.val, strerror(errno));
+
+			d = data_copy_file(file->file, $8);
+
+			$$ = data_merge($1, d);
+			dtc_close_file(file);
+		}
+	| propdataprefix DT_INCBIN '(' DT_STRING ')'
+		{
+			struct search_path path = { srcpos_file->dir, NULL, NULL };
+			struct dtc_file *file = dtc_open_file($4.val, &path);
+			struct data d = empty_data;
+
+			d = data_copy_file(file->file, -1);
+
+			$$ = data_merge($1, d);
+			dtc_close_file(file);
 		}
 	| propdata DT_LABEL
 		{

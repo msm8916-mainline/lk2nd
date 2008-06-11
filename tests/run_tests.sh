@@ -206,6 +206,10 @@ dtc_tests () {
     run_dtc_test -I dts -O dtb -o dtc_comments-cmp.test.dtb comments-cmp.dts
     run_test dtbs_equal_ordered dtc_comments.test.dtb dtc_comments-cmp.test.dtb
 
+    # Check /incbin/ directive
+    run_dtc_test -I dts -O dtb -o incbin.test.dtb incbin.dts
+    run_test incbin incbin.test.dtb
+
     # Check boot_cpuid_phys handling
     run_dtc_test -I dts -O dtb -b 17 -o boot_cpuid.test.dtb empty.dts
     run_test boot-cpuid boot_cpuid.test.dtb 17

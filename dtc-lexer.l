@@ -190,6 +190,13 @@ static int pop_input_file(void);
 			return DT_PROPNODENAME;
 		}
 
+"/incbin/"	{
+			yylloc.file = srcpos_file;
+			yylloc.first_line = yylineno;
+			DPRINT("Binary Include\n");
+			return DT_INCBIN;
+		}
+
 <*>[[:space:]]+	/* eat whitespace */
 
 <*>"/*"([^*]|\*+[^*/])*\*+"/"	{
