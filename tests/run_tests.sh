@@ -206,6 +206,10 @@ dtc_tests () {
     run_dtc_test -I dts -O dtb -o dtc_comments-cmp.test.dtb comments-cmp.dts
     run_test dtbs_equal_ordered dtc_comments.test.dtb dtc_comments-cmp.test.dtb
 
+    # Check /include/ directive
+    run_dtc_test -I dts -O dtb -o includes.test.dtb include0.dts
+    run_test dtbs_equal_ordered includes.test.dtb test_tree1.dtb
+
     # Check /incbin/ directive
     run_dtc_test -I dts -O dtb -o incbin.test.dtb incbin.dts
     run_test incbin incbin.test.dtb
