@@ -168,16 +168,16 @@ static void asm_emit_data(void *e, struct data d)
 	for_each_marker_of_type(m, LABEL)
 		emit_offset_label(f, m->ref, m->offset);
 
-	while ((d.len - off) >= sizeof(u32)) {
+	while ((d.len - off) >= sizeof(uint32_t)) {
 		fprintf(f, "\t.long\t0x%x\n",
-			be32_to_cpu(*((u32 *)(d.val+off))));
-		off += sizeof(u32);
+			be32_to_cpu(*((uint32_t *)(d.val+off))));
+		off += sizeof(uint32_t);
 	}
 
-	if ((d.len - off) >= sizeof(u16)) {
+	if ((d.len - off) >= sizeof(uint16_t)) {
 		fprintf(f, "\t.short\t0x%hx\n",
-			be16_to_cpu(*((u16 *)(d.val+off))));
-		off += sizeof(u16);
+			be16_to_cpu(*((uint16_t *)(d.val+off))));
+		off += sizeof(uint16_t);
 	}
 
 	if ((d.len - off) >= 1) {
@@ -575,9 +575,9 @@ static void flat_read_chunk(struct inbuf *inb, void *p, int len)
 	inb->ptr += len;
 }
 
-static u32 flat_read_word(struct inbuf *inb)
+static uint32_t flat_read_word(struct inbuf *inb)
 {
-	u32 val;
+	uint32_t val;
 
 	assert(((inb->ptr - inb->base) % sizeof(val)) == 0);
 
@@ -611,7 +611,7 @@ static char *flat_read_string(struct inbuf *inb)
 
 	inb->ptr += len;
 
-	flat_realign(inb, sizeof(u32));
+	flat_realign(inb, sizeof(uint32_t));
 
 	return str;
 }
@@ -628,7 +628,7 @@ static struct data flat_read_data(struct inbuf *inb, int len)
 
 	flat_read_chunk(inb, d.val, len);
 
-	flat_realign(inb, sizeof(u32));
+	flat_realign(inb, sizeof(uint32_t));
 
 	return d;
 }
@@ -655,7 +655,7 @@ static char *flat_read_stringtable(struct inbuf *inb, int offset)
 static struct property *flat_read_property(struct inbuf *dtbuf,
 					   struct inbuf *strbuf, int flags)
 {
-	u32 proplen, stroff;
+	uint32_t proplen, stroff;
 	char *name;
 	struct data val;
 
@@ -725,7 +725,7 @@ static struct node *unflatten_tree(struct inbuf *dtbuf,
 {
 	struct node *node;
 	char *flatname;
-	u32 val;
+	uint32_t val;
 
 	node = build_node(NULL, NULL);
 
@@ -783,8 +783,8 @@ static struct node *unflatten_tree(struct inbuf *dtbuf,
 struct boot_info *dt_from_blob(const char *fname)
 {
 	struct dtc_file *dtcf;
-	u32 magic, totalsize, version, size_dt, boot_cpuid_phys;
-	u32 off_dt, off_str, off_mem_rsvmap;
+	uint32_t magic, totalsize, version, size_dt, boot_cpuid_phys;
+	uint32_t off_dt, off_str, off_mem_rsvmap;
 	int rc;
 	char *blob;
 	struct fdt_header *fdt;
@@ -794,7 +794,7 @@ struct boot_info *dt_from_blob(const char *fname)
 	int sizeleft;
 	struct reserve_info *reservelist;
 	struct node *tree;
-	u32 val;
+	uint32_t val;
 	int flags = 0;
 
 	dtcf = dtc_open_file(fname, NULL);
@@ -867,7 +867,7 @@ struct boot_info *dt_from_blob(const char *fname)
 		die("String table offset exceeds total size\n");
 
 	if (version >= 3) {
-		u32 size_str = be32_to_cpu(fdt->size_dt_strings);
+		uint32_t size_str = be32_to_cpu(fdt->size_dt_strings);
 		if (off_str+size_str > totalsize)
 			die("String table extends past total size\n");
 		inbuf_init(&strbuf, blob + off_str, blob + off_str + size_str);

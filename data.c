@@ -262,9 +262,9 @@ struct data data_append_re(struct data d, const struct fdt_reserve_entry *re)
 	return data_append_data(d, &bere, sizeof(bere));
 }
 
-struct data data_append_addr(struct data d, u64 addr)
+struct data data_append_addr(struct data d, uint64_t addr)
 {
-	u64 beaddr = cpu_to_be64(addr);
+	uint64_t beaddr = cpu_to_be64(addr);
 
 	return data_append_data(d, &beaddr, sizeof(beaddr));
 }

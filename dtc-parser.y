@@ -39,10 +39,10 @@ static unsigned long long eval_literal(const char *s, int base, int bits);
 	char *literal;
 	char *labelref;
 	unsigned int cbase;
-	u8 byte;
+	uint8_t byte;
 	struct data data;
 
-	u64 addr;
+	uint64_t addr;
 	cell_t cell;
 	struct property *prop;
 	struct property *proplist;

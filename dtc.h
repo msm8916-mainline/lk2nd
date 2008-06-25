@@ -75,11 +75,7 @@ static inline void *xrealloc(void *p, size_t len)
 	return new;
 }
 
-typedef uint8_t u8;
-typedef uint16_t u16;
-typedef uint32_t u32;
-typedef uint64_t u64;
-typedef u32 cell_t;
+typedef uint32_t cell_t;
 
 #define cpu_to_be16(x)	htons(x)
 #define be16_to_cpu(x)	ntohs(x)
@@ -144,7 +140,7 @@ struct data data_insert_at_marker(struct data d, struct marker *m,
 struct data data_merge(struct data d1, struct data d2);
 struct data data_append_cell(struct data d, cell_t word);
 struct data data_append_re(struct data d, const struct fdt_reserve_entry *re);
-struct data data_append_addr(struct data d, u64 addr);
+struct data data_append_addr(struct data d, uint64_t addr);
 struct data data_append_byte(struct data d, uint8_t byte);
 struct data data_append_zeroes(struct data d, int len);
 struct data data_append_align(struct data d, int align);
@@ -222,7 +218,7 @@ struct reserve_info {
 	char *label;
 };
 
-struct reserve_info *build_reserve_entry(u64 start, u64 len, char *label);
+struct reserve_info *build_reserve_entry(uint64_t start, uint64_t len, char *label);
 struct reserve_info *chain_reserve_entry(struct reserve_info *first,
 					 struct reserve_info *list);
 struct reserve_info *add_reserve_entry(struct reserve_info *list,
@@ -232,11 +228,11 @@ struct reserve_info *add_reserve_entry(struct reserve_info *list,
 struct boot_info {
 	struct reserve_info *reservelist;
 	struct node *dt;		/* the device tree */
-	u32 boot_cpuid_phys;
+	uint32_t boot_cpuid_phys;
 };
 
 struct boot_info *build_boot_info(struct reserve_info *reservelist,
-				  struct node *tree, u32 boot_cpuid_phys);
+				  struct node *tree, uint32_t boot_cpuid_phys);
 
 /* Checks */
 
