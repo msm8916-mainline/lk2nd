@@ -247,7 +247,7 @@ struct data data_merge(struct data d1, struct data d2)
 
 struct data data_append_cell(struct data d, cell_t word)
 {
-	cell_t beword = cpu_to_be32(word);
+	cell_t beword = cpu_to_fdt32(word);
 
 	return data_append_data(d, &beword, sizeof(beword));
 }
@@ -256,15 +256,15 @@ struct data data_append_re(struct data d, const struct fdt_reserve_entry *re)
 {
 	struct fdt_reserve_entry bere;
 
-	bere.address = cpu_to_be64(re->address);
-	bere.size = cpu_to_be64(re->size);
+	bere.address = cpu_to_fdt64(re->address);
+	bere.size = cpu_to_fdt64(re->size);
 
 	return data_append_data(d, &bere, sizeof(bere));
 }
 
 struct data data_append_addr(struct data d, uint64_t addr)
 {
-	uint64_t beaddr = cpu_to_be64(addr);
+	uint64_t beaddr = cpu_to_fdt64(addr);
 
 	return data_append_data(d, &beaddr, sizeof(beaddr));
 }

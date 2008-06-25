@@ -30,10 +30,8 @@
 #include <ctype.h>
 #include <errno.h>
 #include <unistd.h>
-#include <netinet/in.h>
-#include <endian.h>
-#include <byteswap.h>
 
+#include <libfdt_env.h>
 #include <fdt.h>
 
 #define DEFAULT_FDT_VERSION	17
@@ -77,19 +75,6 @@ static inline void *xrealloc(void *p, size_t len)
 
 typedef uint32_t cell_t;
 
-#define cpu_to_be16(x)	htons(x)
-#define be16_to_cpu(x)	ntohs(x)
-
-#define cpu_to_be32(x)	htonl(x)
-#define be32_to_cpu(x)	ntohl(x)
-
-#if __BYTE_ORDER == __BIG_ENDIAN
-#define cpu_to_be64(x)	(x)
-#define be64_to_cpu(x)	(x)
-#else
-#define cpu_to_be64(x)	bswap_64(x)
-#define be64_to_cpu(x)	bswap_64(x)
-#endif
 
 #define streq(a, b)	(strcmp((a), (b)) == 0)
 #define strneq(a, b, n)	(strncmp((a), (b), (n)) == 0)

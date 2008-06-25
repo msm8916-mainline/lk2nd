@@ -204,7 +204,7 @@ struct property *get_property(struct node *node, const char *propname)
 cell_t propval_cell(struct property *prop)
 {
 	assert(prop->val.len == sizeof(cell_t));
-	return be32_to_cpu(*((cell_t *)prop->val.val));
+	return fdt32_to_cpu(*((cell_t *)prop->val.val));
 }
 
 struct node *get_subnode(struct node *node, const char *nodename)

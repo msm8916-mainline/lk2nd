@@ -147,7 +147,7 @@ static void write_propval_cells(FILE *f, struct data val)
 			m = m->next;
 		}
 
-		fprintf(f, "0x%x", be32_to_cpu(*cp++));
+		fprintf(f, "0x%x", fdt32_to_cpu(*cp++));
 		if ((void *)cp >= propend)
 			break;
 		fprintf(f, " ");
