@@ -17,8 +17,6 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-#define _GNU_SOURCE
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -64,7 +62,7 @@ int path_prefix(const char *path, int depth)
 
 	p = path;
 	for (i = 0; i < depth; i++)
-		p = strchrnul(p+1, '/');
+		p = p+1 + strcspn(p+1, "/");
 
 	return p - path;
 }
@@ -74,10 +72,14 @@ void check_supernode_atdepth(struct fdt_header *fdt, const char *path,
 {
 	int pdepth = path_depth(path);
 	char *superpath;
-	int nodeoffset, supernodeoffset, superpathoffset;
+	int nodeoffset, supernodeoffset, superpathoffset, pathprefixlen;
 	int nodedepth;
 
-	superpath = strndupa(path, path_prefix(path, depth));
+	pathprefixlen = path_prefix(path, depth);
+	superpath = alloca(pathprefixlen + 1);
+	strncpy(superpath, path, pathprefixlen);
+	superpath[pathprefixlen] = '\0';
+
 	verbose_printf("Path %s (%d), depth %d, supernode is %s\n",
 		       path, pdepth, depth, superpath);
 

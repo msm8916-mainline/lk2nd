@@ -1,14 +1,3 @@
-#include <endian.h>
-
-#if __BYTE_ORDER == __BIG_ENDIAN
-#define cell_to_fdt(x)	(x)
-#else
-/* We do this as a big hairy expression instead of using bswap_32()
- * because we need it to work in asm as well as C. */
-#define cell_to_fdt(x)	((((x) >> 24) & 0xff) | (((x) >> 8) & 0xff00) \
-			 | (((x) << 8) & 0xff0000) | (((x) << 24) & 0xff000000))
-#endif
-
 #ifdef __ASSEMBLY__
 #define ASM_CONST_LL(x)	(x)
 #else

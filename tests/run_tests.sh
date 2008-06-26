@@ -1,6 +1,6 @@
-#! /bin/bash
+#! /bin/sh
 
-. tests.sh
+. ./tests.sh
 
 export QUIET_TEST=1
 
@@ -15,19 +15,19 @@ tot_vg=0
 tot_strange=0
 
 base_run_test() {
-    tot_tests=$[tot_tests + 1]
+    tot_tests=$((tot_tests + 1))
     if VALGRIND="$VALGRIND" "$@"; then
-	tot_pass=$[tot_pass + 1]
+	tot_pass=$((tot_pass + 1))
     else
 	ret="$?"
 	if [ "$ret" == "1" ]; then
-	    tot_config=$[tot_config + 1]
+	    tot_config=$((tot_config + 1))
 	elif [ "$ret" == "2" ]; then
-	    tot_fail=$[tot_fail + 1]
+	    tot_fail=$((tot_fail + 1))
 	elif [ "$ret" == "$VGCODE" ]; then
-	    tot_vg=$[tot_vg + 1]
+	    tot_vg=$((tot_vg + 1))
 	else
-	    tot_strange=$[tot_strange + 1]
+	    tot_strange=$((tot_strange + 1))
 	fi
     fi
 }
@@ -52,7 +52,7 @@ wrap_test () {
 	else
 	    ret="$?"
 	    if [ "$ret" -gt 127 ]; then
-		signame=$(kill -l $[ret - 128])
+		signame=$(kill -l $((ret - 128)))
 		FAIL "Killed by SIG$signame"
 	    else
 		FAIL "Returned error code $ret"

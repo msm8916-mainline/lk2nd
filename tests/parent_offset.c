@@ -17,8 +17,6 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-#define _GNU_SOURCE
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -45,9 +43,12 @@ int path_parent_len(const char *path)
 void check_path(struct fdt_header *fdt, const char *path)
 {
 	char *parentpath;
-	int nodeoffset, parentoffset, parentpathoffset;
+	int nodeoffset, parentoffset, parentpathoffset, pathparentlen;
 
-	parentpath = strndupa(path, path_parent_len(path));
+	pathparentlen = path_parent_len(path);
+	parentpath = alloca(pathparentlen + 1);
+	strncpy(parentpath, path, pathparentlen);
+	parentpath[pathparentlen] = '\0';
 
 	verbose_printf("Path: \"%s\"\tParent: \"%s\"\n", path, parentpath);
 

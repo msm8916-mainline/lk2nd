@@ -18,7 +18,7 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#define _GNU_SOURCE /* for strsignal() */
+#define _GNU_SOURCE /* for strsignal() in glibc.  FreeBSD has it either way */
 
 #include <stdio.h>
 #include <stdlib.h>

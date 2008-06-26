@@ -28,9 +28,14 @@ PATHCHAR	({PROPNODECHAR}|[/])
 LABEL		[a-zA-Z_][a-zA-Z0-9_]*
 
 %{
+#include <string.h>
+#include <stdlib.h>
 #include <stdarg.h>
+
+#include <errno.h>
 #include <assert.h>
 #include <fnmatch.h>
+
 #include "srcpos.h"
 
 static int v1_tagged; /* = 0 */
