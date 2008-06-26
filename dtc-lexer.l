@@ -18,7 +18,7 @@
  *                                                                   USA
  */
 
-%option noyywrap nounput yylineno stack
+%option noyywrap nounput yylineno
 
 %x INCLUDE
 %x BYTESTRING
@@ -28,6 +28,10 @@
 PROPNODECHAR	[a-zA-Z0-9,._+*#?@-]
 PATHCHAR	({PROPNODECHAR}|[/])
 LABEL		[a-zA-Z_][a-zA-Z0-9_]*
+STRING		\"([^\\"]|\\.)*\"
+WS		[[:space:]]
+COMMENT		"/*"([^*]|\*+[^*/])*\*+"/"
+LINECOMMENT	"//".*\n
 
 %{
 #include "dtc.h"
@@ -58,14 +62,11 @@ static int pop_input_file(void);
 %}
 
 %%
-<*>"/include/"		yy_push_state(INCLUDE);
-
-<INCLUDE>\"[^"\n]*\"	{
-			yytext[strlen(yytext) - 1] = 0;
-			push_input_file(yytext + 1);
-			yy_pop_state();
+<*>"/include/"{WS}*{STRING} {
+			char *name = strchr(yytext, '\"') + 1;
+			yytext[yyleng-1] = '\0';
+			push_input_file(name);
 		}
-
 
 <*><<EOF>>		{
 			if (!pop_input_file()) {
@@ -73,7 +74,7 @@ static int pop_input_file(void);
 			}
 		}
 
-<*>\"([^\\"]|\\.)*\"	{
+<*>{STRING}	{
 			yylloc.file = srcpos_file;
 			yylloc.first_line = yylineno;
 			DPRINT("String: %s\n", yytext);
@@ -197,16 +198,9 @@ static int pop_input_file(void);
 			return DT_INCBIN;
 		}
 
-<*>[[:space:]]+	/* eat whitespace */
-
-<*>"/*"([^*]|\*+[^*/])*\*+"/"	{
-			yylloc.file = srcpos_file;
-			yylloc.first_line = yylineno;
-			DPRINT("Comment: %s\n", yytext);
-			/* eat comments */
-		}
-
-<*>"//".*\n	/* eat line comments */
+<*>{WS}+	/* eat whitespace */
+<*>{COMMENT}+	/* eat C-style comments */
+<*>{LINECOMMENT}+ /* eat C++-style comments */
 
 <*>.		{
 			yylloc.file = srcpos_file;

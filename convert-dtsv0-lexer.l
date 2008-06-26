@@ -17,7 +17,7 @@
  *                                                                   USA
  */
 
-%option noyywrap nounput stack
+%option noyywrap nounput
 
 %x INCLUDE
 %x BYTESTRING
@@ -26,6 +26,11 @@
 PROPNODECHAR	[a-zA-Z0-9,._+*#?@-]
 PATHCHAR	({PROPNODECHAR}|[/])
 LABEL		[a-zA-Z_][a-zA-Z0-9_]*
+STRING		\"([^\\"]|\\.)*\"
+WS		[[:space:]]
+COMMENT		"/*"([^*]|\*+[^*/])*\*+"/"
+LINECOMMENT	"//".*\n
+GAP		({WS}|{COMMENT}|{LINECOMMENT})*
 
 %{
 #include <string.h>
@@ -91,16 +96,7 @@ const struct {
 %}
 
 %%
-<*>"/include/"	{
-			ECHO;
-			yy_push_state(INCLUDE);
-		}
-
-<INCLUDE>\"[^"\n]*\"	{
-			ECHO;
-			yy_pop_state();
-		}
-
+<*>"/include/"{GAP}{STRING}	ECHO;
 
 <*>\"([^\\"]|\\.)*\"	ECHO;
 
@@ -193,11 +189,7 @@ const struct {
 			BEGIN(INITIAL);
 		}
 
-<*>[[:space:]]+		ECHO;
-
-<*>"/*"([^*]|\*+[^*/])*\*+"/" ECHO;
-
-<*>"//".*\n		ECHO;
+<*>{GAP}	ECHO;
 
 <*>-		{	/* Hack to convert old style memreserves */
 			saw_hyphen = 1;
