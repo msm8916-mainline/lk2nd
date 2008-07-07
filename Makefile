@@ -16,7 +16,7 @@ LOCAL_VERSION =
 CONFIG_LOCALVERSION =
 
 CPPFLAGS = -I libfdt
-CFLAGS = -Wall -g -Os
+CFLAGS = -Wall -g -Os -Wpointer-arith
 
 BISON = bison
 LEX = flex

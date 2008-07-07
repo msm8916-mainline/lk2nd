@@ -30,7 +30,7 @@
 #include "tests.h"
 #include "testdata.h"
 
-int nopulate_struct(char *buf, const void *fdt)
+int nopulate_struct(char *buf, const char *fdt)
 {
 	int offset, nextoffset = 0;
 	uint32_t tag;
@@ -42,7 +42,7 @@ int nopulate_struct(char *buf, const void *fdt)
 		offset = nextoffset;
 		tag = fdt_next_tag(fdt, offset, &nextoffset);
 
-		memcpy(p, fdt + fdt_off_dt_struct(fdt) + offset,
+		memcpy(p, (const char *)fdt + fdt_off_dt_struct(fdt) + offset,
 		       nextoffset - offset);
 		p += nextoffset - offset;
 
@@ -56,8 +56,7 @@ int nopulate_struct(char *buf, const void *fdt)
 
 int main(int argc, char *argv[])
 {
-	void *fdt, *fdt2;
-	void *buf;
+	char *fdt, *fdt2, *buf;
 	int newsize, struct_start, struct_end_old, struct_end_new, delta;
 	const char *inname;
 	char outname[PATH_MAX];

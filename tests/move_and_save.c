@@ -33,7 +33,7 @@
 int main(int argc, char *argv[])
 {
 	void *fdt, *fdt1, *fdt2, *fdt3;
-	void *buf;
+	char *buf;
 	int shuntsize;
 	int bufsize;
 	int err;

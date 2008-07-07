@@ -70,9 +70,9 @@ static void dump_blob(void *blob)
 	uint32_t off_dt = fdt32_to_cpu(bph->off_dt_struct);
 	uint32_t off_str = fdt32_to_cpu(bph->off_dt_strings);
 	struct fdt_reserve_entry *p_rsvmap =
-		(struct fdt_reserve_entry *)(blob + off_mem_rsvmap);
-	char *p_struct = blob + off_dt;
-	char *p_strings = blob + off_str;
+		(struct fdt_reserve_entry *)((char *)blob + off_mem_rsvmap);
+	char *p_struct = (char *)blob + off_dt;
+	char *p_strings = (char *)blob + off_str;
 	uint32_t version = fdt32_to_cpu(bph->version);
 	uint32_t totalsize = fdt32_to_cpu(bph->totalsize);
 	uint32_t tag;

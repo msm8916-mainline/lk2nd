@@ -31,7 +31,7 @@
 #include "testdata.h"
 
 struct bufstate {
-	void *buf;
+	char *buf;
 	int size;
 };
 
@@ -73,7 +73,7 @@ void add_block(struct bufstate *buf, int version, char block, const void *fdt)
 	case 'm':
 		/* Memory reserve map */
 		align = 8;
-		src = fdt + fdt_off_mem_rsvmap(fdt);
+		src = (const char *)fdt + fdt_off_mem_rsvmap(fdt);
 		size = (fdt_num_mem_rsv(fdt) + 1)
 			* sizeof(struct fdt_reserve_entry);
 		break;
@@ -81,14 +81,14 @@ void add_block(struct bufstate *buf, int version, char block, const void *fdt)
 	case 't':
 		/* Structure block */
 		align = 4;
-		src = fdt + fdt_off_dt_struct(fdt);
+		src = (const char *)fdt + fdt_off_dt_struct(fdt);
 		size = fdt_size_dt_struct(fdt);
 		break;
 
 	case 's':
 		/* Strings block */
 		align = 1;
-		src = fdt + fdt_off_dt_strings(fdt);
+		src = (const char *)fdt + fdt_off_dt_strings(fdt);
 		size = fdt_size_dt_strings(fdt);
 		break;
 	default:

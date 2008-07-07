@@ -200,7 +200,7 @@ void save_blob(const char *filename, void *fdt)
 	int fd;
 	int totalsize;
 	int offset;
-	void *p;
+	char *p;
 	int ret;
 
 	fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0666);

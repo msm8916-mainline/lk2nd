@@ -31,10 +31,10 @@
 
 #define CHUNKSIZE	1024
 
-void *load_file(const char *name, int *len)
+char *load_file(const char *name, int *len)
 {
 	FILE *f;
-	void *buf = NULL;
+	char *buf = NULL;
 	int bufsize = 0, n;
 
 	*len = 0;
@@ -60,7 +60,8 @@ void *load_file(const char *name, int *len)
 
 int main(int argc, char *argv[])
 {
-	void *fdt, *incbin;
+	void *fdt;
+	char *incbin;
 	int len;
 
 	test_init(argc, argv);
