@@ -328,15 +328,17 @@ static void check_name_properties(struct check *c, struct node *root,
 		return; /* No name property, that's fine */
 
 	if ((prop->val.len != node->basenamelen+1)
-	    || (memcmp(prop->val.val, node->name, node->basenamelen) != 0))
+	    || (memcmp(prop->val.val, node->name, node->basenamelen) != 0)) {
 		FAIL(c, "\"name\" property in %s is incorrect (\"%s\" instead"
 		     " of base node name)", node->fullpath, prop->val.val);
-
-	/* The name property is correct, and therefore redundant.  Delete it */
-	*pp = prop->next;
-	free(prop->name);
-	data_free(prop->val);
-	free(prop);
+	} else {
+		/* The name property is correct, and therefore redundant.
+		 * Delete it */
+		*pp = prop->next;
+		free(prop->name);
+		data_free(prop->val);
+		free(prop);
+	}
 }
 CHECK_IS_STRING(name_is_string, "name", ERROR);
 NODE_CHECK(name_properties, NULL, ERROR, &name_is_string);

@@ -115,6 +115,7 @@ void add_child(struct node *parent, struct node *child)
 	struct node **p;
 
 	child->next_sibling = NULL;
+	child->parent = parent;
 
 	p = &parent->children;
 	while (*p)

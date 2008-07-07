@@ -115,6 +115,14 @@ tree1_tests_rw () {
     run_test del_node $TREE
 }
 
+check_tests () {
+    tree="$1"
+    shift
+    run_sh_test dtc-checkfails.sh "$@" -- -I dts -O dtb $tree
+    run_dtc_test -I dts -O dtb -o $tree.test.dtb -f $tree
+    run_sh_test dtc-checkfails.sh "$@" -- -I dtb -O dtb $tree.test.dtb
+}
+
 ALL_LAYOUTS="mts mst tms tsm smt stm"
 
 libfdt_tests () {
@@ -243,22 +251,22 @@ dtc_tests () {
     done
 
     # Check some checks
-    run_sh_test dtc-checkfails.sh duplicate_node_names -- -I dts -O dtb dup-nodename.dts
-    run_sh_test dtc-checkfails.sh duplicate_property_names -- -I dts -O dtb dup-propname.dts
-    run_sh_test dtc-checkfails.sh explicit_phandles -- -I dts -O dtb dup-phandle.dts
-    run_sh_test dtc-checkfails.sh explicit_phandles -- -I dts -O dtb zero-phandle.dts
-    run_sh_test dtc-checkfails.sh explicit_phandles -- -I dts -O dtb minusone-phandle.dts
+    check_tests dup-nodename.dts duplicate_node_names
+    check_tests dup-propname.dts duplicate_property_names
+    check_tests dup-phandle.dts explicit_phandles
+    check_tests zero-phandle.dts explicit_phandles
+    check_tests minusone-phandle.dts explicit_phandles
     run_sh_test dtc-checkfails.sh phandle_references -- -I dts -O dtb nonexist-node-ref.dts
     run_sh_test dtc-checkfails.sh phandle_references -- -I dts -O dtb nonexist-label-ref.dts
-    run_sh_test dtc-checkfails.sh name_properties -- -I dts -O dtb bad-name-property.dts
+    check_tests bad-name-property.dts name_properties
 
-    run_sh_test dtc-checkfails.sh address_cells_is_cell size_cells_is_cell interrupt_cells_is_cell -- -I dts -O dtb bad-ncells.dts
-    run_sh_test dtc-checkfails.sh device_type_is_string model_is_string status_is_string -- -I dts -O dtb bad-string-props.dts
-    run_sh_test dtc-checkfails.sh reg_format ranges_format -- -I dts -O dtb bad-reg-ranges.dts
-    run_sh_test dtc-checkfails.sh ranges_format -- -I dts -O dtb bad-empty-ranges.dts
-    run_sh_test dtc-checkfails.sh reg_format ranges_format -- -I dts -O dtb reg-ranges-root.dts
-    run_sh_test dtc-checkfails.sh avoid_default_addr_size -- -I dts -O dtb default-addr-size.dts
-    run_sh_test dtc-checkfails.sh obsolete_chosen_interrupt_controller -- -I dts -O dtb obsolete-chosen-interrupt-controller.dts
+    check_tests bad-ncells.dts address_cells_is_cell size_cells_is_cell interrupt_cells_is_cell
+    check_tests bad-string-props.dts device_type_is_string model_is_string status_is_string
+    check_tests bad-reg-ranges.dts reg_format ranges_format
+    check_tests bad-empty-ranges.dts ranges_format
+    check_tests reg-ranges-root.dts reg_format ranges_format
+    check_tests default-addr-size.dts avoid_default_addr_size
+    check_tests obsolete-chosen-interrupt-controller.dts obsolete_chosen_interrupt_controller
     run_sh_test dtc-checkfails.sh node_name_chars -- -I dtb -O dtb bad_node_char.dtb
     run_sh_test dtc-checkfails.sh node_name_format -- -I dtb -O dtb bad_node_format.dtb
     run_sh_test dtc-checkfails.sh prop_name_chars -- -I dtb -O dtb bad_prop_char.dtb
