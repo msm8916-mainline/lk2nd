@@ -48,11 +48,11 @@ static void print_data(const void *data, int len)
 		return;
 
 	if (is_printable_string(data, len)) {
-		printf(" = \"%s\"", (char *)data);
+		printf(" = \"%s\"", (const char *)data);
 	} else if ((len % 4) == 0) {
 		printf(" = <");
 		for (i = 0; i < len; i += 4)
-			printf("%08x%s", *((uint32_t *)data + i),
+			printf("%08x%s", *((const uint32_t *)data + i),
 			       i < (len - 4) ? " " : "");
 		printf(">");
 	} else {

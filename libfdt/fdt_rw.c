@@ -257,7 +257,7 @@ int fdt_set_name(void *fdt, int nodeoffset, const char *name)
 
 	RW_CHECK_HEADER(fdt);
 
-	namep = (char *)fdt_get_name(fdt, nodeoffset, &oldlen);
+	namep = (char *)(uintptr_t)fdt_get_name(fdt, nodeoffset, &oldlen);
 	if (!namep)
 		return oldlen;
 
@@ -432,7 +432,7 @@ int fdt_open_into(const void *fdt, void *buf, int bufsize)
 	/* But if that overlaps with the old tree... */
 	if (((tmp + newsize) > fdtstart) && (tmp < fdtend)) {
 		/* Try right after the old tree instead */
-		tmp = (char *)fdtend;
+		tmp = (char *)(uintptr_t)fdtend;
 		if ((tmp + newsize) > ((char *)buf + bufsize))
 			return -FDT_ERR_NOSPACE;
 	}
