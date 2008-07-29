@@ -18,7 +18,7 @@
  *                                                                   USA
  */
 
-%option noyywrap nounput yylineno
+%option noyywrap nounput noinput yylineno
 
 %x INCLUDE
 %x BYTESTRING
