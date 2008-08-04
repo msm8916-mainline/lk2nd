@@ -29,7 +29,8 @@
 #include "tests.h"
 #include "testdata.h"
 
-void check_compatible(const void *fdt, const char *path, const char *compat)
+static void check_compatible(const void *fdt, const char *path,
+			     const char *compat)
 {
 	int offset, err;
 

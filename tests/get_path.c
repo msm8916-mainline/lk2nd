@@ -30,7 +30,7 @@
 
 #define POISON	('\xff')
 
-void check_path_buf(void *fdt, const char *path, int pathlen, int buflen)
+static void check_path_buf(void *fdt, const char *path, int pathlen, int buflen)
 {
 	int offset;
 	char buf[buflen+1];
@@ -63,7 +63,7 @@ void check_path_buf(void *fdt, const char *path, int pathlen, int buflen)
 		FAIL("fdt_get_path([%d bytes]) overran buffer", buflen);
 }
 
-void check_path(void *fdt, const char *path)
+static void check_path(void *fdt, const char *path)
 {
 	int pathlen = strlen(path);
 
