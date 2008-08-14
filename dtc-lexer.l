@@ -52,15 +52,10 @@ LINECOMMENT	"//".*\n
 #define DPRINT(fmt, ...)	do { } while (0)
 #endif
 
-static int dts_version; /* = 0 */
+static int dts_version = 1;
 
-#define BEGIN_DEFAULT()	if (dts_version == 0) { \
-				DPRINT("<INITIAL>\n"); \
-				BEGIN(INITIAL); \
-			} else { \
-				DPRINT("<V1>\n"); \
+#define BEGIN_DEFAULT()		DPRINT("<V1>\n"); \
 				BEGIN(V1); \
-			}
 
 static void push_input_file(const char *filename);
 static int pop_input_file(void);
@@ -106,25 +101,6 @@ static int pop_input_file(void);
 			return DT_LABEL;
 		}
 
-<INITIAL>[bodh]# {
-			if (*yytext == 'b')
-				yylval.cbase = 2;
-			else if (*yytext == 'o')
-				yylval.cbase = 8;
-			else if (*yytext == 'd')
-				yylval.cbase = 10;
-			else
-				yylval.cbase = 16;
-			DPRINT("Base: %d\n", yylval.cbase);
-			return DT_BASE;
-		}
-
-<INITIAL>[0-9a-fA-F]+	{
-			yylval.literal = xstrdup(yytext);
-			DPRINT("Literal: '%s'\n", yylval.literal);
-			return DT_LEGACYLITERAL;
-		}
-
 <V1>[0-9]+|0[xX][0-9a-fA-F]+      {
 			yylval.literal = xstrdup(yytext);
 			DPRINT("Literal: '%s'\n", yylval.literal);
@@ -141,12 +117,6 @@ static int pop_input_file(void);
 			yytext[yyleng-1] = '\0';
 			DPRINT("Ref: %s\n", yytext+2);
 			yylval.labelref = xstrdup(yytext+2);
-			return DT_REF;
-		}
-
-<INITIAL>"&/"{PATHCHAR}+ {	/* old-style path reference */
-			DPRINT("Ref: %s\n", yytext+1);
-			yylval.labelref = xstrdup(yytext+1);
 			return DT_REF;
 		}
 
