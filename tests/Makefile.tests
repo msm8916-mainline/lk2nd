@@ -11,7 +11,7 @@ LIB_TESTS_L = get_mem_rsv \
 	open_pack rw_tree1 set_name setprop del_property del_node \
 	string_escapes references path-references boot-cpuid incbin \
 	dtbs_equal_ordered \
-	add_subnode_with_nops
+	add_subnode_with_nops path_offset_aliases
 LIB_TESTS = $(LIB_TESTS_L:%=$(TESTS_PREFIX)%)
 
 LIBTREE_TESTS_L = truncated_property
