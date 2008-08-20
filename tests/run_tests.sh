@@ -216,6 +216,7 @@ dtc_tests () {
 
     # Check aliases support in fdt_path_offset
     run_dtc_test -I dts -O dtb -o aliases.dtb aliases.dts
+    run_test get_alias aliases.dtb
     run_test path_offset_aliases aliases.dtb
 
     # Check /include/ directive
