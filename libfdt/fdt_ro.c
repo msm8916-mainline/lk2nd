@@ -316,9 +316,6 @@ int fdt_get_path(const void *fdt, int nodeoffset, char *buf, int buflen)
 	for (offset = 0, depth = 0;
 	     (offset >= 0) && (offset <= nodeoffset);
 	     offset = fdt_next_node(fdt, offset, &depth)) {
-		if (pdepth < depth)
-			continue; /* overflowed buffer */
-
 		while (pdepth > depth) {
 			do {
 				p--;
@@ -326,14 +323,16 @@ int fdt_get_path(const void *fdt, int nodeoffset, char *buf, int buflen)
 			pdepth--;
 		}
 
-		name = fdt_get_name(fdt, offset, &namelen);
-		if (!name)
-			return namelen;
-		if ((p + namelen + 1) <= buflen) {
-			memcpy(buf + p, name, namelen);
-			p += namelen;
-			buf[p++] = '/';
-			pdepth++;
+		if (pdepth >= depth) {
+			name = fdt_get_name(fdt, offset, &namelen);
+			if (!name)
+				return namelen;
+			if ((p + namelen + 1) <= buflen) {
+				memcpy(buf + p, name, namelen);
+				p += namelen;
+				buf[p++] = '/';
+				pdepth++;
+			}
 		}
 
 		if (offset == nodeoffset) {
@@ -343,7 +342,7 @@ int fdt_get_path(const void *fdt, int nodeoffset, char *buf, int buflen)
 			if (p > 1) /* special case so that root path is "/", not "" */
 				p--;
 			buf[p] = '\0';
-			return p;
+			return 0;
 		}
 	}
 
