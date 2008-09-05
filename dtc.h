@@ -36,6 +36,13 @@
 
 #include "util.h"
 
+#ifdef DEBUG
+#define debug(fmt,args...)	printf(fmt, ##args)
+#else
+#define debug(fmt,args...)
+#endif
+
+
 #define DEFAULT_FDT_VERSION	17
 
 /*
