@@ -27,6 +27,7 @@
 #include "srcpos.h"
 
 extern int yylex(void);
+extern void yyerror(char const *s);
 
 extern struct boot_info *the_boot_info;
 extern int treesource_error;
@@ -208,9 +209,11 @@ propdata:
 
 			if ($6 != 0)
 				if (fseek(file->file, $6, SEEK_SET) != 0)
-					yyerrorf("Couldn't seek to offset %llu in \"%s\": %s",
-						 (unsigned long long)$6,
-						 $4.val, strerror(errno));
+					srcpos_error(&yyloc,
+						     "Couldn't seek to offset %llu in \"%s\": %s",
+						     (unsigned long long)$6,
+						     $4.val,
+						     strerror(errno));
 
 			d = data_copy_file(file->file, $8);
 
@@ -339,26 +342,10 @@ label:
 
 %%
 
-void yyerrorf(char const *s, ...)
+void yyerror(char const *s)
 {
-	const char *fname = srcpos_file ? srcpos_file->name : "<no-file>";
-	va_list va;
-	va_start(va, s);
-
-	if (strcmp(fname, "-") == 0)
-		fname = "stdin";
-
-	fprintf(stderr, "%s:%d ", fname, yylloc.first_line);
-	vfprintf(stderr, s, va);
-	fprintf(stderr, "\n");
-
+	srcpos_error(&yylloc, "%s", s);
 	treesource_error = 1;
-	va_end(va);
-}
-
-void yyerror (char const *s)
-{
-	yyerrorf("%s", s);
 }
 
 static unsigned long long eval_literal(const char *s, int base, int bits)
