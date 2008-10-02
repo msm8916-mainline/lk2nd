@@ -19,6 +19,8 @@ II - The DT block format
 
 III - libfdt
 
+IV - Conversion to Version 1
+
 
 I - "dtc", the device tree compiler
 ===================================
@@ -613,6 +615,24 @@ strings block.
 
 
 III - libfdt
+============
 
 This library should be merged into dtc proper.
 This library should likely be worked into U-Boot and the kernel.
+
+IV - Conversion to Version 1
+============================
+
+convert-dtsv0 is a small utility program which converts (DTS)
+Device Tree Source from the obsolete version 0 to version 1.
+
+Version 1 DTS files are marked by line "/dts-v1/;" at the top of the file.
+
+The syntax of the convert-dtsv0 command line is:
+
+convert-dtsv0 [<input_filename ... >]
+
+Each file passed will be converted to the new /dts-v1/ version by creating
+a new file with a "v1" appended the filename.
+
+Comments, empty lines, etc. are preserved.
