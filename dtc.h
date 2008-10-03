@@ -34,7 +34,10 @@
 #include <libfdt_env.h>
 #include <fdt.h>
 
+#include "util.h"
+
 #define DEFAULT_FDT_VERSION	17
+
 /*
  * Command line options
  */

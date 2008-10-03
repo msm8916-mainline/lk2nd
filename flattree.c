@@ -601,7 +601,7 @@ static char *flat_read_string(struct inbuf *inb)
 		len++;
 	} while ((*p++) != '\0');
 
-	str = strdup(inb->ptr);
+	str = xstrdup(inb->ptr);
 
 	inb->ptr += len;
 
@@ -643,7 +643,7 @@ static char *flat_read_stringtable(struct inbuf *inb, int offset)
 		p++;
 	}
 
-	return strdup(inb->base + offset);
+	return xstrdup(inb->base + offset);
 }
 
 static struct property *flat_read_property(struct inbuf *dtbuf,
@@ -710,7 +710,7 @@ static char *nodename_from_path(const char *ppath, const char *cpath)
 	if (!streq(ppath, "/"))
 		plen++;
 
-	return strdup(cpath + plen);
+	return xstrdup(cpath + plen);
 }
 
 static struct node *unflatten_tree(struct inbuf *dtbuf,

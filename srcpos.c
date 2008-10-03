@@ -39,7 +39,7 @@ static int dtc_open_one(struct dtc_file *file,
 		strcat(fullname, "/");
 		strcat(fullname, fname);
 	} else {
-		fullname = strdup(fname);
+		fullname = xstrdup(fname);
 	}
 
 	file->file = fopen(fullname, "r");
@@ -85,7 +85,7 @@ struct dtc_file *dtc_open_file(const char *fname,
 		if (!file->file)
 			goto fail;
 
-		file->name = strdup(fname);
+		file->name = xstrdup(fname);
 		return file;
 	}
 

@@ -42,6 +42,7 @@ GAP		({WS}|{COMMENT}|{LINECOMMENT})*
 #include <fnmatch.h>
 
 #include "srcpos.h"
+#include "util.h"
 
 static int v1_tagged; /* = 0 */
 static int cbase = 16;
@@ -185,7 +186,7 @@ const struct {
 
 <PROPNODENAME>{PROPNODECHAR}+ {
 			ECHO;
-			last_name = strdup(yytext);
+			last_name = xstrdup(yytext);
 			BEGIN(INITIAL);
 		}
 

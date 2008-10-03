@@ -105,7 +105,7 @@ static int pop_input_file(void);
 			yylloc.file = srcpos_file;
 			yylloc.first_line = yylineno;
 			DPRINT("Label: %s\n", yytext);
-			yylval.labelref = strdup(yytext);
+			yylval.labelref = xstrdup(yytext);
 			yylval.labelref[yyleng-1] = '\0';
 			return DT_LABEL;
 		}
@@ -128,7 +128,7 @@ static int pop_input_file(void);
 <INITIAL>[0-9a-fA-F]+	{
 			yylloc.file = srcpos_file;
 			yylloc.first_line = yylineno;
-			yylval.literal = strdup(yytext);
+			yylval.literal = xstrdup(yytext);
 			DPRINT("Literal: '%s'\n", yylval.literal);
 			return DT_LEGACYLITERAL;
 		}
@@ -136,7 +136,7 @@ static int pop_input_file(void);
 <V1>[0-9]+|0[xX][0-9a-fA-F]+      {
 			yylloc.file = srcpos_file;
 			yylloc.first_line = yylineno;
-			yylval.literal = strdup(yytext);
+			yylval.literal = xstrdup(yytext);
 			DPRINT("Literal: '%s'\n", yylval.literal);
 			return DT_LITERAL;
 		}
@@ -145,7 +145,7 @@ static int pop_input_file(void);
 			yylloc.file = srcpos_file;
 			yylloc.first_line = yylineno;
 			DPRINT("Ref: %s\n", yytext+1);
-			yylval.labelref = strdup(yytext+1);
+			yylval.labelref = xstrdup(yytext+1);
 			return DT_REF;
 		}
 
@@ -154,7 +154,7 @@ static int pop_input_file(void);
 			yylloc.first_line = yylineno;
 			yytext[yyleng-1] = '\0';
 			DPRINT("Ref: %s\n", yytext+2);
-			yylval.labelref = strdup(yytext+2);
+			yylval.labelref = xstrdup(yytext+2);
 			return DT_REF;
 		}
 
@@ -162,7 +162,7 @@ static int pop_input_file(void);
 			yylloc.file = srcpos_file;
 			yylloc.first_line = yylineno;
 			DPRINT("Ref: %s\n", yytext+1);
-			yylval.labelref = strdup(yytext+1);
+			yylval.labelref = xstrdup(yytext+1);
 			return DT_REF;
 		}
 
@@ -186,7 +186,7 @@ static int pop_input_file(void);
 			yylloc.file = srcpos_file;
 			yylloc.first_line = yylineno;
 			DPRINT("PropNodeName: %s\n", yytext);
-			yylval.propnodename = strdup(yytext);
+			yylval.propnodename = xstrdup(yytext);
 			BEGIN_DEFAULT();
 			return DT_PROPNODENAME;
 		}

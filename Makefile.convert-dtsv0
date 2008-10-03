@@ -5,7 +5,8 @@
 #
 
 CONVERT_SRCS = \
-	srcpos.c
+	srcpos.c \
+	util.c
 
 CONVERT_GEN_SRCS = convert-dtsv0-lexer.lex.c
 
