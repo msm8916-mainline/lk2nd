@@ -16,6 +16,9 @@
 			compatible = "subsubnode1", "subsubnode";
 			prop-int = < 0xdeadbeef>;
 		};
+
+		ss1 {
+		};
 	};
 
 	subnode@2 {
@@ -26,6 +29,9 @@
 			linux,phandle = <0x2001>;
 			compatible = "subsubnode2", "subsubnode";
 			prop-int = < 0726746425>;
+		};
+
+		ss2 {
 		};
 	};
 };

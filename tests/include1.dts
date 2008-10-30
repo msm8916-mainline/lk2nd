@@ -19,5 +19,8 @@
 			compatible = "subsubnode2", "subsubnode";
 			prop-int = <0726746425>;
 		};
+
+		ss2 {
+		};
 	};
 };
