@@ -293,16 +293,18 @@ cell_t get_node_phandle(struct node *root, struct node *node)
 	if ((node->phandle != 0) && (node->phandle != -1))
 		return node->phandle;
 
-	assert(! get_property(node, "linux,phandle"));
-
 	while (get_node_by_phandle(root, phandle))
 		phandle++;
 
 	node->phandle = phandle;
-	add_property(node,
-		     build_property("linux,phandle",
-				    data_append_cell(empty_data, phandle),
-				    NULL));
+	if (!get_property(node, "linux,phandle"))
+		add_property(node,
+			     build_property("linux,phandle",
+					    data_append_cell(empty_data, phandle),
+					    NULL));
+	/* If the node *does* have a linux,phandle property, we must
+	 * be dealing with a self-referencing phandle, which will be
+	 * fixed up momentarily in the caller */
 
 	return node->phandle;
 }

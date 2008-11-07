@@ -282,6 +282,7 @@ static void check_explicit_phandles(struct check *c, struct node *root,
 					  struct node *node)
 {
 	struct property *prop;
+	struct marker *m;
 	struct node *other;
 	cell_t phandle;
 
@@ -292,6 +293,23 @@ static void check_explicit_phandles(struct check *c, struct node *root,
 	if (prop->val.len != sizeof(cell_t)) {
 		FAIL(c, "%s has bad length (%d) linux,phandle property",
 		     node->fullpath, prop->val.len);
+		return;
+	}
+
+	m = prop->val.markers;
+	for_each_marker_of_type(m, REF_PHANDLE) {
+		assert(m->offset == 0);
+		if (node != get_node_by_ref(root, m->ref))
+			/* "Set this node's phandle equal to some
+			 * other node's phandle".  That's nonsensical
+			 * by construction. */
+			FAIL(c, "linux,phandle in %s is a reference to another node",
+			     node->fullpath);
+		/* But setting this node's phandle equal to its own
+		 * phandle is allowed - that means allocate a unique
+		 * phandle for this node, even if it's not otherwise
+		 * referenced.  The value will be filled in later, so
+		 * no further checking for now. */
 		return;
 	}
 

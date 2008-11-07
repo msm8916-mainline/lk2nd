@@ -229,7 +229,8 @@ dtc_tests () {
     run_test dtbs_equal_ordered boot_cpuid_preserved_test_tree1.test.dtb boot_cpuid_test_tree1.test.dtb
 
     # Check -Odts mode preserve all dtb information
-    for tree in test_tree1.dtb dtc_tree1.test.dtb dtc_escapes.test.dtb ; do
+    for tree in test_tree1.dtb dtc_tree1.test.dtb dtc_escapes.test.dtb \
+	dtc_references.test.dtb; do
 	run_dtc_test -I dtb -O dts -o odts_$tree.test.dts $tree
 	run_dtc_test -I dts -O dtb -o odts_$tree.test.dtb odts_$tree.test.dts
 	run_test dtbs_equal_ordered $tree odts_$tree.test.dtb
