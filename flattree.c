@@ -413,10 +413,13 @@ void dt_to_blob(FILE *f, struct boot_info *bi, int version)
 	if (padlen > 0)
 		blob = data_append_zeroes(blob, padlen);
 
-	fwrite(blob.val, blob.len, 1, f);
-
-	if (ferror(f))
-		die("Error writing device tree blob: %s\n", strerror(errno));
+	if (fwrite(blob.val, blob.len, 1, f) != 1) {
+		if (ferror(f))
+			die("Error writing device tree blob: %s\n",
+			    strerror(errno));
+		else
+			die("Short write on device tree blob\n");
+	}
 
 	/*
 	 * data_merge() frees the right-hand element so only the blob
