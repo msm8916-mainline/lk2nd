@@ -16,7 +16,7 @@ LOCAL_VERSION =
 CONFIG_LOCALVERSION =
 
 CPPFLAGS = -I libfdt
-CFLAGS = -Wall -g -Os -Wpointer-arith -Wcast-qual
+CFLAGS = -Wall -g -Os -fPIC -Wpointer-arith -Wcast-qual
 
 BISON = bison
 LEX = flex
@@ -115,19 +115,23 @@ endif
 #
 LIBFDT_objdir = libfdt
 LIBFDT_srcdir = libfdt
-LIBFDT_lib = $(LIBFDT_objdir)/libfdt.a
+LIBFDT_archive = $(LIBFDT_objdir)/libfdt.a
+LIBFDT_lib = $(LIBFDT_objdir)/libfdt.so
 LIBFDT_include = $(addprefix $(LIBFDT_srcdir)/,$(LIBFDT_INCLUDES))
+LIBFDT_version = $(addprefix $(LIBFDT_srcdir)/,$(LIBFDT_VERSION))
 
 include $(LIBFDT_srcdir)/Makefile.libfdt
 
 .PHONY: libfdt
-libfdt: $(LIBFDT_lib)
+libfdt: $(LIBFDT_archive) $(LIBFDT_lib)
 
+$(LIBFDT_archive): $(addprefix $(LIBFDT_objdir)/,$(LIBFDT_OBJS))
 $(LIBFDT_lib): $(addprefix $(LIBFDT_objdir)/,$(LIBFDT_OBJS))
 
 libfdt_clean:
 	@$(VECHO) CLEAN "(libfdt)"
 	rm -f $(addprefix $(LIBFDT_objdir)/,$(STD_CLEANFILES))
+	rm -f $(LIBFDT_objdir)/*.so
 
 ifneq ($(DEPTARGETS),)
 -include $(LIBFDT_OBJS:%.o=$(LIBFDT_objdir)/%.d)
@@ -214,6 +218,11 @@ clean: libfdt_clean tests_clean
 %.a:
 	@$(VECHO) AR $@
 	$(AR) $(ARFLAGS) $@ $^
+
+$(LIBFDT_lib):
+	@$(VECHO) LD $@
+	$(CC) $(LDFLAGS) -fPIC -Wl,--version-script=$(LIBFDT_version) -Wl,-soname,$(notdir $@) -shared -o $(LIBFDT_objdir)/libfdt-$(DTC_VERSION).so $^
+	ln -s libfdt-$(DTC_VERSION).so $(LIBFDT_objdir)/libfdt.so
 
 %.lex.c: %.l
 	@$(VECHO) LEX $@

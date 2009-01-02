@@ -35,9 +35,9 @@ TESTS_CLEANFILES = $(TESTS) $(TESTS_CLEANFILES_L:%=$(TESTS_PREFIX)%)
 .PHONY: tests
 tests:	$(TESTS) $(TESTS_TREES)
 
-$(LIB_TESTS): %: $(TESTS_PREFIX)testutils.o $(LIBFDT_lib)
+$(LIB_TESTS): %: $(TESTS_PREFIX)testutils.o $(LIBFDT_archive)
 
-$(LIBTREE_TESTS): %: $(TESTS_PREFIX)testutils.o $(TESTS_PREFIX)trees.o $(LIBFDT_lib)
+$(LIBTREE_TESTS): %: $(TESTS_PREFIX)testutils.o $(TESTS_PREFIX)trees.o $(LIBFDT_archive)
 
 $(TESTS_PREFIX)dumptrees: $(TESTS_PREFIX)trees.o
 
