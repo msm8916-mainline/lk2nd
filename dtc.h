@@ -53,36 +53,6 @@ extern int reservenum;		/* Number of memory reservation slots */
 extern int minsize;		/* Minimum blob size */
 extern int padsize;		/* Additional padding to blob */
 
-static inline void __attribute__((noreturn)) die(char * str, ...)
-{
-	va_list ap;
-
-	va_start(ap, str);
-	fprintf(stderr, "FATAL ERROR: ");
-	vfprintf(stderr, str, ap);
-	exit(1);
-}
-
-static inline void *xmalloc(size_t len)
-{
-	void *new = malloc(len);
-
-	if (! new)
-		die("malloc() failed\n");
-
-	return new;
-}
-
-static inline void *xrealloc(void *p, size_t len)
-{
-	void *new = realloc(p, len);
-
-	if (! new)
-		die("realloc() failed (len=%d)\n", len);
-
-	return new;
-}
-
 typedef uint32_t cell_t;
 
 

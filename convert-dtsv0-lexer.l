@@ -52,26 +52,6 @@ static char *last_name; /* = NULL */
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
-static inline void __attribute__((noreturn)) die(char * str, ...)
-{
-	va_list ap;
-
-	va_start(ap, str);
-	fprintf(stderr, "FATAL ERROR: ");
-	vfprintf(stderr, str, ap);
-	exit(1);
-}
-
-static inline void *xmalloc(size_t len)
-{
-	void *new = malloc(len);
-
-	if (! new)
-		die("malloc() failed\n");
-
-	return new;
-}
-
 const struct {
 	const char *pattern;
 	int obase, width;
