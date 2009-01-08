@@ -71,6 +71,15 @@ run_dtc_test () {
     base_run_test wrap_test $VALGRIND $DTC "$@"
 }
 
+asm_to_so () {
+    as -o $1.test.o data.S $1.test.s && \
+	ld -shared -o $1.test.so $1.test.o
+}
+
+asm_to_so_test () {
+    run_wrap_test asm_to_so "$@"
+}
+
 tree1_tests () {
     TREE=$1
 
@@ -227,6 +236,16 @@ dtc_tests () {
     run_test boot-cpuid boot_cpuid_test_tree1.test.dtb 17
     run_dtc_test -I dtb -O dtb -o boot_cpuid_preserved_test_tree1.test.dtb boot_cpuid_test_tree1.test.dtb
     run_test dtbs_equal_ordered boot_cpuid_preserved_test_tree1.test.dtb boot_cpuid_test_tree1.test.dtb
+
+    # Check -Oasm mode
+    for tree in test_tree1.dts escapes.dts references.dts path-references.dts \
+	comments.dts aliases.dts include0.dts incbin.dts ; do
+	run_dtc_test -I dts -O asm -o oasm_$tree.test.s $tree
+	asm_to_so_test oasm_$tree
+	run_dtc_test -I dts -O dtb -o $tree.test.dtb $tree
+	run_test asm_tree_dump ./oasm_$tree.test.so oasm_$tree.test.dtb
+	run_wrap_test cmp oasm_$tree.test.dtb $tree.test.dtb
+    done
 
     # Check -Odts mode preserve all dtb information
     for tree in test_tree1.dtb dtc_tree1.test.dtb dtc_escapes.test.dtb \

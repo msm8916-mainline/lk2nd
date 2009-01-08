@@ -175,7 +175,7 @@ include tests/Makefile.tests
 #
 # Clean rules
 #
-STD_CLEANFILES = *~ *.o *.d *.a *.i *.s core a.out vgcore.* \
+STD_CLEANFILES = *~ *.o *.so *.d *.a *.i *.s core a.out vgcore.* \
 	*.tab.[ch] *.lex.c *.output
 
 clean: libfdt_clean tests_clean
