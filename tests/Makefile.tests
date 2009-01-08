@@ -18,7 +18,7 @@ LIB_TESTS = $(LIB_TESTS_L:%=$(TESTS_PREFIX)%)
 LIBTREE_TESTS_L = truncated_property
 LIBTREE_TESTS = $(LIBTREE_TESTS_L:%=$(TESTS_PREFIX)%)
 
-DL_LIB_TESTS_L = asm_tree_dump
+DL_LIB_TESTS_L = asm_tree_dump value-labels
 DL_LIB_TESTS = $(DL_LIB_TESTS_L:%=$(TESTS_PREFIX)%)
 
 TESTS = $(LIB_TESTS) $(LIBTREE_TESTS) $(DL_LIB_TESTS)

@@ -239,13 +239,16 @@ dtc_tests () {
 
     # Check -Oasm mode
     for tree in test_tree1.dts escapes.dts references.dts path-references.dts \
-	comments.dts aliases.dts include0.dts incbin.dts ; do
+	comments.dts aliases.dts include0.dts incbin.dts \
+	value-labels.dts ; do
 	run_dtc_test -I dts -O asm -o oasm_$tree.test.s $tree
 	asm_to_so_test oasm_$tree
 	run_dtc_test -I dts -O dtb -o $tree.test.dtb $tree
 	run_test asm_tree_dump ./oasm_$tree.test.so oasm_$tree.test.dtb
 	run_wrap_test cmp oasm_$tree.test.dtb $tree.test.dtb
     done
+
+    run_test value-labels ./oasm_value-labels.dts.test.so
 
     # Check -Odts mode preserve all dtb information
     for tree in test_tree1.dtb dtc_tree1.test.dtb dtc_escapes.test.dtb \
