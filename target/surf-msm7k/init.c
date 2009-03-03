@@ -50,28 +50,26 @@ static struct ptable flash_ptable;
 static struct ptentry board_part_list[] = {
 	{
 		.start = 0,
-		.length = 1,
-		.name = "aboot",
-	},
-	{
-		.start = 2,
 		.length = 40,
 		.name = "boot",
 	},
 	{
-		.start = 58,
+		.start = 56,
 		.length = 608 /* 76MB */,
 		.name = "system",
 	},
 	{
-		.start = 666,
-		.length = 157 + 1024,
-		.name = "userdata",
+		.start = 664,
+		.length = 608 /* 76MB */,
+		.name = "cache",
 	},
 	{
-		.name = "",
+		.start = 1272,
+		.length = 0,
+		.name = "userdata",
 	},
 };
+static int num_parts = sizeof(board_part_list)/sizeof(struct ptentry);
 
 void smem_ptable_init(void);
 unsigned smem_get_apps_flash_start(void);
@@ -80,8 +78,9 @@ void keypad_init(void);
 
 void target_init(void)
 {
-	struct ptentry *ptn;
 	unsigned offset;
+	struct flash_info *flash_info;
+	int i;
 
 	dprintf(INFO, "target_init()\n");
 
@@ -92,14 +91,21 @@ void target_init(void)
 	smem_ptable_init();
 
 	flash_init();
+	flash_info = flash_get_info();
+	ASSERT(flash_info);
 
 	offset = smem_get_apps_flash_start();
 	if (offset == 0xffffffff)
 		offset = BOARD_FLASH_OFFSET;
 
-	for (ptn = &board_part_list[0]; ptn->name[0]; ptn++) {
+	for (i = 0; i < num_parts; i++) {
+		struct ptentry *ptn = &board_part_list[i];
+		unsigned len = ptn->length;
+
+		if ((len == 0) && (i == num_parts - 1))
+			len = flash_info->num_blocks - offset - ptn->start;
 		ptable_add(&flash_ptable, ptn->name, offset + ptn->start,
-			   ptn->length, ptn->flags);
+			   len, ptn->flags);
 	}
 
 	ptable_dump(&flash_ptable);
