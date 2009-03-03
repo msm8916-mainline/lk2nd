@@ -94,14 +94,14 @@ static int dmov_exec_cmdptr(unsigned id, unsigned *ptr)
 	return 0;
 }
 
-static unsigned flash_maker = 0;
-static unsigned flash_device = 0;
+static struct flash_info flash_info;
 
 static void flash_read_id(dmov_s *cmdlist, unsigned *ptrlist)
 {
 	dmov_s *cmd = cmdlist;
 	unsigned *ptr = ptrlist;
 	unsigned *data = ptrlist + 4;
+	unsigned parms;
 
 	data[0] = 0 | 4;
 	data[1] = NAND_CMD_FETCH_ID;
@@ -141,11 +141,27 @@ static void flash_read_id(dmov_s *cmdlist, unsigned *ptrlist)
 #if VERBOSE
 	dprintf(INFO, "status: %x\n", data[3]);
 #endif
-	dprintf(INFO, "nandid: %x maker %02x device %02x\n",
-		data[4], data[4] & 0xff, (data[4] >> 8) & 0xff);
 
-	flash_maker = data[4] & 0xff;
-	flash_device = (data[4] >> 8) & 0xff;
+	flash_info.vendor = data[4] & 0xff;
+	flash_info.device = (data[4] >> 8) & 0xff;
+	flash_info.num_blocks = 0;
+	parms = data[4] >> 24;
+
+	if (flash_info.vendor == 0xec && flash_info.device == 0xaa)
+		flash_info.num_blocks = 2048; /* 256 MB */
+	ASSERT(flash_info.num_blocks);
+
+	flash_info.page_size = 1024 << (parms & 0x3);
+	flash_info.block_size = (64*1024) << ((parms >> 4) & 0x3);
+	flash_info.spare_size = (8 << ((parms >> 2) & 0x1));
+	flash_info.spare_size *= flash_info.page_size >> 9;
+
+	dprintf(INFO, "nandid: 0x%x maker=0x%02x device=0x%02x page_size=%d\n",
+		data[4], flash_info.vendor, flash_info.device,
+		flash_info.page_size);
+	dprintf(INFO, "        spare_size=%d block_size=%d num_blocks=%d\n",
+		flash_info.spare_size, flash_info.block_size,
+		flash_info.num_blocks);
 }
 
 static int flash_erase_block(dmov_s *cmdlist, unsigned *ptrlist, unsigned page)
@@ -521,6 +537,11 @@ void flash_set_ptable(struct ptable *new_ptable)
 {
 	ASSERT(flash_ptable == NULL && new_ptable != NULL);
 	flash_ptable = new_ptable;
+}
+
+struct flash_info *flash_get_info(void)
+{
+	return &flash_info;
 }
 
 int flash_erase(struct ptentry *ptn)
