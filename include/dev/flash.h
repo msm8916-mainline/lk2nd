@@ -32,9 +32,19 @@
 
 #include <lib/ptable.h>
 
+struct flash_info {
+	unsigned vendor;
+	unsigned device;
+	unsigned page_size;
+	unsigned block_size;
+	unsigned spare_size;
+	unsigned num_blocks;
+};
+
 void flash_init(void);
 struct ptable *flash_get_ptable(void);
 void flash_set_ptable(struct ptable *ptable);
+struct flash_info *flash_get_info(void);
 
 /* flash operations */
 int flash_erase(struct ptentry *ptn);
