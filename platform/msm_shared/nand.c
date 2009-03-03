@@ -37,6 +37,10 @@
 #include "nand.h"
 
 #define VERBOSE 0
+#define VERIFY_WRITE 0
+
+static void *flash_spare;
+static void *flash_data;
 
 typedef struct dmov_ch dmov_ch;
 struct dmov_ch 
@@ -458,6 +462,17 @@ static int _flash_write_page(dmov_s *cmdlist, unsigned *ptrlist, unsigned page,
 		if(!(data->result[n].flash_status & 0x80)) return -1;
 	}
 
+#if VERIFY_WRITE
+	n = _flash_read_page(cmdlist, ptrlist, page, flash_data,
+			     flash_data + 2048);
+	if (n != 0)
+		return -1;
+	if (memcmp(flash_data, _addr, 2048) ||
+	    memcmp(flash_data + 2048, _spareaddr, 16)) {
+		dprintf(CRITICAL, "verify error @ page %d\n", page);
+		return -1;
+	}
+#endif
 	return 0;
 }
 
@@ -506,8 +521,6 @@ static int flash_read_config(dmov_s *cmdlist, unsigned *ptrlist)
 
 static unsigned *flash_ptrlist;
 static dmov_s *flash_cmdlist;
-static void *flash_spare;
-static void *flash_data;
 
 static struct ptable *flash_ptable = NULL;
 
@@ -517,7 +530,7 @@ void flash_init(void)
 
 	flash_ptrlist = memalign(32, 1024);
 	flash_cmdlist = memalign(32, 1024);
-	flash_data = memalign(32, 2048);
+	flash_data = memalign(32, 2048 + 64);
 	flash_spare = memalign(32, 64);
 
 	if(flash_read_config(flash_cmdlist, flash_ptrlist)) {
