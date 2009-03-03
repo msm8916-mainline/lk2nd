@@ -91,6 +91,8 @@ void target_init(void)
 	ptable_init(&flash_ptable);
 	smem_ptable_init();
 
+	flash_init();
+
 	offset = smem_get_apps_flash_start();
 	if (offset == 0xffffffff)
 		offset = BOARD_FLASH_OFFSET;
@@ -101,6 +103,5 @@ void target_init(void)
 	}
 
 	ptable_dump(&flash_ptable);
-
-	flash_init(&flash_ptable);
+	flash_set_ptable(&flash_ptable);
 }

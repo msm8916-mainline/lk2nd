@@ -495,11 +495,9 @@ static void *flash_data;
 
 static struct ptable *flash_ptable = NULL;
 
-void flash_init(struct ptable *new_ptable)
+void flash_init(void)
 {
-	ASSERT(flash_ptable == NULL && new_ptable != NULL);
-
-	flash_ptable = new_ptable;
+	ASSERT(flash_ptable == NULL);
 
 	flash_ptrlist = memalign(32, 1024);
 	flash_cmdlist = memalign(32, 1024);
@@ -517,6 +515,12 @@ void flash_init(struct ptable *new_ptable)
 struct ptable *flash_get_ptable(void)
 {
 	return flash_ptable;
+}
+
+void flash_set_ptable(struct ptable *new_ptable)
+{
+	ASSERT(flash_ptable == NULL && new_ptable != NULL);
+	flash_ptable = new_ptable;
 }
 
 int flash_erase(struct ptentry *ptn)

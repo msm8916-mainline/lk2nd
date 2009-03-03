@@ -32,8 +32,9 @@
 
 #include <lib/ptable.h>
 
-void flash_init(struct ptable *ptable);
+void flash_init(void);
 struct ptable *flash_get_ptable(void);
+void flash_set_ptable(struct ptable *ptable);
 
 /* flash operations */
 int flash_erase(struct ptentry *ptn);
