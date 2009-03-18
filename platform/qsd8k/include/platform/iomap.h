@@ -40,6 +40,9 @@
 #define MSM_GPT_BASE	0xAC100000
 #define MSM_CSR_BASE    0xAC100000
 
+#if defined(PLATFORM_QSD8K)
+#define MSM_SHARED_BASE 0x00100000
+#else
 #define MSM_SHARED_BASE 0x01F00000
-
+#endif
 #endif
