@@ -175,7 +175,7 @@ propdata:
 
 			if ($6 != 0)
 				if (fseek(file->file, $6, SEEK_SET) != 0)
-					srcpos_error(&yyloc,
+					srcpos_error(&yylloc,
 						     "Couldn't seek to offset %llu in \"%s\": %s",
 						     (unsigned long long)$6,
 						     $4.val,
