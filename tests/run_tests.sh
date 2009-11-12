@@ -339,14 +339,14 @@ for set in $TESTSETS; do
     esac
 done
 
-echo -e "********** TEST SUMMARY"
-echo -e "*     Total testcases:	$tot_tests"
-echo -e "*                PASS:	$tot_pass"
-echo -e "*                FAIL:	$tot_fail"
-echo -e "*   Bad configuration:	$tot_config"
+echo "********** TEST SUMMARY"
+echo "*     Total testcases:	$tot_tests"
+echo "*                PASS:	$tot_pass"
+echo "*                FAIL:	$tot_fail"
+echo "*   Bad configuration:	$tot_config"
 if [ -n "$VALGRIND" ]; then
-    echo -e "*    valgrind errors:	$tot_vg"
+    echo "*    valgrind errors:	$tot_vg"
 fi
-echo -e "* Strange test result:	$tot_strange"
-echo -e "**********"
+echo "* Strange test result:	$tot_strange"
+echo "**********"
 
