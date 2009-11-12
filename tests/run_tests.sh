@@ -2,6 +2,10 @@
 
 . ./tests.sh
 
+if [ -z "$CC" ]; then
+    CC=gcc
+fi
+
 export QUIET_TEST=1
 
 export VALGRIND=
@@ -72,8 +76,7 @@ run_dtc_test () {
 }
 
 asm_to_so () {
-    as -o $1.test.o data.S $1.test.s && \
-	ld -shared -o $1.test.so $1.test.o
+    $CC -shared -o $1.test.so data.S $1.test.s
 }
 
 asm_to_so_test () {

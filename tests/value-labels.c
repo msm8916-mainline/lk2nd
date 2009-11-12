@@ -89,9 +89,9 @@ void check_prop_labels(void *sohandle, void *fdt, const char *name,
 			FAIL("Couldn't locate label symbol \"%s\"", name);
 
 		if ((p - prop->data) != off)
-			FAIL("Label \"%s\" points to offset %d instead of %d"
+			FAIL("Label \"%s\" points to offset %ld instead of %d"
 			     "in property \"%s\"", labels[i].labelname,
-			     p - prop->data, off, name);
+			     (long)(p - prop->data), off, name);
 	}
 }
 

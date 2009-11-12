@@ -166,7 +166,7 @@ static void asm_emit_align(void *e, int a)
 {
 	FILE *f = e;
 
-	fprintf(f, "\t.balign\t%d\n", a);
+	fprintf(f, "\t.balign\t%d, 0\n", a);
 }
 
 static void asm_emit_data(void *e, struct data d)
