@@ -44,18 +44,7 @@
 #include "bootimg.h"
 #include "fastboot.h"
 
-#if defined(PLATFORM_QSD8K)
-#define BASE_ADDR	0x20000000
-#define DEFAULT_CMDLINE	"mem=128M console=null";
-#else
-#define BASE_ADDR	0x10000000
-#define DEFAULT_CMDLINE	"mem=100M console=null";
-#endif
-
-#define TAGS_ADDR	(BASE_ADDR + 0x00000100)
-#define KERNEL_ADDR	(BASE_ADDR + 0x00800000)
-#define RAMDISK_ADDR	(BASE_ADDR + 0x01000000)
-#define SCRATCH_ADDR	(BASE_ADDR + 0x02000000)
+#define DEFAULT_CMDLINE "mem=100M console=null";
 
 static struct udc_device surf_udc_device = {
 	.vendor_id	= 0x18d1,
