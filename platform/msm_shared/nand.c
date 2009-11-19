@@ -100,12 +100,40 @@ static int dmov_exec_cmdptr(unsigned id, unsigned *ptr)
 
 static struct flash_info flash_info;
 
-static void flash_read_id(dmov_s *cmdlist, unsigned *ptrlist)
+struct flash_identification {
+   unsigned flash_id;
+   unsigned mask;
+   unsigned density;
+   unsigned widebus;
+   unsigned pagesize;
+   unsigned blksize;
+   unsigned oobsize;
+   unsigned onenand;
+};
+
+static struct flash_identification supported_flash[] =
+{
+   /* Flash ID   ID Mask Density(MB)  Wid Pgsz   Blksz   oobsz onenand    Manuf */
+   {0x00000000, 0xFFFFFFFF,         0, 0,    0,         0,  0, 0}, /*ONFI*/
+   {0x1500aaec, 0xFF00FFFF, (256<<20), 0, 2048, (2048<<6), 64, 0}, /*Sams*/
+   {0x5500baec, 0xFF00FFFF, (256<<20), 1, 2048, (2048<<6), 64, 0}, /*Sams*/
+   {0x1500aa98, 0xFFFFFFFF, (256<<20), 0, 2048, (2048<<6), 64, 0}, /*Tosh*/
+   {0x5500ba98, 0xFFFFFFFF, (256<<20), 1, 2048, (2048<<6), 64, 0}, /*Tosh*/
+   {0xd580b12c, 0xFFFFFFFF, (128<<20), 1, 2048, (2048<<6), 64, 0}, /*Micr*/
+   {0x5590bc2c, 0xFFFFFFFF, (128<<20), 1, 2048, (2048<<6), 64, 0}, /*Micr*/
+   {0x5580baad, 0xFFFFFFFF, (256<<20), 1, 2048, (2048<<6), 64, 0}, /*Hynx*/
+   {0x5510baad, 0xFFFFFFFF, (256<<20), 1, 2048, (2048<<6), 64, 0}, /*Hynx*/
+   {0x004000ec, 0xFFFFFFFF, (256<<20), 0, 2048, (2048<<6), 64, 1}, /*Hynx*/
+   /* Note: Width flag is 0 for 8 bit Flash and 1 for 16 bit flash      */
+   /* Note: Onenand flag is 0 for NAND Flash and 1 for OneNAND flash    */
+   /* Note: The First row will be filled at runtime during ONFI probe   */
+};
+
+static void flash_nand_read_id(dmov_s *cmdlist, unsigned *ptrlist)
 {
 	dmov_s *cmd = cmdlist;
 	unsigned *ptr = ptrlist;
 	unsigned *data = ptrlist + 4;
-	unsigned parms;
 
 	data[0] = 0 | 4;
 	data[1] = NAND_CMD_FETCH_ID;
@@ -146,22 +174,63 @@ static void flash_read_id(dmov_s *cmdlist, unsigned *ptrlist)
 	dprintf(INFO, "status: %x\n", data[3]);
 #endif
 
+	flash_info.id = data[4];
 	flash_info.vendor = data[4] & 0xff;
 	flash_info.device = (data[4] >> 8) & 0xff;
-	flash_info.num_blocks = 0;
-	parms = data[4] >> 24;
+	return;
+}
 
-	if (flash_info.vendor == 0xec && flash_info.device == 0xaa)
-		flash_info.num_blocks = 2048; /* 256 MB */
-	ASSERT(flash_info.num_blocks);
+static void flash_read_id(dmov_s *cmdlist, unsigned *ptrlist)
+{
+    int dev_found = 0;
+    unsigned index;
 
-	flash_info.page_size = 1024 << (parms & 0x3);
-	flash_info.block_size = (64*1024) << ((parms >> 4) & 0x3);
-	flash_info.spare_size = (8 << ((parms >> 2) & 0x1));
-	flash_info.spare_size *= flash_info.page_size >> 9;
+    // TODO: support for OneNAND detection
 
+    // Try to read id
+    flash_nand_read_id(cmdlist, ptrlist);
+    // Check if we support the device
+    for (index=1;
+         index < (sizeof(supported_flash)/sizeof(struct flash_identification));
+         index++)
+    {
+        if ((flash_info.id & supported_flash[index].mask) ==
+           (supported_flash[index].flash_id &
+           (supported_flash[index].mask))) {
+           dev_found = 1;
+           break;
+        }
+    }
+
+    if(dev_found) {
+        if (supported_flash[index].widebus)
+            flash_info.type = FLASH_16BIT_NAND_DEVICE;
+        else
+            flash_info.type = FLASH_8BIT_NAND_DEVICE;
+
+        flash_info.page_size = supported_flash[index].pagesize;
+        flash_info.block_size = supported_flash[index].blksize;
+        flash_info.spare_size = supported_flash[index].oobsize;
+        if (flash_info.block_size && flash_info.page_size)
+        {
+            flash_info.num_blocks = supported_flash[index].density;
+            flash_info.num_blocks /= (flash_info.block_size * flash_info.page_size);
+        }
+        else
+        {
+            flash_info.num_blocks = 0;
+        }
+        ASSERT(flash_info.num_blocks);
+        return;
+    }
+
+    // Assume 8 bit nand device for backward compatability
+    if (dev_found == 0) {
+        dprintf(INFO, "Device not supported.  Assuming 8 bit NAND device\n");
+        flash_info.type = FLASH_8BIT_NAND_DEVICE;
+    }
 	dprintf(INFO, "nandid: 0x%x maker=0x%02x device=0x%02x page_size=%d\n",
-		data[4], flash_info.vendor, flash_info.device,
+		flash_info.id, flash_info.vendor, flash_info.device,
 		flash_info.page_size);
 	dprintf(INFO, "        spare_size=%d block_size=%d num_blocks=%d\n",
 		flash_info.spare_size, flash_info.block_size,
@@ -476,6 +545,9 @@ static int _flash_write_page(dmov_s *cmdlist, unsigned *ptrlist, unsigned page,
 	return 0;
 }
 
+unsigned nand_cfg0;
+unsigned nand_cfg1;
+
 static int flash_read_config(dmov_s *cmdlist, unsigned *ptrlist)
 {
 	cmdlist[0].cmd = CMD_OCB;
@@ -496,6 +568,9 @@ static int flash_read_config(dmov_s *cmdlist, unsigned *ptrlist)
 		return -1;
 	}
 
+	if (flash_info.type == FLASH_16BIT_NAND_DEVICE) {
+		nand_cfg1 |= CFG1_WIDE_FLASH;
+	}
 	dprintf(INFO, "nandcfg: %x %x (initial)\n", CFG0, CFG1);
 
 	CFG0 = (3 <<  6)  /* 4 codeword per page for 2k nand */
@@ -504,15 +579,15 @@ static int flash_read_config(dmov_s *cmdlist, unsigned *ptrlist)
 		|    (5 << 27)  /* 5 address cycles */
 		|    (1 << 30)  /* Read status before data */
 		|    (1 << 31)  /* Send read cmd */
-		/* 0 spare bytes for 16 bit nand or 1 spare bytes for 8 bit */
-		| ((CFG1 & CFG1_WIDE_FLASH) ? (0 << 23) : (1 << 23));
+            /* 0 spare bytes for 16 bit nand or 1 spare bytes for 8 bit */
+		| ((nand_cfg1 & CFG1_WIDE_FLASH) ? (0 << 23) : (1 << 23));
 	CFG1 = (0 <<  0)  /* Enable ecc */
 		|    (7 <<  2)  /* 8 recovery cycles */
 		|    (0 <<  5)  /* Allow CS deassertion */
 		|  (465 <<  6)  /* Bad block marker location */
 		|    (0 << 16)  /* Bad block in user data area */
 		|    (2 << 17)  /* 6 cycle tWB/tRB */
-		| (CFG1 & CFG1_WIDE_FLASH); /* preserve wide flash flag */
+		| (nand_cfg1 & CFG1_WIDE_FLASH); /* preserve wide flash flag */
 
 	dprintf(INFO, "nandcfg: %x %x (used)\n", CFG0, CFG1);
 
@@ -533,12 +608,14 @@ void flash_init(void)
 	flash_data = memalign(32, 2048 + 64);
 	flash_spare = memalign(32, 64);
 
-	if(flash_read_config(flash_cmdlist, flash_ptrlist)) {
-		dprintf(CRITICAL, "ERROR: could not read CFG0/CFG1 state\n");
-		ASSERT(0);
-	}
-
 	flash_read_id(flash_cmdlist, flash_ptrlist);
+	if((FLASH_8BIT_NAND_DEVICE == flash_info.type)
+		||(FLASH_16BIT_NAND_DEVICE == flash_info.type)) {
+		if(flash_read_config(flash_cmdlist, flash_ptrlist)) {
+			dprintf(CRITICAL, "ERROR: could not read CFG0/CFG1 state\n");
+			ASSERT(0);
+		}
+	}
 }
 
 struct ptable *flash_get_ptable(void)

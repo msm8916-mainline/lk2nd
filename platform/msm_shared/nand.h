@@ -83,4 +83,11 @@
 #define NAND_CMD_STATUS             0x0C
 #define NAND_CMD_RESET              0x0D
 
+/* Flash type */
+#define FLASH_UNKNOWN_DEVICE        0x00
+#define FLASH_NAND_DEVICE           0x01
+#define FLASH_8BIT_NAND_DEVICE      0x01
+#define FLASH_16BIT_NAND_DEVICE     0x02
+#define FLASH_ONENAND_DEVICE        0x03
+
 #endif /* __PLATFORM_MSM_SHARED_NAND_H */

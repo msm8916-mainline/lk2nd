@@ -32,7 +32,10 @@
 
 #include <lib/ptable.h>
 
+#define FLASH_PAGE_SIZE 2048
 struct flash_info {
+	unsigned id;
+	unsigned type;
 	unsigned vendor;
 	unsigned device;
 	unsigned page_size;
