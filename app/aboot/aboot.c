@@ -63,6 +63,7 @@ struct atag_ptbl_entry
 };
 
 void platform_uninit_timer(void);
+unsigned* target_atag_mem(unsigned* ptr);
 
 static void ptentry_to_tag(unsigned **ptr, struct ptentry *ptn)
 {
@@ -95,6 +96,8 @@ void boot_linux(void *kernel, unsigned *tags,
 		*ptr++ = (unsigned)ramdisk;
 		*ptr++ = ramdisk_size;
 	}
+
+	ptr = target_atag_mem(ptr);
 
 	if ((ptable = flash_get_ptable()) && (ptable->count != 0)) {
 		int i;

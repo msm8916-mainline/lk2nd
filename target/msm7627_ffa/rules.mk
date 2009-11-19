@@ -7,7 +7,7 @@ PLATFORM := msm7k
 MEMBASE := 0x00000000 # SMI
 MEMSIZE := 0x00800000 # 8MB
 
-LINUX_MACHTYPE   := 1007014
+LINUX_MACHTYPE   := 1007015
 
 BASE_ADDR        := 0x00200000
 
@@ -36,4 +36,5 @@ DEFINES += \
 OBJS += \
 	$(LOCAL_DIR)/init.o \
 	$(LOCAL_DIR)/keypad.o \
+	$(LOCAL_DIR)/atags.o \
 	$(LOCAL_DIR)/panel.o

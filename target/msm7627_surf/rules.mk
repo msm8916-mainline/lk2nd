@@ -36,4 +36,5 @@ DEFINES += \
 OBJS += \
 	$(LOCAL_DIR)/init.o \
 	$(LOCAL_DIR)/keypad.o \
+	$(LOCAL_DIR)/atags.o \
 	$(LOCAL_DIR)/panel.o

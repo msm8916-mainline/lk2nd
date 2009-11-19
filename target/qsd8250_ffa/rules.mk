@@ -7,7 +7,7 @@ PLATFORM := qsd8k
 MEMBASE := 0x00000000 # SMI
 MEMSIZE := 0x00800000 # 8MB
 
-LINUX_MACHTYPE   := 1008000
+LINUX_MACHTYPE   := 1008002
 
 BASE_ADDR        := 0x20000000
 
@@ -33,4 +33,5 @@ DEFINES += \
 
 OBJS += \
 	$(LOCAL_DIR)/init.o \
+	$(LOCAL_DIR)/atags.o \
 	$(LOCAL_DIR)/keypad.o
