@@ -500,7 +500,7 @@ static int _flash_nand_read_page(dmov_s *cmdlist, unsigned *ptrlist,
 }
 
 static int _flash_nand_write_page(dmov_s *cmdlist, unsigned *ptrlist, unsigned page,
-								  const void *_addr, const void *_spareaddr)
+								  const void *_addr, const void *_spareaddr, unsigned raw_mode)
 {
 	dmov_s *cmd = cmdlist;
 	unsigned *ptr = ptrlist;
@@ -516,8 +516,13 @@ static int _flash_nand_write_page(dmov_s *cmdlist, unsigned *ptrlist, unsigned p
 	data->addr1 = (page >> 16) & 0xff;
 	data->chipsel = 0 | 4; /* flash0 + undoc bit */
 
-	data->cfg0 = CFG0;
-	data->cfg1 = CFG1;
+	if (!raw_mode){
+		data->cfg0 = CFG0;
+		data->cfg1 = CFG1;
+	}else{
+		data->cfg0 = (NAND_CFG0_RAW & ~(7 << 6)) |((cwperpage-1) << 6);
+		data->cfg1 = NAND_CFG1_RAW | (CFG1 & CFG1_WIDE_FLASH);
+	}
 
 	/* GO bit for the EXEC register */
 	data->exec = 1;
@@ -557,12 +562,17 @@ static int _flash_nand_write_page(dmov_s *cmdlist, unsigned *ptrlist, unsigned p
 
 		/* write data block */
 		cmd->cmd = 0;
-		cmd->src = addr + n * 516;
 		cmd->dst = NAND_FLASH_BUFFER;
-		cmd->len = ((n < (cwperpage - 1)) ? 516 : (512 - ((cwperpage - 1) << 2)));
+		if (!raw_mode){
+			cmd->src = addr + n * 516;
+			cmd->len = ((n < (cwperpage - 1)) ? 516 : (512 - ((cwperpage - 1) << 2)));
+		}else{
+			cmd->src = addr;
+			cmd->len =  528;
+		}
 		cmd++;
 
-		if (n == (cwperpage - 1)) {
+		if ((n == (cwperpage - 1)) && (!raw_mode)) {
 			/* write extra data */
 			cmd->cmd = 0;
 			cmd->src = spareaddr;
@@ -622,6 +632,15 @@ static int _flash_nand_write_page(dmov_s *cmdlist, unsigned *ptrlist, unsigned p
 	}
 #endif
 	return 0;
+}
+char empty_buf[528];
+static int flash_nand_mark_badblock(dmov_s *cmdlist, unsigned *ptrlist, unsigned page)
+{
+  memset(empty_buf,0,528);
+  /* Going to first page of the block */
+  if(page & 63)
+	page = page - (page & 63);
+  return _flash_nand_write_page(cmdlist, ptrlist, page, empty_buf, 0, 1);
 }
 
 unsigned nand_cfg0;
@@ -1570,7 +1589,7 @@ struct data_onenand_write {
 
 static int _flash_onenand_write_page(dmov_s *cmdlist, unsigned *ptrlist,
 									 unsigned page, const void *_addr,
-									 const void *_spareaddr)
+									 const void *_spareaddr, unsigned raw_mode)
 {
 	dmov_s *cmd = cmdlist;
 	unsigned *ptr = ptrlist;
@@ -1588,7 +1607,8 @@ static int _flash_onenand_write_page(dmov_s *cmdlist, unsigned *ptrlist,
 										(erasesize-1)) / writesize) << 2;
 	unsigned onenand_startaddr2 = DEVICE_BUFFERRAM_0 << 15;
 	unsigned onenand_startbuffer = DATARAM0_0 << 8;
-	unsigned onenand_sysconfig1 = ONENAND_SYSCFG1_ECCENA;
+	unsigned onenand_sysconfig1 = (raw_mode == 1) ? ONENAND_SYSCFG1_ECCDIS :\
+													ONENAND_SYSCFG1_ECCENA;
 
 	unsigned controller_status;
 	unsigned interrupt_status;
@@ -1716,7 +1736,8 @@ static int _flash_onenand_write_page(dmov_s *cmdlist, unsigned *ptrlist,
 		  cmd->src = paddr(addr_curr);
 		  cmd->dst = NAND_FLASH_BUFFER;
 		  cmd->len = 512;
-		  addr_curr += 512;
+		  if(!raw_mode)
+			addr_curr += 512;
 		  cmd++;
 
 		  /* Write the MACRO1 register */
@@ -1765,6 +1786,14 @@ static int _flash_onenand_write_page(dmov_s *cmdlist, unsigned *ptrlist,
 	  cmd->dst = NAND_FLASH_BUFFER;
 	  cmd->len = 64;
 	  cmd++;
+	}
+
+	if (raw_mode){
+		cmd->cmd = 0;
+		cmd->src = paddr(addr_curr);
+		cmd->dst = NAND_FLASH_BUFFER;
+		cmd->len = 64;
+		cmd++;
 	}
 
 	/* Write the MACRO1 register */
@@ -1987,6 +2016,30 @@ static int _flash_onenand_write_page(dmov_s *cmdlist, unsigned *ptrlist,
 
 	return 0;
 }
+
+static int flash_onenand_mark_badblock(dmov_s *cmdlist, unsigned *ptrlist, unsigned page)
+{
+  memset(empty_buf,0,528);
+  /* Going to first page of the block */
+  if(page & 63)
+	page = page - (page & 63);
+  return _flash_onenand_write_page(cmdlist, ptrlist, page, empty_buf, 0, 1);
+}
+
+static int flash_mark_badblock(dmov_s *cmdlist, unsigned *ptrlist, unsigned page)
+{
+	switch(flash_info.type) {
+		case FLASH_8BIT_NAND_DEVICE:
+		case FLASH_16BIT_NAND_DEVICE:
+			return flash_nand_mark_badblock(cmdlist, ptrlist, page);
+		case FLASH_ONENAND_DEVICE:
+			return flash_onenand_mark_badblock(cmdlist, ptrlist, page);
+		default:
+			return -1;
+	}
+}
+
+
 /* Wrapper functions */
 static void flash_read_id(dmov_s *cmdlist, unsigned *ptrlist)
 {
@@ -2109,9 +2162,9 @@ static int _flash_write_page(dmov_s *cmdlist, unsigned *ptrlist,
 	switch(flash_info.type) {
 		case FLASH_8BIT_NAND_DEVICE:
 		case FLASH_16BIT_NAND_DEVICE:
-			return _flash_nand_write_page(cmdlist, ptrlist, page, _addr, _spareaddr);
+			return _flash_nand_write_page(cmdlist, ptrlist, page, _addr, _spareaddr, 0);
 		case FLASH_ONENAND_DEVICE:
-			return _flash_onenand_write_page(cmdlist, ptrlist, page, _addr, _spareaddr);
+			return _flash_onenand_write_page(cmdlist, ptrlist, page, _addr, _spareaddr, 0);
 		default:
 			return -1;
 	}
@@ -2262,9 +2315,9 @@ int flash_write(struct ptentry *ptn, unsigned extra_per_page, const void *data,
 		}
 
 		if(extra_per_page) {
-			r = _flash_write_page(flash_cmdlist, flash_ptrlist, page++, image, image + flash_pagesize);
+			r = _flash_write_page(flash_cmdlist, flash_ptrlist, page, image, image + flash_pagesize);
 		} else {
-			r = _flash_write_page(flash_cmdlist, flash_ptrlist, page++, image, spare);
+			r = _flash_write_page(flash_cmdlist, flash_ptrlist, page, image, spare);
 		}
 		if(r) {
 			dprintf(INFO, "flash_write_image: write failure @ page %d (src %d)\n", page, image - (const unsigned char *)data);
@@ -2274,11 +2327,12 @@ int flash_write(struct ptentry *ptn, unsigned extra_per_page, const void *data,
 			if(flash_erase_block(flash_cmdlist, flash_ptrlist, page)) {
 				dprintf(INFO, "flash_write_image: erase failure @ page %d\n", page);
 			}
+			flash_mark_badblock(flash_cmdlist, flash_ptrlist, page);
 			dprintf(INFO, "flash_write_image: restart write @ page %d (src %d)\n", page, image - (const unsigned char *)data);
 			page += 64;
 			continue;
 		}
-
+		page++;
 		image += wsize;
 		bytes -= wsize;
 	}
