@@ -43,6 +43,8 @@ void platform_init_timer();
 void uart3_clock_init(void);
 void uart_init(void);
 
+void acpu_clock_init(void);
+
 void mddi_clock_init(unsigned num, unsigned rate);
 
 void platform_early_init(void)
@@ -57,6 +59,8 @@ void platform_early_init(void)
 void platform_init(void)
 {
 	dprintf(INFO, "platform_init()\n");
+
+	acpu_clock_init();
 
 	mddi_clock_init(0, 122880000);
 	fb_config = mddi_init();
