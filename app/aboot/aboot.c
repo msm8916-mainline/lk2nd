@@ -59,7 +59,7 @@
 
 static struct udc_device surf_udc_device = {
 	.vendor_id	= 0x18d1,
-	.product_id	= 0x0001,
+	.product_id	= 0xD00D,
 	.version_id	= 0x0100,
 	.manufacturer	= "Google",
 	.product	= "Android",
