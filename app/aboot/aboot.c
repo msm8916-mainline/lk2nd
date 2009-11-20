@@ -133,11 +133,12 @@ void boot_linux(void *kernel, unsigned *tags,
 
 }
 
-#define PAGE_MASK 2047
+unsigned page_size = 0;
+unsigned page_mask = 0;
 
-#define ROUND_TO_PAGE(x) (((x) + PAGE_MASK) & (~PAGE_MASK))
+#define ROUND_TO_PAGE(x,y) (((x) + (y)) & (~(y)))
 
-static unsigned char buf[2048];
+static unsigned char buf[4096]; //Equal to max-supported pagesize
 
 int boot_linux_from_flash(void)
 {
@@ -160,25 +161,30 @@ int boot_linux_from_flash(void)
 		return -1;
 	}
 
-	if (flash_read(ptn, offset, buf, 2048)) {
+	if (flash_read(ptn, offset, buf, page_size)) {
 		dprintf(CRITICAL, "ERROR: Cannot read boot image header\n");
 		return -1;
 	}
-	offset += 2048;
+	offset += page_size;
 
 	if (memcmp(hdr->magic, BOOT_MAGIC, BOOT_MAGIC_SIZE)) {
 		dprintf(CRITICAL, "ERROR: Invaled boot image heador\n");
 		return -1;
 	}
 
-	n = ROUND_TO_PAGE(hdr->kernel_size);
+	if (hdr->page_size != page_size) {
+		dprintf(CRITICAL, "ERROR: Invaled boot image pagesize. Device pagesize: %d, Image pagesize: %d\n",page_size,hdr->page_size);
+		return -1;
+	}
+
+	n = ROUND_TO_PAGE(hdr->kernel_size, page_mask);
 	if (flash_read(ptn, offset, (void *)hdr->kernel_addr, n)) {
 		dprintf(CRITICAL, "ERROR: Cannot read kernel image\n");
 		return -1;
 	}
 	offset += n;
 
-	n = ROUND_TO_PAGE(hdr->ramdisk_size);
+	n = ROUND_TO_PAGE(hdr->ramdisk_size, page_mask);
 	if (flash_read(ptn, offset, (void *)hdr->ramdisk_addr, n)) {
 		dprintf(CRITICAL, "ERROR: Cannot read ramdisk image\n");
 		return -1;
@@ -224,8 +230,8 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	/* ensure commandline is terminated */
 	hdr.cmdline[BOOT_ARGS_SIZE-1] = 0;
 
-	kernel_actual = ROUND_TO_PAGE(hdr.kernel_size);
-	ramdisk_actual = ROUND_TO_PAGE(hdr.ramdisk_size);
+	kernel_actual = ROUND_TO_PAGE(hdr.kernel_size, page_mask);
+	ramdisk_actual = ROUND_TO_PAGE(hdr.ramdisk_size, page_mask);
 
 	if (2048 + kernel_actual + ramdisk_actual < sz) {
 		fastboot_fail("incomplete bootimage");
@@ -294,9 +300,9 @@ void cmd_flash(const char *arg, void *data, unsigned sz)
 	}
 
 	if (!strcmp(ptn->name, "system") || !strcmp(ptn->name, "userdata"))
-		extra = 64;
+		extra = ((page_size >> 9) * 16);
 	else
-		sz = ROUND_TO_PAGE(sz);
+		sz = ROUND_TO_PAGE(sz, page_mask);
 
 	dprintf(INFO, "writing %d bytes to '%s'\n", sz, ptn->name);
 	if (flash_write(ptn, extra, data, sz)) {
@@ -317,6 +323,8 @@ void cmd_continue(const char *arg, void *data, unsigned sz)
 
 void aboot_init(const struct app_descriptor *app)
 {
+	page_size = flash_page_size();
+	page_mask = page_size - 1;
 	if (keys_get_state(KEY_BACK) != 0)
 		goto fastboot;
 

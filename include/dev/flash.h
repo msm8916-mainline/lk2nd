@@ -32,7 +32,7 @@
 
 #include <lib/ptable.h>
 
-#define FLASH_PAGE_SIZE 2048
+
 struct flash_info {
 	unsigned id;
 	unsigned type;
@@ -61,6 +61,7 @@ static inline int flash_read(struct ptentry *ptn, unsigned offset, void *data,
 {
 	return flash_read_ext(ptn, 0, offset, data, bytes);
 }
+unsigned flash_page_size(void);
 
 
 #endif /* __DEV_FLASH_H */

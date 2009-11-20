@@ -102,6 +102,7 @@ static int dmov_exec_cmdptr(unsigned id, unsigned *ptr)
 }
 
 static struct flash_info flash_info;
+static unsigned flash_pagesize = 0;
 
 struct flash_identification {
 	unsigned flash_id;
@@ -124,6 +125,7 @@ static struct flash_identification supported_flash[] =
 	{0x5500ba98, 0xFFFFFFFF, (256<<20), 1, 2048, (2048<<6), 64, 0}, /*Tosh*/
 	{0xd580b12c, 0xFFFFFFFF, (128<<20), 1, 2048, (2048<<6), 64, 0}, /*Micr*/
 	{0x5590bc2c, 0xFFFFFFFF, (128<<20), 1, 2048, (2048<<6), 64, 0}, /*Micr*/
+	{0x1580aa2c, 0xFFFFFFFF, (128<<20), 0, 2048, (2048<<6), 64, 0}, /*Micr*/
 	{0x5580baad, 0xFFFFFFFF, (256<<20), 1, 2048, (2048<<6), 64, 0}, /*Hynx*/
 	{0x5510baad, 0xFFFFFFFF, (256<<20), 1, 2048, (2048<<6), 64, 0}, /*Hynx*/
 	{0x004000ec, 0xFFFFFFFF, (256<<20), 0, 2048, (2048<<6), 64, 1}, /*Sams*/
@@ -217,6 +219,9 @@ static int flash_nand_block_isbad(dmov_s *cmdlist, unsigned *ptrlist,
 	unsigned *ptr = ptrlist;
 	unsigned *data = ptrlist + 4;
 	char buf[4];
+	unsigned cwperpage;
+
+	cwperpage = (flash_pagesize >> 9);
 
 	/* Check first page of this block */
 	if(page & 63)
@@ -227,9 +232,9 @@ static int flash_nand_block_isbad(dmov_s *cmdlist, unsigned *ptrlist,
 
 	/* addr0 */
 	if (CFG1 & CFG1_WIDE_FLASH)
-		data[1] = (page << 16) | (0x630 >> 1);
+		data[1] = (page << 16) | ((528*(cwperpage-1)) >> 1);
 	else
-		data[1] = (page << 16) | 0x630;
+		data[1] = (page << 16) | (528*(cwperpage-1));
 
 	data[2] = (page >> 16) & 0xff;						/* addr1	*/
 	data[3] = 0 | 4;									/* chipsel	*/
@@ -260,7 +265,7 @@ static int flash_nand_block_isbad(dmov_s *cmdlist, unsigned *ptrlist,
 	cmd[3].len = 8;
 
 	cmd[4].cmd = CMD_OCU | CMD_LC;
-	cmd[4].src = NAND_FLASH_BUFFER + 464;
+	cmd[4].src = NAND_FLASH_BUFFER + (flash_pagesize - (528*(cwperpage-1)));
 	cmd[4].dst = paddr(&buf);
 	cmd[4].len = 4;
 
@@ -368,7 +373,7 @@ struct data_flash_io {
 	struct {
 		unsigned flash_status;
 		unsigned buffer_status;
-	} result[4];
+	} result[8];
 };
 
 static int _flash_nand_read_page(dmov_s *cmdlist, unsigned *ptrlist,
@@ -381,6 +386,8 @@ static int _flash_nand_read_page(dmov_s *cmdlist, unsigned *ptrlist,
 	unsigned spareaddr = (unsigned) _spareaddr;
 	unsigned n;
 	int isbad = 0;
+	unsigned cwperpage;
+	cwperpage = (flash_pagesize >> 9);
 
 	/* Check for bad block and read only from a good block */
 	isbad = flash_nand_block_isbad(cmdlist, ptrlist, page);
@@ -407,7 +414,7 @@ static int _flash_nand_read_page(dmov_s *cmdlist, unsigned *ptrlist,
 	cmd->len = 4;
 	cmd++;
 
-	for(n = 0; n < 4; n++) {
+	for(n = 0; n < cwperpage; n++) {
 		/* write CMD / ADDR0 / ADDR1 / CHIPSEL regs in a burst */
 		cmd->cmd = DST_CRCI_NAND_CMD;
 		cmd->src = paddr(&data->cmd);
@@ -448,7 +455,7 @@ static int _flash_nand_read_page(dmov_s *cmdlist, unsigned *ptrlist,
 		cmd->cmd = 0;
 		cmd->src = NAND_FLASH_BUFFER;
 		cmd->dst = addr + n * 516;
-		cmd->len = ((n < 3) ? 516 : 500);
+		cmd->len = ((n < (cwperpage -1 )) ? 516 : (512 - ((cwperpage - 1) << 2)));
 		cmd++;
 	}
 
@@ -483,7 +490,7 @@ static int _flash_nand_read_page(dmov_s *cmdlist, unsigned *ptrlist,
 	/* if any of the writes failed (0x10), or there was a
 	 ** protection violation (0x100), we lose
 	 */
-	for(n = 0; n < 4; n++) {
+	for(n = 0; n < cwperpage; n++) {
 		if (data->result[n].flash_status & 0x110) {
 			return -1;
 		}
@@ -501,6 +508,8 @@ static int _flash_nand_write_page(dmov_s *cmdlist, unsigned *ptrlist, unsigned p
 	unsigned addr = (unsigned) _addr;
 	unsigned spareaddr = (unsigned) _spareaddr;
 	unsigned n;
+	unsigned cwperpage;
+	cwperpage = (flash_pagesize >> 9);
 
 	data->cmd = NAND_CMD_PRG_PAGE;
 	data->addr0 = page << 16;
@@ -522,8 +531,8 @@ static int _flash_nand_write_page(dmov_s *cmdlist, unsigned *ptrlist, unsigned p
 	cmd->len = 4;
 	cmd++;
 
-	for(n = 0; n < 4; n++) {
-		/* write CMD / ADDR0 / ADDR1 / CHIPSEL regs in a burst */
+	for(n = 0; n < cwperpage; n++) {
+			/* write CMD / ADDR0 / ADDR1 / CHIPSEL regs in a burst */
 		cmd->cmd = DST_CRCI_NAND_CMD;
 		cmd->src = paddr(&data->cmd);
 		cmd->dst = NAND_FLASH_CMD;
@@ -550,15 +559,15 @@ static int _flash_nand_write_page(dmov_s *cmdlist, unsigned *ptrlist, unsigned p
 		cmd->cmd = 0;
 		cmd->src = addr + n * 516;
 		cmd->dst = NAND_FLASH_BUFFER;
-		cmd->len = ((n < 3) ? 516 : 510);
+		cmd->len = ((n < (cwperpage - 1)) ? 516 : (512 - ((cwperpage - 1) << 2)));
 		cmd++;
 
-		if (n == 3) {
+		if (n == (cwperpage - 1)) {
 			/* write extra data */
 			cmd->cmd = 0;
 			cmd->src = spareaddr;
-			cmd->dst = NAND_FLASH_BUFFER + 500;
-			cmd->len = 16;
+			cmd->dst = NAND_FLASH_BUFFER + (512 - ((cwperpage - 1) << 2));
+			cmd->len = (cwperpage << 2);
 			cmd++;
 		}
 
@@ -596,7 +605,7 @@ static int _flash_nand_write_page(dmov_s *cmdlist, unsigned *ptrlist, unsigned p
 	 ** protection violation (0x100), or the program success
 	 ** bit (0x80) is unset, we lose
 	 */
-	for(n = 0; n < 4; n++) {
+	for(n = 0; n < cwperpage; n++) {
 		if(data->result[n].flash_status & 0x110) return -1;
 		if(!(data->result[n].flash_status & 0x80)) return -1;
 	}
@@ -643,7 +652,7 @@ static int flash_nand_read_config(dmov_s *cmdlist, unsigned *ptrlist)
 	}
 	dprintf(INFO, "nandcfg: %x %x (initial)\n", CFG0, CFG1);
 
-	CFG0 = (3 <<  6)  /* 4 codeword per page for 2k nand */
+	CFG0 = (((flash_pagesize >> 9) - 1) <<  6)  /* 4/8 cw/pg for 2/4k */
 		|	(516 <<  9)  /* 516 user data bytes */
 		|	(10 << 19)  /* 10 parity bytes */
 		|	(5 << 27)  /* 5 address cycles */
@@ -654,7 +663,7 @@ static int flash_nand_read_config(dmov_s *cmdlist, unsigned *ptrlist)
 	CFG1 = (0 <<  0)  /* Enable ecc */
 		|	(7 <<  2)  /* 8 recovery cycles */
 		|	(0 <<  5)  /* Allow CS deassertion */
-		|	(465 <<  6)  /* Bad block marker location */
+	  	|	((flash_pagesize - (528 * ((flash_pagesize >> 9) - 1)) + 1) <<  6)	/* Bad block marker location */
 		|	(0 << 16)  /* Bad block in user data area */
 		|	(2 << 17)  /* 6 cycle tWB/tRB */
 		|	(nand_cfg1 & CFG1_WIDE_FLASH); /* preserve wide flash flag */
@@ -808,8 +817,8 @@ static int flash_onenand_erase_block(dmov_s *cmdlist, unsigned *ptrlist,
 	unsigned *ptr = ptrlist;
 	struct data_onenand_erase *data = (void *)ptrlist + 4;
 	int isbad = 0;
-	unsigned erasesize = (2048 << 6);
-	unsigned onenand_startaddr1 = DEVICE_FLASHCORE_0 | (page*2048)/erasesize;
+	unsigned erasesize = (flash_pagesize << 6);
+	unsigned onenand_startaddr1 = DEVICE_FLASHCORE_0 | (page * flash_pagesize)/erasesize;
 	unsigned onenand_startaddr8 = 0x0000;
 	unsigned onenand_startaddr2 = DEVICE_BUFFERRAM_0 << 15;
 	unsigned onenand_startbuffer = DATARAM0_0 << 8;
@@ -818,7 +827,7 @@ static int flash_onenand_erase_block(dmov_s *cmdlist, unsigned *ptrlist,
 	unsigned interrupt_status;
 	unsigned ecc_status;
 
-	if((page*2048) & (erasesize-1)) return -1;
+	if((page * flash_pagesize) & (erasesize-1)) return -1;
 
 	/* Check for bad block and erase only if block is not marked bad */
 	isbad = flash_onenand_block_isbad(cmdlist, ptrlist, page);
@@ -830,7 +839,7 @@ static int flash_onenand_erase_block(dmov_s *cmdlist, unsigned *ptrlist,
 
 	/*Erase block*/
 	onenand_startaddr1 = DEVICE_FLASHCORE_0 |
-				((page*2048) / (erasesize));
+				((page * flash_pagesize) / (erasesize));
 	onenand_startaddr8 = 0x0000;
 	onenand_startaddr2 = DEVICE_BUFFERRAM_0 << 15;
 	onenand_startbuffer = DATARAM0_0 << 8;
@@ -1118,12 +1127,12 @@ static int _flash_onenand_read_page(dmov_s *cmdlist, unsigned *ptrlist,
 	unsigned curr_addr = (unsigned) _addr;
 	unsigned spareaddr = (unsigned) _spareaddr;
 	unsigned i;
-	unsigned erasesize = (2048<<6);
-	unsigned writesize = 2048;
+	unsigned erasesize = (flash_pagesize<<6);
+	unsigned writesize = flash_pagesize;
 
 	unsigned onenand_startaddr1 = DEVICE_FLASHCORE_0 |
-									((unsigned)(page*2048) / erasesize);
-	unsigned onenand_startaddr8 = (((unsigned)(page*2048) &
+									((unsigned)(page * flash_pagesize) / erasesize);
+	unsigned onenand_startaddr8 = (((unsigned)(page * flash_pagesize) &
 										(erasesize - 1)) / writesize) << 2;
 	unsigned onenand_startaddr2 = DEVICE_BUFFERRAM_0 << 15;
 	unsigned onenand_startbuffer = DATARAM0_0 << 8;
@@ -1571,11 +1580,11 @@ static int _flash_onenand_write_page(dmov_s *cmdlist, unsigned *ptrlist,
 	char * spareaddr = (char *) _spareaddr;
 	unsigned i, j, k;
 
-	unsigned erasesize = (2048<<6);
-	unsigned writesize = 2048;
+	unsigned erasesize = (flash_pagesize<<6);
+	unsigned writesize = flash_pagesize;
 
-	unsigned onenand_startaddr1 = (page*2048) / erasesize;
-	unsigned onenand_startaddr8 = (((unsigned)(page*2048) &
+	unsigned onenand_startaddr1 = (page * flash_pagesize) / erasesize;
+	unsigned onenand_startaddr8 = (((unsigned)(page * flash_pagesize) &
 										(erasesize-1)) / writesize) << 2;
 	unsigned onenand_startaddr2 = DEVICE_BUFFERRAM_0 << 15;
 	unsigned onenand_startbuffer = DATARAM0_0 << 8;
@@ -2024,6 +2033,7 @@ static void flash_read_id(dmov_s *cmdlist, unsigned *ptrlist)
 		if (supported_flash[index].onenand)
 			flash_info.type = FLASH_ONENAND_DEVICE;
 		flash_info.page_size = supported_flash[index].pagesize;
+		flash_pagesize = flash_info.page_size;
 		flash_info.block_size = supported_flash[index].blksize;
 		flash_info.spare_size = supported_flash[index].oobsize;
 		if (flash_info.block_size && flash_info.page_size)
@@ -2164,9 +2174,9 @@ int flash_erase(struct ptentry *ptn)
 int flash_read_ext(struct ptentry *ptn, unsigned extra_per_page,
 			unsigned offset, void *data, unsigned bytes)
 {
-	unsigned page = (ptn->start * 64) + (offset / 2048);
+	unsigned page = (ptn->start * 64) + (offset / flash_pagesize);
 	unsigned lastpage = (ptn->start + ptn->length) * 64;
-	unsigned count = (bytes + 2047 + extra_per_page) / (2048 + extra_per_page);
+	unsigned count = (bytes + flash_pagesize - 1 + extra_per_page) / (flash_pagesize + extra_per_page);
 	unsigned *spare = (unsigned*) flash_spare;
 	unsigned errors = 0;
 	unsigned char *image = data;
@@ -2175,7 +2185,7 @@ int flash_read_ext(struct ptentry *ptn, unsigned extra_per_page,
 	int result = 0;
 	int isbad = 0;
 
-	if(offset & 2047)
+	if(offset & (flash_pagesize - 1))
 		return -1;
 
 	// Adjust page offset based on number of bad blocks from start to current page
@@ -2209,7 +2219,7 @@ int flash_read_ext(struct ptentry *ptn, unsigned extra_per_page,
 		}
 
 		page++;
-		image += 2048;
+		image += flash_pagesize;
 		memcpy(image, spare, extra_per_page);
 		image += extra_per_page;
 		count -= 1;
@@ -2227,7 +2237,7 @@ int flash_write(struct ptentry *ptn, unsigned extra_per_page, const void *data,
 	unsigned lastpage = (ptn->start + ptn->length) * 64;
 	unsigned *spare = (unsigned*) flash_spare;
 	const unsigned char *image = data;
-	unsigned wsize = 2048 + extra_per_page;
+	unsigned wsize = flash_pagesize + extra_per_page;
 	unsigned n;
 	int r;
 
@@ -2252,7 +2262,7 @@ int flash_write(struct ptentry *ptn, unsigned extra_per_page, const void *data,
 		}
 
 		if(extra_per_page) {
-			r = _flash_write_page(flash_cmdlist, flash_ptrlist, page++, image, image + 2048);
+			r = _flash_write_page(flash_cmdlist, flash_ptrlist, page++, image, image + flash_pagesize);
 		} else {
 			r = _flash_write_page(flash_cmdlist, flash_ptrlist, page++, image, spare);
 		}
@@ -2293,3 +2303,8 @@ static int flash_read_page(unsigned page, void *data, void *extra)
 				page, data, extra);
 }
 #endif
+
+unsigned flash_page_size(void)
+{
+	return flash_pagesize;
+}
