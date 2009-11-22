@@ -24,7 +24,11 @@ endif
 
 DEBUG ?= 2
 
-BUILDDIR := build-$(PROJECT)
+ifndef $(BOOTLOADER_OUT)
+BOOTLOADER_OUT := .
+endif
+
+BUILDDIR := $(BOOTLOADER_OUT)/build-$(PROJECT)
 OUTBIN := $(BUILDDIR)/lk.bin
 OUTELF := $(BUILDDIR)/lk
 CONFIGHEADER := $(BUILDDIR)/config.h
@@ -41,7 +45,7 @@ CFLAGS += -ffunction-sections -fdata-sections
 LDFLAGS += -gc-sections
 
 # top level rule
-all:: $(OUTBIN) $(OUTELF).lst $(OUTELF).debug.lst $(OUTELF).sym $(OUTELF).size
+all:: $(OUTBIN) $(OUTELF).lst $(OUTELF).debug.lst $(OUTELF).sym $(OUTELF).size APPSBOOTHEADER
 
 # the following three object lists are identical except for the ordering
 # which is bootobjs, kobjs, objs
@@ -76,6 +80,7 @@ EXTRA_CLEANDEPS :=
 
 include project/$(PROJECT).mk
 include target/$(TARGET)/rules.mk
+include target/$(TARGET)/tools/makefile
 include platform/$(PLATFORM)/rules.mk
 include arch/$(ARCH)/rules.mk
 include platform/rules.mk
