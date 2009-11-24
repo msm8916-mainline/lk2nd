@@ -68,6 +68,7 @@
 #define KEY_VOLUMEUP	0x115
 #define KEY_VOLUMEDOWN	0x116
 #define KEY_MUTE	0x117
+#define KEY_SOUND	0x118
 
 #define KEY_SOFT1	0x11a
 #define KEY_SOFT2	0x11b
@@ -79,6 +80,7 @@
 #define KEY_CLEAR	0x121
 #define KEY_HOME	0x122
 #define KEY_BACK	0x123
+#define KEY_MENU	0x124
 
 #define MAX_KEYS	0x1ff
 
