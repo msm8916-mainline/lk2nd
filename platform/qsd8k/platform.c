@@ -57,6 +57,9 @@ void platform_init(void)
 	struct fbcon_config *fb_cfg;
 
 	dprintf(INFO, "platform_init()\n");
+
+    acpu_clock_init();
+
 	fb_cfg = lcdc_init();
 	fbcon_setup(fb_cfg);
 }
