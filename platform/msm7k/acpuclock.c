@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 The Android Open Source Project
+ * Copyright (c) 2008, Google Inc.
  * All rights reserved.
  * Copyright (c) 2009, Code Aurora Forum. All rights reserved.
  *
