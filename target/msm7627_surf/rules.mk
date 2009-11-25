@@ -18,6 +18,8 @@ SCRATCH_ADDR     := BASE_ADDR+0x02008000
 
 KEYS_USE_GPIO_KEYPAD := 1
 
+DEFINES += DISPLAY_TYPE_MDDI=1
+
 MODULES += \
 	dev/keys \
 	lib/ptable
