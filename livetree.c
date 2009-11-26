@@ -297,12 +297,22 @@ cell_t get_node_phandle(struct node *root, struct node *node)
 		phandle++;
 
 	node->phandle = phandle;
-	if (!get_property(node, "linux,phandle"))
+
+	if (!get_property(node, "linux,phandle")
+	    && (phandle_format & PHANDLE_LEGACY))
 		add_property(node,
 			     build_property("linux,phandle",
 					    data_append_cell(empty_data, phandle),
 					    NULL));
-	/* If the node *does* have a linux,phandle property, we must
+
+	if (!get_property(node, "phandle")
+	    && (phandle_format & PHANDLE_EPAPR))
+		add_property(node,
+			     build_property("phandle",
+					    data_append_cell(empty_data, phandle),
+					    NULL));
+
+	/* If the node *does* have a phandle property, we must
 	 * be dealing with a self-referencing phandle, which will be
 	 * fixed up momentarily in the caller */
 

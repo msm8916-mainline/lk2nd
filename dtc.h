@@ -52,6 +52,11 @@ extern int quiet;		/* Level of quietness */
 extern int reservenum;		/* Number of memory reservation slots */
 extern int minsize;		/* Minimum blob size */
 extern int padsize;		/* Additional padding to blob */
+extern int phandle_format;	/* Use linux,phandle or phandle properties */
+
+#define PHANDLE_LEGACY	0x1
+#define PHANDLE_EPAPR	0x2
+#define PHANDLE_BOTH	0x3
 
 typedef uint32_t cell_t;
 

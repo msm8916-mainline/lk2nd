@@ -218,6 +218,12 @@ dtc_tests () {
     run_dtc_test -I dts -O dtb -o dtc_path-references.test.dtb path-references.dts
     run_test path-references dtc_path-references.test.dtb
 
+    run_test phandle_format dtc_references.test.dtb both
+    for f in legacy epapr both; do
+	run_dtc_test -I dts -O dtb -H $f -o dtc_references.test.$f.dtb references.dts
+	run_test phandle_format dtc_references.test.$f.dtb $f
+    done
+
     run_dtc_test -I dts -O dtb -o dtc_comments.test.dtb comments.dts
     run_dtc_test -I dts -O dtb -o dtc_comments-cmp.test.dtb comments-cmp.dts
     run_test dtbs_equal_ordered dtc_comments.test.dtb dtc_comments-cmp.test.dtb

@@ -103,7 +103,7 @@ test_tree1_struct:
 	END_NODE
 
 	BEGIN_NODE("subnode@2")
-	PROP_INT(test_tree1, phandle, PHANDLE_1)
+	PROP_INT(test_tree1, linux_phandle, PHANDLE_1)
 	PROP_INT(test_tree1, prop_int, TEST_VALUE_2)
 
 	BEGIN_NODE("subsubnode@0")
@@ -125,7 +125,8 @@ test_tree1_strings:
 	STRING(test_tree1, compatible, "compatible")
 	STRING(test_tree1, prop_int, "prop-int")
 	STRING(test_tree1, prop_str, "prop-str")
-	STRING(test_tree1, phandle, "linux,phandle")
+	STRING(test_tree1, linux_phandle, "linux,phandle")
+	STRING(test_tree1, phandle, "phandle")
 test_tree1_strings_end:
 test_tree1_end:
 
