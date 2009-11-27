@@ -1,3 +1,8 @@
+ifeq ($(MAKECMDGOALS),spotless)
+spotless:
+	rm -rf build-*
+else
+
 -include local.mk
 include make/macros.mk
 
@@ -155,9 +160,6 @@ include make/build.mk
 clean: $(EXTRA_CLEANDEPS)
 	rm -f $(ALLOBJS) $(DEPS) $(GENERATED) $(OUTBIN) $(OUTELF) $(OUTELF).lst
 
-spotless:
-	rm -rf build-*
-
 install: all
 	scp $(OUTBIN) 192.168.0.4:/tftproot
 
@@ -194,3 +196,5 @@ endif
 
 .PHONY: configheader
 endif
+
+endif # make spotless
