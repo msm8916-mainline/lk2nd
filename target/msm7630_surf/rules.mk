@@ -2,7 +2,7 @@ LOCAL_DIR := $(GET_LOCAL_DIR)
 
 INCLUDES += -I$(LOCAL_DIR)/include
 
-PLATFORM := msm7k
+PLATFORM := msm7x30
 
 MEMBASE := 0x00000000 # SMI
 MEMSIZE := 0x00800000 # 8MB
@@ -26,7 +26,6 @@ MODULES += \
 
 DEFINES += \
 	SDRAM_SIZE=$(MEMSIZE) \
-	MEMBASE=$(MEMBASE) \
 	LINUX_MACHTYPE=$(LINUX_MACHTYPE) \
 	BASE_ADDR=$(BASE_ADDR) \
 	TAGS_ADDR=$(TAGS_ADDR) \
@@ -37,6 +36,5 @@ DEFINES += \
 
 OBJS += \
 	$(LOCAL_DIR)/init.o \
-	$(LOCAL_DIR)/keypad.o \
 	$(LOCAL_DIR)/atags.o \
-	$(LOCAL_DIR)/panel.o
+	$(LOCAL_DIR)/keypad.o

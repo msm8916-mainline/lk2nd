@@ -127,11 +127,16 @@ enum {
 	 PCOM_CMD_FAIL,
 };
 
+#ifndef PLATFORM_MSM7X30
 #define MSM_A2M_INT(n) (MSM_CSR_BASE + 0x400 + (n) * 4)
-
+#endif
 static inline void notify_other_proc_comm(void)
 {
-	writel(1, MSM_A2M_INT(6));
+#ifndef PLATFORM_MSM7X30
+    writel(1, MSM_A2M_INT(6));
+#else
+    writel(1<<6, (MSM_GCC_BASE + 0x8));
+#endif
 }
 
 #define APP_COMMAND (MSM_SHARED_BASE + 0x00)

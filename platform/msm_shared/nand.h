@@ -29,8 +29,11 @@
 #ifndef __PLATFORM_MSM_SHARED_NAND_H
 #define __PLATFORM_MSM_SHARED_NAND_H
 
+#ifdef PLATFORM_MSM7X30
+#define MSM_NAND_BASE 0xA0200000
+#else
 #define MSM_NAND_BASE 0xA0A00000
-
+#endif
 /* see 80-VA736-2 C pp 354-414 */
 
 #define NAND_REG(off) (MSM_NAND_BASE + (off))

@@ -39,6 +39,29 @@
 #include <platform/interrupts.h>
 #include <kernel/thread.h>
 
+#ifdef PLATFORM_MSM7X30
+
+#define MSM_GPT_BASE (MSM_TMR_BASE + 0x4)
+#define MSM_DGT_BASE (MSM_TMR_BASE + 0x24)
+#define GPT_REG(off) (MSM_GPT_BASE + (off))
+#define DGT_REG(off) (MSM_DGT_BASE + (off))
+#define SPSS_TIMER_STATUS    (MSM_TMR_BASE + 0x88)
+
+#define GPT_MATCH_VAL        GPT_REG(0x0000)
+#define GPT_COUNT_VAL        GPT_REG(0x0004)
+#define GPT_ENABLE           GPT_REG(0x0008)
+#define GPT_ENABLE_CLR_ON_MATCH_EN        2
+#define GPT_ENABLE_EN                     1
+#define GPT_CLEAR            GPT_REG(0x000C)
+
+#define DGT_MATCH_VAL        DGT_REG(0x0000)
+#define DGT_COUNT_VAL        DGT_REG(0x0004)
+#define DGT_ENABLE           DGT_REG(0x0008)
+#define DGT_ENABLE_CLR_ON_MATCH_EN        2
+#define DGT_ENABLE_EN                     1
+#define DGT_CLEAR            DGT_REG(0x000C)
+
+#else
 #define GPT_REG(off) (MSM_GPT_BASE + (off))
 
 #define GPT_MATCH_VAL        GPT_REG(0x0000)
@@ -56,6 +79,8 @@
 #define DGT_CLEAR            GPT_REG(0x001C)
 
 #define SPSS_TIMER_STATUS    GPT_REG(0x0034)
+#endif
+
 
 static platform_timer_callback timer_callback;
 static void *timer_arg;
@@ -103,7 +128,7 @@ void platform_init_timer(void)
 
 static void wait_for_timer_op(void)
 {
-#if PLATFORM_QSD8K
+#if PLATFORM_QSD8K || PLATFORM_MSM7X30
 	while(readl(SPSS_TIMER_STATUS)) ;
 #endif
 }

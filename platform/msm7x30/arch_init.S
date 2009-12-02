@@ -531,8 +531,8 @@ SYSI2:
                 //;if HW_revision is 1.0 or older, (revision==0)
                 CMP r2,#0
         //; Disable d-cache on older QSD8650 (Rev 1.0) silicon
-        //;orreq   r3, r3, #0x4000          //;disable dcache
-        //;MCR   p15, 0, r3, c1, c0, 1      //; WCP15_ACTLR  r3
+        orreq   r3, r3, #0x4000          //;disable dcache
+        MCR   p15, 0, r3, c1, c0, 1      //; WCP15_ACTLR  r3
 
 //;End of error and control setting
 

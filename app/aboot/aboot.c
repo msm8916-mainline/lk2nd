@@ -328,8 +328,10 @@ void aboot_init(const struct app_descriptor *app)
 {
 	page_size = flash_page_size();
 	page_mask = page_size - 1;
+#ifndef PLATFORM_MSM7X30
 	if (keys_get_state(KEY_BACK) != 0)
 		goto fastboot;
+#endif
 
 	boot_linux_from_flash();
 	dprintf(CRITICAL, "ERROR: Could not do normal boot. Reverting "
