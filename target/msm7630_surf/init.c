@@ -83,8 +83,8 @@ void target_init(void)
 
 	dprintf(INFO, "target_init()\n");
 
-	//keys_init();
-	//keypad_init();
+	keys_init();
+	keypad_init();
 
 	ptable_init(&flash_ptable);
 	smem_ptable_init();
