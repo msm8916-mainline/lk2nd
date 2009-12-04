@@ -36,6 +36,8 @@
 #include <lib/ptable.h>
 #include <dev/flash.h>
 
+#define LINUX_MACHTYPE  1007015
+
 static struct ptable flash_ptable;
 
 /* for these partitions, start will be offset by either what we get from
@@ -109,4 +111,9 @@ void target_init(void)
 
 	ptable_dump(&flash_ptable);
 	flash_set_ptable(&flash_ptable);
+}
+
+unsigned board_machtype(void)
+{
+    return LINUX_MACHTYPE;
 }

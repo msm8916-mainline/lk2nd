@@ -28,6 +28,7 @@ ifndef $(BOOTLOADER_OUT)
 BOOTLOADER_OUT := .
 endif
 
+LK_TOP_DIR:= .
 BUILDDIR := $(BOOTLOADER_OUT)/build-$(PROJECT)
 OUTBIN := $(BUILDDIR)/lk.bin
 OUTELF := $(BUILDDIR)/lk

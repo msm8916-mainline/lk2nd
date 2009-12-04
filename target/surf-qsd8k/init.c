@@ -37,6 +37,8 @@
 
 #define BOARD_FLASH_OFFSET	378
 
+#define LINUX_MACHTYPE  0x00000811
+
 static struct ptable flash_ptable;
 
 /* for these partitions, start will be offset by either what we get from
@@ -110,4 +112,9 @@ void target_init(void)
 
 	ptable_dump(&flash_ptable);
 	flash_set_ptable(&flash_ptable);
+}
+
+unsigned board_machtype(void)
+{
+    return LINUX_MACHTYPE;
 }

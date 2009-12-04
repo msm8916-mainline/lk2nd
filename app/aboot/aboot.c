@@ -65,6 +65,7 @@ struct atag_ptbl_entry
 
 void platform_uninit_timer(void);
 unsigned* target_atag_mem(unsigned* ptr);
+unsigned board_machtype(void);
 
 static void ptentry_to_tag(unsigned **ptr, struct ptentry *ptn)
 {
@@ -211,7 +212,7 @@ int boot_linux_from_flash(void)
 
 	dprintf(INFO, "\nBooting Linux\n");
 	boot_linux((void *)hdr->kernel_addr, (void *)TAGS_ADDR,
-		   (const char *)cmdline, LINUX_MACHTYPE,
+		   (const char *)cmdline, board_machtype(),
 		   (void *)hdr->ramdisk_addr, hdr->ramdisk_size);
 
 	return 0;
@@ -248,9 +249,8 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	fastboot_okay("");
 	udc_stop();
 
-
 	boot_linux((void*) KERNEL_ADDR, (void*) TAGS_ADDR,
-		   (const char*) hdr.cmdline, LINUX_MACHTYPE,
+		   (const char*) hdr.cmdline, board_machtype(),
 		   (void*) RAMDISK_ADDR, hdr.ramdisk_size);
 }
 
