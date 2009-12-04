@@ -50,6 +50,17 @@ reset:
 	bl __cpu_early_init
 #endif
 
+#if WITH_CPU_WARM_BOOT
+	ldr 	r0, warm_boot_tag
+	cmp 	r0, #1
+
+	/* if set, warm boot */
+	ldreq 	pc, =BASE_ADDR
+
+	mov 	r0, #1
+	str	r0, warm_boot_tag
+#endif
+
 	/* see if we need to relocate */
 	mov		r0, pc
 	sub		r0, r0, #(.Laddr - _start)
@@ -72,6 +83,10 @@ reset:
 	bx		r0
 
 .ltorg
+#if WITH_CPU_WARM_BOOT
+warm_boot_tag:
+	.word 0
+#endif
 
 .Lstack_setup:
 	/* set up the stack for irq, fiq, abort, undefined, system/user, and lastly supervisor mode */
