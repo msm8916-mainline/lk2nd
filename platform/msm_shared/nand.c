@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
+ * Copyright (c) 2009, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -123,8 +124,8 @@ static struct flash_identification supported_flash[] =
 	{0x5500baec, 0xFF00FFFF, (256<<20), 1, 2048, (2048<<6), 64, 0}, /*Sams*/
 	{0x1500aa98, 0xFFFFFFFF, (256<<20), 0, 2048, (2048<<6), 64, 0}, /*Tosh*/
 	{0x5500ba98, 0xFFFFFFFF, (256<<20), 1, 2048, (2048<<6), 64, 0}, /*Tosh*/
-	{0xd580b12c, 0xFFFFFFFF, (128<<20), 1, 2048, (2048<<6), 64, 0}, /*Micr*/
-	{0x5590bc2c, 0xFFFFFFFF, (128<<20), 1, 2048, (2048<<6), 64, 0}, /*Micr*/
+	{0xd580b12c, 0xFFFFFFFF, (256<<20), 1, 2048, (2048<<6), 64, 0}, /*Micr*/
+	{0x5590bc2c, 0xFFFFFFFF, (256<<20), 1, 2048, (2048<<6), 64, 0}, /*Micr*/
 	{0x1580aa2c, 0xFFFFFFFF, (256<<20), 0, 2048, (2048<<6), 64, 0}, /*Micr*/
 	{0x5580baad, 0xFFFFFFFF, (256<<20), 1, 2048, (2048<<6), 64, 0}, /*Hynx*/
 	{0x5510baad, 0xFFFFFFFF, (256<<20), 1, 2048, (2048<<6), 64, 0}, /*Hynx*/
