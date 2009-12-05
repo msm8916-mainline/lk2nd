@@ -486,15 +486,20 @@ void ulpi_write(unsigned val, unsigned reg)
         /* wait for completion */
 	while(readl(USB_ULPI_VIEWPORT) & ULPI_RUN) ;
 }
-#ifdef PLATFORM_MSM7X30
-void usb_clock_init(void)
+
+
+void hsusb_clock_init(void)
 {
+    // Enable usb clocks from apps processor for 7x30.
+    // USB clocks already initialized for other targets
+    // so skipping proc comm call to enable usb clocks.
+#ifdef PLATFORM_MSM7X30
     writel(0x00000100, USBH_NS_REG);
     writel(0x00000900, USBH_NS_REG);
     writel(0x00000A00, USBH_NS_REG);
     writel(0x00002A00, USBH_NS_REG);
-}
 #endif
+}
 
 void board_usb_init(void);
 void board_ulpi_init(void);
@@ -510,9 +515,6 @@ int udc_init(struct udc_device *dev)
 
 	//dprintf(INFO, "USB ID %08x\n", readl(USB_ID));
 //    board_usb_init();
-#ifdef PLATFORM_MSM7X30
-	usb_clock_init();
-#endif
 
         /* select ULPI phy */
 	writel(0x81000000, USB_PORTSC);
