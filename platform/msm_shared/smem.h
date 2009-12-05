@@ -2,6 +2,8 @@
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
  *
+ * Copyright (c) 2009, Code Aurora Forum. All rights reserved.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -62,13 +64,26 @@ struct smem {
 	struct smem_alloc_info		alloc_info[128];
 };
 
+struct smem_board_info
+{
+    unsigned format;
+    unsigned msm_id;
+    unsigned msm_version;
+    char     build_id[32];
+    unsigned raw_msm_id;
+    unsigned raw_msm_version;
+    unsigned hw_platform;
+};
+
 typedef enum {
 	SMEM_SPINLOCK_ARRAY = 7,
 
 	SMEM_AARM_PARTITION_TABLE = 9,
 
+        SMEM_BOARD_INFO_LOCATION = 137,
+
 	SMEM_FIRST_VALID_TYPE = SMEM_SPINLOCK_ARRAY,
-	SMEM_LAST_VALID_TYPE = SMEM_AARM_PARTITION_TABLE,
+	SMEM_LAST_VALID_TYPE = SMEM_BOARD_INFO_LOCATION,
 } smem_mem_type_t;
 
 /* Note: buf MUST be 4byte aligned, and max_len MUST be a multiple of 4. */

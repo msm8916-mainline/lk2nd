@@ -35,6 +35,21 @@
 #include <dev/gpio_keypad.h>
 #include <lib/ptable.h>
 #include <dev/flash.h>
+#include <smem.h>
+
+#define LINUX_MACHTYPE_SURF  1007016
+#define LINUX_MACHTYPE_FFA   1007017
+#define LINUX_MACHTYPE_FLUID 1007018
+
+//Enum values for 7x30 target platforms.
+enum platform
+{
+    HW_PLATFORM_UNKNOWN = 0,
+    HW_PLATFORM_SURF    = 1,
+    HW_PLATFORM_FFA     = 2,
+    HW_PLATFORM_FLUID   = 3,
+    HW_PLATFORM_32BITS  = 0x7FFFFFFF
+};
 
 static struct ptable flash_ptable;
 
@@ -109,4 +124,36 @@ void target_init(void)
 
 	ptable_dump(&flash_ptable);
 	flash_set_ptable(&flash_ptable);
+}
+
+unsigned board_machtype(void)
+{
+    struct smem_board_info board_info;
+    unsigned int board_info_struct_len = sizeof(board_info);
+    enum platform platform_type = 0;
+    unsigned smem_status;
+
+    smem_status = smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
+					&board_info, board_info_struct_len );
+    if(smem_status)
+    {
+      dprintf(CRITICAL, "ERROR: unable to read shared memory for Hardware Platform\n");
+    }
+
+    if (board_info.format == 3)
+    {
+        platform_type = board_info.hw_platform;
+        switch (platform_type)
+	{
+	case HW_PLATFORM_SURF:
+	    return LINUX_MACHTYPE_SURF;
+	case HW_PLATFORM_FFA:
+	    return LINUX_MACHTYPE_FFA;
+	case HW_PLATFORM_FLUID:
+	    return LINUX_MACHTYPE_FLUID;
+	default:
+            return LINUX_MACHTYPE_SURF;
+	}
+    }
+    return LINUX_MACHTYPE_SURF;
 }
