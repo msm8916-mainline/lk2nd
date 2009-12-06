@@ -27,17 +27,58 @@
  */
 
 #include <reg.h>
+#include <debug.h>
+#include <smem.h>
 
-#define EBI1_SIZE1   	0x0C300000 //195MB for 256 RAM
+#define EBI1_SIZE_195M  0x0C300000
+#define EBI1_SIZE_123M  0x07B00000
+#define EBI1_SIZE_72M   0x04800000
 #define EBI1_ADDR1    	0x00200000
+#define EBI1_ADDR2      0x40000000
 
 unsigned* target_atag_mem(unsigned* ptr)
 {
+    struct smem_board_info board_info;
+    unsigned int board_info_struct_len = sizeof(board_info);
+    unsigned smem_status;
+    char *build_type;
+    int enable_lpddr2 = 0;
+
+    smem_status = smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
+					&board_info, board_info_struct_len );
+    if(smem_status)
+    {
+      dprintf(CRITICAL, "ERROR: unable to read shared memory for build id\n");
+    }
+
+    build_type  = (char *)(board_info.build_id) + 8;
+    if (*build_type == 'A')
+    {
+        enable_lpddr2 = 1;
+    }
+
+    if(enable_lpddr2)
+    {
+	/* ATAG_MEM for 123MB + 72MB setup */
+	*ptr++ = 4;
+	*ptr++ = 0x54410002;
+	*ptr++ = EBI1_SIZE_123M;
+	*ptr++ = EBI1_ADDR1;
+
 	/* ATAG_MEM */
 	*ptr++ = 4;
 	*ptr++ = 0x54410002;
-	*ptr++ = EBI1_SIZE1;
+	*ptr++ = EBI1_SIZE_72M;
+	*ptr++ = EBI1_ADDR2;
+    }
+    else
+    {
+	/* ATAG_MEM for 195MB setup*/
+	*ptr++ = 4;
+	*ptr++ = 0x54410002;
+	*ptr++ = EBI1_SIZE_195M;
 	*ptr++ = EBI1_ADDR1;
-
-	return ptr;
+    }
+    return ptr;
 }
+
