@@ -30,9 +30,9 @@
 #include <debug.h>
 #include <smem.h>
 
-#define EBI1_SIZE_195M  0x0C300000
+#define EBI1_SIZE_190M  0x0BE00000
 #define EBI1_SIZE_123M  0x07B00000
-#define EBI1_SIZE_72M   0x04800000
+#define EBI1_SIZE_67M   0x04300000
 #define EBI1_ADDR1    	0x00200000
 #define EBI1_ADDR2      0x40000000
 
@@ -59,7 +59,7 @@ unsigned* target_atag_mem(unsigned* ptr)
 
     if(enable_lpddr2)
     {
-	/* ATAG_MEM for 123MB + 72MB setup */
+	/* ATAG_MEM for 123MB + 67MB setup */
 	*ptr++ = 4;
 	*ptr++ = 0x54410002;
 	*ptr++ = EBI1_SIZE_123M;
@@ -68,15 +68,15 @@ unsigned* target_atag_mem(unsigned* ptr)
 	/* ATAG_MEM */
 	*ptr++ = 4;
 	*ptr++ = 0x54410002;
-	*ptr++ = EBI1_SIZE_72M;
+	*ptr++ = EBI1_SIZE_67M;
 	*ptr++ = EBI1_ADDR2;
     }
     else
     {
-	/* ATAG_MEM for 195MB setup*/
+	/* ATAG_MEM for 190MB setup*/
 	*ptr++ = 4;
 	*ptr++ = 0x54410002;
-	*ptr++ = EBI1_SIZE_195M;
+	*ptr++ = EBI1_SIZE_190M;
 	*ptr++ = EBI1_ADDR1;
     }
     return ptr;
