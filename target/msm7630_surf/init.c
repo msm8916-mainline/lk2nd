@@ -90,6 +90,9 @@ unsigned smem_get_apps_flash_start(void);
 
 void keypad_init(void);
 
+static int emmc_boot = -1;  /* set to uninitialized */
+int target_is_emmc_boot(void);
+
 void target_init(void)
 {
 	unsigned offset;
@@ -100,6 +103,9 @@ void target_init(void)
 
 	keys_init();
 	keypad_init();
+
+	if (target_is_emmc_boot())
+		return;
 
 	ptable_init(&flash_ptable);
 	smem_ptable_init();
@@ -156,4 +162,26 @@ unsigned board_machtype(void)
 	}
     }
     return LINUX_MACHTYPE_SURF;
+}
+
+int target_is_emmc_boot(void)
+{
+    struct smem_board_info board_info;
+    unsigned int board_info_struct_len = sizeof(board_info);
+    unsigned smem_status;
+
+    if (emmc_boot != -1) return emmc_boot;
+
+    emmc_boot = 0;
+
+    smem_status = smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
+					&board_info, board_info_struct_len );
+    if(!smem_status)
+    {
+        /* Success retrieving build info */
+        if ('S' == *((char *)board_info.build_id + 13))
+            emmc_boot = 1;
+    }
+
+    return emmc_boot;
 }
