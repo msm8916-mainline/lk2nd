@@ -31,7 +31,7 @@ struct srcfile_state {
 	FILE *f;
 	char *name;
 	char *dir;
-	int lineno;
+	int lineno, colno;
 	struct srcfile_state *prev;
 };
 
@@ -89,6 +89,7 @@ typedef YYLTYPE srcpos;
  */
 extern srcpos srcpos_empty;
 
+extern void srcpos_update(srcpos *pos, const char *text, int len);
 extern srcpos *srcpos_copy(srcpos *pos);
 extern char *srcpos_string(srcpos *pos);
 extern void srcpos_dump(srcpos *pos);

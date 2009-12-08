@@ -18,7 +18,7 @@
  *                                                                   USA
  */
 
-%option noyywrap nounput noinput yylineno
+%option noyywrap nounput noinput
 
 %x INCLUDE
 %x BYTESTRING
@@ -38,10 +38,11 @@ LINECOMMENT	"//".*\n
 #include "srcpos.h"
 #include "dtc-parser.tab.h"
 
+
+/* CAUTION: this will stop working if we ever use yyless() or yyunput() */
 #define	YY_USER_ACTION \
 	{ \
-		yylloc.file = current_srcfile; \
-		yylloc.first_line = yylineno; \
+		srcpos_update(&yylloc, yytext, yyleng); \
 	}
 
 /*#define LEXDEBUG	1*/
@@ -169,12 +170,9 @@ static void push_input_file(const char *filename)
 {
 	assert(filename);
 
-	current_srcfile->lineno = yylineno;
-
 	srcfile_push(filename);
 
 	yyin = current_srcfile->f;
-	yylineno = 1;
 
 	yypush_buffer_state(yy_create_buffer(yyin, YY_BUF_SIZE));
 }
@@ -186,7 +184,6 @@ static int pop_input_file(void)
 		return 0;
 
 	yypop_buffer_state();
-	yylineno = current_srcfile->lineno;
 	yyin = current_srcfile->f;
 
 	return 1;

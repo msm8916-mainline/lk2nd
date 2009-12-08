@@ -87,6 +87,10 @@ void srcfile_push(const char *fname)
 	srcfile->f = srcfile_relative_open(fname, &srcfile->name);
 	srcfile->dir = dirname(srcfile->name);
 	srcfile->prev = current_srcfile;
+
+	srcfile->lineno = 1;
+	srcfile->colno = 1;
+
 	current_srcfile = srcfile;
 }
 
@@ -99,7 +103,8 @@ int srcfile_pop(void)
 	current_srcfile = srcfile->prev;
 
 	if (fclose(srcfile->f))
-		die("Error closing \"%s\": %s\n", srcfile->name, strerror(errno));
+		die("Error closing \"%s\": %s\n", srcfile->name,
+		    strerror(errno));
 
 	/* FIXME: We allow the srcfile_state structure to leak,
 	 * because it could still be referenced from a location
@@ -121,6 +126,32 @@ srcpos srcpos_empty = {
 	.last_column = 0,
 	.file = NULL,
 };
+
+#define TAB_SIZE      8
+
+void srcpos_update(srcpos *pos, const char *text, int len)
+{
+	int i;
+
+	pos->file = current_srcfile;
+
+	pos->first_line = current_srcfile->lineno;
+	pos->first_column = current_srcfile->colno;
+
+	for (i = 0; i < len; i++)
+		if (text[i] == '\n') {
+			current_srcfile->lineno++;
+			current_srcfile->colno = 1;
+		} else if (text[i] == '\t') {
+			current_srcfile->colno =
+				ALIGN(current_srcfile->colno, TAB_SIZE);
+		} else {
+			current_srcfile->colno++;
+		}
+
+	pos->last_line = current_srcfile->lineno;
+	pos->last_column = current_srcfile->colno;
+}
 
 srcpos *
 srcpos_copy(srcpos *pos)
