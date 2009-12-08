@@ -29,4 +29,7 @@ void target_early_init(void);
 /* later init, after the kernel has come up */
 void target_init(void);
 
+/* if target is using eMMC bootup */
+int target_is_emmc_boot(void);
+
 #endif

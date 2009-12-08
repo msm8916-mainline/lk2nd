@@ -47,6 +47,9 @@
 
 #define DEFAULT_CMDLINE "mem=100M console=null";
 
+#define EMMC_BOOT_IMG_HEADER_ADDR 0xFF000
+static const char *emmc_cmdline = " androidboot.emmc=true";
+
 static struct udc_device surf_udc_device = {
 	.vendor_id	= 0x18d1,
 	.product_id	= 0xD00D,
@@ -66,6 +69,7 @@ struct atag_ptbl_entry
 void platform_uninit_timer(void);
 unsigned* target_atag_mem(unsigned* ptr);
 unsigned board_machtype(void);
+int target_is_emmc_boot(void);
 
 static void ptentry_to_tag(unsigned **ptr, struct ptentry *ptn)
 {
@@ -87,6 +91,8 @@ void boot_linux(void *kernel, unsigned *tags,
 	unsigned *ptr = tags;
 	void (*entry)(unsigned,unsigned,unsigned*) = kernel;
 	struct ptable *ptable;
+	int cmdline_len = 0;
+	int have_cmdline = 0;
 
 	/* CORE */
 	*ptr++ = 2;
@@ -101,22 +107,43 @@ void boot_linux(void *kernel, unsigned *tags,
 
 	ptr = target_atag_mem(ptr);
 
-	if ((ptable = flash_get_ptable()) && (ptable->count != 0)) {
-		int i;
-		*ptr++ = 2 + (ptable->count * (sizeof(struct atag_ptbl_entry) /
-					       sizeof(unsigned)));
-		*ptr++ = 0x4d534d70;
-		for (i = 0; i < ptable->count; ++i)
-			ptentry_to_tag(&ptr, ptable_get(ptable, i));
+	if (!target_is_emmc_boot()) {
+		/* Skip NAND partition ATAGS for eMMC boot */
+		if ((ptable = flash_get_ptable()) && (ptable->count != 0)) {
+			int i;
+			*ptr++ = 2 + (ptable->count * (sizeof(struct atag_ptbl_entry) /
+						       sizeof(unsigned)));
+			*ptr++ = 0x4d534d70;
+			for (i = 0; i < ptable->count; ++i)
+				ptentry_to_tag(&ptr, ptable_get(ptable, i));
+		}
 	}
 
 	if (cmdline && cmdline[0]) {
+		cmdline_len = strlen(cmdline);
+		have_cmdline = 1;
+	}
+	if (target_is_emmc_boot()) {
+		cmdline_len += strlen(emmc_cmdline);
+	}
+	if (cmdline_len > 0) {
+		const char *src;
+		char *dst;
 		unsigned n;
 		/* include terminating 0 and round up to a word multiple */
-		n = (strlen(cmdline) + 4) & (~3);
+		n = (cmdline_len + 4) & (~3);
 		*ptr++ = (n / 4) + 2;
 		*ptr++ = 0x54410009;
-		memcpy(ptr, cmdline, n);
+		dst = (char *)ptr;
+		if (have_cmdline) {
+			src = cmdline;
+			while ((*dst++ = *src++));
+		}
+		if (target_is_emmc_boot()) {
+			src = emmc_cmdline;
+			if (have_cmdline) --dst;
+			while ((*dst++ = *src++));
+		}
 		ptr += (n / 4);
 	}
 
@@ -153,6 +180,15 @@ int boot_linux_from_flash(void)
 	struct ptable *ptable;
 	unsigned offset = 0;
 	const char *cmdline;
+
+	if (target_is_emmc_boot()) {
+		hdr = (struct boot_img_hdr *)EMMC_BOOT_IMG_HEADER_ADDR;
+		if (memcmp(hdr->magic, BOOT_MAGIC, BOOT_MAGIC_SIZE)) {
+			dprintf(CRITICAL, "ERROR: Invalid boot image header\n");
+			return -1;
+		}
+		goto continue_boot;
+	}
 
 	ptable = flash_get_ptable();
 	if (ptable == NULL) {
@@ -196,6 +232,7 @@ int boot_linux_from_flash(void)
 	}
 	offset += n;
 
+continue_boot:
 	dprintf(INFO, "\nkernel  @ %x (%d bytes)\n", hdr->kernel_addr,
 		hdr->kernel_size);
 	dprintf(INFO, "ramdisk @ %x (%d bytes)\n", hdr->ramdisk_addr,

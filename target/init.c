@@ -38,3 +38,7 @@ __WEAK void target_init(void)
 {
 }
 
+__WEAK int target_is_emmc_boot(void)
+{
+    return 0;
+}
