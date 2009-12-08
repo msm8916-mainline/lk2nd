@@ -797,7 +797,7 @@ static struct node *unflatten_tree(struct inbuf *dtbuf,
 
 struct boot_info *dt_from_blob(const char *fname)
 {
-	struct dtc_file *dtcf;
+	FILE *f;
 	uint32_t magic, totalsize, version, size_dt, boot_cpuid_phys;
 	uint32_t off_dt, off_str, off_mem_rsvmap;
 	int rc;
@@ -812,14 +812,14 @@ struct boot_info *dt_from_blob(const char *fname)
 	uint32_t val;
 	int flags = 0;
 
-	dtcf = dtc_open_file(fname, NULL);
+	f = srcfile_relative_open(fname, NULL);
 
-	rc = fread(&magic, sizeof(magic), 1, dtcf->file);
-	if (ferror(dtcf->file))
+	rc = fread(&magic, sizeof(magic), 1, f);
+	if (ferror(f))
 		die("Error reading DT blob magic number: %s\n",
 		    strerror(errno));
 	if (rc < 1) {
-		if (feof(dtcf->file))
+		if (feof(f))
 			die("EOF reading DT blob magic number\n");
 		else
 			die("Mysterious short read reading magic number\n");
@@ -829,11 +829,11 @@ struct boot_info *dt_from_blob(const char *fname)
 	if (magic != FDT_MAGIC)
 		die("Blob has incorrect magic number\n");
 
-	rc = fread(&totalsize, sizeof(totalsize), 1, dtcf->file);
-	if (ferror(dtcf->file))
+	rc = fread(&totalsize, sizeof(totalsize), 1, f);
+	if (ferror(f))
 		die("Error reading DT blob size: %s\n", strerror(errno));
 	if (rc < 1) {
-		if (feof(dtcf->file))
+		if (feof(f))
 			die("EOF reading DT blob size\n");
 		else
 			die("Mysterious short read reading blob size\n");
@@ -853,12 +853,12 @@ struct boot_info *dt_from_blob(const char *fname)
 	p = blob + sizeof(magic)  + sizeof(totalsize);
 
 	while (sizeleft) {
-		if (feof(dtcf->file))
+		if (feof(f))
 			die("EOF before reading %d bytes of DT blob\n",
 			    totalsize);
 
-		rc = fread(p, 1, sizeleft, dtcf->file);
-		if (ferror(dtcf->file))
+		rc = fread(p, 1, sizeleft, f);
+		if (ferror(f))
 			die("Error reading DT blob: %s\n",
 			    strerror(errno));
 
@@ -921,7 +921,7 @@ struct boot_info *dt_from_blob(const char *fname)
 
 	free(blob);
 
-	dtc_close_file(dtcf);
+	fclose(f);
 
 	return build_boot_info(reservelist, tree, boot_cpuid_phys);
 }

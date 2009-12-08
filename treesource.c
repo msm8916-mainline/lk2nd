@@ -32,8 +32,8 @@ struct boot_info *dt_from_source(const char *fname)
 	the_boot_info = NULL;
 	treesource_error = 0;
 
-	srcpos_file = dtc_open_file(fname, NULL);
-	yyin = srcpos_file->file;
+	srcfile_push(fname);
+	yyin = current_srcfile->f;
 
 	if (yyparse() != 0)
 		die("Unable to parse input tree\n");

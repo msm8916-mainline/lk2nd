@@ -27,11 +27,19 @@
 
 #include <stdio.h>
 
-struct dtc_file {
+struct srcfile_state {
+	FILE *f;
+	char *name;
 	char *dir;
-	const char *name;
-	FILE *file;
+	int lineno;
+	struct srcfile_state *prev;
 };
+
+extern struct srcfile_state *current_srcfile; /* = NULL */
+
+FILE *srcfile_relative_open(const char *fname, char **fullnamep);
+void srcfile_push(const char *fname);
+int srcfile_pop(void);
 
 #if ! defined(YYLTYPE) && ! defined(YYLTYPE_IS_DECLARED)
 typedef struct YYLTYPE {
@@ -39,7 +47,7 @@ typedef struct YYLTYPE {
     int first_column;
     int last_line;
     int last_column;
-    struct dtc_file *file;
+    struct srcfile_state *file;
 } YYLTYPE;
 
 #define YYLTYPE_IS_DECLARED	1
@@ -80,17 +88,6 @@ typedef YYLTYPE srcpos;
  * For example,constant definitions from the command line.
  */
 extern srcpos srcpos_empty;
-
-extern struct dtc_file *srcpos_file;
-
-struct search_path {
-	const char *dir; /* NULL for current directory */
-	struct search_path *prev, *next;
-};
-
-extern struct dtc_file *dtc_open_file(const char *fname,
-                                      const struct search_path *search);
-extern void dtc_close_file(struct dtc_file *file);
 
 extern srcpos *srcpos_copy(srcpos *pos);
 extern char *srcpos_string(srcpos *pos);

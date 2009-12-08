@@ -169,33 +169,31 @@ propdata:
 		}
 	| propdataprefix DT_INCBIN '(' DT_STRING ',' addr ',' addr ')'
 		{
-			struct search_path path = { srcpos_file->dir, NULL, NULL };
-			struct dtc_file *file = dtc_open_file($4.val, &path);
-			struct data d = empty_data;
+			FILE *f = srcfile_relative_open($4.val, NULL);
+			struct data d;
 
 			if ($6 != 0)
-				if (fseek(file->file, $6, SEEK_SET) != 0)
+				if (fseek(f, $6, SEEK_SET) != 0)
 					srcpos_error(&yylloc,
 						     "Couldn't seek to offset %llu in \"%s\": %s",
 						     (unsigned long long)$6,
 						     $4.val,
 						     strerror(errno));
 
-			d = data_copy_file(file->file, $8);
+			d = data_copy_file(f, $8);
 
 			$$ = data_merge($1, d);
-			dtc_close_file(file);
+			fclose(f);
 		}
 	| propdataprefix DT_INCBIN '(' DT_STRING ')'
 		{
-			struct search_path path = { srcpos_file->dir, NULL, NULL };
-			struct dtc_file *file = dtc_open_file($4.val, &path);
+			FILE *f = srcfile_relative_open($4.val, NULL);
 			struct data d = empty_data;
 
-			d = data_copy_file(file->file, -1);
+			d = data_copy_file(f, -1);
 
 			$$ = data_merge($1, d);
-			dtc_close_file(file);
+			fclose(f);
 		}
 	| propdata DT_LABEL
 		{

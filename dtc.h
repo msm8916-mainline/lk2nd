@@ -224,8 +224,4 @@ struct boot_info *dt_from_source(const char *f);
 
 struct boot_info *dt_from_fs(const char *dirname);
 
-/* misc */
-
-char *join_path(const char *path, const char *name);
-
 #endif /* _DTC_H */

@@ -25,117 +25,102 @@
 #include "srcpos.h"
 
 
-/*
- * Like yylineno, this is the current open file pos.
- */
-struct dtc_file *srcpos_file;
+static char *dirname(const char *path)
+{
+	const char *slash = strrchr(path, '/');
+
+	if (slash) {
+		int len = slash - path;
+		char *dir = xmalloc(len + 1);
+
+		memcpy(dir, path, len);
+		dir[len] = '\0';
+		return dir;
+	}
+	return NULL;
+}
+
+struct srcfile_state *current_srcfile; /* = NULL */
+
+/* Detect infinite include recursion. */
+#define MAX_SRCFILE_DEPTH     (100)
+static int srcfile_depth; /* = 0 */
+
+FILE *srcfile_relative_open(const char *fname, char **fullnamep)
+{
+	FILE *f;
+	char *fullname;
+
+	if (streq(fname, "-")) {
+		f = stdin;
+		fullname = xstrdup("<stdin>");
+	} else {
+		if (!current_srcfile || !current_srcfile->dir
+		    || (fname[0] == '/'))
+			fullname = xstrdup(fname);
+		else
+			fullname = join_path(current_srcfile->dir, fname);
+
+		f = fopen(fullname, "r");
+		if (!f)
+			die("Couldn't open \"%s\": %s\n", fname,
+			    strerror(errno));
+	}
+
+	if (fullnamep)
+		*fullnamep = fullname;
+	else
+		free(fullname);
+
+	return f;
+}
+
+void srcfile_push(const char *fname)
+{
+	struct srcfile_state *srcfile;
+
+	if (srcfile_depth++ >= MAX_SRCFILE_DEPTH)
+		die("Includes nested too deeply");
+
+	srcfile = xmalloc(sizeof(*srcfile));
+
+	srcfile->f = srcfile_relative_open(fname, &srcfile->name);
+	srcfile->dir = dirname(srcfile->name);
+	srcfile->prev = current_srcfile;
+	current_srcfile = srcfile;
+}
+
+int srcfile_pop(void)
+{
+	struct srcfile_state *srcfile = current_srcfile;
+
+	assert(srcfile);
+
+	current_srcfile = srcfile->prev;
+
+	if (fclose(srcfile->f))
+		die("Error closing \"%s\": %s\n", srcfile->name, strerror(errno));
+
+	/* FIXME: We allow the srcfile_state structure to leak,
+	 * because it could still be referenced from a location
+	 * variable being carried through the parser somewhere.  To
+	 * fix this we could either allocate all the files from a
+	 * table, or use a pool allocator. */
+
+	return current_srcfile ? 1 : 0;
+}
 
 /*
  * The empty source position.
  */
-
-struct dtc_file dtc_empty_file = {
-	.dir = NULL,
-	.name = "<no file>",
-	.file = NULL
-};
 
 srcpos srcpos_empty = {
 	.first_line = 0,
 	.first_column = 0,
 	.last_line = 0,
 	.last_column = 0,
-	.file = &dtc_empty_file
+	.file = NULL,
 };
-
-
-static int
-dtc_open_one(struct dtc_file *file, const char *search, const char *fname)
-{
-	char *fullname;
-
-	if (search) {
-		fullname = xmalloc(strlen(search) + strlen(fname) + 2);
-
-		strcpy(fullname, search);
-		strcat(fullname, "/");
-		strcat(fullname, fname);
-	} else {
-		fullname = xstrdup(fname);
-	}
-
-	file->file = fopen(fullname, "r");
-	if (!file->file) {
-		free(fullname);
-		return 0;
-	}
-
-	file->name = fullname;
-	return 1;
-}
-
-
-struct dtc_file *
-dtc_open_file(const char *fname, const struct search_path *search)
-{
-	static const struct search_path default_search = { NULL, NULL, NULL };
-
-	struct dtc_file *file;
-	const char *slash;
-
-	file = xmalloc(sizeof(struct dtc_file));
-
-	slash = strrchr(fname, '/');
-	if (slash) {
-		char *dir = xmalloc(slash - fname + 1);
-
-		memcpy(dir, fname, slash - fname);
-		dir[slash - fname] = 0;
-		file->dir = dir;
-	} else {
-		file->dir = NULL;
-	}
-
-	if (streq(fname, "-")) {
-		file->name = "stdin";
-		file->file = stdin;
-		return file;
-	}
-
-	if (fname[0] == '/') {
-		file->file = fopen(fname, "r");
-		if (!file->file)
-			goto fail;
-
-		file->name = xstrdup(fname);
-		return file;
-	}
-
-	if (!search)
-		search = &default_search;
-
-	while (search) {
-		if (dtc_open_one(file, search->dir, fname))
-			return file;
-
-		if (errno != ENOENT)
-			goto fail;
-
-		search = search->next;
-	}
-
-fail:
-	die("Couldn't open \"%s\": %s\n", fname, strerror(errno));
-}
-
-
-void
-dtc_close_file(struct dtc_file *file)
-{
-	if (fclose(file->file))
-		die("Error closing \"%s\": %s\n", file->name, strerror(errno));
-}
-
 
 srcpos *
 srcpos_copy(srcpos *pos)
