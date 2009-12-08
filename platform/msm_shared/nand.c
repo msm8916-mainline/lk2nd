@@ -33,9 +33,9 @@
 #include <string.h>
 #include <dev/flash.h>
 #include <lib/ptable.h>
+#include <nand.h>
 
 #include "dmov.h"
-#include "nand.h"
 
 #define VERBOSE 0
 #define VERIFY_WRITE 0

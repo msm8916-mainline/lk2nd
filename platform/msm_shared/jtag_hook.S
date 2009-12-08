@@ -1,7 +1,6 @@
 /*
- * Copyright (c) 2009, Google Inc.
+ * Copyright (C) 2008 The Android Open Source Project
  * All rights reserved.
- * Copyright (c) 2009, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -12,9 +11,6 @@
  *    notice, this list of conditions and the following disclaimer in
  *    the documentation and/or other materials provided with the
  *    distribution.
- *  * Neither the name of Google, Inc. nor the names of its contributors
- *    may be used to endorse or promote products derived from this
- *    software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -30,52 +26,8 @@
  * SUCH DAMAGE.
  */
 
-#include <debug.h>
-#include <printf.h>
-#include <arch/arm/dcc.h>
-#include <dev/fbcon.h>
-#include <dev/uart.h>
+.global jtag_hook, func
 
-void _dputc(char c)
-{
-#if WITH_DEBUG_DCC
-	if (c == '\n') {
-		while (dcc_putc('\r') < 0);
-	}
-	while (dcc_putc(c) < 0);
-#endif
-#if WITH_DEBUG_UART
-	uart_putc(0, c);
-#endif
-#if WITH_DEBUG_FBCON && WITH_DEV_FBCON
-	fbcon_putc(c);
-#endif
-#if WITH_DEBUG_JTAG
-	jtag_dputc(c);
-#endif
-}
-
-int dgetc(char *c)
-{
-	int n;
-#if WITH_DEBUG_DCC
-	n = dcc_getc();
-#elif WITH_DEBUG_UART
-	n = uart_getc(0, 0);
-#else
-	n = -1;
-#endif
-	if (n < 0) {
-		return -1;
-	} else {
-		*c = n;
-		return 0;
-	}
-}
-
-void platform_halt(void)
-{
-	dprintf(INFO, "HALT: spinning forever...\n");
-	for(;;);
-}
+jtag_hook:
+	bx lr
 

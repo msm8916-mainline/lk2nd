@@ -1,5 +1,8 @@
 LOCAL_DIR := $(GET_LOCAL_DIR)
 
+INCLUDES += \
+			-I$(LOCAL_DIR)/include
+
 OBJS += \
 	$(LOCAL_DIR)/uart.o \
 	$(LOCAL_DIR)/timer.o \
@@ -8,5 +11,7 @@ OBJS += \
 	$(LOCAL_DIR)/smem.o \
 	$(LOCAL_DIR)/smem_ptable.o \
 	$(LOCAL_DIR)/hsusb.o \
+	$(LOCAL_DIR)/jtag_hook.o \
+	$(LOCAL_DIR)/jtag.o \
 	$(LOCAL_DIR)/nand.o
 
