@@ -119,7 +119,7 @@ int srcfile_pop(void)
  * The empty source position.
  */
 
-srcpos srcpos_empty = {
+struct srcpos srcpos_empty = {
 	.first_line = 0,
 	.first_column = 0,
 	.last_line = 0,
@@ -129,7 +129,7 @@ srcpos srcpos_empty = {
 
 #define TAB_SIZE      8
 
-void srcpos_update(srcpos *pos, const char *text, int len)
+void srcpos_update(struct srcpos *pos, const char *text, int len)
 {
 	int i;
 
@@ -153,13 +153,13 @@ void srcpos_update(srcpos *pos, const char *text, int len)
 	pos->last_column = current_srcfile->colno;
 }
 
-srcpos *
-srcpos_copy(srcpos *pos)
+struct srcpos *
+srcpos_copy(struct srcpos *pos)
 {
-	srcpos *pos_new;
+	struct srcpos *pos_new;
 
-	pos_new = xmalloc(sizeof(srcpos));
-	memcpy(pos_new, pos, sizeof(srcpos));
+	pos_new = xmalloc(sizeof(struct srcpos));
+	memcpy(pos_new, pos, sizeof(struct srcpos));
 
 	return pos_new;
 }
@@ -167,7 +167,7 @@ srcpos_copy(srcpos *pos)
 
 
 void
-srcpos_dump(srcpos *pos)
+srcpos_dump(struct srcpos *pos)
 {
 	printf("file        : \"%s\"\n",
 	       pos->file ? (char *) pos->file : "<no file>");
@@ -180,7 +180,7 @@ srcpos_dump(srcpos *pos)
 
 
 char *
-srcpos_string(srcpos *pos)
+srcpos_string(struct srcpos *pos)
 {
 	const char *fname = "<no-file>";
 	char *pos_str;
@@ -210,7 +210,7 @@ srcpos_string(srcpos *pos)
 
 
 void
-srcpos_error(srcpos *pos, char const *fmt, ...)
+srcpos_error(struct srcpos *pos, char const *fmt, ...)
 {
 	const char *srcstr;
 	va_list va;
@@ -227,7 +227,7 @@ srcpos_error(srcpos *pos, char const *fmt, ...)
 
 
 void
-srcpos_warn(srcpos *pos, char const *fmt, ...)
+srcpos_warn(struct srcpos *pos, char const *fmt, ...)
 {
 	const char *srcstr;
 	va_list va;
