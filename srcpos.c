@@ -182,41 +182,28 @@ srcpos_dump(srcpos *pos)
 char *
 srcpos_string(srcpos *pos)
 {
-	const char *fname;
-	char col_buf[100];
+	const char *fname = "<no-file>";
 	char *pos_str;
+	int rc;
 
-	if (!pos) {
-		fname = "<no-file>";
-	} else if (pos->file->name) {
+	if (pos)
 		fname = pos->file->name;
-		if (strcmp(fname, "-") == 0)
-			fname = "stdin";
-	} else {
-		fname = "<no-file>";
-	}
 
-	if (pos->first_line == pos->last_line) {
-		if (pos->first_column == pos->last_column) {
-			snprintf(col_buf, sizeof(col_buf),
-				 "%d:%d",
-				 pos->first_line, pos->first_column);
-		} else {
-			snprintf(col_buf, sizeof(col_buf),
-				 "%d:%d-%d",
-				 pos->first_line,
-				 pos->first_column, pos->last_column);
-		}
 
-	} else {
-		snprintf(col_buf, sizeof(col_buf),
-			 "%d:%d - %d:%d",
-			 pos->first_line, pos->first_column,
-			 pos->last_line, pos->last_column);
-	}
+	if (pos->first_line != pos->last_line)
+		rc = asprintf(&pos_str, "%s:%d.%d-%d.%d", fname,
+			      pos->first_line, pos->first_column,
+			      pos->last_line, pos->last_column);
+	else if (pos->first_column != pos->last_column)
+		rc = asprintf(&pos_str, "%s:%d.%d-%d", fname,
+			      pos->first_line, pos->first_column,
+			      pos->last_column);
+	else
+		rc = asprintf(&pos_str, "%s:%d.%d", fname,
+			      pos->first_line, pos->first_column);
 
-	if (asprintf(&pos_str, "%s %s", fname, col_buf) == -1)
-		return "<unknown source position?";
+	if (rc == -1)
+		die("Couldn't allocate in srcpos string");
 
 	return pos_str;
 }
