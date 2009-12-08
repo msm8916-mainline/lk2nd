@@ -4,3 +4,4 @@ build-*
 tags
 TAGS
 local.mk
+target/*/tools/mkheader
