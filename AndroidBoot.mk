@@ -6,6 +6,7 @@ BOOTLOADER_OUT := $(TOP)/$(TARGET_OUT_INTERMEDIATES)/BOOTLOADER_OBJ
 # Remove bootloader binary to trigger recompile when source changes
 appsbootldr_clean:
 	$(hide) rm -f $(TARGET_BOOTLOADER)
+	$(hide) rm -rf $(BOOTLOADER_OUT)
 
 $(BOOTLOADER_OUT):
 	mkdir -p $(BOOTLOADER_OUT)
