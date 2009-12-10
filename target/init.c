@@ -40,5 +40,9 @@ __WEAK void target_init(void)
 
 __WEAK int target_is_emmc_boot(void)
 {
+#if _EMMC_BOOT
+    return 1;
+#else
     return 0;
+#endif
 }
