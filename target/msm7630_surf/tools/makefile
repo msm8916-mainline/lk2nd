@@ -10,9 +10,13 @@ SRC_DIR  := target/$(TARGET)/tools
 COMPILER := gcc
 
 ifeq ($(EMMC_BOOT), 1)
-APPSBOOTHDR_FILES := emmc_appsboot.mbn
+  APPSBOOTHDR_FILES := emmc_appsboot.mbn
 else
-APPSBOOTHDR_FILES := appsboot.mbn
+  ifeq ($(BUILD_NANDWRITE), 1)
+    APPSBOOTHDR_FILES :=
+  else
+    APPSBOOTHDR_FILES := appsboot.mbn
+  endif
 endif
 
 APPSBOOTHEADER: $(APPSBOOTHDR_FILES)

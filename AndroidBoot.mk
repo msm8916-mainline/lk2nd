@@ -23,13 +23,13 @@ emmc_appsbootldr_clean:
 $(BOOTLOADER_EMMC_OUT):
 	mkdir -p $(BOOTLOADER_EMMC_OUT)
 
-$(TARGET_BOOTLOADER): $(BOOTLOADER_OUT) appsbootldr_clean emmc_appsbootldr_clean
+$(TARGET_BOOTLOADER): appsbootldr_clean emmc_appsbootldr_clean $(BOOTLOADER_OUT) $(BOOTLOADER_EMMC_OUT)
 	$(MAKE) -C bootable/bootloader/lk BOOTLOADER_OUT=../../../$(BOOTLOADER_OUT) $(TARGET_PRODUCT)
 	$(MAKE) -C bootable/bootloader/lk BOOTLOADER_OUT=../../../$(BOOTLOADER_EMMC_OUT) $(TARGET_PRODUCT) EMMC_BOOT=1
 
 else
 
-$(TARGET_BOOTLOADER): $(BOOTLOADER_OUT) appsbootldr_clean
+$(TARGET_BOOTLOADER): appsbootldr_clean $(BOOTLOADER_OUT)
 	$(MAKE) -C bootable/bootloader/lk BOOTLOADER_OUT=../../../$(BOOTLOADER_OUT) $(TARGET_PRODUCT)
 
 endif
@@ -38,10 +38,14 @@ endif
 TARGET_NANDWRITE := $(PRODUCT_OUT)/obj/nandwrite/build-$(TARGET_PRODUCT)_nandwrite/lk
 NANDWRITE_OUT := $(TOP)/$(TARGET_OUT_INTERMEDIATES)/nandwrite
 
-$(NANDWRITE_OUT):
-	mkdir -p $(BOOTLOADER_OUT)
+nandwrite_clean:
+	$(hide) rm -f $(TARGET_NANDWRITE)
+	$(hide) rm -rf $(NANDWRITE_OUT)
 
-$(TARGET_NANDWRITE): $(NANDWRITE_OUT)
+$(NANDWRITE_OUT):
+	mkdir -p $(NANDWRITE_OUT)
+
+$(TARGET_NANDWRITE): nandwrite_clean $(NANDWRITE_OUT)
 	@echo $(TARGET_PRODUCT)_nandwrite
-	$(MAKE) -C bootable/bootloader/lk BOOTLOADER_OUT=../../../$(NANDWRITE_OUT) $(TARGET_PRODUCT)_nandwrite
+	$(MAKE) -C bootable/bootloader/lk BOOTLOADER_OUT=../../../$(NANDWRITE_OUT) $(TARGET_PRODUCT)_nandwrite BUILD_NANDWRITE=1
 
