@@ -9,13 +9,25 @@ endif
 SRC_DIR  := target/$(TARGET)/tools
 COMPILER := gcc
 
-APPSBOOTHEADER: appsboot.mbn appsboothd.mbn
+ifeq ($(EMMC_BOOT), 1)
+APPSBOOTHDR_FILES := emmc_appsboot.mbn emmc_appsboothd.mbn
+else
+APPSBOOTHDR_FILES := appsboot.mbn appsboothd.mbn
+endif
+
+APPSBOOTHEADER: $(APPSBOOTHDR_FILES)
 
 appsboot.mbn: $(OUTBIN)
-	cp -r $(OUTBIN) $(APPSBOOTHEADER_DIR)/appsboot.mbn
+	cp -f $(OUTBIN) $(APPSBOOTHEADER_DIR)/appsboot.mbn
 
 appsboothd.mbn: mkheader $(OUTBIN)
 	$(SRC_DIR)/mkheader $(OUTBIN) $(APPSBOOTHEADER_DIR)/appsboothd.mbn
+
+emmc_appsboot.mbn: $(OUTBIN)
+	cp -f $(OUTBIN) $(APPSBOOTHEADER_DIR)/emmc_appsboot.mbn
+
+emmc_appsboothd.mbn: mkheader $(OUTBIN)
+	$(SRC_DIR)/mkheader $(OUTBIN) $(APPSBOOTHEADER_DIR)/emmc_appsboothd.mbn unified-boot
 
 mkheader: $(SRC_DIR)/mkheader.c
 	${COMPILER} $(SRC_DIR)/mkheader.c -o $(SRC_DIR)/mkheader

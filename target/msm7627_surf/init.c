@@ -77,6 +77,8 @@ unsigned smem_get_apps_flash_start(void);
 
 void keypad_init(void);
 
+int target_is_emmc_boot(void);
+
 void target_init(void)
 {
 	unsigned offset;
@@ -87,6 +89,9 @@ void target_init(void)
 
 	keys_init();
 	keypad_init();
+
+	if (target_is_emmc_boot())
+		return;
 
 	ptable_init(&flash_ptable);
 	smem_ptable_init();
