@@ -28,12 +28,15 @@
 
 #include <reg.h>
 
-#define EBI1_SIZE1   	0x0E800000 //232MB for 256/512/1024MB RAM
+#define EBI1_SIZE1   	0x0E000000 //224MB for 256/512/1024MB RAM
 #define EBI1_ADDR1    	0x20000000
 
-#define EBI1_SIZE2_512M 0x10000000 //256MB for 512MB RAM
-#define EBI1_SIZE2_1G   0x30000000 //768MB for 1GB RAM
-#define EBI1_ADDR2    	0x30000000
+#define EBI1_SIZE2   	0x00800000 //8MB for 256/512/1024MB RAM
+#define EBI1_ADDR2    	0x2F800000
+
+#define EBI1_SIZE3_512M 0x10000000 //256MB for 512MB RAM
+#define EBI1_SIZE3_1G   0x30000000 //768MB for 1GB RAM
+#define EBI1_ADDR3    	0x30000000
 
 static unsigned check_1gb_mem()
 {
@@ -62,20 +65,26 @@ unsigned* target_atag_mem(unsigned* ptr)
 	*ptr++ = EBI1_ADDR1;
 
 	/* 2nd segment */
+	*ptr++ = 4;
+	*ptr++ = 0x54410002;
+	*ptr++ = EBI1_SIZE2;
+	*ptr++ = EBI1_ADDR2;
+
+	/* 3rd segment */
 #ifdef USE_512M_RAM
-	size = EBT1_SIZE2_512M;
+	size = EBT1_SIZE3_512M;
 #else
 	size = 0;
 #endif
 	if (check_1gb_mem()) {
-		size = EBI1_SIZE2_1G;
+		size = EBI1_SIZE3_1G;
 	}
 
 	if (size > 0) {
 		*ptr++ = 4;
 		*ptr++ = 0x54410002;
 		*ptr++ = size;
-		*ptr++ = EBI1_ADDR2;
+		*ptr++ = EBI1_ADDR3;
 	}
 
 	return ptr;
