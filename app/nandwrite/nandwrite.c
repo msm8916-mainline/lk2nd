@@ -34,6 +34,7 @@
 #include <dev/flash.h>
 #include <string.h>
 #include <jtag.h>
+#include <kernel/thread.h>
 #include "bootimg.h"
 
 #define FLASH_PAGE_SIZE 2048
@@ -45,6 +46,7 @@ unsigned page_mask = 0;
 #define ROUND_TO_PAGE(x,y) (((x) + (y)) & (~(y)))
 
 void acpu_clock_init(void);
+void platform_uninit_timer(void);
 
 int startswith(const char *str, const char *prefix)
 {
@@ -119,6 +121,10 @@ void handle_flash(const char *name, unsigned addr, unsigned sz)
 	}
 	dprintf(INFO, "partition '%s' updated\n", ptn->name);
         jtag_okay("Done");
+        enter_critical_section();
+        platform_uninit_timer();
+        arch_disable_cache(UCACHE);
+        arch_disable_mmu();
 }
 
 static unsigned char *tmpbuf = 0;
@@ -162,6 +168,10 @@ void handle_dump(const char *name, unsigned offset)
         dprintf(INFO, "page %d extra:\n", p->start * 64);
         hexdump(tmpbuf, 16);
         jtag_okay("done");
+        enter_critical_section();
+        platform_uninit_timer();
+        arch_disable_cache(UCACHE);
+        arch_disable_mmu();
     }
 }
 
