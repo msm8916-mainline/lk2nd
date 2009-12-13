@@ -69,16 +69,16 @@ static struct ptentry board_part_list[] = {
 	},
 	{
 		.start = 56,
-		.length = 304 /* 76MB */,
+		.length = 312 /* 76MB */,
 		.name = "system",
 	},
 	{
-		.start = 364,
+		.start = 372,
 		.length = 304 /* 76MB */,
 		.name = "cache",
 	},
 	{
-		.start = 672,
+		.start = 680,
 		.length = 304 /* 76MB */,
 		.name = "userdata",
 	},
@@ -101,8 +101,10 @@ void target_init(void)
 
 	dprintf(INFO, "target_init()\n");
 
+#if (!ENABLE_NANDWRITE)
 	keys_init();
 	keypad_init();
+#endif
 
 	if (target_is_emmc_boot())
 		return;
