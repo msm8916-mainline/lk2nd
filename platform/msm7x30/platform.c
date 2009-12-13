@@ -59,6 +59,10 @@ void platform_init(void)
 
 	dprintf(INFO, "platform_init()\n");
 	acpu_clock_init();
+}
+
+void display_init(void)
+{
         //fb_cfg = lcdc_init();
 	//fbcon_setup(fb_cfg);
 }

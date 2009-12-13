@@ -61,7 +61,10 @@ void platform_init(void)
 	dprintf(INFO, "platform_init()\n");
 
 	acpu_clock_init();
+}
 
+void display_init(void)
+{
 #if DISPLAY_TYPE_MDDI
 	mddi_clock_init(0, 122880000);
 	fb_config = mddi_init();

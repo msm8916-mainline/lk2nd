@@ -374,6 +374,8 @@ void aboot_init(const struct app_descriptor *app)
 		"to fastboot mode.\n");
 
 fastboot:
+        display_init();
+	dprintf(INFO, "Diplay initialized\n");
 	udc_init(&surf_udc_device);
 
 	fastboot_register("boot", cmd_boot);
