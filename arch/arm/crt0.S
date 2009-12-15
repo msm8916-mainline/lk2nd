@@ -50,6 +50,7 @@ reset:
 	bl __cpu_early_init
 #endif
 
+#if (!ENABLE_NANDWRITE)
 #if WITH_CPU_WARM_BOOT
 	ldr 	r0, warm_boot_tag
 	cmp 	r0, #1
@@ -59,6 +60,7 @@ reset:
 
 	mov 	r0, #1
 	str	r0, warm_boot_tag
+#endif
 #endif
 
 	/* see if we need to relocate */
