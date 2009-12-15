@@ -88,6 +88,13 @@ void acpu_clock_init(void)
 {
 	unsigned i;
 
+#if (!ENABLE_NANDWRITE)
+        int *modem_stat_check = (MSM_SHARED_BASE + 0x14);
+
+        /* Wait for modem to be ready before clock init */
+        while (readl(modem_stat_check) != 1);
+#endif
+
 	/* Increase VDD level to the final value. */
 	writel((1 << 7) | (VDD_LEVEL << 3), VDD_SVS_PLEVEL_ADDR);
 	thread_sleep(1);
