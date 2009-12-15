@@ -9,7 +9,13 @@ endif
 SRC_DIR  := target/$(TARGET)/tools
 COMPILER := gcc
 
-APPSBOOTHEADER: appsboot.mbn
+ifeq ($(BUILD_NANDWRITE), 1)
+  APPSBOOTHDR_FILES :=
+else
+  APPSBOOTHDR_FILES := appsboot.mbn
+endif
+
+APPSBOOTHEADER: $(APPSBOOTHDR_FILES)
 
 
 appsboot.mbn: appsboothd.mbn $(OUTBIN)
