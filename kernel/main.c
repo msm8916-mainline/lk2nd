@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2008 Travis Geiselbrecht
  *
+ * Copyright (c) 2009, Code Aurora Forum. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction,
@@ -38,6 +40,10 @@ extern int __bss_start;
 extern int _end;
 
 static int bootstrap2(void *arg);
+
+#if (ENABLE_NANDWRITE)
+void bootstrap_nandwrite(void);
+#endif
 
 static void call_constructors(void)
 {
@@ -92,6 +98,7 @@ void kmain(void)
 	dprintf(SPEW, "initializing timers\n");
 	timer_init();
 
+#if (!ENABLE_NANDWRITE)
 	// create a thread to complete system initialization
 	dprintf(SPEW, "creating bootstrap completion thread\n");
 	thread_resume(thread_create("bootstrap2", &bootstrap2, NULL, DEFAULT_PRIORITY, DEFAULT_STACK_SIZE));
@@ -101,6 +108,9 @@ void kmain(void)
 
 	// become the idle thread
 	thread_become_idle();
+#else
+        bootstrap_nandwrite();
+#endif
 }
 
 int main(void);
@@ -125,3 +135,24 @@ static int bootstrap2(void *arg)
 	return 0;
 }
 
+#if (ENABLE_NANDWRITE)
+void bootstrap_nandwrite(void)
+{
+	dprintf(SPEW, "top of bootstrap2()\n");
+
+	arch_init();
+
+	// initialize the rest of the platform
+	dprintf(SPEW, "initializing platform\n");
+	platform_init();
+
+	// initialize the target
+	dprintf(SPEW, "initializing target\n");
+	target_init();
+
+	dprintf(SPEW, "calling nandwrite_init()\n");
+	nandwrite_init();
+
+	return 0;
+}
+#endif
