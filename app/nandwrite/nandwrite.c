@@ -190,15 +190,11 @@ void handle_command(const char *cmd, unsigned a0, unsigned a1, unsigned a2)
     jtag_fail("unknown command");
 }
 
-void nandwrite_init(const struct app_descriptor *app)
+void nandwrite_init(void)
 {
     page_size = flash_page_size();
     page_mask = page_size - 1;
     jtag_cmd_loop(handle_command);
 }
-
-APP_START(nandwrite)
-	.init = nandwrite_init,
-APP_END
 
 
