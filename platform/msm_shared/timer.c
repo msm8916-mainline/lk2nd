@@ -140,3 +140,18 @@ void platform_uninit_timer(void)
 	writel(0, DGT_CLEAR);
 	wait_for_timer_op();
 }
+
+void mdelay(unsigned msecs)
+{
+  msecs *= 33;
+
+  writel(0, GPT_CLEAR);
+  writel(0, GPT_ENABLE);
+  while(readl(GPT_COUNT_VAL) != 0) ;
+
+  writel(GPT_ENABLE_EN, GPT_ENABLE);
+  while(readl(GPT_COUNT_VAL) < msecs) ;
+
+  writel(0, GPT_ENABLE);
+  writel(0, GPT_CLEAR);
+}
