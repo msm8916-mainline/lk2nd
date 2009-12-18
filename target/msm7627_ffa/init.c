@@ -65,7 +65,7 @@ static struct ptentry board_part_list[] = {
 		.name = "cache",
 	},
 	{
-		.start = 1272,
+		.start = 704,
 		.length = 720 /* 90MB */,
 		.name = "userdata",
 	},
