@@ -61,12 +61,17 @@ static struct ptentry board_part_list[] = {
 	},
 	{
 		.start = 664,
-		.length = 608 /* 76MB */,
+		.length = 40  /* 5MB */,
 		.name = "cache",
 	},
 	{
-		.start = 1272,
-		.length = 304 /* 38MB */,
+		.start = 704,
+		.length = 40 /* 5MB */,
+		.name = "recovery",
+	},
+	{
+		.start = 744,
+		.length = 720 /* 90MB */,
 		.name = "userdata",
 	},
 };
@@ -85,8 +90,10 @@ void target_init(void)
 
 	dprintf(INFO, "target_init()\n");
 
+#if (!ENABLE_NANDWRITE)
 	keys_init();
 	keypad_init();
+#endif
 
 	ptable_init(&flash_ptable);
 	smem_ptable_init();
