@@ -84,6 +84,9 @@ uint32_t const clk_sel_reg_val[] = {
 	DIV_4 << 1 | 0,
 };
 
+void mdelay(unsigned msecs);
+
+
 void acpu_clock_init(void)
 {
 	unsigned i;
@@ -97,14 +100,11 @@ void acpu_clock_init(void)
 
 	/* Increase VDD level to the final value. */
 	writel((1 << 7) | (VDD_LEVEL << 3), VDD_SVS_PLEVEL_ADDR);
+#if (!ENABLE_NANDWRITE)
 	thread_sleep(1);
-
-	/* Increase AXI bus speed. */
-	//axi_clock_init(MIN_AXI_HZ);
-
-	/* Turn on PLL1 and PLL2. */
-	//pll_request(PLL1, 1);
-	//pll_request(PLL2, 1);
+#else
+        mdelay(1);
+#endif
 
 	/* Read clock source select bit. */
 	i = readl(A11S_CLK_SEL_ADDR) & 1;
@@ -116,9 +116,10 @@ void acpu_clock_init(void)
 		 * strongly ordered, so it should be fine.
 		 */
 		writel(clk_sel_reg_val[i], A11S_CLK_SEL_ADDR);
+#if (!ENABLE_NANDWRITE)
 		thread_sleep(1);
+#else
+                mdelay(1);
+#endif
 	}
-
-	/* Turn off PLL1. */
-	//pll_request(PLL1, 0);
 }

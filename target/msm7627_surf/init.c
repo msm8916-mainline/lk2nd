@@ -87,8 +87,10 @@ void target_init(void)
 
 	dprintf(INFO, "target_init()\n");
 
+#if (!ENABLE_NANDWRITE)
 	keys_init();
 	keypad_init();
+#endif
 
 	if (target_is_emmc_boot())
 		return;
