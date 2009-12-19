@@ -15,7 +15,7 @@ else
   APPSBOOTHDR_FILES := appsboot.mbn
 endif
 
-APPSBOOTHEADER: appsboot.mbn
+APPSBOOTHEADER: $(APPSBOOTHDR_FILES)
 
 
 appsboot.mbn: appsboothd.mbn $(OUTBIN)
