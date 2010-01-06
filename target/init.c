@@ -46,3 +46,8 @@ __WEAK int target_is_emmc_boot(void)
     return 0;
 #endif
 }
+
+__WEAK unsigned check_reboot_mode(void)
+{
+    return 0;
+}

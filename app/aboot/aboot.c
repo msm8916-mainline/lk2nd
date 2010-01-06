@@ -48,6 +48,9 @@
 #define DEFAULT_CMDLINE "mem=100M console=null";
 
 #define EMMC_BOOT_IMG_HEADER_ADDR 0xFF000
+#define RECOVERY_MODE   0x77665502
+#define FASTBOOT_MODE   0x77665500
+
 static const char *emmc_cmdline = " androidboot.emmc=true";
 
 static struct udc_device surf_udc_device = {
@@ -69,7 +72,10 @@ struct atag_ptbl_entry
 void platform_uninit_timer(void);
 unsigned* target_atag_mem(unsigned* ptr);
 unsigned board_machtype(void);
+unsigned check_reboot_mode(void);
 int target_is_emmc_boot(void);
+
+static int boot_into_recovery = 0;
 
 static void ptentry_to_tag(unsigned **ptr, struct ptentry *ptn)
 {
@@ -181,6 +187,7 @@ int boot_linux_from_flash(void)
 	unsigned offset = 0;
 	const char *cmdline;
 
+
 	if (target_is_emmc_boot()) {
 		hdr = (struct boot_img_hdr *)EMMC_BOOT_IMG_HEADER_ADDR;
 		if (memcmp(hdr->magic, BOOT_MAGIC, BOOT_MAGIC_SIZE)) {
@@ -196,10 +203,21 @@ int boot_linux_from_flash(void)
 		return -1;
 	}
 
-	ptn = ptable_find(ptable, "boot");
-	if (ptn == NULL) {
-		dprintf(CRITICAL, "ERROR: No boot partition found\n");
-		return -1;
+	if(!boot_into_recovery)
+	{
+	        ptn = ptable_find(ptable, "boot");
+	        if (ptn == NULL) {
+		        dprintf(CRITICAL, "ERROR: No boot partition found\n");
+		        return -1;
+	        }
+	}
+	else
+	{
+	        ptn = ptable_find(ptable, "recovery");
+	        if (ptn == NULL) {
+		        dprintf(CRITICAL, "ERROR: No recovery partition found\n");
+		        return -1;
+	        }
 	}
 
 	if (flash_read(ptn, offset, buf, page_size)) {
@@ -364,10 +382,20 @@ void cmd_continue(const char *arg, void *data, unsigned sz)
 
 void aboot_init(const struct app_descriptor *app)
 {
+        unsigned reboot_mode = 0;
 	page_size = flash_page_size();
 	page_mask = page_size - 1;
+	if (keys_get_state(KEY_HOME) != 0)
+	        boot_into_recovery = 1;
 	if (keys_get_state(KEY_BACK) != 0)
 		goto fastboot;
+
+	reboot_mode = check_reboot_mode();
+        if (reboot_mode == RECOVERY_MODE){
+	        boot_into_recovery = 1;
+        }else if(reboot_mode == FASTBOOT_MODE){
+	        goto fastboot;
+        }
 
 	boot_linux_from_flash();
 	dprintf(CRITICAL, "ERROR: Could not do normal boot. Reverting "

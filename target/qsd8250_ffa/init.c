@@ -35,6 +35,7 @@
 #include <dev/gpio_keypad.h>
 #include <lib/ptable.h>
 #include <dev/flash.h>
+#include <smem.h>
 
 #define LINUX_MACHTYPE  1008002
 
@@ -123,4 +124,20 @@ void target_init(void)
 unsigned board_machtype(void)
 {
     return LINUX_MACHTYPE;
+}
+
+unsigned check_reboot_mode(void)
+{
+    unsigned mode[2] = {0, 0};
+    unsigned int mode_len = sizeof(mode);
+    unsigned smem_status;
+
+    smem_status = smem_read_alloc_entry(SMEM_APPS_BOOT_MODE,
+					&mode, mode_len );
+    if(smem_status)
+    {
+      dprintf(CRITICAL, "ERROR: unable to read shared memory for reboot mode\n");
+      return 0;
+    }
+    return mode[0];
 }

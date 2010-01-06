@@ -187,3 +187,8 @@ int target_is_emmc_boot(void)
 
     return emmc_boot;
 }
+
+unsigned check_reboot_mode(void)
+{
+    return 0;
+}
