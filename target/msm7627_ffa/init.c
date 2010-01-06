@@ -133,7 +133,7 @@ unsigned board_machtype(void)
 
 unsigned check_reboot_mode(void)
 {
-    unsigned mode = 0;
+    unsigned mode[2] = {0, 0};
     unsigned int mode_len = sizeof(mode);
     unsigned smem_status;
 
@@ -144,5 +144,5 @@ unsigned check_reboot_mode(void)
       dprintf(CRITICAL, "ERROR: unable to read shared memory for reboot mode\n");
       return 0;
     }
-    return mode;
+    return mode[0];
 }
