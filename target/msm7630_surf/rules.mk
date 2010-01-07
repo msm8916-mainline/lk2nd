@@ -5,7 +5,7 @@ INCLUDES += -I$(LOCAL_DIR)/include -I$(LK_TOP_DIR)/platform/msm_shared
 PLATFORM := msm7x30
 
 MEMBASE := 0x00000000 # SMI
-MEMSIZE := 0x00800000 # 8MB
+MEMSIZE := 0x00100000 # 1MB
 
 BASE_ADDR        := 0x00200000
 
