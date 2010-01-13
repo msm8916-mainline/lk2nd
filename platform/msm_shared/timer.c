@@ -60,6 +60,7 @@
 #define DGT_ENABLE_CLR_ON_MATCH_EN        2
 #define DGT_ENABLE_EN                     1
 #define DGT_CLEAR            DGT_REG(0x000C)
+#define DGT_CLK_CTL          DGT_REG(0x0010)
 
 #else
 #define GPT_REG(off) (MSM_GPT_BASE + (off))
@@ -98,6 +99,14 @@ status_t platform_set_periodic_timer(
 	platform_timer_callback callback,
 	void *arg, time_t interval)
 {
+#ifdef PLATFORM_MSM7X30
+        unsigned val = 0;
+	unsigned mask = (0x1 << 28);
+	//Check for the hardware revision
+	val = readl(HW_REVISION_NUMBER);
+	if(val & mask)
+	    writel(1, DGT_CLK_CTL);
+#endif
 	enter_critical_section();
 
 	timer_callback = callback;
