@@ -1,6 +1,6 @@
 #Android makefile to build lk bootloader as a part of Android Build
 
-TARGET_BOOTLOADER := out/target/product/$(TARGET_PRODUCT)/appsboot.mbn
+TARGET_BOOTLOADER := $(PRODUCT_OUT)/appsboot.mbn
 BOOTLOADER_OUT := $(TOP)/$(TARGET_OUT_INTERMEDIATES)/BOOTLOADER_OBJ
 
 # Remove bootloader binary to trigger recompile when source changes
@@ -13,7 +13,7 @@ $(BOOTLOADER_OUT):
 
 
 ifeq ($(TARGET_USERIMAGES_USE_EXT2),true)
-TARGET_BOOTLOADER_EMMC := out/target/product/$(TARGET_PRODUCT)/emmc_appsboot.mbn
+TARGET_BOOTLOADER_EMMC := $(PRODUCT_OUT)/emmc_appsboot.mbn
 BOOTLOADER_EMMC_OUT := $(TOP)/$(TARGET_OUT_INTERMEDIATES)/BOOTLOADER_EMMC_OBJ
 
 emmc_appsbootldr_clean:
