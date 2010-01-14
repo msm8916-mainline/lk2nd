@@ -389,6 +389,8 @@ void aboot_init(const struct app_descriptor *app)
 	        boot_into_recovery = 1;
 	if (keys_get_state(KEY_BACK) != 0)
 		goto fastboot;
+	if (keys_get_state(KEY_CLEAR) != 0)
+		goto fastboot;
 
 	reboot_mode = check_reboot_mode();
         if (reboot_mode == RECOVERY_MODE){
