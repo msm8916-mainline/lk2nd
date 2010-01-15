@@ -131,6 +131,11 @@ unsigned board_machtype(void)
     return LINUX_MACHTYPE;
 }
 
+void reboot_device(unsigned reboot_reason)
+{
+    reboot(reboot_reason);
+}
+
 unsigned check_reboot_mode(void)
 {
     unsigned mode[2] = {0, 0};

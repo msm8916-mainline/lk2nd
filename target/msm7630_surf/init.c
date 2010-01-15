@@ -79,6 +79,11 @@ static struct ptentry board_part_list[] = {
 	},
 	{
 		.start = 360,
+		.length = 20 /* 5MB */,
+		.name = "recovery",
+	},
+	{
+		.start = 380,
 		.length = 400 /* 100MB */,
 		.name = "userdata",
 	},
@@ -188,7 +193,23 @@ int target_is_emmc_boot(void)
     return emmc_boot;
 }
 
+void reboot_device(unsigned reboot_reason)
+{
+    reboot(reboot_reason);
+}
+
 unsigned check_reboot_mode(void)
 {
-    return 0;
+    unsigned mode[2] = {0, 0};
+    unsigned int mode_len = sizeof(mode);
+    unsigned smem_status;
+
+    smem_status = smem_read_alloc_entry(SMEM_APPS_BOOT_MODE,
+					&mode, mode_len );
+    if(smem_status)
+    {
+      dprintf(CRITICAL, "ERROR: unable to read shared memory for reboot mode\n");
+      return 0;
+    }
+    return mode[0];
 }

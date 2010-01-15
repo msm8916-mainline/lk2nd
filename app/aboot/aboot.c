@@ -74,6 +74,7 @@ unsigned* target_atag_mem(unsigned* ptr);
 unsigned board_machtype(void);
 unsigned check_reboot_mode(void);
 int target_is_emmc_boot(void);
+void reboot_device(unsigned);
 
 static int boot_into_recovery = 0;
 
@@ -380,6 +381,20 @@ void cmd_continue(const char *arg, void *data, unsigned sz)
 	boot_linux_from_flash();
 }
 
+void cmd_reboot(const char *arg, void *data, unsigned sz)
+{
+        dprintf(INFO, "rebooting the device\n");
+	fastboot_okay("");
+	reboot_device(0);
+}
+
+void cmd_reboot_bootloader(const char *arg, void *data, unsigned sz)
+{
+        dprintf(INFO, "rebooting the device\n");
+	fastboot_okay("");
+	reboot_device(FASTBOOT_MODE);
+}
+
 void aboot_init(const struct app_descriptor *app)
 {
         unsigned reboot_mode = 0;
@@ -412,6 +427,8 @@ fastboot:
 	fastboot_register("erase:", cmd_erase);
 	fastboot_register("flash:", cmd_flash);
 	fastboot_register("continue", cmd_continue);
+	fastboot_register("reboot", cmd_reboot);
+	fastboot_register("reboot-bootloader", cmd_reboot_bootloader);
 	fastboot_publish("product", "swordfish");
 	fastboot_publish("kernel", "lk");
 

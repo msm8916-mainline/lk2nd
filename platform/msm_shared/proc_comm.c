@@ -232,3 +232,9 @@ void mddi_clock_init(unsigned num, unsigned rate)
 	clock_enable(clock_id);
 	clock_set_rate(clock_id, rate);
 }
+
+void reboot(unsigned reboot_reason)
+{
+        msm_proc_comm(PCOM_RESET_CHIP, &reboot_reason, 0);
+        for (;;) ;
+}

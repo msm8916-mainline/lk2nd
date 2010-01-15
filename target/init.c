@@ -51,3 +51,7 @@ __WEAK unsigned check_reboot_mode(void)
 {
     return 0;
 }
+
+__WEAK void reboot_device(unsigned reboot_reason)
+{
+}
