@@ -323,6 +323,8 @@ static int flash_nand_erase_block(dmov_s *cmdlist, unsigned *ptrlist,
 	data[5] = 0xeeeeeeee;
 	data[6] = CFG0 & (~(7 << 6));  /* CW_PER_PAGE = 0 */
 	data[7] = CFG1;
+	data[8] = 0x00000020;
+	data[9] = 0x000000C0;
 
 	cmd[0].cmd = DST_CRCI_NAND_CMD | CMD_OCB;
 	cmd[0].src = paddr(&data[0]);
@@ -339,10 +341,20 @@ static int flash_nand_erase_block(dmov_s *cmdlist, unsigned *ptrlist,
 	cmd[2].dst = NAND_EXEC_CMD;
 	cmd[2].len = 4;
 
-	cmd[3].cmd = SRC_CRCI_NAND_DATA | CMD_OCU | CMD_LC;
+	cmd[3].cmd = SRC_CRCI_NAND_DATA;
 	cmd[3].src = NAND_FLASH_STATUS;
 	cmd[3].dst = paddr(&data[5]);
 	cmd[3].len = 4;
+
+	cmd[4].cmd = 0;
+	cmd[4].src = paddr(&data[8]);
+	cmd[4].dst = NAND_FLASH_STATUS;
+	cmd[4].len = 4;
+
+	cmd[5].cmd = CMD_OCU | CMD_LC;
+	cmd[5].src = paddr(&data[9]);
+	cmd[5].dst = NAND_READ_STATUS;
+	cmd[5].len = 4;
 
 	ptr[0] = (paddr(cmd) >> 3) | CMD_PTR_LP;
 
@@ -371,6 +383,8 @@ struct data_flash_io {
 	unsigned exec;
 	unsigned ecc_cfg;
 	unsigned ecc_cfg_save;
+	unsigned clrfstatus;
+	unsigned clrrstatus;
 	struct {
 		unsigned flash_status;
 		unsigned buffer_status;
@@ -516,6 +530,8 @@ static int _flash_nand_write_page(dmov_s *cmdlist, unsigned *ptrlist, unsigned p
 	data->addr0 = page << 16;
 	data->addr1 = (page >> 16) & 0xff;
 	data->chipsel = 0 | 4; /* flash0 + undoc bit */
+	data->clrfstatus = 0x00000020;
+	data->clrrstatus = 0x000000C0;
 
 	if (!raw_mode){
 		data->cfg0 = CFG0;
@@ -594,6 +610,18 @@ static int _flash_nand_write_page(dmov_s *cmdlist, unsigned *ptrlist, unsigned p
 		cmd->src = NAND_FLASH_STATUS;
 		cmd->dst = paddr(&data->result[n]);
 		cmd->len = 8;
+		cmd++;
+
+		cmd->cmd = 0;
+		cmd->src = paddr(&data->clrfstatus);
+		cmd->dst = NAND_FLASH_STATUS;
+		cmd->len = 4;
+		cmd++;
+
+		cmd->cmd = 0;
+		cmd->src = paddr(&data->clrrstatus);
+		cmd->dst = NAND_READ_STATUS;
+		cmd->len = 4;
 		cmd++;
 	}
 
@@ -676,7 +704,7 @@ static int flash_nand_read_config(dmov_s *cmdlist, unsigned *ptrlist)
 		|	(516 <<  9)  /* 516 user data bytes */
 		|	(10 << 19)  /* 10 parity bytes */
 		|	(5 << 27)  /* 5 address cycles */
-		|	(1 << 30)  /* Read status before data */
+		|	(0 << 30)  /* Do not read status before data */
 		|	(1 << 31)  /* Send read cmd */
 			/* 0 spare bytes for 16 bit nand or 1 spare bytes for 8 bit */
 		|	((nand_cfg1 & CFG1_WIDE_FLASH) ? (0 << 23) : (1 << 23));
