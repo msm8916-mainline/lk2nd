@@ -59,7 +59,6 @@ void gpio_keypad_init(struct gpio_keypad_info *kpinfo);
 
 /* SSBI 2.0 controller registers */
 #define MSM_SSBI_BASE                   0xAD900000
-#define SMEM_BASE                       0x100000
 
 #define SSBI_TIMEOUT_US			100
 

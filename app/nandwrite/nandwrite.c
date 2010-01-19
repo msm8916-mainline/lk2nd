@@ -35,6 +35,7 @@
 #include <string.h>
 #include <jtag.h>
 #include <kernel/thread.h>
+#include <smem.h>
 #include "bootimg.h"
 
 #define FLASH_PAGE_SIZE 2048
@@ -42,6 +43,8 @@
 
 unsigned page_size = 0;
 unsigned page_mask = 0;
+
+static unsigned load_addr = 0xffffffff;
 
 #define ROUND_TO_PAGE(x,y) (((x) + (y)) & (~(y)))
 
@@ -54,6 +57,45 @@ int startswith(const char *str, const char *prefix)
         if(*prefix++ != *str++) return 0;
     }
     return 1;
+}
+
+unsigned set_load_address(unsigned addr)
+{
+    if (load_addr != 0xffffffff)
+    {
+        /* Already assigned */
+        return load_addr;
+    }
+
+    load_addr = addr;
+
+#ifdef PLATFORM_MSM7X30
+    /* For 7x30, override the destination RAM address based on memory type */
+    /* so the image is loaded to the larger memory segment.                */
+    struct smem_board_info board_info;
+    unsigned int board_info_struct_len = sizeof(board_info);
+    unsigned smem_status;
+    char *build_type;
+
+    smem_status = smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
+                                        &board_info, board_info_struct_len );
+    if(!smem_status)
+    {
+        build_type  = (char *)(board_info.build_id) + 8;
+        if (*build_type == 'A')
+        {
+            /* LPDDR2 configuration */
+            load_addr = 0x40000000;
+        }
+        else
+        {
+            /* LPDDR1 configuration */
+            load_addr = 0x08000000;
+        }
+    }
+#endif
+
+    return load_addr;
 }
 
 /* XXX */
@@ -113,6 +155,9 @@ void handle_flash(const char *name, unsigned addr, unsigned sz)
 		extra = ((page_size >> 9) * 16);
 	else
 		sz = ROUND_TO_PAGE(sz, page_mask);
+
+	/* Override load address if needed */
+	data = (void *)set_load_address(addr);
 
 	dprintf(INFO, "writing %d bytes to '%s'\n", sz, ptn->name);
 	if (flash_write(ptn, extra, data, sz)) {
@@ -175,6 +220,16 @@ void handle_dump(const char *name, unsigned offset)
     }
 }
 
+void handle_query_load_address(unsigned addr)
+{
+    unsigned *return_addr = (unsigned *)addr;
+
+    if (return_addr)
+        *return_addr = set_load_address(addr);
+
+    jtag_okay("done");
+}
+
 void handle_command(const char *cmd, unsigned a0, unsigned a1, unsigned a2)
 {
     if(startswith(cmd,"flash:")){
@@ -184,6 +239,11 @@ void handle_command(const char *cmd, unsigned a0, unsigned a1, unsigned a2)
 
     if(startswith(cmd,"dump:")){
         handle_dump(cmd + 5, a0);
+        return;
+    }
+
+    if(startswith(cmd,"loadaddr:")){
+        handle_query_load_address(a0);
         return;
     }
 

@@ -43,7 +43,11 @@ int main(int argc, char *argv[])
 	}
 
 	size = s.st_size;
+#if MEMBASE
+	base = MEMBASE;
+#else
 	base = 0;
+#endif
 
 	magic[0] = 0x00000005; /* appsbl */
 	magic[1] = 0x00000002; /* nand */
