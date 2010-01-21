@@ -1,5 +1,4 @@
 /*
- * Copyright (c) 2008, QUALCOMM Incorporated.
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
  * Copyright (c) 2009, Code Aurora Forum. All rights reserved.
