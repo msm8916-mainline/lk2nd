@@ -56,21 +56,21 @@ static struct ptable flash_ptable;
 static struct ptentry board_part_list[] = {
 	{
 		.start = 0,
-		.length = 40,
+		.length = 40  /* 5MB */,
 		.name = "boot",
 	},
 	{
-		.start = 56,
-		.length = 608 /* 76MB */,
+		.start = 40,
+		.length =680  /* 85MB */,
 		.name = "system",
 	},
 	{
-		.start = 664,
+		.start = 720,
 		.length = 40  /* 5MB */,
 		.name = "cache",
 	},
 	{
-		.start = 704,
+		.start = 760,
 		.length = VARIABLE_LENGTH,
 		.name = "userdata",
 	},

@@ -39,6 +39,10 @@
 
 #define LINUX_MACHTYPE  1008000
 
+#define VARIABLE_LENGTH        0x10101010
+#define DIFF_START_ADDR        0xF0F0F0F0
+#define NUM_PAGES_PER_BLOCK    0x40
+
 static struct ptable flash_ptable;
 
 /* for these partitions, start will be offset by either what we get from
@@ -52,28 +56,28 @@ static struct ptable flash_ptable;
 static struct ptentry board_part_list[] = {
 	{
 		.start = 0,
-		.length = 40,
+		.length = 40  /* 5MB */,
 		.name = "boot",
 	},
 	{
-		.start = 56,
-		.length = 608 /* 76MB */,
+		.start = 40,
+		.length = 680 /* 85MB */,
 		.name = "system",
 	},
 	{
-		.start = 664,
+		.start = 720,
 		.length = 40 /* 5MB */,
 		.name = "cache",
 	},
 	{
-		.start = 704,
-		.length = 40 /* 5MB */,
-		.name = "recovery",
+		.start = 760,
+		.length = VARIABLE_LENGTH,
+		.name = "userdata",
 	},
 	{
-		.start = 744,
-		.length = 720 /* 90MB */,
-		.name = "userdata",
+		.start = DIFF_START_ADDR,
+		.length = 40 /* 5MB */,
+		.name = "recovery",
 	},
 };
 static int num_parts = sizeof(board_part_list)/sizeof(struct ptentry);
@@ -87,6 +91,9 @@ void target_init(void)
 {
 	unsigned offset;
 	struct flash_info *flash_info;
+	unsigned total_num_of_blocks;
+	bool  start_addr_changed = false;
+	unsigned next_ptr_start_adr = 0;
 	int i;
 
 	dprintf(INFO, "target_init()\n");
@@ -106,12 +113,33 @@ void target_init(void)
 	if (offset == 0xffffffff)
 	        while(1);
 
+	total_num_of_blocks = (flash_info->block_size)/NUM_PAGES_PER_BLOCK;
+
 	for (i = 0; i < num_parts; i++) {
 		struct ptentry *ptn = &board_part_list[i];
 		unsigned len = ptn->length;
 
-		if ((len == 0) && (i == num_parts - 1))
-			len = flash_info->num_blocks - offset - ptn->start;
+		if(len == VARIABLE_LENGTH)
+		{
+		        start_addr_changed = true;
+			unsigned length_for_prt = 0;
+			unsigned j;
+			for (j = i+1; j < num_parts; j++)
+			{
+			        struct ptentry *temp_ptn = &board_part_list[j];
+			        ASSERT(temp_ptn->length != VARIABLE_LENGTH);
+			        length_for_prt += temp_ptn->length;
+			}
+		        len = (total_num_of_blocks - 1) - (offset + ptn->start + length_for_prt);
+			ASSERT(len >= 0);
+		        next_ptr_start_adr = ptn->start + len;
+		}
+		if((ptn->start == DIFF_START_ADDR) && (start_addr_changed))
+		{
+		        ASSERT(next_ptr_start_adr);
+			ptn->start = next_ptr_start_adr;
+			next_ptr_start_adr = ptn->start + ptn->length;
+		}
 		ptable_add(&flash_ptable, ptn->name, offset + ptn->start,
 			   len, ptn->flags);
 	}
