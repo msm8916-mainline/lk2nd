@@ -2,7 +2,7 @@
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -41,6 +41,7 @@
 #include <dev/flash.h>
 #include <lib/ptable.h>
 #include <dev/keys.h>
+#include <dev/fbcon.h>
 
 #include "bootimg.h"
 #include "fastboot.h"
@@ -187,7 +188,7 @@ int boot_linux_from_flash(void)
 	struct ptable *ptable;
 	unsigned offset = 0;
 	const char *cmdline;
-
+	struct fbcon_config *fb_display = NULL;
 
 	if (target_is_emmc_boot()) {
 		hdr = (struct boot_img_hdr *)EMMC_BOOT_IMG_HEADER_ADDR;
@@ -203,6 +204,22 @@ int boot_linux_from_flash(void)
 		dprintf(CRITICAL, "ERROR: Partition table not found\n");
 		return -1;
 	}
+
+#if DISPLAY_SPLASH_SCREEN
+	ptn = ptable_find(ptable, "splash");
+	if (ptn == NULL) {
+        dprintf(CRITICAL, "ERROR: No splash partition found\n");
+	} else {
+		fb_display = fbcon_display();
+		if (fb_display) {
+			if (flash_read(ptn, 0, fb_display->base,
+			    (fb_display->width * fb_display->height * fb_display->bpp/8))) {
+				fbcon_clear();
+				dprintf(CRITICAL, "ERROR: Cannot read splash image\n");
+			}
+		}
+	}
+#endif
 
 	if(!boot_into_recovery)
 	{
@@ -397,7 +414,13 @@ void cmd_reboot_bootloader(const char *arg, void *data, unsigned sz)
 
 void aboot_init(const struct app_descriptor *app)
 {
-        unsigned reboot_mode = 0;
+	unsigned reboot_mode = 0;
+	unsigned disp_init = 0;
+	#if DISPLAY_SPLASH_SCREEN
+	display_init();
+	dprintf(INFO, "Diplay initialized\n");
+	disp_init = 1;
+	#endif
 	page_size = flash_page_size();
 	page_mask = page_size - 1;
 	if (keys_get_state(KEY_HOME) != 0)
@@ -419,7 +442,11 @@ void aboot_init(const struct app_descriptor *app)
 		"to fastboot mode.\n");
 
 fastboot:
-        display_init();
+	if(!disp_init) {
+		display_init();
+	} else {
+		fbcon_clear();
+	}
 	dprintf(INFO, "Diplay initialized\n");
 	udc_init(&surf_udc_device);
 

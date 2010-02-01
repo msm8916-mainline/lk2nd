@@ -2,6 +2,8 @@
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
  *
+ * Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -45,5 +47,7 @@ struct fbcon_config {
 
 void fbcon_setup(struct fbcon_config *cfg);
 void fbcon_putc(char c);
+void fbcon_clear(void);
+struct fbcon_config* fbcon_display(void);
 
 #endif /* __DEV_FBCON_H */
