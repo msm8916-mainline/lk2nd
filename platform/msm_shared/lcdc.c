@@ -140,3 +140,4 @@ struct fbcon_config *lcdc_init(void)
 
 	return &fb_cfg;
 }
+

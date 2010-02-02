@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
- * Copyright (c) 2009, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -65,12 +65,17 @@ static struct ptentry board_part_list[] = {
 		.name = "system",
 	},
 	{
-		.start = 720,
+                .start = 720,
+                .length = 8,
+                .name = "splash",
+	},
+	{
+		.start = 728,
 		.length = 40  /* 5MB */,
 		.name = "cache",
 	},
 	{
-		.start = 760,
+		.start = 768,
 		.length = VARIABLE_LENGTH,
 		.name = "userdata",
 	},

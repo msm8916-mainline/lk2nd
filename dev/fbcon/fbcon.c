@@ -2,6 +2,8 @@
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
  *
+ * Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -109,7 +111,7 @@ static void fbcon_scroll_up(void)
 }
 
 /* TODO: take stride into account */
-static void fbcon_clear(void)
+void fbcon_clear(void)
 {
 	uint16_t *dst = config->base;
 	unsigned count = config->width * config->height;
@@ -196,4 +198,9 @@ void fbcon_setup(struct fbcon_config *_config)
 	cur_pos.y = 0;
 	max_pos.x = config->width / (FONT_WIDTH+1);
 	max_pos.y = (config->height - 1) / FONT_HEIGHT;
+}
+
+struct fbcon_config* fbcon_display(void)
+{
+    return config;
 }
