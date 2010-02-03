@@ -43,6 +43,7 @@
 #include <dev/keys.h>
 #include <dev/fbcon.h>
 
+#include "recovery.h"
 #include "bootimg.h"
 #include "fastboot.h"
 
@@ -79,7 +80,6 @@ int target_is_emmc_boot(void);
 void reboot_device(unsigned);
 void target_battery_charging_enable(unsigned enable, unsigned disconnect);
 
-static int boot_into_recovery = 0;
 
 static void ptentry_to_tag(unsigned **ptr, struct ptentry *ptn)
 {
@@ -440,7 +440,7 @@ void aboot_init(const struct app_descriptor *app)
         }else if(reboot_mode == FASTBOOT_MODE){
 	        goto fastboot;
         }
-
+	recovery_init();
 	boot_linux_from_flash();
 	dprintf(CRITICAL, "ERROR: Could not do normal boot. Reverting "
 		"to fastboot mode.\n");
