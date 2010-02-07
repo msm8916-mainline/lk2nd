@@ -76,6 +76,7 @@ unsigned board_machtype(void);
 unsigned check_reboot_mode(void);
 int target_is_emmc_boot(void);
 void reboot_device(unsigned);
+void target_battery_charging_enable(unsigned enable, unsigned disconnect);
 
 static int boot_into_recovery = 0;
 
@@ -320,6 +321,7 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	memmove((void*) RAMDISK_ADDR, ptr + 2048 + kernel_actual, hdr.ramdisk_size);
 
 	fastboot_okay("");
+	target_battery_charging_enable(0, 1);
 	udc_stop();
 
 	boot_linux((void*) KERNEL_ADDR, (void*) TAGS_ADDR,
@@ -393,6 +395,7 @@ void cmd_flash(const char *arg, void *data, unsigned sz)
 void cmd_continue(const char *arg, void *data, unsigned sz)
 {
 	fastboot_okay("");
+	target_battery_charging_enable(0, 1);
 	udc_stop();
 
 	boot_linux_from_flash();
@@ -461,6 +464,7 @@ fastboot:
 
 	fastboot_init((void*) SCRATCH_ADDR, 100 * 1024 * 1024);
 	udc_start();
+        target_battery_charging_enable(1, 0);
 }
 
 APP_START(aboot)

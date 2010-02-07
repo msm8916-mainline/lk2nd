@@ -39,6 +39,11 @@
 
 #include "hsusb.h"
 
+int charger_usb_disconnected(void);
+int charger_usb_i(unsigned current);
+int charger_usb_is_pc_connected(void);
+int charger_usb_is_charger_connected(void);
+
 /* common code - factor out into a shared file */
 
 struct udc_descriptor {
@@ -416,6 +421,11 @@ static void handle_setup(struct udc_endpoint *ept)
 				endpoint_enable(ept, s.value);
 			}
 			usb_config_value = 1;
+#ifdef ENABLE_BATTERY_CHARGING
+			if(HOST_CHARGER == TRUE) {
+			  charger_usb_i(500);
+			}
+#endif
 			the_gadget->notify(the_gadget, UDC_EVENT_ONLINE);
 		} else {
 			writel(0, USB_ENDPTCTRL(1));
@@ -589,6 +599,11 @@ enum handler_return udc_interrupt(void *arg)
 	}
 	if (n & STS_SLI) {
 		DBG1("-- suspend --\n");
+#ifdef ENABLE_BATTERY_CHARGING
+		if(HOST_CHARGER == TRUE){
+		  charger_usb_i(2);
+		}
+#endif
 	}
 	if (n & STS_PCI) {
 		DBG1("-- portchange --\n");
@@ -598,6 +613,14 @@ enum handler_return udc_interrupt(void *arg)
 		} else {
 			usb_highspeed = 0;
 		}
+#ifdef ENABLE_BATTERY_CHARGING
+                if(HOST_CHARGER == TRUE && usb_config_value){
+                        charger_usb_i(500);
+                }
+                if(HOST_CHARGER == TRUE && !usb_config_value){
+                        charger_usb_i(100);
+                }
+#endif
 	}
 	if (n & STS_UEI) {
 		dprintf(INFO, "<UEI %x>\n", readl(USB_ENDPTCOMPLETE));
@@ -750,5 +773,120 @@ int udc_stop(void)
 	return 0;
 }
 
+void usb_stop_charging(unsigned stop_charging)
+{
+    ENABLE_CHARGING = !stop_charging;
+}
 
+static inline unsigned is_usb_charging(void)
+{
+    return ENABLE_CHARGING;
+}
 
+void usb_charger_reset(void)
+{
+    usb_stop_charging(TRUE);
+    charger_usb_disconnected();
+}
+
+/* Charger detection code
+ * Set global flags WALL_CHARGER and
+ * RETURN: type of charger connected
+ * CHG_WALL
+ * CHG_HOST_PC
+ * */
+int usb_chg_detect_type(void)
+{
+    int ret = CHG_UNDEFINED;
+
+    if ((readl(USB_PORTSC) & PORTSC_LS) == PORTSC_LS)
+    {
+        if(charger_usb_is_charger_connected() == TRUE) {
+            WALL_CHARGER = TRUE;
+            HOST_CHARGER = FALSE;
+            charger_usb_i(1500);
+            ret = CHG_WALL;
+        }
+    }
+    else
+    {
+        if(charger_usb_is_pc_connected() == TRUE) {
+            WALL_CHARGER = FALSE;
+            HOST_CHARGER = TRUE;
+            ret = CHG_HOST_PC;
+        }
+    }
+    return ret;
+}
+
+/* check if USB cable is connected
+ *
+ * RETURN: If cable connected return 1
+ * If cable disconnected return 0
+ */
+int is_usb_cable_connected(void)
+{
+    /*Verify B Session Valid Bit to verify vbus status*/
+    if (B_SESSION_VALID & readl(USB_OTGSC)) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+void usb_charger_change_state(void)
+{
+    int usb_connected;
+
+   //User might have switched from host pc to wall charger. So keep checking
+   //every time we are in the loop
+
+   if(ENABLE_CHARGING == TRUE)
+   {
+      usb_connected = is_usb_cable_connected();
+
+      if(usb_connected && !charger_connected)
+      {
+	//mdelay(20);
+	 thread_sleep(20);
+         /* go to RUN mode (D+ pullup enable) */
+         writel(0x00080001, USB_USBCMD);
+         //mdelay(10);
+	 thread_sleep(10);
+         usb_chg_detect_type();
+         charger_connected = TRUE;
+      }
+      else if(!usb_connected && charger_connected)
+      {
+         /* disable D+ pull-up */
+         writel(0x00080000, USB_USBCMD);
+
+         /* Applicable only for 8k target */
+         /*USB Spoof Disconnect Failure
+           Symptoms:
+           In USB peripheral mode, writing '0' to Run/Stop bit of the
+           USBCMD register doesn't cause USB disconnection (spoof disconnect).
+           The PC host doesn't detect the disconnection and the phone remains
+           active on Windows device manager.
+
+           Suggested Workaround:
+           After writing '0' to Run/Stop bit of USBCMD, also write 0x48 to ULPI
+           "Function Control" register. This can be done via the ULPI VIEWPORT
+           register (offset 0x170) by writing a value of 0x60040048.
+          */
+         ulpi_write(0x48, 0x04);
+	 //usb_charger_reset();
+         WALL_CHARGER = FALSE;
+         HOST_CHARGER = FALSE;
+         charger_usb_i(0);
+         charger_usb_disconnected();
+         charger_connected = FALSE;
+      }
+      if(WALL_CHARGER == TRUE || HOST_CHARGER == TRUE){
+	//battery_charging_image();
+      }
+   }
+   else if ((readl(USB_USBCMD) & 0x01) == 0){
+      writel(0x00080001, USB_USBCMD);
+   }
+}

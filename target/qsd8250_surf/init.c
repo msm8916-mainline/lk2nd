@@ -84,7 +84,9 @@ static int num_parts = sizeof(board_part_list)/sizeof(struct ptentry);
 
 void smem_ptable_init(void);
 unsigned smem_get_apps_flash_start(void);
-
+void usb_charger_change_state(void);
+void usb_charger_reset(void);
+void usb_stop_charging(unsigned);
 void keypad_init(void);
 
 void target_init(void)
@@ -172,4 +174,20 @@ unsigned check_reboot_mode(void)
       return 0;
     }
     return mode[0];
+}
+
+void target_battery_charging_enable(unsigned enable, unsigned disconnect)
+{
+    if(disconnect){
+      usb_charger_reset();
+      return;
+    }
+    else
+      usb_stop_charging(!enable);
+
+    for(;;)
+    {
+      thread_sleep(10);
+      usb_charger_change_state();
+    }
 }

@@ -116,6 +116,13 @@ enum {
 	PCOM_GPIO_TLMM_UNCONFIG_GROUP,
 	PCOM_NV_READ_HIGH_BITS,
 	PCOM_NV_WRITE_HIGH_BITS,
+	PCOM_RESERVED_101 = 0x65,
+	PCOM_MSM_HSUSB_PHY_RESET,
+	PCOM_GET_BATT_MV_LEVEL,
+	PCOM_CHG_USB_IS_PC_CONNECTED,
+	PCOM_CHG_USB_IS_CHARGER_CONNECTED,
+	PCOM_CHG_USB_IS_DISCONNECTED,
+	PCOM_CHG_USB_I_AVAILABLE,
 	PCOM_NUM_CMDS,
 };
 
@@ -237,4 +244,45 @@ void reboot(unsigned reboot_reason)
 {
         msm_proc_comm(PCOM_RESET_CHIP, &reboot_reason, 0);
         for (;;) ;
+}
+
+/* Apps processor calls this API to tell modem processor that a PC USB
+ * is connected return true if the USB HOST PC charger charging is
+ * supported */
+int charger_usb_is_pc_connected(void)
+{
+   unsigned charging_supported = 0;
+   unsigned m = 0;
+   msm_proc_comm(PCOM_CHG_USB_IS_PC_CONNECTED, &charging_supported, &m);
+   return charging_supported;
+}
+
+/* Apps processor calls this API to tell modem processor that a USB Wall
+ * charger is connected returns true if the USB WALL charger charging is
+ * supported */
+int charger_usb_is_charger_connected(void)
+{
+   unsigned charging_supported = 0;
+   unsigned m = 0;
+   msm_proc_comm(PCOM_CHG_USB_IS_CHARGER_CONNECTED, &charging_supported, &m);
+   return charging_supported;
+}
+
+/* Apps processor calls this API to tell modem processor that a USB cable is
+ * disconnected return true is charging is supported in the system */
+int charger_usb_disconnected(void)
+{
+   unsigned charging_supported = 0;
+   unsigned m = 0;
+   msm_proc_comm(PCOM_CHG_USB_IS_DISCONNECTED, &charging_supported, &m);
+   return charging_supported;
+}
+
+/* current parameter passed is the amount of current that the charger needs
+ * to draw from USB */
+int charger_usb_i(unsigned current)
+{
+   unsigned charging_supported = 0;
+   msm_proc_comm(PCOM_CHG_USB_I_AVAILABLE, &current, &charging_supported);
+   return charging_supported;
 }

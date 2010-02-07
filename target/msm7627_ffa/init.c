@@ -184,3 +184,7 @@ unsigned check_reboot_mode(void)
     }
     return mode[0];
 }
+
+void target_battery_charging_enable(unsigned enable, unsigned disconnect)
+{
+}
