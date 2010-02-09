@@ -36,13 +36,20 @@
 #define EBI1_ADDR_128M  0x08000000
 #define EBI1_ADDR_1G    0x40000000
 
-unsigned* target_atag_mem(unsigned* ptr)
+static int msm7x30_lpddr1 = -1;
+static int target_is_msm7x30_lpddr1(void);
+
+int target_is_msm7x30_lpddr1(void)
 {
     struct smem_board_info board_info;
     unsigned int board_info_struct_len = sizeof(board_info);
     unsigned smem_status;
     char *build_type;
-    int enable_lpddr2 = 0;
+
+    if (msm7x30_lpddr1 != -1)
+    {
+        return msm7x30_lpddr1;
+    }
 
     smem_status = smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
 					&board_info, board_info_struct_len );
@@ -51,12 +58,19 @@ unsigned* target_atag_mem(unsigned* ptr)
       dprintf(CRITICAL, "ERROR: unable to read shared memory for build id\n");
     }
 
+    msm7x30_lpddr1 = 1;
+
     build_type  = (char *)(board_info.build_id) + 8;
     if (*build_type == 'A')
     {
-        enable_lpddr2 = 1;
+        msm7x30_lpddr1 = 0;
     }
 
+    return msm7x30_lpddr1;
+}
+
+unsigned* target_atag_mem(unsigned* ptr)
+{
     /* ATAG_MEM for 51MB + 128MB setup */
     *ptr++ = 4;
     *ptr++ = 0x54410002;
@@ -67,8 +81,12 @@ unsigned* target_atag_mem(unsigned* ptr)
     *ptr++ = 4;
     *ptr++ = 0x54410002;
     *ptr++ = EBI1_SIZE_128M;
-    *ptr++ = (enable_lpddr2) ? EBI1_ADDR_1G : EBI1_ADDR_128M;
+    *ptr++ = (target_is_msm7x30_lpddr1()) ? EBI1_ADDR_128M : EBI1_ADDR_1G;
 
     return ptr;
 }
 
+void *target_get_scratch_address(void)
+{
+    return (void *)((target_is_msm7x30_lpddr1()) ? EBI1_ADDR_128M : EBI1_ADDR_1G);
+}

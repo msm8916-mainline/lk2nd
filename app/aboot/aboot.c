@@ -74,6 +74,7 @@ void platform_uninit_timer(void);
 unsigned* target_atag_mem(unsigned* ptr);
 unsigned board_machtype(void);
 unsigned check_reboot_mode(void);
+void *target_get_scratch_address(void);
 int target_is_emmc_boot(void);
 void reboot_device(unsigned);
 void target_battery_charging_enable(unsigned enable, unsigned disconnect);
@@ -462,7 +463,7 @@ fastboot:
 	fastboot_publish("product", "swordfish");
 	fastboot_publish("kernel", "lk");
 
-	fastboot_init((void*) SCRATCH_ADDR, 100 * 1024 * 1024);
+	fastboot_init(target_get_scratch_address(), 100 * 1024 * 1024);
 	udc_start();
         target_battery_charging_enable(1, 0);
 }

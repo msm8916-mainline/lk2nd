@@ -38,6 +38,11 @@ __WEAK void target_init(void)
 {
 }
 
+__WEAK void *target_get_scratch_address(void)
+{
+    return (void *)(SCRATCH_ADDR);
+}
+
 __WEAK int target_is_emmc_boot(void)
 {
 #if _EMMC_BOOT
