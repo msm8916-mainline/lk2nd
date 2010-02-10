@@ -167,9 +167,9 @@ void gpio_keypad_init(struct gpio_keypad_info *kpinfo);
 #define	PM8058_GPIO_FUNC_MASK		0x0E
 #define	PM8058_GPIO_FUNC_SHIFT		1
 
-#define NUM_OF_SSBI_READS               15
-#define NUM_OF_KYPD_DRV_GPIOS           12
-#define NUM_OF_KYPD_SNS_GPIOS            8
+#define NUM_OF_SSBI_READS               6
+#define NUM_OF_KYPD_DRV_GPIOS           5
+#define NUM_OF_KYPD_SNS_GPIOS           5
 
 struct pm8058_gpio {
 	int		direction;

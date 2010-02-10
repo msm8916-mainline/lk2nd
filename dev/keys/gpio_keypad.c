@@ -387,7 +387,7 @@ static enum handler_return
 scan_qwerty_keypad(struct timer *timer, time_t now, void *arg)
 {
     int rows = (qwerty_keypad->keypad_info)->rows;
-    int columns = (qwerty_keypad->keypad_info)->columns;
+    int columns = NUM_OF_KYPD_SNS_GPIOS;
     unsigned char column_keys = 0x00;
     int shift = 0;
     static int key_detected = 0;
@@ -418,7 +418,6 @@ scan_qwerty_keypad(struct timer *timer, time_t now, void *arg)
 			    return INT_RESCHEDULE;
 
 		        }
-		        break;
 	            }
 		}
 	    }
@@ -439,7 +438,7 @@ scan_qwerty_keypad(struct timer *timer, time_t now, void *arg)
 
 void ssbi_gpio_init(void)
 {
-    unsigned char kypd_cntl_init = 0xF8;
+    unsigned char kypd_cntl_init = 0x84;
     unsigned char kypd_scan_init = 0x20;
 
     if (i2c_ssbi_write_bytes(&kypd_cntl_init, 1, SSBI_REG_KYPD_CNTL_ADDR))
