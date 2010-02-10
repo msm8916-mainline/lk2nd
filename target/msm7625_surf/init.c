@@ -56,22 +56,22 @@ static struct ptentry board_part_list[] = {
 		.name = "boot",
 	},
 	{
-		.start = 56,
-		.length = 608 /* 76MB */,
+		.start = 40,
+		.length = 680 /* 85MB */,
 		.name = "system",
 	},
 	{
-		.start = 664,
+		.start = 720,
 		.length = 40  /* 5MB */,
 		.name = "cache",
 	},
 	{
-		.start = 704,
+		.start = 760,
 		.length = 40 /* 5MB */,
 		.name = "recovery",
 	},
 	{
-		.start = 744,
+		.start = 800,
 		.length = 720 /* 90MB */,
 		.name = "userdata",
 	},

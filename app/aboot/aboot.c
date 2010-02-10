@@ -463,7 +463,7 @@ fastboot:
 	fastboot_publish("product", "swordfish");
 	fastboot_publish("kernel", "lk");
 
-	fastboot_init(target_get_scratch_address(), 100 * 1024 * 1024);
+	fastboot_init(target_get_scratch_address(), 120 * 1024 * 1024);
 	udc_start();
         target_battery_charging_enable(1, 0);
 }
