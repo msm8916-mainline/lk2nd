@@ -38,10 +38,9 @@
 #define A11S_CLK_SEL_ADDR	(MSM_CSR_BASE + 0x104)
 #define VDD_SVS_PLEVEL_ADDR	(MSM_CSR_BASE + 0x124)
 
-#define PLL1		1
-#define PLL2		2
 #define SRC_SEL_PLL1	1 /* PLL1. */
 #define SRC_SEL_PLL2	2 /* PLL2. */
+#define SRC_SEL_PLL3	3 /* PLL3. Used for 7x25. */
 #define DIV_4		3
 #define DIV_2		1
 #define WAIT_CNT	100
@@ -68,8 +67,13 @@ uint32_t const clk_cntl_reg_val[] = {
 	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 12) | (DIV_4 << 8),
 	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 12) | (DIV_2 << 8),
 	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 12) | DIV_2,
+#if ENABLE_PLL3
+        (WAIT_CNT << 16) | (SRC_SEL_PLL3 << 4)  | DIV_2,
+	(WAIT_CNT << 16) | (SRC_SEL_PLL3 << 12) | (DIV_2 << 8),
+#else
 	(WAIT_CNT << 16) | (SRC_SEL_PLL2 << 4)  | DIV_2,
 	(WAIT_CNT << 16) | (SRC_SEL_PLL2 << 12) | (DIV_2 << 8),
+#endif
 };
 
 /* Using DIV_4 for all cases to avoid worrying about turbo vs. normal
