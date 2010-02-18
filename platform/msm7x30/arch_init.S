@@ -438,22 +438,22 @@ SYSI2:
         //; customize these settings to meet their needs.
         //;----------------------------------------------------------------------
         MOV    r2,  #0x1f
-        MOV    r1,  #0x17                 //;ABT mode
+        MOV    r1,  #0xd7                 //;ABT mode
         msr    cpsr_c, r1                 //;ABT mode
         msr    spsr_cxfs, r2              //;clear the spsr
-        MOV    r1,  #0x1b                 //;UND mode
+        MOV    r1,  #0xdb                 //;UND mode
         msr    cpsr_c, r1                 //;UND mode
         msr    spsr_cxfs, r2              //;clear the spsr
-        MOV    r1,  #0x11                 //;FIQ mode
+        MOV    r1,  #0xd1                 //;FIQ mode
         msr    cpsr_c, r1                 //;FIQ mode
         msr    spsr_cxfs, r2              //;clear the spsr
-        MOV    r1,  #0x12                 //;IRQ mode
+        MOV    r1,  #0xd2                 //;IRQ mode
         msr    cpsr_c, r1                 //;IRQ mode
         msr    spsr_cxfs, r2              //;clear the spsr
-        MOV    r1,  #0x16                 //;Monitor mode
+        MOV    r1,  #0xd6                 //;Monitor mode
         msr    cpsr_c, r1                 //;Monitor mode
         msr    spsr_cxfs, r2              //;clear the spsr
-        MOV    r1,  #0x13                 //;SVC mode
+        MOV    r1,  #0xd3                 //;SVC mode
         msr    cpsr_c, r1                 //;SVC mode
         msr    spsr_cxfs, r2              //;clear the spsr
 
