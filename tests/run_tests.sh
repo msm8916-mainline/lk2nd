@@ -242,12 +242,26 @@ dtc_tests () {
     run_test incbin incbin.test.dtb
 
     # Check boot_cpuid_phys handling
-    run_dtc_test -I dts -O dtb -b 17 -o boot_cpuid.test.dtb empty.dts
-    run_test boot-cpuid boot_cpuid.test.dtb 17
-    run_dtc_test -I dtb -O dtb -b 17 -o boot_cpuid_test_tree1.test.dtb test_tree1.dtb
-    run_test boot-cpuid boot_cpuid_test_tree1.test.dtb 17
-    run_dtc_test -I dtb -O dtb -o boot_cpuid_preserved_test_tree1.test.dtb boot_cpuid_test_tree1.test.dtb
-    run_test dtbs_equal_ordered boot_cpuid_preserved_test_tree1.test.dtb boot_cpuid_test_tree1.test.dtb
+    run_dtc_test -I dts -O dtb -o boot_cpuid.test.dtb boot-cpuid.dts
+    run_test boot-cpuid boot_cpuid.test.dtb 16
+
+    run_dtc_test -I dts -O dtb -b 17 -o boot_cpuid_17.test.dtb boot-cpuid.dts
+    run_test boot-cpuid boot_cpuid_17.test.dtb 17
+
+    run_dtc_test -I dtb -O dtb -o preserve_boot_cpuid.test.dtb boot_cpuid.test.dtb
+    run_test boot-cpuid preserve_boot_cpuid.test.dtb 16
+    run_test dtbs_equal_ordered preserve_boot_cpuid.test.dtb boot_cpuid.test.dtb
+
+    run_dtc_test -I dtb -O dtb -o preserve_boot_cpuid_17.test.dtb boot_cpuid_17.test.dtb
+    run_test boot-cpuid preserve_boot_cpuid_17.test.dtb 17
+    run_test dtbs_equal_ordered preserve_boot_cpuid_17.test.dtb boot_cpuid_17.test.dtb
+
+    run_dtc_test -I dtb -O dtb -b17 -o override17_boot_cpuid.test.dtb boot_cpuid.test.dtb
+    run_test boot-cpuid override17_boot_cpuid.test.dtb 17
+
+    run_dtc_test -I dtb -O dtb -b0 -o override0_boot_cpuid_17.test.dtb boot_cpuid_17.test.dtb
+    run_test boot-cpuid override0_boot_cpuid_17.test.dtb 0
+
 
     # Check -Oasm mode
     for tree in test_tree1.dts escapes.dts references.dts path-references.dts \

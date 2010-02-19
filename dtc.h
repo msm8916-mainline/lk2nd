@@ -178,6 +178,8 @@ struct node *get_node_by_phandle(struct node *tree, cell_t phandle);
 struct node *get_node_by_ref(struct node *tree, const char *ref);
 cell_t get_node_phandle(struct node *root, struct node *node);
 
+uint32_t guess_boot_cpuid(struct node *tree);
+
 /* Boot info (tree plus memreserve information */
 
 struct reserve_info {

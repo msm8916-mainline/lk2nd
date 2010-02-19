@@ -85,7 +85,8 @@ static unsigned long long eval_literal(const char *s, int base, int bits);
 sourcefile:
 	  DT_V1 ';' memreserves devicetree
 		{
-			the_boot_info = build_boot_info($3, $4, 0);
+			the_boot_info = build_boot_info($3, $4,
+							guess_boot_cpuid($4));
 		}
 	;
 

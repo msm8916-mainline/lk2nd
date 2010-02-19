@@ -318,3 +318,26 @@ cell_t get_node_phandle(struct node *root, struct node *node)
 
 	return node->phandle;
 }
+
+uint32_t guess_boot_cpuid(struct node *tree)
+{
+	struct node *cpus, *bootcpu;
+	struct property *reg;
+
+	cpus = get_node_by_path(tree, "/cpus");
+	if (!cpus)
+		return 0;
+
+
+	bootcpu = cpus->children;
+	if (!bootcpu)
+		return 0;
+
+	reg = get_property(bootcpu, "reg");
+	if (!reg || (reg->val.len != sizeof(uint32_t)))
+		return 0;
+
+	/* FIXME: Sanity check node? */
+
+	return propval_cell(reg);
+}
