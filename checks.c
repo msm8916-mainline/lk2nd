@@ -278,6 +278,59 @@ static void check_property_name_chars(struct check *c, struct node *dt,
 }
 PROP_CHECK(property_name_chars, PROPNODECHARS, ERROR);
 
+#define DESCLABEL_FMT	"%s%s%s%s%s"
+#define DESCLABEL_ARGS(node,prop,mark)		\
+	((mark) ? "value of " : ""),		\
+	((prop) ? "'" : ""), \
+	((prop) ? (prop)->name : ""), \
+	((prop) ? "' in " : ""), (node)->fullpath
+
+static void check_duplicate_label(struct check *c, struct node *dt,
+				  const char *label, struct node *node,
+				  struct property *prop, struct marker *mark)
+{
+	struct node *othernode = NULL;
+	struct property *otherprop = NULL;
+	struct marker *othermark = NULL;
+
+	othernode = get_node_by_label(dt, label);
+
+	if (!othernode)
+		otherprop = get_property_by_label(dt, label, &othernode);
+	if (!othernode)
+		othermark = get_marker_label(dt, label, &othernode,
+					       &otherprop);
+
+	if (!othernode)
+		return;
+
+	if ((othernode != node) || (otherprop != prop) || (othermark != mark))
+		FAIL(c, "Duplicate label '%s' on " DESCLABEL_FMT
+		     " and " DESCLABEL_FMT,
+		     label, DESCLABEL_ARGS(node, prop, mark),
+		     DESCLABEL_ARGS(othernode, otherprop, othermark));
+}
+
+static void check_duplicate_label_node(struct check *c, struct node *dt,
+				       struct node *node)
+{
+	if (node->label)
+		check_duplicate_label(c, dt, node->label, node, NULL, NULL);
+}
+static void check_duplicate_label_prop(struct check *c, struct node *dt,
+				       struct node *node, struct property *prop)
+{
+	struct marker *m = prop->val.markers;
+
+	if (prop->label)
+		check_duplicate_label(c, dt, prop->label, node, prop, NULL);
+
+	for_each_marker_of_type(m, LABEL)
+		check_duplicate_label(c, dt, m->ref, node, prop, m);
+}
+CHECK(duplicate_label, NULL, check_duplicate_label_node,
+      check_duplicate_label_prop, NULL, ERROR);
+
 static void check_explicit_phandles(struct check *c, struct node *root,
 				    struct node *node, struct property *prop)
 {
@@ -573,6 +626,9 @@ static struct check *check_table[] = {
 	&duplicate_node_names, &duplicate_property_names,
 	&node_name_chars, &node_name_format, &property_name_chars,
 	&name_is_string, &name_properties,
+
+	&duplicate_label,
+
 	&explicit_phandles,
 	&phandle_references, &path_references,
 

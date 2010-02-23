@@ -171,6 +171,10 @@ void add_child(struct node *parent, struct node *child);
 const char *get_unitname(struct node *node);
 struct property *get_property(struct node *node, const char *propname);
 cell_t propval_cell(struct property *prop);
+struct property *get_property_by_label(struct node *tree, const char *label,
+				       struct node **node);
+struct marker *get_marker_label(struct node *tree, const char *label,
+				struct node **node, struct property **prop);
 struct node *get_subnode(struct node *node, const char *nodename);
 struct node *get_node_by_path(struct node *tree, const char *path);
 struct node *get_node_by_label(struct node *tree, const char *label);
