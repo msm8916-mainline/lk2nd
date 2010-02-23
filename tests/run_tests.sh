@@ -212,9 +212,6 @@ dtc_tests () {
     run_dtc_test -I dts -O dtb -o dtc_references.test.dtb references.dts
     run_test references dtc_references.test.dtb
 
-    run_dtc_test -I dts -O dtb -o dtc_references_dts0.test.dtb references_dts0.dts
-    run_test references dtc_references_dts0.test.dtb
-
     run_dtc_test -I dts -O dtb -o dtc_path-references.test.dtb path-references.dts
     run_test path-references dtc_path-references.test.dtb
 
