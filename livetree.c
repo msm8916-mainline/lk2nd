@@ -24,16 +24,23 @@
  * Tree building functions
  */
 
-struct property *build_property(char *name, struct data val, char *label)
+void add_label(struct label **labels, char *label)
+{
+	struct label *new = xmalloc(sizeof(*new));
+
+	new->label = label;
+	new->next = *labels;
+	*labels = new;
+}
+
+struct property *build_property(char *name, struct data val)
 {
 	struct property *new = xmalloc(sizeof(*new));
 
+	memset(new, 0, sizeof(*new));
+
 	new->name = name;
 	new->val = val;
-
-	new->next = NULL;
-
-	new->label = label;
 
 	return new;
 }
@@ -78,13 +85,11 @@ struct node *build_node(struct property *proplist, struct node *children)
 	return new;
 }
 
-struct node *name_node(struct node *node, char *name, char * label)
+struct node *name_node(struct node *node, char *name)
 {
 	assert(node->name == NULL);
 
 	node->name = name;
-
-	node->label = label;
 
 	return node;
 }
@@ -124,17 +129,14 @@ void add_child(struct node *parent, struct node *child)
 	*p = child;
 }
 
-struct reserve_info *build_reserve_entry(uint64_t address, uint64_t size,
-					 char *label)
+struct reserve_info *build_reserve_entry(uint64_t address, uint64_t size)
 {
 	struct reserve_info *new = xmalloc(sizeof(*new));
 
+	memset(new, 0, sizeof(*new));
+
 	new->re.address = address;
 	new->re.size = size;
-
-	new->next = NULL;
-
-	new->label = label;
 
 	return new;
 }
@@ -217,8 +219,11 @@ struct property *get_property_by_label(struct node *tree, const char *label,
 	*node = tree;
 
 	for_each_property(tree, prop) {
-		if (prop->label && streq(prop->label, label))
-			return prop;
+		struct label *l;
+
+		for_each_label(prop->labels, l)
+			if (streq(l->label, label))
+				return prop;
 	}
 
 	for_each_child(tree, c) {
@@ -296,11 +301,13 @@ struct node *get_node_by_path(struct node *tree, const char *path)
 struct node *get_node_by_label(struct node *tree, const char *label)
 {
 	struct node *child, *node;
+	struct label *l;
 
 	assert(label && (strlen(label) > 0));
 
-	if (tree->label && streq(tree->label, label))
-		return tree;
+	for_each_label(tree->labels, l)
+		if (streq(l->label, label))
+			return tree;
 
 	for_each_child(tree, child) {
 		node = get_node_by_label(child, label);
@@ -353,15 +360,13 @@ cell_t get_node_phandle(struct node *root, struct node *node)
 	    && (phandle_format & PHANDLE_LEGACY))
 		add_property(node,
 			     build_property("linux,phandle",
-					    data_append_cell(empty_data, phandle),
-					    NULL));
+					    data_append_cell(empty_data, phandle)));
 
 	if (!get_property(node, "phandle")
 	    && (phandle_format & PHANDLE_EPAPR))
 		add_property(node,
 			     build_property("phandle",
-					    data_append_cell(empty_data, phandle),
-					    NULL));
+					    data_append_cell(empty_data, phandle)));
 
 	/* If the node *does* have a phandle property, we must
 	 * be dealing with a self-referencing phandle, which will be

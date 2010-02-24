@@ -235,10 +235,11 @@ static void write_tree_source_node(FILE *f, struct node *tree, int level)
 {
 	struct property *prop;
 	struct node *child;
+	struct label *l;
 
 	write_prefix(f, level);
-	if (tree->label)
-		fprintf(f, "%s: ", tree->label);
+	for_each_label(tree->labels, l)
+		fprintf(f, "%s: ", l->label);
 	if (tree->name && (*tree->name))
 		fprintf(f, "%s {\n", tree->name);
 	else
@@ -246,8 +247,8 @@ static void write_tree_source_node(FILE *f, struct node *tree, int level)
 
 	for_each_property(tree, prop) {
 		write_prefix(f, level+1);
-		if (prop->label)
-			fprintf(f, "%s: ", prop->label);
+		for_each_label(prop->labels, l)
+			fprintf(f, "%s: ", l->label);
 		fprintf(f, "%s", prop->name);
 		write_propval(f, prop);
 	}
@@ -267,8 +268,10 @@ void dt_to_source(FILE *f, struct boot_info *bi)
 	fprintf(f, "/dts-v1/;\n\n");
 
 	for (re = bi->reservelist; re; re = re->next) {
-		if (re->label)
-			fprintf(f, "%s: ", re->label);
+		struct label *l;
+
+		for_each_label(re->labels, l)
+			fprintf(f, "%s: ", l->label);
 		fprintf(f, "/memreserve/\t0x%016llx 0x%016llx;\n",
 			(unsigned long long)re->re.address,
 			(unsigned long long)re->re.size);

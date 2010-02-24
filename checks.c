@@ -314,16 +314,19 @@ static void check_duplicate_label(struct check *c, struct node *dt,
 static void check_duplicate_label_node(struct check *c, struct node *dt,
 				       struct node *node)
 {
-	if (node->label)
-		check_duplicate_label(c, dt, node->label, node, NULL, NULL);
+	struct label *l;
+
+	for_each_label(node->labels, l)
+		check_duplicate_label(c, dt, l->label, node, NULL, NULL);
 }
 static void check_duplicate_label_prop(struct check *c, struct node *dt,
 				       struct node *node, struct property *prop)
 {
 	struct marker *m = prop->val.markers;
+	struct label *l;
 
-	if (prop->label)
-		check_duplicate_label(c, dt, prop->label, node, prop, NULL);
+	for_each_label(prop->labels, l)
+		check_duplicate_label(c, dt, l->label, node, prop, NULL);
 
 	for_each_marker_of_type(m, LABEL)
 		check_duplicate_label(c, dt, m->ref, node, prop, m);

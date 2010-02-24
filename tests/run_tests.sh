@@ -221,6 +221,9 @@ dtc_tests () {
 	run_test phandle_format dtc_references.test.$f.dtb $f
     done
 
+    run_dtc_test -I dts -O dtb -o multilabel.test.dtb multilabel.dts
+    run_test references multilabel.test.dtb
+
     run_dtc_test -I dts -O dtb -o dtc_comments.test.dtb comments.dts
     run_dtc_test -I dts -O dtb -o dtc_comments-cmp.test.dtb comments-cmp.dts
     run_test dtbs_equal_ordered dtc_comments.test.dtb dtc_comments-cmp.test.dtb

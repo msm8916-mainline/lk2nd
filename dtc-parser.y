@@ -78,7 +78,6 @@ static unsigned long long eval_literal(const char *s, int base, int bits);
 %type <node> nodedef
 %type <node> subnode
 %type <nodelist> subnodes
-%type <labelref> label
 
 %%
 
@@ -102,9 +101,14 @@ memreserves:
 	;
 
 memreserve:
-	  label DT_MEMRESERVE addr addr ';'
+	  DT_MEMRESERVE addr addr ';'
 		{
-			$$ = build_reserve_entry($3, $4, $1);
+			$$ = build_reserve_entry($2, $3);
+		}
+	| DT_LABEL memreserve
+		{
+			add_label(&$2->labels, $1);
+			$$ = $2;
 		}
 	;
 
@@ -118,7 +122,7 @@ addr:
 devicetree:
 	  '/' nodedef
 		{
-			$$ = name_node($2, "", NULL);
+			$$ = name_node($2, "");
 		}
 	;
 
@@ -141,13 +145,18 @@ proplist:
 	;
 
 propdef:
-	  label DT_PROPNODENAME '=' propdata ';'
+	  DT_PROPNODENAME '=' propdata ';'
 		{
-			$$ = build_property($2, $4, $1);
+			$$ = build_property($1, $3);
 		}
-	| label DT_PROPNODENAME ';'
+	| DT_PROPNODENAME ';'
 		{
-			$$ = build_property($2, empty_data, $1);
+			$$ = build_property($1, empty_data);
+		}
+	| DT_LABEL propdef
+		{
+			add_label(&$2->labels, $1);
+			$$ = $2;
 		}
 	;
 
@@ -264,7 +273,7 @@ subnodes:
 		{
 			$$ = NULL;
 		}
-	|  subnode subnodes
+	| subnode subnodes
 		{
 			$$ = chain_node($1, $2);
 		}
@@ -276,20 +285,14 @@ subnodes:
 	;
 
 subnode:
-	  label DT_PROPNODENAME nodedef
+	  DT_PROPNODENAME nodedef
 		{
-			$$ = name_node($3, $2, $1);
+			$$ = name_node($2, $1);
 		}
-	;
-
-label:
-	  /* empty */
+	| DT_LABEL subnode
 		{
-			$$ = NULL;
-		}
-	| DT_LABEL
-		{
-			$$ = $1;
+			add_label(&$2->labels, $1);
+			$$ = $2;
 		}
 	;
 

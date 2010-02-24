@@ -125,13 +125,18 @@ int data_is_one_string(struct data d);
 #define MAX_NODENAME_LEN	31
 
 /* Live trees */
+struct label {
+	char *label;
+	struct label *next;
+};
+
 struct property {
 	char *name;
 	struct data val;
 
 	struct property *next;
 
-	char *label;
+	struct label *labels;
 };
 
 struct node {
@@ -148,8 +153,11 @@ struct node {
 	cell_t phandle;
 	int addr_cells, size_cells;
 
-	char *label;
+	struct label *labels;
 };
+
+#define for_each_label(l0, l) \
+	for ((l) = (l0); (l); (l) = (l)->next)
 
 #define for_each_property(n, p) \
 	for ((p) = (n)->proplist; (p); (p) = (p)->next)
@@ -157,12 +165,14 @@ struct node {
 #define for_each_child(n, c)	\
 	for ((c) = (n)->children; (c); (c) = (c)->next_sibling)
 
-struct property *build_property(char *name, struct data val, char *label);
+void add_label(struct label **labels, char *label);
+
+struct property *build_property(char *name, struct data val);
 struct property *chain_property(struct property *first, struct property *list);
 struct property *reverse_properties(struct property *first);
 
 struct node *build_node(struct property *proplist, struct node *children);
-struct node *name_node(struct node *node, char *name, char *label);
+struct node *name_node(struct node *node, char *name);
 struct node *chain_node(struct node *first, struct node *list);
 
 void add_property(struct node *node, struct property *prop);
@@ -191,10 +201,10 @@ struct reserve_info {
 
 	struct reserve_info *next;
 
-	char *label;
+	struct label *labels;
 };
 
-struct reserve_info *build_reserve_entry(uint64_t start, uint64_t len, char *label);
+struct reserve_info *build_reserve_entry(uint64_t start, uint64_t len);
 struct reserve_info *chain_reserve_entry(struct reserve_info *first,
 					 struct reserve_info *list);
 struct reserve_info *add_reserve_entry(struct reserve_info *list,
