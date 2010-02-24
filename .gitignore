@@ -5,5 +5,8 @@
 *~
 *.tab.[ch]
 lex.yy.c
-dtc
-ftdump
+*.lex.c
+/dtc
+/ftdump
+/convert-dtsv0
+/version_gen.h
