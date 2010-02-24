@@ -49,7 +49,12 @@
 
 #define DEFAULT_CMDLINE "mem=100M console=null";
 
+#ifdef MEMBASE
+#define EMMC_BOOT_IMG_HEADER_ADDR (0xFF000+(MEMBASE))
+#else
 #define EMMC_BOOT_IMG_HEADER_ADDR 0xFF000
+#endif
+
 #define RECOVERY_MODE   0x77665502
 #define FASTBOOT_MODE   0x77665500
 
