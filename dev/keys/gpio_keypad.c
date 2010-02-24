@@ -383,12 +383,28 @@ int pm8058_gpio_config_kypd_sns(int gpio_start, int num_gpios)
 	return 0;
 }
 
+void ssbi_gpio_init(void)
+{
+    unsigned char kypd_cntl_init = 0x84;
+    unsigned char kypd_scan_init = 0x20;
+
+    if (i2c_ssbi_write_bytes(&kypd_cntl_init, 1, SSBI_REG_KYPD_CNTL_ADDR))
+      dprintf (CRITICAL, "Error in initializing SSBI_REG_KYPD_CNTL register\n");
+
+    if (i2c_ssbi_write_bytes(&kypd_scan_init, 1, SSBI_REG_KYPD_SCAN_ADDR))
+      dprintf (CRITICAL, "Error in initializing SSBI_REG_KYPD_SCAN register\n");
+
+    pm8058_gpio_config_kypd_sns(SSBI_OFFSET_ADDR_GPIO_KYPD_SNS, NUM_OF_KYPD_SNS_GPIOS);
+    pm8058_gpio_config_kypd_drv(SSBI_OFFSET_ADDR_GPIO_KYPD_DRV,  NUM_OF_KYPD_DRV_GPIOS);
+}
+
 static enum handler_return
 scan_qwerty_keypad(struct timer *timer, time_t now, void *arg)
 {
     int rows = (qwerty_keypad->keypad_info)->rows;
     int columns = NUM_OF_KYPD_SNS_GPIOS;
-    unsigned char column_keys = 0x00;
+    unsigned char column_new_keys = 0x00;
+    unsigned char column_old_keys = 0x00;
     int shift = 0;
     static int key_detected = 0;
 
@@ -401,15 +417,18 @@ scan_qwerty_keypad(struct timer *timer, time_t now, void *arg)
       dprintf (CRITICAL, "Error in initializing SSBI_REG_KYPD_CNTL register\n");
 
     while (rows--) {
-        if ((qwerty_keypad->keypad_info)->rec_keys[rows] 
-                  != (qwerty_keypad->keypad_info)->old_keys[rows]) {
+         if (((qwerty_keypad->keypad_info)->rec_keys[rows]
+	      != (qwerty_keypad->keypad_info)->old_keys[rows])
+	      && ((qwerty_keypad->keypad_info)->rec_keys[rows] != 0x00)
+	     && ((qwerty_keypad->keypad_info)->old_keys[rows] != 0x00)) {
 	    while (columns--) {
-	        column_keys = ((qwerty_keypad->keypad_info)->rec_keys[rows]);
-	        if ((0x01 << columns) & (~column_keys)) {
+	        column_new_keys = ((qwerty_keypad->keypad_info)->rec_keys[rows]);
+	        column_old_keys = ((qwerty_keypad->keypad_info)->old_keys[rows]);
+	        if (((0x01 << columns) & (~column_new_keys))
+		    && !((0x01 << columns) & (~column_old_keys))) {
 	            shift = (rows * (qwerty_keypad->keypad_info)->columns) + columns;
 	            if ((qwerty_keypad->keypad_info)->keymap[shift]) {
-		        if (shift != key_detected) {
-			  // key_changed((qwerty_keypad->keypad_info)->keymap[shift], 1);
+		      if (shift != key_detected) {
 			    key_detected = shift;
 			    keys_post_event((qwerty_keypad->keypad_info)->keymap[shift], 1);
 		            event_signal(&qwerty_keypad->full_scan, false);
@@ -433,23 +452,6 @@ scan_qwerty_keypad(struct timer *timer, time_t now, void *arg)
 
     event_signal(&qwerty_keypad->full_scan, false);
     return INT_RESCHEDULE;
-
-}
-
-void ssbi_gpio_init(void)
-{
-    unsigned char kypd_cntl_init = 0x84;
-    unsigned char kypd_scan_init = 0x20;
-
-    if (i2c_ssbi_write_bytes(&kypd_cntl_init, 1, SSBI_REG_KYPD_CNTL_ADDR))
-      dprintf (CRITICAL, "Error in initializing SSBI_REG_KYPD_CNTL register\n");
-
-    if (i2c_ssbi_write_bytes(&kypd_scan_init, 1, SSBI_REG_KYPD_SCAN_ADDR))
-      dprintf (CRITICAL, "Error in initializing SSBI_REG_KYPD_SCAN register\n");
-
-    pm8058_gpio_config_kypd_sns(SSBI_OFFSET_ADDR_GPIO_KYPD_SNS, NUM_OF_KYPD_SNS_GPIOS);
-    pm8058_gpio_config_kypd_drv(SSBI_OFFSET_ADDR_GPIO_KYPD_DRV,  NUM_OF_KYPD_DRV_GPIOS);
-
 
 }
 
