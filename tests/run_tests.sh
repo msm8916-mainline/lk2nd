@@ -297,6 +297,13 @@ dtc_tests () {
 	 done
     done
 
+    # Check merge/overlay functionality
+    run_dtc_test -I dts -O dtb -o dtc_tree1_merge.test.dtb test_tree1_merge.dts
+    tree1_tests dtc_tree1_merge.test.dtb test_tree1.dtb
+    run_dtc_test -I dts -O dtb -o multilabel_merge.test.dtb multilabel_merge.dts
+    run_test references multilabel.test.dtb
+    run_test dtbs_equal_ordered multilabel.test.dtb multilabel_merge.test.dtb
+
     # Check some checks
     check_tests dup-nodename.dts duplicate_node_names
     check_tests dup-propname.dts duplicate_property_names

@@ -26,8 +26,14 @@
 
 void add_label(struct label **labels, char *label)
 {
-	struct label *new = xmalloc(sizeof(*new));
+	struct label *new;
 
+	/* Make sure the label isn't already there */
+	for_each_label(*labels, new)
+		if (streq(new->label, label))
+			return;
+
+	new = xmalloc(sizeof(*new));
 	new->label = label;
 	new->next = *labels;
 	*labels = new;
@@ -92,6 +98,73 @@ struct node *name_node(struct node *node, char *name)
 	node->name = name;
 
 	return node;
+}
+
+struct node *merge_nodes(struct node *old_node, struct node *new_node)
+{
+	struct property *new_prop, *old_prop;
+	struct node *new_child, *old_child;
+	struct label *l;
+
+	/* Add new node labels to old node */
+	for_each_label(new_node->labels, l)
+		add_label(&old_node->labels, l->label);
+
+	/* Move properties from the new node to the old node.  If there
+	 * is a collision, replace the old value with the new */
+	while (new_node->proplist) {
+		/* Pop the property off the list */
+		new_prop = new_node->proplist;
+		new_node->proplist = new_prop->next;
+		new_prop->next = NULL;
+
+		/* Look for a collision, set new value if there is */
+		for_each_property(old_node, old_prop) {
+			if (streq(old_prop->name, new_prop->name)) {
+				/* Add new labels to old property */
+				for_each_label(new_prop->labels, l)
+					add_label(&old_prop->labels, l->label);
+
+				old_prop->val = new_prop->val;
+				free(new_prop);
+				new_prop = NULL;
+				break;
+			}
+		}
+
+		/* if no collision occurred, add property to the old node. */
+		if (new_prop)
+			add_property(old_node, new_prop);
+	}
+
+	/* Move the override child nodes into the primary node.  If
+	 * there is a collision, then merge the nodes. */
+	while (new_node->children) {
+		/* Pop the child node off the list */
+		new_child = new_node->children;
+		new_node->children = new_child->next_sibling;
+		new_child->parent = NULL;
+		new_child->next_sibling = NULL;
+
+		/* Search for a collision.  Merge if there is */
+		for_each_child(old_node, old_child) {
+			if (streq(old_child->name, new_child->name)) {
+				merge_nodes(old_child, new_child);
+				new_child = NULL;
+				break;
+			}
+		}
+
+		/* if no collision occured, add child to the old node. */
+		if (new_child)
+			add_child(old_node, new_child);
+	}
+
+	/* The new node contents are now merged into the old node.  Free
+	 * the new node. */
+	free(new_node);
+
+	return old_node;
 }
 
 struct node *chain_node(struct node *first, struct node *list)

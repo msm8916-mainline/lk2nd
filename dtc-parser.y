@@ -75,6 +75,7 @@ static unsigned long long eval_literal(const char *s, int base, int bits);
 %type <proplist> proplist
 
 %type <node> devicetree
+%type <node> devicetrees
 %type <node> nodedef
 %type <node> subnode
 %type <nodelist> subnodes
@@ -82,7 +83,7 @@ static unsigned long long eval_literal(const char *s, int base, int bits);
 %%
 
 sourcefile:
-	  DT_V1 ';' memreserves devicetree
+	  DT_V1 ';' memreserves devicetrees
 		{
 			the_boot_info = build_boot_info($3, $4,
 							guess_boot_cpuid($4));
@@ -118,6 +119,17 @@ addr:
 			$$ = eval_literal($1, 0, 64);
 		}
 	  ;
+
+devicetrees:
+	  devicetree
+		{
+			$$ = $1;
+		}
+	| devicetrees devicetree
+		{
+			$$ = merge_nodes($1, $2);
+		}
+	;
 
 devicetree:
 	  '/' nodedef
