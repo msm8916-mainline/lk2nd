@@ -384,7 +384,8 @@ void cmd_flash(const char *arg, void *data, unsigned sz)
 		}
 	}
 
-	if (!strcmp(ptn->name, "system") || !strcmp(ptn->name, "userdata"))
+	if (!strcmp(ptn->name, "system") || !strcmp(ptn->name, "userdata")
+	    || !strcmp(ptn->name, "persist"))
 		extra = ((page_size >> 9) * 16);
 	else
 		sz = ROUND_TO_PAGE(sz, page_mask);
