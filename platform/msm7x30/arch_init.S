@@ -392,7 +392,7 @@ SYSI2:
         //; Users may want specific settings for various performance enhancements
         //; In Halcyon we do not have broadcasting barriers. So we need to turn
         //  ; on bit 8 of L2CR1; which DBB:( Disable barrier broadcast )
-        MOV r2, #0x100
+        LDR    r2, =0x133
         MCR    p15, 3, r2, c15, c0, 3     //; WCP15_L2CR1  r0
 
 
