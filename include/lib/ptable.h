@@ -2,6 +2,8 @@
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
  *
+ * Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -34,14 +36,20 @@
  * (flash erase units)
  */
 #define MAX_PTENTRY_NAME	16
-#define MAX_PTABLE_PARTS	16
+#define MAX_PTABLE_PARTS	32
 
+#define TYPE_MODEM_PARTITION	1
+#define TYPE_APPS_PARTITION	0
+#define PERM_NON_WRITEABLE	0
+#define PERM_WRITEABLE		1
 struct ptentry
 {
 	char name[MAX_PTENTRY_NAME];
 	unsigned start;
 	unsigned length;
 	unsigned flags;
+	char type;
+	char perm;
 };
 
 struct ptable
@@ -53,7 +61,7 @@ struct ptable
 /* tools to populate and query the partition table */
 void ptable_init(struct ptable *ptable);
 void ptable_add(struct ptable *ptable, char *name, unsigned start,
-		unsigned length, unsigned flags);
+		unsigned length, unsigned flags, char type, char perm);
 struct ptentry *ptable_find(struct ptable *ptable, const char *name);
 struct ptentry *ptable_get(struct ptable *ptable, int n);
 int ptable_size(struct ptable *ptable);

@@ -2,6 +2,8 @@
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
  *
+ * Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -31,6 +33,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <platform/iomap.h>
+#include <lib/ptable.h>
 
 #include "smem.h"
 
@@ -100,3 +103,33 @@ unsigned smem_get_apps_flash_start(void)
 {
 	return smem_apps_flash_start;
 }
+
+void smem_add_modem_partitions(struct ptable *flash_ptable)
+{
+	int i;
+
+	if (smem_ptable.magic[0] != _SMEM_PTABLE_MAGIC_1 ||
+	    smem_ptable.magic[1] != _SMEM_PTABLE_MAGIC_2)
+		return;
+
+	for (i = 0; i < 16; i++)
+	{
+		char * token;
+		char * pname = NULL;
+		struct smem_ptn *p = &smem_ptable.parts[i];
+			if (p->name[0] == '\0')
+				continue;
+		token = strtok(p->name, ":");
+		while (token)
+		{
+			pname = token;
+			token = strtok (NULL, ":");
+		}
+		if(pname)
+		{
+			ptable_add(flash_ptable, pname, p->start,
+				   p->size, 0, TYPE_MODEM_PARTITION, PERM_WRITEABLE);
+		}
+	}
+}
+

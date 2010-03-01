@@ -90,6 +90,8 @@ static void ptentry_to_tag(unsigned **ptr, struct ptentry *ptn)
 {
 	struct atag_ptbl_entry atag_ptn;
 
+	if (ptn->type == TYPE_MODEM_PARTITION)
+		return;
 	memcpy(atag_ptn.name, ptn->name, 16);
 	atag_ptn.name[15] = '\0';
 	atag_ptn.offset = ptn->start;
@@ -104,6 +106,7 @@ void boot_linux(void *kernel, unsigned *tags,
 		void *ramdisk, unsigned ramdisk_size)
 {
 	unsigned *ptr = tags;
+	unsigned pcount = 0;
 	void (*entry)(unsigned,unsigned,unsigned*) = kernel;
 	struct ptable *ptable;
 	int cmdline_len = 0;
@@ -126,7 +129,13 @@ void boot_linux(void *kernel, unsigned *tags,
 		/* Skip NAND partition ATAGS for eMMC boot */
 		if ((ptable = flash_get_ptable()) && (ptable->count != 0)) {
 			int i;
-			*ptr++ = 2 + (ptable->count * (sizeof(struct atag_ptbl_entry) /
+			for(i=0; i < ptable->count; i++) {
+				struct ptentry *ptn;
+				ptn =  ptable_get(ptable, i);
+				if (ptn->type == TYPE_APPS_PARTITION)
+					pcount++;
+			}
+			*ptr++ = 2 + (pcount * (sizeof(struct atag_ptbl_entry) /
 						       sizeof(unsigned)));
 			*ptr++ = 0x4d534d70;
 			for (i = 0; i < ptable->count; ++i)

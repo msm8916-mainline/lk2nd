@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
- * Copyright (c) 2009, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -152,8 +152,10 @@ void target_init(void)
 			next_ptr_start_adr = ptn->start + ptn->length;
 		}
 		ptable_add(&flash_ptable, ptn->name, offset + ptn->start,
-			   len, ptn->flags);
+			   len, ptn->flags, TYPE_APPS_PARTITION, PERM_WRITEABLE);
 	}
+
+	smem_add_modem_partitions(&flash_ptable);
 
 	ptable_dump(&flash_ptable);
 	flash_set_ptable(&flash_ptable);

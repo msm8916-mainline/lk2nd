@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
- * Copyright (c) 2009, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -69,6 +69,8 @@ static void dmov_prep_ch(dmov_ch *ch, unsigned id)
 #define NAND_CFG1_RAW 0x5045D
 
 static unsigned CFG0, CFG1;
+static unsigned CFG0_M, CFG1_M;
+static unsigned CFG0_A, CFG1_A;
 
 #define CFG1_WIDE_FLASH (1U << 1)
 
@@ -137,6 +139,19 @@ static struct flash_identification supported_flash[] =
 	/* Note: Onenand flag is 0 for NAND Flash and 1 for OneNAND flash	*/
 	/* Note: The First row will be filled at runtime during ONFI probe	*/
 };
+static void set_nand_configuration(char type)
+{
+	if(type == TYPE_MODEM_PARTITION)
+	{
+		CFG0 = CFG0_M;
+		CFG1 = CFG1_M;
+	}
+	else
+	{
+		CFG0 = CFG0_A;
+		CFG1 = CFG1_A;
+	}
+}
 
 static void flash_nand_read_id(dmov_s *cmdlist, unsigned *ptrlist)
 {
@@ -525,6 +540,11 @@ static int _flash_nand_write_page(dmov_s *cmdlist, unsigned *ptrlist, unsigned p
 	unsigned n;
 	unsigned cwperpage;
 	cwperpage = (flash_pagesize >> 9);
+	unsigned modem_partition = 0;
+	if (CFG0 == CFG0_M)
+	{
+		modem_partition = 1;
+	}
 
 	data->cmd = NAND_CMD_PRG_PAGE;
 	data->addr0 = page << 16;
@@ -544,7 +564,10 @@ static int _flash_nand_write_page(dmov_s *cmdlist, unsigned *ptrlist, unsigned p
 	/* GO bit for the EXEC register */
 	data->exec = 1;
 
-	data->ecc_cfg = 0x203;
+	if (modem_partition)
+		data->ecc_cfg = 0x1FF;
+	else
+		data->ecc_cfg = 0x203;
 
 	/* save existing ecc config */
 	cmd->cmd = CMD_OCB;
@@ -581,15 +604,20 @@ static int _flash_nand_write_page(dmov_s *cmdlist, unsigned *ptrlist, unsigned p
 		cmd->cmd = 0;
 		cmd->dst = NAND_FLASH_BUFFER;
 		if (!raw_mode){
-			cmd->src = addr + n * 516;
-			cmd->len = ((n < (cwperpage - 1)) ? 516 : (512 - ((cwperpage - 1) << 2)));
+			if(modem_partition){
+				cmd->src = addr + n * 512;
+				cmd->len = 512;
+			}else{
+				cmd->src = addr + n * 516;
+				cmd->len = ((n < (cwperpage - 1)) ? 516 : (512 - ((cwperpage - 1) << 2)));
+			}
 		}else{
 			cmd->src = addr;
 			cmd->len =  528;
 		}
 		cmd++;
 
-		if ((n == (cwperpage - 1)) && (!raw_mode)) {
+		if ((n == (cwperpage - 1)) && (!raw_mode) && (!modem_partition)) {
 			/* write extra data */
 			cmd->cmd = 0;
 			cmd->src = spareaddr;
@@ -677,30 +705,33 @@ unsigned nand_cfg1;
 
 static int flash_nand_read_config(dmov_s *cmdlist, unsigned *ptrlist)
 {
+	static unsigned CFG0_TMP, CFG1_TMP;
 	cmdlist[0].cmd = CMD_OCB;
 	cmdlist[0].src = NAND_DEV0_CFG0;
-	cmdlist[0].dst = paddr(&CFG0);
+	cmdlist[0].dst = paddr(&CFG0_TMP);
 	cmdlist[0].len = 4;
 
 	cmdlist[1].cmd = CMD_OCU | CMD_LC;
 	cmdlist[1].src = NAND_DEV0_CFG1;
-	cmdlist[1].dst = paddr(&CFG1);
+	cmdlist[1].dst = paddr(&CFG1_TMP);
 	cmdlist[1].len = 4;
 
 	*ptrlist = (paddr(cmdlist) >> 3) | CMD_PTR_LP;
 
 	dmov_exec_cmdptr(DMOV_NAND_CHAN, ptrlist);
 
-	if((CFG0 == 0) || (CFG1 == 0)) {
+	if((CFG0_TMP == 0) || (CFG1_TMP == 0)) {
 		return -1;
 	}
 
+	CFG0_A = CFG0_TMP;
+	CFG1_A = CFG1_TMP;
 	if (flash_info.type == FLASH_16BIT_NAND_DEVICE) {
 		nand_cfg1 |= CFG1_WIDE_FLASH;
 	}
 	dprintf(INFO, "nandcfg: %x %x (initial)\n", CFG0, CFG1);
 
-	CFG0 = (((flash_pagesize >> 9) - 1) <<  6)  /* 4/8 cw/pg for 2/4k */
+	CFG0_A = (((flash_pagesize >> 9) - 1) <<  6)  /* 4/8 cw/pg for 2/4k */
 		|	(516 <<  9)  /* 516 user data bytes */
 		|	(10 << 19)  /* 10 parity bytes */
 		|	(5 << 27)  /* 5 address cycles */
@@ -708,7 +739,7 @@ static int flash_nand_read_config(dmov_s *cmdlist, unsigned *ptrlist)
 		|	(1 << 31)  /* Send read cmd */
 			/* 0 spare bytes for 16 bit nand or 1 spare bytes for 8 bit */
 		|	((nand_cfg1 & CFG1_WIDE_FLASH) ? (0 << 23) : (1 << 23));
-	CFG1 = (0 <<  0)  /* Enable ecc */
+	CFG1_A = (0 <<  0)  /* Enable ecc */
 		|	(7 <<  2)  /* 8 recovery cycles */
 		|	(0 <<  5)  /* Allow CS deassertion */
 	  	|	((flash_pagesize - (528 * ((flash_pagesize >> 9) - 1)) + 1) <<  6)	/* Bad block marker location */
@@ -716,8 +747,28 @@ static int flash_nand_read_config(dmov_s *cmdlist, unsigned *ptrlist)
 		|	(2 << 17)  /* 6 cycle tWB/tRB */
 		|	(nand_cfg1 & CFG1_WIDE_FLASH); /* preserve wide flash flag */
 
-	dprintf(INFO, "nandcfg: %x %x (used)\n", CFG0, CFG1);
+	dprintf(INFO, "nandcfg(Apps): %x %x (used)\n", CFG0_A, CFG1_A);
 
+	CFG0_M = CFG0_TMP;
+	CFG1_M = CFG1_TMP;
+	if (flash_info.type == FLASH_16BIT_NAND_DEVICE) {
+		nand_cfg1 |= CFG1_WIDE_FLASH;
+	}
+	CFG0_M = (((flash_pagesize >> 9) - 1) <<  6)  /* 4/8 cw/pg for 2/4k */
+		|	(512 <<  9) /* 512 user data bytes */
+		|	(10 << 19)  /* 10 parity bytes */
+		|	(5 << 27)  /* 5 address cycles */
+		|	(0 << 30)  /* Do not read status before data */
+		|	(1 << 31)  /* Send read cmd */
+		|	((nand_cfg1 & CFG1_WIDE_FLASH) ? (4 << 23) : (5 << 23));
+	CFG1_M = (0 <<  0)  /* Enable ecc */
+		|	(7 <<  2)  /* 8 recovery cycles */
+		|	(0 <<  5)  /* Allow CS deassertion */
+		|	((flash_pagesize - (528 * ((flash_pagesize >> 9) - 1)) + 1) <<  6)	/* Bad block marker location */
+		|	(0 << 16)  /* Bad block in user data area */
+		|	(2 << 17)  /* 6 cycle tWB/tRB */
+		|	(nand_cfg1 & CFG1_WIDE_FLASH); /* preserve wide flash flag */
+	dprintf(INFO, "nandcfg(Modem): %x %x (used)\n", CFG0_M, CFG1_M);
 	return 0;
 }
 
@@ -2244,6 +2295,7 @@ int flash_erase(struct ptentry *ptn)
 	unsigned block = ptn->start;
 	unsigned count = ptn->length;
 
+	set_nand_configuration(ptn->type);
 	while(count-- > 0) {
 		if(flash_erase_block(flash_cmdlist, flash_ptrlist, block * 64)) {
 			dprintf(INFO, "cannot erase @ %d (bad block?)\n", block);
@@ -2266,6 +2318,9 @@ int flash_read_ext(struct ptentry *ptn, unsigned extra_per_page,
 	unsigned start_block = ptn->start;
 	int result = 0;
 	int isbad = 0;
+
+	ASSERT(ptn->type == TYPE_APPS_PARTITION);
+	set_nand_configuration(TYPE_APPS_PARTITION);
 
 	if(offset & (flash_pagesize - 1))
 		return -1;
@@ -2323,6 +2378,13 @@ int flash_write(struct ptentry *ptn, unsigned extra_per_page, const void *data,
 	unsigned n;
 	int r;
 
+	if ((flash_info.type == FLASH_ONENAND_DEVICE) && (ptn->type == TYPE_MODEM_PARTITION))
+	{
+		dprintf(CRITICAL, "flash_write_image: feature not supported\n");
+		return -1;
+	}
+
+	set_nand_configuration(ptn->type);
 	for(n = 0; n < 16; n++) spare[n] = 0xffffffff;
 
 	while(bytes > 0) {
@@ -2356,7 +2418,9 @@ int flash_write(struct ptentry *ptn, unsigned extra_per_page, const void *data,
 			if(flash_erase_block(flash_cmdlist, flash_ptrlist, page)) {
 				dprintf(INFO, "flash_write_image: erase failure @ page %d\n", page);
 			}
-			flash_mark_badblock(flash_cmdlist, flash_ptrlist, page);
+			if (ptn->type != TYPE_MODEM_PARTITION) {
+				flash_mark_badblock(flash_cmdlist, flash_ptrlist, page);
+			}
 			dprintf(INFO, "flash_write_image: restart write @ page %d (src %d)\n", page, image - (const unsigned char *)data);
 			page += 64;
 			continue;

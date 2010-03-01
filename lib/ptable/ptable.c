@@ -2,6 +2,8 @@
  * Copyright (C) 2008 The Android Open Source Project
  * All rights reserved.
  *
+ *Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -38,8 +40,11 @@ void ptable_init(struct ptable *ptable)
 	memset(ptable, 0, sizeof(struct ptable));
 }
 
+char* ptype[] = {"Apps", "Modem"};
+char* pperm[] = {"No", "Yes"};
+
 void ptable_add(struct ptable *ptable, char *name, unsigned start,
-		unsigned length, unsigned flags)
+		unsigned length, unsigned flags, char type, char perm)
 {
 	struct ptentry *ptn;
 
@@ -50,6 +55,8 @@ void ptable_add(struct ptable *ptable, char *name, unsigned start,
 	ptn->start = start;
 	ptn->length = length;
 	ptn->flags = flags;
+	ptn->type = type;
+	ptn->perm = perm;
 }
 
 void ptable_dump(struct ptable *ptable)
@@ -60,8 +67,8 @@ void ptable_dump(struct ptable *ptable)
 	for (i = 0; i < ptable->count; ++i) {
 		ptn = &ptable->parts[i];
 		dprintf(INFO, "ptn %d name='%s' start=%08x len=%08x "
-			"flags=%08x\n", i, ptn->name, ptn->start, ptn->length,
-			ptn->flags);
+			"flags=%08x type=%s Writable=%s\n", i, ptn->name, ptn->start, ptn->length,
+			ptn->flags, ptype[ptn->type], pperm[ptn->perm]);
 	}
 }
 
