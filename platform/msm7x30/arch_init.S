@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
- * Copyright (c) 2009, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -36,7 +36,7 @@
  * - do we need to do *all* of this at boot?
  */
 
-.text		
+.text
 .code 32
 
 #define DSB .byte 0x4f, 0xf0, 0x7f, 0xf5
@@ -62,133 +62,232 @@
 //;; Number of TCXO cycles to count ring oscillations
 .equ TCXO_CNT_VAL,     0x100
 
-//; Raptor addresses
-.equ TCSR_SPARE2,      0xA8700060
+//; Halcyon addresses
+.equ TCSR_CONF_FUSE_1, 0xAB600060 //; TCSR_CONF_FUSE_1 register
+.equ TCSR_CONF_FUSE_4, 0xAB60006C //; TCSR_CONF_FUSE_4 register
 
+//; SCORPION_L1_ACC (1:0) Fuses bit location
+.equ L1_ACC_BIT_0,     12       //;12th bit of TCSR_CONF_FUSE_4
+.equ L1_ACC_BIT_1,     13       //;13th bit of TCSR_CONF_FUSE_4
+//; SCORPION_L2_ACC (2:0) Fuses bit location
+.equ L2_ACC_BIT_0,     25       //;25th bit of TCSR_CONF_FUSE_1
+.equ L2_ACC_BIT_1,     10       //;10th bit of TCSR_CONF_FUSE_4
+.equ L2_ACC_BIT_2,     11       //;11th bit of TCSR_CONF_FUSE_4
+
+//; CP15: PVR2F0 values according to  SCORPION_L1_ACC (1:0)
+.equ PVR2F0_00,        0x00000000
+.equ PVR2F0_01,        0x04000000
+.equ PVR2F0_10,        0x08000000
+.equ PVR2F0_11,        0x0C000000
+
+//; CP15: PVR2F1 values according to  SCORPION_L1_ACC (1:0)
+.equ PVR2F1_00,        0x00000008
+.equ PVR2F1_01,        0x00000008
+.equ PVR2F1_10,        0x00000208
+.equ PVR2F1_11,        0x00000208
+
+//; CP15: PVR0F2 values according to  SCORPION_L1_ACC (1:0)
+.equ PVR0F2_00,        0x00000000
+.equ PVR0F2_01,        0x00000000
+.equ PVR0F2_10,        0x00000200
+.equ PVR0F2_11,        0x00000200
+
+//; CP15: PVR0F0 values according to  SCORPION_L1_ACC (1:0)
+.equ PVR0F0_00,        0x7F000000
+.equ PVR0F0_01,        0x7F000400
+.equ PVR0F0_10,        0x7F000000
+.equ PVR0F0_11,        0x7F000400
+
+//; CP15: L2VR3F1 values according to  SCORPION_L2_ACC (2:0)
+.equ L2VR3F1_000,      0x00FFFF60
+.equ L2VR3F1_001,      0x00FFFF40
+.equ L2VR3F1_010,      0x00FFFC60
+.equ L2VR3F1_011,      0x00FFFC40
+.equ L2VR3F1_100,      0x00FCFF60
+.equ L2VR3F1_101,      0x00FCFF40
+.equ L2VR3F1_110,      0x00FCFC60
+.equ L2VR3F1_111,      0x00FCFC40
 
 .globl SET_SA
 SET_SA:
-        //; no stack at this point and any registers we use will be 0'd
-        //; after we return
-        LDR     r0, =TCSR_SPARE2
-        LDR     r1, [r0]
-        LDR     r0, = 0x010F
-        AND     r2, r1, r0   //; concerned with bits [8, 3:0]
 
         //;--------------------------------------------------------------------
         //; Fuse bits used to determine sense amp settings
         //;--------------------------------------------------------------------
 
-        LDR     r0, = 0x0105
-        AND     r4, r2, r0    //;  mask off all but L1 ACC2, L1 ACC1 and L1 ACC0
-        //;set to default of FC00
-        LDR     r5, =PVR0F0_6bits    //; point to PVR0F0
-        LDR     r3, =PVR2F0_6bits    //; point to PVR2F0
+        //; Reading L1_ACC
+        LDR     r4, = 0x0
 
-ck_0:
-        //; if L1_[2:0] == 000 then ACC setting = FC00
-        LDR     r1, = 0x0
-        CMP     r4, r1
-        BNE     ck_1
+        //; Read L1_ACC_BIT_0
+        LDR     r1, =TCSR_CONF_FUSE_4
+        LDR     r2, =L1_ACC_BIT_0
+        LDR     r3, [r1]
+        MOV     r3, r3, LSR r2
+        AND     r3, r3, #1
+        ORR     r4, r3, r4
+
+        //; Read L1_ACC_BIT_1
+        LDR     r1, =TCSR_CONF_FUSE_4
+        LDR     r2, =L1_ACC_BIT_1
+        LDR     r3, [r1]
+        MOV     r3, r3, LSR r2
+        AND     r3, r3, #1
+        MOV     r3, r3, LSL #1
+        ORR     r4, r3, r4
+
+l1_ck_0:
+        //; if L1_[1:0] == 00
+        LDR     r5, = 0x0
+        CMP     r4, r5
+        BNE     l1_ck_1
+        LDR     r0, =PVR0F0_00
+        LDR     r1, =PVR0F2_00
+        LDR     r2, =PVR2F0_00
+        LDR     r3, =PVR2F1_00
         B       WRITE_L1_SA_SETTINGS
 
-ck_1:
-        //; if L1_[2:0] == 001 then ACC setting = FC00
+l1_ck_1:
+        //; if L1_[1:0] == 01
         LDR     r1, = 0x01
         CMP     r4, r1
-        BNE     ck_2
+        BNE     l1_ck_2
+        LDR     r0, =PVR0F0_01
+        LDR     r1, =PVR0F2_01
+        LDR     r2, =PVR2F0_01
+        LDR     r3, =PVR2F1_01
         B       WRITE_L1_SA_SETTINGS
 
-ck_2:
-        //; if L1_[2:0] == 010 then ACC setting = 7C00
-        LDR     r1, = 0x04
+l1_ck_2:
+        //; if L1_[2:0] == 10
+        LDR     r1, = 0x02
         CMP     r4, r1
-        BNE     ck_3
-        LDR     r5, =PVR0F0_5bits    //; point to PVR0F0
-        LDR     r3, =PVR2F0_5bits    //; point to PVR2F0
+        BNE     l1_ck_3
+        LDR     r0, =PVR0F0_10
+        LDR     r1, =PVR0F2_10
+        LDR     r2, =PVR2F0_10
+        LDR     r3, =PVR2F1_10
         B       WRITE_L1_SA_SETTINGS
 
-ck_3:
-        //; if L1_[2:0] == 011 then ACC setting = FC00
-        LDR     r1, = 0x05
+l1_ck_3:
+        //; if L1_[2:0] == 11
+        LDR     r1, = 0x03
         CMP     r4, r1
-        BNE     ck_4
-        LDR     r5, =PVR0F0_6bits    //; point to PVR0F0
-        LDR     r3, =PVR2F0_6bits    //; point to PVR2F0
+        LDR     r0, =PVR0F0_11
+        LDR     r1, =PVR0F2_11
+        LDR     r2, =PVR2F0_11
+        LDR     r3, =PVR2F1_11
         B       WRITE_L1_SA_SETTINGS
 
-ck_4:
-        //; if L1_[2:0] == 0100 then ACC setting = 3C00
-        LDR     r1, = 0x0100
-        CMP     r4, r1
-        BNE     ck_5
-        LDR     r5, =PVR0F0_4bits    //; point to PVR0F0
-        LDR     r3, =PVR2F0_4bits    //; point to PVR2F0
-        B       WRITE_L1_SA_SETTINGS
-
-ck_5:
-        //; if L1_[2:0] == 0101 then ACC setting = 0400
-        LDR     r1, = 0x0101
-        CMP     r4, r1
-        BNE     ck_6
-        LDR     r5, =PVR0F0_1bits    //; point to PVR0F0
-        LDR     r3, =PVR2F0_1bits    //; point to PVR2F0
-        B       WRITE_L1_SA_SETTINGS
-
-ck_6:
-        //; if L1_[2:0] == 0110 then ACC setting = 0C00
-        LDR     r1, = 0x0104
-        CMP     r4, r1
-        BNE     ck_7
-        LDR     r5, =PVR0F0_2bits    //; point to PVR0F0
-        LDR     r3, =PVR2F0_2bits    //; point to PVR2F0
-        B       WRITE_L1_SA_SETTINGS
-
-ck_7:
-        //; if L1_[2:0] == 0111 then ACC setting = 1C00
-        LDR     r1, = 0x0105
-        CMP     r4, r1
-        LDREQ   r5, =PVR0F0_3bits    //; point to PVR0F0
-        LDREQ   r3, =PVR2F0_3bits    //; point to PVR2F0
 
 WRITE_L1_SA_SETTINGS:
 
-        LDR     r5, [r5]
-        LDR     r3, [r3]
+        //;WCP15_PVR0F0   r0
+        MCR     p15, 0x0, r0, c15, c15, 0x0   //; write R0 to PVR0F0
 
-        //;WCP15_PVR0F0   r5
-        MCR     p15,0x0,r5,c15,c15,0   //; write R5 to PVR0F0
+        //;WCP15_PVR0F2   r1
+        MCR     p15, 0x0, r1, c15, c15, 0x2   //; write R1 to PVR0F2
 
-        //;WCP15_PVR2F0   r3
-        MCR     p15,0x2,r3,c15,c15,0   //; write R3 to PVR2F0
+        //;WCP15_PVR2F0   r2
+        MCR     p15, 0x2, r2, c15, c15, 0x2   //; write R2 to PVR2F0
 
-        AND     r4, r2, #0x000A    //;  mask off all but L2 array SA settings
-        LDR     r5, =HVT_010102    //; point to L2VR3F1 setting
-                       //;it gets ovewritten if its one of the other two cases
-        //; if L2_1 and L2_0 == 0     ACC setting = 010102
-        LDR     r1, = 0x0000
-        CMP     r4, r1
-        BEQ     WRITE_L2_SA_SETTINGS
+        //;WCP15_PVR2F1   r3
+        MCR     p15, 0x2, r3, c15, c15, 0x1   //; write R3 to PVR2F1
 
-        //; if L2_1 = 0 & L2_0 = 1    ACC setting = 010102
-        LDR     R1, = 0x0002
-        CMP     r4, r1
-        BEQ     WRITE_L2_SA_SETTINGS
+        //; Reading L2_ACC
+        LDR     r4, = 0x0
 
-        //; if L2_1 = 1 & L2_0 = 0    ACC setting = 010101
-        LDR     r5, =HVT_010101
-        LDR     R1, = 0x0008
-        CMP     r4, r1
-        BEQ     WRITE_L2_SA_SETTINGS
+        //; Read L2_ACC_BIT_0
+        LDR     r1, =TCSR_CONF_FUSE_1
+        LDR     r2, =L2_ACC_BIT_0
+        LDR     r3, [r1]
+        MOV     r3, r3, LSR r2
+        AND     r3, r3, #1
+        ORR     r4, r3, r4
 
-        //; else L2_1 = 1 & L2_0 = 1  ACC setting = 212102
-        LDR     r5, =HVT_212102
+        //; Read L2_ACC_BIT_1
+        LDR     r1, =TCSR_CONF_FUSE_4
+        LDR     r2, =L2_ACC_BIT_1
+        LDR     r3, [r1]
+        MOV     r3, r3, LSR r2
+        AND     r3, r3, #1
+        MOV     r3, r3, LSL #1
+        ORR     r4, r3, r4
 
+        //; Read L2_ACC_BIT_2
+        LDR     r1, =TCSR_CONF_FUSE_4
+        LDR     r2, =L2_ACC_BIT_2
+        LDR     r3, [r1]
+        MOV     r3, r3, LSR r2
+        AND     r3, r3, #1
+        MOV     r3, r3, LSL #2
+        ORR     r4, r3, r4
+
+l2_ck_0:
+        //; if L2_[2:0] == 000
+        LDR     r5, = 0x0
+        CMP     r4, r5
+        BNE     l2_ck_1
+        LDR     r0, =L2VR3F1_000
+        B       WRITE_L2_SA_SETTINGS
+
+l2_ck_1:
+        //; if L2_[2:0] == 001
+        LDR     r5, = 0x1
+        CMP     r4, r5
+        BNE     l2_ck_2
+        LDR     r0, =L2VR3F1_001
+        B       WRITE_L2_SA_SETTINGS
+
+l2_ck_2:
+        //; if L2_[2:0] == 010
+        LDR     r5, = 0x2
+        CMP     r4, r5
+        BNE     l2_ck_3
+        LDR     r0, =L2VR3F1_010
+        B       WRITE_L2_SA_SETTINGS
+
+l2_ck_3:
+        //; if L2_[2:0] == 011
+        LDR     r5, = 0x3
+        CMP     r4, r5
+        BNE     l2_ck_4
+        LDR     r0, =L2VR3F1_011
+        B       WRITE_L2_SA_SETTINGS
+
+l2_ck_4:
+        //; if L2_[2:0] == 100
+        LDR     r5, = 0x4
+        CMP     r4, r5
+        BNE     l2_ck_5
+        LDR     r0, =L2VR3F1_100
+        B       WRITE_L2_SA_SETTINGS
+
+l2_ck_5:
+        //; if L2_[2:0] == 101
+        LDR     r5, = 0x5
+        CMP     r4, r5
+        BNE     l2_ck_6
+        LDR     r0, =L2VR3F1_101
+        B       WRITE_L2_SA_SETTINGS
+
+l2_ck_6:
+        //; if L2_[2:0] == 110
+        LDR     r5, = 0x6
+        CMP     r4, r5
+        BNE     l2_ck_7
+        LDR     r0, =L2VR3F1_110
+        B       WRITE_L2_SA_SETTINGS
+
+l2_ck_7:
+        //; if L2_[2:0] == 111
+        LDR     r5, = 0x7
+        CMP     r4, r5
+        LDR     r0, =L2VR3F1_111
+        B       WRITE_L2_SA_SETTINGS
 
 WRITE_L2_SA_SETTINGS:
-        //;WCP15_L2VR3F1  r4
-        LDR     r5, [r5]
-        MCR     p15,0x3,r5,c15,c15,1     //;write r4 to L2VR3F1
+        //;WCP15_L2VR3F1  r0
+        MCR     p15, 0x3, r0, c15, c15, 0x1     //;write r0 to L2VR3F1
 
         LDR     r0, =0                   //;make sure the registers we touched
         LDR     r1, =0                   //;are cleared when we return
@@ -199,53 +298,6 @@ WRITE_L2_SA_SETTINGS:
 
         //; routine complete
         BX      LR
-
-//; L1 SA settings according to LVT speed
-PVR0F0_0bits:
-.word 0x38000000 //; PVR0F0
-PVR2F0_0bits:
-.word 0x00000000 //; PVR2F0  0 bits set
-
-PVR0F0_1bits:
-.word 0x38000400 //; PVR0F0
-PVR2F0_1bits:
-.word 0x04000000 //; PVR2F0  1 bits set
-
-PVR0F0_2bits:
-.word 0x38000C00 //; PVR0F0
-PVR2F0_2bits:
-.word 0x0C000000 //; PVR2F0  2 bits set
-
-PVR0F0_3bits:
-.word 0x38001C00 //; PVR0F0
-PVR2F0_3bits:
-.word 0x1C000000 //; PVR2F0  3 bits set
-
-PVR0F0_4bits:
-.word 0x38003C00 //; PVR0F0
-PVR2F0_4bits:
-.word 0x3C000000 //; PVR2F0  4 bits set
-
-PVR0F0_5bits:
-.word 0x38007C00 //; PVR0F0
-PVR2F0_5bits:
-.word 0x7C000000 //; PVR2F0  5 bits set
-
-PVR0F0_6bits:
-.word 0x3800FC00 //; PVR0F0
-PVR2F0_6bits:
-.word 0xFC000000 //; PVR2F0  6 bits set
-
-//; L2 SA settings according to HVT speed
-HVT_212102:
-.word 0x00212102 //; L2VR3F1
-
-HVT_010102:
-.word 0x00010102 //; L2VR3F1
-
-HVT_010101:
-.word 0x00010101 //; L2VR3F1
-
 
 .ltorg
 
