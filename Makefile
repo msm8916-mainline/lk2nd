@@ -16,7 +16,9 @@ LOCAL_VERSION =
 CONFIG_LOCALVERSION =
 
 CPPFLAGS = -I libfdt
-CFLAGS = -Wall -g -Os -fPIC -Wpointer-arith -Wcast-qual
+WARNINGS = -Werror -Wall -Wpointer-arith -Wcast-qual -Wnested-externs \
+	-Wstrict-prototypes -Wmissing-prototypes
+CFLAGS = -g -Os -fPIC -Werror $(WARNINGS)
 
 BISON = bison
 LEX = flex
