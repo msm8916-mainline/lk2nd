@@ -64,7 +64,7 @@ struct smem {
 	struct smem_alloc_info		alloc_info[128];
 };
 
-struct smem_board_info
+struct smem_board_info_v3
 {
     unsigned format;
     unsigned msm_id;
@@ -73,6 +73,13 @@ struct smem_board_info
     unsigned raw_msm_id;
     unsigned raw_msm_version;
     unsigned hw_platform;
+};
+
+struct smem_board_info_v4
+{
+    struct smem_board_info_v3 board_info_v3;
+    unsigned platform_version;
+    unsigned buffer_align; //Need for 8 bytes alignment while reading from shared memory.
 };
 
 typedef enum {

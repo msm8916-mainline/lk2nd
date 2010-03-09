@@ -56,6 +56,7 @@ enum platform
 #define NUM_PAGES_PER_BLOCK    0x40
 
 static struct ptable flash_ptable;
+static int hw_platform_type = -1;
 
 /* for these partitions, start will be offset by either what we get from
  * smem, or from the above offset if smem is not useful. Also, we should
@@ -106,6 +107,7 @@ void keypad_init(void);
 
 static int emmc_boot = -1;  /* set to uninitialized */
 int target_is_emmc_boot(void);
+static int platform_version = -1;
 
 void target_init(void)
 {
@@ -174,36 +176,62 @@ void target_init(void)
 	flash_set_ptable(&flash_ptable);
 }
 
+int target_platform_version(void)
+{
+    return platform_version;
+}
+
 unsigned board_machtype(void)
 {
-    struct smem_board_info board_info;
-    unsigned int board_info_struct_len = sizeof(board_info);
+    struct smem_board_info_v4 board_info_v4;
+    unsigned int board_info_len = 0;
     enum platform platform_type = 0;
     unsigned smem_status;
+    unsigned format = 0;
+    if(hw_platform_type != -1)
+        return hw_platform_type;
 
-    smem_status = smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
-					&board_info, board_info_struct_len );
+    smem_status = smem_read_alloc_entry_offset(SMEM_BOARD_INFO_LOCATION,
+					       &format, sizeof(format), 0);
     if(smem_status)
     {
-      dprintf(CRITICAL, "ERROR: unable to read shared memory for Hardware Platform\n");
+      dprintf(CRITICAL, "ERROR: unable to read shared memory for offset entry\n");
     }
 
-    if (board_info.format == 3)
+    if ((format == 3) || (format == 4))
     {
-        platform_type = board_info.hw_platform;
+        if (format == 4)
+	    board_info_len = sizeof(board_info_v4);
+	else
+	    board_info_len = sizeof(board_info_v4.board_info_v3);
+
+        smem_status = smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
+					&board_info_v4, board_info_len);
+        if(smem_status)
+        {
+            dprintf(CRITICAL, "ERROR: unable to read shared memory for Hardware Platform\n");
+        }
+
+	if(format == 4)
+	    platform_version = board_info_v4.platform_version;
+
+        platform_type = board_info_v4.board_info_v3.hw_platform;
         switch (platform_type)
 	{
 	case HW_PLATFORM_SURF:
-	    return LINUX_MACHTYPE_SURF;
+	    hw_platform_type = LINUX_MACHTYPE_SURF;    break;
 	case HW_PLATFORM_FFA:
-	    return LINUX_MACHTYPE_FFA;
+	    hw_platform_type = LINUX_MACHTYPE_FFA;    break;
 	case HW_PLATFORM_FLUID:
-	    return LINUX_MACHTYPE_FLUID;
+	    hw_platform_type = LINUX_MACHTYPE_FLUID;  break;
 	default:
-            return LINUX_MACHTYPE_SURF;
+            hw_platform_type = LINUX_MACHTYPE_SURF;
 	}
+	return hw_platform_type;
     }
-    return LINUX_MACHTYPE_SURF;
+
+    hw_platform_type = LINUX_MACHTYPE_SURF;
+    return hw_platform_type;
 }
 
 void reboot_device(unsigned reboot_reason)

@@ -41,26 +41,42 @@ static int target_is_msm7x30_lpddr1(void);
 
 int target_is_msm7x30_lpddr1(void)
 {
-    struct smem_board_info board_info;
-    unsigned int board_info_struct_len = sizeof(board_info);
+    struct smem_board_info_v4 board_info_v4;
+    unsigned int board_info_len = 0;
     unsigned smem_status;
     char *build_type;
+    unsigned format = 0;
 
     if (msm7x30_lpddr1 != -1)
     {
         return msm7x30_lpddr1;
     }
 
-    smem_status = smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
-					&board_info, board_info_struct_len );
+    smem_status = smem_read_alloc_entry_offset(SMEM_BOARD_INFO_LOCATION,
+					       &format, sizeof(format), 0);
     if(smem_status)
     {
-      dprintf(CRITICAL, "ERROR: unable to read shared memory for build id\n");
+      dprintf(CRITICAL, "ERROR: unable to read shared memory for offset entry\n");
+    }
+
+    if ((format == 3) || (format == 4))
+    {
+        if (format == 4)
+	    board_info_len = sizeof(board_info_v4);
+	else
+	    board_info_len = sizeof(board_info_v4.board_info_v3);
+
+        smem_status = smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
+					&board_info_v4, board_info_len);
+        if(smem_status)
+        {
+            dprintf(CRITICAL, "ERROR: unable to read shared memory for Hardware Platform\n");
+        }
     }
 
     msm7x30_lpddr1 = 1;
 
-    build_type  = (char *)(board_info.build_id) + 8;
+    build_type  = (char *)(board_info_v4.board_info_v3.build_id) + 8;
     if (*build_type == 'A')
     {
         msm7x30_lpddr1 = 0;
