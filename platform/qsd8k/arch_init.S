@@ -334,6 +334,11 @@ __cpu_early_init:
         //; DCIALL to invalidate entire D-Cache
         MCR    p15, 0, r0, c9, c0, 6    //; DCIALL  r0
 
+	//; Initialize ADFSR to zero
+        MCR    p15, 0, r0, c5, c1, 0    //; ADFSR   r0
+
+	//; Initialize EFSR to zero
+        MCR    p15, 7, r0, c15, c0, 1   //; EFSR    r0
 
         //; The VBAR (Vector Base Address Register) should be initialized
         //; early in your code. We are setting it to zero
