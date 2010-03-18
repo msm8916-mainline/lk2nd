@@ -37,9 +37,14 @@
 #include <dev/flash.h>
 #include <smem.h>
 
-#define LINUX_MACHTYPE_SURF  1007016
-#define LINUX_MACHTYPE_FFA   1007017
-#define LINUX_MACHTYPE_FLUID 1007018
+#define LINUX_MACHTYPE_7x30_SURF   1007016
+#define LINUX_MACHTYPE_7x30_FFA    1007017
+#define LINUX_MACHTYPE_7x30_FLUID  1007018
+#define LINUX_MACHTYPE_8x55_SURF   1008005
+#define LINUX_MACHTYPE_8x55_FFA    1008006
+
+#define MSM8255_ID                 74
+#define MSM8655_ID                 75
 
 //Enum values for 7x30 target platforms.
 enum platform
@@ -108,6 +113,7 @@ void keypad_init(void);
 static int emmc_boot = -1;  /* set to uninitialized */
 int target_is_emmc_boot(void);
 static int platform_version = -1;
+static int target_msm_id = -1;
 
 void target_init(void)
 {
@@ -181,6 +187,15 @@ int target_platform_version(void)
     return platform_version;
 }
 
+int target_is_msm8x55(void)
+{
+    if ((target_msm_id == MSM8255_ID) ||
+	          (target_msm_id == MSM8655_ID))
+        return 1;
+    else
+        return 0;
+}
+
 unsigned board_machtype(void)
 {
     struct smem_board_info_v4 board_info_v4;
@@ -193,44 +208,43 @@ unsigned board_machtype(void)
 
     smem_status = smem_read_alloc_entry_offset(SMEM_BOARD_INFO_LOCATION,
 					       &format, sizeof(format), 0);
-    if(smem_status)
+    if(!smem_status)
     {
-      dprintf(CRITICAL, "ERROR: unable to read shared memory for offset entry\n");
-    }
-
-    if ((format == 3) || (format == 4))
-    {
-        if (format == 4)
-	    board_info_len = sizeof(board_info_v4);
-	else
-	    board_info_len = sizeof(board_info_v4.board_info_v3);
-
-        smem_status = smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
-					&board_info_v4, board_info_len);
-        if(smem_status)
-        {
-            dprintf(CRITICAL, "ERROR: unable to read shared memory for Hardware Platform\n");
-        }
-
-	if(format == 4)
-	    platform_version = board_info_v4.platform_version;
-
-        platform_type = board_info_v4.board_info_v3.hw_platform;
-        switch (platform_type)
+	if ((format == 3) || (format == 4))
 	{
-	case HW_PLATFORM_SURF:
-	    hw_platform_type = LINUX_MACHTYPE_SURF;    break;
-	case HW_PLATFORM_FFA:
-	    hw_platform_type = LINUX_MACHTYPE_FFA;    break;
-	case HW_PLATFORM_FLUID:
-	    hw_platform_type = LINUX_MACHTYPE_FLUID;  break;
-	default:
-            hw_platform_type = LINUX_MACHTYPE_SURF;
-	}
-	return hw_platform_type;
-    }
+	    if (format == 4)
+		board_info_len = sizeof(board_info_v4);
+	    else
+		board_info_len = sizeof(board_info_v4.board_info_v3);
 
-    hw_platform_type = LINUX_MACHTYPE_SURF;
+	    smem_status = smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
+					    &board_info_v4, board_info_len);
+	    if(!smem_status)
+	    {
+		if(format == 4)
+		    platform_version = board_info_v4.platform_version;
+
+		platform_type = board_info_v4.board_info_v3.hw_platform;
+		target_msm_id = board_info_v4.board_info_v3.msm_id;
+		switch (platform_type)
+		{
+		case HW_PLATFORM_SURF:
+		    hw_platform_type = ((target_is_msm8x55()) ?
+				      LINUX_MACHTYPE_8x55_SURF : LINUX_MACHTYPE_7x30_SURF);    break;
+		case HW_PLATFORM_FFA:
+		    hw_platform_type = ((target_is_msm8x55()) ?
+				      LINUX_MACHTYPE_8x55_FFA : LINUX_MACHTYPE_7x30_FFA);      break;
+		case HW_PLATFORM_FLUID:
+		    hw_platform_type = LINUX_MACHTYPE_7x30_FLUID;                              break;
+		default:
+		    hw_platform_type = ((target_is_msm8x55()) ?
+				      LINUX_MACHTYPE_8x55_SURF : LINUX_MACHTYPE_7x30_SURF);    break;
+		}
+		return hw_platform_type;
+	    }
+	}
+    }
+    hw_platform_type = LINUX_MACHTYPE_7x30_SURF;
     return hw_platform_type;
 }
 
