@@ -63,7 +63,7 @@ unsigned* target_atag_mem(unsigned* ptr)
 
 	/* 2nd segment */
 #ifdef USE_512M_RAM
-	size = EBT1_SIZE2_512M;
+	size = EBI1_SIZE2_512M;
 #else
 	size = 0;
 #endif
