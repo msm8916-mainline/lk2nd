@@ -327,13 +327,13 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	kernel_actual = ROUND_TO_PAGE(hdr.kernel_size, page_mask);
 	ramdisk_actual = ROUND_TO_PAGE(hdr.ramdisk_size, page_mask);
 
-	if (2048 + kernel_actual + ramdisk_actual < sz) {
+	if (page_size + kernel_actual + ramdisk_actual < sz) {
 		fastboot_fail("incomplete bootimage");
 		return;
 	}
 
-	memmove((void*) KERNEL_ADDR, ptr + 2048, hdr.kernel_size);
-	memmove((void*) RAMDISK_ADDR, ptr + 2048 + kernel_actual, hdr.ramdisk_size);
+	memmove((void*) KERNEL_ADDR, ptr + page_size, hdr.kernel_size);
+	memmove((void*) RAMDISK_ADDR, ptr + page_size + kernel_actual, hdr.ramdisk_size);
 
 	fastboot_okay("");
 	target_battery_charging_enable(0, 1);
