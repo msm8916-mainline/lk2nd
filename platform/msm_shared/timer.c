@@ -82,6 +82,14 @@
 #define SPSS_TIMER_STATUS    GPT_REG(0x0034)
 #endif
 
+#if defined PLATFORM_QSD8K
+#define DGT_HZ 4800000	/* Uses TCXO/4 (19.2 MHz / 4) */
+#elif defined PLATFORM_MSM7X30
+#define DGT_HZ 6144000	/* Uses LPXO/4 (24.576 MHz / 4) */
+#else
+#define DGT_HZ 19200000	/* Uses TCXO (19.2 MHz) */
+#endif
+
 
 static platform_timer_callback timer_callback;
 static void *timer_arg;
@@ -113,7 +121,7 @@ status_t platform_set_periodic_timer(
 	timer_arg = arg;
 	timer_interval = interval;
 
-	writel(timer_interval * 19200, DGT_MATCH_VAL);
+	writel(timer_interval * (DGT_HZ / 1000), DGT_MATCH_VAL);
 	writel(0, DGT_CLEAR);
 	writel(DGT_ENABLE_EN | DGT_ENABLE_CLR_ON_MATCH_EN, DGT_ENABLE);
 	
