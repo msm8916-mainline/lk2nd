@@ -85,7 +85,11 @@
 #if defined PLATFORM_QSD8K
 #define DGT_HZ 4800000	/* Uses TCXO/4 (19.2 MHz / 4) */
 #elif defined PLATFORM_MSM7X30
+#if _EMMC_BOOT
+#define DGT_HZ 19200000	/* Uses TCXO (19.2 MHz) */
+#else
 #define DGT_HZ 6144000	/* Uses LPXO/4 (24.576 MHz / 4) */
+#endif
 #else
 #define DGT_HZ 19200000	/* Uses TCXO (19.2 MHz) */
 #endif
