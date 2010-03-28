@@ -288,13 +288,7 @@ l2_ck_7:
 WRITE_L2_SA_SETTINGS:
         //;WCP15_L2VR3F1  r0
         MCR     p15, 0x3, r0, c15, c15, 0x1     //;write r0 to L2VR3F1
-
-        LDR     r0, =0x20              //;additional delay for amp setting
-        LDR     r1, =0x0
-loop:
-        SUBS    r0, r0, #0x1
-        CMP     r0, r1
-        BNE     loop
+	ISB
 
         LDR     r0, =0                   //;make sure the registers we touched
         LDR     r1, =0                   //;are cleared when we return
