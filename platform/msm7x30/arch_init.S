@@ -288,6 +288,7 @@ l2_ck_7:
 WRITE_L2_SA_SETTINGS:
         //;WCP15_L2VR3F1  r0
         MCR     p15, 0x3, r0, c15, c15, 0x1     //;write r0 to L2VR3F1
+	DSB
 	ISB
 
         LDR     r0, =0                   //;make sure the registers we touched
