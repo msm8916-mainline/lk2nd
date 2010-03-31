@@ -30,14 +30,17 @@
 #include <debug.h>
 #include <smem.h>
 
-#define EBI1_SIZE_51M   0x03300000
-#define EBI1_SIZE_128M  0x08000000
-#define EBI1_ADDR_2M    0x00200000
-#define EBI1_ADDR_128M  0x08000000
-#define EBI1_ADDR_1G    0x40000000
+#define EBI1_SIZE_51M         0x03300000
+#define EBI1_ADDR_2M          0x00200000
+#define EBI1_SIZE_128M        0x08000000
+#define EBI1_ADDR_128M        0x08000000
+#define EBI1_ADDR_1G          0x40000000
+#define EBI0_SIZE_6M          0x00600000
+#define EBI0_ADDR_EFS_BASE    0x03800000
 
 static int msm7x30_lpddr1 = -1;
 static int target_is_msm7x30_lpddr1(void);
+int target_is_emmc_boot(void);
 
 int target_is_msm7x30_lpddr1(void)
 {
@@ -87,11 +90,20 @@ int target_is_msm7x30_lpddr1(void)
 
 unsigned* target_atag_mem(unsigned* ptr)
 {
-    /* ATAG_MEM for 51MB + 128MB setup */
+    /* ATAG_MEM for 51MB + [6MB if nand boot] + 128MB setup */
     *ptr++ = 4;
     *ptr++ = 0x54410002;
     *ptr++ = EBI1_SIZE_51M;
     *ptr++ = EBI1_ADDR_2M;
+
+    /* Reclaim EFS partition used in EMMC for NAND boot */
+    if (!target_is_emmc_boot())
+    {
+        *ptr++ = 4;
+        *ptr++ = 0x54410002;
+        *ptr++ = EBI0_SIZE_6M;
+        *ptr++ = EBI0_ADDR_EFS_BASE;
+    }
 
     /* ATAG_MEM */
     *ptr++ = 4;
