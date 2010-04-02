@@ -457,11 +457,7 @@ scan_qwerty_keypad(struct timer *timer, time_t now, void *arg)
 
 void ssbi_keypad_init(struct qwerty_keypad_info  *qwerty_kp)
 {
-    int *modem_stat_check = (MSM_SHARED_BASE + 0x14);
     int len;
-
-    /* Wait for modem to be ready before keypad init */
-    while (readl(modem_stat_check) != 1);
 
     ssbi_gpio_init();
 
