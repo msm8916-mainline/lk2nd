@@ -2,6 +2,8 @@
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
  *
+ * Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -208,6 +210,15 @@ static int clock_set_rate(unsigned id, unsigned rate)
 	return msm_proc_comm(PCOM_CLKCTL_RPC_SET_RATE, &id, &rate);
 }
 
+static int clock_get_rate(unsigned id)
+{
+	if (msm_proc_comm(PCOM_CLKCTL_RPC_RATE, &id, 0)) {
+		return -1;
+	} else {
+		return (int) id;
+	}
+}
+
 void lcdc_clock_init(unsigned rate)
 {
 	clock_enable(100);
@@ -286,3 +297,26 @@ int charger_usb_i(unsigned current)
    msm_proc_comm(PCOM_CHG_USB_I_AVAILABLE, &current, &charging_supported);
    return charging_supported;
 }
+
+int mmc_clock_enable_disable (unsigned id, unsigned enable)
+{
+	if(enable)
+	{
+		return clock_enable(id); //Enable mmc clock rate
+	}
+	else
+	{
+		return clock_disable(id); //Disable mmc clock rate
+	}
+}
+
+int mmc_clock_set_rate(unsigned id, unsigned rate)
+{
+	return clock_set_rate(id, rate); //Set mmc clock rate
+}
+
+int mmc_clock_get_rate(unsigned id)
+{
+	return clock_get_rate(id); //Get mmc clock rate
+}
+

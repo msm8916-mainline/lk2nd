@@ -14,5 +14,6 @@ OBJS += \
 	$(LOCAL_DIR)/jtag_hook.o \
 	$(LOCAL_DIR)/jtag.o \
 	$(LOCAL_DIR)/nand.o \
-	$(LOCAL_DIR)/lcdc.o
+	$(LOCAL_DIR)/lcdc.o \
+	$(LOCAL_DIR)/mmc.o
 
