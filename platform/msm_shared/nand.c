@@ -310,6 +310,174 @@ static int flash_nand_block_isbad(dmov_s *cmdlist, unsigned *ptrlist,
 	return 0;
 }
 
+static int flash_nand_block_isbad_interleave(dmov_s *cmdlist, unsigned *ptrlist,
+								  unsigned page)
+{
+	dmov_s *cmd = cmdlist;
+	unsigned *ptr = ptrlist;
+	unsigned *data = ptrlist + 4;
+	char buf01[4];
+	char buf10[4];
+	unsigned cwperpage;
+
+	cwperpage = ((flash_pagesize >> 1)>> 9);
+
+	/* Check first page of this block */
+	if(page & 63)
+		page = page - (page & 63);
+
+	/* Check bad block marker */
+	data[0] = NAND_CMD_PAGE_READ;	/* command */
+
+	/* addr0 */
+	if (CFG1 & CFG1_WIDE_FLASH)
+		data[1] = (page << 16) | ((528*(cwperpage-1)) >> 1);
+	else
+		data[1] = (page << 16) | (528*(cwperpage-1));
+
+	data[2] = (page >> 16) & 0xff;				/* addr1	*/
+	data[3] = 0 | 4;					/* chipsel CS0	*/
+	data[4] = 0 | 5;					/* chipsel CS1	*/
+	data[5] = NAND_CFG0_RAW & ~(7U << 6);			/* cfg0		*/
+	data[6] = NAND_CFG1_RAW | (CFG1 & CFG1_WIDE_FLASH);	/* cfg1		*/
+	data[7] = 1;
+	data[8] = CLEAN_DATA_32;	/* NC01 flash status */
+	data[9] = CLEAN_DATA_32;	/* NC01 buf01 status   */
+	data[10] = CLEAN_DATA_32;	/* NC10 flash status */
+	data[11] = CLEAN_DATA_32;	/* NC10 buf10 status   */
+	data[12] = 0x00000A3C; 		/* adm_mux_data_ack_req_nc01 */
+	data[13] = 0x0000053C; 		/* adm_mux_cmd_ack_req_nc01  */
+	data[14] = 0x00000F28; 		/* adm_mux_data_ack_req_nc10 */
+	data[15] = 0x00000F14; 		/* adm_mux_cmd_ack_req_nc10  */
+	data[16] = 0x00000FC0; 		/* adm_default_mux */
+	data[17] = 0x00000805;		/* enable CS1 */
+	data[18] = 0x00000801;		/* disable CS1 */
+
+	/* enable CS1 */
+	cmd[0].cmd = 0;
+	cmd[0].src = paddr(data[17]);
+	cmd[0].dst = EBI2_CHIP_SELECT_CFG0;
+	cmd[0].len = 4;
+
+	/* Reading last code word from NC01 */
+	/* 0xF14 */
+	cmd[1].cmd = 0;
+	cmd[1].src = paddr(data[15]);
+	cmd[1].dst = EBI2_NAND_ADM_MUX;
+	cmd[1].len = 4;
+
+	cmd[2].cmd = DST_CRCI_NAND_CMD;
+	cmd[2].src = paddr(&data[0]);
+	cmd[2].dst = NC01(NAND_FLASH_CMD);
+	cmd[2].len = 16;
+
+	cmd[3].cmd = 0;
+	cmd[3].src = paddr(&data[5]);
+	cmd[3].dst = NC01(NAND_DEV0_CFG0);
+	cmd[3].len = 8;
+
+	cmd[4].cmd = 0;
+	cmd[4].src = paddr(&data[7]);
+	cmd[4].dst = NC01(NAND_EXEC_CMD);
+	cmd[4].len = 4;
+
+	/* 0xF28 */
+	cmd[5].cmd = 0;
+	cmd[5].src = paddr(data[14]);
+	cmd[5].dst = EBI2_NAND_ADM_MUX;
+	cmd[5].len = 4;
+
+	cmd[6].cmd = SRC_CRCI_NAND_DATA;
+	cmd[6].src = NC01(NAND_FLASH_STATUS);
+	cmd[6].dst = paddr(&data[8]);
+	cmd[6].len = 8;
+
+	cmd[7].cmd = 0;
+	cmd[7].src = NC01(NAND_FLASH_BUFFER) + (flash_pagesize - (528*(cwperpage-1)));
+	cmd[7].dst = paddr(&buf01);
+	cmd[7].len = 4;
+
+	/* Reading last code word from NC10 */
+	/* 0x53C */
+	cmd[8].cmd = 0;
+	cmd[8].src = paddr(data[13]);
+	cmd[8].dst = EBI2_NAND_ADM_MUX;
+	cmd[8].len = 4;
+
+	cmd[9].cmd = DST_CRCI_NAND_CMD;
+	cmd[9].src = paddr(&data[0]);
+	cmd[9].dst = NC10(NAND_FLASH_CMD);
+	cmd[9].len = 12;
+
+	cmd[10].cmd = 0;
+	cmd[10].src = paddr(&data[4]);
+	cmd[10].dst = NC10(NAND_FLASH_CHIP_SELECT);
+	cmd[10].len = 4;
+
+	cmd[11].cmd = 0;
+	cmd[11].src = paddr(&data[5]);
+	cmd[11].dst = NC10(NAND_DEV1_CFG0);
+	cmd[11].len = 8;
+
+	cmd[12].cmd = 0;
+	cmd[12].src = paddr(&data[7]);
+	cmd[12].dst = NC10(NAND_EXEC_CMD);
+	cmd[12].len = 4;
+
+	/* 0xA3C */
+	cmd[13].cmd = 0;
+	cmd[13].src = paddr(data[12]);
+	cmd[13].dst = EBI2_NAND_ADM_MUX;
+	cmd[13].len = 4;
+
+	cmd[14].cmd = SRC_CRCI_NAND_DATA;
+	cmd[14].src = NC10(NAND_FLASH_STATUS);
+	cmd[14].dst = paddr(&data[10]);
+	cmd[14].len = 8;
+
+	cmd[15].cmd = 0;
+	cmd[15].src = NC10(NAND_FLASH_BUFFER) + (flash_pagesize - (528*(cwperpage-1)));
+	cmd[15].dst = paddr(&buf10);
+	cmd[15].len = 4;
+
+	cmd[16].cmd = 0;
+	cmd[16].src = paddr(&data[16]);
+	cmd[16].dst = EBI2_NAND_ADM_MUX;
+	cmd[16].len = 4;
+
+	/* setting default value */
+	cmd[17].cmd = CMD_OCU | CMD_LC;
+	cmd[17].src = paddr(&data[18]);
+	cmd[17].dst = EBI2_CHIP_SELECT_CFG0;
+	cmd[17].len = 4;
+
+	ptr[0] = (paddr(cmd) >> 3) | CMD_PTR_LP;
+
+	dmov_exec_cmdptr(DMOV_NAND_CHAN, ptr);
+
+#if VERBOSE
+	dprintf(INFO, "NC01 status: %x\n", data[8]);
+	dprintf(INFO, "NC10 status: %x\n", data[10]);
+#endif
+
+	/* we fail if there was an operation error, a mpu error, or the
+	** erase success bit was not set.
+	*/
+	if((data[8] & 0x110) || (data[10] & 0x110)) return -1;
+
+	/* Check for bad block marker byte */
+	if (CFG1 & CFG1_WIDE_FLASH) {
+		if ((buf01[0] != 0xFF || buf01[1] != 0xFF) ||
+			(buf10[0] != 0xFF || buf10[1] != 0xFF))
+			return 1;
+		} else {
+			if (buf01[0] != 0xFF || buf10[0] != 0xFF)
+			return 1;
+		}
+
+	return 0;
+}
+
 static int flash_nand_erase_block(dmov_s *cmdlist, unsigned *ptrlist,
 								  unsigned page)
 {
@@ -388,6 +556,152 @@ static int flash_nand_erase_block(dmov_s *cmdlist, unsigned *ptrlist,
 	return 0;
 }
 
+static int flash_nand_erase_block_interleave(dmov_s *cmdlist, unsigned *ptrlist,
+								  unsigned page)
+{
+	dmov_s *cmd = cmdlist;
+	unsigned *ptr = ptrlist;
+	unsigned *data = ptrlist + 4;
+	int isbad = 0;
+
+	/* only allow erasing on block boundaries */
+	if(page & 63) return -1;
+
+	/* Check for bad block and erase only if block is not marked bad */
+	isbad = flash_nand_block_isbad(cmdlist, ptrlist, page);
+
+	if (isbad) {
+		dprintf(INFO, "skipping @ %d (bad block)\n", page >> 6);
+		return -1;
+	}
+
+	/* Erase block */
+	data[0] = NAND_CMD_BLOCK_ERASE;
+	data[1] = page;
+	data[2] = 0;
+	data[3] = 0 | 4;	/* chipselect CS0 */
+	data[4] = 0 | 5;	/* chipselect CS1 */
+	data[5] = 1;
+	data[6] = 0xeeeeeeee;
+	data[7] = 0xeeeeeeee;
+	data[8] = CFG0 & (~(7 << 6));  /* CW_PER_PAGE = 0 */
+	data[9] = CFG1;
+	data[10] = 0x00000A3C; 	/* adm_mux_data_ack_req_nc01 */
+	data[11] = 0x0000053C; 	/* adm_mux_cmd_ack_req_nc01  */
+	data[12] = 0x00000F28; 	/* adm_mux_data_ack_req_nc10 */
+	data[13] = 0x00000F14; 	/* adm_mux_cmd_ack_req_nc10  */
+	data[14] = 0x00000FC0; 	/* adm_default_mux */
+	data[15] = 0x00000805;	/* enable CS1 */
+	data[16] = 0x00000801;	/* disable CS1 */
+
+	/* enable CS1 */
+	cmd[0].cmd = 0 | CMD_OCB;
+	cmd[0].src = paddr(data[15]);
+	cmd[0].dst = EBI2_CHIP_SELECT_CFG0;
+	cmd[0].len = 4;
+
+	/* Reading last code word from NC01 */
+	/* 0xF14 */
+	cmd[1].cmd = 0;
+	cmd[1].src = paddr(data[13]);
+	cmd[1].dst = EBI2_NAND_ADM_MUX;
+	cmd[1].len = 4;
+
+	cmd[2].cmd = DST_CRCI_NAND_CMD;
+	cmd[2].src = paddr(&data[0]);
+	cmd[2].dst = NC01(NAND_FLASH_CMD);
+	cmd[2].len = 16;
+
+	cmd[3].cmd = 0;
+	cmd[3].src = paddr(&data[8]);
+	cmd[3].dst = NC01(NAND_DEV0_CFG0);
+	cmd[3].len = 8;
+
+	cmd[4].cmd = 0;
+	cmd[4].src = paddr(&data[5]);
+	cmd[4].dst = NC01(NAND_EXEC_CMD);
+	cmd[4].len = 4;
+
+	/* 0xF28 */
+	cmd[5].cmd = 0;
+	cmd[5].src = paddr(data[12]);
+	cmd[5].dst = EBI2_NAND_ADM_MUX;
+	cmd[5].len = 4;
+
+	cmd[6].cmd = SRC_CRCI_NAND_DATA;
+	cmd[6].src = NC01(NAND_FLASH_STATUS);
+	cmd[6].dst = paddr(&data[6]);
+	cmd[6].len = 4;
+
+	/* Reading last code word from NC10 */
+	/* 0x53C */
+	cmd[7].cmd = 0;
+	cmd[7].src = paddr(data[11]);
+	cmd[7].dst = EBI2_NAND_ADM_MUX;
+	cmd[7].len = 4;
+
+	cmd[8].cmd = DST_CRCI_NAND_CMD;
+	cmd[8].src = paddr(&data[0]);
+	cmd[8].dst = NC10(NAND_FLASH_CMD);
+	cmd[8].len = 12;
+
+	cmd[9].cmd = 0;
+	cmd[9].src = paddr(&data[4]);
+	cmd[9].dst = NC10(NAND_FLASH_CHIP_SELECT);
+	cmd[9].len = 4;
+
+	cmd[10].cmd = 0;
+	cmd[10].src = paddr(&data[8]);
+	cmd[10].dst = NC10(NAND_DEV1_CFG0);
+	cmd[10].len = 8;
+
+	cmd[11].cmd = 0;
+	cmd[11].src = paddr(&data[5]);
+	cmd[11].dst = NC10(NAND_EXEC_CMD);
+	cmd[11].len = 4;
+
+	/* 0xA3C */
+	cmd[12].cmd = 0;
+	cmd[12].src = paddr(data[10]);
+	cmd[12].dst = EBI2_NAND_ADM_MUX;
+	cmd[12].len = 4;
+
+	cmd[13].cmd = SRC_CRCI_NAND_DATA;
+	cmd[13].src = NC10(NAND_FLASH_STATUS);
+	cmd[13].dst = paddr(&data[7]);
+	cmd[13].len = 4;
+
+	/* adm default mux state */
+	/* 0xFCO */
+	cmd[14].cmd = 0;
+	cmd[14].src = paddr(data[14]);
+	cmd[14].dst = EBI2_NAND_ADM_MUX;
+	cmd[14].len = 4;
+
+	/* disable CS1 */
+	cmd[15].cmd = CMD_OCU | CMD_LC;
+	cmd[15].src = paddr(data[16]);
+	cmd[15].dst = EBI2_CHIP_SELECT_CFG0;
+	cmd[15].len = 4;
+
+	ptr[0] = (paddr(cmd) >> 3) | CMD_PTR_LP;
+
+	dmov_exec_cmdptr(DMOV_NAND_CHAN, ptr);
+
+#if VERBOSE
+	dprintf(INFO, "NC01 status: %x\n", data[6]);
+	dprintf(INFO, "NC10 status: %x\n", data[7]);
+#endif
+
+	/* we fail if there was an operation error, a mpu error, or the
+	 ** erase success bit was not set.
+	 */
+	if(data[6] & 0x110 || data[7] & 0x110) return -1;
+	if(!(data[6] & 0x80) || !(data[7] & 0x80)) return -1;
+
+	return 0;
+}
+
 struct data_flash_io {
 	unsigned cmd;
 	unsigned addr0;
@@ -404,6 +718,29 @@ struct data_flash_io {
 		unsigned flash_status;
 		unsigned buffer_status;
 	} result[8];
+};
+
+struct interleave_data_flash_io {
+	uint32_t cmd;
+	uint32_t addr0;
+	uint32_t addr1;
+	uint32_t chipsel_cs0;
+	uint32_t chipsel_cs1;
+	uint32_t cfg0;
+	uint32_t cfg1;
+	uint32_t exec;
+	uint32_t ecc_cfg;
+	uint32_t ecc_cfg_save;
+	uint32_t ebi2_chip_select_cfg0;
+	uint32_t adm_mux_data_ack_req_nc01;
+	uint32_t adm_mux_cmd_ack_req_nc01;
+	uint32_t adm_mux_data_ack_req_nc10;
+	uint32_t adm_mux_cmd_ack_req_nc10;
+	uint32_t adm_default_mux;
+	uint32_t default_ebi2_chip_select_cfg0;
+	struct {
+		uint32_t flash_status;
+	} result[16];
 };
 
 static int _flash_nand_read_page(dmov_s *cmdlist, unsigned *ptrlist,
@@ -509,6 +846,372 @@ static int _flash_nand_read_page(dmov_s *cmdlist, unsigned *ptrlist,
 #if VERBOSE
 	dprintf(INFO, "read page %d: status: %x %x %x %x\n",
 		page, data[5], data[6], data[7], data[8]);
+	for(n = 0; n < 4; n++) {
+		ptr = (unsigned*)(addr + 512 * n);
+		dprintf(INFO, "data%d:	%x %x %x %x\n", n, ptr[0], ptr[1], ptr[2], ptr[3]);
+		ptr = (unsigned*)(spareaddr + 16 * n);
+		dprintf(INFO, "spare data%d	%x %x %x %x\n", n, ptr[0], ptr[1], ptr[2], ptr[3]);
+	}
+#endif
+
+	/* if any of the writes failed (0x10), or there was a
+	 ** protection violation (0x100), we lose
+	 */
+	for(n = 0; n < cwperpage; n++) {
+		if (data->result[n].flash_status & 0x110) {
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
+static int flash_nand_read_page_interleave(dmov_s *cmdlist, unsigned *ptrlist,
+								 unsigned page, void *_addr, void *_spareaddr)
+{
+	dmov_s *cmd = cmdlist;
+	unsigned *ptr = ptrlist;
+	struct interleave_data_flash_io *data = (void*) (ptrlist + 4);
+	unsigned addr = (unsigned) _addr;
+	unsigned spareaddr = (unsigned) _spareaddr;
+	unsigned n;
+	int isbad = 0;
+	unsigned cwperpage;
+	cwperpage = (flash_pagesize >> 9);
+
+	/* Check for bad block and read only from a good block */
+	isbad = flash_nand_block_isbad(cmdlist, ptrlist, page);
+	if (isbad)
+		return -2;
+
+	data->cmd = NAND_CMD_PAGE_READ_ECC;
+	data->addr0 = page << 16;
+	data->addr1 = (page >> 16) & 0xff;
+	data->chipsel_cs0 = 0 | 4; /* flash0 + undoc bit */
+	data->chipsel_cs1 = 0 | 5; /* flash0 + undoc bit */
+	data->ebi2_chip_select_cfg0 = 0x00000805;
+	data->adm_mux_data_ack_req_nc01 = 0x00000A3C;
+	data->adm_mux_cmd_ack_req_nc01  = 0x0000053C;
+	data->adm_mux_data_ack_req_nc10 = 0x00000F28;
+	data->adm_mux_cmd_ack_req_nc10  = 0x00000F14;
+	data->adm_default_mux = 0x00000FC0;
+	data->default_ebi2_chip_select_cfg0 = 0x00000801;
+
+	/* GO bit for the EXEC register */
+	data->exec = 1;
+
+	data->cfg0 = CFG0;
+	data->cfg1 = CFG1;
+
+	data->ecc_cfg = 0x203;
+
+	for (n = 0; n < cwperpage; n++) {
+		/* flash + buffer status return words */
+		data->result[n].flash_status = 0xeeeeeeee;
+
+		if (n == 0) {
+			/* enable CS1 */
+			cmd->cmd = CMD_OCB;
+			cmd->src = paddr(&data->ebi2_chip_select_cfg0);
+			cmd->dst = EBI2_CHIP_SELECT_CFG0;
+			cmd->len = 4;
+			cmd++;
+
+			/* save existing ecc config */
+			cmd->cmd = 0;
+			cmd->src = NAND_EBI2_ECC_BUF_CFG;
+			cmd->dst = paddr(&data->ecc_cfg_save);
+			cmd->len = 4;
+			cmd++;
+
+			/* NC01, NC10 --> ADDR0/ADDR1 */
+			cmd->cmd = 0;
+			cmd->src = paddr(&data->addr0);
+			cmd->dst = NC11(NAND_ADDR0);
+			cmd->len = 8;
+			cmd++;
+
+			/* Select the CS0,
+			 * for NC01!
+			 */
+			cmd->cmd = 0;
+			cmd->src = paddr(&data->chipsel_cs0);
+			cmd->dst = NC01(NAND_FLASH_CHIP_SELECT);
+			cmd->len = 4;
+			cmd++;
+
+			/* Select the CS1,
+			 * for NC10!
+			 */
+			cmd->cmd = 0;
+			cmd->src =  paddr(&data->chipsel_cs1);
+			cmd->dst = NC10(NAND_FLASH_CHIP_SELECT);
+			cmd->len = 4;
+			cmd++;
+
+			cmd->cmd = 0;
+			cmd->src = paddr(&data->cfg0);
+			cmd->dst = NC01(NAND_DEV0_CFG0);
+			cmd->len = 8;
+			cmd++;
+
+			/* config DEV1 for CS1 */
+			cmd->cmd = 0;
+			cmd->src = paddr(&data->cfg0);
+			cmd->dst = NC10(NAND_DEV1_CFG0);
+			cmd->len = 8;
+			cmd++;
+
+			cmd->cmd = 0;
+			cmd->src = paddr(&data->ecc_cfg);
+			cmd->dst = NC11(NAND_EBI2_ECC_BUF_CFG);
+			cmd->len = 4;
+			cmd++;
+
+			/* if 'only' the last code word */
+			if (n == cwperpage - 1) {
+					/* MASK CMD ACK/REQ --> NC01 (0x53C)*/
+				cmd->cmd = 0;
+				cmd->src = paddr(&data->adm_mux_cmd_ack_req_nc01);
+				cmd->dst = EBI2_NAND_ADM_MUX;
+				cmd->len = 4;
+				cmd++;
+
+				/* CMD */
+				cmd->cmd = DST_CRCI_NAND_CMD;
+				cmd->src = paddr(&data->cmd);
+				cmd->dst = NC10(NAND_FLASH_CMD);
+				cmd->len = 4;
+				cmd++;
+
+				/* kick the execute register for NC10 */
+				cmd->cmd = 0;
+				cmd->src = paddr(&data->exec);
+				cmd->dst = NC10(NAND_EXEC_CMD);
+				cmd->len = 4;
+				cmd++;
+
+				/* MASK DATA ACK/REQ --> NC01 (0xA3C)*/
+				cmd->cmd = 0;
+				cmd->src = paddr(&data->adm_mux_data_ack_req_nc01);
+				cmd->dst = EBI2_NAND_ADM_MUX;
+				cmd->len = 4;
+				cmd++;
+
+				/* block on data ready from NC10, then
+				 * read the status register
+				 */
+				cmd->cmd = SRC_CRCI_NAND_DATA;
+				cmd->src = NC10(NAND_FLASH_STATUS);
+				cmd->dst = paddr(&data->result[n]);
+				/* NAND_FLASH_STATUS +
+				 * NAND_BUFFER_STATUS
+				 */
+				cmd->len = 4;
+				cmd++;
+			} else {
+				/* MASK CMD ACK/REQ --> NC10 (0xF14)*/
+				cmd->cmd = 0;
+				cmd->src = paddr(&data->adm_mux_cmd_ack_req_nc10);
+				cmd->dst = EBI2_NAND_ADM_MUX;
+				cmd->len = 4;
+				cmd++;
+
+				/* CMD */
+				cmd->cmd = DST_CRCI_NAND_CMD;
+				cmd->src = paddr(&data->cmd);
+				cmd->dst = NC01(NAND_FLASH_CMD);
+				cmd->len = 4;
+				cmd++;
+
+				/* kick the execute register for NC01*/
+				cmd->cmd = 0;
+				cmd->src = paddr(&data->exec);
+				cmd->dst = NC01(NAND_EXEC_CMD);
+				cmd->len = 4;
+				cmd++;
+			}
+		}
+
+
+		if (n % 2 == 0) {
+			/* MASK CMD ACK/REQ --> NC01 (0x53C)*/
+			cmd->cmd = 0;
+			cmd->src = paddr(&data->adm_mux_cmd_ack_req_nc01);
+			cmd->dst = EBI2_NAND_ADM_MUX;
+			cmd->len = 4;
+			cmd++;
+
+			/* CMD */
+			cmd->cmd = DST_CRCI_NAND_CMD;
+			cmd->src = paddr(&data->cmd);
+			cmd->dst = NC10(NAND_FLASH_CMD);
+			cmd->len = 4;
+			cmd++;
+
+			/* kick the execute register for NC10 */
+			cmd->cmd = 0;
+			cmd->src = paddr(&data->exec);
+			cmd->dst = NC10(NAND_EXEC_CMD);
+			cmd->len = 4;
+			cmd++;
+
+			/* MASK DATA ACK/REQ --> NC10 (0xF28)*/
+			cmd->cmd = 0;
+			cmd->src = paddr(&data->adm_mux_data_ack_req_nc10);
+			cmd->dst = EBI2_NAND_ADM_MUX;
+			cmd->len = 4;
+			cmd++;
+
+			/* block on data ready from NC01, then
+			 * read the status register
+			 */
+			cmd->cmd = SRC_CRCI_NAND_DATA;
+			cmd->src = NC01(NAND_FLASH_STATUS);
+			cmd->dst = paddr(&data->result[n]);
+			/* NAND_FLASH_STATUS +
+			 * NAND_BUFFER_STATUS
+			 */
+			cmd->len = 4;
+			cmd++;
+
+			/* read data block */
+			cmd->cmd = 0;
+			cmd->src = NC01(NAND_FLASH_BUFFER);
+			cmd->dst = addr + n * 516;
+			cmd->len = ((n < (cwperpage -1 )) ? 516 : (512 - ((cwperpage - 1) << 2)));
+			cmd++;
+		} else {
+			if (n != cwperpage - 1) {
+				/* MASK CMD ACK/REQ -->
+				 * NC10 (0xF14)
+				 */
+				cmd->cmd = 0;
+				cmd->src = paddr(&data->adm_mux_cmd_ack_req_nc10);
+				cmd->dst = EBI2_NAND_ADM_MUX;
+				cmd->len = 4;
+				cmd++;
+
+				/* CMD */
+				cmd->cmd = DST_CRCI_NAND_CMD;
+				cmd->src = paddr(&data->cmd);
+				cmd->dst = NC01(NAND_FLASH_CMD);
+				cmd->len = 4;
+				cmd++;
+
+				/* EXEC */
+				cmd->cmd = 0;
+				cmd->src = paddr(&data->exec);
+				cmd->dst = NC01(NAND_EXEC_CMD);
+				cmd->len = 4;
+				cmd++;
+
+				/* MASK DATA ACK/REQ -->
+				 * NC01 (0xA3C)
+				 */
+				cmd->cmd = 0;
+				cmd->src = paddr(&data->adm_mux_data_ack_req_nc01);
+				cmd->dst = EBI2_NAND_ADM_MUX;
+				cmd->len = 4;
+				cmd++;
+
+				/* block on data ready from NC10
+				 * then read the status register
+				 */
+				cmd->cmd = SRC_CRCI_NAND_DATA;
+				cmd->src = NC10(NAND_FLASH_STATUS);
+				cmd->dst = paddr(&data->result[n]);
+				/* NAND_FLASH_STATUS +
+				 * NAND_BUFFER_STATUS
+				 */
+				cmd->len = 4;
+				cmd++;
+			} else {
+				/* MASK DATA ACK/REQ ->
+				 * NC01 (0xA3C)
+				 */
+				cmd->cmd = 0;
+				cmd->src = paddr(&data->adm_mux_data_ack_req_nc01);
+				cmd->dst = EBI2_NAND_ADM_MUX;
+				cmd->len = 4;
+				cmd++;
+
+				/* block on data ready from NC10
+				 * then read the status register
+				 */
+				cmd->cmd = SRC_CRCI_NAND_DATA;
+				cmd->src = NC10(NAND_FLASH_STATUS);
+				cmd->dst = paddr(&data->result[n]);
+				/* NAND_FLASH_STATUS +
+				 * NAND_BUFFER_STATUS
+				 */
+				cmd->len = 4;
+				cmd++;
+			}
+			/* read data block */
+			cmd->cmd = 0;
+			cmd->src = NC10(NAND_FLASH_BUFFER);
+			cmd->dst = addr + n * 516;
+			cmd->len = ((n < (cwperpage -1 )) ? 516 : (512 - ((cwperpage - 1) << 2)));
+			cmd++;
+
+			if (n == (cwperpage - 1)) {
+				/* Use NC10 for reading the
+				 * last codeword!!!
+				 */
+				cmd->cmd = 0;
+				cmd->src = NC10(NAND_FLASH_BUFFER) +
+				(512 - ((cwperpage -1) << 2));
+				cmd->dst = spareaddr;
+				cmd->len = 16;
+				cmd++;
+			}
+		}
+	}
+	/* restore saved ecc config */
+	cmd->cmd = CMD_OCU | CMD_LC;
+	cmd->src = paddr(&data->ecc_cfg_save);
+	cmd->dst = NAND_EBI2_ECC_BUF_CFG;
+	cmd->len = 4;
+
+	/* ADM --> Default mux state (0xFC0) */
+	cmd->cmd = 0;
+	cmd->src = paddr(&data->adm_default_mux);
+	cmd->dst = EBI2_NAND_ADM_MUX;
+	cmd->len = 4;
+	cmd++;
+
+	/* disable CS1 */
+	cmd->cmd = 0;
+	cmd->src =  paddr(&data->default_ebi2_chip_select_cfg0);
+	cmd->dst = EBI2_CHIP_SELECT_CFG0;
+	cmd->len = 4;
+	cmd++;
+
+	ptr[0] = (paddr(cmdlist) >> 3) | CMD_PTR_LP;
+
+	dmov_exec_cmdptr(DMOV_NAND_CHAN, ptr);
+
+#if VERBOSE
+	dprintf(INFO, "read page %d: status: %x %x %x %x %x %x %x %x \
+	%x %x %x %x %x %x %x %x \n", page,
+	data->result[0].flash_status[0],
+	data->result[1].flash_status[1],
+	data->result[2].flash_status[2],
+	data->result[3].flash_status[3],
+	data->result[4].flash_status[4],
+	data->result[5].flash_status[5],
+	data->result[6].flash_status[6],
+	data->result[7].flash_status[7],
+	data->result[8].flash_status[8],
+	data->result[9].flash_status[9],
+	data->result[10].flash_status[10],
+	data->result[11].flash_status[11],
+	data->result[12].flash_status[12],
+	data->result[13].flash_status[13],
+	data->result[14].flash_status[14],
+	data->result[15].flash_status[15]);
+
 	for(n = 0; n < 4; n++) {
 		ptr = (unsigned*)(addr + 512 * n);
 		dprintf(INFO, "data%d:	%x %x %x %x\n", n, ptr[0], ptr[1], ptr[2], ptr[3]);
@@ -690,6 +1393,294 @@ static int _flash_nand_write_page(dmov_s *cmdlist, unsigned *ptrlist, unsigned p
 #endif
 	return 0;
 }
+
+static int flash_nand_write_page_interleave(dmov_s *cmdlist, unsigned *ptrlist, unsigned page,
+								  const void *_addr, const void *_spareaddr, unsigned raw_mode)
+{
+	dmov_s *cmd = cmdlist;
+	unsigned *ptr = ptrlist;
+	struct interleave_data_flash_io *data = (void*) (ptrlist + 4);
+	unsigned addr = (unsigned) _addr;
+	unsigned spareaddr = (unsigned) _spareaddr;
+	unsigned n;
+	unsigned cwperpage, cwcount;
+
+	cwperpage = (flash_pagesize >> 9) * 2;  /* double for interleave mode */
+	cwcount = (cwperpage << 1);
+
+	data->cmd = NAND_CMD_PRG_PAGE;
+	data->addr0 = page << 16;
+	data->addr1 = (page >> 16) & 0xff;
+	data->chipsel_cs0 = 0 | 4; /* flash0 + undoc bit */
+	data->chipsel_cs1 = 0 | 5; /* flash0 + undoc bit */
+	data->ebi2_chip_select_cfg0 = 0x00000805;
+	data->adm_mux_data_ack_req_nc01 = 0x00000A3C;
+	data->adm_mux_cmd_ack_req_nc01  = 0x0000053C;
+	data->adm_mux_data_ack_req_nc10 = 0x00000F28;
+	data->adm_mux_cmd_ack_req_nc10  = 0x00000F14;
+	data->adm_default_mux = 0x00000FC0;
+	data->default_ebi2_chip_select_cfg0 = 0x00000801;
+
+	if (!raw_mode){
+		data->cfg0 = CFG0;
+		data->cfg1 = CFG1;
+	}else{
+		data->cfg0 = (NAND_CFG0_RAW & ~(7 << 6)) |((cwcount-1) << 6);
+		data->cfg1 = NAND_CFG1_RAW | (CFG1 & CFG1_WIDE_FLASH);
+	}
+
+	/* GO bit for the EXEC register */
+	data->exec = 1;
+	data->ecc_cfg = 0x203;
+
+	for (n = 0; n < cwperpage; n++) {
+		/* status return words */
+		data->result[n].flash_status = 0xeeeeeeee;
+
+		if (n == 0) {
+			/* enable CS1 */
+			cmd->cmd = CMD_OCB;
+			cmd->src = paddr(&data->ebi2_chip_select_cfg0);
+			cmd->dst = EBI2_CHIP_SELECT_CFG0;
+			cmd->len = 4;
+			cmd++;
+
+			/* save existing ecc config */
+			cmd->cmd = 0;
+			cmd->src = NC11(NAND_EBI2_ECC_BUF_CFG);
+			cmd->dst = paddr(&data->ecc_cfg_save);
+			cmd->len = 4;
+			cmd++;
+
+			cmd->cmd = 0;
+			cmd->src = paddr(&data->ecc_cfg);
+			cmd->dst = NC11(NAND_EBI2_ECC_BUF_CFG);
+			cmd->len = 4;
+			cmd++;
+
+			cmd->cmd = 0;
+			cmd->src = paddr(&data->addr0);
+			cmd->dst = NC11(NAND_ADDR0);
+			cmd->len = 8;
+			cmd++;
+
+			/* enable CS0 */
+			cmd->cmd = 0;
+			cmd->src = paddr(&data->chipsel_cs0);
+			cmd->dst = NC01(NAND_FLASH_CHIP_SELECT);
+			cmd->len = 4;
+			cmd++;
+
+			/* enable CS1 */
+			cmd->cmd = 0;
+			cmd->src = paddr(&data->chipsel_cs1);
+			cmd->dst = NC10(NAND_FLASH_CHIP_SELECT);
+			cmd->len = 4;
+			cmd++;
+
+			cmd->cmd = 0;
+			cmd->src =paddr(&data->cfg0);
+			cmd->dst = NC01(NAND_DEV0_CFG0);
+			cmd->len = 8;
+			cmd++;
+
+			/* config CFG1 for CS1 */
+			cmd->cmd = 0;
+			cmd->src =paddr(&data->cfg0);
+			cmd->dst = NC10(NAND_DEV1_CFG0);
+			cmd->len = 8;
+			cmd++;
+		}
+
+		if (n % 2 == 0) {
+			/* MASK CMD ACK/REQ --> NC10 (0xF14)*/
+			cmd->cmd = 0;
+			cmd->src = paddr(&data->adm_mux_cmd_ack_req_nc10);
+			cmd->dst = EBI2_NAND_ADM_MUX;
+			cmd->len = 4;
+			cmd++;
+
+			/* CMD */
+			cmd->cmd = DST_CRCI_NAND_CMD;
+			cmd->src = paddr(&data->cmd);
+			cmd->dst = NC01(NAND_FLASH_CMD);
+			cmd->len = 4;
+			cmd++;
+		} else {
+			/* MASK CMD ACK/REQ --> NC01 (0x53C)*/
+			cmd->cmd = 0;
+			cmd->src = paddr(&data->adm_mux_cmd_ack_req_nc01);
+			cmd->dst = EBI2_NAND_ADM_MUX;
+			cmd->len = 4;
+			cmd++;
+
+			/* CMD */
+			cmd->cmd = DST_CRCI_NAND_CMD;
+			cmd->src = paddr(&data->cmd);
+			cmd->dst = NC10(NAND_FLASH_CMD);
+			cmd->len = 4;
+			cmd++;
+		}
+
+		cmd->cmd = 0;
+		if (!raw_mode){
+			cmd->src = addr + n * 516;
+			cmd->len = ((n < (cwperpage - 1)) ? 516 : (512 - ((cwperpage - 1) << 2)));
+		}else{
+			cmd->src = addr;
+			cmd->len =  528;
+		}
+
+		if (n % 2 == 0)
+			cmd->dst = NC01(NAND_FLASH_BUFFER);
+		else
+			cmd->dst = NC10(NAND_FLASH_BUFFER);
+		cmd++;
+
+		if ((n == (cwperpage - 1)) && (!raw_mode)) {
+			/* write extra data */
+			cmd->cmd = 0;
+			cmd->src = spareaddr;
+			cmd->dst = NC10(NAND_FLASH_BUFFER) + (512 - ((cwperpage - 1) << 2));
+			cmd->len = (cwperpage << 2);
+			cmd++;
+		}
+
+		if (n % 2 == 0) {
+			/* kick the NC01 execute register */
+			cmd->cmd = 0;
+			cmd->src = paddr(&data->exec);
+			cmd->dst = NC01(NAND_EXEC_CMD);
+			cmd->len = 4;
+			cmd++;
+			if (n != 0) {
+				/* MASK DATA ACK/REQ --> NC01 (0xA3C)*/
+				cmd->cmd = 0;
+				cmd->src = paddr(&data->adm_mux_data_ack_req_nc01);
+				cmd->dst = EBI2_NAND_ADM_MUX;
+				cmd->len = 4;
+				cmd++;
+
+				/* block on data ready from NC10, then
+				* read the status register
+				*/
+				cmd->cmd = SRC_CRCI_NAND_DATA;
+				cmd->src = NC10(NAND_FLASH_STATUS);
+				cmd->dst = paddr(&data->result[n-1]);
+				cmd->len = 4;
+				cmd++;
+			}
+		} else {
+			/* kick the execute register */
+			cmd->cmd = 0;
+			cmd->src = paddr(&data->exec);
+			cmd->dst = NC10(NAND_EXEC_CMD);
+			cmd->len = 4;
+			cmd++;
+
+			/* MASK DATA ACK/REQ --> NC10 (0xF28)*/
+			cmd->cmd = 0;
+			cmd->src = paddr(&data->adm_mux_data_ack_req_nc10);
+			cmd->dst = EBI2_NAND_ADM_MUX;
+			cmd->len = 4;
+			cmd++;
+
+			/* block on data ready from NC01, then
+			 * read the status register
+			 */
+			cmd->cmd = SRC_CRCI_NAND_DATA;
+			cmd->src = NC01(NAND_FLASH_STATUS);
+			cmd->dst = paddr(&data->result[n-1]);
+			cmd->len = 4;
+			cmd++;
+		}
+	}
+
+	/* MASK DATA ACK/REQ --> NC01 (0xA3C)*/
+	cmd->cmd = 0;
+	cmd->src = paddr(&data->adm_mux_data_ack_req_nc01);
+	cmd->dst = EBI2_NAND_ADM_MUX;
+	cmd->len = 4;
+	cmd++;
+
+	/* we should process outstanding request */
+	/* block on data ready, then
+	 * read the status register
+	 */
+	cmd->cmd = SRC_CRCI_NAND_DATA;
+	cmd->src = NC10(NAND_FLASH_STATUS);
+	cmd->dst = paddr(&data->result[n-1]);
+	cmd->len = 4;
+	cmd++;
+
+	/* restore saved ecc config */
+	cmd->cmd = 0;
+	cmd->src = paddr(&data->ecc_cfg_save);
+	cmd->dst = NAND_EBI2_ECC_BUF_CFG;
+	cmd->len = 4;
+
+	/* MASK DATA ACK/REQ --> NC01 (0xFC0)*/
+	cmd->cmd = 0;
+	cmd->src = paddr(&data->adm_default_mux);
+	cmd->dst = EBI2_NAND_ADM_MUX;
+	cmd->len = 4;
+	cmd++;
+
+	/* disable CS1 */
+	cmd->cmd = CMD_OCU | CMD_LC;
+	cmd->src = paddr(&data->default_ebi2_chip_select_cfg0);
+	cmd->dst = EBI2_CHIP_SELECT_CFG0;
+	cmd->len = 4;
+	cmd++;
+
+	ptr[0] = (paddr(cmdlist) >> 3) | CMD_PTR_LP;
+
+	dmov_exec_cmdptr(DMOV_NAND_CHAN, ptr);
+
+#if VERBOSE
+dprintf(INFO, "write page %d: status: %x %x %x %x %x %x %x %x \
+	%x %x %x %x %x %x %x %x \n", page,
+	data->result[0].flash_status[0],
+	data->result[1].flash_status[1],
+	data->result[2].flash_status[2],
+	data->result[3].flash_status[3],
+	data->result[4].flash_status[4],
+	data->result[5].flash_status[5],
+	data->result[6].flash_status[6],
+	data->result[7].flash_status[7],
+	data->result[8].flash_status[8],
+	data->result[9].flash_status[9],
+	data->result[10].flash_status[10],
+	data->result[11].flash_status[11],
+	data->result[12].flash_status[12],
+	data->result[13].flash_status[13],
+	data->result[14].flash_status[14],
+	data->result[15].flash_status[15]);
+#endif
+
+	/* if any of the writes failed (0x10), or there was a
+	 ** protection violation (0x100), or the program success
+	 ** bit (0x80) is unset, we lose
+	 */
+	for(n = 0; n < cwperpage; n++) {
+		if(data->result[n].flash_status & 0x110) return -1;
+		if(!(data->result[n].flash_status & 0x80)) return -1;
+	}
+
+#if VERIFY_WRITE
+	n = _flash_read_page(cmdlist, ptrlist, page, flash_data,
+				 flash_data + 2048);
+	if (n != 0)
+		return -1;
+	if (memcmp(flash_data, _addr, 2048) ||
+		memcmp(flash_data + 2048, _spareaddr, 16)) {
+		dprintf(CRITICAL, "verify error @ page %d\n", page);
+		return -1;
+	}
+#endif
+	return 0;
+}
+
 char empty_buf[528];
 static int flash_nand_mark_badblock(dmov_s *cmdlist, unsigned *ptrlist, unsigned page)
 {

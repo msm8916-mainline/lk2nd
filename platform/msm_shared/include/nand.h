@@ -34,7 +34,16 @@
 #else
 #define MSM_NAND_BASE 0xA0A00000
 #endif
-/* see 80-VA736-2 C pp 354-414 */
+
+#define MSM_NAND_NC01_BASE 	0xA0240000
+#define MSM_NAND_NC10_BASE 	0xA0280000
+#define MSM_NAND_NC11_BASE 	0xA02C0000
+#define EBI2_REG_BASE 		0xA0000000
+
+#define NC01(off) (MSM_NAND_NC01_BASE + (off))
+#define NC10(off) (MSM_NAND_NC10_BASE + (off))
+#define NC11(off) (MSM_NAND_NC11_BASE + (off))
+#define EBI2_REG(off) (EBI2_REG_BASE + (off))
 
 #define NAND_REG(off) (MSM_NAND_BASE + (off))
 
@@ -186,5 +195,9 @@
 #define FLASH_8BIT_NAND_DEVICE      0x01
 #define FLASH_16BIT_NAND_DEVICE     0x02
 #define FLASH_ONENAND_DEVICE        0x03
+
+#define EBI2_CFG_REG		       	EBI2_REG(0x0004)
+#define EBI2_NAND_ADM_MUX       	EBI2_REG(0x005C)
+#define EBI2_CHIP_SELECT_CFG0		EBI2_REG(0x0000)
 
 #endif /* __PLATFORM_MSM_SHARED_NAND_H */
