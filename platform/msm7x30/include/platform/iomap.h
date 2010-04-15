@@ -43,10 +43,6 @@
 #define MSM_CSR_BASE    0xC0100000
 #define MSM_GCC_BASE 	0xC0182000
 
-#if defined(PLATFORM_MSM7X30)
-#define MSM_SHARED_BASE      0x03700000
-#define HW_REVISION_NUMBER   0xABC00270
-#else
-#define MSM_SHARED_BASE      0x01F00000
-#endif
+#define MSM_SHARED_BASE      0x00100000
+
 #endif

@@ -62,6 +62,9 @@
 #define DGT_CLEAR            DGT_REG(0x000C)
 #define DGT_CLK_CTL          DGT_REG(0x0010)
 
+#define HW_REVISION_NUMBER   0xABC00270
+
+
 #else
 #define GPT_REG(off) (MSM_GPT_BASE + (off))
 
