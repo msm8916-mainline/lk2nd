@@ -44,3 +44,7 @@ __WEAK void platform_init(void)
 __WEAK void display_init(void)
 {
 }
+
+__WEAK void secondary_core(unsigned sec_entry)
+{
+}

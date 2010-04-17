@@ -2,6 +2,8 @@
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
  *
+ * Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -39,7 +41,7 @@
 #include <platform/interrupts.h>
 #include <kernel/thread.h>
 
-#ifdef PLATFORM_MSM7X30
+#if PLATFORM_MSM7X30 || PLATFORM_MSM8X60
 
 #define MSM_GPT_BASE (MSM_TMR_BASE + 0x4)
 #define MSM_DGT_BASE (MSM_TMR_BASE + 0x24)
@@ -122,6 +124,9 @@ status_t platform_set_periodic_timer(
 	if(val & mask)
 	    writel(1, DGT_CLK_CTL);
 #endif
+#ifdef PLATFORM_MSM8X60
+	writel(1, DGT_CLK_CTL);
+#endif
 	enter_critical_section();
 
 	timer_callback = callback;
@@ -152,7 +157,7 @@ void platform_init_timer(void)
 
 static void wait_for_timer_op(void)
 {
-#if PLATFORM_QSD8K || PLATFORM_MSM7X30
+#if PLATFORM_QSD8K || PLATFORM_MSM7X30 || PLATFORM_MSM8X60
 	while(readl(SPSS_TIMER_STATUS)) ;
 #endif
 }

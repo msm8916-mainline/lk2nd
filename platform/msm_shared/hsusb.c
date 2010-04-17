@@ -2,6 +2,8 @@
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
  *
+ * Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -497,6 +499,80 @@ void ulpi_write(unsigned val, unsigned reg)
 	while(readl(USB_ULPI_VIEWPORT) & ULPI_RUN) ;
 }
 
+#define USB_CLK             0x00902910
+#define USB_PHY_CLK         0x00902E20
+#define CLK_RESET_ASSERT    0x1
+#define CLK_RESET_DEASSERT  0x0
+#define CLK_RESET(x,y)  writel((y), (x));
+
+static int msm_otg_xceiv_reset()
+{
+	CLK_RESET(USB_CLK, CLK_RESET_ASSERT);
+	CLK_RESET(USB_PHY_CLK, CLK_RESET_ASSERT);
+	mdelay(20);
+	CLK_RESET(USB_PHY_CLK, CLK_RESET_DEASSERT);
+	CLK_RESET(USB_CLK, CLK_RESET_DEASSERT);
+	mdelay(20);
+
+	/* select ULPI phy */
+	writel(0x81000000, USB_PORTSC);
+	return 0;
+}
+#define USB_HS1_XVCR_FS_CLK_MD 0x00902908
+#define USB_HS1_XVCR_FS_CLK_NS 0x0090290C
+void hsusb_8x60_clock_init(void)
+{
+    unsigned int val = 0;
+
+    //Enable PLL8
+	writel(0xF, 0x00903144);
+	writel(0x5, 0x00903148);
+	writel(0x8, 0x0090314C);
+
+	val = readl(0x00903154);
+	val &= ~(0xC30000);
+	val |= 0xC10000;
+	writel(val, 0x00903154);
+
+	val = readl(0x00903140);
+	val &= ~(0x7);
+	val |= 0x7;
+	writel(val, 0x00903140);
+
+
+    //Set 7th bit in NS Register
+	val = 1 << 7;
+	writel(val, USB_HS1_XVCR_FS_CLK_NS);
+
+	//Set rate specific value in MD
+	writel(0x000500DF, USB_HS1_XVCR_FS_CLK_MD);
+
+	//Set value in NS register
+	val = 1 << 7;
+	val |= 0x00E400C3;
+	writel(val, USB_HS1_XVCR_FS_CLK_NS);
+
+	// Clear 7th bit
+	val = 1 << 7;
+	val = ~val;
+	val = val & readl(USB_HS1_XVCR_FS_CLK_NS);
+	writel(val, USB_HS1_XVCR_FS_CLK_NS);
+
+	//set 11th bit
+	val = 1 << 11;
+	val |= readl(USB_HS1_XVCR_FS_CLK_NS);
+	writel(val, USB_HS1_XVCR_FS_CLK_NS);
+
+	//set 9th bit
+	val = 1 << 9;
+	val |= readl(USB_HS1_XVCR_FS_CLK_NS);
+	writel(val, USB_HS1_XVCR_FS_CLK_NS);
+
+	//set 8th bit
+	val = 1 << 8;
+	val |= readl(USB_HS1_XVCR_FS_CLK_NS);
+	writel(val, USB_HS1_XVCR_FS_CLK_NS);
+}
 
 void hsusb_clock_init(void)
 {
@@ -508,6 +584,8 @@ void hsusb_clock_init(void)
     writel(0x00000900, USBH_NS_REG);
     writel(0x00000A00, USBH_NS_REG);
     writel(0x00002A00, USBH_NS_REG);
+#elif PLATFORM_MSM8X60
+    hsusb_8x60_clock_init();
 #endif
 }
 
@@ -527,8 +605,11 @@ int udc_init(struct udc_device *dev)
 //    board_usb_init();
 
         /* select ULPI phy */
+#ifdef PLATFORM_MSM8X60
+	msm_otg_xceiv_reset();
+#else
 	writel(0x81000000, USB_PORTSC);
-
+#endif
         /* RESET */
 	writel(0x00080002, USB_USBCMD);
 

@@ -185,6 +185,7 @@ void boot_linux(void *kernel, unsigned *tags,
 	arch_disable_cache(UCACHE);
 	arch_disable_mmu();
 
+	secondary_core((unsigned)kernel);
 	entry(0, machtype, tags);
 
 }
@@ -195,6 +196,79 @@ unsigned page_mask = 0;
 #define ROUND_TO_PAGE(x,y) (((x) + (y)) & (~(y)))
 
 static unsigned char buf[4096]; //Equal to max-supported pagesize
+
+int boot_linux_from_mmc(void)
+{
+	struct boot_img_hdr *hdr = (void*) buf;
+	struct boot_img_hdr *uhdr;
+	unsigned offset = 0;
+	unsigned long long ptn = 0;
+	unsigned n = 0;
+	const char *cmdline;
+
+	uhdr = (struct boot_img_hdr *)EMMC_BOOT_IMG_HEADER_ADDR;
+	if (!memcmp(uhdr->magic, BOOT_MAGIC, BOOT_MAGIC_SIZE)) {
+		dprintf(INFO, "Unified boot method!\n");
+		hdr = uhdr;
+		goto unified_boot;
+	}
+
+	ptn = mmc_ptn_offset("boot");
+	if(ptn == 0) {
+		dprintf(CRITICAL, "ERROR: No boot partition found\n");
+                return -1;
+	}
+
+	if (mmc_read(ptn + offset, (unsigned int *)buf, page_size)) {
+		dprintf(CRITICAL, "ERROR: Cannot read boot image header\n");
+                return -1;
+	}
+	offset += page_size;
+
+	if (memcmp(hdr->magic, BOOT_MAGIC, BOOT_MAGIC_SIZE)) {
+		dprintf(CRITICAL, "ERROR: Invaled boot image header\n");
+                return -1;
+	}
+
+	if (hdr->page_size != page_size) {
+		dprintf(CRITICAL, "ERROR: Invaled boot image pagesize. Device pagesize: %d, Image pagesize: %d\n",page_size,hdr->page_size);
+		return -1;
+	}
+
+	n = ROUND_TO_PAGE(hdr->kernel_size, page_mask);
+	if (mmc_read(ptn + offset, (void *)hdr->kernel_addr, n)) {
+		dprintf(CRITICAL, "ERROR: Cannot read kernel image\n");
+                return -1;
+	}
+	offset += n;
+
+	n = ROUND_TO_PAGE(hdr->ramdisk_size, page_mask);
+	if (mmc_read(ptn + offset, (void *)hdr->ramdisk_addr, n)) {
+		dprintf(CRITICAL, "ERROR: Cannot read ramdisk image\n");
+                return -1;
+	}
+	offset += n;
+
+unified_boot:
+	dprintf(INFO, "\nkernel  @ %x (%d bytes)\n", hdr->kernel_addr,
+		hdr->kernel_size);
+	dprintf(INFO, "ramdisk @ %x (%d bytes)\n", hdr->ramdisk_addr,
+		hdr->ramdisk_size);
+
+	if(hdr->cmdline[0]) {
+		cmdline = (char*) hdr->cmdline;
+	} else {
+		cmdline = DEFAULT_CMDLINE;
+	}
+	dprintf(INFO, "cmdline = '%s'\n", cmdline);
+
+	dprintf(INFO, "\nBooting Linux\n");
+	boot_linux((void *)hdr->kernel_addr, (void *)TAGS_ADDR,
+		   (const char *)cmdline, board_machtype(),
+		   (void *)hdr->ramdisk_addr, hdr->ramdisk_size);
+
+	return 0;
+}
 
 int boot_linux_from_flash(void)
 {
@@ -368,6 +442,30 @@ void cmd_erase(const char *arg, void *data, unsigned sz)
 	fastboot_okay("");
 }
 
+void cmd_flash_mmc(const char *arg, void *data, unsigned sz)
+{
+	unsigned long long ptn = 0;
+	ptn = mmc_ptn_offset(arg);
+	if(ptn == 0) {
+		fastboot_fail("partition table doesn't exist");
+		return;
+	}
+
+	if (!strcmp(arg, "boot") || !strcmp(arg, "recovery")) {
+		if (memcmp((void *)data, BOOT_MAGIC, BOOT_MAGIC_SIZE)) {
+			fastboot_fail("image is not a boot image");
+			return;
+		}
+	}
+
+	if (mmc_write(ptn , sz, (unsigned int *)data)) {
+		fastboot_fail("flash write failure");
+		return;
+	}
+	fastboot_okay("");
+	return;
+}
+
 void cmd_flash(const char *arg, void *data, unsigned sz)
 {
 	struct ptentry *ptn;
@@ -413,8 +511,14 @@ void cmd_continue(const char *arg, void *data, unsigned sz)
 	fastboot_okay("");
 	target_battery_charging_enable(0, 1);
 	udc_stop();
-
-	boot_linux_from_flash();
+        if (target_is_emmc_boot())
+        {
+            boot_linux_from_mmc();
+        }
+        else
+        {
+            boot_linux_from_flash();
+        }
 }
 
 void cmd_reboot(const char *arg, void *data, unsigned sz)
@@ -440,23 +544,32 @@ void aboot_init(const struct app_descriptor *app)
 	dprintf(INFO, "Diplay initialized\n");
 	disp_init = 1;
 	#endif
-	page_size = flash_page_size();
-	page_mask = page_size - 1;
-	if (keys_get_state(KEY_HOME) != 0)
-	        boot_into_recovery = 1;
-	if (keys_get_state(KEY_BACK) != 0)
-		goto fastboot;
-	if (keys_get_state(KEY_CLEAR) != 0)
-		goto fastboot;
-
-	reboot_mode = check_reboot_mode();
-        if (reboot_mode == RECOVERY_MODE){
-	        boot_into_recovery = 1;
-        }else if(reboot_mode == FASTBOOT_MODE){
-	        goto fastboot;
+	if (target_is_emmc_boot())
+        {
+            page_size = 2048;
+            page_mask = page_size - 1;
+            boot_linux_from_mmc();
         }
-	recovery_init();
-	boot_linux_from_flash();
+        else
+        {
+            page_size = flash_page_size();
+            page_mask = page_size - 1;
+            if (keys_get_state(KEY_HOME) != 0)
+                    boot_into_recovery = 1;
+            if (keys_get_state(KEY_BACK) != 0)
+                    goto fastboot;
+            if (keys_get_state(KEY_CLEAR) != 0)
+                    goto fastboot;
+
+            reboot_mode = check_reboot_mode();
+            if (reboot_mode == RECOVERY_MODE){
+                    boot_into_recovery = 1;
+            }else if(reboot_mode == FASTBOOT_MODE){
+                    goto fastboot;
+            }
+            recovery_init();
+            boot_linux_from_flash();
+        }
 	dprintf(CRITICAL, "ERROR: Could not do normal boot. Reverting "
 		"to fastboot mode.\n");
 
@@ -471,8 +584,15 @@ fastboot:
 
 	fastboot_register("boot", cmd_boot);
 	fastboot_register("erase:", cmd_erase);
-	fastboot_register("flash:", cmd_flash);
-	fastboot_register("continue", cmd_continue);
+	if (target_is_emmc_boot())
+        {
+            fastboot_register("flash:", cmd_flash_mmc);
+        }
+        else
+        {
+            fastboot_register("flash:", cmd_flash);
+        }
+        fastboot_register("continue", cmd_continue);
 	fastboot_register("reboot", cmd_reboot);
 	fastboot_register("reboot-bootloader", cmd_reboot_bootloader);
 	fastboot_publish("product", "swordfish");

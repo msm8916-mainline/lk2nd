@@ -1117,6 +1117,9 @@ static unsigned int mmc_boot_set_bus_width( struct mmc_boot_card* card,
         mmc_reg |=  MMC_BOOT_MCI_CLK_WIDEBUS_8_BIT;
     }
     writel( mmc_reg, MMC_BOOT_MCI_CLK );
+
+    mdelay(10); // Giving some time to card to stabilize.
+
     return MMC_BOOT_E_SUCCESS;
 }
 
