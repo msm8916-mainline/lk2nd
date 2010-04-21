@@ -20,6 +20,10 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+
+#define DSB .byte 0x4f, 0xf0, 0x7f, 0xf5
+#define ISB .byte 0x6f, 0xf0, 0x7f, 0xf5
+
 .text
 .globl _start
 _start:
@@ -143,6 +147,11 @@ warm_boot_tag:
 	cmp		r0, r1
 	strlt	r2, [r0], #4
 	blt		.L__bss_loop
+
+#ifdef ARM_CPU_CORTEX_A8
+	DSB
+	ISB
+#endif
 
 	bl		kmain
 	b		.

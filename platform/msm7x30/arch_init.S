@@ -188,7 +188,7 @@ WRITE_L1_SA_SETTINGS:
         MCR     p15, 0x0, r1, c15, c15, 0x2   //; write R1 to PVR0F2
 
         //;WCP15_PVR2F0   r2
-        MCR     p15, 0x2, r2, c15, c15, 0x2   //; write R2 to PVR2F0
+        MCR     p15, 0x2, r2, c15, c15, 0x0   //; write R2 to PVR2F0
 
         //;WCP15_PVR2F1   r3
         MCR     p15, 0x2, r3, c15, c15, 0x1   //; write R3 to PVR2F1
