@@ -91,11 +91,72 @@ typedef enum {
 
         SMEM_BOARD_INFO_LOCATION = 137,
 
+	SMEM_USABLE_RAM_PARTITION_TABLE = 402,
+
 	SMEM_FIRST_VALID_TYPE = SMEM_SPINLOCK_ARRAY,
-	SMEM_LAST_VALID_TYPE = SMEM_BOARD_INFO_LOCATION,
+	SMEM_LAST_VALID_TYPE = SMEM_USABLE_RAM_PARTITION_TABLE,
 } smem_mem_type_t;
 
 /* Note: buf MUST be 4byte aligned, and max_len MUST be a multiple of 4. */
 unsigned smem_read_alloc_entry(smem_mem_type_t type, void *buf, int max_len);
+
+/* SMEM RAM Partition */
+enum {
+    DEFAULT_ATTRB = ~0x0,
+    READ_ONLY = 0x0,
+    READWRITE,
+};
+
+enum {
+    DEFAULT_CATEGORY = ~0x0,
+    SMI = 0x0,
+    EBI1,
+    EBI2,
+    QDSP6,
+    IRAM,
+    IMEM,
+    EBI0_CS0,
+    EBI0_CS1,
+    EBI1_CS0,
+    EBI1_CS1,
+};
+
+enum {
+    DEFAULT_DOMAIN = 0x0,
+    APPS_DOMAIN,
+    MODEM_DOMAIN,
+    SHARED_DOMAIN,
+};
+
+struct smem_ram_ptn {
+	char name[16];
+	unsigned start;
+	unsigned size;
+
+	/* RAM Partition attribute: READ_ONLY, READWRITE etc.  */
+	unsigned attr;
+
+	/* RAM Partition category: EBI0, EBI1, IRAM, IMEM */
+	unsigned category;
+
+	/* RAM Partition domain: APPS, MODEM, APPS & MODEM (SHARED) etc. */
+	unsigned domain;
+
+	/* reserved for future expansion without changing version number */
+	unsigned reserved1, reserved2, reserved3, reserved4, reserved5;
+} __attribute__ ((__packed__));
+
+struct smem_ram_ptable {
+#define _SMEM_RAM_PTABLE_MAGIC_1 0x9DA5E0A8
+#define _SMEM_RAM_PTABLE_MAGIC_2 0xAF9EC4E2
+	unsigned magic[2];
+	unsigned version;
+	unsigned reserved1;
+	unsigned len;
+	struct smem_ram_ptn parts[32];
+	unsigned buf;
+} __attribute__ ((__packed__));
+
+
 
 #endif /* __PLATFORM_MSM_SHARED_SMEM_H */

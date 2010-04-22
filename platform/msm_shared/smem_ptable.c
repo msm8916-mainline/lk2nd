@@ -133,3 +133,24 @@ void smem_add_modem_partitions(struct ptable *flash_ptable)
 	}
 }
 
+/* RAM Partition table from SMEM */
+int smem_ram_ptable_init(struct smem_ram_ptable *smem_ram_ptable)
+{
+	unsigned i;
+
+	i = smem_read_alloc_entry(SMEM_USABLE_RAM_PARTITION_TABLE,
+				  smem_ram_ptable, sizeof(struct smem_ram_ptable));
+	if (i != 0)
+		return 0;
+
+	if (smem_ram_ptable->magic[0] != _SMEM_RAM_PTABLE_MAGIC_1 ||
+	    smem_ram_ptable->magic[1] != _SMEM_RAM_PTABLE_MAGIC_2)
+		return 0;
+
+	dprintf(INFO, "smem ram ptable found: ver: %d len: %d\n",
+		smem_ram_ptable->version, smem_ram_ptable->len);
+
+	return 1;
+}
+
+
