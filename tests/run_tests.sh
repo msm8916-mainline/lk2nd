@@ -344,6 +344,38 @@ dtc_tests () {
     run_sh_test dtc-fatal.sh -I fs -O dtb nosuchfile
 }
 
+cmp_tests () {
+    basetree="$1"
+    shift
+    wrongtrees="$@"
+
+    run_test dtb_reverse $basetree
+
+    # First dtbs_equal_ordered
+    run_test dtbs_equal_ordered $basetree $basetree
+    run_test dtbs_equal_ordered -n $basetree $basetree.reversed.test.dtb
+    for tree in $wrongtrees; do
+	run_test dtbs_equal_ordered -n $basetree $tree
+    done
+
+    # now unordered
+    run_test dtbs_equal_unordered $basetree $basetree
+    run_test dtbs_equal_unordered $basetree $basetree.reversed.test.dtb
+    run_test dtbs_equal_unordered $basetree.reversed.test.dtb $basetree
+    for tree in $wrongtrees; do
+	run_test dtbs_equal_unordered -n $basetree $tree
+    done
+}
+
+dtbs_equal_tests () {
+    WRONG_TREE1=""
+    for x in 1 2 3 4 5 6 7 8 9; do
+	run_dtc_test -I dts -O dtb -o test_tree1_wrong$x.test.dtb test_tree1_wrong$x.dts
+	WRONG_TREE1="$WRONG_TREE1 test_tree1_wrong$x.test.dtb"
+    done
+    cmp_tests test_tree1.dtb $WRONG_TREE1
+}
+
 while getopts "vt:m" ARG ; do
     case $ARG in
 	"v")
@@ -359,7 +391,7 @@ while getopts "vt:m" ARG ; do
 done
 
 if [ -z "$TESTSETS" ]; then
-    TESTSETS="libfdt dtc"
+    TESTSETS="libfdt dtc dtbs_equal"
 fi
 
 # Make sure we don't have stale blobs lying around
@@ -372,6 +404,9 @@ for set in $TESTSETS; do
 	    ;;
 	"dtc")
 	    dtc_tests
+	    ;;
+	"dtbs_equal")
+	    dtbs_equal_tests
 	    ;;
     esac
 done

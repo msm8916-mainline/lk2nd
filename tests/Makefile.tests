@@ -14,6 +14,7 @@ LIB_TESTS_L = get_mem_rsv \
 	boot-cpuid incbin \
 	extra-terminating-null \
 	dtbs_equal_ordered \
+	dtb_reverse dtbs_equal_unordered \
 	add_subnode_with_nops path_offset_aliases
 LIB_TESTS = $(LIB_TESTS_L:%=$(TESTS_PREFIX)%)
 
