@@ -37,11 +37,13 @@
 #include <dev/flash.h>
 #include <smem.h>
 
-#define LINUX_MACHTYPE_7x30_SURF   1007016
-#define LINUX_MACHTYPE_7x30_FFA    1007017
-#define LINUX_MACHTYPE_7x30_FLUID  1007018
-#define LINUX_MACHTYPE_8x55_SURF   2768
-#define LINUX_MACHTYPE_8x55_FFA    2769
+#define LINUX_MACHTYPE_7x30_SURF          1007016
+#define LINUX_MACHTYPE_7x30_FFA           1007017
+#define LINUX_MACHTYPE_7x30_FLUID         1007018
+#define LINUX_MACHTYPE_8x55_SURF          2768
+#define LINUX_MACHTYPE_8x55_FFA           2769
+#define LINUX_MACHTYPE_8x55_SVLTE_FFA     2863
+#define LINUX_MACHTYPE_8x55_SVLTE_SURF    2864
 
 #define MSM8255_ID                 74
 #define MSM8655_ID                 75
@@ -53,6 +55,7 @@ enum platform
     HW_PLATFORM_SURF    = 1,
     HW_PLATFORM_FFA     = 2,
     HW_PLATFORM_FLUID   = 3,
+    HW_PLATFORM_SVLTE   = 4,
     HW_PLATFORM_32BITS  = 0x7FFFFFFF
 };
 
@@ -236,6 +239,8 @@ unsigned board_machtype(void)
 				      LINUX_MACHTYPE_8x55_FFA : LINUX_MACHTYPE_7x30_FFA);      break;
 		case HW_PLATFORM_FLUID:
 		    hw_platform_type = LINUX_MACHTYPE_7x30_FLUID;                              break;
+		case HW_PLATFORM_SVLTE:
+		    hw_platform_type = LINUX_MACHTYPE_8x55_SVLTE_FFA;                          break;
 		default:
 		    hw_platform_type = ((target_is_msm8x55()) ?
 				      LINUX_MACHTYPE_8x55_SURF : LINUX_MACHTYPE_7x30_SURF);    break;
