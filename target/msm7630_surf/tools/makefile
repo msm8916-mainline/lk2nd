@@ -31,6 +31,7 @@ appsboothd.mbn: mkheader $(OUTBIN)
 
 EMMCBOOT.MBN: emmc_appsboothd.mbn $(OUTBIN)
 	cat $(APPSBOOTHEADER_DIR)/emmc_appsboothd.mbn $(OUTBIN) > $(APPSBOOTHEADER_DIR)/EMMCBOOT.MBN
+	cat $(APPSBOOTHEADER_DIR)/emmc_appsboothd.mbn $(OUTBIN) > $(APPSBOOTHEADER_DIR)/emmc_appsboot.mbn
 	rm -f $(APPSBOOTHEADER_DIR)/emmc_appsboothd.mbn
 
 emmc_appsboothd.mbn: mkheader $(OUTBIN)

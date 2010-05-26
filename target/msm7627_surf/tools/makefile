@@ -29,6 +29,7 @@ appsboothd.mbn: mkheader $(OUTBIN)
 
 EMMCBOOT.MBN: $(OUTBIN)
 	cp -f $(OUTBIN) $(APPSBOOTHEADER_DIR)/EMMCBOOT.MBN
+	cp -f $(OUTBIN) $(APPSBOOTHEADER_DIR)/emmc_appsboot.mbn
 
 emmc_appsboothd.mbn: mkheader $(OUTBIN)
 	$(SRC_DIR)/mkheader $(OUTBIN) $(APPSBOOTHEADER_DIR)/emmc_appsboothd.mbn unified-boot
