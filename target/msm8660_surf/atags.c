@@ -30,27 +30,24 @@
 #include <debug.h>
 #include <smem.h>
 
-#define EBI1_SIZE_60M   0x03C00000
-#define EBI1_SIZE_128M  0x08000000
-#define EBI1_SIZE_60M  (254 * 1024 * 1024)
-#define EBI1_ADDR_60M   0x40200000
-#define EBI1_ADDR_128M  0x48000000
+#define EBI1_SIZE1   0x02D00000 // 45M
+#define EBI1_ADDR1   0x40200000
+
+#define EBI1_SIZE2   0x08000000 // 128M
+#define EBI1_ADDR2   0x48000000
 
 unsigned* target_atag_mem(unsigned* ptr)
 {
-    /* ATAG_MEM for 51MB + 128MB setup */
-    *ptr++ = 4;
-    *ptr++ = 0x54410002;
-    *ptr++ = EBI1_SIZE_60M;
-    *ptr++ = EBI1_ADDR_60M;
-
     /* ATAG_MEM */
-    /*
     *ptr++ = 4;
     *ptr++ = 0x54410002;
-    *ptr++ = EBI1_SIZE_128M;
-    *ptr++ = EBI1_ADDR_128M;
-    */
+    *ptr++ = EBI1_SIZE1;
+    *ptr++ = EBI1_ADDR1;
+
+    *ptr++ = 4;
+    *ptr++ = 0x54410002;
+    *ptr++ = EBI1_SIZE2;
+    *ptr++ = EBI1_ADDR2;
     return ptr;
 }
 
