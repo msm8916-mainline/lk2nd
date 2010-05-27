@@ -59,66 +59,6 @@ int startswith(const char *str, const char *prefix)
     return 1;
 }
 
-unsigned set_load_address(unsigned addr)
-{
-    if (load_addr != 0xffffffff)
-    {
-        /* Already assigned */
-        return load_addr;
-    }
-
-    load_addr = addr;
-
-#ifdef PLATFORM_MSM7X30
-    /* For 7x30, override the destination RAM address based on memory type */
-    /* so the image is loaded to the larger memory segment.                */
-    struct smem_board_info_v4 board_info_v4;
-    unsigned int board_info_len = 0;
-    unsigned smem_status;
-    char *build_type;
-    unsigned format = 0;
-
-    smem_status = smem_read_alloc_entry_offset(SMEM_BOARD_INFO_LOCATION,
-					       &format, sizeof(format), 0);
-    if(smem_status)
-    {
-      dprintf(CRITICAL, "ERROR: unable to read shared memory for offset entry\n");
-    }
-
-    if ((format == 3) || (format == 4))
-    {
-        if (format == 4)
-	    board_info_len = sizeof(board_info_v4);
-	else
-	    board_info_len = sizeof(board_info_v4.board_info_v3);
-
-        smem_status = smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
-					&board_info_v4, board_info_len);
-        if(smem_status)
-        {
-            dprintf(CRITICAL, "ERROR: unable to read shared memory for Hardware Platform\n");
-        }
-    }
-
-    if(!smem_status)
-    {
-        build_type  = (char *)(board_info_v4.board_info_v3.build_id) + 8;
-        if (*build_type == 'A')
-        {
-            /* LPDDR2 configuration */
-            load_addr = 0x40000000;
-        }
-        else
-        {
-            /* LPDDR1 configuration */
-            load_addr = 0x08000000;
-        }
-    }
-#endif
-
-    return load_addr;
-}
-
 /* XXX */
 void verify_flash(struct ptentry *p, void *addr, unsigned len, int extra)
 {
@@ -177,8 +117,7 @@ void handle_flash(const char *name, unsigned addr, unsigned sz)
 	else
 		sz = ROUND_TO_PAGE(sz, page_mask);
 
-	/* Override load address if needed */
-	data = (void *)set_load_address(addr);
+	data = (void *)target_get_scratch_address();
 
 	dprintf(INFO, "writing %d bytes to '%s'\n", sz, ptn->name);
 	if (flash_write(ptn, extra, data, sz)) {
@@ -246,7 +185,7 @@ void handle_query_load_address(unsigned addr)
     unsigned *return_addr = (unsigned *)addr;
 
     if (return_addr)
-        *return_addr = set_load_address(addr);
+        *return_addr = target_get_scratch_address();
 
     jtag_okay("done");
 }
