@@ -540,8 +540,10 @@ struct mbr_entry
 #define MMC_BOOT_RD_BLOCK_LEN         512
 #define MMC_BOOT_WR_BLOCK_LEN         512
 
-/* We have 12 32-bits FIFO registers */
-#define MMC_BOOT_MCI_FIFO_SIZE        ( 12 * 4 )
+/* We have 16 32-bits FIFO registers */
+#define MMC_BOOT_MCI_FIFO_COUNT       16
+#define MMC_BOOT_MCI_HFIFO_COUNT      ( MMC_BOOT_MCI_FIFO_COUNT / 2 )
+#define MMC_BOOT_MCI_FIFO_SIZE        ( MMC_BOOT_MCI_FIFO_COUNT * 4 )
 
 /*Need to put at proper place*/
 #define SDC1_CLK    19  /* Secure Digital Card clocks */
@@ -561,6 +563,7 @@ struct mbr_entry
 #define MMC_CLK_144KHZ                144000
 #define MMC_CLK_20MHZ                 20000000
 #define MMC_CLK_25MHZ                 25000000
+#define MMC_CLK_48MHZ                 48000000
 #define MMC_CLK_50MHZ                 49152000
 
 #define MMC_CLK_ENABLE      1

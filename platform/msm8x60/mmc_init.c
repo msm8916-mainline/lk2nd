@@ -30,8 +30,7 @@
 #include <stdlib.h>
 #include <debug.h>
 #include <reg.h>
-
-#define MMC_BOOT_VREG_ID    18
+#include "mmc.h"
 
 #define CLK_CTL_BASE    0x00900000
 
@@ -90,12 +89,16 @@ static void mmc_set_clk(unsigned ns, unsigned md)
 
 void clock_set_enable (unsigned int mclk)
 {
-    if (mclk == 400000)
+    if (mclk == MMC_CLK_400KHZ)
     {
         mmc_set_clk(0x0010005B, 0x0001000F);
     }
-    if (mclk == 20000000)
+    else if (mclk == MMC_CLK_20MHZ)
     {
         mmc_set_clk(0x00ED0043, 0x000100EC);
+    }
+    else if (mclk == MMC_CLK_48MHZ)
+    {
+        mmc_set_clk(0x00FE005B, 0x000100FD);
     }
 }

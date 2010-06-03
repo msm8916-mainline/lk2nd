@@ -10,7 +10,7 @@ MMC_SLOT         := 1
 DEFINES += WITH_CPU_EARLY_INIT=0 WITH_CPU_WARM_BOOT=0 \
 	   MMC_SLOT=$(MMC_SLOT)
 
-INCLUDES += -I$(LOCAL_DIR)/include
+INCLUDES += -I$(LOCAL_DIR)/include -I$(LK_TOP_DIR)/platform/msm_shared/include
 
 DEVS += fbcon
 MODULES += dev/fbcon
