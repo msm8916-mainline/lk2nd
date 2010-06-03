@@ -50,6 +50,10 @@ void target_init(void)
 
     dprintf(INFO, "target_init()\n");
 
+#if (!ENABLE_NANDWRITE)
+	keys_init();
+	keypad_init();
+#endif
     if(mmc_boot_main())
     {
         dprintf(CRITICAL, "mmc init failed!");

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
- * Copyright (c) 2009, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -51,8 +51,11 @@ static struct qwerty_keypad_info qwerty_keypad = {
     .keymap         = qwerty_keymap,
     .old_keys       = qwerty_keys_old,
     .rec_keys       = qwerty_keys_new,
-    .rows           = ARRAY_SIZE(qwerty_keys_new),
-    .columns        = sizeof(unsigned char) * 8,
+    .rows           = 5,
+    .columns        = 5,
+    .num_of_reads   = 6,
+    .rd_func        = &i2c_ssbi_read_bytes,
+    .wr_func        = &i2c_ssbi_write_bytes,
     .settle_time    = 5 /* msec */,
     .poll_time	    = 20 /* msec */,
 };

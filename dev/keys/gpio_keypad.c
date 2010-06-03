@@ -2,7 +2,7 @@
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -289,9 +289,69 @@ int i2c_ssbi_write_bytes(unsigned char  *buffer, unsigned short length,
 	return 0;
 }
 
+int pa1_ssbi2_read_bytes(unsigned char  *buffer, unsigned short length,
+                                                unsigned short slave_addr)
+{
+    unsigned val = 0x0;
+    unsigned temp = 0x0000;
+    unsigned char *buf = buffer;
+    unsigned short len = length;
+    unsigned short addr = slave_addr;
+    unsigned long timeout = SSBI_TIMEOUT_US;
+
+    while(len)
+    {
+        val |= ((addr << PA1_SSBI2_REG_ADDR_SHIFT) |
+		(PA1_SSBI2_CMD_READ << PA1_SSBI2_CMD_RDWRN_SHIFT));
+        writel(val, PA1_SSBI2_CMD);
+        while(!((temp = readl(PA1_SSBI2_RD_STATUS)) & (1 << PA1_SSBI2_TRANS_DONE_SHIFT))) {
+            if (--timeout == 0) {
+	        dprintf(INFO, "In Device ready function:Timeout\n");
+	        return 1;
+	    }
+	}
+        len--;
+        *buf++ = (temp & (PA1_SSBI2_REG_DATA_MASK << PA1_SSBI2_REG_DATA_SHIFT));
+    }
+    return 0;
+}
+
+int pa1_ssbi2_write_bytes(unsigned char  *buffer, unsigned short length,
+                                                unsigned short slave_addr)
+{
+    unsigned val;
+    unsigned char *buf = buffer;
+    unsigned short len = length;
+    unsigned short addr = slave_addr;
+    unsigned temp = 0x00;
+    unsigned char written_data1 = 0x00;
+    unsigned long timeout = SSBI_TIMEOUT_US;
+    //unsigned char written_data2 = 0x00;
+
+    while(len)
+    {
+        temp = 0x00;
+        written_data1 = 0x00;
+        val = (addr << PA1_SSBI2_REG_ADDR_SHIFT) |
+	  (PA1_SSBI2_CMD_WRITE << PA1_SSBI2_CMD_RDWRN_SHIFT) |
+ (*buf & 0xFF);
+        writel(val, PA1_SSBI2_CMD);
+        while(!((temp = readl(PA1_SSBI2_RD_STATUS)) & (1 << PA1_SSBI2_TRANS_DONE_SHIFT))) {
+            if (--timeout == 0) {
+	        dprintf(INFO, "In Device write function:Timeout\n");
+	        return 1;
+	    }
+	}
+        len--;
+        buf++;
+    }
+    return 0;
+}
+
 int pm8058_gpio_config(int gpio, struct pm8058_gpio *param)
 {
 	int	rc;
+        write_func wr_function = (qwerty_keypad->keypad_info)->wr_func;
 	unsigned char bank[8];
 	static int dir_map[] = {
 		PM8058_GPIO_MODE_OFF,
@@ -329,7 +389,7 @@ int pm8058_gpio_config(int gpio, struct pm8058_gpio *param)
 		((param->function << PM8058_GPIO_FUNC_SHIFT) &
 			PM8058_GPIO_FUNC_MASK);
 
-	rc = i2c_ssbi_write_bytes(bank, 5, SSBI_REG_ADDR_GPIO(gpio));
+	rc = (*wr_function)(bank, 5, SSBI_REG_ADDR_GPIO(gpio));
 	if (rc) {
 	        dprintf(INFO, "Failed on 1st ssbi_write(): rc=%d.\n", rc);
 		return 1;
@@ -387,32 +447,37 @@ void ssbi_gpio_init(void)
 {
     unsigned char kypd_cntl_init = 0x84;
     unsigned char kypd_scan_init = 0x20;
+    int rows = (qwerty_keypad->keypad_info)->rows;
+    int columns = (qwerty_keypad->keypad_info)->columns;
+    write_func wr_function = (qwerty_keypad->keypad_info)->wr_func;
 
-    if (i2c_ssbi_write_bytes(&kypd_cntl_init, 1, SSBI_REG_KYPD_CNTL_ADDR))
+    if ((*wr_function)(&kypd_cntl_init, 1, SSBI_REG_KYPD_CNTL_ADDR))
       dprintf (CRITICAL, "Error in initializing SSBI_REG_KYPD_CNTL register\n");
 
-    if (i2c_ssbi_write_bytes(&kypd_scan_init, 1, SSBI_REG_KYPD_SCAN_ADDR))
+    if ((*wr_function)(&kypd_scan_init, 1, SSBI_REG_KYPD_SCAN_ADDR))
       dprintf (CRITICAL, "Error in initializing SSBI_REG_KYPD_SCAN register\n");
 
-    pm8058_gpio_config_kypd_sns(SSBI_OFFSET_ADDR_GPIO_KYPD_SNS, NUM_OF_KYPD_SNS_GPIOS);
-    pm8058_gpio_config_kypd_drv(SSBI_OFFSET_ADDR_GPIO_KYPD_DRV,  NUM_OF_KYPD_DRV_GPIOS);
+    pm8058_gpio_config_kypd_sns(SSBI_OFFSET_ADDR_GPIO_KYPD_SNS, columns);
+    pm8058_gpio_config_kypd_drv(SSBI_OFFSET_ADDR_GPIO_KYPD_DRV,  rows);
 }
 
 static enum handler_return
 scan_qwerty_keypad(struct timer *timer, time_t now, void *arg)
 {
-    int rows = (qwerty_keypad->keypad_info)->rows;
-    int columns = NUM_OF_KYPD_SNS_GPIOS;
+    unsigned int rows = (qwerty_keypad->keypad_info)->rows;
+    unsigned int columns = (qwerty_keypad->keypad_info)->columns;
+    unsigned int num_of_ssbi_reads = (qwerty_keypad->keypad_info)->num_of_reads;
+    read_func rd_function = (qwerty_keypad->keypad_info)->rd_func;
     unsigned char column_new_keys = 0x00;
     unsigned char column_old_keys = 0x00;
     int shift = 0;
     static int key_detected = 0;
 
-    if (i2c_ssbi_read_bytes((qwerty_keypad->keypad_info)->rec_keys, NUM_OF_SSBI_READS,
+    if ((*rd_function)((qwerty_keypad->keypad_info)->rec_keys, num_of_ssbi_reads,
                                                  SSBI_REG_KYPD_REC_DATA_ADDR))
       dprintf (CRITICAL, "Error in initializing SSBI_REG_KYPD_CNTL register\n");
 
-    if (i2c_ssbi_read_bytes((qwerty_keypad->keypad_info)->old_keys, NUM_OF_SSBI_READS,
+    if ((*rd_function)((qwerty_keypad->keypad_info)->old_keys, num_of_ssbi_reads,
                                                  SSBI_REG_KYPD_OLD_DATA_ADDR))
       dprintf (CRITICAL, "Error in initializing SSBI_REG_KYPD_CNTL register\n");
 
@@ -426,7 +491,7 @@ scan_qwerty_keypad(struct timer *timer, time_t now, void *arg)
 	        column_old_keys = ((qwerty_keypad->keypad_info)->old_keys[rows]);
 	        if (((0x01 << columns) & (~column_new_keys))
 		    && !((0x01 << columns) & (~column_old_keys))) {
-	            shift = (rows * (qwerty_keypad->keypad_info)->columns) + columns;
+	            shift = (rows * 8) + columns;
 	            if ((qwerty_keypad->keypad_info)->keymap[shift]) {
 		      if (shift != key_detected) {
 			    key_detected = shift;
@@ -459,14 +524,14 @@ void ssbi_keypad_init(struct qwerty_keypad_info  *qwerty_kp)
 {
     int len;
 
-    ssbi_gpio_init();
-
     len = sizeof(struct gpio_qwerty_kp);
     qwerty_keypad = malloc(len);
     ASSERT(qwerty_keypad);
 
     memset(qwerty_keypad, 0, len);
     qwerty_keypad->keypad_info = qwerty_kp;
+    ssbi_gpio_init();
+
     qwerty_keypad->num_of_scans = 0;
 
     event_init(&qwerty_keypad->full_scan, false, EVENT_FLAG_AUTOUNSIGNAL);
