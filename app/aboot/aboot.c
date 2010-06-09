@@ -511,26 +511,26 @@ void cmd_continue(const char *arg, void *data, unsigned sz)
 	fastboot_okay("");
 	target_battery_charging_enable(0, 1);
 	udc_stop();
-        if (target_is_emmc_boot())
-        {
-            boot_linux_from_mmc();
-        }
-        else
-        {
-            boot_linux_from_flash();
-        }
+	if (target_is_emmc_boot())
+	{
+		boot_linux_from_mmc();
+	}
+	else
+	{
+		boot_linux_from_flash();
+	}
 }
 
 void cmd_reboot(const char *arg, void *data, unsigned sz)
 {
-        dprintf(INFO, "rebooting the device\n");
+	dprintf(INFO, "rebooting the device\n");
 	fastboot_okay("");
 	reboot_device(0);
 }
 
 void cmd_reboot_bootloader(const char *arg, void *data, unsigned sz)
 {
-        dprintf(INFO, "rebooting the device\n");
+	dprintf(INFO, "rebooting the device\n");
 	fastboot_okay("");
 	reboot_device(FASTBOOT_MODE);
 }
@@ -539,38 +539,55 @@ void aboot_init(const struct app_descriptor *app)
 {
 	unsigned reboot_mode = 0;
 	unsigned disp_init = 0;
+	unsigned usb_init = 0;
 	#if DISPLAY_SPLASH_SCREEN
 	display_init();
 	dprintf(INFO, "Diplay initialized\n");
 	disp_init = 1;
 	#endif
 
-        if (keys_get_state(KEY_HOME) != 0)
-            boot_into_recovery = 1;
-        if (keys_get_state(KEY_BACK) != 0)
-            goto fastboot;
-        if (keys_get_state(KEY_CLEAR) != 0)
-            goto fastboot;
+	if (target_is_emmc_boot())
+	{
+		page_size = 2048;
+		page_mask = page_size - 1;
+	}
+	else
+	{
+		page_size = flash_page_size();
+		page_mask = page_size - 1;
+	}
+
+	if (keys_get_state(KEY_HOME) != 0)
+		boot_into_recovery = 1;
+	if (keys_get_state(KEY_BACK) != 0)
+		goto fastboot;
+	if (keys_get_state(KEY_CLEAR) != 0)
+		goto fastboot;
+
+	#if NO_KEYPAD_DRIVER
+	/* With no keypad implementation, check the status of USB connection. */
+	/* If USB is connected then go into fastboot mode. */
+	usb_init = 1;
+	udc_init(&surf_udc_device);
+	if (usb_cable_status())
+		goto fastboot;
+	#endif
 
 	if (target_is_emmc_boot())
-        {
-            page_size = 2048;
-            page_mask = page_size - 1;
-            boot_linux_from_mmc();
-        }
-        else
-        {
-            page_size = flash_page_size();
-            page_mask = page_size - 1;
-            reboot_mode = check_reboot_mode();
-            if (reboot_mode == RECOVERY_MODE){
-                    boot_into_recovery = 1;
-            }else if(reboot_mode == FASTBOOT_MODE){
-                    goto fastboot;
-            }
-            recovery_init();
-            boot_linux_from_flash();
-        }
+	{
+		boot_linux_from_mmc();
+	}
+	else
+	{
+		reboot_mode = check_reboot_mode();
+		if (reboot_mode == RECOVERY_MODE) {
+			boot_into_recovery = 1;
+		} else if(reboot_mode == FASTBOOT_MODE) {
+			goto fastboot;
+		}
+		recovery_init();
+		boot_linux_from_flash();
+	}
 	dprintf(CRITICAL, "ERROR: Could not do normal boot. Reverting "
 		"to fastboot mode.\n");
 
@@ -581,19 +598,21 @@ fastboot:
 		fbcon_clear();
 	}
 	dprintf(INFO, "Diplay initialized\n");
-	udc_init(&surf_udc_device);
+	if(!usb_init)
+		udc_init(&surf_udc_device);
 
 	fastboot_register("boot", cmd_boot);
 	fastboot_register("erase:", cmd_erase);
 	if (target_is_emmc_boot())
-        {
-            fastboot_register("flash:", cmd_flash_mmc);
-        }
-        else
-        {
-            fastboot_register("flash:", cmd_flash);
-        }
-        fastboot_register("continue", cmd_continue);
+	{
+		fastboot_register("flash:", cmd_flash_mmc);
+	}
+	else
+	{
+		fastboot_register("flash:", cmd_flash);
+	}
+
+	fastboot_register("continue", cmd_continue);
 	fastboot_register("reboot", cmd_reboot);
 	fastboot_register("reboot-bootloader", cmd_reboot_bootloader);
 	fastboot_publish("product", "swordfish");
@@ -601,7 +620,7 @@ fastboot:
 
 	fastboot_init(target_get_scratch_address(), 120 * 1024 * 1024);
 	udc_start();
-        target_battery_charging_enable(1, 0);
+	target_battery_charging_enable(1, 0);
 }
 
 APP_START(aboot)

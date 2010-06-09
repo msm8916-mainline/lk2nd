@@ -848,7 +848,7 @@ int udc_stop(void)
 	mask_interrupt(INT_USB_HS);
 
         /* disable pullup */
-	writel(0x0008000, USB_USBCMD);
+	writel(0x00080000, USB_USBCMD);
 	thread_sleep(10);
 
 	return 0;
@@ -913,6 +913,28 @@ int is_usb_cable_connected(void)
     } else {
         return 0;
     }
+}
+
+/* check for USB connection assuming USB is not pulled up.
+ * It looks for suspend state bit in PORTSC register.
+ *
+ * RETURN: If cable connected return 1
+ * If cable disconnected return 0
+ */
+
+int usb_cable_status(void)
+{
+    unsigned ret = 0;
+    /*Verify B Session Valid Bit to verify vbus status*/
+    writel(0x00080001, USB_USBCMD);
+    thread_sleep(100);
+
+    /*Check reset value of suspend state bit*/
+    if (!((1<<7) & readl(USB_PORTSC))) {
+        ret=1;
+    }
+    udc_stop();
+    return ret;
 }
 
 void usb_charger_change_state(void)
