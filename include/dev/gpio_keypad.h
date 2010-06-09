@@ -2,7 +2,7 @@
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -167,9 +167,21 @@ void gpio_keypad_init(struct gpio_keypad_info *kpinfo);
 #define	PM8058_GPIO_FUNC_MASK		0x0E
 #define	PM8058_GPIO_FUNC_SHIFT		1
 
-#define NUM_OF_SSBI_READS               6
-#define NUM_OF_KYPD_DRV_GPIOS           5
-#define NUM_OF_KYPD_SNS_GPIOS           5
+
+/* PMIC Arbiter 1: SSBI2 Configuration Micro ARM registers */
+#define PA1_SSBI2_CMD                   0x00500000
+#define PA1_SSBI2_RD_STATUS             0x00500004
+
+#define PA1_SSBI2_REG_ADDR_SHIFT        8
+#define PA1_SSBI2_CMD_RDWRN_SHIFT       24
+#define PA1_SSBI2_TRANS_DONE_SHIFT      27
+
+#define PA1_SSBI2_REG_DATA_MASK         0xFF
+#define PA1_SSBI2_REG_DATA_SHIFT        0
+
+#define PA1_SSBI2_CMD_READ              1
+#define PA1_SSBI2_CMD_WRITE             0
+
 
 struct pm8058_gpio {
 	int		direction;
@@ -180,6 +192,9 @@ struct pm8058_gpio {
 	int		inv_int_pol;	/* invert interrupt polarity */
 };
 
+typedef int (*read_func)(unsigned char *, unsigned short, unsigned short);
+typedef int (*write_func)(unsigned char *, unsigned short, unsigned short);
+
 struct qwerty_keypad_info {
 	/* size must be ninputs * noutputs */
 	unsigned int   *keymap;
@@ -187,6 +202,9 @@ struct qwerty_keypad_info {
         unsigned char  *rec_keys;
         unsigned int   rows;
         unsigned int   columns;
+        unsigned int   num_of_reads;
+        read_func      rd_func;
+        write_func     wr_func;
 	/* time to wait before reading inputs after driving each output */
 	time_t         settle_time;
 	time_t         poll_time;
@@ -205,5 +223,13 @@ struct qwerty_keypad_info {
 	SSBI_MODE2_REG_ADDR_15_8_MASK))
 
 void ssbi_keypad_init (struct qwerty_keypad_info *);
+int i2c_ssbi_read_bytes(unsigned char  *buffer, unsigned short length,
+			unsigned short slave_addr);
+int i2c_ssbi_write_bytes(unsigned char  *buffer, unsigned short length,
+			 unsigned short slave_addr);
+int pa1_ssbi2_read_bytes(unsigned char  *buffer, unsigned short length,
+			 unsigned short slave_addr);
+int pa1_ssbi2_write_bytes(unsigned char  *buffer, unsigned short length,
+			  unsigned short slave_addr);
 
 #endif /* __DEV_GPIO_KEYPAD_H */

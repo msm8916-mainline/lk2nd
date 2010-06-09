@@ -544,6 +544,14 @@ void aboot_init(const struct app_descriptor *app)
 	dprintf(INFO, "Diplay initialized\n");
 	disp_init = 1;
 	#endif
+
+        if (keys_get_state(KEY_HOME) != 0)
+            boot_into_recovery = 1;
+        if (keys_get_state(KEY_BACK) != 0)
+            goto fastboot;
+        if (keys_get_state(KEY_CLEAR) != 0)
+            goto fastboot;
+
 	if (target_is_emmc_boot())
         {
             page_size = 2048;
@@ -554,13 +562,6 @@ void aboot_init(const struct app_descriptor *app)
         {
             page_size = flash_page_size();
             page_mask = page_size - 1;
-            if (keys_get_state(KEY_HOME) != 0)
-                    boot_into_recovery = 1;
-            if (keys_get_state(KEY_BACK) != 0)
-                    goto fastboot;
-            if (keys_get_state(KEY_CLEAR) != 0)
-                    goto fastboot;
-
             reboot_mode = check_reboot_mode();
             if (reboot_mode == RECOVERY_MODE){
                     boot_into_recovery = 1;
