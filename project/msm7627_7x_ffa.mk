@@ -1,8 +1,8 @@
-# top level project rules for the msm7630_surf project
+# top level project rules for the msm7627_ffa project
 #
 LOCAL_DIR := $(GET_LOCAL_DIR)
 
-TARGET := msm8660_surf
+TARGET := msm7627_ffa
 
 MODULES += app/aboot
 
