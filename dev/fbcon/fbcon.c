@@ -42,7 +42,7 @@ struct pos {
 
 static struct fbcon_config *config = NULL;
 
-#define RGB565_BLUE		0x001f
+#define RGB565_BLACK		0x0000
 #define RGB565_WHITE		0xffff
 
 #define FONT_WIDTH		5
@@ -179,7 +179,7 @@ void fbcon_setup(struct fbcon_config *_config)
 
 	switch (config->format) {
 	case FB_FORMAT_RGB565:
-		bg = RGB565_BLUE;
+		bg = RGB565_BLACK;
 		fg = RGB565_WHITE;
 		break;
 
@@ -191,7 +191,7 @@ void fbcon_setup(struct fbcon_config *_config)
 
 	fbcon_set_colors(bg, fg);
 
-	fbcon_clear();
+	//fbcon_clear();
 	fbcon_flush();
 
 	cur_pos.x = 0;

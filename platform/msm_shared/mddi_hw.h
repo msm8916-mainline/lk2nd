@@ -29,7 +29,11 @@
 #ifndef __PLATFORM_MSM7K_MDDI_HW_H
 #define __PLATFORM_MSM7K_MDDI_HW_H
 
+#ifdef TARGET_MSM7630_SURF
+#define MSM_MDDI_BASE 0xAD600000
+#else
 #define MSM_MDDI_BASE 0xAA600000
+#endif
 
 /* see 80-VA736-2 C pp 776-787 */
 

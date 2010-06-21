@@ -278,7 +278,6 @@ int boot_linux_from_flash(void)
 	struct ptable *ptable;
 	unsigned offset = 0;
 	const char *cmdline;
-	struct fbcon_config *fb_display = NULL;
 
 	if (target_is_emmc_boot()) {
 		hdr = (struct boot_img_hdr *)EMMC_BOOT_IMG_HEADER_ADDR;
@@ -294,22 +293,6 @@ int boot_linux_from_flash(void)
 		dprintf(CRITICAL, "ERROR: Partition table not found\n");
 		return -1;
 	}
-
-#if DISPLAY_SPLASH_SCREEN
-	ptn = ptable_find(ptable, "splash");
-	if (ptn == NULL) {
-        dprintf(CRITICAL, "ERROR: No splash partition found\n");
-	} else {
-		fb_display = fbcon_display();
-		if (fb_display) {
-			if (flash_read(ptn, 0, fb_display->base,
-			    (fb_display->width * fb_display->height * fb_display->bpp/8))) {
-				fbcon_clear();
-				dprintf(CRITICAL, "ERROR: Cannot read splash image\n");
-			}
-		}
-	}
-#endif
 
 	if(!boot_into_recovery)
 	{
@@ -535,17 +518,43 @@ void cmd_reboot_bootloader(const char *arg, void *data, unsigned sz)
 	reboot_device(FASTBOOT_MODE);
 }
 
+void splash_screen ()
+{
+	struct ptentry *ptn;
+	struct ptable *ptable;
+	struct fbcon_config *fb_display = NULL;
+
+	if (!target_is_emmc_boot())
+	{
+		ptable = flash_get_ptable();
+		if (ptable == NULL) {
+			dprintf(CRITICAL, "ERROR: Partition table not found\n");
+			return -1;
+		}
+
+		ptn = ptable_find(ptable, "splash");
+		if (ptn == NULL) {
+			dprintf(CRITICAL, "ERROR: No splash partition found\n");
+		} else {
+			fb_display = fbcon_display();
+			if (fb_display) {
+				if (flash_read(ptn, 0, fb_display->base,
+					(fb_display->width * fb_display->height * fb_display->bpp/8))) {
+					fbcon_clear();
+					dprintf(CRITICAL, "ERROR: Cannot read splash image\n");
+				}
+			}
+		}
+	}
+}
+
 void aboot_init(const struct app_descriptor *app)
 {
 	unsigned reboot_mode = 0;
 	unsigned disp_init = 0;
 	unsigned usb_init = 0;
-	#if DISPLAY_SPLASH_SCREEN
-	display_init();
-	dprintf(INFO, "Diplay initialized\n");
-	disp_init = 1;
-	#endif
 
+	/* Setup page size information for nand/emmc reads */
 	if (target_is_emmc_boot())
 	{
 		page_size = 2048;
@@ -557,6 +566,15 @@ void aboot_init(const struct app_descriptor *app)
 		page_mask = page_size - 1;
 	}
 
+	/* Display splash screen if enabled */
+	#if DISPLAY_SPLASH_SCREEN
+	display_init();
+	dprintf(INFO, "Diplay initialized\n");
+	disp_init = 1;
+	splash_screen();
+	#endif
+
+	/* Check if we should do something other than booting up */
 	if (keys_get_state(KEY_HOME) != 0)
 		boot_into_recovery = 1;
 	if (keys_get_state(KEY_BACK) != 0)
@@ -592,12 +610,7 @@ void aboot_init(const struct app_descriptor *app)
 		"to fastboot mode.\n");
 
 fastboot:
-	if(!disp_init) {
-		display_init();
-	} else {
-		fbcon_clear();
-	}
-	dprintf(INFO, "Diplay initialized\n");
+
 	if(!usb_init)
 		udc_init(&surf_udc_device);
 

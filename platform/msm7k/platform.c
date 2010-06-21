@@ -34,7 +34,7 @@
 #include <debug.h>
 #include <kernel/thread.h>
 #include <platform/debug.h>
-#include <platform/mddi.h>
+#include <mddi.h>
 #include <dev/fbcon.h>
 
 static struct fbcon_config *fb_config;

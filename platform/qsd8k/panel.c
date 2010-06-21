@@ -3,7 +3,7 @@
 #include <debug.h>
 #include <dev/gpio.h>
 #include <kernel/thread.h>
-#include <platform/mddi.h>
+#include <mddi.h>
 
 #define MDDI_CLIENT_CORE_BASE  0x108000
 #define LCD_CONTROL_BLOCK_BASE 0x110000
@@ -139,6 +139,7 @@
 #define	WKREQ       (SYSTEM_BLOCK1_BASE|0x00)
 #define	CLKENB      (SYSTEM_BLOCK1_BASE|0x04)
 #define	DRAMPWR     (SYSTEM_BLOCK1_BASE|0x08)
+#define CNT_DIS     (SYSTEM_BLOCK1_BASE|0x10)
 #define	INTMASK     (SYSTEM_BLOCK1_BASE|0x0C)
 #define	GPIOSEL     (SYSTEM_BLOCK2_BASE|0x00)
 
@@ -147,9 +148,194 @@ struct init_table {
     unsigned int val;
 };
 
+static struct init_table toshiba_480x800_init_table[] = {
+   { DPSET0,               0x4BEC0066 },  // # MDC.DPSET0  # Setup DPLL parameters
+   { DPSET1,               0x00000113 },  //   # MDC.DPSET1
+   { DPSUS,                0x00000000 },  //   # MDC.DPSUS  # Set DPLL oscillation enable
+   { DPRUN,                0x00000001 },  //   # MDC.DPRUN  # Release reset signal for DPLL
+   { 0,                    15         },  // wait_ms(15);
+   { SYSCKENA,             0x00000001 },  //   # MDC.SYSCKENA  # Enable system clock output
+   { CLKENB,               0x000000E9 },  //   # SYS.CLKENB  # Enable clocks for each module (without DCLK , i2cCLK)
+
+   { GPIO_BLOCK_BASE,      0x03FF0000 },  //   # GPI .GPIODATA  # GPIO2(RESET_LCD_N) set to 0 , GPIO3(eDRAM_Power) set to 0
+   { GPIODIR,              0x0000024D },  //   # GPI .GPIODIR  # Select direction of GPIO port (0,2,3,6,9 output)
+   { SYSTEM_BLOCK2_BASE,   0x00000173 },  //   # SYS.GPIOSEL  # GPIO port multiplexing control
+   { GPIOPC,               0x03C300C0 },  //   # GPI .GPIOPC  # GPIO2,3 PD cut
+   { SYSTEM_BLOCK1_BASE,   0x00000000 },  //   # SYS.WKREQ  # Wake-up request event is VSYNC alignment
+   { GPIOIS,               0x00000000 },  //   # GPI .GPIOIS  # Set interrupt sense of GPIO
+   { GPIOIEV,              0x00000001 },  //   # GPI .GPIOIEV  # Set interrupt event of GPIO
+   { GPIOIC,               0x000003FF },  //   # GPI .GPIOIC  # GPIO interrupt clear
+   { GPIO_BLOCK_BASE,      0x00040004 },  //   # GPI .GPIODATA  # Release LCDD reset
+   { GPIO_BLOCK_BASE,      0x00080008 },  //   # GPI .GPIODATA  # eDRAM VD supply
+   { DRAMPWR,              0x00000001 },  //   # SYS.DRAMPWR  # eDRAM power up
+   { CLKENB,               0x0000A0EB },  //   # enable eDRAM clock
+
+   { PWMCR,                0x00000000 },  //   # PWM.PWMCR  # PWM output enable
+   { 0,                    1          },  //  wait_ms(1);
+   { SPI_BLOCK_BASE,       0x00060399},  //   # SPI .SSICTL  # SPI operation mode setting
+   { SSITIME,              0x00000100 },  //   # SPI .SSITIME  # SPI serial interface timing setting
+   { CNT_DIS,              0x00000100 },  //   # SPI .SSITIME  # SPI serial interface timing setting
+   { SPI_BLOCK_BASE,       0x0006039B },  //   # SPI .SSICTL  # Set SPI active mode
+
+   { SSITX,                0x00000000 },  //   # SPI.SSITX  # Release from Deep Stanby mode
+   { 0,                    2          },  //  wait_ms(2);
+   { SSITX,                0x00000000 },  //   # SPI.SSITX
+   { 0,                    2          },  //  wait_ms(2);
+   { SSITX,                0x00000000 },  //   # SPI.SSITX
+   { 0,                    2          },  //  wait_ms(2);
+
+   { SSITX,                0x000800BA },  //   # SPI.SSITX          *NOTE 1  # Command setting of SPI block
+   { SSITX,                0x00000111 },  //     # Display mode setup(1) : Normaly Black
+   { SSITX,                0x00080036 },  //     # Command setting of SPI block
+   { SSITX,                0x00000100 },  //     # Memory access control
+   { 0,                    2          },  //  wait_ms(2);    //      #  Wait SPI fifo empty
+   { SSITX,                0x0008003A },  //   # Command setting of SPI block
+   { SSITX,                0x00000160 },  //   # Display mode setup(2)
+   { SSITX,                0x000800B1 },  //   # Command setting of SPI block
+   { SSITX,                0x0000015D },  //   # RGB Interface data format
+   { 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
+   { SSITX,                0x000800B2 },  //   # Command setting of SPI block
+   { SSITX,                0x00000133 },  //   # Drivnig method
+   { SSITX,                0x000800B3 },  //   # Command setting of SPI block
+   { SSITX,                0x00000122 },  //   # Booster operation setup
+   { 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
+   { SSITX,                0x000800B4 },  //     # Command setting of SPI block
+   { SSITX,                0x00000102 },  //     # OP-amp capability/System clock freq. division setup
+   { SSITX,                0x000800B5 },  //     # Command setting of SPI block
+   { SSITX,                0x0000011E },  //     # VCS Voltage adjustment  (1C->1F for Rev 2)
+   { 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
+   { SSITX,                0x000800B6 },  //     # Command setting of SPI block
+   { SSITX,                0x00000127 },  //     # VCOM Voltage adjustment
+   { SSITX,                0x000800B7 },  //     # Command setting of SPI block
+   { SSITX,                0x00000103 },  //     # Configure an external display signal
+   { 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
+   { SSITX,                0x000800B9 },  //     # Command setting of SPI block
+   { SSITX,                0x00000124 },  //     # DCCK/DCEV timing setup
+   { SSITX,                0x000800BD },  //     # Command setting of SPI block
+   { SSITX,                0x000001A1 },  //     # ASW signal control
+   { 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
+   { SSITX,                0x000800BB },  //     # Command setting of SPI block
+   { SSITX,                0x00000100 },  //     # Dummy display (white/black) count setup for QUAD Data operation
+   { SSITX,                0x000800BF },  //     # Command setting of SPI block
+   { SSITX,                0x00000101 },  //     # Dummy display (white/black) count setup for QUAD Data operation
+   { 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
+   { SSITX,                0x000800BE },  //     # Command setting of SPI block
+   { SSITX,                0x00000100 },  //     # wait_ms(-out FR count setup (A)
+   { SSITX,                0x000800C0 },  //     # Command setting of SPI block
+   { SSITX,                0x00000111 },  //     # wait_ms(-out FR count setup (A)
+   { 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
+   { SSITX,                0x000800C1 },  //     # Command setting of SPI block
+   { SSITX,                0x00000111 },  //     # wait_ms(-out FR count setup (B)
+   { SSITX,                0x000800C2 },  //     # Command setting of SPI block
+   { SSITX,                0x00000111 },  //     # wait_ms(-out FR count setup (C)
+   { 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
+   { SSITX,                0x000800C3 },  //     # Command setting of SPI block
+   { SSITX,                0x00080132 },  //     # wait_ms(-in line clock count setup (D)
+   { SSITX,                0x00000132 },  //
+   { 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
+   { SSITX,                0x000800C4 },  //     # Command setting of SPI block
+   { SSITX,                0x00080132 },  //     # Seep-in line clock count setup (E)
+   { SSITX,                0x00000132 },  //
+   { 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
+   { SSITX,                0x000800C5 },  //     # Command setting of SPI block
+   { SSITX,                0x00080132 },  //     # wait_ms(-in line clock count setup (F)
+   { SSITX,                0x00000132 },  //
+   { 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
+   { SSITX,                0x000800C6 },  //     # Command setting of SPI block
+   { SSITX,                0x00080132 },  //     # wait_ms(-in line clock setup (G)
+   { SSITX,                0x00000132 },  //
+   { 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
+   { SSITX,                0x000800C7 },  //     # Command setting of SPI block
+   { SSITX,                0x00080164 },  //     # Gamma 1 fine tuning (1)
+   { SSITX,                0x00000145 },  //
+   { 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
+   { SSITX,                0x000800C8 },  //     # Command setting of SPI block
+   { SSITX,                0x00000144 },  //     # Gamma 1 fine tuning (2)
+   { SSITX,                0x000800C9 },  //     # Command setting of SPI block
+   { SSITX,                0x00000152 },  //     # Gamma 1 inclination adjustment
+   { 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
+   { SSITX,                0x000800CA },  //     # Command setting of SPI block
+   { SSITX,                0x00000100 },  //     # Gamma 1 blue offset adjustment
+   { 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
+   { SSITX,                0x000800EC },  //     # Command setting of SPI block
+   { SSITX,                0x00080101 },  //     # Total number of horizontal clock cycles (1) [PCLK Sync. VGA setting]
+   { SSITX,                0x000001FC },  //
+   { 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
+   { SSITX,                0x000800CF },  //     # Command setting of SPI block
+   { SSITX,                0x00000101 },  //     # Blanking period control (1) [PCLK Sync. Table1 for VGA]
+   { 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
+   { SSITX,                0x000800D0 },  //     # Command setting of SPI block
+   { SSITX,                0x00080110 },  //     # Blanking period control (2) [PCLK Sync. Table1 for VGA]
+   { SSITX,                0x00000104 },  //
+   { 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
+   { SSITX,                0x000800D1 },  //     # Command setting of SPI block
+   { SSITX,                0x00000101 },  //     # CKV timing control on/off [PCLK Sync. Table1 for VGA]
+   { 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
+   { SSITX,                0x000800D2 },  //     # Command setting of SPI block
+   { SSITX,                0x00080100 },  //     # CKV1,2 timing control [PCLK Sync. Table1 for VGA]
+   { SSITX,                0x00000128 },  //
+   { 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
+   { SSITX,                0x000800D3 },  //     # Command setting of SPI block
+   { SSITX,                0x00080100 },  //     # OEV timing control [PCLK Sync. Table1 for VGA]
+   { SSITX,                0x00000128 },  //
+   { 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
+   { SSITX,                0x000800D4 },  //     # Command setting of SPI block
+   { SSITX,                0x00080126 },  //     # ASW timing control (1) [PCLK Sync. Table1 for VGA]
+   { SSITX,                0x000001A4 },  //
+   { 0,                    1          },  //  wait_ms(1);      //    #  Wait SPI fifo empty
+   { SSITX,                0x000800D5 },  //     # Command setting of SPI block
+   { SSITX,                0x00000120 },  //     # ASW timing control (2) [PCLK Sync. Table1 for VGA]
+   { 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
+   { SSITX,                0x000800EF },  //     # Command setting of SPI block
+   { SSITX,                0x00080132 },  //     # Total number of horizontal clock cycles (2) [PCLK Sync. Table1 for QVGA ]
+   { SSITX,                0x00000100 },  //
+   { 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
+
+   { BITMAP0,              0x032001E0 },  // MDC.BITMAP0  ); // Setup of PITCH size to Frame buffer1
+   { BITMAP1,              0x032001E0 },  // MDC.BITMAP1  ); // Setup of PITCH size to Frame buffer1
+   { BITMAP2,              0x014000F0 },  // MDC.BITMAP3  ); // Setup of PITCH size to Frame buffer2
+   { BITMAP3,              0x014000F0 },  // MDC.BITMAP4  ); // Setup of PITCH size to Frame buffer3
+   { BITMAP4,              0x014000F0 },  // MDC.BITMAP5  ); // Setup of PITCH size to Frame buffer4
+   { CLKENB,               0x0000A1EB },  // SYS.CLKENB  ); // DCLK supply
+   { PORT_ENB,             0x00000001 },  // LCD.PORT_ENB  ); // Synchronous port enable
+   { PORT,                 0x00000004 },  // LCD.PORT  ); // Polarity of DE is set to high active
+   { PXL,                  0x00000002 },  // LCD.PXL  ); // ACTMODE 2 set (1st frame black data output)
+   { MPLFBUF,              0x00000000 },  // LCD.MPLFBUF  ); // Select the reading buffer
+   { HCYCLE,               0x000000FD },  // LCD.HCYCLE  ); // Setup to VGA size
+   { HSW,                  0x00000003 },  // LCD.HSW
+   { HDE_START,            0x00000007 },  // LCD.HDE_START
+   { HDE_SIZE,             0x000000EF },  // LCD.HDE_SIZE
+   { VCYCLE,               0x00000325 },  // LCD.VCYCLE
+   { VSW,                  0x00000001 },  // LCD.VSW
+   { VDE_START,            0x00000003 },  // LCD.VDE_START
+   { VDE_SIZE,             0x0000031F },  // LCD.VDE_SIZE
+
+   { START,                0x00000001 },  // LCD.START  ); // LCDC - Pixel data transfer start
+
+   { 0,                    10         },  //  wait_ms( 10  );
+   { SSITX,                0x000800BC },  // SPI.SSITX  ); // Command setting of SPI block
+   { SSITX,                0x00000180 },  // Display data setup
+   { SSITX,                0x0008003B },  // Command setting of SPI block
+   { SSITX,                0x00000100 },  // Quad Data configuration - VGA
+   { 0,                    1          },  //  wait_ms( 1          ); //  Wait SPI fifo empty
+   { SSITX,                0x000800B0 },  // Command setting of SPI block
+   { SSITX,                0x00000116 },  // Power supply ON/OFF control
+   { 0,                    1          },  //  wait_ms( 1          ); //  Wait SPI fifo empty
+   { SSITX,                0x000800B8 },  // Command setting of SPI block
+   { SSITX,                0x000801FF },  // Output control
+   { SSITX,                0x000001F5 },
+   { 0,                    1          },  //  wait_ms( 1);         //  Wait SPI fifo empty
+   { SSITX,                0x00000011 },  // wait_ms(-out (Command only)
+   { SSITX,                0x00000029 },  // Display on (Command only)
+
+   //{ SYSTEM_BLOCK1_BASE,   0x00000002 },  //    # wakeREQ -> GPIO
+
+    { 0, 0 }
+};
+
 static struct init_table toshiba_480x640_init_table[] = {
 	{ DPSET0,               0x4BEC0066 },  // # MDC.DPSET0  # Setup DPLL parameters
-	{ DPSET1,               0x00000113 },  //   # MDC.DPSET1  
+	{ DPSET1,               0x00000113 },  //   # MDC.DPSET1
 	{ DPSUS,                0x00000000 },  //   # MDC.DPSUS  # Set DPLL oscillation enable
 	{ DPRUN,                0x00000001 },  //   # MDC.DPRUN  # Release reset signal for DPLL
 	{ 0,                    14         },  // wait_ms(14);
@@ -169,7 +355,7 @@ static struct init_table toshiba_480x640_init_table[] = {
 	{ DRAMPWR,              0x00000001 },  //   # SYS.DRAMPWR  # eDRAM power up
 	{ TIMER0CONTROL,        0x00000060 },  //   # PWM.Timer0Control  # PWM0 output stop
 	{ PWM_BLOCK_BASE,       0x00001388 },  //   # PWM.Timer0Load  # PWM0 10kHz , Duty 99 (BackLight OFF)
-	//{PWM0OFF,               0x00000001 },  //   # PWM.PWM0OFF  
+	//{PWM0OFF,               0x00000001 },  //   # PWM.PWM0OFF
 #if 0
 	{ PWM0OFF,              0x00001387 }, // SURF 100% backlight
 	{ PWM0OFF,              0x00000000 }, // FFA 100% backlight
@@ -177,21 +363,21 @@ static struct init_table toshiba_480x640_init_table[] = {
 	{ PWM0OFF,              0x000009C3 }, // 50% BL
 	{ TIMER1CONTROL,        0x00000060 },  //   # PWM.Timer1Control  # PWM1 output stop
 	{ TIMER1LOAD,           0x00001388 },  //   # PWM.Timer1Load  # PWM1 10kHz , Duty 99 (BackLight OFF)
-	//{PWM1OFF,               0x00000001 },  //   # PWM.PWM1OFF  
+	//{PWM1OFF,               0x00000001 },  //   # PWM.PWM1OFF
 	{ PWM1OFF,              0x00001387 },
 	{ TIMER0CONTROL,        0x000000E0 },  //   # PWM.Timer0Control  # PWM0 output start
 	{ TIMER1CONTROL,        0x000000E0 },  //   # PWM.Timer1Control  # PWM1 output start
 	{ PWMCR,                0x00000003 },  //   # PWM.PWMCR  # PWM output enable
-	{ 0,                    1          },  //  wait_ms(1);        
+	{ 0,                    1          },  //  wait_ms(1);
 	{ SPI_BLOCK_BASE,       0x00000799 },  //   # SPI .SSICTL  # SPI operation mode setting
 	{ SSITIME,              0x00000100 },  //   # SPI .SSITIME  # SPI serial interface timing setting
 	{ SPI_BLOCK_BASE,       0x0000079b },  //   # SPI .SSICTL  # Set SPI active mode
 
 	{ SSITX,                0x00000000 },  //   # SPI.SSITX  # Release from Deep Stanby mode
 	{ 0,                    1          },  //  wait_ms(1);
-	{ SSITX,                0x00000000 },  //   # SPI.SSITX  
+	{ SSITX,                0x00000000 },  //   # SPI.SSITX
 	{ 0,                    1          },  //  wait_ms(1);
-	{ SSITX,                0x00000000 },  //   # SPI.SSITX  
+	{ SSITX,                0x00000000 },  //   # SPI.SSITX
 	{ 0,                    1          },  //  wait_ms(1);
 	{ SSITX,                0x000800BA },  //   # SPI.SSITX          *NOTE 1  # Command setting of SPI block
 	{ SSITX,                0x00000111 },  //     # Display mode setup(1) : Normaly Black
@@ -240,23 +426,23 @@ static struct init_table toshiba_480x640_init_table[] = {
 	{ 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
 	{ SSITX,                0x000800C3 },  //     # Command setting of SPI block
 	{ SSITX,                0x0008010A },  //     # wait_ms(-in line clock count setup (D)
-	{ SSITX,                0x0000010A },  //     
+	{ SSITX,                0x0000010A },  //
 	{ 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
 	{ SSITX,                0x000800C4 },  //     # Command setting of SPI block
 	{ SSITX,                0x00080160 },  //     # Seep-in line clock count setup (E)
-	{ SSITX,                0x00000160 },  //     
+	{ SSITX,                0x00000160 },  //
 	{ 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
 	{ SSITX,                0x000800C5 },  //     # Command setting of SPI block
 	{ SSITX,                0x00080160 },  //     # wait_ms(-in line clock count setup (F)
-	{ SSITX,                0x00000160 },  //     
+	{ SSITX,                0x00000160 },  //
 	{ 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
 	{ SSITX,                0x000800C6 },  //     # Command setting of SPI block
 	{ SSITX,                0x00080160 },  //     # wait_ms(-in line clock setup (G)
-	{ SSITX,                0x00000160 },  //     
+	{ SSITX,                0x00000160 },  //
 	{ 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
 	{ SSITX,                0x000800C7 },  //     # Command setting of SPI block
 	{ SSITX,                0x00080133 },  //     # Gamma 1 fine tuning (1)
-	{ SSITX,                0x00000143 },  //     
+	{ SSITX,                0x00000143 },  //
 	{ 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
 	{ SSITX,                0x000800C8 },  //     # Command setting of SPI block
 	{ SSITX,                0x00000144 },  //     # Gamma 1 fine tuning (2)
@@ -268,58 +454,58 @@ static struct init_table toshiba_480x640_init_table[] = {
 	{ 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
 	{ SSITX,                0x000800EC },  //     # Command setting of SPI block
 	{ SSITX,                0x00080102 },  //     # Total number of horizontal clock cycles (1) [PCLK Sync. VGA setting]
-	{ SSITX,                0x00000118 },  //     
+	{ SSITX,                0x00000118 },  //
 	{ 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
 	{ SSITX,                0x000800CF },  //     # Command setting of SPI block
 	{ SSITX,                0x00000101 },  //     # Blanking period control (1) [PCLK Sync. Table1 for VGA]
 	{ 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
 	{ SSITX,                0x000800D0 },  //     # Command setting of SPI block
 	{ SSITX,                0x00080110 },  //     # Blanking period control (2) [PCLK Sync. Table1 for VGA]
-	{ SSITX,                0x00000104 },  //     
+	{ SSITX,                0x00000104 },  //
 	{ 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
 	{ SSITX,                0x000800D1 },  //     # Command setting of SPI block
 	{ SSITX,                0x00000101 },  //     # CKV timing control on/off [PCLK Sync. Table1 for VGA]
 	{ 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
 	{ SSITX,                0x000800D2 },  //     # Command setting of SPI block
 	{ SSITX,                0x00080100 },  //     # CKV1,2 timing control [PCLK Sync. Table1 for VGA]
-	{ SSITX,                0x0000013A },  //     
+	{ SSITX,                0x0000013A },  //
 	{ 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
 	{ SSITX,                0x000800D3 },  //     # Command setting of SPI block
 	{ SSITX,                0x00080100 },  //     # OEV timing control [PCLK Sync. Table1 for VGA]
-	{ SSITX,                0x0000013A },  //     
+	{ SSITX,                0x0000013A },  //
 	{ 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
 	{ SSITX,                0x000800D4 },  //     # Command setting of SPI block
 	{ SSITX,                0x00080124 },  //     # ASW timing control (1) [PCLK Sync. Table1 for VGA]
-	{ SSITX,                0x0000016E },  //     
+	{ SSITX,                0x0000016E },  //
 	{ 0,                    1          },  //  wait_ms(1);      //    #  Wait SPI fifo empty
 	{ SSITX,                0x000800D5 },  //     # Command setting of SPI block
 	{ SSITX,                0x00000124 },  //     # ASW timing control (2) [PCLK Sync. Table1 for VGA]
 	{ 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
 	{ SSITX,                0x000800ED },  //     # Command setting of SPI block
 	{ SSITX,                0x00080101 },  //     # Total number of horizontal clock cycles (2) [PCLK Sync. Table1 for QVGA ]
-	{ SSITX,                0x0000010A },  //     
+	{ SSITX,                0x0000010A },  //
 	{ 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
 	{ SSITX,                0x000800D6 },  //     # Command setting of SPI block
 	{ SSITX,                0x00000101 },  //     # Blanking period control (1) [PCLK Sync. Table2 for QVGA]
 	{ 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
 	{ SSITX,                0x000800D7 },  //     # Command setting of SPI block
 	{ SSITX,                0x00080110 },  //     # Blanking period control (2) [PCLK Sync. Table2 for QVGA]
-	{ SSITX,                0x0000010A },  //     
+	{ SSITX,                0x0000010A },  //
 	{ 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
 	{ SSITX,                0x000800D8 },  //     # Command setting of SPI block
 	{ SSITX,                0x00000101 },  //     # CKV timing control on/off [PCLK Sync. Table2 for QVGA]
 	{ 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
 	{ SSITX,                0x000800D9 },  //     # Command setting of SPI block
 	{ SSITX,                0x00080100 },  //     # CKV1,2 timing control [PCLK Sync. Table2 for QVGA]
-	{ SSITX,                0x00000114 },  //     
+	{ SSITX,                0x00000114 },  //
 	{ 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
 	{ SSITX,                0x000800DE },  //     # Command setting of SPI block
 	{ SSITX,                0x00080100 },  //     # OEV timing control [PCLK Sync. Table2 for QVGA]
-	{ SSITX,                0x00000114 },  //     
+	{ SSITX,                0x00000114 },  //
 	{ 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
 	{ SSITX,                0x000800DF },  //     # Command setting of SPI block
 	{ SSITX,                0x00080112 },  //     # ASW timing control (1) [PCLK Sync. Table2 for QVGA]
-	{ SSITX,                0x0000013F },  //     
+	{ SSITX,                0x0000013F },  //
 	{ 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
 	{ SSITX,                0x000800E0 },  //     # Command setting of SPI block
 	{ SSITX,                0x0000010B },  //     # ASW timing control (2) [PCLK Sync. Table2 for QVGA]
@@ -331,23 +517,23 @@ static struct init_table toshiba_480x640_init_table[] = {
 	{ 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
 	{ SSITX,                0x000800E4 },  //     # Command setting of SPI block
 	{ SSITX,                0x00080100 },  //     # CKV timing control for using build-in osc
-	{ SSITX,                0x00000103 },  //     
+	{ SSITX,                0x00000103 },  //
 	{ 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
 	{ SSITX,                0x000800E5 },  //     # Command setting of SPI block
 	{ SSITX,                0x00080102 },  //     # OEV timing control for using build-in osc
-	{ SSITX,                0x00000104 },  //     
+	{ SSITX,                0x00000104 },  //
 	{ 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
 	{ SSITX,                0x000800E6 },  //     # Command setting of SPI block
 	{ SSITX,                0x00000103 },  //     # DCEV timing control for using build-in osc
 	{ 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
 	{ SSITX,                0x000800E7 },  //     # Command setting of SPI block
 	{ SSITX,                0x00080104 },  //     # ASW timing setup for using build-in osc(1)
-	{ SSITX,                0x0000010A },  //     
+	{ SSITX,                0x0000010A },  //
 	{ 0,                    2          },  //  wait_ms(2);      //    #  Wait SPI fifo empty
 	{ SSITX,                0x000800E8 },  //     # Command setting of SPI block
 	{ SSITX,                0x00000104 },  //     # ASW timing setup for using build-in osc(2)
-            
-            
+
+
 	{ CLKENB,               0x000001EF },  //   # SYS.CLKENB  # DCLK enable
 	{ START,                0x00000000 },  //   # LCD.START  # LCDC wait_ms( mode
 	{ WRSTB,                0x0000003F },  //   # LCD.WRSTB  # write_client_reg( strobe
@@ -360,11 +546,11 @@ static struct init_table toshiba_480x640_init_table[] = {
 	{ ASY_CMDSET,           0x00000004 },  //   # LCD.ASY_CMDSET  # Direct command transfer disable
 	{ 0,                    10         },  //  wait_ms(10);
 	{ ASY_DATA,             0x80000000 },  //   # LCD.ASY_DATx  # DUMMY write_client_reg(@*NOTE2
-	{ ASY_DATB,             0x80000000 },  //     
-	{ ASY_DATC,             0x80000000 },  //     
-	{ ASY_DATD,             0x80000000 },  //     
-	{ ASY_CMDSET,           0x00000009 },  //   # LCD.ASY_CMDSET  
-	{ ASY_CMDSET,           0x00000008 },  //   # LCD.ASY_CMDSET  
+	{ ASY_DATB,             0x80000000 },  //
+	{ ASY_DATC,             0x80000000 },  //
+	{ ASY_DATD,             0x80000000 },  //
+	{ ASY_CMDSET,           0x00000009 },  //   # LCD.ASY_CMDSET
+	{ ASY_CMDSET,           0x00000008 },  //   # LCD.ASY_CMDSET
 	{ ASY_DATA,             0x80000007 },  //   # LCD.ASY_DATx  # Index setting of SUB LCDD
 	{ ASY_DATB,             0x00004005 },  //     # LCD driver control
 	{ ASY_CMDSET,           0x00000005 },  //   # LCD.ASY_CMDSET  # Direct command transfer enable
@@ -414,7 +600,7 @@ static struct init_table toshiba_480x640_init_table[] = {
 	{ 0,                    1          },  //  wait_ms( 1          ); //  Wait SPI fifo empty
 	{ SSITX,                0x000800B8 },  // Command setting of SPI block
 	{ SSITX,                0x000801FF },  // Output control
-	{ SSITX,                0x000001F5 },   
+	{ SSITX,                0x000001F5 },
 	{ 0,                    1          },  //  wait_ms( 1);         //  Wait SPI fifo empty
 	{ SSITX,                0x00000011 },  // wait_ms(-out (Command only)
 	{ SSITX,                0x00000029 },  // Display on (Command only)
@@ -447,7 +633,7 @@ void panel_init(struct mddi_client_caps *client_caps)
 	switch(client_caps->manufacturer_name) {
 	case 0xd263: // Toshiba
 		dprintf(INFO, "Found Toshiba panel\n");
-		_panel_init(toshiba_480x640_init_table);
+		_panel_init(toshiba_480x800_init_table);
 		break;
 	case 0x4474: //??
 		if (client_caps->product_code == 0xc065)

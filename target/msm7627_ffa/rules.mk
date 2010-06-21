@@ -17,6 +17,9 @@ SCRATCH_ADDR     := BASE_ADDR+0x04000000
 KEYS_USE_GPIO_KEYPAD := 1
 
 DEFINES += DISPLAY_TYPE_MDDI=0
+DEFINES += DISPLAY_TYPE_LCDC=1
+
+DEFINES += DISPLAY_SPLASH_SCREEN=1
 
 MODULES += \
 	dev/keys \
@@ -35,5 +38,4 @@ DEFINES += \
 OBJS += \
 	$(LOCAL_DIR)/init.o \
 	$(LOCAL_DIR)/keypad.o \
-	$(LOCAL_DIR)/atags.o \
-	$(LOCAL_DIR)/panel.o
+	$(LOCAL_DIR)/atags.o

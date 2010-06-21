@@ -32,8 +32,8 @@
 #include <string.h>
 #include <dev/fbcon.h>
 #include <kernel/thread.h>
-#include <platform/iomap.h>
-#include <platform/mddi.h>
+#include <mddi.h>
+#include <target/display.h>
 
 #include "mddi_hw.h"
 
@@ -41,7 +41,7 @@ static mddi_llentry *mlist = NULL;
 static mddi_llentry *mlist_remote_write = NULL;
 
 #define MDDI_MAX_REV_PKT_SIZE 0x60
-#define MDDI_REV_PKT_BUF_SIZE (MDDI_MAX_REV_PKT_SIZE * 4)
+#define MDDI_REV_PKT_BUF_SIZE 256
 static void *rev_pkt_buf;
 
 /* functions provided by the target specific panel code */
@@ -140,6 +140,8 @@ static void mddi_init_rev_encap(void)
 	memset(rev_pkt_buf, 0xee, MDDI_REV_PKT_BUF_SIZE);
 	writel((unsigned) rev_pkt_buf, MDDI_REV_PTR);
 	writel((unsigned) rev_pkt_buf, MDDI_REV_PTR);
+	writel(MDDI_REV_PKT_BUF_SIZE, MDDI_REV_SIZE);
+	writel(MDDI_REV_PKT_BUF_SIZE, MDDI_REV_ENCAP_SZ);
 	mddi_do_cmd(CMD_FORCE_NEW_REV_PTR);
 }
 
@@ -148,6 +150,52 @@ static void mddi_set_auto_hibernate(unsigned on)
 	writel(CMD_POWER_DOWN, MDDI_CMD);
 	mddi_wait_interrupt(MDDI_INT_IN_HIBERNATION);
 	mddi_do_cmd(CMD_HIBERNATE | !!on);
+}
+
+void mddi_set_caps(mddi_client_caps *c)
+{
+        /* Hardcoding the capability values */
+    c->length = 74;
+    c->type = 66;
+    c->client_id = 0;
+    c->protocol_ver = 1;
+    c->min_protocol_ver = 1;
+    c->data_rate_cap = 400;
+    c->interface_type_cap = 0;
+    c->num_alt_displays = 1;
+    c->postcal_data_rate = 400;
+    c->bitmap_width = TARGET_XRES;
+    c->bitmap_height = TARGET_YRES;
+    c->display_window_width = TARGET_XRES;
+    c->display_window_height = TARGET_YRES;
+    c->cmap_size = 0;
+    c->cmap_rgb_width = 0;
+    c->rgb_cap = 34592;
+    c->mono_cap = 0;
+    c->reserved1 = 0;
+    c->ycbcr_cap = 0;
+    c->bayer_cap = 0;
+    c->alpha_cursor_planes = 0;
+    c->client_feature_cap = 4489216;
+    c->max_video_frame_rate_cap = 60;
+    c->min_video_frame_rate_cap = 0;
+    c->min_sub_frame_rate = 0;
+    c->audio_buf_depth = 0;
+    c->audio_channel_cap = 0;
+    c->audio_sampe_rate_rap = 0;
+    c->audio_sample_res = 0;
+    c->mic_audio_sample_res = 0;
+    c->mic_sample_rate_cap = 0;
+    c->keyboard_data_fmt = 0;
+    c->pointing_device_data_fmt = 0;
+    c->content_protection_type = 0;
+    c->manufacturer_name = 53859;
+    c->product_code = 34594;
+    c->reserved3 = 0;
+    c->serial_no = 1;
+    c->week_of_manufacture = 0;
+    c->year_of_manufacture = 0;
+    c->crc = 53536;
 }
 
 static void mddi_get_caps(struct mddi_client_caps *caps)
@@ -182,7 +230,6 @@ static void mddi_get_caps(struct mddi_client_caps *caps)
 
 static unsigned mddi_init_regs(void)
 {
-	mddi_set_auto_hibernate(0);
 	mddi_do_cmd(CMD_RESET);
 
 	mddi_do_cmd(CMD_PERIODIC_REV_ENC);
@@ -192,17 +239,11 @@ static unsigned mddi_init_regs(void)
 	writel(0x0003, MDDI_SPM);
 
 	writel(0x0005, MDDI_TA1_LEN);
-	writel(0x000C, MDDI_TA2_LEN);
+	writel(0x001A, MDDI_TA2_LEN);
 	writel(0x0096, MDDI_DRIVE_HI);
 	writel(0x0050, MDDI_DRIVE_LO);
 	writel(0x003C, MDDI_DISP_WAKE);
-	writel(0x0002, MDDI_REV_RATE_DIV);
-
-	writel(MDDI_REV_PKT_BUF_SIZE, MDDI_REV_SIZE);
-//	writel(MDDI_REV_PKT_BUF_SIZE, MDDI_REV_ENCAP_SZ);
-	writel(MDDI_MAX_REV_PKT_SIZE, MDDI_REV_ENCAP_SZ);
-
-	mddi_do_cmd(CMD_PERIODIC_REV_ENC);
+	writel(0x0004, MDDI_REV_RATE_DIV);
 
 	/* needs to settle for 5uS */
 	if (readl(MDDI_PAD_CTL) == 0) {
@@ -213,11 +254,11 @@ static unsigned mddi_init_regs(void)
 	writel(0xA850F, MDDI_PAD_CTL);
 	writel(0x60006, MDDI_DRIVER_START_CNT);
 
-	/* disable hibernate */
-	mddi_set_auto_hibernate(0);
-	mddi_do_cmd(CMD_IGNORE);
-
 	mddi_init_rev_encap();
+
+	/* disable hibernate */
+	mddi_do_cmd(CMD_HIBERNATE | 0);
+
 	return readl(MDDI_CORE_VER) & 0xffff;
 }
 
@@ -234,8 +275,11 @@ struct fbcon_config *mddi_init(void)
 	n = mddi_init_regs();
 	dprintf(INFO, "mddi version: 0x%08x\n", n);
 
-	mddi_get_caps(&client_caps);
-	ASSERT(client_caps.length == 0x4a && client_caps.type == 0x42);
+	//mddi_get_caps(&client_caps);
+	//if(!(client_caps.length == 0x4a && client_caps.type == 0x42))
+	{
+	    mddi_set_caps(&client_caps);
+	}
 
 	fb_cfg.width = client_caps.bitmap_width;
 	fb_cfg.stride = fb_cfg.width;
@@ -258,7 +302,7 @@ struct fbcon_config *mddi_init(void)
 
 	mlist = memalign(32, sizeof(mddi_llentry) * (fb_cfg.height / 8));
 	dprintf(INFO, "FB @ %p  mlist @ %x\n", fb_cfg.base, (unsigned) mlist);
-	
+
 	for(n = 0; n < (fb_cfg.height / 8); n++) {
 		unsigned y = n * 8;
 		unsigned pixels = fb_cfg.width * 8;
@@ -269,19 +313,19 @@ struct fbcon_config *mddi_init(void)
 		vs->client_id = 0;
 		vs->format = 0x5565; // FORMAT_16BPP;
 		vs->pixattr = PIXATTR_BOTH_EYES | PIXATTR_TO_ALL;
-		
+
 		vs->left = 0;
 		vs->right = fb_cfg.width - 1;
 		vs->top = y;
 		vs->bottom = y + 7;
-		
+
 		vs->start_x = 0;
 		vs->start_y = y;
-		
+
 		vs->pixels = pixels;
 		vs->crc = 0;
 		vs->reserved = 0;
-		
+
 		mlist[n].header_count = sizeof(mddi_video_stream) - 2;
 		mlist[n].data_count = pixels * 2;
 		mlist[n].reserved = 0;

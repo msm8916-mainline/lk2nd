@@ -3,7 +3,7 @@
 #include <debug.h>
 #include <dev/gpio.h>
 #include <kernel/thread.h>
-#include <platform/mddi.h>
+#include <mddi.h>
 
 #define MDDI_CLIENT_CORE_BASE  0x108000
 #define LCD_CONTROL_BLOCK_BASE 0x110000

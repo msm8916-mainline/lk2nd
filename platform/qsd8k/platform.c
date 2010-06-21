@@ -34,6 +34,9 @@
 #include <dev/fbcon.h>
 #include <kernel/thread.h>
 #include <platform/debug.h>
+#include <mddi.h>
+
+static struct fbcon_config *fb_config;
 
 void platform_init_interrupts(void);
 void platform_init_timer();
@@ -63,7 +66,18 @@ void platform_init(void)
 void display_init(void)
 {
         struct fbcon_config *fb_cfg;
-        fb_cfg = lcdc_init();
-        fbcon_setup(fb_cfg);
+
+#if DISPLAY_TYPE_MDDI
+	fb_config = mddi_init();
+	ASSERT(fb_config);
+	fbcon_setup(fb_config);
+#endif
+
+#if DISPLAY_TYPE_LCDC
+	fb_config = lcdc_init();
+	ASSERT(fb_config);
+	fbcon_setup(fb_config);
+#endif
+
 }
 

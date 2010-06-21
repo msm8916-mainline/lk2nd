@@ -102,8 +102,6 @@ struct fbcon_config *lcdc_init(void)
 	fb_cfg.base =
 		memalign(4096, fb_cfg.width * fb_cfg.height * (fb_cfg.bpp / 8));
 
-	lcdc_clock_init(1000000000 / LCDC_PIXCLK_IN_PS);
-
 	writel((unsigned) fb_cfg.base, MSM_MDP_BASE1 + 0x90008);
 
 	writel((fb_cfg.height << 16) | fb_cfg.width, MSM_MDP_BASE1 + 0x90004);
