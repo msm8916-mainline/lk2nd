@@ -48,3 +48,7 @@ __WEAK void display_init(void)
 __WEAK void secondary_core(unsigned sec_entry)
 {
 }
+
+__WEAK void platform_config_interleaved_mode_gpios(void)
+{
+}

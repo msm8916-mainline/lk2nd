@@ -42,6 +42,7 @@
 
 static void *flash_spare;
 static void *flash_data;
+void platform_config_interleaved_mode_gpios(void);
 
 typedef struct dmov_ch dmov_ch;
 struct dmov_ch
@@ -106,6 +107,7 @@ static int dmov_exec_cmdptr(unsigned id, unsigned *ptr)
 
 static struct flash_info flash_info;
 static unsigned flash_pagesize = 0;
+static int interleaved_mode = 0;
 
 struct flash_identification {
 	unsigned flash_id;
@@ -3206,6 +3208,9 @@ static int _flash_read_page(dmov_s *cmdlist, unsigned *ptrlist,
 	switch(flash_info.type) {
 		case FLASH_8BIT_NAND_DEVICE:
 		case FLASH_16BIT_NAND_DEVICE:
+		  if(interleaved_mode)
+			return flash_nand_read_page_interleave(cmdlist, ptrlist, page, _addr, _spareaddr);
+		  else
 			return _flash_nand_read_page(cmdlist, ptrlist, page, _addr, _spareaddr);
 		case FLASH_ONENAND_DEVICE:
 			return _flash_onenand_read_page(cmdlist, ptrlist, page, _addr, _spareaddr, 0);
@@ -3234,6 +3239,9 @@ static int _flash_write_page(dmov_s *cmdlist, unsigned *ptrlist,
 	switch(flash_info.type) {
 		case FLASH_8BIT_NAND_DEVICE:
 		case FLASH_16BIT_NAND_DEVICE:
+		  if(interleaved_mode)
+			return flash_nand_write_page_interleave(cmdlist, ptrlist, page, _addr, _spareaddr, 0);
+		  else
 			return _flash_nand_write_page(cmdlist, ptrlist, page, _addr, _spareaddr, 0);
 		case FLASH_ONENAND_DEVICE:
 			return _flash_onenand_write_page(cmdlist, ptrlist, page, _addr, _spareaddr, 0);
@@ -3446,4 +3454,15 @@ static int flash_read_page(unsigned page, void *data, void *extra)
 unsigned flash_page_size(void)
 {
 	return flash_pagesize;
+}
+
+void enable_interleave_mode(int status)
+{
+  interleaved_mode = status;
+  if(status)
+  {
+        flash_pagesize *= 2;
+	platform_config_interleaved_mode_gpios();
+  }
+  return;
 }

@@ -209,4 +209,12 @@ int gpio_get(unsigned n)
 	return (readl(r->in) & b) ? 1 : 0;
 }
 
-
+void platform_config_interleaved_mode_gpios(void)
+{
+        /* configure EB2_CS1 through GPIO86 */
+	writel (GPIO_ALT_FUNC_PAGE_REG, 0x56);
+	writel (GPIO_ALT_FUNC_CFG_REG, 0x04);
+	/* configure the EBI2_BUSY1_N through GPIO115 */
+	writel (GPIO_ALT_FUNC_PAGE_REG, 0x73);
+	writel (GPIO_ALT_FUNC_CFG_REG, 0x08);
+}
