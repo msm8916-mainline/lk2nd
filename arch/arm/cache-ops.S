@@ -130,8 +130,6 @@ FUNCTION(arch_disable_cache)
 	tst		r7, #DCACHE
 	beq		.Licache_disable
 	mrc     p15, 0, r0, c1, c0, 0		// cr1
-	tst		r0, #(1<<2)					// is the dcache already disabled?
-	beq		.Ldcache_already_disabled
 
 	bic		r0, #(1<<2)
 	mcr		p15, 0, r0, c1, c0, 0		// disable dcache
@@ -139,13 +137,6 @@ FUNCTION(arch_disable_cache)
 	// flush and invalidate the dcache
 	// NOTE: trashes a bunch of registers, can't be spilling stuff to the stack
 	bl		flush_invalidate_cache_v7
-
-	b		.Ldcache_disable_L2
-
-.Ldcache_already_disabled:
-	// make sure all of the caches are invalidated
-	// NOTE: trashes a bunch of registers, can't be spilling stuff to the stack
-	bl		invalidate_cache_v7
 
 .Ldcache_disable_L2:
 
@@ -180,13 +171,10 @@ FUNCTION(arch_enable_cache)
 
 	mrs		r12, cpsr					// save the old interrupt state
 	.word	0xf10c01c0	/* cpsid iaf */	// interrupts disabled
-	
+
 .Ldcache_enable:
 	tst		r7, #DCACHE
 	beq		.Licache_enable
-	mrc     p15, 0, r0, c1, c0, 0		// cr1
-	tst		r0, #(1<<2)					// is the dcache already enabled?
-	bne		.Licache_enable
 
 	// invalidate L1 and L2
 	// NOTE: trashes a bunch of registers, can't be spilling stuff to the stack
@@ -200,6 +188,10 @@ FUNCTION(arch_enable_cache)
 #endif
 
 	mrc     p15, 0, r0, c1, c0, 0		// cr1
+	bic		r0, #(1<<2)
+	mcr		p15, 0, r0, c1, c0, 0		// disable dcache
+
+	mrc     p15, 0, r0, c1, c0, 0		// cr1
 	orr		r0, #(1<<2)
 	mcr		p15, 0, r0, c1, c0, 0		// enable dcache
 
@@ -209,6 +201,10 @@ FUNCTION(arch_enable_cache)
 
 	mov		r0, #0
 	mcr		p15, 0, r0, c7, c5, 0		// invalidate icache to PoU
+
+	mrc     p15, 0, r0, c1, c0, 0		// cr1
+	bic		r0, #(1<<12)
+	mcr		p15, 0, r0, c1, c0, 0		// disable icache
 
 	mrc     p15, 0, r0, c1, c0, 0		// cr1
 	orr		r0, #(1<<12)
