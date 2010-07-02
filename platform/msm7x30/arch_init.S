@@ -190,6 +190,20 @@ WRITE_L1_SA_SETTINGS:
         //;WCP15_PVR2F0   r2
         MCR     p15, 0x2, r2, c15, c15, 0x0   //; write R2 to PVR2F0
 
+        // Disable predecode repair cache on certain Scorpion revisions
+        // (Raptor V2 and earlier, or Halcyon V1)
+        MRC    p15, 0, r1, c0, c0, 0      //; MIDR
+        BIC    r2, r1, #0xf0              //; check for Halcyon V1
+        LDR    r3, =0x511f0000
+        CMP    r2, r3
+        BNE    PVR2F1
+
+DPRC:
+        MRC    p15, 0, r1, c15, c15, 2    //; PVR0F2
+        ORR    r1, r1, #0x10              //; enable bit 4
+        MCR    p15, 0, r1, c15, c15, 2    //; disable predecode repair cache
+
+PVR2F1:
         //;WCP15_PVR2F1   r3
         MCR     p15, 0x2, r3, c15, c15, 0x1   //; write R3 to PVR2F1
 
@@ -428,23 +442,6 @@ __cpu_early_init:
 
         //; Make sure UTLB request has been presented to macro before continuing
         ISB
-
-        // Disable predecode repair cache on certain Scorpion revisions
-        // (Raptor V2 and earlier, or Halcyon V1)
-        MRC    p15, 0, r1, c0, c0, 0      //; MIDR
-        BIC    r2, r1, #0xf7              //; check for Raptor2 or below
-        LDR    r3, =0x510f0000
-        CMP    r2, r3
-        BEQ    DPRC
-        BIC    r2, r1, #0xf0              //; check for Halcyon V1
-        LDR    r3, =0x511f0000
-        CMP    r2, r3
-        BNE    SYSI2
-
-DPRC:
-        MRC    p15, 0, r1, c15, c15, 2    //; PVR0F2
-        ORR    r1, r1, #0x10              //; enable bit 4
-        MCR    p15, 0, r1, c15, c15, 2    //; disable predecode repair cache
 
 SYSI2:
         //; setup L2CR1 to some default Instruction and data prefetching values
