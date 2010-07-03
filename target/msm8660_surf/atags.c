@@ -36,8 +36,15 @@
 #define EBI1_SIZE2   0x08000000 // 128M
 #define EBI1_ADDR2   0x48000000
 
+#define EBI1_SIZE3   0x10000000 // 256M
+#define EBI1_ADDR3   0x50000000
+
+#define EBI1_CS1_ADDR_BASE    0x00A40024
+
 unsigned* target_atag_mem(unsigned* ptr)
 {
+    unsigned value = 0;
+
     /* ATAG_MEM */
     *ptr++ = 4;
     *ptr++ = 0x54410002;
@@ -48,6 +55,17 @@ unsigned* target_atag_mem(unsigned* ptr)
     *ptr++ = 0x54410002;
     *ptr++ = EBI1_SIZE2;
     *ptr++ = EBI1_ADDR2;
+
+    /* For 512MB RAM*/
+    value = readl(EBI1_CS1_ADDR_BASE);
+    if (((value >> 8) & 0xFF)  == 0x50)
+    {
+        *ptr++ = 4;
+        *ptr++ = 0x54410002;
+        *ptr++ = EBI1_SIZE3;
+        *ptr++ = EBI1_ADDR3;
+    }
+
     return ptr;
 }
 
