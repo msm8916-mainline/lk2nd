@@ -52,6 +52,11 @@ reset:
 #if WITH_CPU_EARLY_INIT
 	/* call platform/arch/etc specific init code */
 	bl __cpu_early_init
+
+	/* declare return address as global to avoid using stack */
+.globl _cpu_early_init_complete
+	_cpu_early_init_complete:
+
 #endif
 
 #if (!ENABLE_NANDWRITE)

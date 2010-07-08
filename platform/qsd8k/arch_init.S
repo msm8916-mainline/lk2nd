@@ -198,7 +198,7 @@ WRITE_L2_SA_SETTINGS:
         LDR     r5, =0
 
         //; routine complete
-        BX      LR
+        B       _cpu_early_init_complete
 
 //; L1 SA settings according to LVT speed
 PVR0F0_0bits:
@@ -406,15 +406,15 @@ SYSI2:
 
         //; Make sure Link stack is initialized with branch and links to sequential addresses
         //; This aids in creating a predictable startup environment
-//;       BL      SEQ1
-//;SEQ1:  BL      SEQ2
-//;SEQ2:  BL      SEQ3
-//;SEQ3:  BL      SEQ4
-//;SEQ4:  BL      SEQ5
-//;SEQ5:  BL      SEQ6
-//;SEQ6:  BL      SEQ7
-//;SEQ7:  BL      SEQ8
-//;SEQ8:
+        BL      SEQ1
+SEQ1:   BL      SEQ2
+SEQ2:   BL      SEQ3
+SEQ3:   BL      SEQ4
+SEQ4:   BL      SEQ5
+SEQ5:   BL      SEQ6
+SEQ6:   BL      SEQ7
+SEQ7:   BL      SEQ8
+SEQ8:
 
         //; REMOVE FOLLOWING THREE INSTRUCTIONS WHEN POWER COLLAPSE IS ENA
         //;Make sure the DBGOSLSR[LOCK] bit is cleared to allow access to the debug registers
