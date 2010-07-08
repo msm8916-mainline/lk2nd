@@ -47,7 +47,7 @@ void acpu_clock_init(void)
     writel(0x0, SCPLL_CTL);
     writel(0x00400002, SCPLL_CTL);
     writel(0x00600004, SCPLL_CTL);
-    thread_sleep(100);
+    thread_sleep(1);
     while(readl(SCPLL_STAT) & 0x2);
     writel(0x0, SCPLL_CTL);
 
@@ -57,11 +57,11 @@ void acpu_clock_init(void)
     val &= ~(0x7);
     val |= 0x2;
     writel(val, SCPLL_CTL);
-    thread_sleep(62);
+    thread_sleep(1);
     val = readl(SCPLL_CTL);
     val |= 0x7;
     writel(val, SCPLL_CTL);
-    thread_sleep(200);
+    thread_sleep(1);
 
     /* For Scorpion PLL, must first SHOT to 384MHz then HOP to 768MHz */
 
@@ -74,7 +74,7 @@ void acpu_clock_init(void)
     val |= (4 << 0);  // SHOT method
     writel(val, SCPLL_CTLE);
     writel(0x00600007, SCPLL_CTL);
-    thread_sleep(800);
+    thread_sleep(1);
 
     /* HOP to 768MHz */
     while(readl(SCPLL_STAT) & 0x3);
@@ -85,7 +85,7 @@ void acpu_clock_init(void)
     val |= (5 << 0);  // HOP method
     writel(val, SCPLL_CTLE);
     writel(0x00600007, SCPLL_CTL);
-    thread_sleep(100);
+    thread_sleep(1);
 
     val = readl(A11S_CLK_SEL);
     val &= ~(0x3 << 1);
