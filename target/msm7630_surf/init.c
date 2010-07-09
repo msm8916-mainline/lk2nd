@@ -32,10 +32,12 @@
 
 #include <debug.h>
 #include <dev/keys.h>
+#include <dev/gpio.h>
 #include <dev/gpio_keypad.h>
 #include <lib/ptable.h>
 #include <dev/flash.h>
 #include <smem.h>
+#include <reg.h>
 
 #define LINUX_MACHTYPE_7x30_SURF          1007016
 #define LINUX_MACHTYPE_7x30_FFA           1007017
@@ -110,6 +112,7 @@ static int num_parts = sizeof(board_part_list)/sizeof(struct ptentry);
 
 void smem_ptable_init(void);
 unsigned smem_get_apps_flash_start(void);
+unsigned smem_read_alloc_entry_offset(smem_mem_type_t, void *, int, int);
 
 void keypad_init(void);
 
@@ -117,6 +120,51 @@ static int emmc_boot = -1;  /* set to uninitialized */
 int target_is_emmc_boot(void);
 static int platform_version = -1;
 static int target_msm_id = -1;
+static int interleaved_mode_enabled = -1;
+void enable_interleave_mode(int);
+
+int target_is_interleaved_mode(void)
+{
+    struct smem_board_info_v4 board_info_v4;
+    unsigned int board_info_len = 0;
+    unsigned smem_status;
+    char *build_type;
+    unsigned format = 0;
+
+    if (interleaved_mode_enabled != -1)
+    {
+        return interleaved_mode_enabled;
+    }
+
+    smem_status = smem_read_alloc_entry_offset(SMEM_BOARD_INFO_LOCATION,
+					       &format, sizeof(format), 0);
+    if(!smem_status)
+    {
+	if ((format == 3) || (format == 4))
+	{
+	    if (format == 4)
+		board_info_len = sizeof(board_info_v4);
+	    else
+		board_info_len = sizeof(board_info_v4.board_info_v3);
+
+	    smem_status = smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
+					    &board_info_v4, board_info_len);
+	    if(!smem_status)
+	    {
+		build_type = (char *)(board_info_v4.board_info_v3.build_id) + 9;
+
+		interleaved_mode_enabled = 0;
+
+		if (*build_type == 'C')
+		{
+		    interleaved_mode_enabled = 1;
+		}
+	    }
+	}
+    }
+
+    return interleaved_mode_enabled;
+}
 
 void target_init(void)
 {
@@ -143,6 +191,7 @@ void target_init(void)
 	flash_init();
 	flash_info = flash_get_info();
 	ASSERT(flash_info);
+	enable_interleave_mode(target_is_interleaved_mode());
 
 	offset = smem_get_apps_flash_start();
 	if (offset == 0xffffffff)
@@ -175,8 +224,14 @@ void target_init(void)
 			ASSERT(len >= 0);
 		}
 		next_ptr_start_adr = ptn->start + len;
-		ptable_add(&flash_ptable, ptn->name, offset + ptn->start,
-			   len, ptn->flags, TYPE_APPS_PARTITION, PERM_WRITEABLE);
+		if(target_is_interleaved_mode()) {
+		        ptable_add(&flash_ptable, ptn->name, offset + (ptn->start / 2),
+				   (len / 2), ptn->flags, TYPE_APPS_PARTITION, PERM_WRITEABLE);
+		}
+		else {
+		        ptable_add(&flash_ptable, ptn->name, offset + ptn->start,
+				   len, ptn->flags, TYPE_APPS_PARTITION, PERM_WRITEABLE);
+		}
 	}
 
 	smem_add_modem_partitions(&flash_ptable);
