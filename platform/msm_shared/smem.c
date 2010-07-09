@@ -35,7 +35,7 @@
 
 static struct smem *smem = (void *)(MSM_SHARED_BASE);
 
-/* buf MUST be 4byte aligned, and len MUST be a multiple of 4. */
+/* buf MUST be 4byte aligned, and len MUST be a multiple of 8. */
 unsigned smem_read_alloc_entry(smem_mem_type_t type, void *buf, int len)
 {
 	struct smem_alloc_info *ainfo;
@@ -54,11 +54,13 @@ unsigned smem_read_alloc_entry(smem_mem_type_t type, void *buf, int len)
 	if (readl(&ainfo->allocated) == 0)
 		return 1;
 
-	if ((size = readl(&ainfo->size)) != (unsigned)len)
+	size = readl(&ainfo->size);
+
+	if (size != (unsigned)((len + 7) & ~0x00000007))
 		return 1;
 
 	src = MSM_SHARED_BASE + readl(&ainfo->offset);
-	for (; size > 0; src += 4, size -= 4)
+	for (; len > 0; src += 4, len -= 4)
 		*(dest++) = readl(src);
 
 	return 0;
