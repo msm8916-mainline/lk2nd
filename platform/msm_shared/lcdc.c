@@ -31,42 +31,13 @@
 #include <reg.h>
 #include <platform/iomap.h>
 #include <dev/fbcon.h>
+#include <target/display.h>
 
 #define MSM_MDP_BASE1 0xAA200000
 
 #define LCDC_PIXCLK_IN_PS 26
 #define LCDC_FB_PHYS      0x16600000
 #define LCDC_FB_BPP       16
-
-#if 1
-/* SURF */
-#define LCDC_FB_WIDTH     800
-#define LCDC_FB_HEIGHT    480
-
-#define LCDC_HSYNC_PULSE_WIDTH_DCLK 60
-#define LCDC_HSYNC_BACK_PORCH_DCLK  81
-#define LCDC_HSYNC_FRONT_PORCH_DCLK 81
-#define LCDC_HSYNC_SKEW_DCLK        0
-
-#define LCDC_VSYNC_PULSE_WIDTH_LINES 2
-#define LCDC_VSYNC_BACK_PORCH_LINES  20
-#define LCDC_VSYNC_FRONT_PORCH_LINES 27
-
-#else
-/* FFA */
-#define LCDC_FB_WIDTH     480
-#define LCDC_FB_HEIGHT    640
-
-#define LCDC_HSYNC_PULSE_WIDTH_DCLK 60
-#define LCDC_HSYNC_BACK_PORCH_DCLK  144
-#define LCDC_HSYNC_FRONT_PORCH_DCLK 33
-#define LCDC_HSYNC_SKEW_DCLK        0
-
-#define LCDC_VSYNC_PULSE_WIDTH_LINES 2
-#define LCDC_VSYNC_BACK_PORCH_LINES  2
-#define LCDC_VSYNC_FRONT_PORCH_LINES 2
-
-#endif
 
 #define BIT(x)  (1<<(x))
 #define DMA_DSTC0G_8BITS (BIT(1)|BIT(0))

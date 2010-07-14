@@ -191,9 +191,6 @@ void fbcon_setup(struct fbcon_config *_config)
 
 	fbcon_set_colors(bg, fg);
 
-	//fbcon_clear();
-	fbcon_flush();
-
 	cur_pos.x = 0;
 	cur_pos.y = 0;
 	max_pos.x = config->width / (FONT_WIDTH+1);
