@@ -47,6 +47,8 @@
 #include "bootimg.h"
 #include "fastboot.h"
 
+#define EXPAND(NAME) #NAME
+#define TARGET(NAME) EXPAND(NAME)
 #define DEFAULT_CMDLINE "mem=100M console=null";
 
 #ifdef MEMBASE
@@ -628,7 +630,7 @@ fastboot:
 	fastboot_register("continue", cmd_continue);
 	fastboot_register("reboot", cmd_reboot);
 	fastboot_register("reboot-bootloader", cmd_reboot_bootloader);
-	fastboot_publish("product", "swordfish");
+	fastboot_publish("product", TARGET(BOARD));
 	fastboot_publish("kernel", "lk");
 
 	fastboot_init(target_get_scratch_address(), 120 * 1024 * 1024);

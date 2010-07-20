@@ -245,7 +245,7 @@ int recovery_init (void)
 
 	if (!strcmp("update-radio",msg.command)) {
 		valid_command = 1;
-		strcpy(partition_name, "AMSS");
+		strcpy(partition_name, "FOTA");
 	}
 
 	//Todo: Add support for bootloader update too.
@@ -255,8 +255,6 @@ int recovery_init (void)
 		return 0; // Boot in normal mode
 	}
 
-// Disabling image update
-# if 0
 	if (read_update_header_for_bootloader(&header)) {
 		strcpy(msg.status, "invalid-update");
 		goto SEND_RECOVERY_MSG;
@@ -266,7 +264,6 @@ int recovery_init (void)
 		strcpy(msg.status, "failed-update");
 		goto SEND_RECOVERY_MSG;
 	}
-# endif
 	strcpy(msg.status, "OKAY");
 
 SEND_RECOVERY_MSG:
