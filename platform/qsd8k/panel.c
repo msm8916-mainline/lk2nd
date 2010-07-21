@@ -621,7 +621,7 @@ static void _panel_init(struct init_table *init_table)
 		if (init_table[n].reg != 0)
 			mddi_remote_write(init_table[n].val, init_table[n].reg);
 		else
-			thread_sleep(init_table[n].val);//mdelay(init_table[n].val);
+			mdelay(init_table[n].val);
 		n++;
 	}
 
@@ -646,9 +646,9 @@ void panel_poweron(void)
 {
 	gpio_set(88, 0);
 	gpio_config(88, GPIO_OUTPUT);
-	thread_sleep(1); //udelay(10);
+	udelay(10);
 	gpio_set(88, 1);
-	thread_sleep(10); //mdelay(10);
+	mdelay(10);
 
 	//mdelay(1000); // uncomment for second stage boot
 }

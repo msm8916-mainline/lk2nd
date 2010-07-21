@@ -248,7 +248,7 @@ static unsigned mddi_init_regs(void)
 	/* needs to settle for 5uS */
 	if (readl(MDDI_PAD_CTL) == 0) {
 		writel(0x08000, MDDI_PAD_CTL);
-		thread_sleep(1);//udelay(5);
+		udelay(5);
 	}
 
 	writel(0xA850F, MDDI_PAD_CTL);
@@ -284,8 +284,6 @@ struct fbcon_config *mddi_init(void)
 	fb_cfg.width = client_caps.bitmap_width;
 	fb_cfg.stride = fb_cfg.width;
 	fb_cfg.height = client_caps.bitmap_height;
-
-	printcaps(&client_caps);
 
 	panel_init(&client_caps);
 

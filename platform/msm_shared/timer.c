@@ -184,3 +184,18 @@ void mdelay(unsigned msecs)
   writel(0, GPT_ENABLE);
   writel(0, GPT_CLEAR);
 }
+
+void udelay(unsigned usecs)
+{
+    usecs = (usecs * 33 + 1000 - 33) / 1000;
+
+    writel(0, GPT_CLEAR);
+    writel(0, GPT_ENABLE);
+    while(readl(GPT_COUNT_VAL) != 0);
+
+    writel(GPT_ENABLE_EN, GPT_ENABLE);
+    while(readl(GPT_COUNT_VAL) < usecs);
+
+    writel(0, GPT_ENABLE);
+    writel(0, GPT_CLEAR);
+}
