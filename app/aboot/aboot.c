@@ -61,6 +61,7 @@
 #define FASTBOOT_MODE   0x77665500
 
 static const char *emmc_cmdline = " androidboot.emmc=true";
+static const char *battchg_pause = " androidboot.battchg_pause=true";
 
 static struct udc_device surf_udc_device = {
 	.vendor_id	= 0x18d1,
@@ -113,6 +114,7 @@ void boot_linux(void *kernel, unsigned *tags,
 	struct ptable *ptable;
 	int cmdline_len = 0;
 	int have_cmdline = 0;
+	int pause_at_bootup = 0;
 
 	/* CORE */
 	*ptr++ = 2;
@@ -152,6 +154,10 @@ void boot_linux(void *kernel, unsigned *tags,
 	if (target_is_emmc_boot()) {
 		cmdline_len += strlen(emmc_cmdline);
 	}
+	if (target_pause_for_battery_charge()) {
+		pause_at_bootup = 1;
+		cmdline_len += strlen(battchg_pause);
+	}
 	if (cmdline_len > 0) {
 		const char *src;
 		char *dst;
@@ -167,6 +173,12 @@ void boot_linux(void *kernel, unsigned *tags,
 		}
 		if (target_is_emmc_boot()) {
 			src = emmc_cmdline;
+			if (have_cmdline) --dst;
+			have_cmdline = 1;
+			while ((*dst++ = *src++));
+		}
+		if (pause_at_bootup) {
+			src = battchg_pause;
 			if (have_cmdline) --dst;
 			while ((*dst++ = *src++));
 		}

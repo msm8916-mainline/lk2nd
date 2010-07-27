@@ -93,6 +93,8 @@ typedef enum {
 
 	SMEM_USABLE_RAM_PARTITION_TABLE = 402,
 
+	SMEM_POWER_ON_STATUS_INFO = 403,
+
 	SMEM_FIRST_VALID_TYPE = SMEM_SPINLOCK_ARRAY,
 	SMEM_LAST_VALID_TYPE = SMEM_USABLE_RAM_PARTITION_TABLE,
 } smem_mem_type_t;
@@ -157,6 +159,7 @@ struct smem_ram_ptable {
 	unsigned buf;
 } __attribute__ ((__packed__));
 
-
+/* Power on reason/status info */
+#define PWR_ON_EVENT_USB_CHG 0x20
 
 #endif /* __PLATFORM_MSM_SHARED_SMEM_H */
