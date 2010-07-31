@@ -1,4 +1,4 @@
-/* Copyright (c) 2009, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -26,7 +26,42 @@
  *
  */
 
+#include <reg.h>
+#include <debug.h>
+#include <smem.h>
+
+#define SIZE_1M               0x00100000
+
 unsigned* target_atag_mem(unsigned* ptr)
 {
-    return ptr;
+	struct smem_ram_ptable ram_ptable;
+	unsigned i = 0;
+
+	if (smem_ram_ptable_init(&ram_ptable))
+	{
+		for (i = 0; i < ram_ptable.len; i++)
+		{
+			if ((ram_ptable.parts[i].attr == READWRITE)
+				&& (ram_ptable.parts[i].domain == APPS_DOMAIN)
+				&& (ram_ptable.parts[i].start != 0x0)
+				&& (!(ram_ptable.parts[i].size < SIZE_1M)))
+			{
+				/* ATAG_MEM */
+				*ptr++ = 4;
+				*ptr++ = 0x54410002;
+				/* FIXME: RAM partition table currently reports 2M extra
+				  Fix this by subracting 2M, until modem ram partition table
+				  starts reporting the right values */
+				*ptr++ = ram_ptable.parts[i].size - (2*SIZE_1M);
+				*ptr++ = ram_ptable.parts[i].start;
+			}
+		}
+	}
+	else
+	{
+		dprintf(CRITICAL, "ERROR: Unable to read RAM partition\n");
+		ASSERT(0);
+	}
+	return ptr;
 }
+
