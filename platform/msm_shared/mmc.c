@@ -2096,13 +2096,17 @@ static void mbr_fill_name (struct mbr_entry *mbr_ent, unsigned int type)
     switch(type)
     {
         memset(mbr_ent->name, 0, 64);
+        case MMC_MODEM_TYPE:
+            /* if there are more than one with type "modem", mmc_ptn_offset will return the first one */
+            memcpy(mbr_ent->name,"modem",5);
+            break;
         case MMC_BOOT_TYPE:
-        memcpy(mbr_ent->name,"boot",4);
-        break;
+            memcpy(mbr_ent->name,"boot",4);
+            break;
         case MMC_USERDATA_TYPE:
-        strcpy((char *)mbr_ent->name,(const char *)ext3_partitions[ext3_count]);
-        ext3_count++;
-        break;
+            strcpy((char *)mbr_ent->name,(const char *)ext3_partitions[ext3_count]);
+            ext3_count++;
+            break;
     };
 }
 
