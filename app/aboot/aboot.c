@@ -585,7 +585,7 @@ void aboot_init(const struct app_descriptor *app)
 	display_init();
 	dprintf(INFO, "Diplay initialized\n");
 	disp_init = 1;
-	splash_screen();
+	diplay_image_on_screen();
 	#endif
 
 	/* Check if we should do something other than booting up */

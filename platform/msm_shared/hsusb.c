@@ -790,7 +790,7 @@ int udc_start(void)
 	unsigned char *data;
 	unsigned size;
 
-	dprintf(INFO, "udc_start()\n");
+	dprintf(ALWAYS, "udc_start()\n");
 
 	if (!the_device) {
 		dprintf(CRITICAL, "udc cannot start before init\n");
