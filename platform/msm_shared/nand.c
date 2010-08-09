@@ -129,7 +129,7 @@ static struct flash_identification supported_flash[] =
 	{0x1500aa98, 0xFFFFFFFF, (256<<20), 0, 2048, (2048<<6), 64, 0}, /*Tosh*/
 	{0x5500ba98, 0xFFFFFFFF, (256<<20), 1, 2048, (2048<<6), 64, 0}, /*Tosh*/
 	{0xd580b12c, 0xFFFFFFFF, (256<<20), 1, 2048, (2048<<6), 64, 0}, /*Micr*/
-	{0x5590bc2c, 0xFFFFFFFF, (512<<20), 1, 2048, (4096<<6), 64, 0}, /*Micr*/
+	{0x5590bc2c, 0xFFFFFFFF, (512<<20), 1, 2048, (2048<<6), 64, 0}, /*Micr*/
 	{0x1580aa2c, 0xFFFFFFFF, (256<<20), 0, 2048, (2048<<6), 64, 0}, /*Micr*/
 	{0x1590ac2c, 0xFFFFFFFF, (512<<20), 0, 2048, (2048<<6), 64, 0}, /*Micr*/
 	{0x5580baad, 0xFFFFFFFF, (256<<20), 1, 2048, (2048<<6), 64, 0}, /*Hynx*/
@@ -137,7 +137,7 @@ static struct flash_identification supported_flash[] =
 	{0x004000ec, 0xFFFFFFFF, (256<<20), 0, 2048, (2048<<6), 64, 1}, /*Sams*/
 	{0x005c00ec, 0xFFFFFFFF, (256<<20), 0, 2048, (2048<<6), 64, 1}, /*Sams*/
 	{0x005800ec, 0xFFFFFFFF, (256<<20), 0, 2048, (2048<<6), 64, 1}, /*Sams*/
-	{0x6600bcec, 0xFF00FFFF, (512<<20), 1, 4096, (2048<<6), 128, 0}, /*Sams*/
+	{0x6600bcec, 0xFF00FFFF, (512<<20), 1, 4096, (4096<<6), 128, 0}, /*Sams*/
 	/* Note: Width flag is 0 for 8 bit Flash and 1 for 16 bit flash	  */
 	/* Note: Onenand flag is 0 for NAND Flash and 1 for OneNAND flash	*/
 	/* Note: The First row will be filled at runtime during ONFI probe	*/
@@ -3166,7 +3166,7 @@ static void flash_read_id(dmov_s *cmdlist, unsigned *ptrlist)
 		if (flash_info.block_size && flash_info.page_size)
 		{
 			flash_info.num_blocks = supported_flash[index].density;
-			flash_info.num_blocks /= (flash_info.block_size * flash_info.page_size);
+			flash_info.num_blocks /= (flash_info.block_size);
 		}
 		else
 		{

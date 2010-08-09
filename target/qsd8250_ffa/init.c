@@ -126,7 +126,7 @@ void target_init(void)
 	if (offset == 0xffffffff)
 	        while(1);
 
-	total_num_of_blocks = (flash_info->block_size)/NUM_PAGES_PER_BLOCK;
+	total_num_of_blocks = flash_info->num_blocks;
 
 	for (i = 0; i < num_parts; i++) {
 		struct ptentry *ptn = &board_part_list[i];
