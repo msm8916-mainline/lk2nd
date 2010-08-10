@@ -3318,6 +3318,7 @@ int flash_read_ext(struct ptentry *ptn, unsigned extra_per_page,
 	unsigned start_block = ptn->start;
 	int result = 0;
 	int isbad = 0;
+	int start_block_count = 0;
 
 	ASSERT(ptn->type == TYPE_APPS_PARTITION);
 	set_nand_configuration(TYPE_APPS_PARTITION);
@@ -3325,16 +3326,21 @@ int flash_read_ext(struct ptentry *ptn, unsigned extra_per_page,
 	if(offset & (flash_pagesize - 1))
 		return -1;
 
-	// Adjust page offset based on number of bad blocks from start to current page
-	while (start_block < current_block) {
-		isbad = _flash_block_isbad(flash_cmdlist, flash_ptrlist, start_block*64);
-		if (isbad)
-			page += 64;
-
-		start_block++;
+// Adjust page offset based on number of bad blocks from start to current page
+	if (start_block < current_block)
+	{
+		start_block_count = (current_block - start_block);
+		while (start_block_count && (start_block < (ptn->start + ptn->length))) {
+			isbad = _flash_block_isbad(flash_cmdlist, flash_ptrlist, start_block*64);
+			if (isbad)
+				page += 64;
+			else
+				start_block_count--;
+			start_block++;
+		}
 	}
 
-	while(page < lastpage) {
+	while((page < lastpage) && !start_block_count) {
 		if(count == 0) {
 			dprintf(INFO, "flash_read_image: success (%d errors)\n", errors);
 			return 0;
