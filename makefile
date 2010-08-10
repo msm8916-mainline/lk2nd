@@ -22,7 +22,7 @@ ifeq ($(PROJECT),)
 $(error No project specified.  Use "make projectname" or put "PROJECT := projectname" in local.mk)
 endif
 
-DEBUG ?= 2
+DEBUG ?= 0
 
 ifndef $(BOOTLOADER_OUT)
 BOOTLOADER_OUT := .
