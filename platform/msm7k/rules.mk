@@ -4,6 +4,9 @@ ARCH := arm
 ARM_CPU := arm1136j-s
 CPU := generic
 
+MMC_SLOT := 1
+DEFINES += MMC_SLOT=$(MMC_SLOT)
+
 INCLUDES += -I$(LOCAL_DIR)/include
 
 MODULES += dev/fbcon

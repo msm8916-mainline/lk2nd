@@ -51,8 +51,13 @@ unsigned* target_atag_mem(unsigned* ptr)
 				*ptr++ = 0x54410002;
 				/* FIXME: RAM partition table currently reports 2M extra
 				  Fix this by subracting 2M, until modem ram partition table
-				  starts reporting the right values */
-				*ptr++ = ram_ptable.parts[i].size - (2*SIZE_1M);
+				  starts reporting the right values.  Also need fixes for
+				  RAM partition table to have emmc entries correct */
+				if (target_is_emmc_boot())
+					*ptr++ = ram_ptable.parts[i].size - (2*SIZE_1M) - (6*SIZE_1M);
+				else
+					*ptr++ = ram_ptable.parts[i].size - (2*SIZE_1M);
+
 				*ptr++ = ram_ptable.parts[i].start;
 			}
 		}

@@ -116,7 +116,10 @@ void target_init(void)
 #endif
 
 	if (target_is_emmc_boot())
+	{
+		mmc_boot_main();
 		return;
+	}
 
 	ptable_init(&flash_ptable);
 	smem_ptable_init();
