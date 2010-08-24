@@ -2,6 +2,8 @@
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
  *
+ * Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -33,7 +35,13 @@
 #include <dev/fbcon.h>
 #include <target/display.h>
 
+#if MDP4
+#define MSM_MDP_BASE1 0xA3F00000
+#define LCDC_BASE     0xC0000
+#else
 #define MSM_MDP_BASE1 0xAA200000
+#define LCDC_BASE     0xE0000
+#endif
 
 #define LCDC_PIXCLK_IN_PS 26
 #define LCDC_FB_PHYS      0x16600000
@@ -66,6 +74,19 @@ static struct fbcon_config fb_cfg = {
 
 void lcdc_clock_init(unsigned rate);
 
+#if MDP4
+void mdp4_display_intf_sel(int intf)
+{
+	unsigned bits, mask;
+	bits =  readl(MSM_MDP_BASE1 + 0x0038);
+	mask = 0x03;	/* 2 bits */
+	intf &= 0x03;	/* 2 bits */
+	bits &= ~mask;
+	bits |= intf;
+	writel(bits, MSM_MDP_BASE1 + 0x0038);	/* MDP_DISP_INTF_SEL */
+}
+#endif
+
 struct fbcon_config *lcdc_init(void)
 {
 	dprintf(INFO, "lcdc_init(): panel is %d x %d\n", fb_cfg.width, fb_cfg.height);
@@ -91,21 +112,32 @@ struct fbcon_config *lcdc_init(void)
 	int display_vstart= (LCDC_VSYNC_PULSE_WIDTH_LINES + LCDC_VSYNC_BACK_PORCH_LINES) * hsync_period + LCDC_HSYNC_SKEW_DCLK;
 	int display_vend  = vsync_period - (LCDC_VSYNC_FRONT_PORCH_LINES * hsync_period) + LCDC_HSYNC_SKEW_DCLK - 1;
 
-	writel((hsync_period << 16) | LCDC_HSYNC_PULSE_WIDTH_DCLK, MSM_MDP_BASE1 + 0xe0004);
-	writel(vsync_period, MSM_MDP_BASE1 + 0xe0008);
-	writel(LCDC_VSYNC_PULSE_WIDTH_LINES * hsync_period, MSM_MDP_BASE1 + 0xe000c);
-	writel(display_hctl, MSM_MDP_BASE1 + 0xe0010);
-	writel(display_vstart, MSM_MDP_BASE1 + 0xe0014);
-	writel(display_vend, MSM_MDP_BASE1 + 0xe0018);
-	writel(0, MSM_MDP_BASE1 + 0xe0028);
-	writel(0xff, MSM_MDP_BASE1 + 0xe002c);
-	writel(LCDC_HSYNC_SKEW_DCLK, MSM_MDP_BASE1 + 0xe0030);
-	writel(0, MSM_MDP_BASE1 + 0xe0038);
-	writel(0, MSM_MDP_BASE1 + 0xe001c);
-	writel(0, MSM_MDP_BASE1 + 0xe0020);
-	writel(0, MSM_MDP_BASE1 + 0xe0024);
-
-	writel(1, MSM_MDP_BASE1 + 0xe0000);
+	writel((hsync_period << 16) | LCDC_HSYNC_PULSE_WIDTH_DCLK, MSM_MDP_BASE1 + LCDC_BASE + 0x4);
+	writel(vsync_period, MSM_MDP_BASE1 + LCDC_BASE + 0x8);
+	writel(LCDC_VSYNC_PULSE_WIDTH_LINES * hsync_period, MSM_MDP_BASE1 + LCDC_BASE + 0xc);
+	writel(display_hctl, MSM_MDP_BASE1 + LCDC_BASE + 0x10);
+	writel(display_vstart, MSM_MDP_BASE1 + LCDC_BASE + 0x14);
+	writel(display_vend, MSM_MDP_BASE1 + LCDC_BASE + 0x18);
+#if MDP4
+	writel(0xf, MSM_MDP_BASE1 + LCDC_BASE + 0x28);
+#else
+	writel(0, MSM_MDP_BASE1 + LCDC_BASE + 0x28);
+#endif
+	writel(0xff, MSM_MDP_BASE1 + LCDC_BASE + 0x2c);
+	writel(LCDC_HSYNC_SKEW_DCLK, MSM_MDP_BASE1 + LCDC_BASE + 0x30);
+#if MDP4
+	writel(0x3, MSM_MDP_BASE1 + LCDC_BASE + 0x38);
+#else
+	writel(0, MSM_MDP_BASE1 + LCDC_BASE + 0x38);
+#endif
+	writel(0, MSM_MDP_BASE1 + LCDC_BASE + 0x1c);
+	writel(0, MSM_MDP_BASE1 + LCDC_BASE + 0x20);
+	writel(0, MSM_MDP_BASE1 + LCDC_BASE + 0x24);
+#if MDP4
+	writel(0xB, MSM_MDP_BASE1 + 0x10004);
+	writel(0xB, MSM_MDP_BASE1 + 0x18004);
+#endif
+	writel(1, MSM_MDP_BASE1 + LCDC_BASE + 0x0);
 
 	return &fb_cfg;
 }

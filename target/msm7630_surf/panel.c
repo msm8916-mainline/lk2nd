@@ -1,8 +1,45 @@
-/* Copyright 2007, Google Inc. */
+/*
+ * Copyright (c) 2007, Google Inc.
+ * All rights reserved.
+ *
+ * Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *  * Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *  * Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in
+ *    the documentation and/or other materials provided with the
+ *    distribution.
+ *  * Neither the name of Code Aurora nor
+ *    the names of its contributors may be used to endorse or promote
+ *    products derived from this software without specific prior written
+ *    permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
+ * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
+ * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ */
 
 #include <debug.h>
 #include <dev/gpio.h>
 #include <kernel/thread.h>
+#include <gpio_hw.h>
+
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
+
+#if DISPLAY_TYPE_MDDI
 #include <platform/mddi.h>
 
 #define MDDI_CLIENT_CORE_BASE  0x108000
@@ -455,9 +492,11 @@ void panel_init(struct mddi_client_caps *client_caps)
 		break;
 	}
 }
+#endif //mddi
 
 void panel_poweron(void)
 {
+#if DISPLAY_TYPE_MDDI
 	gpio_set(88, 0);
 	gpio_config(88, GPIO_OUTPUT);
 	thread_sleep(1); //udelay(10);
@@ -465,7 +504,262 @@ void panel_poweron(void)
 	thread_sleep(10); //mdelay(10);
 
 	//mdelay(1000); // uncomment for second stage boot
+#elif DISPLAY_TYPE_LCDC
+	panel_backlight(1);
+	lcdc_on();
+#endif
 }
 
 void panel_backlight(int on)
-{}
+{
+    unsigned char reg_data = 0xA0;
+    if(on)
+        pmic_write(0x132, reg_data);
+    else
+        pmic_write(0x132, 0);
+}
+
+static unsigned wega_reset_gpio =
+GPIO_CFG(180, 0, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_2MA);
+
+#define LDO12_CNTRL            0x015
+#define LDO15_CNTRL            0x089
+#define LDO16_CNTRL            0x08A
+#define LDO20_CNTRL            0x11F  // PM8058 only
+#define LDO_LOCAL_EN_BMSK      0x80
+
+static int display_common_power(int on)
+{
+    int rc = 0, flag_on = !!on;
+    static int display_common_power_save_on;
+    unsigned int vreg_ldo12, vreg_ldo15, vreg_ldo20, vreg_ldo16, vreg_ldo8;
+    if (display_common_power_save_on == flag_on)
+        return 0;
+
+    display_common_power_save_on = flag_on;
+
+    if (on) {
+        /* reset Toshiba WeGA chip -- toggle reset pin -- gpio_180 */
+        rc = gpio_tlmm_config(wega_reset_gpio, GPIO_ENABLE);
+        if (rc) {
+            return rc;
+        }
+
+        gpio_set(180, 0);   /* bring reset line low to hold reset*/
+    }
+
+    // Set power for WEGA chip.
+    // Set LD020 to 1.5V
+    pmic_write(LDO20_CNTRL, 0x00 | LDO_LOCAL_EN_BMSK);
+    mdelay(5);
+
+    // Set LD012 to 1.8V
+    pmic_write(LDO12_CNTRL, 0x06 | LDO_LOCAL_EN_BMSK);
+    mdelay(5);
+
+    // Set LD016 to 2.6V
+    pmic_write(LDO16_CNTRL, 0x16 | LDO_LOCAL_EN_BMSK);
+    mdelay(5);
+
+    // Set LD015 to 3.0V
+    pmic_write(LDO15_CNTRL, 0x1E | LDO_LOCAL_EN_BMSK);
+    mdelay(5);
+
+    gpio_set(180, 1);   /* bring reset line high */
+    mdelay(10); /* 10 msec before IO can be accessed */
+    if (rc) {
+        return rc;
+    }
+
+    return rc;
+}
+
+#if DISPLAY_TYPE_LCDC
+static struct msm_gpio lcd_panel_gpios[] = {
+    { GPIO_CFG(45, 0, GPIO_OUTPUT,  GPIO_NO_PULL, GPIO_2MA), "spi_clk" },
+    { GPIO_CFG(46, 0, GPIO_OUTPUT,  GPIO_NO_PULL, GPIO_2MA), "spi_cs0" },
+    { GPIO_CFG(47, 0, GPIO_OUTPUT,  GPIO_NO_PULL, GPIO_2MA), "spi_mosi" },
+    { GPIO_CFG(48, 0, GPIO_INPUT,  GPIO_NO_PULL, GPIO_2MA), "spi_miso" }
+};
+
+int lcdc_toshiba_panel_power(int on)
+{
+    int rc, i;
+    struct msm_gpio *gp;
+
+    rc = display_common_power(on);
+    if (rc < 0) {
+        return rc;
+    }
+
+    if (on) {
+        rc = platform_gpios_enable(lcd_panel_gpios,
+                ARRAY_SIZE(lcd_panel_gpios));
+        if(rc)
+        {
+            return rc;
+        }
+    } else {    /* off */
+        gp = lcd_panel_gpios;
+        for (i = 0; i < ARRAY_SIZE(lcd_panel_gpios); i++) {
+            /* ouput low */
+            gpio_set(GPIO_PIN(gp->gpio_cfg), 0);
+            gp++;
+        }
+    }
+
+    return rc;
+}
+
+#define SPI_SCLK    45
+#define SPI_CS      46
+#define SPI_MOSI    47
+#define SPI_MISO    48
+
+static void toshiba_spi_write_byte(char dc, unsigned char data)
+{
+    unsigned bit;
+    int bnum;
+
+    gpio_set(SPI_SCLK, 0); /* clk low */
+    /* dc: 0 for command, 1 for parameter */
+    gpio_set(SPI_MOSI, dc);
+    mdelay(1);  /* at least 20 ns */
+    gpio_set(SPI_SCLK, 1); /* clk high */
+    mdelay(1);  /* at least 20 ns */
+    bnum = 8;   /* 8 data bits */
+    bit = 0x80;
+    while (bnum) {
+        gpio_set(SPI_SCLK, 0); /* clk low */
+        if (data & bit)
+            gpio_set(SPI_MOSI, 1);
+        else
+            gpio_set(SPI_MOSI, 0);
+        mdelay(1);
+        gpio_set(SPI_SCLK, 1); /* clk high */
+        mdelay(1);
+        bit >>= 1;
+        bnum--;
+    }
+}
+
+static int toshiba_spi_write (char cmd, unsigned data, int num)
+{
+    char *bp;
+    gpio_set(SPI_CS, 1);    /* cs high */
+
+    /* command byte first */
+    toshiba_spi_write_byte(0, cmd);
+
+    /* followed by parameter bytes */
+    if (num) {
+        bp = (char *)&data;;
+        bp += (num - 1);
+        while (num) {
+            toshiba_spi_write_byte(1, *bp);
+            num--;
+            bp--;
+        }
+    }
+    gpio_set(SPI_CS, 0);    /* cs low */
+    mdelay(1);
+    return 0;
+}
+
+
+void lcdc_disp_on (void)
+{
+    gpio_set(SPI_CS, 0);    /* low */
+    gpio_set(SPI_SCLK, 1);  /* high */
+    gpio_set(SPI_MOSI, 0);
+    gpio_set(SPI_MISO, 0);
+
+    if (1) {
+        toshiba_spi_write(0, 0, 0);
+        mdelay(7);
+        toshiba_spi_write(0, 0, 0);
+        mdelay(7);
+        toshiba_spi_write(0, 0, 0);
+        mdelay(7);
+        toshiba_spi_write(0xba, 0x11, 1);
+        toshiba_spi_write(0x36, 0x00, 1);
+        mdelay(1);
+        toshiba_spi_write(0x3a, 0x60, 1);
+        toshiba_spi_write(0xb1, 0x5d, 1);
+        mdelay(1);
+        toshiba_spi_write(0xb2, 0x33, 1);
+        toshiba_spi_write(0xb3, 0x22, 1);
+        mdelay(1);
+        toshiba_spi_write(0xb4, 0x02, 1);
+        toshiba_spi_write(0xb5, 0x1e, 1); /* vcs -- adjust brightness */
+        mdelay(1);
+        toshiba_spi_write(0xb6, 0x27, 1);
+        toshiba_spi_write(0xb7, 0x03, 1);
+        mdelay(1);
+        toshiba_spi_write(0xb9, 0x24, 1);
+        toshiba_spi_write(0xbd, 0xa1, 1);
+        mdelay(1);
+        toshiba_spi_write(0xbb, 0x00, 1);
+        toshiba_spi_write(0xbf, 0x01, 1);
+        mdelay(1);
+        toshiba_spi_write(0xbe, 0x00, 1);
+        toshiba_spi_write(0xc0, 0x11, 1);
+        mdelay(1);
+        toshiba_spi_write(0xc1, 0x11, 1);
+        toshiba_spi_write(0xc2, 0x11, 1);
+        mdelay(1);
+        toshiba_spi_write(0xc3, 0x3232, 2);
+        mdelay(1);
+        toshiba_spi_write(0xc4, 0x3232, 2);
+        mdelay(1);
+        toshiba_spi_write(0xc5, 0x3232, 2);
+        mdelay(1);
+        toshiba_spi_write(0xc6, 0x3232, 2);
+        mdelay(1);
+        toshiba_spi_write(0xc7, 0x6445, 2);
+        mdelay(1);
+        toshiba_spi_write(0xc8, 0x44, 1);
+        toshiba_spi_write(0xc9, 0x52, 1);
+        mdelay(1);
+        toshiba_spi_write(0xca, 0x00, 1);
+        mdelay(1);
+        toshiba_spi_write(0xec, 0x02a4, 2); /* 0x02a4 */
+        mdelay(1);
+        toshiba_spi_write(0xcf, 0x01, 1);
+        mdelay(1);
+        toshiba_spi_write(0xd0, 0xc003, 2); /* c003 */
+        mdelay(1);
+        toshiba_spi_write(0xd1, 0x01, 1);
+        mdelay(1);
+        toshiba_spi_write(0xd2, 0x0028, 2);
+        mdelay(1);
+        toshiba_spi_write(0xd3, 0x0028, 2);
+        mdelay(1);
+        toshiba_spi_write(0xd4, 0x26a4, 2);
+        mdelay(1);
+        toshiba_spi_write(0xd5, 0x20, 1);
+        mdelay(1);
+        toshiba_spi_write(0xef, 0x3200, 2);
+        mdelay(32);
+        toshiba_spi_write(0xbc, 0x80, 1);   /* wvga pass through */
+        toshiba_spi_write(0x3b, 0x00, 1);
+        mdelay(1);
+        toshiba_spi_write(0xb0, 0x16, 1);
+        mdelay(1);
+        toshiba_spi_write(0xb8, 0xfff5, 2);
+        mdelay(1);
+        toshiba_spi_write(0x11, 0, 0);
+        mdelay(5);
+        toshiba_spi_write(0x29, 0, 0);
+        mdelay(5);
+    }
+}
+
+void lcdc_on(void)
+{
+    lcdc_clock_init(27648000);
+    lcdc_toshiba_panel_power(1);
+    lcdc_disp_on();
+}
+
+#endif

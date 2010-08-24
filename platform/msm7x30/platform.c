@@ -63,6 +63,11 @@ void platform_init(void)
 
 void display_init(void)
 {
-        //fb_cfg = lcdc_init();
-	//fbcon_setup(fb_cfg);
+#if DISPLAY_TYPE_LCDC
+    struct fbcon_config *fb_cfg;
+    mdp_clock_init(122880000);
+    fb_cfg = lcdc_init();
+    panel_poweron();
+    fbcon_setup(fb_cfg);
+#endif
 }

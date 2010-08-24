@@ -2,6 +2,8 @@
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
  *
+ * Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -132,17 +134,16 @@ static gpioregs GPIO_REGS[] = {
 
 static gpioregs *find_gpio(unsigned n, unsigned *bit)
 {
-	if(n > 164) return 0;
-	if(n > 152) {
-		*bit = 1 << (n - 153);
+	if(n > 150) {
+		*bit = 1 << (n - 151);
 		return GPIO_REGS + 7;
 	}
-	if(n > 121) {
-		*bit = 1 << (n - 122);
+	if(n > 133) {
+		*bit = 1 << (n - 134);
 		return GPIO_REGS + 6;
 	}
-	if(n > 103) {
-		*bit = 1 << (n - 104);
+	if(n > 106) {
+		*bit = 1 << (n - 107);
 		return GPIO_REGS + 5;
 	}
 	if(n > 94) {
@@ -153,8 +154,8 @@ static gpioregs *find_gpio(unsigned n, unsigned *bit)
 		*bit = 1 << (n - 68);
 		return GPIO_REGS + 3;
 	}
-	if(n > 42) {
-		*bit = 1 << (n - 43);
+	if(n > 43) {
+		*bit = 1 << (n - 44);
 		return GPIO_REGS + 2;
 	}
 	if(n > 15) {
@@ -218,3 +219,23 @@ void platform_config_interleaved_mode_gpios(void)
 	writel (GPIO_ALT_FUNC_PAGE_REG, 0x73);
 	writel (GPIO_ALT_FUNC_CFG_REG, 0x08);
 }
+
+/* Enables all gpios passed in table*/
+int platform_gpios_enable(const struct msm_gpio *table, int size)
+{
+	int rc;
+	int i;
+	const struct msm_gpio *g;
+	for (i = 0; i < size; i++) {
+		g = table + i;
+        /* Enable gpio */
+		rc = gpio_tlmm_config(g->gpio_cfg, GPIO_ENABLE);
+		if (rc) {
+			goto err;
+		}
+	}
+	return 0;
+err:
+	return rc;
+}
+

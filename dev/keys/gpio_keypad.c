@@ -542,3 +542,13 @@ void ssbi_keypad_init(struct qwerty_keypad_info  *qwerty_kp)
     event_wait(&qwerty_keypad->full_scan);
 }
 
+void pmic_write(unsigned address, unsigned data)
+{
+  write_func wr_function = &i2c_ssbi_write_bytes;
+  if(wr_function == NULL)
+    return;
+  if ((*wr_function)(&data, 1, address))
+    dprintf (CRITICAL, "Error in initializing register\n");
+
+}
+

@@ -190,6 +190,9 @@ void fbcon_setup(struct fbcon_config *_config)
 	cur_pos.y = 0;
 	max_pos.x = config->width / (FONT_WIDTH+1);
 	max_pos.y = (config->height - 1) / FONT_HEIGHT;
+#if !DISPLAY_SPLASH_SCREEN
+	fbcon_clear();
+#endif
 }
 
 struct fbcon_config* fbcon_display(void)

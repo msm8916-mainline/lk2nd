@@ -81,6 +81,9 @@
 #define MDP_LCDC_PAD_PCLK_CLK 43
 #define MDP_VSYNC_CLK         44
 
+/* msm7x30 adds... */
+#define MDP_P_CLK             86
+
 enum {
 	PCOM_CMD_IDLE = 0x0,
 	PCOM_CMD_DONE,
@@ -118,6 +121,7 @@ enum {
 	PCOM_GPIO_TLMM_UNCONFIG_GROUP,
 	PCOM_NV_READ_HIGH_BITS,
 	PCOM_NV_WRITE_HIGH_BITS,
+	PCOM_RPC_GPIO_TLMM_CONFIG_EX = 0x25,
 	PCOM_RESERVED_101 = 0x65,
 	PCOM_MSM_HSUSB_PHY_RESET,
 	PCOM_GET_BATT_MV_LEVEL,
@@ -221,15 +225,16 @@ static int clock_get_rate(unsigned id)
 
 void lcdc_clock_init(unsigned rate)
 {
-	clock_enable(100);
-	 
+	clock_set_rate(MDP_LCDC_PCLK_CLK, rate);
 	clock_enable(MDP_LCDC_PCLK_CLK);
 	clock_enable(MDP_LCDC_PAD_PCLK_CLK);
-	
-	clock_set_rate(MDP_LCDC_PCLK_CLK, rate);
-	clock_set_rate(MDP_LCDC_PAD_PCLK_CLK, rate);
+}
 
+void mdp_clock_init (unsigned rate)
+{
+	clock_set_rate(MDP_CLK, rate);
 	clock_enable(MDP_CLK);
+	clock_enable(MDP_P_CLK);
 }
 
 void uart3_clock_init(void)
@@ -318,5 +323,28 @@ int mmc_clock_set_rate(unsigned id, unsigned rate)
 int mmc_clock_get_rate(unsigned id)
 {
 	return clock_get_rate(id); //Get mmc clock rate
+}
+
+int gpio_tlmm_config(unsigned config, unsigned disable)
+{
+    return msm_proc_comm(PCOM_RPC_GPIO_TLMM_CONFIG_EX, &config, &disable);
+}
+
+int vreg_set_level(unsigned id, unsigned mv)
+{
+    return msm_proc_comm(PCOM_VREG_SET_LEVEL, &id, &mv);
+}
+
+int vreg_enable(unsigned id)
+{
+    int enable = 1;
+    return msm_proc_comm(PCOM_VREG_SWITCH, &id, &enable);
+
+}
+
+int vreg_disable(unsigned id)
+{
+    int enable = 0;
+    return msm_proc_comm(PCOM_VREG_SWITCH, &id, &enable);
 }
 

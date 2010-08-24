@@ -1,6 +1,6 @@
 LOCAL_DIR := $(GET_LOCAL_DIR)
 
-INCLUDES += -I$(LOCAL_DIR)/include -I$(LK_TOP_DIR)/platform/msm_shared
+INCLUDES += -I$(LOCAL_DIR)/include -I$(LK_TOP_DIR)/platform/msm_shared  -I$(LK_TOP_DIR)/platform/msm7x30
 
 PLATFORM := msm7x30
 
@@ -17,7 +17,9 @@ FASTBOOT_BUF_SIZE    := 0x07800000
 
 KEYS_USE_GPIO_KEYPAD := 1
 
-DEFINES += DISPLAY_TYPE_MDDI=1
+DEFINES += DISPLAY_TYPE_MDDI=0
+DEFINES += DISPLAY_SPLASH_SCREEN=0
+DEFINES += DISPLAY_TYPE_LCDC=0
 
 MODULES += \
 	dev/keys \
@@ -37,4 +39,5 @@ DEFINES += \
 OBJS += \
 	$(LOCAL_DIR)/init.o \
 	$(LOCAL_DIR)/atags.o \
-	$(LOCAL_DIR)/keypad.o
+	$(LOCAL_DIR)/keypad.o \
+	$(LOCAL_DIR)/panel.o
