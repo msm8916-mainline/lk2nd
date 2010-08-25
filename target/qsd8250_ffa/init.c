@@ -56,32 +56,32 @@ static struct ptable flash_ptable;
 static struct ptentry board_part_list[] = {
 	{
 		.start = 0,
-		.length = 40  /* 5MB */,
+		.length = 5 /* In MB */,
 		.name = "boot",
 	},
 	{
-		.start = 40,
-		.length = 760 /* 95MB */,
+		.start = DIFF_START_ADDR,
+		.length = 95 /* In MB */,
 		.name = "system",
 	},
 	{
-		.start = 800,
-		.length = 240 /* 30MB */,
+		.start = DIFF_START_ADDR,
+		.length = 30 /* In MB */,
 		.name = "cache",
 	},
 	{
-		.start = 1040,
-		.length = 3 /* 384KB */,
+		.start = DIFF_START_ADDR,
+		.length = 1 /* In MB */,
 		.name = "misc",
 	},
 	{
-		.start = 1043,
+		.start = DIFF_START_ADDR,
 		.length = VARIABLE_LENGTH,
 		.name = "userdata",
 	},
 	{
 		.start = DIFF_START_ADDR,
-		.length = 40 /* 5MB */,
+		.length = 5 /* In MB */,
 		.name = "recovery",
 	},
 };
@@ -99,8 +99,8 @@ void target_init(void)
 	unsigned offset;
 	struct flash_info *flash_info;
 	unsigned total_num_of_blocks;
-	bool  start_addr_changed = false;
 	unsigned next_ptr_start_adr = 0;
+	unsigned blocks_per_1MB = 8; /* Default value of 2k page size on 256MB flash drive*/
 	int i;
 
 	dprintf(INFO, "target_init()\n");
@@ -109,7 +109,6 @@ void target_init(void)
 	keys_init();
 	keypad_init();
 #endif
-
 	ptable_init(&flash_ptable);
 	smem_ptable_init();
 
@@ -122,32 +121,32 @@ void target_init(void)
 	        while(1);
 
 	total_num_of_blocks = flash_info->num_blocks;
+	blocks_per_1MB = (1 << 20) / (flash_info->block_size);
 
 	for (i = 0; i < num_parts; i++) {
 		struct ptentry *ptn = &board_part_list[i];
-		unsigned len = ptn->length;
+		unsigned len = ((ptn->length) * blocks_per_1MB);
 
-		if(len == VARIABLE_LENGTH)
+		if(ptn->start != 0)
+			ASSERT(ptn->start == DIFF_START_ADDR);
+
+		ptn->start = next_ptr_start_adr;
+
+		if(ptn->length == VARIABLE_LENGTH)
 		{
-		        start_addr_changed = true;
 			unsigned length_for_prt = 0;
 			unsigned j;
 			for (j = i+1; j < num_parts; j++)
 			{
 			        struct ptentry *temp_ptn = &board_part_list[j];
 			        ASSERT(temp_ptn->length != VARIABLE_LENGTH);
-			        length_for_prt += temp_ptn->length;
+			        length_for_prt += ((temp_ptn->length) * blocks_per_1MB);
 			}
-		        len = (total_num_of_blocks - 1) - (offset + ptn->start + length_for_prt);
+			len = (total_num_of_blocks - 1) - (offset + ptn->start + length_for_prt);
 			ASSERT(len >= 0);
-		        next_ptr_start_adr = ptn->start + len;
 		}
-		if((ptn->start == DIFF_START_ADDR) && (start_addr_changed))
-		{
-		        ASSERT(next_ptr_start_adr);
-			ptn->start = next_ptr_start_adr;
-			next_ptr_start_adr = ptn->start + ptn->length;
-		}
+
+		next_ptr_start_adr = ptn->start + len;
 		ptable_add(&flash_ptable, ptn->name, offset + ptn->start,
 			   len, ptn->flags, TYPE_APPS_PARTITION, PERM_WRITEABLE);
 	}
