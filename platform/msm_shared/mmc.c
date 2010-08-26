@@ -2097,6 +2097,7 @@ static void mbr_fill_name (struct mbr_entry *mbr_ent, unsigned int type)
     {
         memset(mbr_ent->name, 0, 64);
         case MMC_MODEM_TYPE:
+        case MMC_MODEM_TYPE2:
             /* if there are more than one with type "modem", mmc_ptn_offset will return the first one */
             memcpy(mbr_ent->name,"modem",5);
             break;

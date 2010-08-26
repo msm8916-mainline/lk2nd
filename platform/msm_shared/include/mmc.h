@@ -509,6 +509,7 @@ struct mmc_boot_host
 #define MAX_FILE_ENTRIES          20
 
 #define MMC_MODEM_TYPE 0xc
+#define MMC_MODEM_TYPE2 0x6
 #define MMC_BOOT_TYPE 0x48
 #define MMC_SYSTEM_TYPE 0x82
 #define MMC_USERDATA_TYPE 0x83
