@@ -37,6 +37,7 @@
 #define A11S_CLK_CNTL_ADDR	(MSM_CSR_BASE + 0x100)
 #define A11S_CLK_SEL_ADDR	(MSM_CSR_BASE + 0x104)
 #define VDD_SVS_PLEVEL_ADDR	(MSM_CSR_BASE + 0x124)
+#define PLL2_L_VAL_ADDR		(MSM_CLK_CTL_BASE + 0x33C)
 
 #define SRC_SEL_PLL1	1 /* PLL1. */
 #define SRC_SEL_PLL2	2 /* PLL2. */
@@ -46,6 +47,7 @@
 #define WAIT_CNT	100
 #define VDD_LEVEL	7
 #define MIN_AXI_HZ	120000000
+#define ACPU_800MHZ	41
 
 void pll_request(unsigned pll, unsigned enable);
 void axi_clock_init(unsigned rate);
@@ -62,18 +64,32 @@ void axi_clock_init(unsigned rate);
  *
  * TODO: Need to fix SRC_SEL_PLL1 for 7x25.
  */
-uint32_t const clk_cntl_reg_val[] = {
+
+uint32_t const clk_cntl_reg_val_7625[] = {
 	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 4)  | DIV_4,
 	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 12) | (DIV_4 << 8),
 	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 12) | (DIV_2 << 8),
 	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 12) | DIV_2,
-#if ENABLE_PLL3
-        (WAIT_CNT << 16) | (SRC_SEL_PLL3 << 4)  | DIV_2,
+	(WAIT_CNT << 16) | (SRC_SEL_PLL3 << 4)  | DIV_2,
 	(WAIT_CNT << 16) | (SRC_SEL_PLL3 << 12) | (DIV_2 << 8),
-#else
+};
+
+uint32_t const clk_cntl_reg_val_7627[] = {
+	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 4)  | DIV_4,
+	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 12) | (DIV_4 << 8),
+	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 12) | (DIV_2 << 8),
+	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 12) | DIV_2,
 	(WAIT_CNT << 16) | (SRC_SEL_PLL2 << 4)  | DIV_2,
 	(WAIT_CNT << 16) | (SRC_SEL_PLL2 << 12) | (DIV_2 << 8),
-#endif
+};
+
+uint32_t const clk_cntl_reg_val_7627A[] = {
+	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 4)  | DIV_4,
+	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 12) | (DIV_4 << 8),
+	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 12) | (DIV_2 << 8),
+	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 12) | DIV_2,
+	(WAIT_CNT << 16) | (SRC_SEL_PLL2 << 4),
+	(WAIT_CNT << 16) | (SRC_SEL_PLL2 << 12),
 };
 
 /* Using DIV_4 for all cases to avoid worrying about turbo vs. normal
@@ -93,7 +109,7 @@ void mdelay(unsigned msecs);
 
 void acpu_clock_init(void)
 {
-	unsigned i;
+	unsigned i,clk;
 
 #if (!ENABLE_NANDWRITE)
         int *modem_stat_check = (MSM_SHARED_BASE + 0x14);
@@ -112,10 +128,18 @@ void acpu_clock_init(void)
 
 	/* Read clock source select bit. */
 	i = readl(A11S_CLK_SEL_ADDR) & 1;
+	clk = readl(PLL2_L_VAL_ADDR) & 0x3F;
 
 	/* Jump into table and set every other entry. */
-	for(; i < ARRAY_SIZE(clk_cntl_reg_val); i += 2) {
-		writel(clk_cntl_reg_val[i], A11S_CLK_CNTL_ADDR);
+	for(; i < ARRAY_SIZE(clk_cntl_reg_val_7627); i += 2) {
+#ifdef ENABLE_PLL3
+		writel(clk_cntl_reg_val_7625[i], A11S_CLK_CNTL_ADDR);
+#else
+		if(clk == ACPU_800MHZ)
+			writel(clk_cntl_reg_val_7627A[i], A11S_CLK_CNTL_ADDR);
+		else
+			writel(clk_cntl_reg_val_7627[i], A11S_CLK_CNTL_ADDR);
+#endif
 		/* Would need a dmb() here but the whole address space is
 		 * strongly ordered, so it should be fine.
 		 */
