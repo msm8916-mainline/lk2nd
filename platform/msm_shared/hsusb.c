@@ -520,25 +520,16 @@ static int msm_otg_xceiv_reset()
 }
 #define USB_HS1_XVCR_FS_CLK_MD 0x00902908
 #define USB_HS1_XVCR_FS_CLK_NS 0x0090290C
+
 void hsusb_8x60_clock_init(void)
 {
-    unsigned int val = 0;
-
-    //Enable PLL8
-	writel(0xF, 0x00903144);
-	writel(0x5, 0x00903148);
-	writel(0x8, 0x0090314C);
-
-	val = readl(0x00903154);
-	val &= ~(0xC30000);
-	val |= 0xC10000;
-	writel(val, 0x00903154);
-
-	val = readl(0x00903140);
-	val &= ~(0x7);
-	val |= 0x7;
-	writel(val, 0x00903140);
-
+	int val;
+	/* Vote for PLL8 */
+	val = readl(0x009034C0);
+	val |= (1<<8);
+	writel(val, 0x009034C0);
+	/* Wait until PLL is enabled. */
+	while (!(readl(0x00903158) & (1<<16)));
 
     //Set 7th bit in NS Register
 	val = 1 << 7;
@@ -844,11 +835,18 @@ int udc_start(void)
 
 int udc_stop(void)
 {
-	writel(0, USB_USBINTR);
+	int val;
+    writel(0, USB_USBINTR);
 	mask_interrupt(INT_USB_HS);
 
         /* disable pullup */
 	writel(0x00080000, USB_USBCMD);
+#ifdef PLATFORM_MSM8X60
+	/* Voting down PLL8 */
+	val = readl(0x009034C0);
+	val &= ~(1<<8);
+	writel(val, 0x009034C0);
+#endif
 	thread_sleep(10);
 
 	return 0;
