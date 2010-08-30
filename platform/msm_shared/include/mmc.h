@@ -508,11 +508,18 @@ struct mmc_boot_host
 #define BINARY_IN_TABLE_SIZE      (16 * 512)
 #define MAX_FILE_ENTRIES          20
 
-#define MMC_MODEM_TYPE 0xc
-#define MMC_MODEM_TYPE2 0x6
-#define MMC_BOOT_TYPE 0x48
-#define MMC_SYSTEM_TYPE 0x82
-#define MMC_USERDATA_TYPE 0x83
+#define MMC_MODEM_TYPE	 		0x06
+#define MMC_MODEM_TYPE2			0x0C
+#define MMC_SBL1_TYPE 			0x4D
+#define MMC_SBL2_TYPE 			0x51
+#define MMC_SBL3_TYPE 			0x45
+#define MMC_RPM_TYPE 			0x47
+#define MMC_TZ_TYPE 			0x46
+
+#define MMC_ABOOT_TYPE 			0x4C
+#define MMC_BOOT_TYPE 			0x48
+#define MMC_SYSTEM_TYPE 		0x82
+#define MMC_USERDATA_TYPE 		0x83
 
 #define MMC_RCA 2
 

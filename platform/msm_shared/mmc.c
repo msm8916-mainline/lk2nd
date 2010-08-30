@@ -2101,6 +2101,24 @@ static void mbr_fill_name (struct mbr_entry *mbr_ent, unsigned int type)
             /* if there are more than one with type "modem", mmc_ptn_offset will return the first one */
             memcpy(mbr_ent->name,"modem",5);
             break;
+        case MMC_SBL1_TYPE:
+            memcpy(mbr_ent->name,"sbl1",4);
+            break;
+        case MMC_SBL2_TYPE:
+            memcpy(mbr_ent->name,"sbl2",4);
+            break;
+        case MMC_SBL3_TYPE:
+            memcpy(mbr_ent->name,"sbl3",4);
+            break;
+        case MMC_RPM_TYPE:
+            memcpy(mbr_ent->name,"rpm",3);
+            break;
+        case MMC_TZ_TYPE:
+            memcpy(mbr_ent->name,"tz",2);
+            break;
+        case MMC_ABOOT_TYPE:
+            memcpy(mbr_ent->name,"aboot",5);
+            break;
         case MMC_BOOT_TYPE:
             memcpy(mbr_ent->name,"boot",4);
             break;
