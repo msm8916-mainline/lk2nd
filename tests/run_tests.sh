@@ -24,11 +24,11 @@ base_run_test() {
 	tot_pass=$((tot_pass + 1))
     else
 	ret="$?"
-	if [ "$ret" == "1" ]; then
+	if [ "$ret" -eq 1 ]; then
 	    tot_config=$((tot_config + 1))
-	elif [ "$ret" == "2" ]; then
+	elif [ "$ret" -eq 2 ]; then
 	    tot_fail=$((tot_fail + 1))
-	elif [ "$ret" == "$VGCODE" ]; then
+	elif [ "$ret" -eq $VGCODE ]; then
 	    tot_vg=$((tot_vg + 1))
 	else
 	    tot_strange=$((tot_strange + 1))
