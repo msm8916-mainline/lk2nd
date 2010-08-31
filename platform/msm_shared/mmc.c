@@ -37,6 +37,8 @@
 #define NULL        0
 #endif
 
+#define ROUND_TO_PAGE(x,y) (((x) + (y)) & (~(y)))
+
 /* data access time unit in ns */
 static const unsigned int taac_unit[] =
 { 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000 };
@@ -2055,6 +2057,10 @@ unsigned int mmc_write (unsigned long long data_addr, unsigned int data_len, uns
     unsigned int write_size = ((unsigned)(0xFFFFFF/512))*512;
     unsigned offset = 0;
     unsigned int *sptr = in;
+
+    if(data_len % 512)
+        data_len = ROUND_TO_PAGE(data_len, 511);
+
     while(data_len > write_size)
     {
         val = mmc_boot_write_to_card( &mmc_host, &mmc_card, \
@@ -2143,3 +2149,13 @@ unsigned long long mmc_ptn_offset (unsigned char * name)
     return 0;
 }
 
+unsigned long long mmc_ptn_size (unsigned char * name)
+{
+    unsigned n;
+    for(n = 0; n < mmc_partition_count; n++) {
+        if(!strcmp((const char *)mbr[n].name, (const char *)name)) {
+            return (mbr[n].dsize * MMC_BOOT_RD_BLOCK_LEN);
+        }
+    }
+    return 0;
+}

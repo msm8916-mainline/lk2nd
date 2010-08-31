@@ -442,6 +442,8 @@ void cmd_erase(const char *arg, void *data, unsigned sz)
 void cmd_flash_mmc(const char *arg, void *data, unsigned sz)
 {
 	unsigned long long ptn = 0;
+	unsigned long long size = 0;
+
 	ptn = mmc_ptn_offset(arg);
 	if(ptn == 0) {
 		fastboot_fail("partition table doesn't exist");
@@ -453,6 +455,12 @@ void cmd_flash_mmc(const char *arg, void *data, unsigned sz)
 			fastboot_fail("image is not a boot image");
 			return;
 		}
+	}
+
+	size = mmc_ptn_size(arg);
+	if (ROUND_TO_PAGE(sz,511) > size) {
+		fastboot_fail("size too large");
+		return;
 	}
 
 	if (mmc_write(ptn , sz, (unsigned int *)data)) {
