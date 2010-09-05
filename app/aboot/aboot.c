@@ -87,7 +87,8 @@ void *target_get_scratch_address(void);
 int target_is_emmc_boot(void);
 void reboot_device(unsigned);
 void target_battery_charging_enable(unsigned enable, unsigned disconnect);
-
+unsigned int mmc_write (unsigned long long data_addr,
+			unsigned int data_len, unsigned int* in);
 
 static void ptentry_to_tag(unsigned **ptr, struct ptentry *ptn)
 {
@@ -439,6 +440,29 @@ void cmd_erase(const char *arg, void *data, unsigned sz)
 	fastboot_okay("");
 }
 
+
+void cmd_erase_mmc(const char *arg, void *data, unsigned sz)
+{
+	unsigned long long ptn = 0;
+	unsigned int out[512] = {0};
+
+	ptn = mmc_ptn_offset(arg);
+	if(ptn == 0) {
+		fastboot_fail("partition table doesn't exist");
+		return;
+	}
+
+
+	/* Simple inefficient version of erase. Just writing
+	   0 in first block */
+	if (mmc_write(ptn , 512, (unsigned int *)out)) {
+		fastboot_fail("failed to erase partition");
+		return;
+	}
+	fastboot_okay("");
+}
+
+
 void cmd_flash_mmc(const char *arg, void *data, unsigned sz)
 {
 	unsigned long long ptn = 0;
@@ -637,14 +661,16 @@ fastboot:
 		udc_init(&surf_udc_device);
 
 	fastboot_register("boot", cmd_boot);
-	fastboot_register("erase:", cmd_erase);
+
 	if (target_is_emmc_boot())
 	{
 		fastboot_register("flash:", cmd_flash_mmc);
+		fastboot_register("erase:", cmd_erase_mmc);
 	}
 	else
 	{
 		fastboot_register("flash:", cmd_flash);
+		fastboot_register("erase:", cmd_erase);
 	}
 
 	fastboot_register("continue", cmd_continue);
