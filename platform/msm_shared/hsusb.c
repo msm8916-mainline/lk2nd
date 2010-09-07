@@ -565,16 +565,44 @@ void hsusb_8x60_clock_init(void)
 	writel(val, USB_HS1_XVCR_FS_CLK_NS);
 }
 
+void hsusb_7x30_clock_init(void)
+{
+    int val = 0;
+
+    /* Enable USBH_P_CLK */
+    val = 1 << 25;
+    val = val | readl(SH2_GLBL_CLK_ENA_SC);
+    writel(val, SH2_GLBL_CLK_ENA_SC);
+
+    /* Set value in MD register */
+    val = 0x5DF;
+    writel(val, SH2_USBH_MD_REG);
+
+    /* Set value in NS register */
+    val = 1 << 8;
+    val = val | readl(SH2_USBH_NS_REG);
+    writel(val, SH2_USBH_NS_REG);
+
+    val = 1 << 11;
+    val = val | readl(SH2_USBH_NS_REG);
+    writel(val, SH2_USBH_NS_REG);
+
+    val = 1 << 9;
+    val = val | readl(SH2_USBH_NS_REG);
+    writel(val, SH2_USBH_NS_REG);
+
+    val = 1 << 13;
+    val = val | readl(SH2_USBH_NS_REG);
+    writel(val, SH2_USBH_NS_REG);
+}
+
 void hsusb_clock_init(void)
 {
     // Enable usb clocks from apps processor for 7x30.
     // USB clocks already initialized for other targets
     // so skipping proc comm call to enable usb clocks.
 #ifdef PLATFORM_MSM7X30
-    writel(0x00000100, USBH_NS_REG);
-    writel(0x00000900, USBH_NS_REG);
-    writel(0x00000A00, USBH_NS_REG);
-    writel(0x00002A00, USBH_NS_REG);
+    hsusb_7x30_clock_init();
 #elif PLATFORM_MSM8X60
     hsusb_8x60_clock_init();
 #endif
