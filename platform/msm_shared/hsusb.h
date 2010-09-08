@@ -172,9 +172,10 @@ struct ept_queue_item
 #define ULPI_ADDR(n)          (((n) & 255) << 16)
 #define ULPI_DATA(n)          ((n) & 255)
 #define ULPI_DATA_READ(n)     (((n) >> 8) & 255)
-#ifdef PLATFORM_MSM7X30
-#define USBH_NS_REG           (0xAB8002C0)
-#endif
+/* For 7x30 */
+#define SH2_USBH_MD_REG       (0xABA012BC)
+#define SH2_USBH_NS_REG       (0xABA012C0)
+#define SH2_GLBL_CLK_ENA_SC   (0xABA013BC)
 
 /* for USB charging */
 #define TRUE              1
