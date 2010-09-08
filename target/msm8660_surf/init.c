@@ -36,20 +36,26 @@
 #include <lib/ptable.h>
 #include <dev/flash.h>
 #include <smem.h>
+#include <platform/iomap.h>
+#include <reg.h>
 
-#define LINUX_MACHTYPE_SURF  0xf656a
+#define LINUX_MACHTYPE_8660_SURF    1009002
+#define LINUX_MACHTYPE_8660_FFA     1009003
 
 
 void keypad_init(void);
 
 static int emmc_boot = -1;  /* set to uninitialized */
 int target_is_emmc_boot(void);
+void debug_led_write(char);
+char debug_led_read();
 
 void target_init(void)
 {
 
     dprintf(INFO, "target_init()\n");
 
+    setup_fpga();
 #if (!ENABLE_NANDWRITE)
 	keys_init();
 	keypad_init();
@@ -63,7 +69,17 @@ void target_init(void)
 
 unsigned board_machtype(void)
 {
-    return LINUX_MACHTYPE_SURF;
+    /* Writing to Debug LED register and reading back to auto detect
+       SURF and FFA. If we read back, it is SURF */
+    debug_led_write(0xA5);
+
+    if((debug_led_read() & 0xFF) == 0xA5)
+    {
+        debug_led_write(0);
+        return LINUX_MACHTYPE_8660_SURF;
+    }
+    else
+        return LINUX_MACHTYPE_8660_FFA;
 }
 
 void reboot_device(unsigned reboot_reason)
@@ -78,4 +94,46 @@ unsigned check_reboot_mode(void)
 
 void target_battery_charging_enable(unsigned enable, unsigned disconnect)
 {
+}
+
+void setup_fpga()
+{
+    writel(0x147, GPIO_CFG133_ADDR);
+    writel(0x144, GPIO_CFG135_ADDR);
+    writel(0x144, GPIO_CFG136_ADDR);
+    writel(0x144, GPIO_CFG137_ADDR);
+    writel(0x144, GPIO_CFG138_ADDR);
+    writel(0x144, GPIO_CFG139_ADDR);
+    writel(0x144, GPIO_CFG140_ADDR);
+    writel(0x144, GPIO_CFG141_ADDR);
+    writel(0x144, GPIO_CFG142_ADDR);
+    writel(0x144, GPIO_CFG143_ADDR);
+    writel(0x144, GPIO_CFG144_ADDR);
+    writel(0x144, GPIO_CFG145_ADDR);
+    writel(0x144, GPIO_CFG146_ADDR);
+    writel(0x144, GPIO_CFG147_ADDR);
+    writel(0x144, GPIO_CFG148_ADDR);
+    writel(0x144, GPIO_CFG149_ADDR);
+    writel(0x144, GPIO_CFG150_ADDR);
+    writel(0x147, GPIO_CFG151_ADDR);
+    writel(0x147, GPIO_CFG152_ADDR);
+    writel(0x147, GPIO_CFG153_ADDR);
+    writel(0x3,   GPIO_CFG154_ADDR);
+    writel(0x147, GPIO_CFG155_ADDR);
+    writel(0x147, GPIO_CFG156_ADDR);
+    writel(0x147, GPIO_CFG157_ADDR);
+    writel(0x3,   GPIO_CFG158_ADDR);
+
+    writel(0x00000B31, EBI2_CHIP_SELECT_CFG0);
+    writel(0xA3030020, EBI2_XMEM_CS3_CFG1);
+}
+
+void debug_led_write(char val)
+{
+    writeb(val,SURF_DEBUG_LED_ADDR);
+}
+
+char debug_led_read()
+{
+    return readb(SURF_DEBUG_LED_ADDR);
 }
