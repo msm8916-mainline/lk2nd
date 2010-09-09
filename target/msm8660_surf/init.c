@@ -56,6 +56,9 @@ void target_init(void)
     dprintf(INFO, "target_init()\n");
 
     setup_fpga();
+
+    /* Setting Debug LEDs ON */
+    debug_led_write(0xFF);
 #if (!ENABLE_NANDWRITE)
 	keys_init();
 	keypad_init();
