@@ -78,19 +78,6 @@ static struct fbcon_config fb_cfg = {
 
 void lcdc_clock_init(unsigned rate);
 
-#if MDP4
-void mdp4_display_intf_sel(int intf)
-{
-	unsigned bits, mask;
-	bits =  readl(MSM_MDP_BASE1 + 0x0038);
-	mask = 0x03;	/* 2 bits */
-	intf &= 0x03;	/* 2 bits */
-	bits &= ~mask;
-	bits |= intf;
-	writel(bits, MSM_MDP_BASE1 + 0x0038);	/* MDP_DISP_INTF_SEL */
-}
-#endif
-
 struct fbcon_config *lcdc_init(void)
 {
 	dprintf(INFO, "lcdc_init(): panel is %d x %d\n", fb_cfg.width, fb_cfg.height);

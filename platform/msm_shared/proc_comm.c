@@ -83,6 +83,7 @@
 
 #define P_USB_HS_CORE_CLK     53  /* High speed USB 1 core clock */
 /* msm7x30 adds... */
+#define PMDH_P_CLK            82
 #define MDP_P_CLK             86
 
 enum {
@@ -262,6 +263,9 @@ void mddi_clock_init(unsigned num, unsigned rate)
 
 	clock_enable(clock_id);
 	clock_set_rate(clock_id, rate);
+#ifdef PLATFORM_MSM7X30
+	clock_enable (PMDH_P_CLK);
+#endif
 }
 
 void reboot(unsigned reboot_reason)

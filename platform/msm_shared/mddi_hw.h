@@ -35,6 +35,22 @@
 #define MSM_MDDI_BASE 0xAA600000
 #endif
 
+#if MDP4
+#define MSM_MDP_BASE1 0xA3F00000
+#define LCDC_BASE     0xC0000
+#else
+#define MSM_MDP_BASE1 0xAA200000
+#define LCDC_BASE     0xE0000
+#endif
+
+enum {          /* display configuration for MDP4 */
+    PRIMARY_INTF_SEL,
+    SECONDARY_INTF_SEL,
+    EXTERNAL_INTF_SEL
+};
+
+#define outp32(port, val) (*((volatile unsigned *) (port)) = ((unsigned) (val)))
+
 /* see 80-VA736-2 C pp 776-787 */
 
 #define MDDI_REG(off) (MSM_MDDI_BASE + (off))
@@ -117,6 +133,9 @@
 #define MDDI_MF_CNT            MDDI_REG(0x0084)
 #define MDDI_CURR_REV_PTR      MDDI_REG(0x0088)
 #define MDDI_CORE_VER          MDDI_REG(0x008C)
+#define MDDI_PAD_IO_CTL        MDDI_REG(0x00a0)
+#define MDDI_PAD_CAL           MDDI_REG(0x00a4)
+
 
 #define CMD_POWER_DOWN         0x0100
 #define CMD_POWER_UP           0x0200

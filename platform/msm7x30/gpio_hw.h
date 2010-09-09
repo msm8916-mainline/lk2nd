@@ -142,6 +142,8 @@
 #define GPIO_14MA       6
 #define GPIO_16MA       7
 
+#define GPIO38_GPIO_CNTRL      0x175
+
 /* GPIO TLMM: Status */
 #define GPIO_ENABLE     0
 #define GPIO_DISABLE    1

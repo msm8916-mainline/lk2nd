@@ -609,4 +609,10 @@ void pmic_write(unsigned address, unsigned data)
     dprintf (CRITICAL, "Error in initializing register\n");
 
 }
-
+void toshiba_pmic_gpio_init(unsigned gpio)
+{
+  pmic_write(gpio,0x85);
+  pmic_write(gpio,0x98);
+  pmic_write(gpio,0xB8);
+  pmic_write(gpio,0xC6);
+}
