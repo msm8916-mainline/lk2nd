@@ -238,17 +238,17 @@ int boot_linux_from_mmc(void)
 		dprintf(CRITICAL, "ERROR: Cannot read boot image header\n");
                 return -1;
 	}
-	offset += page_size;
 
 	if (memcmp(hdr->magic, BOOT_MAGIC, BOOT_MAGIC_SIZE)) {
 		dprintf(CRITICAL, "ERROR: Invaled boot image header\n");
                 return -1;
 	}
 
-	if (hdr->page_size != page_size) {
-		dprintf(CRITICAL, "ERROR: Invaled boot image pagesize. Device pagesize: %d, Image pagesize: %d\n",page_size,hdr->page_size);
-		return -1;
+	if (hdr->page_size && (hdr->page_size != page_size)) {
+		page_size = hdr->page_size;
+		page_mask = page_size - 1;
 	}
+	offset += page_size;
 
 	n = ROUND_TO_PAGE(hdr->kernel_size, page_mask);
 	if (mmc_read(ptn + offset, (void *)hdr->kernel_addr, n)) {
@@ -395,6 +395,11 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 
 	/* ensure commandline is terminated */
 	hdr.cmdline[BOOT_ARGS_SIZE-1] = 0;
+
+	if(target_is_emmc_boot() && hdr.page_size) {
+		page_size = hdr.page_size;
+		page_mask = page_size - 1;
+	}
 
 	kernel_actual = ROUND_TO_PAGE(hdr.kernel_size, page_mask);
 	ramdisk_actual = ROUND_TO_PAGE(hdr.ramdisk_size, page_mask);
