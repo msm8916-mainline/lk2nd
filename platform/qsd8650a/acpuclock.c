@@ -54,8 +54,8 @@ void acpu_clock_init(void)
     thread_sleep(10);
     while(readl(SCPLL_STAT) & 0x2);
 
-    /* Shot-switch directly to 1190MHz */
-    writel(0x001400FC, SCPLL_CTLE);
+    /* Shot-switch directly to 768MHz */
+    writel(0x001400A4, SCPLL_CTLE);
     writel(0x7, SCPLL_CTL);
     thread_sleep(10);
     while(readl(SCPLL_STAT) & 0x3);
