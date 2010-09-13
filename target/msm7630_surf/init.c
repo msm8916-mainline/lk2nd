@@ -49,6 +49,7 @@
 
 #define MSM8255_ID                 74
 #define MSM8655_ID                 75
+#define APQ8055_ID                 85
 
 //Enum values for 7x30 target platforms.
 enum platform
@@ -255,7 +256,8 @@ int target_platform_version(void)
 int target_is_msm8x55(void)
 {
     if ((target_msm_id == MSM8255_ID) ||
-	          (target_msm_id == MSM8655_ID))
+	          (target_msm_id == MSM8655_ID) ||
+	          (target_msm_id == APQ8055_ID))
         return 1;
     else
         return 0;
