@@ -50,11 +50,7 @@
 #define MSM_SDC1_BASE       0x12400000
 #define MMC_BOOT_MCI_BASE   MSM_SDC1_BASE
 
-#if defined(PLATFORM_MSM8X60)
-#define MSM_SHARED_BASE      0x00000000
-#else
-#define MSM_SHARED_BASE      0x01F00000
-#endif
+#define MSM_SHARED_BASE      0x40000000
 
 #define SURF_DEBUG_LED_ADDR      0x1D000202
 
