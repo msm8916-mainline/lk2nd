@@ -75,7 +75,6 @@ static unsigned long long eval_literal(const char *s, int base, int bits);
 %type <proplist> proplist
 
 %type <node> devicetree
-%type <node> devicetrees
 %type <node> nodedef
 %type <node> subnode
 %type <nodelist> subnodes
@@ -83,7 +82,7 @@ static unsigned long long eval_literal(const char *s, int base, int bits);
 %%
 
 sourcefile:
-	  DT_V1 ';' memreserves devicetrees
+	  DT_V1 ';' memreserves devicetree
 		{
 			the_boot_info = build_boot_info($3, $4,
 							guess_boot_cpuid($4));
@@ -120,21 +119,26 @@ addr:
 		}
 	  ;
 
-devicetrees:
-	  devicetree
-		{
-			$$ = $1;
-		}
-	| devicetrees devicetree
-		{
-			$$ = merge_nodes($1, $2);
-		}
-	;
-
 devicetree:
 	  '/' nodedef
 		{
 			$$ = name_node($2, "");
+		}
+	| devicetree '/' nodedef
+		{
+			$$ = merge_nodes($1, $3);
+		}
+	| devicetree DT_REF nodedef
+		{
+			struct node *target;
+
+			target = get_node_by_label($1, $2);
+			if (target)
+				merge_nodes(target, $3);
+			else
+				yyerror("label does not exist in "
+					" node redefinition");
+			$$ = $1;
 		}
 	;
 

@@ -27,11 +27,15 @@
 
 		ssn0: subsubnode@0 {
 			phandle = <0x2001>;
-			compatible = "subsubnode2", "subsubnode";
-			prop-int = <0726746425>;
+			prop-int = <0xbad>;
 		};
 
 		ss2 {
 		};
 	};
+};
+
+&ssn0 {
+	compatible = "subsubnode2", "subsubnode";
+	prop-int = <0726746425>;
 };

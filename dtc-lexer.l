@@ -109,7 +109,7 @@ static int pop_input_file(void);
 			return DT_LITERAL;
 		}
 
-\&{LABEL}	{	/* label reference */
+<*>\&{LABEL}	{	/* label reference */
 			DPRINT("Ref: %s\n", yytext+1);
 			yylval.labelref = xstrdup(yytext+1);
 			return DT_REF;

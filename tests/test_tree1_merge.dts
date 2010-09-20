@@ -34,12 +34,10 @@
 		prop-int = [deadbeef];
 	};
 	subnode@2 {
-		subsubnode@0 {
+		ssn0: subsubnode@0 {
 			phandle = <0x2001>;
 			compatible = "subsubnode2", "subsubnode";
 			prop-int = <0726746425>;
 		};
 	};
 };
-
-
