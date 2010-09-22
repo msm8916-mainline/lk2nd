@@ -130,6 +130,14 @@ enum {
     SHARED_DOMAIN,
 };
 
+enum {
+	SYS_MEMORY = 1,        /* system memory*/
+	BOOT_REGION_MEMORY1,   /* boot loader memory 1*/
+	BOOT_REGION_MEMORY2,   /* boot loader memory 2,reserved*/
+	APPSBL_MEMORY,         /* apps boot loader memory*/
+	APPS_MEMORY,           /* apps  usage memory*/
+};
+
 struct smem_ram_ptn {
 	char name[16];
 	unsigned start;
@@ -144,8 +152,11 @@ struct smem_ram_ptn {
 	/* RAM Partition domain: APPS, MODEM, APPS & MODEM (SHARED) etc. */
 	unsigned domain;
 
+	/* RAM Partition type: system, bootloader, appsboot, apps etc. */
+	unsigned type;
+
 	/* reserved for future expansion without changing version number */
-	unsigned reserved1, reserved2, reserved3, reserved4, reserved5;
+	unsigned reserved2, reserved3, reserved4, reserved5;
 } __attribute__ ((__packed__));
 
 struct smem_ram_ptable {
