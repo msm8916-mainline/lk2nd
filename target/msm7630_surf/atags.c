@@ -76,6 +76,18 @@ unsigned* target_atag_mem(unsigned* ptr)
                 *ptr++ = ram_ptable.parts[i].size;
                 *ptr++ = ram_ptable.parts[i].start;
             }
+
+            /* Check for modem bootloader memory that can be reclaimed */
+            if ((ram_ptable.parts[i].attr == READWRITE)
+                && (ram_ptable.parts[i].domain == APPS_DOMAIN)
+                && (ram_ptable.parts[i].type == BOOT_REGION_MEMORY1))
+            {
+                /* ATAG_MEM_OSBL */
+                *ptr++ = 4;
+                *ptr++ = 0x5441000C;
+                *ptr++ = ram_ptable.parts[i].size;
+                *ptr++ = ram_ptable.parts[i].start;
+            }
         }
     }
     else
