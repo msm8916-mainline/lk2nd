@@ -41,7 +41,7 @@
 
 #define LINUX_MACHTYPE_8660_SURF    1009002
 #define LINUX_MACHTYPE_8660_FFA     1009003
-
+#define LINUX_MACHTYPE_8660_FLUID   1009004
 
 void keypad_init(void);
 
@@ -49,6 +49,7 @@ static int emmc_boot = -1;  /* set to uninitialized */
 int target_is_emmc_boot(void);
 void debug_led_write(char);
 char debug_led_read();
+uint32_t platform_id_read (void);
 
 void target_init(void)
 {
@@ -72,17 +73,28 @@ void target_init(void)
 
 unsigned board_machtype(void)
 {
-    /* Writing to Debug LED register and reading back to auto detect
-       SURF and FFA. If we read back, it is SURF */
-    debug_led_write(0xA5);
-
-    if((debug_led_read() & 0xFF) == 0xA5)
+    unsigned id = platform_id_read();
+    switch(id)
     {
-        debug_led_write(0);
-        return LINUX_MACHTYPE_8660_SURF;
-    }
-    else
-        return LINUX_MACHTYPE_8660_FFA;
+        case 0x1:
+            return LINUX_MACHTYPE_8660_SURF;
+        case 0x2:
+            return LINUX_MACHTYPE_8660_FFA;
+        case 0x3:
+            return LINUX_MACHTYPE_8660_FLUID;
+        default:
+            /* Writing to Debug LED register and reading back to auto detect
+            SURF and FFA. If we read back, it is SURF */
+            debug_led_write(0xA5);
+
+            if((debug_led_read() & 0xFF) == 0xA5)
+            {
+                debug_led_write(0);
+                return LINUX_MACHTYPE_8660_SURF;
+            }
+            else
+                return LINUX_MACHTYPE_8660_FFA;
+    };
 }
 
 void reboot_device(unsigned reboot_reason)

@@ -19,7 +19,8 @@ OBJS += \
 	$(LOCAL_DIR)/platform.o \
 	$(LOCAL_DIR)/interrupts.o \
 	$(LOCAL_DIR)/acpuclock.o \
-	$(LOCAL_DIR)/mmc_init.o
+	$(LOCAL_DIR)/mmc_init.o \
+	$(LOCAL_DIR)/gpio.o
 
 LINKER_SCRIPT += $(BUILDDIR)/system-onesegment.ld
 

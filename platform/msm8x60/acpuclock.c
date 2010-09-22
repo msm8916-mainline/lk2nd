@@ -32,6 +32,48 @@
 #include <platform/iomap.h>
 #include <reg.h>
 
+/* Set rate and enable the clock */
+void clock_config(uint32_t ns,
+        uint32_t md,
+        uint32_t ns_addr,
+        uint32_t md_addr)
+{
+    unsigned int val = 0;
+
+    /* Activate the reset for the M/N Counter */
+    val = 1 << 7;
+    writel(val, ns_addr);
+
+    /* Write the MD value into the MD register */
+    writel(md, md_addr);
+
+    /* Write the ns value, and active reset for M/N Counter, again */
+    val = 1 << 7;
+    val |= ns;
+    writel(val, ns_addr);
+
+    /* De-activate the reset for M/N Counter */
+    val = 1 << 7;
+    val = ~val;
+    val = val & readl(ns_addr);
+    writel(val, ns_addr);
+
+    /* Enable the M/N Counter */
+    val = 1 << 8;
+    val = val | readl(ns_addr);
+    writel(val, ns_addr);
+
+    /* Enable the Clock Root */
+    val = 1 << 11;
+    val = val | readl(ns_addr);
+    writel(val, ns_addr);
+
+    /* Enable the Clock Branch */
+    val = 1 << 9;
+    val = val | readl(ns_addr);
+    writel(val, ns_addr);
+}
+
 void acpu_clock_init (void)
 {
 }

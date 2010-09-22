@@ -32,7 +32,7 @@
 #include <reg.h>
 
 #include <platform/iomap.h>
-
+#ifndef PLATFORM_MSM8X60
 #define ACPU_CLK           0  /* Applications processor clock */
 #define ADM_CLK            1  /* Applications data mover clock */
 #define ADSP_CLK           2  /* ADSP clock */
@@ -353,4 +353,4 @@ int vreg_disable(unsigned id)
     int enable = 0;
     return msm_proc_comm(PCOM_VREG_SWITCH, &id, &enable);
 }
-
+#endif

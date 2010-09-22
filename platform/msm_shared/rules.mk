@@ -21,3 +21,8 @@ OBJS += \
 	$(LOCAL_DIR)/mddi.o \
 	$(LOCAL_DIR)/mmc.o
 
+ifeq ($(PLATFORM),msm8x60)
+	OBJS += $(LOCAL_DIR)/i2c_qup.o
+endif
+
+
