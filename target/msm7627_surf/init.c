@@ -36,6 +36,7 @@
 #include <lib/ptable.h>
 #include <dev/flash.h>
 #include <smem.h>
+#include <platform/iomap.h>
 
 #define LINUX_MACHTYPE  1007014
 
@@ -117,7 +118,11 @@ void target_init(void)
 
 	if (target_is_emmc_boot())
 	{
-		mmc_boot_main();
+		if(mmc_boot_main(MMC_SLOT, MSM_SDC1_BASE))
+		{
+			dprintf(CRITICAL, "mmc init failed!");
+			ASSERT(0);
+		}
 		return;
 	}
 

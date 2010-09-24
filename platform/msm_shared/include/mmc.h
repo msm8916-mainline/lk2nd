@@ -29,15 +29,11 @@
 #ifndef __MMC_H__
 #define __MMC_H__
 
-#ifndef MMC_BOOT_MCI_BASE
-#define MMC_BOOT_MCI_BASE   0
-#endif
-
 #ifndef MMC_SLOT
 #define MMC_SLOT            0
 #endif
 
-#define MMC_BOOT_MCI_REG(offset)          (MMC_BOOT_MCI_BASE + offset)
+#define MMC_BOOT_MCI_REG(offset)          ((mmc_boot_mci_base) + offset)
 
 /*
  * Define Macros for SDCC Registers

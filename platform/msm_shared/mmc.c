@@ -59,6 +59,9 @@ unsigned int ext3_count = 0;
 static unsigned mmc_sdc_clk[] = { SDC1_CLK, SDC2_CLK, SDC3_CLK, SDC4_CLK};
 static unsigned mmc_sdc_pclk[] = { SDC1_PCLK, SDC2_PCLK, SDC3_PCLK, SDC4_PCLK};
 
+unsigned char mmc_slot = 0;
+unsigned int mmc_boot_mci_base = 0;
+
 int mmc_clock_enable_disable(unsigned id, unsigned enable);
 int mmc_clock_get_rate(unsigned id);
 int mmc_clock_set_rate(unsigned id, unsigned rate);
@@ -91,8 +94,8 @@ static unsigned int mmc_boot_enable_clock( struct mmc_boot_host* host,
 
 #ifndef PLATFORM_MSM8X60
     int mmc_signed_ret = 0;
-    unsigned SDC_CLK = mmc_sdc_clk[MMC_SLOT - 1];
-    unsigned SDC_PCLK = mmc_sdc_pclk[MMC_SLOT - 1];
+    unsigned SDC_CLK = mmc_sdc_clk[mmc_slot - 1];
+    unsigned SDC_PCLK = mmc_sdc_pclk[mmc_slot - 1];
 
     if( host == NULL )
     {
@@ -2009,12 +2012,15 @@ static unsigned int mmc_boot_read_MBR(void)
 /*
  * Entry point to MMC boot process
  */
-unsigned int mmc_boot_main(void)
+unsigned int mmc_boot_main(unsigned char slot, unsigned int base)
 {
     unsigned int mmc_ret = MMC_BOOT_E_SUCCESS;
 
     memset( (struct mmc_boot_host*)&mmc_host, 0, sizeof( struct mmc_boot_host ) );
     memset( (struct mmc_boot_card*)&mmc_card, 0, sizeof(struct mmc_boot_card) );
+
+    mmc_slot = slot;
+    mmc_boot_mci_base = base;
 
 #ifndef PLATFORM_MSM8X60
     /* Waiting for modem to come up */

@@ -38,6 +38,7 @@
 #include <dev/flash.h>
 #include <smem.h>
 #include <reg.h>
+#include <platform/iomap.h>
 
 #define LINUX_MACHTYPE_7x30_SURF          1007016
 #define LINUX_MACHTYPE_7x30_FFA           1007017
@@ -65,6 +66,8 @@ enum platform
 #define VARIABLE_LENGTH        0x10101010
 #define DIFF_START_ADDR        0xF0F0F0F0
 #define NUM_PAGES_PER_BLOCK    0x40
+
+static unsigned mmc_sdc_base[] = { MSM_SDC1_BASE, MSM_SDC2_BASE, MSM_SDC3_BASE, MSM_SDC4_BASE};
 
 static struct ptable flash_ptable;
 static int hw_platform_type = -1;
@@ -179,6 +182,8 @@ void target_init(void)
 	unsigned total_num_of_blocks;
 	unsigned next_ptr_start_adr = 0;
 	unsigned blocks_per_1MB = 8; /* Default value of 2k page size on 256MB flash drive*/
+	unsigned base_addr;
+	unsigned char slot;
 	int i;
 
 	dprintf(INFO, "target_init()\n");
@@ -190,7 +195,20 @@ void target_init(void)
 
 	if (target_is_emmc_boot())
 	{
-		mmc_boot_main();
+		/* Trying Slot 2 first */
+		slot = 2;
+		base_addr = mmc_sdc_base[slot-1];
+		if(mmc_boot_main(slot, base_addr))
+		{
+			/* Trying Slot 4 next */
+			slot = 4;
+			base_addr = mmc_sdc_base[slot-1];
+			if(mmc_boot_main(slot, base_addr))
+			{
+				dprintf(CRITICAL, "mmc init failed!");
+				ASSERT(0);
+			}
+		}
 		return;
 	}
 

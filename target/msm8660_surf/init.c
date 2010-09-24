@@ -63,7 +63,7 @@ void target_init(void)
 	keys_init();
 	keypad_init();
 #endif
-    if(mmc_boot_main())
+    if(mmc_boot_main(MMC_SLOT,MSM_SDC1_BASE))
     {
         dprintf(CRITICAL, "mmc init failed!");
         ASSERT(0);
