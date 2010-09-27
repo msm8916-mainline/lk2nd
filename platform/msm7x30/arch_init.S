@@ -416,6 +416,12 @@ __cpu_early_init:
         DSB
         ISB
 
+        //; Setup CCPR - Cache Coherency Policy Register
+        //; setup CCPR[L1ISHP, L2ISHP] both to 0b00 (no forcing)
+        //; setup CCPR[L1OSHP, L2OSHP] both to 0b10 (force non-cacheable)
+        MOVW   r2, #0x88
+        MCR    p15, 0, r2, c10, c4, 2
+
         //;-------------------------------------------------------------------
         //; There are a number of registers that must be set prior to enabling
         //; the MMU. The DCAR is one of these registers. We are setting
