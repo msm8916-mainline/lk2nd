@@ -39,6 +39,10 @@
 
 #define LINUX_MACHTYPE  1007003
 
+#define VARIABLE_LENGTH        0x10101010
+#define DIFF_START_ADDR        0xF0F0F0F0
+#define NUM_PAGES_PER_BLOCK    0x40
+
 static struct ptable flash_ptable;
 
 /* for these partitions, start will be offset by either what we get from
@@ -52,33 +56,38 @@ static struct ptable flash_ptable;
 static struct ptentry board_part_list[] = {
 	{
 		.start = 0,
-		.length = 40,
+		.length = 5 /* In MB */,
 		.name = "boot",
 	},
 	{
-		.start = 40,
-		.length = 680 /* 85MB */,
+		.start = DIFF_START_ADDR,
+		.length = 95 /* In MB */,
 		.name = "system",
 	},
 	{
-		.start = 720,
-		.length = 240 /* 30MB */,
+		.start = DIFF_START_ADDR,
+		.length = 1 /* In MB */,
 		.name = "cache",
 	},
 	{
-		.start = 960,
-		.length = 3 /* 384KB */,
+		.start = DIFF_START_ADDR,
+		.length = 1 /* In MB */,
 		.name = "misc",
 	},
 	{
-		.start = 963,
-		.length = 40 /* 5MB */,
-		.name = "recovery",
+		.start = DIFF_START_ADDR,
+		.length = VARIABLE_LENGTH,
+		.name = "userdata",
 	},
 	{
-		.start = 1003,
-		.length = 517 /* 65MB */,
-		.name = "userdata",
+		.start = DIFF_START_ADDR,
+		.length = 2 /* In MB */,
+		.name = "persist",
+	},
+	{
+		.start = DIFF_START_ADDR,
+		.length = 5 /* In MB */,
+		.name = "recovery",
 	},
 };
 static int num_parts = sizeof(board_part_list)/sizeof(struct ptentry);
@@ -94,6 +103,9 @@ void target_init(void)
 {
 	unsigned offset;
 	struct flash_info *flash_info;
+	unsigned total_num_of_blocks;
+	unsigned next_ptr_start_adr = 0;
+	unsigned blocks_per_1MB = 8; /* Default value of 2k page size on 256MB flash drive*/
 	int i;
 
 	dprintf(INFO, "target_init()\n");
@@ -117,12 +129,32 @@ void target_init(void)
 	if (offset == 0xffffffff)
 	        while(1);
 
+	total_num_of_blocks = flash_info->num_blocks;
+	blocks_per_1MB = (1 << 20) / (flash_info->block_size);
+
 	for (i = 0; i < num_parts; i++) {
 		struct ptentry *ptn = &board_part_list[i];
-		unsigned len = ptn->length;
+		unsigned len = ((ptn->length) * blocks_per_1MB);
 
-		if ((len == 0) && (i == num_parts - 1))
-			len = flash_info->num_blocks - offset - ptn->start;
+		if(ptn->start != 0)
+		        ASSERT(ptn->start == DIFF_START_ADDR);
+
+		ptn->start = next_ptr_start_adr;
+
+		if(ptn->length == VARIABLE_LENGTH)
+		{
+			unsigned length_for_prt = 0;
+			unsigned j;
+			for (j = i+1; j < num_parts; j++)
+			{
+			        struct ptentry *temp_ptn = &board_part_list[j];
+			        ASSERT(temp_ptn->length != VARIABLE_LENGTH);
+			        length_for_prt += ((temp_ptn->length) * blocks_per_1MB);
+			}
+		        len = (total_num_of_blocks - 1) - (offset + ptn->start + length_for_prt);
+			ASSERT(len >= 0);
+		}
+		next_ptr_start_adr = ptn->start + len;
 		ptable_add(&flash_ptable, ptn->name, offset + ptn->start,
 			   len, ptn->flags, TYPE_APPS_PARTITION, PERM_WRITEABLE);
 	}
