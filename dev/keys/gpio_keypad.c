@@ -348,6 +348,64 @@ int pa1_ssbi2_write_bytes(unsigned char  *buffer, unsigned short length,
     return 0;
 }
 
+int pa2_ssbi2_read_bytes(unsigned char  *buffer, unsigned short length,
+        unsigned short slave_addr)
+{
+    unsigned val = 0x0;
+    unsigned temp = 0x0000;
+    unsigned char *buf = buffer;
+    unsigned short len = length;
+    unsigned short addr = slave_addr;
+    unsigned long timeout = SSBI_TIMEOUT_US;
+
+    while(len)
+    {
+        val |= ((addr << PA2_SSBI2_REG_ADDR_SHIFT) |
+                (PA2_SSBI2_CMD_READ << PA2_SSBI2_CMD_RDWRN_SHIFT));
+        writel(val, PA2_SSBI2_CMD);
+        while(!((temp = readl(PA2_SSBI2_RD_STATUS)) & (1 << PA2_SSBI2_TRANS_DONE_SHIFT))) {
+            if (--timeout == 0) {
+                dprintf(INFO, "In Device ready function:Timeout\n");
+                return 1;
+            }
+        }
+        len--;
+        *buf++ = (temp & (PA2_SSBI2_REG_DATA_MASK << PA2_SSBI2_REG_DATA_SHIFT));
+    }
+    return 0;
+}
+
+int pa2_ssbi2_write_bytes(unsigned char  *buffer, unsigned short length,
+        unsigned short slave_addr)
+{
+    unsigned val;
+    unsigned char *buf = buffer;
+    unsigned short len = length;
+    unsigned short addr = slave_addr;
+    unsigned temp = 0x00;
+    unsigned char written_data1 = 0x00;
+    unsigned long timeout = SSBI_TIMEOUT_US;
+
+    while(len)
+    {
+        temp = 0x00;
+        written_data1 = 0x00;
+        val = (addr << PA2_SSBI2_REG_ADDR_SHIFT) |
+            (PA2_SSBI2_CMD_WRITE << PA2_SSBI2_CMD_RDWRN_SHIFT) |
+            (*buf & 0xFF);
+        writel(val, PA2_SSBI2_CMD);
+        while(!((temp = readl(PA2_SSBI2_RD_STATUS)) & (1 << PA2_SSBI2_TRANS_DONE_SHIFT))) {
+            if (--timeout == 0) {
+                dprintf(INFO, "In Device write function:Timeout\n");
+                return 1;
+            }
+        }
+        len--;
+        buf++;
+    }
+    return 0;
+}
+
 int pm8058_gpio_config(int gpio, struct pm8058_gpio *param)
 {
 	int	rc;

@@ -80,6 +80,13 @@ void platform_init(void)
 
 void display_init(void)
 {
+    struct fbcon_config *fb_cfg;
+#if DISPLAY_TYPE_LCDC
+    mdp_clock_init();
+    fb_cfg = lcdc_init();
+    panel_poweron();
+    fbcon_setup(fb_cfg);
+#endif
 }
 
 void secondary_core(unsigned sec_entry)

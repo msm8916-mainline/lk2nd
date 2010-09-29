@@ -182,6 +182,19 @@ void gpio_keypad_init(struct gpio_keypad_info *kpinfo);
 #define PA1_SSBI2_CMD_READ              1
 #define PA1_SSBI2_CMD_WRITE             0
 
+/* PMIC Arbiter 2: SSBI2 Configuration Micro ARM registers */
+#define PA2_SSBI2_CMD                   0x00C00000
+#define PA2_SSBI2_RD_STATUS             0x00C00004
+
+#define PA2_SSBI2_REG_ADDR_SHIFT        8
+#define PA2_SSBI2_CMD_RDWRN_SHIFT       24
+#define PA2_SSBI2_TRANS_DONE_SHIFT      27
+
+#define PA2_SSBI2_REG_DATA_MASK         0xFF
+#define PA2_SSBI2_REG_DATA_SHIFT        0
+
+#define PA2_SSBI2_CMD_READ              1
+#define PA2_SSBI2_CMD_WRITE             0
 
 struct pm8058_gpio {
 	int		direction;

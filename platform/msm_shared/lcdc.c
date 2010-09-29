@@ -35,9 +35,13 @@
 #include <dev/fbcon.h>
 #include <target/display.h>
 
-#if MDP4
+#if PLATFORM_MSM7X30
 #define MSM_MDP_BASE1 0xA3F00000
 #define LCDC_BASE     0xC0000
+#elif PLATFORM_MSM8X60
+#define MSM_MDP_BASE1 0x05100000
+#define LCDC_BASE     0xC0000
+#define LCDC_FB_ADDR  0x43E00000
 #else
 #define MSM_MDP_BASE1 0xAA200000
 #define LCDC_BASE     0xE0000
@@ -90,9 +94,12 @@ void mdp4_display_intf_sel(int intf)
 struct fbcon_config *lcdc_init(void)
 {
 	dprintf(INFO, "lcdc_init(): panel is %d x %d\n", fb_cfg.width, fb_cfg.height);
-
+#if PLATFORM_MSM8X60
+	fb_cfg.base = LCDC_FB_ADDR;
+#else
 	fb_cfg.base =
 		memalign(4096, fb_cfg.width * fb_cfg.height * (fb_cfg.bpp / 8));
+#endif
 
 	writel((unsigned) fb_cfg.base, MSM_MDP_BASE1 + 0x90008);
 
