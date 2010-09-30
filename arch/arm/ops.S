@@ -201,3 +201,13 @@ FUNCTION(arm_invalidate_tlb)
 FUNCTION(arch_switch_stacks_and_call)
 	mov		sp, r1
 	bx		r0	
+
+/*void dmb(void) */
+FUNCTION(dmb)
+#if ARM_CPU_CORTEX_A8
+	dmb		sy
+#elif ARM_CPU_ARM1136
+	mov		r0, #0
+	mcr		p15, 0, r0, c7, c10, 5
+#endif
+	bx		lr

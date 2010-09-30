@@ -87,6 +87,19 @@ unsigned board_machtype(void)
 
 void reboot_device(unsigned reboot_reason)
 {
+    /* Reset WDG0 counter */
+    writel(1,MSM_WDT0_RST);
+    /* Disable WDG0 */
+    writel(0,MSM_WDT0_EN);
+    /* Set WDG0 bark time */
+    writel(0x31F3,MSM_WDT0_BT);
+    /* Enable WDG0 */
+    writel(3,MSM_WDT0_EN);
+    dmb();
+    /* Enable WDG output */
+    writel(3,MSM_TCSR_BASE + TCSR_WDOG_CFG);
+    mdelay(10000);
+    dprintf (CRITICAL, "Rebooting failed\n");
     return;
 }
 
