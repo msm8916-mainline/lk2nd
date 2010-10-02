@@ -223,6 +223,12 @@ static int clock_get_rate(unsigned id)
 	}
 }
 
+void usb_clock_init()
+{
+	clock_enable(USB_HS_PCLK);
+	clock_enable(USB_HS_CLK);
+}
+
 void lcdc_clock_init(unsigned rate)
 {
 	clock_set_rate(MDP_LCDC_PCLK_CLK, rate);

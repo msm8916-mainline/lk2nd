@@ -31,17 +31,13 @@
 #include <platform/iomap.h>
 #include <reg.h>
 
-/* 7x30 clock control and source registers */
-#define SCSS_CLK_CTL            0xC0101004
-#define SCSS_CLK_SEL            0xC0101008
-#define MSM_CLK_CTL_SH2_BASE    0xABA01000
-#define MSM_CLK_CTL_BASE        0xAB800000
-
 #define REG_BASE(off)           (MSM_CLK_CTL_BASE + (off))
 #define REG(off)                (MSM_CLK_CTL_SH2_BASE + (off))
 
 #define PLL_ENA_REG             REG(0x0264)
 #define PLL2_STATUS_BASE_REG    REG_BASE(0x0350)
+
+#define SH2_OWN_ROW2_BASE_REG	REG_BASE(0x0424)
 
 #define ACPU_SRC_SEL_PLL2       3
 #define ACPU_SRC_DIV_PLL2       0
@@ -78,4 +74,47 @@ void acpu_clock_init(void)
 
     /* Program clock source selection. */
     writel(reg_clksel, SCSS_CLK_SEL);
+}
+
+void hsusb_clock_init(void)
+{
+	int val = 0;
+	unsigned sh2_own_row2;
+	unsigned sh2_own_row2_hsusb_mask = (1 << 11);
+
+	sh2_own_row2 = readl(SH2_OWN_ROW2_BASE_REG);
+	if(sh2_own_row2 & sh2_own_row2_hsusb_mask)
+	{
+		/* USB local clock control enabled */
+	    /* Set value in MD register */
+	    val = 0x5DF;
+	    writel(val, SH2_USBH_MD_REG);
+
+	    /* Set value in NS register */
+	    val = 1 << 8;
+	    val = val | readl(SH2_USBH_NS_REG);
+	    writel(val, SH2_USBH_NS_REG);
+
+	    val = 1 << 11;
+	    val = val | readl(SH2_USBH_NS_REG);
+	    writel(val, SH2_USBH_NS_REG);
+
+	    val = 1 << 9;
+	    val = val | readl(SH2_USBH_NS_REG);
+	    writel(val, SH2_USBH_NS_REG);
+
+	    val = 1 << 13;
+	    val = val | readl(SH2_USBH_NS_REG);
+	    writel(val, SH2_USBH_NS_REG);
+
+	    /* Enable USBH_P_CLK */
+	    val = 1 << 25;
+	    val = val | readl(SH2_GLBL_CLK_ENA_SC);
+	    writel(val, SH2_GLBL_CLK_ENA_SC);
+	}
+	else
+	{
+		/* USB local clock control not enabled; use proc comm */
+		usb_clock_init();
+	}
 }

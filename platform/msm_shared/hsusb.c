@@ -113,7 +113,10 @@ unsigned udc_string_desc_alloc(const char *str)
 
 /* end of common code */
 
-void hsusb_clock_init(void);
+__WEAK void hsusb_clock_init(void)
+{
+	return 0;
+}
 
 #if 1
 #define DBG(x...) do {} while(0)
@@ -517,95 +520,6 @@ static int msm_otg_xceiv_reset()
 	/* select ULPI phy */
 	writel(0x81000000, USB_PORTSC);
 	return 0;
-}
-#define USB_HS1_XVCR_FS_CLK_MD 0x00902908
-#define USB_HS1_XVCR_FS_CLK_NS 0x0090290C
-
-void hsusb_8x60_clock_init(void)
-{
-	int val;
-	/* Vote for PLL8 */
-	val = readl(0x009034C0);
-	val |= (1<<8);
-	writel(val, 0x009034C0);
-	/* Wait until PLL is enabled. */
-	while (!(readl(0x00903158) & (1<<16)));
-
-    //Set 7th bit in NS Register
-	val = 1 << 7;
-	writel(val, USB_HS1_XVCR_FS_CLK_NS);
-
-	//Set rate specific value in MD
-	writel(0x000500DF, USB_HS1_XVCR_FS_CLK_MD);
-
-	//Set value in NS register
-	val = 1 << 7;
-	val |= 0x00E400C3;
-	writel(val, USB_HS1_XVCR_FS_CLK_NS);
-
-	// Clear 7th bit
-	val = 1 << 7;
-	val = ~val;
-	val = val & readl(USB_HS1_XVCR_FS_CLK_NS);
-	writel(val, USB_HS1_XVCR_FS_CLK_NS);
-
-	//set 11th bit
-	val = 1 << 11;
-	val |= readl(USB_HS1_XVCR_FS_CLK_NS);
-	writel(val, USB_HS1_XVCR_FS_CLK_NS);
-
-	//set 9th bit
-	val = 1 << 9;
-	val |= readl(USB_HS1_XVCR_FS_CLK_NS);
-	writel(val, USB_HS1_XVCR_FS_CLK_NS);
-
-	//set 8th bit
-	val = 1 << 8;
-	val |= readl(USB_HS1_XVCR_FS_CLK_NS);
-	writel(val, USB_HS1_XVCR_FS_CLK_NS);
-}
-
-void hsusb_7x30_clock_init(void)
-{
-    int val = 0;
-
-    /* Enable USBH_P_CLK */
-    val = 1 << 25;
-    val = val | readl(SH2_GLBL_CLK_ENA_SC);
-    writel(val, SH2_GLBL_CLK_ENA_SC);
-
-    /* Set value in MD register */
-    val = 0x5DF;
-    writel(val, SH2_USBH_MD_REG);
-
-    /* Set value in NS register */
-    val = 1 << 8;
-    val = val | readl(SH2_USBH_NS_REG);
-    writel(val, SH2_USBH_NS_REG);
-
-    val = 1 << 11;
-    val = val | readl(SH2_USBH_NS_REG);
-    writel(val, SH2_USBH_NS_REG);
-
-    val = 1 << 9;
-    val = val | readl(SH2_USBH_NS_REG);
-    writel(val, SH2_USBH_NS_REG);
-
-    val = 1 << 13;
-    val = val | readl(SH2_USBH_NS_REG);
-    writel(val, SH2_USBH_NS_REG);
-}
-
-void hsusb_clock_init(void)
-{
-    // Enable usb clocks from apps processor for 7x30.
-    // USB clocks already initialized for other targets
-    // so skipping proc comm call to enable usb clocks.
-#ifdef PLATFORM_MSM7X30
-    hsusb_7x30_clock_init();
-#elif PLATFORM_MSM8X60
-    hsusb_8x60_clock_init();
-#endif
 }
 
 void board_usb_init(void);

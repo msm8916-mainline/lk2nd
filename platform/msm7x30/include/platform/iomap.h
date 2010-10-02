@@ -50,4 +50,14 @@
 
 #define MSM_SHARED_BASE      0x00100000
 
+#define MSM_CLK_CTL_BASE        0xAB800000
+#define MSM_CLK_CTL_SH2_BASE    0xABA01000
+#define SCSS_CLK_CTL            0xC0101004
+#define SCSS_CLK_SEL            0xC0101008
+
+#define MSM_USB_BASE			0xA3600000
+#define SH2_USBH_MD_REG			0xABA012BC
+#define SH2_USBH_NS_REG			0xABA012C0
+#define SH2_GLBL_CLK_ENA_SC		0xABA013BC
+
 #endif
