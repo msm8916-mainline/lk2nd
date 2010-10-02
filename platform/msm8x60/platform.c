@@ -69,6 +69,7 @@ struct fbcon_config *lcdc_init(void);
 
 void platform_early_init(void)
 {
+    uart_init();
     platform_init_interrupts();
     platform_init_timer();
 }
