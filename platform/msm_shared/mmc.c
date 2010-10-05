@@ -53,7 +53,7 @@ static const unsigned int xfer_rate_unit[] =
 static const unsigned int xfer_rate_value[] =
 { 0, 10, 12, 13, 15, 20, 26, 30, 35, 40, 45, 52, 55, 60, 70, 80 };
 
-char *ext3_partitions[] = {"system", "userdata"};
+char *ext3_partitions[] = {"system", "userdata", "persist"};
 unsigned int ext3_count = 0;
 
 static unsigned mmc_sdc_clk[] = { SDC1_CLK, SDC2_CLK, SDC3_CLK, SDC4_CLK};

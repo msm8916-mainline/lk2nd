@@ -89,6 +89,8 @@ void reboot_device(unsigned);
 void target_battery_charging_enable(unsigned enable, unsigned disconnect);
 unsigned int mmc_write (unsigned long long data_addr,
 			unsigned int data_len, unsigned int* in);
+unsigned long long mmc_ptn_offset (unsigned char * name);
+unsigned long long mmc_ptn_size (unsigned char * name);
 
 static void ptentry_to_tag(unsigned **ptr, struct ptentry *ptn)
 {
