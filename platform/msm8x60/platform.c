@@ -89,6 +89,12 @@ void display_init(void)
 #endif
 }
 
+void display_shutdown(void)
+{
+    /* Turning off LCDC */
+    lcdc_shutdown();
+}
+
 void secondary_core(unsigned sec_entry)
 {
     writel(sec_entry, 0x2A040020);

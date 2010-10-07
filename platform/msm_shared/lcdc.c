@@ -149,3 +149,8 @@ struct fbcon_config *lcdc_init(void)
 	return &fb_cfg;
 }
 
+void lcdc_shutdown(void)
+{
+    writel(0, MSM_MDP_BASE1 + LCDC_BASE + 0x0);
+}
+

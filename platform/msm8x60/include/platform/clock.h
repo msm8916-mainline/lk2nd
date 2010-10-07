@@ -79,6 +79,13 @@
 #define PIXEL_MD_VAL            0x00A9FDA6
 #define PIXEL_CC_VAL            0x00000080
 
+#define MSM_CLK_CTL_BASE        0x00900000
+#define BB_PLL8_L_VAL_REG       (MSM_CLK_CTL_BASE + 0x3144)
+#define BB_PLL8_M_VAL_REG       (MSM_CLK_CTL_BASE + 0x3148)
+#define BB_PLL8_MODE_REG        (MSM_CLK_CTL_BASE + 0x3140)
+#define BB_PLL8_N_VAL_REG       (MSM_CLK_CTL_BASE + 0x314C)
+
+
 enum clk_sources {
     PLL_0 = 0,
     PLL_1,

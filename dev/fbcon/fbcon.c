@@ -174,8 +174,8 @@ void fbcon_setup(struct fbcon_config *_config)
 
 	switch (config->format) {
 	case FB_FORMAT_RGB565:
-		fg = RGB565_BLACK;
-		bg = RGB565_WHITE;
+		fg = RGB565_WHITE;
+		bg = RGB565_BLACK;
 		break;
 
 	default:

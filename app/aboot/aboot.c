@@ -91,6 +91,7 @@ unsigned int mmc_write (unsigned long long data_addr,
 			unsigned int data_len, unsigned int* in);
 unsigned long long mmc_ptn_offset (unsigned char * name);
 unsigned long long mmc_ptn_size (unsigned char * name);
+void display_shutdown(void);
 
 static void ptentry_to_tag(unsigned **ptr, struct ptentry *ptn)
 {
@@ -201,7 +202,9 @@ void boot_linux(void *kernel, unsigned *tags,
 	platform_uninit_timer();
 	arch_disable_cache(UCACHE);
 	arch_disable_mmu();
-
+#if DISPLAY_SPLASH_SCREEN
+	display_shutdown();
+#endif
 	secondary_core((unsigned)kernel);
 	entry(0, machtype, tags);
 
