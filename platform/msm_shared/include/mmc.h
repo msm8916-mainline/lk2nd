@@ -250,6 +250,10 @@
 
 #define MMC_BOOT_MCI_FIFO                 MMC_BOOT_MCI_REG(0x080)
 
+/* Card status */
+#define MMC_BOOT_CARD_STATUS(x)          ((x>>9) & 0x0F)
+#define MMC_BOOT_TRAN_STATE              4
+
 /* SD Memory Card bus commands */
 #define CMD0_GO_IDLE_STATE               0
 #define CMD1_SEND_OP_COND                1
@@ -257,8 +261,10 @@
 #define CMD3_SEND_RELATIVE_ADDR          3
 #define CMD4_SET_DSR                     4
 #define CMD6_SWITCH_FUNC                 6
+#define ACMD6_SET_BUS_WIDTH              6    /* SD card */
 #define CMD7_SELECT_DESELECT_CARD        7
 #define CMD8_SEND_EXT_CSD                8
+#define CMD8_SEND_IF_COND                8    /* SD card */
 #define CMD9_SEND_CSD                    9
 #define CMD10_SEND_CID                   10
 #define CMD12_STOP_TRANSMISSION          12
@@ -272,7 +278,9 @@
 #define CMD32_ERASE_WR_BLK_START         32
 #define CMD33_ERASE_WR_BLK_END           33
 #define CMD38_ERASE                      38
-#define CMD55_APP_CMD                    55
+#define ACMD41_SEND_OP_COND              41    /* SD card */
+#define ACMD51_SEND_SCR                  51    /* SD card */
+#define CMD55_APP_CMD                    55    /* SD card */
 
 /* Switch Function Modes */
 #define MMC_BOOT_SWITCH_FUNC_CHECK        0
@@ -360,6 +368,13 @@
 #define MMC_BOOT_EXT_CMMC_HS_TIMING       185
 #define MMC_BOOT_EXT_CMMC_BUS_WIDTH       183
 
+/* For SD */
+#define MMC_BOOT_SD_HC_VOLT_SUPPLIED      0x000001AA
+#define MMC_BOOT_SD_NEG_OCR               0x00FF8000
+#define MMC_BOOT_SD_HC_HCS                0x40000000
+#define MMC_BOOT_SD_DEV_READY             0x80000000
+#define MMC_BOOT_SD_SWITCH_HS             0x80FFFF01
+
 /* Data structure definitions */
 struct mmc_boot_command
 {
@@ -439,6 +454,7 @@ struct mmc_boot_card
 #define MMC_BOOT_TYPE_STD_SD             0
 #define MMC_BOOT_TYPE_SDHC               1
 #define MMC_BOOT_TYPE_SDIO               2
+#define MMC_BOOT_TYPE_MMCHC              3
     unsigned int status;
 #define MMC_BOOT_STATUS_INACTIVE         0
 #define MMC_BOOT_STATUS_ACTIVE           1
