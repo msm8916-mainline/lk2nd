@@ -81,6 +81,7 @@
 #define MDP_LCDC_PAD_PCLK_CLK 43
 #define MDP_VSYNC_CLK         44
 
+#define P_USB_HS_CORE_CLK     53  /* High speed USB 1 core clock */
 /* msm7x30 adds... */
 #define MDP_P_CLK             86
 
@@ -227,6 +228,7 @@ void usb_clock_init()
 {
 	clock_enable(USB_HS_PCLK);
 	clock_enable(USB_HS_CLK);
+	clock_enable(P_USB_HS_CORE_CLK);
 }
 
 void lcdc_clock_init(unsigned rate)
