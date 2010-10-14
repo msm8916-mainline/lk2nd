@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
 		magic[11] = 0x00000001; /* cookie version */
 		magic[12] = 0x00000002; /* file formats */
 		magic[13] = 0x00000000;
-		magic[14] = 0x00500000; /* not setting size for boot.img */
+		magic[14] = 0x00000000; /* not setting size for boot.img */
 		magic[15] = 0x00000000;
 		magic[16] = 0x00000000;
 		magic[17] = 0x00000000;
