@@ -35,7 +35,7 @@ EMMCBOOT.MBN: emmc_appsboothd.mbn $(OUTBIN)
 	rm -f $(APPSBOOTHEADER_DIR)/emmc_appsboothd.mbn
 
 emmc_appsboothd.mbn: mkheader $(OUTBIN)
-	$(SRC_DIR)/mkheader $(OUTBIN) $(APPSBOOTHEADER_DIR)/emmc_appsboothd.mbn unified-boot
+	$(SRC_DIR)/mkheader $(OUTBIN) $(APPSBOOTHEADER_DIR)/emmc_appsboothd.mbn
 
 mkheader: $(SRC_DIR)/mkheader.c
 	${COMPILER} -DMEMBASE=$(MEMBASE) $(SRC_DIR)/mkheader.c -o $(SRC_DIR)/mkheader
