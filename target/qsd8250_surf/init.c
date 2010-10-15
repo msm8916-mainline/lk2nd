@@ -61,7 +61,7 @@ static struct ptentry board_part_list[] = {
 	},
 	{
 		.start = DIFF_START_ADDR,
-		.length = 95 /* In MB */,
+		.length = 100 /* In MB */,
 		.name = "system",
 	},
 	{
