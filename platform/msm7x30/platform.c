@@ -62,6 +62,7 @@ void platform_init(void)
 
 	dprintf(INFO, "platform_init()\n");
 	acpu_clock_init();
+	adm_enable_clock();
 }
 
 void mdp4_display_intf_sel(int output, int intf)

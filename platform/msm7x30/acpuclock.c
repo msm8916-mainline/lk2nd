@@ -118,3 +118,13 @@ void hsusb_clock_init(void)
 		usb_clock_init();
 	}
 }
+
+void adm_enable_clock(void)
+{
+	unsigned int val=0;
+
+	/* Enable ADM_CLK */
+	val = 1 << 5;
+	val = val | readl(SH2_GLBL_CLK_ENA_SC);
+	writel(val, SH2_GLBL_CLK_ENA_SC);
+}
