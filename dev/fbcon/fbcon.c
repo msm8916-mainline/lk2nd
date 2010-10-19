@@ -46,6 +46,9 @@ static struct fbcon_config *config = NULL;
 #define RGB565_BLACK		0x0000
 #define RGB565_WHITE		0xffff
 
+#define RGB888_BLACK            0x000000
+#define RGB888_WHITE            0xffffff
+
 #define FONT_WIDTH		5
 #define FONT_HEIGHT		12
 
@@ -177,7 +180,10 @@ void fbcon_setup(struct fbcon_config *_config)
 		fg = RGB565_WHITE;
 		bg = RGB565_BLACK;
 		break;
-
+        case FB_FORMAT_RGB888:
+                fg = RGB888_WHITE;
+                bg = RGB888_BLACK;
+                break;
 	default:
 		dprintf(CRITICAL, "unknown framebuffer pixel format\n");
 		ASSERT(0);
@@ -200,7 +206,6 @@ struct fbcon_config* fbcon_display(void)
     return config;
 }
 
-
 void diplay_image_on_screen(void)
 {
     unsigned i = 0;
@@ -210,11 +215,28 @@ void diplay_image_on_screen(void)
     unsigned image_base = ((((total_y/2) - (SPLASH_IMAGE_WIDTH / 2) - 1) *
 			    (config->width)) + (total_x/2 - (SPLASH_IMAGE_HEIGHT / 2)));
     fbcon_clear();
-    for (i = 0; i < SPLASH_IMAGE_WIDTH; i++)
+
+#if DISPLAY_TYPE_MIPI
+    if (bytes_per_bpp == 3)
     {
-      memcpy (config->base + ((image_base + (i * (config->width))) * bytes_per_bpp),
-	         imageBuffer + (i * SPLASH_IMAGE_HEIGHT * bytes_per_bpp),
-	         SPLASH_IMAGE_HEIGHT * bytes_per_bpp);
+        for (i = 0; i < SPLASH_IMAGE_WIDTH; i++)
+        {
+            memcpy (config->base + ((image_base + (i * (config->width))) * bytes_per_bpp),
+		    imageBuffer_rgb888 + (i * SPLASH_IMAGE_HEIGHT * bytes_per_bpp),
+		    SPLASH_IMAGE_HEIGHT * bytes_per_bpp);
+	}
     }
+#else
+    if (bytes_per_bpp == 2)
+    {
+        for (i = 0; i < SPLASH_IMAGE_WIDTH; i++)
+        {
+            memcpy (config->base + ((image_base + (i * (config->width))) * bytes_per_bpp),
+		    imageBuffer + (i * SPLASH_IMAGE_HEIGHT * bytes_per_bpp),
+		    SPLASH_IMAGE_HEIGHT * bytes_per_bpp);
+	}
+    }
+#endif
+
     fbcon_flush();
 }

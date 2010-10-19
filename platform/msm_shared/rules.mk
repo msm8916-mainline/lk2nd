@@ -21,7 +21,8 @@ OBJS += \
 	$(LOCAL_DIR)/mmc.o
 
 ifeq ($(PLATFORM),msm8x60)
-	OBJS += $(LOCAL_DIR)/i2c_qup.o
+	OBJS += $(LOCAL_DIR)/mipi_dsi.o \
+	        $(LOCAL_DIR)/i2c_qup.o
 endif
 
 ifeq ($(PLATFORM),msm8x60)

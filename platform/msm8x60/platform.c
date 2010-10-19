@@ -88,12 +88,23 @@ void display_init(void)
     panel_poweron();
     fbcon_setup(fb_cfg);
 #endif
+#if DISPLAY_TYPE_MIPI
+    mdp_clock_init();
+    fb_cfg = mipi_init();
+    fbcon_setup(fb_cfg);
+#endif
+
 }
 
 void display_shutdown(void)
 {
+#if DISPLAY_TYPE_LCDC
     /* Turning off LCDC */
     lcdc_shutdown();
+#endif
+#if DISPLAY_TYPE_MIPI
+    mipi_dsi_shutdown();
+#endif
 }
 
 static struct qup_i2c_dev* dev = NULL;
