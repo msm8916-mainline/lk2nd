@@ -2373,6 +2373,15 @@ static void mbr_fill_name (struct mbr_entry *mbr_ent, unsigned int type)
         case MMC_BOOT_TYPE:
             memcpy(mbr_ent->name,"boot",4);
             break;
+        case MMC_MODEM_ST1_TYPE:
+            memcpy(mbr_ent->name,"modem_st1",9);
+            break;
+        case MMC_MODEM_ST2_TYPE:
+            memcpy(mbr_ent->name,"modem_st2",9);
+            break;
+        case MMC_EFS2_TYPE:
+            memcpy(mbr_ent->name,"efs2",4);
+            break;
         case MMC_USERDATA_TYPE:
             strcpy((char *)mbr_ent->name,(const char *)ext3_partitions[ext3_count]);
             ext3_count++;
