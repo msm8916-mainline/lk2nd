@@ -208,20 +208,25 @@ srcpos_string(struct srcpos *pos)
 	return pos_str;
 }
 
+void
+srcpos_verror(struct srcpos *pos, char const *fmt, va_list va)
+{
+       const char *srcstr;
+
+       srcstr = srcpos_string(pos);
+
+       fprintf(stdout, "Error: %s ", srcstr);
+       vfprintf(stdout, fmt, va);
+       fprintf(stdout, "\n");
+}
 
 void
 srcpos_error(struct srcpos *pos, char const *fmt, ...)
 {
-	const char *srcstr;
 	va_list va;
+
 	va_start(va, fmt);
-
-	srcstr = srcpos_string(pos);
-
-	fprintf(stderr, "Error: %s ", srcstr);
-	vfprintf(stderr, fmt, va);
-	fprintf(stderr, "\n");
-
+	srcpos_verror(pos, fmt, va);
 	va_end(va);
 }
 

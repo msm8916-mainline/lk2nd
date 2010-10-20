@@ -27,6 +27,7 @@
 YYLTYPE yylloc;
 
 extern int yylex(void);
+extern void print_error(char const *fmt, ...);
 extern void yyerror(char const *s);
 
 extern struct boot_info *the_boot_info;
@@ -136,8 +137,7 @@ devicetree:
 			if (target)
 				merge_nodes(target, $3);
 			else
-				yyerror("label does not exist in "
-					" node redefinition");
+				print_error("label, '%s' not found", $2);
 			$$ = $1;
 		}
 	;
@@ -200,8 +200,7 @@ propdata:
 
 			if ($6 != 0)
 				if (fseek(f, $6, SEEK_SET) != 0)
-					srcpos_error(&yylloc,
-						     "Couldn't seek to offset %llu in \"%s\": %s",
+					print_error("Couldn't seek to offset %llu in \"%s\": %s",
 						     (unsigned long long)$6,
 						     $4.val,
 						     strerror(errno));
@@ -295,7 +294,7 @@ subnodes:
 		}
 	| subnode propdef
 		{
-			yyerror("syntax error: properties must precede subnodes");
+			print_error("syntax error: properties must precede subnodes");
 			YYERROR;
 		}
 	;
@@ -314,10 +313,19 @@ subnode:
 
 %%
 
-void yyerror(char const *s)
+void print_error(char const *fmt, ...)
 {
-	srcpos_error(&yylloc, "%s", s);
+	va_list va;
+
+	va_start(va, fmt);
+	srcpos_verror(&yylloc, fmt, va);
+	va_end(va);
+
 	treesource_error = 1;
+}
+
+void yyerror(char const *s) {
+	print_error("%s", s);
 }
 
 static unsigned long long eval_literal(const char *s, int base, int bits)
@@ -328,11 +336,11 @@ static unsigned long long eval_literal(const char *s, int base, int bits)
 	errno = 0;
 	val = strtoull(s, &e, base);
 	if (*e)
-		yyerror("bad characters in literal");
+		print_error("bad characters in literal");
 	else if ((errno == ERANGE)
 		 || ((bits < 64) && (val >= (1ULL << bits))))
-		yyerror("literal out of range");
+		print_error("literal out of range");
 	else if (errno != 0)
-		yyerror("bad literal");
+		print_error("bad literal");
 	return val;
 }
