@@ -194,8 +194,8 @@ WRITE_L1_SA_SETTINGS:
         // (Raptor V2 and earlier, or Halcyon V1)
         MRC    p15, 0, r1, c0, c0, 0      //; MIDR
         BIC    r2, r1, #0xf0              //; check for Halcyon V1
-        LDR    r3, =0x511f0000
-        CMP    r2, r3
+        LDR    r4, =0x511f0000
+        CMP    r2, r4
         BNE    PVR2F1
 
 DPRC:
