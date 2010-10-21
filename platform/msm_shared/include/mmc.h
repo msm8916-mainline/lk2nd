@@ -91,7 +91,7 @@
 /* If set waits for CmdPend before starting to send a command */
 #define MMC_BOOT_MCI_CMD_PENDING          (1 << 9)
 /* CPSM is enabled if set */
-#define MMC_BOT_MCI_CMD_ENABLE            (1 << 10)
+#define MMC_BOOT_MCI_CMD_ENABLE           (1 << 10)
 /* If set PROG_DONE status bit asserted when busy is de-asserted */
 #define MMC_BOOT_MCI_CMD_PROG_ENA         (1 << 11)
 /* To indicate that this is a Command with Data (for SDIO interrupts) */
@@ -276,6 +276,9 @@
 #define CMD18_READ_MULTIPLE_BLOCK        18
 #define CMD24_WRITE_SINGLE_BLOCK         24
 #define CMD25_WRITE_MULTIPLE_BLOCK       25
+#define CMD28_SET_WRITE_PROTECT          28
+#define CMD29_CLEAR_WRITE_PROTECT        29
+#define CMD31_SEND_WRITE_PROT_TYPE       31
 #define CMD32_ERASE_WR_BLK_START         32
 #define CMD33_ERASE_WR_BLK_END           33
 #define CMD38_ERASE                      38
@@ -369,6 +372,20 @@
 #define MMC_BOOT_EXT_CMMC_HS_TIMING       185
 #define MMC_BOOT_EXT_CMMC_BUS_WIDTH       183
 
+#define MMC_BOOT_EXT_USER_WP              171
+#define MMC_BOOT_EXT_ERASE_GROUP_DEF      175
+#define MMC_BOOT_EXT_HC_WP_GRP_SIZE       221
+#define MMC_BOOT_EXT_HC_ERASE_GRP_SIZE    224
+
+#define IS_BIT_SET_EXT_CSD(val, bit)      ((ext_csd_buf[val]) & (1<<(bit)))
+#define IS_ADDR_OUT_OF_RANGE(resp)        ((resp >> 31) & 0x01)
+
+#define MMC_BOOT_US_PERM_WP_EN            2
+#define MMC_BOOT_US_PWR_WP_DIS            3
+
+#define MMC_BOOT_US_PERM_WP_DIS           (1<<4)
+#define MMC_BOOT_US_PWR_WP_EN             1
+
 /* For SD */
 #define MMC_BOOT_SD_HC_VOLT_SUPPLIED      0x000001AA
 #define MMC_BOOT_SD_NEG_OCR               0x00FF8000
@@ -408,6 +425,12 @@ struct mmc_boot_csd
     unsigned int nsac_clk_cycle;
     unsigned int taac_ns;
     unsigned int tran_speed;
+    unsigned int erase_grp_size;
+    unsigned int erase_grp_mult;
+    unsigned int wp_grp_size;
+    unsigned int wp_grp_enable:1;
+    unsigned int perm_wp:1;
+    unsigned int temp_wp:1;
     unsigned int erase_blk_len:1;
     unsigned int read_blk_misalign:1;
     unsigned int write_blk_misalign:1;

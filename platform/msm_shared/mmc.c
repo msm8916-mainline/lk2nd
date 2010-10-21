@@ -62,6 +62,9 @@ static unsigned mmc_sdc_pclk[] = { SDC1_PCLK, SDC2_PCLK, SDC3_PCLK, SDC4_PCLK};
 unsigned char mmc_slot = 0;
 unsigned int mmc_boot_mci_base = 0;
 
+static unsigned char ext_csd_buf[512];
+static unsigned char wp_status_buf[8];
+
 int mmc_clock_enable_disable(unsigned id, unsigned enable);
 int mmc_clock_get_rate(unsigned id);
 int mmc_clock_set_rate(unsigned id, unsigned rate);
@@ -71,9 +74,10 @@ struct mmc_boot_host mmc_host;
 struct mmc_boot_card mmc_card;
 struct mbr_entry mbr[MAX_PARTITIONS];
 unsigned mmc_partition_count = 0;
+
 static void mbr_fill_name (struct mbr_entry *mbr_ent, unsigned int type);
 unsigned int mmc_read (unsigned long long data_addr, unsigned int* out, unsigned int data_len);
-
+static unsigned int mmc_wp(unsigned int addr, unsigned int size, unsigned char set_clear_wp);
 
 unsigned int SWAP_ENDIAN(unsigned int val)
 {
@@ -324,6 +328,13 @@ static unsigned int mmc_boot_decode_and_save_csd( struct mmc_boot_card* card,
         card->capacity = mmc_temp * mmc_csd.read_blk_len;
     }
 
+    mmc_csd.erase_grp_size = UNPACK_BITS( raw_csd, 42, 5, mmc_sizeof );
+    mmc_csd.erase_grp_mult = UNPACK_BITS( raw_csd, 37, 5, mmc_sizeof );
+    mmc_csd.wp_grp_size = UNPACK_BITS( raw_csd, 32, 5, mmc_sizeof );
+    mmc_csd.wp_grp_enable = UNPACK_BITS( raw_csd, 31, 1, mmc_sizeof );
+    mmc_csd.perm_wp = UNPACK_BITS( raw_csd, 13, 1, mmc_sizeof );
+    mmc_csd.temp_wp = UNPACK_BITS( raw_csd, 12, 1, mmc_sizeof );
+
     /* save the information in card structure */
     memcpy( (struct mmc_boot_csd *)&card->csd, (struct mmc_boot_csd *)&mmc_csd,
             sizeof(struct mmc_boot_csd) );
@@ -445,7 +456,7 @@ static unsigned int mmc_boot_send_command( struct mmc_boot_command* cmd )
     }
 
     /* 2f. Set ENABLE bit to 1 */
-    mmc_cmd |= MMC_BOT_MCI_CMD_ENABLE;
+    mmc_cmd |= MMC_BOOT_MCI_CMD_ENABLE;
 
     /* 2g. Set PROG_ENA bit to 1 for CMD12, CMD13 issued at the end of
        write data transfer */
@@ -947,24 +958,69 @@ static unsigned int mmc_boot_get_card_status( struct mmc_boot_card* card,
         return mmc_ret;
     }
 
+    /* Checking ADDR_OUT_OF_RANGE error in CMD13 response */
+    if(IS_ADDR_OUT_OF_RANGE(cmd.resp[0]))
+    {
+        return MMC_BOOT_E_FAILURE;
+    }
+
     *status = cmd.resp[0];
     return MMC_BOOT_E_SUCCESS;
 }
+
+/*
+ * Decode type of error caused during read and write
+ */
+static unsigned int mmc_boot_status_error(unsigned mmc_status)
+{
+    unsigned int mmc_ret = MMC_BOOT_E_SUCCESS;
+
+    /* If DATA_CRC_FAIL bit is set to 1 then CRC error was detected by
+       card/device during the data transfer */
+    if( mmc_status & MMC_BOOT_MCI_STAT_DATA_CRC_FAIL )
+    {
+        mmc_ret = MMC_BOOT_E_DATA_CRC_FAIL;
+    }
+    /* If DATA_TIMEOUT bit is set to 1 then the data transfer time exceeded
+       the data timeout period without completing the transfer */
+    else if( mmc_status & MMC_BOOT_MCI_STAT_DATA_TIMEOUT )
+    {
+        mmc_ret = MMC_BOOT_E_DATA_TIMEOUT;
+    }
+    /* If RX_OVERRUN bit is set to 1 then SDCC2 tried to receive data from
+       the card before empty storage for new received data was available.
+       Verify that bit FLOW_ENA in MCI_CLK is set to 1 during the data xfer.*/
+    else if( mmc_status & MMC_BOOT_MCI_STAT_RX_OVRRUN )
+    {
+        /* Note: We've set FLOW_ENA bit in MCI_CLK to 1. so no need to verify
+           for now */
+        mmc_ret = MMC_BOOT_E_RX_OVRRUN;
+    }
+    /* If TX_UNDERRUN bit is set to 1 then SDCC2 tried to send data to
+       the card before new data for sending was available. Verify that bit
+       FLOW_ENA in MCI_CLK is set to 1 during the data xfer.*/
+    else if( mmc_status & MMC_BOOT_MCI_STAT_TX_UNDRUN )
+    {
+        /* Note: We've set FLOW_ENA bit in MCI_CLK to 1.so skipping it now*/
+        mmc_ret = MMC_BOOT_E_RX_OVRRUN;
+    }
+    return mmc_ret;
+}
+
 /*
  * Send ext csd command.
  */
-static unsigned int mmc_boot_send_ext_cmd (struct mmc_boot_card* card)
+static unsigned int mmc_boot_send_ext_cmd (struct mmc_boot_card* card, unsigned char* buf)
 {
     struct mmc_boot_command cmd;
     unsigned int mmc_ret = MMC_BOOT_E_SUCCESS;
     unsigned int mmc_reg = 0;
-    unsigned char buf[512];
     unsigned int mmc_status = 0;
     unsigned int* mmc_ptr = (unsigned int *)buf;
     unsigned int mmc_count = 0;
+    unsigned int read_error;
 
-    // start from the back
-    mmc_ptr += ( (512/sizeof(int)) - 1 );
+    memset(buf,0, 512);
 
     /* basic check */
     if( card == NULL )
@@ -973,12 +1029,15 @@ static unsigned int mmc_boot_send_ext_cmd (struct mmc_boot_card* card)
     }
 
     /* set block len */
-    mmc_ret = mmc_boot_set_block_len( card, 512);
-    if( mmc_ret != MMC_BOOT_E_SUCCESS )
+    if( (card->type != MMC_BOOT_TYPE_MMCHC) && (card->type != MMC_BOOT_TYPE_SDHC) )
     {
-        dprintf(CRITICAL, "Error No.%d: Failure setting block length for Card (RCA:%s)\n",
-                mmc_ret, (char *)(card->rca) );
-        return mmc_ret;
+        mmc_ret = mmc_boot_set_block_len( card, 512);
+        if( mmc_ret != MMC_BOOT_E_SUCCESS )
+        {
+            dprintf(CRITICAL, "Error No.%d: Failure setting block length for Card (RCA:%s)\n",
+                    mmc_ret, (char *)(card->rca) );
+            return mmc_ret;
+        }
     }
 
     /* Set the FLOW_ENA bit of MCI_CLK register to 1 */
@@ -1012,46 +1071,44 @@ static unsigned int mmc_boot_send_ext_cmd (struct mmc_boot_card* card)
         return mmc_ret;
     }
 
+    read_error = MMC_BOOT_MCI_STAT_DATA_CRC_FAIL | \
+                 MMC_BOOT_MCI_STAT_DATA_TIMEOUT  | \
+                 MMC_BOOT_MCI_STAT_RX_OVRRUN;
+
+    /* Read the transfer data from SDCC2 FIFO. If Data Mover is not used
+       read the data from the MCI_FIFO register as long as RXDATA_AVLBL
+       bit of MCI_STATUS register is set to 1 and bits DATA_CRC_FAIL,
+       DATA_TIMEOUT, RX_OVERRUN of MCI_STATUS register are cleared to 0.
+       Continue the reads until the whole transfer data is received */
+
     do
     {
         mmc_ret = MMC_BOOT_E_SUCCESS;
         mmc_status = readl( MMC_BOOT_MCI_STATUS );
 
-        /* If DATA_CRC_FAIL bit is set to 1 then CRC error was detected by
-           card/device during the data transfer */
-        if( mmc_status & MMC_BOOT_MCI_STAT_DATA_CRC_FAIL )
+        if( mmc_status & read_error )
         {
-            mmc_ret = MMC_BOOT_E_DATA_CRC_FAIL;
-            break;
-        }
-        /* If DATA_TIMEOUT bit is set to 1 then the data transfer time exceeded
-           the data timeout period without completing the transfer */
-        else if( mmc_status & MMC_BOOT_MCI_STAT_DATA_TIMEOUT )
-        {
-            mmc_ret = MMC_BOOT_E_DATA_TIMEOUT;
-            break;
-        }
-        /* If RX_OVERRUN bit is set to 1 then SDCC2 tried to receive data from
-           the card before empty storage for new received data was available.
-           Verify that bit FLOW_ENA in MCI_CLK is set to 1 during the data xfer.*/
-        else if( mmc_status & MMC_BOOT_MCI_STAT_RX_OVRRUN )
-        {
-            /* Note: We've set FLOW_ENA bit in MCI_CLK to 1. so no need to verify
-               for now */
-            mmc_ret = MMC_BOOT_E_RX_OVRRUN;
+            mmc_ret = mmc_boot_status_error(mmc_status);
             break;
         }
 
         if( mmc_status & MMC_BOOT_MCI_STAT_RX_DATA_AVLBL )
         {
-            /* FIFO contains 16 32-bit data buffer on 16 sequential addresses*/
-            *mmc_ptr = SWAP_ENDIAN(readl( MMC_BOOT_MCI_FIFO +
-                        ( mmc_count % MMC_BOOT_MCI_FIFO_SIZE ) ));
-            mmc_ptr--;
+            unsigned read_count = 1;
+            if ( mmc_status & MMC_BOOT_MCI_STAT_RX_FIFO_HFULL)
+            {
+                read_count = MMC_BOOT_MCI_HFIFO_COUNT;
+            }
 
-            /* increase mmc_count by word size */
-            mmc_count += sizeof( unsigned int );
-
+            for (int i=0; i<read_count; i++)
+            {
+                /* FIFO contains 16 32-bit data buffer on 16 sequential addresses*/
+                *mmc_ptr = readl( MMC_BOOT_MCI_FIFO +
+                        ( mmc_count % MMC_BOOT_MCI_FIFO_SIZE ) );
+                mmc_ptr++;
+                /* increase mmc_count by word size */
+                mmc_count += sizeof( unsigned int );
+            }
             /* quit if we have read enough of data */
             if (mmc_count >= 512)
                 break;
@@ -1060,14 +1117,11 @@ static unsigned int mmc_boot_send_ext_cmd (struct mmc_boot_card* card)
         {
             break;
         }
-
     }while(1);
 
     return MMC_BOOT_E_SUCCESS;
 
 }
-
-
 
 /*
  * Switch command
@@ -1130,7 +1184,7 @@ static unsigned int mmc_boot_set_bus_width( struct mmc_boot_card* card,
         mmc_width = width-1;
     }
 
-    mmc_boot_send_ext_cmd (card);
+    mmc_boot_send_ext_cmd (card, ext_csd_buf);
 
     do
     {
@@ -1295,44 +1349,6 @@ static unsigned int mmc_boot_send_write_command( struct mmc_boot_card* card,
     return MMC_BOOT_E_SUCCESS;
 }
 
-/*
- * Decode type of error caused during read and write
- */
-static unsigned int mmc_boot_status_error(unsigned mmc_status)
-{
-    unsigned int mmc_ret = MMC_BOOT_E_SUCCESS;
-
-    /* If DATA_CRC_FAIL bit is set to 1 then CRC error was detected by
-       card/device during the data transfer */
-    if( mmc_status & MMC_BOOT_MCI_STAT_DATA_CRC_FAIL )
-    {
-        mmc_ret = MMC_BOOT_E_DATA_CRC_FAIL;
-    }
-    /* If DATA_TIMEOUT bit is set to 1 then the data transfer time exceeded
-       the data timeout period without completing the transfer */
-    else if( mmc_status & MMC_BOOT_MCI_STAT_DATA_TIMEOUT )
-    {
-        mmc_ret = MMC_BOOT_E_DATA_TIMEOUT;
-    }
-    /* If RX_OVERRUN bit is set to 1 then SDCC2 tried to receive data from
-       the card before empty storage for new received data was available.
-       Verify that bit FLOW_ENA in MCI_CLK is set to 1 during the data xfer.*/
-    else if( mmc_status & MMC_BOOT_MCI_STAT_RX_OVRRUN )
-    {
-        /* Note: We've set FLOW_ENA bit in MCI_CLK to 1. so no need to verify
-           for now */
-        mmc_ret = MMC_BOOT_E_RX_OVRRUN;
-    }
-    /* If TX_UNDERRUN bit is set to 1 then SDCC2 tried to send data to
-       the card before new data for sending was available. Verify that bit
-       FLOW_ENA in MCI_CLK is set to 1 during the data xfer.*/
-    else if( mmc_status & MMC_BOOT_MCI_STAT_TX_UNDRUN )
-    {
-        /* Note: We've set FLOW_ENA bit in MCI_CLK to 1.so skipping it now*/
-        mmc_ret = MMC_BOOT_E_RX_OVRRUN;
-    }
-    return mmc_ret;
-}
 
 /*
  * Write data_len data to address specified by data_addr. data_len is
@@ -1474,6 +1490,9 @@ static unsigned int mmc_boot_write_to_card( struct mmc_boot_host* host,
     {
         dprintf(CRITICAL, "Error No.%d: Failure on data transfer from the \
                 Card(RCA:%x)\n", mmc_ret, card->rca );
+        /* In case of any failure happening for multi block transfer */
+        if( xfer_type == MMC_BOOT_XFER_MULTI_BLOCK )
+            mmc_boot_send_stop_transmission( card, 1 );
         return mmc_ret;
     }
 
@@ -1526,7 +1545,7 @@ static unsigned int mmc_boot_adjust_interface_speed( struct mmc_boot_host* host,
 {
     int mmc_ret;
 
-    mmc_boot_send_ext_cmd (card);
+    mmc_boot_send_ext_cmd (card, ext_csd_buf);
 
     /* Setting HS_TIMING in EXT_CSD (CMD6) */
     mmc_ret = mmc_boot_switch_cmd(card, MMC_BOOT_ACCESS_WRITE, MMC_BOOT_EXT_CMMC_HS_TIMING, 1);
@@ -2262,6 +2281,7 @@ static unsigned int mmc_boot_read_MBR(void)
     return ret;
 }
 
+
 /*
  * Entry point to MMC boot process
  */
@@ -2295,6 +2315,9 @@ unsigned int mmc_boot_main(unsigned char slot, unsigned int base)
         dprintf(CRITICAL,  "MMC Boot: Failure detecting MMC card!!!\n" );
         return MMC_BOOT_E_FAILURE;
     }
+
+    mmc_display_csd();
+    mmc_display_ext_csd();
 
     /* Read MBR of the card */
     mmc_ret = mmc_boot_read_MBR();
@@ -2429,4 +2452,326 @@ unsigned long long mmc_ptn_size (unsigned char * name)
         }
     }
     return 0;
+}
+
+/*
+ * Function to read registers from MMC or SD card
+ */
+static unsigned int mmc_boot_read_reg(struct mmc_boot_card *card,
+                                      unsigned int data_len,
+                                      unsigned int command, unsigned int addr,
+                                      unsigned int *out)
+{
+    struct mmc_boot_command cmd;
+    unsigned int mmc_ret = MMC_BOOT_E_SUCCESS;
+    unsigned int mmc_status = 0;
+    unsigned int* mmc_ptr = out;
+    unsigned int mmc_count = 0;
+    unsigned int mmc_reg = 0;
+    unsigned int xfer_type;
+    unsigned int read_error;
+
+    /* Set the FLOW_ENA bit of MCI_CLK register to 1 */
+    mmc_reg = readl( MMC_BOOT_MCI_CLK );
+    mmc_reg |= MMC_BOOT_MCI_CLK_ENA_FLOW ;
+    writel( mmc_reg, MMC_BOOT_MCI_CLK );
+
+    /* Write data timeout period to MCI_DATA_TIMER register. */
+    /* Data timeout period should be in card bus clock periods */
+    mmc_reg =0xFFFFFFFF;
+    writel( mmc_reg, MMC_BOOT_MCI_DATA_TIMER );
+    writel( data_len, MMC_BOOT_MCI_DATA_LENGTH );
+
+    /* Set appropriate fields and write the MCI_DATA_CTL register. */
+    /* Set ENABLE bit to 1 to enable the data transfer. */
+    mmc_reg = MMC_BOOT_MCI_DATA_ENABLE | MMC_BOOT_MCI_DATA_DIR | (data_len << MMC_BOOT_MCI_BLKSIZE_POS);
+    writel( mmc_reg, MMC_BOOT_MCI_DATA_CTL );
+
+    memset( (struct mmc_boot_command *)&cmd, 0,
+            sizeof(struct mmc_boot_command) );
+
+    cmd.cmd_index = command;
+    cmd.argument = addr;
+    cmd.cmd_type  = MMC_BOOT_CMD_ADDRESS;
+    cmd.resp_type = MMC_BOOT_RESP_R1;
+
+    /* send command */
+    mmc_ret = mmc_boot_send_command( &cmd );
+    if( mmc_ret != MMC_BOOT_E_SUCCESS )
+    {
+        return mmc_ret;
+    }
+
+    read_error = MMC_BOOT_MCI_STAT_DATA_CRC_FAIL | \
+                 MMC_BOOT_MCI_STAT_DATA_TIMEOUT  | \
+                 MMC_BOOT_MCI_STAT_RX_OVRRUN;
+
+    do
+    {
+        mmc_ret = MMC_BOOT_E_SUCCESS;
+        mmc_status = readl( MMC_BOOT_MCI_STATUS );
+
+        if( mmc_status & read_error )
+        {
+            mmc_ret = mmc_boot_status_error(mmc_status);
+            break;
+        }
+
+        if( mmc_status & MMC_BOOT_MCI_STAT_RX_DATA_AVLBL )
+        {
+            unsigned read_count = 1;
+            if ( mmc_status & MMC_BOOT_MCI_STAT_RX_FIFO_HFULL)
+            {
+                read_count = MMC_BOOT_MCI_HFIFO_COUNT;
+            }
+
+            for (int i=0; i<read_count; i++)
+            {
+                /* FIFO contains 16 32-bit data buffer on 16 sequential addresses*/
+                *mmc_ptr = readl( MMC_BOOT_MCI_FIFO +
+                        ( mmc_count % MMC_BOOT_MCI_FIFO_SIZE ) );
+                mmc_ptr++;
+                /* increase mmc_count by word size */
+                mmc_count += sizeof( unsigned int );
+            }
+            /* quit if we have read enough of data */
+            if (mmc_count == data_len)
+                break;
+        }
+        else if( mmc_status & MMC_BOOT_MCI_STAT_DATA_END )
+        {
+            break;
+        }
+    }while(1);
+
+    if( mmc_ret != MMC_BOOT_E_SUCCESS )
+    {
+        dprintf(CRITICAL, "Error No.%d: Failure on data transfer from the \
+                Card(RCA:%x)\n", mmc_ret, card->rca );
+        return mmc_ret;
+    }
+
+    return MMC_BOOT_E_SUCCESS;
+}
+
+/*
+ * Function to set/clear power-on write protection for the user area partitions
+ */
+static unsigned int mmc_boot_set_clr_power_on_wp_user(struct mmc_boot_card* card,
+                                                      unsigned int addr,
+                                                      unsigned int size,
+                                                      unsigned char set_clear_wp)
+{
+    struct mmc_boot_command cmd;
+    unsigned int mmc_ret = MMC_BOOT_E_SUCCESS;
+    unsigned int wp_group_size, loop_count;
+    unsigned int status;
+
+    memset( (struct mmc_boot_command *)&cmd, 0,
+            sizeof(struct mmc_boot_command) );
+
+    /* Disabling PERM_WP for USER AREA (CMD6) */
+    mmc_ret = mmc_boot_switch_cmd(card, MMC_BOOT_ACCESS_WRITE,
+                                  MMC_BOOT_EXT_USER_WP,
+                                  MMC_BOOT_US_PERM_WP_DIS);
+
+    if(mmc_ret != MMC_BOOT_E_SUCCESS)
+    {
+        return mmc_ret;
+    }
+
+    /* Sending CMD13 to check card status */
+    do
+    {
+        mmc_ret = mmc_boot_get_card_status( card, 0 ,&status);
+        if(MMC_BOOT_CARD_STATUS(status) == MMC_BOOT_TRAN_STATE)
+            break;
+    } while( (mmc_ret == MMC_BOOT_E_SUCCESS) &&
+        (MMC_BOOT_CARD_STATUS(status) == MMC_BOOT_PROG_STATE));
+
+    if( mmc_ret != MMC_BOOT_E_SUCCESS )
+    {
+        return mmc_ret;
+    }
+
+    mmc_ret = mmc_boot_send_ext_cmd (card,ext_csd_buf);
+
+    if(mmc_ret != MMC_BOOT_E_SUCCESS)
+    {
+        return mmc_ret;
+    }
+
+    /* Make sure power-on write protection for user area is not disabled
+       and permanent write protection for user area is not enabled */
+
+    if((IS_BIT_SET_EXT_CSD(MMC_BOOT_EXT_USER_WP, MMC_BOOT_US_PERM_WP_EN)) ||
+       (IS_BIT_SET_EXT_CSD(MMC_BOOT_EXT_USER_WP, MMC_BOOT_US_PWR_WP_DIS)))
+    {
+        return MMC_BOOT_E_FAILURE;
+    }
+
+    if(ext_csd_buf[MMC_BOOT_EXT_ERASE_GROUP_DEF])
+    {
+        /* wp_group_size = 512KB * HC_WP_GRP_SIZE * HC_ERASE_GRP_SIZE.
+           Getting write protect group size in sectors here. */
+
+        wp_group_size = (512*1024) * ext_csd_buf[MMC_BOOT_EXT_HC_WP_GRP_SIZE] *
+                    ext_csd_buf[MMC_BOOT_EXT_HC_ERASE_GRP_SIZE] /
+                    MMC_BOOT_WR_BLOCK_LEN;
+    }
+    else
+    {
+        /* wp_group_size = (WP_GRP_SIZE + 1) * (ERASE_GRP_SIZE + 1)
+                                             * (ERASE_GRP_MULT + 1).
+           This is defined as the number of write blocks directly */
+
+        wp_group_size = (card->csd.erase_grp_size + 1) *
+                    (card->csd.erase_grp_mult + 1) *
+                    (card->csd.wp_grp_size + 1);
+    }
+
+    if(wp_group_size == 0)
+    {
+        return MMC_BOOT_E_FAILURE;
+    }
+
+    /* Setting POWER_ON_WP for USER AREA (CMD6) */
+
+    mmc_ret = mmc_boot_switch_cmd(card, MMC_BOOT_ACCESS_WRITE,
+                                  MMC_BOOT_EXT_USER_WP,
+                                  MMC_BOOT_US_PWR_WP_EN);
+
+    if(mmc_ret != MMC_BOOT_E_SUCCESS)
+    {
+        return mmc_ret;
+    }
+
+    /* Sending CMD13 to check card status */
+    do
+    {
+        mmc_ret = mmc_boot_get_card_status( card, 0 ,&status);
+        if(MMC_BOOT_CARD_STATUS(status) == MMC_BOOT_TRAN_STATE)
+            break;
+    } while( (mmc_ret == MMC_BOOT_E_SUCCESS) &&
+        (MMC_BOOT_CARD_STATUS(status) == MMC_BOOT_PROG_STATE));
+
+    if( mmc_ret != MMC_BOOT_E_SUCCESS )
+    {
+        return mmc_ret;
+    }
+
+    /* Calculating the loop count for sending SET_WRITE_PROTECT (CMD28)
+       or CLEAR_WRITE_PROTECT (CMD29).
+       We are write protecting the partitions in blocks of write protect
+       group sizes only */
+
+    if(size % wp_group_size)
+    {
+        loop_count = (size / wp_group_size) + 1;
+    }
+    else
+    {
+        loop_count = (size / wp_group_size);
+    }
+
+    if(set_clear_wp)
+        cmd.cmd_index = CMD28_SET_WRITE_PROTECT;
+    else
+        cmd.cmd_index = CMD29_CLEAR_WRITE_PROTECT;
+
+    cmd.cmd_type = MMC_BOOT_CMD_ADDRESS;
+    cmd.resp_type = MMC_BOOT_RESP_R1B;
+
+    for(int i=0;i<loop_count;i++)
+    {
+        /* Sending CMD28 for each WP group size
+           address is in sectors already */
+        cmd.argument = (addr + (i * wp_group_size));
+
+        mmc_ret = mmc_boot_send_command( &cmd );
+
+        if(mmc_ret != MMC_BOOT_E_SUCCESS)
+        {
+            return mmc_ret;
+        }
+
+        /* Checking ADDR_OUT_OF_RANGE error in CMD28 response */
+        if(IS_ADDR_OUT_OF_RANGE(cmd.resp[0]))
+        {
+            return MMC_BOOT_E_FAILURE;
+        }
+
+        /* Sending CMD13 to check card status */
+        do
+        {
+            mmc_ret = mmc_boot_get_card_status( card, 0 ,&status);
+            if(MMC_BOOT_CARD_STATUS(status) == MMC_BOOT_TRAN_STATE)
+                break;
+        } while( (mmc_ret == MMC_BOOT_E_SUCCESS) &&
+            (MMC_BOOT_CARD_STATUS(status) == MMC_BOOT_PROG_STATE));
+
+        if( mmc_ret != MMC_BOOT_E_SUCCESS )
+        {
+            return mmc_ret;
+        }
+    }
+
+    return MMC_BOOT_E_SUCCESS;
+}
+
+/*
+ * Function to get Write Protect status of the given sector
+ */
+static unsigned int mmc_boot_get_wp_status (struct mmc_boot_card* card,
+                                            unsigned int sector)
+{
+    unsigned int rc = MMC_BOOT_E_SUCCESS;
+    memset(wp_status_buf,0, 8);
+
+    rc = mmc_boot_read_reg(card,8,CMD31_SEND_WRITE_PROT_TYPE,sector,wp_status_buf);
+
+    return rc;
+}
+
+/*
+ * Test Function for setting Write protect for given sector
+ */
+static unsigned int mmc_wp(unsigned int sector, unsigned int size,
+                           unsigned char set_clear_wp)
+{
+    unsigned int rc = MMC_BOOT_E_SUCCESS;
+
+    /* Checking whether group write protection feature is available */
+    if(mmc_card.csd.wp_grp_enable)
+    {
+        rc = mmc_boot_get_wp_status(&mmc_card,sector);
+        rc = mmc_boot_set_clr_power_on_wp_user(&mmc_card,sector,size,set_clear_wp);
+        rc = mmc_boot_get_wp_status(&mmc_card,sector);
+        return rc;
+    }
+    else
+        return MMC_BOOT_E_FAILURE;
+}
+
+void mmc_wp_test(void)
+{
+    unsigned int mmc_ret=0;
+    mmc_ret = mmc_wp(0xE06000,0x5000,1);
+}
+
+void mmc_display_ext_csd(void)
+{
+    dprintf(ALWAYS,  "part_config: %x\n", ext_csd_buf[179] );
+    dprintf(ALWAYS,  "erase_group_def: %x\n", ext_csd_buf[175] );
+    dprintf(ALWAYS,  "user_wp: %x\n", ext_csd_buf[171] );
+}
+
+void mmc_display_csd(void)
+{
+    dprintf(ALWAYS,  "erase_grpsize: %d\n", mmc_card.csd.erase_grp_size );
+    dprintf(ALWAYS,  "erase_grpmult: %d\n", mmc_card.csd.erase_grp_mult );
+    dprintf(ALWAYS,  "wp_grpsize: %d\n", mmc_card.csd.wp_grp_size );
+    dprintf(ALWAYS,  "wp_grpen: %d\n", mmc_card.csd.wp_grp_enable );
+    dprintf(ALWAYS,  "perm_wp: %d\n", mmc_card.csd.perm_wp );
+    dprintf(ALWAYS,  "temp_wp: %d\n", mmc_card.csd.temp_wp );
 }
