@@ -527,6 +527,9 @@ struct mmc_boot_host
 #define MMC_SBL3_TYPE 			0x45
 #define MMC_RPM_TYPE 			0x47
 #define MMC_TZ_TYPE 			0x46
+#define MMC_MODEM_ST1_TYPE 		0x4A
+#define MMC_MODEM_ST2_TYPE 		0x4B
+#define MMC_EFS2_TYPE 			0x4E
 
 #define MMC_ABOOT_TYPE 			0x4C
 #define MMC_BOOT_TYPE 			0x48
