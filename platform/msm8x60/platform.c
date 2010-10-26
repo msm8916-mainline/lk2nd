@@ -95,14 +95,6 @@ void display_shutdown(void)
     lcdc_shutdown();
 }
 
-void secondary_core(unsigned sec_entry)
-{
-    writel(sec_entry, 0x2A040020);
-    writel(0x0, 0x009035A0); //VDD_SC1_ARRAY_CLAMP_GFS_CTL
-    writel(0x0, 0x00902D80); //SCSS_CPU1CORE_RESET
-    writel(0x3, 0x00902E64); //SCSS_DBG_STATUS_CORE_PWRDUP
-}
-
 static struct qup_i2c_dev* dev = NULL;
 
 uint32_t eprom_read (uint16_t addr, uint8_t count) {
