@@ -346,10 +346,6 @@ void board_lcd_enable(void)
 
 void mdp_clock_init(void)
 {
-    int uxo = pxo_is_27mhz();
-    /* Set the MDP_AXI_CLK to 165MHz, use MX0 for now */
-    config_mdp_axi_clk(uxo);
-
     /* Turn on the PLL2, to ramp up the MDP clock to max (200MHz) */
     nt_pll_enable(PLL_2, 1);
 

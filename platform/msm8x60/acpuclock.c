@@ -43,32 +43,6 @@ static void rmwreg(uint32_t val, uint32_t reg, uint32_t mask)
 }
 
 
-void config_mdp_axi_clk(uint8_t use_pxo){
-    /* Program MM_PLL0 (PLL1) @ 1320 MHz and turn it on. */
-    rmwreg(0,  MM_PLL0_MODE_REG, (1<<0)); /* Disable output */
-    writel(48, MM_PLL0_L_VAL_REG);
-    writel(8, MM_PLL0_M_VAL_REG);
-    writel(9, MM_PLL0_N_VAL_REG);
-    /* Set ref, enable. */
-    if (use_pxo)
-        rmwreg((1<<1),      MM_PLL0_MODE_REG, (1<<4)|(1<<1)); /* PXO */
-    else
-        rmwreg((1<<4)|(1<<1), MM_PLL0_MODE_REG, (1<<4)|(1<<1)); /* MXO */
-    udelay(10);
-    writel(0x14580, MM_PLL0_CONFIG_REG);  /* Enable MN, set VCO, misc */
-    rmwreg((1<<2), MM_PLL0_MODE_REG, (1<<2)); /* Deassert reset */
-    rmwreg((1<<0), MM_PLL0_MODE_REG, (1<<0)); /* Enable output */
-
-    /* Set up MM AHB clock to PLL8/5. */
-    //local_src_enable(PLL_8);
-    rmwreg(0x0102, AHB_NS_REG, 0x43C7);
-    udelay(200); /* Wait before using registers clocked by MM AHB_CLK. */
-
-    /* Set up MM Fabric (AXI). */
-    writel(0x4248451, AXI_NS_REG);
-}
-
-
 /* Enable/disable for non-shared NT PLLs. */
 int nt_pll_enable(uint8_t src, uint8_t enable)
 {
@@ -295,23 +269,5 @@ void hsusb_clock_init(void)
 	val = 1 << 8;
 	val |= readl(USB_HS1_XVCR_FS_CLK_NS);
 	writel(val, USB_HS1_XVCR_FS_CLK_NS);
-}
-
-/* Return true if PXO is 27MHz. */
-int pxo_is_27mhz(void)
-{
-    uint32_t xo_sel;
-    int pll8_ref_is_27mhz = 0;
-
-    /* PLL8 is assumed to be at 384MHz. Check if the 384/(L+M/N) == 27. */
-    if (readl(BB_PLL8_L_VAL_REG) == 14 && readl(BB_PLL8_M_VAL_REG) == 2
-     && readl(BB_PLL8_N_VAL_REG) == 9)
-        pll8_ref_is_27mhz = 1;
-
-    /* Check which source is used with above L, M, N vals.
-     * xo_sel: 0=PXO, else MXO */
-    xo_sel = readl(BB_PLL8_MODE_REG) & (1 << 4);
-
-    return (xo_sel == 0 && pll8_ref_is_27mhz);
 }
 
