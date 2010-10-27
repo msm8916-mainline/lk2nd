@@ -35,7 +35,7 @@
 #include <debug.h>
 #include <dev/gpio.h>
 #include <kernel/thread.h>
-#include <gpio_hw.h>
+#include "gpio_hw.h"
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 static int display_common_power(int);

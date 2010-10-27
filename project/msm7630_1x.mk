@@ -2,7 +2,7 @@
 #
 LOCAL_DIR := $(GET_LOCAL_DIR)
 
-TARGET := msm7630_surf
+TARGET := msm7630_1x
 
 MODULES += app/aboot
 
