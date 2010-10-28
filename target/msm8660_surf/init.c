@@ -117,7 +117,14 @@ void reboot_device(unsigned reboot_reason)
 
 unsigned check_reboot_mode(void)
 {
-    return 0;
+	unsigned restart_reason = 0;
+	void *restart_reason_addr = 0x401FFFFC;
+
+	/* Read reboot reason and scrub it */
+	restart_reason = readl(restart_reason_addr);
+	writel(0x00, restart_reason_addr);
+
+	return restart_reason;
 }
 
 void target_battery_charging_enable(unsigned enable, unsigned disconnect)

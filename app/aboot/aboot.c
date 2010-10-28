@@ -646,18 +646,19 @@ void aboot_init(const struct app_descriptor *app)
 		goto fastboot;
 	#endif
 
+	reboot_mode = check_reboot_mode();
+	if (reboot_mode == RECOVERY_MODE) {
+		boot_into_recovery = 1;
+	} else if(reboot_mode == FASTBOOT_MODE) {
+		goto fastboot;
+	}
+
 	if (target_is_emmc_boot())
 	{
 		boot_linux_from_mmc();
 	}
 	else
 	{
-		reboot_mode = check_reboot_mode();
-		if (reboot_mode == RECOVERY_MODE) {
-			boot_into_recovery = 1;
-		} else if(reboot_mode == FASTBOOT_MODE) {
-			goto fastboot;
-		}
 		recovery_init();
 		boot_linux_from_flash();
 	}
