@@ -205,7 +205,6 @@ void boot_linux(void *kernel, unsigned *tags,
 #if DISPLAY_SPLASH_SCREEN
 	display_shutdown();
 #endif
-	secondary_core((unsigned)kernel);
 	entry(0, machtype, tags);
 
 }
