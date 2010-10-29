@@ -117,11 +117,11 @@ status_t platform_set_periodic_timer(
 	void *arg, time_t interval)
 {
 #ifdef PLATFORM_MSM7X30
-        unsigned val = 0;
-	unsigned mask = (0x1 << 28);
+	unsigned val = 0;
 	//Check for the hardware revision
 	val = readl(HW_REVISION_NUMBER);
-	if(val & mask)
+	val = (val >> 28) & 0x0F;
+	if(val >= 1)
 	    writel(1, DGT_CLK_CTL);
 #endif
 #ifdef PLATFORM_MSM8X60
