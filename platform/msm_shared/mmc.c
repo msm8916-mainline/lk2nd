@@ -2400,6 +2400,9 @@ static void mbr_fill_name (struct mbr_entry *mbr_ent, unsigned int type)
             strcpy((char *)mbr_ent->name,(const char *)ext3_partitions[ext3_count]);
             ext3_count++;
             break;
+        case MMC_RECOVERY_TYPE:
+            memcpy(mbr_ent->name,"recovery",8);
+            break;
     };
 }
 

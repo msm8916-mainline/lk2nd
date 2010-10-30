@@ -231,11 +231,21 @@ int boot_linux_from_mmc(void)
 		hdr = uhdr;
 		goto unified_boot;
 	}
-
-	ptn = mmc_ptn_offset("boot");
-	if(ptn == 0) {
-		dprintf(CRITICAL, "ERROR: No boot partition found\n");
-                return -1;
+	if(!boot_into_recovery)
+	{
+		ptn = mmc_ptn_offset("boot");
+		if(ptn == 0) {
+			dprintf(CRITICAL, "ERROR: No boot partition found\n");
+                    return -1;
+		}
+	}
+	else
+	{
+		ptn = mmc_ptn_offset("recovery");
+		if(ptn == 0) {
+			dprintf(CRITICAL, "ERROR: No recovery partition found\n");
+                    return -1;
+		}
 	}
 
 	if (mmc_read(ptn + offset, (unsigned int *)buf, page_size)) {
