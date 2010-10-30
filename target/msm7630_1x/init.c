@@ -84,12 +84,12 @@ static struct ptentry board_part_list[] = {
 		.name = "system",
 	},
 	{
-		.start = 440,
+		.start = 500,
 		.length = 20 /* 5MB */,
 		.name = "cache",
 	},
 	{
-		.start = 460,
+		.start = 520,
 		.length = VARIABLE_LENGTH,
 		.name = "userdata",
 	},
