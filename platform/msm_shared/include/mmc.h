@@ -253,6 +253,7 @@
 /* Card status */
 #define MMC_BOOT_CARD_STATUS(x)          ((x>>9) & 0x0F)
 #define MMC_BOOT_TRAN_STATE              4
+#define MMC_BOOT_PROG_STATE              7
 
 /* SD Memory Card bus commands */
 #define CMD0_GO_IDLE_STATE               0

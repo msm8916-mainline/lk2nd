@@ -1123,6 +1123,7 @@ static unsigned int mmc_boot_set_bus_width( struct mmc_boot_card* card,
     unsigned int mmc_ret = MMC_BOOT_E_SUCCESS;
     unsigned int mmc_reg = 0;
     unsigned int mmc_width = 0;
+    unsigned int status;
 
     if( width != MMC_BOOT_BUS_WIDTH_1_BIT)
     {
@@ -1130,6 +1131,19 @@ static unsigned int mmc_boot_set_bus_width( struct mmc_boot_card* card,
     }
 
     mmc_boot_send_ext_cmd (card);
+
+    do
+    {
+        mmc_ret = mmc_boot_get_card_status(card, 1, &status);
+        if(mmc_ret != MMC_BOOT_E_SUCCESS)
+        {
+            return mmc_ret;
+        }
+    }while( (mmc_ret == MMC_BOOT_E_SUCCESS) &&
+        (MMC_BOOT_CARD_STATUS(status) == MMC_BOOT_PROG_STATE));
+
+    if(MMC_BOOT_CARD_STATUS(status) != MMC_BOOT_TRAN_STATE)
+        return MMC_BOOT_E_FAILURE;
 
     mmc_ret = mmc_boot_switch_cmd(card, MMC_BOOT_ACCESS_WRITE, MMC_BOOT_EXT_CMMC_BUS_WIDTH, mmc_width);
 
