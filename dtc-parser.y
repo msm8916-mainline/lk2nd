@@ -131,13 +131,12 @@ devicetree:
 		}
 	| devicetree DT_REF nodedef
 		{
-			struct node *target;
+			struct node *target = get_node_by_ref($1, $2);
 
-			target = get_node_by_label($1, $2);
 			if (target)
 				merge_nodes(target, $3);
 			else
-				print_error("label, '%s' not found", $2);
+				print_error("label or path, '%s', not found", $2);
 			$$ = $1;
 		}
 	;
