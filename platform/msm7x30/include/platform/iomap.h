@@ -60,4 +60,5 @@
 #define SH2_USBH_NS_REG			0xABA012C0
 #define SH2_GLBL_CLK_ENA_SC		0xABA013BC
 
+#define MSM_SAW_BASE            0xC0102000
 #endif

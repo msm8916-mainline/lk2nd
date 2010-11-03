@@ -34,14 +34,91 @@
 #define REG_BASE(off)           (MSM_CLK_CTL_BASE + (off))
 #define REG(off)                (MSM_CLK_CTL_SH2_BASE + (off))
 
+#define PLL_ENA_REG             REG(0x0264)
+#define PLL2_STATUS_BASE_REG    REG_BASE(0x0350)
+
 #define SH2_OWN_ROW2_BASE_REG	REG_BASE(0x0424)
+
+/* Macros to select PLL2 with divide by 1 */
+#define ACPU_SRC_SEL       3
+#define ACPU_SRC_DIV       0
+
+#define BIT(n)  (1 << (n))
+#define VREG_CONFIG (BIT(7) | BIT(6)) /* Enable VREG, pull-down if disabled. */
+#define VREG_DATA   (VREG_CONFIG | (VREF_SEL << 5))
+#define VREF_SEL    1 /* 0: 0.625V (50mV step), 1: 0.3125V (25mV step). */
+#define V_STEP      (25 * (2 - VREF_SEL)) /* Minimum voltage step size. */
+#define MV(mv)          ((mv) / (!((mv) % V_STEP)))
+/* mv = (750mV + (raw * 25mV)) * (2 - VREF_SEL) */
+#define VDD_RAW(mv)     (((MV(mv) / V_STEP) - 30) | VREG_DATA)
+
+void spm_init(void)
+{
+    writel(0x05, MSM_SAW_BASE + 0x10); /* MSM_SPM_REG_SAW_CFG */
+    writel(0x18, MSM_SAW_BASE + 0x14); /* MSM_SPM_REG_SAW_SPM_CTL */
+    writel(0x00006666, MSM_SAW_BASE + 0x18); /* MSM_SPM_REG_SAW_SPM_SLP_TMR_DLY */
+    writel(0xFF000666, MSM_SAW_BASE + 0x1C); /* MSM_SPM_REG_SAW_SPM_WAKE_TMR_DLY */
+
+    writel(0x01, MSM_SAW_BASE + 0x24); /* MSM_SPM_REG_SAW_SLP_CLK_EN */
+    writel(0x03, MSM_SAW_BASE + 0x28); /* MSM_SPM_REG_SAW_SLP_HSFS_PRECLMP_EN */
+    writel(0x00, MSM_SAW_BASE + 0x2C); /* MSM_SPM_REG_SAW_SLP_HSFS_POSTCLMP_EN */
+
+    writel(0x01, MSM_SAW_BASE + 0x30); /* MSM_SPM_REG_SAW_SLP_CLMP_EN */
+    writel(0x00, MSM_SAW_BASE + 0x34); /* MSM_SPM_REG_SAW_SLP_RST_EN */
+    writel(0x00, MSM_SAW_BASE + 0x38); /* MSM_SPM_REG_SAW_SPM_MPM_CFG */
+}
+
+/* Configures msmc2 voltage. vlevel is in mV */
+void msmc2_config(unsigned vlevel)
+{
+    unsigned val;
+    val = readl(MSM_SAW_BASE + 0x08); /* MSM_SPM_REG_SAW_VCTL */
+    val &= ~0xFF;
+    val |= VDD_RAW(vlevel);
+    writel(val, MSM_SAW_BASE + 0x08); /* MSM_SPM_REG_SAW_VCTL */
+
+    /* Wait for PMIC state to return to idle and for VDD to stabilize */
+    while(((readl(MSM_SAW_BASE + 0x0C) >> 0x20) & 0x3) != 0);
+    udelay(160);
+}
+
+void enable_pll(unsigned num)
+{
+    unsigned reg_val;
+    reg_val = readl(PLL_ENA_REG);
+    reg_val |= (1 << num);
+    writel(reg_val, PLL_ENA_REG);
+    /* Wait until PLL is enabled */
+    while ((readl(PLL2_STATUS_BASE_REG) & (1 << 16)) == 0);
+}
 
 void acpu_clock_init(void)
 {
-    /* Bump clock speed to 768 MHz */
-    writel(0x0, SCSS_CLK_SEL);
-    writel(0x1020, SCSS_CLK_CTL);
-    writel(0x1, SCSS_CLK_SEL);
+    unsigned reg_clksel, reg_clkctl, src_sel;
+    /* Fixing msmc2 voltage */
+    spm_init();
+    msmc2_config(1200); /* Setting msmc2 1.2V */
+
+    /* Enable pll 2 */
+    enable_pll(2);
+
+    reg_clksel = readl(SCSS_CLK_SEL);
+
+    /* CLK_SEL_SRC1NO */
+    src_sel = reg_clksel & 1;
+
+    /* Program clock source and divider. */
+    reg_clkctl = readl(SCSS_CLK_CTL);
+    reg_clkctl &= ~(0xFF << (8 * src_sel));
+    reg_clkctl |= ACPU_SRC_SEL<< (4 + 8 * src_sel);
+    reg_clkctl |= ACPU_SRC_DIV<< (0 + 8 * src_sel);
+    writel(reg_clkctl, SCSS_CLK_CTL);
+
+    /* Toggle clock source. */
+    reg_clksel ^= 1;
+
+    /* Program clock source selection. */
+    writel(reg_clksel, SCSS_CLK_SEL);
 }
 
 void hsusb_clock_init(void)
