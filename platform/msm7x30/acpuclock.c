@@ -34,46 +34,14 @@
 #define REG_BASE(off)           (MSM_CLK_CTL_BASE + (off))
 #define REG(off)                (MSM_CLK_CTL_SH2_BASE + (off))
 
-#define PLL_ENA_REG             REG(0x0264)
-#define PLL2_STATUS_BASE_REG    REG_BASE(0x0350)
-
 #define SH2_OWN_ROW2_BASE_REG	REG_BASE(0x0424)
-
-#define ACPU_SRC_SEL_PLL2       3
-#define ACPU_SRC_DIV_PLL2       0
-
-void enable_pll(unsigned num)
-{
-    unsigned reg_val;
-    reg_val = readl(PLL_ENA_REG);
-    reg_val |= (1 << num);
-    writel(reg_val, PLL_ENA_REG);
-    /* Wait until PLL is enabled */
-    while ((readl(PLL2_STATUS_BASE_REG) & (1 << 16)) == 0);
-}
 
 void acpu_clock_init(void)
 {
-    unsigned reg_clksel, reg_clkctl, src_sel;
-    enable_pll(2);
-
-    reg_clksel = readl(SCSS_CLK_SEL);
-
-    /* CLK_SEL_SRC1NO */
-    src_sel = reg_clksel & 1;
-
-    /* Program clock source and divider. */
-    reg_clkctl = readl(SCSS_CLK_CTL);
-    reg_clkctl &= ~(0xFF << (8 * src_sel));
-    reg_clkctl |= ACPU_SRC_SEL_PLL2 << (4 + 8 * src_sel);
-    reg_clkctl |= ACPU_SRC_DIV_PLL2 << (0 + 8 * src_sel);
-    writel(reg_clkctl, SCSS_CLK_CTL);
-
-    /* Toggle clock source. */
-    reg_clksel ^= 1;
-
-    /* Program clock source selection. */
-    writel(reg_clksel, SCSS_CLK_SEL);
+    /* Bump clock speed to 768 MHz */
+    writel(0x0, SCSS_CLK_SEL);
+    writel(0x1020, SCSS_CLK_CTL);
+    writel(0x1, SCSS_CLK_SEL);
 }
 
 void hsusb_clock_init(void)
