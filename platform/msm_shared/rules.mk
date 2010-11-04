@@ -7,7 +7,6 @@ DEFINES += $(TARGET_XRES)
 DEFINES += $(TARGET_YRES)
 
 OBJS += \
-	$(LOCAL_DIR)/uart.o \
 	$(LOCAL_DIR)/timer.o \
 	$(LOCAL_DIR)/proc_comm.o \
 	$(LOCAL_DIR)/debug.o \
@@ -25,4 +24,8 @@ ifeq ($(PLATFORM),msm8x60)
 	OBJS += $(LOCAL_DIR)/i2c_qup.o
 endif
 
-
+ifeq ($(PLATFORM),msm8x60)
+        OBJS += $(LOCAL_DIR)/uart_dm.o
+else
+        OBJS += $(LOCAL_DIR)/uart.o
+endif
