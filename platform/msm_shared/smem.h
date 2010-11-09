@@ -121,7 +121,7 @@ typedef enum {
 	SMEM_POWER_ON_STATUS_INFO = 403,
 
 	SMEM_FIRST_VALID_TYPE = SMEM_SPINLOCK_ARRAY,
-	SMEM_LAST_VALID_TYPE = SMEM_USABLE_RAM_PARTITION_TABLE,
+	SMEM_LAST_VALID_TYPE = SMEM_POWER_ON_STATUS_INFO,
 } smem_mem_type_t;
 
 /* Note: buf MUST be 4byte aligned, and max_len MUST be a multiple of 4. */
