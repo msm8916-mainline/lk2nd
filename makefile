@@ -40,6 +40,11 @@ CFLAGS := -O2 -g -fno-builtin -finline -W -Wall -Wno-multichar -Wno-unused-param
 ifeq ($(EMMC_BOOT),1)
   CFLAGS += -D_EMMC_BOOT=1
 endif
+# When the host arch is ARM, ensure stack protection code is not emitted since
+# it's not supported by the bootloader's libc
+ifneq ($(shell uname -m | grep "arm.*"),)
+  CFLAGS += -fno-stack-protector
+endif
 CPPFLAGS := -fno-exceptions -fno-rtti -fno-threadsafe-statics
 #CPPFLAGS += -Weffc++
 ASMFLAGS := -DASSEMBLY
