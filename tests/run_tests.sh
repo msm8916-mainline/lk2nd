@@ -370,6 +370,13 @@ cmp_tests () {
     for tree in $wrongtrees; do
 	run_test dtbs_equal_unordered -n $basetree $tree
     done
+
+    # now dtc --sort
+    run_dtc_test -I dtb -O dtb -s -o $basetree.sorted.test.dtb $basetree
+    run_test dtbs_equal_unordered $basetree $basetree.sorted.test.dtb
+    run_dtc_test -I dtb -O dtb -s -o $basetree.reversed.sorted.test.dtb $basetree.reversed.test.dtb
+    run_test dtbs_equal_unordered $basetree.reversed.test.dtb $basetree.reversed.sorted.test.dtb
+    run_test dtbs_equal_ordered $basetree.sorted.test.dtb $basetree.reversed.sorted.test.dtb
 }
 
 dtbs_equal_tests () {

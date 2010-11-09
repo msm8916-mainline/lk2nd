@@ -111,6 +111,7 @@ BIN += convert-dtsv0
 BIN += dtc
 BIN += ftdump
 
+SCRIPTS = dtdiff
 
 all: $(BIN) libfdt
 
@@ -155,10 +156,10 @@ endif
 # intermediate target and building them again "for real"
 .SECONDARY: $(DTC_GEN_SRCS) $(CONVERT_GEN_SRCS)
 
-install: all
+install: all $(SCRIPTS)
 	@$(VECHO) INSTALL
 	$(INSTALL) -d $(DESTDIR)$(BINDIR)
-	$(INSTALL) $(BIN) $(DESTDIR)$(BINDIR)
+	$(INSTALL) $(BIN) $(SCRIPTS) $(DESTDIR)$(BINDIR)
 	$(INSTALL) -d $(DESTDIR)$(LIBDIR)
 	$(INSTALL) $(LIBFDT_lib) $(DESTDIR)$(LIBDIR)
 	$(INSTALL) -m 644 $(LIBFDT_archive) $(DESTDIR)$(LIBDIR)

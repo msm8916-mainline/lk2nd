@@ -470,3 +470,140 @@ uint32_t guess_boot_cpuid(struct node *tree)
 
 	return propval_cell(reg);
 }
+
+static int cmp_reserve_info(const void *ax, const void *bx)
+{
+	const struct reserve_info *a, *b;
+
+	a = *((const struct reserve_info * const *)ax);
+	b = *((const struct reserve_info * const *)bx);
+
+	if (a->re.address < b->re.address)
+		return -1;
+	else if (a->re.address > b->re.address)
+		return 1;
+	else if (a->re.size < b->re.size)
+		return -1;
+	else if (a->re.size > b->re.size)
+		return 1;
+	else
+		return 0;
+}
+
+static void sort_reserve_entries(struct boot_info *bi)
+{
+	struct reserve_info *ri, **tbl;
+	int n = 0, i = 0;
+
+	for (ri = bi->reservelist;
+	     ri;
+	     ri = ri->next)
+		n++;
+
+	if (n == 0)
+		return;
+
+	tbl = xmalloc(n * sizeof(*tbl));
+
+	for (ri = bi->reservelist;
+	     ri;
+	     ri = ri->next)
+		tbl[i++] = ri;
+
+	qsort(tbl, n, sizeof(*tbl), cmp_reserve_info);
+
+	bi->reservelist = tbl[0];
+	for (i = 0; i < (n-1); i++)
+		tbl[i]->next = tbl[i+1];
+	tbl[n-1]->next = NULL;
+
+	free(tbl);
+}
+
+static int cmp_prop(const void *ax, const void *bx)
+{
+	const struct property *a, *b;
+
+	a = *((const struct property * const *)ax);
+	b = *((const struct property * const *)bx);
+
+	return strcmp(a->name, b->name);
+}
+
+static void sort_properties(struct node *node)
+{
+	int n = 0, i = 0;
+	struct property *prop, **tbl;
+
+	for_each_property(node, prop)
+		n++;
+
+	if (n == 0)
+		return;
+
+	tbl = xmalloc(n * sizeof(*tbl));
+
+	for_each_property(node, prop)
+		tbl[i++] = prop;
+
+	qsort(tbl, n, sizeof(*tbl), cmp_prop);
+
+	node->proplist = tbl[0];
+	for (i = 0; i < (n-1); i++)
+		tbl[i]->next = tbl[i+1];
+	tbl[n-1]->next = NULL;
+
+	free(tbl);
+}
+
+static int cmp_subnode(const void *ax, const void *bx)
+{
+	const struct node *a, *b;
+
+	a = *((const struct node * const *)ax);
+	b = *((const struct node * const *)bx);
+
+	return strcmp(a->name, b->name);
+}
+
+static void sort_subnodes(struct node *node)
+{
+	int n = 0, i = 0;
+	struct node *subnode, **tbl;
+
+	for_each_child(node, subnode)
+		n++;
+
+	if (n == 0)
+		return;
+
+	tbl = xmalloc(n * sizeof(*tbl));
+
+	for_each_child(node, subnode)
+		tbl[i++] = subnode;
+
+	qsort(tbl, n, sizeof(*tbl), cmp_subnode);
+
+	node->children = tbl[0];
+	for (i = 0; i < (n-1); i++)
+		tbl[i]->next_sibling = tbl[i+1];
+	tbl[n-1]->next_sibling = NULL;
+
+	free(tbl);
+}
+
+static void sort_node(struct node *node)
+{
+	struct node *c;
+
+	sort_properties(node);
+	sort_subnodes(node);
+	for_each_child(node, c)
+		sort_node(c);
+}
+
+void sort_tree(struct boot_info *bi)
+{
+	sort_reserve_entries(bi);
+	sort_node(bi->dt);
+}
