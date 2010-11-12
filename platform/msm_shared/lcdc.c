@@ -66,6 +66,9 @@
 #define DMA_OUT_SEL_LCDC                    BIT(20)
 #define DMA_IBUF_FORMAT_RGB565              BIT(25)
 
+#define MDP_RGB_SIZE	((LCDC_FB_HEIGHT<<16) + LCDC_FB_WIDTH)
+#define MDP_RGB_565_FORMAT (BIT(14) | (1<<9) | (0<<8) | (0<<6) | (1<<4) | (1<<2) | (2<<0))
+
 static struct fbcon_config fb_cfg = {
 	.height		= LCDC_FB_HEIGHT,
 	.width		= LCDC_FB_WIDTH,
@@ -112,26 +115,41 @@ struct fbcon_config *lcdc_init(void)
 	writel(display_hctl, MSM_MDP_BASE1 + LCDC_BASE + 0x10);
 	writel(display_vstart, MSM_MDP_BASE1 + LCDC_BASE + 0x14);
 	writel(display_vend, MSM_MDP_BASE1 + LCDC_BASE + 0x18);
+
 #if MDP4
 	writel(0xf, MSM_MDP_BASE1 + LCDC_BASE + 0x28);
-#else
-	writel(0, MSM_MDP_BASE1 + LCDC_BASE + 0x28);
-#endif
 	writel(0xff, MSM_MDP_BASE1 + LCDC_BASE + 0x2c);
 	writel(LCDC_HSYNC_SKEW_DCLK, MSM_MDP_BASE1 + LCDC_BASE + 0x30);
-#if MDP4
 	writel(0x3, MSM_MDP_BASE1 + LCDC_BASE + 0x38);
-#else
-	writel(0, MSM_MDP_BASE1 + LCDC_BASE + 0x38);
-#endif
 	writel(0, MSM_MDP_BASE1 + LCDC_BASE + 0x1c);
 	writel(0, MSM_MDP_BASE1 + LCDC_BASE + 0x20);
 	writel(0, MSM_MDP_BASE1 + LCDC_BASE + 0x24);
-#if MDP4
-	writel(0xB, MSM_MDP_BASE1 + 0x10004);
-	writel(0xB, MSM_MDP_BASE1 + 0x18004);
-#endif
+
+	/* setting for single layer direct out mode for rgb565 source */
+	writel(0x100, MSM_MDP_BASE1 + 0x10100);
+	writel(MDP_RGB_SIZE, MSM_MDP_BASE1 + 0x40000);
+	writel(MDP_RGB_SIZE, MSM_MDP_BASE1 + 0x40008);
+	writel(fb_cfg.base, MSM_MDP_BASE1 + 0x40010);
+	writel(fb_cfg.width * fb_cfg.bpp / 8, MSM_MDP_BASE1 + 0x40040);
+	writel(0x00, MSM_MDP_BASE1 + 0x41008);
+	writel(MDP_RGB_565_FORMAT, MSM_MDP_BASE1 + 0x40050);
+	writel(0x1, MSM_MDP_BASE1 + 0x10004);
+	writel(0x1, MSM_MDP_BASE1 + 0x10014);
+
+	/* register flush and enable LCDC */
+	writel(0x11, MSM_MDP_BASE1 + 0x18000);
+	writel(0x1, MSM_MDP_BASE1 + LCDC_BASE + 0x0);
+
+#else
+	writel(0, MSM_MDP_BASE1 + LCDC_BASE + 0x28);
+	writel(0xff, MSM_MDP_BASE1 + LCDC_BASE + 0x2c);
+	writel(LCDC_HSYNC_SKEW_DCLK, MSM_MDP_BASE1 + LCDC_BASE + 0x30);
+	writel(0, MSM_MDP_BASE1 + LCDC_BASE + 0x38);
+	writel(0, MSM_MDP_BASE1 + LCDC_BASE + 0x1c);
+	writel(0, MSM_MDP_BASE1 + LCDC_BASE + 0x20);
+	writel(0, MSM_MDP_BASE1 + LCDC_BASE + 0x24);
 	writel(1, MSM_MDP_BASE1 + LCDC_BASE + 0x0);
+#endif
 
 	return &fb_cfg;
 }
