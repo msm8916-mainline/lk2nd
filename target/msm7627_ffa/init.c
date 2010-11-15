@@ -37,7 +37,7 @@
 #include <dev/flash.h>
 #include <smem.h>
 
-#define LINUX_MACHTYPE  1007015
+#define LINUX_MACHTYPE  2706
 
 #define VARIABLE_LENGTH        0x10101010
 #define DIFF_START_ADDR        0xF0F0F0F0

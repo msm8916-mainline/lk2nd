@@ -38,7 +38,7 @@
 #include <smem.h>
 #include <platform/iomap.h>
 
-#define LINUX_MACHTYPE  1007014
+#define LINUX_MACHTYPE  2705
 
 #define VARIABLE_LENGTH        0x10101010
 #define DIFF_START_ADDR        0xF0F0F0F0
