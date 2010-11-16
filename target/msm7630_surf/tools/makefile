@@ -23,6 +23,7 @@ APPSBOOTHEADER: $(APPSBOOTHDR_FILES)
 
 
 appsboot.mbn: appsboothd.mbn $(OUTBIN)
+	cp $(OUTBIN) $(APPSBOOTHEADER_DIR)/appsboot.raw
 	cat $(APPSBOOTHEADER_DIR)/appsboothd.mbn $(OUTBIN) > $(APPSBOOTHEADER_DIR)/appsboot.mbn
 	rm -f $(APPSBOOTHEADER_DIR)/appsboothd.mbn
 
