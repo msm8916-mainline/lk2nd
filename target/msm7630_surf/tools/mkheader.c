@@ -137,6 +137,8 @@ int main(int argc, char *argv[])
 	base = 0;
 #endif
 
+	printf("Image Destination Pointer: 0x%x\n", base);
+
 	magic[0] = 0x00000005; /* appsbl */
 	magic[1] = 0x00000003; //Flash_partition_version /* nand */
 	magic[2] = 0x00000000; //image source pointer
@@ -175,7 +177,6 @@ int main(int argc, char *argv[])
 	}
 	close(fd);
 
-
 	if (secure_boot && argc > 6){
 		FILE * input_file;
 		FILE * output_file;
@@ -190,6 +191,7 @@ int main(int argc, char *argv[])
 			perror("ERROR: Occured during fopen");
 			return -1;
 		}
+		printf("Certificate Chain Output File: %s\n", argv[6]);
 
 		for (i = 8; i < argc; i++){
 			if((input_file = fopen(argv[i], "rb"))==NULL){
@@ -223,6 +225,7 @@ int main(int argc, char *argv[])
 			perror("ERROR: Occured during fopen");
 			return -1;
 		}
+		printf("Image Output File: %s\n", argv[4]);
 
 		//Header
 		if((input_file = fopen(argv[2], "rb"))==NULL){
@@ -276,6 +279,7 @@ int main(int argc, char *argv[])
 			perror("ERROR: Occured during fopen");
 			return -1;
 		}
+		printf("Image Output File: %s\n", argv[4]);
 
 		//Header
 		if((input_file = fopen(argv[2], "rb"))==NULL){
@@ -298,6 +302,8 @@ int main(int argc, char *argv[])
 		fclose(input_file);
 		fclose(output_file);
 	}
+
+	printf("Done execution\n");
 
 	return 0;
 }
