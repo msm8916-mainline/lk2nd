@@ -34,6 +34,7 @@
 
 #define MIPI_FB_ADDR  0x43E00000
 
+#if DISPLAY_MIPI_PANEL_TOSHIBA
 static struct fbcon_config mipi_fb_cfg = {
     .height = TSH_MIPI_FB_HEIGHT,
     .width = TSH_MIPI_FB_WIDTH,
@@ -43,16 +44,39 @@ static struct fbcon_config mipi_fb_cfg = {
     .update_start = NULL,
     .update_done = NULL,
 };
+#elif DISPLAY_MIPI_PANEL_NOVATEK_BLUE
+static struct fbcon_config mipi_fb_cfg = {
+    .height = NOV_MIPI_FB_HEIGHT,
+    .width = NOV_MIPI_FB_WIDTH,
+    .stride = NOV_MIPI_FB_WIDTH,
+    .format = FB_FORMAT_RGB888,
+    .bpp = 24,
+    .update_start = NULL,
+    .update_done = NULL,
+};
+#else
+static struct fbcon_config mipi_fb_cfg = {
+    .height = 0,
+    .width = 0,
+    .stride = 0,
+    .format = 0,
+    .bpp = 0,
+    .update_start = NULL,
+    .update_done = NULL,
+};
+#endif
+
+static int cmd_mode_status = 0;
 
 void configure_dsicore_dsiclk()
 {
     unsigned char mnd_mode, root_en, clk_en;
-    unsigned long src_sel = 0x3;    //dsi_phy_pll0_src
+    unsigned long src_sel = 0x3;    // dsi_phy_pll0_src
     unsigned long pre_div_func = 0x00;  // predivide by 1
     unsigned long pmxo_sel;
 
     writel(pre_div_func << 14 | src_sel, MMSS_DSI_NS);
-    mnd_mode = 0;               //Bypass MND
+    mnd_mode = 0;               // Bypass MND
     root_en = 1;
     clk_en = 1;
     pmxo_sel = 0;
@@ -69,91 +93,85 @@ void configure_dsicore_byteclk(void)
 
 void configure_dsicore_pclk(void)
 {
-
     unsigned char mnd_mode, root_en, clk_en;
     unsigned long src_sel = 0x3;    // dsi_phy_pll0_src
     unsigned long pre_div_func = 0x01;  // predivide by 2
 
     writel(pre_div_func << 12 | src_sel, MMSS_DSI_PIXEL_NS);
 
-    mnd_mode = 0;              // Bypass MND
+    mnd_mode = 0;               // Bypass MND
     root_en = 1;
     clk_en = 1;
     writel(mnd_mode << 6, MMSS_DSI_PIXEL_CC);
     writel(readl(MMSS_DSI_PIXEL_CC) | root_en << 2, MMSS_DSI_PIXEL_CC);
     writel(readl(MMSS_DSI_PIXEL_CC) | clk_en, MMSS_DSI_PIXEL_CC);
-
 }
 
-int dsi_dsiphy_reg_bitclk_200MHz_toshiba_rgb888(unsigned char lane_num_hs)
+int mipi_dsi_phy_ctrl_config(struct mipi_dsi_panel_config *pinfo)
 {
 
     unsigned char lane_1 = 1;
     unsigned char lane_2 = 2;
+    unsigned i;
+    unsigned off = 0;
+    struct mipi_dsi_phy_ctrl *pd;
 
     writel(0x00000001, DSI_PHY_SW_RESET);
-    mdelay(100);
+    mdelay(50);
     writel(0x00000000, DSI_PHY_SW_RESET);
 
-    writel(0x00000003, DSIPHY_REGULATOR_CTRL_0);
-    writel(0x00000001, DSIPHY_REGULATOR_CTRL_1);
-    writel(0x00000001, DSIPHY_REGULATOR_CTRL_2);
-    writel(0x00000000, DSIPHY_REGULATOR_CTRL_3);
+    pd = (pinfo->dsi_phy_config);
 
-    writel(0x50, DSIPHY_TIMING_CTRL_0);
-    writel(0x0f, DSIPHY_TIMING_CTRL_1);
-    writel(0x14, DSIPHY_TIMING_CTRL_2);
-    writel(0x19, DSIPHY_TIMING_CTRL_4);
-    writel(0x23, DSIPHY_TIMING_CTRL_5);
-    writel(0x0e, DSIPHY_TIMING_CTRL_6);
-    writel(0x12, DSIPHY_TIMING_CTRL_7);
-    writel(0x16, DSIPHY_TIMING_CTRL_8);
-    writel(0x1b, DSIPHY_TIMING_CTRL_9);
-    writel(0x1c, DSIPHY_TIMING_CTRL_10);
+    off = 0x02cc;               /* regulator ctrl 0 */
+    for (i = 0; i < 4; i++) {
+        writel(pd->regulator[i], MIPI_DSI_BASE + off);
+        off += 4;
+    }
+
+    off = 0x0260;               /* phy timig ctrl 0 */
+    for (i = 0; i < 11; i++) {
+        writel(pd->timing[i], MIPI_DSI_BASE + off);
+        off += 4;
+    }
 
     // T_CLK_POST, T_CLK_PRE for CLK lane P/N HS 200 mV timing length should >
     // data lane HS timing length
-    writel(0x90f, DSI_CLKOUT_TIMING_CTRL);
+    writel(0xa1e, DSI_CLKOUT_TIMING_CTRL);
 
-    writel(0x7f, DSIPHY_CTRL_0);
-    writel(0x00, DSIPHY_CTRL_1);
-    writel(0x00, DSIPHY_CTRL_2);
-    writel(0x00, DSIPHY_CTRL_3);
-
-    writel(0xEE, DSIPHY_STRENGTH_CTRL_0);
-    writel(0x86, DSIPHY_STRENGTH_CTRL_0);
-
-    writel(0x8f, DSIPHY_PLL_CTRL_1);    // vco=400*2=800Mhz
-
-    writel(0xb1, DSIPHY_PLL_CTRL_2);
-    writel(0xda, DSIPHY_PLL_CTRL_3);
-    writel(0x00, DSIPHY_PLL_CTRL_4);
-    writel(0x50, DSIPHY_PLL_CTRL_5);
-    writel(0x48, DSIPHY_PLL_CTRL_6);
-    writel(0x63, DSIPHY_PLL_CTRL_7);
-
-    writel(0x33, DSIPHY_PLL_CTRL_8);    // bit clk 800/4=200mhz
-    writel(0x1f, DSIPHY_PLL_CTRL_9);    // byte clk 800/32=25mhz (200/8=25)
-
-    if (lane_num_hs == lane_1) {
-        printf("\nData Lane: 1 lane");
-        writel(0x1f, DSIPHY_PLL_CTRL_10);   // 1 lane dsi clk 800/32=25mhz
-    } else if (lane_num_hs == lane_2) {
-        printf("\nData Lane: 2 lane");
-        writel(0x0f, DSIPHY_PLL_CTRL_10);   // 2 lane dsi clk 800/16=50mhz
+    off = 0x0290;               /* ctrl 0 */
+    for (i = 0; i < 4; i++) {
+        writel(pd->ctrl[i], MIPI_DSI_BASE + off);
+        off += 4;
     }
 
-    writel(0x05, DSIPHY_PLL_CTRL_11);
-    writel(0x14, DSIPHY_PLL_CTRL_12);
-    writel(0x03, DSIPHY_PLL_CTRL_13);
-    writel(0x54, DSIPHY_PLL_CTRL_16);
-    writel(0x06, DSIPHY_PLL_CTRL_17);
-    writel(0x10, DSIPHY_PLL_CTRL_18);
-    writel(0x04, DSIPHY_PLL_CTRL_19);
-    writel(0x00000040, DSIPHY_PLL_CTRL_0);
-    writel(0x00000041, DSIPHY_PLL_CTRL_0);  // dsipll en
+    off = 0x02a0;               /* strength 0 */
+    for (i = 0; i < 4; i++) {
+        writel(pd->strength[i], MIPI_DSI_BASE + off);
+        off += 4;
+    }
+
+    off = 0x0204;               /* pll ctrl 1, skip 0 */
+    for (i = 1; i < 21; i++) {
+        writel(pd->pll[i], MIPI_DSI_BASE + off);
+        off += 4;
+    }
+
+    /* pll ctrl 0 */
+    writel(pd->pll[0], MIPI_DSI_BASE + 0x200);
+    writel((pd->pll[0] | 0x01), MIPI_DSI_BASE + 0x200);
 
     return (0);
+}
+
+struct mipi_dsi_panel_config *get_panel_info(void)
+{
+#if  DISPLAY_MIPI_PANEL_TOSHIBA
+    return &toshiba_panel_info;
+#elif DISPLAY_MIPI_PANEL_NOVATEK_BLUE
+    return &novatek_panel_info;
+#endif
+    return NULL;
+
 }
 
 int dsi_cmd_dma_trigger_for_panel()
@@ -163,7 +181,7 @@ int dsi_cmd_dma_trigger_for_panel()
     int status = 0;
 
     writel(0x03030303, DSI_INT_CTRL);
-    mdelay(1);
+    mdelay(10);
     writel(0x1, DSI_CMD_MODE_DMA_SW_TRIGGER);
     ReadValue = readl(DSI_INT_CTRL) & 0x00000001;
     while (ReadValue != 0x00000001) {
@@ -182,9 +200,26 @@ int dsi_cmd_dma_trigger_for_panel()
     return status;
 }
 
-int dsi_toshiba_panel_config_video_mode_wvga(unsigned char lane_num)
+int mipi_dsi_cmds_tx(struct mipi_dsi_cmd *cmds, int count)
 {
+    int ret = 0;
+    struct mipi_dsi_cmd *cm;
+    int i = 0;
 
+    cm = cmds;
+    for (i = 0; i < count; i++) {
+        memcpy(DSI_CMD_DMA_MEM_START_ADDR_PANEL, (cm->payload), cm->size);
+        writel(DSI_CMD_DMA_MEM_START_ADDR_PANEL, DSI_DMA_CMD_OFFSET);
+        writel(cm->size, DSI_DMA_CMD_LENGTH);   // reg 0x48 for this build
+        ret += dsi_cmd_dma_trigger_for_panel();
+        mdelay(10);
+        cm++;
+    }
+    return ret;
+}
+
+int mipi_dsi_panel_initialize(struct mipi_dsi_panel_config *pinfo)
+{
     unsigned char DMA_STREAM1 = 0;  // for mdp display processor path
     unsigned char EMBED_MODE1 = 1;  // from frame buffer
     unsigned char POWER_MODE2 = 1;  // from frame buffer
@@ -193,119 +228,36 @@ int dsi_toshiba_panel_config_video_mode_wvga(unsigned char lane_num)
     unsigned char DT1 = 0;      // non embedded mode
     unsigned short WC1 = 0;     // for non embedded mode only
     int status = 0;
-    unsigned char DLNx_EN = 1;
+    unsigned char DLNx_EN;
     unsigned char lane_1 = 1;
     unsigned char lane_2 = 2;
 
+    switch (pinfo->num_of_lanes) {
+    default:
+    case 1:
+        DLNx_EN = 1;            // 1 lane
+        break;
+    case 2:
+        DLNx_EN = 3;            // 2 lane
+        break;
+    case 3:
+        DLNx_EN = 7;            // 3 lane
+        break;
+    }
+
+    writel(0x0001, DSI_SOFT_RESET);
+    writel(0x0000, DSI_SOFT_RESET);
+
     writel((0 << 16) | 0x3f, DSI_CLK_CTRL); // reg:0x118
     writel(DMA_STREAM1 << 8 | 0x04, DSI_TRIG_CTRL); // reg 0x80 dma trigger: sw
-                                                    // trigger 0x4; dma stream1
+    // trigger 0x4; dma stream1
     writel(0 << 30 | DLNx_EN << 4 | 0x105, DSI_CTRL);   // reg 0x00 for this
-                                                        // build
+    // build
     writel(EMBED_MODE1 << 28 | POWER_MODE2 << 26
            | PACK_TYPE1 << 24 | VC1 << 22 | DT1 << 16 | WC1,
            DSI_COMMAND_MODE_DMA_CTRL);
-    writel(0x15000000, DSI_COMMAND_MODE_DMA_CTRL);  // reg 0x38 wc=4; DT=09;
-                                                    // embedded mode=0 from the
-                                                    // reg.
 
-    memcpy(DSI_CMD_DMA_MEM_START_ADDR_PANEL,
-           &dsi_toshiba_display_config_MCAP_off, 8);
-    writel(DSI_CMD_DMA_MEM_START_ADDR_PANEL, DSI_DMA_CMD_OFFSET);
-    writel(8, DSI_DMA_CMD_LENGTH);  // reg 0x48 for this build
-    status += dsi_cmd_dma_trigger_for_panel();
-
-    memcpy(DSI_CMD_DMA_MEM_START_ADDR_PANEL,
-           &dsi_toshiba_display_config_ena_test_reg, 8);
-    writel(DSI_CMD_DMA_MEM_START_ADDR_PANEL, DSI_DMA_CMD_OFFSET);
-    writel(8, DSI_DMA_CMD_LENGTH);  // reg 0x48 for this build
-    status += dsi_cmd_dma_trigger_for_panel();
-
-    if (lane_num == lane_1) {
-        memcpy(DSI_CMD_DMA_MEM_START_ADDR_PANEL,
-               &dsi_toshiba_display_config_num_of_1lane, 8);
-    } else if (lane_num == lane_2) {
-
-        memcpy(DSI_CMD_DMA_MEM_START_ADDR_PANEL,
-               &dsi_toshiba_display_config_num_of_2lane, 8);
-    }
-
-    writel(DSI_CMD_DMA_MEM_START_ADDR_PANEL, DSI_DMA_CMD_OFFSET);
-    writel(8, DSI_DMA_CMD_LENGTH);  // reg 0x48 for this build
-    status += dsi_cmd_dma_trigger_for_panel();
-
-    memcpy(DSI_CMD_DMA_MEM_START_ADDR_PANEL,
-           &dsi_toshiba_display_config_non_burst_sync_pulse, 8);
-    writel(DSI_CMD_DMA_MEM_START_ADDR_PANEL, DSI_DMA_CMD_OFFSET);
-    writel(8, DSI_DMA_CMD_LENGTH);  // reg 0x48 for this build
-    status += dsi_cmd_dma_trigger_for_panel();
-
-    memcpy(DSI_CMD_DMA_MEM_START_ADDR_PANEL,
-           &dsi_toshiba_display_config_set_DMODE_WVGA, 8);
-    writel(DSI_CMD_DMA_MEM_START_ADDR_PANEL, DSI_DMA_CMD_OFFSET);
-    writel(8, DSI_DMA_CMD_LENGTH);  // reg 0x48 for this build
-    status += dsi_cmd_dma_trigger_for_panel();
-
-    memcpy(DSI_CMD_DMA_MEM_START_ADDR_PANEL,
-           &dsi_toshiba_display_config_set_intern_WR_clk1_wvga, 8);
-    writel(DSI_CMD_DMA_MEM_START_ADDR_PANEL, DSI_DMA_CMD_OFFSET);
-    writel(8, DSI_DMA_CMD_LENGTH);  // reg 0x48 for this build
-    status += dsi_cmd_dma_trigger_for_panel();
-
-    memcpy(DSI_CMD_DMA_MEM_START_ADDR_PANEL,
-           &dsi_toshiba_display_config_set_intern_WR_clk2_wvga, 8);
-    writel(DSI_CMD_DMA_MEM_START_ADDR_PANEL, DSI_DMA_CMD_OFFSET);
-    writel(8, DSI_DMA_CMD_LENGTH);  // reg 0x48 for this build
-    status += dsi_cmd_dma_trigger_for_panel();
-
-    memcpy(DSI_CMD_DMA_MEM_START_ADDR_PANEL,
-           &dsi_toshiba_display_config_set_hor_addr_2A_wvga, 12);
-    writel(DSI_CMD_DMA_MEM_START_ADDR_PANEL, DSI_DMA_CMD_OFFSET);
-    writel(12, DSI_DMA_CMD_LENGTH); // reg 0x48 for this build
-    status += dsi_cmd_dma_trigger_for_panel();
-
-    memcpy(DSI_CMD_DMA_MEM_START_ADDR_PANEL,
-           &dsi_toshiba_display_config_set_hor_addr_2B_wvga, 12);
-    writel(DSI_CMD_DMA_MEM_START_ADDR_PANEL, DSI_DMA_CMD_OFFSET);
-    writel(12, DSI_DMA_CMD_LENGTH); // reg 0x48 for this build
-    status += dsi_cmd_dma_trigger_for_panel();
-
-    memcpy(DSI_CMD_DMA_MEM_START_ADDR_PANEL, &dsi_toshiba_display_config_IFSEL,
-           8);
-    writel(DSI_CMD_DMA_MEM_START_ADDR_PANEL, DSI_DMA_CMD_OFFSET);
-    writel(8, DSI_DMA_CMD_LENGTH);  // reg 0x48 for this build
-    status += dsi_cmd_dma_trigger_for_panel();
-
-    memcpy(DSI_CMD_DMA_MEM_START_ADDR_PANEL,
-           &dsi_toshiba_display_config_exit_sleep, 4);
-    writel(DSI_CMD_DMA_MEM_START_ADDR_PANEL, DSI_DMA_CMD_OFFSET);
-    writel(4, DSI_DMA_CMD_LENGTH);  // reg 0x48 for this build
-    writel(0x14000000, DSI_COMMAND_MODE_DMA_CTRL);
-    status += dsi_cmd_dma_trigger_for_panel();
-
-    memcpy(DSI_CMD_DMA_MEM_START_ADDR_PANEL,
-           &dsi_toshiba_display_config_display_on, 4);
-    writel(DSI_CMD_DMA_MEM_START_ADDR_PANEL, DSI_DMA_CMD_OFFSET);
-    writel(4, DSI_DMA_CMD_LENGTH);  // reg 0x48 for this build
-    status += dsi_cmd_dma_trigger_for_panel();
-
-    // dsi_display_config_color_mode_on - low power
-    memcpy(DSI_CMD_DMA_MEM_START_ADDR_PANEL, &dsi_display_config_color_mode_on,
-           4);
-    writel(DSI_CMD_DMA_MEM_START_ADDR_PANEL, DSI_DMA_CMD_OFFSET);
-    writel(4, DSI_DMA_CMD_LENGTH);  // reg 0x48 for this build
-    status += dsi_cmd_dma_trigger_for_panel();
-
-    // dsi_display_config_color_mode_off - back to normal
-    memcpy(DSI_CMD_DMA_MEM_START_ADDR_PANEL, &dsi_display_config_color_mode_off,
-           4);
-    writel(DSI_CMD_DMA_MEM_START_ADDR_PANEL, DSI_DMA_CMD_OFFSET);
-    writel(4, DSI_DMA_CMD_LENGTH);  // reg 0x48 for this build
-    status += dsi_cmd_dma_trigger_for_panel();
-
-    writel(0x0000, DSI_CTRL);
-    writel(0x0001, DSI_SOFT_RESET);
-    writel(0x0000, DSI_SOFT_RESET);
+    status = mipi_dsi_cmds_tx(pinfo->panel_cmds, pinfo->num_of_panel_cmds);
 
     return status;
 }
@@ -395,8 +347,79 @@ int config_dsi_video_mode(unsigned short disp_width, unsigned short disp_height,
 
     writel(interleav << 30 | 0 << 24 | 0 << 20 | DLNx_EN << 4
            | 0x103, DSI_CTRL);
-    mdelay(1);
+    mdelay(10);
 
+    return status;
+}
+
+int config_dsi_cmd_mode(unsigned short disp_width, unsigned short disp_height,
+                        unsigned short img_width, unsigned short img_height,
+                        unsigned short dst_format,
+                        unsigned short traffic_mode,
+                        unsigned short datalane_num)
+{
+    unsigned char DST_FORMAT;
+    unsigned char TRAFIC_MODE;
+    unsigned char DLNx_EN;
+    // video mode data ctrl
+    int status = 0;
+    unsigned long low_pwr_stop_mode = 0;
+    unsigned char eof_bllp_pwr = 0x9;
+    unsigned char interleav = 0;
+    unsigned char ystride = 0x03;
+    // disable mdp first
+
+    writel(0x00000000, DSI_CLK_CTRL);
+    writel(0x00000000, DSI_CLK_CTRL);
+    writel(0x00000000, DSI_CLK_CTRL);
+    writel(0x00000000, DSI_CLK_CTRL);
+    writel(0x00000002, DSI_CLK_CTRL);
+    writel(0x00000006, DSI_CLK_CTRL);
+    writel(0x0000000e, DSI_CLK_CTRL);
+    writel(0x0000001e, DSI_CLK_CTRL);
+    writel(0x0000003e, DSI_CLK_CTRL);
+
+    writel(0x10000000, DSI_ERR_INT_MASK0);
+
+    // writel(0, DSI_CTRL);
+
+    // writel(0, DSI_ERR_INT_MASK0);
+
+    DST_FORMAT = 8;             // RGB888
+    printf("\nDSI_Cmd_Mode - Dst Format: RGB888");
+
+    DLNx_EN = 3;                // 2 lane with clk programming
+    printf("\nData Lane: 2 lane\n");
+
+    TRAFIC_MODE = 0;            // non burst mode with sync pulses
+    printf("\nTraffic mode: non burst mode with sync pulses\n");
+
+    writel(0x02020202, DSI_INT_CTRL);
+
+    writel(0x00100000 | DST_FORMAT, DSI_COMMAND_MODE_MDP_CTRL);
+    writel((img_width * ystride + 1) << 16 | 0x0039,
+           DSI_COMMAND_MODE_MDP_STREAM0_CTRL);
+    writel((img_width * ystride + 1) << 16 | 0x0039,
+           DSI_COMMAND_MODE_MDP_STREAM1_CTRL);
+    writel(img_height << 16 | img_width, DSI_COMMAND_MODE_MDP_STREAM0_TOTAL);
+    writel(img_height << 16 | img_width, DSI_COMMAND_MODE_MDP_STREAM1_TOTAL);
+    writel(0xEE, DSI_CAL_STRENGTH_CTRL);
+    writel(0x80000000, DSI_CAL_CTRL);
+    writel(0x40, DSI_TRIG_CTRL);
+    writel(0x13c2c, DSI_COMMAND_MODE_MDP_DCS_CMD_CTRL);
+    writel(interleav << 30 | 0 << 24 | 0 << 20 | DLNx_EN << 4 | 0x105,
+           DSI_CTRL);
+    mdelay(10);
+    writel(0x10000000, DSI_COMMAND_MODE_DMA_CTRL);
+    writel(0x10000000, DSI_MISR_CMD_CTRL);
+    writel(0x00000040, DSI_ERR_INT_MASK0);
+    writel(0x1, DSI_EOT_PACKET_CTRL);
+    // writel(0x0, MDP_OVERLAYPROC0_START);
+    writel(0x00000001, MDP_DMA_P_START);
+    mdelay(10);
+    writel(0x1, DSI_CMD_MODE_MDP_SW_TRIGGER);
+
+    status = 1;
     return status;
 }
 
@@ -464,17 +487,17 @@ int mdp_setup_dma_p_video_mode(unsigned short disp_width,
     return status;
 }
 
-int mipi_dsi_config(unsigned short num_of_lanes)
+int mipi_dsi_video_config(unsigned short num_of_lanes)
 {
 
     int status = 0;
     unsigned long ReadValue;
     unsigned long count = 0;
     unsigned long low_pwr_stop_mode = 0;    // low power mode 0x1111 start from
-                                            // bit16, high spd mode 0x0
+    // bit16, high spd mode 0x0
     unsigned char eof_bllp_pwr = 0x9;   // bit 12, 15, 1:low power stop mode or
-                                        // let cmd mode eng send packets in hs
-                                        // or lp mode
+    // let cmd mode eng send packets in hs
+    // or lp mode
     unsigned short display_wd = mipi_fb_cfg.width;
     unsigned short display_ht = mipi_fb_cfg.height;
     unsigned short image_wd = mipi_fb_cfg.width;
@@ -491,10 +514,10 @@ int mipi_dsi_config(unsigned short num_of_lanes)
     unsigned char ystride = 3;
 
     low_pwr_stop_mode = 0x1111; // low pwr mode bit16:HSA, bit20:HBA,
-                                // bit24:HFP, bit28:PULSE MODE, need enough
-                                // time for swithc from LP to HS
+    // bit24:HFP, bit28:PULSE MODE, need enough
+    // time for swithc from LP to HS
     eof_bllp_pwr = 0x9;         // low power stop mode or let cmd mode eng send
-                                // packets in hs or lp mode
+    // packets in hs or lp mode
 
     status += config_dsi_video_mode(display_wd, display_ht, image_wd, image_ht,
                                     hsync_porch_fp, hsync_porch_bp,
@@ -524,6 +547,80 @@ int mipi_dsi_config(unsigned short num_of_lanes)
     return status;
 }
 
+int mipi_dsi_cmd_config(unsigned short num_of_lanes)
+{
+
+    int status = 0;
+    unsigned long ReadValue;
+    unsigned long count = 0;
+    unsigned long input_img_addr = MIPI_FB_ADDR;
+    unsigned long low_pwr_stop_mode = 0;    // low power mode 0x1111 start from
+    // bit16, high spd mode 0x0
+    unsigned char eof_bllp_pwr = 0x9;   // bit 12, 15, 1:low power stop mode or
+    // let cmd mode eng send packets in hs
+    // or lp mode
+    unsigned short display_wd = mipi_fb_cfg.width;
+    unsigned short display_ht = mipi_fb_cfg.height;
+    unsigned short image_wd = mipi_fb_cfg.width;
+    unsigned short image_ht = mipi_fb_cfg.height;
+    unsigned short hsync_porch_fp = MIPI_HSYNC_FRONT_PORCH_DCLK;
+    unsigned short hsync_porch_bp = MIPI_HSYNC_BACK_PORCH_DCLK;
+    unsigned short vsync_porch_fp = MIPI_VSYNC_FRONT_PORCH_LINES;
+    unsigned short vsync_porch_bp = MIPI_VSYNC_BACK_PORCH_LINES;
+    unsigned short hsync_width = MIPI_HSYNC_PULSE_WIDTH;
+    unsigned short vsync_width = MIPI_VSYNC_PULSE_WIDTH;
+    unsigned short dst_format = 0;
+    unsigned short traffic_mode = 0;
+    unsigned short pack_pattern = 0x12;
+    unsigned char ystride = 3;
+
+    writel(0x03ffffff, MDP_INTR_ENABLE);
+    writel(0x0000000b, MDP_OVERLAYPROC0_CFG);
+
+    // ------------- programming MDP_DMA_P_CONFIG ---------------------
+    writel(pack_pattern << 8 | 0x3f | (0 << 25), MDP_DMA_P_CONFIG); // rgb888
+
+    writel(0x00000000, MDP_DMA_P_OUT_XY);
+    writel(image_ht << 16 | image_wd, MDP_DMA_P_SIZE);
+    writel(input_img_addr, MDP_DMA_P_BUF_ADDR);
+
+    writel(image_wd * ystride, MDP_DMA_P_BUF_Y_STRIDE);
+
+    writel(0x00000000, MDP_DMA_P_OP_MODE);
+
+    writel(0x10, MDP_DSI_CMD_MODE_ID_MAP);
+    writel(0x01, MDP_DSI_CMD_MODE_TRIGGER_EN);
+
+    writel(0x0001a000, MDP_AXI_RDMASTER_CONFIG);
+    writel(0x00000004, MDP_AXI_WRMASTER_CONFIG);
+    writel(0x00007777, MDP_MAX_RD_PENDING_CMD_CONFIG);
+    writel(0x8a, MDP_DISP_INTF_SEL);
+
+    return status;
+}
+
+int is_cmd_mode_enabled(void)
+{
+    return cmd_mode_status;
+}
+
+void mipi_dsi_cmd_mode_trigger(void)
+{
+    int status = 0;
+    unsigned short display_wd = mipi_fb_cfg.width;
+    unsigned short display_ht = mipi_fb_cfg.height;
+    unsigned short image_wd = mipi_fb_cfg.width;
+    unsigned short image_ht = mipi_fb_cfg.height;
+    unsigned short dst_format = 0;
+    unsigned short traffic_mode = 0;
+    struct mipi_dsi_panel_config *panel_info = &novatek_panel_info;
+    status += mipi_dsi_cmd_config(panel_info->num_of_lanes);
+    mdelay(50);
+    config_dsi_cmd_mode(display_wd, display_ht, image_wd, image_ht,
+                        dst_format, traffic_mode,
+                        panel_info->num_of_lanes /* num_of_lanes */ );
+}
+
 void mipi_dsi_shutdown(void)
 {
     writel(0, DSI_CTRL);
@@ -536,14 +633,20 @@ struct fbcon_config *mipi_init(void)
 {
     int status = 0;
     unsigned char num_of_lanes = 1;
+    struct mipi_dsi_panel_config *panel_info = get_panel_info();
     writel(0x00001800, MMSS_SFPB_GPREG);
     configure_dsicore_dsiclk();
     configure_dsicore_byteclk();
     configure_dsicore_pclk();
-    dsi_dsiphy_reg_bitclk_200MHz_toshiba_rgb888(num_of_lanes);
-    status += dsi_toshiba_panel_config_video_mode_wvga(num_of_lanes);
+    mipi_dsi_phy_ctrl_config(panel_info);
+    status += mipi_dsi_panel_initialize(panel_info);
     mipi_fb_cfg.base = MIPI_FB_ADDR;
 
-    status += mipi_dsi_config(num_of_lanes);
+    if (panel_info->mode == MIPI_VIDEO_MODE)
+        status += mipi_dsi_video_config(panel_info->num_of_lanes);
+
+    if (panel_info->mode == MIPI_CMD_MODE)
+        cmd_mode_status = 1;
+
     return &mipi_fb_cfg;
 }

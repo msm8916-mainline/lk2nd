@@ -48,6 +48,10 @@
 #define TSH_MIPI_FB_WIDTH            480
 #define TSH_MIPI_FB_HEIGHT           854
 
+/* NOVATEK MIPI panel */
+#define NOV_MIPI_FB_WIDTH            540
+#define NOV_MIPI_FB_HEIGHT           960
+
 #define MIPI_HSYNC_PULSE_WIDTH       50
 #define MIPI_HSYNC_BACK_PORCH_DCLK   500
 #define MIPI_HSYNC_FRONT_PORCH_DCLK  500

@@ -226,6 +226,10 @@ void diplay_image_on_screen(void)
 		    SPLASH_IMAGE_HEIGHT * bytes_per_bpp);
 	}
     }
+    fbcon_flush();
+    if(is_cmd_mode_enabled())
+        mipi_dsi_cmd_mode_trigger();
+
 #else
     if (bytes_per_bpp == 2)
     {
@@ -236,7 +240,6 @@ void diplay_image_on_screen(void)
 		    SPLASH_IMAGE_HEIGHT * bytes_per_bpp);
 	}
     }
-#endif
-
     fbcon_flush();
+#endif
 }
