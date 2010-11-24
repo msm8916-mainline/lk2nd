@@ -82,14 +82,39 @@ struct smem_board_info_v4
     unsigned buffer_align; //Need for 8 bytes alignment while reading from shared memory.
 };
 
+struct smem_board_info_v5
+{
+    struct smem_board_info_v3 board_info_v3;
+    unsigned platform_version;
+    unsigned fused_chip;
+};
+
+/* chip information */
+enum {
+    UNKNOWN = 0,
+    MDM9200 = 57,
+    MDM9600 = 58,
+};
+
+enum platform
+{
+    HW_PLATFORM_UNKNOWN = 0,
+    HW_PLATFORM_SURF    = 1,
+    HW_PLATFORM_FFA     = 2,
+    HW_PLATFORM_FLUID   = 3,
+    HW_PLATFORM_SVLTE   = 4,
+    HW_PLATFORM_32BITS  = 0x7FFFFFFF
+};
+
+
 typedef enum {
 	SMEM_SPINLOCK_ARRAY = 7,
 
 	SMEM_AARM_PARTITION_TABLE = 9,
 
-        SMEM_APPS_BOOT_MODE = 106,
+	SMEM_APPS_BOOT_MODE = 106,
 
-        SMEM_BOARD_INFO_LOCATION = 137,
+	SMEM_BOARD_INFO_LOCATION = 137,
 
 	SMEM_USABLE_RAM_PARTITION_TABLE = 402,
 
