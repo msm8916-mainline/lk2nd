@@ -31,8 +31,9 @@
 #include <smem.h>
 
 #define EBI1_ADDR_128M        0x08000000
+#define SIZE_256M             0x10000000
+#define SIZE_128M             0x08000000
 #define SIZE_1M               0x00100000
-
 
 static int scratch_addr = -1;
 int smem_ram_ptable_init(struct smem_ram_ptable *);
@@ -53,7 +54,26 @@ unsigned* target_atag_mem(unsigned* ptr)
             {
                 /* ATAG_MEM */
                 *ptr++ = 4;
-                *ptr++ = 0x54410002;
+                // Tag EBI-1 memory as unstable.
+                if(ram_ptable.parts[i].category == EBI1_CS0) {
+                    // if EBI-1 CS-0 is 256Mb then this is a 2x256 target and
+                    // the kernel can reserve this mem region as unstable.
+                    // This memory region can be activated when the kernel
+                    // receives a request from Android init scripts.
+                    if(ram_ptable.parts[i].size == SIZE_256M)
+                        *ptr++ = 0x5441000A; //Deep-Power-Down Tag.
+
+                    //if EBI-1 CS-0 s 128Mb then this is a 2x128 target.
+                    //Android + Kernel + PMEM regions account for more than
+                    //128Mb and the target will not be able to boot with just
+                    //one memory bank active and the second memory bank is reserved.
+                    //In the case of 2x128 the tag is set to SelfRefresh Only.
+                    else if(ram_ptable.parts[i].size == SIZE_128M)
+                        *ptr++ = 0x5441000B; //Self-Refresh Tag.
+                }
+                else
+                    *ptr++ = 0x54410002;
+
                 *ptr++ = ram_ptable.parts[i].size;
                 *ptr++ = ram_ptable.parts[i].start;
             }
