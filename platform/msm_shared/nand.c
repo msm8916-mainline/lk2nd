@@ -131,6 +131,7 @@ static struct flash_identification supported_flash[] =
 	{0xd580b12c, 0xFFFFFFFF, (256<<20), 1, 2048, (2048<<6), 64, 0}, /*Micr*/
 	{0x5590bc2c, 0xFFFFFFFF, (512<<20), 1, 2048, (2048<<6), 64, 0}, /*Micr*/
 	{0x1580aa2c, 0xFFFFFFFF, (256<<20), 0, 2048, (2048<<6), 64, 0}, /*Micr*/
+	{0x1590aa2c, 0xFFFFFFFF, (256<<20), 0, 2048, (2048<<6), 64, 0}, /*Micr*/
 	{0x1590ac2c, 0xFFFFFFFF, (512<<20), 0, 2048, (2048<<6), 64, 0}, /*Micr*/
 	{0x5580baad, 0xFFFFFFFF, (256<<20), 1, 2048, (2048<<6), 64, 0}, /*Hynx*/
 	{0x5510baad, 0xFFFFFFFF, (256<<20), 1, 2048, (2048<<6), 64, 0}, /*Hynx*/
