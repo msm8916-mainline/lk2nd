@@ -47,16 +47,6 @@
 #define MSM8655_ID                 75
 #define APQ8055_ID                 85
 
-//Enum values for 7x30 target platforms.
-enum platform
-{
-    HW_PLATFORM_UNKNOWN = 0,
-    HW_PLATFORM_SURF    = 1,
-    HW_PLATFORM_FFA     = 2,
-    HW_PLATFORM_FLUID   = 3,
-    HW_PLATFORM_32BITS  = 0x7FFFFFFF
-};
-
 #define VARIABLE_LENGTH        0x10101010
 #define DIFF_START_ADDR        0xF0F0F0F0
 #define NUM_PAGES_PER_BLOCK    0x40
