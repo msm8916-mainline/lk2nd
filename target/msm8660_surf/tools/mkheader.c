@@ -209,6 +209,13 @@ int main(int argc, char *argv[])
 		//Pad certifcate chain to the max expected size from input
 		memset(buf, 0xFF, sizeof(buf));
 		padding_size = cert_chain_size - current_cert_chain_size;
+
+		if(padding_size <0){
+			fprintf(stderr, "ERROR: Input certificate chain (Size=%d) is larger than the maximum specified (Size=%d)\n",
+				current_cert_chain_size, cert_chain_size);
+			return -1;
+		}
+
 		bytes_left = (padding_size > 0) ? padding_size : 0;
 		while(bytes_left){
 			if(!ferror(output_file))
