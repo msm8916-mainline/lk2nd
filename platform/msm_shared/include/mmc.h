@@ -479,6 +479,7 @@ struct mmc_boot_card
 #define MMC_BOOT_TYPE_SDHC               1
 #define MMC_BOOT_TYPE_SDIO               2
 #define MMC_BOOT_TYPE_MMCHC              3
+#define MMC_BOOT_TYPE_STD_MMC            4
     unsigned int status;
 #define MMC_BOOT_STATUS_INACTIVE         0
 #define MMC_BOOT_STATUS_ACTIVE           1

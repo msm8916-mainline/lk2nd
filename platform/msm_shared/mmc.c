@@ -189,10 +189,11 @@ static unsigned int mmc_boot_set_read_timeout( struct mmc_boot_host* host,
     {
         card->rd_timeout_ns = 100000000;
     }
-    else if( card->type == MMC_BOOT_TYPE_STD_SD )
+    else if( (card->type == MMC_BOOT_TYPE_STD_SD) || (card->type == MMC_BOOT_TYPE_STD_MMC) )
     {
         timeout_ns = 10 * ( (card->csd.taac_ns ) +
                 ( card->csd.nsac_clk_cycle / (host->mclk_rate/1000000000)));
+        card->rd_timeout_ns = timeout_ns;
     }
     else
     {
@@ -220,11 +221,12 @@ static unsigned int mmc_boot_set_write_timeout( struct mmc_boot_host* host,
     {
         card->wr_timeout_ns = 100000000;
     }
-    else if( card->type == MMC_BOOT_TYPE_STD_SD )
+    else if( card->type == MMC_BOOT_TYPE_STD_SD || (card->type == MMC_BOOT_TYPE_STD_MMC) )
     {
         timeout_ns = 10 * ( (  card->csd.taac_ns ) +
                 ( card->csd.nsac_clk_cycle / ( host->mclk_rate/1000000000 ) ) );
         timeout_ns = timeout_ns << card->csd.r2w_factor;
+        card->wr_timeout_ns = timeout_ns;
     }
     else
     {
@@ -639,6 +641,14 @@ static unsigned int mmc_boot_send_op_cond( struct mmc_boot_host* host,
         return MMC_BOOT_E_CARD_BUSY;
     }
 
+    if(mmc_resp & MMC_BOOT_OCR_SEC_MODE)
+    {
+        card->type = MMC_BOOT_TYPE_MMCHC;
+    }
+    else
+    {
+        card->type = MMC_BOOT_TYPE_STD_MMC;
+    }
     return MMC_BOOT_E_SUCCESS;
 }
 
@@ -704,7 +714,7 @@ static unsigned int mmc_boot_send_relative_address( struct mmc_boot_card* card )
     /* CMD3 Format:
      * [31:0] stuff bits
      */
-    if(card->type == MMC_BOOT_TYPE_SDHC)
+    if(card->type == MMC_BOOT_TYPE_SDHC || card->type == MMC_BOOT_TYPE_STD_SD)
     {
         cmd.cmd_index = CMD3_SEND_RELATIVE_ADDR;
         cmd.argument = 0;
@@ -819,7 +829,7 @@ static unsigned int mmc_boot_select_card( struct mmc_boot_card* card,
     /* If we are deselecting card, we do not get response */
     if( rca == card->rca && rca)
     {
-        if(card->type == MMC_BOOT_TYPE_SDHC)
+        if(card->type == MMC_BOOT_TYPE_SDHC || card->type == MMC_BOOT_TYPE_STD_SD)
             cmd.resp_type = MMC_BOOT_RESP_R1B;
         else
             cmd.resp_type = MMC_BOOT_RESP_R1;
@@ -1850,7 +1860,7 @@ static unsigned int mmc_boot_send_app_cmd(unsigned int rca)
     return MMC_BOOT_E_SUCCESS;
 }
 
-static unsigned int mmc_boot_sd_init_card(void)
+static unsigned int mmc_boot_sd_init_card(struct mmc_boot_card* card)
 {
     unsigned int i,mmc_ret;
     unsigned int ocr_cmd_arg;
@@ -1901,7 +1911,15 @@ static unsigned int mmc_boot_sd_init_card(void)
         }
         else if (cmd.resp[0] & MMC_BOOT_SD_DEV_READY)
         {
-            /* Check for HC later */
+            /* Check for HC */
+            if(cmd.resp[0] & (1 << 30))
+            {
+                card->type = MMC_BOOT_TYPE_SDHC;
+            }
+            else
+            {
+                card->type = MMC_BOOT_TYPE_STD_SD;
+            }
             break;
         }
         mdelay(50);
@@ -1959,12 +1977,7 @@ static unsigned int mmc_boot_init_card( struct mmc_boot_host* host,
                     mmc_return );
 
             /* Check for sD card */
-            mmc_return = mmc_boot_sd_init_card();
-            if (mmc_return == MMC_BOOT_E_SUCCESS)
-            {
-                card->type = MMC_BOOT_TYPE_SDHC;
-            }
-
+            mmc_return = mmc_boot_sd_init_card(card);
             return mmc_return;
         }
     }while( mmc_retry < host->cmd_retry );
@@ -1977,10 +1990,6 @@ static unsigned int mmc_boot_init_card( struct mmc_boot_host* host,
                 Initialization not completed\n", mmc_return );
         return MMC_BOOT_E_CARD_BUSY;
     }
-
-    /*Assuming high capacity mmc card*/
-    card->type = MMC_BOOT_TYPE_MMCHC;
-
     return MMC_BOOT_E_SUCCESS;
 }
 
@@ -2118,7 +2127,7 @@ static unsigned int mmc_boot_init_and_identify_cards( struct mmc_boot_host* host
         return mmc_return;
     }
 
-    if(card->type == MMC_BOOT_TYPE_SDHC)
+    if(card->type == MMC_BOOT_TYPE_SDHC || card->type == MMC_BOOT_TYPE_STD_SD)
     {
         mmc_return = mmc_boot_set_sd_hs(host, card);
         if(mmc_return != MMC_BOOT_E_SUCCESS)
