@@ -1194,7 +1194,6 @@ static unsigned int mmc_boot_set_bus_width( struct mmc_boot_card* card,
         mmc_width = width-1;
     }
 
-    mmc_boot_send_ext_cmd (card, ext_csd_buf);
 
     do
     {
@@ -1203,8 +1202,7 @@ static unsigned int mmc_boot_set_bus_width( struct mmc_boot_card* card,
         {
             return mmc_ret;
         }
-    }while( (mmc_ret == MMC_BOOT_E_SUCCESS) &&
-        (MMC_BOOT_CARD_STATUS(status) == MMC_BOOT_PROG_STATE));
+    }while(MMC_BOOT_CARD_STATUS(status) == MMC_BOOT_PROG_STATE);
 
     if(MMC_BOOT_CARD_STATUS(status) != MMC_BOOT_TRAN_STATE)
         return MMC_BOOT_E_FAILURE;
@@ -1553,9 +1551,21 @@ static unsigned int mmc_boot_write_to_card( struct mmc_boot_host* host,
 static unsigned int mmc_boot_adjust_interface_speed( struct mmc_boot_host* host,
         struct mmc_boot_card* card )
 {
-    int mmc_ret;
+    unsigned int mmc_ret = MMC_BOOT_E_SUCCESS;
+    unsigned int status;
 
-    mmc_boot_send_ext_cmd (card, ext_csd_buf);
+
+    do
+    {
+        mmc_ret = mmc_boot_get_card_status(card, 1, &status);
+        if(mmc_ret != MMC_BOOT_E_SUCCESS)
+        {
+            return mmc_ret;
+        }
+    }while(MMC_BOOT_CARD_STATUS(status) == MMC_BOOT_PROG_STATE);
+
+    if(MMC_BOOT_CARD_STATUS(status) != MMC_BOOT_TRAN_STATE)
+        return MMC_BOOT_E_FAILURE;
 
     /* Setting HS_TIMING in EXT_CSD (CMD6) */
     mmc_ret = mmc_boot_switch_cmd(card, MMC_BOOT_ACCESS_WRITE, MMC_BOOT_EXT_CMMC_HS_TIMING, 1);
