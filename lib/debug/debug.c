@@ -31,6 +31,7 @@
 #include <platform.h>
 #include <platform/debug.h>
 #include <kernel/thread.h>
+#include <kernel/timer.h>
 
 void spin(uint32_t usecs)
 {
@@ -70,7 +71,11 @@ int _dputs(const char *str)
 int _dprintf(const char *fmt, ...)
 {
 	char buf[256];
+	char ts_buf[13];
 	int err;
+
+	snprintf(ts_buf, sizeof(ts_buf), "[%u] ", current_time());
+	dputs(ALWAYS, ts_buf);
 
 	va_list ap;
 	va_start(ap, fmt);
