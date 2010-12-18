@@ -69,7 +69,7 @@ uint32_t const clk_cntl_reg_val_7625[] = {
 	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 4)  | DIV_4,
 	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 12) | (DIV_4 << 8),
 	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 12) | (DIV_2 << 8),
-	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 12) | DIV_2,
+	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 4) | DIV_2,
 	(WAIT_CNT << 16) | (SRC_SEL_PLL3 << 4)  | DIV_2,
 	(WAIT_CNT << 16) | (SRC_SEL_PLL3 << 12) | (DIV_2 << 8),
 };
@@ -78,16 +78,16 @@ uint32_t const clk_cntl_reg_val_7627[] = {
 	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 4)  | DIV_4,
 	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 12) | (DIV_4 << 8),
 	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 12) | (DIV_2 << 8),
-	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 12) | DIV_2,
+	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 4) | DIV_2,
 	(WAIT_CNT << 16) | (SRC_SEL_PLL2 << 4)  | DIV_2,
 	(WAIT_CNT << 16) | (SRC_SEL_PLL2 << 12) | (DIV_2 << 8),
 };
 
-uint32_t const clk_cntl_reg_val_7627A[] = {
+uint32_t const clk_cntl_reg_val_7627T[] = {
 	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 4)  | DIV_4,
 	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 12) | (DIV_4 << 8),
 	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 12) | (DIV_2 << 8),
-	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 12) | DIV_2,
+	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 4) | DIV_2,
 	(WAIT_CNT << 16) | (SRC_SEL_PLL2 << 4),
 	(WAIT_CNT << 16) | (SRC_SEL_PLL2 << 12),
 };
@@ -136,7 +136,7 @@ void acpu_clock_init(void)
 		writel(clk_cntl_reg_val_7625[i], A11S_CLK_CNTL_ADDR);
 #else
 		if(clk == ACPU_800MHZ)
-			writel(clk_cntl_reg_val_7627A[i], A11S_CLK_CNTL_ADDR);
+			writel(clk_cntl_reg_val_7627T[i], A11S_CLK_CNTL_ADDR);
 		else
 			writel(clk_cntl_reg_val_7627[i], A11S_CLK_CNTL_ADDR);
 #endif
