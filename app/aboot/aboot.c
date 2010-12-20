@@ -642,9 +642,11 @@ void aboot_init(const struct app_descriptor *app)
 	/* Check if we should do something other than booting up */
 	if (keys_get_state(KEY_HOME) != 0)
 		boot_into_recovery = 1;
+	if (keys_get_state(KEY_VOLUMEUP) != 0)
+		boot_into_recovery = 1;
 	if (keys_get_state(KEY_BACK) != 0)
 		goto fastboot;
-	if (keys_get_state(KEY_CLEAR) != 0)
+	if (keys_get_state(KEY_VOLUMEDOWN) != 0)
 		goto fastboot;
 
 	#if NO_KEYPAD_DRIVER

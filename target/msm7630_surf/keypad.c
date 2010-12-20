@@ -44,7 +44,8 @@ static unsigned char qwerty_keys_new[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 static unsigned int qwerty_keymap[] = {
     [KEYMAP_INDEX(4, 2)] = KEY_BACK,          /* -L on SURF & FFA */
     [KEYMAP_INDEX(3, 4)] = KEY_HOME,          /* +R on SURF & FFA */
-    [KEYMAP_INDEX(1, 4)] = KEY_CLEAR,         /* '-' of left side switch on FLUID */
+    [KEYMAP_INDEX(1, 3)] = KEY_VOLUMEUP,      /* '+' of left side switch on FLUID */
+    [KEYMAP_INDEX(1, 4)] = KEY_VOLUMEDOWN,    /* '-' of left side switch on FLUID */
 };
 
 static struct qwerty_keypad_info qwerty_keypad = {
