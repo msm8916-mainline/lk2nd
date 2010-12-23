@@ -252,6 +252,12 @@ void uart3_clock_init(void)
 	clock_set_rate(UART3_CLK, 19200000 / 4);
 }
 
+void uart2_clock_init(void)
+{
+	clock_enable(UART2_CLK);
+	clock_set_rate(UART2_CLK, 19200000);
+}
+
 void mddi_clock_init(unsigned num, unsigned rate)
 {
 	unsigned clock_id;

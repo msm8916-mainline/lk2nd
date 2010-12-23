@@ -42,16 +42,32 @@
 void platform_init_interrupts(void);
 void platform_init_timer();
 
-void uart3_clock_init(void);
+void uart2_clock_init(void);
 void uart_init(void);
 
 struct fbcon_config *lcdc_init(void);
 
+#define ARRAY_SIZE(a) (sizeof(a)/(sizeof((a)[0])))
+
+static unsigned uart2_gpio_table[] = {
+       GPIO_CFG(49, 2, GPIO_OUTPUT, GPIO_PULL_DOWN, GPIO_2MA),
+       GPIO_CFG(50, 2, GPIO_INPUT, GPIO_PULL_DOWN, GPIO_2MA),
+       GPIO_CFG(51, 2, GPIO_INPUT, GPIO_PULL_DOWN, GPIO_2MA),
+       GPIO_CFG(52, 2, GPIO_OUTPUT, GPIO_PULL_DOWN, GPIO_2MA),
+};
+
+void uart2_mux_init(void)
+{
+       platform_gpios_enable(uart2_gpio_table, ARRAY_SIZE(uart2_gpio_table));
+}
+
 void platform_early_init(void)
 {
-        //uart3_clock_init();
-	//uart_init();
-
+#if WITH_DEBUG_UART
+	uart2_mux_init();
+	uart2_clock_init();
+	uart_init();
+#endif
 	platform_init_interrupts();
 	platform_init_timer();
 }
