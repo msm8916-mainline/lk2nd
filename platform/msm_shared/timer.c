@@ -95,6 +95,8 @@
 #else
 #define DGT_HZ 6144000	/* Uses LPXO/4 (24.576 MHz / 4) */
 #endif
+#elif defined PLATFORM_MSM8X60
+#define DGT_HZ 6750000	/* Uses LPXO/4 (27.0 MHz / 4) */
 #else
 #define DGT_HZ 19200000	/* Uses TCXO (19.2 MHz) */
 #endif
@@ -125,7 +127,7 @@ status_t platform_set_periodic_timer(
 	    writel(1, DGT_CLK_CTL);
 #endif
 #ifdef PLATFORM_MSM8X60
-	writel(1, DGT_CLK_CTL);
+	writel(3, DGT_CLK_CTL);
 #endif
 	enter_critical_section();
 
