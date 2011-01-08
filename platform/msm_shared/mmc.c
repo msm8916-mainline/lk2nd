@@ -53,8 +53,10 @@ static const unsigned int xfer_rate_unit[] =
 static const unsigned int xfer_rate_value[] =
 { 0, 10, 12, 13, 15, 20, 26, 30, 35, 40, 45, 52, 55, 60, 70, 80 };
 
-char *ext3_partitions[] = {"system", "userdata", "persist"};
+char *ext3_partitions[] = {"system", "userdata", "persist", "cache"};
+char *vfat_partitions[] = {"modem", "mdm", "NONE"};
 unsigned int ext3_count = 0;
+unsigned int vfat_count = 0;
 
 static unsigned mmc_sdc_clk[] = { SDC1_CLK, SDC2_CLK, SDC3_CLK, SDC4_CLK};
 static unsigned mmc_sdc_pclk[] = { SDC1_PCLK, SDC2_PCLK, SDC3_PCLK, SDC4_PCLK};
@@ -2405,8 +2407,11 @@ static void mbr_fill_name (struct mbr_entry *mbr_ent, unsigned int type)
         memset(mbr_ent->name, 0, 64);
         case MMC_MODEM_TYPE:
         case MMC_MODEM_TYPE2:
-            /* if there are more than one with type "modem", mmc_ptn_offset will return the first one */
-            memcpy(mbr_ent->name,"modem",5);
+            /* if already assigned last name available then return */
+            if(!strcmp((const char *)vfat_partitions[vfat_count], "NONE"))
+                return;
+            strcpy((char *)mbr_ent->name,(const char *)vfat_partitions[vfat_count]);
+            vfat_count++;
             break;
         case MMC_SBL1_TYPE:
             memcpy(mbr_ent->name,"sbl1",4);
