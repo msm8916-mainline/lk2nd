@@ -39,6 +39,7 @@ static unsigned char qwerty_keys_new[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 static unsigned int qwerty_keymap[] = {
     [KEYMAP_INDEX(1, 3)] = KEY_BACK,          /* Volume down key */
+    [KEYMAP_INDEX(0, 3)] = KEY_HOME,          /* Volume up key */
 };
 
 static struct qwerty_keypad_info qwerty_keypad = {
