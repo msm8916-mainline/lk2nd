@@ -49,7 +49,8 @@ unsigned* target_atag_mem(unsigned* ptr)
         {
             if ((ram_ptable.parts[i].attr == READWRITE)
                 && (ram_ptable.parts[i].domain == APPS_DOMAIN)
-                && (ram_ptable.parts[i].type == APPS_MEMORY))
+                && (ram_ptable.parts[i].type == APPS_MEMORY)
+                && (ram_ptable.parts[i].category != IMEM))
             {
                 /* ATAG_MEM */
                 *ptr++ = 4;
