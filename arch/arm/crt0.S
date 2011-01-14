@@ -44,6 +44,7 @@ reset:
 #endif
 	/* do some cpu setup */
 #if ARM_WITH_CP15
+        /* Read SCTLR */
 	mrc		p15, 0, r0, c1, c0, 0
 		/* XXX this is currently for arm926, revist with armv6 cores */
 		/* new thumb behavior, low exception vectors, i/d cache disable, mmu disabled */
@@ -51,6 +52,7 @@ reset:
 	bic		r0, r0, #(1<<2 | 1<<0)
 		/* enable alignment faults */
 	orr		r0, r0, #(1<<1)
+        /* Write SCTLR */
 	mcr		p15, 0, r0, c1, c0, 0
 #ifdef ENABLE_TRUSTZONE
   /*nkazi: not needed ? Setting VBAR to location of new vector table : 0x80000      */

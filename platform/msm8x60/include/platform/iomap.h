@@ -36,21 +36,30 @@
 #define MSM_UART3_BASE	0xA9C00000
 
 #define MSM_VIC_BASE	0x02080000
-#define MSM_TMR_BASE	0x02000000
+
+#ifdef PLATFORM_MSM8960
+        #define MSM_TMR_BASE        0x0200A000
+        #define MSM_TCSR_BASE       0x1A400000
+        #define MSM_GIC_CPU_BASE    0x02002000
+        #define MSM_GIC_DIST_BASE   0x02000000
+#else
+        #define MSM_TMR_BASE        0x02000000
+        #define MSM_TCSR_BASE       0x16B00000
+        #define MSM_GIC_CPU_BASE    0x02081000
+        #define MSM_GIC_DIST_BASE   0x02080000
+#endif
+
 #define MSM_GPT_BASE    (MSM_TMR_BASE + 0x04)
 #define MSM_CSR_BASE    0x02081000
 #define MSM_GCC_BASE	0x02082000
 #define MSM_ACC0_BASE	0x02041000
 #define MSM_ACC1_BASE	0x02051000
 
-#define MSM_TCSR_BASE   0x16B00000
 #define TCSR_WDOG_CFG   0x30
 #define MSM_WDT0_RST    (MSM_TMR_BASE + 0x38)
 #define MSM_WDT0_EN     (MSM_TMR_BASE + 0x40)
 #define MSM_WDT0_BT     (MSM_TMR_BASE + 0x4C)
 
-#define MSM_GIC_CPU_BASE    0x02081000
-#define MSM_GIC_DIST_BASE   0x02080000
 
 #define MSM_SDC1_BASE       0x12400000
 

@@ -104,7 +104,11 @@ enum MSM_BOOT_UART_DM_BITS_PER_CHAR
 
 
 /* Using GSBI12 for UART */
-#define MSM_BOOT_GSBI_BASE                   0x19C00000
+#ifdef PLATFORM_MSM8960
+        #define MSM_BOOT_GSBI_BASE                   0x16100000
+#else
+        #define MSM_BOOT_GSBI_BASE                   0x19C00000
+#endif
 
 #define MSM_BOOT_GSBI_CTRL_REG               MSM_BOOT_GSBI_BASE
 
