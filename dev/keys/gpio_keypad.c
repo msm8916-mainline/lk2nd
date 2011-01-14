@@ -503,11 +503,16 @@ int pm8058_gpio_config_kypd_sns(int gpio_start, int num_gpios)
 
 void ssbi_gpio_init(void)
 {
-    unsigned char kypd_cntl_init = 0x84;
+    unsigned char kypd_cntl_init;
     unsigned char kypd_scan_init = 0x20;
     int rows = (qwerty_keypad->keypad_info)->rows;
     int columns = (qwerty_keypad->keypad_info)->columns;
     write_func wr_function = (qwerty_keypad->keypad_info)->wr_func;
+    unsigned char drv_bits[] = {
+	    0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 4, 5, 5, 6, 6, 6, 7, 7, 7 };
+    unsigned char sns_bits[] = { 0, 0, 0, 0, 0, 0, 1, 2, 3 };
+
+    kypd_cntl_init = ((drv_bits[rows] << 2) | (sns_bits[columns] << 5));
 
     if ((*wr_function)(&kypd_cntl_init, 1, SSBI_REG_KYPD_CNTL_ADDR))
       dprintf (CRITICAL, "Error in initializing SSBI_REG_KYPD_CNTL register\n");
