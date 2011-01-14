@@ -28,6 +28,7 @@
  */
 
 #include <reg.h>
+#include <endian.h>
 #include <mipi_dsi.h>
 #include <dev/fbcon.h>
 #include <target/display.h>
@@ -216,6 +217,98 @@ int mipi_dsi_cmds_tx(struct mipi_dsi_cmd *cmds, int count)
         cm++;
     }
     return ret;
+}
+
+/*
+ * mipi_dsi_cmd_rx: can receive at most 16 bytes
+ * per transaction since it only have 4 32bits reigsters
+ * to hold data.
+ * therefore Maximum Return Packet Size need to be set to 16.
+ * any return data more than MRPS need to be break down
+ * to multiple transactions.
+ */
+int mipi_dsi_cmds_rx(char **rp, int len)
+{
+    uint32_t *lp, data;
+    char * dp;
+    int i, off, cnt;
+    int rlen, res;
+
+    if(len <= 2)
+        rlen = 4; /* short read */
+    else
+        rlen = MIPI_DSI_MRPS + 6; /* 4 bytes header + 2 bytes crc */
+
+    if (rlen > MIPI_DSI_REG_LEN) {
+        return 0;
+    }
+
+    res = rlen & 0x03;
+
+    rlen += res; /* 4 byte align */
+    lp = (uint32_t *)(*rp);
+
+    cnt = rlen;
+    cnt += 3;
+    cnt >>=2;
+
+    if (cnt > 4)
+        cnt = 4; /* 4 x 32 bits registers only */
+
+    off = 0x068; /* DSI_RDBK_DATA0 */
+    off += ((cnt - 1) * 4);
+
+    for (i = 0; i < cnt; i++) {
+        data = (uint32_t)readl(MIPI_DSI_BASE + off);
+        *lp++ = ntohl(data);    /* to network byte order */
+        off -= 4;
+    }
+
+    if(len > 2)
+    {
+        /*First 4 bytes + paded bytes will be header next len bytes would be payload*/
+        for(i = 0; i < len; i++)
+        {
+            dp = *rp;
+            dp[i] = dp[4 + res + i];
+        }
+    }
+
+    return len;
+}
+
+static int mipi_dsi_cmd_bta_sw_trigger(void)
+{
+    uint32_t data;
+    int cnt = 0;
+    int err = 0;
+
+    writel(0x01, MIPI_DSI_BASE + 0x094);  /* trigger */
+    while (cnt < 10000) {
+        data = readl(MIPI_DSI_BASE + 0x0004); /*DSI_STATUS*/
+        if ((data & 0x0010) == 0)
+            break;
+        cnt++;
+    }
+    if(cnt == 10000)
+        err = 1;
+    return err;
+}
+
+static uint32_t mipi_novatek_manufacture_id(void)
+{
+    char rec_buf[24];
+    char *rp = rec_buf;
+    uint32_t *lp, data;
+
+    mipi_dsi_cmds_tx(&novatek_panel_manufacture_id_cmd, 1);
+    mipi_dsi_cmds_rx(&rp, 3);
+
+    lp = (uint32_t *)rp;
+    data = (uint32_t)*lp;
+    data = ntohl(data);
+    data = data >> 8;
+    return data;
 }
 
 int mipi_dsi_panel_initialize(struct mipi_dsi_panel_config *pinfo)
@@ -640,6 +733,10 @@ struct fbcon_config *mipi_init(void)
     configure_dsicore_pclk();
     mipi_dsi_phy_ctrl_config(panel_info);
     status += mipi_dsi_panel_initialize(panel_info);
+#if DISPLAY_MIPI_PANEL_NOVATEK_BLUE
+    mipi_dsi_cmd_bta_sw_trigger();
+    mipi_novatek_manufacture_id();
+#endif
     mipi_fb_cfg.base = MIPI_FB_ADDR;
 
     if (panel_info->mode == MIPI_VIDEO_MODE)

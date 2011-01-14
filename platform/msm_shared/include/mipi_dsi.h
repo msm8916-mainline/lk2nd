@@ -163,6 +163,9 @@
 #define MDP_INTR_STATUS                       (0x05100054)
 #define MMSS_SFPB_GPREG                       (0x05700058)
 
+#define MIPI_DSI_MRPS       0x04 /* Maximum Return Packet Size */
+#define MIPI_DSI_REG_LEN    16   /* 4 x 4 bytes register */
+
 //BEGINNING OF Tochiba Config- video mode
 
 static const unsigned char toshiba_panel_mcap_off[8] = {
@@ -307,10 +310,13 @@ static char novatek_panel_enter_sleep[4] = {0x10, 0x00, 0x05, 0x80}; /* DTYPE_DC
 static char novatek_panel_exit_sleep[4] = {0x11, 0x00, 0x05, 0x80}; /* DTYPE_DCS_WRITE */
 static char novatek_panel_display_off[4] = {0x28, 0x00, 0x05, 0x80}; /* DTYPE_DCS_WRITE */
 static char novatek_panel_display_on[4] = {0x29, 0x00, 0x05, 0x80}; /* DTYPE_DCS_WRITE */
+static char novatek_panel_max_packet[4] = {0x04, 0x00, 0x37, 0x80}; /* DTYPE_SET_MAX_PACKET */
 
 static char novatek_panel_set_onelane[4] = {0xae, 0x01, 0x15, 0x80}; /* DTYPE_DCS_WRITE1 */
 static char novatek_panel_rgb_888[4] = {0x3A, 0x77, 0x15, 0x80}; /* DTYPE_DCS_WRITE1 */
 static char novatek_panel_set_twolane[4] = {0xae, 0x03, 0x15, 0x80}; /* DTYPE_DCS_WRITE1 */
+
+static char novatek_panel_manufacture_id[4] = {0x04, 0x00, 0x06, 0xA0}; /* DTYPE_DCS_READ */
 
 /* commands by Novatke */
 static char novatek_panel_f4[4] = {0xf4, 0x55, 0x15, 0x80}; /* DTYPE_DCS_WRITE1 */
@@ -402,10 +408,14 @@ static struct mipi_dsi_phy_ctrl mipi_dsi_toshiba_panel_phy_ctrl = {
 #endif
 };
 
+static struct mipi_dsi_cmd novatek_panel_manufacture_id_cmd =
+    {sizeof(novatek_panel_manufacture_id), novatek_panel_manufacture_id};
+
 static struct mipi_dsi_cmd novatek_panel_cmd_mode_cmds[] = {
     {sizeof(novatek_panel_sw_reset), novatek_panel_sw_reset},
     {sizeof(novatek_panel_exit_sleep), novatek_panel_exit_sleep},
     {sizeof(novatek_panel_display_on), novatek_panel_display_on},
+    {sizeof(novatek_panel_max_packet), novatek_panel_max_packet},
     {sizeof(novatek_panel_f4), novatek_panel_f4},
     {sizeof(novatek_panel_8c), novatek_panel_8c},
     {sizeof(novatek_panel_ff), novatek_panel_ff},
