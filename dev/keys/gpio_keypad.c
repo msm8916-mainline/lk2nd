@@ -545,6 +545,7 @@ scan_qwerty_keypad(struct timer *timer, time_t now, void *arg)
       dprintf (CRITICAL, "Error in initializing SSBI_REG_KYPD_CNTL register\n");
 
     while (rows--) {
+         columns = qwerty_keypad->keypad_info->columns;
          if (((qwerty_keypad->keypad_info)->rec_keys[rows]
 	      != (qwerty_keypad->keypad_info)->old_keys[rows])
 	      && ((qwerty_keypad->keypad_info)->rec_keys[rows] != 0x00)
