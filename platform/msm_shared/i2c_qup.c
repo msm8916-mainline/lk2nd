@@ -251,7 +251,7 @@ static int qup_i2c_poll_state(struct qup_i2c_dev *dev, unsigned state)
 {
     unsigned retries = 0;
 
-    dprintf(CRITICAL, "Polling Status for state:0x%x\n", state);
+    dprintf(INFO, "Polling Status for state:0x%x\n", state);
 
     while (retries != 2000) {
         unsigned status = readl(dev->base + QUP_STATE);
@@ -510,7 +510,7 @@ int qup_i2c_xfer(struct qup_i2c_dev *dev, struct i2c_msg msgs[], int num)
         dev->in_blk_sz /= 2;
         dev->out_fifo_sz = dev->out_blk_sz * (2 << ((fifo_reg & 0x1C) >> 2));
         dev->in_fifo_sz = dev->in_blk_sz * (2 << ((fifo_reg & 0x380) >> 7));
-        dprintf(CRITICAL, "QUP IN:bl:%d, ff:%d, OUT:bl:%d, ff:%d\n",
+        dprintf(INFO, "QUP IN:bl:%d, ff:%d, OUT:bl:%d, ff:%d\n",
                 dev->in_blk_sz, dev->in_fifo_sz,
                 dev->out_blk_sz, dev->out_fifo_sz);
     }
@@ -618,7 +618,7 @@ int qup_i2c_xfer(struct qup_i2c_dev *dev, struct i2c_msg msgs[], int num)
                 ret = err;
                 goto out_err;
             }
-            dprintf(CRITICAL, "idx:%d, rem:%d, num:%d, mode:%d\n",
+            dprintf(INFO, "idx:%d, rem:%d, num:%d, mode:%d\n",
                     idx, rem, num, dev->mode);
 
             qup_print_status(dev);
