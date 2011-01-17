@@ -42,6 +42,7 @@
 #define LINUX_MACHTYPE_8660_SURF    2755
 #define LINUX_MACHTYPE_8660_FFA     3017
 #define LINUX_MACHTYPE_8660_FLUID   3124
+#define LINUX_MACHTYPE_8660_QT      3298
 #define LINUX_MACHTYPE_8660_CHARM_SURF   3181
 #define LINUX_MACHTYPE_8660_CHARM_FFA    3199
 
@@ -115,6 +116,9 @@ unsigned board_machtype(void)
 		case 0x3:
 			hw_platform = HW_PLATFORM_FLUID;
 			break;
+		case 0x6:
+			hw_platform = HW_PLATFORM_QT;
+			break;
 		default:
 			/* Writing to Debug LED register and reading back to auto detect
 			SURF and FFA. If we read back, it is SURF */
@@ -139,6 +143,8 @@ unsigned board_machtype(void)
 				mach_id = LINUX_MACHTYPE_8660_FFA;
 			else if (hw_platform == HW_PLATFORM_FLUID)
 				mach_id = LINUX_MACHTYPE_8660_FLUID;
+			else if (hw_platform == HW_PLATFORM_QT)
+				mach_id = LINUX_MACHTYPE_8660_QT;
 			break;
 
 		case MDM9200:
