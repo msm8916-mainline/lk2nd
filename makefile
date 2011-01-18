@@ -34,6 +34,14 @@ OUTBIN := $(BUILDDIR)/lk.bin
 OUTELF := $(BUILDDIR)/lk
 CONFIGHEADER := $(BUILDDIR)/config.h
 
+#Initialize the command-line flag ENABLE_TRUSTZONE. Value for flag passed in at command-line will take precedence
+ENABLE_TRUSTZONE := 0
+
+ifeq ($(ENABLE_TRUSTZONE),1)
+	INPUT_TZ_BIN := tzbsp/tzbsp.bin
+	OUTPUT_TZ_BIN := $(BUILDDIR)/tzbsp_bin.o
+endif
+
 INCLUDES := -I$(BUILDDIR) -Iinclude
 CFLAGS := -O2 -g -fno-builtin -finline -W -Wall -Wno-multichar -Wno-unused-parameter -Wno-unused-function -include $(CONFIGHEADER)
 #CFLAGS += -Werror

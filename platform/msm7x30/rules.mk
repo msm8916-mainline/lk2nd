@@ -23,7 +23,15 @@ OBJS += \
 	$(LOCAL_DIR)/panel.o \
 	$(LOCAL_DIR)/acpuclock.o
 
-LINKER_SCRIPT += $(BUILDDIR)/system-onesegment.ld
+ifeq ($(ENABLE_TRUSTZONE),1)
+	ifeq ($(ENABLE_ROMLITE_LOCAL_TEST), 1)
+		LINKER_SCRIPT += $(BUILDDIR)/trustzone-test-system-onesegment.ld
+	else
+		LINKER_SCRIPT += $(BUILDDIR)/trustzone-system-onesegment.ld
+	endif
+else
+	LINKER_SCRIPT += $(BUILDDIR)/system-onesegment.ld
+endif
 
 include platform/msm_shared/rules.mk
 

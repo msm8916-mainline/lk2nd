@@ -39,7 +39,12 @@ EMMCBOOT.MBN: emmc_appsboothd.mbn $(OUTBIN)
 emmc_appsboothd.mbn: mkheader $(OUTBIN)
 	$(SRC_DIR)/mkheader $(OUTBIN) $(APPSBOOTHEADER_DIR)/emmc_appsboothd.mbn
 
+ifeq ($(ENABLE_TRUSTZONE), 1)
+mkheader: $(SRC_DIR)/mkheader.c
+	${COMPILER} -DMEMBASE=$(LK_START) $(SRC_DIR)/mkheader.c -o $(SRC_DIR)/mkheader
+	cp $(SRC_DIR)/mkheader $(APPSBOOTHEADER_DIR)/mkheader
+else
 mkheader: $(SRC_DIR)/mkheader.c
 	${COMPILER} -DMEMBASE=$(MEMBASE) $(SRC_DIR)/mkheader.c -o $(SRC_DIR)/mkheader
 	cp $(SRC_DIR)/mkheader $(APPSBOOTHEADER_DIR)/mkheader
-
+endif

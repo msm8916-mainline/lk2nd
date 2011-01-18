@@ -26,8 +26,14 @@ $(BUILDDIR)/%.Ao: %.S $(SRCDEPS)
 	@echo compiling $<
 	$(NOECHO)$(CC) $(CFLAGS) $(ASMFLAGS) $(INCLUDES) -c $< -MD -MT $@ -MF $(@:%o=%d) -o $@
 
+ifeq ($(ENABLE_TRUSTZONE), 1)
+$(BUILDDIR)/%.o: %.S $(SRCDEPS)
+	@$(MKDIR)
+	@echo compiling $<
+	$(NOECHO)$(CC) -DENABLE_TRUSTZONE $(CFLAGS) $(ASMFLAGS) $(INCLUDES) -c $< -MD -MT $@ -MF $(@:%o=%d) -o $@
+else
 $(BUILDDIR)/%.o: %.S $(SRCDEPS)
 	@$(MKDIR)
 	@echo compiling $<
 	$(NOECHO)$(CC) $(CFLAGS) $(ASMFLAGS) $(INCLUDES) -c $< -MD -MT $@ -MF $(@:%o=%d) -o $@
-
+endif
