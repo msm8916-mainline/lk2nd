@@ -94,6 +94,9 @@ enum {
     UNKNOWN = 0,
     MDM9200 = 57,
     MDM9600 = 58,
+    MSM8260 = 70,
+    MSM8660 = 71,
+    APQ8060 = 86,
 };
 
 enum platform

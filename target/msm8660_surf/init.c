@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
- * Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2011, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -37,6 +37,7 @@
 #include <dev/flash.h>
 #include <smem.h>
 #include <platform/iomap.h>
+#include <baseband.h>
 #include <reg.h>
 
 #define LINUX_MACHTYPE_8660_SURF    2755
@@ -236,4 +237,40 @@ void debug_led_write(char val)
 char debug_led_read()
 {
     return readb(SURF_DEBUG_LED_ADDR);
+}
+
+unsigned target_baseband()
+{
+	struct smem_board_info_v5 board_info_v5;
+	unsigned int board_info_len = 0;
+	unsigned smem_status = 0;
+	unsigned format = 0;
+	unsigned baseband = BASEBAND_MSM;
+
+	smem_status = smem_read_alloc_entry_offset(SMEM_BOARD_INFO_LOCATION,
+					&format, sizeof(format), 0);
+	if(!smem_status)
+	{
+		if (format >= 5)
+		{
+			board_info_len = sizeof(board_info_v5);
+
+			smem_status = smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
+							&board_info_v5, board_info_len);
+			if(!smem_status)
+			{
+				/* Check for LTE fused targets or APQ.  Default to MSM */
+				if (board_info_v5.fused_chip == MDM9200)
+					baseband = BASEBAND_CSFB;
+				else if (board_info_v5.fused_chip == MDM9600)
+					baseband = BASEBAND_SVLTE;
+				else if (board_info_v5.board_info_v3.msm_id == APQ8060)
+					baseband = BASEBAND_APQ;
+				else
+					baseband = BASEBAND_MSM;
+			}
+		}
+	}
+
+	return baseband;
 }

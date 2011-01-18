@@ -2,7 +2,7 @@
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2011, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -42,6 +42,7 @@
 #include <lib/ptable.h>
 #include <dev/keys.h>
 #include <dev/fbcon.h>
+#include <baseband.h>
 
 #include "recovery.h"
 #include "bootimg.h"
@@ -62,6 +63,11 @@
 
 static const char *emmc_cmdline = " androidboot.emmc=true";
 static const char *battchg_pause = " androidboot.battchg_pause=true";
+
+static const char *baseband_apq   = " androidboot.baseband=apq";
+static const char *baseband_msm   = " androidboot.baseband=msm";
+static const char *baseband_csfb  = " androidboot.baseband=csfb";
+static const char *baseband_svlte = " androidboot.baseband=svlte";
 
 static struct udc_device surf_udc_device = {
 	.vendor_id	= 0x18d1,
@@ -162,6 +168,27 @@ void boot_linux(void *kernel, unsigned *tags,
 		pause_at_bootup = 1;
 		cmdline_len += strlen(battchg_pause);
 	}
+
+	/* Determine correct androidboot.baseband to use */
+	switch(target_baseband())
+	{
+		case BASEBAND_APQ:
+			cmdline_len += strlen(baseband_apq);
+			break;
+
+		case BASEBAND_MSM:
+			cmdline_len += strlen(baseband_msm);
+			break;
+
+		case BASEBAND_CSFB:
+			cmdline_len += strlen(baseband_csfb);
+			break;
+
+		case BASEBAND_SVLTE:
+			cmdline_len += strlen(baseband_svlte);
+			break;
+	}
+
 	if (cmdline_len > 0) {
 		const char *src;
 		char *dst;
@@ -185,6 +212,33 @@ void boot_linux(void *kernel, unsigned *tags,
 			src = battchg_pause;
 			if (have_cmdline) --dst;
 			while ((*dst++ = *src++));
+		}
+
+		switch(target_baseband())
+		{
+			case BASEBAND_APQ:
+				src = baseband_apq;
+				if (have_cmdline) --dst;
+				while ((*dst++ = *src++));
+				break;
+
+			case BASEBAND_MSM:
+				src = baseband_msm;
+				if (have_cmdline) --dst;
+				while ((*dst++ = *src++));
+				break;
+
+			case BASEBAND_CSFB:
+				src = baseband_csfb;
+				if (have_cmdline) --dst;
+				while ((*dst++ = *src++));
+				break;
+
+			case BASEBAND_SVLTE:
+				src = baseband_svlte;
+				if (have_cmdline) --dst;
+				while ((*dst++ = *src++));
+				break;
 		}
 		ptr += (n / 4);
 	}
