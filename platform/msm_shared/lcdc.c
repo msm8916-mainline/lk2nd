@@ -2,7 +2,7 @@
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2011, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,6 +34,7 @@
 #include <platform/iomap.h>
 #include <dev/fbcon.h>
 #include <target/display.h>
+#include <dev/lcdc.h>
 
 #if PLATFORM_MSM7X30
 #define MSM_MDP_BASE1 0xA3F00000
@@ -66,7 +67,6 @@
 #define DMA_OUT_SEL_LCDC                    BIT(20)
 #define DMA_IBUF_FORMAT_RGB565              BIT(25)
 
-#define MDP_RGB_SIZE	((LCDC_FB_HEIGHT<<16) + LCDC_FB_WIDTH)
 #define MDP_RGB_565_FORMAT (BIT(14) | (1<<9) | (0<<8) | (0<<6) | (1<<4) | (1<<2) | (2<<0))
 
 static struct fbcon_config fb_cfg = {
@@ -81,8 +81,40 @@ static struct fbcon_config fb_cfg = {
 
 void lcdc_clock_init(unsigned rate);
 
-struct fbcon_config *lcdc_init(void)
+struct fbcon_config *lcdc_init_set( struct lcdc_timing_parameters *custom_timing_param )
 {
+	struct lcdc_timing_parameters timing_param;
+	unsigned mdp_rgb_size;
+
+	if( custom_timing_param == DEFAULT_LCD_TIMING )
+	{
+		timing_param.lcdc_hsync_pulse_width_dclk   = LCDC_HSYNC_PULSE_WIDTH_DCLK;
+		timing_param.lcdc_hsync_back_porch_dclk    = LCDC_HSYNC_BACK_PORCH_DCLK;
+		timing_param.lcdc_hsync_front_porch_dclk   = LCDC_HSYNC_FRONT_PORCH_DCLK;
+		timing_param.lcdc_hsync_skew_dclk          = LCDC_HSYNC_SKEW_DCLK;
+
+		timing_param.lcdc_vsync_pulse_width_lines  = LCDC_VSYNC_PULSE_WIDTH_LINES;
+		timing_param.lcdc_vsync_back_porch_lines   = LCDC_VSYNC_BACK_PORCH_LINES;
+		timing_param.lcdc_vsync_front_porch_lines  = LCDC_VSYNC_FRONT_PORCH_LINES;
+	}
+	else
+	{
+		/*use custom timing parameters*/
+		timing_param.lcdc_hsync_pulse_width_dclk   = custom_timing_param->lcdc_hsync_pulse_width_dclk;
+		timing_param.lcdc_hsync_back_porch_dclk    = custom_timing_param->lcdc_hsync_back_porch_dclk;
+		timing_param.lcdc_hsync_front_porch_dclk   = custom_timing_param->lcdc_hsync_front_porch_dclk;
+		timing_param.lcdc_hsync_skew_dclk          = custom_timing_param->lcdc_hsync_skew_dclk;
+
+		timing_param.lcdc_vsync_pulse_width_lines  = custom_timing_param->lcdc_vsync_pulse_width_lines;
+		timing_param.lcdc_vsync_back_porch_lines   = custom_timing_param->lcdc_vsync_back_porch_lines;
+		timing_param.lcdc_vsync_front_porch_lines  = custom_timing_param->lcdc_vsync_front_porch_lines;
+
+		/* only set when using custom timing since initialized with defaults  */
+		fb_cfg.height = custom_timing_param->lcdc_fb_height;
+		fb_cfg.width  = custom_timing_param->lcdc_fb_width;
+	}
+	mdp_rgb_size =  (fb_cfg.height <<16) + fb_cfg.width;
+
 	dprintf(INFO, "lcdc_init(): panel is %d x %d\n", fb_cfg.width, fb_cfg.height);
 #if PLATFORM_MSM8X60
 	fb_cfg.base = LCDC_FB_ADDR;
@@ -101,17 +133,28 @@ struct fbcon_config *lcdc_init(void)
 	       DMA_IBUF_FORMAT_RGB565|DMA_DSTC0G_8BITS|DMA_DSTC1B_8BITS|DMA_DSTC2R_8BITS,
 	       MSM_MDP_BASE1 + 0x90000);
 
-	int hsync_period  = LCDC_HSYNC_PULSE_WIDTH_DCLK + LCDC_HSYNC_BACK_PORCH_DCLK + fb_cfg.width + LCDC_HSYNC_FRONT_PORCH_DCLK;
-	int vsync_period  = (LCDC_VSYNC_PULSE_WIDTH_LINES + LCDC_VSYNC_BACK_PORCH_LINES + fb_cfg.height + LCDC_VSYNC_FRONT_PORCH_LINES) * hsync_period;
-	int hsync_start_x = LCDC_HSYNC_PULSE_WIDTH_DCLK + LCDC_HSYNC_BACK_PORCH_DCLK;
-	int hsync_end_x   = hsync_period - LCDC_HSYNC_FRONT_PORCH_DCLK - 1;
+	int hsync_period  = timing_param.lcdc_hsync_pulse_width_dclk +
+						timing_param.lcdc_hsync_back_porch_dclk +
+						fb_cfg.width +
+						timing_param.lcdc_hsync_front_porch_dclk;
+	int vsync_period  = ( timing_param.lcdc_vsync_pulse_width_lines +
+						  timing_param.lcdc_vsync_back_porch_lines +
+						  fb_cfg.height + timing_param.lcdc_vsync_front_porch_lines )
+						* hsync_period;
+	int hsync_start_x = timing_param.lcdc_hsync_pulse_width_dclk +
+						timing_param.lcdc_hsync_back_porch_dclk;
+	int hsync_end_x   = hsync_period - timing_param.lcdc_hsync_front_porch_dclk - 1;
 	int display_hctl  = (hsync_end_x << 16) | hsync_start_x;
-	int display_vstart= (LCDC_VSYNC_PULSE_WIDTH_LINES + LCDC_VSYNC_BACK_PORCH_LINES) * hsync_period + LCDC_HSYNC_SKEW_DCLK;
-	int display_vend  = vsync_period - (LCDC_VSYNC_FRONT_PORCH_LINES * hsync_period) + LCDC_HSYNC_SKEW_DCLK - 1;
+	int display_vstart= ( timing_param.lcdc_vsync_pulse_width_lines +
+						  timing_param.lcdc_vsync_back_porch_lines )
+						* hsync_period + timing_param.lcdc_hsync_skew_dclk;
+	int display_vend  = vsync_period -
+						( timing_param.lcdc_vsync_front_porch_lines * hsync_period)
+						+ timing_param.lcdc_hsync_skew_dclk - 1;
 
-	writel((hsync_period << 16) | LCDC_HSYNC_PULSE_WIDTH_DCLK, MSM_MDP_BASE1 + LCDC_BASE + 0x4);
+	writel((hsync_period << 16) | timing_param.lcdc_hsync_pulse_width_dclk, MSM_MDP_BASE1 + LCDC_BASE + 0x4);
 	writel(vsync_period, MSM_MDP_BASE1 + LCDC_BASE + 0x8);
-	writel(LCDC_VSYNC_PULSE_WIDTH_LINES * hsync_period, MSM_MDP_BASE1 + LCDC_BASE + 0xc);
+	writel(timing_param.lcdc_vsync_pulse_width_lines * hsync_period, MSM_MDP_BASE1 + LCDC_BASE + 0xc);
 	writel(display_hctl, MSM_MDP_BASE1 + LCDC_BASE + 0x10);
 	writel(display_vstart, MSM_MDP_BASE1 + LCDC_BASE + 0x14);
 	writel(display_vend, MSM_MDP_BASE1 + LCDC_BASE + 0x18);
@@ -119,7 +162,7 @@ struct fbcon_config *lcdc_init(void)
 #if MDP4
 	writel(0xf, MSM_MDP_BASE1 + LCDC_BASE + 0x28);
 	writel(0xff, MSM_MDP_BASE1 + LCDC_BASE + 0x2c);
-	writel(LCDC_HSYNC_SKEW_DCLK, MSM_MDP_BASE1 + LCDC_BASE + 0x30);
+	writel(timing_param.lcdc_hsync_skew_dclk, MSM_MDP_BASE1 + LCDC_BASE + 0x30);
 	writel(0x3, MSM_MDP_BASE1 + LCDC_BASE + 0x38);
 	writel(0, MSM_MDP_BASE1 + LCDC_BASE + 0x1c);
 	writel(0, MSM_MDP_BASE1 + LCDC_BASE + 0x20);
@@ -127,8 +170,8 @@ struct fbcon_config *lcdc_init(void)
 
 	/* setting for single layer direct out mode for rgb565 source */
 	writel(0x100, MSM_MDP_BASE1 + 0x10100);
-	writel(MDP_RGB_SIZE, MSM_MDP_BASE1 + 0x40000);
-	writel(MDP_RGB_SIZE, MSM_MDP_BASE1 + 0x40008);
+	writel(mdp_rgb_size, MSM_MDP_BASE1 + 0x40000);
+	writel(mdp_rgb_size, MSM_MDP_BASE1 + 0x40008);
 	writel(fb_cfg.base, MSM_MDP_BASE1 + 0x40010);
 	writel(fb_cfg.width * fb_cfg.bpp / 8, MSM_MDP_BASE1 + 0x40040);
 	writel(0x00, MSM_MDP_BASE1 + 0x41008);
@@ -143,7 +186,7 @@ struct fbcon_config *lcdc_init(void)
 #else
 	writel(0, MSM_MDP_BASE1 + LCDC_BASE + 0x28);
 	writel(0xff, MSM_MDP_BASE1 + LCDC_BASE + 0x2c);
-	writel(LCDC_HSYNC_SKEW_DCLK, MSM_MDP_BASE1 + LCDC_BASE + 0x30);
+	writel(timing_param.lcdc_hsync_skew_dclk, MSM_MDP_BASE1 + LCDC_BASE + 0x30);
 	writel(0, MSM_MDP_BASE1 + LCDC_BASE + 0x38);
 	writel(0, MSM_MDP_BASE1 + LCDC_BASE + 0x1c);
 	writel(0, MSM_MDP_BASE1 + LCDC_BASE + 0x20);
@@ -152,6 +195,11 @@ struct fbcon_config *lcdc_init(void)
 #endif
 
 	return &fb_cfg;
+}
+
+struct fbcon_config *lcdc_init(void)
+{
+	return lcdc_init_set( DEFAULT_LCD_TIMING );
 }
 
 void lcdc_shutdown(void)

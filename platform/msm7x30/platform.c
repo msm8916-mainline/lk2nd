@@ -38,6 +38,7 @@
 #include <platform/debug.h>
 #include <mddi_hw.h>
 #include "gpio_hw.h"
+#include <dev/lcdc.h>
 
 void platform_init_interrupts(void);
 void platform_init_timer();
@@ -113,7 +114,7 @@ void mdp4_display_intf_sel(int output, int intf)
 
 void display_init(void)
 {
-    struct fbcon_config *fb_cfg;
+	struct fbcon_config *fb_cfg;
 
 #if DISPLAY_TYPE_MDDI
     mddi_pmdh_clock_init();
@@ -125,8 +126,10 @@ void display_init(void)
 #endif
 
 #if DISPLAY_TYPE_LCDC
+    struct lcdc_timing_parameters *lcd_timing;
     mdp_lcdc_clock_init();
-    fb_cfg = lcdc_init();
+    lcd_timing = get_lcd_timing();
+    fb_cfg = lcdc_init_set( lcd_timing );
     panel_poweron();
     fbcon_setup(fb_cfg);
 #endif

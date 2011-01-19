@@ -39,14 +39,7 @@
 #include <smem.h>
 #include <reg.h>
 #include <platform/iomap.h>
-
-#define LINUX_MACHTYPE_7x30_SURF          2679
-#define LINUX_MACHTYPE_7x30_FFA           2707
-#define LINUX_MACHTYPE_7x30_FLUID         2741
-#define LINUX_MACHTYPE_8x55_SURF          2768
-#define LINUX_MACHTYPE_8x55_FFA           2769
-#define LINUX_MACHTYPE_8x55_SVLTE_FFA     2863
-#define LINUX_MACHTYPE_8x55_SVLTE_SURF    2864
+#include <platform/machtype.h>
 
 #define MSM8255_ID                 74
 #define MSM8655_ID                 75

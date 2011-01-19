@@ -21,6 +21,7 @@ OBJS += \
 	$(LOCAL_DIR)/interrupts.o \
 	$(LOCAL_DIR)/gpio.o \
 	$(LOCAL_DIR)/panel.o \
+	$(LOCAL_DIR)/panel_sharp_wvga.o \
 	$(LOCAL_DIR)/acpuclock.o
 
 ifeq ($(ENABLE_TRUSTZONE),1)

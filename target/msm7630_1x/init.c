@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
- * Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2011, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -36,12 +36,7 @@
 #include <lib/ptable.h>
 #include <dev/flash.h>
 #include <smem.h>
-
-#define LINUX_MACHTYPE_7x30_SURF   2679
-#define LINUX_MACHTYPE_7x30_FFA    2707
-#define LINUX_MACHTYPE_7x30_FLUID  2741
-#define LINUX_MACHTYPE_8x55_SURF   2768
-#define LINUX_MACHTYPE_8x55_FFA    2769
+#include <platform/machtype.h>
 
 #define MSM8255_ID                 74
 #define MSM8655_ID                 75

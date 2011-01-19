@@ -2,7 +2,7 @@
  * Copyright (c) 2007, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2011, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -36,8 +36,10 @@
 #include <dev/gpio.h>
 #include <kernel/thread.h>
 #include "gpio_hw.h"
+#include "panel.h"
+#include <platform/machtype.h>
+#include <dev/lcdc.h>
 
-#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 static int display_common_power(int);
 
 #if DISPLAY_TYPE_MDDI
@@ -414,8 +416,15 @@ void panel_init(struct mddi_client_caps *client_caps)
 void panel_poweron(void)
 {
 #if DISPLAY_TYPE_LCDC
-	panel_backlight(1);
-	lcdc_on();
+	if (board_machtype() == LINUX_MACHTYPE_7x30_FLUID)
+	{
+		sharp_lcdc_on();
+	}
+	else
+	{
+		panel_backlight(1);
+		lcdc_on();
+	}
 #endif
 }
 
@@ -430,12 +439,6 @@ void panel_backlight(int on)
 
 static unsigned wega_reset_gpio =
 GPIO_CFG(180, 0, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_2MA);
-
-#define LDO12_CNTRL            0x015
-#define LDO15_CNTRL            0x089
-#define LDO16_CNTRL            0x08A
-#define LDO20_CNTRL            0x11F  // PM8058 only
-#define LDO_LOCAL_EN_BMSK      0x80
 
 static int display_common_power(int on)
 {
@@ -519,11 +522,6 @@ int lcdc_toshiba_panel_power(int on)
 
     return rc;
 }
-
-#define SPI_SCLK    45
-#define SPI_CS      46
-#define SPI_MOSI    47
-#define SPI_MISO    48
 
 static void toshiba_spi_write_byte(char dc, unsigned char data)
 {
@@ -668,6 +666,18 @@ void lcdc_on(void)
 {
     lcdc_toshiba_panel_power(1);
     lcdc_disp_on();
+}
+
+struct lcdc_timing_parameters *get_lcd_timing(void)
+{
+   if (board_machtype() == LINUX_MACHTYPE_7x30_FLUID)
+	{
+		return sharp_timing_param();
+	}
+	else
+	{
+		return DEFAULT_LCD_TIMING;
+	}
 }
 
 #endif
