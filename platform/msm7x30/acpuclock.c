@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2011, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -36,6 +36,12 @@
 
 #define PLL_ENA_REG             REG(0x0264)
 #define PLL2_STATUS_BASE_REG    REG_BASE(0x0350)
+
+#define PLL2_L_VAL_ADDR         REG_BASE(0x033C)
+#define ACPU_806MHZ             42
+#define ACPU_1024MHZ            53
+#define ACPU_1200MHZ            125
+#define ACPU_1400MHZ            73
 
 #define SH2_OWN_ROW2_BASE_REG	REG_BASE(0x0424)
 
@@ -94,10 +100,17 @@ void enable_pll(unsigned num)
 
 void acpu_clock_init(void)
 {
-    unsigned reg_clksel, reg_clkctl, src_sel;
+    unsigned clk, reg_clksel, reg_clkctl, src_sel;
     /* Fixing msmc2 voltage */
     spm_init();
-    msmc2_config(1200); /* Setting msmc2 1.2V */
+
+    clk = readl(PLL2_L_VAL_ADDR) & 0xFF;
+    if (clk == ACPU_806MHZ)
+        msmc2_config(1100);
+    else if (clk == ACPU_1024MHZ || clk == ACPU_1200MHZ)
+        msmc2_config(1200);
+    else if (clk == ACPU_1400MHZ)
+        msmc2_config(1250);
 
     /* Enable pll 2 */
     enable_pll(2);
