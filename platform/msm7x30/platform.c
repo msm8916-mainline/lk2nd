@@ -124,7 +124,7 @@ void display_init(void)
 #endif
 
 #if DISPLAY_TYPE_LCDC
-    mdp_clock_init(122880000);
+    mdp_lcdc_clock_init();
     fb_cfg = lcdc_init();
     panel_poweron();
     fbcon_setup(fb_cfg);

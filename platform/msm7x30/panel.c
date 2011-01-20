@@ -666,7 +666,6 @@ void lcdc_disp_on (void)
 
 void lcdc_on(void)
 {
-    lcdc_clock_init(27648000);
     lcdc_toshiba_panel_power(1);
     lcdc_disp_on();
 }

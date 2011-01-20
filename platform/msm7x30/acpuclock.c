@@ -44,6 +44,7 @@
 #define ACPU_1400MHZ            73
 
 #define SH2_OWN_ROW2_BASE_REG	REG_BASE(0x0424)
+#define SH2_OWN_APPS2_BASE_REG	REG_BASE(0x0414)
 
 /* Macros to select PLL2 with divide by 1 */
 #define ACPU_SRC_SEL       3
@@ -185,4 +186,94 @@ void adm_enable_clock(void)
 	val = 1 << 5;
 	val = val | readl(SH2_GLBL_CLK_ENA_SC);
 	writel(val, SH2_GLBL_CLK_ENA_SC);
+}
+
+void mdp_lcdc_clock_init(void)
+{
+	unsigned int val = 0;
+	unsigned sh2_own_apps2;
+	unsigned sh2_own_apps2_lcdc_mask = (1 << 3);
+
+	sh2_own_apps2 = readl(SH2_OWN_APPS2_BASE_REG);
+	if(sh2_own_apps2 & sh2_own_apps2_lcdc_mask)
+	{
+		/* MDP local clock control enabled */
+		/* Select clock source and divider */
+		val = 0x29;
+		val = val | readl(SH2_MDP_NS_REG);
+		writel(val, SH2_MDP_NS_REG);
+
+		/* Enable MDP source clock(root) */
+		val = 1 << 11;
+		val = val | readl(SH2_MDP_NS_REG);
+		writel(val, SH2_MDP_NS_REG);
+
+		/* Enable graphics clock(branch) */
+		val = 1 << 9;
+		val = val | readl(SH2_MDP_NS_REG);
+		writel(val, SH2_MDP_NS_REG);
+
+		/* Enable MDP_P_CLK */
+		val = 1 << 6;
+		val = val | readl(SH2_GLBL_CLK_ENA_2_SC);
+		writel(val, SH2_GLBL_CLK_ENA_2_SC);
+
+		/* Enable AXI_MDP_CLK */
+		val = 1 << 29;
+		val = val | readl(SH2_GLBL_CLK_ENA_2_SC);
+		writel(val, SH2_GLBL_CLK_ENA_2_SC);
+
+		/* LCDC local clock control enabled */
+		/* Set value in MD register */
+		val = 0x1FFF9;
+		writel(val, SH2_MDP_LCDC_MD_REG);
+
+		/* Set MDP_LCDC_N_VAL in NS register */
+		val = 0xFFFA << 16;
+		val = val | readl(SH2_MDP_LCDC_NS_REG);
+		writel(val, SH2_MDP_LCDC_NS_REG);
+
+		/* Set clock source */
+		val = 1;
+		val = val | readl(SH2_MDP_LCDC_NS_REG);
+		writel(val, SH2_MDP_LCDC_NS_REG);
+
+		/* Set divider */
+		val = 3 << 3;
+		val = val | readl(SH2_MDP_LCDC_NS_REG);
+		writel(val, SH2_MDP_LCDC_NS_REG);
+
+		/* Set MN counter mode */
+		val = 2 << 5;
+		val = val | readl(SH2_MDP_LCDC_NS_REG);
+		writel(val, SH2_MDP_LCDC_NS_REG);
+
+		/* Enable MN counter */
+		val = 1 << 8;
+		val = val | readl(SH2_MDP_LCDC_NS_REG);
+		writel(val, SH2_MDP_LCDC_NS_REG);
+
+		/* Enable mdp_lcdc_src(root) clock */
+		val = 1 << 11;
+		val = val | readl(SH2_MDP_LCDC_NS_REG);
+		writel(val, SH2_MDP_LCDC_NS_REG);
+
+		/* Enable mdp_lcdc_pclk(branch) clock */
+		val = 1 << 9;
+		val = val | readl(SH2_MDP_LCDC_NS_REG);
+		writel(val, SH2_MDP_LCDC_NS_REG);
+
+		/* Enable mdp_lcdc_pad_pclk(branch) clock */
+		val = 1 << 12;
+		val = val | readl(SH2_MDP_LCDC_NS_REG);
+		writel(val, SH2_MDP_LCDC_NS_REG);
+	}
+	else
+	{
+		/* MDP local clock control not enabled; use proc comm */
+		mdp_clock_init(122880000);
+
+		/* LCDC local clock control not enabled; use proc comm */
+		lcdc_clock_init(27648000);
+	}
 }
