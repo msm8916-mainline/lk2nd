@@ -115,7 +115,7 @@ void display_init(void)
     struct fbcon_config *fb_cfg;
 
 #if DISPLAY_TYPE_MDDI
-    mddi_clock_init(0, 480000000);
+    mddi_pmdh_clock_init();
     mddi_panel_poweron();
     /* We need to config GPIO 38 for Sleep clock with Spl Fun 2 */
     toshiba_pmic_gpio_init(GPIO38_GPIO_CNTRL);

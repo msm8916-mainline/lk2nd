@@ -31,20 +31,10 @@
 #include <platform/iomap.h>
 #include <reg.h>
 
-#define REG_BASE(off)           (MSM_CLK_CTL_BASE + (off))
-#define REG(off)                (MSM_CLK_CTL_SH2_BASE + (off))
-
-#define PLL_ENA_REG             REG(0x0264)
-#define PLL2_STATUS_BASE_REG    REG_BASE(0x0350)
-
-#define PLL2_L_VAL_ADDR         REG_BASE(0x033C)
 #define ACPU_806MHZ             42
 #define ACPU_1024MHZ            53
 #define ACPU_1200MHZ            125
 #define ACPU_1400MHZ            73
-
-#define SH2_OWN_ROW2_BASE_REG	REG_BASE(0x0424)
-#define SH2_OWN_APPS2_BASE_REG	REG_BASE(0x0414)
 
 /* Macros to select PLL2 with divide by 1 */
 #define ACPU_SRC_SEL       3
@@ -275,5 +265,37 @@ void mdp_lcdc_clock_init(void)
 
 		/* LCDC local clock control not enabled; use proc comm */
 		lcdc_clock_init(27648000);
+	}
+}
+
+void mddi_pmdh_clock_init(void)
+{
+	unsigned int val = 0;
+	unsigned sh2_own_row1;
+	unsigned sh2_own_row1_pmdh_mask = (1 << 19);
+
+	sh2_own_row1 = readl(SH2_OWN_ROW1_BASE_REG);
+	if(sh2_own_row1 & sh2_own_row1_pmdh_mask)
+	{
+		/* Select clock source and divider */
+		val = 1;
+		val |= (1 << 3);
+		val = val | readl(SH2_PMDH_NS_REG);
+		writel(val, SH2_PMDH_NS_REG);
+
+		/* Enable PMDH_SRC (root) signal */
+		val = 1 << 11;
+		val = val | readl(SH2_PMDH_NS_REG);
+		writel(val, SH2_PMDH_NS_REG);
+
+		/* Enable PMDH_P_CLK */
+		val = 1 << 4;
+		val = val | readl(SH2_GLBL_CLK_ENA_2_SC);
+		writel(val, SH2_GLBL_CLK_ENA_2_SC);
+	}
+	else
+	{
+		/* MDDI local clock control not enabled; use proc comm */
+		mddi_clock_init(0, 480000000);
 	}
 }
