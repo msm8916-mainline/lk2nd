@@ -512,7 +512,7 @@ void ssbi_gpio_init(void)
 	    0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 4, 5, 5, 6, 6, 6, 7, 7, 7 };
     unsigned char sns_bits[] = { 0, 0, 0, 0, 0, 0, 1, 2, 3 };
 
-    kypd_cntl_init = ((drv_bits[rows] << 2) | (sns_bits[columns] << 5));
+    kypd_cntl_init = ((drv_bits[rows] << 2) | (sns_bits[columns] << 5) | (1 << 7));
 
     if ((*wr_function)(&kypd_cntl_init, 1, SSBI_REG_KYPD_CNTL_ADDR))
       dprintf (CRITICAL, "Error in initializing SSBI_REG_KYPD_CNTL register\n");
