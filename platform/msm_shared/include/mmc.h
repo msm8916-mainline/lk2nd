@@ -274,6 +274,7 @@
 #define CMD16_SET_BLOCKLEN               16
 #define CMD17_READ_SINGLE_BLOCK          17
 #define CMD18_READ_MULTIPLE_BLOCK        18
+#define CMD23_SET_BLOCK_COUNT            23
 #define CMD24_WRITE_SINGLE_BLOCK         24
 #define CMD25_WRITE_MULTIPLE_BLOCK       25
 #define CMD28_SET_WRITE_PROTECT          28
@@ -415,6 +416,7 @@ struct mmc_boot_command
 struct mmc_boot_csd
 {
     unsigned int cmmc_structure;
+    unsigned int spec_vers;
     unsigned int card_cmd_class;
     unsigned int write_blk_len;
     unsigned int read_blk_len;
@@ -473,7 +475,7 @@ struct mmc_boot_card
 {
     unsigned int rca;
     unsigned int ocr;
-    unsigned int capacity;
+    unsigned long long capacity;
     unsigned int type;
 #define MMC_BOOT_TYPE_STD_SD             0
 #define MMC_BOOT_TYPE_SDHC               1
