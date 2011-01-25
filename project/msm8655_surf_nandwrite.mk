@@ -2,7 +2,7 @@
 #
 LOCAL_DIR := $(GET_LOCAL_DIR)
 
-TARGET := msm7630_surf
+TARGET := msm8655_surf
 
 MODULES += app/nandwrite
 
