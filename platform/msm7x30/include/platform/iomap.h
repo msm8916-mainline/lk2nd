@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
- * Copyright (c) 2009, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2011, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -60,6 +60,8 @@
 #define SCSS_CLK_SEL            0xC0101008
 
 #define MSM_USB_BASE			0xA3600000
+#define MSM_CRYPTO_BASE			0xA8400000
+
 #define SH2_USBH_MD_REG         REG_SH2_BASE(0x2BC)
 #define SH2_USBH_NS_REG         REG_SH2_BASE(0x2C0)
 

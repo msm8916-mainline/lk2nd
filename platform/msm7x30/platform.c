@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
- * Copyright (c) 2009, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2011, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -79,6 +79,7 @@ void platform_init(void)
 	dprintf(INFO, "platform_init()\n");
 	acpu_clock_init();
 	adm_enable_clock();
+	ce_enable_clock();
 }
 
 void mdp4_display_intf_sel(int output, int intf)

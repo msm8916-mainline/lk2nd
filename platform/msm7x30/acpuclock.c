@@ -299,3 +299,13 @@ void mddi_pmdh_clock_init(void)
 		mddi_clock_init(0, 480000000);
 	}
 }
+
+void ce_enable_clock(void)
+{
+	unsigned int val=0;
+
+	/* Enable CE_CLK */
+	val = 1 << 6;
+	val = val | readl(SH2_GLBL_CLK_ENA_SC);
+	writel(val, SH2_GLBL_CLK_ENA_SC);
+}

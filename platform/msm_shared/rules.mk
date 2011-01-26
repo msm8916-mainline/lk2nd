@@ -30,3 +30,8 @@ ifeq ($(PLATFORM),msm8x60)
 else
         OBJS += $(LOCAL_DIR)/uart.o
 endif
+
+ifeq ($(PLATFORM),msm7x30)
+	OBJS += $(LOCAL_DIR)/crypto_eng.o \
+	        $(LOCAL_DIR)/crypto_hash.o
+endif
