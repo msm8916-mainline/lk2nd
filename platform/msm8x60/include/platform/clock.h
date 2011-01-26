@@ -30,8 +30,9 @@
 #define __PLATFORM_MSM8X60_CLOCK_H
 
 /* MMSS CLK CTR base address */
-#define MSM_MMSS_CLK_CTL    0x04000000
-#define REG_MM(off)     (MSM_MMSS_CLK_CTL + (off))
+#define MSM_MMSS_CLK_CTL_BASE 0x04000000
+#define MSM_MMSS_CLK_CTL_SIZE 4096
+#define REG_MM(off)     (MSM_MMSS_CLK_CTL_BASE + (off))
 
 #define AHB_NS_REG                              REG_MM(0x0004)
 #define AXI_NS_REG                              REG_MM(0x0014)
@@ -55,19 +56,19 @@
 #define MM_PLL2_STATUS_REG                      REG_MM(0x0350)
 
 /* LCD related clock defines */
-#define MMSS_AHB_NS_REG     (MSM_MMSS_CLK_CTL + 0x04)
-#define MMSS_AHB_EN_REG     (MSM_MMSS_CLK_CTL + 0x08)
-#define MMSS_AXI_NS_REG     (MSM_MMSS_CLK_CTL + 0x14)
-#define MMSS_MAXI_EN_REG    (MSM_MMSS_CLK_CTL + 0x18)
-#define MMSS_MAXI_EN2_REG   (MSM_MMSS_CLK_CTL + 0x20)
-#define MMSS_SAXI_EN_REG    (MSM_MMSS_CLK_CTL + 0x30)
+#define MMSS_AHB_NS_REG     (MSM_MMSS_CLK_CTL_BASE + 0x04)
+#define MMSS_AHB_EN_REG     (MSM_MMSS_CLK_CTL_BASE + 0x08)
+#define MMSS_AXI_NS_REG     (MSM_MMSS_CLK_CTL_BASE + 0x14)
+#define MMSS_MAXI_EN_REG    (MSM_MMSS_CLK_CTL_BASE + 0x18)
+#define MMSS_MAXI_EN2_REG   (MSM_MMSS_CLK_CTL_BASE + 0x20)
+#define MMSS_SAXI_EN_REG    (MSM_MMSS_CLK_CTL_BASE + 0x30)
 
-#define MDP_CC_REG      (MSM_MMSS_CLK_CTL + 0xC0)
-#define MDP_MD_REG      (MSM_MMSS_CLK_CTL + 0xC4)
-#define MDP_NS_REG      (MSM_MMSS_CLK_CTL + 0xD0)
-#define LCD_PIXEL_CC_REG    (MSM_MMSS_CLK_CTL + 0xD4)
-#define LCD_PIXEL_NS_REG    (MSM_MMSS_CLK_CTL + 0xDC)
-#define LCD_PIXEL_MD_REG    (MSM_MMSS_CLK_CTL + 0xD8)
+#define MDP_CC_REG      (MSM_MMSS_CLK_CTL_BASE + 0xC0)
+#define MDP_MD_REG      (MSM_MMSS_CLK_CTL_BASE + 0xC4)
+#define MDP_NS_REG      (MSM_MMSS_CLK_CTL_BASE + 0xD0)
+#define LCD_PIXEL_CC_REG    (MSM_MMSS_CLK_CTL_BASE + 0xD4)
+#define LCD_PIXEL_NS_REG    (MSM_MMSS_CLK_CTL_BASE + 0xDC)
+#define LCD_PIXEL_MD_REG    (MSM_MMSS_CLK_CTL_BASE + 0xD8)
 
 /* Configured at 200 MHz */
 #define MDP_NS_VAL              0x3F000008
