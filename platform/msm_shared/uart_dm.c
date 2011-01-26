@@ -197,7 +197,9 @@ static unsigned int msm_boot_uart_dm_config_clock(void)
 static unsigned int msm_boot_uart_dm_gsbi_init(void)
 {
     /* Configure the clock block */
+#ifndef PLATFORM_MSM8960
     msm_boot_uart_dm_config_clock();
+#endif
 
     /* Configure TLMM/GPIO to provide connectivity between GSBI
        product ports and chip pads */

@@ -33,7 +33,12 @@
 
 #define GIC_PPI_START 16
 #define GIC_SPI_START 32
-#define INT_DEBUG_TIMER_EXP         (GIC_PPI_START + 0)
+
+#ifdef PLATFORM_MSM8960
+        #define INT_DEBUG_TIMER_EXP         (GIC_PPI_START + 1)
+#else
+        #define INT_DEBUG_TIMER_EXP         (GIC_PPI_START + 0)
+#endif
 
 #define USB1_HS_IRQ                 (GIC_SPI_START + 100)
 #define USB1_HS_BAM_IRQ             (GIC_SPI_START + 94)

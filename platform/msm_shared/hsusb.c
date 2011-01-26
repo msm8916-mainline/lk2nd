@@ -510,6 +510,7 @@ void ulpi_write(unsigned val, unsigned reg)
 
 static int msm_otg_xceiv_reset()
 {
+#ifndef PLATFORM_MSM8960
 	CLK_RESET(USB_CLK, CLK_RESET_ASSERT);
 	CLK_RESET(USB_PHY_CLK, CLK_RESET_ASSERT);
 	mdelay(20);
@@ -517,6 +518,7 @@ static int msm_otg_xceiv_reset()
 	CLK_RESET(USB_CLK, CLK_RESET_DEASSERT);
 	mdelay(20);
 
+#endif
 	/* select ULPI phy */
 	writel(0x81000000, USB_PORTSC);
 	return 0;
@@ -527,7 +529,9 @@ void board_ulpi_init(void);
 
 int udc_init(struct udc_device *dev) 
 {
+#ifndef PLATFORM_MSM8960
 	hsusb_clock_init();
+#endif
 
 	epts = memalign(4096, 4096);
 
@@ -737,8 +741,8 @@ int udc_start(void)
 	/* create our device descriptor */
 	desc = udc_descriptor_alloc(TYPE_DEVICE, 0, 18);
 	data = desc->data;
-	data[2] = 0x10; /* usb spec rev 2.10 */
-	data[3] = 0x02;
+	data[2] = 0x00; /* usb spec minor rev */
+	data[3] = 0x02; /* usb spec major rev */
 	data[4] = 0x00; /* class */
 	data[5] = 0x00; /* subclass */
 	data[6] = 0x00; /* protocol */
@@ -767,11 +771,13 @@ int udc_start(void)
 	udc_ifc_desc_fill(the_gadget, data + 9);
 	udc_descriptor_register(desc);
 
+	register_int_handler(INT_USB_HS, udc_interrupt, (void*) 0);
+	writel(STS_URI | STS_SLI | STS_UI | STS_PCI, USB_USBINTR);
+	unmask_interrupt(INT_USB_HS);
+
         /* go to RUN mode (D+ pullup enable) */
 	writel(0x00080001, USB_USBCMD);
-	register_int_handler(INT_USB_HS, udc_interrupt, (void*) 0);
-	unmask_interrupt(INT_USB_HS);
-	writel(STS_URI | STS_SLI | STS_UI | STS_PCI, USB_USBINTR);
+
 	return 0;
 }
 

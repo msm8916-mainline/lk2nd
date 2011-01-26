@@ -47,7 +47,8 @@
 #define MSM_DGT_BASE (MSM_TMR_BASE + 0x24)
 #define GPT_REG(off) (MSM_GPT_BASE + (off))
 #define DGT_REG(off) (MSM_DGT_BASE + (off))
-#define SPSS_TIMER_STATUS    (MSM_TMR_BASE + 0x88)
+#define SPSS_TIMER_STATUS           (MSM_TMR_BASE + 0x88)
+#define SPSS_TIMER_STATUS_DGT_EN    (1 << 0)
 
 #define GPT_MATCH_VAL        GPT_REG(0x0000)
 #define GPT_COUNT_VAL        GPT_REG(0x0004)
@@ -160,7 +161,7 @@ void platform_init_timer(void)
 static void wait_for_timer_op(void)
 {
 #if PLATFORM_QSD8K || PLATFORM_MSM7X30 || PLATFORM_MSM8X60
-	while(readl(SPSS_TIMER_STATUS)) ;
+	while( readl(SPSS_TIMER_STATUS) & SPSS_TIMER_STATUS_DGT_EN );
 #endif
 }
 

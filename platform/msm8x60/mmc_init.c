@@ -89,6 +89,11 @@ static void mmc_set_clk(unsigned ns, unsigned md)
 
 void clock_set_enable (unsigned int mclk)
 {
+
+#ifdef PLATFORM_MSM8960
+    return;
+#endif
+
     if (mclk == MMC_CLK_400KHZ)
     {
         mmc_set_clk(0x0010005B, 0x0001000F);
