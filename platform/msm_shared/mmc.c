@@ -80,6 +80,7 @@ unsigned mmc_partition_count = 0;
 static void mbr_fill_name (struct mbr_entry *mbr_ent, unsigned int type);
 unsigned int mmc_read (unsigned long long data_addr, unsigned int* out, unsigned int data_len);
 static unsigned int mmc_wp(unsigned int addr, unsigned int size, unsigned char set_clear_wp);
+static unsigned int mmc_boot_send_ext_cmd (struct mmc_boot_card* card, unsigned char* buf);
 
 unsigned int SWAP_ENDIAN(unsigned int val)
 {
@@ -260,84 +261,148 @@ static unsigned int mmc_boot_decode_and_save_csd( struct mmc_boot_card* card,
         return MMC_BOOT_E_INVAL;
     }
 
-    /* CSD register is little bit differnet for CSD version 2.0 High Capacity
-     * and CSD version 1.0/2.0 Standard memory cards. In Version 2.0 some of
-     * the fields have fixed values and it's not necessary for host to refer
-     * these fields in CSD sent by card */
-
     mmc_sizeof = sizeof(unsigned int) * 8;
 
     mmc_csd.cmmc_structure = UNPACK_BITS( raw_csd, 126, 2, mmc_sizeof );
 
-    /* cmmc_structure- 0: Version 1.0     1: Version 2.0 */
-    if( mmc_csd.cmmc_structure )
+    if( (card->type == MMC_BOOT_TYPE_SDHC) ||  (card->type == MMC_BOOT_TYPE_STD_SD))
     {
+        /* Parse CSD according to SD card spec. */
+
+        /* CSD register is little bit differnet for CSD version 2.0 High Capacity
+         * and CSD version 1.0/2.0 Standard memory cards. In Version 2.0 some of
+         * the fields have fixed values and it's not necessary for host to refer
+         * these fields in CSD sent by card */
+
+        if( mmc_csd.cmmc_structure == 1)
+        {
+            /* CSD Version 2.0 */
+            mmc_csd.card_cmd_class = UNPACK_BITS( raw_csd, 84, 12, mmc_sizeof );
+            mmc_csd.write_blk_len = 512; /* Fixed value is 9 = 2^9 = 512 */
+            mmc_csd.read_blk_len = 512;  /* Fixed value is 9 = 512 */
+            mmc_csd.r2w_factor = 0x2;    /* Fixed value: 010b */
+            mmc_csd.c_size_mult = 0;     /* not there in version 2.0 */
+            mmc_csd.c_size = UNPACK_BITS( raw_csd, 48, 22, mmc_sizeof );
+            mmc_csd.nsac_clk_cycle = UNPACK_BITS( raw_csd, 104, 8, mmc_sizeof) * 100;
+
+//TODO: Investigate the nsac and taac. Spec suggests not using this for timeouts.
+
+            mmc_unit = UNPACK_BITS( raw_csd, 112, 3, mmc_sizeof );
+            mmc_value = UNPACK_BITS( raw_csd, 115, 4, mmc_sizeof );
+            mmc_csd.taac_ns = ( taac_value[mmc_value] * taac_unit[mmc_unit]) / 10;
+
+            mmc_csd.erase_blk_len = 1;
+            mmc_csd.read_blk_misalign = 0;
+            mmc_csd.write_blk_misalign = 0;
+            mmc_csd.read_blk_partial = 0;
+            mmc_csd.write_blk_partial = 0;
+
+            mmc_unit = UNPACK_BITS( raw_csd, 96, 3, mmc_sizeof );
+            mmc_value = UNPACK_BITS( raw_csd, 99, 4, mmc_sizeof );
+            mmc_csd.tran_speed = ( xfer_rate_value[mmc_value] * xfer_rate_unit[mmc_unit]) / 10;
+
+            mmc_csd.wp_grp_size = 0x0;
+            mmc_csd.wp_grp_enable = 0x0;
+            mmc_csd.perm_wp = UNPACK_BITS( raw_csd, 13, 1, mmc_sizeof );
+            mmc_csd.temp_wp = UNPACK_BITS( raw_csd, 12, 1, mmc_sizeof );
+
+            /* Calculate the card capcity */
+            card->capacity = ( 1 + mmc_csd.c_size ) * 512 * 1024;
+        }
+        else
+        {
+            /* CSD Version 1.0 */
+            mmc_csd.card_cmd_class = UNPACK_BITS( raw_csd, 84, 12, mmc_sizeof );
+
+            mmc_temp = UNPACK_BITS( raw_csd, 22, 4, mmc_sizeof );
+            mmc_csd.write_blk_len = ( mmc_temp > 8 && mmc_temp < 12 )? ( 1 << mmc_temp ) : 512;
+
+            mmc_temp = UNPACK_BITS( raw_csd, 80, 4, mmc_sizeof );
+            mmc_csd.read_blk_len = ( mmc_temp > 8 && mmc_temp < 12 )? ( 1 << mmc_temp ) : 512;
+
+            mmc_unit = UNPACK_BITS( raw_csd, 112, 3, mmc_sizeof );
+            mmc_value = UNPACK_BITS( raw_csd, 115, 4, mmc_sizeof );
+            mmc_csd.taac_ns = ( taac_value[mmc_value] * taac_unit[mmc_unit]) / 10;
+
+            mmc_unit = UNPACK_BITS( raw_csd, 96, 3, mmc_sizeof );
+            mmc_value = UNPACK_BITS( raw_csd, 99, 4, mmc_sizeof );
+            mmc_csd.tran_speed = ( xfer_rate_value[mmc_value] * xfer_rate_unit[mmc_unit]) / 10;
+
+            mmc_csd.nsac_clk_cycle = UNPACK_BITS( raw_csd, 104, 8, mmc_sizeof ) * 100;
+
+            mmc_csd.r2w_factor = UNPACK_BITS( raw_csd, 26, 3, mmc_sizeof );
+            mmc_csd.sector_size = UNPACK_BITS( raw_csd, 39, 7, mmc_sizeof ) + 1;
+
+            mmc_csd.erase_blk_len = UNPACK_BITS( raw_csd, 46, 1, mmc_sizeof );
+            mmc_csd.read_blk_misalign = UNPACK_BITS( raw_csd, 77, 1, mmc_sizeof );
+            mmc_csd.write_blk_misalign = UNPACK_BITS( raw_csd, 78, 1, mmc_sizeof );
+            mmc_csd.read_blk_partial = UNPACK_BITS( raw_csd, 79, 1, mmc_sizeof );
+            mmc_csd.write_blk_partial = UNPACK_BITS( raw_csd, 21, 1, mmc_sizeof );
+
+            mmc_csd.c_size_mult = UNPACK_BITS( raw_csd, 47, 3, mmc_sizeof );
+            mmc_csd.c_size = UNPACK_BITS( raw_csd, 62, 12, mmc_sizeof );
+            mmc_csd.wp_grp_size = UNPACK_BITS( raw_csd, 32, 7, mmc_sizeof );
+            mmc_csd.wp_grp_enable = UNPACK_BITS( raw_csd, 31, 1, mmc_sizeof );
+            mmc_csd.perm_wp = UNPACK_BITS( raw_csd, 13, 1, mmc_sizeof );
+            mmc_csd.temp_wp = UNPACK_BITS( raw_csd, 12, 1, mmc_sizeof );
+
+            /* Calculate the card capacity */
+            mmc_temp = ( 1 << ( mmc_csd.c_size_mult + 2 ) ) * ( mmc_csd.c_size + 1 );
+            card->capacity = mmc_temp * mmc_csd.read_blk_len;
+        }
+    }
+    else
+    {
+        /* Parse CSD according to MMC card spec. */
+        mmc_csd.spec_vers      = UNPACK_BITS( raw_csd, 122, 4, mmc_sizeof );
         mmc_csd.card_cmd_class = UNPACK_BITS( raw_csd, 84, 12, mmc_sizeof );
-        mmc_csd.write_blk_len = 512; /* Fixed value is 9 = 2^9 = 512 */
-        mmc_csd.read_blk_len = 512;  /* Fixed value is 9 = 512 */
-        mmc_csd.r2w_factor = UNPACK_BITS( raw_csd, 26, 3, mmc_sizeof );      /* Fixed value: 010b */
-        mmc_csd.c_size_mult = 0;     /* not there in version 2.0 */
-        mmc_csd.c_size = UNPACK_BITS( raw_csd, 62, 12, mmc_sizeof );
+        mmc_csd.write_blk_len  = 1 << UNPACK_BITS( raw_csd, 22, 4, mmc_sizeof );
+        mmc_csd.read_blk_len   = 1 << UNPACK_BITS( raw_csd, 80, 4, mmc_sizeof );
+        mmc_csd.r2w_factor     = UNPACK_BITS( raw_csd, 26, 3, mmc_sizeof );
+        mmc_csd.c_size_mult    = UNPACK_BITS( raw_csd, 47, 3, mmc_sizeof );
+        mmc_csd.c_size         = UNPACK_BITS( raw_csd, 62, 12, mmc_sizeof );
         mmc_csd.nsac_clk_cycle = UNPACK_BITS( raw_csd, 104, 8, mmc_sizeof) * 100;
 
         mmc_unit = UNPACK_BITS( raw_csd, 112, 3, mmc_sizeof );
         mmc_value = UNPACK_BITS( raw_csd, 115, 4, mmc_sizeof );
         mmc_csd.taac_ns = ( taac_value[mmc_value] * taac_unit[mmc_unit]) / 10;
 
-        mmc_csd.erase_blk_len = 1;
-        mmc_csd.read_blk_misalign = 0;
-        mmc_csd.write_blk_misalign = 0;
-        mmc_csd.read_blk_partial = 0;
-        mmc_csd.write_blk_partial = 0;
-
-        mmc_unit = UNPACK_BITS( raw_csd, 96, 3, mmc_sizeof );
-        mmc_value = UNPACK_BITS( raw_csd, 99, 4, mmc_sizeof );
-        mmc_csd.tran_speed = ( xfer_rate_value[mmc_value] * xfer_rate_unit[mmc_unit]) / 10;
-
-        /* Calculate card capcity now itself */
-        card->capacity = ( 1 + mmc_csd.c_size ) * 512000;
-    }
-    else
-    {
-        mmc_csd.card_cmd_class = UNPACK_BITS( raw_csd, 84, 12, mmc_sizeof );
-
-        mmc_temp = UNPACK_BITS( raw_csd, 22, 4, mmc_sizeof );
-        mmc_csd.write_blk_len = ( mmc_temp > 8 && mmc_temp < 12 )? ( 1 << mmc_temp ) : 512;
-
-        mmc_temp = UNPACK_BITS( raw_csd, 80, 4, mmc_sizeof );
-        mmc_csd.read_blk_len = ( mmc_temp > 8 && mmc_temp < 12 )? ( 1 << mmc_temp ) : 512;
-
-        mmc_unit = UNPACK_BITS( raw_csd, 112, 3, mmc_sizeof );
-        mmc_value = UNPACK_BITS( raw_csd, 115, 4, mmc_sizeof );
-        mmc_csd.taac_ns = ( taac_value[mmc_value] * taac_unit[mmc_unit]) / 10;
-
-        mmc_unit = UNPACK_BITS( raw_csd, 96, 3, mmc_sizeof );
-        mmc_value = UNPACK_BITS( raw_csd, 99, 4, mmc_sizeof );
-        mmc_csd.tran_speed = ( xfer_rate_value[mmc_value] * xfer_rate_unit[mmc_unit]) / 10;
-
-        mmc_csd.nsac_clk_cycle = UNPACK_BITS( raw_csd, 104, 8, mmc_sizeof ) * 100;
-
-        mmc_csd.r2w_factor = UNPACK_BITS( raw_csd, 26, 3, mmc_sizeof );
-        mmc_csd.sector_size = UNPACK_BITS( raw_csd, 39, 7, mmc_sizeof ) + 1;
-
-        mmc_csd.erase_blk_len = UNPACK_BITS( raw_csd, 46, 1, mmc_sizeof );
-        mmc_csd.read_blk_misalign = UNPACK_BITS( raw_csd, 77, 1, mmc_sizeof );
+        mmc_csd.read_blk_misalign  = UNPACK_BITS( raw_csd, 77, 1, mmc_sizeof );
         mmc_csd.write_blk_misalign = UNPACK_BITS( raw_csd, 78, 1, mmc_sizeof );
-        mmc_csd.read_blk_partial = UNPACK_BITS( raw_csd, 79, 1, mmc_sizeof );
-        mmc_csd.write_blk_partial = UNPACK_BITS( raw_csd, 21, 1, mmc_sizeof );
+        mmc_csd.read_blk_partial   = UNPACK_BITS( raw_csd, 79, 1, mmc_sizeof );
+        mmc_csd.write_blk_partial  = UNPACK_BITS( raw_csd, 21, 1, mmc_sizeof );
+        mmc_csd.tran_speed = 0x00; /* Ignore -- no use of this value. */
 
-        mmc_csd.c_size_mult = UNPACK_BITS( raw_csd, 47, 3, mmc_sizeof );
-        mmc_csd.c_size = UNPACK_BITS( raw_csd, 62, 12, mmc_sizeof );
-        mmc_temp = ( 1 << ( mmc_csd.c_size_mult + 2 ) ) * ( mmc_csd.c_size + 1 );
-        card->capacity = mmc_temp * mmc_csd.read_blk_len;
+        mmc_csd.erase_grp_size = UNPACK_BITS( raw_csd, 42, 5, mmc_sizeof );
+        mmc_csd.erase_grp_mult = UNPACK_BITS( raw_csd, 37, 5, mmc_sizeof );
+        mmc_csd.wp_grp_size = UNPACK_BITS( raw_csd, 32, 5, mmc_sizeof );
+        mmc_csd.wp_grp_enable = UNPACK_BITS( raw_csd, 31, 1, mmc_sizeof );
+        mmc_csd.perm_wp = UNPACK_BITS( raw_csd, 13, 1, mmc_sizeof );
+        mmc_csd.temp_wp = UNPACK_BITS( raw_csd, 12, 1, mmc_sizeof );
+
+        /* Calculate the card capcity */
+        if(mmc_csd.c_size != 0xFFF)
+        {
+                /* For cards less than or equal to 2GB */
+                mmc_temp = ( 1 << ( mmc_csd.c_size_mult + 2 ) ) * ( mmc_csd.c_size + 1 );
+                card->capacity = mmc_temp * mmc_csd.read_blk_len;
+        }
+        else
+        {
+                /* For cards greater than 2GB, Ext CSD register's SEC_COUNT
+                 * is used to calculate the size.
+                 */
+                unsigned long long sec_count;
+
+                sec_count = (ext_csd_buf[215] << 24) |
+                            (ext_csd_buf[214] << 16) |
+                            (ext_csd_buf[213] << 8)  |
+                             ext_csd_buf[212];
+
+                card->capacity = sec_count * 512;
+        }
     }
 
-    mmc_csd.erase_grp_size = UNPACK_BITS( raw_csd, 42, 5, mmc_sizeof );
-    mmc_csd.erase_grp_mult = UNPACK_BITS( raw_csd, 37, 5, mmc_sizeof );
-    mmc_csd.wp_grp_size = UNPACK_BITS( raw_csd, 32, 5, mmc_sizeof );
-    mmc_csd.wp_grp_enable = UNPACK_BITS( raw_csd, 31, 1, mmc_sizeof );
-    mmc_csd.perm_wp = UNPACK_BITS( raw_csd, 13, 1, mmc_sizeof );
-    mmc_csd.temp_wp = UNPACK_BITS( raw_csd, 12, 1, mmc_sizeof );
 
     /* save the information in card structure */
     memcpy( (struct mmc_boot_csd *)&card->csd, (struct mmc_boot_csd *)&mmc_csd,
@@ -360,10 +425,9 @@ static unsigned int mmc_boot_decode_and_save_csd( struct mmc_boot_card* card,
     dprintf(INFO, "write_blk_misalign: %d\n", mmc_csd.write_blk_misalign );
     dprintf(INFO, "read_blk_partial: %d\n", mmc_csd.read_blk_partial );
     dprintf(INFO, "write_blk_partial: %d\n", mmc_csd.write_blk_partial );
-    dprintf(INFO, "Card Capacity: %d Bytes\n", card->capacity );
+    dprintf(INFO, "Card Capacity: %llu Bytes\n", card->capacity );
 
     return MMC_BOOT_E_SUCCESS;
-
 }
 
 /*
@@ -433,6 +497,12 @@ static unsigned int mmc_boot_send_command( struct mmc_boot_command* cmd )
 
     /* 1. Write command argument to MMC_BOOT_MCI_ARGUMENT register */
     writel( cmd->argument, MMC_BOOT_MCI_ARGUMENT );
+
+    /* Writes to MCI port are not effective for 3 ticks of PCLK.
+     * The min pclk is 144KHz which gives 6.94 us/tick.
+     * Thus 21us == 3 ticks.
+     */
+    udelay(21);
 
     /* 2. Set appropriate fields and write MMC_BOOT_MCI_CMD */
     /* 2a. Write command index in CMD_INDEX field */
@@ -506,7 +576,6 @@ static unsigned int mmc_boot_send_command( struct mmc_boot_command* cmd )
             mmc_return = MMC_BOOT_E_TIMEOUT;
             break;
         }
-
         /* 3d. If CMD_RESPONSE_END bit is set to 1 then command's response was
            received and CRC check passed
            Spcial case for ACMD41: it seems to always fail CRC even if
@@ -754,7 +823,8 @@ static unsigned int mmc_boot_send_relative_address( struct mmc_boot_card* card )
 /*
  * Requests card to send it's CSD register's contents. (CMD9)
  */
-static unsigned int mmc_boot_send_csd( struct mmc_boot_card* card )
+static unsigned int mmc_boot_send_csd( struct mmc_boot_card* card,
+                                       unsigned int* raw_csd )
 {
     struct mmc_boot_command cmd;
     unsigned int mmc_arg = 0;
@@ -787,13 +857,8 @@ static unsigned int mmc_boot_send_csd( struct mmc_boot_card* card )
         return mmc_ret;
     }
 
-    /* Response contains card's 128 bits CSD register */
-    /* Decode and save the register */
-    mmc_ret = mmc_boot_decode_and_save_csd( card, cmd.resp );
-    if( mmc_ret != MMC_BOOT_E_SUCCESS )
-    {
-        return mmc_ret;
-    }
+    /* response contains the card csd */
+    memcpy(raw_csd, cmd.resp, sizeof(cmd.resp));
 
     return MMC_BOOT_E_SUCCESS;
 }
@@ -1190,6 +1255,8 @@ static unsigned int mmc_boot_set_bus_width( struct mmc_boot_card* card,
     unsigned int mmc_reg = 0;
     unsigned int mmc_width = 0;
     unsigned int status;
+    unsigned int wait_count = 100;
+
 
     if( width != MMC_BOOT_BUS_WIDTH_1_BIT)
     {
@@ -1197,24 +1264,30 @@ static unsigned int mmc_boot_set_bus_width( struct mmc_boot_card* card,
     }
 
 
-    do
-    {
-        mmc_ret = mmc_boot_get_card_status(card, 1, &status);
-        if(mmc_ret != MMC_BOOT_E_SUCCESS)
-        {
-            return mmc_ret;
-        }
-    }while(MMC_BOOT_CARD_STATUS(status) == MMC_BOOT_PROG_STATE);
-
-    if(MMC_BOOT_CARD_STATUS(status) != MMC_BOOT_TRAN_STATE)
-        return MMC_BOOT_E_FAILURE;
-
-    mmc_ret = mmc_boot_switch_cmd(card, MMC_BOOT_ACCESS_WRITE, MMC_BOOT_EXT_CMMC_BUS_WIDTH, mmc_width);
+    mmc_ret = mmc_boot_switch_cmd(card, MMC_BOOT_ACCESS_WRITE,
+                                        MMC_BOOT_EXT_CMMC_BUS_WIDTH, mmc_width);
 
     if( mmc_ret != MMC_BOOT_E_SUCCESS )
     {
         return mmc_ret;
     }
+
+    /* Wait for the card to complete the switch command processing */
+    do
+    {
+        mmc_ret = mmc_boot_get_card_status(card, 0, &status);
+        if(mmc_ret != MMC_BOOT_E_SUCCESS)
+        {
+            return mmc_ret;
+        }
+
+        wait_count--;
+        if(wait_count == 0)
+        {
+            return MMC_BOOT_E_FAILURE;
+        }
+    }while( MMC_BOOT_CARD_STATUS(status) == MMC_BOOT_PROG_STATE );
+
 
     /* set MCI_CLK accordingly */
     mmc_reg = readl( MMC_BOOT_MCI_CLK );
@@ -1555,27 +1628,34 @@ static unsigned int mmc_boot_adjust_interface_speed( struct mmc_boot_host* host,
 {
     unsigned int mmc_ret = MMC_BOOT_E_SUCCESS;
     unsigned int status;
-
-
-    do
-    {
-        mmc_ret = mmc_boot_get_card_status(card, 1, &status);
-        if(mmc_ret != MMC_BOOT_E_SUCCESS)
-        {
-            return mmc_ret;
-        }
-    }while(MMC_BOOT_CARD_STATUS(status) == MMC_BOOT_PROG_STATE);
-
-    if(MMC_BOOT_CARD_STATUS(status) != MMC_BOOT_TRAN_STATE)
-        return MMC_BOOT_E_FAILURE;
+    unsigned int wait_count = 100;
 
     /* Setting HS_TIMING in EXT_CSD (CMD6) */
-    mmc_ret = mmc_boot_switch_cmd(card, MMC_BOOT_ACCESS_WRITE, MMC_BOOT_EXT_CMMC_HS_TIMING, 1);
+    mmc_ret = mmc_boot_switch_cmd(card, MMC_BOOT_ACCESS_WRITE,
+                                        MMC_BOOT_EXT_CMMC_HS_TIMING, 1);
 
     if(mmc_ret!= MMC_BOOT_E_SUCCESS)
     {
         return mmc_ret;
     }
+
+    /* Wait for the card to complete the switch command processing */
+    do
+    {
+        mmc_ret = mmc_boot_get_card_status(card, 0, &status);
+        if(mmc_ret != MMC_BOOT_E_SUCCESS)
+        {
+            return mmc_ret;
+        }
+
+        wait_count--;
+        if(wait_count == 0)
+        {
+            return MMC_BOOT_E_FAILURE;
+        }
+    }while( MMC_BOOT_CARD_STATUS(status) == MMC_BOOT_PROG_STATE );
+
+
 #ifdef PLATFORM_MSM8X60
     mmc_ret = mmc_boot_enable_clock( host, MMC_CLK_48MHZ);
 #else
@@ -1585,6 +1665,45 @@ static unsigned int mmc_boot_adjust_interface_speed( struct mmc_boot_host* host,
     {
         return MMC_BOOT_E_CLK_ENABLE_FAIL;
     }
+    return MMC_BOOT_E_SUCCESS;
+}
+
+static unsigned int mmc_boot_set_block_count( struct mmc_boot_card* card,
+        unsigned int block_count )
+{
+    struct mmc_boot_command cmd;
+    unsigned int mmc_ret = MMC_BOOT_E_SUCCESS;
+
+    /* basic check */
+    if( card == NULL )
+    {
+        return MMC_BOOT_E_INVAL;
+    }
+
+    memset( (struct mmc_boot_command *)&cmd, 0,
+            sizeof(struct mmc_boot_command) );
+
+    /* CMD23 Format:
+     * [15:0] number of blocks
+     */
+
+    cmd.cmd_index = CMD23_SET_BLOCK_COUNT;
+    cmd.argument = block_count;
+    cmd.cmd_type = MMC_BOOT_CMD_ADDRESS;
+    cmd.resp_type = MMC_BOOT_RESP_R1;
+
+    /* send command */
+    mmc_ret = mmc_boot_send_command( &cmd );
+    if( mmc_ret != MMC_BOOT_E_SUCCESS )
+    {
+        return mmc_ret;
+    }
+
+    if( cmd.resp[0] & MMC_BOOT_R1_OUT_OF_RANGE)
+    {
+        return MMC_BOOT_E_BLOCKLEN_ERR;
+    }
+
     return MMC_BOOT_E_SUCCESS;
 }
 
@@ -1606,6 +1725,7 @@ static unsigned int mmc_boot_read_from_card( struct mmc_boot_host* host,
     unsigned int xfer_type;
     unsigned int addr = 0;
     unsigned int read_error;
+    unsigned char open_ended_read = 1;
 
     if( ( host == NULL ) || ( card == NULL ) )
     {
@@ -1628,6 +1748,26 @@ static unsigned int mmc_boot_read_from_card( struct mmc_boot_host* host,
     /* use multi-block mode to transfer for data larger than a block */
     xfer_type = (data_len > card->rd_block_len) ? MMC_BOOT_XFER_MULTI_BLOCK :
         MMC_BOOT_XFER_SINGLE_BLOCK;
+
+    if(xfer_type == MMC_BOOT_XFER_MULTI_BLOCK)
+    {
+        if( (card->type == MMC_BOOT_TYPE_MMCHC) || (card->type == MMC_BOOT_TYPE_STD_MMC) )
+        {
+            /* Virtio model does not support open-ended multi-block reads.
+             * So, block count must be set before sending read command.
+             * All SD cards do not support this command. Restrict this to MMC.
+             */
+            mmc_ret = mmc_boot_set_block_count( card, data_len/(card->rd_block_len));
+            if( mmc_ret != MMC_BOOT_E_SUCCESS )
+            {
+                dprintf(CRITICAL, "Error No.%d: Failure setting read block count for Card (RCA:%s)\n",
+                        mmc_ret, (char *)(card->rca) );
+                return mmc_ret;
+            }
+
+            open_ended_read = 0;
+        }
+    }
 
     /* Set the FLOW_ENA bit of MCI_CLK register to 1 */
     /* Note: It's already enabled */
@@ -1735,7 +1875,7 @@ static unsigned int mmc_boot_read_from_card( struct mmc_boot_host* host,
 
     /* In case a multiple block transfer was performed, send CMD12 to the
        card/device in order to indicate the end of read data transfer */
-    if( xfer_type == MMC_BOOT_XFER_MULTI_BLOCK )
+    if( (xfer_type == MMC_BOOT_XFER_MULTI_BLOCK) && open_ended_read )
     {
         mmc_ret = mmc_boot_send_stop_transmission( card, 0 );
         if( mmc_ret != MMC_BOOT_E_SUCCESS )
@@ -1784,14 +1924,18 @@ unsigned int mmc_boot_init( struct mmc_boot_host* host )
 }
 
 /*
- * Performs card identification process by getting card's unique identification
- * number (CID) and relative card address (RCA). After that card will be in
- * stand-by state.
+ * Performs card identification process:
+ * - get card's unique identification number (CID)
+ * - get(for sd)/set (for mmc) relative card address (RCA)
+ * - get CSD
+ * - select the card, thus transitioning it to Transfer State
+ * - get Extended CSD (for mmc)
  */
 static unsigned int mmc_boot_identify_card( struct mmc_boot_host* host,
         struct mmc_boot_card* card)
 {
     unsigned int mmc_return = MMC_BOOT_E_SUCCESS;
+    unsigned int raw_csd[4];
 
     /* basic check */
     if( ( host == NULL ) || ( card == NULL ) )
@@ -1817,15 +1961,48 @@ static unsigned int mmc_boot_identify_card( struct mmc_boot_host* host,
         return mmc_return;
     }
 
-    /* Set the card status as active */
-    card->status = MMC_BOOT_STATUS_ACTIVE;
-
     /* Get card's CSD register (CMD9) */
-    mmc_return = mmc_boot_send_csd( card );
+    mmc_return = mmc_boot_send_csd( card, raw_csd );
     if( mmc_return != MMC_BOOT_E_SUCCESS )
     {
         dprintf(CRITICAL, "Error No.%d: Failure getting card's CSD information!\n",
                 mmc_return );
+        return mmc_return;
+    }
+
+    /* Select the card (CMD7) */
+    mmc_return = mmc_boot_select_card( card, card->rca );
+    if( mmc_return != MMC_BOOT_E_SUCCESS )
+    {
+        dprintf(CRITICAL, "Error No.%d: Failure selecting the Card with RCA: %x\n",
+                mmc_return, card->rca );
+        return mmc_return;
+    }
+
+    /* Set the card status as active */
+    card->status = MMC_BOOT_STATUS_ACTIVE;
+
+    if( (card->type == MMC_BOOT_TYPE_STD_MMC) ||  (card->type == MMC_BOOT_TYPE_MMCHC))
+    {
+        /* For MMC cards, also get the extended csd */
+        mmc_return = mmc_boot_send_ext_cmd( card, ext_csd_buf);
+
+        if( mmc_return != MMC_BOOT_E_SUCCESS )
+        {
+                dprintf(CRITICAL, "Error No.%d: Failure getting card's ExtCSD information!\n",
+                        mmc_return );
+
+                return mmc_return;
+        }
+
+    }
+
+    /* Decode and save the CSD register */
+    mmc_return = mmc_boot_decode_and_save_csd( card, raw_csd );
+    if( mmc_return != MMC_BOOT_E_SUCCESS )
+    {
+        dprintf(CRITICAL, "Error No.%d: Failure decoding card's CSD information!\n",
+                        mmc_return );
         return mmc_return;
     }
 
@@ -2123,19 +2300,10 @@ static unsigned int mmc_boot_init_and_identify_cards( struct mmc_boot_host* host
         return mmc_return;
     }
 
-    /* Start card identification process (CMD2, CMD3 & CMD9)*/
+    /* Identify (CMD2, CMD3 & CMD9) and select the card (CMD7) */
     mmc_return = mmc_boot_identify_card( host, card );
     if( mmc_return != MMC_BOOT_E_SUCCESS )
     {
-        return mmc_return;
-    }
-
-    /* Select the card (CMD7) */
-    mmc_return = mmc_boot_select_card( card, card->rca );
-    if( mmc_return != MMC_BOOT_E_SUCCESS )
-    {
-        dprintf(CRITICAL, "Error No.%d: Failure selecting the Card with RCA: %x\n",
-                mmc_return, card->rca );
         return mmc_return;
     }
 
@@ -2175,7 +2343,7 @@ static unsigned int mmc_boot_init_and_identify_cards( struct mmc_boot_host* host
     }
 
     /* Just checking whether we're in TRAN state after changing speed and bus width */
-    mmc_return = mmc_boot_get_card_status(card, 1, &status);
+    mmc_return = mmc_boot_get_card_status(card, 0, &status);
     if(mmc_return != MMC_BOOT_E_SUCCESS)
     {
         return mmc_return;
@@ -2213,7 +2381,8 @@ static unsigned int mmc_boot_read_MBR(void)
     if ((buffer[TABLE_SIGNATURE] != 0x55) || \
         (buffer[TABLE_SIGNATURE + 1] != 0xAA))
     {
-        return -1;
+        dprintf(CRITICAL,  "MBR signature does not match. \n" );
+        return MMC_BOOT_E_FAILURE;
     }
 
     /* Print out the first 4 partition */
@@ -2785,17 +2954,17 @@ void mmc_wp_test(void)
 
 void mmc_display_ext_csd(void)
 {
-    dprintf(ALWAYS,  "part_config: %x\n", ext_csd_buf[179] );
-    dprintf(ALWAYS,  "erase_group_def: %x\n", ext_csd_buf[175] );
-    dprintf(ALWAYS,  "user_wp: %x\n", ext_csd_buf[171] );
+    dprintf(INFO,  "part_config: %x\n", ext_csd_buf[179] );
+    dprintf(INFO,  "erase_group_def: %x\n", ext_csd_buf[175] );
+    dprintf(INFO,  "user_wp: %x\n", ext_csd_buf[171] );
 }
 
 void mmc_display_csd(void)
 {
-    dprintf(ALWAYS,  "erase_grpsize: %d\n", mmc_card.csd.erase_grp_size );
-    dprintf(ALWAYS,  "erase_grpmult: %d\n", mmc_card.csd.erase_grp_mult );
-    dprintf(ALWAYS,  "wp_grpsize: %d\n", mmc_card.csd.wp_grp_size );
-    dprintf(ALWAYS,  "wp_grpen: %d\n", mmc_card.csd.wp_grp_enable );
-    dprintf(ALWAYS,  "perm_wp: %d\n", mmc_card.csd.perm_wp );
-    dprintf(ALWAYS,  "temp_wp: %d\n", mmc_card.csd.temp_wp );
+    dprintf(INFO,  "erase_grpsize: %d\n", mmc_card.csd.erase_grp_size );
+    dprintf(INFO,  "erase_grpmult: %d\n", mmc_card.csd.erase_grp_mult );
+    dprintf(INFO,  "wp_grpsize: %d\n", mmc_card.csd.wp_grp_size );
+    dprintf(INFO,  "wp_grpen: %d\n", mmc_card.csd.wp_grp_enable );
+    dprintf(INFO,  "perm_wp: %d\n", mmc_card.csd.perm_wp );
+    dprintf(INFO,  "temp_wp: %d\n", mmc_card.csd.temp_wp );
 }
