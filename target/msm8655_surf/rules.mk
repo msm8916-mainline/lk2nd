@@ -4,8 +4,15 @@ INCLUDES += -I$(LOCAL_DIR)/include -I$(LK_TOP_DIR)/platform/msm_shared  -I$(LK_T
 
 PLATFORM := msm7x30
 
-MEMBASE := 0x00000000 # EBI
-MEMSIZE := 0x00100000 # 1MB
+ifeq ($(ENABLE_TRUSTZONE),1)
+	LK_START := 0x0   #Start of LK image
+	MEMBASE := 0x00080000 # EBI  Lies at 512K, after TrustZone
+	MEMSIZE := 0x00080000 # 512K  Size reduced to 512K from 1MB
+	ROMLITE_PREFLASHED_DATA := 0xBF000 # Only used for local testing. Romlite binary will be flashed to this location
+else
+	MEMBASE := 0x00000000 # EBI
+	MEMSIZE := 0x00100000 # 1MB
+endif
 
 BASE_ADDR            := 0x00200000
 

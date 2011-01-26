@@ -130,6 +130,18 @@ GENERATED += \
 
 # rules for generating the linker scripts
 
+
+
+$(BUILDDIR)/trustzone-test-system-onesegment.ld: $(LOCAL_DIR)/trustzone-test-system-onesegment.ld
+	@echo generating $@
+	@$(MKDIR)
+	$(NOECHO)sed "s/%MEMBASE%/$(MEMBASE)/;s/%MEMSIZE%/$(MEMSIZE)/;s/%ROMLITE_PREFLASHED_DATA%/$(ROMLITE_PREFLASHED_DATA)/" < $< > $@
+
+$(BUILDDIR)/trustzone-system-onesegment.ld: $(LOCAL_DIR)/trustzone-system-onesegment.ld
+	@echo generating $@
+	@$(MKDIR)
+	$(NOECHO)sed "s/%MEMBASE%/$(MEMBASE)/;s/%MEMSIZE%/$(MEMSIZE)/" < $< > $@
+
 $(BUILDDIR)/system-onesegment.ld: $(LOCAL_DIR)/system-onesegment.ld
 	@echo generating $@
 	@$(MKDIR)

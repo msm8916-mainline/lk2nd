@@ -37,6 +37,11 @@ _start:
 	b	arm_fiq
 
 reset:
+
+#ifdef ENABLE_TRUSTZONE
+	/*Add reference to TZ symbol so linker includes it in final image */
+	ldr r7, =_binary_tzbsp_tzbsp_bin_start
+#endif
 	/* do some cpu setup */
 #if ARM_WITH_CP15
 	mrc		p15, 0, r0, c1, c0, 0
@@ -47,12 +52,19 @@ reset:
 		/* enable alignment faults */
 	orr		r0, r0, #(1<<1)
 	mcr		p15, 0, r0, c1, c0, 0
+#ifdef ENABLE_TRUSTZONE
+  /*nkazi: not needed ? Setting VBAR to location of new vector table : 0x80000      */
+ ldr             r0, =0x00080000
+ mcr             p15, 0, r0, c12, c0, 0
+#endif
 #endif
 
 #if WITH_CPU_EARLY_INIT
 	/* call platform/arch/etc specific init code */
+#ifndef ENABLE_TRUSTZONE
+	/* Not needed when TrustZone is the first bootloader that runs.*/
 	bl __cpu_early_init
-
+#endif
 	/* declare return address as global to avoid using stack */
 .globl _cpu_early_init_complete
 	_cpu_early_init_complete:
