@@ -326,9 +326,12 @@ int boot_linux_from_mmc(void)
 	offset += n;
 
 	n = ROUND_TO_PAGE(hdr->ramdisk_size, page_mask);
-	if (mmc_read(ptn + offset, (void *)hdr->ramdisk_addr, n)) {
-		dprintf(CRITICAL, "ERROR: Cannot read ramdisk image\n");
-                return -1;
+	if(n != 0)
+	{
+		if (mmc_read(ptn + offset, (void *)hdr->ramdisk_addr, n)) {
+			dprintf(CRITICAL, "ERROR: Cannot read ramdisk image\n");
+			return -1;
+		}
 	}
 	offset += n;
 
