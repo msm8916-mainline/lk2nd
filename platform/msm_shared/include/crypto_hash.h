@@ -37,6 +37,8 @@
 #define FALSE		0
 
 #define SHA256_INIT_VECTOR_SIZE		8
+#define SHA1_INIT_VECTOR_SIZE		5
+
 #define CRYPTO_SHA_BLOCK_SIZE		64
 #define CRYPTO_MAX_AUTH_BLOCK_SIZE	0xFA00
 
@@ -47,6 +49,19 @@ typedef enum {
     CRYPTO_SHA_ERR_INVALID_PARAM,
 }crypto_result_type;
 
+typedef enum {
+    CRYPTO_AUTH_ALG_SHA1=1,
+    CRYPTO_AUTH_ALG_SHA256
+}crypto_auth_alg_type;
+
+typedef struct {
+    unsigned int auth_bytecnt[2];
+    unsigned char saved_buff[64];
+    unsigned char saved_buff_indx;
+    unsigned int auth_iv[5];
+    unsigned char flags;
+}crypto_SHA1_ctx;
+
 typedef struct {
     unsigned int auth_bytecnt[2];
     unsigned char saved_buff[64];
@@ -55,31 +70,47 @@ typedef struct {
     unsigned char flags;
 }crypto_SHA256_ctx;
 
-extern void crypto_init(void);
+extern void crypto_eng_reset(void);
 
-extern void crypto_set_sha_ctx(crypto_SHA256_ctx *ctx_ptr,
-                               unsigned int bytes_to_write,bool first,
-                               bool last);
+extern void crypto_eng_init(void);
 
-extern void crypto_send_data(crypto_SHA256_ctx *ctx_ptr,
+extern void crypto_set_sha_ctx(void *ctx_ptr,
+                               unsigned int bytes_to_write,
+                               crypto_auth_alg_type auth_alg,
+                               bool first, bool last);
+
+extern void crypto_send_data(void *ctx_ptr,
                              unsigned char *data_ptr, unsigned int buff_size,
                              unsigned int bytes_to_write,
                              unsigned int *ret_status);
 
 extern void crypto_get_digest(unsigned char *digest_ptr,
-                              unsigned int *ret_status, bool last);
+                              unsigned int *ret_status,
+                              crypto_auth_alg_type auth_alg,bool last);
 
-extern void crypto_get_ctx(crypto_SHA256_ctx *ctx_ptr);
+extern void crypto_get_ctx(void *ctx_ptr);
+
+static void crypto_init(void);
 
 static crypto_result_type do_sha(unsigned char *buff_ptr,
                                  unsigned int buff_size,
-                                 unsigned char *digest_ptr);
+                                 unsigned char *digest_ptr,
+                                 crypto_auth_alg_type auth_alg);
 
-static crypto_result_type do_sha_update(crypto_SHA256_ctx *ctx_ptr,
+static crypto_result_type do_sha_update(void *ctx_ptr,
                                         unsigned char *buff_ptr,
                                         unsigned int buff_size,
+                                        crypto_auth_alg_type auth_alg,
                                         bool first, bool last);
 
-static unsigned int calc_num_bytes_to_send(crypto_SHA256_ctx *ctx_ptr,
+static unsigned int calc_num_bytes_to_send(void *ctx_ptr,
                                            unsigned int buff_size, bool last);
+
+static crypto_result_type crypto_sha256(unsigned char *buff_ptr,
+                                        unsigned int buff_size,
+                                        unsigned char *digest_ptr);
+
+static crypto_result_type crypto_sha1(unsigned char *buff_ptr,
+                                      unsigned int buff_size,
+                                      unsigned char *digest_ptr);
 #endif

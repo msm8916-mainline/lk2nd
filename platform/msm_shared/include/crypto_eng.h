@@ -80,6 +80,7 @@
 #define HIGH_SPD_HASH_EN_N			0x00008000
 
 #define SEG_CFG_AUTH_ALG_SHA		(1<<9)
+#define SEG_CFG_AUTH_SIZE_SHA1		(0<<11)
 #define SEG_CFG_AUTH_SIZE_SHA256	(1<<11)
 #define SEG_CFG_FIRST				(1<<17)
 #define SEG_CFG_LAST				(1<<18)
