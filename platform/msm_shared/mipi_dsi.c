@@ -716,9 +716,11 @@ void mipi_dsi_cmd_mode_trigger(void)
 
 void mipi_dsi_shutdown(void)
 {
-    writel(0, DSI_CTRL);
+    writel(0x01010101, DSI_INT_CTRL);
     writel(0x00000001, DSI_PHY_SW_RESET);
-    writel(0x0, DSI_INT_CTRL);
+    writel(0, DSIPHY_PLL_CTRL_0);
+    writel(0, DSI_CLK_CTRL);
+    writel(0, DSI_CTRL);
     writel(0x00000000, MDP_DSI_VIDEO_EN);
 }
 
