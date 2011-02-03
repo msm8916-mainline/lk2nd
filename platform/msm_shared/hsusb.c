@@ -533,6 +533,13 @@ int udc_init(struct udc_device *dev)
 	hsusb_clock_init();
 #endif
 
+#ifdef PLATFORM_MSM8X60
+#ifndef PLATFORM_MSM8960
+	/* Configure GPIOs for HS_USB */
+	hsusb_gpio_init();
+#endif
+#endif
+
 	epts = memalign(4096, 4096);
 
 	dprintf(INFO, "USB init ept @ %p\n", epts);

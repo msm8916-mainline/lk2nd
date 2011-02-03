@@ -30,8 +30,10 @@
 #define __PLATFORM_MSM8X60_GPIO_HW_H
 
 #define TLMM_BASE_ADDR (0x800000)
-#define GPIO_BASE (0x1000)
-#define GPIO_BASE_ADDR(x) (TLMM_BASE_ADDR + GPIO_BASE + (x)*0x10)
+#define GPIO_CONFIG    (0x1000)
+#define GPIO_IN_OUT    (0x1004)
+#define GPIO_CONFIG_ADDR(x) (TLMM_BASE_ADDR + GPIO_CONFIG + (x)*0x10)
+#define GPIO_IN_OUT_ADDR(x) (TLMM_BASE_ADDR + GPIO_IN_OUT + (x)*0x10)
 
 /* GPIO TLMM: Direction */
 #define GPIO_INPUT      0
