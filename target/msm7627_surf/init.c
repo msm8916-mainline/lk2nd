@@ -45,6 +45,7 @@
 #define NUM_PAGES_PER_BLOCK    0x40
 
 static struct ptable flash_ptable;
+static unsigned mmc_sdc_base[] = { MSM_SDC1_BASE, MSM_SDC2_BASE, MSM_SDC3_BASE, MSM_SDC4_BASE};
 
 /* for these partitions, start will be offset by either what we get from
  * smem, or from the above offset if smem is not useful. Also, we should
@@ -100,6 +101,7 @@ void keypad_init(void);
 
 int target_is_emmc_boot(void);
 
+
 void target_init(void)
 {
 	unsigned offset;
@@ -107,6 +109,8 @@ void target_init(void)
 	unsigned total_num_of_blocks;
 	unsigned next_ptr_start_adr = 0;
 	unsigned blocks_per_1MB = 8; /* Default value of 2k page size on 256MB flash drive*/
+	unsigned char slot;
+	unsigned int base_addr;
 	int i;
 
 	dprintf(INFO, "target_init()\n");
@@ -118,10 +122,19 @@ void target_init(void)
 
 	if (target_is_emmc_boot())
 	{
-		if(mmc_boot_main(MMC_SLOT, MSM_SDC1_BASE))
+		/* Trying SDC3 first */
+		slot = 3;
+		base_addr = mmc_sdc_base[slot - 1];
+		if(mmc_boot_main(slot, base_addr))
 		{
-			dprintf(CRITICAL, "mmc init failed!");
-			ASSERT(0);
+			/* Trying SDC1 next */
+			slot = 1;
+			base_addr = mmc_sdc_base[slot - 1];
+			if(mmc_boot_main(slot, base_addr))
+			{
+				dprintf(CRITICAL, "mmc init failed!");
+				ASSERT(0);
+			}
 		}
 		return;
 	}
