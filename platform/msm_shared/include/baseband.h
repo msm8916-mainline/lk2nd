@@ -34,7 +34,8 @@ enum baseband
     BASEBAND_MSM     = 0,
     BASEBAND_APQ     = 1,
     BASEBAND_CSFB    = 2,
-    BASEBAND_SVLTE   = 3,
+    BASEBAND_SVLTE1  = 3,
+    BASEBAND_SVLTE2A = 4,
     BASEBAND_32BITS  = 0x7FFFFFFF
 };
 

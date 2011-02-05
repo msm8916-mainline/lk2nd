@@ -243,6 +243,7 @@ char debug_led_read()
 unsigned target_baseband()
 {
 	struct smem_board_info_v5 board_info_v5;
+	struct smem_board_info_v6 board_info_v6;
 	unsigned int board_info_len = 0;
 	unsigned smem_status = 0;
 	unsigned format = 0;
@@ -252,7 +253,7 @@ unsigned target_baseband()
 					&format, sizeof(format), 0);
 	if(!smem_status)
 	{
-		if (format >= 5)
+		if (format == 5)
 		{
 			board_info_len = sizeof(board_info_v5);
 
@@ -264,15 +265,33 @@ unsigned target_baseband()
 				if (board_info_v5.fused_chip == MDM9200)
 					baseband = BASEBAND_CSFB;
 				else if (board_info_v5.fused_chip == MDM9600)
-					baseband = BASEBAND_SVLTE;
+					baseband = BASEBAND_SVLTE2A;
 				else if (board_info_v5.board_info_v3.msm_id == APQ8060)
 					baseband = BASEBAND_APQ;
 				else
 					baseband = BASEBAND_MSM;
 			}
 		}
-	}
+		else if (format >= 6)
+		{
+			board_info_len = sizeof(board_info_v6);
 
+			smem_status = smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
+							&board_info_v6, board_info_len);
+			if(!smem_status)
+			{
+				/* Check for LTE fused targets or APQ.  Default to MSM */
+				if (board_info_v6.platform_subtype == HW_PLATFORM_SUBTYPE_CSFB)
+					baseband = BASEBAND_CSFB;
+				else if (board_info_v6.platform_subtype == HW_PLATFORM_SUBTYPE_SVLTE2A)
+					baseband = BASEBAND_SVLTE2A;
+				else if (board_info_v6.board_info_v3.msm_id == APQ8060)
+					baseband = BASEBAND_APQ;
+				else
+					baseband = BASEBAND_MSM;
+			}
+		}
+	}
 	return baseband;
 }
 

@@ -99,6 +99,15 @@ struct smem_board_info_v5
     unsigned fused_chip;
 };
 
+struct smem_board_info_v6
+{
+    struct smem_board_info_v3 board_info_v3;
+    unsigned platform_version;
+    unsigned fused_chip;
+    unsigned platform_subtype;
+    unsigned buffer_align; //Need for 8 bytes alignment while reading from shared memory.
+};
+
 /* chip information */
 enum {
     UNKNOWN = 0,
@@ -118,6 +127,15 @@ enum platform
     HW_PLATFORM_SVLTE   = 4,
     HW_PLATFORM_QT      = 6,
     HW_PLATFORM_32BITS  = 0x7FFFFFFF
+};
+
+enum platform_subtype
+{
+    HW_PLATFORM_SUBTYPE_UNKNOWN = 0,
+    HW_PLATFORM_SUBTYPE_CSFB    = 1,
+    HW_PLATFORM_SUBTYPE_SVLTE1  = 2,
+    HW_PLATFORM_SUBTYPE_SVLTE2A = 3,
+    HW_PLATFORM_SUBTYPE_32BITS  = 0x7FFFFFFF
 };
 
 

@@ -64,10 +64,10 @@
 static const char *emmc_cmdline = " androidboot.emmc=true";
 static const char *battchg_pause = " androidboot.battchg_pause=true";
 
-static const char *baseband_apq   = " androidboot.baseband=apq";
-static const char *baseband_msm   = " androidboot.baseband=msm";
-static const char *baseband_csfb  = " androidboot.baseband=csfb";
-static const char *baseband_svlte = " androidboot.baseband=svlte";
+static const char *baseband_apq     = " androidboot.baseband=apq";
+static const char *baseband_msm     = " androidboot.baseband=msm";
+static const char *baseband_csfb    = " androidboot.baseband=csfb";
+static const char *baseband_svlte2a = " androidboot.baseband=svlte2a";
 
 static struct udc_device surf_udc_device = {
 	.vendor_id	= 0x18d1,
@@ -184,8 +184,8 @@ void boot_linux(void *kernel, unsigned *tags,
 			cmdline_len += strlen(baseband_csfb);
 			break;
 
-		case BASEBAND_SVLTE:
-			cmdline_len += strlen(baseband_svlte);
+		case BASEBAND_SVLTE2A:
+			cmdline_len += strlen(baseband_svlte2a);
 			break;
 	}
 
@@ -234,8 +234,8 @@ void boot_linux(void *kernel, unsigned *tags,
 				while ((*dst++ = *src++));
 				break;
 
-			case BASEBAND_SVLTE:
-				src = baseband_svlte;
+			case BASEBAND_SVLTE2A:
+				src = baseband_svlte2a;
 				if (have_cmdline) --dst;
 				while ((*dst++ = *src++));
 				break;
