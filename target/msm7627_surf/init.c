@@ -38,7 +38,9 @@
 #include <smem.h>
 #include <platform/iomap.h>
 
-#define LINUX_MACHTYPE  2705
+#define LINUX_MACHTYPE_7x27_SURF    2705
+#define LINUX_MACHTYPE_7x27_FFA     2706
+
 
 #define VARIABLE_LENGTH        0x10101010
 #define DIFF_START_ADDR        0xF0F0F0F0
@@ -46,6 +48,7 @@
 
 static struct ptable flash_ptable;
 static unsigned mmc_sdc_base[] = { MSM_SDC1_BASE, MSM_SDC2_BASE, MSM_SDC3_BASE, MSM_SDC4_BASE};
+static int hw_platform_type = -1;
 
 /* for these partitions, start will be offset by either what we get from
  * smem, or from the above offset if smem is not useful. Also, we should
@@ -188,7 +191,43 @@ void target_init(void)
 
 unsigned board_machtype(void)
 {
-    return LINUX_MACHTYPE;
+   struct smem_board_info_v2 board_info_v2;
+   unsigned int board_info_len = 0;
+   enum platform platform_type = 0;
+   unsigned smem_status;
+   unsigned format = 0;
+
+   if(hw_platform_type != -1)
+       return hw_platform_type;
+
+   smem_status = smem_read_alloc_entry_offset(SMEM_BOARD_INFO_LOCATION,
+                      &format, sizeof(format), 0);
+   if(!smem_status)
+   {
+       if(format == 2)
+       {
+           board_info_len = sizeof(board_info_v2);
+
+           smem_status = smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
+                              &board_info_v2, board_info_len);
+           if(!smem_status)
+           {
+               char *build_type = (char *)(board_info_v2.build_id)+ 12;
+               switch (*build_type)
+               {
+                   case 'F':
+                       hw_platform_type = LINUX_MACHTYPE_7x27_FFA;    break;
+                   case 'S':
+                       hw_platform_type = LINUX_MACHTYPE_7x27_SURF;    break;
+                   default:
+                       hw_platform_type = LINUX_MACHTYPE_7x27_SURF;    break;
+               }
+           }
+       }
+   } else {
+       hw_platform_type = LINUX_MACHTYPE_7x27_SURF;
+   }
+   return hw_platform_type;
 }
 
 void reboot_device(unsigned reboot_reason)
