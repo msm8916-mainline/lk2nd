@@ -31,6 +31,7 @@
 #include <kernel/thread.h>
 #include <platform/iomap.h>
 #include <platform/clock.h>
+#include <platform/scm-io.h>
 #include <reg.h>
 
 /* Read, modify, then write-back a register. */
