@@ -37,6 +37,7 @@
 #include <dev/flash.h>
 #include <smem.h>
 #include <platform/iomap.h>
+#include <platform/gpio_hw.h>
 #include <baseband.h>
 #include <reg.h>
 
@@ -298,4 +299,33 @@ unsigned target_pause_for_battery_charge(void)
 		return 1;
 
 	return 0;
+}
+
+void hsusb_gpio_init(void)
+{
+	uint32_t func;
+	uint32_t pull;
+	uint32_t dir;
+	uint32_t enable;
+	uint32_t drv;
+
+	/* GPIO 131 and 132 need to be configured for connecting to USB HS PHY */
+
+	func = 0;
+	enable = 1;
+	pull = GPIO_NO_PULL;
+	dir = 2;
+	drv = GPIO_2MA;
+	gpio_tlmm_config(131, func, dir, pull, drv, enable);
+	gpio_set(131, dir);
+
+	func = 0;
+	enable = 1;
+	pull = GPIO_NO_PULL;
+	dir = 1;
+	drv = GPIO_2MA;
+	gpio_tlmm_config(132, func, dir, pull, drv, enable);
+	gpio_set(132, dir);
+
+	return;
 }
