@@ -148,7 +148,7 @@ static int lcd_power_on()
     buffer |= (0x0 << PM8901_LDO_CTL_MODE__S);
     /* Write a 31 into the Voltage Programming value to obtain 3.3v VREG =
        1.75V + X * 100mV */
-    buffer |= (0x1F);
+    buffer |= (0xF);
     mask = buffer | LDO_CTL_ENABLE_MASK |
         LDO_CTL_PULL_DOWN_MASK |
         LDO_CTL_NORMAL_POWER_MODE_MASK | LDO_CTL_VOLTAGE_SET_MASK;
