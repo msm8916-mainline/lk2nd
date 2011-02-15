@@ -79,6 +79,7 @@ void target_init(void)
 unsigned board_machtype(void)
 {
 	struct smem_board_info_v5 board_info_v5;
+	struct smem_board_info_v6 board_info_v6;
 	unsigned int board_info_len = 0;
 	unsigned smem_status = 0;
 	unsigned format = 0;
@@ -92,7 +93,7 @@ unsigned board_machtype(void)
 					&format, sizeof(format), 0);
 	if(!smem_status)
 	{
-		if (format >= 5)
+		if (format == 5)
 		{
 			board_info_len = sizeof(board_info_v5);
 
@@ -101,12 +102,24 @@ unsigned board_machtype(void)
 			if(!smem_status)
 			{
 				fused_chip = board_info_v5.fused_chip;
+				id = board_info_v5.board_info_v3.hw_platform;
+			}
+		}
+		else if (format == 6)
+		{
+			board_info_len = sizeof(board_info_v6);
+
+			smem_status = smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
+							&board_info_v6, board_info_len);
+			if(!smem_status)
+			{
+				fused_chip = board_info_v6.fused_chip;
+				id = board_info_v6.board_info_v3.hw_platform;
 			}
 		}
 	}
 
 	/* Detect SURF v/s FFA v/s Fluid */
-	id = board_info_v5.board_info_v3.hw_platform;
 	switch(id)
 	{
 		case 0x1:
