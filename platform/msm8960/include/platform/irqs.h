@@ -26,18 +26,23 @@
  *
  */
 
-#ifndef __ASM_ARCH_MSM_IRQS_8x60_H
-#define __ASM_ARCH_MSM_IRQS_8x60_H
+#ifndef __IRQS_8960_H
+#define __IRQS_8960_H
 
 /* MSM ACPU Interrupt Numbers */
+
+/* 0-15:  STI/SGI (software triggered/generated interrupts)
+ * 16-31: PPI (private peripheral interrupts)
+ * 32+:   SPI (shared peripheral interrupts)
+ */
 
 #define GIC_PPI_START 16
 #define GIC_SPI_START 32
 
-#define INT_DEBUG_TIMER_EXP         (GIC_PPI_START + 0)
+#define INT_DEBUG_TIMER_EXP         (GIC_PPI_START + 1)
 
-#define USB1_HS_IRQ                 (GIC_SPI_START + 100)
 #define USB1_HS_BAM_IRQ             (GIC_SPI_START + 94)
+#define USB1_HS_IRQ                 (GIC_SPI_START + 100)
 #define USB2_IRQ                    (GIC_SPI_START + 141)
 #define USB1_IRQ                    (GIC_SPI_START + 142)
 #define GSBI1_QUP_IRQ               (GIC_SPI_START + 147)
@@ -73,4 +78,4 @@
 
 #define NR_IRQS (NR_MSM_IRQS + NR_GPIO_IRQS + NR_BOARD_IRQS)
 
-#endif /* __ASM_ARCH_MSM_IRQS_8x60_H */
+#endif /* __IRQS_8960_H */

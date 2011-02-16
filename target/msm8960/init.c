@@ -39,6 +39,10 @@
 #define LINUX_MACHTYPE_8960_SIM     3230
 #define LINUX_MACHTYPE_8960_RUMI3   3231
 
+extern unsigned int mmc_boot_main(unsigned char slot, unsigned int base);
+extern void mdelay(unsigned msecs);
+extern void dmb(void);
+
 void target_init(void)
 {
 	dprintf(INFO, "target_init()\n");
@@ -53,11 +57,11 @@ void target_init(void)
 unsigned board_machtype(void)
 {
 /* TODO: Add a run time mechanism to detect if we are running on RUMI3.
- * Until then, LINUX_MACHTYPE_RUMI3 can be defined as compile time
+ * Until then, PLATFORM_MSM8960_RUMI3 can be defined as compile time
  * option for RUMI3.
  */
 
-#ifdef LINUX_MACHTYPE_RUMI3
+#if PLATFORM_MSM8960_RUMI3
 	return LINUX_MACHTYPE_8960_RUMI3;
 #else
 	return LINUX_MACHTYPE_8960_SIM;
@@ -85,7 +89,7 @@ void reboot_device(unsigned reboot_reason)
 unsigned check_reboot_mode(void)
 {
 	unsigned restart_reason = 0;
-	void *restart_reason_addr = 0x401FFFFC;
+	void *restart_reason_addr = (void*)0x401FFFFC;
 
 	/* Read reboot reason and scrub it */
 	restart_reason = readl(restart_reason_addr);

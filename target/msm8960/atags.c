@@ -34,8 +34,6 @@
 
 unsigned* target_atag_mem(unsigned* ptr)
 {
-	unsigned value = 0;
-
 	/* ATAG_MEM */
 	*ptr++ = 4;
 	*ptr++ = 0x54410002;

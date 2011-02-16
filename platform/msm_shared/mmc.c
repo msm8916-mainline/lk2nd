@@ -99,7 +99,7 @@ static unsigned int mmc_boot_enable_clock( struct mmc_boot_host* host,
 {
     unsigned int mmc_clk = 0;
 
-#ifndef PLATFORM_MSM8X60
+#if !(defined(PLATFORM_MSM8X60) || defined(PLATFORM_MSM8960))
     int mmc_signed_ret = 0;
     unsigned SDC_CLK = mmc_sdc_clk[mmc_slot - 1];
     unsigned SDC_PCLK = mmc_sdc_pclk[mmc_slot - 1];
@@ -156,6 +156,7 @@ static unsigned int mmc_boot_enable_clock( struct mmc_boot_host* host,
     host->pclk_rate = mclk;
     host->clk_enabled = 1;
 #endif
+
     //enable mci clock
     mmc_clk |= MMC_BOOT_MCI_CLK_ENABLE;
     //enable flow control
@@ -165,7 +166,7 @@ static unsigned int mmc_boot_enable_clock( struct mmc_boot_host* host,
     writel( mmc_clk, MMC_BOOT_MCI_CLK );
     return MMC_BOOT_E_SUCCESS;
 
-#ifndef PLATFORM_MSM8X60
+#if !(defined(PLATFORM_MSM8X60) || defined(PLATFORM_MSM8960))
 error_pclk:
     mmc_clock_enable_disable(SDC_PCLK, MMC_CLK_DISABLE);
 error_mclk:
@@ -1656,7 +1657,7 @@ static unsigned int mmc_boot_adjust_interface_speed( struct mmc_boot_host* host,
     }while( MMC_BOOT_CARD_STATUS(status) == MMC_BOOT_PROG_STATE );
 
 
-#ifdef PLATFORM_MSM8X60
+#if defined(PLATFORM_MSM8X60)
     mmc_ret = mmc_boot_enable_clock( host, MMC_CLK_48MHZ);
 #else
     mmc_ret = mmc_boot_enable_clock( host, MMC_CLK_50MHZ);
@@ -2259,7 +2260,7 @@ static unsigned int mmc_boot_set_sd_hs(struct mmc_boot_host* host, struct mmc_bo
 
     mdelay(1);
 
-#ifdef PLATFORM_MSM8X60
+#if defined(PLATFORM_MSM8X60)
     mmc_ret = mmc_boot_enable_clock( host, MMC_CLK_48MHZ);
 #else
     mmc_ret = mmc_boot_enable_clock( host, MMC_CLK_50MHZ);
@@ -2485,7 +2486,7 @@ unsigned int mmc_boot_main(unsigned char slot, unsigned int base)
     mmc_slot = slot;
     mmc_boot_mci_base = base;
 
-#ifndef PLATFORM_MSM8X60
+#if !(defined(PLATFORM_MSM8X60) || defined(PLATFORM_MSM8960))
     /* Waiting for modem to come up */
     while (readl(MSM_SHARED_BASE + 0x14) != 1);
 #endif

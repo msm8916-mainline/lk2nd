@@ -103,10 +103,17 @@ enum MSM_BOOT_UART_DM_BITS_PER_CHAR
 #define MSM_BOOT_UART_DM_APPS_NS             MSM_BOOT_GSBIn_UART_APPS_NS(12)
 
 
-/* Using GSBI12 for UART */
+/* Specify GSBI for UART */
 #ifdef PLATFORM_MSM8960
-        #define MSM_BOOT_GSBI_BASE                   0x16100000
+        #if PLATFORM_MSM8960_RUMI3
+          /* GSBI5 */
+          #define MSM_BOOT_GSBI_BASE                 0x16400000
+        #else
+          /* GSBI2 */
+          #define MSM_BOOT_GSBI_BASE                 0x16100000
+        #endif
 #else
+        /* GSBI12 */
         #define MSM_BOOT_GSBI_BASE                   0x19C00000
 #endif
 

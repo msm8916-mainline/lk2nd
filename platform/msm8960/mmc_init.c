@@ -26,13 +26,10 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <string.h>
-#include <stdlib.h>
 #include <debug.h>
 #include <reg.h>
+#include <platform/iomap.h>
 #include "mmc.h"
-
-#define CLK_CTL_BASE    0x00900000
 
 #define SDC_NS(n)       (CLK_CTL_BASE + 0x282C + 32*((n) - 1))
 #define SDC1_NS         SDC_NS(1)
@@ -48,57 +45,31 @@
 #define SDC4_MD         SDC_MD(4)
 #define SDC5_MD         SDC_MD(5)
 
-static void mmc_set_clk(unsigned ns, unsigned md)
-{
-    unsigned int val;
-    /*Clock Init*/
-    // 1. Set bit 7 in the NS registers
-    val = 1 << 7;
-    writel(val, SDC1_NS);
-
-    //2. Program MD registers
-    writel(md, SDC1_MD);
-
-    //3. Program NS resgister OR'd with Bit 7
-    val = 1 << 7;
-    val |= ns;
-    writel(val, SDC1_NS);
-
-    //4. Clear bit 7 of NS register
-    val = 1 << 7;
-    val = ~val;
-    val = val & readl(SDC1_NS);
-    writel(val, SDC1_NS);
-
-    //5. For MD != NA set bit 8 of NS register
-    val = 1 << 8;
-    val = val | readl(SDC1_NS);
-    writel(val, SDC1_NS);
-
-    //6. Set bit 11 in NS register
-    val = 1 << 11;
-    val = val | readl(SDC1_NS);
-    writel(val, SDC1_NS);
-
-    //7. Set bit 9 in NS register
-    val = 1 << 9;
-    val = val | readl(SDC1_NS);
-    writel(val, SDC1_NS);
-}
-
 
 void clock_set_enable (unsigned int mclk)
 {
+/* TODO: the sdc_id should be passed as a param to this function.
+ * Also, it must correspond the SDCx_BASE used in target/init.c
+ * Need a better way to base this off a single param. Shouldn't
+ * have to change at two places.
+ */
+    unsigned char sdc_id = 1;
+
+#if PLATFORM_MSM8960_RUMI3
     if (mclk == MMC_CLK_400KHZ)
     {
-        mmc_set_clk(0x0010005B, 0x0001000F);
+        writel(0x100CF,  SDC_MD(sdc_id));
+        writel(0xD00B40, SDC_NS(sdc_id));
     }
-    else if (mclk == MMC_CLK_20MHZ)
+    else if (mclk == MMC_CLK_25MHZ)
     {
-        mmc_set_clk(0x00ED0043, 0x000100EC);
+        writel(0x100EF,  SDC_MD(sdc_id));
+        writel(0xF00B47, SDC_NS(sdc_id));
     }
-    else if (mclk == MMC_CLK_48MHZ)
+    else if (mclk == MMC_CLK_50MHZ)
     {
-        mmc_set_clk(0x00FE005B, 0x000100FD);
+        writel(0x100F7,  SDC_MD(sdc_id));
+        writel(0xFC0B47, SDC_NS(sdc_id));
     }
+#endif
 }

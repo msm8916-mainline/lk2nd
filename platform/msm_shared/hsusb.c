@@ -510,7 +510,6 @@ void ulpi_write(unsigned val, unsigned reg)
 
 static int msm_otg_xceiv_reset()
 {
-#ifndef PLATFORM_MSM8960
 	CLK_RESET(USB_CLK, CLK_RESET_ASSERT);
 	CLK_RESET(USB_PHY_CLK, CLK_RESET_ASSERT);
 	mdelay(20);
@@ -518,7 +517,6 @@ static int msm_otg_xceiv_reset()
 	CLK_RESET(USB_CLK, CLK_RESET_DEASSERT);
 	mdelay(20);
 
-#endif
 	/* select ULPI phy */
 	writel(0x81000000, USB_PORTSC);
 	return 0;
@@ -529,15 +527,11 @@ void board_ulpi_init(void);
 
 int udc_init(struct udc_device *dev) 
 {
-#ifndef PLATFORM_MSM8960
 	hsusb_clock_init();
-#endif
 
 #ifdef PLATFORM_MSM8X60
-#ifndef PLATFORM_MSM8960
 	/* Configure GPIOs for HS_USB */
 	hsusb_gpio_init();
-#endif
 #endif
 
 	epts = memalign(4096, 4096);
