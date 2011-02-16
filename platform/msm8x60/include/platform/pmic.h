@@ -48,6 +48,7 @@
 #define PM8901_LDO_L6_TEST_BANK     (PM8901_LDO_BASE + 0x0D)
 #define PM8901_LDO_L7           (PM8901_LDO_BASE + 0x0E)
 #define PM8901_LDO_L7_TEST_BANK     (PM8901_LDO_BASE + 0x0F)
+#define PM8901_PMR_7            (0xAD)
 
 #define PM8901_LDO_TEST_BANK(n) ((n)<<4)
 

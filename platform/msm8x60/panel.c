@@ -94,6 +94,7 @@ static int lcd_power_on()
     int ret = 0;
 
     /* Configure LDO L2 TEST Bank 2, to Range Select 0 */
+    /* Not updating reference voltage */
     buffer = (0x80);            /* Write mode */
     buffer |= (PM8901_LDO_TEST_BANK(2));    /* Test Bank 2 */
     mask = buffer | LDO_TEST_RANGE_SELECT_MASK;
@@ -107,6 +108,26 @@ static int lcd_power_on()
                                  prev_val))) {
         return ret;
     }
+
+    /* Enable LDO L2 at Max Voltage (should be around 3.3v) */
+    buffer = (0x0 << PM8901_LDO_CTL_ENABLE__S);
+    /* Disable Pull Down */
+    buffer |= (0x1 << PM8901_LDO_CTL_PULL_DOWN__S);
+    /* Put LDO into normal mode instead of low power mode */
+    buffer |= (0x0 << PM8901_LDO_CTL_MODE__S);
+    /* Write a 31 into the Voltage Programming value to obtain 3.3v VREG =
+       1.75V + X * 100mV */
+    buffer |= (0xF);
+    mask = buffer | LDO_CTL_ENABLE_MASK |
+        LDO_CTL_PULL_DOWN_MASK |
+        LDO_CTL_NORMAL_POWER_MODE_MASK | LDO_CTL_VOLTAGE_SET_MASK;
+
+    /* Do a normal read here, as to not destroy the value in LDO control */
+    if ((ret = pm8901_read(&prev_val, 1, PM8901_LDO_L2))) {
+        return ret;
+    }
+    /* Configure the LDO2 for 3.3v */
+    ret = pm8901_vreg_write(&buffer, mask, PM8901_LDO_L2, prev_val);
 
     /* Configure LDO L2 TEST Bank 4, for High Range Mode */
     buffer = (0x80);            /* Write mode */
@@ -124,14 +145,16 @@ static int lcd_power_on()
         return ret;
     }
 
-    /* Configure LDO L2 TEST Bank 5, for XO_EN<3-0> to 1 */
+    /* Configure LDO L2 TEST Bank 2, to Range Select 0 */
     buffer = (0x80);            /* Write mode */
-    buffer |= (PM8901_LDO_TEST_BANK(5));    /* Test Bank 5 */
-    buffer |= (0x0F);           /* Enable XO_EN */
-    mask = buffer | LDO_TEST_XO_EN_ALL_MASK;
+    buffer |= (PM8901_LDO_TEST_BANK(2));    /* Test Bank 2 */
+    buffer |= (1<<1);           /* For fine step 50 mV */
+    buffer |= (1<<3);           /* to update reference voltage */
+    mask = buffer | LDO_TEST_RANGE_SELECT_MASK;
+    mask |= (1<<2);             /* Setting mask to make ref voltage as 1.25 V */
 
     if ((ret = pm8901_test_bank_read(&prev_val,
-                                     PM8901_LDO_TEST_BANK(5),
+                                     PM8901_LDO_TEST_BANK(2),
                                      PM8901_LDO_L2_TEST_BANK))) {
         return ret;
     }
@@ -140,25 +163,13 @@ static int lcd_power_on()
         return ret;
     }
 
-    /* Enable LDO L2 at Max Voltage (should be around 3.3v) */
-    buffer = (0x1 << PM8901_LDO_CTL_ENABLE__S);
-    /* Disable Pull Down */
-    buffer |= (0x0 << PM8901_LDO_CTL_PULL_DOWN__S);
-    /* Put LDO into normal mode instead of low power mode */
-    buffer |= (0x0 << PM8901_LDO_CTL_MODE__S);
-    /* Write a 31 into the Voltage Programming value to obtain 3.3v VREG =
-       1.75V + X * 100mV */
-    buffer |= (0xF);
-    mask = buffer | LDO_CTL_ENABLE_MASK |
-        LDO_CTL_PULL_DOWN_MASK |
-        LDO_CTL_NORMAL_POWER_MODE_MASK | LDO_CTL_VOLTAGE_SET_MASK;
-
-    /* Do a normal read here, as to not destroy the value in LDO control */
-    if ((ret = pm8901_read(&prev_val, 1, PM8901_LDO_L2))) {
+    /* Enable PMR for LDO L2 */
+    buffer = 0x7F;
+    mask = 0x7F;
+    if ((ret = pm8901_read(&prev_val, 1, PM8901_PMR_7))) {
         return ret;
     }
-    /* Configure the LDO2 for 3.3v */
-    ret = pm8901_vreg_write(&buffer, mask, PM8901_LDO_L2, prev_val);
+    ret = pm8901_vreg_write(&buffer, mask, PM8901_PMR_7, prev_val);
     return ret;
 }
 
