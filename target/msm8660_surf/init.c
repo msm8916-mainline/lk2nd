@@ -360,6 +360,16 @@ unsigned target_pause_for_battery_charge(void)
 	return 0;
 }
 
+void target_serialno(unsigned char *buf)
+{
+	unsigned int serialno;
+	if(target_is_emmc_boot())
+	{
+		serialno =  mmc_get_psn();
+		sprintf(buf,"%x",serialno);
+	}
+}
+
 void hsusb_gpio_init(void)
 {
 	uint32_t func;

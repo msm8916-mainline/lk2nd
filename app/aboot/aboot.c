@@ -62,6 +62,7 @@
 #define FASTBOOT_MODE   0x77665500
 
 static const char *emmc_cmdline = " androidboot.emmc=true";
+static const char *usb_sn_cmdline = " androidboot.serialno=";
 static const char *battchg_pause = " androidboot.battchg_pause=true";
 
 static const char *baseband_apq     = " androidboot.baseband=apq";
@@ -85,6 +86,7 @@ struct atag_ptbl_entry
 	unsigned flags;
 };
 
+char sn_buf[13];
 void platform_uninit_timer(void);
 unsigned* target_atag_mem(unsigned* ptr);
 unsigned board_machtype(void);
@@ -164,6 +166,10 @@ void boot_linux(void *kernel, unsigned *tags,
 	if (target_is_emmc_boot()) {
 		cmdline_len += strlen(emmc_cmdline);
 	}
+
+	cmdline_len += strlen(usb_sn_cmdline);
+	cmdline_len += strlen(sn_buf);
+
 	if (target_pause_for_battery_charge()) {
 		pause_at_bootup = 1;
 		cmdline_len += strlen(battchg_pause);
@@ -208,6 +214,16 @@ void boot_linux(void *kernel, unsigned *tags,
 			have_cmdline = 1;
 			while ((*dst++ = *src++));
 		}
+
+		src = usb_sn_cmdline;
+		if (have_cmdline) --dst;
+		have_cmdline = 1;
+		while ((*dst++ = *src++));
+		src = sn_buf;
+		if (have_cmdline) --dst;
+		have_cmdline = 1;
+		while ((*dst++ = *src++));
+
 		if (pause_at_bootup) {
 			src = battchg_pause;
 			if (have_cmdline) --dst;
@@ -695,6 +711,10 @@ void aboot_init(const struct app_descriptor *app)
 	disp_init = 1;
 	diplay_image_on_screen();
 	#endif
+
+	target_serialno(sn_buf);
+	dprintf(INFO,"sn %s\n",sn_buf);
+	surf_udc_device.serialno = sn_buf;
 
 	/* Check if we should do something other than booting up */
 	if (keys_get_state(KEY_HOME) != 0)

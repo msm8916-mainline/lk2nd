@@ -25,6 +25,8 @@
 #include <target.h>
 #include <compiler.h>
 
+#define EXPAND(NAME) #NAME
+#define TARGET(NAME) EXPAND(NAME)
 /* 
  * default implementations of these routines, if the target code
  * chooses not to implement.
@@ -74,4 +76,9 @@ __WEAK unsigned target_pause_for_battery_charge(void)
 __WEAK unsigned target_baseband()
 {
 	return 0;
+}
+
+__WEAK void target_serialno(unsigned char *buf)
+{
+	sprintf(buf, "%s",TARGET(BOARD));
 }

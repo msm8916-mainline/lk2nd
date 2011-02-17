@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
- * Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2011, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -376,3 +376,12 @@ unsigned target_pause_for_battery_charge(void)
 void target_battery_charging_enable(unsigned enable, unsigned disconnect)
 {
 }
+
+#if _EMMC_BOOT
+void target_serialno(unsigned char *buf)
+{
+	unsigned int serialno;
+	serialno =  mmc_get_psn();
+	sprintf(buf,"%x",serialno);
+}
+#endif

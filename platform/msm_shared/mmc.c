@@ -1,4 +1,4 @@
-/* Copyright (c) 2010, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -2967,4 +2967,9 @@ void mmc_display_csd(void)
     dprintf(INFO,  "wp_grpen: %d\n", mmc_card.csd.wp_grp_enable );
     dprintf(INFO,  "perm_wp: %d\n", mmc_card.csd.perm_wp );
     dprintf(INFO,  "temp_wp: %d\n", mmc_card.csd.temp_wp );
+}
+
+unsigned mmc_get_psn(void)
+{
+	return mmc_card.cid.psn;
 }
