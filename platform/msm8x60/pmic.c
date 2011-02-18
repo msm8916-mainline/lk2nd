@@ -32,6 +32,12 @@
 #include <platform/iomap.h>
 #include <platform/pmic.h>
 
+#define TRUE  1
+#define FALSE 0
+
+#define PM_IRQ_ID_TO_BLOCK_INDEX(id) (uint8_t)(id / 8)
+#define PM_IRQ_ID_TO_BIT_MASK(id)    (uint8_t)(1 << (id % 8))
+
 typedef int (*pm8058_write_func) (unsigned char *, unsigned short,
                                   unsigned short);
 extern int pa1_ssbi2_write_bytes(unsigned char *buffer, unsigned short length,
@@ -46,6 +52,43 @@ void pm8058_write_one(unsigned data, unsigned address)
     if ((*wr_function) (&data, 1, address))
         dprintf(CRITICAL, "Error in initializing register\n");
 
+}
+
+int pm8058_get_gpio_status( pm_sec_gpio_irq_id_type gpio_irq, bool *rt_status)
+{
+    unsigned block_index, reg_data, reg_mask;
+    int errFlag;
+
+    block_index = PM_IRQ_ID_TO_BLOCK_INDEX(gpio_irq);
+
+    /* select the irq block */
+    errFlag =pa1_ssbi2_write_bytes(&block_index,1,IRQ_BLOCK_SEL_USR_ADDR);
+    if(errFlag)
+    {
+        dprintf(INFO,"Device Timeout");
+        return 1;
+    }
+
+    /* read real time status */
+    errFlag =pa1_ssbi2_read_bytes(&reg_data,1,IRQ_STATUS_RT_USR_ADDR);
+    if(errFlag)
+    {
+        dprintf(INFO,"Device Timeout");
+        return 1;
+    }
+    reg_mask = PM_IRQ_ID_TO_BIT_MASK(gpio_irq);
+
+    if ((reg_data & reg_mask) == reg_mask )
+    {
+        /* The RT Status is high. */
+        *rt_status = TRUE;
+    }
+    else
+    {
+        /* The RT Status is low. */
+         *rt_status = FALSE;
+    }
+    return 0;
 }
 
 /*PM8901*/
