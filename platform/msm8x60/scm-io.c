@@ -30,6 +30,8 @@
 #include <platform/clock.h>
 #include <platform/scm-io.h>
 
+#pragma GCC optimize ("O0")
+
 #define SCM_IO_READ	((((0x5 << 10) | 0x1) << 12) | (0x2 << 8) | 0x1)
 #define SCM_IO_WRITE	((((0x5 << 10) | 0x2) << 12) | (0x2 << 8) | 0x2)
 
@@ -73,4 +75,3 @@ void secure_writel(uint32_t v, uint32_t c)
 	} else
 		writel(v, c);
 }
-

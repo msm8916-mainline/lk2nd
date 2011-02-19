@@ -43,7 +43,6 @@ static void rmwreg(uint32_t val, uint32_t reg, uint32_t mask)
     writel(regval, reg);
 }
 
-
 /* Enable/disable for non-shared NT PLLs. */
 int nt_pll_enable(uint8_t src, uint8_t enable)
 {
@@ -57,11 +56,11 @@ int nt_pll_enable(uint8_t src, uint8_t enable)
     };
     uint32_t pll_mode;
 
-    pll_mode = readl(pll_reg[src].mode_reg);
+    pll_mode = secure_readl(pll_reg[src].mode_reg);
     if (enable) {
         /* Disable PLL bypass mode. */
         pll_mode |= (1<<1);
-        writel( pll_mode, pll_reg[src].mode_reg);
+        secure_writel( pll_mode, pll_reg[src].mode_reg);
 
         /* H/W requires a 5us delay between disabling the bypass and
          * de-asserting the reset. Delay 10us just to be safe. */
@@ -69,24 +68,23 @@ int nt_pll_enable(uint8_t src, uint8_t enable)
 
         /* De-assert active-low PLL reset. */
         pll_mode |= (1<<2);
-        writel( pll_mode, pll_reg[src].mode_reg);
+        secure_writel( pll_mode, pll_reg[src].mode_reg);
 
         /* Enable PLL output. */
         pll_mode |= (1<<0);
-        writel( pll_mode, pll_reg[src].mode_reg);
+        secure_writel( pll_mode, pll_reg[src].mode_reg);
 
         /* Wait until PLL is enabled. */
-        while (!readl(pll_reg[src].status_reg));
+        while (!secure_readl(pll_reg[src].status_reg));
     } else {
         /* Disable the PLL output, disable test mode, enable
          * the bypass mode, and assert the reset. */
         pll_mode &= 0xFFFFFFF0;
-        writel( pll_mode, pll_reg[src].mode_reg);
+        secure_writel( pll_mode, pll_reg[src].mode_reg);
     }
 
     return 0;
 }
-
 
 /* Write the M,N,D values and enable the MDP Core Clock */
 void config_mdp_clk(    uint32_t ns,
@@ -96,41 +94,41 @@ void config_mdp_clk(    uint32_t ns,
         uint32_t md_addr,
         uint32_t cc_addr)
 {
-    int val = 0;
+    unsigned int val = 0;
 
     /* MN counter reset */
     val = 1 << 31;
-    writel(val, ns_addr);
+    secure_writel(val, ns_addr);
 
     /* Write the MD and CC register values */
-    writel(md, md_addr);
-    writel(cc, cc_addr);
+    secure_writel(md, md_addr);
+    secure_writel(cc, cc_addr);
 
     /* Reset the clk control, and Write ns val */
     val = 1 << 31;
     val |= ns;
-    writel(val, ns_addr);
+    secure_writel(val, ns_addr);
 
     /* Clear MN counter reset */
     val = 1 << 31;
     val = ~val;
-    val = val & readl(ns_addr);
-    writel(val, ns_addr);
+    val = val & secure_readl(ns_addr);
+    secure_writel(val, ns_addr);
 
     /* Enable MND counter */
     val = 1 << 8;
-    val = val | readl(cc_addr);
-    writel(val, cc_addr);
+    val = val | secure_readl(cc_addr);
+    secure_writel(val, cc_addr);
 
     /* Enable the root of the clock tree */
     val = 1 << 2;
-    val = val | readl(cc_addr);
-    writel(val, cc_addr);
+    val = val | secure_readl(cc_addr);
+    secure_writel(val, cc_addr);
 
     /* Enable the MDP Clock */
     val = 1 << 0;
-    val = val | readl(cc_addr);
-    writel(val, cc_addr);
+    val = val | secure_readl(cc_addr);
+    secure_writel(val, cc_addr);
 }
 
 /* Write the M,N,D values and enable the Pixel Core Clock */
@@ -144,42 +142,42 @@ void config_pixel_clk(  uint32_t ns,
 
     /* Activate the reset for the M/N Counter */
     val = 1 << 7;
-    writel(val, ns_addr);
+    secure_writel(val, ns_addr);
 
     /* Write the MD and CC register values */
-    writel(md, md_addr);
-    writel(cc, cc_addr);
+    secure_writel(md, md_addr);
+    secure_writel(cc, cc_addr);
 
     /* Write the ns value, and active reset for M/N Counter, again */
     val = 1 << 7;
     val |= ns;
-    writel(val, ns_addr);
+    secure_writel(val, ns_addr);
 
     /* De-activate the reset for M/N Counter */
     val = 1 << 7;
     val = ~val;
-    val = val & readl(ns_addr);
-    writel(val, ns_addr);
+    val = val & secure_readl(ns_addr);
+    secure_writel(val, ns_addr);
 
     /* Enable MND counter */
     val = 1 << 5;
-    val = val | readl(cc_addr);
-    writel(val, cc_addr);
+    val = val | secure_readl(cc_addr);
+    secure_writel(val, cc_addr);
 
     /* Enable the root of the clock tree */
     val = 1 << 2;
-    val = val | readl(cc_addr);
-    writel(val, cc_addr);
+    val = val | secure_readl(cc_addr);
+    secure_writel(val, cc_addr);
 
     /* Enable the MDP Clock */
     val = 1 << 0;
-    val = val | readl(cc_addr);
-    writel(val, cc_addr);
+    val = val | secure_readl(cc_addr);
+    secure_writel(val, cc_addr);
 
     /* Enable the LCDC Clock */
     val = 1 << 8;
-    val = val | readl(cc_addr);
-    writel(val, cc_addr);
+    val = val | secure_readl(cc_addr);
+    secure_writel(val, cc_addr);
 }
 
 /* Set rate and enable the clock */
