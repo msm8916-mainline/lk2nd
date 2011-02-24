@@ -216,7 +216,7 @@ void reboot_device(unsigned reboot_reason)
     writel(3,MSM_WDT0_EN);
     dmb();
     /* Enable WDG output */
-    writel(3,MSM_TCSR_BASE + TCSR_WDOG_CFG);
+    secure_writel(3,MSM_TCSR_BASE + TCSR_WDOG_CFG);
     mdelay(10000);
     dprintf (CRITICAL, "Rebooting failed\n");
     return;

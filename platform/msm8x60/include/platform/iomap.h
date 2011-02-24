@@ -49,6 +49,7 @@
         #define MSM_GIC_DIST_BASE   0x02080000
 #endif
 
+#define MSM_TCSR_SIZE   4096
 #define MSM_GPT_BASE    (MSM_TMR_BASE + 0x04)
 #define MSM_CSR_BASE    0x02081000
 #define MSM_GCC_BASE	0x02082000
