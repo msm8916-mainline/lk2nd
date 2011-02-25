@@ -86,6 +86,7 @@ unsigned board_machtype(void)
 	unsigned id = 0;
 	unsigned hw_platform = 0;
 	unsigned fused_chip = 0;
+	unsigned platform_subtype = 0;
 	unsigned mach_id = LINUX_MACHTYPE_8660_FFA;
 
 	/* Detect external msm if this is a "fusion" */
@@ -115,6 +116,7 @@ unsigned board_machtype(void)
 			{
 				fused_chip = board_info_v6.fused_chip;
 				id = board_info_v6.board_info_v3.hw_platform;
+				platform_subtype = board_info_v6.platform_subtype;
 			}
 		}
 	}
@@ -148,30 +150,55 @@ unsigned board_machtype(void)
 				hw_platform = HW_PLATFORM_FFA;
 	};
 
-	/* Use hw_platform and fused_chip information to determine machine id */
-	switch(fused_chip)
+	/* Use platform_subtype or fused_chip information to determine machine id */
+	if (format >= 6)
 	{
-		case UNKNOWN:
-			if (hw_platform == HW_PLATFORM_SURF)
-				mach_id = LINUX_MACHTYPE_8660_SURF;
-			else if (hw_platform == HW_PLATFORM_FFA)
+		switch(platform_subtype)
+		{
+			case HW_PLATFORM_SUBTYPE_CSFB:
+			case HW_PLATFORM_SUBTYPE_SVLTE2A:
+				if (hw_platform == HW_PLATFORM_SURF)
+					mach_id = LINUX_MACHTYPE_8660_CHARM_SURF;
+				else if (hw_platform == HW_PLATFORM_FFA)
+					mach_id = LINUX_MACHTYPE_8660_CHARM_FFA;
+				break;
+			default:
+				if (hw_platform == HW_PLATFORM_SURF)
+					mach_id = LINUX_MACHTYPE_8660_SURF;
+				else if (hw_platform == HW_PLATFORM_FFA)
+					mach_id = LINUX_MACHTYPE_8660_FFA;
+				else if (hw_platform == HW_PLATFORM_FLUID)
+					mach_id = LINUX_MACHTYPE_8660_FLUID;
+				else if (hw_platform == HW_PLATFORM_QT)
+					mach_id = LINUX_MACHTYPE_8660_QT;
+		}
+	}
+	else if (format == 5)
+	{
+		switch(fused_chip)
+		{
+			case UNKNOWN:
+				if (hw_platform == HW_PLATFORM_SURF)
+					mach_id = LINUX_MACHTYPE_8660_SURF;
+				else if (hw_platform == HW_PLATFORM_FFA)
+					mach_id = LINUX_MACHTYPE_8660_FFA;
+				else if (hw_platform == HW_PLATFORM_FLUID)
+					mach_id = LINUX_MACHTYPE_8660_FLUID;
+				else if (hw_platform == HW_PLATFORM_QT)
+					mach_id = LINUX_MACHTYPE_8660_QT;
+				break;
+
+			case MDM9200:
+			case MDM9600:
+				if (hw_platform == HW_PLATFORM_SURF)
+					mach_id = LINUX_MACHTYPE_8660_CHARM_SURF;
+				else if (hw_platform == HW_PLATFORM_FFA)
+					mach_id = LINUX_MACHTYPE_8660_CHARM_FFA;
+				break;
+
+			default:
 				mach_id = LINUX_MACHTYPE_8660_FFA;
-			else if (hw_platform == HW_PLATFORM_FLUID)
-				mach_id = LINUX_MACHTYPE_8660_FLUID;
-			else if (hw_platform == HW_PLATFORM_QT)
-				mach_id = LINUX_MACHTYPE_8660_QT;
-			break;
-
-		case MDM9200:
-		case MDM9600:
-			if (hw_platform == HW_PLATFORM_SURF)
-				mach_id = LINUX_MACHTYPE_8660_CHARM_SURF;
-			else if (hw_platform == HW_PLATFORM_FFA)
-				mach_id = LINUX_MACHTYPE_8660_CHARM_FFA;
-			break;
-
-		default:
-			mach_id = LINUX_MACHTYPE_8660_FFA;
+		}
 	}
 
 	return mach_id;
