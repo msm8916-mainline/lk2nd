@@ -270,3 +270,9 @@ void hsusb_clock_init(void)
 	writel(val, USB_HS1_XVCR_FS_CLK_NS);
 }
 
+void ce_clock_init(void)
+{
+	/* Enable clock branch for CE2 */
+	writel((1<<4), CE2_HCLK_CTL);
+	return;
+}
