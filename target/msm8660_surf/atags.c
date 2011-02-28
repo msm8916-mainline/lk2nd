@@ -30,7 +30,7 @@
 #include <debug.h>
 #include <smem.h>
 
-#define SIZE_45M              0x02D00000 // 45M
+#define SIZE_44M              0x02C00000 // 44M
 #define EBI1_ADDR_1026M       0x40200000
 
 #define SIZE_128M             0x08000000 // 128M
@@ -50,7 +50,7 @@ unsigned* target_atag_mem(unsigned* ptr)
     /* ATAG_MEM */
     *ptr++ = 4;
     *ptr++ = 0x54410002;
-    *ptr++ = SIZE_45M;
+    *ptr++ = SIZE_44M;
     *ptr++ = EBI1_ADDR_1026M;
 
     *ptr++ = 4;
