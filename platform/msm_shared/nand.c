@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
- * Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2011, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -139,6 +139,7 @@ static struct flash_identification supported_flash[] =
 	{0x005c00ec, 0xFFFFFFFF, (256<<20), 0, 2048, (2048<<6), 64, 1}, /*Sams*/
 	{0x005800ec, 0xFFFFFFFF, (256<<20), 0, 2048, (2048<<6), 64, 1}, /*Sams*/
 	{0x6600bcec, 0xFF00FFFF, (512<<20), 1, 4096, (4096<<6), 128, 0}, /*Sams*/
+	{0x5580ba2c, 0xFFFFFFFF, (256<<20), 1, 2048, (2048<<6), 64, 0}, /*Hynx*/
 	/* Note: Width flag is 0 for 8 bit Flash and 1 for 16 bit flash	  */
 	/* Note: Onenand flag is 0 for NAND Flash and 1 for OneNAND flash	*/
 	/* Note: The First row will be filled at runtime during ONFI probe	*/

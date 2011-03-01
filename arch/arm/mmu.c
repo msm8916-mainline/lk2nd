@@ -49,11 +49,11 @@ void arm_mmu_map_section(addr_t paddr, addr_t vaddr, uint flags)
 	uint CB;
 	uint TEX = 0;
 
-#if defined(PLATFORM_MSM7K)
+#if (defined(PLATFORM_MSM7K) || defined(PLATFORM_MSM7X27A))
 	if ((paddr >= 0x88000000) && (paddr < 0xD0000000)) {
-            /* peripherals in the 0x88000000 - 0xD0000000 range must
-             * be mapped as DEVICE NON-SHARED: TEX=2, C=0, B=0
-             */
+		/* peripherals in the 0x88000000 - 0xD0000000 range must
+		 * be mapped as DEVICE NON-SHARED: TEX=2, C=0, B=0
+		 */
 		TEX = 2;
 		flags &= (~(MMU_FLAG_CACHED | MMU_FLAG_BUFFERED));
 	}
