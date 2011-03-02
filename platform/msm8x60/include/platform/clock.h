@@ -85,6 +85,7 @@
 #define BB_PLL8_M_VAL_REG       (MSM_CLK_CTL_BASE + 0x3148)
 #define BB_PLL8_MODE_REG        (MSM_CLK_CTL_BASE + 0x3140)
 #define BB_PLL8_N_VAL_REG       (MSM_CLK_CTL_BASE + 0x314C)
+#define CE2_HCLK_CTL            (MSM_CLK_CTL_BASE + 0x2740)
 
 
 enum clk_sources {

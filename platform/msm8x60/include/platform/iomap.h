@@ -63,6 +63,7 @@
 
 
 #define MSM_SDC1_BASE       0x12400000
+#define MSM_CRYPTO_BASE     0x18500000
 
 #define MSM_SHARED_BASE     0x40000000
 
