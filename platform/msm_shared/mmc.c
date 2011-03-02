@@ -77,10 +77,17 @@ struct mmc_boot_card mmc_card;
 struct mbr_entry mbr[MAX_PARTITIONS];
 unsigned mmc_partition_count = 0;
 
+unsigned int mmc_read (unsigned long long data_addr, unsigned int* out,
+                       unsigned int data_len);
 static void mbr_fill_name (struct mbr_entry *mbr_ent, unsigned int type);
-unsigned int mmc_read (unsigned long long data_addr, unsigned int* out, unsigned int data_len);
-static unsigned int mmc_wp(unsigned int addr, unsigned int size, unsigned char set_clear_wp);
-static unsigned int mmc_boot_send_ext_cmd (struct mmc_boot_card* card, unsigned char* buf);
+static unsigned int mmc_wp(unsigned int addr, unsigned int size,
+                           unsigned char set_clear_wp);
+static unsigned int mmc_boot_send_ext_cmd (struct mmc_boot_card* card,
+                                           unsigned char* buf);
+static unsigned int mmc_boot_read_reg(struct mmc_boot_card *card,
+                                      unsigned int data_len,
+                                      unsigned int command, unsigned int addr,
+                                      unsigned int *out);
 
 unsigned int SWAP_ENDIAN(unsigned int val)
 {
@@ -447,20 +454,44 @@ static unsigned int mmc_boot_decode_and_save_cid( struct mmc_boot_card* card,
     }
 
     mmc_sizeof = sizeof( unsigned int ) * 8;
-    mmc_cid.mid = UNPACK_BITS( raw_cid, 120, 8, mmc_sizeof );
-    mmc_cid.oid = UNPACK_BITS( raw_cid, 104, 16, mmc_sizeof );
 
-    for( i = 0; i < 6; i++ )
+    if( (card->type == MMC_BOOT_TYPE_SDHC) ||  (card->type == MMC_BOOT_TYPE_STD_SD))
     {
-        mmc_cid.pnm[i] = (unsigned char) UNPACK_BITS(raw_cid, \
-                            (104 - 8 * (i+1)), 8, mmc_sizeof );
-    }
-    mmc_cid.pnm[6] = 0;
+        mmc_cid.mid = UNPACK_BITS( raw_cid, 120, 8, mmc_sizeof );
+        mmc_cid.oid = UNPACK_BITS( raw_cid, 104, 16, mmc_sizeof );
 
-    mmc_cid.prv = UNPACK_BITS( raw_cid, 48, 8, mmc_sizeof );
-    mmc_cid.psn = UNPACK_BITS( raw_cid, 16, 32, mmc_sizeof );
-    mmc_cid.month = UNPACK_BITS( raw_cid, 12, 4, mmc_sizeof );
-    mmc_cid.year = UNPACK_BITS( raw_cid, 8, 4, mmc_sizeof );
+        for( i = 0; i < 5; i++ )
+        {
+            mmc_cid.pnm[i] = (unsigned char) UNPACK_BITS(raw_cid, \
+                                (104 - 8 * (i+1)), 8, mmc_sizeof );
+        }
+        mmc_cid.pnm[5] = 0;
+        mmc_cid.pnm[6] = 0;
+
+        mmc_cid.prv = UNPACK_BITS( raw_cid, 56, 8, mmc_sizeof );
+        mmc_cid.psn = UNPACK_BITS( raw_cid, 24, 32, mmc_sizeof );
+        mmc_cid.month = UNPACK_BITS( raw_cid, 8, 4, mmc_sizeof );
+        mmc_cid.year = UNPACK_BITS( raw_cid, 12, 8, mmc_sizeof );
+        mmc_cid.year += 2000;
+    }
+    else
+    {
+        mmc_cid.mid = UNPACK_BITS( raw_cid, 120, 8, mmc_sizeof );
+        mmc_cid.oid = UNPACK_BITS( raw_cid, 104, 16, mmc_sizeof );
+
+        for( i = 0; i < 6; i++ )
+        {
+            mmc_cid.pnm[i] = (unsigned char) UNPACK_BITS(raw_cid, \
+                                (104 - 8 * (i+1)), 8, mmc_sizeof );
+        }
+        mmc_cid.pnm[6] = 0;
+
+        mmc_cid.prv = UNPACK_BITS( raw_cid, 48, 8, mmc_sizeof );
+        mmc_cid.psn = UNPACK_BITS( raw_cid, 16, 32, mmc_sizeof );
+        mmc_cid.month = UNPACK_BITS( raw_cid, 8, 4, mmc_sizeof );
+        mmc_cid.year = UNPACK_BITS( raw_cid, 12, 4, mmc_sizeof );
+        mmc_cid.year += 1997;
+    }
 
     /* save it in card database */
     memcpy( ( struct mmc_boot_cid * )&card->cid, \
@@ -473,7 +504,7 @@ static unsigned int mmc_boot_decode_and_save_cid( struct mmc_boot_card* card,
     dprintf(INFO, "Product Name: %s\n", mmc_cid.pnm );
     dprintf(INFO, "Product revision: %d.%d\n", (mmc_cid.prv >> 4), (mmc_cid.prv & 0xF) );
     dprintf(INFO, "Product serial number: %X\n", mmc_cid.psn );
-    dprintf(INFO, "Manufacturing date: %d %d\n", mmc_cid.month, mmc_cid.year + 1997 );
+    dprintf(INFO, "Manufacturing date: %d %d\n", mmc_cid.month, mmc_cid.year );
 
     return MMC_BOOT_E_SUCCESS;
 }
@@ -2203,7 +2234,14 @@ static unsigned int mmc_boot_set_sd_bus_width(struct mmc_boot_card* card, unsign
     /* Send ACMD6 to set bus width */
     cmd.cmd_index = ACMD6_SET_BUS_WIDTH;
     /* 10 => 4 bit wide */
-    cmd.argument = (1<<1);
+    if ( width == MMC_BOOT_BUS_WIDTH_1_BIT )
+    {
+        cmd.argument = 0;
+    }
+    else if (width == MMC_BOOT_BUS_WIDTH_4_BIT )
+    {
+        cmd.argument = (1<<1);
+    }
     cmd.cmd_type = MMC_BOOT_CMD_ADDRESS;
     cmd.resp_type = MMC_BOOT_RESP_R1;
 
@@ -2238,20 +2276,13 @@ static unsigned int mmc_boot_set_sd_bus_width(struct mmc_boot_card* card, unsign
 
 static unsigned int mmc_boot_set_sd_hs(struct mmc_boot_host* host, struct mmc_boot_card* card)
 {
-    struct mmc_boot_command cmd;
+    unsigned char sw_buf[64];
     unsigned int mmc_ret;
 
-    memset( (struct mmc_boot_command *)&cmd, 0,
-            sizeof(struct mmc_boot_command) );
-
-    /* Send CMD6 function mode 1 to set high speed */
-    /* Not using mode 0 to read current consumption */
-    cmd.cmd_index = CMD6_SWITCH_FUNC;
-    cmd.argument = MMC_BOOT_SD_SWITCH_HS;
-    cmd.cmd_type = MMC_BOOT_CMD_ADDRESS;
-    cmd.resp_type = MMC_BOOT_RESP_R1;
-
-    mmc_ret = mmc_boot_send_command(&cmd);
+    /* CMD6 is a data transfer command. sD card returns 512 bits of data*/
+    /* Refer 4.3.10 of sD card specification 3.0 */
+    mmc_ret = mmc_boot_read_reg(card,64,CMD6_SWITCH_FUNC,MMC_BOOT_SD_SWITCH_HS,
+                               (unsigned int *)&sw_buf);
 
     if( mmc_ret != MMC_BOOT_E_SUCCESS )
     {
@@ -2310,6 +2341,8 @@ static unsigned int mmc_boot_init_and_identify_cards( struct mmc_boot_host* host
 
     if(card->type == MMC_BOOT_TYPE_SDHC || card->type == MMC_BOOT_TYPE_STD_SD)
     {
+        /* Setting sD card to high speed without checking card's capability.
+           Cards that do not support high speed may fail to boot */
         mmc_return = mmc_boot_set_sd_hs(host, card);
         if(mmc_return != MMC_BOOT_E_SUCCESS)
         {
@@ -2319,7 +2352,14 @@ static unsigned int mmc_boot_init_and_identify_cards( struct mmc_boot_host* host
         mmc_return = mmc_boot_set_sd_bus_width(card, MMC_BOOT_BUS_WIDTH_4_BIT);
         if(mmc_return != MMC_BOOT_E_SUCCESS)
         {
-            return mmc_return;
+            dprintf(CRITICAL,"Couldn't set 4bit mode for sD card\n");
+            mmc_return = mmc_boot_set_sd_bus_width(card, MMC_BOOT_BUS_WIDTH_1_BIT);
+            if(mmc_return != MMC_BOOT_E_SUCCESS)
+            {
+                dprintf(CRITICAL, "Error No.%d: Failed in setting bus width!\n",
+                        mmc_return);
+                return mmc_return;
+            }
         }
     }
     else
@@ -2503,7 +2543,7 @@ unsigned int mmc_boot_main(unsigned char slot, unsigned int base)
     mmc_ret = mmc_boot_init_and_identify_cards( &mmc_host, &mmc_card );
     if( mmc_ret != MMC_BOOT_E_SUCCESS )
     {
-        dprintf(CRITICAL,  "MMC Boot: Failure detecting MMC card!!!\n" );
+        dprintf(CRITICAL, "MMC Boot: Failed detecting MMC/SDC @ slot%d\n",slot);
         return MMC_BOOT_E_FAILURE;
     }
 
