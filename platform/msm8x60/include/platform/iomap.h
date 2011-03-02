@@ -139,4 +139,7 @@
 #define USB_HS1_XVCR_FS_CLK_MD 0x00902908
 #define USB_HS1_XVCR_FS_CLK_NS 0x0090290C
 
+#define MSM_ADM_BASE            0x18400000
+#define MSM_ADM_SD_OFFSET       0x00020800
+
 #endif

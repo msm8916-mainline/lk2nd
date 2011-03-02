@@ -57,6 +57,12 @@ static unsigned uart2_gpio_table[] = {
        GPIO_CFG(52, 2, GPIO_OUTPUT, GPIO_PULL_DOWN, GPIO_2MA),
 };
 
+/* CRCI - mmc slot mapping.
+ * mmc slot numbering start from 1.
+ * entry at index 0 is just dummy.
+ */
+uint8_t sdc_crci_map[5] = {0, 6, 7, 12, 13};
+
 void uart2_mux_init(void)
 {
        platform_gpios_enable(uart2_gpio_table, ARRAY_SIZE(uart2_gpio_table));

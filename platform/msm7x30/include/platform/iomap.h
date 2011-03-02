@@ -78,6 +78,9 @@
 #define SH2_OWN_ROW2_BASE_REG   REG_BASE(0x0424)
 #define SH2_OWN_APPS2_BASE_REG  REG_BASE(0x0414)
 
+#define MSM_ADM_BASE            0xAC200000
+#define MSM_ADM_SD_OFFSET       0x00100400
+
 #define MSM_SAW_BASE            0xC0102000
 
 #define PLL_ENA_REG             REG_SH2_BASE(0x0264)

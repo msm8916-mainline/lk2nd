@@ -67,6 +67,12 @@ void uart_init(void);
 
 struct fbcon_config *lcdc_init(void);
 
+/* CRCI - mmc slot mapping.
+ * mmc slot numbering start from 1.
+ * entry at index 0 is just dummy.
+ */
+uint8_t sdc_crci_map[5] = {0, 1, 4, 2, 5};
+
 void platform_early_init(void)
 {
     uart_init();

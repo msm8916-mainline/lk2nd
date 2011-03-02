@@ -33,9 +33,27 @@
 #include "mmc.h"
 #include <platform/iomap.h>
 
+#if MMC_BOOT_ADM
+#include "adm.h"
+#endif
+
 #ifndef NULL
 #define NULL        0
 #endif
+
+#define MMC_BOOT_DATA_READ     0
+#define MMC_BOOT_DATA_WRITE    1
+
+
+static unsigned int mmc_boot_fifo_data_transfer(unsigned int* data_ptr,
+                                                unsigned int  data_len,
+                                                unsigned char direction);
+
+static unsigned int mmc_boot_fifo_read(unsigned int* data_ptr,
+                                       unsigned int data_len);
+
+static unsigned int mmc_boot_fifo_write(unsigned int* data_ptr,
+                                        unsigned int data_len);
 
 #define ROUND_TO_PAGE(x,y) (((x) + (y)) & (~(y)))
 
@@ -1124,10 +1142,7 @@ static unsigned int mmc_boot_send_ext_cmd (struct mmc_boot_card* card, unsigned 
     struct mmc_boot_command cmd;
     unsigned int mmc_ret = MMC_BOOT_E_SUCCESS;
     unsigned int mmc_reg = 0;
-    unsigned int mmc_status = 0;
     unsigned int* mmc_ptr = (unsigned int *)buf;
-    unsigned int mmc_count = 0;
-    unsigned int read_error;
 
     memset(buf,0, 512);
 
@@ -1163,6 +1178,11 @@ static unsigned int mmc_boot_send_ext_cmd (struct mmc_boot_card* card, unsigned 
     /* Set appropriate fields and write the MCI_DATA_CTL register. */
     /* Set ENABLE bit to 1 to enable the data transfer. */
     mmc_reg = MMC_BOOT_MCI_DATA_ENABLE | MMC_BOOT_MCI_DATA_DIR | (512 << MMC_BOOT_MCI_BLKSIZE_POS);
+
+#if MMC_BOOT_ADM
+    mmc_reg |= MMC_BOOT_MCI_DATA_DM_ENABLE;
+#endif
+
     writel( mmc_reg, MMC_BOOT_MCI_DATA_CTL );
 
     memset( (struct mmc_boot_command *)&cmd, 0,
@@ -1180,56 +1200,10 @@ static unsigned int mmc_boot_send_ext_cmd (struct mmc_boot_card* card, unsigned 
         return mmc_ret;
     }
 
-    read_error = MMC_BOOT_MCI_STAT_DATA_CRC_FAIL | \
-                 MMC_BOOT_MCI_STAT_DATA_TIMEOUT  | \
-                 MMC_BOOT_MCI_STAT_RX_OVRRUN;
+    /* Read the transfer data from SDCC FIFO. */
+    mmc_ret = mmc_boot_fifo_data_transfer(mmc_ptr, 512, MMC_BOOT_DATA_READ);
 
-    /* Read the transfer data from SDCC2 FIFO. If Data Mover is not used
-       read the data from the MCI_FIFO register as long as RXDATA_AVLBL
-       bit of MCI_STATUS register is set to 1 and bits DATA_CRC_FAIL,
-       DATA_TIMEOUT, RX_OVERRUN of MCI_STATUS register are cleared to 0.
-       Continue the reads until the whole transfer data is received */
-
-    do
-    {
-        mmc_ret = MMC_BOOT_E_SUCCESS;
-        mmc_status = readl( MMC_BOOT_MCI_STATUS );
-
-        if( mmc_status & read_error )
-        {
-            mmc_ret = mmc_boot_status_error(mmc_status);
-            break;
-        }
-
-        if( mmc_status & MMC_BOOT_MCI_STAT_RX_DATA_AVLBL )
-        {
-            unsigned read_count = 1;
-            if ( mmc_status & MMC_BOOT_MCI_STAT_RX_FIFO_HFULL)
-            {
-                read_count = MMC_BOOT_MCI_HFIFO_COUNT;
-            }
-
-            for (int i=0; i<read_count; i++)
-            {
-                /* FIFO contains 16 32-bit data buffer on 16 sequential addresses*/
-                *mmc_ptr = readl( MMC_BOOT_MCI_FIFO +
-                        ( mmc_count % MMC_BOOT_MCI_FIFO_SIZE ) );
-                mmc_ptr++;
-                /* increase mmc_count by word size */
-                mmc_count += sizeof( unsigned int );
-            }
-            /* quit if we have read enough of data */
-            if (mmc_count >= 512)
-                break;
-        }
-        else if( mmc_status & MMC_BOOT_MCI_STAT_DATA_END )
-        {
-            break;
-        }
-    }while(1);
-
-    return MMC_BOOT_E_SUCCESS;
-
+    return mmc_ret;
 }
 
 /*
@@ -1477,12 +1451,9 @@ static unsigned int mmc_boot_write_to_card( struct mmc_boot_host* host,
 {
     unsigned int mmc_ret = MMC_BOOT_E_SUCCESS;
     unsigned int mmc_status = 0;
-    unsigned int* mmc_ptr = in;
-    unsigned int mmc_count = 0;
     unsigned int mmc_reg = 0;
     unsigned int addr;
     unsigned int xfer_type;
-    unsigned int write_error;
     unsigned int status;
 
     if( ( host == NULL ) || ( card == NULL ) )
@@ -1508,7 +1479,7 @@ static unsigned int mmc_boot_write_to_card( struct mmc_boot_host* host,
         MMC_BOOT_XFER_SINGLE_BLOCK;
 
     /* For MMCHC/SDHC data address is specified in unit of 512B */
-    addr = ( (card->type != MMC_BOOT_TYPE_MMCHC) && (card->type != MMC_BOOT_TYPE_SDHC) ) 
+    addr = ( (card->type != MMC_BOOT_TYPE_MMCHC) && (card->type != MMC_BOOT_TYPE_SDHC) )
         ? (unsigned int) data_addr : (unsigned int) (data_addr / 512);
 
     /* Set the FLOW_ENA bit of MCI_CLK register to 1 */
@@ -1543,63 +1514,20 @@ static unsigned int mmc_boot_write_to_card( struct mmc_boot_host* host,
     /* Clear MODE bit to 0 to enable block oriented data transfer. For
        MMC cards only, if stream data transfer mode is desired, set
        MODE bit to 1. */
+
     /* Set DM_ENABLE bit to 1 in order to enable DMA, otherwise set 0 */
+
+#if MMC_BOOT_ADM
+    mmc_reg |= MMC_BOOT_MCI_DATA_DM_ENABLE;
+#endif
+
     /* Write size of block to be used during the data transfer to
        BLOCKSIZE field */
     mmc_reg |= card->wr_block_len << MMC_BOOT_MCI_BLKSIZE_POS;
     writel( mmc_reg, MMC_BOOT_MCI_DATA_CTL );
 
-    write_error = MMC_BOOT_MCI_STAT_DATA_CRC_FAIL | \
-                  MMC_BOOT_MCI_STAT_DATA_TIMEOUT  | \
-                  MMC_BOOT_MCI_STAT_TX_UNDRUN;
-
-    /* Write the transfer data to SDCC3 FIFO */
-    /* If Data Mover is used for data transfer, prepare a command list entry
-       and enable the Data Mover to work with SDCC2 */
-    /* If Data Mover is NOT used for data xfer: */
-    do
-    {
-        mmc_ret = MMC_BOOT_E_SUCCESS;
-        mmc_status = readl( MMC_BOOT_MCI_STATUS );
-
-        if( mmc_status & write_error )
-        {
-            mmc_ret = mmc_boot_status_error(mmc_status);
-            break;
-        }
-
-        /* Write the data in MCI_FIFO register as long as TXFIFO_FULL bit of
-           MCI_STATUS register is 0. Continue the writes until the whole
-           transfer data is written. */
-        if (((data_len-mmc_count) >= MMC_BOOT_MCI_FIFO_SIZE/2) &&
-                ( mmc_status & MMC_BOOT_MCI_STAT_TX_FIFO_HFULL ))
-        {
-            for (int i=0; i < MMC_BOOT_MCI_HFIFO_COUNT; i++ )
-            {
-                /* FIFO contains 16 32-bit data buffer on 16 sequential addresses*/
-                writel( *mmc_ptr, MMC_BOOT_MCI_FIFO +
-                        ( mmc_count % MMC_BOOT_MCI_FIFO_SIZE ) );
-                mmc_ptr++;
-                /* increase mmc_count by word size */
-                mmc_count += sizeof( unsigned int );
-            }
-
-        }
-        else if( !( mmc_status & MMC_BOOT_MCI_STAT_TX_FIFO_FULL ) && (mmc_count != data_len))
-        {
-            /* FIFO contains 16 32-bit data buffer on 16 sequential addresses*/
-            writel( *mmc_ptr, MMC_BOOT_MCI_FIFO +
-                    ( mmc_count % MMC_BOOT_MCI_FIFO_SIZE ) );
-            mmc_ptr++;
-            /* increase mmc_count by word size */
-            mmc_count += sizeof( unsigned int );
-        }
-        else if((mmc_status & MMC_BOOT_MCI_STAT_DATA_END))
-        {
-            break; //success
-        }
-
-    } while(1);
+    /* write data to FIFO */
+    mmc_ret = mmc_boot_fifo_data_transfer(in, data_len, MMC_BOOT_DATA_WRITE);
 
     if( mmc_ret != MMC_BOOT_E_SUCCESS )
     {
@@ -1750,9 +1678,6 @@ static unsigned int mmc_boot_read_from_card( struct mmc_boot_host* host,
         unsigned int* out )
 {
     unsigned int mmc_ret = MMC_BOOT_E_SUCCESS;
-    unsigned int mmc_status = 0;
-    unsigned int* mmc_ptr = out;
-    unsigned int mmc_count = 0;
     unsigned int mmc_reg = 0;
     unsigned int xfer_type;
     unsigned int addr = 0;
@@ -1806,7 +1731,6 @@ static unsigned int mmc_boot_read_from_card( struct mmc_boot_host* host,
 
     /* If Data Mover is used for data transfer then prepare Command
        List Entry and enable the Data mover to work with SDCC2 */
-    /* Note: Data Mover not used */
 
     /* Write data timeout period to MCI_DATA_TIMER register. */
     /* Data timeout period should be in card bus clock periods */
@@ -1834,7 +1758,13 @@ static unsigned int mmc_boot_read_from_card( struct mmc_boot_host* host,
     /* Clear MODE bit to 0 to enable block oriented data transfer. For
        MMC cards only, if stream data transfer mode is desired, set
        MODE bit to 1. */
-    /* Set DM_ENABLE bit to 1 in order to enable DMA, otherwise set 0 */
+
+    /* If DMA is to be used, Set DM_ENABLE bit to 1 */
+
+#if MMC_BOOT_ADM
+        mmc_reg |= MMC_BOOT_MCI_DATA_DM_ENABLE;
+#endif
+
     /* Write size of block to be used during the data transfer to
        BLOCKSIZE field */
     mmc_reg |= (card->rd_block_len << MMC_BOOT_MCI_BLKSIZE_POS);
@@ -1850,53 +1780,8 @@ static unsigned int mmc_boot_read_from_card( struct mmc_boot_host* host,
         return mmc_ret;
     }
 
-    read_error = MMC_BOOT_MCI_STAT_DATA_CRC_FAIL | \
-                 MMC_BOOT_MCI_STAT_DATA_TIMEOUT  | \
-                 MMC_BOOT_MCI_STAT_RX_OVRRUN;
-
-    /* Read the transfer data from SDCC2 FIFO. If Data Mover is not used
-       read the data from the MCI_FIFO register as long as RXDATA_AVLBL
-       bit of MCI_STATUS register is set to 1 and bits DATA_CRC_FAIL,
-       DATA_TIMEOUT, RX_OVERRUN of MCI_STATUS register are cleared to 0.
-       Continue the reads until the whole transfer data is received */
-
-    do
-    {
-        mmc_ret = MMC_BOOT_E_SUCCESS;
-        mmc_status = readl( MMC_BOOT_MCI_STATUS );
-
-        if( mmc_status & read_error )
-        {
-            mmc_ret = mmc_boot_status_error(mmc_status);
-            break;
-        }
-
-        if( mmc_status & MMC_BOOT_MCI_STAT_RX_DATA_AVLBL )
-        {
-            unsigned read_count = 1;
-            if ( mmc_status & MMC_BOOT_MCI_STAT_RX_FIFO_HFULL)
-            {
-                read_count = MMC_BOOT_MCI_HFIFO_COUNT;
-            }
-
-            for (int i=0; i<read_count; i++)
-            {
-                /* FIFO contains 16 32-bit data buffer on 16 sequential addresses*/
-                *mmc_ptr = readl( MMC_BOOT_MCI_FIFO +
-                        ( mmc_count % MMC_BOOT_MCI_FIFO_SIZE ) );
-                mmc_ptr++;
-                /* increase mmc_count by word size */
-                mmc_count += sizeof( unsigned int );
-            }
-            /* quit if we have read enough of data */
-            if (mmc_count == data_len)
-                break;
-        }
-        else if( mmc_status & MMC_BOOT_MCI_STAT_DATA_END )
-        {
-            break;
-        }
-    }while(1);
+    /* Read the transfer data from SDCC FIFO. */
+    mmc_ret = mmc_boot_fifo_data_transfer(out, data_len, MMC_BOOT_DATA_READ);
 
     if( mmc_ret != MMC_BOOT_E_SUCCESS )
     {
@@ -2702,12 +2587,7 @@ static unsigned int mmc_boot_read_reg(struct mmc_boot_card *card,
 {
     struct mmc_boot_command cmd;
     unsigned int mmc_ret = MMC_BOOT_E_SUCCESS;
-    unsigned int mmc_status = 0;
-    unsigned int* mmc_ptr = out;
-    unsigned int mmc_count = 0;
     unsigned int mmc_reg = 0;
-    unsigned int xfer_type;
-    unsigned int read_error;
 
     /* Set the FLOW_ENA bit of MCI_CLK register to 1 */
     mmc_reg = readl( MMC_BOOT_MCI_CLK );
@@ -2723,6 +2603,11 @@ static unsigned int mmc_boot_read_reg(struct mmc_boot_card *card,
     /* Set appropriate fields and write the MCI_DATA_CTL register. */
     /* Set ENABLE bit to 1 to enable the data transfer. */
     mmc_reg = MMC_BOOT_MCI_DATA_ENABLE | MMC_BOOT_MCI_DATA_DIR | (data_len << MMC_BOOT_MCI_BLKSIZE_POS);
+
+#if MMC_BOOT_ADM
+    mmc_reg |= MMC_BOOT_MCI_DATA_DM_ENABLE;
+#endif
+
     writel( mmc_reg, MMC_BOOT_MCI_DATA_CTL );
 
     memset( (struct mmc_boot_command *)&cmd, 0,
@@ -2740,47 +2625,8 @@ static unsigned int mmc_boot_read_reg(struct mmc_boot_card *card,
         return mmc_ret;
     }
 
-    read_error = MMC_BOOT_MCI_STAT_DATA_CRC_FAIL | \
-                 MMC_BOOT_MCI_STAT_DATA_TIMEOUT  | \
-                 MMC_BOOT_MCI_STAT_RX_OVRRUN;
-
-    do
-    {
-        mmc_ret = MMC_BOOT_E_SUCCESS;
-        mmc_status = readl( MMC_BOOT_MCI_STATUS );
-
-        if( mmc_status & read_error )
-        {
-            mmc_ret = mmc_boot_status_error(mmc_status);
-            break;
-        }
-
-        if( mmc_status & MMC_BOOT_MCI_STAT_RX_DATA_AVLBL )
-        {
-            unsigned read_count = 1;
-            if ( mmc_status & MMC_BOOT_MCI_STAT_RX_FIFO_HFULL)
-            {
-                read_count = MMC_BOOT_MCI_HFIFO_COUNT;
-            }
-
-            for (int i=0; i<read_count; i++)
-            {
-                /* FIFO contains 16 32-bit data buffer on 16 sequential addresses*/
-                *mmc_ptr = readl( MMC_BOOT_MCI_FIFO +
-                        ( mmc_count % MMC_BOOT_MCI_FIFO_SIZE ) );
-                mmc_ptr++;
-                /* increase mmc_count by word size */
-                mmc_count += sizeof( unsigned int );
-            }
-            /* quit if we have read enough of data */
-            if (mmc_count == data_len)
-                break;
-        }
-        else if( mmc_status & MMC_BOOT_MCI_STAT_DATA_END )
-        {
-            break;
-        }
-    }while(1);
+    /* Read the transfer data from SDCC FIFO. */
+    mmc_ret = mmc_boot_fifo_data_transfer(out, data_len, MMC_BOOT_DATA_READ);
 
     if( mmc_ret != MMC_BOOT_E_SUCCESS )
     {
@@ -3017,4 +2863,171 @@ void mmc_display_csd(void)
 unsigned mmc_get_psn(void)
 {
 	return mmc_card.cid.psn;
+}
+
+/*
+ * Read/write data from/to SDC FIFO.
+ */
+static unsigned int mmc_boot_fifo_data_transfer(unsigned int* data_ptr,
+                                                unsigned int  data_len,
+                                                unsigned char direction)
+{
+        unsigned int mmc_ret = MMC_BOOT_E_SUCCESS;
+
+#if MMC_BOOT_ADM
+        adm_result_t ret;
+        adm_dir_t adm_dir;
+
+        if(direction == MMC_BOOT_DATA_READ)
+        {
+                adm_dir = ADM_MMC_READ;
+        }
+        else
+        {
+                adm_dir = ADM_MMC_WRITE;
+        }
+
+        ret = adm_transfer_mmc_data(mmc_slot,
+                                    (unsigned char*) data_ptr,
+                                    data_len,
+                                    adm_dir);
+
+        if(ret != ADM_RESULT_SUCCESS)
+        {
+                dprintf(CRITICAL, "MMC ADM transfer error: %d\n", ret);
+                mmc_ret = MMC_BOOT_E_FAILURE;
+        }
+#else
+
+        if(direction == MMC_BOOT_DATA_READ)
+        {
+                mmc_ret = mmc_boot_fifo_read(data_ptr, data_len);
+        }
+        else
+        {
+                mmc_ret = mmc_boot_fifo_write(data_ptr, data_len);
+        }
+#endif
+        return mmc_ret;
+}
+
+/*
+ * Read data to SDC FIFO.
+ */
+static unsigned int mmc_boot_fifo_read(unsigned int* mmc_ptr,
+                                       unsigned int  data_len)
+{
+    unsigned int mmc_ret = MMC_BOOT_E_SUCCESS;
+    unsigned int mmc_status = 0;
+    unsigned int mmc_count = 0;
+    unsigned int read_error = MMC_BOOT_MCI_STAT_DATA_CRC_FAIL | \
+                                 MMC_BOOT_MCI_STAT_DATA_TIMEOUT  | \
+                                 MMC_BOOT_MCI_STAT_RX_OVRRUN;
+
+
+    /* Read the data from the MCI_FIFO register as long as RXDATA_AVLBL
+       bit of MCI_STATUS register is set to 1 and bits DATA_CRC_FAIL,
+       DATA_TIMEOUT, RX_OVERRUN of MCI_STATUS register are cleared to 0.
+       Continue the reads until the whole transfer data is received */
+
+    do
+    {
+        mmc_ret = MMC_BOOT_E_SUCCESS;
+        mmc_status = readl( MMC_BOOT_MCI_STATUS );
+
+        if( mmc_status & read_error )
+        {
+            mmc_ret = mmc_boot_status_error(mmc_status);
+            break;
+        }
+
+        if( mmc_status & MMC_BOOT_MCI_STAT_RX_DATA_AVLBL )
+        {
+            unsigned read_count = 1;
+            if ( mmc_status & MMC_BOOT_MCI_STAT_RX_FIFO_HFULL)
+            {
+                read_count = MMC_BOOT_MCI_HFIFO_COUNT;
+            }
+
+            for (unsigned int i=0; i<read_count; i++)
+            {
+                /* FIFO contains 16 32-bit data buffer on 16 sequential addresses*/
+                *mmc_ptr = readl( MMC_BOOT_MCI_FIFO +
+                        ( mmc_count % MMC_BOOT_MCI_FIFO_SIZE ) );
+                mmc_ptr++;
+                /* increase mmc_count by word size */
+                mmc_count += sizeof( unsigned int );
+            }
+            /* quit if we have read enough of data */
+            if (mmc_count == data_len)
+                break;
+        }
+        else if( mmc_status & MMC_BOOT_MCI_STAT_DATA_END )
+        {
+            break;
+        }
+    }while(1);
+
+    return mmc_ret;
+}
+
+/*
+ * Write data to SDC FIFO.
+ */
+static unsigned int mmc_boot_fifo_write(unsigned int* mmc_ptr,
+                                        unsigned int data_len)
+{
+    unsigned int mmc_ret = MMC_BOOT_E_SUCCESS;
+    unsigned int mmc_status = 0;
+    unsigned int mmc_count = 0;
+    unsigned int write_error = MMC_BOOT_MCI_STAT_DATA_CRC_FAIL | \
+                               MMC_BOOT_MCI_STAT_DATA_TIMEOUT  | \
+                               MMC_BOOT_MCI_STAT_TX_UNDRUN;
+
+
+    /* Write the transfer data to SDCC3 FIFO */
+    do
+    {
+        mmc_ret = MMC_BOOT_E_SUCCESS;
+        mmc_status = readl( MMC_BOOT_MCI_STATUS );
+
+        if( mmc_status & write_error )
+        {
+            mmc_ret = mmc_boot_status_error(mmc_status);
+            break;
+        }
+
+        /* Write the data in MCI_FIFO register as long as TXFIFO_FULL bit of
+           MCI_STATUS register is 0. Continue the writes until the whole
+           transfer data is written. */
+        if (((data_len-mmc_count) >= MMC_BOOT_MCI_FIFO_SIZE/2) &&
+                ( mmc_status & MMC_BOOT_MCI_STAT_TX_FIFO_HFULL ))
+        {
+            for (int i=0; i < MMC_BOOT_MCI_HFIFO_COUNT; i++ )
+            {
+                /* FIFO contains 16 32-bit data buffer on 16 sequential addresses*/
+                writel( *mmc_ptr, MMC_BOOT_MCI_FIFO +
+                        ( mmc_count % MMC_BOOT_MCI_FIFO_SIZE ) );
+                mmc_ptr++;
+                /* increase mmc_count by word size */
+                mmc_count += sizeof( unsigned int );
+            }
+
+        }
+        else if( !( mmc_status & MMC_BOOT_MCI_STAT_TX_FIFO_FULL ) && (mmc_count != data_len))
+        {
+            /* FIFO contains 16 32-bit data buffer on 16 sequential addresses*/
+            writel( *mmc_ptr, MMC_BOOT_MCI_FIFO +
+                    ( mmc_count % MMC_BOOT_MCI_FIFO_SIZE ) );
+            mmc_ptr++;
+            /* increase mmc_count by word size */
+            mmc_count += sizeof( unsigned int );
+        }
+        else if((mmc_status & MMC_BOOT_MCI_STAT_DATA_END))
+        {
+            break; //success
+        }
+
+    } while(1);
+    return mmc_ret;
 }

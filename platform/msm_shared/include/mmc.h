@@ -33,6 +33,8 @@
 #define MMC_SLOT            0
 #endif
 
+extern unsigned int mmc_boot_mci_base;
+
 #define MMC_BOOT_MCI_REG(offset)          ((mmc_boot_mci_base) + offset)
 
 /*
@@ -367,6 +369,7 @@
 #define MMC_BOOT_E_RX_OVRRUN              18
 #define MMC_BOOT_E_VREG_SET_FAILED        19
 #define MMC_BOOT_E_GPIO_CFG_FAIL          20
+#define MMC_BOOT_E_DATA_ADM_ERR           21
 
 /* EXT_CSD */
 #define MMC_BOOT_ACCESS_WRITE             0x3
@@ -593,9 +596,9 @@ struct mbr_entry
 #define MMC_BOOT_WR_BLOCK_LEN         512
 
 /* We have 16 32-bits FIFO registers */
-#define MMC_BOOT_MCI_FIFO_COUNT       16
-#define MMC_BOOT_MCI_HFIFO_COUNT      ( MMC_BOOT_MCI_FIFO_COUNT / 2 )
-#define MMC_BOOT_MCI_FIFO_SIZE        ( MMC_BOOT_MCI_FIFO_COUNT * 4 )
+#define MMC_BOOT_MCI_FIFO_DEPTH       16
+#define MMC_BOOT_MCI_HFIFO_COUNT      ( MMC_BOOT_MCI_FIFO_DEPTH / 2 )
+#define MMC_BOOT_MCI_FIFO_SIZE        ( MMC_BOOT_MCI_FIFO_DEPTH * 4 )
 
 /*Need to put at proper place*/
 #define SDC1_CLK    19  /* Secure Digital Card clocks */
