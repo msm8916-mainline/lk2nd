@@ -203,6 +203,7 @@ int dsi_cmd_dma_trigger_for_panel()
     return status;
 }
 
+
 int mipi_dsi_cmds_tx(struct mipi_dsi_cmd *cmds, int count)
 {
     int ret = 0;
@@ -718,12 +719,17 @@ void mipi_dsi_cmd_mode_trigger(void)
 
 void mipi_dsi_shutdown(void)
 {
+    writel(0x00000000, MDP_DSI_VIDEO_EN);
+    mdelay(60);
+    writel(0x00000000, MDP_INTR_ENABLE);
+    writel(0x00000003, MDP_OVERLAYPROC0_CFG);
     writel(0x01010101, DSI_INT_CTRL);
-    writel(0x00000001, DSI_PHY_SW_RESET);
+    writel(0x13FF3BFF, DSI_ERR_INT_MASK0);
     writel(0, DSIPHY_PLL_CTRL_0);
     writel(0, DSI_CLK_CTRL);
     writel(0, DSI_CTRL);
-    writel(0x00000000, MDP_DSI_VIDEO_EN);
+    secure_writel(0x0, MMSS_DSI_CC);
+    secure_writel(0x0, MMSS_DSI_PIXEL_CC);
 }
 
 struct fbcon_config *mipi_init(void)
