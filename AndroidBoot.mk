@@ -3,8 +3,11 @@
 TARGET_BOOTLOADER := $(PRODUCT_OUT)/appsboot.mbn
 BOOTLOADER_OUT := $(TOP)/$(TARGET_OUT_INTERMEDIATES)/BOOTLOADER_OBJ
 
-# Force GCC 4.4.0 crosstool chain for Android builds
+ifeq ($(BUILD_ID),HONEYCOMB)
+CROSS_TOOL := ../../../prebuilt/linux-x86/toolchain/arm-eabi-4.4.3/bin/arm-eabi-
+else
 CROSS_TOOL := ../../../prebuilt/linux-x86/toolchain/arm-eabi-4.4.0/bin/arm-eabi-
+endif
 
 # Remove bootloader binary to trigger recompile when source changes
 appsbootldr_clean:
