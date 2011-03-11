@@ -76,20 +76,20 @@ void configure_dsicore_dsiclk()
     unsigned long pre_div_func = 0x00;  // predivide by 1
     unsigned long pmxo_sel;
 
-    writel(pre_div_func << 14 | src_sel, MMSS_DSI_NS);
+    secure_writel(pre_div_func << 14 | src_sel, MMSS_DSI_NS);
     mnd_mode = 0;               // Bypass MND
     root_en = 1;
     clk_en = 1;
     pmxo_sel = 0;
 
-    writel((pmxo_sel << 8) | (mnd_mode << 6), MMSS_DSI_CC);
-    writel(readl(MMSS_DSI_CC) | root_en << 2, MMSS_DSI_CC);
-    writel(readl(MMSS_DSI_CC) | clk_en, MMSS_DSI_CC);
+    secure_writel((pmxo_sel << 8) | (mnd_mode << 6), MMSS_DSI_CC);
+    secure_writel(secure_readl(MMSS_DSI_CC) | root_en << 2, MMSS_DSI_CC);
+    secure_writel(secure_readl(MMSS_DSI_CC) | clk_en, MMSS_DSI_CC);
 }
 
 void configure_dsicore_byteclk(void)
 {
-    writel(0x00400401, MMSS_MISC_CC2);  // select pxo
+    secure_writel(0x00400401, MMSS_MISC_CC2);  // select pxo
 }
 
 void configure_dsicore_pclk(void)
@@ -98,14 +98,16 @@ void configure_dsicore_pclk(void)
     unsigned long src_sel = 0x3;    // dsi_phy_pll0_src
     unsigned long pre_div_func = 0x01;  // predivide by 2
 
-    writel(pre_div_func << 12 | src_sel, MMSS_DSI_PIXEL_NS);
+    secure_writel(pre_div_func << 12 | src_sel, MMSS_DSI_PIXEL_NS);
 
     mnd_mode = 0;               // Bypass MND
     root_en = 1;
     clk_en = 1;
-    writel(mnd_mode << 6, MMSS_DSI_PIXEL_CC);
-    writel(readl(MMSS_DSI_PIXEL_CC) | root_en << 2, MMSS_DSI_PIXEL_CC);
-    writel(readl(MMSS_DSI_PIXEL_CC) | clk_en, MMSS_DSI_PIXEL_CC);
+    secure_writel(mnd_mode << 6, MMSS_DSI_PIXEL_CC);
+    secure_writel(secure_readl(MMSS_DSI_PIXEL_CC) | root_en << 2,
+		  MMSS_DSI_PIXEL_CC);
+    secure_writel(secure_readl(MMSS_DSI_PIXEL_CC) | clk_en,
+		  MMSS_DSI_PIXEL_CC);
 }
 
 int mipi_dsi_phy_ctrl_config(struct mipi_dsi_panel_config *pinfo)
