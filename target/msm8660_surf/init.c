@@ -87,8 +87,10 @@ unsigned board_machtype(void)
 	unsigned hw_platform = 0;
 	unsigned fused_chip = 0;
 	unsigned platform_subtype = 0;
-	unsigned mach_id = LINUX_MACHTYPE_8660_FFA;
+	static unsigned mach_id = -1;
 
+	if(mach_id != -1)
+		return mach_id;
 	/* Detect external msm if this is a "fusion" */
 	smem_status = smem_read_alloc_entry_offset(SMEM_BOARD_INFO_LOCATION,
 					&format, sizeof(format), 0);

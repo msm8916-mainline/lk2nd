@@ -2,7 +2,7 @@
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2011, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -42,6 +42,8 @@
 #include <kernel/timer.h>
 #include <reg.h>
 #include <platform/iomap.h>
+
+#define LINUX_MACHTYPE_8660_QT      3298
 
 struct gpio_kp {
 	struct gpio_keypad_info *keypad_info;
@@ -455,7 +457,7 @@ int pm8058_gpio_config(int gpio, struct pm8058_gpio *param)
 	return 0;
 }
 
-int pm8058_gpio_config_kypd_drv(int gpio_start, int num_gpios)
+int pm8058_gpio_config_kypd_drv(int gpio_start, int num_gpios, unsigned mach_id)
 {
 	int	rc;
 	struct pm8058_gpio kypd_drv = {
@@ -466,6 +468,9 @@ int pm8058_gpio_config_kypd_drv(int gpio_start, int num_gpios)
 		.function	= PM_GPIO_FUNC_1,
 		.inv_int_pol	= 1,
 	};
+
+	if(mach_id == LINUX_MACHTYPE_8660_QT)
+		kypd_drv.function = PM_GPIO_FUNC_NORMAL;
 
 	while (num_gpios--) {
 		rc = pm8058_gpio_config(gpio_start++, &kypd_drv);
@@ -501,7 +506,7 @@ int pm8058_gpio_config_kypd_sns(int gpio_start, int num_gpios)
 	return 0;
 }
 
-void ssbi_gpio_init(void)
+static void ssbi_gpio_init(unsigned int mach_id)
 {
     unsigned char kypd_cntl_init;
     unsigned char kypd_scan_init = 0x20;
@@ -520,8 +525,16 @@ void ssbi_gpio_init(void)
     if ((*wr_function)(&kypd_scan_init, 1, SSBI_REG_KYPD_SCAN_ADDR))
       dprintf (CRITICAL, "Error in initializing SSBI_REG_KYPD_SCAN register\n");
 
-    pm8058_gpio_config_kypd_sns(SSBI_OFFSET_ADDR_GPIO_KYPD_SNS, columns);
-    pm8058_gpio_config_kypd_drv(SSBI_OFFSET_ADDR_GPIO_KYPD_DRV,  rows);
+    if(mach_id == LINUX_MACHTYPE_8660_QT)
+    {
+        pm8058_gpio_config_kypd_sns(QT_PMIC_GPIO_KYPD_SNS, rows);
+        pm8058_gpio_config_kypd_drv(QT_PMIC_GPIO_KYPD_DRV,  columns, mach_id);
+    }
+    else
+    {
+        pm8058_gpio_config_kypd_sns(SSBI_OFFSET_ADDR_GPIO_KYPD_SNS, columns);
+        pm8058_gpio_config_kypd_drv(SSBI_OFFSET_ADDR_GPIO_KYPD_DRV,  rows, mach_id);
+    }
 }
 
 static enum handler_return
@@ -584,8 +597,54 @@ scan_qwerty_keypad(struct timer *timer, time_t now, void *arg)
 
 }
 
+static enum handler_return
+scan_qt_keypad(struct timer *timer, time_t now, void *arg)
+{
+    unsigned int gpio;
+    unsigned int last_state=0;
+    unsigned int new_state=0;
+    unsigned int bits_changed;
+    static unsigned int key_detected=0;
+
+    /* Row GPIOs 8,9,10 are used for sensing here */
+    for(gpio=8;gpio<=10;gpio++)
+    {
+        bool status;
+        status = pm8058_gpio_get(gpio);
+        if(status == 0)
+            new_state |= (1<<(gpio-8));
+    }
+
+    bits_changed = last_state ^ new_state;
+
+    if(bits_changed)
+    {
+        unsigned int shift;
+        for(int rows=0;rows<(qwerty_keypad->keypad_info)->rows;rows++)
+        {
+            if((bits_changed & (1<<rows)) == 0)
+                continue;
+            shift = rows*8 + 3;
+        }
+        if ((qwerty_keypad->keypad_info)->keymap[shift])
+        {
+            if (shift != key_detected)
+            {
+                key_detected = shift;
+                keys_post_event((qwerty_keypad->keypad_info)->keymap[shift], 1);
+                timer_set_oneshot(timer,(qwerty_keypad->keypad_info)->poll_time,
+                                  scan_qt_keypad, NULL);
+                return INT_RESCHEDULE;
+            }
+        }
+    }
+    event_signal(&qwerty_keypad->full_scan, false);
+    return INT_RESCHEDULE;
+}
+
 void ssbi_keypad_init(struct qwerty_keypad_info  *qwerty_kp)
 {
+    unsigned int mach_id;
     int len;
 
     len = sizeof(struct gpio_qwerty_kp);
@@ -594,13 +653,25 @@ void ssbi_keypad_init(struct qwerty_keypad_info  *qwerty_kp)
 
     memset(qwerty_keypad, 0, len);
     qwerty_keypad->keypad_info = qwerty_kp;
-    ssbi_gpio_init();
-
     qwerty_keypad->num_of_scans = 0;
 
     event_init(&qwerty_keypad->full_scan, false, EVENT_FLAG_AUTOUNSIGNAL);
     timer_initialize(&qwerty_keypad->timer);
-    timer_set_oneshot(&qwerty_keypad->timer, 0, scan_qwerty_keypad, NULL);
+
+#ifdef QT_8660_KEYPAD_HW_BUG
+    mach_id = board_machtype();
+#endif
+    ssbi_gpio_init(mach_id);
+
+    if(mach_id == LINUX_MACHTYPE_8660_QT)
+    {
+        mdelay((qwerty_keypad->keypad_info)->settle_time);
+#ifdef QT_8660_KEYPAD_HW_BUG
+        timer_set_oneshot(&qwerty_keypad->timer, 0, scan_qt_keypad, NULL);
+#endif
+    }
+    else
+        timer_set_oneshot(&qwerty_keypad->timer, 0, scan_qwerty_keypad, NULL);
 
     /* wait for the keypad to complete one full scan */
     event_wait(&qwerty_keypad->full_scan);

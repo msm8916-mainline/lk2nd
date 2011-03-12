@@ -2,7 +2,7 @@
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2011, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -112,8 +112,13 @@ void gpio_keypad_init(struct gpio_keypad_info *kpinfo);
 // GPIO configurations
 
 #define	SSBI_REG_ADDR_GPIO_BASE		0x150
+
+#define QT_PMIC_GPIO_KYPD_SNS           0x008
+#define QT_PMIC_GPIO_KYPD_DRV           0x003
+
 #define SSBI_OFFSET_ADDR_GPIO_KYPD_SNS  0x000
 #define SSBI_OFFSET_ADDR_GPIO_KYPD_DRV  0x008
+
 #define	SSBI_REG_ADDR_GPIO(n)		(SSBI_REG_ADDR_GPIO_BASE + n)
 
 #define	PM_GPIO_DIR_OUT			0x01
