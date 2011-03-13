@@ -1,5 +1,5 @@
 /*
- * * Copyright (c) 2010, Code Aurora Forum. All rights reserved.
+ * * Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -89,6 +89,21 @@ int pm8058_get_gpio_status( pm_sec_gpio_irq_id_type gpio_irq, bool *rt_status)
          *rt_status = FALSE;
     }
     return 0;
+}
+
+bool pm8058_gpio_get(unsigned int gpio)
+{
+	pm_sec_gpio_irq_id_type gpio_irq;
+	bool status;
+	int ret;
+
+	gpio_irq = gpio + PM_GPIO01_CHGED_ST_IRQ_ID;
+	ret = pm8058_get_gpio_status(gpio_irq, &status);
+
+	if(ret)
+		dprintf(CRITICAL,"pm8058_gpio_get failed\n");
+
+	return status;
 }
 
 /*PM8901*/

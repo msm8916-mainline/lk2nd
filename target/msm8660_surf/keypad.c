@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -30,12 +30,30 @@
 #include <dev/keys.h>
 #include <dev/gpio_keypad.h>
 
+#define LINUX_MACHTYPE_8660_QT      3298
 #define BITS_IN_ELEMENT(x) (sizeof(x)[0] * 8)
+#define KEYMAP_INDEX(row, col) (row)* BITS_IN_ELEMENT(qwerty_keys_new) + (col)
 
 static unsigned char qwerty_keys_old[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 static unsigned char qwerty_keys_new[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
-#define KEYMAP_INDEX(row, col) (row)* BITS_IN_ELEMENT(qwerty_keys_new) + (col)
+static unsigned int qt_keymap[] = {
+    [KEYMAP_INDEX(0, 3)] = KEY_BACK,          /* Volume down key */
+    [KEYMAP_INDEX(1, 3)] = KEY_HOME,          /* Volume up key */
+};
+
+static struct qwerty_keypad_info qt_keypad = {
+    .keymap         = qt_keymap,
+    .old_keys       = qwerty_keys_old,
+    .rec_keys       = qwerty_keys_new,
+    .rows           = 3,
+    .columns        = 1,
+    .num_of_reads   = 3,
+    .rd_func        = &pa1_ssbi2_read_bytes,
+    .wr_func        = &pa1_ssbi2_write_bytes,
+    .settle_time    = 32 /* msec */,
+    .poll_time	    = 10 /* msec */,
+};
 
 static unsigned int qwerty_keymap[] = {
     [KEYMAP_INDEX(1, 3)] = KEY_BACK,          /* Volume down key */
@@ -57,5 +75,12 @@ static struct qwerty_keypad_info qwerty_keypad = {
 
 void keypad_init(void)
 {
-    ssbi_keypad_init(&qwerty_keypad);
+    unsigned int mach_id;
+
+    mach_id = board_machtype();
+
+    if(mach_id == LINUX_MACHTYPE_8660_QT)
+        ssbi_keypad_init(&qt_keypad);
+    else
+        ssbi_keypad_init(&qwerty_keypad);
 }
