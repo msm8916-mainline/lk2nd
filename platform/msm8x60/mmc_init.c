@@ -35,70 +35,61 @@
 #define CLK_CTL_BASE    0x00900000
 
 #define SDC_NS(n)       (CLK_CTL_BASE + 0x282C + 32*((n) - 1))
-#define SDC1_NS         SDC_NS(1)
-#define SDC2_NS         SDC_NS(2)
-#define SDC3_NS         SDC_NS(3)
-#define SDC4_NS         SDC_NS(4)
-#define SDC5_NS         SDC_NS(5)
 
 #define SDC_MD(n)       (CLK_CTL_BASE + 0x2828 + 32*((n) - 1))
-#define SDC1_MD         SDC_MD(1)
-#define SDC2_MD         SDC_MD(2)
-#define SDC3_MD         SDC_MD(3)
-#define SDC4_MD         SDC_MD(4)
-#define SDC5_MD         SDC_MD(5)
 
-static void mmc_set_clk(unsigned ns, unsigned md)
+static void mmc_set_clk(unsigned slot, unsigned ns, unsigned md)
 {
     unsigned int val;
+    unsigned char sdc_id = slot;
     /*Clock Init*/
     // 1. Set bit 7 in the NS registers
     val = 1 << 7;
-    writel(val, SDC1_NS);
+    writel(val, SDC_NS(sdc_id));
 
     //2. Program MD registers
-    writel(md, SDC1_MD);
+    writel(md, SDC_MD(sdc_id));
 
     //3. Program NS resgister OR'd with Bit 7
     val = 1 << 7;
     val |= ns;
-    writel(val, SDC1_NS);
+    writel(val, SDC_NS(sdc_id));
 
     //4. Clear bit 7 of NS register
     val = 1 << 7;
     val = ~val;
-    val = val & readl(SDC1_NS);
-    writel(val, SDC1_NS);
+    val = val & readl(SDC_NS(sdc_id));
+    writel(val, SDC_NS(sdc_id));
 
     //5. For MD != NA set bit 8 of NS register
     val = 1 << 8;
-    val = val | readl(SDC1_NS);
-    writel(val, SDC1_NS);
+    val = val | readl(SDC_NS(sdc_id));
+    writel(val, SDC_NS(sdc_id));
 
     //6. Set bit 11 in NS register
     val = 1 << 11;
-    val = val | readl(SDC1_NS);
-    writel(val, SDC1_NS);
+    val = val | readl(SDC_NS(sdc_id));
+    writel(val, SDC_NS(sdc_id));
 
     //7. Set bit 9 in NS register
     val = 1 << 9;
-    val = val | readl(SDC1_NS);
-    writel(val, SDC1_NS);
+    val = val | readl(SDC_NS(sdc_id));
+    writel(val, SDC_NS(sdc_id));
 }
 
 
-void clock_set_enable (unsigned int mclk)
+void clock_set_enable (unsigned slot, unsigned int mclk)
 {
     if (mclk == MMC_CLK_400KHZ)
     {
-        mmc_set_clk(0x0010005B, 0x0001000F);
+        mmc_set_clk(slot, 0x0010005B, 0x0001000F);
     }
     else if (mclk == MMC_CLK_20MHZ)
     {
-        mmc_set_clk(0x00ED0043, 0x000100EC);
+        mmc_set_clk(slot, 0x00ED0043, 0x000100EC);
     }
     else if (mclk == MMC_CLK_48MHZ)
     {
-        mmc_set_clk(0x00FE005B, 0x000100FD);
+        mmc_set_clk(slot, 0x00FE005B, 0x000100FD);
     }
 }
