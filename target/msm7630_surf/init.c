@@ -235,7 +235,7 @@ void target_init(void)
 			        ASSERT(temp_ptn->length != VARIABLE_LENGTH);
 			        length_for_prt += ((temp_ptn->length) * blocks_per_1MB);
 			}
-		        len = (total_num_of_blocks - 1) - (offset + ptn->start + length_for_prt);
+		        len = total_num_of_blocks - (offset + ptn->start + length_for_prt);
 			ASSERT(len >= 0);
 		}
 		next_ptr_start_adr = ptn->start + len;
