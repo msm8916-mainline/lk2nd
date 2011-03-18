@@ -96,7 +96,7 @@
 #else
 #define DGT_HZ 6144000	/* Uses LPXO/4 (24.576 MHz / 4) */
 #endif
-#elif defined PLATFORM_MSM8X60
+#elif (defined(PLATFORM_MSM8X60) || defined(PLATFORM_MSM8960))
 #define DGT_HZ 6750000	/* Uses LPXO/4 (27.0 MHz / 4) */
 #else
 #define DGT_HZ 19200000	/* Uses TCXO (19.2 MHz) */
@@ -127,7 +127,7 @@ status_t platform_set_periodic_timer(
 	if(val >= 1)
 	    writel(1, DGT_CLK_CTL);
 #endif
-#ifdef PLATFORM_MSM8X60
+#if (defined(PLATFORM_MSM8X60) || defined(PLATFORM_MSM8960))
 	writel(3, DGT_CLK_CTL);
 #endif
 	enter_critical_section();
@@ -160,7 +160,7 @@ void platform_init_timer(void)
 
 static void wait_for_timer_op(void)
 {
-#if PLATFORM_QSD8K || PLATFORM_MSM7X30 || PLATFORM_MSM8X60
+#if PLATFORM_QSD8K || PLATFORM_MSM7X30 || PLATFORM_MSM8X60 || PLATFORM_MSM8960
 	while( readl(SPSS_TIMER_STATUS) & SPSS_TIMER_STATUS_DGT_EN );
 #endif
 }
