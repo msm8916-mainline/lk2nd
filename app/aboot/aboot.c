@@ -756,9 +756,13 @@ void cmd_flash(const char *arg, void *data, unsigned sz)
 	}
 
 	if (!strcmp(ptn->name, "system") || !strcmp(ptn->name, "userdata")
-	    || !strcmp(ptn->name, "persist"))
-		extra = ((page_size >> 9) * 16);
-	else
+	    || !strcmp(ptn->name, "persist")) {
+		if (flash_ecc_bch_enabled())
+			/* Spare data bytes for 8 bit ECC increased by 4 */
+			extra = ((page_size >> 9) * 20);
+		else
+			extra = ((page_size >> 9) * 16);
+	} else
 		sz = ROUND_TO_PAGE(sz, page_mask);
 
 	dprintf(INFO, "writing %d bytes to '%s'\n", sz, ptn->name);

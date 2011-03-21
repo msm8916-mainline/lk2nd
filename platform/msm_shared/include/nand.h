@@ -96,6 +96,7 @@
 #define NAND_ADDR6                NAND_REG(0x00E4)
 #define NAND_EBI2_ECC_BUF_CFG     NAND_REG(0x00F0)
 #define NAND_FLASH_BUFFER         NAND_REG(0x0100)
+#define NAND_HW_INFO              NAND_REG(0x00FC)
 
 /* device commands */
 
