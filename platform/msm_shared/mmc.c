@@ -53,7 +53,7 @@ static const unsigned int xfer_rate_unit[] =
 static const unsigned int xfer_rate_value[] =
 { 0, 10, 12, 13, 15, 20, 26, 30, 35, 40, 45, 52, 55, 60, 70, 80 };
 
-char *ext3_partitions[] = {"system", "userdata", "persist", "cache"};
+char *ext3_partitions[] = {"system", "userdata", "persist", "cache", "tombstones"};
 char *vfat_partitions[] = {"modem", "mdm", "NONE"};
 unsigned int ext3_count = 0;
 unsigned int vfat_count = 0;
