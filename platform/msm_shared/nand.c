@@ -108,6 +108,8 @@ static int dmov_exec_cmdptr(unsigned id, unsigned *ptr)
 static struct flash_info flash_info;
 static unsigned flash_pagesize = 0;
 static int interleaved_mode = 0;
+static unsigned num_pages_per_blk = 0;
+static unsigned num_pages_per_blk_mask = 0;
 
 struct flash_identification {
 	unsigned flash_id;
@@ -246,8 +248,8 @@ static int flash_nand_block_isbad(dmov_s *cmdlist, unsigned *ptrlist,
 	cwperpage = (flash_pagesize >> 9);
 
 	/* Check first page of this block */
-	if(page & 63)
-		page = page - (page & 63);
+	if(page & num_pages_per_blk_mask)
+		page = page - (page & num_pages_per_blk_mask);
 
 	/* Check bad block marker */
 	data[0] = NAND_CMD_PAGE_READ;	/* command */
@@ -493,13 +495,13 @@ static int flash_nand_erase_block(dmov_s *cmdlist, unsigned *ptrlist,
 	int isbad = 0;
 
 	/* only allow erasing on block boundaries */
-	if(page & 63) return -1;
+	if(page & num_pages_per_blk_mask) return -1;
 
 	/* Check for bad block and erase only if block is not marked bad */
 	isbad = flash_nand_block_isbad(cmdlist, ptrlist, page);
 
 	if (isbad) {
-		dprintf(INFO, "skipping @ %d (bad block)\n", page >> 6);
+		dprintf(INFO, "skipping @ %d (bad block)\n", page / num_pages_per_blk);
 		return -1;
 	}
 
@@ -1692,8 +1694,8 @@ static int flash_nand_mark_badblock(dmov_s *cmdlist, unsigned *ptrlist, unsigned
 {
   memset(empty_buf,0,528);
   /* Going to first page of the block */
-  if(page & 63)
-	page = page - (page & 63);
+  if(page & num_pages_per_blk_mask)
+	page = page - (page & num_pages_per_blk_mask);
   return _flash_nand_write_page(cmdlist, ptrlist, page, empty_buf, 0, 1);
 }
 
@@ -1887,8 +1889,8 @@ static int flash_onenand_block_isbad(dmov_s *cmdlist, unsigned *ptrlist,
 	unsigned char *oobptr = &(page_data[2048]);
 
 	/* Going to first page of the block */
-	if(page & 63)
-		page = page - (page & 63);
+	if(page & num_pages_per_blk_mask)
+		page = page - (page & num_pages_per_blk_mask);
 
 	/* Reading page in raw mode */
 	if (_flash_onenand_read_page(cmdlist, ptrlist,page, page_data, 0, 1))
@@ -1913,7 +1915,7 @@ static int flash_onenand_erase_block(dmov_s *cmdlist, unsigned *ptrlist,
 	unsigned *ptr = ptrlist;
 	struct data_onenand_erase *data = (void *)ptrlist + 4;
 	int isbad = 0;
-	unsigned erasesize = (flash_pagesize << 6);
+	unsigned erasesize = (flash_pagesize * num_pages_per_blk);
 	unsigned onenand_startaddr1 = DEVICE_FLASHCORE_0 | (page * flash_pagesize)/erasesize;
 	unsigned onenand_startaddr8 = 0x0000;
 	unsigned onenand_startaddr2 = DEVICE_BUFFERRAM_0 << 15;
@@ -1929,7 +1931,7 @@ static int flash_onenand_erase_block(dmov_s *cmdlist, unsigned *ptrlist,
 	isbad = flash_onenand_block_isbad(cmdlist, ptrlist, page);
 	if (isbad)
 	{
-		dprintf(INFO, "skipping @ %d (bad block)\n", page >> 6);
+		dprintf(INFO, "skipping @ %d (bad block)\n", page / num_pages_per_blk);
 		return -1;
 	}
 
@@ -2223,7 +2225,7 @@ static int _flash_onenand_read_page(dmov_s *cmdlist, unsigned *ptrlist,
 	unsigned curr_addr = (unsigned) _addr;
 	unsigned spareaddr = (unsigned) _spareaddr;
 	unsigned i;
-	unsigned erasesize = (flash_pagesize<<6);
+	unsigned erasesize = (flash_pagesize * num_pages_per_blk);
 	unsigned writesize = flash_pagesize;
 
 	unsigned onenand_startaddr1 = DEVICE_FLASHCORE_0 |
@@ -2676,7 +2678,7 @@ static int _flash_onenand_write_page(dmov_s *cmdlist, unsigned *ptrlist,
 	char * spareaddr = (char *) _spareaddr;
 	unsigned i, j, k;
 
-	unsigned erasesize = (flash_pagesize<<6);
+	unsigned erasesize = (flash_pagesize * num_pages_per_blk);
 	unsigned writesize = flash_pagesize;
 
 	unsigned onenand_startaddr1 = (page * flash_pagesize) / erasesize;
@@ -3098,8 +3100,8 @@ static int flash_onenand_mark_badblock(dmov_s *cmdlist, unsigned *ptrlist, unsig
 {
   memset(empty_buf,0,528);
   /* Going to first page of the block */
-  if(page & 63)
-	page = page - (page & 63);
+  if(page & num_pages_per_blk_mask)
+	page = page - (page & num_pages_per_blk_mask);
   return _flash_onenand_write_page(cmdlist, ptrlist, page, empty_buf, 0, 1);
 }
 
@@ -3176,6 +3178,9 @@ static void flash_read_id(dmov_s *cmdlist, unsigned *ptrlist)
 			flash_info.num_blocks = 0;
 		}
 		ASSERT(flash_info.num_blocks);
+		// Use this for getting the next/current blocks
+		num_pages_per_blk = flash_info.block_size / flash_pagesize;
+		num_pages_per_blk_mask = num_pages_per_blk - 1;
 		return;
 	}
 
@@ -3300,7 +3305,7 @@ int flash_erase(struct ptentry *ptn)
 
 	set_nand_configuration(ptn->type);
 	while(count-- > 0) {
-		if(flash_erase_block(flash_cmdlist, flash_ptrlist, block * 64)) {
+		if(flash_erase_block(flash_cmdlist, flash_ptrlist, block * num_pages_per_blk)) {
 			dprintf(INFO, "cannot erase @ %d (bad block?)\n", block);
 		}
 		block++;
@@ -3311,13 +3316,13 @@ int flash_erase(struct ptentry *ptn)
 int flash_read_ext(struct ptentry *ptn, unsigned extra_per_page,
 			unsigned offset, void *data, unsigned bytes)
 {
-	unsigned page = (ptn->start * 64) + (offset / flash_pagesize);
-	unsigned lastpage = (ptn->start + ptn->length) * 64;
+	unsigned page = (ptn->start * num_pages_per_blk) + (offset / flash_pagesize);
+	unsigned lastpage = (ptn->start + ptn->length) * num_pages_per_blk;
 	unsigned count = (bytes + flash_pagesize - 1 + extra_per_page) / (flash_pagesize + extra_per_page);
 	unsigned *spare = (unsigned*) flash_spare;
 	unsigned errors = 0;
 	unsigned char *image = data;
-	unsigned current_block = (page - (page & 63)) >> 6;
+	unsigned current_block = (page - (page & num_pages_per_blk_mask)) / num_pages_per_blk;
 	unsigned start_block = ptn->start;
 	int result = 0;
 	int isbad = 0;
@@ -3334,9 +3339,9 @@ int flash_read_ext(struct ptentry *ptn, unsigned extra_per_page,
 	{
 		start_block_count = (current_block - start_block);
 		while (start_block_count && (start_block < (ptn->start + ptn->length))) {
-			isbad = _flash_block_isbad(flash_cmdlist, flash_ptrlist, start_block*64);
+			isbad = _flash_block_isbad(flash_cmdlist, flash_ptrlist, start_block*num_pages_per_blk);
 			if (isbad)
-				page += 64;
+				page += num_pages_per_blk;
 			else
 				start_block_count--;
 			start_block++;
@@ -3359,7 +3364,7 @@ int flash_read_ext(struct ptentry *ptn, unsigned extra_per_page,
 		}
 		else if (result == -2) {
 			// bad block, go to next block same offset
-			page += 64;
+			page += num_pages_per_blk;
 			errors++;
 			continue;
 		}
@@ -3379,8 +3384,8 @@ int flash_read_ext(struct ptentry *ptn, unsigned extra_per_page,
 int flash_write(struct ptentry *ptn, unsigned extra_per_page, const void *data,
 		unsigned bytes)
 {
-	unsigned page = ptn->start * 64;
-	unsigned lastpage = (ptn->start + ptn->length) * 64;
+	unsigned page = ptn->start * num_pages_per_blk;
+	unsigned lastpage = (ptn->start + ptn->length) * num_pages_per_blk;
 	unsigned *spare = (unsigned*) flash_spare;
 	const unsigned char *image = data;
 	unsigned wsize = flash_pagesize + extra_per_page;
@@ -3406,10 +3411,10 @@ int flash_write(struct ptentry *ptn, unsigned extra_per_page, const void *data,
 			return -1;
 		}
 
-		if((page & 63) == 0) {
+		if((page & num_pages_per_blk_mask) == 0) {
 			if(flash_erase_block(flash_cmdlist, flash_ptrlist, page)) {
-				dprintf(INFO, "flash_write_image: bad block @ %d\n", page >> 6);
-				page += 64;
+				dprintf(INFO, "flash_write_image: bad block @ %d\n", page / num_pages_per_blk);
+				page += num_pages_per_blk;
 				continue;
 			}
 		}
@@ -3421,9 +3426,9 @@ int flash_write(struct ptentry *ptn, unsigned extra_per_page, const void *data,
 		}
 		if(r) {
 			dprintf(INFO, "flash_write_image: write failure @ page %d (src %d)\n", page, image - (const unsigned char *)data);
-			image -= (page & 63) * wsize;
-			bytes += (page & 63) * wsize;
-			page &= ~63;
+			image -= (page & num_pages_per_blk_mask) * wsize;
+			bytes += (page & num_pages_per_blk_mask) * wsize;
+			page &= ~num_pages_per_blk_mask;
 			if(flash_erase_block(flash_cmdlist, flash_ptrlist, page)) {
 				dprintf(INFO, "flash_write_image: erase failure @ page %d\n", page);
 			}
@@ -3431,7 +3436,7 @@ int flash_write(struct ptentry *ptn, unsigned extra_per_page, const void *data,
 				flash_mark_badblock(flash_cmdlist, flash_ptrlist, page);
 			}
 			dprintf(INFO, "flash_write_image: restart write @ page %d (src %d)\n", page, image - (const unsigned char *)data);
-			page += 64;
+			page += num_pages_per_blk;
 			continue;
 		}
 		page++;
@@ -3440,12 +3445,12 @@ int flash_write(struct ptentry *ptn, unsigned extra_per_page, const void *data,
 	}
 
 	/* erase any remaining pages in the partition */
-	page = (page + 63) & (~63);
+	page = (page + num_pages_per_blk_mask) & (~num_pages_per_blk_mask);
 	while(page < lastpage){
 		if(flash_erase_block(flash_cmdlist, flash_ptrlist, page)) {
-			dprintf(INFO, "flash_write_image: bad block @ %d\n", page >> 6);
+			dprintf(INFO, "flash_write_image: bad block @ %d\n", page / num_pages_per_blk);
 		}
-		page += 64;
+		page += num_pages_per_blk;
 	}
 
 	dprintf(INFO, "flash_write_image: success\n");
