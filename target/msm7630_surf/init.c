@@ -347,7 +347,7 @@ static unsigned target_check_power_on_reason(void)
     smem_status = smem_read_alloc_entry(SMEM_POWER_ON_STATUS_INFO,
                                         &power_on_status, status_len);
 
-    if (!smem_status)
+    if (smem_status)
     {
         dprintf(CRITICAL, "ERROR: unable to read shared memory for power on reason\n");
     }
