@@ -31,6 +31,7 @@
 #include <debug.h>
 #include <reg.h>
 #include "mmc.h"
+#include "partition_parser.h"
 #include <platform/iomap.h>
 
 #if MMC_BOOT_ADM
@@ -94,6 +95,7 @@ struct mmc_boot_host mmc_host;
 struct mmc_boot_card mmc_card;
 struct mbr_entry mbr[MAX_PARTITIONS];
 unsigned mmc_partition_count = 0;
+static unsigned gpt_partitions_exist = 0;
 
 unsigned int mmc_read (unsigned long long data_addr, unsigned int* out,
                        unsigned int data_len);
@@ -1671,7 +1673,7 @@ static unsigned int mmc_boot_set_block_count( struct mmc_boot_card* card,
  * Reads a data of data_len from the address specified. data_len
  * should be multiple of block size for block data transfer.
  */
-static unsigned int mmc_boot_read_from_card( struct mmc_boot_host* host,
+unsigned int mmc_boot_read_from_card( struct mmc_boot_host* host,
         struct mmc_boot_card* card,
         unsigned long long data_addr,
         unsigned int data_len,
@@ -2291,7 +2293,7 @@ static unsigned int mmc_boot_read_MBR(void)
     unsigned int dfirstsec;
     unsigned int EBR_first_sec;
     unsigned int EBR_current_sec;
-    int ret = 0;
+    int ret = MMC_BOOT_E_SUCCESS;
     int idx, i;
 
     /* Print out the MBR first */
@@ -2315,10 +2317,15 @@ static unsigned int mmc_boot_read_MBR(void)
     idx = TABLE_ENTRY_0;
     for (i = 0; i < 4; i++)
     {
+        dtype  = buffer[idx + i * TABLE_ENTRY_SIZE + OFFSET_TYPE];
+        /* Type 0xEE indicates end of MBR and GPT partitions exist */
+        if (dtype == 0xEE){
+            gpt_partitions_exist = 1;
+            return ret;
+        }
+        mbr[mmc_partition_count].dtype = dtype;
         mbr[mmc_partition_count].dstatus = \
                     buffer[idx + i * TABLE_ENTRY_SIZE + OFFSET_STATUS];
-        mbr[mmc_partition_count].dtype   = \
-                    buffer[idx + i * TABLE_ENTRY_SIZE + OFFSET_TYPE];
         mbr[mmc_partition_count].dfirstsec = \
                     GET_LWORD_FROM_BYTE(&buffer[idx + \
                                         i * TABLE_ENTRY_SIZE + \
@@ -2327,7 +2334,6 @@ static unsigned int mmc_boot_read_MBR(void)
                     GET_LWORD_FROM_BYTE(&buffer[idx + \
                                         i * TABLE_ENTRY_SIZE + \
                                         OFFSET_SIZE]);
-        dtype  = mbr[mmc_partition_count].dtype;
         dfirstsec = mbr[mmc_partition_count].dfirstsec;
         mbr_fill_name(&mbr[mmc_partition_count],  \
                       mbr[mmc_partition_count].dtype);
@@ -2441,6 +2447,16 @@ unsigned int mmc_boot_main(unsigned char slot, unsigned int base)
     {
         dprintf(CRITICAL,  "MMC Boot: MBR read failed!\n" );
         return MMC_BOOT_E_FAILURE;
+    }
+
+    /* Read GPT of the card if exist */
+    if(gpt_partitions_exist){
+        mmc_ret = mmc_boot_read_gpt(&mmc_host, &mmc_card);
+        if( mmc_ret != MMC_BOOT_E_SUCCESS )
+        {
+            dprintf(CRITICAL,  "GPT Boot: GPT read failed!\n" );
+            return MMC_BOOT_E_FAILURE;
+        }
     }
 
     return MMC_BOOT_E_SUCCESS;
@@ -2561,9 +2577,15 @@ uint64_t mmc_ptn_offset (unsigned char * name)
             return ((uint64_t)mbr[n].dfirstsec * MMC_BOOT_RD_BLOCK_LEN);
         }
     }
-    return 0;
+    if (gpt_partitions_exist)
+      return gpt_lookup(name, PTN_OFFSET);
+    else
+      return 0;
 }
 
+/*
+ * Returns size of given partition
+ */
 uint64_t mmc_ptn_size (unsigned char * name)
 {
     unsigned n;
@@ -2572,7 +2594,10 @@ uint64_t mmc_ptn_size (unsigned char * name)
             return ((uint64_t)mbr[n].dsize * MMC_BOOT_RD_BLOCK_LEN);
         }
     }
-    return 0;
+    if (gpt_partitions_exist)
+      return gpt_lookup(name, PTN_SIZE);
+    else
+      return 0;
 }
 
 /*
