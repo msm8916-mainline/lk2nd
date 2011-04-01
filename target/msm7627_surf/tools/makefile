@@ -22,12 +22,14 @@ endif
 APPSBOOTHEADER: $(APPSBOOTHDR_FILES)
 
 appsboot.mbn: $(OUTBIN)
+	cp $(OUTBIN) $(APPSBOOTHEADER_DIR)/appsboot.raw
 	cp -f $(OUTBIN) $(APPSBOOTHEADER_DIR)/appsboot.mbn
 
 appsboothd.mbn: mkheader $(OUTBIN)
 	$(SRC_DIR)/mkheader $(OUTBIN) $(APPSBOOTHEADER_DIR)/appsboothd.mbn
 
 EMMCBOOT.MBN: $(OUTBIN)
+	cp $(OUTBIN) $(APPSBOOTHEADER_DIR)/emmc_appsboot.raw
 	cp -f $(OUTBIN) $(APPSBOOTHEADER_DIR)/EMMCBOOT.MBN
 	cp -f $(OUTBIN) $(APPSBOOTHEADER_DIR)/emmc_appsboot.mbn
 
@@ -36,3 +38,4 @@ emmc_appsboothd.mbn: mkheader $(OUTBIN)
 
 mkheader: $(SRC_DIR)/mkheader.c
 	${COMPILER} $(SRC_DIR)/mkheader.c -o $(SRC_DIR)/mkheader
+	cp $(SRC_DIR)/mkheader $(APPSBOOTHEADER_DIR)/mkheader
