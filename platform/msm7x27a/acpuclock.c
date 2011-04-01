@@ -151,3 +151,9 @@ void acpu_clock_init(void)
 #endif
 	}
 }
+
+void hsusb_clock_init(void)
+{
+	/* USB local clock control not enabled; use proc comm */
+	usb_clock_init();
+}
