@@ -31,29 +31,52 @@
 #include <kernel/thread.h>
 #include <platform/iomap.h>
 #include <reg.h>
+#include <smem.h>
 
 #define ARRAY_SIZE(x) (sizeof(x)/sizeof((x)[0]))
+#define BIT(x)	(1 << (x))
 
 #define A11S_CLK_CNTL_ADDR	(MSM_CSR_BASE + 0x100)
 #define A11S_CLK_SEL_ADDR	(MSM_CSR_BASE + 0x104)
 #define VDD_SVS_PLEVEL_ADDR	(MSM_CSR_BASE + 0x124)
-#define PLL2_L_VAL_ADDR		(MSM_CLK_CTL_BASE + 0x33C)
 
-#define SRC_SEL_PLL1	1 /* PLL1. */
-#define SRC_SEL_PLL2	2 /* PLL2. */
-#define SRC_SEL_PLL3	3 /* PLL3. Used for 7x25. */
-#define DIV_4		3
+#define PLL2_MODE_ADDR		(MSM_CLK_CTL_BASE + 0x338)
+#define PLL4_MODE_ADDR		(MSM_CLK_CTL_BASE + 0x374)
+
+#define PLL_RESET_N			BIT(2)
+#define PLL_BYPASSNL		BIT(1)
+#define PLL_OUTCTRL			BIT(0)
+
+#define SRC_SEL_TCX0	0 /* TCXO */
+#define SRC_SEL_PLL1	1 /* PLL1: modem_pll */
+#define SRC_SEL_PLL2	2 /* PLL2: backup_pll_0 */
+#define SRC_SEL_PLL3	3 /* PLL3: backup_pll_1 */
+#define SRC_SEL_PLL4	6 /* PLL4: sparrow_pll */
+
+#define DIV_1		0
 #define DIV_2		1
+#define DIV_3		2
+#define DIV_4		3
+#define DIV_5		4
+#define DIV_6		5
+#define DIV_7		6
+#define DIV_8		7
+#define DIV_9		8
+#define DIV_10		9
+#define DIV_11		10
+#define DIV_12		11
+#define DIV_13		12
+#define DIV_14		13
+#define DIV_15		14
+#define DIV_16		15
+
 #define WAIT_CNT	100
 #define VDD_LEVEL	7
 #define MIN_AXI_HZ	120000000
 #define ACPU_800MHZ	41
 
-void pll_request(unsigned pll, unsigned enable);
-void axi_clock_init(unsigned rate);
-
 /* The stepping frequencies have been choosen to make sure the step
- * is <= 256 MHz for both turbo mode and normal mode targets.  The
+ * is <= 256 MHz for both 7x27a and 7x25a targets.  The
  * table also assumes the ACPU is running at TCXO freq and AHB div is
  * set to DIV_1.
  *
@@ -61,89 +84,151 @@ void axi_clock_init(unsigned rate);
  * - Start at location 0/1 depending on clock source sel bit.
  * - Set values till end of table skipping every other entry.
  * - When you reach the end of the table, you are done scaling.
- *
- * TODO: Need to fix SRC_SEL_PLL1 for 7x25.
  */
 
-uint32_t const clk_cntl_reg_val_7625[] = {
-	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 4)  | DIV_4,
-	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 12) | (DIV_4 << 8),
-	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 12) | (DIV_2 << 8),
-	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 4) | DIV_2,
-	(WAIT_CNT << 16) | (SRC_SEL_PLL3 << 4)  | DIV_2,
-	(WAIT_CNT << 16) | (SRC_SEL_PLL3 << 12) | (DIV_2 << 8),
-};
-
-uint32_t const clk_cntl_reg_val_7627[] = {
-	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 4)  | DIV_4,
-	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 12) | (DIV_4 << 8),
-	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 12) | (DIV_2 << 8),
-	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 4) | DIV_2,
-	(WAIT_CNT << 16) | (SRC_SEL_PLL2 << 4)  | DIV_2,
+uint32_t const clk_cntl_reg_val_7627A[] = {
+	(WAIT_CNT << 16) | (SRC_SEL_PLL2 << 4)  | DIV_16,
+	(WAIT_CNT << 16) | (SRC_SEL_PLL2 << 12) | (DIV_8 << 8),
+	(WAIT_CNT << 16) | (SRC_SEL_PLL2 << 4)  | DIV_4,
 	(WAIT_CNT << 16) | (SRC_SEL_PLL2 << 12) | (DIV_2 << 8),
+
+	/* TODO: Fix it for 800MHz */
+#if 0
+	(WAIT_CNT << 16) | (SRC_SEL_PLL4 << 4)  | DIV_1,
+#endif
 };
 
-uint32_t const clk_cntl_reg_val_7627T[] = {
-	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 4)  | DIV_4,
-	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 12) | (DIV_4 << 8),
-	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 12) | (DIV_2 << 8),
-	(WAIT_CNT << 16) | (SRC_SEL_PLL1 << 4) | DIV_2,
-	(WAIT_CNT << 16) | (SRC_SEL_PLL2 << 4),
-	(WAIT_CNT << 16) | (SRC_SEL_PLL2 << 12),
+uint32_t const clk_cntl_reg_val_7625A[] = {
+	(WAIT_CNT << 16) | (SRC_SEL_PLL2 << 4)  | DIV_16,
+	(WAIT_CNT << 16) | (SRC_SEL_PLL2 << 12) | (DIV_8 << 8),
+	(WAIT_CNT << 16) | (SRC_SEL_PLL2 << 4)  | DIV_4,
+	(WAIT_CNT << 16) | (SRC_SEL_PLL2 << 12) | (DIV_2 << 8),
 };
 
 /* Using DIV_4 for all cases to avoid worrying about turbo vs. normal
  * mode. Able to use DIV_4 for all steps because it's the largest AND
  * the final value. */
 uint32_t const clk_sel_reg_val[] = {
-	DIV_4 << 1 | 1,
-	DIV_4 << 1 | 0,
-	DIV_4 << 1 | 0,
-	DIV_4 << 1 | 1,
-	DIV_4 << 1 | 1,
-	DIV_4 << 1 | 0,
+	DIV_1 << 1 | 1, /* Switch to src1 */
+	DIV_1 << 1 | 0, /* Switch to src0 */
+};
+
+/*
+ * Mask to make sure current selected src frequency doesn't change.
+ */
+uint32_t const clk_cntl_mask[] = {
+	0x0000FF00, /* Mask to read src0 */
+	0x000000FF  /* Mask to read src1 */
 };
 
 void mdelay(unsigned msecs);
+unsigned board_msm_id(void);
 
+void pll_enable(void *pll_mode_addr)
+{
+	/* TODO: Need to add spin-lock to avoid race conditions */
+
+	uint32_t nVal;
+	/* Check status */
+	nVal =  readl(pll_mode_addr);
+	if(nVal & PLL_OUTCTRL)
+		return;
+
+	/* Put the PLL in reset mode */
+	nVal = 0;
+	nVal &= ~PLL_RESET_N;
+	nVal &= ~PLL_BYPASSNL;
+	nVal &= ~PLL_OUTCTRL;
+	writel(nVal, pll_mode_addr);
+
+	/* Put the PLL in warm-up mode */
+	nVal |= PLL_RESET_N;
+	nVal |= PLL_BYPASSNL;
+	writel(nVal, pll_mode_addr);
+
+	/* Wait for the PLL warm-up time */
+	udelay(50);
+
+	/* Put the PLL in active mode */
+	nVal |= PLL_RESET_N;
+	nVal |= PLL_BYPASSNL;
+	nVal |= PLL_OUTCTRL;
+	writel(nVal, pll_mode_addr);
+}
+
+void pll_request(unsigned pll, unsigned enable)
+{
+	int val = 0;
+	if(!enable) {
+		/* Disable not supported */
+		return;
+	}
+	switch(pll) {
+		case 2:
+			pll_enable(PLL2_MODE_ADDR);
+			return;
+		case 4:
+			pll_enable(PLL4_MODE_ADDR);
+			return;
+		default:
+			return;
+	};
+}
 
 void acpu_clock_init(void)
 {
-	unsigned i,clk;
-
-#if (!ENABLE_NANDWRITE)
-		int *modem_stat_check = (MSM_SHARED_BASE + 0x14);
-
-		/* Wait for modem to be ready before clock init */
-		while (readl(modem_stat_check) != 1);
-#endif
+	uint32_t i,clk;
+	uint32_t val;
+	uint32_t *clk_cntl_reg_val, size;
+	unsigned msm_id;
 
 	/* Increase VDD level to the final value. */
 	writel((1 << 7) | (VDD_LEVEL << 3), VDD_SVS_PLEVEL_ADDR);
+
 #if (!ENABLE_NANDWRITE)
 	thread_sleep(1);
 #else
-		mdelay(1);
+	mdelay(1);
 #endif
+
+	msm_id = board_msm_id();
+	switch(msm_id) {
+		case MSM7227A:
+		case MSM7627A:
+		case ESM7227A:
+			clk_cntl_reg_val = clk_cntl_reg_val_7627A;
+			size = ARRAY_SIZE(clk_cntl_reg_val_7627A);
+			pll_request(2, 1);
+			pll_request(4, 1);
+			break;
+
+		case MSM7225A:
+		case MSM7625A:
+		default:
+			clk_cntl_reg_val = clk_cntl_reg_val_7625A;
+			size = ARRAY_SIZE(clk_cntl_reg_val_7625A);
+			pll_request(2, 1);
+			break;
+	};
 
 	/* Read clock source select bit. */
-	i = readl(A11S_CLK_SEL_ADDR) & 1;
-	clk = readl(PLL2_L_VAL_ADDR) & 0x3F;
+	val = readl(A11S_CLK_SEL_ADDR);
+	i = val & 1;
 
-	/* Jump into table and set every other entry. */
-	for(; i < ARRAY_SIZE(clk_cntl_reg_val_7627); i += 2) {
-#ifdef ENABLE_PLL3
-		writel(clk_cntl_reg_val_7625[i], A11S_CLK_CNTL_ADDR);
-#else
-		if(clk == ACPU_800MHZ)
-			writel(clk_cntl_reg_val_7627T[i], A11S_CLK_CNTL_ADDR);
-		else
-			writel(clk_cntl_reg_val_7627[i], A11S_CLK_CNTL_ADDR);
-#endif
+	/* Jump into table and set every entry. */
+	for(; i < size; i++) {
+
+		val = readl(A11S_CLK_CNTL_ADDR);
+
+		/* Make sure not to disturb already used src */
+		val &= clk_cntl_mask[i%2];
+		val += clk_cntl_reg_val[i];
+		writel(val, A11S_CLK_CNTL_ADDR);
+
 		/* Would need a dmb() here but the whole address space is
 		 * strongly ordered, so it should be fine.
 		 */
-		writel(clk_sel_reg_val[i], A11S_CLK_SEL_ADDR);
+		writel(clk_sel_reg_val[i%2], A11S_CLK_SEL_ADDR);
 #if (!ENABLE_NANDWRITE)
 		thread_sleep(1);
 #else
