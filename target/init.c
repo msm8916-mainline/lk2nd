@@ -45,6 +45,11 @@ __WEAK void *target_get_scratch_address(void)
     return (void *)(SCRATCH_ADDR);
 }
 
+__WEAK unsigned target_get_max_flash_size(void)
+{
+    return (120 * 1024 * 1024);
+}
+
 __WEAK int target_is_emmc_boot(void)
 {
 #if _EMMC_BOOT

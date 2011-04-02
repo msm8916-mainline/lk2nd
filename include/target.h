@@ -32,6 +32,9 @@ void target_init(void);
 /* get memory address for fastboot image loading */
 void *target_get_scratch_address(void);
 
+/* get the max allowed flash size */
+unsigned target_get_max_flash_size(void);
+
 /* if target is using eMMC bootup */
 int target_is_emmc_boot(void);
 

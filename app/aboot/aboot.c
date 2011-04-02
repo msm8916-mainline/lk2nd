@@ -92,6 +92,7 @@ unsigned* target_atag_mem(unsigned* ptr);
 unsigned board_machtype(void);
 unsigned check_reboot_mode(void);
 void *target_get_scratch_address(void);
+unsigned target_get_max_flash_size(void);
 int target_is_emmc_boot(void);
 void reboot_device(unsigned);
 void target_battery_charging_enable(unsigned enable, unsigned disconnect);
@@ -691,6 +692,7 @@ void aboot_init(const struct app_descriptor *app)
 	unsigned reboot_mode = 0;
 	unsigned disp_init = 0;
 	unsigned usb_init = 0;
+	unsigned sz = 0;
 
 	/* Setup page size information for nand/emmc reads */
 	if (target_is_emmc_boot())
@@ -777,8 +779,8 @@ fastboot:
 	fastboot_register("reboot-bootloader", cmd_reboot_bootloader);
 	fastboot_publish("product", TARGET(BOARD));
 	fastboot_publish("kernel", "lk");
-
-	fastboot_init(target_get_scratch_address(), 120 * 1024 * 1024);
+	sz = target_get_max_flash_size();
+	fastboot_init(target_get_scratch_address(), sz);
 	udc_start();
 	target_battery_charging_enable(1, 0);
 }
