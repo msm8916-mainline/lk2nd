@@ -48,6 +48,8 @@
 #define NUM_PAGES_PER_BLOCK	0x40
 
 static struct ptable flash_ptable;
+unsigned hw_platform = 0;
+unsigned target_msm_id = 0;
 
 /* for these partitions, start will be offset by either what we get from
  * smem, or from the above offset if smem is not useful. Also, we should
@@ -179,9 +181,67 @@ void target_init(void)
 	flash_set_ptable(&flash_ptable);
 }
 
+void board_info(void)
+{
+	struct smem_board_info_v4 board_info_v4;
+	unsigned int board_info_len = 0;
+	unsigned smem_status;
+	unsigned format = 0;
+	unsigned id = 0;
+
+	if (hw_platform && target_msm_id)
+		return;
+
+	hw_platform = MSM7X27A_SURF;
+	target_msm_id = MSM7225A;
+
+	smem_status = smem_read_alloc_entry_offset(SMEM_BOARD_INFO_LOCATION,
+											&format, sizeof(format), 0);
+	if(!smem_status)
+	{
+		if(format == 4)
+		{
+			board_info_len = sizeof(board_info_v4);
+			smem_status = smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
+										&board_info_v4, board_info_len);
+			if(!smem_status)
+			{
+				id = board_info_v4.board_info_v3.hw_platform;
+				target_msm_id = board_info_v4.board_info_v3.msm_id;
+			}
+		}
+
+		/* Detect SURF v/s FFA v/s Fluid */
+		switch(id)
+		{
+			case 0x1:
+				hw_platform = MSM7X27A_SURF;
+				break;
+			case 0x2:
+				hw_platform = MSM7X27A_FFA;
+				break;
+			default:
+				hw_platform = MSM7X27A_SURF;
+		};
+
+		if ((target_msm_id < MSM7225A) || (target_msm_id > ESM7227A))
+		{
+			target_msm_id = MSM7225A;
+		}
+	}
+	return;
+}
+
 unsigned board_machtype(void)
 {
-	return LINUX_MACHTYPE;
+	board_info();
+	return hw_platform;
+}
+
+unsigned board_msm_id(void)
+{
+	board_info();
+	return target_msm_id;
 }
 
 void reboot_device(unsigned reboot_reason)
