@@ -32,44 +32,42 @@
 #include "mmc.h"
 
 #define SDC_NS(n)       (CLK_CTL_BASE + 0x282C + 32*((n) - 1))
-#define SDC1_NS         SDC_NS(1)
-#define SDC2_NS         SDC_NS(2)
-#define SDC3_NS         SDC_NS(3)
-#define SDC4_NS         SDC_NS(4)
-#define SDC5_NS         SDC_NS(5)
 
 #define SDC_MD(n)       (CLK_CTL_BASE + 0x2828 + 32*((n) - 1))
-#define SDC1_MD         SDC_MD(1)
-#define SDC2_MD         SDC_MD(2)
-#define SDC3_MD         SDC_MD(3)
-#define SDC4_MD         SDC_MD(4)
-#define SDC5_MD         SDC_MD(5)
 
 
-void clock_set_enable (unsigned int mclk)
+void clock_set_enable (unsigned slot, unsigned int mclk)
 {
-/* TODO: the sdc_id should be passed as a param to this function.
- * Also, it must correspond the SDCx_BASE used in target/init.c
- * Need a better way to base this off a single param. Shouldn't
- * have to change at two places.
- */
-    unsigned char sdc_id = 1;
+	/*
+	 * TODO: It must correspond the SDCx_BASE used in target/init.c
+	 * Need a better way to base this off a single param. Shouldn't
+	 * have to change at two places.
+	 */
+	unsigned char sdc_id = slot;
 
-#if PLATFORM_MSM8960_RUMI3
-    if (mclk == MMC_CLK_400KHZ)
-    {
-        writel(0x100CF,  SDC_MD(sdc_id));
-        writel(0xD00B40, SDC_NS(sdc_id));
-    }
-    else if (mclk == MMC_CLK_25MHZ)
-    {
-        writel(0x100EF,  SDC_MD(sdc_id));
-        writel(0xF00B47, SDC_NS(sdc_id));
-    }
-    else if (mclk == MMC_CLK_50MHZ)
-    {
-        writel(0x100F7,  SDC_MD(sdc_id));
-        writel(0xFC0B47, SDC_NS(sdc_id));
-    }
-#endif
+	if (mclk == MMC_CLK_400KHZ)
+	{
+		writel(0x100CF,  SDC_MD(sdc_id));
+		writel(0xD00B40, SDC_NS(sdc_id));
+		mdelay(10);
+	}
+	else if (mclk == MMC_CLK_20MHZ)
+	{
+		writel(0x00000,  SDC_MD(sdc_id));
+		writel(0x000A00, SDC_NS(sdc_id));
+		mdelay(10);
+	}
+	else if (mclk == MMC_CLK_25MHZ)
+	{
+		writel(0x100EF,  SDC_MD(sdc_id));
+		writel(0xF00B47, SDC_NS(sdc_id));
+		mdelay(10);
+	}
+	else if (mclk == MMC_CLK_50MHZ)
+	{
+		writel(0x100F7,  SDC_MD(sdc_id));
+		writel(0xFC0B47, SDC_NS(sdc_id));
+		mdelay(10);
+	}
 }
+

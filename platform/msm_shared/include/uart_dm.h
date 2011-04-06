@@ -73,8 +73,11 @@ enum MSM_BOOT_UART_DM_BITS_PER_CHAR
 /* CSR is used to further divide fundamental frequency.
  * Using EE we are dividing gsbi_uart_clk by 2 so as to get
  * 115.2k bit rate for fundamental frequency of 3.6864 MHz  */
+#ifdef PLATFORM_MSM8960
+#define MSM_BOOT_UART_DM_RX_TX_BIT_RATE      0x99
+#else
 #define MSM_BOOT_UART_DM_RX_TX_BIT_RATE      0xEE
-
+#endif
 /*
  * Define Macros for GSBI and UARTDM Registers
  */
@@ -105,13 +108,8 @@ enum MSM_BOOT_UART_DM_BITS_PER_CHAR
 
 /* Specify GSBI for UART */
 #ifdef PLATFORM_MSM8960
-        #if PLATFORM_MSM8960_RUMI3
-          /* GSBI5 */
-          #define MSM_BOOT_GSBI_BASE                 0x16400000
-        #else
-          /* GSBI2 */
-          #define MSM_BOOT_GSBI_BASE                 0x16100000
-        #endif
+        /* GSBI5 */
+        #define MSM_BOOT_GSBI_BASE                   0x16400000
 #else
         /* GSBI12 */
         #define MSM_BOOT_GSBI_BASE                   0x19C00000

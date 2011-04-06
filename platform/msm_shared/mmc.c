@@ -158,7 +158,7 @@ static unsigned int mmc_boot_enable_clock( struct mmc_boot_host* host,
     host->pclk_rate = ( unsigned int )mmc_signed_ret;
     dprintf(INFO,  "Clock rate - mclk: %dHz    pclk: %dHz\n", host->mclk_rate, host->pclk_rate );
 #else
-    clock_set_enable(mclk);
+    clock_set_enable(mmc_slot, mclk);
     host->mclk_rate = mclk;
     host->pclk_rate = mclk;
     host->clk_enabled = 1;
@@ -2293,6 +2293,8 @@ static unsigned int mmc_boot_set_sd_hs(struct mmc_boot_host* host, struct mmc_bo
 
 #if defined(PLATFORM_MSM8X60)
     mmc_ret = mmc_boot_enable_clock( host, MMC_CLK_48MHZ);
+#elif defined (PLATFORM_MSM8960)
+    mmc_ret = mmc_boot_enable_clock( host, MMC_CLK_20MHZ);
 #else
     mmc_ret = mmc_boot_enable_clock( host, MMC_CLK_50MHZ);
 #endif

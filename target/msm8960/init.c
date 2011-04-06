@@ -43,29 +43,82 @@ extern unsigned int mmc_boot_main(unsigned char slot, unsigned int base);
 extern void mdelay(unsigned msecs);
 extern void dmb(void);
 
+static unsigned mmc_sdc_base[] = { MSM_SDC1_BASE, MSM_SDC2_BASE, MSM_SDC3_BASE, MSM_SDC4_BASE};
+
 void target_init(void)
 {
+	unsigned base_addr;
+	unsigned char slot;
 	dprintf(INFO, "target_init()\n");
 
-	if(mmc_boot_main(MMC_SLOT, MSM_SDC1_BASE))
+	/* Trying Slot 1 first */
+	slot = 1;
+	base_addr = mmc_sdc_base[slot-1];
+	if(mmc_boot_main(slot, base_addr))
 	{
-		dprintf(CRITICAL, "mmc init failed!");
-		ASSERT(0);
+		/* Trying Slot 3 next */
+		slot = 3;
+		base_addr = mmc_sdc_base[slot-1];
+		if(mmc_boot_main(slot, base_addr))
+		{
+			dprintf(CRITICAL, "mmc init failed!");
+			ASSERT(0);
+		}
 	}
 }
 
 unsigned board_machtype(void)
 {
-/* TODO: Add a run time mechanism to detect if we are running on RUMI3.
- * Until then, PLATFORM_MSM8960_RUMI3 can be defined as compile time
- * option for RUMI3.
- */
+	struct smem_board_info_v5 board_info_v5;
+	struct smem_board_info_v6 board_info_v6;
+	unsigned int board_info_len = 0;
+	unsigned smem_status = 0;
+	unsigned format = 0;
+	unsigned id = 0;
+	unsigned mach_id = LINUX_MACHTYPE_8960_RUMI3;
 
-#if PLATFORM_MSM8960_RUMI3
-	return LINUX_MACHTYPE_8960_RUMI3;
-#else
-	return LINUX_MACHTYPE_8960_SIM;
-#endif
+	smem_status = smem_read_alloc_entry_offset(SMEM_BOARD_INFO_LOCATION,
+					&format, sizeof(format), 0);
+	if(!smem_status)
+	{
+		if (format == 5)
+		{
+			board_info_len = sizeof(board_info_v5);
+
+			smem_status = smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
+							&board_info_v5, board_info_len);
+			if(!smem_status)
+			{
+				id = board_info_v5.board_info_v3.hw_platform;
+			}
+		}
+		else if (format == 6)
+		{
+			board_info_len = sizeof(board_info_v6);
+
+			smem_status = smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
+							&board_info_v6, board_info_len);
+			if(!smem_status)
+			{
+				id = board_info_v6.board_info_v3.hw_platform;
+			}
+		}
+	}
+
+	/* Detect virtio vs rumi */
+	switch(id)
+	{
+		case HW_PLATFORM_SURF:
+			mach_id = LINUX_MACHTYPE_8960_RUMI3;
+			break;
+		case HW_PLATFORM_FFA:
+			mach_id = LINUX_MACHTYPE_8960_SIM;
+			break;
+		default:
+			mach_id = LINUX_MACHTYPE_8960_SIM;
+	};
+
+	return mach_id;
 }
 
 void reboot_device(unsigned reboot_reason)
