@@ -51,9 +51,10 @@ void mddi_clock_init(unsigned num, unsigned rate);
 
 void platform_early_init(void)
 {
-		//uart3_clock_init();
-	//uart_init();
-
+#if WITH_DEBUG_UART
+	uart1_clock_init();
+	uart_init();
+#endif
 	platform_init_interrupts();
 	platform_init_timer();
 }
