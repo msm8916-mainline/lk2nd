@@ -116,12 +116,9 @@ void target_init(void)
 
 	dprintf(INFO, "target_init()\n");
 
-/* TODO: Enable keypad support */
-#if 0
 #if (!ENABLE_NANDWRITE)
 	keys_init();
 	keypad_init();
-#endif
 #endif
 
 	if (target_is_emmc_boot())
