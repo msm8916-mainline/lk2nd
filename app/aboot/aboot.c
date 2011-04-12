@@ -47,6 +47,7 @@
 #include "recovery.h"
 #include "bootimg.h"
 #include "fastboot.h"
+#include "sparse_format.h"
 
 #define EXPAND(NAME) #NAME
 #define TARGET(NAME) EXPAND(NAME)
@@ -556,7 +557,7 @@ void cmd_erase_mmc(const char *arg, void *data, unsigned sz)
 }
 
 
-void cmd_flash_mmc(const char *arg, void *data, unsigned sz)
+void cmd_flash_mmc_img(const char *arg, void *data, unsigned sz)
 {
 	unsigned long long ptn = 0;
 	unsigned long long size = 0;
@@ -585,6 +586,122 @@ void cmd_flash_mmc(const char *arg, void *data, unsigned sz)
 		return;
 	}
 	fastboot_okay("");
+	return;
+}
+
+void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
+{
+	unsigned int chunk;
+	unsigned int chunk_data_sz;
+	sparse_header_t *sparse_header;
+	chunk_header_t *chunk_header;
+	uint32_t crc32 = 0;
+	uint32_t total_blocks = 0;
+	unsigned long long ptn = 0;
+	unsigned long long size = 0;
+
+	ptn = mmc_ptn_offset(arg);
+	if(ptn == 0) {
+		fastboot_fail("partition table doesn't exist");
+		return;
+	}
+
+	/* Read and skip over sparse image header */
+	sparse_header = (sparse_header_t *) data;
+	data += sparse_header->file_hdr_sz;
+	if(sparse_header->file_hdr_sz > sizeof(sparse_header_t))
+	{
+		/* Skip the remaining bytes in a header that is longer than
+		 * we expected.
+		 */
+		data += (sparse_header->file_hdr_sz - sizeof(sparse_header_t));
+	}
+
+	dprintf (INFO, "=== Sparse Image Header ===\n");
+	dprintf (INFO, "magic: 0x%x\n", sparse_header->magic);
+	dprintf (INFO, "major_version: 0x%x\n", sparse_header->major_version);
+	dprintf (INFO, "minor_version: 0x%x\n", sparse_header->minor_version);
+	dprintf (INFO, "file_hdr_sz: %d\n", sparse_header->file_hdr_sz);
+	dprintf (INFO, "chunk_hdr_sz: %d\n", sparse_header->chunk_hdr_sz);
+	dprintf (INFO, "blk_sz: %d\n", sparse_header->blk_sz);
+	dprintf (INFO, "total_blks: %d\n", sparse_header->total_blks);
+	dprintf (INFO, "total_chunks: %d\n", sparse_header->total_chunks);
+
+	/* Start processing chunks */
+	for (chunk=0; chunk<sparse_header->total_chunks; chunk++)
+	{
+		/* Read and skip over chunk header */
+		chunk_header = (chunk_header_t *) data;
+		data += sizeof(chunk_header_t);
+
+		dprintf (SPEW, "=== Chunk Header ===\n");
+		dprintf (SPEW, "chunk_type: 0x%x\n", chunk_header->chunk_type);
+		dprintf (SPEW, "chunk_data_sz: 0x%x\n", chunk_header->chunk_sz);
+		dprintf (SPEW, "total_size: 0x%x\n", chunk_header->total_sz);
+
+		if(sparse_header->chunk_hdr_sz > sizeof(chunk_header_t))
+		{
+			/* Skip the remaining bytes in a header that is longer than
+			 * we expected.
+			 */
+			data += (sparse_header->chunk_hdr_sz - sizeof(chunk_header_t));
+		}
+
+		chunk_data_sz = sparse_header->blk_sz * chunk_header->chunk_sz;
+		switch (chunk_header->chunk_type)
+		{
+			case CHUNK_TYPE_RAW:
+			if(chunk_header->total_sz != (sparse_header->chunk_hdr_sz +
+											chunk_data_sz))
+			{
+				fastboot_fail("Bogus chunk size for chunk type Raw");
+				return;
+			}
+
+			if(mmc_write(ptn + (total_blocks*sparse_header->blk_sz),
+								chunk_data_sz,
+								(unsigned int*)data))
+			{
+				fastboot_fail("flash write failure");
+				return;
+			}
+			total_blocks += chunk_header->chunk_sz;
+			data += chunk_data_sz;
+			break;
+
+			case CHUNK_TYPE_DONT_CARE:
+			case CHUNK_TYPE_CRC:
+			if(chunk_header->total_sz != sparse_header->chunk_hdr_sz)
+			{
+				fastboot_fail("Bogus chunk size for chunk type Dont Care");
+				return;
+			}
+			total_blocks += chunk_header->chunk_sz;
+			data += chunk_data_sz;
+			break;
+
+			fastboot_fail("Unknown chunk type");
+			return;
+		}
+	}
+
+    dprintf(INFO, "Wrote %d blocks, expected to write %d blocks\n",
+             total_blocks, sparse_header->total_blks);
+
+	fastboot_okay("");
+	return;
+}
+
+void cmd_flash_mmc(const char *arg, void *data, unsigned sz)
+{
+	sparse_header_t *sparse_header;
+	sparse_header = (sparse_header_t *) data;
+
+	if (sparse_header->magic != SPARSE_HEADER_MAGIC)
+		cmd_flash_mmc_img(arg, data, sz);
+	else
+		cmd_flash_mmc_sparse_img(arg, data, sz);
+
 	return;
 }
 
