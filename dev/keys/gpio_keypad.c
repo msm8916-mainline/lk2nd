@@ -547,7 +547,7 @@ scan_qwerty_keypad(struct timer *timer, time_t now, void *arg)
     unsigned char column_new_keys = 0x00;
     unsigned char column_old_keys = 0x00;
     int shift = 0;
-    static int key_detected = 0;
+    static int key_detected = -1;
 
     if ((*rd_function)((qwerty_keypad->keypad_info)->rec_keys, num_of_ssbi_reads,
                                                  SSBI_REG_KYPD_REC_DATA_ADDR))
@@ -604,7 +604,7 @@ scan_qt_keypad(struct timer *timer, time_t now, void *arg)
     unsigned int last_state=0;
     unsigned int new_state=0;
     unsigned int bits_changed;
-    static unsigned int key_detected=0;
+    static int key_detected=-1;
 
     /* Row GPIOs 8,9,10 are used for sensing here */
     for(gpio=8;gpio<=10;gpio++)
@@ -619,7 +619,7 @@ scan_qt_keypad(struct timer *timer, time_t now, void *arg)
 
     if(bits_changed)
     {
-        unsigned int shift;
+        int shift;
         for(int rows=0;rows<(qwerty_keypad->keypad_info)->rows;rows++)
         {
             if((bits_changed & (1<<rows)) == 0)
