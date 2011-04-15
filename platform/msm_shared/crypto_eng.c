@@ -256,12 +256,13 @@ void crypto_send_data(void *ctx_ptr, unsigned char *data_ptr,
         memset(data,0,sizeof(unsigned int));
 
         if(sha1_ctx->saved_buff_indx)
-        {
-            data[4-bytes_left] = *(sha1_ctx->saved_buff + bytes_to_write - 1);
-        }
+            buff_ptr = (sha1_ctx->saved_buff + bytes_to_write - 1);
         else
+            buff_ptr = (((unsigned char *)data_ptr) + buff_size - 1);
+
+        for(i=0;i<bytes_left;i++)
         {
-            data[4-bytes_left] = *(((unsigned char *)data_ptr) + buff_size - 1);
+            data[3-i] = *(buff_ptr-bytes_left+i+1);
         }
 
         ce_status = rd_ce(CRYPTO3_STATUS);
