@@ -27,9 +27,10 @@
  */
 
 /* Note: As of now, kernel crashes when RAM size is configured as 2GB.
- *       Configuring to 64MB for now.
+ *       Configuring to 141MB for now.
  */
-#define SIZE_64M            0x04000000
+#define SIZE_1M             (1024 * 1024)
+#define SIZE_141M           (141 * SIZE_1M)
 #define EBI1_ADDR_1026M     0x40200000
 
 unsigned* target_atag_mem(unsigned* ptr)
@@ -37,7 +38,7 @@ unsigned* target_atag_mem(unsigned* ptr)
 	/* ATAG_MEM */
 	*ptr++ = 4;
 	*ptr++ = 0x54410002;
-	*ptr++ = SIZE_64M;
+	*ptr++ = SIZE_141M;
 	*ptr++ = EBI1_ADDR_1026M;
 
 	return ptr;
