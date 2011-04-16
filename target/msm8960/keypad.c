@@ -27,27 +27,35 @@
  *
  */
 
+#include <string.h>
 #include <dev/keys.h>
 #include <dev/gpio_keypad.h>
 
+#define NUM_OF_ROWS 12
+#define NUM_OF_COLS  8
+
 #define BITS_IN_ELEMENT(x) (sizeof(x)[0] * 8)
 
-static unsigned char qwerty_keys_old[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-static unsigned char qwerty_keys_new[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+static unsigned char qwerty_keys_old[NUM_OF_ROWS];
+static unsigned char qwerty_keys_new[NUM_OF_ROWS];
 
 #define KEYMAP_INDEX(row, col) (row)* BITS_IN_ELEMENT(qwerty_keys_new) + (col)
 
-static unsigned int qwerty_keymap[] = {
-	[KEYMAP_INDEX(1, 3)] = KEY_BACK,	/* Volume down key */
+unsigned int qwerty_keymap[] = {
+    [KEYMAP_INDEX(3, 4)] = KEY_VOLUMEUP,   /* Volume key on external Keyboard */
+    [KEYMAP_INDEX(4, 4)] = KEY_VOLUMEDOWN, /* Volume key on external Keyboard */
+    [KEYMAP_INDEX(0, 0)] = KEY_VOLUMEUP,   /* Volume key on the device/CDP */
+    [KEYMAP_INDEX(0, 1)] = KEY_VOLUMEDOWN, /* Volume key on the device/CDP */
 };
 
-static struct qwerty_keypad_info qwerty_keypad = {
+
+struct qwerty_keypad_info qwerty_keypad = {
 	.keymap         = qwerty_keymap,
 	.old_keys       = qwerty_keys_old,
 	.rec_keys       = qwerty_keys_new,
-	.rows           = 6,
-	.columns        = 5,
-	.num_of_reads   = 6,
+	.rows           = NUM_OF_ROWS,
+	.columns        = NUM_OF_COLS,
+	.num_of_reads   = NUM_OF_ROWS,
 	.rd_func        = &pa1_ssbi2_read_bytes,
 	.wr_func        = &pa1_ssbi2_write_bytes,
 	.settle_time    = 5  /* msec */,
@@ -56,5 +64,8 @@ static struct qwerty_keypad_info qwerty_keypad = {
 
 void keypad_init(void)
 {
+	memset(qwerty_keys_old, 0, sizeof(qwerty_keys_old));
+	memset(qwerty_keys_new, 0, sizeof(qwerty_keys_new));
+
 	ssbi_keypad_init(&qwerty_keypad);
 }
