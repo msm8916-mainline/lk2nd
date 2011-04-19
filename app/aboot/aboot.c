@@ -49,6 +49,8 @@
 #include "fastboot.h"
 #include "sparse_format.h"
 
+#include "scm_decrypt.h"
+
 #define EXPAND(NAME) #NAME
 #define TARGET(NAME) EXPAND(NAME)
 #define DEFAULT_CMDLINE "mem=100M console=null";
@@ -118,7 +120,7 @@ static void ptentry_to_tag(unsigned **ptr, struct ptentry *ptn)
 	*ptr += sizeof(struct atag_ptbl_entry) / sizeof(unsigned);
 }
 
-void boot_linux(void *kernel, unsigned *tags, 
+void boot_linux(void *kernel, unsigned *tags,
 		const char *cmdline, unsigned machtype,
 		void *ramdisk, unsigned ramdisk_size)
 {
@@ -695,13 +697,27 @@ void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 void cmd_flash_mmc(const char *arg, void *data, unsigned sz)
 {
 	sparse_header_t *sparse_header;
-	sparse_header = (sparse_header_t *) data;
+	/* 8 Byte Magic + 2048 Byte xml + Encrypted Data */
+	unsigned int *magic_number = (unsigned int *) data;
+	int ret=0;
 
+	if (magic_number[0] == SSD_HEADER_MAGIC_0 &&
+		magic_number[1] == SSD_HEADER_MAGIC_1)
+	{
+#ifdef SSD_ENABLE
+		ret = decrypt_img_scm(&data, &sz);
+#endif
+		if(ret != 0)
+		{
+			dprintf(CRITICAL, "ERROR: Invalid secure image\n");
+			return;
+		}
+	}
+	sparse_header = (sparse_header_t *) data;
 	if (sparse_header->magic != SPARSE_HEADER_MAGIC)
 		cmd_flash_mmc_img(arg, data, sz);
 	else
 		cmd_flash_mmc_sparse_img(arg, data, sz);
-
 	return;
 }
 
