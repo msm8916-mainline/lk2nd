@@ -54,12 +54,12 @@ void pm8058_write_one(unsigned data, unsigned address)
 
 }
 
-int pm8058_get_gpio_status( pm_sec_gpio_irq_id_type gpio_irq, bool *rt_status)
+int pm8058_get_irq_status( pm_irq_id_type irq, bool *rt_status)
 {
     unsigned block_index, reg_data, reg_mask;
     int errFlag;
 
-    block_index = PM_IRQ_ID_TO_BLOCK_INDEX(gpio_irq);
+    block_index = PM_IRQ_ID_TO_BLOCK_INDEX(irq);
 
     /* select the irq block */
     errFlag =pa1_ssbi2_write_bytes(&block_index,1,IRQ_BLOCK_SEL_USR_ADDR);
@@ -76,7 +76,7 @@ int pm8058_get_gpio_status( pm_sec_gpio_irq_id_type gpio_irq, bool *rt_status)
         dprintf(INFO,"Device Timeout");
         return 1;
     }
-    reg_mask = PM_IRQ_ID_TO_BIT_MASK(gpio_irq);
+    reg_mask = PM_IRQ_ID_TO_BIT_MASK(irq);
 
     if ((reg_data & reg_mask) == reg_mask )
     {
@@ -93,12 +93,12 @@ int pm8058_get_gpio_status( pm_sec_gpio_irq_id_type gpio_irq, bool *rt_status)
 
 bool pm8058_gpio_get(unsigned int gpio)
 {
-	pm_sec_gpio_irq_id_type gpio_irq;
+	pm_irq_id_type gpio_irq;
 	bool status;
 	int ret;
 
 	gpio_irq = gpio + PM_GPIO01_CHGED_ST_IRQ_ID;
-	ret = pm8058_get_gpio_status(gpio_irq, &status);
+	ret = pm8058_get_irq_status(gpio_irq, &status);
 
 	if(ret)
 		dprintf(CRITICAL,"pm8058_gpio_get failed\n");

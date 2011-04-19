@@ -1,5 +1,5 @@
 /*
- * * Copyright (c) 2010, Code Aurora Forum. All rights reserved.
+ * * Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -88,6 +88,8 @@
 
 typedef enum
 {
+    PM_KYPD_PWRON_IRQ_ID        = 51,
+
     /* Block 24 Interrupts */
     PM_GPIO01_CHGED_ST_IRQ_ID   = 192,
     PM_GPIO02_CHGED_ST_IRQ_ID   = 193,
@@ -137,6 +139,6 @@ typedef enum
     PM_GPIO38_CHGED_ST_IRQ_ID   = 229,
     PM_GPIO39_CHGED_ST_IRQ_ID   = 230,
     PM_GPIO40_CHGED_ST_IRQ_ID   = 231,
-}pm_sec_gpio_irq_id_type;
+}pm_irq_id_type;
 
 #endif
