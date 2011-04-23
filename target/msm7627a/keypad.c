@@ -83,7 +83,7 @@ static struct gpio_keypad_info halibut_keypad_info = {
 	.ninputs	= ARRAY_SIZE(halibut_col_gpios),
 	.settle_time	= 5 /* msec */,
 	.poll_time	= 20 /* msec */,
-	.flags		= (GPIOKPF_DRIVE_INACTIVE | GPIOKPF_ACTIVE_HIGH),
+	.flags		= GPIOKPF_DRIVE_INACTIVE,
 };
 
 void keypad_init(void)
