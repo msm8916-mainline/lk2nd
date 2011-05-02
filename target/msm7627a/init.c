@@ -288,3 +288,13 @@ unsigned target_pause_for_battery_charge(void)
 void target_battery_charging_enable(unsigned enable, unsigned disconnect)
 {
 }
+
+#if _EMMC_BOOT
+void target_serialno(unsigned char *buf)
+{
+	unsigned int serialno;
+	serialno =  mmc_get_psn();
+	sprintf(buf,"%x",serialno);
+}
+#endif
+
