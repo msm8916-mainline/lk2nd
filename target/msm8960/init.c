@@ -35,6 +35,7 @@
 #include <smem.h>
 #include <platform/iomap.h>
 #include <reg.h>
+#include <dev/keys.h>
 
 #define LINUX_MACHTYPE_8960_SIM     3230
 #define LINUX_MACHTYPE_8960_RUMI3   3231
@@ -42,6 +43,7 @@
 extern unsigned int mmc_boot_main(unsigned char slot, unsigned int base);
 extern void mdelay(unsigned msecs);
 extern void dmb(void);
+extern void keypad_init(void);
 
 static unsigned mmc_sdc_base[] = { MSM_SDC1_BASE, MSM_SDC2_BASE, MSM_SDC3_BASE, MSM_SDC4_BASE};
 
@@ -50,6 +52,10 @@ void target_init(void)
 	unsigned base_addr;
 	unsigned char slot;
 	dprintf(INFO, "target_init()\n");
+
+	/* Keypad init */
+	keys_init();
+	keypad_init();
 
 	/* Trying Slot 1 first */
 	slot = 1;
