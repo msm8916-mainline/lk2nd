@@ -2656,6 +2656,8 @@ static void mbr_fill_name (struct mbr_entry *mbr_ent, unsigned int type)
             memcpy(mbr_ent->name,"efs2",4);
             break;
         case MMC_USERDATA_TYPE:
+            if (ext3_count == sizeof(ext3_partitions) / sizeof(char*))
+                return;
             strcpy((char *)mbr_ent->name,(const char *)ext3_partitions[ext3_count]);
             ext3_count++;
             break;
