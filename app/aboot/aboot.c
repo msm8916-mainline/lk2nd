@@ -672,6 +672,9 @@ void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 			break;
 
 			case CHUNK_TYPE_DONT_CARE:
+			total_blocks += chunk_header->chunk_sz;
+			break;
+
 			case CHUNK_TYPE_CRC:
 			if(chunk_header->total_sz != sparse_header->chunk_hdr_sz)
 			{
@@ -682,6 +685,7 @@ void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 			data += chunk_data_sz;
 			break;
 
+			default:
 			fastboot_fail("Unknown chunk type");
 			return;
 		}
