@@ -39,6 +39,10 @@
 
 #define LINUX_MACHTYPE_8960_SIM     3230
 #define LINUX_MACHTYPE_8960_RUMI3   3231
+#define LINUX_MACHTYPE_8960_CDP     3396
+#define LINUX_MACHTYPE_8960_MTP     3397
+#define LINUX_MACHTYPE_8960_FLUID   3398
+#define LINUX_MACHTYPE_8960_APQ     3399
 
 extern unsigned int mmc_boot_main(unsigned char slot, unsigned int base);
 extern void mdelay(unsigned msecs);
@@ -82,6 +86,9 @@ unsigned board_machtype(void)
 	unsigned format = 0;
 	unsigned id = 0;
 	unsigned mach_id = LINUX_MACHTYPE_8960_RUMI3;
+
+	/* Until the bootchain is in, return CDP id. */
+	return LINUX_MACHTYPE_8960_CDP;
 
 	smem_status = smem_read_alloc_entry_offset(SMEM_BOARD_INFO_LOCATION,
 					&format, sizeof(format), 0);
