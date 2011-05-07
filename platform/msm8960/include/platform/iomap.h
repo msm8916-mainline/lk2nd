@@ -59,7 +59,7 @@
 #define MSM_SDC3_BASE       0x12180000
 #define MSM_SDC4_BASE       0x121C0000
 
-#define MSM_SHARED_BASE     0x40000000
+#define MSM_SHARED_BASE     0x80000000
 
 
 #define TLMM_BASE_ADDR      0x00800000
