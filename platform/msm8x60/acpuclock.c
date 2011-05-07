@@ -222,52 +222,65 @@ void clock_config(uint32_t ns,
     writel(val, ns_addr);
 }
 
-void acpu_clock_init (void)
+void pll8_enable(void)
 {
+    /* Currently both UART and USB depend on this PLL8 clock initialization. */
+    unsigned int curr_value = 0;
+
+    /* Vote for PLL8 to be enabled */
+    curr_value = readl(MSM_BOOT_PLL_ENABLE_SC0);
+    curr_value |= (1 << 8);
+    writel(curr_value, MSM_BOOT_PLL_ENABLE_SC0);
+
+    /* Proceed only after PLL is enabled */
+    while (!(readl(MSM_BOOT_PLL8_STATUS) & (1<<16)));
+}
+
+void uart_clock_init(void)
+{
+	/* Enable PLL8 */
+	pll8_enable();
 }
 
 void hsusb_clock_init(void)
 {
 	int val;
-	/* Vote for PLL8 */
-	val = readl(0x009034C0);
-	val |= (1<<8);
-	writel(val, 0x009034C0);
-	/* Wait until PLL is enabled. */
-	while (!(readl(0x00903158) & (1<<16)));
+
+	/* Enable PLL8 */
+	pll8_enable();
 
 	//Set 7th bit in NS Register
 	val = 1 << 7;
-	writel(val, USB_HS1_XVCR_FS_CLK_NS);
+	writel(val, USB_HS1_XCVR_FS_CLK_NS);
 
 	//Set rate specific value in MD
-	writel(0x000500DF, USB_HS1_XVCR_FS_CLK_MD);
+	writel(0x000500DF, USB_HS1_XCVR_FS_CLK_MD);
 
 	//Set value in NS register
 	val = 1 << 7;
 	val |= 0x00E400C3;
-	writel(val, USB_HS1_XVCR_FS_CLK_NS);
+	writel(val, USB_HS1_XCVR_FS_CLK_NS);
 
 	// Clear 7th bit
 	val = 1 << 7;
 	val = ~val;
-	val = val & readl(USB_HS1_XVCR_FS_CLK_NS);
-	writel(val, USB_HS1_XVCR_FS_CLK_NS);
+	val = val & readl(USB_HS1_XCVR_FS_CLK_NS);
+	writel(val, USB_HS1_XCVR_FS_CLK_NS);
 
 	//set 11th bit
 	val = 1 << 11;
-	val |= readl(USB_HS1_XVCR_FS_CLK_NS);
-	writel(val, USB_HS1_XVCR_FS_CLK_NS);
+	val |= readl(USB_HS1_XCVR_FS_CLK_NS);
+	writel(val, USB_HS1_XCVR_FS_CLK_NS);
 
 	//set 9th bit
 	val = 1 << 9;
-	val |= readl(USB_HS1_XVCR_FS_CLK_NS);
-	writel(val, USB_HS1_XVCR_FS_CLK_NS);
+	val |= readl(USB_HS1_XCVR_FS_CLK_NS);
+	writel(val, USB_HS1_XCVR_FS_CLK_NS);
 
 	//set 8th bit
 	val = 1 << 8;
-	val |= readl(USB_HS1_XVCR_FS_CLK_NS);
-	writel(val, USB_HS1_XVCR_FS_CLK_NS);
+	val |= readl(USB_HS1_XCVR_FS_CLK_NS);
+	writel(val, USB_HS1_XCVR_FS_CLK_NS);
 }
 
 void ce_clock_init(void)

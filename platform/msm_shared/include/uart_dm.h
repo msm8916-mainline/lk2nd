@@ -29,13 +29,11 @@
 #ifndef __UART_DM_H__
 #define __UART_DM_H__
 
+#include <platform/iomap.h>
+
 #define MSM_BOOT_UART_DM_EXTR_BITS(value, start_pos, end_pos) \
                                              ((value << (32 - end_pos))\
                                               >> (32 - (end_pos - start_pos)))
-
-/* GPIO pins - 2 wire using UART2 */
-#define MSM_BOOT_UART_DM_RX_GPIO             117
-#define MSM_BOOT_UART_DM_TX_GPIO             118
 
 
 /* UART Parity Mode */
@@ -70,55 +68,49 @@ enum MSM_BOOT_UART_DM_BITS_PER_CHAR
                                              (MSM_BOOT_UART_DM_SBL_1 << 2) | \
                                              (MSM_BOOT_UART_DM_8_BPS << 4))
 
-/* CSR is used to further divide fundamental frequency.
- * Using EE we are dividing gsbi_uart_clk by 2 so as to get
- * 115.2k bit rate for fundamental frequency of 3.6864 MHz  */
+/* Platform specific macros for GSBI, Clocks etc. */
 #ifdef PLATFORM_MSM8960
-#define MSM_BOOT_UART_DM_RX_TX_BIT_RATE      0x99
+	#define MSM_BOOT_GSBI_BASE                   (GSBI5_BASE)
+	#define MSM_BOOT_UART_DM_GSBI_HCLK_CTL       GSBIn_HCLK_CTL(5)
+	#define MSM_BOOT_UART_DM_APPS_MD             GSBIn_QUP_APPS_MD(5)
+	#define MSM_BOOT_UART_DM_APPS_NS             GSBIn_QUP_APPS_NS(5)
+	#define MSM_BOOT_UART_DM_NS_VAL              0xFFE40040
+	#define MSM_BOOT_UART_DM_MD_VAL              0x0002FFE2
+
+	#define MSM_BOOT_UART_DM_RX_TX_BIT_RATE      0xFF
+
+	/* GPIO pins - 2 wire using UART2 */
+	#define MSM_BOOT_UART_DM_RX_GPIO             23
+	#define MSM_BOOT_UART_DM_TX_GPIO             22
+	#define MSM_BOOT_UART_DM_RX_GPIO_FUNC         1
+	#define MSM_BOOT_UART_DM_TX_GPIO_FUNC         1
+
+#elif PLATFORM_MSM8X60
+	#define MSM_BOOT_GSBI_BASE                   (GSBI12_BASE)
+	#define MSM_BOOT_UART_DM_GSBI_HCLK_CTL       GSBIn_HCLK_CTL(12)
+	#define MSM_BOOT_UART_DM_APPS_MD             GSBIn_QUP_APPS_MD(12)
+	#define MSM_BOOT_UART_DM_APPS_NS             GSBIn_QUP_APPS_NS(12)
+	#define MSM_BOOT_UART_DM_NS_VAL              0xFD940043
+	#define MSM_BOOT_UART_DM_MD_VAL              0x0006FD8E
+
+	/* CSR is used to further divide fundamental frequency.
+	 * Using EE we are dividing gsbi_uart_clk by 2 so as to get
+	 * 115.2k bit rate for fundamental frequency of 3.6864 MHz
+	 */
+	#define MSM_BOOT_UART_DM_RX_TX_BIT_RATE      0xEE
+
+	/* GPIO pins - 2 wire using UART2 */
+	#define MSM_BOOT_UART_DM_RX_GPIO             117
+	#define MSM_BOOT_UART_DM_TX_GPIO             118
+	#define MSM_BOOT_UART_DM_RX_GPIO_FUNC          2
+	#define MSM_BOOT_UART_DM_TX_GPIO_FUNC          2
 #else
-#define MSM_BOOT_UART_DM_RX_TX_BIT_RATE      0xEE
-#endif
-/*
- * Define Macros for GSBI and UARTDM Registers
- */
-
-/* Clocks */
-
-#define MSM_BOOT_CLK_CTL_BASE                0x00900000
-
-#define MSM_BOOT_PLL_ENABLE_SC0              (MSM_BOOT_CLK_CTL_BASE + 0x34C0)
-
-#define MSM_BOOT_PLL8_STATUS                 (MSM_BOOT_CLK_CTL_BASE + 0x3158)
-
-#define MSM_BOOT_GSBIn_HCLK_CTL(n)           (MSM_BOOT_CLK_CTL_BASE + 0x29A0 +\
-                                              ( 32 * n ))
-
-#define MSM_BOOT_GSBIn_UART_APPS_MD(n)       (MSM_BOOT_CLK_CTL_BASE + 0x29B0 +\
-                                              ( 32 * n))
-
-#define MSM_BOOT_GSBIn_UART_APPS_NS(n)       (MSM_BOOT_CLK_CTL_BASE + 0x29B4 +\
-                                              (32 * n))
-
-#define MSM_BOOT_UART_DM_GSBI_HCLK_CTL       MSM_BOOT_GSBIn_HCLK_CTL(12)
-
-#define MSM_BOOT_UART_DM_APPS_MD             MSM_BOOT_GSBIn_UART_APPS_MD(12)
-
-#define MSM_BOOT_UART_DM_APPS_NS             MSM_BOOT_GSBIn_UART_APPS_NS(12)
-
-
-/* Specify GSBI for UART */
-#ifdef PLATFORM_MSM8960
-        /* GSBI5 */
-        #define MSM_BOOT_GSBI_BASE                   0x16400000
-#else
-        /* GSBI12 */
-        #define MSM_BOOT_GSBI_BASE                   0x19C00000
+	#error "UART GSBI needs to be defined for the platform"
 #endif
 
-#define MSM_BOOT_GSBI_CTRL_REG               MSM_BOOT_GSBI_BASE
 
+#define MSM_BOOT_GSBI_CTRL_REG                MSM_BOOT_GSBI_BASE
 #define MSM_BOOT_UART_DM_BASE                (MSM_BOOT_GSBI_BASE+0x40000)
-
 #define MSM_BOOT_UART_DM_REG(offset)         (MSM_BOOT_UART_DM_BASE + offset)
 
 /* UART Operational Mode Register */

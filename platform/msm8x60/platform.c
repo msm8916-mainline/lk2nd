@@ -83,9 +83,7 @@ void platform_early_init(void)
 void platform_init(void)
 {
     dprintf(INFO, "platform_init()\n");
-#ifndef PLATFORM_MSM8960
     ce_clock_init();
-#endif
 }
 
 void display_init(void)

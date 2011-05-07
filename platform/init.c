@@ -52,3 +52,8 @@ __WEAK void display_shutdown(void)
 __WEAK void platform_config_interleaved_mode_gpios(void)
 {
 }
+
+__WEAK void uart_clock_init(void)
+{
+}
+

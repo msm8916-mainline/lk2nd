@@ -1616,7 +1616,7 @@ static unsigned int mmc_boot_adjust_interface_speed( struct mmc_boot_host* host,
     }while( MMC_BOOT_CARD_STATUS(status) == MMC_BOOT_PROG_STATE );
 
 
-#if defined(PLATFORM_MSM8X60)
+#if defined(PLATFORM_MSM8X60) || defined(PLATFORM_MSM8960)
     mmc_ret = mmc_boot_enable_clock( host, MMC_CLK_48MHZ);
 #else
     mmc_ret = mmc_boot_enable_clock( host, MMC_CLK_50MHZ);
@@ -2176,10 +2176,8 @@ static unsigned int mmc_boot_set_sd_hs(struct mmc_boot_host* host, struct mmc_bo
 
     mdelay(1);
 
-#if defined(PLATFORM_MSM8X60)
+#if defined(PLATFORM_MSM8X60) || defined(PLATFORM_MSM8960)
     mmc_ret = mmc_boot_enable_clock( host, MMC_CLK_48MHZ);
-#elif defined (PLATFORM_MSM8960)
-    mmc_ret = mmc_boot_enable_clock( host, MMC_CLK_20MHZ);
 #else
     mmc_ret = mmc_boot_enable_clock( host, MMC_CLK_50MHZ);
 #endif

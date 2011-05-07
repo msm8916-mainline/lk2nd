@@ -30,18 +30,82 @@
 #include <reg.h>
 #include <platform/iomap.h>
 
+/* NS/MD value for USB XCVR */
+#define MSM_BOOT_USB_XCVR_NS_VAL     0x00E400C3
+#define MSM_BOOT_USB_XCVR_MD_VAL     0x000500DF
+
+
 /* Set rate and enable the clock */
 void clock_config(uint32_t ns,
-        uint32_t md,
-        uint32_t ns_addr,
-        uint32_t md_addr)
+				  uint32_t md,
+				  uint32_t ns_addr,
+				  uint32_t md_addr)
 {
+	unsigned int val = 0;
+
+	/* Activate the reset for the M/N Counter */
+	val = 1 << 7;
+	writel(val, ns_addr);
+
+	/* Write the MD value into the MD register */
+	writel(md, md_addr);
+
+	/* Write the ns value, and active reset for M/N Counter, again */
+	val = 1 << 7;
+	val |= ns;
+	writel(val, ns_addr);
+
+	/* De-activate the reset for M/N Counter */
+	val = 1 << 7;
+	val = ~val;
+	val = val & readl(ns_addr);
+	writel(val, ns_addr);
+
+	/* Enable the Clock Root */
+	val = 1 << 11;
+	val = val | readl(ns_addr);
+	writel(val, ns_addr);
+
+	/* Enable the Clock Branch */
+	val = 1 << 9;
+	val = val | readl(ns_addr);
+	writel(val, ns_addr);
+
+	/* Enable the M/N Counter */
+	val = 1 << 8;
+	val = val | readl(ns_addr);
+	writel(val, ns_addr);
 }
 
-void acpu_clock_init (void)
+void pll8_enable(void)
 {
+	/* Currently both UART and USB depend on this PLL8 clock initialization. */
+	unsigned int curr_value = 0;
+
+	/* Vote for PLL8 to be enabled */
+	curr_value = readl(MSM_BOOT_PLL_ENABLE_SC0);
+	curr_value |= (1 << 8);
+	writel(curr_value, MSM_BOOT_PLL_ENABLE_SC0);
+
+	/* Proceed only after PLL is enabled */
+	while (!(readl(MSM_BOOT_PLL8_STATUS) & (1<<16)));
 }
 
 void hsusb_clock_init(void)
 {
+	unsigned int val = 0;
+
+	/* TODO: Enable pll8 here */
+	/* Setup USB AHB clock */
+
+	val = readl(USB_HS1_HCLK_CTL);
+	/* branch enable */
+	val |= (1 << 4);
+	writel(val, USB_HS1_HCLK_CTL);
+
+	/* Setup XCVR clock */
+	clock_config(MSM_BOOT_USB_XCVR_NS_VAL,
+				 MSM_BOOT_USB_XCVR_MD_VAL,
+				 USB_HS1_XCVR_FS_CLK_NS,
+				 USB_HS1_XCVR_FS_CLK_MD);
 }

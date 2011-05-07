@@ -34,12 +34,12 @@
 #define _PLATFORM_MSM8960_IOMAP_H_
 
 
-#define CLK_CTL_BASE        0x00900000
 #define MSM_TCSR_BASE       0x1A400000
 #define MSM_GIC_DIST_BASE   0x02000000
 #define MSM_TMR_BASE        0x0200A000
 #define MSM_GIC_CPU_BASE    0x02002000
 #define MSM_VIC_BASE        0x02080000
+#define MSM_USB_BASE        0x12500000
 #define MSM_UART3_BASE      0xA9C00000
 
 
@@ -89,8 +89,6 @@
 #define GPIO_CFG157_ADDR    0x008019D0
 #define GPIO_CFG158_ADDR    0x008019E0
 
-#define CLK_CTL_BASE        0x00900000
-
 #define GSBI1_BASE          0x16000000
 #define GSBI2_BASE          0x16100000
 #define GSBI3_BASE          0x16200000
@@ -119,17 +117,20 @@
 
 #define GSBI_CTL_PROTOCOL_CODE_I2C (0x20)
 
-
-#define GSBIn_HCLK_CTL(n)       ((CLK_CTL_BASE) + 0x29C0 + (32 * ((n) - 1)))
-#define GSBIn_HCLK_FS(n)        ((CLK_CTL_BASE) + 0x29C4 + (32 * ((n) - 1)))
-#define GSBIn_QUP_APPS_MD(n)    ((CLK_CTL_BASE) + 0x29C8 + (32 * ((n) - 1)))
-#define GSBIn_QUP_APPS_NS(n)    ((CLK_CTL_BASE) + 0x29CC + (32 * ((n) - 1)))
-
 #define EBI2_CHIP_SELECT_CFG0   0x1A100000
 #define EBI2_XMEM_CS3_CFG1      0x1A110034
 
-#define MSM_USB_BASE            0x12500000
-#define USB_HS1_XVCR_FS_CLK_MD  0x00902908
-#define USB_HS1_XVCR_FS_CLK_NS  0x0090290C
+#define CLK_CTL_BASE             0x00900000
+#define SDC_MD(n)               (CLK_CTL_BASE + 0x2828 + (32 * ((n) - 1)))
+#define SDC_NS(n)               (CLK_CTL_BASE + 0x282C + (32 * ((n) - 1)))
+#define USB_HS1_HCLK_CTL        (CLK_CTL_BASE + 0x2900)
+#define USB_HS1_XCVR_FS_CLK_MD  (CLK_CTL_BASE + 0x2908)
+#define USB_HS1_XCVR_FS_CLK_NS  (CLK_CTL_BASE + 0x290C)
+#define GSBIn_HCLK_CTL(n)       (CLK_CTL_BASE + 0x29C0 + (32 * ((n) - 1)))
+#define GSBIn_HCLK_FS(n)        (CLK_CTL_BASE + 0x29C4 + (32 * ((n) - 1)))
+#define GSBIn_QUP_APPS_MD(n)    (CLK_CTL_BASE + 0x29D0 + (32 * ((n) - 1)))
+#define GSBIn_QUP_APPS_NS(n)    (CLK_CTL_BASE + 0x29D4 + (32 * ((n) - 1)))
+#define MSM_BOOT_PLL8_STATUS    (CLK_CTL_BASE + 0x3158)
+#define MSM_BOOT_PLL_ENABLE_SC0 (CLK_CTL_BASE + 0x34C0)
 
 #endif

@@ -33,6 +33,7 @@
 #ifndef _PLATFORM_MSM8X60_IOMAP_H_
 #define _PLATFORM_MSM8X60_IOMAP_H_
 
+#define MSM_USB_BASE	0x12500000
 #define MSM_UART3_BASE	0xA9C00000
 
 #define MSM_VIC_BASE	0x02080000
@@ -116,12 +117,16 @@
 
 #define GSBI_CTL_PROTOCOL_CODE_I2C (0x20)
 
-#define CLK_CTL_BASE    0x00900000
-
-#define GSBIn_HCLK_CTL(n)   ((CLK_CTL_BASE) + 0x29C0 + (32 * ((n) - 1)))
-#define GSBIn_HCLK_FS(n)    ((CLK_CTL_BASE) + 0x29C4 + (32 * ((n) - 1)))
-#define GSBIn_QUP_APPS_MD(n)    ((CLK_CTL_BASE) + 0x29C8 + (32 * ((n) - 1)))
-#define GSBIn_QUP_APPS_NS(n)    ((CLK_CTL_BASE) + 0x29CC + (32 * ((n) - 1)))
+#define CLK_CTL_BASE                 0x00900000
+#define USB_HS1_HCLK_CTL            (CLK_CTL_BASE + 0x2900)
+#define USB_HS1_XCVR_FS_CLK_MD      (CLK_CTL_BASE + 0x2908)
+#define USB_HS1_XCVR_FS_CLK_NS      (CLK_CTL_BASE + 0x290C)
+#define MSM_BOOT_PLL_ENABLE_SC0     (CLK_CTL_BASE + 0x34C0)
+#define MSM_BOOT_PLL8_STATUS        (CLK_CTL_BASE + 0x3158)
+#define GSBIn_HCLK_CTL(n)           (CLK_CTL_BASE + 0x29C0 + (32 * ((n) - 1)))
+#define GSBIn_HCLK_FS(n)            (CLK_CTL_BASE + 0x29C4 + (32 * ((n) - 1)))
+#define GSBIn_QUP_APPS_MD(n)        (CLK_CTL_BASE + 0x29D0 + (32 * ((n) - 1)))
+#define GSBIn_QUP_APPS_NS(n)        (CLK_CTL_BASE + 0x29D4 + (32 * ((n) - 1)))
 
 /* Defines for the GPIO EXPANDER chip, SX1509QIULTRT */
 #define GPIO_EXPANDER_REG_OPEN_DRAIN_A  (0x0B)
@@ -135,9 +140,6 @@
 #define EBI2_CHIP_SELECT_CFG0    0x1A100000
 #define EBI2_XMEM_CS3_CFG1       0x1A110034
 
-#define MSM_USB_BASE	0x12500000
-#define USB_HS1_XVCR_FS_CLK_MD 0x00902908
-#define USB_HS1_XVCR_FS_CLK_NS 0x0090290C
 
 #define MSM_ADM_BASE            0x18400000
 #define MSM_ADM_SD_OFFSET       0x00020800

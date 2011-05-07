@@ -31,43 +31,34 @@
 #include <platform/iomap.h>
 #include "mmc.h"
 
-#define SDC_NS(n)       (CLK_CTL_BASE + 0x282C + 32*((n) - 1))
+#define MSM_BOOT_SDC_NS_VAL_400KHZ    0x00440040
+#define MSM_BOOT_SDC_MD_VAL_400KHZ    0x00010043
 
-#define SDC_MD(n)       (CLK_CTL_BASE + 0x2828 + 32*((n) - 1))
+#define MSM_BOOT_SDC_NS_VAL_48MHZ     0x00FE005B
+#define MSM_BOOT_SDC_MD_VAL_48MHZ     0x000100FD
 
-
-void clock_set_enable (unsigned slot, unsigned int mclk)
+void clock_set_enable (unsigned char slot, unsigned int mclk)
 {
-	/*
-	 * TODO: It must correspond the SDCx_BASE used in target/init.c
-	 * Need a better way to base this off a single param. Shouldn't
-	 * have to change at two places.
-	 */
-	unsigned char sdc_id = slot;
 
 	if (mclk == MMC_CLK_400KHZ)
 	{
-		writel(0x100CF,  SDC_MD(sdc_id));
-		writel(0xD00B40, SDC_NS(sdc_id));
+		clock_config(MSM_BOOT_SDC_NS_VAL_400KHZ,
+                             MSM_BOOT_SDC_MD_VAL_400KHZ,
+                             SDC_NS(slot),
+                             SDC_MD(slot));
 		mdelay(10);
 	}
-	else if (mclk == MMC_CLK_20MHZ)
+	else if (mclk == MMC_CLK_48MHZ)
 	{
-		writel(0x00000,  SDC_MD(sdc_id));
-		writel(0x000A00, SDC_NS(sdc_id));
+		clock_config(MSM_BOOT_SDC_NS_VAL_48MHZ,
+                             MSM_BOOT_SDC_MD_VAL_48MHZ,
+                             SDC_NS(slot),
+                             SDC_MD(slot));
 		mdelay(10);
 	}
-	else if (mclk == MMC_CLK_25MHZ)
+	else
 	{
-		writel(0x100EF,  SDC_MD(sdc_id));
-		writel(0xF00B47, SDC_NS(sdc_id));
-		mdelay(10);
-	}
-	else if (mclk == MMC_CLK_50MHZ)
-	{
-		writel(0x100F7,  SDC_MD(sdc_id));
-		writel(0xFC0B47, SDC_NS(sdc_id));
-		mdelay(10);
+		ASSERT(0);
 	}
 }
 

@@ -129,25 +129,25 @@ static unsigned int msm_boot_uart_replace_lr_with_cr(char* data_in,
 
 static unsigned int msm_boot_uart_dm_config_gpios(void)
 {
-    /* GPIO Pin: MSM_BOOT_UART_DM_RX_GPIO (117)
-       Function: 2
+    /* GPIO Pin: MSM_BOOT_UART_DM_RX_GPIO
+       Function: MSM_BOOT_UART_DM_RX_GPIO_FUNC
        Direction: IN
        Pull: No PULL
        Drive Strength: 8 ma
        Output Enable: Disable
     */
-    gpio_tlmm_config(MSM_BOOT_UART_DM_RX_GPIO, 2, GPIO_INPUT,
-                     GPIO_NO_PULL, GPIO_8MA, GPIO_DISABLE);
+    gpio_tlmm_config(MSM_BOOT_UART_DM_RX_GPIO, MSM_BOOT_UART_DM_RX_GPIO_FUNC,
+                     GPIO_INPUT, GPIO_NO_PULL, GPIO_8MA, GPIO_DISABLE);
 
-    /* GPIO Pin: MSM_BOOT_UART_DM_TX_GPIO (118)
-       Function: 2
+    /* GPIO Pin: MSM_BOOT_UART_DM_TX_GPIO
+       Function:  MSM_BOOT_UART_DM_TX_GPIO_FUNC
        Direction: OUT
        Pull: No PULL
        Drive Strength: 8 ma
        Output Enable: Disable
     */
-    gpio_tlmm_config(MSM_BOOT_UART_DM_TX_GPIO, 2, GPIO_OUTPUT,
-                     GPIO_NO_PULL, GPIO_8MA, GPIO_DISABLE);
+    gpio_tlmm_config(MSM_BOOT_UART_DM_TX_GPIO, MSM_BOOT_UART_DM_TX_GPIO_FUNC,
+                     GPIO_OUTPUT, GPIO_NO_PULL, GPIO_8MA, GPIO_DISABLE);
 
     return MSM_BOOT_UART_DM_E_SUCCESS;
 }
@@ -156,31 +156,11 @@ static unsigned int msm_boot_uart_dm_config_gpios(void)
 
 static unsigned int msm_boot_uart_dm_config_clock(void)
 {
-    unsigned int curr_value = 0;
+    uart_clock_init();
 
-    /* Vote for PLL8 to be enabled */
-    curr_value = readl(MSM_BOOT_PLL_ENABLE_SC0);
-    curr_value |= (1 << 8);
-    writel(curr_value, MSM_BOOT_PLL_ENABLE_SC0);
-
-    /* Proceed only after PLL is enabled */
-    while (!(readl(MSM_BOOT_PLL8_STATUS) & (1<<16)));
-
-    /* PLL8 is enabled. Enable gsbi_uart_clk */
-
-    /* GSBI clock frequencies for UART protocol
-     * Operating mode          gsbi_uart_clk
-     * UART up to 115.2 Kbps   1.8432 MHz
-     * UART up to 460.8 Kbps   7.3728 MHz
-     * UART up to 4 Mbit/s     64 MHz
-     *
-
-     * Choosing lowest supported value
-     * Rate (KHz)   NS          MD
-     * 3686400	    0xFD940043	0x0006FD8E
-     */
-
-    clock_config(0xFD940043, 0x0006FD8E,
+    /* Enable gsbi_uart_clk */
+    clock_config(MSM_BOOT_UART_DM_NS_VAL,
+                 MSM_BOOT_UART_DM_MD_VAL,
                  MSM_BOOT_UART_DM_APPS_NS,
                  MSM_BOOT_UART_DM_APPS_MD);
 
@@ -197,9 +177,7 @@ static unsigned int msm_boot_uart_dm_config_clock(void)
 static unsigned int msm_boot_uart_dm_gsbi_init(void)
 {
     /* Configure the clock block */
-#ifndef PLATFORM_MSM8960
     msm_boot_uart_dm_config_clock();
-#endif
 
     /* Configure TLMM/GPIO to provide connectivity between GSBI
        product ports and chip pads */
@@ -351,7 +329,7 @@ static unsigned int msm_boot_uart_dm_read(unsigned int* data, int wait)
 
     /* increment the total count of chars we've read so far */
     rx_chars_read_since_last_xfer += 4;
- 
+
      /* Rx transfer ends when one of the conditions is met:
      * - The number of characters received since the end of the previous xfer
      *   equals the value written to DMRX at Transfer Initialization
