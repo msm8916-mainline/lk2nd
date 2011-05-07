@@ -164,6 +164,16 @@ unsigned check_reboot_mode(void)
 	return restart_reason;
 }
 
+void target_serialno(unsigned char *buf)
+{
+	unsigned int serialno;
+	if(target_is_emmc_boot())
+	{
+		serialno =  mmc_get_psn();
+		sprintf(buf,"%x",serialno);
+	}
+}
+
 void target_battery_charging_enable(unsigned enable, unsigned disconnect)
 {
 }
