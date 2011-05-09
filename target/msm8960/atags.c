@@ -54,3 +54,8 @@ void *target_get_scratch_address(void)
 {
 	return((void *)EBI1_CH1_CS0_HLOS_ADDR);
 }
+
+unsigned target_get_max_flash_size(void)
+{
+	return (SIZE_256M);
+}
