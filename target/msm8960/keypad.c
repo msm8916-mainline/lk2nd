@@ -31,8 +31,8 @@
 #include <dev/keys.h>
 #include <dev/gpio_keypad.h>
 
-#define NUM_OF_ROWS 12
-#define NUM_OF_COLS  8
+#define NUM_OF_ROWS 1
+#define NUM_OF_COLS 5
 
 #define BITS_IN_ELEMENT(x) (sizeof(x)[0] * 8)
 
@@ -42,8 +42,6 @@ static unsigned char qwerty_keys_new[NUM_OF_ROWS];
 #define KEYMAP_INDEX(row, col) (row)* BITS_IN_ELEMENT(qwerty_keys_new) + (col)
 
 unsigned int qwerty_keymap[] = {
-    [KEYMAP_INDEX(3, 4)] = KEY_VOLUMEUP,   /* Volume key on external Keyboard */
-    [KEYMAP_INDEX(4, 4)] = KEY_VOLUMEDOWN, /* Volume key on external Keyboard */
     [KEYMAP_INDEX(0, 0)] = KEY_VOLUMEUP,   /* Volume key on the device/CDP */
     [KEYMAP_INDEX(0, 1)] = KEY_VOLUMEDOWN, /* Volume key on the device/CDP */
 };
