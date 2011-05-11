@@ -79,33 +79,19 @@ void target_init(void)
 
 unsigned board_machtype(void)
 {
-	struct smem_board_info_v5 board_info_v5;
 	struct smem_board_info_v6 board_info_v6;
 	unsigned int board_info_len = 0;
 	unsigned smem_status = 0;
 	unsigned format = 0;
-	unsigned id = 0;
-	unsigned mach_id = LINUX_MACHTYPE_8960_RUMI3;
+	unsigned id = HW_PLATFORM_UNKNOWN;
+	unsigned mach_id;
 
-	/* Until the bootchain is in, return CDP id. */
-	return LINUX_MACHTYPE_8960_CDP;
 
 	smem_status = smem_read_alloc_entry_offset(SMEM_BOARD_INFO_LOCATION,
 					&format, sizeof(format), 0);
 	if(!smem_status)
 	{
-		if (format == 5)
-		{
-			board_info_len = sizeof(board_info_v5);
-
-			smem_status = smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
-							&board_info_v5, board_info_len);
-			if(!smem_status)
-			{
-				id = board_info_v5.board_info_v3.hw_platform;
-			}
-		}
-		else if (format == 6)
+		if (format == 6)
 		{
 			board_info_len = sizeof(board_info_v6);
 
@@ -118,17 +104,20 @@ unsigned board_machtype(void)
 		}
 	}
 
-	/* Detect virtio vs rumi */
+	/* Detect the board we are running on */
 	switch(id)
 	{
 		case HW_PLATFORM_SURF:
-			mach_id = LINUX_MACHTYPE_8960_RUMI3;
+			mach_id = LINUX_MACHTYPE_8960_CDP;
 			break;
 		case HW_PLATFORM_FFA:
-			mach_id = LINUX_MACHTYPE_8960_SIM;
+			mach_id = LINUX_MACHTYPE_8960_MTP;
+			break;
+		case HW_PLATFORM_FLUID:
+			mach_id = LINUX_MACHTYPE_8960_FLUID;
 			break;
 		default:
-			mach_id = LINUX_MACHTYPE_8960_SIM;
+			mach_id = LINUX_MACHTYPE_8960_CDP;
 	};
 
 	return mach_id;
