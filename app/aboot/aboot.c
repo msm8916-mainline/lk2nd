@@ -598,7 +598,7 @@ void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 	sparse_header_t *sparse_header;
 	chunk_header_t *chunk_header;
 	uint32_t crc32 = 0;
-	uint32_t total_blocks = 0;
+	unsigned long long total_blocks = 0;
 	unsigned long long ptn = 0;
 	unsigned long long size = 0;
 
