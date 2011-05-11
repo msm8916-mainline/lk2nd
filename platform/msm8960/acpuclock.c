@@ -79,7 +79,6 @@ void clock_config(uint32_t ns,
 
 void pll8_enable(void)
 {
-	/* Currently both UART and USB depend on this PLL8 clock initialization. */
 	unsigned int curr_value = 0;
 
 	/* Vote for PLL8 to be enabled */
@@ -93,15 +92,8 @@ void pll8_enable(void)
 
 void hsusb_clock_init(void)
 {
-	unsigned int val = 0;
-
 	/* TODO: Enable pll8 here */
 	/* Setup USB AHB clock */
-
-	val = readl(USB_HS1_HCLK_CTL);
-	/* branch enable */
-	val |= (1 << 4);
-	writel(val, USB_HS1_HCLK_CTL);
 
 	/* Setup XCVR clock */
 	clock_config(MSM_BOOT_USB_XCVR_NS_VAL,
