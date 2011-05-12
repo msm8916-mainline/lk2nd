@@ -201,7 +201,11 @@ void acpu_clock_init(void)
 			clk_cntl_reg_val = clk_cntl_reg_val_7627A;
 			size = ARRAY_SIZE(clk_cntl_reg_val_7627A);
 			pll_request(2, 1);
+
+		/* TODO: Enable this PLL while switching to 800MHz */
+		#if 0
 			pll_request(4, 1);
+		#endif
 			break;
 
 		case MSM7225A:
