@@ -619,15 +619,15 @@ void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 		data += (sparse_header->file_hdr_sz - sizeof(sparse_header_t));
 	}
 
-	dprintf (INFO, "=== Sparse Image Header ===\n");
-	dprintf (INFO, "magic: 0x%x\n", sparse_header->magic);
-	dprintf (INFO, "major_version: 0x%x\n", sparse_header->major_version);
-	dprintf (INFO, "minor_version: 0x%x\n", sparse_header->minor_version);
-	dprintf (INFO, "file_hdr_sz: %d\n", sparse_header->file_hdr_sz);
-	dprintf (INFO, "chunk_hdr_sz: %d\n", sparse_header->chunk_hdr_sz);
-	dprintf (INFO, "blk_sz: %d\n", sparse_header->blk_sz);
-	dprintf (INFO, "total_blks: %d\n", sparse_header->total_blks);
-	dprintf (INFO, "total_chunks: %d\n", sparse_header->total_chunks);
+	dprintf (SPEW, "=== Sparse Image Header ===\n");
+	dprintf (SPEW, "magic: 0x%x\n", sparse_header->magic);
+	dprintf (SPEW, "major_version: 0x%x\n", sparse_header->major_version);
+	dprintf (SPEW, "minor_version: 0x%x\n", sparse_header->minor_version);
+	dprintf (SPEW, "file_hdr_sz: %d\n", sparse_header->file_hdr_sz);
+	dprintf (SPEW, "chunk_hdr_sz: %d\n", sparse_header->chunk_hdr_sz);
+	dprintf (SPEW, "blk_sz: %d\n", sparse_header->blk_sz);
+	dprintf (SPEW, "total_blks: %d\n", sparse_header->total_blks);
+	dprintf (SPEW, "total_chunks: %d\n", sparse_header->total_chunks);
 
 	/* Start processing chunks */
 	for (chunk=0; chunk<sparse_header->total_chunks; chunk++)
@@ -691,7 +691,7 @@ void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 		}
 	}
 
-    dprintf(INFO, "Wrote %d blocks, expected to write %d blocks\n",
+    dprintf(SPEW, "Wrote %d blocks, expected to write %d blocks\n",
              total_blocks, sparse_header->total_blks);
 
 	fastboot_okay("");
@@ -846,13 +846,13 @@ void aboot_init(const struct app_descriptor *app)
 	/* Display splash screen if enabled */
 	#if DISPLAY_SPLASH_SCREEN
 	display_init();
-	dprintf(INFO, "Diplay initialized\n");
+	dprintf(SPEW, "Diplay initialized\n");
 	disp_init = 1;
 	diplay_image_on_screen();
 	#endif
 
 	target_serialno(sn_buf);
-	dprintf(INFO,"sn %s\n",sn_buf);
+	dprintf(SPEW,"serial number: %s\n",sn_buf);
 	surf_udc_device.serialno = sn_buf;
 
 	/* Check if we should do something other than booting up */

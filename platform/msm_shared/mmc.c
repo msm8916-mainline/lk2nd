@@ -174,7 +174,7 @@ static unsigned int mmc_boot_enable_clock( struct mmc_boot_host* host,
     }
 
     host->pclk_rate = ( unsigned int )mmc_signed_ret;
-    dprintf(INFO,  "Clock rate - mclk: %dHz    pclk: %dHz\n", host->mclk_rate, host->pclk_rate );
+    dprintf(SPEW,  "Clock rate - mclk: %dHz    pclk: %dHz\n", host->mclk_rate, host->pclk_rate );
 #else
     clock_set_enable(mmc_slot, mclk);
     host->mclk_rate = mclk;
@@ -229,7 +229,7 @@ static unsigned int mmc_boot_set_read_timeout( struct mmc_boot_host* host,
         return MMC_BOOT_E_NOT_SUPPORTED;
     }
 
-    dprintf(INFO, " Read timeout set: %d ns\n", card->rd_timeout_ns );
+    dprintf(SPEW, " Read timeout set: %d ns\n", card->rd_timeout_ns );
 
     return MMC_BOOT_E_SUCCESS;
 }
@@ -262,7 +262,7 @@ static unsigned int mmc_boot_set_write_timeout( struct mmc_boot_host* host,
         return MMC_BOOT_E_NOT_SUPPORTED;
     }
 
-    dprintf(INFO, " Write timeout set: %d ns\n", card->wr_timeout_ns );
+    dprintf(SPEW, " Write timeout set: %d ns\n", card->wr_timeout_ns );
 
     return MMC_BOOT_E_SUCCESS;
 }
@@ -434,24 +434,24 @@ static unsigned int mmc_boot_decode_and_save_csd( struct mmc_boot_card* card,
     memcpy( (struct mmc_boot_csd *)&card->csd, (struct mmc_boot_csd *)&mmc_csd,
             sizeof(struct mmc_boot_csd) );
 
-    dprintf(INFO,  "Decoded CSD fields:\n" );
-    dprintf(INFO,  "cmmc_structure: %d\n", mmc_csd.cmmc_structure );
-    dprintf(INFO, "card_cmd_class: %x\n", mmc_csd.card_cmd_class );
-    dprintf(INFO, "write_blk_len: %d\n", mmc_csd.write_blk_len );
-    dprintf(INFO, "read_blk_len: %d\n", mmc_csd.read_blk_len );
-    dprintf(INFO, "r2w_factor: %d\n", mmc_csd.r2w_factor );
-    dprintf(INFO, "sector_size: %d\n", mmc_csd.sector_size );
-    dprintf(INFO, "c_size_mult:%d\n", mmc_csd.c_size_mult );
-    dprintf(INFO, "c_size: %d\n", mmc_csd.c_size );
-    dprintf(INFO, "nsac_clk_cycle: %d\n", mmc_csd.nsac_clk_cycle );
-    dprintf(INFO, "taac_ns: %d\n", mmc_csd.taac_ns );
-    dprintf(INFO, "tran_speed: %d kbps\n", mmc_csd.tran_speed );
-    dprintf(INFO, "erase_blk_len: %d\n", mmc_csd.erase_blk_len );
-    dprintf(INFO, "read_blk_misalign: %d\n", mmc_csd.read_blk_misalign );
-    dprintf(INFO, "write_blk_misalign: %d\n", mmc_csd.write_blk_misalign );
-    dprintf(INFO, "read_blk_partial: %d\n", mmc_csd.read_blk_partial );
-    dprintf(INFO, "write_blk_partial: %d\n", mmc_csd.write_blk_partial );
-    dprintf(INFO, "Card Capacity: %llu Bytes\n", card->capacity );
+    dprintf(SPEW,  "Decoded CSD fields:\n" );
+    dprintf(SPEW,  "cmmc_structure: %d\n", mmc_csd.cmmc_structure );
+    dprintf(SPEW, "card_cmd_class: %x\n", mmc_csd.card_cmd_class );
+    dprintf(SPEW, "write_blk_len: %d\n", mmc_csd.write_blk_len );
+    dprintf(SPEW, "read_blk_len: %d\n", mmc_csd.read_blk_len );
+    dprintf(SPEW, "r2w_factor: %d\n", mmc_csd.r2w_factor );
+    dprintf(SPEW, "sector_size: %d\n", mmc_csd.sector_size );
+    dprintf(SPEW, "c_size_mult:%d\n", mmc_csd.c_size_mult );
+    dprintf(SPEW, "c_size: %d\n", mmc_csd.c_size );
+    dprintf(SPEW, "nsac_clk_cycle: %d\n", mmc_csd.nsac_clk_cycle );
+    dprintf(SPEW, "taac_ns: %d\n", mmc_csd.taac_ns );
+    dprintf(SPEW, "tran_speed: %d kbps\n", mmc_csd.tran_speed );
+    dprintf(SPEW, "erase_blk_len: %d\n", mmc_csd.erase_blk_len );
+    dprintf(SPEW, "read_blk_misalign: %d\n", mmc_csd.read_blk_misalign );
+    dprintf(SPEW, "write_blk_misalign: %d\n", mmc_csd.write_blk_misalign );
+    dprintf(SPEW, "read_blk_partial: %d\n", mmc_csd.read_blk_partial );
+    dprintf(SPEW, "write_blk_partial: %d\n", mmc_csd.write_blk_partial );
+    dprintf(SPEW, "Card Capacity: %llu Bytes\n", card->capacity );
 
     return MMC_BOOT_E_SUCCESS;
 }
@@ -516,13 +516,13 @@ static unsigned int mmc_boot_decode_and_save_cid( struct mmc_boot_card* card,
             ( struct mmc_boot_cid * )&mmc_cid,   \
             sizeof( struct mmc_boot_cid ) );
 
-    dprintf(INFO, "Decoded CID fields:\n" );
-    dprintf(INFO, "Manufacturer ID: %x\n", mmc_cid.mid );
-    dprintf(INFO, "OEM ID: 0x%x\n", mmc_cid.oid );
-    dprintf(INFO, "Product Name: %s\n", mmc_cid.pnm );
-    dprintf(INFO, "Product revision: %d.%d\n", (mmc_cid.prv >> 4), (mmc_cid.prv & 0xF) );
-    dprintf(INFO, "Product serial number: %X\n", mmc_cid.psn );
-    dprintf(INFO, "Manufacturing date: %d %d\n", mmc_cid.month, mmc_cid.year );
+    dprintf(SPEW, "Decoded CID fields:\n" );
+    dprintf(SPEW, "Manufacturer ID: %x\n", mmc_cid.mid );
+    dprintf(SPEW, "OEM ID: 0x%x\n", mmc_cid.oid );
+    dprintf(SPEW, "Product Name: %s\n", mmc_cid.pnm );
+    dprintf(SPEW, "Product revision: %d.%d\n", (mmc_cid.prv >> 4), (mmc_cid.prv & 0xF) );
+    dprintf(SPEW, "Product serial number: %X\n", mmc_cid.psn );
+    dprintf(SPEW, "Manufacturing date: %d %d\n", mmc_cid.month, mmc_cid.year );
 
     return MMC_BOOT_E_SUCCESS;
 }
@@ -600,7 +600,7 @@ static unsigned int mmc_boot_send_command( struct mmc_boot_command* cmd )
     /* 2k. Write to MMC_BOOT_MCI_CMD register */
     writel( mmc_cmd, MMC_BOOT_MCI_CMD );
 
-    dprintf(INFO, "Command sent: CMD%d MCI_CMD_REG:%x MCI_ARG:%x\n",
+    dprintf(SPEW, "Command sent: CMD%d MCI_CMD_REG:%x MCI_ARG:%x\n",
             cmd_index, mmc_cmd, cmd->argument );
 
     /* 3. Wait for interrupt or poll on the following bits of MCI_STATUS
@@ -669,7 +669,7 @@ static unsigned int mmc_boot_send_command( struct mmc_boot_command* cmd )
                 mmc_return = MMC_BOOT_E_CMD_INDX_MISMATCH;
             }
 
-            dprintf(INFO, "Command response received: %X\n", cmd->resp[0] );
+            dprintf(SPEW, "Command response received: %X\n", cmd->resp[0] );
             break;
         }
 
@@ -2416,7 +2416,7 @@ unsigned int mmc_boot_main(unsigned char slot, unsigned int base)
     while (readl(MSM_SHARED_BASE + 0x14) != 1);
 #endif
     /* Initialize necessary data structure and enable/set clock and power */
-    dprintf(INFO," Initializing MMC host data structure and clock!\n" );
+    dprintf(SPEW," Initializing MMC host data structure and clock!\n" );
     mmc_ret = mmc_boot_init( &mmc_host );
     if( mmc_ret != MMC_BOOT_E_SUCCESS )
     {
@@ -2843,19 +2843,19 @@ void mmc_wp_test(void)
 
 void mmc_display_ext_csd(void)
 {
-    dprintf(INFO,  "part_config: %x\n", ext_csd_buf[179] );
-    dprintf(INFO,  "erase_group_def: %x\n", ext_csd_buf[175] );
-    dprintf(INFO,  "user_wp: %x\n", ext_csd_buf[171] );
+    dprintf(SPEW,  "part_config: %x\n", ext_csd_buf[179] );
+    dprintf(SPEW,  "erase_group_def: %x\n", ext_csd_buf[175] );
+    dprintf(SPEW,  "user_wp: %x\n", ext_csd_buf[171] );
 }
 
 void mmc_display_csd(void)
 {
-    dprintf(INFO,  "erase_grpsize: %d\n", mmc_card.csd.erase_grp_size );
-    dprintf(INFO,  "erase_grpmult: %d\n", mmc_card.csd.erase_grp_mult );
-    dprintf(INFO,  "wp_grpsize: %d\n", mmc_card.csd.wp_grp_size );
-    dprintf(INFO,  "wp_grpen: %d\n", mmc_card.csd.wp_grp_enable );
-    dprintf(INFO,  "perm_wp: %d\n", mmc_card.csd.perm_wp );
-    dprintf(INFO,  "temp_wp: %d\n", mmc_card.csd.temp_wp );
+    dprintf(SPEW,  "erase_grpsize: %d\n", mmc_card.csd.erase_grp_size );
+    dprintf(SPEW,  "erase_grpmult: %d\n", mmc_card.csd.erase_grp_mult );
+    dprintf(SPEW,  "wp_grpsize: %d\n", mmc_card.csd.wp_grp_size );
+    dprintf(SPEW,  "wp_grpen: %d\n", mmc_card.csd.wp_grp_enable );
+    dprintf(SPEW,  "perm_wp: %d\n", mmc_card.csd.perm_wp );
+    dprintf(SPEW,  "temp_wp: %d\n", mmc_card.csd.temp_wp );
 }
 
 unsigned mmc_get_psn(void)
