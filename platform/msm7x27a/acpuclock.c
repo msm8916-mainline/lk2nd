@@ -75,6 +75,8 @@
 #define MIN_AXI_HZ	120000000
 #define ACPU_800MHZ	41
 
+#define A11S_CLK_SEL_MASK 0x7 /* bits 2:0 */
+
 /* The stepping frequencies have been choosen to make sure the step
  * is <= 256 MHz for both 7x27a and 7x25a targets.  The
  * table also assumes the ACPU is running at TCXO freq and AHB div is
@@ -105,8 +107,8 @@ uint32_t const clk_cntl_reg_val_7625A[] = {
 	(WAIT_CNT << 16) | (SRC_SEL_PLL2 << 12) | (DIV_2 << 8),
 };
 
-/* Using DIV_4 for all cases to avoid worrying about turbo vs. normal
- * mode. Able to use DIV_4 for all steps because it's the largest AND
+/* Using DIV_1 for all cases to avoid worrying about turbo vs. normal
+ * mode. Able to use DIV_1 for all steps because it's the largest AND
  * the final value. */
 uint32_t const clk_sel_reg_val[] = {
 	DIV_1 << 1 | 1, /* Switch to src1 */
@@ -228,7 +230,11 @@ void acpu_clock_init(void)
 		/* Would need a dmb() here but the whole address space is
 		 * strongly ordered, so it should be fine.
 		 */
-		writel(clk_sel_reg_val[i%2], A11S_CLK_SEL_ADDR);
+		val = readl(A11S_CLK_SEL_ADDR);
+		val &= ~(A11S_CLK_SEL_MASK);
+		val |= (A11S_CLK_SEL_MASK & clk_sel_reg_val[i%2]);
+		writel(val, A11S_CLK_SEL_ADDR);
+
 #if (!ENABLE_NANDWRITE)
 		thread_sleep(1);
 #else
