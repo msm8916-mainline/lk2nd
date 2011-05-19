@@ -691,8 +691,13 @@ void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 		}
 	}
 
-    dprintf(SPEW, "Wrote %d blocks, expected to write %d blocks\n",
-             total_blocks, sparse_header->total_blks);
+	dprintf(INFO, "Wrote %d blocks, expected to write %d blocks\n",
+					total_blocks, sparse_header->total_blks);
+
+	if(total_blocks != sparse_header->total_blks)
+	{
+		fastboot_fail("sparse image write failure");
+	}
 
 	fastboot_okay("");
 	return;
