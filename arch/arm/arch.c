@@ -64,6 +64,19 @@ void arch_early_init(void)
 	val = (1<<30);
 	__asm__ volatile("mcr  p10, 7, %0, c8, c0, 0" :: "r" (val));
 #endif
+
+#if ARM_CPU_CORTEX_A8
+	/* enable the cycle count register */
+	uint32_t en;
+	__asm__ volatile("mrc	p15, 0, %0, c9, c12, 0" : "=r" (en));
+	en &= ~(1<<3); /* cycle count every cycle */
+	en |= 1; /* enable all performance counters */
+	__asm__ volatile("mcr	p15, 0, %0, c9, c12, 0" :: "r" (en));
+
+	/* enable cycle counter */
+	en = (1<<31);
+	__asm__ volatile("mcr	p15, 0, %0, c9, c12, 1" :: "r" (en));
+#endif
 }
 
 void arch_init(void)
