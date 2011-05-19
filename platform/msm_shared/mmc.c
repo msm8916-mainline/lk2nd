@@ -2553,23 +2553,23 @@ static void mbr_fill_name (struct mbr_entry *mbr_ent, unsigned int type)
 /*
  * Returns offset of given partition
  */
-unsigned long long mmc_ptn_offset (unsigned char * name)
+uint64_t mmc_ptn_offset (unsigned char * name)
 {
     unsigned n;
     for(n = 0; n < mmc_partition_count; n++) {
         if(!strcmp((const char *)mbr[n].name, (const char *)name)) {
-            return (mbr[n].dfirstsec * MMC_BOOT_RD_BLOCK_LEN);
+            return ((uint64_t)mbr[n].dfirstsec * MMC_BOOT_RD_BLOCK_LEN);
         }
     }
     return 0;
 }
 
-unsigned long long mmc_ptn_size (unsigned char * name)
+uint64_t mmc_ptn_size (unsigned char * name)
 {
     unsigned n;
     for(n = 0; n < mmc_partition_count; n++) {
         if(!strcmp((const char *)mbr[n].name, (const char *)name)) {
-            return (mbr[n].dsize * MMC_BOOT_RD_BLOCK_LEN);
+            return ((uint64_t)mbr[n].dsize * MMC_BOOT_RD_BLOCK_LEN);
         }
     }
     return 0;
