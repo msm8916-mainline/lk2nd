@@ -24,7 +24,7 @@
 #define DSB .byte 0x4f, 0xf0, 0x7f, 0xf5
 #define ISB .byte 0x6f, 0xf0, 0x7f, 0xf5
 
-.text
+.section ".text.boot"
 .globl _start
 _start:
 	b	reset
