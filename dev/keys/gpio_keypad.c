@@ -58,7 +58,6 @@ struct gpio_qwerty_kp {
 	struct qwerty_keypad_info *keypad_info;
 	struct timer timer;
 	event_t full_scan;
-	int num_of_scans;
 	unsigned int some_keys_pressed:2;
 	unsigned long keys_pressed[0];
 };
@@ -573,28 +572,15 @@ scan_qwerty_keypad(struct timer *timer, time_t now, void *arg)
 		      if (shift != key_detected) {
 			    key_detected = shift;
 			    keys_post_event((qwerty_keypad->keypad_info)->keymap[shift], 1);
-		            event_signal(&qwerty_keypad->full_scan, false);
-			    timer_set_oneshot(timer, (qwerty_keypad->keypad_info)->poll_time,
-				 scan_qwerty_keypad, NULL);
-			    return INT_RESCHEDULE;
-
 		        }
 	            }
 		}
 	    }
 	}
     }
-    if (qwerty_keypad->num_of_scans < 10)
-    {
-      (qwerty_keypad->num_of_scans)++;
-      timer_set_oneshot(timer, (qwerty_keypad->keypad_info)->settle_time,
-	   scan_qwerty_keypad, NULL);
-      return INT_RESCHEDULE;
-    }
 
     event_signal(&qwerty_keypad->full_scan, false);
     return INT_RESCHEDULE;
-
 }
 
 static enum handler_return
@@ -653,7 +639,6 @@ void ssbi_keypad_init(struct qwerty_keypad_info  *qwerty_kp)
 
     memset(qwerty_keypad, 0, len);
     qwerty_keypad->keypad_info = qwerty_kp;
-    qwerty_keypad->num_of_scans = 0;
 
     event_init(&qwerty_keypad->full_scan, false, EVENT_FLAG_AUTOUNSIGNAL);
     timer_initialize(&qwerty_keypad->timer);
