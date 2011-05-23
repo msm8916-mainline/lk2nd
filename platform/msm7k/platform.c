@@ -36,6 +36,9 @@
 #include <platform/debug.h>
 #include <mddi.h>
 #include <dev/fbcon.h>
+#include <arch/arm/mmu.h>
+
+#define MB (1024*1024)
 
 static struct fbcon_config *fb_config;
 
@@ -77,4 +80,20 @@ void display_init(void)
     ASSERT(fb_config);
     fbcon_setup(fb_config);
 #endif
+}
+
+
+/* Setup memory for this platform */
+void platform_init_mmu_mappings(void)
+{
+    uint32_t sections = 1152;
+
+    /* Map io mapped peripherals as device non-shared memory */
+    while (sections--)
+    {
+        arm_mmu_map_section(0x88000000 + sections*MB,
+                            0x88000000 + sections*MB,
+                            (MMU_MEMORY_TYPE_DEVICE_NON_SHARED |
+                             MMU_MEMORY_AP_READ_WRITE));
+    }
 }

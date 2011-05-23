@@ -60,6 +60,8 @@ typedef unsigned long time_t;
 typedef unsigned long long bigtime_t;
 #define INFINITE_TIME ULONG_MAX
 
+#define ARRAY_SIZE(x) (sizeof(x)/sizeof((x)[0]))
+
 enum handler_return {
 	INT_NO_RESCHEDULE = 0,
 	INT_RESCHEDULE,

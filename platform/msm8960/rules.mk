@@ -1,9 +1,10 @@
 LOCAL_DIR := $(GET_LOCAL_DIR)
 
-ARCH := arm
+ARCH    := arm
 ARM_CPU := cortex-a8
-#arm1136j-s
-CPU := generic
+CPU     := generic
+
+DEFINES += ARM_CPU_CORE_KRAIT
 
 MMC_SLOT         := 1
 

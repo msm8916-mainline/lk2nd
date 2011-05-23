@@ -1,9 +1,11 @@
 LOCAL_DIR := $(GET_LOCAL_DIR)
 
-ARCH := arm
+ARCH    := arm
 # Cann't use cortex-a5 as its not supported by gcc 4.4.0
 ARM_CPU := cortex-a8
-CPU := generic
+CPU     := generic
+
+DEFINES += ARM_CPU_CORE_A5
 
 MMC_SLOT := 3
 DEFINES += WITH_CPU_EARLY_INIT=1 MMC_SLOT=$(MMC_SLOT)

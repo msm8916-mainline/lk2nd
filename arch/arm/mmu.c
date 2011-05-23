@@ -45,26 +45,16 @@ static uint32_t tt[4096] __ALIGNED(16384);
 void arm_mmu_map_section(addr_t paddr, addr_t vaddr, uint flags)
 {
 	int index;
-	uint AP;
-	uint CB;
-	uint TEX = 0;
 
-#if (defined(PLATFORM_MSM7K) || defined(PLATFORM_MSM7X27A))
-	if ((paddr >= 0x88000000) && (paddr < 0xD0000000)) {
-		/* peripherals in the 0x88000000 - 0xD0000000 range must
-		 * be mapped as DEVICE NON-SHARED: TEX=2, C=0, B=0
-		 */
-		TEX = 2;
-		flags &= (~(MMU_FLAG_CACHED | MMU_FLAG_BUFFERED));
-	}
-#endif
-
-	AP = (flags & MMU_FLAG_READWRITE) ? 0x3 : 0x2;
-	CB = ((flags & MMU_FLAG_CACHED) ? 0x2 : 0) | ((flags & MMU_FLAG_BUFFERED) ? 0x1 : 0);
-
+	/* Get the index into the translation table */
 	index = vaddr / MB;
-	// section mapping
-	tt[index] = (paddr & ~(MB-1)) | (TEX << 12) | (AP << 10) | (0<<5) | (CB << 2) | (2<<0);
+
+	/* Set the entry value:
+	 * (2<<0): Section entry
+	 * (0<<5): Domain = 0
+	 *  flags: TEX, CB and AP bit settings provided by the caller.
+	 */
+	tt[index] = (paddr & ~(MB-1)) | (0<<5) | (2<<0) | flags;
 
 	arm_invalidate_tlb();
 }
@@ -73,12 +63,19 @@ void arm_mmu_init(void)
 {
 	int i;
 
-	/* set some mmu specific control bits */
-	arm_write_cr1(arm_read_cr1() & ~((1<<29)|(1<<28)|(1<<0))); // access flag disabled, TEX remap disabled, mmu disabled
+	/* set some mmu specific control bits:
+	 * access flag disabled, TEX remap disabled, mmu disabled
+	 */
+	arm_write_cr1(arm_read_cr1() & ~((1<<29)|(1<<28)|(1<<0)));
 
-	/* set up an identity-mapped translation table with cache disabled */
+	/* set up an identity-mapped translation table with
+	 * strongly ordered memory type and read/write access.
+	 */
 	for (i=0; i < 4096; i++) {
-		arm_mmu_map_section(i * MB, i * MB,  MMU_FLAG_READWRITE); // map everything uncached
+		arm_mmu_map_section(i * MB,
+				    i * MB,
+				    MMU_MEMORY_TYPE_STRONGLY_ORDERED |
+				    MMU_MEMORY_AP_READ_WRITE);
 	}
 
 	/* set up the translation table base */
@@ -93,7 +90,7 @@ void arm_mmu_init(void)
 
 void arch_disable_mmu(void)
 {
-	arm_write_cr1(arm_read_cr1() & ~(1<<0)); // access flag disabled, TEX remap disabled, mmu disabled
+	arm_write_cr1(arm_read_cr1() & ~(1<<0));
 }
 
 #endif // ARM_WITH_MMU
