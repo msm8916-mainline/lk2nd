@@ -2072,7 +2072,7 @@ static unsigned int mmc_boot_init_card( struct mmc_boot_host* host,
         if( mmc_return == MMC_BOOT_E_CARD_BUSY )
         {
             mmc_retry++;
-            mdelay(200);
+            mdelay(1);
             continue;
         }
         else if( mmc_return == MMC_BOOT_E_SUCCESS )
