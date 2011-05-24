@@ -900,6 +900,8 @@ void aboot_init(const struct app_descriptor *app)
 
 fastboot:
 
+       target_fastboot_init();
+
 	if(!usb_init)
 		udc_init(&surf_udc_device);
 

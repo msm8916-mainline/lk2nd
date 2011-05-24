@@ -36,6 +36,8 @@
 #include <platform/iomap.h>
 #include <reg.h>
 #include <dev/keys.h>
+#include <dev/pm8921.h>
+#include <dev/gpio_keypad.h>
 
 #define LINUX_MACHTYPE_8960_SIM     3230
 #define LINUX_MACHTYPE_8960_RUMI3   3231
@@ -51,11 +53,19 @@ extern void keypad_init(void);
 
 static unsigned mmc_sdc_base[] = { MSM_SDC1_BASE, MSM_SDC2_BASE, MSM_SDC3_BASE, MSM_SDC4_BASE};
 
+static pm8921_dev_t pmic;
+
 void target_init(void)
 {
 	unsigned base_addr;
 	unsigned char slot;
 	dprintf(INFO, "target_init()\n");
+
+	/* Initialize PMIC driver */
+	pmic.read  = pa1_ssbi2_read_bytes;
+	pmic.write = pa1_ssbi2_write_bytes;
+
+	pm8921_init(&pmic);
 
 	/* Keypad init */
 	keys_init();
@@ -165,4 +175,11 @@ void target_serialno(unsigned char *buf)
 
 void target_battery_charging_enable(unsigned enable, unsigned disconnect)
 {
+}
+
+/* Do any target specific intialization needed before entering fastboot mode */
+void target_fastboot_init(void)
+{
+	/* Set the BOOT_DONE flag in PM8921 */
+	pm8921_boot_done();
 }

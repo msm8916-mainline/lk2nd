@@ -27,7 +27,7 @@
 
 #define EXPAND(NAME) #NAME
 #define TARGET(NAME) EXPAND(NAME)
-/* 
+/*
  * default implementations of these routines, if the target code
  * chooses not to implement.
  */
@@ -86,4 +86,8 @@ __WEAK unsigned target_baseband()
 __WEAK void target_serialno(unsigned char *buf)
 {
 	sprintf(buf, "%s",TARGET(BOARD));
+}
+
+__WEAK void target_fastboot_init()
+{
 }
