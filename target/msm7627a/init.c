@@ -123,7 +123,7 @@ void target_init(void)
 
 	if (target_is_emmc_boot())
 	{
-		if(mmc_boot_main(MMC_SLOT, MSM_SDC1_BASE))
+		if(mmc_boot_main(MMC_SLOT, MSM_SDC3_BASE))
 		{
 			dprintf(CRITICAL, "mmc init failed!");
 			ASSERT(0);

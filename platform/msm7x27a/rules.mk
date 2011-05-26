@@ -5,7 +5,7 @@ ARCH := arm
 ARM_CPU := cortex-a8
 CPU := generic
 
-MMC_SLOT := 1
+MMC_SLOT := 3
 DEFINES += WITH_CPU_EARLY_INIT=1 MMC_SLOT=$(MMC_SLOT)
 
 INCLUDES += -I$(LOCAL_DIR)/include
