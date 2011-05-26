@@ -81,7 +81,8 @@ struct i2c_msg {
 };
 
 struct qup_i2c_dev {
-    unsigned int base;
+    unsigned int gsbi_base;
+    unsigned int qup_base;
     unsigned int gsbi_number;
     int qup_irq;
     int num_irqs;
