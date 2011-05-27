@@ -29,7 +29,6 @@
 #define SIZE_1M     (1024 * 1024)
 #define SIZE_141M	(141 * SIZE_1M)
 #define SIZE_768M	(768 * SIZE_1M)
-#define SIZE_256M	(256 * SIZE_1M)
 
 #define EBI1_CH0_CS0_HLOS_ADDR	0x80200000
 #define EBI1_CH1_CS0_HLOS_ADDR	0x90000000
@@ -44,7 +43,7 @@ unsigned* target_atag_mem(unsigned* ptr)
 
 	*ptr++ = 4;
 	*ptr++ = 0x54410002;
-	*ptr++ = SIZE_256M;
+	*ptr++ = SIZE_768M;
 	*ptr++ = EBI1_CH1_CS0_HLOS_ADDR;
 
 	return ptr;
@@ -57,5 +56,5 @@ void *target_get_scratch_address(void)
 
 unsigned target_get_max_flash_size(void)
 {
-	return (SIZE_256M);
+	return (SIZE_768M);
 }
