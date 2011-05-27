@@ -31,6 +31,26 @@
 
 #include <sys/types.h>
 
+
+#define PM_GPIO_DIR_OUT         0x01
+#define PM_GPIO_DIR_IN          0x02
+#define PM_GPIO_DIR_BOTH        (PM_GPIO_DIR_OUT | PM_GPIO_DIR_IN)
+
+#define PM_GPIO_PULL_UP1        2
+#define PM_GPIO_PULL_UP2        3
+#define PM_GPIO_PULL_DN         4
+#define PM_GPIO_PULL_NO         5
+
+#define PM_GPIO_STRENGTH_NO     0
+#define PM_GPIO_STRENGTH_HIGH   1
+#define PM_GPIO_STRENGTH_MED    2
+#define PM_GPIO_STRENGTH_LOW    3
+
+#define PM_GPIO_FUNC_NORMAL     0
+#define PM_GPIO_FUNC_PAIRED     1
+#define PM_GPIO_FUNC_1          2
+#define PM_GPIO_FUNC_2          3
+
 typedef struct
 {
 	uint32_t initialized;
@@ -41,7 +61,20 @@ typedef struct
 } pm8921_dev_t;
 
 
+struct pm8921_gpio {
+	int direction;
+	int output_buffer;
+	int output_value;
+	int pull;
+	int vin_sel;
+	int out_strength;
+	int function;
+	int inv_int_pol;
+	int disable_pin;
+};
+
 void pm8921_init(pm8921_dev_t *);
+int  pm8921_gpio_config(int gpio, struct pm8921_gpio *param);
 void pm8921_boot_done(void);
 
 #endif
