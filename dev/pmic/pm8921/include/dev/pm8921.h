@@ -51,6 +51,9 @@
 #define PM_GPIO_FUNC_1          2
 #define PM_GPIO_FUNC_2          3
 
+/* GPIO24 for backlight_pwm which is 23 (index start at 0) */
+#define GPIO_24                 23
+
 typedef struct
 {
 	uint32_t initialized;

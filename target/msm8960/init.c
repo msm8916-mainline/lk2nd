@@ -71,6 +71,9 @@ void target_init(void)
 	keys_init();
 	keypad_init();
 
+	/* Turn on Backlight */
+	panel_backlight_on();
+
 	/* Trying Slot 1 first */
 	slot = 1;
 	base_addr = mmc_sdc_base[slot-1];
