@@ -1,5 +1,5 @@
 /*
- * * Copyright (c) 2010, Code Aurora Forum. All rights reserved.
+ * * Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -34,6 +34,7 @@
 #include <platform/gpio_hw.h>
 #include <platform/clock.h>
 #include <platform/pmic.h>
+#include <platform/pmic_pwm.h>
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
@@ -228,84 +229,84 @@ static void lcd_gpio_cfg(uint8_t on)
     gpio_tlmm_config(27, func, dir, pull, drv, enable); /* lcdc_blu0 */
 }
 
-/* Backlight duty cycle init is used to configure the PMIC8058 for
- * PWM output and drive those pins.
- */
-static void bl_duty_cycle_init(void)
+/* API to set backlight level configuring PWM in PM8058 */
+
+int panel_set_backlight(uint8_t bt_level)
 {
-    /* Disable backlight LPG channels before configuring them and dedicated
-       PMIC GPIOs */
-    pm8058_write_one(0x00, LPG_BANK_ENABLE);
+	int rc = -1;
+	uint32_t duty_us, period_us;
 
-    /* Configure PM8058 GPIO24 as a PWM driver (LPG ch0) for chain 1 of 6 LEDs */
-    pm8058_write_one(0x81, GPIO24_GPIO_CNTRL);  /* Write, Bank0, VIN0, Mode
+	if((bt_level <= 0) || (bt_level > 15))
+	{
+		dprintf(CRITICAL, "Error in brightness level (1-15 allowed)\n");
+		goto bail_out;
+	}
+
+	duty_us = bt_level*PWM_DUTY_LEVEL;
+	period_us = PWM_PERIOD_USEC;
+	rc = pm_pwm_config(0, duty_us, period_us);
+	if(rc)
+	{
+		dprintf(CRITICAL, "Error in pwm_config0\n");
+		goto bail_out;
+	}
+
+	duty_us = PWM_PERIOD_USEC - (bt_level*PWM_DUTY_LEVEL);
+	period_us = PWM_PERIOD_USEC;
+	rc = pm_pwm_config(1, duty_us, period_us);
+	if(rc)
+	{
+		dprintf(CRITICAL, "Error in pwm_config1\n");
+		goto bail_out;
+	}
+
+	rc = pm_pwm_enable(0);
+	if(rc)
+	{
+		dprintf(CRITICAL, "Error in pwm_enable0\n");
+		goto bail_out;
+	}
+
+	rc = pm_pwm_enable(1);
+	if(rc)
+		dprintf(CRITICAL, "Error in pwm_enable1\n");
+
+bail_out:
+	return rc;
+}
+
+void bl_gpio_init(void)
+{
+	/* Configure PM8058 GPIO24 as a PWM driver (LPG ch0) for chain 1 of 6 LEDs */
+	pm8058_write_one(0x81, GPIO24_GPIO_CNTRL);  /* Write, Bank0, VIN0, Mode
                                                    selection enabled */
-    pm8058_write_one(0x98, GPIO24_GPIO_CNTRL);  /* Write, Bank1, OutOn/InOff,
+	pm8058_write_one(0x98, GPIO24_GPIO_CNTRL);  /* Write, Bank1, OutOn/InOff,
                                                    CMOS, Don't Invert Output */
-    pm8058_write_one(0xAA, GPIO24_GPIO_CNTRL);  /* Write, Bank2, GPIO no pull */
-    pm8058_write_one(0xB4, GPIO24_GPIO_CNTRL);  /* Write, Bank3, high drv
+	pm8058_write_one(0xAA, GPIO24_GPIO_CNTRL);  /* Write, Bank2, GPIO no pull */
+	pm8058_write_one(0xB4, GPIO24_GPIO_CNTRL);  /* Write, Bank3, high drv
                                                    strength */
-    pm8058_write_one(0xC6, GPIO24_GPIO_CNTRL);  /* Write, Bank4, Src: LPG_DRV1
+	pm8058_write_one(0xC6, GPIO24_GPIO_CNTRL);  /* Write, Bank4, Src: LPG_DRV1
                                                    (Spec. Fnc 2) */
-    pm8058_write_one(0xD8, GPIO24_GPIO_CNTRL);  /* Write, Bank5, Interrupt
+	pm8058_write_one(0xD8, GPIO24_GPIO_CNTRL);  /* Write, Bank5, Interrupt
                                                    polarity noninversion */
 
-    /* Configure PM8058 GPIO25 as a PWM driver (LPG ch1) for chain 2 of 5 LEDs */
-    pm8058_write_one(0x81, GPIO25_GPIO_CNTRL);  /* Write, Bank0, VIN0, Mode
+	/* Configure PM8058 GPIO25 as a PWM driver (LPG ch1) for chain 2 of 5 LEDs */
+	pm8058_write_one(0x81, GPIO25_GPIO_CNTRL);  /* Write, Bank0, VIN0, Mode
                                                    selection enabled */
-    pm8058_write_one(0x98, GPIO25_GPIO_CNTRL);  /* Write, Bank1, OutOn/InOff,
+	pm8058_write_one(0x98, GPIO25_GPIO_CNTRL);  /* Write, Bank1, OutOn/InOff,
                                                    CMOS, Don't Invert Output */
-    pm8058_write_one(0xAA, GPIO25_GPIO_CNTRL);  /* Write, Bank2, GPIO no pull */
-    pm8058_write_one(0xB4, GPIO25_GPIO_CNTRL);  /* Write, Bank3, high drv
+	pm8058_write_one(0xAA, GPIO25_GPIO_CNTRL);  /* Write, Bank2, GPIO no pull */
+	pm8058_write_one(0xB4, GPIO25_GPIO_CNTRL);  /* Write, Bank3, high drv
                                                    strength */
-    pm8058_write_one(0xC6, GPIO25_GPIO_CNTRL);  /* Write, Bank4, Src: LPG_DRV2
+	pm8058_write_one(0xC6, GPIO25_GPIO_CNTRL);  /* Write, Bank4, Src: LPG_DRV2
                                                    (Spec. Fnc 2) */
-    pm8058_write_one(0xD8, GPIO25_GPIO_CNTRL);  /* Write, Bank5, Interrupt
+	pm8058_write_one(0xD8, GPIO25_GPIO_CNTRL);  /* Write, Bank5, Interrupt
                                                    polarity noninversion */
-
-    /* Configure PM8058 LPG channel 0 as non-LUT PWM for PM8058 GPIO24 */
-    pm8058_write_one(0x0, LPG_BANK_SEL);    /* Select LPG ch0 slice of control
-                                               regs */
-    pm8058_write_one(0x00, LPG_CTL_0);  /* Disable PWM, PWM output, and LPG
-                                           ramp generator */
-    pm8058_write_one(0x40, LPG_CTL_1);  /* Dont Toggle, Enable user PWM value,
-                                           no LUT high value idx */
-    pm8058_write_one(0x00, LPG_CTL_2);  /* Dont Loop, no LUT low value index */
-    pm8058_write_one(0xDE, LPG_CTL_3);  /* LS 8 bits of 9-bit PWM user value */
-    pm8058_write_one(0x7F, LPG_CTL_4);  /* MSbit of 9-bit PWM user value,
-                                           19.2MHz, Dev 6, Expo M = 7 */
-    pm8058_write_one(0x01, LPG_CTL_5);  /* PWM = 9bit, disable pause at high
-                                           value LUT index */
-    pm8058_write_one(0x00, LPG_CTL_6);  /* Disable pause at low value LUT index
-                                         */
-    pm8058_write_one(0x0C, LPG_CTL_0);  /* Enable PWM and PWM output, LPG ramp
-                                           generator remains disabled */
-
-    /* Configure PM8058 LPG chan 1 as PWM for PM8058 GPIO25 */
-    pm8058_write_one(0x1, LPG_BANK_SEL);    /* Select LPG ch1 slice of control
-                                               regs */
-    pm8058_write_one(0x00, LPG_CTL_0);  /* Disable PWM, PWM output, and LPG
-                                           ramp generator */
-    pm8058_write_one(0x40, LPG_CTL_1);  /* Dont Toggle, Enable user PWM value,
-                                           no LUT high value idx */
-    pm8058_write_one(0x00, LPG_CTL_2);  /* Dont Loop, no LUT low value index */
-    pm8058_write_one(0x00, LPG_CTL_3);  /* LS 8 bits of 9-bit PWM user value */
-    pm8058_write_one(0x7F, LPG_CTL_4);  /* MSbit of 9-bit PWM user value,
-                                           19.2MHz, Dev 6, Expo M = 7 */
-    pm8058_write_one(0x01, LPG_CTL_5);  /* PWM = 9bit, disable pause at high
-                                           value LUT index */
-    pm8058_write_one(0x00, LPG_CTL_6);  /* Disable pause at low value LUT index
-                                         */
-    pm8058_write_one(0x0C, LPG_CTL_0);  /* Enable PWM and PWM output, LPG ramp
-                                           generator remains disabled */
-
-    /* Enable both LPG channels to enable backlight driver */
-    pm8058_write_one(0x03, LPG_BANK_ENABLE);    /* Enable LPG ch0 (GPIO24) &
-                                                   ch1 (GPIO25) */
 }
 
 void board_lcd_enable(void)
 {
+    int rc = -1;
     dev = qup_i2c_init(GSBI8_BASE, 100000, 24000000);
 
     /* Make sure dev is created and initialized properly */
@@ -344,8 +345,12 @@ void board_lcd_enable(void)
     /* Arbitrary delay */
     udelay(20000);
 
-    /* Set the backlight duty cycle via the PM8058 LPG_DRV1 and LPG_DRV2 */
-    bl_duty_cycle_init();
+    /* Set the GPIOs needed for backlight */
+    bl_gpio_init();
+    /* Set backlight level with API (to 8 by default) */
+    rc = panel_set_backlight(8);
+    if(rc)
+        dprintf(CRITICAL,"Error in setting panel backlight\n");
 
     dprintf(INFO, "Enable BACKLIGHT_EN line for output.\n");
     expander_write(GPIO_EXPANDER_REG_DIR_B, ~0x10 & dir_b);

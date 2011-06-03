@@ -42,8 +42,24 @@ typedef int (*pm8058_write_func) (unsigned char *, unsigned short,
                                   unsigned short);
 extern int pa1_ssbi2_write_bytes(unsigned char *buffer, unsigned short length,
                                  unsigned short slave_addr);
+extern int pa1_ssbi2_read_bytes(unsigned char *buffer, unsigned short length,
+                                 unsigned short slave_addr);
+extern int pa2_ssbi2_write_bytes(unsigned char *buffer, unsigned short length,
+                                 unsigned short slave_addr);
+extern int pa2_ssbi2_read_bytes(unsigned char *buffer, unsigned short length,
+                                unsigned short slave_addr);
 
-/*PM8058*/
+/* PM8058 APIs */
+int pm8058_write(uint16_t addr, uint8_t *data, uint16_t length)
+{
+    return pa1_ssbi2_write_bytes(data, length, addr);
+}
+
+int pm8058_read(uint16_t addr, uint8_t *data, uint16_t length)
+{
+    return pa1_ssbi2_read_bytes(data, length, addr);
+}
+
 void pm8058_write_one(unsigned data, unsigned address)
 {
     pm8058_write_func wr_function = &pa1_ssbi2_write_bytes;
@@ -106,11 +122,8 @@ bool pm8058_gpio_get(unsigned int gpio)
 	return status;
 }
 
-/*PM8901*/
-extern int pa2_ssbi2_write_bytes(unsigned char *buffer, unsigned short length,
-                                 unsigned short slave_addr);
-extern int pa2_ssbi2_read_bytes(unsigned char *buffer, unsigned short length,
-                                unsigned short slave_addr);
+/* PM8901 APIs */
+
 /*
  * Write to the control registers on PMIC via the SSBI2 interface.
  * Returns : (0) on success and (-1) on error.
