@@ -32,29 +32,42 @@
 
 #define SIZE_1M               0x00100000
 
+unsigned round_to_mb(unsigned size)
+{
+	unsigned size_in_mb = 0;
+	size_in_mb = size >> 20;
+	size_in_mb = size_in_mb << 20;
+	return size_in_mb;
+}
+
 unsigned* target_atag_mem(unsigned* ptr)
 {
 	struct smem_ram_ptable ram_ptable;
 	unsigned i = 0;
+	unsigned size_in_mb = 0;
 
 	if (smem_ram_ptable_init(&ram_ptable))
 	{
 		for (i = 0; i < ram_ptable.len; i++)
 		{
+			/* Round down to align to Mega byte size */
+			size_in_mb = round_to_mb(ram_ptable.parts[i].size);
+
 			if ((ram_ptable.parts[i].attr == READWRITE)
 				&& (ram_ptable.parts[i].domain == APPS_DOMAIN)
 				&& (ram_ptable.parts[i].start != 0x0)
-				&& (!(ram_ptable.parts[i].size < SIZE_1M)))
+				&& (!(size_in_mb <= SIZE_1M)))
 			{
 				/* ATAG_MEM */
 				*ptr++ = 4;
 				*ptr++ = 0x54410002;
-				/* FIXME: RAM partition table currently reports 2M extra
-				  Fix this by subracting 2M, until modem ram partition table
-				  starts reporting the right values.  Also need fixes for
-				  RAM partition table to have emmc entries correct */
-				if (target_is_emmc_boot())
-					*ptr++ = ram_ptable.parts[i].size - (2*SIZE_1M) - (6*SIZE_1M);
+				/* RAM parition for Emmc boot are reported correctly by modem
+				 * Use the size passed from modem directly after rounding down
+				 * to MB as kernel expects a megabyte aligned size.
+				 */
+				if (target_is_emmc_boot()) {
+					*ptr++ = size_in_mb;
+				}
 				else
 					*ptr++ = ram_ptable.parts[i].size - (2*SIZE_1M);
 
