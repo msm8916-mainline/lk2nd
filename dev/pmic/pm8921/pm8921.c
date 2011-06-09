@@ -65,3 +65,75 @@ void pm8921_boot_done(void)
 	val |= (SYS_CONFIG_2_BOOT_DONE | SYS_CONFIG_2_ADAPTIVE_BOOT_DISABLE);
 	dev->write(&val, 1, SYS_CONFIG_2);
 }
+
+/* Configure PMIC GPIO */
+int pm8921_gpio_config(int gpio, struct pm8921_gpio *param)
+{
+	int ret;
+	uint8_t bank[6];
+	uint8_t output_buf_config;
+	uint8_t output_value;
+
+	static uint8_t dir_map[] = {
+		PM_GPIO_MODE_OFF,
+		PM_GPIO_MODE_OUTPUT,
+		PM_GPIO_MODE_INPUT,
+		PM_GPIO_MODE_BOTH,
+	};
+
+	if (param == NULL) {
+	  dprintf (INFO, "pm8291_gpio struct not defined\n");
+          return -1;
+	}
+
+	/* Select banks and configure the gpio */
+	bank[0] = PM_GPIO_WRITE |
+		((param->vin_sel << PM_GPIO_VIN_SHIFT) &
+			PM_GPIO_VIN_MASK) |
+		PM_GPIO_MODE_ENABLE;
+
+	/* bank1 */
+	if ((param->direction & PM_GPIO_DIR_OUT) && param->output_buffer)
+		output_buf_config = PM_GPIO_OUT_BUFFER_OPEN_DRAIN;
+	else
+		output_buf_config = 0;
+
+	if ((param->direction & PM_GPIO_DIR_OUT) && param->output_value)
+		output_value = 1;
+	else
+		output_value = 0;
+
+	bank[1] = PM_GPIO_WRITE |
+		((1 << PM_GPIO_BANK_SHIFT) & PM_GPIO_BANK_MASK) |
+		((dir_map[param->direction] << PM_GPIO_MODE_SHIFT)
+						& PM_GPIO_MODE_MASK) |
+		output_buf_config |
+		output_value;
+
+	bank[2] = PM_GPIO_WRITE |
+		((2 << PM_GPIO_BANK_SHIFT) & PM_GPIO_BANK_MASK) |
+		((param->pull << PM_GPIO_PULL_SHIFT) &
+			PM_GPIO_PULL_MASK);
+
+	bank[3] = PM_GPIO_WRITE |
+		((3 << PM_GPIO_BANK_SHIFT) & PM_GPIO_BANK_MASK) |
+		((param->out_strength << PM_GPIO_OUT_STRENGTH_SHIFT) &
+			PM_GPIO_OUT_STRENGTH_MASK) |
+		(param->disable_pin ? PM_GPIO_PIN_DISABLE : PM_GPIO_PIN_ENABLE);
+
+	bank[4] = PM_GPIO_WRITE |
+		((4 << PM_GPIO_BANK_SHIFT) & PM_GPIO_BANK_MASK) |
+		((param->function << PM_GPIO_FUNC_SHIFT) &
+			PM_GPIO_FUNC_MASK);
+
+	bank[5] = PM_GPIO_WRITE |
+		((5 << PM_GPIO_BANK_SHIFT) & PM_GPIO_BANK_MASK) |
+		(param->inv_int_pol ? 0 : PM_GPIO_NON_INT_POL_INV);
+
+	ret = dev->write(bank, 6, GPIO_CNTL(gpio));
+	if (ret) {
+		dprintf(INFO, "Failed to write to PM8921 ret=%d.\n", ret);
+		return -1;
+	}
+	return 0;
+}

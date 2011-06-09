@@ -27,9 +27,51 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#define PBL_ACCESS_2 0x005
-#define PBL_ACCESS_2_ENUM_TIMER_STOP      (1 << 1)
+#define PBL_ACCESS_2                          0x005
+#define PBL_ACCESS_2_ENUM_TIMER_STOP          (1 << 1)
 
-#define SYS_CONFIG_2 0x007
-#define SYS_CONFIG_2_BOOT_DONE             (1 << 6)
-#define SYS_CONFIG_2_ADAPTIVE_BOOT_DISABLE (1 << 7)
+#define SYS_CONFIG_2                          0x007
+#define SYS_CONFIG_2_BOOT_DONE                (1 << 6)
+#define SYS_CONFIG_2_ADAPTIVE_BOOT_DISABLE    (1 << 7)
+
+#define GPIO_CNTL_BASE                        0x150
+#define GPIO_CNTL(n)                          (GPIO_CNTL_BASE + n)
+
+/* GPIO Bank register programming */
+#define PM_GPIO_BANK_MASK                0x70
+#define PM_GPIO_BANK_SHIFT               4
+#define PM_GPIO_WRITE                    0x80
+
+/* Bank 0 */
+#define PM_GPIO_VIN_MASK                 0x0E
+#define PM_GPIO_VIN_SHIFT                1
+#define PM_GPIO_MODE_ENABLE              0x01
+
+/* Bank 1 */
+#define PM_GPIO_MODE_MASK                0x0C
+#define PM_GPIO_MODE_SHIFT               2
+#define PM_GPIO_OUT_BUFFER_OPEN_DRAIN    0x02
+#define PM_GPIO_OUT_INVERT               0x01
+
+#define PM_GPIO_MODE_OFF                 3
+#define PM_GPIO_MODE_OUTPUT              2
+#define PM_GPIO_MODE_INPUT               0
+#define PM_GPIO_MODE_BOTH                1
+
+/* Bank 2 */
+#define PM_GPIO_PULL_MASK                0x0E
+#define PM_GPIO_PULL_SHIFT               1
+
+/* Bank 3 */
+#define PM_GPIO_OUT_STRENGTH_MASK        0x0C
+#define PM_GPIO_OUT_STRENGTH_SHIFT       2
+#define PM_GPIO_PIN_ENABLE               0x00
+#define PM_GPIO_PIN_DISABLE              0x01
+
+/* Bank 4 */
+#define PM_GPIO_FUNC_MASK                0x0E
+#define PM_GPIO_FUNC_SHIFT               1
+
+/* Bank 5 */
+#define PM_GPIO_NON_INT_POL_INV          0x08
+
