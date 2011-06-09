@@ -66,12 +66,18 @@ static void dmov_prep_ch(dmov_ch *ch, unsigned id)
 #define SRC_CRCI_NAND_DATA CMD_SRC_CRCI(DMOV_NAND_CRCI_DATA)
 #define DST_CRCI_NAND_DATA CMD_DST_CRCI(DMOV_NAND_CRCI_DATA)
 
-#define NAND_CFG0_RAW 0xA80420C0
-#define NAND_CFG1_RAW 0x5045D
+#define CFG0_RAW 0xA80420C0
+#define CFG1_RAW 0x5045D
+
+#define CFG0_RAW_BCHECC   0xA80428C0
 
 static unsigned CFG0, CFG1;
 static unsigned CFG0_M, CFG1_M;
 static unsigned CFG0_A, CFG1_A;
+static unsigned NAND_CFG0_RAW, NAND_CFG1_RAW;
+static unsigned ECC_BCH_CFG;
+
+static uint32_t enable_bch_ecc;
 
 #define CFG1_WIDE_FLASH (1U << 1)
 
@@ -143,6 +149,7 @@ static struct flash_identification supported_flash[] =
 	{0x6600bcec, 0xFF00FFFF, (512<<20), 1, 4096, (4096<<6), 128, 0}, /*Sams*/
 	{0x5580ba2c, 0xFFFFFFFF, (256<<20), 1, 2048, (2048<<6), 64, 0}, /*Hynx*/
 	{0x6600b3ec, 0xFFFFFFFF, (512<<20), 1, 4096, (4096<<6), 128, 0}, /*Sams*/
+	{0x2600482c, 0xFF00FFFF, (2048<<20), 0, 4096, (4096<<7), 224 , 0}, /*8bit bch ecc*/
 	/* Note: Width flag is 0 for 8 bit Flash and 1 for 16 bit flash	  */
 	/* Note: Onenand flag is 0 for NAND Flash and 1 for OneNAND flash	*/
 	/* Note: The First row will be filled at runtime during ONFI probe	*/
@@ -256,17 +263,25 @@ static int flash_nand_block_isbad(dmov_s *cmdlist, unsigned *ptrlist,
 
 	/* addr0 */
 	if (CFG1 & CFG1_WIDE_FLASH)
-		data[1] = (page << 16) | ((528*(cwperpage-1)) >> 1);
+		data[1] = enable_bch_ecc ?
+			((page << 16) | ((532*(cwperpage-1)) >> 1)):
+			((page << 16) | ((528*(cwperpage-1)) >> 1));
+
 	else
-		data[1] = (page << 16) | (528*(cwperpage-1));
+		data[1] = enable_bch_ecc ?
+			((page << 16) | (532*(cwperpage-1))):
+			((page << 16) | (528*(cwperpage-1)));
 
 	data[2] = (page >> 16) & 0xff;						/* addr1	*/
 	data[3] = 0 | 4;									/* chipsel	*/
 	data[4] = NAND_CFG0_RAW & ~(7U << 6);				/* cfg0		*/
 	data[5] = NAND_CFG1_RAW | (CFG1 & CFG1_WIDE_FLASH);	/* cfg1		*/
-	data[6] = 1;
-	data[7] = CLEAN_DATA_32;	/* flash status */
-	data[8] = CLEAN_DATA_32;	/* buf status	*/
+	if (enable_bch_ecc) {
+		data[6] = ECC_BCH_CFG;				/* ECC CFG */
+	}
+	data[7] = 1;
+	data[8] = CLEAN_DATA_32;	/* flash status */
+	data[9] = CLEAN_DATA_32;	/* buf status	*/
 
 	cmd[0].cmd = DST_CRCI_NAND_CMD | CMD_OCB;
 	cmd[0].src = paddr(&data[0]);
@@ -276,20 +291,26 @@ static int flash_nand_block_isbad(dmov_s *cmdlist, unsigned *ptrlist,
 	cmd[1].cmd = 0;
 	cmd[1].src = paddr(&data[4]);
 	cmd[1].dst = NAND_DEV0_CFG0;
-	cmd[1].len = 8;
+	if (enable_bch_ecc) {
+		cmd[1].len = 12;
+	} else {
+		cmd[1].len = 8;
+	}
 
 	cmd[2].cmd = 0;
-	cmd[2].src = paddr(&data[6]);
+	cmd[2].src = paddr(&data[7]);
 	cmd[2].dst = NAND_EXEC_CMD;
 	cmd[2].len = 4;
 
 	cmd[3].cmd = SRC_CRCI_NAND_DATA;
 	cmd[3].src = NAND_FLASH_STATUS;
-	cmd[3].dst = paddr(&data[7]);
+	cmd[3].dst = paddr(&data[8]);
 	cmd[3].len = 8;
 
 	cmd[4].cmd = CMD_OCU | CMD_LC;
-	cmd[4].src = NAND_FLASH_BUFFER + (flash_pagesize - (528*(cwperpage-1)));
+	cmd[4].src = NAND_FLASH_BUFFER + (flash_pagesize - (enable_bch_ecc ?
+							(532*(cwperpage-1)):
+							(528*(cwperpage-1))));
 	cmd[4].dst = paddr(&buf);
 	cmd[4].len = 4;
 
@@ -298,13 +319,13 @@ static int flash_nand_block_isbad(dmov_s *cmdlist, unsigned *ptrlist,
 	dmov_exec_cmdptr(DMOV_NAND_CHAN, ptr);
 
 #if VERBOSE
-	dprintf(INFO, "status: %x\n", data[7]);
+	dprintf(INFO, "status: %x\n", data[8]);
 #endif
 
 	/* we fail if there was an operation error, a mpu error, or the
 	** erase success bit was not set.
 	*/
-	if(data[7] & 0x110) return -1;
+	if(data[8] & 0x110) return -1;
 
 	/* Check for bad block marker byte */
 	if (CFG1 & CFG1_WIDE_FLASH) {
@@ -514,8 +535,9 @@ static int flash_nand_erase_block(dmov_s *cmdlist, unsigned *ptrlist,
 	data[5] = 0xeeeeeeee;
 	data[6] = CFG0 & (~(7 << 6));  /* CW_PER_PAGE = 0 */
 	data[7] = CFG1;
-	data[8] = 0x00000020;
-	data[9] = 0x000000C0;
+	data[8] = ECC_BCH_CFG;
+	data[9] = 0x00000020;
+	data[10] = 0x000000C0;
 
 	cmd[0].cmd = DST_CRCI_NAND_CMD | CMD_OCB;
 	cmd[0].src = paddr(&data[0]);
@@ -525,7 +547,11 @@ static int flash_nand_erase_block(dmov_s *cmdlist, unsigned *ptrlist,
 	cmd[1].cmd = 0;
 	cmd[1].src = paddr(&data[6]);
 	cmd[1].dst = NAND_DEV0_CFG0;
-	cmd[1].len = 8;
+	if (enable_bch_ecc) {
+		cmd[1].len = 12;
+	} else {
+		cmd[1].len = 8;
+	}
 
 	cmd[2].cmd = 0;
 	cmd[2].src = paddr(&data[4]);
@@ -538,12 +564,12 @@ static int flash_nand_erase_block(dmov_s *cmdlist, unsigned *ptrlist,
 	cmd[3].len = 4;
 
 	cmd[4].cmd = 0;
-	cmd[4].src = paddr(&data[8]);
+	cmd[4].src = paddr(&data[9]);
 	cmd[4].dst = NAND_FLASH_STATUS;
 	cmd[4].len = 4;
 
 	cmd[5].cmd = CMD_OCU | CMD_LC;
-	cmd[5].src = paddr(&data[9]);
+	cmd[5].src = paddr(&data[10]);
 	cmd[5].dst = NAND_READ_STATUS;
 	cmd[5].len = 4;
 
@@ -717,6 +743,7 @@ struct data_flash_io {
 	unsigned chipsel;
 	unsigned cfg0;
 	unsigned cfg1;
+	unsigned ecc_bch_cfg;
 	unsigned exec;
 	unsigned ecc_cfg;
 	unsigned ecc_cfg_save;
@@ -780,6 +807,9 @@ static int _flash_nand_read_page(dmov_s *cmdlist, unsigned *ptrlist,
 	data->cfg0 = CFG0;
 	data->cfg1 = CFG1;
 
+	if (enable_bch_ecc) {
+		data->ecc_bch_cfg = ECC_BCH_CFG;
+	}
 	data->ecc_cfg = 0x203;
 
 	/* save existing ecc config */
@@ -802,7 +832,11 @@ static int _flash_nand_read_page(dmov_s *cmdlist, unsigned *ptrlist,
 			cmd->cmd = 0;
 			cmd->src = paddr(&data->cfg0);
 			cmd->dst = NAND_DEV0_CFG0;
-			cmd->len = 8;
+			if (enable_bch_ecc) {
+				cmd->len = 12;
+			} else {
+				cmd->len = 8;
+			}
 			cmd++;
 
 			/* set our ecc config */
@@ -836,7 +870,7 @@ static int _flash_nand_read_page(dmov_s *cmdlist, unsigned *ptrlist,
 
 	/* read extra data */
 	cmd->cmd = 0;
-	cmd->src = NAND_FLASH_BUFFER + 500;
+	cmd->src = NAND_FLASH_BUFFER + (512 - ((cwperpage - 1) << 2));
 	cmd->dst = spareaddr;
 	cmd->len = 16;
 	cmd++;
@@ -1267,6 +1301,9 @@ static int _flash_nand_write_page(dmov_s *cmdlist, unsigned *ptrlist, unsigned p
 	if (!raw_mode){
 		data->cfg0 = CFG0;
 		data->cfg1 = CFG1;
+		if (enable_bch_ecc) {
+			data->ecc_bch_cfg = ECC_BCH_CFG;
+		}
 	}else{
 		data->cfg0 = (NAND_CFG0_RAW & ~(7 << 6)) |((cwperpage-1) << 6);
 		data->cfg1 = NAND_CFG1_RAW | (CFG1 & CFG1_WIDE_FLASH);
@@ -1300,7 +1337,12 @@ static int _flash_nand_write_page(dmov_s *cmdlist, unsigned *ptrlist, unsigned p
 			cmd->cmd = 0;
 			cmd->src = paddr(&data->cfg0);
 			cmd->dst = NAND_DEV0_CFG0;
-			cmd->len = 8;
+			if (enable_bch_ecc) {
+				cmd->len = 12;
+			} else {
+				cmd->len = 8;
+			}
+
 			cmd++;
 
 			/* set our ecc config */
@@ -1737,14 +1779,30 @@ static int flash_nand_read_config(dmov_s *cmdlist, unsigned *ptrlist)
 		|	(0 << 30)  /* Do not read status before data */
 		|	(1 << 31)  /* Send read cmd */
 			/* 0 spare bytes for 16 bit nand or 1 spare bytes for 8 bit */
-		|	((nand_cfg1 & CFG1_WIDE_FLASH) ? (0 << 23) : (1 << 23));
+		|	((nand_cfg1 & CFG1_WIDE_FLASH) ? (0 << 23) :
+		(enable_bch_ecc ? (2 << 23) : (1 << 23))); /* 2 spare bytes for 8 bit bch ecc */
 	CFG1_A = (0 <<  0)  /* Enable ecc */
 		|	(7 <<  2)  /* 8 recovery cycles */
 		|	(0 <<  5)  /* Allow CS deassertion */
-	  	|	((flash_pagesize - (528 * ((flash_pagesize >> 9) - 1)) + 1) <<  6)	/* Bad block marker location */
+		|	((flash_pagesize - ((enable_bch_ecc ? 532 : 528) *
+		((flash_pagesize >> 9) - 1)) + 1) << 6) /* Bad block marker location */
 		|	(0 << 16)  /* Bad block in user data area */
 		|	(2 << 17)  /* 6 cycle tWB/tRB */
 		|	(nand_cfg1 & CFG1_WIDE_FLASH); /* preserve wide flash flag */
+
+	NAND_CFG0_RAW = CFG0_RAW;
+	NAND_CFG1_RAW = CFG1_RAW;
+
+	if (enable_bch_ecc) {
+		CFG1_A |= (1 << 27); /* Enable BCH engine */
+		ECC_BCH_CFG = (0 << 0) /* Enable ECC*/
+			|   (0 << 1) /* Enable/Disable SW reset of ECC engine */
+			|   (1 << 4) /* 8bit ecc*/
+			|   ((nand_cfg1 & CFG1_WIDE_FLASH) ? (14 << 8) : (13 << 8))/*parity bytes*/
+			|   (516 << 16) /* 516 user data bytes */
+			|   (1 << 30); /* Turn on ECC engine clocks always */
+		NAND_CFG0_RAW = CFG0_RAW_BCHECC; /* CW size is increased to 532B */
+        }
 
 	dprintf(INFO, "nandcfg(Apps): %x %x (used)\n", CFG0_A, CFG1_A);
 
@@ -3119,6 +3177,34 @@ static int flash_mark_badblock(dmov_s *cmdlist, unsigned *ptrlist, unsigned page
 }
 
 
+unsigned flash_ctrl_hwinfo(dmov_s *cmdlist, unsigned *ptrlist)
+{
+	dmov_s *cmd = cmdlist;
+	unsigned *ptr = ptrlist;
+	unsigned *data = ptrlist + 4;
+
+	unsigned rv;
+
+	data[0] = 0xeeeeeeee;
+	data[1] = 1;
+
+	cmd[0].cmd = CMD_OCB;
+	cmd[0].src = NAND_HW_INFO;
+	cmd[0].dst = paddr(&data[0]);
+	cmd[0].len = 4;
+
+	cmd[1].cmd = CMD_OCU | CMD_LC;
+	cmd[1].src = paddr(&data[1]);
+	cmd[1].dst = NAND_EXEC_CMD;
+	cmd[1].len = 4;
+
+	ptr[0] = (paddr(cmd) >> 3) | CMD_PTR_LP;
+	dmov_exec_cmdptr(DMOV_NAND_CHAN, ptr);
+	rv = data[0];
+
+	return rv;
+}
+
 /* Wrapper functions */
 static void flash_read_id(dmov_s *cmdlist, unsigned *ptrlist)
 {
@@ -3181,6 +3267,10 @@ static void flash_read_id(dmov_s *cmdlist, unsigned *ptrlist)
 		// Use this for getting the next/current blocks
 		num_pages_per_blk = flash_info.block_size / flash_pagesize;
 		num_pages_per_blk_mask = num_pages_per_blk - 1;
+                //Look for 8bit BCH ECC Nand, TODO: ECC Correctability >= 8
+		if((flash_ctrl_hwinfo(cmdlist,ptrlist) == 0x307) &&  flash_info.id == 0x2600482c) {
+			enable_bch_ecc = 1;
+		}
 		return;
 	}
 
@@ -3479,4 +3569,9 @@ void enable_interleave_mode(int status)
 	platform_config_interleaved_mode_gpios();
   }
   return;
+}
+
+int flash_ecc_bch_enabled()
+{
+       return enable_bch_ecc;
 }
