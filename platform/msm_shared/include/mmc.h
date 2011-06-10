@@ -624,5 +624,10 @@ struct mbr_entry
 #define MMC_CLK_ENABLE      1
 #define MMC_CLK_DISABLE     0
 
+unsigned int mmc_boot_read_from_card( struct mmc_boot_host* host,
+                                      struct mmc_boot_card* card,
+                                      unsigned long long data_addr,
+                                      unsigned int data_len,
+                                      unsigned int* out );
 #endif
 
