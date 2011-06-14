@@ -31,6 +31,7 @@
 #include <smem.h>
 
 #define SIZE_1M			   0x00100000
+#define ROUND_TO_MB(x)		  ((x >> 20) << 20)
 
 unsigned* target_atag_mem(unsigned* ptr)
 {
@@ -54,7 +55,7 @@ unsigned* target_atag_mem(unsigned* ptr)
 				  starts reporting the right values.  Also need fixes for
 				  RAM partition table to have emmc entries correct */
 				if (target_is_emmc_boot())
-					*ptr++ = ram_ptable.parts[i].size - (2*SIZE_1M) - (6*SIZE_1M);
+					*ptr++ = ROUND_TO_MB(ram_ptable.parts[i].size);
 				else
 					*ptr++ = ram_ptable.parts[i].size - (2*SIZE_1M);
 

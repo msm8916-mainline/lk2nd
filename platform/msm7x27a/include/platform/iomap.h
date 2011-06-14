@@ -47,5 +47,6 @@
 #define MSM_SHARED_BASE 0x00100000
 
 #define MSM_SDC1_BASE   0xA0400000
+#define MSM_SDC3_BASE   0xA0600000
 
 #endif
