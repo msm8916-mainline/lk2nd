@@ -11,7 +11,7 @@
  *    notice, this list of conditions and the following disclaimer.
  *  * Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the 
+ *    the documentation and/or other materials provided with the
  *    distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -21,7 +21,7 @@
  * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
  * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED 
+ * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
  * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
@@ -124,15 +124,13 @@ __WEAK void hsusb_clock_init(void)
 #define DBG(x...) dprintf(INFO, x)
 #endif
 
-#define DBG1(x...) dprintf(INFO, x)
-
 #define usb_status(a,b)
 
 struct usb_request {
 	struct udc_request req;
 	struct ept_queue_item *item;
 };
-	
+
 struct udc_endpoint
 {
 	struct udc_endpoint *next;
@@ -159,7 +157,7 @@ struct udc_endpoint *_udc_endpoint_alloc(unsigned num, unsigned in, unsigned max
 	unsigned cfg;
 
 	ept = malloc(sizeof(*ept));
- 
+
 	ept->maxpkt = max_pkt;
 	ept->num = num;
 	ept->in = !!in;
@@ -171,7 +169,7 @@ struct udc_endpoint *_udc_endpoint_alloc(unsigned num, unsigned in, unsigned max
 		ept->bit = EPT_TX(ept->num);
 	} else {
 		ept->bit = EPT_RX(ept->num);
-		if(num == 0) 
+		if(num == 0)
 			cfg |= CONFIG_IOS;
 	}
 
@@ -180,9 +178,8 @@ struct udc_endpoint *_udc_endpoint_alloc(unsigned num, unsigned in, unsigned max
 
 	ept->next = ept_list;
 	ept_list = ept;
-    
-//	arch_clean_invalidate_cache_range(ept->head, 64);
-	DBG("ept%d %s @%p/%p max=%d bit=%x\n", 
+
+	DBG("ept%d %s @%p/%p max=%d bit=%x\n",
             num, in ? "in":"out", ept, ept->head, max_pkt, ept->bit);
 
 	return ept;
@@ -264,7 +261,7 @@ int udc_request_queue(struct udc_endpoint *ept, struct udc_request *_req)
 	struct usb_request *req = (struct usb_request *) _req;
 	struct ept_queue_item *item = req->item;
 	unsigned phys = (unsigned) req->req.buf;
-    
+
 	item->next = TERMINATE;
 	item->info = INFO_BYTES(req->req.length) | INFO_IOC | INFO_ACTIVE;
 	item->page0 = phys;
@@ -275,9 +272,12 @@ int udc_request_queue(struct udc_endpoint *ept, struct udc_request *_req)
 	ept->head->info = 0;
 	ept->req = req;
 
-//	arch_clean_invalidate_cache_range(item, 32);
-//	arch_clean_invalidate_cache_range(ept->head, 64);
-//	arch_clean_invalidate_cache_range(req->req.buf, req->req.length);
+	arch_clean_invalidate_cache_range(ept, sizeof(struct udc_endpoint));
+	arch_clean_invalidate_cache_range(ept->head, sizeof(struct ept_queue_head));
+	arch_clean_invalidate_cache_range(ept->req, sizeof(struct usb_request));
+	arch_clean_invalidate_cache_range(req->req.buf, req->req.length);
+	arch_clean_invalidate_cache_range(ept->req->item, sizeof(struct ept_queue_item));
+
 	DBG("ept%d %s queue req=%p\n",
             ept->num, ept->in ? "in" : "out", req);
 
@@ -292,25 +292,33 @@ static void handle_ept_complete(struct udc_endpoint *ept)
 	unsigned actual;
 	int status;
 	struct usb_request *req;
-    
+
 	DBG("ept%d %s complete req=%p\n",
             ept->num, ept->in ? "in" : "out", ept->req);
-    
+
+	arch_clean_invalidate_cache_range(ept, sizeof(struct udc_endpoint));
+	arch_clean_invalidate_cache_range(ept->req, sizeof(struct usb_request));
+
 	req = ept->req;
 	if(req) {
 		ept->req = 0;
-        
+
 		item = req->item;
 
 		/* For some reason we are getting the notification for
 		 * transfer completion before the active bit has cleared.
 		 * HACK: wait for the ACTIVE bit to clear:
 		 */
-		while (readl(&(item->info)) & INFO_ACTIVE) ;
+		do
+		{
+			/* Must clean/invalidate cached item data before checking
+			 * the status every time.
+			 */
+			arch_clean_invalidate_cache_range(item, sizeof(struct ept_queue_item));
+		} while (readl(&(item->info)) & INFO_ACTIVE);
 
-//		arch_clean_invalidate_cache_range(item, 32);
-//		arch_clean_invalidate_cache_range(req->req.buf, req->req.length);
-		
+		arch_clean_invalidate_cache_range(req->req.buf, req->req.length);
+
 		if(item->info & 0xff) {
 			actual = 0;
 			status = -1;
@@ -389,15 +397,15 @@ static void set_test_mode(uint16_t value)
 static void handle_setup(struct udc_endpoint *ept)
 {
 	struct setup_packet s;
-    
+
+	arch_clean_invalidate_cache_range(ept->head->setup_data, sizeof(struct ept_queue_head));
 	memcpy(&s, ept->head->setup_data, sizeof(s));
 	writel(ept->bit, USB_ENDPTSETUPSTAT);
 
-#if 0
 	DBG("handle_setup type=0x%02x req=0x%02x val=%d idx=%d len=%d (%s)\n",
             s.type, s.request, s.value, s.index, s.length,
             reqname(s.request));
-#endif
+
 	switch (SETUP(s.type,s.request)) {
 	case SETUP(DEVICE_READ, GET_STATUS): {
 		unsigned zero = 0;
@@ -432,7 +440,7 @@ static void handle_setup(struct udc_endpoint *ept)
 			struct udc_endpoint *ept;
 			/* enable endpoints */
 			for (ept = ept_list; ept; ept = ept->next){
-				if (ept->num == 0) 
+				if (ept->num == 0)
 					continue;
 				endpoint_enable(ept, s.value);
 			}
@@ -472,7 +480,7 @@ static void handle_setup(struct udc_endpoint *ept)
 		struct udc_endpoint *ept;
 		unsigned num = s.index & 15;
 		unsigned in = !!(s.index & 0x80);
-        
+
 		if ((s.value == 0) && (s.length == 0)) {
 			DBG("clr feat %d %d\n", num, in);
 			for (ept = ept_list; ept; ept = ept->next) {
@@ -492,7 +500,7 @@ static void handle_setup(struct udc_endpoint *ept)
 		s.type, s.request, s.value, s.index, s.length);
 
 stall:
-	writel((1<<16) | (1 << 0), USB_ENDPTCTRL(ept->num));    
+	writel((1<<16) | (1 << 0), USB_ENDPTCTRL(ept->num));
 }
 
 unsigned ulpi_read(unsigned reg)
@@ -503,14 +511,14 @@ unsigned ulpi_read(unsigned reg)
 
         /* wait for completion */
 	while(readl(USB_ULPI_VIEWPORT) & ULPI_RUN) ;
-    
+
 	return ULPI_DATA_READ(readl(USB_ULPI_VIEWPORT));
 }
 
 void ulpi_write(unsigned val, unsigned reg)
 {
         /* initiate write operation */
-	writel(ULPI_RUN | ULPI_WRITE | 
+	writel(ULPI_RUN | ULPI_WRITE |
                ULPI_ADDR(reg) | ULPI_DATA(val),
                USB_ULPI_VIEWPORT);
 
@@ -541,8 +549,10 @@ static int msm_otg_xceiv_reset()
 void board_usb_init(void);
 void board_ulpi_init(void);
 
-int udc_init(struct udc_device *dev) 
+int udc_init(struct udc_device *dev)
 {
+	DBG("udc_init():\n");
+
 	hsusb_clock_init();
 
 #ifdef PLATFORM_MSM8X60
@@ -554,6 +564,7 @@ int udc_init(struct udc_device *dev)
 
 	dprintf(INFO, "USB init ept @ %p\n", epts);
 	memset(epts, 0, 32 * sizeof(struct ept_queue_head));
+	arch_clean_invalidate_cache_range(epts, 32 * sizeof(struct ept_queue_head));
 
 	//dprintf(INFO, "USB ID %08x\n", readl(USB_ID));
 //    board_usb_init();
@@ -571,7 +582,6 @@ int udc_init(struct udc_device *dev)
 
 //    board_ulpi_init();
 
-//	arch_clean_invalidate_cache_range(epts, 32 * sizeof(struct ept_queue_head));
 	writel((unsigned) epts, USB_ENDPOINTLISTADDR);
 
         /* select DEVICE mode */
@@ -593,7 +603,7 @@ int udc_init(struct udc_device *dev)
 		desc->data[3] = 0x04;
 		udc_descriptor_register(desc);
 	}
-	
+
 	the_device = dev;
 	return 0;
 }
@@ -604,18 +614,24 @@ enum handler_return udc_interrupt(void *arg)
 	unsigned ret = INT_NO_RESCHEDULE;
 	unsigned n = readl(USB_USBSTS);
 	writel(n, USB_USBSTS);
-    
+
 	n &= (STS_SLI | STS_URI | STS_PCI | STS_UI | STS_UEI);
 
-	if (n == 0)
+	DBG("\nudc_interrupt():\n");
+
+	if (n == 0) {
+		DBG("n = 0\n");
 		return ret;
+	}
 
 	if (n & STS_URI) {
+		DBG("STS_URI\n");
+
 		writel(readl(USB_ENDPTCOMPLETE), USB_ENDPTCOMPLETE);
 		writel(readl(USB_ENDPTSETUPSTAT), USB_ENDPTSETUPSTAT);
 		writel(0xffffffff, USB_ENDPTFLUSH);
 		writel(0, USB_ENDPTCTRL(1));
-		DBG1("-- reset --\n");
+		dprintf(INFO, "-- reset --\n");
 		usb_online = 0;
 		usb_config_value = 0;
 		the_gadget->notify(the_gadget, UDC_EVENT_OFFLINE);
@@ -633,7 +649,7 @@ enum handler_return udc_interrupt(void *arg)
 		usb_status(0, usb_highspeed);
 	}
 	if (n & STS_SLI) {
-		DBG1("-- suspend --\n");
+		dprintf(INFO, "-- suspend --\n");
 #ifdef ENABLE_BATTERY_CHARGING
 		if(HOST_CHARGER == TRUE){
 		  charger_usb_i(2);
@@ -641,7 +657,7 @@ enum handler_return udc_interrupt(void *arg)
 #endif
 	}
 	if (n & STS_PCI) {
-		DBG1("-- portchange --\n");
+		dprintf(INFO, "-- portchange --\n");
 		unsigned spd = (readl(USB_PORTSC) >> 26) & 3;
 		if(spd == 2) {
 			usb_highspeed = 1;
@@ -658,6 +674,7 @@ enum handler_return udc_interrupt(void *arg)
 #endif
 	}
 	if (n & STS_UEI) {
+		DBG("STS_UEI\n");
 		dprintf(INFO, "<UEI %x>\n", readl(USB_ENDPTCOMPLETE));
 	}
 #if 0
@@ -670,6 +687,7 @@ enum handler_return udc_interrupt(void *arg)
 	DBG("\n");
 #endif
 	if ((n & STS_UI) || (n & STS_UEI)) {
+		DBG("STS_UI and UEI \n");
 		n = readl(USB_ENDPTSETUPSTAT);
 		if (n & EPT_RX(0)) {
 			handle_setup(ep0out);

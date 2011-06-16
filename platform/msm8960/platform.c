@@ -72,3 +72,12 @@ void display_shutdown(void)
 {
     mipi_dsi_shutdown();
 }
+
+void platform_uninit(void)
+{
+	platform_uninit_timer();
+#if DISPLAY_SPLASH_SCREEN
+	display_shutdown();
+#endif
+}
+
