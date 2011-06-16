@@ -71,15 +71,11 @@
 #define LDO_TEST_XO_EN_ALL_MASK (0x1F)
 
 /* PMIC 8058 defines */
-#define LPG_CTL_0         (0x13C)
-#define LPG_CTL_1         (0x13D)
-#define LPG_CTL_2         (0x13E)
-#define LPG_CTL_3         (0x13F)
-#define LPG_CTL_4         (0x140)
-#define LPG_CTL_5         (0x141)
-#define LPG_CTL_6         (0x142)
-#define LPG_BANK_SEL      (0x143)
-#define LPG_BANK_ENABLE   (0x144)
+#define PM8058_LPG_CTL_BASE      (0x13C)
+#define PM8058_LPG_CTL(n)        (PM8058_LPG_CTL_BASE + (n))
+#define PM8058_LPG_BANK_SEL      (0x143)
+#define PM8058_LPG_BANK_ENABLE   (0x144)
+
 #define GPIO24_GPIO_CNTRL (0x167)
 #define GPIO25_GPIO_CNTRL (0x168)
 

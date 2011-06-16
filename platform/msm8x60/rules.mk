@@ -27,6 +27,7 @@ OBJS += \
 	$(LOCAL_DIR)/gpio.o \
 	$(LOCAL_DIR)/panel.o \
 	$(LOCAL_DIR)/pmic.o \
+	$(LOCAL_DIR)/pmic_pwm.o \
 	$(LOCAL_DIR)/scm-io.o
 
 LINKER_SCRIPT += $(BUILDDIR)/system-onesegment.ld
