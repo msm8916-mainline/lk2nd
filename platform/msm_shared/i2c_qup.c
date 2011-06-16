@@ -158,15 +158,15 @@ void i2c_gpio_cfg(uint32_t base)
     }
 }
 
-#ifdef DEBUG
+#ifdef DEBUG_QUP
 static void qup_print_status(struct qup_i2c_dev *dev)
 {
     unsigned val;
-    val = readl(dev->base + QUP_CONFIG);
+    val = readl(dev->qup_base + QUP_CONFIG);
     dprintf(INFO, "Qup config is :0x%x\n", val);
-    val = readl(dev->base + QUP_STATE);
+    val = readl(dev->qup_base + QUP_STATE);
     dprintf(INFO, "Qup state is :0x%x\n", val);
-    val = readl(dev->base + QUP_IO_MODE);
+    val = readl(dev->qup_base + QUP_IO_MODE);
     dprintf(INFO, "Qup mode is :0x%x\n", val);
 }
 #else
@@ -185,9 +185,9 @@ static irqreturn_t qup_i2c_interrupt(void)
                 "dev_addr is NULL, that means i2c_qup_init failed...\n");
         return IRQ_FAIL;
     }
-    unsigned status = readl(dev->base + QUP_I2C_STATUS);
-    unsigned status1 = readl(dev->base + QUP_ERROR_FLAGS);
-    unsigned op_flgs = readl(dev->base + QUP_OPERATIONAL);
+    unsigned status = readl(dev->qup_base + QUP_I2C_STATUS);
+    unsigned status1 = readl(dev->qup_base + QUP_ERROR_FLAGS);
+    unsigned op_flgs = readl(dev->qup_base + QUP_OPERATIONAL);
     int err = 0;
 
     if (!dev->msg)
@@ -198,7 +198,7 @@ static irqreturn_t qup_i2c_interrupt(void)
         err = -status;
         /* Clear Error interrupt if it's a level triggered interrupt */
         if (dev->num_irqs == 1) {
-            writel(QUP_RESET_STATE, dev->base + QUP_STATE);
+            writel(QUP_RESET_STATE, dev->qup_base + QUP_STATE);
         }
         goto intr_done;
     }
@@ -209,15 +209,15 @@ static irqreturn_t qup_i2c_interrupt(void)
         /* Clear Error interrupt if it's a level triggered interrupt */
         if (dev->num_irqs == 1)
             writel((status1 & QUP_STATUS_ERROR_FLAGS),
-                   dev->base + QUP_ERROR_FLAGS);
+                   dev->qup_base + QUP_ERROR_FLAGS);
         goto intr_done;
     }
 
     if (op_flgs & QUP_OUT_SVC_FLAG)
-        writel(QUP_OUT_SVC_FLAG, dev->base + QUP_OPERATIONAL);
+        writel(QUP_OUT_SVC_FLAG, dev->qup_base + QUP_OPERATIONAL);
     if (dev->msg->flags == I2C_M_RD) {
         if ((op_flgs & QUP_MX_INPUT_DONE) || (op_flgs & QUP_IN_SVC_FLAG))
-            writel(QUP_IN_SVC_FLAG, dev->base + QUP_OPERATIONAL);
+            writel(QUP_IN_SVC_FLAG, dev->qup_base + QUP_OPERATIONAL);
         else
             return IRQ_HANDLED;
     }
@@ -232,7 +232,7 @@ static int qup_i2c_poll_writeready(struct qup_i2c_dev *dev)
     unsigned retries = 0;
 
     while (retries != 2000) {
-        unsigned status = readl(dev->base + QUP_I2C_STATUS);
+        unsigned status = readl(dev->qup_base + QUP_I2C_STATUS);
 
         if (!(status & I2C_STATUS_WR_BUFFER_FULL)) {
             if (!(status & I2C_STATUS_BUS_ACTIVE))
@@ -254,7 +254,7 @@ static int qup_i2c_poll_state(struct qup_i2c_dev *dev, unsigned state)
     dprintf(INFO, "Polling Status for state:0x%x\n", state);
 
     while (retries != 2000) {
-        unsigned status = readl(dev->base + QUP_STATE);
+        unsigned status = readl(dev->qup_base + QUP_STATE);
 
         if ((status & (QUP_STATE_VALID | state)) == (QUP_STATE_VALID | state))
             return 0;
@@ -291,23 +291,23 @@ qup_issue_read(struct qup_i2c_dev *dev, struct i2c_msg *msg, int *idx,
 
     if (*idx % 4) {
         writel(carry_over | ((QUP_OUT_START | addr) << 16),
-               dev->base + QUP_OUT_FIFO_BASE);
+               dev->qup_base + QUP_OUT_FIFO_BASE);
 
         qup_verify_fifo(dev, carry_over |
-                        ((QUP_OUT_START | addr) << 16), (unsigned)dev->base
+                        ((QUP_OUT_START | addr) << 16), (unsigned)dev->qup_base
                         + QUP_OUT_FIFO_BASE + (*idx - 2), 1);
-        writel((QUP_OUT_REC | rd_len), dev->base + QUP_OUT_FIFO_BASE);
+        writel((QUP_OUT_REC | rd_len), dev->qup_base + QUP_OUT_FIFO_BASE);
 
         qup_verify_fifo(dev, (QUP_OUT_REC | rd_len),
-                        (unsigned)dev->base + QUP_OUT_FIFO_BASE + (*idx + 2),
+                        (unsigned)dev->qup_base + QUP_OUT_FIFO_BASE + (*idx + 2),
                         1);
     } else {
         writel(((QUP_OUT_REC | rd_len) << 16) |
-               QUP_OUT_START | addr, dev->base + QUP_OUT_FIFO_BASE);
+               QUP_OUT_START | addr, dev->qup_base + QUP_OUT_FIFO_BASE);
 
         qup_verify_fifo(dev, QUP_OUT_REC << 16 | rd_len << 16 |
                         QUP_OUT_START | addr,
-                        (unsigned)dev->base + QUP_OUT_FIFO_BASE + (*idx), 1);
+                        (unsigned)dev->qup_base + QUP_OUT_FIFO_BASE + (*idx), 1);
     }
     *idx += 4;
 }
@@ -326,10 +326,10 @@ qup_issue_write(struct qup_i2c_dev *dev, struct i2c_msg *msg, int rem,
     if (dev->pos == 0) {
         if (*idx % 4) {
             writel(*carry_over | ((QUP_OUT_START | addr) << 16),
-                   dev->base + QUP_OUT_FIFO_BASE);
+                   dev->qup_base + QUP_OUT_FIFO_BASE);
 
             qup_verify_fifo(dev, *carry_over | QUP_OUT_DATA << 16 |
-                            addr << 16, (unsigned)dev->base +
+                            addr << 16, (unsigned)dev->qup_base +
                             QUP_OUT_FIFO_BASE + (*idx) - 2, 0);
         } else
             val = QUP_OUT_START | addr;
@@ -352,10 +352,10 @@ qup_issue_write(struct qup_i2c_dev *dev, struct i2c_msg *msg, int rem,
         if (*idx % 4) {
             writel(val | ((QUP_OUT_DATA |
                            msg->buf[dev->pos]) << 16),
-                   dev->base + QUP_OUT_FIFO_BASE);
+                   dev->qup_base + QUP_OUT_FIFO_BASE);
 
             qup_verify_fifo(dev, val | QUP_OUT_DATA << 16 |
-                            msg->buf[dev->pos] << 16, (unsigned)dev->base +
+                            msg->buf[dev->pos] << 16, (unsigned)dev->qup_base +
                             QUP_OUT_FIFO_BASE + (*idx) - 2, 0);
         } else
             val = QUP_OUT_DATA | msg->buf[dev->pos];
@@ -381,24 +381,24 @@ qup_issue_write(struct qup_i2c_dev *dev, struct i2c_msg *msg, int rem,
                 && *idx == ((dev->wr_sz * 2) - 4)) {
                 writel(((last_entry | msg->buf[dev->pos]) |
                         ((1 | QUP_OUT_NOP) << 16)),
-                       dev->base + QUP_OUT_FIFO_BASE);
+                       dev->qup_base + QUP_OUT_FIFO_BASE);
                 *idx += 2;
             } else
                 *carry_over = (last_entry | msg->buf[dev->pos]);
         } else {
             writel((last_entry | msg->buf[dev->pos]),
-                   dev->base + QUP_OUT_FIFO_BASE);
+                   dev->qup_base + QUP_OUT_FIFO_BASE);
 
             qup_verify_fifo(dev, last_entry | msg->buf[dev->pos],
-                            (unsigned)dev->base + QUP_OUT_FIFO_BASE +
+                            (unsigned)dev->qup_base + QUP_OUT_FIFO_BASE +
                             (*idx), 0);
         }
     } else {
         writel(val | ((last_entry | msg->buf[dev->pos]) << 16),
-               dev->base + QUP_OUT_FIFO_BASE);
+               dev->qup_base + QUP_OUT_FIFO_BASE);
 
         qup_verify_fifo(dev, val | (last_entry << 16) |
-                        (msg->buf[dev->pos] << 16), (unsigned)dev->base +
+                        (msg->buf[dev->pos] << 16), (unsigned)dev->qup_base +
                         QUP_OUT_FIFO_BASE + (*idx) - 2, 0);
     }
 
@@ -411,7 +411,7 @@ static int qup_update_state(struct qup_i2c_dev *dev, unsigned state)
 {
     if (qup_i2c_poll_state(dev, 0) != 0)
         return -EIO;
-    writel(state, dev->base + QUP_STATE);
+    writel(state, dev->qup_base + QUP_STATE);
     if (qup_i2c_poll_state(dev, state) != 0)
         return -EIO;
     return 0;
@@ -425,12 +425,12 @@ static int qup_set_read_mode(struct qup_i2c_dev *dev, int rd_len)
         return -EPROTONOSUPPORT;
     }
     if (rd_len <= dev->in_fifo_sz) {
-        writel(wr_mode | QUP_PACK_EN | QUP_UNPACK_EN, dev->base + QUP_IO_MODE);
-        writel(rd_len, dev->base + QUP_MX_READ_CNT);
+        writel(wr_mode | QUP_PACK_EN | QUP_UNPACK_EN, dev->qup_base + QUP_IO_MODE);
+        writel(rd_len, dev->qup_base + QUP_MX_READ_CNT);
     } else {
         writel(wr_mode | QUP_RD_BLK_MODE |
-               QUP_PACK_EN | QUP_UNPACK_EN, dev->base + QUP_IO_MODE);
-        writel(rd_len, dev->base + QUP_MX_INPUT_CNT);
+               QUP_PACK_EN | QUP_UNPACK_EN, dev->qup_base + QUP_IO_MODE);
+        writel(rd_len, dev->qup_base + QUP_MX_INPUT_CNT);
     }
     return 0;
 }
@@ -442,10 +442,10 @@ static int qup_set_wr_mode(struct qup_i2c_dev *dev, int rem)
     if (dev->msg->len >= (dev->out_fifo_sz - 1)) {
         total_len = dev->msg->len + 1 + (dev->msg->len / (dev->out_blk_sz - 1));
         writel(QUP_WR_BLK_MODE | QUP_PACK_EN | QUP_UNPACK_EN,
-               dev->base + QUP_IO_MODE);
+               dev->qup_base + QUP_IO_MODE);
         dev->wr_sz = dev->out_blk_sz;
     } else
-        writel(QUP_PACK_EN | QUP_UNPACK_EN, dev->base + QUP_IO_MODE);
+        writel(QUP_PACK_EN | QUP_UNPACK_EN, dev->qup_base + QUP_IO_MODE);
 
     if (rem > 1) {
         struct i2c_msg *next = dev->msg + 1;
@@ -460,7 +460,7 @@ static int qup_set_wr_mode(struct qup_i2c_dev *dev, int rem)
     }
     /* WRITE COUNT register valid/used only in block mode */
     if (dev->wr_sz == dev->out_blk_sz)
-        writel(total_len, dev->base + QUP_MX_WR_CNT);
+        writel(total_len, dev->qup_base + QUP_MX_WR_CNT);
     return ret;
 }
 
@@ -488,12 +488,12 @@ int qup_i2c_xfer(struct qup_i2c_dev *dev, struct i2c_msg msgs[], int num)
         unsigned fifo_reg;
         /* Configure the GSBI Protocol Code for i2c */
         writel((GSBI_PROTOCOL_CODE_I2C <<
-                GSBI_CTRL_REG_PROTOCOL_CODE_S), dev->base);
+                GSBI_CTRL_REG_PROTOCOL_CODE_S), dev->gsbi_base);
 
         fs_div = ((dev->src_clk_freq / dev->clk_freq) / 2) - 3;
         hs_div = 3;
         dev->clk_ctl = ((hs_div & 0x7) << 8) | (fs_div & 0xff);
-        fifo_reg = readl(dev->base + QUP_IO_MODE);
+        fifo_reg = readl(dev->qup_base + QUP_IO_MODE);
         if (fifo_reg & 0x3)
             dev->out_blk_sz = (fifo_reg & 0x3) * 16;
         else
@@ -516,7 +516,7 @@ int qup_i2c_xfer(struct qup_i2c_dev *dev, struct i2c_msg msgs[], int num)
     }
 
     unmask_interrupt(dev->qup_irq);
-    writel(1, dev->base + QUP_SW_RESET);
+    writel(1, dev->qup_base + QUP_SW_RESET);
     ret = qup_i2c_poll_state(dev, QUP_RESET_STATE);
     if (ret) {
         dprintf(INFO, "QUP Busy:Trying to recover\n");
@@ -524,15 +524,15 @@ int qup_i2c_xfer(struct qup_i2c_dev *dev, struct i2c_msg msgs[], int num)
     }
 
     /* Initialize QUP registers */
-    writel(0, dev->base + QUP_CONFIG);
-    writel(QUP_OPERATIONAL_RESET, dev->base + QUP_OPERATIONAL);
-    writel(QUP_STATUS_ERROR_FLAGS, dev->base + QUP_ERROR_FLAGS_EN);
+    writel(0, dev->qup_base + QUP_CONFIG);
+    writel(QUP_OPERATIONAL_RESET, dev->qup_base + QUP_OPERATIONAL);
+    writel(QUP_STATUS_ERROR_FLAGS, dev->qup_base + QUP_ERROR_FLAGS_EN);
 
-    writel(I2C_MINI_CORE | I2C_N_VAL, dev->base + QUP_CONFIG);
+    writel(I2C_MINI_CORE | I2C_N_VAL, dev->qup_base + QUP_CONFIG);
 
     /* Initialize I2C mini core registers */
-    writel(0, dev->base + QUP_I2C_CLK_CTL);
-    writel(QUP_I2C_STATUS_RESET, dev->base + QUP_I2C_STATUS);
+    writel(0, dev->qup_base + QUP_I2C_CLK_CTL);
+    writel(QUP_I2C_STATUS_RESET, dev->qup_base + QUP_I2C_STATUS);
 
     dev->cnt = msgs->len;
     dev->pos = 0;
@@ -570,7 +570,7 @@ int qup_i2c_xfer(struct qup_i2c_dev *dev, struct i2c_msg msgs[], int num)
         }
 
         qup_print_status(dev);
-        writel(dev->clk_ctl, dev->base + QUP_I2C_CLK_CTL);
+        writel(dev->clk_ctl, dev->qup_base + QUP_I2C_CLK_CTL);
 
         do {
             int idx = 0;
@@ -637,11 +637,11 @@ int qup_i2c_xfer(struct qup_i2c_dev *dev, struct i2c_msg msgs[], int num)
                 int i;
                 unsigned dval = 0;
                 for (i = 0; dev->pos < dev->msg->len; i++, dev->pos++) {
-                    unsigned rd_status = readl(dev->base + QUP_OPERATIONAL);
+                    unsigned rd_status = readl(dev->qup_base + QUP_OPERATIONAL);
                     if (i % 2 == 0) {
                         if ((rd_status & QUP_IN_NOT_EMPTY) == 0)
                             break;
-                        dval = readl(dev->base + QUP_IN_FIFO_BASE);
+                        dval = readl(dev->qup_base + QUP_IN_FIFO_BASE);
                         dev->msg->buf[dev->pos] = dval & 0xFF;
                     } else
                         dev->msg->buf[dev->pos] = ((dval & 0xFF0000) >> 16);
@@ -679,7 +679,7 @@ out_err:
 
 static int set_gsbi_number(struct qup_i2c_dev *dev)
 {
-    switch (dev->base) {
+    switch (dev->qup_base) {
     case GSBI1_QUP_BASE:
         dev->gsbi_number = 1;
         break;
@@ -724,7 +724,7 @@ static int set_gsbi_number(struct qup_i2c_dev *dev)
 
 static int set_qup_irq(struct qup_i2c_dev *dev)
 {
-    switch (dev->base) {
+    switch (dev->qup_base) {
     case GSBI1_QUP_BASE:
         dev->qup_irq = GSBI1_QUP_IRQ;
         break;
@@ -793,7 +793,8 @@ struct qup_i2c_dev *qup_i2c_init(unsigned base,
     /* Set the base address for GSBIn QUP The reason we add 0x80000 is to make
        the GSBIn base address be the GSBIn QUP base address, which is what the
        i2c driver wants. */
-    dev->base = base + 0x80000;
+    dev->gsbi_base = base;
+    dev->qup_base = base + 0x80000;
 
     /* Set clk_freq and src_clk_freq for i2c. */
     dev->clk_freq = clk_freq;
