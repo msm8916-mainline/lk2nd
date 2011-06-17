@@ -1,4 +1,4 @@
-/* Copyright (c) 2010, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -29,35 +29,24 @@
 #ifndef _TARGET_MSM8960_DISPLAY_H
 #define _TARGET_MSM8960_DISPLAY_H
 
-#define TARGET_XRES 1024
-#define TARGET_YRES 600
+#define MIPI_FB_ADDR  0x80B00000
 
-#define LCDC_FB_WIDTH     1024
-#define LCDC_FB_HEIGHT    600
+/* Toshiba MDT61 Mipi Panel */
+/* Unique to this panel, display width is 800, image is 600 */
+#define TSH_MDT61_DISPLAY_WIDTH      800
+#define TSH_MDT61_MIPI_FB_WIDTH      (TSH_MDT61_DISPLAY_WIDTH - 200)
+#define TSH_MDT61_MIPI_FB_HEIGHT     1024
 
-#define LCDC_HSYNC_PULSE_WIDTH_DCLK 32
-#define LCDC_HSYNC_BACK_PORCH_DCLK  80
-#define LCDC_HSYNC_FRONT_PORCH_DCLK 48
-#define LCDC_HSYNC_SKEW_DCLK        0
+#define MIPI_HSYNC_PULSE_WIDTH       8
+#define MIPI_HSYNC_BACK_PORCH_DCLK   16
+#define MIPI_HSYNC_FRONT_PORCH_DCLK  23
 
-#define LCDC_VSYNC_PULSE_WIDTH_LINES 1
-#define LCDC_VSYNC_BACK_PORCH_LINES  4
-#define LCDC_VSYNC_FRONT_PORCH_LINES 3
+#define MIPI_VSYNC_PULSE_WIDTH       2
+#define MIPI_VSYNC_BACK_PORCH_LINES  2
+#define MIPI_VSYNC_FRONT_PORCH_LINES 7
 
-/* Toshiba MIPI panel */
-#define TSH_MIPI_FB_WIDTH            480
-#define TSH_MIPI_FB_HEIGHT           854
-
-/* NOVATEK MIPI panel */
-#define NOV_MIPI_FB_WIDTH            540
-#define NOV_MIPI_FB_HEIGHT           960
-
-#define MIPI_HSYNC_PULSE_WIDTH       50
-#define MIPI_HSYNC_BACK_PORCH_DCLK   500
-#define MIPI_HSYNC_FRONT_PORCH_DCLK  500
-
-#define MIPI_VSYNC_PULSE_WIDTH       5
-#define MIPI_VSYNC_BACK_PORCH_LINES  20
-#define MIPI_VSYNC_FRONT_PORCH_LINES 20
+extern int mipi_dsi_phy_init(struct mipi_dsi_panel_config *);
+extern void mdp_setup_mdt61_video_dsi_config(void);
+extern void config_mdt61_dsi_video_mode(void);
 
 #endif

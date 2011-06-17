@@ -32,10 +32,16 @@
 #include <reg.h>
 #include <platform/iomap.h>
 #include <uart_dm.h>
+#include <dev/fbcon.h>
 
 extern void platform_init_timer(void);
 extern void platform_init_interrupts(void);
-
+extern void mipi_panel_reset(void);
+extern void mipi_dsi_panel_power_on(void);
+extern void mdp_clock_init(void);
+extern void mmss_clock_init(void);
+extern struct fbcon_config *mipi_init(void);
+extern void mipi_dsi_shutdown(void);
 
 void platform_early_init(void)
 {
@@ -47,4 +53,22 @@ void platform_early_init(void)
 void platform_init(void)
 {
     dprintf(INFO, "platform_init()\n");
+}
+
+void display_init(void){
+    struct fbcon_config *fb_cfg;
+
+    mipi_dsi_panel_power_on();
+    mipi_panel_reset();
+
+    mdp_clock_init();
+    mmss_clock_init();
+
+    fb_cfg = mipi_init();
+    fbcon_setup(fb_cfg);
+}
+
+void display_shutdown(void)
+{
+    mipi_dsi_shutdown();
 }

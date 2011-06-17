@@ -26,7 +26,6 @@
  * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 #ifndef __PLATFORM_MSM8960_CLOCK_H
 #define __PLATFORM_MSM8960_CLOCK_H
 
@@ -49,5 +48,58 @@
 void hsusb_clock_init(void);
 void clock_config_uart_dm(uint8_t id);
 void clock_config_i2c(uint8_t id, uint32_t freq);
+
+#define REG_MM(off)     (MSM_MMSS_CLK_CTL_BASE + (off))
+
+#define MDP_CC_REG              REG_MM(0xC0)
+#define MDP_MD_REG              REG_MM(0xC4)
+#define MDP_NS_REG              REG_MM(0xD0)
+#define ESC_CC_REG              REG_MM(0xCC)
+#define ESC_NS_REG              REG_MM(0x11C)
+#define BYTE_CC_REG             REG_MM(0x90)
+#define BYTE_NS_REG             REG_MM(0xB0)
+#define PIXEL_CC_REG            REG_MM(0x130)
+#define PIXEL_MD_REG            REG_MM(0x134)
+#define PIXEL_NS_REG            REG_MM(0x138)
+#define DSI_NS_REG              REG_MM(0x54)
+#define DSI_MD_REG              REG_MM(0x50)
+#define DSI_CC_REG              REG_MM(0x4C)
+#define MDP_LUT_CC_REG          REG_MM(0x016C)
+
+#define MM_PLL1_MODE_REG        REG_MM(0x031C)
+#define MM_PLL1_STATUS_REG      REG_MM(0x0334)
+#define MM_PLL1_CONFIG_REG      REG_MM(0x032C)
+
+/* Configured for 200MHz */
+#define MDP_NS_VAL            0x3F3FC008
+#define MDP_MD_VAL            0x000001FB
+#define MDP_CC_VAL            0x00000500
+
+/* Configured at 13.5 MHz */
+#define ESC_NS_VAL            0x00001000
+#define ESC_CC_VAL            0x00000004
+
+#define BYTE_NS_VAL           0x00000001
+#define BYTE_CC_VAL           0x00000004
+
+#define PIXEL_NS_VAL          0x00F80003
+#define PIXEL_MD_VAL          0x000001FB
+#define PIXEL_CC_VAL          0x00000080
+
+#define DSI_NS_VAL            0xFA000003
+#define DSI_MD_VAL            0x000003FB
+#define DSI_CC_VAL            0x00000080
+
+#define MDP_LUT_VAL           0x00000001
+
+void config_mmss_clk(  uint32_t ns,
+        uint32_t md,
+        uint32_t cc,
+        uint32_t ns_addr,
+        uint32_t md_addr,
+        uint32_t cc_addr);
+void pll1_enable(void);
+void config_mdp_lut_clk(void);
+void mdp_clock_init(void);
 
 #endif

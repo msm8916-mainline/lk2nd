@@ -33,8 +33,7 @@
 #include <dev/fbcon.h>
 #include <target/display.h>
 #include <stdlib.h>
-
-#define MIPI_FB_ADDR  0x43E00000
+#include <debug.h>
 
 #if DISPLAY_MIPI_PANEL_TOSHIBA
 static struct fbcon_config mipi_fb_cfg = {
@@ -46,6 +45,13 @@ static struct fbcon_config mipi_fb_cfg = {
     .update_start = NULL,
     .update_done = NULL,
 };
+struct mipi_dsi_panel_config toshiba_panel_info = {
+    .mode = MIPI_VIDEO_MODE,
+    .num_of_lanes = 1,
+    .dsi_phy_config = &mipi_dsi_toshiba_panel_phy_ctrl,
+    .panel_cmds = toshiba_panel_video_mode_cmds,
+    .num_of_panel_cmds = ARRAY_SIZE(toshiba_panel_video_mode_cmds),
+};
 #elif DISPLAY_MIPI_PANEL_NOVATEK_BLUE
 static struct fbcon_config mipi_fb_cfg = {
     .height = NOV_MIPI_FB_HEIGHT,
@@ -55,6 +61,30 @@ static struct fbcon_config mipi_fb_cfg = {
     .bpp = 24,
     .update_start = NULL,
     .update_done = NULL,
+};
+struct mipi_dsi_panel_config novatek_panel_info = {
+    .mode = MIPI_CMD_MODE,
+    .num_of_lanes = 2,
+    .dsi_phy_config = &mipi_dsi_novatek_panel_phy_ctrl,
+    .panel_cmds = novatek_panel_cmd_mode_cmds,
+    .num_of_panel_cmds = ARRAY_SIZE(novatek_panel_cmd_mode_cmds),
+};
+#elif DISPLAY_MIPI_PANEL_TOSHIBA_MDT61
+static struct fbcon_config mipi_fb_cfg = {
+    .height = TSH_MDT61_MIPI_FB_HEIGHT,
+    .width = TSH_MDT61_MIPI_FB_WIDTH,
+    .stride = TSH_MDT61_MIPI_FB_WIDTH,
+    .format = FB_FORMAT_RGB888,
+    .bpp = 24,
+    .update_start = NULL,
+    .update_done = NULL,
+};
+struct mipi_dsi_panel_config toshiba_mdt61_panel_info = {
+    .mode = MIPI_VIDEO_MODE,
+    .num_of_lanes = 3,
+    .dsi_phy_config = &mipi_dsi_toshiba_mdt61_panel_phy_ctrl,
+    .panel_cmds = toshiba_mdt61_video_mode_cmds,
+    .num_of_panel_cmds = ARRAY_SIZE(toshiba_mdt61_video_mode_cmds),
 };
 #else
 static struct fbcon_config mipi_fb_cfg = {
@@ -108,14 +138,13 @@ void configure_dsicore_pclk(void)
     clk_en = 1;
     secure_writel(mnd_mode << 6, MMSS_DSI_PIXEL_CC);
     secure_writel(secure_readl(MMSS_DSI_PIXEL_CC) | root_en << 2,
-		  MMSS_DSI_PIXEL_CC);
+                  MMSS_DSI_PIXEL_CC);
     secure_writel(secure_readl(MMSS_DSI_PIXEL_CC) | clk_en,
-		  MMSS_DSI_PIXEL_CC);
+                  MMSS_DSI_PIXEL_CC);
 }
 
 int mipi_dsi_phy_ctrl_config(struct mipi_dsi_panel_config *pinfo)
 {
-
     unsigned i;
     unsigned off = 0;
     struct mipi_dsi_phy_ctrl *pd;
@@ -173,9 +202,10 @@ struct mipi_dsi_panel_config *get_panel_info(void)
     return &toshiba_panel_info;
 #elif DISPLAY_MIPI_PANEL_NOVATEK_BLUE
     return &novatek_panel_info;
+#elif DISPLAY_MIPI_PANEL_TOSHIBA_MDT61
+    return &toshiba_mdt61_panel_info;
 #endif
     return NULL;
-
 }
 
 int dsi_cmd_dma_trigger_for_panel()
@@ -193,14 +223,14 @@ int dsi_cmd_dma_trigger_for_panel()
         count++;
         if (count > 0xffff) {
             status = FAIL;
-            printf("\n\nThis command mode dma test is failed");
+            dprintf(CRITICAL, "Panel CMD: command mode dma test failed\n");
             return status;
         }
     }
 
     writel((readl(DSI_INT_CTRL) | 0x01000001), DSI_INT_CTRL);
-    printf
-        ("\n\nThis command mode is tested successfully, continue on next command mode test");
+    dprintf
+        (SPEW, "Panel CMD: command mode dma tested successfully\n");
     return status;
 }
 
@@ -343,9 +373,10 @@ int mipi_dsi_panel_initialize(struct mipi_dsi_panel_config *pinfo)
     writel(0x0001, DSI_SOFT_RESET);
     writel(0x0000, DSI_SOFT_RESET);
 
-    writel((0 << 16) | 0x3f, DSI_CLK_CTRL); // reg:0x118
+    writel((0 << 16) | 0x3f, DSI_CLK_CTRL);    /* Turn on all DSI Clks */
     writel(DMA_STREAM1 << 8 | 0x04, DSI_TRIG_CTRL); // reg 0x80 dma trigger: sw
     // trigger 0x4; dma stream1
+
     writel(0 << 30 | DLNx_EN << 4 | 0x105, DSI_CTRL);   // reg 0x00 for this
     // build
     writel(EMBED_MODE1 << 28 | POWER_MODE2 << 26
@@ -357,6 +388,7 @@ int mipi_dsi_panel_initialize(struct mipi_dsi_panel_config *pinfo)
     return status;
 }
 
+//TODO: Clean up arguments being passed in not being used
 int config_dsi_video_mode(unsigned short disp_width, unsigned short disp_height,
                           unsigned short img_width, unsigned short img_height,
                           unsigned short hsync_porch0_fp,
@@ -396,13 +428,13 @@ int config_dsi_video_mode(unsigned short disp_width, unsigned short disp_height,
     writel(0, DSI_ERR_INT_MASK0);
 
     DST_FORMAT = 0;             // RGB565
-    printf("\nDSI_Video_Mode - Dst Format: RGB565");
+    dprintf(SPEW, "DSI_Video_Mode - Dst Format: RGB565\n");
 
     DLNx_EN = 1;                // 1 lane with clk programming
-    printf("\nData Lane: 1 lane\n");
+    dprintf(SPEW, "Data Lane: 1 lane\n");
 
     TRAFIC_MODE = 0;            // non burst mode with sync pulses
-    printf("\nTraffic mode: non burst mode with sync pulses\n");
+    dprintf(SPEW, "Traffic mode: non burst mode with sync pulses\n");
 
     writel(0x02020202, DSI_INT_CTRL);
 
@@ -479,13 +511,13 @@ int config_dsi_cmd_mode(unsigned short disp_width, unsigned short disp_height,
     // writel(0, DSI_ERR_INT_MASK0);
 
     DST_FORMAT = 8;             // RGB888
-    printf("\nDSI_Cmd_Mode - Dst Format: RGB888");
+    dprintf(SPEW, "DSI_Cmd_Mode - Dst Format: RGB888\n");
 
     DLNx_EN = 3;                // 2 lane with clk programming
-    printf("\nData Lane: 2 lane\n");
+    dprintf(SPEW, "Data Lane: 2 lane\n");
 
     TRAFIC_MODE = 0;            // non burst mode with sync pulses
-    printf("\nTraffic mode: non burst mode with sync pulses\n");
+    dprintf(SPEW, "Traffic mode: non burst mode with sync pulses\n");
 
     writel(0x02020202, DSI_INT_CTRL);
 
@@ -516,6 +548,40 @@ int config_dsi_cmd_mode(unsigned short disp_width, unsigned short disp_height,
     return status;
 }
 
+void mdp_setup_dma_p_video_config(unsigned short pack_pattern,
+                                    unsigned short img_width,
+                                    unsigned short img_height,
+                                    unsigned long input_img_addr,
+                                    unsigned short img_width_full_size,
+                                    unsigned char ystride){
+    dprintf(SPEW, "MDP4.2 Setup for DSI Video Mode\n");
+
+    // ----- programming MDP_AXI_RDMASTER_CONFIG --------
+    /* MDP_AXI_RDMASTER_CONFIG set all master to read from AXI port 0, that's
+       the only port connected */
+    //TODO: Seems to still work without this
+    writel(0x00290000, MDP_AXI_RDMASTER_CONFIG);
+    writel(0x00000004, MDP_AXI_WRMASTER_CONFIG);
+    writel(0x00007777, MDP_MAX_RD_PENDING_CMD_CONFIG);
+
+   /* Set up CMD_INTF_SEL, VIDEO_INTF_SEL, EXT_INTF_SEL, SEC_INTF_SEL, PRIM_INTF_SEL */
+   writel(0x00000049, MDP_DISP_INTF_SEL);
+
+   /* DMA P */
+   writel(0x0000000b, MDP_OVERLAYPROC0_CFG);
+
+   /* RGB 888 */
+   writel(pack_pattern << 8 | 0xbf | (0 << 25), MDP_DMA_P_CONFIG);
+
+   writel(0x0, MDP_DMA_P_OUT_XY);
+
+   writel(img_height << 16 | img_width, MDP_DMA_P_SIZE);
+
+   writel(input_img_addr, MDP_DMA_P_BUF_ADDR);
+
+   writel(img_width_full_size * ystride, MDP_DMA_P_BUF_Y_STRIDE);
+}
+
 int mdp_setup_dma_p_video_mode(unsigned short disp_width,
                                unsigned short disp_height,
                                unsigned short img_width,
@@ -538,7 +604,7 @@ int mdp_setup_dma_p_video_mode(unsigned short disp_width,
     unsigned long vsync_period;
     unsigned long vsync_period_intmd;
 
-    printf("\nHi setup MDP4.1 for DSI Video Mode\n");
+    dprintf(SPEW, "Hi setup MDP4.1 for DSI Video Mode\n");
 
     hsync_period = img_width + hsync_porch0_fp + hsync_porch0_bp + 1;
     vsync_period_intmd = img_height + vsync_porch0_fp + vsync_porch0_bp + 1;
@@ -550,6 +616,7 @@ int mdp_setup_dma_p_video_mode(unsigned short disp_width,
     writel(0x00290000, MDP_AXI_RDMASTER_CONFIG);
     writel(0x00000004, MDP_AXI_WRMASTER_CONFIG);
     writel(0x00007777, MDP_MAX_RD_PENDING_CMD_CONFIG);
+    /* sets PRIM_INTF_SEL to 0x1 and SEC_INTF_SEL to 0x2 and DSI_VIDEO_INTF_SEL*/
     writel(0x00000049, MDP_DISP_INTF_SEL);
     writel(0x0000000b, MDP_OVERLAYPROC0_CFG);
 
@@ -603,7 +670,7 @@ int mipi_dsi_video_config(unsigned short num_of_lanes)
     unsigned short vsync_width = MIPI_VSYNC_PULSE_WIDTH;
     unsigned short dst_format = 0;
     unsigned short traffic_mode = 0;
-    unsigned short pack_pattern = 0x12;
+    unsigned short pack_pattern = 0x12; //BGR
     unsigned char ystride = 3;
 
     low_pwr_stop_mode = 0x1111; // low pwr mode bit16:HSA, bit20:HBA,
@@ -612,6 +679,14 @@ int mipi_dsi_video_config(unsigned short num_of_lanes)
     eof_bllp_pwr = 0x9;         // low power stop mode or let cmd mode eng send
     // packets in hs or lp mode
 
+#if DISPLAY_MIPI_PANEL_TOSHIBA_MDT61
+    pack_pattern = 0x21; //RGB
+    config_mdt61_dsi_video_mode();
+
+    /* Two functions make up mdp_setup_dma_p_video_mode with mdt61 panel functions*/
+    mdp_setup_dma_p_video_config(pack_pattern, image_wd, image_ht, MIPI_FB_ADDR, image_wd, ystride);
+    mdp_setup_mdt61_video_dsi_config();
+#else
     status += config_dsi_video_mode(display_wd, display_ht, image_wd, image_ht,
                                     hsync_porch_fp, hsync_porch_bp,
                                     vsync_porch_fp, vsync_porch_bp, hsync_width,
@@ -624,6 +699,7 @@ int mipi_dsi_video_config(unsigned short num_of_lanes)
                                    vsync_porch_fp, vsync_porch_bp, hsync_width,
                                    vsync_width, MIPI_FB_ADDR, image_wd,
                                    pack_pattern, ystride);
+#endif
 
     ReadValue = readl(DSI_INT_CTRL) & 0x00010000;
     while (ReadValue != 0x00010000) {
@@ -631,12 +707,12 @@ int mipi_dsi_video_config(unsigned short num_of_lanes)
         count++;
         if (count > 0xffff) {
             status = FAIL;
-            printf("\nToshiba Video 565 pulse 1 lane test is failed\n");
+            dprintf(CRITICAL, "Toshiba Video lane test failed\n");
             return status;
         }
     }
 
-    printf("\nToshiba Video 565 pulse 1 lane is tested successfully \n");
+    dprintf(SPEW, "Toshiba Video lane tested successfully\n");
     return status;
 }
 
@@ -680,6 +756,7 @@ int is_cmd_mode_enabled(void)
     return cmd_mode_status;
 }
 
+#if DISPLAY_MIPI_PANEL_NOVATEK_BLUE
 void mipi_dsi_cmd_mode_trigger(void)
 {
     int status = 0;
@@ -696,6 +773,7 @@ void mipi_dsi_cmd_mode_trigger(void)
                         dst_format, traffic_mode,
                         panel_info->num_of_lanes /* num_of_lanes */ );
 }
+#endif
 
 void mipi_dsi_shutdown(void)
 {
@@ -708,20 +786,34 @@ void mipi_dsi_shutdown(void)
     writel(0, DSIPHY_PLL_CTRL_0);
     writel(0, DSI_CLK_CTRL);
     writel(0, DSI_CTRL);
+#if DISPLAY_MIPI_PANEL_TOSHIBA_MDT61
+    writel(0x0, MMSS_DSI_CC);
+    writel(0x0, MMSS_DSI_PIXEL_CC);
+#else
     secure_writel(0x0, MMSS_DSI_CC);
     secure_writel(0x0, MMSS_DSI_PIXEL_CC);
+#endif
 }
 
 struct fbcon_config *mipi_init(void)
 {
     int status = 0;
     struct mipi_dsi_panel_config *panel_info = get_panel_info();
+    /* Enable MMSS_AHB_ARB_MATER_PORT_E for arbiter master0 and master 1 request */
     writel(0x00001800, MMSS_SFPB_GPREG);
+
+#if DISPLAY_MIPI_PANEL_TOSHIBA_MDT61
+    mipi_dsi_phy_init(panel_info);
+#else
     configure_dsicore_dsiclk();
     configure_dsicore_byteclk();
     configure_dsicore_pclk();
+
     mipi_dsi_phy_ctrl_config(panel_info);
+#endif
+
     status += mipi_dsi_panel_initialize(panel_info);
+
 #if DISPLAY_MIPI_PANEL_NOVATEK_BLUE
     mipi_dsi_cmd_bta_sw_trigger();
     mipi_novatek_manufacture_id();

@@ -229,8 +229,10 @@ void display_image_on_screen(void)
 	}
     }
     fbcon_flush();
+#if DISPLAY_MIPI_PANEL_NOVATEK_BLUE
     if(is_cmd_mode_enabled())
         mipi_dsi_cmd_mode_trigger();
+#endif
 
 #else
     if (bytes_per_bpp == 2)
