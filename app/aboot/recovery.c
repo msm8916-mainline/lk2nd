@@ -39,6 +39,11 @@
 
 #include "recovery.h"
 #include "bootimg.h"
+#include "smem.h"
+
+#define BOOT_FLAGS	1
+#define UPDATE_STATUS	2
+#define ROUND_TO_PAGE(x,y) (((x) + (y)) & (~(y)))
 
 static const int MISC_PAGES = 3;			// number of pages to save
 static const int MISC_COMMAND_PAGE = 1;		// bootloader command is this page
@@ -46,6 +51,7 @@ static char buf[4096];
 unsigned boot_into_recovery = 0;
 
 void reboot_device(unsigned);
+extern int target_is_emmc_boot(void);
 
 int get_recovery_message(struct recovery_message *out)
 {
@@ -188,6 +194,62 @@ int update_firmware_image (struct update_header *header, char *name)
 	return 0;
 }
 
+static int set_ssd_radio_update (char *name)
+{
+	struct ptentry *ptn;
+	struct ptable *ptable;
+	unsigned int ssd_cookie[2] = {0x53534443, 0x4F4F4B49};
+	unsigned pagesize = flash_page_size();
+	unsigned pagemask = pagesize -1;
+	unsigned n = 0;
+
+	ptable = flash_get_ptable();
+	if (ptable == NULL) {
+		dprintf(CRITICAL, "ERROR: Partition table not found\n");
+		return -1;
+	}
+
+	n = (sizeof(ssd_cookie) + pagemask) & (~pagemask);
+
+	ptn = ptable_find(ptable, name);
+	if (ptn == NULL) {
+		dprintf(CRITICAL, "ERROR: No %s partition found\n", name);
+		return -1;
+	}
+
+	if (flash_write(ptn, 0, ssd_cookie, n)) {
+		dprintf(CRITICAL, "ERROR: flash write fail!\n");
+		return -1;
+	}
+
+	dprintf(INFO, "FOTA partition written successfully!");
+	return 0;
+}
+
+int get_boot_info_apps (char type, unsigned int *status)
+{
+	boot_info_for_apps apps_boot_info;
+	int ret = 0;
+
+	ret = smem_read_alloc_entry(SMEM_BOOT_INFO_FOR_APPS,
+			&apps_boot_info, sizeof(apps_boot_info));
+	if (ret)
+	{
+		dprintf(CRITICAL, "ERROR: unable to read shared memory for apps boot info %d\n",ret);
+		return ret;
+	}
+
+	dprintf(INFO,"boot flag %x update status %x\n",apps_boot_info.boot_flags,
+			apps_boot_info.status.update_status);
+
+	if(type == BOOT_FLAGS)
+		*status = apps_boot_info.boot_flags;
+	else if(type == UPDATE_STATUS)
+		*status = apps_boot_info.status.update_status;
+
+	return ret;
+}
+
 /* Bootloader / Recovery Flow
  *
  * On every boot, the bootloader will read the recovery_message
@@ -225,6 +287,7 @@ int recovery_init (void)
 	struct update_header header;
 	char partition_name[32];
 	unsigned valid_command = 0;
+	int update_status = 0;
 
 	// get recovery message
 	if(get_recovery_message(&msg))
@@ -234,7 +297,29 @@ int recovery_init (void)
 	}
 	msg.command[sizeof(msg.command)-1] = '\0'; //Ensure termination
 
-	if (!strcmp("boot-recovery",msg.command)) {
+	if (!strcmp("boot-recovery",msg.command))
+	{
+		if(!strcmp("RADIO",msg.status))
+		{
+			/* We're now here due to radio update, so check for update status */
+			int ret = get_boot_info_apps(UPDATE_STATUS, &update_status);
+
+			if(!ret && (update_status & 0x01))
+			{
+				dprintf(INFO,"radio update success\n");
+				strcpy(msg.status, "OKAY");
+			}
+			else
+			{
+				dprintf(INFO,"radio update failed\n");
+				strcpy(msg.status, "failed-update");
+			}
+			strcpy(msg.command, "");	// clearing recovery command
+			set_recovery_message(&msg);	// send recovery message
+			boot_into_recovery = 1;		// Boot in recovery mode
+			return 0;
+		}
+
 		valid_command = 1;
 		strcpy(msg.command, "");	// to safe against multiple reboot into recovery
 		strcpy(msg.status, "OKAY");
@@ -244,6 +329,7 @@ int recovery_init (void)
 	}
 
 	if (!strcmp("update-radio",msg.command)) {
+		dprintf(INFO,"start radio update\n");
 		valid_command = 1;
 		strcpy(partition_name, "FOTA");
 	}
@@ -255,6 +341,7 @@ int recovery_init (void)
 		return 0; // Boot in normal mode
 	}
 
+#ifdef OLD_FOTA_UPGRADE
 	if (read_update_header_for_bootloader(&header)) {
 		strcpy(msg.status, "invalid-update");
 		goto SEND_RECOVERY_MSG;
@@ -264,12 +351,103 @@ int recovery_init (void)
 		strcpy(msg.status, "failed-update");
 		goto SEND_RECOVERY_MSG;
 	}
+#else
+	if (set_ssd_radio_update(partition_name)) {
+		/* If writing to FOTA partition fails */
+		strcpy(msg.command, "");
+		strcpy(msg.status, "failed-update");
+		goto SEND_RECOVERY_MSG;
+	}
+	else {
+		/* Setting this to check the radio update status */
+		strcpy(msg.command, "boot-recovery");
+		strcpy(msg.status, "RADIO");
+		goto SEND_RECOVERY_MSG;
+	}
+#endif
 	strcpy(msg.status, "OKAY");
 
 SEND_RECOVERY_MSG:
-	strcpy(msg.command, "boot-recovery");
 	set_recovery_message(&msg);	// send recovery message
 	boot_into_recovery = 1;		// Boot in recovery mode
 	reboot_device(0);
+	return 0;
+}
+
+static int emmc_set_recovery_msg(struct recovery_message *out)
+{
+	char *ptn_name = "misc";
+	unsigned long long ptn = 0;
+	unsigned int size = ROUND_TO_PAGE(sizeof(*out),511);
+	unsigned char data[size];
+
+	ptn = mmc_ptn_offset(ptn_name);
+	if(ptn == 0) {
+		dprintf(CRITICAL,"partition %s doesn't exist\n",ptn_name);
+		return -1;
+	}
+	memcpy(data, out, sizeof(*out));
+	if (mmc_write(ptn , size, (unsigned int*)data)) {
+		dprintf(CRITICAL,"mmc write failure %s %d\n",ptn_name, sizeof(*out));
+		return -1;
+	}
+	return 0;
+}
+
+static int emmc_get_recovery_msg(struct recovery_message *in)
+{
+	char *ptn_name = "misc";
+	unsigned long long ptn = 0;
+	unsigned int size = ROUND_TO_PAGE(sizeof(*in),511);
+	unsigned char data[size];
+
+	ptn = mmc_ptn_offset(ptn_name);
+	if(ptn == 0) {
+		dprintf(CRITICAL,"partition %s doesn't exist\n",ptn_name);
+		return -1;
+	}
+	if (mmc_read(ptn , (unsigned int*)data, size)) {
+		dprintf(CRITICAL,"mmc read failure %s %d\n",ptn_name, size);
+		return -1;
+	}
+	memcpy(in, data, sizeof(*in));
+	return 0;
+}
+
+int _emmc_recovery_init(void)
+{
+	int update_status = 0;
+	struct recovery_message msg;
+
+	// get recovery message
+	if(emmc_get_recovery_msg(&msg))
+		return -1;
+	if (msg.command[0] != 0 && msg.command[0] != 255) {
+		dprintf(INFO,"Recovery command: %d %s\n", sizeof(msg.command), msg.command);
+	}
+	msg.command[sizeof(msg.command)-1] = '\0'; //Ensure termination
+
+	if (!strcmp("update-radio",msg.command))
+	{
+		/* We're now here due to radio update, so check for update status */
+		int ret = get_boot_info_apps(UPDATE_STATUS, &update_status);
+
+		if(!ret && (update_status & 0x01))
+		{
+			dprintf(INFO,"radio update success\n");
+			strcpy(msg.status, "OKAY");
+		}
+		else
+		{
+			dprintf(INFO,"radio update failed\n");
+			strcpy(msg.status, "failed-update");
+		}
+	}
+	else
+		return 0;	// do nothing
+
+	strcpy(msg.command, "");	// clearing recovery command
+	emmc_set_recovery_msg(&msg);	// send recovery message
+	boot_into_recovery = 1;		// Boot in recovery mode
 	return 0;
 }

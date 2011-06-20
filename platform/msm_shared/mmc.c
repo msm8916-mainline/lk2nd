@@ -2563,6 +2563,9 @@ static void mbr_fill_name (struct mbr_entry *mbr_ent, unsigned int type)
         case MMC_RECOVERY_TYPE:
             memcpy(mbr_ent->name,"recovery",8);
             break;
+        case MMC_MISC_TYPE:
+            memcpy(mbr_ent->name,"misc",4);
+            break;
     };
 }
 

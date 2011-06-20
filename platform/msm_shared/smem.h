@@ -108,6 +108,65 @@ struct smem_board_info_v6
     unsigned buffer_align; //Need for 8 bytes alignment while reading from shared memory.
 };
 
+typedef struct
+{
+    unsigned key_len;
+    unsigned iv_len;
+    unsigned char key[32];
+    unsigned char iv[32];
+}boot_symmetric_key_info;
+
+typedef struct
+{
+    unsigned int update_status;
+    unsigned int bl_error_code;
+}boot_ssd_status;
+
+#if PLATFORM_MSM7X30
+
+typedef struct
+{
+    boot_symmetric_key_info key_info;
+    uint32_t boot_flags;
+    uint32_t boot_key_press[5];
+    uint32_t time_tick;
+    boot_ssd_status status;
+    uint8_t buff_align[4];
+}boot_info_for_apps;
+
+#elif PLATFORM_MSM7K
+
+typedef struct
+{
+    uint32_t apps_img_start_addr;
+    uint32_t boot_flags;
+    boot_ssd_status status;
+}boot_info_for_apps;
+
+#elif PLATFORM_MSM7X27A
+
+typedef struct
+{
+    uint32_t apps_img_start_addr;
+    uint32_t  boot_flags;
+    boot_ssd_status status;
+    boot_symmetric_key_info  key_info;
+    uint16_t boot_key_press[10];
+    uint32_t timetick;
+    uint8_t PAD[28];
+}boot_info_for_apps;
+
+#else
+
+/* Dummy structure to keep it for other targets */
+typedef struct
+{
+    uint32_t  boot_flags;
+    boot_ssd_status status;
+}boot_info_for_apps;
+
+#endif
+
 /* chip information */
 enum {
     UNKNOWN = 0,
@@ -157,8 +216,10 @@ typedef enum {
 
 	SMEM_POWER_ON_STATUS_INFO = 403,
 
+	SMEM_BOOT_INFO_FOR_APPS = 418,
+
 	SMEM_FIRST_VALID_TYPE = SMEM_SPINLOCK_ARRAY,
-	SMEM_LAST_VALID_TYPE = SMEM_POWER_ON_STATUS_INFO,
+	SMEM_LAST_VALID_TYPE = SMEM_BOOT_INFO_FOR_APPS,
 } smem_mem_type_t;
 
 /* Note: buf MUST be 4byte aligned, and max_len MUST be a multiple of 4. */

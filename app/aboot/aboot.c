@@ -869,10 +869,13 @@ void aboot_init(const struct app_descriptor *app)
 		boot_into_recovery = 1;
 	if (keys_get_state(KEY_VOLUMEUP) != 0)
 		boot_into_recovery = 1;
-	if (keys_get_state(KEY_BACK) != 0)
-		goto fastboot;
-	if (keys_get_state(KEY_VOLUMEDOWN) != 0)
-		goto fastboot;
+	if(!boot_into_recovery)
+	{
+		if (keys_get_state(KEY_BACK) != 0)
+			goto fastboot;
+		if (keys_get_state(KEY_VOLUMEDOWN) != 0)
+			goto fastboot;
+	}
 
 	#if NO_KEYPAD_DRIVER
 	/* With no keypad implementation, check the status of USB connection. */
@@ -892,6 +895,8 @@ void aboot_init(const struct app_descriptor *app)
 
 	if (target_is_emmc_boot())
 	{
+		if(emmc_recovery_init())
+			dprintf(ALWAYS,"error in emmc_recovery_init\n");
 		boot_linux_from_mmc();
 	}
 	else

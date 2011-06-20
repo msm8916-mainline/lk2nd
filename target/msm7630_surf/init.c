@@ -75,7 +75,7 @@ static struct ptentry board_part_list[] = {
 	},
 	{
 		.start = DIFF_START_ADDR,
-		.length = 30 /* In MB */,
+		.length = 5 /* In MB */,
 		.name = "cache",
 	},
 	{
@@ -376,5 +376,12 @@ void target_serialno(unsigned char *buf)
 	unsigned int serialno;
 	serialno =  mmc_get_psn();
 	sprintf(buf,"%x",serialno);
+}
+
+int emmc_recovery_init(void)
+{
+	int rc;
+	rc = _emmc_recovery_init();
+	return rc;
 }
 #endif

@@ -285,4 +285,11 @@ void target_serialno(unsigned char *buf)
 	serialno =  mmc_get_psn();
 	sprintf(buf,"%x",serialno);
 }
+
+int emmc_recovery_init(void)
+{
+	int rc;
+	rc = _emmc_recovery_init();
+	return rc;
+}
 #endif

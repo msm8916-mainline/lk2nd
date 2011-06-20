@@ -566,6 +566,7 @@ struct mmc_boot_host
 #define MMC_SYSTEM_TYPE 		0x82
 #define MMC_USERDATA_TYPE 		0x83
 #define MMC_RECOVERY_TYPE 		0x60
+#define MMC_MISC_TYPE 			0x63
 
 #define MMC_RCA 2
 

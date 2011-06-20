@@ -91,3 +91,8 @@ __WEAK void target_serialno(unsigned char *buf)
 __WEAK void target_fastboot_init()
 {
 }
+
+__WEAK int emmc_recovery_init(void)
+{
+	return 0;
+}
