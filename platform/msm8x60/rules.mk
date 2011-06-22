@@ -25,6 +25,7 @@ OBJS += \
 	$(LOCAL_DIR)/acpuclock.o \
 	$(LOCAL_DIR)/gpio.o \
 	$(LOCAL_DIR)/panel.o \
+	$(LOCAL_DIR)/panel_auo_wvga.o \
 	$(LOCAL_DIR)/pmic.o \
 	$(LOCAL_DIR)/pmic_pwm.o \
 	$(LOCAL_DIR)/pmic_batt_alarm.o \

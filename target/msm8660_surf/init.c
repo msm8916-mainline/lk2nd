@@ -46,14 +46,7 @@
 #include <platform.h>
 #include <gsbi.h>
 #include <platform/scm-io.h>
-
-#define LINUX_MACHTYPE_8660_SURF         2755
-#define LINUX_MACHTYPE_8660_FFA          3017
-#define LINUX_MACHTYPE_8660_FLUID        3124
-#define LINUX_MACHTYPE_8660_QT           3298
-#define LINUX_MACHTYPE_8660_CHARM_SURF   3181
-#define LINUX_MACHTYPE_8660_CHARM_FFA    3199
-#define LINUX_MACHTYPE_8x60_DRAGON       3586
+#include <platform/machtype.h>
 
 static const uint8_t uart_gsbi_id  = GSBI_ID_12;
 

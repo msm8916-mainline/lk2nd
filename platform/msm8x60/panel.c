@@ -30,13 +30,16 @@
 #include <debug.h>
 #include <kernel/thread.h>
 #include <i2c_qup.h>
+#include <platform.h>
 #include <platform/iomap.h>
 #include <platform/gpio.h>
 #include <platform/clock.h>
 #include <platform/pmic.h>
 #include <platform/pmic_pwm.h>
+#include <platform/machtype.h>
+#include <platform/timer.h>
 #include <gsbi.h>
-#include <dev/gpio.h>
+#include <dev/lcdc.h>
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
@@ -80,12 +83,6 @@ uint8_t expander_write(uint8_t addr, uint8_t val)
     return 0;
 }
 
-void panel_poweron(void)
-{
-    panel_backlight(1);
-    lcdc_on();
-}
-
 void panel_backlight(int on)
 {
 }
@@ -121,9 +118,13 @@ static int lcd_power_on()
     buffer |= (0x1 << PM8901_LDO_CTL_PULL_DOWN__S);
     /* Put LDO into normal mode instead of low power mode */
     buffer |= (0x0 << PM8901_LDO_CTL_MODE__S);
-    /* Write a 31 into the Voltage Programming value to obtain 3.3v VREG =
-       1.75V + X * 100mV */
-    buffer |= (0xF);
+
+	/* Set voltage programming to 3.3V or 2.85V(8660 fluid) */
+	if (board_machtype() == LINUX_MACHTYPE_8660_FLUID)
+		buffer |= (0xB);
+	else
+		buffer |= (0xF);
+
     mask = buffer | LDO_CTL_ENABLE_MASK |
         LDO_CTL_PULL_DOWN_MASK |
         LDO_CTL_NORMAL_POWER_MODE_MASK | LDO_CTL_VOLTAGE_SET_MASK;
@@ -132,7 +133,7 @@ static int lcd_power_on()
     if ((ret = pm8901_read(&prev_val, 1, PM8901_LDO_L2))) {
         return ret;
     }
-    /* Configure the LDO2 for 3.3v */
+    /* Configure the LDO2 for 3.3V or 2.85V(8660 fluid) */
     ret = pm8901_vreg_write(&buffer, mask, PM8901_LDO_L2, prev_val);
 
     /* Configure LDO L2 TEST Bank 4, for High Range Mode */
@@ -368,4 +369,61 @@ void board_lcd_enable(void)
 void lcdc_on(void)
 {
     board_lcd_enable();
+}
+
+void auo_board_lcd_enable(void)
+{
+	/* Make sure dev is created and initialized properly */
+	dev = qup_i2c_init(GSBI_ID_8, 100000, 24000000);
+	if (!dev) {
+		dprintf(CRITICAL, "Error in qup_i2c_init\n");
+		while (1) ;
+	}
+
+	/* Setup RESX_N */
+	uint8_t open_drain_a = expander_read(GPIO_EXPANDER_REG_OPEN_DRAIN_A);
+	uint8_t dir_a = expander_read(GPIO_EXPANDER_REG_DIR_A);
+	uint8_t data_a = expander_read(GPIO_EXPANDER_REG_DATA_A);
+
+	expander_write(GPIO_EXPANDER_REG_DIR_A, ~0x04 & dir_a);
+	expander_write(GPIO_EXPANDER_REG_DATA_A, ~0x04 & data_a);
+
+    /* Power on the appropiate PMIC LDO power rails */
+	if (lcd_power_on())
+		return;
+
+	/* Toggle RESX_N */
+	mdelay(20);
+	expander_write(GPIO_EXPANDER_REG_DATA_A, 0x04 | data_a);
+	mdelay(1);
+	expander_write(GPIO_EXPANDER_REG_DATA_A, ~0x04 & data_a);
+	mdelay(1);
+	expander_write(GPIO_EXPANDER_REG_DATA_A, 0x04 | data_a);
+	mdelay(25);
+
+	/* Enable the gpios for  LCD */
+	lcd_gpio_cfg(1);
+
+	auo_lcdc_init();
+}
+
+void panel_poweron(void)
+{
+	if (board_machtype() == LINUX_MACHTYPE_8660_FLUID)
+	{
+		auo_board_lcd_enable();
+	}
+	else
+	{
+		panel_backlight(1);
+		lcdc_on();
+	}
+}
+
+struct lcdc_timing_parameters *get_lcd_timing(void)
+{
+   if (board_machtype() == LINUX_MACHTYPE_8660_FLUID)
+		return auo_timing_param();
+	else
+		return DEFAULT_LCD_TIMING;
 }

@@ -37,12 +37,15 @@
 #include <kernel/thread.h>
 #include <platform/debug.h>
 #include <platform/iomap.h>
+#include <platform/clock.h>
+#include <platform/machtype.h>
 #include <qgic.h>
 #include <i2c_qup.h>
 #include <gsbi.h>
 #include <uart_dm.h>
 #include <mmu.h>
 #include <arch/arm/mmu.h>
+#include <dev/lcdc.h>
 
 static uint32_t ticks_per_sec = 0;
 
@@ -123,11 +126,18 @@ void display_init(void)
 {
     struct fbcon_config *fb_cfg;
 #if DISPLAY_TYPE_LCDC
+    struct lcdc_timing_parameters *lcd_timing;
     mdp_clock_init();
-    mmss_pixel_clock_configure();
-    fb_cfg = lcdc_init();
-    panel_poweron();
+    if (board_machtype() == LINUX_MACHTYPE_8660_FLUID) {
+        mmss_pixel_clock_configure(PIXEL_CLK_INDEX_25M);
+    } else {
+        mmss_pixel_clock_configure(PIXEL_CLK_INDEX_54M);
+    }
+    lcd_timing = get_lcd_timing();
+    fb_cfg = lcdc_init_set( lcd_timing );
     fbcon_setup(fb_cfg);
+    fbcon_clear();
+    panel_poweron();
 #endif
 #if DISPLAY_TYPE_MIPI
     mdp_clock_init();

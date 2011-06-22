@@ -87,6 +87,15 @@
 #define PIXEL_MD_VAL            0x00A9FDA6
 #define PIXEL_CC_VAL            0x00000080
 
+/* Configured at 25 MHz (AUO Panel) */
+#define PIXEL_NS_VAL_25M        0xFFF10002
+#define PIXEL_MD_VAL_25M        0x0001FFF0
+#define PIXEL_CC_VAL_25M        0x00000080
+
+/* PIXEL clock index */
+#define PIXEL_CLK_INDEX_54M	0 /* 53.99MHz */
+#define PIXEL_CLK_INDEX_25M	1 /* 25MHz */
+
 #define MSM_CLK_CTL_BASE        0x00900000
 #define BB_PLL8_L_VAL_REG       (MSM_CLK_CTL_BASE + 0x3144)
 #define BB_PLL8_M_VAL_REG       (MSM_CLK_CTL_BASE + 0x3148)
@@ -132,6 +141,6 @@ void hsusb_clock_init(void);
 void clock_config_uart_dm(uint8_t id);
 void clock_config_i2c(uint8_t id, uint32_t freq);
 void mdp_clock_init(void);
-void mmss_pixel_clock_configure(void);
+void mmss_pixel_clock_configure(uint32_t pclk_index);
 
 #endif

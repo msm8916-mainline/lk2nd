@@ -377,11 +377,18 @@ void mdp_clock_init(void)
 				MDP_CC_VAL, MDP_NS_REG, MDP_MD_REG, MDP_CC_REG);
 }
 
-void mmss_pixel_clock_configure(void)
+void mmss_pixel_clock_configure(uint32_t pclk_id)
 {
-	config_pixel_clk(PIXEL_NS_VAL, PIXEL_MD_VAL,
+	if (pclk_id == PIXEL_CLK_INDEX_25M) {
+		config_pixel_clk(PIXEL_NS_VAL_25M, PIXEL_MD_VAL_25M,
+					PIXEL_CC_VAL_25M, MMSS_PIXEL_NS_REG,
+					MMSS_PIXEL_MD_REG, MMSS_PIXEL_CC_REG);
+	}
+	else {
+		config_pixel_clk(PIXEL_NS_VAL, PIXEL_MD_VAL,
 					PIXEL_CC_VAL, MMSS_PIXEL_NS_REG,
 					MMSS_PIXEL_MD_REG, MMSS_PIXEL_CC_REG);
+	}
 }
 
 void configure_dsicore_dsiclk()
