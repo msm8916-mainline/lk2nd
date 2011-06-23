@@ -548,6 +548,7 @@ struct mmc_boot_host
 #define BINARY_IN_TABLE_SIZE      (16 * 512)
 #define MAX_FILE_ENTRIES          20
 
+#define MMC_EBR_TYPE			0x05
 #define MMC_MODEM_TYPE	 		0x06
 #define MMC_MODEM_TYPE2			0x0C
 #define MMC_SBL1_TYPE 			0x4D
@@ -565,6 +566,8 @@ struct mmc_boot_host
 #define MMC_USERDATA_TYPE 		0x83
 #define MMC_RECOVERY_TYPE 		0x60
 #define MMC_MISC_TYPE 			0x63
+
+#define MMC_PROTECTED_TYPE		0xEE
 
 #define MMC_RCA 2
 
@@ -614,8 +617,8 @@ struct mbr_entry
 #define MMC_CLK_DISABLE     0
 
 
-unsigned int mmc_boot_main(unsigned char slot, unsigned int base);
-unsigned int mmc_boot_read_from_card( struct mmc_boot_host* host,
+unsigned int mmc_boot_main (unsigned char slot, unsigned int base);
+unsigned int mmc_boot_read_from_card (struct mmc_boot_host* host,
                                       struct mmc_boot_card* card,
                                       unsigned long long data_addr,
                                       unsigned int data_len,
@@ -627,6 +630,16 @@ unsigned long long mmc_ptn_size (unsigned char * name);
 
 unsigned int mmc_read (unsigned long long data_addr, unsigned int* out,
                        unsigned int data_len);
+
+unsigned int mmc_boot_write_to_card (struct mmc_boot_host* host,
+                                     struct mmc_boot_card* card,
+                                     unsigned long long data_addr,
+                                     unsigned int data_len,
+                                     unsigned int *in );
+
+unsigned int mmc_write_partition (unsigned size, unsigned char *partition);
+
+void mmc_dump_partition_info();
 
 #endif
 

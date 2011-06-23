@@ -51,6 +51,7 @@
 #include "bootimg.h"
 #include "fastboot.h"
 #include "sparse_format.h"
+#include "mmc.h"
 
 #include "scm_decrypt.h"
 
@@ -547,28 +548,38 @@ void cmd_flash_mmc_img(const char *arg, void *data, unsigned sz)
 	unsigned long long ptn = 0;
 	unsigned long long size = 0;
 
-	ptn = mmc_ptn_offset((unsigned char *) arg);
-	if (ptn == 0) {
-		fastboot_fail("partition table doesn't exist");
-		return;
-	}
-
-	if (!strcmp(arg, "boot") || !strcmp(arg, "recovery")) {
-		if (memcmp((void *)data, BOOT_MAGIC, BOOT_MAGIC_SIZE)) {
-			fastboot_fail("image is not a boot image");
+	if (!strcmp(arg, "partition"))
+	{
+		dprintf(INFO, "Attempt to write partition image.\n");
+		if (mmc_write_partition(sz, (unsigned char *) data)) {
+			fastboot_fail("failed to write partition");
 			return;
 		}
 	}
+	else
+	{
+		ptn = mmc_ptn_offset((unsigned char *) arg);
+		if(ptn == 0) {
+			fastboot_fail("partition table doesn't exist");
+			return;
+		}
 
-	size = mmc_ptn_size((unsigned char *) arg);
-	if (ROUND_TO_PAGE(sz, 511) > size) {
-		fastboot_fail("size too large");
-		return;
-	}
+		if (!strcmp(arg, "boot") || !strcmp(arg, "recovery")) {
+			if (memcmp((void *)data, BOOT_MAGIC, BOOT_MAGIC_SIZE)) {
+				fastboot_fail("image is not a boot image");
+				return;
+			}
+		}
 
-	if (mmc_write(ptn , sz, (unsigned int *) data)) {
-		fastboot_fail("flash write failure");
-		return;
+		size = mmc_ptn_size((unsigned char *) arg);
+		if (ROUND_TO_PAGE(sz,511) > size) {
+			fastboot_fail("size too large");
+			return;
+		}
+		else if (mmc_write(ptn , sz, (unsigned int *)data)) {
+			fastboot_fail("flash write failure");
+			return;
+		}
 	}
 	fastboot_okay("");
 	return;
@@ -911,6 +922,7 @@ fastboot:
 	fastboot_register("reboot-bootloader", cmd_reboot_bootloader);
 	fastboot_publish("product", TARGET(BOARD));
 	fastboot_publish("kernel", "lk");
+	mmc_dump_partition_info();
 	sz = target_get_max_flash_size();
 	fastboot_init(target_get_scratch_address(), sz);
 	udc_start();
