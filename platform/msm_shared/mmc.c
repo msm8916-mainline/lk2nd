@@ -78,11 +78,6 @@ char *vfat_partitions[] = {"modem", "mdm", "NONE"};
 unsigned int ext3_count = 0;
 unsigned int vfat_count = 0;
 
-#if !(defined(PLATFORM_MSM8X60) || defined(PLATFORM_MSM8960))
-static unsigned mmc_sdc_clk[] = { SDC1_CLK, SDC2_CLK, SDC3_CLK, SDC4_CLK};
-static unsigned mmc_sdc_pclk[] = { SDC1_PCLK, SDC2_PCLK, SDC3_PCLK, SDC4_PCLK};
-#endif
-
 unsigned char mmc_slot = 0;
 unsigned int mmc_boot_mci_base = 0;
 
@@ -108,7 +103,6 @@ static unsigned int mmc_boot_read_reg(struct mmc_boot_card *card,
                                       unsigned int data_len,
                                       unsigned int command, unsigned int addr,
                                       unsigned int *out);
-void clock_set_enable(unsigned slot, unsigned int mclk);
 
 unsigned int SWAP_ENDIAN(unsigned int val)
 {
@@ -116,92 +110,6 @@ unsigned int SWAP_ENDIAN(unsigned int val)
         (((val >> 8) & 0xFF) << 16) |
         (((val >> 16) & 0xFF) << 8) |
         (val >> 24);
-}
-
-/*
- * Function to enable and set master and peripheral clock for
- * MMC card.
- */
-static unsigned int mmc_boot_enable_clock( struct mmc_boot_host* host,
-        unsigned int mclk)
-{
-    unsigned int mmc_clk = 0;
-
-#if !(defined(PLATFORM_MSM8X60) || defined(PLATFORM_MSM8960))
-    int mmc_signed_ret = 0;
-    unsigned SDC_CLK = mmc_sdc_clk[mmc_slot - 1];
-    unsigned SDC_PCLK = mmc_sdc_pclk[mmc_slot - 1];
-
-    if( host == NULL )
-    {
-        return MMC_BOOT_E_INVAL;
-    }
-
-    if( !host->clk_enabled )
-    {
-        /* set clock */
-        if( mmc_clock_enable_disable(SDC_PCLK, MMC_CLK_ENABLE) < 0 )
-        {
-            dprintf(CRITICAL,  "Failure enabling PCLK!\n");
-            goto error_pclk;
-        }
-
-        if( mmc_clock_enable_disable(SDC_CLK, MMC_CLK_ENABLE) < 0 )
-        {
-            dprintf(CRITICAL,  "Failure enabling MMC Clock!\n");
-            goto error;
-        }
-        host->clk_enabled = 1;
-    }
-    if( host->mclk_rate != mclk )
-    {
-        if( mmc_clock_set_rate(SDC_CLK, mclk) < 0 )
-        {
-            dprintf(CRITICAL, "Failure setting clock rate for MCLK - clk_rate: %d\n!", mclk );
-            goto error_mclk;
-        }
-
-        if( ( mmc_signed_ret = mmc_clock_get_rate(SDC_CLK) ) < 0 )
-        {
-            dprintf(CRITICAL, "Failure getting clock rate for MCLK - clk_rate: %d\n!", host->mclk_rate );
-            goto error_mclk;
-        }
-
-        host->mclk_rate = (unsigned int)mmc_signed_ret;
-    }
-
-    if( ( mmc_signed_ret = mmc_clock_get_rate(SDC_PCLK) ) < 0 )
-    {
-        dprintf(CRITICAL, "Failure getting clock rate for PCLK - clk_rate: %d\n!", host->pclk_rate );
-        goto error_pclk;
-    }
-
-    host->pclk_rate = ( unsigned int )mmc_signed_ret;
-    dprintf(SPEW,  "Clock rate - mclk: %dHz    pclk: %dHz\n", host->mclk_rate, host->pclk_rate );
-#else
-    clock_set_enable(mmc_slot, mclk);
-    host->mclk_rate = mclk;
-    host->pclk_rate = mclk;
-    host->clk_enabled = 1;
-#endif
-
-    //enable mci clock
-    mmc_clk |= MMC_BOOT_MCI_CLK_ENABLE;
-    //enable flow control
-    mmc_clk |= MMC_BOOT_MCI_CLK_ENA_FLOW;
-    //latch data and command using feedback clock
-    mmc_clk |= MMC_BOOT_MCI_CLK_IN_FEEDBACK;
-    writel( mmc_clk, MMC_BOOT_MCI_CLK );
-    return MMC_BOOT_E_SUCCESS;
-
-#if !(defined(PLATFORM_MSM8X60) || defined(PLATFORM_MSM8960))
-error_pclk:
-    mmc_clock_enable_disable(SDC_PCLK, MMC_CLK_DISABLE);
-error_mclk:
-    mmc_clock_enable_disable(SDC_CLK, MMC_CLK_DISABLE);
-error:
-    return MMC_BOOT_E_CLK_ENABLE_FAIL;
-#endif
 }
 
 
@@ -1619,15 +1527,10 @@ static unsigned int mmc_boot_adjust_interface_speed( struct mmc_boot_host* host,
     }while( MMC_BOOT_CARD_STATUS(status) == MMC_BOOT_PROG_STATE );
 
 
-#if defined(PLATFORM_MSM8X60) || defined(PLATFORM_MSM8960)
-    mmc_ret = mmc_boot_enable_clock( host, MMC_CLK_48MHZ);
-#else
-    mmc_ret = mmc_boot_enable_clock( host, MMC_CLK_50MHZ);
-#endif
-    if( mmc_ret != MMC_BOOT_E_SUCCESS )
-    {
-        return MMC_BOOT_E_CLK_ENABLE_FAIL;
-    }
+    clock_config_mmc(mmc_slot, MMC_CLK_50MHZ);
+
+    host->mclk_rate = MMC_CLK_50MHZ;
+
     return MMC_BOOT_E_SUCCESS;
 }
 
@@ -1819,15 +1722,14 @@ unsigned int mmc_boot_init( struct mmc_boot_host* host )
 
     host->ocr = MMC_BOOT_OCR_27_36 | MMC_BOOT_OCR_SEC_MODE;
     host->cmd_retry = MMC_BOOT_MAX_COMMAND_RETRY;
-    host->clk_enabled = 0;
 
-    /* clock frequency should be less than 400KHz in identification mode */
-    mmc_ret = mmc_boot_enable_clock( host, MMC_CLK_400KHZ);
+    /* Initialize any clocks needed for SDC controller */
+    clock_init_mmc(mmc_slot);
 
-    if( mmc_ret != MMC_BOOT_E_SUCCESS )
-    {
-        return MMC_BOOT_E_CLK_ENABLE_FAIL;
-    }
+    /* Setup initial freq to 400KHz */
+    clock_config_mmc(mmc_slot, MMC_CLK_400KHZ);
+
+    host->mclk_rate = MMC_CLK_400KHZ;
 
     /* set power mode*/
     /* give some time to reach minimum voltate */
@@ -2178,15 +2080,9 @@ static unsigned int mmc_boot_set_sd_hs(struct mmc_boot_host* host, struct mmc_bo
 
     mdelay(1);
 
-#if defined(PLATFORM_MSM8X60) || defined(PLATFORM_MSM8960)
-    mmc_ret = mmc_boot_enable_clock( host, MMC_CLK_48MHZ);
-#else
-    mmc_ret = mmc_boot_enable_clock( host, MMC_CLK_50MHZ);
-#endif
-    if( mmc_ret != MMC_BOOT_E_SUCCESS )
-    {
-        return MMC_BOOT_E_CLK_ENABLE_FAIL;
-    }
+    clock_config_mmc(mmc_slot, MMC_CLK_50MHZ);
+
+    host->mclk_rate = MMC_CLK_50MHZ;
 
     return MMC_BOOT_E_SUCCESS;
 }

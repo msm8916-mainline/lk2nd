@@ -504,10 +504,8 @@ struct mmc_boot_card
 struct mmc_boot_host
 {
     unsigned int mclk_rate;
-    unsigned int pclk_rate;
     unsigned int ocr;
     unsigned int cmd_retry;
-    unsigned int clk_enabled;
 };
 
 
@@ -600,16 +598,6 @@ struct mbr_entry
 #define MMC_BOOT_MCI_FIFO_DEPTH       16
 #define MMC_BOOT_MCI_HFIFO_COUNT      ( MMC_BOOT_MCI_FIFO_DEPTH / 2 )
 #define MMC_BOOT_MCI_FIFO_SIZE        ( MMC_BOOT_MCI_FIFO_DEPTH * 4 )
-
-/*Need to put at proper place*/
-#define SDC1_CLK    19  /* Secure Digital Card clocks */
-#define SDC1_PCLK   20
-#define SDC2_CLK    21
-#define SDC2_PCLK   22
-#define SDC3_CLK    23
-#define SDC3_PCLK   24
-#define SDC4_CLK    25
-#define SDC4_PCLK   26
 
 #define MAX_PARTITIONS 64
 

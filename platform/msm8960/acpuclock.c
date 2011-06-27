@@ -32,6 +32,7 @@
 #include <platform/clock.h>
 #include <uart_dm.h>
 #include <gsbi.h>
+#include <mmc.h>
 
 /* Set rate and enable the clock */
 void clock_config(uint32_t ns, uint32_t md, uint32_t ns_addr, uint32_t md_addr)
@@ -184,7 +185,8 @@ void pll1_enable(void){
 	while (!readl(MM_PLL1_STATUS_REG));
 }
 
-void config_mdp_lut_clk(void){
+void config_mdp_lut_clk(void)
+{
 	/* Force on*/
 	writel(MDP_LUT_VAL, MDP_LUT_CC_REG);
 }
@@ -204,7 +206,8 @@ void mdp_clock_init(void)
 }
 
 /* Initialize all clocks needed by Display */
-void mmss_clock_init(void){
+void mmss_clock_init(void)
+{
 	/* Configure Pixel clock */
 	config_mmss_clk(PIXEL_NS_VAL, PIXEL_MD_VAL, PIXEL_CC_VAL, PIXEL_NS_REG, PIXEL_MD_REG, PIXEL_CC_REG);
 
@@ -216,4 +219,41 @@ void mmss_clock_init(void){
 
 	/* Configure ESC clock */
 	config_mmss_clk(ESC_NS_VAL, 0x0, ESC_CC_VAL, ESC_NS_REG, 0x0, ESC_CC_REG);
+}
+
+/* Intialize MMC clock */
+void clock_init_mmc(uint32_t interface)
+{
+	/* Nothing to be done. */
+}
+
+/* Configure MMC clock */
+void clock_config_mmc(uint32_t interface, uint32_t freq)
+{
+	uint32_t reg = 0;
+
+	switch(freq)
+	{
+	case MMC_CLK_400KHZ:
+		clock_config(SDC_CLK_NS_400KHZ,
+					 SDC_CLK_MD_400KHZ,
+					 SDC_NS(interface),
+					 SDC_MD(interface));
+		break;
+	case MMC_CLK_48MHZ:
+	case MMC_CLK_50MHZ: /* Max supported is 48MHZ */
+		clock_config(SDC_CLK_NS_48MHZ,
+					 SDC_CLK_MD_48MHZ,
+					 SDC_NS(interface),
+					 SDC_MD(interface));
+		break;
+	default:
+		ASSERT(0);
+
+	}
+
+	reg |= MMC_BOOT_MCI_CLK_ENABLE;
+	reg |= MMC_BOOT_MCI_CLK_ENA_FLOW;
+	reg |= MMC_BOOT_MCI_CLK_IN_FEEDBACK;
+	writel( reg, MMC_BOOT_MCI_CLK );
 }

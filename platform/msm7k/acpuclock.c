@@ -10,7 +10,7 @@
  *    notice, this list of conditions and the following disclaimer.
  *  * Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the 
+ *    the documentation and/or other materials provided with the
  *    distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -20,7 +20,7 @@
  * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
  * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED 
+ * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
  * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
@@ -31,6 +31,8 @@
 #include <kernel/thread.h>
 #include <platform/iomap.h>
 #include <reg.h>
+#include <debug.h>
+#include <mmc.h>
 
 #define ARRAY_SIZE(x) (sizeof(x)/sizeof((x)[0]))
 
@@ -104,6 +106,23 @@ uint32_t const clk_sel_reg_val[] = {
 	DIV_4 << 1 | 0,
 };
 
+/* enum for SDC CLK IDs */
+enum
+{
+	SDC1_CLK  = 19,
+	SDC1_PCLK = 20,
+	SDC2_CLK  = 21,
+	SDC2_PCLK = 22,
+	SDC3_CLK  = 23,
+	SDC3_PCLK = 24,
+	SDC4_CLK  = 25,
+	SDC4_PCLK = 26
+};
+
+/* Zero'th entry is dummy */
+static uint8_t sdc_clk[]  = {0, SDC1_CLK,  SDC2_CLK,  SDC3_CLK,  SDC4_CLK};
+static uint8_t sdc_pclk[] = {0, SDC1_PCLK, SDC2_PCLK, SDC3_PCLK, SDC4_PCLK};
+
 void mdelay(unsigned msecs);
 
 
@@ -151,3 +170,39 @@ void acpu_clock_init(void)
 #endif
 	}
 }
+
+/* Configure MMC clock */
+void clock_config_mmc(uint32_t interface, uint32_t freq)
+{
+	uint32_t reg = 0;
+
+	if( mmc_clock_set_rate(sdc_clk[interface], freq) < 0 )
+	{
+		dprintf(CRITICAL, "Failure setting clock rate for MCLK - "
+						  "clk_rate: %d\n!", freq);
+		ASSERT(0);
+	}
+
+	/* enable clock */
+	if( mmc_clock_enable_disable(sdc_clk[interface], MMC_CLK_ENABLE) < 0 )
+	{
+		dprintf(CRITICAL, "Failure enabling MMC Clock!\n");
+		ASSERT(0);
+	}
+
+	reg |= MMC_BOOT_MCI_CLK_ENABLE;
+	reg |= MMC_BOOT_MCI_CLK_ENA_FLOW;
+	reg |= MMC_BOOT_MCI_CLK_IN_FEEDBACK;
+	writel( reg, MMC_BOOT_MCI_CLK );
+}
+
+/* Intialize MMC clock */
+void clock_init_mmc(uint32_t interface)
+{
+	if( mmc_clock_enable_disable(sdc_pclk[interface], MMC_CLK_ENABLE) < 0 )
+	{
+		dprintf(CRITICAL, "Failure enabling PCLK!\n");
+		ASSERT(0);
+	}
+}
+

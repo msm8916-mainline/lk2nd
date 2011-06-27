@@ -98,6 +98,13 @@
 #define I2C_CLK_MD_24MHz        0x000100FB
 #define I2C_CLK_NS_24MHz        0x00FC005B
 
+/* NS/MD value for MMC */
+#define SDC_CLK_NS_400KHZ    0x0010005B
+#define SDC_CLK_MD_400KHZ    0x0001000F
+
+#define SDC_CLK_NS_48MHZ     0x00FE005B
+#define SDC_CLK_MD_48MHZ     0x000100FD
+
 enum clk_sources {
     PLL_0 = 0,
     PLL_1,

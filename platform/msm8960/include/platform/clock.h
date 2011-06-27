@@ -45,6 +45,13 @@
 #define UART_DM_CLK_RX_TX_BIT_RATE 0xFF
 
 
+/* NS/MD value for MMC */
+#define SDC_CLK_NS_400KHZ    0x00440040
+#define SDC_CLK_MD_400KHZ    0x00010043
+
+#define SDC_CLK_NS_48MHZ     0x00FE005B
+#define SDC_CLK_MD_48MHZ     0x000100FD
+
 void hsusb_clock_init(void);
 void clock_config_uart_dm(uint8_t id);
 void clock_config_i2c(uint8_t id, uint32_t freq);

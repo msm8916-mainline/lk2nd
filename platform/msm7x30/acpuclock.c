@@ -30,6 +30,8 @@
 #include <kernel/thread.h>
 #include <platform/iomap.h>
 #include <reg.h>
+#include <debug.h>
+#include <mmc.h>
 
 #define ACPU_806MHZ             42
 #define ACPU_1024MHZ            53
@@ -48,6 +50,24 @@
 #define MV(mv)          ((mv) / (!((mv) % V_STEP)))
 /* mv = (750mV + (raw * 25mV)) * (2 - VREF_SEL) */
 #define VDD_RAW(mv)     (((MV(mv) / V_STEP) - 30) | VREG_DATA)
+
+
+/* enum for SDC CLK IDs */
+enum
+{
+	SDC1_CLK  = 19,
+	SDC1_PCLK = 20,
+	SDC2_CLK  = 21,
+	SDC2_PCLK = 22,
+	SDC3_CLK  = 23,
+	SDC3_PCLK = 24,
+	SDC4_CLK  = 25,
+	SDC4_PCLK = 26
+};
+
+/* Zero'th entry is dummy */
+static uint8_t sdc_clk[]  = {0, SDC1_CLK,  SDC2_CLK,  SDC3_CLK,  SDC4_CLK};
+static uint8_t sdc_pclk[] = {0, SDC1_PCLK, SDC2_PCLK, SDC3_PCLK, SDC4_PCLK};
 
 void spm_init(void)
 {
@@ -309,3 +329,39 @@ void ce_enable_clock(void)
 	val = val | readl(SH2_GLBL_CLK_ENA_SC);
 	writel(val, SH2_GLBL_CLK_ENA_SC);
 }
+
+/* Configure MMC clock */
+void clock_config_mmc(uint32_t interface, uint32_t freq)
+{
+	uint32_t reg = 0;
+
+	if( mmc_clock_set_rate(sdc_clk[interface], freq) < 0 )
+	{
+		dprintf(CRITICAL, "Failure setting clock rate for MCLK - "
+						  "clk_rate: %d\n!", freq);
+		ASSERT(0);
+	}
+
+	/* enable clock */
+	if( mmc_clock_enable_disable(sdc_clk[interface], MMC_CLK_ENABLE) < 0 )
+	{
+		dprintf(CRITICAL, "Failure enabling MMC Clock!\n");
+		ASSERT(0);
+	}
+
+	reg |= MMC_BOOT_MCI_CLK_ENABLE;
+	reg |= MMC_BOOT_MCI_CLK_ENA_FLOW;
+	reg |= MMC_BOOT_MCI_CLK_IN_FEEDBACK;
+	writel( reg, MMC_BOOT_MCI_CLK );
+}
+
+/* Intialize MMC clock */
+void clock_init_mmc(uint32_t interface)
+{
+	if( mmc_clock_enable_disable(sdc_pclk[interface], MMC_CLK_ENABLE) < 0 )
+	{
+		dprintf(CRITICAL,  "Failure enabling PCLK!\n");
+		ASSERT(0);
+	}
+}
+

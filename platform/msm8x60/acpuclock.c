@@ -35,6 +35,7 @@
 #include <platform/scm-io.h>
 #include <uart_dm.h>
 #include <gsbi.h>
+#include <mmc.h>
 
 /* Read, modify, then write-back a register. */
 static void rmwreg(uint32_t val, uint32_t reg, uint32_t mask)
@@ -330,3 +331,39 @@ void clock_config_i2c(uint8_t id, uint32_t freq)
 	writel(GSBI_HCLK_CTL_CLK_ENA << GSBI_HCLK_CTL_S, GSBIn_HCLK_CTL(id));
 }
 
+/* Intialize MMC clock */
+void clock_init_mmc(uint32_t interface)
+{
+	/* Nothing to be done. */
+}
+
+/* Configure MMC clock */
+void clock_config_mmc(uint32_t interface, uint32_t freq)
+{
+	uint32_t reg = 0;
+
+	switch(freq)
+	{
+	case MMC_CLK_400KHZ:
+		clock_config(SDC_CLK_NS_400KHZ,
+					 SDC_CLK_MD_400KHZ,
+					 SDC_NS(interface),
+					 SDC_MD(interface));
+		break;
+	case MMC_CLK_48MHZ:
+	case MMC_CLK_50MHZ: /* Max supported is 48MHZ */
+		clock_config(SDC_CLK_NS_48MHZ,
+					 SDC_CLK_MD_48MHZ,
+					 SDC_NS(interface),
+					 SDC_MD(interface));
+		break;
+	default:
+		ASSERT(0);
+
+	}
+
+	reg |= MMC_BOOT_MCI_CLK_ENABLE;
+	reg |= MMC_BOOT_MCI_CLK_ENA_FLOW;
+	reg |= MMC_BOOT_MCI_CLK_IN_FEEDBACK;
+	writel( reg, MMC_BOOT_MCI_CLK );
+}

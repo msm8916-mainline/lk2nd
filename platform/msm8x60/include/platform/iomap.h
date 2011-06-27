@@ -105,6 +105,8 @@
 
 
 #define CLK_CTL_BASE                 0x00900000
+#define SDC_MD(n)                   (CLK_CTL_BASE + 0x2828 + (32 * ((n) - 1)))
+#define SDC_NS(n)                   (CLK_CTL_BASE + 0x282C + (32 * ((n) - 1)))
 #define USB_HS1_HCLK_CTL            (CLK_CTL_BASE + 0x2900)
 #define USB_HS1_XCVR_FS_CLK_MD      (CLK_CTL_BASE + 0x2908)
 #define USB_HS1_XCVR_FS_CLK_NS      (CLK_CTL_BASE + 0x290C)
