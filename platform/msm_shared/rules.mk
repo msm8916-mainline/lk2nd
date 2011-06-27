@@ -31,6 +31,11 @@ ifeq ($(PLATFORM),msm8x60)
 			$(LOCAL_DIR)/mdp4.o
 endif
 
+ifeq ($(PLATFORM),apq8064)
+	OBJS += $(LOCAL_DIR)/qgic.o \
+			$(LOCAL_DIR)/uart_dm.o
+endif
+
 ifeq ($(PLATFORM),msm8960)
 	OBJS += $(LOCAL_DIR)/mipi_dsi.o \
 			$(LOCAL_DIR)/i2c_qup.o \

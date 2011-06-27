@@ -491,7 +491,7 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	fastboot_okay("");
 	udc_stop();
 
-	boot_linux((void*) hdr.kernel_addr, (void*) TAGS_ADDR,
+	boot_linux((void*) hdr.kernel_addr, (void*) hdr.tags_addr,
 		   (const char*) hdr.cmdline, board_machtype(),
 		   (void*) hdr.ramdisk_addr, hdr.ramdisk_size);
 }
