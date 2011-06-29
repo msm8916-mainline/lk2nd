@@ -41,7 +41,7 @@
 #define MSM_VIC_BASE        0x02080000
 #define MSM_USB_BASE        0x12500000
 #define MSM_UART3_BASE      0xA9C00000
-
+#define TLMM_BASE_ADDR      0x00800000
 
 #define MSM_GPT_BASE        (MSM_TMR_BASE + 0x04)
 #define MSM_CSR_BASE        0x02081000
@@ -53,6 +53,7 @@
 #define MSM_WDT0_RST        (MSM_TMR_BASE + 0x38)
 #define MSM_WDT0_EN         (MSM_TMR_BASE + 0x40)
 #define MSM_WDT0_BT         (MSM_TMR_BASE + 0x4C)
+#define MSM_PSHOLD_CTL_SU   (TLMM_BASE_ADDR + 0x820)
 
 #define MSM_SDC1_BASE       0x12400000
 #define MSM_SDC2_BASE       0x12140000
@@ -61,8 +62,6 @@
 
 #define MSM_SHARED_BASE     0x80000000
 
-
-#define TLMM_BASE_ADDR      0x00800000
 #define GPIO_CFG133_ADDR    0x00801850
 #define GPIO_CFG135_ADDR    0x00801870
 #define GPIO_CFG136_ADDR    0x00801880
