@@ -27,7 +27,8 @@
 
 #define clz(x) __builtin_clz(x)
 
-#define BIT(x, bit) ((x) & (1 << (bit)))
+#define BIT(bit) (1 << (bit))
+#define BIT_GET(x, bit) ((x) & (1 << (bit)))
 #define BIT_SHIFT(x, bit) (((x) >> (bit)) & 1)
 #define BITS(x, high, low) ((x) & (((1<<((high)+1))-1) & ~((1<<(low))-1)))
 #define BITS_SHIFT(x, high, low) (((x) >> (low)) & ((1<<((high)-(low)+1))-1))
