@@ -591,7 +591,7 @@ struct mbr_entry
      unpck & mask;                                             \
      })
 
-#define MMC_BOOT_MAX_COMMAND_RETRY    10
+#define MMC_BOOT_MAX_COMMAND_RETRY    1000
 #define MMC_BOOT_RD_BLOCK_LEN         512
 #define MMC_BOOT_WR_BLOCK_LEN         512
 
