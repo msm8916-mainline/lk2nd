@@ -33,6 +33,7 @@
 #include "mmc.h"
 #include "partition_parser.h"
 #include <platform/iomap.h>
+#include <platform/timer.h>
 
 #if MMC_BOOT_ADM
 #include "adm.h"
@@ -77,8 +78,10 @@ char *vfat_partitions[] = {"modem", "mdm", "NONE"};
 unsigned int ext3_count = 0;
 unsigned int vfat_count = 0;
 
+#if !(defined(PLATFORM_MSM8X60) || defined(PLATFORM_MSM8960))
 static unsigned mmc_sdc_clk[] = { SDC1_CLK, SDC2_CLK, SDC3_CLK, SDC4_CLK};
 static unsigned mmc_sdc_pclk[] = { SDC1_PCLK, SDC2_PCLK, SDC3_PCLK, SDC4_PCLK};
+#endif
 
 unsigned char mmc_slot = 0;
 unsigned int mmc_boot_mci_base = 0;
@@ -89,7 +92,6 @@ static unsigned char wp_status_buf[8];
 int mmc_clock_enable_disable(unsigned id, unsigned enable);
 int mmc_clock_get_rate(unsigned id);
 int mmc_clock_set_rate(unsigned id, unsigned rate);
-void mdelay(unsigned msecs);
 
 struct mmc_boot_host mmc_host;
 struct mmc_boot_card mmc_card;
@@ -97,8 +99,6 @@ struct mbr_entry mbr[MAX_PARTITIONS];
 unsigned mmc_partition_count = 0;
 static unsigned gpt_partitions_exist = 0;
 
-unsigned int mmc_read (unsigned long long data_addr, unsigned int* out,
-                       unsigned int data_len);
 static void mbr_fill_name (struct mbr_entry *mbr_ent, unsigned int type);
 static unsigned int mmc_wp(unsigned int addr, unsigned int size,
                            unsigned char set_clear_wp);
@@ -108,6 +108,7 @@ static unsigned int mmc_boot_read_reg(struct mmc_boot_card *card,
                                       unsigned int data_len,
                                       unsigned int command, unsigned int addr,
                                       unsigned int *out);
+void clock_set_enable(unsigned slot, unsigned int mclk);
 
 unsigned int SWAP_ENDIAN(unsigned int val)
 {
@@ -1683,20 +1684,19 @@ unsigned int mmc_boot_read_from_card( struct mmc_boot_host* host,
     unsigned int mmc_reg = 0;
     unsigned int xfer_type;
     unsigned int addr = 0;
-    unsigned int read_error;
     unsigned char open_ended_read = 1;
 
-    if( ( host == NULL ) || ( card == NULL ) )
+    if ( ( host == NULL ) || ( card == NULL ) )
     {
         return MMC_BOOT_E_INVAL;
     }
 
     /* Set block length. High Capacity MMC/SD card uses fixed 512 bytes block
        length. So no need to send CMD16. */
-    if( (card->type != MMC_BOOT_TYPE_MMCHC) && (card->type != MMC_BOOT_TYPE_SDHC) )
+    if ( (card->type != MMC_BOOT_TYPE_MMCHC) && (card->type != MMC_BOOT_TYPE_SDHC) )
     {
         mmc_ret = mmc_boot_set_block_len( card, card->rd_block_len );
-        if( mmc_ret != MMC_BOOT_E_SUCCESS )
+        if ( mmc_ret != MMC_BOOT_E_SUCCESS )
         {
             dprintf(CRITICAL, "Error No.%d: Failure setting block length for Card (RCA:%s)\n",
                     mmc_ret, (char *)(card->rca) );
@@ -2404,6 +2404,28 @@ static unsigned int mmc_boot_read_MBR(void)
 }
 
 
+
+void mmc_display_ext_csd(void)
+{
+    dprintf(SPEW,  "part_config: %x\n", ext_csd_buf[179] );
+    dprintf(SPEW,  "erase_group_def: %x\n", ext_csd_buf[175] );
+    dprintf(SPEW,  "user_wp: %x\n", ext_csd_buf[171] );
+}
+
+
+
+void mmc_display_csd(void)
+{
+    dprintf(SPEW,  "erase_grpsize: %d\n", mmc_card.csd.erase_grp_size );
+    dprintf(SPEW,  "erase_grpmult: %d\n", mmc_card.csd.erase_grp_mult );
+    dprintf(SPEW,  "wp_grpsize: %d\n", mmc_card.csd.wp_grp_size );
+    dprintf(SPEW,  "wp_grpen: %d\n", mmc_card.csd.wp_grp_enable );
+    dprintf(SPEW,  "perm_wp: %d\n", mmc_card.csd.perm_wp );
+    dprintf(SPEW,  "temp_wp: %d\n", mmc_card.csd.temp_wp );
+}
+
+
+
 /*
  * Entry point to MMC boot process
  */
@@ -2792,7 +2814,7 @@ static unsigned int mmc_boot_set_clr_power_on_wp_user(struct mmc_boot_card* card
     cmd.cmd_type = MMC_BOOT_CMD_ADDRESS;
     cmd.resp_type = MMC_BOOT_RESP_R1B;
 
-    for(int i=0;i<loop_count;i++)
+    for (unsigned int i = 0; i < loop_count; i++)
     {
         /* Sending CMD28 for each WP group size
            address is in sectors already */
@@ -2836,9 +2858,10 @@ static unsigned int mmc_boot_get_wp_status (struct mmc_boot_card* card,
                                             unsigned int sector)
 {
     unsigned int rc = MMC_BOOT_E_SUCCESS;
-    memset(wp_status_buf,0, 8);
+    memset(wp_status_buf, 0, 8);
 
-    rc = mmc_boot_read_reg(card,8,CMD31_SEND_WRITE_PROT_TYPE,sector,wp_status_buf);
+    rc = mmc_boot_read_reg(card, 8, CMD31_SEND_WRITE_PROT_TYPE, sector, 
+		(unsigned int *) wp_status_buf);
 
     return rc;
 }
@@ -2869,22 +2892,6 @@ void mmc_wp_test(void)
     mmc_ret = mmc_wp(0xE06000,0x5000,1);
 }
 
-void mmc_display_ext_csd(void)
-{
-    dprintf(SPEW,  "part_config: %x\n", ext_csd_buf[179] );
-    dprintf(SPEW,  "erase_group_def: %x\n", ext_csd_buf[175] );
-    dprintf(SPEW,  "user_wp: %x\n", ext_csd_buf[171] );
-}
-
-void mmc_display_csd(void)
-{
-    dprintf(SPEW,  "erase_grpsize: %d\n", mmc_card.csd.erase_grp_size );
-    dprintf(SPEW,  "erase_grpmult: %d\n", mmc_card.csd.erase_grp_mult );
-    dprintf(SPEW,  "wp_grpsize: %d\n", mmc_card.csd.wp_grp_size );
-    dprintf(SPEW,  "wp_grpen: %d\n", mmc_card.csd.wp_grp_enable );
-    dprintf(SPEW,  "perm_wp: %d\n", mmc_card.csd.perm_wp );
-    dprintf(SPEW,  "temp_wp: %d\n", mmc_card.csd.temp_wp );
-}
 
 unsigned mmc_get_psn(void)
 {

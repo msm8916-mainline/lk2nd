@@ -34,6 +34,7 @@
 #include <dev/gpio_keypad.h>
 #include <lib/ptable.h>
 #include <dev/flash.h>
+#include <platform.h>
 
 #define BOARD_FLASH_OFFSET	378
 

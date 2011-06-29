@@ -42,6 +42,8 @@
 #include <kernel/timer.h>
 #include <reg.h>
 #include <platform/iomap.h>
+#include <platform/timer.h>
+#include <platform.h>
 
 #define LINUX_MACHTYPE_8660_QT      3298
 
@@ -593,24 +595,24 @@ scan_qt_keypad(struct timer *timer, time_t now, void *arg)
     static int key_detected=-1;
 
     /* Row GPIOs 8,9,10 are used for sensing here */
-    for(gpio=8;gpio<=10;gpio++)
+    for (gpio=8;gpio<=10;gpio++)
     {
         bool status;
         status = pm8058_gpio_get(gpio);
-        if(status == 0)
+        if (status == 0)
             new_state |= (1<<(gpio-8));
     }
 
     bits_changed = last_state ^ new_state;
 
-    if(bits_changed)
+    if (bits_changed)
     {
-        int shift;
-        for(int rows=0;rows<(qwerty_keypad->keypad_info)->rows;rows++)
+        int shift = 0;
+        for (unsigned int rows = 0; rows < (qwerty_keypad->keypad_info)->rows; rows++)
         {
-            if((bits_changed & (1<<rows)) == 0)
+            if ((bits_changed & (1<<rows)) == 0)
                 continue;
-            shift = rows*8 + 3;
+            shift = rows * 8 + 3;
         }
         if ((qwerty_keypad->keypad_info)->keymap[shift])
         {
@@ -665,9 +667,9 @@ void ssbi_keypad_init(struct qwerty_keypad_info  *qwerty_kp)
 void pmic_write(unsigned address, unsigned data)
 {
   write_func wr_function = &i2c_ssbi_write_bytes;
-  if(wr_function == NULL)
+  if (wr_function == NULL)
     return;
-  if ((*wr_function)(&data, 1, address))
+  if ((*wr_function)((unsigned char *) &data, 1, address))
     dprintf (CRITICAL, "Error in initializing register\n");
 
 }

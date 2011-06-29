@@ -210,6 +210,8 @@ struct pm8058_gpio {
 	int		inv_int_pol;	/* invert interrupt polarity */
 };
 
+bool pm8058_gpio_get(unsigned int gpio);
+
 typedef int (*read_func)(unsigned char *, unsigned short, unsigned short);
 typedef int (*write_func)(unsigned char *, unsigned short, unsigned short);
 

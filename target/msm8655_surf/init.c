@@ -37,8 +37,10 @@
 #include <lib/ptable.h>
 #include <dev/flash.h>
 #include <smem.h>
+#include <mmc.h>
 #include <reg.h>
 #include <platform/iomap.h>
+#include <platform.h>
 
 #define LINUX_MACHTYPE_7x30_SURF          2679
 #define LINUX_MACHTYPE_7x30_FFA           2707

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -32,6 +32,7 @@
 #include <mipi_dsi.h>
 #include <dev/fbcon.h>
 #include <target/display.h>
+#include <stdlib.h>
 
 #define MIPI_FB_ADDR  0x43E00000
 
@@ -68,6 +69,8 @@ static struct fbcon_config mipi_fb_cfg = {
 #endif
 
 static int cmd_mode_status = 0;
+void secure_writel(uint32_t, uint32_t);
+uint32_t secure_readl(uint32_t);
 
 void configure_dsicore_dsiclk()
 {
@@ -113,8 +116,6 @@ void configure_dsicore_pclk(void)
 int mipi_dsi_phy_ctrl_config(struct mipi_dsi_panel_config *pinfo)
 {
 
-    unsigned char lane_1 = 1;
-    unsigned char lane_2 = 2;
     unsigned i;
     unsigned off = 0;
     struct mipi_dsi_phy_ctrl *pd;
@@ -325,8 +326,6 @@ int mipi_dsi_panel_initialize(struct mipi_dsi_panel_config *pinfo)
     unsigned short WC1 = 0;     // for non embedded mode only
     int status = 0;
     unsigned char DLNx_EN;
-    unsigned char lane_1 = 1;
-    unsigned char lane_2 = 2;
 
     switch (pinfo->num_of_lanes) {
     default:
@@ -459,10 +458,8 @@ int config_dsi_cmd_mode(unsigned short disp_width, unsigned short disp_height,
     unsigned char DLNx_EN;
     // video mode data ctrl
     int status = 0;
-    unsigned long low_pwr_stop_mode = 0;
-    unsigned char eof_bllp_pwr = 0x9;
-    unsigned char interleav = 0;
-    unsigned char ystride = 0x03;
+	unsigned char interleav = 0;
+	unsigned char ystride = 0x03;
     // disable mdp first
 
     writel(0x00000000, DSI_CLK_CTRL);
@@ -647,26 +644,9 @@ int mipi_dsi_cmd_config(unsigned short num_of_lanes)
 {
 
     int status = 0;
-    unsigned long ReadValue;
-    unsigned long count = 0;
     unsigned long input_img_addr = MIPI_FB_ADDR;
-    unsigned long low_pwr_stop_mode = 0;    // low power mode 0x1111 start from
-    // bit16, high spd mode 0x0
-    unsigned char eof_bllp_pwr = 0x9;   // bit 12, 15, 1:low power stop mode or
-    // let cmd mode eng send packets in hs
-    // or lp mode
-    unsigned short display_wd = mipi_fb_cfg.width;
-    unsigned short display_ht = mipi_fb_cfg.height;
     unsigned short image_wd = mipi_fb_cfg.width;
     unsigned short image_ht = mipi_fb_cfg.height;
-    unsigned short hsync_porch_fp = MIPI_HSYNC_FRONT_PORCH_DCLK;
-    unsigned short hsync_porch_bp = MIPI_HSYNC_BACK_PORCH_DCLK;
-    unsigned short vsync_porch_fp = MIPI_VSYNC_FRONT_PORCH_LINES;
-    unsigned short vsync_porch_bp = MIPI_VSYNC_BACK_PORCH_LINES;
-    unsigned short hsync_width = MIPI_HSYNC_PULSE_WIDTH;
-    unsigned short vsync_width = MIPI_VSYNC_PULSE_WIDTH;
-    unsigned short dst_format = 0;
-    unsigned short traffic_mode = 0;
     unsigned short pack_pattern = 0x12;
     unsigned char ystride = 3;
 
@@ -735,7 +715,6 @@ void mipi_dsi_shutdown(void)
 struct fbcon_config *mipi_init(void)
 {
     int status = 0;
-    unsigned char num_of_lanes = 1;
     struct mipi_dsi_panel_config *panel_info = get_panel_info();
     writel(0x00001800, MMSS_SFPB_GPREG);
     configure_dsicore_dsiclk();

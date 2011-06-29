@@ -115,7 +115,7 @@ unsigned udc_string_desc_alloc(const char *str)
 
 __WEAK void hsusb_clock_init(void)
 {
-	return 0;
+	return;
 }
 
 #if 1

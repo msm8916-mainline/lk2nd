@@ -43,6 +43,9 @@
 #include <dev/keys.h>
 #include <dev/fbcon.h>
 #include <baseband.h>
+#include <target.h>
+#include <mmc.h>
+#include <platform.h>
 
 #include "recovery.h"
 #include "bootimg.h"
@@ -90,27 +93,16 @@ struct atag_ptbl_entry
 };
 
 char sn_buf[13];
-void platform_uninit_timer(void);
-unsigned* target_atag_mem(unsigned* ptr);
-unsigned board_machtype(void);
-unsigned check_reboot_mode(void);
-void *target_get_scratch_address(void);
-unsigned target_get_max_flash_size(void);
-int target_is_emmc_boot(void);
-void reboot_device(unsigned);
-void target_battery_charging_enable(unsigned enable, unsigned disconnect);
-unsigned int mmc_write (unsigned long long data_addr,
-			unsigned int data_len, unsigned int* in);
-unsigned long long mmc_ptn_offset (unsigned char * name);
-unsigned long long mmc_ptn_size (unsigned char * name);
-void display_shutdown(void);
+
+
 
 static void ptentry_to_tag(unsigned **ptr, struct ptentry *ptn)
 {
 	struct atag_ptbl_entry atag_ptn;
 
-	if (ptn->type == TYPE_MODEM_PARTITION)
+	if (ptn->type == TYPE_MODEM_PARTITION) {
 		return;
+	}
 	memcpy(atag_ptn.name, ptn->name, 16);
 	atag_ptn.name[15] = '\0';
 	atag_ptn.offset = ptn->start;
@@ -305,24 +297,21 @@ int boot_linux_from_mmc(void)
 		hdr = uhdr;
 		goto unified_boot;
 	}
-	if(!boot_into_recovery)
-	{
-		ptn = mmc_ptn_offset("boot");
-		if(ptn == 0) {
+	if (!boot_into_recovery) {
+		ptn = mmc_ptn_offset((unsigned char *) "boot");
+		if (ptn == 0) {
 			dprintf(CRITICAL, "ERROR: No boot partition found\n");
                     return -1;
 		}
-	}
-	else
-	{
-		ptn = mmc_ptn_offset("recovery");
-		if(ptn == 0) {
+	} else {
+		ptn = mmc_ptn_offset((unsigned char *) "recovery");
+		if (ptn == 0) {
 			dprintf(CRITICAL, "ERROR: No recovery partition found\n");
                     return -1;
 		}
 	}
 
-	if (mmc_read(ptn + offset, (unsigned int *)buf, page_size)) {
+	if (mmc_read(ptn + offset, (unsigned int *) buf, page_size)) {
 		dprintf(CRITICAL, "ERROR: Cannot read boot image header\n");
                 return -1;
 	}
@@ -542,8 +531,8 @@ void cmd_erase_mmc(const char *arg, void *data, unsigned sz)
 	unsigned long long ptn = 0;
 	unsigned int out[512] = {0};
 
-	ptn = mmc_ptn_offset(arg);
-	if(ptn == 0) {
+	ptn = mmc_ptn_offset((unsigned char *) arg);
+	if (ptn == 0) {
 		fastboot_fail("partition table doesn't exist");
 		return;
 	}
@@ -564,8 +553,8 @@ void cmd_flash_mmc_img(const char *arg, void *data, unsigned sz)
 	unsigned long long ptn = 0;
 	unsigned long long size = 0;
 
-	ptn = mmc_ptn_offset(arg);
-	if(ptn == 0) {
+	ptn = mmc_ptn_offset((unsigned char *) arg);
+	if (ptn == 0) {
 		fastboot_fail("partition table doesn't exist");
 		return;
 	}
@@ -577,13 +566,13 @@ void cmd_flash_mmc_img(const char *arg, void *data, unsigned sz)
 		}
 	}
 
-	size = mmc_ptn_size(arg);
-	if (ROUND_TO_PAGE(sz,511) > size) {
+	size = mmc_ptn_size((unsigned char *) arg);
+	if (ROUND_TO_PAGE(sz, 511) > size) {
 		fastboot_fail("size too large");
 		return;
 	}
 
-	if (mmc_write(ptn , sz, (unsigned int *)data)) {
+	if (mmc_write(ptn , sz, (unsigned int *) data)) {
 		fastboot_fail("flash write failure");
 		return;
 	}
@@ -591,19 +580,19 @@ void cmd_flash_mmc_img(const char *arg, void *data, unsigned sz)
 	return;
 }
 
+
+
 void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 {
 	unsigned int chunk;
 	unsigned int chunk_data_sz;
 	sparse_header_t *sparse_header;
 	chunk_header_t *chunk_header;
-	uint32_t crc32 = 0;
 	uint32_t total_blocks = 0;
 	unsigned long long ptn = 0;
-	unsigned long long size = 0;
 
-	ptn = mmc_ptn_offset(arg);
-	if(ptn == 0) {
+	ptn = mmc_ptn_offset((unsigned char *) arg);
+	if (ptn == 0) {
 		fastboot_fail("partition table doesn't exist");
 		return;
 	}
@@ -714,10 +703,9 @@ void cmd_flash_mmc(const char *arg, void *data, unsigned sz)
 		magic_number[1] == SSD_HEADER_MAGIC_1)
 	{
 #ifdef SSD_ENABLE
-		ret = decrypt_img_scm(&data, &sz);
+		ret = decrypt_img_scm((uint32 **) &data, &sz);
 #endif
-		if(ret != 0)
-		{
+		if (ret != 0) {
 			dprintf(CRITICAL, "ERROR: Invalid secure image\n");
 			return;
 		}
@@ -814,7 +802,7 @@ void splash_screen ()
 		ptable = flash_get_ptable();
 		if (ptable == NULL) {
 			dprintf(CRITICAL, "ERROR: Partition table not found\n");
-			return -1;
+			return;
 		}
 
 		ptn = ptable_find(ptable, "splash");
@@ -836,7 +824,6 @@ void splash_screen ()
 void aboot_init(const struct app_descriptor *app)
 {
 	unsigned reboot_mode = 0;
-	unsigned disp_init = 0;
 	unsigned usb_init = 0;
 	unsigned sz = 0;
 
@@ -856,11 +843,10 @@ void aboot_init(const struct app_descriptor *app)
 	#if DISPLAY_SPLASH_SCREEN
 	display_init();
 	dprintf(SPEW, "Diplay initialized\n");
-	disp_init = 1;
-	diplay_image_on_screen();
+	display_image_on_screen();
 	#endif
 
-	target_serialno(sn_buf);
+	target_serialno((unsigned char *) sn_buf);
 	dprintf(SPEW,"serial number: %s\n",sn_buf);
 	surf_udc_device.serialno = sn_buf;
 

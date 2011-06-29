@@ -1,4 +1,4 @@
-/* Copyright (c) 2010, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -36,6 +36,7 @@
 #include <dev/flash.h>
 #include <lib/ptable.h>
 #include <dev/keys.h>
+#include <platform.h>
 
 #include "recovery.h"
 #include "bootimg.h"
@@ -50,8 +51,6 @@ static const int MISC_COMMAND_PAGE = 1;		// bootloader command is this page
 static char buf[4096];
 unsigned boot_into_recovery = 0;
 
-void reboot_device(unsigned);
-extern int target_is_emmc_boot(void);
 
 int get_recovery_message(struct recovery_message *out)
 {
@@ -74,7 +73,7 @@ int get_recovery_message(struct recovery_message *out)
 	}
 
 	offset += (pagesize * MISC_COMMAND_PAGE);
-	if (flash_read(ptn, offset, buf, pagesize)) {
+	if (flash_read(ptn, offset, (void *) buf, pagesize)) {
 		dprintf(CRITICAL, "ERROR: Cannot read recovery_header\n");
 		return -1;
 	}
@@ -105,18 +104,19 @@ int set_recovery_message(const struct recovery_message *in)
 
 	n = pagesize * (MISC_COMMAND_PAGE + 1);
 
-	if (flash_read(ptn, offset, SCRATCH_ADDR, n)) {
+	if (flash_read(ptn, offset, (void *) SCRATCH_ADDR, n)) {
 		dprintf(CRITICAL, "ERROR: Cannot read recovery_header\n");
 		return -1;
 	}
 
 	offset += (pagesize * MISC_COMMAND_PAGE);
 	offset += SCRATCH_ADDR;
-	memcpy(offset, in, sizeof(*in));
+	memcpy((void *) offset, in, sizeof(*in));
 	if (flash_write(ptn, 0, (void *)SCRATCH_ADDR, n)) {
 		dprintf(CRITICAL, "ERROR: flash write fail!\n");
 		return -1;
 	}
+	return 0;
 }
 
 int read_update_header_for_bootloader(struct update_header *header)
@@ -143,7 +143,7 @@ int read_update_header_for_bootloader(struct update_header *header)
 	}
 	memcpy(header, buf, sizeof(*header));
 
-	if(strncmp(header->MAGIC, UPDATE_MAGIC, UPDATE_MAGIC_SIZE))
+	if (strncmp((char *) header->MAGIC, UPDATE_MAGIC, UPDATE_MAGIC_SIZE))
 	{
 		return -1;
 	}
@@ -174,7 +174,7 @@ int update_firmware_image (struct update_header *header, char *name)
 	offset += header->image_offset;
 	n = (header->image_length + pagemask) & (~pagemask);
 
-	if (flash_read(ptn, offset, SCRATCH_ADDR, n)) {
+	if (flash_read(ptn, offset, (void *) SCRATCH_ADDR, n)) {
 		dprintf(CRITICAL, "ERROR: Cannot read radio image\n");
 		return -1;
 	}
@@ -185,7 +185,7 @@ int update_firmware_image (struct update_header *header, char *name)
 		return -1;
 	}
 
-	if (flash_write(ptn, 0, SCRATCH_ADDR, n)) {
+	if (flash_write(ptn, 0, (void *) SCRATCH_ADDR, n)) {
 		dprintf(CRITICAL, "ERROR: flash write fail!\n");
 		return -1;
 	}
@@ -290,10 +290,10 @@ int recovery_init (void)
 	int update_status = 0;
 
 	// get recovery message
-	if(get_recovery_message(&msg))
+	if (get_recovery_message(&msg))
 		return -1;
 	if (msg.command[0] != 0 && msg.command[0] != 255) {
-		dprintf("Recovery command: %.*s\n", sizeof(msg.command), msg.command);
+		dprintf(INFO, "Recovery command: %.*s\n", sizeof(msg.command), msg.command);
 	}
 	msg.command[sizeof(msg.command)-1] = '\0'; //Ensure termination
 

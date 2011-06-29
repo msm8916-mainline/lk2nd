@@ -36,6 +36,7 @@
 #include <jtag.h>
 #include <kernel/thread.h>
 #include <smem.h>
+#include <platform.h>
 #include "bootimg.h"
 
 #define FLASH_PAGE_SIZE 2048
@@ -49,12 +50,11 @@ static unsigned load_addr = 0xffffffff;
 #define ROUND_TO_PAGE(x,y) (((x) + (y)) & (~(y)))
 
 void acpu_clock_init(void);
-void platform_uninit_timer(void);
 
 int startswith(const char *str, const char *prefix)
 {
     while(*prefix){
-        if(*prefix++ != *str++) return 0;
+        if (*prefix++ != *str++) return 0;
     }
     return 1;
 }

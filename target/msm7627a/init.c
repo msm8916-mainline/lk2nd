@@ -36,7 +36,9 @@
 #include <lib/ptable.h>
 #include <dev/flash.h>
 #include <smem.h>
+#include <mmc.h>
 #include <platform/iomap.h>
+#include <platform.h>
 
 #define MSM7X27A_FFA	3351
 #define MSM7X27A_SURF	3352

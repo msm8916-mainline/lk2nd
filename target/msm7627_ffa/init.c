@@ -36,6 +36,7 @@
 #include <lib/ptable.h>
 #include <dev/flash.h>
 #include <smem.h>
+#include <platform.h>
 
 #define LINUX_MACHTYPE  2706
 

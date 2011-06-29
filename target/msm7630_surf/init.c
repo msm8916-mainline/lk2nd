@@ -38,8 +38,10 @@
 #include <dev/flash.h>
 #include <smem.h>
 #include <reg.h>
+#include <mmc.h>
 #include <platform/iomap.h>
 #include <platform/machtype.h>
+#include <platform.h>
 
 #define MSM8255_ID                 74
 #define MSM8655_ID                 75

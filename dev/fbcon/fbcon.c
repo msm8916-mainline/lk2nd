@@ -2,7 +2,7 @@
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2011, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,6 +33,8 @@
 #include <stdlib.h>
 #include <dev/fbcon.h>
 #include <splash.h>
+#include <platform.h>
+#include <string.h>
 
 #include "font5x12.h"
 
@@ -206,7 +208,7 @@ struct fbcon_config* fbcon_display(void)
     return config;
 }
 
-void diplay_image_on_screen(void)
+void display_image_on_screen(void)
 {
     unsigned i = 0;
     unsigned total_x = config->width;

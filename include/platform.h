@@ -35,4 +35,14 @@ void platform_init(void);
 /* called by the arch init code to get the platform to set up any mmu mappings it may need */
 void platform_init_mmu_mappings(void);
 
+void display_init(void);
+void display_shutdown(void);
+void display_image_on_screen(void);
+
+unsigned board_machtype(void);
+unsigned check_reboot_mode(void);
+void platform_uninit_timer(void);
+void reboot_device(unsigned);
+
+
 #endif

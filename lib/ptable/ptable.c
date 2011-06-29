@@ -2,7 +2,7 @@
  * Copyright (C) 2008 The Android Open Source Project
  * All rights reserved.
  *
- *Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
+ *Copyright (c) 2009-2011, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -68,7 +68,7 @@ void ptable_dump(struct ptable *ptable)
 		ptn = &ptable->parts[i];
 		dprintf(INFO, "ptn %d name='%s' start=%08x len=%08x "
 			"flags=%08x type=%s Writable=%s\n", i, ptn->name, ptn->start, ptn->length,
-			ptn->flags, ptype[ptn->type], pperm[ptn->perm]);
+			ptn->flags, ptype[(unsigned short) ptn->type], pperm[(unsigned short) ptn->perm]);
 	}
 }
 

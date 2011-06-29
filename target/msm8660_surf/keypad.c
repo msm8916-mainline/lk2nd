@@ -29,6 +29,7 @@
 
 #include <dev/keys.h>
 #include <dev/gpio_keypad.h>
+#include <platform.h>
 
 #define LINUX_MACHTYPE_8660_QT      3298
 #define BITS_IN_ELEMENT(x) (sizeof(x)[0] * 8)

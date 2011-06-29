@@ -34,6 +34,8 @@
 #include <lib/ptable.h>
 #include <smem.h>
 #include <platform/iomap.h>
+#include <mmc.h>
+#include <platform/timer.h>
 #include <reg.h>
 #include <dev/keys.h>
 #include <dev/pm8921.h>
@@ -46,8 +48,6 @@
 #define LINUX_MACHTYPE_8960_FLUID   3398
 #define LINUX_MACHTYPE_8960_APQ     3399
 
-extern unsigned int mmc_boot_main(unsigned char slot, unsigned int base);
-extern void mdelay(unsigned msecs);
 extern void dmb(void);
 extern void keypad_init(void);
 
@@ -177,7 +177,7 @@ void target_serialno(unsigned char *buf)
 	if(target_is_emmc_boot())
 	{
 		serialno =  mmc_get_psn();
-		sprintf(buf,"%x",serialno);
+		sprintf((char *) buf,"%x",serialno);
 	}
 }
 

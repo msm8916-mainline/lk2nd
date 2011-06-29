@@ -258,7 +258,7 @@ static void cmd_download(const char *arg, void *data, unsigned sz)
 		return;
 
 	r = usb_read(download_base, len);
-	if ((r < 0) || (r != len)) {
+	if ((r < 0) || ((unsigned) r != len)) {
 		fastboot_state = STATE_ERROR;
 		return;
 	}

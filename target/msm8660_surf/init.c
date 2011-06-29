@@ -36,10 +36,13 @@
 #include <lib/ptable.h>
 #include <dev/flash.h>
 #include <smem.h>
+#include <mmc.h>
+#include <platform/timer.h>
 #include <platform/iomap.h>
 #include <platform/gpio_hw.h>
 #include <baseband.h>
 #include <reg.h>
+#include <platform.h>
 
 #define LINUX_MACHTYPE_8660_SURF    2755
 #define LINUX_MACHTYPE_8660_FFA     3017
@@ -56,6 +59,7 @@ int target_is_emmc_boot(void);
 void debug_led_write(char);
 char debug_led_read();
 uint32_t platform_id_read (void);
+void setup_fpga(void);
 
 void target_init(void)
 {
