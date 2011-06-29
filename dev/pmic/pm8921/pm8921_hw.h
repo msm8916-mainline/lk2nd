@@ -34,6 +34,23 @@
 #define SYS_CONFIG_2_BOOT_DONE                (1 << 6)
 #define SYS_CONFIG_2_ADAPTIVE_BOOT_DISABLE    (1 << 7)
 
+#define PM8921_LDO_REG_BASE                   0x0AE
+#define PM8921_LDO_CTRL_REG(id)               (PM8921_LDO_REG_BASE + (2 * (id-1)))
+#define PM8921_LDO_TEST_REG(id)               (PM8921_LDO_CTRL_REG(id) + 1)
+
+/* Bit offsets LDO CTRL register */
+#define PM8921_LDO_CTRL_REG_ENABLE        7
+#define PM8921_LDO_CTRL_REG_PULL_DOWN     6
+#define PM8921_LDO_CTRL_REG_POWER_MODE    5
+#define PM8921_LDO_CTRL_REG_VOLTAGE       0
+
+/* Bit offsets LDO Test register */
+#define PM8921_LDO_TEST_REG_BANK_SEL             4
+#define PM8921_LDO_TEST_REG_RW                   7
+#define PM8921_LDO_TEST_REG_BANK2_RANGE_SEL      2
+#define PM8921_LDO_TEST_REG_BANK2_FINE_STEP      1
+#define PM8921_LDO_TEST_REG_BANK4_RANGE_EXT      0
+
 #define GPIO_CNTL_BASE                        0x150
 #define GPIO_CNTL(n)                          (GPIO_CNTL_BASE + n)
 

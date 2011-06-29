@@ -34,6 +34,17 @@
 
 static pm8921_dev_t *dev;
 
+static uint8_t ldo_n_voltage_mult[LDO_VOLTAGE_ENTRIES] = {
+	18, /* 1.2V */
+	0,
+	0,
+	};
+
+static uint8_t ldo_p_voltage_mult[LDO_VOLTAGE_ENTRIES] = {
+	0,
+	6, /* 1.8V */
+	30, /* 3.0V */
+	};
 
 /* Intialize the pmic driver */
 void pm8921_init(pm8921_dev_t *pmic)
@@ -135,5 +146,60 @@ int pm8921_gpio_config(int gpio, struct pm8921_gpio *param)
 		dprintf(INFO, "Failed to write to PM8921 ret=%d.\n", ret);
 		return -1;
 	}
+	return 0;
+}
+
+int pm8921_ldo_set_voltage(uint32_t ldo_id, uint32_t voltage)
+{
+	uint8_t mult;
+	uint8_t val = 0;
+	uint32_t ldo_number = (ldo_id & ~LDO_P_MASK);
+	int32_t ret = 0;
+
+	/* Find the voltage multiplying factor */
+	if(ldo_id & LDO_P_MASK)
+		mult = ldo_p_voltage_mult[voltage];
+	else
+		mult = ldo_n_voltage_mult[voltage];
+
+	/* Program the TEST reg */
+	if (ldo_id & LDO_P_MASK){
+		/* Bank 2, only for p ldo, use 1.25V reference */
+		val = 0x0;
+		val |= ( 1 << PM8921_LDO_TEST_REG_RW );
+		val |= ( 2 << PM8921_LDO_TEST_REG_BANK_SEL);
+		ret = dev->write(&val, 1, PM8921_LDO_TEST_REG(ldo_number));
+		if (ret) {
+			dprintf(CRITICAL, "Failed to write to PM8921 LDO Test Reg ret=%d.\n", ret);
+			return -1;
+		}
+
+		/* Bank 4, only for p ldo, disable output range ext, normal capacitance */
+		val = 0x0;
+		val |= ( 1 << PM8921_LDO_TEST_REG_RW );
+		val |= ( 4 << PM8921_LDO_TEST_REG_BANK_SEL);
+		ret = dev->write(&val, 1, PM8921_LDO_TEST_REG(ldo_number));
+		if (ret) {
+			dprintf(CRITICAL, "Failed to write to PM8921 LDO Test Reg ret=%d.\n", ret);
+			return -1;
+		}
+	}
+
+	/* Program the CTRL reg */
+	ret = dev->read(&val, 1, PM8921_LDO_CTRL_REG(ldo_number));
+	if (ret == -1) {
+		dprintf(CRITICAL, "Failed to read to PM8921 LDO Ctrl Reg ret=%d.\n", ret);
+		return -1;
+	}
+	val |= ( 1 << PM8921_LDO_CTRL_REG_ENABLE);
+	val |= ( 1 << PM8921_LDO_CTRL_REG_PULL_DOWN);
+	val |= ( 0 << PM8921_LDO_CTRL_REG_POWER_MODE);
+	val |= ( mult << PM8921_LDO_CTRL_REG_VOLTAGE);
+	ret = dev->write(&val, 1, PM8921_LDO_CTRL_REG(ldo_number));
+	if (ret) {
+		dprintf(CRITICAL, "Failed to write to PM8921 LDO Ctrl Reg ret=%d.\n", ret);
+		return -1;
+	}
+
 	return 0;
 }

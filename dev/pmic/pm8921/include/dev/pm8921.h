@@ -54,6 +54,21 @@
 /* GPIO24 for backlight_pwm which is 23 (index start at 0) */
 #define GPIO_24                 23
 
+/* LDO define values */
+#define LDO_P_MASK (1 << 7)
+
+#define LDO_2      (2)
+#define LDO_8      (8  | LDO_P_MASK)
+#define LDO_23     (23 | LDO_P_MASK)
+
+enum
+{
+	LDO_VOLTAGE_1_2V = 0,
+	LDO_VOLTAGE_1_8V = 1,
+	LDO_VOLTAGE_3_0V = 2,
+	LDO_VOLTAGE_ENTRIES
+};
+
 typedef struct
 {
 	uint32_t initialized;
@@ -79,5 +94,6 @@ struct pm8921_gpio {
 void pm8921_init(pm8921_dev_t *);
 int  pm8921_gpio_config(int gpio, struct pm8921_gpio *param);
 void pm8921_boot_done(void);
+int  pm8921_ldo_set_voltage(uint32_t ldo_id, uint32_t voltage);
 
 #endif
