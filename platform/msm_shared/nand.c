@@ -3186,17 +3186,11 @@ unsigned flash_ctrl_hwinfo(dmov_s *cmdlist, unsigned *ptrlist)
 	unsigned rv;
 
 	data[0] = 0xeeeeeeee;
-	data[1] = 1;
 
-	cmd[0].cmd = CMD_OCB;
+	cmd[0].cmd = CMD_LC | CMD_OCB | CMD_OCU ;
 	cmd[0].src = NAND_HW_INFO;
 	cmd[0].dst = paddr(&data[0]);
 	cmd[0].len = 4;
-
-	cmd[1].cmd = CMD_OCU | CMD_LC;
-	cmd[1].src = paddr(&data[1]);
-	cmd[1].dst = NAND_EXEC_CMD;
-	cmd[1].len = 4;
 
 	ptr[0] = (paddr(cmd) >> 3) | CMD_PTR_LP;
 	dmov_exec_cmdptr(DMOV_NAND_CHAN, ptr);
