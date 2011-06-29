@@ -45,7 +45,7 @@ unsigned* target_atag_mem(unsigned* ptr)
 			if ((ram_ptable.parts[i].attr == READWRITE)
 				&& (ram_ptable.parts[i].domain == APPS_DOMAIN)
 				&& (ram_ptable.parts[i].start != 0x0)
-				&& (!(ram_ptable.parts[i].size < SIZE_1M)))
+				&& (!(ROUND_TO_MB(ram_ptable.parts[i].size) <= SIZE_1M)))
 			{
 				/* ATAG_MEM */
 				*ptr++ = 4;
