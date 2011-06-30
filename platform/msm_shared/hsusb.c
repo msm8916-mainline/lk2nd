@@ -2,7 +2,7 @@
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2011, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -375,6 +375,17 @@ static unsigned char usb_config_value = 0;
 
 #define SETUP(type,request) (((type) << 8) | (request))
 
+static void set_test_mode(uint16_t value)
+{
+	uint32_t mode;
+	if(value == TEST_PACKET)
+	{
+		dprintf(ALWAYS,"Entering test mode for TST_PKT\n");
+		mode = readl(USB_PORTSC) & (~PORTSC_PTC);
+		writel(mode | PORTSC_PTC_TST_PKT, USB_PORTSC);
+	}
+}
+
 static void handle_setup(struct udc_endpoint *ept)
 {
 	struct setup_packet s;
@@ -452,6 +463,11 @@ static void handle_setup(struct udc_endpoint *ept)
 		/* if we ack this everything hangs */
 		/* per spec, STALL is valid if there is not alt func */
 		goto stall;
+	case SETUP(DEVICE_WRITE, SET_FEATURE):
+		setup_ack();
+		/* TODO: Use s.value and fix byte ordering */
+		set_test_mode(s.index);
+		return;
 	case SETUP(ENDPOINT_WRITE, CLEAR_FEATURE): {
 		struct udc_endpoint *ept;
 		unsigned num = s.index & 15;
