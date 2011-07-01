@@ -369,7 +369,7 @@ unified_boot:
 	dprintf(INFO, "cmdline = '%s'\n", cmdline);
 
 	dprintf(INFO, "\nBooting Linux\n");
-	boot_linux((void *)hdr->kernel_addr, (void *)TAGS_ADDR,
+	boot_linux((void *)hdr->kernel_addr, hdr->tags_addr,
 		   (const char *)cmdline, board_machtype(),
 		   (void *)hdr->ramdisk_addr, hdr->ramdisk_size);
 
@@ -463,7 +463,7 @@ continue_boot:
 	/* TODO: create/pass atags to kernel */
 
 	dprintf(INFO, "\nBooting Linux\n");
-	boot_linux((void *)hdr->kernel_addr, (void *)TAGS_ADDR,
+	boot_linux((void *)hdr->kernel_addr, (void *)hdr->tags_addr,
 		   (const char *)cmdline, board_machtype(),
 		   (void *)hdr->ramdisk_addr, hdr->ramdisk_size);
 
@@ -500,16 +500,16 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 		return;
 	}
 
-	memmove((void*) KERNEL_ADDR, ptr + page_size, hdr.kernel_size);
-	memmove((void*) RAMDISK_ADDR, ptr + page_size + kernel_actual, hdr.ramdisk_size);
+	memmove((void*) hdr.kernel_addr, ptr + page_size, hdr.kernel_size);
+	memmove((void*) hdr.ramdisk_addr, ptr + page_size + kernel_actual, hdr.ramdisk_size);
 
 	fastboot_okay("");
 	target_battery_charging_enable(0, 1);
 	udc_stop();
 
-	boot_linux((void*) KERNEL_ADDR, (void*) TAGS_ADDR,
+	boot_linux((void*) hdr.kernel_addr, (void*) TAGS_ADDR,
 		   (const char*) hdr.cmdline, board_machtype(),
-		   (void*) RAMDISK_ADDR, hdr.ramdisk_size);
+		   (void*) hdr.ramdisk_addr, hdr.ramdisk_size);
 }
 
 void cmd_erase(const char *arg, void *data, unsigned sz)
