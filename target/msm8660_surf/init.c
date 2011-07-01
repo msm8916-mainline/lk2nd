@@ -47,6 +47,7 @@
 #define LINUX_MACHTYPE_8660_QT      3298
 #define LINUX_MACHTYPE_8660_CHARM_SURF   3181
 #define LINUX_MACHTYPE_8660_CHARM_FFA    3199
+#define LINUX_MACHTYPE_8x60_DRAGON       3586
 
 void keypad_init(void);
 
@@ -138,6 +139,9 @@ unsigned board_machtype(void)
 		case 0x6:
 			hw_platform = HW_PLATFORM_QT;
 			break;
+		case 0xA:
+			hw_platform = HW_PLATFORM_DRAGON;
+			break;
 		default:
 			/* Writing to Debug LED register and reading back to auto detect
 			SURF and FFA. If we read back, it is SURF */
@@ -173,6 +177,8 @@ unsigned board_machtype(void)
 					mach_id = LINUX_MACHTYPE_8660_FLUID;
 				else if (hw_platform == HW_PLATFORM_QT)
 					mach_id = LINUX_MACHTYPE_8660_QT;
+				else if (hw_platform == HW_PLATFORM_DRAGON)
+					mach_id = LINUX_MACHTYPE_8x60_DRAGON;
 		}
 	}
 	else if (format == 5)
@@ -188,6 +194,8 @@ unsigned board_machtype(void)
 					mach_id = LINUX_MACHTYPE_8660_FLUID;
 				else if (hw_platform == HW_PLATFORM_QT)
 					mach_id = LINUX_MACHTYPE_8660_QT;
+				else if (hw_platform == HW_PLATFORM_DRAGON)
+					mach_id = LINUX_MACHTYPE_8x60_DRAGON;
 				break;
 
 			case MDM9200:

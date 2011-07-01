@@ -190,6 +190,7 @@ enum platform
     HW_PLATFORM_FLUID   = 3,
     HW_PLATFORM_SVLTE   = 4,
     HW_PLATFORM_QT      = 6,
+    HW_PLATFORM_DRAGON  = 10,
     HW_PLATFORM_32BITS  = 0x7FFFFFFF
 };
 
