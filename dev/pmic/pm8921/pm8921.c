@@ -93,7 +93,7 @@ int pm8921_gpio_config(int gpio, struct pm8921_gpio *param)
 	};
 
 	if (param == NULL) {
-	  dprintf (INFO, "pm8291_gpio struct not defined\n");
+	  dprintf (CRITICAL, "pm8291_gpio struct not defined\n");
           return -1;
 	}
 
@@ -143,7 +143,7 @@ int pm8921_gpio_config(int gpio, struct pm8921_gpio *param)
 
 	ret = dev->write(bank, 6, GPIO_CNTL(gpio));
 	if (ret) {
-		dprintf(INFO, "Failed to write to PM8921 ret=%d.\n", ret);
+		dprintf(CRITICAL, "Failed to write to PM8921 ret=%d.\n", ret);
 		return -1;
 	}
 	return 0;
