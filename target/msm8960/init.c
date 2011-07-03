@@ -163,11 +163,10 @@ void reboot_device(unsigned reboot_reason)
 unsigned check_reboot_mode(void)
 {
 	unsigned restart_reason = 0;
-	void *restart_reason_addr = (void*)0x401FFFFC;
 
 	/* Read reboot reason and scrub it */
-	restart_reason = readl(restart_reason_addr);
-	writel(0x00, restart_reason_addr);
+	restart_reason = readl(RESTART_REASON_ADDR);
+	writel(0x00, RESTART_REASON_ADDR);
 
 	return restart_reason;
 }
