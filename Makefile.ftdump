@@ -5,7 +5,8 @@
 #
 
 FTDUMP_SRCS = \
-	ftdump.c
+	ftdump.c \
+	util.c
 
 FTDUMP_GEN_SRCS =
 

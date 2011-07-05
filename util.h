@@ -1,6 +1,8 @@
 #ifndef _UTIL_H
 #define _UTIL_H
 
+#include <stdarg.h>
+
 /*
  * Copyright 2008 Jon Loeliger, Freescale Semiconductor, Inc.
  *
@@ -52,5 +54,14 @@ static inline void *xrealloc(void *p, size_t len)
 
 extern char *xstrdup(const char *s);
 extern char *join_path(const char *path, const char *name);
+
+/**
+ * Check a string of a given length to see if it is all printable and
+ * has a valid terminator.
+ *
+ * @param data	The string to check
+ * @param len	The string length including terminator
+ * @return 1 if a valid printable string, 0 if not */
+int util_is_printable_string(const void *data, int len);
 
 #endif /* _UTIL_H */

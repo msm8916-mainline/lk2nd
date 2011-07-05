@@ -11,35 +11,13 @@
 #include <fdt.h>
 #include <libfdt_env.h>
 
+#include "util.h"
+
 #define FTDUMP_BUF_SIZE	65536
 
 #define ALIGN(x, a)	(((x) + ((a) - 1)) & ~((a) - 1))
 #define PALIGN(p, a)	((void *)(ALIGN((unsigned long)(p), (a))))
 #define GET_CELL(p)	(p += 4, *((const uint32_t *)(p-4)))
-
-static int is_printable_string(const void *data, int len)
-{
-	const char *s = data;
-	const char *ss;
-
-	/* zero length is not */
-	if (len == 0)
-		return 0;
-
-	/* must terminate with zero */
-	if (s[len - 1] != '\0')
-		return 0;
-
-	ss = s;
-	while (*s && isprint(*s))
-		s++;
-
-	/* not zero, or not done yet */
-	if (*s != '\0' || (s + 1 - ss) < len)
-		return 0;
-
-	return 1;
-}
 
 static void print_data(const char *data, int len)
 {
@@ -50,7 +28,7 @@ static void print_data(const char *data, int len)
 	if (len == 0)
 		return;
 
-	if (is_printable_string(data, len)) {
+	if (util_is_printable_string(data, len)) {
 		printf(" = \"%s\"", (const char *)data);
 	} else if ((len % 4) == 0) {
 		printf(" = <");
