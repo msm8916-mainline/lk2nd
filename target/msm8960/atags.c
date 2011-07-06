@@ -26,35 +26,72 @@
  *
  */
 
-#define SIZE_1M     (1024 * 1024)
-#define SIZE_141M	(141 * SIZE_1M)
-#define SIZE_768M	(768 * SIZE_1M)
+#include <reg.h>
+#include <debug.h>
+#include <smem.h>
+#include <stdint.h>
 
-#define EBI1_CH0_CS0_HLOS_ADDR	0x80200000
-#define EBI1_CH1_CS0_HLOS_ADDR	0x90000000
+#define SIZE_1M     (1024 * 1024)
+#define SIZE_2M		(2 * SIZE_1M)
+#define SIZE_141M	(141 * SIZE_1M)
+#define SIZE_256M	(256 * SIZE_1M)
+#define SIZE_512M	(512 * SIZE_1M)
 
 unsigned* target_atag_mem(unsigned* ptr)
 {
-	/* ATAG_MEM */
-	*ptr++ = 4;
-	*ptr++ = 0x54410002;
-	*ptr++ = SIZE_141M;
-	*ptr++ = EBI1_CH0_CS0_HLOS_ADDR;
+	struct smem_ram_ptable ram_ptable;
+	uint8_t i = 0;
 
-	*ptr++ = 4;
-	*ptr++ = 0x54410002;
-	*ptr++ = SIZE_768M;
-	*ptr++ = EBI1_CH1_CS0_HLOS_ADDR;
+	if (smem_ram_ptable_init(&ram_ptable))
+	{
+		/*
+		 * Find lower memory bank (CS0) and strip parts from it that
+		 * will be allocated to peripherals.  Use entire upper
+		 * memory bank (CS1) for kernel.
+		 */
+		for (i = 0; i < ram_ptable.len; i++)
+		{
+			if (ram_ptable.parts[i].category == EBI1_CS0 &&
+					ram_ptable.parts[i].type == SYS_MEMORY)
+			{
+				ASSERT(ram_ptable.parts[i].size == SIZE_512M);
+
+				*ptr++ = 4;
+				*ptr++ = 0x54410002;
+				*ptr++ = SIZE_141M;
+				*ptr++ = ram_ptable.parts[i].start + SIZE_2M;
+
+				*ptr++ = 4;
+				*ptr++ = 0x54410002;
+				*ptr++ = ram_ptable.parts[i].size - SIZE_256M;
+				*ptr++ = ram_ptable.parts[i].start + SIZE_256M;
+			}
+
+			if (ram_ptable.parts[i].category == EBI1_CS1 &&
+					ram_ptable.parts[i].type == SYS_MEMORY)
+			{
+				*ptr++ = 4;
+				*ptr++ = 0x54410002;
+				*ptr++ = ram_ptable.parts[i].size;
+				*ptr++ = ram_ptable.parts[i].start;
+			}
+		}
+	}
+	else
+	{
+		dprintf(CRITICAL, "ERROR: Unable to read RAM partition\n");
+		ASSERT(0);
+	}
 
 	return ptr;
 }
 
 void *target_get_scratch_address(void)
 {
-	return((void *)EBI1_CH1_CS0_HLOS_ADDR);
+	return((void *)SCRATCH_ADDR);
 }
 
 unsigned target_get_max_flash_size(void)
 {
-	return (SIZE_768M);
+	return (SIZE_512M);
 }
