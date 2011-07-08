@@ -85,6 +85,14 @@ void target_init(void)
 	keys_init();
 	keypad_init();
 
+	/* Display splash screen if enabled */
+#if DISPLAY_SPLASH_SCREEN
+	panel_backlight_on();
+	display_init();
+	dprintf(SPEW, "Diplay initialized\n");
+	display_image_on_screen();
+#endif
+
 	/* Trying Slot 1 first */
 	slot = 1;
 	base_addr = mmc_sdc_base[slot-1];

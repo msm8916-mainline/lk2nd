@@ -843,13 +843,6 @@ void aboot_init(const struct app_descriptor *app)
 		page_mask = page_size - 1;
 	}
 
-	/* Display splash screen if enabled */
-	#if DISPLAY_SPLASH_SCREEN
-	display_init();
-	dprintf(SPEW, "Diplay initialized\n");
-	display_image_on_screen();
-	#endif
-
 	target_serialno((unsigned char *) sn_buf);
 	dprintf(SPEW,"serial number: %s\n",sn_buf);
 	surf_udc_device.serialno = sn_buf;

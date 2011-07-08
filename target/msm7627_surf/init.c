@@ -121,6 +121,13 @@ void target_init(void)
 
 	dprintf(INFO, "target_init()\n");
 
+	/* Display splash screen if enabled */
+#if DISPLAY_SPLASH_SCREEN
+	display_init();
+	dprintf(SPEW, "Diplay initialized\n");
+	display_image_on_screen();
+#endif
+
 #if (!ENABLE_NANDWRITE)
 	keys_init();
 	keypad_init();

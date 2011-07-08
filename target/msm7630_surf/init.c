@@ -177,6 +177,13 @@ void target_init(void)
 	keypad_init();
 #endif
 
+	/* Display splash screen if enabled */
+#if DISPLAY_SPLASH_SCREEN
+	display_init();
+	dprintf(SPEW, "Diplay initialized\n");
+	display_image_on_screen();
+#endif
+
 	if (target_is_emmc_boot())
 	{
 		/* Must wait for modem-up before we can intialize MMC.
