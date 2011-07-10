@@ -212,21 +212,11 @@ int main(int argc, char *argv[])
 		}
 		fclose(output_file);
 
-		//Concat and combine to signed image. Format [HDR][RAW APPSBOOT][PADDED CERT CHAIN]
+		//Concat and combine to signed image. Format [RAW APPSBOOT][PADDED CERT CHAIN]
 		if((output_file = fopen(argv[4], "wb"))==NULL){
 			perror("ERROR: Occured during fopen");
 			return -1;
 		}
-
-		//Header
-		if((input_file = fopen(argv[2], "rb"))==NULL){
-			perror("ERROR: Occured during fopen");
-			return -1;
-		}
-		stat(argv[2], &s);
-		if (cat(input_file, output_file, s.st_size, buff_size))
-			return -1;
-		fclose(input_file);
 
 		//Raw Appsbl
 		if((input_file = fopen(argv[1], "rb"))==NULL){
