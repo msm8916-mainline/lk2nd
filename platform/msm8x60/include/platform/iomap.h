@@ -63,6 +63,10 @@
 
 #define SURF_DEBUG_LED_ADDR    0x1D000202
 
+#define TLMM_BASE_ADDR       0x00800000
+#define GPIO_CONFIG_ADDR(x) (TLMM_BASE_ADDR + 0x1000 + (x)*0x10)
+#define GPIO_IN_OUT_ADDR(x) (TLMM_BASE_ADDR + 0x1004 + (x)*0x10)
+
 #define GPIO_CFG133_ADDR    0x00801850
 #define GPIO_CFG135_ADDR    0x00801870
 #define GPIO_CFG136_ADDR    0x00801880
@@ -89,33 +93,11 @@
 #define GPIO_CFG157_ADDR    0x008019D0
 #define GPIO_CFG158_ADDR    0x008019E0
 
-#define GSBI1_BASE  (0x16000000)
-#define GSBI2_BASE  (0x16100000)
-#define GSBI3_BASE  (0x16200000)
-#define GSBI4_BASE  (0x16300000)
-#define GSBI5_BASE  (0x16400000)
-#define GSBI6_BASE  (0x16500000)
-#define GSBI7_BASE  (0x16600000)
-#define GSBI8_BASE  (0x19800000)
-#define GSBI9_BASE  (0x19900000)
-#define GSBI10_BASE (0x19A00000)
-#define GSBI11_BASE (0x19B00000)
-#define GSBI12_BASE (0x19C00000)
+#define GSBI_BASE(id)         ((id) <= 7 ? (0x16000000 + (((id)-1) << 20)) : \
+                                           (0x19800000 + (((id)-8) << 20)))
+#define GSBI_UART_DM_BASE(id) (GSBI_BASE(id) + 0x40000)
+#define QUP_BASE(id)          (GSBI_BASE(id) + 0x80000)
 
-#define GSBI1_QUP_BASE  (GSBI1_BASE  + 0x80000)
-#define GSBI2_QUP_BASE  (GSBI2_BASE  + 0x80000)
-#define GSBI3_QUP_BASE  (GSBI3_BASE  + 0x80000)
-#define GSBI4_QUP_BASE  (GSBI4_BASE  + 0x80000)
-#define GSBI5_QUP_BASE  (GSBI5_BASE  + 0x80000)
-#define GSBI6_QUP_BASE  (GSBI6_BASE  + 0x80000)
-#define GSBI7_QUP_BASE  (GSBI7_BASE  + 0x80000)
-#define GSBI8_QUP_BASE  (GSBI8_BASE  + 0x80000)
-#define GSBI9_QUP_BASE  (GSBI9_BASE  + 0x80000)
-#define GSBI10_QUP_BASE (GSBI10_BASE + 0x80000)
-#define GSBI11_QUP_BASE (GSBI11_BASE + 0x80000)
-#define GSBI12_QUP_BASE (GSBI12_BASE + 0x80000)
-
-#define GSBI_CTL_PROTOCOL_CODE_I2C (0x20)
 
 #define CLK_CTL_BASE                 0x00900000
 #define USB_HS1_HCLK_CTL            (CLK_CTL_BASE + 0x2900)
@@ -125,8 +107,10 @@
 #define MSM_BOOT_PLL8_STATUS        (CLK_CTL_BASE + 0x3158)
 #define GSBIn_HCLK_CTL(n)           (CLK_CTL_BASE + 0x29C0 + (32 * ((n) - 1)))
 #define GSBIn_HCLK_FS(n)            (CLK_CTL_BASE + 0x29C4 + (32 * ((n) - 1)))
-#define GSBIn_QUP_APPS_MD(n)        (CLK_CTL_BASE + 0x29D0 + (32 * ((n) - 1)))
-#define GSBIn_QUP_APPS_NS(n)        (CLK_CTL_BASE + 0x29D4 + (32 * ((n) - 1)))
+#define GSBIn_QUP_APPS_MD(n)        (CLK_CTL_BASE + 0x29C8 + (32 * ((n) - 1)))
+#define GSBIn_QUP_APPS_NS(n)        (CLK_CTL_BASE + 0x29CC + (32 * ((n) - 1)))
+#define GSBIn_UART_APPS_MD(n)       (CLK_CTL_BASE + 0x29D0 + (32 * ((n) - 1)))
+#define GSBIn_UART_APPS_NS(n)       (CLK_CTL_BASE + 0x29D4 + (32 * ((n) - 1)))
 
 /* Defines for the GPIO EXPANDER chip, SX1509QIULTRT */
 #define GPIO_EXPANDER_REG_OPEN_DRAIN_A  (0x0B)

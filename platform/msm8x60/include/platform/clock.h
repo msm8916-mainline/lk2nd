@@ -1,5 +1,5 @@
 /*
- * * Copyright (c) 2010, Code Aurora Forum. All rights reserved.
+ * * Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -87,6 +87,16 @@
 #define BB_PLL8_N_VAL_REG       (MSM_CLK_CTL_BASE + 0x314C)
 #define CE2_HCLK_CTL            (MSM_CLK_CTL_BASE + 0x2740)
 
+/* NS/MD value for UART */
+#define UART_DM_CLK_NS_115200   0xFD940043
+#define UART_DM_CLK_MD_115200   0x0006FD8E
+
+
+#define UART_DM_CLK_RX_TX_BIT_RATE 0xEE
+
+/* GSBI/I2C QUP APPS CLK definitions */
+#define I2C_CLK_MD_24MHz        0x000100FB
+#define I2C_CLK_NS_24MHz        0x00FC005B
 
 enum clk_sources {
     PLL_0 = 0,
@@ -103,5 +113,9 @@ enum clk_sources {
     CXO,
     NUM_SRC
 };
+
+void hsusb_clock_init(void);
+void clock_config_uart_dm(uint8_t id);
+void clock_config_i2c(uint8_t id, uint32_t freq);
 
 #endif

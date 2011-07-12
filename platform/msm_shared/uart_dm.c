@@ -30,13 +30,14 @@
 #include <stdlib.h>
 #include <debug.h>
 #include <reg.h>
+#include <sys/types.h>
 #include <platform/iomap.h>
 #include <platform/irqs.h>
 #include <platform/interrupts.h>
-#include <platform/gpio_hw.h>
-#include <dev/uart.h>
-#include "uart_dm.h"
-
+#include <platform/clock.h>
+#include <platform/gpio.h>
+#include <uart_dm.h>
+#include <gsbi.h>
 
 #ifndef NULL
 #define NULL        0
@@ -67,30 +68,27 @@
 
 
 /* Static Function Prototype Declarations */
-static unsigned int msm_boot_uart_config_gpios(void);
-static unsigned int msm_boot_uart_dm_config_clock(void);
-static unsigned int msm_boot_uart_dm_gsbi_init(void);
+static unsigned int msm_boot_uart_dm_gsbi_init(uint8_t id);
 static unsigned int msm_boot_uart_replace_lr_with_cr(char* data_in,
                                                      int num_of_chars,
                                                      char *data_out,
                                                      int *num_of_chars_out);
-static unsigned int msm_boot_uart_dm_init(void);
-static unsigned int msm_boot_uart_dm_read(unsigned int* data,
+static unsigned int msm_boot_uart_dm_init(uint8_t id);
+static unsigned int msm_boot_uart_dm_read(uint8_t id, unsigned int* data,
                                           int wait);
-static unsigned int msm_boot_uart_dm_write(char* data,
+static unsigned int msm_boot_uart_dm_write(uint8_t id, char* data,
                                            unsigned int num_of_chars);
-static unsigned int msm_boot_uart_dm_init_rx_transfer(void);
-static unsigned int msm_boot_uart_dm_reset(void);
+static unsigned int msm_boot_uart_dm_init_rx_transfer(uint8_t id);
+static unsigned int msm_boot_uart_dm_reset(uint8_t id);
 
+/* TODO: Detele the patch that adds this to sys/types.h gets merged */
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
+
+/* Keep track of gsbi vs port mapping.
+ */
+static uint8_t gsbi_lookup[4];
 
 /* Extern functions */
-void clock_config(unsigned int ns, unsigned int md,
-                  unsigned int ns_addr, unsigned int md_addr);
-
-void gpio_tlmm_config(uint32_t gpio, uint8_t func,
-                      uint8_t dir, uint8_t pull,
-                      uint8_t drvstr, uint32_t enable );
-
 void udelay(unsigned usecs);
 
 
@@ -126,70 +124,30 @@ static unsigned int msm_boot_uart_replace_lr_with_cr(char* data_in,
     return MSM_BOOT_UART_DM_E_SUCCESS;
 }
 
-
-static unsigned int msm_boot_uart_dm_config_gpios(void)
-{
-    /* GPIO Pin: MSM_BOOT_UART_DM_RX_GPIO
-       Function: MSM_BOOT_UART_DM_RX_GPIO_FUNC
-       Direction: IN
-       Pull: No PULL
-       Drive Strength: 8 ma
-       Output Enable: Disable
-    */
-    gpio_tlmm_config(MSM_BOOT_UART_DM_RX_GPIO, MSM_BOOT_UART_DM_RX_GPIO_FUNC,
-                     GPIO_INPUT, GPIO_NO_PULL, GPIO_8MA, GPIO_DISABLE);
-
-    /* GPIO Pin: MSM_BOOT_UART_DM_TX_GPIO
-       Function:  MSM_BOOT_UART_DM_TX_GPIO_FUNC
-       Direction: OUT
-       Pull: No PULL
-       Drive Strength: 8 ma
-       Output Enable: Disable
-    */
-    gpio_tlmm_config(MSM_BOOT_UART_DM_TX_GPIO, MSM_BOOT_UART_DM_TX_GPIO_FUNC,
-                     GPIO_OUTPUT, GPIO_NO_PULL, GPIO_8MA, GPIO_DISABLE);
-
-    return MSM_BOOT_UART_DM_E_SUCCESS;
-}
-
-
-
-static unsigned int msm_boot_uart_dm_config_clock(void)
-{
-    uart_clock_init();
-
-    /* Enable gsbi_uart_clk */
-    clock_config(MSM_BOOT_UART_DM_NS_VAL,
-                 MSM_BOOT_UART_DM_MD_VAL,
-                 MSM_BOOT_UART_DM_APPS_NS,
-                 MSM_BOOT_UART_DM_APPS_MD);
-
-    /* Enable gsbi_pclk */
-    writel(0x10, MSM_BOOT_UART_DM_GSBI_HCLK_CTL);
-
-    return MSM_BOOT_UART_DM_E_SUCCESS;
-}
-
-
 /*
  * Initialize and configure GSBI for operation
  */
-static unsigned int msm_boot_uart_dm_gsbi_init(void)
+static unsigned int msm_boot_uart_dm_gsbi_init(uint8_t id)
 {
-    /* Configure the clock block */
-    msm_boot_uart_dm_config_clock();
+    /* Configure the uart clock */
+    clock_config_uart_dm(id);
 
-    /* Configure TLMM/GPIO to provide connectivity between GSBI
+    /* Configure GPIO to provide connectivity between GSBI
        product ports and chip pads */
-    msm_boot_uart_dm_config_gpios();
-
+    gpio_config_uart_dm(id);
 
     /* Configure Data Mover for GSBI operation.
      * Currently not supported. */
 
     /* Configure GSBI for UART_DM protocol.
      * I2C on 2 ports, UART (without HS flow control) on the other 2. */
-    writel(0x60,  MSM_BOOT_GSBI_CTRL_REG);
+    writel(GSBI_PROTOCOL_CODE_I2C_UART << GSBI_CTRL_REG_PROTOCOL_CODE_S,
+           GSBI_CTRL_REG(id));
+
+	/* Configure clock selection register for tx and rx rates.
+	 * Selecting 115.2k for both RX and TX.
+	 */
+	writel(UART_DM_CLK_RX_TX_BIT_RATE, MSM_BOOT_UART_DM_CSR(id));
 
     return MSM_BOOT_UART_DM_E_SUCCESS;
 }
@@ -197,13 +155,13 @@ static unsigned int msm_boot_uart_dm_gsbi_init(void)
 /*
  * Reset the UART
  */
-static unsigned int msm_boot_uart_dm_reset(void)
+static unsigned int msm_boot_uart_dm_reset(uint8_t id)
 {
-    writel(MSM_BOOT_UART_DM_CMD_RESET_RX, MSM_BOOT_UART_DM_CR);
-    writel(MSM_BOOT_UART_DM_CMD_RESET_TX, MSM_BOOT_UART_DM_CR);
-    writel(MSM_BOOT_UART_DM_CMD_RESET_ERR_STAT, MSM_BOOT_UART_DM_CR);
-    writel(MSM_BOOT_UART_DM_CMD_RES_TX_ERR, MSM_BOOT_UART_DM_CR);
-    writel(MSM_BOOT_UART_DM_CMD_RES_STALE_INT, MSM_BOOT_UART_DM_CR);
+    writel(MSM_BOOT_UART_DM_CMD_RESET_RX, MSM_BOOT_UART_DM_CR(id));
+    writel(MSM_BOOT_UART_DM_CMD_RESET_TX, MSM_BOOT_UART_DM_CR(id));
+    writel(MSM_BOOT_UART_DM_CMD_RESET_ERR_STAT, MSM_BOOT_UART_DM_CR(id));
+    writel(MSM_BOOT_UART_DM_CMD_RES_TX_ERR, MSM_BOOT_UART_DM_CR(id));
+    writel(MSM_BOOT_UART_DM_CMD_RES_STALE_INT, MSM_BOOT_UART_DM_CR(id));
 
     return MSM_BOOT_UART_DM_E_SUCCESS;
 }
@@ -212,47 +170,42 @@ static unsigned int msm_boot_uart_dm_reset(void)
 /*
  * Initialize UART_DM - configure clock and required registers.
  */
-static unsigned int msm_boot_uart_dm_init(void)
+static unsigned int msm_boot_uart_dm_init(uint8_t id)
 {
-    /* Configure GSB12 for uart dm */
-    msm_boot_uart_dm_gsbi_init();
-
-
-    /* Configure clock selection register for tx and rx rates.
-     * Selecting 115.2k for both RX and TX */
-    writel(MSM_BOOT_UART_DM_RX_TX_BIT_RATE, MSM_BOOT_UART_DM_CSR);
+    /* Configure GSBI for uart dm */
+    msm_boot_uart_dm_gsbi_init(id);
 
     /* Configure UART mode registers MR1 and MR2 */
     /* Hardware flow control isn't supported */
-    writel(0x0, MSM_BOOT_UART_DM_MR1);
+    writel(0x0, MSM_BOOT_UART_DM_MR1(id));
 
     /* 8-N-1 configuration: 8 data bits - No parity - 1 stop bit */
-    writel(MSM_BOOT_UART_DM_8_N_1_MODE, MSM_BOOT_UART_DM_MR2);
+    writel(MSM_BOOT_UART_DM_8_N_1_MODE, MSM_BOOT_UART_DM_MR2(id));
 
     /* Configure Interrupt Mask register IMR */
-    writel(MSM_BOOT_UART_DM_IMR_ENABLED, MSM_BOOT_UART_DM_IMR);
+    writel(MSM_BOOT_UART_DM_IMR_ENABLED, MSM_BOOT_UART_DM_IMR(id));
 
     /* Configure Tx and Rx watermarks configuration registers */
     /* TX watermark value is set to 0 - interrupt is generated when
      * FIFO level is less than or equal to 0 */
-    writel(MSM_BOOT_UART_DM_TFW_VALUE, MSM_BOOT_UART_DM_TFWR);
+    writel(MSM_BOOT_UART_DM_TFW_VALUE, MSM_BOOT_UART_DM_TFWR(id));
 
     /* RX watermark value*/
-    writel(MSM_BOOT_UART_DM_RFW_VALUE, MSM_BOOT_UART_DM_RFWR);
+    writel(MSM_BOOT_UART_DM_RFW_VALUE, MSM_BOOT_UART_DM_RFWR(id));
 
     /* Configure Interrupt Programming Register*/
     /* Set initial Stale timeout value*/
-    writel(MSM_BOOT_UART_DM_STALE_TIMEOUT_LSB, MSM_BOOT_UART_DM_IPR);
+    writel(MSM_BOOT_UART_DM_STALE_TIMEOUT_LSB, MSM_BOOT_UART_DM_IPR(id));
 
     /* Configure IRDA if required */
     /* Disabling IRDA mode */
-    writel(0x0, MSM_BOOT_UART_DM_IRDA);
+    writel(0x0, MSM_BOOT_UART_DM_IRDA(id));
 
     /* Configure and enable sim interface if required */
 
     /* Configure hunt character value in HCR register */
     /* Keep it in reset state */
-    writel(0x0, MSM_BOOT_UART_DM_HCR);
+    writel(0x0, MSM_BOOT_UART_DM_HCR(id));
 
     /* Configure Rx FIFO base address */
     /* Both TX/RX shares same SRAM and default is half-n-half.
@@ -261,19 +214,19 @@ static unsigned int msm_boot_uart_dm_init(void)
      * We have found RAM_ADDR_WIDTH = 0x7f */
 
     /* Issue soft reset command */
-    msm_boot_uart_dm_reset();
+    msm_boot_uart_dm_reset(id);
 
     /* Enable/Disable Rx/Tx DM interfaces */
     /* Data Mover not currently utilized. */
-    writel(0x0, MSM_BOOT_UART_DM_DMEN);
+    writel(0x0, MSM_BOOT_UART_DM_DMEN(id));
 
 
     /* Enable transmitter and receiver */
-    writel(MSM_BOOT_UART_DM_CR_RX_ENABLE, MSM_BOOT_UART_DM_CR);
-    writel(MSM_BOOT_UART_DM_CR_TX_ENABLE, MSM_BOOT_UART_DM_CR);
+    writel(MSM_BOOT_UART_DM_CR_RX_ENABLE, MSM_BOOT_UART_DM_CR(id));
+    writel(MSM_BOOT_UART_DM_CR_TX_ENABLE, MSM_BOOT_UART_DM_CR(id));
 
     /* Initialize Receive Path */
-    msm_boot_uart_dm_init_rx_transfer();
+    msm_boot_uart_dm_init_rx_transfer(id);
 
     return MSM_BOOT_UART_DM_E_SUCCESS;
 }
@@ -282,12 +235,12 @@ static unsigned int msm_boot_uart_dm_init(void)
 /*
  * Initialize Receive Path
  */
-static unsigned int msm_boot_uart_dm_init_rx_transfer(void)
+static unsigned int msm_boot_uart_dm_init_rx_transfer(uint8_t id)
 {
-    writel(MSM_BOOT_UART_DM_GCMD_DIS_STALE_EVT, MSM_BOOT_UART_DM_CR);
-    writel(MSM_BOOT_UART_DM_CMD_RES_STALE_INT, MSM_BOOT_UART_DM_CR);
-    writel(MSM_BOOT_UART_DM_DMRX_DEF_VALUE, MSM_BOOT_UART_DM_DMRX);
-    writel(MSM_BOOT_UART_DM_GCMD_ENA_STALE_EVT, MSM_BOOT_UART_DM_CR);
+    writel(MSM_BOOT_UART_DM_GCMD_DIS_STALE_EVT, MSM_BOOT_UART_DM_CR(id));
+    writel(MSM_BOOT_UART_DM_CMD_RES_STALE_INT, MSM_BOOT_UART_DM_CR(id));
+    writel(MSM_BOOT_UART_DM_DMRX_DEF_VALUE, MSM_BOOT_UART_DM_DMRX(id));
+    writel(MSM_BOOT_UART_DM_GCMD_ENA_STALE_EVT, MSM_BOOT_UART_DM_CR(id));
 
     return MSM_BOOT_UART_DM_E_SUCCESS;
 }
@@ -296,7 +249,7 @@ static unsigned int msm_boot_uart_dm_init_rx_transfer(void)
  * UART Receive operation
  * Reads a word from the RX FIFO.
  */
-static unsigned int msm_boot_uart_dm_read(unsigned int* data, int wait)
+static unsigned int msm_boot_uart_dm_read(uint8_t id, unsigned int* data, int wait)
 {
     static int rx_last_snap_count = 0;
     static int rx_chars_read_since_last_xfer = 0;
@@ -306,10 +259,8 @@ static unsigned int msm_boot_uart_dm_read(unsigned int* data, int wait)
         return MSM_BOOT_UART_DM_E_INVAL;
     }
 
-
-
     /* We will be polling RXRDY status bit */
-    while (!(readl(MSM_BOOT_UART_DM_SR) & MSM_BOOT_UART_DM_SR_RXRDY))
+    while (!(readl(MSM_BOOT_UART_DM_SR(id)) & MSM_BOOT_UART_DM_SR_RXRDY))
     {
         /* if this is not a blocking call, we'll just return */
         if (!wait)
@@ -319,13 +270,13 @@ static unsigned int msm_boot_uart_dm_read(unsigned int* data, int wait)
     }
 
     /* Check for Overrun error. We'll just reset Error Status */
-    if (readl(MSM_BOOT_UART_DM_SR) & MSM_BOOT_UART_DM_SR_UART_OVERRUN)
+    if (readl(MSM_BOOT_UART_DM_SR(id)) & MSM_BOOT_UART_DM_SR_UART_OVERRUN)
     {
-        writel(MSM_BOOT_UART_DM_CMD_RESET_ERR_STAT, MSM_BOOT_UART_DM_CR);
+        writel(MSM_BOOT_UART_DM_CMD_RESET_ERR_STAT, MSM_BOOT_UART_DM_CR(id));
     }
 
     /* RX FIFO is ready; read a word. */
-    *data = readl(MSM_BOOT_UART_DM_RF(0));
+    *data = readl(MSM_BOOT_UART_DM_RF(id, 0));
 
     /* increment the total count of chars we've read so far */
     rx_chars_read_since_last_xfer += 4;
@@ -340,15 +291,15 @@ static unsigned int msm_boot_uart_dm_read(unsigned int* data, int wait)
     if (rx_last_snap_count == 0)
     {
         /* Check if we've received stale event */
-        if (readl(MSM_BOOT_UART_DM_MISR) & MSM_BOOT_UART_DM_RXSTALE)
+        if (readl(MSM_BOOT_UART_DM_MISR(id)) & MSM_BOOT_UART_DM_RXSTALE)
         {
             /* Send command to reset stale interrupt */
-            writel(MSM_BOOT_UART_DM_CMD_RES_STALE_INT, MSM_BOOT_UART_DM_CR);
+            writel(MSM_BOOT_UART_DM_CMD_RES_STALE_INT, MSM_BOOT_UART_DM_CR(id));
         }
 
         /* Check if we haven't read more than DMRX value */
         else if ((unsigned int)rx_chars_read_since_last_xfer <
-                  readl(MSM_BOOT_UART_DM_DMRX))
+                  readl(MSM_BOOT_UART_DM_DMRX(id)))
         {
             /* We can still continue reading before initializing RX transfer */
             return MSM_BOOT_UART_DM_E_SUCCESS;
@@ -358,7 +309,7 @@ static unsigned int msm_boot_uart_dm_read(unsigned int* data, int wait)
 
         /* Read UART_DM_RX_TOTAL_SNAP register to know how many valid chars
          * we've read so far since last transfer */
-        rx_last_snap_count = readl(MSM_BOOT_UART_DM_RX_TOTAL_SNAP);
+        rx_last_snap_count = readl(MSM_BOOT_UART_DM_RX_TOTAL_SNAP(id));
 
     }
 
@@ -369,18 +320,17 @@ static unsigned int msm_boot_uart_dm_read(unsigned int* data, int wait)
         return MSM_BOOT_UART_DM_E_SUCCESS;
     }
 
-    msm_boot_uart_dm_init_rx_transfer();
+    msm_boot_uart_dm_init_rx_transfer(id);
     rx_last_snap_count = 0;
     rx_chars_read_since_last_xfer = 0;
 
     return MSM_BOOT_UART_DM_E_SUCCESS;
 }
 
-
 /*
  * UART transmit operation
  */
-static unsigned int msm_boot_uart_dm_write(char* data,
+static unsigned int msm_boot_uart_dm_write(uint8_t id, char* data,
                                            unsigned int num_of_chars)
 {
     unsigned int tx_word_count = 0;
@@ -409,9 +359,9 @@ static unsigned int msm_boot_uart_dm_write(char* data,
 
     /* Check if transmit FIFO is empty.
      * If not we'll wait for TX_READY interrupt. */
-    if (!(readl(MSM_BOOT_UART_DM_SR) & MSM_BOOT_UART_DM_SR_TXEMT))
+    if (!(readl(MSM_BOOT_UART_DM_SR(id)) & MSM_BOOT_UART_DM_SR_TXEMT))
     {
-        while (!(readl(MSM_BOOT_UART_DM_ISR) & MSM_BOOT_UART_DM_TX_READY))
+        while (!(readl(MSM_BOOT_UART_DM_ISR(id)) & MSM_BOOT_UART_DM_TX_READY))
         {
             udelay(1);
             /* Kick watchdog? */
@@ -420,10 +370,10 @@ static unsigned int msm_boot_uart_dm_write(char* data,
 
     /* We are here. FIFO is ready to be written. */
     /* Write number of characters to be written */
-    writel(num_of_chars, MSM_BOOT_UART_DM_NO_CHARS_FOR_TX);
+    writel(num_of_chars, MSM_BOOT_UART_DM_NO_CHARS_FOR_TX(id));
 
     /* Clear TX_READY interrupt */
-    writel(MSM_BOOT_UART_DM_GCMD_RES_TX_RDY_INT, MSM_BOOT_UART_DM_CR);
+    writel(MSM_BOOT_UART_DM_GCMD_RES_TX_RDY_INT, MSM_BOOT_UART_DM_CR(id));
 
     /* We use four-character word FIFO. So we need to divide data into
      * four characters and write in UART_DM_TF register */
@@ -437,13 +387,13 @@ static unsigned int msm_boot_uart_dm_write(char* data,
         PACK_CHARS_INTO_WORDS(tx_data, tx_char, tx_word);
 
         /* Wait till TX FIFO has space */
-        while (!(readl(MSM_BOOT_UART_DM_SR) & MSM_BOOT_UART_DM_SR_TXRDY))
+        while (!(readl(MSM_BOOT_UART_DM_SR(id)) & MSM_BOOT_UART_DM_SR_TXRDY))
         {
             udelay(1);
         }
 
         /* TX FIFO has space. Write the chars */
-        writel(tx_word, MSM_BOOT_UART_DM_TF(0));
+        writel(tx_word, MSM_BOOT_UART_DM_TF(id, 0));
         tx_char_left = num_of_chars - (i+1)*4;
         tx_data = tx_data + 4;
     }
@@ -451,19 +401,22 @@ static unsigned int msm_boot_uart_dm_write(char* data,
     return MSM_BOOT_UART_DM_E_SUCCESS;
 }
 
-
 /* Defining functions that's exposed to outside world and in coformance to
  * existing uart implemention. These functions are being called to initialize
- * UART and print debug messages in bootloader. */
-
-void uart_init(void)
+ * UART and print debug messages in bootloader.
+ */
+void uart_init(uint8_t gsbi_id)
 {
+    static uint8_t port = 0;
     char *data = "Android Bootloader - UART_DM Initialized!!!\n";
 
-    msm_boot_uart_dm_init();
-    msm_boot_uart_dm_write(data, 44);
+    msm_boot_uart_dm_init(gsbi_id);
+    msm_boot_uart_dm_write(gsbi_id, data, 44);
 
+    ASSERT(port < ARRAY_SIZE(gsbi_lookup));
+    gsbi_lookup[port++] = gsbi_id;
 }
+
 
 /* UART_DM uses four character word FIFO where as UART core
  * uses a character FIFO. so it's really inefficient to try
@@ -472,8 +425,9 @@ void uart_init(void)
  */
 int uart_putc(int port, char c)
 {
+    uint8_t gsbi_id = gsbi_lookup[port];
 
-    msm_boot_uart_dm_write(&c, 1);
+    msm_boot_uart_dm_write(gsbi_id, &c, 1);
 
     return 0;
 }
@@ -486,12 +440,14 @@ int uart_getc(int port, bool wait)
 {
     int byte;
     static unsigned int word = 0;
+    uint8_t gsbi_id = gsbi_lookup[port];
 
     if (!word)
     {
         /* Read from FIFO only if it's a first read or all the four
          * characters out of a word have been read */
-        if (msm_boot_uart_dm_read( &word, wait) != MSM_BOOT_UART_DM_E_SUCCESS)
+        if (msm_boot_uart_dm_read(gsbi_id, &word, wait) !=
+            MSM_BOOT_UART_DM_E_SUCCESS)
         {
             return -1;
         }

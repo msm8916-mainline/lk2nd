@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2011, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -28,11 +28,13 @@
 
 #include <stdint.h>
 #include <debug.h>
+#include <reg.h>
 #include <kernel/thread.h>
 #include <platform/iomap.h>
 #include <platform/clock.h>
 #include <platform/scm-io.h>
-#include <reg.h>
+#include <uart_dm.h>
+#include <gsbi.h>
 
 /* Read, modify, then write-back a register. */
 static void rmwreg(uint32_t val, uint32_t reg, uint32_t mask)
@@ -289,3 +291,42 @@ void ce_clock_init(void)
 	writel((1<<4), CE2_HCLK_CTL);
 	return;
 }
+
+/* Configure UART clock - based on the gsbi id */
+void clock_config_uart_dm(uint8_t id)
+{
+	uint32_t ns = UART_DM_CLK_NS_115200;
+	uint32_t md = UART_DM_CLK_MD_115200;
+
+	/* Enable PLL8 */
+	pll8_enable();
+
+	/* Enable gsbi_uart_clk */
+	clock_config(ns, md, GSBIn_UART_APPS_NS(id), GSBIn_UART_APPS_MD(id));
+
+	/* Enable the GSBI HCLK */
+	writel(GSBI_HCLK_CTL_CLK_ENA << GSBI_HCLK_CTL_S, GSBIn_HCLK_CTL(id));
+}
+
+/* Configure i2c clock */
+void clock_config_i2c(uint8_t id, uint32_t freq)
+{
+	uint32_t ns;
+	uint32_t md;
+
+	switch (freq)
+	{
+	case 24000000:
+		ns = I2C_CLK_NS_24MHz;
+		md = I2C_CLK_MD_24MHz;
+		break;
+	default:
+		ASSERT(0);
+	}
+
+	clock_config(ns, md, GSBIn_QUP_APPS_NS(id), GSBIn_QUP_APPS_MD(id));
+
+	/* Enable the GSBI HCLK */
+	writel(GSBI_HCLK_CTL_CLK_ENA << GSBI_HCLK_CTL_S, GSBIn_HCLK_CTL(id));
+}
+

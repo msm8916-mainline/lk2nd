@@ -105,7 +105,7 @@ struct qup_i2c_dev {
 };
 
 /* Function Definitions */
-struct qup_i2c_dev *qup_i2c_init(unsigned base,
+struct qup_i2c_dev *qup_i2c_init(uint8_t gsbi_id,
                                  unsigned clk_freq, unsigned src_clk_freq);
 int qup_i2c_deinit(struct qup_i2c_dev *dev);
 int qup_i2c_xfer(struct qup_i2c_dev *dev, struct i2c_msg msgs[], int num);
@@ -241,15 +241,5 @@ struct i2c_algorithm {
         I2C_FUNC_SMBUS_WRITE_BLOCK_DATA | \
         I2C_FUNC_SMBUS_I2C_BLOCK | \
         I2C_FUNC_SMBUS_PEC)
-
-/* GSBI/I2C QUP APPS CLK definitions */
-#define I2C_APPS_CLK_MD_24MHz       0x000100FB
-#define I2C_APPS_CLK_NS_24MHz       0x00FC005B
-
-#define GSBI8_HCLK_CTL_S                (4)
-#define GSBI8_HCLK_CTL_CLK_ENA          (0x1)
-
-#define GSBI_CTRL_REG_PROTOCOL_CODE_S   (4)
-#define GSBI_PROTOCOL_CODE_I2C          (0x2)
 
 #endif /* __I2C_QUP__ */

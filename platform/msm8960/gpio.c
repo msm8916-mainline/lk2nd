@@ -29,7 +29,8 @@
 #include <debug.h>
 #include <reg.h>
 #include <platform/iomap.h>
-#include <platform/gpio_hw.h>
+#include <platform/gpio.h>
+#include <gsbi.h>
 
 void gpio_tlmm_config(uint32_t gpio, uint8_t func,
                       uint8_t dir, uint8_t pull,
@@ -51,3 +52,22 @@ void gpio_set(uint32_t gpio, uint32_t dir)
     writel(dir, addr);
     return;
 }
+
+/* Configure gpio for uart - based on gsbi id */
+void gpio_config_uart_dm(uint8_t id)
+{
+	switch (id)
+	{
+	case GSBI_ID_5:
+		/* configure rx gpio */
+		gpio_tlmm_config(23, 1, GPIO_INPUT, GPIO_NO_PULL,
+						 GPIO_8MA, GPIO_DISABLE);
+		/* configure tx gpio */
+		gpio_tlmm_config(22, 1, GPIO_OUTPUT, GPIO_NO_PULL,
+						 GPIO_8MA, GPIO_DISABLE);
+		break;
+	default:
+		ASSERT(0);
+	}
+}
+

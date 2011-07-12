@@ -40,6 +40,7 @@
 #include <dev/keys.h>
 #include <dev/pm8921.h>
 #include <dev/gpio_keypad.h>
+#include <gsbi.h>
 
 #define LINUX_MACHTYPE_8960_SIM     3230
 #define LINUX_MACHTYPE_8960_RUMI3   3231
@@ -54,6 +55,8 @@ extern void keypad_init(void);
 static unsigned mmc_sdc_base[] = { MSM_SDC1_BASE, MSM_SDC2_BASE, MSM_SDC3_BASE, MSM_SDC4_BASE};
 
 static pm8921_dev_t pmic;
+
+static const uint8_t uart_gsbi_id  = GSBI_ID_5;
 
 void target_init(void)
 {
@@ -190,4 +193,9 @@ void target_fastboot_init(void)
 {
 	/* Set the BOOT_DONE flag in PM8921 */
 	pm8921_boot_done();
+}
+
+uint8_t target_uart_gsbi(void)
+{
+	return uart_gsbi_id;
 }

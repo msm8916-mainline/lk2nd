@@ -34,35 +34,15 @@
 #define GIC_PPI_START 16
 #define GIC_SPI_START 32
 
-#define INT_DEBUG_TIMER_EXP         (GIC_PPI_START + 0)
+#define INT_DEBUG_TIMER_EXP     (GIC_PPI_START + 0)
 
-#define USB1_HS_IRQ                 (GIC_SPI_START + 100)
-#define USB1_HS_BAM_IRQ             (GIC_SPI_START + 94)
-#define USB2_IRQ                    (GIC_SPI_START + 141)
-#define USB1_IRQ                    (GIC_SPI_START + 142)
-#define GSBI1_QUP_IRQ               (GIC_SPI_START + 147)
-#define GSBI2_UART_IRQ              (GIC_SPI_START + 148)
-#define GSBI2_QUP_IRQ               (GIC_SPI_START + 149)
-#define GSBI3_UART_IRQ              (GIC_SPI_START + 150)
-#define GSBI3_QUP_IRQ               (GIC_SPI_START + 151)
-#define GSBI4_UART_IRQ              (GIC_SPI_START + 152)
-#define GSBI4_QUP_IRQ               (GIC_SPI_START + 153)
-#define GSBI5_UART_IRQ              (GIC_SPI_START + 154)
-#define GSBI5_QUP_IRQ               (GIC_SPI_START + 155)
-#define GSBI6_UART_IRQ              (GIC_SPI_START + 156)
-#define GSBI6_QUP_IRQ               (GIC_SPI_START + 157)
-#define GSBI7_UART_IRQ              (GIC_SPI_START + 158)
-#define GSBI7_QUP_IRQ               (GIC_SPI_START + 159)
-#define GSBI8_UART_IRQ              (GIC_SPI_START + 160)
-#define GSBI8_QUP_IRQ               (GIC_SPI_START + 161)
-#define GSBI9_UART_IRQ              (GIC_SPI_START + 189)
-#define GSBI9_QUP_IRQ               (GIC_SPI_START + 190)
-#define GSBI10_UART_IRQ             (GIC_SPI_START + 191)
-#define GSBI10_QUP_IRQ              (GIC_SPI_START + 192)
-#define GSBI11_UART_IRQ             (GIC_SPI_START + 193)
-#define GSBI11_QUP_IRQ              (GIC_SPI_START + 194)
-#define GSBI12_UART_IRQ             (GIC_SPI_START + 195)
-#define GSBI12_QUP_IRQ              (GIC_SPI_START + 196)
+#define USB1_HS_BAM_IRQ         (GIC_SPI_START + 94)
+#define USB1_HS_IRQ             (GIC_SPI_START + 100)
+#define USB2_IRQ                (GIC_SPI_START + 141)
+#define USB1_IRQ                (GIC_SPI_START + 142)
+
+#define GSBI_QUP_IRQ(id)        ((id) <= 8 ? (GIC_SPI_START + 145 + 2*(id)) : \
+                                             (GIC_SPI_START + 187 + 2*((id)-8)))
 
 /* Retrofit universal macro names */
 #define INT_USB_HS                  USB1_HS_IRQ

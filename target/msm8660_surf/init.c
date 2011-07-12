@@ -39,18 +39,21 @@
 #include <mmc.h>
 #include <platform/timer.h>
 #include <platform/iomap.h>
-#include <platform/gpio_hw.h>
+#include <platform/gpio.h>
 #include <baseband.h>
 #include <reg.h>
 #include <platform.h>
+#include <gsbi.h>
 
-#define LINUX_MACHTYPE_8660_SURF    2755
-#define LINUX_MACHTYPE_8660_FFA     3017
-#define LINUX_MACHTYPE_8660_FLUID   3124
-#define LINUX_MACHTYPE_8660_QT      3298
+#define LINUX_MACHTYPE_8660_SURF         2755
+#define LINUX_MACHTYPE_8660_FFA          3017
+#define LINUX_MACHTYPE_8660_FLUID        3124
+#define LINUX_MACHTYPE_8660_QT           3298
 #define LINUX_MACHTYPE_8660_CHARM_SURF   3181
 #define LINUX_MACHTYPE_8660_CHARM_FFA    3199
 #define LINUX_MACHTYPE_8x60_DRAGON       3586
+
+static const uint8_t uart_gsbi_id  = GSBI_ID_12;
 
 void keypad_init(void);
 
@@ -411,4 +414,9 @@ void hsusb_gpio_init(void)
 	gpio_set(132, dir);
 
 	return;
+}
+
+uint8_t target_uart_gsbi(void)
+{
+	return uart_gsbi_id;
 }

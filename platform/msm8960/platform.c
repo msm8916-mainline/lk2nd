@@ -31,15 +31,15 @@
 #include <debug.h>
 #include <reg.h>
 #include <platform/iomap.h>
+#include <uart_dm.h>
 
-extern void uart_init(void);
 extern void platform_init_timer(void);
 extern void platform_init_interrupts(void);
 
 
 void platform_early_init(void)
 {
-    uart_init();
+    uart_init(target_uart_gsbi());
     platform_init_interrupts();
     platform_init_timer();
 }

@@ -38,6 +38,8 @@
 #include <platform/debug.h>
 #include <platform/iomap.h>
 #include <i2c_qup.h>
+#include <gsbi.h>
+#include <uart_dm.h>
 
 #define CONVERT_ENDIAN_U32(val)                   \
     ((((uint32_t)(val) & 0x000000FF) << 24) |     \
@@ -63,7 +65,6 @@ void platform_init_interrupts(void);
 void platform_init_timer();
 
 void uart3_clock_init(void);
-void uart_init(void);
 
 struct fbcon_config *lcdc_init(void);
 
@@ -75,7 +76,7 @@ uint8_t sdc_crci_map[5] = {0, 1, 4, 2, 5};
 
 void platform_early_init(void)
 {
-    uart_init();
+    uart_init(target_uart_gsbi());
     platform_init_interrupts();
     platform_init_timer();
 }
@@ -138,7 +139,7 @@ uint32_t platform_id_read (void)
 {
     uint32_t id = 0;
     uint16_t offset = 0;
-    dev = qup_i2c_init(GSBI8_BASE, 100000, 24000000);
+    dev = qup_i2c_init(GSBI_ID_8, 100000, 24000000);
     if(!dev){
         return id;
     }

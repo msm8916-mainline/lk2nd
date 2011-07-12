@@ -26,15 +26,8 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __PLATFORM_MSM8960_GPIO_HW_H
-#define __PLATFORM_MSM8960_GPIO_HW_H
-
-#include <platform/iomap.h>
-
-#define GPIO_CONFIG    (0x1000)
-#define GPIO_IN_OUT    (0x1004)
-#define GPIO_CONFIG_ADDR(x) (TLMM_BASE_ADDR + GPIO_CONFIG + (x)*0x10)
-#define GPIO_IN_OUT_ADDR(x) (TLMM_BASE_ADDR + GPIO_IN_OUT + (x)*0x10)
+#ifndef __PLATFORM_MSM8960_GPIO_H
+#define __PLATFORM_MSM8960_GPIO_H
 
 /* GPIO TLMM: Direction */
 #define GPIO_INPUT      0
@@ -59,5 +52,8 @@
 /* GPIO TLMM: Status */
 #define GPIO_ENABLE     0
 #define GPIO_DISABLE    1
+
+void gpio_config_i2c(uint8_t gsbi_id);
+void gpio_config_uart_dm(uint8_t id);
 
 #endif
