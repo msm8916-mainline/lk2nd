@@ -35,14 +35,19 @@ ifeq ($(PLATFORM),msm8960)
 	        $(LOCAL_DIR)/uart_dm.o
 endif
 
-ifneq ($(PLATFORM),msm8x60)
-ifneq ($(PLATFORM),msm8960)
-        OBJS += $(LOCAL_DIR)/uart.o \
-                $(LOCAL_DIR)/proc_comm.o
+ifeq ($(PLATFORM),msm7x27a)
+	OBJS += $(LOCAL_DIR)/uart.o \
+		$(LOCAL_DIR)/proc_comm.o
 endif
+
+ifeq ($(PLATFORM),msm7k)
+	OBJS += $(LOCAL_DIR)/uart.o \
+		$(LOCAL_DIR)/proc_comm.o
 endif
 
 ifeq ($(PLATFORM),msm7x30)
 	OBJS += $(LOCAL_DIR)/crypto_eng.o \
-	        $(LOCAL_DIR)/crypto_hash.o
+		$(LOCAL_DIR)/crypto_hash.o \
+		$(LOCAL_DIR)/uart.o \
+		$(LOCAL_DIR)/proc_comm.o
 endif
