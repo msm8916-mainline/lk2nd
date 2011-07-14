@@ -122,6 +122,22 @@ bool pm8058_gpio_get(unsigned int gpio)
 	return status;
 }
 
+int pm8058_mwrite(uint16_t addr, uint8_t val, uint8_t mask,
+				uint8_t *reg_save)
+{
+	int rc = 0;
+	uint8_t reg;
+
+	reg = (*reg_save & ~mask) | (val & mask);
+	if (reg != *reg_save)
+		rc = pm8058_write(addr, &reg, 1);
+	if (rc)
+		dprintf(CRITICAL,"pm8058_write failed; addr=%03X, rc=%d\n", addr, rc);
+	else
+		*reg_save = reg;
+	return rc;
+}
+
 /* PM8901 APIs */
 
 /*
