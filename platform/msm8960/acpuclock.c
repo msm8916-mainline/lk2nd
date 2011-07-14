@@ -29,17 +29,13 @@
 #include <debug.h>
 #include <reg.h>
 #include <platform/iomap.h>
-
-/* NS/MD value for USB XCVR */
-#define MSM_BOOT_USB_XCVR_NS_VAL     0x00E400C3
-#define MSM_BOOT_USB_XCVR_MD_VAL     0x000500DF
+#include <platform/clock.h>
+#include <uart_dm.h>
+#include <gsbi.h>
 
 
 /* Set rate and enable the clock */
-void clock_config(uint32_t ns,
-				  uint32_t md,
-				  uint32_t ns_addr,
-				  uint32_t md_addr)
+void clock_config(uint32_t ns, uint32_t md, uint32_t ns_addr, uint32_t md_addr)
 {
 	unsigned int val = 0;
 
@@ -96,8 +92,45 @@ void hsusb_clock_init(void)
 	/* Setup USB AHB clock */
 
 	/* Setup XCVR clock */
-	clock_config(MSM_BOOT_USB_XCVR_NS_VAL,
-				 MSM_BOOT_USB_XCVR_MD_VAL,
+	clock_config(USB_XCVR_CLK_NS,
+				 USB_XCVR_CLK_MD,
 				 USB_HS1_XCVR_FS_CLK_NS,
 				 USB_HS1_XCVR_FS_CLK_MD);
 }
+
+/* Configure UART clock - based on the gsbi id */
+void clock_config_uart_dm(uint8_t id)
+{
+	/* Enable gsbi_uart_clk */
+	clock_config(UART_DM_CLK_NS_115200,
+				 UART_DM_CLK_MD_115200,
+				 GSBIn_UART_APPS_NS(id),
+				 GSBIn_UART_APPS_MD(id));
+
+
+	/* Enable gsbi_pclk */
+	writel(GSBI_HCLK_CTL_CLK_ENA << GSBI_HCLK_CTL_S, GSBIn_HCLK_CTL(id));
+}
+
+/* Configure i2c clock */
+void clock_config_i2c(uint8_t id, uint32_t freq)
+{
+	uint32_t ns;
+	uint32_t md;
+
+	switch (freq)
+	{
+	case 24000000:
+		ns = I2C_CLK_NS_24MHz;
+		md = I2C_CLK_MD_24MHz;
+		break;
+	default:
+		ASSERT(0);
+	}
+
+	clock_config(ns, md, GSBIn_QUP_APPS_NS(id), GSBIn_QUP_APPS_MD(id));
+
+	/* Enable the GSBI HCLK */
+	writel(GSBI_HCLK_CTL_CLK_ENA << GSBI_HCLK_CTL_S, GSBIn_HCLK_CTL(id));
+}
+

@@ -1,4 +1,5 @@
-/* Copyright (c) 2010, Code Aurora Forum. All rights reserved.
+/*
+ * * Copyright (c) 2011, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -26,37 +27,27 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __PLATFORM_MSM8X60_GPIO_HW_H
-#define __PLATFORM_MSM8X60_GPIO_HW_H
+#ifndef __PLATFORM_MSM8960_CLOCK_H
+#define __PLATFORM_MSM8960_CLOCK_H
 
-#define TLMM_BASE_ADDR (0x800000)
-#define GPIO_CONFIG    (0x1000)
-#define GPIO_IN_OUT    (0x1004)
-#define GPIO_CONFIG_ADDR(x) (TLMM_BASE_ADDR + GPIO_CONFIG + (x)*0x10)
-#define GPIO_IN_OUT_ADDR(x) (TLMM_BASE_ADDR + GPIO_IN_OUT + (x)*0x10)
+/* GSBI/I2C QUP APPS CLK definitions */
+#define I2C_CLK_MD_24MHz       0x000100FB
+#define I2C_CLK_NS_24MHz       0x00FC005B
 
-/* GPIO TLMM: Direction */
-#define GPIO_INPUT      0
-#define GPIO_OUTPUT     1
+/* NS/MD value for USB XCVR */
+#define USB_XCVR_CLK_NS        0x00E400C3
+#define USB_XCVR_CLK_MD        0x000500DF
 
-/* GPIO TLMM: Pullup/Pulldown */
-#define GPIO_NO_PULL    0
-#define GPIO_PULL_DOWN  1
-#define GPIO_KEEPER     2
-#define GPIO_PULL_UP    3
+/* NS/MD value for UART */
+#define UART_DM_CLK_NS_115200  0xFFE40040
+#define UART_DM_CLK_MD_115200  0x0002FFE2
 
-/* GPIO TLMM: Drive Strength */
-#define GPIO_2MA        0
-#define GPIO_4MA        1
-#define GPIO_6MA        2
-#define GPIO_8MA        3
-#define GPIO_10MA       4
-#define GPIO_12MA       5
-#define GPIO_14MA       6
-#define GPIO_16MA       7
 
-/* GPIO TLMM: Status */
-#define GPIO_ENABLE     0
-#define GPIO_DISABLE    1
+#define UART_DM_CLK_RX_TX_BIT_RATE 0xFF
+
+
+void hsusb_clock_init(void);
+void clock_config_uart_dm(uint8_t id);
+void clock_config_i2c(uint8_t id, uint32_t freq);
 
 #endif

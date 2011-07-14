@@ -36,10 +36,12 @@
 #include <reg.h>
 #include <kernel/thread.h>
 
+#include <gsbi.h>
 #include <i2c_qup.h>
 #include <platform/irqs.h>
 #include <platform/iomap.h>
-#include <platform/gpio_hw.h>
+#include <platform/gpio.h>
+#include <platform/clock.h>
 
 static struct qup_i2c_dev *dev_addr = NULL;
 
@@ -122,42 +124,6 @@ enum {
     QUP_STATUS_ERROR_FLAGS = 0x7C,
 };
 
-void set_i2c_clk(struct qup_i2c_dev *dev)
-{
-    uint32_t md = 0;
-    uint32_t ns = 0;
-
-    switch (dev->src_clk_freq) {
-    case 24000000:
-        ns = I2C_APPS_CLK_NS_24MHz;
-        md = I2C_APPS_CLK_MD_24MHz;
-        break;
-    default:
-        return;
-    }
-    /* Enable the GSBI8 HCLK */
-    writel((GSBI8_HCLK_CTL_CLK_ENA << GSBI8_HCLK_CTL_S),
-           GSBIn_HCLK_CTL(dev->gsbi_number));
-    clock_config(ns,
-                 md,
-                 GSBIn_QUP_APPS_NS(dev->gsbi_number),
-                 GSBIn_QUP_APPS_MD(dev->gsbi_number));
-}
-
-void i2c_gpio_cfg(uint32_t base)
-{
-    switch (base) {
-    case GSBI8_BASE:
-        gpio_tlmm_config(64, 1, GPIO_OUTPUT, GPIO_NO_PULL,
-                         GPIO_2MA, GPIO_DISABLE);
-        gpio_tlmm_config(65, 1, GPIO_OUTPUT, GPIO_NO_PULL,
-                         GPIO_2MA, GPIO_DISABLE);
-        break;
-    default:
-        break;
-    }
-}
-
 #ifdef DEBUG_QUP
 static void qup_print_status(struct qup_i2c_dev *dev)
 {
@@ -174,8 +140,6 @@ static inline void qup_print_status(struct qup_i2c_dev *dev)
 {
 }
 #endif
-
-void i2c_gpio_cfg(unsigned base);
 
 static irqreturn_t qup_i2c_interrupt(void)
 {
@@ -478,7 +442,7 @@ int qup_i2c_xfer(struct qup_i2c_dev *dev, struct i2c_msg msgs[], int num)
        run I2C_MASTER_CORE at. */
     if (dev->clk_state == 0) {
         if (dev->clk_ctl == 0) {
-            set_i2c_clk(dev);
+            clock_config_i2c(dev->gsbi_number, dev->src_clk_freq);
         }
     }
     /* Initialize QUP registers during first transfer */
@@ -488,7 +452,7 @@ int qup_i2c_xfer(struct qup_i2c_dev *dev, struct i2c_msg msgs[], int num)
         unsigned fifo_reg;
         /* Configure the GSBI Protocol Code for i2c */
         writel((GSBI_PROTOCOL_CODE_I2C <<
-                GSBI_CTRL_REG_PROTOCOL_CODE_S), dev->gsbi_base);
+                GSBI_CTRL_REG_PROTOCOL_CODE_S), GSBI_CTRL_REG(dev->gsbi_base));
 
         fs_div = ((dev->src_clk_freq / dev->clk_freq) / 2) - 3;
         hs_div = 3;
@@ -677,97 +641,7 @@ out_err:
     return ret;
 }
 
-static int set_gsbi_number(struct qup_i2c_dev *dev)
-{
-    switch (dev->qup_base) {
-    case GSBI1_QUP_BASE:
-        dev->gsbi_number = 1;
-        break;
-    case GSBI2_QUP_BASE:
-        dev->gsbi_number = 2;
-        break;
-    case GSBI3_QUP_BASE:
-        dev->gsbi_number = 3;
-        break;
-    case GSBI4_QUP_BASE:
-        dev->gsbi_number = 4;
-        break;
-    case GSBI5_QUP_BASE:
-        dev->gsbi_number = 5;
-        break;
-    case GSBI6_QUP_BASE:
-        dev->gsbi_number = 6;
-        break;
-    case GSBI7_QUP_BASE:
-        dev->gsbi_number = 7;
-        break;
-    case GSBI8_QUP_BASE:
-        dev->gsbi_number = 8;
-        break;
-    case GSBI9_QUP_BASE:
-        dev->gsbi_number = 9;
-        break;
-    case GSBI10_QUP_BASE:
-        dev->gsbi_number = 10;
-        break;
-    case GSBI11_QUP_BASE:
-        dev->gsbi_number = 11;
-        break;
-    case GSBI12_QUP_BASE:
-        dev->gsbi_number = 12;
-        break;
-    default:
-        return 1;
-    }
-    return 0;
-}
-
-static int set_qup_irq(struct qup_i2c_dev *dev)
-{
-    switch (dev->qup_base) {
-    case GSBI1_QUP_BASE:
-        dev->qup_irq = GSBI1_QUP_IRQ;
-        break;
-    case GSBI2_QUP_BASE:
-        dev->qup_irq = GSBI2_QUP_IRQ;
-        break;
-    case GSBI3_QUP_BASE:
-        dev->qup_irq = GSBI3_QUP_IRQ;
-        break;
-    case GSBI4_QUP_BASE:
-        dev->qup_irq = GSBI4_QUP_IRQ;
-        break;
-    case GSBI5_QUP_BASE:
-        dev->qup_irq = GSBI5_QUP_IRQ;
-        break;
-    case GSBI6_QUP_BASE:
-        dev->qup_irq = GSBI6_QUP_IRQ;
-        break;
-    case GSBI7_QUP_BASE:
-        dev->qup_irq = GSBI7_QUP_IRQ;
-        break;
-    case GSBI8_QUP_BASE:
-        dev->qup_irq = GSBI8_QUP_IRQ;
-        break;
-    case GSBI9_QUP_BASE:
-        dev->qup_irq = GSBI9_QUP_IRQ;
-        break;
-    case GSBI10_QUP_BASE:
-        dev->qup_irq = GSBI10_QUP_IRQ;
-        break;
-    case GSBI11_QUP_BASE:
-        dev->qup_irq = GSBI11_QUP_IRQ;
-        break;
-    case GSBI12_QUP_BASE:
-        dev->qup_irq = GSBI12_QUP_IRQ;
-        break;
-    default:
-        return 1;
-    }
-    return 0;
-}
-
-struct qup_i2c_dev *qup_i2c_init(unsigned base,
+struct qup_i2c_dev *qup_i2c_init(uint8_t gsbi_id,
                                  unsigned clk_freq, unsigned src_clk_freq)
 {
     struct qup_i2c_dev *dev;
@@ -781,20 +655,21 @@ struct qup_i2c_dev *qup_i2c_init(unsigned base,
     }
     dev = memset(dev, 0, sizeof(struct qup_i2c_dev));
 
+    /* Setup base addresses and irq based on gsbi_id */
+    dev->qup_irq     = GSBI_QUP_IRQ(gsbi_id);
+    dev->qup_base    = QUP_BASE(gsbi_id);
+    dev->gsbi_base   = GSBI_BASE(gsbi_id);
+    dev->gsbi_number = gsbi_id;
+
     /* This must be done for qup_i2c_interrupt to work. */
     dev_addr = dev;
 
     /* Initialize the GPIO for GSBIn as i2c */
-    i2c_gpio_cfg(base);
+    gpio_config_i2c(dev->gsbi_number);
 
-    /* Configure GSBIn in i2c mode */
-    writel(GSBI_CTL_PROTOCOL_CODE_I2C, base);
-
-    /* Set the base address for GSBIn QUP The reason we add 0x80000 is to make
-       the GSBIn base address be the GSBIn QUP base address, which is what the
-       i2c driver wants. */
-    dev->gsbi_base = base;
-    dev->qup_base = base + 0x80000;
+    /* Configure the GSBI Protocol Code for i2c */
+    writel((GSBI_PROTOCOL_CODE_I2C <<
+			GSBI_CTRL_REG_PROTOCOL_CODE_S), GSBI_CTRL_REG(dev->gsbi_base));
 
     /* Set clk_freq and src_clk_freq for i2c. */
     dev->clk_freq = clk_freq;
@@ -804,23 +679,6 @@ struct qup_i2c_dev *qup_i2c_init(unsigned base,
 
     dev->one_bit_t = USEC_PER_SEC / dev->clk_freq;
     dev->clk_ctl = 0;
-
-    /* Set the IRQ number for GSBIn_BASE address */
-    if (set_qup_irq(dev)) {
-        dprintf(INFO,
-                "Could not find a valid QUP IRQ value based on GSBIn_BASE: %d\n",
-                base);
-        dprintf(INFO, "Please double check the GSBIn_BASE address.\n");
-        return NULL;
-    }
-
-    /* Set the GSBI number based on GSBIn_BASE address */
-    if (set_gsbi_number(dev)) {
-        dprintf(INFO, "Could not find a valid GSBI # based on GSBIn_BASE: %d\n",
-                base);
-        dprintf(INFO, "Please double check the GSBIn_BASE address.\n");
-        return NULL;
-    }
 
     /* Register the GSBIn QUP IRQ */
     register_int_handler(dev->qup_irq, qup_i2c_interrupt, 0);

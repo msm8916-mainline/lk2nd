@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -26,64 +26,34 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <debug.h>
-#include <reg.h>
-#include <platform/iomap.h>
-#include <platform/gpio.h>
-#include <gsbi.h>
+#ifndef __PLATFORM_MSM8X60_GPIO_H
+#define __PLATFORM_MSM8X60_GPIO_H
 
-void gpio_tlmm_config(uint32_t gpio, uint8_t func,
-                      uint8_t dir, uint8_t pull,
-                      uint8_t drvstr, uint32_t enable)
-{
-    unsigned int val = 0;
-    val |= pull;
-    val |= func << 2;
-    val |= drvstr << 6;
-    val |= enable << 9;
-    unsigned int *addr = (unsigned int *)GPIO_CONFIG_ADDR(gpio);
-    writel(val, addr);
-    return;
-}
+/* GPIO TLMM: Direction */
+#define GPIO_INPUT      0
+#define GPIO_OUTPUT     1
 
-void gpio_set(uint32_t gpio, uint32_t dir)
-{
-    unsigned int *addr = (unsigned int *)GPIO_IN_OUT_ADDR(gpio);
-    writel(dir, addr);
-    return;
-}
+/* GPIO TLMM: Pullup/Pulldown */
+#define GPIO_NO_PULL    0
+#define GPIO_PULL_DOWN  1
+#define GPIO_KEEPER     2
+#define GPIO_PULL_UP    3
 
-/* Configure gpio for uart - based on gsbi id */
-void gpio_config_uart_dm(uint8_t id)
-{
-	switch (id)
-	{
-	case GSBI_ID_12:
-		/* configure rx gpio */
-		gpio_tlmm_config(117, 2, GPIO_INPUT, GPIO_NO_PULL,
-						 GPIO_8MA, GPIO_DISABLE);
-		/* configure tx gpio */
-		gpio_tlmm_config(118, 2, GPIO_OUTPUT, GPIO_NO_PULL,
-						 GPIO_8MA, GPIO_DISABLE);
-		break;
-	default:
-		ASSERT(0);
-	}
-}
+/* GPIO TLMM: Drive Strength */
+#define GPIO_2MA        0
+#define GPIO_4MA        1
+#define GPIO_6MA        2
+#define GPIO_8MA        3
+#define GPIO_10MA       4
+#define GPIO_12MA       5
+#define GPIO_14MA       6
+#define GPIO_16MA       7
 
-/* Configure gpio for i2c - based on gsbi id */
-void gpio_config_i2c(uint8_t id)
-{
-	switch (id)
-	{
-	case GSBI_ID_8:
-		gpio_tlmm_config(64, 1, GPIO_OUTPUT, GPIO_NO_PULL,
-						 GPIO_2MA, GPIO_DISABLE);
-		gpio_tlmm_config(65, 1, GPIO_OUTPUT, GPIO_NO_PULL,
-						 GPIO_2MA, GPIO_DISABLE);
-		break;
-	default:
-		ASSERT(0);
-	}
-}
+/* GPIO TLMM: Status */
+#define GPIO_ENABLE     0
+#define GPIO_DISABLE    1
 
+void gpio_config_i2c(uint8_t gsbi_id);
+void gpio_config_uart_dm(uint8_t id);
+
+#endif

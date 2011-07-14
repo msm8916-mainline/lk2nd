@@ -31,10 +31,11 @@
 #include <kernel/thread.h>
 #include <i2c_qup.h>
 #include <platform/iomap.h>
-#include <platform/gpio_hw.h>
+#include <platform/gpio.h>
 #include <platform/clock.h>
 #include <platform/pmic.h>
 #include <platform/pmic_pwm.h>
+#include <gsbi.h>
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
@@ -307,7 +308,7 @@ void bl_gpio_init(void)
 void board_lcd_enable(void)
 {
     int rc = -1;
-    dev = qup_i2c_init(GSBI8_BASE, 100000, 24000000);
+    dev = qup_i2c_init(GSBI_ID_8, 100000, 24000000);
 
     /* Make sure dev is created and initialized properly */
     if (!dev) {
