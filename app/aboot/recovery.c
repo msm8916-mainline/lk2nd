@@ -37,6 +37,7 @@
 #include <lib/ptable.h>
 #include <dev/keys.h>
 #include <platform.h>
+#include <partition_parser.h>
 #include <mmc.h>
 
 #include "recovery.h"
@@ -380,8 +381,10 @@ static int emmc_set_recovery_msg(struct recovery_message *out)
 	unsigned long long ptn = 0;
 	unsigned int size = ROUND_TO_PAGE(sizeof(*out),511);
 	unsigned char data[size];
+	int index = INVALID_PTN;
 
-	ptn = mmc_ptn_offset((unsigned char *) ptn_name);
+	index = partition_get_index((unsigned char *) ptn_name);
+	ptn = partition_get_offset(index);
 	if(ptn == 0) {
 		dprintf(CRITICAL,"partition %s doesn't exist\n",ptn_name);
 		return -1;
@@ -400,8 +403,10 @@ static int emmc_get_recovery_msg(struct recovery_message *in)
 	unsigned long long ptn = 0;
 	unsigned int size = ROUND_TO_PAGE(sizeof(*in),511);
 	unsigned char data[size];
+	int index = INVALID_PTN;
 
-	ptn = mmc_ptn_offset((unsigned char *) ptn_name);
+	index = partition_get_index((unsigned char *) ptn_name);
+	ptn = partition_get_offset(index);
 	if(ptn == 0) {
 		dprintf(CRITICAL,"partition %s doesn't exist\n",ptn_name);
 		return -1;

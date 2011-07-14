@@ -548,37 +548,9 @@ struct mmc_boot_host
 #define BINARY_IN_TABLE_SIZE      (16 * 512)
 #define MAX_FILE_ENTRIES          20
 
-#define MMC_EBR_TYPE			0x05
-#define MMC_MODEM_TYPE	 		0x06
-#define MMC_MODEM_TYPE2			0x0C
-#define MMC_SBL1_TYPE 			0x4D
-#define MMC_SBL2_TYPE 			0x51
-#define MMC_SBL3_TYPE 			0x45
-#define MMC_RPM_TYPE 			0x47
-#define MMC_TZ_TYPE 			0x46
-#define MMC_MODEM_ST1_TYPE 		0x4A
-#define MMC_MODEM_ST2_TYPE 		0x4B
-#define MMC_EFS2_TYPE 			0x4E
-
-#define MMC_ABOOT_TYPE 			0x4C
-#define MMC_BOOT_TYPE 			0x48
-#define MMC_SYSTEM_TYPE 		0x82
-#define MMC_USERDATA_TYPE 		0x83
-#define MMC_RECOVERY_TYPE 		0x60
-#define MMC_MISC_TYPE 			0x63
-
-#define MMC_PROTECTED_TYPE		0xEE
-
 #define MMC_RCA 2
 
-struct mbr_entry
-{
-    unsigned dstatus;
-    unsigned dtype ;
-    unsigned dfirstsec;
-    unsigned dsize;
-    unsigned char name[64];
-};
+extern unsigned gpt_partitions_exist;
 
 /* Can be used to unpack array of upto 32 bits data */
 #define UNPACK_BITS(array, start, len, size_of)                               \
@@ -625,8 +597,6 @@ unsigned int mmc_boot_read_from_card (struct mmc_boot_host* host,
                                       unsigned int* out );
 unsigned int mmc_write (unsigned long long data_addr,
 			unsigned int data_len, unsigned int* in);
-unsigned long long mmc_ptn_offset (unsigned char * name);
-unsigned long long mmc_ptn_size (unsigned char * name);
 
 unsigned int mmc_read (unsigned long long data_addr, unsigned int* out,
                        unsigned int data_len);
@@ -639,8 +609,8 @@ unsigned int mmc_boot_write_to_card (struct mmc_boot_host* host,
                                      unsigned int *in );
 
 unsigned int mmc_write_partition (unsigned size, unsigned char *partition);
-
-void mmc_dump_partition_info();
+unsigned int mmc_write_mbr_in_blocks(unsigned size, unsigned char *mbrImage);
+unsigned int mmc_write_mbr(unsigned size, unsigned char *mbrImage);
 
 #endif
 

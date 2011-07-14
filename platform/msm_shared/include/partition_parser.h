@@ -26,14 +26,18 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* Lookup Type */
-//TODO: Remove when merging MBR code to mmc_parser
-#define PTN_OFFSET 0x01
-#define PTN_SIZE   0x02
+#define INVALID_PTN               -1
+
+#define PARTITION_TYPE_MBR         0
+#define PARTITION_TYPE_GPT         1
+#define PARTITION_TYPE_GPT_BACKUP  2
 
 /* GPT Signature should be 0x5452415020494645 */
 #define GPT_SIGNATURE_1 0x54524150
 #define GPT_SIGNATURE_2 0x20494645
+
+#define MMC_MBR_SIGNATURE_BYTE_0  0x55
+#define MMC_MBR_SIGNATURE_BYTE_1  0xAA
 
 /* GPT Offsets */
 #define PROTECTIVE_MBR_SIZE       512
@@ -57,7 +61,44 @@
 #define MAX_GPT_NAME_SIZE          72
 #define PARTITION_TYPE_GUID_SIZE   16
 #define UNIQUE_PARTITION_GUID_SIZE 16
-#define NUM_GPT_PARTITIONS         32
+#define NUM_PARTITIONS             32
+
+/* Some useful define used to access the MBR/EBR table */
+#define BLOCK_SIZE                0x200
+#define TABLE_ENTRY_0             0x1BE
+#define TABLE_ENTRY_1             0x1CE
+#define TABLE_ENTRY_2             0x1DE
+#define TABLE_ENTRY_3             0x1EE
+#define TABLE_SIGNATURE           0x1FE
+#define TABLE_ENTRY_SIZE          0x010
+
+#define OFFSET_STATUS             0x00
+#define OFFSET_TYPE               0x04
+#define OFFSET_FIRST_SEC          0x08
+#define OFFSET_SIZE               0x0C
+#define COPYBUFF_SIZE             (1024 * 16)
+#define BINARY_IN_TABLE_SIZE      (16 * 512)
+#define MAX_FILE_ENTRIES          20
+
+#define MBR_EBR_TYPE              0x05
+#define MBR_MODEM_TYPE            0x06
+#define MBR_MODEM_TYPE2           0x0C
+#define MBR_SBL1_TYPE             0x4D
+#define MBR_SBL2_TYPE             0x51
+#define MBR_SBL3_TYPE             0x45
+#define MBR_RPM_TYPE              0x47
+#define MBR_TZ_TYPE               0x46
+#define MBR_MODEM_ST1_TYPE        0x4A
+#define MBR_MODEM_ST2_TYPE        0x4B
+#define MBR_EFS2_TYPE             0x4E
+
+#define MBR_ABOOT_TYPE            0x4C
+#define MBR_BOOT_TYPE             0x48
+#define MBR_SYSTEM_TYPE           0x82
+#define MBR_USERDATA_TYPE         0x83
+#define MBR_RECOVERY_TYPE         0x60
+#define MBR_MISC_TYPE             0x63
+#define MBR_PROTECTED_TYPE        0xEE
 
 #define GET_LLWORD_FROM_BYTE(x)    ((unsigned long long)*(x) | \
         ((unsigned long long)*(x+1) << 8) | \
@@ -68,16 +109,33 @@
         ((unsigned long long)*(x+6) << 48) | \
         ((unsigned long long)*(x+7) << 56))
 
-struct gpt_entry
+/* Unified mbr and gpt entry types */
+struct partition_entry
 {
-  unsigned char partition_type_guid[PARTITION_TYPE_GUID_SIZE];
-  unsigned char unique_partition_guid[UNIQUE_PARTITION_GUID_SIZE];
-  unsigned long long first_lba;
-  unsigned long long last_lba;
-  unsigned long long attribute_flag;
-  unsigned char partition_name[MAX_GPT_NAME_SIZE];
+    unsigned char type_guid[PARTITION_TYPE_GUID_SIZE];
+    unsigned dtype;
+    unsigned char unique_partition_guid[UNIQUE_PARTITION_GUID_SIZE];
+    unsigned long long first_lba;
+    unsigned long long last_lba;
+    unsigned long long size;
+    unsigned long long attribute_flag;
+    unsigned char name[MAX_GPT_NAME_SIZE];
 };
 
-unsigned int mmc_boot_read_gpt(struct mmc_boot_host * mmc_host,
-                               struct mmc_boot_card * mmc_card);
-unsigned long long gpt_lookup(unsigned char * name, unsigned type);
+static void mbr_fill_name (struct partition_entry *partition_ent, unsigned int type);
+unsigned int mmc_boot_read_gpt(  struct mmc_boot_host * mmc_host,
+                                 struct mmc_boot_card * mmc_card);
+unsigned int mmc_boot_read_mbr(  struct mmc_boot_host * mmc_host,
+                                 struct mmc_boot_card * mmc_card);
+unsigned partition_get_index (const char * name);
+unsigned long long partition_get_size (int index);
+unsigned long long partition_get_offset (int index);
+unsigned int partition_verify_mbr_signature(unsigned size, unsigned char* buffer);
+unsigned int mbr_partition_get_type(unsigned size, unsigned char* partition,
+                                    unsigned int *partition_type);
+unsigned int partition_get_type(unsigned size, unsigned char* partition,
+                                unsigned int *partition_type);
+unsigned int partition_read_table( struct mmc_boot_host * mmc_host,
+                                   struct mmc_boot_card * mmc_card);
+/* For Debugging */
+void partition_dump(void);
