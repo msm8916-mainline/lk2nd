@@ -245,6 +245,7 @@ enum {
     EBI0_CS1,
     EBI1_CS0,
     EBI1_CS1,
+    SDRAM = 0xE,
 };
 
 enum {
