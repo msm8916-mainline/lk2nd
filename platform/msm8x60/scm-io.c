@@ -1,4 +1,4 @@
-/* Copyright (c) 2010, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011, Code Aurora Forum. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -39,10 +39,12 @@
 #define BETWEEN(p, st, sz) ((p) >= (void *)(st) && \
 				(p) < ((void *)(st) + (sz)))
 
+extern void dmb(void);
+
 uint32_t secure_readl(uint32_t c)
 {
-	if ((BETWEEN(c, MSM_MMSS_CLK_CTL_BASE, MSM_MMSS_CLK_CTL_SIZE)) ||
-		(BETWEEN(c, MSM_TCSR_BASE, MSM_TCSR_SIZE)))
+	if ((BETWEEN((void *) c, MSM_MMSS_CLK_CTL_BASE, MSM_MMSS_CLK_CTL_SIZE)) ||
+		(BETWEEN((void *) c, MSM_TCSR_BASE, MSM_TCSR_SIZE)))
 	{
 		uint32_t context_id;
 		register uint32_t r0 __asm__("r0") = SCM_IO_READ;
@@ -62,8 +64,8 @@ uint32_t secure_readl(uint32_t c)
 
 void secure_writel(uint32_t v, uint32_t c)
 {
-	if ((BETWEEN(c, MSM_MMSS_CLK_CTL_BASE, MSM_MMSS_CLK_CTL_SIZE)) ||
-		(BETWEEN(c, MSM_TCSR_BASE, MSM_TCSR_SIZE))) {
+	if ((BETWEEN((void *) c, MSM_MMSS_CLK_CTL_BASE, MSM_MMSS_CLK_CTL_SIZE)) ||
+		(BETWEEN((void *) c, MSM_TCSR_BASE, MSM_TCSR_SIZE))) {
 		uint32_t context_id;
 		register uint32_t r0 __asm__("r0") = SCM_IO_WRITE;
 		register uint32_t r1 __asm__("r1") = (uint32_t)&context_id;

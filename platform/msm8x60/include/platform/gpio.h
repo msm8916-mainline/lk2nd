@@ -30,8 +30,12 @@
 #define __PLATFORM_MSM8X60_GPIO_H
 
 /* GPIO TLMM: Direction */
+#ifndef GPIO_INPUT
 #define GPIO_INPUT      0
+#endif
+#ifndef GPIO_OUTPUT
 #define GPIO_OUTPUT     1
+#endif
 
 /* GPIO TLMM: Pullup/Pulldown */
 #define GPIO_NO_PULL    0

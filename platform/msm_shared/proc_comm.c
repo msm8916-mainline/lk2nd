@@ -30,6 +30,7 @@
 
 #include <debug.h>
 #include <reg.h>
+#include <dev/gpio.h>
 
 #include <platform/iomap.h>
 #define ACPU_CLK           0  /* Applications processor clock */

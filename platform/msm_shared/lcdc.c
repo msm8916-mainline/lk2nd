@@ -172,7 +172,7 @@ struct fbcon_config *lcdc_init_set( struct lcdc_timing_parameters *custom_timing
 	writel(0x100, MSM_MDP_BASE1 + 0x10100);
 	writel(mdp_rgb_size, MSM_MDP_BASE1 + 0x40000);
 	writel(mdp_rgb_size, MSM_MDP_BASE1 + 0x40008);
-	writel(fb_cfg.base, MSM_MDP_BASE1 + 0x40010);
+	writel((int) fb_cfg.base, MSM_MDP_BASE1 + 0x40010);
 	writel(fb_cfg.width * fb_cfg.bpp / 8, MSM_MDP_BASE1 + 0x40040);
 	writel(0x00, MSM_MDP_BASE1 + 0x41008);
 	writel(MDP_RGB_565_FORMAT, MSM_MDP_BASE1 + 0x40050);

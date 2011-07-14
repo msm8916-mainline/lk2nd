@@ -37,6 +37,7 @@
 #include <lib/ptable.h>
 #include <dev/keys.h>
 #include <platform.h>
+#include <mmc.h>
 
 #include "recovery.h"
 #include "bootimg.h"
@@ -284,7 +285,6 @@ int get_boot_info_apps (char type, unsigned int *status)
 int recovery_init (void)
 {
 	struct recovery_message msg;
-	struct update_header header;
 	char partition_name[32];
 	unsigned valid_command = 0;
 	int update_status = 0;
@@ -302,7 +302,7 @@ int recovery_init (void)
 		if(!strcmp("RADIO",msg.status))
 		{
 			/* We're now here due to radio update, so check for update status */
-			int ret = get_boot_info_apps(UPDATE_STATUS, &update_status);
+			int ret = get_boot_info_apps(UPDATE_STATUS, (unsigned int *) &update_status);
 
 			if(!ret && (update_status & 0x01))
 			{
@@ -381,7 +381,7 @@ static int emmc_set_recovery_msg(struct recovery_message *out)
 	unsigned int size = ROUND_TO_PAGE(sizeof(*out),511);
 	unsigned char data[size];
 
-	ptn = mmc_ptn_offset(ptn_name);
+	ptn = mmc_ptn_offset((unsigned char *) ptn_name);
 	if(ptn == 0) {
 		dprintf(CRITICAL,"partition %s doesn't exist\n",ptn_name);
 		return -1;
@@ -401,7 +401,7 @@ static int emmc_get_recovery_msg(struct recovery_message *in)
 	unsigned int size = ROUND_TO_PAGE(sizeof(*in),511);
 	unsigned char data[size];
 
-	ptn = mmc_ptn_offset(ptn_name);
+	ptn = mmc_ptn_offset((unsigned char *) ptn_name);
 	if(ptn == 0) {
 		dprintf(CRITICAL,"partition %s doesn't exist\n",ptn_name);
 		return -1;
@@ -430,7 +430,7 @@ int _emmc_recovery_init(void)
 	if (!strcmp("update-radio",msg.command))
 	{
 		/* We're now here due to radio update, so check for update status */
-		int ret = get_boot_info_apps(UPDATE_STATUS, &update_status);
+		int ret = get_boot_info_apps(UPDATE_STATUS, (unsigned int *) &update_status);
 
 		if(!ret && (update_status & 0x01))
 		{

@@ -299,4 +299,8 @@ struct smem_ram_ptable {
 #define PWR_ON_EVENT_USB_CHG 0x20
 #define PWR_ON_EVENT_RTC_ALARM 0x2
 
+
+unsigned smem_read_alloc_entry_offset(smem_mem_type_t type, void *buf, int len, int offset);
+int smem_ram_ptable_init(struct smem_ram_ptable *smem_ram_ptable);
+
 #endif /* __PLATFORM_MSM_SHARED_SMEM_H */

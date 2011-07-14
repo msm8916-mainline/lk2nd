@@ -35,6 +35,9 @@
 #include <arch/arm.h>
 #include <reg.h>
 #include <kernel/thread.h>
+#include <dev/gpio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include <gsbi.h>
 #include <i2c_qup.h>
@@ -42,6 +45,9 @@
 #include <platform/iomap.h>
 #include <platform/gpio.h>
 #include <platform/clock.h>
+#include <platform/timer.h>
+#include <platform/interrupts.h>
+
 
 static struct qup_i2c_dev *dev_addr = NULL;
 
@@ -681,7 +687,7 @@ struct qup_i2c_dev *qup_i2c_init(uint8_t gsbi_id,
     dev->clk_ctl = 0;
 
     /* Register the GSBIn QUP IRQ */
-    register_int_handler(dev->qup_irq, qup_i2c_interrupt, 0);
+    register_int_handler(dev->qup_irq, (int_handler) qup_i2c_interrupt, 0);
 
     /* Then disable it */
     mask_interrupt(dev->qup_irq);
