@@ -51,7 +51,9 @@ unsigned* target_atag_mem(unsigned* ptr)
 		 */
 		for (i = 0; i < ram_ptable.len; i++)
 		{
-			if (ram_ptable.parts[i].category == EBI1_CS0 &&
+			if ((ram_ptable.parts[i].category == EBI1_CS0 ||
+					ram_ptable.parts[i].category == SDRAM) &&
+					ram_ptable.parts[i].start == 0x80000000 &&
 					ram_ptable.parts[i].type == SYS_MEMORY)
 			{
 				ASSERT(ram_ptable.parts[i].size == SIZE_512M);
@@ -67,7 +69,9 @@ unsigned* target_atag_mem(unsigned* ptr)
 				*ptr++ = ram_ptable.parts[i].start + SIZE_256M;
 			}
 
-			if (ram_ptable.parts[i].category == EBI1_CS1 &&
+			if ((ram_ptable.parts[i].category == EBI1_CS1 ||
+					ram_ptable.parts[i].category == SDRAM) &&
+					ram_ptable.parts[i].start == 0xA0000000 &&
 					ram_ptable.parts[i].type == SYS_MEMORY)
 			{
 				*ptr++ = 4;
