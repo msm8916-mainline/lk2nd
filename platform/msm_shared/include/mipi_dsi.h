@@ -347,6 +347,21 @@ static char novatek_panel_set_height[12] = { /* DTYPE_DCS_LWRITE */
   0x2B, 0x00, 0x00, 0x03,//row:0 - 0x3BF=959
   0xBF, 0xFF, 0xFF, 0xFF,
 }; /* 960 - 1 */
+
+/* Commands to control Backlight */
+static char novatek_panel_set_led_pwm1[8] = { /* DTYPE_DCS_LWRITE */
+  0x02, 0x00, 0x39, 0xC0,//1 last packet
+  0x51, 0xFA, 0xFF, 0xFF, // Brightness level set to 0xFA -> 250
+};
+static char novatek_panel_set_led_pwm2[8] = { /* DTYPE_DCS_LWRITE */
+  0x02, 0x00, 0x39, 0xC0,
+  0x53, 0x24, 0xFF, 0xFF,
+};
+static char novatek_panel_set_led_pwm3[8] = { /* DTYPE_DCS_LWRITE */
+  0x02, 0x00, 0x39, 0xC0,
+  0x55, 0x00, 0xFF, 0xFF,
+};
+
 /* End of Novatek Blue panel commands */
 
 /* Toshiba mdt61 panel cmds */
@@ -681,7 +696,10 @@ static struct mipi_dsi_cmd novatek_panel_cmd_mode_cmds[] = {
     {sizeof(novatek_panel_set_twolane), novatek_panel_set_twolane},
     {sizeof(novatek_panel_set_width), novatek_panel_set_width},
     {sizeof(novatek_panel_set_height), novatek_panel_set_height},
-    {sizeof(novatek_panel_rgb_888), novatek_panel_rgb_888}
+    {sizeof(novatek_panel_rgb_888), novatek_panel_rgb_888},
+    {sizeof(novatek_panel_set_led_pwm1), novatek_panel_set_led_pwm1},
+    {sizeof(novatek_panel_set_led_pwm2), novatek_panel_set_led_pwm2},
+    {sizeof(novatek_panel_set_led_pwm3), novatek_panel_set_led_pwm3}
 };
 
 static struct mipi_dsi_phy_ctrl mipi_dsi_novatek_panel_phy_ctrl = {
