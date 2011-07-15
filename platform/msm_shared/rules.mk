@@ -15,8 +15,6 @@ OBJS += \
 	$(LOCAL_DIR)/jtag_hook.o \
 	$(LOCAL_DIR)/jtag.o \
 	$(LOCAL_DIR)/nand.o \
-	$(LOCAL_DIR)/lcdc.o \
-	$(LOCAL_DIR)/mddi.o \
 	$(LOCAL_DIR)/mmc.o \
 	$(LOCAL_DIR)/partition_parser.o
 
@@ -26,7 +24,9 @@ ifeq ($(PLATFORM),msm8x60)
 	        $(LOCAL_DIR)/uart_dm.o \
 	        $(LOCAL_DIR)/crypto_eng.o \
 	        $(LOCAL_DIR)/crypto_hash.o \
-		$(LOCAL_DIR)/scm_decrypt.o
+		$(LOCAL_DIR)/scm_decrypt.o \
+		$(LOCAL_DIR)/lcdc.o \
+		$(LOCAL_DIR)/mddi.o
 endif
 
 ifeq ($(PLATFORM),msm8960)
@@ -37,17 +37,23 @@ endif
 
 ifeq ($(PLATFORM),msm7x27a)
 	OBJS += $(LOCAL_DIR)/uart.o \
-		$(LOCAL_DIR)/proc_comm.o
+		$(LOCAL_DIR)/proc_comm.o \
+		$(LOCAL_DIR)/lcdc.o \
+		$(LOCAL_DIR)/mddi.o
 endif
 
 ifeq ($(PLATFORM),msm7k)
 	OBJS += $(LOCAL_DIR)/uart.o \
-		$(LOCAL_DIR)/proc_comm.o
+		$(LOCAL_DIR)/proc_comm.o \
+		$(LOCAL_DIR)/lcdc.o \
+		$(LOCAL_DIR)/mddi.o
 endif
 
 ifeq ($(PLATFORM),msm7x30)
 	OBJS += $(LOCAL_DIR)/crypto_eng.o \
 		$(LOCAL_DIR)/crypto_hash.o \
 		$(LOCAL_DIR)/uart.o \
-		$(LOCAL_DIR)/proc_comm.o
+		$(LOCAL_DIR)/proc_comm.o \
+		$(LOCAL_DIR)/lcdc.o \
+		$(LOCAL_DIR)/mddi.o
 endif

@@ -36,6 +36,8 @@
 #define PM_GPIO_DIR_IN          0x02
 #define PM_GPIO_DIR_BOTH        (PM_GPIO_DIR_OUT | PM_GPIO_DIR_IN)
 
+//TODO: Rename these variables
+#define PM_GPIO_PULL_UP0        0
 #define PM_GPIO_PULL_UP1        2
 #define PM_GPIO_PULL_UP2        3
 #define PM_GPIO_PULL_DN         4
@@ -53,6 +55,7 @@
 
 /* GPIO24 for backlight_pwm which is 23 (index start at 0) */
 #define GPIO_24                 23
+#define GPIO_43                 42
 
 /* LDO define values */
 #define LDO_P_MASK (1 << 7)
