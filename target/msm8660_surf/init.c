@@ -63,10 +63,13 @@ void debug_led_write(char);
 char debug_led_read();
 uint32_t platform_id_read (void);
 void setup_fpga(void);
-
+int pm8901_reset_pwr_off(int reset);
+int pm8058_reset_pwr_off(int reset);
+int pm8058_rtc0_alarm_irq_disable(void);
+static void target_shutdown_for_rtc_alarm(void);
 void target_init(void)
 {
-
+    target_shutdown_for_rtc_alarm();
     dprintf(INFO, "target_init()\n");
 
     setup_fpga();
@@ -221,6 +224,17 @@ unsigned board_machtype(void)
 	return mach_id;
 }
 
+void shutdown_device()
+{
+	gpio_config_pshold();
+	pm8058_reset_pwr_off(0);
+	pm8901_reset_pwr_off(0);
+
+	writel(0, MSM_PSHOLD_CTL_SU);
+	mdelay(10000);
+	dprintf(CRITICAL, "Shutdown failed\n");
+}
+
 void reboot_device(unsigned reboot_reason)
 {
     /* Reset WDG0 counter */
@@ -365,8 +379,18 @@ static unsigned target_check_power_on_reason(void)
 	{
 		dprintf(CRITICAL, "ERROR: unable to read shared memory for power on reason\n");
 	}
-
+	dprintf(INFO,"Power on reason %u\n", power_on_status);
 	return power_on_status;
+}
+
+static void target_shutdown_for_rtc_alarm(void)
+{
+	if (target_check_power_on_reason() == PWR_ON_EVENT_RTC_ALARM)
+	{
+		dprintf(CRITICAL, "Power on due to RTC alarm. Going to shutdown!!\n");
+		pm8058_rtc0_alarm_irq_disable();
+		shutdown_device();
+	}
 }
 
 unsigned target_pause_for_battery_charge(void)

@@ -29,11 +29,43 @@
 
 #include <debug.h>
 #include <reg.h>
+#include <bits.h>
 #include <platform/iomap.h>
 #include <platform/pmic.h>
 
 #define TRUE  1
 #define FALSE 0
+
+/* FTS regulator PMR registers */
+#define SSBI_REG_ADDR_S1_PMR		(0xA7)
+#define SSBI_REG_ADDR_S2_PMR		(0xA8)
+#define SSBI_REG_ADDR_S3_PMR		(0xA9)
+#define SSBI_REG_ADDR_S4_PMR		(0xAA)
+
+#define REGULATOR_PMR_STATE_MASK	0x60
+#define REGULATOR_PMR_STATE_OFF		0x20
+
+/* Regulator control registers for shutdown/reset */
+#define SSBI_REG_ADDR_L22_CTRL		0x121
+
+/* SLEEP CNTL register */
+#define SSBI_REG_ADDR_SLEEP_CNTL	0x02B
+
+#define PM8058_SLEEP_SMPL_EN_MASK	0x04
+#define PM8058_SLEEP_SMPL_EN_RESET	0x04
+#define PM8058_SLEEP_SMPL_EN_PWR_OFF	0x00
+
+/* PON CNTL 1 register */
+#define SSBI_REG_ADDR_PON_CNTL_1	0x01C
+
+#define PM8058_PON_PUP_MASK		0xF0
+
+#define PM8058_PON_WD_EN_MASK		0x08
+#define PM8058_PON_WD_EN_RESET		0x08
+#define PM8058_PON_WD_EN_PWR_OFF	0x00
+
+#define PM8058_RTC_CTRL		0x1E8
+#define PM8058_RTC_ALARM_ENABLE	BIT(1)
 
 #define PM_IRQ_ID_TO_BLOCK_INDEX(id) (uint8_t)(id / 8)
 #define PM_IRQ_ID_TO_BIT_MASK(id)    (uint8_t)(1 << (id % 8))
@@ -186,3 +218,113 @@ int pm8901_vreg_write(uint8_t * buffer, uint8_t mask, uint16_t addr,
     reg |= (*buffer & mask);
     return pm8901_write(&reg, 1, addr);
 }
+
+int pm8901_reset_pwr_off(int reset)
+{
+	int rc = 0, i;
+	uint8_t pmr;
+	uint8_t pmr_addr[4] = {
+		SSBI_REG_ADDR_S2_PMR,
+		SSBI_REG_ADDR_S3_PMR,
+		SSBI_REG_ADDR_S4_PMR,
+		SSBI_REG_ADDR_S1_PMR,
+	};
+
+	/* Turn off regulators S1, S2, S3, S4 when shutting down. */
+	if (!reset) {
+		for (i = 0; i < 4; i++) {
+			rc = pm8901_read(&pmr, 1, pmr_addr[i]);
+			if (rc) {
+				goto get_out;
+			}
+
+			pmr &= ~REGULATOR_PMR_STATE_MASK;
+			pmr |= REGULATOR_PMR_STATE_OFF;
+
+			rc = pm8901_write(&pmr, 1, pmr_addr[i]);
+			if (rc) {
+				goto get_out;
+			}
+		}
+	}
+
+get_out:
+	return rc;
+}
+
+int pm8058_reset_pwr_off(int reset)
+{
+	int rc;
+	uint8_t pon, ctrl, smpl;
+
+	/* Set regulator L22 to 1.225V in high power mode. */
+	rc = pm8058_read(SSBI_REG_ADDR_L22_CTRL, &ctrl, 1);
+	if (rc) {
+		goto get_out3;
+	}
+	/* Leave pull-down state intact. */
+	ctrl &= 0x40;
+	ctrl |= 0x93;
+
+	rc = pm8058_write(SSBI_REG_ADDR_L22_CTRL, &ctrl, 1);
+	if (rc) {
+	}
+
+get_out3:
+	if (!reset) {
+		/* Only modify the SLEEP_CNTL reg if shutdown is desired. */
+		rc = pm8058_read(SSBI_REG_ADDR_SLEEP_CNTL, &smpl, 1);
+		if (rc) {
+			goto get_out2;
+		}
+
+		smpl &= ~PM8058_SLEEP_SMPL_EN_MASK;
+		smpl |= PM8058_SLEEP_SMPL_EN_PWR_OFF;
+
+		rc = pm8058_write(SSBI_REG_ADDR_SLEEP_CNTL, &smpl, 1);
+		if (rc)
+		{
+		}
+	}
+
+get_out2:
+	rc = pm8058_read(SSBI_REG_ADDR_PON_CNTL_1, &pon, 1);
+	if (rc) {
+		goto get_out;
+	}
+
+	pon &= ~PM8058_PON_WD_EN_MASK;
+	pon |= reset ? PM8058_PON_WD_EN_RESET : PM8058_PON_WD_EN_PWR_OFF;
+
+	/* Enable all pullups */
+	pon |= PM8058_PON_PUP_MASK;
+
+	rc = pm8058_write(SSBI_REG_ADDR_PON_CNTL_1, &pon, 1);
+	if (rc) {
+		goto get_out;
+	}
+
+get_out:
+	return rc;
+}
+
+int pm8058_rtc0_alarm_irq_disable(void)
+{
+	int rc;
+	uint8_t reg;
+
+	rc = pm8058_read(PM8058_RTC_CTRL, &reg, 1);
+	if (rc)
+	{
+		return rc;
+	}
+	reg = (reg & ~PM8058_RTC_ALARM_ENABLE);
+
+	rc = pm8058_write(PM8058_RTC_CTRL, &reg, 1);
+	if (rc) {
+		return rc;
+	}
+
+	return rc;
+}
+

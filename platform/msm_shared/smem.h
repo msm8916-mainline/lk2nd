@@ -297,5 +297,6 @@ struct smem_ram_ptable {
 
 /* Power on reason/status info */
 #define PWR_ON_EVENT_USB_CHG 0x20
+#define PWR_ON_EVENT_RTC_ALARM 0x2
 
 #endif /* __PLATFORM_MSM_SHARED_SMEM_H */
