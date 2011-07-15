@@ -105,7 +105,7 @@ static void mipi_dsi_calibration(void)
 
     /* DSI1_DSIPHY_CAL_HW_TRIGGER */
     writel(0x01, MIPI_DSI_BASE + 0x0528);
-    mdelay(50);
+
     /* DSI1_DSIPHY_CAL_HW_TRIGGER */
     writel(0x00, MIPI_DSI_BASE + 0x0528);
 
@@ -125,8 +125,7 @@ int mipi_dsi_phy_init(struct mipi_dsi_panel_config *pinfo){
         struct mipi_dsi_phy_ctrl *pd;
     uint32_t i, off = 0;
 
-        writel(0x0001, MIPI_DSI_BASE + 0x128);/* start phy sw reset */
-    mdelay(100);
+    writel(0x0001, MIPI_DSI_BASE + 0x128);/* start phy sw reset */
     writel(0x0000, MIPI_DSI_BASE + 0x128);/* end phy w reset */
     writel(0x0003, MIPI_DSI_BASE + 0x500);/* regulator_ctrl_0 */
     writel(0x0001, MIPI_DSI_BASE + 0x504);/* regulator_ctrl_1 */

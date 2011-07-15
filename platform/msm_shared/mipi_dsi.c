@@ -150,7 +150,6 @@ int mipi_dsi_phy_ctrl_config(struct mipi_dsi_panel_config *pinfo)
     struct mipi_dsi_phy_ctrl *pd;
 
     writel(0x00000001, DSI_PHY_SW_RESET);
-    mdelay(50);
     writel(0x00000000, DSI_PHY_SW_RESET);
 
     pd = (pinfo->dsi_phy_config);
@@ -215,7 +214,6 @@ int dsi_cmd_dma_trigger_for_panel()
     int status = 0;
 
     writel(0x03030303, DSI_INT_CTRL);
-    mdelay(10);
     writel(0x1, DSI_CMD_MODE_DMA_SW_TRIGGER);
     ReadValue = readl(DSI_INT_CTRL) & 0x00000001;
     while (ReadValue != 0x00000001) {
@@ -247,7 +245,7 @@ int mipi_dsi_cmds_tx(struct mipi_dsi_cmd *cmds, int count)
         writel(DSI_CMD_DMA_MEM_START_ADDR_PANEL, DSI_DMA_CMD_OFFSET);
         writel(cm->size, DSI_DMA_CMD_LENGTH);   // reg 0x48 for this build
         ret += dsi_cmd_dma_trigger_for_panel();
-        mdelay(10);
+        udelay(80);
         cm++;
     }
     return ret;
@@ -778,7 +776,7 @@ void mipi_dsi_cmd_mode_trigger(void)
 void mipi_dsi_shutdown(void)
 {
     writel(0x00000000, MDP_DSI_VIDEO_EN);
-    mdelay(60);
+    mdelay(10);
     writel(0x00000000, MDP_INTR_ENABLE);
     writel(0x00000003, MDP_OVERLAYPROC0_CFG);
     writel(0x01010101, DSI_INT_CTRL);
