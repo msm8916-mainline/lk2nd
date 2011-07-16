@@ -24,7 +24,7 @@
 #include <debug.h>
 #include <platform.h>
 
-/* 
+/*
  * default implementations of these routines, if the platform code
  * chooses not to implement.
  */
@@ -57,3 +57,6 @@ __WEAK void uart_clock_init(void)
 {
 }
 
+__WEAK void platform_uninit(void)
+{
+}

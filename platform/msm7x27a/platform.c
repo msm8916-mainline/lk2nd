@@ -78,3 +78,11 @@ void display_init(void)
 	fbcon_setup(fb_config);
 #endif
 }
+
+void platform_uninit(void)
+{
+	platform_uninit_timer();
+#if DISPLAY_SPLASH_SCREEN
+	display_shutdown();
+#endif
+}

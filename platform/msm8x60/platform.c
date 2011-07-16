@@ -40,6 +40,38 @@
 #include <i2c_qup.h>
 #include <gsbi.h>
 #include <uart_dm.h>
+#include <mmu.h>
+#include <arch/arm/mmu.h>
+
+#define MB (1024*1024)
+
+
+/* LK memory - cacheable, write through */
+#define LK_MEMORY         (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
+                           MMU_MEMORY_AP_READ_WRITE)
+
+/* Kernel region - cacheable, write through */
+#define KERNEL_MEMORY     (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH  | \
+                           MMU_MEMORY_AP_READ_WRITE)
+
+/* Scratch region - cacheable, write through */
+#define SCRATCH_MEMORY    (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH  | \
+                           MMU_MEMORY_AP_READ_WRITE)
+
+/* Peripherals - non-shared device */
+#define IOMAP_MEMORY      (MMU_MEMORY_TYPE_DEVICE_NON_SHARED | \
+                           MMU_MEMORY_AP_READ_WRITE)
+
+
+#define MSM_IOMAP_SIZE ((MSM_IOMAP_END - MSM_IOMAP_BASE)/MB)
+
+mmu_section_t mmu_section_table[] = {
+/*  Physical addr,    Virtual addr,    Size (in MB),   Flags */
+    {MEMBASE,         MEMBASE,         (MEMSIZE/MB),   LK_MEMORY},
+    {BASE_ADDR,       BASE_ADDR,         44,           KERNEL_MEMORY},
+    {SCRATCH_ADDR,    SCRATCH_ADDR,     128,           SCRATCH_MEMORY},
+    {MSM_IOMAP_BASE,  MSM_IOMAP_BASE,  MSM_IOMAP_SIZE, IOMAP_MEMORY},
+};
 
 #define CONVERT_ENDIAN_U32(val)                   \
     ((((uint32_t)(val) & 0x000000FF) << 24) |     \
@@ -157,3 +189,38 @@ uint32_t platform_id_read (void)
     return id;
 }
 
+/* Setup memory for this platform */
+void platform_init_mmu_mappings(void)
+{
+    uint32_t i;
+    uint32_t sections;
+    uint32_t table_size = ARRAY_SIZE(mmu_section_table);
+
+    for (i = 0; i < table_size; i++)
+    {
+        sections = mmu_section_table[i].num_of_sections;
+
+        while (sections--)
+        {
+            arm_mmu_map_section(mmu_section_table[i].paddress + sections*MB,
+                                mmu_section_table[i].vaddress + sections*MB,
+                                mmu_section_table[i].flags);
+        }
+    }
+}
+
+/* Do any platform specific cleanup just before kernel entry */
+void platform_uninit(void)
+{
+	/* As a effect of enabling caches, display gets shutdown even before
+	 * the splash screen shows up. Until we can speed up the splash screen
+	 * display, add an artificial delay so that current user experience
+	 * is not affected.
+	 */
+	mdelay(400);
+
+	platform_uninit_timer();
+#if DISPLAY_SPLASH_SCREEN
+	display_shutdown();
+#endif
+}

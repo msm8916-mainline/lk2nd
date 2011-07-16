@@ -33,6 +33,8 @@
 #include <platform/iomap.h>
 #include <uart_dm.h>
 #include <dev/fbcon.h>
+#include <mmu.h>
+#include <arch/arm/mmu.h>
 
 extern void platform_init_timer(void);
 extern void platform_init_interrupts(void);
@@ -42,6 +44,35 @@ extern void mdp_clock_init(void);
 extern void mmss_clock_init(void);
 extern struct fbcon_config *mipi_init(void);
 extern void mipi_dsi_shutdown(void);
+
+#define MB (1024*1024)
+
+#define MSM_IOMAP_SIZE ((MSM_IOMAP_END - MSM_IOMAP_BASE)/MB)
+
+/* LK memory - cacheable, write through */
+#define LK_MEMORY         (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
+                           MMU_MEMORY_AP_READ_WRITE)
+
+/* Kernel region - cacheable, write through */
+#define KERNEL_MEMORY     (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH   | \
+                           MMU_MEMORY_AP_READ_WRITE)
+
+/* Scratch region - cacheable, write through */
+#define SCRATCH_MEMORY    (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH   | \
+                           MMU_MEMORY_AP_READ_WRITE)
+
+/* Peripherals - non-shared device */
+#define IOMAP_MEMORY      (MMU_MEMORY_TYPE_DEVICE_NON_SHARED | \
+                           MMU_MEMORY_AP_READ_WRITE)
+
+
+mmu_section_t mmu_section_table[] = {
+/*  Physical addr,    Virtual addr,    Size (in MB),    Flags */
+    {MEMBASE,         MEMBASE,         (MEMSIZE/MB),    LK_MEMORY},
+    {BASE_ADDR,       BASE_ADDR,                 44,    KERNEL_MEMORY},
+    {SCRATCH_ADDR,    SCRATCH_ADDR,             128,    SCRATCH_MEMORY},
+    {MSM_IOMAP_BASE,  MSM_IOMAP_BASE,  MSM_IOMAP_SIZE,  IOMAP_MEMORY},
+};
 
 void platform_early_init(void)
 {
@@ -71,4 +102,32 @@ void display_init(void){
 void display_shutdown(void)
 {
     mipi_dsi_shutdown();
+}
+
+void platform_uninit(void)
+{
+	platform_uninit_timer();
+#if DISPLAY_SPLASH_SCREEN
+	display_shutdown();
+#endif
+}
+
+/* Setup memory for this platform */
+void platform_init_mmu_mappings(void)
+{
+    uint32_t i;
+    uint32_t sections;
+    uint32_t table_size = ARRAY_SIZE(mmu_section_table);
+
+    for (i = 0; i < table_size; i++)
+    {
+        sections = mmu_section_table[i].num_of_sections;
+
+        while (sections--)
+        {
+            arm_mmu_map_section(mmu_section_table[i].paddress + sections*MB,
+                                mmu_section_table[i].vaddress + sections*MB,
+                                mmu_section_table[i].flags);
+        }
+    }
 }
