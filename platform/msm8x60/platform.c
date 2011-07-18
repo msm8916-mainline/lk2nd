@@ -37,6 +37,7 @@
 #include <kernel/thread.h>
 #include <platform/debug.h>
 #include <platform/iomap.h>
+#include <qgic.h>
 #include <i2c_qup.h>
 #include <gsbi.h>
 #include <uart_dm.h>
@@ -93,10 +94,8 @@ struct cdt_header
     uint32_t reserved2;
 }__attribute__((packed));
 
-void platform_init_interrupts(void);
 void platform_init_timer();
 
-void uart3_clock_init(void);
 
 struct fbcon_config *lcdc_init(void);
 
@@ -109,7 +108,7 @@ uint8_t sdc_crci_map[5] = {0, 1, 4, 2, 5};
 void platform_early_init(void)
 {
     uart_init(target_uart_gsbi());
-    platform_init_interrupts();
+    qgic_init();
     platform_init_timer();
 }
 

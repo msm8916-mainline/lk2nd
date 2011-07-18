@@ -31,13 +31,13 @@
 #include <debug.h>
 #include <reg.h>
 #include <platform/iomap.h>
+#include <qgic.h>
 #include <uart_dm.h>
 #include <dev/fbcon.h>
 #include <mmu.h>
 #include <arch/arm/mmu.h>
 
 extern void platform_init_timer(void);
-extern void platform_init_interrupts(void);
 extern void mipi_panel_reset(void);
 extern void mipi_dsi_panel_power_on(void);
 extern void mdp_clock_init(void);
@@ -77,7 +77,7 @@ mmu_section_t mmu_section_table[] = {
 void platform_early_init(void)
 {
     uart_init(target_uart_gsbi());
-    platform_init_interrupts();
+    qgic_init();
     platform_init_timer();
 }
 

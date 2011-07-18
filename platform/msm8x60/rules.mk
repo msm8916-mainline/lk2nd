@@ -22,7 +22,6 @@ MODULES += dev/fbcon
 
 OBJS += \
 	$(LOCAL_DIR)/platform.o \
-	$(LOCAL_DIR)/interrupts.o \
 	$(LOCAL_DIR)/acpuclock.o \
 	$(LOCAL_DIR)/gpio.o \
 	$(LOCAL_DIR)/panel.o \

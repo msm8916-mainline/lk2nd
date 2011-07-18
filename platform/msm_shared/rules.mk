@@ -20,40 +20,42 @@ OBJS += \
 
 ifeq ($(PLATFORM),msm8x60)
 	OBJS += $(LOCAL_DIR)/mipi_dsi.o \
-	        $(LOCAL_DIR)/i2c_qup.o \
-	        $(LOCAL_DIR)/uart_dm.o \
-	        $(LOCAL_DIR)/crypto_eng.o \
-	        $(LOCAL_DIR)/crypto_hash.o \
-		$(LOCAL_DIR)/scm_decrypt.o \
-		$(LOCAL_DIR)/lcdc.o \
-		$(LOCAL_DIR)/mddi.o
+			$(LOCAL_DIR)/i2c_qup.o \
+			$(LOCAL_DIR)/uart_dm.o \
+			$(LOCAL_DIR)/crypto_eng.o \
+			$(LOCAL_DIR)/crypto_hash.o \
+			$(LOCAL_DIR)/scm_decrypt.o \
+			$(LOCAL_DIR)/lcdc.o \
+			$(LOCAL_DIR)/mddi.o \
+			$(LOCAL_DIR)/qgic.o
 endif
 
 ifeq ($(PLATFORM),msm8960)
 	OBJS += $(LOCAL_DIR)/mipi_dsi.o \
-	        $(LOCAL_DIR)/i2c_qup.o \
-	        $(LOCAL_DIR)/uart_dm.o
+			$(LOCAL_DIR)/i2c_qup.o \
+			$(LOCAL_DIR)/uart_dm.o \
+			$(LOCAL_DIR)/qgic.o
 endif
 
 ifeq ($(PLATFORM),msm7x27a)
 	OBJS += $(LOCAL_DIR)/uart.o \
-		$(LOCAL_DIR)/proc_comm.o \
-		$(LOCAL_DIR)/lcdc.o \
-		$(LOCAL_DIR)/mddi.o
+			$(LOCAL_DIR)/proc_comm.o \
+			$(LOCAL_DIR)/lcdc.o \
+			$(LOCAL_DIR)/mddi.o
 endif
 
 ifeq ($(PLATFORM),msm7k)
 	OBJS += $(LOCAL_DIR)/uart.o \
-		$(LOCAL_DIR)/proc_comm.o \
-		$(LOCAL_DIR)/lcdc.o \
-		$(LOCAL_DIR)/mddi.o
+			$(LOCAL_DIR)/proc_comm.o \
+			$(LOCAL_DIR)/lcdc.o \
+			$(LOCAL_DIR)/mddi.o
 endif
 
 ifeq ($(PLATFORM),msm7x30)
 	OBJS += $(LOCAL_DIR)/crypto_eng.o \
-		$(LOCAL_DIR)/crypto_hash.o \
-		$(LOCAL_DIR)/uart.o \
-		$(LOCAL_DIR)/proc_comm.o \
-		$(LOCAL_DIR)/lcdc.o \
-		$(LOCAL_DIR)/mddi.o
+			$(LOCAL_DIR)/crypto_hash.o \
+			$(LOCAL_DIR)/uart.o \
+			$(LOCAL_DIR)/proc_comm.o \
+			$(LOCAL_DIR)/lcdc.o \
+			$(LOCAL_DIR)/mddi.o
 endif
