@@ -42,12 +42,13 @@
 int print_usage(){
 	fprintf(stderr,"usage: mkheader <bin> <hdr> <none|unified-boot>\n");
 	fprintf(stderr,"       mkheader <bin> <hdr> <unsecure-boot> <outbin>\n");
-	fprintf(stderr,"       mkheader <bin> <hdr> <secure-boot> <outbin> <maxsize>\n");
+	fprintf(stderr,"       mkheader <bin> <hdr> <secure-boot> <outbin> <maxsize> <emmc>\n");
 	fprintf(stderr,"       mkheader <bin> <hdr> <secure-boot> <outbin> <maxsize> <certchain> <files...>\n\n");
 	fprintf(stderr,"bin:               Input raw appsbl binary\n");
 	fprintf(stderr,"hdr:               Output of appsbl header location\n");
 	fprintf(stderr,"outbin:            Output of the signed or unsigned apps boot location\n");
 	fprintf(stderr,"maxsize:           Maximum size for certificate chain\n");
+	fprintf(stderr,"emmc:              This flag takes value 1 or 0, 1 - emmc 0 - nand\n");
 	fprintf(stderr,"certchain:         Output of the certchain location\n");
 	fprintf(stderr,"files:             Input format <bin signature> <certifcate file(s) for certificate chain>...\n");
 	fprintf(stderr,"certificate chain: Files will be concatenated in order to create the certificate chain\n\n");
@@ -84,6 +85,7 @@ int main(int argc, char *argv[])
 	unsigned cert_chain_size = 0;
 	unsigned signature_size = 0;
 	int secure_boot = 0;
+	int emmc = 0;
 	int fd;
 
 	if(argc < 3) {
@@ -105,23 +107,25 @@ int main(int argc, char *argv[])
 
 	if (argc > 4) {
 		if(!strcmp("secure-boot",argv[3])) {
-			if(argc < 9 && argc != 6){
+			if(argc < 9 && argc != 7) {
 				fprintf(stderr,
 					"ERROR: Missing argument(s): [outbin maxsize] | [outbin, maxsize, certchain, signature + certifcate(s)]\n");
 				return print_usage();
 			}
+			if (argc == 7 && atoi(argv[6]) == 1) {
+				emmc = 1;
+			}
 			secure_boot = 1;
 			signature_size = 256; //Support SHA 256
 			cert_chain_size = atoi(argv[5]);
-		}
-       }
-
+			}
+	}
 	if(stat(argv[1], &s)) {
 		perror("cannot stat binary");
 		return -1;
 	}
 
-	if(unified_boot) {
+	if(unified_boot || emmc) {
 		magic = unified_boot_magic;
 		magic_len = sizeof(unified_boot_magic);
 	} else {
@@ -143,7 +147,7 @@ int main(int argc, char *argv[])
 	magic[8] = size + base + signature_size;
 	magic[9] = cert_chain_size;
 
-	if (unified_boot == 1)
+	if (unified_boot == 1 || emmc == 1)
 	{
 		magic[10] = 0x33836685; /* cookie magic number */
 		magic[11] = 0x00000001; /* cookie version */
@@ -170,7 +174,7 @@ int main(int argc, char *argv[])
 	}
 	close(fd);
 
-	if (secure_boot && argc > 6){
+	if (secure_boot && argc > 7 ){
 		FILE * input_file;
 		FILE * output_file;
 		unsigned buff_size = 1;
@@ -249,7 +253,7 @@ int main(int argc, char *argv[])
 
 		fclose(output_file);
 
-	}else if(argc == 5 || argc == 6){
+	}else if(argc == 5 || argc == 7){
 		FILE * input_file;
 		FILE * output_file;
 		unsigned buff_size = 1;
