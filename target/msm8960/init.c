@@ -58,6 +58,18 @@ static pm8921_dev_t pmic;
 
 static const uint8_t uart_gsbi_id  = GSBI_ID_5;
 
+void shutdown_device(void)
+{
+	dprintf(CRITICAL, "Shutdown system.\n");
+	pm8921_config_reset_pwr_off(0);
+
+	/* Actually reset the chip */
+	writel(0, MSM_PSHOLD_CTL_SU);
+	mdelay(5000);
+
+	dprintf (CRITICAL, "Shutdown failed.\n");
+}
+
 void target_init(void)
 {
 	unsigned base_addr;
@@ -69,7 +81,6 @@ void target_init(void)
 	pmic.write = pa1_ssbi2_write_bytes;
 
 	pm8921_init(&pmic);
-
 	/* Keypad init */
 	keys_init();
 	keypad_init();
@@ -138,24 +149,11 @@ unsigned board_machtype(void)
 
 void reboot_device(unsigned reboot_reason)
 {
-	/* Disable WDG0 */
-	writel(0,MSM_WDT0_EN);
-
 	/* Actually reset the chip */
+	pm8921_config_reset_pwr_off(1);
 	writel(0, MSM_PSHOLD_CTL_SU);
-	mdelay(5000);
-
-	/* Fall back to watchdog */
-	/* Reset WDG0 counter */
-	writel(1,MSM_WDT0_RST);
-	/* Set WDG0 bark time */
-	writel(0x31F3,MSM_WDT0_BT);
-	/* Enable WDG0 */
-	writel(3,MSM_WDT0_EN);
-	dmb();
-	/* Enable WDG output */
-	writel(3,MSM_TCSR_BASE + TCSR_WDOG_CFG);
 	mdelay(10000);
+
 	dprintf (CRITICAL, "Rebooting failed\n");
 	return;
 }

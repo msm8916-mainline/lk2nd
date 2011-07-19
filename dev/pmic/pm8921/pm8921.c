@@ -58,6 +58,25 @@ void pm8921_init(pm8921_dev_t *pmic)
 	dev->initialized = 1;
 }
 
+static int pm8921_masked_write(uint16_t addr,
+					uint8_t mask, uint8_t val)
+{
+	int rc;
+	uint8_t reg;
+
+	rc = dev->read(&reg, 1, addr);
+	if (rc)
+	{
+		return rc;
+	}
+
+	reg &= ~mask;
+	reg |= val & mask;
+	rc = dev->write(&reg, 1, addr);
+
+	return rc;
+}
+
 /* Set the BOOT_DONE flag */
 void pm8921_boot_done(void)
 {
@@ -203,3 +222,41 @@ int pm8921_ldo_set_voltage(uint32_t ldo_id, uint32_t voltage)
 
 	return 0;
 }
+
+/*
+ * Configure PMIC for reset and power off.
+ * reset = 1: Configure reset.
+ * reset = 0: Configure power off.
+ */
+int pm8921_config_reset_pwr_off(unsigned reset)
+{
+	int rc;
+
+	/* Enable SMPL(Short Momentary Power Loss) if resetting is desired. */
+	rc = pm8921_masked_write(PM8921_SLEEP_CTRL_REG,
+		   SLEEP_CTRL_SMPL_EN_MASK,
+		   (reset ? SLEEP_CTRL_SMPL_EN_RESET : SLEEP_CTRL_SMPL_EN_PWR_OFF));
+	if (rc)
+	{
+		goto read_write_err;
+	}
+
+	/*
+	 * Select action to perform (reset or shutdown) when PS_HOLD goes low.
+	 * Also ensure that KPD, CBL0, and CBL1 pull ups are enabled and that
+	 * USB charging is enabled.
+	 */
+	rc = pm8921_masked_write(PM8921_PON_CTRL_1_REG,
+		PON_CTRL_1_PULL_UP_MASK | PON_CTRL_1_USB_PWR_EN
+		| PON_CTRL_1_WD_EN_MASK,
+		PON_CTRL_1_PULL_UP_MASK | PON_CTRL_1_USB_PWR_EN
+		| (reset ? PON_CTRL_1_WD_EN_RESET : PON_CTRL_1_WD_EN_PWR_OFF));
+	if (rc)
+	{
+		goto read_write_err;
+	}
+
+read_write_err:
+	return rc;
+}
+

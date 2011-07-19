@@ -98,5 +98,6 @@ void pm8921_init(pm8921_dev_t *);
 int  pm8921_gpio_config(int gpio, struct pm8921_gpio *param);
 void pm8921_boot_done(void);
 int  pm8921_ldo_set_voltage(uint32_t ldo_id, uint32_t voltage);
+int  pm8921_config_reset_pwr_off(unsigned reset);
 
 #endif

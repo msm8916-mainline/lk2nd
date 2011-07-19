@@ -92,3 +92,20 @@
 /* Bank 5 */
 #define PM_GPIO_NON_INT_POL_INV          0x08
 
+/* PON CTRL 1 register */
+#define PM8921_PON_CTRL_1_REG            0x01C
+
+#define PON_CTRL_1_PULL_UP_MASK          0xE0
+#define PON_CTRL_1_USB_PWR_EN            0x10
+
+#define PON_CTRL_1_WD_EN_MASK            0x08
+#define PON_CTRL_1_WD_EN_RESET           0x08
+#define PON_CTRL_1_WD_EN_PWR_OFF         0x00
+
+/* SLEEP CTRL register */
+#define PM8921_SLEEP_CTRL_REG            0x10A
+
+#define SLEEP_CTRL_SMPL_EN_MASK          0x04
+#define SLEEP_CTRL_SMPL_EN_RESET         0x04
+#define SLEEP_CTRL_SMPL_EN_PWR_OFF       0x00
+
