@@ -30,6 +30,7 @@
  * SUCH DAMAGE.
  */
 
+#include <reg.h>
 #include <debug.h>
 #include <dev/keys.h>
 #include <dev/gpio_keypad.h>
@@ -127,6 +128,10 @@ void target_init(void)
 
 	if (target_is_emmc_boot())
 	{
+		/* Must wait for modem-up before we can intialize MMC.
+		 */
+		while (readl(MSM_SHARED_BASE + 0x14) != 1);
+
 		/* Trying SDC3 first */
 		slot = 3;
 		base_addr = mmc_sdc_base[slot - 1];
