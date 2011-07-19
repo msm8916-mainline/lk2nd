@@ -37,6 +37,7 @@
 
 /* don't turn this on without updating the ffa support */
 #define SCAN_FUNCTION_KEYS 0
+#define LINUX_MACHTYPE_7x27_SURF 2705
 
 static unsigned int halibut_row_gpios[] = {
 	31, 32, 33, 34, 35, 41
@@ -49,7 +50,7 @@ static unsigned int halibut_col_gpios[] = { 36, 37, 38, 39, 40 };
 
 #define KEYMAP_INDEX(row, col) ((row)*ARRAY_SIZE(halibut_col_gpios) + (col))
 
-static const unsigned short halibut_keymap[ARRAY_SIZE(halibut_col_gpios) * ARRAY_SIZE(halibut_row_gpios)] = {
+static const unsigned short halibut_keymap_surf[ARRAY_SIZE(halibut_col_gpios) * ARRAY_SIZE(halibut_row_gpios)] = {
 	[KEYMAP_INDEX(0, 0)] = KEY_5,
 	[KEYMAP_INDEX(0, 1)] = KEY_9,
 	[KEYMAP_INDEX(0, 2)] = KEY_SOFT1,
@@ -95,8 +96,60 @@ static const unsigned short halibut_keymap[ARRAY_SIZE(halibut_col_gpios) * ARRAY
 #endif
 };
 
-static struct gpio_keypad_info halibut_keypad_info = {
-	.keymap		= halibut_keymap,
+static const unsigned short halibut_keymap_ffa[ARRAY_SIZE(halibut_col_gpios) * ARRAY_SIZE(halibut_row_gpios)] = {
+	[KEYMAP_INDEX(0, 2)] = KEY_1,
+	[KEYMAP_INDEX(0, 3)] = KEY_SEND,
+	[KEYMAP_INDEX(0, 4)] = KEY_LEFT,
+
+	[KEYMAP_INDEX(1, 0)] = KEY_3,
+	[KEYMAP_INDEX(1, 1)] = KEY_RIGHT,
+	[KEYMAP_INDEX(1, 2)] = KEY_VOLUMEUP,
+	[KEYMAP_INDEX(1, 4)] = KEY_6,
+
+	[KEYMAP_INDEX(2, 0)] = KEY_HOME,      /* A */
+	[KEYMAP_INDEX(2, 1)] = KEY_BACK,      /* B */
+	[KEYMAP_INDEX(2, 2)] = KEY_0,
+	[KEYMAP_INDEX(2, 3)] = KEY_SHARP,
+	[KEYMAP_INDEX(2, 4)] = KEY_9,
+
+	[KEYMAP_INDEX(3, 0)] = KEY_UP,
+	[KEYMAP_INDEX(3, 1)] = KEY_CENTER,
+	[KEYMAP_INDEX(3, 2)] = KEY_4,
+	[KEYMAP_INDEX(3, 4)] = KEY_2,
+
+	[KEYMAP_INDEX(4, 0)] = KEY_VOLUMEDOWN,
+	[KEYMAP_INDEX(4, 1)] = KEY_SOUND,
+	[KEYMAP_INDEX(4, 2)] = KEY_DOWN,
+	[KEYMAP_INDEX(4, 3)] = KEY_8,
+	[KEYMAP_INDEX(4, 4)] = KEY_5,
+
+	[KEYMAP_INDEX(5, 1)] = KEY_STAR,
+	[KEYMAP_INDEX(5, 2)] = KEY_SOFT2,
+	[KEYMAP_INDEX(5, 3)] = KEY_MENU,
+	[KEYMAP_INDEX(5, 4)] = KEY_7,
+
+#if SCAN_FUNCTION_KEYS
+	[KEYMAP_INDEX(6, 0)] = KEY_F5,
+	[KEYMAP_INDEX(6, 1)] = KEY_F4,
+	[KEYMAP_INDEX(6, 2)] = KEY_F3,
+	[KEYMAP_INDEX(6, 3)] = KEY_F2,
+	[KEYMAP_INDEX(6, 4)] = KEY_F1
+#endif
+};
+
+static struct gpio_keypad_info halibut_keypad_info_surf = {
+	.keymap		= halibut_keymap_surf,
+	.output_gpios	= halibut_row_gpios,
+	.input_gpios	= halibut_col_gpios,
+	.noutputs	= ARRAY_SIZE(halibut_row_gpios),
+	.ninputs	= ARRAY_SIZE(halibut_col_gpios),
+	.settle_time	= 5 /* msec */,
+	.poll_time	= 20 /* msec */,
+	.flags		= GPIOKPF_DRIVE_INACTIVE,
+};
+
+static struct gpio_keypad_info halibut_keypad_info_ffa = {
+	.keymap		= halibut_keymap_ffa,
 	.output_gpios	= halibut_row_gpios,
 	.input_gpios	= halibut_col_gpios,
 	.noutputs	= ARRAY_SIZE(halibut_row_gpios),
@@ -108,5 +161,11 @@ static struct gpio_keypad_info halibut_keypad_info = {
 
 void keypad_init(void)
 {
-	gpio_keypad_init(&halibut_keypad_info);
+	unsigned int mach_id;
+	mach_id = board_machtype();
+
+	if (mach_id == LINUX_MACHTYPE_7x27_SURF)
+		gpio_keypad_init(&halibut_keypad_info_surf);
+	else
+		gpio_keypad_init(&halibut_keypad_info_ffa);
 }
