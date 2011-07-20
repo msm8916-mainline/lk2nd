@@ -45,6 +45,8 @@ extern void mmss_clock_init(void);
 extern struct fbcon_config *mipi_init(void);
 extern void mipi_dsi_shutdown(void);
 
+static uint32_t ticks_per_sec = 0;
+
 #define MB (1024*1024)
 
 #define MSM_IOMAP_SIZE ((MSM_IOMAP_END - MSM_IOMAP_BASE)/MB)
@@ -132,4 +134,24 @@ void platform_init_mmu_mappings(void)
                                 mmu_section_table[i].flags);
         }
     }
+}
+
+/* Initialize DGT timer */
+void platform_init_timer(void)
+{
+	/* disable timer */
+	writel(0, DGT_ENABLE);
+
+	/* DGT uses LPXO source which is 27MHz.
+	 * Set clock divider to 4.
+	 */
+	writel(3, DGT_CLK_CTL);
+
+	ticks_per_sec = 6750000; /* (27 MHz / 4) */
+}
+
+/* Returns timer ticks per sec */
+uint32_t platform_tick_rate(void)
+{
+	return ticks_per_sec;
 }

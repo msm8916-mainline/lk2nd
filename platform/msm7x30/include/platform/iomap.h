@@ -39,7 +39,27 @@
 
 #define MSM_VIC_BASE	0xC0080000
 #define MSM_TMR_BASE 	0xC0100000
-#define MSM_GPT_BASE    (MSM_TMR_BASE + 0x04)
+
+#define MSM_GPT_BASE      (MSM_TMR_BASE + 0x04)
+#define MSM_DGT_BASE      (MSM_TMR_BASE + 0x24)
+#define SPSS_TIMER_STATUS (MSM_TMR_BASE + 0x88)
+
+#define GPT_REG(off)      (MSM_GPT_BASE + (off))
+#define DGT_REG(off)      (MSM_DGT_BASE + (off))
+
+#define GPT_MATCH_VAL      GPT_REG(0x0000)
+#define GPT_COUNT_VAL      GPT_REG(0x0004)
+#define GPT_ENABLE         GPT_REG(0x0008)
+#define GPT_CLEAR          GPT_REG(0x000C)
+
+#define DGT_MATCH_VAL      DGT_REG(0x0000)
+#define DGT_COUNT_VAL      DGT_REG(0x0004)
+#define DGT_ENABLE         DGT_REG(0x0008)
+#define DGT_CLEAR          DGT_REG(0x000C)
+#define DGT_CLK_CTL        DGT_REG(0x0010)
+
+#define HW_REVISION_NUMBER   0xABC00270
+
 #define MSM_CSR_BASE    0xC0100000
 #define MSM_GCC_BASE 	0xC0182000
 

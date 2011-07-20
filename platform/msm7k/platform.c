@@ -31,9 +31,11 @@
  * SUCH DAMAGE.
  */
 
+#include <reg.h>
 #include <debug.h>
 #include <kernel/thread.h>
 #include <platform/debug.h>
+#include <platform/iomap.h>
 #include <mddi.h>
 #include <dev/fbcon.h>
 #include <arch/arm/mmu.h>
@@ -41,6 +43,8 @@
 #define MB (1024*1024)
 
 static struct fbcon_config *fb_config;
+
+static uint32_t ticks_per_sec = 0;
 
 void platform_init_interrupts(void);
 void platform_init_timer();
@@ -54,9 +58,6 @@ void mddi_clock_init(unsigned num, unsigned rate);
 
 void platform_early_init(void)
 {
-        //uart3_clock_init();
-	//uart_init();
-
 	platform_init_interrupts();
 	platform_init_timer();
 }
@@ -96,4 +97,19 @@ void platform_init_mmu_mappings(void)
                             (MMU_MEMORY_TYPE_DEVICE_NON_SHARED |
                              MMU_MEMORY_AP_READ_WRITE));
     }
+}
+
+/* Initialize DGT timer */
+void platform_init_timer(void)
+{
+	/* disable timer */
+	writel(0, DGT_ENABLE);
+
+	ticks_per_sec = 19200000; /* Uses TCXO (19.2 MHz) */
+}
+
+/* Returns timer ticks per sec */
+uint32_t platform_tick_rate(void)
+{
+	return ticks_per_sec;
 }

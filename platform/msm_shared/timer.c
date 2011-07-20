@@ -41,67 +41,12 @@
 #include <platform/interrupts.h>
 #include <kernel/thread.h>
 
-#if PLATFORM_MSM7X30 || PLATFORM_MSM8X60 || PLATFORM_MSM8960
+#define GPT_ENABLE_CLR_ON_MATCH_EN        2
+#define GPT_ENABLE_EN                     1
+#define DGT_ENABLE_CLR_ON_MATCH_EN        2
+#define DGT_ENABLE_EN                     1
 
-#define MSM_GPT_BASE (MSM_TMR_BASE + 0x4)
-#define MSM_DGT_BASE (MSM_TMR_BASE + 0x24)
-#define GPT_REG(off) (MSM_GPT_BASE + (off))
-#define DGT_REG(off) (MSM_DGT_BASE + (off))
-#define SPSS_TIMER_STATUS           (MSM_TMR_BASE + 0x88)
 #define SPSS_TIMER_STATUS_DGT_EN    (1 << 0)
-
-#define GPT_MATCH_VAL        GPT_REG(0x0000)
-#define GPT_COUNT_VAL        GPT_REG(0x0004)
-#define GPT_ENABLE           GPT_REG(0x0008)
-#define GPT_ENABLE_CLR_ON_MATCH_EN        2
-#define GPT_ENABLE_EN                     1
-#define GPT_CLEAR            GPT_REG(0x000C)
-
-#define DGT_MATCH_VAL        DGT_REG(0x0000)
-#define DGT_COUNT_VAL        DGT_REG(0x0004)
-#define DGT_ENABLE           DGT_REG(0x0008)
-#define DGT_ENABLE_CLR_ON_MATCH_EN        2
-#define DGT_ENABLE_EN                     1
-#define DGT_CLEAR            DGT_REG(0x000C)
-#define DGT_CLK_CTL          DGT_REG(0x0010)
-
-#define HW_REVISION_NUMBER   0xABC00270
-
-
-#else
-#define GPT_REG(off) (MSM_GPT_BASE + (off))
-
-#define GPT_MATCH_VAL        GPT_REG(0x0000)
-#define GPT_COUNT_VAL        GPT_REG(0x0004)
-#define GPT_ENABLE           GPT_REG(0x0008)
-#define GPT_ENABLE_CLR_ON_MATCH_EN        2
-#define GPT_ENABLE_EN                     1
-#define GPT_CLEAR            GPT_REG(0x000C)
-
-#define DGT_MATCH_VAL        GPT_REG(0x0010)
-#define DGT_COUNT_VAL        GPT_REG(0x0014)
-#define DGT_ENABLE           GPT_REG(0x0018)
-#define DGT_ENABLE_CLR_ON_MATCH_EN        2
-#define DGT_ENABLE_EN                     1
-#define DGT_CLEAR            GPT_REG(0x001C)
-
-#define SPSS_TIMER_STATUS    GPT_REG(0x0034)
-#endif
-
-#if defined PLATFORM_QSD8K
-#define DGT_HZ 4800000	/* Uses TCXO/4 (19.2 MHz / 4) */
-#elif defined PLATFORM_MSM7X30
-#if _EMMC_BOOT
-#define DGT_HZ 19200000	/* Uses TCXO (19.2 MHz) */
-#else
-#define DGT_HZ 6144000	/* Uses LPXO/4 (24.576 MHz / 4) */
-#endif
-#elif (defined(PLATFORM_MSM8X60) || defined(PLATFORM_MSM8960))
-#define DGT_HZ 6750000	/* Uses LPXO/4 (27.0 MHz / 4) */
-#else
-#define DGT_HZ 19200000	/* Uses TCXO (19.2 MHz) */
-#endif
-
 
 static platform_timer_callback timer_callback;
 static void *timer_arg;
@@ -119,27 +64,18 @@ status_t platform_set_periodic_timer(
 	platform_timer_callback callback,
 	void *arg, time_t interval)
 {
-#ifdef PLATFORM_MSM7X30
-	unsigned val = 0;
-	//Check for the hardware revision
-	val = readl(HW_REVISION_NUMBER);
-	val = (val >> 28) & 0x0F;
-	if(val >= 1)
-	    writel(1, DGT_CLK_CTL);
-#endif
-#if (defined(PLATFORM_MSM8X60) || defined(PLATFORM_MSM8960))
-	writel(3, DGT_CLK_CTL);
-#endif
+	uint32_t tick_count = interval * platform_tick_rate()/1000;
+
 	enter_critical_section();
 
 	timer_callback = callback;
 	timer_arg = arg;
 	timer_interval = interval;
 
-	writel(timer_interval * (DGT_HZ / 1000), DGT_MATCH_VAL);
+	writel(tick_count, DGT_MATCH_VAL);
 	writel(0, DGT_CLEAR);
 	writel(DGT_ENABLE_EN | DGT_ENABLE_CLR_ON_MATCH_EN, DGT_ENABLE);
-	
+
 	register_int_handler(INT_DEBUG_TIMER_EXP, timer_irq, 0);
 	unmask_interrupt(INT_DEBUG_TIMER_EXP);
 
@@ -153,16 +89,9 @@ time_t current_time(void)
 	return ticks;
 }
 
-void platform_init_timer(void)
-{
-	writel(0, DGT_ENABLE);
-}
-
 static void wait_for_timer_op(void)
 {
-#if PLATFORM_QSD8K || PLATFORM_MSM7X30 || PLATFORM_MSM8X60 || PLATFORM_MSM8960
 	while( readl(SPSS_TIMER_STATUS) & SPSS_TIMER_STATUS_DGT_EN );
-#endif
 }
 
 void platform_uninit_timer(void)

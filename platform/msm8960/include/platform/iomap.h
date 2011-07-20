@@ -46,6 +46,22 @@
 #define MSM_GIC_DIST_BASE   0x02000000
 #define MSM_TMR_BASE        0x0200A000
 #define MSM_GPT_BASE        (MSM_TMR_BASE + 0x04)
+#define MSM_DGT_BASE        (MSM_TMR_BASE + 0x24)
+#define SPSS_TIMER_STATUS   (MSM_TMR_BASE + 0x88)
+
+#define GPT_REG(off)        (MSM_GPT_BASE + (off))
+#define DGT_REG(off)        (MSM_DGT_BASE + (off))
+
+#define GPT_MATCH_VAL        GPT_REG(0x0000)
+#define GPT_COUNT_VAL        GPT_REG(0x0004)
+#define GPT_ENABLE           GPT_REG(0x0008)
+#define GPT_CLEAR            GPT_REG(0x000C)
+
+#define DGT_MATCH_VAL        DGT_REG(0x0000)
+#define DGT_COUNT_VAL        DGT_REG(0x0004)
+#define DGT_ENABLE           DGT_REG(0x0008)
+#define DGT_CLEAR            DGT_REG(0x000C)
+#define DGT_CLK_CTL          DGT_REG(0x0010)
 
 #define MSM_GIC_CPU_BASE    0x02002000
 #define MSM_VIC_BASE        0x02080000

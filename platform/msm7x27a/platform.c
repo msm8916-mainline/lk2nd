@@ -31,13 +31,17 @@
  * SUCH DAMAGE.
  */
 
+#include <reg.h>
 #include <debug.h>
 #include <kernel/thread.h>
 #include <platform/debug.h>
+#include <platform/iomap.h>
 #include <mddi.h>
 #include <dev/fbcon.h>
 
 static struct fbcon_config *fb_config;
+
+static uint32_t ticks_per_sec = 0;
 
 void platform_init_interrupts(void);
 void platform_init_timer();
@@ -85,4 +89,19 @@ void platform_uninit(void)
 #if DISPLAY_SPLASH_SCREEN
 	display_shutdown();
 #endif
+}
+
+/* Initialize DGT timer */
+void platform_init_timer(void)
+{
+	/* disable timer */
+	writel(0, DGT_ENABLE);
+
+	ticks_per_sec = 19200000; /* Uses TCXO (19.2 MHz) */
+}
+
+/* Returns timer ticks per sec */
+uint32_t platform_tick_rate(void)
+{
+	return ticks_per_sec;
 }

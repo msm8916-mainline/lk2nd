@@ -36,6 +36,7 @@
 #include <dev/fbcon.h>
 #include <kernel/thread.h>
 #include <platform/debug.h>
+#include <platform/iomap.h>
 #include <mddi_hw.h>
 #include "gpio_hw.h"
 #include <dev/lcdc.h>
@@ -47,6 +48,7 @@ void uart2_clock_init(void);
 void uart_init(void);
 
 struct fbcon_config *lcdc_init(void);
+static uint32_t ticks_per_sec = 0;
 
 #define ARRAY_SIZE(a) (sizeof(a)/(sizeof((a)[0])))
 
@@ -155,4 +157,31 @@ void platform_uninit(void)
 #if DISPLAY_SPLASH_SCREEN
 	display_shutdown();
 #endif
+}
+
+/* Initialize DGT timer */
+void platform_init_timer(void)
+{
+	uint32_t val = 0;
+
+	/* Disable timer */
+	writel(0, DGT_ENABLE);
+
+	/* Check for the hardware revision */
+	val = readl(HW_REVISION_NUMBER);
+	val = (val >> 28) & 0x0F;
+	if(val >= 1)
+		writel(1, DGT_CLK_CTL);
+
+#if _EMMC_BOOT
+	ticks_per_sec = 19200000; /* Uses TCXO (19.2 MHz) */
+#else
+	ticks_per_sec = 6144000; /* Uses LPXO/4 (24.576 MHz / 4) */
+#endif
+}
+
+/* Returns platform specific ticks per sec */
+uint32_t platform_tick_rate(void)
+{
+	return ticks_per_sec;
 }

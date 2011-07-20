@@ -41,6 +41,19 @@
 
 #define MSM_VIC_BASE	0xC0000000
 #define MSM_GPT_BASE	0xC0100000
+
+#define GPT_REG(off)    (MSM_GPT_BASE + (off))
+
+#define GPT_MATCH_VAL     GPT_REG(0x0000)
+#define GPT_COUNT_VAL     GPT_REG(0x0004)
+#define GPT_ENABLE        GPT_REG(0x0008)
+#define GPT_CLEAR         GPT_REG(0x000C)
+#define DGT_MATCH_VAL     GPT_REG(0x0010)
+#define DGT_COUNT_VAL     GPT_REG(0x0014)
+#define DGT_ENABLE        GPT_REG(0x0018)
+#define DGT_CLEAR         GPT_REG(0x001C)
+#define SPSS_TIMER_STATUS GPT_REG(0x0034)
+
 #define MSM_CSR_BASE	0xC0100000
 #define MSM_CLK_CTL_BASE	0xA8600000
 
