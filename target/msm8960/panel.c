@@ -29,6 +29,7 @@
 #include <debug.h>
 #include <reg.h>
 #include <mipi_dsi.h>
+#include <mdp4.h>
 #include <dev/pm8921.h>
 #include <platform/iomap.h>
 #include <platform/clock.h>

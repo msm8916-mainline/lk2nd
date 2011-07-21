@@ -123,12 +123,17 @@ void display_init(void)
     struct fbcon_config *fb_cfg;
 #if DISPLAY_TYPE_LCDC
     mdp_clock_init();
+    mmss_pixel_clock_configure();
     fb_cfg = lcdc_init();
     panel_poweron();
     fbcon_setup(fb_cfg);
 #endif
 #if DISPLAY_TYPE_MIPI
     mdp_clock_init();
+    configure_dsicore_dsiclk();
+    configure_dsicore_byteclk();
+    configure_dsicore_pclk();
+
     fb_cfg = mipi_init();
     fbcon_setup(fb_cfg);
 #endif

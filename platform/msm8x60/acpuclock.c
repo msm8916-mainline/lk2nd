@@ -367,3 +367,60 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 	reg |= MMC_BOOT_MCI_CLK_IN_FEEDBACK;
 	writel( reg, MMC_BOOT_MCI_CLK );
 }
+
+void mdp_clock_init(void)
+{
+	/* Turn on the PLL2, to ramp up the MDP clock to max (200MHz) */
+	nt_pll_enable(PLL_2, 1);
+
+	config_mdp_clk(MDP_NS_VAL, MDP_MD_VAL,
+				MDP_CC_VAL, MDP_NS_REG, MDP_MD_REG, MDP_CC_REG);
+}
+
+void mmss_pixel_clock_configure(void)
+{
+	config_pixel_clk(PIXEL_NS_VAL, PIXEL_MD_VAL,
+					PIXEL_CC_VAL, MMSS_PIXEL_NS_REG,
+					MMSS_PIXEL_MD_REG, MMSS_PIXEL_CC_REG);
+}
+
+void configure_dsicore_dsiclk()
+{
+	unsigned char mnd_mode, root_en, clk_en;
+	unsigned long src_sel = 0x3;	// dsi_phy_pll0_src
+	unsigned long pre_div_func = 0x00;  // predivide by 1
+	unsigned long pmxo_sel;
+
+	secure_writel(pre_div_func << 14 | src_sel, DSI_NS_REG);
+	mnd_mode = 0;			   // Bypass MND
+	root_en = 1;
+	clk_en = 1;
+	pmxo_sel = 0;
+
+	secure_writel((pmxo_sel << 8) | (mnd_mode << 6), DSI_CC_REG);
+	secure_writel(secure_readl(DSI_CC_REG) | root_en << 2, DSI_CC_REG);
+	secure_writel(secure_readl(DSI_CC_REG) | clk_en, DSI_CC_REG);
+}
+
+void configure_dsicore_byteclk(void)
+{
+	secure_writel(0x00400401, MISC_CC2_REG);  // select pxo
+}
+
+void configure_dsicore_pclk(void)
+{
+	unsigned char mnd_mode, root_en, clk_en;
+	unsigned long src_sel = 0x3;	// dsi_phy_pll0_src
+	unsigned long pre_div_func = 0x01;  // predivide by 2
+
+	secure_writel(pre_div_func << 12 | src_sel, PIXEL_NS_REG);
+
+	mnd_mode = 0;			   // Bypass MND
+	root_en = 1;
+	clk_en = 1;
+	secure_writel(mnd_mode << 6, PIXEL_CC_REG);
+	secure_writel(secure_readl(PIXEL_CC_REG) | root_en << 2,
+				PIXEL_CC_REG);
+	secure_writel(secure_readl(PIXEL_CC_REG) | clk_en,
+				PIXEL_CC_REG);
+}

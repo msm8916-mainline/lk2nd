@@ -71,6 +71,7 @@ void clock_config_i2c(uint8_t id, uint32_t freq);
 #define DSI_NS_REG              REG_MM(0x54)
 #define DSI_MD_REG              REG_MM(0x50)
 #define DSI_CC_REG              REG_MM(0x4C)
+#define MISC_CC2_REG            REG_MM(0x5C)
 #define MDP_LUT_CC_REG          REG_MM(0x016C)
 
 #define MM_PLL1_MODE_REG        REG_MM(0x031C)

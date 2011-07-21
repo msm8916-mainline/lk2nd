@@ -29,8 +29,6 @@
 #ifndef __PLATFORM_MSM8X60_CLOCK_H
 #define __PLATFORM_MSM8X60_CLOCK_H
 
-/* MMSS CLK CTR base address */
-#define MSM_MMSS_CLK_CTL_BASE 0x04000000
 #define MSM_MMSS_CLK_CTL_SIZE 4096
 #define REG_MM(off)     (MSM_MMSS_CLK_CTL_BASE + (off))
 
@@ -56,19 +54,28 @@
 #define MM_PLL2_STATUS_REG                      REG_MM(0x0350)
 
 /* LCD related clock defines */
-#define MMSS_AHB_NS_REG     (MSM_MMSS_CLK_CTL_BASE + 0x04)
-#define MMSS_AHB_EN_REG     (MSM_MMSS_CLK_CTL_BASE + 0x08)
-#define MMSS_AXI_NS_REG     (MSM_MMSS_CLK_CTL_BASE + 0x14)
-#define MMSS_MAXI_EN_REG    (MSM_MMSS_CLK_CTL_BASE + 0x18)
-#define MMSS_MAXI_EN2_REG   (MSM_MMSS_CLK_CTL_BASE + 0x20)
-#define MMSS_SAXI_EN_REG    (MSM_MMSS_CLK_CTL_BASE + 0x30)
+#define MMSS_AHB_NS_REG     REG_MM(0x04)
+#define MMSS_AHB_EN_REG     REG_MM(0x08)
+#define MMSS_AXI_NS_REG     REG_MM(0x14)
+#define MMSS_MAXI_EN_REG    REG_MM(0x18)
+#define MMSS_MAXI_EN2_REG   REG_MM(0x20)
+#define MMSS_SAXI_EN_REG    REG_MM(0x30)
+#define DSI_NS_REG          REG_MM(0x54)
+#define DSI_MD_REG          REG_MM(0x50)
+#define DSI_CC_REG          REG_MM(0x4C)
+#define MISC_CC2_REG        REG_MM(0x5C)
 
-#define MDP_CC_REG      (MSM_MMSS_CLK_CTL_BASE + 0xC0)
-#define MDP_MD_REG      (MSM_MMSS_CLK_CTL_BASE + 0xC4)
-#define MDP_NS_REG      (MSM_MMSS_CLK_CTL_BASE + 0xD0)
-#define LCD_PIXEL_CC_REG    (MSM_MMSS_CLK_CTL_BASE + 0xD4)
-#define LCD_PIXEL_NS_REG    (MSM_MMSS_CLK_CTL_BASE + 0xDC)
-#define LCD_PIXEL_MD_REG    (MSM_MMSS_CLK_CTL_BASE + 0xD8)
+#define MDP_CC_REG          REG_MM(0xC0)
+#define MDP_MD_REG          REG_MM(0xC4)
+#define MDP_NS_REG          REG_MM(0xD0)
+#define MMSS_PIXEL_MD_REG   REG_MM(0xD8)
+#define MMSS_PIXEL_NS_REG   REG_MM(0xDC)
+#define MMSS_PIXEL_CC_REG   REG_MM(0xD4)
+
+/* MMSS DSI Pixel Registers not MMSS Pixel */
+#define PIXEL_MD_REG        REG_MM(0x134)
+#define PIXEL_NS_REG        REG_MM(0x138)
+#define PIXEL_CC_REG        REG_MM(0x130)
 
 /* Configured at 200 MHz */
 #define MDP_NS_VAL              0x3F000008
@@ -124,5 +131,7 @@ enum clk_sources {
 void hsusb_clock_init(void);
 void clock_config_uart_dm(uint8_t id);
 void clock_config_i2c(uint8_t id, uint32_t freq);
+void mdp_clock_init(void);
+void mmss_pixel_clock_configure(void);
 
 #endif
