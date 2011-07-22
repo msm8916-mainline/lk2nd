@@ -68,11 +68,6 @@ __WEAK void reboot_device(unsigned reboot_reason)
 {
 }
 
-__WEAK void target_battery_charging_enable
-                 (unsigned enable, unsigned disconnect)
-{
-}
-
 __WEAK unsigned target_pause_for_battery_charge(void)
 {
     return 0;

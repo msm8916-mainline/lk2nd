@@ -169,21 +169,4 @@ struct ept_queue_item
 #define ULPI_DATA(n)          ((n) & 255)
 #define ULPI_DATA_READ(n)     (((n) >> 8) & 255)
 
-/* for USB charging */
-#define TRUE              1
-#define FALSE             0
-#define PORTSC_LS         (3 << 10) /* Read - Port's Line status */
-#define B_SESSION_VALID   (1 << 11)
-
-static unsigned WALL_CHARGER = FALSE;
-static unsigned HOST_CHARGER = FALSE;
-static unsigned ENABLE_CHARGING = TRUE;
-static unsigned charger_connected = FALSE;
-
-enum charger_type {
-   CHG_HOST_PC,
-   CHG_WALL,
-   CHG_UNDEFINED,
-};
-
 #endif

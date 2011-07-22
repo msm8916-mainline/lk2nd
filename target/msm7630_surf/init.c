@@ -361,21 +361,6 @@ static unsigned target_check_power_on_reason(void)
     return power_on_status;
 }
 
-unsigned target_pause_for_battery_charge(void)
-{
-    //check power on reason only for fluid devices
-    if( hw_platform_type != LINUX_MACHTYPE_7x30_FLUID)
-        return 0;
-
-    if (target_check_power_on_reason() == PWR_ON_EVENT_USB_CHG)
-        return 1;
-   return 0;
-}
-
-void target_battery_charging_enable(unsigned enable, unsigned disconnect)
-{
-}
-
 #if _EMMC_BOOT
 void target_serialno(unsigned char *buf)
 {

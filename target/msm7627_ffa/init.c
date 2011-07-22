@@ -192,29 +192,3 @@ unsigned check_reboot_mode(void)
     return mode[0];
 }
 
-static unsigned target_check_power_on_reason(void)
-{
-    unsigned power_on_status = 0;
-    unsigned int status_len = sizeof(power_on_status);
-    unsigned smem_status;
-
-    smem_status = smem_read_alloc_entry(SMEM_POWER_ON_STATUS_INFO,
-                                        &power_on_status, status_len);
-    if (smem_status)
-    {
-        dprintf(CRITICAL, "ERROR: unable to read shared memory for power on reason\n");
-    }
-
-    return power_on_status;
-}
-
-unsigned target_pause_for_battery_charge(void)
-{
-    if (target_check_power_on_reason() == PWR_ON_EVENT_USB_CHG)
-        return 1;
-    return 0;
-}
-
-void target_battery_charging_enable(unsigned enable, unsigned disconnect)
-{
-}

@@ -94,8 +94,6 @@ struct atag_ptbl_entry
 
 char sn_buf[13];
 
-
-
 static void ptentry_to_tag(unsigned **ptr, struct ptentry *ptn)
 {
 	struct atag_ptbl_entry atag_ptn;
@@ -490,7 +488,6 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	memmove((void*) hdr.ramdisk_addr, ptr + page_size + kernel_actual, hdr.ramdisk_size);
 
 	fastboot_okay("");
-	target_battery_charging_enable(0, 1);
 	udc_stop();
 
 	boot_linux((void*) hdr.kernel_addr, (void*) TAGS_ADDR,
@@ -762,7 +759,6 @@ void cmd_flash(const char *arg, void *data, unsigned sz)
 void cmd_continue(const char *arg, void *data, unsigned sz)
 {
 	fastboot_okay("");
-	target_battery_charging_enable(0, 1);
 	udc_stop();
 	if (target_is_emmc_boot())
 	{
@@ -918,7 +914,6 @@ fastboot:
 	sz = target_get_max_flash_size();
 	fastboot_init(target_get_scratch_address(), sz);
 	udc_start();
-	target_battery_charging_enable(1, 0);
 }
 
 APP_START(aboot)
