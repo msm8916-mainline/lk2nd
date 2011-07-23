@@ -135,4 +135,36 @@
 #define MSM_ADM_BASE            0x18400000
 #define MSM_ADM_SD_OFFSET       0x00020800
 
+/* MMSS CLK CTR base address */
+#define MSM_MMSS_CLK_CTL_BASE 0x04000000
+
+#define MIPI_DSI_BASE                         (0x04700000)
+#define REG_DSI(off)                          (MIPI_DSI_BASE + (off))
+
+#define DSIPHY_REGULATOR_BASE                 (0x2CC)
+#define DSIPHY_TIMING_BASE                    (0x260)
+#define DSIPHY_CTRL_BASE                      (0x290)
+#define DSIPHY_PLL_BASE                       (0x200)
+#define DSIPHY_STRENGTH_BASE                  (0x2A0)
+
+/* Range 0 - 4 */
+#define DSIPHY_REGULATOR_CTRL(x) REG_DSI(DSIPHY_REGULATOR_BASE + (x) * 4)
+/* Range 0 - 11 */
+#define DSIPHY_TIMING_CTRL(x)    REG_DSI(DSIPHY_TIMING_BASE + (x) * 4)
+/* Range 0 - 3 */
+#define DSIPHY_CTRL(x)           REG_DSI(DSIPHY_CTRL_BASE + (x) * 4)
+/* Range 0 - 2 */
+#define DSIPHY_STRENGTH_CTRL(x)  REG_DSI(DSIPHY_STRENGTH_BASE + (x) * 4)
+/* Range 0 - 19 */
+#define DSIPHY_PLL_CTRL(x)       REG_DSI(DSIPHY_PLL_BASE + (x) * 4)
+
+//TODO: Use mem on the stack
+#define DSI_CMD_DMA_MEM_START_ADDR_PANEL      (0x46000000)
+
+#define MDP_BASE                              (0x05100000)
+#define REG_MDP(off)                          (MDP_BASE + (off))
+
+//TODO: Where does this belong?
+#define MMSS_SFPB_GPREG                       (0x05700058)
+
 #endif

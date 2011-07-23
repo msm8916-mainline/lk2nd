@@ -361,19 +361,6 @@ void board_lcd_enable(void)
 
 }
 
-void mdp_clock_init(void)
-{
-    /* Turn on the PLL2, to ramp up the MDP clock to max (200MHz) */
-    nt_pll_enable(PLL_2, 1);
-
-    config_mdp_clk(MDP_NS_VAL, MDP_MD_VAL,
-                   MDP_CC_VAL, MDP_NS_REG, MDP_MD_REG, MDP_CC_REG);
-
-    config_pixel_clk(PIXEL_NS_VAL, PIXEL_MD_VAL,
-                     PIXEL_CC_VAL, LCD_PIXEL_NS_REG,
-                     LCD_PIXEL_MD_REG, LCD_PIXEL_CC_REG);
-}
-
 void lcdc_on(void)
 {
     board_lcd_enable();

@@ -31,9 +31,16 @@
 #include <endian.h>
 #include <mipi_dsi.h>
 #include <dev/fbcon.h>
-#include <target/display.h>
 #include <stdlib.h>
 #include <debug.h>
+#include <target/display.h>
+#include <platform/iomap.h>
+#include <platform/clock.h>
+
+extern void mdp_disable(void);
+extern int mipi_dsi_cmd_config(struct fbcon_config mipi_fb_cfg, unsigned short num_of_lanes);
+extern void mdp_shutdown(void);
+extern void mdp_start_dma(void);
 
 #if DISPLAY_MIPI_PANEL_TOSHIBA
 static struct fbcon_config mipi_fb_cfg = {
@@ -102,55 +109,14 @@ static int cmd_mode_status = 0;
 void secure_writel(uint32_t, uint32_t);
 uint32_t secure_readl(uint32_t);
 
-void configure_dsicore_dsiclk()
-{
-    unsigned char mnd_mode, root_en, clk_en;
-    unsigned long src_sel = 0x3;    // dsi_phy_pll0_src
-    unsigned long pre_div_func = 0x00;  // predivide by 1
-    unsigned long pmxo_sel;
-
-    secure_writel(pre_div_func << 14 | src_sel, MMSS_DSI_NS);
-    mnd_mode = 0;               // Bypass MND
-    root_en = 1;
-    clk_en = 1;
-    pmxo_sel = 0;
-
-    secure_writel((pmxo_sel << 8) | (mnd_mode << 6), MMSS_DSI_CC);
-    secure_writel(secure_readl(MMSS_DSI_CC) | root_en << 2, MMSS_DSI_CC);
-    secure_writel(secure_readl(MMSS_DSI_CC) | clk_en, MMSS_DSI_CC);
-}
-
-void configure_dsicore_byteclk(void)
-{
-    secure_writel(0x00400401, MMSS_MISC_CC2);  // select pxo
-}
-
-void configure_dsicore_pclk(void)
-{
-    unsigned char mnd_mode, root_en, clk_en;
-    unsigned long src_sel = 0x3;    // dsi_phy_pll0_src
-    unsigned long pre_div_func = 0x01;  // predivide by 2
-
-    secure_writel(pre_div_func << 12 | src_sel, MMSS_DSI_PIXEL_NS);
-
-    mnd_mode = 0;               // Bypass MND
-    root_en = 1;
-    clk_en = 1;
-    secure_writel(mnd_mode << 6, MMSS_DSI_PIXEL_CC);
-    secure_writel(secure_readl(MMSS_DSI_PIXEL_CC) | root_en << 2,
-                  MMSS_DSI_PIXEL_CC);
-    secure_writel(secure_readl(MMSS_DSI_PIXEL_CC) | clk_en,
-                  MMSS_DSI_PIXEL_CC);
-}
-
 int mipi_dsi_phy_ctrl_config(struct mipi_dsi_panel_config *pinfo)
 {
     unsigned i;
     unsigned off = 0;
     struct mipi_dsi_phy_ctrl *pd;
 
-    writel(0x00000001, DSI_PHY_SW_RESET);
-    writel(0x00000000, DSI_PHY_SW_RESET);
+    writel(0x00000001, DSIPHY_SW_RESET);
+    writel(0x00000000, DSIPHY_SW_RESET);
 
     pd = (pinfo->dsi_phy_config);
 
@@ -409,7 +375,7 @@ int config_dsi_video_mode(unsigned short disp_width, unsigned short disp_height,
     unsigned char interleav = 0;
 
     // disable mdp first
-    writel(0x00000000, MDP_DSI_VIDEO_EN);
+    mdp_disable();
 
     writel(0x00000000, DSI_CLK_CTRL);
     writel(0x00000000, DSI_CLK_CTRL);
@@ -538,110 +504,11 @@ int config_dsi_cmd_mode(unsigned short disp_width, unsigned short disp_height,
     writel(0x00000040, DSI_ERR_INT_MASK0);
     writel(0x1, DSI_EOT_PACKET_CTRL);
     // writel(0x0, MDP_OVERLAYPROC0_START);
-    writel(0x00000001, MDP_DMA_P_START);
+    mdp_start_dma();
     mdelay(10);
     writel(0x1, DSI_CMD_MODE_MDP_SW_TRIGGER);
 
     status = 1;
-    return status;
-}
-
-void mdp_setup_dma_p_video_config(unsigned short pack_pattern,
-                                    unsigned short img_width,
-                                    unsigned short img_height,
-                                    unsigned long input_img_addr,
-                                    unsigned short img_width_full_size,
-                                    unsigned char ystride){
-    dprintf(SPEW, "MDP4.2 Setup for DSI Video Mode\n");
-
-    // ----- programming MDP_AXI_RDMASTER_CONFIG --------
-    /* MDP_AXI_RDMASTER_CONFIG set all master to read from AXI port 0, that's
-       the only port connected */
-    //TODO: Seems to still work without this
-    writel(0x00290000, MDP_AXI_RDMASTER_CONFIG);
-    writel(0x00000004, MDP_AXI_WRMASTER_CONFIG);
-    writel(0x00007777, MDP_MAX_RD_PENDING_CMD_CONFIG);
-
-   /* Set up CMD_INTF_SEL, VIDEO_INTF_SEL, EXT_INTF_SEL, SEC_INTF_SEL, PRIM_INTF_SEL */
-   writel(0x00000049, MDP_DISP_INTF_SEL);
-
-   /* DMA P */
-   writel(0x0000000b, MDP_OVERLAYPROC0_CFG);
-
-   /* RGB 888 */
-   writel(pack_pattern << 8 | 0xbf | (0 << 25), MDP_DMA_P_CONFIG);
-
-   writel(0x0, MDP_DMA_P_OUT_XY);
-
-   writel(img_height << 16 | img_width, MDP_DMA_P_SIZE);
-
-   writel(input_img_addr, MDP_DMA_P_BUF_ADDR);
-
-   writel(img_width_full_size * ystride, MDP_DMA_P_BUF_Y_STRIDE);
-}
-
-int mdp_setup_dma_p_video_mode(unsigned short disp_width,
-                               unsigned short disp_height,
-                               unsigned short img_width,
-                               unsigned short img_height,
-                               unsigned short hsync_porch0_fp,
-                               unsigned short hsync_porch0_bp,
-                               unsigned short vsync_porch0_fp,
-                               unsigned short vsync_porch0_bp,
-                               unsigned short hsync_width,
-                               unsigned short vsync_width,
-                               unsigned long input_img_addr,
-                               unsigned short img_width_full_size,
-                               unsigned short pack_pattern,
-                               unsigned char ystride)
-{
-
-    // unsigned long mdp_intr_status;
-    int status = FAIL;
-    unsigned long hsync_period;
-    unsigned long vsync_period;
-    unsigned long vsync_period_intmd;
-
-    dprintf(SPEW, "Hi setup MDP4.1 for DSI Video Mode\n");
-
-    hsync_period = img_width + hsync_porch0_fp + hsync_porch0_bp + 1;
-    vsync_period_intmd = img_height + vsync_porch0_fp + vsync_porch0_bp + 1;
-    vsync_period = vsync_period_intmd * hsync_period;
-
-    // ----- programming MDP_AXI_RDMASTER_CONFIG --------
-    /* MDP_AXI_RDMASTER_CONFIG set all master to read from AXI port 0, that's
-       the only port connected */
-    writel(0x00290000, MDP_AXI_RDMASTER_CONFIG);
-    writel(0x00000004, MDP_AXI_WRMASTER_CONFIG);
-    writel(0x00007777, MDP_MAX_RD_PENDING_CMD_CONFIG);
-    /* sets PRIM_INTF_SEL to 0x1 and SEC_INTF_SEL to 0x2 and DSI_VIDEO_INTF_SEL*/
-    writel(0x00000049, MDP_DISP_INTF_SEL);
-    writel(0x0000000b, MDP_OVERLAYPROC0_CFG);
-
-    // ------------- programming MDP_DMA_P_CONFIG ---------------------
-    writel(pack_pattern << 8 | 0xbf | (0 << 25), MDP_DMA_P_CONFIG); // rgb888
-
-    writel(0x00000000, MDP_DMA_P_OUT_XY);
-    writel(img_height << 16 | img_width, MDP_DMA_P_SIZE);
-    writel(input_img_addr, MDP_DMA_P_BUF_ADDR);
-    writel(img_width_full_size * ystride, MDP_DMA_P_BUF_Y_STRIDE);
-    writel(0x00ff0000, MDP_DMA_P_OP_MODE);
-    writel(hsync_period << 16 | hsync_width, MDP_DSI_VIDEO_HSYNC_CTL);
-    writel(vsync_period, MDP_DSI_VIDEO_VSYNC_PERIOD);
-    writel(vsync_width * hsync_period, MDP_DSI_VIDEO_VSYNC_PULSE_WIDTH);
-    writel((img_width + hsync_porch0_bp - 1) << 16 | hsync_porch0_bp,
-           MDP_DSI_VIDEO_DISPLAY_HCTL);
-    writel(vsync_porch0_bp * hsync_period, MDP_DSI_VIDEO_DISPLAY_V_START);
-    writel((img_height + vsync_porch0_bp) * hsync_period,
-           MDP_DSI_VIDEO_DISPLAY_V_END);
-    writel(0x00ABCDEF, MDP_DSI_VIDEO_BORDER_CLR);
-    writel(0x00000000, MDP_DSI_VIDEO_HSYNC_SKEW);
-    writel(0x00000000, MDP_DSI_VIDEO_CTL_POLARITY);
-    // end of cmd mdp
-
-    writel(0x00000001, MDP_DSI_VIDEO_EN);   // MDP_DSI_EN ENABLE
-
-    status = PASS;
     return status;
 }
 
@@ -714,41 +581,6 @@ int mipi_dsi_video_config(unsigned short num_of_lanes)
     return status;
 }
 
-int mipi_dsi_cmd_config(unsigned short num_of_lanes)
-{
-
-    int status = 0;
-    unsigned long input_img_addr = MIPI_FB_ADDR;
-    unsigned short image_wd = mipi_fb_cfg.width;
-    unsigned short image_ht = mipi_fb_cfg.height;
-    unsigned short pack_pattern = 0x12;
-    unsigned char ystride = 3;
-
-    writel(0x03ffffff, MDP_INTR_ENABLE);
-    writel(0x0000000b, MDP_OVERLAYPROC0_CFG);
-
-    // ------------- programming MDP_DMA_P_CONFIG ---------------------
-    writel(pack_pattern << 8 | 0x3f | (0 << 25), MDP_DMA_P_CONFIG); // rgb888
-
-    writel(0x00000000, MDP_DMA_P_OUT_XY);
-    writel(image_ht << 16 | image_wd, MDP_DMA_P_SIZE);
-    writel(input_img_addr, MDP_DMA_P_BUF_ADDR);
-
-    writel(image_wd * ystride, MDP_DMA_P_BUF_Y_STRIDE);
-
-    writel(0x00000000, MDP_DMA_P_OP_MODE);
-
-    writel(0x10, MDP_DSI_CMD_MODE_ID_MAP);
-    writel(0x01, MDP_DSI_CMD_MODE_TRIGGER_EN);
-
-    writel(0x0001a000, MDP_AXI_RDMASTER_CONFIG);
-    writel(0x00000004, MDP_AXI_WRMASTER_CONFIG);
-    writel(0x00007777, MDP_MAX_RD_PENDING_CMD_CONFIG);
-    writel(0x8a, MDP_DISP_INTF_SEL);
-
-    return status;
-}
-
 int is_cmd_mode_enabled(void)
 {
     return cmd_mode_status;
@@ -765,7 +597,7 @@ void mipi_dsi_cmd_mode_trigger(void)
     unsigned short dst_format = 0;
     unsigned short traffic_mode = 0;
     struct mipi_dsi_panel_config *panel_info = &novatek_panel_info;
-    status += mipi_dsi_cmd_config(panel_info->num_of_lanes);
+    status += mipi_dsi_cmd_config(mipi_fb_cfg, panel_info->num_of_lanes);
     mdelay(50);
     config_dsi_cmd_mode(display_wd, display_ht, image_wd, image_ht,
                         dst_format, traffic_mode,
@@ -775,21 +607,18 @@ void mipi_dsi_cmd_mode_trigger(void)
 
 void mipi_dsi_shutdown(void)
 {
-    writel(0x00000000, MDP_DSI_VIDEO_EN);
-    mdelay(10);
-    writel(0x00000000, MDP_INTR_ENABLE);
-    writel(0x00000003, MDP_OVERLAYPROC0_CFG);
+    mdp_shutdown();
     writel(0x01010101, DSI_INT_CTRL);
     writel(0x13FF3BFF, DSI_ERR_INT_MASK0);
-    writel(0, DSIPHY_PLL_CTRL_0);
+    writel(0, DSIPHY_PLL_CTRL(0));
     writel(0, DSI_CLK_CTRL);
     writel(0, DSI_CTRL);
 #if DISPLAY_MIPI_PANEL_TOSHIBA_MDT61
-    writel(0x0, MMSS_DSI_CC);
-    writel(0x0, MMSS_DSI_PIXEL_CC);
+    writel(0x0, DSI_CC_REG);
+    writel(0x0, PIXEL_CC_REG);
 #else
-    secure_writel(0x0, MMSS_DSI_CC);
-    secure_writel(0x0, MMSS_DSI_PIXEL_CC);
+    secure_writel(0x0, DSI_CC_REG);
+    secure_writel(0x0, PIXEL_CC_REG);
 #endif
 }
 
@@ -803,10 +632,6 @@ struct fbcon_config *mipi_init(void)
 #if DISPLAY_MIPI_PANEL_TOSHIBA_MDT61
     mipi_dsi_phy_init(panel_info);
 #else
-    configure_dsicore_dsiclk();
-    configure_dsicore_byteclk();
-    configure_dsicore_pclk();
-
     mipi_dsi_phy_ctrl_config(panel_info);
 #endif
 
