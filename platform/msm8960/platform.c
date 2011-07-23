@@ -89,6 +89,8 @@ void platform_init(void)
 void display_init(void){
     struct fbcon_config *fb_cfg;
 
+    panel_backlight_on();
+
     mipi_dsi_panel_power_on();
     mipi_panel_reset();
 
