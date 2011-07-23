@@ -30,6 +30,7 @@
  * SUCH DAMAGE.
  */
 
+#include <reg.h>
 #include <debug.h>
 #include <dev/keys.h>
 #include <dev/gpio_keypad.h>
@@ -125,6 +126,10 @@ void target_init(void)
 
 	if (target_is_emmc_boot())
 	{
+		/* Must wait for modem-up before we can intialize MMC.
+		 */
+		while (readl(MSM_SHARED_BASE + 0x14) != 1);
+
 		if(mmc_boot_main(MMC_SLOT, MSM_SDC3_BASE))
 		{
 			dprintf(CRITICAL, "mmc init failed!");

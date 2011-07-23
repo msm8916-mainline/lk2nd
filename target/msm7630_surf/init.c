@@ -179,6 +179,10 @@ void target_init(void)
 
 	if (target_is_emmc_boot())
 	{
+		/* Must wait for modem-up before we can intialize MMC.
+		 */
+		while (readl(MSM_SHARED_BASE + 0x14) != 1);
+
 		/* Trying Slot 2 first */
 		slot = 2;
 		base_addr = mmc_sdc_base[slot-1];

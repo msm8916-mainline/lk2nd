@@ -2335,10 +2335,6 @@ unsigned int mmc_boot_main(unsigned char slot, unsigned int base)
     mmc_slot = slot;
     mmc_boot_mci_base = base;
 
-#if !(defined(PLATFORM_MSM8X60) || defined(PLATFORM_MSM8960))
-    /* Waiting for modem to come up */
-    while (readl(MSM_SHARED_BASE + 0x14) != 1);
-#endif
     /* Initialize necessary data structure and enable/set clock and power */
     dprintf(SPEW," Initializing MMC host data structure and clock!\n" );
     mmc_ret = mmc_boot_init( &mmc_host );
@@ -2756,7 +2752,7 @@ static unsigned int mmc_boot_get_wp_status (struct mmc_boot_card* card,
     unsigned int rc = MMC_BOOT_E_SUCCESS;
     memset(wp_status_buf, 0, 8);
 
-    rc = mmc_boot_read_reg(card, 8, CMD31_SEND_WRITE_PROT_TYPE, sector, 
+    rc = mmc_boot_read_reg(card, 8, CMD31_SEND_WRITE_PROT_TYPE, sector,
 		(unsigned int *) wp_status_buf);
 
     return rc;
