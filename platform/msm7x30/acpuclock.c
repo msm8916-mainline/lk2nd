@@ -320,7 +320,7 @@ void mddi_pmdh_clock_init(void)
 	}
 }
 
-void ce_enable_clock(void)
+void ce_clock_init(void)
 {
 	unsigned int val=0;
 

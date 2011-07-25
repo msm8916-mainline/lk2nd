@@ -30,11 +30,12 @@
 #include <debug.h>
 #include <sys/types.h>
 #include "crypto_hash.h"
-#include "crypto_eng.h"
 
 static crypto_SHA256_ctx g_sha256_ctx;
 static crypto_SHA1_ctx g_sha1_ctx;
 static unsigned char crypto_init_done = FALSE;
+
+extern void ce_clock_init(void);
 
 /*
  * Top level function which calculates SHAx digest with given data and size.
@@ -71,6 +72,7 @@ static void crypto_init(void)
 {
     if(crypto_init_done != TRUE)
     {
+         ce_clock_init();
          crypto_eng_reset();
          crypto_init_done = TRUE;
     }

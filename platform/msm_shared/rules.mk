@@ -41,7 +41,9 @@ ifeq ($(PLATFORM),msm8960)
 			$(LOCAL_DIR)/i2c_qup.o \
 			$(LOCAL_DIR)/uart_dm.o \
 			$(LOCAL_DIR)/qgic.o \
-			$(LOCAL_DIR)/mdp4.o
+			$(LOCAL_DIR)/mdp4.o \
+			$(LOCAL_DIR)/crypto4_eng.o \
+			$(LOCAL_DIR)/crypto_hash.o
 endif
 
 ifeq ($(PLATFORM),msm7x27a)
