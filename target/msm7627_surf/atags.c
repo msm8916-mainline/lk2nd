@@ -69,7 +69,7 @@ unsigned* target_atag_mem(unsigned* ptr)
 					*ptr++ = size_in_mb;
 				}
 				else
-					*ptr++ = ram_ptable.parts[i].size - (2*SIZE_1M);
+					*ptr++ = ram_ptable.parts[i].size;
 
 				*ptr++ = ram_ptable.parts[i].start;
 			}
