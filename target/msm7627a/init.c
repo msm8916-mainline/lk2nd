@@ -45,6 +45,8 @@
 #define MSM7X27A_SURF	3352
 #define MSM7X27A_RUMI3	3353
 #define MSM7X27A_QRD1	3756
+#define MSM7X25A_SURF	3772
+#define MSM7X25A_FFA	3771
 
 #define LINUX_MACHTYPE  MSM7X27A_SURF
 
@@ -275,16 +277,32 @@ void board_info(void)
 		switch(id)
 		{
 			case 0x1:
-				hw_platform = MSM7X27A_SURF;
+				/* Set the machine type based on msm ID */
+				if (target_msm_id == MSM7225A || target_msm_id == MSM7625A || \
+					target_msm_id == ESM7225A || (target_msm_id >= MSM7225AA \
+					&& target_msm_id <= ESM7225AA))
+					hw_platform = MSM7X25A_SURF;
+				else
+					hw_platform = MSM7X27A_SURF;
 				break;
 			case 0x2:
-				hw_platform = MSM7X27A_FFA;
+				if (target_msm_id == MSM7225A || target_msm_id == MSM7625A || \
+					target_msm_id == ESM7225A || (target_msm_id >= MSM7225AA \
+					&& target_msm_id <= ESM7225AA))
+					hw_platform = MSM7X25A_FFA;
+				else
+					hw_platform = MSM7X27A_FFA;
 				break;
 			case 0xB:
 				hw_platform = MSM7X27A_QRD1;
 				break;
 			default:
-				hw_platform = MSM7X27A_SURF;
+				if (target_msm_id == MSM7225A || target_msm_id == MSM7625A || \
+					target_msm_id == ESM7225A || (target_msm_id >= MSM7225AA \
+					&& target_msm_id <= ESM7225AA))
+					hw_platform = MSM7X25A_SURF;
+				else
+					hw_platform = MSM7X27A_SURF;
 		};
 
 		if ((target_msm_id < MSM7225A) || (target_msm_id > ESM7227A))
