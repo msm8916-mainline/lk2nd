@@ -36,10 +36,14 @@
 #include <platform/pmic.h>
 #include <platform/pmic_pwm.h>
 #include <gsbi.h>
+#include <dev/gpio.h>
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
 static struct qup_i2c_dev *dev = NULL;
+void gpio_tlmm_config(uint32_t gpio, uint8_t func,
+                      uint8_t dir, uint8_t pull,
+                      uint8_t drvstr, uint32_t enable);
 
 uint8_t expander_read(uint8_t addr)
 {

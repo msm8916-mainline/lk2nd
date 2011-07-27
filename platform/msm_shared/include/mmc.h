@@ -630,6 +630,7 @@ unsigned long long mmc_ptn_size (unsigned char * name);
 
 unsigned int mmc_read (unsigned long long data_addr, unsigned int* out,
                        unsigned int data_len);
+unsigned mmc_get_psn(void);
 
 unsigned int mmc_boot_write_to_card (struct mmc_boot_host* host,
                                      struct mmc_boot_card* card,

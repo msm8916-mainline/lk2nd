@@ -95,6 +95,10 @@ struct atag_ptbl_entry
 
 char sn_buf[13];
 
+extern int emmc_recovery_init(void);
+
+
+
 static void ptentry_to_tag(unsigned **ptr, struct ptentry *ptn)
 {
 	struct atag_ptbl_entry atag_ptn;
@@ -354,7 +358,7 @@ unified_boot:
 	dprintf(INFO, "cmdline = '%s'\n", cmdline);
 
 	dprintf(INFO, "\nBooting Linux\n");
-	boot_linux((void *)hdr->kernel_addr, hdr->tags_addr,
+	boot_linux((void *)hdr->kernel_addr, (unsigned *) hdr->tags_addr,
 		   (const char *)cmdline, board_machtype(),
 		   (void *)hdr->ramdisk_addr, hdr->ramdisk_size);
 

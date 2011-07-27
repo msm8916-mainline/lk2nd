@@ -35,7 +35,6 @@
 
 
 static int scratch_addr = -1;
-int smem_ram_ptable_init(struct smem_ram_ptable *);
 
 unsigned* target_atag_mem(unsigned* ptr)
 {

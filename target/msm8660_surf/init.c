@@ -33,6 +33,7 @@
 #include <debug.h>
 #include <dev/keys.h>
 #include <dev/gpio_keypad.h>
+#include <dev/gpio.h>
 #include <lib/ptable.h>
 #include <dev/flash.h>
 #include <smem.h>
@@ -44,6 +45,7 @@
 #include <reg.h>
 #include <platform.h>
 #include <gsbi.h>
+#include <platform/scm-io.h>
 
 #define LINUX_MACHTYPE_8660_SURF         2755
 #define LINUX_MACHTYPE_8660_FFA          3017
@@ -56,8 +58,8 @@
 static const uint8_t uart_gsbi_id  = GSBI_ID_12;
 
 void keypad_init(void);
+extern void dmb(void);
 
-static int emmc_boot = -1;  /* set to uninitialized */
 int target_is_emmc_boot(void);
 void debug_led_write(char);
 char debug_led_read();
@@ -106,9 +108,9 @@ unsigned board_machtype(void)
 	unsigned hw_platform = 0;
 	unsigned fused_chip = 0;
 	unsigned platform_subtype = 0;
-	static unsigned mach_id = -1;
+	static unsigned mach_id = 0xFFFFFFFF;
 
-	if(mach_id != -1)
+	if(mach_id != 0xFFFFFFFF)
 		return mach_id;
 	/* Detect external msm if this is a "fusion" */
 	smem_status = smem_read_alloc_entry_offset(SMEM_BOARD_INFO_LOCATION,
@@ -264,7 +266,7 @@ void reboot_device(unsigned reboot_reason)
 unsigned check_reboot_mode(void)
 {
 	unsigned restart_reason = 0;
-	void *restart_reason_addr = 0x2A05F65C;
+	void *restart_reason_addr = (void *) 0x2A05F65C;
 
 	/* Read reboot reason and scrub it */
 	restart_reason = readl(restart_reason_addr);
@@ -415,7 +417,7 @@ void target_serialno(unsigned char *buf)
 	if(target_is_emmc_boot())
 	{
 		serialno =  mmc_get_psn();
-		sprintf(buf,"%x",serialno);
+		sprintf((char *) buf, "%x", serialno);
 	}
 }
 

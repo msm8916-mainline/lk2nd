@@ -34,6 +34,7 @@
 #include <platform/iomap.h>
 #include <platform/irqs.h>
 #include <platform/interrupts.h>
+#include <platform/timer.h>
 #include <kernel/thread.h>
 #include <reg.h>
 
@@ -795,7 +796,9 @@ int udc_start(void)
 
 int udc_stop(void)
 {
+#ifdef PLATFORM_MSM8X60
 	int val;
+#endif
     writel(0, USB_USBINTR);
 	mask_interrupt(INT_USB_HS);
 

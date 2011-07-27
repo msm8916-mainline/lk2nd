@@ -72,12 +72,15 @@ enum
 	LDO_VOLTAGE_ENTRIES
 };
 
+typedef int (*pm8921_read_func)(uint8_t *data, uint32_t length, uint32_t addr);
+typedef int (*pm8921_write_func)(uint8_t *data, uint32_t length, uint32_t addr);
+
 typedef struct
 {
 	uint32_t initialized;
 
-	int (*read)(uint8_t *data, uint32_t length, uint32_t addr);
-	int (*write)(uint8_t *data, uint32_t length, uint32_t addr);
+	pm8921_read_func	read;
+	pm8921_write_func	write;
 
 } pm8921_dev_t;
 

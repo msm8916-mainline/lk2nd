@@ -41,6 +41,7 @@
 #include <dev/pm8921.h>
 #include <dev/gpio_keypad.h>
 #include <gsbi.h>
+#include <target.h>
 
 #define LINUX_MACHTYPE_8960_SIM     3230
 #define LINUX_MACHTYPE_8960_RUMI3   3231
@@ -49,8 +50,10 @@
 #define LINUX_MACHTYPE_8960_FLUID   3398
 #define LINUX_MACHTYPE_8960_APQ     3399
 
+
 extern void dmb(void);
 extern void keypad_init(void);
+extern void panel_backlight_on(void);
 
 static unsigned mmc_sdc_base[] = { MSM_SDC1_BASE, MSM_SDC2_BASE, MSM_SDC3_BASE, MSM_SDC4_BASE};
 
@@ -77,8 +80,8 @@ void target_init(void)
 	dprintf(INFO, "target_init()\n");
 
 	/* Initialize PMIC driver */
-	pmic.read  = pa1_ssbi2_read_bytes;
-	pmic.write = pa1_ssbi2_write_bytes;
+	pmic.read  = (pm8921_read_func) &pa1_ssbi2_read_bytes;
+	pmic.write = (pm8921_write_func) &pa1_ssbi2_write_bytes;
 
 	pm8921_init(&pmic);
 	/* Keypad init */

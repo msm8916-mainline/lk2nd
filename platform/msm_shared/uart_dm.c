@@ -39,6 +39,7 @@
 #include <uart_dm.h>
 #include <gsbi.h>
 
+
 #ifndef NULL
 #define NULL        0
 #endif
@@ -80,9 +81,6 @@ static unsigned int msm_boot_uart_dm_write(uint8_t id, char* data,
                                            unsigned int num_of_chars);
 static unsigned int msm_boot_uart_dm_init_rx_transfer(uint8_t id);
 static unsigned int msm_boot_uart_dm_reset(uint8_t id);
-
-/* TODO: Detele the patch that adds this to sys/types.h gets merged */
-#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
 /* Keep track of gsbi vs port mapping.
  */

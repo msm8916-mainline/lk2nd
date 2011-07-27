@@ -2281,7 +2281,9 @@ static int _flash_onenand_read_page(dmov_s *cmdlist, unsigned *ptrlist,
 	struct data_onenand_read *data = (void*) (ptrlist + 4);
 	unsigned addr = (unsigned) _addr;
 	unsigned curr_addr = (unsigned) _addr;
+#if VERBOSE
 	unsigned spareaddr = (unsigned) _spareaddr;
+#endif
 	unsigned i;
 	unsigned erasesize = (flash_pagesize * num_pages_per_blk);
 	unsigned writesize = flash_pagesize;

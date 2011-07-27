@@ -34,6 +34,7 @@
 #include <kernel/thread.h>
 #include <mddi.h>
 #include <target/display.h>
+#include <platform/timer.h>
 
 #include "mddi_hw.h"
 
