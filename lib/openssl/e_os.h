@@ -444,7 +444,9 @@ static unsigned int _strlen31(const char *str)
 #      define NO_SYS_PARAM_H
 #    endif
 #    ifdef OPENSSL_UNISTD
+#ifndef LK_NO_UNISTD
 #      include OPENSSL_UNISTD
+#endif
 #    else
 #      include <unistd.h>
 #    endif

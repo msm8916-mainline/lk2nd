@@ -61,7 +61,9 @@
 #include <openssl/bio.h>
 #include <openssl/asn1.h>
 #include <openssl/asn1t.h>
+#ifndef LK_NO_PEM
 #include <openssl/pem.h>
+#endif
 #include <openssl/pkcs7.h>
 #include <openssl/x509.h>
 #include <openssl/err.h>

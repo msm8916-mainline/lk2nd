@@ -315,7 +315,8 @@ int BN_asc2bn(BIGNUM **bn, const char *a)
 	return 1;
 	}
 
-#ifndef OPENSSL_NO_BIO
+//TODO: Can take a look at this to use OPENSSL_NO_BIO
+#ifndef LK_NO_BIO
 #ifndef OPENSSL_NO_FP_API
 int BN_print_fp(FILE *fp, const BIGNUM *a)
 	{

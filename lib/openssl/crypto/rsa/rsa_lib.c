@@ -324,7 +324,7 @@ void RSA_blinding_off(RSA *rsa)
 	rsa->flags &= ~RSA_FLAG_BLINDING;
 	rsa->flags |= RSA_FLAG_NO_BLINDING;
 	}
-
+#ifndef LK_NO_RAND
 int RSA_blinding_on(RSA *rsa, BN_CTX *ctx)
 	{
 	int ret=0;
@@ -342,6 +342,7 @@ int RSA_blinding_on(RSA *rsa, BN_CTX *ctx)
 err:
 	return(ret);
 	}
+#endif
 
 static BIGNUM *rsa_get_public_exp(const BIGNUM *d, const BIGNUM *p,
 	const BIGNUM *q, BN_CTX *ctx)
@@ -407,7 +408,11 @@ BN_BLINDING *RSA_setup_blinding(RSA *rsa, BN_CTX *in_ctx)
 		{
 		/* if PRNG is not properly seeded, resort to secret
 		 * exponent as unpredictable seed */
-		RAND_add(rsa->d->d, rsa->d->dmax * sizeof rsa->d->d[0], 0.0);
+#ifndef LK_NO_RAND
+		  RAND_add(rsa->d->d, rsa->d->dmax * sizeof rsa->d->d[0], 0.0);
+#else
+		  return NULL;
+#endif
 		}
 
 	if (!(rsa->flags & RSA_FLAG_NO_CONSTTIME))

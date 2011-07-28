@@ -140,6 +140,7 @@ int RSA_padding_check_PKCS1_type_1(unsigned char *to, int tlen,
 	return(j);
 	}
 
+#ifndef LK_NO_RAND
 int RSA_padding_add_PKCS1_type_2(unsigned char *to, int tlen,
 	     const unsigned char *from, int flen)
 	{
@@ -177,6 +178,14 @@ int RSA_padding_add_PKCS1_type_2(unsigned char *to, int tlen,
 	memcpy(p,from,(unsigned int)flen);
 	return(1);
 	}
+#else
+int RSA_padding_add_PKCS1_type_2(unsigned char *to, int tlen,
+	     const unsigned char *from, int flen)
+	{
+	  printf("Openssl LK: Removing rand dependency in rsa_pk1.c\n");
+	  return -1;
+	}
+#endif
 
 int RSA_padding_check_PKCS1_type_2(unsigned char *to, int tlen,
 	     const unsigned char *from, int flen, int num)

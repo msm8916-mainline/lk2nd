@@ -294,10 +294,15 @@ static int x509_name_ex_print(BIO *out, ASN1_VALUE **pval,
 						const char *fname, 
 						const ASN1_PCTX *pctx)
 	{
-	if (X509_NAME_print_ex(out, (X509_NAME *)*pval,
+	  /* Removing a_strex.c dependency in LK */
+	  //TODO: revist this one
+#ifndef OPENSSL_LK
+	  if (X509_NAME_print_ex(out, (X509_NAME *)*pval,
 					indent, pctx->nm_flags) <= 0)
 		return 0;
-	return 2;
+#else
+	  return 2;
+#endif
 	}
 
 /* This function generates the canonical encoding of the Name structure.

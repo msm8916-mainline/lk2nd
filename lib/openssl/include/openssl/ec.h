@@ -79,7 +79,9 @@
 #include <openssl/opensslconf.h>
 
 #ifdef OPENSSL_NO_EC
+#ifndef OPENSSL_LK
 #error EC is disabled.
+#endif
 #endif
 
 #include <openssl/asn1.h>

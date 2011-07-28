@@ -59,7 +59,9 @@
 /* GENERALIZEDTIME implementation, written by Steve Henson. Based on UTCTIME */
 
 #include <stdio.h>
+#ifndef LK_NO_TIME
 #include <time.h>
+#endif
 #include "cryptlib.h"
 #include "o_time.h"
 #include <openssl/asn1.h>

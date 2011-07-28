@@ -478,6 +478,7 @@ void (*CRYPTO_THREADID_get_callback(void))(CRYPTO_THREADID *)
 
 void CRYPTO_THREADID_current(CRYPTO_THREADID *id)
 	{
+	  unsigned char errno;
 	if (threadid_callback)
 		{
 		threadid_callback(id);
@@ -874,7 +875,9 @@ void OPENSSL_showfatal (const char *fmta,...)
 { va_list ap;
 
     va_start (ap,fmta);
+#ifndef LK_NO_STDERR
     vfprintf (stderr,fmta,ap);
+#endif
     va_end (ap);
 }
 int OPENSSL_isservice (void) { return 0; }
@@ -886,7 +889,9 @@ void OpenSSLDie(const char *file,int line,const char *assertion)
 		"%s(%d): OpenSSL internal error, assertion failed: %s\n",
 		file,line,assertion);
 #if !defined(_WIN32) || defined(__CYGWIN__)
+#ifndef LK_NO_ABORT
 	abort();
+#endif
 #else
 	/* Win32 abort() customarily shows a dialog, but we just did that... */
 	raise(SIGABRT);
@@ -894,4 +899,11 @@ void OpenSSLDie(const char *file,int line,const char *assertion)
 #endif
 	}
 
-void *OPENSSL_stderr(void)	{ return stderr; }
+/* No stderr in LK */
+void *OPENSSL_stderr(void)	{
+#ifndef LK_NO_STDERR
+  return stderr;
+#else
+  return NULL;
+#endif
+}

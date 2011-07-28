@@ -57,7 +57,9 @@
  */
 
 #include <stdio.h>
+#ifndef LK_NO_TIME
 #include <time.h>
+#endif
 #include <errno.h>
 
 #include "cryptlib.h"
@@ -486,8 +488,10 @@ static int check_chain_extensions(X509_STORE_CTX *ctx)
 			!!(ctx->param->flags & X509_V_FLAG_ALLOW_PROXY_CERTS);
 		/* A hack to keep people who don't want to modify their
 		   software happy */
+#ifndef OPENSSL_LK
 		if (getenv("OPENSSL_ALLOW_PROXY_CERTS"))
 			allow_proxy_certs = 1;
+#endif
 		purpose = ctx->param->purpose;
 		}
 
@@ -1667,6 +1671,8 @@ end:
 	return ok;
 	}
 
+/* Removing time dependency in LK */
+#if 0
 int X509_cmp_current_time(const ASN1_TIME *ctm)
 {
 	return X509_cmp_time(ctm, NULL);
@@ -1779,6 +1785,7 @@ ASN1_TIME *X509_time_adj_ex(ASN1_TIME *s,
 		}
 	return ASN1_TIME_adj(s, t, offset_day, offset_sec);
 	}
+#endif
 
 int X509_get_pubkey_parameters(EVP_PKEY *pkey, STACK_OF(X509) *chain)
 	{

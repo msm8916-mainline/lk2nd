@@ -62,7 +62,9 @@
  */
 
 #include <stdio.h>
+#ifndef LK_NO_TIME
 #include <time.h>
+#endif
 #include "cryptlib.h"
 #include "o_time.h"
 #include <openssl/asn1t.h>
@@ -97,7 +99,7 @@ int i2d_ASN1_TIME(ASN1_TIME *a, unsigned char **pp)
 	}
 #endif
 
-
+#ifndef LK_NO_TIME
 ASN1_TIME *ASN1_TIME_set(ASN1_TIME *s, time_t t)
 	{
 	return ASN1_TIME_adj(s, t, 0, 0);
@@ -196,3 +198,4 @@ int ASN1_TIME_set_string(ASN1_TIME *s, const char *str)
 
 	return 1;
 	}
+#endif

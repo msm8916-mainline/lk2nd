@@ -209,7 +209,7 @@ void *sk_delete(_STACK *st, int loc)
 	st->num--;
 	return(ret);
 	}
-
+#ifndef LK_NO_QSORT
 static int internal_find(_STACK *st, void *data, int ret_val_options)
 	{
 	const void * const *r;
@@ -240,7 +240,7 @@ int sk_find_ex(_STACK *st, void *data)
 	{
 	return internal_find(st, data, OBJ_BSEARCH_VALUE_ON_NOMATCH);
 	}
-
+#endif
 int sk_push(_STACK *st, void *data)
 	{
 	return(sk_insert(st,data,st->num));
@@ -309,6 +309,7 @@ void *sk_set(_STACK *st, int i, void *value)
 	return (st->data[i] = value);
 }
 
+#ifndef LK_NO_QSORT
 void sk_sort(_STACK *st)
 	{
 	if (st && !st->sorted)
@@ -325,6 +326,7 @@ void sk_sort(_STACK *st)
 		st->sorted=1;
 		}
 	}
+#endif
 
 int sk_is_sorted(const _STACK *st)
 	{

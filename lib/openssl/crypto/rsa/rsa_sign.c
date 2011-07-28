@@ -67,6 +67,7 @@
 /* Size of an SSL signature: MD5+SHA1 */
 #define SSL_SIG_LENGTH	36
 
+#ifndef LK_NO_ENCRYPT
 int RSA_sign(int type, const unsigned char *m, unsigned int m_len,
 	     unsigned char *sigret, unsigned int *siglen, RSA *rsa)
 	{
@@ -283,3 +284,19 @@ int RSA_verify(int dtype, const unsigned char *m, unsigned int m_len,
 
 	return int_rsa_verify(dtype, m, m_len, NULL, NULL, sigbuf, siglen, rsa);
 	}
+#else
+int RSA_sign(int type, const unsigned char *m, unsigned int m_len,
+	     unsigned char *sigret, unsigned int *siglen, RSA *rsa)
+	{
+	  printf("Openssl LK: RSA Encrypt not available\n");
+	  return -1;
+	}
+
+int RSA_verify(int dtype, const unsigned char *m, unsigned int m_len,
+		const unsigned char *sigbuf, unsigned int siglen,
+		RSA *rsa)
+	{
+	  printf("Openssl LK: RSA Encrypt not available\n");
+	  return -1;
+	}
+#endif

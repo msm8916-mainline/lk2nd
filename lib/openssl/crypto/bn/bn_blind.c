@@ -331,7 +331,12 @@ BN_BLINDING *BN_BLINDING_create_param(BN_BLINDING *b,
 		ret->m_ctx = m_ctx;
 
 	do {
-		if (!BN_rand_range(ret->A, ret->mod)) goto err;
+#ifndef LK_NO_RAND
+	  if (!BN_rand_range(ret->A, ret->mod)) goto err;
+#else
+	  printf("Openssl LK: Removing rand dependency in bn_blind.c\n");
+	  goto err;
+#endif
 		if (BN_mod_inverse(ret->Ai, ret->A, ret->mod, ctx) == NULL)
 			{
 			/* this should almost never happen for good RSA keys */
