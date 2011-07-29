@@ -86,7 +86,7 @@ void mipi_dsi_panel_power_on(void){
 
 static void mipi_dsi_calibration(void)
 {
-    int32_t i = 0;
+    uint32_t i = 0;
     uint32_t term_cnt = 5000;
     int32_t cal_busy = readl(MIPI_DSI_BASE + 0x550);
 

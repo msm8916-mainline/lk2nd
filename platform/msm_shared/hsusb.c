@@ -268,11 +268,11 @@ int udc_request_queue(struct udc_endpoint *ept, struct udc_request *_req)
 	ept->head->info = 0;
 	ept->req = req;
 
-	arch_clean_invalidate_cache_range(ept, sizeof(struct udc_endpoint));
-	arch_clean_invalidate_cache_range(ept->head, sizeof(struct ept_queue_head));
-	arch_clean_invalidate_cache_range(ept->req, sizeof(struct usb_request));
-	arch_clean_invalidate_cache_range(req->req.buf, req->req.length);
-	arch_clean_invalidate_cache_range(ept->req->item, sizeof(struct ept_queue_item));
+	arch_clean_invalidate_cache_range((addr_t) ept, sizeof(struct udc_endpoint));
+	arch_clean_invalidate_cache_range((addr_t) ept->head, sizeof(struct ept_queue_head));
+	arch_clean_invalidate_cache_range((addr_t) ept->req, sizeof(struct usb_request));
+	arch_clean_invalidate_cache_range((addr_t) req->req.buf, req->req.length);
+	arch_clean_invalidate_cache_range((addr_t) ept->req->item, sizeof(struct ept_queue_item));
 
 	DBG("ept%d %s queue req=%p\n",
             ept->num, ept->in ? "in" : "out", req);
@@ -292,8 +292,8 @@ static void handle_ept_complete(struct udc_endpoint *ept)
 	DBG("ept%d %s complete req=%p\n",
             ept->num, ept->in ? "in" : "out", ept->req);
 
-	arch_clean_invalidate_cache_range(ept, sizeof(struct udc_endpoint));
-	arch_clean_invalidate_cache_range(ept->req, sizeof(struct usb_request));
+	arch_clean_invalidate_cache_range((addr_t) ept, sizeof(struct udc_endpoint));
+	arch_clean_invalidate_cache_range((addr_t) ept->req, sizeof(struct usb_request));
 
 	req = ept->req;
 	if(req) {
@@ -310,10 +310,10 @@ static void handle_ept_complete(struct udc_endpoint *ept)
 			/* Must clean/invalidate cached item data before checking
 			 * the status every time.
 			 */
-			arch_clean_invalidate_cache_range(item, sizeof(struct ept_queue_item));
+			arch_clean_invalidate_cache_range((addr_t) item, sizeof(struct ept_queue_item));
 		} while (readl(&(item->info)) & INFO_ACTIVE);
 
-		arch_clean_invalidate_cache_range(req->req.buf, req->req.length);
+		arch_clean_invalidate_cache_range((addr_t) req->req.buf, req->req.length);
 
 		if(item->info & 0xff) {
 			actual = 0;
@@ -394,7 +394,7 @@ static void handle_setup(struct udc_endpoint *ept)
 {
 	struct setup_packet s;
 
-	arch_clean_invalidate_cache_range(ept->head->setup_data, sizeof(struct ept_queue_head));
+	arch_clean_invalidate_cache_range((addr_t) ept->head->setup_data, sizeof(struct ept_queue_head));
 	memcpy(&s, ept->head->setup_data, sizeof(s));
 	writel(ept->bit, USB_ENDPTSETUPSTAT);
 
@@ -555,7 +555,7 @@ int udc_init(struct udc_device *dev)
 
 	dprintf(INFO, "USB init ept @ %p\n", epts);
 	memset(epts, 0, 32 * sizeof(struct ept_queue_head));
-	arch_clean_invalidate_cache_range(epts, 32 * sizeof(struct ept_queue_head));
+	arch_clean_invalidate_cache_range((addr_t) epts, 32 * sizeof(struct ept_queue_head));
 
 	//dprintf(INFO, "USB ID %08x\n", readl(USB_ID));
 //    board_usb_init();

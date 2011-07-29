@@ -32,10 +32,12 @@
 #include <mipi_dsi.h>
 #include <dev/fbcon.h>
 #include <stdlib.h>
+#include <string.h>
 #include <debug.h>
 #include <target/display.h>
 #include <platform/iomap.h>
 #include <platform/clock.h>
+#include <platform/timer.h>
 
 extern void mdp_disable(void);
 extern int mipi_dsi_cmd_config(struct fbcon_config mipi_fb_cfg, unsigned short num_of_lanes);
@@ -229,7 +231,7 @@ int mipi_dsi_cmds_tx(struct mipi_dsi_cmd *cmds, int count)
 
     cm = cmds;
     for (i = 0; i < count; i++) {
-        memcpy(DSI_CMD_DMA_MEM_START_ADDR_PANEL, (cm->payload), cm->size);
+        memcpy((void *) DSI_CMD_DMA_MEM_START_ADDR_PANEL, (cm->payload), cm->size);
         writel(DSI_CMD_DMA_MEM_START_ADDR_PANEL, DSI_DMA_CMD_OFFSET);
         writel(cm->size, DSI_DMA_CMD_LENGTH);   // reg 0x48 for this build
         ret += dsi_cmd_dma_trigger_for_panel();
@@ -545,10 +547,11 @@ int mipi_dsi_video_config(unsigned short num_of_lanes)
     unsigned char eof_bllp_pwr = 0x9;   // bit 12, 15, 1:low power stop mode or
     // let cmd mode eng send packets in hs
     // or lp mode
-    unsigned short display_wd = mipi_fb_cfg.width;
-    unsigned short display_ht = mipi_fb_cfg.height;
     unsigned short image_wd = mipi_fb_cfg.width;
     unsigned short image_ht = mipi_fb_cfg.height;
+#if !DISPLAY_MIPI_PANEL_TOSHIBA_MDT61
+    unsigned short display_wd = mipi_fb_cfg.width;
+    unsigned short display_ht = mipi_fb_cfg.height;
     unsigned short hsync_porch_fp = MIPI_HSYNC_FRONT_PORCH_DCLK;
     unsigned short hsync_porch_bp = MIPI_HSYNC_BACK_PORCH_DCLK;
     unsigned short vsync_porch_fp = MIPI_VSYNC_FRONT_PORCH_LINES;
@@ -557,6 +560,7 @@ int mipi_dsi_video_config(unsigned short num_of_lanes)
     unsigned short vsync_width = MIPI_VSYNC_PULSE_WIDTH;
     unsigned short dst_format = 0;
     unsigned short traffic_mode = 0;
+#endif
     unsigned short pack_pattern = 0x12; //BGR
     unsigned char ystride = 3;
 

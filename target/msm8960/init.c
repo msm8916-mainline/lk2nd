@@ -42,6 +42,7 @@
 #include <dev/gpio_keypad.h>
 #include <gsbi.h>
 #include <target.h>
+#include <platform.h>
 
 #define LINUX_MACHTYPE_8960_SIM     3230
 #define LINUX_MACHTYPE_8960_RUMI3   3231

@@ -38,12 +38,15 @@
 #include <arch/arm/mmu.h>
 
 extern void platform_init_timer(void);
+extern void platform_panel_backlight_on(void);
+extern void platform_uninit_timer(void);
 extern void mipi_panel_reset(void);
 extern void mipi_dsi_panel_power_on(void);
 extern void mdp_clock_init(void);
 extern void mmss_clock_init(void);
 extern struct fbcon_config *mipi_init(void);
 extern void mipi_dsi_shutdown(void);
+extern uint8_t target_uart_gsbi(void);
 
 static uint32_t ticks_per_sec = 0;
 

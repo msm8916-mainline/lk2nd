@@ -30,6 +30,8 @@ status_t platform_set_periodic_timer(platform_timer_callback callback, void *arg
 void mdelay(unsigned msecs);
 void udelay(unsigned usecs);
 
+uint32_t platform_tick_rate(void);
+
 
 #endif
 
