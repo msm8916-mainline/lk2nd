@@ -49,6 +49,7 @@
 #define LINUX_MACHTYPE_8960_MTP     3397
 #define LINUX_MACHTYPE_8960_FLUID   3398
 #define LINUX_MACHTYPE_8960_APQ     3399
+#define LINUX_MACHTYPE_8960_LIQUID  3535
 
 
 extern void dmb(void);
@@ -150,6 +151,9 @@ unsigned board_machtype(void)
 			break;
 		case HW_PLATFORM_FLUID:
 			mach_id = LINUX_MACHTYPE_8960_FLUID;
+			break;
+		case HW_PLATFORM_LIQUID:
+			mach_id = LINUX_MACHTYPE_8960_LIQUID;
 			break;
 		default:
 			mach_id = LINUX_MACHTYPE_8960_CDP;
