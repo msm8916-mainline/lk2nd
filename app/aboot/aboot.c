@@ -45,6 +45,7 @@
 #include <baseband.h>
 #include <target.h>
 #include <mmc.h>
+#include <partition_parser.h>
 #include <platform.h>
 
 #include "recovery.h"
@@ -290,6 +291,7 @@ int boot_linux_from_mmc(void)
 	unsigned long long ptn = 0;
 	unsigned n = 0;
 	const char *cmdline;
+	int index = INVALID_PTN;
 
 	uhdr = (struct boot_img_hdr *)EMMC_BOOT_IMG_HEADER_ADDR;
 	if (!memcmp(uhdr->magic, BOOT_MAGIC, BOOT_MAGIC_SIZE)) {
@@ -298,14 +300,17 @@ int boot_linux_from_mmc(void)
 		goto unified_boot;
 	}
 	if (!boot_into_recovery) {
-		ptn = mmc_ptn_offset((unsigned char *) "boot");
-		if (ptn == 0) {
+		index = partition_get_index("boot");
+		ptn = partition_get_offset(index);
+		if(ptn == 0) {
 			dprintf(CRITICAL, "ERROR: No boot partition found\n");
                     return -1;
 		}
-	} else {
-		ptn = mmc_ptn_offset((unsigned char *) "recovery");
-		if (ptn == 0) {
+	}
+	else {
+		index = partition_get_index("recovery");
+		ptn = partition_get_offset(index);
+		if(ptn == 0) {
 			dprintf(CRITICAL, "ERROR: No recovery partition found\n");
                     return -1;
 		}
@@ -529,13 +534,14 @@ void cmd_erase_mmc(const char *arg, void *data, unsigned sz)
 {
 	unsigned long long ptn = 0;
 	unsigned int out[512] = {0};
+	int index = INVALID_PTN;
 
-	ptn = mmc_ptn_offset((unsigned char *) arg);
-	if (ptn == 0) {
+	index = partition_get_index(arg);
+	ptn = partition_get_offset(index);
+	if(ptn == 0) {
 		fastboot_fail("partition table doesn't exist");
 		return;
 	}
-
 
 	/* Simple inefficient version of erase. Just writing
 	   0 in first block */
@@ -551,6 +557,7 @@ void cmd_flash_mmc_img(const char *arg, void *data, unsigned sz)
 {
 	unsigned long long ptn = 0;
 	unsigned long long size = 0;
+	int index = INVALID_PTN;
 
 	if (!strcmp(arg, "partition"))
 	{
@@ -562,7 +569,8 @@ void cmd_flash_mmc_img(const char *arg, void *data, unsigned sz)
 	}
 	else
 	{
-		ptn = mmc_ptn_offset((unsigned char *) arg);
+		index = partition_get_index(arg);
+		ptn = partition_get_offset(index);
 		if(ptn == 0) {
 			fastboot_fail("partition table doesn't exist");
 			return;
@@ -575,7 +583,7 @@ void cmd_flash_mmc_img(const char *arg, void *data, unsigned sz)
 			}
 		}
 
-		size = mmc_ptn_size((unsigned char *) arg);
+		size = partition_get_size(index);
 		if (ROUND_TO_PAGE(sz,511) > size) {
 			fastboot_fail("size too large");
 			return;
@@ -599,9 +607,11 @@ void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 	chunk_header_t *chunk_header;
 	uint32_t total_blocks = 0;
 	unsigned long long ptn = 0;
+	int index = INVALID_PTN;
 
-	ptn = mmc_ptn_offset((unsigned char *) arg);
-	if (ptn == 0) {
+	index = partition_get_index(arg);
+	ptn = partition_get_offset(index);
+	if(ptn == 0) {
 		fastboot_fail("partition table doesn't exist");
 		return;
 	}
@@ -919,7 +929,7 @@ fastboot:
 	fastboot_register("reboot-bootloader", cmd_reboot_bootloader);
 	fastboot_publish("product", TARGET(BOARD));
 	fastboot_publish("kernel", "lk");
-	mmc_dump_partition_info();
+	partition_dump();
 	sz = target_get_max_flash_size();
 	fastboot_init(target_get_scratch_address(), sz);
 	udc_start();

@@ -31,7 +31,7 @@
 #include <debug.h>
 #include <reg.h>
 #include "mmc.h"
-#include "partition_parser.h"
+#include <partition_parser.h>
 #include <platform/iomap.h>
 #include <platform/timer.h>
 
@@ -45,13 +45,6 @@
 
 #define MMC_BOOT_DATA_READ     0
 #define MMC_BOOT_DATA_WRITE    1
-
-#define MMC_MBR_SIGNATURE_BYTE_0			0x55
-#define MMC_MBR_SIGNATURE_BYTE_1			0xAA
-
-#define PARTITION_TYPE_MBR			0
-#define PARTITION_TYPE_GPT			1
-#define PARTITION_TYPE_GPT_BACKUP	2
 
 
 static unsigned int mmc_boot_fifo_data_transfer(unsigned int* data_ptr,
@@ -80,10 +73,6 @@ static const unsigned int xfer_rate_unit[] =
 static const unsigned int xfer_rate_value[] =
 { 0, 10, 12, 13, 15, 20, 26, 30, 35, 40, 45, 52, 55, 60, 70, 80 };
 
-char *ext3_partitions[] = {"system", "userdata", "persist", "cache", "tombstones"};
-char *vfat_partitions[] = {"modem", "mdm", "NONE"};
-unsigned int ext3_count = 0;
-unsigned int vfat_count = 0;
 
 unsigned char mmc_slot = 0;
 unsigned int mmc_boot_mci_base = 0;
@@ -97,11 +86,7 @@ int mmc_clock_set_rate(unsigned id, unsigned rate);
 
 struct mmc_boot_host mmc_host;
 struct mmc_boot_card mmc_card;
-struct mbr_entry mbr[MAX_PARTITIONS];
-unsigned mmc_partition_count = 0;
-static unsigned gpt_partitions_exist = 0;
 
-static void mbr_fill_name (struct mbr_entry *mbr_ent, unsigned int type);
 static unsigned int mmc_wp(unsigned int addr, unsigned int size,
                            unsigned char set_clear_wp);
 static unsigned int mmc_boot_send_ext_cmd (struct mmc_boot_card* card,
@@ -2187,195 +2172,6 @@ static unsigned int mmc_boot_init_and_identify_cards( struct mmc_boot_host* host
 }
 
 
-
-unsigned int mmc_verify_mbr_signature(unsigned size, unsigned char* buffer)
-{
-    /* Avoid checking past end of buffer */
-    if ((TABLE_SIGNATURE + 1) > size)
-    {
-        return MMC_BOOT_E_FAILURE;
-    }
-    /* Check to see if signature exists */
-    if ((buffer[TABLE_SIGNATURE] != MMC_MBR_SIGNATURE_BYTE_0) || \
-        (buffer[TABLE_SIGNATURE + 1] != MMC_MBR_SIGNATURE_BYTE_1))
-    {
-        dprintf(CRITICAL,  "MBR signature does not match. \n" );
-        return MMC_BOOT_E_FAILURE;
-    }
-    return MMC_BOOT_E_SUCCESS;
-}
-
-
-
-void print_mbr_partition_info(struct mbr_entry* mbrEntry)
-{
-    char buffer[128];
-
-    (void) snprintf(buffer, 128,
-        "{name:%s, status:0x%X, type:0x%X, start:0x%X, size:0x%X}\n",
-        mbrEntry->name,
-        mbrEntry->dstatus,
-        mbrEntry->dtype,
-        mbrEntry->dfirstsec,
-        mbrEntry->dsize
-    );
-    dprintf(INFO, buffer);
-}
-
-
-
-/* Print the contents of the partition table */
-/* NOTE:  exporting this function so that aboot can use it in fastboot
-   after display is initialized. */
-void mmc_dump_partition_info()
-{
-    if (gpt_partitions_exist)
-    {
-        /* TODO */
-    }
-    else
-    {
-        unsigned int i;
-        for (i = 0; i < mmc_partition_count; i++)
-        {
-            print_mbr_partition_info(&mbr[i]);
-        }
-    }
-}
-
-
-
-
-/*
- * Read MBR from MMC card and fill partition table.
- */
-static unsigned int mmc_boot_read_mbr(void)
-{
-    unsigned char buffer[MMC_BOOT_RD_BLOCK_LEN];
-    unsigned int dtype;
-    unsigned int dfirstsec;
-    unsigned int EBR_first_sec;
-    unsigned int EBR_current_sec;
-    int ret = MMC_BOOT_E_SUCCESS;
-    int idx, i;
-
-    dprintf(INFO, "Reading mbr\n");
-
-    /* Read the MBR block which is 512 bytes */
-    ret = mmc_boot_read_from_card( &mmc_host, &mmc_card, 0, \
-                                   MMC_BOOT_RD_BLOCK_LEN,   \
-                                   (unsigned int *)buffer);
-    if (ret)
-    {
-        dprintf(CRITICAL, "Could not read partition from mmc");
-        return ret;
-    }
-
-    ret = mmc_verify_mbr_signature(MMC_BOOT_RD_BLOCK_LEN, buffer);
-    if (ret)
-    {
-       return ret;
-    }
-
-    /* Process each of the four partitions in the MBR by reading the table
-       information into our mbr table. */
-    mmc_partition_count = 0;
-    idx = TABLE_ENTRY_0;
-    for (i = 0; i < 4; i++)
-    {
-        dtype  = buffer[idx + i * TABLE_ENTRY_SIZE + OFFSET_TYPE];
-        /* Type 0xEE indicates end of MBR and GPT partitions exist */
-        if (dtype == MMC_PROTECTED_TYPE)
-        {
-            gpt_partitions_exist = 1;
-            return ret;
-        }
-        mbr[mmc_partition_count].dtype = dtype;
-        mbr[mmc_partition_count].dstatus = \
-                    buffer[idx + i * TABLE_ENTRY_SIZE + OFFSET_STATUS];
-        mbr[mmc_partition_count].dfirstsec = \
-                    GET_LWORD_FROM_BYTE(&buffer[idx + \
-                                        i * TABLE_ENTRY_SIZE + \
-                                        OFFSET_FIRST_SEC]);
-        mbr[mmc_partition_count].dsize  = \
-                    GET_LWORD_FROM_BYTE(&buffer[idx + \
-                                        i * TABLE_ENTRY_SIZE + \
-                                        OFFSET_SIZE]);
-        dfirstsec = mbr[mmc_partition_count].dfirstsec;
-        mbr_fill_name(&mbr[mmc_partition_count],  \
-                      mbr[mmc_partition_count].dtype);
-        mmc_partition_count++;
-        if (mmc_partition_count == MAX_PARTITIONS)
-            return ret;
-    }
-
-    /* See if the last partition is EBR, if not, parsing is done */
-    if (dtype != MMC_EBR_TYPE)
-    {
-        return ret;
-    }
-
-    EBR_first_sec = dfirstsec;
-    EBR_current_sec = dfirstsec;
-
-    dprintf(INFO, "Reading first EBR block from 0x%X\n", EBR_first_sec);
-    ret = mmc_boot_read_from_card( &mmc_host, &mmc_card,  \
-                                   (EBR_first_sec * 512), \
-                                   MMC_BOOT_RD_BLOCK_LEN, \
-                                   (unsigned int *)buffer);
-    if (ret)
-    {
-        return ret;
-    }
-    /* Loop to parse the EBR */
-    for (i = 0;; i++)
-    {
-        ret = mmc_verify_mbr_signature(MMC_BOOT_RD_BLOCK_LEN, buffer);
-        if (ret)
-        {
-           ret = MMC_BOOT_E_SUCCESS;
-           break;
-        }
-        mbr[mmc_partition_count].dstatus = \
-                    buffer[TABLE_ENTRY_0 + OFFSET_STATUS];
-        mbr[mmc_partition_count].dtype   = \
-                    buffer[TABLE_ENTRY_0 + OFFSET_TYPE];
-        mbr[mmc_partition_count].dfirstsec = \
-                    GET_LWORD_FROM_BYTE(&buffer[TABLE_ENTRY_0 + \
-                                        OFFSET_FIRST_SEC])    + \
-                                        EBR_current_sec;
-        mbr[mmc_partition_count].dsize = \
-                    GET_LWORD_FROM_BYTE(&buffer[TABLE_ENTRY_0 + \
-                                        OFFSET_SIZE]);
-        mbr_fill_name(&(mbr[mmc_partition_count]), \
-                      mbr[mmc_partition_count].dtype);
-        mmc_partition_count++;
-        if (mmc_partition_count == MAX_PARTITIONS)
-            return ret;
-
-        dfirstsec = GET_LWORD_FROM_BYTE(&buffer[TABLE_ENTRY_1 + OFFSET_FIRST_SEC]);
-        if(dfirstsec == 0)
-        {
-            /* Getting to the end of the EBR tables */
-            break;
-        }
-        /* More EBR to follow - read in the next EBR sector */
-        dprintf(INFO, "Reading EBR block from 0x%X\n", EBR_first_sec + dfirstsec);
-        ret = mmc_boot_read_from_card( &mmc_host, &mmc_card, \
-                                       ((EBR_first_sec + dfirstsec) * 512), \
-                                       MMC_BOOT_RD_BLOCK_LEN, \
-                                       (unsigned int *)buffer);
-        if (ret)
-        {
-            return ret;
-        }
-        EBR_current_sec = EBR_first_sec + dfirstsec;
-    }
-    return ret;
-}
-
-
-
 void mmc_display_ext_csd(void)
 {
     dprintf(SPEW,  "part_config: %x\n", ext_csd_buf[179] );
@@ -2430,25 +2226,8 @@ unsigned int mmc_boot_main(unsigned char slot, unsigned int base)
     mmc_display_csd();
     mmc_display_ext_csd();
 
-    /* Read MBR of the card */
-    mmc_ret = mmc_boot_read_mbr();
-    if( mmc_ret != MMC_BOOT_E_SUCCESS )
-    {
-        dprintf(CRITICAL,  "MMC Boot: MBR read failed!\n" );
-        return MMC_BOOT_E_FAILURE;
-    }
-
-    /* Read GPT of the card if exist */
-    if(gpt_partitions_exist){
-        mmc_ret = mmc_boot_read_gpt(&mmc_host, &mmc_card);
-        if( mmc_ret != MMC_BOOT_E_SUCCESS )
-        {
-            dprintf(CRITICAL,  "GPT Boot: GPT read failed!\n" );
-            return MMC_BOOT_E_FAILURE;
-        }
-    }
-
-    return MMC_BOOT_E_SUCCESS;
+    mmc_ret = partition_read_table(&mmc_host, &mmc_card);
+    return mmc_ret;
 }
 
 /*
@@ -2516,13 +2295,13 @@ unsigned int mmc_write_mbr_in_blocks(unsigned size, unsigned char *mbrImage)
     for (i = 0; i < 4; i++)
     {
         dtype = mbrImage[idx + i * TABLE_ENTRY_SIZE + OFFSET_TYPE];
-        if (MMC_EBR_TYPE == dtype)
+        if (MBR_EBR_TYPE == dtype)
         {
             dprintf(SPEW, "EBR found.\n");
             break;
         }
     }
-    if (MMC_EBR_TYPE != dtype)
+    if (MBR_EBR_TYPE != dtype)
     {
         dprintf(SPEW, "No EBR in this image\n");
         goto end;
@@ -2558,16 +2337,8 @@ unsigned int mmc_write_mbr(unsigned size, unsigned char *mbrImage)
 {
     unsigned int ret;
 
-    /* Don't allow overwrite of gpt with a mbr partition */
-    if (gpt_partitions_exist)
-    {
-        ret = MMC_BOOT_E_INVAL;
-        dprintf(CRITICAL, "Cannot overwrite GPT partition with MBR image.\n");
-        goto end;
-    }
-
     /* Verify that passed in block is a valid MBR */
-    ret = mmc_verify_mbr_signature(size, mbrImage);
+    ret = partition_verify_mbr_signature(size, mbrImage);
     if (ret)
     {
         goto end;
@@ -2581,79 +2352,16 @@ unsigned int mmc_write_mbr(unsigned size, unsigned char *mbrImage)
         goto end;
     }
     /* Re-read the MBR partition into mbr table */
-    ret = mmc_boot_read_mbr();
+    ret = mmc_boot_read_mbr( &mmc_host, &mmc_card );
     if (ret)
     {
         dprintf(CRITICAL, "Failed to re-read mbr partition.\n");
         goto end;
     }
-    mmc_dump_partition_info();
+    partition_dump();
 end:
     return ret;
 }
-
-
-
-unsigned int get_mbr_partition_type(unsigned size, unsigned char* partition,
-                                    unsigned int *partition_type)
-{
-    unsigned int type_offset = TABLE_ENTRY_0 + OFFSET_TYPE;
-
-    if (size < type_offset)
-    {
-        goto end;
-    }
-
-    *partition_type = partition[type_offset];
-end:
-    return MMC_BOOT_E_SUCCESS;
-}
-
-
-
-unsigned int get_partition_type(unsigned size, unsigned char* partition,
-                                unsigned int *partition_type)
-{
-    unsigned int ret = MMC_BOOT_E_SUCCESS;
-
-    /*
-        If the block contains the MBR signature, then it's likely either
-        MBR or MBR with protective type (GPT).  If the MBR signature is
-        not there, then it could be the GPT backup.
-    */
-
-    /* First check the MBR signature */
-    ret = mmc_verify_mbr_signature(size, partition);
-    if (ret == MMC_BOOT_E_SUCCESS)
-    {
-        unsigned int mbr_partition_type = PARTITION_TYPE_MBR;
-
-        /* MBR signature verified.  This could be MBR, MBR + EBR, or GPT */
-        ret = get_mbr_partition_type(size, partition, &mbr_partition_type);
-        if (ret != MMC_BOOT_E_SUCCESS)
-        {
-            dprintf(CRITICAL, "Cannot get TYPE of partition");
-        }
-        else if (MMC_PROTECTED_TYPE == mbr_partition_type)
-        {
-            *partition_type = PARTITION_TYPE_GPT;
-        }
-        else
-        {
-            *partition_type = PARTITION_TYPE_MBR;
-        }
-    }
-    else
-    {
-        /* This could be the GPT backup.  Make that assumption for now.
-           Anybody who treats the block as GPT backup should check the
-           signature. */
-        *partition_type = PARTITION_TYPE_GPT_BACKUP;
-    }
-    return ret;
-}
-
-
 
 unsigned int mmc_write_partition(unsigned size, unsigned char* partition)
 {
@@ -2665,7 +2373,7 @@ unsigned int mmc_write_partition(unsigned size, unsigned char* partition)
         dprintf(CRITICAL, "NULL partition\n");
         goto end;
     }
-    ret = get_partition_type(size, partition, &partition_type);
+    ret = partition_get_type(size, partition, &partition_type);
     if (ret != MMC_BOOT_E_SUCCESS)
     {
         goto end;
@@ -2705,101 +2413,6 @@ unsigned int mmc_read (unsigned long long data_addr, unsigned int* out, unsigned
     int val = 0;
     val = mmc_boot_read_from_card( &mmc_host, &mmc_card, data_addr, data_len, out);
     return val;
-}
-
-/*
- * Fill name for android partition found.
- */
-static void mbr_fill_name (struct mbr_entry *mbr_ent, unsigned int type)
-{
-    switch(type)
-    {
-        memset(mbr_ent->name, 0, 64);
-        case MMC_MODEM_TYPE:
-        case MMC_MODEM_TYPE2:
-            /* if already assigned last name available then return */
-            if(!strcmp((const char *)vfat_partitions[vfat_count], "NONE"))
-                return;
-            strcpy((char *)mbr_ent->name,(const char *)vfat_partitions[vfat_count]);
-            vfat_count++;
-            break;
-        case MMC_SBL1_TYPE:
-            memcpy(mbr_ent->name,"sbl1",4);
-            break;
-        case MMC_SBL2_TYPE:
-            memcpy(mbr_ent->name,"sbl2",4);
-            break;
-        case MMC_SBL3_TYPE:
-            memcpy(mbr_ent->name,"sbl3",4);
-            break;
-        case MMC_RPM_TYPE:
-            memcpy(mbr_ent->name,"rpm",3);
-            break;
-        case MMC_TZ_TYPE:
-            memcpy(mbr_ent->name,"tz",2);
-            break;
-        case MMC_ABOOT_TYPE:
-            memcpy(mbr_ent->name,"aboot",5);
-            break;
-        case MMC_BOOT_TYPE:
-            memcpy(mbr_ent->name,"boot",4);
-            break;
-        case MMC_MODEM_ST1_TYPE:
-            memcpy(mbr_ent->name,"modem_st1",9);
-            break;
-        case MMC_MODEM_ST2_TYPE:
-            memcpy(mbr_ent->name,"modem_st2",9);
-            break;
-        case MMC_EFS2_TYPE:
-            memcpy(mbr_ent->name,"efs2",4);
-            break;
-        case MMC_USERDATA_TYPE:
-            if (ext3_count == sizeof(ext3_partitions) / sizeof(char*))
-                return;
-            strcpy((char *)mbr_ent->name,(const char *)ext3_partitions[ext3_count]);
-            ext3_count++;
-            break;
-        case MMC_RECOVERY_TYPE:
-            memcpy(mbr_ent->name,"recovery",8);
-            break;
-        case MMC_MISC_TYPE:
-            memcpy(mbr_ent->name,"misc",4);
-            break;
-    };
-}
-
-/*
- * Returns offset of given partition
- */
-uint64_t mmc_ptn_offset (unsigned char * name)
-{
-    unsigned n;
-    for(n = 0; n < mmc_partition_count; n++) {
-        if(!strcmp((const char *)mbr[n].name, (const char *)name)) {
-            return ((uint64_t)mbr[n].dfirstsec * MMC_BOOT_RD_BLOCK_LEN);
-        }
-    }
-    if (gpt_partitions_exist)
-      return gpt_lookup(name, PTN_OFFSET);
-    else
-      return 0;
-}
-
-/*
- * Returns size of given partition
- */
-uint64_t mmc_ptn_size (unsigned char * name)
-{
-    unsigned n;
-    for(n = 0; n < mmc_partition_count; n++) {
-        if(!strcmp((const char *)mbr[n].name, (const char *)name)) {
-            return ((uint64_t)mbr[n].dsize * MMC_BOOT_RD_BLOCK_LEN);
-        }
-    }
-    if (gpt_partitions_exist)
-      return gpt_lookup(name, PTN_SIZE);
-    else
-      return 0;
 }
 
 /*
