@@ -42,6 +42,9 @@
 #define CRYPTO_SHA_BLOCK_SIZE		64
 #define CRYPTO_MAX_AUTH_BLOCK_SIZE	0xFA00
 
+#define CRYPTO_ERR_NONE				0x01
+#define CRYPTO_ERR_FAIL				0x02
+
 typedef enum {
     CRYPTO_SHA_ERR_NONE,
     CRYPTO_SHA_ERR_BUSY,

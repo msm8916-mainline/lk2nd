@@ -257,3 +257,13 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 	reg |= MMC_BOOT_MCI_CLK_IN_FEEDBACK;
 	writel( reg, MMC_BOOT_MCI_CLK );
 }
+
+/* Configure crypto engine clock */
+void ce_clock_init(void)
+{
+	/* Enable HCLK for CE1 */
+	writel((1<<4), CE1_HCLK_CTL);
+	/* Enable core clk for CE1 */
+	writel((1<<4), CE1_CORE_CLK_CTL);
+	return;
+}

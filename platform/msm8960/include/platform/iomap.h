@@ -105,6 +105,8 @@
 #define GSBIn_UART_APPS_NS(n)   (CLK_CTL_BASE + 0x29D4 + (32 * ((n) - 1)))
 #define MSM_BOOT_PLL8_STATUS    (CLK_CTL_BASE + 0x3158)
 #define MSM_BOOT_PLL_ENABLE_SC0 (CLK_CTL_BASE + 0x34C0)
+#define CE1_HCLK_CTL            (CLK_CTL_BASE + 0x2720)
+#define CE1_CORE_CLK_CTL        (CLK_CTL_BASE + 0x2724)
 
 #define MSM_MMSS_CLK_CTL_BASE 0x04000000
 
@@ -137,4 +139,6 @@
 //TODO: Where does this go?
 #define MMSS_SFPB_GPREG                       (0x05700058)
 
+#define CE1_CRYPTO4_BASE                      (0x18500000)
+#define MSM_CRYPTO_BASE                       CE1_CRYPTO4_BASE
 #endif
