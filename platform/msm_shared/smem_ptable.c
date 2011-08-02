@@ -147,7 +147,7 @@ int smem_ram_ptable_init(struct smem_ram_ptable *smem_ram_ptable)
 	    smem_ram_ptable->magic[1] != _SMEM_RAM_PTABLE_MAGIC_2)
 		return 0;
 
-	dprintf(INFO, "smem ram ptable found: ver: %d len: %d\n",
+	dprintf(SPEW, "smem ram ptable found: ver: %d len: %d\n",
 		smem_ram_ptable->version, smem_ram_ptable->len);
 
 	return 1;
