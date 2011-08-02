@@ -47,7 +47,9 @@
 #include <mmc.h>
 #include <partition_parser.h>
 #include <platform.h>
+#include <crypto_hash.h>
 
+#include "image_verify.h"
 #include "recovery.h"
 #include "bootimg.h"
 #include "fastboot.h"
@@ -72,11 +74,15 @@
 static const char *emmc_cmdline = " androidboot.emmc=true";
 static const char *usb_sn_cmdline = " androidboot.serialno=";
 static const char *battchg_pause = " androidboot.battchg_pause=true";
+static const char *auth_kernel = " androidboot.authorized_kernel=true";
 
 static const char *baseband_apq     = " androidboot.baseband=apq";
 static const char *baseband_msm     = " androidboot.baseband=msm";
 static const char *baseband_csfb    = " androidboot.baseband=csfb";
 static const char *baseband_svlte2a = " androidboot.baseband=svlte2a";
+
+/* Assuming unauthorized kernel image by default */
+static int auth_kernel_img = 0;
 
 static struct udc_device surf_udc_device = {
 	.vendor_id	= 0x18d1,
@@ -175,6 +181,10 @@ void boot_linux(void *kernel, unsigned *tags,
 		cmdline_len += strlen(battchg_pause);
 	}
 
+	if(target_use_signed_kernel() && auth_kernel_img) {
+		cmdline_len += strlen(auth_kernel);
+	}
+
 	/* Determine correct androidboot.baseband to use */
 	switch(target_baseband())
 	{
@@ -226,6 +236,12 @@ void boot_linux(void *kernel, unsigned *tags,
 
 		if (pause_at_bootup) {
 			src = battchg_pause;
+			if (have_cmdline) --dst;
+			while ((*dst++ = *src++));
+		}
+
+		if(target_use_signed_kernel() && auth_kernel_img) {
+			src = auth_kernel;
 			if (have_cmdline) --dst;
 			while ((*dst++ = *src++));
 		}
@@ -293,6 +309,11 @@ int boot_linux_from_mmc(void)
 	const char *cmdline;
 	int index = INVALID_PTN;
 
+	unsigned char *image_addr = 0;
+	unsigned kernel_actual;
+	unsigned ramdisk_actual;
+	unsigned imagesize_actual;
+
 	uhdr = (struct boot_img_hdr *)EMMC_BOOT_IMG_HEADER_ADDR;
 	if (!memcmp(uhdr->magic, BOOT_MAGIC, BOOT_MAGIC_SIZE)) {
 		dprintf(INFO, "Unified boot method!\n");
@@ -330,24 +351,62 @@ int boot_linux_from_mmc(void)
 		page_size = hdr->page_size;
 		page_mask = page_size - 1;
 	}
-	offset += page_size;
 
-	n = ROUND_TO_PAGE(hdr->kernel_size, page_mask);
-	if (mmc_read(ptn + offset, (void *)hdr->kernel_addr, n)) {
-		dprintf(CRITICAL, "ERROR: Cannot read kernel image\n");
-                return -1;
-	}
-	offset += n;
-
-	n = ROUND_TO_PAGE(hdr->ramdisk_size, page_mask);
-	if(n != 0)
+	/* Authenticate Kernel */
+	if(target_use_signed_kernel())
 	{
-		if (mmc_read(ptn + offset, (void *)hdr->ramdisk_addr, n)) {
-			dprintf(CRITICAL, "ERROR: Cannot read ramdisk image\n");
-			return -1;
+		image_addr = (unsigned char *)target_get_scratch_address();
+		kernel_actual = ROUND_TO_PAGE(hdr->kernel_size, page_mask);
+		ramdisk_actual = ROUND_TO_PAGE(hdr->ramdisk_size, page_mask);
+		imagesize_actual = (page_size + kernel_actual + ramdisk_actual);
+
+		offset = 0;
+		/* Read image without signature */
+		if (mmc_read(ptn + offset, (void *)image_addr, imagesize_actual))
+		{
+			dprintf(CRITICAL, "ERROR: Cannot read boot image\n");
+				return -1;
 		}
+
+		offset = imagesize_actual;
+		/* Read signature */
+		if(mmc_read(ptn + offset, (void *)(image_addr + offset), page_size))
+		{
+			dprintf(CRITICAL, "ERROR: Cannot read boot image signature\n");
+		}
+		else
+		{
+			auth_kernel_img = image_verify((unsigned char *)image_addr,
+					(unsigned char *)(image_addr + imagesize_actual),
+					imagesize_actual,
+					CRYPTO_AUTH_ALG_SHA256);
+		}
+
+		/* Move kernel and ramdisk to correct address */
+		memmove((void*) hdr->kernel_addr, (char *)(image_addr + page_size), hdr->kernel_size);
+		memmove((void*) hdr->ramdisk_addr, (char *)(image_addr + page_size + kernel_actual), hdr->ramdisk_size);
 	}
-	offset += n;
+	else
+	{
+		offset += page_size;
+
+		n = ROUND_TO_PAGE(hdr->kernel_size, page_mask);
+		if (mmc_read(ptn + offset, (void *)hdr->kernel_addr, n)) {
+			dprintf(CRITICAL, "ERROR: Cannot read kernel image\n");
+					return -1;
+		}
+		offset += n;
+
+		n = ROUND_TO_PAGE(hdr->ramdisk_size, page_mask);
+		if(n != 0)
+		{
+			if (mmc_read(ptn + offset, (void *)hdr->ramdisk_addr, n)) {
+				dprintf(CRITICAL, "ERROR: Cannot read ramdisk image\n");
+				return -1;
+			}
+		}
+		offset += n;
+	}
 
 unified_boot:
 	dprintf(INFO, "\nkernel  @ %x (%d bytes)\n", hdr->kernel_addr,
@@ -378,6 +437,11 @@ int boot_linux_from_flash(void)
 	struct ptable *ptable;
 	unsigned offset = 0;
 	const char *cmdline;
+
+	unsigned char *image_addr = 0;
+	unsigned kernel_actual;
+	unsigned ramdisk_actual;
+	unsigned imagesize_actual;
 
 	if (target_is_emmc_boot()) {
 		hdr = (struct boot_img_hdr *)EMMC_BOOT_IMG_HEADER_ADDR;
@@ -427,20 +491,58 @@ int boot_linux_from_flash(void)
 		return -1;
 	}
 
-	n = ROUND_TO_PAGE(hdr->kernel_size, page_mask);
-	if (flash_read(ptn, offset, (void *)hdr->kernel_addr, n)) {
-		dprintf(CRITICAL, "ERROR: Cannot read kernel image\n");
-		return -1;
-	}
-	offset += n;
+	/* Authenticate Kernel */
+	if(target_use_signed_kernel())
+	{
+		image_addr = (unsigned char *)target_get_scratch_address();
+		kernel_actual = ROUND_TO_PAGE(hdr->kernel_size, page_mask);
+		ramdisk_actual = ROUND_TO_PAGE(hdr->ramdisk_size, page_mask);
+		imagesize_actual = (page_size + kernel_actual + ramdisk_actual);
 
-	n = ROUND_TO_PAGE(hdr->ramdisk_size, page_mask);
-	if (flash_read(ptn, offset, (void *)hdr->ramdisk_addr, n)) {
-		dprintf(CRITICAL, "ERROR: Cannot read ramdisk image\n");
-		return -1;
-	}
-	offset += n;
+		offset = 0;
+		/* Read image without signature */
+		if (flash_read(ptn, offset, (void *)image_addr, imagesize_actual))
+		{
+			dprintf(CRITICAL, "ERROR: Cannot read boot image\n");
+				return -1;
+		}
 
+		offset = imagesize_actual;
+		/* Read signature */
+		if (flash_read(ptn, offset, (void *)(image_addr + offset), page_size))
+		{
+			dprintf(CRITICAL, "ERROR: Cannot read boot image signature\n");
+		}
+		else
+		{
+
+			/* Verify signature */
+			auth_kernel_img = image_verify((unsigned char *)image_addr,
+						(unsigned char *)(image_addr + imagesize_actual),
+						imagesize_actual,
+						CRYPTO_AUTH_ALG_SHA256);
+		}
+
+		/* Move kernel and ramdisk to correct address */
+		memmove((void*) hdr->kernel_addr, (char *)(image_addr + page_size), hdr->kernel_size);
+		memmove((void*) hdr->ramdisk_addr, (char *)(image_addr + page_size + kernel_actual), hdr->ramdisk_size);
+	}
+	else
+	{
+		n = ROUND_TO_PAGE(hdr->kernel_size, page_mask);
+		if (flash_read(ptn, offset, (void *)hdr->kernel_addr, n)) {
+			dprintf(CRITICAL, "ERROR: Cannot read kernel image\n");
+			return -1;
+		}
+		offset += n;
+
+		n = ROUND_TO_PAGE(hdr->ramdisk_size, page_mask);
+		if (flash_read(ptn, offset, (void *)hdr->ramdisk_addr, n)) {
+			dprintf(CRITICAL, "ERROR: Cannot read ramdisk image\n");
+			return -1;
+		}
+		offset += n;
+	}
 continue_boot:
 	dprintf(INFO, "\nkernel  @ %x (%d bytes)\n", hdr->kernel_addr,
 		hdr->kernel_size);

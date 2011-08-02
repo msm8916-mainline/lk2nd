@@ -708,6 +708,14 @@ void ERR_put_error(int lib, int func, int reason, const char *file,
 	{
 	ERR_STATE *es;
 
+	/* Stubbing out ERR_get_state due to memleak with
+	 * ERR_remove_thread_state. We don't check these ERR_STATE
+	 * anyways for now.
+	 */
+#ifdef LK_NO_ERR_STATE
+	return
+#endif
+
 #ifdef _OSD_POSIX
 	/* In the BS2000-OSD POSIX subsystem, the compiler generates
 	 * path names in the form "*POSIX(/etc/passwd)".
@@ -751,6 +759,7 @@ void ERR_clear_error(void)
 		err_clear(es,i);
 		}
 	es->top=es->bottom=0;
+	ERR_STATE_free(es);
 	}
 
 
@@ -1004,6 +1013,14 @@ void ERR_remove_state(unsigned long pid)
 ERR_STATE *ERR_get_state(void)
 	{
 	static ERR_STATE fallback;
+	/* TODO: ERR_remove_thread_state does not clean up
+	 * therefore when using ERR_states the malloc here
+	 * will never get freed and there is a memleak only
+	 * in the case where it fails decryption.
+	 */
+#ifdef LK_NO_ERR_STATE
+	return NULL;
+#endif
 	ERR_STATE *ret,tmp,*tmpp=NULL;
 	int i;
 	CRYPTO_THREADID tid;

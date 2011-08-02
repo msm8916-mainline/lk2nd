@@ -60,3 +60,11 @@ __WEAK void uart_clock_init(void)
 __WEAK void platform_uninit(void)
 {
 }
+
+__WEAK int image_verify(unsigned char * image_ptr,
+			unsigned char * signature_ptr,
+			unsigned int image_size,
+			unsigned hash_type)
+{
+	return 0;
+}

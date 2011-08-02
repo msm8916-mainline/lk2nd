@@ -28,7 +28,9 @@ ifeq ($(PLATFORM),msm8x60)
 			$(LOCAL_DIR)/lcdc.o \
 			$(LOCAL_DIR)/mddi.o \
 			$(LOCAL_DIR)/qgic.o \
-			$(LOCAL_DIR)/mdp4.o
+			$(LOCAL_DIR)/mdp4.o \
+			$(LOCAL_DIR)/certificate.o \
+			$(LOCAL_DIR)/image_verify.o
 endif
 
 ifeq ($(PLATFORM),apq8064)
@@ -43,7 +45,9 @@ ifeq ($(PLATFORM),msm8960)
 			$(LOCAL_DIR)/qgic.o \
 			$(LOCAL_DIR)/mdp4.o \
 			$(LOCAL_DIR)/crypto4_eng.o \
-			$(LOCAL_DIR)/crypto_hash.o
+			$(LOCAL_DIR)/crypto_hash.o \
+			$(LOCAL_DIR)/certificate.o \
+			$(LOCAL_DIR)/image_verify.o
 endif
 
 ifeq ($(PLATFORM),msm7x27a)
@@ -67,5 +71,7 @@ ifeq ($(PLATFORM),msm7x30)
 			$(LOCAL_DIR)/uart.o \
 			$(LOCAL_DIR)/proc_comm.o \
 			$(LOCAL_DIR)/lcdc.o \
-			$(LOCAL_DIR)/mddi.o
+			$(LOCAL_DIR)/mddi.o \
+			$(LOCAL_DIR)/certificate.o \
+			$(LOCAL_DIR)/image_verify.o
 endif

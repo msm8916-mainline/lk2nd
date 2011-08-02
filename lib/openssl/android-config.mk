@@ -18,6 +18,9 @@ CFLAGS += -DLK_NO_TIME -DLK_NO_QSORT -DLK_NO_BIO -DLK_NO_HMAC -DLK_NO_ENCODE \
 	  -DLK_NO_STDERR -DLK_NO_ABORT -DLK_NO_PEM -DLK_NO_OAEP -DLK_NO_SSLV23 \
 	  -DLK_NO_RAND -DLK_NO_UNISTD
 
+# TODO: Memory leak using openssl ERR_STATEs need to find root cause
+CFLAGS += -DLK_NO_ERR_STATE
+
 # TODO: Should be able to classify these ones
 CFLAGS += -DOPENSSL_LK
 
