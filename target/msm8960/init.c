@@ -146,7 +146,7 @@ unsigned board_machtype(void)
 		case HW_PLATFORM_SURF:
 			mach_id = LINUX_MACHTYPE_8960_CDP;
 			break;
-		case HW_PLATFORM_FFA:
+		case HW_PLATFORM_MTP:
 			mach_id = LINUX_MACHTYPE_8960_MTP;
 			break;
 		case HW_PLATFORM_FLUID:
