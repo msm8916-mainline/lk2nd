@@ -78,6 +78,7 @@ static unsigned NAND_CFG0_RAW, NAND_CFG1_RAW;
 static unsigned ECC_BCH_CFG;
 
 static uint32_t enable_bch_ecc;
+static unsigned int *bbtbl;
 
 #define CFG1_WIDE_FLASH (1U << 1)
 
@@ -789,12 +790,33 @@ static int _flash_nand_read_page(dmov_s *cmdlist, unsigned *ptrlist,
 	unsigned n;
 	int isbad = 0;
 	unsigned cwperpage;
+	unsigned block = 0;
 	cwperpage = (flash_pagesize >> 9);
 
-	/* Check for bad block and read only from a good block */
-	isbad = flash_nand_block_isbad(cmdlist, ptrlist, page);
-	if (isbad)
+	/* Find the block no for the page */
+	block = page / num_pages_per_blk;
+
+	/* Check the bad block table for each block
+	 * -1: indicates the block needs to be checked if good or bad
+	 * 1 : The block is bad
+	 * 0 : The block is good
+	 */
+	if(bbtbl[block] == -1) {
+		isbad = flash_nand_block_isbad(cmdlist, ptrlist, page);
+		if(isbad) {
+			/* Found bad , set the bad table entry */
+			bbtbl[block] = 1;
+			return -2;
+		} else {
+			/* Found good block , set the table entry &
+			*  continue reading the data
+			*/
+			bbtbl[block] = 0;
+		}
+	} else if(bbtbl[block] == 1) {
+		/* If the block is already identified as bad, return error*/
 		return -2;
+	}
 
 	data->cmd = NAND_CMD_PAGE_READ_ECC;
 	data->addr0 = page << 16;
@@ -3351,6 +3373,7 @@ static struct ptable *flash_ptable = NULL;
 
 void flash_init(void)
 {
+	int i = 0;
 	ASSERT(flash_ptable == NULL);
 
 	flash_ptrlist = memalign(32, 1024);
@@ -3366,6 +3389,10 @@ void flash_init(void)
 			ASSERT(0);
 		}
 	}
+	/* Create a bad block table */
+	bbtbl = (unsigned int *) malloc(sizeof(unsigned int) * flash_info.num_blocks);
+	for(i = 0 ; i < flash_info.num_blocks ; i++)
+		bbtbl[i] = -1 ;
 }
 
 struct ptable *flash_get_ptable(void)
