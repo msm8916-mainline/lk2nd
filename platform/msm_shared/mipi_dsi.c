@@ -93,6 +93,24 @@ struct mipi_dsi_panel_config toshiba_mdt61_panel_info = {
     .panel_cmds = toshiba_mdt61_video_mode_cmds,
     .num_of_panel_cmds = ARRAY_SIZE(toshiba_mdt61_video_mode_cmds),
 };
+#elif DISPLAY_MIPI_PANEL_RENESAS
+static struct fbcon_config mipi_fb_cfg = {
+    .height = REN_MIPI_FB_HEIGHT,
+    .width = REN_MIPI_FB_WIDTH,
+    .stride = REN_MIPI_FB_WIDTH,
+    .format = FB_FORMAT_RGB888,
+    .bpp = 24,
+    .update_start = NULL,
+    .update_done = NULL,
+};
+struct mipi_dsi_panel_config renesas_panel_info = {
+    .mode = MIPI_VIDEO_MODE,
+    .num_of_lanes = 2,
+    .dsi_phy_config = &mipi_dsi_renesas_panel_phy_ctrl,
+    .panel_cmds = renesas_panel_video_mode_cmds,
+    .num_of_panel_cmds = ARRAY_SIZE(renesas_panel_video_mode_cmds),
+    .lane_swap = 1,
+};
 #else
 static struct fbcon_config mipi_fb_cfg = {
     .height = 0,
@@ -157,7 +175,9 @@ int mipi_dsi_phy_ctrl_config(struct mipi_dsi_panel_config *pinfo)
     /* pll ctrl 0 */
     writel(pd->pll[0], MIPI_DSI_BASE + 0x200);
     writel((pd->pll[0] | 0x01), MIPI_DSI_BASE + 0x200);
-
+    /* lane swp ctrol */
+    if (pinfo->lane_swap)
+    writel(pinfo->lane_swap, MIPI_DSI_BASE + 0xac);
     return (0);
 }
 
@@ -169,6 +189,8 @@ struct mipi_dsi_panel_config *get_panel_info(void)
     return &novatek_panel_info;
 #elif DISPLAY_MIPI_PANEL_TOSHIBA_MDT61
     return &toshiba_mdt61_panel_info;
+#elif DISPLAY_MIPI_PANEL_RENESAS
+    return &renesas_panel_info;
 #endif
     return NULL;
 }
@@ -551,6 +573,16 @@ int mipi_dsi_video_config(unsigned short num_of_lanes)
     /* Two functions make up mdp_setup_dma_p_video_mode with mdt61 panel functions*/
     mdp_setup_dma_p_video_config(pack_pattern, image_wd, image_ht, MIPI_FB_ADDR, image_wd, ystride);
     mdp_setup_mdt61_video_dsi_config();
+#elif DISPLAY_MIPI_PANEL_RENESAS
+    pack_pattern = 0x21; //RGB
+    config_renesas_dsi_video_mode();
+
+    status +=
+        mdp_setup_dma_p_video_mode(display_wd, display_ht, image_wd, image_ht,
+                                   hsync_porch_fp, hsync_porch_bp,
+                                   vsync_porch_fp, vsync_porch_bp, hsync_width,
+                                   vsync_width, MIPI_FB_ADDR, image_wd,
+                                   pack_pattern, ystride);
 #else
     status += config_dsi_video_mode(display_wd, display_ht, image_wd, image_ht,
                                     hsync_porch_fp, hsync_porch_bp,
@@ -572,12 +604,12 @@ int mipi_dsi_video_config(unsigned short num_of_lanes)
         count++;
         if (count > 0xffff) {
             status = FAIL;
-            dprintf(CRITICAL, "Toshiba Video lane test failed\n");
+            dprintf(CRITICAL, "Video lane test failed\n");
             return status;
         }
     }
 
-    dprintf(SPEW, "Toshiba Video lane tested successfully\n");
+    dprintf(SPEW, "Video lane tested successfully\n");
     return status;
 }
 
@@ -616,7 +648,7 @@ void mipi_dsi_shutdown(void)
 #if DISPLAY_MIPI_PANEL_TOSHIBA_MDT61
     writel(0x0, DSI_CC_REG);
     writel(0x0, PIXEL_CC_REG);
-#else
+#elif (!DISPLAY_MIPI_PANEL_RENESAS)
     secure_writel(0x0, DSI_CC_REG);
     secure_writel(0x0, PIXEL_CC_REG);
 #endif
@@ -627,7 +659,9 @@ struct fbcon_config *mipi_init(void)
     int status = 0;
     struct mipi_dsi_panel_config *panel_info = get_panel_info();
     /* Enable MMSS_AHB_ARB_MATER_PORT_E for arbiter master0 and master 1 request */
+#if (!DISPLAY_MIPI_PANEL_RENESAS)
     writel(0x00001800, MMSS_SFPB_GPREG);
+#endif
 
 #if DISPLAY_MIPI_PANEL_TOSHIBA_MDT61
     mipi_dsi_phy_init(panel_info);
