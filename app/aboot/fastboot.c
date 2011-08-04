@@ -33,6 +33,8 @@
 #include <kernel/event.h>
 #include <dev/udc.h>
 
+#define MAX_RSP_SIZE 64
+
 void boot_linux(void *bootimg, unsigned sz);
 
 /* todo: give lk strtoul and nuke this */
@@ -203,7 +205,7 @@ oops:
 
 void fastboot_ack(const char *code, const char *reason)
 {
-	char response[64];
+	char response[MAX_RSP_SIZE];
 
 	if (fastboot_state != STATE_COMMAND)
 		return;
@@ -211,11 +213,26 @@ void fastboot_ack(const char *code, const char *reason)
 	if (reason == 0)
 		reason = "";
 
-	snprintf(response, 64, "%s%s", code, reason);
+	snprintf(response, MAX_RSP_SIZE, "%s%s", code, reason);
 	fastboot_state = STATE_COMPLETE;
 
 	usb_write(response, strlen(response));
 
+}
+
+void fastboot_info(const char *reason)
+{
+	char response[MAX_RSP_SIZE];
+
+	if (fastboot_state != STATE_COMMAND)
+		return;
+
+	if (reason == 0)
+		return;
+
+	snprintf(response, MAX_RSP_SIZE, "INFO%s", reason);
+
+	usb_write(response, strlen(response));
 }
 
 void fastboot_fail(const char *reason)
@@ -243,7 +260,7 @@ static void cmd_getvar(const char *arg, void *data, unsigned sz)
 
 static void cmd_download(const char *arg, void *data, unsigned sz)
 {
-	char response[64];
+	char response[MAX_RSP_SIZE];
 	unsigned len = hex2unsigned(arg);
 	int r;
 
@@ -274,7 +291,7 @@ static void fastboot_command_loop(void)
 
 again:
 	while (fastboot_state != STATE_ERROR) {
-		r = usb_read(buffer, 64);
+		r = usb_read(buffer, MAX_RSP_SIZE);
 		if (r < 0) break;
 		buffer[r] = 0;
 		dprintf(INFO,"fastboot: %s\n", buffer);
