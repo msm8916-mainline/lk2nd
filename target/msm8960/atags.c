@@ -44,19 +44,14 @@ unsigned* target_atag_mem(unsigned* ptr)
 
 	if (smem_ram_ptable_init(&ram_ptable))
 	{
-		/*
-		 * Find lower memory bank (CS0) and strip parts from it that
-		 * will be allocated to peripherals.  Use entire upper
-		 * memory bank (CS1) for kernel.
-		 */
 		for (i = 0; i < ram_ptable.len; i++)
 		{
-			if ((ram_ptable.parts[i].category == EBI1_CS0 ||
-					ram_ptable.parts[i].category == SDRAM) &&
-					ram_ptable.parts[i].start == 0x80000000 &&
-					ram_ptable.parts[i].type == SYS_MEMORY)
+			/* Use only 141M from memory bank starting at 0x80000000 */
+			if (ram_ptable.parts[i].category == SDRAM &&
+					ram_ptable.parts[i].type == SYS_MEMORY &&
+					ram_ptable.parts[i].start == 0x80000000)
 			{
-				ASSERT(ram_ptable.parts[i].size == SIZE_512M);
+				ASSERT(ram_ptable.parts[i].size >= SIZE_256M);
 
 				*ptr++ = 4;
 				*ptr++ = 0x54410002;
@@ -69,10 +64,10 @@ unsigned* target_atag_mem(unsigned* ptr)
 				*ptr++ = ram_ptable.parts[i].start + SIZE_256M;
 			}
 
-			if ((ram_ptable.parts[i].category == EBI1_CS1 ||
-					ram_ptable.parts[i].category == SDRAM) &&
-					ram_ptable.parts[i].start == 0xA0000000 &&
-					ram_ptable.parts[i].type == SYS_MEMORY)
+			/* Pass along all other usable memory regions to Linux */
+			if (ram_ptable.parts[i].category == SDRAM &&
+					ram_ptable.parts[i].type == SYS_MEMORY &&
+					ram_ptable.parts[i].start != 0x80000000)
 			{
 				*ptr++ = 4;
 				*ptr++ = 0x54410002;
