@@ -165,3 +165,9 @@ void udelay(unsigned usecs)
     writel(0, GPT_ENABLE);
     writel(0, GPT_CLEAR);
 }
+
+/* Return current time in micro seconds */
+bigtime_t current_time_hires(void)
+{
+	return ticks * 1000ULL;
+}
