@@ -50,7 +50,8 @@ ifeq ($(PLATFORM),msm7x27a)
 	OBJS += $(LOCAL_DIR)/uart.o \
 			$(LOCAL_DIR)/proc_comm.o \
 			$(LOCAL_DIR)/lcdc.o \
-			$(LOCAL_DIR)/mddi.o
+			$(LOCAL_DIR)/mdp3.o \
+			$(LOCAL_DIR)/mipi_dsi.o
 endif
 
 ifeq ($(PLATFORM),msm7k)

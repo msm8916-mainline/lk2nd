@@ -53,6 +53,8 @@ void acpu_clock_init(void);
 
 void mddi_clock_init(unsigned num, unsigned rate);
 
+extern void mipi_dsi_shutdown(void);
+
 void platform_early_init(void)
 {
 #if WITH_DEBUG_UART
@@ -81,6 +83,21 @@ void display_init(void)
 	ASSERT(fb_config);
 	fbcon_setup(fb_config);
 #endif
+#if DISPLAY_TYPE_MIPI
+       dprintf(INFO, "display_init()\n");
+       fb_config = mipi_init();
+       ASSERT(fb_config);
+       fbcon_setup(fb_config);
+#endif
+}
+
+void display_shutdown(void)
+{
+#if DISPLAY_TYPE_MIPI
+       dprintf(INFO, "display_shutdown()\n");
+       mipi_dsi_shutdown();
+#endif
+
 }
 
 void platform_uninit(void)

@@ -10,7 +10,7 @@ DEFINES += ARM_CPU_CORE_A5
 MMC_SLOT := 3
 DEFINES += WITH_CPU_EARLY_INIT=1 MMC_SLOT=$(MMC_SLOT)
 
-INCLUDES += -I$(LOCAL_DIR)/include
+INCLUDES += -I$(LOCAL_DIR)/include -I$(LK_TOP_DIR)/platform/msm_shared/include
 
 MODULES += dev/fbcon
 
@@ -19,7 +19,6 @@ OBJS += \
 	$(LOCAL_DIR)/platform.o \
 	$(LOCAL_DIR)/interrupts.o \
 	$(LOCAL_DIR)/gpio.o \
-	$(LOCAL_DIR)/panel.o \
 	$(LOCAL_DIR)/acpuclock.o
 
 LINKER_SCRIPT += $(BUILDDIR)/system-onesegment.ld
