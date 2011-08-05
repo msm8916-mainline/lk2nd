@@ -56,6 +56,18 @@
 #define MIPI_VSYNC_BACK_PORCH_LINES  20
 #define MIPI_VSYNC_FRONT_PORCH_LINES 20
 
+/* RENESAS MIPI HVGA panel */
+#define REN_MIPI_FB_WIDTH_HVGA            480
+#define REN_MIPI_FB_HEIGHT_HVGA           320
+
+#define MIPI_HSYNC_PULSE_WIDTH_HVGA       5
+#define MIPI_HSYNC_BACK_PORCH_DCLK_HVGA   21
+#define MIPI_HSYNC_FRONT_PORCH_DCLK_HVGA  15
+
+#define MIPI_VSYNC_PULSE_WIDTH_HVGA       50
+#define MIPI_VSYNC_BACK_PORCH_LINES_HVGA  50
+#define MIPI_VSYNC_FRONT_PORCH_LINES_HVGA 101
+
 #define MIPI_FB_ADDR  0x20000000
 
 extern int mipi_dsi_phy_init(struct mipi_dsi_panel_config *);

@@ -91,9 +91,37 @@ void config_renesas_dsi_video_mode(void)
     unsigned char eof_bllp_pwr = 0x9; /* Needed or else will have blank line at top of display */
     unsigned char interleav = 0;
 
+    unsigned short display_wd = REN_MIPI_FB_WIDTH;
+    unsigned short display_ht = REN_MIPI_FB_HEIGHT;
+    unsigned short image_wd = REN_MIPI_FB_WIDTH;
+    unsigned short image_ht = REN_MIPI_FB_HEIGHT;
+    unsigned short hsync_porch_fp = MIPI_HSYNC_FRONT_PORCH_DCLK;
+    unsigned short hsync_porch_bp = MIPI_HSYNC_BACK_PORCH_DCLK;
+    unsigned short vsync_porch_fp = MIPI_VSYNC_FRONT_PORCH_LINES;
+    unsigned short vsync_porch_bp = MIPI_VSYNC_BACK_PORCH_LINES;
+    unsigned short hsync_width = MIPI_HSYNC_PULSE_WIDTH;
+    unsigned short vsync_width = MIPI_VSYNC_PULSE_WIDTH;
+
+
     dprintf(SPEW, "DSI_Video_Mode - Dst Format: RGB888\n");
-    dprintf(SPEW, "Data Lane: 2 lane\n");
     dprintf(SPEW, "Traffic mode: burst mode\n");
+    if(machine_is_7x25a()) {
+      dprintf(CRITICAL, "Entered 7x25A in config_renesas_dsi_video_mode\n");
+      dprintf(SPEW, "Data Lane: 1 lane\n");
+      display_wd = REN_MIPI_FB_WIDTH_HVGA;
+      display_ht = REN_MIPI_FB_HEIGHT_HVGA;
+      image_wd = REN_MIPI_FB_WIDTH_HVGA;
+      image_ht = REN_MIPI_FB_HEIGHT_HVGA;
+      hsync_porch_fp = MIPI_HSYNC_FRONT_PORCH_DCLK_HVGA;
+      hsync_porch_bp = MIPI_HSYNC_BACK_PORCH_DCLK_HVGA;
+      vsync_porch_fp = MIPI_VSYNC_FRONT_PORCH_LINES_HVGA;
+      vsync_porch_bp = MIPI_VSYNC_BACK_PORCH_LINES_HVGA;
+      hsync_width = MIPI_HSYNC_PULSE_WIDTH_HVGA;
+      vsync_width = MIPI_VSYNC_PULSE_WIDTH_HVGA;
+      lane_en = 1;
+   } else {
+      dprintf(SPEW, "Data Lane: 2 lane\n");
+   }
 
     writel(0x00000000, MDP_DSI_VIDEO_EN);
 
@@ -113,20 +141,20 @@ void config_renesas_dsi_video_mode(void)
 
     writel(0x02020202, DSI_INT_CTRL);
 
-    writel(((MIPI_HSYNC_BACK_PORCH_DCLK + REN_MIPI_FB_WIDTH)<<16) | MIPI_HSYNC_BACK_PORCH_DCLK,
+    writel(((hsync_porch_bp + display_wd)<<16) | hsync_porch_bp,
         DSI_VIDEO_MODE_ACTIVE_H);
 
-    writel(((MIPI_VSYNC_BACK_PORCH_LINES +  REN_MIPI_FB_HEIGHT)<<16) | MIPI_VSYNC_BACK_PORCH_LINES,
+    writel(((vsync_porch_bp +  display_ht)<<16) | vsync_porch_bp,
          DSI_VIDEO_MODE_ACTIVE_V);
 
-    writel(((REN_MIPI_FB_HEIGHT + MIPI_VSYNC_FRONT_PORCH_LINES + MIPI_VSYNC_BACK_PORCH_LINES)<< 16) |
-         (REN_MIPI_FB_WIDTH + MIPI_HSYNC_FRONT_PORCH_DCLK + MIPI_HSYNC_BACK_PORCH_DCLK ),
+    writel(((display_ht + vsync_porch_fp + vsync_porch_bp)<< 16) |
+         (display_wd + hsync_porch_fp + hsync_porch_bp ),
           DSI_VIDEO_MODE_TOTAL );
-    writel((MIPI_HSYNC_PULSE_WIDTH)<<16 | 0, DSI_VIDEO_MODE_HSYNC);
+    writel((hsync_width)<<16 | 0, DSI_VIDEO_MODE_HSYNC);
 
     writel(0<<16 | 0, DSI_VIDEO_MODE_VSYNC);
 
-    writel(MIPI_VSYNC_PULSE_WIDTH<<16 | 0, DSI_VIDEO_MODE_VSYNC_VPOS);
+    writel(vsync_width<<16 | 0, DSI_VIDEO_MODE_VSYNC_VPOS);
 
     writel(1, DSI_EOT_PACKET_CTRL);
 

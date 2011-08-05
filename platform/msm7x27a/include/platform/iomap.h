@@ -111,7 +111,6 @@
 #define MDP_INTR_CLEAR			      REG_MDP(0x00028)
 #define MDP_DSI_CMD_MODE_ID_MAP               REG_MDP(0x000A0)
 #define MDP_DSI_CMD_MODE_TRIGGER_EN           REG_MDP(0x000A4)
-#define MDP_OVERLAYPROC0_CFG                  REG_MDP(0x10004)
 
 #define MDP_TEST_MODE_CLK                     REG_MDP(0xF0000)
 #define MDP_INTR_STATUS                       REG_MDP(0x00054)

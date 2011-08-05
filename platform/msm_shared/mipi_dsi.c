@@ -168,6 +168,9 @@ int mipi_dsi_phy_ctrl_config(struct mipi_dsi_panel_config *pinfo)
         off += 4;
     }
 
+    if(machine_is_7x25a()) {
+       pd->pll[10] |=0x8;
+    }
     off = 0x0204;               /* pll ctrl 1, skip 0 */
     for (i = 1; i < 21; i++) {
         writel(pd->pll[i], MIPI_DSI_BASE + off);
@@ -192,6 +195,10 @@ struct mipi_dsi_panel_config *get_panel_info(void)
 #elif DISPLAY_MIPI_PANEL_TOSHIBA_MDT61
     return &toshiba_mdt61_panel_info;
 #elif DISPLAY_MIPI_PANEL_RENESAS
+   if(machine_is_7x25a()) {
+     renesas_panel_info.num_of_lanes = 1;
+     mipi_fb_cfg.height = REN_MIPI_FB_HEIGHT_HVGA;
+   }
     return &renesas_panel_info;
 #endif
     return NULL;
@@ -578,6 +585,19 @@ int mipi_dsi_video_config(unsigned short num_of_lanes)
     mdp_setup_dma_p_video_config(pack_pattern, image_wd, image_ht, MIPI_FB_ADDR, image_wd, ystride);
     mdp_setup_mdt61_video_dsi_config();
 #elif DISPLAY_MIPI_PANEL_RENESAS
+    if(machine_is_7x25a()) {
+      display_wd = REN_MIPI_FB_WIDTH_HVGA;
+      display_ht = REN_MIPI_FB_HEIGHT_HVGA;
+      image_wd = REN_MIPI_FB_WIDTH_HVGA;
+      image_ht = REN_MIPI_FB_HEIGHT_HVGA;
+      hsync_porch_fp = MIPI_HSYNC_FRONT_PORCH_DCLK_HVGA;
+      hsync_porch_bp = MIPI_HSYNC_BACK_PORCH_DCLK_HVGA;
+      vsync_porch_fp = MIPI_VSYNC_FRONT_PORCH_LINES_HVGA;
+      vsync_porch_bp = MIPI_VSYNC_BACK_PORCH_LINES_HVGA;
+      hsync_width = MIPI_HSYNC_PULSE_WIDTH_HVGA;
+      vsync_width = MIPI_VSYNC_PULSE_WIDTH_HVGA;
+   }
+
     pack_pattern = 0x21; //RGB
     config_renesas_dsi_video_mode();
 

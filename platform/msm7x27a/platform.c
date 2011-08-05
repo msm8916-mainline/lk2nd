@@ -38,6 +38,7 @@
 #include <platform/iomap.h>
 #include <mddi.h>
 #include <dev/fbcon.h>
+#include <smem.h>
 
 static struct fbcon_config *fb_config;
 
@@ -54,6 +55,8 @@ void acpu_clock_init(void);
 void mddi_clock_init(unsigned num, unsigned rate);
 
 extern void mipi_dsi_shutdown(void);
+
+unsigned board_msm_id(void);
 
 void platform_early_init(void)
 {
@@ -121,4 +124,11 @@ void platform_init_timer(void)
 uint32_t platform_tick_rate(void)
 {
 	return ticks_per_sec;
+}
+bool machine_is_7x25a(void)
+{
+	if ((board_msm_id() == MSM7225A) || (board_msm_id() == MSM7625A))
+		return 1;
+	else
+		return 0;
 }
