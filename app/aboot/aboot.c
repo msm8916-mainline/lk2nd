@@ -55,8 +55,9 @@
 #include "fastboot.h"
 #include "sparse_format.h"
 #include "mmc.h"
+#include "devinfo.h"
 
-#include "scm_decrypt.h"
+#include "scm.h"
 
 #define EXPAND(NAME) #NAME
 #define TARGET(NAME) EXPAND(NAME)
@@ -83,6 +84,8 @@ static const char *baseband_svlte2a = " androidboot.baseband=svlte2a";
 
 /* Assuming unauthorized kernel image by default */
 static int auth_kernel_img = 0;
+
+static device_info device = {DEVICE_MAGIC, 0, 0};
 
 static struct udc_device surf_udc_device = {
 	.vendor_id	= 0x18d1,
@@ -353,7 +356,7 @@ int boot_linux_from_mmc(void)
 	}
 
 	/* Authenticate Kernel */
-	if(target_use_signed_kernel())
+	if(target_use_signed_kernel() && (!device.is_unlocked) && (!device.is_rooted))
 	{
 		image_addr = (unsigned char *)target_get_scratch_address();
 		kernel_actual = ROUND_TO_PAGE(hdr->kernel_size, page_mask);
@@ -361,6 +364,10 @@ int boot_linux_from_mmc(void)
 		imagesize_actual = (page_size + kernel_actual + ramdisk_actual);
 
 		offset = 0;
+
+		/* Assuming device rooted at this time */
+		device.is_rooted = 1;
+
 		/* Read image without signature */
 		if (mmc_read(ptn + offset, (void *)image_addr, imagesize_actual))
 		{
@@ -380,11 +387,26 @@ int boot_linux_from_mmc(void)
 					(unsigned char *)(image_addr + imagesize_actual),
 					imagesize_actual,
 					CRYPTO_AUTH_ALG_SHA256);
+
+			if(auth_kernel_img)
+			{
+				/* Authorized kernel */
+				device.is_rooted = 0;
+			}
 		}
 
 		/* Move kernel and ramdisk to correct address */
 		memmove((void*) hdr->kernel_addr, (char *)(image_addr + page_size), hdr->kernel_size);
 		memmove((void*) hdr->ramdisk_addr, (char *)(image_addr + page_size + kernel_actual), hdr->ramdisk_size);
+
+		/* Make sure everything from scratch address is read before next step!*/
+		if(device.is_rooted)
+		{
+			write_device_info_mmc(&device);
+		#ifdef TZ_TAMPER_FUSE
+			set_tamper_fuse_cmd();
+		#endif
+		}
 	}
 	else
 	{
@@ -479,7 +501,6 @@ int boot_linux_from_flash(void)
 		dprintf(CRITICAL, "ERROR: Cannot read boot image header\n");
 		return -1;
 	}
-	offset += page_size;
 
 	if (memcmp(hdr->magic, BOOT_MAGIC, BOOT_MAGIC_SIZE)) {
 		dprintf(CRITICAL, "ERROR: Invalid boot image header\n");
@@ -492,7 +513,7 @@ int boot_linux_from_flash(void)
 	}
 
 	/* Authenticate Kernel */
-	if(target_use_signed_kernel())
+	if(target_use_signed_kernel() && (!device.is_unlocked) && (!device.is_rooted))
 	{
 		image_addr = (unsigned char *)target_get_scratch_address();
 		kernel_actual = ROUND_TO_PAGE(hdr->kernel_size, page_mask);
@@ -500,6 +521,10 @@ int boot_linux_from_flash(void)
 		imagesize_actual = (page_size + kernel_actual + ramdisk_actual);
 
 		offset = 0;
+
+		/* Assuming device rooted at this time */
+		device.is_rooted = 1;
+
 		/* Read image without signature */
 		if (flash_read(ptn, offset, (void *)image_addr, imagesize_actual))
 		{
@@ -521,14 +546,28 @@ int boot_linux_from_flash(void)
 						(unsigned char *)(image_addr + imagesize_actual),
 						imagesize_actual,
 						CRYPTO_AUTH_ALG_SHA256);
+
+			if(auth_kernel_img)
+			{
+				/* Authorized kernel */
+				device.is_rooted = 0;
+			}
 		}
 
 		/* Move kernel and ramdisk to correct address */
 		memmove((void*) hdr->kernel_addr, (char *)(image_addr + page_size), hdr->kernel_size);
 		memmove((void*) hdr->ramdisk_addr, (char *)(image_addr + page_size + kernel_actual), hdr->ramdisk_size);
+
+		/* Make sure everything from scratch address is read before next step!*/
+		if(device.is_rooted)
+		{
+			write_device_info_flash(&device);
+		}
 	}
 	else
 	{
+		offset = page_size;
+
 		n = ROUND_TO_PAGE(hdr->kernel_size, page_mask);
 		if (flash_read(ptn, offset, (void *)hdr->kernel_addr, n)) {
 			dprintf(CRITICAL, "ERROR: Cannot read kernel image\n");
@@ -566,12 +605,176 @@ continue_boot:
 	return 0;
 }
 
+unsigned char info_buf[4096];
+void write_device_info_mmc(device_info *dev)
+{
+	struct device_info *info = (void*) info_buf;
+	unsigned long long ptn = 0;
+	unsigned long long size;
+	int index = INVALID_PTN;
+
+	index = partition_get_index("aboot");
+	ptn = partition_get_offset(index);
+	if(ptn == 0)
+	{
+		return;
+	}
+
+	size = partition_get_size(index);
+
+	memcpy(info, dev, sizeof(device_info));
+
+	if(mmc_write((ptn + size - 512), 512, (void *)info_buf))
+	{
+		dprintf(CRITICAL, "ERROR: Cannot write device info\n");
+		return;
+	}
+}
+
+void read_device_info_mmc(device_info *dev)
+{
+	struct device_info *info = (void*) info_buf;
+	unsigned long long ptn = 0;
+	unsigned long long size;
+	int index = INVALID_PTN;
+
+	index = partition_get_index("aboot");
+	ptn = partition_get_offset(index);
+	if(ptn == 0)
+	{
+		return;
+	}
+
+	size = partition_get_size(index);
+
+	if(mmc_read((ptn + size - 512), (void *)info_buf, 512))
+	{
+		dprintf(CRITICAL, "ERROR: Cannot read device info\n");
+		return;
+	}
+
+	if (memcmp(info->magic, DEVICE_MAGIC, DEVICE_MAGIC_SIZE))
+	{
+		memcpy(info->magic, DEVICE_MAGIC, DEVICE_MAGIC_SIZE);
+		info->is_unlocked = 0;
+		info->is_rooted = 0;
+
+		write_device_info_mmc(info);
+	}
+	memcpy(dev, info, sizeof(device_info));
+}
+
+void write_device_info_flash(device_info *dev)
+{
+	struct device_info *info = (void *) info_buf;
+	struct ptentry *ptn;
+	struct ptable *ptable;
+
+	ptable = flash_get_ptable();
+	if (ptable == NULL)
+	{
+		dprintf(CRITICAL, "ERROR: Partition table not found\n");
+		return;
+	}
+
+	ptn = ptable_find(ptable, "devinfo");
+	if (ptn == NULL)
+	{
+		dprintf(CRITICAL, "ERROR: No boot partition found\n");
+			return;
+	}
+
+	memcpy(info, dev, sizeof(device_info));
+
+	if (flash_write(ptn, 0, (void *)info_buf, page_size))
+	{
+		dprintf(CRITICAL, "ERROR: Cannot write device info\n");
+			return;
+	}
+}
+
+void read_device_info_flash(device_info *dev)
+{
+	struct device_info *info = (void*) info_buf;
+	struct ptentry *ptn;
+	struct ptable *ptable;
+
+	ptable = flash_get_ptable();
+	if (ptable == NULL)
+	{
+		dprintf(CRITICAL, "ERROR: Partition table not found\n");
+		return;
+	}
+
+	ptn = ptable_find(ptable, "devinfo");
+	if (ptn == NULL)
+	{
+		dprintf(CRITICAL, "ERROR: No boot partition found\n");
+			return;
+	}
+
+	if (flash_read(ptn, 0, (void *)info_buf, page_size))
+	{
+		dprintf(CRITICAL, "ERROR: Cannot write device info\n");
+			return;
+	}
+
+	if (memcmp(info->magic, DEVICE_MAGIC, DEVICE_MAGIC_SIZE))
+	{
+		while(1);
+		memcpy(info->magic, DEVICE_MAGIC, DEVICE_MAGIC_SIZE);
+		info->is_unlocked = 0;
+		info->is_rooted = 0;
+		write_device_info_flash(info);
+	}
+	memcpy(dev, info, sizeof(device_info));
+}
+
+void write_device_info(device_info *dev)
+{
+	if(target_is_emmc_boot())
+	{
+		write_device_info_mmc(dev);
+	}
+	else
+	{
+		write_device_info_flash(dev);
+	}
+}
+
+void read_device_info(device_info *dev)
+{
+	if(target_is_emmc_boot())
+	{
+		read_device_info_mmc(dev);
+	}
+	else
+	{
+		read_device_info_flash(dev);
+	}
+}
+
+void reset_device_info()
+{
+	dprintf(ALWAYS, "reset_device_info called.");
+	device.is_rooted = 0;
+	write_device_info(&device);
+}
+
+void set_device_root()
+{
+	dprintf(ALWAYS, "set_device_root called.");
+	device.is_rooted = 1;
+	write_device_info(&device);
+}
+
 void cmd_boot(const char *arg, void *data, unsigned sz)
 {
 	unsigned kernel_actual;
 	unsigned ramdisk_actual;
 	static struct boot_img_hdr hdr;
 	char *ptr = ((char*) data);
+	unsigned image_actual;
 
 	if (sz < sizeof(hdr)) {
 		fastboot_fail("invalid bootimage header");
@@ -590,8 +793,12 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 
 	kernel_actual = ROUND_TO_PAGE(hdr.kernel_size, page_mask);
 	ramdisk_actual = ROUND_TO_PAGE(hdr.ramdisk_size, page_mask);
+	image_actual = page_size + kernel_actual + ramdisk_actual;
 
-	if (page_size + kernel_actual + ramdisk_actual < sz) {
+	if(target_use_signed_kernel())
+		image_actual += page_size;
+
+	if (image_actual > sz) {
 		fastboot_fail("incomplete bootimage");
 		return;
 	}
@@ -698,8 +905,6 @@ void cmd_flash_mmc_img(const char *arg, void *data, unsigned sz)
 	fastboot_okay("");
 	return;
 }
-
-
 
 void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 {
@@ -911,6 +1116,16 @@ void cmd_reboot_bootloader(const char *arg, void *data, unsigned sz)
 	reboot_device(FASTBOOT_MODE);
 }
 
+void cmd_oem_unlock(const char *arg, void *data, unsigned sz)
+{
+	if(!device.is_unlocked)
+	{
+		device.is_unlocked = 1;
+		write_device_info(&device);
+	}
+	fastboot_okay("");
+}
+
 void splash_screen ()
 {
 	struct ptentry *ptn;
@@ -957,6 +1172,18 @@ void aboot_init(const struct app_descriptor *app)
 	{
 		page_size = flash_page_size();
 		page_mask = page_size - 1;
+	}
+
+	if(target_use_signed_kernel())
+	{
+		read_device_info(&device);
+
+		if((device.is_unlocked) || (device.is_rooted))
+		{
+		#ifdef TZ_TAMPER_FUSE
+			set_tamper_fuse_cmd();
+		#endif
+		}
 	}
 
 	target_serialno((unsigned char *) sn_buf);
@@ -1008,7 +1235,7 @@ void aboot_init(const struct app_descriptor *app)
 
 fastboot:
 
-       target_fastboot_init();
+	target_fastboot_init();
 
 	if(!usb_init)
 		udc_init(&surf_udc_device);
@@ -1029,8 +1256,11 @@ fastboot:
 	fastboot_register("continue", cmd_continue);
 	fastboot_register("reboot", cmd_reboot);
 	fastboot_register("reboot-bootloader", cmd_reboot_bootloader);
+	fastboot_register("oem unlock", cmd_oem_unlock);
 	fastboot_publish("product", TARGET(BOARD));
 	fastboot_publish("kernel", "lk");
+	fastboot_publish("root-flag", device.is_rooted);
+	fastboot_publish("unlock-flag", device.is_unlocked);
 	partition_dump();
 	sz = target_get_max_flash_size();
 	fastboot_init(target_get_scratch_address(), sz);

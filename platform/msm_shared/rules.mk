@@ -24,7 +24,7 @@ ifeq ($(PLATFORM),msm8x60)
 			$(LOCAL_DIR)/uart_dm.o \
 			$(LOCAL_DIR)/crypto_eng.o \
 			$(LOCAL_DIR)/crypto_hash.o \
-			$(LOCAL_DIR)/scm_decrypt.o \
+			$(LOCAL_DIR)/scm.o \
 			$(LOCAL_DIR)/lcdc.o \
 			$(LOCAL_DIR)/mddi.o \
 			$(LOCAL_DIR)/qgic.o \

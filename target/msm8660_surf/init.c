@@ -447,3 +447,11 @@ uint8_t target_uart_gsbi(void)
 {
 	return uart_gsbi_id;
 }
+
+int emmc_recovery_init(void)
+{
+	int rc;
+	rc = _emmc_recovery_init();
+	return rc;
+}
+
