@@ -69,3 +69,8 @@ unsigned* target_atag_mem(unsigned* ptr)
 	return ptr;
 }
 
+unsigned target_get_max_flash_size(void)
+{
+	    return (150 * 1024 * 1024);
+}
+
