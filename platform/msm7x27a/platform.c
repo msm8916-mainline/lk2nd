@@ -38,6 +38,7 @@
 #include <platform/iomap.h>
 #include <mddi.h>
 #include <dev/fbcon.h>
+#include <dev/gpio.h>
 #include <smem.h>
 
 static struct fbcon_config *fb_config;
@@ -87,18 +88,21 @@ void display_init(void)
 	fbcon_setup(fb_config);
 #endif
 #if DISPLAY_TYPE_MIPI
-       dprintf(INFO, "display_init()\n");
-       fb_config = mipi_init();
-       ASSERT(fb_config);
-       fbcon_setup(fb_config);
+	dprintf(SPEW, "display_init()\n");
+	panel_dsi_init();
+	fb_config = mipi_init();
+	ASSERT(fb_config);
+	fbcon_setup(fb_config);
 #endif
 }
 
 void display_shutdown(void)
 {
 #if DISPLAY_TYPE_MIPI
-       dprintf(INFO, "display_shutdown()\n");
-       mipi_dsi_shutdown();
+	dprintf(SPEW, "display_shutdown()\n");
+	mipi_dsi_shutdown();
+	/* Power down DSI bridge chip */
+	gpio_set(128,0x1);
 #endif
 
 }
@@ -131,4 +135,16 @@ bool machine_is_7x25a(void)
 		return 1;
 	else
 		return 0;
+}
+
+/* Toggle RESET pin of the DSI Client before sending
+ * panel init commands
+ */
+void panel_dsi_init(void)
+{
+	gpio_set(129,0x1);
+	gpio_config(129, GPIO_OUTPUT);
+	gpio_set(129,0x0);
+	gpio_set(129,0x1);
+	mdelay(10);
 }
