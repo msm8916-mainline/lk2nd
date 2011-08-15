@@ -75,3 +75,8 @@ ifeq ($(PLATFORM),msm7x30)
 			$(LOCAL_DIR)/certificate.o \
 			$(LOCAL_DIR)/image_verify.o
 endif
+
+ifeq ($(PLATFORM),mdm9x15)
+	OBJS += $(LOCAL_DIR)/qgic.o \
+			$(LOCAL_DIR)/uart_dm.o
+endif
