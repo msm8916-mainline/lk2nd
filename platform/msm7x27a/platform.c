@@ -142,6 +142,9 @@ bool machine_is_7x25a(void)
  */
 void panel_dsi_init(void)
 {
+	gpio_set(128,0x1);
+	mdelay(5);
+	gpio_set(128,0x0);
 	gpio_set(129,0x1);
 	gpio_config(129, GPIO_OUTPUT);
 	gpio_set(129,0x0);
