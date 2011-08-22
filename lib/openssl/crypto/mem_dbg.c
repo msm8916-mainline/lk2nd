@@ -111,7 +111,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>	
+#ifndef LK_NO_TIME
+#include <time.h>
+#endif
 #include "cryptlib.h"
 #include <openssl/crypto.h>
 #include <openssl/buffer.h>
@@ -661,6 +663,7 @@ typedef struct mem_leak_st
 	long bytes;
 	} MEM_LEAK;
 
+#ifndef LK_NO_TIME
 static void print_leak_doall_arg(const MEM *m, MEM_LEAK *l)
 	{
 	char buf[1024];
@@ -750,6 +753,7 @@ static void print_leak_doall_arg(const MEM *m, MEM_LEAK *l)
 		}
 #endif
 	}
+#endif
 
 static IMPLEMENT_LHASH_DOALL_ARG_FN(print_leak, const MEM, MEM_LEAK)
 

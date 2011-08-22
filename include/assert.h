@@ -28,6 +28,7 @@
 
 #define ASSERT(x) \
 	do { if (unlikely(!(x))) { panic("ASSERT FAILED at (%s:%d): %s\n", __FILE__, __LINE__, #x); } } while (0)
+#define assert(x) ASSERT(x)
 
 #if DEBUGLEVEL > 1
 #define DEBUG_ASSERT(x) \

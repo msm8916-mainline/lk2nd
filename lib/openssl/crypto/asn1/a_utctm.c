@@ -57,7 +57,9 @@
  */
 
 #include <stdio.h>
+#ifndef LK_NO_TIME
 #include <time.h>
+#endif
 #include "cryptlib.h"
 #include "o_time.h"
 #include <openssl/asn1.h>
@@ -81,7 +83,7 @@ int i2d_ASN1_UTCTIME(ASN1_UTCTIME *a, unsigned char **pp)
 #endif
 	}
 
-
+#ifndef LK_NO_TIME
 ASN1_UTCTIME *d2i_ASN1_UTCTIME(ASN1_UTCTIME **a, unsigned char **pp,
 	     long length)
 	{
@@ -277,7 +279,7 @@ int ASN1_UTCTIME_cmp_time_t(const ASN1_UTCTIME *s, time_t t)
 
 	return 0;
 	}
-
+#endif
 
 #if 0
 time_t ASN1_UTCTIME_get(const ASN1_UTCTIME *s)

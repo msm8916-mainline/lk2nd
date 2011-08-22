@@ -67,8 +67,13 @@
 extern const EVP_PKEY_ASN1_METHOD rsa_asn1_meths[];
 extern const EVP_PKEY_ASN1_METHOD dsa_asn1_meths[];
 extern const EVP_PKEY_ASN1_METHOD dh_asn1_meth;
+#ifndef OPENSSL_NO_EC
 extern const EVP_PKEY_ASN1_METHOD eckey_asn1_meth;
+#endif
+
+#ifndef LK_NO_HMAC
 extern const EVP_PKEY_ASN1_METHOD hmac_asn1_meth;
+#endif
 
 /* Keep this sorted in type order !! */
 static const EVP_PKEY_ASN1_METHOD *standard_methods[] = 
@@ -90,7 +95,11 @@ static const EVP_PKEY_ASN1_METHOD *standard_methods[] =
 #ifndef OPENSSL_NO_EC
 	&eckey_asn1_meth,
 #endif
+#ifndef LK_NO_HMAC
 	&hmac_asn1_meth
+#else
+	0
+#endif
 	};
 
 typedef int sk_cmp_fn_type(const char * const *a, const char * const *b);
@@ -150,10 +159,14 @@ static const EVP_PKEY_ASN1_METHOD *pkey_asn1_find(int type)
 	tmp.pkey_id = type;
 	if (app_methods)
 		{
+#ifndef LK_NO_QSORT
 		int idx;
 		idx = sk_EVP_PKEY_ASN1_METHOD_find(app_methods, &tmp);
 		if (idx >= 0)
 			return sk_EVP_PKEY_ASN1_METHOD_value(app_methods, idx);
+#else
+		printf("Openssl LK: Removed qsort dependency in ameth_lib.c\n");
+#endif
 		}
 	ret = OBJ_bsearch_ameth(&t, standard_methods,
 			  sizeof(standard_methods)
@@ -172,8 +185,9 @@ static const EVP_PKEY_ASN1_METHOD *pkey_asn1_find(int type)
 const EVP_PKEY_ASN1_METHOD *EVP_PKEY_asn1_find(ENGINE **pe, int type)
 	{
 	const EVP_PKEY_ASN1_METHOD *t;
+#ifndef OPENSSL_NO_ENGINE
 	ENGINE *e;
-
+#endif
 	for (;;)
 		{
 		t = pkey_asn1_find(type);

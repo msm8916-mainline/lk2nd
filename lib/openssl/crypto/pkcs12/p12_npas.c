@@ -59,7 +59,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifndef LK_NO_PEM
 #include <openssl/pem.h>
+#endif
 #include <openssl/err.h>
 #include <openssl/pkcs12.h>
 

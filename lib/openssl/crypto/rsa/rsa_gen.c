@@ -63,7 +63,9 @@
  */
 
 #include <stdio.h>
+#ifndef LK_NO_TIME
 #include <time.h>
+#endif
 #include "cryptlib.h"
 #include <openssl/bn.h>
 #include <openssl/rsa.h>

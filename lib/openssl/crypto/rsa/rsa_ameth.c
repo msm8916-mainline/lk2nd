@@ -180,6 +180,7 @@ static void update_buflen(const BIGNUM *b, size_t *pbuflen)
 			*pbuflen = i;
 	}
 
+#ifndef LK_NO_BIO
 static int do_rsa_print(BIO *bp, const RSA *x, int off, int priv)
 	{
 	char *str;
@@ -265,6 +266,7 @@ static int rsa_priv_print(BIO *bp, const EVP_PKEY *pkey, int indent,
 	return do_rsa_print(bp, pkey->pkey.rsa, indent, 1);
 	}
 
+#endif
 
 static int rsa_pkey_ctrl(EVP_PKEY *pkey, int op, long arg1, void *arg2)
 	{
@@ -324,12 +326,18 @@ const EVP_PKEY_ASN1_METHOD rsa_asn1_meths[] =
 		rsa_pub_decode,
 		rsa_pub_encode,
 		rsa_pub_cmp,
+#ifndef LK_NO_BIO
 		rsa_pub_print,
-
+#else
+		0,
+#endif
 		rsa_priv_decode,
 		rsa_priv_encode,
+#ifndef LK_NO_BIO
 		rsa_priv_print,
-
+#else
+		0,
+#endif
 		int_rsa_size,
 		rsa_bits,
 

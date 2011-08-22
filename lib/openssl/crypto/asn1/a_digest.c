@@ -57,7 +57,9 @@
  */
 
 #include <stdio.h>
+#ifndef LK_NO_TIME
 #include <time.h>
+#endif
 
 #include "cryptlib.h"
 

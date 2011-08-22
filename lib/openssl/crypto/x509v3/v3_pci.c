@@ -159,6 +159,7 @@ static int process_pci_value(CONF_VALUE *val,
 			}
 		else if (strncmp(val->value, "file:", 5) == 0)
 			{
+#ifndef LK_NO_BIO
 			unsigned char buf[2048];
 			int n;
 			BIO *b = BIO_new_file(val->value + 5, "r");
@@ -193,6 +194,7 @@ static int process_pci_value(CONF_VALUE *val,
 				X509V3_conf_err(val);
 				goto err;
 				}
+#endif
 			}
 		else if (strncmp(val->value, "text:", 5) == 0)
 			{

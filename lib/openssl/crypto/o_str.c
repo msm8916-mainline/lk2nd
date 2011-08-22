@@ -57,7 +57,7 @@
  */
 
 #include <ctype.h>
-#include <e_os.h>
+#include <openssl/e_os.h>
 #include "o_str.h"
 
 #if !defined(OPENSSL_IMPLEMENTS_strncasecmp) && \

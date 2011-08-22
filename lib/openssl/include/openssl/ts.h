@@ -291,8 +291,10 @@ TS_REQ	*d2i_TS_REQ(TS_REQ **a, const unsigned char **pp, long length);
 
 TS_REQ	*TS_REQ_dup(TS_REQ *a);
 
+#ifndef OPENSSL_NO_FP_API
 TS_REQ	*d2i_TS_REQ_fp(FILE *fp, TS_REQ **a);
 int	i2d_TS_REQ_fp(FILE *fp, TS_REQ *a);
+#endif
 TS_REQ	*d2i_TS_REQ_bio(BIO *fp, TS_REQ **a);
 int	i2d_TS_REQ_bio(BIO *fp, TS_REQ *a);
 
@@ -304,8 +306,10 @@ TS_MSG_IMPRINT	*d2i_TS_MSG_IMPRINT(TS_MSG_IMPRINT **a,
 
 TS_MSG_IMPRINT	*TS_MSG_IMPRINT_dup(TS_MSG_IMPRINT *a);
 
+#ifndef OPENSSL_NO_FP_API
 TS_MSG_IMPRINT	*d2i_TS_MSG_IMPRINT_fp(FILE *fp, TS_MSG_IMPRINT **a);
 int		i2d_TS_MSG_IMPRINT_fp(FILE *fp, TS_MSG_IMPRINT *a);
+#endif
 TS_MSG_IMPRINT	*d2i_TS_MSG_IMPRINT_bio(BIO *fp, TS_MSG_IMPRINT **a);
 int		i2d_TS_MSG_IMPRINT_bio(BIO *fp, TS_MSG_IMPRINT *a);
 
@@ -316,8 +320,10 @@ TS_RESP	*d2i_TS_RESP(TS_RESP **a, const unsigned char **pp, long length);
 TS_TST_INFO *PKCS7_to_TS_TST_INFO(PKCS7 *token);
 TS_RESP	*TS_RESP_dup(TS_RESP *a);
 
+#ifndef OPENSSL_NO_FP_API
 TS_RESP	*d2i_TS_RESP_fp(FILE *fp, TS_RESP **a);
 int	i2d_TS_RESP_fp(FILE *fp, TS_RESP *a);
+#endif
 TS_RESP	*d2i_TS_RESP_bio(BIO *fp, TS_RESP **a);
 int	i2d_TS_RESP_bio(BIO *fp, TS_RESP *a);
 
@@ -335,8 +341,10 @@ TS_TST_INFO	*d2i_TS_TST_INFO(TS_TST_INFO **a, const unsigned char **pp,
 				    long length);
 TS_TST_INFO	*TS_TST_INFO_dup(TS_TST_INFO *a);
 
+#ifndef OPENSSL_NO_FP_API
 TS_TST_INFO	*d2i_TS_TST_INFO_fp(FILE *fp, TS_TST_INFO **a);
 int		i2d_TS_TST_INFO_fp(FILE *fp, TS_TST_INFO *a);
+#endif
 TS_TST_INFO	*d2i_TS_TST_INFO_bio(BIO *fp, TS_TST_INFO **a);
 int		i2d_TS_TST_INFO_bio(BIO *fp, TS_TST_INFO *a);
 

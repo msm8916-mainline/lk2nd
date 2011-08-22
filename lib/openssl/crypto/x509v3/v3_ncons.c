@@ -406,9 +406,11 @@ static int nc_dns(ASN1_IA5STRING *dns, ASN1_IA5STRING *base)
 			return X509_V_ERR_PERMITTED_VIOLATION;
 		}
 
+	/* Remove dependency on strcasecmp */
+#ifndef OPENSSL_LK
 	if (strcasecmp(baseptr, dnsptr))
 			return X509_V_ERR_PERMITTED_VIOLATION;
-
+#endif
 	return X509_V_OK;
 
 	}

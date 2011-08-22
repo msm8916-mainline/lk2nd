@@ -65,7 +65,9 @@
 #include <openssl/x509.h>
 #include <openssl/objects.h>
 #include <openssl/buffer.h>
+#ifndef LK_NO_PEM
 #include <openssl/pem.h>
+#endif
 
 X509_REQ *X509_to_X509_REQ(X509 *x, EVP_PKEY *pkey, const EVP_MD *md)
 	{

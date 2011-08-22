@@ -26,6 +26,7 @@
 #include <sys/types.h>
 
 void *heap_alloc(size_t, unsigned int alignment);
+void *heap_realloc(void *ptr, size_t size);
 void heap_free(void *);
 
 void heap_init(void);

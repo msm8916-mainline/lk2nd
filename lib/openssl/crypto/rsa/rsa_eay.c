@@ -197,14 +197,18 @@ static int RSA_eay_public_encrypt(int flen, const unsigned char *from,
 	case RSA_PKCS1_PADDING:
 		i=RSA_padding_add_PKCS1_type_2(buf,num,from,flen);
 		break;
+#ifndef LK_NO_OAEP
 #ifndef OPENSSL_NO_SHA
 	case RSA_PKCS1_OAEP_PADDING:
 	        i=RSA_padding_add_PKCS1_OAEP(buf,num,from,flen,NULL,0);
 		break;
 #endif
+#endif
+#ifndef LK_NO_SSLV23
 	case RSA_SSLV23_PADDING:
 		i=RSA_padding_add_SSLv23(buf,num,from,flen);
 		break;
+#endif
 	case RSA_NO_PADDING:
 		i=RSA_padding_add_none(buf,num,from,flen);
 		break;
@@ -267,7 +271,9 @@ static BN_BLINDING *rsa_get_blinding(RSA *rsa, int *local, BN_CTX *ctx)
 		got_write_lock = 1;
 
 		if (rsa->blinding == NULL)
-			rsa->blinding = RSA_setup_blinding(rsa, ctx);
+		  /* removing dependency on RSA_setup_blinding in lk */
+		  //rsa->blinding = RSA_setup_blinding(rsa, ctx);
+		  return NULL;
 		}
 
 	ret = rsa->blinding;
@@ -299,9 +305,13 @@ static BN_BLINDING *rsa_get_blinding(RSA *rsa, int *local, BN_CTX *ctx)
 				CRYPTO_w_lock(CRYPTO_LOCK_RSA);
 				got_write_lock = 1;
 				}
-			
+
 			if (rsa->mt_blinding == NULL)
-				rsa->mt_blinding = RSA_setup_blinding(rsa, ctx);
+#ifndef LK_NO_RAND
+			  rsa->mt_blinding = RSA_setup_blinding(rsa, ctx);
+#else
+			  return NULL;
+#endif
 			}
 		ret = rsa->mt_blinding;
 		}
@@ -397,7 +407,12 @@ static int RSA_eay_private_encrypt(int flen, const unsigned char *from,
 
 	if (!(rsa->flags & RSA_FLAG_NO_BLINDING))
 		{
-		blinding = rsa_get_blinding(rsa, &local_blinding, ctx);
+#ifndef LK_NO_RAND
+		  blinding = rsa_get_blinding(rsa, &local_blinding, ctx);
+#else
+		  blinding = NULL;
+		  printf("Openssl LK: Removed rand dependency in rsa_eay.c\n");
+#endif
 		if (blinding == NULL)
 			{
 			RSAerr(RSA_F_RSA_EAY_PRIVATE_ENCRYPT, ERR_R_INTERNAL_ERROR);
@@ -520,7 +535,12 @@ static int RSA_eay_private_decrypt(int flen, const unsigned char *from,
 
 	if (!(rsa->flags & RSA_FLAG_NO_BLINDING))
 		{
+#ifndef LK_NO_RAND
 		blinding = rsa_get_blinding(rsa, &local_blinding, ctx);
+#else
+		blinding = NULL;
+		printf("Openssl LK: Removed rand dependency in rsa_eay.c\n");
+#endif
 		if (blinding == NULL)
 			{
 			RSAerr(RSA_F_RSA_EAY_PRIVATE_DECRYPT, ERR_R_INTERNAL_ERROR);
@@ -575,14 +595,18 @@ static int RSA_eay_private_decrypt(int flen, const unsigned char *from,
 	case RSA_PKCS1_PADDING:
 		r=RSA_padding_check_PKCS1_type_2(to,num,buf,j,num);
 		break;
+#ifndef LK_NO_OAEP
 #ifndef OPENSSL_NO_SHA
         case RSA_PKCS1_OAEP_PADDING:
 	        r=RSA_padding_check_PKCS1_OAEP(to,num,buf,j,num,NULL,0);
                 break;
 #endif
+#endif
+#ifndef LK_NO_SSLV23
  	case RSA_SSLV23_PADDING:
 		r=RSA_padding_check_SSLv23(to,num,buf,j,num);
 		break;
+#endif
 	case RSA_NO_PADDING:
 		r=RSA_padding_check_none(to,num,buf,j,num);
 		break;

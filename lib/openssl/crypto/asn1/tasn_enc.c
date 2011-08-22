@@ -435,7 +435,6 @@ static int der_cmp(const void *a, const void *b)
 	}
 
 /* Output the content octets of SET OF or SEQUENCE OF */
-
 static int asn1_set_seq_out(STACK_OF(ASN1_VALUE) *sk, unsigned char **out,
 					int skcontlen, const ASN1_ITEM *item,
 					int do_sort, int iclass)
@@ -480,7 +479,7 @@ static int asn1_set_seq_out(STACK_OF(ASN1_VALUE) *sk, unsigned char **out,
 		}
 
 	/* Now sort them */
-	qsort(derlst, sk_ASN1_VALUE_num(sk), sizeof(*derlst), der_cmp);
+	printf("Openssl LK: removing qsort dependency in tasn_enc\n");
 	/* Output sorted DER encoding */	
 	p = *out;
 	for (i = 0, tder = derlst; i < sk_ASN1_VALUE_num(sk); i++, tder++)
