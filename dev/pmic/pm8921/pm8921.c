@@ -205,11 +205,7 @@ int pm8921_ldo_set_voltage(uint32_t ldo_id, uint32_t voltage)
 	}
 
 	/* Program the CTRL reg */
-	ret = dev->read(&val, 1, PM8921_LDO_CTRL_REG(ldo_number));
-	if (ret == -1) {
-		dprintf(CRITICAL, "Failed to read to PM8921 LDO Ctrl Reg ret=%d.\n", ret);
-		return -1;
-	}
+	val = 0x0;
 	val |= ( 1 << PM8921_LDO_CTRL_REG_ENABLE);
 	val |= ( 1 << PM8921_LDO_CTRL_REG_PULL_DOWN);
 	val |= ( 0 << PM8921_LDO_CTRL_REG_POWER_MODE);
