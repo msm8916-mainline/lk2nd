@@ -666,16 +666,20 @@ void mipi_dsi_shutdown(void)
     mdp_shutdown();
     writel(0x01010101, DSI_INT_CTRL);
     writel(0x13FF3BFF, DSI_ERR_INT_MASK0);
-    writel(0, DSIPHY_PLL_CTRL(0));
-    writel(0, DSI_CLK_CTRL);
-    writel(0, DSI_CTRL);
 #if DISPLAY_MIPI_PANEL_TOSHIBA_MDT61
-    writel(0x0, DSI_CC_REG);
+    /* Disable branch clocks */
+    writel(0x0, BYTE_CC_REG);
     writel(0x0, PIXEL_CC_REG);
+    writel(0x0, ESC_CC_REG);
+    /* Disable root clock */
+    writel(0x0, DSI_CC_REG);
 #elif (!DISPLAY_MIPI_PANEL_RENESAS)
     secure_writel(0x0, DSI_CC_REG);
     secure_writel(0x0, PIXEL_CC_REG);
 #endif
+    writel(0, DSI_CLK_CTRL);
+    writel(0, DSI_CTRL);
+    writel(0, DSIPHY_PLL_CTRL(0));
 }
 
 struct fbcon_config *mipi_init(void)
