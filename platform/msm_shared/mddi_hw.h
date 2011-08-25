@@ -43,6 +43,12 @@
 #define LCDC_BASE     0xE0000
 #endif
 
+#ifdef MDDI_MULTI_WRITE
+#define MAX_CLIENT_REG 128
+#else
+#define MAX_CLIENT_REG 1
+#endif
+
 enum {          /* display configuration for MDP4 */
     PRIMARY_INTF_SEL,
     SECONDARY_INTF_SEL,
@@ -229,7 +235,7 @@ struct __attribute__((packed)) mddi_register_access
     unsigned reg_addr;
     unsigned short crc;        /* 16 bit crc of the above */
 
-    unsigned reg_data;         /* "list" of 3byte data values */
+    unsigned reg_data[MAX_CLIENT_REG];       /* "list" of 3byte data values */
 };
 
 struct __attribute__((packed)) mddi_llentry {

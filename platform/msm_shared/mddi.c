@@ -106,11 +106,41 @@ void mddi_remote_write(unsigned val, unsigned reg)
 	ra->crc = 0;
 
 	ra->reg_addr = reg;
-	ra->reg_data = val;
+	ra->reg_data[0] = val;
 
 	ll->flags = 1;
 	ll->header_count = 14;
 	ll->data_count = 4;
+	ll->data = &ra->reg_data[0];
+	ll->next = (void *) 0;
+	ll->reserved = 0;
+
+	writel((unsigned) ll, MDDI_PRI_PTR);
+
+	mddi_wait_status(MDDI_STAT_PRI_LINK_LIST_DONE);
+}
+
+#ifdef MDDI_MULTI_WRITE
+void mddi_remote_multiwrite(unsigned *val_list, unsigned reg, unsigned val_count)
+{
+	mddi_llentry *ll;
+	mddi_register_access *ra;
+
+	ll = mlist_remote_write;
+
+	ra = &(ll->u.r);
+	ra->length = 14 + (val_count * 4);
+	ra->type = TYPE_REGISTER_ACCESS;
+	ra->client_id = 0;
+	ra->rw_info = MDDI_WRITE | val_count;
+	ra->crc = 0;
+
+	ra->reg_addr = reg;
+	memcpy((void *)&ra->reg_data[0],val_list,val_count);
+
+	ll->flags = 1;
+	ll->header_count = 14;
+	ll->data_count = val_count * 4;
 	ll->data = &ra->reg_data;
 	ll->next = (void *) 0;
 	ll->reserved = 0;
@@ -119,6 +149,7 @@ void mddi_remote_write(unsigned val, unsigned reg)
 
 	mddi_wait_status(MDDI_STAT_PRI_LINK_LIST_DONE);
 }
+#endif
 
 static void mddi_start_update(void)
 {
