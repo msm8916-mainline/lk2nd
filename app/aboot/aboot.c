@@ -356,7 +356,7 @@ int boot_linux_from_mmc(void)
 	}
 
 	/* Authenticate Kernel */
-	if(target_use_signed_kernel() && (!device.is_unlocked) && (!device.is_rooted))
+	if(target_use_signed_kernel() && (!device.is_unlocked) && (!device.is_tampered))
 	{
 		image_addr = (unsigned char *)target_get_scratch_address();
 		kernel_actual = ROUND_TO_PAGE(hdr->kernel_size, page_mask);
@@ -366,7 +366,7 @@ int boot_linux_from_mmc(void)
 		offset = 0;
 
 		/* Assuming device rooted at this time */
-		device.is_rooted = 1;
+		device.is_tampered = 1;
 
 		/* Read image without signature */
 		if (mmc_read(ptn + offset, (void *)image_addr, imagesize_actual))
@@ -391,7 +391,7 @@ int boot_linux_from_mmc(void)
 			if(auth_kernel_img)
 			{
 				/* Authorized kernel */
-				device.is_rooted = 0;
+				device.is_tampered = 0;
 			}
 		}
 
@@ -400,7 +400,7 @@ int boot_linux_from_mmc(void)
 		memmove((void*) hdr->ramdisk_addr, (char *)(image_addr + page_size + kernel_actual), hdr->ramdisk_size);
 
 		/* Make sure everything from scratch address is read before next step!*/
-		if(device.is_rooted)
+		if(device.is_tampered)
 		{
 			write_device_info_mmc(&device);
 		#ifdef TZ_TAMPER_FUSE
@@ -513,7 +513,7 @@ int boot_linux_from_flash(void)
 	}
 
 	/* Authenticate Kernel */
-	if(target_use_signed_kernel() && (!device.is_unlocked) && (!device.is_rooted))
+	if(target_use_signed_kernel() && (!device.is_unlocked) && (!device.is_tampered))
 	{
 		image_addr = (unsigned char *)target_get_scratch_address();
 		kernel_actual = ROUND_TO_PAGE(hdr->kernel_size, page_mask);
@@ -523,7 +523,7 @@ int boot_linux_from_flash(void)
 		offset = 0;
 
 		/* Assuming device rooted at this time */
-		device.is_rooted = 1;
+		device.is_tampered = 1;
 
 		/* Read image without signature */
 		if (flash_read(ptn, offset, (void *)image_addr, imagesize_actual))
@@ -550,7 +550,7 @@ int boot_linux_from_flash(void)
 			if(auth_kernel_img)
 			{
 				/* Authorized kernel */
-				device.is_rooted = 0;
+				device.is_tampered = 0;
 			}
 		}
 
@@ -559,7 +559,7 @@ int boot_linux_from_flash(void)
 		memmove((void*) hdr->ramdisk_addr, (char *)(image_addr + page_size + kernel_actual), hdr->ramdisk_size);
 
 		/* Make sure everything from scratch address is read before next step!*/
-		if(device.is_rooted)
+		if(device.is_tampered)
 		{
 			write_device_info_flash(&device);
 		}
@@ -657,7 +657,7 @@ void read_device_info_mmc(device_info *dev)
 	{
 		memcpy(info->magic, DEVICE_MAGIC, DEVICE_MAGIC_SIZE);
 		info->is_unlocked = 0;
-		info->is_rooted = 0;
+		info->is_tampered = 0;
 
 		write_device_info_mmc(info);
 	}
@@ -724,7 +724,7 @@ void read_device_info_flash(device_info *dev)
 		while(1);
 		memcpy(info->magic, DEVICE_MAGIC, DEVICE_MAGIC_SIZE);
 		info->is_unlocked = 0;
-		info->is_rooted = 0;
+		info->is_tampered = 0;
 		write_device_info_flash(info);
 	}
 	memcpy(dev, info, sizeof(device_info));
@@ -757,14 +757,14 @@ void read_device_info(device_info *dev)
 void reset_device_info()
 {
 	dprintf(ALWAYS, "reset_device_info called.");
-	device.is_rooted = 0;
+	device.is_tampered = 0;
 	write_device_info(&device);
 }
 
 void set_device_root()
 {
 	dprintf(ALWAYS, "set_device_root called.");
-	device.is_rooted = 1;
+	device.is_tampered = 1;
 	write_device_info(&device);
 }
 
@@ -1126,6 +1126,16 @@ void cmd_oem_unlock(const char *arg, void *data, unsigned sz)
 	fastboot_okay("");
 }
 
+void cmd_oem_devinfo(const char *arg, void *data, unsigned sz)
+{
+	char response[64];
+	snprintf(response, 64, "\tDevice tampered: %s", (device.is_tampered ? "true" : "false"));
+	fastboot_info(response);
+	snprintf(response, 64, "\tDevice unlocked: %s", (device.is_unlocked ? "true" : "false"));
+	fastboot_info(response);
+	fastboot_okay("");
+}
+
 void splash_screen ()
 {
 	struct ptentry *ptn;
@@ -1178,12 +1188,6 @@ void aboot_init(const struct app_descriptor *app)
 	{
 		read_device_info(&device);
 
-		if((device.is_unlocked) || (device.is_rooted))
-		{
-		#ifdef TZ_TAMPER_FUSE
-			set_tamper_fuse_cmd();
-		#endif
-		}
 	}
 
 	target_serialno((unsigned char *) sn_buf);
@@ -1223,6 +1227,15 @@ void aboot_init(const struct app_descriptor *app)
 	{
 		if(emmc_recovery_init())
 			dprintf(ALWAYS,"error in emmc_recovery_init\n");
+		if(target_use_signed_kernel())
+		{
+			if((device.is_unlocked) || (device.is_tampered))
+			{
+			#ifdef TZ_TAMPER_FUSE
+				set_tamper_fuse_cmd();
+			#endif
+			}
+		}
 		boot_linux_from_mmc();
 	}
 	else
@@ -1257,10 +1270,9 @@ fastboot:
 	fastboot_register("reboot", cmd_reboot);
 	fastboot_register("reboot-bootloader", cmd_reboot_bootloader);
 	fastboot_register("oem unlock", cmd_oem_unlock);
+	fastboot_register("oem device-info", cmd_oem_devinfo);
 	fastboot_publish("product", TARGET(BOARD));
 	fastboot_publish("kernel", "lk");
-	fastboot_publish("root-flag", device.is_rooted);
-	fastboot_publish("unlock-flag", device.is_unlocked);
 	partition_dump();
 	sz = target_get_max_flash_size();
 	fastboot_init(target_get_scratch_address(), sz);
