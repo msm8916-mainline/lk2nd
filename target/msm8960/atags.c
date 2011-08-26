@@ -58,10 +58,13 @@ unsigned* target_atag_mem(unsigned* ptr)
 				*ptr++ = SIZE_141M;
 				*ptr++ = ram_ptable.parts[i].start + SIZE_2M;
 
-				*ptr++ = 4;
-				*ptr++ = 0x54410002;
-				*ptr++ = ram_ptable.parts[i].size - SIZE_256M;
-				*ptr++ = ram_ptable.parts[i].start + SIZE_256M;
+				if (ram_ptable.parts[i].size > SIZE_256M)
+				{
+					*ptr++ = 4;
+					*ptr++ = 0x54410002;
+					*ptr++ = ram_ptable.parts[i].size - SIZE_256M;
+					*ptr++ = ram_ptable.parts[i].start + SIZE_256M;
+				}
 			}
 
 			/* Pass along all other usable memory regions to Linux */
