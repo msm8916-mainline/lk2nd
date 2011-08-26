@@ -40,6 +40,7 @@
 #define EBI1_ADDR_1280M       0x50000000
 
 #define SIZE_768M             0x30000000 // 256M + 512M
+#define SIZE_1792M            0x70000000 // 256M + 512M + 1G
 
 #define EBI1_CS1_ADDR_BASE    0x00A40024
 
@@ -74,6 +75,15 @@ unsigned* target_atag_mem(unsigned* ptr)
         /* For 1GB RAM*/
         *ptr++ = 4;
         *ptr++ = 0x54410002;
+        *ptr++ = SIZE_768M;
+        *ptr++ = EBI1_ADDR_1280M;
+    }
+    else if (value == 0x80)
+    {
+        /* For 2GB RAM*/
+        *ptr++ = 4;
+        *ptr++ = 0x54410002;
+        //*ptr++ = SIZE_1792M;
         *ptr++ = SIZE_768M;
         *ptr++ = EBI1_ADDR_1280M;
     }
