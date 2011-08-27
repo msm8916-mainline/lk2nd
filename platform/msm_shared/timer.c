@@ -41,46 +41,12 @@
 #include <platform/interrupts.h>
 #include <kernel/thread.h>
 
-#if PLATFORM_MSM7X30 || PLATFORM_MSM8X60 || PLATFORM_MSM8960
-
-#define MSM_DGT_BASE (MSM_TMR_BASE + 0x24)
-#define GPT_REG(off) (MSM_GPT_BASE + (off))
-#define DGT_REG(off) (MSM_DGT_BASE + (off))
-#define SPSS_TIMER_STATUS           (MSM_TMR_BASE + 0x88)
-#define SPSS_TIMER_STATUS_DGT_EN    (1 << 0)
-
-#define GPT_MATCH_VAL        GPT_REG(0x0000)
-#define GPT_COUNT_VAL        GPT_REG(0x0004)
-#define GPT_ENABLE           GPT_REG(0x0008)
-#define GPT_ENABLE_CLR_ON_MATCH_EN        2
-#define GPT_ENABLE_EN                     1
-#define GPT_CLEAR            GPT_REG(0x000C)
-
-#define DGT_MATCH_VAL        DGT_REG(0x0000)
-#define DGT_COUNT_VAL        DGT_REG(0x0004)
-#define DGT_ENABLE           DGT_REG(0x0008)
-#define DGT_ENABLE_CLR_ON_MATCH_EN        2
-#define DGT_ENABLE_EN                     1
-#define DGT_CLEAR            DGT_REG(0x000C)
-#define DGT_CLK_CTL          DGT_REG(0x0010)
-
-#define HW_REVISION_NUMBER   0xABC00270
-
-
-#else
-#define GPT_REG(off) (MSM_GPT_BASE + (off))
-
-#define GPT_MATCH_VAL        GPT_REG(0x0000)
-#define GPT_COUNT_VAL        GPT_REG(0x0004)
-#define GPT_ENABLE           GPT_REG(0x0008)
 #define GPT_ENABLE_CLR_ON_MATCH_EN        2
 #define GPT_ENABLE_EN                     1
 #define DGT_ENABLE_CLR_ON_MATCH_EN        2
 #define DGT_ENABLE_EN                     1
 
 #define SPSS_TIMER_STATUS_DGT_EN    (1 << 0)
-
-#endif
 
 static platform_timer_callback timer_callback;
 static void *timer_arg;
