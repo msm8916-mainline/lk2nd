@@ -32,22 +32,36 @@
 #ifdef PLATFORM_MSM7X30
 #define MSM_DMOV_BASE 0xAC400000
 #else
+#ifdef PLATFORM_MDM9X15 //TODO: Move to IOMAP
+#define MSM_DMOV_BASE 0x18300000
+#else
 #define MSM_DMOV_BASE 0xA9700000
 #endif
+#endif
 
+
+#ifdef PLATFORM_MDM9X15
+#define DMOV_SD0(off, ch) (MSM_DMOV_BASE + 0x00000 + (off) + ((ch) << 2))
+#define DMOV_SD1(off, ch) (MSM_DMOV_BASE + 0x20800 + (off) + ((ch) << 2))
+#define DMOV_SD2(off, ch) (MSM_DMOV_BASE + 0x41000 + (off) + ((ch) << 2))
+#define DMOV_SD3(off, ch) (MSM_DMOV_BASE + 0x81800 + (off) + ((ch) << 2))
+#else
 /* see 80-VA736-2 C pp 415-439 */
-
 #define DMOV_SD0(off, ch) (MSM_DMOV_BASE + 0x0000 + (off) + ((ch) << 2))
 #define DMOV_SD1(off, ch) (MSM_DMOV_BASE + 0x0400 + (off) + ((ch) << 2))
 #define DMOV_SD2(off, ch) (MSM_DMOV_BASE + 0x0800 + (off) + ((ch) << 2))
 #define DMOV_SD3(off, ch) (MSM_DMOV_BASE + 0x0C00 + (off) + ((ch) << 2))
+#endif
 
 #ifdef PLATFORM_MSM7X30
 #define DMOV_SDn DMOV_SD2
 #else
+#ifdef PLATFORM_MDM9X15
+#define DMOV_SDn DMOV_SD1
+#else
 #define DMOV_SDn DMOV_SD3
 #endif
-
+#endif
 
 
 /* only security domain 3 is available to the ARM11
@@ -92,9 +106,15 @@
 
 /* channel assignments - from qc/dmov_7500.h */
 
+#ifdef PLATFORM_MDM9X15
+#define DMOV_NAND_CHAN        3
+#define DMOV_NAND_CRCI_CMD    15
+#define DMOV_NAND_CRCI_DATA   3
+#else
 #define DMOV_NAND_CHAN        7
 #define DMOV_NAND_CRCI_CMD    5
 #define DMOV_NAND_CRCI_DATA   4
+#endif
 
 #define DMOV_SDC1_CHAN        8
 #define DMOV_SDC1_CRCI        6
