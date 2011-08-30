@@ -34,7 +34,9 @@
 #define SIZE_1M     (1024 * 1024)
 #define SIZE_8M     (8 * SIZE_1M)
 #define SIZE_10M    (10 * SIZE_1M)
-#define SIZE_512M   (512 * SIZE_1M)
+#define SIZE_21M    (21 * SIZE_1M)
+#define SIZE_83M    (83 * SIZE_1M)
+#define SIZE_128M   (128 * SIZE_1M)
 
 unsigned* target_atag_mem(unsigned* ptr)
 {
@@ -55,6 +57,11 @@ unsigned* target_atag_mem(unsigned* ptr)
 				*ptr++ = 0x54410002;
 				*ptr++ = SIZE_10M;
 				*ptr++ = ram_ptable.parts[i].start + SIZE_8M;
+
+				*ptr++ = 4;
+				*ptr++ = 0x54410002;
+				*ptr++ = SIZE_21M;
+				*ptr++ = ram_ptable.parts[i].start + SIZE_83M;
 			}
 		}
 	}
@@ -69,5 +76,5 @@ unsigned* target_atag_mem(unsigned* ptr)
 
 unsigned target_get_max_flash_size(void)
 {
-	return (SIZE_512M);
+	return (SIZE_128M);
 }
