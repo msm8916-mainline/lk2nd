@@ -44,7 +44,6 @@
 #define MDM9X15_MTP	3681
 #define LINUX_MACHTYPE  MDM9X15_CDP
 
-//TODO: Update with partitions needed
 #define VARIABLE_LENGTH		0x10101010
 #define DIFF_START_ADDR		0xF0F0F0F0
 #define NUM_PAGES_PER_BLOCK	0x40
@@ -68,6 +67,11 @@ static struct ptentry board_part_list_default[] = {
 		.start = 0,
 		.length = 10 /* In MB */,
 		.name = "boot",
+	},
+	{
+		.start = 0xF0F0F0F0,
+		.length = 5 /* In MB */,
+		.name = "system",
 	},
 };
 static int num_parts = sizeof(board_part_list_default)/sizeof(struct ptentry);
