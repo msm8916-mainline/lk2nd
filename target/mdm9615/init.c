@@ -35,6 +35,8 @@
 #include <debug.h>
 #include <lib/ptable.h>
 #include <dev/flash.h>
+#include <dev/pm8921.h>
+#include <dev/ssbi.h>
 #include <smem.h>
 #include <gsbi.h>
 #include <platform/iomap.h>
@@ -53,6 +55,8 @@ unsigned hw_platform = 0;
 unsigned target_msm_id = 0;
 
 static const uint8_t uart_gsbi_id = GSBI_ID_4;
+
+static pm8921_dev_t pmic;
 
 /* for these partitions, start will be offset by either what we get from
  * smem, or from the above offset if smem is not useful. Also, we should
@@ -91,6 +95,13 @@ void target_init(void)
 	int i;
 
 	dprintf(INFO, "target_init()\n");
+
+	/* Initialize PMIC driver */
+	pmic.read  = (pm8921_read_func) &pa1_ssbi2_read_bytes;
+	pmic.write = (pm8921_write_func) &pa1_ssbi2_write_bytes;
+
+	pm8921_init(&pmic);
+
 	ptable_init(&flash_ptable);
 	smem_ptable_init();
 
@@ -184,7 +195,12 @@ unsigned board_machtype(void)
 
 void reboot_device(unsigned reboot_reason)
 {
-	//TODO: Implement
+	/* Actually reset the chip */
+	pm8921_config_reset_pwr_off(1);
+	writel(0, MSM_PSHOLD_CTL_SU);
+	mdelay(10000);
+
+	dprintf (CRITICAL, "Rebooting failed\n");
 	return;
 }
 

@@ -14,6 +14,8 @@ DEFINES += NO_KEYPAD_DRIVER=1
 
 MODULES += \
 	dev/keys \
+	dev/ssbi \
+	dev/pmic/pm8921 \
 	lib/ptable
 
 DEFINES += \
