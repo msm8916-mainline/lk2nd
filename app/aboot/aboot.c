@@ -107,7 +107,9 @@ char sn_buf[13];
 
 extern int emmc_recovery_init(void);
 
-
+#if NO_KEYPAD_DRIVER
+extern int fastboot_trigger(void);
+#endif
 
 static void ptentry_to_tag(unsigned **ptr, struct ptentry *ptn)
 {
@@ -1204,11 +1206,7 @@ void aboot_init(const struct app_descriptor *app)
 	}
 
 	#if NO_KEYPAD_DRIVER
-	/* With no keypad implementation, check the status of USB connection. */
-	/* If USB is connected then go into fastboot mode. */
-	usb_init = 1;
-	udc_init(&surf_udc_device);
-	if (usb_cable_status())
+	if (fastboot_trigger())
 		goto fastboot;
 	#endif
 

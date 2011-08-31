@@ -66,6 +66,7 @@ void smem_ptable_init(void);
 extern void reboot(unsigned reboot_reason);
 void update_ptable_apps_partitions(void);
 void update_ptable_modem_partitions(void);
+extern int fake_key_get_state(void);
 
 void target_init(void)
 {
@@ -155,10 +156,14 @@ uint8_t target_uart_gsbi(void)
 	return uart_gsbi_id;
 }
 
-uint32_t usb_cable_status(void) {
-	//TODO: Implement
-	uint32_t ret = 1;
-	return ret;
+/*
+ * Return 1 to trigger to fastboot
+ */
+int fastboot_trigger(void) {
+	int ret;
+	ret = fake_key_get_state();
+	/* Want to trigger when dip switch is off */
+	return (!ret);
 }
 
 void update_ptable_modem_partitions(void)
