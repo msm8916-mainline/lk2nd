@@ -36,10 +36,10 @@
 #define PM_GPIO_DIR_IN          0x02
 #define PM_GPIO_DIR_BOTH        (PM_GPIO_DIR_OUT | PM_GPIO_DIR_IN)
 
-//TODO: Rename these variables
-#define PM_GPIO_PULL_UP0        0
-#define PM_GPIO_PULL_UP1        2
-#define PM_GPIO_PULL_UP2        3
+#define PM_GPIO_PULL_UP_30      0
+#define PM_GPIO_PULL_UP_31_5    2
+/* 1.5uA + 30uA boost */
+#define PM_GPIO_PULL_UP_1_5_30  3
 #define PM_GPIO_PULL_DN         4
 #define PM_GPIO_PULL_NO         5
 

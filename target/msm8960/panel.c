@@ -61,7 +61,7 @@ void mipi_panel_reset(void){
         .direction = PM_GPIO_DIR_OUT,
         .output_buffer = 0,
         .output_value = 1,
-        .pull = PM_GPIO_PULL_UP0,
+        .pull = PM_GPIO_PULL_UP_30,
         .vin_sel = 2,
         .out_strength = PM_GPIO_STRENGTH_HIGH,
         .function = PM_GPIO_FUNC_PAIRED,
