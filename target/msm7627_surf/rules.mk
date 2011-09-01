@@ -22,6 +22,7 @@ DEFINES += DISPLAY_SPLASH_SCREEN=1
 
 MODULES += \
 	dev/keys \
+	dev/ssbi \
 	lib/ptable
 
 DEFINES += \

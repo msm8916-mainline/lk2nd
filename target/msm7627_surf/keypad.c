@@ -31,6 +31,7 @@
  */
 
 #include <dev/keys.h>
+#include <dev/ssbi.h>
 #include <dev/gpio_keypad.h>
 
 #define ARRAY_SIZE(x) (sizeof(x)/sizeof((x)[0]))

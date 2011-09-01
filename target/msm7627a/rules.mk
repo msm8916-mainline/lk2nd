@@ -24,6 +24,7 @@ DEFINES += DISPLAY_MIPI_PANEL_RENESAS=1
 
 MODULES += \
 	dev/keys \
+	dev/ssbi \
 	lib/ptable
 
 DEFINES += \

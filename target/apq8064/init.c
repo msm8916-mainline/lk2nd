@@ -36,7 +36,7 @@
 #include <baseband.h>
 #include <dev/keys.h>
 #include <dev/pm8921.h>
-#include <dev/gpio_keypad.h>
+#include <dev/ssbi.h>
 #include <platform/iomap.h>
 #include <lib/ptable.h>
 

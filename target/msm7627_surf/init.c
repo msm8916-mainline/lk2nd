@@ -33,7 +33,6 @@
 #include <reg.h>
 #include <debug.h>
 #include <dev/keys.h>
-#include <dev/gpio_keypad.h>
 #include <lib/ptable.h>
 #include <dev/flash.h>
 #include <smem.h>

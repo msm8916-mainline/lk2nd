@@ -29,6 +29,7 @@
 
 #include <string.h>
 #include <dev/keys.h>
+#include <dev/ssbi.h>
 #include <dev/gpio_keypad.h>
 
 #define NUM_OF_ROWS 1

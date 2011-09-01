@@ -14,6 +14,7 @@ KEYS_USE_GPIO_KEYPAD := 1
 
 MODULES += \
 	dev/keys \
+	dev/ssbi \
 	dev/pmic/pm8921 \
 	lib/ptable
 

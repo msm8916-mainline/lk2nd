@@ -28,6 +28,7 @@
  */
 
 #include <dev/keys.h>
+#include <dev/ssbi.h>
 #include <dev/gpio_keypad.h>
 #include <platform.h>
 

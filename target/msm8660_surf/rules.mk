@@ -25,6 +25,7 @@ DEFINES += MMC_BOOT_ADM=0
 
 MODULES += \
 	dev/keys \
+	dev/ssbi \
 	lib/ptable
 
 DEFINES += \

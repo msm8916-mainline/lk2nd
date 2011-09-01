@@ -39,7 +39,7 @@
 #include <reg.h>
 #include <dev/keys.h>
 #include <dev/pm8921.h>
-#include <dev/gpio_keypad.h>
+#include <dev/ssbi.h>
 #include <gsbi.h>
 #include <target.h>
 #include <platform.h>

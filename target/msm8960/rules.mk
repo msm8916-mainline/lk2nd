@@ -23,6 +23,7 @@ DEFINES += DISPLAY_MIPI_PANEL_TOSHIBA_MDT61=1
 MODULES += \
 	dev/keys \
 	dev/pmic/pm8921 \
+	dev/ssbi \
 	lib/ptable
 
 DEFINES += \
