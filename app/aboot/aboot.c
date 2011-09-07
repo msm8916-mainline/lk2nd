@@ -774,7 +774,6 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	unsigned ramdisk_actual;
 	static struct boot_img_hdr hdr;
 	char *ptr = ((char*) data);
-	unsigned image_actual;
 
 	if (sz < sizeof(hdr)) {
 		fastboot_fail("invalid bootimage header");
@@ -793,12 +792,9 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 
 	kernel_actual = ROUND_TO_PAGE(hdr.kernel_size, page_mask);
 	ramdisk_actual = ROUND_TO_PAGE(hdr.ramdisk_size, page_mask);
-	image_actual = page_size + kernel_actual + ramdisk_actual;
 
-	if(target_use_signed_kernel())
-		image_actual += page_size;
-
-	if (image_actual > sz) {
+	/* sz should have atleast raw boot image */
+	if (page_size + kernel_actual + ramdisk_actual > sz) {
 		fastboot_fail("incomplete bootimage");
 		return;
 	}
