@@ -91,6 +91,9 @@ static int dmov_exec_cmdptr(unsigned id, unsigned *ptr)
 
 	dmov_prep_ch(&ch, id);
 
+	/* Set IRQ_EN low, not using IRQ mode */
+	writel(DMOV_CONFIG_FOREC_FLUSH_RSLT | 0x0, ch.config);
+
 	writel(DMOV_CMD_PTR_LIST | DMOV_CMD_ADDR(paddr(ptr)), ch.cmd);
 
 	while(!(readl(ch.status) & DMOV_STATUS_RSLT_VALID)) ;
