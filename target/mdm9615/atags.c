@@ -33,9 +33,9 @@
 
 #define SIZE_1M     (1024 * 1024)
 #define SIZE_8M     (8 * SIZE_1M)
-#define SIZE_10M    (10 * SIZE_1M)
-#define SIZE_21M    (21 * SIZE_1M)
-#define SIZE_83M    (83 * SIZE_1M)
+#define SIZE_15M    (15 * SIZE_1M)
+#define SIZE_23M    (23 * SIZE_1M)
+#define SIZE_88M    (11 * SIZE_8M)
 #define SIZE_128M   (128 * SIZE_1M)
 
 unsigned* target_atag_mem(unsigned* ptr)
@@ -51,17 +51,17 @@ unsigned* target_atag_mem(unsigned* ptr)
 					ram_ptable.parts[i].type == SYS_MEMORY &&
 					ram_ptable.parts[i].start == 0x40000000)
 			{
-				ASSERT(ram_ptable.parts[i].size >= SIZE_10M);
+				ASSERT(ram_ptable.parts[i].size >= SIZE_15M);
 
 				*ptr++ = 4;
 				*ptr++ = 0x54410002;
-				*ptr++ = SIZE_10M;
+				*ptr++ = SIZE_15M;
 				*ptr++ = ram_ptable.parts[i].start + SIZE_8M;
 
 				*ptr++ = 4;
 				*ptr++ = 0x54410002;
-				*ptr++ = SIZE_21M;
-				*ptr++ = ram_ptable.parts[i].start + SIZE_83M;
+				*ptr++ = SIZE_23M;
+				*ptr++ = ram_ptable.parts[i].start + SIZE_88M;
 			}
 		}
 	}

@@ -4,7 +4,7 @@ INCLUDES += -I$(LOCAL_DIR)/include -I$(LK_TOP_DIR)/platform/msm_shared
 
 PLATFORM := mdm9x15
 
-MEMBASE := 0x41200000
+MEMBASE := 0x41700000
 MEMSIZE := 0x00100000 # 1MB
 
 BASE_ADDR        := 0x40800000
