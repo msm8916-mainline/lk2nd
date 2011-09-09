@@ -33,7 +33,7 @@ Property values may be defined as an array of 32-bit integer cells, as
 NUL-terminated strings, as bytestrings or a combination of these.
 
 * Arrays of cells are represented by angle brackets surrounding a
-  space separated list of C-style integers
+  space separated list of C-style integers or character literals.
 
 	e.g. interrupts = <17 0xc>;
 

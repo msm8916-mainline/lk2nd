@@ -34,6 +34,7 @@ extern struct boot_info *the_boot_info;
 extern int treesource_error;
 
 static unsigned long long eval_literal(const char *s, int base, int bits);
+static unsigned char eval_char_literal(const char *s);
 %}
 
 %union {
@@ -57,6 +58,7 @@ static unsigned long long eval_literal(const char *s, int base, int bits);
 %token DT_MEMRESERVE
 %token <propnodename> DT_PROPNODENAME
 %token <literal> DT_LITERAL
+%token <literal> DT_CHAR_LITERAL
 %token <cbase> DT_BASE
 %token <byte> DT_BYTE
 %token <data> DT_STRING
@@ -265,6 +267,10 @@ cellval:
 		{
 			$$ = eval_literal($1, 0, 32);
 		}
+	| DT_CHAR_LITERAL
+		{
+			$$ = eval_char_literal($1);
+		}
 	;
 
 bytestring:
@@ -342,4 +348,30 @@ static unsigned long long eval_literal(const char *s, int base, int bits)
 	else if (errno != 0)
 		print_error("bad literal");
 	return val;
+}
+
+static unsigned char eval_char_literal(const char *s)
+{
+	int i = 1;
+	char c = s[0];
+
+	if (c == '\0')
+	{
+		print_error("empty character literal");
+		return 0;
+	}
+
+	/*
+	 * If the first character in the character literal is a \ then process
+	 * the remaining characters as an escape encoding. If the first
+	 * character is neither an escape or a terminator it should be the only
+	 * character in the literal and will be returned.
+	 */
+	if (c == '\\')
+		c = get_escape_char(s, &i);
+
+	if (s[i] != '\0')
+		print_error("malformed character literal");
+
+	return c;
 }

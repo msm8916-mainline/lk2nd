@@ -5,6 +5,7 @@ LIB_TESTS_L = get_mem_rsv \
 	node_offset_by_prop_value node_offset_by_phandle \
 	node_check_compatible node_offset_by_compatible \
 	get_alias \
+	char_literal \
 	notfound \
 	setprop_inplace nop_property nop_node \
 	sw_tree1 \

@@ -19,6 +19,12 @@
 #define TEST_STRING_2	"nastystring: \a\b\t\n\v\f\r\\\""
 #define TEST_STRING_3	"\xde\xad\xbe\xef"
 
+#define TEST_CHAR1	'\r'
+#define TEST_CHAR2	'b'
+#define TEST_CHAR3	'\0'
+#define TEST_CHAR4	'\''
+#define TEST_CHAR5	'\xff'
+
 #ifndef __ASSEMBLY__
 extern struct fdt_header _test_tree1;
 extern struct fdt_header _truncated_property;

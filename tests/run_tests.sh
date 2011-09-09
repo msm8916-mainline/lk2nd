@@ -206,6 +206,9 @@ dtc_tests () {
     run_dtc_test -I dts -O dtb -o dtc_escapes.test.dtb escapes.dts
     run_test string_escapes dtc_escapes.test.dtb
 
+    run_dtc_test -I dts -O dtb -o dtc_char_literal.test.dtb char_literal.dts
+    run_test char_literal dtc_char_literal.test.dtb
+
     run_dtc_test -I dts -O dtb -o dtc_extra-terminating-null.test.dtb extra-terminating-null.dts
     run_test extra-terminating-null dtc_extra-terminating-null.test.dtb
 

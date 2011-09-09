@@ -29,6 +29,7 @@ PROPNODECHAR	[a-zA-Z0-9,._+*#?@-]
 PATHCHAR	({PROPNODECHAR}|[/])
 LABEL		[a-zA-Z_][a-zA-Z0-9_]*
 STRING		\"([^\\"]|\\.)*\"
+CHAR_LITERAL	'([^']|\\')*'
 WS		[[:space:]]
 COMMENT		"/*"([^*]|\*+[^*/])*\*+"/"
 LINECOMMENT	"//".*\n
@@ -107,6 +108,13 @@ static int pop_input_file(void);
 			yylval.literal = xstrdup(yytext);
 			DPRINT("Literal: '%s'\n", yylval.literal);
 			return DT_LITERAL;
+		}
+
+<*>{CHAR_LITERAL}	{
+			yytext[yyleng-1] = '\0';
+			yylval.literal = xstrdup(yytext+1);
+			DPRINT("Character literal: %s\n", yylval.literal);
+			return DT_CHAR_LITERAL;
 		}
 
 <*>\&{LABEL}	{	/* label reference */

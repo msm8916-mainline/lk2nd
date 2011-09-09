@@ -4,6 +4,7 @@
 /add_subnode_with_nops
 /asm_tree_dump
 /boot-cpuid
+/char_literal
 /del_node
 /del_property
 /dtbs_equal_ordered
