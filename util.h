@@ -64,4 +64,12 @@ extern char *join_path(const char *path, const char *name);
  * @return 1 if a valid printable string, 0 if not */
 int util_is_printable_string(const void *data, int len);
 
+/*
+ * Parse an escaped character starting at index i in string s.  The resulting
+ * character will be returned and the index i will be updated to point at the
+ * character directly after the end of the encoding, this may be the '\0'
+ * terminator of the string.
+ */
+char get_escape_char(const char *s, int *i);
+
 #endif /* _UTIL_H */

@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <assert.h>
 
 #include "util.h"
 
@@ -84,4 +85,102 @@ int util_is_printable_string(const void *data, int len)
 		return 0;
 
 	return 1;
+}
+
+/*
+ * Parse a octal encoded character starting at index i in string s.  The
+ * resulting character will be returned and the index i will be updated to
+ * point at the character directly after the end of the encoding, this may be
+ * the '\0' terminator of the string.
+ */
+static char get_oct_char(const char *s, int *i)
+{
+	char x[4];
+	char *endx;
+	long val;
+
+	x[3] = '\0';
+	strncpy(x, s + *i, 3);
+
+	val = strtol(x, &endx, 8);
+
+	assert(endx > x);
+
+	(*i) += endx - x;
+	return val;
+}
+
+/*
+ * Parse a hexadecimal encoded character starting at index i in string s.  The
+ * resulting character will be returned and the index i will be updated to
+ * point at the character directly after the end of the encoding, this may be
+ * the '\0' terminator of the string.
+ */
+static char get_hex_char(const char *s, int *i)
+{
+	char x[3];
+	char *endx;
+	long val;
+
+	x[2] = '\0';
+	strncpy(x, s + *i, 2);
+
+	val = strtol(x, &endx, 16);
+	if (!(endx  > x))
+		die("\\x used with no following hex digits\n");
+
+	(*i) += endx - x;
+	return val;
+}
+
+char get_escape_char(const char *s, int *i)
+{
+	char	c = s[*i];
+	int	j = *i + 1;
+	char	val;
+
+	assert(c);
+	switch (c) {
+	case 'a':
+		val = '\a';
+		break;
+	case 'b':
+		val = '\b';
+		break;
+	case 't':
+		val = '\t';
+		break;
+	case 'n':
+		val = '\n';
+		break;
+	case 'v':
+		val = '\v';
+		break;
+	case 'f':
+		val = '\f';
+		break;
+	case 'r':
+		val = '\r';
+		break;
+	case '0':
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+		j--; /* need to re-read the first digit as
+		      * part of the octal value */
+		val = get_oct_char(s, &j);
+		break;
+	case 'x':
+		val = get_hex_char(s, &j);
+		break;
+	default:
+		val = c;
+	}
+
+	(*i) = j;
+	return val;
 }
