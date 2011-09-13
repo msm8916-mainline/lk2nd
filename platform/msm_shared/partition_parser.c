@@ -206,13 +206,16 @@ unsigned int mmc_boot_read_gpt( struct mmc_boot_host * mmc_host,
     int ret = MMC_BOOT_E_SUCCESS;
     unsigned int header_size;
     unsigned long long first_usable_lba;
-    unsigned int max_partition_count;
+    unsigned long long backup_header_lba;
+    unsigned int max_partition_count = 0;
     unsigned int partition_entry_size;
     unsigned char data[MMC_BOOT_RD_BLOCK_LEN];
     unsigned int i = 0; /* Counter for each 512 block */
     unsigned int j = 0; /* Counter for each 128 entry in the 512 block */
     unsigned int n = 0; /* Counter for UTF-16 -> 8 conversion */
     unsigned char UTF16_name[MAX_GPT_NAME_SIZE];
+    /* LBA of first partition -- 1 Block after Protected MBR + 1 for PT */
+    unsigned long long partition_0 = 2;
 
     /* Print out the GPT first */
     ret = mmc_boot_read_from_card( mmc_host, mmc_card, \
@@ -220,25 +223,46 @@ unsigned int mmc_boot_read_gpt( struct mmc_boot_host * mmc_host,
                                    MMC_BOOT_RD_BLOCK_LEN, \
                                    (unsigned int *)data);
 
-    /* Check GPT Signature */
-    if( ((uint32_t *)data)[0] != GPT_SIGNATURE_2 ||
-        ((uint32_t *)data)[1] != GPT_SIGNATURE_1 )
-    {
-        dprintf(CRITICAL,  "GPT: signature does not match.\n" );
-        return MMC_BOOT_E_FAILURE;
-    }
+    if (ret)
+        dprintf(CRITICAL, "GPT: Could not read primary gpt from mmc\n");
 
-    header_size = GET_LWORD_FROM_BYTE(&data[HEADER_SIZE_OFFSET]);
-    first_usable_lba = GET_LLWORD_FROM_BYTE(&data[FIRST_USABLE_LBA_OFFSET]);
-    max_partition_count = GET_LWORD_FROM_BYTE(&data[PARTITION_COUNT_OFFSET]);
-    partition_entry_size = GET_LWORD_FROM_BYTE(&data[PENTRY_SIZE_OFFSET]);
+    ret = partition_parse_gpt_header(data, &first_usable_lba,
+                                     &partition_entry_size, &header_size,
+                                     &max_partition_count);
+
+    if (ret)
+    {
+        dprintf(INFO, "GPT: (WARNING) Primary signature invalid\n" );
+
+        /* Check the backup gpt */
+        backup_header_lba = GET_LLWORD_FROM_BYTE(&data[BACKUP_HEADER_OFFSET]);
+        ret = mmc_boot_read_from_card( mmc_host, mmc_card, \
+                                       (backup_header_lba * BLOCK_SIZE), \
+                                       MMC_BOOT_RD_BLOCK_LEN, \
+                                       (unsigned int *)data);
+
+        if (ret)
+        {
+            dprintf(CRITICAL, "GPT: Could not read backup gpt from mmc\n");
+            return ret;
+        }
+
+        ret = partition_parse_gpt_header(data, &first_usable_lba,
+                                         &partition_entry_size, &header_size,
+                                         &max_partition_count);
+        if (ret)
+        {
+            dprintf(CRITICAL, "GPT: Primary and backup signatures invalid\n");
+            return ret;
+        }
+        partition_0 = backup_header_lba - (max_partition_count / 4);
+    }
 
     /* Read GPT Entries */
     for(i = 0; i < (max_partition_count/4); i++)
     {
         ret = mmc_boot_read_from_card( mmc_host, mmc_card,
-                                       PROTECTIVE_MBR_SIZE +
-                                       PARTITION_TABLE_SIZE +
+                                       (partition_0 * BLOCK_SIZE) +
                                        (i * MMC_BOOT_RD_BLOCK_LEN),
                                        MMC_BOOT_RD_BLOCK_LEN,
                                        (uint32_t *)data);
@@ -485,4 +509,27 @@ unsigned int partition_get_type(unsigned size, unsigned char* partition,
         *partition_type = PARTITION_TYPE_GPT_BACKUP;
     }
     return ret;
+}
+
+/*
+ * Parse the gpt header and get the required header fields
+ * Return 0 on valid signature
+ */
+unsigned int partition_parse_gpt_header(unsigned char * buffer,
+                                        unsigned long long * first_usable_lba,
+                                        unsigned long * partition_entry_size,
+                                        unsigned long * header_size,
+                                        unsigned int * max_partition_count)
+{
+    /* Check GPT Signature */
+    if( ((uint32_t *)buffer)[0] != GPT_SIGNATURE_2 ||
+        ((uint32_t *)buffer)[1] != GPT_SIGNATURE_1 )
+        return 1;
+
+    *header_size = GET_LWORD_FROM_BYTE(&buffer[HEADER_SIZE_OFFSET]);
+    *first_usable_lba = GET_LLWORD_FROM_BYTE(&buffer[FIRST_USABLE_LBA_OFFSET]);
+    *max_partition_count = GET_LWORD_FROM_BYTE(&buffer[PARTITION_COUNT_OFFSET]);
+    *partition_entry_size = GET_LWORD_FROM_BYTE(&buffer[PENTRY_SIZE_OFFSET]);
+
+    return 0;
 }

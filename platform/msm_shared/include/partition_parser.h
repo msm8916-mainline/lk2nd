@@ -40,11 +40,12 @@
 #define MMC_MBR_SIGNATURE_BYTE_1  0xAA
 
 /* GPT Offsets */
-#define PROTECTIVE_MBR_SIZE       512
-#define PARTITION_TABLE_SIZE      512
-#define PARTITION_ENTRY_SIZE      512
+#define PROTECTIVE_MBR_SIZE       BLOCK_SIZE
+#define PARTITION_TABLE_SIZE      BLOCK_SIZE
+#define PARTITION_ENTRY_SIZE      BLOCK_SIZE
 #define HEADER_SIZE_OFFSET        12
 #define HEADER_CRC_OFFSET         16
+#define BACKUP_HEADER_OFFSET      32
 #define FIRST_USABLE_LBA_OFFSET   40
 #define LAST_USABLE_LBA_OFFSET    48
 #define PARTITION_ENTRIES_OFFSET  72
@@ -137,5 +138,11 @@ unsigned int partition_get_type(unsigned size, unsigned char* partition,
                                 unsigned int *partition_type);
 unsigned int partition_read_table( struct mmc_boot_host * mmc_host,
                                    struct mmc_boot_card * mmc_card);
+unsigned int partition_parse_gpt_header(unsigned char * buffer,
+                                        unsigned long long * first_usable_lba,
+                                        unsigned long * partition_entry_size,
+                                        unsigned long * header_size,
+                                        unsigned int * max_partition_count);
+
 /* For Debugging */
 void partition_dump(void);
