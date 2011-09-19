@@ -519,8 +519,8 @@ unsigned int partition_get_type(unsigned size, unsigned char* partition,
  */
 unsigned int partition_parse_gpt_header(unsigned char * buffer,
                                         unsigned long long * first_usable_lba,
-                                        unsigned long * partition_entry_size,
-                                        unsigned long * header_size,
+                                        unsigned int * partition_entry_size,
+                                        unsigned int * header_size,
                                         unsigned int * max_partition_count)
 {
     /* Check GPT Signature */

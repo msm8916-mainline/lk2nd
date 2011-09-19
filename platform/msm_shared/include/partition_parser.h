@@ -140,8 +140,8 @@ unsigned int partition_read_table( struct mmc_boot_host * mmc_host,
                                    struct mmc_boot_card * mmc_card);
 unsigned int partition_parse_gpt_header(unsigned char * buffer,
                                         unsigned long long * first_usable_lba,
-                                        unsigned long * partition_entry_size,
-                                        unsigned long * header_size,
+                                        unsigned int * partition_entry_size,
+                                        unsigned int * header_size,
                                         unsigned int * max_partition_count);
 
 /* For Debugging */
