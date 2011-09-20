@@ -37,6 +37,7 @@
 #include <dev/flash.h>
 #include <dev/pm8921.h>
 #include <dev/ssbi.h>
+#include <string.h>
 #include <smem.h>
 #include <gsbi.h>
 #include <platform/iomap.h>
@@ -46,53 +47,29 @@
 #define MDM9X15_MTP	3681
 #define LINUX_MACHTYPE  MDM9X15_CDP
 
-#define VARIABLE_LENGTH		0x10101010
-#define DIFF_START_ADDR		0xF0F0F0F0
-#define NUM_PAGES_PER_BLOCK	0x40
-
 static struct ptable flash_ptable;
 unsigned hw_platform = 0;
 unsigned target_msm_id = 0;
+
+/* Partition names for fastboot flash */
+char *apps_ptn_names[] = {"aboot", "boot", "system"};
+/* Partitions should be in this order */
+char *ptable_ptn_names[] = {"APPSBL", "APPS", "EFS2APPS"};
+unsigned ptn_name_count = 3;
+unsigned modem_ptn_count = 7;
 
 static const uint8_t uart_gsbi_id = GSBI_ID_4;
 
 static pm8921_dev_t pmic;
 
-/* for these partitions, start will be offset by either what we get from
- * smem, or from the above offset if smem is not useful. Also, we should
- * probably have smem_ptable code populate our flash_ptable.
- *
- * When smem provides us with a full partition table, we can get rid of
- * this altogether.
- *
- */
-static struct ptentry board_part_list_default[] = {
-	{
-		.start = 0,
-		.length = 10 /* In MB */,
-		.name = "boot",
-	},
-	{
-		.start = 0xF0F0F0F0,
-		.length = 5 /* In MB */,
-		.name = "system",
-	},
-};
-static int num_parts = sizeof(board_part_list_default)/sizeof(struct ptentry);
-
 void smem_ptable_init(void);
-unsigned smem_get_apps_flash_start(void);
 extern void reboot(unsigned reboot_reason);
+void update_ptable_apps_partitions(void);
+void update_ptable_modem_partitions(void);
 
 void target_init(void)
 {
-	unsigned offset;
 	struct flash_info *flash_info;
-	struct ptentry *board_part_list;
-	unsigned total_num_of_blocks;
-	unsigned next_ptr_start_adr = 0;
-	unsigned blocks_per_1MB = 8; /* Default value of 2k page size on 256MB flash drive*/
-	int i;
 
 	dprintf(INFO, "target_init()\n");
 
@@ -109,44 +86,13 @@ void target_init(void)
 	flash_info = flash_get_info();
 	ASSERT(flash_info);
 
-	offset = smem_get_apps_flash_start();
-	if (offset == 0xffffffff)
-			while(1);
-
-	total_num_of_blocks = flash_info->num_blocks;
-	blocks_per_1MB = (1 << 20) / (flash_info->block_size);
-
-	//TODO: Remove this if no need for other board types
-	board_part_list = board_part_list_default;
-
-	for (i = 0; i < num_parts; i++) {
-		struct ptentry *ptn = &board_part_list[i];
-		unsigned len = ((ptn->length) * blocks_per_1MB);
-
-		if(ptn->start != 0)
-				ASSERT(ptn->start == DIFF_START_ADDR);
-
-		ptn->start = next_ptr_start_adr;
-
-		if(ptn->length == VARIABLE_LENGTH)
-		{
-			unsigned length_for_prt = 0;
-			unsigned j;
-			for (j = i+1; j < num_parts; j++)
-			{
-					struct ptentry *temp_ptn = &board_part_list[j];
-					ASSERT(temp_ptn->length != VARIABLE_LENGTH);
-					length_for_prt += ((temp_ptn->length) * blocks_per_1MB);
-			}
-				len = (total_num_of_blocks - 1) - (offset + ptn->start + length_for_prt);
-			ASSERT(len >= 0);
-		}
-		next_ptr_start_adr = ptn->start + len;
-		ptable_add(&flash_ptable, ptn->name, offset + ptn->start,
-			   len, ptn->flags, TYPE_APPS_PARTITION, PERM_WRITEABLE);
-	}
-
 	smem_add_modem_partitions(&flash_ptable);
+
+	/* Update the naming for apps partitions and type */
+	update_ptable_apps_partitions();
+
+	/* Update modem partitions to lower case for fastboot */
+	update_ptable_modem_partitions();
 
 	ptable_dump(&flash_ptable);
 	flash_set_ptable(&flash_ptable);
@@ -213,4 +159,55 @@ uint32_t usb_cable_status(void) {
 	//TODO: Implement
 	uint32_t ret = 1;
 	return ret;
+}
+
+void update_ptable_modem_partitions(void)
+{
+	uint32_t ptn_index, i = 0;
+	uint32_t name_size;
+	struct ptentry * ptentry_ptr = flash_ptable.parts;
+
+	for(ptn_index=0; ptn_index < modem_ptn_count; ptn_index++)
+	{
+		name_size = strlen(ptentry_ptr[ptn_index].name);
+		for(i=0; i < name_size; i++)
+		{
+			ptentry_ptr[ptn_index].name[i] =
+				tolower(ptentry_ptr[ptn_index].name[i]);
+		}
+	}
+}
+
+void update_ptable_apps_partitions(void)
+{
+	uint32_t ptn_index, name_index = 0;
+	uint32_t end = 0xffffffff;
+	uint32_t name_size = strlen(ptable_ptn_names[name_index]);
+	struct ptentry * ptentry_ptr = flash_ptable.parts;
+
+	for(ptn_index=0; ptentry_ptr[ptn_index].start != end; ptn_index++)
+	{
+		if (!(strncmp(ptentry_ptr[ptn_index].name,
+				ptable_ptn_names[name_index], name_size)))
+		{
+			name_size = strlen(apps_ptn_names[name_index]);
+			name_size++; /* For null termination */
+
+			/* Update the partition names to something familiar */
+			if (name_size <= MAX_PTENTRY_NAME)
+				strncpy(ptentry_ptr[ptn_index].name,
+					apps_ptn_names[name_index], name_size);
+
+			/* Aboot uses modem page layout, leave aboot ptn */
+			if (name_index != 0)
+				ptentry_ptr[ptn_index].type =
+							TYPE_APPS_PARTITION;
+
+			/* Don't go out of bounds */
+			name_index++;
+			if (name_index >= ptn_name_count)
+				break;
+			name_size = strlen(ptable_ptn_names[name_index]);
+		}
+	}
 }
