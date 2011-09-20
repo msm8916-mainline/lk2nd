@@ -48,7 +48,7 @@ void panel_backlight_on(void)
         .inv_int_pol = 0,
     };
 
-    int rc = pm8921_gpio_config(GPIO_24, &backlight_pwm);
+    int rc = pm8921_gpio_config(PM_GPIO(24), &backlight_pwm);
     if (rc) {
         dprintf(CRITICAL, "FAIL pm8921_gpio_config(): rc=%d.\n", rc);
      }
@@ -68,7 +68,7 @@ void mipi_panel_reset(void){
         .inv_int_pol = 0,
         .disable_pin = 0,
     };
-    pm8921_gpio_config(GPIO_43, &gpio43_param);
+    pm8921_gpio_config(PM_GPIO(43), &gpio43_param);
 }
 
 void mipi_dsi_panel_power_on(void){

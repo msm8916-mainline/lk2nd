@@ -109,3 +109,6 @@
 #define SLEEP_CTRL_SMPL_EN_RESET         0x04
 #define SLEEP_CTRL_SMPL_EN_PWR_OFF       0x00
 
+#define IRQ_BLOCK_SEL_USR_ADDR           0x1C0
+#define IRQ_STATUS_RT_USR_ADDR           0x1C3
+

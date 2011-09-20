@@ -53,10 +53,6 @@
 #define PM_GPIO_FUNC_1          2
 #define PM_GPIO_FUNC_2          3
 
-/* GPIO24 for backlight_pwm which is 23 (index start at 0) */
-#define GPIO_24                 23
-#define GPIO_43                 42
-
 /* LDO define values */
 #define LDO_P_MASK (1 << 7)
 
@@ -71,6 +67,16 @@ enum
 	LDO_VOLTAGE_3_0V = 2,
 	LDO_VOLTAGE_ENTRIES
 };
+
+#define PM_GPIO(_x)                    ((_x) - 1)
+#define PM_IRQ_BLOCK(_x)               (_x)
+
+
+#define PM_IRQ_BLOCK_GPIO_START        PM_IRQ_BLOCK(24)
+
+#define PM_GPIO_BLOCK_ID(gpio)         (PM_IRQ_BLOCK_GPIO_START + (gpio)/8)
+#define PM_GPIO_ID_TO_BIT_MASK(gpio)   (1 << ((gpio)%8))
+
 
 typedef int (*pm8921_read_func)(uint8_t *data, uint32_t length, uint32_t addr);
 typedef int (*pm8921_write_func)(uint8_t *data, uint32_t length, uint32_t addr);
@@ -102,5 +108,6 @@ int  pm8921_gpio_config(int gpio, struct pm8921_gpio *param);
 void pm8921_boot_done(void);
 int  pm8921_ldo_set_voltage(uint32_t ldo_id, uint32_t voltage);
 int  pm8921_config_reset_pwr_off(unsigned reset);
+int  pm8921_gpio_get(uint8_t gpio, uint8_t *status);
 
 #endif

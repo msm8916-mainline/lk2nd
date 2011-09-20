@@ -168,6 +168,42 @@ int pm8921_gpio_config(int gpio, struct pm8921_gpio *param)
 	return 0;
 }
 
+/* Reads the value of the irq status for the requested block */
+int pm8921_irq_get_block_status(uint8_t block, uint8_t *status)
+{
+	int ret = 0;
+
+	/* Select the irq block to be read */
+	ret = dev->write(&block, 1, IRQ_BLOCK_SEL_USR_ADDR);
+
+	if(!ret)
+	{
+		/* Read the real time irq status value for the block */
+		ret = dev->read(status, 1, IRQ_STATUS_RT_USR_ADDR);
+	}
+
+	return ret;
+}
+
+/* Reads the status of requested gpio */
+int pm8921_gpio_get(uint8_t gpio, uint8_t *status)
+{
+	int ret = 0;
+	uint8_t block_status;
+
+	ret = pm8921_irq_get_block_status(PM_GPIO_BLOCK_ID(gpio), &block_status);
+
+	if(!ret)
+	{
+		if(block_status & PM_GPIO_ID_TO_BIT_MASK(gpio))
+			*status = 1;
+		else
+			*status = 0;
+	}
+
+	return ret;
+}
+
 int pm8921_ldo_set_voltage(uint32_t ldo_id, uint32_t voltage)
 {
 	uint8_t mult;
