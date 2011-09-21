@@ -105,7 +105,7 @@ endef
 
 include Makefile.convert-dtsv0
 include Makefile.dtc
-include Makefile.ftdump
+include Makefile.utils
 
 BIN += convert-dtsv0
 BIN += dtc

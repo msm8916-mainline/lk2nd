@@ -1,0 +1,10 @@
+#
+# This is not a complete Makefile of itself.  Instead, it is designed to
+# be easily embeddable into other systems of Makefiles.
+#
+
+FTDUMP_SRCS = \
+	ftdump.c \
+	util.c
+
+FTDUMP_OBJS = $(FTDUMP_SRCS:%.c=%.o)
