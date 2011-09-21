@@ -121,6 +121,13 @@
 #define SDC_CLK_NS_48MHZ     0x00FE005B
 #define SDC_CLK_MD_48MHZ     0x000100FD
 
+/* HDMI Clocks */
+#define SW_RESET_AHB_REG  REG_MM(0x020C)
+#define SW_RESET_CORE_REG REG_MM(0x0210)
+#define TV_CC_REG         REG_MM(0x00EC)
+#define TV_NS_REG         REG_MM(0x00F4)
+#define TV_MD_REG         REG_MM(0x00F0)
+
 enum clk_sources {
     PLL_0 = 0,
     PLL_1,

@@ -70,6 +70,24 @@
 #define PM_IRQ_ID_TO_BLOCK_INDEX(id) (uint8_t)(id / 8)
 #define PM_IRQ_ID_TO_BIT_MASK(id)    (uint8_t)(1 << (id % 8))
 
+/* HDMI MPP Registers */
+#define SSBI_MPP_CNTRL_BASE		0x27
+#define SSBI_MPP_CNTRL(n)		(SSBI_MPP_CNTRL_BASE + (n))
+
+#define PM8901_MPP_TYPE_MASK		0xE0
+#define PM8901_MPP_CONFIG_LVL_MASK	0x1C
+#define PM8901_MPP_CONFIG_CTL_MASK	0x03
+#define PM8901_MPP0_CTRL_VAL		0x30
+#define VREG_PMR_STATE_MASK		0x60
+#define VREG_PMR_STATE_HPM		0x7F
+#define VS_CTRL_USE_PMR			0xD0
+#define VS_CTRL_ENABLE_MASK		0xD0
+#define LDO_CTRL_VPROG_MASK		0x1F
+#define REGULATOR_EN_MASK		0x80
+#define PM8901_HDMI_MVS_CTRL		0x058
+#define PM8901_HDMI_MVS_PMR		0x0B8
+#define PM8058_HDMI_L16_CTRL		0x08A
+
 typedef int (*pm8058_write_func) (unsigned char *, unsigned short,
                                   unsigned short);
 extern int pa1_ssbi2_write_bytes(unsigned char *buffer, unsigned short length,
@@ -168,6 +186,27 @@ int pm8058_mwrite(uint16_t addr, uint8_t val, uint8_t mask,
 	else
 		*reg_save = reg;
 	return rc;
+}
+
+int pm8058_ldo_set_voltage()
+{
+	int ret = 0;
+	unsigned vprog = 0x00000110;
+	ret = pm8058_mwrite(PM8058_HDMI_L16_CTRL,vprog,LDO_CTRL_VPROG_MASK,0);
+	if(ret) {
+		dprintf(SPEW,"Failed to set voltage for l16 regulator\n");
+	}
+	return ret;
+}
+
+int pm8058_vreg_enable()
+{
+	int ret = 0;
+	ret = pm8058_mwrite(PM8058_HDMI_L16_CTRL,REGULATOR_EN_MASK,REGULATOR_EN_MASK,0);
+	if(ret) {
+		dprintf(SPEW,"Vreg enable failed for PM 8058\n");
+	}
+	return ret;
 }
 
 /* PM8901 APIs */
@@ -328,3 +367,38 @@ int pm8058_rtc0_alarm_irq_disable(void)
 	return rc;
 }
 
+int pm8901_mpp_enable()
+{
+	uint8_t prevval= 0x0;
+	uint16_t mask;
+	uint8_t conf;
+	int ret = 0;
+
+	conf = PM8901_MPP0_CTRL_VAL;
+	mask = PM8901_MPP_TYPE_MASK | PM8901_MPP_CONFIG_LVL_MASK |
+		PM8901_MPP_CONFIG_CTL_MASK;
+
+	if (ret = pm8901_vreg_write(&conf,mask,SSBI_MPP_CNTRL(0),prevval)) {
+		dprintf(SPEW,"PM8901 MPP failed\n");
+	}
+	return ret;
+}
+
+int pm8901_vs_enable()
+{
+	uint8_t val = VREG_PMR_STATE_HPM;
+	int prevval=0x0;
+	int ret = 0;
+
+	if (ret = pm8901_vreg_write(&val,VREG_PMR_STATE_HPM,PM8901_HDMI_MVS_PMR,prevval)) {
+		dprintf(SPEW,"pm8901_vreg_write failed for MVS PMR register\n");
+		return ret;
+	}
+
+	val = VS_CTRL_USE_PMR;
+	if (ret = pm8901_vreg_write(&val,VS_CTRL_ENABLE_MASK,PM8901_HDMI_MVS_CTRL,prevval)) {
+		dprintf(SPEW,"pm8901_vreg_write failed for MVS ctrl register\n");
+		return ret;
+	}
+	return ret;
+}

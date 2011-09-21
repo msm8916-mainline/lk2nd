@@ -62,4 +62,10 @@
 #define MIPI_VSYNC_BACK_PORCH_LINES  20
 #define MIPI_VSYNC_FRONT_PORCH_LINES 20
 
+/* HDMI Panel Macros for 1080p */
+#define DTV_FB_HEIGHT     1080
+#define DTV_FB_WIDTH      1920
+#define DTV_FORMAT_RGB565 0
+#define DTV_BPP           16
+
 #endif
