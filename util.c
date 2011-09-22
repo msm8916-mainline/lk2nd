@@ -1,4 +1,5 @@
 /*
+ * Copyright 2011 The Chromium Authors, All Rights Reserved.
  * Copyright 2008 Jon Loeliger, Freescale Semiconductor, Inc.
  *
  * util_is_printable_string contributed by
@@ -27,6 +28,11 @@
 #include <string.h>
 #include <assert.h>
 
+#include <errno.h>
+#include <fcntl.h>
+#include <unistd.h>
+
+#include "libfdt.h"
 #include "util.h"
 
 char *xstrdup(const char *s)
@@ -183,4 +189,140 @@ char get_escape_char(const char *s, int *i)
 
 	(*i) = j;
 	return val;
+}
+
+int utilfdt_read_err(const char *filename, char **buffp)
+{
+	int fd = 0;	/* assume stdin */
+	char *buf = NULL;
+	off_t bufsize = 1024, offset = 0;
+	int ret = 0;
+
+	*buffp = NULL;
+	if (strcmp(filename, "-") != 0) {
+		fd = open(filename, O_RDONLY);
+		if (fd < 0)
+			return errno;
+	}
+
+	/* Loop until we have read everything */
+	buf = malloc(bufsize);
+	do {
+		/* Expand the buffer to hold the next chunk */
+		if (offset == bufsize) {
+			bufsize *= 2;
+			buf = realloc(buf, bufsize);
+			if (!buf) {
+				ret = ENOMEM;
+				break;
+			}
+		}
+
+		ret = read(fd, &buf[offset], bufsize - offset);
+		if (ret < 0) {
+			ret = errno;
+			break;
+		}
+		offset += ret;
+	} while (ret != 0);
+
+	/* Clean up, including closing stdin; return errno on error */
+	close(fd);
+	if (ret)
+		free(buf);
+	else
+		*buffp = buf;
+	return ret;
+}
+
+char *utilfdt_read(const char *filename)
+{
+	char *buff;
+	int ret = utilfdt_read_err(filename, &buff);
+
+	if (ret) {
+		fprintf(stderr, "Couldn't open blob from '%s': %s\n", filename,
+			strerror(ret));
+		return NULL;
+	}
+	/* Successful read */
+	return buff;
+}
+
+int utilfdt_write_err(const char *filename, const void *blob)
+{
+	int fd = 1;	/* assume stdout */
+	int totalsize;
+	int offset;
+	int ret = 0;
+	const char *ptr = blob;
+
+	if (strcmp(filename, "-") != 0) {
+		fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+		if (fd < 0)
+			return errno;
+	}
+
+	totalsize = fdt_totalsize(blob);
+	offset = 0;
+
+	while (offset < totalsize) {
+		ret = write(fd, ptr + offset, totalsize - offset);
+		if (ret < 0) {
+			ret = -errno;
+			break;
+		}
+		offset += ret;
+	}
+	/* Close the file/stdin; return errno on error */
+	if (fd != 1)
+		close(fd);
+	return ret < 0 ? -ret : 0;
+}
+
+
+int utilfdt_write(const char *filename, const void *blob)
+{
+	int ret = utilfdt_write_err(filename, blob);
+
+	if (ret) {
+		fprintf(stderr, "Couldn't write blob to '%s': %s\n", filename,
+			strerror(ret));
+	}
+	return ret ? -1 : 0;
+}
+
+int utilfdt_decode_type(const char *fmt, int *type, int *size)
+{
+	int qualifier = 0;
+
+	/* get the conversion qualifier */
+	*size = -1;
+	if (strchr("hlLb", *fmt)) {
+		qualifier = *fmt++;
+		if (qualifier == *fmt) {
+			switch (*fmt++) {
+/* TODO:		case 'l': qualifier = 'L'; break;*/
+			case 'h':
+				qualifier = 'b';
+				break;
+			}
+		}
+	}
+
+	/* we should now have a type */
+	if (!strchr("iuxs", *fmt))
+		return -1;
+
+	/* convert qualifier (bhL) to byte size */
+	if (*fmt != 's')
+		*size = qualifier == 'b' ? 1 :
+				qualifier == 'h' ? 2 :
+				qualifier == 'l' ? 4 : -1;
+	*type = *fmt++;
+
+	/* that should be it! */
+	if (*fmt)
+		return -1;
+	return 0;
 }

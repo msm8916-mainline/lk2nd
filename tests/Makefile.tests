@@ -16,7 +16,8 @@ LIB_TESTS_L = get_mem_rsv \
 	extra-terminating-null \
 	dtbs_equal_ordered \
 	dtb_reverse dtbs_equal_unordered \
-	add_subnode_with_nops path_offset_aliases
+	add_subnode_with_nops path_offset_aliases \
+	utilfdt_test
 LIB_TESTS = $(LIB_TESTS_L:%=$(TESTS_PREFIX)%)
 
 LIBTREE_TESTS_L = truncated_property
@@ -42,7 +43,7 @@ TESTS_CLEANFILES = $(TESTS) $(TESTS_CLEANFILES_L:%=$(TESTS_PREFIX)%)
 .PHONY: tests
 tests:	$(TESTS) $(TESTS_TREES)
 
-$(LIB_TESTS): %: $(TESTS_PREFIX)testutils.o $(LIBFDT_archive)
+$(LIB_TESTS): %: $(TESTS_PREFIX)testutils.o util.o $(LIBFDT_archive)
 
 $(DL_LIB_TESTS): %: %.o $(TESTS_PREFIX)testutils.o $(LIBFDT_archive)
 	@$(VECHO) LD [libdl] $@

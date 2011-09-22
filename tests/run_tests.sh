@@ -391,6 +391,10 @@ dtbs_equal_tests () {
     cmp_tests test_tree1.dtb $WRONG_TREE1
 }
 
+utilfdt_tests () {
+    run_test utilfdt_test
+}
+
 while getopts "vt:m" ARG ; do
     case $ARG in
 	"v")
@@ -406,7 +410,7 @@ while getopts "vt:m" ARG ; do
 done
 
 if [ -z "$TESTSETS" ]; then
-    TESTSETS="libfdt dtc dtbs_equal"
+    TESTSETS="libfdt utilfdt dtc dtbs_equal"
 fi
 
 # Make sure we don't have stale blobs lying around
@@ -416,6 +420,9 @@ for set in $TESTSETS; do
     case $set in
 	"libfdt")
 	    libfdt_tests
+	    ;;
+	"utilfdt")
+	    utilfdt_tests
 	    ;;
 	"dtc")
 	    dtc_tests

@@ -4,6 +4,7 @@
 #include <stdarg.h>
 
 /*
+ * Copyright 2011 The Chromium Authors, All Rights Reserved.
  * Copyright 2008 Jon Loeliger, Freescale Semiconductor, Inc.
  *
  * This program is free software; you can redistribute it and/or
@@ -71,5 +72,72 @@ int util_is_printable_string(const void *data, int len);
  * terminator of the string.
  */
 char get_escape_char(const char *s, int *i);
+
+/**
+ * Read a device tree file into a buffer. This will report any errors on
+ * stderr.
+ *
+ * @param filename	The filename to read, or - for stdin
+ * @return Pointer to allocated buffer containing fdt, or NULL on error
+ */
+char *utilfdt_read(const char *filename);
+
+/**
+ * Read a device tree file into a buffer. Does not report errors, but only
+ * returns them. The value returned can be passed to strerror() to obtain
+ * an error message for the user.
+ *
+ * @param filename	The filename to read, or - for stdin
+ * @param buffp		Returns pointer to buffer containing fdt
+ * @return 0 if ok, else an errno value representing the error
+ */
+int utilfdt_read_err(const char *filename, char **buffp);
+
+
+/**
+ * Write a device tree buffer to a file. This will report any errors on
+ * stderr.
+ *
+ * @param filename	The filename to write, or - for stdout
+ * @param blob		Poiner to buffer containing fdt
+ * @return 0 if ok, -1 on error
+ */
+int utilfdt_write(const char *filename, const void *blob);
+
+/**
+ * Write a device tree buffer to a file. Does not report errors, but only
+ * returns them. The value returned can be passed to strerror() to obtain
+ * an error message for the user.
+ *
+ * @param filename	The filename to write, or - for stdout
+ * @param blob		Poiner to buffer containing fdt
+ * @return 0 if ok, else an errno value representing the error
+ */
+int utilfdt_write_err(const char *filename, const void *blob);
+
+/**
+ * Decode a data type string. The purpose of this string
+ *
+ * The string consists of an optional character followed by the type:
+ *	Modifier characters:
+ *		hh or b	1 byte
+ *		h	2 byte
+ *		l	4 byte, default
+ *
+ *	Type character:
+ *		s	string
+ *		i	signed integer
+ *		u	unsigned integer
+ *		x	hex
+ *
+ * TODO: Implement ll modifier (8 bytes)
+ * TODO: Implement o type (octal)
+ *
+ * @param fmt		Format string to process
+ * @param type		Returns type found(s/d/u/x), or 0 if none
+ * @param size		Returns size found(1,2,4,8) or 4 if none
+ * @return 0 if ok, -1 on error (no type given, or other invalid format)
+ */
+int utilfdt_decode_type(const char *fmt, int *type, int *size);
 
 #endif /* _UTIL_H */
