@@ -44,6 +44,8 @@
 #define MSM7X27A_FFA	3351
 #define MSM7X27A_SURF	3352
 #define MSM7X27A_RUMI3	3353
+#define MSM7X27A_QRD1	3756
+
 #define LINUX_MACHTYPE  MSM7X27A_SURF
 
 #define VARIABLE_LENGTH		0x10101010
@@ -269,7 +271,7 @@ void board_info(void)
 			}
 		}
 
-		/* Detect SURF v/s FFA v/s Fluid */
+		/* Detect SURF v/s FFA v/s QRD */
 		switch(id)
 		{
 			case 0x1:
@@ -277,6 +279,9 @@ void board_info(void)
 				break;
 			case 0x2:
 				hw_platform = MSM7X27A_FFA;
+				break;
+			case 0xB:
+				hw_platform = MSM7X27A_QRD1;
 				break;
 			default:
 				hw_platform = MSM7X27A_SURF;
