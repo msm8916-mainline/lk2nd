@@ -45,11 +45,12 @@ tests:	$(TESTS) $(TESTS_TREES)
 
 $(LIB_TESTS): %: $(TESTS_PREFIX)testutils.o util.o $(LIBFDT_archive)
 
-$(DL_LIB_TESTS): %: %.o $(TESTS_PREFIX)testutils.o $(LIBFDT_archive)
+$(DL_LIB_TESTS): %: %.o $(TESTS_PREFIX)testutils.o util.o $(LIBFDT_archive)
 	@$(VECHO) LD [libdl] $@
 	$(LINK.c) -o $@ $^ -ldl
 
-$(LIBTREE_TESTS): %: $(TESTS_PREFIX)testutils.o $(TESTS_PREFIX)trees.o $(LIBFDT_archive)
+$(LIBTREE_TESTS): %: $(TESTS_PREFIX)testutils.o $(TESTS_PREFIX)trees.o \
+		util.o $(LIBFDT_archive)
 
 $(TESTS_PREFIX)dumptrees: $(TESTS_PREFIX)trees.o
 
