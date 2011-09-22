@@ -13,8 +13,6 @@
 
 #include "util.h"
 
-#define FTDUMP_BUF_SIZE	65536
-
 #define ALIGN(x, a)	(((x) + ((a) - 1)) & ~((a) - 1))
 #define PALIGN(p, a)	((void *)(ALIGN((unsigned long)(p), (a))))
 #define GET_CELL(p)	(p += 4, *((const uint32_t *)(p-4)))
@@ -147,40 +145,18 @@ static void dump_blob(void *blob)
 
 int main(int argc, char *argv[])
 {
-	FILE *fp;
 	char *buf;
-	int size;
 
 	if (argc < 2) {
 		fprintf(stderr, "supply input filename\n");
 		return 5;
 	}
 
-	if (strcmp(argv[1], "-") == 0) {
-		fp = stdin;
-	} else {
-		fp = fopen(argv[1], "rb");
-		if (fp == NULL) {
-			fprintf(stderr, "unable to open %s\n", argv[1]);
-			return 10;
-		}
-	}
-
-	buf = malloc(FTDUMP_BUF_SIZE);
-	if (!buf) {
-		fprintf(stderr, "Couldn't allocate %d byte buffer\n", FTDUMP_BUF_SIZE);
+	buf = utilfdt_read(argv[1]);
+	if (buf)
+		dump_blob(buf);
+	else
 		return 10;
-	}
-
-	size = fread(buf, 1, FTDUMP_BUF_SIZE, fp);
-	if (size == FTDUMP_BUF_SIZE) {
-		fprintf(stderr, "file too large (maximum is %d bytes)\n", FTDUMP_BUF_SIZE);
-		return 10;
-	}
-
-	dump_blob(buf);
-
-	fclose(fp);
 
 	return 0;
 }
