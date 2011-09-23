@@ -51,7 +51,9 @@
 #define LINUX_MACHTYPE_8960_FLUID   3398
 #define LINUX_MACHTYPE_8960_APQ     3399
 #define LINUX_MACHTYPE_8960_LIQUID  3535
-
+#define LINUX_MACHTYPE_8930_CDP     3727
+#define LINUX_MACHTYPE_8930_MTP     3728
+#define LINUX_MACHTYPE_8930_FLUID   3729
 
 extern void dmb(void);
 extern void keypad_init(void);
@@ -142,23 +144,43 @@ unsigned board_machtype(void)
 	}
 
 	/* Detect the board we are running on */
-	switch(id)
+	if (board_info_v6.board_info_v3.msm_id == MSM8960)
 	{
-		case HW_PLATFORM_SURF:
-			mach_id = LINUX_MACHTYPE_8960_CDP;
-			break;
-		case HW_PLATFORM_MTP:
-			mach_id = LINUX_MACHTYPE_8960_MTP;
-			break;
-		case HW_PLATFORM_FLUID:
-			mach_id = LINUX_MACHTYPE_8960_FLUID;
-			break;
-		case HW_PLATFORM_LIQUID:
-			mach_id = LINUX_MACHTYPE_8960_LIQUID;
-			break;
-		default:
-			mach_id = LINUX_MACHTYPE_8960_CDP;
-	};
+		switch(id)
+		{
+			case HW_PLATFORM_SURF:
+				mach_id = LINUX_MACHTYPE_8960_CDP;
+				break;
+			case HW_PLATFORM_MTP:
+				mach_id = LINUX_MACHTYPE_8960_MTP;
+				break;
+			case HW_PLATFORM_FLUID:
+				mach_id = LINUX_MACHTYPE_8960_FLUID;
+				break;
+			case HW_PLATFORM_LIQUID:
+				mach_id = LINUX_MACHTYPE_8960_LIQUID;
+				break;
+			default:
+				mach_id = LINUX_MACHTYPE_8960_CDP;
+		}
+	}
+	else if (board_info_v6.board_info_v3.msm_id == MSM8930)
+	{
+		switch(id)
+		{
+			case HW_PLATFORM_SURF:
+				mach_id = LINUX_MACHTYPE_8930_CDP;
+				break;
+			case HW_PLATFORM_MTP:
+				mach_id = LINUX_MACHTYPE_8930_MTP;
+				break;
+			case HW_PLATFORM_FLUID:
+				mach_id = LINUX_MACHTYPE_8930_FLUID;
+				break;
+			default:
+				mach_id = LINUX_MACHTYPE_8930_CDP;
+		}
+	}
 
 	return mach_id;
 }
