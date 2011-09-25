@@ -6,6 +6,11 @@ $(OUTBIN): $(OUTELF)
 	$(NOECHO)$(SIZE) $<
 	$(NOCOPY)$(OBJCOPY) -O binary $< $@
 
+$(OUTUIMAGE): $(OUTBIN)
+	@echo generating uImage: $@
+	$(NOCOPY)$(MKIMAGE) -T kernel -C none -A arm \
+		-a $(MEMBASE) -e $(MEMBASE) -d $(OUTBIN) $@
+
 ifeq ($(ENABLE_TRUSTZONE), 1)
 $(OUTELF): $(ALLOBJS) $(LINKER_SCRIPT) $(OUTPUT_TZ_BIN)
 	@echo linking $@
