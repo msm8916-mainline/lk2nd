@@ -51,7 +51,7 @@ void ptable_add(struct ptable *ptable, char *name, unsigned start,
 	ASSERT(ptable && ptable->count < MAX_PTABLE_PARTS);
 
 	ptn = &ptable->parts[ptable->count++];
-	strncpy(ptn->name, name, MAX_PTENTRY_NAME);
+	strlcpy(ptn->name, name, MAX_PTENTRY_NAME);
 	ptn->start = start;
 	ptn->length = length;
 	ptn->flags = flags;
