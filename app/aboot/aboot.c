@@ -81,6 +81,7 @@ static const char *baseband_apq     = " androidboot.baseband=apq";
 static const char *baseband_msm     = " androidboot.baseband=msm";
 static const char *baseband_csfb    = " androidboot.baseband=csfb";
 static const char *baseband_svlte2a = " androidboot.baseband=svlte2a";
+static const char *baseband_mdm     = " androidboot.baseband=mdm";
 
 /* Assuming unauthorized kernel image by default */
 static int auth_kernel_img = 0;
@@ -208,6 +209,10 @@ void boot_linux(void *kernel, unsigned *tags,
 		case BASEBAND_SVLTE2A:
 			cmdline_len += strlen(baseband_svlte2a);
 			break;
+
+		case BASEBAND_MDM:
+			cmdline_len += strlen(baseband_mdm);
+			break;
 	}
 
 	if (cmdline_len > 0) {
@@ -273,6 +278,12 @@ void boot_linux(void *kernel, unsigned *tags,
 
 			case BASEBAND_SVLTE2A:
 				src = baseband_svlte2a;
+				if (have_cmdline) --dst;
+				while ((*dst++ = *src++));
+				break;
+
+			case BASEBAND_MDM:
+				src = baseband_mdm;
 				if (have_cmdline) --dst;
 				while ((*dst++ = *src++));
 				break;

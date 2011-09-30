@@ -43,6 +43,7 @@
 #include <gsbi.h>
 #include <target.h>
 #include <platform.h>
+#include <baseband.h>
 
 /* 8960 */
 #define LINUX_MACHTYPE_8960_SIM     3230
@@ -229,6 +230,37 @@ void target_detect(void)
 		dprintf(CRITICAL, "platform_id (%d) is not identified.\n", platform_id);
 		ASSERT(0);
 	}
+}
+
+unsigned target_baseband()
+{
+	struct smem_board_info_v6 board_info_v6;
+	unsigned int board_info_len = 0;
+	unsigned smem_status = 0;
+	unsigned format = 0;
+	unsigned baseband = BASEBAND_MSM;
+
+	smem_status = smem_read_alloc_entry_offset(SMEM_BOARD_INFO_LOCATION,
+					&format, sizeof(format), 0);
+	if(!smem_status)
+	{
+		if (format >= 6)
+		{
+			board_info_len = sizeof(board_info_v6);
+
+			smem_status = smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
+							&board_info_v6, board_info_len);
+			if(!smem_status)
+			{
+				/* Check for LTE fused target.  Default to MSM */
+				if (board_info_v6.platform_subtype == HW_PLATFORM_SUBTYPE_MDM)
+					baseband = BASEBAND_MDM;
+				else
+					baseband = BASEBAND_MSM;
+			}
+		}
+	}
+	return baseband;
 }
 
 void reboot_device(unsigned reboot_reason)

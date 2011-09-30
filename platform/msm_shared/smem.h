@@ -210,6 +210,7 @@ enum platform
 enum platform_subtype
 {
     HW_PLATFORM_SUBTYPE_UNKNOWN = 0,
+    HW_PLATFORM_SUBTYPE_MDM     = 1,
     HW_PLATFORM_SUBTYPE_CSFB    = 1,
     HW_PLATFORM_SUBTYPE_SVLTE1  = 2,
     HW_PLATFORM_SUBTYPE_SVLTE2A = 3,
