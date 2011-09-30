@@ -2266,146 +2266,10 @@ unsigned int mmc_write (unsigned long long data_addr, unsigned int data_len, uns
     return val;
 }
 
-
-
-
-unsigned int mmc_write_mbr_in_blocks(unsigned size, unsigned char *mbrImage)
-{
-    unsigned int dtype;
-    unsigned int dfirstsec;
-    unsigned int ebrSectorOffset;
-    unsigned char *ebrImage;
-    unsigned char *lastAddress;
-    int idx, i;
-    unsigned int ret;
-
-    /* Write the first block */
-    ret = mmc_write(0, MMC_BOOT_RD_BLOCK_LEN, (unsigned int *) mbrImage);
-    if (ret)
-    {
-        dprintf(CRITICAL, "Failed to write mbr partition\n");
-        goto end;
-    }
-    dprintf(SPEW, "write of first MBR block ok\n");
-    /*
-        Loop through the MBR table to see if there is an EBR.
-        If found, then figure out where to write the first EBR
-    */
-    idx = TABLE_ENTRY_0;
-    for (i = 0; i < 4; i++)
-    {
-        dtype = mbrImage[idx + i * TABLE_ENTRY_SIZE + OFFSET_TYPE];
-        if (MBR_EBR_TYPE == dtype)
-        {
-            dprintf(SPEW, "EBR found.\n");
-            break;
-        }
-    }
-    if (MBR_EBR_TYPE != dtype)
-    {
-        dprintf(SPEW, "No EBR in this image\n");
-        goto end;
-    }
-    /* EBR exists.  Write each EBR block to mmc */
-    ebrImage = mbrImage + MMC_BOOT_RD_BLOCK_LEN;
-    ebrSectorOffset= GET_LWORD_FROM_BYTE(&mbrImage[idx + i * TABLE_ENTRY_SIZE + OFFSET_FIRST_SEC]);
-    dfirstsec = 0;
-    dprintf(SPEW, "first EBR to be written at sector 0x%X\n", dfirstsec);
-    lastAddress = mbrImage + size;
-    while (ebrImage < lastAddress)
-    {
-        dprintf(SPEW, "writing to 0x%X\n", (ebrSectorOffset + dfirstsec) * MMC_BOOT_RD_BLOCK_LEN);
-        ret = mmc_write((ebrSectorOffset + dfirstsec) * MMC_BOOT_RD_BLOCK_LEN,
-                        MMC_BOOT_RD_BLOCK_LEN, (unsigned int *) ebrImage);
-        if (ret)
-        {
-            dprintf(CRITICAL, "Failed to write EBR block to sector 0x%X", dfirstsec);
-            goto end;
-        }
-        dfirstsec = GET_LWORD_FROM_BYTE(&ebrImage[TABLE_ENTRY_1 + OFFSET_FIRST_SEC]);
-        ebrImage += MMC_BOOT_RD_BLOCK_LEN;
-    }
-    dprintf(INFO, "MBR written to mmc successfully");
-end:
-    return ret;
-}
-
-
-
-/* Write the MBR/EBR to the MMC. */
-unsigned int mmc_write_mbr(unsigned size, unsigned char *mbrImage)
-{
-    unsigned int ret;
-
-    /* Verify that passed in block is a valid MBR */
-    ret = partition_verify_mbr_signature(size, mbrImage);
-    if (ret)
-    {
-        goto end;
-    }
-
-    /* Write the MBR/EBR to mmc */
-    ret = mmc_write_mbr_in_blocks(size, mbrImage);
-    if (ret)
-    {
-        dprintf(CRITICAL, "Failed to write MBR block to mmc.\n" );
-        goto end;
-    }
-    /* Re-read the MBR partition into mbr table */
-    ret = mmc_boot_read_mbr( &mmc_host, &mmc_card );
-    if (ret)
-    {
-        dprintf(CRITICAL, "Failed to re-read mbr partition.\n");
-        goto end;
-    }
-    partition_dump();
-end:
-    return ret;
-}
-
-unsigned int mmc_write_partition(unsigned size, unsigned char* partition)
-{
-    unsigned int ret = MMC_BOOT_E_INVAL;
-    unsigned int partition_type;
-
-    if (partition == 0)
-    {
-        dprintf(CRITICAL, "NULL partition\n");
-        goto end;
-    }
-    ret = partition_get_type(size, partition, &partition_type);
-    if (ret != MMC_BOOT_E_SUCCESS)
-    {
-        goto end;
-    }
-    switch (partition_type)
-    {
-        case PARTITION_TYPE_MBR:
-            dprintf(INFO, "Writing MBR partition\n");
-            ret = mmc_write_mbr(size, partition);
-            break;
-        case PARTITION_TYPE_GPT:
-            dprintf(INFO, "Writing GPT partition\n");
-            dprintf(CRITICAL, "Flash of GPT not implemented\n");
-            ret = MMC_BOOT_E_INVAL;
-            break;
-        case PARTITION_TYPE_GPT_BACKUP:
-            dprintf(INFO, "Writing GPT backup partition\n");
-            dprintf(CRITICAL, "Flash of GPT backup not implemented\n");
-            ret = MMC_BOOT_E_INVAL;
-            break;
-        default:
-            dprintf(CRITICAL, "Invalid partition\n");
-            ret = MMC_BOOT_E_INVAL;
-            goto end;
-    }
-end:
-    return ret;
-}
-
 /*
  * MMC read function
  */
+
 unsigned int mmc_read (unsigned long long data_addr, unsigned int* out, unsigned int data_len)
 {
     int val = 0;
@@ -2649,8 +2513,7 @@ static unsigned int mmc_boot_get_wp_status (struct mmc_boot_card* card,
     memset(wp_status_buf, 0, 8);
 
     rc = mmc_boot_read_reg(card, 8, CMD31_SEND_WRITE_PROT_TYPE, sector,
-		(unsigned int *) wp_status_buf);
-
+                           (unsigned int *) wp_status_buf);
     return rc;
 }
 
@@ -2853,6 +2716,7 @@ static unsigned int mmc_boot_fifo_write(unsigned int* mmc_ptr,
     return mmc_ret;
 }
 
+
 /*
  * CMD35_ERASE_GROUP_START
  */
@@ -3024,7 +2888,7 @@ unsigned int mmc_erase_card ( unsigned long long data_addr, unsigned long long s
 
     if(size % erase_grp_size)
     {
-          dprintf(CRITICAL, "Overflow beyond ERASE_GROUP_SIZE:%llu \n",
+          dprintf(CRITICAL, "Overflow beyond ERASE_GROUP_SIZE:%llu\n",
                          (size % erase_grp_size));
 
     }
@@ -3063,5 +2927,15 @@ unsigned int mmc_erase_card ( unsigned long long data_addr, unsigned long long s
     }
     dprintf(SPEW, "ERASE SUCCESSFULLY COMPLETED\n");
     return MMC_BOOT_E_SUCCESS;
+}
+
+struct mmc_boot_host* get_mmc_host ( void )
+{
+    return &mmc_host;
+}
+
+struct mmc_boot_card* get_mmc_card( void )
+{
+    return &mmc_card;
 }
 

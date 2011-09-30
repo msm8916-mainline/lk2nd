@@ -535,15 +535,6 @@ struct mmc_boot_host
 
 #define GET_PAR_NUM_FROM_POS(x) (((x & 0x0000FF00) >> 8) + (x & 0x000000FF))
 
-/* Some useful define used to access the MBR/EBR table */
-#define BLOCK_SIZE                0x200
-#define TABLE_ENTRY_0             0x1BE
-#define TABLE_ENTRY_1             0x1CE
-#define TABLE_ENTRY_2             0x1DE
-#define TABLE_ENTRY_3             0x1EE
-#define TABLE_SIGNATURE           0x1FE
-#define TABLE_ENTRY_SIZE          0x010
-
 #define OFFSET_STATUS             0x00
 #define OFFSET_TYPE               0x04
 #define OFFSET_FIRST_SEC          0x08
@@ -553,8 +544,6 @@ struct mmc_boot_host
 #define MAX_FILE_ENTRIES          20
 
 #define MMC_RCA 2
-
-extern unsigned gpt_partitions_exist;
 
 /* Can be used to unpack array of upto 32 bits data */
 #define UNPACK_BITS(array, start, len, size_of)                               \
@@ -612,11 +601,11 @@ unsigned int mmc_boot_write_to_card (struct mmc_boot_host* host,
                                      unsigned int data_len,
                                      unsigned int *in );
 
-unsigned int mmc_write_partition (unsigned size, unsigned char *partition);
-unsigned int mmc_write_mbr_in_blocks(unsigned size, unsigned char *mbrImage);
-unsigned int mmc_write_mbr(unsigned size, unsigned char *mbrImage);
-unsigned int mmc_erase_card(unsigned long long data_addr,
-                              unsigned long long data_len);
 
+unsigned int mmc_erase_card(unsigned long long data_addr,
+                            unsigned long long data_len);
+
+struct mmc_boot_host* get_mmc_host( void );
+struct mmc_boot_card* get_mmc_card( void );
 #endif
 

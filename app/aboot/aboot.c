@@ -879,7 +879,7 @@ void cmd_flash_mmc_img(const char *arg, void *data, unsigned sz)
 	if (!strcmp(arg, "partition"))
 	{
 		dprintf(INFO, "Attempt to write partition image.\n");
-		if (mmc_write_partition(sz, (unsigned char *) data)) {
+		if (write_partition(sz, (unsigned char *) data)) {
 			fastboot_fail("failed to write partition");
 			return;
 		}

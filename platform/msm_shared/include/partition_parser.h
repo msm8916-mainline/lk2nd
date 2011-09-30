@@ -43,6 +43,7 @@
 #define PROTECTIVE_MBR_SIZE       BLOCK_SIZE
 #define HEADER_SIZE_OFFSET        12
 #define HEADER_CRC_OFFSET         16
+#define PRIMARY_HEADER_OFFSET     24
 #define BACKUP_HEADER_OFFSET      32
 #define FIRST_USABLE_LBA_OFFSET   40
 #define LAST_USABLE_LBA_OFFSET    48
@@ -50,6 +51,8 @@
 #define PARTITION_COUNT_OFFSET    80
 #define PENTRY_SIZE_OFFSET        84
 #define PARTITION_CRC_OFFSET      88
+
+#define MIN_PARTITION_ARRAY_SIZE  0x4000
 
 #define PARTITION_ENTRY_LAST_LBA  40
 
@@ -112,6 +115,25 @@
         ((unsigned long long)*(x+6) << 48) | \
         ((unsigned long long)*(x+7) << 56))
 
+#define GET_LONG(x)    ((uint32_t)*(x) | \
+            ((uint32_t)*(x+1) << 8) | \
+            ((uint32_t)*(x+2) << 16) | \
+            ((uint32_t)*(x+3) << 24))
+
+#define PUT_LONG(x, y)   *(x) = y & 0xff;     \
+    *(x+1) = (y >> 8) & 0xff;     \
+    *(x+2) = (y >> 16) & 0xff;    \
+    *(x+3) = (y >> 24) & 0xff;
+
+#define PUT_LONG_LONG(x,y)    *(x) =(y) & 0xff; \
+     *((x)+1) = (((y) >> 8) & 0xff);    \
+     *((x)+2) = (((y) >> 16) & 0xff);   \
+     *((x)+3) = (((y) >> 24) & 0xff);   \
+     *((x)+4) = (((y) >> 32) & 0xff);   \
+     *((x)+5) = (((y) >> 40) & 0xff);   \
+     *((x)+6) = (((y) >> 48) & 0xff);   \
+     *((x)+7) = (((y) >> 56) & 0xff);
+
 /* Unified mbr and gpt entry types */
 struct partition_entry
 {
@@ -145,5 +167,15 @@ unsigned int partition_parse_gpt_header(unsigned char * buffer,
                                         unsigned int * partition_entry_size,
                                         unsigned int * header_size,
                                         unsigned int * max_partition_count);
+
+unsigned int write_mbr(unsigned size, unsigned char *mbrImage,
+                       struct mmc_boot_host *mmc_host,
+                       struct mmc_boot_card *mmc_card);
+unsigned int write_gpt(unsigned size, unsigned char *gptImage,
+                       struct mmc_boot_host *mmc_host,
+                       struct mmc_boot_card *mmc_card);
+unsigned int write_partition(unsigned size, unsigned char* partition);
+
+
 /* For Debugging */
 void partition_dump(void);
