@@ -410,7 +410,7 @@ void target_serialno(unsigned char *buf)
 	if(target_is_emmc_boot())
 	{
 		serialno =  mmc_get_psn();
-		sprintf((char *) buf, "%x", serialno);
+		snprintf((char *) buf, 13, "%x", serialno);
 	}
 }
 

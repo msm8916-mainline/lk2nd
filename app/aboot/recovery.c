@@ -310,22 +310,22 @@ int recovery_init (void)
 			if(!ret && (update_status & 0x01))
 			{
 				dprintf(INFO,"radio update success\n");
-				strcpy(msg.status, "OKAY");
+				strlcpy(msg.status, "OKAY", sizeof(msg.status));
 			}
 			else
 			{
 				dprintf(INFO,"radio update failed\n");
-				strcpy(msg.status, "failed-update");
+				strlcpy(msg.status, "failed-update", sizeof(msg.status));
 			}
-			strcpy(msg.command, "");	// clearing recovery command
+			strlcpy(msg.command, "", sizeof(msg.command));	// clearing recovery command
 			set_recovery_message(&msg);	// send recovery message
 			boot_into_recovery = 1;		// Boot in recovery mode
 			return 0;
 		}
 
 		valid_command = 1;
-		strcpy(msg.command, "");	// to safe against multiple reboot into recovery
-		strcpy(msg.status, "OKAY");
+		strlcpy(msg.command, "", sizeof(msg.command));	// to safe against multiple reboot into recovery
+		strlcpy(msg.status, "OKAY", sizeof(msg.status));
 		set_recovery_message(&msg);	// send recovery message
 		boot_into_recovery = 1;		// Boot in recovery mode
 		return 0;
@@ -334,7 +334,7 @@ int recovery_init (void)
 	if (!strcmp("update-radio",msg.command)) {
 		dprintf(INFO,"start radio update\n");
 		valid_command = 1;
-		strcpy(partition_name, "FOTA");
+		strlcpy(partition_name, "FOTA", sizeof(partition_name));
 	}
 
 	//Todo: Add support for bootloader update too.
@@ -346,29 +346,29 @@ int recovery_init (void)
 
 #ifdef OLD_FOTA_UPGRADE
 	if (read_update_header_for_bootloader(&header)) {
-		strcpy(msg.status, "invalid-update");
+		strlcpy(msg.status, "invalid-update", sizeof(msg.status));
 		goto SEND_RECOVERY_MSG;
 	}
 
 	if (update_firmware_image (&header, partition_name)) {
-		strcpy(msg.status, "failed-update");
+		strlcpy(msg.status, "failed-update", sizeof(msg.status));
 		goto SEND_RECOVERY_MSG;
 	}
 #else
 	if (set_ssd_radio_update(partition_name)) {
 		/* If writing to FOTA partition fails */
-		strcpy(msg.command, "");
-		strcpy(msg.status, "failed-update");
+		strlcpy(msg.command, "", sizeof(msg.command));
+		strlcpy(msg.status, "failed-update", sizeof(msg.status));
 		goto SEND_RECOVERY_MSG;
 	}
 	else {
 		/* Setting this to check the radio update status */
-		strcpy(msg.command, "boot-recovery");
-		strcpy(msg.status, "RADIO");
+		strlcpy(msg.command, "boot-recovery", sizeof(msg.command));
+		strlcpy(msg.status, "RADIO", sizeof(msg.command));
 		goto SEND_RECOVERY_MSG;
 	}
 #endif
-	strcpy(msg.status, "OKAY");
+	strlcpy(msg.status, "OKAY", sizeof(msg.status));
 
 SEND_RECOVERY_MSG:
 	set_recovery_message(&msg);	// send recovery message
@@ -442,12 +442,12 @@ int _emmc_recovery_init(void)
 		if(!ret && (update_status & 0x01))
 		{
 			dprintf(INFO,"radio update success\n");
-			strcpy(msg.status, "OKAY");
+			strlcpy(msg.status, "OKAY", sizeof(msg.status));
 		}
 		else
 		{
 			dprintf(INFO,"radio update failed\n");
-			strcpy(msg.status, "failed-update");
+			strlcpy(msg.status, "failed-update", sizeof(msg.status));
 		}
 		boot_into_recovery = 1;		// Boot in recovery mode
 	}
@@ -462,7 +462,7 @@ int _emmc_recovery_init(void)
 	else
 		return 0;	// do nothing
 
-	strcpy(msg.command, "");	// clearing recovery command
+	strlcpy(msg.command, "", sizeof(msg.command));	// clearing recovery command
 	emmc_set_recovery_msg(&msg);	// send recovery message
 	return 0;
 }

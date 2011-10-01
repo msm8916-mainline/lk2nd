@@ -270,7 +270,7 @@ static void cmd_download(const char *arg, void *data, unsigned sz)
 		return;
 	}
 
-	sprintf(response,"DATA%08x", len);
+	snprintf(response, MAX_RSP_SIZE, "DATA%08x", len);
 	if (usb_write(response, strlen(response)) < 0)
 		return;
 

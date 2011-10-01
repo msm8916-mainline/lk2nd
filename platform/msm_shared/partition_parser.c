@@ -333,8 +333,9 @@ static void mbr_fill_name (struct partition_entry *partition_ent,
             /* if already assigned last name available then return */
             if(!strcmp((const char *)vfat_partitions[vfat_count], "NONE"))
                 return;
-            strcpy((char *)partition_ent->name,
-                    (const char *)vfat_partitions[vfat_count]);
+            strlcpy((char *)partition_ent->name,
+                    (const char *)vfat_partitions[vfat_count],
+                    sizeof(partition_ent->name));
             vfat_count++;
             break;
         case MBR_SBL1_TYPE:
@@ -370,8 +371,9 @@ static void mbr_fill_name (struct partition_entry *partition_ent,
         case MBR_USERDATA_TYPE:
             if (ext3_count == sizeof(ext3_partitions) / sizeof(char*))
                 return;
-            strcpy((char *)partition_ent->name,
-                    (const char *)ext3_partitions[ext3_count]);
+            strlcpy((char *)partition_ent->name,
+                    (const char *)ext3_partitions[ext3_count],
+                    sizeof(partition_ent->name));
             ext3_count++;
             break;
         case MBR_RECOVERY_TYPE:
