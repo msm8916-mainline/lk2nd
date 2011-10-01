@@ -49,6 +49,7 @@
 #define MSM7X25A_FFA	3771
 #define MSM7X27A_EVB	3934
 #define MSM7X27A_QRD3	4005
+#define MSM8X25_RUMI3   3871
 
 #define LINUX_MACHTYPE  MSM7X27A_SURF
 
@@ -434,6 +435,13 @@ int machine_is_7x27a_qrd3()
 int machine_is_7x27a_qrd1()
 {
 	if (board_machtype() == MSM7X27A_QRD1)
+		return 1;
+	else
+		return 0;
+}
+int machine_is_8x25()
+{
+	if (board_machtype() == MSM8X25_RUMI3)
 		return 1;
 	else
 		return 0;

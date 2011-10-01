@@ -92,7 +92,7 @@ void platform_init_interrupts(void)
 	writel(1, VIC_INT_MASTEREN);
 }
 
-enum handler_return platform_irq(struct arm_iframe *frame)
+enum handler_return vic_platform_irq(struct arm_iframe *frame)
 {
 	unsigned num;
 	enum handler_return ret;
@@ -106,12 +106,12 @@ enum handler_return platform_irq(struct arm_iframe *frame)
 	return ret;
 }
 
-void platform_fiq(struct arm_iframe *frame)
+void vic_platform_fiq(struct arm_iframe *frame)
 {
 	PANIC_UNIMPLEMENTED;
 }
 
-status_t mask_interrupt(unsigned int vector)
+status_t vic_mask_interrupt(unsigned int vector)
 {
 	unsigned reg = (vector > 31) ? VIC_INT_ENCLEAR1 : VIC_INT_ENCLEAR0;
 	unsigned bit = 1 << (vector & 31);
@@ -119,7 +119,7 @@ status_t mask_interrupt(unsigned int vector)
 	return 0;
 }
 
-status_t unmask_interrupt(unsigned int vector)
+status_t vic_unmask_interrupt(unsigned int vector)
 {
 	unsigned reg = (vector > 31) ? VIC_INT_ENSET1 : VIC_INT_ENSET0;
 	unsigned bit = 1 << (vector & 31);
@@ -127,7 +127,7 @@ status_t unmask_interrupt(unsigned int vector)
 	return 0;
 }
 
-void register_int_handler(unsigned int vector, int_handler func, void *arg)
+void vic_register_int_handler(unsigned int vector, int_handler func, void *arg)
 {
 	if (vector >= NR_IRQS)
 		return;

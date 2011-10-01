@@ -59,13 +59,19 @@ extern void mipi_dsi_shutdown(void);
 
 unsigned board_msm_id(void);
 
+static int target_uses_qgic = 0;
 void platform_early_init(void)
 {
 #if WITH_DEBUG_UART
 	uart1_clock_init();
 	uart_init();
 #endif
-	platform_init_interrupts();
+	if(machine_is_8x25()) {
+		qgic_init();
+		target_uses_qgic = 1;
+	} else {
+		platform_init_interrupts();
+	}
 	platform_init_timer();
 }
 
@@ -153,4 +159,9 @@ void panel_dsi_init(void)
 	gpio_set(129, 0x0);
 	gpio_set(129, 0x1);
 	mdelay(10);
+}
+
+int target_supports_qgic()
+{
+	return target_uses_qgic;
 }

@@ -31,7 +31,8 @@ ifeq ($(PLATFORM),msm8x60)
 			$(LOCAL_DIR)/mdp4.o \
 			$(LOCAL_DIR)/certificate.o \
 			$(LOCAL_DIR)/image_verify.o \
-			$(LOCAL_DIR)/hdmi.o
+			$(LOCAL_DIR)/hdmi.o \
+			$(LOCAL_DIR)/interrupts.o
 endif
 
 ifeq ($(PLATFORM),msm8960)
@@ -44,7 +45,8 @@ ifeq ($(PLATFORM),msm8960)
 			$(LOCAL_DIR)/crypto_hash.o \
 			$(LOCAL_DIR)/certificate.o \
 			$(LOCAL_DIR)/image_verify.o \
-			$(LOCAL_DIR)/scm.o
+			$(LOCAL_DIR)/scm.o \
+			$(LOCAL_DIR)/interrupts.o
 endif
 
 ifeq ($(PLATFORM),msm7x27a)
@@ -55,7 +57,9 @@ ifeq ($(PLATFORM),msm7x27a)
 			$(LOCAL_DIR)/crypto_eng.o \
 			$(LOCAL_DIR)/crypto_hash.o \
 			$(LOCAL_DIR)/certificate.o \
-			$(LOCAL_DIR)/image_verify.o
+			$(LOCAL_DIR)/image_verify.o \
+			$(LOCAL_DIR)/qgic.o \
+			$(LOCAL_DIR)/interrupts.o
 endif
 
 ifeq ($(PLATFORM),msm7k)
@@ -78,5 +82,6 @@ endif
 
 ifeq ($(PLATFORM),mdm9x15)
 	OBJS += $(LOCAL_DIR)/qgic.o \
-			$(LOCAL_DIR)/uart_dm.o
+			$(LOCAL_DIR)/uart_dm.o \
+			$(LOCAL_DIR)/interrupts.o
 endif

@@ -105,7 +105,7 @@ void qgic_init(void)
 }
 
 /* IRQ handler */
-enum handler_return platform_irq(struct arm_iframe *frame)
+enum handler_return gic_platform_irq(struct arm_iframe *frame)
 {
 	uint32_t num;
 	enum handler_return ret;
@@ -121,13 +121,13 @@ enum handler_return platform_irq(struct arm_iframe *frame)
 }
 
 /* FIQ handler */
-void platform_fiq(struct arm_iframe *frame)
+void gic_platform_fiq(struct arm_iframe *frame)
 {
 	PANIC_UNIMPLEMENTED;
 }
 
 /* Mask interrupt */
-status_t mask_interrupt(unsigned int vector)
+status_t gic_mask_interrupt(unsigned int vector)
 {
 	uint32_t reg = GIC_DIST_ENABLE_CLEAR + (vector / 32) * 4;
 	uint32_t bit = 1 << (vector & 31);
@@ -138,7 +138,7 @@ status_t mask_interrupt(unsigned int vector)
 }
 
 /* Un-mask interrupt */
-status_t unmask_interrupt(unsigned int vector)
+status_t gic_unmask_interrupt(unsigned int vector)
 {
 	uint32_t reg = GIC_DIST_ENABLE_SET + (vector / 32) * 4;
 	uint32_t bit = 1 << (vector & 31);
@@ -149,7 +149,7 @@ status_t unmask_interrupt(unsigned int vector)
 }
 
 /* Register interrupt handler */
-void register_int_handler(unsigned int vector, int_handler func, void *arg)
+void gic_register_int_handler(unsigned int vector, int_handler func, void *arg)
 {
 	ASSERT(vector < NR_IRQS);
 
