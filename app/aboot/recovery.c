@@ -364,7 +364,7 @@ int recovery_init (void)
 	else {
 		/* Setting this to check the radio update status */
 		strlcpy(msg.command, "boot-recovery", sizeof(msg.command));
-		strlcpy(msg.status, "RADIO", sizeof(msg.command));
+		strlcpy(msg.status, "RADIO", sizeof(msg.status));
 		goto SEND_RECOVERY_MSG;
 	}
 #endif
