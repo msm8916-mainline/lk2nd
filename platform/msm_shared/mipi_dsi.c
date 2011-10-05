@@ -168,9 +168,11 @@ int mipi_dsi_phy_ctrl_config(struct mipi_dsi_panel_config *pinfo)
         off += 4;
     }
 
+#if DISPLAY_MIPI_PANEL_RENESAS
     if(machine_is_7x25a()) {
        pd->pll[10] |=0x8;
     }
+#endif
     off = 0x0204;               /* pll ctrl 1, skip 0 */
     for (i = 1; i < 21; i++) {
         writel(pd->pll[i], MIPI_DSI_BASE + off);
