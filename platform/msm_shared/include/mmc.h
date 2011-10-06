@@ -284,6 +284,8 @@ extern unsigned int mmc_boot_mci_base;
 #define CMD31_SEND_WRITE_PROT_TYPE       31
 #define CMD32_ERASE_WR_BLK_START         32
 #define CMD33_ERASE_WR_BLK_END           33
+#define CMD35_ERASE_GROUP_START          35
+#define CMD36_ERASE_GROUP_END            36
 #define CMD38_ERASE                      38
 #define ACMD41_SEND_OP_COND              41    /* SD card */
 #define ACMD51_SEND_SCR                  51    /* SD card */
@@ -373,12 +375,14 @@ extern unsigned int mmc_boot_mci_base;
 
 /* EXT_CSD */
 #define MMC_BOOT_ACCESS_WRITE             0x3
-#define MMC_BOOT_EXT_CMMC_HS_TIMING       185
-#define MMC_BOOT_EXT_CMMC_BUS_WIDTH       183
 
 #define MMC_BOOT_EXT_USER_WP              171
 #define MMC_BOOT_EXT_ERASE_GROUP_DEF      175
+#define MMC_BOOT_EXT_ERASE_MEM_CONT       181
+#define MMC_BOOT_EXT_CMMC_BUS_WIDTH       183
+#define MMC_BOOT_EXT_CMMC_HS_TIMING       185
 #define MMC_BOOT_EXT_HC_WP_GRP_SIZE       221
+#define MMC_BOOT_EXT_ERASE_TIMEOUT_MULT   223
 #define MMC_BOOT_EXT_HC_ERASE_GRP_SIZE    224
 
 #define IS_BIT_SET_EXT_CSD(val, bit)      ((ext_csd_buf[val]) & (1<<(bit)))
@@ -611,6 +615,8 @@ unsigned int mmc_boot_write_to_card (struct mmc_boot_host* host,
 unsigned int mmc_write_partition (unsigned size, unsigned char *partition);
 unsigned int mmc_write_mbr_in_blocks(unsigned size, unsigned char *mbrImage);
 unsigned int mmc_write_mbr(unsigned size, unsigned char *mbrImage);
+unsigned int mmc_erase_card(unsigned long long data_addr,
+                              unsigned long long data_len);
 
 #endif
 

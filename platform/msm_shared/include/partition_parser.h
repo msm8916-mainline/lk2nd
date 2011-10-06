@@ -41,8 +41,6 @@
 
 /* GPT Offsets */
 #define PROTECTIVE_MBR_SIZE       BLOCK_SIZE
-#define PARTITION_TABLE_SIZE      BLOCK_SIZE
-#define PARTITION_ENTRY_SIZE      BLOCK_SIZE
 #define HEADER_SIZE_OFFSET        12
 #define HEADER_CRC_OFFSET         16
 #define BACKUP_HEADER_OFFSET      32
@@ -52,6 +50,10 @@
 #define PARTITION_COUNT_OFFSET    80
 #define PENTRY_SIZE_OFFSET        84
 #define PARTITION_CRC_OFFSET      88
+
+#define PARTITION_ENTRY_LAST_LBA  40
+
+#define ENTRY_SIZE              0x080
 
 #define UNIQUE_GUID_OFFSET        16
 #define FIRST_LBA_OFFSET          32
@@ -143,6 +145,5 @@ unsigned int partition_parse_gpt_header(unsigned char * buffer,
                                         unsigned int * partition_entry_size,
                                         unsigned int * header_size,
                                         unsigned int * max_partition_count);
-
 /* For Debugging */
 void partition_dump(void);

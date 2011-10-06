@@ -2403,8 +2403,6 @@ end:
     return ret;
 }
 
-
-
 /*
  * MMC read function
  */
@@ -2854,3 +2852,216 @@ static unsigned int mmc_boot_fifo_write(unsigned int* mmc_ptr,
     } while(1);
     return mmc_ret;
 }
+
+/*
+ * CMD35_ERASE_GROUP_START
+ */
+
+static unsigned int mmc_boot_send_erase_group_start(struct mmc_boot_card* card,
+                                                    unsigned long long data_addr )
+{
+   struct mmc_boot_command cmd;
+   unsigned int mmc_ret = MMC_BOOT_E_SUCCESS;
+
+   if( card == NULL)
+       return MMC_BOOT_E_INVAL;
+
+   memset((struct mmc_boot_command *)&cmd, 0,
+          sizeof(struct mmc_boot_command));
+
+   cmd.cmd_index = CMD35_ERASE_GROUP_START;
+   cmd.argument = data_addr;
+   cmd.cmd_type = MMC_BOOT_CMD_ADDRESS;
+   cmd.resp_type = MMC_BOOT_RESP_R1;
+
+   mmc_ret = mmc_boot_send_command( &cmd );
+   if( mmc_ret != MMC_BOOT_E_SUCCESS )
+   {
+       return mmc_ret;
+   }
+
+   /* Checking for address error */
+   if( IS_ADDR_OUT_OF_RANGE(cmd.resp[0]) )
+   {
+       return MMC_BOOT_E_BLOCKLEN_ERR;
+   }
+
+   return MMC_BOOT_E_SUCCESS;
+
+}
+
+/*
+ * CMD36 ERASE GROUP END
+ */
+static unsigned int mmc_boot_send_erase_group_end(struct mmc_boot_card* card,
+                                                  unsigned long long data_addr )
+{
+   struct mmc_boot_command cmd;
+   unsigned int mmc_ret = MMC_BOOT_E_SUCCESS;
+
+   if( card == NULL)
+       return MMC_BOOT_E_INVAL;
+
+   memset((struct mmc_boot_command *)&cmd, 0,
+          sizeof(struct mmc_boot_command));
+
+   cmd.cmd_index = CMD36_ERASE_GROUP_END;
+   cmd.argument = data_addr;
+   cmd.cmd_type = MMC_BOOT_CMD_ADDRESS;
+   cmd.resp_type = MMC_BOOT_RESP_R1;
+
+   mmc_ret = mmc_boot_send_command( &cmd );
+   if( mmc_ret != MMC_BOOT_E_SUCCESS )
+   {
+       return mmc_ret;
+   }
+
+   /* Checking for address error */
+   if(IS_ADDR_OUT_OF_RANGE(cmd.resp[0]))
+   {
+       return MMC_BOOT_E_BLOCKLEN_ERR;
+   }
+
+   return MMC_BOOT_E_SUCCESS;
+}
+
+/*
+ * CMD38 ERASE
+ */
+static unsigned int mmc_boot_send_erase(struct mmc_boot_card* card )
+{
+
+   struct mmc_boot_command cmd;
+   unsigned int mmc_ret = MMC_BOOT_E_SUCCESS;
+   unsigned int status;
+
+   if( card == NULL)
+       return MMC_BOOT_E_INVAL;
+
+   memset((struct mmc_boot_command *)&cmd, 0,
+          sizeof(struct mmc_boot_command));
+
+   cmd.cmd_index = CMD38_ERASE;
+   cmd.argument = 0x00000000;
+   cmd.cmd_type = MMC_BOOT_CMD_ADDRESS;
+   cmd.resp_type = MMC_BOOT_RESP_R1B;
+
+   /* Checking if the card is in the transfer state */
+   do
+   {
+       mmc_ret = mmc_boot_get_card_status( card, 0 ,&status);
+       if(MMC_BOOT_CARD_STATUS(status) == MMC_BOOT_TRAN_STATE)
+           break;
+   } while( (mmc_ret == MMC_BOOT_E_SUCCESS) &&
+               (MMC_BOOT_CARD_STATUS(status) == MMC_BOOT_PROG_STATE));
+
+   if( mmc_ret != MMC_BOOT_E_SUCCESS )
+   {
+       return mmc_ret;
+   }
+   mmc_ret = mmc_boot_send_command( &cmd );
+   if( mmc_ret != MMC_BOOT_E_SUCCESS )
+   {
+       return mmc_ret;
+   }
+
+   /* Checking for write protect */
+   if( cmd.resp[0] & MMC_BOOT_R1_WP_ERASE_SKIP )
+   {
+       dprintf(CRITICAL , "Write protect enabled for sector \n");
+       return;
+   }
+
+   /* Checking if the erase operation for the card is compelete */
+   do
+   {
+       mmc_ret = mmc_boot_get_card_status( card, 0 ,&status);
+       if(MMC_BOOT_CARD_STATUS(status) == MMC_BOOT_TRAN_STATE)
+           break;
+   } while( (mmc_ret == MMC_BOOT_E_SUCCESS) &&
+                (MMC_BOOT_CARD_STATUS(status) == MMC_BOOT_PROG_STATE));
+
+   if( mmc_ret != MMC_BOOT_E_SUCCESS )
+   {
+       return mmc_ret;
+   }
+
+   return MMC_BOOT_E_SUCCESS;
+}
+
+/*
+ * Function to erase data on the eMMC card
+ */
+unsigned int mmc_erase_card ( unsigned long long data_addr, unsigned long long size)
+{
+    unsigned int mmc_ret = MMC_BOOT_E_SUCCESS;
+    unsigned long long erase_grp_size;
+    unsigned long long data_end = 0x00000000;
+    unsigned long long loop_count;
+
+    /* Converting size to sectors */
+    size =size /512;
+
+
+    if(ext_csd_buf[MMC_BOOT_EXT_ERASE_GROUP_DEF])
+    {
+        erase_grp_size = (512 * ext_csd_buf[MMC_BOOT_EXT_HC_ERASE_GRP_SIZE]* 1024);
+        erase_grp_size = erase_grp_size/512;
+    }
+    else
+    {
+        erase_grp_size = (mmc_card.csd.erase_grp_size + 1) *
+                         (mmc_card.csd.erase_grp_mult + 1);
+    }
+    data_addr = ( (mmc_card.type != MMC_BOOT_TYPE_MMCHC) &&
+                  (mmc_card.type != MMC_BOOT_TYPE_SDHC) )
+           ? (unsigned int) data_addr :(unsigned int) (data_addr / 512);
+
+    if( erase_grp_size == 0 )
+    {
+        return MMC_BOOT_E_FAILURE;
+    }
+
+    if(size % erase_grp_size)
+    {
+          dprintf(CRITICAL, "Overflow beyond ERASE_GROUP_SIZE:%llu \n",
+                         (size % erase_grp_size));
+
+    }
+    loop_count = (size / erase_grp_size);
+    data_end = data_addr + erase_grp_size * (loop_count-1);
+
+    /* Sending CMD35 */
+    mmc_ret = mmc_boot_send_erase_group_start (&mmc_card , data_addr);
+    if( mmc_ret != MMC_BOOT_E_SUCCESS)
+    {
+        dprintf(CRITICAL, "Error %d: Failure sending erase group start "
+                          "command to the card (RCA:%x)\n", mmc_ret, mmc_card.rca);
+        return mmc_ret;
+    }
+
+    /* Sending CMD36 */
+    mmc_ret = mmc_boot_send_erase_group_end (&mmc_card , data_end - 1);
+    if( mmc_ret != MMC_BOOT_E_SUCCESS)
+    {
+        dprintf(CRITICAL, "Error %d: Failure sending erase group end "
+                          "command to the card (RCA:%x)\n", mmc_ret, mmc_card.rca);
+        return mmc_ret;
+    }
+
+    for( unsigned long long i = 0; i < loop_count ;i++ )
+    {
+        /* Sending CMD38 */
+        mmc_ret = mmc_boot_send_erase (&mmc_card );
+        if( mmc_ret != MMC_BOOT_E_SUCCESS)
+        {
+            dprintf(CRITICAL, "Error %d: Failure sending erase command "
+                              "to the card (RCA:%x)\n", mmc_ret, mmc_card.rca );
+            return mmc_ret;
+
+        }
+    }
+    dprintf(SPEW, "ERASE SUCCESSFULLY COMPLETED\n");
+    return MMC_BOOT_E_SUCCESS;
+}
+
