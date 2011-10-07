@@ -34,53 +34,6 @@
 #include <platform/clock.h>
 #include <target/display.h>
 
-int mipi_dsi_phy_init(struct mipi_dsi_panel_config *pinfo){
-    struct mipi_dsi_phy_ctrl *pd;
-    uint32_t i, off = 0;
-
-    writel(0x00000001, DSI_PHY_SW_RESET);
-    mdelay(50);
-    writel(0x00000000, DSI_PHY_SW_RESET);
-
-    pd = (pinfo->dsi_phy_config);
-
-    off = 0x02cc;    /* regulator ctrl 0 */
-    for (i = 0; i < 4; i++) {
-            writel(pd->strength[i], MIPI_DSI_BASE + off);
-        off += 4;
-    }
-
-    off = 0x0260;   /* phy timig ctrl 0 */
-    for (i = 0; i < 11; i++) {
-            writel(pd->timing[i], MIPI_DSI_BASE + off);
-        off += 4;
-    }
-        writel(0x202f, DSI_CLKOUT_TIMING_CTRL);
-
-    off = 0x0290;    /* ctrl 0 */
-    for (i = 0; i < 4; i++) {
-            writel(pd->ctrl[i], MIPI_DSI_BASE + off);
-        off += 4;
-    }
-
-    off = 0x02a0;    /* strength 0 */
-    for (i = 0; i < 4; i++) {
-            writel(pd->strength[i], MIPI_DSI_BASE + off);
-        off += 4;
-    }
-
-    /* calibration ctrl */
-    writel(0x67, MIPI_DSI_BASE + 0x100);
-
-    /* pll ctrl 0 */
-    writel(pd->pll[0], MIPI_DSI_BASE + 0x200);
-    writel((pd->pll[0] | 0x01), MIPI_DSI_BASE + 0x200);
-
-    /* lane swap ctrl */
-    writel(0x1, MIPI_DSI_BASE + 0xac);
-    return 0;
-}
-
 void config_renesas_dsi_video_mode(void)
 {
 
