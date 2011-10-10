@@ -133,6 +133,40 @@ static void validate_memcpy(void)
 	}
 }
 
+static void validate_memcpy_overlap(void)
+{
+	size_t srcalign, dstalign, size;
+	const size_t maxsize = 256;
+	int comp;
+
+	printf("testing memcpy for correctness in overlap cases\n");
+
+	for (dstalign = 0; dstalign < 64; dstalign++) {
+		for (size = 0; size < maxsize; size++) {
+
+			fillbuf(src, maxsize * 2, 567);
+			fillbuf(src2, maxsize * 2, 567);
+
+			/* Case one will check cpy memory is the same - fwd*/
+			memcpy(src + dstalign, src, size);
+			comp = memcmp(src + dstalign, src2, size);
+			if (comp != 0) {
+				printf("ERROR (Case1): dstalign %zu, size %zu, ret %d\n", dstalign, size, comp);
+			}
+
+			fillbuf(src, maxsize * 2, 8588485);
+			fillbuf(src2, maxsize * 2, 8588485);
+
+			/* Case two will check cpy memory is the same - bkwd*/
+			memcpy(src, src + dstalign, size);
+			comp = memcmp(src, src2 + dstalign, size);
+			if (comp != 0) {
+				printf("ERROR (Case2): dstalign %zu, size %zu, ret %d\n", dstalign, size, comp);
+			}
+		}
+	}
+}
+
 static time_t bench_memset_routine(void *memset_routine(void *, int, size_t), size_t dstalign)
 {
 	int i;
@@ -218,6 +252,8 @@ usage:
 			validate_memcpy();
 		} else if (!strcmp(argv[2].str, "memset")) {
 			validate_memset();
+		} else if (!strcmp(argv[2].str, "memcpy_overlap")) {
+			validate_memcpy_overlap();
 		}
 	} else if (!strcmp(argv[1].str, "bench")) {
 		if (!strcmp(argv[2].str, "memcpy")) {
