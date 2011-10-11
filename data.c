@@ -168,11 +168,33 @@ struct data data_merge(struct data d1, struct data d2)
 	return d;
 }
 
-struct data data_append_cell(struct data d, cell_t word)
+struct data data_append_integer(struct data d, uint64_t value, int bits)
 {
-	cell_t beword = cpu_to_fdt32(word);
+	uint8_t value_8;
+	uint16_t value_16;
+	uint32_t value_32;
+	uint64_t value_64;
 
-	return data_append_data(d, &beword, sizeof(beword));
+	switch (bits) {
+	case 8:
+		value_8 = value;
+		return data_append_data(d, &value_8, 1);
+
+	case 16:
+		value_16 = cpu_to_fdt16(value);
+		return data_append_data(d, &value_16, 2);
+
+	case 32:
+		value_32 = cpu_to_fdt32(value);
+		return data_append_data(d, &value_32, 4);
+
+	case 64:
+		value_64 = cpu_to_fdt64(value);
+		return data_append_data(d, &value_64, 8);
+
+	default:
+		die("Invalid literal size (%d)\n", bits);
+	}
 }
 
 struct data data_append_re(struct data d, const struct fdt_reserve_entry *re)
@@ -185,11 +207,14 @@ struct data data_append_re(struct data d, const struct fdt_reserve_entry *re)
 	return data_append_data(d, &bere, sizeof(bere));
 }
 
+struct data data_append_cell(struct data d, cell_t word)
+{
+	return data_append_integer(d, word, sizeof(word) * 8);
+}
+
 struct data data_append_addr(struct data d, uint64_t addr)
 {
-	uint64_t beaddr = cpu_to_fdt64(addr);
-
-	return data_append_data(d, &beaddr, sizeof(beaddr));
+	return data_append_integer(d, addr, sizeof(addr) * 8);
 }
 
 struct data data_append_byte(struct data d, uint8_t byte)
