@@ -97,6 +97,12 @@ static int pop_input_file(void);
 			return DT_MEMRESERVE;
 		}
 
+<*>"/bits/"	{
+			DPRINT("Keyword: /bits/\n");
+			BEGIN_DEFAULT();
+			return DT_BITS;
+		}
+
 <*>{LABEL}:	{
 			DPRINT("Label: %s\n", yytext);
 			yylval.labelref = xstrdup(yytext);

@@ -40,6 +40,7 @@
 /set_name
 /setprop
 /setprop_inplace
+/sized_cells
 /string_escapes
 /subnode_offset
 /supernode_atdepth_offset

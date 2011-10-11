@@ -45,8 +45,12 @@ static unsigned char eval_char_literal(const char *s);
 	uint8_t byte;
 	struct data data;
 
+	struct {
+		struct data	data;
+		int		bits;
+	} array;
+
 	uint64_t addr;
-	cell_t cell;
 	struct property *prop;
 	struct property *proplist;
 	struct node *node;
@@ -56,6 +60,7 @@ static unsigned char eval_char_literal(const char *s);
 
 %token DT_V1
 %token DT_MEMRESERVE
+%token DT_BITS
 %token <propnodename> DT_PROPNODENAME
 %token <literal> DT_LITERAL
 %token <literal> DT_CHAR_LITERAL
@@ -71,8 +76,7 @@ static unsigned char eval_char_literal(const char *s);
 %type <re> memreserve
 %type <re> memreserves
 %type <addr> addr
-%type <data> celllist
-%type <cell> cellval
+%type <array> arrayprefix
 %type <data> bytestring
 %type <prop> propdef
 %type <proplist> proplist
@@ -182,9 +186,9 @@ propdata:
 		{
 			$$ = data_merge($1, $2);
 		}
-	| propdataprefix '<' celllist '>'
+	| propdataprefix arrayprefix '>'
 		{
-			$$ = data_merge($1, $3);
+			$$ = data_merge($1, $2.data);
 		}
 	| propdataprefix '[' bytestring ']'
 		{
@@ -242,34 +246,56 @@ propdataprefix:
 		}
 	;
 
-celllist:
-	  /* empty */
+arrayprefix:
+	DT_BITS DT_LITERAL '<'
 		{
-			$$ = empty_data;
-		}
-	| celllist cellval
-		{
-			$$ = data_append_cell($1, $2);
-		}
-	| celllist DT_REF
-		{
-			$$ = data_append_cell(data_add_marker($1, REF_PHANDLE,
-							      $2), -1);
-		}
-	| celllist DT_LABEL
-		{
-			$$ = data_add_marker($1, LABEL, $2);
-		}
-	;
+			$$.data = empty_data;
+			$$.bits = eval_literal($2, 0, 7);
 
-cellval:
-	  DT_LITERAL
-		{
-			$$ = eval_literal($1, 0, 32);
+			if (($$.bits !=  8) &&
+			    ($$.bits != 16) &&
+			    ($$.bits != 32) &&
+			    ($$.bits != 64))
+			{
+				print_error("Only 8, 16, 32 and 64-bit elements"
+					    " are currently supported");
+				$$.bits = 32;
+			}
 		}
-	| DT_CHAR_LITERAL
+	| '<'
 		{
-			$$ = eval_char_literal($1);
+			$$.data = empty_data;
+			$$.bits = 32;
+		}
+	| arrayprefix DT_LITERAL
+		{
+			uint64_t val = eval_literal($2, 0, $1.bits);
+
+			$$.data = data_append_integer($1.data, val, $1.bits);
+		}
+	| arrayprefix DT_CHAR_LITERAL
+		{
+			uint64_t val = eval_char_literal($2);
+
+			$$.data = data_append_integer($1.data, val, $1.bits);
+		}
+	| arrayprefix DT_REF
+		{
+			uint64_t val = ~0ULL >> (64 - $1.bits);
+
+			if ($1.bits == 32)
+				$1.data = data_add_marker($1.data,
+							  REF_PHANDLE,
+							  $2);
+			else
+				print_error("References are only allowed in "
+					    "arrays with 32-bit elements.");
+
+			$$.data = data_append_integer($1.data, val, $1.bits);
+		}
+	| arrayprefix DT_LABEL
+		{
+			$$.data = data_add_marker($1.data, LABEL, $2);
 		}
 	;
 

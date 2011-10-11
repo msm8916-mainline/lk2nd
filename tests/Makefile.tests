@@ -6,6 +6,7 @@ LIB_TESTS_L = get_mem_rsv \
 	node_check_compatible node_offset_by_compatible \
 	get_alias \
 	char_literal \
+	sized_cells \
 	notfound \
 	setprop_inplace nop_property nop_node \
 	sw_tree1 \

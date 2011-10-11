@@ -209,6 +209,9 @@ dtc_tests () {
     run_dtc_test -I dts -O dtb -o dtc_char_literal.test.dtb char_literal.dts
     run_test char_literal dtc_char_literal.test.dtb
 
+    run_dtc_test -I dts -O dtb -o dtc_sized_cells.test.dtb sized_cells.dts
+    run_test sized_cells dtc_sized_cells.test.dtb
+
     run_dtc_test -I dts -O dtb -o dtc_extra-terminating-null.test.dtb extra-terminating-null.dts
     run_test extra-terminating-null dtc_extra-terminating-null.test.dtb
 
