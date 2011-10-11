@@ -912,12 +912,19 @@ void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 	chunk_header_t *chunk_header;
 	uint32_t total_blocks = 0;
 	unsigned long long ptn = 0;
+	unsigned long long size = 0;
 	int index = INVALID_PTN;
 
 	index = partition_get_index(arg);
 	ptn = partition_get_offset(index);
 	if(ptn == 0) {
 		fastboot_fail("partition table doesn't exist");
+		return;
+	}
+
+	size = partition_get_size(index);
+	if (ROUND_TO_PAGE(sz,511) > size) {
+		fastboot_fail("size too large");
 		return;
 	}
 
