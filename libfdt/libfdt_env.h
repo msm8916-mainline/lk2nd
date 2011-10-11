@@ -6,6 +6,12 @@
 #include <string.h>
 
 #define _B(n)	((unsigned long long)((uint8_t *)&x)[n])
+static inline uint16_t fdt16_to_cpu(uint16_t x)
+{
+	return (_B(0) << 8) | _B(1);
+}
+#define cpu_to_fdt16(x) fdt16_to_cpu(x)
+
 static inline uint32_t fdt32_to_cpu(uint32_t x)
 {
 	return (_B(0) << 24) | (_B(1) << 16) | (_B(2) << 8) | _B(3);
