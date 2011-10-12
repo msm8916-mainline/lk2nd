@@ -130,9 +130,6 @@
 /* Range 0 - 19 */
 #define DSIPHY_PLL_CTRL(x)       REG_DSI(DSIPHY_PLL_BASE + (x) * 4)
 
-//TODO: Use mem on the stack
-#define DSI_CMD_DMA_MEM_START_ADDR_PANEL      (0x90000000)
-
 #define MDP_BASE                              (0x05100000)
 #define REG_MDP(off)                          (MDP_BASE + (off))
 

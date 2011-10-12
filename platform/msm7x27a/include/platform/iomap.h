@@ -84,7 +84,6 @@
 /* Range 0 - 19 */
 #define DSIPHY_PLL_CTRL(x)       REG_DSI(DSIPHY_PLL_BASE + (x) * 4)
 
-#define DSI_CMD_DMA_MEM_START_ADDR_PANEL      (0x2E000000)
 #define MDP_DMA_P_CONFIG 		      (0xAA290000)
 #define MDP_DMA_P_OUT_XY                      (0xAA290010)
 #define MDP_DMA_P_SIZE                        (0xAA290004)
