@@ -235,11 +235,12 @@ int mipi_dsi_cmds_tx(struct mipi_dsi_cmd *cmds, int count)
     int ret = 0;
     struct mipi_dsi_cmd *cm;
     int i = 0;
+    char pload[256];
 
     cm = cmds;
     for (i = 0; i < count; i++) {
-        memcpy((void *) DSI_CMD_DMA_MEM_START_ADDR_PANEL, (cm->payload), cm->size);
-        writel(DSI_CMD_DMA_MEM_START_ADDR_PANEL, DSI_DMA_CMD_OFFSET);
+        memcpy((void *) pload, (cm->payload), cm->size);
+        writel(pload, DSI_DMA_CMD_OFFSET);
         writel(cm->size, DSI_DMA_CMD_LENGTH);   // reg 0x48 for this build
         ret += dsi_cmd_dma_trigger_for_panel();
         udelay(80);
