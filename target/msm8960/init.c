@@ -44,6 +44,7 @@
 #include <target.h>
 #include <platform.h>
 
+/* 8960 */
 #define LINUX_MACHTYPE_8960_SIM     3230
 #define LINUX_MACHTYPE_8960_RUMI3   3231
 #define LINUX_MACHTYPE_8960_CDP     3396
@@ -51,9 +52,15 @@
 #define LINUX_MACHTYPE_8960_FLUID   3398
 #define LINUX_MACHTYPE_8960_APQ     3399
 #define LINUX_MACHTYPE_8960_LIQUID  3535
+
+/* 8930 */
 #define LINUX_MACHTYPE_8930_CDP     3727
 #define LINUX_MACHTYPE_8930_MTP     3728
 #define LINUX_MACHTYPE_8930_FLUID   3729
+
+/* 8064 */
+#define LINUX_MACHTYPE_8064_SIM     3572
+#define LINUX_MACHTYPE_8064_RUMI3   3679
 
 extern void dmb(void);
 extern void keypad_init(void);
@@ -61,9 +68,22 @@ extern void panel_backlight_on(void);
 
 static unsigned mmc_sdc_base[] = { MSM_SDC1_BASE, MSM_SDC2_BASE, MSM_SDC3_BASE, MSM_SDC4_BASE};
 
+static uint32_t platform_id;
+static uint32_t target_id;
+
 static pm8921_dev_t pmic;
 
-static const uint8_t uart_gsbi_id  = GSBI_ID_5;
+static void     target_detect(void);
+static uint8_t  get_uart_gsbi(void);
+
+void target_early_init(void)
+{
+	target_detect();
+
+#if WITH_DEBUG_UART
+	uart_init(get_uart_gsbi());
+#endif
+}
 
 void shutdown_device(void)
 {
@@ -81,6 +101,7 @@ void target_init(void)
 {
 	unsigned base_addr;
 	unsigned char slot;
+
 	dprintf(INFO, "target_init()\n");
 
 	/* Initialize PMIC driver */
@@ -88,16 +109,20 @@ void target_init(void)
 	pmic.write = (pm8921_write_func) &pa1_ssbi2_write_bytes;
 
 	pm8921_init(&pmic);
+
 	/* Keypad init */
 	keys_init();
 	keypad_init();
 
 	/* Display splash screen if enabled */
 #if DISPLAY_SPLASH_SCREEN
-	panel_backlight_on();
-	display_init();
-	dprintf(SPEW, "Diplay initialized\n");
-	display_image_on_screen();
+	if((platform_id == MSM8960) || (platform_id == MSM8930))
+	{
+		panel_backlight_on();
+		display_init();
+		dprintf(SPEW, "Diplay initialized\n");
+		display_image_on_screen();
+	}
 #endif
 
 	/* Trying Slot 1 first */
@@ -118,12 +143,17 @@ void target_init(void)
 
 unsigned board_machtype(void)
 {
+	return target_id;
+}
+
+
+void target_detect(void)
+{
 	struct smem_board_info_v6 board_info_v6;
 	unsigned int board_info_len = 0;
 	unsigned smem_status = 0;
 	unsigned format = 0;
 	unsigned id = HW_PLATFORM_UNKNOWN;
-	unsigned mach_id;
 
 
 	smem_status = smem_read_alloc_entry_offset(SMEM_BOARD_INFO_LOCATION,
@@ -143,46 +173,62 @@ unsigned board_machtype(void)
 		}
 	}
 
+	platform_id = board_info_v6.board_info_v3.msm_id;
+
 	/* Detect the board we are running on */
-	if (board_info_v6.board_info_v3.msm_id == MSM8960)
+	if (platform_id == MSM8960)
 	{
 		switch(id)
 		{
 			case HW_PLATFORM_SURF:
-				mach_id = LINUX_MACHTYPE_8960_CDP;
+				target_id = LINUX_MACHTYPE_8960_CDP;
 				break;
 			case HW_PLATFORM_MTP:
-				mach_id = LINUX_MACHTYPE_8960_MTP;
+				target_id = LINUX_MACHTYPE_8960_MTP;
 				break;
 			case HW_PLATFORM_FLUID:
-				mach_id = LINUX_MACHTYPE_8960_FLUID;
+				target_id = LINUX_MACHTYPE_8960_FLUID;
 				break;
 			case HW_PLATFORM_LIQUID:
-				mach_id = LINUX_MACHTYPE_8960_LIQUID;
+				target_id = LINUX_MACHTYPE_8960_LIQUID;
 				break;
 			default:
-				mach_id = LINUX_MACHTYPE_8960_CDP;
+				target_id = LINUX_MACHTYPE_8960_CDP;
 		}
 	}
-	else if (board_info_v6.board_info_v3.msm_id == MSM8930)
+	else if (platform_id == MSM8930)
 	{
 		switch(id)
 		{
 			case HW_PLATFORM_SURF:
-				mach_id = LINUX_MACHTYPE_8930_CDP;
+				target_id = LINUX_MACHTYPE_8930_CDP;
 				break;
 			case HW_PLATFORM_MTP:
-				mach_id = LINUX_MACHTYPE_8930_MTP;
+				target_id = LINUX_MACHTYPE_8930_MTP;
 				break;
 			case HW_PLATFORM_FLUID:
-				mach_id = LINUX_MACHTYPE_8930_FLUID;
+				target_id = LINUX_MACHTYPE_8930_FLUID;
 				break;
 			default:
-				mach_id = LINUX_MACHTYPE_8930_CDP;
+				target_id = LINUX_MACHTYPE_8930_CDP;
 		}
 	}
-
-	return mach_id;
+	else if (platform_id == APQ8064)
+	{
+		switch(id)
+		{
+			case HW_PLATFORM_SURF:
+				target_id = LINUX_MACHTYPE_8064_SIM;
+				break;
+			default:
+				target_id = LINUX_MACHTYPE_8064_RUMI3;
+		}
+	}
+	else
+	{
+		dprintf(CRITICAL, "platform_id (%d) is not identified.\n", platform_id);
+		ASSERT(0);
+	}
 }
 
 void reboot_device(unsigned reboot_reason)
@@ -228,7 +274,35 @@ void target_fastboot_init(void)
 	pm8921_boot_done();
 }
 
-uint8_t target_uart_gsbi(void)
+uint8_t get_uart_gsbi(void)
 {
-	return uart_gsbi_id;
+	switch(target_id)
+	{
+		case LINUX_MACHTYPE_8960_SIM:
+		case LINUX_MACHTYPE_8960_RUMI3:
+		case LINUX_MACHTYPE_8960_CDP:
+		case LINUX_MACHTYPE_8960_MTP:
+		case LINUX_MACHTYPE_8960_FLUID:
+		case LINUX_MACHTYPE_8960_APQ:
+		case LINUX_MACHTYPE_8960_LIQUID:
+
+			return GSBI_ID_5;
+
+		case LINUX_MACHTYPE_8930_CDP:
+		case LINUX_MACHTYPE_8930_MTP:
+		case LINUX_MACHTYPE_8930_FLUID:
+
+			return GSBI_ID_5;
+
+		case LINUX_MACHTYPE_8064_SIM:
+		case LINUX_MACHTYPE_8064_RUMI3:
+
+			return GSBI_ID_3;
+
+		default:
+			dprintf(CRITICAL, "uart gsbi not defined for target: %d\n",
+					target_id);
+
+			ASSERT(0);
+	}
 }

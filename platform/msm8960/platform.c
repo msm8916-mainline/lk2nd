@@ -46,7 +46,6 @@ extern void mdp_clock_init(void);
 extern void mmss_clock_init(void);
 extern struct fbcon_config *mipi_init(void);
 extern void mipi_dsi_shutdown(void);
-extern uint8_t target_uart_gsbi(void);
 
 static uint32_t ticks_per_sec = 0;
 
@@ -81,9 +80,6 @@ mmu_section_t mmu_section_table[] = {
 
 void platform_early_init(void)
 {
-#if WITH_DEBUG_UART
-    uart_init(target_uart_gsbi());
-#endif
     qgic_init();
     platform_init_timer();
 }
