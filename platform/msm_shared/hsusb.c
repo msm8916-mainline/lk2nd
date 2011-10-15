@@ -146,6 +146,7 @@ static int usb_highspeed = 0;
 
 static struct udc_device *the_device;
 static struct udc_gadget *the_gadget;
+static unsigned test_mode = 0;
 
 struct udc_endpoint *_udc_endpoint_alloc(unsigned num, unsigned in, unsigned max_pkt)
 {
@@ -349,9 +350,33 @@ static const char *reqname(unsigned r)
 static struct udc_endpoint *ep0in, *ep0out;
 static struct udc_request *ep0req;
 
+static void ep0_setup_ack_complete(struct udc_endpoint *ep, struct usb_request *req)
+{
+	uint32_t mode;
+
+	if(!test_mode)
+		return;
+
+	switch (test_mode)
+	{
+		case TEST_PACKET:
+			dprintf(INFO,"Entering test mode for TST_PKT\n");
+			mode = readl(USB_PORTSC) & (~PORTSC_PTC);
+			writel(mode | PORTSC_PTC_TST_PKT, USB_PORTSC);
+			break;
+
+		case TEST_SE0_NAK:
+			dprintf(INFO, "Entering test mode for SE0-NAK\n");
+			mode = readl(USB_PORTSC) & (~PORTSC_PTC);
+			writel(mode | PORTSC_PTC_SE0_NAK, USB_PORTSC);
+			break;
+	}
+
+}
+
 static void setup_ack(void)
 {
-	ep0req->complete = 0;
+	ep0req->complete = ep0_setup_ack_complete;
 	ep0req->length = 0;
 	udc_request_queue(ep0in, ep0req);
 }
@@ -379,16 +404,6 @@ static unsigned char usb_config_value = 0;
 
 #define SETUP(type,request) (((type) << 8) | (request))
 
-static void set_test_mode(uint16_t value)
-{
-	uint32_t mode;
-	if(value == TEST_PACKET)
-	{
-		dprintf(ALWAYS,"Entering test mode for TST_PKT\n");
-		mode = readl(USB_PORTSC) & (~PORTSC_PTC);
-		writel(mode | PORTSC_PTC_TST_PKT, USB_PORTSC);
-	}
-}
 
 static void handle_setup(struct udc_endpoint *ept)
 {
@@ -463,9 +478,8 @@ static void handle_setup(struct udc_endpoint *ept)
 		/* per spec, STALL is valid if there is not alt func */
 		goto stall;
 	case SETUP(DEVICE_WRITE, SET_FEATURE):
+		test_mode = s.index;
 		setup_ack();
-		/* TODO: Use s.value and fix byte ordering */
-		set_test_mode(s.index);
 		return;
 	case SETUP(ENDPOINT_WRITE, CLEAR_FEATURE): {
 		struct udc_endpoint *ept;
@@ -538,7 +552,51 @@ static int msm_otg_xceiv_reset()
 }
 
 void board_usb_init(void);
-void board_ulpi_init(void);
+void board_ulpi_init(void)
+{
+       	unsigned int reg;
+
+#ifdef PLATFORM_MSM7X27A
+	ulpi_read(0x31);
+	dprintf(INFO," Value of ulpi read 0x31 is %08x\n", reg);
+        /* todo : the write back value should be calculated according to
+         * reg &= 0xF3 but sometimes the value that is read initially
+         * doesnt look right
+         */
+	ulpi_write(0x4A, 0x31);
+        reg = ulpi_read(0x31);
+	dprintf(INFO," Value of ulpi read 0x31 after write is %08x\n", reg);
+
+	reg = ulpi_read(0x32);
+	dprintf(INFO," Value of ulpi read 0x32 is %08x\n", reg);
+	ulpi_write(0x30,0x32);
+	reg = ulpi_read(0x32);
+	dprintf(INFO," Value of ulpi read 0x32 after write is %08x\n", reg);
+
+
+	reg = ulpi_read(0x36);
+	dprintf(INFO," Value of ulpi read 0x36 is %08x\n", reg);
+	ulpi_write(reg|0x2,0x36);
+	reg = ulpi_read(0x36);
+	dprintf(INFO," Value of ulpi read 0x36 after write is %08x\n", reg);
+
+#endif
+#ifdef PLATFORM_MSM8X60
+
+        reg = ulpi_read(0x32);
+        dprintf(INFO," Value of ulpi read 0x32 is %08x\n", reg);
+        ulpi_write(0x30,0x32);
+        reg = ulpi_read(0x32);
+        dprintf(INFO," Value of ulpi read 0x32 after write is %08x\n", reg);
+
+
+        reg = ulpi_read(0x36);
+        dprintf(INFO," Value of ulpi read 0x36 is %08x\n", reg);
+        ulpi_write(reg|0x2,0x36);
+        reg = ulpi_read(0x36);
+        dprintf(INFO," Value of ulpi read 0x36 aafter write is %08x\n", reg);
+#endif
+}
 
 int udc_init(struct udc_device *dev)
 {
@@ -571,7 +629,7 @@ int udc_init(struct udc_device *dev)
 
 	thread_sleep(20);
 
-//    board_ulpi_init();
+        board_ulpi_init();
 
 	writel((unsigned) epts, USB_ENDPOINTLISTADDR);
 
@@ -790,6 +848,7 @@ int udc_start(void)
 
         /* go to RUN mode (D+ pullup enable) */
 	writel(0x00080001, USB_USBCMD);
+
 
 	return 0;
 }

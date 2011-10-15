@@ -109,8 +109,10 @@ int udc_stop(void);
 #define ENDPOINT_READ        0x82
 #define ENDPOINT_WRITE       0x02
 
+#define TEST_SE0_NAK		 0x0300
 #define TEST_PACKET          0x0400
 #define PORTSC_PTC           (0xF << 16)
+#define PORTSC_PTC_SE0_NAK	 (0x03 << 16)
 #define PORTSC_PTC_TST_PKT   (0x4 << 16)
 
 struct setup_packet {
