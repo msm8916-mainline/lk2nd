@@ -215,4 +215,14 @@ void update_ptable_apps_partitions(void)
 			name_size = strlen(ptable_ptn_names[name_index]);
 		}
 	}
+
+	/* Update the end to be actual end for grow partition */
+	ptn_index--;
+	for (;ptentry_ptr[ptn_index].length != end; ptn_index++){};
+
+	/* If SMEM ptable is updated already then don't manually update this */
+	if (ptentry_ptr[ptn_index].start != end)
+		ptentry_ptr[ptn_index].length =
+			((struct flash_info*)flash_get_info())->num_blocks -
+			ptentry_ptr[ptn_index].start;
 }
