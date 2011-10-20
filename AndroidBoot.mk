@@ -48,13 +48,13 @@ emmc_appsbootldr_clean:
 $(BOOTLOADER_EMMC_OUT):
 	mkdir -p $(BOOTLOADER_EMMC_OUT)
 
-$(TARGET_BOOTLOADER): appsbootldr_clean emmc_appsbootldr_clean $(BOOTLOADER_OUT) $(BOOTLOADER_EMMC_OUT)
+$(TARGET_BOOTLOADER): appsbootldr_clean emmc_appsbootldr_clean | $(BOOTLOADER_OUT) $(BOOTLOADER_EMMC_OUT)
 	$(MAKE) -C bootable/bootloader/lk TOOLCHAIN_PREFIX=$(CROSS_TOOL) BOOTLOADER_OUT=../../../$(BOOTLOADER_OUT) $(TARGET_PRODUCT) $(SIGNED_KERNEL)
 	$(MAKE) -C bootable/bootloader/lk TOOLCHAIN_PREFIX=$(CROSS_TOOL) BOOTLOADER_OUT=../../../$(BOOTLOADER_EMMC_OUT) $(TARGET_PRODUCT) EMMC_BOOT=1 $(SIGNED_KERNEL)
 
 else
 
-$(TARGET_BOOTLOADER): appsbootldr_clean $(BOOTLOADER_OUT)
+$(TARGET_BOOTLOADER): appsbootldr_clean | $(BOOTLOADER_OUT)
 	$(MAKE) -C bootable/bootloader/lk TOOLCHAIN_PREFIX=$(CROSS_TOOL) BOOTLOADER_OUT=../../../$(BOOTLOADER_OUT) $(TARGET_PRODUCT) $(SIGNED_KERNEL)
 
 endif
@@ -70,7 +70,7 @@ nandwrite_clean:
 $(NANDWRITE_OUT):
 	mkdir -p $(NANDWRITE_OUT)
 
-$(TARGET_NANDWRITE): nandwrite_clean $(NANDWRITE_OUT)
+$(TARGET_NANDWRITE): nandwrite_clean | $(NANDWRITE_OUT)
 	@echo $(TARGET_PRODUCT)_nandwrite
 	$(MAKE) -C bootable/bootloader/lk TOOLCHAIN_PREFIX=$(CROSS_TOOL) BOOTLOADER_OUT=../../../$(NANDWRITE_OUT) $(TARGET_PRODUCT)_nandwrite BUILD_NANDWRITE=1
 
