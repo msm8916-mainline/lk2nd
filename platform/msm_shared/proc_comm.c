@@ -2,7 +2,7 @@
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2011, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -168,12 +168,16 @@ int msm_proc_comm(unsigned cmd, unsigned *data1, unsigned *data2)
 		/* XXX check for A9 reset */
 	}
 
-	writel(cmd, APP_COMMAND);
 	if (data1)
 		writel(*data1, APP_DATA1);
 	if (data2)
 		writel(*data2, APP_DATA2);
 
+	/*
+	 * As per the specs write data, cmd, interrupt for
+	 * proc comm processing
+	 */
+	writel(cmd, APP_COMMAND);
 //	dprintf(INFO, "proc_comm tx\n");
 	notify_other_proc_comm();
 	while (readl(APP_COMMAND) != PCOM_CMD_DONE) {
@@ -189,6 +193,12 @@ int msm_proc_comm(unsigned cmd, unsigned *data1, unsigned *data2)
 		if (data2)
 			*data2 = readl(APP_DATA2);
 		ret = 0;
+	/*
+	 * Write command idle to indicate non HLOS that
+	 * apps has finished reading the status & data
+	 * of proc comm command
+	 */
+		writel(PCOM_CMD_IDLE, APP_COMMAND);
 	}
 
 	return ret;
