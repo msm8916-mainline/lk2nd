@@ -109,7 +109,7 @@ include Makefile.utils
 
 BIN += convert-dtsv0
 BIN += dtc
-BIN += ftdump
+BIN += fdtdump
 
 SCRIPTS = dtdiff
 
@@ -119,7 +119,7 @@ all: $(BIN) libfdt
 ifneq ($(DEPTARGETS),)
 -include $(DTC_OBJS:%.o=%.d)
 -include $(CONVERT_OBJS:%.o=%.d)
--include $(FTDUMP_OBJS:%.o=%.d)
+-include $(FDTDUMP_OBJS:%.o=%.d)
 endif
 
 
@@ -178,7 +178,7 @@ convert-dtsv0: $(CONVERT_OBJS)
 	@$(VECHO) LD $@
 	$(LINK.c) -o $@ $^
 
-ftdump:	$(FTDUMP_OBJS)
+fdtdump:	$(FDTDUMP_OBJS)
 
 
 #

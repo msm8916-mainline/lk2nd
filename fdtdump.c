@@ -1,5 +1,5 @@
 /*
- * ftdump.c - Contributed by Pantelis Antoniou <pantelis.antoniou AT gmail.com>
+ * fdtdump.c - Contributed by Pantelis Antoniou <pantelis.antoniou AT gmail.com>
  */
 
 #include <stdint.h>

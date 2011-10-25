@@ -3,8 +3,8 @@
 # be easily embeddable into other systems of Makefiles.
 #
 
-FTDUMP_SRCS = \
-	ftdump.c \
+FDTDUMP_SRCS = \
+	fdtdump.c \
 	util.c
 
-FTDUMP_OBJS = $(FTDUMP_SRCS:%.c=%.o)
+FDTDUMP_OBJS = $(FDTDUMP_SRCS:%.c=%.o)
