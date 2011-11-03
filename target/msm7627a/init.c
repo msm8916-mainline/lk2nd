@@ -305,9 +305,19 @@ void board_info(void)
 					hw_platform = MSM7X27A_SURF;
 		};
 
-		if ((target_msm_id < MSM7225A) || (target_msm_id > ESM7227A))
+		/* Set msm ID for target variants based on values read from smem*/
+		switch(target_msm_id)
 		{
-			target_msm_id = MSM7225A;
+			case MSM7225A:
+			case MSM7625A:
+			case ESM7225A:
+			case MSM7225AA:
+			case MSM7625AA:
+			case ESM7225AA:
+				target_msm_id = MSM7625A;
+				break;
+			default:
+				target_msm_id = MSM7627A;
 		}
 	}
 	return;
