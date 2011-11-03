@@ -185,4 +185,26 @@
 //TODO: Where does this belong?
 #define MMSS_SFPB_GPREG                       (0x05700058)
 
+/* HDMI base addresses */
+#define MSM_HDMI_BASE           0x04A00000
+#define DTV_BASE                0xD0000
+
+#define HDMI_USEC_REFTIMER      (MSM_HDMI_BASE + 0x0208)
+#define HDMI_CTRL               (MSM_HDMI_BASE + 0x0000)
+
+#define HDMI_PHY_REG_0          (MSM_HDMI_BASE + 0x00000300)
+#define HDMI_PHY_REG_1          (MSM_HDMI_BASE + 0x00000304)
+#define HDMI_PHY_REG_2          (MSM_HDMI_BASE + 0x00000308)
+#define HDMI_PHY_REG_3          (MSM_HDMI_BASE + 0x0000030c)
+#define HDMI_PHY_REG_4          (MSM_HDMI_BASE + 0x00000310)
+#define HDMI_PHY_REG_9          (MSM_HDMI_BASE + 0x00000324)
+#define HDMI_PHY_REG_11         (MSM_HDMI_BASE + 0x0000032c)
+#define HDMI_PHY_REG_12         (MSM_HDMI_BASE + 0x00000330)
+#define HDMI_TOTAL              (MSM_HDMI_BASE + 0x000002C0)
+#define HDMI_ACTIVE_HSYNC       (MSM_HDMI_BASE + 0x000002B4)
+#define HDMI_ACTIVE_VSYNC       (MSM_HDMI_BASE + 0x000002B8)
+#define HDMI_VSYNC_TOTAL_F2     (MSM_HDMI_BASE + 0x000002C4)
+#define HDMI_VSYNC_ACTIVE_F2    (MSM_HDMI_BASE + 0x000002BC)
+#define HDMI_FRAME_CTRL         (MSM_HDMI_BASE + 0x000002C8)
+
 #endif

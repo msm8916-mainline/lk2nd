@@ -148,7 +148,14 @@ void display_init(void)
     fb_cfg = mipi_init();
     fbcon_setup(fb_cfg);
 #endif
-
+#if DISPLAY_TYPE_HDMI
+    struct hdmi_disp_mode_timing_type *hdmi_timing;
+    mdp_clock_init();
+    hdmi_display_init();
+    hdmi_timing = hdmi_common_init_panel_info();
+    fb_cfg = hdmi_dtv_init(hdmi_timing);
+    fbcon_setup(fb_cfg);
+#endif
 }
 
 void display_shutdown(void)
@@ -159,6 +166,9 @@ void display_shutdown(void)
 #endif
 #if DISPLAY_TYPE_MIPI
     mipi_dsi_shutdown();
+#endif
+#if DISPLAY_TYPE_HDMI
+    hdmi_display_shutdown();
 #endif
 }
 

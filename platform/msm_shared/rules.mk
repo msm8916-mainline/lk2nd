@@ -30,7 +30,8 @@ ifeq ($(PLATFORM),msm8x60)
 			$(LOCAL_DIR)/qgic.o \
 			$(LOCAL_DIR)/mdp4.o \
 			$(LOCAL_DIR)/certificate.o \
-			$(LOCAL_DIR)/image_verify.o
+			$(LOCAL_DIR)/image_verify.o \
+			$(LOCAL_DIR)/hdmi.o
 endif
 
 ifeq ($(PLATFORM),msm8960)
