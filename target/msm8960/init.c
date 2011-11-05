@@ -117,7 +117,9 @@ void target_init(void)
 
 	/* Display splash screen if enabled */
 #if DISPLAY_SPLASH_SCREEN
-	if((platform_id == MSM8960) || (platform_id == MSM8930))
+	if((platform_id == MSM8960) || (platform_id == MSM8660A)
+		|| (platform_id == MSM8260A) || (platform_id == APQ8060A)
+		|| (platform_id == MSM8930))
 	{
 		panel_backlight_on();
 		display_init();
@@ -177,7 +179,8 @@ void target_detect(void)
 	platform_id = board_info_v6.board_info_v3.msm_id;
 
 	/* Detect the board we are running on */
-	if (platform_id == MSM8960)
+	if ((platform_id == MSM8960) || (platform_id == MSM8660A)
+		|| (platform_id == MSM8260A) || (platform_id == APQ8060A))
 	{
 		switch(id)
 		{
@@ -252,9 +255,11 @@ unsigned target_baseband()
 							&board_info_v6, board_info_len);
 			if(!smem_status)
 			{
-				/* Check for LTE fused target.  Default to MSM */
+				/* Check for MDM or APQ baseband variants.  Default to MSM */
 				if (board_info_v6.platform_subtype == HW_PLATFORM_SUBTYPE_MDM)
 					baseband = BASEBAND_MDM;
+				else if (board_info_v6.board_info_v3.msm_id == APQ8060)
+					baseband = BASEBAND_APQ;
 				else
 					baseband = BASEBAND_MSM;
 			}

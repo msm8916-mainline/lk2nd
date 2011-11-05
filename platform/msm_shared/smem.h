@@ -191,6 +191,9 @@ enum {
     ESM7227AA = 103,
     APQ8064 = 109,
     MSM8930 = 116,
+    MSM8660A = 122,
+    MSM8260A = 123,
+    APQ8060A = 124,
 };
 
 enum platform
