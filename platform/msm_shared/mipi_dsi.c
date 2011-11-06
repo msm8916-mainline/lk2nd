@@ -43,6 +43,7 @@ extern void mdp_disable(void);
 extern int mipi_dsi_cmd_config(struct fbcon_config mipi_fb_cfg, unsigned short num_of_lanes);
 extern void mdp_shutdown(void);
 extern void mdp_start_dma(void);
+extern void dsb(void);
 
 #if DISPLAY_MIPI_PANEL_TOSHIBA
 static struct fbcon_config mipi_fb_cfg = {
@@ -214,6 +215,7 @@ int dsi_cmd_dma_trigger_for_panel()
 
     writel(0x03030303, DSI_INT_CTRL);
     writel(0x1, DSI_CMD_MODE_DMA_SW_TRIGGER);
+    dsb();
     ReadValue = readl(DSI_INT_CTRL) & 0x00000001;
     while (ReadValue != 0x00000001) {
         ReadValue = readl(DSI_INT_CTRL) & 0x00000001;
@@ -238,12 +240,21 @@ int mipi_dsi_cmds_tx(struct mipi_dsi_cmd *cmds, int count)
     struct mipi_dsi_cmd *cm;
     int i = 0;
     char pload[256];
+    uint32_t off;
+
+    /* Align pload at 8 byte boundry */
+    off = pload;
+    off &= 0x07;
+    if (off)
+        off = 8 - off;
+    off += pload;
 
     cm = cmds;
     for (i = 0; i < count; i++) {
-        memcpy((void *) pload, (cm->payload), cm->size);
-        writel(pload, DSI_DMA_CMD_OFFSET);
+        memcpy((void *) off, (cm->payload), cm->size);
+        writel(off, DSI_DMA_CMD_OFFSET);
         writel(cm->size, DSI_DMA_CMD_LENGTH);   // reg 0x48 for this build
+        dsb();
         ret += dsi_cmd_dma_trigger_for_panel();
         udelay(80);
         cm++;
