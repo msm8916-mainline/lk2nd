@@ -270,6 +270,8 @@ unsigned target_baseband()
 
 void reboot_device(unsigned reboot_reason)
 {
+	writel(reboot_reason, RESTART_REASON_ADDR);
+
 	/* Actually reset the chip */
 	pm8921_config_reset_pwr_off(1);
 	writel(0, MSM_PSHOLD_CTL_SU);
