@@ -277,8 +277,16 @@ void reboot_device(unsigned reboot_reason)
 	writel(0, MSM_PSHOLD_CTL_SU);
 	mdelay(10000);
 
+	dprintf (CRITICAL, "PSHOLD failed, trying watchdog reset\n");
+	writel(1, MSM_WDT0_RST);
+	writel(0, MSM_WDT0_EN);
+	writel(0x31F3, MSM_WDT0_BT);
+	writel(3, MSM_WDT0_EN);
+	dmb();
+	writel(3, MSM_TCSR_BASE + TCSR_WDOG_CFG);
+	mdelay(10000);
+
 	dprintf (CRITICAL, "Rebooting failed\n");
-	return;
 }
 
 unsigned check_reboot_mode(void)
