@@ -53,6 +53,10 @@
 #define VARIABLE_LENGTH		0x10101010
 #define DIFF_START_ADDR		0xF0F0F0F0
 #define NUM_PAGES_PER_BLOCK	0x40
+#define RECOVERY_MODE		0x77665502
+#define FOTA_COOKIE		0x64645343
+
+unsigned int fota_cookie[1];
 
 static struct ptable flash_ptable;
 unsigned hw_platform = 0;
@@ -340,6 +344,34 @@ void reboot_device(unsigned reboot_reason)
 	reboot(reboot_reason);
 }
 
+static void check_fota_cookie(void)
+{
+	struct ptentry *ptn;
+	struct ptable *ptable;
+	unsigned page_size = flash_page_size();
+	unsigned pagemask = page_size - 1;
+	int n = 0;
+
+	ptable = flash_get_ptable();
+	if (ptable == NULL) {
+		dprintf(CRITICAL, "ERROR: Partition table not found\n");
+		return;
+	}
+
+	ptn = ptable_find(ptable, "FOTA");
+	if (ptn == NULL) {
+		dprintf(CRITICAL, "ERROR: No FOTA partition found\n");
+		return;
+	}
+	n = (sizeof(fota_cookie) + pagemask) & (~pagemask);
+
+	if (flash_read(ptn, 0, fota_cookie, n)) {
+		dprintf(CRITICAL, "ERROR: flash read fail!\n");
+		return;
+	}
+	return;
+}
+
 unsigned check_reboot_mode(void)
 {
 	unsigned mode[2] = {0, 0};
@@ -348,6 +380,16 @@ unsigned check_reboot_mode(void)
 
 	smem_status = smem_read_alloc_entry(SMEM_APPS_BOOT_MODE,
 					&mode, mode_len );
+
+	/*
+	 * SMEM value is relied upon on power shutdown. Check either of SMEM
+	 * or FOTA update cookie is set
+	 */
+	check_fota_cookie();
+
+	if((mode[0] == RECOVERY_MODE) || (fota_cookie[0] == FOTA_COOKIE))
+		return RECOVERY_MODE;
+
 	if(smem_status)
 	{
 	  dprintf(CRITICAL, "ERROR: unable to read shared memory for reboot mode\n");
