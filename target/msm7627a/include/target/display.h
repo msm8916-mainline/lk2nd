@@ -68,7 +68,7 @@
 #define MIPI_VSYNC_BACK_PORCH_LINES_HVGA  50
 #define MIPI_VSYNC_FRONT_PORCH_LINES_HVGA 101
 
-#define MIPI_FB_ADDR  0x20000000
+#define MIPI_FB_ADDR  0x0D300000
 
 extern int mipi_dsi_phy_init(struct mipi_dsi_panel_config *);
 extern void config_renesas_dsi_video_mode(void);
