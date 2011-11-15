@@ -2,7 +2,7 @@
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2012, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -36,6 +36,7 @@
 #include <kernel/thread.h>
 #include <platform/debug.h>
 #include <platform/iomap.h>
+#include <platform/irqs.h>
 #include <mddi.h>
 #include <dev/fbcon.h>
 #include <dev/gpio.h>
@@ -59,7 +60,9 @@ extern void mipi_dsi_shutdown(void);
 
 unsigned board_msm_id(void);
 
-static int target_uses_qgic = 0;
+static int target_uses_qgic;
+int debug_timer = 0, gpt_timer = 0, usb_hs_int = 0;
+
 void platform_early_init(void)
 {
 #if WITH_DEBUG_UART
@@ -69,8 +72,14 @@ void platform_early_init(void)
 	if(machine_is_8x25()) {
 		qgic_init();
 		target_uses_qgic = 1;
+		debug_timer = (GIC_PPI_START + 2);
+		gpt_timer = (GIC_PPI_START + 3);
+		usb_hs_int = INT_USB_HS_GIC;
 	} else {
 		platform_init_interrupts();
+		debug_timer = 8;
+		gpt_timer = 7;
+		usb_hs_int = INT_USB_HS_VIC;
 	}
 	platform_init_timer();
 }
@@ -105,7 +114,7 @@ void display_init(void)
 void display_shutdown(void)
 {
 #if DISPLAY_TYPE_MIPI
-	if (machine_is_7x27a_evb())
+	if (machine_is_evb())
 		return;
 	dprintf(SPEW, "display_shutdown()\n");
 	mipi_dsi_shutdown();

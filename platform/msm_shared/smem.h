@@ -2,7 +2,7 @@
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2012, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -185,6 +185,8 @@ enum {
 	MSM8660A = 122,
 	MSM8260A = 123,
 	APQ8060A = 124,
+	MSM8225 = 127,
+	MSM8625 = 129
 };
 
 enum platform {

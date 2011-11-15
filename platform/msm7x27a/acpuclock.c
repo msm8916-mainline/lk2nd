@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
- * Copyright (c) 2009-2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2012, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -100,6 +100,14 @@ uint32_t const clk_cntl_reg_val_7627A[] = {
 #if 0
 	(WAIT_CNT << 16) | (SRC_SEL_PLL4 << 4) | DIV_1,
 #endif
+};
+
+/*
+ * Use PLL4 to run acpu @ 1.2 GHZ
+ */
+uint32_t const clk_cntl_reg_val_8X25[] = {
+	(WAIT_CNT << 16) | (SRC_SEL_PLL4 << 4)  | DIV_2,
+	(WAIT_CNT << 16) | (SRC_SEL_PLL4 << 12) | (DIV_1 << 8),
 };
 
 uint32_t const clk_cntl_reg_val_7625A[] = {
@@ -224,6 +232,12 @@ void acpu_clock_init(void)
 #if 0
 		pll_request(4, 1);
 #endif
+		break;
+	case MSM8625:
+		/* Fix me: Will move to PLL4 later */
+		clk_cntl_reg_val = clk_cntl_reg_val_7627A;
+		size = ARRAY_SIZE(clk_cntl_reg_val_7627A);
+		pll_request(2, 1);
 		break;
 
 	case MSM7225A:

@@ -2,6 +2,8 @@
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
  *
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -78,7 +80,7 @@ struct ihandler {
 	void *arg;
 };
 
-static struct ihandler handler[NR_IRQS];
+static struct ihandler handler[NR_IRQS_VIC];
 
 void platform_init_interrupts(void)
 {
@@ -98,7 +100,7 @@ enum handler_return vic_platform_irq(struct arm_iframe *frame)
 	enum handler_return ret;
 	num = readl(VIC_IRQ_VEC_RD);
 	num = readl(VIC_IRQ_VEC_PEND_RD);
-	if (num > NR_IRQS)
+	if (num > NR_IRQS_VIC)
 		return 0;
 	writel(1 << (num & 31), (num > 31) ? VIC_INT_CLEAR1 : VIC_INT_CLEAR0);
 	ret = handler[num].func(handler[num].arg);
@@ -129,7 +131,7 @@ status_t vic_unmask_interrupt(unsigned int vector)
 
 void vic_register_int_handler(unsigned int vector, int_handler func, void *arg)
 {
-	if (vector >= NR_IRQS)
+	if (vector >= NR_IRQS_VIC)
 		return;
 
 	enter_critical_section();

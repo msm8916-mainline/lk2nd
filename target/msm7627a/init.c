@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
- * Copyright (c) 2009-2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2012, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -52,6 +52,9 @@
 #define MSM7X27A_QRD3	4005
 #define MSM8X25_RUMI3   3871
 
+#define MSM8X25_SURF	4037
+#define MSM8X25_EVB	4042
+
 #define LINUX_MACHTYPE  MSM7X27A_SURF
 
 #define VARIABLE_LENGTH		0x10101010
@@ -75,7 +78,7 @@ unsigned target_msm_id = 0;
  */
 static crypto_engine_type platform_ce_type = CRYPTO_ENGINE_TYPE_SW;
 
-int machine_is_7x27a_evb();
+int machine_is_evb();
 
 /* for these partitions, start will be offset by either what we get from
  * smem, or from the above offset if smem is not useful. Also, we should
@@ -154,7 +157,7 @@ void target_init(void)
 	 * support for new panel is added disable splash screen
 	 * for EVB
 	 */
-	if (!machine_is_7x27a_evb()) {
+	if (!machine_is_evb()) {
 		display_init();
 		dprintf(SPEW, "Diplay initialized\n");
 		display_image_on_screen();
@@ -253,25 +256,37 @@ void board_info(void)
 		}
 
 		/* Detect SURF v/s FFA v/s QRD */
-		switch (id) {
-		case 0x1:
-			/* Set the machine type based on msm ID */
-			if (target_msm_id == MSM7225A
-			    || target_msm_id == MSM7625A
-			    || target_msm_id == ESM7225A
-			    || (target_msm_id >= MSM7225AA
-				&& target_msm_id <= ESM7225AA))
-				hw_platform = MSM7X25A_SURF;
+		if (target_msm_id >= MSM8225 && target_msm_id <= MSM8625) {
+			switch (id) {
+			case 0x1:
+				hw_platform = MSM8X25_SURF;
+				break;
+			case 0xC:
+				hw_platform = MSM8X25_EVB;
+				break;
+			default:
+				hw_platform = MSM8X25_SURF;
+			}
+		} else {
+			switch (id) {
+			case 0x1:
+				/* Set the machine type based on msm ID */
+				if (target_msm_id == MSM7225A
+					|| target_msm_id == MSM7625A
+					|| target_msm_id == ESM7225A
+					|| (target_msm_id >= MSM7225AA
+					&& target_msm_id <= ESM7225AA))
+					hw_platform = MSM7X25A_SURF;
 			else
 				hw_platform = MSM7X27A_SURF;
 			break;
-		case 0x2:
-			if (target_msm_id == MSM7225A
-			    || target_msm_id == MSM7625A
-			    || target_msm_id == ESM7225A
-			    || (target_msm_id >= MSM7225AA
-				&& target_msm_id <= ESM7225AA))
-				hw_platform = MSM7X25A_FFA;
+			case 0x2:
+				if (target_msm_id == MSM7225A
+					|| target_msm_id == MSM7625A
+					|| target_msm_id == ESM7225A
+					|| (target_msm_id >= MSM7225AA
+					&& target_msm_id <= ESM7225AA))
+					hw_platform = MSM7X25A_FFA;
 			else
 				hw_platform = MSM7X27A_FFA;
 			break;
@@ -294,7 +309,7 @@ void board_info(void)
 			else
 				hw_platform = MSM7X27A_SURF;
 		};
-
+	}
 		/* Set msm ID for target variants based on values read from smem */
 		switch (target_msm_id) {
 		case MSM7225A:
@@ -304,6 +319,10 @@ void board_info(void)
 		case MSM7625AA:
 		case ESM7225AA:
 			target_msm_id = MSM7625A;
+			break;
+		case MSM8225:
+		case MSM8625:
+			target_msm_id = MSM8625;
 			break;
 		default:
 			target_msm_id = MSM7627A;
@@ -431,12 +450,20 @@ int emmc_recovery_init(void)
 }
 #endif
 
-int machine_is_7x27a_evb()
+int machine_is_evb()
 {
-	if (board_machtype() == MSM7X27A_EVB)
-		return 1;
-	else
-		return 0;
+	int ret = 0;
+	unsigned mach_type = board_machtype();
+
+	switch(mach_type) {
+		case MSM7X27A_EVB:
+		case MSM8X25_EVB:
+			ret = 1;
+			break;
+		default:
+			ret = 0;
+	}
+	return ret;
 }
 
 int machine_is_7x27a_qrd3()
@@ -456,8 +483,16 @@ int machine_is_7x27a_qrd1()
 }
 int machine_is_8x25()
 {
-	if (board_machtype() == MSM8X25_RUMI3)
-		return 1;
-	else
-		return 0;
+	int ret = 0;
+	unsigned mach_type = board_machtype();
+
+	switch(mach_type) {
+		case MSM8X25_SURF:
+		case MSM8X25_EVB:
+			ret = 1;
+			break;
+		default:
+			ret = 0;
+	}
+	return ret;
 }

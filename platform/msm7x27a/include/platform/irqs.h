@@ -2,6 +2,8 @@
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
  *
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -32,6 +34,11 @@
 #ifndef _PLATFORM_MSM7K_IRQS_H_
 #define _PLATFORM_MSM7K_IRQS_H_
 
+extern int debug_timer;
+extern int gpt_timer;
+extern int usb_hs_int;
+
+#define GIC_PPI_START		16
 #define INT_A9_M2A_0		 0
 #define INT_A9_M2A_1		 1
 #define INT_A9_M2A_2		 2
@@ -39,8 +46,8 @@
 #define INT_A9_M2A_4		 4
 #define INT_A9_M2A_5		 5
 #define INT_A9_M2A_6		 6
-#define INT_GP_TIMER_EXP	 7
-#define INT_DEBUG_TIMER_EXP  8
+#define INT_GP_TIMER_EXP	 gpt_timer
+#define INT_DEBUG_TIMER_EXP	 debug_timer
 #define INT_UART1			9
 #define INT_UART2			10
 #define INT_UART3			11
@@ -80,7 +87,9 @@
 #define INT_TSIF_IRQ		 (32 + 12)
 #define INT_UART1DM_IRQ	  (32 + 13)
 #define INT_UART1DM_RX	   (32 + 14)
-#define INT_USB_HS		   (32 + 15)
+#define INT_USB_HS_VIC		(32 + 15)
+#define INT_USB_HS_GIC		(32 + 32 + 15)
+#define INT_USB_HS		usb_hs_int
 #define INT_SDC3_0		   (32 + 16)
 #define INT_SDC3_1		   (32 + 17)
 #define INT_SDC4_0		   (32 + 18)
@@ -90,6 +99,8 @@
 
 #define MSM_IRQ_BIT(irq)	 (1 << ((irq) & 31))
 
-#define NR_IRQS 54
+#define NR_IRQS		NR_IRQS_QGIC
+#define NR_IRQS_VIC	54
+#define NR_IRQS_QGIC	261
 
 #endif

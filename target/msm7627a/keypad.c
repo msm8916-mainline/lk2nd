@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
- * Copyright (c) 2009-2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2012, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -138,7 +138,7 @@ void keypad_init(void)
 {
 	if (machine_is_7x27a_qrd1() || machine_is_7x27a_qrd3())
 		gpio_keypad_init(&halibut_keypad_info_qrd);
-	else if (machine_is_7x27a_evb())
+	else if (machine_is_evb())
 		gpio_keypad_init(&halibut_keypad_info_evb);
 	else
 		gpio_keypad_init(&halibut_keypad_info_surf);
