@@ -268,6 +268,23 @@ unsigned target_baseband()
 	return baseband;
 }
 
+static unsigned target_check_power_on_reason(void)
+{
+	unsigned power_on_status = 0;
+	unsigned int status_len = sizeof(power_on_status);
+	unsigned smem_status;
+
+	smem_status = smem_read_alloc_entry(SMEM_POWER_ON_STATUS_INFO,
+					&power_on_status, status_len);
+
+	if (smem_status)
+	{
+		dprintf(CRITICAL, "ERROR: unable to read shared memory for power on reason\n");
+	}
+	dprintf(INFO,"Power on reason %u\n", power_on_status);
+	return power_on_status;
+}
+
 void reboot_device(unsigned reboot_reason)
 {
 	writel(reboot_reason, RESTART_REASON_ADDR);
@@ -298,6 +315,14 @@ unsigned check_reboot_mode(void)
 	writel(0x00, RESTART_REASON_ADDR);
 
 	return restart_reason;
+}
+
+unsigned target_pause_for_battery_charge(void)
+{
+	if (target_check_power_on_reason() == PWR_ON_EVENT_USB_CHG)
+		return 1;
+
+	return 0;
 }
 
 void target_serialno(unsigned char *buf)
