@@ -54,6 +54,10 @@
 #define LINUX_MACHTYPE_8960_APQ     3399
 #define LINUX_MACHTYPE_8960_LIQUID  3535
 
+/* 8627 */
+#define LINUX_MACHTYPE_8627_CDP     3861
+#define LINUX_MACHTYPE_8627_MTP     3862
+
 /* 8930 */
 #define LINUX_MACHTYPE_8930_CDP     3727
 #define LINUX_MACHTYPE_8930_MTP     3728
@@ -200,7 +204,8 @@ void target_detect(void)
 				target_id = LINUX_MACHTYPE_8960_CDP;
 		}
 	}
-	else if (platform_id == MSM8930)
+	else if ((platform_id == MSM8230) || (platform_id == MSM8630)
+		|| (platform_id == MSM8930) || (platform_id == APQ8030))
 	{
 		switch(id)
 		{
@@ -215,6 +220,20 @@ void target_detect(void)
 				break;
 			default:
 				target_id = LINUX_MACHTYPE_8930_CDP;
+		}
+	}
+	else if ((platform_id == MSM8227) || (platform_id == MSM8627))
+	{
+		switch(id)
+		{
+			case HW_PLATFORM_SURF:
+				target_id = LINUX_MACHTYPE_8627_CDP;
+				break;
+			case HW_PLATFORM_MTP:
+				target_id = LINUX_MACHTYPE_8627_MTP;
+				break;
+			default:
+				target_id = LINUX_MACHTYPE_8627_CDP;
 		}
 	}
 	else if (platform_id == APQ8064)
