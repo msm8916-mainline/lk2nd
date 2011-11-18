@@ -95,6 +95,8 @@ void acpu_clock_init(void)
 
 void hsusb_clock_init(void)
 {
+	uint32_t reg;
+
 	pll8_enable();
 
 	/* Setup USB HS1 System clock - 60 Mhz */
@@ -113,7 +115,9 @@ void hsusb_clock_init(void)
 				USB_HS1_XCVR_FS_CLK_MD);
 
 	/* HS-USB: enable cc_usb_hs1_hs_clk */
-	writel( 0x1 << 4, USB_HS1_HCLK_CTL);
+	reg = readl(USB_HS1_HCLK_CTL);
+	reg |= 0x1 << 4;
+	writel( reg, USB_HS1_HCLK_CTL);
 }
 
 /* Configure UART clock - based on the gsbi id */
