@@ -78,7 +78,7 @@ static struct ptentry board_part_list_default[] = {
 	},
 	{
 		.start = DIFF_START_ADDR,
-		.length = 150 /* In MB */,
+		.length = 180 /* In MB */,
 		.name = "system",
 	},
 	{
@@ -121,7 +121,7 @@ static struct ptentry board_part_list_bchecc[] = {
 	},
 	{
 		.start = DIFF_START_ADDR,
-		.length = 150 /* In MB */,
+		.length = 180 /* In MB */,
 		.name = "system",
 	},
 	{
