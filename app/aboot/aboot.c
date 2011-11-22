@@ -74,7 +74,7 @@
 
 static const char *emmc_cmdline = " androidboot.emmc=true";
 static const char *usb_sn_cmdline = " androidboot.serialno=";
-static const char *battchg_pause = " androidboot.battchg_pause=true";
+static const char *battchg_pause = " androidboot.mode=charger";
 static const char *auth_kernel = " androidboot.authorized_kernel=true";
 
 static const char *baseband_apq     = " androidboot.baseband=apq";
