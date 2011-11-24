@@ -44,6 +44,8 @@
 #define NULL        0
 #endif
 
+extern void dsb(void);
+
 /* Note:
  * This is a basic implementation of UART_DM protocol. More focus has been
  * given on simplicity than efficiency. Few of the things to be noted are:
@@ -129,10 +131,12 @@ static unsigned int msm_boot_uart_dm_gsbi_init(uint8_t id)
 {
     /* Configure the uart clock */
     clock_config_uart_dm(id);
+    dsb();
 
     /* Configure GPIO to provide connectivity between GSBI
        product ports and chip pads */
     gpio_config_uart_dm(id);
+    dsb();
 
     /* Configure Data Mover for GSBI operation.
      * Currently not supported. */
@@ -141,11 +145,13 @@ static unsigned int msm_boot_uart_dm_gsbi_init(uint8_t id)
      * I2C on 2 ports, UART (without HS flow control) on the other 2. */
     writel(GSBI_PROTOCOL_CODE_I2C_UART << GSBI_CTRL_REG_PROTOCOL_CODE_S,
            GSBI_CTRL_REG(id));
+    dsb();
 
-	/* Configure clock selection register for tx and rx rates.
-	 * Selecting 115.2k for both RX and TX.
-	 */
-	writel(UART_DM_CLK_RX_TX_BIT_RATE, MSM_BOOT_UART_DM_CSR(id));
+    /* Configure clock selection register for tx and rx rates.
+     * Selecting 115.2k for both RX and TX.
+     */
+    writel(UART_DM_CLK_RX_TX_BIT_RATE, MSM_BOOT_UART_DM_CSR(id));
+    dsb();
 
     return MSM_BOOT_UART_DM_E_SUCCESS;
 }
