@@ -3,7 +3,7 @@
 ifeq ($(BOOTLOADER_OUT),.)
 APPSBOOTHEADER_DIR  := $(BUILDDIR)
 else
-APPSBOOTHEADER_DIR  := $(BOOTLOADER_OUT)/../../
+APPSBOOTHEADER_DIR  := $(BOOTLOADER_OUT)/../..
 endif
 
 SRC_DIR  := target/$(TARGET)/tools
@@ -41,5 +41,3 @@ emmc_appsboothd.mbn: mkheader $(OUTBIN)
 
 mkheader: $(SRC_DIR)/mkheader.c
 	${COMPILER} -DMEMBASE=$(MEMBASE) $(SRC_DIR)/mkheader.c -o $(SRC_DIR)/mkheader
-	cp $(SRC_DIR)/mkheader $(APPSBOOTHEADER_DIR)/mkheader
-
