@@ -416,7 +416,7 @@ static unsigned target_check_power_on_reason(void)
 
 unsigned target_pause_for_battery_charge(void)
 {
-	if (target_check_power_on_reason() == PWR_ON_EVENT_USB_CHG)
+	if (target_check_power_on_reason() == PWR_ON_EVENT_WALL_CHG)
 		return 1;
 	return 0;
 }
