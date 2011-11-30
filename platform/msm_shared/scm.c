@@ -188,17 +188,22 @@ void setup_decrypt_cmd ( decrypt_img_req* dec_cmd,
 int decrypt_img_scm(uint32_t** img_ptr, uint32_t* img_len_ptr)
 {
 	int ret = 0;
-	decrypt_img_req *decrypt_cmd;
-
-	/* allocate memory for the command structure */
-	/* NEEDS TO BE CONTIGUOUS MEMORY */
-	decrypt_cmd = malloc(sizeof(decrypt_img_req));
+	decrypt_img_req decrypt_cmd;
 
 	/* setup the command for decryption */
-	setup_decrypt_cmd(decrypt_cmd, img_ptr, img_len_ptr);
+	setup_decrypt_cmd(&decrypt_cmd, img_ptr, img_len_ptr);
 
-	ret = smc(decrypt_cmd);
-	free(decrypt_cmd);
+	/* Since TZ cannot access cached data, cmd must be flushed to main memory */
+	arch_clean_invalidate_cache_range((addr_t) &decrypt_cmd, sizeof(decrypt_cmd));
+
+	/* Invalidate img ptr and len from cache so that we read the updated data
+	 * from the main memory.
+	 */
+	arch_clean_invalidate_cache_range((addr_t) img_ptr, sizeof(img_ptr));
+	arch_clean_invalidate_cache_range((addr_t) img_len_ptr, sizeof(img_len_ptr));
+
+	ret = smc(&decrypt_cmd);
+
 	return ret;
 }
 
