@@ -2862,6 +2862,7 @@ unsigned int mmc_erase_card ( unsigned long long data_addr, unsigned long long s
     unsigned long long erase_grp_size;
     unsigned long long data_end = 0x00000000;
     unsigned long long loop_count;
+    unsigned int out[512] = {0};
 
     /* Converting size to sectors */
     size =size /512;
@@ -2877,9 +2878,6 @@ unsigned int mmc_erase_card ( unsigned long long data_addr, unsigned long long s
         erase_grp_size = (mmc_card.csd.erase_grp_size + 1) *
                          (mmc_card.csd.erase_grp_mult + 1);
     }
-    data_addr = ( (mmc_card.type != MMC_BOOT_TYPE_MMCHC) &&
-                  (mmc_card.type != MMC_BOOT_TYPE_SDHC) )
-           ? (unsigned int) data_addr :(unsigned int) (data_addr / 512);
 
     if( erase_grp_size == 0 )
     {
@@ -2893,7 +2891,25 @@ unsigned int mmc_erase_card ( unsigned long long data_addr, unsigned long long s
 
     }
     loop_count = (size / erase_grp_size);
-    data_end = data_addr + erase_grp_size * (loop_count-1);
+    /*
+     *In case the partition size is less than the erase_grp_size
+      0 is written to the first block of the partition.
+     */
+    if( loop_count < 1 )
+    {
+        mmc_ret = mmc_write(data_addr, 512 ,(unsigned int *)out);
+        if (mmc_ret != MMC_BOOT_E_SUCCESS)
+            return mmc_ret;
+        else
+            return MMC_BOOT_E_SUCCESS;
+    }
+    else
+    {
+        data_addr = ( (mmc_card.type != MMC_BOOT_TYPE_MMCHC) &&
+                      (mmc_card.type != MMC_BOOT_TYPE_SDHC) )
+                      ? (unsigned int) data_addr :(unsigned int) (data_addr / 512);
+        data_end = data_addr + erase_grp_size * (loop_count-1);
+    }
 
     /* Sending CMD35 */
     mmc_ret = mmc_boot_send_erase_group_start (&mmc_card , data_addr);
@@ -2925,7 +2941,7 @@ unsigned int mmc_erase_card ( unsigned long long data_addr, unsigned long long s
 
         }
     }
-    dprintf(SPEW, "ERASE SUCCESSFULLY COMPLETED\n");
+    dprintf(CRITICAL, "ERASE SUCCESSFULLY COMPLETED\n");
     return MMC_BOOT_E_SUCCESS;
 }
 
