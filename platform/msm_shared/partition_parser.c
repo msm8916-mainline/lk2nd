@@ -251,6 +251,7 @@ mmc_boot_read_gpt(struct mmc_boot_host *mmc_host,
 
 	/* Read GPT Entries */
 	for (i = 0; i < (max_partition_count / 4); i++) {
+		ASSERT(partition_count < NUM_PARTITIONS);
 		ret = mmc_boot_read_from_card(mmc_host, mmc_card,
 					      (partition_0 * BLOCK_SIZE) +
 					      (i * BLOCK_SIZE),
@@ -800,6 +801,10 @@ unsigned partition_get_index(const char *name)
 	unsigned int input_string_length = strlen(name);
 	unsigned n;
 
+	if( partition_count >= NUM_PARTITIONS)
+	{
+		return INVALID_PTN;
+	}
 	for (n = 0; n < partition_count; n++) {
 		if (!memcmp
 		    (name, &partition_entries[n].name, input_string_length)
