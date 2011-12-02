@@ -46,6 +46,8 @@
 
 extern void dsb(void);
 
+static int uart_init_flag = 0;
+
 /* Note:
  * This is a basic implementation of UART_DM protocol. More focus has been
  * given on simplicity than efficiency. Few of the things to be noted are:
@@ -419,6 +421,9 @@ void uart_init(uint8_t gsbi_id)
 
     ASSERT(port < ARRAY_SIZE(gsbi_lookup));
     gsbi_lookup[port++] = gsbi_id;
+
+    /* Set UART init flag */
+    uart_init_flag = 1;
 }
 
 
@@ -430,6 +435,10 @@ void uart_init(uint8_t gsbi_id)
 int uart_putc(int port, char c)
 {
     uint8_t gsbi_id = gsbi_lookup[port];
+
+    /* Don't do anything if UART is not initialized */
+    if(!uart_init_flag)
+        return;
 
     msm_boot_uart_dm_write(gsbi_id, &c, 1);
 
@@ -445,6 +454,10 @@ int uart_getc(int port, bool wait)
     int byte;
     static unsigned int word = 0;
     uint8_t gsbi_id = gsbi_lookup[port];
+
+    /* Don't do anything if UART is not initialized */
+    if(!uart_init_flag)
+        return;
 
     if (!word)
     {
