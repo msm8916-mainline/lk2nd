@@ -123,7 +123,9 @@ void target_init(void)
 #if DISPLAY_SPLASH_SCREEN
 	if((platform_id == MSM8960) || (platform_id == MSM8660A)
 		|| (platform_id == MSM8260A) || (platform_id == APQ8060A)
-		|| (platform_id == MSM8930))
+		|| (platform_id == MSM8230)  || (platform_id == MSM8630)
+		|| (platform_id == MSM8930)  || (platform_id == APQ8030)
+		|| (platform_id == MSM8227)  || (platform_id == MSM8627))
 	{
 		panel_backlight_on();
 		display_init();
@@ -389,6 +391,11 @@ uint8_t get_uart_gsbi(void)
 		case LINUX_MACHTYPE_8064_RUMI3:
 
 			return GSBI_ID_3;
+
+		case LINUX_MACHTYPE_8627_CDP:
+		case LINUX_MACHTYPE_8627_MTP:
+
+			return GSBI_ID_5;
 
 		default:
 			dprintf(CRITICAL, "uart gsbi not defined for target: %d\n",
