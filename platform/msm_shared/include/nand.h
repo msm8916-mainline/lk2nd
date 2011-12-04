@@ -129,7 +129,6 @@
 #define NAND_SFCMD_DATRD          0x6
 #define NAND_SFCMD_DATWR          0x7
 
-
 #define SFLASH_PREPCMD(numxfr, offval, delval, trnstp, mode, opcode) \
    ((numxfr<<20)|(offval<<12)|(delval<<6)|(trnstp<<5)|(mode<<4)|opcode)
 
@@ -173,7 +172,6 @@
 #define ONENAND_ECC_ERRPOS_MAIN3    0xFF07
 #define ONENAND_ECC_ERRPOS_SPARE3   0xFF08
 
-
 /* Onenand commands */
 
 #define ONENAND_CMDLOAD          0x0000
@@ -203,4 +201,4 @@
 #define EBI2_NAND_ADM_MUX       	EBI2_REG(0x005C)
 #define EBI2_CHIP_SELECT_CFG0		EBI2_REG(0x0000)
 
-#endif /* __PLATFORM_MSM_SHARED_NAND_H */
+#endif				/* __PLATFORM_MSM_SHARED_NAND_H */

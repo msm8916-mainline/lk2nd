@@ -60,31 +60,31 @@ extern int pm8901_vs_enable();
 extern int pm8058_ldo_set_voltage();
 extern int pm8058_vreg_enable();
 void gpio_tlmm_config(uint32_t gpio, uint8_t func,
-                      uint8_t dir, uint8_t pull,
-                      uint8_t drvstr, uint32_t enable);
+		      uint8_t dir, uint8_t pull,
+		      uint8_t drvstr, uint32_t enable);
 
 void dtv_on();
 
 struct hdmi_disp_mode_timing_type {
-     uint32_t height;
-     uint32_t hsync_porch_fp;
-     uint32_t hsync_width;
-     uint32_t hsync_porch_bp;
-     uint32_t width;
-     uint32_t vsync_porch_fp;
-     uint32_t vsync_width;
-     uint32_t vsync_porch_bp;
-     uint32_t  refresh_rate;
+	uint32_t height;
+	uint32_t hsync_porch_fp;
+	uint32_t hsync_width;
+	uint32_t hsync_porch_bp;
+	uint32_t width;
+	uint32_t vsync_porch_fp;
+	uint32_t vsync_width;
+	uint32_t vsync_porch_bp;
+	uint32_t refresh_rate;
 };
 
 static struct fbcon_config fb_cfg = {
-        .height         = DTV_FB_HEIGHT,
-        .width          = DTV_FB_WIDTH,
-        .stride         = DTV_FB_WIDTH,
-        .format         = DTV_FORMAT_RGB565,
-        .bpp            = DTV_BPP,
-        .update_start   = NULL,
-        .update_done    = NULL,
+	.height = DTV_FB_HEIGHT,
+	.width = DTV_FB_WIDTH,
+	.stride = DTV_FB_WIDTH,
+	.format = DTV_FORMAT_RGB565,
+	.bpp = DTV_BPP,
+	.update_start = NULL,
+	.update_done = NULL,
 };
 
-#endif /* __PLATFORM_MSM_SHARED_HDMI_H */
+#endif				/* __PLATFORM_MSM_SHARED_HDMI_H */

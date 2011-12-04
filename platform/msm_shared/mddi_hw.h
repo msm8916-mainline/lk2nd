@@ -49,10 +49,10 @@
 #define MAX_CLIENT_REG 1
 #endif
 
-enum {          /* display configuration for MDP4 */
-    PRIMARY_INTF_SEL,
-    SECONDARY_INTF_SEL,
-    EXTERNAL_INTF_SEL
+enum {				/* display configuration for MDP4 */
+	PRIMARY_INTF_SEL,
+	SECONDARY_INTF_SEL,
+	EXTERNAL_INTF_SEL
 };
 
 #define outp32(port, val) (*((volatile unsigned *) (port)) = ((unsigned) (val)))
@@ -142,7 +142,6 @@ enum {          /* display configuration for MDP4 */
 #define MDDI_PAD_IO_CTL        MDDI_REG(0x00a0)
 #define MDDI_PAD_CAL           MDDI_REG(0x00a4)
 
-
 #define CMD_POWER_DOWN         0x0100
 #define CMD_POWER_UP           0x0200
 #define CMD_HIBERNATE          0x0300
@@ -198,58 +197,56 @@ typedef struct mddi_client_caps mddi_client_caps;
 
 typedef struct mddi_llentry mddi_llentry;
 
-struct __attribute__((packed)) mddi_video_stream 
-{
-    unsigned short length;      /* length in bytes excluding this field */
-    unsigned short type;        /* MDDI_TYPE_VIDEO_STREAM */
-    unsigned short client_id;   /* set to zero */
-    
-    unsigned short format;
-    unsigned short pixattr;
+struct __attribute__ ((packed)) mddi_video_stream {
+	unsigned short length;	/* length in bytes excluding this field */
+	unsigned short type;	/* MDDI_TYPE_VIDEO_STREAM */
+	unsigned short client_id;	/* set to zero */
 
-    unsigned short left;
-    unsigned short top;
-    unsigned short right;
-    unsigned short bottom;
+	unsigned short format;
+	unsigned short pixattr;
 
-    unsigned short start_x;
-    unsigned short start_y;
+	unsigned short left;
+	unsigned short top;
+	unsigned short right;
+	unsigned short bottom;
 
-    unsigned short pixels;
+	unsigned short start_x;
+	unsigned short start_y;
 
-    unsigned short crc;
-    unsigned short reserved;
+	unsigned short pixels;
+
+	unsigned short crc;
+	unsigned short reserved;
 };
 
-struct __attribute__((packed)) mddi_register_access
-{
-    unsigned short length;
-    unsigned short type;
-    unsigned short client_id;
+struct __attribute__ ((packed)) mddi_register_access {
+	unsigned short length;
+	unsigned short type;
+	unsigned short client_id;
 
-    unsigned short rw_info;    /* flag below | count of reg_data */
+	unsigned short rw_info;	/* flag below | count of reg_data */
 #define MDDI_WRITE     (0 << 14)
 #define MDDI_READ      (2 << 14)
 #define MDDI_READ_RESP (3 << 14)
-    
-    unsigned reg_addr;
-    unsigned short crc;        /* 16 bit crc of the above */
 
-    unsigned reg_data[MAX_CLIENT_REG];       /* "list" of 3byte data values */
+	unsigned reg_addr;
+	unsigned short crc;	/* 16 bit crc of the above */
+
+	unsigned reg_data[MAX_CLIENT_REG];	/* "list" of 3byte data values */
 };
 
-struct __attribute__((packed)) mddi_llentry {
-    unsigned short flags;
-    unsigned short header_count;
-    unsigned short data_count;
-    void *data;
-    mddi_llentry *next;
-    unsigned short reserved;
-    union {
-        mddi_video_stream v;
-        mddi_register_access r;
-        unsigned _[12];
-    } u;
+struct __attribute__ ((packed)) mddi_llentry {
+	unsigned short flags;
+	unsigned short header_count;
+	unsigned short data_count;
+	void *data;
+	mddi_llentry *next;
+	unsigned short reserved;
+	union {
+		mddi_video_stream v;
+		mddi_register_access r;
+		unsigned _[12];
+	} u;
 };
 
-#endif /* __PLATFORM_MSM7K_MDDI_HW_H */
+#endif				/* __PLATFORM_MSM7K_MDDI_HW_H */

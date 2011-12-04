@@ -39,7 +39,7 @@ int fake_key_get_state(void)
 	int ret;
 	/* GPIO 49 connects to Boot Config5 */
 	gpio_tlmm_config(49, 0, GPIO_OUTPUT, GPIO_PULL_DOWN,
-						GPIO_2MA, GPIO_ENABLE);
+			 GPIO_2MA, GPIO_ENABLE);
 
 	ret = readl(GPIO_IN_OUT_ADDR(49));
 	return ret;

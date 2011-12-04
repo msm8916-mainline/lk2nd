@@ -43,19 +43,16 @@ extern void dmb(void);
 
 uint32_t secure_readl(uint32_t c)
 {
-	if ((BETWEEN((void *) c, MSM_MMSS_CLK_CTL_BASE, MSM_MMSS_CLK_CTL_SIZE)) ||
-		(BETWEEN((void *) c, MSM_TCSR_BASE, MSM_TCSR_SIZE)))
-	{
+	if ((BETWEEN((void *)c, MSM_MMSS_CLK_CTL_BASE, MSM_MMSS_CLK_CTL_SIZE))
+	    || (BETWEEN((void *)c, MSM_TCSR_BASE, MSM_TCSR_SIZE))) {
 		uint32_t context_id;
 		register uint32_t r0 __asm__("r0") = SCM_IO_READ;
-		register uint32_t r1 __asm__("r1") = (uint32_t)&context_id;
+		register uint32_t r1 __asm__("r1") = (uint32_t) & context_id;
 		register uint32_t r2 __asm__("r2") = c;
 
-		__asm__(
-			"smc    #0      @ switch to secure world\n"
-			: "=r" (r0)
-			: "r" (r0), "r" (r1), "r" (r2)
-		);
+ __asm__("smc    #0      @ switch to secure world\n":"=r"(r0)
+ :			"r"(r0), "r"(r1), "r"(r2)
+		    );
 		dmb();
 		return r0;
 	}
@@ -64,19 +61,17 @@ uint32_t secure_readl(uint32_t c)
 
 void secure_writel(uint32_t v, uint32_t c)
 {
-	if ((BETWEEN((void *) c, MSM_MMSS_CLK_CTL_BASE, MSM_MMSS_CLK_CTL_SIZE)) ||
-		(BETWEEN((void *) c, MSM_TCSR_BASE, MSM_TCSR_SIZE))) {
+	if ((BETWEEN((void *)c, MSM_MMSS_CLK_CTL_BASE, MSM_MMSS_CLK_CTL_SIZE))
+	    || (BETWEEN((void *)c, MSM_TCSR_BASE, MSM_TCSR_SIZE))) {
 		uint32_t context_id;
 		register uint32_t r0 __asm__("r0") = SCM_IO_WRITE;
-		register uint32_t r1 __asm__("r1") = (uint32_t)&context_id;
+		register uint32_t r1 __asm__("r1") = (uint32_t) & context_id;
 		register uint32_t r2 __asm__("r2") = c;
 		register uint32_t r3 __asm__("r3") = v;
 		dmb();
-		__asm__(
-			"smc    #0      @ switch to secure world\n"
-			: /* No return value */
-			: "r" (r0), "r" (r1), "r" (r2), "r" (r3)
-		);
+ __asm__("smc    #0      @ switch to secure world\n":	/* No return value */
+ :"r"(r0), "r"(r1), "r"(r2), "r"(r3)
+		    );
 	} else
 		writel(v, c);
 }

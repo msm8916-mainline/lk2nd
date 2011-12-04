@@ -72,42 +72,43 @@ unsigned target_msm_id = 0;
  */
 static struct ptentry board_part_list_default[] = {
 	{
-		.start = 0,
-		.length = 10 /* In MB */,
-		.name = "boot",
-	},
+	 .start = 0,
+	 .length = 10 /* In MB */ ,
+	 .name = "boot",
+	 },
 	{
-		.start = DIFF_START_ADDR,
-		.length = 180 /* In MB */,
-		.name = "system",
-	},
+	 .start = DIFF_START_ADDR,
+	 .length = 180 /* In MB */ ,
+	 .name = "system",
+	 },
 	{
-		.start = DIFF_START_ADDR,
-		.length = 40 /* In MB */,
-		.name = "cache",
-	},
+	 .start = DIFF_START_ADDR,
+	 .length = 40 /* In MB */ ,
+	 .name = "cache",
+	 },
 	{
-		.start = DIFF_START_ADDR,
-		.length = 4 /* In MB */,
-		.name = "misc",
-	},
+	 .start = DIFF_START_ADDR,
+	 .length = 4 /* In MB */ ,
+	 .name = "misc",
+	 },
 	{
-		.start = DIFF_START_ADDR,
-		.length = VARIABLE_LENGTH,
-		.name = "userdata",
-	},
+	 .start = DIFF_START_ADDR,
+	 .length = VARIABLE_LENGTH,
+	 .name = "userdata",
+	 },
 	{
-		.start = DIFF_START_ADDR,
-		.length = 4 /* In MB */,
-		.name = "persist",
-	},
+	 .start = DIFF_START_ADDR,
+	 .length = 4 /* In MB */ ,
+	 .name = "persist",
+	 },
 	{
-		.start = DIFF_START_ADDR,
-		.length = 10 /* In MB */,
-		.name = "recovery",
-	},
+	 .start = DIFF_START_ADDR,
+	 .length = 10 /* In MB */ ,
+	 .name = "recovery",
+	 },
 };
-static int num_parts = sizeof(board_part_list_default)/sizeof(struct ptentry);
+
+static int num_parts = sizeof(board_part_list_default) / sizeof(struct ptentry);
 
 /*
  * Define partition table for Bch ecc NAND and increase the cache partition size
@@ -115,41 +116,42 @@ static int num_parts = sizeof(board_part_list_default)/sizeof(struct ptentry);
  */
 static struct ptentry board_part_list_bchecc[] = {
 	{
-		.start = 0,
-		.length = 10 /* In MB */,
-		.name = "boot",
-	},
+	 .start = 0,
+	 .length = 10 /* In MB */ ,
+	 .name = "boot",
+	 },
 	{
-		.start = DIFF_START_ADDR,
-		.length = 180 /* In MB */,
-		.name = "system",
-	},
+	 .start = DIFF_START_ADDR,
+	 .length = 180 /* In MB */ ,
+	 .name = "system",
+	 },
 	{
-		.start = DIFF_START_ADDR,
-		.length = 40 /* In MB */,
-		.name = "cache",
-	},
+	 .start = DIFF_START_ADDR,
+	 .length = 40 /* In MB */ ,
+	 .name = "cache",
+	 },
 	{
-		.start = DIFF_START_ADDR,
-		.length = 4 /* In MB */,
-		.name = "misc",
-	},
+	 .start = DIFF_START_ADDR,
+	 .length = 4 /* In MB */ ,
+	 .name = "misc",
+	 },
 	{
-		.start = DIFF_START_ADDR,
-		.length = VARIABLE_LENGTH,
-		.name = "userdata",
-	},
+	 .start = DIFF_START_ADDR,
+	 .length = VARIABLE_LENGTH,
+	 .name = "userdata",
+	 },
 	{
-		.start = DIFF_START_ADDR,
-		.length = 4 /* In MB */,
-		.name = "persist",
-	},
+	 .start = DIFF_START_ADDR,
+	 .length = 4 /* In MB */ ,
+	 .name = "persist",
+	 },
 	{
-		.start = DIFF_START_ADDR,
-		.length = 10 /* In MB */,
-		.name = "recovery",
-	},
+	 .start = DIFF_START_ADDR,
+	 .length = 10 /* In MB */ ,
+	 .name = "recovery",
+	 },
 };
+
 void smem_ptable_init(void);
 unsigned smem_get_apps_flash_start(void);
 
@@ -164,7 +166,7 @@ void target_init(void)
 	struct ptentry *board_part_list;
 	unsigned total_num_of_blocks;
 	unsigned next_ptr_start_adr = 0;
-	unsigned blocks_per_1MB = 8; /* Default value of 2k page size on 256MB flash drive*/
+	unsigned blocks_per_1MB = 8;	/* Default value of 2k page size on 256MB flash drive */
 	int i;
 
 	dprintf(INFO, "target_init()\n");
@@ -181,14 +183,12 @@ void target_init(void)
 	display_image_on_screen();
 #endif
 
-	if (target_is_emmc_boot())
-	{
+	if (target_is_emmc_boot()) {
 		/* Must wait for modem-up before we can intialize MMC.
 		 */
-		while (readl(MSM_SHARED_BASE + 0x14) != 1);
+		while (readl(MSM_SHARED_BASE + 0x14) != 1) ;
 
-		if(mmc_boot_main(MMC_SLOT, MSM_SDC3_BASE))
-		{
+		if (mmc_boot_main(MMC_SLOT, MSM_SDC3_BASE)) {
 			dprintf(CRITICAL, "mmc init failed!");
 			ASSERT(0);
 		}
@@ -204,7 +204,7 @@ void target_init(void)
 
 	offset = smem_get_apps_flash_start();
 	if (offset == 0xffffffff)
-			while(1);
+		while (1) ;
 
 	total_num_of_blocks = flash_info->num_blocks;
 	blocks_per_1MB = (1 << 20) / (flash_info->block_size);
@@ -218,27 +218,29 @@ void target_init(void)
 		struct ptentry *ptn = &board_part_list[i];
 		unsigned len = ((ptn->length) * blocks_per_1MB);
 
-		if(ptn->start != 0)
-				ASSERT(ptn->start == DIFF_START_ADDR);
+		if (ptn->start != 0)
+			ASSERT(ptn->start == DIFF_START_ADDR);
 
 		ptn->start = next_ptr_start_adr;
 
-		if(ptn->length == VARIABLE_LENGTH)
-		{
+		if (ptn->length == VARIABLE_LENGTH) {
 			unsigned length_for_prt = 0;
 			unsigned j;
-			for (j = i+1; j < num_parts; j++)
-			{
-					struct ptentry *temp_ptn = &board_part_list[j];
-					ASSERT(temp_ptn->length != VARIABLE_LENGTH);
-					length_for_prt += ((temp_ptn->length) * blocks_per_1MB);
+			for (j = i + 1; j < num_parts; j++) {
+				struct ptentry *temp_ptn = &board_part_list[j];
+				ASSERT(temp_ptn->length != VARIABLE_LENGTH);
+				length_for_prt +=
+				    ((temp_ptn->length) * blocks_per_1MB);
 			}
-				len = (total_num_of_blocks - 1) - (offset + ptn->start + length_for_prt);
+			len =
+			    (total_num_of_blocks - 1) - (offset + ptn->start +
+							 length_for_prt);
 			ASSERT(len >= 0);
 		}
 		next_ptr_start_adr = ptn->start + len;
 		ptable_add(&flash_ptable, ptn->name, offset + ptn->start,
-			   len, ptn->flags, TYPE_APPS_PARTITION, PERM_WRITEABLE);
+			   len, ptn->flags, TYPE_APPS_PARTITION,
+			   PERM_WRITEABLE);
 	}
 
 	smem_add_modem_partitions(&flash_ptable);
@@ -262,66 +264,70 @@ void board_info(void)
 	target_msm_id = MSM7225A;
 
 	smem_status = smem_read_alloc_entry_offset(SMEM_BOARD_INFO_LOCATION,
-											&format, sizeof(format), 0);
-	if(!smem_status)
-	{
-		if(format == 4)
-		{
+						   &format, sizeof(format), 0);
+	if (!smem_status) {
+		if (format == 4) {
 			board_info_len = sizeof(board_info_v4);
-			smem_status = smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
-										&board_info_v4, board_info_len);
-			if(!smem_status)
-			{
+			smem_status =
+			    smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
+						  &board_info_v4,
+						  board_info_len);
+			if (!smem_status) {
 				id = board_info_v4.board_info_v3.hw_platform;
-				target_msm_id = board_info_v4.board_info_v3.msm_id;
+				target_msm_id =
+				    board_info_v4.board_info_v3.msm_id;
 			}
 		}
 
 		/* Detect SURF v/s FFA v/s QRD */
-		switch(id)
-		{
-			case 0x1:
-				/* Set the machine type based on msm ID */
-				if (target_msm_id == MSM7225A || target_msm_id == MSM7625A || \
-					target_msm_id == ESM7225A || (target_msm_id >= MSM7225AA \
-					&& target_msm_id <= ESM7225AA))
-					hw_platform = MSM7X25A_SURF;
-				else
-					hw_platform = MSM7X27A_SURF;
-				break;
-			case 0x2:
-				if (target_msm_id == MSM7225A || target_msm_id == MSM7625A || \
-					target_msm_id == ESM7225A || (target_msm_id >= MSM7225AA \
-					&& target_msm_id <= ESM7225AA))
-					hw_platform = MSM7X25A_FFA;
-				else
-					hw_platform = MSM7X27A_FFA;
-				break;
-			case 0xB:
-				hw_platform = MSM7X27A_QRD1;
-				break;
-			default:
-				if (target_msm_id == MSM7225A || target_msm_id == MSM7625A || \
-					target_msm_id == ESM7225A || (target_msm_id >= MSM7225AA \
-					&& target_msm_id <= ESM7225AA))
-					hw_platform = MSM7X25A_SURF;
-				else
-					hw_platform = MSM7X27A_SURF;
+		switch (id) {
+		case 0x1:
+			/* Set the machine type based on msm ID */
+			if (target_msm_id == MSM7225A
+			    || target_msm_id == MSM7625A
+			    || target_msm_id == ESM7225A
+			    || (target_msm_id >= MSM7225AA
+				&& target_msm_id <= ESM7225AA))
+				hw_platform = MSM7X25A_SURF;
+			else
+				hw_platform = MSM7X27A_SURF;
+			break;
+		case 0x2:
+			if (target_msm_id == MSM7225A
+			    || target_msm_id == MSM7625A
+			    || target_msm_id == ESM7225A
+			    || (target_msm_id >= MSM7225AA
+				&& target_msm_id <= ESM7225AA))
+				hw_platform = MSM7X25A_FFA;
+			else
+				hw_platform = MSM7X27A_FFA;
+			break;
+		case 0xB:
+			hw_platform = MSM7X27A_QRD1;
+			break;
+		default:
+			if (target_msm_id == MSM7225A
+			    || target_msm_id == MSM7625A
+			    || target_msm_id == ESM7225A
+			    || (target_msm_id >= MSM7225AA
+				&& target_msm_id <= ESM7225AA))
+				hw_platform = MSM7X25A_SURF;
+			else
+				hw_platform = MSM7X27A_SURF;
 		};
 
-		/* Set msm ID for target variants based on values read from smem*/
-		switch(target_msm_id)
-		{
-			case MSM7225A:
-			case MSM7625A:
-			case ESM7225A:
-			case MSM7225AA:
-			case MSM7625AA:
-			case ESM7225AA:
-				target_msm_id = MSM7625A;
-				break;
-			default:
-				target_msm_id = MSM7627A;
+		/* Set msm ID for target variants based on values read from smem */
+		switch (target_msm_id) {
+		case MSM7225A:
+		case MSM7625A:
+		case ESM7225A:
+		case MSM7225AA:
+		case MSM7625AA:
+		case ESM7225AA:
+			target_msm_id = MSM7625A;
+			break;
+		default:
+			target_msm_id = MSM7627A;
 		}
 	}
 	return;
@@ -374,12 +380,12 @@ static void check_fota_cookie(void)
 
 unsigned check_reboot_mode(void)
 {
-	unsigned mode[2] = {0, 0};
+	unsigned mode[2] = { 0, 0 };
 	unsigned int mode_len = sizeof(mode);
 	unsigned smem_status;
 
 	smem_status = smem_read_alloc_entry(SMEM_APPS_BOOT_MODE,
-					&mode, mode_len );
+					    &mode, mode_len);
 
 	/*
 	 * SMEM value is relied upon on power shutdown. Check either of SMEM
@@ -387,13 +393,13 @@ unsigned check_reboot_mode(void)
 	 */
 	check_fota_cookie();
 
-	if((mode[0] == RECOVERY_MODE) || (fota_cookie[0] == FOTA_COOKIE))
+	if ((mode[0] == RECOVERY_MODE) || (fota_cookie[0] == FOTA_COOKIE))
 		return RECOVERY_MODE;
 
-	if(smem_status)
-	{
-	  dprintf(CRITICAL, "ERROR: unable to read shared memory for reboot mode\n");
-	  return 0;
+	if (smem_status) {
+		dprintf(CRITICAL,
+			"ERROR: unable to read shared memory for reboot mode\n");
+		return 0;
 	}
 	return mode[0];
 }
@@ -405,10 +411,10 @@ static unsigned target_check_power_on_reason(void)
 	unsigned smem_status;
 
 	smem_status = smem_read_alloc_entry(SMEM_POWER_ON_STATUS_INFO,
-										&power_on_status, status_len);
-	if (smem_status)
-	{
-		dprintf(CRITICAL, "ERROR: unable to read shared memory for power on reason\n");
+					    &power_on_status, status_len);
+	if (smem_status) {
+		dprintf(CRITICAL,
+			"ERROR: unable to read shared memory for power on reason\n");
 	}
 
 	return power_on_status;
@@ -429,8 +435,8 @@ void target_battery_charging_enable(unsigned enable, unsigned disconnect)
 void target_serialno(unsigned char *buf)
 {
 	unsigned int serialno;
-	serialno =  mmc_get_psn();
-	sprintf(buf,"%x",serialno);
+	serialno = mmc_get_psn();
+	sprintf(buf, "%x", serialno);
 }
 
 int emmc_recovery_init(void)
@@ -440,4 +446,3 @@ int emmc_recovery_init(void)
 	return rc;
 }
 #endif
-

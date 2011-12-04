@@ -43,22 +43,21 @@ static unsigned char qwerty_keys_new[NUM_OF_ROWS];
 #define KEYMAP_INDEX(row, col) (row)* BITS_IN_ELEMENT(qwerty_keys_new) + (col)
 
 unsigned int qwerty_keymap[] = {
-    [KEYMAP_INDEX(0, 0)] = KEY_VOLUMEUP,   /* Volume key on the device/CDP */
-    [KEYMAP_INDEX(0, 1)] = KEY_VOLUMEDOWN, /* Volume key on the device/CDP */
+	[KEYMAP_INDEX(0, 0)] = KEY_VOLUMEUP,	/* Volume key on the device/CDP */
+	[KEYMAP_INDEX(0, 1)] = KEY_VOLUMEDOWN,	/* Volume key on the device/CDP */
 };
 
-
 struct qwerty_keypad_info qwerty_keypad = {
-	.keymap         = qwerty_keymap,
-	.old_keys       = qwerty_keys_old,
-	.rec_keys       = qwerty_keys_new,
-	.rows           = NUM_OF_ROWS,
-	.columns        = NUM_OF_COLS,
-	.num_of_reads   = NUM_OF_ROWS,
-	.rd_func        = &pa1_ssbi2_read_bytes,
-	.wr_func        = &pa1_ssbi2_write_bytes,
-	.settle_time    = 5  /* msec */,
-	.poll_time      = 20 /* msec */,
+	.keymap = qwerty_keymap,
+	.old_keys = qwerty_keys_old,
+	.rec_keys = qwerty_keys_new,
+	.rows = NUM_OF_ROWS,
+	.columns = NUM_OF_COLS,
+	.num_of_reads = NUM_OF_ROWS,
+	.rd_func = &pa1_ssbi2_read_bytes,
+	.wr_func = &pa1_ssbi2_write_bytes,
+	.settle_time = 5 /* msec */ ,
+	.poll_time = 20 /* msec */ ,
 };
 
 void keypad_init(void)

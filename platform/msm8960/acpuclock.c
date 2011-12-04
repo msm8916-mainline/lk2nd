@@ -75,12 +75,11 @@ void clock_config(uint32_t ns, uint32_t md, uint32_t ns_addr, uint32_t md_addr)
 }
 
 /* Write the M,N,D values and enable the MMSS Clocks */
-void config_mmss_clk(  uint32_t ns,
-		uint32_t md,
-		uint32_t cc,
-		uint32_t ns_addr,
-		uint32_t md_addr,
-		uint32_t cc_addr){
+void config_mmss_clk(uint32_t ns,
+		     uint32_t md,
+		     uint32_t cc,
+		     uint32_t ns_addr, uint32_t md_addr, uint32_t cc_addr)
+{
 	unsigned int val = 0;
 
 	clock_config(ns, md, ns_addr, md_addr);
@@ -116,7 +115,7 @@ void pll8_enable(void)
 	writel(curr_value, MSM_BOOT_PLL_ENABLE_SC0);
 
 	/* Proceed only after PLL is enabled */
-	while (!(readl(MSM_BOOT_PLL8_STATUS) & (1<<16)));
+	while (!(readl(MSM_BOOT_PLL8_STATUS) & (1 << 16))) ;
 }
 
 void hsusb_clock_init(void)
@@ -126,9 +125,8 @@ void hsusb_clock_init(void)
 
 	/* Setup XCVR clock */
 	clock_config(USB_XCVR_CLK_NS,
-				 USB_XCVR_CLK_MD,
-				 USB_HS1_XCVR_FS_CLK_NS,
-				 USB_HS1_XCVR_FS_CLK_MD);
+		     USB_XCVR_CLK_MD,
+		     USB_HS1_XCVR_FS_CLK_NS, USB_HS1_XCVR_FS_CLK_MD);
 }
 
 /* Configure UART clock - based on the gsbi id */
@@ -136,10 +134,8 @@ void clock_config_uart_dm(uint8_t id)
 {
 	/* Enable gsbi_uart_clk */
 	clock_config(UART_DM_CLK_NS_115200,
-				 UART_DM_CLK_MD_115200,
-				 GSBIn_UART_APPS_NS(id),
-				 GSBIn_UART_APPS_MD(id));
-
+		     UART_DM_CLK_MD_115200,
+		     GSBIn_UART_APPS_NS(id), GSBIn_UART_APPS_MD(id));
 
 	/* Enable gsbi_pclk */
 	writel(GSBI_HCLK_CTL_CLK_ENA << GSBI_HCLK_CTL_S, GSBIn_HCLK_CTL(id));
@@ -151,8 +147,7 @@ void clock_config_i2c(uint8_t id, uint32_t freq)
 	uint32_t ns;
 	uint32_t md;
 
-	switch (freq)
-	{
+	switch (freq) {
 	case 24000000:
 		ns = I2C_CLK_NS_24MHz;
 		md = I2C_CLK_MD_24MHz;
@@ -167,27 +162,28 @@ void clock_config_i2c(uint8_t id, uint32_t freq)
 	writel(GSBI_HCLK_CTL_CLK_ENA << GSBI_HCLK_CTL_S, GSBIn_HCLK_CTL(id));
 }
 
-void pll1_enable(void){
+void pll1_enable(void)
+{
 	uint32_t val = 0;
 
 	/* Reset MND divider */
-	val |= (1<<2);
+	val |= (1 << 2);
 	writel(val, MM_PLL1_MODE_REG);
 
 	/* Use PLL -- Disable Bypass */
-	val |= (1<<1);
+	val |= (1 << 1);
 	writel(val, MM_PLL1_MODE_REG);
 
 	/* Activate PLL out control */
 	val |= 1;
 	writel(val, MM_PLL1_MODE_REG);
 
-	while (!readl(MM_PLL1_STATUS_REG));
+	while (!readl(MM_PLL1_STATUS_REG)) ;
 }
 
 void config_mdp_lut_clk(void)
 {
-	/* Force on*/
+	/* Force on */
 	writel(MDP_LUT_VAL, MDP_LUT_CC_REG);
 }
 
@@ -199,7 +195,7 @@ void mdp_clock_init(void)
 
 	/* Turn on MDP clk */
 	config_mmss_clk(MDP_NS_VAL, MDP_MD_VAL,
-				MDP_CC_VAL, MDP_NS_REG, MDP_MD_REG, MDP_CC_REG);
+			MDP_CC_VAL, MDP_NS_REG, MDP_MD_REG, MDP_CC_REG);
 
 	/* Seems to lose pixels without this from status 0x051E0048 */
 	config_mdp_lut_clk();
@@ -209,16 +205,20 @@ void mdp_clock_init(void)
 void mmss_clock_init(void)
 {
 	/* Configure Pixel clock */
-	config_mmss_clk(PIXEL_NS_VAL, PIXEL_MD_VAL, PIXEL_CC_VAL, PIXEL_NS_REG, PIXEL_MD_REG, PIXEL_CC_REG);
+	config_mmss_clk(PIXEL_NS_VAL, PIXEL_MD_VAL, PIXEL_CC_VAL, PIXEL_NS_REG,
+			PIXEL_MD_REG, PIXEL_CC_REG);
 
 	/* Configure DSI clock */
-	config_mmss_clk(DSI_NS_VAL, DSI_MD_VAL, DSI_CC_VAL, DSI_NS_REG, DSI_MD_REG, DSI_CC_REG);
+	config_mmss_clk(DSI_NS_VAL, DSI_MD_VAL, DSI_CC_VAL, DSI_NS_REG,
+			DSI_MD_REG, DSI_CC_REG);
 
 	/* Configure Byte clock */
-	config_mmss_clk(BYTE_NS_VAL, 0x0, BYTE_CC_VAL, BYTE_NS_REG, 0x0, BYTE_CC_REG);
+	config_mmss_clk(BYTE_NS_VAL, 0x0, BYTE_CC_VAL, BYTE_NS_REG, 0x0,
+			BYTE_CC_REG);
 
 	/* Configure ESC clock */
-	config_mmss_clk(ESC_NS_VAL, 0x0, ESC_CC_VAL, ESC_NS_REG, 0x0, ESC_CC_REG);
+	config_mmss_clk(ESC_NS_VAL, 0x0, ESC_CC_VAL, ESC_NS_REG, 0x0,
+			ESC_CC_REG);
 }
 
 /* Intialize MMC clock */
@@ -232,20 +232,17 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 {
 	uint32_t reg = 0;
 
-	switch(freq)
-	{
+	switch (freq) {
 	case MMC_CLK_400KHZ:
 		clock_config(SDC_CLK_NS_400KHZ,
-					 SDC_CLK_MD_400KHZ,
-					 SDC_NS(interface),
-					 SDC_MD(interface));
+			     SDC_CLK_MD_400KHZ,
+			     SDC_NS(interface), SDC_MD(interface));
 		break;
 	case MMC_CLK_48MHZ:
-	case MMC_CLK_50MHZ: /* Max supported is 48MHZ */
+	case MMC_CLK_50MHZ:	/* Max supported is 48MHZ */
 		clock_config(SDC_CLK_NS_48MHZ,
-					 SDC_CLK_MD_48MHZ,
-					 SDC_NS(interface),
-					 SDC_MD(interface));
+			     SDC_CLK_MD_48MHZ,
+			     SDC_NS(interface), SDC_MD(interface));
 		break;
 	default:
 		ASSERT(0);
@@ -255,15 +252,15 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 	reg |= MMC_BOOT_MCI_CLK_ENABLE;
 	reg |= MMC_BOOT_MCI_CLK_ENA_FLOW;
 	reg |= MMC_BOOT_MCI_CLK_IN_FEEDBACK;
-	writel( reg, MMC_BOOT_MCI_CLK );
+	writel(reg, MMC_BOOT_MCI_CLK);
 }
 
 /* Configure crypto engine clock */
 void ce_clock_init(void)
 {
 	/* Enable HCLK for CE1 */
-	writel((1<<4), CE1_HCLK_CTL);
+	writel((1 << 4), CE1_HCLK_CTL);
 	/* Enable core clk for CE1 */
-	writel((1<<4), CE1_CORE_CLK_CTL);
+	writel((1 << 4), CE1_CORE_CLK_CTL);
 	return;
 }

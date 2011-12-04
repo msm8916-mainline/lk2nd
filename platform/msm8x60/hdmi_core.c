@@ -39,21 +39,21 @@ extern void hdmi_msm_turn_on();
 
 void hdmi_msm_init_phy()
 {
-	dprintf(SPEW,"PHY INIT\n");
+	dprintf(SPEW, "PHY INIT\n");
 	uint32_t offset = 0;
 	uint32_t len = 0;
 
-	writel(0x0C,HDMI_PHY_REG_0);
-	writel(0x54,HDMI_PHY_REG_1);
-	writel(0x7F,HDMI_PHY_REG_2);
-	writel(0x3F,HDMI_PHY_REG_2);
-	writel(0x1F,HDMI_PHY_REG_2);
+	writel(0x0C, HDMI_PHY_REG_0);
+	writel(0x54, HDMI_PHY_REG_1);
+	writel(0x7F, HDMI_PHY_REG_2);
+	writel(0x3F, HDMI_PHY_REG_2);
+	writel(0x1F, HDMI_PHY_REG_2);
 
-	writel(0x01,HDMI_PHY_REG_3);
-	writel(0x00,HDMI_PHY_REG_9);
-	writel(0x03,HDMI_PHY_REG_12);
-	writel(0x01,HDMI_PHY_REG_2);
-	writel(0x81,HDMI_PHY_REG_2);
+	writel(0x01, HDMI_PHY_REG_3);
+	writel(0x00, HDMI_PHY_REG_9);
+	writel(0x03, HDMI_PHY_REG_12);
+	writel(0x01, HDMI_PHY_REG_2);
+	writel(0x81, HDMI_PHY_REG_2);
 
 	offset = (HDMI_PHY_REG_4 - MSM_HDMI_BASE);
 	len = (HDMI_PHY_REG_11 - MSM_HDMI_BASE);
@@ -61,7 +61,7 @@ void hdmi_msm_init_phy()
 		writel(0x0, MSM_HDMI_BASE + offset);
 		offset += 4;
 	}
-	writel(0x13,HDMI_PHY_REG_12);
+	writel(0x13, HDMI_PHY_REG_12);
 }
 
 void hdmi_frame_ctrl_reg()
@@ -72,7 +72,7 @@ void hdmi_frame_ctrl_reg()
 	hdmi_frame_ctrl |= ((0 << 29) & 0x20000000);
 	hdmi_frame_ctrl |= ((0 << 28) & 0x10000000);
 	hdmi_frame_ctrl |= (1 << 12);
-	writel(hdmi_frame_ctrl,HDMI_FRAME_CTRL);
+	writel(hdmi_frame_ctrl, HDMI_FRAME_CTRL);
 }
 
 static void hdmi_gpio_config()
@@ -148,7 +148,7 @@ void dtv_on()
 	secure_writel(0xff, TV_MD_REG);
 
 	val = secure_readl(TV_CC_REG);
-	val &= ~(BM(7,6));
+	val &= ~(BM(7, 6));
 	val |= CC(6, 0);
 	secure_writel(val, TV_CC_REG);
 
@@ -157,9 +157,9 @@ void dtv_on()
 
 	// confiure hdmi_ref clk to run @ 148.5 MHz
 	val = secure_readl(MISC_CC2_REG);
-	val &= ~(BIT(28)|BM(21, 18));
+	val &= ~(BIT(28) | BM(21, 18));
 	ns_val = NS_MM(23, 16, 0, 0, 15, 14, 2, 2, 0, 3);
-	val |= (BIT(28)| BVAL(21, 18, (ns_val >> 14) & 0x3));
+	val |= (BIT(28) | BVAL(21, 18, (ns_val >> 14) & 0x3));
 	secure_writel(val, MISC_CC2_REG);
 
 	pll_mode |= BIT(2);

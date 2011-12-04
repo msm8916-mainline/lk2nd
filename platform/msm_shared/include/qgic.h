@@ -57,8 +57,8 @@
 #define GIC_DIST_SOFTINT            GIC_DIST_REG(0xf00)
 
 struct ihandler {
-    int_handler func;
-    void *arg;
+	int_handler func;
+	void *arg;
 };
 
 void qgic_init(void);

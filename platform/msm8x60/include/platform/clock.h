@@ -93,8 +93,8 @@
 #define PIXEL_CC_VAL_25M        0x00000080
 
 /* PIXEL clock index */
-#define PIXEL_CLK_INDEX_54M	0 /* 53.99MHz */
-#define PIXEL_CLK_INDEX_25M	1 /* 25MHz */
+#define PIXEL_CLK_INDEX_54M	0	/* 53.99MHz */
+#define PIXEL_CLK_INDEX_25M	1	/* 25MHz */
 
 #define MSM_CLK_CTL_BASE        0x00900000
 #define BB_PLL8_L_VAL_REG       (MSM_CLK_CTL_BASE + 0x3144)
@@ -106,7 +106,6 @@
 /* NS/MD value for UART */
 #define UART_DM_CLK_NS_115200   0xFD940043
 #define UART_DM_CLK_MD_115200   0x0006FD8E
-
 
 #define UART_DM_CLK_RX_TX_BIT_RATE 0xEE
 
@@ -129,19 +128,19 @@
 #define TV_MD_REG         REG_MM(0x00F0)
 
 enum clk_sources {
-    PLL_0 = 0,
-    PLL_1,
-    PLL_2,
-    PLL_3,
-    PLL_4,
-    PLL_5,
-    PLL_6,
-    PLL_7,
-    PLL_8,
-    MXO,
-    PXO,
-    CXO,
-    NUM_SRC
+	PLL_0 = 0,
+	PLL_1,
+	PLL_2,
+	PLL_3,
+	PLL_4,
+	PLL_5,
+	PLL_6,
+	PLL_7,
+	PLL_8,
+	MXO,
+	PXO,
+	CXO,
+	NUM_SRC
 };
 
 void hsusb_clock_init(void);

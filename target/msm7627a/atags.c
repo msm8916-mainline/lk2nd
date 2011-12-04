@@ -33,36 +33,35 @@
 #define SIZE_1M			   0x00100000
 #define ROUND_TO_MB(x)		  ((x >> 20) << 20)
 
-unsigned* target_atag_mem(unsigned* ptr)
+unsigned *target_atag_mem(unsigned *ptr)
 {
 	struct smem_ram_ptable ram_ptable;
 	unsigned i = 0;
 
-	if (smem_ram_ptable_init(&ram_ptable))
-	{
-		for (i = 0; i < ram_ptable.len; i++)
-		{
+	if (smem_ram_ptable_init(&ram_ptable)) {
+		for (i = 0; i < ram_ptable.len; i++) {
 			if ((ram_ptable.parts[i].attr == READWRITE)
-				&& (ram_ptable.parts[i].domain == APPS_DOMAIN)
-				&& (ram_ptable.parts[i].start != 0x0)
-				&& (!(ROUND_TO_MB(ram_ptable.parts[i].size) <= SIZE_1M)))
-			{
+			    && (ram_ptable.parts[i].domain == APPS_DOMAIN)
+			    && (ram_ptable.parts[i].start != 0x0)
+			    &&
+			    (!(ROUND_TO_MB(ram_ptable.parts[i].size) <=
+			       SIZE_1M))) {
 				/* ATAG_MEM */
 				*ptr++ = 4;
 				*ptr++ = 0x54410002;
 				/* RAM parition are reported correctly by NON-HLOS
 				   Use the size passed directly */
 				if (target_is_emmc_boot())
-					*ptr++ = ROUND_TO_MB(ram_ptable.parts[i].size);
+					*ptr++ =
+					    ROUND_TO_MB(ram_ptable.parts[i].
+							size);
 				else
 					*ptr++ = ram_ptable.parts[i].size;
 
 				*ptr++ = ram_ptable.parts[i].start;
 			}
 		}
-	}
-	else
-	{
+	} else {
 		dprintf(CRITICAL, "ERROR: Unable to read RAM partition\n");
 		ASSERT(0);
 	}
@@ -71,6 +70,5 @@ unsigned* target_atag_mem(unsigned* ptr)
 
 unsigned target_get_max_flash_size(void)
 {
-	    return (180 * 1024 * 1024);
+	return (180 * 1024 * 1024);
 }
-

@@ -40,9 +40,9 @@ void _dputc(char c)
 {
 #if WITH_DEBUG_DCC
 	if (c == '\n') {
-		while (dcc_putc('\r') < 0);
+		while (dcc_putc('\r') < 0) ;
 	}
-	while (dcc_putc(c) < 0);
+	while (dcc_putc(c) < 0) ;
 #endif
 #if WITH_DEBUG_UART
 	uart_putc(0, c);
@@ -76,6 +76,5 @@ int dgetc(char *c, bool wait)
 void platform_halt(void)
 {
 	dprintf(INFO, "HALT: spinning forever...\n");
-	for(;;);
+	for (;;) ;
 }
-

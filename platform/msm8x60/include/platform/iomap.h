@@ -121,7 +121,6 @@
 #define GSBI_UART_DM_BASE(id) (GSBI_BASE(id) + 0x40000)
 #define QUP_BASE(id)          (GSBI_BASE(id) + 0x80000)
 
-
 #define CLK_CTL_BASE                 0x00900000
 #define SDC_MD(n)                   (CLK_CTL_BASE + 0x2828 + (32 * ((n) - 1)))
 #define SDC_NS(n)                   (CLK_CTL_BASE + 0x282C + (32 * ((n) - 1)))
@@ -148,7 +147,6 @@
 
 #define EBI2_CHIP_SELECT_CFG0    0x1A100000
 #define EBI2_XMEM_CS3_CFG1       0x1A110034
-
 
 #define MSM_ADM_BASE            0x18400000
 #define MSM_ADM_SD_OFFSET       0x00020800

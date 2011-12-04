@@ -36,11 +36,10 @@
 #include "panel.h"
 #include <dev/lcdc.h>
 
-
 #define VEE_RESET              20
 #define LCD_RESET              180
 
-#define GPIO26_GPIO_CNTRL 0x169  /* backlight */
+#define GPIO26_GPIO_CNTRL 0x169	/* backlight */
 
 struct sharp_spi_data {
 	unsigned addr;
@@ -48,72 +47,72 @@ struct sharp_spi_data {
 };
 
 static struct sharp_spi_data init_sequence[] = {
-	{  15, 0x01 },
-	{   5, 0x01 },
-	{   7, 0x10 },
-	{   9, 0x1E },
-	{  10, 0x04 },
-	{  17, 0xFF },
-	{  21, 0x8A },
-	{  22, 0x00 },
-	{  23, 0x82 },
-	{  24, 0x24 },
-	{  25, 0x22 },
-	{  26, 0x6D },
-	{  27, 0xEB },
-	{  28, 0xB9 },
-	{  29, 0x3A },
-	{  49, 0x1A },
-	{  50, 0x16 },
-	{  51, 0x05 },
-	{  55, 0x7F },
-	{  56, 0x15 },
-	{  57, 0x7B },
-	{  60, 0x05 },
-	{  61, 0x0C },
-	{  62, 0x80 },
-	{  63, 0x00 },
-	{  92, 0x90 },
-	{  97, 0x01 },
-	{  98, 0xFF },
-	{ 113, 0x11 },
-	{ 114, 0x02 },
-	{ 115, 0x08 },
-	{ 123, 0xAB },
-	{ 124, 0x04 },
-	{   6, 0x02 },
-	{ 133, 0x00 },
-	{ 134, 0xFE },
-	{ 135, 0x22 },
-	{ 136, 0x0B },
-	{ 137, 0xFF },
-	{ 138, 0x0F },
-	{ 139, 0x00 },
-	{ 140, 0xFE },
-	{ 141, 0x22 },
-	{ 142, 0x0B },
-	{ 143, 0xFF },
-	{ 144, 0x0F },
-	{ 145, 0x00 },
-	{ 146, 0xFE },
-	{ 147, 0x22 },
-	{ 148, 0x0B },
-	{ 149, 0xFF },
-	{ 150, 0x0F },
-	{ 202, 0x30 },
-	{  30, 0x01 },
-	{   4, 0x01 },
-	{  31, 0x41 }
+	{15, 0x01},
+	{5, 0x01},
+	{7, 0x10},
+	{9, 0x1E},
+	{10, 0x04},
+	{17, 0xFF},
+	{21, 0x8A},
+	{22, 0x00},
+	{23, 0x82},
+	{24, 0x24},
+	{25, 0x22},
+	{26, 0x6D},
+	{27, 0xEB},
+	{28, 0xB9},
+	{29, 0x3A},
+	{49, 0x1A},
+	{50, 0x16},
+	{51, 0x05},
+	{55, 0x7F},
+	{56, 0x15},
+	{57, 0x7B},
+	{60, 0x05},
+	{61, 0x0C},
+	{62, 0x80},
+	{63, 0x00},
+	{92, 0x90},
+	{97, 0x01},
+	{98, 0xFF},
+	{113, 0x11},
+	{114, 0x02},
+	{115, 0x08},
+	{123, 0xAB},
+	{124, 0x04},
+	{6, 0x02},
+	{133, 0x00},
+	{134, 0xFE},
+	{135, 0x22},
+	{136, 0x0B},
+	{137, 0xFF},
+	{138, 0x0F},
+	{139, 0x00},
+	{140, 0xFE},
+	{141, 0x22},
+	{142, 0x0B},
+	{143, 0xFF},
+	{144, 0x0F},
+	{145, 0x00},
+	{146, 0xFE},
+	{147, 0x22},
+	{148, 0x0B},
+	{149, 0xFF},
+	{150, 0x0F},
+	{202, 0x30},
+	{30, 0x01},
+	{4, 0x01},
+	{31, 0x41}
 };
 
-static unsigned char bit_shift[8] = { (1 << 7), /* MSB */
+static unsigned char bit_shift[8] = { (1 << 7),	/* MSB */
 	(1 << 6),
 	(1 << 5),
 	(1 << 4),
 	(1 << 3),
 	(1 << 2),
 	(1 << 1),
-	(1 << 0)                               /* LSB */
+	(1 << 0)		/* LSB */
 };
 
 static unsigned vee_reset_gpio =
@@ -121,7 +120,6 @@ GPIO_CFG(VEE_RESET, 0, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_2MA);
 
 static unsigned lcd_reset_gpio =
 GPIO_CFG(LCD_RESET, 0, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_2MA);
-
 
 static int sharp_display_common_power(int on)
 {
@@ -140,7 +138,7 @@ static int sharp_display_common_power(int on)
 			return rc;
 		}
 
-		gpio_set(LCD_RESET, 0);   /* bring reset line low to hold reset */
+		gpio_set(LCD_RESET, 0);	/* bring reset line low to hold reset */
 
 		/* set VEE reset */
 		rc = gpio_tlmm_config(vee_reset_gpio, GPIO_ENABLE);
@@ -150,7 +148,7 @@ static int sharp_display_common_power(int on)
 		}
 
 		gpio_set(VEE_RESET, 1);
-		gpio_set(VEE_RESET, 0);   /* bring reset line low to hold reset */
+		gpio_set(VEE_RESET, 0);	/* bring reset line low to hold reset */
 		mdelay(10);
 	}
 
@@ -166,41 +164,41 @@ static int sharp_display_common_power(int on)
 	/* wait for power to stabilize */
 	mdelay(10);
 
-	gpio_config(VEE_RESET, 0); /*disable VEE_RESET, rely on pullups to bring it high */
+	gpio_config(VEE_RESET, 0);	/*disable VEE_RESET, rely on pullups to bring it high */
 	mdelay(5);
 
-	gpio_set(LCD_RESET, 1);   /* bring reset line high */
-	mdelay(10); /* 10 msec before IO can be accessed */
+	gpio_set(LCD_RESET, 1);	/* bring reset line high */
+	mdelay(10);		/* 10 msec before IO can be accessed */
 
 	return rc;
 }
 
 static struct msm_gpio sharp_lcd_panel_gpios[] = {
-	{ GPIO_CFG(45, 0, GPIO_OUTPUT,  GPIO_NO_PULL, GPIO_2MA), "spi_clk" },
-	{ GPIO_CFG(46, 0, GPIO_OUTPUT,  GPIO_NO_PULL, GPIO_2MA), "spi_cs0" },
-	{ GPIO_CFG(47, 0, GPIO_OUTPUT,  GPIO_NO_PULL, GPIO_2MA), "spi_mosi" },
-	{ GPIO_CFG(48, 0, GPIO_INPUT,  GPIO_NO_PULL, GPIO_2MA), "spi_miso" },
-	{ GPIO_CFG(22, 1, GPIO_OUTPUT,  GPIO_NO_PULL, GPIO_2MA), "lcdc_blu2" },
-	{ GPIO_CFG(25, 1, GPIO_OUTPUT,  GPIO_NO_PULL, GPIO_2MA), "lcdc_red2" },
-	{ GPIO_CFG(90, 1, GPIO_OUTPUT,  GPIO_NO_PULL, GPIO_2MA), "lcdc_pclk" },
-	{ GPIO_CFG(91, 1, GPIO_OUTPUT,  GPIO_NO_PULL, GPIO_2MA), "lcdc_en" },
-	{ GPIO_CFG(92, 1, GPIO_OUTPUT,  GPIO_NO_PULL, GPIO_2MA), "lcdc_vsync" },
-	{ GPIO_CFG(93, 1, GPIO_OUTPUT,  GPIO_NO_PULL, GPIO_2MA), "lcdc_hsync" },
-	{ GPIO_CFG(94, 1, GPIO_OUTPUT,  GPIO_NO_PULL, GPIO_2MA), "lcdc_grn2" },
-	{ GPIO_CFG(95, 1, GPIO_OUTPUT,  GPIO_NO_PULL, GPIO_2MA), "lcdc_grn3" },
-	{ GPIO_CFG(96, 1, GPIO_OUTPUT,  GPIO_NO_PULL, GPIO_2MA), "lcdc_grn4" },
-	{ GPIO_CFG(97, 1, GPIO_OUTPUT,  GPIO_NO_PULL, GPIO_2MA), "lcdc_grn5" },
-	{ GPIO_CFG(98, 1, GPIO_OUTPUT,  GPIO_NO_PULL, GPIO_2MA), "lcdc_grn6" },
-	{ GPIO_CFG(99, 1, GPIO_OUTPUT,  GPIO_NO_PULL, GPIO_2MA), "lcdc_grn7" },
-	{ GPIO_CFG(100, 1, GPIO_OUTPUT,  GPIO_NO_PULL, GPIO_2MA), "lcdc_blu3" },
-	{ GPIO_CFG(101, 1, GPIO_OUTPUT,  GPIO_NO_PULL, GPIO_2MA), "lcdc_blu4" },
-	{ GPIO_CFG(102, 1, GPIO_OUTPUT,  GPIO_NO_PULL, GPIO_2MA), "lcdc_blu5" },
-	{ GPIO_CFG(103, 1, GPIO_OUTPUT,  GPIO_NO_PULL, GPIO_2MA), "lcdc_blu6" },
-	{ GPIO_CFG(104, 1, GPIO_OUTPUT,  GPIO_NO_PULL, GPIO_2MA), "lcdc_blu7" },
-	{ GPIO_CFG(105, 1, GPIO_OUTPUT,  GPIO_NO_PULL, GPIO_2MA), "lcdc_red3" },
-	{ GPIO_CFG(106, 1, GPIO_OUTPUT,  GPIO_NO_PULL, GPIO_2MA), "lcdc_red4" },
-	{ GPIO_CFG(107, 1, GPIO_OUTPUT,  GPIO_NO_PULL, GPIO_2MA), "lcdc_red5" },
-	{ GPIO_CFG(108, 1, GPIO_OUTPUT,  GPIO_NO_PULL, GPIO_2MA), "lcdc_red6" },
+	{GPIO_CFG(45, 0, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_2MA), "spi_clk"},
+	{GPIO_CFG(46, 0, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_2MA), "spi_cs0"},
+	{GPIO_CFG(47, 0, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_2MA), "spi_mosi"},
+	{GPIO_CFG(48, 0, GPIO_INPUT, GPIO_NO_PULL, GPIO_2MA), "spi_miso"},
+	{GPIO_CFG(22, 1, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_2MA), "lcdc_blu2"},
+	{GPIO_CFG(25, 1, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_2MA), "lcdc_red2"},
+	{GPIO_CFG(90, 1, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_2MA), "lcdc_pclk"},
+	{GPIO_CFG(91, 1, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_2MA), "lcdc_en"},
+	{GPIO_CFG(92, 1, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_2MA), "lcdc_vsync"},
+	{GPIO_CFG(93, 1, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_2MA), "lcdc_hsync"},
+	{GPIO_CFG(94, 1, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_2MA), "lcdc_grn2"},
+	{GPIO_CFG(95, 1, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_2MA), "lcdc_grn3"},
+	{GPIO_CFG(96, 1, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_2MA), "lcdc_grn4"},
+	{GPIO_CFG(97, 1, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_2MA), "lcdc_grn5"},
+	{GPIO_CFG(98, 1, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_2MA), "lcdc_grn6"},
+	{GPIO_CFG(99, 1, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_2MA), "lcdc_grn7"},
+	{GPIO_CFG(100, 1, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_2MA), "lcdc_blu3"},
+	{GPIO_CFG(101, 1, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_2MA), "lcdc_blu4"},
+	{GPIO_CFG(102, 1, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_2MA), "lcdc_blu5"},
+	{GPIO_CFG(103, 1, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_2MA), "lcdc_blu6"},
+	{GPIO_CFG(104, 1, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_2MA), "lcdc_blu7"},
+	{GPIO_CFG(105, 1, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_2MA), "lcdc_red3"},
+	{GPIO_CFG(106, 1, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_2MA), "lcdc_red4"},
+	{GPIO_CFG(107, 1, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_2MA), "lcdc_red5"},
+	{GPIO_CFG(108, 1, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_2MA), "lcdc_red6"},
 };
 
 int sharp_lcdc_panel_power(int on)
@@ -215,12 +213,11 @@ int sharp_lcdc_panel_power(int on)
 
 	if (on) {
 		rc = platform_gpios_enable(sharp_lcd_panel_gpios,
-		ARRAY_SIZE(sharp_lcd_panel_gpios));
-		if(rc)
-		{
+					   ARRAY_SIZE(sharp_lcd_panel_gpios));
+		if (rc) {
 			return rc;
 		}
-	} else {    /* off */
+	} else {		/* off */
 		gp = sharp_lcd_panel_gpios;
 		for (i = 0; i < ARRAY_SIZE(sharp_lcd_panel_gpios); i++) {
 			/* ouput low */
@@ -230,7 +227,6 @@ int sharp_lcdc_panel_power(int on)
 	}
 	return rc;
 }
-
 
 static void sharp_spi_write_byte(unsigned val)
 {
@@ -269,7 +265,7 @@ static int serigo(unsigned reg, unsigned data)
 	return 0;
 }
 
-void sharp_lcdc_disp_on (void)
+void sharp_lcdc_disp_on(void)
 {
 	unsigned i;
 	gpio_set(SPI_CS, 1);
@@ -293,26 +289,26 @@ void sharp_lcdc_on(void)
 	sharp_lcdc_panel_power(1);
 
 	/*enable backlight, open up gpio, use default for LPG */
-	pmic_write(GPIO26_GPIO_CNTRL,0x81);  /* Write, Bank0, VIN0=VPH, Mode selection enabled */
-	pmic_write(GPIO26_GPIO_CNTRL,0x99);  /* Write, Bank1, OutOn/InOff, CMOS, Invert Output (GPIO High) */
-	pmic_write(GPIO26_GPIO_CNTRL,0xAA);  /* Write, Bank2, GPIO no pull */
-	pmic_write(GPIO26_GPIO_CNTRL,0xB4);  /* Write, Bank3, high drv strength */
-	pmic_write(GPIO26_GPIO_CNTRL,0xC6);  /* Write, Bank4, Src: Special Function 2 */
+	pmic_write(GPIO26_GPIO_CNTRL, 0x81);	/* Write, Bank0, VIN0=VPH, Mode selection enabled */
+	pmic_write(GPIO26_GPIO_CNTRL, 0x99);	/* Write, Bank1, OutOn/InOff, CMOS, Invert Output (GPIO High) */
+	pmic_write(GPIO26_GPIO_CNTRL, 0xAA);	/* Write, Bank2, GPIO no pull */
+	pmic_write(GPIO26_GPIO_CNTRL, 0xB4);	/* Write, Bank3, high drv strength */
+	pmic_write(GPIO26_GPIO_CNTRL, 0xC6);	/* Write, Bank4, Src: Special Function 2 */
 
 	sharp_lcdc_disp_on();
 }
 
 static struct lcdc_timing_parameters param = {
-	.lcdc_fb_width                     = 480,
-	.lcdc_fb_height                    = 800,
-	.lcdc_hsync_pulse_width_dclk       = 10,
-	.lcdc_hsync_back_porch_dclk        = 20,
-	.lcdc_hsync_front_porch_dclk       = 10,
-	.lcdc_hsync_skew_dclk              = 0,
+	.lcdc_fb_width = 480,
+	.lcdc_fb_height = 800,
+	.lcdc_hsync_pulse_width_dclk = 10,
+	.lcdc_hsync_back_porch_dclk = 20,
+	.lcdc_hsync_front_porch_dclk = 10,
+	.lcdc_hsync_skew_dclk = 0,
 
-	.lcdc_vsync_pulse_width_lines      = 2,
-	.lcdc_vsync_back_porch_lines       = 2,
-	.lcdc_vsync_front_porch_lines      = 2,
+	.lcdc_vsync_pulse_width_lines = 2,
+	.lcdc_vsync_back_porch_lines = 2,
+	.lcdc_vsync_front_porch_lines = 2,
 };
 
 struct lcdc_timing_parameters *sharp_timing_param()

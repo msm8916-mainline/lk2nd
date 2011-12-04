@@ -89,72 +89,68 @@
 #define PM8058_HDMI_L16_CTRL		0x08A
 
 typedef int (*pm8058_write_func) (unsigned char *, unsigned short,
-                                  unsigned short);
+				  unsigned short);
 extern int pa1_ssbi2_write_bytes(unsigned char *buffer, unsigned short length,
-                                 unsigned short slave_addr);
+				 unsigned short slave_addr);
 extern int pa1_ssbi2_read_bytes(unsigned char *buffer, unsigned short length,
-                                 unsigned short slave_addr);
+				unsigned short slave_addr);
 extern int pa2_ssbi2_write_bytes(unsigned char *buffer, unsigned short length,
-                                 unsigned short slave_addr);
+				 unsigned short slave_addr);
 extern int pa2_ssbi2_read_bytes(unsigned char *buffer, unsigned short length,
-                                unsigned short slave_addr);
+				unsigned short slave_addr);
 
 /* PM8058 APIs */
-int pm8058_write(uint16_t addr, uint8_t *data, uint16_t length)
+int pm8058_write(uint16_t addr, uint8_t * data, uint16_t length)
 {
-    return pa1_ssbi2_write_bytes(data, length, addr);
+	return pa1_ssbi2_write_bytes(data, length, addr);
 }
 
-int pm8058_read(uint16_t addr, uint8_t *data, uint16_t length)
+int pm8058_read(uint16_t addr, uint8_t * data, uint16_t length)
 {
-    return pa1_ssbi2_read_bytes(data, length, addr);
+	return pa1_ssbi2_read_bytes(data, length, addr);
 }
 
 void pm8058_write_one(unsigned data, unsigned address)
 {
-    pm8058_write_func wr_function = &pa1_ssbi2_write_bytes;
-    if (wr_function == NULL)
-        return;
-    if ((*wr_function) (&data, 1, address))
-        dprintf(CRITICAL, "Error in initializing register\n");
+	pm8058_write_func wr_function = &pa1_ssbi2_write_bytes;
+	if (wr_function == NULL)
+		return;
+	if ((*wr_function) (&data, 1, address))
+		dprintf(CRITICAL, "Error in initializing register\n");
 
 }
 
-int pm8058_get_irq_status( pm_irq_id_type irq, bool *rt_status)
+int pm8058_get_irq_status(pm_irq_id_type irq, bool * rt_status)
 {
-    unsigned block_index, reg_data, reg_mask;
-    int errFlag;
+	unsigned block_index, reg_data, reg_mask;
+	int errFlag;
 
-    block_index = PM_IRQ_ID_TO_BLOCK_INDEX(irq);
+	block_index = PM_IRQ_ID_TO_BLOCK_INDEX(irq);
 
-    /* select the irq block */
-    errFlag =pa1_ssbi2_write_bytes(&block_index,1,IRQ_BLOCK_SEL_USR_ADDR);
-    if(errFlag)
-    {
-        dprintf(INFO,"Device Timeout");
-        return 1;
-    }
+	/* select the irq block */
+	errFlag =
+	    pa1_ssbi2_write_bytes(&block_index, 1, IRQ_BLOCK_SEL_USR_ADDR);
+	if (errFlag) {
+		dprintf(INFO, "Device Timeout");
+		return 1;
+	}
 
-    /* read real time status */
-    errFlag =pa1_ssbi2_read_bytes(&reg_data,1,IRQ_STATUS_RT_USR_ADDR);
-    if(errFlag)
-    {
-        dprintf(INFO,"Device Timeout");
-        return 1;
-    }
-    reg_mask = PM_IRQ_ID_TO_BIT_MASK(irq);
+	/* read real time status */
+	errFlag = pa1_ssbi2_read_bytes(&reg_data, 1, IRQ_STATUS_RT_USR_ADDR);
+	if (errFlag) {
+		dprintf(INFO, "Device Timeout");
+		return 1;
+	}
+	reg_mask = PM_IRQ_ID_TO_BIT_MASK(irq);
 
-    if ((reg_data & reg_mask) == reg_mask )
-    {
-        /* The RT Status is high. */
-        *rt_status = TRUE;
-    }
-    else
-    {
-        /* The RT Status is low. */
-         *rt_status = FALSE;
-    }
-    return 0;
+	if ((reg_data & reg_mask) == reg_mask) {
+		/* The RT Status is high. */
+		*rt_status = TRUE;
+	} else {
+		/* The RT Status is low. */
+		*rt_status = FALSE;
+	}
+	return 0;
 }
 
 bool pm8058_gpio_get(unsigned int gpio)
@@ -166,14 +162,13 @@ bool pm8058_gpio_get(unsigned int gpio)
 	gpio_irq = gpio + PM_GPIO01_CHGED_ST_IRQ_ID;
 	ret = pm8058_get_irq_status(gpio_irq, &status);
 
-	if(ret)
-		dprintf(CRITICAL,"pm8058_gpio_get failed\n");
+	if (ret)
+		dprintf(CRITICAL, "pm8058_gpio_get failed\n");
 
 	return status;
 }
 
-int pm8058_mwrite(uint16_t addr, uint8_t val, uint8_t mask,
-				uint8_t *reg_save)
+int pm8058_mwrite(uint16_t addr, uint8_t val, uint8_t mask, uint8_t * reg_save)
 {
 	int rc = 0;
 	uint8_t reg;
@@ -182,7 +177,8 @@ int pm8058_mwrite(uint16_t addr, uint8_t val, uint8_t mask,
 	if (reg != *reg_save)
 		rc = pm8058_write(addr, &reg, 1);
 	if (rc)
-		dprintf(CRITICAL,"pm8058_write failed; addr=%03X, rc=%d\n", addr, rc);
+		dprintf(CRITICAL, "pm8058_write failed; addr=%03X, rc=%d\n",
+			addr, rc);
 	else
 		*reg_save = reg;
 	return rc;
@@ -192,9 +188,10 @@ int pm8058_ldo_set_voltage()
 {
 	int ret = 0;
 	unsigned vprog = 0x00000110;
-	ret = pm8058_mwrite(PM8058_HDMI_L16_CTRL,vprog,LDO_CTRL_VPROG_MASK,0);
-	if(ret) {
-		dprintf(SPEW,"Failed to set voltage for l16 regulator\n");
+	ret =
+	    pm8058_mwrite(PM8058_HDMI_L16_CTRL, vprog, LDO_CTRL_VPROG_MASK, 0);
+	if (ret) {
+		dprintf(SPEW, "Failed to set voltage for l16 regulator\n");
 	}
 	return ret;
 }
@@ -202,9 +199,11 @@ int pm8058_ldo_set_voltage()
 int pm8058_vreg_enable()
 {
 	int ret = 0;
-	ret = pm8058_mwrite(PM8058_HDMI_L16_CTRL,REGULATOR_EN_MASK,REGULATOR_EN_MASK,0);
-	if(ret) {
-		dprintf(SPEW,"Vreg enable failed for PM 8058\n");
+	ret =
+	    pm8058_mwrite(PM8058_HDMI_L16_CTRL, REGULATOR_EN_MASK,
+			  REGULATOR_EN_MASK, 0);
+	if (ret) {
+		dprintf(SPEW, "Vreg enable failed for PM 8058\n");
 	}
 	return ret;
 }
@@ -217,7 +216,7 @@ int pm8058_vreg_enable()
  */
 int pm8901_write(uint8_t * buffer, uint32_t length, uint32_t slave_addr)
 {
-    return pa2_ssbi2_write_bytes(buffer, length, slave_addr);
+	return pa2_ssbi2_write_bytes(buffer, length, slave_addr);
 }
 
 /*
@@ -226,7 +225,7 @@ int pm8901_write(uint8_t * buffer, uint32_t length, uint32_t slave_addr)
  */
 int pm8901_read(uint8_t * buffer, uint32_t length, uint32_t slave_addr)
 {
-    return pa2_ssbi2_read_bytes(buffer, length, slave_addr);
+	return pa2_ssbi2_read_bytes(buffer, length, slave_addr);
 }
 
 /*
@@ -234,28 +233,28 @@ int pm8901_read(uint8_t * buffer, uint32_t length, uint32_t slave_addr)
  */
 int pm8901_test_bank_read(uint8_t * buffer, uint8_t bank, uint16_t addr)
 {
-    int ret = pm8901_write(&bank, 1, addr);
-    /* if the write does not work we can't read. */
-    if (ret) {
-        return ret;
-    }
+	int ret = pm8901_write(&bank, 1, addr);
+	/* if the write does not work we can't read. */
+	if (ret) {
+		return ret;
+	}
 
-    return pm8901_read(buffer, 1, addr);
+	return pm8901_read(buffer, 1, addr);
 }
 
 /*
  * PMIC 8901 LDO vreg write.
  */
 int pm8901_vreg_write(uint8_t * buffer, uint8_t mask, uint16_t addr,
-                      uint8_t prev_val)
+		      uint8_t prev_val)
 {
-    uint8_t reg;
+	uint8_t reg;
 
-    /* Clear the bits we want to try and set. */
-    reg = (prev_val & ~mask);
-    /* Set the bits we want to set, before writing them to addr */
-    reg |= (*buffer & mask);
-    return pm8901_write(&reg, 1, addr);
+	/* Clear the bits we want to try and set. */
+	reg = (prev_val & ~mask);
+	/* Set the bits we want to set, before writing them to addr */
+	reg |= (*buffer & mask);
+	return pm8901_write(&reg, 1, addr);
 }
 
 int pm8901_reset_pwr_off(int reset)
@@ -287,7 +286,7 @@ int pm8901_reset_pwr_off(int reset)
 		}
 	}
 
-get_out:
+ get_out:
 	return rc;
 }
 
@@ -309,7 +308,7 @@ int pm8058_reset_pwr_off(int reset)
 	if (rc) {
 	}
 
-get_out3:
+ get_out3:
 	if (!reset) {
 		/* Only modify the SLEEP_CNTL reg if shutdown is desired. */
 		rc = pm8058_read(SSBI_REG_ADDR_SLEEP_CNTL, &smpl, 1);
@@ -321,12 +320,11 @@ get_out3:
 		smpl |= PM8058_SLEEP_SMPL_EN_PWR_OFF;
 
 		rc = pm8058_write(SSBI_REG_ADDR_SLEEP_CNTL, &smpl, 1);
-		if (rc)
-		{
+		if (rc) {
 		}
 	}
 
-get_out2:
+ get_out2:
 	rc = pm8058_read(SSBI_REG_ADDR_PON_CNTL_1, &pon, 1);
 	if (rc) {
 		goto get_out;
@@ -343,7 +341,7 @@ get_out2:
 		goto get_out;
 	}
 
-get_out:
+ get_out:
 	return rc;
 }
 
@@ -353,8 +351,7 @@ int pm8058_rtc0_alarm_irq_disable(void)
 	uint8_t reg;
 
 	rc = pm8058_read(PM8058_RTC_CTRL, &reg, 1);
-	if (rc)
-	{
+	if (rc) {
 		return rc;
 	}
 	reg = (reg & ~PM8058_RTC_ALARM_ENABLE);
@@ -369,17 +366,17 @@ int pm8058_rtc0_alarm_irq_disable(void)
 
 int pm8901_mpp_enable()
 {
-	uint8_t prevval= 0x0;
+	uint8_t prevval = 0x0;
 	uint16_t mask;
 	uint8_t conf;
 	int ret = 0;
 
 	conf = PM8901_MPP0_CTRL_VAL;
 	mask = PM8901_MPP_TYPE_MASK | PM8901_MPP_CONFIG_LVL_MASK |
-		PM8901_MPP_CONFIG_CTL_MASK;
+	    PM8901_MPP_CONFIG_CTL_MASK;
 
-	if (ret = pm8901_vreg_write(&conf,mask,SSBI_MPP_CNTRL(0),prevval)) {
-		dprintf(SPEW,"PM8901 MPP failed\n");
+	if (ret = pm8901_vreg_write(&conf, mask, SSBI_MPP_CNTRL(0), prevval)) {
+		dprintf(SPEW, "PM8901 MPP failed\n");
 	}
 	return ret;
 }
@@ -387,17 +384,23 @@ int pm8901_mpp_enable()
 int pm8901_vs_enable()
 {
 	uint8_t val = VREG_PMR_STATE_HPM;
-	int prevval=0x0;
+	int prevval = 0x0;
 	int ret = 0;
 
-	if (ret = pm8901_vreg_write(&val,VREG_PMR_STATE_HPM,PM8901_HDMI_MVS_PMR,prevval)) {
-		dprintf(SPEW,"pm8901_vreg_write failed for MVS PMR register\n");
+	if (ret =
+	    pm8901_vreg_write(&val, VREG_PMR_STATE_HPM, PM8901_HDMI_MVS_PMR,
+			      prevval)) {
+		dprintf(SPEW,
+			"pm8901_vreg_write failed for MVS PMR register\n");
 		return ret;
 	}
 
 	val = VS_CTRL_USE_PMR;
-	if (ret = pm8901_vreg_write(&val,VS_CTRL_ENABLE_MASK,PM8901_HDMI_MVS_CTRL,prevval)) {
-		dprintf(SPEW,"pm8901_vreg_write failed for MVS ctrl register\n");
+	if (ret =
+	    pm8901_vreg_write(&val, VS_CTRL_ENABLE_MASK, PM8901_HDMI_MVS_CTRL,
+			      prevval)) {
+		dprintf(SPEW,
+			"pm8901_vreg_write failed for MVS ctrl register\n");
 		return ret;
 	}
 	return ret;

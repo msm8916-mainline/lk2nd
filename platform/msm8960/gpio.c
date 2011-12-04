@@ -33,52 +33,50 @@
 #include <gsbi.h>
 
 void gpio_tlmm_config(uint32_t gpio, uint8_t func,
-                      uint8_t dir, uint8_t pull,
-                      uint8_t drvstr, uint32_t enable)
+		      uint8_t dir, uint8_t pull,
+		      uint8_t drvstr, uint32_t enable)
 {
-    unsigned int val = 0;
-    val |= pull;
-    val |= func << 2;
-    val |= drvstr << 6;
-    val |= enable << 9;
-    unsigned int *addr = (unsigned int *)GPIO_CONFIG_ADDR(gpio);
-    writel(val, addr);
-    return;
+	unsigned int val = 0;
+	val |= pull;
+	val |= func << 2;
+	val |= drvstr << 6;
+	val |= enable << 9;
+	unsigned int *addr = (unsigned int *)GPIO_CONFIG_ADDR(gpio);
+	writel(val, addr);
+	return;
 }
 
 void gpio_set(uint32_t gpio, uint32_t dir)
 {
-    unsigned int *addr = (unsigned int *)GPIO_IN_OUT_ADDR(gpio);
-    writel(dir, addr);
-    return;
+	unsigned int *addr = (unsigned int *)GPIO_IN_OUT_ADDR(gpio);
+	writel(dir, addr);
+	return;
 }
 
 /* Configure gpio for uart - based on gsbi id */
 void gpio_config_uart_dm(uint8_t id)
 {
-	switch (id)
-	{
+	switch (id) {
 
 	case GSBI_ID_3:
 		/* configure rx gpio */
 		gpio_tlmm_config(15, 1, GPIO_INPUT, GPIO_NO_PULL,
-						 GPIO_8MA, GPIO_DISABLE);
+				 GPIO_8MA, GPIO_DISABLE);
 		/* configure tx gpio */
 		gpio_tlmm_config(14, 1, GPIO_OUTPUT, GPIO_NO_PULL,
-						 GPIO_8MA, GPIO_DISABLE);
+				 GPIO_8MA, GPIO_DISABLE);
 		break;
 
 	case GSBI_ID_5:
 		/* configure rx gpio */
 		gpio_tlmm_config(23, 1, GPIO_INPUT, GPIO_NO_PULL,
-						 GPIO_8MA, GPIO_DISABLE);
+				 GPIO_8MA, GPIO_DISABLE);
 		/* configure tx gpio */
 		gpio_tlmm_config(22, 1, GPIO_OUTPUT, GPIO_NO_PULL,
-						 GPIO_8MA, GPIO_DISABLE);
+				 GPIO_8MA, GPIO_DISABLE);
 		break;
 
 	default:
 		ASSERT(0);
 	}
 }
-

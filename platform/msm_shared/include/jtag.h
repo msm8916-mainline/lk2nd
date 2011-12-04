@@ -26,15 +26,12 @@
  * SUCH DAMAGE.
  */
 
-
 #ifndef _JTAG_H_
 #define _JTAG_H_
 
 void jtag_okay(const char *msg);
 void jtag_fail(const char *msg);
 void jtag_dputc(unsigned ch);
-void jtag_cmd_loop(void (*do_cmd)(const char *, unsigned, unsigned, unsigned));
-
+void jtag_cmd_loop(void (*do_cmd) (const char *, unsigned, unsigned, unsigned));
 
 #endif /*__JTAG_H_ */
-

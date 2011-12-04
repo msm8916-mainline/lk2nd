@@ -37,26 +37,23 @@
 
 typedef unsigned int uint32;
 
-typedef struct
-{
-	uint32  len;
-	uint32  buf_offset;
-	uint32  resp_hdr_offset;
-	uint32  id;
+typedef struct {
+	uint32 len;
+	uint32 buf_offset;
+	uint32 resp_hdr_offset;
+	uint32 id;
 } scm_command;
 
-typedef struct
-{
-	uint32  len;
-	uint32  buf_offset;
-	uint32  is_complete;
+typedef struct {
+	uint32 len;
+	uint32 buf_offset;
+	uint32 is_complete;
 } scm_response;
 
-typedef struct
-{
-	scm_command     common_req;
-	uint32*         img_ptr;
-	uint32*         img_len_ptr;
+typedef struct {
+	scm_command common_req;
+	uint32 *img_ptr;
+	uint32 *img_len_ptr;
 } decrypt_img_req;
 
 #define SYSCALL_CREATE_CMD_ID(s, f) \
@@ -65,11 +62,10 @@ typedef struct
 #define SCM_SVC_SSD                7
 #define SSD_DECRYPT_IMG_ID SYSCALL_CREATE_CMD_ID(SCM_SVC_SSD, 0x01)
 
-void setup_decrypt_cmd ( decrypt_img_req* dec_cmd,
-		uint32** img_ptr,
-		uint32* img_len_ptr);
+void setup_decrypt_cmd(decrypt_img_req * dec_cmd,
+		       uint32 ** img_ptr, uint32 * img_len_ptr);
 static uint32 smc(uint32 cmd_addr);
-int decrypt_img_scm(uint32** img_ptr, uint32* img_len_ptr);
+int decrypt_img_scm(uint32 ** img_ptr, uint32 * img_len_ptr);
 
 #define SCM_SVC_FUSE            0x08
 #define SCM_BLOW_SW_FUSE_ID     0x01
@@ -103,11 +99,11 @@ void set_tamper_fuse_cmd();
  * to access the buffers in a safe manner.
  */
 struct scm_command {
-	uint32_t	len;
-	uint32_t	buf_offset;
-	uint32_t	resp_hdr_offset;
-	uint32_t	id;
-	uint32_t	buf[0];
+	uint32_t len;
+	uint32_t buf_offset;
+	uint32_t resp_hdr_offset;
+	uint32_t id;
+	uint32_t buf[0];
 };
 
 /**
@@ -117,9 +113,9 @@ struct scm_command {
  * @is_complete: indicates if the command has finished processing
  */
 struct scm_response {
-	uint32_t	len;
-	uint32_t	buf_offset;
-	uint32_t	is_complete;
+	uint32_t len;
+	uint32_t buf_offset;
+	uint32_t is_complete;
 };
 
 #endif

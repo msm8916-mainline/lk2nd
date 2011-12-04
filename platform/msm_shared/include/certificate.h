@@ -28,4 +28,4 @@
  */
 #define CERTIFICATE_SIZE 724
 
-extern const char certBuffer [CERTIFICATE_SIZE];
+extern const char certBuffer[CERTIFICATE_SIZE];

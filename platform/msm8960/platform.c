@@ -69,44 +69,44 @@ static uint32_t ticks_per_sec = 0;
 #define IOMAP_MEMORY      (MMU_MEMORY_TYPE_DEVICE_NON_SHARED | \
                            MMU_MEMORY_AP_READ_WRITE)
 
-
 mmu_section_t mmu_section_table[] = {
 /*  Physical addr,    Virtual addr,    Size (in MB),    Flags */
-    {MEMBASE,         MEMBASE,         (MEMSIZE/MB),    LK_MEMORY},
-    {BASE_ADDR,       BASE_ADDR,                 44,    KERNEL_MEMORY},
-    {SCRATCH_ADDR,    SCRATCH_ADDR,             128,    SCRATCH_MEMORY},
-    {MSM_IOMAP_BASE,  MSM_IOMAP_BASE,  MSM_IOMAP_SIZE,  IOMAP_MEMORY},
+	{MEMBASE, MEMBASE, (MEMSIZE / MB), LK_MEMORY},
+	{BASE_ADDR, BASE_ADDR, 44, KERNEL_MEMORY},
+	{SCRATCH_ADDR, SCRATCH_ADDR, 128, SCRATCH_MEMORY},
+	{MSM_IOMAP_BASE, MSM_IOMAP_BASE, MSM_IOMAP_SIZE, IOMAP_MEMORY},
 };
 
 void platform_early_init(void)
 {
-    qgic_init();
-    platform_init_timer();
+	qgic_init();
+	platform_init_timer();
 }
 
 void platform_init(void)
 {
-    dprintf(INFO, "platform_init()\n");
+	dprintf(INFO, "platform_init()\n");
 }
 
-void display_init(void){
-    struct fbcon_config *fb_cfg;
+void display_init(void)
+{
+	struct fbcon_config *fb_cfg;
 
-    panel_backlight_on();
+	panel_backlight_on();
 
-    mipi_dsi_panel_power_on();
-    mipi_panel_reset();
+	mipi_dsi_panel_power_on();
+	mipi_panel_reset();
 
-    mdp_clock_init();
-    mmss_clock_init();
+	mdp_clock_init();
+	mmss_clock_init();
 
-    fb_cfg = mipi_init();
-    fbcon_setup(fb_cfg);
+	fb_cfg = mipi_init();
+	fbcon_setup(fb_cfg);
 }
 
 void display_shutdown(void)
 {
-    mipi_dsi_shutdown();
+	mipi_dsi_shutdown();
 }
 
 void platform_uninit(void)
@@ -120,21 +120,21 @@ void platform_uninit(void)
 /* Setup memory for this platform */
 void platform_init_mmu_mappings(void)
 {
-    uint32_t i;
-    uint32_t sections;
-    uint32_t table_size = ARRAY_SIZE(mmu_section_table);
+	uint32_t i;
+	uint32_t sections;
+	uint32_t table_size = ARRAY_SIZE(mmu_section_table);
 
-    for (i = 0; i < table_size; i++)
-    {
-        sections = mmu_section_table[i].num_of_sections;
+	for (i = 0; i < table_size; i++) {
+		sections = mmu_section_table[i].num_of_sections;
 
-        while (sections--)
-        {
-            arm_mmu_map_section(mmu_section_table[i].paddress + sections*MB,
-                                mmu_section_table[i].vaddress + sections*MB,
-                                mmu_section_table[i].flags);
-        }
-    }
+		while (sections--) {
+			arm_mmu_map_section(mmu_section_table[i].paddress +
+					    sections * MB,
+					    mmu_section_table[i].vaddress +
+					    sections * MB,
+					    mmu_section_table[i].flags);
+		}
+	}
 }
 
 /* Initialize DGT timer */
@@ -148,7 +148,7 @@ void platform_init_timer(void)
 	 */
 	writel(3, DGT_CLK_CTL);
 
-	ticks_per_sec = 6750000; /* (27 MHz / 4) */
+	ticks_per_sec = 6750000;	/* (27 MHz / 4) */
 }
 
 /* Returns timer ticks per sec */

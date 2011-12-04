@@ -33,19 +33,19 @@
 #define FAIL                        1
 
 int mdp_setup_dma_p_video_mode(unsigned short disp_width,
-                               unsigned short disp_height,
-                               unsigned short img_width,
-                               unsigned short img_height,
-                               unsigned short hsync_porch0_fp,
-                               unsigned short hsync_porch0_bp,
-                               unsigned short vsync_porch0_fp,
-                               unsigned short vsync_porch0_bp,
-                               unsigned short hsync_width,
-                               unsigned short vsync_width,
-                               unsigned long input_img_addr,
-                               unsigned short img_width_full_size,
-                               unsigned short pack_pattern,
-                               unsigned char ystride);
+			       unsigned short disp_height,
+			       unsigned short img_width,
+			       unsigned short img_height,
+			       unsigned short hsync_porch0_fp,
+			       unsigned short hsync_porch0_bp,
+			       unsigned short vsync_porch0_fp,
+			       unsigned short vsync_porch0_bp,
+			       unsigned short hsync_width,
+			       unsigned short vsync_width,
+			       unsigned long input_img_addr,
+			       unsigned short img_width_full_size,
+			       unsigned short pack_pattern,
+			       unsigned char ystride);
 
 void mdp_disable(void);
 void mdp_shutdown(void);

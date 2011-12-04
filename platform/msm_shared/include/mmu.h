@@ -31,13 +31,11 @@
 
 #include <sys/types.h>
 
-typedef struct
-{
-	addr_t   paddress;
-	addr_t   vaddress;
+typedef struct {
+	addr_t paddress;
+	addr_t vaddress;
 	uint32_t num_of_sections;
 	uint32_t flags;
 } mmu_section_t;
 
 #endif
-

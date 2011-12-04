@@ -32,7 +32,6 @@
 
 #include <platform/iomap.h>
 
-
 /* ADM base address for channel (n) and security_domain (s) */
 #define ADM_BASE_ADDR(n, s) (MSM_ADM_BASE + 4*(n) + ((MSM_ADM_SD_OFFSET)*(s)))
 
@@ -50,44 +49,36 @@
 /* Status reg bit masks */
 #define ADM_REG_STATUS__RSLT_VLD___M    (1 << 1)
 
-
 /* Command Pointer List Entry bit masks */
-#define ADM_CMD_PTR_LP          (1 << 31) /* Last pointer */
-#define ADM_CMD_PTR_CMD_LIST    (0 << 29) /* Command List */
+#define ADM_CMD_PTR_LP          (1 << 31)	/* Last pointer */
+#define ADM_CMD_PTR_CMD_LIST    (0 << 29)	/* Command List */
 
 /* Command List bit masks */
-#define ADM_CMD_LIST_LC         (1 << 31) /* Last command             */
-#define ADM_CMD_LIST_OCU        (1 << 21) /* Other channel unblock    */
-#define ADM_CMD_LIST_OCB        (1 << 20) /* Other channel block      */
-#define ADM_CMD_LIST_TCB        (1 << 19) /* This channel block       */
-#define ADM_ADDR_MODE_BOX       (3 << 0)  /* Box address mode         */
-#define ADM_ADDR_MODE_SI        (0 << 0)  /* Single item address mode */
-
+#define ADM_CMD_LIST_LC         (1 << 31)	/* Last command             */
+#define ADM_CMD_LIST_OCU        (1 << 21)	/* Other channel unblock    */
+#define ADM_CMD_LIST_OCB        (1 << 20)	/* Other channel block      */
+#define ADM_CMD_LIST_TCB        (1 << 19)	/* This channel block       */
+#define ADM_ADDR_MODE_BOX       (3 << 0)	/* Box address mode         */
+#define ADM_ADDR_MODE_SI        (0 << 0)	/* Single item address mode */
 
 /* ADM external inteface */
 
 /* result type */
-typedef enum
-{
+typedef enum {
 
- ADM_RESULT_SUCCESS = 0,
- ADM_RESULT_FAILURE = 1,
- ADM_RESULT_TIMEOUT = 2
-
+	ADM_RESULT_SUCCESS = 0,
+	ADM_RESULT_FAILURE = 1,
+	ADM_RESULT_TIMEOUT = 2
 } adm_result_t;
 
-
 /* direction type */
-typedef enum
-{
+typedef enum {
 
- ADM_MMC_READ = 0,
- ADM_MMC_WRITE
-
+	ADM_MMC_READ = 0,
+	ADM_MMC_WRITE
 } adm_dir_t;
 
 adm_result_t adm_transfer_mmc_data(unsigned char slot,
-				   unsigned char* data_ptr,
-				   unsigned int data_len,
-				   adm_dir_t dir);
+				   unsigned char *data_ptr,
+				   unsigned int data_len, adm_dir_t dir);
 #endif

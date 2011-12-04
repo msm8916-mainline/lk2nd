@@ -65,7 +65,7 @@
 /* The MAX value is computation limit. Hardware limit is 393 seconds. */
 #define PM_PWM_PERIOD_MAX		(274 * USEC_PER_SEC)
 /* The MIN value is hardware limit. */
-#define PM_PWM_PERIOD_MIN		7 /* micro seconds */
+#define PM_PWM_PERIOD_MIN		7	/* micro seconds */
 
 #define PWM_PERIOD_USEC		(USEC_PER_SEC / PWM_FREQ_HZ)
 #define PWM_DUTY_LEVEL		(PWM_PERIOD_USEC / PWM_LEVEL)
@@ -137,10 +137,10 @@
 #define PM_PWM_PAUSE_ENABLE_LOW		0x02
 #define PM_PWM_RESERVED		0x01
 
-#define PM_PWM_PAUSE_COUNT_MAX		56 /* < 2^6 = 64*/
+#define PM_PWM_PAUSE_COUNT_MAX		56	/* < 2^6 = 64 */
 
 struct pm_pwm_config {
-	int pwm_size;	/* round up to 6 or 9 for 6/9-bit PWM SIZE */
+	int pwm_size;		/* round up to 6 or 9 for 6/9-bit PWM SIZE */
 	int clk;
 	int pre_div;
 	int pre_div_exp;

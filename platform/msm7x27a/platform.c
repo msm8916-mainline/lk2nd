@@ -102,7 +102,7 @@ void display_shutdown(void)
 	dprintf(SPEW, "display_shutdown()\n");
 	mipi_dsi_shutdown();
 	/* Power down DSI bridge chip */
-	gpio_set(128,0x1);
+	gpio_set(128, 0x1);
 #endif
 
 }
@@ -121,7 +121,7 @@ void platform_init_timer(void)
 	/* disable timer */
 	writel(0, DGT_ENABLE);
 
-	ticks_per_sec = 19200000; /* Uses TCXO (19.2 MHz) */
+	ticks_per_sec = 19200000;	/* Uses TCXO (19.2 MHz) */
 }
 
 /* Returns timer ticks per sec */
@@ -129,6 +129,7 @@ uint32_t platform_tick_rate(void)
 {
 	return ticks_per_sec;
 }
+
 bool machine_is_7x25a(void)
 {
 	if ((board_msm_id() == MSM7225A) || (board_msm_id() == MSM7625A))
@@ -142,12 +143,12 @@ bool machine_is_7x25a(void)
  */
 void panel_dsi_init(void)
 {
-	gpio_set(128,0x1);
+	gpio_set(128, 0x1);
 	mdelay(5);
-	gpio_set(128,0x0);
-	gpio_set(129,0x1);
+	gpio_set(128, 0x0);
+	gpio_set(129, 0x1);
 	gpio_config(129, GPIO_OUTPUT);
-	gpio_set(129,0x0);
-	gpio_set(129,0x1);
+	gpio_set(129, 0x0);
+	gpio_set(129, 0x1);
 	mdelay(10);
 }

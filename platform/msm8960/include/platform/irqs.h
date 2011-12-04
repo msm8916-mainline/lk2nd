@@ -49,7 +49,6 @@
 #define GSBI_QUP_IRQ(id)       ((id) <= 8 ? (GIC_SPI_START + 145 + 2*((id))) : \
                                             (GIC_SPI_START + 187 + 2*((id)-8)))
 
-
 /* Retrofit universal macro names */
 #define INT_USB_HS                  USB1_HS_IRQ
 
@@ -59,4 +58,4 @@
 
 #define NR_IRQS (NR_MSM_IRQS + NR_GPIO_IRQS + NR_BOARD_IRQS)
 
-#endif /* __IRQS_8960_H */
+#endif				/* __IRQS_8960_H */

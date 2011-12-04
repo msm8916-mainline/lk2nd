@@ -53,7 +53,6 @@
 #define CRYPTO_AUTH_BYTECNTn(n)		(0x04A0 + 4*(n))
 #define CRYPTO_AUTH_IVn(n)			(0x0450 + 4*(n))
 
-
 /* Register bit definitions */
 #define SW_ERR						BIT(0)
 #define OPERATION_DONE				BIT(1)

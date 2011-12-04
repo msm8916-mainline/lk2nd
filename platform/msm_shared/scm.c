@@ -54,11 +54,10 @@ static struct scm_command *alloc_scm_command(size_t cmd_size, size_t resp_size)
 {
 	struct scm_command *cmd;
 	size_t len = sizeof(*cmd) + sizeof(struct scm_response) + cmd_size +
-		resp_size;
+	    resp_size;
 
 	cmd = malloc(len);
-	if (cmd)
-	{
+	if (cmd) {
 		cmd->len = len;
 		cmd->buf_offset = offsetof(struct scm_command, buf);
 		cmd->resp_hdr_offset = cmd->buf_offset + cmd_size;
@@ -83,8 +82,8 @@ static inline void free_scm_command(struct scm_command *cmd)
  *
  * Returns a pointer to a response for a command.
  */
-static inline struct scm_response *scm_command_to_response(
-		const struct scm_command *cmd)
+static inline struct scm_response *scm_command_to_response(const struct
+							   scm_command *cmd)
 {
 	return (void *)cmd + cmd->resp_hdr_offset;
 }
@@ -115,15 +114,9 @@ static uint32_t smc(uint32_t cmd_addr)
 {
 	uint32_t context_id;
 	register uint32_t r0 __asm__("r0") = 1;
-	register uint32_t r1 __asm__("r1") = (uint32_t)&context_id;
+	register uint32_t r1 __asm__("r1") = (uint32_t) & context_id;
 	register uint32_t r2 __asm__("r2") = cmd_addr;
-	__asm__(
-			"1:smc	#0	@ switch to secure world\n"
-			"cmp	r0, #1				\n"
-			"beq	1b				\n"
-			: "=r" (r0)
-			: "r" (r0), "r" (r1), "r" (r2)
-			: "r3", "cc");
+ __asm__("1:smc	#0	@ switch to secure world\n" "cmp	r0, #1				\n" "beq	1b				\n": "=r"(r0): "r"(r0), "r"(r1), "r"(r2):"r3", "cc");
 	return r0;
 }
 
@@ -138,8 +131,9 @@ static uint32_t smc(uint32_t cmd_addr)
  *
  * Sends a command to the SCM and waits for the command to finish processing.
  */
-int scm_call(uint32_t svc_id, uint32_t cmd_id, const void *cmd_buf, size_t cmd_len,
-		void *resp_buf, size_t resp_len)
+int
+scm_call(uint32_t svc_id, uint32_t cmd_id, const void *cmd_buf,
+	 size_t cmd_len, void *resp_buf, size_t resp_len)
 {
 	int ret;
 	struct scm_command *cmd;
@@ -153,28 +147,28 @@ int scm_call(uint32_t svc_id, uint32_t cmd_id, const void *cmd_buf, size_t cmd_l
 	if (cmd_buf)
 		memcpy(scm_get_command_buffer(cmd), cmd_buf, cmd_len);
 
-	ret = smc((uint32_t)cmd);
+	ret = smc((uint32_t) cmd);
 	if (ret)
 		goto out;
 
-	if(resp_len)
-	{
+	if (resp_len) {
 		rsp = scm_command_to_response(cmd);
 
-		while (!rsp->is_complete);
+		while (!rsp->is_complete) ;
 
 		if (resp_buf)
-			memcpy(resp_buf, scm_get_response_buffer(rsp), resp_len);
+			memcpy(resp_buf, scm_get_response_buffer(rsp),
+			       resp_len);
 	}
-out:
+ out:
 	free_scm_command(cmd);
 	return ret;
 }
 
 /* SCM Decrypt Command */
-void setup_decrypt_cmd ( decrypt_img_req* dec_cmd,
-		uint32_t** img_ptr,
-		uint32_t* img_len_ptr)
+void
+setup_decrypt_cmd(decrypt_img_req * dec_cmd,
+		  uint32_t ** img_ptr, uint32_t * img_len_ptr)
 {
 	dec_cmd->common_req.len = sizeof(decrypt_img_req);
 	dec_cmd->common_req.buf_offset = sizeof(scm_command);
@@ -185,7 +179,7 @@ void setup_decrypt_cmd ( decrypt_img_req* dec_cmd,
 	dec_cmd->img_len_ptr = img_len_ptr;
 }
 
-int decrypt_img_scm(uint32_t** img_ptr, uint32_t* img_len_ptr)
+int decrypt_img_scm(uint32_t ** img_ptr, uint32_t * img_len_ptr)
 {
 	int ret = 0;
 	decrypt_img_req decrypt_cmd;
@@ -194,13 +188,15 @@ int decrypt_img_scm(uint32_t** img_ptr, uint32_t* img_len_ptr)
 	setup_decrypt_cmd(&decrypt_cmd, img_ptr, img_len_ptr);
 
 	/* Since TZ cannot access cached data, cmd must be flushed to main memory */
-	arch_clean_invalidate_cache_range((addr_t) &decrypt_cmd, sizeof(decrypt_cmd));
+	arch_clean_invalidate_cache_range((addr_t) & decrypt_cmd,
+					  sizeof(decrypt_cmd));
 
 	/* Invalidate img ptr and len from cache so that we read the updated data
 	 * from the main memory.
 	 */
 	arch_clean_invalidate_cache_range((addr_t) img_ptr, sizeof(img_ptr));
-	arch_clean_invalidate_cache_range((addr_t) img_len_ptr, sizeof(img_len_ptr));
+	arch_clean_invalidate_cache_range((addr_t) img_len_ptr,
+					  sizeof(img_len_ptr));
 
 	ret = smc(&decrypt_cmd);
 
@@ -220,7 +216,7 @@ void set_tamper_fuse_cmd()
 	cmd_buf = (void *)&fuse_id;
 	cmd_len = sizeof(fuse_id);
 
-	/*no response*/
+	/*no response */
 	resp_buf = NULL;
 	resp_len = 0;
 
@@ -244,7 +240,7 @@ uint8_t get_tamper_fuse_cmd()
 	cmd_buf = (void *)&fuse_id;
 	cmd_len = sizeof(fuse_id);
 
-	/*response*/
+	/*response */
 	resp_len = sizeof(resp_buf);
 
 	svc_id = SCM_SVC_FUSE;
@@ -253,4 +249,3 @@ uint8_t get_tamper_fuse_cmd()
 	scm_call(svc_id, cmd_id, cmd_buf, cmd_len, &resp_buf, resp_len);
 	return resp_buf;
 }
-

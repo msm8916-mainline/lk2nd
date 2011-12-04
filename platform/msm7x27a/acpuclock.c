@@ -49,11 +49,11 @@
 #define PLL_BYPASSNL		BIT(1)
 #define PLL_OUTCTRL			BIT(0)
 
-#define SRC_SEL_TCX0	0 /* TCXO */
-#define SRC_SEL_PLL1	1 /* PLL1: modem_pll */
-#define SRC_SEL_PLL2	2 /* PLL2: backup_pll_0 */
-#define SRC_SEL_PLL3	3 /* PLL3: backup_pll_1 */
-#define SRC_SEL_PLL4	6 /* PLL4: sparrow_pll */
+#define SRC_SEL_TCX0	0	/* TCXO */
+#define SRC_SEL_PLL1	1	/* PLL1: modem_pll */
+#define SRC_SEL_PLL2	2	/* PLL2: backup_pll_0 */
+#define SRC_SEL_PLL3	3	/* PLL3: backup_pll_1 */
+#define SRC_SEL_PLL4	6	/* PLL4: sparrow_pll */
 
 #define DIV_1		0
 #define DIV_2		1
@@ -77,7 +77,7 @@
 #define MIN_AXI_HZ	120000000
 #define ACPU_800MHZ	41
 
-#define A11S_CLK_SEL_MASK 0x7 /* bits 2:0 */
+#define A11S_CLK_SEL_MASK 0x7	/* bits 2:0 */
 
 /* The stepping frequencies have been choosen to make sure the step
  * is <= 256 MHz for both 7x27a and 7x25a targets.  The
@@ -91,21 +91,21 @@
  */
 
 uint32_t const clk_cntl_reg_val_7627A[] = {
-	(WAIT_CNT << 16) | (SRC_SEL_PLL2 << 4)  | DIV_16,
+	(WAIT_CNT << 16) | (SRC_SEL_PLL2 << 4) | DIV_16,
 	(WAIT_CNT << 16) | (SRC_SEL_PLL2 << 12) | (DIV_8 << 8),
-	(WAIT_CNT << 16) | (SRC_SEL_PLL2 << 4)  | DIV_4,
+	(WAIT_CNT << 16) | (SRC_SEL_PLL2 << 4) | DIV_4,
 	(WAIT_CNT << 16) | (SRC_SEL_PLL2 << 12) | (DIV_2 << 8),
 
 	/* TODO: Fix it for 800MHz */
 #if 0
-	(WAIT_CNT << 16) | (SRC_SEL_PLL4 << 4)  | DIV_1,
+	(WAIT_CNT << 16) | (SRC_SEL_PLL4 << 4) | DIV_1,
 #endif
 };
 
 uint32_t const clk_cntl_reg_val_7625A[] = {
-	(WAIT_CNT << 16) | (SRC_SEL_PLL2 << 4)  | DIV_16,
+	(WAIT_CNT << 16) | (SRC_SEL_PLL2 << 4) | DIV_16,
 	(WAIT_CNT << 16) | (SRC_SEL_PLL2 << 12) | (DIV_8 << 8),
-	(WAIT_CNT << 16) | (SRC_SEL_PLL2 << 4)  | DIV_4,
+	(WAIT_CNT << 16) | (SRC_SEL_PLL2 << 4) | DIV_4,
 	(WAIT_CNT << 16) | (SRC_SEL_PLL2 << 12) | (DIV_2 << 8),
 };
 
@@ -113,34 +113,33 @@ uint32_t const clk_cntl_reg_val_7625A[] = {
  * mode. Able to use DIV_1 for all steps because it's the largest AND
  * the final value. */
 uint32_t const clk_sel_reg_val[] = {
-	DIV_1 << 1 | 1, /* Switch to src1 */
-	DIV_1 << 1 | 0, /* Switch to src0 */
+	DIV_1 << 1 | 1,		/* Switch to src1 */
+	DIV_1 << 1 | 0,		/* Switch to src0 */
 };
 
 /*
  * Mask to make sure current selected src frequency doesn't change.
  */
 uint32_t const clk_cntl_mask[] = {
-	0x0000FF00, /* Mask to read src0 */
-	0x000000FF  /* Mask to read src1 */
+	0x0000FF00,		/* Mask to read src0 */
+	0x000000FF		/* Mask to read src1 */
 };
 
 /* enum for SDC CLK IDs */
-enum
-{
-	SDC1_CLK  = 19,
+enum {
+	SDC1_CLK = 19,
 	SDC1_PCLK = 20,
-	SDC2_CLK  = 21,
+	SDC2_CLK = 21,
 	SDC2_PCLK = 22,
-	SDC3_CLK  = 23,
+	SDC3_CLK = 23,
 	SDC3_PCLK = 24,
-	SDC4_CLK  = 25,
+	SDC4_CLK = 25,
 	SDC4_PCLK = 26
 };
 
 /* Zero'th entry is dummy */
-static uint8_t sdc_clk[]  = {0, SDC1_CLK,  SDC2_CLK,  SDC3_CLK,  SDC4_CLK};
-static uint8_t sdc_pclk[] = {0, SDC1_PCLK, SDC2_PCLK, SDC3_PCLK, SDC4_PCLK};
+static uint8_t sdc_clk[] = { 0, SDC1_CLK, SDC2_CLK, SDC3_CLK, SDC4_CLK };
+static uint8_t sdc_pclk[] = { 0, SDC1_PCLK, SDC2_PCLK, SDC3_PCLK, SDC4_PCLK };
 
 void mdelay(unsigned msecs);
 unsigned board_msm_id(void);
@@ -151,8 +150,8 @@ void pll_enable(void *pll_mode_addr)
 
 	uint32_t nVal;
 	/* Check status */
-	nVal =  readl(pll_mode_addr);
-	if(nVal & PLL_OUTCTRL)
+	nVal = readl(pll_mode_addr);
+	if (nVal & PLL_OUTCTRL)
 		return;
 
 	/* Put the PLL in reset mode */
@@ -180,25 +179,25 @@ void pll_enable(void *pll_mode_addr)
 void pll_request(unsigned pll, unsigned enable)
 {
 	int val = 0;
-	if(!enable) {
+	if (!enable) {
 		/* Disable not supported */
 		return;
 	}
-	switch(pll) {
-		case 2:
-			pll_enable(PLL2_MODE_ADDR);
-			return;
-		case 4:
-			pll_enable(PLL4_MODE_ADDR);
-			return;
-		default:
-			return;
+	switch (pll) {
+	case 2:
+		pll_enable(PLL2_MODE_ADDR);
+		return;
+	case 4:
+		pll_enable(PLL4_MODE_ADDR);
+		return;
+	default:
+		return;
 	};
 }
 
 void acpu_clock_init(void)
 {
-	uint32_t i,clk;
+	uint32_t i, clk;
 	uint32_t val;
 	uint32_t *clk_cntl_reg_val, size;
 	unsigned msm_id;
@@ -213,27 +212,27 @@ void acpu_clock_init(void)
 #endif
 
 	msm_id = board_msm_id();
-	switch(msm_id) {
-		case MSM7227A:
-		case MSM7627A:
-		case ESM7227A:
-			clk_cntl_reg_val = clk_cntl_reg_val_7627A;
-			size = ARRAY_SIZE(clk_cntl_reg_val_7627A);
-			pll_request(2, 1);
+	switch (msm_id) {
+	case MSM7227A:
+	case MSM7627A:
+	case ESM7227A:
+		clk_cntl_reg_val = clk_cntl_reg_val_7627A;
+		size = ARRAY_SIZE(clk_cntl_reg_val_7627A);
+		pll_request(2, 1);
 
 		/* TODO: Enable this PLL while switching to 800MHz */
-		#if 0
-			pll_request(4, 1);
-		#endif
-			break;
+#if 0
+		pll_request(4, 1);
+#endif
+		break;
 
-		case MSM7225A:
-		case MSM7625A:
-		default:
-			clk_cntl_reg_val = clk_cntl_reg_val_7625A;
-			size = ARRAY_SIZE(clk_cntl_reg_val_7625A);
-			pll_request(2, 1);
-			break;
+	case MSM7225A:
+	case MSM7625A:
+	default:
+		clk_cntl_reg_val = clk_cntl_reg_val_7625A;
+		size = ARRAY_SIZE(clk_cntl_reg_val_7625A);
+		pll_request(2, 1);
+		break;
 	};
 
 	/* Read clock source select bit. */
@@ -241,12 +240,12 @@ void acpu_clock_init(void)
 	i = val & 1;
 
 	/* Jump into table and set every entry. */
-	for(; i < size; i++) {
+	for (; i < size; i++) {
 
 		val = readl(A11S_CLK_CNTL_ADDR);
 
 		/* Make sure not to disturb already used src */
-		val &= clk_cntl_mask[i%2];
+		val &= clk_cntl_mask[i % 2];
 		val += clk_cntl_reg_val[i];
 		writel(val, A11S_CLK_CNTL_ADDR);
 
@@ -255,7 +254,7 @@ void acpu_clock_init(void)
 		 */
 		val = readl(A11S_CLK_SEL_ADDR);
 		val &= ~(A11S_CLK_SEL_MASK);
-		val |= (A11S_CLK_SEL_MASK & clk_sel_reg_val[i%2]);
+		val |= (A11S_CLK_SEL_MASK & clk_sel_reg_val[i % 2]);
 		writel(val, A11S_CLK_SEL_ADDR);
 
 #if (!ENABLE_NANDWRITE)
@@ -277,16 +276,14 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 {
 	uint32_t reg = 0;
 
-	if( mmc_clock_set_rate(sdc_clk[interface], freq) < 0 )
-	{
+	if (mmc_clock_set_rate(sdc_clk[interface], freq) < 0) {
 		dprintf(CRITICAL, "Failure setting clock rate for MCLK - "
-						  "clk_rate: %d\n!", freq);
+			"clk_rate: %d\n!", freq);
 		ASSERT(0);
 	}
 
 	/* enable clock */
-	if( mmc_clock_enable_disable(sdc_clk[interface], MMC_CLK_ENABLE) < 0 )
-	{
+	if (mmc_clock_enable_disable(sdc_clk[interface], MMC_CLK_ENABLE) < 0) {
 		dprintf(CRITICAL, "Failure enabling MMC Clock!\n");
 		ASSERT(0);
 	}
@@ -294,16 +291,14 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 	reg |= MMC_BOOT_MCI_CLK_ENABLE;
 	reg |= MMC_BOOT_MCI_CLK_ENA_FLOW;
 	reg |= MMC_BOOT_MCI_CLK_IN_FEEDBACK;
-	writel( reg, MMC_BOOT_MCI_CLK );
+	writel(reg, MMC_BOOT_MCI_CLK);
 }
 
 /* Intialize MMC clock */
 void clock_init_mmc(uint32_t interface)
 {
-	if( mmc_clock_enable_disable(sdc_pclk[interface], MMC_CLK_ENABLE) < 0 )
-	{
+	if (mmc_clock_enable_disable(sdc_pclk[interface], MMC_CLK_ENABLE) < 0) {
 		dprintf(CRITICAL, "Failure enabling PCLK!\n");
 		ASSERT(0);
 	}
 }
-

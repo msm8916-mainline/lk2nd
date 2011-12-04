@@ -34,13 +34,12 @@
 #define LDO12_CNTRL            0x015
 #define LDO15_CNTRL            0x089
 #define LDO16_CNTRL            0x08A
-#define LDO20_CNTRL            0x11F  /* PM8058 only */
+#define LDO20_CNTRL            0x11F	/* PM8058 only */
 #define LDO_LOCAL_EN_BMSK      0x80
 
 #define SPI_SCLK    45
 #define SPI_CS      46
 #define SPI_MOSI    47
 #define SPI_MISO    48
-
 
 #endif

@@ -32,8 +32,9 @@
 /*
  * Returns -1 if decryption failed otherwise size of plain_text in bytes
  */
-static int image_decrypt_signature(unsigned char * signature_ptr,
-					unsigned char * plain_text){
+static int
+image_decrypt_signature(unsigned char *signature_ptr, unsigned char *plain_text)
+{
 	/*
 	 * Extract Public Key and Decrypt Signature
 	 */
@@ -42,30 +43,29 @@ static int image_decrypt_signature(unsigned char * signature_ptr,
 	unsigned char *cert_ptr = certBuffer;
 	unsigned int cert_size = sizeof(certBuffer);
 	EVP_PKEY *pub_key = NULL;
-	RSA* rsa_key = NULL;
+	RSA *rsa_key = NULL;
 
 	/*
 	 * Get Pubkey and Convert the internal EVP_PKEY to RSA internal struct
 	 */
-	if ((x509_certificate = d2i_X509(NULL, &cert_ptr, cert_size)) == NULL){
+	if ((x509_certificate = d2i_X509(NULL, &cert_ptr, cert_size)) == NULL) {
 		dprintf(CRITICAL,
 			"ERROR: Image Invalid, X509_Certificate is NULL!\n");
 		goto cleanup;
 	}
 	pub_key = X509_get_pubkey(x509_certificate);
 	rsa_key = EVP_PKEY_get1_RSA(pub_key);
-	if (rsa_key == NULL){
-		dprintf(CRITICAL,
-			"ERROR: Boot Invalid, RSA_KEY is NULL!\n");
+	if (rsa_key == NULL) {
+		dprintf(CRITICAL, "ERROR: Boot Invalid, RSA_KEY is NULL!\n");
 		goto cleanup;
 	}
 
 	ret = RSA_public_decrypt(SIGNATURE_SIZE, signature_ptr, plain_text,
-				rsa_key, RSA_PKCS1_PADDING);
-	dprintf(SPEW,
-		"DEBUG openssl: Return of RSA_public_decrypt = %d\n", ret);
+				 rsa_key, RSA_PKCS1_PADDING);
+	dprintf(SPEW, "DEBUG openssl: Return of RSA_public_decrypt = %d\n",
+		ret);
 
-cleanup:
+ cleanup:
 	if (rsa_key != NULL)
 		RSA_free(rsa_key);
 	if (x509_certificate != NULL)
@@ -80,25 +80,26 @@ cleanup:
  * Returns 0 when image is unauthorized.
  * Expects a pointer to the start of image and pointer to start of sig
  */
-int image_verify(unsigned char * image_ptr,
-			unsigned char * signature_ptr,
-			unsigned int image_size,
-			unsigned hash_type){
+int
+image_verify(unsigned char *image_ptr,
+	     unsigned char *signature_ptr,
+	     unsigned int image_size, unsigned hash_type)
+{
 
 	int ret = -1;
 	int auth = 0;
-	unsigned char * plain_text = NULL;
+	unsigned char *plain_text = NULL;
 	unsigned int digest[8];
 	unsigned int hash_size;
 
-	plain_text = (unsigned char*) calloc(sizeof(char), SIGNATURE_SIZE);
-	if (plain_text == NULL){
+	plain_text = (unsigned char *)calloc(sizeof(char), SIGNATURE_SIZE);
+	if (plain_text == NULL) {
 		dprintf(CRITICAL, "ERROR: Calloc failed during verification\n");
 		goto cleanup;
 	}
 
 	ret = image_decrypt_signature(signature_ptr, plain_text);
-	if (ret == -1){
+	if (ret == -1) {
 		dprintf(CRITICAL, "ERROR: Image Invalid! Decryption failed!\n");
 		goto cleanup;
 	}
@@ -106,25 +107,21 @@ int image_verify(unsigned char * image_ptr,
 	/*
 	 * Calculate hash of image for comparison
 	 */
-	hash_size = (hash_type == CRYPTO_AUTH_ALG_SHA256) ?
-						SHA256_SIZE : SHA1_SIZE;
-	hash_find(image_ptr, image_size,
-		(unsigned char*)&digest, hash_type);
-	if(memcmp(plain_text, digest, hash_size) != 0)
-	{
+	hash_size =
+	    (hash_type == CRYPTO_AUTH_ALG_SHA256) ? SHA256_SIZE : SHA1_SIZE;
+	hash_find(image_ptr, image_size, (unsigned char *)&digest, hash_type);
+	if (memcmp(plain_text, digest, hash_size) != 0) {
 		dprintf(CRITICAL,
 			"ERROR: Image Invalid! Please use another image!\n");
 		ret = -1;
 		goto cleanup;
-	}
-	else
-	{
+	} else {
 		/* Authorized image */
 		auth = 1;
 	}
 
 	/* Cleanup after complete usage of openssl - cached data and objects */
-cleanup:
+ cleanup:
 	if (plain_text != NULL)
 		free(plain_text);
 	EVP_cleanup();

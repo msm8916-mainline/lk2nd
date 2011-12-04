@@ -52,22 +52,23 @@
 
 /* timing info */
 static struct lcdc_timing_parameters param = {
-	.lcdc_fb_width                     = 480,
-	.lcdc_fb_height                    = 800,
-	.lcdc_hsync_pulse_width_dclk       = 2,
-	.lcdc_hsync_back_porch_dclk        = 14,
-	.lcdc_hsync_front_porch_dclk       = 16,
-	.lcdc_hsync_skew_dclk              = 0,
+	.lcdc_fb_width = 480,
+	.lcdc_fb_height = 800,
+	.lcdc_hsync_pulse_width_dclk = 2,
+	.lcdc_hsync_back_porch_dclk = 14,
+	.lcdc_hsync_front_porch_dclk = 16,
+	.lcdc_hsync_skew_dclk = 0,
 
-	.lcdc_vsync_pulse_width_lines      = 2,
-	.lcdc_vsync_back_porch_lines       = 1,
-	.lcdc_vsync_front_porch_lines      = 28,
+	.lcdc_vsync_pulse_width_lines = 2,
+	.lcdc_vsync_back_porch_lines = 1,
+	.lcdc_vsync_front_porch_lines = 28,
 };
 
 struct lcdc_timing_parameters *auo_timing_param()
 {
 	return &param;
 }
+
 /* spi commands */
 static void auo_spi_write_byte(uint32_t data)
 {
@@ -87,7 +88,7 @@ static void auo_spi_write_byte(uint32_t data)
 	GPIO_SET_OUT_VAL(LCDC_SPI_GPIO_MOSI, 0);
 }
 
-static uint32_t auo_serigo(uint32_t *input_data, uint32_t input_len)
+static uint32_t auo_serigo(uint32_t * input_data, uint32_t input_len)
 {
 	uint32_t i;
 
@@ -104,25 +105,25 @@ static uint32_t auo_serigo(uint32_t *input_data, uint32_t input_len)
 	return 0;
 }
 
-static void auo_write_cmd(uint32_t  cmd)
+static void auo_write_cmd(uint32_t cmd)
 {
-	uint32_t  local_data[4];
+	uint32_t local_data[4];
 
 	local_data[0] = 0x20;
-	local_data[1] = (uint32_t)(cmd >> 8);
+	local_data[1] = (uint32_t) (cmd >> 8);
 	local_data[2] = 0;
-	local_data[3] = (uint32_t)cmd;
+	local_data[3] = (uint32_t) cmd;
 	auo_serigo(local_data, 4);
 }
 
-static void auo_write_cmd_param(uint32_t  cmd, uint32_t param)
+static void auo_write_cmd_param(uint32_t cmd, uint32_t param)
 {
 	uint32_t local_data[6];
 
 	local_data[0] = 0x20;
-	local_data[1] = (uint32_t)(cmd >> 8);
+	local_data[1] = (uint32_t) (cmd >> 8);
 	local_data[2] = 0;
-	local_data[3] = (uint32_t)cmd;
+	local_data[3] = (uint32_t) cmd;
 	local_data[4] = 0x40;
 	local_data[5] = param;
 	auo_serigo(local_data, 6);
@@ -130,9 +131,12 @@ static void auo_write_cmd_param(uint32_t  cmd, uint32_t param)
 
 static void auo_spi_init(void)
 {
-	gpio_tlmm_config(LCDC_SPI_GPIO_CLK,  0, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_2MA, 1);
-	gpio_tlmm_config(LCDC_SPI_GPIO_CS, 0, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_2MA, 1);
-	gpio_tlmm_config(LCDC_SPI_GPIO_MOSI, 0, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_2MA, 1);
+	gpio_tlmm_config(LCDC_SPI_GPIO_CLK, 0, GPIO_OUTPUT, GPIO_NO_PULL,
+			 GPIO_2MA, 1);
+	gpio_tlmm_config(LCDC_SPI_GPIO_CS, 0, GPIO_OUTPUT, GPIO_NO_PULL,
+			 GPIO_2MA, 1);
+	gpio_tlmm_config(LCDC_SPI_GPIO_MOSI, 0, GPIO_OUTPUT, GPIO_NO_PULL,
+			 GPIO_2MA, 1);
 
 	/* Set the output so that we don't disturb the slave device */
 	GPIO_SET_OUT_VAL(LCDC_SPI_GPIO_CLK, 1);
@@ -178,4 +182,3 @@ void auo_lcdc_init(void)
 	auo_spi_init();
 	auo_panel_init();
 }
-

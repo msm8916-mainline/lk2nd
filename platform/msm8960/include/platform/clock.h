@@ -41,9 +41,7 @@
 #define UART_DM_CLK_NS_115200  0xFFE40040
 #define UART_DM_CLK_MD_115200  0x0002FFE2
 
-
 #define UART_DM_CLK_RX_TX_BIT_RATE 0xFF
-
 
 /* NS/MD value for MMC */
 #define SDC_CLK_NS_400KHZ    0x00440040
@@ -100,12 +98,10 @@ void clock_config_i2c(uint8_t id, uint32_t freq);
 
 #define MDP_LUT_VAL           0x00000001
 
-void config_mmss_clk(  uint32_t ns,
-        uint32_t md,
-        uint32_t cc,
-        uint32_t ns_addr,
-        uint32_t md_addr,
-        uint32_t cc_addr);
+void config_mmss_clk(uint32_t ns,
+		     uint32_t md,
+		     uint32_t cc,
+		     uint32_t ns_addr, uint32_t md_addr, uint32_t cc_addr);
 void pll1_enable(void);
 void config_mdp_lut_clk(void);
 void mdp_clock_init(void);

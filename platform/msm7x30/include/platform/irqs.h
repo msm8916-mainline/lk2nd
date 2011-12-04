@@ -167,4 +167,4 @@
 
 #define NR_IRQS (NR_MSM_IRQS + NR_GPIO_IRQS + NR_BOARD_IRQS)
 
-#endif /* __ASM_ARCH_MSM_IRQS_7X30_H */
+#endif				/* __ASM_ARCH_MSM_IRQS_7X30_H */

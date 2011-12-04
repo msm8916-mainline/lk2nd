@@ -119,13 +119,13 @@ typedef enum {
 	HOLD_TIME_4_MS,
 	HOLD_TIME_8_MS,
 	HOLD_TIME_16_MS,
-}pm_batt_alarm_hold_time;
+} pm_batt_alarm_hold_time;
 
 typedef enum {
 	ALARM_EN_NEVER = 0,
 	ALARM_EN_PWM,
 	ALARM_EN_ALWAYS,
-}pm_batt_alarm_pwm_ctrl;
+} pm_batt_alarm_pwm_ctrl;
 
 struct pm_batt_alarm_device {
 	uint8_t reg_threshold;
@@ -135,8 +135,8 @@ struct pm_batt_alarm_device {
 };
 
 extern int pm8058_mwrite(uint16_t addr, uint8_t val, uint8_t mask,
-					uint8_t *reg_save);
-extern int pm8058_read(uint16_t addr, uint8_t *data, uint16_t length);
+			 uint8_t * reg_save);
+extern int pm8058_read(uint16_t addr, uint8_t * data, uint16_t length);
 extern void mdelay(uint32_t ms);
 
 #endif

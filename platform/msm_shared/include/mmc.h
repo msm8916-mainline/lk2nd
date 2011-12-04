@@ -40,7 +40,7 @@ extern unsigned int mmc_boot_mci_base;
 /*
  * Define Macros for SDCC Registers
  */
-#define MMC_BOOT_MCI_POWER                MMC_BOOT_MCI_REG(0x000)  /* 8 bit */
+#define MMC_BOOT_MCI_POWER                MMC_BOOT_MCI_REG(0x000)	/* 8 bit */
 
 /* MCICMD output control - 6th bit */
 #ifdef PLATFORM_MSM7X30
@@ -55,7 +55,7 @@ extern unsigned int mmc_boot_mci_base;
 #define MMC_BOOT_MCI_PWR_ON               0x03
 #endif
 
-#define MMC_BOOT_MCI_CLK                  MMC_BOOT_MCI_REG(0x004)  /* 16 bits */
+#define MMC_BOOT_MCI_CLK                  MMC_BOOT_MCI_REG(0x004)	/* 16 bits */
 /* Enable MCI bus clock - 0: clock disabled 1: enabled */
 #define MMC_BOOT_MCI_CLK_ENABLE           (1 << 8)
 /* Disable clk o/p when bus idle- 0:always enabled 1:enabled when bus active */
@@ -80,9 +80,9 @@ extern unsigned int mmc_boot_mci_base;
 #define MMC_BOOT_BUS_WIDTH_4_BIT          2
 #define MMC_BOOT_BUS_WIDTH_8_BIT          3
 
-#define MMC_BOOT_MCI_ARGUMENT             MMC_BOOT_MCI_REG(0x008)  /* 32 bits */
+#define MMC_BOOT_MCI_ARGUMENT             MMC_BOOT_MCI_REG(0x008)	/* 32 bits */
 
-#define MMC_BOOT_MCI_CMD                  MMC_BOOT_MCI_REG(0x00C)  /* 16 bits */
+#define MMC_BOOT_MCI_CMD                  MMC_BOOT_MCI_REG(0x00C)	/* 16 bits */
 /* Command Index: 0 -5 */
 /* Waits for response if set */
 #define MMC_BOOT_MCI_CMD_RESPONSE         (1 << 6)
@@ -114,7 +114,7 @@ extern unsigned int mmc_boot_mci_base;
 
 #define MMC_BOOT_MCI_DATA_TIMER           MMC_BOOT_MCI_REG(0x024)
 #define MMC_BOOT_MCI_DATA_LENGTH          MMC_BOOT_MCI_REG(0x028)
-#define MMC_BOOT_MCI_DATA_CTL             MMC_BOOT_MCI_REG(0x02C)  /* 16 bits */
+#define MMC_BOOT_MCI_DATA_CTL             MMC_BOOT_MCI_REG(0x02C)	/* 16 bits */
 /* Data transfer enabled */
 #define MMC_BOOT_MCI_DATA_ENABLE          (1 << 0)
 /* Data transfer direction - 0: controller to card 1:card to controller */
@@ -264,10 +264,10 @@ extern unsigned int mmc_boot_mci_base;
 #define CMD3_SEND_RELATIVE_ADDR          3
 #define CMD4_SET_DSR                     4
 #define CMD6_SWITCH_FUNC                 6
-#define ACMD6_SET_BUS_WIDTH              6    /* SD card */
+#define ACMD6_SET_BUS_WIDTH              6	/* SD card */
 #define CMD7_SELECT_DESELECT_CARD        7
 #define CMD8_SEND_EXT_CSD                8
-#define CMD8_SEND_IF_COND                8    /* SD card */
+#define CMD8_SEND_IF_COND                8	/* SD card */
 #define CMD9_SEND_CSD                    9
 #define CMD10_SEND_CID                   10
 #define CMD12_STOP_TRANSMISSION          12
@@ -287,9 +287,9 @@ extern unsigned int mmc_boot_mci_base;
 #define CMD35_ERASE_GROUP_START          35
 #define CMD36_ERASE_GROUP_END            36
 #define CMD38_ERASE                      38
-#define ACMD41_SEND_OP_COND              41    /* SD card */
-#define ACMD51_SEND_SCR                  51    /* SD card */
-#define CMD55_APP_CMD                    55    /* SD card */
+#define ACMD41_SEND_OP_COND              41	/* SD card */
+#define ACMD51_SEND_SCR                  51	/* SD card */
+#define CMD55_APP_CMD                    55	/* SD card */
 
 /* Switch Function Modes */
 #define MMC_BOOT_SWITCH_FUNC_CHECK        0
@@ -402,16 +402,15 @@ extern unsigned int mmc_boot_mci_base;
 #define MMC_BOOT_SD_SWITCH_HS             0x80FFFFF1
 
 /* Data structure definitions */
-struct mmc_boot_command
-{
-    unsigned int cmd_index;
-    unsigned int argument;
-    unsigned int cmd_type;
+struct mmc_boot_command {
+	unsigned int cmd_index;
+	unsigned int argument;
+	unsigned int cmd_type;
 
-    unsigned int resp[4];
-    unsigned int resp_type;
-    unsigned int prg_enabled;
-    unsigned int xfer_mode;
+	unsigned int resp[4];
+	unsigned int resp_type;
+	unsigned int prg_enabled;
+	unsigned int xfer_mode;
 };
 
 #define MMC_BOOT_XFER_MODE_BLOCK          0
@@ -420,98 +419,92 @@ struct mmc_boot_command
 /* CSD Register.
  * Note: not all the fields have been defined here
  */
-struct mmc_boot_csd
-{
-    unsigned int cmmc_structure;
-    unsigned int spec_vers;
-    unsigned int card_cmd_class;
-    unsigned int write_blk_len;
-    unsigned int read_blk_len;
-    unsigned int r2w_factor;
-    unsigned int sector_size;
-    unsigned int c_size_mult;
-    unsigned int c_size;
-    unsigned int nsac_clk_cycle;
-    unsigned int taac_ns;
-    unsigned int tran_speed;
-    unsigned int erase_grp_size;
-    unsigned int erase_grp_mult;
-    unsigned int wp_grp_size;
-    unsigned int wp_grp_enable:1;
-    unsigned int perm_wp:1;
-    unsigned int temp_wp:1;
-    unsigned int erase_blk_len:1;
-    unsigned int read_blk_misalign:1;
-    unsigned int write_blk_misalign:1;
-    unsigned int read_blk_partial:1;
-    unsigned int write_blk_partial:1;
+struct mmc_boot_csd {
+	unsigned int cmmc_structure;
+	unsigned int spec_vers;
+	unsigned int card_cmd_class;
+	unsigned int write_blk_len;
+	unsigned int read_blk_len;
+	unsigned int r2w_factor;
+	unsigned int sector_size;
+	unsigned int c_size_mult;
+	unsigned int c_size;
+	unsigned int nsac_clk_cycle;
+	unsigned int taac_ns;
+	unsigned int tran_speed;
+	unsigned int erase_grp_size;
+	unsigned int erase_grp_mult;
+	unsigned int wp_grp_size;
+	unsigned int wp_grp_enable:1;
+	unsigned int perm_wp:1;
+	unsigned int temp_wp:1;
+	unsigned int erase_blk_len:1;
+	unsigned int read_blk_misalign:1;
+	unsigned int write_blk_misalign:1;
+	unsigned int read_blk_partial:1;
+	unsigned int write_blk_partial:1;
 };
 
 /* CID Register */
-struct mmc_boot_cid
-{
-    unsigned int mid;    /* 8 bit manufacturer id*/
-    unsigned int oid;    /* 16 bits 2 character ASCII - OEM ID*/
-    unsigned char pnm[7];/* 6 character ASCII -  product name*/
-    unsigned int prv;    /* 8 bits - product revision */
-    unsigned int psn;    /* 32 bits - product serial number */
-    unsigned int month;  /* 4 bits manufacturing month */
-    unsigned int year;   /* 4 bits manufacturing year */
+struct mmc_boot_cid {
+	unsigned int mid;	/* 8 bit manufacturer id */
+	unsigned int oid;	/* 16 bits 2 character ASCII - OEM ID */
+	unsigned char pnm[7];	/* 6 character ASCII -  product name */
+	unsigned int prv;	/* 8 bits - product revision */
+	unsigned int psn;	/* 32 bits - product serial number */
+	unsigned int month;	/* 4 bits manufacturing month */
+	unsigned int year;	/* 4 bits manufacturing year */
 };
 
 /* SCR Register */
-struct mmc_boot_scr
-{
-    unsigned int scr_structure;
-    unsigned int mmc_spec;
+struct mmc_boot_scr {
+	unsigned int scr_structure;
+	unsigned int mmc_spec;
 #define MMC_BOOT_SCR_MMC_SPEC_V1_01       0
 #define MMC_BOOT_SCR_MMC_SPEC_V1_10       1
 #define MMC_BOOT_SCR_MMC_SPEC_V2_00       2
-    unsigned int data_stat_after_erase;
-    unsigned int mmc_security;
+	unsigned int data_stat_after_erase;
+	unsigned int mmc_security;
 #define MMC_BOOT_SCR_NO_SECURITY         0
 #define MMC_BOOT_SCR_SECURITY_UNUSED     1
 #define MMC_BOOT_SCR_SECURITY_V1_01      2
 #define MMC_BOOT_SCR_SECURITY_V2_00      3
-    unsigned int mmc_bus_width;
+	unsigned int mmc_bus_width;
 #define MMC_BOOT_SCR_BUS_WIDTH_1_BIT     (1<<0)
 #define MMC_BOOT_SCR_BUS_WIDTH_4_BIT     (1<<2)
 };
 
-struct mmc_boot_card
-{
-    unsigned int rca;
-    unsigned int ocr;
-    unsigned long long capacity;
-    unsigned int type;
+struct mmc_boot_card {
+	unsigned int rca;
+	unsigned int ocr;
+	unsigned long long capacity;
+	unsigned int type;
 #define MMC_BOOT_TYPE_STD_SD             0
 #define MMC_BOOT_TYPE_SDHC               1
 #define MMC_BOOT_TYPE_SDIO               2
 #define MMC_BOOT_TYPE_MMCHC              3
 #define MMC_BOOT_TYPE_STD_MMC            4
-    unsigned int status;
+	unsigned int status;
 #define MMC_BOOT_STATUS_INACTIVE         0
 #define MMC_BOOT_STATUS_ACTIVE           1
-    unsigned int rd_timeout_ns;
-    unsigned int wr_timeout_ns;
-    unsigned int rd_block_len;
-    unsigned int wr_block_len;
-    //unsigned int data_xfer_len;
-    struct mmc_boot_cid cid;
-    struct mmc_boot_csd csd;
-    struct mmc_boot_scr scr;
+	unsigned int rd_timeout_ns;
+	unsigned int wr_timeout_ns;
+	unsigned int rd_block_len;
+	unsigned int wr_block_len;
+	//unsigned int data_xfer_len;
+	struct mmc_boot_cid cid;
+	struct mmc_boot_csd csd;
+	struct mmc_boot_scr scr;
 };
 
 #define MMC_BOOT_XFER_MULTI_BLOCK        0
 #define MMC_BOOT_XFER_SINGLE_BLOCK       1
 
-struct mmc_boot_host
-{
-    unsigned int mclk_rate;
-    unsigned int ocr;
-    unsigned int cmd_retry;
+struct mmc_boot_host {
+	unsigned int mclk_rate;
+	unsigned int ocr;
+	unsigned int cmd_retry;
 };
-
 
 /* MACRO used to evoke regcomp */
 #define REGCOMP_CKRTN(regx, str, errhandle)   \
@@ -521,7 +514,6 @@ struct mmc_boot_host
             goto errhandle;  \
         } \
     } while(0);
-
 
 #define GET_LWORD_FROM_BYTE(x)    ((unsigned)*(x) | \
         ((unsigned)*(x+1) << 8) | \
@@ -569,7 +561,7 @@ struct mmc_boot_host
 
 #define MAX_PARTITIONS 64
 
-#define MMC_BOOT_CHECK_PATTERN        0xAA /* 10101010b */
+#define MMC_BOOT_CHECK_PATTERN        0xAA	/* 10101010b */
 
 #define MMC_CLK_400KHZ                400000
 #define MMC_CLK_144KHZ                144000
@@ -581,31 +573,26 @@ struct mmc_boot_host
 #define MMC_CLK_ENABLE      1
 #define MMC_CLK_DISABLE     0
 
+unsigned int mmc_boot_main(unsigned char slot, unsigned int base);
+unsigned int mmc_boot_read_from_card(struct mmc_boot_host *host,
+				     struct mmc_boot_card *card,
+				     unsigned long long data_addr,
+				     unsigned int data_len, unsigned int *out);
+unsigned int mmc_write(unsigned long long data_addr,
+		       unsigned int data_len, unsigned int *in);
 
-unsigned int mmc_boot_main (unsigned char slot, unsigned int base);
-unsigned int mmc_boot_read_from_card (struct mmc_boot_host* host,
-                                      struct mmc_boot_card* card,
-                                      unsigned long long data_addr,
-                                      unsigned int data_len,
-                                      unsigned int* out );
-unsigned int mmc_write (unsigned long long data_addr,
-			unsigned int data_len, unsigned int* in);
-
-unsigned int mmc_read (unsigned long long data_addr, unsigned int* out,
-                       unsigned int data_len);
+unsigned int mmc_read(unsigned long long data_addr, unsigned int *out,
+		      unsigned int data_len);
 unsigned mmc_get_psn(void);
 
-unsigned int mmc_boot_write_to_card (struct mmc_boot_host* host,
-                                     struct mmc_boot_card* card,
-                                     unsigned long long data_addr,
-                                     unsigned int data_len,
-                                     unsigned int *in );
-
+unsigned int mmc_boot_write_to_card(struct mmc_boot_host *host,
+				    struct mmc_boot_card *card,
+				    unsigned long long data_addr,
+				    unsigned int data_len, unsigned int *in);
 
 unsigned int mmc_erase_card(unsigned long long data_addr,
-                            unsigned long long data_len);
+			    unsigned long long data_len);
 
-struct mmc_boot_host* get_mmc_host( void );
-struct mmc_boot_card* get_mmc_card( void );
+struct mmc_boot_host *get_mmc_host(void);
+struct mmc_boot_card *get_mmc_card(void);
 #endif
-

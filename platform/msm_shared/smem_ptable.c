@@ -77,7 +77,7 @@ void smem_ptable_init(void)
 	smem_apps_flash_start = 0xffffffff;
 
 	i = smem_read_alloc_entry(SMEM_AARM_PARTITION_TABLE,
-				    &smem_ptable, sizeof(smem_ptable));
+				  &smem_ptable, sizeof(smem_ptable));
 	if (i != 0)
 		return;
 
@@ -91,7 +91,7 @@ void smem_ptable_init(void)
 
 	for (i = 0; i < smem_ptable.len; i++) {
 		if (!strcmp(smem_ptable.parts[i].name, "0:APPS"))
-		    break;
+			break;
 	}
 	if (i == smem_ptable.len)
 		return;
@@ -112,23 +112,21 @@ void smem_add_modem_partitions(struct ptable *flash_ptable)
 	    smem_ptable.magic[1] != _SMEM_PTABLE_MAGIC_2)
 		return;
 
-	for (i = 0; i < 16; i++)
-	{
-		char * token;
-		char * pname = NULL;
+	for (i = 0; i < 16; i++) {
+		char *token;
+		char *pname = NULL;
 		struct smem_ptn *p = &smem_ptable.parts[i];
-			if (p->name[0] == '\0')
-				continue;
+		if (p->name[0] == '\0')
+			continue;
 		token = strtok(p->name, ":");
-		while (token)
-		{
+		while (token) {
 			pname = token;
-			token = strtok (NULL, ":");
+			token = strtok(NULL, ":");
 		}
-		if(pname)
-		{
+		if (pname) {
 			ptable_add(flash_ptable, pname, p->start,
-				   p->size, 0, TYPE_MODEM_PARTITION, PERM_WRITEABLE);
+				   p->size, 0, TYPE_MODEM_PARTITION,
+				   PERM_WRITEABLE);
 		}
 	}
 }
@@ -139,7 +137,8 @@ int smem_ram_ptable_init(struct smem_ram_ptable *smem_ram_ptable)
 	unsigned i;
 
 	i = smem_read_alloc_entry(SMEM_USABLE_RAM_PARTITION_TABLE,
-				  smem_ram_ptable, sizeof(struct smem_ram_ptable));
+				  smem_ram_ptable,
+				  sizeof(struct smem_ram_ptable));
 	if (i != 0)
 		return 0;
 
@@ -152,5 +151,3 @@ int smem_ram_ptable_init(struct smem_ram_ptable *smem_ram_ptable)
 
 	return 1;
 }
-
-

@@ -51,7 +51,6 @@ static uint32_t ticks_per_sec = 0;
 
 #define MB (1024*1024)
 
-
 /* LK memory - cacheable, write through */
 #define LK_MEMORY         (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
                            MMU_MEMORY_AP_READ_WRITE)
@@ -68,15 +67,14 @@ static uint32_t ticks_per_sec = 0;
 #define IOMAP_MEMORY      (MMU_MEMORY_TYPE_DEVICE_NON_SHARED | \
                            MMU_MEMORY_AP_READ_WRITE)
 
-
 #define MSM_IOMAP_SIZE ((MSM_IOMAP_END - MSM_IOMAP_BASE)/MB)
 
 mmu_section_t mmu_section_table[] = {
 /*  Physical addr,    Virtual addr,    Size (in MB),   Flags */
-    {MEMBASE,         MEMBASE,         (MEMSIZE/MB),   LK_MEMORY},
-    {BASE_ADDR,       BASE_ADDR,         44,           KERNEL_MEMORY},
-    {SCRATCH_ADDR,    SCRATCH_ADDR,     128,           SCRATCH_MEMORY},
-    {MSM_IOMAP_BASE,  MSM_IOMAP_BASE,  MSM_IOMAP_SIZE, IOMAP_MEMORY},
+	{MEMBASE, MEMBASE, (MEMSIZE / MB), LK_MEMORY},
+	{BASE_ADDR, BASE_ADDR, 44, KERNEL_MEMORY},
+	{SCRATCH_ADDR, SCRATCH_ADDR, 128, SCRATCH_MEMORY},
+	{MSM_IOMAP_BASE, MSM_IOMAP_BASE, MSM_IOMAP_SIZE, IOMAP_MEMORY},
 };
 
 #define CONVERT_ENDIAN_U32(val)                   \
@@ -91,16 +89,14 @@ mmu_section_t mmu_section_table[] = {
 
 /* Configuration Data Table */
 #define CDT_MAGIC_NUMBER    0x43445400
-struct cdt_header
-{
-    uint32_t magic;   /* Magic number */
-    uint16_t version; /* Version number */
-    uint32_t reserved1;
-    uint32_t reserved2;
-}__attribute__((packed));
+struct cdt_header {
+	uint32_t magic;		/* Magic number */
+	uint16_t version;	/* Version number */
+	uint32_t reserved1;
+	uint32_t reserved2;
+} __attribute__ ((packed));
 
 void platform_init_timer();
-
 
 struct fbcon_config *lcdc_init(void);
 
@@ -108,130 +104,131 @@ struct fbcon_config *lcdc_init(void);
  * mmc slot numbering start from 1.
  * entry at index 0 is just dummy.
  */
-uint8_t sdc_crci_map[5] = {0, 1, 4, 2, 5};
+uint8_t sdc_crci_map[5] = { 0, 1, 4, 2, 5 };
 
 void platform_early_init(void)
 {
-    uart_init(target_uart_gsbi());
-    qgic_init();
-    platform_init_timer();
+	uart_init(target_uart_gsbi());
+	qgic_init();
+	platform_init_timer();
 }
 
 void platform_init(void)
 {
-    dprintf(INFO, "platform_init()\n");
+	dprintf(INFO, "platform_init()\n");
 }
 
 void display_init(void)
 {
-    struct fbcon_config *fb_cfg;
+	struct fbcon_config *fb_cfg;
 #if DISPLAY_TYPE_LCDC
-    struct lcdc_timing_parameters *lcd_timing;
-    mdp_clock_init();
-    if (board_machtype() == LINUX_MACHTYPE_8660_FLUID) {
-        mmss_pixel_clock_configure(PIXEL_CLK_INDEX_25M);
-    } else {
-        mmss_pixel_clock_configure(PIXEL_CLK_INDEX_54M);
-    }
-    lcd_timing = get_lcd_timing();
-    fb_cfg = lcdc_init_set( lcd_timing );
-    fbcon_setup(fb_cfg);
-    fbcon_clear();
-    panel_poweron();
+	struct lcdc_timing_parameters *lcd_timing;
+	mdp_clock_init();
+	if (board_machtype() == LINUX_MACHTYPE_8660_FLUID) {
+		mmss_pixel_clock_configure(PIXEL_CLK_INDEX_25M);
+	} else {
+		mmss_pixel_clock_configure(PIXEL_CLK_INDEX_54M);
+	}
+	lcd_timing = get_lcd_timing();
+	fb_cfg = lcdc_init_set(lcd_timing);
+	fbcon_setup(fb_cfg);
+	fbcon_clear();
+	panel_poweron();
 #endif
 #if DISPLAY_TYPE_MIPI
-    mdp_clock_init();
-    configure_dsicore_dsiclk();
-    configure_dsicore_byteclk();
-    configure_dsicore_pclk();
+	mdp_clock_init();
+	configure_dsicore_dsiclk();
+	configure_dsicore_byteclk();
+	configure_dsicore_pclk();
 
-    fb_cfg = mipi_init();
-    fbcon_setup(fb_cfg);
+	fb_cfg = mipi_init();
+	fbcon_setup(fb_cfg);
 #endif
 #if DISPLAY_TYPE_HDMI
-    struct hdmi_disp_mode_timing_type *hdmi_timing;
-    mdp_clock_init();
-    hdmi_display_init();
-    hdmi_timing = hdmi_common_init_panel_info();
-    fb_cfg = hdmi_dtv_init(hdmi_timing);
-    fbcon_setup(fb_cfg);
+	struct hdmi_disp_mode_timing_type *hdmi_timing;
+	mdp_clock_init();
+	hdmi_display_init();
+	hdmi_timing = hdmi_common_init_panel_info();
+	fb_cfg = hdmi_dtv_init(hdmi_timing);
+	fbcon_setup(fb_cfg);
 #endif
 }
 
 void display_shutdown(void)
 {
 #if DISPLAY_TYPE_LCDC
-    /* Turning off LCDC */
-    lcdc_shutdown();
+	/* Turning off LCDC */
+	lcdc_shutdown();
 #endif
 #if DISPLAY_TYPE_MIPI
-    mipi_dsi_shutdown();
+	mipi_dsi_shutdown();
 #endif
 #if DISPLAY_TYPE_HDMI
-    hdmi_display_shutdown();
+	hdmi_display_shutdown();
 #endif
 }
 
-static struct qup_i2c_dev* dev = NULL;
+static struct qup_i2c_dev *dev = NULL;
 
-uint32_t eprom_read (uint16_t addr, uint8_t count) {
-    uint32_t ret = 0;
-    if(!dev){
-        return ret;
-    }
-    /* Create a i2c_msg buffer, that is used to put the controller into
-     * read mode and then to read some data.
-     */
-    struct i2c_msg msg_buf[] = {
-        {EEPROM_I2C_ADDRESS, I2C_M_WR, 2, &addr},
-        {EEPROM_I2C_ADDRESS, I2C_M_RD, count, &ret}
-    };
+uint32_t eprom_read(uint16_t addr, uint8_t count)
+{
+	uint32_t ret = 0;
+	if (!dev) {
+		return ret;
+	}
+	/* Create a i2c_msg buffer, that is used to put the controller into
+	 * read mode and then to read some data.
+	 */
+	struct i2c_msg msg_buf[] = {
+		{EEPROM_I2C_ADDRESS, I2C_M_WR, 2, &addr},
+		{EEPROM_I2C_ADDRESS, I2C_M_RD, count, &ret}
+	};
 
-    qup_i2c_xfer(dev, msg_buf, 2);
-    return ret;
+	qup_i2c_xfer(dev, msg_buf, 2);
+	return ret;
 }
 
 /* Read EEPROM to find out product id. Return 0 in case of failure */
-uint32_t platform_id_read (void)
+uint32_t platform_id_read(void)
 {
-    uint32_t id = 0;
-    uint16_t offset = 0;
-    dev = qup_i2c_init(GSBI_ID_8, 100000, 24000000);
-    if(!dev){
-        return id;
-    }
-    /* Check if EPROM is valid */
-    if (CONVERT_ENDIAN_U32(eprom_read(0, 4)) == CDT_MAGIC_NUMBER)
-    {
-        /* Get offset for platform ID info from Meta Data block 0 */
-        offset = eprom_read(CONVERT_ENDIAN_U16(0 +
-            sizeof(struct cdt_header)), 2);
-        /* Read platform ID */
-        id = eprom_read(CONVERT_ENDIAN_U16(offset), 4);
-        id = CONVERT_ENDIAN_U32(id);
-        id = (id & 0x00FF0000) >> 16;
-    }
-    return id;
+	uint32_t id = 0;
+	uint16_t offset = 0;
+	dev = qup_i2c_init(GSBI_ID_8, 100000, 24000000);
+	if (!dev) {
+		return id;
+	}
+	/* Check if EPROM is valid */
+	if (CONVERT_ENDIAN_U32(eprom_read(0, 4)) == CDT_MAGIC_NUMBER) {
+		/* Get offset for platform ID info from Meta Data block 0 */
+		offset = eprom_read(CONVERT_ENDIAN_U16(0 +
+						       sizeof(struct
+							      cdt_header)), 2);
+		/* Read platform ID */
+		id = eprom_read(CONVERT_ENDIAN_U16(offset), 4);
+		id = CONVERT_ENDIAN_U32(id);
+		id = (id & 0x00FF0000) >> 16;
+	}
+	return id;
 }
 
 /* Setup memory for this platform */
 void platform_init_mmu_mappings(void)
 {
-    uint32_t i;
-    uint32_t sections;
-    uint32_t table_size = ARRAY_SIZE(mmu_section_table);
+	uint32_t i;
+	uint32_t sections;
+	uint32_t table_size = ARRAY_SIZE(mmu_section_table);
 
-    for (i = 0; i < table_size; i++)
-    {
-        sections = mmu_section_table[i].num_of_sections;
+	for (i = 0; i < table_size; i++) {
+		sections = mmu_section_table[i].num_of_sections;
 
-        while (sections--)
-        {
-            arm_mmu_map_section(mmu_section_table[i].paddress + sections*MB,
-                                mmu_section_table[i].vaddress + sections*MB,
-                                mmu_section_table[i].flags);
-        }
-    }
+		while (sections--) {
+			arm_mmu_map_section(mmu_section_table[i].paddress +
+					    sections * MB,
+					    mmu_section_table[i].vaddress +
+					    sections * MB,
+					    mmu_section_table[i].flags);
+		}
+	}
 }
 
 /* Do any platform specific cleanup just before kernel entry */
@@ -261,7 +258,7 @@ void platform_init_timer(void)
 	 */
 	writel(3, DGT_CLK_CTL);
 
-	ticks_per_sec = 6750000; /* (27 MHz / 4) */
+	ticks_per_sec = 6750000;	/* (27 MHz / 4) */
 }
 
 /* Returns timer ticks per sec */

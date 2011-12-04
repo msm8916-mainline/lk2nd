@@ -55,10 +55,10 @@ static void mddi_start_update(void);
 static int mddi_update_done(void);
 
 static struct fbcon_config fb_cfg = {
-	.format		= FB_FORMAT_RGB565,
-	.bpp		= 16,
-	.update_start	= mddi_start_update,
-	.update_done	= mddi_update_done,
+	.format = FB_FORMAT_RGB565,
+	.bpp = 16,
+	.update_start = mddi_start_update,
+	.update_done = mddi_update_done,
 };
 
 static void printcaps(struct mddi_client_caps *c)
@@ -71,8 +71,7 @@ static void printcaps(struct mddi_client_caps *c)
 
 	dprintf(INFO, "mddi: bm: %d,%d win %d,%d rgb %x\n",
 		c->bitmap_width, c->bitmap_height,
-		c->display_window_width, c->display_window_height,
-		c->rgb_cap);
+		c->display_window_width, c->display_window_height, c->rgb_cap);
 	dprintf(INFO, "mddi: vend %x prod %x\n",
 		c->manufacturer_name, c->product_code);
 }
@@ -80,14 +79,14 @@ static void printcaps(struct mddi_client_caps *c)
 /* TODO: add timeout */
 static int mddi_wait_status(unsigned statmask)
 {
-	while ((readl(MDDI_STAT) & statmask) == 0);
+	while ((readl(MDDI_STAT) & statmask) == 0) ;
 	return 0;
 }
 
 /* TODO: add timeout */
 static int mddi_wait_interrupt(unsigned intmask)
 {
-	while ((readl(MDDI_INT) & intmask) == 0);
+	while ((readl(MDDI_INT) & intmask) == 0) ;
 	return 0;
 }
 
@@ -97,7 +96,7 @@ void mddi_remote_write(unsigned val, unsigned reg)
 	mddi_register_access *ra;
 
 	ll = mlist_remote_write;
-	
+
 	ra = &(ll->u.r);
 	ra->length = 14 + 4;
 	ra->type = TYPE_REGISTER_ACCESS;
@@ -112,16 +111,17 @@ void mddi_remote_write(unsigned val, unsigned reg)
 	ll->header_count = 14;
 	ll->data_count = 4;
 	ll->data = &ra->reg_data[0];
-	ll->next = (void *) 0;
+	ll->next = (void *)0;
 	ll->reserved = 0;
 
-	writel((unsigned) ll, MDDI_PRI_PTR);
+	writel((unsigned)ll, MDDI_PRI_PTR);
 
 	mddi_wait_status(MDDI_STAT_PRI_LINK_LIST_DONE);
 }
 
 #ifdef MDDI_MULTI_WRITE
-void mddi_remote_multiwrite(unsigned *val_list, unsigned reg, unsigned val_count)
+void
+mddi_remote_multiwrite(unsigned *val_list, unsigned reg, unsigned val_count)
 {
 	mddi_llentry *ll;
 	mddi_register_access *ra;
@@ -136,16 +136,16 @@ void mddi_remote_multiwrite(unsigned *val_list, unsigned reg, unsigned val_count
 	ra->crc = 0;
 
 	ra->reg_addr = reg;
-	memcpy((void *)&ra->reg_data[0],val_list,val_count);
+	memcpy((void *)&ra->reg_data[0], val_list, val_count);
 
 	ll->flags = 1;
 	ll->header_count = 14;
 	ll->data_count = val_count * 4;
 	ll->data = &ra->reg_data;
-	ll->next = (void *) 0;
+	ll->next = (void *)0;
 	ll->reserved = 0;
 
-	writel((unsigned) ll, MDDI_PRI_PTR);
+	writel((unsigned)ll, MDDI_PRI_PTR);
 
 	mddi_wait_status(MDDI_STAT_PRI_LINK_LIST_DONE);
 }
@@ -153,7 +153,7 @@ void mddi_remote_multiwrite(unsigned *val_list, unsigned reg, unsigned val_count
 
 static void mddi_start_update(void)
 {
-	writel((unsigned) mlist, MDDI_PRI_PTR);
+	writel((unsigned)mlist, MDDI_PRI_PTR);
 }
 
 static int mddi_update_done(void)
@@ -170,8 +170,8 @@ static void mddi_do_cmd(unsigned cmd)
 static void mddi_init_rev_encap(void)
 {
 	memset(rev_pkt_buf, 0xee, MDDI_REV_PKT_BUF_SIZE);
-	writel((unsigned) rev_pkt_buf, MDDI_REV_PTR);
-	writel((unsigned) rev_pkt_buf, MDDI_REV_PTR);
+	writel((unsigned)rev_pkt_buf, MDDI_REV_PTR);
+	writel((unsigned)rev_pkt_buf, MDDI_REV_PTR);
 	writel(MDDI_REV_PKT_BUF_SIZE, MDDI_REV_SIZE);
 	writel(MDDI_REV_PKT_BUF_SIZE, MDDI_REV_ENCAP_SZ);
 	mddi_do_cmd(CMD_FORCE_NEW_REV_PTR);
@@ -184,50 +184,50 @@ static void mddi_set_auto_hibernate(unsigned on)
 	mddi_do_cmd(CMD_HIBERNATE | !!on);
 }
 
-void mddi_set_caps(mddi_client_caps *c)
+void mddi_set_caps(mddi_client_caps * c)
 {
-        /* Hardcoding the capability values */
-    c->length = 74;
-    c->type = 66;
-    c->client_id = 0;
-    c->protocol_ver = 1;
-    c->min_protocol_ver = 1;
-    c->data_rate_cap = 400;
-    c->interface_type_cap = 0;
-    c->num_alt_displays = 1;
-    c->postcal_data_rate = 400;
-    c->bitmap_width = TARGET_XRES;
-    c->bitmap_height = TARGET_YRES;
-    c->display_window_width = TARGET_XRES;
-    c->display_window_height = TARGET_YRES;
-    c->cmap_size = 0;
-    c->cmap_rgb_width = 0;
-    c->rgb_cap = 34592;
-    c->mono_cap = 0;
-    c->reserved1 = 0;
-    c->ycbcr_cap = 0;
-    c->bayer_cap = 0;
-    c->alpha_cursor_planes = 0;
-    c->client_feature_cap = 4489216;
-    c->max_video_frame_rate_cap = 60;
-    c->min_video_frame_rate_cap = 0;
-    c->min_sub_frame_rate = 0;
-    c->audio_buf_depth = 0;
-    c->audio_channel_cap = 0;
-    c->audio_sampe_rate_rap = 0;
-    c->audio_sample_res = 0;
-    c->mic_audio_sample_res = 0;
-    c->mic_sample_rate_cap = 0;
-    c->keyboard_data_fmt = 0;
-    c->pointing_device_data_fmt = 0;
-    c->content_protection_type = 0;
-    c->manufacturer_name = 53859;
-    c->product_code = 34594;
-    c->reserved3 = 0;
-    c->serial_no = 1;
-    c->week_of_manufacture = 0;
-    c->year_of_manufacture = 0;
-    c->crc = 53536;
+	/* Hardcoding the capability values */
+	c->length = 74;
+	c->type = 66;
+	c->client_id = 0;
+	c->protocol_ver = 1;
+	c->min_protocol_ver = 1;
+	c->data_rate_cap = 400;
+	c->interface_type_cap = 0;
+	c->num_alt_displays = 1;
+	c->postcal_data_rate = 400;
+	c->bitmap_width = TARGET_XRES;
+	c->bitmap_height = TARGET_YRES;
+	c->display_window_width = TARGET_XRES;
+	c->display_window_height = TARGET_YRES;
+	c->cmap_size = 0;
+	c->cmap_rgb_width = 0;
+	c->rgb_cap = 34592;
+	c->mono_cap = 0;
+	c->reserved1 = 0;
+	c->ycbcr_cap = 0;
+	c->bayer_cap = 0;
+	c->alpha_cursor_planes = 0;
+	c->client_feature_cap = 4489216;
+	c->max_video_frame_rate_cap = 60;
+	c->min_video_frame_rate_cap = 0;
+	c->min_sub_frame_rate = 0;
+	c->audio_buf_depth = 0;
+	c->audio_channel_cap = 0;
+	c->audio_sampe_rate_rap = 0;
+	c->audio_sample_res = 0;
+	c->mic_audio_sample_res = 0;
+	c->mic_sample_rate_cap = 0;
+	c->keyboard_data_fmt = 0;
+	c->pointing_device_data_fmt = 0;
+	c->content_protection_type = 0;
+	c->manufacturer_name = 53859;
+	c->product_code = 34594;
+	c->reserved3 = 0;
+	c->serial_no = 1;
+	c->week_of_manufacture = 0;
+	c->year_of_manufacture = 0;
+	c->crc = 53536;
 }
 
 static void mddi_get_caps(struct mddi_client_caps *caps)
@@ -240,20 +240,21 @@ static void mddi_get_caps(struct mddi_client_caps *caps)
 
 	/* sometimes this will fail -- do it three times for luck... */
 	mddi_do_cmd(CMD_RTD_MEASURE);
-	thread_sleep(1);//mdelay(1);
+	thread_sleep(1);	//mdelay(1);
 
 	mddi_do_cmd(CMD_RTD_MEASURE);
-	thread_sleep(1);//mdelay(1);
+	thread_sleep(1);	//mdelay(1);
 
 	mddi_do_cmd(CMD_RTD_MEASURE);
-	thread_sleep(1);//mdelay(1);
+	thread_sleep(1);	//mdelay(1);
 
 	mddi_do_cmd(CMD_GET_CLIENT_CAP);
 
 	do {
 		n = readl(MDDI_INT);
-	} while (!(n & MDDI_INT_REV_DATA_AVAIL) && (--timeout));
-	
+	}
+	while (!(n & MDDI_INT_REV_DATA_AVAIL) && (--timeout));
+
 	if (timeout == 0)
 		dprintf(INFO, "timeout\n");
 
@@ -310,7 +311,7 @@ struct fbcon_config *mddi_init(void)
 	//mddi_get_caps(&client_caps);
 	//if(!(client_caps.length == 0x4a && client_caps.type == 0x42))
 	{
-	    mddi_set_caps(&client_caps);
+		mddi_set_caps(&client_caps);
 	}
 
 	fb_cfg.width = client_caps.bitmap_width;
@@ -328,12 +329,12 @@ struct fbcon_config *mddi_init(void)
 	dprintf(INFO, "panel is %d x %d\n", fb_cfg.width, fb_cfg.height);
 
 	fb_cfg.base =
-		memalign(4096, fb_cfg.width * fb_cfg.height * (fb_cfg.bpp / 8));
+	    memalign(4096, fb_cfg.width * fb_cfg.height * (fb_cfg.bpp / 8));
 
 	mlist = memalign(32, sizeof(mddi_llentry) * (fb_cfg.height / 8));
-	dprintf(INFO, "FB @ %p  mlist @ %x\n", fb_cfg.base, (unsigned) mlist);
+	dprintf(INFO, "FB @ %p  mlist @ %x\n", fb_cfg.base, (unsigned)mlist);
 
-	for(n = 0; n < (fb_cfg.height / 8); n++) {
+	for (n = 0; n < (fb_cfg.height / 8); n++) {
 		unsigned y = n * 8;
 		unsigned pixels = fb_cfg.width * 8;
 		mddi_video_stream *vs = &(mlist[n].u.v);
@@ -341,7 +342,7 @@ struct fbcon_config *mddi_init(void)
 		vs->length = sizeof(mddi_video_stream) - 2 + (pixels * 2);
 		vs->type = TYPE_VIDEO_STREAM;
 		vs->client_id = 0;
-		vs->format = 0x5565; // FORMAT_16BPP;
+		vs->format = 0x5565;	// FORMAT_16BPP;
 		vs->pixattr = PIXATTR_BOTH_EYES | PIXATTR_TO_ALL;
 
 		vs->left = 0;
@@ -364,8 +365,8 @@ struct fbcon_config *mddi_init(void)
 		mlist[n].flags = 0;
 	}
 
-	mlist[n-1].flags = 1;
-	mlist[n-1].next = 0;
+	mlist[n - 1].flags = 1;
+	mlist[n - 1].next = 0;
 
 	mddi_set_auto_hibernate(1);
 	mddi_do_cmd(CMD_LINK_ACTIVE);

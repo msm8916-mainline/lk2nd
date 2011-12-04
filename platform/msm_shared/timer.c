@@ -60,11 +60,11 @@ static enum handler_return timer_irq(void *arg)
 	return timer_callback(timer_arg, ticks);
 }
 
-status_t platform_set_periodic_timer(
-	platform_timer_callback callback,
-	void *arg, time_t interval)
+status_t
+platform_set_periodic_timer(platform_timer_callback callback,
+			    void *arg, time_t interval)
 {
-	uint32_t tick_count = interval * platform_tick_rate()/1000;
+	uint32_t tick_count = interval * platform_tick_rate() / 1000;
 
 	enter_critical_section();
 
@@ -83,7 +83,6 @@ status_t platform_set_periodic_timer(
 	return 0;
 }
 
-
 time_t current_time(void)
 {
 	return ticks;
@@ -91,7 +90,7 @@ time_t current_time(void)
 
 static void wait_for_timer_op(void)
 {
-	while( readl(SPSS_TIMER_STATUS) & SPSS_TIMER_STATUS_DGT_EN );
+	while (readl(SPSS_TIMER_STATUS) & SPSS_TIMER_STATUS_DGT_EN) ;
 }
 
 void platform_uninit_timer(void)
@@ -104,32 +103,32 @@ void platform_uninit_timer(void)
 
 void mdelay(unsigned msecs)
 {
-  msecs *= 33;
+	msecs *= 33;
 
-  writel(0, GPT_CLEAR);
-  writel(0, GPT_ENABLE);
-  while(readl(GPT_COUNT_VAL) != 0) ;
+	writel(0, GPT_CLEAR);
+	writel(0, GPT_ENABLE);
+	while (readl(GPT_COUNT_VAL) != 0) ;
 
-  writel(GPT_ENABLE_EN, GPT_ENABLE);
-  while(readl(GPT_COUNT_VAL) < msecs) ;
+	writel(GPT_ENABLE_EN, GPT_ENABLE);
+	while (readl(GPT_COUNT_VAL) < msecs) ;
 
-  writel(0, GPT_ENABLE);
-  writel(0, GPT_CLEAR);
+	writel(0, GPT_ENABLE);
+	writel(0, GPT_CLEAR);
 }
 
 void udelay(unsigned usecs)
 {
-    usecs = (usecs * 33 + 1000 - 33) / 1000;
+	usecs = (usecs * 33 + 1000 - 33) / 1000;
 
-    writel(0, GPT_CLEAR);
-    writel(0, GPT_ENABLE);
-    while(readl(GPT_COUNT_VAL) != 0);
+	writel(0, GPT_CLEAR);
+	writel(0, GPT_ENABLE);
+	while (readl(GPT_COUNT_VAL) != 0) ;
 
-    writel(GPT_ENABLE_EN, GPT_ENABLE);
-    while(readl(GPT_COUNT_VAL) < usecs);
+	writel(GPT_ENABLE_EN, GPT_ENABLE);
+	while (readl(GPT_COUNT_VAL) < usecs) ;
 
-    writel(0, GPT_ENABLE);
-    writel(0, GPT_CLEAR);
+	writel(0, GPT_ENABLE);
+	writel(0, GPT_CLEAR);
 }
 
 /* Return current time in micro seconds */

@@ -37,19 +37,16 @@
 #define SIZE_23M    (23 * SIZE_1M)
 #define SIZE_88M    (11 * SIZE_8M)
 
-unsigned* target_atag_mem(unsigned* ptr)
+unsigned *target_atag_mem(unsigned *ptr)
 {
 	struct smem_ram_ptable ram_ptable;
 	uint8_t i = 0;
 
-	if (smem_ram_ptable_init(&ram_ptable))
-	{
-		for (i = 0; i < ram_ptable.len; i++)
-		{
+	if (smem_ram_ptable_init(&ram_ptable)) {
+		for (i = 0; i < ram_ptable.len; i++) {
 			if (ram_ptable.parts[i].category == SDRAM &&
-					ram_ptable.parts[i].type == SYS_MEMORY &&
-					ram_ptable.parts[i].start == 0x40000000)
-			{
+			    ram_ptable.parts[i].type == SYS_MEMORY &&
+			    ram_ptable.parts[i].start == 0x40000000) {
 				ASSERT(ram_ptable.parts[i].size >= SIZE_15M);
 
 				*ptr++ = 4;
@@ -63,9 +60,7 @@ unsigned* target_atag_mem(unsigned* ptr)
 				*ptr++ = ram_ptable.parts[i].start + SIZE_88M;
 			}
 		}
-	}
-	else
-	{
+	} else {
 		dprintf(CRITICAL, "ERROR: Unable to read RAM partition\n");
 		ASSERT(0);
 	}
@@ -75,7 +70,7 @@ unsigned* target_atag_mem(unsigned* ptr)
 
 void *target_get_scratch_address(void)
 {
-	return((void *)SCRATCH_ADDR);
+	return ((void *)SCRATCH_ADDR);
 }
 
 unsigned target_get_max_flash_size(void)

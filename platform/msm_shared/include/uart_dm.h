@@ -35,32 +35,28 @@
                                              ((value << (32 - end_pos))\
                                               >> (32 - (end_pos - start_pos)))
 
-
 /* UART Parity Mode */
-enum MSM_BOOT_UART_DM_PARITY_MODE
-{
-    MSM_BOOT_UART_DM_NO_PARITY,
-    MSM_BOOT_UART_DM_ODD_PARITY,
-    MSM_BOOT_UART_DM_EVEN_PARITY,
-    MSM_BOOT_UART_DM_SPACE_PARITY
+enum MSM_BOOT_UART_DM_PARITY_MODE {
+	MSM_BOOT_UART_DM_NO_PARITY,
+	MSM_BOOT_UART_DM_ODD_PARITY,
+	MSM_BOOT_UART_DM_EVEN_PARITY,
+	MSM_BOOT_UART_DM_SPACE_PARITY
 };
 
 /* UART Stop Bit Length */
-enum MSM_BOOT_UART_DM_STOP_BIT_LEN
-{
-    MSM_BOOT_UART_DM_SBL_9_16,
-    MSM_BOOT_UART_DM_SBL_1,
-    MSM_BOOT_UART_DM_SBL_1_9_16,
-    MSM_BOOT_UART_DM_SBL_2
+enum MSM_BOOT_UART_DM_STOP_BIT_LEN {
+	MSM_BOOT_UART_DM_SBL_9_16,
+	MSM_BOOT_UART_DM_SBL_1,
+	MSM_BOOT_UART_DM_SBL_1_9_16,
+	MSM_BOOT_UART_DM_SBL_2
 };
 
 /* UART Bits per Char */
-enum MSM_BOOT_UART_DM_BITS_PER_CHAR
-{
-    MSM_BOOT_UART_DM_5_BPS,
-    MSM_BOOT_UART_DM_6_BPS,
-    MSM_BOOT_UART_DM_7_BPS,
-    MSM_BOOT_UART_DM_8_BPS
+enum MSM_BOOT_UART_DM_BITS_PER_CHAR {
+	MSM_BOOT_UART_DM_5_BPS,
+	MSM_BOOT_UART_DM_6_BPS,
+	MSM_BOOT_UART_DM_7_BPS,
+	MSM_BOOT_UART_DM_8_BPS
 };
 
 /* 8-N-1 Configuration */
@@ -148,7 +144,7 @@ enum MSM_BOOT_UART_DM_BITS_PER_CHAR
 /* UART Interrupt Programming Register */
 #define MSM_BOOT_UART_DM_IPR(id)             (GSBI_UART_DM_BASE(id) + 0x18)
 #define MSM_BOOT_UART_DM_STALE_TIMEOUT_LSB   0x0f
-#define MSM_BOOT_UART_DM_STALE_TIMEOUT_MSB   0  /* Not used currently */
+#define MSM_BOOT_UART_DM_STALE_TIMEOUT_MSB   0	/* Not used currently */
 
 /* UART Transmit/Receive FIFO Watermark Register */
 #define MSM_BOOT_UART_DM_TFWR(id)            (GSBI_UART_DM_BASE(id) + 0x1C)
@@ -218,8 +214,6 @@ enum MSM_BOOT_UART_DM_BITS_PER_CHAR
 #define MSM_BOOT_UART_DM_RXFS_BUF_STATE(x)   MSM_BOOT_UART_DM_EXTR_BITS(x,7,9)
 #define MSM_BOOT_UART_DM_RXFS_ASYNC_STATE(x) MSM_BOOT_UART_DM_EXTR_BITS(x,10,13)
 
-
-
 /* Macros for Common Errors */
 #define MSM_BOOT_UART_DM_E_SUCCESS           0
 #define MSM_BOOT_UART_DM_E_FAILURE           1
@@ -229,4 +223,4 @@ enum MSM_BOOT_UART_DM_BITS_PER_CHAR
 #define MSM_BOOT_UART_DM_E_RX_NOT_READY      5
 
 void uart_init(uint8_t gsbi_id);
-#endif /* __UART_DM_H__*/
+#endif				/* __UART_DM_H__ */

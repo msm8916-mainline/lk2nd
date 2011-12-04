@@ -62,8 +62,8 @@ static void qgic_dist_init(void)
 	/* Set each interrupt line to use N-N software model
 	 * and edge sensitive, active high
 	 */
-	for (i=32; i < num_irq; i += 16)
-		writel(0xffffffff, GIC_DIST_CONFIG + i * 4/16 );
+	for (i = 32; i < num_irq; i += 16)
+		writel(0xffffffff, GIC_DIST_CONFIG + i * 4 / 16);
 
 	writel(0xffffffff, GIC_DIST_CONFIG + 4);
 
@@ -71,22 +71,22 @@ static void qgic_dist_init(void)
 	for (i = 32; i < num_irq; i += 4)
 		writel(cpumask, GIC_DIST_TARGET + i * 4 / 4);
 
-	/* Set priority of all interrupts*/
+	/* Set priority of all interrupts */
 
 	/*
 	 * In bootloader we dont care about priority so
 	 * setting up equal priorities for all
 	 */
-	for (i=0; i < num_irq; i += 4)
-		writel(0xa0a0a0a0, GIC_DIST_PRI + i * 4/4);
+	for (i = 0; i < num_irq; i += 4)
+		writel(0xa0a0a0a0, GIC_DIST_PRI + i * 4 / 4);
 
-	/* Disabling interrupts*/
-	for (i=0; i < num_irq; i += 32)
-		writel(0xffffffff, GIC_DIST_ENABLE_CLEAR + i * 4/32);
+	/* Disabling interrupts */
+	for (i = 0; i < num_irq; i += 32)
+		writel(0xffffffff, GIC_DIST_ENABLE_CLEAR + i * 4 / 32);
 
 	writel(0x0000ffff, GIC_DIST_ENABLE_SET);
 
-	/*Enabling GIC*/
+	/*Enabling GIC */
 	writel(1, GIC_DIST_CTRL);
 }
 
@@ -129,7 +129,7 @@ void platform_fiq(struct arm_iframe *frame)
 /* Mask interrupt */
 status_t mask_interrupt(unsigned int vector)
 {
-	uint32_t reg = GIC_DIST_ENABLE_CLEAR + (vector/32)*4;
+	uint32_t reg = GIC_DIST_ENABLE_CLEAR + (vector / 32) * 4;
 	uint32_t bit = 1 << (vector & 31);
 
 	writel(bit, reg);
@@ -140,7 +140,7 @@ status_t mask_interrupt(unsigned int vector)
 /* Un-mask interrupt */
 status_t unmask_interrupt(unsigned int vector)
 {
-	uint32_t reg = GIC_DIST_ENABLE_SET + (vector/32)*4;
+	uint32_t reg = GIC_DIST_ENABLE_SET + (vector / 32) * 4;
 	uint32_t bit = 1 << (vector & 31);
 
 	writel(bit, reg);
@@ -158,4 +158,3 @@ void register_int_handler(unsigned int vector, int_handler func, void *arg)
 	handler[vector].arg = arg;
 	exit_critical_section();
 }
-

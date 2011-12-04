@@ -87,7 +87,6 @@
 #define GSBI_UART_DM_BASE(id) (GSBI_BASE(id) + 0x40000)
 #define QUP_BASE(id)          (GSBI_BASE(id) + 0x80000)
 
-
 #define EBI2_CHIP_SELECT_CFG0   0x1A100000
 #define EBI2_XMEM_CS3_CFG1      0x1A110034
 

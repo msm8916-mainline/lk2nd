@@ -38,14 +38,14 @@
 #define GPIO2_REG(off) (MSM_GPIO2_BASE + 0x400 + (off))
 
 /* output value */
-#define GPIO_OUT_0         GPIO1_REG(0x00)  /* gpio  15-0   */
-#define GPIO_OUT_1         GPIO2_REG(0x00)  /* gpio  43-16  */
-#define GPIO_OUT_2         GPIO1_REG(0x04)  /* gpio  67-44  */
-#define GPIO_OUT_3         GPIO1_REG(0x08)  /* gpio  94-68  */
-#define GPIO_OUT_4         GPIO1_REG(0x0C)  /* gpio 106-95  */
-#define GPIO_OUT_5         GPIO1_REG(0x50)  /* gpio 133-107 */
-#define GPIO_OUT_6         GPIO1_REG(0xC4)  /* gpio 150-134 */
-#define GPIO_OUT_7         GPIO1_REG(0x214)  /* gpio 181-151 */
+#define GPIO_OUT_0         GPIO1_REG(0x00)	/* gpio  15-0   */
+#define GPIO_OUT_1         GPIO2_REG(0x00)	/* gpio  43-16  */
+#define GPIO_OUT_2         GPIO1_REG(0x04)	/* gpio  67-44  */
+#define GPIO_OUT_3         GPIO1_REG(0x08)	/* gpio  94-68  */
+#define GPIO_OUT_4         GPIO1_REG(0x0C)	/* gpio 106-95  */
+#define GPIO_OUT_5         GPIO1_REG(0x50)	/* gpio 133-107 */
+#define GPIO_OUT_6         GPIO1_REG(0xC4)	/* gpio 150-134 */
+#define GPIO_OUT_7         GPIO1_REG(0x214)	/* gpio 181-151 */
 
 /* same pin map as above, output enable */
 #define GPIO_OE_0          GPIO1_REG(0x10)
@@ -117,7 +117,6 @@
 #define GPIO_INT_STATUS_6  GPIO1_REG(0xE0)
 #define GPIO_INT_STATUS_7  GPIO1_REG(0x234)
 
-
 #define GPIO_OUT_VAL_REG_BASE     0xABC00000
 #define GPIO_ALT_FUNC_PAGE_REG    (GPIO_OUT_VAL_REG_BASE + 0x20)
 #define GPIO_ALT_FUNC_CFG_REG     (GPIO_OUT_VAL_REG_BASE + 0x24)
@@ -165,8 +164,8 @@
  * and facilitete group operations provided by msm_gpios_xxx()
  */
 struct msm_gpio {
-    unsigned gpio_cfg;
-    const char *label;
+	unsigned gpio_cfg;
+	const char *label;
 };
 
 /**

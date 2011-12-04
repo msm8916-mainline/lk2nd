@@ -40,18 +40,18 @@ static unsigned pre_div[NUM_PRE_DIVIDE] = {
 };
 
 static unsigned int pt_t[NUM_PRE_DIVIDE][NUM_CLOCKS] = {
-	{	PRE_DIVIDE_0 * NSEC_1000HZ,
-		PRE_DIVIDE_0 * NSEC_32768HZ,
-		PRE_DIVIDE_0 * NSEC_19P2MHZ,
-	},
-	{	PRE_DIVIDE_1 * NSEC_1000HZ,
-		PRE_DIVIDE_1 * NSEC_32768HZ,
-		PRE_DIVIDE_1 * NSEC_19P2MHZ,
-	},
-	{	PRE_DIVIDE_2 * NSEC_1000HZ,
-		PRE_DIVIDE_2 * NSEC_32768HZ,
-		PRE_DIVIDE_2 * NSEC_19P2MHZ,
-	},
+	{PRE_DIVIDE_0 * NSEC_1000HZ,
+	 PRE_DIVIDE_0 * NSEC_32768HZ,
+	 PRE_DIVIDE_0 * NSEC_19P2MHZ,
+	 },
+	{PRE_DIVIDE_1 * NSEC_1000HZ,
+	 PRE_DIVIDE_1 * NSEC_32768HZ,
+	 PRE_DIVIDE_1 * NSEC_19P2MHZ,
+	 },
+	{PRE_DIVIDE_2 * NSEC_1000HZ,
+	 PRE_DIVIDE_2 * NSEC_32768HZ,
+	 PRE_DIVIDE_2 * NSEC_19P2MHZ,
+	 },
 };
 
 static uint16_t duty_msec[PM_PWM_1KHZ_COUNT_MAX + 1] = {
@@ -70,7 +70,7 @@ static uint16_t pause_count[PM_PWM_PAUSE_COUNT_MAX + 1] = {
 /* Function to get the PWM size, divider, clock for the given period */
 
 static void pm_pwm_calc_period(uint32_t period_us,
-					struct pm_pwm_config *pwm_conf)
+			       struct pm_pwm_config *pwm_conf)
 {
 	int n, m, clk, div;
 	int best_m, best_div, best_clk;
@@ -100,11 +100,14 @@ static void pm_pwm_calc_period(uint32_t period_us,
 				if (tmp_p <= pt_t[div][clk]) {
 					/* Found local best */
 					if (!m) {
-						better_err = pt_t[div][clk] - tmp_p;
+						better_err =
+						    pt_t[div][clk] - tmp_p;
 						better_m = m;
 					} else {
-						last_err = last_p - pt_t[div][clk];
-						cur_err = pt_t[div][clk] - tmp_p;
+						last_err =
+						    last_p - pt_t[div][clk];
+						cur_err =
+						    pt_t[div][clk] - tmp_p;
 
 						if (cur_err < last_err) {
 							better_err = cur_err;
@@ -147,9 +150,9 @@ static int pm_pwm_configure(uint8_t pwm_id, struct pm_pwm_config *pwm_conf)
 	pwm_conf->pwm_ctl[5] = reg;
 
 	reg = ((pwm_conf->clk + 1) << PM_PWM_CLK_SEL_SHIFT)
-		& PM_PWM_CLK_SEL_MASK;
+	    & PM_PWM_CLK_SEL_MASK;
 	reg |= (pwm_conf->pre_div << PM_PWM_PREDIVIDE_SHIFT)
-		& PM_PWM_PREDIVIDE_MASK;
+	    & PM_PWM_PREDIVIDE_MASK;
 	reg |= pwm_conf->pre_div_exp & PM_PWM_M_MASK;
 	pwm_conf->pwm_ctl[4] = reg;
 
@@ -162,38 +165,38 @@ static int pm_pwm_configure(uint8_t pwm_id, struct pm_pwm_config *pwm_conf)
 
 		if (pwm_conf->pwm_size > 6) {
 			pwm_conf->pwm_ctl[3] = pwm_conf->pwm_value
-						& PM_PWM_VALUE_BIT7_0;
+			    & PM_PWM_VALUE_BIT7_0;
 			pwm_conf->pwm_ctl[4] |= (pwm_conf->pwm_value >> 1)
-						& PM_PWM_VALUE_BIT8;
+			    & PM_PWM_VALUE_BIT8;
 		} else {
 			pwm_conf->pwm_ctl[3] = pwm_conf->pwm_value
-						& PM_PWM_VALUE_BIT5_0;
+			    & PM_PWM_VALUE_BIT5_0;
 		}
 
 		len = 6;
-	}
-	else
-	{
+	} else {
 		/* Right now, we are not using LUT */
 		goto bail_out;
 	}
 
 	/* Selecting the bank */
 	rc = pm8058_write(PM8058_LPG_BANK_SEL, &pwm_id, 1);
-	if(rc)
+	if (rc)
 		goto bail_out;
 
 	for (i = 0; i < len; i++) {
-		rc = pm8058_write(PM8058_LPG_CTL(i),&pwm_conf->pwm_ctl[i], 1);
+		rc = pm8058_write(PM8058_LPG_CTL(i), &pwm_conf->pwm_ctl[i], 1);
 		if (rc) {
-			dprintf(CRITICAL,"pm8058_write() failed in pwm_configure %d\n", rc);
+			dprintf(CRITICAL,
+				"pm8058_write() failed in pwm_configure %d\n",
+				rc);
 			break;
 		}
 	}
 
-bail_out:
-	if(rc)
-		dprintf(CRITICAL,"Error in pm_pwm_configure()\n");
+ bail_out:
+	if (rc)
+		dprintf(CRITICAL, "Error in pm_pwm_configure()\n");
 	return rc;
 }
 
@@ -205,10 +208,9 @@ int pm_pwm_config(uint8_t pwm_id, uint32_t duty_us, uint32_t period_us)
 	uint32_t max_pwm_value, tmp;
 	int rc = -1;
 
-	if((duty_us > period_us) || (period_us > PM_PWM_PERIOD_MAX) ||
-		(period_us < PM_PWM_PERIOD_MIN))
-	{
-		dprintf(CRITICAL,"Error in duty cycle and period\n");
+	if ((duty_us > period_us) || (period_us > PM_PWM_PERIOD_MAX) ||
+	    (period_us < PM_PWM_PERIOD_MIN)) {
+		dprintf(CRITICAL, "Error in duty cycle and period\n");
 		return -1;
 	}
 
@@ -231,13 +233,12 @@ int pm_pwm_config(uint8_t pwm_id, uint32_t duty_us, uint32_t period_us)
 	/* Bypassing LUT */
 	pwm_conf.bypass_lut = 1;
 
-	dprintf(SPEW,"duty/period=%u/%u usec: pwm_value=%d (of %d)\n",
-		 duty_us, period_us,pwm_conf.pwm_value,
-		 1 << pwm_conf.pwm_size);
+	dprintf(SPEW, "duty/period=%u/%u usec: pwm_value=%d (of %d)\n",
+		duty_us, period_us, pwm_conf.pwm_value, 1 << pwm_conf.pwm_size);
 
 	rc = pm_pwm_configure(pwm_id, &pwm_conf);
-	if(rc)
-		dprintf(CRITICAL,"Error in pwm_config()\n");
+	if (rc)
+		dprintf(CRITICAL, "Error in pwm_config()\n");
 
 	return rc;
 }
@@ -251,31 +252,31 @@ int pm_pwm_enable(uint8_t pwm_id)
 
 	/* Read it before enabling other bank */
 	rc = pm8058_read(PM8058_LPG_BANK_ENABLE, &reg, 1);
-	if(rc)
+	if (rc)
 		goto bail_out;
 
 	reg |= (1 << pwm_id);
 
-	rc = pm8058_write(PM8058_LPG_BANK_ENABLE,&reg,1);
-	if(rc)
+	rc = pm8058_write(PM8058_LPG_BANK_ENABLE, &reg, 1);
+	if (rc)
 		goto bail_out;
 
 	/* Selecting the bank */
 	rc = pm8058_write(PM8058_LPG_BANK_SEL, &pwm_id, 1);
-	if(rc)
+	if (rc)
 		goto bail_out;
 
 	/* Read it before setting PWM start */
 	rc = pm8058_read(PM8058_LPG_CTL(0), &reg, 1);
-	if(rc)
+	if (rc)
 		goto bail_out;
 
 	reg |= PM_PWM_PWM_START;
 	reg &= ~PM_PWM_RAMP_GEN_START;
-	rc = pm8058_write(PM8058_LPG_CTL(0),&reg, 1);
+	rc = pm8058_write(PM8058_LPG_CTL(0), &reg, 1);
 
-bail_out:
-	if(rc)
+ bail_out:
+	if (rc)
 		dprintf(CRITICAL, "Error in pwm_enable()\n");
 	return rc;
 }

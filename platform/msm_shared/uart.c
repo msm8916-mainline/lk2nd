@@ -117,7 +117,6 @@
 #define UART_MISR        0x0010
 #define UART_ISR         0x0014
 
-
 static unsigned uart_ready = 0;
 #if PLATFORM_MSM7X30
 static unsigned uart_base = MSM_UART2_BASE;
@@ -132,12 +131,12 @@ static unsigned uart_base = MSM_UART3_BASE;
 
 void uart_init(void)
 {
-	uwr(0x0A, UART_CR);  /* disable TX and RX */
-	
-	uwr(0x30, UART_CR);  /* reset error status */
-	uwr(0x10, UART_CR);  /* reset receiver */
-	uwr(0x20, UART_CR);  /* reset transmitter */
-	
+	uwr(0x0A, UART_CR);	/* disable TX and RX */
+
+	uwr(0x30, UART_CR);	/* reset error status */
+	uwr(0x10, UART_CR);	/* reset receiver */
+	uwr(0x20, UART_CR);	/* reset transmitter */
+
 #if PLATFORM_QSD8K || PLATFORM_MSM7X30 || PLATFORM_MSM7X27A
 	/* TCXO */
 	uwr(0x06, UART_MREG);
@@ -149,31 +148,31 @@ void uart_init(void)
 	uwr(0xC0, UART_MREG);
 	uwr(0xAF, UART_NREG);
 	uwr(0x80, UART_DREG);
-	uwr(0x19, UART_MNDREG);    
+	uwr(0x19, UART_MNDREG);
 #endif
-	
-	uwr(0x10, UART_CR);  /* reset RX */
-	uwr(0x20, UART_CR);  /* reset TX */
-	uwr(0x30, UART_CR);  /* reset error status */
-	uwr(0x40, UART_CR);  /* reset RX break */
-	uwr(0x70, UART_CR);  /* rest? */
-	uwr(0xD0, UART_CR);  /* reset */
-	
-	uwr(0x7BF, UART_IPR); /* stale timeout = 630 * bitrate */
+
+	uwr(0x10, UART_CR);	/* reset RX */
+	uwr(0x20, UART_CR);	/* reset TX */
+	uwr(0x30, UART_CR);	/* reset error status */
+	uwr(0x40, UART_CR);	/* reset RX break */
+	uwr(0x70, UART_CR);	/* rest? */
+	uwr(0xD0, UART_CR);	/* reset */
+
+	uwr(0x7BF, UART_IPR);	/* stale timeout = 630 * bitrate */
 	uwr(0, UART_IMR);
-	uwr(115, UART_RFWR); /* RX watermark = 58 * 2 - 1 */
-	uwr(10, UART_TFWR);  /* TX watermark */
-	
-	uwr(0, UART_RFWR); 
-	
+	uwr(115, UART_RFWR);	/* RX watermark = 58 * 2 - 1 */
+	uwr(10, UART_TFWR);	/* TX watermark */
+
+	uwr(0, UART_RFWR);
+
 	uwr(UART_CSR_115200, UART_CSR);
 	uwr(0, UART_IRDA);
 	uwr(0x1E, UART_HCR);
-//	uwr(0x7F4, UART_MR1); /* RFS/ CTS/ 500chr RFR */
+//      uwr(0x7F4, UART_MR1); /* RFS/ CTS/ 500chr RFR */
 	uwr(16, UART_MR1);
-	uwr(0x34, UART_MR2); /* 8N1 */
-	
-	uwr(0x05, UART_CR); /* enable TX & RX */
+	uwr(0x34, UART_MR2);	/* 8N1 */
+
+	uwr(0x05, UART_CR);	/* enable TX & RX */
 
 	uart_ready = 1;
 }
@@ -187,10 +186,9 @@ static int _uart_putc(int port, char c)
 	return 0;
 }
 
-int uart_putc (int port, char c)
+int uart_putc(int port, char c)
 {
-	if(c == '\n')
-	{
+	if (c == '\n') {
 		_uart_putc(0, '\r');
 	}
 	_uart_putc(0, c);
@@ -206,4 +204,3 @@ int uart_getc(int port, bool wait)
 
 	return urd(UART_RF);
 }
-

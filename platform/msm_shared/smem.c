@@ -66,26 +66,28 @@ unsigned smem_read_alloc_entry(smem_mem_type_t type, void *buf, int len)
 	return 0;
 }
 
-unsigned smem_read_alloc_entry_offset(smem_mem_type_t type, void *buf, int len, int offset)
+unsigned
+smem_read_alloc_entry_offset(smem_mem_type_t type, void *buf, int len,
+			     int offset)
 {
-  struct smem_alloc_info *ainfo;
-  unsigned *dest = buf;
-  unsigned src;
-  unsigned size = len;
+	struct smem_alloc_info *ainfo;
+	unsigned *dest = buf;
+	unsigned src;
+	unsigned size = len;
 
-  if (((len & 0x3) != 0) || (((unsigned)buf & 0x3) != 0))
-    return 1;
+	if (((len & 0x3) != 0) || (((unsigned)buf & 0x3) != 0))
+		return 1;
 
-  if (type < SMEM_FIRST_VALID_TYPE || type > SMEM_LAST_VALID_TYPE)
-    return 1;
+	if (type < SMEM_FIRST_VALID_TYPE || type > SMEM_LAST_VALID_TYPE)
+		return 1;
 
-  ainfo = &smem->alloc_info[type];
-  if (readl(&ainfo->allocated) == 0)
-    return 1;
+	ainfo = &smem->alloc_info[type];
+	if (readl(&ainfo->allocated) == 0)
+		return 1;
 
-  src = MSM_SHARED_BASE + readl(&ainfo->offset) + offset;
-  for (; size > 0; src += 4, size -= 4)
-    *(dest++) = readl(src);
+	src = MSM_SHARED_BASE + readl(&ainfo->offset) + offset;
+	for (; size > 0; src += 4, size -= 4)
+		*(dest++) = readl(src);
 
-  return 0;
+	return 0;
 }

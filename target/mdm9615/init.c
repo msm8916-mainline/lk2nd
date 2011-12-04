@@ -52,9 +52,11 @@ unsigned hw_platform = 0;
 unsigned target_msm_id = 0;
 
 /* Partition names for fastboot flash */
-char *apps_ptn_names[] = {"aboot", "boot", "system"};
+char *apps_ptn_names[] = { "aboot", "boot", "system" };
+
 /* Partitions should be in this order */
-char *ptable_ptn_names[] = {"APPSBL", "APPS", "EFS2APPS"};
+char *ptable_ptn_names[] = { "APPSBL", "APPS", "EFS2APPS" };
+
 unsigned ptn_name_count = 3;
 unsigned modem_ptn_count = 7;
 
@@ -75,8 +77,8 @@ void target_init(void)
 	dprintf(INFO, "target_init()\n");
 
 	/* Initialize PMIC driver */
-	pmic.read  = (pm8921_read_func) &pa1_ssbi2_read_bytes;
-	pmic.write = (pm8921_write_func) &pa1_ssbi2_write_bytes;
+	pmic.read = (pm8921_read_func) & pa1_ssbi2_read_bytes;
+	pmic.write = (pm8921_write_func) & pa1_ssbi2_write_bytes;
 
 	pm8921_init(&pmic);
 
@@ -114,20 +116,18 @@ void board_info(void)
 	target_msm_id = MDM9600;
 
 	smem_status = smem_read_alloc_entry_offset(SMEM_BOARD_INFO_LOCATION,
-						&format, sizeof(format), 0);
-	if(!smem_status)
-	{
-		if(format == 4)
-		{
+						   &format, sizeof(format), 0);
+	if (!smem_status) {
+		if (format == 4) {
 			board_info_len = sizeof(board_info_v4);
-			smem_status = smem_read_alloc_entry(
-						SMEM_BOARD_INFO_LOCATION,
-						&board_info_v4, board_info_len);
-			if(!smem_status)
-			{
+			smem_status =
+			    smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
+						  &board_info_v4,
+						  board_info_len);
+			if (!smem_status) {
 				id = board_info_v4.board_info_v3.hw_platform;
 				target_msm_id =
-					board_info_v4.board_info_v3.msm_id;
+				    board_info_v4.board_info_v3.msm_id;
 			}
 		}
 	}
@@ -147,7 +147,7 @@ void reboot_device(unsigned reboot_reason)
 	writel(0, MSM_PSHOLD_CTL_SU);
 	mdelay(10000);
 
-	dprintf (CRITICAL, "Rebooting failed\n");
+	dprintf(CRITICAL, "Rebooting failed\n");
 	return;
 }
 
@@ -159,7 +159,8 @@ uint8_t target_uart_gsbi(void)
 /*
  * Return 1 to trigger to fastboot
  */
-int fastboot_trigger(void) {
+int fastboot_trigger(void)
+{
 	int ret;
 	ret = fake_key_get_state();
 	/* Want to trigger when dip switch is off */
@@ -170,15 +171,13 @@ void update_ptable_modem_partitions(void)
 {
 	uint32_t ptn_index, i = 0;
 	uint32_t name_size;
-	struct ptentry * ptentry_ptr = flash_ptable.parts;
+	struct ptentry *ptentry_ptr = flash_ptable.parts;
 
-	for(ptn_index=0; ptn_index < modem_ptn_count; ptn_index++)
-	{
+	for (ptn_index = 0; ptn_index < modem_ptn_count; ptn_index++) {
 		name_size = strlen(ptentry_ptr[ptn_index].name);
-		for(i=0; i < name_size; i++)
-		{
+		for (i = 0; i < name_size; i++) {
 			ptentry_ptr[ptn_index].name[i] =
-				tolower(ptentry_ptr[ptn_index].name[i]);
+			    tolower(ptentry_ptr[ptn_index].name[i]);
 		}
 	}
 }
@@ -188,15 +187,13 @@ void update_ptable_apps_partitions(void)
 	uint32_t ptn_index, name_index = 0;
 	uint32_t end = 0xffffffff;
 	uint32_t name_size = strlen(ptable_ptn_names[name_index]);
-	struct ptentry * ptentry_ptr = flash_ptable.parts;
+	struct ptentry *ptentry_ptr = flash_ptable.parts;
 
-	for(ptn_index=0; ptentry_ptr[ptn_index].start != end; ptn_index++)
-	{
+	for (ptn_index = 0; ptentry_ptr[ptn_index].start != end; ptn_index++) {
 		if (!(strncmp(ptentry_ptr[ptn_index].name,
-				ptable_ptn_names[name_index], name_size)))
-		{
+			      ptable_ptn_names[name_index], name_size))) {
 			name_size = strlen(apps_ptn_names[name_index]);
-			name_size++; /* For null termination */
+			name_size++;	/* For null termination */
 
 			/* Update the partition names to something familiar */
 			if (name_size <= MAX_PTENTRY_NAME)
@@ -206,7 +203,7 @@ void update_ptable_apps_partitions(void)
 			/* Aboot uses modem page layout, leave aboot ptn */
 			if (name_index != 0)
 				ptentry_ptr[ptn_index].type =
-							TYPE_APPS_PARTITION;
+				    TYPE_APPS_PARTITION;
 
 			/* Don't go out of bounds */
 			name_index++;
@@ -218,11 +215,12 @@ void update_ptable_apps_partitions(void)
 
 	/* Update the end to be actual end for grow partition */
 	ptn_index--;
-	for (;ptentry_ptr[ptn_index].length != end; ptn_index++){};
+	for (; ptentry_ptr[ptn_index].length != end; ptn_index++) {
+	};
 
 	/* If SMEM ptable is updated already then don't manually update this */
 	if (ptentry_ptr[ptn_index].start != end)
 		ptentry_ptr[ptn_index].length =
-			((struct flash_info*)flash_get_info())->num_blocks -
-			ptentry_ptr[ptn_index].start;
+		    ((struct flash_info *)flash_get_info())->num_blocks -
+		    ptentry_ptr[ptn_index].start;
 }

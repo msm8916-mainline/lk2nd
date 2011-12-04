@@ -30,73 +30,68 @@
 #include <debug.h>
 #include <smem.h>
 
-#define SIZE_44M              0x02C00000 // 44M
+#define SIZE_44M              0x02C00000	// 44M
 #define EBI1_ADDR_1026M       0x40200000
 
-#define SIZE_128M             0x08000000 // 128M
+#define SIZE_128M             0x08000000	// 128M
 #define EBI1_ADDR_1152M       0x48000000
 
-#define SIZE_256M             0x10000000 // 256M
+#define SIZE_256M             0x10000000	// 256M
 #define EBI1_ADDR_1280M       0x50000000
 
-#define SIZE_768M             0x30000000 // 256M + 512M
-#define SIZE_1792M            0x70000000 // 256M + 512M + 1G
+#define SIZE_768M             0x30000000	// 256M + 512M
+#define SIZE_1792M            0x70000000	// 256M + 512M + 1G
 
 #define EBI1_CS1_ADDR_BASE    0x00A40024
 
-unsigned* target_atag_mem(unsigned* ptr)
+unsigned *target_atag_mem(unsigned *ptr)
 {
-    unsigned value = 0;
+	unsigned value = 0;
 
-    /* ATAG_MEM */
-    *ptr++ = 4;
-    *ptr++ = 0x54410002;
-    *ptr++ = SIZE_44M;
-    *ptr++ = EBI1_ADDR_1026M;
+	/* ATAG_MEM */
+	*ptr++ = 4;
+	*ptr++ = 0x54410002;
+	*ptr++ = SIZE_44M;
+	*ptr++ = EBI1_ADDR_1026M;
 
-    *ptr++ = 4;
-    *ptr++ = 0x54410002;
-    *ptr++ = SIZE_128M;
-    *ptr++ = EBI1_ADDR_1152M;
+	*ptr++ = 4;
+	*ptr++ = 0x54410002;
+	*ptr++ = SIZE_128M;
+	*ptr++ = EBI1_ADDR_1152M;
 
-    value = readl(EBI1_CS1_ADDR_BASE);
-    value = (value >> 8) & 0xFF;
+	value = readl(EBI1_CS1_ADDR_BASE);
+	value = (value >> 8) & 0xFF;
 
-    if (value == 0x50)
-    {
-        /* For 512MB RAM*/
-        *ptr++ = 4;
-        *ptr++ = 0x54410002;
-        *ptr++ = SIZE_256M;
-        *ptr++ = EBI1_ADDR_1280M;
-    }
-    else if (value == 0x60)
-    {
-        /* For 1GB RAM*/
-        *ptr++ = 4;
-        *ptr++ = 0x54410002;
-        *ptr++ = SIZE_768M;
-        *ptr++ = EBI1_ADDR_1280M;
-    }
-    else if (value == 0x80)
-    {
-        /* For 2GB RAM*/
-        *ptr++ = 4;
-        *ptr++ = 0x54410002;
-        //*ptr++ = SIZE_1792M;
-        *ptr++ = SIZE_768M;
-        *ptr++ = EBI1_ADDR_1280M;
-    }
+	if (value == 0x50) {
+		/* For 512MB RAM */
+		*ptr++ = 4;
+		*ptr++ = 0x54410002;
+		*ptr++ = SIZE_256M;
+		*ptr++ = EBI1_ADDR_1280M;
+	} else if (value == 0x60) {
+		/* For 1GB RAM */
+		*ptr++ = 4;
+		*ptr++ = 0x54410002;
+		*ptr++ = SIZE_768M;
+		*ptr++ = EBI1_ADDR_1280M;
+	} else if (value == 0x80) {
+		/* For 2GB RAM */
+		*ptr++ = 4;
+		*ptr++ = 0x54410002;
+		//*ptr++ = SIZE_1792M;
+		*ptr++ = SIZE_768M;
+		*ptr++ = EBI1_ADDR_1280M;
+	}
 
-    return ptr;
+	return ptr;
 }
 
 void *target_get_scratch_address(void)
 {
-    return ((void *)SCRATCH_ADDR);
+	return ((void *)SCRATCH_ADDR);
 }
 
 unsigned target_get_max_flash_size(void)
 {
-    return (192 * 1024 * 1024);
+	return (192 * 1024 * 1024);
 }

@@ -37,8 +37,7 @@
 
 typedef struct gpioregs gpioregs;
 
-struct gpioregs
-{
+struct gpioregs {
 	unsigned out;
 	unsigned in;
 	unsigned int_status;
@@ -51,114 +50,114 @@ struct gpioregs
 
 static gpioregs GPIO_REGS[] = {
 	{
-		.out =		 GPIO_OUT_0,
-		.in =		  GPIO_IN_0,
-		.int_status =  GPIO_INT_STATUS_0,
-		.int_clear =   GPIO_INT_CLEAR_0,
-		.int_en =	  GPIO_INT_EN_0,
-		.int_edge =	GPIO_INT_EDGE_0,
-		.int_pos =	 GPIO_INT_POS_0,
-		.oe =		  GPIO_OE_0,
-	},
+	 .out = GPIO_OUT_0,
+	 .in = GPIO_IN_0,
+	 .int_status = GPIO_INT_STATUS_0,
+	 .int_clear = GPIO_INT_CLEAR_0,
+	 .int_en = GPIO_INT_EN_0,
+	 .int_edge = GPIO_INT_EDGE_0,
+	 .int_pos = GPIO_INT_POS_0,
+	 .oe = GPIO_OE_0,
+	 },
 	{
-		.out =		GPIO_OUT_1,
-		.in =		GPIO_IN_1,
-		.int_status =	GPIO_INT_STATUS_1,
-		.int_clear =	GPIO_INT_CLEAR_1,
-		.int_en =	GPIO_INT_EN_1,
-		.int_edge =	GPIO_INT_EDGE_1,
-		.int_pos =	GPIO_INT_POS_1,
-		.oe =		GPIO_OE_1,
-	},
+	 .out = GPIO_OUT_1,
+	 .in = GPIO_IN_1,
+	 .int_status = GPIO_INT_STATUS_1,
+	 .int_clear = GPIO_INT_CLEAR_1,
+	 .int_en = GPIO_INT_EN_1,
+	 .int_edge = GPIO_INT_EDGE_1,
+	 .int_pos = GPIO_INT_POS_1,
+	 .oe = GPIO_OE_1,
+	 },
 	{
-		.out =		GPIO_OUT_2,
-		.in =		GPIO_IN_2,
-		.int_status =  GPIO_INT_STATUS_2,
-		.int_clear =   GPIO_INT_CLEAR_2,
-		.int_en =	GPIO_INT_EN_2,
-		.int_edge =	GPIO_INT_EDGE_2,
-		.int_pos =	GPIO_INT_POS_2,
-		.oe =		GPIO_OE_2,
-	},
+	 .out = GPIO_OUT_2,
+	 .in = GPIO_IN_2,
+	 .int_status = GPIO_INT_STATUS_2,
+	 .int_clear = GPIO_INT_CLEAR_2,
+	 .int_en = GPIO_INT_EN_2,
+	 .int_edge = GPIO_INT_EDGE_2,
+	 .int_pos = GPIO_INT_POS_2,
+	 .oe = GPIO_OE_2,
+	 },
 	{
-		.out =		GPIO_OUT_3,
-		.in =		GPIO_IN_3,
-		.int_status =	GPIO_INT_STATUS_3,
-		.int_clear =	GPIO_INT_CLEAR_3,
-		.int_en =	GPIO_INT_EN_3,
-		.int_edge =	GPIO_INT_EDGE_3,
-		.int_pos =	GPIO_INT_POS_3,
-		.oe =		GPIO_OE_3,
-	},
+	 .out = GPIO_OUT_3,
+	 .in = GPIO_IN_3,
+	 .int_status = GPIO_INT_STATUS_3,
+	 .int_clear = GPIO_INT_CLEAR_3,
+	 .int_en = GPIO_INT_EN_3,
+	 .int_edge = GPIO_INT_EDGE_3,
+	 .int_pos = GPIO_INT_POS_3,
+	 .oe = GPIO_OE_3,
+	 },
 	{
-		.out =		GPIO_OUT_4,
-		.in =		GPIO_IN_4,
-		.int_status =	GPIO_INT_STATUS_4,
-		.int_clear =	GPIO_INT_CLEAR_4,
-		.int_en =	GPIO_INT_EN_4,
-		.int_edge =	GPIO_INT_EDGE_4,
-		.int_pos =	GPIO_INT_POS_4,
-		.oe =		GPIO_OE_4,
-	},
+	 .out = GPIO_OUT_4,
+	 .in = GPIO_IN_4,
+	 .int_status = GPIO_INT_STATUS_4,
+	 .int_clear = GPIO_INT_CLEAR_4,
+	 .int_en = GPIO_INT_EN_4,
+	 .int_edge = GPIO_INT_EDGE_4,
+	 .int_pos = GPIO_INT_POS_4,
+	 .oe = GPIO_OE_4,
+	 },
 	{
-		.out =		GPIO_OUT_5,
-		.in =		GPIO_IN_5,
-		.int_status =	GPIO_INT_STATUS_5,
-		.int_clear =	GPIO_INT_CLEAR_5,
-		.int_en =	GPIO_INT_EN_5,
-		.int_edge =	GPIO_INT_EDGE_5,
-		.int_pos =	GPIO_INT_POS_5,
-		.oe =		GPIO_OE_5,
-	},
+	 .out = GPIO_OUT_5,
+	 .in = GPIO_IN_5,
+	 .int_status = GPIO_INT_STATUS_5,
+	 .int_clear = GPIO_INT_CLEAR_5,
+	 .int_en = GPIO_INT_EN_5,
+	 .int_edge = GPIO_INT_EDGE_5,
+	 .int_pos = GPIO_INT_POS_5,
+	 .oe = GPIO_OE_5,
+	 },
 	{
-		.out =		GPIO_OUT_6,
-		.in =		GPIO_IN_6,
-		.int_status =	GPIO_INT_STATUS_6,
-		.int_clear =	GPIO_INT_CLEAR_6,
-		.int_en =	GPIO_INT_EN_6,
-		.int_edge =	GPIO_INT_EDGE_6,
-		.int_pos =	GPIO_INT_POS_6,
-		.oe =		GPIO_OE_6,
-	},
+	 .out = GPIO_OUT_6,
+	 .in = GPIO_IN_6,
+	 .int_status = GPIO_INT_STATUS_6,
+	 .int_clear = GPIO_INT_CLEAR_6,
+	 .int_en = GPIO_INT_EN_6,
+	 .int_edge = GPIO_INT_EDGE_6,
+	 .int_pos = GPIO_INT_POS_6,
+	 .oe = GPIO_OE_6,
+	 },
 	{
-		.out =		GPIO_OUT_7,
-		.in =		GPIO_IN_7,
-		.int_status =	GPIO_INT_STATUS_7,
-		.int_clear =	GPIO_INT_CLEAR_7,
-		.int_en =	GPIO_INT_EN_7,
-		.int_edge =	GPIO_INT_EDGE_7,
-		.int_pos =	GPIO_INT_POS_7,
-		.oe =		GPIO_OE_7,
-	},
+	 .out = GPIO_OUT_7,
+	 .in = GPIO_IN_7,
+	 .int_status = GPIO_INT_STATUS_7,
+	 .int_clear = GPIO_INT_CLEAR_7,
+	 .int_en = GPIO_INT_EN_7,
+	 .int_edge = GPIO_INT_EDGE_7,
+	 .int_pos = GPIO_INT_POS_7,
+	 .oe = GPIO_OE_7,
+	 },
 };
 
 static gpioregs *find_gpio(unsigned n, unsigned *bit)
 {
-	if(n > 150) {
+	if (n > 150) {
 		*bit = 1 << (n - 151);
 		return GPIO_REGS + 7;
 	}
-	if(n > 133) {
+	if (n > 133) {
 		*bit = 1 << (n - 134);
 		return GPIO_REGS + 6;
 	}
-	if(n > 106) {
+	if (n > 106) {
 		*bit = 1 << (n - 107);
 		return GPIO_REGS + 5;
 	}
-	if(n > 94) {
+	if (n > 94) {
 		*bit = 1 << (n - 95);
 		return GPIO_REGS + 4;
 	}
-	if(n > 67) {
+	if (n > 67) {
 		*bit = 1 << (n - 68);
 		return GPIO_REGS + 3;
 	}
-	if(n > 43) {
+	if (n > 43) {
 		*bit = 1 << (n - 44);
 		return GPIO_REGS + 2;
 	}
-	if(n > 15) {
+	if (n > 15) {
 		*bit = 1 << (n - 16);
 		return GPIO_REGS + 1;
 	}
@@ -189,11 +188,12 @@ void gpio_set(unsigned n, unsigned on)
 	gpioregs *r;
 	unsigned b;
 	unsigned v;
-	
-	if((r = find_gpio(n, &b)) == 0) return;
+
+	if ((r = find_gpio(n, &b)) == 0)
+		return;
 
 	v = readl(r->out);
-	if(on) {
+	if (on) {
 		writel(v | b, r->out);
 	} else {
 		writel(v & (~b), r->out);
@@ -205,19 +205,20 @@ int gpio_get(unsigned n)
 	gpioregs *r;
 	unsigned b;
 
-	if((r = find_gpio(n, &b)) == 0) return 0;
+	if ((r = find_gpio(n, &b)) == 0)
+		return 0;
 
 	return (readl(r->in) & b) ? 1 : 0;
 }
 
 void platform_config_interleaved_mode_gpios(void)
 {
-        /* configure EB2_CS1 through GPIO86 */
-	writel (GPIO_ALT_FUNC_PAGE_REG, 0x56);
-	writel (GPIO_ALT_FUNC_CFG_REG, 0x04);
+	/* configure EB2_CS1 through GPIO86 */
+	writel(GPIO_ALT_FUNC_PAGE_REG, 0x56);
+	writel(GPIO_ALT_FUNC_CFG_REG, 0x04);
 	/* configure the EBI2_BUSY1_N through GPIO115 */
-	writel (GPIO_ALT_FUNC_PAGE_REG, 0x73);
-	writel (GPIO_ALT_FUNC_CFG_REG, 0x08);
+	writel(GPIO_ALT_FUNC_PAGE_REG, 0x73);
+	writel(GPIO_ALT_FUNC_CFG_REG, 0x08);
 }
 
 /* Enables all gpios passed in table*/
@@ -228,14 +229,13 @@ int platform_gpios_enable(const struct msm_gpio *table, int size)
 	const struct msm_gpio *g;
 	for (i = 0; i < size; i++) {
 		g = table + i;
-        /* Enable gpio */
+		/* Enable gpio */
 		rc = gpio_tlmm_config(g->gpio_cfg, GPIO_ENABLE);
 		if (rc) {
 			goto err;
 		}
 	}
 	return 0;
-err:
+ err:
 	return rc;
 }
-

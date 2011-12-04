@@ -31,54 +31,53 @@
 
 struct fbcon_config;
 
-struct __attribute__((packed)) mddi_client_caps 
-{
-    unsigned short length;
-    unsigned short type;
-    unsigned short client_id;
+struct __attribute__ ((packed)) mddi_client_caps {
+	unsigned short length;
+	unsigned short type;
+	unsigned short client_id;
 
-    unsigned short protocol_ver;
-    unsigned short min_protocol_ver;
-    unsigned short data_rate_cap;
-    unsigned char interface_type_cap;
-    unsigned char num_alt_displays;
-    unsigned short postcal_data_rate;
-    unsigned short bitmap_width;
-    unsigned short bitmap_height;
-    unsigned short display_window_width;
-    unsigned short display_window_height;
-    unsigned cmap_size;
-    unsigned short cmap_rgb_width;
-    unsigned short rgb_cap;
-    unsigned char mono_cap;
-    unsigned char reserved1;
-    unsigned short ycbcr_cap;
-    unsigned short bayer_cap;
-    unsigned short alpha_cursor_planes;
-    unsigned client_feature_cap;
-    unsigned char max_video_frame_rate_cap;
-    unsigned char min_video_frame_rate_cap;
-    unsigned short min_sub_frame_rate;
-    unsigned short audio_buf_depth;
-    unsigned short audio_channel_cap;
-    unsigned short audio_sampe_rate_rap;
-    unsigned char audio_sample_res;
-    unsigned char mic_audio_sample_res;
-    unsigned short mic_sample_rate_cap;
-    unsigned char keyboard_data_fmt;
-    unsigned char pointing_device_data_fmt;
-    unsigned short content_protection_type;
-    unsigned short manufacturer_name;
-    unsigned short product_code;
-    unsigned short reserved3;
-    unsigned serial_no;
-    unsigned char week_of_manufacture;
-    unsigned char year_of_manufacture;
+	unsigned short protocol_ver;
+	unsigned short min_protocol_ver;
+	unsigned short data_rate_cap;
+	unsigned char interface_type_cap;
+	unsigned char num_alt_displays;
+	unsigned short postcal_data_rate;
+	unsigned short bitmap_width;
+	unsigned short bitmap_height;
+	unsigned short display_window_width;
+	unsigned short display_window_height;
+	unsigned cmap_size;
+	unsigned short cmap_rgb_width;
+	unsigned short rgb_cap;
+	unsigned char mono_cap;
+	unsigned char reserved1;
+	unsigned short ycbcr_cap;
+	unsigned short bayer_cap;
+	unsigned short alpha_cursor_planes;
+	unsigned client_feature_cap;
+	unsigned char max_video_frame_rate_cap;
+	unsigned char min_video_frame_rate_cap;
+	unsigned short min_sub_frame_rate;
+	unsigned short audio_buf_depth;
+	unsigned short audio_channel_cap;
+	unsigned short audio_sampe_rate_rap;
+	unsigned char audio_sample_res;
+	unsigned char mic_audio_sample_res;
+	unsigned short mic_sample_rate_cap;
+	unsigned char keyboard_data_fmt;
+	unsigned char pointing_device_data_fmt;
+	unsigned short content_protection_type;
+	unsigned short manufacturer_name;
+	unsigned short product_code;
+	unsigned short reserved3;
+	unsigned serial_no;
+	unsigned char week_of_manufacture;
+	unsigned char year_of_manufacture;
 
-    unsigned short crc;    
+	unsigned short crc;
 };
 
 void mddi_remote_write(unsigned val, unsigned reg);
 struct fbcon_config *mddi_init(void);
 
-#endif /* __PLATFORM_MDDI_H */
+#endif				/* __PLATFORM_MDDI_H */

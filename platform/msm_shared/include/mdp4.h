@@ -66,26 +66,27 @@
 #define MDP_INTR_STATUS                       REG_MDP(0x00054)
 
 void mdp_setup_dma_p_video_config(unsigned short pack_pattern,
-                                    unsigned short img_width,
-                                    unsigned short img_height,
-                                    unsigned long input_img_addr,
-                                    unsigned short img_width_full_size,
-                                    unsigned char ystride);
+				  unsigned short img_width,
+				  unsigned short img_height,
+				  unsigned long input_img_addr,
+				  unsigned short img_width_full_size,
+				  unsigned char ystride);
 int mdp_setup_dma_p_video_mode(unsigned short disp_width,
-                               unsigned short disp_height,
-                               unsigned short img_width,
-                               unsigned short img_height,
-                               unsigned short hsync_porch0_fp,
-                               unsigned short hsync_porch0_bp,
-                               unsigned short vsync_porch0_fp,
-                               unsigned short vsync_porch0_bp,
-                               unsigned short hsync_width,
-                               unsigned short vsync_width,
-                               unsigned long input_img_addr,
-                               unsigned short img_width_full_size,
-                               unsigned short pack_pattern,
-                               unsigned char ystride);
-int mipi_dsi_cmd_config(struct fbcon_config mipi_fb_cfg, unsigned short num_of_lanes);
+			       unsigned short disp_height,
+			       unsigned short img_width,
+			       unsigned short img_height,
+			       unsigned short hsync_porch0_fp,
+			       unsigned short hsync_porch0_bp,
+			       unsigned short vsync_porch0_fp,
+			       unsigned short vsync_porch0_bp,
+			       unsigned short hsync_width,
+			       unsigned short vsync_width,
+			       unsigned long input_img_addr,
+			       unsigned short img_width_full_size,
+			       unsigned short pack_pattern,
+			       unsigned char ystride);
+int mipi_dsi_cmd_config(struct fbcon_config mipi_fb_cfg,
+			unsigned short num_of_lanes);
 void mdp_shutdown(void);
 void mdp_disable(void);
 void mdp_start_dma(void);

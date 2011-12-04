@@ -32,10 +32,9 @@
 /* For keys of length 2048 bits */
 #define SIGNATURE_SIZE 256
 
-static int image_decrypt_signature(unsigned char * signature_ptr,
-				unsigned char * plain_text);
-int image_verify(unsigned char * image_ptr,
-			unsigned char * signature_ptr,
-			unsigned int image_size,
-			unsigned hash_type);
+static int image_decrypt_signature(unsigned char *signature_ptr,
+				   unsigned char *plain_text);
+int image_verify(unsigned char *image_ptr,
+		 unsigned char *signature_ptr,
+		 unsigned int image_size, unsigned hash_type);
 #endif

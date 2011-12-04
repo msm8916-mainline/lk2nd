@@ -46,18 +46,19 @@
 
 struct udc_descriptor {
 	struct udc_descriptor *next;
-	unsigned short tag; /* ((TYPE << 8) | NUM) */
-	unsigned short len; /* total length */
+	unsigned short tag;	/* ((TYPE << 8) | NUM) */
+	unsigned short len;	/* total length */
 	unsigned char data[0];
 };
 
-struct udc_descriptor *udc_descriptor_alloc(unsigned type, unsigned num, unsigned len)
+struct udc_descriptor *udc_descriptor_alloc(unsigned type, unsigned num,
+					    unsigned len)
 {
 	struct udc_descriptor *desc;
 	if ((len > 255) || (len < 2) || (num > 255) || (type > 255))
 		return 0;
 
-	if(!(desc = malloc(sizeof(struct udc_descriptor) + len)))
+	if (!(desc = malloc(sizeof(struct udc_descriptor) + len)))
 		return 0;
 
 	desc->next = 0;
@@ -127,8 +128,7 @@ struct usb_request {
 	struct ept_queue_item *item;
 };
 
-struct udc_endpoint
-{
+struct udc_endpoint {
 	struct udc_endpoint *next;
 	unsigned bit;
 	struct ept_queue_head *head;
@@ -148,7 +148,8 @@ static struct udc_device *the_device;
 static struct udc_gadget *the_gadget;
 static unsigned test_mode = 0;
 
-struct udc_endpoint *_udc_endpoint_alloc(unsigned num, unsigned in, unsigned max_pkt)
+struct udc_endpoint *_udc_endpoint_alloc(unsigned num, unsigned in,
+					 unsigned max_pkt)
 {
 	struct udc_endpoint *ept;
 	unsigned cfg;
@@ -162,11 +163,11 @@ struct udc_endpoint *_udc_endpoint_alloc(unsigned num, unsigned in, unsigned max
 
 	cfg = CONFIG_MAX_PKT(max_pkt) | CONFIG_ZLT;
 
-	if(ept->in) {
+	if (ept->in) {
 		ept->bit = EPT_TX(ept->num);
 	} else {
 		ept->bit = EPT_RX(ept->num);
-		if(num == 0)
+		if (num == 0)
 			cfg |= CONFIG_IOS;
 	}
 
@@ -177,7 +178,7 @@ struct udc_endpoint *_udc_endpoint_alloc(unsigned num, unsigned in, unsigned max
 	ept_list = ept;
 
 	DBG("ept%d %s @%p/%p max=%d bit=%x\n",
-            num, in ? "in":"out", ept, ept->head, max_pkt, ept->bit);
+	    num, in ? "in" : "out", ept, ept->head, max_pkt, ept->bit);
 
 	return ept;
 }
@@ -219,19 +220,21 @@ static void endpoint_enable(struct udc_endpoint *ept, unsigned yes)
 {
 	unsigned n = readl(USB_ENDPTCTRL(ept->num));
 
-	if(yes) {
-		if(ept->in) {
+	if (yes) {
+		if (ept->in) {
 			n |= (CTRL_TXE | CTRL_TXR | CTRL_TXT_BULK);
 		} else {
 			n |= (CTRL_RXE | CTRL_RXR | CTRL_RXT_BULK);
 		}
 
-		if(ept->num != 0) {
+		if (ept->num != 0) {
 			/* XXX should be more dynamic... */
-			if(usb_highspeed) {
-				ept->head->config = CONFIG_MAX_PKT(512) | CONFIG_ZLT;
+			if (usb_highspeed) {
+				ept->head->config =
+				    CONFIG_MAX_PKT(512) | CONFIG_ZLT;
 			} else {
-				ept->head->config = CONFIG_MAX_PKT(64) | CONFIG_ZLT;
+				ept->head->config =
+				    CONFIG_MAX_PKT(64) | CONFIG_ZLT;
 			}
 		}
 	}
@@ -255,9 +258,9 @@ void udc_request_free(struct udc_request *req)
 
 int udc_request_queue(struct udc_endpoint *ept, struct udc_request *_req)
 {
-	struct usb_request *req = (struct usb_request *) _req;
+	struct usb_request *req = (struct usb_request *)_req;
 	struct ept_queue_item *item = req->item;
-	unsigned phys = (unsigned) req->req.buf;
+	unsigned phys = (unsigned)req->req.buf;
 
 	item->next = TERMINATE;
 	item->info = INFO_BYTES(req->req.length) | INFO_IOC | INFO_ACTIVE;
@@ -265,18 +268,22 @@ int udc_request_queue(struct udc_endpoint *ept, struct udc_request *_req)
 	item->page1 = (phys & 0xfffff000) + 0x1000;
 
 	enter_critical_section();
-	ept->head->next = (unsigned) item;
+	ept->head->next = (unsigned)item;
 	ept->head->info = 0;
 	ept->req = req;
 
-	arch_clean_invalidate_cache_range((addr_t) ept, sizeof(struct udc_endpoint));
-	arch_clean_invalidate_cache_range((addr_t) ept->head, sizeof(struct ept_queue_head));
-	arch_clean_invalidate_cache_range((addr_t) ept->req, sizeof(struct usb_request));
-	arch_clean_invalidate_cache_range((addr_t) req->req.buf, req->req.length);
-	arch_clean_invalidate_cache_range((addr_t) ept->req->item, sizeof(struct ept_queue_item));
+	arch_clean_invalidate_cache_range((addr_t) ept,
+					  sizeof(struct udc_endpoint));
+	arch_clean_invalidate_cache_range((addr_t) ept->head,
+					  sizeof(struct ept_queue_head));
+	arch_clean_invalidate_cache_range((addr_t) ept->req,
+					  sizeof(struct usb_request));
+	arch_clean_invalidate_cache_range((addr_t) req->req.buf,
+					  req->req.length);
+	arch_clean_invalidate_cache_range((addr_t) ept->req->item,
+					  sizeof(struct ept_queue_item));
 
-	DBG("ept%d %s queue req=%p\n",
-            ept->num, ept->in ? "in" : "out", req);
+	DBG("ept%d %s queue req=%p\n", ept->num, ept->in ? "in" : "out", req);
 
 	writel(ept->bit, USB_ENDPTPRIME);
 	exit_critical_section();
@@ -291,13 +298,15 @@ static void handle_ept_complete(struct udc_endpoint *ept)
 	struct usb_request *req;
 
 	DBG("ept%d %s complete req=%p\n",
-            ept->num, ept->in ? "in" : "out", ept->req);
+	    ept->num, ept->in ? "in" : "out", ept->req);
 
-	arch_clean_invalidate_cache_range((addr_t) ept, sizeof(struct udc_endpoint));
-	arch_clean_invalidate_cache_range((addr_t) ept->req, sizeof(struct usb_request));
+	arch_clean_invalidate_cache_range((addr_t) ept,
+					  sizeof(struct udc_endpoint));
+	arch_clean_invalidate_cache_range((addr_t) ept->req,
+					  sizeof(struct usb_request));
 
 	req = ept->req;
-	if(req) {
+	if (req) {
 		ept->req = 0;
 
 		item = req->item;
@@ -306,70 +315,86 @@ static void handle_ept_complete(struct udc_endpoint *ept)
 		 * transfer completion before the active bit has cleared.
 		 * HACK: wait for the ACTIVE bit to clear:
 		 */
-		do
-		{
+		do {
 			/* Must clean/invalidate cached item data before checking
 			 * the status every time.
 			 */
-			arch_clean_invalidate_cache_range((addr_t) item, sizeof(struct ept_queue_item));
-		} while (readl(&(item->info)) & INFO_ACTIVE);
+			arch_clean_invalidate_cache_range((addr_t) item,
+							  sizeof(struct
+								 ept_queue_item));
+		}
+		while (readl(&(item->info)) & INFO_ACTIVE);
 
-		arch_clean_invalidate_cache_range((addr_t) req->req.buf, req->req.length);
+		arch_clean_invalidate_cache_range((addr_t) req->req.buf,
+						  req->req.length);
 
-		if(item->info & 0xff) {
+		if (item->info & 0xff) {
 			actual = 0;
 			status = -1;
 			dprintf(INFO, "EP%d/%s FAIL nfo=%x pg0=%x\n",
-				ept->num, ept->in ? "in" : "out", item->info, item->page0);
+				ept->num, ept->in ? "in" : "out", item->info,
+				item->page0);
 		} else {
-			actual = req->req.length - ((item->info >> 16) & 0x7fff);
+			actual =
+			    req->req.length - ((item->info >> 16) & 0x7fff);
 			status = 0;
 		}
-		if(req->req.complete)
+		if (req->req.complete)
 			req->req.complete(&req->req, actual, status);
 	}
 }
 
 static const char *reqname(unsigned r)
 {
-	switch(r) {
-	case GET_STATUS: return "GET_STATUS";
-	case CLEAR_FEATURE: return "CLEAR_FEATURE";
-	case SET_FEATURE: return "SET_FEATURE";
-	case SET_ADDRESS: return "SET_ADDRESS";
-	case GET_DESCRIPTOR: return "GET_DESCRIPTOR";
-	case SET_DESCRIPTOR: return "SET_DESCRIPTOR";
-	case GET_CONFIGURATION: return "GET_CONFIGURATION";
-	case SET_CONFIGURATION: return "SET_CONFIGURATION";
-	case GET_INTERFACE: return "GET_INTERFACE";
-	case SET_INTERFACE: return "SET_INTERFACE";
-	default: return "*UNKNOWN*";
+	switch (r) {
+	case GET_STATUS:
+		return "GET_STATUS";
+	case CLEAR_FEATURE:
+		return "CLEAR_FEATURE";
+	case SET_FEATURE:
+		return "SET_FEATURE";
+	case SET_ADDRESS:
+		return "SET_ADDRESS";
+	case GET_DESCRIPTOR:
+		return "GET_DESCRIPTOR";
+	case SET_DESCRIPTOR:
+		return "SET_DESCRIPTOR";
+	case GET_CONFIGURATION:
+		return "GET_CONFIGURATION";
+	case SET_CONFIGURATION:
+		return "SET_CONFIGURATION";
+	case GET_INTERFACE:
+		return "GET_INTERFACE";
+	case SET_INTERFACE:
+		return "SET_INTERFACE";
+	default:
+		return "*UNKNOWN*";
 	}
 }
 
 static struct udc_endpoint *ep0in, *ep0out;
 static struct udc_request *ep0req;
 
-static void ep0_setup_ack_complete(struct udc_endpoint *ep, struct usb_request *req)
+static void
+ep0_setup_ack_complete(struct udc_endpoint *ep, struct usb_request *req)
 {
 	uint32_t mode;
 
-	if(!test_mode)
+	if (!test_mode)
 		return;
 
-	switch (test_mode)
-	{
-		case TEST_PACKET:
-			dprintf(INFO,"Entering test mode for TST_PKT\n");
-			mode = readl(USB_PORTSC) & (~PORTSC_PTC);
-			writel(mode | PORTSC_PTC_TST_PKT, USB_PORTSC);
-			break;
+	switch (test_mode) {
+	case TEST_PACKET:
+		dprintf(INFO, "Entering test mode for TST_PKT\n");
+		mode = readl(USB_PORTSC) & (~PORTSC_PTC);
+		writel(mode | PORTSC_PTC_TST_PKT, USB_PORTSC);
+		break;
 
-		case TEST_SE0_NAK:
-			dprintf(INFO, "Entering test mode for SE0-NAK\n");
-			mode = readl(USB_PORTSC) & (~PORTSC_PTC);
-			writel(mode | PORTSC_PTC_SE0_NAK, USB_PORTSC);
-			break;
+	case TEST_SE0_NAK:
+		dprintf(INFO, "Entering test mode for SE0-NAK\n");
+		mode = readl(USB_PORTSC) & (~PORTSC_PTC);
+		writel(mode | PORTSC_PTC_SE0_NAK, USB_PORTSC);
+		break;
 	}
 
 }
@@ -384,7 +409,7 @@ static void setup_ack(void)
 static void ep0in_complete(struct udc_request *req, unsigned actual, int status)
 {
 	DBG("ep0in_complete %p %d %d\n", req, actual, status);
-	if(status == 0) {
+	if (status == 0) {
 		req->length = 0;
 		req->complete = 0;
 		udc_request_queue(ep0out, req);
@@ -404,41 +429,43 @@ static unsigned char usb_config_value = 0;
 
 #define SETUP(type,request) (((type) << 8) | (request))
 
-
 static void handle_setup(struct udc_endpoint *ept)
 {
 	struct setup_packet s;
 
-	arch_clean_invalidate_cache_range((addr_t) ept->head->setup_data, sizeof(struct ept_queue_head));
+	arch_clean_invalidate_cache_range((addr_t) ept->head->setup_data,
+					  sizeof(struct ept_queue_head));
 	memcpy(&s, ept->head->setup_data, sizeof(s));
 	writel(ept->bit, USB_ENDPTSETUPSTAT);
 
 	DBG("handle_setup type=0x%02x req=0x%02x val=%d idx=%d len=%d (%s)\n",
-            s.type, s.request, s.value, s.index, s.length,
-            reqname(s.request));
+	    s.type, s.request, s.value, s.index, s.length, reqname(s.request));
 
-	switch (SETUP(s.type,s.request)) {
-	case SETUP(DEVICE_READ, GET_STATUS): {
-		unsigned zero = 0;
-		if (s.length == 2) {
-			setup_tx(&zero, 2);
-			return;
-		}
-		break;
-	}
-	case SETUP(DEVICE_READ, GET_DESCRIPTOR): {
-		struct udc_descriptor *desc;
-		/* usb_highspeed? */
-		for (desc = desc_list; desc; desc = desc->next) {
-			if (desc->tag == s.value) {
-				unsigned len = desc->len;
-				if (len > s.length) len = s.length;
-				setup_tx(desc->data, len);
+	switch (SETUP(s.type, s.request)) {
+	case SETUP(DEVICE_READ, GET_STATUS):
+		{
+			unsigned zero = 0;
+			if (s.length == 2) {
+				setup_tx(&zero, 2);
 				return;
 			}
+			break;
 		}
-		break;
-	}
+	case SETUP(DEVICE_READ, GET_DESCRIPTOR):
+		{
+			struct udc_descriptor *desc;
+			/* usb_highspeed? */
+			for (desc = desc_list; desc; desc = desc->next) {
+				if (desc->tag == s.value) {
+					unsigned len = desc->len;
+					if (len > s.length)
+						len = s.length;
+					setup_tx(desc->data, len);
+					return;
+				}
+			}
+			break;
+		}
 	case SETUP(DEVICE_READ, GET_CONFIGURATION):
 		/* disabling this causes data transaction failures on OSX. Why? */
 		if ((s.value == 0) && (s.index == 0) && (s.length == 1)) {
@@ -450,7 +477,7 @@ static void handle_setup(struct udc_endpoint *ept)
 		if (s.value == 1) {
 			struct udc_endpoint *ept;
 			/* enable endpoints */
-			for (ept = ept_list; ept; ept = ept->next){
+			for (ept = ept_list; ept; ept = ept->next) {
 				if (ept->num == 0)
 					continue;
 				endpoint_enable(ept, s.value);
@@ -468,8 +495,8 @@ static void handle_setup(struct udc_endpoint *ept)
 		return;
 	case SETUP(DEVICE_WRITE, SET_ADDRESS):
 		/* write address delayed (will take effect
-		** after the next IN txn)
-		*/
+		 ** after the next IN txn)
+		 */
 		writel((s.value << 25) | (1 << 24), USB_DEVICEADDR);
 		setup_ack();
 		return;
@@ -481,54 +508,54 @@ static void handle_setup(struct udc_endpoint *ept)
 		test_mode = s.index;
 		setup_ack();
 		return;
-	case SETUP(ENDPOINT_WRITE, CLEAR_FEATURE): {
-		struct udc_endpoint *ept;
-		unsigned num = s.index & 15;
-		unsigned in = !!(s.index & 0x80);
+	case SETUP(ENDPOINT_WRITE, CLEAR_FEATURE):
+		{
+			struct udc_endpoint *ept;
+			unsigned num = s.index & 15;
+			unsigned in = !!(s.index & 0x80);
 
-		if ((s.value == 0) && (s.length == 0)) {
-			DBG("clr feat %d %d\n", num, in);
-			for (ept = ept_list; ept; ept = ept->next) {
-				if ((ept->num == num) && (ept->in == in)) {
-					endpoint_enable(ept, 1);
-					setup_ack();
-					return;
+			if ((s.value == 0) && (s.length == 0)) {
+				DBG("clr feat %d %d\n", num, in);
+				for (ept = ept_list; ept; ept = ept->next) {
+					if ((ept->num == num)
+					    && (ept->in == in)) {
+						endpoint_enable(ept, 1);
+						setup_ack();
+						return;
+					}
 				}
 			}
+			break;
 		}
-		break;
-	}
 	}
 
 	dprintf(INFO, "STALL %s %d %d %d %d %d\n",
 		reqname(s.request),
 		s.type, s.request, s.value, s.index, s.length);
 
-stall:
-	writel((1<<16) | (1 << 0), USB_ENDPTCTRL(ept->num));
+ stall:
+	writel((1 << 16) | (1 << 0), USB_ENDPTCTRL(ept->num));
 }
 
 unsigned ulpi_read(unsigned reg)
 {
-        /* initiate read operation */
-	writel(ULPI_RUN | ULPI_READ | ULPI_ADDR(reg),
-               USB_ULPI_VIEWPORT);
+	/* initiate read operation */
+	writel(ULPI_RUN | ULPI_READ | ULPI_ADDR(reg), USB_ULPI_VIEWPORT);
 
-        /* wait for completion */
-	while(readl(USB_ULPI_VIEWPORT) & ULPI_RUN) ;
+	/* wait for completion */
+	while (readl(USB_ULPI_VIEWPORT) & ULPI_RUN) ;
 
 	return ULPI_DATA_READ(readl(USB_ULPI_VIEWPORT));
 }
 
 void ulpi_write(unsigned val, unsigned reg)
 {
-        /* initiate write operation */
+	/* initiate write operation */
 	writel(ULPI_RUN | ULPI_WRITE |
-               ULPI_ADDR(reg) | ULPI_DATA(val),
-               USB_ULPI_VIEWPORT);
+	       ULPI_ADDR(reg) | ULPI_DATA(val), USB_ULPI_VIEWPORT);
 
-        /* wait for completion */
-	while(readl(USB_ULPI_VIEWPORT) & ULPI_RUN) ;
+	/* wait for completion */
+	while (readl(USB_ULPI_VIEWPORT) & ULPI_RUN) ;
 }
 
 #define USB_CLK             0x00902910
@@ -554,47 +581,45 @@ static int msm_otg_xceiv_reset()
 void board_usb_init(void);
 void board_ulpi_init(void)
 {
-       	unsigned int reg;
+	unsigned int reg;
 
 #ifdef PLATFORM_MSM7X27A
 	ulpi_read(0x31);
-	dprintf(INFO," Value of ulpi read 0x31 is %08x\n", reg);
-        /* todo : the write back value should be calculated according to
-         * reg &= 0xF3 but sometimes the value that is read initially
-         * doesnt look right
-         */
+	dprintf(INFO, " Value of ulpi read 0x31 is %08x\n", reg);
+	/* todo : the write back value should be calculated according to
+	 * reg &= 0xF3 but sometimes the value that is read initially
+	 * doesnt look right
+	 */
 	ulpi_write(0x4A, 0x31);
-        reg = ulpi_read(0x31);
-	dprintf(INFO," Value of ulpi read 0x31 after write is %08x\n", reg);
+	reg = ulpi_read(0x31);
+	dprintf(INFO, " Value of ulpi read 0x31 after write is %08x\n", reg);
 
 	reg = ulpi_read(0x32);
-	dprintf(INFO," Value of ulpi read 0x32 is %08x\n", reg);
-	ulpi_write(0x30,0x32);
+	dprintf(INFO, " Value of ulpi read 0x32 is %08x\n", reg);
+	ulpi_write(0x30, 0x32);
 	reg = ulpi_read(0x32);
-	dprintf(INFO," Value of ulpi read 0x32 after write is %08x\n", reg);
-
+	dprintf(INFO, " Value of ulpi read 0x32 after write is %08x\n", reg);
 
 	reg = ulpi_read(0x36);
-	dprintf(INFO," Value of ulpi read 0x36 is %08x\n", reg);
-	ulpi_write(reg|0x2,0x36);
+	dprintf(INFO, " Value of ulpi read 0x36 is %08x\n", reg);
+	ulpi_write(reg | 0x2, 0x36);
 	reg = ulpi_read(0x36);
-	dprintf(INFO," Value of ulpi read 0x36 after write is %08x\n", reg);
+	dprintf(INFO, " Value of ulpi read 0x36 after write is %08x\n", reg);
 
 #endif
 #ifdef PLATFORM_MSM8X60
 
-        reg = ulpi_read(0x32);
-        dprintf(INFO," Value of ulpi read 0x32 is %08x\n", reg);
-        ulpi_write(0x30,0x32);
-        reg = ulpi_read(0x32);
-        dprintf(INFO," Value of ulpi read 0x32 after write is %08x\n", reg);
+	reg = ulpi_read(0x32);
+	dprintf(INFO, " Value of ulpi read 0x32 is %08x\n", reg);
+	ulpi_write(0x30, 0x32);
+	reg = ulpi_read(0x32);
+	dprintf(INFO, " Value of ulpi read 0x32 after write is %08x\n", reg);
 
-
-        reg = ulpi_read(0x36);
-        dprintf(INFO," Value of ulpi read 0x36 is %08x\n", reg);
-        ulpi_write(reg|0x2,0x36);
-        reg = ulpi_read(0x36);
-        dprintf(INFO," Value of ulpi read 0x36 aafter write is %08x\n", reg);
+	reg = ulpi_read(0x36);
+	dprintf(INFO, " Value of ulpi read 0x36 is %08x\n", reg);
+	ulpi_write(reg | 0x2, 0x36);
+	reg = ulpi_read(0x36);
+	dprintf(INFO, " Value of ulpi read 0x36 aafter write is %08x\n", reg);
 #endif
 }
 
@@ -613,27 +638,28 @@ int udc_init(struct udc_device *dev)
 
 	dprintf(INFO, "USB init ept @ %p\n", epts);
 	memset(epts, 0, 32 * sizeof(struct ept_queue_head));
-	arch_clean_invalidate_cache_range((addr_t) epts, 32 * sizeof(struct ept_queue_head));
+	arch_clean_invalidate_cache_range((addr_t) epts,
+					  32 * sizeof(struct ept_queue_head));
 
 	//dprintf(INFO, "USB ID %08x\n", readl(USB_ID));
 //    board_usb_init();
 
-        /* select ULPI phy */
+	/* select ULPI phy */
 #ifdef PLATFORM_MSM8X60
 	msm_otg_xceiv_reset();
 #else
 	writel(0x81000000, USB_PORTSC);
 #endif
-        /* RESET */
+	/* RESET */
 	writel(0x00080002, USB_USBCMD);
 
 	thread_sleep(20);
 
-        board_ulpi_init();
+	board_ulpi_init();
 
-	writel((unsigned) epts, USB_ENDPOINTLISTADDR);
+	writel((unsigned)epts, USB_ENDPOINTLISTADDR);
 
-        /* select DEVICE mode */
+	/* select DEVICE mode */
 	writel(0x02, USB_USBMODE);
 
 	writel(0xffffffff, USB_ENDPTFLUSH);
@@ -647,7 +673,8 @@ int udc_init(struct udc_device *dev)
 	{
 		/* create and register a language table descriptor */
 		/* language 0x0409 is US English */
-		struct udc_descriptor *desc = udc_descriptor_alloc(TYPE_STRING, 0, 4);
+		struct udc_descriptor *desc =
+		    udc_descriptor_alloc(TYPE_STRING, 0, 4);
 		desc->data[2] = 0x09;
 		desc->data[3] = 0x04;
 		udc_descriptor_register(desc);
@@ -703,7 +730,7 @@ enum handler_return udc_interrupt(void *arg)
 	if (n & STS_PCI) {
 		dprintf(INFO, "-- portchange --\n");
 		unsigned spd = (readl(USB_PORTSC) >> 26) & 3;
-		if(spd == 2) {
+		if (spd == 2) {
 			usb_highspeed = 1;
 		} else {
 			usb_highspeed = 0;
@@ -715,11 +742,16 @@ enum handler_return udc_interrupt(void *arg)
 	}
 #if 0
 	DBG("STS: ");
-	if (n & STS_UEI) DBG("ERROR ");
-	if (n & STS_SLI) DBG("SUSPEND ");
-	if (n & STS_URI) DBG("RESET ");
-	if (n & STS_PCI) DBG("PORTCHANGE ");
-	if (n & STS_UI) DBG("USB ");
+	if (n & STS_UEI)
+		DBG("ERROR ");
+	if (n & STS_SLI)
+		DBG("SUSPEND ");
+	if (n & STS_URI)
+		DBG("RESET ");
+	if (n & STS_PCI)
+		DBG("PORTCHANGE ");
+	if (n & STS_UI)
+		DBG("USB ");
 	DBG("\n");
 #endif
 	if ((n & STS_UI) || (n & STS_UEI)) {
@@ -735,7 +767,7 @@ enum handler_return udc_interrupt(void *arg)
 			writel(n, USB_ENDPTCOMPLETE);
 		}
 
-		for (ept = ept_list; ept; ept = ept->next){
+		for (ept = ept_list; ept; ept = ept->next) {
 			if (n & ept->bit) {
 				handle_ept_complete(ept);
 				ret = INT_RESCHEDULE;
@@ -760,7 +792,7 @@ static void udc_ept_desc_fill(struct udc_endpoint *ept, unsigned char *data)
 	data[0] = 7;
 	data[1] = TYPE_ENDPOINT;
 	data[2] = ept->num | (ept->in ? 0x80 : 0x00);
-	data[3] = 0x02; /* bulk -- the only kind we support */
+	data[3] = 0x02;		/* bulk -- the only kind we support */
 	data[4] = ept->maxpkt;
 	data[5] = ept->maxpkt >> 8;
 	data[6] = ept->in ? 0x00 : 0x01;
@@ -777,8 +809,8 @@ static void udc_ifc_desc_fill(struct udc_gadget *g, unsigned char *data)
 
 	data[0] = 0x09;
 	data[1] = TYPE_INTERFACE;
-	data[2] = 0x00; /* ifc number */
-	data[3] = 0x00; /* alt number */
+	data[2] = 0x00;		/* ifc number */
+	data[3] = 0x00;		/* alt number */
 	data[4] = g->ifc_endpoints;
 	data[5] = g->ifc_class;
 	data[6] = g->ifc_subclass;
@@ -812,19 +844,19 @@ int udc_start(void)
 	/* create our device descriptor */
 	desc = udc_descriptor_alloc(TYPE_DEVICE, 0, 18);
 	data = desc->data;
-	data[2] = 0x00; /* usb spec minor rev */
-	data[3] = 0x02; /* usb spec major rev */
-	data[4] = 0x00; /* class */
-	data[5] = 0x00; /* subclass */
-	data[6] = 0x00; /* protocol */
-	data[7] = 0x40; /* max packet size on ept 0 */
+	data[2] = 0x00;		/* usb spec minor rev */
+	data[3] = 0x02;		/* usb spec major rev */
+	data[4] = 0x00;		/* class */
+	data[5] = 0x00;		/* subclass */
+	data[6] = 0x00;		/* protocol */
+	data[7] = 0x40;		/* max packet size on ept 0 */
 	memcpy(data + 8, &the_device->vendor_id, sizeof(short));
 	memcpy(data + 10, &the_device->product_id, sizeof(short));
 	memcpy(data + 12, &the_device->version_id, sizeof(short));
 	data[14] = udc_string_desc_alloc(the_device->manufacturer);
 	data[15] = udc_string_desc_alloc(the_device->product);
 	data[16] = udc_string_desc_alloc(the_device->serialno);
-	data[17] = 1; /* number of configurations */
+	data[17] = 1;		/* number of configurations */
 	udc_descriptor_register(desc);
 
 	/* create our configuration descriptor */
@@ -834,21 +866,20 @@ int udc_start(void)
 	data[0] = 0x09;
 	data[2] = size;
 	data[3] = size >> 8;
-	data[4] = 0x01; /* number of interfaces */
-	data[5] = 0x01; /* configuration value */
-	data[6] = 0x00; /* configuration string */
-	data[7] = 0x80; /* attributes */
-	data[8] = 0x80; /* max power (250ma) -- todo fix this */
+	data[4] = 0x01;		/* number of interfaces */
+	data[5] = 0x01;		/* configuration value */
+	data[6] = 0x00;		/* configuration string */
+	data[7] = 0x80;		/* attributes */
+	data[8] = 0x80;		/* max power (250ma) -- todo fix this */
 	udc_ifc_desc_fill(the_gadget, data + 9);
 	udc_descriptor_register(desc);
 
-	register_int_handler(INT_USB_HS, udc_interrupt, (void*) 0);
+	register_int_handler(INT_USB_HS, udc_interrupt, (void *)0);
 	writel(STS_URI | STS_SLI | STS_UI | STS_PCI, USB_USBINTR);
 	unmask_interrupt(INT_USB_HS);
 
-        /* go to RUN mode (D+ pullup enable) */
+	/* go to RUN mode (D+ pullup enable) */
 	writel(0x00080001, USB_USBCMD);
-
 
 	return 0;
 }
@@ -858,19 +889,18 @@ int udc_stop(void)
 #ifdef PLATFORM_MSM8X60
 	int val;
 #endif
-    writel(0, USB_USBINTR);
+	writel(0, USB_USBINTR);
 	mask_interrupt(INT_USB_HS);
 
-        /* disable pullup */
+	/* disable pullup */
 	writel(0x00080000, USB_USBCMD);
 #ifdef PLATFORM_MSM8X60
 	/* Voting down PLL8 */
 	val = readl(0x009034C0);
-	val &= ~(1<<8);
+	val &= ~(1 << 8);
 	writel(val, 0x009034C0);
 #endif
 	thread_sleep(10);
 
 	return 0;
 }
-

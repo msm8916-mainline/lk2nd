@@ -42,50 +42,54 @@ volatile unsigned _jtag_arg0 = 0;
 volatile unsigned _jtag_arg1 = 0;
 volatile unsigned _jtag_arg2 = 0;
 
-
 void jtag_hook(void);
 
 static void jtag_msg(unsigned status, const char *msg)
 {
-    unsigned char *out = _jtag_msg_buffer;
-    while((*out++ = *msg++) != 0) ;
-    _jtag_msg = status;
-    do {
-        jtag_hook();
-    } while(_jtag_msg != 0);
+	unsigned char *out = _jtag_msg_buffer;
+	while ((*out++ = *msg++) != 0) ;
+	_jtag_msg = status;
+	do {
+		jtag_hook();
+	}
+	while (_jtag_msg != 0);
 }
 
 void jtag_okay(const char *msg)
 {
-    if(msg == 0) msg = "OKAY";
-    jtag_msg(STATUS_OKAY, msg);
+	if (msg == 0)
+		msg = "OKAY";
+	jtag_msg(STATUS_OKAY, msg);
 }
 
 void jtag_fail(const char *msg)
 {
-    if(msg == 0) msg = "FAIL";
-    jtag_msg(STATUS_FAIL, msg);
+	if (msg == 0)
+		msg = "FAIL";
+	jtag_msg(STATUS_FAIL, msg);
 }
 
 int jtag_cmd_pending()
 {
-    jtag_hook();
-    return (int) _jtag_cmd;
+	jtag_hook();
+	return (int)_jtag_cmd;
 }
 
-void jtag_cmd_loop(void (*do_cmd)(const char *, unsigned, unsigned, unsigned))
+void jtag_cmd_loop(void (*do_cmd) (const char *, unsigned, unsigned, unsigned))
 {
-    unsigned n;
-    for(;;) {
-        if(jtag_cmd_pending()){
-            do_cmd((const char*) _jtag_cmd_buffer, _jtag_arg0, _jtag_arg1, _jtag_arg2);
-            for(n = 0; n < 256; n++) _jtag_cmd_buffer[n] = 0;
-            _jtag_arg0 = 0;
-            _jtag_arg1 = 0;
-            _jtag_arg2 = 0;
-            _jtag_cmd = 0;
-        }
-    }
+	unsigned n;
+	for (;;) {
+		if (jtag_cmd_pending()) {
+			do_cmd((const char *)_jtag_cmd_buffer, _jtag_arg0,
+			       _jtag_arg1, _jtag_arg2);
+			for (n = 0; n < 256; n++)
+				_jtag_cmd_buffer[n] = 0;
+			_jtag_arg0 = 0;
+			_jtag_arg1 = 0;
+			_jtag_arg2 = 0;
+			_jtag_cmd = 0;
+		}
+	}
 }
 
 static char jtag_putc_buffer[128];
@@ -93,23 +97,22 @@ static unsigned jtag_putc_count = 0;
 
 static void jtag_push_buffer(void)
 {
-    jtag_putc_buffer[jtag_putc_count] = 0;
-    jtag_putc_count = 0;
-    jtag_msg(STATUS_PRINT, jtag_putc_buffer);
+	jtag_putc_buffer[jtag_putc_count] = 0;
+	jtag_putc_count = 0;
+	jtag_msg(STATUS_PRINT, jtag_putc_buffer);
 }
 
 void jtag_dputc(unsigned c)
 {
-    if((c < 32) || (c > 127)) {
-        if(c == '\n') {
-            jtag_push_buffer();
-        }
-        return;
-    }
+	if ((c < 32) || (c > 127)) {
+		if (c == '\n') {
+			jtag_push_buffer();
+		}
+		return;
+	}
 
-    jtag_putc_buffer[jtag_putc_count++] = c;
-    if(jtag_putc_count == 127) {
-        jtag_push_buffer();
-    }
+	jtag_putc_buffer[jtag_putc_count++] = c;
+	if (jtag_putc_count == 127) {
+		jtag_push_buffer();
+	}
 }
-

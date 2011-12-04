@@ -33,55 +33,55 @@
 #include <dev/gpio.h>
 
 #include <platform/iomap.h>
-#define ACPU_CLK           0  /* Applications processor clock */
-#define ADM_CLK            1  /* Applications data mover clock */
-#define ADSP_CLK           2  /* ADSP clock */
-#define EBI1_CLK           3  /* External bus interface 1 clock */
-#define EBI2_CLK           4  /* External bus interface 2 clock */
-#define ECODEC_CLK         5  /* External CODEC clock */
-#define EMDH_CLK           6  /* External MDDI host clock */
-#define GP_CLK             7  /* General purpose clock */
-#define GRP_CLK            8  /* Graphics clock */
-#define I2C_CLK            9  /* I2C clock */
-#define ICODEC_RX_CLK     10  /* Internal CODEX RX clock */
-#define ICODEC_TX_CLK     11  /* Internal CODEX TX clock */
-#define IMEM_CLK          12  /* Internal graphics memory clock */
-#define MDC_CLK           13  /* MDDI client clock */
-#define MDP_CLK           14  /* Mobile display processor clock */
-#define PBUS_CLK          15  /* Peripheral bus clock */
-#define PCM_CLK           16  /* PCM clock */
-#define PMDH_CLK          17  /* Primary MDDI host clock */
-#define SDAC_CLK          18  /* Stereo DAC clock */
-#define SDC1_CLK          19  /* Secure Digital Card clocks */
+#define ACPU_CLK           0	/* Applications processor clock */
+#define ADM_CLK            1	/* Applications data mover clock */
+#define ADSP_CLK           2	/* ADSP clock */
+#define EBI1_CLK           3	/* External bus interface 1 clock */
+#define EBI2_CLK           4	/* External bus interface 2 clock */
+#define ECODEC_CLK         5	/* External CODEC clock */
+#define EMDH_CLK           6	/* External MDDI host clock */
+#define GP_CLK             7	/* General purpose clock */
+#define GRP_CLK            8	/* Graphics clock */
+#define I2C_CLK            9	/* I2C clock */
+#define ICODEC_RX_CLK     10	/* Internal CODEX RX clock */
+#define ICODEC_TX_CLK     11	/* Internal CODEX TX clock */
+#define IMEM_CLK          12	/* Internal graphics memory clock */
+#define MDC_CLK           13	/* MDDI client clock */
+#define MDP_CLK           14	/* Mobile display processor clock */
+#define PBUS_CLK          15	/* Peripheral bus clock */
+#define PCM_CLK           16	/* PCM clock */
+#define PMDH_CLK          17	/* Primary MDDI host clock */
+#define SDAC_CLK          18	/* Stereo DAC clock */
+#define SDC1_CLK          19	/* Secure Digital Card clocks */
 #define SDC1_PCLK         20
 #define SDC2_CLK          21
 #define SDC2_PCLK         22
-#define SDC3_CLK          23 
-#define SDC3_PCLK         24 
+#define SDC3_CLK          23
+#define SDC3_PCLK         24
 #define SDC4_CLK          25
 #define SDC4_PCLK         26
-#define TSIF_CLK          27  /* Transport Stream Interface clocks */
+#define TSIF_CLK          27	/* Transport Stream Interface clocks */
 #define TSIF_REF_CLK      28
-#define TV_DAC_CLK        29  /* TV clocks */
+#define TV_DAC_CLK        29	/* TV clocks */
 #define TV_ENC_CLK        30
-#define UART1_CLK         31  /* UART clocks */
+#define UART1_CLK         31	/* UART clocks */
 #define UART2_CLK         32
 #define UART3_CLK         33
 #define UART1DM_CLK       34
 #define UART2DM_CLK       35
-#define USB_HS_CLK        36  /* High speed USB core clock */
-#define USB_HS_PCLK       37  /* High speed USB pbus clock */
-#define USB_OTG_CLK       38  /* Full speed USB clock */
-#define VDC_CLK           39  /* Video controller clock */
-#define VFE_CLK           40  /* Camera / Video Front End clock */
-#define VFE_MDC_CLK       41  /* VFE MDDI client clock */
+#define USB_HS_CLK        36	/* High speed USB core clock */
+#define USB_HS_PCLK       37	/* High speed USB pbus clock */
+#define USB_OTG_CLK       38	/* Full speed USB clock */
+#define VDC_CLK           39	/* Video controller clock */
+#define VFE_CLK           40	/* Camera / Video Front End clock */
+#define VFE_MDC_CLK       41	/* VFE MDDI client clock */
 
 /* qsd8k adds... */
 #define MDP_LCDC_PCLK_CLK     42
 #define MDP_LCDC_PAD_PCLK_CLK 43
 #define MDP_VSYNC_CLK         44
 
-#define P_USB_HS_CORE_CLK     53  /* High speed USB 1 core clock */
+#define P_USB_HS_CORE_CLK     53	/* High speed USB 1 core clock */
 /* msm7x30 adds... */
 #define PMDH_P_CLK            82
 #define MDP_P_CLK             86
@@ -123,16 +123,16 @@ enum {
 	PCOM_GPIO_TLMM_UNCONFIG_GROUP,
 	PCOM_NV_READ_HIGH_BITS,
 	PCOM_NV_WRITE_HIGH_BITS,
-    PCOM_RPC_GPIO_TLMM_CONFIG_EX = 0x25,
+	PCOM_RPC_GPIO_TLMM_CONFIG_EX = 0x25,
 	PCOM_NUM_CMDS,
 };
 
 enum {
-	 PCOM_INVALID_STATUS = 0x0,
-	 PCOM_READY,
-	 PCOM_CMD_RUNNING,
-	 PCOM_CMD_SUCCESS,
-	 PCOM_CMD_FAIL,
+	PCOM_INVALID_STATUS = 0x0,
+	PCOM_READY,
+	PCOM_CMD_RUNNING,
+	PCOM_CMD_SUCCESS,
+	PCOM_CMD_FAIL,
 };
 
 #ifndef PLATFORM_MSM7X30
@@ -141,9 +141,9 @@ enum {
 static inline void notify_other_proc_comm(void)
 {
 #ifndef PLATFORM_MSM7X30
-    writel(1, MSM_A2M_INT(6));
+	writel(1, MSM_A2M_INT(6));
 #else
-    writel(1<<6, (MSM_GCC_BASE + 0x8));
+	writel(1 << 6, (MSM_GCC_BASE + 0x8));
 #endif
 }
 
@@ -162,8 +162,8 @@ int msm_proc_comm(unsigned cmd, unsigned *data1, unsigned *data2)
 	int ret = -1;
 	unsigned status;
 
-//	dprintf(INFO, "proc_comm(%d,%d,%d)\n",
-//		cmd, data1 ? *data1 : 0, data2 ? *data2 : 0);
+//      dprintf(INFO, "proc_comm(%d,%d,%d)\n",
+//              cmd, data1 ? *data1 : 0, data2 ? *data2 : 0);
 	while (readl(MDM_STATUS) != PCOM_READY) {
 		/* XXX check for A9 reset */
 	}
@@ -178,14 +178,14 @@ int msm_proc_comm(unsigned cmd, unsigned *data1, unsigned *data2)
 	 * proc comm processing
 	 */
 	writel(cmd, APP_COMMAND);
-//	dprintf(INFO, "proc_comm tx\n");
+//      dprintf(INFO, "proc_comm tx\n");
 	notify_other_proc_comm();
 	while (readl(APP_COMMAND) != PCOM_CMD_DONE) {
 		/* XXX check for A9 reset */
 	}
 
 	status = readl(APP_STATUS);
-//	dprintf(INFO, "proc_comm status %d\n", status);
+//      dprintf(INFO, "proc_comm status %d\n", status);
 
 	if (status != PCOM_CMD_FAIL) {
 		if (data1)
@@ -193,11 +193,11 @@ int msm_proc_comm(unsigned cmd, unsigned *data1, unsigned *data2)
 		if (data2)
 			*data2 = readl(APP_DATA2);
 		ret = 0;
-	/*
-	 * Write command idle to indicate non HLOS that
-	 * apps has finished reading the status & data
-	 * of proc comm command
-	 */
+		/*
+		 * Write command idle to indicate non HLOS that
+		 * apps has finished reading the status & data
+		 * of proc comm command
+		 */
 		writel(PCOM_CMD_IDLE, APP_COMMAND);
 	}
 
@@ -224,7 +224,7 @@ static int clock_get_rate(unsigned id)
 	if (msm_proc_comm(PCOM_CLKCTL_RPC_RATE, &id, 0)) {
 		return -1;
 	} else {
-		return (int) id;
+		return (int)id;
 	}
 }
 
@@ -242,7 +242,7 @@ void lcdc_clock_init(unsigned rate)
 	clock_enable(MDP_LCDC_PAD_PCLK_CLK);
 }
 
-void mdp_clock_init (unsigned rate)
+void mdp_clock_init(unsigned rate)
 {
 	clock_set_rate(MDP_CLK, rate);
 	clock_enable(MDP_CLK);
@@ -279,57 +279,54 @@ void mddi_clock_init(unsigned num, unsigned rate)
 	clock_enable(clock_id);
 	clock_set_rate(clock_id, rate);
 #ifdef PLATFORM_MSM7X30
-	clock_enable (PMDH_P_CLK);
+	clock_enable(PMDH_P_CLK);
 #endif
 }
 
 void reboot(unsigned reboot_reason)
 {
-        msm_proc_comm(PCOM_RESET_CHIP, &reboot_reason, 0);
-        for (;;) ;
+	msm_proc_comm(PCOM_RESET_CHIP, &reboot_reason, 0);
+	for (;;) ;
 }
 
-int mmc_clock_enable_disable (unsigned id, unsigned enable)
+int mmc_clock_enable_disable(unsigned id, unsigned enable)
 {
-	if(enable)
-	{
-		return clock_enable(id); //Enable mmc clock rate
-	}
-	else
-	{
-		return clock_disable(id); //Disable mmc clock rate
+	if (enable) {
+		return clock_enable(id);	//Enable mmc clock rate
+	} else {
+		return clock_disable(id);	//Disable mmc clock rate
 	}
 }
 
 int mmc_clock_set_rate(unsigned id, unsigned rate)
 {
-	return clock_set_rate(id, rate); //Set mmc clock rate
+	return clock_set_rate(id, rate);	//Set mmc clock rate
 }
 
 int mmc_clock_get_rate(unsigned id)
 {
-	return clock_get_rate(id); //Get mmc clock rate
+	return clock_get_rate(id);	//Get mmc clock rate
 }
 
 int gpio_tlmm_config(unsigned config, unsigned disable)
 {
-    return msm_proc_comm(PCOM_RPC_GPIO_TLMM_CONFIG_EX, &config, &disable);
+	return msm_proc_comm(PCOM_RPC_GPIO_TLMM_CONFIG_EX, &config, &disable);
 }
 
 int vreg_set_level(unsigned id, unsigned mv)
 {
-    return msm_proc_comm(PCOM_VREG_SET_LEVEL, &id, &mv);
+	return msm_proc_comm(PCOM_VREG_SET_LEVEL, &id, &mv);
 }
 
 int vreg_enable(unsigned id)
 {
-    int enable = 1;
-    return msm_proc_comm(PCOM_VREG_SWITCH, &id, &enable);
+	int enable = 1;
+	return msm_proc_comm(PCOM_VREG_SWITCH, &id, &enable);
 
 }
 
 int vreg_disable(unsigned id)
 {
-    int enable = 0;
-    return msm_proc_comm(PCOM_VREG_SWITCH, &id, &enable);
+	int enable = 0;
+	return msm_proc_comm(PCOM_VREG_SWITCH, &id, &enable);
 }
