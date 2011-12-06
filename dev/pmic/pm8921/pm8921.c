@@ -31,7 +31,6 @@
 #include <dev/pm8921.h>
 #include "pm8921_hw.h"
 
-
 static pm8921_dev_t *dev;
 
 static uint8_t ldo_n_voltage_mult[LDO_VOLTAGE_ENTRIES] = {
@@ -292,3 +291,28 @@ read_write_err:
 	return rc;
 }
 
+/* A wrapper function to configure PMIC PWM
+ * pwm_id : Channel number to configure
+ * duty_us : duty cycle for output waveform in micro seconds
+ * period_us : period for output waveform in micro seconds
+ */
+int pm8921_set_pwm_config(uint8_t pwm_id, uint32_t duty_us, uint32_t period_us)
+{
+	int rc;
+
+	rc = pm8921_pwm_config(pwm_id, duty_us, period_us, dev);
+
+	return rc;
+}
+
+/* A wrapper function to enable PMIC PWM
+ * pwm_id : Channel number to enable
+ */
+int pm8921_pwm_channel_enable(uint8_t pwm_id)
+{
+	int rc;
+
+	rc = pm8921_pwm_enable(pwm_id, dev);
+
+	return rc;
+}
