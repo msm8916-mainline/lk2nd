@@ -374,6 +374,7 @@ extern unsigned int mmc_boot_mci_base;
 #define MMC_BOOT_E_DATA_ADM_ERR           21
 
 /* EXT_CSD */
+#define MMC_BOOT_ACCESS_BIT_SET           0x1
 #define MMC_BOOT_ACCESS_WRITE             0x3
 
 #define MMC_BOOT_EXT_USER_WP              171
@@ -593,6 +594,10 @@ unsigned int mmc_boot_write_to_card(struct mmc_boot_host *host,
 unsigned int mmc_erase_card(unsigned long long data_addr,
 			    unsigned long long data_len);
 
+unsigned int mmc_wp(unsigned int sector, unsigned int size,
+				unsigned char set_clear_wp);
+
 struct mmc_boot_host *get_mmc_host(void);
 struct mmc_boot_card *get_mmc_card(void);
+
 #endif

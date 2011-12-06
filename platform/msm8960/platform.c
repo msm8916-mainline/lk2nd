@@ -36,6 +36,7 @@
 #include <dev/fbcon.h>
 #include <mmu.h>
 #include <arch/arm/mmu.h>
+#include <partition_parser.h>
 
 extern void platform_init_timer(void);
 extern void platform_panel_backlight_on(void);
@@ -109,12 +110,31 @@ void display_shutdown(void)
 	mipi_dsi_shutdown();
 }
 
+/*
+ * Write-protect partition list.
+ *
+ * Partition added in this list should have (size + padding) in multiple of
+ * mmc write protect group size. Otherwise this can end up write protecting
+ * some blocks from next partition.
+ */
+char *wp_list[] = {"fsg", NULL};
+
+void platform_wp_paritition(void)
+{
+	int count = 0;
+	while(wp_list[count] != NULL)
+	{
+		paritition_wp_by_name(wp_list[count]);
+		count++;
+	}
+}
+
 void platform_uninit(void)
 {
 #if DISPLAY_SPLASH_SCREEN
 	display_shutdown();
 #endif
-
+	platform_wp_paritition();
 	platform_uninit_timer();
 }
 
@@ -157,3 +177,4 @@ uint32_t platform_tick_rate(void)
 {
 	return ticks_per_sec;
 }
+

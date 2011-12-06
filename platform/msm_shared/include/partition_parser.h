@@ -176,6 +176,7 @@ unsigned int write_gpt(unsigned size, unsigned char *gptImage,
 		       struct mmc_boot_host *mmc_host,
 		       struct mmc_boot_card *mmc_card);
 unsigned int write_partition(unsigned size, unsigned char *partition);
+unsigned int paritition_wp_by_name(const char *name);
 
 /* For Debugging */
 void partition_dump(void);
