@@ -376,6 +376,10 @@ int fastboot_init(void *base, unsigned size)
 	fastboot_publish("version", "0.5");
 
 	thr = thread_create("fastboot", fastboot_handler, 0, DEFAULT_PRIORITY, 4096);
+	if (!thr)
+	{
+		goto fail_alloc_in;
+	}
 	thread_resume(thr);
 	return 0;
 
