@@ -75,8 +75,8 @@ static uint16_t pause_count[PM_PWM_PAUSE_COUNT_MAX + 1] = {
 
 /* Function to get the PWM size, divider, clock for the given period */
 
-static void pm_pwm_calc_period(uint32_t period_us,
-	struct pm_pwm_config *pwm_conf)
+static void pm8921_pwm_calc_period(uint32_t period_us,
+	struct pm8921_pwm_config *pwm_conf)
 {
 	int n, m, clk, div;
 	int best_m, best_div, best_clk;
@@ -162,7 +162,7 @@ static void pm_pwm_calc_period(uint32_t period_us,
 /* Function to configure PWM control registers with clock, divider values */
 
 static int pm8921_pwm_configure(uint8_t pwm_id,
-	struct pm_pwm_config *pwm_conf,
+	struct pm8921_pwm_config *pwm_conf,
 	pm8921_dev_t *dev)
 {
 	int i, len, rc = -1;
@@ -225,7 +225,7 @@ static int pm8921_pwm_configure(uint8_t pwm_id,
 
 bail_out:
 	if (rc)
-		dprintf(CRITICAL, "Error in pm_pwm_configure()\n");
+		dprintf(CRITICAL, "Error in pm8921_pwm_configure()\n");
 	return rc;
 }
 
@@ -238,7 +238,7 @@ int pm8921_pwm_config(uint8_t pwm_id,
 	uint32_t period_us,
 	pm8921_dev_t *dev)
 {
-	struct pm_pwm_config pwm_conf;
+	struct pm8921_pwm_config pwm_conf;
 	uint32_t max_pwm_value, tmp;
 	int rc = -1;
 
@@ -249,7 +249,7 @@ int pm8921_pwm_config(uint8_t pwm_id,
 		return -1;
 	}
 
-	pm_pwm_calc_period(period_us, &pwm_conf);
+	pm8921_pwm_calc_period(period_us, &pwm_conf);
 
 	/* Figure out pwm_value with overflow handling */
 	if (period_us > (1 << pwm_conf.pwm_size))
@@ -277,7 +277,7 @@ int pm8921_pwm_config(uint8_t pwm_id,
 		 duty_us, period_us, pwm_conf.pwm_value,
 		 1 << pwm_conf.pwm_size);
 
-	rc = pm_pwm_configure(pwm_id, &pwm_conf, dev);
+	rc = pm8921_pwm_configure(pwm_id, &pwm_conf, dev);
 
 	if (rc)
 		dprintf(CRITICAL, "Error in pwm_config()\n");

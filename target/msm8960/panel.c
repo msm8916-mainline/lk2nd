@@ -54,6 +54,49 @@ void panel_backlight_on(void)
 	}
 }
 
+/* Configure gpio 24 through lpg0 */
+void panel_backlight_on_pwm(void)
+{
+	struct pm8921_gpio backlight_pwm = {
+		.direction = PM_GPIO_DIR_OUT,
+		.output_buffer = 0,
+		.output_value = 0,
+		.pull = PM_GPIO_PULL_NO,
+		.vin_sel = 2,
+		.out_strength = PM_GPIO_STRENGTH_HIGH,
+		.function = PM_GPIO_FUNC_2,
+		.inv_int_pol = 0,
+    };
+
+	int rc = pm8921_gpio_config(PM_GPIO(24), &backlight_pwm);
+	if (rc)
+	{
+		dprintf(CRITICAL, "FAIL pm8921_gpio_config(): rc=%d.\n", rc);
+	}
+}
+
+/* Configure gpio 25 through lpg1 */
+void panel_sec_backlight_on_pwm(void)
+{
+	struct pm8921_gpio backlight_pwm = {
+		.direction = PM_GPIO_DIR_OUT,
+		.output_buffer = 0,
+		.output_value = 0,
+		.pull = PM_GPIO_PULL_NO,
+		.vin_sel = 2,
+		.out_strength = PM_GPIO_STRENGTH_HIGH,
+		.function = PM_GPIO_FUNC_2,
+		.inv_int_pol = 0,
+	};
+
+	int rc = pm8921_gpio_config(PM_GPIO(25), &backlight_pwm);
+	if (rc)
+	{
+		dprintf(CRITICAL, "FAIL pm8921_gpio_config(): rc=%d.\n", rc);
+	}
+}
+
+
 /* Pull DISP_RST_N high to get panel out of reset */
 void mipi_panel_reset(void)
 {

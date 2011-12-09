@@ -316,3 +316,124 @@ int pm8921_pwm_channel_enable(uint8_t pwm_id)
 
 	return rc;
 }
+
+/* Configure LED's for current sinks
+ * enable = 1: Configure external signal detection
+ *             for the sink with the current level
+ * enable = 0: Turn off external signal detection
+ *
+ * Values for sink are defined as follows:
+ * 0 = MANUAL, turn on LED when curent [00000, 10100]
+ * 1 = PWM1
+ * 2 = PWM2
+ * 3 = PWM3
+ * 4 = DBUS1
+ * 5 = DBUS2
+ * 6 = DBUS3
+ * 7 = DBUS4
+ *
+ * Current settings are calculated as per the equation:
+ * [00000, 10100]: Iout = current * 2 mA
+ * [10101, 11111]: invalid settings
+ */
+
+int pm8921_config_led_current(enum pm8921_leds led_num,
+	uint8_t current,
+	enum led_mode sink,
+	int enable)
+{
+	uint8_t val;
+	int ret;
+
+	/* Program the CTRL reg */
+	val = 0x0;
+
+	if (enable != 0)
+	{
+
+		if (current > 0x15)
+		{
+			dprintf(CRITICAL, "Invalid current settings for PM8921 LED Ctrl Reg \
+				current=%d.\n", current);
+			return -1;
+		}
+
+		if (sink > 0x7)
+		{
+			dprintf(CRITICAL, "Invalid signal selection for PM8921 LED Ctrl Reg \
+				sink=%d.\n", sink);
+			return -1;
+		}
+
+		val |= LED_CURRENT_SET(current);
+		val |= LED_SIGNAL_SELECT(sink);
+	}
+
+	ret = dev->write(&val, 1, PM8921_LED_CNTL_REG(led_num));
+
+	if (ret)
+		dprintf(CRITICAL, "Failed to write to PM8921 LED Ctrl Reg ret=%d.\n", ret);
+
+	return ret;
+
+}
+
+/* Configure DRV_KEYPAD
+ *drv_flash_sel:
+ * 0000 = off
+ * Iout = drv_flash_sel * 20 mA (300 mA driver)
+ * Iout = drv_flash_sel * 40 mA (600 mA driver)
+ *
+ * flash_logic = 0 : flash is on when DTEST is high
+ * flash_logic = 0 : flash is off when DTEST is high
+ *
+ * flash_ensel = 0 : manual mode, turn on flash when drv_flash_sel > 0
+ * flash_ensel = 1 : DBUS1
+ * flash_ensel = 2 : DBUS2
+ * flash_ensel = 3 : enable flash from LPG
+ */
+
+int pm8921_config_drv_keypad(unsigned int drv_flash_sel, unsigned int flash_logic, unsigned int flash_ensel)
+{
+	uint8_t val;
+	int ret;
+
+	/* Program the CTRL reg */
+	val = 0x0;
+
+	if (drv_flash_sel != 0)
+	{
+		if (drv_flash_sel > 0x0F)
+		{
+			dprintf(CRITICAL, "Invalid current settings for PM8921 \
+				KEYPAD_DRV Ctrl Reg drv_flash_sel=%d.\n", drv_flash_sel);
+			return -1;
+		}
+
+		if (flash_logic > 1)
+		{
+			dprintf(CRITICAL, "Invalid signal selection for PM8921 \
+				KEYPAD_DRV Ctrl Reg flash_logic=%d.\n", flash_logic);
+			return -1;
+		}
+
+		if (flash_ensel > 3)
+		{
+			dprintf(CRITICAL, "Invalid signal selection for PM8921 \
+				KEYPAD_DRV Ctrl Reg flash_ensel=%d.\n", flash_ensel);
+			return -1;
+		}
+
+		val |= DRV_FLASH_SEL(drv_flash_sel);
+		val |= FLASH_LOGIC_SEL(flash_logic);
+		val |= FLASH_ENSEL(flash_ensel);
+	}
+
+	ret = dev->write(&val, 1, PM8921_DRV_KEYPAD_CNTL_REG);
+
+	if (ret)
+		dprintf(CRITICAL, "Failed to write to PM8921 KEYPAD_DRV Ctrl Reg ret=%d.\n", ret);
+
+	return ret;
+
+}

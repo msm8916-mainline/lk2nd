@@ -146,7 +146,7 @@
 
 #define PM_PWM_PAUSE_COUNT_MAX        56 /* < 2^6 = 64*/
 
-struct pm_pwm_config {
+struct pm8921_pwm_config {
     uint8_t pwm_size;      /* round up to 6 or 9 for 6/9-bit PWM SIZE */
     uint8_t clk;
     uint8_t pre_div;
