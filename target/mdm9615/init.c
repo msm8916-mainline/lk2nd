@@ -52,13 +52,13 @@ unsigned hw_platform = 0;
 unsigned target_msm_id = 0;
 
 /* Partition names for fastboot flash */
-char *apps_ptn_names[] = { "aboot", "boot", "system" };
+char *apps_ptn_names[] = { "aboot", "boot", "system", "userdata" };
 
 /* Partitions should be in this order */
-char *ptable_ptn_names[] = { "APPSBL", "APPS", "EFS2APPS" };
+char *ptable_ptn_names[] = { "APPSBL", "APPS", "SYSTEM", "USERDATA" };
 
-unsigned ptn_name_count = 3;
-unsigned modem_ptn_count = 7;
+unsigned ptn_name_count = 4;
+unsigned modem_ptn_count = 6;
 
 static const uint8_t uart_gsbi_id = GSBI_ID_4;
 
