@@ -19,6 +19,10 @@ endif
 TARGET_NAND_BOOTLOADER := $(PRODUCT_OUT)/appsboot.mbn
 NAND_BOOTLOADER_OUT := $(TARGET_OUT_INTERMEDIATES)/NAND_BOOTLOADER_OBJ
 
+# Remove bootloader binary to trigger recompile when source changes
+appsbootldr_clean:
+	$(hide) rm -f $(TARGET_NAND_BOOTLOADER)
+
 $(NAND_BOOTLOADER_OUT):
 	mkdir -p $(NAND_BOOTLOADER_OUT)
 
@@ -26,15 +30,18 @@ $(NAND_BOOTLOADER_OUT):
 TARGET_EMMC_BOOTLOADER := $(PRODUCT_OUT)/emmc_appsboot.mbn
 EMMC_BOOTLOADER_OUT := $(TARGET_OUT_INTERMEDIATES)/EMMC_BOOTLOADER_OBJ
 
+emmc_appsbootldr_clean:
+	$(hide) rm -f $(TARGET_EMMC_BOOTLOADER)
+
 $(EMMC_BOOTLOADER_OUT):
 	mkdir -p $(EMMC_BOOTLOADER_OUT)
 
 # Top level for NAND variant targets
-$(TARGET_NAND_BOOTLOADER): $(NAND_BOOTLOADER_OUT)
+$(TARGET_NAND_BOOTLOADER): appsbootldr_clean | $(NAND_BOOTLOADER_OUT)
 	$(MAKE) -C bootable/bootloader/lk TOOLCHAIN_PREFIX=$(CROSS_TOOL) BOOTLOADER_OUT=../../../$(NAND_BOOTLOADER_OUT) $(TARGET_PRODUCT) $(SIGNED_KERNEL)
 
 # Top level for eMMC variant targets
-$(TARGET_EMMC_BOOTLOADER): $(EMMC_BOOTLOADER_OUT)
+$(TARGET_EMMC_BOOTLOADER): emmc_appsbootldr_clean | $(EMMC_BOOTLOADER_OUT)
 	$(MAKE) -C bootable/bootloader/lk TOOLCHAIN_PREFIX=$(CROSS_TOOL) BOOTLOADER_OUT=../../../$(EMMC_BOOTLOADER_OUT) $(TARGET_PRODUCT) EMMC_BOOT=1 $(SIGNED_KERNEL)
 
 # Keep build NAND & eMMC as default for targets still using TARGET_BOOTLOADER
