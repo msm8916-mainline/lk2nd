@@ -93,5 +93,5 @@ void *target_get_scratch_address(void)
 
 unsigned target_get_max_flash_size(void)
 {
-	return (192 * 1024 * 1024);
+	return (384 * 1024 * 1024);
 }
