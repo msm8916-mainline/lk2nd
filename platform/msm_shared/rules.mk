@@ -7,7 +7,6 @@ DEFINES += $(TARGET_XRES)
 DEFINES += $(TARGET_YRES)
 
 OBJS += \
-	$(LOCAL_DIR)/timer.o \
 	$(LOCAL_DIR)/debug.o \
 	$(LOCAL_DIR)/smem.o \
 	$(LOCAL_DIR)/smem_ptable.o \
@@ -32,7 +31,8 @@ ifeq ($(PLATFORM),msm8x60)
 			$(LOCAL_DIR)/certificate.o \
 			$(LOCAL_DIR)/image_verify.o \
 			$(LOCAL_DIR)/hdmi.o \
-			$(LOCAL_DIR)/interrupts.o
+			$(LOCAL_DIR)/interrupts.o \
+			$(LOCAL_DIR)/timer.o
 endif
 
 ifeq ($(PLATFORM),msm8960)
@@ -52,7 +52,14 @@ ifeq ($(PLATFORM),msm8960)
 			$(LOCAL_DIR)/board.o \
 			$(LOCAL_DIR)/display.o \
 			$(LOCAL_DIR)/lvds.o \
-			$(LOCAL_DIR)/mipi_dsi_phy.o
+			$(LOCAL_DIR)/mipi_dsi_phy.o \
+			$(LOCAL_DIR)/timer.o
+endif
+
+ifeq ($(PLATFORM),copper)
+	OBJS += $(LOCAL_DIR)/qgic.o \
+			$(LOCAL_DIR)/qtimer.o \
+			$(LOCAL_DIR)/interrupts.o
 endif
 
 ifeq ($(PLATFORM),msm7x27a)
@@ -65,14 +72,16 @@ ifeq ($(PLATFORM),msm7x27a)
 			$(LOCAL_DIR)/certificate.o \
 			$(LOCAL_DIR)/image_verify.o \
 			$(LOCAL_DIR)/qgic.o \
-			$(LOCAL_DIR)/interrupts.o
+			$(LOCAL_DIR)/interrupts.o \
+			$(LOCAL_DIR)/timer.o
 endif
 
 ifeq ($(PLATFORM),msm7k)
 	OBJS += $(LOCAL_DIR)/uart.o \
 			$(LOCAL_DIR)/proc_comm.o \
 			$(LOCAL_DIR)/lcdc.o \
-			$(LOCAL_DIR)/mddi.o
+			$(LOCAL_DIR)/mddi.o \
+			$(LOCAL_DIR)/timer.o
 endif
 
 ifeq ($(PLATFORM),msm7x30)
@@ -83,11 +92,13 @@ ifeq ($(PLATFORM),msm7x30)
 			$(LOCAL_DIR)/lcdc.o \
 			$(LOCAL_DIR)/mddi.o \
 			$(LOCAL_DIR)/certificate.o \
-			$(LOCAL_DIR)/image_verify.o
+			$(LOCAL_DIR)/image_verify.o \
+			$(LOCAL_DIR)/timer.o
 endif
 
 ifeq ($(PLATFORM),mdm9x15)
 	OBJS += $(LOCAL_DIR)/qgic.o \
 			$(LOCAL_DIR)/uart_dm.o \
-			$(LOCAL_DIR)/interrupts.o
+			$(LOCAL_DIR)/interrupts.o \
+			$(LOCAL_DIR)/timer.o
 endif
