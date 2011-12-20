@@ -47,6 +47,8 @@ void arm_mmu_init(void);
 #define MMU_MEMORY_AP_READ_ONLY     (0x7 << 10)
 #define MMU_MEMORY_AP_READ_WRITE    (0x3 << 10)
 
+#define MMU_MEMORY_XN               (0x1 << 4)
+
 #else
 
 #error "MMU implementation needs to be updated for this ARM architecture"

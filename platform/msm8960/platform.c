@@ -60,15 +60,19 @@ static uint32_t ticks_per_sec = 0;
 
 /* Kernel region - cacheable, write through */
 #define KERNEL_MEMORY     (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH   | \
-                           MMU_MEMORY_AP_READ_WRITE)
+                           MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
 
 /* Scratch region - cacheable, write through */
 #define SCRATCH_MEMORY    (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH   | \
-                           MMU_MEMORY_AP_READ_WRITE)
+                           MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
 
 /* Peripherals - non-shared device */
 #define IOMAP_MEMORY      (MMU_MEMORY_TYPE_DEVICE_NON_SHARED | \
-                           MMU_MEMORY_AP_READ_WRITE)
+                           MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
+
+/* IMEM: Must set execute never bit to avoid instruction prefetch from TZ */
+#define IMEM_MEMORY       (MMU_MEMORY_TYPE_STRONGLY_ORDERED | \
+                           MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
 
 mmu_section_t mmu_section_table[] = {
 /*  Physical addr,    Virtual addr,    Size (in MB),    Flags */
@@ -76,6 +80,7 @@ mmu_section_t mmu_section_table[] = {
 	{BASE_ADDR, BASE_ADDR, 44, KERNEL_MEMORY},
 	{SCRATCH_ADDR, SCRATCH_ADDR, 128, SCRATCH_MEMORY},
 	{MSM_IOMAP_BASE, MSM_IOMAP_BASE, MSM_IOMAP_SIZE, IOMAP_MEMORY},
+	{MSM_IMEM_BASE, MSM_IMEM_BASE, 1, IMEM_MEMORY},
 };
 
 void platform_early_init(void)
