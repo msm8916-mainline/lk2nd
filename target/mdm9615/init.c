@@ -101,6 +101,17 @@ void target_init(void)
 	flash_set_ptable(&flash_ptable);
 }
 
+unsigned check_reboot_mode(void)
+{
+	unsigned restart_reason = 0;
+
+	/* Read reboot reason and scrub it */
+	restart_reason = readl(RESTART_REASON_ADDR);
+	writel(0x00, RESTART_REASON_ADDR);
+
+	return restart_reason;
+}
+
 void board_info(void)
 {
 	struct smem_board_info_v4 board_info_v4;
@@ -142,6 +153,9 @@ unsigned board_machtype(void)
 
 void reboot_device(unsigned reboot_reason)
 {
+	/* Write reboot reason */
+	writel(reboot_reason, RESTART_REASON_ADDR);
+
 	/* Actually reset the chip */
 	pm8921_config_reset_pwr_off(1);
 	writel(0, MSM_PSHOLD_CTL_SU);
