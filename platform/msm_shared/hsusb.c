@@ -266,6 +266,9 @@ int udc_request_queue(struct udc_endpoint *ept, struct udc_request *_req)
 	item->info = INFO_BYTES(req->req.length) | INFO_IOC | INFO_ACTIVE;
 	item->page0 = phys;
 	item->page1 = (phys & 0xfffff000) + 0x1000;
+	item->page2 = (phys & 0xfffff000) + 0x2000;
+	item->page3 = (phys & 0xfffff000) + 0x3000;
+	item->page4 = (phys & 0xfffff000) + 0x4000;
 
 	enter_critical_section();
 	ept->head->next = (unsigned)item;

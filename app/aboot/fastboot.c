@@ -34,6 +34,7 @@
 #include <dev/udc.h>
 
 #define MAX_RSP_SIZE 64
+#define MAX_USBFS_BULK_SIZE (16 * 1024)
 
 void boot_linux(void *bootimg, unsigned sz);
 
@@ -145,7 +146,7 @@ static int usb_read(void *_buf, unsigned len)
 		goto oops;
 
 	while (len > 0) {
-		xfer = (len > 4096) ? 4096 : len;
+		xfer = (len > MAX_USBFS_BULK_SIZE) ? MAX_USBFS_BULK_SIZE : len;
 		req->buf = buf;
 		req->length = xfer;
 		req->complete = req_complete;
