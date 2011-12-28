@@ -99,12 +99,13 @@ void display_init(void)
 void display_shutdown(void)
 {
 #if DISPLAY_TYPE_MIPI
+	if (machine_is_7x27a_evb())
+		return;
 	dprintf(SPEW, "display_shutdown()\n");
 	mipi_dsi_shutdown();
 	/* Power down DSI bridge chip */
 	gpio_set(128, 0x1);
 #endif
-
 }
 
 void platform_uninit(void)
