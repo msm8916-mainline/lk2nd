@@ -241,10 +241,11 @@ void platform_uninit(void)
 	 */
 	mdelay(400);
 
-	platform_uninit_timer();
 #if DISPLAY_SPLASH_SCREEN
 	display_shutdown();
 #endif
+
+	platform_uninit_timer();
 }
 
 /* Initialize DGT timer */

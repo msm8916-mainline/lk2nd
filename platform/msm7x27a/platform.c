@@ -109,10 +109,11 @@ void display_shutdown(void)
 
 void platform_uninit(void)
 {
-	platform_uninit_timer();
 #if DISPLAY_SPLASH_SCREEN
 	display_shutdown();
 #endif
+
+	platform_uninit_timer();
 }
 
 /* Initialize DGT timer */
