@@ -178,6 +178,10 @@ libfdt_tests () {
     run_test rw_tree1
     tree1_tests rw_tree1.test.dtb
     tree1_tests_rw rw_tree1.test.dtb
+    run_test appendprop1
+    run_test appendprop2 appendprop1.test.dtb
+    run_dtc_test -I dts -O dtb -o appendprop.test.dtb appendprop.dts
+    run_test dtbs_equal_ordered appendprop2.test.dtb appendprop.test.dtb
 
     for basetree in test_tree1.dtb sw_tree1.test.dtb rw_tree1.test.dtb; do
 	run_test nopulate $basetree
