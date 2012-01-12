@@ -357,6 +357,10 @@ dtc_tests () {
     run_sh_test dtc-fatal.sh -I dts -O dtb nosuchfile.dts
     run_sh_test dtc-fatal.sh -I dtb -O dtb nosuchfile.dtb
     run_sh_test dtc-fatal.sh -I fs -O dtb nosuchfile
+
+    # Dependencies
+    run_dtc_test -I dts -O dtb -o dependencies.test.dtb -d dependencies.test.d dependencies.dts
+    run_wrap_test cmp dependencies.test.d dependencies.cmp
 }
 
 cmp_tests () {

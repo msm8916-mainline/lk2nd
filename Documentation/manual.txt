@@ -106,6 +106,9 @@ Options:
     -O <output_format>
 	The generated output format, as listed above.
 
+    -d <dependency_filename>
+	Generate a dependency file during compilation.
+
     -q
 	Quiet: -q suppress warnings, -qq errors, -qqq all
 
