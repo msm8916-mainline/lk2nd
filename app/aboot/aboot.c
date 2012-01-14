@@ -1276,6 +1276,7 @@ fastboot:
 	fastboot_register("oem device-info", cmd_oem_devinfo);
 	fastboot_publish("product", TARGET(BOARD));
 	fastboot_publish("kernel", "lk");
+	fastboot_publish("serialno", sn_buf);
 	partition_dump();
 	sz = target_get_max_flash_size();
 	fastboot_init(target_get_scratch_address(), sz);
