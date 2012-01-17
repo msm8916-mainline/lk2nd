@@ -1,4 +1,4 @@
-/* Copyright (c) 2011, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -31,6 +31,8 @@
 #include <platform/iomap.h>
 #include <platform/gpio.h>
 #include <gsbi.h>
+#include <dev/pm8921.h>
+#include <sys/types.h>
 
 void gpio_tlmm_config(uint32_t gpio, uint8_t func,
 		      uint8_t dir, uint8_t pull,
@@ -79,4 +81,86 @@ void gpio_config_uart_dm(uint8_t id)
 	default:
 		ASSERT(0);
 	}
+}
+
+struct pm8xxx_gpio_init {
+	uint32_t gpio;
+	struct pm8921_gpio config;
+};
+
+#define PM8XXX_GPIO_INIT(_gpio, _dir, _buf, _val, _pull, _vin, _out_strength, \
+			_func, _inv, _disable) \
+{ \
+	.gpio	= _gpio, \
+	.config	= { \
+		.direction	= _dir, \
+		.output_buffer	= _buf, \
+		.output_value	= _val, \
+		.pull		= _pull, \
+		.vin_sel	= _vin, \
+		.out_strength	= _out_strength, \
+		.function	= _func, \
+		.inv_int_pol	= _inv, \
+		.disable_pin	= _disable, \
+	} \
+}
+
+#define PM8XXX_GPIO_OUTPUT(_gpio, _val) \
+	PM8XXX_GPIO_INIT(_gpio, PM_GPIO_DIR_OUT, 0, _val, \
+			PM_GPIO_PULL_NO, 2, \
+			PM_GPIO_STRENGTH_HIGH, \
+			PM_GPIO_FUNC_NORMAL, 1, 0)
+
+
+#define PM8XXX_GPIO_INPUT(_gpio, _pull) \
+	PM8XXX_GPIO_INIT(_gpio, PM_GPIO_DIR_IN, 0, 0, \
+			_pull, 2, \
+			PM_GPIO_STRENGTH_NO, \
+			PM_GPIO_FUNC_NORMAL, 1, 0)
+
+/* Initial pm8038 GPIO configurations */
+static struct pm8xxx_gpio_init pm8038_keypad_gpios[] = {
+	/* keys GPIOs */
+	PM8XXX_GPIO_INPUT(PM_GPIO(3), PM_GPIO_PULL_UP_1_5),
+	PM8XXX_GPIO_INPUT(PM_GPIO(8), PM_GPIO_PULL_UP_1_5),
+	PM8XXX_GPIO_INPUT(PM_GPIO(10), PM_GPIO_PULL_UP_1_5),
+	PM8XXX_GPIO_INPUT(PM_GPIO(11), PM_GPIO_PULL_UP_1_5),
+};
+
+static struct pm8xxx_gpio_init pm8921_keypad_gpios[] = {
+	/* keys GPIOs */
+	PM8XXX_GPIO_INPUT(PM_GPIO(1), PM_GPIO_PULL_UP_31_5),
+	PM8XXX_GPIO_INPUT(PM_GPIO(2), PM_GPIO_PULL_UP_31_5),
+	PM8XXX_GPIO_INPUT(PM_GPIO(3), PM_GPIO_PULL_UP_31_5),
+	PM8XXX_GPIO_INPUT(PM_GPIO(4), PM_GPIO_PULL_UP_31_5),
+	PM8XXX_GPIO_INPUT(PM_GPIO(5), PM_GPIO_PULL_UP_31_5),
+	PM8XXX_GPIO_OUTPUT(PM_GPIO(9), 0),
+};
+
+void msm8960_keypad_gpio_init()
+{
+		int i = 0;
+		int num = 0;
+
+		num = ARRAY_SIZE(pm8921_keypad_gpios);
+
+		for(i=0; i < num; i++)
+		{
+			pm8921_gpio_config(pm8921_keypad_gpios[i].gpio,
+								&(pm8921_keypad_gpios[i].config));
+		}
+}
+
+void msm8930_keypad_gpio_init()
+{
+		int i = 0;
+		int num = 0;
+
+		num = ARRAY_SIZE(pm8038_keypad_gpios);
+
+		for(i=0; i < num; i++)
+		{
+			pm8921_gpio_config(pm8038_keypad_gpios[i].gpio,
+								&(pm8038_keypad_gpios[i].config));
+		}
 }

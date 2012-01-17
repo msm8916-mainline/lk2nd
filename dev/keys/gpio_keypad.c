@@ -2,7 +2,7 @@
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2012, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -435,6 +435,58 @@ void ssbi_keypad_init(struct qwerty_keypad_info  *qwerty_kp)
 
     /* wait for the keypad to complete one full scan */
     event_wait(&qwerty_keypad->full_scan);
+}
+
+static enum handler_return
+scan_qwerty_gpio_keypad(struct timer *timer, time_t now, void *arg)
+{
+	int i=0;
+	int num =0;
+	uint8_t key_status;
+	struct qwerty_keypad_info *keypad = qwerty_keypad->keypad_info;
+
+	num = keypad->mapsize;
+
+	for(i=0; i < num; i++)
+	{
+		/*continue if not interested in key*/
+		if(!keypad->keymap[i])
+			continue;
+
+		/*read key gpio*/
+		keypad->key_gpio_get(keypad->gpiomap[i], &key_status);
+
+		/*Post event if key pressed*/
+		if(key_status)
+		{
+			keys_post_event(keypad->keymap[i], 1);
+			goto done;
+		}
+	}
+
+done:
+	event_signal(&qwerty_keypad->full_scan, false);
+	return INT_RESCHEDULE;
+}
+
+void ssbi_gpio_keypad_init(struct qwerty_keypad_info  *qwerty_kp)
+{
+	int len;
+
+	len = sizeof(struct gpio_qwerty_kp);
+	qwerty_keypad = malloc(len);
+	ASSERT(qwerty_keypad);
+
+	memset(qwerty_keypad, 0, len);
+	qwerty_keypad->keypad_info = qwerty_kp;
+
+	event_init(&qwerty_keypad->full_scan, false, EVENT_FLAG_AUTOUNSIGNAL);
+	timer_initialize(&qwerty_keypad->timer);
+
+	timer_set_oneshot(&qwerty_keypad->timer, 0, scan_qwerty_gpio_keypad, NULL);
+
+	/* wait for the keypad to complete one full scan */
+	event_wait(&qwerty_keypad->full_scan);
 }
 
 void pmic_write(unsigned address, unsigned data)

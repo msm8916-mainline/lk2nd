@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
- * Copyright (c) 2009-2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2012, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -68,7 +68,8 @@
 #define LINUX_MACHTYPE_8064_RUMI3   3679
 
 extern void dmb(void);
-extern void keypad_init(void);
+extern void msm8960_keypad_init(void);
+extern void msm8930_keypad_init(void);
 extern void panel_backlight_on(void);
 
 static unsigned mmc_sdc_base[] =
@@ -118,7 +119,15 @@ void target_init(void)
 
 	/* Keypad init */
 	keys_init();
-	keypad_init();
+
+	if(platform_id == MSM8960)
+	{
+		msm8960_keypad_init();
+	}
+	else if(platform_id == MSM8930)
+	{
+		msm8930_keypad_init();
+	}
 
 	/* Display splash screen if enabled */
 #if DISPLAY_SPLASH_SCREEN

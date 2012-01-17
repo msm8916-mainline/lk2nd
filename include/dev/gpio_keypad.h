@@ -2,7 +2,7 @@
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2012, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -131,17 +131,21 @@ bool pm8058_gpio_get(unsigned int gpio);
 
 typedef int (*read_func)(unsigned char *, unsigned short, unsigned short);
 typedef int (*write_func)(unsigned char *, unsigned short, unsigned short);
+typedef int (*gpio_get_func)(uint8_t, uint8_t *);
 
 struct qwerty_keypad_info {
-	/* size must be ninputs * noutputs */
 	unsigned int   *keymap;
-        unsigned char  *old_keys;
-        unsigned char  *rec_keys;
-        unsigned int   rows;
-        unsigned int   columns;
-        unsigned int   num_of_reads;
-        read_func      rd_func;
-        write_func     wr_func;
+	unsigned int   *gpiomap;
+	unsigned int   mapsize;
+	unsigned char  *old_keys;
+	unsigned char  *rec_keys;
+	unsigned int   rows;
+	unsigned int   columns;
+	unsigned int   num_of_reads;
+	read_func      rd_func;
+	write_func     wr_func;
+	gpio_get_func  key_gpio_get;
+
 	/* time to wait before reading inputs after driving each output */
 	time_t         settle_time;
 	time_t         poll_time;

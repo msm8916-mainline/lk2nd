@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -37,6 +37,7 @@
 #define PM_GPIO_DIR_BOTH        (PM_GPIO_DIR_OUT | PM_GPIO_DIR_IN)
 
 #define PM_GPIO_PULL_UP_30      0
+#define PM_GPIO_PULL_UP_1_5     1
 #define PM_GPIO_PULL_UP_31_5    2
 /* 1.5uA + 30uA boost */
 #define PM_GPIO_PULL_UP_1_5_30  3

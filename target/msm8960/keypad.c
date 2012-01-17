@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -33,42 +33,60 @@
 #include <dev/ssbi.h>
 #include <dev/gpio_keypad.h>
 #include <dev/pm8921.h>
+#include <platform/gpio.h>
+#include <sys/types.h>
 
+#define BITS_IN_ELEMENT(x) (sizeof(x) * 8)
+#define KEYMAP_INDEX(row, col) (row)* BITS_IN_ELEMENT(unsigned int) + (col)
 
-#define NUM_OF_ROWS 1
-#define NUM_OF_COLS 5
-
-#define BITS_IN_ELEMENT(x) (sizeof(x)[0] * 8)
-
-static unsigned char qwerty_keys_old[NUM_OF_ROWS];
-static unsigned char qwerty_keys_new[NUM_OF_ROWS];
-
-#define KEYMAP_INDEX(row, col) (row)* BITS_IN_ELEMENT(qwerty_keys_new) + (col)
-
-unsigned int qwerty_keymap[] = {
+unsigned int msm8960_qwerty_keymap[] = {
 	[KEYMAP_INDEX(0, 0)] = KEY_VOLUMEUP,	/* Volume key on the device/CDP */
 	[KEYMAP_INDEX(0, 1)] = KEY_VOLUMEDOWN,	/* Volume key on the device/CDP */
 };
 
-struct qwerty_keypad_info qwerty_keypad = {
-	.keymap = qwerty_keymap,
-	.old_keys = qwerty_keys_old,
-	.rec_keys = qwerty_keys_new,
-	.rows = NUM_OF_ROWS,
-	.columns = NUM_OF_COLS,
-	.num_of_reads = NUM_OF_ROWS,
-	.rd_func = &pa1_ssbi2_read_bytes,
-	.wr_func = &pa1_ssbi2_write_bytes,
+unsigned int msm8960_keys_gpiomap[] = {
+	[KEYMAP_INDEX(0, 0)] = PM_GPIO(1),	/* Volume key on the device/CDP */
+	[KEYMAP_INDEX(0, 1)] = PM_GPIO(2),	/* Volume key on the device/CDP */
+};
+
+struct qwerty_keypad_info msm8960_qwerty_keypad = {
+	.keymap = msm8960_qwerty_keymap,
+	.gpiomap = msm8960_keys_gpiomap,
+	.mapsize = ARRAY_SIZE(msm8960_qwerty_keymap),
+	.key_gpio_get = &pm8921_gpio_get,
 	.settle_time = 5 /* msec */ ,
 	.poll_time = 20 /* msec */ ,
 };
 
-void keypad_init(void)
-{
-	memset(qwerty_keys_old, 0, sizeof(qwerty_keys_old));
-	memset(qwerty_keys_new, 0, sizeof(qwerty_keys_new));
+unsigned int msm8930_qwerty_keymap[] = {
+	[KEYMAP_INDEX(0, 0)] = KEY_VOLUMEUP,	/* Volume key on the device/CDP */
+	[KEYMAP_INDEX(0, 1)] = KEY_VOLUMEDOWN,	/* Volume key on the device/CDP */
+};
 
-	ssbi_keypad_init(&qwerty_keypad);
+unsigned int msm8930_keys_gpiomap[] = {
+	[KEYMAP_INDEX(0, 0)] = PM_GPIO(3),	/* Volume key on the device/CDP */
+	[KEYMAP_INDEX(0, 1)] = PM_GPIO(8),	/* Volume key on the device/CDP */
+};
+
+struct qwerty_keypad_info msm8930_qwerty_keypad = {
+	.keymap = msm8930_qwerty_keymap,
+	.gpiomap = msm8930_keys_gpiomap,
+	.mapsize = ARRAY_SIZE(msm8930_qwerty_keymap),
+	.key_gpio_get = &pm8921_gpio_get,
+	.settle_time = 5 /* msec */ ,
+	.poll_time = 20 /* msec */ ,
+};
+
+void msm8960_keypad_init(void)
+{
+	msm8960_keypad_gpio_init();
+	ssbi_gpio_keypad_init(&msm8960_qwerty_keypad);
+}
+
+void msm8930_keypad_init(void)
+{
+	msm8930_keypad_gpio_init();
+	ssbi_gpio_keypad_init(&msm8930_qwerty_keypad);
 }
 
 /* Configure keypad_drv through pwm or DBUS inputs or manually */
