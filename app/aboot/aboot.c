@@ -842,19 +842,20 @@ void cmd_erase(const char *arg, void *data, unsigned sz)
 void cmd_erase_mmc(const char *arg, void *data, unsigned sz)
 {
 	unsigned long long ptn = 0;
+	unsigned int out[512] = {0};
 	int index = INVALID_PTN;
-	unsigned long long size;
 
 	index = partition_get_index(arg);
 	ptn = partition_get_offset(index);
-	size = partition_get_size(index);
 
 	if(ptn == 0) {
 		fastboot_fail("Partition table doesn't exist\n");
 		return;
 	}
-	if (mmc_erase_card(ptn, size)) {
-		fastboot_fail("Failed to erase partition\n");
+	/* Simple inefficient version of erase. Just writing
+       0 in first block */
+	if (mmc_write(ptn , 512, (unsigned int *)out)) {
+		fastboot_fail("failed to erase partition");
 		return;
 	}
 	fastboot_okay("");
