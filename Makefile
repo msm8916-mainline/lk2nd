@@ -193,6 +193,12 @@ fdtput:	$(FDTPUT_OBJS) $(LIBFDT_archive)
 # Testsuite rules
 #
 TESTS_PREFIX=tests/
+
+TESTS_BIN += dtc
+TESTS_BIN += convert-dtsv0
+TESTS_BIN += fdtput
+TESTS_BIN += fdtget
+
 include tests/Makefile.tests
 
 #
