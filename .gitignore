@@ -11,3 +11,4 @@ lex.yy.c
 /convert-dtsv0
 /version_gen.h
 /fdtget
+/fdtput

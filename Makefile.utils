@@ -15,3 +15,10 @@ FDTGET_SRCS = \
 	util.c
 
 FDTGET_OBJS = $(FDTGET_SRCS:%.c=%.o)
+
+
+FDTPUT_SRCS = \
+	fdtput.c \
+	util.c
+
+FDTPUT_OBJS = $(FDTPUT_SRCS:%.c=%.o)

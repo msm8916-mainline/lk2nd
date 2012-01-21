@@ -111,6 +111,7 @@ BIN += convert-dtsv0
 BIN += dtc
 BIN += fdtdump
 BIN += fdtget
+BIN += fdtput
 
 SCRIPTS = dtdiff
 
@@ -122,6 +123,7 @@ ifneq ($(DEPTARGETS),)
 -include $(CONVERT_OBJS:%.o=%.d)
 -include $(FDTDUMP_OBJS:%.o=%.d)
 -include $(FDTGET_OBJS:%.o=%.d)
+-include $(FDTPUT_OBJS:%.o=%.d)
 endif
 
 
@@ -183,6 +185,8 @@ convert-dtsv0: $(CONVERT_OBJS)
 fdtdump:	$(FDTDUMP_OBJS)
 
 fdtget:	$(FDTGET_OBJS) $(LIBFDT_archive)
+
+fdtput:	$(FDTPUT_OBJS) $(LIBFDT_archive)
 
 
 #
