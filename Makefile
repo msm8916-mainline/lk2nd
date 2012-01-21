@@ -110,6 +110,7 @@ include Makefile.utils
 BIN += convert-dtsv0
 BIN += dtc
 BIN += fdtdump
+BIN += fdtget
 
 SCRIPTS = dtdiff
 
@@ -120,6 +121,7 @@ ifneq ($(DEPTARGETS),)
 -include $(DTC_OBJS:%.o=%.d)
 -include $(CONVERT_OBJS:%.o=%.d)
 -include $(FDTDUMP_OBJS:%.o=%.d)
+-include $(FDTGET_OBJS:%.o=%.d)
 endif
 
 
@@ -179,6 +181,8 @@ convert-dtsv0: $(CONVERT_OBJS)
 	$(LINK.c) -o $@ $^
 
 fdtdump:	$(FDTDUMP_OBJS)
+
+fdtget:	$(FDTGET_OBJS) $(LIBFDT_archive)
 
 
 #

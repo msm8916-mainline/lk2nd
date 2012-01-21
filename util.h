@@ -140,4 +140,14 @@ int utilfdt_write_err(const char *filename, const void *blob);
  */
 int utilfdt_decode_type(const char *fmt, int *type, int *size);
 
+/*
+ * This is a usage message fragment for the -t option. It is the format
+ * supported by utilfdt_decode_type.
+ */
+
+#define USAGE_TYPE_MSG \
+	"<type>\ts=string, i=int, u=unsigned, x=hex\n" \
+	"\tOptional modifier prefix:\n" \
+	"\t\thh or b=byte, h=2 byte, l=4 byte (default)\n";
+
 #endif /* _UTIL_H */

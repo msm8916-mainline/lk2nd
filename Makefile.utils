@@ -8,3 +8,10 @@ FDTDUMP_SRCS = \
 	util.c
 
 FDTDUMP_OBJS = $(FDTDUMP_SRCS:%.c=%.o)
+
+
+FDTGET_SRCS = \
+	fdtget.c \
+	util.c
+
+FDTGET_OBJS = $(FDTGET_SRCS:%.c=%.o)

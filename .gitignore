@@ -10,3 +10,4 @@ lex.yy.c
 /fdtdump
 /convert-dtsv0
 /version_gen.h
+/fdtget

@@ -83,6 +83,13 @@ asm_to_so_test () {
     run_wrap_test asm_to_so "$@"
 }
 
+run_fdtget_test () {
+    # run_fdtget_test name expected_output dtb_file args...
+    echo -n "$1:	"
+    shift
+    base_run_test sh fdtget-runtest.sh "$@"
+}
+
 tree1_tests () {
     TREE=$1
 
@@ -402,6 +409,37 @@ dtbs_equal_tests () {
     cmp_tests test_tree1.dtb $WRONG_TREE1
 }
 
+fdtget_tests () {
+    file=label01.dtb
+    $DTC -O dtb -o $file ${file%.dtb}.dts 2>/dev/null
+
+    # run_fdtget_test <test-name> <expected-result> <args>...
+    run_fdtget_test "Simple string" "MyBoardName" $file / model
+    run_fdtget_test "Multiple string i" "77 121 66 111 \
+97 114 100 78 97 109 101 0 77 121 66 111 97 114 100 70 97 109 105 \
+108 121 78 97 109 101 0" $file / compatible
+    run_fdtget_test "Multiple string s" "MyBoardName MyBoardFamilyName" \
+	-t s $file / compatible
+    run_fdtget_test "Integer" "32768" $file /cpus/PowerPC,970@1 d-cache-size
+    run_fdtget_test "Integer hex" "8000" -tx $file \
+	/cpus/PowerPC,970@1 d-cache-size
+    run_fdtget_test "Integer list" "61 62 63 0" -tbx $file \
+	/randomnode tricky1
+    run_fdtget_test "Byte list short" "a b c d de ea ad be ef" -tbx \
+	$file /randomnode blob
+
+    # Here the property size is not a multiple of 4 bytes, so it should fail
+    run_fdtget_test "Integer list invalid" ERR -tlx \
+	$file /randomnode mixed
+    run_fdtget_test "Integer list halfword" "6162 6300 1234 0 a 0 b 0 c" -thx \
+	$file /randomnode mixed
+    run_fdtget_test "Integer list byte" \
+	"61 62 63 0 12 34 0 0 0 a 0 0 0 b 0 0 0 c" -thhx \
+	$file /randomnode mixed
+    run_fdtget_test "Missing property" ERR -ts \
+	$file /randomnode doctor-who
+}
+
 utilfdt_tests () {
     run_test utilfdt_test
 }
@@ -421,7 +459,7 @@ while getopts "vt:m" ARG ; do
 done
 
 if [ -z "$TESTSETS" ]; then
-    TESTSETS="libfdt utilfdt dtc dtbs_equal"
+    TESTSETS="libfdt utilfdt dtc dtbs_equal fdtget"
 fi
 
 # Make sure we don't have stale blobs lying around
@@ -440,6 +478,9 @@ for set in $TESTSETS; do
 	    ;;
 	"dtbs_equal")
 	    dtbs_equal_tests
+	    ;;
+	"fdtget")
+	    fdtget_tests
 	    ;;
     esac
 done

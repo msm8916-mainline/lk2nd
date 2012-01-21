@@ -11,6 +11,7 @@ FAIL () {
 }
 
 DTC=../dtc
+DTGET=../fdtget
 
 verbose_run () {
     if [ -z "$QUIET_TEST" ]; then
