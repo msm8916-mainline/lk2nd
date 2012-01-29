@@ -725,7 +725,6 @@ void read_device_info_flash(device_info *dev)
 
 	if (memcmp(info->magic, DEVICE_MAGIC, DEVICE_MAGIC_SIZE))
 	{
-		while(1);
 		memcpy(info->magic, DEVICE_MAGIC, DEVICE_MAGIC_SIZE);
 		info->is_unlocked = 0;
 		info->is_tampered = 0;
