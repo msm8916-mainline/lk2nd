@@ -3223,11 +3223,12 @@ static void flash_read_id(dmov_s * cmdlist, unsigned *ptrlist)
 		}
 		return;
 	}
-	// Assume 8 bit nand device for backward compatability
+	// Flash device is not supported, print flash device info and halt
 	if (dev_found == 0) {
-		dprintf(INFO,
-			"Device not supported.  Assuming 8 bit NAND device\n");
-		flash_info.type = FLASH_8BIT_NAND_DEVICE;
+		dprintf(CRITICAL, "NAND device is not supported: nandid: 0x%x \
+			maker=0x%02x device=0x%02x\n", flash_info.id,
+			flash_info.vendor, flash_info.device);
+		ASSERT(0);
 	}
 	dprintf(INFO, "nandid: 0x%x maker=0x%02x device=0x%02x page_size=%d\n",
 		flash_info.id, flash_info.vendor, flash_info.device,
