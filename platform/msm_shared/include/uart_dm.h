@@ -67,19 +67,19 @@ enum MSM_BOOT_UART_DM_BITS_PER_CHAR {
 /* UART_DM Registers */
 
 /* UART Operational Mode Register */
-#define MSM_BOOT_UART_DM_MR1(id)             (GSBI_UART_DM_BASE(id) + 0x00)
-#define MSM_BOOT_UART_DM_MR2(id)             (GSBI_UART_DM_BASE(id) + 0x04)
+#define MSM_BOOT_UART_DM_MR1(base)             ((base) + 0x00)
+#define MSM_BOOT_UART_DM_MR2(base)             ((base) + 0x04)
 #define MSM_BOOT_UART_DM_RXBRK_ZERO_CHAR_OFF (1 << 8)
 #define MSM_BOOT_UART_DM_LOOPBACK            (1 << 7)
 
 /* UART Clock Selection Register */
-#define MSM_BOOT_UART_DM_CSR(id)             (GSBI_UART_DM_BASE(id) + 0x08)
+#define MSM_BOOT_UART_DM_CSR(base)             ((base) + 0x08)
 
 /* UART DM TX FIFO Registers - 4 */
-#define MSM_BOOT_UART_DM_TF(id, x)         (GSBI_UART_DM_BASE(id) + 0x70+(4*(x)))
+#define MSM_BOOT_UART_DM_TF(base, x)         ((base) + 0x70+(4*(x)))
 
 /* UART Command Register */
-#define MSM_BOOT_UART_DM_CR(id)              (GSBI_UART_DM_BASE(id) + 0x10)
+#define MSM_BOOT_UART_DM_CR(base)              ((base) + 0x10)
 #define MSM_BOOT_UART_DM_CR_RX_ENABLE        (1 << 0)
 #define MSM_BOOT_UART_DM_CR_RX_DISABLE       (1 << 1)
 #define MSM_BOOT_UART_DM_CR_TX_ENABLE        (1 << 2)
@@ -121,7 +121,7 @@ enum MSM_BOOT_UART_DM_BITS_PER_CHAR {
 #define MSM_BOOT_UART_DM_GCMD_DIS_STALE_EVT   MSM_BOOT_UART_DM_CR_GENERAL_CMD(6)
 
 /* UART Interrupt Mask Register */
-#define MSM_BOOT_UART_DM_IMR(id)             (GSBI_UART_DM_BASE(id) + 0x14)
+#define MSM_BOOT_UART_DM_IMR(base)             ((base) + 0x14)
 #define MSM_BOOT_UART_DM_TXLEV               (1 << 0)
 #define MSM_BOOT_UART_DM_RXHUNT              (1 << 1)
 #define MSM_BOOT_UART_DM_RXBRK_CHNG          (1 << 2)
@@ -142,42 +142,42 @@ enum MSM_BOOT_UART_DM_BITS_PER_CHAR {
                                               MSM_BOOT_UART_DM_RXSTALE)
 
 /* UART Interrupt Programming Register */
-#define MSM_BOOT_UART_DM_IPR(id)             (GSBI_UART_DM_BASE(id) + 0x18)
+#define MSM_BOOT_UART_DM_IPR(base)             ((base) + 0x18)
 #define MSM_BOOT_UART_DM_STALE_TIMEOUT_LSB   0x0f
 #define MSM_BOOT_UART_DM_STALE_TIMEOUT_MSB   0	/* Not used currently */
 
 /* UART Transmit/Receive FIFO Watermark Register */
-#define MSM_BOOT_UART_DM_TFWR(id)            (GSBI_UART_DM_BASE(id) + 0x1C)
+#define MSM_BOOT_UART_DM_TFWR(base)            ((base) + 0x1C)
 /* Interrupt is generated when FIFO level is less than or equal to this value */
 #define MSM_BOOT_UART_DM_TFW_VALUE           0
 
-#define MSM_BOOT_UART_DM_RFWR(id)            (GSBI_UART_DM_BASE(id) + 0x20)
+#define MSM_BOOT_UART_DM_RFWR(base)            ((base) + 0x20)
 /*Interrupt generated when no of words in RX FIFO is greater than this value */
 #define MSM_BOOT_UART_DM_RFW_VALUE           0
 
 /* UART Hunt Character Register */
-#define MSM_BOOT_UART_DM_HCR(id)             (GSBI_UART_DM_BASE(id) + 0x24)
+#define MSM_BOOT_UART_DM_HCR(base)             ((base) + 0x24)
 
 /* Used for RX transfer initialization */
-#define MSM_BOOT_UART_DM_DMRX(id)            (GSBI_UART_DM_BASE(id) + 0x34)
+#define MSM_BOOT_UART_DM_DMRX(base)            ((base) + 0x34)
 
 /* Default DMRX value - any value bigger than FIFO size would be fine */
 #define MSM_BOOT_UART_DM_DMRX_DEF_VALUE    0x220
 
 /* Register to enable IRDA function */
-#define MSM_BOOT_UART_DM_IRDA(id)            (GSBI_UART_DM_BASE(id) + 0x38)
+#define MSM_BOOT_UART_DM_IRDA(base)            ((base) + 0x38)
 
 /* UART Data Mover Enable Register */
-#define MSM_BOOT_UART_DM_DMEN(id)            (GSBI_UART_DM_BASE(id) + 0x3C)
+#define MSM_BOOT_UART_DM_DMEN(base)            ((base) + 0x3C)
 
 /* Number of characters for Transmission */
-#define MSM_BOOT_UART_DM_NO_CHARS_FOR_TX(id) (GSBI_UART_DM_BASE(id) + 0x040)
+#define MSM_BOOT_UART_DM_NO_CHARS_FOR_TX(base) ((base) + 0x040)
 
 /* UART RX FIFO Base Address */
-#define MSM_BOOT_UART_DM_BADR(id)            (GSBI_UART_DM_BASE(id) + 0x44)
+#define MSM_BOOT_UART_DM_BADR(base)            ((base) + 0x44)
 
 /* UART Status Register */
-#define MSM_BOOT_UART_DM_SR(id)              (GSBI_UART_DM_BASE(id) + 0x008)
+#define MSM_BOOT_UART_DM_SR(base)              ((base) + 0x008)
 #define MSM_BOOT_UART_DM_SR_RXRDY            (1 << 0)
 #define MSM_BOOT_UART_DM_SR_RXFULL           (1 << 1)
 #define MSM_BOOT_UART_DM_SR_TXRDY            (1 << 2)
@@ -189,26 +189,26 @@ enum MSM_BOOT_UART_DM_BITS_PER_CHAR {
 #define MSM_BOOT_UART_DM_RX_BRK_START_LAST   (1 << 8)
 
 /* UART Receive FIFO Registers - 4 in numbers */
-#define MSM_BOOT_UART_DM_RF(id, x)      (GSBI_UART_DM_BASE(id) + 0x70 + (4*(x)))
+#define MSM_BOOT_UART_DM_RF(base, x)      ((base) + 0x70 + (4*(x)))
 
 /* UART Masked Interrupt Status Register */
-#define MSM_BOOT_UART_DM_MISR(id)         (GSBI_UART_DM_BASE(id) + 0x10)
+#define MSM_BOOT_UART_DM_MISR(base)         ((base) + 0x10)
 
 /* UART Interrupt Status Register */
-#define MSM_BOOT_UART_DM_ISR(id)          (GSBI_UART_DM_BASE(id) + 0x14)
+#define MSM_BOOT_UART_DM_ISR(base)          ((base) + 0x14)
 
 /* Number of characters received since the end of last RX transfer */
-#define MSM_BOOT_UART_DM_RX_TOTAL_SNAP(id)  (GSBI_UART_DM_BASE(id) + 0x38)
+#define MSM_BOOT_UART_DM_RX_TOTAL_SNAP(base)  ((base) + 0x38)
 
 /* UART TX FIFO Status Register */
-#define MSM_BOOT_UART_DM_TXFS(id)           (GSBI_UART_DM_BASE(id) + 0x4C)
+#define MSM_BOOT_UART_DM_TXFS(base)           ((base) + 0x4C)
 #define MSM_BOOT_UART_DM_TXFS_STATE_LSB(x)   MSM_BOOT_UART_DM_EXTR_BITS(x,0,6)
 #define MSM_BOOT_UART_DM_TXFS_STATE_MSB(x)   MSM_BOOT_UART_DM_EXTR_BITS(x,14,31)
 #define MSM_BOOT_UART_DM_TXFS_BUF_STATE(x)   MSM_BOOT_UART_DM_EXTR_BITS(x,7,9)
 #define MSM_BOOT_UART_DM_TXFS_ASYNC_STATE(x) MSM_BOOT_UART_DM_EXTR_BITS(x,10,13)
 
 /* UART RX FIFO Status Register */
-#define MSM_BOOT_UART_DM_RXFS(id)           (GSBI_UART_DM_BASE(id) + 0x50)
+#define MSM_BOOT_UART_DM_RXFS(base)           ((base) + 0x50)
 #define MSM_BOOT_UART_DM_RXFS_STATE_LSB(x)   MSM_BOOT_UART_DM_EXTR_BITS(x,0,6)
 #define MSM_BOOT_UART_DM_RXFS_STATE_MSB(x)   MSM_BOOT_UART_DM_EXTR_BITS(x,14,31)
 #define MSM_BOOT_UART_DM_RXFS_BUF_STATE(x)   MSM_BOOT_UART_DM_EXTR_BITS(x,7,9)
@@ -222,5 +222,7 @@ enum MSM_BOOT_UART_DM_BITS_PER_CHAR {
 #define MSM_BOOT_UART_DM_E_MALLOC_FAIL       4
 #define MSM_BOOT_UART_DM_E_RX_NOT_READY      5
 
-void uart_init(uint8_t gsbi_id);
+void uart_dm_init(uint8_t id,
+				  uint32_t gsbi_base,
+				  uint32_t uart_dm_base);
 #endif				/* __UART_DM_H__ */

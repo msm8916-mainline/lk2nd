@@ -49,8 +49,10 @@ void platform_early_init(void)
 {
 	uint8_t cfg_bid = 0x1;
 	uint8_t cfg_pid = 0x1;
+	uint8_t gsbi_id = target_uart_gsbi();
 
-	uart_init(target_uart_gsbi());
+	uart_dm_init(gsbi_id, GSBI_BASE(gsbi_id), GSBI_UART_DM_BASE(gsbi_id));
+
 	/* Timers - QGIC Config */
 	writel((cfg_bid << 7 | cfg_pid << 10), APCS_GLB_QGIC_CFG);
 	qgic_init();

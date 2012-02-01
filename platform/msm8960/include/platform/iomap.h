@@ -83,11 +83,6 @@
 #define GPIO_CONFIG_ADDR(x) (TLMM_BASE_ADDR + 0x1000 + (x)*0x10)
 #define GPIO_IN_OUT_ADDR(x) (TLMM_BASE_ADDR + 0x1004 + (x)*0x10)
 
-#define GSBI_BASE(id)         ((id) <= 7 ? (0x16000000 + (((id)-1) << 20)) : \
-                                           (0x1A000000 + (((id)-8) << 20)))
-#define GSBI_UART_DM_BASE(id) (GSBI_BASE(id) + 0x40000)
-#define QUP_BASE(id)          (GSBI_BASE(id) + 0x80000)
-
 #define EBI2_CHIP_SELECT_CFG0   0x1A100000
 #define EBI2_XMEM_CS3_CFG1      0x1A110034
 

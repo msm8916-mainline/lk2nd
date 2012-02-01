@@ -44,6 +44,7 @@
 #include <target.h>
 #include <platform.h>
 #include <baseband.h>
+#include <uart_dm.h>
 
 /* 8960 */
 #define LINUX_MACHTYPE_8960_SIM     3230
@@ -84,14 +85,14 @@ static uint32_t target_id;
 static pm8921_dev_t pmic;
 
 static void target_detect(void);
-static uint8_t get_uart_gsbi(void);
+static void target_uart_init(void);
 
 void target_early_init(void)
 {
 	target_detect();
 
 #if WITH_DEBUG_UART
-	uart_init(get_uart_gsbi());
+	target_uart_init();
 #endif
 }
 
@@ -167,6 +168,11 @@ void target_init(void)
 unsigned board_machtype(void)
 {
 	return target_id;
+}
+
+unsigned board_platform_id(void)
+{
+	return platform_id;
 }
 
 void target_detect(void)
@@ -375,7 +381,7 @@ void target_fastboot_init(void)
 	pm8921_boot_done();
 }
 
-uint8_t get_uart_gsbi(void)
+void target_uart_init(void)
 {
 	switch (target_id) {
 	case LINUX_MACHTYPE_8960_SIM:
@@ -386,23 +392,32 @@ uint8_t get_uart_gsbi(void)
 	case LINUX_MACHTYPE_8960_APQ:
 	case LINUX_MACHTYPE_8960_LIQUID:
 
-		return GSBI_ID_5;
+		uart_dm_init(5, 0x16400000, 0x16440000);
+		break;
 
 	case LINUX_MACHTYPE_8930_CDP:
 	case LINUX_MACHTYPE_8930_MTP:
 	case LINUX_MACHTYPE_8930_FLUID:
 
-		return GSBI_ID_5;
+		uart_dm_init(5, 0x16400000, 0x16440000);
+		break;
 
 	case LINUX_MACHTYPE_8064_SIM:
 	case LINUX_MACHTYPE_8064_RUMI3:
+		uart_dm_init(3, 0x16200000, 0x16240000);
+		break;
 
-		return GSBI_ID_3;
+	case LINUX_MACHTYPE_8064_CDP:
+	case LINUX_MACHTYPE_8064_MTP:
+	case LINUX_MACHTYPE_8064_LIQUID:
+		uart_dm_init(7, 0x16600000, 0x16640000);
+		break;
 
 	case LINUX_MACHTYPE_8627_CDP:
 	case LINUX_MACHTYPE_8627_MTP:
 
-		return GSBI_ID_5;
+		uart_dm_init(5, 0x16400000, 0x16440000);
+		break;
 
 	default:
 		dprintf(CRITICAL, "uart gsbi not defined for target: %d\n",

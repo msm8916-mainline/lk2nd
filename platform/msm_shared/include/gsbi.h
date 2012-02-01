@@ -31,7 +31,7 @@
 #include <platform/iomap.h>
 
 /* GSBI Registers */
-#define GSBI_CTRL_REG(id)        (GSBI_BASE(id) + 0x0)
+#define GSBI_CTRL_REG(base)        ((base) + 0x0)
 
 #define GSBI_CTRL_REG_PROTOCOL_CODE_S   4
 #define GSBI_PROTOCOL_CODE_I2C          0x2

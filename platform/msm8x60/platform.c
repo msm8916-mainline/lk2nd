@@ -108,7 +108,8 @@ uint8_t sdc_crci_map[5] = { 0, 1, 4, 2, 5 };
 
 void platform_early_init(void)
 {
-	uart_init(target_uart_gsbi());
+	uint8_t gsbi_id = target_uart_gsbi();
+	uart_dm_init(gsbi_id, GSBI_BASE(gsbi_id), GSBI_UART_DM_BASE(gsbi_id));
 	qgic_init();
 	platform_init_timer();
 }
