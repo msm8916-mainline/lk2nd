@@ -313,7 +313,9 @@ OBJS += \
 	$(LOCAL_DIR)/x509v3/v3_skey.o \
 	$(LOCAL_DIR)/x509v3/v3_sxnet.o \
 	$(LOCAL_DIR)/x509v3/v3err.o \
-	$(LOCAL_DIR)/x509v3/v3_utl.o
+	$(LOCAL_DIR)/x509v3/v3_utl.o \
+	$(LOCAL_DIR)/sha/asm/sha1-armv4-large.o \
+	$(LOCAL_DIR)/sha/asm/sha256-armv4.o
 
 include $(LOCAL_PATH)/android-config.mk
 
@@ -322,8 +324,6 @@ include $(LOCAL_PATH)/android-config.mk
 arm_src_files := \
     $(LOCAL_DIR)/aes/asm/aes-armv4.o \
     $(LOCAL_DIR)/bn/asm/armv4-mont.o \
-    $(LOCAL_DIR)/sha/asm/sha1-armv4-large.o \
-    $(LOCAL_DIR)/sha/asm/sha256-armv4.o \
     $(LOCAL_DIR)/sha/asm/sha512-armv4.o
 
 non_arm_src_files := aes/aes_core.c

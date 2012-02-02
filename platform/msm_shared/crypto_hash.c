@@ -50,9 +50,19 @@ hash_find(unsigned char *addr, unsigned int size, unsigned char *digest,
 	crypto_result_type ret_val = CRYPTO_SHA_ERR_NONE;
 
 	if (auth_alg == 1) {
+#ifdef NO_CRYPTO_ENG
+		/* Hardware CE is not present , use software hashing */
+		digest = SHA1(addr, size, digest);
+#else
 		ret_val = crypto_sha1(addr, size, digest);
+#endif
 	} else if (auth_alg == 2) {
+#ifdef NO_CRYPTO_ENG
+		/* Hardware CE is not present , use software hashing */
+		digest = SHA256(addr, size, digest);
+#else
 		ret_val = crypto_sha256(addr, size, digest);
+#endif
 	}
 
 	if (ret_val != CRYPTO_SHA_ERR_NONE) {

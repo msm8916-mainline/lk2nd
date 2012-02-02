@@ -113,4 +113,5 @@
 
 #define MDP_TEST_MODE_CLK                     REG_MDP(0xF0000)
 #define MDP_INTR_STATUS                       REG_MDP(0x00054)
+#define MSM_CRYPTO_BASE                       (0xA0C00000)
 #endif

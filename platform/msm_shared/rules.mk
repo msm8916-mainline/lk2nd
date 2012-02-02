@@ -52,7 +52,11 @@ ifeq ($(PLATFORM),msm7x27a)
 			$(LOCAL_DIR)/proc_comm.o \
 			$(LOCAL_DIR)/lcdc.o \
 			$(LOCAL_DIR)/mdp3.o \
-			$(LOCAL_DIR)/mipi_dsi.o
+			$(LOCAL_DIR)/mipi_dsi.o \
+			$(LOCAL_DIR)/crypto_eng.o \
+			$(LOCAL_DIR)/crypto_hash.o \
+			$(LOCAL_DIR)/certificate.o \
+			$(LOCAL_DIR)/image_verify.o
 endif
 
 ifeq ($(PLATFORM),msm7k)
