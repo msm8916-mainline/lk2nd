@@ -8,17 +8,10 @@ rm -f $LOG $EXPECT
 trap "rm -f $LOG $EXPECT" 0
 
 expect="$1"
-echo "$expect" >$EXPECT
+echo $expect >$EXPECT
 shift
 
-verbose_run_log "$LOG" $VALGRIND "$DTGET" "$@"
-ret="$?"
-
-if [ "$ret" -ne 0 -a "$expect" = "ERR" ]; then
-	PASS
-fi
-
-FAIL_IF_SIGNAL $ret
+verbose_run_log_check "$LOG" $VALGRIND $DTGET "$@"
 
 diff $EXPECT $LOG
 ret="$?"

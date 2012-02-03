@@ -14,7 +14,7 @@ rm -f $LOG $EXPECT
 trap "rm -f $LOG $EXPECT" 0
 
 expect="$1"
-echo "$expect" >$EXPECT
+echo $expect >$EXPECT
 dtb="$2"
 node="$3"
 property="$4"
@@ -23,20 +23,10 @@ shift 5
 value="$@"
 
 # First run fdtput
-verbose_run $VALGRIND "$DTPUT" "$dtb" "$node" "$property" $value $flags
-ret="$?"
-
-if [ "$ret" -ne 0 -a "$expect" = "ERR" ]; then
-	PASS
-fi
-
-FAIL_IF_SIGNAL $ret
+verbose_run_check $VALGRIND "$DTPUT" "$dtb" "$node" "$property" $value $flags
 
 # Now fdtget to read the value
-verbose_run_log "$LOG" $VALGRIND "$DTGET" "$dtb" "$node" "$property" $flags
-ret="$?"
-
-FAIL_IF_SIGNAL $ret
+verbose_run_log_check "$LOG" $VALGRIND "$DTGET" "$dtb" "$node" "$property" $flags
 
 diff $EXPECT $LOG
 ret="$?"
