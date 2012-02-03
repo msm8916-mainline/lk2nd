@@ -10,9 +10,9 @@ for x; do
     CHECKS="$CHECKS $x"
 done
 
-LOG="tmp.log.$$"
-
+LOG=tmp.log.$$
 rm -f $LOG
+trap "rm -f $LOG" 0
 
 verbose_run_log "$LOG" $VALGRIND "$DTC" -o /dev/null "$@"
 ret="$?"
@@ -27,7 +27,5 @@ for c in $CHECKS; do
 	FAIL "Failed to trigger check \"$c\""
     fi
 done
-
-rm -f $LOG
 
 PASS
