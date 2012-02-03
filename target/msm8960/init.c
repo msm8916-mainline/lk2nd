@@ -131,6 +131,10 @@ void target_init(void)
 	{
 		msm8930_keypad_init();
 	}
+	else if(platform_id == APQ8064)
+	{
+		apq8064_keypad_init();
+	}
 
 	/* Display splash screen if enabled */
 #if DISPLAY_SPLASH_SCREEN

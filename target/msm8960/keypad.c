@@ -77,6 +77,26 @@ struct qwerty_keypad_info msm8930_qwerty_keypad = {
 	.poll_time = 20 /* msec */ ,
 };
 
+unsigned int apq8064_qwerty_keymap[] = {
+	[KEYMAP_INDEX(0, 0)] = KEY_VOLUMEUP,	/* Volume key on the device/CDP */
+	[KEYMAP_INDEX(0, 1)] = KEY_VOLUMEDOWN,	/* Volume key on the device/CDP */
+};
+
+unsigned int apq8064_keys_gpiomap[] = {
+	[KEYMAP_INDEX(0, 0)] = PM_GPIO(35),	/* Volume key on the device/CDP */
+	[KEYMAP_INDEX(0, 1)] = PM_GPIO(38),	/* Volume key on the device/CDP */
+};
+
+
+struct qwerty_keypad_info apq8064_qwerty_keypad = {
+	.keymap = apq8064_qwerty_keymap,
+	.gpiomap = apq8064_keys_gpiomap,
+	.mapsize = ARRAY_SIZE(apq8064_qwerty_keymap),
+	.key_gpio_get = &pm8921_gpio_get,
+	.settle_time = 5 /* msec */ ,
+	.poll_time = 20 /* msec */ ,
+};
+
 void msm8960_keypad_init(void)
 {
 	msm8960_keypad_gpio_init();
@@ -87,6 +107,12 @@ void msm8930_keypad_init(void)
 {
 	msm8930_keypad_gpio_init();
 	ssbi_gpio_keypad_init(&msm8930_qwerty_keypad);
+}
+
+void apq8064_keypad_init(void)
+{
+	apq8064_keypad_gpio_init();
+	ssbi_gpio_keypad_init(&apq8064_qwerty_keypad);
 }
 
 /* Configure keypad_drv through pwm or DBUS inputs or manually */
