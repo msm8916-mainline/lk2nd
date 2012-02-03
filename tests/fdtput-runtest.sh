@@ -28,11 +28,12 @@ verbose_run_check $VALGRIND "$DTPUT" "$dtb" "$node" "$property" $value $flags
 # Now fdtget to read the value
 verbose_run_log_check "$LOG" $VALGRIND "$DTGET" "$dtb" "$node" "$property" $flags
 
-diff $EXPECT $LOG
-ret="$?"
-
-if [ "$ret" -eq 0 ]; then
-	PASS
+if cmp $EXPECT $LOG >/dev/null; then
+    PASS
 else
-	FAIL
+    if [ -z "$QUIET_TEST" ]; then
+	echo "EXPECTED :-:"
+	cat $EXPECT
+    fi
+    FAIL "Results differ from expected"
 fi
