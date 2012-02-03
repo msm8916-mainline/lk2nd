@@ -480,28 +480,10 @@ fdtget_tests () {
 fdtput_tests () {
     dts=label01.dts
     dtb=$dts.fdtput.test.dtb
+    text=lorem.txt
 
-    # Create some test files containing useful strings
-    base=tmp.test0
-    file1=tmp.test1
-    file2=tmp.test2
-    bigfile1=tmp.test3
-    bigfile2=tmp.test4
-
-    # Filter out anything the shell might not like
-    cat $dts | tr -d "'\"\n\;/\.\*{}\-" | tr -s "[:blank:]" " " >$base
-
-    # Make two small files
-    head -5 $base >$file1
-    cat $file1 | tr a-z A-Z | cut -c10-30 | sort -r >$file2
-
-    # and two larger ones
-    cat $base > $bigfile1
-    tac $base | tr a-z A-Z | sort -r >$bigfile2
-
-    # Allow just enough space for both file1 and file2
-    space=$(( $(stat -c %s $file1) + $(stat -c %s $file2) ))
-    run_dtc_test -O dtb -p $space -o $dtb $dts
+    # Allow just enough space for $text
+    run_dtc_test -O dtb -p $(stat -c %s $text) -o $dtb $dts
 
     # run_fdtput_test <expected-result> <file> <node> <property> <flags> <value>
     run_fdtput_test "a_model" $dtb / model -ts "a_model"
@@ -514,12 +496,10 @@ fdtput_tests () {
 	-tbx "a b c ea ad be ef"
     run_fdtput_test "a0b0c0d deeaae ef000000" $dtb /randomnode blob \
 	-tx "a0b0c0d deeaae ef000000"
-    run_fdtput_test "`cat $file1 $file2`" $dtb /randomnode blob \
-	-ts "`cat $file1`" "`cat $file2`"
+    run_fdtput_test "$(cat $text)" $dtb /randomnode blob -ts "$(cat $text)"
 
-    # This should be larger than available space in the fdt ($space)
-    run_wrap_error_test $DTPUT $dtb /randomnode blob \
-	-ts "`cat $bigfile1`" "`cat $bigfile2`"
+    # This should be larger than available space in the fdt
+    run_wrap_error_test $DTPUT $dtb /randomnode blob -ts "$(cat $text $text)"
 
     # TODO: Add tests for verbose mode?
 }
