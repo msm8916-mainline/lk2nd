@@ -12,3 +12,5 @@ lex.yy.c
 /version_gen.h
 /fdtget
 /fdtput
+/patches
+/.pc
