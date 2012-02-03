@@ -77,9 +77,9 @@ static int show_data(struct display_info *disp, const char *data, int len)
 		return 0;
 	}
 	size = disp->size;
-	if (size == -1)
+	if (size == -1) {
 		size = (len % 4) == 0 ? 4 : 1;
-	else if (len % size) {
+	} else if (len % size) {
 		fprintf(stderr, "Property length must be a multiple of "
 				"selected data size\n");
 		return -1;
