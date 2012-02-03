@@ -296,6 +296,9 @@ int utilfdt_decode_type(const char *fmt, int *type, int *size)
 {
 	int qualifier = 0;
 
+	if (!*fmt)
+		return -1;
+
 	/* get the conversion qualifier */
 	*size = -1;
 	if (strchr("hlLb", *fmt)) {
@@ -311,7 +314,7 @@ int utilfdt_decode_type(const char *fmt, int *type, int *size)
 	}
 
 	/* we should now have a type */
-	if (!strchr("iuxs", *fmt))
+	if ((*fmt == '\0') || !strchr("iuxs", *fmt))
 		return -1;
 
 	/* convert qualifier (bhL) to byte size */
