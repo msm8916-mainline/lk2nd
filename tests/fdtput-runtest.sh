@@ -11,7 +11,7 @@
 LOG="tmp.log.$$"
 EXPECT="tmp.expect.$$"
 
-rm -f $TMPFILE $LOG
+rm -f $LOG
 
 expect="$1"
 echo "$expect" >$EXPECT

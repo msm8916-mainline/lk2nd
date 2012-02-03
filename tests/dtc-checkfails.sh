@@ -12,7 +12,7 @@ done
 
 LOG="tmp.log.$$"
 
-rm -f $TMPFILE $LOG
+rm -f $LOG
 
 verbose_run_log "$LOG" $VALGRIND "$DTC" -o /dev/null "$@"
 ret="$?"
