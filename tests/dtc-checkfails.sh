@@ -17,10 +17,7 @@ trap "rm -f $LOG" 0
 verbose_run_log "$LOG" $VALGRIND "$DTC" -o /dev/null "$@"
 ret="$?"
 
-if [ "$ret" -gt 127 ]; then
-    signame=$(kill -l $[ret - 128])
-    FAIL "Killed by SIG$signame"
-fi
+FAIL_IF_SIGNAL $ret
 
 for c in $CHECKS; do
     if ! grep -E "^(ERROR)|(Warning) \($c\):" $LOG > /dev/null; then

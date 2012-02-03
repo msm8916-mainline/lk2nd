@@ -18,10 +18,7 @@ if [ "$ret" -ne 0 -a "$expect" = "ERR" ]; then
 	PASS
 fi
 
-if [ "$ret" -gt 127 ]; then
-    signame=$(kill -l $[ret - 128])
-    FAIL "Killed by SIG$signame"
-fi
+FAIL_IF_SIGNAL $ret
 
 diff $EXPECT $LOG
 ret="$?"
