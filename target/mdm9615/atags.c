@@ -30,10 +30,12 @@
 #include <debug.h>
 #include <smem.h>
 #include <stdint.h>
+#include <lib/ptable.h>
 
 #define SIZE_1M     (1024 * 1024)
 #define SIZE_8M     (8 * SIZE_1M)
 #define SIZE_15M    (15 * SIZE_1M)
+#define SIZE_17M    (17 * SIZE_1M)
 #define SIZE_23M    (23 * SIZE_1M)
 #define SIZE_88M    (11 * SIZE_8M)
 
@@ -41,6 +43,9 @@ unsigned *target_atag_mem(unsigned *ptr)
 {
 	struct smem_ram_ptable ram_ptable;
 	uint8_t i = 0;
+	struct ptable *nand_ptable;
+	struct ptentry *dsp3_ptn;
+	unsigned int size;
 
 	if (smem_ram_ptable_init(&ram_ptable)) {
 		for (i = 0; i < ram_ptable.len; i++) {
@@ -58,6 +63,24 @@ unsigned *target_atag_mem(unsigned *ptr)
 				*ptr++ = 0x54410002;
 				*ptr++ = SIZE_23M;
 				*ptr++ = ram_ptable.parts[i].start + SIZE_88M;
+
+				nand_ptable = flash_get_ptable();
+				dsp3_ptn = ptable_find(nand_ptable, "dsp3");
+
+				/* Check for DSP3 partition and its size */
+				if(dsp3_ptn != NULL){
+					size = dsp3_ptn->start;
+					size += dsp3_ptn->length;
+					if(size != dsp3_ptn->start)
+						continue;
+				}
+
+				/*Add additional atag to pass DSP3 memory to kernel*/
+				*ptr++ = 4;
+				*ptr++ = 0x54410002;
+				*ptr++ = SIZE_17M;
+				*ptr++ = ram_ptable.parts[i].start + SIZE_88M + SIZE_23M;
+
 			}
 		}
 	} else {
