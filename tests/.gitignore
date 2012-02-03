@@ -1,7 +1,9 @@
 *.dtb
 *.dtb.test.dts
 *.dts.test.s
+tmp.*
 /add_subnode_with_nops
+/appendprop[12]
 /asm_tree_dump
 /boot-cpuid
 /char_literal
@@ -46,6 +48,7 @@
 /supernode_atdepth_offset
 /sw_tree1
 /truncated_property
+/utilfdt_test
 /value-labels
 /dtb_reverse
 /dtbs_equal_unordered
