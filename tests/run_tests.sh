@@ -478,7 +478,7 @@ fdtput_tests () {
     tac $base | tr a-z A-Z | sort -r >$bigfile2
 
     # Allow just enough space for both file1 and file2
-    (( space = $(stat -c %s $file1) + $(stat -c %s $file2) ))
+    space=$(( $(stat -c %s $file1) + $(stat -c %s $file2) ))
     $DTC -O dtb -p $space -o $file ${file%.dtb}.dts 2>/dev/null
 
     # run_fdtput_test <test-name> <expected-result> <file> <key> <flags>
