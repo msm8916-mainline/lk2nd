@@ -34,6 +34,9 @@
 #include <reg.h>
 #include <sys/types.h>
 #include <dev/ssbi.h>
+#ifdef TARGET_USES_RSPIN_LOCK
+#include <platform/remote_spinlock.h>
+#endif
 
 int i2c_ssbi_poll_for_device_ready(void)
 {
@@ -70,8 +73,17 @@ int i2c_ssbi_read_bytes(unsigned char  *buffer, unsigned short length,
 	unsigned char *buf = buffer;
 	unsigned short len = length;
 	unsigned short addr = slave_addr;
-	unsigned long read_cmd = SSBI_CMD_READ(addr);
-	unsigned long mode2 = readl(MSM_SSBI_BASE + SSBI2_MODE2);
+	unsigned long read_cmd = 0;
+	unsigned long mode2 = 0;
+
+	/*
+	 * Use remote spin locks since SSBI2 controller is shared with nonHLOS proc
+	 */
+#ifdef TARGET_USES_RSPIN_LOCK
+	remote_spin_lock(rlock);
+#endif
+	read_cmd = SSBI_CMD_READ(addr);
+	mode2 = readl(MSM_SSBI_BASE + SSBI2_MODE2);
 
 	//buf = alloc(len * sizeof(8));
 	if (mode2 & SSBI_MODE2_SSBI2_MODE)
@@ -82,7 +94,7 @@ int i2c_ssbi_read_bytes(unsigned char  *buffer, unsigned short length,
 		ret = i2c_ssbi_poll_for_device_ready();
 		if (ret) {
 		        dprintf (CRITICAL, "Error: device not ready\n");
-			return ret;
+			goto end;
 		}
 
 		writel(read_cmd, MSM_SSBI_BASE + SSBI2_CMD);
@@ -90,13 +102,17 @@ int i2c_ssbi_read_bytes(unsigned char  *buffer, unsigned short length,
 		ret = i2c_ssbi_poll_for_read_completed();
 		if (ret) {
 		        dprintf (CRITICAL, "Error: read not completed\n");
-			return ret;
+			goto end;
 		}
 
 		*buf++ = readl(MSM_SSBI_BASE + SSBI2_RD) & SSBI_RD_REG_DATA_MASK;
 		len--;
 	}
-	return 0;
+end:
+#ifdef TARGET_USES_RSPIN_LOCK
+	remote_spin_unlock(rlock);
+#endif
+	return ret;
 }
 
 int i2c_ssbi_write_bytes(unsigned char  *buffer, unsigned short length,
@@ -107,7 +123,15 @@ int i2c_ssbi_write_bytes(unsigned char  *buffer, unsigned short length,
 	unsigned char *buf = buffer;
 	unsigned short len = length;
 	unsigned short addr = slave_addr;
-	unsigned long mode2 = readl(MSM_SSBI_BASE + SSBI2_MODE2);
+	unsigned long mode2 = 0;
+
+	/*
+	 * Use remote spin locks since SSBI2 controller is shared with nonHLOS proc
+	 */
+#ifdef TARGET_USES_RSPIN_LOCK
+	remote_spin_lock(rlock);
+#endif
+	mode2 = readl(MSM_SSBI_BASE + SSBI2_MODE2);
 
 	if (mode2 & SSBI_MODE2_SSBI2_MODE)
 		writel(SSBI_MODE2_REG_ADDR_15_8(mode2, addr),
@@ -117,19 +141,24 @@ int i2c_ssbi_write_bytes(unsigned char  *buffer, unsigned short length,
 		ret = i2c_ssbi_poll_for_device_ready();
 		if (ret) {
 		        dprintf (CRITICAL, "Error: device not ready\n");
-			return ret;
+			goto end;
 		}
 
 		writel(SSBI_CMD_WRITE(addr, *buf++), MSM_SSBI_BASE + SSBI2_CMD);
 
 		while (readl(MSM_SSBI_BASE + SSBI2_STATUS) & SSBI_STATUS_MCHN_BUSY) {
 		  if (--timeout == 0) {
-		    dprintf(INFO, "In Device ready function:Timeout, status %x\n", readl(MSM_SSBI_BASE + SSBI2_STATUS));
-		    return 1;
+			dprintf(INFO, "In Device ready function:Timeout, status %x\n", readl(MSM_SSBI_BASE + SSBI2_STATUS));
+			ret = 1;
+			goto end;
 		  }
 		}
 		len--;
 	}
+end:
+#ifdef TARGET_USES_RSPIN_LOCK
+	remote_spin_unlock(rlock);
+#endif
 	return 0;
 }
 

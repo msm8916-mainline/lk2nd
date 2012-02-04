@@ -41,6 +41,9 @@
 #include <mmc.h>
 #include <platform/iomap.h>
 #include <platform/machtype.h>
+#ifdef TARGET_USES_RSPIN_LOCK
+#include <platform/remote_spinlock.h>
+#endif
 #include <platform.h>
 
 #define MSM8255_ID                 74
@@ -178,6 +181,11 @@ void target_init(void)
 	int i;
 
 	dprintf(INFO, "target_init()\n");
+
+#ifdef TARGET_USES_RSPIN_LOCK
+	if(remote_spinlock_init(&rlock))
+		dprintf(SPEW,"Failed to Initialize remote spin locks\n");
+#endif
 
 #if (!ENABLE_NANDWRITE)
 	keys_init();
