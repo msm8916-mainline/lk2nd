@@ -66,6 +66,9 @@
 /* 8064 */
 #define LINUX_MACHTYPE_8064_SIM     3572
 #define LINUX_MACHTYPE_8064_RUMI3   3679
+#define LINUX_MACHTYPE_8064_CDP     3948
+#define LINUX_MACHTYPE_8064_MTP     3949
+#define LINUX_MACHTYPE_8064_LIQUID  3951
 
 extern void dmb(void);
 extern void msm8960_keypad_init(void);
@@ -236,10 +239,16 @@ void target_detect(void)
 	} else if (platform_id == APQ8064) {
 		switch (id) {
 		case HW_PLATFORM_SURF:
-			target_id = LINUX_MACHTYPE_8064_SIM;
+			target_id = LINUX_MACHTYPE_8064_CDP;
+			break;
+		case HW_PLATFORM_MTP:
+			target_id = LINUX_MACHTYPE_8064_MTP;
+			break;
+		case HW_PLATFORM_LIQUID:
+			target_id = LINUX_MACHTYPE_8064_LIQUID;
 			break;
 		default:
-			target_id = LINUX_MACHTYPE_8064_RUMI3;
+			target_id = LINUX_MACHTYPE_8064_CDP;
 		}
 	} else {
 		dprintf(CRITICAL, "platform_id (%d) is not identified.\n",
@@ -273,6 +282,9 @@ unsigned target_baseband()
 					baseband = BASEBAND_MDM;
 				else if (board_info_v6.board_info_v3.msm_id ==
 					 APQ8060)
+					baseband = BASEBAND_APQ;
+				else if (board_info_v6.board_info_v3.msm_id ==
+					 APQ8064)
 					baseband = BASEBAND_APQ;
 				else
 					baseband = BASEBAND_MSM;
