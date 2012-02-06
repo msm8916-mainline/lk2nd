@@ -34,8 +34,6 @@
 #include <dev/ssbi.h>
 #include <dev/gpio_keypad.h>
 
-#define LINUX_MACHTYPE_7x27A_QRD 3756
-
 #define ARRAY_SIZE(x) (sizeof(x)/sizeof((x)[0]))
 
 /* don't turn this on without updating the ffa support */
@@ -138,10 +136,7 @@ static struct gpio_keypad_info halibut_keypad_info_evb = {
 
 void keypad_init(void)
 {
-	unsigned int mach_id;
-	mach_id = board_machtype();
-
-	if (mach_id == LINUX_MACHTYPE_7x27A_QRD)
+	if (machine_is_7x27a_qrd1() || machine_is_7x27a_qrd3())
 		gpio_keypad_init(&halibut_keypad_info_qrd);
 	else if (machine_is_7x27a_evb())
 		gpio_keypad_init(&halibut_keypad_info_evb);

@@ -48,6 +48,7 @@
 #define MSM7X25A_SURF	3772
 #define MSM7X25A_FFA	3771
 #define MSM7X27A_EVB	3934
+#define MSM7X27A_QRD3	4005
 
 #define LINUX_MACHTYPE  MSM7X27A_SURF
 
@@ -264,7 +265,10 @@ void board_info(void)
 				hw_platform = MSM7X27A_FFA;
 			break;
 		case 0xB:
-			hw_platform = MSM7X27A_QRD1;
+			if(target_is_emmc_boot())
+				hw_platform = MSM7X27A_QRD1;
+			else
+				hw_platform = MSM7X27A_QRD3;
 			break;
 		case 0xC:
 			hw_platform = MSM7X27A_EVB;
@@ -414,6 +418,22 @@ int emmc_recovery_init(void)
 int machine_is_7x27a_evb()
 {
 	if (board_machtype() == MSM7X27A_EVB)
+		return 1;
+	else
+		return 0;
+}
+
+int machine_is_7x27a_qrd3()
+{
+	if (board_machtype() == MSM7X27A_QRD3)
+		return 1;
+	else
+		return 0;
+}
+
+int machine_is_7x27a_qrd1()
+{
+	if (board_machtype() == MSM7X27A_QRD1)
 		return 1;
 	else
 		return 0;
