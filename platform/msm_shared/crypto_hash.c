@@ -37,6 +37,10 @@ static unsigned char crypto_init_done = FALSE;
 
 extern void ce_clock_init(void);
 
+__WEAK void crypto_eng_cleanup()
+{
+}
+
 /*
  * Top level function which calculates SHAx digest with given data and size.
  * Digest varies based on the authentication algorithm.
@@ -68,6 +72,9 @@ hash_find(unsigned char *addr, unsigned int size, unsigned char *digest,
 	if (ret_val != CRYPTO_SHA_ERR_NONE) {
 		dprintf(CRITICAL, "crypto_sha256 returns error %d\n", ret_val);
 	}
+
+	crypto_eng_cleanup();
+
 }
 
 /*

@@ -249,3 +249,38 @@ uint8_t get_tamper_fuse_cmd()
 	scm_call(svc_id, cmd_id, cmd_buf, cmd_len, &resp_buf, resp_len);
 	return resp_buf;
 }
+
+/*
+ * Switches the CE1 channel between ADM and register usage.
+ * channel : AP_CE_REGISTER_USE, CE1 uses register interface
+ *         : AP_CE_ADM_USE, CE1 uses ADM interface
+ */
+uint8_t switch_ce_chn_cmd(enum ap_ce_channel_type channel)
+{
+	uint32_t svc_id;
+	uint32_t cmd_id;
+	void *cmd_buf;
+	size_t cmd_len;
+	size_t resp_len = 0;
+	uint8_t resp_buf;
+
+	struct {
+		uint32_t resource;
+		uint32_t chn_id;
+		}__PACKED switch_ce_chn_buf;
+
+	switch_ce_chn_buf.resource = TZ_RESOURCE_CE_AP;
+	switch_ce_chn_buf.chn_id = channel;
+	cmd_buf = (void *)&switch_ce_chn_buf;
+	cmd_len = sizeof(switch_ce_chn_buf);
+
+	/*response */
+	resp_len = sizeof(resp_buf);
+
+	svc_id = SCM_SVC_CE_CHN_SWITCH_ID;
+	cmd_id = SCM_CE_CHN_SWITCH_ID;
+
+	scm_call(svc_id, cmd_id, cmd_buf, cmd_len, &resp_buf, resp_len);
+	return resp_buf;
+}
+

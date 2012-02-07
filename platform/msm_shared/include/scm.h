@@ -67,11 +67,27 @@ void setup_decrypt_cmd(decrypt_img_req * dec_cmd,
 static uint32 smc(uint32 cmd_addr);
 int decrypt_img_scm(uint32 ** img_ptr, uint32 * img_len_ptr);
 
-#define SCM_SVC_FUSE            0x08
-#define SCM_BLOW_SW_FUSE_ID     0x01
-#define SCM_IS_SW_FUSE_BLOWN_ID 0x02
+#define SCM_SVC_FUSE                0x08
+#define SCM_BLOW_SW_FUSE_ID         0x01
+#define SCM_IS_SW_FUSE_BLOWN_ID     0x02
 
-#define HLOS_IMG_TAMPER_FUSE    0
+#define HLOS_IMG_TAMPER_FUSE        0
+
+
+#define SCM_SVC_CE_CHN_SWITCH_ID    0x04
+#define SCM_CE_CHN_SWITCH_ID        0x02
+
+enum ap_ce_channel_type {
+AP_CE_REGISTER_USE = 0,
+AP_CE_ADM_USE = 1
+};
+
+/* Apps CE resource. */
+#define TZ_RESOURCE_CE_AP  2
+
+uint8_t switch_ce_chn_cmd(enum ap_ce_channel_type channel);
+
+
 void set_tamper_fuse_cmd();
 
 /**
@@ -117,5 +133,7 @@ struct scm_response {
 	uint32_t buf_offset;
 	uint32_t is_complete;
 };
+
+
 
 #endif

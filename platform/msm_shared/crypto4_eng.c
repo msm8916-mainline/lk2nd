@@ -34,6 +34,7 @@
 #include <platform/iomap.h>
 #include <crypto4_eng.h>
 #include <crypto_hash.h>
+#include <scm.h>
 
 extern void dsb(void);
 
@@ -46,6 +47,23 @@ void crypto_eng_reset(void)
 	return;
 }
 
+
+/* Function to switch the CE1 context
+ * from register to ADM
+ */
+void crypto_eng_cleanup(void)
+{
+
+    unsigned int val;
+
+    enum ap_ce_channel_type chn = AP_CE_ADM_USE;
+    /* Make a SMC call to TZ to make CE1 use ADM interface for HLOS*/
+    val = switch_ce_chn_cmd(chn);
+    dprintf(INFO, "TZ channel swith returned %d\n", val);
+
+}
+
+
 /*
  * Function to initialize the crypto engine for a new session. It enables the
  * auto shutdown feature of CRYPTO and mask various interrupts since we use
@@ -55,12 +73,12 @@ void crypto_eng_reset(void)
 void crypto_eng_init(void)
 {
 	unsigned int val;
-	val = (AUTO_SHUTDOWN_EN | MASK_ERR_INTR | MASK_DIN_INTR |
-	       MASK_DOUT_INTR | HIGH_SPD_IN_EN_N | HIGH_SPD_OUT_EN_N);
 
-	val |= MASK_OP_DONE_INTR;
+	enum ap_ce_channel_type chn = AP_CE_REGISTER_USE;
+	/* Make a SMC call to TZ to make CE1 use register interface */
+	val = switch_ce_chn_cmd(chn);
+	dprintf(INFO, "TZ channel swith returned %d\n", val);
 
-	wr_ce(val, CRYPTO_CONFIG);
 }
 
 /*
