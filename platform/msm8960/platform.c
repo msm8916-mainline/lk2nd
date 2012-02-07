@@ -49,6 +49,7 @@ extern struct fbcon_config *mipi_init(void);
 extern void mipi_dsi_shutdown(void);
 
 static uint32_t ticks_per_sec = 0;
+static uint8_t display_enabled = 0;
 
 #define MB (1024*1024)
 
@@ -108,11 +109,14 @@ void display_init(void)
 
 	fb_cfg = mipi_init();
 	fbcon_setup(fb_cfg);
+
+	display_enabled = 1;
 }
 
 void display_shutdown(void)
 {
-	mipi_dsi_shutdown();
+	if(display_enabled)
+		mipi_dsi_shutdown();
 }
 
 /*
