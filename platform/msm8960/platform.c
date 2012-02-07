@@ -150,6 +150,11 @@ void platform_init_mmu_mappings(void)
 	uint32_t sections;
 	uint32_t table_size = ARRAY_SIZE(mmu_section_table);
 
+	/* TODO: Caches are not working correctly on APQ8064 platform.
+	 *       Disabling caches for now. Need to fix it.
+	 */
+	return;
+
 	for (i = 0; i < table_size; i++) {
 		sections = mmu_section_table[i].num_of_sections;
 
