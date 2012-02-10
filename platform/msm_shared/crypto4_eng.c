@@ -37,6 +37,7 @@
 #include <scm.h>
 
 extern void dsb(void);
+extern void ce_async_reset();
 
 /*
  * Function to reset the crypto engine.
@@ -44,6 +45,7 @@ extern void dsb(void);
 
 void crypto_eng_reset(void)
 {
+	ce_async_reset();
 	return;
 }
 

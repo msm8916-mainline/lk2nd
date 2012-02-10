@@ -264,3 +264,25 @@ void ce_clock_init(void)
 	writel((1 << 4), CE1_CORE_CLK_CTL);
 	return;
 }
+
+/* Async Reset CE1 */
+void ce_async_reset()
+{
+	/* Enable Async reset bit for HCLK CE1 */
+	writel((1<<7) | (1 << 4), CE1_HCLK_CTL);
+	/* Enable Async reset bit for core clk for CE1 */
+	writel((1<<7) | (1 << 4), CE1_CORE_CLK_CTL);
+
+	/* Add a small delay between switching the
+	 * async intput from high to low
+	 */
+	 udelay(2);
+
+	/* Disable Async reset bit for HCLK for CE1 */
+	writel((1 << 4), CE1_HCLK_CTL);
+	/* Disable Async reset bit for core clk for CE1 */
+	writel((1 << 4), CE1_CORE_CLK_CTL);
+
+	return;
+}
+
