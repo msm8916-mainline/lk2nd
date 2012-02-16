@@ -71,7 +71,7 @@ static int hw_platform_type = -1;
 static struct ptentry board_part_list[] = {
 	{
 	 .start = 0,
-	 .length = 5 /* In MB */ ,
+	 .length = 10 /* In MB */ ,
 	 .name = "boot",
 	 },
 	{
@@ -106,7 +106,7 @@ static struct ptentry board_part_list[] = {
 	 },
 	{
 	 .start = DIFF_START_ADDR,
-	 .length = 5 /* In MB */ ,
+	 .length = 10 /* In MB */ ,
 	 .name = "recovery",
 	 },
 };
