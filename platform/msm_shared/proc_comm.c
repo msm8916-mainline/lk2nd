@@ -125,6 +125,7 @@ enum {
 	PCOM_NV_WRITE_HIGH_BITS,
 	PCOM_RPC_GPIO_TLMM_CONFIG_EX = 0x25,
 	PCOM_NUM_CMDS,
+	PCOM_KERNEL_SEC_BOOT = 0x7A,
 };
 
 enum {
@@ -329,4 +330,9 @@ int vreg_disable(unsigned id)
 {
 	int enable = 0;
 	return msm_proc_comm(PCOM_VREG_SWITCH, &id, &enable);
+}
+
+void set_tamper_flag(int tamper)
+{
+	return msm_proc_comm(PCOM_KERNEL_SEC_BOOT, &tamper, 0);
 }

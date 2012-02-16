@@ -567,6 +567,9 @@ int boot_linux_from_flash(void)
 		{
 			write_device_info_flash(&device);
 		}
+#if USE_PCOM_SECBOOT
+		set_tamper_flag(device.is_tampered);
+#endif
 	}
 	else
 	{
