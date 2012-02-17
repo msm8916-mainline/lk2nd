@@ -53,6 +53,12 @@ typedef enum {
 } crypto_result_type;
 
 typedef enum {
+	CRYPTO_ENGINE_TYPE_NONE,
+	CRYPTO_ENGINE_TYPE_SW,
+	CRYPTO_ENGINE_TYPE_HW,
+}crypto_engine_type;
+
+typedef enum {
 	CRYPTO_AUTH_ALG_SHA1 = 1,
 	CRYPTO_AUTH_ALG_SHA256
 } crypto_auth_alg_type;

@@ -47,8 +47,18 @@
 #include <gsbi.h>
 #include <platform/scm-io.h>
 #include <platform/machtype.h>
+#include <crypto_hash.h>
 
 static const uint8_t uart_gsbi_id = GSBI_ID_12;
+
+/* Setting this variable to different values defines the
+ * behavior of CE engine:
+ * platform_ce_type = CRYPTO_ENGINE_TYPE_NONE : No CE engine
+ * platform_ce_type = CRYPTO_ENGINE_TYPE_SW : Software CE engine
+ * platform_ce_type = CRYPTO_ENGINE_TYPE_HW : Hardware CE engine
+ * Behavior is determined in the target code.
+ */
+static crypto_engine_type platform_ce_type = CRYPTO_ENGINE_TYPE_SW;
 
 void keypad_init(void);
 extern void dmb(void);
@@ -213,7 +223,6 @@ unsigned board_machtype(void)
 			mach_id = LINUX_MACHTYPE_8660_FFA;
 		}
 	}
-
 	return mach_id;
 }
 
@@ -359,6 +368,48 @@ unsigned target_baseband()
 		}
 	}
 	return baseband;
+}
+
+crypto_engine_type board_ce_type(void)
+{
+
+	struct smem_board_info_v5 board_info_v5;
+	struct smem_board_info_v6 board_info_v6;
+	unsigned int board_info_len = 0;
+	unsigned smem_status = 0;
+	unsigned format = 0;
+
+	smem_status = smem_read_alloc_entry_offset(SMEM_BOARD_INFO_LOCATION,
+							&format, sizeof(format), 0);
+	if (!smem_status) {
+		if (format == 5) {
+			board_info_len = sizeof(board_info_v5);
+
+			smem_status = smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
+							&board_info_v5,
+							board_info_len);
+		if (!smem_status) {
+			if ((board_info_v5.board_info_v3.msm_id == APQ8060) ||
+				(board_info_v5.board_info_v3.msm_id == MSM8660) ||
+				(board_info_v5.board_info_v3.msm_id == MSM8260))
+				platform_ce_type = CRYPTO_ENGINE_TYPE_HW;
+            }
+		} else if (format >= 6) {
+			board_info_len = sizeof(board_info_v6);
+
+			smem_status = smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
+							&board_info_v6,
+							board_info_len);
+			if(!smem_status) {
+				if ((board_info_v6.board_info_v3.msm_id == APQ8060) ||
+					(board_info_v6.board_info_v3.msm_id == MSM8660) ||
+					(board_info_v6.board_info_v3.msm_id == MSM8260))
+                    platform_ce_type = CRYPTO_ENGINE_TYPE_HW;
+			}
+		}
+	}
+
+	return platform_ce_type;
 }
 
 static unsigned target_check_power_on_reason(void)

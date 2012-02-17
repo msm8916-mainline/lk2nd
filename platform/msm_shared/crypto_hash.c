@@ -52,21 +52,24 @@ hash_find(unsigned char *addr, unsigned int size, unsigned char *digest,
 	  unsigned char auth_alg)
 {
 	crypto_result_type ret_val = CRYPTO_SHA_ERR_NONE;
+	crypto_engine_type platform_ce_type = board_ce_type();
 
 	if (auth_alg == 1) {
-#ifdef NO_CRYPTO_ENG
-		/* Hardware CE is not present , use software hashing */
-		digest = SHA1(addr, size, digest);
-#else
-		ret_val = crypto_sha1(addr, size, digest);
-#endif
+		if(platform_ce_type == CRYPTO_ENGINE_TYPE_SW)
+			/* Hardware CE is not present , use software hashing */
+			digest = SHA1(addr, size, digest);
+		else if (platform_ce_type == CRYPTO_ENGINE_TYPE_HW)
+			ret_val = crypto_sha1(addr, size, digest);
+		else
+			ret_val = CRYPTO_SHA_ERR_FAIL;
 	} else if (auth_alg == 2) {
-#ifdef NO_CRYPTO_ENG
-		/* Hardware CE is not present , use software hashing */
-		digest = SHA256(addr, size, digest);
-#else
-		ret_val = crypto_sha256(addr, size, digest);
-#endif
+		if(platform_ce_type == CRYPTO_ENGINE_TYPE_SW)
+			/* Hardware CE is not present , use software hashing */
+			digest = SHA256(addr, size, digest);
+		else if (platform_ce_type == CRYPTO_ENGINE_TYPE_HW)
+			ret_val = crypto_sha256(addr, size, digest);
+		else
+		ret_val = CRYPTO_SHA_ERR_FAIL;
 	}
 
 	if (ret_val != CRYPTO_SHA_ERR_NONE) {

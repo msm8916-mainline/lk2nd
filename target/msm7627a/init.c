@@ -40,6 +40,7 @@
 #include <mmc.h>
 #include <platform/iomap.h>
 #include <platform.h>
+#include <crypto_hash.h>
 
 #define MSM7X27A_FFA	3351
 #define MSM7X27A_SURF	3352
@@ -64,6 +65,15 @@ unsigned int fota_cookie[1];
 static struct ptable flash_ptable;
 unsigned hw_platform = 0;
 unsigned target_msm_id = 0;
+
+/* Setting this variable to different values defines the
+ * behavior of CE engine:
+ * platform_ce_type = CRYPTO_ENGINE_TYPE_NONE : No CE engine
+ * platform_ce_type = CRYPTO_ENGINE_TYPE_SW : Software CE engine
+ * platform_ce_type = CRYPTO_ENGINE_TYPE_HW : Hardware CE engine
+ * Behavior is determined in the target code.
+ */
+static crypto_engine_type platform_ce_type = CRYPTO_ENGINE_TYPE_SW;
 
 int machine_is_7x27a_evb();
 
@@ -312,6 +322,11 @@ unsigned board_msm_id(void)
 {
 	board_info();
 	return target_msm_id;
+}
+
+crypto_engine_type board_ce_type(void)
+{
+	return platform_ce_type;
 }
 
 void reboot_device(unsigned reboot_reason)
