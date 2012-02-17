@@ -71,6 +71,8 @@
 #define LINUX_MACHTYPE_8064_CDP     3948
 #define LINUX_MACHTYPE_8064_MTP     3949
 #define LINUX_MACHTYPE_8064_LIQUID  3951
+#define LINUX_MACHTYPE_8064_HRD     3994
+#define LINUX_MACHTYPE_8064_DTV     3995
 
 extern void dmb(void);
 extern void msm8960_keypad_init(void);
@@ -266,7 +268,7 @@ void target_detect(void)
 		default:
 			target_id = LINUX_MACHTYPE_8627_CDP;
 		}
-	} else if (platform_id == APQ8064) {
+	} else if ((platform_id == APQ8064) || (platform_id == MPQ8064)) {
 		switch (id) {
 		case HW_PLATFORM_SURF:
 			target_id = LINUX_MACHTYPE_8064_CDP;
@@ -276,6 +278,12 @@ void target_detect(void)
 			break;
 		case HW_PLATFORM_LIQUID:
 			target_id = LINUX_MACHTYPE_8064_LIQUID;
+			break;
+		case HW_PLATFORM_HRD:
+			target_id = LINUX_MACHTYPE_8064_HRD;
+			break;
+		case HW_PLATFORM_DTV:
+			target_id = LINUX_MACHTYPE_8064_DTV;
 			break;
 		default:
 			target_id = LINUX_MACHTYPE_8064_CDP;
