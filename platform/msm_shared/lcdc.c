@@ -128,12 +128,7 @@ struct fbcon_config *lcdc_init_set(struct lcdc_timing_parameters
 
 	dprintf(INFO, "lcdc_init(): panel is %d x %d\n", fb_cfg.width,
 		fb_cfg.height);
-#if PLATFORM_MSM8X60
 	fb_cfg.base = LCDC_FB_ADDR;
-#else
-	fb_cfg.base =
-	    memalign(4096, fb_cfg.width * fb_cfg.height * (fb_cfg.bpp / 8));
-#endif
 
 	writel((unsigned)fb_cfg.base, MSM_MDP_BASE1 + 0x90008);
 
