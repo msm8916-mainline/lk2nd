@@ -85,6 +85,8 @@ int mmc_clock_set_rate(unsigned id, unsigned rate);
 struct mmc_boot_host mmc_host;
 struct mmc_boot_card mmc_card;
 
+static unsigned int mmc_wp(unsigned int addr, unsigned int size,
+			   unsigned char set_clear_wp);
 static unsigned int mmc_boot_send_ext_cmd(struct mmc_boot_card *card,
 					  unsigned char *buf);
 static unsigned int mmc_boot_read_reg(struct mmc_boot_card *card,
@@ -2282,7 +2284,7 @@ mmc_boot_set_clr_power_on_wp_user(struct mmc_boot_card *card,
 	       sizeof(struct mmc_boot_command));
 
 	/* Disabling PERM_WP for USER AREA (CMD6) */
-	mmc_ret = mmc_boot_switch_cmd(card, MMC_BOOT_ACCESS_BIT_SET,
+	mmc_ret = mmc_boot_switch_cmd(card, MMC_BOOT_ACCESS_WRITE,
 				      MMC_BOOT_EXT_USER_WP,
 				      MMC_BOOT_US_PERM_WP_DIS);
 
@@ -2336,14 +2338,14 @@ mmc_boot_set_clr_power_on_wp_user(struct mmc_boot_card *card,
 		    (card->csd.erase_grp_mult + 1) * (card->csd.wp_grp_size +
 						      1);
 	}
-	dprintf(SPEW, "Write protect size: %d bytes\n", (wp_group_size * MMC_BOOT_WR_BLOCK_LEN));
+
 	if (wp_group_size == 0) {
 		return MMC_BOOT_E_FAILURE;
 	}
 
 	/* Setting POWER_ON_WP for USER AREA (CMD6) */
 
-	mmc_ret = mmc_boot_switch_cmd(card, MMC_BOOT_ACCESS_BIT_SET,
+	mmc_ret = mmc_boot_switch_cmd(card, MMC_BOOT_ACCESS_WRITE,
 				      MMC_BOOT_EXT_USER_WP,
 				      MMC_BOOT_US_PWR_WP_EN);
 
@@ -2371,9 +2373,6 @@ mmc_boot_set_clr_power_on_wp_user(struct mmc_boot_card *card,
 
 	if (size % wp_group_size) {
 		loop_count = (size / wp_group_size) + 1;
-		dprintf(CRITICAL, "WARNING: Size passed to write protect is not multiple of wp_group_size!\n");
-		dprintf(CRITICAL, "WARNING: Write protecting %d extra bytes.\n",
-						((loop_count * wp_group_size) - size) * MMC_BOOT_WR_BLOCK_LEN);
 	} else {
 		loop_count = (size / wp_group_size);
 	}
@@ -2434,9 +2433,9 @@ mmc_boot_get_wp_status(struct mmc_boot_card *card, unsigned int sector)
 }
 
 /*
- * Function for setting Write protect for given sector
+ * Test Function for setting Write protect for given sector
  */
-unsigned int
+static unsigned int
 mmc_wp(unsigned int sector, unsigned int size, unsigned char set_clear_wp)
 {
 	unsigned int rc = MMC_BOOT_E_SUCCESS;
