@@ -177,8 +177,8 @@ int fastboot_trigger(void)
 {
 	int ret;
 	ret = fake_key_get_state();
-	/* Want to trigger when dip switch is off */
-	return (!ret);
+	/* Want to trigger when dip switch is on */
+	return (ret);
 }
 
 void update_ptable_modem_partitions(void)

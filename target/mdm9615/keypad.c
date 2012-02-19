@@ -30,17 +30,21 @@
 #include <platform/gpio.h>
 #include <platform/iomap.h>
 
+/* GPIO that controls the Dip Switch
+ * for FASTBOOT.
+ */
+#define DIP_SWITCH_GPIO        49
 /*
  * Fake keypad for 9x15
- * Returns 1 if dip switch is on, 0 if off
+ * Returns 0 if dip switch is off, 1 if on
  */
 int fake_key_get_state(void)
 {
 	int ret;
 	/* GPIO 49 connects to Boot Config5 */
-	gpio_tlmm_config(49, 0, GPIO_OUTPUT, GPIO_PULL_DOWN,
+	gpio_tlmm_config(DIP_SWITCH_GPIO, 0, GPIO_OUTPUT, GPIO_PULL_DOWN,
 			 GPIO_2MA, GPIO_ENABLE);
 
-	ret = readl(GPIO_IN_OUT_ADDR(49));
+	ret = readl(GPIO_IN_OUT_ADDR(DIP_SWITCH_GPIO));
 	return ret;
 }
