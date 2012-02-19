@@ -203,6 +203,23 @@ int pm8921_gpio_get(uint8_t gpio, uint8_t *status)
 	return ret;
 }
 
+int pm8921_pwrkey_status(uint8_t *is_pwrkey_pressed)
+{
+	int ret = 0;
+	uint8_t block_status;
+
+	ret = pm8921_irq_get_block_status(PM_PWRKEY_BLOCK_ID, &block_status);
+
+	if (!ret)
+	{
+		if(block_status & PM_PWRKEY_PRESS_BIT)
+			*is_pwrkey_pressed = 1;
+		else
+			*is_pwrkey_pressed = 0;
+	}
+	return ret;
+}
+
 int pm8921_ldo_set_voltage(uint32_t ldo_id, uint32_t voltage)
 {
 	uint8_t mult;
