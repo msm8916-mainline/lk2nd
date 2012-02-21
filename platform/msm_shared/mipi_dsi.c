@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010-2012, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -688,14 +688,14 @@ void mipi_dsi_shutdown(void)
 	writel(0x13FF3BFF, DSI_ERR_INT_MASK0);
 #if DISPLAY_MIPI_PANEL_TOSHIBA_MDT61
 	/* Disable branch clocks */
-	writel(0x0, BYTE_CC_REG);
-	writel(0x0, PIXEL_CC_REG);
-	writel(0x0, ESC_CC_REG);
+	writel(0x0, DSI1_BYTE_CC_REG);
+	writel(0x0, DSI_PIXEL_CC_REG);
+	writel(0x0, DSI1_ESC_CC_REG);
 	/* Disable root clock */
 	writel(0x0, DSI_CC_REG);
 #elif (!DISPLAY_MIPI_PANEL_RENESAS)
 	secure_writel(0x0, DSI_CC_REG);
-	secure_writel(0x0, PIXEL_CC_REG);
+	secure_writel(0x0, DSI_PIXEL_CC_REG);
 #endif
 	writel(0, DSI_CLK_CTRL);
 	writel(0, DSI_CTRL);

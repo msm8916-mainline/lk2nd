@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -33,9 +33,10 @@
 #include <uart_dm.h>
 #include <gsbi.h>
 #include <mmc.h>
+#include <clock.h>
 
 /* Set rate and enable the clock */
-void clock_config(uint32_t ns, uint32_t md, uint32_t ns_addr, uint32_t md_addr)
+static void clock_config(uint32_t ns, uint32_t md, uint32_t ns_addr, uint32_t md_addr)
 {
 	unsigned int val = 0;
 
@@ -105,120 +106,65 @@ void config_mmss_clk(uint32_t ns,
 	writel(val, cc_addr);
 }
 
-void pll8_enable(void)
-{
-	unsigned int curr_value = 0;
-
-	/* Vote for PLL8 to be enabled */
-	curr_value = readl(MSM_BOOT_PLL_ENABLE_SC0);
-	curr_value |= (1 << 8);
-	writel(curr_value, MSM_BOOT_PLL_ENABLE_SC0);
-
-	/* Proceed only after PLL is enabled */
-	while (!(readl(MSM_BOOT_PLL8_STATUS) & (1 << 16))) ;
-}
-
 void hsusb_clock_init(void)
 {
-	/* TODO: Enable pll8 here */
-	/* Setup USB AHB clock */
-
-	/* Setup XCVR clock */
-	clock_config(USB_XCVR_CLK_NS,
-		     USB_XCVR_CLK_MD,
-		     USB_HS1_XCVR_FS_CLK_NS, USB_HS1_XCVR_FS_CLK_MD);
+	clk_get_set_enable("usb_hs_clk", 60000000, 1);
 }
 
 /* Configure UART clock - based on the gsbi id */
 void clock_config_uart_dm(uint8_t id)
 {
-	/* Enable gsbi_uart_clk */
-	clock_config(UART_DM_CLK_NS_115200,
-		     UART_DM_CLK_MD_115200,
-		     GSBIn_UART_APPS_NS(id), GSBIn_UART_APPS_MD(id));
+	char gsbi_uart_clk_id[64];
+	char gsbi_p_clk_id[64];
 
-	/* Enable gsbi_pclk */
-	writel(GSBI_HCLK_CTL_CLK_ENA << GSBI_HCLK_CTL_S, GSBIn_HCLK_CTL(id));
+	snprintf(gsbi_uart_clk_id, 64,"gsbi%u_uart_clk", id);
+	clk_get_set_enable(gsbi_uart_clk_id, 1843200, 1);
+
+	snprintf(gsbi_p_clk_id, 64,"gsbi%u_pclk", id);
+	clk_get_set_enable(gsbi_p_clk_id, 0, 1);
 }
 
 /* Configure i2c clock */
 void clock_config_i2c(uint8_t id, uint32_t freq)
 {
-	uint32_t ns;
-	uint32_t md;
+	char gsbi_qup_clk_id[64];
+	char gsbi_p_clk_id[64];
 
-	switch (freq) {
-	case 24000000:
-		ns = I2C_CLK_NS_24MHz;
-		md = I2C_CLK_MD_24MHz;
-		break;
-	default:
-		ASSERT(0);
-	}
+	snprintf(gsbi_qup_clk_id, 64,"gsbi%u_qup_clk", id);
+	clk_get_set_enable(gsbi_qup_clk_id, 24000000, 1);
 
-	clock_config(ns, md, GSBIn_QUP_APPS_NS(id), GSBIn_QUP_APPS_MD(id));
-
-	/* Enable the GSBI HCLK */
-	writel(GSBI_HCLK_CTL_CLK_ENA << GSBI_HCLK_CTL_S, GSBIn_HCLK_CTL(id));
-}
-
-void pll1_enable(void)
-{
-	uint32_t val = 0;
-
-	/* Reset MND divider */
-	val |= (1 << 2);
-	writel(val, MM_PLL1_MODE_REG);
-
-	/* Use PLL -- Disable Bypass */
-	val |= (1 << 1);
-	writel(val, MM_PLL1_MODE_REG);
-
-	/* Activate PLL out control */
-	val |= 1;
-	writel(val, MM_PLL1_MODE_REG);
-
-	while (!readl(MM_PLL1_STATUS_REG)) ;
-}
-
-void config_mdp_lut_clk(void)
-{
-	/* Force on */
-	writel(MDP_LUT_VAL, MDP_LUT_CC_REG);
+	snprintf(gsbi_p_clk_id, 64,"gsbi%u_pclk", id);
+	clk_get_set_enable(gsbi_p_clk_id, 0, 1);
 }
 
 /* Turn on MDP related clocks and pll's for MDP */
 void mdp_clock_init(void)
 {
-	/* Turn on the PLL1, as source for  MDP clock */
-	pll1_enable();
-
-	/* Turn on MDP clk */
-	config_mmss_clk(MDP_NS_VAL, MDP_MD_VAL,
-			MDP_CC_VAL, MDP_NS_REG, MDP_MD_REG, MDP_CC_REG);
+	/* Set MDP clock to 200MHz */
+	clk_get_set_enable("mdp_clk", 200000000, 1);
 
 	/* Seems to lose pixels without this from status 0x051E0048 */
-	config_mdp_lut_clk();
+	clk_get_set_enable("lut_mdp", 0, 1);
 }
 
 /* Initialize all clocks needed by Display */
 void mmss_clock_init(void)
 {
 	/* Configure Pixel clock */
-	config_mmss_clk(PIXEL_NS_VAL, PIXEL_MD_VAL, PIXEL_CC_VAL, PIXEL_NS_REG,
-			PIXEL_MD_REG, PIXEL_CC_REG);
+	config_mmss_clk(PIXEL_NS_VAL, PIXEL_MD_VAL, PIXEL_CC_VAL, DSI_PIXEL_NS_REG,
+			DSI_PIXEL_MD_REG, DSI_PIXEL_CC_REG);
 
 	/* Configure DSI clock */
 	config_mmss_clk(DSI_NS_VAL, DSI_MD_VAL, DSI_CC_VAL, DSI_NS_REG,
 			DSI_MD_REG, DSI_CC_REG);
 
 	/* Configure Byte clock */
-	config_mmss_clk(BYTE_NS_VAL, 0x0, BYTE_CC_VAL, BYTE_NS_REG, 0x0,
-			BYTE_CC_REG);
+	config_mmss_clk(BYTE_NS_VAL, 0x0, BYTE_CC_VAL, DSI1_BYTE_NS_REG, 0x0,
+			DSI1_BYTE_CC_REG);
 
 	/* Configure ESC clock */
-	config_mmss_clk(ESC_NS_VAL, 0x0, ESC_CC_VAL, ESC_NS_REG, 0x0,
-			ESC_CC_REG);
+	config_mmss_clk(ESC_NS_VAL, 0x0, ESC_CC_VAL, DSI1_ESC_NS_REG, 0x0,
+			DSI1_ESC_CC_REG);
 }
 
 /* Intialize MMC clock */
@@ -230,24 +176,27 @@ void clock_init_mmc(uint32_t interface)
 /* Configure MMC clock */
 void clock_config_mmc(uint32_t interface, uint32_t freq)
 {
+	char sdc_clk[64];
+	unsigned rate;
 	uint32_t reg = 0;
 
-	switch (freq) {
+	snprintf(sdc_clk, 64, "sdc%u_clk", interface);
+
+	switch(freq)
+	{
 	case MMC_CLK_400KHZ:
-		clock_config(SDC_CLK_NS_400KHZ,
-			     SDC_CLK_MD_400KHZ,
-			     SDC_NS(interface), SDC_MD(interface));
+		rate = 400000;
 		break;
 	case MMC_CLK_48MHZ:
-	case MMC_CLK_50MHZ:	/* Max supported is 48MHZ */
-		clock_config(SDC_CLK_NS_48MHZ,
-			     SDC_CLK_MD_48MHZ,
-			     SDC_NS(interface), SDC_MD(interface));
+	case MMC_CLK_50MHZ: /* Max supported is 48MHZ */
+		rate = 48000000;
 		break;
 	default:
 		ASSERT(0);
 
-	}
+	};
+
+	clk_get_set_enable(sdc_clk, rate, 1);
 
 	reg |= MMC_BOOT_MCI_CLK_ENABLE;
 	reg |= MMC_BOOT_MCI_CLK_ENA_FLOW;
@@ -258,20 +207,20 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 /* Configure crypto engine clock */
 void ce_clock_init(void)
 {
-	/* Enable HCLK for CE1 */
-	writel((1 << 4), CE1_HCLK_CTL);
-	/* Enable core clk for CE1 */
-	writel((1 << 4), CE1_CORE_CLK_CTL);
-	return;
+	/* Enable HCLK for CE */
+	clk_get_set_enable("ce_pclk", 0, 1);
+
+	/* Enable core clk for CE */
+	clk_get_set_enable("ce_clk", 0, 1);
 }
 
 /* Async Reset CE1 */
 void ce_async_reset()
 {
 	/* Enable Async reset bit for HCLK CE1 */
-	writel((1<<7) | (1 << 4), CE1_HCLK_CTL);
+	writel((1<<7) | (1 << 4), CE1_HCLK_CTL_REG);
 	/* Enable Async reset bit for core clk for CE1 */
-	writel((1<<7) | (1 << 4), CE1_CORE_CLK_CTL);
+	writel((1<<7) | (1 << 4), CE1_CORE_CLK_CTL_REG);
 
 	/* Add a small delay between switching the
 	 * async intput from high to low
@@ -279,9 +228,9 @@ void ce_async_reset()
 	 udelay(2);
 
 	/* Disable Async reset bit for HCLK for CE1 */
-	writel((1 << 4), CE1_HCLK_CTL);
+	writel((1 << 4), CE1_HCLK_CTL_REG);
 	/* Disable Async reset bit for core clk for CE1 */
-	writel((1 << 4), CE1_CORE_CLK_CTL);
+	writel((1 << 4), CE1_CORE_CLK_CTL_REG);
 
 	return;
 }

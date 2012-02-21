@@ -20,6 +20,7 @@ OBJS += \
 	$(LOCAL_DIR)/platform.o \
 	$(LOCAL_DIR)/acpuclock.o \
 	$(LOCAL_DIR)/gpio.o \
+	$(LOCAL_DIR)/clock.o
 
 LINKER_SCRIPT += $(BUILDDIR)/system-onesegment.ld
 

@@ -1,5 +1,5 @@
 /*
- * * Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
+ * * Copyright (c) 2010-2012, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -73,9 +73,9 @@
 #define MMSS_PIXEL_CC_REG   REG_MM(0xD4)
 
 /* MMSS DSI Pixel Registers not MMSS Pixel */
-#define PIXEL_MD_REG        REG_MM(0x134)
-#define PIXEL_NS_REG        REG_MM(0x138)
-#define PIXEL_CC_REG        REG_MM(0x130)
+#define DSI_PIXEL_MD_REG    REG_MM(0x134)
+#define DSI_PIXEL_NS_REG    REG_MM(0x138)
+#define DSI_PIXEL_CC_REG    REG_MM(0x130)
 
 /* Configured at 200 MHz */
 #define MDP_NS_VAL              0x3F000008
