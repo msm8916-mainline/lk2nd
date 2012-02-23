@@ -35,13 +35,17 @@
 #include <platform.h>
 #include <uart_dm.h>
 #include <mmc.h>
+#include <spmi.h>
+
 
 static unsigned int target_id;
-extern void dmb(void);
 
 static void target_detect(void);
 
-#define COPPER_TARGET_ID        3999
+#define COPPER_TARGET_ID        0xffffffff
+#define PMIC_ARB_CHANNEL_NUM    0
+#define PMIC_ARB_OWNER_ID       0
+
 
 static uint32_t mmc_sdc_base[] =
 	{ MSM_SDC1_BASE, MSM_SDC2_BASE, MSM_SDC3_BASE, MSM_SDC4_BASE };
@@ -60,6 +64,7 @@ void target_init(void)
 	dprintf(INFO, "target_init()\n");
 
 	target_id = COPPER_TARGET_ID;
+	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
 
 	/* Trying Slot 1*/
 	slot = 1;

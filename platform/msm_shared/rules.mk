@@ -65,7 +65,8 @@ ifeq ($(PLATFORM),copper)
 			$(LOCAL_DIR)/clock.o \
 			$(LOCAL_DIR)/clock_pll.o \
 			$(LOCAL_DIR)/clock_lib2.o \
-			$(LOCAL_DIR)/uart_dm.o
+			$(LOCAL_DIR)/uart_dm.o \
+			$(LOCAL_DIR)/spmi.o
 endif
 
 ifeq ($(PLATFORM),msm7x27a)

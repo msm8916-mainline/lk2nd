@@ -53,6 +53,8 @@
 /* Retrofit universal macro names */
 #define INT_USB_HS                             USB1_HS_IRQ
 
+#define EE0_KRAIT_HLOS_SPMI_PERIPH_IRQ         (GIC_SPI_START + 190)
+
 #define NR_MSM_IRQS                            256
 #define NR_GPIO_IRQS                           173
 #define NR_BOARD_IRQS                          0
