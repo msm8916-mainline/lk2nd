@@ -146,13 +146,13 @@ static int do_fdtget(struct display_info *disp, const char *filename,
 		return -1;
 
 	for (i = 0; i + 2 <= arg_count; i += 2) {
-		node = fdt_path_offset(blob, arg[0]);
+		node = fdt_path_offset(blob, arg[i]);
 		if (node < 0) {
-			report_error(arg[0], node);
+			report_error(arg[i], node);
 			return -1;
 		}
 
-		if (show_data_for_item(blob, disp, node, arg[1]))
+		if (show_data_for_item(blob, disp, node, arg[i + 1]))
 			return -1;
 	}
 	return 0;

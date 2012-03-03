@@ -475,6 +475,9 @@ fdtget_tests () {
     run_fdtget_test "61 62 63 0 12 34 0 0 0 a 0 0 0 b 0 0 0 c" \
 	-thhx $dtb /randomnode mixed
     run_wrap_error_test $DTGET -ts $dtb /randomnode doctor-who
+
+    # Test multiple arguments
+    run_fdtget_test "MyBoardName\nmemory" -ts $dtb / model /memory device_type
 }
 
 fdtput_tests () {
