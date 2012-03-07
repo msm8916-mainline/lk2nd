@@ -478,6 +478,12 @@ fdtget_tests () {
 
     # Test multiple arguments
     run_fdtget_test "MyBoardName\nmemory" -ts $dtb / model /memory device_type
+
+    # Test defaults
+    run_wrap_error_test $DTGET -tx $dtb /randomnode doctor-who
+    run_fdtget_test "<the dead silence>" -tx \
+	-d "<the dead silence>" $dtb /randomnode doctor-who
+    run_fdtget_test "<blink>" -tx -d "<blink>" $dtb /memory doctor-who
 }
 
 fdtput_tests () {

@@ -45,6 +45,7 @@ struct display_info {
 	int type;		/* data type (s/i/u/x or 0 for default) */
 	int size;		/* data size (1/2/4) */
 	enum display_mode mode;	/* display mode that we are using */
+	const char *default_val; /* default value if node/property not found */
 };
 
 static void report_error(const char *where, int err)
@@ -225,6 +226,8 @@ static int show_data_for_item(const void *blob, struct display_info *disp,
 				err = -1;
 			else
 				printf("\n");
+		} else if (disp->default_val) {
+			puts(disp->default_val);
 		} else {
 			report_error(property, len);
 			err = -1;
@@ -258,8 +261,13 @@ static int do_fdtget(struct display_info *disp, const char *filename,
 	for (i = 0; i + args_per_step <= arg_count; i += args_per_step) {
 		node = fdt_path_offset(blob, arg[i]);
 		if (node < 0) {
-			report_error(arg[i], node);
-			return -1;
+			if (disp->default_val) {
+				puts(disp->default_val);
+				continue;
+			} else {
+				report_error(arg[i], node);
+				return -1;
+			}
 		}
 		prop = args_per_step == 1 ? NULL : arg[i + 1];
 
@@ -280,6 +288,8 @@ static const char *usage_msg =
 	"\t-t <type>\tType of data\n"
 	"\t-p\t\tList properties for each node\n"
 	"\t-l\t\tList subnodes for each node\n"
+	"\t-d\t\tDefault value to display when the property is "
+			"missing\n"
 	"\t-h\t\tPrint this help\n\n"
 	USAGE_TYPE_MSG;
 
@@ -303,7 +313,7 @@ int main(int argc, char *argv[])
 	disp.size = -1;
 	disp.mode = MODE_SHOW_VALUE;
 	for (;;) {
-		int c = getopt(argc, argv, "hlpt:");
+		int c = getopt(argc, argv, "d:hlpt:");
 		if (c == -1)
 			break;
 
@@ -326,6 +336,10 @@ int main(int argc, char *argv[])
 		case 'l':
 			disp.mode = MODE_LIST_SUBNODES;
 			args_per_step = 1;
+			break;
+
+		case 'd':
+			disp.default_val = optarg;
 			break;
 		}
 	}
