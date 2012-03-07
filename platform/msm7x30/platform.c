@@ -131,12 +131,14 @@ void display_init(void)
 #endif
 
 #if DISPLAY_TYPE_LCDC
-	struct lcdc_timing_parameters *lcd_timing;
-	mdp_lcdc_clock_init();
-	lcd_timing = get_lcd_timing();
-	fb_cfg = lcdc_init_set(lcd_timing);
-	panel_poweron();
-	fbcon_setup(fb_cfg);
+	if(!machine_is_ffa()) {
+		struct lcdc_timing_parameters *lcd_timing;
+		mdp_lcdc_clock_init();
+		lcd_timing = get_lcd_timing();
+		fb_cfg = lcdc_init_set(lcd_timing);
+		panel_poweron();
+		fbcon_setup(fb_cfg);
+	}
 #endif
 }
 
@@ -144,7 +146,9 @@ void display_shutdown(void)
 {
 #if DISPLAY_TYPE_LCDC
 	/* Turning off LCDC */
-	lcdc_shutdown();
+	if(!machine_is_ffa()) {
+		lcdc_shutdown();
+	}
 #endif
 }
 

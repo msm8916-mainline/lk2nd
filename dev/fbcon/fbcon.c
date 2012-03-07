@@ -211,12 +211,23 @@ struct fbcon_config* fbcon_display(void)
 void display_image_on_screen(void)
 {
     unsigned i = 0;
-    unsigned total_x = config->width;
-    unsigned total_y = config->height;
-    unsigned bytes_per_bpp = ((config->bpp) / 8);
-    unsigned image_base = ((((total_y/2) - (SPLASH_IMAGE_WIDTH / 2) - 1) *
-			    (config->width)) + (total_x/2 - (SPLASH_IMAGE_HEIGHT / 2)));
+    unsigned total_x;
+    unsigned total_y;
+    unsigned bytes_per_bpp;
+    unsigned image_base;
+
+    if (!config) {
+       dprintf(CRITICAL,"NULL configuration, image cannot be displayed\n");
+       return;
+    }
+
     fbcon_clear();
+
+    total_x = config->width;
+    total_y = config->height;
+    bytes_per_bpp = ((config->bpp) / 8);
+    image_base = ((((total_y/2) - (SPLASH_IMAGE_WIDTH / 2) - 1) *
+		    (config->width)) + (total_x/2 - (SPLASH_IMAGE_HEIGHT / 2)));
 
 #if DISPLAY_TYPE_MIPI
     if (bytes_per_bpp == 3)

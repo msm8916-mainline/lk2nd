@@ -427,3 +427,20 @@ crypto_engine_type board_ce_type(void)
 {
 	return platform_ce_type;
 }
+
+int machine_is_ffa()
+{
+	unsigned mach_type;
+	int ret = 0;
+
+	mach_type = board_machtype();
+	switch(mach_type) {
+	case LINUX_MACHTYPE_8x55_FFA:
+	case LINUX_MACHTYPE_7x30_FFA:
+		ret = 1;
+		break;
+	default:
+		ret = 0;
+	}
+	return ret;
+}
