@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -46,6 +46,7 @@ extern void mdp_clock_init(void);
 extern void mmss_clock_init(void);
 extern struct fbcon_config *mipi_init(void);
 extern void mipi_dsi_shutdown(void);
+extern void msm_clocks_init(void);
 
 static uint32_t ticks_per_sec = 0;
 static uint8_t display_enabled = 0;
@@ -85,6 +86,7 @@ mmu_section_t mmu_section_table[] = {
 
 void platform_early_init(void)
 {
+	msm_clocks_init();
 	qgic_init();
 	platform_init_timer();
 }

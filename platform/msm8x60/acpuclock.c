@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2012, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -409,12 +409,12 @@ void configure_dsicore_pclk(void)
 	unsigned long src_sel = 0x3;	// dsi_phy_pll0_src
 	unsigned long pre_div_func = 0x01;	// predivide by 2
 
-	secure_writel(pre_div_func << 12 | src_sel, PIXEL_NS_REG);
+	secure_writel(pre_div_func << 12 | src_sel, DSI_PIXEL_NS_REG);
 
 	mnd_mode = 0;		// Bypass MND
 	root_en = 1;
 	clk_en = 1;
-	secure_writel(mnd_mode << 6, PIXEL_CC_REG);
-	secure_writel(secure_readl(PIXEL_CC_REG) | root_en << 2, PIXEL_CC_REG);
-	secure_writel(secure_readl(PIXEL_CC_REG) | clk_en, PIXEL_CC_REG);
+	secure_writel(mnd_mode << 6, DSI_PIXEL_CC_REG);
+	secure_writel(secure_readl(DSI_PIXEL_CC_REG) | root_en << 2, DSI_PIXEL_CC_REG);
+	secure_writel(secure_readl(DSI_PIXEL_CC_REG) | clk_en, DSI_PIXEL_CC_REG);
 }

@@ -46,7 +46,9 @@ ifeq ($(PLATFORM),msm8960)
 			$(LOCAL_DIR)/certificate.o \
 			$(LOCAL_DIR)/image_verify.o \
 			$(LOCAL_DIR)/scm.o \
-			$(LOCAL_DIR)/interrupts.o
+			$(LOCAL_DIR)/interrupts.o \
+			$(LOCAL_DIR)/clock-local.o \
+			$(LOCAL_DIR)/clock.o
 endif
 
 ifeq ($(PLATFORM),msm7x27a)
