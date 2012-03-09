@@ -156,10 +156,10 @@ struct pm8xxx_gpio_init {
 /* Initial pm8038 GPIO configurations */
 static struct pm8xxx_gpio_init pm8038_keypad_gpios[] = {
 	/* keys GPIOs */
-	PM8XXX_GPIO_INPUT(PM_GPIO(3), PM_GPIO_PULL_UP_1_5),
-	PM8XXX_GPIO_INPUT(PM_GPIO(8), PM_GPIO_PULL_UP_1_5),
-	PM8XXX_GPIO_INPUT(PM_GPIO(10), PM_GPIO_PULL_UP_1_5),
-	PM8XXX_GPIO_INPUT(PM_GPIO(11), PM_GPIO_PULL_UP_1_5),
+	PM8XXX_GPIO_INPUT(PM_GPIO(3), PM_GPIO_PULL_UP_30),
+	PM8XXX_GPIO_INPUT(PM_GPIO(8), PM_GPIO_PULL_UP_30),
+	PM8XXX_GPIO_INPUT(PM_GPIO(10), PM_GPIO_PULL_UP_30),
+	PM8XXX_GPIO_INPUT(PM_GPIO(11), PM_GPIO_PULL_UP_30),
 };
 
 static struct pm8xxx_gpio_init pm8921_keypad_gpios[] = {
