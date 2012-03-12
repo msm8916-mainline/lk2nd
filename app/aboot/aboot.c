@@ -1081,8 +1081,10 @@ void cmd_flash(const char *arg, void *data, unsigned sz)
 		}
 	}
 
-	if (!strcmp(ptn->name, "system") || !strcmp(ptn->name, "userdata")
-	    || !strcmp(ptn->name, "persist")) {
+	if (!strcmp(ptn->name, "system") 
+		|| !strcmp(ptn->name, "userdata")
+		|| !strcmp(ptn->name, "persist")
+		|| !strcmp(ptn->name, "recoveryfs")) {
 		if (flash_ecc_bch_enabled())
 			/* Spare data bytes for 8 bit ECC increased by 4 */
 			extra = ((page_size >> 9) * 20);
