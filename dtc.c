@@ -82,6 +82,8 @@ static void  __attribute__ ((noreturn)) usage(void)
 	fprintf(stderr, "\t\tSet the physical boot cpu\n");
 	fprintf(stderr, "\t-f\n");
 	fprintf(stderr, "\t\tForce - try to produce output even if the input tree has errors\n");
+	fprintf(stderr, "\t-i\n");
+	fprintf(stderr, "\t\tAdd a path to search for include files\n");
 	fprintf(stderr, "\t-s\n");
 	fprintf(stderr, "\t\tSort nodes and properties before outputting (only useful for\n\t\tcomparing trees)\n");
 	fprintf(stderr, "\t-v\n");
@@ -113,7 +115,8 @@ int main(int argc, char *argv[])
 	minsize    = 0;
 	padsize    = 0;
 
-	while ((opt = getopt(argc, argv, "hI:O:o:V:d:R:S:p:fqb:vH:s")) != EOF) {
+	while ((opt = getopt(argc, argv, "hI:O:o:V:d:R:S:p:fqb:i:vH:s"))
+			!= EOF) {
 		switch (opt) {
 		case 'I':
 			inform = optarg;
@@ -147,6 +150,9 @@ int main(int argc, char *argv[])
 			break;
 		case 'b':
 			cmdline_boot_cpuid = strtoll(optarg, NULL, 0);
+			break;
+		case 'i':
+			srcfile_add_search_path(optarg);
 			break;
 		case 'v':
 			printf("Version: %s\n", DTC_VERSION);

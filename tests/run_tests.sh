@@ -412,6 +412,17 @@ dtc_tests () {
     # Dependencies
     run_dtc_test -I dts -O dtb -o dependencies.test.dtb -d dependencies.test.d dependencies.dts
     run_wrap_test cmp dependencies.test.d dependencies.cmp
+
+    # Search paths
+    run_wrap_error_test $DTC -I dts -O dtb -o search_paths.dtb search_paths.dts
+    run_dtc_test -i search_dir -I dts -O dtb -o search_paths.dtb \
+	search_paths.dts
+    run_wrap_error_test $DTC -i search_dir_b -I dts -O dtb \
+	-o search_paths_b.dtb search_paths_b.dts
+    run_dtc_test -i search_dir_b -i search_dir -I dts -O dtb \
+	-o search_paths_b.dtb search_paths_b.dts
+    run_dtc_test -I dts -O dtb -o search_paths_subdir.dtb \
+	search_dir_b/search_paths_subdir.dts
 }
 
 cmp_tests () {
