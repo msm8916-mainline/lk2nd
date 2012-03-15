@@ -185,7 +185,7 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 	switch(freq)
 	{
 	case MMC_CLK_400KHZ:
-		rate = 400000;
+		rate = 144000;
 		break;
 	case MMC_CLK_48MHZ:
 	case MMC_CLK_50MHZ: /* Max supported is 48MHZ */
