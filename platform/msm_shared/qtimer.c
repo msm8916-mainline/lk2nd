@@ -47,15 +47,16 @@ static void *timer_arg;
 static time_t timer_interval;
 static unsigned int timer_type = PLATFORM_TIMER_TYPE_PHYSICAL;
 static volatile uint32_t ticks;
+static uint32_t tick_count;
 
 static enum handler_return timer_irq(void *arg)
 {
 	ticks += timer_interval;
 
 	if (timer_type == PLATFORM_TIMER_TYPE_VIRTUAL)
-		__asm__("mcr p15, 0, %0, c14, c3, 0"::"r"(timer_interval));
+		__asm__("mcr p15, 0, %0, c14, c3, 0"::"r"(tick_count));
 	else if (timer_type == PLATFORM_TIMER_TYPE_PHYSICAL)
-		__asm__("mcr p15, 0, %0, c14, c2, 0" : :"r" (timer_interval));
+		__asm__("mcr p15, 0, %0, c14, c2, 0" : :"r" (tick_count));
 
 	return timer_callback(timer_arg, ticks);
 }
@@ -108,7 +109,8 @@ status_t platform_set_periodic_timer(platform_timer_callback callback,
 {
 	uint32_t ppi_num;
 	unsigned long ctrl;
-	uint32_t tick_count = interval * platform_tick_rate() / 1000;
+
+	tick_count = interval * platform_tick_rate() / 1000;
 
 	enter_critical_section();
 
