@@ -33,7 +33,7 @@
 
 #define SIZE_1M     (1024 * 1024)
 #define SIZE_2M		(2 * SIZE_1M)
-#define SIZE_141M	(141 * SIZE_1M)
+#define SIZE_140M	(140 * SIZE_1M)
 #define SIZE_256M	(256 * SIZE_1M)
 #define SIZE_512M	(512 * SIZE_1M)
 
@@ -44,7 +44,7 @@ unsigned *target_atag_mem(unsigned *ptr)
 
 	if (smem_ram_ptable_init(&ram_ptable)) {
 		for (i = 0; i < ram_ptable.len; i++) {
-			/* Use only 141M from memory bank starting at 0x80000000 */
+			/* Use only 140M from memory bank starting at 0x80000000 */
 			if (ram_ptable.parts[i].category == SDRAM &&
 			    ram_ptable.parts[i].type == SYS_MEMORY &&
 			    ram_ptable.parts[i].start == 0x80000000) {
@@ -52,7 +52,7 @@ unsigned *target_atag_mem(unsigned *ptr)
 
 				*ptr++ = 4;
 				*ptr++ = 0x54410002;
-				*ptr++ = SIZE_141M;
+				*ptr++ = SIZE_140M;
 				*ptr++ = ram_ptable.parts[i].start + SIZE_2M;
 
 				if (ram_ptable.parts[i].size > SIZE_256M) {
