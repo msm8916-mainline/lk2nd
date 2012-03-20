@@ -1,4 +1,4 @@
-/* Copyright (c) 2011, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <err.h>
+#include <arch/ops.h>
 #include "scm.h"
 
 #pragma GCC optimize ("O0")
@@ -138,6 +139,7 @@ scm_call(uint32_t svc_id, uint32_t cmd_id, const void *cmd_buf,
 	int ret;
 	struct scm_command *cmd;
 	struct scm_response *rsp;
+	uint8_t *resp_ptr;
 
 	cmd = alloc_scm_command(cmd_len, resp_len);
 	if (!cmd)
@@ -147,61 +149,95 @@ scm_call(uint32_t svc_id, uint32_t cmd_id, const void *cmd_buf,
 	if (cmd_buf)
 		memcpy(scm_get_command_buffer(cmd), cmd_buf, cmd_len);
 
+	/* Flush command to main memory for TZ */
+	arch_clean_invalidate_cache_range((addr_t) cmd, cmd->len);
+
 	ret = smc((uint32_t) cmd);
+
 	if (ret)
 		goto out;
 
 	if (resp_len) {
 		rsp = scm_command_to_response(cmd);
 
-		while (!rsp->is_complete) ;
+		do
+		{
+			/* Need to invalidate before each check since TZ will update
+			 * the response complete flag in main memory.
+			 */
+			arch_clean_invalidate_cache_range((addr_t) rsp, sizeof(*rsp));
+		} while (!rsp->is_complete);
+
+
+		resp_ptr = scm_get_response_buffer(rsp);
+
+		/* Invalidate any cached response data */
+		arch_clean_invalidate_cache_range((addr_t) resp_ptr, resp_len);
 
 		if (resp_buf)
-			memcpy(resp_buf, scm_get_response_buffer(rsp),
-			       resp_len);
+			memcpy(resp_buf, resp_ptr, resp_len);
 	}
  out:
 	free_scm_command(cmd);
 	return ret;
 }
 
-/* SCM Decrypt Command */
-void
-setup_decrypt_cmd(decrypt_img_req * dec_cmd,
-		  uint32_t ** img_ptr, uint32_t * img_len_ptr)
+/* SCM Encrypt Command */
+int encrypt_scm(uint32_t ** img_ptr, uint32_t * img_len_ptr)
 {
-	dec_cmd->common_req.len = sizeof(decrypt_img_req);
-	dec_cmd->common_req.buf_offset = sizeof(scm_command);
-	dec_cmd->common_req.resp_hdr_offset = 0;
-	dec_cmd->common_req.id = SSD_DECRYPT_IMG_ID;
+	int ret;
+	img_req cmd;
 
-	dec_cmd->img_ptr = img_ptr;
-	dec_cmd->img_len_ptr = img_len_ptr;
-}
+	cmd.img_ptr     = (uint32*) img_ptr;
+	cmd.img_len_ptr = img_len_ptr;
 
-int decrypt_img_scm(uint32_t ** img_ptr, uint32_t * img_len_ptr)
-{
-	int ret = 0;
-	decrypt_img_req decrypt_cmd;
+	/* Image data is operated upon by TZ, which accesses only the main memory.
+	 * It must be flushed/invalidated before and after TZ call.
+	 */
+	arch_clean_invalidate_cache_range((addr_t) *img_ptr, *img_len_ptr);
 
-	/* setup the command for decryption */
-	setup_decrypt_cmd(&decrypt_cmd, img_ptr, img_len_ptr);
+	ret = scm_call(SCM_SVC_SSD, SSD_ENCRYPT_ID, &cmd, sizeof(cmd), NULL, 0);
 
-	/* Since TZ cannot access cached data, cmd must be flushed to main memory */
-	arch_clean_invalidate_cache_range((addr_t) & decrypt_cmd,
-					  sizeof(decrypt_cmd));
-
-	/* Invalidate img ptr and len from cache so that we read the updated data
-	 * from the main memory.
+	/* Values at img_ptr and img_len_ptr are updated by TZ. Must be invalidated
+	 * before we use them.
 	 */
 	arch_clean_invalidate_cache_range((addr_t) img_ptr, sizeof(img_ptr));
-	arch_clean_invalidate_cache_range((addr_t) img_len_ptr,
-					  sizeof(img_len_ptr));
+	arch_clean_invalidate_cache_range((addr_t) img_len_ptr, sizeof(img_len_ptr));
 
-	ret = smc(&decrypt_cmd);
+	/* Invalidate the updated image data */
+	arch_clean_invalidate_cache_range((addr_t) *img_ptr, *img_len_ptr);
 
 	return ret;
 }
+
+/* SCM Decrypt Command */
+int decrypt_scm(uint32_t ** img_ptr, uint32_t * img_len_ptr)
+{
+	int ret;
+	img_req cmd;
+
+	cmd.img_ptr     = (uint32*) img_ptr;
+	cmd.img_len_ptr = img_len_ptr;
+
+	/* Image data is operated upon by TZ, which accesses only the main memory.
+	 * It must be flushed/invalidated before and after TZ call.
+	 */
+	arch_clean_invalidate_cache_range((addr_t) *img_ptr, *img_len_ptr);
+
+	ret = scm_call(SCM_SVC_SSD, SSD_DECRYPT_ID, &cmd, sizeof(cmd), NULL, 0);
+
+	/* Values at img_ptr and img_len_ptr are updated by TZ. Must be invalidated
+	 * before we use them.
+	 */
+	arch_clean_invalidate_cache_range((addr_t) img_ptr, sizeof(img_ptr));
+	arch_clean_invalidate_cache_range((addr_t) img_len_ptr, sizeof(img_len_ptr));
+
+	/* Invalidate the updated image data */
+	arch_clean_invalidate_cache_range((addr_t) *img_ptr, *img_len_ptr);
+
+	return ret;
+}
+
 
 void set_tamper_fuse_cmd()
 {

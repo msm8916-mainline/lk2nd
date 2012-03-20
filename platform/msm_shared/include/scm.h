@@ -1,4 +1,4 @@
-/* Copyright (c) 2011, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -30,8 +30,10 @@
 #define __SCM_H__
 
 /* 8 Byte SSD magic number (LE) */
-#define SSD_HEADER_MAGIC_0     0x73737A74
-#define SSD_HEADER_MAGIC_1     0x676D6964
+#define DECRYPT_MAGIC_0 0x73737A74
+#define DECRYPT_MAGIC_1 0x676D6964
+#define ENCRYPT_MAGIC_0 0x6B647373
+#define ENCRYPT_MAGIC_1 0x676D6973
 #define SSD_HEADER_MAGIC_SIZE  8
 #define SSD_HEADER_XML_SIZE    2048
 
@@ -51,21 +53,18 @@ typedef struct {
 } scm_response;
 
 typedef struct {
-	scm_command common_req;
 	uint32 *img_ptr;
 	uint32 *img_len_ptr;
-} decrypt_img_req;
+} img_req;
 
-#define SYSCALL_CREATE_CMD_ID(s, f) \
-	((uint32)(((s & 0x3ff) << 10) | (f & 0x3ff)))
+#define SCM_SVC_SSD                 7
+#define SSD_DECRYPT_ID              0x01
+#define SSD_ENCRYPT_ID              0x02
 
-#define SCM_SVC_SSD                7
-#define SSD_DECRYPT_IMG_ID SYSCALL_CREATE_CMD_ID(SCM_SVC_SSD, 0x01)
-
-void setup_decrypt_cmd(decrypt_img_req * dec_cmd,
-		       uint32 ** img_ptr, uint32 * img_len_ptr);
 static uint32 smc(uint32 cmd_addr);
-int decrypt_img_scm(uint32 ** img_ptr, uint32 * img_len_ptr);
+
+int decrypt_scm(uint32_t ** img_ptr, uint32_t * img_len_ptr);
+int encrypt_scm(uint32_t ** img_ptr, uint32_t * img_len_ptr);
 
 #define SCM_SVC_FUSE                0x08
 #define SCM_BLOW_SW_FUSE_ID         0x01

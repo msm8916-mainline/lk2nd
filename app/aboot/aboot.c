@@ -1040,17 +1040,29 @@ void cmd_flash_mmc(const char *arg, void *data, unsigned sz)
 	unsigned int *magic_number = (unsigned int *) data;
 	int ret=0;
 
-	if (magic_number[0] == SSD_HEADER_MAGIC_0 &&
-		magic_number[1] == SSD_HEADER_MAGIC_1)
+	if (magic_number[0] == DECRYPT_MAGIC_0 &&
+		magic_number[1] == DECRYPT_MAGIC_1)
 	{
 #ifdef SSD_ENABLE
-		ret = decrypt_img_scm((uint32 **) &data, &sz);
+		ret = decrypt_scm((uint32 **) &data, &sz);
 #endif
 		if (ret != 0) {
 			dprintf(CRITICAL, "ERROR: Invalid secure image\n");
 			return;
 		}
 	}
+	else if (magic_number[0] == ENCRYPT_MAGIC_0 &&
+			 magic_number[1] == ENCRYPT_MAGIC_1)
+	{
+#ifdef SSD_ENABLE
+		ret = encrypt_scm((uint32 **) &data, &sz);
+#endif
+		if (ret != 0) {
+			dprintf(CRITICAL, "ERROR: Encryption Failure\n");
+			return;
+		}
+	}
+
 	sparse_header = (sparse_header_t *) data;
 	if (sparse_header->magic != SPARSE_HEADER_MAGIC)
 		cmd_flash_mmc_img(arg, data, sz);
