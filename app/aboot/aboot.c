@@ -136,6 +136,7 @@ void boot_linux(void *kernel, unsigned *tags,
 	int cmdline_len = 0;
 	int have_cmdline = 0;
 	int pause_at_bootup = 0;
+	unsigned char *cmdline_final = NULL;
 
 	/* CORE */
 	*ptr++ = 2;
@@ -215,6 +216,8 @@ void boot_linux(void *kernel, unsigned *tags,
 		*ptr++ = (n / 4) + 2;
 		*ptr++ = 0x54410009;
 		dst = (char *)ptr;
+		/* Save start ptr for debug print */
+		cmdline_final = (char *)ptr;
 		if (have_cmdline) {
 			src = cmdline;
 			while ((*dst++ = *src++));
@@ -288,8 +291,8 @@ void boot_linux(void *kernel, unsigned *tags,
 
 	dprintf(INFO, "booting linux @ %p, ramdisk @ %p (%d)\n",
 		kernel, ramdisk, ramdisk_size);
-	if (cmdline)
-		dprintf(INFO, "cmdline: %s\n", cmdline);
+	if (cmdline_final)
+		dprintf(INFO, "cmdline: %s\n", cmdline_final);
 
 	enter_critical_section();
 	/* do any platform specific cleanup before kernel entry */
