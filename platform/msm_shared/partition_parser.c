@@ -290,7 +290,7 @@ mmc_boot_read_gpt(struct mmc_boot_host *mmc_host,
 						  LAST_LBA_OFFSET]);
 			partition_entries[partition_count].size =
 			    partition_entries[partition_count].last_lba -
-			    partition_entries[partition_count].first_lba;
+			    partition_entries[partition_count].first_lba + 1;
 			partition_entries[partition_count].attribute_flag =
 			    GET_LLWORD_FROM_BYTE(&data
 						 [(j * partition_entry_size) +
