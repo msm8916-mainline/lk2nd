@@ -1249,6 +1249,10 @@ void aboot_init(const struct app_descriptor *app)
 	else
 	{
 		recovery_init();
+#if USE_PCOM_SECBOOT
+	if((device.is_unlocked) || (device.is_tampered))
+		set_tamper_flag(device.is_tampered);
+#endif
 		boot_linux_from_flash();
 	}
 	dprintf(CRITICAL, "ERROR: Could not do normal boot. Reverting "
