@@ -1,4 +1,4 @@
-/* Copyright (c) 2011, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -199,6 +199,7 @@ mmc_boot_read_gpt(struct mmc_boot_host *mmc_host,
 	unsigned int header_size;
 	unsigned long long first_usable_lba;
 	unsigned long long backup_header_lba;
+	unsigned long long card_size_sec;
 	unsigned int max_partition_count = 0;
 	unsigned int partition_entry_size;
 	unsigned char data[BLOCK_SIZE];
@@ -207,15 +208,16 @@ mmc_boot_read_gpt(struct mmc_boot_host *mmc_host,
 	unsigned int n = 0;	/* Counter for UTF-16 -> 8 conversion */
 	unsigned char UTF16_name[MAX_GPT_NAME_SIZE];
 	/* LBA of first partition -- 1 Block after Protected MBR + 1 for PT */
-	unsigned long long partition_0 = 2;
+	unsigned long long partition_0;
 	partition_count = 0;
 
 	/* Print out the GPT first */
 	ret = mmc_boot_read_from_card(mmc_host, mmc_card,
 				      PROTECTIVE_MBR_SIZE,
 				      BLOCK_SIZE, (unsigned int *)data);
-	if (ret)
+	if (ret){
 		dprintf(CRITICAL, "GPT: Could not read primary gpt from mmc\n");
+	}
 
 	ret = partition_parse_gpt_header(data, &first_usable_lba,
 					 &partition_entry_size, &header_size,
@@ -224,8 +226,12 @@ mmc_boot_read_gpt(struct mmc_boot_host *mmc_host,
 		dprintf(INFO, "GPT: (WARNING) Primary signature invalid\n");
 
 		/* Check the backup gpt */
-		backup_header_lba =
-		    GET_LLWORD_FROM_BYTE(&data[BACKUP_HEADER_OFFSET]);
+
+		/* Get size of MMC */
+		card_size_sec = (mmc_card->capacity) / BLOCK_SIZE;
+		ASSERT (card_size_sec > 0);
+
+		backup_header_lba = card_size_sec - 1;
 		ret =
 		    mmc_boot_read_from_card(mmc_host, mmc_card,
 					    (backup_header_lba * BLOCK_SIZE),
@@ -246,9 +252,8 @@ mmc_boot_read_gpt(struct mmc_boot_host *mmc_host,
 				"GPT: Primary and backup signatures invalid\n");
 			return ret;
 		}
-		partition_0 = backup_header_lba - (max_partition_count / 4);
 	}
-
+	partition_0 = GET_LLWORD_FROM_BYTE(&data[PARTITION_ENTRIES_OFFSET]);
 	/* Read GPT Entries */
 	for (i = 0; i < (max_partition_count / 4); i++) {
 		ASSERT(partition_count < NUM_PARTITIONS);
