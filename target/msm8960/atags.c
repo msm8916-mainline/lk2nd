@@ -35,7 +35,7 @@
 #define SIZE_2M		(2 * SIZE_1M)
 #define SIZE_141M	(141 * SIZE_1M)
 #define SIZE_256M	(256 * SIZE_1M)
-#define SIZE_512M	(512 * SIZE_1M)
+#define SIZE_300M	(300 * SIZE_1M)
 
 unsigned *target_atag_mem(unsigned *ptr)
 {
@@ -92,5 +92,5 @@ void *target_get_scratch_address(void)
 
 unsigned target_get_max_flash_size(void)
 {
-	return (SIZE_512M);
+	return (SIZE_300M);
 }
