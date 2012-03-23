@@ -795,6 +795,9 @@ mbr_fill_name(struct partition_entry *partition_ent, unsigned int type)
 	case MBR_MISC_TYPE:
 		memcpy(partition_ent->name, "misc", 4);
 		break;
+	case MBR_SSD_TYPE:
+		memcpy(partition_ent->name, "ssd", 3);
+		break;
 	};
 }
 
