@@ -303,6 +303,9 @@ void board_info(void)
 		case 0xC:
 			hw_platform = MSM7X27A_EVB;
 			break;
+		case 0xF:
+			hw_platform = MSM7X27A_QRD3;
+			break;
 		default:
 			if (target_msm_id == MSM7225A
 			    || target_msm_id == MSM7625A
