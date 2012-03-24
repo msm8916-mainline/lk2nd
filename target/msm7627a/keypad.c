@@ -136,7 +136,7 @@ static struct gpio_keypad_info halibut_keypad_info_evb = {
 
 void keypad_init(void)
 {
-	if (machine_is_7x27a_qrd1() || machine_is_7x27a_qrd3())
+	if (machine_is_qrd())
 		gpio_keypad_init(&halibut_keypad_info_qrd);
 	else if (machine_is_evb())
 		gpio_keypad_init(&halibut_keypad_info_evb);

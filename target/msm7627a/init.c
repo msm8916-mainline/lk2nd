@@ -54,6 +54,7 @@
 
 #define MSM8X25_SURF	4037
 #define MSM8X25_EVB	4042
+#define MSM8X25_QRD7	4095
 
 #define LINUX_MACHTYPE  MSM7X27A_SURF
 
@@ -264,6 +265,9 @@ void board_info(void)
 			case 0xC:
 				hw_platform = MSM8X25_EVB;
 				break;
+			case 0xF:
+				hw_platform = MSM8X25_QRD7;
+				break;
 			default:
 				hw_platform = MSM8X25_SURF;
 			}
@@ -465,21 +469,21 @@ int machine_is_evb()
 	}
 	return ret;
 }
-
-int machine_is_7x27a_qrd3()
+int machine_is_qrd()
 {
-	if (board_machtype() == MSM7X27A_QRD3)
-		return 1;
-	else
-		return 0;
-}
+	int ret = 0;
+	unsigned mach_type = board_machtype();
 
-int machine_is_7x27a_qrd1()
-{
-	if (board_machtype() == MSM7X27A_QRD1)
-		return 1;
-	else
-		return 0;
+	switch(mach_type) {
+		case MSM7X27A_QRD1:
+		case MSM7X27A_QRD3:
+		case MSM8X25_QRD7:
+			ret = 1;
+			break;
+		default:
+			ret = 0;
+	}
+	return ret;
 }
 int machine_is_8x25()
 {
@@ -489,6 +493,7 @@ int machine_is_8x25()
 	switch(mach_type) {
 		case MSM8X25_SURF:
 		case MSM8X25_EVB:
+		case MSM8X25_QRD7:
 			ret = 1;
 			break;
 		default:
