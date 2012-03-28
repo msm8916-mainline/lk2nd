@@ -29,7 +29,7 @@
 #ifndef _TARGET_MSM8960_DISPLAY_H
 #define _TARGET_MSM8960_DISPLAY_H
 
-#define MIPI_FB_ADDR  0x80B00000
+#define MIPI_FB_ADDR  0x89000000
 
 /* Toshiba MDT61 Mipi Panel */
 /* Unique to this panel, display width is 800, image is 600 */

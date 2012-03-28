@@ -683,6 +683,7 @@ void mipi_dsi_cmd_mode_trigger(void)
 
 void mipi_dsi_shutdown(void)
 {
+#if (!CONT_SPLASH_SCREEN)
 	mdp_shutdown();
 	writel(0x01010101, DSI_INT_CTRL);
 	writel(0x13FF3BFF, DSI_ERR_INT_MASK0);
@@ -700,6 +701,13 @@ void mipi_dsi_shutdown(void)
 	writel(0, DSI_CLK_CTRL);
 	writel(0, DSI_CTRL);
 	writel(0, DSIPHY_PLL_CTRL(0));
+#else
+        /* To keep the splash screen displayed till kernel driver takes
+        control, do not turn off the video mode engine and clocks.
+        Only disabling the MIPI DSI IRQs */
+        writel(0x01010101, DSI_INT_CTRL);
+        writel(0x13FF3BFF, DSI_ERR_INT_MASK0);
+#endif
 }
 
 struct fbcon_config *mipi_init(void)
