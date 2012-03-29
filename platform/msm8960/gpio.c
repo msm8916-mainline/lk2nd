@@ -63,7 +63,24 @@ void gpio_set(uint32_t gpio, uint32_t dir)
 /* Configure gpio for uart - based on gsbi id */
 void gpio_config_uart_dm(uint8_t id)
 {
-	if(board_platform_id() == APQ8064)
+	if(board_platform_id() == MPQ8064)
+	{
+		switch (id) {
+
+		case GSBI_ID_5:
+			/* configure rx gpio */
+			gpio_tlmm_config(52, 1, GPIO_INPUT, GPIO_NO_PULL,
+							 GPIO_8MA, GPIO_DISABLE);
+			/* configure tx gpio */
+			gpio_tlmm_config(51, 1, GPIO_OUTPUT, GPIO_NO_PULL,
+							 GPIO_8MA, GPIO_DISABLE);
+			break;
+
+		default:
+			ASSERT(0);
+		}
+	}
+	else if(board_platform_id() == APQ8064)
 	{
 		switch (id) {
 
