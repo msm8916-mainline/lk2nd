@@ -36,6 +36,7 @@
 #include <dev/fbcon.h>
 #include <mmu.h>
 #include <arch/arm/mmu.h>
+#include <board.h>
 
 extern void platform_init_timer(void);
 extern void platform_panel_backlight_on(void);
@@ -89,6 +90,7 @@ void platform_early_init(void)
 	msm_clocks_init();
 	qgic_init();
 	platform_init_timer();
+	board_init();
 }
 
 void platform_init(void)

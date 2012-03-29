@@ -46,33 +46,7 @@
 #include <baseband.h>
 #include <uart_dm.h>
 #include <crypto_hash.h>
-
-/* 8960 */
-#define LINUX_MACHTYPE_8960_SIM     3230
-#define LINUX_MACHTYPE_8960_RUMI3   3231
-#define LINUX_MACHTYPE_8960_CDP     3396
-#define LINUX_MACHTYPE_8960_MTP     3397
-#define LINUX_MACHTYPE_8960_FLUID   3398
-#define LINUX_MACHTYPE_8960_APQ     3399
-#define LINUX_MACHTYPE_8960_LIQUID  3535
-
-/* 8627 */
-#define LINUX_MACHTYPE_8627_CDP     3861
-#define LINUX_MACHTYPE_8627_MTP     3862
-
-/* 8930 */
-#define LINUX_MACHTYPE_8930_CDP     3727
-#define LINUX_MACHTYPE_8930_MTP     3728
-#define LINUX_MACHTYPE_8930_FLUID   3729
-
-/* 8064 */
-#define LINUX_MACHTYPE_8064_SIM     3572
-#define LINUX_MACHTYPE_8064_RUMI3   3679
-#define LINUX_MACHTYPE_8064_CDP     3948
-#define LINUX_MACHTYPE_8064_MTP     3949
-#define LINUX_MACHTYPE_8064_LIQUID  3951
-#define LINUX_MACHTYPE_8064_HRD     3994
-#define LINUX_MACHTYPE_8064_DTV     3995
+#include <board.h>
 
 extern void dmb(void);
 extern void msm8960_keypad_init(void);
@@ -81,9 +55,6 @@ extern void panel_backlight_on(void);
 
 static unsigned mmc_sdc_base[] =
     { MSM_SDC1_BASE, MSM_SDC2_BASE, MSM_SDC3_BASE, MSM_SDC4_BASE };
-
-static uint32_t platform_id;
-static uint32_t target_id;
 
 static pm8921_dev_t pmic;
 
@@ -96,13 +67,10 @@ static pm8921_dev_t pmic;
  */
 static crypto_engine_type platform_ce_type = CRYPTO_ENGINE_TYPE_SW;
 
-static void target_detect(void);
 static void target_uart_init(void);
 
 void target_early_init(void)
 {
-	target_detect();
-
 #if WITH_DEBUG_UART
 	target_uart_init();
 #endif
@@ -124,6 +92,7 @@ void target_init(void)
 {
 	unsigned base_addr;
 	unsigned char slot;
+	unsigned platform_id = board_platform_id();
 
 	dprintf(INFO, "target_init()\n");
 
@@ -184,12 +153,7 @@ void target_init(void)
 
 unsigned board_machtype(void)
 {
-	return target_id;
-}
-
-unsigned board_platform_id(void)
-{
-	return platform_id;
+	return board_target_id();
 }
 
 crypto_engine_type board_ce_type(void)
@@ -197,139 +161,9 @@ crypto_engine_type board_ce_type(void)
 	return platform_ce_type;
 }
 
-void target_detect(void)
-{
-	struct smem_board_info_v6 board_info_v6;
-	unsigned int board_info_len = 0;
-	unsigned smem_status = 0;
-	unsigned format = 0;
-	unsigned id = HW_PLATFORM_UNKNOWN;
-
-	smem_status = smem_read_alloc_entry_offset(SMEM_BOARD_INFO_LOCATION,
-						   &format, sizeof(format), 0);
-	if (!smem_status) {
-		if (format == 6) {
-			board_info_len = sizeof(board_info_v6);
-
-			smem_status =
-			    smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
-						  &board_info_v6,
-						  board_info_len);
-			if (!smem_status) {
-				id = board_info_v6.board_info_v3.hw_platform;
-			}
-		}
-	}
-
-	platform_id = board_info_v6.board_info_v3.msm_id;
-
-	/* Detect the board we are running on */
-	if ((platform_id == MSM8960) || (platform_id == MSM8660A)
-	    || (platform_id == MSM8260A) || (platform_id == APQ8060A)) {
-		switch (id) {
-		case HW_PLATFORM_SURF:
-			target_id = LINUX_MACHTYPE_8960_CDP;
-			break;
-		case HW_PLATFORM_MTP:
-			target_id = LINUX_MACHTYPE_8960_MTP;
-			break;
-		case HW_PLATFORM_FLUID:
-			target_id = LINUX_MACHTYPE_8960_FLUID;
-			break;
-		case HW_PLATFORM_LIQUID:
-			target_id = LINUX_MACHTYPE_8960_LIQUID;
-			break;
-		default:
-			target_id = LINUX_MACHTYPE_8960_CDP;
-		}
-	} else if ((platform_id == MSM8230) || (platform_id == MSM8630)
-		   || (platform_id == MSM8930) || (platform_id == APQ8030)) {
-		switch (id) {
-		case HW_PLATFORM_SURF:
-			target_id = LINUX_MACHTYPE_8930_CDP;
-			break;
-		case HW_PLATFORM_MTP:
-			target_id = LINUX_MACHTYPE_8930_MTP;
-			break;
-		case HW_PLATFORM_FLUID:
-			target_id = LINUX_MACHTYPE_8930_FLUID;
-			break;
-		default:
-			target_id = LINUX_MACHTYPE_8930_CDP;
-		}
-	} else if ((platform_id == MSM8227) || (platform_id == MSM8627)) {
-		switch (id) {
-		case HW_PLATFORM_SURF:
-			target_id = LINUX_MACHTYPE_8627_CDP;
-			break;
-		case HW_PLATFORM_MTP:
-			target_id = LINUX_MACHTYPE_8627_MTP;
-			break;
-		default:
-			target_id = LINUX_MACHTYPE_8627_CDP;
-		}
-	} else if ((platform_id == APQ8064) || (platform_id == MPQ8064)) {
-		switch (id) {
-		case HW_PLATFORM_SURF:
-			target_id = LINUX_MACHTYPE_8064_CDP;
-			break;
-		case HW_PLATFORM_MTP:
-			target_id = LINUX_MACHTYPE_8064_MTP;
-			break;
-		case HW_PLATFORM_LIQUID:
-			target_id = LINUX_MACHTYPE_8064_LIQUID;
-			break;
-		case HW_PLATFORM_HRD:
-			target_id = LINUX_MACHTYPE_8064_HRD;
-			break;
-		case HW_PLATFORM_DTV:
-			target_id = LINUX_MACHTYPE_8064_DTV;
-			break;
-		default:
-			target_id = LINUX_MACHTYPE_8064_CDP;
-		}
-	} else {
-		dprintf(CRITICAL, "platform_id (%d) is not identified.\n",
-			platform_id);
-		ASSERT(0);
-	}
-}
-
 unsigned target_baseband()
 {
-	struct smem_board_info_v6 board_info_v6;
-	unsigned int board_info_len = 0;
-	unsigned smem_status = 0;
-	unsigned format = 0;
-	unsigned baseband = BASEBAND_MSM;
-
-	smem_status = smem_read_alloc_entry_offset(SMEM_BOARD_INFO_LOCATION,
-						   &format, sizeof(format), 0);
-	if (!smem_status) {
-		if (format >= 6) {
-			board_info_len = sizeof(board_info_v6);
-
-			smem_status =
-			    smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
-						  &board_info_v6,
-						  board_info_len);
-			if (!smem_status) {
-				/* Check for MDM or APQ baseband variants.  Default to MSM */
-				if (board_info_v6.platform_subtype ==
-				    HW_PLATFORM_SUBTYPE_MDM)
-					baseband = BASEBAND_MDM;
-				else if (board_info_v6.board_info_v3.msm_id ==
-					 APQ8060)
-					baseband = BASEBAND_APQ;
-				else if (board_info_v6.board_info_v3.msm_id ==
-					 APQ8064)
-					baseband = BASEBAND_APQ;
-				else
-					baseband = BASEBAND_MSM;
-			}
-		}
-	}
-	return baseband;
+	return board_baseband();
 }
 
 static unsigned target_check_power_on_reason(void)
@@ -411,6 +245,8 @@ void target_fastboot_init(void)
 
 void target_uart_init(void)
 {
+	unsigned target_id = board_machtype();
+
 	switch (target_id) {
 	case LINUX_MACHTYPE_8960_SIM:
 	case LINUX_MACHTYPE_8960_RUMI3:
