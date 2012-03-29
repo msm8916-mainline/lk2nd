@@ -29,7 +29,6 @@
 #include <debug.h>
 #include <reg.h>
 #include <mipi_dsi.h>
-#include <mdp4.h>
 #include <platform/iomap.h>
 
 static void mipi_dsi_calibration(void)
@@ -74,56 +73,110 @@ int mipi_dsi_phy_init(struct mipi_dsi_panel_config *pinfo)
 {
 	struct mipi_dsi_phy_ctrl *pd;
 	uint32_t i, off = 0;
+	int mdp_rev;
 
-	writel(0x0001, MIPI_DSI_BASE + 0x128);	/* start phy sw reset */
-	writel(0x0000, MIPI_DSI_BASE + 0x128);	/* end phy w reset */
-	writel(0x0003, MIPI_DSI_BASE + 0x500);	/* regulator_ctrl_0 */
-	writel(0x0001, MIPI_DSI_BASE + 0x504);	/* regulator_ctrl_1 */
-	writel(0x0001, MIPI_DSI_BASE + 0x508);	/* regulator_ctrl_2 */
-	writel(0x0000, MIPI_DSI_BASE + 0x50c);	/* regulator_ctrl_3 */
-	writel(0x0100, MIPI_DSI_BASE + 0x510);	/* regulator_ctrl_4 */
+	mdp_rev = mdp_get_revision();
 
-	pd = (pinfo->dsi_phy_config);
+	if (MDP_REV_303 == mdp_rev || MDP_REV_41 == mdp_rev) {
+		writel(0x00000001, DSIPHY_SW_RESET);
+		writel(0x00000000, DSIPHY_SW_RESET);
 
-	off = 0x0480;		/* strength 0 - 2 */
-	for (i = 0; i < 3; i++) {
-		writel(pd->strength[i], MIPI_DSI_BASE + off);
-		off += 4;
-	}
+		pd = (pinfo->dsi_phy_config);
 
-	off = 0x0470;		/* ctrl 0 - 3 */
-	for (i = 0; i < 4; i++) {
-		writel(pd->ctrl[i], MIPI_DSI_BASE + off);
-		off += 4;
-	}
+		off = 0x02cc;		/* regulator ctrl 0 */
+		for (i = 0; i < 4; i++) {
+			writel(pd->regulator[i], MIPI_DSI_BASE + off);
+			off += 4;
+		}
 
-	off = 0x0500;		/* regulator ctrl 0 - 4 */
-	for (i = 0; i < 5; i++) {
-		writel(pd->regulator[i], MIPI_DSI_BASE + off);
-		off += 4;
-	}
-	mipi_dsi_calibration();
+		off = 0x0260;		/* phy timig ctrl 0 */
+		for (i = 0; i < 11; i++) {
+			writel(pd->timing[i], MIPI_DSI_BASE + off);
+			off += 4;
+		}
 
-	off = 0x0204;		/* pll ctrl 1 - 19, skip 0 */
-	for (i = 1; i < 20; i++) {
-		writel(pd->pll[i], MIPI_DSI_BASE + off);
-		off += 4;
-	}
+		/* T_CLK_POST, T_CLK_PRE for CLK lane P/N HS 200 mV timing
+		length should > data lane HS timing length */
+		writel(0xa1e, DSI_CLKOUT_TIMING_CTRL);
 
-	/* pll ctrl 0 */
-	writel(pd->pll[0], MIPI_DSI_BASE + 0x200);
-	writel((pd->pll[0] | 0x01), MIPI_DSI_BASE + 0x200);
+		off = 0x0290;		/* ctrl 0 */
+		for (i = 0; i < 4; i++) {
+			writel(pd->ctrl[i], MIPI_DSI_BASE + off);
+			off += 4;
+		}
 
-	/* Check that PHY is ready */
-	while (!(readl(DSIPHY_PLL_RDY) & 0x01))
-		udelay(1);
+		off = 0x02a0;		/* strength 0 */
+		for (i = 0; i < 4; i++) {
+			writel(pd->strength[i], MIPI_DSI_BASE + off);
+			off += 4;
+		}
 
-	writel(0x202D, DSI_CLKOUT_TIMING_CTRL);
+		if (1 == pinfo->num_of_lanes)
+			pd->pll[10] |= 0x8;
 
-	off = 0x0440;		/* phy timing ctrl 0 - 11 */
-	for (i = 0; i < 12; i++) {
-		writel(pd->timing[i], MIPI_DSI_BASE + off);
-		off += 4;
+		off = 0x0204;		/* pll ctrl 1, skip 0 */
+		for (i = 1; i < 21; i++) {
+			writel(pd->pll[i], MIPI_DSI_BASE + off);
+			off += 4;
+		}
+
+		/* pll ctrl 0 */
+		writel(pd->pll[0], MIPI_DSI_BASE + 0x200);
+		writel((pd->pll[0] | 0x01), MIPI_DSI_BASE + 0x200);
+		/* lane swp ctrol */
+		if (pinfo->lane_swap)
+			writel(pinfo->lane_swap, MIPI_DSI_BASE + 0xac);
+	} else {
+		writel(0x0001, MIPI_DSI_BASE + 0x128);	/* start phy sw reset */
+		writel(0x0000, MIPI_DSI_BASE + 0x128);	/* end phy w reset */
+		writel(0x0003, MIPI_DSI_BASE + 0x500);	/* regulator_ctrl_0 */
+		writel(0x0001, MIPI_DSI_BASE + 0x504);	/* regulator_ctrl_1 */
+		writel(0x0001, MIPI_DSI_BASE + 0x508);	/* regulator_ctrl_2 */
+		writel(0x0000, MIPI_DSI_BASE + 0x50c);	/* regulator_ctrl_3 */
+		writel(0x0100, MIPI_DSI_BASE + 0x510);	/* regulator_ctrl_4 */
+
+		pd = (pinfo->dsi_phy_config);
+
+		off = 0x0480;		/* strength 0 - 2 */
+		for (i = 0; i < 3; i++) {
+			writel(pd->strength[i], MIPI_DSI_BASE + off);
+			off += 4;
+		}
+
+		off = 0x0470;		/* ctrl 0 - 3 */
+		for (i = 0; i < 4; i++) {
+			writel(pd->ctrl[i], MIPI_DSI_BASE + off);
+			off += 4;
+		}
+
+		off = 0x0500;		/* regulator ctrl 0 - 4 */
+		for (i = 0; i < 5; i++) {
+			writel(pd->regulator[i], MIPI_DSI_BASE + off);
+			off += 4;
+		}
+		mipi_dsi_calibration();
+
+		off = 0x0204;		/* pll ctrl 1 - 19, skip 0 */
+		for (i = 1; i < 20; i++) {
+			writel(pd->pll[i], MIPI_DSI_BASE + off);
+			off += 4;
+		}
+
+		/* pll ctrl 0 */
+		writel(pd->pll[0], MIPI_DSI_BASE + 0x200);
+		writel((pd->pll[0] | 0x01), MIPI_DSI_BASE + 0x200);
+
+		/* Check that PHY is ready */
+		while (!(readl(DSIPHY_PLL_RDY) & 0x01))
+			udelay(1);
+
+		writel(0x202D, DSI_CLKOUT_TIMING_CTRL);
+
+		off = 0x0440;		/* phy timing ctrl 0 - 11 */
+		for (i = 0; i < 12; i++) {
+			writel(pd->timing[i], MIPI_DSI_BASE + off);
+			off += 4;
+		}
 	}
 	return 0;
 }

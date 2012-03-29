@@ -56,8 +56,6 @@ void acpu_clock_init(void);
 
 void mddi_clock_init(unsigned num, unsigned rate);
 
-extern void mipi_dsi_shutdown(void);
-
 unsigned board_msm_id(void);
 
 static int target_uses_qgic;
@@ -88,39 +86,6 @@ void platform_init(void)
 {
 	dprintf(INFO, "platform_init()\n");
 	acpu_clock_init();
-}
-
-void display_init(void)
-{
-#if DISPLAY_TYPE_MDDI
-	fb_config = mddi_init();
-	ASSERT(fb_config);
-	fbcon_setup(fb_config);
-#endif
-#if DISPLAY_TYPE_LCDC
-	fb_config = lcdc_init();
-	ASSERT(fb_config);
-	fbcon_setup(fb_config);
-#endif
-#if DISPLAY_TYPE_MIPI
-	dprintf(SPEW, "display_init()\n");
-	panel_dsi_init();
-	fb_config = mipi_init();
-	ASSERT(fb_config);
-	fbcon_setup(fb_config);
-#endif
-}
-
-void display_shutdown(void)
-{
-#if DISPLAY_TYPE_MIPI
-	if (machine_is_evb())
-		return;
-	dprintf(SPEW, "display_shutdown()\n");
-	mipi_dsi_shutdown();
-	/* Power down DSI bridge chip */
-	gpio_set(128, 0x1);
-#endif
 }
 
 void platform_uninit(void)
@@ -155,20 +120,6 @@ bool machine_is_7x25a(void)
 		return 0;
 }
 
-/* Toggle RESET pin of the DSI Client before sending
- * panel init commands
- */
-void panel_dsi_init(void)
-{
-	gpio_set(128, 0x1);
-	mdelay(5);
-	gpio_set(128, 0x0);
-	gpio_set(129, 0x1);
-	gpio_config(129, GPIO_OUTPUT);
-	gpio_set(129, 0x0);
-	gpio_set(129, 0x1);
-	mdelay(10);
-}
 
 int target_supports_qgic()
 {

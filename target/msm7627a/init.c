@@ -39,24 +39,9 @@
 #include <smem.h>
 #include <mmc.h>
 #include <platform/iomap.h>
+#include <target/board.h>
 #include <platform.h>
 #include <crypto_hash.h>
-
-#define MSM7X27A_FFA	3351
-#define MSM7X27A_SURF	3352
-#define MSM7X27A_RUMI3	3353
-#define MSM7X27A_QRD1	3756
-#define MSM7X25A_SURF	3772
-#define MSM7X25A_FFA	3771
-#define MSM7X27A_EVB	3934
-#define MSM7X27A_QRD3	4005
-#define MSM8X25_RUMI3   3871
-
-#define MSM8X25_SURF	4037
-#define MSM8X25_EVB	4042
-#define MSM8X25_QRD7	4095
-#define MSM8X25_FFA     4166
-#define LINUX_MACHTYPE  MSM7X27A_SURF
 
 #define VARIABLE_LENGTH		0x10101010
 #define DIFF_START_ADDR		0xF0F0F0F0
@@ -154,15 +139,8 @@ void target_init(void)
 
 	/* Display splash screen if enabled */
 #if DISPLAY_SPLASH_SCREEN
-	/* EVB platform comes with a new display panel, Until
-	 * support for new panel is added disable splash screen
-	 * for EVB
-	 */
-	if (!machine_is_evb()) {
-		display_init();
-		dprintf(SPEW, "Diplay initialized\n");
-		display_image_on_screen();
-	}
+	display_init();
+	dprintf(SPEW, "Diplay initialized\n");
 #endif
 
 	if (target_is_emmc_boot()) {

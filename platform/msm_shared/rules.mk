@@ -73,7 +73,9 @@ ifeq ($(PLATFORM),msm7x27a)
 			$(LOCAL_DIR)/image_verify.o \
 			$(LOCAL_DIR)/qgic.o \
 			$(LOCAL_DIR)/interrupts.o \
-			$(LOCAL_DIR)/timer.o
+			$(LOCAL_DIR)/timer.o \
+			$(LOCAL_DIR)/display.o \
+			$(LOCAL_DIR)/mipi_dsi_phy.o
 endif
 
 ifeq ($(PLATFORM),msm7k)

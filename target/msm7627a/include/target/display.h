@@ -68,6 +68,10 @@
 #define MIPI_VSYNC_BACK_PORCH_LINES_HVGA  50
 #define MIPI_VSYNC_FRONT_PORCH_LINES_HVGA 101
 
+/* NT35510 MIPI WVGA panel */
+#define NT35510_MIPI_FB_WIDTH            480
+#define NT35510_MIPI_FB_HEIGHT           800
+
 #define MIPI_FB_ADDR  0x20000000
 
 extern int mipi_dsi_phy_init(struct mipi_dsi_panel_config *);

@@ -27,7 +27,8 @@ DEFINES += TARGET_USES_GIC_VIC=1
 MODULES += \
 	dev/keys \
 	dev/ssbi \
-	lib/ptable
+	lib/ptable \
+	dev/panel/msm
 
 DEFINES += \
 	SDRAM_SIZE=$(MEMSIZE) \
@@ -42,5 +43,5 @@ DEFINES += \
 OBJS += \
 	$(LOCAL_DIR)/init.o \
 	$(LOCAL_DIR)/keypad.o \
-	$(LOCAL_DIR)/panel.o \
-	$(LOCAL_DIR)/atags.o
+	$(LOCAL_DIR)/atags.o \
+	$(LOCAL_DIR)/target_display.o

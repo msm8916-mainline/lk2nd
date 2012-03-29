@@ -84,25 +84,6 @@ struct mipi_dsi_panel_config novatek_panel_info = {
 	.panel_cmds = novatek_panel_cmd_mode_cmds,
 	.num_of_panel_cmds = ARRAY_SIZE(novatek_panel_cmd_mode_cmds),
 };
-#elif DISPLAY_MIPI_PANEL_RENESAS
-static struct fbcon_config mipi_fb_cfg = {
-	.height = REN_MIPI_FB_HEIGHT,
-	.width = REN_MIPI_FB_WIDTH,
-	.stride = REN_MIPI_FB_WIDTH,
-	.format = FB_FORMAT_RGB888,
-	.bpp = 24,
-	.update_start = NULL,
-	.update_done = NULL,
-};
-
-struct mipi_dsi_panel_config renesas_panel_info = {
-	.mode = MIPI_VIDEO_MODE,
-	.num_of_lanes = 2,
-	.dsi_phy_config = &mipi_dsi_renesas_panel_phy_ctrl,
-	.panel_cmds = renesas_panel_video_mode_cmds,
-	.num_of_panel_cmds = ARRAY_SIZE(renesas_panel_video_mode_cmds),
-	.lane_swap = 1,
-};
 #else
 static struct fbcon_config mipi_fb_cfg = {
 	.height = 0,
@@ -119,77 +100,12 @@ static int cmd_mode_status = 0;
 void secure_writel(uint32_t, uint32_t);
 uint32_t secure_readl(uint32_t);
 
-int mipi_dsi_phy_ctrl_config(struct mipi_dsi_panel_config *pinfo)
-{
-	unsigned i;
-	unsigned off = 0;
-	struct mipi_dsi_phy_ctrl *pd;
-
-	writel(0x00000001, DSIPHY_SW_RESET);
-	writel(0x00000000, DSIPHY_SW_RESET);
-
-	pd = (pinfo->dsi_phy_config);
-
-	off = 0x02cc;		/* regulator ctrl 0 */
-	for (i = 0; i < 4; i++) {
-		writel(pd->regulator[i], MIPI_DSI_BASE + off);
-		off += 4;
-	}
-
-	off = 0x0260;		/* phy timig ctrl 0 */
-	for (i = 0; i < 11; i++) {
-		writel(pd->timing[i], MIPI_DSI_BASE + off);
-		off += 4;
-	}
-
-	// T_CLK_POST, T_CLK_PRE for CLK lane P/N HS 200 mV timing length should >
-	// data lane HS timing length
-	writel(0xa1e, DSI_CLKOUT_TIMING_CTRL);
-
-	off = 0x0290;		/* ctrl 0 */
-	for (i = 0; i < 4; i++) {
-		writel(pd->ctrl[i], MIPI_DSI_BASE + off);
-		off += 4;
-	}
-
-	off = 0x02a0;		/* strength 0 */
-	for (i = 0; i < 4; i++) {
-		writel(pd->strength[i], MIPI_DSI_BASE + off);
-		off += 4;
-	}
-
-#if DISPLAY_MIPI_PANEL_RENESAS
-	if (machine_is_7x25a()) {
-		pd->pll[10] |= 0x8;
-	}
-#endif
-	off = 0x0204;		/* pll ctrl 1, skip 0 */
-	for (i = 1; i < 21; i++) {
-		writel(pd->pll[i], MIPI_DSI_BASE + off);
-		off += 4;
-	}
-
-	/* pll ctrl 0 */
-	writel(pd->pll[0], MIPI_DSI_BASE + 0x200);
-	writel((pd->pll[0] | 0x01), MIPI_DSI_BASE + 0x200);
-	/* lane swp ctrol */
-	if (pinfo->lane_swap)
-		writel(pinfo->lane_swap, MIPI_DSI_BASE + 0xac);
-	return (0);
-}
-
 struct mipi_dsi_panel_config *get_panel_info(void)
 {
 #if  DISPLAY_MIPI_PANEL_TOSHIBA
 	return &toshiba_panel_info;
 #elif DISPLAY_MIPI_PANEL_NOVATEK_BLUE
 	return &novatek_panel_info;
-#elif DISPLAY_MIPI_PANEL_RENESAS
-	if (machine_is_7x25a()) {
-		renesas_panel_info.num_of_lanes = 1;
-		mipi_fb_cfg.height = REN_MIPI_FB_HEIGHT_HVGA;
-	}
-	return &renesas_panel_info;
 #endif
 	return NULL;
 }
@@ -575,30 +491,6 @@ int mipi_dsi_video_config(unsigned short num_of_lanes)
 	eof_bllp_pwr = 0x9;	// low power stop mode or let cmd mode eng send
 	// packets in hs or lp mode
 
-#if DISPLAY_MIPI_PANEL_RENESAS
-	if (machine_is_7x25a()) {
-		display_wd = REN_MIPI_FB_WIDTH_HVGA;
-		display_ht = REN_MIPI_FB_HEIGHT_HVGA;
-		image_wd = REN_MIPI_FB_WIDTH_HVGA;
-		image_ht = REN_MIPI_FB_HEIGHT_HVGA;
-		hsync_porch_fp = MIPI_HSYNC_FRONT_PORCH_DCLK_HVGA;
-		hsync_porch_bp = MIPI_HSYNC_BACK_PORCH_DCLK_HVGA;
-		vsync_porch_fp = MIPI_VSYNC_FRONT_PORCH_LINES_HVGA;
-		vsync_porch_bp = MIPI_VSYNC_BACK_PORCH_LINES_HVGA;
-		hsync_width = MIPI_HSYNC_PULSE_WIDTH_HVGA;
-		vsync_width = MIPI_VSYNC_PULSE_WIDTH_HVGA;
-	}
-
-	pack_pattern = 0x21;	//RGB
-	config_renesas_dsi_video_mode();
-
-	status +=
-	    mdp_setup_dma_p_video_mode(display_wd, display_ht, image_wd,
-				       image_ht, hsync_porch_fp, hsync_porch_bp,
-				       vsync_porch_fp, vsync_porch_bp,
-				       hsync_width, vsync_width, MIPI_FB_ADDR,
-				       image_wd, pack_pattern, ystride);
-#else
 	status +=
 	    config_dsi_video_mode(display_wd, display_ht, image_wd, image_ht,
 				  hsync_porch_fp, hsync_porch_bp,
@@ -612,7 +504,6 @@ int mipi_dsi_video_config(unsigned short num_of_lanes)
 				       vsync_porch_fp, vsync_porch_bp,
 				       hsync_width, vsync_width, MIPI_FB_ADDR,
 				       image_wd, pack_pattern, ystride);
-#endif
 
 	ReadValue = readl(DSI_INT_CTRL) & 0x00010000;
 	while (ReadValue != 0x00010000) {
@@ -681,6 +572,12 @@ struct fbcon_config *mipi_init(void)
 {
 	int status = 0;
 	struct mipi_dsi_panel_config *panel_info = get_panel_info();
+
+	if (panel_info == NULL) {
+		dprintf(CRITICAL, "Panel info is null\n");
+		return NULL;
+	}
+
 	/* Enable MMSS_AHB_ARB_MATER_PORT_E for arbiter master0 and master 1 request */
 #if (!DISPLAY_MIPI_PANEL_RENESAS)
 	writel(0x00001800, MMSS_SFPB_GPREG);
@@ -724,6 +621,7 @@ int mipi_config(struct msm_fb_panel_data *panel)
 	mipi_pinfo.dsi_phy_config = pinfo->mipi.dsi_phy_db;
 	mipi_pinfo.panel_cmds = pinfo->mipi.panel_cmds;
 	mipi_pinfo.num_of_panel_cmds = pinfo->mipi.num_of_panel_cmds;
+	mipi_pinfo.lane_swap = pinfo->mipi.lane_swap;
 
 	/* Enable MMSS_AHB_ARB_MATER_PORT_E for
 	   arbiter master0 and master 1 request */
@@ -807,8 +705,15 @@ int mipi_dsi_video_mode_config(unsigned short disp_width,
 
 	writel(0x00000100, DSI_MISR_VIDEO_CTRL);
 
-	writel(low_pwr_stop_mode << 16 | eof_bllp_pwr << 12 | traffic_mode << 8
-			| dst_format << 4 | 0x0, DSI_VIDEO_MODE_CTRL);
+	if (mdp_get_revision() >= MDP_REV_41) {
+		writel(low_pwr_stop_mode << 16 |
+				eof_bllp_pwr << 12 | traffic_mode << 8
+				| dst_format << 4 | 0x0, DSI_VIDEO_MODE_CTRL);
+	} else {
+		writel(1 << 28 | 1 << 24 | 1 << 20 | low_pwr_stop_mode << 16 |
+				eof_bllp_pwr << 12 | traffic_mode << 8
+				| dst_format << 4 | 0x0, DSI_VIDEO_MODE_CTRL);
+	}
 
 	writel(0x67, DSI_CAL_STRENGTH_CTRL);
 	writel(0x80006711, DSI_CAL_CTRL);

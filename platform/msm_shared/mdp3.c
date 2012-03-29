@@ -1,4 +1,4 @@
-/* Copyright (c) 2011, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -29,64 +29,62 @@
 #include <mdp3.h>
 #include <debug.h>
 #include <reg.h>
+#include <msm_panel.h>
+#include <err.h>
 #include <target/display.h>
 #include <platform/timer.h>
 #include <platform/iomap.h>
 
 static int mdp_rev;
 
-int
-mdp_setup_dma_p_video_mode(unsigned short disp_width,
-			   unsigned short disp_height,
-			   unsigned short img_width,
-			   unsigned short img_height,
-			   unsigned short hsync_porch0_fp,
-			   unsigned short hsync_porch0_bp,
-			   unsigned short vsync_porch0_fp,
-			   unsigned short vsync_porch0_bp,
-			   unsigned short hsync_width,
-			   unsigned short vsync_width,
-			   unsigned long input_img_addr,
-			   unsigned short img_width_full_size,
-			   unsigned short pack_pattern, unsigned char ystride)
+int mdp_dsi_video_config(struct msm_panel_info *pinfo,
+		struct fbcon_config *fb)
 {
-
-	// unsigned long mdp_intr_status;
-	int status = FAIL;
 	unsigned long hsync_period;
 	unsigned long vsync_period;
 	unsigned long vsync_period_intmd;
+	struct lcdc_panel_info *lcdc = NULL;
+	int ystride = 3;
+
+	if (pinfo == NULL)
+		return ERR_INVALID_ARGS;
+
+	lcdc =  &(pinfo->lcdc);
+	if (lcdc == NULL)
+		return ERR_INVALID_ARGS;
 
 	dprintf(SPEW, "MDP3.0.3 for DSI Video Mode\n");
 
-	hsync_period = img_width + hsync_porch0_fp + hsync_porch0_bp + 1;
-	vsync_period_intmd = img_height + vsync_porch0_fp + vsync_porch0_bp + 1;
+	hsync_period = pinfo->xres + lcdc->h_front_porch + \
+			lcdc->h_back_porch + 1;
+	vsync_period_intmd = pinfo->yres + lcdc->v_front_porch + \
+				lcdc->v_back_porch + 1;
 	vsync_period = vsync_period_intmd * hsync_period;
 
 	// ------------- programming MDP_DMA_P_CONFIG ---------------------
 	writel(0x1800bf, MDP_DMA_P_CONFIG);	// rgb888
 
 	writel(0x00000000, MDP_DMA_P_OUT_XY);
-	writel(img_height << 16 | img_width, MDP_DMA_P_SIZE);
-	writel(input_img_addr, MDP_DMA_P_BUF_ADDR);
-	writel(img_width_full_size * ystride, MDP_DMA_P_BUF_Y_STRIDE);
-	writel(hsync_period << 16 | hsync_width, MDP_DSI_VIDEO_HSYNC_CTL);
+	writel(pinfo->yres << 16 | pinfo->xres, MDP_DMA_P_SIZE);
+	writel(MIPI_FB_ADDR, MDP_DMA_P_BUF_ADDR);
+	writel(pinfo->xres * ystride, MDP_DMA_P_BUF_Y_STRIDE);
+	writel(hsync_period << 16 | lcdc->h_pulse_width, \
+			MDP_DSI_VIDEO_HSYNC_CTL);
 	writel(vsync_period, MDP_DSI_VIDEO_VSYNC_PERIOD);
-	writel(vsync_width * hsync_period, MDP_DSI_VIDEO_VSYNC_PULSE_WIDTH);
-	writel((img_width + hsync_porch0_bp - 1) << 16 | hsync_porch0_bp,
-	       MDP_DSI_VIDEO_DISPLAY_HCTL);
-	writel(vsync_porch0_bp * hsync_period, MDP_DSI_VIDEO_DISPLAY_V_START);
-	writel((img_height + vsync_porch0_bp) * hsync_period,
+	writel(lcdc->v_pulse_width * hsync_period, \
+			MDP_DSI_VIDEO_VSYNC_PULSE_WIDTH);
+	writel((pinfo->xres + lcdc->h_back_porch - 1) << 16 | \
+			lcdc->h_back_porch, MDP_DSI_VIDEO_DISPLAY_HCTL);
+	writel(lcdc->v_back_porch * hsync_period, \
+			MDP_DSI_VIDEO_DISPLAY_V_START);
+	writel((pinfo->yres + lcdc->v_back_porch) * hsync_period,
 	       MDP_DSI_VIDEO_DISPLAY_V_END);
 	writel(0x00ABCDEF, MDP_DSI_VIDEO_BORDER_CLR);
 	writel(0x00000000, MDP_DSI_VIDEO_HSYNC_SKEW);
 	writel(0x00000000, MDP_DSI_VIDEO_CTL_POLARITY);
 	// end of cmd mdp
 
-	writel(0x00000001, MDP_DSI_VIDEO_EN);	// MDP_DSI_EN ENABLE
-
-	status = PASS;
-	return status;
+	return 0;
 }
 
 void mdp_disable(void)
@@ -94,12 +92,13 @@ void mdp_disable(void)
 	writel(0x00000000, MDP_DSI_VIDEO_EN);
 }
 
-void mdp_shutdown(void)
+int mdp_dsi_video_off(void)
 {
 	mdp_disable();
 	mdelay(60);
 	writel(0x00000000, MDP_INTR_ENABLE);
 	writel(0x01ffffff, MDP_INTR_CLEAR);
+	return NO_ERROR;
 }
 
 void mdp_set_revision(int rev)
@@ -110,4 +109,13 @@ void mdp_set_revision(int rev)
 int mdp_get_revision(void)
 {
 	return mdp_rev;
+}
+
+int mdp_dsi_video_on()
+{
+	int ret = 0;
+
+	writel(0x00000001, MDP_DSI_VIDEO_EN);
+
+	return ret;
 }
