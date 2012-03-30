@@ -123,8 +123,8 @@ void target_init(void)
 	if ((platform_id == MSM8960) || (platform_id == MSM8660A)
 	    || (platform_id == MSM8260A) || (platform_id == APQ8060A)
 	    || (platform_id == MSM8230) || (platform_id == MSM8630)
-	    || (platform_id == MSM8930) || (platform_id == APQ8030)
-	    || (platform_id == MSM8227) || (platform_id == MSM8627)) {
+	    || (platform_id == APQ8030) || (platform_id == MSM8227)
+	    || (platform_id == MSM8627)) {
 		panel_backlight_on();
 		display_init();
 		dprintf(SPEW, "Diplay initialized\n");
