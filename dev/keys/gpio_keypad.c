@@ -418,9 +418,7 @@ void ssbi_keypad_init(struct qwerty_keypad_info  *qwerty_kp)
     event_init(&qwerty_keypad->full_scan, false, EVENT_FLAG_AUTOUNSIGNAL);
     timer_initialize(&qwerty_keypad->timer);
 
-#ifdef QT_8660_KEYPAD_HW_BUG
     mach_id = board_machtype();
-#endif
     ssbi_gpio_init(mach_id);
 
     if(mach_id == LINUX_MACHTYPE_8660_QT)

@@ -54,13 +54,6 @@ struct smem_alloc_info {
 	unsigned reserved;
 };
 
-struct smem {
-	struct smem_proc_comm proc_comm[4];
-	unsigned version_info[32];
-	struct smem_heap_info heap_info;
-	struct smem_alloc_info alloc_info[128];
-};
-
 struct smem_board_info_v2 {
 	unsigned format;
 	unsigned msm_id;
@@ -273,6 +266,13 @@ enum {
 	BOOT_REGION_MEMORY2,	/* boot loader memory 2,reserved */
 	APPSBL_MEMORY,		/* apps boot loader memory */
 	APPS_MEMORY,		/* apps  usage memory */
+};
+
+struct smem {
+	struct smem_proc_comm proc_comm[4];
+	unsigned version_info[32];
+	struct smem_heap_info heap_info;
+	struct smem_alloc_info alloc_info[SMEM_LAST_VALID_TYPE];
 };
 
 struct smem_ram_ptn {
