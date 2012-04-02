@@ -341,32 +341,92 @@ void reboot_device(unsigned reboot_reason)
 	reboot(reboot_reason);
 }
 
-static void check_fota_cookie(void)
+static int read_from_flash(struct ptentry* ptn, int offset, int size, void *dest)
+{
+	void *buffer = NULL;
+	unsigned page_size = flash_page_size();
+	unsigned page_mask = page_size - 1;
+	int read_size = (size + page_mask) & (~page_mask);
+
+	buffer = malloc(read_size);
+	if(!buffer){
+		dprintf(CRITICAL, "ERROR : Malloc failed for read_from_flash \n");
+		return -1;
+	}
+
+	if(flash_read(ptn, offset, buffer, read_size)){
+		dprintf(CRITICAL, "ERROR : Flash read failed \n");
+		return -1;
+	}
+	memcpy(dest, buffer, size);
+	free(buffer);
+	return 0;
+}
+
+static unsigned int get_fota_cookie_mtd(void)
 {
 	struct ptentry *ptn;
 	struct ptable *ptable;
-	unsigned page_size = flash_page_size();
-	unsigned pagemask = page_size - 1;
-	int n = 0;
+	unsigned int cookie = 0;
 
 	ptable = flash_get_ptable();
 	if (ptable == NULL) {
 		dprintf(CRITICAL, "ERROR: Partition table not found\n");
-		return;
+		return 0;
 	}
 
 	ptn = ptable_find(ptable, "FOTA");
 	if (ptn == NULL) {
 		dprintf(CRITICAL, "ERROR: No FOTA partition found\n");
-		return;
+		return 0;
 	}
-	n = (sizeof(fota_cookie) + pagemask) & (~pagemask);
 
-	if (flash_read(ptn, 0, fota_cookie, n)) {
-		dprintf(CRITICAL, "ERROR: flash read fail!\n");
-		return;
+	if (read_from_flash(ptn, 0, sizeof(unsigned int), &cookie) == -1) {
+		dprintf(CRITICAL, "ERROR: failed to read fota cookie from flash\n");
+		return 0;
 	}
-	return;
+	return cookie;
+}
+
+static int read_from_mmc(struct ptentry* ptn, int size, void *dest)
+{
+	void *buffer = NULL;
+	unsigned sector_mask = 511;
+	int read_size =  (size + sector_mask) & (~sector_mask);
+
+	buffer = malloc(read_size);
+	if(!buffer){
+		dprintf(CRITICAL, "ERROR : Malloc failed for read_from_flash \n");
+		return -1;
+	}
+
+	if(mmc_read(ptn, buffer, read_size)) {
+		dprintf(CRITICAL, "ERROR : Flash read failed \n");
+		return -1;
+	}
+	memcpy(dest, buffer, size);
+	free(buffer);
+	return 0;
+}
+
+static int get_fota_cookie_mmc(void)
+{
+	unsigned long long ptn = 0;
+	int index = -1;
+	unsigned int cookie = 0;
+
+	index = partition_get_index("FOTA");
+	ptn = partition_get_offset(index);
+
+	if(ptn == 0) {
+		dprintf(CRITICAL,"ERROR: FOTA partition not found\n");
+		return 0;
+	}
+	if(read_from_mmc(ptn, sizeof(unsigned int), &cookie)) {
+		dprintf(CRITICAL, "ERROR: Cannot read cookie info\n");
+		return 0;
+	}
+	return cookie;
 }
 
 unsigned check_reboot_mode(void)
@@ -374,6 +434,7 @@ unsigned check_reboot_mode(void)
 	unsigned mode[2] = { 0, 0 };
 	unsigned int mode_len = sizeof(mode);
 	unsigned smem_status;
+	unsigned int cookie = 0;
 
 	smem_status = smem_read_alloc_entry(SMEM_APPS_BOOT_MODE,
 					    &mode, mode_len);
@@ -382,9 +443,12 @@ unsigned check_reboot_mode(void)
 	 * SMEM value is relied upon on power shutdown. Check either of SMEM
 	 * or FOTA update cookie is set
 	 */
-	check_fota_cookie();
+	if (target_is_emmc_boot())
+		cookie = get_fota_cookie_mmc();
+	else
+		cookie = get_fota_cookie_mtd();
 
-	if ((mode[0] == RECOVERY_MODE) || (fota_cookie[0] == FOTA_COOKIE))
+	if ((mode[0] == RECOVERY_MODE) || (cookie == FOTA_COOKIE))
 		return RECOVERY_MODE;
 
 	if (smem_status) {

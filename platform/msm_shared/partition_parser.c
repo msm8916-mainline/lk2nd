@@ -767,7 +767,11 @@ mbr_fill_name(struct partition_entry *partition_ent, unsigned int type)
 		memcpy(partition_ent->name, "tz", 2);
 		break;
 	case MBR_ABOOT_TYPE:
+#if PLATFORM_MSM7X27A
+		memcpy(partition_ent->name, "FOTA", 4);
+#else
 		memcpy(partition_ent->name, "aboot", 5);
+#endif
 		break;
 	case MBR_BOOT_TYPE:
 		memcpy(partition_ent->name, "boot", 4);
