@@ -41,4 +41,5 @@ emmc_appsboothd.mbn: mkheader $(OUTBIN)
 
 mkheader: $(SRC_DIR)/mkheader.c
 	${COMPILER} -DMEMBASE=$(MEMBASE) $(SRC_DIR)/mkheader.c -o $(SRC_DIR)/mkheader
+	@mkdir -p $(BUILDDIR)
 	cp -f $(SRC_DIR)/mkheader $(BUILDDIR)/mkheader
