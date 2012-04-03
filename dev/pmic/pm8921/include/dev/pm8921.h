@@ -32,9 +32,42 @@
 #include <sys/types.h>
 #include <dev/pm8921_leds.h>
 
+enum {
+	lvs_start = 1,
+	lvs_1 = lvs_start,
+	lvs_2,
+	lvs_3,
+	lvs_4,
+	lvs_5,
+	lvs_6,
+	lvs_7,
+	lvs_end = lvs_7,
+};
+
+enum {
+	mpp_start = 1,
+	mpp_1 = mpp_start,
+	mpp_2,
+	mpp_3,
+	mpp_4,
+	mpp_5,
+	mpp_6,
+	mpp_7,
+	mpp_8,
+	mpp_9,
+	mpp_10,
+	mpp_11,
+	mpp_12,
+	mpp_end = mpp_12,
+};
+
 #define PM_GPIO_DIR_OUT         0x01
 #define PM_GPIO_DIR_IN          0x02
 #define PM_GPIO_DIR_BOTH        (PM_GPIO_DIR_OUT | PM_GPIO_DIR_IN)
+
+/* output_buffer */
+#define PM_GPIO_OUT_BUF_OPEN_DRAIN  1
+#define PM_GPIO_OUT_BUF_CMOS        0
 
 #define PM_GPIO_PULL_UP_30      0
 #define PM_GPIO_PULL_UP_1_5     1
@@ -59,6 +92,7 @@
 
 #define LDO_2      (2)
 #define LDO_8      (8  | LDO_P_MASK)
+#define LDO_11     (11 | LDO_P_MASK)
 #define LDO_23     (23 | LDO_P_MASK)
 
 enum
@@ -119,6 +153,6 @@ int pm8921_config_led_current(enum pm8921_leds led_num,
 int pm8921_config_drv_keypad(unsigned int drv_flash_sel,
 	unsigned int flash_logic,
 	unsigned int flash_ensel);
-
-
+int pm8921_low_voltage_switch_enable(uint8_t lvs_id);
+int pm8921_mpp_set_digital_output(uint8_t mpp_id);
 #endif

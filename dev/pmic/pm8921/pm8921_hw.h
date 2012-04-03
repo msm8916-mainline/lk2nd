@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -112,3 +112,17 @@
 #define IRQ_BLOCK_SEL_USR_ADDR           0x1C0
 #define IRQ_STATUS_RT_USR_ADDR           0x1C3
 
+#define PM8921_LVS_REG_BASE       0x060
+#define PM8921_LVS_CTRL_REG(id)   (PM8921_LVS_REG_BASE + (2 * (id-1)))
+#define PM8921_LVS_TEST_REG(id)   (PM8921_LVS_CTRL_REG(id) + 1)
+
+#define PM8921_LVS_100_CTRL_SW_EN             (1 << 7)
+#define PM8921_LVS_100_CTRL_SLEEP_B_IGNORE    (1 << 4)
+#define PM8921_LVS_100_TEST_VOUT_OK           (1 << 6)
+
+#define PM8921_MPP_REG_BASE                   0x050
+#define PM8921_MPP_CTRL_REG(id)               (PM8921_MPP_REG_BASE + (id-1))
+
+#define PM8921_MPP_CTRL_DIGITAL_OUTPUT        (1 << 5)
+#define PM8921_MPP_CTRL_VIO_1                 (1 << 2)
+#define PM8921_MPP_CTRL_OUTPUT_HIGH           (1 << 0)
