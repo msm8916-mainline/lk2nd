@@ -50,16 +50,17 @@ static unsigned char eval_char_literal(const char *s);
 		int		bits;
 	} array;
 
-	uint64_t addr;
 	struct property *prop;
 	struct property *proplist;
 	struct node *node;
 	struct node *nodelist;
 	struct reserve_info *re;
+	uint64_t integer;
 }
 
 %token DT_V1
 %token DT_MEMRESERVE
+%token DT_LSHIFT DT_RSHIFT DT_LE DT_GE DT_EQ DT_NE DT_AND DT_OR
 %token DT_BITS
 %token <propnodename> DT_PROPNODENAME
 %token <literal> DT_LITERAL
@@ -75,7 +76,6 @@ static unsigned char eval_char_literal(const char *s);
 %type <data> propdataprefix
 %type <re> memreserve
 %type <re> memreserves
-%type <addr> addr
 %type <array> arrayprefix
 %type <data> bytestring
 %type <prop> propdef
@@ -85,6 +85,21 @@ static unsigned char eval_char_literal(const char *s);
 %type <node> nodedef
 %type <node> subnode
 %type <nodelist> subnodes
+
+%type <integer> integer_prim
+%type <integer> integer_unary
+%type <integer> integer_mul
+%type <integer> integer_add
+%type <integer> integer_shift
+%type <integer> integer_rela
+%type <integer> integer_eq
+%type <integer> integer_bitand
+%type <integer> integer_bitxor
+%type <integer> integer_bitor
+%type <integer> integer_and
+%type <integer> integer_or
+%type <integer> integer_trinary
+%type <integer> integer_expr
 
 %%
 
@@ -108,7 +123,7 @@ memreserves:
 	;
 
 memreserve:
-	  DT_MEMRESERVE addr addr ';'
+	  DT_MEMRESERVE integer_prim integer_prim ';'
 		{
 			$$ = build_reserve_entry($2, $3);
 		}
@@ -118,13 +133,6 @@ memreserve:
 			$$ = $2;
 		}
 	;
-
-addr:
-	  DT_LITERAL
-		{
-			$$ = eval_literal($1, 0, 64);
-		}
-	  ;
 
 devicetree:
 	  '/' nodedef
@@ -198,7 +206,7 @@ propdata:
 		{
 			$$ = data_add_marker($1, REF_PATH, $2);
 		}
-	| propdataprefix DT_INCBIN '(' DT_STRING ',' addr ',' addr ')'
+	| propdataprefix DT_INCBIN '(' DT_STRING ',' integer_prim ',' integer_prim ')'
 		{
 			FILE *f = srcfile_relative_open($4.val, NULL);
 			struct data d;
@@ -267,17 +275,25 @@ arrayprefix:
 			$$.data = empty_data;
 			$$.bits = 32;
 		}
-	| arrayprefix DT_LITERAL
+	| arrayprefix integer_prim
 		{
-			uint64_t val = eval_literal($2, 0, $1.bits);
+			if ($1.bits < 64) {
+				uint64_t mask = (1ULL << $1.bits) - 1;
+				/*
+				 * Bits above mask must either be all zero
+				 * (positive within range of mask) or all one
+				 * (negative and sign-extended). The second
+				 * condition is true if when we set all bits
+				 * within the mask to one (i.e. | in the
+				 * mask), all bits are one.
+				 */
+				if (($2 > mask) && (($2 | mask) != -1ULL))
+					print_error(
+						"integer value out of range "
+						"%016lx (%d bits)", $1.bits);
+			}
 
-			$$.data = data_append_integer($1.data, val, $1.bits);
-		}
-	| arrayprefix DT_CHAR_LITERAL
-		{
-			uint64_t val = eval_char_literal($2);
-
-			$$.data = data_append_integer($1.data, val, $1.bits);
+			$$.data = data_append_integer($1.data, $2, $1.bits);
 		}
 	| arrayprefix DT_REF
 		{
@@ -297,6 +313,95 @@ arrayprefix:
 		{
 			$$.data = data_add_marker($1.data, LABEL, $2);
 		}
+	;
+
+integer_prim:
+	  DT_LITERAL
+		{
+			$$ = eval_literal($1, 0, 64);
+		}
+	| DT_CHAR_LITERAL
+		{
+			$$ = eval_char_literal($1);
+		}
+	| '(' integer_expr ')'
+		{
+			$$ = $2;
+		}
+	;
+
+integer_expr:
+	integer_trinary
+	;
+
+integer_trinary:
+	  integer_or
+	| integer_or '?' integer_expr ':' integer_trinary { $$ = $1 ? $3 : $5; }
+	;
+
+integer_or:
+	  integer_and
+	| integer_or DT_OR integer_and { $$ = $1 || $3; }
+	;
+
+integer_and:
+	  integer_bitor
+	| integer_and DT_AND integer_bitor { $$ = $1 && $3; }
+	;
+
+integer_bitor:
+	  integer_bitxor
+	| integer_bitor '|' integer_bitxor { $$ = $1 | $3; }
+	;
+
+integer_bitxor:
+	  integer_bitand
+	| integer_bitxor '^' integer_bitand { $$ = $1 ^ $3; }
+	;
+
+integer_bitand:
+	  integer_eq
+	| integer_bitand '&' integer_eq { $$ = $1 & $3; }
+	;
+
+integer_eq:
+	  integer_rela
+	| integer_eq DT_EQ integer_rela { $$ = $1 == $3; }
+	| integer_eq DT_NE integer_rela { $$ = $1 != $3; }
+	;
+
+integer_rela:
+	  integer_shift
+	| integer_rela '<' integer_shift { $$ = $1 < $3; }
+	| integer_rela '>' integer_shift { $$ = $1 > $3; }
+	| integer_rela DT_LE integer_shift { $$ = $1 <= $3; }
+	| integer_rela DT_GE integer_shift { $$ = $1 >= $3; }
+	;
+
+integer_shift:
+	  integer_shift DT_LSHIFT integer_add { $$ = $1 << $3; }
+	| integer_shift DT_RSHIFT integer_add { $$ = $1 >> $3; }
+	| integer_add
+	;
+
+integer_add:
+	  integer_add '+' integer_mul { $$ = $1 + $3; }
+	| integer_add '-' integer_mul { $$ = $1 - $3; }
+	| integer_mul
+	;
+
+integer_mul:
+	  integer_mul '*' integer_unary { $$ = $1 * $3; }
+	| integer_mul '/' integer_unary { $$ = $1 / $3; }
+	| integer_mul '%' integer_unary { $$ = $1 % $3; }
+	| integer_unary
+	;
+
+integer_unary:
+	  integer_prim
+	| '-' integer_unary { $$ = -$2; }
+	| '~' integer_unary { $$ = ~$2; }
+	| '!' integer_unary { $$ = !$2; }
 	;
 
 bytestring:
@@ -366,9 +471,12 @@ static unsigned long long eval_literal(const char *s, int base, int bits)
 
 	errno = 0;
 	val = strtoull(s, &e, base);
-	if (*e)
-		print_error("bad characters in literal");
-	else if ((errno == ERANGE)
+	if (*e) {
+		size_t uls = strspn(e, "UL");
+		if (e[uls])
+			print_error("bad characters in literal");
+	}
+	if ((errno == ERANGE)
 		 || ((bits < 64) && (val >= (1ULL << bits))))
 		print_error("literal out of range");
 	else if (errno != 0)

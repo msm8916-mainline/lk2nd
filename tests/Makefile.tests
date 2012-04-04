@@ -19,7 +19,8 @@ LIB_TESTS_L = get_mem_rsv \
 	dtbs_equal_ordered \
 	dtb_reverse dtbs_equal_unordered \
 	add_subnode_with_nops path_offset_aliases \
-	utilfdt_test
+	utilfdt_test \
+	integer-expressions
 LIB_TESTS = $(LIB_TESTS_L:%=$(TESTS_PREFIX)%)
 
 LIBTREE_TESTS_L = truncated_property
