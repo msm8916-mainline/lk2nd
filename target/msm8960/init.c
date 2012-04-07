@@ -277,6 +277,10 @@ void target_uart_init(void)
 		uart_dm_init(7, 0x16600000, 0x16640000);
 		break;
 
+	case LINUX_MACHTYPE_8064_MPQ_CDP:
+		uart_dm_init(5, 0x1A200000, 0x1A240000);
+		break;
+
 	case LINUX_MACHTYPE_8627_CDP:
 	case LINUX_MACHTYPE_8627_MTP:
 
