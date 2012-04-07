@@ -208,10 +208,10 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 void ce_clock_init(void)
 {
 	/* Enable HCLK for CE */
-	clk_get_set_enable("ce_pclk", 0, 1);
+	clk_get_set_enable("ce1_pclk", 0, 1);
 
 	/* Enable core clk for CE */
-	clk_get_set_enable("ce_clk", 0, 1);
+	clk_get_set_enable("ce1_clk", 0, 1);
 }
 
 /* Async Reset CE1 */
