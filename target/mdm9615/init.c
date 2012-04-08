@@ -52,12 +52,20 @@ unsigned hw_platform = 0;
 unsigned target_msm_id = 0;
 
 /* Partition names for fastboot flash */
-char *apps_ptn_names[] = { "aboot", "boot", "system", "userdata" };
+char *apps_ptn_names[] = { "aboot", "boot", "cache", "misc", "recovery", "fota",
+	"recoveryfs", "system", "userdata" };
 
 /* Partitions should be in this order */
-char *ptable_ptn_names[] = { "APPSBL", "APPS", "SYSTEM", "USERDATA" };
+char *ptable_ptn_names[] = { "APPSBL", "APPS", "CACHE", "MISC", "RECOVERY",
+	"FOTA", "RECOVERYFS", "SYSTEM", "USERDATA" };
 
-unsigned ptn_name_count = 4;
+unsigned ptn_name_count = 9;
+
+/* Apps partition flags to detect the presence of FOTA partitions.
+ * Initially, assume that the FOTA partitions are absent.
+ */
+unsigned int apps_ptn_flag[] = {1, 1, 0, 0, 0, 0, 0, 1, 1};
+
 unsigned modem_ptn_count = 6;
 
 static const uint8_t uart_gsbi_id = GSBI_ID_4;
@@ -202,6 +210,23 @@ void update_ptable_apps_partitions(void)
 	uint32_t end = 0xffffffff;
 	uint32_t name_size = strlen(ptable_ptn_names[name_index]);
 	struct ptentry *ptentry_ptr = flash_ptable.parts;
+	struct ptentry *fota_ptn;
+	unsigned int size;
+
+	fota_ptn = ptable_find(&flash_ptable, "FOTA");
+
+	/* Check for FOTA partitions and their size */
+	if (fota_ptn != NULL) {
+		if (fota_ptn->length > 0) {
+			/* FOTA partitions are present */
+			apps_ptn_flag[2] = 1;
+			apps_ptn_flag[3] = 1;
+			apps_ptn_flag[4] = 1;
+			apps_ptn_flag[5] = 1;
+			apps_ptn_flag[6] = 1;
+
+		}
+	}
 
 	for (ptn_index = 0; ptentry_ptr[ptn_index].start != end; ptn_index++) {
 		if (!(strncmp(ptentry_ptr[ptn_index].name,
@@ -219,14 +244,21 @@ void update_ptable_apps_partitions(void)
 				ptentry_ptr[ptn_index].type =
 				    TYPE_APPS_PARTITION;
 
-			/* Don't go out of bounds */
-			name_index++;
-			if (name_index >= ptn_name_count)
-				break;
-			name_size = strlen(ptable_ptn_names[name_index]);
+			/* Check for valid partitions
+			 * according to the apps_ptn_flag
+			 */
+			do {
+				/* Don't go out of bounds */
+				name_index++;
+				if (name_index >= ptn_name_count)
+					goto ptn_name_update_done;
+				name_size =
+					strlen(ptable_ptn_names[name_index]);
+			} while (!apps_ptn_flag[name_index]);
 		}
 	}
 
+ptn_name_update_done:
 	/* Update the end to be actual end for grow partition */
 	ptn_index--;
 	for (; ptentry_ptr[ptn_index].length != end; ptn_index++) {
