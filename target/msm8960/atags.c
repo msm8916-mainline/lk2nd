@@ -30,51 +30,160 @@
 #include <debug.h>
 #include <smem.h>
 #include <stdint.h>
+#include "board.h"
+#include "baseband.h"
 
 #define SIZE_1M     (1024 * 1024)
-#define SIZE_2M		(2 * SIZE_1M)
-#define SIZE_140M	(140 * SIZE_1M)
-#define SIZE_256M	(256 * SIZE_1M)
-#define SIZE_512M	(512 * SIZE_1M)
+#define SIZE_2M     (2 * SIZE_1M)
+#define SIZE_256M   (256 * SIZE_1M)
+#define SIZE_512M   (512 * SIZE_1M)
+
+#define ATAG_MEM            0x54410002
+
+#define PHYS_MEM_START_ADDR 0x80000000
+
+typedef struct {
+	uint32_t size;
+	uint32_t start_addr;
+}atag_mem_info;
+
+atag_mem_info apq8064_standalone_first_256M[] = {
+	{	.size = (140 * SIZE_1M),
+		.start_addr = PHYS_MEM_START_ADDR + SIZE_2M
+	},
+	{	.size = (60 * SIZE_1M),
+		.start_addr = PHYS_MEM_START_ADDR + (0x9E * SIZE_1M)
+	},
+	{	.size = (7 * SIZE_1M),
+		.start_addr = PHYS_MEM_START_ADDR + (0xF7 * SIZE_1M)
+	}
+};
+
+atag_mem_info apq8064_fusion_first_256M[] = {
+	{	.size = (140 * SIZE_1M),
+		.start_addr = PHYS_MEM_START_ADDR + SIZE_2M
+	},
+	{	.size = (74 * SIZE_1M),
+		.start_addr = PHYS_MEM_START_ADDR + (0x90 * SIZE_1M)
+	},
+	{	.size = (7 * SIZE_1M),
+		.start_addr = PHYS_MEM_START_ADDR + (0xF7 * SIZE_1M)
+	},
+	{	.size = SIZE_1M,
+		.start_addr = PHYS_MEM_START_ADDR + (0xFF * SIZE_1M)
+	}
+};
+
+atag_mem_info mpq8064_first_256M[] = {
+	{	.size = (140 * SIZE_1M),
+		.start_addr = PHYS_MEM_START_ADDR + SIZE_2M
+	},
+	{	.size = (74 * SIZE_1M),
+		.start_addr = PHYS_MEM_START_ADDR + (0x90 * SIZE_1M)
+	},
+	{	.size = (14 * SIZE_1M),
+		.start_addr = PHYS_MEM_START_ADDR + (0xF2 * SIZE_1M)
+	}
+};
+
+atag_mem_info msm8960_default_first_256M[] = {
+	{	.size = (140 * SIZE_1M),
+		.start_addr = PHYS_MEM_START_ADDR + SIZE_2M
+	}
+};
+
+
+unsigned *target_mem_atag_create(unsigned *ptr, uint32_t size, uint32_t addr)
+{
+	*ptr++ = 4;
+	*ptr++ = ATAG_MEM;
+	*ptr++ = size;
+	*ptr++ = addr;
+
+	return ptr;
+}
+
+unsigned *target_atag(unsigned *ptr, atag_mem_info usable_mem_map[], unsigned num_regions)
+{
+	unsigned i;
+
+	dprintf(SPEW, "Number of regions for HLOS in 1st 256MB = %u\n", num_regions);
+	for (i=0; i < num_regions; i++)
+	{
+		ptr = target_mem_atag_create(ptr,
+						usable_mem_map[i].size,
+						usable_mem_map[i].start_addr);
+	}
+	return ptr;
+}
+
+unsigned *target_first_256M_atag(unsigned *ptr)
+{
+	unsigned int platform_id = board_platform_id();
+	unsigned int baseband = board_baseband();
+
+	switch (platform_id) {
+		case APQ8064:
+			if(baseband == BASEBAND_MDM)
+			{
+				/* Use 8064 Fusion 3 memory map */
+				ptr = target_atag(ptr,
+							apq8064_fusion_first_256M,
+							ARRAY_SIZE(apq8064_fusion_first_256M));
+			} else {
+				/* Use 8064 standalone memory map */
+				ptr = target_atag(ptr,
+							apq8064_standalone_first_256M,
+							ARRAY_SIZE(apq8064_standalone_first_256M));
+			}
+			break;
+
+		case MPQ8064:
+			ptr = target_atag(ptr, mpq8064_first_256M, ARRAY_SIZE(mpq8064_first_256M));
+			break;
+		case MSM8960: /* fall through */
+		default:
+			ptr = target_atag(ptr,
+						msm8960_default_first_256M,
+						ARRAY_SIZE(msm8960_default_first_256M));
+			break;
+	}
+	return ptr;
+}
 
 unsigned *target_atag_mem(unsigned *ptr)
 {
 	struct smem_ram_ptable ram_ptable;
 	uint8_t i = 0;
 
-	if (smem_ram_ptable_init(&ram_ptable)) {
-		for (i = 0; i < ram_ptable.len; i++) {
-			/* Use only 140M from memory bank starting at 0x80000000 */
+	if (smem_ram_ptable_init(&ram_ptable))
+	{
+		for (i = 0; i < ram_ptable.len; i++)
+		{
 			if (ram_ptable.parts[i].category == SDRAM &&
-			    ram_ptable.parts[i].type == SYS_MEMORY &&
-			    ram_ptable.parts[i].start == 0x80000000) {
+				(ram_ptable.parts[i].type == SYS_MEMORY) &&
+				(ram_ptable.parts[i].start == PHYS_MEM_START_ADDR))
+			{
 				ASSERT(ram_ptable.parts[i].size >= SIZE_256M);
 
-				*ptr++ = 4;
-				*ptr++ = 0x54410002;
-				*ptr++ = SIZE_140M;
-				*ptr++ = ram_ptable.parts[i].start + SIZE_2M;
+				ptr = target_first_256M_atag(ptr);
 
-				if (ram_ptable.parts[i].size > SIZE_256M) {
-					*ptr++ = 4;
-					*ptr++ = 0x54410002;
-					*ptr++ =
-					    ram_ptable.parts[i].size -
-					    SIZE_256M;
-					*ptr++ =
-					    ram_ptable.parts[i].start +
-					    SIZE_256M;
+				if (ram_ptable.parts[i].size > SIZE_256M)
+				{
+					ptr = target_mem_atag_create(ptr,
+							(ram_ptable.parts[i].size - SIZE_256M),
+							(ram_ptable.parts[i].start + SIZE_256M));
 				}
 			}
 
 			/* Pass along all other usable memory regions to Linux */
 			if (ram_ptable.parts[i].category == SDRAM &&
-			    ram_ptable.parts[i].type == SYS_MEMORY &&
-			    ram_ptable.parts[i].start != 0x80000000) {
-				*ptr++ = 4;
-				*ptr++ = 0x54410002;
-				*ptr++ = ram_ptable.parts[i].size;
-				*ptr++ = ram_ptable.parts[i].start;
+				(ram_ptable.parts[i].type == SYS_MEMORY) &&
+				(ram_ptable.parts[i].start != PHYS_MEM_START_ADDR))
+			{
+				ptr = target_mem_atag_create(ptr,
+							ram_ptable.parts[i].size,
+							ram_ptable.parts[i].start);
 			}
 		}
 	} else {
@@ -87,7 +196,7 @@ unsigned *target_atag_mem(unsigned *ptr)
 
 void *target_get_scratch_address(void)
 {
-	return ((void *)SCRATCH_ADDR);
+	return ((void *) SCRATCH_ADDR);
 }
 
 unsigned target_get_max_flash_size(void)
