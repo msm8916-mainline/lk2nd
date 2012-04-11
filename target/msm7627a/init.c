@@ -281,9 +281,9 @@ void board_info(void)
 					|| (target_msm_id >= MSM7225AA
 					&& target_msm_id <= ESM7225AA))
 					hw_platform = MSM7X25A_SURF;
-			else
-				hw_platform = MSM7X27A_SURF;
-			break;
+				else
+					hw_platform = MSM7X27A_SURF;
+				break;
 			case 0x2:
 				if (target_msm_id == MSM7225A
 					|| target_msm_id == MSM7625A
@@ -291,32 +291,32 @@ void board_info(void)
 					|| (target_msm_id >= MSM7225AA
 					&& target_msm_id <= ESM7225AA))
 					hw_platform = MSM7X25A_FFA;
-			else
-				hw_platform = MSM7X27A_FFA;
-			break;
-		case 0xB:
-			if(target_is_emmc_boot())
-				hw_platform = MSM7X27A_QRD1;
-			else
+				else
+					hw_platform = MSM7X27A_FFA;
+				break;
+			case 0xB:
+				if(target_is_emmc_boot())
+					hw_platform = MSM7X27A_QRD1;
+				else
+					hw_platform = MSM7X27A_QRD3;
+				break;
+			case 0xC:
+				hw_platform = MSM7X27A_EVB;
+				break;
+			case 0xF:
 				hw_platform = MSM7X27A_QRD3;
-			break;
-		case 0xC:
-			hw_platform = MSM7X27A_EVB;
-			break;
-		case 0xF:
-			hw_platform = MSM7X27A_QRD3;
-			break;
-		default:
-			if (target_msm_id == MSM7225A
-			    || target_msm_id == MSM7625A
-			    || target_msm_id == ESM7225A
-			    || (target_msm_id >= MSM7225AA
-				&& target_msm_id <= ESM7225AA))
-				hw_platform = MSM7X25A_SURF;
-			else
-				hw_platform = MSM7X27A_SURF;
-		};
-	}
+				break;
+			default:
+				if (target_msm_id == MSM7225A
+				    || target_msm_id == MSM7625A
+				    || target_msm_id == ESM7225A
+				    || (target_msm_id >= MSM7225AA
+					&& target_msm_id <= ESM7225AA))
+					hw_platform = MSM7X25A_SURF;
+				else
+					hw_platform = MSM7X27A_SURF;
+			};
+		}
 		/* Set msm ID for target variants based on values read from smem */
 		switch (target_msm_id) {
 		case MSM7225A:
