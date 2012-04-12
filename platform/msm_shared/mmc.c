@@ -2797,7 +2797,7 @@ mmc_erase_card(unsigned long long data_addr, unsigned long long size)
 	}
 
 	/* Sending CMD36 */
-	mmc_ret = mmc_boot_send_erase_group_end(&mmc_card, data_end - 1);
+	mmc_ret = mmc_boot_send_erase_group_end(&mmc_card, data_end);
 	if (mmc_ret != MMC_BOOT_E_SUCCESS) {
 		dprintf(CRITICAL, "Error %d: Failure sending erase group end "
 			"command to the card (RCA:%x)\n", mmc_ret,
@@ -2805,18 +2805,16 @@ mmc_erase_card(unsigned long long data_addr, unsigned long long size)
 		return mmc_ret;
 	}
 
-	for (unsigned long long i = 0; i < loop_count; i++) {
-		/* Sending CMD38 */
-		mmc_ret = mmc_boot_send_erase(&mmc_card);
-		if (mmc_ret != MMC_BOOT_E_SUCCESS) {
-			dprintf(CRITICAL,
-				"Error %d: Failure sending erase command "
-				"to the card (RCA:%x)\n", mmc_ret,
-				mmc_card.rca);
-			return mmc_ret;
+	/* Sending CMD38 */
+	mmc_ret = mmc_boot_send_erase(&mmc_card);
+	if (mmc_ret != MMC_BOOT_E_SUCCESS) {
+		dprintf(CRITICAL,
+			"Error %d: Failure sending erase command "
+			"to the card (RCA:%x)\n", mmc_ret, mmc_card.rca);
+		return mmc_ret;
 
-		}
 	}
+
 	dprintf(CRITICAL, "ERASE SUCCESSFULLY COMPLETED\n");
 	return MMC_BOOT_E_SUCCESS;
 }
