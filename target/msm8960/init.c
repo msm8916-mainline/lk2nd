@@ -113,7 +113,8 @@ void target_init(void)
 	{
 		msm8930_keypad_init();
 	}
-	else if(platform_id == APQ8064)
+	else if( (platform_id == APQ8064) ||
+		 (platform_id == MPQ8064))
 	{
 		apq8064_keypad_init();
 	}
