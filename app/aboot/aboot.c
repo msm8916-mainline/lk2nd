@@ -414,6 +414,9 @@ int boot_linux_from_mmc(void)
 			set_tamper_fuse_cmd();
 		#endif
 		}
+	#if USE_PCOM_SECBOOT
+		set_tamper_flag(device.is_tampered);
+	#endif
 	}
 	else
 	{
@@ -1243,6 +1246,9 @@ void aboot_init(const struct app_descriptor *app)
 			{
 			#ifdef TZ_TAMPER_FUSE
 				set_tamper_fuse_cmd();
+			#endif
+			#if USE_PCOM_SECBOOT
+				set_tamper_flag(device.is_tampered);
 			#endif
 			}
 		}
