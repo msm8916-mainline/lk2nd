@@ -45,7 +45,11 @@
 
 #define MDM9X15_CDP	3675
 #define MDM9X15_MTP	3681
-#define LINUX_MACHTYPE  MDM9X15_CDP
+#define LINUX_MACHTYPE	MDM9X15_CDP
+
+#define RECOVERY_MODE	0x77665502
+#define FOTA_COOKIE	0x64645343
+#define FOTA_PARTITION  5
 
 static struct ptable flash_ptable;
 unsigned hw_platform = 0;
@@ -109,14 +113,71 @@ void target_init(void)
 	flash_set_ptable(&flash_ptable);
 }
 
+
+static int read_from_flash(struct ptentry* ptn, int offset, int size, void *dest)
+{
+	void *buffer = NULL;
+	unsigned page_size = flash_page_size();
+	unsigned page_mask = page_size - 1;
+	int read_size = (size + page_mask) & (~page_mask);
+
+	buffer = malloc(read_size);
+	if(!buffer){
+		dprintf(CRITICAL, "ERROR : Malloc failed for read_from_flash \n");
+		return -1;
+	}
+	if(flash_read(ptn, offset, buffer, read_size)){
+		dprintf(CRITICAL, "ERROR : Flash read failed \n");
+		return -1;
+	}
+	memcpy(dest, buffer, size);
+	free(buffer);
+	return 0;
+}
+
+
+static unsigned int get_fota_cookie(void)
+{
+	struct ptentry *ptn;
+	struct ptable *ptable;
+	unsigned int cookie = 0;
+
+	ptable = flash_get_ptable();
+	if (ptable == NULL) {
+		dprintf(CRITICAL, "ERROR: Partition table not found\n");
+		return 0;
+	}
+
+	ptn = ptable_find(ptable, "fota");
+	if (ptn == NULL) {
+		dprintf(CRITICAL, "ERROR: No fota partition found\n");
+		return 0;
+	}
+	if(read_from_flash(ptn, 0, sizeof(unsigned int), &cookie) == -1){
+		dprintf(CRITICAL,"ERROR: failed to read fota cookie from flash");
+		return 0;
+	}
+	return cookie;
+}
+
 unsigned check_reboot_mode(void)
 {
 	unsigned restart_reason = 0;
+	unsigned int cookie = 0;
 
 	/* Read reboot reason and scrub it */
 	restart_reason = readl(RESTART_REASON_ADDR);
 	writel(0x00, RESTART_REASON_ADDR);
 
+	/* SMEM value is not relied upon on power shutdown.
+	 * Check either of SMEM or FOTA update cookie is set.
+	 * Check fota cookie only when fota partition is available on target
+	 */
+	if (apps_ptn_flag[FOTA_PARTITION] == 1) {
+		cookie = get_fota_cookie();
+		if (cookie == FOTA_COOKIE)
+			return RECOVERY_MODE;
+	}
 	return restart_reason;
 }
 
