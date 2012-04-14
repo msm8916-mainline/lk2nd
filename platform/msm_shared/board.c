@@ -123,7 +123,21 @@ static void target_detect()
 		default:
 			target_id = LINUX_MACHTYPE_8627_CDP;
 		}
-	} else if ((platform_id == APQ8064) || (platform_id == MPQ8064)) {
+	} else if (platform_id == MPQ8064) {
+		switch (platform_hw) {
+		case HW_PLATFORM_SURF:
+			target_id = LINUX_MACHTYPE_8064_MPQ_CDP;
+			break;
+		case HW_PLATFORM_HRD:
+			target_id = LINUX_MACHTYPE_8064_HRD;
+			break;
+		case HW_PLATFORM_DTV:
+			target_id = LINUX_MACHTYPE_8064_DTV;
+			break;
+		default:
+			target_id = LINUX_MACHTYPE_8064_MPQ_CDP;
+		}
+	} else if ((platform_id == APQ8064)) {
 		switch (platform_hw) {
 		case HW_PLATFORM_SURF:
 			target_id = LINUX_MACHTYPE_8064_CDP;
@@ -133,12 +147,6 @@ static void target_detect()
 			break;
 		case HW_PLATFORM_LIQUID:
 			target_id = LINUX_MACHTYPE_8064_LIQUID;
-			break;
-		case HW_PLATFORM_HRD:
-			target_id = LINUX_MACHTYPE_8064_HRD;
-			break;
-		case HW_PLATFORM_DTV:
-			target_id = LINUX_MACHTYPE_8064_DTV;
 			break;
 		default:
 			target_id = LINUX_MACHTYPE_8064_CDP;
@@ -166,6 +174,8 @@ static void baseband_detect()
 	else if (platform_id == APQ8060)
 		baseband = BASEBAND_APQ;
 	else if (platform_id == APQ8064)
+		baseband = BASEBAND_APQ;
+	else if (platform_id == MPQ8064)
 		baseband = BASEBAND_APQ;
 	else
 		baseband = BASEBAND_MSM;
