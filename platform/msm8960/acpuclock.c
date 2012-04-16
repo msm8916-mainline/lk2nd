@@ -167,6 +167,16 @@ void mmss_clock_init(void)
 			DSI1_ESC_CC_REG);
 }
 
+void mmss_clock_disable(void)
+{
+	writel(0x0, DSI1_BYTE_CC_REG);
+	writel(0x0, DSI_PIXEL_CC_REG);
+	writel(0x0, DSI1_ESC_CC_REG);
+
+	/* Disable root clock */
+	writel(0x0, DSI_CC_REG);
+}
+
 /* Intialize MMC clock */
 void clock_init_mmc(uint32_t interface)
 {

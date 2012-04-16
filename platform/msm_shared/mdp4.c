@@ -1,4 +1,4 @@
-/* Copyright (c) 2011, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -32,6 +32,14 @@
 #include <target/display.h>
 #include <platform/timer.h>
 #include <platform/iomap.h>
+#include <dev/lcdc.h>
+#include <dev/fbcon.h>
+#include <bits.h>
+#include <msm_panel.h>
+#include <mipi_dsi.h>
+#include <err.h>
+
+static int mdp_rev;
 
 void
 mdp_setup_dma_p_video_config(unsigned short pack_pattern,
@@ -187,4 +195,291 @@ void mdp_shutdown(void)
 void mdp_start_dma(void)
 {
 	writel(0x00000001, MDP_DMA_P_START);
+}
+
+int mdp_lcdc_config(struct msm_panel_info *pinfo,
+		struct fbcon_config *fb)
+{
+	unsigned mdp_rgb_size;
+	unsigned mdp_rgb_size_src;
+	int hsync_period, vsync_period;
+	int hsync_start_x, hsync_end_x;
+	int display_hctl, display_vstart, display_vend;
+	unsigned mdp_rgb_format = 0;
+
+	int active_x, active_y;
+	int active_hstart_x, active_hend_x;
+	int active_vstart, active_vend;
+
+	struct lcdc_panel_info *lcdc = NULL;
+
+	if (pinfo == NULL)
+		return;
+
+	lcdc =  &(pinfo->lcdc);
+	if (lcdc == NULL)
+		return;
+
+	mdp_rgb_size = (pinfo->yres << 16) + pinfo->xres;
+	mdp_rgb_size_src = (fb->height << 16) + fb->width;
+
+	dprintf(INFO, "Panel is %d x %d\n",
+			pinfo->xres + lcdc->xres_pad,
+			pinfo->yres + lcdc->yres_pad);
+
+	/* write fb addr in MDP_DMA_P_BUF_ADDR */
+	writel(fb->base, MDP_DMA_P_BUF_ADDR);
+
+	/* write active region size*/
+	writel(mdp_rgb_size, MDP_DMA_P_SIZE);
+
+	/* set Y-stride value in bytes */
+	/* Y-stride is defined as the number of bytes
+	   in a line.
+	 */
+	writel((pinfo->xres * pinfo->bpp/8), MDP_DMA_P_BUF_Y_STRIDE);
+
+	/* Start XY coordinates */
+	writel(0, MDP_DMA_P_OUT_XY);
+
+	if (fb->bpp == 16) {
+		writel(DMA_PACK_ALIGN_LSB | DMA_PACK_PATTERN_RGB |
+			DMA_DITHER_EN |	DMA_OUT_SEL_LCDC |
+			DMA_IBUF_FORMAT_RGB565 | DMA_DSTC0G_8BITS |
+			DMA_DSTC1B_8BITS | DMA_DSTC2R_8BITS,
+			MDP_DMA_P_CONFIG);
+		mdp_rgb_format = MDP_RGB_565_FORMAT;
+	} else if (fb->bpp == 24) {
+		writel(DMA_PACK_ALIGN_LSB | DMA_PACK_PATTERN_RGB |
+			DMA_DITHER_EN | DMA_OUT_SEL_LCDC |
+			DMA_IBUF_FORMAT_RGB888 | DMA_DSTC0G_8BITS |
+			DMA_DSTC1B_8BITS | DMA_DSTC2R_8BITS,
+			MDP_DMA_P_CONFIG);
+		mdp_rgb_format = MDP_RGB_888_FORMAT;
+	} else {
+		dprintf(CRITICAL, "Unsupported bpp detected!\n");
+		return ERR_INVALID_ARGS;
+	}
+
+	hsync_period = lcdc->h_pulse_width +
+		lcdc->h_back_porch +
+		pinfo->xres + lcdc->h_front_porch;
+	vsync_period = (lcdc->v_pulse_width +
+			lcdc->v_back_porch +
+			pinfo->yres +
+			lcdc->v_front_porch) *
+		hsync_period;
+	hsync_start_x =
+		lcdc->h_pulse_width +
+		lcdc->h_back_porch;
+	hsync_end_x =
+		hsync_period - lcdc->h_front_porch - 1;
+	display_hctl = (hsync_end_x << 16) | hsync_start_x;
+	display_vstart = (lcdc->v_pulse_width +
+			lcdc->v_back_porch)
+		* hsync_period + lcdc->hsync_skew;
+	display_vend = vsync_period -
+		(lcdc->v_front_porch * hsync_period)
+		+lcdc->hsync_skew - 1;
+
+	active_x = (pinfo->xres - fb->width)/2;
+	active_y = (pinfo->yres - fb->height)/2;
+
+	active_hstart_x = lcdc->h_pulse_width + lcdc->h_back_porch
+					  + active_x;
+	active_hend_x = active_hstart_x + fb->width - 1;
+
+	active_vstart = (lcdc->v_pulse_width + lcdc->v_back_porch
+			+ active_y) * hsync_period
+			+ lcdc->hsync_skew;
+	active_vend = active_vstart + (fb->height * hsync_period) - 1;
+
+
+	/* LCDC specific initalizations */
+	writel((hsync_period << 16) | lcdc->h_pulse_width,
+			MDP_LCDC_HSYNC_CTL);
+	writel(vsync_period, MDP_LCDC_VSYNC_PERIOD);
+	writel(lcdc->v_pulse_width * hsync_period,
+			MDP_LCDC_VSYNC_PULSE_WIDTH);
+	writel(display_hctl, MDP_LCDC_DISPLAY_HCTL);
+	writel(display_vstart, MDP_LCDC_DISPLAY_V_START);
+	writel(display_vend, MDP_LCDC_DISPLAY_V_END);
+
+	writel(BIT(31) | (active_hend_x << 16) | active_hstart_x,
+		  MDP_LCDC_ACTIVE_HCTL);
+
+	writel(BIT(31) | active_vstart, MDP_LCDC_ACTIVE_V_START);
+	writel(active_vend, MDP_LCDC_ACTIVE_V_END);
+
+	writel(0xf, MDP_LCDC_BORDER_CLR);
+	writel(0xff, MDP_LCDC_UNDERFLOW_CTL);
+	writel(lcdc->hsync_skew,
+			MDP_LCDC_HSYNC_SKEW);
+	writel(0x3, MDP_LCDC_CTL_POLARITY);
+	writel(0, MDP_LCDC_ACTIVE_HCTL);
+	writel(0, MDP_LCDC_ACTIVE_V_START);
+	writel(0, MDP_LCDC_ACTIVE_V_END);
+
+	/* setting for single layer direct out mode for rgb565 source */
+	writel(0x100, MDP_LAYERMIXER_IN_CFG);
+	writel(mdp_rgb_size_src, MDP_RGB1_SRC_SIZE);
+	writel(mdp_rgb_size, MDP_RGB1_OUT_SIZE);
+	writel((int)fb->base, MDP_RGB1_SRCP0_ADDR);
+	writel((fb->stride * fb->bpp / 8), MDP_RGB1_SRC_YSTRIDE1);
+	writel(0x00, MDP_RGB1_CONSTANT_COLOR);
+	writel(mdp_rgb_format, MDP_RGB1_SRC_FORMAT);
+	writel(0x1, MDP_OVERLAYPROC0_CFG);
+	if (fb->bpp == 16)
+		writel(0x1, MDP_OVERLAYPROC0_OPMODE);
+	else if (fb->bpp == 24)
+		writel(0x0, MDP_OVERLAYPROC0_OPMODE);
+
+	/* register flush and enable LCDC */
+	writel(0x11, MDP_OVERLAY_REG_FLUSH);
+	return NO_ERROR;
+}
+
+int mdp_lcdc_on()
+{
+	writel(0x1, MDP_LCDC_EN);
+	return NO_ERROR;
+}
+
+int mdp_lcdc_off()
+{
+	writel(0x0, MDP_LCDC_EN);
+	return NO_ERROR;
+}
+
+int mdp_dsi_video_config(struct msm_panel_info *pinfo,
+		struct fbcon_config *fb)
+{
+	int ret = NO_ERROR;
+	int hsync_period, vsync_period;
+	int hsync_start_x, hsync_end_x;
+	int display_hctl, display_vstart, display_vend;
+	struct lcdc_panel_info *lcdc = NULL;
+	unsigned mdp_rgb_size;
+
+	if (pinfo == NULL)
+		return ERR_INVALID_ARGS;
+
+	lcdc =  &(pinfo->lcdc);
+	if (lcdc == NULL)
+		return ERR_INVALID_ARGS;
+
+	hsync_period = lcdc->h_pulse_width +
+		lcdc->h_back_porch +
+		pinfo->xres + lcdc->xres_pad + lcdc->h_front_porch;
+	vsync_period = (lcdc->v_pulse_width +
+			lcdc->v_back_porch +
+			pinfo->yres + lcdc->yres_pad +
+			lcdc->v_front_porch) * hsync_period;
+	hsync_start_x =
+		lcdc->h_pulse_width +
+		lcdc->h_back_porch;
+	hsync_end_x =
+		hsync_period - lcdc->h_front_porch - 1;
+	display_hctl = (hsync_end_x << 16) | hsync_start_x;
+	display_vstart = (lcdc->v_pulse_width +
+			lcdc->v_back_porch)
+		* hsync_period + lcdc->hsync_skew;
+	display_vend = vsync_period -
+		(lcdc->v_front_porch * hsync_period)
+		+lcdc->hsync_skew - 1;
+
+	/* MDP_AXI_RDMASTER_CONFIG set all master to read from
+	   AXI port 0, that's the only port connected */
+	writel(0x00290000, MDP_AXI_RDMASTER_CONFIG);
+	writel(0x00000004, MDP_AXI_WRMASTER_CONFIG);
+	writel(0x00007777, MDP_MAX_RD_PENDING_CMD_CONFIG);
+
+	/* Set up CMD_INTF_SEL, VIDEO_INTF_SEL,
+	   EXT_INTF_SEL, SEC_INTF_SEL, PRIM_INTF_SEL */
+	writel(0x00000049, MDP_DISP_INTF_SEL);
+
+	/* DMA P */
+	writel(0x0000000b, MDP_OVERLAYPROC0_CFG);
+
+	/* write fb addr in MDP_DMA_P_BUF_ADDR */
+	writel(fb->base, MDP_DMA_P_BUF_ADDR);
+
+	/* write active region size*/
+	mdp_rgb_size = (fb->height << 16) + fb->width;
+	writel(mdp_rgb_size, MDP_DMA_P_SIZE);
+
+	/* set Y-stride value in bytes */
+	/* Y-stride is defined as the number of bytes
+	   in a line.
+	 */
+	writel((fb->stride * fb->bpp/8), MDP_DMA_P_BUF_Y_STRIDE);
+
+	/* Start XY coordinates */
+	writel(0, MDP_DMA_P_OUT_XY);
+
+	if (fb->bpp == 16) {
+		writel(DMA_PACK_ALIGN_LSB | DMA_PACK_PATTERN_RGB |
+			DMA_DITHER_EN |	DMA_OUT_SEL_LCDC |
+			DMA_IBUF_FORMAT_RGB565 | DMA_DSTC0G_8BITS |
+			DMA_DSTC1B_8BITS | DMA_DSTC2R_8BITS,
+			MDP_DMA_P_CONFIG);
+	} else if (fb->bpp == 24) {
+		writel(DMA_PACK_ALIGN_LSB | DMA_PACK_PATTERN_RGB |
+			DMA_DITHER_EN |	DMA_OUT_SEL_LCDC |
+			DMA_IBUF_FORMAT_RGB888 | DMA_DSTC0G_8BITS |
+			DMA_DSTC1B_8BITS | DMA_DSTC2R_8BITS,
+			MDP_DMA_P_CONFIG);
+	} else {
+		dprintf(CRITICAL, "Unsupported bpp detected!\n");
+		return ERR_INVALID_ARGS;
+	}
+
+	writel(hsync_period << 16 | lcdc->h_pulse_width,
+		MDP_DSI_VIDEO_HSYNC_CTL);
+	writel(vsync_period, MDP_DSI_VIDEO_VSYNC_PERIOD);
+	writel(lcdc->v_pulse_width * hsync_period,
+		MDP_DSI_VIDEO_VSYNC_PULSE_WIDTH);
+	writel(display_hctl,
+		MDP_DSI_VIDEO_DISPLAY_HCTL);
+	writel(display_vstart, MDP_DSI_VIDEO_DISPLAY_V_START);
+	writel(display_vend,  MDP_DSI_VIDEO_DISPLAY_V_END);
+
+	if (lcdc->xres_pad) {
+		writel((1 << 31) |
+			(lcdc->h_back_porch + lcdc->h_pulse_width +
+			 fb->width - 1) << 16 | lcdc->h_pulse_width +
+			lcdc->h_back_porch, MDP_DSI_VIDEO_ACTIVE_HCTL);
+	}
+
+	return ret;
+}
+
+int mdp_dsi_video_on()
+{
+	int ret = NO_ERROR;
+
+	writel(0x00000001, MDP_DSI_VIDEO_EN);
+
+	return ret;
+}
+
+int mdp_dsi_video_off()
+{
+#if (!CONT_SPLASH_SCREEN)
+	writel(0x00000000, MDP_DSI_VIDEO_EN);
+	mdelay(60);
+	writel(0x00000000, MDP_INTR_ENABLE);
+	writel(0x00000003, MDP_OVERLAYPROC0_CFG);
+#endif
+	return NO_ERROR;
+}
+
+void mdp_set_revision(int rev)
+{
+	mdp_rev = rev;
+}
+
+int mdp_get_revision()
+{
+	return mdp_rev;
 }

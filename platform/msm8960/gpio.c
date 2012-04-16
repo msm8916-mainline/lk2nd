@@ -239,3 +239,46 @@ void apq8064_keypad_gpio_init()
 		}
 }
 
+void apq8064_ext_3p3V_enable()
+{
+	gpio_tlmm_config(77, 0, GPIO_OUTPUT, GPIO_NO_PULL,
+		      GPIO_8MA, GPIO_ENABLE);
+}
+
+#define PM8921_GPIO_OUTPUT_FUNC(_gpio, _val, _func) \
+	PM8XXX_GPIO_INIT(_gpio, PM_GPIO_DIR_OUT, 0, _val, \
+			PM_GPIO_PULL_NO, 2, \
+			PM_GPIO_STRENGTH_HIGH, \
+			_func, 0, 0)
+
+
+#define PM8921_GPIO_OUTPUT_BUFCONF(_gpio, _val, _strength, _bufconf) \
+	PM8XXX_GPIO_INIT(_gpio, PM_GPIO_DIR_OUT,\
+			PM_GPIO_OUT_BUF_##_bufconf, _val, \
+			PM_GPIO_PULL_NO, 2, \
+			PM_GPIO_STRENGTH_##_strength, \
+			PM_GPIO_FUNC_NORMAL, 0, 0)
+
+
+static struct pm8xxx_gpio_init pm8921_display_gpios_apq[] = {
+	/* Display GPIOs */
+	/* Bl: ON, PWM mode */
+	PM8921_GPIO_OUTPUT_FUNC(PM_GPIO(26), 1, PM_GPIO_FUNC_2),
+	/* LCD1_PWR_EN_N */
+	PM8921_GPIO_OUTPUT_BUFCONF(PM_GPIO(36), 0, LOW, OPEN_DRAIN),
+	/* DISP_RESET_N */
+	PM8921_GPIO_OUTPUT_BUFCONF(PM_GPIO(25), 1, LOW, CMOS),
+};
+
+void apq8064_display_gpio_init()
+{
+		int i = 0;
+		int num = 0;
+
+		num = ARRAY_SIZE(pm8921_display_gpios_apq);
+
+		for (i = 0; i < num; i++) {
+			pm8921_gpio_config(pm8921_display_gpios_apq[i].gpio,
+				&(pm8921_display_gpios_apq[i].config));
+		}
+}

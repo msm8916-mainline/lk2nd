@@ -33,6 +33,8 @@
 #include <platform/timer.h>
 #include <platform/iomap.h>
 
+static int mdp_rev;
+
 int
 mdp_setup_dma_p_video_mode(unsigned short disp_width,
 			   unsigned short disp_height,
@@ -98,4 +100,14 @@ void mdp_shutdown(void)
 	mdelay(60);
 	writel(0x00000000, MDP_INTR_ENABLE);
 	writel(0x01ffffff, MDP_INTR_CLEAR);
+}
+
+void mdp_set_revision(int rev)
+{
+	mdp_rev = rev;
+}
+
+int mdp_get_revision(void)
+{
+	return mdp_rev;
 }

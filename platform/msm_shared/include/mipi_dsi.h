@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010-2012, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -29,6 +29,8 @@
 
 #ifndef _PLATFORM_MSM_SHARED_MIPI_DSI_H_
 #define _PLATFORM_MSM_SHARED_MIPI_DSI_H_
+
+#include <msm_panel.h>
 
 #define PASS                        0
 #define FAIL                        1
@@ -1781,4 +1783,56 @@ static struct mipi_dsi_phy_ctrl mipi_dsi_renesas_panel_phy_ctrl = {
 	 0x05, 0x14, 0x03, 0x0, 0x0, 0x0, 0x20, 0x0, 0x02, 0x0},
 };
 
+enum {		/* mipi dsi panel */
+	DSI_VIDEO_MODE,
+	DSI_CMD_MODE,
+};
+#define DSI_NON_BURST_SYNCH_PULSE	0
+#define DSI_NON_BURST_SYNCH_EVENT	1
+#define DSI_BURST_MODE			2
+
+#define DSI_RGB_SWAP_RGB	0
+#define DSI_RGB_SWAP_RBG	1
+#define DSI_RGB_SWAP_BGR	2
+#define DSI_RGB_SWAP_BRG	3
+#define DSI_RGB_SWAP_GRB	4
+#define DSI_RGB_SWAP_GBR	5
+
+#define DSI_VIDEO_DST_FORMAT_RGB565		0
+#define DSI_VIDEO_DST_FORMAT_RGB666		1
+#define DSI_VIDEO_DST_FORMAT_RGB666_LOOSE	2
+#define DSI_VIDEO_DST_FORMAT_RGB888		3
+
+#define DSI_CMD_DST_FORMAT_RGB111	0
+#define DSI_CMD_DST_FORMAT_RGB332	3
+#define DSI_CMD_DST_FORMAT_RGB444	4
+#define DSI_CMD_DST_FORMAT_RGB565	6
+#define DSI_CMD_DST_FORMAT_RGB666	7
+#define DSI_CMD_DST_FORMAT_RGB888	8
+
+#define DSI_CMD_TRIGGER_NONE		0x0	/* mdp trigger */
+#define DSI_CMD_TRIGGER_TE		0x02
+#define DSI_CMD_TRIGGER_SW		0x04
+#define DSI_CMD_TRIGGER_SW_SEOF		0x05	/* cmd dma only */
+#define DSI_CMD_TRIGGER_SW_TE		0x06
+
+int mipi_config(struct msm_fb_panel_data *panel);
+int mipi_dsi_video_mode_config(unsigned short disp_width,
+		unsigned short disp_height,
+		unsigned short img_width,
+		unsigned short img_height,
+		unsigned short hsync_porch0_fp,
+		unsigned short hsync_porch0_bp,
+		unsigned short vsync_porch0_fp,
+		unsigned short vsync_porch0_bp,
+		unsigned short hsync_width,
+		unsigned short vsync_width,
+		unsigned short dst_format,
+		unsigned short traffic_mode,
+		unsigned char lane_en,
+		unsigned low_pwr_stop_mode,
+		unsigned char eof_bllp_pwr,
+		unsigned char interleav);
+int mipi_dsi_on();
+int mipi_dsi_off();
 #endif

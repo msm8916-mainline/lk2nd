@@ -18,14 +18,14 @@ KEYS_USE_GPIO_KEYPAD := 1
 
 DEFINES += DISPLAY_SPLASH_SCREEN=1
 DEFINES += DISPLAY_TYPE_MIPI=1
-DEFINES += DISPLAY_MIPI_PANEL_TOSHIBA_MDT61=1
 DEFINES += CONT_SPLASH_SCREEN=1
 
 MODULES += \
 	dev/keys \
 	dev/pmic/pm8921 \
 	dev/ssbi \
-	lib/ptable
+	lib/ptable \
+	dev/panel/msm \
 
 DEFINES += \
 	MEMSIZE=$(MEMSIZE) \
@@ -44,4 +44,4 @@ OBJS += \
 	$(LOCAL_DIR)/init.o \
 	$(LOCAL_DIR)/atags.o \
 	$(LOCAL_DIR)/keypad.o \
-	$(LOCAL_DIR)/panel.o
+	$(LOCAL_DIR)/target_display.o

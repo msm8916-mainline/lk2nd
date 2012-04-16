@@ -98,30 +98,6 @@ void platform_init(void)
 	dprintf(INFO, "platform_init()\n");
 }
 
-void display_init(void)
-{
-	struct fbcon_config *fb_cfg;
-
-	panel_backlight_on();
-
-	mipi_dsi_panel_power_on();
-	mipi_panel_reset();
-
-	mdp_clock_init();
-	mmss_clock_init();
-
-	fb_cfg = mipi_init();
-	fbcon_setup(fb_cfg);
-
-	display_enabled = 1;
-}
-
-void display_shutdown(void)
-{
-	if(display_enabled)
-		mipi_dsi_shutdown();
-}
-
 void platform_uninit(void)
 {
 #if DISPLAY_SPLASH_SCREEN

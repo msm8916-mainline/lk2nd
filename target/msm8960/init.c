@@ -121,16 +121,8 @@ void target_init(void)
 
 	/* Display splash screen if enabled */
 #if DISPLAY_SPLASH_SCREEN
-	if ((platform_id == MSM8960) || (platform_id == MSM8660A)
-	    || (platform_id == MSM8260A) || (platform_id == APQ8060A)
-	    || (platform_id == MSM8230) || (platform_id == MSM8630)
-	    || (platform_id == APQ8030) || (platform_id == MSM8227)
-	    || (platform_id == MSM8627)) {
-		panel_backlight_on();
-		display_init();
-		dprintf(SPEW, "Diplay initialized\n");
-		display_image_on_screen();
-	}
+	display_init();
+	dprintf(SPEW, "Diplay initialized\n");
 #endif
 
 	if ((platform_id == MSM8960) || (platform_id == MSM8660A)
@@ -295,3 +287,4 @@ void target_uart_init(void)
 		ASSERT(0);
 	}
 }
+

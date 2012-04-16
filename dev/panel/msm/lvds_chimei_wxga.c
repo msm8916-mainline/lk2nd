@@ -1,4 +1,4 @@
-/* Copyright (c) 2011, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -27,27 +27,50 @@
  *
  */
 
-#include <dev/fbcon.h>
-//TODO: Make a global PASS / FAIL define
-#define PASS                        0
-#define FAIL                        1
+#include <stdint.h>
+#include <msm_panel.h>
+#include <err.h>
 
-int mdp_setup_dma_p_video_mode(unsigned short disp_width,
-			       unsigned short disp_height,
-			       unsigned short img_width,
-			       unsigned short img_height,
-			       unsigned short hsync_porch0_fp,
-			       unsigned short hsync_porch0_bp,
-			       unsigned short vsync_porch0_fp,
-			       unsigned short vsync_porch0_bp,
-			       unsigned short hsync_width,
-			       unsigned short vsync_width,
-			       unsigned long input_img_addr,
-			       unsigned short img_width_full_size,
-			       unsigned short pack_pattern,
-			       unsigned char ystride);
+int lvds_chimei_wxga_config(void *pdata)
+{
+	return NO_ERROR;
+}
 
-void mdp_disable(void);
-void mdp_shutdown(void);
-void mdp_set_revision(int rev);
-int mdp_get_revision();
+int lvds_chimei_wxga_on()
+{
+	return NO_ERROR;
+}
+
+int lvds_chimei_wxga_off()
+{
+	return NO_ERROR;
+}
+
+void lvds_chimei_wxga_init(struct msm_panel_info *pinfo)
+{
+	pinfo->xres = 1364;
+	pinfo->yres = 768;
+	pinfo->type = LVDS_PANEL;
+	pinfo->wait_cycle = 0;
+	pinfo->bpp = 24;
+	pinfo->clk_rate = 75000000;
+
+	pinfo->lcdc.h_back_porch = 0;
+	pinfo->lcdc.h_front_porch = 194;
+	pinfo->lcdc.h_pulse_width = 40;
+	pinfo->lcdc.v_back_porch = 0;
+	pinfo->lcdc.v_front_porch = 38;
+	pinfo->lcdc.v_pulse_width = 20;
+	pinfo->lcdc.underflow_clr = 0xff;
+	pinfo->lcdc.hsync_skew = 0;
+	pinfo->lvds.channel_mode = LVDS_SINGLE_CHANNEL_MODE;
+
+	/* Set border color, padding only for reducing active display region */
+	pinfo->lcdc.border_clr = 0x0;
+	pinfo->lcdc.xres_pad = 0;
+	pinfo->lcdc.yres_pad = 0;
+
+	pinfo->on = lvds_chimei_wxga_on;
+	pinfo->off = lvds_chimei_wxga_off;
+	pinfo->config = lvds_chimei_wxga_config;
+}
