@@ -1,6 +1,6 @@
 *.dtb
-*.dtb.test.dts
 *.dts.test.s
+*.test.dts
 tmp.*
 /add_subnode_with_nops
 /appendprop[12]
@@ -22,6 +22,7 @@ tmp.*
 /get_phandle
 /getprop
 /incbin
+/integer-expressions
 /mangle-layout
 /move_and_save
 /node_check_compatible
