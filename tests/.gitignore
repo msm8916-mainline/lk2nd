@@ -10,6 +10,8 @@ tmp.*
 /del_node
 /del_property
 /dtbs_equal_ordered
+/dtbs_equal_unordered
+/dtb_reverse
 /dumptrees
 /extra-terminating-null
 /find_property
@@ -50,5 +52,3 @@ tmp.*
 /truncated_property
 /utilfdt_test
 /value-labels
-/dtb_reverse
-/dtbs_equal_unordered
