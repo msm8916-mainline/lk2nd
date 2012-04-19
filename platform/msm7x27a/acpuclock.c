@@ -77,7 +77,7 @@
 #define MIN_AXI_HZ	120000000
 #define ACPU_800MHZ	41
 
-#define A11S_CLK_SEL_MASK 0x7	/* bits 2:0 */
+#define A11S_CLK_SEL_MASK 0x1	/* bits 2:0 */
 
 /* The stepping frequencies have been choosen to make sure the step
  * is <= 256 MHz for both 7x27a and 7x25a targets.  The
@@ -255,6 +255,10 @@ void acpu_clock_init(void)
 
 	/* Jump into table and set every entry. */
 	for (; i < size; i++) {
+
+		val = readl(A11S_CLK_SEL_ADDR);
+		val |= BIT(1) | BIT(2);
+		writel(val, A11S_CLK_SEL_ADDR);
 
 		val = readl(A11S_CLK_CNTL_ADDR);
 
