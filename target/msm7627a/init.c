@@ -55,7 +55,7 @@
 #define MSM8X25_SURF	4037
 #define MSM8X25_EVB	4042
 #define MSM8X25_QRD7	4095
-
+#define MSM8X25_FFA     4166
 #define LINUX_MACHTYPE  MSM7X27A_SURF
 
 #define VARIABLE_LENGTH		0x10101010
@@ -261,6 +261,9 @@ void board_info(void)
 			switch (id) {
 			case 0x1:
 				hw_platform = MSM8X25_SURF;
+				break;
+			case 0x2:
+				hw_platform = MSM8X25_FFA;
 				break;
 			case 0xC:
 				hw_platform = MSM8X25_EVB;
@@ -495,6 +498,7 @@ int machine_is_8x25()
 
 	switch(mach_type) {
 		case MSM8X25_SURF:
+		case MSM8X25_FFA:
 		case MSM8X25_EVB:
 		case MSM8X25_QRD7:
 			ret = 1;
