@@ -26,7 +26,7 @@ appsboot.mbn: $(OUTBIN)
 	cp -f $(OUTBIN) $(APPSBOOTHEADER_DIR)/appsboot.mbn
 
 appsboothd.mbn: mkheader $(OUTBIN)
-	$(SRC_DIR)/mkheader $(OUTBIN) $(APPSBOOTHEADER_DIR)/appsboothd.mbn
+	$(BUILDDIR)/mkheader $(OUTBIN) $(APPSBOOTHEADER_DIR)/appsboothd.mbn
 
 EMMCBOOT.MBN: $(OUTBIN)
 	cp $(OUTBIN) $(APPSBOOTHEADER_DIR)/emmc_appsboot.raw
@@ -34,9 +34,8 @@ EMMCBOOT.MBN: $(OUTBIN)
 	cp -f $(OUTBIN) $(APPSBOOTHEADER_DIR)/emmc_appsboot.mbn
 
 emmc_appsboothd.mbn: mkheader $(OUTBIN)
-	$(SRC_DIR)/mkheader $(OUTBIN) $(APPSBOOTHEADER_DIR)/emmc_appsboothd.mbn unified-boot
+	$(BUILDDIR)/mkheader $(OUTBIN) $(APPSBOOTHEADER_DIR)/emmc_appsboothd.mbn unified-boot
 
 mkheader: $(SRC_DIR)/mkheader.c
-	${COMPILER} $(SRC_DIR)/mkheader.c -o $(SRC_DIR)/mkheader
 	@mkdir -p $(BUILDDIR)
-	cp -f $(SRC_DIR)/mkheader $(BUILDDIR)/mkheader
+	${COMPILER} -DMEMBASE=$(MEMBASE) $(SRC_DIR)/mkheader.c -o $(BUILDDIR)/mkheader
