@@ -105,6 +105,7 @@
 #define MBR_RECOVERY_TYPE         0x60
 #define MBR_MISC_TYPE             0x63
 #define MBR_PROTECTED_TYPE        0xEE
+#define MBR_SSD_TYPE              0x5D
 
 #define GET_LLWORD_FROM_BYTE(x)    ((unsigned long long)*(x) | \
         ((unsigned long long)*(x+1) << 8) | \
