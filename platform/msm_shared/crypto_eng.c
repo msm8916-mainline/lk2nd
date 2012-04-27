@@ -41,6 +41,7 @@
 void crypto_eng_reset(void)
 {
 	wr_ce(SW_RST, CRYPTO3_CONFIG);
+	dmb();
 }
 
 /*
