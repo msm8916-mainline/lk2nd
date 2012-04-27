@@ -87,6 +87,7 @@ void smem_ptable_init(void);
 extern void reboot(unsigned reboot_reason);
 void update_ptable_apps_partitions(void);
 void update_ptable_modem_partitions(void);
+void update_ptable_reorder(void);
 extern int fake_key_get_state(void);
 
 void target_init(void)
@@ -117,7 +118,11 @@ void target_init(void)
 	update_ptable_modem_partitions();
 
 	ptable_dump(&flash_ptable);
-	flash_set_ptable(&flash_ptable);
+
+	/* Reorder the partition table */
+	update_ptable_reorder();
+
+	flash_set_ptable( &flash_ptable);
 }
 
 
@@ -350,4 +355,19 @@ ptn_name_update_done:
 		ptentry_ptr[ptn_index].length =
 		    ((struct flash_info *)flash_get_info())->num_blocks -
 		    ptentry_ptr[ptn_index].start;
+}
+
+void update_ptable_reorder(void)
+{
+	int boot_index;
+	struct ptentry boot_ptn;
+
+	boot_index = ptable_get_index(&flash_ptable, "boot");
+	if(boot_index == -1) {
+		dprintf (CRITICAL, "ERROR: Boot Partition not found. \n");
+		return;
+	}
+	boot_ptn = flash_ptable.parts[boot_index] ;
+	flash_ptable.parts[boot_index] = flash_ptable.parts[0];
+	flash_ptable.parts[0] = boot_ptn;
 }

@@ -2,7 +2,7 @@
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2012, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -64,6 +64,7 @@ void ptable_add(struct ptable *ptable, char *name, unsigned start,
 		unsigned length, unsigned flags, char type, char perm);
 struct ptentry *ptable_find(struct ptable *ptable, const char *name);
 struct ptentry *ptable_get(struct ptable *ptable, int n);
+int ptable_get_index(struct ptable *ptable, const char *name);
 int ptable_size(struct ptable *ptable);
 void ptable_dump(struct ptable *ptable);
 
