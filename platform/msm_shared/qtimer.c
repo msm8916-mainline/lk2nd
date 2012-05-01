@@ -39,23 +39,24 @@
 #define QTMR_TIMER_CTRL_ENABLE          (1 << 0)
 #define QTMR_TIMER_CTRL_INT_MASK        (1 << 1)
 
-#define PLATFORM_TIMER_TYPE_PHYSICAL     1
-#define PLATFORM_TIMER_TYPE_VIRTUAL      2
+#define QTMR_TYPE_PHYSICAL     1
+#define QTMR_TYPE_VIRTUAL      2
 
 static platform_timer_callback timer_callback;
 static void *timer_arg;
 static time_t timer_interval;
-static unsigned int timer_type = PLATFORM_TIMER_TYPE_PHYSICAL;
+static unsigned int timer_type = QTMR_TYPE_PHYSICAL;
 static volatile uint32_t ticks;
 static uint32_t tick_count;
+static uint32_t ppi_num = -1;
 
-static enum handler_return timer_irq(void *arg)
+static enum handler_return qtimer_irq(void *arg)
 {
 	ticks += timer_interval;
 
-	if (timer_type == PLATFORM_TIMER_TYPE_VIRTUAL)
+	if (timer_type == QTMR_TYPE_VIRTUAL)
 		__asm__("mcr p15, 0, %0, c14, c3, 0"::"r"(tick_count));
-	else if (timer_type == PLATFORM_TIMER_TYPE_PHYSICAL)
+	else if (timer_type == QTMR_TYPE_PHYSICAL)
 		__asm__("mcr p15, 0, %0, c14, c2, 0" : :"r" (tick_count));
 
 	return timer_callback(timer_arg, ticks);
@@ -64,7 +65,7 @@ static enum handler_return timer_irq(void *arg)
 /* Programs the Virtual Down counter timer.
  * interval : Counter ticks till expiry interrupt is fired.
  */
-unsigned int platform_set_virtual_timer(uint32_t interval)
+static unsigned int qtimer_set_virtual_timer(uint32_t interval)
 {
 	uint32_t ctrl;
 
@@ -85,7 +86,7 @@ unsigned int platform_set_virtual_timer(uint32_t interval)
 /* Programs the Physical Secure Down counter timer.
  * interval : Counter ticks till expiry interrupt is fired.
  */
-unsigned int platform_set_physical_timer(uint32_t interval)
+static unsigned int qtimer_set_physical_timer(uint32_t interval)
 {
 	uint32_t ctrl;
 
@@ -107,9 +108,6 @@ unsigned int platform_set_physical_timer(uint32_t interval)
 status_t platform_set_periodic_timer(platform_timer_callback callback,
 	void *arg, time_t interval)
 {
-	uint32_t ppi_num;
-	unsigned long ctrl;
-
 	tick_count = interval * platform_tick_rate() / 1000;
 
 	enter_critical_section();
@@ -118,12 +116,12 @@ status_t platform_set_periodic_timer(platform_timer_callback callback,
 	timer_arg = arg;
 	timer_interval = interval;
 
-	if (timer_type == PLATFORM_TIMER_TYPE_VIRTUAL)
-		ppi_num = platform_set_virtual_timer(tick_count);
-	else if (timer_type == PLATFORM_TIMER_TYPE_PHYSICAL)
-		ppi_num = platform_set_physical_timer(tick_count);
+	if (timer_type == QTMR_TYPE_VIRTUAL)
+		ppi_num = qtimer_set_virtual_timer(tick_count);
+	else if (timer_type == QTMR_TYPE_PHYSICAL)
+		ppi_num = qtimer_set_physical_timer(tick_count);
 
-	register_int_handler(ppi_num, timer_irq, 0);
+	register_int_handler(ppi_num, qtimer_irq, 0);
 	unmask_interrupt(ppi_num);
 
 	exit_critical_section();
@@ -135,20 +133,26 @@ time_t current_time(void)
 	return ticks;
 }
 
-void platform_uninit_timer(void)
+void uninit_qtimer()
 {
 	uint32_t ctrl;
 
-	unmask_interrupt(INT_DEBUG_TIMER_EXP);
+	if (ppi_num == -1)
+	{
+		dprintf(CRITICAL, "Qtimer unintialized before initializing\n");
+		return;
+	}
+
+	mask_interrupt(ppi_num);
 
 	/* program cntrl register */
 	ctrl =0;
 	ctrl |= ~QTMR_TIMER_CTRL_ENABLE;
 	ctrl &= QTMR_TIMER_CTRL_INT_MASK;
 
-	if (timer_type == PLATFORM_TIMER_TYPE_VIRTUAL)
+	if (timer_type == QTMR_TYPE_VIRTUAL)
 		__asm__("mcr p15, 0, %0, c14, c3, 1"::"r"(ctrl));
-	else if (timer_type == PLATFORM_TIMER_TYPE_PHYSICAL)
+	else if (timer_type == QTMR_TYPE_PHYSICAL)
 		__asm__("mcr p15, 0, %0, c14, c2, 1" : :"r" (ctrl));
 
 }
