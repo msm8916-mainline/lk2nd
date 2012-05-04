@@ -40,8 +40,13 @@
 
 void crypto_eng_reset(void)
 {
+#if ASYNC_RESET_CE
+	ce_async_reset();
+#else
 	wr_ce(SW_RST, CRYPTO3_CONFIG);
 	dmb();
+#endif
+	return;
 }
 
 /*
