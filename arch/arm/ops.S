@@ -48,12 +48,12 @@ FUNCTION(atomic_add)
 #if ARM_ISA_ARMV6 || ARM_ISA_ARMV7
 	/* use load/store exclusive */
 .L_loop_add:
-	ldrex 	r12, [r0]
+	ldrex	r12, [r0]
 	add		r2, r12, r1
-	strex 	r3, r2, [r0]
+	strex	r3, r2, [r0]
 	cmp		r3, #0
-	bne 	.L_loop_add
-	
+	bne	.L_loop_add
+
 	/* save old value */
 	mov		r0, r12
 	bx		lr
@@ -65,7 +65,7 @@ FUNCTION(atomic_add)
 	msr	cpsr_c, r2
 
 	/* ints disabled, old cpsr state in r12 */
-	
+
 	/* do the add, leave the previous value in r0 */
 	mov	r3, r0
 	ldr	r0, [r3]
@@ -76,18 +76,18 @@ FUNCTION(atomic_add)
 	msr	cpsr_c, r12
 	bx	lr
 #endif
-	
+
 /* int atomic_and(int *ptr, int val); */
 FUNCTION(atomic_and)
 #if ARM_ISA_ARMV6 || ARM_ISA_ARMV7
 	/* use load/store exclusive */
 .L_loop_and:
-	ldrex 	r12, [r0]
+	ldrex	r12, [r0]
 	and		r2, r12, r1
-	strex 	r3, r2, [r0]
+	strex	r3, r2, [r0]
 	cmp		r3, #0
-	bne 	.L_loop_and
-	
+	bne	.L_loop_and
+
 	/* save old value */
 	mov		r0, r12
 	bx		lr
@@ -99,7 +99,7 @@ FUNCTION(atomic_and)
 	msr	cpsr_c, r2
 
 	/* ints disabled, old cpsr state in r12 */
-	
+
 	/* do the and, leave the previous value in r0 */
 	mov	r3, r0
 	ldr	r0, [r3]
@@ -110,18 +110,18 @@ FUNCTION(atomic_and)
 	msr	cpsr_c, r12
 	bx	lr
 #endif
-	
+
 /* int atomic_or(int *ptr, int val); */
 FUNCTION(atomic_or)
 #if ARM_ISA_ARMV6 || ARM_ISA_ARMV7
 	/* use load/store exclusive */
 .L_loop_or:
-	ldrex 	r12, [r0]
+	ldrex	r12, [r0]
 	orr		r2, r12, r1
-	strex 	r3, r2, [r0]
+	strex	r3, r2, [r0]
 	cmp		r3, #0
-	bne 	.L_loop_or
-	
+	bne	.L_loop_or
+
 	/* save old value */
 	mov		r0, r12
 	bx		lr
@@ -133,7 +133,7 @@ FUNCTION(atomic_or)
 	msr	cpsr_c, r2
 
 	/* ints disabled, old cpsr state in r12 */
-	
+
 	/* do the or, leave the previous value in r0 */
 	mov	r3, r0
 	ldr	r0, [r3]
@@ -183,24 +183,24 @@ FUNCTION(arm_write_cr1_aux)
 
 /* void arm_write_ttbr(uint32_t val) */
 FUNCTION(arm_write_ttbr)
-	mcr 	p15, 0, r0, c2, c0, 0
+	mcr	p15, 0, r0, c2, c0, 0
 	bx		lr
 
 /* void arm_write_dacr(uint32_t val) */
 FUNCTION(arm_write_dacr)
-	mcr 	p15, 0, r0, c3, c0, 0
+	mcr	p15, 0, r0, c3, c0, 0
 	bx		lr
 
 /* void arm_invalidate_tlb(void) */
 FUNCTION(arm_invalidate_tlb)
 	mov		r0, #0
-	mcr 	p15, 0, r0, c8, c7, 0
+	mcr	p15, 0, r0, c8, c7, 0
 	bx		lr
 
 /* void arch_switch_stacks_and_call(addr_t call, addr_t stack) */
 FUNCTION(arch_switch_stacks_and_call)
 	mov		sp, r1
-	bx		r0	
+	bx		r0
 
 /*void dmb(void) */
 FUNCTION(dmb)
@@ -209,6 +209,16 @@ FUNCTION(dmb)
 #elif ARM_CPU_ARM1136
 	mov		r0, #0
 	mcr		p15, 0, r0, c7, c10, 5
+#endif
+	bx		lr
+
+/*void isb(void) */
+FUNCTION(isb)
+#if ARM_CPU_CORTEX_A8
+	isb		sy
+#elif ARM_CPU_ARM1136
+	mov		r0, #0
+	mcr		p15, 0, r0, c7, c5, 4
 #endif
 	bx		lr
 

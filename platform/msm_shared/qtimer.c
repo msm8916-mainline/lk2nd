@@ -1,4 +1,4 @@
-/* Copyright (c) 2011, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -28,101 +28,19 @@
 
 #include <debug.h>
 #include <reg.h>
-#include <sys/types.h>
-
-#include <platform/timer.h>
-#include <platform/irqs.h>
-#include <platform/iomap.h>
-#include <platform/interrupts.h>
+#include <compiler.h>
+#include <qtimer.h>
 #include <kernel/thread.h>
 
-#define QTMR_TIMER_CTRL_ENABLE          (1 << 0)
-#define QTMR_TIMER_CTRL_INT_MASK        (1 << 1)
-
-#define QTMR_TYPE_PHYSICAL     1
-#define QTMR_TYPE_VIRTUAL      2
-
-static platform_timer_callback timer_callback;
-static void *timer_arg;
-static time_t timer_interval;
-static unsigned int timer_type = QTMR_TYPE_PHYSICAL;
-static volatile uint32_t ticks;
-static uint32_t tick_count;
-static uint32_t ppi_num = -1;
-
-static enum handler_return qtimer_irq(void *arg)
-{
-	ticks += timer_interval;
-
-	if (timer_type == QTMR_TYPE_VIRTUAL)
-		__asm__("mcr p15, 0, %0, c14, c3, 0"::"r"(tick_count));
-	else if (timer_type == QTMR_TYPE_PHYSICAL)
-		__asm__("mcr p15, 0, %0, c14, c2, 0" : :"r" (tick_count));
-
-	return timer_callback(timer_arg, ticks);
-}
-
-/* Programs the Virtual Down counter timer.
- * interval : Counter ticks till expiry interrupt is fired.
- */
-static unsigned int qtimer_set_virtual_timer(uint32_t interval)
-{
-	uint32_t ctrl;
-
-	/* Program CTRL Register */
-	ctrl =0;
-	ctrl |= QTMR_TIMER_CTRL_ENABLE;
-	ctrl &= ~QTMR_TIMER_CTRL_INT_MASK;
-
-	__asm__("mcr p15, 0, %0, c14, c3, 1"::"r"(ctrl));
-
-	/* Set Virtual Down Counter */
-	__asm__("mcr p15, 0, %0, c14, c3, 0"::"r"(interval));
-
-	return INT_QTMR_VIRTUAL_TIMER_EXP;
-
-}
-
-/* Programs the Physical Secure Down counter timer.
- * interval : Counter ticks till expiry interrupt is fired.
- */
-static unsigned int qtimer_set_physical_timer(uint32_t interval)
-{
-	uint32_t ctrl;
-
-	/* Program CTRL Register */
-	ctrl =0;
-	ctrl |= QTMR_TIMER_CTRL_ENABLE;
-	ctrl &= ~QTMR_TIMER_CTRL_INT_MASK;
-
-	__asm__("mcr p15, 0, %0, c14, c2, 1" : :"r" (ctrl));
-
-	/* Set Physical Down Counter */
-	__asm__("mcr p15, 0, %0, c14, c2, 0" : :"r" (interval));
-
-	return INT_QTMR_SECURE_PHYSICAL_TIMER_EXP;
-
-}
-
+static uint32_t ticks_per_sec;
 
 status_t platform_set_periodic_timer(platform_timer_callback callback,
 	void *arg, time_t interval)
 {
-	tick_count = interval * platform_tick_rate() / 1000;
 
 	enter_critical_section();
 
-	timer_callback = callback;
-	timer_arg = arg;
-	timer_interval = interval;
-
-	if (timer_type == QTMR_TYPE_VIRTUAL)
-		ppi_num = qtimer_set_virtual_timer(tick_count);
-	else if (timer_type == QTMR_TYPE_PHYSICAL)
-		ppi_num = qtimer_set_physical_timer(tick_count);
-
-	register_int_handler(ppi_num, qtimer_irq, 0);
-	unmask_interrupt(ppi_num);
+	qtimer_set_physical_timer(interval, callback, arg);
 
 	exit_critical_section();
 	return 0;
@@ -130,75 +48,78 @@ status_t platform_set_periodic_timer(platform_timer_callback callback,
 
 time_t current_time(void)
 {
-	return ticks;
+	return qtimer_current_time();
 }
 
 void uninit_qtimer()
 {
-	uint32_t ctrl;
+	disable_qtimer();
+}
 
-	if (ppi_num == -1)
-	{
-		dprintf(CRITICAL, "Qtimer unintialized before initializing\n");
-		return;
-	}
+/* Blocking function to wait until the specified ticks of the timer.
+ * Note: ticks to wait for cannot be more than 56 bit.
+ *          Should be sufficient for all practical purposes.
+ */
+static void delay(uint64_t ticks)
+{
+	volatile uint64_t cnt;
+	uint64_t init_cnt;
+	uint64_t timeout = 0;
 
-	mask_interrupt(ppi_num);
+	cnt = qtimer_get_phy_timer_cnt();
+	init_cnt = cnt;
 
-	/* program cntrl register */
-	ctrl =0;
-	ctrl |= ~QTMR_TIMER_CTRL_ENABLE;
-	ctrl &= QTMR_TIMER_CTRL_INT_MASK;
+	/* Calculate timeout = cnt + ticks (mod 2^56)
+	 * to account for timer counter wrapping
+	 */
+	timeout = (cnt + ticks) &
+			(uint64_t)(QTMR_PHY_CNT_MAX_VALUE);
 
-	if (timer_type == QTMR_TYPE_VIRTUAL)
-		__asm__("mcr p15, 0, %0, c14, c3, 1"::"r"(ctrl));
-	else if (timer_type == QTMR_TYPE_PHYSICAL)
-		__asm__("mcr p15, 0, %0, c14, c2, 1" : :"r" (ctrl));
+	/* Wait out till the counter wrapping occurs 
+	 * in cases where there is a wrapping.
+	 */
+	while(timeout < cnt && init_cnt <= cnt)
+		/* read global counter */
+		cnt = qtimer_get_phy_timer_cnt();
+
+	/* Wait till the number of ticks is reached*/
+	while(timeout > cnt)
+		/* read global counter */
+		cnt = qtimer_get_phy_timer_cnt();
 
 }
 
+
 void mdelay(unsigned msecs)
 {
-	uint32_t phy_cnt_lo, phy_cnt_hi, cnt, timeout = 0;
-	uint64_t phy_cnt;
-	msecs = msecs *  platform_tick_rate() / 1000;
+	uint64_t ticks;
 
-	do{
-	/* read global counter */
-	__asm__("mrrc p15,0,%0,%1, c14":"=r"(phy_cnt_lo),"=r"(phy_cnt_hi));
-	phy_cnt = ((uint64_t)phy_cnt_hi << 32) | phy_cnt_lo;
-	/*Actual counter used in the simulation is only 32 bits
-	 * in reality the counter is actually 56 bits.
-	 */
-	cnt = phy_cnt & (uint32_t)~0;
-	if (timeout == 0)
-		timeout = cnt + msecs;
-	} while (cnt < timeout);
+	ticks = (msecs * ticks_per_sec) / 1000;
 
+	delay(ticks);
 }
 
 void udelay(unsigned usecs)
 {
-	uint32_t phy_cnt_lo, phy_cnt_hi, cnt, timeout = 0;
-	uint64_t phy_cnt;
-	usecs = (usecs * platform_tick_rate()) / 1000000;
+	uint64_t ticks;
 
-	do{
-	/* read global counter */
-	__asm__("mrrc p15,0,%0,%1, c14":"=r"(phy_cnt_lo),"=r"(phy_cnt_hi));
-	phy_cnt = ((uint64_t)phy_cnt_hi << 32) | phy_cnt_lo;
+	ticks = (usecs * ticks_per_sec) / 1000000;
 
-	/*Actual counter used in the simulation is only 32 bits
-	 * in reality the counter is actually 56 bits.
-	 */
-	cnt = phy_cnt & (uint32_t)~0;
-	if (timeout == 0)
-		timeout = cnt + usecs;
-	} while (cnt < timeout);
+	delay(ticks);
 }
 
 /* Return current time in micro seconds */
 bigtime_t current_time_hires(void)
 {
-	return ticks * 1000000ULL;
+	return qtimer_current_time() * 1000000ULL;
+}
+
+void qtimer_init()
+{
+	ticks_per_sec = qtimer_get_frequency();
+}
+
+uint32_t qtimer_tick_rate()
+{
+	return ticks_per_sec;
 }
