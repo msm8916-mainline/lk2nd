@@ -82,6 +82,7 @@ static const char *baseband_msm     = " androidboot.baseband=msm";
 static const char *baseband_csfb    = " androidboot.baseband=csfb";
 static const char *baseband_svlte2a = " androidboot.baseband=svlte2a";
 static const char *baseband_mdm     = " androidboot.baseband=mdm";
+static const char *baseband_sglte   = " androidboot.baseband=sglte";
 
 /* Assuming unauthorized kernel image by default */
 static int auth_kernel_img = 0;
@@ -205,6 +206,10 @@ void boot_linux(void *kernel, unsigned *tags,
 		case BASEBAND_MDM:
 			cmdline_len += strlen(baseband_mdm);
 			break;
+
+		case BASEBAND_SGLTE:
+			cmdline_len += strlen(baseband_sglte);
+			break;
 	}
 
 	if (cmdline_len > 0) {
@@ -278,6 +283,12 @@ void boot_linux(void *kernel, unsigned *tags,
 
 			case BASEBAND_MDM:
 				src = baseband_mdm;
+				if (have_cmdline) --dst;
+				while ((*dst++ = *src++));
+				break;
+
+			case BASEBAND_SGLTE:
+				src = baseband_sglte;
 				if (have_cmdline) --dst;
 				while ((*dst++ = *src++));
 				break;
@@ -1096,7 +1107,7 @@ void cmd_flash(const char *arg, void *data, unsigned sz)
 		}
 	}
 
-	if (!strcmp(ptn->name, "system") 
+	if (!strcmp(ptn->name, "system")
 		|| !strcmp(ptn->name, "userdata")
 		|| !strcmp(ptn->name, "persist")
 		|| !strcmp(ptn->name, "recoveryfs")) {

@@ -31,11 +31,13 @@
 #include <board.h>
 #include <smem.h>
 #include <baseband.h>
+#include <board.h>
 
 static struct board_data board = {UNKNOWN,
 	HW_PLATFORM_UNKNOWN,
 	HW_PLATFORM_SUBTYPE_UNKNOWN,
-	LINUX_MACHTYPE_UNKNOWN,};
+	LINUX_MACHTYPE_UNKNOWN,
+	BASEBAND_MSM};
 
 static void platform_detect()
 {
@@ -69,138 +71,24 @@ static void platform_detect()
 	}
 }
 
-static void target_detect()
-{
-	unsigned platform_id;
-	unsigned platform_hw;
-	unsigned target_id;
-
-	platform_id = board.platform;
-	platform_hw = board.platform_hw;
-
-	/* Detect the board we are running on */
-	if ((platform_id == MSM8960) || (platform_id == MSM8660A)
-	    || (platform_id == MSM8260A) || (platform_id == APQ8060A)) {
-		switch (platform_hw) {
-		case HW_PLATFORM_SURF:
-			target_id = LINUX_MACHTYPE_8960_CDP;
-			break;
-		case HW_PLATFORM_MTP:
-			target_id = LINUX_MACHTYPE_8960_MTP;
-			break;
-		case HW_PLATFORM_FLUID:
-			target_id = LINUX_MACHTYPE_8960_FLUID;
-			break;
-		case HW_PLATFORM_LIQUID:
-			target_id = LINUX_MACHTYPE_8960_LIQUID;
-			break;
-		default:
-			target_id = LINUX_MACHTYPE_8960_CDP;
-		}
-	} else if ((platform_id == MSM8230) || (platform_id == MSM8630)
-		   || (platform_id == MSM8930) || (platform_id == APQ8030)) {
-		switch (platform_hw) {
-		case HW_PLATFORM_SURF:
-			target_id = LINUX_MACHTYPE_8930_CDP;
-			break;
-		case HW_PLATFORM_MTP:
-			target_id = LINUX_MACHTYPE_8930_MTP;
-			break;
-		case HW_PLATFORM_FLUID:
-			target_id = LINUX_MACHTYPE_8930_FLUID;
-			break;
-		default:
-			target_id = LINUX_MACHTYPE_8930_CDP;
-		}
-	} else if ((platform_id == MSM8227) || (platform_id == MSM8627)) {
-		switch (platform_hw) {
-		case HW_PLATFORM_SURF:
-			target_id = LINUX_MACHTYPE_8627_CDP;
-			break;
-		case HW_PLATFORM_MTP:
-			target_id = LINUX_MACHTYPE_8627_MTP;
-			break;
-		default:
-			target_id = LINUX_MACHTYPE_8627_CDP;
-		}
-	} else if (platform_id == MPQ8064) {
-		switch (platform_hw) {
-		case HW_PLATFORM_SURF:
-			target_id = LINUX_MACHTYPE_8064_MPQ_CDP;
-			break;
-		case HW_PLATFORM_HRD:
-			target_id = LINUX_MACHTYPE_8064_HRD;
-			break;
-		case HW_PLATFORM_DTV:
-			target_id = LINUX_MACHTYPE_8064_DTV;
-			break;
-		default:
-			target_id = LINUX_MACHTYPE_8064_MPQ_CDP;
-		}
-	} else if ((platform_id == APQ8064)) {
-		switch (platform_hw) {
-		case HW_PLATFORM_SURF:
-			target_id = LINUX_MACHTYPE_8064_CDP;
-			break;
-		case HW_PLATFORM_MTP:
-			target_id = LINUX_MACHTYPE_8064_MTP;
-			break;
-		case HW_PLATFORM_LIQUID:
-			target_id = LINUX_MACHTYPE_8064_LIQUID;
-			break;
-		default:
-			target_id = LINUX_MACHTYPE_8064_CDP;
-		}
-	} else {
-		dprintf(CRITICAL, "platform_id (%d) is not identified.\n",
-			platform_id);
-		ASSERT(0);
-	}
-	board.target = target_id;
-}
-
-static void baseband_detect()
-{
-	unsigned baseband = BASEBAND_MSM;
-	unsigned platform_subtype;
-	unsigned platform_id;
-
-	platform_id = board.platform;
-	platform_subtype = board.platform_subtype;
-
-	/* Check for MDM or APQ baseband variants.  Default to MSM */
-	if (platform_subtype == HW_PLATFORM_SUBTYPE_MDM)
-		baseband = BASEBAND_MDM;
-	else if (platform_id == APQ8060)
-		baseband = BASEBAND_APQ;
-	else if (platform_id == APQ8064)
-		baseband = BASEBAND_APQ;
-	else if (platform_id == MPQ8064)
-		baseband = BASEBAND_APQ;
-	else
-		baseband = BASEBAND_MSM;
-
-	board.baseband = baseband;
-}
-
 void board_init()
 {
 	platform_detect();
-	target_detect();
-	baseband_detect();
+	target_detect(&board);
+	target_baseband_detect(&board);
 }
 
-unsigned board_platform_id(void)
+uint32_t board_platform_id(void)
 {
 	return board.platform;
 }
 
-unsigned board_target_id()
+uint32_t board_target_id()
 {
 	return board.target;
 }
 
-unsigned board_baseband()
+uint32_t board_baseband()
 {
 	return board.baseband;
 }
