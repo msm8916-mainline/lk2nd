@@ -76,6 +76,7 @@ void display_init(void)
 		break;
 	case MSM7X27A_EVB:
 	case MSM8X25_EVB:
+	case MSM8X25_EVT:
 		mipi_nt35510_video_wvga_init(&(panel.panel_info));
 		panel.clk_func = NULL;
 		panel.power_func = mipi_nt35510_panel_dsi_config;

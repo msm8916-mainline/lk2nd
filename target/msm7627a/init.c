@@ -243,6 +243,9 @@ void board_info(void)
 			case 0x2:
 				hw_platform = MSM8X25_FFA;
 				break;
+			case 0xB:
+				hw_platform = MSM8X25_EVT;
+				break;
 			case 0xC:
 				hw_platform = MSM8X25_EVB;
 				break;
@@ -501,6 +504,7 @@ int machine_is_evb()
 	switch(mach_type) {
 		case MSM7X27A_EVB:
 		case MSM8X25_EVB:
+		case MSM8X25_EVT:
 			ret = 1;
 			break;
 		default:
@@ -533,6 +537,7 @@ int machine_is_8x25()
 		case MSM8X25_SURF:
 		case MSM8X25_FFA:
 		case MSM8X25_EVB:
+		case MSM8X25_EVT:
 		case MSM8X25_QRD7:
 			ret = 1;
 			break;
