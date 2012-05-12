@@ -44,6 +44,10 @@
 #define APCS_KPSS_WDT_BASE          (KPSS_BASE + 0x00017000)
 
 #define PERIPH_SS_BASE              0xF9800000
+#define MSM_SDC1_BASE               (PERIPH_SS_BASE + 0x00024000)
+#define MSM_SDC3_BASE               (PERIPH_SS_BASE + 0x00064000)
+#define MSM_SDC2_BASE               (PERIPH_SS_BASE + 0x000A4000)
+#define MSM_SDC4_BASE               (PERIPH_SS_BASE + 0x000E4000)
 #define BLSP2_BASE                  (PERIPH_SS_BASE + 0x00140000)
 #define BLSP2_UART2_BASE            (BLSP2_BASE + 0x1F000)
 

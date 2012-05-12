@@ -43,6 +43,9 @@ static void target_detect(void);
 
 #define COPPER_TARGET_ID        3999
 
+static uint32_t mmc_sdc_base[] =
+	{ MSM_SDC1_BASE, MSM_SDC2_BASE, MSM_SDC3_BASE, MSM_SDC4_BASE };
+
 void target_early_init(void)
 {
 
@@ -50,10 +53,21 @@ void target_early_init(void)
 
 void target_init(void)
 {
+	uint32_t base_addr;
+	uint8_t slot;
 
 	dprintf(INFO, "target_init()\n");
 
 	target_id = COPPER_TARGET_ID;
+
+	/* Trying Slot 1*/
+	slot = 1;
+	base_addr = mmc_sdc_base[slot - 1];
+	if (mmc_boot_main(slot, base_addr))
+	{
+		dprintf(CRITICAL, "mmc init failed!");
+		ASSERT(0);
+	}
 
 }
 
