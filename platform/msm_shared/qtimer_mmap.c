@@ -33,6 +33,7 @@
 #include <platform/irqs.h>
 #include <platform/iomap.h>
 #include <platform/interrupts.h>
+#include <qtimer_mmap_hw.h>
 
 static platform_timer_callback timer_callback;
 static void *timer_arg;
@@ -41,7 +42,8 @@ static time_t timer_interval;
 static volatile uint32_t current_time;
 static uint32_t tick_count;
 
-extern void isb();
+extern uint64_t atomic_dw_read(uint32_t, uint32_t *, uint32_t *);
+extern void dsb();
 static void qtimer_enable();
 
 static enum handler_return qtimer_irq(void *arg)
@@ -52,9 +54,9 @@ static enum handler_return qtimer_irq(void *arg)
 	 * an interrupt after timer_interval msecs
 	 */
 
-	__asm__ volatile("mcr p15, 0, %0, c14, c2, 0" : :"r" (tick_count));
+	writel(tick_count, QTMR_V1_CNTP_TVAL);
 
-	isb();
+	dsb();
 
 	return timer_callback(timer_arg, current_time);
 }
@@ -63,9 +65,12 @@ static enum handler_return qtimer_irq(void *arg)
  * interval : Counter ticks till expiry interrupt is fired.
  */
 void qtimer_set_physical_timer(time_t msecs_interval,
-	platform_timer_callback tmr_callback,
-	void *tmr_arg)
+	platform_timer_callback tmr_callback, void *tmr_arg)
 {
+	uint32_t ppi_num;
+
+	qtimer_disable();
+
 	/* Save the timer interval and call back data*/
 	tick_count = msecs_interval * qtimer_tick_rate() / 1000;;
 	timer_interval = msecs_interval;
@@ -73,52 +78,16 @@ void qtimer_set_physical_timer(time_t msecs_interval,
 	timer_callback = tmr_callback;
 
 	/* Set Physical Down Counter */
-	__asm__ volatile("mcr p15, 0, %0, c14, c2, 0" : :"r" (tick_count));
-	isb();
+	writel(tick_count, QTMR_V1_CNTP_TVAL);
+	dsb();
 
 	qtimer_enable();
 
-	/* Register for timer interrupts */
-
-	register_int_handler(INT_QTMR_NON_SECURE_PHY_TIMER_EXP, qtimer_irq, 0);
-	unmask_interrupt(INT_QTMR_NON_SECURE_PHY_TIMER_EXP);
-
-	return;
-
+	ppi_num = INT_QTMR_FRM_0_PHYSICAL_TIMER_EXP;
+	register_int_handler(ppi_num, qtimer_irq, 0);
+	unmask_interrupt(ppi_num);
 }
 
-static void qtimer_enable()
-{
-	uint32_t ctrl;
-
-	/* read ctrl value */
-	__asm__ volatile("mrc p15, 0, %0, c14, c2, 1" : :"r" (ctrl));
-
-	ctrl |= QTMR_TIMER_CTRL_ENABLE;
-	ctrl &= ~QTMR_TIMER_CTRL_INT_MASK;
-
-	/* write ctrl value */
-	__asm__ volatile("mcr p15, 0, %0, c14, c2, 1" : :"r" (ctrl));
-	isb();
-}
-
-void qtimer_disable()
-{
-	uint32_t ctrl;
-
-	mask_interrupt(INT_QTMR_NON_SECURE_PHY_TIMER_EXP);
-
-	/* read ctrl value */
-	__asm__ volatile("mrc p15, 0, %0, c14, c2, 1" : :"r" (ctrl));
-
-	ctrl &= ~QTMR_TIMER_CTRL_ENABLE;
-	ctrl |= QTMR_TIMER_CTRL_INT_MASK;
-
-	/* write ctrl value */
-	__asm__ volatile("mcr p15, 0, %0, c14, c2, 1" : :"r" (ctrl));
-
-	isb();
-}
 
 /* Function to return the frequency of the timer */
 uint32_t qtimer_get_frequency()
@@ -126,10 +95,42 @@ uint32_t qtimer_get_frequency()
 	uint32_t freq;
 
 	/* Read the Global counter frequency */
-	__asm__ volatile("mrc p15, 0, %0, c14, c0, 0" : "=r" (freq));
+	freq = readl(QTMR_V1_CNTFRQ);
 
 	return freq;
 
+}
+
+static void qtimer_enable()
+{
+	uint32_t ctrl;
+
+	ctrl = readl(QTMR_V1_CNTP_CTL);
+
+	/* Program CTRL Register */
+	ctrl |= QTMR_TIMER_CTRL_ENABLE;
+	ctrl &= ~QTMR_TIMER_CTRL_INT_MASK;
+
+	writel(ctrl, QTMR_V1_CNTP_CTL);
+
+	dsb();
+}
+
+void qtimer_disable()
+{
+	uint32_t ctrl;
+
+	mask_interrupt(INT_QTMR_FRM_0_PHYSICAL_TIMER_EXP);
+
+	ctrl = readl(QTMR_V1_CNTP_CTL);
+
+	/* program cntrl register */
+	ctrl &= ~QTMR_TIMER_CTRL_ENABLE;
+	ctrl |= QTMR_TIMER_CTRL_INT_MASK;
+
+	writel(ctrl, QTMR_V1_CNTP_CTL);
+
+	dsb();
 }
 
 inline __ALWAYS_INLINE uint64_t qtimer_get_phy_timer_cnt()
@@ -137,8 +138,8 @@ inline __ALWAYS_INLINE uint64_t qtimer_get_phy_timer_cnt()
 	uint32_t phy_cnt_lo;
 	uint32_t phy_cnt_hi;
 
-	__asm__ volatile("mrrc p15,0,%0,%1, c14":
-		"=r"(phy_cnt_lo),"=r"(phy_cnt_hi));
+	atomic_dw_read(QTMR_V1_CNTPCT_LO, &phy_cnt_lo, &phy_cnt_hi);
+
 	return ((uint64_t)phy_cnt_hi << 32) | phy_cnt_lo;
 }
 

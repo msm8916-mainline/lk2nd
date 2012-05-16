@@ -77,6 +77,46 @@ FUNCTION(atomic_add)
 	bx	lr
 #endif
 
+/* uint64_t atomic_dw_read(uint32_t rd_addr,
+ * uint32_t st_addr_lo, uint32_t st_addr_hi);
+ */
+/* Reads a double word from memory atomically */
+FUNCTION(atomic_dw_read)
+#if ARM_ISA_ARMV6 || ARM_ISA_ARMV7
+	stmfd	sp!, {r4-r5}
+	/* use load/store exclusive */
+	ldrexd	r4, [r0]
+	str		r4, [r1]
+	str		r5, [r2]
+
+	/* Restore registers */
+	ldmfd	sp!, {r4-r5}
+
+	bx		lr
+#else
+	stmfd	sp!, {r4-r5}
+	/* disable interrupts, do read, and reenable */
+	mrs		r2, cpsr
+	mov		r12, r2
+	orr		r2, r2, #(3<<6)
+	msr		cpsr_c, r2
+
+	/* ints disabled, old cpsr state in r12 */
+
+	/* do memory read, return the double word read */
+	ldr		r4, [r0]
+	ldr		r5, [r0, #4]
+	str		r4, [r1]
+	str		r5, [r2]
+
+	/* restore interrupts */
+	msr		cpsr_c, r12
+	/* restore registers */
+	ldmfd	sp!, {r4-r5}
+
+	bx		lr
+#endif
+
 /* int atomic_and(int *ptr, int val); */
 FUNCTION(atomic_and)
 #if ARM_ISA_ARMV6 || ARM_ISA_ARMV7

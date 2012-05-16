@@ -1,3 +1,4 @@
+
 /* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -26,39 +27,17 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _PLATFORM_MSMCOPPER_IOMAP_H_
-#define _PLATFORM_MSMCOPPER_IOMAP_H_
+#ifndef __PLATFORM_MSM_SHARED_QTMR_MMAP_H
+#define __PLATFORM_MSM_SHARED_QRMR_MMAP_H
 
-#define SDRAM_START_ADDR            0x00000000
-#define SDRAM_SEC_BANK_START_ADDR   0x10000000
+#include <platform/iomap.h>
 
-#define MSM_SHARED_BASE             0x0FA00000
+#define QTMR_V1_CNTPCT_LO                (0x00000000 + QTMR_BASE)
+#define QTMR_V1_CNTPCT_HI                (0x00000004 + QTMR_BASE)
+#define QTMR_V1_CNTFRQ                   (0x00000010 + QTMR_BASE)
+#define QTMR_V1_CNTP_CVAL_LO             (0x00000020 + QTMR_BASE)
+#define QTMR_V1_CNTP_CVAL_HI             (0x00000024 + QTMR_BASE)
+#define QTMR_V1_CNTP_TVAL                (0x00000028 + QTMR_BASE)
+#define QTMR_V1_CNTP_CTL                 (0x0000002C + QTMR_BASE)
 
-#define KPSS_BASE                   0xF9000000
-
-#define MSM_GIC_DIST_BASE           KPSS_BASE
-#define MSM_GIC_CPU_BASE            (KPSS_BASE + 0x2000)
-#define APCS_KPSS_ACS_BASE          (KPSS_BASE + 0x00008000)
-#define APCS_APC_KPSS_PLL_BASE      (KPSS_BASE + 0x0000A000)
-#define APCS_KPSS_CFG_BASE          (KPSS_BASE + 0x00010000)
-#define APCS_KPSS_WDT_BASE          (KPSS_BASE + 0x00017000)
-#define KPSS_APCS_QTMR_AC_BASE      (KPSS_BASE + 0x20000)
-#define KPSS_APCS_F0_QTMR_V1_BASE   (KPSS_BASE + 0x21000)
-#define QTMR_BASE                   KPSS_APCS_F0_QTMR_V1_BASE
-
-#define PERIPH_SS_BASE              0xF9800000
-#define MSM_SDC1_BASE               (PERIPH_SS_BASE + 0x00024000)
-#define MSM_SDC3_BASE               (PERIPH_SS_BASE + 0x00064000)
-#define MSM_SDC2_BASE               (PERIPH_SS_BASE + 0x000A4000)
-#define MSM_SDC4_BASE               (PERIPH_SS_BASE + 0x000E4000)
-#define BLSP1_UART0_BASE            (PERIPH_SS_BASE + 0x0011D000)
-#define MSM_USB_BASE                (PERIPH_SS_BASE + 0x00255000)
-
-#define CLK_CTL_BASE                0xFC400000
-#define TLMM_BASE_ADDR              0xFD500000
-
-#define GPIO_CONFIG_ADDR(x)         (TLMM_BASE_ADDR + 0x1000 + (x)*0x10)
-#define GPIO_IN_OUT_ADDR(x)         (TLMM_BASE_ADDR + 0x1004 + (x)*0x10)
-
-#define MPM2_MPM_CTRL_BASE          0xFC4A1000
 #endif

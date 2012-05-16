@@ -53,7 +53,7 @@ time_t current_time(void)
 
 void qtimer_uninit()
 {
-	disable_qtimer();
+	qtimer_disable();
 }
 
 /* Blocking function to wait until the specified ticks of the timer.
@@ -75,7 +75,7 @@ static void delay(uint64_t ticks)
 	timeout = (cnt + ticks) &
 			(uint64_t)(QTMR_PHY_CNT_MAX_VALUE);
 
-	/* Wait out till the counter wrapping occurs 
+	/* Wait out till the counter wrapping occurs
 	 * in cases where there is a wrapping.
 	 */
 	while(timeout < cnt && init_cnt <= cnt)
