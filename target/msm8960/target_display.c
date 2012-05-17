@@ -199,6 +199,7 @@ void display_init(void)
 	case LINUX_MACHTYPE_8960_CDP:
 	case LINUX_MACHTYPE_8960_MTP:
 	case LINUX_MACHTYPE_8960_FLUID:
+	case LINUX_MACHTYPE_8960_LIQUID:
 		mipi_toshiba_video_wsvga_init(&(panel.panel_info));
 		panel.clk_func = msm8960_mipi_panel_clock;
 		panel.power_func = msm8960_mipi_panel_power;
