@@ -75,16 +75,16 @@ static unsigned int msm_boot_uart_replace_lr_with_cr(char *data_in,
 						     char *data_out,
 						     int *num_of_chars_out);
 static unsigned int msm_boot_uart_dm_init(uint32_t base);
-static unsigned int msm_boot_uart_dm_read(uint32_t base, unsigned int *data,
-										  int wait);
+static unsigned int msm_boot_uart_dm_read(uint32_t base,
+	unsigned int *data, int wait);
 static unsigned int msm_boot_uart_dm_write(uint32_t base, char *data,
-										   unsigned int num_of_chars);
+	unsigned int num_of_chars);
 static unsigned int msm_boot_uart_dm_init_rx_transfer(uint32_t base);
 static unsigned int msm_boot_uart_dm_reset(uint32_t base);
 
-/* Keep track of gsbi vs port mapping.
+/* Keep track of uart block vs port mapping.
  */
-static uint32_t gsbi_lookup[4];
+static uint32_t port_lookup[4];
 
 /* Extern functions */
 void udelay(unsigned usecs);
@@ -229,8 +229,7 @@ msm_boot_uart_dm_read(uint32_t base, unsigned int *data, int wait)
 
 	/* Check for Overrun error. We'll just reset Error Status */
 	if (readl(MSM_BOOT_UART_DM_SR(base)) & MSM_BOOT_UART_DM_SR_UART_OVERRUN) {
-		writel(MSM_BOOT_UART_DM_CMD_RESET_ERR_STAT,
-		       MSM_BOOT_UART_DM_CR(base));
+		writel(MSM_BOOT_UART_DM_CMD_RESET_ERR_STAT, MSM_BOOT_UART_DM_CR(base));
 	}
 
 	/* RX FIFO is ready; read a word. */
@@ -240,8 +239,8 @@ msm_boot_uart_dm_read(uint32_t base, unsigned int *data, int wait)
 	rx_chars_read_since_last_xfer += 4;
 
 	/* Rx transfer ends when one of the conditions is met:
-	 * - The number of characters received since the end of the previous xfer
-	 *   equals the value written to DMRX at Transfer Initialization
+	 * - The number of characters received since the end of the previous
+	 *   xfer equals the value written to DMRX at Transfer Initialization
 	 * - A stale event occurred
 	 */
 
@@ -250,21 +249,24 @@ msm_boot_uart_dm_read(uint32_t base, unsigned int *data, int wait)
 		/* Check if we've received stale event */
 		if (readl(MSM_BOOT_UART_DM_MISR(base)) & MSM_BOOT_UART_DM_RXSTALE) {
 			/* Send command to reset stale interrupt */
-			writel(MSM_BOOT_UART_DM_CMD_RES_STALE_INT,
-			       MSM_BOOT_UART_DM_CR(base));
+			writel(MSM_BOOT_UART_DM_CMD_RES_STALE_INT, MSM_BOOT_UART_DM_CR(base));
 		}
 
 		/* Check if we haven't read more than DMRX value */
 		else if ((unsigned int)rx_chars_read_since_last_xfer <
-			 readl(MSM_BOOT_UART_DM_DMRX(base))) {
+			readl(MSM_BOOT_UART_DM_DMRX(base))) {
 			/* We can still continue reading before initializing RX transfer */
 			return MSM_BOOT_UART_DM_E_SUCCESS;
 		}
 
-		/* If we've reached here it means RX xfer end conditions been met */
+		/* If we've reached here it means RX
+		 * xfer end conditions been met
+		 */
 
-		/* Read UART_DM_RX_TOTAL_SNAP register to know how many valid chars
-		 * we've read so far since last transfer */
+		/* Read UART_DM_RX_TOTAL_SNAP register
+		 * to know how many valid chars
+		 * we've read so far since last transfer
+		 */
 		rx_last_snap_count = readl(MSM_BOOT_UART_DM_RX_TOTAL_SNAP(base));
 
 	}
@@ -314,9 +316,7 @@ msm_boot_uart_dm_write(uint32_t base, char *data, unsigned int num_of_chars)
 	/* Check if transmit FIFO is empty.
 	 * If not we'll wait for TX_READY interrupt. */
 	if (!(readl(MSM_BOOT_UART_DM_SR(base)) & MSM_BOOT_UART_DM_SR_TXEMT)) {
-		while (!
-		       (readl(MSM_BOOT_UART_DM_ISR(base)) &
-			MSM_BOOT_UART_DM_TX_READY)) {
+		while (!(readl(MSM_BOOT_UART_DM_ISR(base)) & MSM_BOOT_UART_DM_TX_READY)) {
 			udelay(1);
 			/* Kick watchdog? */
 		}
@@ -340,9 +340,7 @@ msm_boot_uart_dm_write(uint32_t base, char *data, unsigned int num_of_chars)
 		PACK_CHARS_INTO_WORDS(tx_data, tx_char, tx_word);
 
 		/* Wait till TX FIFO has space */
-		while (!
-		       (readl(MSM_BOOT_UART_DM_SR(base)) &
-			MSM_BOOT_UART_DM_SR_TXRDY)) {
+		while (!(readl(MSM_BOOT_UART_DM_SR(base)) & MSM_BOOT_UART_DM_SR_TXRDY)) {
 			udelay(1);
 		}
 
@@ -368,15 +366,19 @@ void uart_dm_init(uint8_t id, uint32_t gsbi_base, uint32_t uart_dm_base)
 	clock_config_uart_dm(id);
 	dsb();
 
-	/* Configure GPIO to provide connectivity between GSBI
+	/* Configure GPIO to provide connectivity between UART block
 	   product ports and chip pads */
 	gpio_config_uart_dm(id);
 	dsb();
 
 	/* Configure GSBI for UART_DM protocol.
-	 * I2C on 2 ports, UART (without HS flow control) on the other 2. */
-	writel(GSBI_PROTOCOL_CODE_I2C_UART << GSBI_CTRL_REG_PROTOCOL_CODE_S,
-	       GSBI_CTRL_REG(gsbi_base));
+	 * I2C on 2 ports, UART (without HS flow control) on the other 2.
+	 * This is only on chips that have GSBI block
+	 */
+	 if(gsbi_base)
+		writel(GSBI_PROTOCOL_CODE_I2C_UART <<
+			GSBI_CTRL_REG_PROTOCOL_CODE_S,
+			GSBI_CTRL_REG(gsbi_base));
 	dsb();
 
 	/* Configure clock selection register for tx and rx rates.
@@ -390,8 +392,8 @@ void uart_dm_init(uint8_t id, uint32_t gsbi_base, uint32_t uart_dm_base)
 
 	msm_boot_uart_dm_write(uart_dm_base, data, 44);
 
-	ASSERT(port < ARRAY_SIZE(gsbi_lookup));
-	gsbi_lookup[port++] = uart_dm_base;
+	ASSERT(port < ARRAY_SIZE(port_lookup));
+	port_lookup[port++] = uart_dm_base;
 
 	/* Set UART init flag */
 	uart_init_flag = 1;
@@ -404,13 +406,13 @@ void uart_dm_init(uint8_t id, uint32_t gsbi_base, uint32_t uart_dm_base)
  */
 int uart_putc(int port, char c)
 {
-	uint32_t gsbi_base = gsbi_lookup[port];
+	uint32_t uart_base = port_lookup[port];
 
 	/* Don't do anything if UART is not initialized */
 	if (!uart_init_flag)
 		return -1;
 
-	msm_boot_uart_dm_write(gsbi_base, &c, 1);
+	msm_boot_uart_dm_write(uart_base, &c, 1);
 
 	return 0;
 }
@@ -423,7 +425,7 @@ int uart_getc(int port, bool wait)
 {
 	int byte;
 	static unsigned int word = 0;
-	uint32_t gsbi_base = gsbi_lookup[port];
+	uint32_t uart_base = port_lookup[port];
 
 	/* Don't do anything if UART is not initialized */
 	if (!uart_init_flag)
@@ -432,8 +434,7 @@ int uart_getc(int port, bool wait)
 	if (!word) {
 		/* Read from FIFO only if it's a first read or all the four
 		 * characters out of a word have been read */
-		if (msm_boot_uart_dm_read(gsbi_base, &word, wait) !=
-		    MSM_BOOT_UART_DM_E_SUCCESS) {
+		if (msm_boot_uart_dm_read(uart_base, &word, wait) != MSM_BOOT_UART_DM_E_SUCCESS) {
 			return -1;
 		}
 
