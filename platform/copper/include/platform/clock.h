@@ -26,6 +26,12 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/* Included temporarily  for compilation.
+ * Needs to be changed later for the
+ * correct clock rate
+ */
+#define UART_DM_CLK_RX_TX_BIT_RATE        0xFF
+
 void clock_init_mmc(uint32_t interface);
 void clock_config_mmc(uint32_t interface, uint32_t freq);
-void clock_config(uint32_t ns, uint32_t md, uint32_t ns_addr, uint32_t md_addr);
+void clock_config_uart_dm(uint8_t id);

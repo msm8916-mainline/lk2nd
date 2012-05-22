@@ -81,7 +81,7 @@ enum MSM_BOOT_UART_DM_BITS_PER_CHAR {
 
 /* UART DM TX FIFO Registers - 4 */
 #if PERIPH_BLK_BLSP
-#define MSM_BOOT_UART_DM_TF(base, x)         ((base + 0x100+(4*(x)))
+#define MSM_BOOT_UART_DM_TF(base, x)         ((base) + 0x100+(4*(x)))
 #else
 #define MSM_BOOT_UART_DM_TF(base, x)         ((base) + 0x70+(4*(x)))
 #endif

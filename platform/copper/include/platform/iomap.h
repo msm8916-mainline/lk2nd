@@ -48,11 +48,11 @@
 #define MSM_SDC3_BASE               (PERIPH_SS_BASE + 0x00064000)
 #define MSM_SDC2_BASE               (PERIPH_SS_BASE + 0x000A4000)
 #define MSM_SDC4_BASE               (PERIPH_SS_BASE + 0x000E4000)
-#define BLSP2_BASE                  (PERIPH_SS_BASE + 0x00140000)
-#define BLSP2_UART2_BASE            (BLSP2_BASE + 0x1F000)
+#define BLSP1_UART0_BASE            (PERIPH_SS_BASE + 0x0011D000)
+#define MSM_USB_BASE                (PERIPH_SS_BASE + 0x00255000)
 
 #define CLK_CTL_BASE                0xFC400000
-#define TLMM_BASE_ADDR              0xFD400000
+#define TLMM_BASE_ADDR              0xFD500000
 
 #define GPIO_CONFIG_ADDR(x)         (TLMM_BASE_ADDR + 0x1000 + (x)*0x10)
 #define GPIO_IN_OUT_ADDR(x)         (TLMM_BASE_ADDR + 0x1004 + (x)*0x10)

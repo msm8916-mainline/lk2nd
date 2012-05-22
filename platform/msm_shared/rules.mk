@@ -60,7 +60,8 @@ ifeq ($(PLATFORM),copper)
 	OBJS += $(LOCAL_DIR)/qgic.o \
 			$(LOCAL_DIR)/qtimer.o \
 			$(LOCAL_DIR)/qtimer_cp15.o \
-			$(LOCAL_DIR)/interrupts.o
+			$(LOCAL_DIR)/interrupts.o \
+			$(LOCAL_DIR)/uart_dm.o
 endif
 
 ifeq ($(PLATFORM),msm7x27a)

@@ -45,6 +45,8 @@
 
 #define USB1_HS_BAM_IRQ                        (GIC_SPI_START + 135)
 #define USB1_HS_IRQ                            (GIC_SPI_START + 134)
+#define USB2_IRQ                               (GIC_SPI_START + 141)
+#define USB1_IRQ                               (GIC_SPI_START + 142)
 
 /* Retrofit universal macro names */
 #define INT_USB_HS                             USB1_HS_IRQ

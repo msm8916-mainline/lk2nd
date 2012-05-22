@@ -14,7 +14,6 @@ KERNEL_ADDR      := BASE_ADDR+0x00008000
 RAMDISK_ADDR     := BASE_ADDR+0x01000000
 SCRATCH_ADDR     := 0x00000000
 
-
 MODULES += \
 	dev/keys \
     lib/ptable

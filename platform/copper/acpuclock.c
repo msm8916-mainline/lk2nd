@@ -56,3 +56,10 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 
 }
 
+/* Configure UART clock based on the UART block id*/
+void clock_config_uart_dm(uint8_t id)
+{
+       /* Enable blsp_uart_clk */
+      /* Turned on by simulation by default */
+
+}

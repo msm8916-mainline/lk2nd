@@ -35,6 +35,7 @@
 #include <reg.h>
 #include <target.h>
 #include <platform.h>
+#include <uart_dm.h>
 
 static unsigned int target_id;
 extern void dmb(void);
@@ -55,6 +56,8 @@ void target_init(void)
 {
 	uint32_t base_addr;
 	uint8_t slot;
+
+	uart_dm_init(0, 0, BLSP1_UART0_BASE);
 
 	dprintf(INFO, "target_init()\n");
 
