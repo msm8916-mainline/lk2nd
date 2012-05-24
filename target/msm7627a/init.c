@@ -243,7 +243,7 @@ void board_info(void)
 			case 0x2:
 				hw_platform = MSM8X25_FFA;
 				break;
-			case 0xB:
+			case 0x10:
 				hw_platform = MSM8X25_EVT;
 				break;
 			case 0xC:
