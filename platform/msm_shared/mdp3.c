@@ -87,6 +87,30 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 	return 0;
 }
 
+int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
+                struct fbcon_config *fb)
+{
+	int ret = 0;
+	unsigned short pack_pattern = 0x21;
+	unsigned char ystride = 3;
+
+	writel(0x03ffffff, MDP_INTR_ENABLE);
+
+	// ------------- programming MDP_DMA_P_CONFIG ---------------------
+	writel(pack_pattern << 8 | 0x3f | (0 << 25)| (1 << 19) | (1 << 7) , MDP_DMA_P_CONFIG);  // rgb888
+	writel(0x00000000, MDP_DMA_P_OUT_XY);
+	writel(pinfo->yres << 16 | pinfo->xres, MDP_DMA_P_SIZE);
+	writel(MIPI_FB_ADDR, MDP_DMA_P_BUF_ADDR);
+
+	writel(pinfo->xres * ystride, MDP_DMA_P_BUF_Y_STRIDE);
+
+	writel(0x10, MDP_DSI_CMD_MODE_ID_MAP);
+	writel(0x11, MDP_DSI_CMD_MODE_TRIGGER_EN);
+	mdelay(10);
+
+	return ret;
+}
+
 void mdp_disable(void)
 {
 	writel(0x00000000, MDP_DSI_VIDEO_EN);
@@ -96,6 +120,19 @@ int mdp_dsi_video_off(void)
 {
 	mdp_disable();
 	mdelay(60);
+	writel(0x00000000, MDP_INTR_ENABLE);
+	writel(0x01ffffff, MDP_INTR_CLEAR);
+	return NO_ERROR;
+}
+
+int mdp_dsi_cmd_off(void)
+{
+	mdp_dma_off();
+	/*
+	 * Allow sometime for the DMA channel to
+	 * stop the data transfer
+	 */
+	mdelay(10);
 	writel(0x00000000, MDP_INTR_ENABLE);
 	writel(0x01ffffff, MDP_INTR_CLEAR);
 	return NO_ERROR;
@@ -116,6 +153,24 @@ int mdp_dsi_video_on()
 	int ret = 0;
 
 	writel(0x00000001, MDP_DSI_VIDEO_EN);
+
+	return ret;
+}
+
+int mdp_dma_on()
+{
+	int ret = 0;
+
+	writel(0x00000001, MDP_DMA_P_START);
+
+	return ret;
+}
+
+int mdp_dma_off()
+{
+	int ret = 0;
+
+	writel(0x00000000, MDP_DMA_P_START);
 
 	return ret;
 }

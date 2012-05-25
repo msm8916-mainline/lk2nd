@@ -102,14 +102,14 @@
 #define MDP_DSI_VIDEO_CTL_POLARITY            (0xAA2F0038)
 #define MDP_DSI_VIDEO_TEST_CTL                (0xAA2F0034)
 
-#define MDP_DMA_P_START                       REG_MDP(0x0000C)
-#define MDP_DMA_S_START                       REG_MDP(0x00010)
+#define MDP_DMA_P_START                       REG_MDP(0x00044)
+#define MDP_DMA_S_START                       REG_MDP(0x00048)
 #define MDP_DISP_INTF_SEL                     REG_MDP(0x00038)
 #define MDP_MAX_RD_PENDING_CMD_CONFIG         REG_MDP(0x0004C)
 #define MDP_INTR_ENABLE                       REG_MDP(0x00020)
 #define MDP_INTR_CLEAR			      REG_MDP(0x00028)
-#define MDP_DSI_CMD_MODE_ID_MAP               REG_MDP(0x000A0)
-#define MDP_DSI_CMD_MODE_TRIGGER_EN           REG_MDP(0x000A4)
+#define MDP_DSI_CMD_MODE_ID_MAP               REG_MDP(0xF1000)
+#define MDP_DSI_CMD_MODE_TRIGGER_EN           REG_MDP(0XF1004)
 
 #define MDP_TEST_MODE_CLK                     REG_MDP(0xF0000)
 #define MDP_INTR_STATUS                       REG_MDP(0x00054)

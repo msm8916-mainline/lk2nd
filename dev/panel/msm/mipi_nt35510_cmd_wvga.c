@@ -34,29 +34,28 @@
 #include <err.h>
 #include <reg.h>
 #include <debug.h>
-#include <platform/iomap.h>
 #include <target/display.h>
-#include <dev/gpio.h>
 
 
 /* MIPI NT35510 panel commands */
-static char exit_sleep[4] = {0x11, 0x00, 0x09, 0x80};
+static char exit_sleep[4] = {0x11, 0x00, 0x05, 0x80};
 static char display_on[4] = {0x29, 0x00, 0x05, 0x80};
+static char write_ram[4] = {0x2c, 0x00, 0x05, 0x80}; /* write ram */
 
-static char video0[12] = {
+static char cmd0[12] = {
 	0x06, 0x00, 0x29, 0xc0, 0xF0, 0x55, 0xAA, 0x52,
 	0x08, 0x01, 0xff, 0xff,
 };
-static char video1[8] = {
+static char cmd1[8] = {
 	0x04, 0x00, 0x29, 0xc0, 0xBC, 0x00, 0xA0, 0x00,
 };
-static char video2[8] = {
+static char cmd2[8] = {
 	0x04, 0x00, 0x29, 0xc0, 0xBD, 0x00, 0xA0, 0x00,
 };
-static char video3[8] = {
+static char cmd3[8] = {
 	0x03, 0x00, 0x29, 0xc0, 0xBE, 0x00, 0x79, 0xff,
 };
-static char video4[60] = {
+static char cmd4[60] = {
 	0x35, 0x00, 0x29, 0xc0, 0xD1, 0x00, 0x00, 0x00,
 	0x14, 0x00, 0x32, 0x00,
 	0x4F, 0x00, 0x65, 0x00,
@@ -72,7 +71,7 @@ static char video4[60] = {
 	0x4C, 0x03, 0x66, 0x03,
 	0x9A, 0xff, 0xff, 0xff,
 };
-static char video5[60] = {
+static char cmd5[60] = {
 	0x35, 0x00, 0x29, 0xc0, 0xD2, 0x00, 0x00, 0x00,
 	0x14, 0x00, 0x32, 0x00,
 	0x4F, 0x00, 0x65, 0x00,
@@ -86,9 +85,9 @@ static char video5[60] = {
 	0x76, 0x02, 0xA3, 0x02,
 	0xE3, 0x03, 0x12, 0x03,
 	0x4C, 0x03, 0x66, 0x03,
-	0x9A, 0xff, 0xff, 0xff
+	0x9A, 0xff, 0xff, 0xff,
 };
-static char video6[60] = {
+static char cmd6[60] = {
 	0x35, 0x00, 0x29, 0xc0, 0xD3, 0x00, 0x00, 0x00,
 	0x14, 0x00, 0x32, 0x00,
 	0x4F, 0x00, 0x65, 0x00,
@@ -104,7 +103,7 @@ static char video6[60] = {
 	0x4C, 0x03, 0x66, 0x03,
 	0x9A, 0xff, 0xff, 0xff,
 };
-static char video7[60] = {
+static char cmd7[60] = {
 	0x35, 0x00, 0x29, 0xc0, 0xD4, 0x00, 0x00, 0x00,
 	0x14, 0x00, 0x32, 0x00,
 	0x4F, 0x00, 0x65, 0x00,
@@ -120,7 +119,7 @@ static char video7[60] = {
 	0x4C, 0x03, 0x66, 0x03,
 	0x9A, 0xff, 0xff, 0xff,
 };
-static char video8[60] = {
+static char cmd8[60] = {
 	0x35, 0x00, 0x29, 0xc0, 0xD5, 0x00, 0x00, 0x00,
 	0x14, 0x00, 0x32, 0x00,
 	0x4F, 0x00, 0x65, 0x00,
@@ -136,7 +135,7 @@ static char video8[60] = {
 	0x4C, 0x03, 0x66, 0x03,
 	0x9A, 0xff, 0xff, 0xff,
 };
-static char video9[60] = {
+static char cmd9[60] = {
 	0x35, 0x00, 0x29, 0xc0, 0xD6, 0x00, 0x00, 0x00,
 	0x14, 0x00, 0x32, 0x00,
 	0x4F, 0x00, 0x65, 0x00,
@@ -152,157 +151,138 @@ static char video9[60] = {
 	0x4C, 0x03, 0x66, 0x03,
 	0x9A, 0xff, 0xff, 0xff,
 };
-static char video10[8] = {
+static char cmd10[8] = {
 	0x04, 0x00, 0x29, 0xc0, 0xB0, 0x0A, 0x0A, 0x0A,
 };
-static char video11[8] = {
+static char cmd11[8] = {
 	0x04, 0x00, 0x29, 0xc0, 0xB1, 0x0A, 0x0A, 0x0A,
 };
-static char video12[8] = {
+static char cmd12[8] = {
 	0x04, 0x00, 0x29, 0xc0, 0xBA, 0x24, 0x24, 0x24,
 };
-static char video13[8] = {
+static char cmd13[8] = {
 	0x04, 0x00, 0x29, 0xc0, 0xB9, 0x24, 0x24, 0x24,
 };
-static char video14[8] = {
+static char cmd14[8] = {
 	0x04, 0x00, 0x29, 0xc0, 0xB8, 0x24, 0x24, 0x24,
 };
-static char video15[12] = {
+static char cmd15[12] = {
 	0x06, 0x00, 0x29, 0xc0, 0xF0, 0x55, 0xAA, 0x52,
 	0x08, 0x00, 0xff, 0xff,
 };
-static char video16[8] = {
+static char cmd16[8] = {
 	0x02, 0x00, 0x29, 0xc0, 0xB3, 0x00, 0xff, 0xff,
 };
-static char video17[8] = {
+static char cmd17[8] = {
 	0x02, 0x00, 0x29, 0xc0, 0xB4, 0x10, 0xff, 0xff,
 };
-static char video18[8] = {
+static char cmd18[8] = {
 	0x02, 0x00, 0x29, 0xc0, 0xB6, 0x02, 0xff, 0xff,
 };
-static char video19[8] = {
-	0x03, 0x00, 0x29, 0xc0, 0xB1, 0xFC, 0x00, 0xff,
+static char cmd19[8] = {
+	0x03, 0x00, 0x29, 0xc0, 0xB1, 0xEC, 0x00, 0xff,
 };
-static char video20[8] = {
+static char cmd20[8] = {
 	0x04, 0x00, 0x29, 0xc0, 0xBC, 0x05, 0x05, 0x05,
 };
-static char video21[8] = {
+static char cmd21[8] = {
 	0x03, 0x00, 0x29, 0xc0, 0xB7, 0x20, 0x20, 0xff,
 };
-
-static char video22[12] = {
+static char cmd22[12] = {
 	0x05, 0x00, 0x29, 0xc0, 0xB8, 0x01, 0x03, 0x03,
 	0x03, 0xff, 0xff, 0xff,
 };
-static char video23[24] = {
+static char cmd23[24] = {
 	0x13, 0x00, 0x29, 0xc0, 0xC8, 0x01, 0x00, 0x78,
 	0x50, 0x78, 0x50, 0x78,
 	0x50, 0x78, 0x50, 0xC8,
 	0x3C, 0x3C, 0xC8, 0xC8,
 	0x3C, 0x3C, 0xC8, 0xff,
 };
-static char video24[12] = {
+static char cmd24[12] = {
 	0x06, 0x00, 0x29, 0xc0, 0xBD, 0x01, 0x84, 0x07,
 	0x31, 0x00, 0xff, 0xff,
 };
-static char video25[12] = {
+static char cmd25[12] = {
 	0x06, 0x00, 0x29, 0xc0, 0xBE, 0x01, 0x84, 0x07,
 	0x31, 0x00, 0xff, 0xff,
 };
-static char video26[12] = {
+static char cmd26[12] = {
 	0x06, 0x00, 0x29, 0xc0, 0xBF, 0x01, 0x84, 0x07,
-	0x31, 0x00, 0xff, 0xff
+	0x31, 0x00, 0xff, 0xff,
 };
-static char video27[8] = {
+static char cmd27[8] = {
 	0x02, 0x00, 0x29, 0xc0, 0x35, 0x00, 0xff, 0xff,
 };
 
-static struct mipi_dsi_cmd nt35510_panel_video_mode_cmds[] = {
-	{sizeof(video0), video0},
-	{sizeof(video1), video1},
-	{sizeof(video2), video2},
-	{sizeof(video3), video3},
-	{sizeof(video4), video4},
-	{sizeof(video5), video5},
-	{sizeof(video6), video6},
-	{sizeof(video7), video7},
-	{sizeof(video8), video8},
-	{sizeof(video9), video9},
-	{sizeof(video10), video10},
-	{sizeof(video11), video11},
-	{sizeof(video12), video12},
-	{sizeof(video13), video13},
-	{sizeof(video14), video14},
-	{sizeof(video15), video15},
-	{sizeof(video16), video16},
-	{sizeof(video17), video17},
-	{sizeof(video18), video18},
-	{sizeof(video19), video19},
-	{sizeof(video20), video20},
-	{sizeof(video21), video21},
-	{sizeof(video22), video22},
-	{sizeof(video23), video23},
-	{sizeof(video24), video24},
-	{sizeof(video25), video25},
-	{sizeof(video26), video26},
-	{sizeof(video27), video27},
+static char config_MADCTL[4] = {0x36, 0x00, 0x15, 0x80};
+
+static struct mipi_dsi_cmd nt35510_panel_cmd_mode_cmds[] = {
+	{sizeof(cmd0), cmd0},
+	{sizeof(cmd1), cmd1},
+	{sizeof(cmd2), cmd2},
+	{sizeof(cmd3), cmd3},
+	{sizeof(cmd4), cmd4},
+	{sizeof(cmd5), cmd5},
+	{sizeof(cmd6), cmd6},
+	{sizeof(cmd7), cmd7},
+	{sizeof(cmd8), cmd8},
+	{sizeof(cmd9), cmd9},
+	{sizeof(cmd10), cmd10},
+	{sizeof(cmd11), cmd11},
+	{sizeof(cmd12), cmd12},
+	{sizeof(cmd13), cmd13},
+	{sizeof(cmd14), cmd14},
+	{sizeof(cmd15), cmd15},
+	{sizeof(cmd16), cmd16},
+	{sizeof(cmd17), cmd17},
+	{sizeof(cmd18), cmd18},
+	{sizeof(cmd19), cmd19},
+	{sizeof(cmd20), cmd20},
+	{sizeof(cmd21), cmd21},
+	{sizeof(cmd22), cmd22},
+	{sizeof(cmd23), cmd23},
+	{sizeof(cmd24), cmd24},
+	{sizeof(cmd25), cmd25},
+	{sizeof(cmd26), cmd26},
+	{sizeof(cmd27), cmd27},
 	{sizeof(exit_sleep), exit_sleep},
 	{sizeof(display_on), display_on},
+	{sizeof(config_MADCTL), config_MADCTL},
+	{sizeof(write_ram), write_ram},
 };
 
-int mipi_nt35510_video_wvga_config(void *pdata)
+int mipi_nt35510_cmd_wvga_on()
 {
 	int ret = NO_ERROR;
-	/* 3 Lanes -- Enables Data Lane0, 1, 2 */
-	unsigned char lane_en = 3;
-	unsigned long low_pwr_stop_mode = 1;
+	return ret;
+}
 
-	/* Needed or else will have blank line at top of display */
-	unsigned char eof_bllp_pwr = 0x9;
+int mipi_nt35510_cmd_wvga_off()
+{
+	int ret = NO_ERROR;
+	return ret;
+}
 
-	unsigned char interleav = 0;
-	struct lcdc_panel_info *lcdc = NULL;
+int mipi_nt35510_cmd_wvga_config(void *pdata)
+{
+	int ret = NO_ERROR;
+
 	struct msm_panel_info *pinfo = (struct msm_panel_info *) pdata;
 
 	if (pinfo == NULL)
 		return ERR_INVALID_ARGS;
 
-	lcdc =  &(pinfo->lcdc);
-	if (lcdc == NULL)
-		return ERR_INVALID_ARGS;
-
-	ret = mipi_dsi_video_mode_config((pinfo->xres),
+	ret = mipi_dsi_cmd_mode_config((pinfo->xres),
 			(pinfo->yres),
 			(pinfo->xres),
 			(pinfo->yres),
-			(lcdc->h_front_porch),
-			(lcdc->h_back_porch),
-			(lcdc->v_front_porch),
-			(lcdc->v_back_porch),
-			(lcdc->h_pulse_width),
-			(lcdc->v_pulse_width),
 			pinfo->mipi.dst_format,
-			pinfo->mipi.traffic_mode,
-			lane_en,
-			low_pwr_stop_mode,
-			eof_bllp_pwr,
-			interleav);
+			pinfo->mipi.traffic_mode);
 	return ret;
 }
 
-int mipi_nt35510_video_wvga_on()
-{
-	int ret = NO_ERROR;
-	return ret;
-}
-
-int mipi_nt35510_video_wvga_off()
-{
-	int ret = NO_ERROR;
-	return ret;
-}
-
-static struct mipi_dsi_phy_ctrl dsi_video_mode_phy_db = {
+struct mipi_dsi_phy_ctrl dsi_cmd_mode_phy_db = {
 	/* DSI_BIT_CLK at 500MHz, 2 lane, RGB888 */
 	{0x03, 0x01, 0x01, 0x00},	/* regulator */
 	/* timing   */
@@ -316,39 +296,33 @@ static struct mipi_dsi_phy_ctrl dsi_video_mode_phy_db = {
 	0x05, 0x14, 0x03, 0x0, 0x0, 0x0, 0x20, 0x0, 0x02, 0x0},
 };
 
-void mipi_nt35510_video_wvga_init(struct msm_panel_info *pinfo)
+void mipi_nt35510_cmd_wvga_init(struct msm_panel_info *pinfo)
 {
 	if (!pinfo)
 		return;
 
 	pinfo->xres = NT35510_MIPI_FB_WIDTH;
 	pinfo->yres = NT35510_MIPI_FB_HEIGHT;
-	pinfo->lcdc.h_back_porch = MIPI_HSYNC_BACK_PORCH_DCLK;
-	pinfo->lcdc.h_front_porch = MIPI_HSYNC_FRONT_PORCH_DCLK;
-	pinfo->lcdc.h_pulse_width = MIPI_HSYNC_PULSE_WIDTH;
-	pinfo->lcdc.v_back_porch = MIPI_VSYNC_BACK_PORCH_LINES;
-	pinfo->lcdc.v_front_porch = MIPI_VSYNC_FRONT_PORCH_LINES;
-	pinfo->lcdc.v_pulse_width = MIPI_VSYNC_PULSE_WIDTH;
 	pinfo->mipi.num_of_lanes = 2;
 
-	pinfo->type = MIPI_VIDEO_PANEL;
+	pinfo->type = MIPI_CMD_PANEL;
 	pinfo->wait_cycle = 0;
 	pinfo->bpp = 24;
 
-	pinfo->mipi.mode = DSI_VIDEO_MODE;
-	pinfo->mipi.traffic_mode = 2;
-	pinfo->mipi.dst_format = DSI_VIDEO_DST_FORMAT_RGB888;
-	pinfo->mipi.dsi_phy_db = &dsi_video_mode_phy_db;
+	pinfo->mipi.mode = DSI_CMD_MODE;
+	pinfo->mipi.traffic_mode = 0;
+	pinfo->mipi.dst_format = 0;
+	pinfo->mipi.dsi_phy_db = &dsi_cmd_mode_phy_db;
 	pinfo->mipi.tx_eot_append = TRUE;
 
 	pinfo->mipi.lane_swap = 1;
-	pinfo->mipi.panel_cmds = nt35510_panel_video_mode_cmds;
+	pinfo->mipi.panel_cmds = nt35510_panel_cmd_mode_cmds;
 	pinfo->mipi.num_of_panel_cmds = \
-			ARRAY_SIZE(nt35510_panel_video_mode_cmds);
+			ARRAY_SIZE(nt35510_panel_cmd_mode_cmds);
 
-	pinfo->on = mipi_nt35510_video_wvga_on;
-	pinfo->off = mipi_nt35510_video_wvga_off;
-	pinfo->config = mipi_nt35510_video_wvga_config;
+	pinfo->on = mipi_nt35510_cmd_wvga_on;
+	pinfo->off = mipi_nt35510_cmd_wvga_off;
+	pinfo->config = mipi_nt35510_cmd_wvga_config;
 
 	return;
 }

@@ -39,6 +39,16 @@ extern int msm_display_off();
 extern int mipi_renesas_panel_dsi_config(int);
 extern int mipi_nt35510_panel_dsi_config(int);
 
+static int msm7627a_mdp_clock_init(int enable)
+{
+	int ret = 0;
+
+	if (enable)
+		mdp_clock_init();
+
+	return ret;
+}
+
 void display_init(void)
 {
 	unsigned mach_type;
@@ -50,8 +60,8 @@ void display_init(void)
 	case MSM7X27A_SURF:
 	case MSM8X25_SURF:
 	case MSM7X27A_FFA:
-		mipi_renesas_video_fwvga_init(&(panel.panel_info));
-		panel.clk_func = NULL;
+		mipi_renesas_cmd_fwvga_init(&(panel.panel_info));
+		panel.clk_func = msm7627a_mdp_clock_init;
 		panel.power_func = mipi_renesas_panel_dsi_config;
 		panel.fb.base = MIPI_FB_ADDR;
 		panel.fb.width =  panel.panel_info.xres;
@@ -63,8 +73,8 @@ void display_init(void)
 		break;
 	case MSM7X25A_SURF:
 	case MSM7X25A_FFA:
-		mipi_renesas_video_hvga_init(&(panel.panel_info));
-		panel.clk_func = NULL;
+		mipi_renesas_cmd_hvga_init(&(panel.panel_info));
+		panel.clk_func = msm7627a_mdp_clock_init;
 		panel.power_func = mipi_renesas_panel_dsi_config;
 		panel.fb.base = MIPI_FB_ADDR;
 		panel.fb.width =  panel.panel_info.xres;
@@ -77,8 +87,8 @@ void display_init(void)
 	case MSM7X27A_EVB:
 	case MSM8X25_EVB:
 	case MSM8X25_EVT:
-		mipi_nt35510_video_wvga_init(&(panel.panel_info));
-		panel.clk_func = NULL;
+		mipi_nt35510_cmd_wvga_init(&(panel.panel_info));
+		panel.clk_func = msm7627a_mdp_clock_init;
 		panel.power_func = mipi_nt35510_panel_dsi_config;
 		panel.fb.base = MIPI_FB_ADDR;
 		panel.fb.width =  panel.panel_info.xres;
@@ -96,7 +106,6 @@ void display_init(void)
 		printf(CRITICAL, "Display init failed!\n");
 		return;
 	}
-	display_image_on_screen();
 	display_enabled = 1;
 }
 

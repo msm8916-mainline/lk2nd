@@ -81,6 +81,15 @@ int msm_display_config()
 		if (ret)
 			goto msm_display_config_out;
 		break;
+	case MIPI_CMD_PANEL:
+		dprintf(INFO, "Config MIPI_CMD_PANEL.\n");
+		ret = mipi_config(panel);
+		if (ret)
+			goto msm_display_config_out;
+		ret = mdp_dsi_cmd_config(pinfo, &(panel->fb));
+		if (ret)
+			goto msm_display_config_out;
+		break;
 	default:
 		return ERR_INVALID_ARGS;
 	};
@@ -118,6 +127,15 @@ int msm_display_on()
 		if (ret)
 			goto msm_display_on_out;
 		ret = mipi_dsi_on();
+		if (ret)
+			goto msm_display_on_out;
+		break;
+	case MIPI_CMD_PANEL:
+		dprintf(INFO, "Turn on MIPI_CMD_PANEL.\n");
+		ret = mdp_dma_on();
+		if (ret)
+			goto msm_display_on_out;
+		ret = mipi_cmd_trigger();
 		if (ret)
 			goto msm_display_on_out;
 		break;
@@ -161,6 +179,7 @@ int msm_display_init(struct msm_fb_panel_data *pdata)
 		goto msm_display_init_out;
 
 	fbcon_setup(&(panel->fb));
+	display_image_on_screen();
 	ret = msm_display_config();
 	if (ret)
 		goto msm_display_init_out;
@@ -191,6 +210,15 @@ int msm_display_off()
 	case MIPI_VIDEO_PANEL:
 		dprintf(INFO, "Turn off MIPI_VIDEO_PANEL.\n");
 		ret = mdp_dsi_video_off();
+		if (ret)
+			goto msm_display_off_out;
+		ret = mipi_dsi_off();
+		if (ret)
+			goto msm_display_off_out;
+		break;
+	case MIPI_CMD_PANEL:
+		dprintf(INFO, "Turn off MIPI_CMD_PANEL.\n");
+		ret = mdp_dsi_cmd_off();
 		if (ret)
 			goto msm_display_off_out;
 		ret = mipi_dsi_off();
