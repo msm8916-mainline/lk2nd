@@ -462,19 +462,19 @@ int pm8921_low_voltage_switch_enable(uint8_t lvs_id)
 	uint8_t val;
 
 	if (lvs_id < lvs_start || lvs_id > lvs_end) {
-		printf(CRITICAL, "Requested unsupported LVS.\n");
+		dprintf(CRITICAL, "Requested unsupported LVS.\n");
 		return ERROR;
 	}
 
 	if (lvs_id == lvs_2) {
-		printf(CRITICAL, "No support for LVS2 yet!\n");
+		dprintf(CRITICAL, "No support for LVS2 yet!\n");
 		return ERROR;
 	}
 
 	/* Read LVS_TEST Reg first*/
 	ret = dev->read(&val, 1, PM8921_LVS_TEST_REG(lvs_id));
 	if (ret) {
-		printf(CRITICAL, "Failed to read LVS_TEST Reg ret=%d.\n", ret);
+		dprintf(CRITICAL, "Failed to read LVS_TEST Reg ret=%d.\n", ret);
 		return ret;
 	}
 
@@ -489,7 +489,7 @@ int pm8921_low_voltage_switch_enable(uint8_t lvs_id)
 	val |= PM8921_LVS_100_CTRL_SLEEP_B_IGNORE; /* Ignore sleep mode pin */
 	ret = dev->write(&val, 1, PM8921_LVS_CTRL_REG(lvs_id));
 	if (ret)
-		printf(CRITICAL, "Failed to write LVS_CTRL Reg ret=%d.\n", ret);
+		dprintf(CRITICAL, "Failed to write LVS_CTRL Reg ret=%d.\n", ret);
 
 	return ret;
 }
@@ -500,7 +500,7 @@ int pm8921_mpp_set_digital_output(uint8_t mpp_id)
 	uint8_t val;
 
 	if (mpp_id < mpp_start || mpp_id > mpp_end) {
-		printf(CRITICAL, "Requested unsupported MPP.\n");
+		dprintf(CRITICAL, "Requested unsupported MPP.\n");
 		return ERROR;
 	}
 
@@ -512,7 +512,7 @@ int pm8921_mpp_set_digital_output(uint8_t mpp_id)
 
 	ret = dev->write(&val, 1, PM8921_MPP_CTRL_REG(mpp_id));
 	if (ret) {
-		printf(CRITICAL, "Failed to write MPP_CTRL Reg ret=%d.\n",
+		dprintf(CRITICAL, "Failed to write MPP_CTRL Reg ret=%d.\n",
 			   ret);
 	}
 
