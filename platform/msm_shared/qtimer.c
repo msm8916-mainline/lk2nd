@@ -51,7 +51,7 @@ time_t current_time(void)
 	return qtimer_current_time();
 }
 
-void uninit_qtimer()
+void qtimer_uninit()
 {
 	disable_qtimer();
 }

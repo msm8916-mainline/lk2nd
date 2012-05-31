@@ -29,10 +29,10 @@
 #ifndef _PLATFORM_MSMCOPPER_IOMAP_H_
 #define _PLATFORM_MSMCOPPER_IOMAP_H_
 
-/* Needs to be changed for 8974
- * but the def added for compilation of smem.c
- */
-#define MSM_SHARED_BASE             0x80000000
+#define SDRAM_START_ADDR            0x00000000
+#define SDRAM_SEC_BANK_START_ADDR   0x10000000
+
+#define MSM_SHARED_BASE             0x0FA00000
 
 #define KPSS_BASE                   0xF9000000
 

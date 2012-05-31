@@ -40,7 +40,7 @@
 #define GIC_PPI_START                          16
 #define GIC_SPI_START                          32
 
-#define INT_QTMR_SECURE_PHYSICAL_TIMER_EXP     (GIC_PPI_START + 2)
+#define INT_QTMR_NON_SECURE_PHY_TIMER_EXP      (GIC_PPI_START + 3)
 #define INT_QTMR_VIRTUAL_TIMER_EXP             (GIC_PPI_START + 4)
 
 #define USB1_HS_BAM_IRQ                        (GIC_SPI_START + 135)
