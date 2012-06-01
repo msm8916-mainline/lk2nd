@@ -12,6 +12,8 @@
 #define TEST_VALUE_1	0xdeadbeef
 #define TEST_VALUE_2	123456789
 
+#define TEST_VALUE64_1	ASM_CONST_LL(0xdeadbeef01abcdef)
+
 #define PHANDLE_1	0x2000
 #define PHANDLE_2	0x2001
 

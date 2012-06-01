@@ -73,7 +73,8 @@ int main(int argc, char *argv[])
 	CHECK(fdt_add_mem_rsv(fdt, TEST_ADDR_2, TEST_SIZE_2));
 
 	CHECK(fdt_setprop_string(fdt, 0, "compatible", "test_tree1"));
-	CHECK(fdt_setprop_cell(fdt, 0, "prop-int", TEST_VALUE_1));
+	CHECK(fdt_setprop_u32(fdt, 0, "prop-int", TEST_VALUE_1));
+	CHECK(fdt_setprop_u64(fdt, 0, "prop-int64", TEST_VALUE64_1));
 	CHECK(fdt_setprop_string(fdt, 0, "prop-str", TEST_STRING_1));
 
 	OFF_CHECK(offset, fdt_add_subnode(fdt, 0, "subnode@1"));

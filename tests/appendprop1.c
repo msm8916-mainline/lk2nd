@@ -60,6 +60,7 @@ int main(int argc, char *argv[])
 
 	CHECK(fdt_appendprop(fdt, 0, "prop-bytes", bytes, sizeof(bytes)));
 	CHECK(fdt_appendprop_cell(fdt, 0, "prop-int", TEST_VALUE_1));
+	CHECK(fdt_appendprop_u64(fdt, 0, "prop-int64", TEST_VALUE64_1));
 	CHECK(fdt_appendprop_string(fdt, 0, "prop-str", TEST_STRING_1));
 
 	CHECK(fdt_pack(fdt));

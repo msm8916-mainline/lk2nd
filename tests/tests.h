@@ -111,6 +111,11 @@ const void *check_getprop(void *fdt, int nodeoffset, const char *name,
 		uint32_t x = cpu_to_fdt32(val);			     \
 		check_getprop(fdt, nodeoffset, name, sizeof(x), &x); \
 	})
+#define check_getprop_64(fdt, nodeoffset, name, val) \
+	({ \
+		uint64_t x = cpu_to_fdt64(val);			     \
+		check_getprop(fdt, nodeoffset, name, sizeof(x), &x); \
+	})
 #define check_getprop_string(fdt, nodeoffset, name, s) \
 	check_getprop((fdt), (nodeoffset), (name), strlen(s)+1, (s))
 int nodename_eq(const char *s1, const char *s2);
