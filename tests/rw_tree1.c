@@ -57,17 +57,7 @@ int main(int argc, char *argv[])
 	fdt = xmalloc(SPACE);
 
 	/* First create empty tree with SW */
-	CHECK(fdt_create(fdt, SPACE));
-
-	CHECK(fdt_finish_reservemap(fdt));
-	CHECK(fdt_begin_node(fdt, ""));
-	CHECK(fdt_end_node(fdt));
-	CHECK(fdt_finish(fdt));
-
-	verbose_printf("Built empty tree, totalsize = %d\n",
-		       fdt_totalsize(fdt));
-
-	CHECK(fdt_open_into(fdt, fdt, SPACE));
+	CHECK(fdt_create_empty_tree(fdt, SPACE));
 
 	CHECK(fdt_add_mem_rsv(fdt, TEST_ADDR_1, TEST_SIZE_1));
 	CHECK(fdt_add_mem_rsv(fdt, TEST_ADDR_2, TEST_SIZE_2));
