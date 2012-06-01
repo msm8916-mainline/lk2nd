@@ -2,7 +2,7 @@
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2012, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -126,43 +126,12 @@ static void ptentry_to_tag(unsigned **ptr, struct ptentry *ptn)
 	*ptr += sizeof(struct atag_ptbl_entry) / sizeof(unsigned);
 }
 
-void boot_linux(void *kernel, unsigned *tags,
-		const char *cmdline, unsigned machtype,
-		void *ramdisk, unsigned ramdisk_size)
+unsigned char *update_cmdline(const char * cmdline)
 {
-	unsigned *ptr = tags;
-	unsigned pcount = 0;
-	void (*entry)(unsigned,unsigned,unsigned*) = kernel;
-	struct ptable *ptable;
 	int cmdline_len = 0;
 	int have_cmdline = 0;
-	int pause_at_bootup = 0;
 	unsigned char *cmdline_final = NULL;
-
-	/* CORE */
-	*ptr++ = 2;
-	*ptr++ = 0x54410001;
-
-	if (ramdisk_size) {
-		*ptr++ = 4;
-		*ptr++ = 0x54420005;
-		*ptr++ = (unsigned)ramdisk;
-		*ptr++ = ramdisk_size;
-	}
-
-	ptr = target_atag_mem(ptr);
-
-	if (!target_is_emmc_boot()) {
-		/* Skip NAND partition ATAGS for eMMC boot */
-		if ((ptable = flash_get_ptable()) && (ptable->count != 0)) {
-			int i;
-			*ptr++ = 2 + (ptable->count * (sizeof(struct atag_ptbl_entry) /
-						       sizeof(unsigned)));
-			*ptr++ = 0x4d534d70;
-			for (i = 0; i < ptable->count; ++i)
-				ptentry_to_tag(&ptr, ptable_get(ptable, i));
-		}
-	}
+	int pause_at_bootup = 0;
 
 	if (cmdline && cmdline[0]) {
 		cmdline_len = strlen(cmdline);
@@ -214,15 +183,11 @@ void boot_linux(void *kernel, unsigned *tags,
 
 	if (cmdline_len > 0) {
 		const char *src;
-		char *dst;
-		unsigned n;
-		/* include terminating 0 and round up to a word multiple */
-		n = (cmdline_len + 4) & (~3);
-		*ptr++ = (n / 4) + 2;
-		*ptr++ = 0x54410009;
-		dst = (char *)ptr;
+		char *dst = malloc((cmdline_len + 4) & (~3));
+		assert(dst != NULL);
+
 		/* Save start ptr for debug print */
-		cmdline_final = (char *)ptr;
+		cmdline_final = dst;
 		if (have_cmdline) {
 			src = cmdline;
 			while ((*dst++ = *src++));
@@ -293,17 +258,110 @@ void boot_linux(void *kernel, unsigned *tags,
 				while ((*dst++ = *src++));
 				break;
 		}
-		ptr += (n / 4);
+	}
+	return cmdline_final;
+}
+
+unsigned *atag_core(unsigned *ptr)
+{
+	/* CORE */
+	*ptr++ = 2;
+	*ptr++ = 0x54410001;
+
+	return ptr;
+
+}
+
+unsigned *atag_ramdisk(unsigned *ptr, void *ramdisk,
+							   unsigned ramdisk_size)
+{
+	if (ramdisk_size) {
+		*ptr++ = 4;
+		*ptr++ = 0x54420005;
+		*ptr++ = (unsigned)ramdisk;
+		*ptr++ = ramdisk_size;
 	}
 
+	return ptr;
+}
+
+unsigned *atag_ptable(unsigned **ptr_addr)
+{
+	int i;
+	struct ptable *ptable;
+
+	if ((ptable = flash_get_ptable()) && (ptable->count != 0)) {
+        	*(*ptr_addr)++ = 2 + (ptable->count * (sizeof(struct atag_ptbl_entry) /
+					  		sizeof(unsigned)));
+		*(*ptr_addr)++ = 0x4d534d70;
+		for (i = 0; i < ptable->count; ++i)
+			ptentry_to_tag(ptr_addr, ptable_get(ptable, i));
+	}
+
+	return (*ptr_addr);
+}
+
+unsigned *atag_cmdline(unsigned *ptr, const char *cmdline)
+{
+	int cmdline_length = 0;
+	int n;
+	unsigned char *cmdline_final = NULL;
+	char *dest;
+
+	cmdline_final = update_cmdline(cmdline);
+	if (cmdline_final){
+		dprintf(INFO, "cmdline: %s\n", cmdline_final);
+	}
+
+	cmdline_length =strlen(cmdline_final);
+	n = (cmdline_length + 4) & (~3);
+
+	*ptr++ = (n / 4) + 2;
+	*ptr++ = 0x54410009;
+	dest = (char *) ptr;
+	while (*dest++ = *cmdline_final++);
+	ptr += (n / 4);
+
+	return ptr;
+}
+
+unsigned *atag_end(unsigned *ptr)
+{
 	/* END */
 	*ptr++ = 0;
 	*ptr++ = 0;
 
+	return ptr;
+}
+
+void generate_atags(unsigned *ptr, const char *cmdline,
+                    void *ramdisk, unsigned ramdisk_size)
+{
+
+	ptr = atag_core(ptr);
+	ptr = atag_ramdisk(ptr, ramdisk, ramdisk_size);
+	ptr = target_atag_mem(ptr);
+
+	/* Skip NAND partition ATAGS for eMMC boot */
+	if (!target_is_emmc_boot()){
+		ptr = atag_ptable(&ptr);
+	}
+
+	ptr = atag_cmdline(ptr, cmdline);
+	ptr = atag_end(ptr);
+}
+
+void boot_linux(void *kernel, unsigned *tags,
+		const char *cmdline, unsigned machtype,
+		void *ramdisk, unsigned ramdisk_size)
+{
+	void (*entry)(unsigned, unsigned, unsigned*) = kernel;
+
+	/* Generating the Atags */
+	generate_atags(tags, cmdline, ramdisk, ramdisk_size);
+
 	dprintf(INFO, "booting linux @ %p, ramdisk @ %p (%d)\n",
 		kernel, ramdisk, ramdisk_size);
-	if (cmdline_final)
-		dprintf(INFO, "cmdline: %s\n", cmdline_final);
 
 	enter_critical_section();
 	/* do any platform specific cleanup before kernel entry */
