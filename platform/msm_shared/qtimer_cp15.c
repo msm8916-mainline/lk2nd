@@ -89,8 +89,8 @@ void qtimer_set_physical_timer(time_t msecs_interval,
 
 	/* Register for timer interrupts */
 
-	register_int_handler(INT_QTMR_SECURE_PHYSICAL_TIMER_EXP, qtimer_irq, 0);
-	unmask_interrupt(INT_QTMR_SECURE_PHYSICAL_TIMER_EXP);
+	register_int_handler(INT_QTMR_NON_SECURE_PHY_TIMER_EXP, qtimer_irq, 0);
+	unmask_interrupt(INT_QTMR_NON_SECURE_PHY_TIMER_EXP);
 
 	return;
 
@@ -100,7 +100,7 @@ void disable_qtimer()
 {
 	uint32_t ctrl;
 
-	mask_interrupt(INT_QTMR_SECURE_PHYSICAL_TIMER_EXP);
+	mask_interrupt(INT_QTMR_NON_SECURE_PHY_TIMER_EXP);
 
 	/* program cntrl register */
 	ctrl = 0;

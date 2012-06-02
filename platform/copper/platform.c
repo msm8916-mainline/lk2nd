@@ -32,17 +32,14 @@
 #include <reg.h>
 #include <platform/iomap.h>
 #include <qgic.h>
-
-static void platform_init_timer(void);
-
-static uint32_t ticks_per_sec = 0;
+#include <qtimer.h>
 
 #define MB (1024*1024)
 
 void platform_early_init(void)
 {
 	qgic_init();
-	platform_init_timer();
+	qtimer_init();
 }
 
 void platform_init(void)
@@ -52,27 +49,5 @@ void platform_init(void)
 
 void platform_uninit(void)
 {
-}
-
-/* Initialize Qtimer */
-static void platform_init_timer(void)
-{
-	uint32_t freq;
-
-	/* program the Global counter frequency to 19.2 MHz
-	 * Currently, this is the only frequency allowed.
-	 * and this routine is a no-op since the simulation
-	 * has already set to this frequency.
-	 */
-	freq = (192*1000*100);
-
-	__asm__("mcr p15, 0, %0, c14, c0, 0" : : "r" (freq));
-
-	ticks_per_sec = 192*1000*100;
-}
-
-/* Returns timer ticks per sec */
-uint32_t platform_tick_rate(void)
-{
-	return ticks_per_sec;
+	qtimer_uninit();
 }

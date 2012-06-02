@@ -41,6 +41,6 @@ void disable_qtimer();
 uint64_t qtimer_get_phy_timer_cnt();
 uint32_t qtimer_current_time();
 uint32_t qtimer_get_frequency();
-void uninit_qtimer();
+void qtimer_uninit();
 void qtimer_init();
 uint32_t qtimer_tick_rate();
