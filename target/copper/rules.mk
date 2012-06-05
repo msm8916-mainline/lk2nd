@@ -17,7 +17,8 @@ SCRATCH_ADDR     := 0x00000000
 MODULES += \
 	dev/keys \
     lib/ptable \
-	dev/pmic/pm8x41
+	dev/pmic/pm8x41 \
+    lib/libfdt
 
 DEFINES += \
 	MEMSIZE=$(MEMSIZE) \
@@ -31,4 +32,5 @@ DEFINES += \
 
 OBJS += \
     $(LOCAL_DIR)/init.o \
-	$(LOCAL_DIR)/atags.o
+    $(LOCAL_DIR)/atags.o \
+    $(LOCAL_DIR)/meminfo.o

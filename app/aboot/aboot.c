@@ -49,6 +49,10 @@
 #include <platform.h>
 #include <crypto_hash.h>
 
+#if DEVICE_TREE
+#include <libfdt.h>
+#endif
+
 #include "image_verify.h"
 #include "recovery.h"
 #include "bootimg.h"
@@ -71,6 +75,10 @@
 
 #define RECOVERY_MODE   0x77665502
 #define FASTBOOT_MODE   0x77665500
+
+#if DEVICE_TREE
+int update_device_tree(const void *, char *, void *, unsigned);
+#endif
 
 static const char *emmc_cmdline = " androidboot.emmc=true";
 static const char *usb_sn_cmdline = " androidboot.serialno=";
@@ -355,10 +363,21 @@ void boot_linux(void *kernel, unsigned *tags,
 		const char *cmdline, unsigned machtype,
 		void *ramdisk, unsigned ramdisk_size)
 {
+	int ret = 0;
 	void (*entry)(unsigned, unsigned, unsigned*) = kernel;
 
+#if DEVICE_TREE
+	/* Update the Device Tree */
+	ret = update_device_tree(tags, cmdline, ramdisk, ramdisk_size);
+	if(ret)
+	{
+		dprintf(CRITICAL, "ERROR: Updating Device Tree Failed \n");
+		ASSERT(0);
+	}
+#else
 	/* Generating the Atags */
 	generate_atags(tags, cmdline, ramdisk, ramdisk_size);
+#endif
 
 	dprintf(INFO, "booting linux @ %p, ramdisk @ %p (%d)\n",
 		kernel, ramdisk, ramdisk_size);
@@ -1395,3 +1414,68 @@ APP_START(aboot)
 	.init = aboot_init,
 APP_END
 
+#if DEVICE_TREE
+/* Device Tree Stuff */
+int update_device_tree(const void * fdt, char *cmdline,
+					   void *ramdisk, unsigned ramdisk_size)
+{
+	int ret = 0;
+	int offset;
+	uint32_t *memory_reg;
+	unsigned char *final_cmdline;
+	uint32_t len;
+
+	/* Check the device tree header */
+	ret = fdt_check_header(fdt);
+	if(ret)
+	{
+		dprintf(CRITICAL, "Invalid device tree header \n");
+		return ret;
+	}
+
+	/* Get offset of the memory node */
+	offset = fdt_path_offset(fdt,"/memory");
+
+	memory_reg = target_dev_tree_mem(&len);
+
+	/* Adding the memory values to the reg property */
+	ret = fdt_setprop(fdt, offset, "reg", memory_reg, sizeof(uint32_t) * len * 2);
+	if(ret)
+	{
+		dprintf(CRITICAL, "ERROR: Cannot update memory node\n");
+		return ret;
+	}
+
+	/* Get offset of the chosen node */
+	offset = fdt_path_offset(fdt, "/chosen");
+
+	/* Adding the cmdline to the chosen node */
+	final_cmdline = update_cmdline(cmdline);
+	ret = fdt_setprop_string(fdt, offset, "bootargs", final_cmdline);
+	if(ret)
+	{
+		dprintf(CRITICAL, "ERROR: Cannot update chosen node [bootargs]\n");
+		return ret;
+	}
+
+	/* Adding the initrd-start to the chosen node */
+	ret = fdt_setprop_cell(fdt, offset, "linux,initrd-start", ramdisk);
+	if(ret)
+	{
+		dprintf(CRITICAL, "ERROR: Cannot update chosen node [linux,initrd-start]\n");
+		return ret;
+	}
+
+	/* Adding the initrd-end to the chosen node */
+	ret = fdt_setprop_cell(fdt, offset, "linux,initrd-end", (ramdisk + ramdisk_size));
+	if(ret)
+	{
+		dprintf(CRITICAL, "ERROR: Cannot update chosen node [linux,initrd-end]\n");
+		return ret;
+	}
+
+	fdt_pack(fdt);
+
+	return ret;
+}
+#endif
