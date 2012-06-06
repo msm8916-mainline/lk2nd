@@ -58,6 +58,7 @@ int mipi_nt35510_panel_dsi_config(int on)
 		gpio_set(85, 0x1);
 		mdelay(20);
 	} else {
+		gpio_set(96, 0x0);
 		gpio_set(35, 0x0);
 		gpio_set(40, 0x0);
 	}
