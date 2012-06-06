@@ -142,6 +142,42 @@ mdp_setup_dma_p_video_mode(unsigned short disp_width,
 	return status;
 }
 
+int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
+                struct fbcon_config *fb)
+{
+
+	int ret = 0;
+	unsigned long input_img_addr = MIPI_FB_ADDR;
+	unsigned short image_wd = pinfo->xres;
+	unsigned short image_ht = pinfo->yres;
+	unsigned short pack_pattern = 0x12;
+	unsigned char ystride = 3;
+
+	writel(0x03ffffff, MDP_INTR_ENABLE);
+	writel(0x0000000b, MDP_OVERLAYPROC0_CFG);
+
+	// ------------- programming MDP_DMA_P_CONFIG ---------------------
+	writel(pack_pattern << 8 | 0x3f | (0 << 25), MDP_DMA_P_CONFIG);	// rgb888
+
+	writel(0x00000000, MDP_DMA_P_OUT_XY);
+	writel(image_ht << 16 | image_wd, MDP_DMA_P_SIZE);
+	writel(input_img_addr, MDP_DMA_P_BUF_ADDR);
+
+	writel(image_wd * ystride, MDP_DMA_P_BUF_Y_STRIDE);
+
+	writel(0x00000000, MDP_DMA_P_OP_MODE);
+
+	writel(0x10, MDP_DSI_CMD_MODE_ID_MAP);
+	writel(0x01, MDP_DSI_CMD_MODE_TRIGGER_EN);
+
+	writel(0x0001a000, MDP_AXI_RDMASTER_CONFIG);
+	writel(0x00000004, MDP_AXI_WRMASTER_CONFIG);
+	writel(0x00007777, MDP_MAX_RD_PENDING_CMD_CONFIG);
+	writel(0x8a, MDP_DISP_INTF_SEL);
+
+	return ret;
+}
+
 int
 mipi_dsi_cmd_config(struct fbcon_config mipi_fb_cfg,
 		    unsigned short num_of_lanes)
@@ -190,6 +226,24 @@ void mdp_shutdown(void)
 	mdelay(60);
 	writel(0x00000000, MDP_INTR_ENABLE);
 	writel(0x00000003, MDP_OVERLAYPROC0_CFG);
+}
+
+int mdp_dma_on(void)
+{
+	int ret = 0;
+
+	writel(0x00000001, MDP_DMA_P_START);
+
+	return ret;
+}
+
+int mdp_dma_off(void)
+{
+	int ret = 0;
+
+	writel(0x00000000, MDP_DMA_P_START);
+
+	return ret;
 }
 
 void mdp_start_dma(void)
@@ -471,6 +525,19 @@ int mdp_dsi_video_off()
 	writel(0x00000000, MDP_INTR_ENABLE);
 	writel(0x00000003, MDP_OVERLAYPROC0_CFG);
 #endif
+	return NO_ERROR;
+}
+
+int mdp_dsi_cmd_off()
+{
+	mdp_dma_off();
+	/*
+	 * Allow sometime for the DMA channel to
+	 * stop the data transfer
+	 */
+	mdelay(10);
+	writel(0x00000000, MDP_INTR_ENABLE);
+	writel(0x00000003, MDP_OVERLAYPROC0_CFG);
 	return NO_ERROR;
 }
 

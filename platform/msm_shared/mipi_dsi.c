@@ -729,6 +729,69 @@ int mipi_dsi_video_mode_config(unsigned short disp_width,
 	return status;
 }
 
+int mipi_dsi_cmd_mode_config(unsigned short disp_width,
+	unsigned short disp_height,
+	unsigned short img_width,
+	unsigned short img_height,
+	unsigned short dst_format,
+	unsigned short traffic_mode)
+{
+	unsigned char DST_FORMAT;
+	unsigned char TRAFIC_MODE;
+	unsigned char DLNx_EN;
+	// video mode data ctrl
+	int status = 0;
+	unsigned char interleav = 0;
+	unsigned char ystride = 0x03;
+	// disable mdp first
+
+	writel(0x00000000, DSI_CLK_CTRL);
+	writel(0x00000000, DSI_CLK_CTRL);
+	writel(0x00000000, DSI_CLK_CTRL);
+	writel(0x00000000, DSI_CLK_CTRL);
+	writel(0x00000002, DSI_CLK_CTRL);
+	writel(0x00000006, DSI_CLK_CTRL);
+	writel(0x0000000e, DSI_CLK_CTRL);
+	writel(0x0000001e, DSI_CLK_CTRL);
+	writel(0x0000003e, DSI_CLK_CTRL);
+
+	writel(0x10000000, DSI_ERR_INT_MASK0);
+
+
+	DST_FORMAT = 8;		// RGB888
+	dprintf(SPEW, "DSI_Cmd_Mode - Dst Format: RGB888\n");
+
+	DLNx_EN = 3;		// 2 lane with clk programming
+	dprintf(SPEW, "Data Lane: 2 lane\n");
+
+	TRAFIC_MODE = 0;	// non burst mode with sync pulses
+	dprintf(SPEW, "Traffic mode: non burst mode with sync pulses\n");
+
+	writel(0x02020202, DSI_INT_CTRL);
+
+	writel(0x00100000 | DST_FORMAT, DSI_COMMAND_MODE_MDP_CTRL);
+	writel((img_width * ystride + 1) << 16 | 0x0039,
+	       DSI_COMMAND_MODE_MDP_STREAM0_CTRL);
+	writel((img_width * ystride + 1) << 16 | 0x0039,
+	       DSI_COMMAND_MODE_MDP_STREAM1_CTRL);
+	writel(img_height << 16 | img_width,
+	       DSI_COMMAND_MODE_MDP_STREAM0_TOTAL);
+	writel(img_height << 16 | img_width,
+	       DSI_COMMAND_MODE_MDP_STREAM1_TOTAL);
+	writel(0xEE, DSI_CAL_STRENGTH_CTRL);
+	writel(0x80000000, DSI_CAL_CTRL);
+	writel(0x40, DSI_TRIG_CTRL);
+	writel(0x13c2c, DSI_COMMAND_MODE_MDP_DCS_CMD_CTRL);
+	writel(interleav << 30 | 0 << 24 | 0 << 20 | DLNx_EN << 4 | 0x105,
+	       DSI_CTRL);
+	writel(0x10000000, DSI_COMMAND_MODE_DMA_CTRL);
+	writel(0x10000000, DSI_MISR_CMD_CTRL);
+	writel(0x00000040, DSI_ERR_INT_MASK0);
+	writel(0x1, DSI_EOT_PACKET_CTRL);
+
+	return NO_ERROR;
+}
+
 int mipi_dsi_on()
 {
 	int ret = NO_ERROR;
@@ -762,6 +825,13 @@ int mipi_dsi_off()
 	writel(0, DSI_CTRL);
 	writel(0, DSIPHY_PLL_CTRL(0));
 #endif
+
+	return NO_ERROR;
+}
+
+int mipi_cmd_trigger()
+{
+	writel(0x1, DSI_CMD_MODE_MDP_SW_TRIGGER);
 
 	return NO_ERROR;
 }
