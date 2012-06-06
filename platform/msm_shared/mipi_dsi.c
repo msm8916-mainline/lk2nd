@@ -633,6 +633,9 @@ int mipi_config(struct msm_fb_panel_data *panel)
 
 	ret += mipi_dsi_panel_initialize(&mipi_pinfo);
 
+	if (pinfo->rotate && panel->rotate)
+		pinfo->rotate();
+
 	return ret;
 }
 

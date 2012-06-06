@@ -168,12 +168,14 @@ struct msm_panel_info {
 	int (*on) (void);
 	int (*off) (void);
 	int (*config) (void *pdata);
+	int (*rotate) (void);
 };
 
 struct msm_fb_panel_data {
 	struct msm_panel_info panel_info;
 	struct fbcon_config fb;
 	int mdp_rev;
+	int rotate;
 
 	/* function entry chain */
 	int (*power_func) (int enable);

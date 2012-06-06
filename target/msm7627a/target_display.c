@@ -97,6 +97,8 @@ void display_init(void)
 		panel.fb.bpp =  panel.panel_info.bpp;
 		panel.fb.format = FB_FORMAT_RGB888;
 		panel.mdp_rev = MDP_REV_303;
+		if (mach_type == MSM8X25_EVT)
+			panel.rotate = 1;
 		break;
 	default:
 		return;

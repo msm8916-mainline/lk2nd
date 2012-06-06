@@ -36,6 +36,7 @@
 #include <debug.h>
 #include <target/display.h>
 
+extern int mipi_nt35510_panel_wvga_rotate();
 
 /* MIPI NT35510 panel commands */
 static char exit_sleep[4] = {0x11, 0x00, 0x05, 0x80};
@@ -323,6 +324,7 @@ void mipi_nt35510_cmd_wvga_init(struct msm_panel_info *pinfo)
 	pinfo->on = mipi_nt35510_cmd_wvga_on;
 	pinfo->off = mipi_nt35510_cmd_wvga_off;
 	pinfo->config = mipi_nt35510_cmd_wvga_config;
+	pinfo->rotate = mipi_nt35510_panel_wvga_rotate;
 
 	return;
 }
