@@ -2,7 +2,7 @@
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2012, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -49,28 +49,35 @@
 
 #define RECOVERY_MODE	0x77665502
 #define FOTA_COOKIE	0x64645343
-#define FOTA_PARTITION  5
+#define FOTA_PARTITION    5
+#define DSP3_PARTITION    5
 
 static struct ptable flash_ptable;
 unsigned hw_platform = 0;
 unsigned target_msm_id = 0;
 
 /* Partition names for fastboot flash */
-char *apps_ptn_names[] = { "aboot", "boot", "cache", "misc", "recovery", "fota",
+static char *apps_ptn_names[] = { "aboot", "boot", "cache", "misc", "recovery", "fota",
 	"recoveryfs", "system", "userdata" };
 
 /* Partitions should be in this order */
-char *ptable_ptn_names[] = { "APPSBL", "APPS", "CACHE", "MISC", "RECOVERY",
+static char *ptable_ptn_names[] = { "APPSBL", "APPS", "CACHE", "MISC", "RECOVERY",
 	"FOTA", "RECOVERYFS", "SYSTEM", "USERDATA" };
 
-unsigned ptn_name_count = 9;
+static unsigned ptn_name_count = 9;
 
 /* Apps partition flags to detect the presence of FOTA partitions.
  * Initially, assume that the FOTA partitions are absent.
  */
-unsigned int apps_ptn_flag[] = {1, 1, 0, 0, 0, 0, 0, 1, 1};
+static unsigned int apps_ptn_flag[] = {1, 1, 0, 0, 0, 0, 0, 1, 1};
+/* Modem partition flags to detect the presence of DSP3 partitions.
+ * Initially, assume that the DSP3 partition is absent.
+ * The order of modem partiotions -
+ * "mibib", "sbl2", "rpm", "efs2", "dsp1", "dsp3", "dsp2"
+ */
+static unsigned int modem_ptn_flag[] = {1, 1, 1, 1, 1, 0, 1};
 
-unsigned modem_ptn_count = 6;
+static unsigned modem_ptn_count = 7;
 
 static const uint8_t uart_gsbi_id = GSBI_ID_4;
 
@@ -255,12 +262,25 @@ void update_ptable_modem_partitions(void)
 	uint32_t ptn_index, i = 0;
 	uint32_t name_size;
 	struct ptentry *ptentry_ptr = flash_ptable.parts;
+	struct ptentry *dsp3_ptn;
 
-	for (ptn_index = 0; ptn_index < modem_ptn_count; ptn_index++) {
+	dsp3_ptn = ptable_find(&flash_ptable, "DSP3");
+
+	/* Check for DSP3 partition and its size */
+	if (dsp3_ptn != NULL)
+		if (dsp3_ptn->length > 0)
+			modem_ptn_flag[DSP3_PARTITION] = 1;
+
+	for (ptn_index = 0; ptn_index < modem_ptn_count; ptn_index++)
+	{
+		if (!modem_ptn_flag[ptn_index])
+			continue;
+
 		name_size = strlen(ptentry_ptr[ptn_index].name);
-		for (i = 0; i < name_size; i++) {
+		for (i = 0; i < name_size; i++)
+		{
 			ptentry_ptr[ptn_index].name[i] =
-			    tolower(ptentry_ptr[ptn_index].name[i]);
+		    tolower(ptentry_ptr[ptn_index].name[i]);
 		}
 	}
 }
