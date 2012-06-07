@@ -518,3 +518,24 @@ int pm8921_mpp_set_digital_output(uint8_t mpp_id)
 
 	return ret;
 }
+
+int pm8921_rtc_alarm_disable(void)
+{
+	int rc;
+	uint8_t reg;
+
+	rc = dev->read(&reg, 1, PM8921_RTC_CTRL);
+	if (rc) {
+		dprintf(CRITICAL,"Failed to read RTC_CTRL reg = %d\n",rc);
+		return rc;
+	}
+	reg = (reg & ~PM8921_RTC_ALARM_ENABLE);
+
+	rc = dev->write(&reg, 1, PM8921_RTC_CTRL);
+	if (rc) {
+		dprintf(CRITICAL,"Failed to write RTC_CTRL reg = %d\n",rc);
+		return rc;
+	}
+
+	return rc;
+}
