@@ -216,7 +216,7 @@ void display_init(void)
 	};
 
 	if (msm_display_init(&panel)) {
-		printf(CRITICAL, "Display init failed!\n");
+		dprintf(CRITICAL, "Display init failed!\n");
 		return;
 	}
 
