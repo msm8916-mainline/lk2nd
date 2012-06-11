@@ -63,6 +63,35 @@ struct smem_board_info_v2 {
 	unsigned raw_msm_version;
 };
 
+typedef enum
+{
+   PMIC_IS_PM6610,
+   PMIC_IS_PM6620,
+   PMIC_IS_PM6640,
+   PMIC_IS_PM6650,
+   PMIC_IS_PM7500,
+   PMIC_IS_PANORAMIX,
+   PMIC_IS_PM6652,
+   PMIC_IS_PM6653,
+   PMIC_IS_PM6658,
+   PMIC_IS_EPIC,
+   PMIC_IS_HAN,
+   PMIC_IS_KIP,
+   PMIC_IS_WOOKIE,
+   PMIC_IS_PM8058,
+   PMIC_IS_PM8028,
+   PMIC_IS_PM8901,
+   PMIC_IS_PM8027 ,
+   PMIC_IS_ISL_9519,
+   PMIC_IS_PM8921,
+   PMIC_IS_PM8018,
+   PMIC_IS_PM8015,
+   PMIC_IS_PM8014,
+   PMIC_IS_PM8821,
+   PMIC_IS_PM8038,
+   PMIC_IS_INVALID,
+} pm_model_type;
+
 struct smem_board_info_v3 {
 	unsigned format;
 	unsigned msm_id;
@@ -90,6 +119,16 @@ struct smem_board_info_v6 {
 	unsigned platform_version;
 	unsigned fused_chip;
 	unsigned platform_subtype;
+	unsigned buffer_align;	//Need for 8 bytes alignment while reading from shared memory.
+};
+
+struct smem_board_info_v7 {
+	struct smem_board_info_v3 board_info_v3;
+	unsigned platform_version;
+	unsigned fused_chip;
+	unsigned platform_subtype;
+	unsigned pmic_type;
+	unsigned pmic_version;
 	unsigned buffer_align;	//Need for 8 bytes alignment while reading from shared memory.
 };
 

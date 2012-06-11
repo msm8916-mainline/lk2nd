@@ -42,6 +42,7 @@ static struct board_data board = {UNKNOWN,
 static void platform_detect()
 {
 	struct smem_board_info_v6 board_info_v6;
+	struct smem_board_info_v7 board_info_v7;
 	unsigned int board_info_len = 0;
 	unsigned ret = 0;
 	unsigned format = 0;
@@ -51,23 +52,39 @@ static void platform_detect()
 	if (ret)
 		return;
 
-	if (format == 6) {
-		board_info_len = sizeof(board_info_v6);
+	if (format == 6)
+	{
+			board_info_len = sizeof(board_info_v6);
 
-		ret =
-			smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
-					  &board_info_v6,
-					  board_info_len);
+		ret = smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
+				&board_info_v6,
+				board_info_len);
 		if (ret)
 			return;
 
 		board.platform = board_info_v6.board_info_v3.msm_id;
-		board.platform_hw =
-			board_info_v6.board_info_v3.hw_platform;
-		board.platform_subtype =
-			board_info_v6.platform_subtype;
-	} else {
-		dprintf(CRITICAL, "Unsupported board info format.\n");
+		board.platform_hw = board_info_v6.board_info_v3.hw_platform;
+		board.platform_subtype = board_info_v6.platform_subtype;
+	}
+	else if (format == 7)
+	{
+		board_info_len = sizeof(board_info_v7);
+
+		ret = smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
+				&board_info_v7,
+				board_info_len);
+		if (ret)
+			return;
+
+		board.platform = board_info_v7.board_info_v3.msm_id;
+		board.platform_hw = board_info_v7.board_info_v3.hw_platform;
+		board.platform_subtype = board_info_v7.platform_subtype;
+
+	}
+	else
+	{
+		dprintf(CRITICAL, "Unsupported board info format\n");
+		ASSERT(0);
 	}
 }
 
