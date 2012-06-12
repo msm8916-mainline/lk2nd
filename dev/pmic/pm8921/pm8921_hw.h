@@ -116,6 +116,9 @@
 #define PM8921_LVS_CTRL_REG(id)   (PM8921_LVS_REG_BASE + (2 * (id-1)))
 #define PM8921_LVS_TEST_REG(id)   (PM8921_LVS_CTRL_REG(id) + 1)
 
+#define PM8921_RTC_CTRL                  0x11D
+#define PM8921_RTC_ALARM_ENABLE          (1 << 1)
+
 #define PM8921_LVS_100_CTRL_SW_EN             (1 << 7)
 #define PM8921_LVS_100_CTRL_SLEEP_B_IGNORE    (1 << 4)
 #define PM8921_LVS_100_TEST_VOUT_OK           (1 << 6)
