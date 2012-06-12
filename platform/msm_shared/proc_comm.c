@@ -252,7 +252,8 @@ void mdp_clock_init(unsigned rate)
 
 void mdp_clock_disable(void)
 {
-	clock_disable(MDP_CLK);
+	if (!target_cont_splash_screen())
+		clock_disable(MDP_CLK);
 	clock_disable(MDP_P_CLK);
 }
 

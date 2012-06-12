@@ -602,3 +602,21 @@ void target_usb_init(void)
 {
 	target_ulpi_init();
 }
+
+int target_cont_splash_screen()
+{
+	int ret = 0;
+	unsigned mach_type = 0;
+
+	mach_type = board_machtype();
+
+	switch(mach_type) {
+		case MSM8X25_EVB:
+		case MSM8X25_EVT:
+			ret = 1;
+			break;
+		default:
+			ret = 0;
+	};
+	return ret;
+}

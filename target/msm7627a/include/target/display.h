@@ -76,4 +76,5 @@
 
 extern int mipi_dsi_phy_init(struct mipi_dsi_panel_config *);
 extern void config_renesas_dsi_video_mode(void);
+int target_cont_splash_screen(void);
 #endif
