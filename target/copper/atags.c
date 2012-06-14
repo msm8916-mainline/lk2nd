@@ -45,19 +45,14 @@ typedef struct {
 }mem_info;
 
 
-mem_info copper_default_first_256M[] = {
+mem_info copper_default_first_512M[] = {
 	{	.size = (250 * SIZE_1M),
 		.start_addr = SDRAM_START_ADDR
 	},
-	{	.size = (SIZE_1M),
-		.start_addr = SDRAM_START_ADDR +
-				(255 * SIZE_1M)
-	}
-};
-mem_info copper_default_second_256M[] = {
 	{	.size = (240 * SIZE_1M),
 		.start_addr = SDRAM_START_ADDR +
-				(16 * SIZE_1M)
+				(16 * SIZE_1M) +
+				(256 * SIZE_1M)
 	}
 };
 
@@ -72,12 +67,15 @@ unsigned *target_mem_atag_create(unsigned *ptr, uint32_t size, uint32_t addr)
 }
 
 
-unsigned *target_atag(unsigned *ptr,
-	mem_info usable_mem_map[],	unsigned num_regions)
+unsigned *target_atag_create(unsigned *ptr,
+	mem_info usable_mem_map[], unsigned num_regions)
 {
 	unsigned int i;
 
+	ASSERT(num_regions);
+
 	dprintf(SPEW, "Number of HLOS regions in 1st bank = %u\n", num_regions);
+
 	for (i = 0; i < num_regions; i++)
 	{
 		ptr = target_mem_atag_create(ptr,
@@ -85,14 +83,6 @@ unsigned *target_atag(unsigned *ptr,
 			usable_mem_map[i].start_addr);
 	}
 	return ptr;
-}
-
-unsigned *target_create_atag(unsigned *ptr, mem_info* mem_array)
-{
-	ptr = target_atag(ptr,
-		mem_array,
-		ARRAY_SIZE(mem_array));
-
 }
 
 unsigned *target_atag_mem(unsigned *ptr)
@@ -107,22 +97,15 @@ unsigned *target_atag_mem(unsigned *ptr)
 	{
 		if (ram_ptable.parts[i].category == SDRAM &&
 			(ram_ptable.parts[i].type == SYS_MEMORY) &&
-			((ram_ptable.parts[i].start == SDRAM_START_ADDR)||
-			(ram_ptable.parts[i].start == SDRAM_SEC_BANK_START_ADDR)))
+			(ram_ptable.parts[i].start == SDRAM_START_ADDR))
 		{
-			ASSERT(ram_ptable.parts[i].size >= SIZE_256M);
+			ASSERT(ram_ptable.parts[i].size >= SIZE_512M);
 
 			if (ram_ptable.parts[i].start == SDRAM_START_ADDR)
-				ptr = target_create_atag(ptr, copper_default_first_256M);
-			else
-				ptr = target_create_atag(ptr, copper_default_second_256M);
+				ptr = target_atag_create(ptr,
+					copper_default_first_512M,
+					ARRAY_SIZE(copper_default_first_512M));
 
-			if (ram_ptable.parts[i].size > SIZE_256M)
-			{
-				ptr = target_mem_atag_create(ptr,
-					(ram_ptable.parts[i].size - SIZE_256M),
-					(ram_ptable.parts[i].start + SIZE_256M));
-			}
 		}
 
 		/* Pass along all other usable memory regions to Linux */
