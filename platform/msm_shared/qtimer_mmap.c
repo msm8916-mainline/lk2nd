@@ -53,22 +53,20 @@ static enum handler_return qtimer_irq(void *arg)
 	/* Program the down counter again to get
 	 * an interrupt after timer_interval msecs
 	 */
-
 	writel(tick_count, QTMR_V1_CNTP_TVAL);
-
 	dsb();
 
 	return timer_callback(timer_arg, current_time);
 }
 
+
 /* Programs the Physical Secure Down counter timer.
  * interval : Counter ticks till expiry interrupt is fired.
  */
 void qtimer_set_physical_timer(time_t msecs_interval,
-	platform_timer_callback tmr_callback, void *tmr_arg)
+							   platform_timer_callback tmr_callback,
+							   void *tmr_arg)
 {
-	uint32_t ppi_num;
-
 	qtimer_disable();
 
 	/* Save the timer interval and call back data*/
@@ -81,11 +79,11 @@ void qtimer_set_physical_timer(time_t msecs_interval,
 	writel(tick_count, QTMR_V1_CNTP_TVAL);
 	dsb();
 
-	qtimer_enable();
+	register_int_handler(INT_QTMR_FRM_0_PHYSICAL_TIMER_EXP, qtimer_irq, 0);
 
-	ppi_num = INT_QTMR_FRM_0_PHYSICAL_TIMER_EXP;
-	register_int_handler(ppi_num, qtimer_irq, 0);
-	unmask_interrupt(ppi_num);
+	unmask_interrupt(INT_QTMR_FRM_0_PHYSICAL_TIMER_EXP);
+
+	qtimer_enable();
 }
 
 
@@ -95,10 +93,11 @@ uint32_t qtimer_get_frequency()
 	uint32_t freq;
 
 	/* Read the Global counter frequency */
-	freq = readl(QTMR_V1_CNTFRQ);
+	/* freq = readl(QTMR_V1_CNTFRQ); */
+	/* TODO: remove this when bootchaint sets up the frequency. */
+	freq = 19200000;
 
 	return freq;
-
 }
 
 static void qtimer_enable()
@@ -112,15 +111,12 @@ static void qtimer_enable()
 	ctrl &= ~QTMR_TIMER_CTRL_INT_MASK;
 
 	writel(ctrl, QTMR_V1_CNTP_CTL);
-
 	dsb();
 }
 
 void qtimer_disable()
 {
 	uint32_t ctrl;
-
-	mask_interrupt(INT_QTMR_FRM_0_PHYSICAL_TIMER_EXP);
 
 	ctrl = readl(QTMR_V1_CNTP_CTL);
 
@@ -129,7 +125,6 @@ void qtimer_disable()
 	ctrl |= QTMR_TIMER_CTRL_INT_MASK;
 
 	writel(ctrl, QTMR_V1_CNTP_CTL);
-
 	dsb();
 }
 
