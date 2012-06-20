@@ -45,7 +45,8 @@ static int msm7627a_mdp_clock_init(int enable)
 
 	if (enable)
 		mdp_clock_init();
-
+	else
+		mdp_clock_disable();
 	return ret;
 }
 
