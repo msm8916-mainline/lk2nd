@@ -26,40 +26,94 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <err.h>
+#include <assert.h>
 #include <debug.h>
 #include <reg.h>
 #include <platform/iomap.h>
-#include <platform/clock.h>
 #include <mmc.h>
+#include <clock.h>
+#include <platform/clock.h>
 
+void hsusb_clock_init(void)
+{
+	int ret;
+
+	ret = clk_get_set_enable("usb_iface_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set usb_iface_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("usb_core_clk", 75000000, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set usb_core_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+}
 
 void clock_init_mmc(uint32_t interface)
 {
-	/* Nothing to be done. */
+	int ret;
+
+	/* enable interface clock */
+	ret = clk_get_set_enable("sdc1_iface_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set sdc1_iface_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
 }
 
 /* Configure MMC clock */
 void clock_config_mmc(uint32_t interface, uint32_t freq)
 {
-
+	int ret;
 	uint32_t reg;
 
-	/* Not setting the clock rate for now.
-	 * using the clock override in Virtio
-	 */
+	if(freq == MMC_CLK_400KHZ)
+	{
+		ret = clk_get_set_enable("sdc1_core_clk", 400000, 1);
+	}
+	else if(freq == MMC_CLK_50MHZ)
+	{
+		ret = clk_get_set_enable("sdc1_core_clk", 50000000, 1);
+	}
+	else
+	{
+		dprintf(CRITICAL, "sdc frequency (%d) is not supported\n", freq);
+		ASSERT(0);
+	}
+
+
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set sdc1_core_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
 
 	reg = 0;
 	reg |= MMC_BOOT_MCI_CLK_ENABLE;
 	reg |= MMC_BOOT_MCI_CLK_ENA_FLOW;
 	reg |= MMC_BOOT_MCI_CLK_IN_FEEDBACK;
 	writel(reg, MMC_BOOT_MCI_CLK);
-
 }
 
 /* Configure UART clock based on the UART block id*/
 void clock_config_uart_dm(uint8_t id)
 {
-       /* Enable blsp_uart_clk */
-      /* Turned on by simulation by default */
+	int ret;
 
+	/* Enable blsp_uart_clk */
+	/* TODO: Find out correct frequency and UART_DM_CLK_RX_TX_BIT_RATE
+	 * combination for generating 115200 baud rate.
+	 */
+	ret = clk_get_set_enable("uart1_core_clk", 7372800, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set uart1_core_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
 }

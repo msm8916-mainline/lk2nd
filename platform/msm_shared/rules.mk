@@ -62,6 +62,9 @@ ifeq ($(PLATFORM),copper)
 			$(LOCAL_DIR)/qtimer.o \
 			$(LOCAL_DIR)/qtimer_cp15.o \
 			$(LOCAL_DIR)/interrupts.o \
+			$(LOCAL_DIR)/clock.o \
+			$(LOCAL_DIR)/clock_pll.o \
+			$(LOCAL_DIR)/clock_lib2.o \
 			$(LOCAL_DIR)/uart_dm.o
 endif
 

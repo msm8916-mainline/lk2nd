@@ -33,11 +33,12 @@
 #include <platform/iomap.h>
 #include <qgic.h>
 #include <qtimer.h>
+#include <platform/clock.h>
 
-#define MB (1024*1024)
 
 void platform_early_init(void)
 {
+	platform_clock_init();
 	qgic_init();
 	qtimer_init();
 }
