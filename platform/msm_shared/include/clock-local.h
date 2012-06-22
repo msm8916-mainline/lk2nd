@@ -165,57 +165,6 @@ static inline unsigned fixed_clk_get_rate(struct clk *clk)
 }
 
 /**
- * struct pll_vote_clk - phase locked loop (HW voteable)
- * @rate: output rate
- * @en_reg: enable register
- * @en_mask: ORed with @en_reg to enable the clock
- * @status_reg: status register
- * @parent: clock source
- * @c: clk
- */
-struct pll_vote_clk {
-	unsigned long rate;
-
-	void *const en_reg;
-	const uint32_t en_mask;
-
-	void *const status_reg;
-
-	struct clk *parent;
-	struct clk c;
-};
-
-extern struct clk_ops clk_ops_pll_vote;
-
-static inline struct pll_vote_clk *to_pll_vote_clk(struct clk *clk)
-{
-	return container_of(clk, struct pll_vote_clk, c);
-}
-
-/**
- * struct pll_clk - phase locked loop
- * @rate: output rate
- * @mode_reg: enable register
- * @parent: clock source
- * @c: clk
- */
-struct pll_clk {
-	unsigned long rate;
-
-	void *const mode_reg;
-
-	struct clk *parent;
-	struct clk c;
-};
-
-extern struct clk_ops clk_ops_pll;
-
-static inline struct pll_clk *to_pll_clk(struct clk *clk)
-{
-	return container_of(clk, struct pll_clk, c);
-}
-
-/**
  * struct branch_clk - branch
  * @enabled: true if clock is on, false otherwise
  * @b: branch

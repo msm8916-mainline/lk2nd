@@ -180,4 +180,10 @@ struct clk_list {
 struct clk_list *clk_get_list(void);
 #endif
 
+/**
+ * clk_init - register all the clocks in the system.
+ * @clist: pointer to clock list
+ * @num: number of clocks in the list
+ */
+void clk_init(struct clk_lookup *clist, unsigned num);
 #endif
