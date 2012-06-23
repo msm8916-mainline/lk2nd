@@ -49,6 +49,7 @@ ifeq ($(PLATFORM),msm8960)
 			$(LOCAL_DIR)/interrupts.o \
 			$(LOCAL_DIR)/clock-local.o \
 			$(LOCAL_DIR)/clock.o \
+			$(LOCAL_DIR)/clock_pll.o \
 			$(LOCAL_DIR)/board.o \
 			$(LOCAL_DIR)/display.o \
 			$(LOCAL_DIR)/lvds.o \

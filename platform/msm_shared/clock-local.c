@@ -34,6 +34,7 @@
 #include <bits.h>
 #include <clock.h>
 #include <clock-local.h>
+#include <platform/timer.h>
 
 /*
  * When enabling/disabling a clock, check the halt bit up to this number
@@ -226,126 +227,6 @@ struct clk *local_clk_get_parent(struct clk *clk)
 {
 	return to_rcg_clk(clk)->current_freq->src_clk;
 }
-
-/*
- * pll_vote_clk functions
- */
-static int pll_vote_clk_enable(struct clk *clk)
-{
-	uint32_t ena;
-	struct pll_vote_clk *pll = to_pll_vote_clk(clk);
-
-	ena = readl_relaxed(pll->en_reg);
-	ena |= pll->en_mask;
-	writel_relaxed(ena, pll->en_reg);
-
-	/* Wait until PLL is enabled */
-	while ((readl_relaxed(pll->status_reg) & BIT(16)) == 0);
-
-	return 0;
-}
-
-static void pll_vote_clk_disable(struct clk *clk)
-{
-	uint32_t ena;
-	struct pll_vote_clk *pll = to_pll_vote_clk(clk);
-
-	ena = readl_relaxed(pll->en_reg);
-	ena &= ~(pll->en_mask);
-	writel_relaxed(ena, pll->en_reg);
-}
-
-static unsigned pll_vote_clk_get_rate(struct clk *clk)
-{
-	struct pll_vote_clk *pll = to_pll_vote_clk(clk);
-	return pll->rate;
-}
-
-static struct clk *pll_vote_clk_get_parent(struct clk *clk)
-{
-	struct pll_vote_clk *pll = to_pll_vote_clk(clk);
-	return pll->parent;
-}
-
-static int pll_vote_clk_is_enabled(struct clk *clk)
-{
-	struct pll_vote_clk *pll = to_pll_vote_clk(clk);
-	return !!(readl_relaxed(pll->status_reg) & BIT(16));
-}
-
-struct clk_ops clk_ops_pll_vote = {
-	.enable = pll_vote_clk_enable,
-	.disable = pll_vote_clk_disable,
-	.is_enabled = pll_vote_clk_is_enabled,
-	.get_rate = pll_vote_clk_get_rate,
-	.get_parent = pll_vote_clk_get_parent,
-};
-
-/*
- * PLLs functions
- */
-static int pll_clk_enable(struct clk *clk)
-{
-	uint32_t mode;
-	struct pll_clk *pll = to_pll_clk(clk);
-
-	mode = readl_relaxed(pll->mode_reg);
-	/* Disable PLL bypass mode. */
-	mode |= BIT(1);
-	writel_relaxed(mode, pll->mode_reg);
-
-	/*
-	 * H/W requires a 5us delay between disabling the bypass and
-	 * de-asserting the reset. Delay 10us just to be safe.
-	 */
-	udelay(10);
-
-	/* De-assert active-low PLL reset. */
-	mode |= BIT(2);
-	writel_relaxed(mode, pll->mode_reg);
-
-	/* Wait until PLL is locked. */
-	udelay(50);
-
-	/* Enable PLL output. */
-	mode |= BIT(0);
-	writel_relaxed(mode, pll->mode_reg);
-
-	return 0;
-}
-
-static void pll_clk_disable(struct clk *clk)
-{
-	uint32_t mode;
-	struct pll_clk *pll = to_pll_clk(clk);
-
-	/*
-	 * Disable the PLL output, disable test mode, enable
-	 * the bypass mode, and assert the reset.
-	 */
-	mode = readl_relaxed(pll->mode_reg);
-	mode &= ~BM(3, 0);
-	writel_relaxed(mode, pll->mode_reg);
-}
-
-static unsigned pll_clk_get_rate(struct clk *clk)
-{
-	struct pll_clk *pll = to_pll_clk(clk);
-	return pll->rate;
-}
-
-static struct clk *pll_clk_get_parent(struct clk *clk)
-{
-	struct pll_clk *pll = to_pll_clk(clk);
-	return pll->parent;
-}
-
-struct clk_ops clk_ops_pll = {
-	.enable = pll_clk_enable,
-	.disable = pll_clk_disable,
-	.get_rate = pll_clk_get_rate,
-	.get_parent = pll_clk_get_parent,
-};
 
 /*
  * Branch clocks functions

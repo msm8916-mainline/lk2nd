@@ -32,6 +32,7 @@
 #include <err.h>
 #include <limits.h>
 #include <clock.h>
+#include <clock_pll.h>
 #include <clock-local.h>
 #include <bits.h>
 #include <platform/iomap.h>
@@ -77,6 +78,21 @@ static struct fixed_clk cxo_clk = {
 /*
  * PLL Clocks
  */
+struct clk_ops clk_ops_pll_vote = {
+	.enable = pll_vote_clk_enable,
+	.disable = pll_vote_clk_disable,
+	.is_enabled = pll_vote_clk_is_enabled,
+	.get_rate = pll_vote_clk_get_rate,
+	.get_parent = pll_vote_clk_get_parent,
+};
+
+struct clk_ops clk_ops_pll = {
+	.enable = pll_clk_enable,
+	.disable = pll_clk_disable,
+	.get_rate = pll_clk_get_rate,
+	.get_parent = pll_clk_get_parent,
+};
+
 static struct pll_clk pll2_clk = {
 	.rate = 800000000,
 	.mode_reg = (void *)MM_PLL1_MODE_REG,
@@ -102,6 +118,7 @@ static struct pll_vote_clk pll8_clk = {
 	.en_reg = (void *)BB_PLL_ENA_SC0_REG,
 	.en_mask = BIT(8),
 	.status_reg = (void *)BB_PLL8_STATUS_REG,
+	.status_mask = BIT(16),
 	.parent = &pxo_clk.c,
 	.c = {
 		.dbg_name = "pll8_clk",
