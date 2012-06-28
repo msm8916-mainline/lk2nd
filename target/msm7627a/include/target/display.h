@@ -73,6 +73,7 @@
 #define NT35510_MIPI_FB_HEIGHT           800
 
 #define MIPI_FB_ADDR  0x20000000
+#define LCDC_FB_ADDR  0x20000000
 
 extern int mipi_dsi_phy_init(struct mipi_dsi_panel_config *);
 extern void config_renesas_dsi_video_mode(void);

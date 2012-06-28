@@ -117,4 +117,5 @@
 
 #define CE1_CRYPTO4_BASE                      (0x18500000)
 #define MSM_CRYPTO_BASE                       CE1_CRYPTO4_BASE
+#define LCDC_BASE                             (0x000C0000)
 #endif
