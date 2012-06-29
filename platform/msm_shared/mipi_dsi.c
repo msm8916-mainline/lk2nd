@@ -546,26 +546,30 @@ void mipi_dsi_cmd_mode_trigger(void)
 
 void mipi_dsi_shutdown(void)
 {
-#if (!CONT_SPLASH_SCREEN)
-	mdp_shutdown();
-	writel(0x01010101, DSI_INT_CTRL);
-	writel(0x13FF3BFF, DSI_ERR_INT_MASK0);
+	if(!target_cont_splash_screen())
+	{
+		mdp_shutdown();
+		writel(0x01010101, DSI_INT_CTRL);
+		writel(0x13FF3BFF, DSI_ERR_INT_MASK0);
 
 #if (DISPLAY_MIPI_PANEL_NOVATEK_BLUE \
-	 || DISPLAY_MIPI_PANEL_TOSHIBA)
-	secure_writel(0x0, DSI_CC_REG);
-	secure_writel(0x0, DSI_PIXEL_CC_REG);
+	|| DISPLAY_MIPI_PANEL_TOSHIBA)
+		secure_writel(0x0, DSI_CC_REG);
+		secure_writel(0x0, DSI_PIXEL_CC_REG);
 #endif
-	writel(0, DSI_CLK_CTRL);
-	writel(0, DSI_CTRL);
-	writel(0, DSIPHY_PLL_CTRL(0));
-#else
+
+		writel(0, DSI_CLK_CTRL);
+		writel(0, DSI_CTRL);
+		writel(0, DSIPHY_PLL_CTRL(0));
+	}
+	else
+	{
         /* To keep the splash screen displayed till kernel driver takes
         control, do not turn off the video mode engine and clocks.
         Only disabling the MIPI DSI IRQs */
         writel(0x01010101, DSI_INT_CTRL);
         writel(0x13FF3BFF, DSI_ERR_INT_MASK0);
-#endif
+	}
 }
 
 struct fbcon_config *mipi_init(void)
@@ -823,11 +827,12 @@ int mipi_dsi_off()
 	writel(0x01010101, DSI_INT_CTRL);
 	writel(0x13FF3BFF, DSI_ERR_INT_MASK0);
 
-#if (!CONT_SPLASH_SCREEN)
-	writel(0, DSI_CLK_CTRL);
-	writel(0, DSI_CTRL);
-	writel(0, DSIPHY_PLL_CTRL(0));
-#endif
+	if(!target_cont_splash_screen())
+	{
+		writel(0, DSI_CLK_CTRL);
+		writel(0, DSI_CTRL);
+		writel(0, DSIPHY_PLL_CTRL(0));
+	}
 
 	return NO_ERROR;
 }

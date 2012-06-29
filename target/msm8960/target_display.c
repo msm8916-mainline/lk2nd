@@ -89,10 +89,8 @@ static int fusion3_mtp_clock(int enable)
 	if (enable) {
 		mdp_clock_init();
 		mmss_clock_init();
-	} else {
-#if (!CONT_SPLASH_SCREEN)
+	} else if(!target_cont_splash_screen()) {
 		mmss_clock_disable();
-#endif
 	}
 
 	return 0;
@@ -138,10 +136,8 @@ static int msm8960_mipi_panel_clock(int enable)
 	if (enable) {
 		mdp_clock_init();
 		mmss_clock_init();
-	} else {
-#if (!CONT_SPLASH_SCREEN)
-		mmss_clock_disable();
-#endif
+	} else if(!target_cont_splash_screen()) {
+			mmss_clock_disable();
 	}
 
 	return 0;

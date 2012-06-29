@@ -100,3 +100,10 @@ __WEAK bool target_use_signed_kernel(void)
 	return 0;
 #endif
 }
+
+
+/* Default target does not support continuous splash screen feature. */
+__WEAK int target_cont_splash_screen()
+{
+	return 0;
+}

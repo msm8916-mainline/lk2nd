@@ -519,12 +519,14 @@ int mdp_dsi_video_on()
 
 int mdp_dsi_video_off()
 {
-#if (!CONT_SPLASH_SCREEN)
-	writel(0x00000000, MDP_DSI_VIDEO_EN);
-	mdelay(60);
-	writel(0x00000000, MDP_INTR_ENABLE);
-	writel(0x00000003, MDP_OVERLAYPROC0_CFG);
-#endif
+	if(!target_cont_splash_screen())
+	{
+		writel(0x00000000, MDP_DSI_VIDEO_EN);
+		mdelay(60);
+		writel(0x00000000, MDP_INTR_ENABLE);
+		writel(0x00000003, MDP_OVERLAYPROC0_CFG);
+	}
+
 	return NO_ERROR;
 }
 
