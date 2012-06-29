@@ -115,6 +115,7 @@ void mipi_renesas_cmd_hvga_init(struct msm_panel_info *pinfo)
 	pinfo->type = MIPI_CMD_PANEL;
 	pinfo->wait_cycle = 0;
 	pinfo->bpp = 24;
+	pinfo->clk_rate = 499000000;
 
 	pinfo->mipi.mode = DSI_CMD_MODE;
 	pinfo->mipi.traffic_mode = 0;

@@ -42,9 +42,12 @@ extern int mipi_nt35510_panel_dsi_config(int);
 static int msm7627a_mdp_clock_init(int enable)
 {
 	int ret = 0;
+	unsigned rate = 0;
+
+	rate = panel.panel_info.clk_rate;
 
 	if (enable)
-		mdp_clock_init();
+		mdp_clock_init(rate);
 	else
 		mdp_clock_disable();
 	return ret;
