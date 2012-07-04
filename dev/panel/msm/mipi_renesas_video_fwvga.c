@@ -113,6 +113,7 @@ void mipi_renesas_video_fwvga_init(struct msm_panel_info *pinfo)
 	pinfo->type = MIPI_VIDEO_PANEL;
 	pinfo->wait_cycle = 0;
 	pinfo->bpp = 24;
+	pinfo->clk_rate = 499000000;
 
 	pinfo->mipi.mode = DSI_VIDEO_MODE;
 	pinfo->mipi.traffic_mode = 2;
