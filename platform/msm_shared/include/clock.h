@@ -71,6 +71,7 @@ struct clk_ops {
  */
 struct clk {
 	uint32_t flags;
+	uint32_t rate;
 	struct clk_ops *ops;
 	const char *dbg_name;
 	unsigned count;

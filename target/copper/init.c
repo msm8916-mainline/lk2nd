@@ -1,7 +1,5 @@
 /*
- * Copyright (c) 2009, Google Inc.
- * All rights reserved.
- * Copyright (c) 2009-2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -36,6 +34,7 @@
 #include <target.h>
 #include <platform.h>
 #include <uart_dm.h>
+#include <mmc.h>
 
 static unsigned int target_id;
 extern void dmb(void);
@@ -49,7 +48,7 @@ static uint32_t mmc_sdc_base[] =
 
 void target_early_init(void)
 {
-
+	uart_dm_init(0, 0, BLSP1_UART0_BASE);
 }
 
 void target_init(void)
@@ -57,7 +56,6 @@ void target_init(void)
 	uint32_t base_addr;
 	uint8_t slot;
 
-	uart_dm_init(0, 0, BLSP1_UART0_BASE);
 
 	dprintf(INFO, "target_init()\n");
 
@@ -77,7 +75,6 @@ void target_init(void)
 			ASSERT(0);
 		}
 	}
-
 }
 
 unsigned board_machtype(void)
