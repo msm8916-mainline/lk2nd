@@ -239,12 +239,6 @@ void apq8064_keypad_gpio_init()
 		}
 }
 
-void apq8064_ext_3p3V_enable()
-{
-	gpio_tlmm_config(77, 0, GPIO_OUTPUT, GPIO_NO_PULL,
-		      GPIO_8MA, GPIO_ENABLE);
-}
-
 #define PM8921_GPIO_OUTPUT_FUNC(_gpio, _val, _func) \
 	PM8XXX_GPIO_INIT(_gpio, PM_GPIO_DIR_OUT, 0, _val, \
 			PM_GPIO_PULL_NO, 2, \

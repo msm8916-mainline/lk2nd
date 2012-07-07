@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
- * Copyright (c) 2009-2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2012, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -483,6 +483,60 @@ void hsusb_gpio_init(void)
 	gpio_set(132, dir);
 
 	return;
+}
+
+#define USB_CLK             0x00902910
+#define USB_PHY_CLK         0x00902E20
+#define CLK_RESET_ASSERT    0x1
+#define CLK_RESET_DEASSERT  0x0
+#define CLK_RESET(x,y)  writel((y), (x));
+
+static int msm_otg_xceiv_reset()
+{
+	CLK_RESET(USB_CLK, CLK_RESET_ASSERT);
+	CLK_RESET(USB_PHY_CLK, CLK_RESET_ASSERT);
+	mdelay(20);
+	CLK_RESET(USB_PHY_CLK, CLK_RESET_DEASSERT);
+	CLK_RESET(USB_CLK, CLK_RESET_DEASSERT);
+	mdelay(20);
+
+	return 0;
+}
+
+static void target_ulpi_init(void)
+{
+	unsigned int reg;
+
+	reg = ulpi_read(0x32);
+	dprintf(INFO, " Value of ulpi read 0x32 is %08x\n", reg);
+	ulpi_write(0x30, 0x32);
+	reg = ulpi_read(0x32);
+	dprintf(INFO, " Value of ulpi read 0x32 after write is %08x\n", reg);
+
+	reg = ulpi_read(0x36);
+	dprintf(INFO, " Value of ulpi read 0x36 is %08x\n", reg);
+	ulpi_write(reg | 0x2, 0x36);
+	reg = ulpi_read(0x36);
+	dprintf(INFO, " Value of ulpi read 0x36 aafter write is %08x\n", reg);
+}
+
+/* Do target specific usb initialization */
+void target_usb_init(void)
+{
+	hsusb_gpio_init();
+
+	msm_otg_xceiv_reset();
+
+	target_ulpi_init();
+}
+
+void target_usb_stop(void)
+{
+	int val;
+	/* Voting down PLL8 */
+	val = readl(0x009034C0);
+	val &= ~(1 << 8);
+	writel(val, 0x009034C0);
 }
 
 uint8_t target_uart_gsbi(void)

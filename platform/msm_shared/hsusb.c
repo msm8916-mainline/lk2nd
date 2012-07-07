@@ -2,7 +2,7 @@
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2012, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -118,7 +118,7 @@ __WEAK void hsusb_clock_init(void)
 #if 1
 #define DBG(x...) do {} while(0)
 #else
-#define DBG(x...) dprintf(INFO, x)
+#define DBG(x...) dprintf(ALWAYS, x)
 #endif
 
 #define usb_status(a,b)
@@ -561,70 +561,6 @@ void ulpi_write(unsigned val, unsigned reg)
 	while (readl(USB_ULPI_VIEWPORT) & ULPI_RUN) ;
 }
 
-#define USB_CLK             0x00902910
-#define USB_PHY_CLK         0x00902E20
-#define CLK_RESET_ASSERT    0x1
-#define CLK_RESET_DEASSERT  0x0
-#define CLK_RESET(x,y)  writel((y), (x));
-
-static int msm_otg_xceiv_reset()
-{
-	CLK_RESET(USB_CLK, CLK_RESET_ASSERT);
-	CLK_RESET(USB_PHY_CLK, CLK_RESET_ASSERT);
-	mdelay(20);
-	CLK_RESET(USB_PHY_CLK, CLK_RESET_DEASSERT);
-	CLK_RESET(USB_CLK, CLK_RESET_DEASSERT);
-	mdelay(20);
-
-	/* select ULPI phy */
-	writel(0x81000000, USB_PORTSC);
-	return 0;
-}
-
-void board_usb_init(void);
-void board_ulpi_init(void)
-{
-	unsigned int reg;
-
-#ifdef PLATFORM_MSM7X27A
-	ulpi_read(0x31);
-	dprintf(INFO, " Value of ulpi read 0x31 is %08x\n", reg);
-	/* todo : the write back value should be calculated according to
-	 * reg &= 0xF3 but sometimes the value that is read initially
-	 * doesnt look right
-	 */
-	ulpi_write(0x4A, 0x31);
-	reg = ulpi_read(0x31);
-	dprintf(INFO, " Value of ulpi read 0x31 after write is %08x\n", reg);
-
-	reg = ulpi_read(0x32);
-	dprintf(INFO, " Value of ulpi read 0x32 is %08x\n", reg);
-	ulpi_write(0x30, 0x32);
-	reg = ulpi_read(0x32);
-	dprintf(INFO, " Value of ulpi read 0x32 after write is %08x\n", reg);
-
-	reg = ulpi_read(0x36);
-	dprintf(INFO, " Value of ulpi read 0x36 is %08x\n", reg);
-	ulpi_write(reg | 0x2, 0x36);
-	reg = ulpi_read(0x36);
-	dprintf(INFO, " Value of ulpi read 0x36 after write is %08x\n", reg);
-
-#endif
-#ifdef PLATFORM_MSM8X60
-
-	reg = ulpi_read(0x32);
-	dprintf(INFO, " Value of ulpi read 0x32 is %08x\n", reg);
-	ulpi_write(0x30, 0x32);
-	reg = ulpi_read(0x32);
-	dprintf(INFO, " Value of ulpi read 0x32 after write is %08x\n", reg);
-
-	reg = ulpi_read(0x36);
-	dprintf(INFO, " Value of ulpi read 0x36 is %08x\n", reg);
-	ulpi_write(reg | 0x2, 0x36);
-	reg = ulpi_read(0x36);
-	dprintf(INFO, " Value of ulpi read 0x36 aafter write is %08x\n", reg);
-#endif
-}
 
 int udc_init(struct udc_device *dev)
 {
@@ -632,10 +568,18 @@ int udc_init(struct udc_device *dev)
 
 	hsusb_clock_init();
 
-#ifdef PLATFORM_MSM8X60
-	/* Configure GPIOs for HS_USB */
-	hsusb_gpio_init();
-#endif
+	/* Do any target specific intialization like GPIO settings,
+	 * LDO, PHY configuration etc. needed before USB port can be used.
+	 */
+	target_usb_init();
+
+	/* select ULPI phy */
+	writel(0x81000000, USB_PORTSC);
+
+	/* RESET */
+	writel(0x00080002, USB_USBCMD);
+
+	thread_sleep(20);
 
 	epts = memalign(4096, 4096);
 
@@ -643,22 +587,6 @@ int udc_init(struct udc_device *dev)
 	memset(epts, 0, 32 * sizeof(struct ept_queue_head));
 	arch_clean_invalidate_cache_range((addr_t) epts,
 					  32 * sizeof(struct ept_queue_head));
-
-	//dprintf(INFO, "USB ID %08x\n", readl(USB_ID));
-//    board_usb_init();
-
-	/* select ULPI phy */
-#ifdef PLATFORM_MSM8X60
-	msm_otg_xceiv_reset();
-#else
-	writel(0x81000000, USB_PORTSC);
-#endif
-	/* RESET */
-	writel(0x00080002, USB_USBCMD);
-
-	thread_sleep(20);
-
-	board_ulpi_init();
 
 	writel((unsigned)epts, USB_ENDPOINTLISTADDR);
 
@@ -694,9 +622,9 @@ enum handler_return udc_interrupt(void *arg)
 	unsigned n = readl(USB_USBSTS);
 	writel(n, USB_USBSTS);
 
-	n &= (STS_SLI | STS_URI | STS_PCI | STS_UI | STS_UEI);
+	DBG("\nudc_interrupt(): status = 0x%x\n", n);
 
-	DBG("\nudc_interrupt():\n");
+	n &= (STS_SLI | STS_URI | STS_PCI | STS_UI | STS_UEI);
 
 	if (n == 0) {
 		DBG("n = 0\n");
@@ -743,22 +671,13 @@ enum handler_return udc_interrupt(void *arg)
 		DBG("STS_UEI\n");
 		dprintf(INFO, "<UEI %x>\n", readl(USB_ENDPTCOMPLETE));
 	}
-#if 0
-	DBG("STS: ");
-	if (n & STS_UEI)
-		DBG("ERROR ");
-	if (n & STS_SLI)
-		DBG("SUSPEND ");
-	if (n & STS_URI)
-		DBG("RESET ");
-	if (n & STS_PCI)
-		DBG("PORTCHANGE ");
-	if (n & STS_UI)
-		DBG("USB ");
-	DBG("\n");
-#endif
 	if ((n & STS_UI) || (n & STS_UEI)) {
-		DBG("STS_UI and UEI \n");
+
+		if (n & STS_UEI)
+			DBG("ERROR ");
+		if (n & STS_UI)
+			DBG("USB ");
+
 		n = readl(USB_ENDPTSETUPSTAT);
 		if (n & EPT_RX(0)) {
 			handle_setup(ep0out);
@@ -889,20 +808,14 @@ int udc_start(void)
 
 int udc_stop(void)
 {
-#ifdef PLATFORM_MSM8X60
-	int val;
-#endif
 	writel(0, USB_USBINTR);
 	mask_interrupt(INT_USB_HS);
 
 	/* disable pullup */
 	writel(0x00080000, USB_USBCMD);
-#ifdef PLATFORM_MSM8X60
-	/* Voting down PLL8 */
-	val = readl(0x009034C0);
-	val &= ~(1 << 8);
-	writel(val, 0x009034C0);
-#endif
+
+	target_usb_stop();
+
 	thread_sleep(10);
 
 	return 0;

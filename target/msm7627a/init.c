@@ -570,3 +570,35 @@ int msm_is_7x25a(int msm_id)
 	};
 	return ret;
 }
+
+static void target_ulpi_init(void)
+{
+	unsigned int reg;
+
+	ulpi_read(0x31);
+	dprintf(INFO, " Value of ulpi read 0x31 is %08x\n", reg);
+	/* todo : the write back value should be calculated according to
+	 * reg &= 0xF3 but sometimes the value that is read initially
+	 * doesnt look right
+	 */
+	ulpi_write(0x4A, 0x31);
+	reg = ulpi_read(0x31);
+	dprintf(INFO, " Value of ulpi read 0x31 after write is %08x\n", reg);
+
+	reg = ulpi_read(0x32);
+	dprintf(INFO, " Value of ulpi read 0x32 is %08x\n", reg);
+	ulpi_write(0x30, 0x32);
+	reg = ulpi_read(0x32);
+	dprintf(INFO, " Value of ulpi read 0x32 after write is %08x\n", reg);
+
+	reg = ulpi_read(0x36);
+	dprintf(INFO, " Value of ulpi read 0x36 is %08x\n", reg);
+	ulpi_write(reg | 0x2, 0x36);
+	reg = ulpi_read(0x36);
+	dprintf(INFO, " Value of ulpi read 0x36 after write is %08x\n", reg);
+}
+
+void target_usb_init(void)
+{
+	target_ulpi_init();
+}

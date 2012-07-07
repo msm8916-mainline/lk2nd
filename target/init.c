@@ -107,3 +107,13 @@ __WEAK int target_cont_splash_screen()
 {
 	return 0;
 }
+
+/* Default target specific initialization before using USB */
+__WEAK void target_usb_init(void)
+{
+}
+
+/* Default target specific usb shutdown */
+__WEAK void target_usb_stop(void)
+{
+}

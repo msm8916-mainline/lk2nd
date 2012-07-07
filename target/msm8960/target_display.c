@@ -47,6 +47,9 @@ static int apq8064_lvds_panel_power(int enable)
 		pm8921_ldo_set_voltage(LDO_2, LDO_VOLTAGE_1_2V);
 
 		/* Enable Ext 3.3V -  MSM GPIO 77*/
+		/* TODO: IS this really needed? This wasn't even implemented correctly.
+		 * GPIO enable was not happening.
+		 */
 		apq8064_ext_3p3V_enable();
 
 		apq8064_display_gpio_init();
