@@ -613,6 +613,7 @@ int target_cont_splash_screen()
 	switch(mach_type) {
 		case MSM8X25_EVB:
 		case MSM8X25_EVT:
+		case MSM8X25_QRD7:
 			ret = 1;
 			break;
 		default:
