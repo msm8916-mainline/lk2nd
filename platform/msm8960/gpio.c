@@ -129,6 +129,15 @@ void gpio_config_uart_dm(uint8_t id)
 							 GPIO_8MA, GPIO_DISABLE);
 			break;
 
+		case GSBI_ID_8:
+			/* configure rx gpio */
+			gpio_tlmm_config(35, 1, GPIO_INPUT, GPIO_NO_PULL,
+							 GPIO_8MA, GPIO_DISABLE);
+			/* configure tx gpio */
+			gpio_tlmm_config(34, 1, GPIO_OUTPUT, GPIO_NO_PULL,
+							 GPIO_8MA, GPIO_DISABLE);
+			break;
+
 		default:
 			ASSERT(0);
 		}

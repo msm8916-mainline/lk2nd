@@ -255,7 +255,14 @@ void target_uart_init(void)
 	case LINUX_MACHTYPE_8960_APQ:
 	case LINUX_MACHTYPE_8960_LIQUID:
 
-		uart_dm_init(5, 0x16400000, 0x16440000);
+		if(board_baseband() == BASEBAND_SGLTE)
+		{
+			uart_dm_init(8, 0x1A000000, 0x1A040000);;
+		}
+		else
+		{
+			uart_dm_init(5, 0x16400000, 0x16440000);
+		}
 		break;
 
 	case LINUX_MACHTYPE_8930_CDP:
