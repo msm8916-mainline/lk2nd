@@ -110,7 +110,12 @@ void target_init(void)
 	{
 		msm8960_keypad_init();
 	}
-	else if(platform_id == MSM8930)
+	else if((platform_id == MSM8230)   ||
+			(platform_id == MSM8630)   ||
+			(platform_id == MSM8930)   ||
+			(platform_id == MSM8230AA) ||
+			(platform_id == MSM8630AA) ||
+			(platform_id == MSM8930AA))
 	{
 		msm8930_keypad_init();
 	}
@@ -320,8 +325,10 @@ void target_detect(struct board_data *board)
 		default:
 			target_id = LINUX_MACHTYPE_8960_CDP;
 		}
-	} else if ((platform == MSM8230) || (platform == MSM8630)
-		   || (platform == MSM8930) || (platform == APQ8030)) {
+	} else if ((platform == MSM8230)   || (platform == MSM8630)   ||
+			   (platform == MSM8930)   || (platform == MSM8230AA) ||
+			   (platform == MSM8630AA) || (platform == MSM8930AA) ||
+			   (platform == APQ8030)) {
 		switch (platform_hw) {
 		case HW_PLATFORM_SURF:
 			target_id = LINUX_MACHTYPE_8930_CDP;
