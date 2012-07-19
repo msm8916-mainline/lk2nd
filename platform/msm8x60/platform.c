@@ -52,7 +52,7 @@ static uint32_t ticks_per_sec = 0;
 #define MB (1024*1024)
 
 /* LK memory - cacheable, write through */
-#define LK_MEMORY         (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
+#define LK_MEMORY         (MMU_MEMORY_TYPE_STRONGLY_ORDERED | \
                            MMU_MEMORY_AP_READ_WRITE)
 
 /* Kernel region - cacheable, write through */
