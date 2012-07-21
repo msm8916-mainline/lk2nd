@@ -16,7 +16,8 @@ SCRATCH_ADDR     := 0x00000000
 
 MODULES += \
 	dev/keys \
-    lib/ptable
+    lib/ptable \
+	dev/pmic/pm8x41
 
 DEFINES += \
 	MEMSIZE=$(MEMSIZE) \
