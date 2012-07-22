@@ -38,6 +38,7 @@
 #include <msm_panel.h>
 #include <mipi_dsi.h>
 #include <err.h>
+#include <clock.h>
 
 static int mdp_rev;
 
@@ -503,6 +504,14 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 			(lcdc->h_back_porch + lcdc->h_pulse_width +
 			 fb->width - 1) << 16 | lcdc->h_pulse_width +
 			lcdc->h_back_porch, MDP_DSI_VIDEO_ACTIVE_HCTL);
+	}
+
+	if (pinfo->mipi.force_clk_lane_hs) {
+		uint32_t tmp;
+
+		tmp = readl_relaxed(MIPI_DSI_BASE + 0xA8);
+		tmp |= (1<<28);
+		writel_relaxed(tmp, MIPI_DSI_BASE + 0xA8);
 	}
 
 	return ret;
