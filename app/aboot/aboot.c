@@ -367,6 +367,16 @@ void boot_linux(void *kernel, unsigned *tags,
 	/* do any platform specific cleanup before kernel entry */
 	platform_uninit();
 	arch_disable_cache(UCACHE);
+	/* NOTE:
+	 * The value of "entry" is getting corrupted at this point.
+	 * The value is in R4 and gets pushed to stack on entry into
+	 * disable_cache(), however, on return it is not the same.
+	 * Not entirely sure why this dsb() seems to take of this.
+	 * The stack pop operation on return from disable_cache()
+	 * should restore R4 properly, but that is not happening.
+	 * Will need to revisit to find the root cause.
+	 */
+	dsb();
 	arch_disable_mmu();
 	entry(0, machtype, tags);
 }
