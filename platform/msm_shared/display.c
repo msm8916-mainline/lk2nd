@@ -77,6 +77,10 @@ int msm_display_config()
 		ret = mipi_config(panel);
 		if (ret)
 			goto msm_display_config_out;
+
+		if (pinfo->early_config)
+			ret = pinfo->early_config((void *)pinfo);
+
 		ret = mdp_dsi_video_config(pinfo, &(panel->fb));
 		if (ret)
 			goto msm_display_config_out;

@@ -277,6 +277,9 @@ int mipi_dsi_panel_initialize(struct mipi_dsi_panel_config *pinfo)
 	case 3:
 		DLNx_EN = 7;	// 3 lane
 		break;
+	case 4:
+		DLNx_EN = 0x0F;	/* 4 lanes */
+		break;
 	}
 
 	writel(0x0001, DSI_SOFT_RESET);
@@ -292,7 +295,9 @@ int mipi_dsi_panel_initialize(struct mipi_dsi_panel_config *pinfo)
 	       | PACK_TYPE1 << 24 | VC1 << 22 | DT1 << 16 | WC1,
 	       DSI_COMMAND_MODE_DMA_CTRL);
 
-	status = mipi_dsi_cmds_tx(pinfo->panel_cmds, pinfo->num_of_panel_cmds);
+	if (pinfo->panel_cmds)
+		status = mipi_dsi_cmds_tx(pinfo->panel_cmds,
+					  pinfo->num_of_panel_cmds);
 
 	return status;
 }
@@ -818,7 +823,7 @@ int mipi_dsi_on()
 		}
 	}
 
-	dprintf(SPEW, "Video lane tested successfully\n");
+	dprintf(INFO, "Video lane tested successfully\n");
 	return ret;
 }
 

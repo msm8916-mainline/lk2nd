@@ -151,8 +151,8 @@ void mdp_clock_init(void)
 void mmss_clock_init(void)
 {
 	/* Configure Pixel clock */
-	config_mmss_clk(PIXEL_NS_VAL, PIXEL_MD_VAL, PIXEL_CC_VAL, DSI_PIXEL_NS_REG,
-			DSI_PIXEL_MD_REG, DSI_PIXEL_CC_REG);
+	config_mmss_clk(PIXEL_NS_VAL, PIXEL_MD_VAL, PIXEL_CC_VAL,
+			DSI_PIXEL_NS_REG, DSI_PIXEL_MD_REG, DSI_PIXEL_CC_REG);
 
 	/* Configure DSI clock */
 	config_mmss_clk(DSI_NS_VAL, DSI_MD_VAL, DSI_CC_VAL, DSI_NS_REG,
@@ -165,6 +165,25 @@ void mmss_clock_init(void)
 	/* Configure ESC clock */
 	config_mmss_clk(ESC_NS_VAL, 0x0, ESC_CC_VAL, DSI1_ESC_NS_REG, 0x0,
 			DSI1_ESC_CC_REG);
+}
+
+void liquid_mmss_clock_init(void)
+{
+	/* Configure Pixel clock = 78.75 MHZ */
+	config_mmss_clk(0x2003, 0x01FB, 0x0005,
+			DSI_PIXEL_NS_REG, DSI_PIXEL_MD_REG, DSI_PIXEL_CC_REG);
+
+	/* Configure DSI clock = 236.25 MHZ */
+	config_mmss_clk(0x03, 0x03FB, 0x05,
+			DSI_NS_REG, DSI_MD_REG, DSI_CC_REG);
+
+	/* Configure Byte clock = 59.06 MHZ */
+	config_mmss_clk(0x0B01, 0x0, 0x80ff0025,
+			DSI1_BYTE_NS_REG, 0x0, DSI1_BYTE_CC_REG);
+
+	/* Configure ESC clock = 13.5 MHZ */
+	config_mmss_clk(0x1B00, 0x0, 0x005,
+			DSI1_ESC_NS_REG, 0x0, DSI1_ESC_CC_REG);
 }
 
 void mmss_clock_disable(void)

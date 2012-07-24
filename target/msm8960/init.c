@@ -422,11 +422,6 @@ int target_cont_splash_screen()
 	switch(board_platform_id())
 	{
 	case MSM8960:
-		/* Splash screen and continuous splash screen feature is not
-		 * supported on 8960 Liquid target. But kernel display driver
-		 * crashes on Liquid if display clocks are disabled. Until that is
-		 * fixed, assume this feature is enabled for Liquid also.
-		 */
 		return 1;
 
 	default:

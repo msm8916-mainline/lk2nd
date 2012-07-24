@@ -31,6 +31,7 @@
 #include <dev/pm8921.h>
 #include <board.h>
 #include <mdp4.h>
+#include <target/display.h>
 
 static struct msm_fb_panel_data panel;
 static uint8_t display_enable;
@@ -146,6 +147,18 @@ static int msm8960_mipi_panel_clock(int enable)
 	return 0;
 }
 
+static int msm8960_liquid_mipi_panel_clock(int enable)
+{
+	if (enable) {
+		mdp_clock_init();
+		liquid_mmss_clock_init(); /* 240 MHZ MIPI-DSI clk */
+	} else if(!target_cont_splash_screen()) {
+			mmss_clock_disable();
+	}
+
+	return 0;
+}
+
 static int msm8960_mipi_panel_power(int enable)
 {
 	if (enable) {
@@ -166,11 +179,86 @@ static int msm8960_mipi_panel_power(int enable)
 	return 0;
 }
 
+#define	PM_GPIO_VIN_VPH			0 /* 3v ~ 4.4v */
+#define	PM_GPIO_VIN_BB			1 /* ~3.3v */
+#define	PM_GPIO_VIN_S4			2 /* 1.8v */
+#define	PM_GPIO_VIN_L15			3
+
+static int msm8960_liquid_mipi_panel_power(int enable)
+{
+	if (enable) {
+		static int gpio17, gpio21, gpio43 ;
+		int rc;
+
+		struct pm8921_gpio gpio_config = {
+			.direction = PM_GPIO_DIR_OUT,
+			.output_buffer = 0,
+			.output_value = 1,
+			.pull = PM_GPIO_PULL_NO,
+			.vin_sel = PM_GPIO_VIN_S4,
+			.out_strength = PM_GPIO_STRENGTH_HIGH,
+			.function = PM_GPIO_FUNC_NORMAL,
+			.inv_int_pol = 0,
+			.disable_pin = 0,
+		};
+
+		/* Note: PWM is controlled by PM-GPIO#24 */
+		gpio17 = PM_GPIO(17); /* ext_3p3v */
+		gpio21 = PM_GPIO(21); /* disp power enable_n , vin=VPH-PWR */
+		gpio43 = PM_GPIO(43); /* Displays Enable (rst_n) */
+
+		gpio_config.output_value = 1;
+		rc = pm8921_gpio_config(gpio17, &gpio_config);
+		mdelay(100);
+		gpio_config.output_value = 0;
+		/* disp disable (resx=0) */
+		rc = pm8921_gpio_config(gpio43, &gpio_config);
+		mdelay(100);
+		gpio_config.output_value = 0;
+		gpio_config.vin_sel = PM_GPIO_VIN_VPH; /* VPH_PWR */
+		/* disp power enable_n */
+		rc = pm8921_gpio_config(gpio21, &gpio_config);
+		mdelay(100);
+		gpio_config.output_value = 1;
+		gpio_config.vin_sel = PM_GPIO_VIN_S4;
+		/* disp enable */
+		rc = pm8921_gpio_config(gpio43, &gpio_config);
+		mdelay(100);
+
+		pm8921_low_voltage_switch_enable(lvs_4); /* S4 1.8 V */
+
+		/* Turn on LDO2 for vdda_mipi_dsi */
+		pm8921_ldo_set_voltage(LDO_2, LDO_VOLTAGE_1_2V);
+
+		msm8960_backlight_on();
+	}
+
+	return 0;
+}
+
 void display_init(void)
 {
-	dprintf(CRITICAL, "display_init\n");
+	int target_id = board_target_id();
 
-	switch (board_target_id()) {
+	dprintf(INFO, "display_init(),target_id=%d.\n", target_id);
+
+	switch (target_id) {
+	case LINUX_MACHTYPE_8960_LIQUID:
+		mipi_chimei_video_wxga_init(&(panel.panel_info));
+		/*
+		 * mipi_chimei_wxga panel not supported yet in LK.
+		 * However, MIPI clocks and power should be set in LK.
+		 */
+		panel.clk_func = msm8960_liquid_mipi_panel_clock;
+		panel.power_func = msm8960_liquid_mipi_panel_power;
+		panel.fb.base = MIPI_FB_ADDR;
+		panel.fb.width =  panel.panel_info.xres;
+		panel.fb.height =  panel.panel_info.yres;
+		panel.fb.stride =  panel.panel_info.xres;
+		panel.fb.bpp =  panel.panel_info.bpp;
+		panel.fb.format = FB_FORMAT_RGB888;
+		panel.mdp_rev = MDP_REV_44;
+		break;
 	case LINUX_MACHTYPE_8064_CDP:
 		lvds_chimei_wxga_init(&(panel.panel_info));
 		panel.clk_func = apq8064_lvds_clock;
@@ -198,7 +286,6 @@ void display_init(void)
 	case LINUX_MACHTYPE_8960_CDP:
 	case LINUX_MACHTYPE_8960_MTP:
 	case LINUX_MACHTYPE_8960_FLUID:
-	case LINUX_MACHTYPE_8960_LIQUID:
 		mipi_toshiba_video_wsvga_init(&(panel.panel_info));
 		panel.clk_func = msm8960_mipi_panel_clock;
 		panel.power_func = msm8960_mipi_panel_power;

@@ -167,6 +167,7 @@ struct msm_panel_info {
 
 	int (*on) (void);
 	int (*off) (void);
+	int (*early_config) (void *pdata);
 	int (*config) (void *pdata);
 	int (*rotate) (void);
 };

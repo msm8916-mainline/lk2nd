@@ -73,6 +73,8 @@
 #define DSI_CMD_MODE_DMA_SW_TRIGGER           REG_DSI(0x08C)
 #define DSI_CMD_MODE_MDP_SW_TRIGGER           REG_DSI(0x090)
 
+#define DSI_LANE_CTRL                         REG_DSI(0x0A8)
+
 #define MIPI_DSI_MRPS       0x04	/* Maximum Return Packet Size */
 #define MIPI_DSI_REG_LEN    16	/* 4 x 4 bytes register */
 
@@ -712,4 +714,6 @@ int mipi_dsi_video_mode_config(unsigned short disp_width,
 		unsigned char interleav);
 int mipi_dsi_on();
 int mipi_dsi_off();
+int mipi_dsi_cmds_tx(struct mipi_dsi_cmd *cmds, int count);
+int mipi_dsi_cmds_rx(char **rp, int len);
 #endif
