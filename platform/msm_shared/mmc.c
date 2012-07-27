@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010-2012, Code Aurora Forum. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -1464,7 +1464,9 @@ mmc_boot_adjust_interface_speed(struct mmc_boot_host *host,
 	do {
 		mmc_ret = mmc_boot_get_card_status(card, 0, &status);
 		if (mmc_ret != MMC_BOOT_E_SUCCESS) {
-			return mmc_ret;
+			dprintf(CRITICAL, "WARNING: Failed to get card status after"
+							  "cmd6. ret = %d wait_count = %d\n",
+					mmc_ret, wait_count);
 		}
 
 		wait_count--;
