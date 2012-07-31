@@ -31,7 +31,6 @@
 #include <board.h>
 #include <smem.h>
 #include <baseband.h>
-#include <board.h>
 
 static struct board_data board = {UNKNOWN,
 	HW_PLATFORM_UNKNOWN,
@@ -108,4 +107,9 @@ uint32_t board_target_id()
 uint32_t board_baseband()
 {
 	return board.baseband;
+}
+
+uint32_t board_hardware_id()
+{
+	return board.platform_hw;
 }

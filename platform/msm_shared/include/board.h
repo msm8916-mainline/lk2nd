@@ -30,7 +30,7 @@
 #ifndef __BOARD_H
 #define __BOARD_H
 
-#include <target/board.h>
+#define LINUX_MACHTYPE_UNKNOWN 0
 
 struct board_data {
 	uint32_t platform;
@@ -46,5 +46,6 @@ void target_baseband_detect(struct board_data *);
 uint32_t board_platform_id();
 uint32_t board_target_id();
 uint32_t board_baseband();
+uint32_t board_hardware_id();
 
 #endif

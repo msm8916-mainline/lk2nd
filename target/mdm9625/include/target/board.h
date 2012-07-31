@@ -30,7 +30,6 @@
 #ifndef __TARGET_BOARD_H
 #define __TARGET_BOARD_H
 
-#define LINUX_MACHTYPE_UNKNOWN       0
 
 #define LINUX_MACHTYPE_9625_CDP      0
 #define LINUX_MACHTYPE_9625_MTP      0

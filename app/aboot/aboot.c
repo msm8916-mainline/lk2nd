@@ -60,6 +60,7 @@
 #include "sparse_format.h"
 #include "mmc.h"
 #include "devinfo.h"
+#include "board.h"
 
 #include "scm.h"
 
@@ -77,6 +78,27 @@
 #define FASTBOOT_MODE   0x77665500
 
 #if DEVICE_TREE
+#define DEV_TREE_SUCCESS        0
+#define DEV_TREE_MAGIC          "QCDT"
+#define DEV_TREE_VERSION        1
+#define DEV_TREE_HEADER_SIZE    12
+
+
+struct dt_entry{
+	uint32_t platform_id;
+	uint32_t variant_id;
+	uint32_t soc_rev;
+	uint32_t offset;
+	uint32_t size;
+};
+
+struct dt_table{
+	uint32_t magic;
+	uint32_t version;
+	unsigned num_entries;
+};
+
+struct dt_entry * get_device_tree_ptr(struct dt_table *);
 int update_device_tree(const void *, char *, void *, unsigned);
 #endif
 
@@ -406,6 +428,7 @@ unsigned page_mask = 0;
 #define ROUND_TO_PAGE(x,y) (((x) + (y)) & (~(y)))
 
 static unsigned char buf[4096]; //Equal to max-supported pagesize
+static unsigned char dt_buf[4096];
 
 int boot_linux_from_mmc(void)
 {
@@ -421,6 +444,14 @@ int boot_linux_from_mmc(void)
 	unsigned kernel_actual;
 	unsigned ramdisk_actual;
 	unsigned imagesize_actual;
+	unsigned second_actual = 0;
+	unsigned dt_actual = 0;
+
+#if DEVICE_TREE
+	struct dt_table *table;
+	struct dt_entry *dt_entry_ptr;
+	unsigned dt_table_offset;
+#endif
 
 	uhdr = (struct boot_img_hdr *)EMMC_BOOT_IMG_HEADER_ADDR;
 	if (!memcmp(uhdr->magic, BOOT_MAGIC, BOOT_MAGIC_SIZE)) {
@@ -466,7 +497,10 @@ int boot_linux_from_mmc(void)
 		image_addr = (unsigned char *)target_get_scratch_address();
 		kernel_actual = ROUND_TO_PAGE(hdr->kernel_size, page_mask);
 		ramdisk_actual = ROUND_TO_PAGE(hdr->ramdisk_size, page_mask);
-		imagesize_actual = (page_size + kernel_actual + ramdisk_actual);
+		second_actual = ROUND_TO_PAGE(hdr->second_size, page_mask);
+		dt_actual = ROUND_TO_PAGE(hdr->ramdisk_size, page_mask);
+		imagesize_actual = (page_size + kernel_actual + ramdisk_actual + second_actual +
+							dt_actual);
 
 		offset = 0;
 
@@ -500,10 +534,36 @@ int boot_linux_from_mmc(void)
 			}
 		}
 
-		/* Move kernel and ramdisk to correct address */
+		/* Move kernel, ramdisk and device tree to correct address */
 		memmove((void*) hdr->kernel_addr, (char *)(image_addr + page_size), hdr->kernel_size);
 		memmove((void*) hdr->ramdisk_addr, (char *)(image_addr + page_size + kernel_actual), hdr->ramdisk_size);
 
+		#if DEVICE_TREE
+		if(hdr->dt_size) {
+			table = (struct dt_table*) dt_buf;
+			dt_table_offset = (image_addr + page_size + kernel_actual + ramdisk_actual + second_actual);
+
+			memmove((void *) dt_buf, (char *)dt_table_offset, page_size);
+
+			/* Restriction that the device tree entry table should be less than a page*/
+			ASSERT(((table->num_entries * sizeof(struct dt_entry))+ DEV_TREE_HEADER_SIZE) < hdr->page_size);
+
+			/* Validate the device tree table header */
+			if((table->magic != DEV_TREE_MAGIC) && (table->version != DEV_TREE_VERSION)) {
+				dprintf(CRITICAL, "ERROR: Cannot validate Device Tree Table \n");
+				return -1;
+			}
+
+			/* Find index of device tree within device tree table */
+			if((dt_entry_ptr = get_device_tree_ptr(table)) == NULL){
+				dprintf(CRITICAL, "ERROR: Device Tree Blob cannot be found\n");
+				return -1;
+			}
+
+			/* Read device device tree in the "tags_add */
+			memmove((void *)hdr->tags_addr, (char *)dt_table_offset + dt_entry_ptr->offset, dt_entry_ptr->size);
+		}
+		#endif
 		/* Make sure everything from scratch address is read before next step!*/
 		if(device.is_tampered)
 		{
@@ -536,6 +596,46 @@ int boot_linux_from_mmc(void)
 			}
 		}
 		offset += n;
+
+		if(hdr->second_size != 0) {
+			n = ROUND_TO_PAGE(hdr->second_size, page_mask);
+			offset += n;
+		}
+
+		#if DEVICE_TREE
+		if(hdr->dt_size != 0) {
+
+			/* Read the device tree table into buffer */
+			if(mmc_read(ptn + offset,(unsigned int *) dt_buf, page_size)) {
+				dprintf(CRITICAL, "ERROR: Cannot read the Device Tree Table\n");
+				return -1;
+			}
+			table = (struct dt_table*) dt_buf;
+
+			/* Restriction that the device tree entry table should be less than a page*/
+			ASSERT(((table->num_entries * sizeof(struct dt_entry))+ DEV_TREE_HEADER_SIZE) < hdr->page_size);
+
+			/* Validate the device tree table header */
+			if((table->magic != DEV_TREE_MAGIC) && (table->version != DEV_TREE_VERSION)) {
+				dprintf(CRITICAL, "ERROR: Cannot validate Device Tree Table \n");
+				return -1;
+			}
+
+			/* Calculate the offset of device tree within device tree table */
+			if((dt_entry_ptr = get_device_tree_ptr(table)) == NULL){
+				dprintf(CRITICAL, "ERROR: Getting device tree address failed\n");
+				return -1;
+			}
+
+			/* Read device device tree in the "tags_add */
+			hdr->tags_addr = 0x8400000;
+			if(mmc_read(ptn + offset + dt_entry_ptr->offset,
+						 (void *)hdr->tags_addr, dt_entry_ptr->size)) {
+				dprintf(CRITICAL, "ERROR: Cannot read device tree\n");
+				return -1;
+			}
+		}
+		#endif
 	}
 
 unified_boot:
@@ -1415,7 +1515,25 @@ APP_START(aboot)
 APP_END
 
 #if DEVICE_TREE
-/* Device Tree Stuff */
+struct dt_entry * get_device_tree_ptr(struct dt_table *table)
+{
+	unsigned i;
+	struct dt_entry *dt_entry_ptr;
+
+	dt_entry_ptr = (char *)table + DEV_TREE_HEADER_SIZE ;
+
+	for(i = 0; i < table->num_entries; i++)
+	{
+		if((dt_entry_ptr->platform_id == board_platform_id()) &&
+		   (dt_entry_ptr->variant_id == board_hardware_id()) &&
+		   (dt_entry_ptr->soc_rev == 0)){
+				return dt_entry_ptr;
+		}
+		dt_entry_ptr++;
+	}
+	return NULL;
+}
+
 int update_device_tree(const void * fdt, char *cmdline,
 					   void *ramdisk, unsigned ramdisk_size)
 {

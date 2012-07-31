@@ -32,6 +32,7 @@
 #include <board.h>
 #include <mdp4.h>
 #include <target/display.h>
+#include <target/board.h>
 
 static struct msm_fb_panel_data panel;
 static uint8_t display_enable;

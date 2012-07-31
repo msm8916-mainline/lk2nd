@@ -30,7 +30,6 @@
 #ifndef __TARGET_BOARD_H
 #define __TARGET_BOARD_H
 
-#define LINUX_MACHTYPE_UNKNOWN     0
 
 /* 8960 */
 #define LINUX_MACHTYPE_8960_SIM     3230

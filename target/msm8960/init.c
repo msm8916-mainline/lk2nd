@@ -48,6 +48,7 @@
 #include <uart_dm.h>
 #include <crypto_hash.h>
 #include <board.h>
+#include <target/board.h>
 
 extern void dmb(void);
 extern void msm8960_keypad_init(void);

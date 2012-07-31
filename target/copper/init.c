@@ -36,13 +36,13 @@
 #include <uart_dm.h>
 #include <mmc.h>
 #include <spmi.h>
+#include <board.h>
+#include <smem.h>
+#include <baseband.h>
 
 
 static unsigned int target_id;
 
-static void target_detect(void);
-
-#define COPPER_TARGET_ID        0xffffffff
 #define PMIC_ARB_CHANNEL_NUM    0
 #define PMIC_ARB_OWNER_ID       0
 
@@ -63,7 +63,6 @@ void target_init(void)
 
 	dprintf(INFO, "target_init()\n");
 
-	target_id = COPPER_TARGET_ID;
 	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
 
 	/* Trying Slot 1*/
@@ -91,4 +90,20 @@ unsigned board_machtype(void)
 void target_fastboot_init(void)
 {
 
+}
+
+/* Detect the target type */
+void target_detect(struct board_data *board)
+{
+	board->target = LINUX_MACHTYPE_UNKNOWN;
+}
+
+/* Detect the modem type */
+void target_baseband_detect(struct board_data *board)
+{
+	/* Check for baseband variants. Default to MSM */
+	if (board->platform_subtype == HW_PLATFORM_SUBTYPE_MDM)
+		board->baseband = BASEBAND_MDM;
+	else
+		board->baseband = BASEBAND_MSM;
 }
