@@ -26,40 +26,9 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef _PM8x41_H_
+#define _PM8x41_H_
 
-#ifndef __IRQS_COPPER_H
-#define __IRQS_COPPER_H
+void pm8x41_set_boot_done();
 
-/* MSM ACPU Interrupt Numbers */
-
-/* 0-15:  STI/SGI (software triggered/generated interrupts)
- * 16-31: PPI (private peripheral interrupts)
- * 32+:   SPI (shared peripheral interrupts)
- */
-
-#define GIC_PPI_START                          16
-#define GIC_SPI_START                          32
-
-#define INT_QTMR_NON_SECURE_PHY_TIMER_EXP      (GIC_PPI_START + 3)
-#define INT_QTMR_VIRTUAL_TIMER_EXP             (GIC_PPI_START + 4)
-
-#define INT_QTMR_FRM_0_PHYSICAL_TIMER_EXP      (GIC_SPI_START + 8)
-
-#define USB1_HS_BAM_IRQ                        (GIC_SPI_START + 135)
-#define USB1_HS_IRQ                            (GIC_SPI_START + 134)
-#define USB2_IRQ                               (GIC_SPI_START + 141)
-#define USB1_IRQ                               (GIC_SPI_START + 142)
-
-/* Retrofit universal macro names */
-#define INT_USB_HS                             USB1_HS_IRQ
-
-#define EE0_KRAIT_HLOS_SPMI_PERIPH_IRQ         (GIC_SPI_START + 190)
-
-#define NR_MSM_IRQS                            256
-#define NR_GPIO_IRQS                           173
-#define NR_BOARD_IRQS                          0
-
-#define NR_IRQS                                (NR_MSM_IRQS + NR_GPIO_IRQS + \
-                                               NR_BOARD_IRQS)
-
-#endif	/* __IRQS_COPPER_H */
+#endif

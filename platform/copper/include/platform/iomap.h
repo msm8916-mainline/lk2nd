@@ -59,8 +59,12 @@
 #define MSM_USB_BASE                (PERIPH_SS_BASE + 0x00255000)
 
 #define CLK_CTL_BASE                0xFC400000
-#define TLMM_BASE_ADDR              0xFD500000
 
+#define SPMI_BASE                   0xFC4C0000
+#define SPMI_GENI_BASE              (SPMI_BASE + 0xA000)
+#define SPMI_PIC_BASE               (SPMI_BASE + 0xB000)
+
+#define TLMM_BASE_ADDR              0xFD500000
 #define GPIO_CONFIG_ADDR(x)         (TLMM_BASE_ADDR + 0x1000 + (x)*0x10)
 #define GPIO_IN_OUT_ADDR(x)         (TLMM_BASE_ADDR + 0x1004 + (x)*0x10)
 
