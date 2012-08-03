@@ -113,28 +113,33 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 
 void mdp_disable(void)
 {
-	writel(0x00000000, MDP_DSI_VIDEO_EN);
+	if (!target_cont_splash_screen())
+		writel(0x00000000, MDP_DSI_VIDEO_EN);
 }
 
 int mdp_dsi_video_off(void)
 {
-	mdp_disable();
-	mdelay(60);
-	writel(0x00000000, MDP_INTR_ENABLE);
-	writel(0x01ffffff, MDP_INTR_CLEAR);
+	if (!target_cont_splash_screen()) {
+		mdp_disable();
+		mdelay(60);
+		writel(0x00000000, MDP_INTR_ENABLE);
+		writel(0x01ffffff, MDP_INTR_CLEAR);
+	}
 	return NO_ERROR;
 }
 
 int mdp_dsi_cmd_off(void)
 {
-	mdp_dma_off();
-	/*
-	 * Allow sometime for the DMA channel to
-	 * stop the data transfer
-	 */
-	mdelay(10);
-	writel(0x00000000, MDP_INTR_ENABLE);
-	writel(0x01ffffff, MDP_INTR_CLEAR);
+	if (!target_cont_splash_screen()) {
+		mdp_dma_off();
+		/*
+		 * Allow sometime for the DMA channel to
+		 * stop the data transfer
+		 */
+		mdelay(10);
+		writel(0x00000000, MDP_INTR_ENABLE);
+		writel(0x01ffffff, MDP_INTR_CLEAR);
+	}
 	return NO_ERROR;
 }
 
@@ -170,7 +175,8 @@ int mdp_dma_off()
 {
 	int ret = 0;
 
-	writel(0x00000000, MDP_DMA_P_START);
+	if (!target_cont_splash_screen())
+		writel(0x00000000, MDP_DMA_P_START);
 
 	return ret;
 }

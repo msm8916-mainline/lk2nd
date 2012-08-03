@@ -64,7 +64,11 @@ void display_init(void)
 	case MSM7X27A_SURF:
 	case MSM8X25_SURF:
 	case MSM7X27A_FFA:
+#if MIPI_VIDEO_MODE
+		mipi_renesas_video_fwvga_init(&(panel.panel_info));
+#else
 		mipi_renesas_cmd_fwvga_init(&(panel.panel_info));
+#endif
 		panel.clk_func = msm7627a_mdp_clock_init;
 		panel.power_func = mipi_renesas_panel_dsi_config;
 		panel.fb.base = MIPI_FB_ADDR;
@@ -77,7 +81,11 @@ void display_init(void)
 		break;
 	case MSM7X25A_SURF:
 	case MSM7X25A_FFA:
+#if MIPI_VIDEO_MODE
+		mipi_renesas_video_hvga_init(&(panel.panel_info));
+#else
 		mipi_renesas_cmd_hvga_init(&(panel.panel_info));
+#endif
 		panel.clk_func = msm7627a_mdp_clock_init;
 		panel.power_func = mipi_renesas_panel_dsi_config;
 		panel.fb.base = MIPI_FB_ADDR;
@@ -91,7 +99,11 @@ void display_init(void)
 	case MSM7X27A_EVB:
 	case MSM8X25_EVB:
 	case MSM8X25_EVT:
+#if MIPI_VIDEO_MODE
+		mipi_nt35510_video_wvga_init(&(panel.panel_info));
+#else
 		mipi_nt35510_cmd_wvga_init(&(panel.panel_info));
+#endif
 		panel.clk_func = msm7627a_mdp_clock_init;
 		panel.power_func = mipi_nt35510_panel_dsi_config;
 		panel.fb.base = MIPI_FB_ADDR;

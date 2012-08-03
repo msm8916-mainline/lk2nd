@@ -48,7 +48,16 @@ int mipi_nt35510_panel_dsi_config(int on)
 {
 	if (on) {
 		gpio_config(96, GPIO_OUTPUT);
+		/*
+		 * As per the specification follow the sequence to put lcd
+		 * backlight in one wire mode.
+		 */
 		gpio_set(96, 0x1);
+		udelay(190);
+		gpio_set(96, 0x0);
+		udelay(286);
+		gpio_set(96, 0x1);
+		udelay(50);
 
 		gpio_config(35, GPIO_OUTPUT);
 		gpio_set(35, 0x1);
@@ -64,9 +73,11 @@ int mipi_nt35510_panel_dsi_config(int on)
 		gpio_set(85, 0x1);
 		mdelay(20);
 	} else {
-		gpio_set(96, 0x0);
-		gpio_set(35, 0x0);
-		gpio_set(40, 0x0);
+		if (!target_cont_splash_screen()) {
+			gpio_set(96, 0x0);
+			gpio_set(35, 0x0);
+			gpio_set(40, 0x0);
+		}
 	}
 	return 0;
 }
