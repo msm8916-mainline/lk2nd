@@ -13,7 +13,6 @@ OBJS += \
 	$(LOCAL_DIR)/hsusb.o \
 	$(LOCAL_DIR)/jtag_hook.o \
 	$(LOCAL_DIR)/jtag.o \
-	$(LOCAL_DIR)/nand.o \
 	$(LOCAL_DIR)/mmc.o \
 	$(LOCAL_DIR)/partition_parser.o
 
@@ -32,7 +31,8 @@ ifeq ($(PLATFORM),msm8x60)
 			$(LOCAL_DIR)/image_verify.o \
 			$(LOCAL_DIR)/hdmi.o \
 			$(LOCAL_DIR)/interrupts.o \
-			$(LOCAL_DIR)/timer.o
+			$(LOCAL_DIR)/timer.o \
+			$(LOCAL_DIR)/nand.o
 endif
 
 ifeq ($(PLATFORM),msm8960)
@@ -55,7 +55,8 @@ ifeq ($(PLATFORM),msm8960)
 			$(LOCAL_DIR)/lvds.o \
 			$(LOCAL_DIR)/mipi_dsi_phy.o \
 			$(LOCAL_DIR)/timer.o \
-			$(LOCAL_DIR)/mdp_lcdc.o
+			$(LOCAL_DIR)/mdp_lcdc.o \
+			$(LOCAL_DIR)/nand.o
 endif
 
 ifeq ($(PLATFORM),copper)
@@ -69,11 +70,13 @@ ifeq ($(PLATFORM),copper)
 			$(LOCAL_DIR)/uart_dm.o \
 			$(LOCAL_DIR)/board.o \
 			$(LOCAL_DIR)/spmi.o \
-			$(LOCAL_DIR)/bam.o
+			$(LOCAL_DIR)/bam.o \
+			$(LOCAL_DIR)/nand.o
 endif
 
 ifeq ($(PLATFORM),msm7x27a)
 	OBJS += $(LOCAL_DIR)/uart.o \
+			$(LOCAL_DIR)/nand.o \
 			$(LOCAL_DIR)/proc_comm.o \
 			$(LOCAL_DIR)/mdp3.o \
 			$(LOCAL_DIR)/mipi_dsi.o \
@@ -92,6 +95,7 @@ endif
 
 ifeq ($(PLATFORM),msm7k)
 	OBJS += $(LOCAL_DIR)/uart.o \
+			$(LOCAL_DIR)/nand.o \
 			$(LOCAL_DIR)/proc_comm.o \
 			$(LOCAL_DIR)/lcdc.o \
 			$(LOCAL_DIR)/mddi.o \
@@ -102,6 +106,7 @@ ifeq ($(PLATFORM),msm7x30)
 	OBJS += $(LOCAL_DIR)/crypto_eng.o \
 			$(LOCAL_DIR)/crypto_hash.o \
 			$(LOCAL_DIR)/uart.o \
+			$(LOCAL_DIR)/nand.o \
 			$(LOCAL_DIR)/proc_comm.o \
 			$(LOCAL_DIR)/lcdc.o \
 			$(LOCAL_DIR)/mddi.o \
@@ -112,6 +117,7 @@ endif
 
 ifeq ($(PLATFORM),mdm9x15)
 	OBJS += $(LOCAL_DIR)/qgic.o \
+			$(LOCAL_DIR)/nand.o \
 			$(LOCAL_DIR)/uart_dm.o \
 			$(LOCAL_DIR)/interrupts.o \
 			$(LOCAL_DIR)/timer.o
@@ -122,5 +128,7 @@ ifeq ($(PLATFORM),mdm9x25)
 			$(LOCAL_DIR)/interrupts.o \
 			$(LOCAL_DIR)/qtimer.o \
 			$(LOCAL_DIR)/qtimer_mmap.o \
-			$(LOCAL_DIR)/board.o
+			$(LOCAL_DIR)/board.o \
+			$(LOCAL_DIR)/qpic_nand.o \
+			$(LOCAL_DIR)/bam.o
 endif

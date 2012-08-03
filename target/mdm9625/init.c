@@ -32,11 +32,39 @@
 #include <target.h>
 #include <smem.h>
 #include <baseband.h>
+#include <lib/ptable.h>
+#include <qpic_nand.h>
 
+static struct ptable flash_ptable;
+
+/* NANDc BAM pipe numbers */
+#define DATA_CONSUMER_PIPE                            0
+#define DATA_PRODUCER_PIPE                            1
+#define CMD_PIPE                                      2
+
+struct qpic_nand_init_config config;
 /* init */
 void target_init(void)
 {
 	dprintf(INFO, "target_init()\n");
+
+	config.pipes.read_pipe = DATA_PRODUCER_PIPE;
+	config.pipes.write_pipe = DATA_CONSUMER_PIPE;
+	config.pipes.cmd_pipe = CMD_PIPE;
+
+	config.bam_base = MSM_NAND_BAM_BASE;
+	config.nand_base = MSM_NAND_BASE;
+
+	qpic_nand_init(&config);
+
+	/* Below lines are to be removed once the bootchain is available */
+
+	ptable_init(&flash_ptable);
+
+	flash_set_ptable(&flash_ptable);
+
+	/* Add boot ptn..until the bootchain adds it */
+	ptable_add(&flash_ptable, "boot", 0x347, 0x52, 0, TYPE_APPS_PARTITION, PERM_WRITEABLE);
 }
 
 /* reboot */
@@ -61,7 +89,7 @@ unsigned* target_atag_mem(unsigned* ptr)
 /* mach type */
 unsigned board_machtype(void)
 {
-	return board_target_id();
+	//return board_target_id();
 }
 
 /* Identify the current target */
@@ -72,13 +100,5 @@ void target_detect(struct board_data *board)
 /* Identify the baseband being used */
 void target_baseband_detect(struct board_data *board)
 {
-	if (board->platform_subtype == HW_PLATFORM_SUBTYPE_MDM)
-	{
-		board->baseband = BASEBAND_MDM;
-	}
-	else
-	{
-		/* This target will always have MDM. If not, assert. */
-		ASSERT(0);
-	}
+
 }
