@@ -978,6 +978,62 @@ void set_device_root()
 	write_device_info(&device);
 }
 
+#if DEVICE_TREE
+int copy_dtb(uint8_t *boot_image_start)
+{
+	uint32 dt_image_offset = 0;
+	uint32_t n;
+	struct dt_table *table;
+	struct dt_entry *dt_entry_ptr;
+	unsigned dt_table_offset;
+
+	struct boot_img_hdr *hdr = (struct boot_img_hdr *) (boot_image_start);
+
+
+	if(hdr->dt_size != 0) {
+
+		/* add kernel offset */
+		dt_image_offset += page_size;
+		n = ROUND_TO_PAGE(hdr->kernel_size, page_mask);
+		dt_image_offset += n;
+
+		/* add ramdisk offset */
+		n = ROUND_TO_PAGE(hdr->ramdisk_size, page_mask);
+		dt_image_offset += n;
+
+		/* add second offset */
+		if(hdr->second_size != 0) {
+			n = ROUND_TO_PAGE(hdr->second_size, page_mask);
+			dt_image_offset += n;
+		}
+
+		/* offset now point to start of dt.img */
+		table = boot_image_start + dt_image_offset;
+
+		/* Restriction that the device tree entry table should be less than a page*/
+		ASSERT(((table->num_entries * sizeof(struct dt_entry))+ DEV_TREE_HEADER_SIZE) < hdr->page_size);
+
+		/* Validate the device tree table header */
+		if((table->magic != DEV_TREE_MAGIC) && (table->version != DEV_TREE_VERSION)) {
+			dprintf(CRITICAL, "ERROR: Cannot validate Device Tree Table \n");
+			return -1;
+		}
+
+		/* Calculate the offset of device tree within device tree table */
+		if((dt_entry_ptr = get_device_tree_ptr(table)) == NULL){
+			dprintf(CRITICAL, "ERROR: Getting device tree address failed\n");
+			return -1;
+		}
+
+		/* Read device device tree in the "tags_add */
+		memmove((void*) hdr->tags_addr, boot_image_start + dt_image_offset +  dt_entry_ptr->offset, dt_entry_ptr->size);
+	}
+
+	/* Everything looks fine. Return success. */
+	return 0;
+}
+#endif
+
 void cmd_boot(const char *arg, void *data, unsigned sz)
 {
 	unsigned kernel_actual;
@@ -1009,11 +1065,20 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 		return;
 	}
 
-	memmove((void*) hdr.kernel_addr, ptr + page_size, hdr.kernel_size);
-	memmove((void*) hdr.ramdisk_addr, ptr + page_size + kernel_actual, hdr.ramdisk_size);
+#if DEVICE_TREE
+	/* find correct dtb and copy it to right location */
+	if(copy_dtb(data))
+	{
+		fastboot_fail("dtb not found");
+		return;
+	}
+#endif
 
 	fastboot_okay("");
 	udc_stop();
+
+	memmove((void*) hdr.kernel_addr, ptr + page_size, hdr.kernel_size);
+	memmove((void*) hdr.ramdisk_addr, ptr + page_size + kernel_actual, hdr.ramdisk_size);
 
 	boot_linux((void*) hdr.kernel_addr, (void*) hdr.tags_addr,
 		   (const char*) hdr.cmdline, board_machtype(),
