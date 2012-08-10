@@ -52,7 +52,9 @@ static uint32_t mmc_sdc_base[] =
 
 void target_early_init(void)
 {
+#if WITH_DEBUG_UART
 	uart_dm_init(0, 0, BLSP1_UART0_BASE);
+#endif
 }
 
 void target_init(void)
