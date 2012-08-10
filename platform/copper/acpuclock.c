@@ -38,6 +38,7 @@
 void hsusb_clock_init(void)
 {
 	int ret;
+	struct clk *iclk, *cclk;
 
 	ret = clk_get_set_enable("usb_iface_clk", 0, 1);
 	if(ret)
@@ -52,6 +53,46 @@ void hsusb_clock_init(void)
 		dprintf(CRITICAL, "failed to set usb_core_clk ret = %d\n", ret);
 		ASSERT(0);
 	}
+
+	mdelay(20);
+
+	iclk = clk_get("usb_iface_clk");
+	cclk = clk_get("usb_core_clk");
+
+	/* Disable USB all clock init */
+	writel(0, USB_BOOT_CLOCK_CTL);
+
+	clk_disable(iclk);
+	clk_disable(cclk);
+
+	mdelay(20);
+
+	/* Start the block reset for usb */
+	writel(1, USB_HS_BCR);
+
+	mdelay(20);
+
+	/* Take usb block out of reset */
+	writel(0, USB_HS_BCR); 
+
+	mdelay(20);
+
+	ret = clk_enable(iclk);
+	
+	if(ret)
+    {
+        dprintf(CRITICAL, "failed to set usb_iface_clk after async ret = %d\n", ret);
+        ASSERT(0);
+    }
+
+	ret = clk_enable(cclk);
+
+	if(ret)
+    {
+        dprintf(CRITICAL, "failed to set usb_iface_clk after async ret = %d\n", ret);
+        ASSERT(0);
+    }
+
 }
 
 void clock_init_mmc(uint32_t interface)

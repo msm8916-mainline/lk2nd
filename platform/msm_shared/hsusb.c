@@ -573,13 +573,22 @@ int udc_init(struct udc_device *dev)
 	 */
 	target_usb_init();
 
-	/* select ULPI phy */
-	writel(0x81000000, USB_PORTSC);
-
 	/* RESET */
-	writel(0x00080002, USB_USBCMD);
+	writel(0x00080000, USB_USBCMD);
 
 	thread_sleep(20);
+
+	while((readl(USB_USBCMD)&2));
+
+	/* select ULPI phy */
+	writel(0x80000000, USB_PORTSC);
+
+	   /* USB_OTG_HS_AHB_BURST */
+	writel(0x0, USB_SBUSCFG);
+
+	/* USB_OTG_HS_AHB_MODE: HPROT_MODE */
+	/* Bus access related config. */
+	writel(0x08, USB_AHB_MODE);
 
 	epts = memalign(4096, 4096);
 

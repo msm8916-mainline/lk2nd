@@ -70,6 +70,8 @@
 #define MSM_USB_BASE                (PERIPH_SS_BASE + 0x00255000)
 
 #define CLK_CTL_BASE                0xFC400000
+#define USB_HS_BCR                  (CLK_CTL_BASE + 0x480)
+#define USB_BOOT_CLOCK_CTL          (CLK_CTL_BASE + 0x1A00)
 
 #define SPMI_BASE                   0xFC4C0000
 #define SPMI_GENI_BASE              (SPMI_BASE + 0xA000)
