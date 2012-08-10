@@ -42,6 +42,9 @@
 #define APCS_APC_KPSS_PLL_BASE      (KPSS_BASE + 0x0000A000)
 #define APCS_KPSS_CFG_BASE          (KPSS_BASE + 0x00010000)
 #define APCS_KPSS_WDT_BASE          (KPSS_BASE + 0x00017000)
+#define KPSS_APCS_QTMR_AC_BASE      (KPSS_BASE + 0x00020000)
+#define KPSS_APCS_F0_QTMR_V1_BASE   (KPSS_BASE + 0x00021000)
+#define QTMR_BASE                   KPSS_APCS_F0_QTMR_V1_BASE
 
 #define PERIPH_SS_BASE              0xF9800000
 
@@ -78,7 +81,6 @@
 
 #define MPM2_MPM_CTRL_BASE          0xFC4A1000
 
-/* Clock control registers */
 
 /* GPLL */
 #define GPLL0_STATUS                (CLK_CTL_BASE + 0x001C)

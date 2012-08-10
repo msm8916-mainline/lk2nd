@@ -60,7 +60,7 @@ endif
 ifeq ($(PLATFORM),copper)
 	OBJS += $(LOCAL_DIR)/qgic.o \
 			$(LOCAL_DIR)/qtimer.o \
-			$(LOCAL_DIR)/qtimer_cp15.o \
+			$(LOCAL_DIR)/qtimer_mmap.o \
 			$(LOCAL_DIR)/interrupts.o \
 			$(LOCAL_DIR)/clock.o \
 			$(LOCAL_DIR)/clock_pll.o \

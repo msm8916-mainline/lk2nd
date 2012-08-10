@@ -72,8 +72,7 @@ static void delay(uint64_t ticks)
 	/* Calculate timeout = cnt + ticks (mod 2^56)
 	 * to account for timer counter wrapping
 	 */
-	timeout = (cnt + ticks) &
-			(uint64_t)(QTMR_PHY_CNT_MAX_VALUE);
+	timeout = (cnt + ticks) & (uint64_t)(QTMR_PHY_CNT_MAX_VALUE);
 
 	/* Wait out till the counter wrapping occurs
 	 * in cases where there is a wrapping.

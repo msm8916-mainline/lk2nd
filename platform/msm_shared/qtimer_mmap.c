@@ -42,7 +42,6 @@ static time_t timer_interval;
 static volatile uint32_t current_time;
 static uint32_t tick_count;
 
-extern uint64_t atomic_dw_read(uint32_t, uint32_t *, uint32_t *);
 extern void dsb();
 static void qtimer_enable();
 
@@ -132,8 +131,14 @@ inline __ALWAYS_INLINE uint64_t qtimer_get_phy_timer_cnt()
 {
 	uint32_t phy_cnt_lo;
 	uint32_t phy_cnt_hi;
+	uint32_t phy_cnt_hi_1;
+	uint32_t phy_cnt_hi_2;
 
-	atomic_dw_read(QTMR_V1_CNTPCT_LO, &phy_cnt_lo, &phy_cnt_hi);
+	do {
+		phy_cnt_hi_1 = readl(QTMR_V1_CNTPCT_HI);
+		phy_cnt_lo = readl(QTMR_V1_CNTPCT_LO);
+		phy_cnt_hi_2 = readl(QTMR_V1_CNTPCT_HI);
+    } while (phy_cnt_hi_1 != phy_cnt_hi_2);
 
 	return ((uint64_t)phy_cnt_hi << 32) | phy_cnt_lo;
 }
