@@ -56,10 +56,13 @@ void hsusb_clock_init(void)
 
 void clock_init_mmc(uint32_t interface)
 {
+	char clk_name[64];
 	int ret;
 
+	snprintf(clk_name, 64, "sdc%u_iface_clk", interface);
+
 	/* enable interface clock */
-	ret = clk_get_set_enable("sdc1_iface_clk", 0, 1);
+	ret = clk_get_set_enable(clk_name, 0, 1);
 	if(ret)
 	{
 		dprintf(CRITICAL, "failed to set sdc1_iface_clk ret = %d\n", ret);
@@ -72,14 +75,20 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 {
 	int ret;
 	uint32_t reg;
+	char clk_name[64];
+
+	snprintf(clk_name, 64, "sdc%u_core_clk", interface);
 
 	if(freq == MMC_CLK_400KHZ)
 	{
-		ret = clk_get_set_enable("sdc1_core_clk", 400000, 1);
+		ret = clk_get_set_enable(clk_name, 400000, 1);
 	}
 	else if(freq == MMC_CLK_50MHZ)
 	{
-		ret = clk_get_set_enable("sdc1_core_clk", 50000000, 1);
+		/* For now, not able to bump the clock to 50MHz
+		 * so use 20MHz for now.
+		 */
+		ret = clk_get_set_enable(clk_name, 20000000, 1);
 	}
 	else
 	{
