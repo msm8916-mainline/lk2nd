@@ -69,6 +69,9 @@ atag_mem_info apq8064_fusion_first_256M[] = {
 	{	.size = (7 * SIZE_1M),
 		.start_addr = PHYS_MEM_START_ADDR + (0xF7 * SIZE_1M)
 	},
+	{	.size = (4 * SIZE_1M),
+		.start_addr = PHYS_MEM_START_ADDR + (0xEC * SIZE_1M)
+	},
 	{	.size = SIZE_1M,
 		.start_addr = PHYS_MEM_START_ADDR + (0xFF * SIZE_1M)
 	}
