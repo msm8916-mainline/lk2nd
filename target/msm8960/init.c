@@ -107,7 +107,11 @@ void target_init(void)
 	/* Keypad init */
 	keys_init();
 
-	if(platform_id == MSM8960)
+	if((platform_id == MSM8960)   ||
+	   (platform_id == MSM8960AB) ||
+	   (platform_id == APQ8060AB) ||
+	   (platform_id == MSM8260AB) ||
+	   (platform_id == MSM8660AB))
 	{
 		msm8960_keypad_init();
 	}
@@ -132,8 +136,10 @@ void target_init(void)
 	dprintf(SPEW, "Diplay initialized\n");
 #endif
 
-	if ((platform_id == MSM8960) || (platform_id == MSM8660A)
-        || (platform_id == MSM8260A) || (platform_id == APQ8060A))
+	if ((platform_id == MSM8960) || (platform_id == MSM8960AB) ||
+		(platform_id == APQ8060AB) || (platform_id == MSM8260AB) ||
+		(platform_id == MSM8660AB) || (platform_id == MSM8660A) ||
+		(platform_id == MSM8260A) || (platform_id == APQ8060A))
 		/* Enable Hardware CE */
 		platform_ce_type = CRYPTO_ENGINE_TYPE_HW;
 
@@ -315,8 +321,10 @@ void target_detect(struct board_data *board)
 	platform_hw = board->platform_hw;
 
 	/* Detect the board we are running on */
-	if ((platform == MSM8960) || (platform == MSM8660A)
-	    || (platform == MSM8260A) || (platform == APQ8060A)) {
+	if ((platform == MSM8960) || (platform == MSM8960AB) ||
+		(platform == APQ8060AB) || (platform == MSM8260AB) ||
+		(platform == MSM8660AB) ||(platform == MSM8660A) ||
+		(platform == MSM8260A) || (platform == APQ8060A)) {
 		switch (platform_hw) {
 		case HW_PLATFORM_SURF:
 			target_id = LINUX_MACHTYPE_8960_CDP;
@@ -430,6 +438,10 @@ int target_cont_splash_screen()
 	switch(board_platform_id())
 	{
 	case MSM8960:
+	case MSM8960AB:
+	case APQ8060AB:
+	case MSM8260AB:
+	case MSM8660AB:
 		return 1;
 
 	default:

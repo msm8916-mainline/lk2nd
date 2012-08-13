@@ -145,6 +145,10 @@ unsigned *target_first_256M_atag(unsigned *ptr)
 			ptr = target_atag(ptr, mpq8064_first_256M, ARRAY_SIZE(mpq8064_first_256M));
 			break;
 		case MSM8960: /* fall through */
+		case MSM8960AB:
+		case APQ8060AB:
+		case MSM8260AB:
+		case MSM8660AB:
 		default:
 			ptr = target_atag(ptr,
 						msm8960_default_first_256M,
