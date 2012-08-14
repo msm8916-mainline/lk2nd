@@ -29,14 +29,50 @@
 #ifndef _PM8x41_HW_H_
 #define _PM8x41_HW_H_
 
-/* Slave IDs */
-#define PM8x41_SMBB_SLAVE_ID                  0
 
-/* Peripheral Base Addresses */
-#define PM8x41_SMBB_PERIPHERAL_ID_BASE        0x1600
+/* SMBB Registers */
+#define SMBB_MISC_BOOT_DONE                   0x1642
 
-/* Register Offsets */
-#define SMBB_MISC_BOOT_DONE                   0x42
-#define BOOT_DONE_SHIFT                       7
+/* SMBB bit values */
+#define BOOT_DONE_BIT                         7
+
+
+/* GPIO Registers */
+#define GPIO_PERIPHERAL_BASE                  0xC000
+/* Peripheral base address for GPIO_X */
+#define GPIO_N_PERIPHERAL_BASE(x)            (GPIO_PERIPHERAL_BASE + ((x) - 1) * 0x100)
+
+/* Register offsets within GPIO */
+#define GPIO_STATUS                           0x08
+#define GPIO_MODE_CTL                         0x40
+#define GPIO_DIG_VIN_CTL                      0x41
+#define GPIO_DIG_PULL_CTL                     0x42
+#define GPIO_DIG_OUT_CTL                      0x45
+#define GPIO_EN_CTL                           0x46
+
+/* GPIO bit values */
+#define PERPH_EN_BIT                          7
+#define GPIO_STATUS_VAL_BIT                   0
+
+
+/* PON Peripheral registers */
+#define PON_INT_RT_STS                        0x810
+#define PON_INT_SET_TYPE                      0x811
+#define PON_INT_POLARITY_HIGH                 0x812
+#define PON_INT_POLARITY_LOW                  0x813
+#define PON_INT_LATCHED_CLR                   0x814
+#define PON_INT_EN_SET                        0x815
+#define PON_INT_LATCHED_STS                   0x818
+#define PON_INT_PENDING_STS                   0x819
+#define PON_RESIN_N_RESET_S1_TIMER            0x844  /* bits 0:3  : S1_TIMER */
+#define PON_RESIN_N_RESET_S2_TIMER            0x845  /* bits 0:2  : S2_TIMER */
+#define PON_RESIN_N_RESET_S2_CTL              0x846  /* bit 7: S2_RESET_EN, bit 0:3 : RESET_TYPE  */
+
+/* PON Peripheral register bit values */
+#define RESIN_BARK_INT_BIT                    4
+#define S2_RESET_EN_BIT                       7
+
+#define S2_RESET_TYPE_WARM                    0x1
+#define PON_RESIN_N_RESET_S2_TIMER_MAX_VALUE  0x7
 
 #endif

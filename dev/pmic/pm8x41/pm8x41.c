@@ -26,28 +26,167 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <bits.h>
 #include <debug.h>
 #include <reg.h>
 #include <spmi.h>
 #include <pm8x41_hw.h>
+#include <pm8x41.h>
+#include <platform/timer.h>
 
-/* Function to set the boot done flag */
-void pm8x41_set_boot_done()
+/* Local Macros */
+#define REG_READ(_a)        pm8x41_reg_read(_a)
+#define REG_WRITE(_a, _v)   pm8x41_reg_write(_a, _v)
+
+#define REG_OFFSET(_addr)   ((_addr) & 0xFF)
+#define PERIPH_ID(_addr)    (((_addr) & 0xFF00) >> 8)
+#define SLAVE_ID(_addr)     ((_addr) >> 16)
+
+
+/* Local functions */
+static uint8_t pm8x41_reg_read(uint32_t addr)
+{
+	uint8_t val = 0;
+	struct pmic_arb_cmd cmd;
+	struct pmic_arb_param param;
+
+	cmd.address  = PERIPH_ID(addr);
+	cmd.offset   = REG_OFFSET(addr);
+	cmd.slave_id = SLAVE_ID(addr);
+	cmd.priority = 0;
+
+	param.buffer = &val;
+	param.size   = 1;
+
+	pmic_arb_read_cmd(&cmd, &param);
+
+	return val;
+}
+
+static void pm8x41_reg_write(uint32_t addr, uint8_t val)
 {
 	struct pmic_arb_cmd cmd;
 	struct pmic_arb_param param;
-	uint8_t boot_done;
 
-	cmd.address = ((uint16_t)(PM8x41_SMBB_PERIPHERAL_ID_BASE) >> 8);
-	cmd.offset = SMBB_MISC_BOOT_DONE;
+	cmd.address  = PERIPH_ID(addr);
+	cmd.offset   = REG_OFFSET(addr);
+	cmd.slave_id = SLAVE_ID(addr);
 	cmd.priority = 0;
-	cmd.slave_id = PM8x41_SMBB_SLAVE_ID;
 
-	/* Enable the module */
-	boot_done = 1 << BOOT_DONE_SHIFT;
-	param.buffer = &boot_done;
-	param.size = 1;
+	param.buffer = &val;
+	param.size   = 1;
 
-	pmic_arb_write_cmd(&cmd,&param);
+	pmic_arb_write_cmd(&cmd, &param);
+}
 
+/* Exported functions */
+
+/* Set the boot done flag */
+void pm8x41_set_boot_done()
+{
+	uint8_t val;
+
+	val  = REG_READ(SMBB_MISC_BOOT_DONE);
+	val |= BIT(BOOT_DONE_BIT);
+	REG_WRITE(SMBB_MISC_BOOT_DONE, val);
+}
+
+/* Configure GPIO */
+int pm8x41_gpio_config(uint8_t gpio, struct pm8x41_gpio *config)
+{
+	uint8_t  val;
+	uint32_t gpio_base = GPIO_N_PERIPHERAL_BASE(gpio);
+
+	/* Disable the GPIO */
+	val  = REG_READ(gpio_base + GPIO_EN_CTL);
+	val &= ~BIT(PERPH_EN_BIT);
+	REG_WRITE(gpio_base + GPIO_EN_CTL, val);
+
+	/* Select the mode */
+	val = config->function | (config->direction << 4);
+	REG_WRITE(gpio_base + GPIO_MODE_CTL, val);
+
+	/* Set the right pull */
+	val = config->pull;
+	REG_WRITE(gpio_base + GPIO_DIG_PULL_CTL, val);
+
+	/* Select the VIN */
+	val = config->vin_sel;
+	REG_WRITE(gpio_base + GPIO_DIG_VIN_CTL, val);
+
+	/* Enable the GPIO */
+	val  = REG_READ(gpio_base + GPIO_EN_CTL);
+	val |= BIT(PERPH_EN_BIT);
+	REG_WRITE(gpio_base + GPIO_EN_CTL, val);
+
+	return 1;
+}
+
+/* Reads the status of requested gpio */
+int pm8x41_gpio_get(uint8_t gpio, uint8_t *status)
+{
+	uint32_t gpio_base = GPIO_N_PERIPHERAL_BASE(gpio);
+
+	*status = REG_READ(gpio_base + GPIO_STATUS);
+
+	/* Return the value of the GPIO pin */
+	*status &= BIT(GPIO_STATUS_VAL_BIT);
+
+	dprintf(SPEW, "GPIO %d status is %d\n", gpio, *status);
+
+	return 1;
+}
+
+/* Prepare PON RESIN S2 reset */
+void pm8x41_vol_down_key_prepare()
+{
+	uint8_t val;
+
+	/* disable s2 reset */
+	REG_WRITE(PON_RESIN_N_RESET_S2_CTL, 0x0);
+
+	/* configure s1 timer to 0 */
+	REG_WRITE(PON_RESIN_N_RESET_S1_TIMER, 0x0);
+
+	/* configure s2 timer to 2s */
+	REG_WRITE(PON_RESIN_N_RESET_S2_TIMER, PON_RESIN_N_RESET_S2_TIMER_MAX_VALUE);
+
+	/* configure reset type */
+	REG_WRITE(PON_RESIN_N_RESET_S2_CTL, S2_RESET_TYPE_WARM);
+
+	val = REG_READ(PON_RESIN_N_RESET_S2_CTL);
+
+	/* enable s2 reset */
+	val |= BIT(S2_RESET_EN_BIT);
+	REG_WRITE(PON_RESIN_N_RESET_S2_CTL, val);
+}
+
+/* Volume_Down key detect cleanup */
+void pm8x41_vol_down_key_done()
+{
+	/* disable s2 reset */
+	REG_WRITE(PON_RESIN_N_RESET_S2_CTL, 0x0);
+}
+
+/* Volume_Down key status */
+int pm8x41_vol_down_key_status()
+{
+	uint8_t rt_sts = 0;
+
+	/* Enable S2 reset so we can detect the volume down key press */
+	pm8x41_vol_down_key_prepare();
+
+	/* Delay before interrupt triggering.
+	 * See PON_DEBOUNCE_CTL reg.
+	 */
+	mdelay(100);
+
+	rt_sts = REG_READ(PON_INT_RT_STS);
+
+	/* Must disable S2 reset otherwise PMIC will reset if key
+	 * is held longer than S2 timer.
+	 */
+	pm8x41_vol_down_key_done();
+
+	return (rt_sts & BIT(RESIN_BARK_INT_BIT));
 }
