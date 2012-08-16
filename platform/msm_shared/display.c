@@ -94,6 +94,12 @@ int msm_display_config()
 		if (ret)
 			goto msm_display_config_out;
 		break;
+	case LCDC_PANEL:
+		dprintf(INFO, "Config LCDC PANEL.\n");
+		ret = mdp_lcdc_config(pinfo, &(panel->fb));
+		if (ret)
+			goto msm_display_config_out;
+		break;
 	default:
 		return ERR_INVALID_ARGS;
 	};
@@ -140,6 +146,12 @@ int msm_display_on()
 		if (ret)
 			goto msm_display_on_out;
 		ret = mipi_cmd_trigger();
+		if (ret)
+			goto msm_display_on_out;
+		break;
+	case LCDC_PANEL:
+		dprintf(INFO, "Turn on LCDC PANEL.\n");
+		ret = mdp_lcdc_on(panel);
 		if (ret)
 			goto msm_display_on_out;
 		break;
@@ -228,6 +240,10 @@ int msm_display_off()
 		ret = mipi_dsi_off();
 		if (ret)
 			goto msm_display_off_out;
+		break;
+	case LCDC_PANEL:
+		dprintf(INFO, "Turn off LCDC PANEL.\n");
+		mdp_lcdc_off();
 		break;
 	default:
 		return ERR_INVALID_ARGS;

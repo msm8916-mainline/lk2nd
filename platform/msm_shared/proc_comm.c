@@ -257,6 +257,12 @@ void mdp_clock_disable(void)
 	clock_disable(MDP_P_CLK);
 }
 
+void lcdc_clock_disable(void)
+{
+	clock_disable(MDP_LCDC_PAD_PCLK_CLK);
+	clock_disable(MDP_LCDC_PCLK_CLK);
+}
+
 void uart3_clock_init(void)
 {
 	clock_enable(UART3_CLK);

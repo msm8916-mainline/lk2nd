@@ -117,4 +117,5 @@
 
 #define MSM_GIC_DIST_BASE                     (0xC0000000)
 #define MSM_GIC_CPU_BASE                      (0xC0002000)
+#define LCDC_BASE                             (0x000E0000)
 #endif
