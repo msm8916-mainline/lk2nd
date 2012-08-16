@@ -418,7 +418,9 @@ void boot_linux(void *kernel, unsigned *tags,
 	 * Will need to revisit to find the root cause.
 	 */
 	dsb();
+#if ARM_WITH_MMU
 	arch_disable_mmu();
+#endif
 	entry(0, machtype, tags);
 }
 
