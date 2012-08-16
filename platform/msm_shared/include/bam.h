@@ -229,6 +229,8 @@ struct cmd_element {
 void bam_init(struct bam_instance *bam);
 void bam_sys_pipe_init(struct bam_instance *bam,
                        uint8_t pipe_num);
+int bam_pipe_fifo_init(struct bam_instance *bam,
+                       uint8_t pipe_num);
 struct cmd_element* bam_add_cmd_element(struct cmd_element *ptr,
                                         uint32_t addr,
                                         uint32_t data,
@@ -236,8 +238,9 @@ struct cmd_element* bam_add_cmd_element(struct cmd_element *ptr,
 int bam_add_desc(struct bam_instance *bam,
                  unsigned int pipe_num,
                  unsigned char *data_ptr,
-                 unsigned int data_len);
-int bam_add_cmd_desc(struct bam_instance *bam,
+                 unsigned int data_len,
+                 unsigned flags);
+int bam_add_one_desc(struct bam_instance *bam,
                      unsigned int pipe_num,
                      unsigned char*,
                      uint32_t len,
@@ -248,6 +251,6 @@ void bam_sys_gen_event(struct bam_instance *bam,
 int bam_wait_for_interrupt(struct bam_instance *bam,
                            uint8_t pipe_num,
                            enum p_int_type interrupt);
-unsigned bam_read_offset_update(struct bam_instance *bam, unsigned int pipe_num);
+void bam_read_offset_update(struct bam_instance *bam, unsigned int pipe_num);
 
 #endif
