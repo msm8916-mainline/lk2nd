@@ -29,6 +29,34 @@
 #ifndef _PM8x41_H_
 #define _PM8x41_H_
 
+#define PM_GPIO_DIR_OUT         0x01
+#define PM_GPIO_DIR_IN          0x00
+#define PM_GPIO_DIR_BOTH        0x02
+
+#define PM_GPIO_PULL_UP_30      0
+#define PM_GPIO_PULL_UP_1_5     1
+#define PM_GPIO_PULL_UP_31_5    2
+/* 1.5uA + 30uA boost */
+#define PM_GPIO_PULL_UP_1_5_30  3
+#define PM_GPIO_PULL_RESV_1     4
+#define PM_GPIO_PULL_RESV_2     5
+
+struct pm8x41_gpio {
+	int direction;
+	int output_buffer;
+	int output_value;
+	int pull;
+	int vin_sel;
+	int out_strength;
+	int function;
+	int inv_int_pol;
+	int disable_pin;
+};
+
+int pm8x41_gpio_get(uint8_t gpio, uint8_t *status);
+int pm8x41_gpio_config(uint8_t gpio, struct pm8x41_gpio *config);
 void pm8x41_set_boot_done();
+int pm8x41_vol_down_key_status();
+
 
 #endif

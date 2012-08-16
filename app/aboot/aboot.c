@@ -628,7 +628,6 @@ int boot_linux_from_mmc(void)
 			}
 
 			/* Read device device tree in the "tags_add */
-			hdr->tags_addr = 0x8400000;
 			if(mmc_read(ptn + offset + dt_entry_ptr->offset,
 						 (void *)hdr->tags_addr, dt_entry_ptr->size)) {
 				dprintf(CRITICAL, "ERROR: Cannot read device tree\n");
