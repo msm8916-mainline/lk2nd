@@ -97,6 +97,9 @@ int pm8x41_gpio_config(uint8_t gpio, struct pm8x41_gpio *config)
 	uint8_t  val;
 	uint32_t gpio_base = GPIO_N_PERIPHERAL_BASE(gpio);
 
+	/* Only input configuration is implemented at this time. */
+	ASSERT(config->direction == PM_GPIO_DIR_IN);
+
 	/* Disable the GPIO */
 	val  = REG_READ(gpio_base + GPIO_EN_CTL);
 	val &= ~BIT(PERPH_EN_BIT);
@@ -145,6 +148,9 @@ void pm8x41_vol_down_key_prepare()
 	/* disable s2 reset */
 	REG_WRITE(PON_RESIN_N_RESET_S2_CTL, 0x0);
 
+	/* Delay needed for disable to kick in. */
+	udelay(300);
+
 	/* configure s1 timer to 0 */
 	REG_WRITE(PON_RESIN_N_RESET_S1_TIMER, 0x0);
 
@@ -166,6 +172,9 @@ void pm8x41_vol_down_key_done()
 {
 	/* disable s2 reset */
 	REG_WRITE(PON_RESIN_N_RESET_S2_CTL, 0x0);
+
+	/* Delay needed for disable to kick in. */
+	udelay(300);
 }
 
 /* Volume_Down key status */
