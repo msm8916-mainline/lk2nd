@@ -34,6 +34,9 @@
 
 #define MSM_SHARED_BASE             0x0FA00000
 
+#define MSM_SHARED_IMEM_BASE        0xFE805000
+#define RESTART_REASON_ADDR        (MSM_SHARED_IMEM_BASE + 0x65C)
+
 #define KPSS_BASE                   0xF9000000
 
 #define MSM_GIC_DIST_BASE           KPSS_BASE
