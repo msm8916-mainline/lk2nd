@@ -247,14 +247,11 @@ void mdp_clock_init(unsigned rate)
 {
 	clock_set_rate(MDP_CLK, rate);
 	clock_enable(MDP_CLK);
-	clock_enable(MDP_P_CLK);
 }
 
 void mdp_clock_disable(void)
 {
-	if (!target_cont_splash_screen())
-		clock_disable(MDP_CLK);
-	clock_disable(MDP_P_CLK);
+	clock_disable(MDP_CLK);
 }
 
 void lcdc_clock_disable(void)
