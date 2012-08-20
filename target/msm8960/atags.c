@@ -84,8 +84,8 @@ atag_mem_info mpq8064_first_256M[] = {
 	{	.size = (74 * SIZE_1M),
 		.start_addr = PHYS_MEM_START_ADDR + (0x90 * SIZE_1M)
 	},
-	{	.size = (14 * SIZE_1M),
-		.start_addr = PHYS_MEM_START_ADDR + (0xF2 * SIZE_1M)
+	{	.size = (20 * SIZE_1M),
+		.start_addr = PHYS_MEM_START_ADDR + (0xEC * SIZE_1M)
 	}
 };
 
