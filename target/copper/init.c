@@ -177,3 +177,19 @@ unsigned check_reboot_mode(void)
 
 	return restart_reason;
 }
+
+void reboot_device(unsigned reboot_reason)
+{
+	/* Write the reboot reason */
+	writel(reboot_reason, RESTART_REASON_ADDR);
+
+	/* Configure PMIC for warm reset */
+	pm8x41_reset_configure(PON_PSHOLD_WARM_RESET);
+
+	/* Drop PS_HOLD for MSM */
+	writel(0x00, MPM2_MPM_PS_HOLD);
+
+	mdelay(5000);
+
+	dprintf(CRITICAL, "Rebooting failed\n");
+}

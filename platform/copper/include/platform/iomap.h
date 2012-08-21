@@ -34,8 +34,8 @@
 
 #define MSM_SHARED_BASE             0x0FA00000
 
-#define MSM_SHARED_IMEM_BASE        0xFE805000
-#define RESTART_REASON_ADDR        (MSM_SHARED_IMEM_BASE + 0x65C)
+#define RPM_MSG_RAM_BASE            0xFC42B000
+#define RESTART_REASON_ADDR         (RPM_MSG_RAM_BASE + 0x65C)
 
 #define KPSS_BASE                   0xF9000000
 
@@ -85,7 +85,7 @@
 #define GPIO_IN_OUT_ADDR(x)         (TLMM_BASE_ADDR + 0x1004 + (x)*0x10)
 
 #define MPM2_MPM_CTRL_BASE          0xFC4A1000
-
+#define MPM2_MPM_PS_HOLD            0xFC4AB000
 
 /* GPLL */
 #define GPLL0_STATUS                (CLK_CTL_BASE + 0x001C)
