@@ -190,9 +190,11 @@ void liquid_mmss_clock_init(void)
 
 void mmss_clock_disable(void)
 {
-	writel(0x0, DSI1_BYTE_CC_REG);
+	writel(0x80000000, DSI1_BYTE_CC_REG);
 	writel(0x0, DSI_PIXEL_CC_REG);
+	writel(0x0, DSI1_BYTE_NS_REG);
 	writel(0x0, DSI1_ESC_CC_REG);
+	writel(0x0, DSI1_ESC_NS_REG);
 
 	/* Disable root clock */
 	writel(0x0, DSI_CC_REG);
