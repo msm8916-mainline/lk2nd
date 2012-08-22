@@ -47,7 +47,6 @@ void arch_early_init(void)
 #if ARM_WITH_MMU
 	arm_mmu_init();
 
-	platform_init_mmu_mappings();
 #endif
 
 	/* turn the cache back on */

@@ -78,6 +78,8 @@ void arm_mmu_init(void)
 				    MMU_MEMORY_AP_READ_WRITE);
 	}
 
+	platform_init_mmu_mappings();
+
 	/* set up the translation table base */
 	arm_write_ttbr((uint32_t)tt);
 
