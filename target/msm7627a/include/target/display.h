@@ -72,7 +72,7 @@
 #define NT35510_MIPI_FB_WIDTH            480
 #define NT35510_MIPI_FB_HEIGHT           800
 
-#define MIPI_FB_ADDR  0x20000000
+#define MIPI_FB_ADDR  0x2C800000
 #define LCDC_FB_ADDR  0x2C800000
 
 extern int mipi_dsi_phy_init(struct mipi_dsi_panel_config *);
