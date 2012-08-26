@@ -199,3 +199,23 @@ int pm8x41_vol_down_key_status()
 
 	return (rt_sts & BIT(RESIN_BARK_INT_BIT));
 }
+
+void pm8x41_reset_configure(uint8_t reset_type)
+{
+	uint8_t val;
+
+	/* disable PS_HOLD_RESET */
+	REG_WRITE(PON_PS_HOLD_RESET_CTL, 0x0);
+
+	/* Delay needed for disable to kick in. */
+	udelay(300);
+
+	/* configure reset type */
+	REG_WRITE(PON_PS_HOLD_RESET_CTL, reset_type);
+
+	val = REG_READ(PON_PS_HOLD_RESET_CTL);
+
+	/* enable PS_HOLD_RESET */
+	val |= BIT(S2_RESET_EN_BIT);
+	REG_WRITE(PON_PS_HOLD_RESET_CTL, val);
+}

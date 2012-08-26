@@ -41,6 +41,8 @@
 #define PM_GPIO_PULL_RESV_1     4
 #define PM_GPIO_PULL_RESV_2     5
 
+#define PON_PSHOLD_WARM_RESET   0x1
+
 struct pm8x41_gpio {
 	int direction;
 	int output_buffer;
@@ -57,6 +59,6 @@ int pm8x41_gpio_get(uint8_t gpio, uint8_t *status);
 int pm8x41_gpio_config(uint8_t gpio, struct pm8x41_gpio *config);
 void pm8x41_set_boot_done();
 int pm8x41_vol_down_key_status();
-
+void pm8x41_reset_configure(uint8_t);
 
 #endif

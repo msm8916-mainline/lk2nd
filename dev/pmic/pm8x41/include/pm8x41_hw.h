@@ -67,6 +67,7 @@
 #define PON_RESIN_N_RESET_S1_TIMER            0x844  /* bits 0:3  : S1_TIMER */
 #define PON_RESIN_N_RESET_S2_TIMER            0x845  /* bits 0:2  : S2_TIMER */
 #define PON_RESIN_N_RESET_S2_CTL              0x846  /* bit 7: S2_RESET_EN, bit 0:3 : RESET_TYPE  */
+#define PON_PS_HOLD_RESET_CTL                 0x85A  /* bit 7: S2_RESET_EN, bit 0:3 : RESET_TYPE  */
 
 /* PON Peripheral register bit values */
 #define RESIN_BARK_INT_BIT                    4
