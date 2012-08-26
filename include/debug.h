@@ -60,9 +60,9 @@ int _dvprintf(const char *fmt, va_list ap);
 int dgetc(char *c, bool wait);
 
 /* systemwide halts */
-void halt(void) __NO_RETURN;
+void halt(void);
 
-void _panic(void *caller, const char *fmt, ...) __PRINTFLIKE(2, 3) __NO_RETURN;
+void _panic(void *caller, const char *fmt, ...) __PRINTFLIKE(2, 3);
 #define panic(x...) _panic(__GET_CALLER(), x)
 
 #define PANIC_UNIMPLEMENTED panic("%s unimplemented\n", __PRETTY_FUNCTION__)
