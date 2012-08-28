@@ -67,19 +67,6 @@ unsigned board_machtype(void)
 /* Identify the current target */
 void target_detect(struct board_data *board)
 {
-	switch(board->platform_hw)
-	{
-	case HW_PLATFORM_SURF:
-		board->target = LINUX_MACHTYPE_9625_CDP;
-		break;
-
-	case HW_PLATFORM_MTP:
-		board->target = LINUX_MACHTYPE_9625_MTP;
-		break;
-
-	default:
-		board->target = LINUX_MACHTYPE_9625_CDP;
-	}
 }
 
 /* Identify the baseband being used */
