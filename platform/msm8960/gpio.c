@@ -206,46 +206,68 @@ static struct pm8xxx_gpio_init pm8921_keypad_gpios_apq[] = {
 	PM8XXX_GPIO_OUTPUT(PM_GPIO(9), 0),
 };
 
+/* pm8917 GPIO configuration for APQ8064 keypad */
+static struct pm8xxx_gpio_init pm8917_keypad_gpios_apq[] = {
+	/* keys GPIOs */
+	PM8XXX_GPIO_INPUT(PM_GPIO(35), PM_GPIO_PULL_UP_31_5),
+	PM8XXX_GPIO_INPUT(PM_GPIO(30), PM_GPIO_PULL_UP_31_5),
+	PM8XXX_GPIO_OUTPUT(PM_GPIO(9), 0),
+};
+
+
 void msm8960_keypad_gpio_init()
 {
-		int i = 0;
-		int num = 0;
+	int i = 0;
+	int num = 0;
 
-		num = ARRAY_SIZE(pm8921_keypad_gpios);
+	num = ARRAY_SIZE(pm8921_keypad_gpios);
 
-		for(i=0; i < num; i++)
-		{
-			pm8921_gpio_config(pm8921_keypad_gpios[i].gpio,
-								&(pm8921_keypad_gpios[i].config));
-		}
+	for(i=0; i < num; i++)
+	{
+		pm8921_gpio_config(pm8921_keypad_gpios[i].gpio,
+							&(pm8921_keypad_gpios[i].config));
+	}
 }
 
 void msm8930_keypad_gpio_init()
 {
-		int i = 0;
-		int num = 0;
+	int i = 0;
+	int num = 0;
 
-		num = ARRAY_SIZE(pm8038_keypad_gpios);
+	num = ARRAY_SIZE(pm8038_keypad_gpios);
 
-		for(i=0; i < num; i++)
-		{
-			pm8921_gpio_config(pm8038_keypad_gpios[i].gpio,
-								&(pm8038_keypad_gpios[i].config));
-		}
+	for(i=0; i < num; i++)
+	{
+		pm8921_gpio_config(pm8038_keypad_gpios[i].gpio,
+							&(pm8038_keypad_gpios[i].config));
+	}
 }
 
 void apq8064_keypad_gpio_init()
 {
-		int i = 0;
-		int num = 0;
+	int i = 0;
+	int num = 0;
+	struct pm8xxx_gpio_init *gpio_array;
+	uint32_t pmic_type;
 
+	pmic_type = board_pmic_type();
+
+	if (pmic_type == PMIC_IS_PM8917)
+	{
+		num = ARRAY_SIZE(pm8917_keypad_gpios_apq);
+		gpio_array = pm8917_keypad_gpios_apq;
+	}
+	else
+	{
 		num = ARRAY_SIZE(pm8921_keypad_gpios_apq);
+		gpio_array = pm8921_keypad_gpios_apq;
+	}
 
-		for(i=0; i < num; i++)
-		{
-			pm8921_gpio_config(pm8921_keypad_gpios_apq[i].gpio,
-								&(pm8921_keypad_gpios_apq[i].config));
-		}
+	for(i = 0; i < num; i++)
+	{
+		pm8921_gpio_config(gpio_array[i].gpio,
+							&(gpio_array[i].config));
+	}
 }
 
 #define PM8921_GPIO_OUTPUT_FUNC(_gpio, _val, _func) \

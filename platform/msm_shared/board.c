@@ -36,7 +36,9 @@ static struct board_data board = {UNKNOWN,
 	HW_PLATFORM_UNKNOWN,
 	HW_PLATFORM_SUBTYPE_UNKNOWN,
 	LINUX_MACHTYPE_UNKNOWN,
-	BASEBAND_MSM};
+	BASEBAND_MSM,
+	PMIC_IS_INVALID,
+	0};
 
 static void platform_detect()
 {
@@ -78,7 +80,8 @@ static void platform_detect()
 		board.platform = board_info_v7.board_info_v3.msm_id;
 		board.platform_hw = board_info_v7.board_info_v3.hw_platform;
 		board.platform_subtype = board_info_v7.platform_subtype;
-
+		board.pmic_type = board_info_v7.pmic_type;
+		board.pmic_version = board_info_v7.pmic_version;
 	}
 	else
 	{
@@ -112,4 +115,14 @@ uint32_t board_baseband()
 uint32_t board_hardware_id()
 {
 	return board.platform_hw;
+}
+
+uint32_t board_pmic_type()
+{
+	return board.pmic_type;
+}
+
+uint32_t board_pmic_ver()
+{
+	return board.pmic_version;
 }

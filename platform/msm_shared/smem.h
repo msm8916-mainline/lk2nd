@@ -89,7 +89,9 @@ typedef enum
    PMIC_IS_PM8014,
    PMIC_IS_PM8821,
    PMIC_IS_PM8038,
-   PMIC_IS_INVALID,
+   PMIC_IS_PM8922,
+   PMIC_IS_PM8917,
+   PMIC_IS_INVALID = 0xffffffff,
 } pm_model_type;
 
 struct smem_board_info_v3 {
