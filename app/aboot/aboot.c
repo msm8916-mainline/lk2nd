@@ -499,10 +499,7 @@ int boot_linux_from_mmc(void)
 		image_addr = (unsigned char *)target_get_scratch_address();
 		kernel_actual = ROUND_TO_PAGE(hdr->kernel_size, page_mask);
 		ramdisk_actual = ROUND_TO_PAGE(hdr->ramdisk_size, page_mask);
-		second_actual = ROUND_TO_PAGE(hdr->second_size, page_mask);
-		dt_actual = ROUND_TO_PAGE(hdr->ramdisk_size, page_mask);
-		imagesize_actual = (page_size + kernel_actual + ramdisk_actual + second_actual +
-							dt_actual);
+		imagesize_actual = (page_size + kernel_actual + ramdisk_actual);
 
 		offset = 0;
 
