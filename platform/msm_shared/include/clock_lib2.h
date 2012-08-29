@@ -52,7 +52,7 @@
                 .freq_hz = (f), \
                 .src_clk = &s##_clk_src.c, \
                 .m_val   = (m), \
-                .n_val   = ~((n)-(m)), \
+                .n_val   = ~((n)-(m)) * !!(n), \
                 .d_val   = ~(n),\
                 .div_src_val = BVAL(4, 0, (int)(2*(div) - 1)) \
                               | BVAL(10, 8, s##_source_val), \

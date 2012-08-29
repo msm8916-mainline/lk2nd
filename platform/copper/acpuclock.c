@@ -126,10 +126,7 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 	}
 	else if(freq == MMC_CLK_50MHZ)
 	{
-		/* For now, not able to bump the clock to 50MHz
-		 * so use 20MHz for now.
-		 */
-		ret = clk_get_set_enable(clk_name, 20000000, 1);
+		ret = clk_get_set_enable(clk_name, 50000000, 1);
 	}
 	else
 	{
