@@ -62,6 +62,9 @@
 /* Branch Clock Bits */
 #define CBCR_BRANCH_ENABLE_BIT  BIT(0)
 #define CBCR_BRANCH_OFF_BIT     BIT(31)
+#define BRANCH_CHECK_MASK       BM(31, 28)
+#define BRANCH_ON_VAL           BVAL(31, 28, 0x0)
+#define BRANCH_NOC_FSM_ON_VAL   BVAL(31, 28, 0x2)
 
 /* Root Clock Bits */
 #define CMD_UPDATE_BIT          BIT(0)
@@ -138,6 +141,16 @@ struct rcg_clk {
 	struct clk c;
 };
 
+/* Vote Clock */
+struct vote_clk {
+
+	uint32_t *const cbcr_reg;
+	uint32_t *const vote_reg;
+	uint32_t en_mask;
+
+    struct clk c;
+};
+
 static inline struct rcg_clk *to_rcg_clk(struct clk *clk)
 {
 	return container_of(clk, struct rcg_clk, c);
@@ -146,6 +159,11 @@ static inline struct rcg_clk *to_rcg_clk(struct clk *clk)
 static inline struct branch_clk *to_branch_clk(struct clk *clk)
 {
 	return container_of(clk, struct branch_clk, c);
+}
+
+static inline struct vote_clk *to_local_vote_clk(struct clk *clk)
+{
+	return container_of(clk, struct vote_clk, c);
 }
 
 /* RCG clock functions */
@@ -163,4 +181,7 @@ int  clock_lib2_branch_clk_enable(struct clk *clk);
 void clock_lib2_branch_clk_disable(struct clk *clk);
 int  clock_lib2_branch_set_rate(struct clk *c, unsigned rate);
 
+/* Vote clock functions*/
+int clock_lib2_vote_clk_enable(struct clk *c);
+void clock_lib2_vote_clk_disable(struct clk *c);
 #endif

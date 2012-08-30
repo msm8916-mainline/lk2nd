@@ -153,11 +153,15 @@ void clock_config_uart_dm(uint8_t id)
 {
 	int ret;
 
-	/* Enable blsp_uart_clk */
-	/* TODO: Find out correct frequency and UART_DM_CLK_RX_TX_BIT_RATE
-	 * combination for generating 115200 baud rate.
-	 */
-	ret = clk_get_set_enable("uart1_core_clk", 7372800, 1);
+
+    ret = clk_get_set_enable("uart2_iface_clk", 0, 1);
+    if(ret)
+	{
+		dprintf(CRITICAL, "failed to set uart2_iface_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+    ret = clk_get_set_enable("uart2_core_clk", 7372800, 1);
 	if(ret)
 	{
 		dprintf(CRITICAL, "failed to set uart1_core_clk ret = %d\n", ret);
