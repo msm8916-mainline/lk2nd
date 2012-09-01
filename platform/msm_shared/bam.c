@@ -33,6 +33,7 @@
 #include <platform/interrupts.h>
 #include <platform/iomap.h>
 #include <platform/irqs.h>
+#include <pow2.h>
 
 #define HLOS_EE_INDEX          0
 
@@ -206,6 +207,11 @@ int bam_pipe_fifo_init(struct bam_instance *bam,
 	/* Check if fifo start is 8-byte alligned */
 	ASSERT(!((uint32_t)bam->pipe[pipe_num].fifo.head & 0x7));
 
+	/* Check if fifo size is a power of 2.
+	 * The circular fifo logic in lk expects this.
+	 */
+	ASSERT(ispow2(bam->pipe[pipe_num].fifo.size));
+
 	bam->pipe[pipe_num].fifo.current = bam->pipe[pipe_num].fifo.head;
 
 	/* Set the descriptor buffer size. Must be a multiple of 8 */
@@ -274,6 +280,7 @@ void bam_sys_gen_event(struct bam_instance *bam,
 	/* Update the fifo peer offset */
 	val = (num_desc - 1) * BAM_DESC_SIZE;
 	val += bam->pipe[pipe_num].fifo.offset;
+	val &= (bam->pipe[pipe_num].fifo.size * BAM_DESC_SIZE - 1);
 
 	writel(val, BAM_P_EVNT_REGn(bam->pipe[pipe_num].pipe_num, bam->base));
 }
@@ -285,7 +292,7 @@ void bam_sys_gen_event(struct bam_instance *bam,
  * Note : S/W maintains the circular properties of the FIFO and updates
  *        the offsets accordingly.
  */
-unsigned bam_read_offset_update(struct bam_instance *bam, unsigned int pipe_num)
+void bam_read_offset_update(struct bam_instance *bam, unsigned int pipe_num)
 {
 	uint32_t offset;
 
@@ -294,18 +301,11 @@ unsigned bam_read_offset_update(struct bam_instance *bam, unsigned int pipe_num)
 
 	dprintf(INFO, "Offset value is %d \n", offset);
 
-	if (offset == (uint16_t)(bam->pipe[pipe_num].fifo.size - 1) * BAM_DESC_SIZE )
-	{
-		bam->pipe[pipe_num].fifo.current = bam->pipe[pipe_num].fifo.head;
-		offset = 0;
-	}
-	else
+	/* Save the next offset to be written to. */
 		bam->pipe[pipe_num].fifo.current = (struct bam_desc*)
 											((uint32_t)bam->pipe[pipe_num].fifo.head + offset);
 
 	bam->pipe[pipe_num].fifo.offset = offset + BAM_DESC_SIZE ;
-
-	return offset;
 }
 
 /* Function to get the next desc address.
@@ -318,7 +318,6 @@ static struct bam_desc* fifo_getnext(struct bam_desc_fifo *fifo,
 	uint16_t offset;
 
 	offset = desc - fifo->head;
-	offset /= BAM_DESC_SIZE;
 
 	if (offset == (fifo->size - 1))
 		return fifo->head;
@@ -330,33 +329,27 @@ static struct bam_desc* fifo_getnext(struct bam_desc_fifo *fifo,
  * bam : BAM instance to be used.
  * data_ptr : Memory address for data transfer.
  * data_len : Length of the data_ptr.
+ * flags : Flags to be set on the last desc added.
  *
+ * Note: This function also notifies the BAM about the added descriptors.
  */
 int bam_add_desc(struct bam_instance *bam,
                  unsigned int pipe_num,
                  unsigned char *data_ptr,
-                 unsigned int data_len)
+                 unsigned int data_len,
+                 unsigned flags)
 {
-	struct bam_desc *desc;
-	struct bam_desc *next = bam->pipe[pipe_num].fifo.current;
 	int bam_ret = BAM_RESULT_SUCCESS;
 	unsigned int len = data_len;
+	unsigned int desc_len;
 	unsigned int n = 0;
+	unsigned int desc_flags;
 
 	dprintf(INFO, "Data length for BAM transfer is %u\n", data_len);
 
 	if (data_ptr == NULL || len == 0)
 	{
 		dprintf(CRITICAL, "Wrong params for BAM transfer \n");
-		bam_ret = BAM_RESULT_FAILURE;
-		goto bam_add_desc_error;
-	}
-
-	/* Check if the FIFO is allocated for the pipe */
-	if (!bam->pipe[pipe_num].initialized)
-	{
-		dprintf(CRITICAL, "Please allocate the FIFO for the BAM pipe %d\n",
-				bam->pipe[pipe_num].pipe_num);
 		bam_ret = BAM_RESULT_FAILURE;
 		goto bam_add_desc_error;
 	}
@@ -371,46 +364,108 @@ int bam_add_desc(struct bam_instance *bam,
 
 	while (len)
 	{
-		desc = next;
+
 		/* There are only 16 bits to write data length.
 		 * If more bits are needed, create more
 		 * descriptors.
 		 */
 		if (len > BAM_MAX_DESC_DATA_LEN)
 		{
-			desc->size = BAM_MAX_DESC_DATA_LEN;
+			desc_len = BAM_MAX_DESC_DATA_LEN;
 			len -= BAM_MAX_DESC_DATA_LEN;
+			desc_flags = 0;
 		}
 		else
 		{
-			desc->size = len;
+			desc_len = len;
 			len = 0;
+			/* Set correct flags on the last desc. */
+			desc_flags = flags;
 		}
 
-		/* Write descriptors */
-		desc->addr = (uint32_t)data_ptr;
-		desc->flags = 0;
-		desc->reserved = 0;
+		/* Write descriptor */
+		bam_add_one_desc(bam, pipe_num, data_ptr, desc_len, desc_flags);
 
-		next = fifo_getnext(&bam->pipe[pipe_num].fifo, desc);
 		data_ptr += BAM_MAX_DESC_DATA_LEN;
 		n++;
-
-		dprintf(INFO,"Desc written: len = %u addr = %u\n", desc->size, desc->addr);
 	}
 
-	if (bam->pipe[pipe_num].trans_type == BAM2SYS)
-		/* Set interrupt bit for the last descriptor. */
-		desc->flags |= BAM_DESC_INT_FLAG;
-	else
-		/* Set transaction end bit for the last descriptor. */
-		desc->flags |= BAM_DESC_EOT_FLAG;
 
 	/* Create a read/write event to notify the periperal of the added desc. */
 	bam_sys_gen_event(bam, pipe_num, n);
 
 bam_add_desc_error:
 
+	return bam_ret;
+}
+
+/* Function to add a BAM descriptor for a given fifo.
+ * bam : BAM instance to be used.
+ * data_ptr : Memory address for data transfer.
+ * data_len : Length of the data_ptr.
+ * flags : Flags to be set on the desc added.
+ *
+ * Note: This function does not notify the BAM about the added descriptor.
+ */
+int bam_add_one_desc(struct bam_instance *bam,
+                     unsigned int pipe_num,
+                     unsigned char* data_ptr,
+                     uint32_t len,
+                     uint8_t flags)
+{
+
+	struct bam_desc *desc = bam->pipe[pipe_num].fifo.current;
+	int bam_ret = BAM_RESULT_SUCCESS;
+
+	if (data_ptr == NULL || len == 0)
+	{
+		dprintf(CRITICAL, "Wrong params for BAM transfer \n");
+		bam_ret = BAM_RESULT_FAILURE;
+		goto bam_add_one_desc_error;
+	}
+
+	/* Check if the FIFO is allocated for the pipe */
+	if (!bam->pipe[pipe_num].initialized)
+	{
+		dprintf(CRITICAL, "Please allocate the FIFO for the BAM pipe %d\n",
+				bam->pipe[pipe_num].pipe_num);
+		bam_ret = BAM_RESULT_FAILURE;
+		goto bam_add_one_desc_error;
+	}
+
+	if ((flags & BAM_DESC_LOCK_FLAG) && (flags & BAM_DESC_UNLOCK_FLAG))
+	{
+		dprintf(CRITICAL, "Can't lock and unlock in the same desc\n");
+		bam_ret = BAM_RESULT_FAILURE;
+		goto bam_add_one_desc_error;
+	}
+
+	/* Setting EOT flag on a CMD desc is not valid */
+	if ((flags & BAM_DESC_EOT_FLAG) && (flags & BAM_DESC_CMD_FLAG))
+	{
+		dprintf(CRITICAL, "EOT flag set on the CMD desc\n");
+		bam_ret = BAM_RESULT_FAILURE;
+		goto bam_add_one_desc_error;
+	}
+
+	/* Check for the length of the desc. */
+	if (len > BAM_MAX_DESC_DATA_LEN)
+	{
+		dprintf(CRITICAL, "len of the desc exceeds max length"
+				" %d > %d\n", len, BAM_MAX_DESC_DATA_LEN);
+		bam_ret = BAM_RESULT_FAILURE;
+		goto bam_add_one_desc_error;
+	}
+
+	desc->flags = flags;
+	desc->addr = (uint32_t)data_ptr;
+	desc->size = (uint16_t)len;
+	desc->reserved = 0;
+
+	/* Update the FIFO to point to the head */
+	bam->pipe[pipe_num].fifo.current = fifo_getnext(&bam->pipe[pipe_num].fifo, desc);
+
+bam_add_one_desc_error:
 	return bam_ret;
 }
 
@@ -422,7 +477,7 @@ struct cmd_element* bam_add_cmd_element(struct cmd_element *ptr,
 	/* Write cmd type.
 	 * Also, write the register address.
 	 */
-	 ptr->addr_n_cmd = (reg_addr << 8) | cmd_type;
+	 ptr->addr_n_cmd = (reg_addr & ~(0xFF000000)) | (cmd_type << 24);
 
 	/* Do not mask any of the addr bits by default */
 	ptr->reg_mask = 0xFFFFFFFF;
@@ -432,63 +487,4 @@ struct cmd_element* bam_add_cmd_element(struct cmd_element *ptr,
 
 	/* Return the address to add the next element to */
 	return ptr + 1;
-}
-
-/* Command descriptors are added one by one.
- * This is because each descriptor might have different
- * flag settings.
- */
-int bam_add_cmd_desc(struct bam_instance *bam,
-                     unsigned int pipe_num,
-                     unsigned char* data_ptr,
-                     uint32_t len,
-                     uint8_t flags)
-{
-
-	struct bam_desc *desc = bam->pipe[pipe_num].fifo.current;
-	struct bam_desc *next = bam->pipe[pipe_num].fifo.current;
-	int bam_ret = BAM_RESULT_SUCCESS;
-
-	if (data_ptr == NULL || len == 0)
-	{
-		dprintf(CRITICAL, "Wrong params for BAM transfer \n");
-		bam_ret = BAM_RESULT_FAILURE;
-		goto bam_add_cmd_desc_error;
-	}
-
-	/* Check if the FIFO is allocated for the pipe */
-	if (!bam->pipe[pipe_num].initialized)
-	{
-		dprintf(CRITICAL, "Please allocate the FIFO for the BAM pipe %d\n",
-				bam->pipe[pipe_num].pipe_num);
-		bam_ret = BAM_RESULT_FAILURE;
-		goto bam_add_cmd_desc_error;
-	}
-
-	if ((flags & BAM_DESC_LOCK_FLAG) && (flags & BAM_DESC_UNLOCK_FLAG))
-	{
-		dprintf(CRITICAL, "Can't lock and unlock in the same desc\n");
-		bam_ret = BAM_RESULT_FAILURE;
-		goto bam_add_cmd_desc_error;
-	}
-
-	/* Setting EOT flag on a CMD desc is not valid */
-	if (flags & BAM_DESC_EOT_FLAG)
-	{
-		dprintf(CRITICAL, "EOT flag set on the CMD desc\n");
-		bam_ret = BAM_RESULT_FAILURE;
-		goto bam_add_cmd_desc_error;
-	}
-
-	/* Set the passed in flags along with the CMD flag. */
-	desc->flags = flags | BAM_DESC_CMD_FLAG;
-	desc->addr = data_ptr;
-	desc->size = len;
-	desc->reserved = 0;
-
-	/* Update the FIFO to point to the head */
-	bam->pipe[pipe_num].fifo.current = fifo_getnext(&bam->pipe[pipe_num].fifo, desc);
-
-bam_add_cmd_desc_error:
-	return bam_ret;
 }
