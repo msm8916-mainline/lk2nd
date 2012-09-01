@@ -24,6 +24,7 @@
 #include <debug.h>
 #include <target.h>
 #include <compiler.h>
+#include <mmc.h>
 
 #define EXPAND(NAME) #NAME
 #define TARGET(NAME) EXPAND(NAME)
@@ -116,4 +117,10 @@ __WEAK void target_usb_init(void)
 /* Default target specific usb shutdown */
 __WEAK void target_usb_stop(void)
 {
+}
+
+/* Default target specific function for mmc bus width */
+__WEAK int target_mmc_bus_width()
+{
+	return MMC_BOOT_BUS_WIDTH_4_BIT;
 }

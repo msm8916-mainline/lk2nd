@@ -2104,6 +2104,7 @@ mmc_boot_init_and_identify_cards(struct mmc_boot_host *host,
 {
 	unsigned int mmc_return = MMC_BOOT_E_SUCCESS;
 	unsigned int status;
+	uint8_t mmc_bus_width = 0;
 
 	/* Basic check */
 	if (host == NULL) {
@@ -2162,8 +2163,9 @@ mmc_boot_init_and_identify_cards(struct mmc_boot_host *host,
 		}
 
 		/* enable wide bus */
+		mmc_bus_width = target_mmc_bus_width();
 		mmc_return =
-		    mmc_boot_set_bus_width(card, MMC_BOOT_BUS_WIDTH_4_BIT);
+		    mmc_boot_set_bus_width(card, mmc_bus_width);
 		if (mmc_return != MMC_BOOT_E_SUCCESS) {
 			dprintf(CRITICAL,
 				"Error No.%d: Failure to set wide bus for Card(RCA:%x)\n",

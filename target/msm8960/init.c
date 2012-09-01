@@ -466,3 +466,8 @@ void target_usb_init(void)
 			apq8064_ext_3p3V_enable();
 	}
 }
+
+int target_mmc_bus_width()
+{
+	return MMC_BOOT_BUS_WIDTH_8_BIT;
+}
