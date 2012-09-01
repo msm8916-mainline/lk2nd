@@ -29,6 +29,9 @@
 #ifndef _PLATFORM_MSMCOPPER_IOMAP_H_
 #define _PLATFORM_MSMCOPPER_IOMAP_H_
 
+#define MSM_IOMAP_BASE              0xF9000000
+#define MSM_IOMAP_END               0xFEFFFFFF
+
 #define SDRAM_START_ADDR            0x00000000
 #define SDRAM_SEC_BANK_START_ADDR   0x10000000
 
