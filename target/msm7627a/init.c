@@ -235,7 +235,8 @@ void board_info(void)
 		}
 
 		/* Detect SURF v/s FFA v/s QRD */
-		if (target_msm_id >= MSM8225 && target_msm_id <= MSM8625) {
+		if (target_msm_id >= MSM8225 && target_msm_id <= MSM8625
+						|| (target_msm_id == MSM8125A)) {
 			switch (id) {
 			case 0x1:
 				hw_platform = MSM8X25_SURF;
@@ -305,6 +306,7 @@ void board_info(void)
 			break;
 		case MSM8225:
 		case MSM8625:
+		case MSM8125A:
 			target_msm_id = MSM8625;
 			break;
 		default:
