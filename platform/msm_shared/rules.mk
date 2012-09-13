@@ -132,5 +132,8 @@ ifeq ($(PLATFORM),mdm9x25)
 			$(LOCAL_DIR)/board.o \
 			$(LOCAL_DIR)/qpic_nand.o \
 			$(LOCAL_DIR)/bam.o \
-			$(LOCAL_DIR)/dev_tree.o
+			$(LOCAL_DIR)/dev_tree.o \
+			$(LOCAL_DIR)/clock.o \
+			$(LOCAL_DIR)/clock_pll.o \
+			$(LOCAL_DIR)/clock_lib2.o
 endif
