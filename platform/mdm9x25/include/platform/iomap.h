@@ -58,4 +58,10 @@
 /* USB */
 #define MSM_USB_BASE              (PERIPH_SS_BASE + 0x00255000)
 
+/* NAND */
+#define MSM_NAND_BASE              0xF9AF0000
+/* NAND BAM */
+#define MSM_NAND_BAM_BASE          0xF9AC4000
+
+
 #endif

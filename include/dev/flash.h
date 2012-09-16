@@ -32,6 +32,11 @@
 
 #include <lib/ptable.h>
 
+enum nand_ecc_width
+{
+	NAND_WITH_4_BIT_ECC,
+	NAND_WITH_8_BIT_ECC,
+};
 
 struct flash_info {
 	unsigned id;
@@ -42,6 +47,16 @@ struct flash_info {
 	unsigned block_size;
 	unsigned spare_size;
 	unsigned num_blocks;
+	enum nand_ecc_width ecc_width;
+	unsigned num_pages_per_blk;
+	unsigned num_pages_per_blk_mask;
+	unsigned widebus;
+	unsigned density;
+	unsigned cw_size;
+	unsigned cws_per_page;
+	unsigned bad_blk_loc;
+	unsigned blksize;
+	unsigned dev_cfg;
 };
 
 void flash_init(void);
