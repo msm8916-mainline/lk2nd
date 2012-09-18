@@ -65,14 +65,28 @@ unsigned int msm8930_qwerty_keymap[] = {
 	[KEYMAP_INDEX(0, 1)] = KEY_VOLUMEDOWN,	/* Volume key on the device/CDP */
 };
 
-unsigned int msm8930_keys_gpiomap[] = {
+unsigned int msm8930_keys_pm8038_gpiomap[] = {
 	[KEYMAP_INDEX(0, 0)] = PM_GPIO(3),	/* Volume key on the device/CDP */
 	[KEYMAP_INDEX(0, 1)] = PM_GPIO(8),	/* Volume key on the device/CDP */
 };
 
-struct qwerty_keypad_info msm8930_qwerty_keypad = {
+unsigned int msm8930_keys_pm8917_gpiomap[] = {
+	[KEYMAP_INDEX(0, 0)] = PM_GPIO(27),	/* Volume key on the device/CDP */
+	[KEYMAP_INDEX(0, 1)] = PM_GPIO(28),	/* Volume key on the device/CDP */
+};
+
+struct qwerty_keypad_info msm8930_pm8038_qwerty_keypad = {
 	.keymap = msm8930_qwerty_keymap,
-	.gpiomap = msm8930_keys_gpiomap,
+	.gpiomap = msm8930_keys_pm8038_gpiomap,
+	.mapsize = ARRAY_SIZE(msm8930_qwerty_keymap),
+	.key_gpio_get = &pm8921_gpio_get,
+	.settle_time = 5 /* msec */ ,
+	.poll_time = 20 /* msec */ ,
+};
+
+struct qwerty_keypad_info msm8930_pm8917_qwerty_keypad = {
+	.keymap = msm8930_qwerty_keymap,
+	.gpiomap = msm8930_keys_pm8917_gpiomap,
 	.mapsize = ARRAY_SIZE(msm8930_qwerty_keymap),
 	.key_gpio_get = &pm8921_gpio_get,
 	.settle_time = 5 /* msec */ ,
@@ -120,8 +134,18 @@ void msm8960_keypad_init(void)
 
 void msm8930_keypad_init(void)
 {
+	uint32_t pm_type = board_pmic_type();
+
 	msm8930_keypad_gpio_init();
-	ssbi_gpio_keypad_init(&msm8930_qwerty_keypad);
+
+	if (pm_type == PMIC_IS_PM8917)
+	{
+		ssbi_gpio_keypad_init(&msm8930_pm8917_qwerty_keypad);
+	}
+	else
+	{
+		ssbi_gpio_keypad_init(&msm8930_pm8038_qwerty_keypad);
+	}
 }
 
 void apq8064_keypad_init(void)
