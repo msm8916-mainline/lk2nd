@@ -1352,7 +1352,7 @@ qpic_nand_read_page(uint32_t page, unsigned char* buffer, unsigned char* sparead
 					 CMD_PIPE_INDEX,
 					 (unsigned char*)cmd_list_ptr_start,
 					 (uint32_t)cmd_list_ptr - (uint32_t)cmd_list_ptr_start,
-					 BAM_DESC_NWD_FLAG | BAM_DESC_CMD_FLAG | BAM_DESC_INT_FLAG);
+					 BAM_DESC_NWD_FLAG | BAM_DESC_CMD_FLAG | BAM_DESC_INT_FLAG | BAM_DESC_LOCK_FLAG);
 	num_cmd_desc++;
 
 	qpic_nand_wait_for_cmd_exec(num_cmd_desc);
@@ -1365,6 +1365,8 @@ qpic_nand_read_page(uint32_t page, unsigned char* buffer, unsigned char* sparead
 
 	buffer += DATA_BYTES_IN_IMG_PER_CW;
 	}
+
+	buffer_sts[i] = qpic_nand_read_reg(NAND_BUFFER_STATUS, BAM_DESC_UNLOCK_FLAG, cmd_list_ptr++);
 
 	/* Check status */
 	for (i = 0; i < flash.cws_per_page ; i ++)
@@ -1425,7 +1427,7 @@ flash_read_ext(struct ptentry *ptn,
 		while (start_block_count
 			   && (start_block < (ptn->start + ptn->length)))
 		{
-			isbad = qpic_nand_block_isbad(start_block * flash.num_pages_per_blk);
+			isbad = qpic_nand_block_isbad(start_block);
 			if (isbad)
 				page += flash.num_pages_per_blk;
 			else
