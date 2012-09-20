@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
- * Copyright (c) 2009-2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2012, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -140,7 +140,8 @@ void target_init(void)
 	if ((platform_id == MSM8960) || (platform_id == MSM8960AB) ||
 		(platform_id == APQ8060AB) || (platform_id == MSM8260AB) ||
 		(platform_id == MSM8660AB) || (platform_id == MSM8660A) ||
-		(platform_id == MSM8260A) || (platform_id == APQ8060A))
+		(platform_id == MSM8260A) || (platform_id == APQ8060A) ||
+		(platform_id == APQ8064))
 		/* Enable Hardware CE */
 		platform_ce_type = CRYPTO_ENGINE_TYPE_HW;
 

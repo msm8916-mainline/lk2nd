@@ -1,4 +1,4 @@
-/* Copyright (c) 2011, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -9,7 +9,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of Code Aurora Forum, Inc. nor the names of its
+ *   * Neither the name of The Linux Foundation nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -35,9 +35,31 @@
 #include <crypto4_eng.h>
 #include <crypto_hash.h>
 #include <scm.h>
+#include <smem.h>
 
 extern void dsb(void);
 extern void ce_async_reset();
+
+void wr_ce(uint32_t val,uint32_t reg)
+{
+
+	if(board_platform_id() != APQ8064)
+		writel(val,CRYPTO_ENG_REG(CE1_CRYPTO4_BASE, reg));
+	else
+		writel(val,CRYPTO_ENG_REG(CE3_CRYPTO4_BASE, reg));
+}
+uint32_t rd_ce(uint32_t reg)
+{
+
+	uint32_t val;
+
+	if(board_platform_id() != APQ8064)
+		val = readl(CRYPTO_ENG_REG(CE1_CRYPTO4_BASE, reg));
+	else
+        val = readl(CRYPTO_ENG_REG(CE3_CRYPTO4_BASE, reg));
+
+	return val;
+}
 
 /*
  * Function to reset the crypto engine.
@@ -74,13 +96,13 @@ void crypto_eng_cleanup(void)
 
 void crypto_eng_init(void)
 {
+
 	unsigned int val;
 
 	enum ap_ce_channel_type chn = AP_CE_REGISTER_USE;
-	/* Make a SMC call to TZ to make CE1 use register interface */
+	/* Make a SMC call to TZ to make CE1 use register interface for HLOS*/
 	val = switch_ce_chn_cmd(chn);
 	dprintf(INFO, "TZ channel swith returned %d\n", val);
-
 }
 
 /*
