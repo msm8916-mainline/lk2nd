@@ -237,6 +237,10 @@ enum {
 	MSM8930AA = 142,
 	MSM8630AA = 143,
 	MSM8230AA = 144,
+	MDM9225   = 149,
+	MDM9225M  = 150,
+	MDM9625M  = 152,
+	APQ8064AB = 153, /* aka V2 PRIME */
 };
 
 enum platform {

@@ -128,6 +128,7 @@ unsigned *target_first_256M_atag(unsigned *ptr)
 
 	switch (platform_id) {
 		case APQ8064:
+		case APQ8064AB:
 			if(baseband == BASEBAND_MDM)
 			{
 				/* Use 8064 Fusion 3 memory map */
