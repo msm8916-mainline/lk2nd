@@ -37,13 +37,6 @@
 #include <target/display.h>
 #include <dev/gpio.h>
 
-static char cmd_rotate[4]= {0x36, 0xc0, 0x15, 0x80};
-
-static struct mipi_dsi_cmd nt35510_panel_rotate_cmds[] = {
-	{sizeof(cmd_rotate), cmd_rotate},
-};
-
-
 int mipi_nt35510_panel_dsi_config(int on)
 {
 	if (on) {
@@ -82,11 +75,3 @@ int mipi_nt35510_panel_dsi_config(int on)
 	return 0;
 }
 
-int mipi_nt35510_panel_wvga_rotate()
-{
-        int ret = NO_ERROR;
-
-        ret = mipi_dsi_cmds_tx(nt35510_panel_rotate_cmds, ARRAY_SIZE(nt35510_panel_rotate_cmds));
-
-        return ret;
-}

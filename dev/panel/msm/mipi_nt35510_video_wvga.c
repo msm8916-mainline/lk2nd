@@ -39,7 +39,6 @@
 #include <dev/gpio.h>
 
 
-extern int mipi_nt35510_panel_wvga_rotate();
 /* MIPI NT35510 panel commands */
 static char exit_sleep[4] = {0x11, 0x00, 0x09, 0x80};
 static char display_on[4] = {0x29, 0x00, 0x05, 0x80};
@@ -184,6 +183,9 @@ static char video18[8] = {
 static char video19[8] = {
 	0x03, 0x00, 0x29, 0xc0, 0xB1, 0xFC, 0x00, 0xff,
 };
+static char video19_rotate[8] = {
+	0x03, 0x00, 0x29, 0xc0, 0xB1, 0xFC, 0x06, 0xff,
+};
 static char video20[8] = {
 	0x04, 0x00, 0x29, 0xc0, 0xBC, 0x05, 0x05, 0x05,
 };
@@ -251,6 +253,10 @@ static struct mipi_dsi_cmd nt35510_panel_video_mode_cmds[] = {
 	{sizeof(display_on), display_on},
 };
 
+static struct mipi_dsi_cmd nt35510_video_rotate_cmds[] = {
+	{sizeof(video19_rotate), video19_rotate},
+};
+
 int mipi_nt35510_video_wvga_config(void *pdata)
 {
 	int ret = NO_ERROR;
@@ -303,6 +309,15 @@ int mipi_nt35510_video_wvga_off()
 	return ret;
 }
 
+int mipi_nt35510_video_wvga_rotate()
+{
+        int ret = NO_ERROR;
+
+        ret = mipi_dsi_cmds_tx(nt35510_video_rotate_cmds, ARRAY_SIZE(nt35510_video_rotate_cmds));
+
+        return ret;
+}
+
 static struct mipi_dsi_phy_ctrl dsi_video_mode_phy_db = {
 	/* DSI_BIT_CLK at 500MHz, 2 lane, RGB888 */
 	{0x03, 0x01, 0x01, 0x00},	/* regulator */
@@ -351,7 +366,7 @@ void mipi_nt35510_video_wvga_init(struct msm_panel_info *pinfo)
 	pinfo->on = mipi_nt35510_video_wvga_on;
 	pinfo->off = mipi_nt35510_video_wvga_off;
 	pinfo->config = mipi_nt35510_video_wvga_config;
-	pinfo->rotate = mipi_nt35510_panel_wvga_rotate;
+	pinfo->rotate = mipi_nt35510_video_wvga_rotate;
 
 	return;
 }
