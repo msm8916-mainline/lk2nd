@@ -93,7 +93,7 @@ void arm_mmu_init(void)
 void arch_disable_mmu(void)
 {
 	arm_write_cr1(arm_read_cr1() & ~(1<<0));
+	arm_invalidate_tlb();
 }
 
 #endif // ARM_WITH_MMU
-

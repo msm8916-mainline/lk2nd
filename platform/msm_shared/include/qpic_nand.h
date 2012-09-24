@@ -324,5 +324,8 @@ struct qpic_nand_init_config
 
 void
 qpic_nand_init(struct qpic_nand_init_config *config);
+unsigned
+flash_block_size(void);
+
 
 #endif

@@ -1215,17 +1215,27 @@ qpic_nand_init(struct qpic_nand_init_config *config)
 		bbtbl[i] = NAND_BAD_BLK_VALUE_NOT_READ;
 }
 
-unsigned flash_page_size(void)
+unsigned
+flash_page_size(void)
 {
 	return flash.page_size;
 }
 
-struct ptable *flash_get_ptable(void)
+unsigned
+flash_block_size(void)
+{
+    return flash.block_size;
+}
+
+
+struct ptable *
+flash_get_ptable(void)
 {
 	return flash_ptable;
 }
 
-void flash_set_ptable(struct ptable *new_ptable)
+void
+flash_set_ptable(struct ptable *new_ptable)
 {
 	ASSERT(flash_ptable == NULL && new_ptable != NULL);
 	flash_ptable = new_ptable;

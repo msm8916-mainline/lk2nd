@@ -1,5 +1,4 @@
-/*
- * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -10,7 +9,7 @@
  *       copyright notice, this list of conditions and the following
  *       disclaimer in the documentation and/or other materials provided
  *       with the distribution.
- *     * Neither the name of Code Aurora Forum, Inc. nor the names of its
+ *     * Neither the name of The Linux Foundation nor the names of its
  *       contributors may be used to endorse or promote products derived
  *       from this software without specific prior written permission.
  *
@@ -26,6 +25,7 @@
  * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 #include <debug.h>
 #include <board.h>
 #include <platform.h>
@@ -34,6 +34,11 @@
 #include <baseband.h>
 #include <lib/ptable.h>
 #include <qpic_nand.h>
+#include <ctype.h>
+#include <string.h>
+
+extern void smem_ptable_init(void);
+extern void smem_add_modem_partitions(struct ptable *flash_ptable);
 
 static struct ptable flash_ptable;
 
@@ -43,6 +48,34 @@ static struct ptable flash_ptable;
 #define CMD_PIPE                                      2
 
 struct qpic_nand_init_config config;
+
+void update_ptable_names(void)
+{
+	uint32_t ptn_index;
+	struct ptentry *ptentry_ptr = flash_ptable.parts;
+	struct ptentry *boot_ptn;
+	unsigned i;
+	uint32_t len;
+
+	/* Change all names to lower case. */
+	for (ptn_index = 0; ptn_index != (uint32_t)flash_ptable.count; ptn_index++)
+	{
+		len = strlen(ptentry_ptr[ptn_index].name);
+
+		for (i = 0; i < len; i++)
+		{
+			if (isupper(ptentry_ptr[ptn_index].name[i]))
+			{
+				ptentry_ptr[ptn_index].name[i] = tolower(ptentry_ptr[ptn_index].name[i]);
+			}
+		}
+	}
+
+	/* Rename apps ptn to boot. */
+	boot_ptn = ptable_find(&flash_ptable, "apps");
+	strcpy(boot_ptn->name, "boot");
+}
+
 /* init */
 void target_init(void)
 {
@@ -57,14 +90,15 @@ void target_init(void)
 
 	qpic_nand_init(&config);
 
-	/* Below lines are to be removed once the bootchain is available */
-
 	ptable_init(&flash_ptable);
 
-	flash_set_ptable(&flash_ptable);
+	smem_ptable_init();
 
-	/* Add boot ptn..until the bootchain adds it */
-	ptable_add(&flash_ptable, "boot", 0x347, 0x52, 0, TYPE_APPS_PARTITION, PERM_WRITEABLE);
+	smem_add_modem_partitions(&flash_ptable);
+
+	update_ptable_names();
+
+	flash_set_ptable(&flash_ptable);
 }
 
 /* reboot */
@@ -80,25 +114,25 @@ int fastboot_trigger(void)
 	return 0;
 }
 
-/* Create ATAGs for this target */
-unsigned* target_atag_mem(unsigned* ptr)
-{
-	return ptr;
-}
-
-/* mach type */
-unsigned board_machtype(void)
-{
-	//return board_target_id();
-}
-
 /* Identify the current target */
 void target_detect(struct board_data *board)
 {
 }
 
+unsigned board_machtype(void)
+{
+	return  board_target_id();
+}
+
 /* Identify the baseband being used */
 void target_baseband_detect(struct board_data *board)
 {
-
+	/* Check for baseband variants. Default to MSM */
+	if (board->platform_subtype == HW_PLATFORM_SUBTYPE_MDM)
+		board->baseband = BASEBAND_MDM;
+	else
+	{
+		dprintf(CRITICAL, "Could not detect baseband id\n");
+		ASSERT(0);
+	}
 }

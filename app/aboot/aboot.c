@@ -2,7 +2,7 @@
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2012, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -11,7 +11,7 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of Code Aurora nor
+ *     * Neither the name of The Linux Foundation nor
  *       the names of its contributors may be used to endorse or promote
  *       products derived from this software without specific prior written
  *       permission.
@@ -48,9 +48,11 @@
 #include <partition_parser.h>
 #include <platform.h>
 #include <crypto_hash.h>
+#include <malloc.h>
 
 #if DEVICE_TREE
 #include <libfdt.h>
+#include <dev_tree.h>
 #endif
 
 #include "image_verify.h"
@@ -64,6 +66,14 @@
 
 #include "scm.h"
 
+extern  bool target_use_signed_kernel(void);
+extern void dsb();
+extern void isb();
+extern void platform_uninit(void);
+
+void write_device_info_mmc(device_info *dev);
+void write_device_info_flash(device_info *dev);
+
 #define EXPAND(NAME) #NAME
 #define TARGET(NAME) EXPAND(NAME)
 #define DEFAULT_CMDLINE "mem=100M console=null";
@@ -76,31 +86,6 @@
 
 #define RECOVERY_MODE   0x77665502
 #define FASTBOOT_MODE   0x77665500
-
-#if DEVICE_TREE
-#define DEV_TREE_SUCCESS        0
-#define DEV_TREE_MAGIC          "QCDT"
-#define DEV_TREE_VERSION        1
-#define DEV_TREE_HEADER_SIZE    12
-
-
-struct dt_entry{
-	uint32_t platform_id;
-	uint32_t variant_id;
-	uint32_t soc_rev;
-	uint32_t offset;
-	uint32_t size;
-};
-
-struct dt_table{
-	uint32_t magic;
-	uint32_t version;
-	unsigned num_entries;
-};
-
-struct dt_entry * get_device_tree_ptr(struct dt_table *);
-int update_device_tree(const void *, char *, void *, unsigned);
-#endif
 
 static const char *emmc_cmdline = " androidboot.emmc=true";
 static const char *usb_sn_cmdline = " androidboot.serialno=";
@@ -213,8 +198,8 @@ unsigned char *update_cmdline(const char * cmdline)
 
 	if (cmdline_len > 0) {
 		const char *src;
-		char *dst = malloc((cmdline_len + 4) & (~3));
-		assert(dst != NULL);
+		unsigned char *dst = (unsigned char*) malloc((cmdline_len + 4) & (~3));
+		ASSERT(dst != NULL);
 
 		/* Save start ptr for debug print */
 		cmdline_final = dst;
@@ -321,8 +306,8 @@ unsigned *atag_ptable(unsigned **ptr_addr)
 	struct ptable *ptable;
 
 	if ((ptable = flash_get_ptable()) && (ptable->count != 0)) {
-        	*(*ptr_addr)++ = 2 + (ptable->count * (sizeof(struct atag_ptbl_entry) /
-					  		sizeof(unsigned)));
+		*(*ptr_addr)++ = 2 + (ptable->count * (sizeof(struct atag_ptbl_entry) /
+							sizeof(unsigned)));
 		*(*ptr_addr)++ = 0x4d534d70;
 		for (i = 0; i < ptable->count; ++i)
 			ptentry_to_tag(ptr_addr, ptable_get(ptable, i));
@@ -343,13 +328,13 @@ unsigned *atag_cmdline(unsigned *ptr, const char *cmdline)
 		dprintf(INFO, "cmdline: %s\n", cmdline_final);
 	}
 
-	cmdline_length =strlen(cmdline_final);
+	cmdline_length =strlen((const char*)cmdline_final);
 	n = (cmdline_length + 4) & (~3);
 
 	*ptr++ = (n / 4) + 2;
 	*ptr++ = 0x54410009;
 	dest = (char *) ptr;
-	while (*dest++ = *cmdline_final++);
+	while ((*dest++ = *cmdline_final++));
 	ptr += (n / 4);
 
 	return ptr;
@@ -390,7 +375,7 @@ void boot_linux(void *kernel, unsigned *tags,
 
 #if DEVICE_TREE
 	/* Update the Device Tree */
-	ret = update_device_tree(tags, cmdline, ramdisk, ramdisk_size);
+	ret = update_device_tree((void *)tags, cmdline, ramdisk, ramdisk_size);
 	if(ret)
 	{
 		dprintf(CRITICAL, "ERROR: Updating Device Tree Failed \n");
@@ -405,19 +390,12 @@ void boot_linux(void *kernel, unsigned *tags,
 		kernel, ramdisk, ramdisk_size);
 
 	enter_critical_section();
+
 	/* do any platform specific cleanup before kernel entry */
 	platform_uninit();
+
 	arch_disable_cache(UCACHE);
-	/* NOTE:
-	 * The value of "entry" is getting corrupted at this point.
-	 * The value is in R4 and gets pushed to stack on entry into
-	 * disable_cache(), however, on return it is not the same.
-	 * Not entirely sure why this dsb() seems to take of this.
-	 * The stack pop operation on return from disable_cache()
-	 * should restore R4 properly, but that is not happening.
-	 * Will need to revisit to find the root cause.
-	 */
-	dsb();
+
 #if ARM_WITH_MMU
 	arch_disable_mmu();
 #endif
@@ -540,7 +518,7 @@ int boot_linux_from_mmc(void)
 		#if DEVICE_TREE
 		if(hdr->dt_size) {
 			table = (struct dt_table*) dt_buf;
-			dt_table_offset = (image_addr + page_size + kernel_actual + ramdisk_actual + second_actual);
+			dt_table_offset = ((uint32_t)image_addr + page_size + kernel_actual + ramdisk_actual + second_actual);
 
 			memmove((void *) dt_buf, (char *)dt_table_offset, page_size);
 
@@ -554,7 +532,7 @@ int boot_linux_from_mmc(void)
 			}
 
 			/* Find index of device tree within device tree table */
-			if((dt_entry_ptr = get_device_tree_ptr(table)) == NULL){
+			if((dt_entry_ptr = dev_tree_get_entry_ptr(table)) == NULL){
 				dprintf(CRITICAL, "ERROR: Device Tree Blob cannot be found\n");
 				return -1;
 			}
@@ -621,7 +599,7 @@ int boot_linux_from_mmc(void)
 			}
 
 			/* Calculate the offset of device tree within device tree table */
-			if((dt_entry_ptr = get_device_tree_ptr(table)) == NULL){
+			if((dt_entry_ptr = dev_tree_get_entry_ptr(table)) == NULL){
 				dprintf(CRITICAL, "ERROR: Getting device tree address failed\n");
 				return -1;
 			}
@@ -671,6 +649,12 @@ int boot_linux_from_flash(void)
 	unsigned ramdisk_actual;
 	unsigned imagesize_actual;
 
+#if DEVICE_TREE
+	struct dt_table *table;
+	struct dt_entry *dt_entry_ptr;
+#endif
+
+
 	if (target_is_emmc_boot()) {
 		hdr = (struct boot_img_hdr *)EMMC_BOOT_IMG_HEADER_ADDR;
 		if (memcmp(hdr->magic, BOOT_MAGIC, BOOT_MAGIC_SIZE)) {
@@ -689,6 +673,7 @@ int boot_linux_from_flash(void)
 	if(!boot_into_recovery)
 	{
 	        ptn = ptable_find(ptable, "boot");
+
 	        if (ptn == NULL) {
 		        dprintf(CRITICAL, "ERROR: No boot partition found\n");
 		        return -1;
@@ -790,6 +775,47 @@ int boot_linux_from_flash(void)
 			return -1;
 		}
 		offset += n;
+
+		if(hdr->second_size != 0) {
+			n = ROUND_TO_PAGE(hdr->second_size, page_mask);
+			offset += n;
+		}
+
+#if DEVICE_TREE
+		if(hdr->dt_size != 0) {
+
+			/* Read the device tree table into buffer */
+			if(flash_read(ptn, offset, (void *) dt_buf, page_size)) {
+				dprintf(CRITICAL, "ERROR: Cannot read the Device Tree Table\n");
+				return -1;
+			}
+
+			table = (struct dt_table*) dt_buf;
+
+			/* Restriction that the device tree entry table should be less than a page*/
+			ASSERT(((table->num_entries * sizeof(struct dt_entry))+ DEV_TREE_HEADER_SIZE) < hdr->page_size);
+
+			/* Validate the device tree table header */
+			if((table->magic != DEV_TREE_MAGIC) && (table->version != DEV_TREE_VERSION)) {
+				dprintf(CRITICAL, "ERROR: Cannot validate Device Tree Table \n");
+				return -1;
+			}
+
+			/* Calculate the offset of device tree within device tree table */
+			if((dt_entry_ptr = dev_tree_get_entry_ptr(table)) == NULL){
+				dprintf(CRITICAL, "ERROR: Getting device tree address failed\n");
+				return -1;
+			}
+
+			/* Read device device tree in the "tags_add */
+			if(flash_read(ptn, offset + dt_entry_ptr->offset,
+						 (void *)hdr->tags_addr, dt_entry_ptr->size)) {
+				dprintf(CRITICAL, "ERROR: Cannot read device tree\n");
+				return -1;
+			}
+		}
+#endif
+
 	}
 continue_boot:
 	dprintf(INFO, "\nkernel  @ %x (%d bytes)\n", hdr->kernel_addr,
@@ -983,10 +1009,8 @@ int copy_dtb(uint8_t *boot_image_start)
 	uint32_t n;
 	struct dt_table *table;
 	struct dt_entry *dt_entry_ptr;
-	unsigned dt_table_offset;
 
 	struct boot_img_hdr *hdr = (struct boot_img_hdr *) (boot_image_start);
-
 
 	if(hdr->dt_size != 0) {
 
@@ -1006,7 +1030,7 @@ int copy_dtb(uint8_t *boot_image_start)
 		}
 
 		/* offset now point to start of dt.img */
-		table = boot_image_start + dt_image_offset;
+		table = (struct dt_table*)(boot_image_start + dt_image_offset);
 
 		/* Restriction that the device tree entry table should be less than a page*/
 		ASSERT(((table->num_entries * sizeof(struct dt_entry))+ DEV_TREE_HEADER_SIZE) < hdr->page_size);
@@ -1018,7 +1042,7 @@ int copy_dtb(uint8_t *boot_image_start)
 		}
 
 		/* Calculate the offset of device tree within device tree table */
-		if((dt_entry_ptr = get_device_tree_ptr(table)) == NULL){
+		if((dt_entry_ptr = dev_tree_get_entry_ptr(table)) == NULL){
 			dprintf(CRITICAL, "ERROR: Getting device tree address failed\n");
 			return -1;
 		}
@@ -1075,8 +1099,8 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	fastboot_okay("");
 	udc_stop();
 
-	memmove((void*) hdr.kernel_addr, ptr + page_size, hdr.kernel_size);
 	memmove((void*) hdr.ramdisk_addr, ptr + page_size + kernel_actual, hdr.ramdisk_size);
+	memmove((void*) hdr.kernel_addr, ptr + page_size, hdr.kernel_size);
 
 	boot_linux((void*) hdr.kernel_addr, (void*) hdr.tags_addr,
 		   (const char*) hdr.cmdline, board_machtype(),
@@ -1576,87 +1600,3 @@ fastboot:
 APP_START(aboot)
 	.init = aboot_init,
 APP_END
-
-#if DEVICE_TREE
-struct dt_entry * get_device_tree_ptr(struct dt_table *table)
-{
-	unsigned i;
-	struct dt_entry *dt_entry_ptr;
-
-	dt_entry_ptr = (char *)table + DEV_TREE_HEADER_SIZE ;
-
-	for(i = 0; i < table->num_entries; i++)
-	{
-		if((dt_entry_ptr->platform_id == board_platform_id()) &&
-		   (dt_entry_ptr->variant_id == board_hardware_id()) &&
-		   (dt_entry_ptr->soc_rev == 0)){
-				return dt_entry_ptr;
-		}
-		dt_entry_ptr++;
-	}
-	return NULL;
-}
-
-int update_device_tree(const void * fdt, char *cmdline,
-					   void *ramdisk, unsigned ramdisk_size)
-{
-	int ret = 0;
-	int offset;
-	uint32_t *memory_reg;
-	unsigned char *final_cmdline;
-	uint32_t len;
-
-	/* Check the device tree header */
-	ret = fdt_check_header(fdt);
-	if(ret)
-	{
-		dprintf(CRITICAL, "Invalid device tree header \n");
-		return ret;
-	}
-
-	/* Get offset of the memory node */
-	offset = fdt_path_offset(fdt,"/memory");
-
-	memory_reg = target_dev_tree_mem(&len);
-
-	/* Adding the memory values to the reg property */
-	ret = fdt_setprop(fdt, offset, "reg", memory_reg, sizeof(uint32_t) * len * 2);
-	if(ret)
-	{
-		dprintf(CRITICAL, "ERROR: Cannot update memory node\n");
-		return ret;
-	}
-
-	/* Get offset of the chosen node */
-	offset = fdt_path_offset(fdt, "/chosen");
-
-	/* Adding the cmdline to the chosen node */
-	final_cmdline = update_cmdline(cmdline);
-	ret = fdt_setprop_string(fdt, offset, "bootargs", final_cmdline);
-	if(ret)
-	{
-		dprintf(CRITICAL, "ERROR: Cannot update chosen node [bootargs]\n");
-		return ret;
-	}
-
-	/* Adding the initrd-start to the chosen node */
-	ret = fdt_setprop_cell(fdt, offset, "linux,initrd-start", ramdisk);
-	if(ret)
-	{
-		dprintf(CRITICAL, "ERROR: Cannot update chosen node [linux,initrd-start]\n");
-		return ret;
-	}
-
-	/* Adding the initrd-end to the chosen node */
-	ret = fdt_setprop_cell(fdt, offset, "linux,initrd-end", (ramdisk + ramdisk_size));
-	if(ret)
-	{
-		dprintf(CRITICAL, "ERROR: Cannot update chosen node [linux,initrd-end]\n");
-		return ret;
-	}
-
-	fdt_pack(fdt);
-
-	return ret;
-}
-#endif
