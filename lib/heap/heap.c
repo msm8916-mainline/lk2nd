@@ -52,10 +52,10 @@
 extern int _end;
 
 // end of memory
-extern int _heap_end;
+extern int _end_of_ram;
 
 #define HEAP_START ((unsigned long)&_end)
-#define HEAP_LEN ((size_t)_heap_end - (size_t)&_end)
+#define HEAP_LEN ((size_t)&_end_of_ram - (size_t)&_end)
 #endif
 
 struct free_heap_chunk {
