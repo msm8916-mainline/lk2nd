@@ -36,8 +36,6 @@
 #include <debug.h>
 #include <target/display.h>
 
-extern int mipi_nt35510_panel_wvga_rotate();
-
 /* MIPI NT35510 panel commands */
 static char exit_sleep[4] = {0x11, 0x00, 0x05, 0x80};
 static char display_on[4] = {0x29, 0x00, 0x05, 0x80};
@@ -183,6 +181,9 @@ static char cmd18[8] = {
 static char cmd19[8] = {
 	0x03, 0x00, 0x29, 0xc0, 0xB1, 0xEC, 0x00, 0xff,
 };
+static char cmd19_rotate[8] = {
+	0x03, 0x00, 0x29, 0xc0, 0xB1, 0xEC, 0x06, 0xff,
+};
 static char cmd20[8] = {
 	0x04, 0x00, 0x29, 0xc0, 0xBC, 0x05, 0x05, 0x05,
 };
@@ -253,6 +254,10 @@ static struct mipi_dsi_cmd nt35510_panel_cmd_mode_cmds[] = {
 	{sizeof(write_ram), write_ram},
 };
 
+static struct mipi_dsi_cmd nt35510_cmd_rotate_cmds[] = {
+	{sizeof(cmd19_rotate), cmd19_rotate},
+};
+
 int mipi_nt35510_cmd_wvga_on()
 {
 	int ret = NO_ERROR;
@@ -263,6 +268,15 @@ int mipi_nt35510_cmd_wvga_off()
 {
 	int ret = NO_ERROR;
 	return ret;
+}
+
+int mipi_nt35510_cmd_wvga_rotate()
+{
+        int ret = NO_ERROR;
+
+        ret = mipi_dsi_cmds_tx(nt35510_cmd_rotate_cmds, ARRAY_SIZE(nt35510_cmd_rotate_cmds));
+
+        return ret;
 }
 
 int mipi_nt35510_cmd_wvga_config(void *pdata)
@@ -325,7 +339,7 @@ void mipi_nt35510_cmd_wvga_init(struct msm_panel_info *pinfo)
 	pinfo->on = mipi_nt35510_cmd_wvga_on;
 	pinfo->off = mipi_nt35510_cmd_wvga_off;
 	pinfo->config = mipi_nt35510_cmd_wvga_config;
-	pinfo->rotate = mipi_nt35510_panel_wvga_rotate;
+	pinfo->rotate = mipi_nt35510_cmd_wvga_rotate;
 
 	return;
 }
