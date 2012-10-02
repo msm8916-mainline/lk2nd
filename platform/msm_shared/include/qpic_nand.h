@@ -135,8 +135,13 @@
 #define NAND_FLASH_OP_ERR                                  (1 << 4)
 
 #define NAND_FLASH_ERR                                     (NAND_FLASH_MPU_ERR | \
-                                                           NAND_FLASH_TIMEOUT_ERR | \
-                                                           NAND_FLASH_OP_ERR)
+                                                           NAND_FLASH_TIMEOUT_ERR)
+/* TODO: Add the check for operation error: NAND_FLASH_OP_ERR
+ * This bit is also flagged for MPU errors, which is set for
+ * blank page reads.
+ * Also need to add a detect an empty page.
+ */
+
 
 #define PROG_ERASE_OP_RESULT                               (1 << 7)
 
