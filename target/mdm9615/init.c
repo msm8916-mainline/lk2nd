@@ -287,6 +287,7 @@ void update_ptable_modem_partitions(void)
 			ptentry_ptr[ptn_index].name[i] =
 		    tolower(ptentry_ptr[ptn_index].name[i]);
 		}
+        ptentry_ptr[ptn_index].type = TYPE_APPS_PARTITION;
 	}
 }
 
