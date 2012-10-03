@@ -67,22 +67,6 @@ static struct flash_id supported_flash[] = {
 	/* Note: Onenand flag is 0 for NAND Flash and 1 for OneNAND flash       */
 };
 
-static nand_result_t
-qpic_nand_check_status(uint32_t status)
-{
-	/* Check for errors */
-	if (status & NAND_FLASH_ERR)
-	{
-		dprintf(CRITICAL, "Nand Flash error for Fetch id cmd. Status = %d\n",
-					status);
-		if (status & NAND_FLASH_TIMEOUT_ERR)
-			return NANDC_RESULT_TIMEOUT;
-		else
-			return NANDC_RESULT_FAILURE;
-	}
-	return NANDC_RESULT_SUCCESS;
-}
-
 static void
 qpic_nand_wait_for_cmd_exec(uint32_t num_desc)
 {
@@ -125,6 +109,81 @@ qpic_nand_read_reg(uint32_t reg_addr,
 	qpic_nand_wait_for_cmd_exec(1);
 
 	return val;
+}
+
+/* Assume the BAM is in a locked state. */
+void
+qpic_nand_erased_status_reset(struct cmd_element *cmd_list_ptr)
+{
+	uint32_t val = 0;
+
+	/* Reset the Erased Codeword/Page detection controller. */
+	val = NAND_ERASED_CW_DETECT_CFG_RESET_CTRL;
+
+	bam_add_cmd_element(cmd_list_ptr, NAND_ERASED_CW_DETECT_CFG, val, CE_WRITE_TYPE);
+
+	/* Enqueue the desc for the above command */
+	bam_add_one_desc(&bam,
+					 CMD_PIPE_INDEX,
+					 (unsigned char*)cmd_list_ptr,
+					 BAM_CE_SIZE,
+					 BAM_DESC_CMD_FLAG | BAM_DESC_INT_FLAG);
+
+	qpic_nand_wait_for_cmd_exec(1);
+
+	/* Enable the Erased Codeword/Page detection
+	 * controller to check the data as it arrives.
+	 * Also disable ECC reporting for an erased CW.
+	 */
+	val = NAND_ERASED_CW_DETECT_CFG_ACTIVATE_CTRL | NAND_ERASED_CW_DETECT_ERASED_CW_ECC_MASK;
+
+	bam_add_cmd_element(cmd_list_ptr, NAND_ERASED_CW_DETECT_CFG, val, CE_WRITE_TYPE);
+
+	/* Enqueue the desc for the above command */
+	bam_add_one_desc(&bam,
+					 CMD_PIPE_INDEX,
+					 (unsigned char*)cmd_list_ptr,
+					 BAM_CE_SIZE,
+					 BAM_DESC_CMD_FLAG | BAM_DESC_INT_FLAG);
+
+	qpic_nand_wait_for_cmd_exec(1);
+}
+
+static nand_result_t
+qpic_nand_check_status(uint32_t status)
+{
+	uint32_t erase_sts;
+
+	/* Check for errors */
+	if (status & NAND_FLASH_ERR)
+	{
+		/* Check if this is an ECC error on an erased page. */
+		if (status & NAND_FLASH_OP_ERR)
+		{
+			erase_sts = qpic_nand_read_reg(NAND_ERASED_CW_DETECT_STATUS, 0, ce_array);
+			if ((erase_sts & (1 << NAND_ERASED_CW_DETECT_STATUS_PAGE_ALL_ERASED)))
+			{
+				/* Mask the OP ERROR. */
+				status &= ~NAND_FLASH_OP_ERR;
+				qpic_nand_erased_status_reset(ce_array);
+			}
+		}
+
+		/* ECC error flagged on an erased page read.
+		 * Ignore and return success.
+		 */
+		if (!(status & NAND_FLASH_ERR))
+			return NANDC_RESULT_SUCCESS;
+
+		dprintf(CRITICAL, "Nand Flash error. Status = %d\n", status);
+
+		if (status & NAND_FLASH_TIMEOUT_ERR)
+			return NANDC_RESULT_TIMEOUT;
+		else
+			return NANDC_RESULT_FAILURE;
+	}
+
+	return NANDC_RESULT_SUCCESS;
 }
 
 static uint32_t
@@ -725,9 +784,14 @@ qpic_nand_block_isbad_exec(struct cfg_params *params,
 
 	qpic_nand_wait_for_cmd_exec(num_desc);
 
+	status = qpic_nand_read_reg(NAND_FLASH_STATUS, 0, cmd_list_ptr);
+
+	nand_ret = qpic_nand_check_status(status);
+
+	/* Dummy read to unlock pipe. */
 	status = qpic_nand_read_reg(NAND_FLASH_STATUS, BAM_DESC_UNLOCK_FLAG, cmd_list_ptr);
 
-	if ((nand_ret = qpic_nand_check_status(status)))
+	if (nand_ret)
 		return NANDC_RESULT_FAILURE;
 
 	qpic_nand_wait_for_data(DATA_PRODUCER_PIPE_INDEX);
@@ -827,6 +891,7 @@ qpic_nand_blk_erase(uint32_t page)
 	uint32_t status;
 	int num_desc = 0;
 	uint32_t blk_addr = page / flash.num_pages_per_blk;
+	int nand_ret;
 
 	/* Erase only if the block is not bad */
 	if (qpic_nand_block_isbad(blk_addr))
@@ -877,13 +942,18 @@ qpic_nand_blk_erase(uint32_t page)
 					 CMD_PIPE_INDEX,
 					 (unsigned char*)cmd_list_ptr_start,
 					 PA((uint32_t)cmd_list_ptr - (uint32_t)cmd_list_ptr_start),
-					 BAM_DESC_INT_FLAG | BAM_DESC_CMD_FLAG | BAM_DESC_UNLOCK_FLAG) ;
+					 BAM_DESC_INT_FLAG | BAM_DESC_CMD_FLAG) ;
 
 	num_desc = 1;
 	qpic_nand_wait_for_cmd_exec(num_desc);
 
+	status = qpic_nand_check_status(status);
+
+	/* Dummy read to unlock pipe. */
+	nand_ret = qpic_nand_read_reg(NAND_FLASH_STATUS, BAM_DESC_UNLOCK_FLAG, cmd_list_ptr);
+
 	/* Check for status errors*/
-	if (qpic_nand_check_status(status))
+	if (status)
 	{
 		dprintf(CRITICAL,
 				"NAND Erase error: Block address belongs to bad block: %d\n",
@@ -899,7 +969,7 @@ qpic_nand_blk_erase(uint32_t page)
 }
 
 /* Return num of desc added. */
-static int
+static void
 qpic_nand_add_wr_page_cws_cmd_desc(struct cfg_params *cfg,
 								   uint32_t status[],
 								   enum nand_cfg_value cfg_mode)
@@ -938,6 +1008,7 @@ qpic_nand_add_wr_page_cws_cmd_desc(struct cfg_params *cfg,
 	for (unsigned i = 0; i < flash.cws_per_page; i++)
 	{
 		cmd_list_ptr_start = cmd_list_ptr;
+		int_flag = BAM_DESC_INT_FLAG;
 
 		bam_add_cmd_element(cmd_list_ptr, NAND_EXEC_CMD, (uint32_t)cfg->exec, CE_WRITE_TYPE);
 		cmd_list_ptr++;
@@ -958,7 +1029,6 @@ qpic_nand_add_wr_page_cws_cmd_desc(struct cfg_params *cfg,
 			cmd_list_ptr = qpic_nand_add_read_n_reset_status_ce(cmd_list_ptr,
 																&status[i],
 																1);
-			int_flag = BAM_DESC_INT_FLAG | BAM_DESC_UNLOCK_FLAG;
 		}
 		else
 			cmd_list_ptr = qpic_nand_add_read_n_reset_status_ce(cmd_list_ptr,
@@ -972,8 +1042,14 @@ qpic_nand_add_wr_page_cws_cmd_desc(struct cfg_params *cfg,
 						 PA((uint32_t)cmd_list_ptr - (uint32_t)cmd_list_ptr_start),
 						 int_flag | BAM_DESC_CMD_FLAG);
 		num_desc++;
+
+		qpic_nand_wait_for_cmd_exec(num_desc);
+
+		status[i] = qpic_nand_check_status(status[i]);
+
+		num_desc = 0;
 	}
-	return num_desc;
+	return;
 }
 
 void
@@ -1041,7 +1117,6 @@ qpic_nand_write_page(uint32_t pg_addr,
 {
 	struct cfg_params cfg;
 	uint32_t status[4];
-	int num_cmd_desc = 0;
 	int nand_ret = NANDC_RESULT_SUCCESS;
 
 	if (cfg_mode == NAND_CFG_RAW)
@@ -1061,12 +1136,9 @@ qpic_nand_write_page(uint32_t pg_addr,
 	cfg.addr0 = pg_addr << 16;
 	cfg.addr1 = (pg_addr >> 16) & 0xff;
 
-	num_cmd_desc = qpic_nand_add_wr_page_cws_cmd_desc(&cfg, status, cfg_mode);
-
 	qpic_add_wr_page_cws_data_desc(buffer, cfg_mode, spareaddr);
 
-	/* Wait for the commands to be executed */
-	qpic_nand_wait_for_cmd_exec(num_cmd_desc);
+	qpic_nand_add_wr_page_cws_cmd_desc(&cfg, status, cfg_mode);
 
 	/* Check for errors */
 	for(unsigned i = 0; i < flash.cws_per_page; i++)
@@ -1234,6 +1306,8 @@ qpic_nand_init(struct qpic_nand_init_config *config)
 		return;
 	}
 
+	/* Reset and Configure erased CW/page detection controller. */
+	qpic_nand_erased_status_reset(ce_array);
 }
 
 unsigned
@@ -1407,6 +1481,8 @@ qpic_nand_read_page(uint32_t page, unsigned char* buffer, unsigned char* sparead
 	flash_sts[i] = qpic_nand_read_reg(NAND_FLASH_STATUS, 0, cmd_list_ptr++);
 	buffer_sts[i] = qpic_nand_read_reg(NAND_BUFFER_STATUS, 0, cmd_list_ptr++);
 
+	flash_sts[i] = qpic_nand_check_status(flash_sts[i]);
+
 	buffer += DATA_BYTES_IN_IMG_PER_CW;
 	}
 
@@ -1415,7 +1491,7 @@ qpic_nand_read_page(uint32_t page, unsigned char* buffer, unsigned char* sparead
 
 	/* Check status */
 	for (i = 0; i < flash.cws_per_page ; i ++)
-		if (qpic_nand_check_status(flash_sts[i]))
+		if (flash_sts[i])
 		{
 			nand_ret = NANDC_RESULT_BAD_PAGE;
 			dprintf(CRITICAL, "NAND page read failed. page: %x\n", page);
