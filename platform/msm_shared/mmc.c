@@ -2659,45 +2659,49 @@ mmc_boot_fifo_write(unsigned int *mmc_ptr, unsigned int data_len)
 	unsigned int mmc_count = 0;
 	unsigned int write_error = MMC_BOOT_MCI_STAT_DATA_CRC_FAIL |
 	    MMC_BOOT_MCI_STAT_DATA_TIMEOUT | MMC_BOOT_MCI_STAT_TX_UNDRUN;
+	unsigned int count = 0;
+	unsigned int sz = 0;
 
 	/* Write the transfer data to SDCC3 FIFO */
 	do {
-		mmc_ret = MMC_BOOT_E_SUCCESS;
 		mmc_status = readl(MMC_BOOT_MCI_STATUS);
 
-		if (mmc_status & write_error) {
-			mmc_ret = mmc_boot_status_error(mmc_status);
-			break;
-		}
+		/* Bytes left to write */
+		count = data_len - mmc_count;
 
-		/* Write the data in MCI_FIFO register as long as TXFIFO_FULL bit of
-		   MCI_STATUS register is 0. Continue the writes until the whole
-		   transfer data is written. */
-		if (((data_len - mmc_count) >= MMC_BOOT_MCI_FIFO_SIZE / 2) &&
-		    (mmc_status & MMC_BOOT_MCI_STAT_TX_FIFO_HFULL)) {
-			for (int i = 0; i < MMC_BOOT_MCI_HFIFO_COUNT; i++) {
-				/* FIFO contains 16 32-bit data buffer on 16 sequential addresses */
-				writel(*mmc_ptr, MMC_BOOT_MCI_FIFO +
-				       (mmc_count % MMC_BOOT_MCI_FIFO_SIZE));
+		/* Break if whole data is transferred */
+		if (!count)
+			break;
+
+		/* Write half FIFO or less (remaining) words in MCI_FIFO as long as either
+		   TX_FIFO_EMPTY or TX_FIFO_HFULL bits of MCI_STATUS register are set. */
+		if ((mmc_status & MMC_BOOT_MCI_STAT_TX_FIFO_EMPTY) ||
+			(mmc_status & MMC_BOOT_MCI_STAT_TX_FIFO_HFULL)) {
+
+			/* Write minimum of half FIFO and remaining words */
+			sz = ((count >> 2) >  MMC_BOOT_MCI_HFIFO_COUNT) \
+				 ? MMC_BOOT_MCI_HFIFO_COUNT : (count >> 2);
+
+			for (int i = 0; i < sz; i++) {
+				writel(*mmc_ptr, MMC_BOOT_MCI_FIFO);
 				mmc_ptr++;
 				/* increase mmc_count by word size */
 				mmc_count += sizeof(unsigned int);
 			}
-
-		} else if (!(mmc_status & MMC_BOOT_MCI_STAT_TX_FIFO_FULL)
-			   && (mmc_count != data_len)) {
-			/* FIFO contains 16 32-bit data buffer on 16 sequential addresses */
-			writel(*mmc_ptr, MMC_BOOT_MCI_FIFO +
-			       (mmc_count % MMC_BOOT_MCI_FIFO_SIZE));
-			mmc_ptr++;
-			/* increase mmc_count by word size */
-			mmc_count += sizeof(unsigned int);
-		} else if ((mmc_status & MMC_BOOT_MCI_STAT_DATA_END)) {
-			break;	//success
 		}
-
 	}
 	while (1);
+
+	do
+	{
+		mmc_status = readl(MMC_BOOT_MCI_STATUS);
+		if (mmc_status & write_error) {
+			mmc_ret = mmc_boot_status_error(mmc_status);
+			break;
+		}
+	}
+	while (!(mmc_status & MMC_BOOT_MCI_STAT_DATA_END));
+
 	return mmc_ret;
 }
 
