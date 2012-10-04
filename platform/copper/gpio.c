@@ -54,9 +54,11 @@ void gpio_set(uint32_t gpio, uint32_t dir)
 /* Configure gpio for blsp uart 2 */
 void gpio_config_uart_dm(uint8_t id)
 {
-	gpio_tlmm_config(0, 2, GPIO_OUTPUT, GPIO_NO_PULL,
+    /* configure rx gpio */
+	gpio_tlmm_config(5, 2, GPIO_INPUT, GPIO_NO_PULL,
 				GPIO_8MA, GPIO_DISABLE);
 
-	gpio_tlmm_config(1, 2, GPIO_INPUT, GPIO_NO_PULL,
+    /* configure tx gpio */
+	gpio_tlmm_config(4, 2, GPIO_OUTPUT, GPIO_NO_PULL,
 				GPIO_8MA, GPIO_DISABLE);
 }

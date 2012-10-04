@@ -83,7 +83,7 @@
 #define SPMI_GENI_BASE              (SPMI_BASE + 0xA000)
 #define SPMI_PIC_BASE               (SPMI_BASE + 0xB000)
 
-#define TLMM_BASE_ADDR              0xFD500000
+#define TLMM_BASE_ADDR              0xFD510000
 #define GPIO_CONFIG_ADDR(x)         (TLMM_BASE_ADDR + 0x1000 + (x)*0x10)
 #define GPIO_IN_OUT_ADDR(x)         (TLMM_BASE_ADDR + 0x1004 + (x)*0x10)
 
@@ -93,6 +93,7 @@
 /* GPLL */
 #define GPLL0_STATUS                (CLK_CTL_BASE + 0x001C)
 #define APCS_GPLL_ENA_VOTE          (CLK_CTL_BASE + 0x1480)
+#define APCS_CLOCK_BRANCH_ENA_VOTE  (CLK_CTL_BASE + 0x1484)
 
 /* SDCC */
 #define SDCC1_BCR                   (CLK_CTL_BASE + 0x4C0) /* block reset */
@@ -106,19 +107,13 @@
 #define SDCC1_D                     (CLK_CTL_BASE + 0x4E0) /* d */
 
 /* UART */
-#define BLSP1_UART1_APPS_CBCR       (CLK_CTL_BASE + 0x684)
-#define BLSP1_UART1_APPS_CMD_RCGR   (CLK_CTL_BASE + 0x68C)
-#define BLSP1_UART1_APPS_CFG_RCGR   (CLK_CTL_BASE + 0x690)
-#define BLSP1_UART1_APPS_M          (CLK_CTL_BASE + 0x694)
-#define BLSP1_UART1_APPS_N          (CLK_CTL_BASE + 0x698)
-#define BLSP1_UART1_APPS_D          (CLK_CTL_BASE + 0x69C)
-
-#define BLSP1_UART3_APPS_CBCR       (CLK_CTL_BASE + 0x784)
-#define BLSP1_UART3_APPS_CMD_RCGR   (CLK_CTL_BASE + 0x78C)
-#define BLSP1_UART3_APPS_CFG_RCGR   (CLK_CTL_BASE + 0x790)
-#define BLSP1_UART3_APPS_M          (CLK_CTL_BASE + 0x794)
-#define BLSP1_UART3_APPS_N          (CLK_CTL_BASE + 0x798)
-#define BLSP1_UART3_APPS_D          (CLK_CTL_BASE + 0x79C)
+#define BLSP1_AHB_CBCR              (CLK_CTL_BASE + 0x5C4)
+#define BLSP1_UART2_APPS_CBCR       (CLK_CTL_BASE + 0x704)
+#define BLSP1_UART2_APPS_CMD_RCGR   (CLK_CTL_BASE + 0x70C)
+#define BLSP1_UART2_APPS_CFG_RCGR   (CLK_CTL_BASE + 0x710)
+#define BLSP1_UART2_APPS_M          (CLK_CTL_BASE + 0x714)
+#define BLSP1_UART2_APPS_N          (CLK_CTL_BASE + 0x718)
+#define BLSP1_UART2_APPS_D          (CLK_CTL_BASE + 0x71C)
 
 /* USB */
 #define USB_HS_SYSTEM_CBCR          (CLK_CTL_BASE + 0x484)

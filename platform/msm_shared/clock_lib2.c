@@ -191,3 +191,39 @@ void clock_lib2_rcg_set_rate_hid(struct rcg_clk *rclk, struct clk_freq_tbl *freq
 
 	clock_lib2_rcg_update_config(rclk);
 }
+
+/*=============== Vote clock ops =============*/
+
+/* Vote clock enable */
+int clock_lib2_vote_clk_enable(struct clk *c)
+{
+	uint32_t vote_regval;
+	uint32_t val;
+	struct vote_clk *vclk = to_local_vote_clk(c);
+
+	vote_regval = readl(vclk->vote_reg);
+	vote_regval |= vclk->en_mask;
+	writel_relaxed(vote_regval, vclk->vote_reg);
+	do {
+		val = readl(vclk->cbcr_reg);
+		val &= BRANCH_CHECK_MASK;
+	}
+	/*  wait until status shows it is enabled */
+	while((val != BRANCH_ON_VAL) && (val != BRANCH_NOC_FSM_ON_VAL));
+
+	return 0;
+}
+
+/* Vote clock disable */
+void clock_lib2_vote_clk_disable(struct clk *c)
+{
+	uint32_t vote_regval;
+	struct vote_clk *vclk = to_local_vote_clk(c);
+
+	vote_regval = readl(vclk->vote_reg);
+	vote_regval &= ~vclk->en_mask;
+    writel_relaxed(vote_regval, vclk->vote_reg);
+
+    /* wait until status shows it is disabled */
+	while(!(readl(vclk->cbcr_reg) & CBCR_BRANCH_OFF_BIT));
+}
