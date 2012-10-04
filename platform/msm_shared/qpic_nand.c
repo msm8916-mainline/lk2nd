@@ -1238,6 +1238,14 @@ flash_get_ptable(void)
 }
 
 void
+qpic_nand_uninit()
+{
+	bam_pipe_reset(&bam, DATA_PRODUCER_PIPE_INDEX);
+	bam_pipe_reset(&bam, DATA_CONSUMER_PIPE_INDEX);
+	bam_pipe_reset(&bam, CMD_PIPE_INDEX);
+
+}
+void
 flash_set_ptable(struct ptable *new_ptable)
 {
 	ASSERT(flash_ptable == NULL && new_ptable != NULL);

@@ -31,6 +31,7 @@
 #include <qgic.h>
 #include <qtimer.h>
 #include <board.h>
+#include <qpic_nand.h>
 
 void platform_early_init(void)
 {
@@ -55,4 +56,5 @@ void platform_init(void)
 void platform_uninit(void)
 {
 	qtimer_uninit();
+	qpic_nand_uninit();
 }
