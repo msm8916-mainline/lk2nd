@@ -79,7 +79,7 @@ int i2c_ssbi_read_bytes(unsigned char  *buffer, unsigned short length,
 	/*
 	 * Use remote spin locks since SSBI2 controller is shared with nonHLOS proc
 	 */
-#ifdef TARGET_USES_RSPIN_LOCK
+#if TARGET_USES_RSPIN_LOCK
 	remote_spin_lock(rlock);
 #endif
 	read_cmd = SSBI_CMD_READ(addr);
@@ -109,7 +109,7 @@ int i2c_ssbi_read_bytes(unsigned char  *buffer, unsigned short length,
 		len--;
 	}
 end:
-#ifdef TARGET_USES_RSPIN_LOCK
+#if TARGET_USES_RSPIN_LOCK
 	remote_spin_unlock(rlock);
 #endif
 	return ret;
@@ -128,7 +128,7 @@ int i2c_ssbi_write_bytes(unsigned char  *buffer, unsigned short length,
 	/*
 	 * Use remote spin locks since SSBI2 controller is shared with nonHLOS proc
 	 */
-#ifdef TARGET_USES_RSPIN_LOCK
+#if TARGET_USES_RSPIN_LOCK
 	remote_spin_lock(rlock);
 #endif
 	mode2 = readl(MSM_SSBI_BASE + SSBI2_MODE2);
@@ -156,10 +156,10 @@ int i2c_ssbi_write_bytes(unsigned char  *buffer, unsigned short length,
 		len--;
 	}
 end:
-#ifdef TARGET_USES_RSPIN_LOCK
+#if TARGET_USES_RSPIN_LOCK
 	remote_spin_unlock(rlock);
 #endif
-	return 0;
+	return ret;
 }
 
 int pa1_ssbi2_read_bytes(unsigned char  *buffer, unsigned short length,
