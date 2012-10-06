@@ -26,8 +26,6 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#if DEVICE_TREE /* If using device tree */
-
 #include <reg.h>
 #include <debug.h>
 #include <malloc.h>
@@ -44,19 +42,14 @@ typedef struct {
 	uint32_t start_addr;
 }mem_info;
 
-mem_info copper_default_fixed_memory[] = {
-	{	.size = (132 * SIZE_1M),
-		.start_addr = SDRAM_START_ADDR
-	},
-	{	.size = SIZE_1M,
+mem_info mdm9625_default_fixed_memory[] = {
+	{	.size = (29 * SIZE_1M),
 		.start_addr = SDRAM_START_ADDR +
-				(250 * SIZE_1M) +
-				(5 * SIZE_1M)
+				(2 * SIZE_1M)
 	},
-	{	.size = (240 * SIZE_1M),
+	{	.size = (10 * SIZE_1M),
 		.start_addr = SDRAM_START_ADDR +
-				(16 * SIZE_1M) +
-				(256 * SIZE_1M)
+				(118 * SIZE_1M)
 	},
 };
 
@@ -97,26 +90,25 @@ uint32_t target_dev_tree_mem(void *fdt, uint32_t memory_node_offset)
 	/* Make sure RAM partition table is initialized */
 	ASSERT(smem_ram_ptable_init(&ram_ptable));
 
-    n = ARRAY_SIZE(copper_default_fixed_memory);
+    n = ARRAY_SIZE(mdm9625_default_fixed_memory);
 
-    last_fixed_addr = copper_default_fixed_memory[n-1].start_addr +
-					copper_default_fixed_memory[n-1].size;
+    last_fixed_addr = mdm9625_default_fixed_memory[n-1].start_addr +
+					mdm9625_default_fixed_memory[n-1].size;
 
-     /* Calculating the size of the mem_info_ptr */
-    for (i = 0 ; i < ram_ptable.len; i++)
+    for (i = 0; i < ram_ptable.len; i++)
     {
         if((ram_ptable.parts[i].category == SDRAM) &&
-           (ram_ptable.parts[i].type == SYS_MEMORY))
+		   (ram_ptable.parts[i].type == SYS_MEMORY))
         {
             if((ram_ptable.parts[i].start <= last_fixed_addr) &&
-			   ((ram_ptable.parts[i].start + ram_ptable.parts[i].size) >= last_fixed_addr))
+               ((ram_ptable.parts[i].start + ram_ptable.parts[i].size) >= last_fixed_addr))
             {
 
 				/* Pass along all fixed memory regions to Linux */
 				 ret = target_add_first_mem_bank(fdt,
 												 memory_node_offset,
-												 copper_default_fixed_memory,
-												 ARRAY_SIZE(copper_default_fixed_memory));
+												 mdm9625_default_fixed_memory,
+												 ARRAY_SIZE(mdm9625_default_fixed_memory));
 
 				if (ret)
 				{
@@ -125,8 +117,8 @@ uint32_t target_dev_tree_mem(void *fdt, uint32_t memory_node_offset)
 				}
 
 				if((ram_ptable.parts[i].start + ram_ptable.parts[i].size) != last_fixed_addr)
-			    {
-			        /* Pass the memory beyond the fixed memory present in the partition */
+                {
+					/* Pass the memory beyond the fixed memory present in the partition */
 					ret = dev_tree_add_mem_info(fdt,
 												memory_node_offset,
 												ram_ptable.parts[i].start + last_fixed_addr,
@@ -138,7 +130,7 @@ uint32_t target_dev_tree_mem(void *fdt, uint32_t memory_node_offset)
 						goto target_dev_tree_mem_err;
 					}
                 }
-			}
+            }
 			else
 			{
 				/* Pass along all other usable memory regions to Linux */
@@ -153,7 +145,7 @@ uint32_t target_dev_tree_mem(void *fdt, uint32_t memory_node_offset)
 					goto target_dev_tree_mem_err;
 				}
 			}
-       }
+        }
     }
 
 target_dev_tree_mem_err:
@@ -168,6 +160,5 @@ void *target_get_scratch_address(void)
 
 unsigned target_get_max_flash_size(void)
 {
-	return (512 * 1024 * 1024);
+	return (28 * 1024 * 1024);
 }
-#endif /* DEVICE_TREE */

@@ -12,11 +12,13 @@ DEFINES += NO_KEYPAD_DRIVER=1
 
 MODULES += \
 	dev/keys \
-	lib/ptable
+	lib/ptable \
+	lib/libfdt
 
 DEFINES += \
 	MEMBASE=$(MEMBASE) \
 	SCRATCH_ADDR=$(SCRATCH_ADDR)
 
 OBJS += \
-	$(LOCAL_DIR)/init.o
+	$(LOCAL_DIR)/init.o \
+	$(LOCAL_DIR)/meminfo.o
