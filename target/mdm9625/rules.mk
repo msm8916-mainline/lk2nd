@@ -21,4 +21,5 @@ DEFINES += \
 
 OBJS += \
 	$(LOCAL_DIR)/init.o \
-	$(LOCAL_DIR)/meminfo.o
+	$(LOCAL_DIR)/meminfo.o \
+	$(LOCAL_DIR)/keypad.o

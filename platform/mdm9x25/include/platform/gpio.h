@@ -53,4 +53,13 @@
 #define GPIO_ENABLE     0
 #define GPIO_DISABLE    1
 
+void gpio_tlmm_config(uint32_t gpio,
+					  uint8_t  func,
+					  uint8_t  dir,
+					  uint8_t  pull,
+					  uint8_t  drvstr,
+					  uint32_t enable);
+uint32_t gpio_get_state(uint32_t gpio);
+void gpio_set(uint32_t gpio, uint32_t dir);
+
 #endif

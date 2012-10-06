@@ -108,12 +108,6 @@ void reboot_device(unsigned reboot_reason)
 	return;
 }
 
-/* Check if we need to trigger fastboot */
-int fastboot_trigger(void)
-{
-	return 0;
-}
-
 /* Identify the current target */
 void target_detect(struct board_data *board)
 {
@@ -136,3 +130,4 @@ void target_baseband_detect(struct board_data *board)
 		ASSERT(0);
 	}
 }
+
