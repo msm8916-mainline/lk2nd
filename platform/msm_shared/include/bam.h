@@ -252,5 +252,7 @@ int bam_wait_for_interrupt(struct bam_instance *bam,
                            uint8_t pipe_num,
                            enum p_int_type interrupt);
 void bam_read_offset_update(struct bam_instance *bam, unsigned int pipe_num);
+void bam_pipe_reset(struct bam_instance *bam,
+					uint8_t pipe_num);
 
 #endif

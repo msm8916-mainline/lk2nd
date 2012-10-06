@@ -50,8 +50,8 @@ static void bam_reset(struct bam_instance *bam)
 }
 
 /* Resets pipe registers and state machines */
-static void bam_pipe_reset(struct bam_instance *bam,
-                              uint8_t pipe_num)
+void bam_pipe_reset(struct bam_instance *bam,
+					uint8_t pipe_num)
 {
 	/* Start sw reset of the pipe to be allocated */
 	writel(1, BAM_P_RSTn(bam->pipe[pipe_num].pipe_num, bam->base));
@@ -163,7 +163,7 @@ void bam_init(struct bam_instance *bam)
 {
 	uint32_t val = 0;
 
-	bam_reset(bam);
+//	bam_reset(bam);
 
 	/* Check for only one pipe's direction.
 	 * The other is assumed to be the opposite system
