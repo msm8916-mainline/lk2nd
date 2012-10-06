@@ -180,10 +180,6 @@ void bam_init(struct bam_instance *bam)
 	val = 0xffffffff & ~(1 << 11);
 	writel(val, BAM_CNFG_BITS(bam->base));
 
-	/* Write the EE index to control the mapping of interrupts to EE */
-	val = HLOS_EE_INDEX & BAM_EE_MASK;
-	writel(val, BAM_TRUST_REG(bam->base));
-
 	/* Enable the BAM */
 	writel(BAM_ENABLE_BIT_MASK, BAM_CTRL_REG(bam->base));
 }
@@ -250,10 +246,6 @@ void bam_sys_pipe_init(struct bam_instance *bam,
 	writel(P_SYS_MODE_MASK | P_ENABLE |
 			(bam->pipe[pipe_num].trans_type << P_DIRECTION_SHIFT),
 			BAM_P_CTRLn(bam->pipe[pipe_num].pipe_num, bam->base));
-
-	/* Write the EE index to control the mapping of pipe interrupts to EE */
-	val = HLOS_EE_INDEX & BAM_EE_MASK;
-	writel(val, BAM_P_TRUST_REGn(bam->pipe[pipe_num].pipe_num, bam->base));
 
 	/* Mark the pipe FIFO as uninitialized. */
 	bam->pipe[pipe_num].initialized = 0;
