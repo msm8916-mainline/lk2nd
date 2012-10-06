@@ -849,7 +849,7 @@ qpic_nand_blk_erase(uint32_t page)
 					 CMD_PIPE_INDEX,
 					 (unsigned char*)cmd_list_ptr_start,
 					 (uint32_t)cmd_list_ptr - (uint32_t)cmd_list_ptr_start,
-					 BAM_DESC_NWD_FLAG | BAM_DESC_CMD_FLAG | BAM_DESC_INT_FLAG);
+					 BAM_DESC_NWD_FLAG | BAM_DESC_CMD_FLAG | BAM_DESC_INT_FLAG | BAM_DESC_LOCK_FLAG);
 
 	cmd_list_ptr_start = cmd_list_ptr;
 	num_desc++;
@@ -873,7 +873,7 @@ qpic_nand_blk_erase(uint32_t page)
 					 CMD_PIPE_INDEX,
 					 (unsigned char*)cmd_list_ptr_start,
 					 (uint32_t)cmd_list_ptr - (uint32_t)cmd_list_ptr_start,
-					 BAM_DESC_INT_FLAG | BAM_DESC_CMD_FLAG);
+					 BAM_DESC_INT_FLAG | BAM_DESC_CMD_FLAG | BAM_DESC_UNLOCK_FLAG) ;
 
 	num_desc = 1;
 	qpic_nand_wait_for_cmd_exec(num_desc);
@@ -888,7 +888,7 @@ qpic_nand_blk_erase(uint32_t page)
 	}
 
 	/* Check for PROG_ERASE_OP_RESULT bit for the result of erase operation. */
-	if (status & PROG_ERASE_OP_RESULT)
+	if (!(status & PROG_ERASE_OP_RESULT))
 		return NANDC_RESULT_SUCCESS;
 
 	return NANDC_RESULT_FAILURE;
@@ -1376,7 +1376,8 @@ qpic_nand_read_page(uint32_t page, unsigned char* buffer, unsigned char* sparead
 	buffer += DATA_BYTES_IN_IMG_PER_CW;
 	}
 
-	buffer_sts[i] = qpic_nand_read_reg(NAND_BUFFER_STATUS, BAM_DESC_UNLOCK_FLAG, cmd_list_ptr++);
+	/* Read the buffer status again so that we can unlock the bam with this desc. */
+	buffer_sts[--i] = qpic_nand_read_reg(NAND_BUFFER_STATUS, BAM_DESC_UNLOCK_FLAG, cmd_list_ptr++);
 
 	/* Check status */
 	for (i = 0; i < flash.cws_per_page ; i ++)
@@ -1488,8 +1489,18 @@ flash_read_ext(struct ptentry *ptn,
 int
 flash_erase(struct ptentry *ptn)
 {
-	return -1;
+	uint32_t block = ptn->start;
+	uint32_t count = ptn->length;
+	int ret = 0;
+
+	ret = qpic_nand_blk_erase(ptn->start * flash.num_pages_per_blk);
+
+	if (ret)
+		dprintf(CRITICAL, "Erase operation failed \n");
+
+	return ret;
 }
+
 int
 flash_ecc_bch_enabled()
 {
@@ -1530,7 +1541,7 @@ flash_write(struct ptentry *ptn,
 
 		if ((page & flash.num_pages_per_blk_mask) == 0)
 		{
-			if (qpic_nand_blk_erase(page / flash.num_pages_per_blk))
+			if (qpic_nand_blk_erase(page))
 			{
 				dprintf(INFO,
 					"flash_write_image: bad block @ %d\n",
