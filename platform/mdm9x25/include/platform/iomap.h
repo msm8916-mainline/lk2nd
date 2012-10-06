@@ -64,4 +64,45 @@
 /* NAND BAM */
 #define MSM_NAND_BAM_BASE          0xF9AC4000
 
+/************ CLOCKS ***********/
+
+/* GPLL */
+#define GPLL0_STATUS                         (CLK_CTL_BASE + 0x001C)
+#define APCS_GPLL_ENA_VOTE                   (CLK_CTL_BASE + 0x1480)
+
+/* UART */
+#define BLSP1_UART1_APPS_CBCR                (CLK_CTL_BASE + 0x684)
+#define BLSP1_UART1_APPS_CMD_RCGR            (CLK_CTL_BASE + 0x68C)
+#define BLSP1_UART1_APPS_CFG_RCGR            (CLK_CTL_BASE + 0x690)
+#define BLSP1_UART1_APPS_M                   (CLK_CTL_BASE + 0x694)
+#define BLSP1_UART1_APPS_N                   (CLK_CTL_BASE + 0x698)
+#define BLSP1_UART1_APPS_D                   (CLK_CTL_BASE + 0x69C)
+
+#define BLSP1_UART3_APPS_CBCR                (CLK_CTL_BASE + 0x784)
+#define BLSP1_UART3_APPS_CMD_RCGR            (CLK_CTL_BASE + 0x78C)
+#define BLSP1_UART3_APPS_CFG_RCGR            (CLK_CTL_BASE + 0x790)
+#define BLSP1_UART3_APPS_M                   (CLK_CTL_BASE + 0x794)
+#define BLSP1_UART3_APPS_N                   (CLK_CTL_BASE + 0x798)
+#define BLSP1_UART3_APPS_D                   (CLK_CTL_BASE + 0x79C)
+
+/* USB */
+#define USB_HS_BCR                           (CLK_CTL_BASE + 0x480)
+#define USB_HS_SYSTEM_CBCR                   (CLK_CTL_BASE + 0x484)
+#define USB_HS_AHB_CBCR                      (CLK_CTL_BASE + 0x488)
+#define GCC_USB_HS_INACTIVITY_TIMERS_CBCR    (CLK_CTL_BASE + 0x48C)
+#define USB_HS_SYSTEM_CMD_RCGR               (CLK_CTL_BASE + 0x490)
+#define USB_HS_SYSTEM_CFG_RCGR               (CLK_CTL_BASE + 0x494)
+
+#define USB_BOOT_CLOCK_CTL                   (CLK_CTL_BASE + 0x1A00)
+
+#define GCC_QPIC_BCR                         (CLK_CTL_BASE + 0x1A40)
+#define GCC_QPIC_CBCR                        (CLK_CTL_BASE + 0x1A44)
+#define GCC_QPIC_AHB_CBCR                    (CLK_CTL_BASE + 0x1A48)
+#define GCC_QPIC_SYSTEM_CBCR                 (CLK_CTL_BASE + 0x1A4C)
+#define GCC_QPIC_CMD_RCGR                    (CLK_CTL_BASE + 0x1A50)
+#define GCC_QPIC_CFG_RCGR                    (CLK_CTL_BASE + 0x1A54)
+#define GCC_QPIC_M                           (CLK_CTL_BASE + 0x1A58)
+#define GCC_QPIC_N                           (CLK_CTL_BASE + 0x1A5C)
+#define GCC_QPIC_D                           (CLK_CTL_BASE + 0x1A60)
+
 #endif

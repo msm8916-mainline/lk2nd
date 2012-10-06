@@ -34,6 +34,7 @@
 #include <string.h>
 #include <malloc.h>
 #include <sys/types.h>
+#include <platform/clock.h>
 
 static uint32_t nand_base;
 static struct ptable *flash_ptable;
@@ -1174,6 +1175,8 @@ qpic_nand_init(struct qpic_nand_init_config *config)
 {
 	uint32_t i;
 	int nand_ret;
+
+	qpic_nand_clock_init();
 
 	nand_base = config->nand_base;
 
