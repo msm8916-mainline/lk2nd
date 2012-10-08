@@ -2,7 +2,7 @@
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2012, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -11,7 +11,7 @@
  *    notice, this list of conditions and the following disclaimer.
  *  * Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the 
+ *    the documentation and/or other materials provided with the
  *    distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -21,7 +21,7 @@
  * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
  * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED 
+ * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
  * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
@@ -37,31 +37,16 @@
 
 #include "smem.h"
 
-struct smem_ptn {
-	char name[16];
-	unsigned start;
-	unsigned size;
-	unsigned attr;
-} __attribute__ ((__packed__));
-
-struct smem_ptable {
-#define _SMEM_PTABLE_MAGIC_1 0x55ee73aa
-#define _SMEM_PTABLE_MAGIC_2 0xe35ebddb
-	unsigned magic[2];
-	unsigned version;
-	unsigned len;
-	struct smem_ptn parts[16];
-} __attribute__ ((__packed__));
 
 /* partition table from SMEM */
 static struct smem_ptable smem_ptable;
-static unsigned smem_apps_flash_start;
+static unsigned smem_apps_flash_start = 0xFFFFFFFF;
 
 static void dump_smem_ptable(void)
 {
-	int i;
+	unsigned i;
 
-	for (i = 0; i < 16; i++) {
+	for (i = 0; i < smem_ptable.len; i++) {
 		struct smem_ptn *p = &smem_ptable.parts[i];
 		if (p->name[0] == '\0')
 			continue;
@@ -73,21 +58,55 @@ static void dump_smem_ptable(void)
 void smem_ptable_init(void)
 {
 	unsigned i;
+	unsigned ret;
+	unsigned len;
 
-	smem_apps_flash_start = 0xffffffff;
+	/* Read only the header portion of ptable */
+	ret = smem_read_alloc_entry_offset(SMEM_AARM_PARTITION_TABLE,
+									   &smem_ptable,
+									   SMEM_PTABLE_HDR_LEN,
+									   0);
+	if (ret)
+	{
+		dprintf(CRITICAL, "Failed to read ptable hdr (%d)", ret);
+		ASSERT(0);
+	}
 
-	i = smem_read_alloc_entry(SMEM_AARM_PARTITION_TABLE,
-				  &smem_ptable, sizeof(smem_ptable));
-	if (i != 0)
-		return;
-
+	/* Verify ptable magic */
 	if (smem_ptable.magic[0] != _SMEM_PTABLE_MAGIC_1 ||
 	    smem_ptable.magic[1] != _SMEM_PTABLE_MAGIC_2)
 		return;
 
+	/* Ensure that # of partitions is less than the max we have allocated. */
+	ASSERT(smem_ptable.len <= SMEM_PTABLE_MAX_PARTS);
+
+	/* Find out length of partition data based on table version. */
+	if (smem_ptable.version <= 3)
+	{
+		len = SMEM_PTABLE_HDR_LEN + SMEM_PTABLE_MAX_PARTS_V3*sizeof(struct smem_ptn);
+	}
+	else if (smem_ptable.version == 4)
+	{
+		len = SMEM_PTABLE_HDR_LEN + SMEM_PTABLE_MAX_PARTS_V4*sizeof(struct smem_ptn);
+	}
+	else
+	{
+		dprintf(CRITICAL, "Unknown ptable version (%d)", smem_ptable.version);
+		ASSERT(0);
+	}
+
+	ret = smem_read_alloc_entry(SMEM_AARM_PARTITION_TABLE,
+								&smem_ptable,
+								len);
+	if (ret)
+	{
+		dprintf(CRITICAL, "Failed to read ptable (%d)", ret);
+		ASSERT(0);
+	}
+
 	dump_smem_ptable();
 	dprintf(INFO, "smem ptable found: ver: %d len: %d\n",
-		smem_ptable.version, smem_ptable.len);
+			smem_ptable.version, smem_ptable.len);
 
 	for (i = 0; i < smem_ptable.len; i++) {
 		if (!strcmp(smem_ptable.parts[i].name, "0:APPS"))
@@ -106,13 +125,13 @@ unsigned smem_get_apps_flash_start(void)
 
 void smem_add_modem_partitions(struct ptable *flash_ptable)
 {
-	int i;
+	unsigned i;
 
 	if (smem_ptable.magic[0] != _SMEM_PTABLE_MAGIC_1 ||
 	    smem_ptable.magic[1] != _SMEM_PTABLE_MAGIC_2)
 		return;
 
-	for (i = 0; i < 16; i++) {
+	for (i = 0; i < smem_ptable.len; i++) {
 		char *token;
 		char *pname = NULL;
 		struct smem_ptn *p = &smem_ptable.parts[i];

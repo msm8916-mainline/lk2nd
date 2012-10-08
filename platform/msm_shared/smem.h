@@ -2,7 +2,7 @@
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2012, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -250,6 +250,7 @@ enum platform {
 	HW_PLATFORM_FLUID = 3,
 	HW_PLATFORM_SVLTE = 4,
 	HW_PLATFORM_QT = 6,
+	HW_PLATFORM_MTP_MDM = 7,
 	HW_PLATFORM_MTP = 8,
 	HW_PLATFORM_LIQUID = 9,
 	HW_PLATFORM_DRAGON = 10,
@@ -377,8 +378,30 @@ struct smem_ram_ptable {
 #define PWR_ON_EVENT_USB_CHG   0x20
 #define PWR_ON_EVENT_WALL_CHG  0x40
 
-unsigned smem_read_alloc_entry_offset(smem_mem_type_t type, void *buf, int len,
-				      int offset);
+#define SMEM_PTABLE_MAX_PARTS_V3  16
+#define SMEM_PTABLE_MAX_PARTS_V4  32
+#define SMEM_PTABLE_MAX_PARTS     SMEM_PTABLE_MAX_PARTS_V4
+
+#define SMEM_PTABLE_HDR_LEN    (4*sizeof(unsigned))
+
+struct smem_ptn {
+	char name[16];
+	unsigned start;
+	unsigned size;
+	unsigned attr;
+} __attribute__ ((__packed__));
+
+
+struct smem_ptable {
+#define _SMEM_PTABLE_MAGIC_1 0x55ee73aa
+#define _SMEM_PTABLE_MAGIC_2 0xe35ebddb
+	unsigned magic[2];
+	unsigned version;
+	unsigned len;
+	struct smem_ptn parts[SMEM_PTABLE_MAX_PARTS];
+} __attribute__ ((__packed__));
+
+unsigned smem_read_alloc_entry_offset(smem_mem_type_t type, void *buf, int len, int offset);
 int smem_ram_ptable_init(struct smem_ram_ptable *smem_ram_ptable);
 
 #endif				/* __PLATFORM_MSM_SHARED_SMEM_H */
