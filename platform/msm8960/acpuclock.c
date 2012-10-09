@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -8,7 +8,7 @@
  *   * Redistributions in binary form must reproduce the above copyright
  *     notice, this list of conditions and the following disclaimer in the
  *     documentation and/or other materials provided with the distribution.
- *   * Neither the name of Code Aurora nor
+ *   * Neither the name of The Linux Foundation nor
  *     the names of its contributors may be used to endorse or promote
  *     products derived from this software without specific prior written
  *     permission.
@@ -34,6 +34,8 @@
 #include <gsbi.h>
 #include <mmc.h>
 #include <clock.h>
+#include <board.h>
+#include <smem.h>
 
 /* Set rate and enable the clock */
 static void clock_config(uint32_t ns, uint32_t md, uint32_t ns_addr, uint32_t md_addr)
@@ -236,13 +238,23 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 /* Configure crypto engine clock */
 void ce_clock_init(void)
 {
-	/* Enable HCLK for CE */
-	clk_get_set_enable("ce1_pclk", 0, 1);
+	if (board_platform_id() != APQ8064)
+	{
+		/* Enable HCLK for CE1 */
+		clk_get_set_enable("ce1_pclk", 0, 1);
 
-	/* Enable core clk for CE */
-	clk_get_set_enable("ce1_clk", 0, 1);
+		/* Enable core clk for CE1 */
+		clk_get_set_enable("ce1_clk", 0, 1);
+	}
+	else
+	{
+		/* Enable HCLK for CE3 */
+		clk_get_set_enable("ce3_pclk", 0, 1);
+
+		/* Enable core clk for CE3 */
+		clk_get_set_enable("ce3_clk", 0, 1);
+	}
 }
-
 /* Async Reset CE1 */
 void ce_async_reset()
 {

@@ -1,7 +1,7 @@
 /* Copyright (c) 2008, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2012, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -116,6 +116,6 @@
 #define MMSS_SFPB_GPREG                       (0x05700058)
 
 #define CE1_CRYPTO4_BASE                      (0x18500000)
-#define MSM_CRYPTO_BASE                       CE1_CRYPTO4_BASE
+#define CE3_CRYPTO4_BASE                      (0x11000000)
 #define LCDC_BASE                             (0x000C0000)
 #endif
