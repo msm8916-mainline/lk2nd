@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2012, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -199,6 +199,7 @@ int mdp_lcdc_on()
 
 int mdp_lcdc_off()
 {
-	writel(0x0, MDP_LCDC_EN);
+	if(!target_cont_splash_screen())
+		writel(0x0, MDP_LCDC_EN);
 	return NO_ERROR;
 }
