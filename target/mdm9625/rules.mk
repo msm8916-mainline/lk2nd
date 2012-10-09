@@ -13,6 +13,7 @@ DEFINES += NO_KEYPAD_DRIVER=1
 MODULES += \
 	dev/keys \
 	lib/ptable \
+    dev/pmic/pm8x41 \
 	lib/libfdt
 
 DEFINES += \
