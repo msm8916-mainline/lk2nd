@@ -99,6 +99,20 @@ atag_mem_info msm8960_default_first_256M[] = {
 	}
 };
 
+atag_mem_info msm8930_default_first_256M[] = {
+	{	.size = (140 * SIZE_1M),
+		.start_addr = PHYS_MEM_START_ADDR + SIZE_2M
+	},
+	{	.size = (4 * SIZE_1M),
+		.start_addr = PHYS_MEM_START_ADDR + (0xEC * SIZE_1M)
+	},
+	{	.size = (3 * SIZE_1M),
+		.start_addr = PHYS_MEM_START_ADDR + (0xF8 * SIZE_1M)
+	},
+	{	.size = (1 * SIZE_1M),
+		.start_addr = PHYS_MEM_START_ADDR + (0xFE * SIZE_1M)
+	}
+};
 
 unsigned *target_mem_atag_create(unsigned *ptr, uint32_t size, uint32_t addr)
 {
@@ -148,6 +162,20 @@ unsigned *target_first_256M_atag(unsigned *ptr)
 
 		case MPQ8064:
 			ptr = target_atag(ptr, mpq8064_first_256M, ARRAY_SIZE(mpq8064_first_256M));
+			break;
+		case MSM8230:
+		case MSM8930:
+		case MSM8630:
+		case MSM8230AA:
+		case MSM8630AA:
+		case MSM8930AA:
+		case MSM8930AB:
+		case MSM8630AB:
+		case MSM8230AB:
+		case APQ8030AB:
+		case APQ8030:
+			ptr = target_atag(ptr, msm8930_default_first_256M,
+						ARRAY_SIZE(msm8930_default_first_256M));
 			break;
 		case MSM8960: /* fall through */
 		case MSM8960AB:
