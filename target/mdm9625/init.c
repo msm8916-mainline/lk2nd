@@ -111,6 +111,8 @@ void reboot_device(unsigned reboot_reason)
 /* Identify the current target */
 void target_detect(struct board_data *board)
 {
+	/* Not used. set to unknown */
+	board->target = LINUX_MACHTYPE_UNKNOWN;
 }
 
 unsigned board_machtype(void)
@@ -122,12 +124,14 @@ unsigned board_machtype(void)
 void target_baseband_detect(struct board_data *board)
 {
 	/* Check for baseband variants. Default to MSM */
-	if (board->platform_subtype == HW_PLATFORM_SUBTYPE_MDM)
-		board->baseband = BASEBAND_MDM;
+	if (board->platform_subtype == HW_PLATFORM_SUBTYPE_UNKNOWN)
+	{
+			board->baseband = BASEBAND_MSM;
+	}
 	else
 	{
-		dprintf(CRITICAL, "Could not detect baseband id\n");
+		dprintf(CRITICAL, "Could not identify baseband id (%d)\n",
+				board->platform_subtype);
 		ASSERT(0);
 	}
 }
-
