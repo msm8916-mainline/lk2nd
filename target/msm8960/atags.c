@@ -1,4 +1,4 @@
-/* Copyright (c) 2009-2011, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2009-2012, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -7,7 +7,7 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of Code Aurora nor
+ *     * Neither the name of Linux Foundation nor
  *       the names of its contributors may be used to endorse or promote
  *       products derived from this software without specific prior written
  *       permission.
@@ -52,8 +52,11 @@ atag_mem_info apq8064_standalone_first_256M[] = {
 	{	.size = (140 * SIZE_1M),
 		.start_addr = PHYS_MEM_START_ADDR + SIZE_2M
 	},
-	{	.size = (60 * SIZE_1M),
-		.start_addr = PHYS_MEM_START_ADDR + (0x9E * SIZE_1M)
+	{	.size = (58 * SIZE_1M),
+		.start_addr = PHYS_MEM_START_ADDR + (0xA0 * SIZE_1M)
+	},
+	{	.size = (4 * SIZE_1M),
+		.start_addr = PHYS_MEM_START_ADDR + (0xEC * SIZE_1M)
 	},
 	{	.size = (7 * SIZE_1M),
 		.start_addr = PHYS_MEM_START_ADDR + (0xF7 * SIZE_1M)
