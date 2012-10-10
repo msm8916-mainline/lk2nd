@@ -81,6 +81,10 @@ void update_ptable_names(void)
 	/* Rename apps ptn to boot. */
 	boot_ptn = ptable_find(&flash_ptable, "apps");
 	strcpy(boot_ptn->name, "boot");
+
+	/* Rename appsbl ptn to aboot. */
+	boot_ptn = ptable_find(&flash_ptable, "appsbl");
+	strcpy(boot_ptn->name, "aboot");
 }
 
 /* init */
