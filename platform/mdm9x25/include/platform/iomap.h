@@ -30,10 +30,12 @@
 #define _PLATFORM_MDM9625_IOMAP_H_
 
 /*SDRAM start address */
-#define SDRAM_START_ADDR           0x0
+#define SDRAM_START_ADDR          0x0
 
-/* TBD: shared base is not defined yet */
 #define MSM_SHARED_BASE           0x00000000
+
+#define MSM_SHARED_IMEM_BASE      0xFC42B000
+#define RESTART_REASON_ADDR       (MSM_SHARED_IMEM_BASE + 0x65C)
 
 #define ELAN_A5SS_BASE            0xF9000000
 
@@ -42,6 +44,10 @@
 #define PERIPH_SS_QPIC_BASE       0xF9AC4000
 
 #define CLK_CTL_BASE              0xFC400000 /* GCC base */
+#define MPM2_MPM_PS_HOLD          0xFC4AB000
+#define SPMI_BASE                 0xFC4C0000
+#define SPMI_GENI_BASE            (SPMI_BASE + 0xA000)
+#define SPMI_PIC_BASE             (SPMI_BASE + 0xB000)
 #define TLMM_BASE_ADDR            0xFD500000
 
 /* QGIC2 */

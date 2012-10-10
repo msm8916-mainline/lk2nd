@@ -36,11 +36,18 @@
 #include <qpic_nand.h>
 #include <ctype.h>
 #include <string.h>
+#include <pm8x41.h>
+#include <reg.h>
+#include <platform/timer.h>
 
 extern void smem_ptable_init(void);
 extern void smem_add_modem_partitions(struct ptable *flash_ptable);
 
 static struct ptable flash_ptable;
+
+/* PMIC config data */
+#define PMIC_ARB_CHANNEL_NUM    0
+#define PMIC_ARB_OWNER_ID       0
 
 /* NANDc BAM pipe numbers */
 #define DATA_CONSUMER_PIPE                            0
@@ -81,6 +88,8 @@ void target_init(void)
 {
 	dprintf(INFO, "target_init()\n");
 
+	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
+
 	config.pipes.read_pipe = DATA_PRODUCER_PIPE;
 	config.pipes.write_pipe = DATA_CONSUMER_PIPE;
 	config.pipes.cmd_pipe = CMD_PIPE;
@@ -104,6 +113,17 @@ void target_init(void)
 /* reboot */
 void reboot_device(unsigned reboot_reason)
 {
+	/* Write the reboot reason */
+	writel(reboot_reason, RESTART_REASON_ADDR);
+
+	/* Configure PMIC for warm reset */
+	pm8x41_reset_configure(PON_PSHOLD_WARM_RESET);
+
+	/* Drop PS_HOLD for MSM */
+	writel(0x00, MPM2_MPM_PS_HOLD);
+
+	mdelay(5000);
+
 	dprintf(CRITICAL, "Rebooting failed\n");
 	return;
 }

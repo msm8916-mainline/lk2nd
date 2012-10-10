@@ -130,6 +130,7 @@ ifeq ($(PLATFORM),mdm9x25)
 			$(LOCAL_DIR)/qtimer.o \
 			$(LOCAL_DIR)/qtimer_mmap.o \
 			$(LOCAL_DIR)/board.o \
+			$(LOCAL_DIR)/spmi.o \
 			$(LOCAL_DIR)/qpic_nand.o \
 			$(LOCAL_DIR)/bam.o \
 			$(LOCAL_DIR)/dev_tree.o \
