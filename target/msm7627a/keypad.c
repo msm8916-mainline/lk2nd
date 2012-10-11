@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
- * Copyright (c) 2009-2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2012, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -44,6 +44,9 @@ static unsigned int halibut_col_gpios[] = { 36, 37, 38, 39, 40 };
 
 static unsigned int halibut_row_gpios_qrd[] = { 31, 32 };
 static unsigned int halibut_col_gpios_qrd[] = { 36, 37 };
+
+static unsigned int halibut_row_gpios_skud[] = { 31, 32 };
+static unsigned int halibut_col_gpios_skud[] = { 37 };
 
 static unsigned int halibut_row_gpios_evb[] = { 31 };
 static unsigned int halibut_col_gpios_evb[] = { 36, 37 };
@@ -123,6 +126,16 @@ static struct gpio_keypad_info halibut_keypad_info_qrd = {
 	.flags = GPIOKPF_DRIVE_INACTIVE,
 };
 
+static struct gpio_keypad_info halibut_keypad_info_skud = {
+	.keymap = halibut_keymap_qrd,
+	.output_gpios = halibut_row_gpios_skud,
+	.input_gpios = halibut_col_gpios_skud,
+	.noutputs = ARRAY_SIZE(halibut_row_gpios_skud),
+	.ninputs = ARRAY_SIZE(halibut_col_gpios_skud),
+	.settle_time = 5 /* msec */ ,
+	.poll_time = 20 /* msec */ ,
+	.flags = GPIOKPF_DRIVE_INACTIVE,
+};
 static struct gpio_keypad_info halibut_keypad_info_evb = {
 	.keymap = halibut_keymap_evb,
 	.output_gpios = halibut_row_gpios_evb,
@@ -138,6 +151,8 @@ void keypad_init(void)
 {
 	if (machine_is_qrd())
 		gpio_keypad_init(&halibut_keypad_info_qrd);
+	else if (machine_is_skud())
+		gpio_keypad_init(&halibut_keypad_info_skud);
 	else if (machine_is_evb())
 		gpio_keypad_init(&halibut_keypad_info_evb);
 	else
