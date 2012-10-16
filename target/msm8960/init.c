@@ -120,7 +120,11 @@ void target_init(void)
 			(platform_id == MSM8930)   ||
 			(platform_id == MSM8230AA) ||
 			(platform_id == MSM8630AA) ||
-			(platform_id == MSM8930AA))
+			(platform_id == MSM8930AA) ||
+			(platform_id == MSM8930AB) ||
+			(platform_id == MSM8630AB) ||
+			(platform_id == MSM8230AB) ||
+			(platform_id == APQ8030AB))
 	{
 		msm8930_keypad_init();
 	}
@@ -346,6 +350,8 @@ void target_detect(struct board_data *board)
 	} else if ((platform == MSM8230)   || (platform == MSM8630)   ||
 			   (platform == MSM8930)   || (platform == MSM8230AA) ||
 			   (platform == MSM8630AA) || (platform == MSM8930AA) ||
+			   (platform == MSM8930AB) || (platform == MSM8630AB) ||
+			   (platform == MSM8230AB) || (platform == APQ8030AB) ||
 			   (platform == APQ8030)) {
 		switch (platform_hw) {
 		case HW_PLATFORM_SURF:
