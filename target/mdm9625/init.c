@@ -54,6 +54,8 @@ static struct ptable flash_ptable;
 #define DATA_PRODUCER_PIPE                            1
 #define CMD_PIPE                                      2
 
+#define LAST_NAND_PTN_LEN_PATTERN                     0xFFFFFFFF
+
 struct qpic_nand_init_config config;
 
 void update_ptable_names(void)
@@ -75,6 +77,14 @@ void update_ptable_names(void)
 			{
 				ptentry_ptr[ptn_index].name[i] = tolower(ptentry_ptr[ptn_index].name[i]);
 			}
+		}
+
+		/* SBL fills in the last partition length as 0xFFFFFFFF.
+		 * Update the length field based on the number of blocks on the flash.
+		 */
+		if ((uint32_t)(ptentry_ptr[ptn_index].length) == LAST_NAND_PTN_LEN_PATTERN)
+		{
+			ptentry_ptr[ptn_index].length = flash_num_blocks() - ptentry_ptr[ptn_index].start;
 		}
 	}
 
