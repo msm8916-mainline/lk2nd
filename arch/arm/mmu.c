@@ -68,14 +68,16 @@ void arm_mmu_init(void)
 	 */
 	arm_write_cr1(arm_read_cr1() & ~((1<<29)|(1<<28)|(1<<0)));
 
-	/* set up an identity-mapped translation table with
-	 * strongly ordered memory type and read/write access.
-	 */
-	for (i=0; i < 4096; i++) {
-		arm_mmu_map_section(i * MB,
-				    i * MB,
-				    MMU_MEMORY_TYPE_STRONGLY_ORDERED |
-				    MMU_MEMORY_AP_READ_WRITE);
+	if (platform_use_identity_mmu_mappings())
+	{
+		/* set up an identity-mapped translation table with
+		 * strongly ordered memory type and read/write access.
+		 */
+		for (i=0; i < 4096; i++) {
+			arm_mmu_map_section(i * MB,
+								i * MB,
+								MMU_MEMORY_TYPE_STRONGLY_ORDERED | MMU_MEMORY_AP_READ_WRITE);
+		}
 	}
 
 	platform_init_mmu_mappings();
