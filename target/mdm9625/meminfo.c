@@ -32,6 +32,7 @@
 #include <smem.h>
 #include <stdint.h>
 #include <libfdt.h>
+#include <platform.h>
 #include <platform/iomap.h>
 #include <dev_tree.h>
 
@@ -41,6 +42,8 @@ typedef struct {
 	uint32_t size;
 	uint32_t start_addr;
 }mem_info;
+
+static struct smem_ram_ptable ram_ptable;
 
 mem_info mdm9625_default_fixed_memory[] = {
 	{	.size = (29 * SIZE_1M),
@@ -52,6 +55,14 @@ mem_info mdm9625_default_fixed_memory[] = {
 				(118 * SIZE_1M)
 	},
 };
+
+struct smem_ram_ptable* target_smem_ram_ptable_init()
+{
+   /* Make sure RAM partition table is initialized */
+   ASSERT(smem_ram_ptable_init(&ram_ptable));
+
+   return &ram_ptable;
+}
 
 int target_add_first_mem_bank(void *fdt,
 							  uint32_t offset,
@@ -81,14 +92,10 @@ int target_add_first_mem_bank(void *fdt,
  */
 uint32_t target_dev_tree_mem(void *fdt, uint32_t memory_node_offset)
 {
-    struct smem_ram_ptable ram_ptable;
     uint32_t last_fixed_addr;
     int n;
     unsigned int i;
 	int ret;
-
-	/* Make sure RAM partition table is initialized */
-	ASSERT(smem_ram_ptable_init(&ram_ptable));
 
     n = ARRAY_SIZE(mdm9625_default_fixed_memory);
 
@@ -155,10 +162,10 @@ target_dev_tree_mem_err:
 
 void *target_get_scratch_address(void)
 {
-	return ((void *)SCRATCH_ADDR);
+	return ((void *) VA((addr_t)SCRATCH_REGION1));
 }
 
 unsigned target_get_max_flash_size(void)
 {
-	return (28 * 1024 * 1024);
+	return (SCRATCH_REGION1_SIZE + SCRATCH_REGION2_SIZE);
 }
