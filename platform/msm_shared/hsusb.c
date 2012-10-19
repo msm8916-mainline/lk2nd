@@ -2,35 +2,38 @@
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2012, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *  * Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *  * Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
+ * modification, are permitted provided that the following conditions are
+ * met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above
+ *       copyright notice, this list of conditions and the following
+ *       disclaimer in the documentation and/or other materials provided
+ *       with the distribution.
+ *     * Neither the name of The Linux Foundation nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+ * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
+ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include <string.h>
 #include <stdlib.h>
 #include <debug.h>
+#include <platform.h>
 #include <platform/iomap.h>
 #include <platform/irqs.h>
 #include <platform/interrupts.h>
@@ -281,7 +284,7 @@ int udc_request_queue(struct udc_endpoint *ept, struct udc_request *_req)
 					  sizeof(struct ept_queue_head));
 	arch_clean_invalidate_cache_range((addr_t) ept->req,
 					  sizeof(struct usb_request));
-	arch_clean_invalidate_cache_range((addr_t) req->req.buf,
+	arch_clean_invalidate_cache_range((addr_t) VA(req->req.buf),
 					  req->req.length);
 	arch_clean_invalidate_cache_range((addr_t) ept->req->item,
 					  sizeof(struct ept_queue_item));
@@ -328,7 +331,7 @@ static void handle_ept_complete(struct udc_endpoint *ept)
 		}
 		while (readl(&(item->info)) & INFO_ACTIVE);
 
-		arch_clean_invalidate_cache_range((addr_t) req->req.buf,
+		arch_clean_invalidate_cache_range(VA((addr_t) req->req.buf),
 						  req->req.length);
 
 		if (item->info & 0xff) {
@@ -423,6 +426,7 @@ static void setup_tx(void *buf, unsigned len)
 {
 	DBG("setup_tx %p %d\n", buf, len);
 	memcpy(ep0req->buf, buf, len);
+	ep0req->buf = PA((addr_t)ep0req->buf);
 	ep0req->complete = ep0in_complete;
 	ep0req->length = len;
 	udc_request_queue(ep0in, ep0req);
@@ -597,7 +601,7 @@ int udc_init(struct udc_device *dev)
 	arch_clean_invalidate_cache_range((addr_t) epts,
 					  32 * sizeof(struct ept_queue_head));
 
-	writel((unsigned)epts, USB_ENDPOINTLISTADDR);
+	writel((unsigned)PA((addr_t)epts), USB_ENDPOINTLISTADDR);
 
 	/* select DEVICE mode */
 	writel(0x02, USB_USBMODE);

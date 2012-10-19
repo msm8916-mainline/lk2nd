@@ -1,17 +1,17 @@
-/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
-
+/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above
- *     copyright notice, this list of conditions and the following
- *     disclaimer in the documentation and/or other materials provided
- *     with the distribution.
- *   * Neither the name of Code Aurora Forum, Inc. nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above
+ *       copyright notice, this list of conditions and the following
+ *       disclaimer in the documentation and/or other materials provided
+ *       with the distribution.
+ *     * Neither the name of The Linux Foundation nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
@@ -30,6 +30,7 @@
 #include <reg.h>
 #include <debug.h>
 #include <stdlib.h>
+#include <platform.h>
 #include <platform/interrupts.h>
 #include <platform/iomap.h>
 #include <platform/irqs.h>
@@ -192,7 +193,6 @@ void bam_init(struct bam_instance *bam)
 int bam_pipe_fifo_init(struct bam_instance *bam,
                        uint8_t pipe_num)
 {
-
 	if (bam->pipe[pipe_num].fifo.size > 0x7FFF)
 	{
 		dprintf(CRITICAL,
@@ -201,7 +201,7 @@ int bam_pipe_fifo_init(struct bam_instance *bam,
 	}
 
 	/* Check if fifo start is 8-byte alligned */
-	ASSERT(!((uint32_t)bam->pipe[pipe_num].fifo.head & 0x7));
+	ASSERT(!((uint32_t)PA((addr_t)bam->pipe[pipe_num].fifo.head & 0x7)));
 
 	/* Check if fifo size is a power of 2.
 	 * The circular fifo logic in lk expects this.
@@ -215,7 +215,10 @@ int bam_pipe_fifo_init(struct bam_instance *bam,
 		BAM_P_FIFO_SIZESn(bam->pipe[pipe_num].pipe_num, bam->base));
 
 	/* Write descriptors FIFO base addr must be 8-byte aligned */
-	writel((uint32_t)bam->pipe[pipe_num].fifo.head,
+	/* Needs a physical address conversion as we are setting up
+	 * the base of the FIFO for the BAM state machine.
+	 */
+	writel((uint32_t)PA((addr_t)bam->pipe[pipe_num].fifo.head),
 		BAM_P_DESC_FIFO_ADDRn(bam->pipe[pipe_num].pipe_num, bam->base));
 
 	/* Initialize FIFO offset for the first read */
@@ -232,8 +235,6 @@ int bam_pipe_fifo_init(struct bam_instance *bam,
 void bam_sys_pipe_init(struct bam_instance *bam,
                        uint8_t pipe_num)
 {
-	uint32_t val = 0;
-
 	/* Reset the pipe to be allocated */
 	bam_pipe_reset(bam, pipe_num);
 

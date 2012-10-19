@@ -366,12 +366,14 @@ void generate_atags(unsigned *ptr, const char *cmdline,
 	ptr = atag_end(ptr);
 }
 
+typedef void entry_func_ptr(unsigned, unsigned, unsigned*);
 void boot_linux(void *kernel, unsigned *tags,
 		const char *cmdline, unsigned machtype,
 		void *ramdisk, unsigned ramdisk_size)
 {
 	int ret = 0;
-	void (*entry)(unsigned, unsigned, unsigned*) = kernel;
+	void (*entry)(unsigned, unsigned, unsigned*) = (entry_func_ptr*)(PA((addr_t)kernel));
+	uint32_t tags_phys = platform_get_virt_to_phys_mapping((addr_t)tags);
 
 #if DEVICE_TREE
 	/* Update the Device Tree */
@@ -399,7 +401,8 @@ void boot_linux(void *kernel, unsigned *tags,
 #if ARM_WITH_MMU
 	arch_disable_mmu();
 #endif
-	entry(0, machtype, tags);
+
+	entry(0, machtype, (unsigned*)tags_phys);
 }
 
 unsigned page_size = 0;
@@ -425,7 +428,6 @@ int boot_linux_from_mmc(void)
 	unsigned ramdisk_actual;
 	unsigned imagesize_actual;
 	unsigned second_actual = 0;
-	unsigned dt_actual = 0;
 
 #if DEVICE_TREE
 	struct dt_table *table;
@@ -470,6 +472,11 @@ int boot_linux_from_mmc(void)
 		page_size = hdr->page_size;
 		page_mask = page_size - 1;
 	}
+
+	/* Get virtual addresses since the hdr saves physical addresses. */
+	hdr->kernel_addr = VA((addr_t)(hdr->kernel_addr));
+	hdr->ramdisk_addr = VA((addr_t)(hdr->ramdisk_addr));
+	hdr->tags_addr = VA((addr_t)(hdr->tags_addr));
 
 	/* Authenticate Kernel */
 	if(target_use_signed_kernel() && (!device.is_unlocked) && (!device.is_tampered))
@@ -702,6 +709,11 @@ int boot_linux_from_flash(void)
 		dprintf(CRITICAL, "ERROR: Invalid boot image pagesize. Device pagesize: %d, Image pagesize: %d\n",page_size,hdr->page_size);
 		return -1;
 	}
+
+	/* Get virtual addresses since the hdr saves physical addresses. */
+	hdr->kernel_addr = VA(hdr->kernel_addr);
+	hdr->ramdisk_addr = VA(hdr->ramdisk_addr);
+	hdr->tags_addr = VA(hdr->tags_addr);
 
 	/* Authenticate Kernel */
 	if(target_use_signed_kernel() && (!device.is_unlocked) && (!device.is_tampered))
@@ -1048,7 +1060,9 @@ int copy_dtb(uint8_t *boot_image_start)
 		}
 
 		/* Read device device tree in the "tags_add */
-		memmove((void*) hdr->tags_addr, boot_image_start + dt_image_offset +  dt_entry_ptr->offset, dt_entry_ptr->size);
+		memmove((void*) hdr->tags_addr,
+				boot_image_start + dt_image_offset +  dt_entry_ptr->offset,
+				dt_entry_ptr->size);
 	}
 
 	/* Everything looks fine. Return success. */
@@ -1060,7 +1074,7 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 {
 	unsigned kernel_actual;
 	unsigned ramdisk_actual;
-	static struct boot_img_hdr hdr;
+	struct boot_img_hdr *hdr;
 	char *ptr = ((char*) data);
 
 	if (sz < sizeof(hdr)) {
@@ -1068,18 +1082,23 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 		return;
 	}
 
-	memcpy(&hdr, data, sizeof(hdr));
+	hdr = (struct boot_img_hdr *)data;
 
 	/* ensure commandline is terminated */
-	hdr.cmdline[BOOT_ARGS_SIZE-1] = 0;
+	hdr->cmdline[BOOT_ARGS_SIZE-1] = 0;
 
-	if(target_is_emmc_boot() && hdr.page_size) {
-		page_size = hdr.page_size;
+	if(target_is_emmc_boot() && hdr->page_size) {
+		page_size = hdr->page_size;
 		page_mask = page_size - 1;
 	}
 
-	kernel_actual = ROUND_TO_PAGE(hdr.kernel_size, page_mask);
-	ramdisk_actual = ROUND_TO_PAGE(hdr.ramdisk_size, page_mask);
+	kernel_actual = ROUND_TO_PAGE(hdr->kernel_size, page_mask);
+	ramdisk_actual = ROUND_TO_PAGE(hdr->ramdisk_size, page_mask);
+
+	/* Get virtual addresses since the hdr saves physical addresses. */
+	hdr->kernel_addr = VA(hdr->kernel_addr);
+	hdr->ramdisk_addr = VA(hdr->ramdisk_addr);
+	hdr->tags_addr = VA(hdr->tags_addr);
 
 	/* sz should have atleast raw boot image */
 	if (page_size + kernel_actual + ramdisk_actual > sz) {
@@ -1099,12 +1118,12 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	fastboot_okay("");
 	udc_stop();
 
-	memmove((void*) hdr.ramdisk_addr, ptr + page_size + kernel_actual, hdr.ramdisk_size);
-	memmove((void*) hdr.kernel_addr, ptr + page_size, hdr.kernel_size);
+	memmove((void*) hdr->ramdisk_addr, ptr + page_size + kernel_actual, hdr->ramdisk_size);
+	memmove((void*) hdr->kernel_addr, ptr + page_size, hdr->kernel_size);
 
-	boot_linux((void*) hdr.kernel_addr, (void*) hdr.tags_addr,
-		   (const char*) hdr.cmdline, board_machtype(),
-		   (void*) hdr.ramdisk_addr, hdr.ramdisk_size);
+	boot_linux((void*) hdr->kernel_addr, (void*) hdr->tags_addr,
+		   (const char*) hdr->cmdline, board_machtype(),
+		   (void*) hdr->ramdisk_addr, hdr->ramdisk_size);
 }
 
 void cmd_erase(const char *arg, void *data, unsigned sz)
