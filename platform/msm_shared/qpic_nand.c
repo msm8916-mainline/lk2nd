@@ -1230,6 +1230,11 @@ flash_block_size(void)
     return flash.block_size;
 }
 
+unsigned
+flash_num_blocks(void)
+{
+    return flash.num_blocks;
+}
 
 struct ptable *
 flash_get_ptable(void)
