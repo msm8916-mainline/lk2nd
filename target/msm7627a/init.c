@@ -303,6 +303,9 @@ void board_info(void)
 			case 0x10:
 				hw_platform = MSM8X25_EVT;
 				break;
+			case 0x11:
+				hw_platform = MSM8X25Q_SKUD;
+				break;
 			case 0xC:
 				hw_platform = MSM8X25_EVB;
 				break;
@@ -595,6 +598,20 @@ int machine_is_qrd()
 	}
 	return ret;
 }
+int machine_is_skud()
+{
+	int ret = 0;
+	unsigned mach_type = board_machtype();
+
+	switch(mach_type) {
+		case MSM8X25Q_SKUD:
+			ret = 1;
+			break;
+		default:
+			ret = 0;
+	}
+	return ret;
+}
 int machine_is_8x25()
 {
 	int ret = 0;
@@ -606,6 +623,7 @@ int machine_is_8x25()
 		case MSM8X25_EVB:
 		case MSM8X25_EVT:
 		case MSM8X25_QRD7:
+		case MSM8X25Q_SKUD:
 			ret = 1;
 			break;
 		default:
