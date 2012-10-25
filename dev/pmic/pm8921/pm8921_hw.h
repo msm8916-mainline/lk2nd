@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2011-2012, Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -10,7 +10,7 @@
  *       copyright notice, this list of conditions and the following
  *       disclaimer in the documentation and/or other materials provided
  *       with the distribution.
- *     * Neither the name of Code Aurora Forum, Inc. nor the names of its
+ *     * Neither the name of Linux Foundation, Inc. nor the names of its
  *       contributors may be used to endorse or promote products derived
  *       from this software without specific prior written permission.
  *
@@ -26,6 +26,7 @@
  * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include <bits.h>
 
 #define PBL_ACCESS_2                          0x005
 #define PBL_ACCESS_2_ENUM_TIMER_STOP          (1 << 1)
@@ -129,3 +130,44 @@
 #define PM8921_MPP_CTRL_DIGITAL_OUTPUT        (1 << 5)
 #define PM8921_MPP_CTRL_VIO_1                 (1 << 2)
 #define PM8921_MPP_CTRL_OUTPUT_HIGH           (1 << 0)
+
+#define PM89XX_BAT_UP_THRESH_VOL              4
+#define PM89XX_BAT_ALRM_THRESH                0x23
+#define PM89XX_BAT_ALRM_CTRL                  0x24
+#define PM89XX_USB_OVP_CTRL                   0x21C
+
+#define PM89XX_BAT_ALRM_ENABLE                BIT(7)
+#define PM89XX_BAT_UPR_STATUS                 BIT(1)
+#define PM89XX_BAT_LWR_STATUS                 BIT(0)
+
+#define PM89XX_VBUS_INPUT_STATUS              BIT(0)
+
+/* voltages are specified in mV */
+#define PLDO_MV_VMIN                          1500
+#define PLDO_MV_VMAX                          3000
+#define PLDO_MV_VSTEP                         50
+
+#define NLDO_MV_VMIN                          750
+#define NLDO_MV_VMAX                          1525
+#define NLDO_MV_VSTEP                         25
+
+#define PLDO_TYPE                             0
+#define NLDO_TYPE                             1
+
+#define LDO(_name, _type, _test_reg, _ctrl_reg) \
+{\
+	.name = _name,\
+	.type = _type,\
+	.test_reg = _test_reg,\
+	.ctrl_reg = _ctrl_reg, \
+}
+
+struct pm89xx_vreg ldo_data[] = {
+	LDO("LDO30", PLDO_TYPE, 0x0A3, 0x0A4),
+	LDO("LDO31", PLDO_TYPE, 0x0A5, 0x0A6),
+	LDO("LDO32", PLDO_TYPE, 0x0A7, 0x0A8),
+	LDO("LDO33", PLDO_TYPE, 0x0C6, 0x0C7),
+	LDO("LDO34", PLDO_TYPE, 0x0D2, 0x0D3),
+	LDO("LDO35", PLDO_TYPE, 0x0D4, 0x0D5),
+	LDO("LDO36", PLDO_TYPE, 0x0A9, 0x0AA),
+};

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2011-2012, Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -10,7 +10,7 @@
  *       copyright notice, this list of conditions and the following
  *       disclaimer in the documentation and/or other materials provided
  *       with the distribution.
- *     * Neither the name of Code Aurora Forum, Inc. nor the names of its
+ *     * Neither the name of Linux Foundation, Inc. nor the names of its
  *       contributors may be used to endorse or promote products derived
  *       from this software without specific prior written permission.
  *
@@ -60,6 +60,25 @@ enum {
 	mpp_12,
 	mpp_end = mpp_12,
 };
+
+typedef enum {
+	BAT_VOL_2_8 = 0,
+	BAT_VOL_2_9,
+	BAT_VOL_3_0,
+	BAT_VOL_3_1,
+	BAT_VOL_3_2,
+	BAT_VOL_3_3,
+	BAT_VOL_3_4,
+	BAT_VOL_3_5,
+	BAT_VOL_3_6,
+	BAT_VOL_3_7,
+	BAT_VOL_3_8,
+	BAT_VOL_3_9,
+	BAT_VOL_4_0,
+	BAT_VOL_4_1,
+	BAT_VOL_4_2,
+	BAT_VOL_4_3,
+} bat_vol_t;
 
 #define PM_GPIO_DIR_OUT         0x01
 #define PM_GPIO_DIR_IN          0x02
@@ -139,6 +158,13 @@ struct pm8921_gpio {
 	int disable_pin;
 };
 
+struct pm89xx_vreg {
+	const char *name;
+	uint8_t type;
+	uint16_t test_reg;
+	uint16_t ctrl_reg;
+};
+
 void pm8921_init(pm8921_dev_t *);
 int  pm8921_gpio_config(int gpio, struct pm8921_gpio *param);
 void pm8921_boot_done(void);
@@ -156,4 +182,8 @@ int pm8921_config_drv_keypad(unsigned int drv_flash_sel,
 int pm8921_low_voltage_switch_enable(uint8_t lvs_id);
 int pm8921_mpp_set_digital_output(uint8_t mpp_id);
 int pm8921_rtc_alarm_disable(void);
+int pm89xx_bat_alarm_set(bat_vol_t, bat_vol_t);
+int pm89xx_bat_alarm_status(uint8_t *, uint8_t *);
+int pm89xx_vbus_status(void);
+int pm89xx_ldo_set_voltage(const char * , uint32_t);
 #endif
