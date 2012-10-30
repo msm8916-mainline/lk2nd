@@ -107,33 +107,36 @@ void target_init(void)
 	/* Keypad init */
 	keys_init();
 
-	if((platform_id == MSM8960)   ||
-	   (platform_id == MSM8960AB) ||
-	   (platform_id == APQ8060AB) ||
-	   (platform_id == MSM8260AB) ||
-	   (platform_id == MSM8660AB))
-	{
+	switch(platform_id) {
+	case MSM8960:
+	case MSM8960AB:
+	case APQ8060AB:
+	case MSM8260AB:
+	case MSM8660AB:
 		msm8960_keypad_init();
-	}
-	else if((platform_id == MSM8230)   ||
-			(platform_id == MSM8630)   ||
-			(platform_id == MSM8930)   ||
-			(platform_id == MSM8230AA) ||
-			(platform_id == MSM8630AA) ||
-			(platform_id == MSM8930AA) ||
-			(platform_id == MSM8930AB) ||
-			(platform_id == MSM8630AB) ||
-			(platform_id == MSM8230AB) ||
-			(platform_id == APQ8030AB))
-	{
+		break;
+	case MSM8230:
+	case MSM8630:
+	case MSM8930:
+	case MSM8230AA:
+	case MSM8630AA:
+	case MSM8930AA:
+	case MSM8930AB:
+	case MSM8630AB:
+	case MSM8230AB:
+	case APQ8030AB:
+	case APQ8030:
+	case APQ8030AA:
 		msm8930_keypad_init();
-	}
-	else if((platform_id == APQ8064) ||
-		    (platform_id == MPQ8064) ||
-		    (platform_id == APQ8064AB))
-	{
+		break;
+	case APQ8064:
+	case MPQ8064:
+	case APQ8064AB:
 		apq8064_keypad_init();
-	}
+		break;
+	default:
+		dprintf(CRITICAL,"Keyboard is not supported for platform: %d\n",platform_id);
+	};
 
 	/* Display splash screen if enabled */
 #if DISPLAY_SPLASH_SCREEN
@@ -352,7 +355,7 @@ void target_detect(struct board_data *board)
 			   (platform == MSM8630AA) || (platform == MSM8930AA) ||
 			   (platform == MSM8930AB) || (platform == MSM8630AB) ||
 			   (platform == MSM8230AB) || (platform == APQ8030AB) ||
-			   (platform == APQ8030)) {
+			   (platform == APQ8030) || platform == APQ8030AA) {
 		switch (platform_hw) {
 		case HW_PLATFORM_SURF:
 			target_id = LINUX_MACHTYPE_8930_CDP;
@@ -428,15 +431,21 @@ void target_baseband_detect(struct board_data *board)
 		baseband = BASEBAND_MDM;
 	else if (platform_subtype == HW_PLATFORM_SUBTYPE_SGLTE)
 		baseband = BASEBAND_SGLTE;
-	else if (platform == APQ8060)
-		baseband = BASEBAND_APQ;
-	else if ((platform == APQ8064) || (platform == APQ8064AB))
-		baseband = BASEBAND_APQ;
-	else if (platform == MPQ8064)
-		baseband = BASEBAND_APQ;
-	else
-		baseband = BASEBAND_MSM;
-
+	else {
+		switch(platform) {
+		case APQ8060:
+		case APQ8064:
+		case APQ8064AB:
+		case APQ8030AB:
+		case MPQ8064:
+		case APQ8030:
+		case APQ8030AA:
+			baseband = BASEBAND_APQ;
+			break;
+		default:
+			baseband = BASEBAND_MSM;
+		};
+	}
 	board->baseband = baseband;
 }
 
