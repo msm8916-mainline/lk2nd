@@ -29,10 +29,13 @@
 #ifndef _PLATFORM_MDM9625_IOMAP_H_
 #define _PLATFORM_MDM9625_IOMAP_H_
 
-/*SDRAM start address */
-#define SDRAM_START_ADDR          0x0
+#define MSM_IOMAP_BASE            0xF9000000
+#define MSM_IOMAP_END             0xFEFFFFFF
 
 #define MSM_SHARED_BASE           0x00000000
+
+/*SDRAM start address */
+#define SDRAM_START_ADDR          0x00000000
 
 #define MSM_SHARED_IMEM_BASE      0xFC42B000
 #define RESTART_REASON_ADDR       (MSM_SHARED_IMEM_BASE + 0x65C)
