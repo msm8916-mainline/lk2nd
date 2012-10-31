@@ -29,6 +29,7 @@
 #include <debug.h>
 #include <string.h>
 #include <stdlib.h>
+#include <platform.h>
 #include <kernel/thread.h>
 #include <kernel/event.h>
 #include <dev/udc.h>
@@ -147,7 +148,7 @@ static int usb_read(void *_buf, unsigned len)
 
 	while (len > 0) {
 		xfer = (len > MAX_USBFS_BULK_SIZE) ? MAX_USBFS_BULK_SIZE : len;
-		req->buf = buf;
+		req->buf = PA((addr_t)buf);
 		req->length = xfer;
 		req->complete = req_complete;
 		r = udc_request_queue(out, req);
@@ -184,7 +185,7 @@ static int usb_write(void *buf, unsigned len)
 	if (fastboot_state == STATE_ERROR)
 		goto oops;
 
-	req->buf = buf;
+	req->buf = PA((addr_t)buf);
 	req->length = len;
 	req->complete = req_complete;
 	r = udc_request_queue(in, req);
