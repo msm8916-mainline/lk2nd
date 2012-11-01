@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -9,7 +9,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of Code Aurora Forum, Inc. nor the names of its
+ *   * Neither the name of The Linux Foundation, Inc. nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -30,6 +30,7 @@
 #include <debug.h>
 #include <reg.h>
 #include <spmi.h>
+#include <string.h>
 #include <pm8x41_hw.h>
 #include <pm8x41.h>
 #include <platform/timer.h>
@@ -42,6 +43,11 @@
 #define PERIPH_ID(_addr)    (((_addr) & 0xFF00) >> 8)
 #define SLAVE_ID(_addr)     ((_addr) >> 16)
 
+struct pm8x41_ldo ldo_data[] = {
+	LDO("LDO2",  NLDO_TYPE, 0x14100, LDO_RANGE_CTRL, LDO_STEP_CTRL, LDO_EN_CTL_REG),
+	LDO("LDO12", PLDO_TYPE, 0x14B00, LDO_RANGE_CTRL, LDO_STEP_CTRL, LDO_EN_CTL_REG),
+	LDO("LDO22", PLDO_TYPE, 0x15500, LDO_RANGE_CTRL, LDO_STEP_CTRL, LDO_EN_CTL_REG),
+};
 
 /* Local functions */
 static uint8_t pm8x41_reg_read(uint32_t addr)
@@ -218,4 +224,104 @@ void pm8x41_reset_configure(uint8_t reset_type)
 	/* enable PS_HOLD_RESET */
 	val |= BIT(S2_RESET_EN_BIT);
 	REG_WRITE(PON_PS_HOLD_RESET_CTL, val);
+}
+
+static struct pm8x41_ldo *ldo_get(const char *ldo_name)
+{
+	uint8_t i;
+	struct pm8x41_ldo *ldo = NULL;
+
+	for (i = 0; i < ARRAY_SIZE(ldo_data); i++) {
+		ldo = &ldo_data[i];
+		if (!strncmp(ldo->name, ldo_name, strlen(ldo_name)))
+			break;
+	}
+	return ldo;
+}
+
+/*
+ * LDO set voltage, takes ldo name & voltage in UV as input
+ */
+int pm8x41_ldo_set_voltage(const char *name, uint32_t voltage)
+{
+	uint32_t range = 0;
+	uint32_t step = 0;
+	uint32_t mult = 0;
+	uint32_t val = 0;
+	uint32_t vmin = 0;
+	struct pm8x41_ldo *ldo;
+
+	ldo = ldo_get(name);
+	if (!ldo) {
+		dprintf(CRITICAL, "LDO requsted is not supported: %s\n", name);
+		return 1;
+	}
+
+	/* Program Normal power mode */
+	val = 0x0;
+	val = (1 << LDO_NORMAL_PWR_BIT);
+	REG_WRITE((ldo->base + LDO_POWER_MODE), val);
+
+	/*
+	 * Select range, step & vmin based on input voltage & type of LDO
+	 * LDO can operate in low, mid, high power mode
+	 */
+	if (ldo->type == PLDO_TYPE) {
+		if (voltage < PLDO_UV_MIN) {
+			range = 2;
+			step = PLDO_UV_STEP_LOW;
+			vmin = PLDO_UV_VMIN_LOW;
+		} else if (voltage < PDLO_UV_MID) {
+			range = 3;
+			step = PLDO_UV_STEP_MID;
+			vmin = PLDO_UV_VMIN_MID;
+		} else {
+			range = 4;
+			step = PLDO_UV_STEP_HIGH;
+			vmin = PLDO_UV_VMIN_HIGH;
+		}
+	} else {
+		range = 2;
+		step = NLDO_UV_STEP;
+		vmin = NLDO_UV_VMIN_LOW;
+	}
+
+	mult = (voltage - vmin) / step;
+
+	/* Set Range in voltage ctrl register */
+	val = 0x0;
+	val = range << LDO_RANGE_SEL_BIT;
+	REG_WRITE((ldo->base + ldo->range_reg), val);
+
+	/* Set multiplier in voltage ctrl register */
+	val = 0x0;
+	val = mult << LDO_VSET_SEL_BIT;
+	REG_WRITE((ldo->base + ldo->step_reg), val);
+
+	return 0;
+}
+
+/*
+ * Enable or Disable LDO
+ */
+int pm8x41_ldo_control(const char *name, uint8_t enable)
+{
+	uint32_t val = 0;
+	struct pm8x41_ldo *ldo;
+
+	ldo = ldo_get(name);
+	if (!ldo) {
+		dprintf(CRITICAL, "Requested LDO is not supported : %s\n", name);
+		return 1;
+	}
+
+	/* Enable LDO */
+	if (enable)
+		val = (1 << LDO_VREG_ENABLE_BIT);
+	else
+		val = (0 << LDO_VREG_ENABLE_BIT);
+
+	REG_WRITE((ldo->base + ldo->enable_reg), val);
+
+	return 0;
 }
