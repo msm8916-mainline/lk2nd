@@ -1,29 +1,29 @@
-/*
- * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in the
- *     documentation and/or other materials provided with the distribution.
- *   * Neither the name of Code Aurora nor
- *     the names of its contributors may be used to endorse or promote
- *     products derived from this software without specific prior written
- *     permission.
+ * modification, are permitted provided that the following conditions are
+ * met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above
+ *       copyright notice, this list of conditions and the following
+ *       disclaimer in the documentation and/or other materials provided
+ *       with the distribution.
+ *     * Neither the name of The Linux Foundation nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NON-INFRINGEMENT ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
- * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
- * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
- * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+ * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
+ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include <assert.h>
@@ -212,7 +212,7 @@ static struct branch_clk gcc_blsp1_uart2_apps_clk =
 
 static struct vote_clk gcc_blsp1_ahb_clk = {
 	.cbcr_reg     = (uint32_t *) BLSP1_AHB_CBCR,
-	.vote_reg     = APCS_CLOCK_BRANCH_ENA_VOTE,
+	.vote_reg     = (uint32_t *) APCS_CLOCK_BRANCH_ENA_VOTE,
 	.en_mask      = BIT(17),
 
 	.c = {
@@ -265,6 +265,58 @@ static struct branch_clk gcc_usb_hs_ahb_clk =
 	},
 };
 
+/* CE Clocks */
+static struct clk_freq_tbl ftbl_gcc_ce2_clk[] = {
+	F( 50000000,  gpll0,  12,   0,   0),
+	F(100000000,  gpll0,   6,   0,   0),
+	F_END
+};
+
+static struct rcg_clk ce2_clk_src = {
+	.cmd_reg      = (uint32_t *) GCC_CE2_CMD_RCGR,
+	.cfg_reg      = (uint32_t *) GCC_CE2_CFG_RCGR,
+	.set_rate     = clock_lib2_rcg_set_rate_hid,
+	.freq_tbl     = ftbl_gcc_ce2_clk,
+	.current_freq = &rcg_dummy_freq,
+
+	.c = {
+		.dbg_name = "ce2_clk_src",
+		.ops      = &clk_ops_rcg,
+	},
+};
+
+static struct vote_clk gcc_ce2_clk = {
+	.cbcr_reg = (uint32_t *) GCC_CE2_CBCR,
+	.vote_reg = (uint32_t *) APCS_CLOCK_BRANCH_ENA_VOTE,
+	.en_mask = BIT(2),
+
+	.c = {
+		.dbg_name = "gcc_ce2_clk",
+		.ops = &clk_ops_vote,
+	},
+};
+
+static struct vote_clk gcc_ce2_ahb_clk = {
+	.cbcr_reg = (uint32_t *) GCC_CE2_AHB_CBCR,
+	.vote_reg = (uint32_t *) APCS_CLOCK_BRANCH_ENA_VOTE,
+	.en_mask = BIT(0),
+
+	.c = {
+		.dbg_name = "gcc_ce2_ahb_clk",
+		.ops = &clk_ops_vote,
+	},
+};
+
+static struct vote_clk gcc_ce2_axi_clk = {
+	.cbcr_reg = (uint32_t *) GCC_CE2_AXI_CBCR,
+	.vote_reg = (uint32_t *) APCS_CLOCK_BRANCH_ENA_VOTE,
+	.en_mask = BIT(1),
+
+	.c = {
+		.dbg_name = "gcc_ce2_axi_clk",
+		.ops = &clk_ops_vote,
+	},
+};
 
 /* Clock lookup table */
 static struct clk_lookup msm_clocks_8974[] =
@@ -277,6 +329,11 @@ static struct clk_lookup msm_clocks_8974[] =
 
 	CLK_LOOKUP("usb_iface_clk",  gcc_usb_hs_ahb_clk.c),
 	CLK_LOOKUP("usb_core_clk",   gcc_usb_hs_system_clk.c),
+
+	CLK_LOOKUP("ce2_ahb_clk",  gcc_ce2_ahb_clk.c),
+	CLK_LOOKUP("ce2_axi_clk",  gcc_ce2_axi_clk.c),
+	CLK_LOOKUP("ce2_core_clk", gcc_ce2_clk.c),
+	CLK_LOOKUP("ce2_src_clk",  ce2_clk_src.c),
 };
 
 

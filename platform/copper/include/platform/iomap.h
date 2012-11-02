@@ -93,6 +93,14 @@
 #define MPM2_MPM_CTRL_BASE          0xFC4A1000
 #define MPM2_MPM_PS_HOLD            0xFC4AB000
 
+/* CE 2 */
+#define  GCC_CE2_BCR                (CLK_CTL_BASE + 0x1080)
+#define  GCC_CE2_CMD_RCGR           (CLK_CTL_BASE + 0x1090)
+#define  GCC_CE2_CFG_RCGR           (CLK_CTL_BASE + 0x1094)
+#define  GCC_CE2_CBCR               (CLK_CTL_BASE + 0x1084)
+#define  GCC_CE2_AXI_CBCR           (CLK_CTL_BASE + 0x1088)
+#define  GCC_CE2_AHB_CBCR           (CLK_CTL_BASE + 0x108C)
+
 /* GPLL */
 #define GPLL0_STATUS                (CLK_CTL_BASE + 0x001C)
 #define APCS_GPLL_ENA_VOTE          (CLK_CTL_BASE + 0x1480)
