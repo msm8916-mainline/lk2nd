@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2011-2012, Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -10,7 +10,7 @@
  *       copyright notice, this list of conditions and the following
  *       disclaimer in the documentation and/or other materials provided
  *       with the distribution.
- *     * Neither the name of Code Aurora Forum, Inc. nor the names of its
+ *     * Neither the name of  Linux Foundation, Inc. nor the names of its
  *       contributors may be used to endorse or promote products derived
  *       from this software without specific prior written permission.
  *
@@ -27,9 +27,11 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <assert.h>
+#include <string.h>
 #include <sys/types.h>
 #include <err.h>
 #include <dev/pm8921.h>
+#include <platform/timer.h>
 #include "pm8921_hw.h"
 
 static pm8921_dev_t *dev;
@@ -538,4 +540,192 @@ int pm8921_rtc_alarm_disable(void)
 	}
 
 	return rc;
+}
+
+/*
+ * Set battery alarm with low & high threshold values
+ */
+int pm89xx_bat_alarm_set(bat_vol_t up_thresh_vol, bat_vol_t low_thresh_vol)
+{
+	int rc;
+	uint8_t reg = 0;
+
+	if ((up_thresh_vol > BAT_VOL_4_3) || (low_thresh_vol > BAT_VOL_4_3)) {
+		dprintf(CRITICAL, "Input voltage not in permissible range\n");
+		return 1;
+	}
+
+	/*
+	 * Write upper & lower threshold values
+	 */
+	reg = (up_thresh_vol << PM89XX_BAT_UP_THRESH_VOL) | low_thresh_vol;
+
+	rc = dev->write(&reg, 1, PM89XX_BAT_ALRM_THRESH);
+	if (rc) {
+		dprintf(CRITICAL, "Failed to set BAT_THRESH reg = %d\n", rc);
+		return rc;
+	}
+
+	/* Read Alarm control to use the existing hysteresis values */
+	rc = dev->read(&reg, 1, PM89XX_BAT_ALRM_CTRL);
+	if (rc) {
+		dprintf(CRITICAL, "Failed to read BAT_ALARM reg = %d\n", rc);
+		return rc;
+	}
+
+	/* Enable battery alarm */
+	reg |= PM89XX_BAT_ALRM_ENABLE;
+	rc = dev->write(&reg, 1, PM89XX_BAT_ALRM_CTRL);
+	if (rc) {
+		dprintf(CRITICAL, "Failed to enable BAT_ALARM reg = %d\n", rc);
+		return rc;
+	}
+
+	/* Wait for the comparator o/p to settle */
+	mdelay(10);
+
+	return rc;
+}
+
+/*
+ * API to return status of battery
+ * if the vbatt is below upper threshold return 0
+ * if the vbatt is below lower threshold return 1
+ */
+int pm89xx_bat_alarm_status(uint8_t *high_status, uint8_t *low_status)
+{
+	int rc = 0;
+	uint8_t reg = 0;
+
+	/* Read the battery status */
+	rc = dev->read(&reg, 1, PM89XX_BAT_ALRM_CTRL);
+	if (rc) {
+		dprintf(CRITICAL, "Failed to read BAT_ALARM reg = %d\n", rc);
+		return rc;
+	}
+
+	/* Return the status if battery alarm is enabled */
+	if (reg & PM89XX_BAT_ALRM_ENABLE) {
+		*high_status = (reg & PM89XX_BAT_UPR_STATUS);
+		*low_status = (reg & PM89XX_BAT_LWR_STATUS);
+	} else {
+		dprintf(CRITICAL, "Battery alarm is not enabled\n");
+		return 1;
+	}
+
+	return rc;
+}
+
+/*
+ * Return 1 if VBUS is connected, 0 otherwise
+ */
+int pm89xx_vbus_status(void)
+{
+	int rc;
+	uint8_t reg = 0;
+
+	rc = dev->read(&reg, 1, PM89XX_USB_OVP_CTRL);
+	if (rc) {
+		dprintf(CRITICAL, "Failed to read USB OVP CTRL = %d\n", rc);
+		return rc;
+	}
+
+	reg &= PM89XX_VBUS_INPUT_STATUS;
+
+	return reg;
+}
+
+static struct pm89xx_vreg *ldo_get(const char *ldo_name)
+{
+	uint8_t i;
+	struct pm89xx_vreg *ldo = NULL;
+
+	for (i = 0; i < ARRAY_SIZE(ldo_data); i++) {
+		ldo = &ldo_data[i];
+		if (!strncmp(ldo->name, ldo_name, strlen(ldo_name)))
+			break;
+	}
+
+	return ldo;
+}
+
+/*
+ * API takes LDO name & voltage as input
+ * Input voltage is taken in mVs
+ * PLDO voltage ranging from 1500mV to 3000mV
+ * NLDO voltage ranging from 750mV to 1525mV
+ */
+int pm89xx_ldo_set_voltage(const char *ldo_name, uint32_t voltage)
+{
+	uint8_t mult;
+	uint8_t val = 0;
+	int32_t ret = 0;
+	struct pm89xx_vreg *ldo;
+
+	/* Find the LDO info from table */
+	ldo = ldo_get(ldo_name);
+
+	if (!ldo) {
+		dprintf(CRITICAL, "Requested LDO is not supported : \
+				%s\n", ldo_name);
+		return -1;
+	}
+
+	/* Find the voltage multiplying factor */
+	if (ldo->type == PLDO_TYPE) {
+		if (voltage < PLDO_MV_VMIN)
+			voltage = PLDO_MV_VMIN;
+		else if (voltage > PLDO_MV_VMAX)
+			voltage = PLDO_MV_VMAX;
+		mult = (voltage - PLDO_MV_VMIN) / PLDO_MV_VSTEP;
+	} else {
+		if (voltage < NLDO_MV_VMIN)
+			voltage = NLDO_MV_VMIN;
+		else if (voltage > NLDO_MV_VMAX)
+			voltage = NLDO_MV_VMAX;
+		mult = (voltage - NLDO_MV_VMIN) / NLDO_MV_VSTEP;
+	}
+
+	/* Program the TEST reg */
+	if (ldo->type == PLDO_TYPE) {
+		/* Bank 2, only for p ldo, use 1.25V reference */
+		val = 0x0;
+		val |= (1 << PM8921_LDO_TEST_REG_RW);
+		val |= (2 << PM8921_LDO_TEST_REG_BANK_SEL);
+		ret = dev->write(&val, 1, ldo->test_reg);
+		if (ret) {
+			dprintf(CRITICAL, "Failed to write to PM8921 LDO Test \
+					Reg ret=%d.\n", ret);
+			return -1;
+		}
+
+		/*
+		 * Bank 4, only for p ldo, disable output range ext,
+		 * normal capacitance
+		 */
+		val = 0x0;
+		val |= (1 << PM8921_LDO_TEST_REG_RW);
+		val |= (4 << PM8921_LDO_TEST_REG_BANK_SEL);
+		ret = dev->write(&val, 1, ldo->test_reg);
+		if (ret) {
+			dprintf(CRITICAL, "Failed to write to PM8921 LDO Test \
+					Reg ret=%d.\n", ret);
+			return -1;
+		}
+	}
+
+	/* Program the CTRL reg */
+	val = 0x0;
+	val |= (1 << PM8921_LDO_CTRL_REG_ENABLE);
+	val |= (1 << PM8921_LDO_CTRL_REG_PULL_DOWN);
+	val |= (0 << PM8921_LDO_CTRL_REG_POWER_MODE);
+	val |= (mult << PM8921_LDO_CTRL_REG_VOLTAGE);
+	ret = dev->write(&val, 1, ldo->ctrl_reg);
+	if (ret) {
+		dprintf(CRITICAL, "Failed to write to PM8921 LDO Ctrl Reg \
+				ret=%d.\n", ret);
+		return -1;
+	}
+
+	return 0;
 }
