@@ -84,9 +84,11 @@
 #define NAND_DEV_CMD6                                      NAND_REG(0x00DC)
 #define NAND_SFLASHC_BURST_CFG                             NAND_REG(0x00E0)
 #define NAND_ADDR6                                         NAND_REG(0x00E4)
+#define NAND_ERASED_CW_DETECT_CFG                          NAND_REG(0x00E8)
+#define NAND_ERASED_CW_DETECT_STATUS                       NAND_REG(0x00EC)
 #define NAND_EBI2_ECC_BUF_CFG                              NAND_REG(0x00F0)
-#define NAND_FLASH_BUFFER                                  NAND_REG(0x0100)
 #define NAND_HW_INFO                                       NAND_REG(0x00FC)
+#define NAND_FLASH_BUFFER                                  NAND_REG(0x0100)
 
 /* NANDc registers used during BAM transfer */
 #define NAND_READ_LOCATION_n(n)                            (NAND_REG(0xF20) + 4 * (n))
@@ -115,6 +117,15 @@
 #define NAND_DEV0_ECC_NUM_DATA_BYTES                       16
 #define NAND_DEV0_ECC_FORCE_CLK_OPEN_SHIFT                 30
 
+#define NAND_ERASED_CW_DETECT_STATUS_PAGE_ALL_ERASED       7
+#define NAND_ERASED_CW_DETECT_STATUS_CODEWORD_ALL_ERASED   6
+#define NAND_ERASED_CW_DETECT_STATUS_CODEWORD_ERASED       4
+
+#define NAND_ERASED_CW_DETECT_CFG_RESET_CTRL               1
+#define NAND_ERASED_CW_DETECT_CFG_ACTIVATE_CTRL            0
+#define NAND_ERASED_CW_DETECT_ERASED_CW_ECC_MASK           (1 << 1)
+#define NAND_ERASED_CW_DETECT_ERASED_CW_ECC_NO_MASK        (0 << 1)
+
 /* device commands */
 #define NAND_CMD_SOFT_RESET                                0x01
 #define NAND_CMD_PAGE_READ                                 0x32
@@ -135,13 +146,8 @@
 #define NAND_FLASH_OP_ERR                                  (1 << 4)
 
 #define NAND_FLASH_ERR                                     (NAND_FLASH_MPU_ERR | \
-                                                           NAND_FLASH_TIMEOUT_ERR)
-/* TODO: Add the check for operation error: NAND_FLASH_OP_ERR
- * This bit is also flagged for MPU errors, which is set for
- * blank page reads.
- * Also need to add a detect an empty page.
- */
-
+                                                           NAND_FLASH_TIMEOUT_ERR | \
+                                                           NAND_FLASH_OP_ERR)
 
 #define PROG_ERASE_OP_RESULT                               (1 << 7)
 
