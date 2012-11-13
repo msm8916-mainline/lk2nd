@@ -169,3 +169,15 @@ void target_baseband_detect(struct board_data *board)
 		ASSERT(0);
 	}
 }
+
+unsigned check_reboot_mode(void)
+{
+	unsigned restart_reason = 0;
+
+	/* Read reboot reason and scrub it */
+	restart_reason = readl(RESTART_REASON_ADDR);
+	writel(0x00, RESTART_REASON_ADDR);
+
+	return restart_reason;
+}
+
