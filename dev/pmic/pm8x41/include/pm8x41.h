@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -9,7 +9,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of Code Aurora Forum, Inc. nor the names of its
+ *   * Neither the name of The Linux Foundation, Inc. nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -28,6 +28,8 @@
 
 #ifndef _PM8x41_H_
 #define _PM8x41_H_
+
+#include <sys/types.h>
 
 #define PM_GPIO_DIR_OUT         0x01
 #define PM_GPIO_DIR_IN          0x00
@@ -60,5 +62,15 @@ int pm8x41_gpio_config(uint8_t gpio, struct pm8x41_gpio *config);
 void pm8x41_set_boot_done();
 int pm8x41_vol_down_key_status();
 void pm8x41_reset_configure(uint8_t);
+int pm8x41_ldo_set_voltage(const char *, uint32_t);
+int pm8x41_ldo_control(const char *, uint8_t);
 
+struct pm8x41_ldo {
+	const char *name;
+	uint8_t type;
+	uint32_t base;
+	uint32_t range_reg;
+	uint32_t step_reg;
+	uint32_t enable_reg;
+};
 #endif
