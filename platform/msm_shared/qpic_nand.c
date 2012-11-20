@@ -800,16 +800,17 @@ qpic_nand_block_isbad_exec(struct cfg_params *params,
 }
 
 static int
-qpic_nand_block_isbad(unsigned block)
+qpic_nand_block_isbad(unsigned page)
 {
 	unsigned cwperpage;
 	struct cfg_params params;
 	uint8_t bad_block[4];
 	unsigned nand_ret = NANDC_RESULT_SUCCESS;
+	uint32_t blk = page / flash.num_pages_per_blk;
 
-	if (bbtbl[block] == NAND_BAD_BLK_VALUE_IS_GOOD)
+	if (bbtbl[blk] == NAND_BAD_BLK_VALUE_IS_GOOD)
 		return NANDC_RESULT_SUCCESS;
-	else if (bbtbl[block] == NAND_BAD_BLK_VALUE_IS_BAD)
+	else if (bbtbl[blk] == NAND_BAD_BLK_VALUE_IS_BAD)
 		return NANDC_RESULT_BAD_BLOCK;
 	else
 	{
@@ -820,36 +821,21 @@ qpic_nand_block_isbad(unsigned block)
 		cwperpage = flash.cws_per_page;
 
 		/* Read page cmd */
-		params.cmd =  NAND_CMD_PAGE_READ;
+		params.cmd =  NAND_CMD_PAGE_READ_ECC;
 		/* Clear the CW per page bits */
 		params.cfg0 = cfg0_raw & ~(7U << NAND_DEV0_CFG0_CW_PER_PAGE_SHIFT);
 		params.cfg1 = cfg1_raw;
-		/* addr0 - Write column addr + few bits in row addr upto 32 bits.
-		 * Figure out the bad block status offset.
-		 */
-		if (flash.widebus)
-		{
-			if (flash.ecc_width == NAND_WITH_8_BIT_ECC)
-				params.addr0 = ((block << 16) | ((532 * (cwperpage - 1)) >> 1));
-			else
-				params.addr0 = ((block << 16) | ((528 * (cwperpage - 1)) >> 1));
-		}
-		else
-		{
-			if (flash.ecc_width == NAND_WITH_8_BIT_ECC)
-				params.addr0 = (block << 16) | (532 * (cwperpage - 1));
-			else
-				params.addr0 = (block << 16) | (528 * (cwperpage - 1));
-		}
+		/* addr0 - Write column addr + few bits in row addr upto 32 bits. */
+		params.addr0 = (page << 16) | (USER_DATA_BYTES_PER_CW * cwperpage);
 
 		/* addr1 - Write rest of row addr.
 		 * This will be all 0s.
 		 */
-		params.addr1 = (block >> 16) & 0xff;
+		params.addr1 = (page >> 16) & 0xff;
 		params.addr_loc_0 = NAND_RD_LOC_OFFSET(0);
 		params.addr_loc_0 |= NAND_RD_LOC_LAST_BIT(1);
 		params.addr_loc_0 |= NAND_RD_LOC_SIZE(4); /* Read 4 bytes */
-		params.ecc_cfg = ecc_bch_cfg & 0xFFFFFFFE; /* Disable ECC */
+		params.ecc_cfg = ecc_bch_cfg | 0x1; /* Disable ECC */
 		params.exec = 1;
 
 		if (qpic_nand_block_isbad_exec(&params, bad_block))
@@ -863,17 +849,17 @@ qpic_nand_block_isbad(unsigned block)
 		{
 			if (bad_block[0] != 0xFF && bad_block[1] != 0xFF)
 			{
-				bbtbl[block] = NAND_BAD_BLK_VALUE_IS_BAD;
+				bbtbl[blk] = NAND_BAD_BLK_VALUE_IS_BAD;
 				nand_ret = NANDC_RESULT_BAD_BLOCK;
 			}
 		}
 		else if (bad_block[0] != 0xFF)
 		{
-			bbtbl[block] = NAND_BAD_BLK_VALUE_IS_BAD;
+			bbtbl[blk] = NAND_BAD_BLK_VALUE_IS_BAD;
 			nand_ret = NANDC_RESULT_BAD_BLOCK;
 		}
 		else
-			bbtbl[block] = NAND_BAD_BLK_VALUE_IS_GOOD;
+			bbtbl[blk] = NAND_BAD_BLK_VALUE_IS_GOOD;
 
 		return nand_ret;
 	}
@@ -894,7 +880,7 @@ qpic_nand_blk_erase(uint32_t page)
 	int nand_ret;
 
 	/* Erase only if the block is not bad */
-	if (qpic_nand_block_isbad(blk_addr))
+	if (qpic_nand_block_isbad(page))
 	{
 		dprintf(CRITICAL,
 				"NAND Erase error: Block address belongs to bad block: %d\n",
@@ -983,7 +969,7 @@ qpic_nand_add_wr_page_cws_cmd_desc(struct cfg_params *cfg,
 	if (cfg_mode == NAND_CFG)
 		ecc = ecc_bch_cfg;
 	else
-		ecc = ecc_bch_cfg & 0xFFFFFFFE; /* Disable ECC */
+		ecc = ecc_bch_cfg | 0x1; /* Disable ECC */
 
 	/* Add ECC configuration */
 	bam_add_cmd_element(cmd_list_ptr, NAND_DEV0_ECC_CFG,
@@ -1390,7 +1376,7 @@ qpic_nand_read_page(uint32_t page, unsigned char* buffer, unsigned char* sparead
 	addr_loc_1 |= NAND_RD_LOC_SIZE(oob_bytes);
 	addr_loc_1 |= NAND_RD_LOC_LAST_BIT(1);
 
-	status = qpic_nand_block_isbad(page / flash.num_pages_per_blk);
+	status = qpic_nand_block_isbad(page);
 
 	if (status)
 		return status;
@@ -1548,7 +1534,7 @@ flash_read_ext(struct ptentry *ptn,
 		while (start_block_count
 			   && (start_block < (ptn->start + ptn->length)))
 		{
-			isbad = qpic_nand_block_isbad(start_block);
+			isbad = qpic_nand_block_isbad(page);
 			if (isbad)
 				page += flash.num_pages_per_blk;
 			else
