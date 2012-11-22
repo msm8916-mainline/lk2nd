@@ -37,51 +37,6 @@
 #include <platform/iomap.h>
 #include <dev_tree.h>
 
-#define SIZE_1M             (1024 * 1024)
-
-typedef struct {
-	uint32_t size;
-	uint32_t start_addr;
-}mem_info;
-
-mem_info copper_default_fixed_memory[] = {
-	{	.size = (132 * SIZE_1M),
-		.start_addr = SDRAM_START_ADDR
-	},
-	{	.size = SIZE_1M,
-		.start_addr = SDRAM_START_ADDR +
-				(250 * SIZE_1M) +
-				(5 * SIZE_1M)
-	},
-	{	.size = (240 * SIZE_1M),
-		.start_addr = SDRAM_START_ADDR +
-				(16 * SIZE_1M) +
-				(256 * SIZE_1M)
-	},
-};
-
-int target_add_first_mem_bank(void *fdt,
-							  uint32_t offset,
-							  mem_info usable_mem_map[],
-							  uint32_t num_regions)
-{
-	uint32_t i;
-	int ret;
-
-	ASSERT(num_regions);
-
-	dprintf(SPEW, "Number of HLOS regions in 1st bank = %u\n", num_regions);
-
-	for (i = 0; i < num_regions; i++)
-	{
-           ret = dev_tree_add_mem_info(fdt,
-									   offset,
-									   usable_mem_map[i].start_addr,
-									   usable_mem_map[i].size);
-	}
-	return ret;
-}
-
 /* Funtion to add the ram partition entries into device tree.
  * The function assumes that all the entire fixed memory regions should
  * be listed in the first bank of the passed in ddr regions.
@@ -89,18 +44,11 @@ int target_add_first_mem_bank(void *fdt,
 uint32_t target_dev_tree_mem(void *fdt, uint32_t memory_node_offset)
 {
     struct smem_ram_ptable ram_ptable;
-    uint32_t last_fixed_addr;
-    int n;
     unsigned int i;
-	int ret;
+	int ret = 0;
 
 	/* Make sure RAM partition table is initialized */
 	ASSERT(smem_ram_ptable_init(&ram_ptable));
-
-    n = ARRAY_SIZE(copper_default_fixed_memory);
-
-    last_fixed_addr = copper_default_fixed_memory[n-1].start_addr +
-					copper_default_fixed_memory[n-1].size;
 
      /* Calculating the size of the mem_info_ptr */
     for (i = 0 ; i < ram_ptable.len; i++)
@@ -108,51 +56,19 @@ uint32_t target_dev_tree_mem(void *fdt, uint32_t memory_node_offset)
         if((ram_ptable.parts[i].category == SDRAM) &&
            (ram_ptable.parts[i].type == SYS_MEMORY))
         {
-            if((ram_ptable.parts[i].start <= last_fixed_addr) &&
-			   ((ram_ptable.parts[i].start + ram_ptable.parts[i].size) >= last_fixed_addr))
-            {
 
-				/* Pass along all fixed memory regions to Linux */
-				 ret = target_add_first_mem_bank(fdt,
-												 memory_node_offset,
-												 copper_default_fixed_memory,
-												 ARRAY_SIZE(copper_default_fixed_memory));
+			/* Pass along all other usable memory regions to Linux */
+			ret = dev_tree_add_mem_info(fdt,
+										memory_node_offset,
+										ram_ptable.parts[i].start,
+										ram_ptable.parts[i].size);
 
-				if (ret)
-				{
-					dprintf(CRITICAL, "Failed to add first bank fixed memory addresses\n");
-					goto target_dev_tree_mem_err;
-				}
-
-				if((ram_ptable.parts[i].start + ram_ptable.parts[i].size) != last_fixed_addr)
-			    {
-			        /* Pass the memory beyond the fixed memory present in the partition */
-					ret = dev_tree_add_mem_info(fdt,
-												memory_node_offset,
-												ram_ptable.parts[i].start + last_fixed_addr,
-												ram_ptable.parts[i].size - last_fixed_addr);
-
-					if (ret)
-					{
-						dprintf(CRITICAL, "Failed to add first bank memory addresses\n");
-						goto target_dev_tree_mem_err;
-					}
-                }
-			}
-			else
+			if (ret)
 			{
-				/* Pass along all other usable memory regions to Linux */
-				ret = dev_tree_add_mem_info(fdt,
-											memory_node_offset,
-											ram_ptable.parts[i].start,
-											ram_ptable.parts[i].size);
-
-				if (ret)
-				{
-					dprintf(CRITICAL, "Failed to add secondary banks memory addresses\n");
-					goto target_dev_tree_mem_err;
-				}
+				dprintf(CRITICAL, "Failed to add secondary banks memory addresses\n");
+				goto target_dev_tree_mem_err;
 			}
+
        }
     }
 
