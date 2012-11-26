@@ -1,8 +1,7 @@
 /*
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
- * Copyright (c) 2009-2011, Code Aurora Forum. All rights reserved.
- *
+ * Copyright (c) 2009-2012, The Linux Foundation. All rights reserved.
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -3165,6 +3164,7 @@ static void flash_read_id(dmov_s * cmdlist, unsigned *ptrlist)
 {
 	int dev_found = 0;
 	unsigned index;
+	uint32_t hwinfo;
 
 	// Try to read id
 	flash_nand_read_id(cmdlist, ptrlist);
@@ -3217,8 +3217,11 @@ static void flash_read_id(dmov_s * cmdlist, unsigned *ptrlist)
 		// Use this for getting the next/current blocks
 		num_pages_per_blk = flash_info.block_size / flash_pagesize;
 		num_pages_per_blk_mask = num_pages_per_blk - 1;
+
+		hwinfo = flash_ctrl_hwinfo(cmdlist, ptrlist);
+
 		//Look for 8bit BCH ECC Nand, TODO: ECC Correctability >= 8
-		if ((flash_ctrl_hwinfo(cmdlist, ptrlist) == 0x307)
+		if (((hwinfo == 0x307) || (hwinfo == 0x4030))
 		    && flash_info.id == 0x2600482c) {
 			enable_bch_ecc = 1;
 		}
