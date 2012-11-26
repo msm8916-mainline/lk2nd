@@ -191,6 +191,11 @@ void reboot_device(unsigned reboot_reason)
 	 */
 	writel(readl(GCC_WDOG_DEBUG) & ~(1 << WDOG_DEBUG_DISABLE_BIT), GCC_WDOG_DEBUG);
 
+	dsb();
+
+	/* Wait until the write takes effect. */
+	while(readl(GCC_WDOG_DEBUG) & (1 << WDOG_DEBUG_DISABLE_BIT));
+
 	/* Drop PS_HOLD for MSM */
 	writel(0x00, MPM2_MPM_PS_HOLD);
 
