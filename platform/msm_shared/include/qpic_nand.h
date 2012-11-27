@@ -330,6 +330,8 @@ struct qpic_nand_init_config
 {
 	uint32_t nand_base;
 	uint32_t bam_base;
+	uint32_t ee;
+	uint32_t max_desc_len;
 	struct qpic_nand_bam_pipes pipes;
 };
 

@@ -46,13 +46,19 @@ extern void smem_add_modem_partitions(struct ptable *flash_ptable);
 static struct ptable flash_ptable;
 
 /* PMIC config data */
-#define PMIC_ARB_CHANNEL_NUM    0
-#define PMIC_ARB_OWNER_ID       0
+#define PMIC_ARB_CHANNEL_NUM                          0
+#define PMIC_ARB_OWNER_ID                             0
 
 /* NANDc BAM pipe numbers */
 #define DATA_CONSUMER_PIPE                            0
 #define DATA_PRODUCER_PIPE                            1
 #define CMD_PIPE                                      2
+
+/* NANDc EE */
+#define QPIC_NAND_EE                                  0
+
+/* NANDc max desc length. */
+#define QPIC_NAND_MAX_DESC_LEN                        0x7FFF
 
 #define LAST_NAND_PTN_LEN_PATTERN                     0xFFFFFFFF
 
@@ -110,6 +116,8 @@ void target_init(void)
 
 	config.bam_base = MSM_NAND_BAM_BASE;
 	config.nand_base = MSM_NAND_BASE;
+	config.ee = QPIC_NAND_EE;
+	config.max_desc_len = QPIC_NAND_MAX_DESC_LEN;
 
 	qpic_nand_init(&config);
 

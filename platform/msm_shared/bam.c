@@ -84,7 +84,7 @@ int bam_wait_for_interrupt(struct bam_instance *bam,
 		/* Wait for a interrupt on the right pipe */
 		do{
 			/* Determine the pipe causing the interrupt */
-			val = readl(BAM_IRQ_SRCS(bam->base));
+			val = readl(BAM_IRQ_SRCS(bam->base, bam->ee));
 			/* Flush out the right most global interrupt bit */
 		} while (!((val & 0x7FFF) & (1 << bam->pipe[pipe_num].pipe_num)));
 
@@ -141,9 +141,9 @@ void bam_enable_interrupts(struct bam_instance *bam, uint8_t pipe_num)
 
 	/* Enable pipe interrups */
 	/* Do read-modify-write */
-	val = readl(BAM_IRQ_SRCS_MSK(bam->base));
+	val = readl(BAM_IRQ_SRCS_MSK(bam->base, bam->ee));
 	writel((1 << bam->pipe[pipe_num].pipe_num) | val,
-			BAM_IRQ_SRCS_MSK(bam->base));
+			BAM_IRQ_SRCS_MSK(bam->base, bam->ee));
 
 	/* Unmask the QGIC interrupts only in the case of
 	 * interrupt based transfer.
@@ -348,7 +348,7 @@ int bam_add_desc(struct bam_instance *bam,
 	}
 
 	/* Check if we have enough space in FIFO */
-	if (len > (unsigned)bam->pipe[pipe_num].fifo.size * BAM_MAX_DESC_DATA_LEN)
+	if (len > (unsigned)bam->pipe[pipe_num].fifo.size * bam->max_desc_len)
 	{
 		dprintf(CRITICAL, "Data transfer exceeds desc fifo length.\n");
 		bam_ret = BAM_RESULT_FAILURE;
@@ -362,10 +362,10 @@ int bam_add_desc(struct bam_instance *bam,
 		 * If more bits are needed, create more
 		 * descriptors.
 		 */
-		if (len > BAM_MAX_DESC_DATA_LEN)
+		if (len > bam->max_desc_len)
 		{
-			desc_len = BAM_MAX_DESC_DATA_LEN;
-			len -= BAM_MAX_DESC_DATA_LEN;
+			desc_len = bam->max_desc_len;
+			len -= bam->max_desc_len;
 			desc_flags = 0;
 		}
 		else
@@ -379,7 +379,7 @@ int bam_add_desc(struct bam_instance *bam,
 		/* Write descriptor */
 		bam_add_one_desc(bam, pipe_num, data_ptr, desc_len, desc_flags);
 
-		data_ptr += BAM_MAX_DESC_DATA_LEN;
+		data_ptr += bam->max_desc_len;
 		n++;
 	}
 
@@ -442,10 +442,10 @@ int bam_add_one_desc(struct bam_instance *bam,
 	}
 
 	/* Check for the length of the desc. */
-	if (len > BAM_MAX_DESC_DATA_LEN)
+	if (len > bam->max_desc_len)
 	{
 		dprintf(CRITICAL, "len of the desc exceeds max length"
-				" %d > %d\n", len, BAM_MAX_DESC_DATA_LEN);
+				" %d > %d\n", len, bam->max_desc_len);
 		bam_ret = BAM_RESULT_FAILURE;
 		goto bam_add_one_desc_error;
 	}
