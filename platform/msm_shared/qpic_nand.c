@@ -248,27 +248,27 @@ qpic_nand_fetch_id_err:
 }
 
 static int
-qpic_bam_init(uint32_t bam_base, struct qpic_nand_bam_pipes *pipes)
+qpic_bam_init(struct qpic_nand_init_config *config)
 {
 	uint32_t bam_ret = NANDC_RESULT_SUCCESS;
 
-	bam.base = bam_base;
+	bam.base = config->bam_base;
 	/* Set Read pipe params. */
-	bam.pipe[DATA_PRODUCER_PIPE_INDEX].pipe_num = pipes->read_pipe;
+	bam.pipe[DATA_PRODUCER_PIPE_INDEX].pipe_num = config->pipes.read_pipe;
 	/* System consumer */
 	bam.pipe[DATA_PRODUCER_PIPE_INDEX].trans_type = BAM2SYS;
 	bam.pipe[DATA_PRODUCER_PIPE_INDEX].fifo.size = QPIC_BAM_DATA_FIFO_SIZE;
 	bam.pipe[DATA_PRODUCER_PIPE_INDEX].fifo.head = data_desc_fifo;
 
 	/* Set Write pipe params. */
-	bam.pipe[DATA_CONSUMER_PIPE_INDEX].pipe_num = pipes->write_pipe;
+	bam.pipe[DATA_CONSUMER_PIPE_INDEX].pipe_num = config->pipes.write_pipe;
 	/* System producer */
 	bam.pipe[DATA_CONSUMER_PIPE_INDEX].trans_type = SYS2BAM;
 	bam.pipe[DATA_CONSUMER_PIPE_INDEX].fifo.size = QPIC_BAM_DATA_FIFO_SIZE;
 	bam.pipe[DATA_CONSUMER_PIPE_INDEX].fifo.head = data_desc_fifo;
 
 	/* Set Cmd pipe params. */
-	bam.pipe[CMD_PIPE_INDEX].pipe_num = pipes->cmd_pipe;
+	bam.pipe[CMD_PIPE_INDEX].pipe_num = config->pipes.cmd_pipe;
 	/* System consumer */
 	bam.pipe[CMD_PIPE_INDEX].trans_type = BAM2SYS;
 	bam.pipe[CMD_PIPE_INDEX].fifo.size = QPIC_BAM_CMD_FIFO_SIZE;
@@ -284,6 +284,12 @@ qpic_bam_init(uint32_t bam_base, struct qpic_nand_bam_pipes *pipes)
 	 * Note: this value needs to be set by the h/w folks and is specific for each peripheral.
 	*/
 	bam.threshold = 32;
+
+	/* Set the EE.  */
+	bam.ee = config->ee;
+
+	/* Set the max desc length for this BAM. */
+	bam.max_desc_len = config->max_desc_len;
 
 	/* BAM Init. */
 	bam_init(&bam);
@@ -1241,7 +1247,7 @@ qpic_nand_init(struct qpic_nand_init_config *config)
 
 	nand_base = config->nand_base;
 
-	qpic_bam_init(config->bam_base, &(config->pipes));
+	qpic_bam_init(config);
 
 	/* Do an ONFI probe. */
 	nand_ret = qpic_nand_onfi_probe(&flash);

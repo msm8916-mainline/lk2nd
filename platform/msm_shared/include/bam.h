@@ -1,17 +1,17 @@
-/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
-
+/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above
- *     copyright notice, this list of conditions and the following
- *     disclaimer in the documentation and/or other materials provided
- *     with the distribution.
- *   * Neither the name of Code Aurora Forum, Inc. nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above
+ *       copyright notice, this list of conditions and the following
+ *       disclaimer in the documentation and/or other materials provided
+ *       with the distribution.
+ *     * Neither the name of The Linux Foundation nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
@@ -44,8 +44,8 @@
 
 #define BAM_DESC_CNT_TRSHLD_REG(x)      (0x0008 + (x))
 #define COUNT_TRESHOLD_MASK             0xFF
-#define BAM_IRQ_SRCS(x)                 (0x0000000C + (x))
-#define BAM_IRQ_SRCS_MSK(x)             (0x00000010 + (x))
+#define BAM_IRQ_SRCS(x, n)                 (0x00000800 + (0x80 * (n)) + (x))
+#define BAM_IRQ_SRCS_MSK(x, n)             (0x00000804 + (0x80 * (n)) + (x))
 #define BAM_IRQ_MASK                    (1 << 31)
 #define P_IRQ_MASK                      (1)
 
@@ -206,7 +206,8 @@ struct bam_pipe {
  * pipe_pair:The pipe pairs to be used to access the BAM.
  * threshold:This Register holds a threshold value for the
  *           counter summing the Size of the Descriptors Provided.
- * init:Pipe initialization status for the BAM.
+ * ee:Execution Environment for the BAM.
+ * desc_len: Max desc length for the current BAM.
  */
 struct bam_instance {
 	uint32_t base;
@@ -215,6 +216,8 @@ struct bam_instance {
 	uint8_t num_of_pipes;
 	struct bam_pipe pipe[3];
 	uint16_t threshold;
+	uint32_t ee;
+	uint16_t max_desc_len;
 	void (*callback)(int);
 };
 
