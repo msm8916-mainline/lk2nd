@@ -126,6 +126,7 @@ endif
 
 ifeq ($(PLATFORM),mdm9x25)
 	OBJS += $(LOCAL_DIR)/qgic.o \
+			$(LOCAL_DIR)/uart_dm.o \
 			$(LOCAL_DIR)/interrupts.o \
 			$(LOCAL_DIR)/qtimer.o \
 			$(LOCAL_DIR)/qtimer_mmap.o \

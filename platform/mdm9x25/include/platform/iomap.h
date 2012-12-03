@@ -68,6 +68,9 @@
 /* USB */
 #define MSM_USB_BASE              (PERIPH_SS_BASE + 0x00255000)
 
+/* UART */
+#define MSM_UART2_BASE             0xF991F000
+
 /* NAND */
 #define MSM_NAND_BASE              0xF9AF0000
 /* NAND BAM */
@@ -80,6 +83,9 @@
 #define APCS_GPLL_ENA_VOTE                   (CLK_CTL_BASE + 0x1480)
 
 /* UART */
+
+#define BLSP1_AHB_CBCR                       (CLK_CTL_BASE + 0x5C4)
+
 #define BLSP1_UART1_APPS_CBCR                (CLK_CTL_BASE + 0x684)
 #define BLSP1_UART1_APPS_CMD_RCGR            (CLK_CTL_BASE + 0x68C)
 #define BLSP1_UART1_APPS_CFG_RCGR            (CLK_CTL_BASE + 0x690)
@@ -93,6 +99,15 @@
 #define BLSP1_UART3_APPS_M                   (CLK_CTL_BASE + 0x794)
 #define BLSP1_UART3_APPS_N                   (CLK_CTL_BASE + 0x798)
 #define BLSP1_UART3_APPS_D                   (CLK_CTL_BASE + 0x79C)
+
+#define BLSP1_UART2_APPS_CBCR                (CLK_CTL_BASE + 0x704)
+#define BLSP1_UART2_APPS_CMD_RCGR            (CLK_CTL_BASE + 0x70C)
+#define BLSP1_UART2_APPS_CFG_RCGR            (CLK_CTL_BASE + 0x710)
+#define BLSP1_UART2_APPS_M                   (CLK_CTL_BASE + 0x714)
+#define BLSP1_UART2_APPS_N                   (CLK_CTL_BASE + 0x718)
+#define BLSP1_UART2_APPS_D                   (CLK_CTL_BASE + 0x71C)
+
+#define APCS_CLOCK_BRANCH_ENA_VOTE           (CLK_CTL_BASE + 0x1484)
 
 /* USB */
 #define USB_HS_BCR                           (CLK_CTL_BASE + 0x480)
