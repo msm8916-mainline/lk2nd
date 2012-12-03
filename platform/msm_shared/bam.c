@@ -292,7 +292,7 @@ void bam_read_offset_update(struct bam_instance *bam, unsigned int pipe_num)
 	offset = readl(BAM_P_SW_OFSTSn(bam->pipe[pipe_num].pipe_num, bam->base));
 	offset &= 0xFFFF;
 
-	dprintf(INFO, "Offset value is %d \n", offset);
+	dprintf(SPEW, "Offset value is %d \n", offset);
 
 	/* Save the next offset to be written to. */
 		bam->pipe[pipe_num].fifo.current = (struct bam_desc*)
@@ -338,7 +338,7 @@ int bam_add_desc(struct bam_instance *bam,
 	unsigned int n = 0;
 	unsigned int desc_flags;
 
-	dprintf(INFO, "Data length for BAM transfer is %u\n", data_len);
+	dprintf(SPEW, "Data length for BAM transfer is %u\n", data_len);
 
 	if (data_ptr == NULL || len == 0)
 	{
