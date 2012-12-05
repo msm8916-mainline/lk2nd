@@ -116,3 +116,26 @@ void qpic_nand_clock_init(void)
 		ASSERT(0);
 	}
 }
+
+void clock_config_uart_dm(uint8_t id)
+{
+	int ret;
+	char clk_name[64];
+
+    ret = clk_get_set_enable("uart_iface_clk", 0, 1);
+    if (ret)
+	{
+		dprintf(CRITICAL, "failed to set uart_iface_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	snprintf(clk_name, 64, "uart%u_core_clk", id);
+
+    ret = clk_get_set_enable(clk_name, 7372800, 1);
+	if (ret)
+	{
+		dprintf(CRITICAL, "failed to set uart%u_core_clk ret = %d\n", id, ret);
+		ASSERT(0);
+	}
+}
+

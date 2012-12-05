@@ -29,7 +29,10 @@
 #ifndef __PLATFORM_MDM9625_CLOCK_H
 #define __PLATFORM_MDM9625_CLOCK_H
 
+#define UART_DM_CLK_RX_TX_BIT_RATE 0xCC
+
 void hsusb_clock_init(void);
 void qpic_nand_clock_init(void);
+void clock_config_uart_dm(uint8_t id);
 
 #endif

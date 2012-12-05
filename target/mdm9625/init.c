@@ -103,6 +103,14 @@ void update_ptable_names(void)
 	strcpy(boot_ptn->name, "aboot");
 }
 
+void target_early_init(void)
+{
+#if WITH_DEBUG_UART
+	uart_dm_init(3, 0, MSM_UART2_BASE);
+#endif
+}
+
+
 /* init */
 void target_init(void)
 {
