@@ -382,11 +382,16 @@ void boot_linux(void *kernel, unsigned *tags,
 		const char *cmdline, unsigned machtype,
 		void *ramdisk, unsigned ramdisk_size)
 {
+#if DEVICE_TREE
 	int ret = 0;
+#endif
+
 	void (*entry)(unsigned, unsigned, unsigned*) = (entry_func_ptr*)(PA((addr_t)kernel));
 	uint32_t tags_phys = platform_get_virt_to_phys_mapping((addr_t)tags);
 
 #if DEVICE_TREE
+	dprintf(INFO, "Updating device tree: start\n");
+
 	/* Update the Device Tree */
 	ret = update_device_tree((void *)tags, cmdline, ramdisk, ramdisk_size);
 	if(ret)
@@ -394,13 +399,15 @@ void boot_linux(void *kernel, unsigned *tags,
 		dprintf(CRITICAL, "ERROR: Updating Device Tree Failed \n");
 		ASSERT(0);
 	}
+
+	dprintf(INFO, "Updating device tree: done\n");
 #else
 	/* Generating the Atags */
 	generate_atags(tags, cmdline, ramdisk, ramdisk_size);
 #endif
 
 	dprintf(INFO, "booting linux @ %p, ramdisk @ %p (%d)\n",
-		kernel, ramdisk, ramdisk_size);
+		entry, ramdisk, ramdisk_size);
 
 	enter_critical_section();
 
@@ -422,7 +429,9 @@ unsigned page_mask = 0;
 #define ROUND_TO_PAGE(x,y) (((x) + (y)) & (~(y)))
 
 static unsigned char buf[4096]; //Equal to max-supported pagesize
+#if DEVICE_TREE
 static unsigned char dt_buf[4096];
+#endif
 
 int boot_linux_from_mmc(void)
 {
@@ -430,7 +439,6 @@ int boot_linux_from_mmc(void)
 	struct boot_img_hdr *uhdr;
 	unsigned offset = 0;
 	unsigned long long ptn = 0;
-	unsigned n = 0;
 	const char *cmdline;
 	int index = INVALID_PTN;
 
@@ -502,12 +510,16 @@ int boot_linux_from_mmc(void)
 		/* Assuming device rooted at this time */
 		device.is_tampered = 1;
 
+		dprintf(INFO, "Loading boot image (%d): start\n", imagesize_actual);
+
 		/* Read image without signature */
 		if (mmc_read(ptn + offset, (void *)image_addr, imagesize_actual))
 		{
 			dprintf(CRITICAL, "ERROR: Cannot read boot image\n");
 				return -1;
 		}
+
+		dprintf(INFO, "Loading boot image (%d): done\n", imagesize_actual);
 
 		offset = imagesize_actual;
 		/* Read signature */
@@ -517,10 +529,14 @@ int boot_linux_from_mmc(void)
 		}
 		else
 		{
+			dprintf(INFO, "Authenticating boot image (%d): start\n", imagesize_actual);
+
 			auth_kernel_img = image_verify((unsigned char *)image_addr,
 					(unsigned char *)(image_addr + imagesize_actual),
 					imagesize_actual,
 					CRYPTO_AUTH_ALG_SHA256);
+
+			dprintf(INFO, "Authenticating boot image (%d): done\n", imagesize_actual);
 
 			if(auth_kernel_img)
 			{
@@ -573,28 +589,39 @@ int boot_linux_from_mmc(void)
 	}
 	else
 	{
-		offset += page_size;
+		kernel_actual  = ROUND_TO_PAGE(hdr->kernel_size,  page_mask);
+		ramdisk_actual = ROUND_TO_PAGE(hdr->ramdisk_size, page_mask);
+		second_actual  = ROUND_TO_PAGE(hdr->second_size,  page_mask);
 
-		n = ROUND_TO_PAGE(hdr->kernel_size, page_mask);
-		if (mmc_read(ptn + offset, (void *)hdr->kernel_addr, n)) {
+		dprintf(INFO, "Loading boot image (%d): start\n",
+				kernel_actual + ramdisk_actual);
+
+		offset = page_size;
+
+		/* Load kernel */
+		if (mmc_read(ptn + offset, (void *)hdr->kernel_addr, kernel_actual)) {
 			dprintf(CRITICAL, "ERROR: Cannot read kernel image\n");
 					return -1;
 		}
-		offset += n;
+		offset += kernel_actual;
 
-		n = ROUND_TO_PAGE(hdr->ramdisk_size, page_mask);
-		if(n != 0)
+		/* Load ramdisk */
+		if(ramdisk_actual != 0)
 		{
-			if (mmc_read(ptn + offset, (void *)hdr->ramdisk_addr, n)) {
+			if (mmc_read(ptn + offset, (void *)hdr->ramdisk_addr, ramdisk_actual)) {
 				dprintf(CRITICAL, "ERROR: Cannot read ramdisk image\n");
 				return -1;
 			}
 		}
-		offset += n;
+		offset += ramdisk_actual;
+
+		dprintf(INFO, "Loading boot image (%d): done\n",
+				kernel_actual + ramdisk_actual);
 
 		if(hdr->second_size != 0) {
-			n = ROUND_TO_PAGE(hdr->second_size, page_mask);
-			offset += n;
+			offset += second_actual;
+			/* Second image loading not implemented. */
+			ASSERT(0);
 		}
 
 		#if DEVICE_TREE
@@ -633,10 +660,6 @@ int boot_linux_from_mmc(void)
 	}
 
 unified_boot:
-	dprintf(INFO, "\nkernel  @ %x (%d bytes)\n", hdr->kernel_addr,
-		hdr->kernel_size);
-	dprintf(INFO, "ramdisk @ %x (%d bytes)\n", hdr->ramdisk_addr,
-		hdr->ramdisk_size);
 
 	if(hdr->cmdline[0]) {
 		cmdline = (char*) hdr->cmdline;
@@ -645,7 +668,6 @@ unified_boot:
 	}
 	dprintf(INFO, "cmdline = '%s'\n", cmdline);
 
-	dprintf(INFO, "\nBooting Linux\n");
 	boot_linux((void *)hdr->kernel_addr, (unsigned *) hdr->tags_addr,
 		   (const char *)cmdline, board_machtype(),
 		   (void *)hdr->ramdisk_addr, hdr->ramdisk_size);
@@ -656,7 +678,6 @@ unified_boot:
 int boot_linux_from_flash(void)
 {
 	struct boot_img_hdr *hdr = (void*) buf;
-	unsigned n;
 	struct ptentry *ptn;
 	struct ptable *ptable;
 	unsigned offset = 0;
@@ -666,6 +687,7 @@ int boot_linux_from_flash(void)
 	unsigned kernel_actual;
 	unsigned ramdisk_actual;
 	unsigned imagesize_actual;
+	unsigned second_actual;
 
 #if DEVICE_TREE
 	struct dt_table *table;
@@ -739,12 +761,16 @@ int boot_linux_from_flash(void)
 		/* Assuming device rooted at this time */
 		device.is_tampered = 1;
 
+		dprintf(INFO, "Loading boot image (%d): start\n", imagesize_actual);
+
 		/* Read image without signature */
 		if (flash_read(ptn, offset, (void *)image_addr, imagesize_actual))
 		{
 			dprintf(CRITICAL, "ERROR: Cannot read boot image\n");
 				return -1;
 		}
+
+		dprintf(INFO, "Loading boot image (%d): done\n", imagesize_actual);
 
 		offset = imagesize_actual;
 		/* Read signature */
@@ -754,12 +780,15 @@ int boot_linux_from_flash(void)
 		}
 		else
 		{
+			dprintf(INFO, "Authenticating boot image (%d): start\n", imagesize_actual);
 
 			/* Verify signature */
 			auth_kernel_img = image_verify((unsigned char *)image_addr,
 						(unsigned char *)(image_addr + imagesize_actual),
 						imagesize_actual,
 						CRYPTO_AUTH_ALG_SHA256);
+
+			dprintf(INFO, "Authenticating boot image (%d): done\n", imagesize_actual);
 
 			if(auth_kernel_img)
 			{
@@ -785,23 +814,32 @@ int boot_linux_from_flash(void)
 	{
 		offset = page_size;
 
-		n = ROUND_TO_PAGE(hdr->kernel_size, page_mask);
-		if (flash_read(ptn, offset, (void *)hdr->kernel_addr, n)) {
+		kernel_actual = ROUND_TO_PAGE(hdr->kernel_size, page_mask);
+		ramdisk_actual = ROUND_TO_PAGE(hdr->ramdisk_size, page_mask);
+		second_actual = ROUND_TO_PAGE(hdr->second_size, page_mask);
+
+		dprintf(INFO, "Loading boot image (%d): start\n",
+				kernel_actual + ramdisk_actual);
+
+		if (flash_read(ptn, offset, (void *)hdr->kernel_addr, kernel_actual)) {
 			dprintf(CRITICAL, "ERROR: Cannot read kernel image\n");
 			return -1;
 		}
-		offset += n;
+		offset += kernel_actual;
 
-		n = ROUND_TO_PAGE(hdr->ramdisk_size, page_mask);
-		if (flash_read(ptn, offset, (void *)hdr->ramdisk_addr, n)) {
+		if (flash_read(ptn, offset, (void *)hdr->ramdisk_addr, ramdisk_actual)) {
 			dprintf(CRITICAL, "ERROR: Cannot read ramdisk image\n");
 			return -1;
 		}
-		offset += n;
+		offset += ramdisk_actual;
+
+		dprintf(INFO, "Loading boot image (%d): done\n",
+				kernel_actual + ramdisk_actual);
 
 		if(hdr->second_size != 0) {
-			n = ROUND_TO_PAGE(hdr->second_size, page_mask);
-			offset += n;
+			offset += second_actual;
+			/* Second image loading not implemented. */
+			ASSERT(0);
 		}
 
 #if DEVICE_TREE
@@ -841,10 +879,6 @@ int boot_linux_from_flash(void)
 
 	}
 continue_boot:
-	dprintf(INFO, "\nkernel  @ %x (%d bytes)\n", hdr->kernel_addr,
-		hdr->kernel_size);
-	dprintf(INFO, "ramdisk @ %x (%d bytes)\n", hdr->ramdisk_addr,
-		hdr->ramdisk_size);
 
 	if(hdr->cmdline[0]) {
 		cmdline = (char*) hdr->cmdline;
@@ -855,7 +889,6 @@ continue_boot:
 
 	/* TODO: create/pass atags to kernel */
 
-	dprintf(INFO, "\nBooting Linux\n");
 	boot_linux((void *)hdr->kernel_addr, (void *)hdr->tags_addr,
 		   (const char *)cmdline, board_machtype(),
 		   (void *)hdr->ramdisk_addr, hdr->ramdisk_size);
