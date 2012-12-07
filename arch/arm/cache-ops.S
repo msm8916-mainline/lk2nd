@@ -343,6 +343,19 @@ FUNCTION(arch_clean_invalidate_cache_range)
 
 	bx		lr
 
+	/* void arch_invalidate_cache_range(addr_t start, size_t len); */
+FUNCTION(arch_invalidate_cache_range)
+0:
+	/* invalidate cache line */
+	mcr		p15, 0, r0, c7, c6, 1
+	add		r0, r0, #CACHE_LINE
+	subs	r1, r1, #CACHE_LINE
+	bhs		0b
+	mov		r0, #0
+	/* data sync barrier (formerly drain write buffer*/
+	mcr		p15, 0, r0, c7, c10, 4
+	bx		lr
+
 	/* void arch_sync_cache_range(addr_t start, size_t len); */
 FUNCTION(arch_sync_cache_range)
 	push    { r14 }
