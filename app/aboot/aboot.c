@@ -387,7 +387,9 @@ void boot_linux(void *kernel, unsigned *tags,
 #endif
 
 	void (*entry)(unsigned, unsigned, unsigned*) = (entry_func_ptr*)(PA((addr_t)kernel));
-	uint32_t tags_phys = platform_get_virt_to_phys_mapping((addr_t)tags);
+	uint32_t tags_phys = PA((addr_t)tags);
+
+	ramdisk = PA(ramdisk);
 
 #if DEVICE_TREE
 	dprintf(INFO, "Updating device tree: start\n");
