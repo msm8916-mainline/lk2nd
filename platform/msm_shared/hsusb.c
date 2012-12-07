@@ -157,7 +157,7 @@ struct udc_endpoint *_udc_endpoint_alloc(unsigned num, unsigned in,
 	struct udc_endpoint *ept;
 	unsigned cfg;
 
-	ept = malloc(sizeof(*ept));
+	ept = memalign(CACHE_LINE, ROUNDUP(sizeof(*ept), CACHE_LINE));
 
 	ept->maxpkt = max_pkt;
 	ept->num = num;
@@ -247,10 +247,11 @@ static void endpoint_enable(struct udc_endpoint *ept, unsigned yes)
 struct udc_request *udc_request_alloc(void)
 {
 	struct usb_request *req;
-	req = malloc(sizeof(*req));
+	req = memalign(CACHE_LINE, ROUNDUP(sizeof(*req), CACHE_LINE));
 	req->req.buf = 0;
 	req->req.length = 0;
-	req->item = memalign(32, 32);
+	req->item = memalign(CACHE_LINE, ROUNDUP(sizeof(struct ept_queue_item),
+								CACHE_LINE));
 	return &req->req;
 }
 
@@ -612,7 +613,7 @@ int udc_init(struct udc_device *dev)
 	ep0out = _udc_endpoint_alloc(0, 0, 64);
 	ep0in = _udc_endpoint_alloc(0, 1, 64);
 	ep0req = udc_request_alloc();
-	ep0req->buf = malloc(4096);
+	ep0req->buf = memalign(CACHE_LINE, 4096);
 
 	{
 		/* create and register a language table descriptor */
