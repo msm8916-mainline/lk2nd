@@ -233,6 +233,12 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 	reg |= MMC_BOOT_MCI_CLK_ENA_FLOW;
 	reg |= MMC_BOOT_MCI_CLK_IN_FEEDBACK;
 	writel(reg, MMC_BOOT_MCI_CLK);
+
+	/* Wait for the MMC_BOOT_MCI_CLK write to go through. */
+	mmc_mclk_reg_wr_delay();
+
+	/* Wait 1 ms to provide the free running SD CLK to the card. */
+	mdelay(1);
 }
 
 /* Configure crypto engine clock */
