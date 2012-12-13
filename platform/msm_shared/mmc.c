@@ -1,17 +1,17 @@
-/* Copyright (c) 2010-2012, The Linux Foundation. All rights reserved.
- *
+/* Copyright (c) 2010-2012, Code Aurora Forum. All rights reserved.
+
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above
- *       copyright notice, this list of conditions and the following
- *       disclaimer in the documentation and/or other materials provided
- *       with the distribution.
- *     * Neither the name of The Linux Foundation nor the names of its
- *       contributors may be used to endorse or promote products derived
- *       from this software without specific prior written permission.
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of Code Aurora Forum, Inc. nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
@@ -47,8 +47,6 @@
 #ifndef NULL
 #define NULL        0
 #endif
-
-#define USEC_PER_SEC           (1000000L)
 
 #define MMC_BOOT_DATA_READ     0
 #define MMC_BOOT_DATA_WRITE    1
@@ -156,17 +154,6 @@ unsigned int SWAP_ENDIAN(unsigned int val)
 	return ((val & 0xFF) << 24) |
 	    (((val >> 8) & 0xFF) << 16) | (((val >> 16) & 0xFF) << 8) | (val >>
 									 24);
-}
-
-void mmc_mclk_reg_wr_delay()
-{
-	if (mmc_host.mmc_cont_version)
-	{
-		/* Wait for the MMC_BOOT_MCI register write to go through. */
-		while(readl(MMC_BOOT_MCI_STATUS2) & MMC_BOOT_MCI_MCLK_REG_WR_ACTIVE);
-	}
-	else
-		udelay((1 + ((3 * USEC_PER_SEC) / (mmc_host.mclk_rate? mmc_host.mclk_rate : MMC_CLK_400KHZ))));
 }
 
 /* Sets a timeout for read operation.
@@ -547,6 +534,12 @@ static unsigned int mmc_boot_send_command(struct mmc_boot_command *cmd)
 	/* 1. Write command argument to MMC_BOOT_MCI_ARGUMENT register */
 	writel(cmd->argument, MMC_BOOT_MCI_ARGUMENT);
 
+	/* Writes to MCI port are not effective for 3 ticks of PCLK.
+	 * The min pclk is 144KHz which gives 6.94 us/tick.
+	 * Thus 21us == 3 ticks.
+	 */
+	udelay(21);
+
 	/* 2. Set appropriate fields and write MMC_BOOT_MCI_CMD */
 	/* 2a. Write command index in CMD_INDEX field */
 	cmd_index = cmd->cmd_index;
@@ -572,8 +565,10 @@ static unsigned int mmc_boot_send_command(struct mmc_boot_command *cmd)
 	/* 2f. Set ENABLE bit to 1 */
 	mmc_cmd |= MMC_BOOT_MCI_CMD_ENABLE;
 
-	/* 2g. Set PROG_ENA bit */
-	if (cmd->prg_enabled) {
+	/* 2g. Set PROG_ENA bit to 1 for CMD12, CMD13 issued at the end of
+	   write data transfer */
+	if ((cmd_index == CMD12_STOP_TRANSMISSION ||
+	     cmd_index == CMD13_SEND_STATUS) && cmd->prg_enabled) {
 		mmc_cmd |= MMC_BOOT_MCI_CMD_PROG_ENA;
 	}
 
@@ -586,9 +581,6 @@ static unsigned int mmc_boot_send_command(struct mmc_boot_command *cmd)
 
 	/* 2k. Write to MMC_BOOT_MCI_CMD register */
 	writel(mmc_cmd, MMC_BOOT_MCI_CMD);
-
-	/* Wait for the MMC_BOOT_MCI_CMD write to go through. */
-	mmc_mclk_reg_wr_delay();
 
 	dprintf(SPEW, "Command sent: CMD%d MCI_CMD_REG:%x MCI_ARG:%x\n",
 		cmd_index, mmc_cmd, cmd->argument);
@@ -670,13 +662,6 @@ static unsigned int mmc_boot_send_command(struct mmc_boot_command *cmd)
 
 	}
 	while (1);
-
-
-	/* 2k. Write to MMC_BOOT_MCI_CMD register */
-	writel(0, MMC_BOOT_MCI_CMD);
-
-	/* Wait for the MMC_BOOT_MCI_CMD write to go through. */
-	mmc_mclk_reg_wr_delay();
 
 	return mmc_return;
 }
@@ -1129,9 +1114,6 @@ mmc_boot_send_ext_cmd(struct mmc_boot_card *card, unsigned char *buf)
 	mmc_reg |= MMC_BOOT_MCI_CLK_ENA_FLOW;
 	writel(mmc_reg, MMC_BOOT_MCI_CLK);
 
-	/* Wait for the MMC_BOOT_MCI_CLK write to go through. */
-	mmc_mclk_reg_wr_delay();
-
 	/* Write data timeout period to MCI_DATA_TIMER register. */
 	/* Data timeout period should be in card bus clock periods */
 	mmc_reg = 0xFFFFFFFF;
@@ -1149,9 +1131,6 @@ mmc_boot_send_ext_cmd(struct mmc_boot_card *card, unsigned char *buf)
 #endif
 
 	writel(mmc_reg, MMC_BOOT_MCI_DATA_CTL);
-
-	/* Wait for the MMC_BOOT_MCI_DATA_CTL write to go through. */
-	mmc_mclk_reg_wr_delay();
 
 #if MMC_BOOT_BAM
 	/*  Setup SDCC BAM descriptors for Read operation. */
@@ -1178,9 +1157,6 @@ mmc_boot_send_ext_cmd(struct mmc_boot_card *card, unsigned char *buf)
 	/* Reset DPSM */
 	writel(0, MMC_BOOT_MCI_DATA_CTL);
 
-	/* Wait for the MMC_BOOT_MCI_DATA_CTL write to go through. */
-	mmc_mclk_reg_wr_delay();
-
 	return mmc_ret;
 }
 
@@ -1194,7 +1170,6 @@ mmc_boot_switch_cmd(struct mmc_boot_card *card,
 
 	struct mmc_boot_command cmd;
 	unsigned int mmc_ret = MMC_BOOT_E_SUCCESS;
-	uint32_t mmc_status;
 
 	/* basic check */
 	if (card == NULL) {
@@ -1218,46 +1193,13 @@ mmc_boot_switch_cmd(struct mmc_boot_card *card,
 	cmd.argument |= (value << 8);
 	cmd.cmd_type = MMC_BOOT_CMD_ADDRESS;
 	cmd.resp_type = MMC_BOOT_RESP_R1B;
-	cmd.prg_enabled = 1;
 
 	mmc_ret = mmc_boot_send_command(&cmd);
 	if (mmc_ret != MMC_BOOT_E_SUCCESS) {
-		dprintf(CRITICAL,"Send cmd6 failed\n");
 		return mmc_ret;
 	}
 
-	/* Wait for interrupt or poll on PROG_DONE bit of MCI_STATUS register.
-	 * If PROG_DONE bit is set to 1 it means that the card finished it programming
-	 * and stopped driving DAT0 line to 0.
-	 */
-	do {
-		mmc_status = readl(MMC_BOOT_MCI_STATUS);
-		if (mmc_status & MMC_BOOT_MCI_STAT_PROG_DONE) {
-			break;
-		}
-	}
-	while (1);
-
-	/* Check if the card completed the switch command processing */
-	mmc_ret = mmc_boot_get_card_status(card, 0, &mmc_status);
-	if (mmc_ret != MMC_BOOT_E_SUCCESS) {
-		dprintf(CRITICAL, "Get card status failed\n");
-		return mmc_ret;
-	}
-
-	if (MMC_BOOT_CARD_STATUS(mmc_status) != MMC_BOOT_TRAN_STATE)
-	{
-		dprintf(CRITICAL, "Switch cmd failed. Card not in tran state\n");
-		mmc_ret = MMC_BOOT_E_FAILURE;
-	}
-
-	if (mmc_status & MMC_BOOT_SWITCH_FUNC_ERR_FLAG)
-	{
-		dprintf(CRITICAL, "Switch cmd failed. Switch Error.\n");
-		mmc_ret = MMC_BOOT_E_FAILURE;
-	}
-
-	return mmc_ret;
+	return MMC_BOOT_E_SUCCESS;
 }
 
 /*
@@ -1269,6 +1211,8 @@ mmc_boot_set_bus_width(struct mmc_boot_card *card, unsigned int width)
 	unsigned int mmc_ret = MMC_BOOT_E_SUCCESS;
 	unsigned int mmc_reg = 0;
 	unsigned int mmc_width = 0;
+	unsigned int status;
+	unsigned int wait_count = 100;
 
 	if (width != MMC_BOOT_BUS_WIDTH_1_BIT) {
 		mmc_width = width - 1;
@@ -1278,9 +1222,22 @@ mmc_boot_set_bus_width(struct mmc_boot_card *card, unsigned int width)
 				      MMC_BOOT_EXT_CMMC_BUS_WIDTH, mmc_width);
 
 	if (mmc_ret != MMC_BOOT_E_SUCCESS) {
-		dprintf(CRITICAL, "Switch cmd failed\n");
 		return mmc_ret;
 	}
+
+	/* Wait for the card to complete the switch command processing */
+	do {
+		mmc_ret = mmc_boot_get_card_status(card, 0, &status);
+		if (mmc_ret != MMC_BOOT_E_SUCCESS) {
+			return mmc_ret;
+		}
+
+		wait_count--;
+		if (wait_count == 0) {
+			return MMC_BOOT_E_FAILURE;
+		}
+	}
+	while (MMC_BOOT_CARD_STATUS(status) == MMC_BOOT_PROG_STATE);
 
 	/* set MCI_CLK accordingly */
 	mmc_reg = readl(MMC_BOOT_MCI_CLK);
@@ -1294,8 +1251,7 @@ mmc_boot_set_bus_width(struct mmc_boot_card *card, unsigned int width)
 	}
 	writel(mmc_reg, MMC_BOOT_MCI_CLK);
 
-	/* Wait for the MMC_BOOT_MCI_CLK write to go through. */
-	mmc_mclk_reg_wr_delay();
+	mdelay(10);		// Giving some time to card to stabilize.
 
 	return MMC_BOOT_E_SUCCESS;
 }
@@ -1459,9 +1415,6 @@ mmc_boot_write_to_card(struct mmc_boot_host *host,
 	mmc_reg |= MMC_BOOT_MCI_CLK_ENA_FLOW;
 	writel(mmc_reg, MMC_BOOT_MCI_CLK);
 
-	/* Wait for the MMC_BOOT_MCI_CLK write to go through. */
-	mmc_mclk_reg_wr_delay();
-
 	/* Write data timeout period to MCI_DATA_TIMER register */
 	/* Data timeout period should be in card bus clock periods */
 	/*TODO: Fix timeout value */
@@ -1504,9 +1457,6 @@ mmc_boot_write_to_card(struct mmc_boot_host *host,
 	   BLOCKSIZE field */
 	mmc_reg |= card->wr_block_len << MMC_BOOT_MCI_BLKSIZE_POS;
 	writel(mmc_reg, MMC_BOOT_MCI_DATA_CTL);
-
-	/* Wait for the MMC_BOOT_MCI_DATA_CTL write to go through. */
-	mmc_mclk_reg_wr_delay();
 
 	/* write data to FIFO */
 	mmc_ret =
@@ -1563,9 +1513,6 @@ mmc_boot_write_to_card(struct mmc_boot_host *host,
 	/* Reset DPSM */
 	writel(0, MMC_BOOT_MCI_DATA_CTL);
 
-	/* Wait for the MMC_BOOT_MCI_DATA_CTL write to go through. */
-	mmc_mclk_reg_wr_delay();
-
 	return MMC_BOOT_E_SUCCESS;
 }
 
@@ -1577,15 +1524,32 @@ mmc_boot_adjust_interface_speed(struct mmc_boot_host *host,
 				struct mmc_boot_card *card)
 {
 	unsigned int mmc_ret = MMC_BOOT_E_SUCCESS;
+	unsigned int status;
+	unsigned int wait_count = 100;
 
 	/* Setting HS_TIMING in EXT_CSD (CMD6) */
 	mmc_ret = mmc_boot_switch_cmd(card, MMC_BOOT_ACCESS_WRITE,
 				      MMC_BOOT_EXT_CMMC_HS_TIMING, 1);
 
 	if (mmc_ret != MMC_BOOT_E_SUCCESS) {
-		dprintf(CRITICAL, "Switch cmd returned failure %d\n", __LINE__);
 		return mmc_ret;
 	}
+
+	/* Wait for the card to complete the switch command processing */
+	do {
+		mmc_ret = mmc_boot_get_card_status(card, 0, &status);
+		if (mmc_ret != MMC_BOOT_E_SUCCESS) {
+			dprintf(CRITICAL, "WARNING: Failed to get card status after"
+							  "cmd6. ret = %d wait_count = %d\n",
+					mmc_ret, wait_count);
+		}
+
+		wait_count--;
+		if (wait_count == 0) {
+			return MMC_BOOT_E_FAILURE;
+		}
+	}
+	while (MMC_BOOT_CARD_STATUS(status) == MMC_BOOT_PROG_STATE);
 
 	clock_config_mmc(mmc_slot, MMC_CLK_50MHZ);
 
@@ -1739,9 +1703,6 @@ mmc_boot_read_from_card(struct mmc_boot_host *host,
 	mmc_reg |= (card->rd_block_len << MMC_BOOT_MCI_BLKSIZE_POS);
 	writel(mmc_reg, MMC_BOOT_MCI_DATA_CTL);
 
-	/* Wait for the MMC_BOOT_MCI_DATA_CTL write to go through. */
-	mmc_mclk_reg_wr_delay();
-
 #if MMC_BOOT_BAM
 	/* Setup SDCC FIFO descriptors for Read operation. */
 	mmc_ret = mmc_boot_bam_setup_desc(out, data_len, MMC_BOOT_DATA_READ);
@@ -1781,9 +1742,6 @@ mmc_boot_read_from_card(struct mmc_boot_host *host,
 	/* Reset DPSM */
 	writel(0, MMC_BOOT_MCI_DATA_CTL);
 
-	/* Wait for the MMC_BOOT_MCI_DATA_CTL write to go through. */
-	mmc_mclk_reg_wr_delay();
-
 	return MMC_BOOT_E_SUCCESS;
 }
 
@@ -1801,9 +1759,6 @@ unsigned int mmc_boot_init(struct mmc_boot_host *host)
 	/* Initialize any clocks needed for SDC controller */
 	clock_init_mmc(mmc_slot);
 
-	/* Save the verison on the mmc controller. */
-	host->mmc_cont_version = readl(MMC_BOOT_MCI_VERSION);
-
 	/* Setup initial freq to 400KHz */
 	clock_config_mmc(mmc_slot, MMC_CLK_400KHZ);
 
@@ -1811,14 +1766,13 @@ unsigned int mmc_boot_init(struct mmc_boot_host *host)
 
 	/* set power mode */
 	/* give some time to reach minimum voltate */
-
+	mdelay(2);
 	mmc_pwr &= ~MMC_BOOT_MCI_PWR_UP;
 	mmc_pwr |= MMC_BOOT_MCI_PWR_ON;
 	mmc_pwr |= MMC_BOOT_MCI_PWR_UP;
 	writel(mmc_pwr, MMC_BOOT_MCI_POWER);
-
-	/* Wait for the MMC_BOOT_MCI_POWER write to go through. */
-	mmc_mclk_reg_wr_delay();
+	/* some more time to stabilize voltage */
+	mdelay(2);
 
 	return MMC_BOOT_E_SUCCESS;
 }
@@ -2109,8 +2063,7 @@ mmc_boot_set_sd_bus_width(struct mmc_boot_card *card, unsigned int width)
 	}
 	writel(sd_reg, MMC_BOOT_MCI_CLK);
 
-	/* Wait for the MMC_BOOT_MCI_CLK write to go through. */
-	mmc_mclk_reg_wr_delay();
+	mdelay(10);		// Giving some time to card to stabilize.
 
 	return MMC_BOOT_E_SUCCESS;
 }
@@ -2130,6 +2083,8 @@ mmc_boot_set_sd_hs(struct mmc_boot_host *host, struct mmc_boot_card *card)
 	if (mmc_ret != MMC_BOOT_E_SUCCESS) {
 		return mmc_ret;
 	}
+
+	mdelay(1);
 
 	clock_config_mmc(mmc_slot, MMC_CLK_50MHZ);
 
@@ -2357,9 +2312,6 @@ mmc_boot_read_reg(struct mmc_boot_card *card,
 	mmc_reg |= MMC_BOOT_MCI_CLK_ENA_FLOW;
 	writel(mmc_reg, MMC_BOOT_MCI_CLK);
 
-	/* Wait for the MMC_BOOT_MCI_CLK write to go through. */
-	mmc_mclk_reg_wr_delay();
-
 	/* Write data timeout period to MCI_DATA_TIMER register. */
 	/* Data timeout period should be in card bus clock periods */
 	mmc_reg = 0xFFFFFFFF;
@@ -2377,9 +2329,6 @@ mmc_boot_read_reg(struct mmc_boot_card *card,
 #endif
 
 	writel(mmc_reg, MMC_BOOT_MCI_DATA_CTL);
-
-	/* Wait for the MMC_BOOT_MCI_DATA_CTL write to go through. */
-	mmc_mclk_reg_wr_delay();
 
 	memset((struct mmc_boot_command *)&cmd, 0,
 	       sizeof(struct mmc_boot_command));
@@ -2434,6 +2383,19 @@ mmc_boot_set_clr_power_on_wp_user(struct mmc_boot_card *card,
 		return mmc_ret;
 	}
 
+	/* Sending CMD13 to check card status */
+	do {
+		mmc_ret = mmc_boot_get_card_status(card, 0, &status);
+		if (MMC_BOOT_CARD_STATUS(status) == MMC_BOOT_TRAN_STATE)
+			break;
+	}
+	while ((mmc_ret == MMC_BOOT_E_SUCCESS) &&
+	       (MMC_BOOT_CARD_STATUS(status) == MMC_BOOT_PROG_STATE));
+
+	if (mmc_ret != MMC_BOOT_E_SUCCESS) {
+		return mmc_ret;
+	}
+
 	mmc_ret = mmc_boot_send_ext_cmd(card, ext_csd_buf);
 
 	if (mmc_ret != MMC_BOOT_E_SUCCESS) {
@@ -2477,6 +2439,19 @@ mmc_boot_set_clr_power_on_wp_user(struct mmc_boot_card *card,
 	mmc_ret = mmc_boot_switch_cmd(card, MMC_BOOT_ACCESS_WRITE,
 				      MMC_BOOT_EXT_USER_WP,
 				      MMC_BOOT_US_PWR_WP_EN);
+
+	if (mmc_ret != MMC_BOOT_E_SUCCESS) {
+		return mmc_ret;
+	}
+
+	/* Sending CMD13 to check card status */
+	do {
+		mmc_ret = mmc_boot_get_card_status(card, 0, &status);
+		if (MMC_BOOT_CARD_STATUS(status) == MMC_BOOT_TRAN_STATE)
+			break;
+	}
+	while ((mmc_ret == MMC_BOOT_E_SUCCESS) &&
+	       (MMC_BOOT_CARD_STATUS(status) == MMC_BOOT_PROG_STATE));
 
 	if (mmc_ret != MMC_BOOT_E_SUCCESS) {
 		return mmc_ret;
@@ -3166,9 +3141,6 @@ static int mmc_bam_transfer_data(unsigned int *data_ptr,
 
 		/* Reset DPSM */
 		writel(0, MMC_BOOT_MCI_DATA_CTL);
-
-		/* Wait for the MMC_BOOT_MCI_DATA_CTL write to go through. */
-		mmc_mclk_reg_wr_delay();
 
 		dprintf(SPEW, "Offset value is %d \n", offset);
 	}
