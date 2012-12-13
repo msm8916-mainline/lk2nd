@@ -1,4 +1,4 @@
-/* Copyright (c) 2010, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010-2013, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -9,7 +9,7 @@
  *    copyright notice, this list of conditions and the following
  *    disclaimer in the documentation and/or other materials provided
  *    with the distribution.
- *  * Neither the name of Code Aurora Forum, Inc. nor the names of its
+ *  * Neither the name of The Linux Foundation, Inc. nor the names of its
  *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
  *
@@ -459,20 +459,25 @@ int qup_i2c_xfer(struct qup_i2c_dev *dev, struct i2c_msg msgs[], int num)
 
 	/* Set the GSBIn_QUP_APPS_CLK to 24MHz, then below figure out what speed to
 	   run I2C_MASTER_CORE at. */
+#if !PERIPH_BLK_BLSP
 	if (dev->clk_state == 0) {
 		if (dev->clk_ctl == 0) {
 			clock_config_i2c(dev->gsbi_number, dev->src_clk_freq);
 		}
 	}
+#endif
+
 	/* Initialize QUP registers during first transfer */
 	if (dev->clk_ctl == 0) {
 		int fs_div;
 		int hs_div;
 		unsigned fifo_reg;
+#if !PERIPH_BLK_BLSP
 		/* Configure the GSBI Protocol Code for i2c */
 		writel((GSBI_PROTOCOL_CODE_I2C <<
 			GSBI_CTRL_REG_PROTOCOL_CODE_S),
 		       GSBI_CTRL_REG(dev->gsbi_base));
+#endif
 
 		fs_div = ((dev->src_clk_freq / dev->clk_freq) / 2) - 3;
 		hs_div = 3;
@@ -678,6 +683,25 @@ int qup_i2c_xfer(struct qup_i2c_dev *dev, struct i2c_msg msgs[], int num)
 	return ret;
 }
 
+void qup_i2c_sec_init(struct qup_i2c_dev *dev, uint32_t clk_freq,
+					  uint32_t src_clk_freq)
+{
+	/* Set clk_freq and src_clk_freq for i2c. */
+	dev->clk_freq = clk_freq;
+	dev->src_clk_freq = src_clk_freq;
+
+	dev->num_irqs = 1;
+
+	dev->one_bit_t = USEC_PER_SEC / dev->clk_freq;
+	dev->clk_ctl = 0;
+
+	/* Register the GSBIn QUP IRQ */
+	register_int_handler(dev->qup_irq, (int_handler) qup_i2c_interrupt, 0);
+
+	/* Then disable it */
+	mask_interrupt(dev->qup_irq);
+}
+
 struct qup_i2c_dev *qup_i2c_init(uint8_t gsbi_id, unsigned clk_freq,
 				 unsigned src_clk_freq)
 {
@@ -692,7 +716,10 @@ struct qup_i2c_dev *qup_i2c_init(uint8_t gsbi_id, unsigned clk_freq,
 	}
 	dev = memset(dev, 0, sizeof(struct qup_i2c_dev));
 
-	/* Setup base addresses and irq based on gsbi_id */
+	/*
+	 * Platform uses gsbi, setup base addresses and
+	 * irq based on gsbi_id
+	 */
 	dev->qup_irq = GSBI_QUP_IRQ(gsbi_id);
 	dev->qup_base = QUP_BASE(gsbi_id);
 	dev->gsbi_base = GSBI_BASE(gsbi_id);
@@ -708,20 +735,39 @@ struct qup_i2c_dev *qup_i2c_init(uint8_t gsbi_id, unsigned clk_freq,
 	writel((GSBI_PROTOCOL_CODE_I2C <<
 		GSBI_CTRL_REG_PROTOCOL_CODE_S), GSBI_CTRL_REG(dev->gsbi_base));
 
-	/* Set clk_freq and src_clk_freq for i2c. */
-	dev->clk_freq = clk_freq;
-	dev->src_clk_freq = src_clk_freq;
+	qup_i2c_sec_init(dev, clk_freq, src_clk_freq);
 
-	dev->num_irqs = 1;
+	return dev;
+}
 
-	dev->one_bit_t = USEC_PER_SEC / dev->clk_freq;
-	dev->clk_ctl = 0;
+struct qup_i2c_dev *qup_blsp_i2c_init(uint8_t blsp_id, uint8_t qup_id,
+									  uint32_t clk_freq, uint32_t src_clk_freq)
+{
+	struct qup_i2c_dev *dev;
 
-	/* Register the GSBIn QUP IRQ */
-	register_int_handler(dev->qup_irq, (int_handler) qup_i2c_interrupt, 0);
+	if (dev_addr != NULL) {
+		return dev_addr;
+	}
 
-	/* Then disable it */
-	mask_interrupt(dev->qup_irq);
+	dev = malloc(sizeof(struct qup_i2c_dev));
+	if (!dev) {
+		return NULL;
+	}
+	dev = memset(dev, 0, sizeof(struct qup_i2c_dev));
+
+	/* Platform uses BLSP */
+	dev->qup_irq = BLSP_QUP_IRQ(blsp_id, qup_id);
+	dev->qup_base = BLSP_QUP_BASE(blsp_id, qup_id);
+
+	/* This must be done for qup_i2c_interrupt to work. */
+	dev_addr = dev;
+
+	/* Initialize the GPIO for BLSP i2c */
+	gpio_config_blsp_i2c(blsp_id, qup_id);
+
+	clock_config_blsp_i2c(blsp_id, qup_id);
+
+	qup_i2c_sec_init(dev, clk_freq, src_clk_freq);
 
 	return dev;
 }

@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -221,6 +221,17 @@ static struct vote_clk gcc_blsp1_ahb_clk = {
 	},
 };
 
+static struct vote_clk gcc_blsp2_ahb_clk = {
+	.cbcr_reg     = (uint32_t *) BLSP2_AHB_CBCR,
+	.vote_reg     = (uint32_t *) APCS_CLOCK_BRANCH_ENA_VOTE,
+	.en_mask      = BIT(15),
+
+	.c = {
+		.dbg_name = "gcc_blsp2_ahb_clk",
+		.ops      = &clk_ops_vote,
+	},
+};
+
 /* USB Clocks */
 static struct clk_freq_tbl ftbl_gcc_usb_hs_system_clk[] =
 {
@@ -318,6 +329,16 @@ static struct vote_clk gcc_ce2_axi_clk = {
 	},
 };
 
+struct branch_clk gcc_blsp2_qup5_i2c_apps_clk = {
+	.cbcr_reg = BLSP2_QUP5_I2C_APPS_CBCR,
+	.parent   = &cxo_clk_src.c,
+
+	.c = {
+		.dbg_name = "gcc_blsp2_qup5_i2c_apps_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
 /* Clock lookup table */
 static struct clk_lookup msm_clocks_8974[] =
 {
@@ -334,6 +355,9 @@ static struct clk_lookup msm_clocks_8974[] =
 	CLK_LOOKUP("ce2_axi_clk",  gcc_ce2_axi_clk.c),
 	CLK_LOOKUP("ce2_core_clk", gcc_ce2_clk.c),
 	CLK_LOOKUP("ce2_src_clk",  ce2_clk_src.c),
+
+	CLK_LOOKUP("blsp2_ahb_clk",           gcc_blsp2_ahb_clk.c),
+	CLK_LOOKUP("blsp2_qup5_i2c_apps_clk", gcc_blsp2_qup5_i2c_apps_clk.c),
 };
 
 

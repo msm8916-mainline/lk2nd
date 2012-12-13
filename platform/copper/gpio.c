@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -9,7 +9,7 @@
  *    copyright notice, this list of conditions and the following
  *    disclaimer in the documentation and/or other materials provided
  *    with the distribution.
- *  * Neither the name of Code Aurora Forum, Inc. nor the names of its
+ *  * Neither the name of The Linux Foundation, Inc. nor the names of its
  *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
  *
@@ -31,6 +31,7 @@
 #include <platform/iomap.h>
 #include <platform/gpio.h>
 #include <gsbi.h>
+#include <blsp_qup.h>
 
 void gpio_tlmm_config(uint32_t gpio, uint8_t func,
 		      uint8_t dir, uint8_t pull,
@@ -61,4 +62,30 @@ void gpio_config_uart_dm(uint8_t id)
     /* configure tx gpio */
 	gpio_tlmm_config(4, 2, GPIO_OUTPUT, GPIO_NO_PULL,
 				GPIO_8MA, GPIO_DISABLE);
+}
+
+void gpio_config_blsp_i2c(uint8_t blsp_id, uint8_t qup_id)
+{
+	if (blsp_id == BLSP_ID_2) {
+		switch (qup_id) {
+		case QUP_ID_4:
+			gpio_tlmm_config(83, 3, GPIO_OUTPUT, GPIO_NO_PULL,
+						GPIO_6MA, GPIO_DISABLE);
+			gpio_tlmm_config(84, 3, GPIO_OUTPUT, GPIO_NO_PULL,
+						GPIO_6MA, GPIO_DISABLE);
+		break;
+		default:
+			dprintf(CRITICAL, "Configure gpios for QUP instance: %u\n",
+					  qup_id);
+			ASSERT(0);
+		};
+	}
+	else if (blsp_id == BLSP_ID_1) {
+		switch (qup_id) {
+		default:
+			dprintf(CRITICAL, "Configure gpios for QUP instance: %u\n",
+					   qup_id);
+			ASSERT(0);
+		};
+	}
 }
