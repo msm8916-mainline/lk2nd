@@ -35,7 +35,7 @@
 #include <dev/udc.h>
 
 #define MAX_RSP_SIZE 64
-#define MAX_USBFS_BULK_SIZE (16 * 1024)
+#define MAX_USBFS_BULK_SIZE (32 * 1024)
 
 void boot_linux(void *bootimg, unsigned sz);
 
@@ -133,6 +133,7 @@ static void req_complete(struct udc_request *req, unsigned actual, int status)
 {
 	txn_status = status;
 	req->length = actual;
+
 	event_signal(&txn_done, 0);
 }
 
@@ -170,7 +171,11 @@ static int usb_read(void *_buf, unsigned len)
 		/* short transfer? */
 		if (req->length != xfer) break;
 	}
-
+	/*
+	 * Force reload of buffer from memory
+	 * since transaction is complete now.
+	 */
+	arch_invalidate_cache_range(_buf, count);
 	return count;
 
 oops:
