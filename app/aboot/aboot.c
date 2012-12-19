@@ -285,6 +285,9 @@ unsigned char *update_cmdline(const char * cmdline)
 				break;
 		}
 	}
+
+	dprintf(INFO, "cmdline: %s\n", cmdline_final);
+
 	return cmdline_final;
 }
 
@@ -335,9 +338,6 @@ unsigned *atag_cmdline(unsigned *ptr, const char *cmdline)
 	char *dest;
 
 	cmdline_final = update_cmdline(cmdline);
-	if (cmdline_final){
-		dprintf(INFO, "cmdline: %s\n", cmdline_final);
-	}
 
 	cmdline_length =strlen((const char*)cmdline_final);
 	n = (cmdline_length + 4) & (~3);
@@ -668,7 +668,6 @@ unified_boot:
 	} else {
 		cmdline = DEFAULT_CMDLINE;
 	}
-	dprintf(INFO, "cmdline = '%s'\n", cmdline);
 
 	boot_linux((void *)hdr->kernel_addr, (unsigned *) hdr->tags_addr,
 		   (const char *)cmdline, board_machtype(),
