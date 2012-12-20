@@ -1,17 +1,17 @@
-/* Copyright (c) 2010, Code Aurora Forum. All rights reserved.
-
+/* Copyright (c) 2010-2012, The Linux Foundation. All rights reserved.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above
- *     copyright notice, this list of conditions and the following
- *     disclaimer in the documentation and/or other materials provided
- *     with the distribution.
- *   * Neither the name of Code Aurora Forum, Inc. nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above
+ *       copyright notice, this list of conditions and the following
+ *       disclaimer in the documentation and/or other materials provided
+ *       with the distribution.
+ *     * Neither the name of The Linux Foundation nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
@@ -60,20 +60,44 @@ static int uart_init_flag = 0;
  * - While waiting Watchdog hasn't been taken into consideration.
  */
 
-#define PACK_CHARS_INTO_WORDS(a, cnt, word)  {                                 \
-                                               word = 0;                       \
-                                               for(int j=0; j < (int)cnt; j++) \
-                                               {                               \
-                                                   word |= (a[j] & 0xff)       \
-                                                               << (j * 8);     \
-                                               }                               \
-                                              }
+#define NON_PRINTABLE_ASCII_CHAR      128
+
+static uint8_t pack_chars_into_words(uint8_t *buffer, uint8_t cnt, uint32_t *word)
+{
+	uint8_t num_chars_writtten = 0;
+
+	*word = 0;
+
+	 for(int j=0; j < cnt; j++)
+	 {
+		 if (buffer[num_chars_writtten] == '\n')
+		 {
+			/* replace '\n' by the NON_PRINTABLE_ASCII_CHAR and print '\r'.
+			 * While printing the NON_PRINTABLE_ASCII_CHAR, we will print '\n'.
+			 * Thus successfully replacing '\n' by '\r' '\n'.
+			 */
+			*word |= ('\r' & 0xff) << (j * 8);
+			buffer[num_chars_writtten] = NON_PRINTABLE_ASCII_CHAR;
+		 }
+		 else
+		 {
+			if (buffer[num_chars_writtten] == NON_PRINTABLE_ASCII_CHAR)
+			{
+				buffer[num_chars_writtten] = '\n';
+			}
+
+			 *word |= (buffer[num_chars_writtten] & 0xff) << (j * 8);
+
+			 num_chars_writtten++;
+		 }
+	 }
+
+	 return num_chars_writtten;
+}
 
 /* Static Function Prototype Declarations */
-static unsigned int msm_boot_uart_replace_lr_with_cr(char *data_in,
-						     int num_of_chars,
-						     char *data_out,
-						     int *num_of_chars_out);
+static unsigned int msm_boot_uart_calculate_num_chars_to_write(char *data_in,
+							       uint32_t *num_of_chars);
 static unsigned int msm_boot_uart_dm_init(uint32_t base);
 static unsigned int msm_boot_uart_dm_read(uint32_t base,
 	unsigned int *data, int wait);
@@ -90,30 +114,27 @@ static uint32_t port_lookup[4];
 void udelay(unsigned usecs);
 
 /*
- * Helper function to replace Line Feed char "\n" with
+ * Helper function to keep track of Line Feed char "\n" with
  * Carriage Return "\r\n".
- * Currently keeping it simple than efficient
  */
 static unsigned int
-msm_boot_uart_replace_lr_with_cr(char *data_in,
-				 int num_of_chars,
-				 char *data_out, int *num_of_chars_out)
+msm_boot_uart_calculate_num_chars_to_write(char *data_in,
+				 uint32_t *num_of_chars)
 {
 	int i = 0, j = 0;
 
-	if ((data_in == NULL) || (data_out == NULL) || (num_of_chars < 0)) {
+	if ((data_in == NULL) || (*num_of_chars < 0)) {
 		return MSM_BOOT_UART_DM_E_INVAL;
 	}
 
-	for (i = 0, j = 0; i < num_of_chars; i++, j++) {
+	for (i = 0, j = 0; i < *num_of_chars; i++, j++) {
 		if (data_in[i] == '\n') {
-			data_out[j++] = '\r';
+			j++;
 		}
 
-		data_out[j] = data_in[i];
 	}
 
-	*num_of_chars_out = j;
+	*num_of_chars = j;
 
 	return MSM_BOOT_UART_DM_E_SUCCESS;
 }
@@ -295,18 +316,15 @@ msm_boot_uart_dm_write(uint32_t base, char *data, unsigned int num_of_chars)
 	unsigned int tx_word = 0;
 	int i = 0;
 	char *tx_data = NULL;
-	char new_data[1024];
+	uint8_t num_chars_written;
 
 	if ((data == NULL) || (num_of_chars <= 0)) {
 		return MSM_BOOT_UART_DM_E_INVAL;
 	}
 
-	/* Replace line-feed (/n) with carriage-return + line-feed (/r/n) */
+	msm_boot_uart_calculate_num_chars_to_write(data, &num_of_chars);
 
-	msm_boot_uart_replace_lr_with_cr(data, num_of_chars, new_data, &i);
-
-	tx_data = new_data;
-	num_of_chars = i;
+	tx_data = data;
 
 	/* Write to NO_CHARS_FOR_TX register number of characters
 	 * to be transmitted. However, before writing TX_FIFO must
@@ -337,7 +355,7 @@ msm_boot_uart_dm_write(uint32_t base, char *data, unsigned int num_of_chars)
 
 	for (i = 0; i < (int)tx_word_count; i++) {
 		tx_char = (tx_char_left < 4) ? tx_char_left : 4;
-		PACK_CHARS_INTO_WORDS(tx_data, tx_char, tx_word);
+		num_chars_written = pack_chars_into_words(tx_data, tx_char, &tx_word);
 
 		/* Wait till TX FIFO has space */
 		while (!(readl(MSM_BOOT_UART_DM_SR(base)) & MSM_BOOT_UART_DM_SR_TXRDY)) {
@@ -347,7 +365,7 @@ msm_boot_uart_dm_write(uint32_t base, char *data, unsigned int num_of_chars)
 		/* TX FIFO has space. Write the chars */
 		writel(tx_word, MSM_BOOT_UART_DM_TF(base, 0));
 		tx_char_left = num_of_chars - (i + 1) * 4;
-		tx_data = tx_data + 4;
+		tx_data = tx_data + num_chars_written;
 	}
 
 	return MSM_BOOT_UART_DM_E_SUCCESS;
