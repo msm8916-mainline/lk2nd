@@ -1,4 +1,4 @@
-# top level project rules for the msm8960_virtio project
+# top level project rules for the msm8974 project
 #
 LOCAL_DIR := $(GET_LOCAL_DIR)
 
@@ -13,3 +13,4 @@ DEFINES += WITH_DEBUG_UART=1
 #DEFINES += WITH_DEBUG_FBCON=1
 DEFINES += DEVICE_TREE=1
 #DEFINES += MMC_BOOT_BAM=1
+DEFINES += CRYPTO_BAM=1

@@ -39,6 +39,9 @@
 #include <baseband.h>
 #include <dev/keys.h>
 #include <pm8x41.h>
+#include <crypto5_wrapper.h>
+
+extern  bool target_use_signed_kernel(void);
 
 static unsigned int target_id;
 
@@ -46,6 +49,13 @@ static unsigned int target_id;
 #define PMIC_ARB_OWNER_ID       0
 
 #define WDOG_DEBUG_DISABLE_BIT  17
+
+#define CE_INSTANCE             2
+#define CE_EE                   1
+#define CE_FIFO_SIZE            64
+#define CE_READ_PIPE            3
+#define CE_WRITE_PIPE           2
+#define CE_ARRAY_SIZE           20
 
 static uint32_t mmc_sdc_base[] =
 	{ MSM_SDC1_BASE, MSM_SDC2_BASE, MSM_SDC3_BASE, MSM_SDC4_BASE };
@@ -101,17 +111,47 @@ static void target_keystatus()
 		keys_post_event(KEY_VOLUMEUP, 1);
 }
 
+/* Set up params for h/w CE. */
+void target_crypto_init_params()
+{
+	struct crypto_init_params ce_params;
+
+	/* Set up base addresses and instance. */
+	ce_params.crypto_instance  = CE_INSTANCE;
+	ce_params.crypto_base      = MSM_CE2_BASE;
+	ce_params.bam_base         = MSM_CE2_BAM_BASE;
+
+	/* Set up BAM config. */
+	ce_params.bam_ee           = CE_EE;
+	ce_params.pipes.read_pipe  = CE_READ_PIPE;
+	ce_params.pipes.write_pipe = CE_WRITE_PIPE;
+
+	/* Assign buffer sizes. */
+	ce_params.num_ce           = CE_ARRAY_SIZE;
+	ce_params.read_fifo_size   = CE_FIFO_SIZE;
+	ce_params.write_fifo_size  = CE_FIFO_SIZE;
+
+	crypto_init_params(&ce_params);
+}
+
+crypto_engine_type board_ce_type(void)
+{
+	return CRYPTO_ENGINE_TYPE_HW;
+}
+
 void target_init(void)
 {
 	uint32_t base_addr;
 	uint8_t slot;
-
 
 	dprintf(INFO, "target_init()\n");
 
 	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
 
 	target_keystatus();
+
+	if (target_use_signed_kernel())
+		target_crypto_init_params();
 
 	/* Trying Slot 1*/
 	slot = 1;
