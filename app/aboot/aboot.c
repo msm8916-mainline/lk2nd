@@ -454,6 +454,7 @@ int boot_linux_from_mmc(void)
 	struct dt_table *table;
 	struct dt_entry *dt_entry_ptr;
 	unsigned dt_table_offset;
+	uint32_t dt_actual;
 #endif
 
 	uhdr = (struct boot_img_hdr *)EMMC_BOOT_IMG_HEADER_ADDR;
@@ -505,8 +506,12 @@ int boot_linux_from_mmc(void)
 		image_addr = (unsigned char *)target_get_scratch_address();
 		kernel_actual = ROUND_TO_PAGE(hdr->kernel_size, page_mask);
 		ramdisk_actual = ROUND_TO_PAGE(hdr->ramdisk_size, page_mask);
+#if DEVICE_TREE
+		dt_actual = ROUND_TO_PAGE(hdr->dt_size, page_mask);
+		imagesize_actual = (page_size + kernel_actual + ramdisk_actual + dt_actual);
+#else
 		imagesize_actual = (page_size + kernel_actual + ramdisk_actual);
-
+#endif
 		offset = 0;
 
 		/* Assuming device rooted at this time */
@@ -550,6 +555,9 @@ int boot_linux_from_mmc(void)
 		/* Move kernel, ramdisk and device tree to correct address */
 		memmove((void*) hdr->kernel_addr, (char *)(image_addr + page_size), hdr->kernel_size);
 		memmove((void*) hdr->ramdisk_addr, (char *)(image_addr + page_size + kernel_actual), hdr->ramdisk_size);
+#if DEVICE_TREE
+		memmove((void*) hdr->tags_addr, (char *)(image_addr + page_size + kernel_actual + ramdisk_actual), hdr->dt_size);
+#endif
 
 		#if DEVICE_TREE
 		if(hdr->dt_size) {
@@ -693,8 +701,8 @@ int boot_linux_from_flash(void)
 #if DEVICE_TREE
 	struct dt_table *table;
 	struct dt_entry *dt_entry_ptr;
+	uint32_t dt_actual;
 #endif
-
 
 	if (target_is_emmc_boot()) {
 		hdr = (struct boot_img_hdr *)EMMC_BOOT_IMG_HEADER_ADDR;
@@ -755,8 +763,12 @@ int boot_linux_from_flash(void)
 		image_addr = (unsigned char *)target_get_scratch_address();
 		kernel_actual = ROUND_TO_PAGE(hdr->kernel_size, page_mask);
 		ramdisk_actual = ROUND_TO_PAGE(hdr->ramdisk_size, page_mask);
+#if DEVICE_TREE
+		dt_actual = ROUND_TO_PAGE(hdr->dt_size, page_mask);
+		imagesize_actual = (page_size + kernel_actual + ramdisk_actual + dt_actual);
+#else
 		imagesize_actual = (page_size + kernel_actual + ramdisk_actual);
-
+#endif
 		offset = 0;
 
 		/* Assuming device rooted at this time */
@@ -801,6 +813,9 @@ int boot_linux_from_flash(void)
 		/* Move kernel and ramdisk to correct address */
 		memmove((void*) hdr->kernel_addr, (char *)(image_addr + page_size), hdr->kernel_size);
 		memmove((void*) hdr->ramdisk_addr, (char *)(image_addr + page_size + kernel_actual), hdr->ramdisk_size);
+#if DEVICE_TREE
+		memmove((void*) hdr->tags_addr, (char *)(image_addr + page_size + kernel_actual + ramdisk_actual), hdr->dt_size);
+#endif
 
 		/* Make sure everything from scratch address is read before next step!*/
 		if(device.is_tampered)
