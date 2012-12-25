@@ -35,6 +35,7 @@
 #define BAM_DESC_SIZE                   8
 #define BAM_CE_SIZE                     16
 #define BAM_MAX_DESC_DATA_LEN           0xFFFF
+#define BAM_NDP_MAX_DESC_DATA_LEN       0x7FFF
 #define BAM_DATA_READ                   0
 #define BAM_DATA_WRITE                  1
 

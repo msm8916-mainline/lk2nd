@@ -30,6 +30,7 @@
 #include <reg.h>
 #include <debug.h>
 #include <stdlib.h>
+#include <arch/ops.h>
 #include <platform.h>
 #include <platform/interrupts.h>
 #include <platform/iomap.h>
@@ -450,10 +451,12 @@ int bam_add_one_desc(struct bam_instance *bam,
 		goto bam_add_one_desc_error;
 	}
 
-	desc->flags = flags;
-	desc->addr = (uint32_t)data_ptr;
-	desc->size = (uint16_t)len;
+	desc->flags    = flags;
+	desc->addr     = (uint32_t)data_ptr;
+	desc->size     = (uint16_t)len;
 	desc->reserved = 0;
+
+	arch_clean_invalidate_cache_range((addr_t) desc, BAM_DESC_SIZE);
 
 	/* Update the FIFO to point to the head */
 	bam->pipe[pipe_num].fifo.current = fifo_getnext(&bam->pipe[pipe_num].fifo, desc);
