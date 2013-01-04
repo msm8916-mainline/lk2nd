@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010-2013, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -9,7 +9,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of Code Aurora Forum, Inc. nor the names of its
+ *   * Neither the name of The Linux Foundation nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -293,9 +293,9 @@ do_sha_update(void *ctx_ptr,
 
 	do {
 		if ((bytes_to_write - bytes_written) >
-		    CRYPTO_MAX_AUTH_BLOCK_SIZE) {
+		    crypto_get_max_auth_blk_size()) {
 			/* Write CRYPTO_MAX_AUTH_BLOCK_SIZE bytes at a time to the CE */
-			tmp_bytes = CRYPTO_MAX_AUTH_BLOCK_SIZE;
+			tmp_bytes = crypto_get_max_auth_blk_size();
 			tmp_last = FALSE;
 
 			if (sha1_ctx->saved_buff_indx != 0) {
