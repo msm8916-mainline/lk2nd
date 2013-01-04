@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008 Travis Geiselbrecht
+ * Copyright (c) 2013, The Linux Foundation. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -134,7 +135,11 @@ FUNCTION(arch_disable_cache)
 	beq		.Ldcache_already_disabled
 
 	bic		r0, #(1<<2)
+	// make sure all data operations are completed
+	dsb
 	mcr		p15, 0, r0, c1, c0, 0		// disable dcache
+	// make sure previous instruction finishes before we clean and flush
+	isb
 
 	// flush and invalidate the dcache
 	// NOTE: trashes a bunch of registers, can't be spilling stuff to the stack
@@ -163,11 +168,15 @@ FUNCTION(arch_disable_cache)
 	mrc     p15, 0, r0, c1, c0, 0		// cr1
 	bic		r0, #(1<<12)
 	mcr		p15, 0, r0, c1, c0, 0		// disable icache
+	// make sure previous instruction finishes
+	isb
 
 .Ldone_disable:
 	// make sure the icache is always invalidated
 	mov		r0, #0
 	mcr		p15, 0, r0, c7, c5, 0		// invalidate icache to PoU
+	// make sure that data is in sync
+	dsb
 
 	msr		cpsr, r12
 	ldmfd	sp!, {r4-r11, pc}
@@ -220,6 +229,7 @@ FUNCTION(arch_enable_cache)
 
 // flush & invalidate cache routine, trashes r0-r6, r9-r11
 flush_invalidate_cache_v7:
+	DMB
 	/* from ARMv7 manual, B2-17 */
 	MRC 	p15, 1, R0, c0, c0, 1 		// Read CLIDR 
 	ANDS 	R3, R0, #0x7000000 
@@ -260,6 +270,7 @@ flush_invalidate_cache_v7:
 .Lfinished:
 	mov		r10, #0
 	mcr		p15, 2, r10, c0, c0, 0		// select cache level 0
+	dsb
 	.word	0xf57ff06f	// isb
 
 	bx		lr
@@ -306,6 +317,7 @@ invalidate_cache_v7:
 .Lfinished_invalidate:
 	mov		r10, #0
 	mcr		p15, 2, r10, c0, c0, 0		// select cache level 0
+	dsb
 	.word	0xf57ff06f	// isb
 
 	bx		lr
