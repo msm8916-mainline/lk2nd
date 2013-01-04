@@ -3,6 +3,7 @@ LOCAL_DIR := $(GET_LOCAL_DIR)
 OBJS += \
 	$(LOCAL_DIR)/atoi.o \
 	$(LOCAL_DIR)/ctype.o \
+	$(LOCAL_DIR)/gcd_lcm.o \
 	$(LOCAL_DIR)/itoa.o \
 	$(LOCAL_DIR)/printf.o \
 	$(LOCAL_DIR)/malloc.o \

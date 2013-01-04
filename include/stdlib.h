@@ -30,6 +30,8 @@
 #include <endian.h>
 #include <arch/defines.h>
 
+unsigned gcd(unsigned m, unsigned n);
+unsigned lcm(unsigned m, unsigned n);
 int atoi(const char *num);
 unsigned int atoui(const char *num);
 long atol(const char *num);
