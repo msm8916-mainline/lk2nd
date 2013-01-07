@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -381,4 +381,10 @@ void crypto_get_ctx(void *ctx_ptr)
 	((crypto_SHA1_ctx *) ctx_ptr)->auth_bytecnt[1] =
 	    rd_ce(CRYPTO_AUTH_BYTECNTn(1));
 	return;
+}
+
+/* Returns the max authentication block size */
+uint32_t crypto_get_max_auth_blk_size()
+{
+	return 0xFA00;
 }

@@ -1,17 +1,17 @@
-/* Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
-
+/* Copyright (c) 2010-2013, The Linux Foundation. All rights reserved.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above
- *     copyright notice, this list of conditions and the following
- *     disclaimer in the documentation and/or other materials provided
- *     with the distribution.
- *   * Neither the name of Code Aurora Forum, Inc. nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above
+ *       copyright notice, this list of conditions and the following
+ *       disclaimer in the documentation and/or other materials provided
+ *       with the distribution.
+ *     * Neither the name of The Linux Foundation nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
@@ -40,10 +40,14 @@
 #define SHA1_INIT_VECTOR_SIZE		5
 
 #define CRYPTO_SHA_BLOCK_SIZE		64
-#define CRYPTO_MAX_AUTH_BLOCK_SIZE	0xFA00
 
 #define CRYPTO_ERR_NONE				0x01
 #define CRYPTO_ERR_FAIL				0x02
+
+typedef enum {
+	CRYPTO_FIRST_CHUNK = 1,
+	CRYPTO_LAST_CHUNK  = 2,
+} crypto_flag_type;
 
 typedef enum {
 	CRYPTO_SHA_ERR_NONE,
@@ -68,7 +72,7 @@ typedef struct {
 	unsigned char saved_buff[64];
 	unsigned char saved_buff_indx;
 	unsigned int auth_iv[5];
-	unsigned char flags;
+	uint32_t flags;
 } crypto_SHA1_ctx;
 
 typedef struct {
@@ -76,7 +80,8 @@ typedef struct {
 	unsigned char saved_buff[64];
 	unsigned char saved_buff_indx;
 	unsigned int auth_iv[8];
-	unsigned char flags;
+	uint32_t bytes_to_write;
+	uint32_t flags;
 } crypto_SHA256_ctx;
 
 extern void crypto_eng_reset(void);
@@ -98,6 +103,8 @@ extern void crypto_get_digest(unsigned char *digest_ptr,
 			      crypto_auth_alg_type auth_alg, bool last);
 
 extern void crypto_get_ctx(void *ctx_ptr);
+
+extern uint32_t crypto_get_max_auth_blk_size();
 
 static void crypto_init(void);
 
