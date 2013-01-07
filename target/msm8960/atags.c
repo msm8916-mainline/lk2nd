@@ -1,4 +1,4 @@
-/* Copyright (c) 2009-2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2009-2013, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -145,6 +145,7 @@ unsigned *target_first_256M_atag(unsigned *ptr)
 
 	switch (platform_id) {
 		case APQ8064:
+		case APQ8064AA:
 		case APQ8064AB:
 			if(baseband == BASEBAND_MDM)
 			{

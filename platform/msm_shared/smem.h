@@ -2,7 +2,7 @@
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2013, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -247,6 +247,7 @@ enum {
 	APQ8030AB = 157,
 	APQ8030AA = 160,
 	MSM8125   = 167,
+	APQ8064AA = 172, /* aka V2 SLOW_PRIME */
 };
 
 enum platform {

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
- * Copyright (c) 2009-2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2013, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -131,6 +131,7 @@ void target_init(void)
 		break;
 	case APQ8064:
 	case MPQ8064:
+	case APQ8064AA:
 	case APQ8064AB:
 		apq8064_keypad_init();
 		break;
@@ -148,7 +149,8 @@ void target_init(void)
 		(platform_id == APQ8060AB) || (platform_id == MSM8260AB) ||
 		(platform_id == MSM8660AB) || (platform_id == MSM8660A) ||
 		(platform_id == MSM8260A) || (platform_id == APQ8060A) ||
-		(platform_id == APQ8064))
+		(platform_id == APQ8064) || (platform_id == APQ8064AA) ||
+		(platform_id == APQ8064AB))
 		/* Enable Hardware CE */
 		platform_ce_type = CRYPTO_ENGINE_TYPE_HW;
 
@@ -394,7 +396,8 @@ void target_detect(struct board_data *board)
 		default:
 			target_id = LINUX_MACHTYPE_8064_MPQ_CDP;
 		}
-	} else if ((platform == APQ8064) || (platform == APQ8064AB)) {
+	} else if ((platform == APQ8064) || (platform == APQ8064AA)
+					 || (platform == APQ8064AB)) {
 		switch (platform_hw) {
 		case HW_PLATFORM_SURF:
 			target_id = LINUX_MACHTYPE_8064_CDP;
@@ -437,6 +440,7 @@ void target_baseband_detect(struct board_data *board)
 		switch(platform) {
 		case APQ8060:
 		case APQ8064:
+		case APQ8064AA:
 		case APQ8064AB:
 		case APQ8030AB:
 		case MPQ8064:
