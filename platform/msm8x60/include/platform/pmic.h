@@ -1,5 +1,5 @@
 /*
- * * Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
+ * * Copyright (c) 2010-2013, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -10,7 +10,7 @@
  *    copyright notice, this list of conditions and the following
  *    disclaimer in the documentation and/or other materials provided
  *    with the distribution.
- *  * Neither the name of Code Aurora Forum, Inc. nor the names of its
+ *  * Neither the name of The Linux Foundation nor the names of its
  *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
  *
@@ -48,7 +48,21 @@
 #define PM8901_LDO_L6_TEST_BANK     (PM8901_LDO_BASE + 0x0D)
 #define PM8901_LDO_L7           (PM8901_LDO_BASE + 0x0E)
 #define PM8901_LDO_L7_TEST_BANK     (PM8901_LDO_BASE + 0x0F)
-#define PM8901_PMR_7            (0xAD)
+
+enum {
+	LDO_START,
+	LDO_L0 = LDO_START,
+	LDO_L1,
+	LDO_L2,
+	LDO_L3,
+	LDO_L4,
+	LDO_L5,
+	LDO_L6,
+	LDO_END = LDO_L6,
+};
+
+#define PM8901_PMR_REG_BASE 0xAB
+#define PM8901_PMR_REG(ldo_id)               (PM8901_PMR_REG_BASE + ldo_id)
 
 #define PM8901_LDO_TEST_BANK(n) ((n)<<4)
 
