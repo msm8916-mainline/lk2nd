@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -74,6 +74,17 @@
 
 #define S2_RESET_TYPE_WARM                    0x1
 #define PON_RESIN_N_RESET_S2_TIMER_MAX_VALUE  0x7
+
+void pm8x41_reg_write(uint32_t addr, uint8_t val);
+uint8_t pm8x41_reg_read(uint32_t addr);
+
+/* SPMI Macros */
+#define REG_READ(_a)        pm8x41_reg_read(_a)
+#define REG_WRITE(_a, _v)   pm8x41_reg_write(_a, _v)
+
+#define REG_OFFSET(_addr)   ((_addr) & 0xFF)
+#define PERIPH_ID(_addr)    (((_addr) & 0xFF00) >> 8)
+#define SLAVE_ID(_addr)     ((_addr) >> 16)
 
 /* LDO voltage ranges */
 #define NLDO_UV_MIN                           375000

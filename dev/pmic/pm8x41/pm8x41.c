@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -35,22 +35,14 @@
 #include <pm8x41.h>
 #include <platform/timer.h>
 
-/* Local Macros */
-#define REG_READ(_a)        pm8x41_reg_read(_a)
-#define REG_WRITE(_a, _v)   pm8x41_reg_write(_a, _v)
-
-#define REG_OFFSET(_addr)   ((_addr) & 0xFF)
-#define PERIPH_ID(_addr)    (((_addr) & 0xFF00) >> 8)
-#define SLAVE_ID(_addr)     ((_addr) >> 16)
-
 struct pm8x41_ldo ldo_data[] = {
 	LDO("LDO2",  NLDO_TYPE, 0x14100, LDO_RANGE_CTRL, LDO_STEP_CTRL, LDO_EN_CTL_REG),
 	LDO("LDO12", PLDO_TYPE, 0x14B00, LDO_RANGE_CTRL, LDO_STEP_CTRL, LDO_EN_CTL_REG),
 	LDO("LDO22", PLDO_TYPE, 0x15500, LDO_RANGE_CTRL, LDO_STEP_CTRL, LDO_EN_CTL_REG),
 };
 
-/* Local functions */
-static uint8_t pm8x41_reg_read(uint32_t addr)
+/* SPMI helper functions */
+uint8_t pm8x41_reg_read(uint32_t addr)
 {
 	uint8_t val = 0;
 	struct pmic_arb_cmd cmd;
@@ -69,7 +61,7 @@ static uint8_t pm8x41_reg_read(uint32_t addr)
 	return val;
 }
 
-static void pm8x41_reg_write(uint32_t addr, uint8_t val)
+void pm8x41_reg_write(uint32_t addr, uint8_t val)
 {
 	struct pmic_arb_cmd cmd;
 	struct pmic_arb_param param;
