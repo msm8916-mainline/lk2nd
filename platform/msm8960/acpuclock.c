@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -246,7 +246,8 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 /* Configure crypto engine clock */
 void ce_clock_init(void)
 {
-	if (board_platform_id() != APQ8064)
+	if ((board_platform_id() != APQ8064) || (board_platform_id() != APQ8064AA)
+				|| (board_platform_id() != APQ8064AB))
 	{
 		/* Enable HCLK for CE1 */
 		clk_get_set_enable("ce1_pclk", 0, 1);
