@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -9,7 +9,7 @@
  *       copyright notice, this list of conditions and the following
  *       disclaimer in the documentation and/or other materials provided
  *       with the distribution.
- *     * Neither the name of Code Aurora Forum, Inc. nor the names of its
+ *     * Neither the name of The Linux Foundation, Inc. nor the names of its
  *       contributors may be used to endorse or promote products derived
  *       from this software without specific prior written permission.
  *
@@ -38,6 +38,7 @@ static struct board_data board = {UNKNOWN,
 	LINUX_MACHTYPE_UNKNOWN,
 	BASEBAND_MSM,
 	PMIC_IS_INVALID,
+	0,
 	0};
 
 static void platform_detect()
@@ -64,6 +65,7 @@ static void platform_detect()
 			return;
 
 		board.platform = board_info_v6.board_info_v3.msm_id;
+		board.platform_version = board_info_v6.board_info_v3.msm_version;
 		board.platform_hw = board_info_v6.board_info_v3.hw_platform;
 		board.platform_subtype = board_info_v6.platform_subtype;
 	}
@@ -78,6 +80,7 @@ static void platform_detect()
 			return;
 
 		board.platform = board_info_v7.board_info_v3.msm_id;
+		board.platform_version = board_info_v7.board_info_v3.msm_version;
 		board.platform_hw = board_info_v7.board_info_v3.hw_platform;
 		board.platform_subtype = board_info_v7.platform_subtype;
 		board.pmic_type = board_info_v7.pmic_type;
@@ -125,4 +128,9 @@ uint32_t board_pmic_type()
 uint32_t board_pmic_ver()
 {
 	return board.pmic_version;
+}
+
+uint32_t board_soc_version()
+{
+	return board.platform_version;
 }
