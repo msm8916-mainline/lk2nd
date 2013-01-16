@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -122,6 +122,7 @@
 
 /* UART */
 #define BLSP1_AHB_CBCR              (CLK_CTL_BASE + 0x5C4)
+#define BLSP2_AHB_CBCR              (CLK_CTL_BASE + 0x944)
 #define BLSP1_UART2_APPS_CBCR       (CLK_CTL_BASE + 0x704)
 #define BLSP1_UART2_APPS_CMD_RCGR   (CLK_CTL_BASE + 0x70C)
 #define BLSP1_UART2_APPS_CFG_RCGR   (CLK_CTL_BASE + 0x710)
@@ -135,4 +136,12 @@
 #define USB_HS_SYSTEM_CMD_RCGR      (CLK_CTL_BASE + 0x490)
 #define USB_HS_SYSTEM_CFG_RCGR      (CLK_CTL_BASE + 0x494)
 
+/* I2C */
+#define BLSP2_QUP5_I2C_APPS_CBCR    (CLK_CTL_BASE + 0xB88)
+
+#define BLSP_QUP_BASE(blsp_id, qup_id)   ((blsp_id == 1) ? \
+                                         (PERIPH_SS_BASE + 0x00023000 \
+                                         + (qup_id * 0x1000)) :\
+                                         (PERIPH_SS_BASE + 0x00163000 + \
+                                         (qup_id * 0x1000)))
 #endif
