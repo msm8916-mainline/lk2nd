@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -84,7 +84,7 @@ static int target_volume_up()
 	gpio.direction = PM_GPIO_DIR_IN;
 	gpio.function  = 0;
 	gpio.pull      = PM_GPIO_PULL_UP_30;
-	gpio.vin_sel   = 0;
+	gpio.vin_sel   = 2;
 
 	pm8x41_gpio_config(5, &gpio);
 
