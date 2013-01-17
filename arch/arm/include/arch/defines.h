@@ -32,9 +32,7 @@
  #define CACHE_LINE 32
 #elif defined(ARM_CPU_CORE_SCORPION)
  #define CACHE_LINE 32
-#elif defined(ARM_CPU_CORE_KRAIT)
- #define CACHE_LINE 128
-#elif defined(ARM_CPU_CORE_A7)
+#elif defined(ARM_CPU_CORE_KRAIT) || defined(ARM_CPU_CORE_A7)
  #define CACHE_LINE 64
 #else
  #error unknown cpu
