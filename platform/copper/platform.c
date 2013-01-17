@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -86,20 +86,24 @@ void platform_init_mmu_mappings(void)
 	/* Configure the MMU page entries for SDRAM and IMEM memory read
 	   from the smem ram table*/
 	for(i = 0; i < ram_ptable.len; i++)
-    {   if((ram_ptable.parts[i].category == SDRAM) ||
-           (ram_ptable.parts[i].category == IMEM))
+    {
+		if(ram_ptable.parts[i].type == SYS_MEMORY)
 		{
-			/* Check to ensure that start address is 1MB aligned */
-			ASSERT((ram_ptable.parts[i].start & 0xFFFFF) == 0);
+			if((ram_ptable.parts[i].category == SDRAM) ||
+			   (ram_ptable.parts[i].category == IMEM))
+			{
+				/* Check to ensure that start address is 1MB aligned */
+				ASSERT((ram_ptable.parts[i].start & 0xFFFFF) == 0);
 
-			sections = (ram_ptable.parts[i].size) / MB;
-			while(sections--) {
-				arm_mmu_map_section(ram_ptable.parts[i].start +
-						    sections * MB,
-						    ram_ptable.parts[i].start +
-						    sections * MB,
-						    (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
-						    MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN));
+				sections = (ram_ptable.parts[i].size) / MB;
+				while(sections--) {
+					arm_mmu_map_section(ram_ptable.parts[i].start +
+								sections * MB,
+								ram_ptable.parts[i].start +
+								sections * MB,
+								(MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
+								MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN));
+				}
 			}
 		}
     }
