@@ -20,3 +20,8 @@ OBJS += \
 	$(LOCAL_DIR)/mipi_nt35510_cmd_wvga.o \
 	$(LOCAL_DIR)/lcdc_truly_hvga.o
 endif
+
+ifeq ($(PLATFORM),copper)
+OBJS += \
+	$(LOCAL_DIR)/mipi_toshiba_video_720p.o
+endif
