@@ -39,6 +39,11 @@
 /* Mux source select values */
 #define cxo_source_val    0
 #define gpll0_source_val  1
+#define cxo_mm_source_val 0
+#define mmpll0_mm_source_val 1
+#define mmpll1_mm_source_val 2
+#define mmpll3_mm_source_val 3
+#define gpll0_mm_source_val 5
 
 struct clk_freq_tbl rcg_dummy_freq = F_END;
 
@@ -339,6 +344,136 @@ struct branch_clk gcc_blsp2_qup5_i2c_apps_clk = {
 	},
 };
 
+/* Display clocks */
+static struct clk_freq_tbl ftbl_mdss_esc0_1_clk[] = {
+	F_MM(19200000,    cxo,   1,   0,   0),
+	F_END
+};
+
+static struct clk_freq_tbl ftbl_mmss_axi_clk[] = {
+	F_MM(19200000,     cxo,     1,   0,   0),
+	F_MM(100000000,  gpll0,     6,   0,   0),
+	F_END
+};
+
+static struct clk_freq_tbl ftbl_mdp_clk[] = {
+	F_MM( 75000000,  gpll0,   8,   0,   0),
+	F_END
+};
+
+static struct rcg_clk dsi_esc0_clk_src = {
+	.cmd_reg  = (uint32_t *) DSI_ESC0_CMD_RCGR,
+	.cfg_reg  = (uint32_t *) DSI_ESC0_CFG_RCGR,
+	.set_rate = clock_lib2_rcg_set_rate_hid,
+	.freq_tbl = ftbl_mdss_esc0_1_clk,
+
+	.c        = {
+		.dbg_name = "dsi_esc0_clk_src",
+		.ops      = &clk_ops_rcg,
+	},
+};
+
+static struct rcg_clk mdp_axi_clk_src = {
+	.cmd_reg  = (uint32_t *) MDP_AXI_CMD_RCGR,
+	.cfg_reg  = (uint32_t *) MDP_AXI_CFG_RCGR,
+	.set_rate = clock_lib2_rcg_set_rate_hid,
+	.freq_tbl = ftbl_mmss_axi_clk,
+
+	.c        = {
+		.dbg_name = "mdp_axi_clk_src",
+		.ops      = &clk_ops_rcg,
+	},
+};
+
+static struct branch_clk mdss_esc0_clk = {
+	.cbcr_reg    = (uint32_t *) DSI_ESC0_CBCR,
+	.parent      = &dsi_esc0_clk_src.c,
+	.has_sibling = 0,
+
+	.c           = {
+		.dbg_name = "mdss_esc0_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
+static struct branch_clk mdss_axi_clk = {
+	.cbcr_reg    = (uint32_t *) MDP_AXI_CBCR,
+	.parent      = &mdp_axi_clk_src.c,
+	.has_sibling = 0,
+
+	.c           = {
+		.dbg_name = "mdss_axi_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
+static struct branch_clk mmss_mmssnoc_axi_clk = {
+	.cbcr_reg    = (uint32_t *) MMSS_MMSSNOC_AXI_CBCR,
+	.parent      = &mdp_axi_clk_src.c,
+	.has_sibling = 0,
+
+	.c           = {
+		.dbg_name = "mmss_mmssnoc_axi_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
+static struct branch_clk mmss_s0_axi_clk = {
+	.cbcr_reg    = (uint32_t *) MMSS_S0_AXI_CBCR,
+	.parent      = &mdp_axi_clk_src.c,
+	.has_sibling = 0,
+
+	.c           = {
+		.dbg_name = "mmss_s0_axi_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
+static struct branch_clk mdp_ahb_clk = {
+	.cbcr_reg    = (uint32_t *) MDP_AHB_CBCR,
+	.has_sibling = 1,
+
+	.c           = {
+		.dbg_name = "mdp_ahb_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
+static struct rcg_clk mdss_mdp_clk_src = {
+	.cmd_reg      = (uint32_t *) MDP_CMD_RCGR,
+	.cfg_reg      = (uint32_t *) MDP_CFG_RCGR,
+	.set_rate     = clock_lib2_rcg_set_rate_hid,
+	.freq_tbl     = ftbl_mdp_clk,
+	.current_freq = &rcg_dummy_freq,
+
+	.c            = {
+		.dbg_name = "mdss_mdp_clk_src",
+		.ops      = &clk_ops_rcg,
+	},
+};
+
+static struct branch_clk mdss_mdp_clk = {
+	.cbcr_reg    = (uint32_t *) MDP_CBCR,
+	.parent      = &mdss_mdp_clk_src.c,
+	.has_sibling = 1,
+
+	.c           = {
+		.dbg_name = "mdss_mdp_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
+static struct branch_clk mdss_mdp_lut_clk = {
+	.cbcr_reg    = MDP_LUT_CBCR,
+	.parent      = &mdss_mdp_clk_src.c,
+	.has_sibling = 1,
+
+	.c           = {
+		.dbg_name = "mdss_mdp_lut_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
 /* Clock lookup table */
 static struct clk_lookup msm_clocks_8974[] =
 {
@@ -358,6 +493,15 @@ static struct clk_lookup msm_clocks_8974[] =
 
 	CLK_LOOKUP("blsp2_ahb_clk",           gcc_blsp2_ahb_clk.c),
 	CLK_LOOKUP("blsp2_qup5_i2c_apps_clk", gcc_blsp2_qup5_i2c_apps_clk.c),
+
+	CLK_LOOKUP("mdp_ahb_clk",          mdp_ahb_clk.c),
+	CLK_LOOKUP("mdss_esc0_clk",        mdss_esc0_clk.c),
+	CLK_LOOKUP("mdss_axi_clk",         mdss_axi_clk.c),
+	CLK_LOOKUP("mmss_mmssnoc_axi_clk", mmss_mmssnoc_axi_clk.c),
+	CLK_LOOKUP("mmss_s0_axi_clk",      mmss_s0_axi_clk.c),
+	CLK_LOOKUP("mdss_mdp_clk_src",     mdss_mdp_clk_src.c),
+	CLK_LOOKUP("mdss_mdp_clk",         mdss_mdp_clk.c),
+	CLK_LOOKUP("mdss_mdp_lut_clk",     mdss_mdp_lut_clk.c),
 };
 
 

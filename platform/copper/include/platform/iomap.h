@@ -144,4 +144,5 @@
                                          + (qup_id * 0x1000)) :\
                                          (PERIPH_SS_BASE + 0x00163000 + \
                                          (qup_id * 0x1000)))
+#define MSM_MMSS_CLK_CTL_BASE       0xFD8C0000
 #endif
