@@ -152,6 +152,11 @@ void target_init(void)
 
 	if (target_use_signed_kernel())
 		target_crypto_init_params();
+	/* Display splash screen if enabled */
+#if DISPLAY_SPLASH_SCREEN
+	display_init();
+	dprintf(SPEW, "Diplay initialized\n");
+#endif
 
 	/* Trying Slot 1*/
 	slot = 1;
@@ -242,4 +247,16 @@ void reboot_device(unsigned reboot_reason)
 	mdelay(5000);
 
 	dprintf(CRITICAL, "Rebooting failed\n");
+}
+
+/* Returns 1 if target supports continuous splash screen. */
+int target_cont_splash_screen()
+{
+	switch(board_platform_id())
+	{
+	case HW_PLATFORM_SURF:
+	case HW_PLATFORM_FFA:
+	default:
+		return 0;
+	}
 }
