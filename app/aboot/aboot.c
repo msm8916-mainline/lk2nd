@@ -2,7 +2,7 @@
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2013, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -334,18 +334,15 @@ unsigned *atag_cmdline(unsigned *ptr, const char *cmdline)
 {
 	int cmdline_length = 0;
 	int n;
-	unsigned char *cmdline_final = NULL;
 	char *dest;
 
-	cmdline_final = update_cmdline(cmdline);
-
-	cmdline_length =strlen((const char*)cmdline_final);
+	cmdline_length = strlen((const char*)cmdline);
 	n = (cmdline_length + 4) & (~3);
 
 	*ptr++ = (n / 4) + 2;
 	*ptr++ = 0x54410009;
 	dest = (char *) ptr;
-	while ((*dest++ = *cmdline_final++));
+	while ((*dest++ = *cmdline++));
 	ptr += (n / 4);
 
 	return ptr;
@@ -382,6 +379,7 @@ void boot_linux(void *kernel, unsigned *tags,
 		const char *cmdline, unsigned machtype,
 		void *ramdisk, unsigned ramdisk_size)
 {
+	unsigned char *final_cmdline;
 #if DEVICE_TREE
 	int ret = 0;
 #endif
@@ -391,11 +389,13 @@ void boot_linux(void *kernel, unsigned *tags,
 
 	ramdisk = PA(ramdisk);
 
+	final_cmdline = update_cmdline((const char*)cmdline);
+
 #if DEVICE_TREE
 	dprintf(INFO, "Updating device tree: start\n");
 
 	/* Update the Device Tree */
-	ret = update_device_tree((void *)tags, cmdline, ramdisk, ramdisk_size);
+	ret = update_device_tree((void *)tags, final_cmdline, ramdisk, ramdisk_size);
 	if(ret)
 	{
 		dprintf(CRITICAL, "ERROR: Updating Device Tree Failed \n");
@@ -405,7 +405,7 @@ void boot_linux(void *kernel, unsigned *tags,
 	dprintf(INFO, "Updating device tree: done\n");
 #else
 	/* Generating the Atags */
-	generate_atags(tags, cmdline, ramdisk, ramdisk_size);
+	generate_atags(tags, final_cmdline, ramdisk, ramdisk_size);
 #endif
 
 	dprintf(INFO, "booting linux @ %p, ramdisk @ %p (%d)\n",

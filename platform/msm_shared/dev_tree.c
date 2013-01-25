@@ -36,7 +36,6 @@
 #include <platform.h>
 #include <board.h>
 
-extern unsigned char *update_cmdline(const char * cmdline);
 extern int target_is_emmc_boot(void);
 extern uint32_t target_dev_tree_mem(void *fdt, uint32_t memory_node_offset);
 
@@ -369,7 +368,6 @@ int update_device_tree(void *fdt, const char *cmdline,
 {
 	int ret = 0;
 	uint32_t offset;
-	unsigned char *final_cmdline;
 
 	/* Check the device tree header */
 	ret = fdt_check_header(fdt);
@@ -411,8 +409,7 @@ int update_device_tree(void *fdt, const char *cmdline,
 
 	offset = ret;
 	/* Adding the cmdline to the chosen node */
-	final_cmdline = update_cmdline((const char*)cmdline);
-	ret = fdt_setprop_string(fdt, offset, (const char*)"bootargs", (const void*)final_cmdline);
+	ret = fdt_setprop_string(fdt, offset, (const char*)"bootargs", (const void*)cmdline);
 	if (ret)
 	{
 		dprintf(CRITICAL, "ERROR: Cannot update chosen node [bootargs]\n");
