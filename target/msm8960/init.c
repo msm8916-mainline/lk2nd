@@ -443,6 +443,8 @@ void target_baseband_detect(struct board_data *board)
 		baseband = BASEBAND_SGLTE;
 	else if (platform_subtype == HW_PLATFORM_SUBTYPE_DSDA)
 		baseband = BASEBAND_DSDA;
+	else if (platform_subtype == HW_PLATFORM_SUBTYPE_DSDA2)
+		baseband = BASEBAND_DSDA2;
 	else {
 		switch(platform) {
 		case APQ8060:
