@@ -59,7 +59,7 @@ ifeq ($(PLATFORM),msm8960)
 			$(LOCAL_DIR)/nand.o
 endif
 
-ifeq ($(PLATFORM),copper)
+ifeq ($(PLATFORM),msm8974)
 	OBJS += $(LOCAL_DIR)/qgic.o \
 			$(LOCAL_DIR)/qtimer.o \
 			$(LOCAL_DIR)/qtimer_mmap.o \

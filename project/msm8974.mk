@@ -2,7 +2,7 @@
 #
 LOCAL_DIR := $(GET_LOCAL_DIR)
 
-TARGET := copper
+TARGET := msm8974
 
 MODULES += app/aboot
 

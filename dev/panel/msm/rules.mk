@@ -21,7 +21,7 @@ OBJS += \
 	$(LOCAL_DIR)/lcdc_truly_hvga.o
 endif
 
-ifeq ($(PLATFORM),copper)
+ifeq ($(PLATFORM),msm8974)
 OBJS += \
 	$(LOCAL_DIR)/mipi_toshiba_video_720p.o
 endif
