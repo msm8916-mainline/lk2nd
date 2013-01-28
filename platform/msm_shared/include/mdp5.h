@@ -98,6 +98,7 @@
 #define MMSS_MDP_SMP_ALLOC_R_0                  REG_MDP(0x0230)
 #define MMSS_MDP_SMP_ALLOC_R_1                  REG_MDP(0x0234)
 
+#define VBIF_VBIF_DDR_FORCE_CLK_ON              REG_MDP(0x24004)
 #define VBIF_VBIF_DDR_OUT_MAX_BURST             REG_MDP(0x240D8)
 
 void mdp_set_revision(int rev);
