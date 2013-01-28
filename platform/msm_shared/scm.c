@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -180,6 +180,27 @@ scm_call(uint32_t svc_id, uint32_t cmd_id, const void *cmd_buf,
  out:
 	free_scm_command(cmd);
 	return ret;
+}
+
+int restore_secure_cfg(uint32_t id)
+{
+	int ret, scm_ret = 0;
+	tz_secure_cfg secure_cfg;
+
+	secure_cfg.id    = 1;
+	secure_cfg.spare = 0;
+
+	ret = scm_call(SCM_SVC_SSD, IOMMU_SECURE_CFG, &secure_cfg, sizeof(secure_cfg),
+			&scm_ret, sizeof(scm_ret));
+
+	if (ret || scm_ret) {
+		dprintf(CRITICAL, "Secure Config failed\n");
+		ret = 1;
+	} else
+		ret = 0;
+
+	return ret;
+
 }
 
 /* SCM Encrypt Command */
