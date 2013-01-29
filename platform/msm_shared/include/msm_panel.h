@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -9,7 +9,7 @@
  *       copyright notice, this list of conditions and the following
  *       disclaimer in the documentation and/or other materials provided
  *       with the distribution.
- *     * Neither the name of Code Aurora Forum, Inc. nor the names of its
+ *     * Neither the name of The Linux Foundation nor the names of its
  *       contributors may be used to endorse or promote products derived
  *       from this software without specific prior written permission.
  *
@@ -113,6 +113,7 @@ struct mipi_panel_info {
 	char t_clk_pre;  /* 0xc0, DSI_CLKOUT_TIMING_CTRL */
 	char vc;	/* virtual channel */
 	struct mipi_dsi_phy_ctrl *dsi_phy_db;
+	struct mdss_dsi_phy_ctrl *mdss_dsi_phy_db;
 	struct mipi_dsi_cmd *panel_cmds;
 	int num_of_panel_cmds;
 	/* video mode */

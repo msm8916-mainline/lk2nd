@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010-2013, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -9,7 +9,7 @@
  *       copyright notice, this list of conditions and the following
  *       disclaimer in the documentation and/or other materials provided
  *       with the distribution.
- *     * Neither the name of Code Aurora Forum, Inc. nor the names of its
+ *     * Neither the name of The Linux Foundation nor the names of its
  *       contributors may be used to endorse or promote products derived
  *       from this software without specific prior written permission.
  *
@@ -256,15 +256,15 @@ static uint32_t mipi_novatek_manufacture_id(void)
 
 int mipi_dsi_panel_initialize(struct mipi_dsi_panel_config *pinfo)
 {
-	unsigned char DMA_STREAM1 = 0;	// for mdp display processor path
-	unsigned char EMBED_MODE1 = 1;	// from frame buffer
-	unsigned char POWER_MODE2 = 1;	// from frame buffer
-	unsigned char PACK_TYPE1 = 1;	// long packet
-	unsigned char VC1 = 0;
-	unsigned char DT1 = 0;	// non embedded mode
-	unsigned short WC1 = 0;	// for non embedded mode only
+	uint8_t DMA_STREAM1 = 0;	// for mdp display processor path
+	uint8_t EMBED_MODE1 = 1;	// from frame buffer
+	uint8_t POWER_MODE2 = 1;	// from frame buffer
+	uint8_t PACK_TYPE1;		// long packet
+	uint8_t VC1 = 0;
+	uint8_t DT1 = 0;	// non embedded mode
+	uint8_t WC1 = 0;	// for non embedded mode only
 	int status = 0;
-	unsigned char DLNx_EN;
+	uint8_t DLNx_EN;
 
 	switch (pinfo->num_of_lanes) {
 	default:
@@ -281,6 +281,8 @@ int mipi_dsi_panel_initialize(struct mipi_dsi_panel_config *pinfo)
 		DLNx_EN = 0x0F;	/* 4 lanes */
 		break;
 	}
+
+	PACK_TYPE1 = pinfo->pack;
 
 	writel(0x0001, DSI_SOFT_RESET);
 	writel(0x0000, DSI_SOFT_RESET);
@@ -352,14 +354,16 @@ config_dsi_video_mode(unsigned short disp_width, unsigned short disp_height,
 
 	writel(0x02020202, DSI_INT_CTRL);
 
-	writel(((img_width + hsync_porch0_bp) << 16) | hsync_porch0_bp,
+	writel(((hsync_width + img_width + hsync_porch0_bp) << 16)
+	       | (hsync_width + hsync_porch0_bp),
 	       DSI_VIDEO_MODE_ACTIVE_H);
 
-	writel(((img_height + vsync_porch0_bp) << 16) | (vsync_porch0_bp),
+	writel(((vsync_width + img_height + vsync_porch0_bp) << 16)
+	       | (vsync_width + vsync_porch0_bp),
 	       DSI_VIDEO_MODE_ACTIVE_V);
 
-	writel(((img_height + vsync_porch0_fp + vsync_porch0_bp) << 16)
-	       | img_width + hsync_porch0_fp + hsync_porch0_bp,
+	writel(((vsync_width + img_height + vsync_porch0_fp + vsync_porch0_bp - 1) << 16)
+	       | (hsync_width + img_width + hsync_porch0_fp + hsync_porch0_bp - 1),
 	       DSI_VIDEO_MODE_TOTAL);
 
 	writel((hsync_width << 16) | 0, DSI_VIDEO_MODE_HSYNC);
@@ -588,7 +592,7 @@ struct fbcon_config *mipi_init(void)
 	}
 
 	/* Enable MMSS_AHB_ARB_MATER_PORT_E for arbiter master0 and master 1 request */
-#if (!DISPLAY_MIPI_PANEL_RENESAS)
+#if (!DISPLAY_MIPI_PANEL_RENESAS && !DISPLAY_TYPE_DSI6G)
 	writel(0x00001800, MMSS_SFPB_GPREG);
 #endif
 
@@ -631,14 +635,43 @@ int mipi_config(struct msm_fb_panel_data *panel)
 	mipi_pinfo.panel_cmds = pinfo->mipi.panel_cmds;
 	mipi_pinfo.num_of_panel_cmds = pinfo->mipi.num_of_panel_cmds;
 	mipi_pinfo.lane_swap = pinfo->mipi.lane_swap;
+	mipi_pinfo.pack = 1;
 
 	/* Enable MMSS_AHB_ARB_MATER_PORT_E for
 	   arbiter master0 and master 1 request */
-#if (!DISPLAY_MIPI_PANEL_RENESAS)
+#if (!DISPLAY_MIPI_PANEL_RENESAS && !DISPLAY_TYPE_DSI6G)
 	writel(0x00001800, MMSS_SFPB_GPREG);
 #endif
 
 	mipi_dsi_phy_init(&mipi_pinfo);
+
+	ret += mipi_dsi_panel_initialize(&mipi_pinfo);
+
+	if (pinfo->rotate && panel->rotate)
+		pinfo->rotate();
+
+	return ret;
+}
+
+int mdss_dsi_config(struct msm_fb_panel_data *panel)
+{
+	int ret = NO_ERROR;
+	struct msm_panel_info *pinfo;
+	struct mipi_dsi_panel_config mipi_pinfo;
+
+	if (!panel)
+		return ERR_INVALID_ARGS;
+
+	pinfo = &(panel->panel_info);
+	mipi_pinfo.mode = pinfo->mipi.mode;
+	mipi_pinfo.num_of_lanes = pinfo->mipi.num_of_lanes;
+	mipi_pinfo.mdss_dsi_phy_config = pinfo->mipi.mdss_dsi_phy_db;
+	mipi_pinfo.panel_cmds = pinfo->mipi.panel_cmds;
+	mipi_pinfo.num_of_panel_cmds = pinfo->mipi.num_of_panel_cmds;
+	mipi_pinfo.lane_swap = pinfo->mipi.lane_swap;
+	mipi_pinfo.pack = 0;
+
+	mdss_dsi_phy_init(&mipi_pinfo);
 
 	ret += mipi_dsi_panel_initialize(&mipi_pinfo);
 
@@ -835,8 +868,13 @@ int mipi_dsi_off()
 	if(!target_cont_splash_screen())
 	{
 		writel(0, DSI_CLK_CTRL);
+		writel(0x1F1, DSI_CTRL);
+		writel(0x00000001, DSIPHY_SW_RESET);
+		writel(0x00000000, DSIPHY_SW_RESET);
+		mdelay(10);
+		writel(0x0001, DSI_SOFT_RESET);
+		writel(0x0000, DSI_SOFT_RESET);
 		writel(0, DSI_CTRL);
-		writel(0, DSIPHY_PLL_CTRL(0));
 	}
 
 	return NO_ERROR;
