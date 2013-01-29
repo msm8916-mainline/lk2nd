@@ -61,6 +61,7 @@ enum msm_mdp_hw_revision {
 	MDP_REV_42,
 	MDP_REV_43,
 	MDP_REV_44,
+	MDP_REV_50,
 };
 
 /* panel info type */
