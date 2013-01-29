@@ -330,3 +330,99 @@ void clock_config_blsp_i2c(uint8_t blsp_id, uint8_t qup_id)
 		return;
 	}
 }
+
+void mdp_gdsc_ctrl(uint8_t enable)
+{
+	uint32_t reg = 0;
+	reg = readl(MDP_GDSCR);
+	if (enable) {
+		if (reg & 0x1)
+			writel((reg & ~0x1), MDP_GDSCR);
+
+		while(readl(MDP_GDSCR) & ((GDSC_POWER_ON_BIT) | (GDSC_POWER_ON_STATUS_BIT)));
+	} else
+		ASSERT(1);
+}
+
+/* Configure MDP clock */
+void mdp_clock_init(void)
+{
+	int ret;
+
+	/* Set MDP clock to 200MHz */
+	ret = clk_get_set_enable("mdp_ahb_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mdp_ahb_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("mdss_mdp_clk_src", 75000000, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mdp_clk_src ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("mdss_mdp_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mdp_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("mdss_mdp_lut_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set lut_mdp clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+}
+
+/* Initialize all clocks needed by Display */
+void mmss_clock_init(void)
+{
+	int ret;
+
+	/* Configure Byte clock */
+	writel(0x100, DSI_BYTE0_CFG_RCGR);
+	writel(0x1, DSI_BYTE0_CMD_RCGR);
+	writel(0x1, DSI_BYTE0_CBCR);
+
+	/* Configure ESC clock */
+	ret = clk_get_set_enable("mdss_esc0_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set esc0_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	/* Configure MMSSNOC AXI clock */
+	ret = clk_get_set_enable("mmss_mmssnoc_axi_clk", 100000000, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mmssnoc_axi_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	/* Configure MMSSNOC AXI clock */
+	ret = clk_get_set_enable("mmss_s0_axi_clk", 100000000, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mmss_s0_axi_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	/* Configure AXI clock */
+	ret = clk_get_set_enable("mdss_axi_clk", 100000000, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mdss_axi_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	/* Configure Pixel clock */
+	writel(0x102, DSI_PIXEL0_CFG_RCGR);
+	writel(0x1, DSI_PIXEL0_CMD_RCGR);
+	writel(0x1, DSI_PIXEL0_CBCR);
+}

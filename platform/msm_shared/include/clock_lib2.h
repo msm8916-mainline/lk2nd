@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2012-2013, Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -8,7 +8,7 @@
  *   * Redistributions in binary form must reproduce the above copyright
  *     notice, this list of conditions and the following disclaimer in the
  *     documentation and/or other materials provided with the distribution.
- *   * Neither the name of Code Aurora nor
+ *   * Neither the name of Linux Foundation nor
  *     the names of its contributors may be used to endorse or promote
  *     products derived from this software without specific prior written
  *     permission.
@@ -58,6 +58,17 @@
                               | BVAL(10, 8, s##_source_val), \
         }
 
+/* F_MM(frequency, source, div, m, n) */
+#define F_MM(f, s, div, m, n) \
+	{ \
+		.freq_hz = (f), \
+		.src_clk = &s##_clk_src.c, \
+		.m_val = (m), \
+		.n_val = ~((n)-(m)) * !!(n), \
+		.d_val = ~(n),\
+		.div_src_val = BVAL(4, 0, (int)(2*(div) - 1)) \
+			| BVAL(10, 8, s##_mm_source_val), \
+	}
 
 /* Branch Clock Bits */
 #define CBCR_BRANCH_ENABLE_BIT  BIT(0)
