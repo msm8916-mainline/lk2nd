@@ -39,6 +39,9 @@
 #include <err.h>
 #include <clock.h>
 #include <mdp5.h>
+#include <scm.h>
+
+int restore_secure_cfg(uint32_t id);
 
 static int mdp_rev;
 
@@ -73,6 +76,7 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 	uint32_t display_hctl, active_hctl, hsync_ctl, display_vstart, display_vend;
 	struct lcdc_panel_info *lcdc = NULL;
 	unsigned mdp_rgb_size;
+	int access_secure = 0;
 
 	if (pinfo == NULL)
 		return ERR_INVALID_ARGS;
@@ -111,7 +115,16 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 	/* Underrun(Interface 0/1/2/3) VSYNC Interrupt Enable  */
 	writel(0xFF777713, MDP_INTR_EN);
 
+	access_secure = restore_secure_cfg(SECURE_DEVICE_MDSS);
+
 	mdp_clk_gating_ctrl();
+
+	if (!access_secure) {
+		/* Force VBIF Clocks on  */
+		writel(0x1, VBIF_VBIF_DDR_FORCE_CLK_ON);
+		/* Configure DDR burst length */
+		writel(0x00000707, VBIF_VBIF_DDR_OUT_MAX_BURST);
+	}
 
 	/* Allocate SMP blocks */
 	writel(0x00101010, MMSS_MDP_SMP_ALLOC_W_0);
