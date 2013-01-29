@@ -144,5 +144,13 @@
                                          + (qup_id * 0x1000)) :\
                                          (PERIPH_SS_BASE + 0x00163000 + \
                                          (qup_id * 0x1000)))
+
 #define MSM_MMSS_CLK_CTL_BASE       0xFD8C0000
+
+#define MIPI_DSI_BASE               (0xFD922800)
+#define REG_DSI(off)                (MIPI_DSI_BASE + 0x04 + (off))
+
+#define MDP_BASE                    (0xfd900000)
+#define REG_MDP(off)                (MDP_BASE + (off))
+
 #endif
