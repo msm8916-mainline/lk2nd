@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -39,6 +39,9 @@
 
 #define MSM_SHARED_IMEM_BASE      0xFC42B000
 #define RESTART_REASON_ADDR       (MSM_SHARED_IMEM_BASE + 0x65C)
+
+#define MSM_SHARED_IMEM_BASE_V2   0xFE805000
+#define RESTART_REASON_ADDR_V2    (MSM_SHARED_IMEM_BASE_V2 + 0x65C)
 
 #define ELAN_A5SS_BASE            0xF9000000
 
