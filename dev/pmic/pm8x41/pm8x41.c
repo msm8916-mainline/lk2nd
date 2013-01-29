@@ -95,9 +95,6 @@ int pm8x41_gpio_config(uint8_t gpio, struct pm8x41_gpio *config)
 	uint8_t  val;
 	uint32_t gpio_base = GPIO_N_PERIPHERAL_BASE(gpio);
 
-	/* Only input configuration is implemented at this time. */
-	ASSERT(config->direction == PM_GPIO_DIR_IN);
-
 	/* Disable the GPIO */
 	val  = REG_READ(gpio_base + GPIO_EN_CTL);
 	val &= ~BIT(PERPH_EN_BIT);
@@ -115,12 +112,18 @@ int pm8x41_gpio_config(uint8_t gpio, struct pm8x41_gpio *config)
 	val = config->vin_sel;
 	REG_WRITE(gpio_base + GPIO_DIG_VIN_CTL, val);
 
+	if (config->direction == PM_GPIO_DIR_OUT) {
+		/* Set the right dig out control */
+		val = config->out_strength | (config->output_buffer << 4);
+		REG_WRITE(gpio_base + GPIO_DIG_OUT_CTL, val);
+	}
+
 	/* Enable the GPIO */
 	val  = REG_READ(gpio_base + GPIO_EN_CTL);
 	val |= BIT(PERPH_EN_BIT);
 	REG_WRITE(gpio_base + GPIO_EN_CTL, val);
 
-	return 1;
+	return 0;
 }
 
 /* Reads the status of requested gpio */
@@ -135,7 +138,21 @@ int pm8x41_gpio_get(uint8_t gpio, uint8_t *status)
 
 	dprintf(SPEW, "GPIO %d status is %d\n", gpio, *status);
 
-	return 1;
+	return 0;
+}
+
+/* Write the output value of the requested gpio */
+int pm8x41_gpio_set(uint8_t gpio, uint8_t value)
+{
+	uint32_t gpio_base = GPIO_N_PERIPHERAL_BASE(gpio);
+	uint8_t val;
+
+	/* Set the output value of the gpio */
+	val = REG_READ(gpio_base + GPIO_MODE_CTL);
+	val = (val & ~PM_GPIO_OUTPUT_MASK) | value;
+	REG_WRITE(gpio_base + GPIO_MODE_CTL, val);
+
+	return 0;
 }
 
 /* Prepare PON RESIN S2 reset */

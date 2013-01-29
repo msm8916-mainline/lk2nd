@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -43,6 +43,22 @@
 #define PM_GPIO_PULL_RESV_1     4
 #define PM_GPIO_PULL_RESV_2     5
 
+
+#define PM_GPIO_OUT_CMOS        0x00
+#define PM_GPIO_OUT_DRAIN_NMOS  0x01
+#define PM_GPIO_OUT_DRAIN_PMOS  0x02
+
+#define PM_GPIO_OUT_DRIVE_LOW   0x01
+#define PM_GPIO_OUT_DRIVE_MED   0x02
+#define PM_GPIO_OUT_DRIVE_HIGH  0x03
+
+
+#define PM_GPIO_FUNC_LOW        0x00
+#define PM_GPIO_FUNC_HIGH       0x01
+
+#define PM_GPIO_MODE_MASK       0x70
+#define PM_GPIO_OUTPUT_MASK     0x0F
+
 #define PON_PSHOLD_WARM_RESET   0x1
 
 struct pm8x41_gpio {
@@ -58,6 +74,7 @@ struct pm8x41_gpio {
 };
 
 int pm8x41_gpio_get(uint8_t gpio, uint8_t *status);
+int pm8x41_gpio_set(uint8_t gpio, uint8_t value);
 int pm8x41_gpio_config(uint8_t gpio, struct pm8x41_gpio *config);
 void pm8x41_set_boot_done();
 int pm8x41_vol_down_key_status();
