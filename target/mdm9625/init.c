@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -143,8 +143,13 @@ void target_init(void)
 /* reboot */
 void reboot_device(unsigned reboot_reason)
 {
+	uint32_t version = board_soc_version();
+
 	/* Write the reboot reason */
-	writel(reboot_reason, RESTART_REASON_ADDR);
+	if(version >= 0x20000)
+		writel(reboot_reason, RESTART_REASON_ADDR_V2);
+	else
+		writel(reboot_reason, RESTART_REASON_ADDR);
 
 	/* Configure PMIC for warm reset */
 	pm8x41_reset_configure(PON_PSHOLD_WARM_RESET);
@@ -189,10 +194,17 @@ void target_baseband_detect(struct board_data *board)
 unsigned check_reboot_mode(void)
 {
 	unsigned restart_reason = 0;
+	uint32_t version = board_soc_version();
 
 	/* Read reboot reason and scrub it */
-	restart_reason = readl(RESTART_REASON_ADDR);
-	writel(0x00, RESTART_REASON_ADDR);
+	if(version >= 0x20000) {
+		restart_reason = readl(RESTART_REASON_ADDR_V2);
+		writel(0x00, RESTART_REASON_ADDR_V2);
+	}
+	else {
+		restart_reason = readl(RESTART_REASON_ADDR);
+		writel(0x00, RESTART_REASON_ADDR);
+	}
 
 	return restart_reason;
 }
