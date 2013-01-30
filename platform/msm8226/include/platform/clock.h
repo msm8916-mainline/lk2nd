@@ -26,36 +26,20 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __IRQS_MSM8x26_H
-#define __IRQS_MSM8x26_H
+#ifndef __MSM8226_CLOCK_H
+#define __MSM8226_CLOCK_H
 
-/* MSM ACPU Interrupt Numbers */
+#include <clock.h>
+#include <clock_lib2.h>
 
-/* 0-15:  STI/SGI (software triggered/generated interrupts)
- * 16-31: PPI (private peripheral interrupts)
- * 32+:   SPI (shared peripheral interrupts)
- */
+#define UART_DM_CLK_RX_TX_BIT_RATE 0xCC
 
-#define GIC_PPI_START                          16
-#define GIC_SPI_START                          32
+void platform_clock_init(void);
 
-#define INT_QTMR_NON_SECURE_PHY_TIMER_EXP      (GIC_PPI_START + 3)
-#define INT_QTMR_VIRTUAL_TIMER_EXP             (GIC_PPI_START + 4)
+void clock_init_mmc(uint32_t interface);
+void clock_config_mmc(uint32_t interface, uint32_t freq);
+void clock_config_uart_dm(uint8_t id);
+void hsusb_clock_init(void);
+void clock_config_ce(uint8_t instance);
 
-#define INT_QTMR_FRM_0_PHYSICAL_TIMER_EXP      (GIC_SPI_START + 8)
-
-#define USB1_HS_BAM_IRQ                        (GIC_SPI_START + 135)
-#define USB1_HS_IRQ                            (GIC_SPI_START + 134)
-
-/* Retrofit universal macro names */
-#define INT_USB_HS                             USB1_HS_IRQ
-
-#define EE0_KRAIT_HLOS_SPMI_PERIPH_IRQ         (GIC_SPI_START + 190)
-
-#define NR_MSM_IRQS                            256
-#define NR_GPIO_IRQS                           173
-#define NR_BOARD_IRQS                          0
-
-#define NR_IRQS                                (NR_MSM_IRQS + NR_GPIO_IRQS + \
-                                               NR_BOARD_IRQS)
-#endif	/* __IRQS_MSM8x26_H */
+#endif

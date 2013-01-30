@@ -1,8 +1,8 @@
-# top level project rules for the msm8x26 project
+# top level project rules for the msm8226 project
 #
 LOCAL_DIR := $(GET_LOCAL_DIR)
 
-TARGET := msm8x26
+TARGET := msm8226
 
 MODULES += app/aboot
 

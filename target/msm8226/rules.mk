@@ -2,7 +2,7 @@ LOCAL_DIR := $(GET_LOCAL_DIR)
 
 INCLUDES += -I$(LOCAL_DIR)/include -I$(LK_TOP_DIR)/platform/msm_shared
 
-PLATFORM := msm8x26
+PLATFORM := msm8226
 
 MEMBASE := 0x0FF00000 # SDRAM
 MEMSIZE := 0x00100000 # 1MB

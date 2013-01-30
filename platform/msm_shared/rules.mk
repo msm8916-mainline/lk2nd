@@ -86,7 +86,7 @@ ifeq ($(PLATFORM),copper)
 			$(LOCAL_DIR)/i2c_qup.o
 endif
 
-ifeq ($(PLATFORM),msm8x26)
+ifeq ($(PLATFORM),msm8226)
 	OBJS += $(LOCAL_DIR)/qgic.o \
 			$(LOCAL_DIR)/qtimer.o \
 			$(LOCAL_DIR)/qtimer_mmap.o \
