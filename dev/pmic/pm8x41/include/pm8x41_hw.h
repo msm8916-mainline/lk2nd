@@ -69,6 +69,7 @@
 #define PON_PS_HOLD_RESET_CTL                 0x85A  /* bit 7: S2_RESET_EN, bit 0:3 : RESET_TYPE  */
 
 /* PON Peripheral register bit values */
+#define RESIN_ON_INT_BIT                      1
 #define RESIN_BARK_INT_BIT                    4
 #define S2_RESET_EN_BIT                       7
 
