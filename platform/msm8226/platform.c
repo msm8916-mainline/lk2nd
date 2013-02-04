@@ -29,11 +29,13 @@
 #include <debug.h>
 #include <reg.h>
 #include <platform/iomap.h>
+#include <platform/clock.h>
 #include <qgic.h>
 #include <qtimer.h>
 
 void platform_early_init(void)
 {
+	platform_clock_init();
 	qgic_init();
 	qtimer_init();
 }
