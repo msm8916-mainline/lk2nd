@@ -88,15 +88,8 @@
 #define MPM2_MPM_CTRL_BASE          0xFC4A1000
 #define MPM2_MPM_PS_HOLD            0xFC4AB000
 
-/* CE 2 */
-#define  GCC_CE2_BCR                (CLK_CTL_BASE + 0x1080)
-#define  GCC_CE2_CMD_RCGR           (CLK_CTL_BASE + 0x1090)
-#define  GCC_CE2_CFG_RCGR           (CLK_CTL_BASE + 0x1094)
-#define  GCC_CE2_CBCR               (CLK_CTL_BASE + 0x1084)
-#define  GCC_CE2_AXI_CBCR           (CLK_CTL_BASE + 0x1088)
-#define  GCC_CE2_AHB_CBCR           (CLK_CTL_BASE + 0x108C)
-
 /* GPLL */
+#define GPLL0_MODE                  CLK_CTL_BASE
 #define GPLL0_STATUS                (CLK_CTL_BASE + 0x001C)
 #define APCS_GPLL_ENA_VOTE          (CLK_CTL_BASE + 0x1480)
 #define APCS_CLOCK_BRANCH_ENA_VOTE  (CLK_CTL_BASE + 0x1484)
@@ -114,12 +107,12 @@
 
 /* UART */
 #define BLSP1_AHB_CBCR              (CLK_CTL_BASE + 0x5C4)
-#define BLSP1_UART2_APPS_CBCR       (CLK_CTL_BASE + 0x704)
-#define BLSP1_UART2_APPS_CMD_RCGR   (CLK_CTL_BASE + 0x70C)
-#define BLSP1_UART2_APPS_CFG_RCGR   (CLK_CTL_BASE + 0x710)
-#define BLSP1_UART2_APPS_M          (CLK_CTL_BASE + 0x714)
-#define BLSP1_UART2_APPS_N          (CLK_CTL_BASE + 0x718)
-#define BLSP1_UART2_APPS_D          (CLK_CTL_BASE + 0x71C)
+#define BLSP1_UART3_APPS_CBCR       (CLK_CTL_BASE + 0x784)
+#define BLSP1_UART3_APPS_CMD_RCGR   (CLK_CTL_BASE + 0x78C)
+#define BLSP1_UART3_APPS_CFG_RCGR   (CLK_CTL_BASE + 0x790)
+#define BLSP1_UART3_APPS_M          (CLK_CTL_BASE + 0x794)
+#define BLSP1_UART3_APPS_N          (CLK_CTL_BASE + 0x798)
+#define BLSP1_UART3_APPS_D          (CLK_CTL_BASE + 0x79C)
 
 /* USB */
 #define USB_HS_SYSTEM_CBCR          (CLK_CTL_BASE + 0x484)
