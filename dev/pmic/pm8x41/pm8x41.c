@@ -155,8 +155,8 @@ int pm8x41_gpio_set(uint8_t gpio, uint8_t value)
 	return 0;
 }
 
-/* Prepare PON RESIN S2 reset */
-void pm8x41_vol_down_key_prepare()
+/* Prepare PON RESIN S2 reset (bite) */
+void pm8x41_resin_s2_reset_enable()
 {
 	uint8_t val;
 
@@ -182,8 +182,8 @@ void pm8x41_vol_down_key_prepare()
 	REG_WRITE(PON_RESIN_N_RESET_S2_CTL, val);
 }
 
-/* Volume_Down key detect cleanup */
-void pm8x41_vol_down_key_done()
+/* Disable PON RESIN S2 reset. (bite)*/
+void pm8x41_resin_s2_reset_disable()
 {
 	/* disable s2 reset */
 	REG_WRITE(PON_RESIN_N_RESET_S2_CTL, 0x0);
@@ -192,13 +192,13 @@ void pm8x41_vol_down_key_done()
 	udelay(300);
 }
 
-/* Volume_Down key status */
-int pm8x41_vol_down_key_status()
+/* Resin irq status for faulty pmic*/
+uint32_t pm8x41_resin_bark_workaround_status()
 {
 	uint8_t rt_sts = 0;
 
 	/* Enable S2 reset so we can detect the volume down key press */
-	pm8x41_vol_down_key_prepare();
+	pm8x41_resin_s2_reset_enable();
 
 	/* Delay before interrupt triggering.
 	 * See PON_DEBOUNCE_CTL reg.
@@ -210,9 +210,19 @@ int pm8x41_vol_down_key_status()
 	/* Must disable S2 reset otherwise PMIC will reset if key
 	 * is held longer than S2 timer.
 	 */
-	pm8x41_vol_down_key_done();
+	pm8x41_resin_s2_reset_disable();
 
 	return (rt_sts & BIT(RESIN_BARK_INT_BIT));
+}
+
+/* Resin pin status */
+uint32_t pm8x41_resin_status()
+{
+	uint8_t rt_sts = 0;
+
+	rt_sts = REG_READ(PON_INT_RT_STS);
+
+	return (rt_sts & BIT(RESIN_ON_INT_BIT));
 }
 
 void pm8x41_reset_configure(uint8_t reset_type)
