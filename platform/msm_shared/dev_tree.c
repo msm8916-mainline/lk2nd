@@ -171,6 +171,8 @@ static int dev_tree_add_ptable_nodes(void *fdt, uint32_t parent_offset)
 	/* Get block size. */
 	blk_size = flash_block_size();
 
+	dprintf(INFO, "Add %d flash partitions to dt: start\n", ptable->count);
+
 	/* Need to add partitions in reverse order since libfdt adds
 	 * new nodes on the top.
 	 * Kernel looks to mount the partitions in the order specified in
@@ -245,6 +247,7 @@ static int dev_tree_add_ptable_nodes(void *fdt, uint32_t parent_offset)
 	}
 
 dev_tree_add_ptable_nodes_err:
+	dprintf(INFO, "Add %d flash partitions to dt: done\n", ptable->count);
 	free(ptn_name_array);
 	return dt_ret;
 }
