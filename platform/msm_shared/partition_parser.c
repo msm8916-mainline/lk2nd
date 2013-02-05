@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -9,7 +9,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of Code Aurora Forum, Inc. nor the names of its
+ *   * Neither the name of The Linux Foundation. nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -255,7 +255,7 @@ mmc_boot_read_gpt(struct mmc_boot_host *mmc_host,
 	}
 	partition_0 = GET_LLWORD_FROM_BYTE(&data[PARTITION_ENTRIES_OFFSET]);
 	/* Read GPT Entries */
-	for (i = 0; i < (max_partition_count / 4); i++) {
+	for (i = 0; i < ROUNDUP(max_partition_count, 4); i++) {
 		ASSERT(partition_count < NUM_PARTITIONS);
 		ret = mmc_boot_read_from_card(mmc_host, mmc_card,
 					      (partition_0 * BLOCK_SIZE) +
@@ -276,7 +276,7 @@ mmc_boot_read_gpt(struct mmc_boot_host *mmc_host,
 			    0x00
 			    && partition_entries[partition_count].
 			    type_guid[1] == 0x00) {
-				i = max_partition_count;
+				i = ROUNDUP(max_partition_count, 4);
 				break;
 			}
 			memcpy(&
