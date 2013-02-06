@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
- * Copyright (c) 2009-2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2013, The Linux Foundation. All rights reserved.
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -1553,7 +1553,7 @@ flash_read_ext(struct ptentry *ptn,
 	{
 		if (count == 0)
 		{
-			dprintf(INFO, "flash_read_image: success (%d errors)\n",
+			dprintf(SPEW, "flash_read_image: success (%d errors)\n",
 					errors);
 			return NANDC_RESULT_SUCCESS;
 		}
