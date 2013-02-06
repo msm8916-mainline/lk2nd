@@ -155,8 +155,9 @@ void target_init(void)
 		target_crypto_init_params();
 	/* Display splash screen if enabled */
 #if DISPLAY_SPLASH_SCREEN
+	dprintf(INFO, "Display Init: Start\n");
 	display_init();
-	dprintf(SPEW, "Diplay initialized\n");
+	dprintf(INFO, "Display Init: Done\n");
 #endif
 
 	/* Trying Slot 1*/
