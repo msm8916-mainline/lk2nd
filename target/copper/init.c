@@ -98,7 +98,10 @@ static int target_volume_up()
 uint32_t target_volume_down()
 {
 	/* Volume down button is tied in with RESIN on MSM8974. */
-	return pm8x41_resin_bark_workaround_status();
+	if (pm8x41_get_pmic_rev() == PMIC_VERSION_V2)
+		return pm8x41_resin_bark_workaround_status();
+	else
+		return pm8x41_resin_status();
 }
 
 static void target_keystatus()
