@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -46,10 +46,10 @@ extern struct smem_ram_ptable* target_smem_ram_ptable_init();
 #define MSM_IOMAP_SIZE                      ((MSM_IOMAP_END - MSM_IOMAP_BASE)/MB)
 
 /* LK memory - Strongly ordered, executable */
-#define LK_MEMORY                             (MMU_MEMORY_TYPE_STRONGLY_ORDERED | \
+#define LK_MEMORY                             (MMU_MEMORY_TYPE_NORMAL | \
                                               MMU_MEMORY_AP_READ_WRITE)
 /* Scratch memory - Strongly ordered, non-executable */
-#define SCRATCH_MEMORY                        (MMU_MEMORY_TYPE_STRONGLY_ORDERED | \
+#define SCRATCH_MEMORY                        (MMU_MEMORY_TYPE_NORMAL | \
                                               MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
 /* Peripherals - shared device */
 #define IOMAP_MEMORY                          (MMU_MEMORY_TYPE_DEVICE_SHARED | \
