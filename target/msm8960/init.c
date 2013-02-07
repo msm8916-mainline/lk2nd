@@ -308,6 +308,7 @@ void target_uart_init(void)
 	case LINUX_MACHTYPE_8064_MPQ_CDP:
 	case LINUX_MACHTYPE_8064_MPQ_HRD:
 	case LINUX_MACHTYPE_8064_MPQ_DTV:
+	case LINUX_MACHTYPE_8064_MPQ_DMA:
 		uart_dm_init(5, 0x1A200000, 0x1A240000);
 		break;
 
@@ -396,6 +397,9 @@ void target_detect(struct board_data *board)
 			break;
 		case HW_PLATFORM_DTV:
 			target_id = LINUX_MACHTYPE_8064_MPQ_DTV;
+			break;
+		case HW_PLATFORM_DMA:
+			target_id = LINUX_MACHTYPE_8064_MPQ_DMA;
 			break;
 		default:
 			target_id = LINUX_MACHTYPE_8064_MPQ_CDP;
