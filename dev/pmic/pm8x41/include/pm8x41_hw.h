@@ -35,6 +35,7 @@
 /* SMBB bit values */
 #define BOOT_DONE_BIT                         7
 
+#define REVID_REVISION4                       0x103
 
 /* GPIO Registers */
 #define GPIO_PERIPHERAL_BASE                  0xC000

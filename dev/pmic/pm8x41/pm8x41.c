@@ -344,3 +344,9 @@ int pm8x41_ldo_control(const char *name, uint8_t enable)
 
 	return 0;
 }
+
+uint8_t pm8x41_get_pmic_rev()
+{
+	return REG_READ(REVID_REVISION4);
+}
+
