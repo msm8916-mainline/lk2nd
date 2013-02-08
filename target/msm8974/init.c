@@ -219,18 +219,34 @@ void target_serialno(unsigned char *buf)
 unsigned check_reboot_mode(void)
 {
 	uint32_t restart_reason = 0;
+	uint32_t soc_ver = 0;
+	uint32_t restart_reason_addr;
+
+	soc_ver = board_soc_version();
+
+	if (soc_ver >= BOARD_SOC_VERSION2)
+		restart_reason_addr = RESTART_REASON_ADDR_V2;
+	else
+		restart_reason_addr = RESTART_REASON_ADDR;
 
 	/* Read reboot reason and scrub it */
-	restart_reason = readl(RESTART_REASON_ADDR);
-	writel(0x00, RESTART_REASON_ADDR);
+	restart_reason = readl(restart_reason_addr);
+	writel(0x00, restart_reason_addr);
 
 	return restart_reason;
 }
 
 void reboot_device(unsigned reboot_reason)
 {
+	uint32_t soc_ver = 0;
+
+	soc_ver = board_soc_version();
+
 	/* Write the reboot reason */
-	writel(reboot_reason, RESTART_REASON_ADDR);
+	if (soc_ver >= BOARD_SOC_VERSION2)
+		writel(reboot_reason, RESTART_REASON_ADDR_V2);
+	else
+		writel(reboot_reason, RESTART_REASON_ADDR);
 
 	/* Configure PMIC for warm reset */
 	pm8x41_reset_configure(PON_PSHOLD_WARM_RESET);
