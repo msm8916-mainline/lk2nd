@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
- * Copyright (c) 2009-2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2013, The Linux Foundation. All rights reserved.
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -504,6 +504,9 @@ qpic_nand_save_config(struct flash_info *flash)
 
 	/* Save Configurations */
 	flash->cws_per_page = flash->page_size >> NAND_CW_DIV_RIGHT_SHIFT;
+
+	/* Verify that we have enough buffer to handle all the cws in a page. */
+	ASSERT(flash->cws_per_page <= QPIC_NAND_MAX_CWS_IN_PAGE);
 
 	/* Codeword Size = UD_SIZE_BYTES + ECC_PARITY_SIZE_BYTES
 	 *                          + SPARE_SIZE_BYTES + Bad Block size
@@ -1108,7 +1111,7 @@ qpic_nand_write_page(uint32_t pg_addr,
                      const void* spareaddr)
 {
 	struct cfg_params cfg;
-	uint32_t status[4];
+	uint32_t status[QPIC_NAND_MAX_CWS_IN_PAGE];
 	int nand_ret = NANDC_RESULT_SUCCESS;
 
 	if (cfg_mode == NAND_CFG_RAW)
@@ -1347,8 +1350,8 @@ qpic_nand_read_page(uint32_t page, unsigned char* buffer, unsigned char* sparead
 {
 	struct cfg_params params;
 	uint32_t ecc;
-	uint32_t flash_sts[4];
-	uint32_t buffer_sts[4];
+	uint32_t flash_sts[QPIC_NAND_MAX_CWS_IN_PAGE];
+	uint32_t buffer_sts[QPIC_NAND_MAX_CWS_IN_PAGE];
 	uint32_t addr_loc_0;
 	uint32_t addr_loc_1;
 	struct cmd_element *cmd_list_ptr = ce_array;
