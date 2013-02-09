@@ -482,7 +482,7 @@ static const unsigned char toshiba_mdv24_display_h_timing[20] = {
 	0x10, 0x00, DTYPE_GEN_LWRITE, 0xC0,
 	0xC1, 0x00, 0xA8, 0x00,
 	0x00, 0x00, 0x00, 0x00,
-	0x9D, 0x08, 0x27, 0x09,
+	0x9D, 0x08, 0x27, 0x00,
 	0x00, 0x00, 0x00, 0x00
 };
 
@@ -793,12 +793,12 @@ static struct mipi_dsi_cmd toshiba_mdv24_video_mode_cmds[] = {
 	 (char *)toshiba_mdv24_gamma_ctrl_a_pos},
 	{sizeof(toshiba_mdv24_gamma_ctrl_a_neg),
 	 (char *)toshiba_mdv24_gamma_ctrl_a_neg},
-	{sizeof(toshiba_mdv24_gamma_ctrl_a_pos),
-	 (char *)toshiba_mdv24_gamma_ctrl_a_pos},
-	{sizeof(toshiba_mdv24_gamma_ctrl_a_neg),
-	 (char *)toshiba_mdv24_gamma_ctrl_a_neg},
 	{sizeof(toshiba_mdv24_gamma_ctrl_b_pos),
 	 (char *)toshiba_mdv24_gamma_ctrl_b_pos},
+	{sizeof(toshiba_mdv24_gamma_ctrl_b_neg),
+	 (char *)toshiba_mdv24_gamma_ctrl_b_neg},
+	{sizeof(toshiba_mdv24_gamma_ctrl_c_pos),
+	 (char *)toshiba_mdv24_gamma_ctrl_c_pos},
 	{sizeof(toshiba_mdv24_gamma_ctrl_c_neg),
 	 (char *)toshiba_mdv24_gamma_ctrl_c_neg},
 	{sizeof(toshiba_mdv24_pwr_setting1),
