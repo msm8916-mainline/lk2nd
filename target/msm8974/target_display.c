@@ -132,8 +132,12 @@ static int msm8974_mipi_panel_power(uint8_t enable)
 void display_init(void)
 {
 	uint32_t hw_id = board_hardware_id();
+	uint32_t soc_ver = board_soc_version();
 
 	dprintf(INFO, "display_init(),target_id=%d.\n", hw_id);
+
+	if (soc_ver >= BOARD_SOC_VERSION2)
+		return;
 
 	switch (hw_id) {
 	case HW_PLATFORM_MTP:
