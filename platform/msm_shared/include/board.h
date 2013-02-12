@@ -31,6 +31,7 @@
 #define __BOARD_H
 
 #define LINUX_MACHTYPE_UNKNOWN 0
+#define BOARD_SOC_VERSION2     0x20000
 
 struct board_data {
 	uint32_t platform;
@@ -52,5 +53,6 @@ uint32_t board_baseband();
 uint32_t board_hardware_id();
 uint32_t board_pmic_type();
 uint32_t board_pmic_ver();
+uint32_t board_soc_version();
 
 #endif
