@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
- * Copyright (c) 2009-2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2013, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -208,6 +208,9 @@
 #define DATA_BYTES_IN_IMG_PER_CW                           516
 
 #define NAND_CW_DIV_RIGHT_SHIFT                            9
+
+/* Number of max cw's the driver allows to flash. */
+#define QPIC_NAND_MAX_CWS_IN_PAGE                          10
 
 /* Reset Values for Status registers */
 #define NAND_FLASH_STATUS_RESET                            0x00000020
