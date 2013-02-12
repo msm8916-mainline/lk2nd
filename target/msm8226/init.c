@@ -40,7 +40,7 @@
 #define PMIC_ARB_OWNER_ID       0
 
 static uint32_t mmc_sdc_base[] =
-	{ MSM_SDC1_BASE, MSM_SDC2_BASE, MSM_SDC3_BASE, MSM_SDC4_BASE };
+	{ MSM_SDC1_BASE, MSM_SDC2_BASE, MSM_SDC3_BASE };
 
 void target_early_init(void)
 {
