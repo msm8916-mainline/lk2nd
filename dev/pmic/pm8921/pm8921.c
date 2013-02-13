@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012, Linux Foundation. All rights reserved.
+ * Copyright (c) 2011-2013, Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -516,6 +516,24 @@ int pm8921_mpp_set_digital_output(uint8_t mpp_id)
 	if (ret) {
 		dprintf(CRITICAL, "Failed to write MPP_CTRL Reg ret=%d.\n",
 			   ret);
+	}
+
+	return ret;
+}
+
+int pm8921_HDMI_Switch(void)
+{
+	int ret = NO_ERROR;
+	uint8_t val;
+
+	/* Value for HDMI MVS 5V Switch */
+	val = 0x068;
+
+	/* Turn on MVS 5V HDMI switch */
+	ret = dev->write(&val, 1, PM8921_MVS_5V_HDMI_SWITCH);
+	if (ret) {
+		dprintf(CRITICAL,
+		   "Failed to turn ON MVS 5V hdmi switch ret=%d.\n", ret);
 	}
 
 	return ret;

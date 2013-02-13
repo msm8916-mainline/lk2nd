@@ -154,6 +154,8 @@
 #define PLDO_TYPE                             0
 #define NLDO_TYPE                             1
 
+#define PM8921_MVS_5V_HDMI_SWITCH             0x70
+
 #define LDO(_name, _type, _test_reg, _ctrl_reg) \
 {\
 	.name = _name,\
