@@ -219,7 +219,7 @@ enum {
 	MSM8660A = 122,
 	MSM8260A = 123,
 	APQ8060A = 124,
-    MSM8974 = 126,
+	MSM8974 = 126,
 	MSM8225 = 127,
 	MSM8625 = 129,
 	MPQ8064 = 130,
@@ -248,6 +248,9 @@ enum {
 	APQ8030AA = 160,
 	MSM8125   = 167,
 	APQ8064AA = 172, /* aka V2 SLOW_PRIME */
+	MSM8130   = 179,
+	MSM8130AA = 180,
+	MSM8130AB = 181,
 };
 
 enum platform {
