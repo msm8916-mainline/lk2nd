@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2011, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2013, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -36,8 +36,6 @@
 #include <dev/fbcon.h>
 #include <target/display.h>
 
-#define FB_ADDR   0x43E00000
-
 #define MDP_GET_PACK_PATTERN(a,x,y,z,bit) (((a)<<(bit*3))|((x)<<(bit*2))|((y)<<bit)|(z))
 #define DMA_PACK_ALIGN_LSB 0
 #define DMA_PACK_PATTERN_RGB \
@@ -63,7 +61,12 @@ void gpio_tlmm_config(uint32_t gpio, uint8_t func,
 		      uint8_t dir, uint8_t pull,
 		      uint8_t drvstr, uint32_t enable);
 
-void dtv_on();
+int  hdmi_dtv_on(void);
+void hdmi_msm_set_mode(int on);
+void hdmi_msm_init_phy(void);
+void hdmi_display_shutdown(void);
+void hdmi_msm_reset_core(void);
+void hdmi_set_fb_addr(void *addr);
 
 struct hdmi_disp_mode_timing_type {
 	uint32_t height;
@@ -75,16 +78,7 @@ struct hdmi_disp_mode_timing_type {
 	uint32_t vsync_width;
 	uint32_t vsync_porch_bp;
 	uint32_t refresh_rate;
+	uint32_t bpp;
+	void *base;
 };
-
-static struct fbcon_config fb_cfg = {
-	.height = DTV_FB_HEIGHT,
-	.width = DTV_FB_WIDTH,
-	.stride = DTV_FB_WIDTH,
-	.format = DTV_FORMAT_RGB565,
-	.bpp = DTV_BPP,
-	.update_start = NULL,
-	.update_done = NULL,
-};
-
 #endif				/* __PLATFORM_MSM_SHARED_HDMI_H */

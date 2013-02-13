@@ -32,6 +32,23 @@
 #include <mdp4.h>
 #include <mipi_dsi.h>
 
+#ifndef DISPLAY_TYPE_HDMI
+static int hdmi_dtv_init(void)
+{
+        return 0;
+}
+
+static int hdmi_dtv_on(void)
+{
+        return 0;
+}
+
+static int hdmi_msm_turn_on(void)
+{
+        return 0;
+}
+#endif
+
 static struct msm_fb_panel_data *panel;
 
 extern int lvds_on(struct msm_fb_panel_data *pdata);
@@ -105,6 +122,12 @@ int msm_display_config()
 		if (ret)
 			goto msm_display_config_out;
 		break;
+	case HDMI_PANEL:
+		dprintf(INFO, "Config HDMI PANEL.\n");
+		ret = hdmi_dtv_init();
+		if (ret)
+			goto msm_display_config_out;
+		break;
 	default:
 		return ERR_INVALID_ARGS;
 	};
@@ -160,6 +183,17 @@ int msm_display_on()
 		if (ret)
 			goto msm_display_on_out;
 		break;
+	case HDMI_PANEL:
+		dprintf(INFO, "Turn on HDMI PANEL.\n");
+		ret = hdmi_dtv_on();
+		if (ret)
+			goto msm_display_on_out;
+
+		ret = hdmi_msm_turn_on();
+		if (ret)
+			goto msm_display_on_out;
+		break;
+
 	default:
 		return ERR_INVALID_ARGS;
 	};
