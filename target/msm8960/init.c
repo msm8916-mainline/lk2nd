@@ -115,15 +115,18 @@ void target_init(void)
 	case MSM8660AB:
 		msm8960_keypad_init();
 		break;
+	case MSM8130:
 	case MSM8230:
 	case MSM8630:
 	case MSM8930:
+	case MSM8130AA:
 	case MSM8230AA:
 	case MSM8630AA:
 	case MSM8930AA:
 	case MSM8930AB:
 	case MSM8630AB:
 	case MSM8230AB:
+	case MSM8130AB:
 	case APQ8030AB:
 	case APQ8030:
 	case APQ8030AA:
@@ -357,7 +360,9 @@ void target_detect(struct board_data *board)
 		default:
 			target_id = LINUX_MACHTYPE_8960_CDP;
 		}
-	} else if ((platform == MSM8230)   || (platform == MSM8630)   ||
+	} else if ((platform == MSM8130)           ||
+			   (platform == MSM8130AA) || (platform == MSM8130AB) ||
+			   (platform == MSM8230)   || (platform == MSM8630)   ||
 			   (platform == MSM8930)   || (platform == MSM8230AA) ||
 			   (platform == MSM8630AA) || (platform == MSM8930AA) ||
 			   (platform == MSM8930AB) || (platform == MSM8630AB) ||
