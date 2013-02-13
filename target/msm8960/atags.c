@@ -164,15 +164,18 @@ unsigned *target_first_256M_atag(unsigned *ptr)
 		case MPQ8064:
 			ptr = target_atag(ptr, mpq8064_first_256M, ARRAY_SIZE(mpq8064_first_256M));
 			break;
+		case MSM8130:
 		case MSM8230:
 		case MSM8930:
 		case MSM8630:
+		case MSM8130AA:
 		case MSM8230AA:
 		case MSM8630AA:
 		case MSM8930AA:
 		case MSM8930AB:
 		case MSM8630AB:
 		case MSM8230AB:
+		case MSM8130AB:
 		case APQ8030AB:
 		case APQ8030:
 		case APQ8030AA:
