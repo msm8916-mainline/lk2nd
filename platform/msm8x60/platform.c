@@ -149,10 +149,13 @@ void display_init(void)
 #if DISPLAY_TYPE_HDMI
 	struct hdmi_disp_mode_timing_type *hdmi_timing;
 	mdp_clock_init();
-	hdmi_display_init();
-	hdmi_timing = hdmi_common_init_panel_info();
-	fb_cfg = hdmi_dtv_init(hdmi_timing);
+	hdmi_power_init();
+	fb_cfg = get_fbcon();
+	hdmi_set_fb_addr(fb_cfg.base);
 	fbcon_setup(fb_cfg);
+	hdmi_dtv_init();
+	hdmi_dtv_on();
+	hdmi_msm_turn_on();
 #endif
 }
 
