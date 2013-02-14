@@ -69,8 +69,19 @@ void platform_init(void)
 	dprintf(INFO, "platform_init()\n");
 }
 
+static void platform_print_sclk(void)
+{
+	uint32_t count;
+
+	count = readl(MPM2_MPM_SLEEP_TIMETICK_COUNT_VAL);
+
+	dprintf(INFO, "mpm sclk=(%lu)\n", count);
+}
+
 void platform_uninit(void)
 {
+	platform_print_sclk();
+
 #if DISPLAY_SPLASH_SCREEN
 	display_shutdown();
 #endif
