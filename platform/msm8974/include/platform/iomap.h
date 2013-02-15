@@ -95,8 +95,9 @@
 #define GPIO_CONFIG_ADDR(x)         (TLMM_BASE_ADDR + 0x1000 + (x)*0x10)
 #define GPIO_IN_OUT_ADDR(x)         (TLMM_BASE_ADDR + 0x1004 + (x)*0x10)
 
-#define MPM2_MPM_CTRL_BASE          0xFC4A1000
-#define MPM2_MPM_PS_HOLD            0xFC4AB000
+#define MPM2_MPM_CTRL_BASE                   0xFC4A1000
+#define MPM2_MPM_PS_HOLD                     0xFC4AB000
+#define MPM2_MPM_SLEEP_TIMETICK_COUNT_VAL    0xFC4A3000
 
 /* CE 2 */
 #define  GCC_CE2_BCR                (CLK_CTL_BASE + 0x1080)
