@@ -63,6 +63,13 @@
 
 #define PMIC_VERSION_V2         1
 
+/*Target power on reasons*/
+#define DC_CHG                  8
+#define USB_CHG                 16
+#define PON1                    32
+#define CBLPWR_N                64
+#define KPDPWR_N                128
+
 struct pm8x41_gpio {
 	int direction;
 	int output_buffer;
@@ -85,6 +92,7 @@ void pm8x41_reset_configure(uint8_t);
 int pm8x41_ldo_set_voltage(const char *, uint32_t);
 int pm8x41_ldo_control(const char *, uint8_t);
 uint8_t pm8x41_get_pmic_rev();
+uint8_t pm8x41_get_pon_reason();
 
 struct pm8x41_ldo {
 	const char *name;

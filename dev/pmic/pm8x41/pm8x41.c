@@ -350,3 +350,7 @@ uint8_t pm8x41_get_pmic_rev()
 	return REG_READ(REVID_REVISION4);
 }
 
+uint8_t pm8x41_get_pon_reason()
+{
+	return REG_READ(PON_PON_REASON1);
+}
