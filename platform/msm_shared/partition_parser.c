@@ -255,7 +255,7 @@ mmc_boot_read_gpt(struct mmc_boot_host *mmc_host,
 	}
 	partition_0 = GET_LLWORD_FROM_BYTE(&data[PARTITION_ENTRIES_OFFSET]);
 	/* Read GPT Entries */
-	for (i = 0; i < ROUNDUP(max_partition_count, 4); i++) {
+	for (i = 0; i < (ROUNDUP(max_partition_count, 4)) / 4; i++) {
 		ASSERT(partition_count < NUM_PARTITIONS);
 		ret = mmc_boot_read_from_card(mmc_host, mmc_card,
 					      (partition_0 * BLOCK_SIZE) +
