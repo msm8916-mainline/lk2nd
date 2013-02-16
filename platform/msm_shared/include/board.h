@@ -30,8 +30,16 @@
 #ifndef __BOARD_H
 #define __BOARD_H
 
+#include <smem.h>
+
 #define LINUX_MACHTYPE_UNKNOWN 0
 #define BOARD_SOC_VERSION2     0x20000
+#define MAX_PMIC_DEVICES       SMEM_MAX_PMIC_DEVICES
+
+struct board_pmic_data {
+	uint32_t pmic_type;
+	uint32_t pmic_version;
+};
 
 struct board_data {
 	uint32_t platform;
@@ -40,8 +48,7 @@ struct board_data {
 	uint32_t platform_subtype;
 	uint32_t target;
 	uint32_t baseband;
-	uint32_t pmic_type;
-	uint32_t pmic_version;
+	struct board_pmic_data pmic_info[MAX_PMIC_DEVICES];
 };
 
 void board_init();
@@ -51,8 +58,7 @@ uint32_t board_platform_id();
 uint32_t board_target_id();
 uint32_t board_baseband();
 uint32_t board_hardware_id();
-uint32_t board_pmic_type();
-uint32_t board_pmic_ver();
+uint8_t board_pmic_info(struct board_pmic_data *, uint8_t num_ent);
 uint32_t board_soc_version();
 
 #endif
