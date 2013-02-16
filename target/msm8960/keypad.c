@@ -134,11 +134,9 @@ void msm8960_keypad_init(void)
 
 void msm8930_keypad_init(void)
 {
-	uint32_t pm_type = board_pmic_type();
-
 	msm8930_keypad_gpio_init();
 
-	if (pm_type == PMIC_IS_PM8917)
+	if (platform_pmic_type(PMIC_IS_PM8917))
 	{
 		ssbi_gpio_keypad_init(&msm8930_pm8917_qwerty_keypad);
 	}
@@ -150,11 +148,9 @@ void msm8930_keypad_init(void)
 
 void apq8064_keypad_init(void)
 {
-	uint32_t pm_type = board_pmic_type();
-
 	apq8064_keypad_gpio_init();
 
-	if (pm_type == PMIC_IS_PM8917)
+	if (platform_pmic_type(PMIC_IS_PM8917))
 		ssbi_gpio_keypad_init(&apq8064_pm8917_qwerty_keypad);
 	else
 		ssbi_gpio_keypad_init(&apq8064_pm8921_qwerty_keypad);
