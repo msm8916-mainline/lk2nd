@@ -1,5 +1,5 @@
 /*
- * * Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
+ * * Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -29,6 +29,7 @@
 #ifndef __PLATFORM_MSM8960_CLOCK_H
 #define __PLATFORM_MSM8960_CLOCK_H
 
+#define MSM_MMSS_CLK_CTL_SIZE 4096
 #define UART_DM_CLK_RX_TX_BIT_RATE 0xFF
 
 #define REG(off)        (MSM_CLK_CTL_BASE + (off))
@@ -123,6 +124,23 @@
 #define DSI2_BYTE_CC_REG                REG_MM(0x00B4)
 #define DSI1_ESC_NS_REG                 REG_MM(0x011C)
 #define DSI1_ESC_CC_REG                 REG_MM(0x00CC)
+
+#define MM_PLL1_MODE_REG                REG_MM(0x031C)
+#define MM_PLL1_L_VAL_REG               REG_MM(0x0320)
+#define MM_PLL1_M_VAL_REG               REG_MM(0x0324)
+#define MM_PLL1_N_VAL_REG               REG_MM(0x0328)
+#define MM_PLL1_TEST_CTL_REG            REG_MM(0x0330)
+#define MM_PLL1_CONFIG_REG              REG_MM(0x032C)
+
+#define MM_PLL2_MODE_REG                REG_MM(0x3160)
+#define MM_PLL2_L_VAL_REG               REG_MM(0x3164)
+#define MM_PLL2_M_VAL_REG               REG_MM(0x3168)
+#define MM_PLL2_N_VAL_REG               REG_MM(0x316C)
+#define MM_PLL2_TEST_CTL_REG            REG_MM(0x3170)
+#define MM_PLL2_CONFIG_REG              REG_MM(0x3174)
+
+#define MMSS_AHB_EN_REG                 REG_MM(0x08)
+
 #define DSI2_ESC_NS_REG                 REG_MM(0x0150)
 #define DSI2_ESC_CC_REG                 REG_MM(0x013C)
 #define DSI_PIXEL_CC_REG                REG_MM(0x0130)

@@ -1,7 +1,7 @@
 /* Copyright (c) 2008, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2013, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -66,6 +66,7 @@
 
 #define MSM_GIC_CPU_BASE    0x02002000
 #define MSM_VIC_BASE        0x02080000
+#define MSM_TCSR_SIZE       4096
 #define MSM_USB_BASE        0x12500000
 #define TLMM_BASE_ADDR      0x00800000
 
@@ -115,7 +116,31 @@
 //TODO: Where does this go?
 #define MMSS_SFPB_GPREG                       (0x05700058)
 
-#define CE1_CRYPTO4_BASE                      (0x18500000)
-#define CE3_CRYPTO4_BASE                      (0x11000000)
-#define LCDC_BASE                             (0x000C0000)
+/* HDMI base addresses */
+#define MSM_HDMI_BASE           0x04A00000
+#define DTV_BASE                0xD0000
+
+#define HDMI_USEC_REFTIMER      (MSM_HDMI_BASE + 0x0208)
+#define HDMI_CTRL               (MSM_HDMI_BASE + 0x0000)
+#define HDMI_HPD_INT_STATUS     (MSM_HDMI_BASE + 0x0250)
+#define HDMI_HPD_INT_CTRL       (MSM_HDMI_BASE + 0x0254)
+#define HDMI_HPD_CTRL           (MSM_HDMI_BASE + 0x0258)
+#define HDMI_PHY_CTRL           (MSM_HDMI_BASE + 0x000002D4)
+#define HDMI_PHY_REG_0          (MSM_HDMI_BASE + 0x00000400)
+#define HDMI_PHY_REG_1          (MSM_HDMI_BASE + 0x00000404)
+#define HDMI_PHY_REG_2          (MSM_HDMI_BASE + 0x00000408)
+#define HDMI_PHY_REG_3          (MSM_HDMI_BASE + 0x0000040c)
+#define HDMI_PHY_REG_4          (MSM_HDMI_BASE + 0x00000410)
+#define HDMI_PHY_REG_9          (MSM_HDMI_BASE + 0x00000424)
+#define HDMI_PHY_REG_11         (MSM_HDMI_BASE + 0x0000042c)
+#define HDMI_PHY_REG_12         (MSM_HDMI_BASE + 0x00000430)
+#define HDMI_TOTAL              (MSM_HDMI_BASE + 0x000002C0)
+#define HDMI_ACTIVE_HSYNC       (MSM_HDMI_BASE + 0x000002B4)
+#define HDMI_ACTIVE_VSYNC       (MSM_HDMI_BASE + 0x000002B8)
+#define HDMI_VSYNC_TOTAL_F2     (MSM_HDMI_BASE + 0x000002C4)
+#define HDMI_VSYNC_ACTIVE_F2    (MSM_HDMI_BASE + 0x000002BC)
+#define HDMI_FRAME_CTRL         (MSM_HDMI_BASE + 0x000002C8)
+#define CE1_CRYPTO4_BASE        (0x18500000)
+#define CE3_CRYPTO4_BASE        (0x11000000)
+#define LCDC_BASE               (0x000C0000)
 #endif
