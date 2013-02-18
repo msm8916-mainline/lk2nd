@@ -862,9 +862,6 @@ int mipi_dsi_on()
 
 int mipi_dsi_off()
 {
-	writel(0x01010101, DSI_INT_CTRL);
-	writel(0x13FF3BFF, DSI_ERR_INT_MASK0);
-
 	if(!target_cont_splash_screen())
 	{
 		writel(0, DSI_CLK_CTRL);
@@ -875,7 +872,8 @@ int mipi_dsi_off()
 		writel(0x0001, DSI_SOFT_RESET);
 		writel(0x0000, DSI_SOFT_RESET);
 		writel(0, DSI_CTRL);
-	}
+	} else
+		writel(0x0, DSI_INT_CTRL);
 
 	return NO_ERROR;
 }
