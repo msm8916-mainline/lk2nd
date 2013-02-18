@@ -76,6 +76,15 @@ struct lcd_panel_info {
 	uint32_t rev;
 };
 
+struct hdmi_panel_info {
+	uint32_t h_back_porch;
+	uint32_t h_front_porch;
+	uint32_t h_pulse_width;
+	uint32_t v_back_porch;
+	uint32_t v_front_porch;
+	uint32_t v_pulse_width;
+};
+
 struct lcdc_panel_info {
 	uint32_t h_back_porch;
 	uint32_t h_front_porch;
@@ -166,6 +175,7 @@ struct msm_panel_info {
 	struct lcdc_panel_info lcdc;
 	struct mipi_panel_info mipi;
 	struct lvds_panel_info lvds;
+	struct hdmi_panel_info hdmi;
 
 	int (*on) (void);
 	int (*off) (void);
