@@ -142,6 +142,7 @@ void display_init(void)
 	switch (hw_id) {
 	case HW_PLATFORM_MTP:
 	case HW_PLATFORM_FLUID:
+	case HW_PLATFORM_SURF:
 		mipi_toshiba_video_720p_init(&(panel.panel_info));
 		panel.clk_func = msm8974_mdss_dsi_panel_clock;
 		panel.power_func = msm8974_mipi_panel_power;
