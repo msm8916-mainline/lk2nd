@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2011, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2013, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -35,7 +35,25 @@
 #include <platform/scm-io.h>
 
 extern void hdmi_app_clk_init(int);
-extern void hdmi_msm_turn_on();
+extern int hdmi_msm_turn_on();
+
+#define FB_ADDR   0x43E00000
+
+static struct fbcon_config fb_cfg = {
+	.height       = DTV_FB_HEIGHT,
+	.width        = DTV_FB_WIDTH,
+	.stride       = DTV_FB_WIDTH,
+	.format       = DTV_FORMAT_RGB565,
+	.bpp          = DTV_BPP,
+	.update_start = NULL,
+	.update_done  = NULL,
+	.base         = FB_ADDR;
+};
+
+struct fbcon_config *get_fbcon(void)
+{
+	return &fb_cfg;
+}
 
 void hdmi_msm_init_phy()
 {
@@ -64,17 +82,6 @@ void hdmi_msm_init_phy()
 	writel(0x13, HDMI_PHY_REG_12);
 }
 
-void hdmi_frame_ctrl_reg()
-{
-	uint32_t hdmi_frame_ctrl;
-
-	hdmi_frame_ctrl = ((0 << 31) & 0x80000000);
-	hdmi_frame_ctrl |= ((0 << 29) & 0x20000000);
-	hdmi_frame_ctrl |= ((0 << 28) & 0x10000000);
-	hdmi_frame_ctrl |= (1 << 12);
-	writel(hdmi_frame_ctrl, HDMI_FRAME_CTRL);
-}
-
 static void hdmi_gpio_config()
 {
 	uint32_t func;
@@ -101,7 +108,7 @@ static void hdmi_gpio_config()
  * This is the start function which initializes clocks , gpios for hdmi
  * & powers on the HDMI core
  */
-void hdmi_display_init()
+void hdmi_power_init()
 {
 	// Enable HDMI clocks
 	hdmi_app_clk_init(1);
@@ -117,7 +124,43 @@ void hdmi_display_init()
 	hdmi_msm_turn_on();
 }
 
-void dtv_on()
+static void hdmi_msm_reset_core()
+{
+        uint32_t reg_val = 0;
+        hdmi_msm_set_mode(0);
+        // Disable clocks
+        hdmi_app_clk_init(0);
+        udelay(5);
+        // Enable clocks
+        hdmi_app_clk_init(1);
+
+        reg_val = secure_readl(SW_RESET_CORE_REG);
+        reg_val |= BIT(11);
+        secure_writel(reg_val, SW_RESET_CORE_REG);
+        udelay(5);
+        reg_val = secure_readl(SW_RESET_AHB_REG);
+        reg_val |= BIT(9);
+        secure_writel(reg_val, SW_RESET_AHB_REG);
+        udelay(5);
+        reg_val = secure_readl(SW_RESET_AHB_REG);
+        reg_val |= BIT(9);
+        secure_writel(reg_val, SW_RESET_AHB_REG);
+        udelay(20);
+        reg_val = secure_readl(SW_RESET_CORE_REG);
+        reg_val &= ~(BIT(11));
+        secure_writel(reg_val, SW_RESET_CORE_REG);
+        udelay(5);
+        reg_val = secure_readl(SW_RESET_AHB_REG);
+        reg_val &= ~(BIT(9));
+        secure_writel(reg_val, SW_RESET_AHB_REG);
+        udelay(5);
+        reg_val = secure_readl(SW_RESET_AHB_REG);
+        reg_val &= ~(BIT(9));
+        secure_writel(reg_val, SW_RESET_AHB_REG);
+        udelay(5);
+}
+
+int hdmi_dtv_on()
 {
 	uint32_t val, pll_mode, ns_val, pll_config;
 
@@ -201,4 +244,6 @@ void dtv_on()
 	val |= BIT(0);
 	secure_writel(val, TV_CC_REG);
 	udelay(10);
+
+	return 0;
 }
