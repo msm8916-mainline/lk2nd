@@ -251,6 +251,8 @@ enum {
 	MSM8130   = 179,
 	MSM8130AA = 180,
 	MSM8130AB = 181,
+	MSM8627AA = 182,
+	MSM8227AA = 183,
 };
 
 enum platform {
