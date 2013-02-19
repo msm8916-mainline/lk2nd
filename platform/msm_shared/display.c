@@ -288,6 +288,11 @@ int msm_display_off()
 		return ERR_INVALID_ARGS;
 	};
 
+	if (target_cont_splash_screen()) {
+		dprintf(INFO, "Continuous splash enabled, keeping panel alive.\n");
+		return NO_ERROR;
+	}
+
 	if (pinfo->off)
 		ret = pinfo->off();
 
