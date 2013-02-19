@@ -381,7 +381,8 @@ void target_detect(struct board_data *board)
 		default:
 			target_id = LINUX_MACHTYPE_8930_CDP;
 		}
-	} else if ((platform == MSM8227) || (platform == MSM8627)) {
+	} else if ((platform == MSM8227) || (platform == MSM8627) ||
+			   (platform == MSM8227AA) || (platform == MSM8627AA)) {
 		switch (platform_hw) {
 		case HW_PLATFORM_SURF:
 			target_id = LINUX_MACHTYPE_8627_CDP;
