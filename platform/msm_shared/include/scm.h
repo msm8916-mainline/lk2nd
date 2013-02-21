@@ -66,7 +66,7 @@ typedef struct {
 #define SSD_DECRYPT_ID              0x01
 #define SSD_ENCRYPT_ID              0x02
 
-#define SCM_SVC_SSD                 0x0C
+#define SVC_MEMORY_PROTECTION       0x0C
 #define IOMMU_SECURE_CFG            0x02
 
 #define SECURE_DEVICE_MDSS          1

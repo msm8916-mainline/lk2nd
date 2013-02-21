@@ -190,7 +190,7 @@ int restore_secure_cfg(uint32_t id)
 	secure_cfg.id    = 1;
 	secure_cfg.spare = 0;
 
-	ret = scm_call(SCM_SVC_SSD, IOMMU_SECURE_CFG, &secure_cfg, sizeof(secure_cfg),
+	ret = scm_call(SVC_MEMORY_PROTECTION, IOMMU_SECURE_CFG, &secure_cfg, sizeof(secure_cfg),
 			&scm_ret, sizeof(scm_ret));
 
 	if (ret || scm_ret) {
