@@ -200,11 +200,36 @@ void target_detect(struct board_data *board)
 /* Detect the modem type */
 void target_baseband_detect(struct board_data *board)
 {
-	/* Check for baseband variants. Default to MSM */
-	if (board->platform_subtype == HW_PLATFORM_SUBTYPE_MDM)
-		board->baseband = BASEBAND_MDM;
-	else
+	uint32_t platform;
+	uint32_t platform_subtype;
+
+	platform = board->platform;
+	platform_subtype = board->platform_subtype;
+
+	/*
+	 * Look for platform subtype if present, else
+	 * check for platform type to decide on the
+	 * baseband type
+	 */
+	switch(platform_subtype) {
+	case HW_PLATFORM_SUBTYPE_UNKNOWN:
+		break;
+	default:
+		dprintf(CRITICAL, "Platform Subtype : %u is not supported\n",platform_subtype);
+		ASSERT(0);
+	};
+
+	switch(platform) {
+	case MSM8974:
 		board->baseband = BASEBAND_MSM;
+		break;
+	case APQ8074:
+		board->baseband = BASEBAND_APQ;
+		break;
+	default:
+		dprintf(CRITICAL, "Platform type: %u is not supported\n",platform);
+		ASSERT(0);
+	};
 }
 
 void target_serialno(unsigned char *buf)
