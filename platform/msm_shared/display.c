@@ -215,16 +215,16 @@ int msm_display_init(struct msm_fb_panel_data *pdata)
 		goto msm_display_init_out;
 	}
 
-	/* Enable clock */
-	if (pdata->clk_func)
-		ret = pdata->clk_func(1);
+	/* Turn on panel */
+	if (pdata->power_func)
+		ret = pdata->power_func(1);
 
 	if (ret)
 		goto msm_display_init_out;
 
-	/* Turn on panel */
-	if (pdata->power_func)
-		ret = pdata->power_func(1);
+	/* Enable clock */
+	if (pdata->clk_func)
+		ret = pdata->clk_func(1);
 
 	if (ret)
 		goto msm_display_init_out;
