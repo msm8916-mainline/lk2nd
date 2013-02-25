@@ -35,6 +35,8 @@
 #include <mmc.h>
 #include <spmi.h>
 #include <board.h>
+#include <smem.h>
+#include <baseband.h>
 #include <pm8x41.h>
 
 #define PMIC_ARB_CHANNEL_NUM    0
@@ -86,6 +88,48 @@ void target_fastboot_init(void)
 {
 	/* Set the BOOT_DONE flag in PM8026 */
 	pm8x41_set_boot_done();
+}
+
+/* Detect the target type */
+void target_detect(struct board_data *board)
+{
+	board->target = LINUX_MACHTYPE_UNKNOWN;
+}
+
+/* Detect the modem type */
+void target_baseband_detect(struct board_data *board)
+{
+	uint32_t platform;
+	uint32_t platform_subtype;
+
+	platform         = board->platform;
+	platform_subtype = board->platform_subtype;
+
+	/*
+	 * Look for platform subtype if present, else
+	 * check for platform type to decide on the
+	 * baseband type
+	 */
+	switch(platform_subtype)
+	{
+	case HW_PLATFORM_SUBTYPE_UNKNOWN:
+		break;
+	default:
+		dprintf(CRITICAL, "Platform Subtype : %u is not supported\n", platform_subtype);
+		ASSERT(0);
+	};
+
+	switch(platform)
+	{
+	case MSM8826:
+	case MSM8626:
+	case MSM8226:
+		board->baseband = BASEBAND_MSM;
+		break;
+	default:
+		dprintf(CRITICAL, "Platform type: %u is not supported\n", platform);
+		ASSERT(0);
+	};
 }
 
 void target_serialno(unsigned char *buf)
