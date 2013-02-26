@@ -40,6 +40,8 @@
 #include <dev/keys.h>
 #include <pm8x41.h>
 #include <crypto5_wrapper.h>
+#include <hsusb.h>
+#include <clock.h>
 
 extern  bool target_use_signed_kernel(void);
 
@@ -293,6 +295,36 @@ void reboot_device(unsigned reboot_reason)
 	mdelay(5000);
 
 	dprintf(CRITICAL, "Rebooting failed\n");
+}
+
+/* Do target specific usb initialization */
+void target_usb_init(void)
+{
+	/* Enable secondary USB PHY on DragonBoard8074 */
+	if (board_hardware_id() == HW_PLATFORM_DRAGON) {
+		/* Route ChipIDea to use secondary USB HS port2 */
+		writel_relaxed(1, USB2_PHY_SEL);
+
+		/* Enable access to secondary PHY by clamping the low
+		* voltage interface between DVDD of the PHY and Vddcx
+		* (set bit16 (USB2_PHY_HS2_DIG_CLAMP_N_2) = 1) */
+		writel_relaxed(readl_relaxed(USB_OTG_HS_PHY_SEC_CTRL)
+				| 0x00010000, USB_OTG_HS_PHY_SEC_CTRL);
+
+		/* Perform power-on-reset of the PHY.
+		*  Delay values are arbitrary */
+		writel_relaxed(readl_relaxed(USB_OTG_HS_PHY_CTRL)|1,
+				USB_OTG_HS_PHY_CTRL);
+		thread_sleep(10);
+		writel_relaxed(readl_relaxed(USB_OTG_HS_PHY_CTRL) & 0xFFFFFFFE,
+				USB_OTG_HS_PHY_CTRL);
+		thread_sleep(10);
+
+		/* Enable HSUSB PHY port for ULPI interface,
+		* then configure related parameters within the PHY */
+		writel_relaxed(((readl_relaxed(USB_PORTSC) & 0xC0000000)
+				| 0x8c000004), USB_PORTSC);
+	}
 }
 
 /* Returns 1 if target supports continuous splash screen. */
