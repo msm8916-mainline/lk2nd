@@ -40,9 +40,19 @@
 #include <baseband.h>
 #include <dev/keys.h>
 #include <pm8x41.h>
+#include <crypto5_wrapper.h>
 
-#define PMIC_ARB_CHANNEL_NUM    0
-#define PMIC_ARB_OWNER_ID       0
+extern  bool target_use_signed_kernel(void);
+
+#define PMIC_ARB_CHANNEL_NUM               0
+#define PMIC_ARB_OWNER_ID                  0
+
+#define CRYPTO_ENGINE_INSTANCE             1
+#define CRYPTO_ENGINE_EE                   1
+#define CRYPTO_ENGINE_FIFO_SIZE            64
+#define CRYPTO_ENGINE_READ_PIPE            3
+#define CRYPTO_ENGINE_WRITE_PIPE           2
+#define CRYPTO_ENGINE_CMD_ARRAY_SIZE       20
 
 #define TLMM_VOL_UP_BTN_GPIO    106
 
@@ -88,6 +98,29 @@ static void target_keystatus()
 		keys_post_event(KEY_VOLUMEUP, 1);
 }
 
+/* Set up params for h/w CRYPTO_ENGINE. */
+void target_crypto_init_params()
+{
+	struct crypto_init_params ce_params;
+
+	/* Set up base addresses and instance. */
+	ce_params.crypto_instance  = CRYPTO_ENGINE_INSTANCE;
+	ce_params.crypto_base      = MSM_CE1_BASE;
+	ce_params.bam_base         = MSM_CE1_BAM_BASE;
+
+	/* Set up BAM config. */
+	ce_params.bam_ee           = CRYPTO_ENGINE_EE;
+	ce_params.pipes.read_pipe  = CRYPTO_ENGINE_READ_PIPE;
+	ce_params.pipes.write_pipe = CRYPTO_ENGINE_WRITE_PIPE;
+
+	/* Assign buffer sizes. */
+	ce_params.num_ce           = CRYPTO_ENGINE_CMD_ARRAY_SIZE;
+	ce_params.read_fifo_size   = CRYPTO_ENGINE_FIFO_SIZE;
+	ce_params.write_fifo_size  = CRYPTO_ENGINE_FIFO_SIZE;
+
+	crypto_init_params(&ce_params);
+}
+
 void target_init(void)
 {
 	uint32_t base_addr;
@@ -113,6 +146,9 @@ void target_init(void)
 			ASSERT(0);
 		}
 	}
+
+	if (target_use_signed_kernel())
+		target_crypto_init_params();
 }
 
 /* Do any target specific intialization needed before entering fastboot mode */
@@ -197,6 +233,11 @@ void reboot_device(unsigned reboot_reason)
 	mdelay(5000);
 
 	dprintf(CRITICAL, "Rebooting failed\n");
+}
+
+crypto_engine_type board_ce_type(void)
+{
+	return CRYPTO_ENGINE_TYPE_HW;
 }
 
 unsigned board_machtype(void)
