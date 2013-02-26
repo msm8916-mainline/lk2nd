@@ -35,6 +35,7 @@
 #include <mmc.h>
 #include <spmi.h>
 #include <board.h>
+#include <pm8x41.h>
 
 #define PMIC_ARB_CHANNEL_NUM    0
 #define PMIC_ARB_OWNER_ID       0
@@ -78,6 +79,13 @@ void target_init(void)
 			ASSERT(0);
 		}
 	}
+}
+
+/* Do any target specific intialization needed before entering fastboot mode */
+void target_fastboot_init(void)
+{
+	/* Set the BOOT_DONE flag in PM8026 */
+	pm8x41_set_boot_done();
 }
 
 void target_serialno(unsigned char *buf)
