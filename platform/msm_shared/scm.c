@@ -153,7 +153,6 @@ scm_call(uint32_t svc_id, uint32_t cmd_id, const void *cmd_buf,
 	arch_clean_invalidate_cache_range((addr_t) cmd, cmd->len);
 
 	ret = smc((uint32_t) cmd);
-
 	if (ret)
 		goto out;
 
@@ -165,14 +164,14 @@ scm_call(uint32_t svc_id, uint32_t cmd_id, const void *cmd_buf,
 			/* Need to invalidate before each check since TZ will update
 			 * the response complete flag in main memory.
 			 */
-			arch_clean_invalidate_cache_range((addr_t) rsp, sizeof(*rsp));
+			arch_invalidate_cache_range((addr_t) rsp, sizeof(*rsp));
 		} while (!rsp->is_complete);
 
 
 		resp_ptr = scm_get_response_buffer(rsp);
 
 		/* Invalidate any cached response data */
-		arch_clean_invalidate_cache_range((addr_t) resp_ptr, resp_len);
+		arch_invalidate_cache_range((addr_t) resp_ptr, resp_len);
 
 		if (resp_buf)
 			memcpy(resp_buf, resp_ptr, resp_len);
@@ -259,6 +258,142 @@ int decrypt_scm(uint32_t ** img_ptr, uint32_t * img_len_ptr)
 	return ret;
 }
 
+
+static int ssd_image_is_encrypted(uint32_t ** img_ptr, uint32_t * img_len_ptr, uint32 * ctx_id)
+{
+	int              ret = 0;
+	ssd_parse_md_req parse_req;
+	ssd_parse_md_rsp parse_rsp;
+
+	/* populate meta-data ptr */
+	parse_req.md     = (uint32*)*img_ptr;
+	parse_req.md_len = (uint32)*img_len_ptr;
+
+	arch_clean_invalidate_cache_range((addr_t) *img_ptr, *img_len_ptr);
+
+	ret = scm_call(SCM_SVC_SSD,
+		       SSD_PARSE_MD_ID,
+		       &parse_req,
+		       sizeof(parse_req),
+		       &parse_rsp,
+		       sizeof(parse_rsp));
+
+	if(!ret)
+	{
+		if(parse_rsp.status == SSD_PMD_ENCRYPTED)
+		{
+			*ctx_id      = parse_rsp.md_ctx_id;
+			*img_len_ptr = *img_len_ptr - (parse_rsp.md_end_ptr - *img_ptr);
+			*img_ptr     = (uint32_t*)parse_rsp.md_end_ptr;
+			ret          = 1;
+		}
+		else
+		{
+			dprintf(INFO,"Image is not encrypted");
+		}
+	}
+
+	return ret;
+}
+
+int decrypt_scm_v2(uint32_t ** img_ptr, uint32_t * img_len_ptr)
+{
+	int                      ret    = 0;
+	uint32                   ctx_id = 0;
+	ssd_decrypt_img_frag_req decrypt_req;
+	ssd_decrypt_img_frag_rsp decrypt_rsp;
+
+	/* Image data is operated upon by TZ, which accesses only the main memory.
+	 * It must be flushed/invalidated before and after TZ call.
+	 */
+	arch_clean_invalidate_cache_range((addr_t) *img_ptr, *img_len_ptr);
+
+	if(ssd_image_is_encrypted(img_ptr,img_len_ptr,&ctx_id))
+		{
+			/*decrypt the image here*/
+
+			decrypt_req.md_ctx_id = ctx_id;
+			decrypt_req.last_frag = 1;
+			decrypt_req.frag_len  = *img_len_ptr;
+			decrypt_req.frag      = *img_ptr;
+
+			ret = scm_call(SCM_SVC_SSD,
+					SSD_DECRYPT_IMG_FRAG_ID,
+					&decrypt_req,
+					sizeof(decrypt_req),
+					&decrypt_rsp,
+					sizeof(decrypt_rsp));
+
+			if(!ret)
+			  {
+			    ret = decrypt_rsp.status;
+			  }
+
+			/* Values at img_ptr and img_len_ptr are updated by TZ. Must be invalidated
+			* before we use them.
+			*/
+			arch_invalidate_cache_range((addr_t) img_ptr, sizeof(img_ptr));
+			arch_invalidate_cache_range((addr_t) img_len_ptr, sizeof(img_len_ptr));
+
+			/* Invalidate the updated image data */
+			arch_invalidate_cache_range((addr_t) *img_ptr, *img_len_ptr);
+		}
+
+	return ret;
+}
+
+int scm_svc_version(uint32 * major, uint32 * minor)
+{
+	feature_version_req feature_req;
+	feature_version_rsp feature_rsp;
+	int                 ret = 0;
+
+	feature_req.feature_id = TZBSP_FVER_SSD;
+
+	ret = scm_call(TZBSP_SVC_INFO,
+		       TZ_INFO_GET_FEATURE_ID,
+		       &feature_req,
+		       sizeof(feature_req),
+		       &feature_rsp,
+		       sizeof(feature_rsp));
+	if(!ret)
+		*major = TZBSP_GET_FEATURE_VERSION(feature_rsp.version);
+
+	return ret;
+}
+
+int scm_protect_keystore(uint32_t * img_ptr, uint32_t  img_len)
+{
+	int                      ret=0;
+	ssd_protect_keystore_req protect_req;
+	ssd_protect_keystore_rsp protect_rsp;
+
+	protect_req.keystore_ptr = img_ptr;
+	protect_req.keystore_len = img_len;
+
+	arch_clean_invalidate_cache_range((addr_t) img_ptr, img_len);
+
+	ret = scm_call(SCM_SVC_SSD,
+		       SSD_PROTECT_KEYSTORE_ID,
+		       &protect_req,
+		       sizeof(protect_req),
+		       &protect_rsp,
+		       sizeof(protect_rsp));
+	if(!ret)
+	{
+		if(protect_rsp.status == TZBSP_SSD_PKS_SUCCESS)
+			dprintf(INFO,"Successfully loaded the keystore ");
+		else
+		{
+			dprintf(INFO,"Loading keystore failed status %d ",protect_rsp.status);
+			ret = protect_rsp.status;
+		}
+	}
+	else
+	  dprintf(INFO,"scm_call failed ");
+
+	return ret;
+}
 
 void set_tamper_fuse_cmd()
 {
