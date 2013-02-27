@@ -100,6 +100,12 @@
 
 #define VBIF_VBIF_DDR_FORCE_CLK_ON              REG_MDP(0x24004)
 #define VBIF_VBIF_DDR_OUT_MAX_BURST             REG_MDP(0x240D8)
+#define VBIF_VBIF_DDR_ARB_CTRL                  REG_MDP(0x240F0)
+#define VBIF_VBIF_DDR_RND_RBN_QOS_ARB           REG_MDP(0x24124)
+#define VBIF_VBIF_DDR_AXI_AMEMTYPE_CONF0        REG_MDP(0x24160)
+#define VBIF_VBIF_DDR_AXI_AMEMTYPE_CONF1        REG_MDP(0x24164)
+#define VBIF_VBIF_DDR_OUT_AOOO_AXI_EN           REG_MDP(0x24178)
+#define VBIF_VBIF_DDR_OUT_AX_AOOO               REG_MDP(0x2417C)
 
 void mdp_set_revision(int rev);
 int mdp_get_revision();
