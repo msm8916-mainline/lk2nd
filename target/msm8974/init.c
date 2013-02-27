@@ -298,12 +298,17 @@ void reboot_device(unsigned reboot_reason)
 /* Returns 1 if target supports continuous splash screen. */
 int target_cont_splash_screen()
 {
-	switch(board_platform_id())
+	switch(board_hardware_id())
 	{
-	case HW_PLATFORM_SURF:
-	case HW_PLATFORM_FFA:
-	default:
-		return 0;
+		case HW_PLATFORM_SURF:
+		case HW_PLATFORM_MTP:
+		case HW_PLATFORM_FLUID:
+			dprintf(SPEW, "Target_cont_splash=1\n");
+			return 1;
+			break;
+		default:
+			dprintf(SPEW, "Target_cont_splash=0\n");
+			return 0;
 	}
 }
 
