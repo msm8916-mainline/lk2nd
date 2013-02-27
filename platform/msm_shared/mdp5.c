@@ -111,10 +111,6 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 	/* write active region size*/
 	mdp_rgb_size = (fb->height << 16) + fb->width;
 
-	/* Ping-Pong done Tear Check Read/Write  */
-	/* Underrun(Interface 0/1/2/3) VSYNC Interrupt Enable  */
-	writel(0xFF777713, MDP_INTR_EN);
-
 	access_secure = restore_secure_cfg(SECURE_DEVICE_MDSS);
 
 	mdp_clk_gating_ctrl();
@@ -218,8 +214,9 @@ int mdp_dsi_video_off()
 		/* Ping-Pong done Tear Check Read/Write  */
 		/* Underrun(Interface 0/1/2/3) VSYNC Interrupt Enable  */
 		writel(0xFF777713, MDP_INTR_CLEAR);
-		writel(0x00000000, MDP_INTR_EN);
 	}
+
+	writel(0x00000000, MDP_INTR_EN);
 
 	return NO_ERROR;
 }
