@@ -871,9 +871,11 @@ int mipi_dsi_off()
 		mdelay(10);
 		writel(0x0001, DSI_SOFT_RESET);
 		writel(0x0000, DSI_SOFT_RESET);
+		writel(0x1115501, DSI_INT_CTRL);
 		writel(0, DSI_CTRL);
-	} else
-		writel(0x0, DSI_INT_CTRL);
+	}
+
+	writel(0x1115501, DSI_INT_CTRL);
 
 	return NO_ERROR;
 }
