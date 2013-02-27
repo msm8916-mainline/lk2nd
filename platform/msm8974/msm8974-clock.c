@@ -334,6 +334,59 @@ static struct vote_clk gcc_ce2_axi_clk = {
 	},
 };
 
+static struct clk_freq_tbl ftbl_gcc_ce1_clk[] = {
+	F( 50000000,  gpll0,  12,   0,   0),
+	F(100000000,  gpll0,   6,   0,   0),
+	F_END
+};
+
+static struct rcg_clk ce1_clk_src = {
+	.cmd_reg      = (uint32_t *) GCC_CE1_CMD_RCGR,
+	.cfg_reg      = (uint32_t *) GCC_CE1_CFG_RCGR,
+	.set_rate     = clock_lib2_rcg_set_rate_hid,
+	.freq_tbl     = ftbl_gcc_ce1_clk,
+	.current_freq = &rcg_dummy_freq,
+
+	.c = {
+		.dbg_name = "ce1_clk_src",
+		.ops      = &clk_ops_rcg,
+	},
+};
+
+static struct vote_clk gcc_ce1_clk = {
+	.cbcr_reg = (uint32_t *) GCC_CE1_CBCR,
+	.vote_reg = (uint32_t *) APCS_CLOCK_BRANCH_ENA_VOTE,
+	.en_mask = BIT(5),
+
+	.c = {
+		.dbg_name = "gcc_ce1_clk",
+		.ops = &clk_ops_vote,
+	},
+};
+
+static struct vote_clk gcc_ce1_ahb_clk = {
+	.cbcr_reg = (uint32_t *) GCC_CE1_AHB_CBCR,
+	.vote_reg = (uint32_t *) APCS_CLOCK_BRANCH_ENA_VOTE,
+	.en_mask = BIT(3),
+
+	.c = {
+		.dbg_name = "gcc_ce1_ahb_clk",
+		.ops = &clk_ops_vote,
+	},
+};
+
+static struct vote_clk gcc_ce1_axi_clk = {
+	.cbcr_reg = (uint32_t *) GCC_CE1_AXI_CBCR,
+	.vote_reg = (uint32_t *) APCS_CLOCK_BRANCH_ENA_VOTE,
+	.en_mask = BIT(4),
+
+	.c = {
+		.dbg_name = "gcc_ce1_axi_clk",
+		.ops = &clk_ops_vote,
+	},
+};
+
+
 struct branch_clk gcc_blsp2_qup5_i2c_apps_clk = {
 	.cbcr_reg = BLSP2_QUP5_I2C_APPS_CBCR,
 	.parent   = &cxo_clk_src.c,
@@ -490,6 +543,12 @@ static struct clk_lookup msm_clocks_8974[] =
 	CLK_LOOKUP("ce2_axi_clk",  gcc_ce2_axi_clk.c),
 	CLK_LOOKUP("ce2_core_clk", gcc_ce2_clk.c),
 	CLK_LOOKUP("ce2_src_clk",  ce2_clk_src.c),
+
+	CLK_LOOKUP("ce1_ahb_clk",  gcc_ce1_ahb_clk.c),
+	CLK_LOOKUP("ce1_axi_clk",  gcc_ce1_axi_clk.c),
+	CLK_LOOKUP("ce1_core_clk", gcc_ce1_clk.c),
+	CLK_LOOKUP("ce1_src_clk",  ce1_clk_src.c),
+
 
 	CLK_LOOKUP("blsp2_ahb_clk",           gcc_blsp2_ahb_clk.c),
 	CLK_LOOKUP("blsp2_qup5_i2c_apps_clk", gcc_blsp2_qup5_i2c_apps_clk.c),

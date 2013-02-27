@@ -207,7 +207,7 @@ static void ce_async_reset(uint8_t instance)
 	}
 }
 
-static void clock_ce_enable(uint8_t instance)
+void clock_ce_enable(uint8_t instance)
 {
 	int ret;
 	char clk_name[64];
@@ -253,7 +253,7 @@ static void clock_ce_enable(uint8_t instance)
 	udelay(1);
 }
 
-static void clock_ce_disable(uint8_t instance)
+void clock_ce_disable(uint8_t instance)
 {
 	struct clk *ahb_clk;
 	struct clk *cclk;
@@ -295,6 +295,7 @@ void clock_config_ce(uint8_t instance)
 	ce_async_reset(instance);
 
 	clock_ce_enable(instance);
+
 }
 
 void clock_config_blsp_i2c(uint8_t blsp_id, uint8_t qup_id)
