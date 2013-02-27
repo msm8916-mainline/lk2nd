@@ -90,6 +90,7 @@ void write_device_info_flash(device_info *dev);
 static const char *emmc_cmdline = " androidboot.emmc=true";
 static const char *usb_sn_cmdline = " androidboot.serialno=";
 static const char *androidboot_mode = " androidboot.mode=";
+static const char *loglevel         = " quiet";
 static const char *battchg_pause = " androidboot.mode=charger";
 static const char *auth_kernel = " androidboot.authorized_kernel=true";
 
@@ -215,6 +216,8 @@ unsigned char *update_cmdline(const char * cmdline)
 	if (boot_into_ffbm) {
 		cmdline_len += strlen(androidboot_mode);
 		cmdline_len += strlen(ffbm);
+		/* reduce kernel console messages to speed-up boot */
+		cmdline_len += strlen(loglevel);
 	} else if (target_pause_for_battery_charge()) {
 		pause_at_bootup = 1;
 		cmdline_len += strlen(battchg_pause);
@@ -296,6 +299,9 @@ unsigned char *update_cmdline(const char * cmdline)
 			if (have_cmdline) --dst;
 			while ((*dst++ = *src++));
 			src = ffbm;
+			if (have_cmdline) --dst;
+			while ((*dst++ = *src++));
+			src = loglevel;
 			if (have_cmdline) --dst;
 			while ((*dst++ = *src++));
 		} else if (pause_at_bootup) {
