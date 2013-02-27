@@ -175,3 +175,7 @@ void clock_config_uart_dm(uint8_t id)
 	}
 }
 
+void clock_config_ce(uint8_t instance)
+{
+}
+
