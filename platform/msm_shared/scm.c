@@ -187,7 +187,7 @@ int restore_secure_cfg(uint32_t id)
 	int ret, scm_ret = 0;
 	tz_secure_cfg secure_cfg;
 
-	secure_cfg.id    = 1;
+	secure_cfg.id    = id;
 	secure_cfg.spare = 0;
 
 	ret = scm_call(SVC_MEMORY_PROTECTION, IOMMU_SECURE_CFG, &secure_cfg, sizeof(secure_cfg),
