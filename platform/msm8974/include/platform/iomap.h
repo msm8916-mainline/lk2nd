@@ -90,6 +90,7 @@
 
 #define MSM_CE2_BAM_BASE            0xFD444000
 #define MSM_CE2_BASE                0xFD45A000
+#define USB2_PHY_SEL                0xFD4AB000
 
 #define TLMM_BASE_ADDR              0xFD510000
 #define GPIO_CONFIG_ADDR(x)         (TLMM_BASE_ADDR + 0x1000 + (x)*0x10)
