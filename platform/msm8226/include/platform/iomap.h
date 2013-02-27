@@ -38,6 +38,9 @@
 
 #define APPS_SS_BASE                0xF9000000
 
+#define SYSTEM_IMEM_BASE            0xFE800000
+#define RESTART_REASON_ADDR         (SYSTEM_IMEM_BASE + 0x565C)
+
 #define MSM_GIC_DIST_BASE           APPS_SS_BASE
 #define MSM_GIC_CPU_BASE            (APPS_SS_BASE + 0x2000)
 #define APPS_APCS_QTMR_AC_BASE      (APPS_SS_BASE + 0x00020000)
