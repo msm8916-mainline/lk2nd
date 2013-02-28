@@ -39,6 +39,28 @@
 extern int target_is_emmc_boot(void);
 extern uint32_t target_dev_tree_mem(void *fdt, uint32_t memory_node_offset);
 
+/*
+ * Argument:     Start address of the kernel loaded in RAM
+ * Return Value: DTB address : If appended device tree is found
+ *               '0'         : Otherwise
+ */
+uint32_t dev_tree_appended(void *kernel)
+{
+	uint32_t app_dtb_offset = 0;
+	uint32_t dtb_magic = 0;
+	uint32_t dtb = 0;
+
+	memcpy((void*) &app_dtb_offset, (void*) (kernel + DTB_OFFSET), sizeof(uint32_t));
+	memcpy((void*) &dtb_magic, (void*) (kernel + app_dtb_offset), sizeof(uint32_t));
+
+	if (dtb_magic == DTB_MAGIC) {
+		dprintf(INFO, "Found Appeneded Flattened Device tree\n");
+		dtb = (uint32_t) (kernel + app_dtb_offset);
+	}
+
+	return dtb;
+}
+
 /* Function to return the pointer to the start of the correct device tree
  *  based on the platform data.
  */
