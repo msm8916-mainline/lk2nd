@@ -41,6 +41,7 @@
 #include <dev/keys.h>
 #include <pm8x41.h>
 #include <crypto5_wrapper.h>
+#include <hsusb.h>
 
 extern  bool target_use_signed_kernel(void);
 
@@ -244,4 +245,21 @@ crypto_engine_type board_ce_type(void)
 
 unsigned board_machtype(void)
 {
+}
+
+void target_usb_init(void)
+{
+	uint32_t val;
+
+	/* Select and enable external configuration with USB PHY */
+	ulpi_write(ULPI_MISC_A_VBUSVLDEXTSEL | ULPI_MISC_A_VBUSVLDEXT, ULPI_MISC_A_SET);
+
+	/* Enable sess_vld */
+	val = readl(USB_GENCONFIG_2) | GEN2_SESS_VLD_CTRL_EN;
+	writel(val, USB_GENCONFIG_2);
+
+	/* Enable external vbus configuration in the LINK */
+	val = readl(USB_USBCMD);
+	val |= SESS_VLD_CTRL;
+	writel(val, USB_USBCMD);
 }
