@@ -666,11 +666,6 @@ int udc_init(struct udc_device *dev)
 
 	hsusb_clock_init();
 
-	/* Do any target specific intialization like GPIO settings,
-	 * LDO, PHY configuration etc. needed before USB port can be used.
-	 */
-	target_usb_init();
-
 	/* RESET */
 	writel(0x00080000, USB_USBCMD);
 
@@ -681,7 +676,12 @@ int udc_init(struct udc_device *dev)
 	/* select ULPI phy */
 	writel(0x80000000, USB_PORTSC);
 
-	   /* USB_OTG_HS_AHB_BURST */
+	/* Do any target specific intialization like GPIO settings,
+	 * LDO, PHY configuration etc. needed before USB port can be used.
+	 */
+	target_usb_init();
+
+	/* USB_OTG_HS_AHB_BURST */
 	writel(0x0, USB_SBUSCFG);
 
 	/* USB_OTG_HS_AHB_MODE: HPROT_MODE */
@@ -858,6 +858,7 @@ int udc_start(void)
 	struct udc_descriptor *desc;
 	unsigned char *data;
 	unsigned size;
+	uint32_t val;
 
 	dprintf(ALWAYS, "udc_start()\n");
 
@@ -908,7 +909,9 @@ int udc_start(void)
 	unmask_interrupt(INT_USB_HS);
 
 	/* go to RUN mode (D+ pullup enable) */
-	writel(0x00080001, USB_USBCMD);
+	val = readl(USB_USBCMD);
+
+	writel(val | 0x00080001, USB_USBCMD);
 
 	return 0;
 }
