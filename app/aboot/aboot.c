@@ -104,6 +104,8 @@ static const char *baseband_dsda2   = " androidboot.baseband=dsda2";
 /* Assuming unauthorized kernel image by default */
 static int auth_kernel_img = 0;
 
+static uint32_t app_dev_tree = 0;
+
 static device_info device = {DEVICE_MAGIC, 0, 0};
 
 static struct udc_device surf_udc_device = {
@@ -412,7 +414,6 @@ void boot_linux(void *kernel, unsigned *tags,
 		dprintf(CRITICAL, "ERROR: Updating Device Tree Failed \n");
 		ASSERT(0);
 	}
-
 	dprintf(INFO, "Updating device tree: done\n");
 #else
 	/* Generating the Atags */
@@ -453,6 +454,7 @@ int boot_linux_from_mmc(void)
 	unsigned offset = 0;
 	unsigned long long ptn = 0;
 	const char *cmdline;
+	void *tags;
 	int index = INVALID_PTN;
 
 	unsigned char *image_addr = 0;
@@ -594,6 +596,16 @@ int boot_linux_from_mmc(void)
 
 			/* Read device device tree in the "tags_add */
 			memmove((void *)hdr->tags_addr, (char *)dt_table_offset + dt_entry_ptr->offset, dt_entry_ptr->size);
+		} else {
+				/*
+				 * Look for appended device tree if DTB is not found in boot image
+				 * If found load the kernel & boot up
+				 */
+				app_dev_tree = dev_tree_appended((void*) hdr->kernel_addr);
+				if (!app_dev_tree) {
+					dprintf(CRITICAL, "ERROR: Appended Device Tree Blob not found\n");
+					return -1;
+				}
 		}
 		#endif
 		/* Make sure everything from scratch address is read before next step!*/
@@ -676,6 +688,16 @@ int boot_linux_from_mmc(void)
 				dprintf(CRITICAL, "ERROR: Cannot read device tree\n");
 				return -1;
 			}
+		} else {
+				/*
+				 * Look for appended device tree if DTB is not found in boot image
+				 * If found load the kernel & boot up
+				 */
+				app_dev_tree = dev_tree_appended((void*) hdr->kernel_addr);
+				if (!app_dev_tree) {
+					dprintf(CRITICAL, "ERROR: Appended Device Tree Blob not found\n");
+					return -1;
+				}
 		}
 		#endif
 	}
@@ -688,7 +710,17 @@ unified_boot:
 		cmdline = DEFAULT_CMDLINE;
 	}
 
-	boot_linux((void *)hdr->kernel_addr, (unsigned *) hdr->tags_addr,
+	/*
+	 * If appended dev tree is found, update the atags with
+	 * memory address to the DTB appended location on RAM.
+	 * Else update with the atags address in the kernel header
+	 */
+	if (app_dev_tree)
+		tags = (void *)app_dev_tree;
+	else
+		tags = (void *)hdr->tags_addr;
+
+	boot_linux((void *)hdr->kernel_addr, (unsigned *)tags,
 		   (const char *)cmdline, board_machtype(),
 		   (void *)hdr->ramdisk_addr, hdr->ramdisk_size);
 
@@ -1134,6 +1166,17 @@ int copy_dtb(uint8_t *boot_image_start)
 		memmove((void*) hdr->tags_addr,
 				boot_image_start + dt_image_offset +  dt_entry_ptr->offset,
 				dt_entry_ptr->size);
+	} else {
+		/*
+		 * Look for appended device tree if DTB is not found in boot image
+		 * If found load the kernel & boot up
+		 */
+		memmove((void*) hdr->kernel_addr, boot_image_start + page_size, hdr->kernel_size);
+		app_dev_tree = dev_tree_appended((void*) hdr->kernel_addr);
+		if (!app_dev_tree) {
+			dprintf(CRITICAL, "ERROR: Appended Device Tree Blob not found\n");
+			return -1;
+		}
 	}
 
 	/* Everything looks fine. Return success. */
@@ -1147,6 +1190,7 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	unsigned ramdisk_actual;
 	struct boot_img_hdr *hdr;
 	char *ptr = ((char*) data);
+	void *tags;
 
 	if (sz < sizeof(hdr)) {
 		fastboot_fail("invalid bootimage header");
@@ -1192,7 +1236,17 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	memmove((void*) hdr->ramdisk_addr, ptr + page_size + kernel_actual, hdr->ramdisk_size);
 	memmove((void*) hdr->kernel_addr, ptr + page_size, hdr->kernel_size);
 
-	boot_linux((void*) hdr->kernel_addr, (void*) hdr->tags_addr,
+	/*
+	 * If appended dev tree is found, update the atags with
+	 * memory address to the DTB appended location on RAM.
+	 * Else update with the atags address in the kernel header
+	 */
+	if (app_dev_tree)
+		tags = (void *)app_dev_tree;
+	else
+		tags = (void *)hdr->tags_addr;
+
+	boot_linux((void*) hdr->kernel_addr, (void*) tags,
 		   (const char*) hdr->cmdline, board_machtype(),
 		   (void*) hdr->ramdisk_addr, hdr->ramdisk_size);
 }
