@@ -253,11 +253,8 @@ void msm8930_keypad_gpio_init()
 	int i = 0;
 	int num = 0;
 	struct pm8xxx_gpio_init *gpio_array;
-	uint32_t pmic_type;
 
-	pmic_type = board_pmic_type();
-
-	if (pmic_type == PMIC_IS_PM8917)
+	if (platform_pmic_type(PMIC_IS_PM8917))
 	{
 		num = ARRAY_SIZE(pm8917_keypad_gpios);
 		gpio_array = pm8917_keypad_gpios;
@@ -280,11 +277,8 @@ void apq8064_keypad_gpio_init()
 	int i = 0;
 	int num = 0;
 	struct pm8xxx_gpio_init *gpio_array;
-	uint32_t pmic_type;
 
-	pmic_type = board_pmic_type();
-
-	if (pmic_type == PMIC_IS_PM8917)
+	if (platform_pmic_type(PMIC_IS_PM8917))
 	{
 		num = ARRAY_SIZE(pm8917_keypad_gpios_apq);
 		gpio_array = pm8917_keypad_gpios_apq;
