@@ -73,6 +73,8 @@ static int target_volume_up()
 
 	gpio_tlmm_config(TLMM_VOL_UP_BTN_GPIO, 0, GPIO_INPUT, GPIO_PULL_UP, GPIO_2MA, GPIO_ENABLE);
 
+	thread_sleep(10);
+
 	/* Get status of GPIO */
 	status = gpio_status(TLMM_VOL_UP_BTN_GPIO);
 
