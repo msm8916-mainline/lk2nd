@@ -33,6 +33,10 @@
 
 #include <sys/types.h>
 
+#define SMEM_V7_SMEM_MAX_PMIC_DEVICES   1
+#define SMEM_V8_SMEM_MAX_PMIC_DEVICES   3
+#define SMEM_MAX_PMIC_DEVICES           SMEM_V8_SMEM_MAX_PMIC_DEVICES
+
 struct smem_proc_comm {
 	unsigned command;
 	unsigned status;
@@ -91,8 +95,18 @@ typedef enum
    PMIC_IS_PM8038,
    PMIC_IS_PM8922,
    PMIC_IS_PM8917,
-   PMIC_IS_INVALID = 0xffffffff,
-} pm_model_type;
+   PMIC_IS_INVALID = 0x7fffffff,
+} pm_model_type_afly;
+
+typedef enum
+{
+	PMIC_IS_UNKNOWN   = 0,
+	PMIC_IS_PM8941    = 1,
+	PMIC_IS_PM8841    = 2,
+	PMIC_IS_PM8019    = 3,
+	PMIC_IS_PM8026    = 4,
+	PMIC_IS_PM8110    = 5,
+} pm_model_type_bfly;
 
 struct smem_board_info_v3 {
 	unsigned format;
@@ -132,6 +146,24 @@ struct smem_board_info_v7 {
 	unsigned pmic_type;
 	unsigned pmic_version;
 	unsigned buffer_align;	//Need for 8 bytes alignment while reading from shared memory.
+};
+
+struct smem_pmic_info {
+	unsigned pmic_type;
+	unsigned pmic_version;
+};
+
+struct smem_board_info_v8 {
+	struct smem_board_info_v3 board_info_v3;
+	unsigned platform_version;
+	unsigned fused_chip;
+	unsigned platform_subtype;
+	struct smem_pmic_info pmic_info[SMEM_V8_SMEM_MAX_PMIC_DEVICES];
+	/*
+	 * Need for 8 bytes alignment
+	 * while reading from shared memory
+	 */
+	unsigned buffer_align;
 };
 
 typedef struct {
