@@ -100,6 +100,7 @@ static const char *baseband_mdm     = " androidboot.baseband=mdm";
 static const char *baseband_sglte   = " androidboot.baseband=sglte";
 static const char *baseband_dsda    = " androidboot.baseband=dsda";
 static const char *baseband_dsda2   = " androidboot.baseband=dsda2";
+static const char *baseband_sglte2  = " androidboot.baseband=sglte2";
 
 /* Assuming unauthorized kernel image by default */
 static int auth_kernel_img = 0;
@@ -197,6 +198,10 @@ unsigned char *update_cmdline(const char * cmdline)
 			cmdline_len += strlen(baseband_sglte);
 			break;
 
+		case BASEBAND_SGLTE2:
+			cmdline_len += strlen(baseband_sglte2);
+			break;
+
 		case BASEBAND_DSDA:
 			cmdline_len += strlen(baseband_dsda);
 			break;
@@ -279,6 +284,12 @@ unsigned char *update_cmdline(const char * cmdline)
 
 			case BASEBAND_SGLTE:
 				src = baseband_sglte;
+				if (have_cmdline) --dst;
+				while ((*dst++ = *src++));
+				break;
+
+			case BASEBAND_SGLTE2:
+				src = baseband_sglte2;
 				if (have_cmdline) --dst;
 				while ((*dst++ = *src++));
 				break;
