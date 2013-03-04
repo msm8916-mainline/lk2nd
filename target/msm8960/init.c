@@ -289,6 +289,7 @@ void target_uart_init(void)
 	case LINUX_MACHTYPE_8930_CDP:
 	case LINUX_MACHTYPE_8930_MTP:
 	case LINUX_MACHTYPE_8930_FLUID:
+	case LINUX_MACHTYPE_8930_EVT:
 
 		uart_dm_init(5, 0x16400000, 0x16440000);
 		break;
@@ -377,6 +378,9 @@ void target_detect(struct board_data *board)
 			break;
 		case HW_PLATFORM_FLUID:
 			target_id = LINUX_MACHTYPE_8930_FLUID;
+			break;
+		case HW_PLATFORM_QRD:
+			target_id = LINUX_MACHTYPE_8930_EVT;
 			break;
 		default:
 			target_id = LINUX_MACHTYPE_8930_CDP;
