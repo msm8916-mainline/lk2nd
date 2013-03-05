@@ -44,6 +44,8 @@
 #define USB_SBUSCFG          (MSM_USB_BASE + 0x0090)
 #define USB_AHB_MODE         (MSM_USB_BASE + 0x0098)
 
+#define USB_GENCONFIG_2      (MSM_USB_BASE + 0x00A0)
+
 #define USB_CAPLENGTH        (MSM_USB_BASE + 0x0100)	/* 8 bit */
 #define USB_HCIVERSION       (MSM_USB_BASE + 0x0102)	/* 16 bit */
 #define USB_HCSPARAMS        (MSM_USB_BASE + 0x0104)
@@ -71,6 +73,11 @@
 #define USB_ENDPTCTRL(n)     (MSM_USB_BASE + 0x01C0 + (4 * (n)))
 #define USB_OTG_HS_PHY_CTRL  (MSM_USB_BASE + 0x0240)
 #define USB_OTG_HS_PHY_SEC_CTRL (MSM_USB_BASE + 0x0278)
+
+/* ULPI registers */
+#define ULPI_MISC_A_READ         0x96
+#define ULPI_MISC_A_SET          0x97
+#define ULPI_MISC_A_CLEAR        0x98
 
 #define USBCMD_RESET   2
 #define USBCMD_ATTACH  1
@@ -157,6 +164,11 @@ struct ept_queue_item {
 #define CTRL_RXT_BULK         (2 << 2)
 #define CTRL_RXT_INT          (3 << 2)
 
+#define GEN2_SESS_VLD_CTRL_EN (1 << 7)
+#define SESS_VLD_CTRL         (1 << 25)
+
+
+/* ULPI bit map */
 #define ULPI_WAKEUP           (1 << 31)
 #define ULPI_RUN              (1 << 30)
 #define ULPI_WRITE            (1 << 29)
@@ -165,5 +177,8 @@ struct ept_queue_item {
 #define ULPI_ADDR(n)          (((n) & 255) << 16)
 #define ULPI_DATA(n)          ((n) & 255)
 #define ULPI_DATA_READ(n)     (((n) >> 8) & 255)
+
+#define ULPI_MISC_A_VBUSVLDEXTSEL    (1 << 1)
+#define ULPI_MISC_A_VBUSVLDEXT       (1 << 0)
 
 #endif
