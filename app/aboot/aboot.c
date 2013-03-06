@@ -431,8 +431,8 @@ void boot_linux(void *kernel, unsigned *tags,
 	generate_atags(tags, final_cmdline, ramdisk, ramdisk_size);
 #endif
 
-	dprintf(INFO, "booting linux @ %p, ramdisk @ %p (%d)\n",
-		entry, ramdisk, ramdisk_size);
+	dprintf(INFO, "booting linux @ %p, ramdisk @ %p (%d), tags/device tree @ %p\n",
+		entry, ramdisk, ramdisk_size, tags_phys);
 
 	enter_critical_section();
 
