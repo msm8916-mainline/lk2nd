@@ -245,6 +245,13 @@ crypto_engine_type board_ce_type(void)
 
 unsigned board_machtype(void)
 {
+	return 0;
+}
+
+void target_usb_stop(void)
+{
+	/* Disable VBUS mimicing in the controller. */
+	ulpi_write(ULPI_MISC_A_VBUSVLDEXTSEL | ULPI_MISC_A_VBUSVLDEXT, ULPI_MISC_A_CLEAR);
 }
 
 void target_usb_init(void)
