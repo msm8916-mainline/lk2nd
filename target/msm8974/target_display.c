@@ -136,9 +136,6 @@ void display_init(void)
 
 	dprintf(INFO, "display_init(),target_id=%d.\n", hw_id);
 
-	if (soc_ver >= BOARD_SOC_VERSION2)
-		return;
-
 	switch (hw_id) {
 	case HW_PLATFORM_MTP:
 	case HW_PLATFORM_FLUID:
