@@ -35,8 +35,6 @@
 #include <platform/iomap.h>
 #include <dev_tree.h>
 
-#define MB (1024*1024)
-
 /* Funtion to add the ram partition entries into device tree.
  * The function assumes that all the entire fixed memory regions should
  * be listed in the first bank of the passed in ddr regions.
@@ -56,14 +54,6 @@ uint32_t target_dev_tree_mem(void *fdt, uint32_t memory_node_offset)
         if((ram_ptable.parts[i].category == SDRAM) &&
            (ram_ptable.parts[i].type == SYS_MEMORY))
         {
-			if (ram_ptable.parts[i].start == 0x0)
-			{
-				/* Ensure that the size for this segment is > 1MB */
-				ASSERT(ram_ptable.parts[i].size > 1*MB);
-
-				ram_ptable.parts[i].start += 1*MB;
-				ram_ptable.parts[i].size  -= 1*MB;
-			}
 
 			/* Pass along all other usable memory regions to Linux */
 			ret = dev_tree_add_mem_info(fdt,
