@@ -316,7 +316,6 @@ struct flash_id
 	unsigned pagesize;
 	unsigned blksize;
 	unsigned oobsize;
-	unsigned onenand;
 	unsigned ecc_8_bits;
 };
 
