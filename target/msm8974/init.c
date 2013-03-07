@@ -42,6 +42,9 @@
 #include <crypto5_wrapper.h>
 #include <hsusb.h>
 #include <clock.h>
+#include <partition_parser.h>
+#include <scm.h>
+#include <platform/clock.h>
 
 extern  bool target_use_signed_kernel(void);
 
@@ -58,6 +61,11 @@ static unsigned int target_id;
 #define CE_READ_PIPE            3
 #define CE_WRITE_PIPE           2
 #define CE_ARRAY_SIZE           20
+
+#ifdef SSD_ENABLE
+#define SSD_CE_INSTANCE_1       1
+#define SSD_PARTITION_SIZE      8192
+#endif
 
 static uint32_t mmc_sdc_base[] =
 	{ MSM_SDC1_BASE, MSM_SDC2_BASE, MSM_SDC3_BASE, MSM_SDC4_BASE };
@@ -187,10 +195,43 @@ unsigned board_machtype(void)
 }
 
 /* Do any target specific intialization needed before entering fastboot mode */
+#ifdef SSD_ENABLE
+static uint32_t  buffer[SSD_PARTITION_SIZE] __attribute__ ((aligned(32)));
+static void ssd_load_keystore_from_emmc()
+{
+	uint64_t           ptn    = 0;
+	int                index  = -1;
+	uint32_t           size   = SSD_PARTITION_SIZE;
+	int                ret    = -1;
+
+	index = partition_get_index("ssd");
+
+	ptn   = partition_get_offset(index);
+	if(ptn == 0){
+		dprintf(CRITICAL,"ERROR: ssd parition not found");
+		return;
+	}
+
+	if(mmc_read(ptn, buffer, size)){
+		dprintf(CRITICAL,"ERROR:Cannot read data\n");
+		return;
+	}
+
+	ret = scm_protect_keystore((uint32_t *)&buffer[0],size);
+	if(ret != 0)
+		dprintf(CRITICAL,"ERROR: scm_protect_keystore Failed");
+}
+#endif
+
 void target_fastboot_init(void)
 {
 	/* Set the BOOT_DONE flag in PM8921 */
 	pm8x41_set_boot_done();
+
+#ifdef SSD_ENABLE
+	clock_ce_enable(SSD_CE_INSTANCE_1);
+	ssd_load_keystore_from_emmc();
+#endif
 }
 
 /* Detect the target type */
@@ -355,4 +396,11 @@ unsigned target_pause_for_battery_charge(void)
 		return 1;*/
 
 	return 0;
+}
+
+void target_usb_stop(void)
+{
+#ifdef SSD_ENABLE
+	clock_ce_disable(SSD_CE_INSTANCE_1);
+#endif
 }
