@@ -60,6 +60,7 @@
 #define PM_GPIO_OUTPUT_MASK     0x0F
 
 #define PON_PSHOLD_WARM_RESET   0x1
+#define PON_PSHOLD_SHUTDOWN     0x4
 
 #define PMIC_VERSION_V2         1
 
@@ -89,6 +90,7 @@ void pm8x41_set_boot_done();
 uint32_t pm8x41_resin_status();
 uint32_t pm8x41_resin_bark_workaround_status();
 void pm8x41_reset_configure(uint8_t);
+void pm8x41_v2_reset_configure(uint8_t);
 int pm8x41_ldo_set_voltage(const char *, uint32_t);
 int pm8x41_ldo_control(const char *, uint8_t);
 uint8_t pm8x41_get_pmic_rev();
