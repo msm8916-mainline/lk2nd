@@ -100,6 +100,14 @@
 #define MPM2_MPM_PS_HOLD                     0xFC4AB000
 #define MPM2_MPM_SLEEP_TIMETICK_COUNT_VAL    0xFC4A3000
 
+/* CE 1 */
+#define  GCC_CE1_BCR                (CLK_CTL_BASE + 0x1040)
+#define  GCC_CE1_CMD_RCGR           (CLK_CTL_BASE + 0x1050)
+#define  GCC_CE1_CFG_RCGR           (CLK_CTL_BASE + 0x1054)
+#define  GCC_CE1_CBCR               (CLK_CTL_BASE + 0x1044)
+#define  GCC_CE1_AXI_CBCR           (CLK_CTL_BASE + 0x1048)
+#define  GCC_CE1_AHB_CBCR           (CLK_CTL_BASE + 0x104C)
+
 /* CE 2 */
 #define  GCC_CE2_BCR                (CLK_CTL_BASE + 0x1080)
 #define  GCC_CE2_CMD_RCGR           (CLK_CTL_BASE + 0x1090)
