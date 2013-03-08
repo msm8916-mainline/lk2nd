@@ -411,3 +411,22 @@ void target_usb_stop(void)
 	clock_ce_disable(SSD_CE_INSTANCE_1);
 #endif
 }
+
+void shutdown_device()
+{
+	dprintf(CRITICAL, "Going down for shutdown.\n");
+
+	/* Configure PMIC for shutdown. */
+	if (pmic_ver == PMIC_VERSION_V2)
+		pm8x41_v2_reset_configure(PON_PSHOLD_SHUTDOWN);
+	else
+		pm8x41_reset_configure(PON_PSHOLD_SHUTDOWN);
+
+	/* Drop PS_HOLD for MSM */
+	writel(0x00, MPM2_MPM_PS_HOLD);
+
+	mdelay(5000);
+
+	dprintf(CRITICAL, "Shutdown failed\n");
+
+}
