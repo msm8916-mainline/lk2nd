@@ -62,19 +62,102 @@ typedef struct {
 	uint32 spare;
 } tz_secure_cfg;
 
-#define SCM_SVC_SSD                 7
+typedef struct {
+  uint32  md_len;
+  uint32* md;
+} ssd_parse_md_req;
+
+typedef struct {
+  uint32  status;
+  uint32  md_ctx_id;
+  uint32* md_end_ptr;
+} ssd_parse_md_rsp;
+
+typedef struct {
+  uint32  md_ctx_id;
+  uint32  last_frag;
+  uint32  frag_len;
+  uint32 *frag;
+} ssd_decrypt_img_frag_req;
+
+typedef struct {
+  uint32 status;
+} ssd_decrypt_img_frag_rsp;
+
+typedef struct{
+  uint32 feature_id;
+} feature_version_req;
+
+typedef struct{
+  uint32 version;
+} feature_version_rsp;
+
+typedef struct{
+  uint32 *keystore_ptr;
+  uint32  keystore_len;
+} ssd_protect_keystore_req;
+
+typedef struct{
+  uint32 status;
+} ssd_protect_keystore_rsp;
+
+/* Service IDs */
+#define TZBSP_SVC_INFO              0x06
+#define SCM_SVC_SSD                 0x07
+#define SVC_MEMORY_PROTECTION       0x0C
+
+/*Service specific command IDs */
 #define SSD_DECRYPT_ID              0x01
 #define SSD_ENCRYPT_ID              0x02
+#define SSD_PROTECT_KEYSTORE_ID     0x05
+#define SSD_PARSE_MD_ID             0x06
+#define SSD_DECRYPT_IMG_FRAG_ID     0x07
 
-#define SVC_MEMORY_PROTECTION       0x0C
+
+#define SECURE_DEVICE_MDSS          0x01
+
 #define IOMMU_SECURE_CFG            0x02
 
-#define SECURE_DEVICE_MDSS          1
+#define TZ_INFO_GET_FEATURE_ID      0x03
+
+/* SSD parsing status messages from TZ */
+#define SSD_PMD_ENCRYPTED           0
+#define SSD_PMD_NOT_ENCRYPTED       1
+#define SSD_PMD_NO_MD_FOUND         3
+#define SSD_PMD_BUSY                4
+#define SSD_PMD_BAD_MD_PTR_OR_LEN   5
+#define SSD_PMD_PARSING_INCOMPLETE  6
+#define SSD_PMD_PARSING_FAILED      7
+#define SSD_PMD_SETUP_CIPHER_FAILED 8
+
+/* Keystore status messages */
+#define TZBSP_SSD_PKS_SUCCESS            0 /**< Successful return. */
+#define TZBSP_SSD_PKS_INVALID_PTR        1 /**< Keystore pointer invalid. */
+#define TZBSP_SSD_PKS_INVALID_LEN        2 /**< Keystore length incorrect. */
+#define TZBSP_SSD_PKS_UNALIGNED_PTR      3 /**< Keystore pointer not word
+                                             aligned. */
+#define TZBSP_SSD_PKS_PROTECT_MEM_FAILED 4 /**< Failure when protecting
+                                             the keystore memory.*/
+#define TZBSP_SSD_PKS_INVALID_NUM_KEYS   5 /**< Unsupported number of
+                                             keys passed.  If a valid
+                                             pointer to non-secure
+                                             memory is passed that
+                                             isn't a keystore, this is
+                                             a likely return code. */
+#define TZBSP_SSD_PKS_DECRYPT_FAILED     6  /**< The keystore could not be
+                                             decrypted. */
+
+/* Features in TZ */
+#define TZBSP_FVER_SSD              5
+
+#define TZBSP_GET_FEATURE_VERSION(major) ((major >> 22)& 0x3FF)
 
 static uint32 smc(uint32 cmd_addr);
-
 int decrypt_scm(uint32_t ** img_ptr, uint32_t * img_len_ptr);
+int decrypt_scm_v2(uint32_t ** img_ptr, uint32_t * img_len_ptr);
 int encrypt_scm(uint32_t ** img_ptr, uint32_t * img_len_ptr);
+int scm_svc_version(uint32 * major, uint32 * minor);
+int scm_protect_keystore(uint32_t * img_ptr, uint32_t  img_len);
 
 #define SCM_SVC_FUSE                0x08
 #define SCM_BLOW_SW_FUSE_ID         0x01
