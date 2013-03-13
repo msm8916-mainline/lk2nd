@@ -474,6 +474,43 @@ uint8_t get_tamper_fuse_cmd()
 	return resp_buf;
 }
 
+#define SHA256_DIGEST_LENGTH	(256/8)
+/*
+ * struct qseecom_save_partition_hash_req
+ * @partition_id - partition id.
+ * @digest[SHA256_DIGEST_LENGTH] -  sha256 digest.
+ */
+struct qseecom_save_partition_hash_req {
+	uint32_t partition_id; /* in */
+	uint8_t digest[SHA256_DIGEST_LENGTH]; /* in */
+};
+
+
+void save_kernel_hash_cmd(void *digest)
+{
+	uint32_t svc_id;
+	uint32_t cmd_id;
+	void *cmd_buf;
+	size_t cmd_len;
+	void *resp_buf = NULL;
+	size_t resp_len = 0;
+	struct qseecom_save_partition_hash_req req;
+
+	/*no response */
+	resp_buf = NULL;
+	resp_len = 0;
+
+	req.partition_id = 0; /* kernel */
+	memcpy(req.digest, digest, sizeof(req.digest));
+
+	svc_id = SCM_SVC_ES;
+	cmd_id = SCM_SAVE_PARTITION_HASH_ID;
+	cmd_buf = (void *)&req;
+	cmd_len = sizeof(req);
+
+	scm_call(svc_id, cmd_id, cmd_buf, cmd_len, resp_buf, resp_len);
+}
+
 /*
  * Switches the CE1 channel between ADM and register usage.
  * channel : AP_CE_REGISTER_USE, CE1 uses register interface

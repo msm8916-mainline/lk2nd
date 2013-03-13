@@ -171,6 +171,9 @@ int scm_protect_keystore(uint32_t * img_ptr, uint32_t  img_len);
 #define SCM_SVC_CE_CHN_SWITCH_ID    0x04
 #define SCM_CE_CHN_SWITCH_ID        0x02
 
+#define SCM_SVC_ES                      0x10
+#define SCM_SAVE_PARTITION_HASH_ID      0x01
+
 enum ap_ce_channel_type {
 AP_CE_REGISTER_USE = 0,
 AP_CE_ADM_USE = 1
