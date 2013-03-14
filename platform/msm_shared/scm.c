@@ -261,22 +261,47 @@ int decrypt_scm(uint32_t ** img_ptr, uint32_t * img_len_ptr)
 
 static int ssd_image_is_encrypted(uint32_t ** img_ptr, uint32_t * img_len_ptr, uint32 * ctx_id)
 {
-	int              ret = 0;
+	int              ret     = 0;
 	ssd_parse_md_req parse_req;
 	ssd_parse_md_rsp parse_rsp;
+	int              prev_len = 0;
 
-	/* populate meta-data ptr */
+	/* Populate meta-data ptr. Here md_len is the meta-data length.
+	 * The Code below follows a growing length approach. First send
+	 * min(img_len_ptr,SSD_HEADER_MIN_SIZE) say 128 bytes for example.
+	 * If parse_rsp.status = PARSING_INCOMPLETE we send md_len = 256.
+	 * If subsequent status = PARSING_INCOMPLETE we send md_len = 512,
+	 * 1024bytes and so on until we get an valid response(rsp.status) from TZ*/
+
 	parse_req.md     = (uint32*)*img_ptr;
-	parse_req.md_len = (uint32)*img_len_ptr;
+	parse_req.md_len = ((*img_len_ptr) >= SSD_HEADER_MIN_SIZE) ? SSD_HEADER_MIN_SIZE : (*img_len_ptr);
 
-	arch_clean_invalidate_cache_range((addr_t) *img_ptr, *img_len_ptr);
+	arch_clean_invalidate_cache_range((addr_t) *img_ptr, parse_req.md_len);
 
-	ret = scm_call(SCM_SVC_SSD,
-		       SSD_PARSE_MD_ID,
-		       &parse_req,
-		       sizeof(parse_req),
-		       &parse_rsp,
-		       sizeof(parse_rsp));
+	do
+	{
+		ret = scm_call(SCM_SVC_SSD,
+				SSD_PARSE_MD_ID,
+				&parse_req,
+				sizeof(parse_req),
+				&parse_rsp,
+				sizeof(parse_rsp));
+
+		if(!ret && (parse_rsp.status == SSD_PMD_PARSING_INCOMPLETE))
+		{
+			prev_len          = parse_req.md_len;
+
+			parse_req.md_len *= MULTIPLICATION_FACTOR;
+
+			arch_clean_invalidate_cache_range((addr_t) *(img_ptr + prev_len),
+		                                         (parse_req.md_len - prev_len) );
+
+			continue;
+		}
+		else
+			break;
+
+	} while(true);
 
 	if(!ret)
 	{
@@ -292,6 +317,12 @@ static int ssd_image_is_encrypted(uint32_t ** img_ptr, uint32_t * img_len_ptr, u
 			dprintf(INFO,"Image is not encrypted");
 		}
 	}
+	else
+	{
+		dprintf(CRITICAL,"ssd_image_is_encrypted call failed");
+
+		ASSERT(ret == 0);
+	}
 
 	return ret;
 }
@@ -303,41 +334,42 @@ int decrypt_scm_v2(uint32_t ** img_ptr, uint32_t * img_len_ptr)
 	ssd_decrypt_img_frag_req decrypt_req;
 	ssd_decrypt_img_frag_rsp decrypt_rsp;
 
-	/* Image data is operated upon by TZ, which accesses only the main memory.
-	 * It must be flushed/invalidated before and after TZ call.
-	 */
-	arch_clean_invalidate_cache_range((addr_t) *img_ptr, *img_len_ptr);
-
 	if(ssd_image_is_encrypted(img_ptr,img_len_ptr,&ctx_id))
-		{
-			/*decrypt the image here*/
+	{
 
-			decrypt_req.md_ctx_id = ctx_id;
-			decrypt_req.last_frag = 1;
-			decrypt_req.frag_len  = *img_len_ptr;
-			decrypt_req.frag      = *img_ptr;
+		/* Image data is operated upon by TZ, which accesses only the main memory.
+		 * It must be flushed/invalidated before and after TZ call.
+		 */
 
-			ret = scm_call(SCM_SVC_SSD,
-					SSD_DECRYPT_IMG_FRAG_ID,
-					&decrypt_req,
-					sizeof(decrypt_req),
-					&decrypt_rsp,
-					sizeof(decrypt_rsp));
+		arch_clean_invalidate_cache_range((addr_t) *img_ptr, *img_len_ptr);
 
-			if(!ret)
-			  {
-			    ret = decrypt_rsp.status;
-			  }
+		/*decrypt the image here*/
 
-			/* Values at img_ptr and img_len_ptr are updated by TZ. Must be invalidated
-			* before we use them.
-			*/
-			arch_invalidate_cache_range((addr_t) img_ptr, sizeof(img_ptr));
-			arch_invalidate_cache_range((addr_t) img_len_ptr, sizeof(img_len_ptr));
+		decrypt_req.md_ctx_id = ctx_id;
+		decrypt_req.last_frag = 1;
+		decrypt_req.frag_len  = *img_len_ptr;
+		decrypt_req.frag      = *img_ptr;
 
-			/* Invalidate the updated image data */
-			arch_invalidate_cache_range((addr_t) *img_ptr, *img_len_ptr);
+		ret = scm_call(SCM_SVC_SSD,
+				SSD_DECRYPT_IMG_FRAG_ID,
+				&decrypt_req,
+				sizeof(decrypt_req),
+				&decrypt_rsp,
+				sizeof(decrypt_rsp));
+
+		if(!ret){
+			ret = decrypt_rsp.status;
 		}
+
+		/* Values at img_ptr and img_len_ptr are updated by TZ. Must be invalidated
+		* before we use them.
+		*/
+		arch_invalidate_cache_range((addr_t) img_ptr, sizeof(img_ptr));
+		arch_invalidate_cache_range((addr_t) img_len_ptr, sizeof(img_len_ptr));
+
+		/* Invalidate the updated image data */
+		arch_invalidate_cache_range((addr_t) *img_ptr, *img_len_ptr);
+	}
 
 	return ret;
 }
