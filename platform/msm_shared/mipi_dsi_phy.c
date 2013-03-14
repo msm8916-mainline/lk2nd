@@ -181,8 +181,37 @@ int mipi_dsi_phy_init(struct mipi_dsi_panel_config *pinfo)
 	return 0;
 }
 
+void mdss_dsi_phy_sw_reset(void)
+{
+	/* start phy sw reset */
+	writel(0x0001, MIPI_DSI_BASE + 0x012c);
+	udelay(1000);
+
+	/* end phy sw reset */
+	writel(0x0000, MIPI_DSI_BASE + 0x012c);
+	udelay(100);
+}
+
+void mdss_dsi_uniphy_pll_lock_detect_setting(void)
+{
+	writel(0x04, MIPI_DSI_BASE + 0x0264); /* LKDetect CFG2 */
+	udelay(100);
+	writel(0x05, MIPI_DSI_BASE + 0x0264); /* LKDetect CFG2 */
+	mdelay(1);
+}
+
+void mdss_dsi_uniphy_pll_sw_reset(void)
+{
+	writel(0x01, MIPI_DSI_BASE + 0x0268); /* PLL TEST CFG */
+	udelay(1);
+	writel(0x00, MIPI_DSI_BASE + 0x0268); /* PLL TEST CFG */
+	udelay(1);
+}
+
 int mdss_dsi_uniphy_pll_config(void)
 {
+	mdss_dsi_phy_sw_reset();
+
 	/* Configuring the Pll Vco clk to 424 Mhz */
 
 	/* Loop filter resistance value */
@@ -197,8 +226,8 @@ int mdss_dsi_uniphy_pll_config(void)
 	writel(0x03, MIPI_DSI_BASE + 0x0228); /* postDiv3 */
 
 	writel(0x2b, MIPI_DSI_BASE + 0x0278); /* Cal CFG3 */
-	writel(0x06, MIPI_DSI_BASE + 0x027c); /* Cal CFG4 */
-	writel(0x05, MIPI_DSI_BASE + 0x0264); /* Cal CFG4 */
+	writel(0x66, MIPI_DSI_BASE + 0x027c); /* Cal CFG4 */
+	writel(0x05, MIPI_DSI_BASE + 0x0264); /* LKDetect CFG2 */
 
 	writel(0x0a, MIPI_DSI_BASE + 0x023c); /* SDM CFG1 */
 	writel(0xab, MIPI_DSI_BASE + 0x0240); /* SDM CFG2 */
@@ -209,7 +238,7 @@ int mdss_dsi_uniphy_pll_config(void)
 
 	writel(0x01, MIPI_DSI_BASE + 0x0200); /* REFCLK CFG */
 	writel(0x00, MIPI_DSI_BASE + 0x0214); /* PWRGEN CFG */
-	writel(0x01, MIPI_DSI_BASE + 0x020c); /* VCOLPF CFG */
+	writel(0x71, MIPI_DSI_BASE + 0x020c); /* VCOLPF CFG */
 	writel(0x02, MIPI_DSI_BASE + 0x0210); /* VREG CFG */
 	writel(0x00, MIPI_DSI_BASE + 0x0238); /* SDM CFG0 */
 
@@ -222,18 +251,37 @@ int mdss_dsi_uniphy_pll_config(void)
 	writel(0x00, MIPI_DSI_BASE + 0x0290); /* CAL CFG9 */
 	writel(0x20, MIPI_DSI_BASE + 0x029c); /* EFUSE CFG */
 
+	mdss_dsi_uniphy_pll_sw_reset();
 	writel(0x01, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
+	mdelay(1);
 	writel(0x05, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
-	udelay(20);
+	mdelay(1);
 	writel(0x07, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
-	udelay(20);
+	mdelay(1);
 	writel(0x0f, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
+	mdelay(1);
 
-	while (!(readl(MIPI_DSI_BASE + 0x02c0) & 0x01))
-		udelay(1);
+	mdss_dsi_uniphy_pll_lock_detect_setting();
 
+	while (!(readl(MIPI_DSI_BASE + 0x02c0) & 0x01)) {
+		mdss_dsi_uniphy_pll_sw_reset();
+		writel(0x01, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
+		mdelay(1);
+		writel(0x05, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
+		mdelay(1);
+		writel(0x07, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
+		mdelay(1);
+		writel(0x05, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
+		mdelay(1);
+		writel(0x07, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
+		mdelay(1);
+		writel(0x0f, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
+		mdelay(2);
+		mdss_dsi_uniphy_pll_lock_detect_setting();
+	}
 
 }
+
 int mdss_dsi_phy_init(struct mipi_dsi_panel_config *pinfo)
 {
 	struct mdss_dsi_phy_ctrl *pd;
@@ -242,10 +290,11 @@ int mdss_dsi_phy_init(struct mipi_dsi_panel_config *pinfo)
 	pd = (pinfo->mdss_dsi_phy_config);
 
 	/* Strength ctrl 0 */
-	writel(0x07, MIPI_DSI_BASE + 0x0484);
 	writel(pd->strength[0], MIPI_DSI_BASE + 0x0484);
 
 	off = 0x0580;	/* phy regulator ctrl settings */
+	/* Regulator ctrl 0 */
+	writel(0x00, MIPI_DSI_BASE + off + (4 * 0));
 	/* Regulator ctrl - CAL_PWD_CFG */
 	writel(pd->regulator[6], MIPI_DSI_BASE + off + (4 * 6));
 	/* Regulator ctrl - TEST */
@@ -261,6 +310,9 @@ int mdss_dsi_phy_init(struct mipi_dsi_panel_config *pinfo)
 	/* Regulator ctrl 4 */
 	writel(pd->regulator[4], MIPI_DSI_BASE + off + (4 * 4));
 	dmb();
+
+	/* Strength ctrl 0 */
+	writel(0x00, MIPI_DSI_BASE + 0x04dc);
 
 	off = 0x0440;	/* phy timing ctrl 0 - 11 */
 	for (i = 0; i < 12; i++) {
@@ -290,7 +342,7 @@ int mdss_dsi_phy_init(struct mipi_dsi_panel_config *pinfo)
 	}
 
 	/* MMSS_DSI_0_PHY_DSIPHY_CTRL_0 */
-	writel(0x7f, MIPI_DSI_BASE + 0x0470);
+	writel(0x5f, MIPI_DSI_BASE + 0x0470);
 
 	/* DSI_0_PHY_DSIPHY_GLBL_TEST_CTRL */
 	writel(0x01, MIPI_DSI_BASE + 0x04d4);
