@@ -334,7 +334,8 @@ void clock_init_mmc(uint32_t interface)
 /* Configure MMC clock */
 void clock_config_mmc(uint32_t interface, uint32_t freq)
 {
-	uint32_t reg = 0;
+	/* Disalbe MCI_CLK before changing the sdcc clock */
+	mmc_boot_mci_clk_disable();
 
 	switch (freq) {
 	case MMC_CLK_400KHZ:
@@ -353,16 +354,8 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 
 	}
 
-	reg |= MMC_BOOT_MCI_CLK_ENABLE;
-	reg |= MMC_BOOT_MCI_CLK_ENA_FLOW;
-	reg |= MMC_BOOT_MCI_CLK_IN_FEEDBACK;
-	writel(reg, MMC_BOOT_MCI_CLK);
-
-	/* Wait for the MMC_BOOT_MCI_CLK write to go through. */
-	mmc_mclk_reg_wr_delay();
-
-	/* Wait 1 ms to provide the free running SD CLK to the card. */
-	mdelay(1);
+	/* Enable MCI clk */
+	mmc_boot_mci_clk_enable();
 }
 
 void mdp_clock_init(void)
