@@ -215,6 +215,9 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 
 	snprintf(sdc_clk, 64, "sdc%u_clk", interface);
 
+	/* Disalbe MCI_CLK before changing the sdcc clock */
+	mmc_boot_mci_clk_disable();
+
 	switch(freq)
 	{
 	case MMC_CLK_400KHZ:
@@ -231,16 +234,8 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 
 	clk_get_set_enable(sdc_clk, rate, 1);
 
-	reg |= MMC_BOOT_MCI_CLK_ENABLE;
-	reg |= MMC_BOOT_MCI_CLK_ENA_FLOW;
-	reg |= MMC_BOOT_MCI_CLK_IN_FEEDBACK;
-	writel(reg, MMC_BOOT_MCI_CLK);
-
-	/* Wait for the MMC_BOOT_MCI_CLK write to go through. */
-	mmc_mclk_reg_wr_delay();
-
-	/* Wait 1 ms to provide the free running SD CLK to the card. */
-	mdelay(1);
+	/* Enable MCI clk */
+	mmc_boot_mci_clk_enable();
 }
 
 /* Configure crypto engine clock */
