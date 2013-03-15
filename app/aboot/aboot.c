@@ -49,6 +49,7 @@
 #include <platform.h>
 #include <crypto_hash.h>
 #include <malloc.h>
+#include <boot_stats.h>
 
 #if DEVICE_TREE
 #include <libfdt.h>
@@ -444,7 +445,7 @@ void boot_linux(void *kernel, unsigned *tags,
 #if ARM_WITH_MMU
 	arch_disable_mmu();
 #endif
-
+	bs_set_timestamp(BS_KERNEL_ENTRY);
 	entry(0, machtype, (unsigned*)tags_phys);
 }
 
@@ -542,6 +543,7 @@ int boot_linux_from_mmc(void)
 		device.is_tampered = 1;
 
 		dprintf(INFO, "Loading boot image (%d): start\n", imagesize_actual);
+		bs_set_timestamp(BS_KERNEL_LOAD_START);
 
 		/* Read image without signature */
 		if (mmc_read(ptn + offset, (void *)image_addr, imagesize_actual))
@@ -551,6 +553,7 @@ int boot_linux_from_mmc(void)
 		}
 
 		dprintf(INFO, "Loading boot image (%d): done\n", imagesize_actual);
+		bs_set_timestamp(BS_KERNEL_LOAD_DONE);
 
 		offset = imagesize_actual;
 		/* Read signature */
@@ -639,6 +642,7 @@ int boot_linux_from_mmc(void)
 
 		dprintf(INFO, "Loading boot image (%d): start\n",
 				kernel_actual + ramdisk_actual);
+		bs_set_timestamp(BS_KERNEL_LOAD_START);
 
 		offset = page_size;
 
@@ -661,6 +665,7 @@ int boot_linux_from_mmc(void)
 
 		dprintf(INFO, "Loading boot image (%d): done\n",
 				kernel_actual + ramdisk_actual);
+		bs_set_timestamp(BS_KERNEL_LOAD_DONE);
 
 		if(hdr->second_size != 0) {
 			offset += second_actual;
@@ -829,6 +834,7 @@ int boot_linux_from_flash(void)
 		device.is_tampered = 1;
 
 		dprintf(INFO, "Loading boot image (%d): start\n", imagesize_actual);
+		bs_set_timestamp(BS_KERNEL_LOAD_START);
 
 		/* Read image without signature */
 		if (flash_read(ptn, offset, (void *)image_addr, imagesize_actual))
@@ -838,6 +844,7 @@ int boot_linux_from_flash(void)
 		}
 
 		dprintf(INFO, "Loading boot image (%d): done\n", imagesize_actual);
+		bs_set_timestamp(BS_KERNEL_LOAD_DONE);
 
 		offset = imagesize_actual;
 		/* Read signature */
@@ -890,6 +897,7 @@ int boot_linux_from_flash(void)
 
 		dprintf(INFO, "Loading boot image (%d): start\n",
 				kernel_actual + ramdisk_actual);
+		bs_set_timestamp(BS_KERNEL_LOAD_START);
 
 		if (flash_read(ptn, offset, (void *)hdr->kernel_addr, kernel_actual)) {
 			dprintf(CRITICAL, "ERROR: Cannot read kernel image\n");
@@ -905,6 +913,7 @@ int boot_linux_from_flash(void)
 
 		dprintf(INFO, "Loading boot image (%d): done\n",
 				kernel_actual + ramdisk_actual);
+		bs_set_timestamp(BS_KERNEL_LOAD_DONE);
 
 		if(hdr->second_size != 0) {
 			offset += second_actual;
