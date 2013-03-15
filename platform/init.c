@@ -23,6 +23,7 @@
 #include <err.h>
 #include <debug.h>
 #include <platform.h>
+#include <boot_stats.h>
 
 /*
  * default implementations of these routines, if the platform code
@@ -88,5 +89,9 @@ __WEAK int image_verify(unsigned char * image_ptr,
 }
 
 __WEAK ce_clock_init(void)
+{
+}
+
+__WEAK void bs_set_timestamp(enum bs_entry bs_id)
 {
 }
