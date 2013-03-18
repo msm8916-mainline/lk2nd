@@ -426,7 +426,7 @@ struct mmc_boot_command {
 /* CSD Register.
  * Note: not all the fields have been defined here
  */
-struct mmc_boot_csd {
+struct mmc_csd {
 	unsigned int cmmc_structure;
 	unsigned int spec_vers;
 	unsigned int card_cmd_class;
@@ -453,7 +453,7 @@ struct mmc_boot_csd {
 };
 
 /* CID Register */
-struct mmc_boot_cid {
+struct mmc_cid {
 	unsigned int mid;	/* 8 bit manufacturer id */
 	unsigned int oid;	/* 16 bits 2 character ASCII - OEM ID */
 	unsigned char pnm[7];	/* 6 character ASCII -  product name */
@@ -481,7 +481,7 @@ struct mmc_boot_scr {
 #define MMC_BOOT_SCR_BUS_WIDTH_4_BIT     (1<<2)
 };
 
-struct mmc_boot_card {
+struct mmc_card {
 	unsigned int rca;
 	unsigned int ocr;
 	unsigned long long capacity;
@@ -499,15 +499,15 @@ struct mmc_boot_card {
 	unsigned int rd_block_len;
 	unsigned int wr_block_len;
 	//unsigned int data_xfer_len;
-	struct mmc_boot_cid cid;
-	struct mmc_boot_csd csd;
+	struct mmc_cid cid;
+	struct mmc_csd csd;
 	struct mmc_boot_scr scr;
 };
 
 #define MMC_BOOT_XFER_MULTI_BLOCK        0
 #define MMC_BOOT_XFER_SINGLE_BLOCK       1
 
-struct mmc_boot_host {
+struct mmc_host {
 	unsigned int mclk_rate;
 	unsigned int ocr;
 	unsigned int cmd_retry;
@@ -582,8 +582,8 @@ struct mmc_boot_host {
 #define MMC_CLK_DISABLE     0
 
 unsigned int mmc_boot_main(unsigned char slot, unsigned int base);
-unsigned int mmc_boot_read_from_card(struct mmc_boot_host *host,
-				     struct mmc_boot_card *card,
+unsigned int mmc_boot_read_from_card(struct mmc_host *host,
+				     struct mmc_card *card,
 				     unsigned long long data_addr,
 				     unsigned int data_len, unsigned int *out);
 unsigned int mmc_write(unsigned long long data_addr,
@@ -593,16 +593,16 @@ unsigned int mmc_read(unsigned long long data_addr, unsigned int *out,
 		      unsigned int data_len);
 unsigned mmc_get_psn(void);
 
-unsigned int mmc_boot_write_to_card(struct mmc_boot_host *host,
-				    struct mmc_boot_card *card,
+unsigned int mmc_boot_write_to_card(struct mmc_host *host,
+				    struct mmc_card *card,
 				    unsigned long long data_addr,
 				    unsigned int data_len, unsigned int *in);
 
 unsigned int mmc_erase_card(unsigned long long data_addr,
 			    unsigned long long data_len);
 
-struct mmc_boot_host *get_mmc_host(void);
-struct mmc_boot_card *get_mmc_card(void);
+struct mmc_host *get_mmc_host(void);
+struct mmc_card *get_mmc_card(void);
 void mmc_mclk_reg_wr_delay();
 void mmc_boot_mci_clk_enable();
 void mmc_boot_mci_clk_disable();
