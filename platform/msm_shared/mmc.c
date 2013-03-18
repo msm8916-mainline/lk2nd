@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2013, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -2951,6 +2951,43 @@ struct mmc_boot_host *get_mmc_host(void)
 struct mmc_boot_card *get_mmc_card(void)
 {
 	return &mmc_card;
+}
+
+/*
+ * Disable MCI clk
+ */
+void mmc_boot_mci_clk_disable()
+{
+	uint32_t reg = 0;
+
+	reg |= MMC_BOOT_MCI_CLK_DISABLE;
+	writel(reg, MMC_BOOT_MCI_CLK);
+
+	/* Wait for the MMC_BOOT_MCI_CLK write to go through. */
+	mmc_mclk_reg_wr_delay();
+}
+
+/*
+ * Enable MCI CLK
+ */
+void mmc_boot_mci_clk_enable()
+{
+	uint32_t reg = 0;
+
+	reg |= MMC_BOOT_MCI_CLK_ENABLE;
+	reg |= MMC_BOOT_MCI_CLK_ENA_FLOW;
+	reg |= MMC_BOOT_MCI_CLK_IN_FEEDBACK;
+	writel(reg, MMC_BOOT_MCI_CLK);
+
+	/* Wait for the MMC_BOOT_MCI_CLK write to go through. */
+	mmc_mclk_reg_wr_delay();
+
+	/* Enable power save */
+	reg |= MMC_BOOT_MCI_CLK_PWRSAVE;
+	writel(reg, MMC_BOOT_MCI_CLK);
+
+	/* Wait for the MMC_BOOT_MCI_CLK write to go through. */
+	mmc_mclk_reg_wr_delay();
 }
 
 #if MMC_BOOT_BAM

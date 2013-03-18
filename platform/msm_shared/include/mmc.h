@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2013, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -58,6 +58,7 @@ extern unsigned int mmc_boot_mci_base;
 #define MMC_BOOT_MCI_CLK                  MMC_BOOT_MCI_REG(0x004)	/* 16 bits */
 /* Enable MCI bus clock - 0: clock disabled 1: enabled */
 #define MMC_BOOT_MCI_CLK_ENABLE           (1 << 8)
+#define MMC_BOOT_MCI_CLK_DISABLE          (0 << 8)
 /* Disable clk o/p when bus idle- 0:always enabled 1:enabled when bus active */
 #define MMC_BOOT_MCI_CLK_PWRSAVE          (1 << 9)
 /* Enable Widebus mode - 00: 1 bit mode 10:4 bit mode 01/11: 8 bit mode */
@@ -603,4 +604,6 @@ unsigned int mmc_erase_card(unsigned long long data_addr,
 struct mmc_boot_host *get_mmc_host(void);
 struct mmc_boot_card *get_mmc_card(void);
 void mmc_mclk_reg_wr_delay();
+void mmc_boot_mci_clk_enable();
+void mmc_boot_mci_clk_disable();
 #endif
