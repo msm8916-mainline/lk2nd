@@ -88,7 +88,7 @@ __WEAK int image_verify(unsigned char * image_ptr,
 	return 0;
 }
 
-__WEAK ce_clock_init(void)
+__WEAK void ce_clock_init(void)
 {
 }
 
