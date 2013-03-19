@@ -49,6 +49,7 @@
 extern  bool target_use_signed_kernel(void);
 
 static unsigned int target_id;
+static uint32_t pmic_ver;
 
 #define PMIC_ARB_CHANNEL_NUM    0
 #define PMIC_ARB_OWNER_ID       0
@@ -108,7 +109,7 @@ static int target_volume_up()
 uint32_t target_volume_down()
 {
 	/* Volume down button is tied in with RESIN on MSM8974. */
-	if (pm8x41_get_pmic_rev() == PMIC_VERSION_V2)
+	if (pmic_ver == PMIC_VERSION_V2)
 		return pm8x41_resin_bark_workaround_status();
 	else
 		return pm8x41_resin_status();
@@ -161,6 +162,9 @@ void target_init(void)
 	dprintf(INFO, "target_init()\n");
 
 	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
+
+	/* Save PM8941 version info. */
+	pmic_ver = pm8x41_get_pmic_rev();
 
 	target_keystatus();
 
@@ -317,7 +321,10 @@ void reboot_device(unsigned reboot_reason)
 		writel(reboot_reason, RESTART_REASON_ADDR);
 
 	/* Configure PMIC for warm reset */
-	pm8x41_reset_configure(PON_PSHOLD_WARM_RESET);
+	if (pmic_ver == PMIC_VERSION_V2)
+		pm8x41_v2_reset_configure(PON_PSHOLD_WARM_RESET);
+	else
+		pm8x41_reset_configure(PON_PSHOLD_WARM_RESET);
 
 	/* Disable Watchdog Debug.
 	 * Required becuase of a H/W bug which causes the system to
