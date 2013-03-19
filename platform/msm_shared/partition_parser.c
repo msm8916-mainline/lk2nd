@@ -44,8 +44,8 @@ unsigned partition_count = 0;
 
 //TODO: Remove the dependency of mmc in these functions
 unsigned int
-partition_read_table(struct mmc_boot_host *mmc_host,
-		     struct mmc_boot_card *mmc_card)
+partition_read_table(struct mmc_host *mmc_host,
+		     struct mmc_card *mmc_card)
 {
 	unsigned int ret;
 
@@ -71,8 +71,8 @@ partition_read_table(struct mmc_boot_host *mmc_host,
  * Read MBR from MMC card and fill partition table.
  */
 unsigned int
-mmc_boot_read_mbr(struct mmc_boot_host *mmc_host,
-		  struct mmc_boot_card *mmc_card)
+mmc_boot_read_mbr(struct mmc_host *mmc_host,
+		  struct mmc_card *mmc_card)
 {
 	unsigned char buffer[BLOCK_SIZE];
 	unsigned int dtype;
@@ -191,8 +191,8 @@ mmc_boot_read_mbr(struct mmc_boot_host *mmc_host,
  * Read GPT from MMC and fill partition table
  */
 unsigned int
-mmc_boot_read_gpt(struct mmc_boot_host *mmc_host,
-		  struct mmc_boot_card *mmc_card)
+mmc_boot_read_gpt(struct mmc_host *mmc_host,
+		  struct mmc_card *mmc_card)
 {
 
 	int ret = MMC_BOOT_E_SUCCESS;
@@ -386,7 +386,7 @@ static unsigned int write_mbr_in_blocks(unsigned size, unsigned char *mbrImage)
 /* Write the MBR/EBR to the MMC. */
 unsigned int
 write_mbr(unsigned size, unsigned char *mbrImage,
-	  struct mmc_boot_host *mmc_host, struct mmc_boot_card *mmc_card)
+	  struct mmc_host *mmc_host, struct mmc_card *mmc_card)
 {
 	unsigned int ret;
 
@@ -494,7 +494,7 @@ write_gpt_partition_array(unsigned char *header,
 
 static void
 patch_gpt(unsigned char *gptImage,
-	  struct mmc_boot_card *mmc_card,
+	  struct mmc_card *mmc_card,
 	  unsigned int array_size,
 	  unsigned int max_part_count, unsigned int part_entry_size)
 {
@@ -571,7 +571,7 @@ patch_gpt(unsigned char *gptImage,
  */
 unsigned int
 write_gpt(unsigned size, unsigned char *gptImage,
-	  struct mmc_boot_host *mmc_host, struct mmc_boot_card *mmc_card)
+	  struct mmc_host *mmc_host, struct mmc_card *mmc_card)
 {
 	unsigned int ret = MMC_BOOT_E_INVAL;
 	unsigned int header_size;
@@ -695,8 +695,8 @@ unsigned int write_partition(unsigned size, unsigned char *partition)
 {
 	unsigned int ret = MMC_BOOT_E_INVAL;
 	unsigned int partition_type;
-	struct mmc_boot_host *mmc_host;
-	struct mmc_boot_card *mmc_card;
+	struct mmc_host *mmc_host;
+	struct mmc_card *mmc_card;
 
 	if (partition == 0) {
 		dprintf(CRITICAL, "NULL partition\n");
