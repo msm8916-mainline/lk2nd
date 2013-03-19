@@ -36,6 +36,8 @@
 #define ENCRYPT_MAGIC_1 0x676D6973
 #define SSD_HEADER_MAGIC_SIZE  8
 #define SSD_HEADER_XML_SIZE    2048
+#define SSD_HEADER_MIN_SIZE    128
+#define MULTIPLICATION_FACTOR  2
 
 typedef unsigned int uint32;
 
