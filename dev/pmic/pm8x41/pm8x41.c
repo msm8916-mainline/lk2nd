@@ -225,7 +225,7 @@ uint32_t pm8x41_resin_status()
 	return (rt_sts & BIT(RESIN_ON_INT_BIT));
 }
 
-void pm8x41_reset_configure(uint8_t reset_type)
+void pm8x41_v2_reset_configure(uint8_t reset_type)
 {
 	uint8_t val;
 
@@ -243,6 +243,21 @@ void pm8x41_reset_configure(uint8_t reset_type)
 	/* enable PS_HOLD_RESET */
 	val |= BIT(S2_RESET_EN_BIT);
 	REG_WRITE(PON_PS_HOLD_RESET_CTL, val);
+}
+
+void pm8x41_reset_configure(uint8_t reset_type)
+{
+	/* disable PS_HOLD_RESET */
+	REG_WRITE(PON_PS_HOLD_RESET_CTL2, 0x0);
+
+	/* Delay needed for disable to kick in. */
+	udelay(300);
+
+	/* configure reset type */
+	REG_WRITE(PON_PS_HOLD_RESET_CTL, reset_type);
+
+	/* enable PS_HOLD_RESET */
+	REG_WRITE(PON_PS_HOLD_RESET_CTL2, BIT(S2_RESET_EN_BIT));
 }
 
 static struct pm8x41_ldo *ldo_get(const char *ldo_name)
