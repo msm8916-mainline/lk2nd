@@ -35,6 +35,8 @@
 #include <mmu.h>
 #include <arch/arm/mmu.h>
 #include <smem.h>
+#include <board.h>
+#include <boot_stats.h>
 
 #define MB (1024*1024)
 
@@ -56,6 +58,11 @@ static mmu_section_t mmu_section_table[] = {
 
 static struct smem_ram_ptable ram_ptable;
 
+/* Boot timestamps */
+#define BS_INFO_OFFSET     (0x6B0)
+#define BS_INFO_ADDR_V1    (RPM_MSG_RAM_BASE     + BS_INFO_OFFSET)
+#define BS_INFO_ADDR_V2    (MSM_SHARED_IMEM_BASE + BS_INFO_OFFSET)
+
 void platform_early_init(void)
 {
 	board_init();
@@ -69,19 +76,42 @@ void platform_init(void)
 	dprintf(INFO, "platform_init()\n");
 }
 
-static void platform_print_sclk(void)
+static uint32_t platform_get_sclk_count(void)
 {
-	uint32_t count;
+	return readl(MPM2_MPM_SLEEP_TIMETICK_COUNT_VAL);
+}
 
-	count = readl(MPM2_MPM_SLEEP_TIMETICK_COUNT_VAL);
+static uint32_t kernel_load_start;
+void bs_set_timestamp(enum bs_entry bs_id)
+{
+	void *bs_imem;
+	uint32_t soc_ver = board_soc_version();
 
-	dprintf(INFO, "mpm sclk=(%lu)\n", count);
+	if (bs_id >= BS_MAX) {
+		dprintf(CRITICAL, "bad bs id: %u, max: %u\n", bs_id, BS_MAX);
+		ASSERT(0);
+	}
+
+	if (bs_id == BS_KERNEL_LOAD_START) {
+		kernel_load_start = platform_get_sclk_count();
+		return;
+	}
+
+	if (soc_ver < BOARD_SOC_VERSION2)
+		bs_imem = (void *)BS_INFO_ADDR_V1;
+	else
+		bs_imem = (void *)BS_INFO_ADDR_V2;
+
+	if(bs_id == BS_KERNEL_LOAD_DONE)
+		writel(platform_get_sclk_count() - kernel_load_start,
+			   bs_imem + (sizeof(uint32_t) * BS_KERNEL_LOAD_TIME));
+	else
+		writel(platform_get_sclk_count(),
+			   bs_imem + (sizeof(uint32_t) * bs_id));
 }
 
 void platform_uninit(void)
 {
-	platform_print_sclk();
-
 #if DISPLAY_SPLASH_SCREEN
 	display_shutdown();
 #endif
