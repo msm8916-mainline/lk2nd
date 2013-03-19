@@ -31,6 +31,7 @@
 #include <msm_panel.h>
 #include <mdp4.h>
 #include <mipi_dsi.h>
+#include <boot_stats.h>
 
 #ifndef DISPLAY_TYPE_HDMI
 static int hdmi_dtv_init(void)
@@ -146,6 +147,8 @@ int msm_display_on()
 
 	if (!panel)
 		return ERR_INVALID_ARGS;
+
+	bs_set_timestamp(BS_SPLASH_SCREEN_DISPLAY);
 
 	pinfo = &(panel->panel_info);
 
