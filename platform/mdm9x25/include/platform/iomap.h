@@ -50,7 +50,11 @@
 #define PERIPH_SS_QPIC_BASE       0xF9AC4000
 
 #define CLK_CTL_BASE              0xFC400000 /* GCC base */
-#define MPM2_MPM_PS_HOLD          0xFC4AB000
+
+/* MPM2_MPM */
+#define MPM2_MPM_SLEEP_TIMETICK_COUNT_VAL    0xFC4A3000
+#define MPM2_MPM_PS_HOLD                     0xFC4AB000
+
 #define SPMI_BASE                 0xFC4C0000
 #define SPMI_GENI_BASE            (SPMI_BASE + 0xA000)
 #define SPMI_PIC_BASE             (SPMI_BASE + 0xB000)
