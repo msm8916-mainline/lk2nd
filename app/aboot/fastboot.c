@@ -2,14 +2,16 @@
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
  *
+ * Copyright (c) 2013, The Linux Foundation. All rights reserved.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
- *  * Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *  * Redistributions in binary form must reproduce the above copyright
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the 
+ *    the documentation and/or other materials provided with the
  *    distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -19,7 +21,7 @@
  * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
  * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED 
+ * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
  * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
@@ -113,7 +115,6 @@ void fastboot_publish(const char *name, const char *value)
 
 static event_t usb_online;
 static event_t txn_done;
-static unsigned char buffer[4096];
 static struct udc_endpoint *in, *out;
 static struct udc_request *req;
 int txn_status;
@@ -212,7 +213,7 @@ oops:
 
 void fastboot_ack(const char *code, const char *reason)
 {
-	char response[MAX_RSP_SIZE];
+	STACKBUF_DMA_ALIGN(response, MAX_RSP_SIZE);
 
 	if (fastboot_state != STATE_COMMAND)
 		return;
@@ -229,7 +230,7 @@ void fastboot_ack(const char *code, const char *reason)
 
 void fastboot_info(const char *reason)
 {
-	char response[MAX_RSP_SIZE];
+	STACKBUF_DMA_ALIGN(response, MAX_RSP_SIZE);
 
 	if (fastboot_state != STATE_COMMAND)
 		return;
@@ -267,7 +268,7 @@ static void cmd_getvar(const char *arg, void *data, unsigned sz)
 
 static void cmd_download(const char *arg, void *data, unsigned sz)
 {
-	char response[MAX_RSP_SIZE];
+	STACKBUF_DMA_ALIGN(response, MAX_RSP_SIZE);
 	unsigned len = hex2unsigned(arg);
 	int r;
 
@@ -296,6 +297,12 @@ static void fastboot_command_loop(void)
 	int r;
 	dprintf(INFO,"fastboot: processing commands\n");
 
+	uint8_t *buffer = (uint8_t *)memalign(CACHE_LINE, ROUNDUP(4096, CACHE_LINE));
+	if (!buffer)
+	{
+		dprintf(CRITICAL, "Could not allocate memory for fastboot buffer\n.");
+		ASSERT(0);
+	}
 again:
 	while (fastboot_state != STATE_ERROR) {
 		r = usb_read(buffer, MAX_RSP_SIZE);
@@ -319,6 +326,7 @@ again:
 	}
 	fastboot_state = STATE_OFFLINE;
 	dprintf(INFO,"fastboot: oops!\n");
+	free(buffer);
 }
 
 static int fastboot_handler(void *arg)
