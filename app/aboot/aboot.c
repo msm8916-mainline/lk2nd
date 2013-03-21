@@ -1224,6 +1224,17 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	kernel_actual = ROUND_TO_PAGE(hdr->kernel_size, page_mask);
 	ramdisk_actual = ROUND_TO_PAGE(hdr->ramdisk_size, page_mask);
 
+	/* overwrite the destination of specified for the project */
+#ifdef ABOOT_FORCE_KERNEL_ADDR
+	hdr->kernel_addr = ABOOT_FORCE_KERNEL_ADDR;
+#endif
+#ifdef ABOOT_FORCE_RAMDISK_ADDR
+	hdr->ramdisk_addr = ABOOT_FORCE_RAMDISK_ADDR;
+#endif
+#ifdef ABOOT_FORCE_TAGS_ADDR
+	hdr->tags_addr = ABOOT_FORCE_TAGS_ADDR;
+#endif
+
 	/* Get virtual addresses since the hdr saves physical addresses. */
 	hdr->kernel_addr = VA(hdr->kernel_addr);
 	hdr->ramdisk_addr = VA(hdr->ramdisk_addr);
