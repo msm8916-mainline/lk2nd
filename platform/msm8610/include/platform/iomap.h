@@ -34,7 +34,7 @@
 
 #define SDRAM_START_ADDR            0x00000000
 
-#define MSM_SHARED_BASE             0x0FA00000
+#define MSM_SHARED_BASE             0x0D600000
 
 #define APPS_SS_BASE                0xF9000000
 
