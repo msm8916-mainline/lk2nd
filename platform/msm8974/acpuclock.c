@@ -331,8 +331,11 @@ void mdp_gdsc_ctrl(uint8_t enable)
 	uint32_t reg = 0;
 	reg = readl(MDP_GDSCR);
 	if (enable) {
-		if (reg & 0x1)
-			writel((reg & ~0x1), MDP_GDSCR);
+		if (reg & 0x1) {
+			reg &=  ~(BIT(0) | GDSC_EN_FEW_WAIT_MASK);
+			reg |= GDSC_EN_FEW_WAIT_256_MASK;
+			writel(reg, MDP_GDSCR);
+		}
 
 		while(readl(MDP_GDSCR) & ((GDSC_POWER_ON_BIT) | (GDSC_POWER_ON_STATUS_BIT)));
 	} else
