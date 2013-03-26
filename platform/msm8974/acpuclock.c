@@ -61,9 +61,6 @@ void hsusb_clock_init(void)
 	iclk = clk_get("usb_iface_clk");
 	cclk = clk_get("usb_core_clk");
 
-	/* Disable USB all clock init */
-	writel(0, USB_BOOT_CLOCK_CTL);
-
 	clk_disable(iclk);
 	clk_disable(cclk);
 
