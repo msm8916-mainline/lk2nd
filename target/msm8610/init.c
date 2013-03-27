@@ -40,6 +40,7 @@
 #include <baseband.h>
 #include <dev/keys.h>
 #include <pm8x41.h>
+#include <hsusb.h>
 
 #define PMIC_ARB_CHANNEL_NUM    0
 #define PMIC_ARB_OWNER_ID       0
@@ -221,6 +222,30 @@ unsigned target_pause_for_battery_charge(void)
 
 	return 0;
 }
+
+void target_usb_stop(void)
+{
+	/* Disable VBUS mimicing in the controller. */
+	ulpi_write(ULPI_MISC_A_VBUSVLDEXTSEL | ULPI_MISC_A_VBUSVLDEXT, ULPI_MISC_A_CLEAR);
+}
+
+void target_usb_init(void)
+{
+	uint32_t val;
+
+	/* Select and enable external configuration with USB PHY */
+	ulpi_write(ULPI_MISC_A_VBUSVLDEXTSEL | ULPI_MISC_A_VBUSVLDEXT, ULPI_MISC_A_SET);
+
+	/* Enable sess_vld */
+	val = readl(USB_GENCONFIG_2) | GEN2_SESS_VLD_CTRL_EN;
+	writel(val, USB_GENCONFIG_2);
+
+	/* Enable external vbus configuration in the LINK */
+	val = readl(USB_USBCMD);
+	val |= SESS_VLD_CTRL;
+	writel(val, USB_USBCMD);
+}
+
 
 unsigned board_machtype(void)
 {
