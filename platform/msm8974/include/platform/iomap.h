@@ -84,7 +84,6 @@
 #define GCC_WDOG_DEBUG              (CLK_CTL_BASE +  0x00001780)
 
 #define USB_HS_BCR                  (CLK_CTL_BASE + 0x480)
-#define USB_BOOT_CLOCK_CTL          (CLK_CTL_BASE + 0x1A00)
 
 #define SPMI_BASE                   0xFC4C0000
 #define SPMI_GENI_BASE              (SPMI_BASE + 0xA000)
