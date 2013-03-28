@@ -40,6 +40,8 @@
 #define DTB_MAGIC               0xedfe0dd0
 #define DTB_OFFSET              0x2C
 
+#define DTB_PAD_SIZE            1024
+
 struct dt_entry
 {
 	uint32_t platform_id;
@@ -65,5 +67,5 @@ enum dt_err_codes
 struct dt_entry * dev_tree_get_entry_ptr(struct dt_table *);
 int update_device_tree(void *, const char *, void *, unsigned);
 int dev_tree_add_mem_info(void *fdt, uint32_t offset, uint32_t size, uint32_t addr);
-uint32_t dev_tree_appended(void *);
+void *dev_tree_appended(void *kernel, void *tags);
 #endif
