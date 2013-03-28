@@ -38,7 +38,7 @@ void eeprom_read_test()
 	struct qup_i2c_dev  *dev;
 	char ret[100] = {'\0'};
 
-	dev = qup_blsp_i2c_init(BLSP_ID_2, QUP_ID_4, 100000, 24000000);
+	dev = qup_blsp_i2c_init(BLSP_ID_2, QUP_ID_4, 100000, 19200000);
 
 	if (!dev) {
 		dprintf(CRITICAL, "Failed initializing I2c\n");
