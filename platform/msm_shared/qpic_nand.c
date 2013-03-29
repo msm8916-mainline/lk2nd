@@ -1246,8 +1246,6 @@ qpic_nand_init(struct qpic_nand_init_config *config)
 	uint32_t i;
 	int nand_ret;
 
-	qpic_nand_clock_init();
-
 	nand_base = config->nand_base;
 
 	qpic_bam_init(config);
