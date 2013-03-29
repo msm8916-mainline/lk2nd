@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -78,41 +78,6 @@ void hsusb_clock_init(void)
 	if(ret)
 	{
 		dprintf(CRITICAL, "failed to enable usb_core_clk ret = %d\n", ret);
-		ASSERT(0);
-	}
-}
-
-
-void qpic_nand_clock_init(void)
-{
-	int ret;
-	struct clk *iclk;
-	struct clk *cclk;
-
-	iclk = clk_get("qpic_iface_clk");
-	cclk = clk_get("qpic_core_clk");
-
-	ASSERT(iclk);
-	ASSERT(cclk);
-
-	ret = clk_enable(iclk);
-	if(ret)
-	{
-		dprintf(CRITICAL, "failed to set qpic_iface_clk ret = %d\n", ret);
-		ASSERT(0);
-	}
-
-	ret = clk_set_rate(cclk, 100000000);
-	if(ret)
-	{
-		dprintf(CRITICAL, "failed to set_rate of qpic_core_clk ret = %d\n", ret);
-		ASSERT(0);
-	}
-
-	ret = clk_enable(cclk);
-	if(ret)
-	{
-		dprintf(CRITICAL, "failed to enable qpic_core_clk ret = %d\n", ret);
 		ASSERT(0);
 	}
 }
