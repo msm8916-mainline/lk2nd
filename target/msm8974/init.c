@@ -279,6 +279,11 @@ void target_baseband_detect(struct board_data *board)
 	};
 }
 
+unsigned target_baseband()
+{
+	return board_baseband();
+}
+
 void target_serialno(unsigned char *buf)
 {
 	unsigned int serialno;
