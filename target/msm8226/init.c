@@ -291,3 +291,8 @@ unsigned target_pause_for_battery_charge(void)
 
 	return 0;
 }
+
+unsigned target_baseband()
+{
+	return board_baseband();
+}
