@@ -77,7 +77,6 @@ void write_device_info_flash(device_info *dev);
 
 #define EXPAND(NAME) #NAME
 #define TARGET(NAME) EXPAND(NAME)
-#define DEFAULT_CMDLINE "mem=100M console=null";
 
 #ifdef MEMBASE
 #define EMMC_BOOT_IMG_HEADER_ADDR (0xFF000+(MEMBASE))
@@ -486,7 +485,6 @@ int boot_linux_from_mmc(void)
 	struct boot_img_hdr *uhdr;
 	unsigned offset = 0;
 	unsigned long long ptn = 0;
-	const char *cmdline;
 	int index = INVALID_PTN;
 
 	unsigned char *image_addr = 0;
@@ -753,14 +751,8 @@ int boot_linux_from_mmc(void)
 
 unified_boot:
 
-	if(hdr->cmdline[0]) {
-		cmdline = (char*) hdr->cmdline;
-	} else {
-		cmdline = DEFAULT_CMDLINE;
-	}
-
 	boot_linux((void *)hdr->kernel_addr, (void *)hdr->tags_addr,
-		   (const char *)cmdline, board_machtype(),
+		   (const char *)hdr->cmdline, board_machtype(),
 		   (void *)hdr->ramdisk_addr, hdr->ramdisk_size);
 
 	return 0;
@@ -772,7 +764,6 @@ int boot_linux_from_flash(void)
 	struct ptentry *ptn;
 	struct ptable *ptable;
 	unsigned offset = 0;
-	const char *cmdline;
 
 	unsigned char *image_addr = 0;
 	unsigned kernel_actual;
@@ -989,17 +980,10 @@ int boot_linux_from_flash(void)
 	}
 continue_boot:
 
-	if(hdr->cmdline[0]) {
-		cmdline = (char*) hdr->cmdline;
-	} else {
-		cmdline = DEFAULT_CMDLINE;
-	}
-	dprintf(INFO, "cmdline = '%s'\n", cmdline);
-
 	/* TODO: create/pass atags to kernel */
 
 	boot_linux((void *)hdr->kernel_addr, (void *)hdr->tags_addr,
-		   (const char *)cmdline, board_machtype(),
+		   (const char *)hdr->cmdline, board_machtype(),
 		   (void *)hdr->ramdisk_addr, hdr->ramdisk_size);
 
 	return 0;
