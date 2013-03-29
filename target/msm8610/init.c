@@ -115,6 +115,14 @@ void target_init(void)
 	}
 }
 
+/* Do any target specific intialization needed before entering fastboot mode */
+void target_fastboot_init(void)
+{
+	/* Set the BOOT_DONE flag in PM8110 */
+	pm8x41_set_boot_done();
+}
+
 unsigned board_machtype(void)
 {
+	return 0;
 }
