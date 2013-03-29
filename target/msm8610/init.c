@@ -33,11 +33,16 @@
 #include <platform.h>
 #include <uart_dm.h>
 #include <mmc.h>
+#include <platform/gpio.h>
 #include <spmi.h>
 #include <board.h>
+#include <dev/keys.h>
+#include <pm8x41.h>
 
 #define PMIC_ARB_CHANNEL_NUM    0
 #define PMIC_ARB_OWNER_ID       0
+
+#define TLMM_VOL_UP_BTN_GPIO    72
 
 static uint32_t mmc_sdc_base[] =
 	{ MSM_SDC1_BASE, MSM_SDC2_BASE };
@@ -49,8 +54,36 @@ void target_early_init(void)
 #endif
 }
 
+/* Return 1 if vol_up pressed */
+static int target_volume_up()
+{
+	uint8_t status = 0;
+
+	gpio_tlmm_config(TLMM_VOL_UP_BTN_GPIO, 0, GPIO_INPUT, GPIO_PULL_UP, GPIO_2MA, GPIO_ENABLE);
+
+	/* Get status of GPIO */
+	status = gpio_status(TLMM_VOL_UP_BTN_GPIO);
+
+	/* Active low signal. */
+	return !status;
+}
+
+/* Return 1 if vol_down pressed */
+uint32_t target_volume_down()
+{
+	/* Volume down button tied in with PMIC RESIN. */
+	return pm8x41_resin_status();
+}
+
 static void target_keystatus()
 {
+	keys_init();
+
+	if(target_volume_down())
+		keys_post_event(KEY_VOLUMEDOWN, 1);
+
+	if(target_volume_up())
+		keys_post_event(KEY_VOLUMEUP, 1);
 }
 
 void target_init(void)
@@ -61,6 +94,8 @@ void target_init(void)
 	dprintf(INFO, "target_init()\n");
 
 	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
+
+	target_keystatus();
 
 	/* Trying Slot 1*/
 	slot = 1;
