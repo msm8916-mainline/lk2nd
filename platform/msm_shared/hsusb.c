@@ -667,7 +667,7 @@ int udc_init(struct udc_device *dev)
 	hsusb_clock_init();
 
 	/* RESET */
-	writel(0x00080000, USB_USBCMD);
+	writel(0x00080002, USB_USBCMD);
 
 	thread_sleep(20);
 
