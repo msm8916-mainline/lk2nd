@@ -50,10 +50,16 @@
 #define IOMAP_MEMORY      (MMU_MEMORY_TYPE_DEVICE_SHARED | \
                            MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
 
+/* IMEM memory - cacheable, write through */
+#define IMEM_MEMORY       (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
+                           MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
+
 static mmu_section_t mmu_section_table[] = {
-/*  Physical addr,    Virtual addr,    Size (in MB),    Flags */
-	{MEMBASE, MEMBASE, (MEMSIZE / MB), LK_MEMORY},
-	{MSM_IOMAP_BASE, MSM_IOMAP_BASE, MSM_IOMAP_SIZE, IOMAP_MEMORY},
+/*   Physical addr,    Virtual addr,     Size (in MB),   Flags */
+	{MEMBASE,          MEMBASE,          (MEMSIZE / MB), LK_MEMORY},
+	{MSM_IOMAP_BASE,   MSM_IOMAP_BASE,   MSM_IOMAP_SIZE, IOMAP_MEMORY},
+	/* IMEM  needs a seperate entry in the table as it's length is only 0x8000. */
+	{SYSTEM_IMEM_BASE, SYSTEM_IMEM_BASE, 1,              IMEM_MEMORY},
 };
 
 static struct smem_ram_ptable ram_ptable;
@@ -118,6 +124,25 @@ void platform_uninit(void)
 
 	qtimer_uninit();
 }
+
+int platform_use_identity_mmu_mappings(void)
+{
+	/* Use only the mappings specified in this file. */
+	return 0;
+}
+
+addr_t platform_get_virt_to_phys_mapping(addr_t virt_addr)
+{
+	/* Return same address as we are using 1-1 mapping. */
+	return virt_addr;
+}
+
+addr_t platform_get_phys_to_virt_mapping(addr_t phys_addr)
+{
+	/* Return same address as we are using 1-1 mapping. */
+	return phys_addr;
+}
+
 
 /* Setup memory for this platform */
 void platform_init_mmu_mappings(void)
