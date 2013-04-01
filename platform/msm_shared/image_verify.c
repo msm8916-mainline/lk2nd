@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2011,2013 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -28,6 +28,7 @@
 #include <certificate.h>
 #include <crypto_hash.h>
 #include "image_verify.h"
+#include "scm.h"
 
 /*
  * Returns -1 if decryption failed otherwise size of plain_text in bytes
@@ -118,6 +119,12 @@ image_verify(unsigned char *image_ptr,
 	} else {
 		/* Authorized image */
 		auth = 1;
+#ifdef TZ_SAVE_KERNEL_HASH
+		if (hash_type == CRYPTO_AUTH_ALG_SHA256)
+			save_kernel_hash_cmd(digest);
+		else
+			dprintf(INFO, "image_verify: hash is not SHA-256.\n");
+#endif
 	}
 
 	/* Cleanup after complete usage of openssl - cached data and objects */
