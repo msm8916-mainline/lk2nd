@@ -89,3 +89,32 @@ void gpio_config_blsp_i2c(uint8_t blsp_id, uint8_t qup_id)
 		};
 	}
 }
+
+static void tlmm_set_sdc_pins(struct tlmm_cfgs *cfg)
+{
+	uint32_t reg_val;
+
+	reg_val = readl(SDC1_HDRV_PULL_CTL);
+
+	reg_val &= ~(cfg->mask << cfg->off);
+
+	reg_val |= (cfg->val << cfg->off);
+
+	writel(reg_val, SDC1_HDRV_PULL_CTL);
+}
+
+void tlmm_set_hdrive_ctrl(struct tlmm_cfgs *hdrv_cfgs, uint8_t sz)
+{
+	uint8_t i;
+
+	for (i = 0; i < sz; i++)
+		tlmm_set_sdc_pins(&hdrv_cfgs[i]);
+}
+
+void tlmm_set_pull_ctrl(struct tlmm_cfgs *pull_cfgs, uint8_t sz)
+{
+	uint8_t i;
+
+	for (i = 0; i < sz; i++)
+		tlmm_set_sdc_pins(&pull_cfgs[i]);
+}
