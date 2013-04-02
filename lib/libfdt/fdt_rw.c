@@ -340,6 +340,7 @@ int fdt_add_subnode_namelen(void *fdt, int parentoffset,
 	int err;
 	uint32_t tag;
 	uint32_t *endtag;
+	uint32_t count = 0;
 
 	FDT_RW_CHECK_HEADER(fdt);
 
@@ -349,12 +350,20 @@ int fdt_add_subnode_namelen(void *fdt, int parentoffset,
 	else if (offset != -FDT_ERR_NOTFOUND)
 		return offset;
 
-	/* Try to place the new node after the parent's properties */
+	/* Try to place the new node after the parent's properties and all the sub nodes already present. */
 	fdt_next_tag(fdt, parentoffset, &nextoffset); /* skip the BEGIN_NODE */
+	count++; /* Track the BIGIN_NODEs */
 	do {
+		if (tag == FDT_BEGIN_NODE)
+			count++;
+		if (tag == FDT_END_NODE)
+			count--;
+		if (!count)
+			break;
+
 		offset = nextoffset;
 		tag = fdt_next_tag(fdt, offset, &nextoffset);
-	} while ((tag == FDT_PROP) || (tag == FDT_NOP));
+	} while ((tag == FDT_PROP) || (tag == FDT_NOP) || (tag == FDT_BEGIN_NODE) || (tag == FDT_END_NODE));
 
 	nh = _fdt_offset_ptr_w(fdt, offset);
 	nodelen = sizeof(*nh) + FDT_TAGALIGN(namelen+1) + FDT_TAGSIZE;
