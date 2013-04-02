@@ -72,7 +72,6 @@
 #define GCC_WDOG_DEBUG              (CLK_CTL_BASE +  0x00001780)
 
 #define USB_HS_BCR                  (CLK_CTL_BASE + 0x480)
-#define USB_BOOT_CLOCK_CTL          (CLK_CTL_BASE + 0x1A00)
 
 #define SPMI_BASE                   0xFC4C0000
 #define SPMI_GENI_BASE              (SPMI_BASE + 0xA000)
@@ -93,6 +92,14 @@
 #define GPLL0_STATUS                (CLK_CTL_BASE + 0x001C)
 #define APCS_GPLL_ENA_VOTE          (CLK_CTL_BASE + 0x1480)
 #define APCS_CLOCK_BRANCH_ENA_VOTE  (CLK_CTL_BASE + 0x1484)
+
+/* CE 1 */
+#define  GCC_CE1_BCR                (CLK_CTL_BASE + 0x1040)
+#define  GCC_CE1_CMD_RCGR           (CLK_CTL_BASE + 0x1050)
+#define  GCC_CE1_CFG_RCGR           (CLK_CTL_BASE + 0x1054)
+#define  GCC_CE1_CBCR               (CLK_CTL_BASE + 0x1044)
+#define  GCC_CE1_AXI_CBCR           (CLK_CTL_BASE + 0x1048)
+#define  GCC_CE1_AHB_CBCR           (CLK_CTL_BASE + 0x104C)
 
 /* SDCC */
 #define SDCC1_BCR                   (CLK_CTL_BASE + 0x4C0) /* block reset */
