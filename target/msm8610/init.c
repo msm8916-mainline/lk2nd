@@ -181,6 +181,17 @@ void target_serialno(unsigned char *buf)
 	}
 }
 
+unsigned check_reboot_mode(void)
+{
+	uint32_t restart_reason = 0;
+
+	/* Read reboot reason and scrub it */
+	restart_reason = readl(RESTART_REASON_ADDR);
+	writel(0x00, RESTART_REASON_ADDR);
+
+	return restart_reason;
+}
+
 unsigned board_machtype(void)
 {
 	return 0;
