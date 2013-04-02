@@ -113,7 +113,7 @@ qpic_nand_read_reg(uint32_t reg_addr,
 
 /* Assume the BAM is in a locked state. */
 void
-qpic_nand_erased_status_reset(struct cmd_element *cmd_list_ptr)
+qpic_nand_erased_status_reset(struct cmd_element *cmd_list_ptr, uint8_t flags)
 {
 	uint32_t val = 0;
 
@@ -127,7 +127,7 @@ qpic_nand_erased_status_reset(struct cmd_element *cmd_list_ptr)
 					 CMD_PIPE_INDEX,
 					 (unsigned char*)cmd_list_ptr,
 					 BAM_CE_SIZE,
-					 BAM_DESC_CMD_FLAG | BAM_DESC_INT_FLAG);
+					 BAM_DESC_CMD_FLAG | BAM_DESC_INT_FLAG | flags);
 
 	qpic_nand_wait_for_cmd_exec(1);
 
@@ -165,7 +165,7 @@ qpic_nand_check_status(uint32_t status)
 			{
 				/* Mask the OP ERROR. */
 				status &= ~NAND_FLASH_OP_ERR;
-				qpic_nand_erased_status_reset(ce_array);
+				qpic_nand_erased_status_reset(ce_array, 0);
 			}
 		}
 
@@ -1291,8 +1291,6 @@ qpic_nand_init(struct qpic_nand_init_config *config)
 		return;
 	}
 
-	/* Reset and Configure erased CW/page detection controller. */
-	qpic_nand_erased_status_reset(ce_array);
 }
 
 unsigned
@@ -1380,6 +1378,9 @@ qpic_nand_read_page(uint32_t page, unsigned char* buffer, unsigned char* sparead
 	if (status)
 		return status;
 
+	/* Reset and Configure erased CW/page detection controller */
+	qpic_nand_erased_status_reset(ce_array, BAM_DESC_LOCK_FLAG);
+
 	for (i = 0; i < flash.cws_per_page; i++)
 	{
 		num_cmd_desc = 0;
@@ -1455,7 +1456,7 @@ qpic_nand_read_page(uint32_t page, unsigned char* buffer, unsigned char* sparead
 					 CMD_PIPE_INDEX,
 					 (unsigned char*)cmd_list_ptr_start,
 					 PA((uint32_t)cmd_list_ptr - (uint32_t)cmd_list_ptr_start),
-					 BAM_DESC_NWD_FLAG | BAM_DESC_CMD_FLAG | BAM_DESC_INT_FLAG | BAM_DESC_LOCK_FLAG);
+					 BAM_DESC_NWD_FLAG | BAM_DESC_CMD_FLAG | BAM_DESC_INT_FLAG);
 	num_cmd_desc++;
 
 	qpic_nand_wait_for_cmd_exec(num_cmd_desc);
