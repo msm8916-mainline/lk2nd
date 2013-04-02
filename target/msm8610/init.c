@@ -172,6 +172,15 @@ unsigned target_baseband()
 	return board_baseband();
 }
 
+void target_serialno(unsigned char *buf)
+{
+	uint32_t serialno;
+	if (target_is_emmc_boot()) {
+		serialno = mmc_get_psn();
+		snprintf((char *)buf, 13, "%x", serialno);
+	}
+}
+
 unsigned board_machtype(void)
 {
 	return 0;
