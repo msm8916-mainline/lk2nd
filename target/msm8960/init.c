@@ -515,7 +515,14 @@ void target_usb_init(void)
 	}
 }
 
-int target_mmc_bus_width()
+
+/*
+ * Function to set the capabilities for the host
+ */
+void target_mmc_caps(struct mmc_host *host)
 {
-	return MMC_BOOT_BUS_WIDTH_8_BIT;
+	host->caps.ddr_mode = 1;
+	host->caps.hs200_mode = 1;
+	host->caps.bus_width = MMC_BOOT_BUS_WIDTH_8_BIT;
+	host->caps.hs_clk_rate = MMC_CLK_96MHZ;
 }
