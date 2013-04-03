@@ -44,7 +44,7 @@ unsigned partition_count = 0;
 
 //TODO: Remove the dependency of mmc in these functions
 unsigned int
-partition_read_table(struct mmc_host *mmc_host,
+partition_read_table(void *mmc_host,
 		     struct mmc_card *mmc_card)
 {
 	unsigned int ret;
