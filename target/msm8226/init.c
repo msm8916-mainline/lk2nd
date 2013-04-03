@@ -261,12 +261,6 @@ void target_usb_init(void)
 	/* Select and enable external configuration with USB PHY */
 	ulpi_write(ULPI_MISC_A_VBUSVLDEXTSEL | ULPI_MISC_A_VBUSVLDEXT, ULPI_MISC_A_SET);
 
-	/* This delay is required for usb enumeration in
-	 * fastboot when the target is rebooted
-	 * with usb connected.
-	 */
-	mdelay(70);
-
 	/* Enable sess_vld */
 	val = readl(USB_GENCONFIG_2) | GEN2_SESS_VLD_CTRL_EN;
 	writel(val, USB_GENCONFIG_2);
