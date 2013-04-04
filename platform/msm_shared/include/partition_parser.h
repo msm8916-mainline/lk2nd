@@ -26,6 +26,11 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef __PARTITION_PARSER_H
+#define __PARTITION_PARSER_H
+
+#include <mmc.h>
+
 #define INVALID_PTN               -1
 
 #define PARTITION_TYPE_MBR         0
@@ -180,3 +185,5 @@ unsigned int write_partition(unsigned size, unsigned char *partition);
 
 /* For Debugging */
 void partition_dump(void);
+
+#endif
