@@ -162,7 +162,7 @@ unsigned int mbr_partition_get_type(unsigned size, unsigned char *partition,
 				    unsigned int *partition_type);
 unsigned int partition_get_type(unsigned size, unsigned char *partition,
 				unsigned int *partition_type);
-unsigned int partition_read_table(struct mmc_host *mmc_host,
+unsigned int partition_read_table(void *mmc_host,
 				  struct mmc_card *mmc_card);
 unsigned int partition_parse_gpt_header(unsigned char *buffer,
 					unsigned long long *first_usable_lba,
