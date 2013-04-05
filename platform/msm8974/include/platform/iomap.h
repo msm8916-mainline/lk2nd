@@ -166,4 +166,6 @@
 #define MDP_BASE                    (0xfd900000)
 #define REG_MDP(off)                (MDP_BASE + (off))
 
+/* DRV strength for sdcc */
+#define SDC1_HDRV_PULL_CTL           (TLMM_BASE_ADDR + 0x00002044)
 #endif
