@@ -112,6 +112,11 @@
 #define MBR_PROTECTED_TYPE        0xEE
 #define MBR_SSD_TYPE              0x5D
 
+#define GET_LWORD_FROM_BYTE(x)    ((unsigned)*(x) | \
+        ((unsigned)*(x+1) << 8) | \
+        ((unsigned)*(x+2) << 16) | \
+        ((unsigned)*(x+3) << 24))
+
 #define GET_LLWORD_FROM_BYTE(x)    ((unsigned long long)*(x) | \
         ((unsigned long long)*(x+1) << 8) | \
         ((unsigned long long)*(x+2) << 16) | \
