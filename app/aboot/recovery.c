@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2011, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2013, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -37,6 +37,7 @@
 #include <lib/ptable.h>
 #include <dev/keys.h>
 #include <platform.h>
+#include <target.h>
 #include <partition_parser.h>
 #include <mmc.h>
 
@@ -51,6 +52,7 @@
 static const int MISC_PAGES = 3;			// number of pages to save
 static const int MISC_COMMAND_PAGE = 1;		// bootloader command is this page
 static char buf[4096];
+
 unsigned boot_into_recovery = 0;
 
 extern void reset_device_info();
@@ -465,4 +467,111 @@ int _emmc_recovery_init(void)
 	strlcpy(msg.command, "", sizeof(msg.command));	// clearing recovery command
 	emmc_set_recovery_msg(&msg);	// send recovery message
 	return 0;
+}
+
+static int read_misc(unsigned page_offset, void *buf, unsigned size)
+{
+	const char *ptn_name = "misc";
+	void *scratch_addr = target_get_scratch_address();
+	unsigned offset;
+	unsigned aligned_size;
+
+	if (size == 0 || buf == NULL || scratch_addr == NULL)
+		return -1;
+
+	if (target_is_emmc_boot())
+	{
+		int index;
+		unsigned long long ptn;
+		unsigned long long ptn_size;
+
+		index = partition_get_index(ptn_name);
+		if (index == INVALID_PTN)
+		{
+			dprintf(CRITICAL, "No '%s' partition found\n", ptn_name);
+			return -1;
+		}
+
+		ptn = partition_get_offset(index);
+		ptn_size = partition_get_size(index);
+
+		offset = page_offset * BLOCK_SIZE;
+		aligned_size = ROUND_TO_PAGE(size, (unsigned)BLOCK_SIZE - 1);
+		if (ptn_size < offset + aligned_size)
+		{
+			dprintf(CRITICAL, "Read request out of '%s' boundaries\n",
+					ptn_name);
+			return -1;
+		}
+
+		if (mmc_read(ptn + offset, (unsigned int *)scratch_addr, aligned_size))
+		{
+			dprintf(CRITICAL, "Reading MMC failed\n");
+			return -1;
+		}
+	}
+	else
+	{
+		struct ptentry *ptn;
+		struct ptable *ptable;
+		unsigned pagesize = flash_page_size();
+
+		ptable = flash_get_ptable();
+		if (ptable == NULL)
+		{
+			dprintf(CRITICAL, "Partition table not found\n");
+			return -1;
+		}
+
+		ptn = ptable_find(ptable, ptn_name);
+		if (ptn == NULL)
+		{
+			dprintf(CRITICAL, "No '%s' partition found\n", ptn_name);
+			return -1;
+		}
+
+		offset = page_offset * pagesize;
+		aligned_size = ROUND_TO_PAGE(size, pagesize - 1);
+		if (ptn->length < offset + aligned_size)
+		{
+			dprintf(CRITICAL, "Read request out of '%s' boundaries\n",
+					ptn_name);
+			return -1;
+		}
+
+		if (flash_read(ptn, offset, scratch_addr, aligned_size)) {
+			dprintf(CRITICAL, "Reading flash failed\n");
+			return -1;
+		}
+	}
+
+	if (scratch_addr != buf)
+		memcpy(buf, scratch_addr, size);
+
+	return 0;
+}
+
+bool get_ffbm(char *ffbm, unsigned size)
+{
+	const char *ffbm_cmd = "ffbm-";
+	const unsigned ffbm_submode_size = 2;
+	unsigned ffbm_mode_size = strlen(ffbm_cmd) + ffbm_submode_size;
+
+	if (size < ffbm_mode_size + 1)
+	{
+		dprintf(CRITICAL, "Buffer too short to get FFBM string\n");
+		return false;
+	}
+
+	if (read_misc(0, ffbm, ffbm_mode_size))
+	{
+		dprintf(CRITICAL, "Error reading MISC partition\n");
+		return false;
+	}
+	ffbm[ffbm_mode_size] = 0;
+
+	if (!strncmp(ffbm, ffbm_cmd, strlen(ffbm_cmd)))
+		return true;
+
+	return false;
 }
