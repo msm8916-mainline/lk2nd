@@ -62,7 +62,7 @@ struct update_header {
 	unsigned fail_bitmap_length;
 };
 
-
+int write_misc(unsigned page_offset, void *buf, unsigned size);
 
 int get_recovery_message(struct recovery_message *out);
 int set_recovery_message(const struct recovery_message *in);
