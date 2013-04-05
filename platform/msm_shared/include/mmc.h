@@ -81,6 +81,16 @@ extern unsigned int mmc_boot_mci_base;
 #define MMC_BOOT_BUS_WIDTH_4_BIT          2
 #define MMC_BOOT_BUS_WIDTH_8_BIT          3
 
+/* Bus width support for DDR mode */
+#define MMC_DDR_BUS_WIDTH_4_BIT           6
+#define MMC_DDR_BUS_WIDTH_8_BIT           7
+
+/* DDR mode select */
+#define MMC_MCI_MODE_SELECT               14
+#define MMC_MCI_DDR_MODE_EN               0x3
+
+#define MMC_DEVICE_TYPE                   196
+
 #define MMC_BOOT_MCI_ARGUMENT             MMC_BOOT_MCI_REG(0x008)	/* 32 bits */
 
 #define MMC_BOOT_MCI_CMD                  MMC_BOOT_MCI_REG(0x00C)	/* 16 bits */
@@ -507,11 +517,20 @@ struct mmc_card {
 #define MMC_BOOT_XFER_MULTI_BLOCK        0
 #define MMC_BOOT_XFER_SINGLE_BLOCK       1
 
+/* Capabilities for the mmc host */
+struct mmc_caps {
+	uint8_t ddr_mode;      /* DDR mode support */
+	uint8_t hs200_mode;    /* HS200 mode support */
+	uint8_t bus_width;     /* bus width */
+	uint32_t hs_clk_rate;  /* Clock rate for high speed mode */
+};
+
 struct mmc_host {
 	unsigned int mclk_rate;
 	unsigned int ocr;
 	unsigned int cmd_retry;
 	uint32_t mmc_cont_version;
+	struct mmc_caps caps;
 };
 
 /* MACRO used to evoke regcomp */
@@ -577,6 +596,7 @@ struct mmc_host {
 #define MMC_CLK_25MHZ                 25000000
 #define MMC_CLK_48MHZ                 48000000
 #define MMC_CLK_50MHZ                 49152000
+#define MMC_CLK_96MHZ                 96000000
 
 #define MMC_CLK_ENABLE      1
 #define MMC_CLK_DISABLE     0
@@ -606,4 +626,6 @@ struct mmc_card *get_mmc_card(void);
 void mmc_mclk_reg_wr_delay();
 void mmc_boot_mci_clk_enable();
 void mmc_boot_mci_clk_disable();
+uint8_t card_supports_ddr_mode();
+uint8_t card_supports_hs200_mode();
 #endif
