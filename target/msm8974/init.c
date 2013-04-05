@@ -28,6 +28,7 @@
 
 #include <debug.h>
 #include <platform/iomap.h>
+#include <platform/gpio.h>
 #include <reg.h>
 #include <target.h>
 #include <platform.h>
@@ -47,6 +48,7 @@
 #include <platform/clock.h>
 
 extern  bool target_use_signed_kernel(void);
+static void set_sdc_power_ctrl();
 
 static unsigned int target_id;
 static uint32_t pmic_ver;
@@ -176,6 +178,12 @@ void target_init(void)
 	display_init();
 	dprintf(INFO, "Display Init: Done\n");
 #endif
+
+	/*
+	 * Set drive strength & pull ctrl for
+	 * emmc
+	 */
+	set_sdc_power_ctrl();
 
 	/* Trying Slot 1*/
 	slot = 1;
@@ -434,4 +442,38 @@ void shutdown_device()
 
 	dprintf(CRITICAL, "Shutdown failed\n");
 
+}
+
+/*
+ * Function to set the capabilities for the host
+ */
+void target_mmc_caps(struct mmc_host *host)
+{
+	host->caps.ddr_mode = 1;
+	host->caps.hs200_mode = 1;
+	host->caps.bus_width = MMC_BOOT_BUS_WIDTH_8_BIT;
+	host->caps.hs_clk_rate = MMC_CLK_96MHZ;
+}
+
+static void set_sdc_power_ctrl()
+{
+	/* Drive strength configs for sdc pins */
+	struct tlmm_cfgs sdc1_hdrv_cfg[] =
+	{
+		{ SDC1_CLK_HDRV_CTL_OFF,  TLMM_CUR_VAL_16MA, TLMM_HDRV_MASK },
+		{ SDC1_CMD_HDRV_CTL_OFF,  TLMM_CUR_VAL_10MA, TLMM_HDRV_MASK },
+		{ SDC1_DATA_HDRV_CTL_OFF, TLMM_CUR_VAL_10MA, TLMM_HDRV_MASK },
+	};
+
+	/* Pull configs for sdc pins */
+	struct tlmm_cfgs sdc1_pull_cfg[] =
+	{
+		{ SDC1_CLK_PULL_CTL_OFF,  TLMM_NO_PULL, TLMM_PULL_MASK },
+		{ SDC1_CMD_PULL_CTL_OFF,  TLMM_PULL_UP, TLMM_PULL_MASK },
+		{ SDC1_DATA_PULL_CTL_OFF, TLMM_PULL_UP, TLMM_PULL_MASK },
+	};
+
+	/* Set the drive strength & pull control values */
+	tlmm_set_hdrive_ctrl(sdc1_hdrv_cfg, ARRAY_SIZE(sdc1_hdrv_cfg));
+	tlmm_set_pull_ctrl(sdc1_pull_cfg, ARRAY_SIZE(sdc1_pull_cfg));
 }
