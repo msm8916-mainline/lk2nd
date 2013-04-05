@@ -66,4 +66,5 @@
                                                ((GIC_SPI_START + 95) + qup_id):\
                                                ((GIC_SPI_START + 101) + qup_id))
 
+#define SDCC_PWRCTRL_IRQ                       (GIC_SPI_START + 138)
 #endif	/* __IRQS_COPPER_H */
