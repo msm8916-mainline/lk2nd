@@ -60,9 +60,6 @@ void hsusb_clock_init(void)
 	iclk = clk_get("usb_iface_clk");
 	cclk = clk_get("usb_core_clk");
 
-	/* Disable USB all clock init */
-	writel(0, USB_BOOT_CLOCK_CTL);
-
 	clk_disable(iclk);
 	clk_disable(cclk);
 
@@ -169,7 +166,118 @@ void clock_config_uart_dm(uint8_t id)
 	}
 }
 
+/* Function to asynchronously reset CE.
+ * Function assumes that all the CE clocks are off.
+ */
+static void ce_async_reset(uint8_t instance)
+{
+	if (instance == 1)
+	{
+		/* Start the block reset for CE */
+		writel(1, GCC_CE1_BCR);
+
+		udelay(2);
+
+		/* Take CE block out of reset */
+		writel(0, GCC_CE1_BCR);
+
+		udelay(2);
+	}
+	else
+	{
+		dprintf(CRITICAL, "CE instance not supported instance = %d", instance);
+		ASSERT(0);
+	}
+}
+
+void clock_ce_enable(uint8_t instance)
+{
+	int ret;
+	char clk_name[64];
+
+	snprintf(clk_name, 64, "ce%u_src_clk", instance);
+	ret = clk_get_set_enable(clk_name, 100000000, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set ce_src_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	snprintf(clk_name, 64, "ce%u_core_clk", instance);
+    ret = clk_get_set_enable(clk_name, 0, 1);
+    if(ret)
+	{
+		dprintf(CRITICAL, "failed to set ce_core_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	snprintf(clk_name, 64, "ce%u_ahb_clk", instance);
+    ret = clk_get_set_enable(clk_name, 0, 1);
+    if(ret)
+	{
+		dprintf(CRITICAL, "failed to set ce_ahb_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	snprintf(clk_name, 64, "ce%u_axi_clk", instance);
+    ret = clk_get_set_enable(clk_name, 0, 1);
+    if(ret)
+	{
+		dprintf(CRITICAL, "failed to set ce_axi_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	/* Wait for 48 * #pipes cycles.
+	 * This is necessary as immediately after an access control reset (boot up)
+	 * or a debug re-enable, the Crypto core sequentially clears its internal
+	 * pipe key storage memory. If pipe key initialization writes are attempted
+	 * during this time, they may be overwritten by the internal clearing logic.
+	 */
+	udelay(1);
+}
+
+void clock_ce_disable(uint8_t instance)
+{
+	struct clk *ahb_clk;
+	struct clk *cclk;
+	struct clk *axi_clk;
+	struct clk *src_clk;
+	char clk_name[64];
+
+	snprintf(clk_name, 64, "ce%u_src_clk", instance);
+	src_clk = clk_get(clk_name);
+
+	snprintf(clk_name, 64, "ce%u_ahb_clk", instance);
+	ahb_clk = clk_get(clk_name);
+
+	snprintf(clk_name, 64, "ce%u_axi_clk", instance);
+	axi_clk = clk_get(clk_name);
+
+	snprintf(clk_name, 64, "ce%u_core_clk", instance);
+	cclk    = clk_get(clk_name);
+
+	clk_disable(ahb_clk);
+	clk_disable(axi_clk);
+	clk_disable(cclk);
+	clk_disable(src_clk);
+
+	/* Some delay for the clocks to stabalize. */
+	udelay(1);
+}
+
 void clock_config_ce(uint8_t instance)
 {
+	/* Need to enable the clock before disabling since the clk_disable()
+	 * has a check to default to nop when the clk_enable() is not called
+	 * on that particular clock.
+	 */
+	clock_ce_enable(instance);
+
+	clock_ce_disable(instance);
+
+	ce_async_reset(instance);
+
+	clock_ce_enable(instance);
+
 }
 
