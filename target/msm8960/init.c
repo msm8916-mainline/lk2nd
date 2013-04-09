@@ -324,8 +324,6 @@ void target_uart_init(void)
 	default:
 		dprintf(CRITICAL, "uart gsbi not defined for target: %d\n",
 			target_id);
-
-		ASSERT(0);
 	}
 }
 
