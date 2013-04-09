@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
- * Copyright (c) 2009-2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2013, The Linux Foundation. All rights reserved.
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -3328,6 +3328,10 @@ void flash_init(void)
 	flash_cmdlist = memalign(32, 1024);
 	flash_data = memalign(32, 4096 + 128);
 	flash_spare = memalign(32, 128);
+
+	if (flash_ptrlist == NULL || flash_cmdlist == NULL
+		|| flash_data == NULL || flash_spare == NULL)
+		ASSERT(0);
 
 	flash_read_id(flash_cmdlist, flash_ptrlist);
 	if ((FLASH_8BIT_NAND_DEVICE == flash_info.type)
