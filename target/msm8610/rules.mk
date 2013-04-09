@@ -4,7 +4,7 @@ INCLUDES += -I$(LOCAL_DIR)/include -I$(LK_TOP_DIR)/platform/msm_shared
 
 PLATFORM := msm8610
 
-MEMBASE := 0x0FF00000 # SDRAM
+MEMBASE := 0x07A00000 # SDRAM
 MEMSIZE := 0x00100000 # 1MB
 
 BASE_ADDR        := 0x00000
