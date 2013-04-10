@@ -123,6 +123,30 @@ struct atag_ptbl_entry
 	unsigned flags;
 };
 
+/*
+ * Partition info, required to be published
+ * for fastboot
+ */
+struct getvar_partition_info {
+	const char part_name[MAX_GPT_NAME_SIZE]; /* Partition name */
+	char getvar_size[MAX_GET_VAR_NAME_SIZE]; /* fastboot get var name for size */
+	char getvar_type[MAX_GET_VAR_NAME_SIZE]; /* fastboot get var name for type */
+	char size_response[MAX_RSP_SIZE];        /* fastboot response for size */
+	char type_response[MAX_RSP_SIZE];        /* fastboot response for type */
+};
+
+/*
+ * Right now, we are publishing the info for only
+ * three partitions
+ */
+struct getvar_partition_info part_info[] =
+{
+	{ "system"  , "partition-size:", "partition-type:", "", "ext4" },
+	{ "userdata", "partition-size:", "partition-type:", "", "ext4" },
+	{ "cache"   , "partition-size:", "partition-type:", "", "ext4" },
+};
+
+char max_download_size[MAX_RSP_SIZE];
 char sn_buf[13];
 
 extern int emmc_recovery_init(void);
@@ -1665,6 +1689,11 @@ void cmd_oem_devinfo(const char *arg, void *data, unsigned sz)
 	fastboot_okay("");
 }
 
+void cmd_preflash(const char *arg, void *data, unsigned sz)
+{
+	fastboot_okay("");
+}
+
 void splash_screen ()
 {
 	struct ptentry *ptn;
@@ -1692,6 +1721,65 @@ void splash_screen ()
 				}
 			}
 		}
+	}
+}
+
+/* Get the size from partiton name */
+static void get_partition_size(const char *arg, char *response)
+{
+	uint64_t ptn = 0;
+	uint64_t size;
+	int index = INVALID_PTN;
+
+	index = partition_get_index(arg);
+
+	if (index == INVALID_PTN)
+	{
+		dprintf(CRITICAL, "Invalid partition index\n");
+		return;
+	}
+
+	ptn = partition_get_offset(index);
+
+	if(!ptn)
+	{
+		dprintf(CRITICAL, "Invalid partition name %s\n", arg);
+		return;
+	}
+
+	size = partition_get_size(index);
+
+	snprintf(response, MAX_RSP_SIZE, "\t 0x%llx", size);
+	return;
+}
+
+/*
+ * Publish the partition type & size info
+ * fastboot getvar will publish the required information.
+ * fastboot getvar partition_size:<partition_name>: partition size in hex
+ * fastboot getvar partition_type:<partition_name>: partition type (ext/fat)
+ */
+static void publish_getvar_partition_info(struct getvar_partition_info *info, uint8_t num_parts)
+{
+	uint8_t i;
+
+	for (i = 0; i < num_parts; i++) {
+		get_partition_size(info[i].part_name, info[i].size_response);
+
+		if (strlcat(info[i].getvar_size, info[i].part_name, MAX_GET_VAR_NAME_SIZE) >= MAX_GET_VAR_NAME_SIZE)
+		{
+			dprintf(CRITICAL, "partition size name truncated\n");
+			return;
+		}
+		if (strlcat(info[i].getvar_type, info[i].part_name, MAX_GET_VAR_NAME_SIZE) >= MAX_GET_VAR_NAME_SIZE)
+		{
+			dprintf(CRITICAL, "partition type name truncated\n");
+			return;
+		}
+
+		/* publish partition size & type info */
+		fastboot_publish((const char *) info[i].getvar_size, (const char *) info[i].size_response);
+		fastboot_publish((const char *) info[i].getvar_type, (const char *) info[i].type_response);
 	}
 }
 
@@ -1780,6 +1868,8 @@ void aboot_init(const struct app_descriptor *app)
 
 fastboot:
 
+	sz = target_get_max_flash_size();
+
 	target_fastboot_init();
 
 	if(!usb_init)
@@ -1803,11 +1893,15 @@ fastboot:
 	fastboot_register("reboot-bootloader", cmd_reboot_bootloader);
 	fastboot_register("oem unlock", cmd_oem_unlock);
 	fastboot_register("oem device-info", cmd_oem_devinfo);
+	fastboot_register("preflash", cmd_preflash);
 	fastboot_publish("product", TARGET(BOARD));
 	fastboot_publish("kernel", "lk");
 	fastboot_publish("serialno", sn_buf);
+	publish_getvar_partition_info(part_info, ARRAY_SIZE(part_info));
+	/* Max download size supported */
+	snprintf(max_download_size, MAX_RSP_SIZE, "\t0x%x", sz);
+	fastboot_publish("max-download-size", (const char *) max_download_size);
 	partition_dump();
-	sz = target_get_max_flash_size();
 	fastboot_init(target_get_scratch_address(), sz);
 	udc_start();
 }
