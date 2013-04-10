@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -271,50 +271,6 @@ static struct branch_clk gcc_usb_hs_ahb_clk =
 	},
 };
 
-static struct branch_clk gcc_qpic_ahb_clk =
-{
-	.cbcr_reg     = (uint32_t *) GCC_QPIC_AHB_CBCR,
-	.has_sibling  = 1,
-
-	.c = {
-		.dbg_name = "gcc_qpic_ahb_clk",
-		.ops      = &clk_ops_branch,
-	},
-};
-
-/* NAND Clocks */
-static struct clk_freq_tbl ftbl_gcc_qpic_nand_clk[] =
-{
-	F(100000000, gpll0, 6, 0, 0),
-	F_END
-};
-
-static struct rcg_clk qpic_nand_clk_src =
-{
-	.cmd_reg      = (uint32_t *) GCC_QPIC_CMD_RCGR,
-	.cfg_reg      = (uint32_t *) GCC_QPIC_CFG_RCGR,
-
-	.set_rate     = clock_lib2_rcg_set_rate_mnd,
-	.freq_tbl     = ftbl_gcc_qpic_nand_clk,
-	.current_freq = &rcg_dummy_freq,
-
-	.c = {
-		.dbg_name = "qpic_nand_clk_src",
-		.ops      = &clk_ops_rcg_mnd,
-	},
-};
-
-static struct branch_clk gcc_qpic_nand_clk =
-{
-	.cbcr_reg     = (uint32_t *) GCC_QPIC_CBCR,
-	.parent       = &qpic_nand_clk_src.c,
-
-	.c = {
-		.dbg_name = "gcc_qpic_nand_clk",
-		.ops      = &clk_ops_branch,
-	},
-};
-
 /* Clock lookup table */
 static struct clk_lookup mdm_9625_clocks[] =
 {
@@ -326,8 +282,6 @@ static struct clk_lookup mdm_9625_clocks[] =
 	CLK_LOOKUP("usb_iface_clk",  gcc_usb_hs_ahb_clk.c),
 	CLK_LOOKUP("usb_core_clk",   gcc_usb_hs_system_clk.c),
 
-	CLK_LOOKUP("qpic_iface_clk", gcc_qpic_ahb_clk.c),
-	CLK_LOOKUP("qpic_core_clk",  gcc_qpic_nand_clk.c),
 };
 
 

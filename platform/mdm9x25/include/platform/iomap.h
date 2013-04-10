@@ -126,14 +126,4 @@
 
 #define USB_BOOT_CLOCK_CTL                   (CLK_CTL_BASE + 0x1A00)
 
-#define GCC_QPIC_BCR                         (CLK_CTL_BASE + 0x1A40)
-#define GCC_QPIC_CBCR                        (CLK_CTL_BASE + 0x1A44)
-#define GCC_QPIC_AHB_CBCR                    (CLK_CTL_BASE + 0x1A48)
-#define GCC_QPIC_SYSTEM_CBCR                 (CLK_CTL_BASE + 0x1A4C)
-#define GCC_QPIC_CMD_RCGR                    (CLK_CTL_BASE + 0x1A50)
-#define GCC_QPIC_CFG_RCGR                    (CLK_CTL_BASE + 0x1A54)
-#define GCC_QPIC_M                           (CLK_CTL_BASE + 0x1A58)
-#define GCC_QPIC_N                           (CLK_CTL_BASE + 0x1A5C)
-#define GCC_QPIC_D                           (CLK_CTL_BASE + 0x1A60)
-
 #endif
