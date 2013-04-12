@@ -449,9 +449,28 @@ void shutdown_device()
  */
 void target_mmc_caps(struct mmc_host *host)
 {
+	uint32_t soc_ver = 0;
+
+	soc_ver = board_soc_version();
+
+	/*
+	 * 8974 v1 fluid devices, have a hardware bug
+	 * which limits the bus width to 4 bit.
+	 */
+	switch(board_hardware_id())
+	{
+		case HW_PLATFORM_FLUID:
+			if (soc_ver >= BOARD_SOC_VERSION2)
+				host->caps.bus_width = MMC_BOOT_BUS_WIDTH_8_BIT;
+			else
+				host->caps.bus_width = MMC_BOOT_BUS_WIDTH_4_BIT;
+			break;
+		default:
+			host->caps.bus_width = MMC_BOOT_BUS_WIDTH_8_BIT;
+	};
+
 	host->caps.ddr_mode = 1;
 	host->caps.hs200_mode = 1;
-	host->caps.bus_width = MMC_BOOT_BUS_WIDTH_8_BIT;
 	host->caps.hs_clk_rate = MMC_CLK_96MHZ;
 }
 
