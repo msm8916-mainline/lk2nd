@@ -41,6 +41,7 @@
 #include <dev/keys.h>
 #include <pm8x41.h>
 #include <hsusb.h>
+#include <kernel/thread.h>
 
 #define PMIC_ARB_CHANNEL_NUM    0
 #define PMIC_ARB_OWNER_ID       0
@@ -64,6 +65,8 @@ static int target_volume_up()
 
 	gpio_tlmm_config(TLMM_VOL_UP_BTN_GPIO, 0, GPIO_INPUT, GPIO_PULL_UP, GPIO_2MA, GPIO_ENABLE);
 
+	/* Wait for the configuration to complete.*/
+	thread_sleep(1);
 	/* Get status of GPIO */
 	status = gpio_status(TLMM_VOL_UP_BTN_GPIO);
 
