@@ -35,8 +35,8 @@
 #include <kernel/thread.h>
 #include <kernel/event.h>
 #include <dev/udc.h>
+#include "fastboot.h"
 
-#define MAX_RSP_SIZE 64
 #define MAX_USBFS_BULK_SIZE (32 * 1024)
 
 void boot_linux(void *bootimg, unsigned sz);
