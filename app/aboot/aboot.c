@@ -1224,20 +1224,8 @@ int copy_dtb(uint8_t *boot_image_start)
 		memmove((void*) hdr->tags_addr,
 				boot_image_start + dt_image_offset +  dt_entry_ptr->offset,
 				dt_entry_ptr->size);
-	} else {
-		/*
-		 * If appended dev tree is found, update the atags with
-		 * memory address to the DTB appended location on RAM.
-		 * Else update with the atags address in the kernel header
-		 */
-		void *dtb;
-		dtb = dev_tree_appended((void *)hdr->kernel_addr,
-					(void *)hdr->tags_addr);
-		if (!dtb) {
-			dprintf(CRITICAL, "ERROR: Appended Device Tree Blob not found\n");
-			return -1;
-		}
-	}
+	} else
+		return -1;
 
 	/* Everything looks fine. Return success. */
 	return 0;
@@ -1250,6 +1238,8 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	unsigned ramdisk_actual;
 	struct boot_img_hdr *hdr;
 	char *ptr = ((char*) data);
+	int ret = 0;
+	uint8_t dtb_copied = 0;
 
 	if (sz < sizeof(hdr)) {
 		fastboot_fail("invalid bootimage header");
@@ -1287,15 +1277,31 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 		return;
 	}
 
-	memmove((void*) hdr->kernel_addr, ptr + page_size, hdr->kernel_size);
-	memmove((void*) hdr->ramdisk_addr, ptr + page_size + kernel_actual, hdr->ramdisk_size);
-
 #if DEVICE_TREE
 	/* find correct dtb and copy it to right location */
-	if(copy_dtb(data))
-	{
-		fastboot_fail("dtb not found");
-		return;
+	ret = copy_dtb(data);
+
+	dtb_copied = !ret ? 1 : 0;
+#endif
+
+	/* Load ramdisk & kernel */
+	memmove((void*) hdr->ramdisk_addr, ptr + page_size + kernel_actual, hdr->ramdisk_size);
+	memmove((void*) hdr->kernel_addr, ptr + page_size, hdr->kernel_size);
+
+#if DEVICE_TREE
+	/*
+	 * If dtb is not found look for appended DTB in the kernel.
+	 * If appended dev tree is found, update the atags with
+	 * memory address to the DTB appended location on RAM.
+	 * Else update with the atags address in the kernel header
+	 */
+	if (!dtb_copied) {
+		void *dtb;
+		dtb = dev_tree_appended((void *)hdr->kernel_addr, (void *)hdr->tags_addr);
+		if (!dtb) {
+			fastboot_fail("dtb not found");
+			return;
+		}
 	}
 #endif
 
