@@ -542,11 +542,6 @@ struct mmc_host {
         } \
     } while(0);
 
-#define GET_LWORD_FROM_BYTE(x)    ((unsigned)*(x) | \
-        ((unsigned)*(x+1) << 8) | \
-        ((unsigned)*(x+2) << 16) | \
-        ((unsigned)*(x+3) << 24))
-
 #define PUT_LWORD_TO_BYTE(x, y)   do{*(x) = y & 0xff;     \
     *(x+1) = (y >> 8) & 0xff;     \
     *(x+2) = (y >> 16) & 0xff;     \
