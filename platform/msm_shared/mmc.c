@@ -1510,7 +1510,7 @@ mmc_boot_send_write_command(struct mmc_card *card,
  * Write data_len data to address specified by data_addr. data_len is
  * multiple of blocks for block data transfer.
  */
-unsigned int
+static unsigned int
 mmc_boot_write_to_card(struct mmc_host *host,
 		       struct mmc_card *card,
 		       unsigned long long data_addr,
@@ -1734,7 +1734,7 @@ mmc_boot_set_block_count(struct mmc_card *card, unsigned int block_count)
  * Reads a data of data_len from the address specified. data_len
  * should be multiple of block size for block data transfer.
  */
-unsigned int
+static unsigned int
 mmc_boot_read_from_card(struct mmc_host *host,
 			struct mmc_card *card,
 			unsigned long long data_addr,
@@ -2411,7 +2411,7 @@ unsigned int mmc_boot_main(unsigned char slot, unsigned int base)
 	mmc_display_csd();
 	mmc_display_ext_csd();
 
-	mmc_ret = partition_read_table(&mmc_host, &mmc_card);
+	mmc_ret = partition_read_table();
 	return mmc_ret;
 }
 
@@ -3066,16 +3066,6 @@ mmc_erase_card(unsigned long long data_addr, unsigned long long size)
 	return MMC_BOOT_E_SUCCESS;
 }
 
-struct mmc_host *get_mmc_host(void)
-{
-	return &mmc_host;
-}
-
-struct mmc_card *get_mmc_card(void)
-{
-	return &mmc_card;
-}
-
 /*
  * Disable MCI clk
  */
@@ -3408,4 +3398,10 @@ uint8_t card_supports_hs200_mode()
 		return 1;
 	else
 		return 0;
+}
+
+/* Return the density of the mmc device */
+uint64_t mmc_get_device_capacity()
+{
+	return mmc_card.capacity;
 }

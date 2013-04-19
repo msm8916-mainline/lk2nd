@@ -597,10 +597,6 @@ struct mmc_host {
 #define MMC_CLK_DISABLE     0
 
 unsigned int mmc_boot_main(unsigned char slot, unsigned int base);
-unsigned int mmc_boot_read_from_card(struct mmc_host *host,
-				     struct mmc_card *card,
-				     unsigned long long data_addr,
-				     unsigned int data_len, unsigned int *out);
 unsigned int mmc_write(unsigned long long data_addr,
 		       unsigned int data_len, unsigned int *in);
 
@@ -608,19 +604,13 @@ unsigned int mmc_read(unsigned long long data_addr, unsigned int *out,
 		      unsigned int data_len);
 unsigned mmc_get_psn(void);
 
-unsigned int mmc_boot_write_to_card(struct mmc_host *host,
-				    struct mmc_card *card,
-				    unsigned long long data_addr,
-				    unsigned int data_len, unsigned int *in);
-
 unsigned int mmc_erase_card(unsigned long long data_addr,
 			    unsigned long long data_len);
 
-struct mmc_host *get_mmc_host(void);
-struct mmc_card *get_mmc_card(void);
 void mmc_mclk_reg_wr_delay();
 void mmc_boot_mci_clk_enable();
 void mmc_boot_mci_clk_disable();
 uint8_t card_supports_ddr_mode();
 uint8_t card_supports_hs200_mode();
+uint64_t mmc_get_device_capacity();
 #endif
