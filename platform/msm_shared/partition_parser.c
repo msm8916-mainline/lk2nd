@@ -89,7 +89,7 @@ unsigned int partition_read_table()
  */
 static unsigned int mmc_boot_read_mbr()
 {
-	unsigned char buffer[BLOCK_SIZE];
+	BUF_DMA_ALIGN(buffer, BLOCK_SIZE);
 	unsigned int dtype;
 	unsigned int dfirstsec;
 	unsigned int EBR_first_sec;
@@ -202,7 +202,7 @@ static unsigned int mmc_boot_read_mbr()
  */
 static unsigned int mmc_boot_read_gpt()
 {
-
+	BUF_DMA_ALIGN(data, BLOCK_SIZE);
 	int ret = 0;
 	unsigned int header_size;
 	unsigned long long first_usable_lba;
@@ -210,7 +210,6 @@ static unsigned int mmc_boot_read_gpt()
 	unsigned long long card_size_sec;
 	unsigned int max_partition_count = 0;
 	unsigned int partition_entry_size;
-	unsigned char data[BLOCK_SIZE];
 	unsigned int i = 0;	/* Counter for each 512 block */
 	unsigned int j = 0;	/* Counter for each 128 entry in the 512 block */
 	unsigned int n = 0;	/* Counter for UTF-16 -> 8 conversion */
