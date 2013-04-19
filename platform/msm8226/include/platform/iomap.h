@@ -90,6 +90,11 @@
 #define TLMM_BASE_ADDR              0xFD510000
 #define GPIO_CONFIG_ADDR(x)         (TLMM_BASE_ADDR + 0x1000 + (x)*0x10)
 #define GPIO_IN_OUT_ADDR(x)         (TLMM_BASE_ADDR + 0x1004 + (x)*0x10)
+#define GPIO_OUT_SET_ADDR(x)        (TLMM_BASE_ADDR + 0x3040 + (x/32)*0x04)
+#define GPIO_OUT_CLR_ADDR(x)        (TLMM_BASE_ADDR + 0x3020 + (x/32)*0x04)
+#define GPIO_OUT_VAL(x)             (1 << (x - (x/32)*32))
+#define GPIO_OUT_OE_SET_ADDR(x)     (TLMM_BASE_ADDR + 0x3120 + (x/32)*0x04)
+#define GPIO_OUT_OE_VAL(x)          (1 << (x - (x/32)*32))
 
 #define MPM2_MPM_CTRL_BASE          0xFC4A1000
 #define MPM2_MPM_PS_HOLD            0xFC4AB000

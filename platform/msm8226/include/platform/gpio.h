@@ -68,5 +68,7 @@ void gpio_tlmm_config(uint32_t gpio,
                       uint8_t pull,
                       uint8_t drvstr,
                       uint32_t enable);
+void gpio_set_dir(uint32_t gpio, uint32_t dir);
+void gpio_set_value(uint32_t gpio, uint32_t value);
 
 #endif
