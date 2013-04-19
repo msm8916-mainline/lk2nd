@@ -35,6 +35,7 @@
 #include <arch/arm.h>
 #include <dev/udc.h>
 #include <string.h>
+#include <stdlib.h>
 #include <kernel/thread.h>
 #include <arch/ops.h>
 
@@ -498,9 +499,9 @@ unsigned page_mask = 0;
 
 #define ROUND_TO_PAGE(x,y) (((x) + (y)) & (~(y)))
 
-static unsigned char buf[4096]; //Equal to max-supported pagesize
+BUF_DMA_ALIGN(buf, 4096); //Equal to max-supported pagesize
 #if DEVICE_TREE
-static unsigned char dt_buf[4096];
+BUF_DMA_ALIGN(dt_buf, 4096);
 #endif
 
 int boot_linux_from_mmc(void)
@@ -1013,7 +1014,7 @@ continue_boot:
 	return 0;
 }
 
-unsigned char info_buf[4096];
+BUF_DMA_ALIGN(info_buf, 4096);
 void write_device_info_mmc(device_info *dev)
 {
 	struct device_info *info = (void*) info_buf;
@@ -1340,8 +1341,8 @@ void cmd_erase(const char *arg, void *data, unsigned sz)
 
 void cmd_erase_mmc(const char *arg, void *data, unsigned sz)
 {
+	BUF_DMA_ALIGN(out, 512);
 	unsigned long long ptn = 0;
-	unsigned int out[512] = {0};
 	int index = INVALID_PTN;
 
 	index = partition_get_index(arg);
