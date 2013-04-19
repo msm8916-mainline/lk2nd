@@ -62,7 +62,7 @@ void *dev_tree_appended(void *kernel, void *tags)
 
 		dprintf(INFO, "Found Appeneded Flattened Device tree\n");
 		dtb = kernel + app_dtb_offset;
-		rc = fdt_open_into(dtb, tags, fdt_totalsize(dtb) + DTB_PAD_SIZE);
+		rc = fdt_open_into(dtb, tags, fdt_totalsize(dtb));
 		if (rc == 0) {
 			/* clear out the old DTB magic so kernel doesn't find it */
 			*((uint32_t *)dtb) = 0;
@@ -192,6 +192,14 @@ int update_device_tree(void *fdt, const char *cmdline,
 	if (ret)
 	{
 		dprintf(CRITICAL, "Invalid device tree header \n");
+		return ret;
+	}
+
+	/* Add padding to make space for new nodes and properties. */
+	ret = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + DTB_PAD_SIZE);
+	if (ret!= 0)
+	{
+		dprintf(CRITICAL, "Failed to move/resize dtb buffer: %d\n", ret);
 		return ret;
 	}
 
