@@ -339,8 +339,11 @@ void mdp_gdsc_ctrl(uint8_t enable)
 		}
 
 		while(readl(MDP_GDSCR) & ((GDSC_POWER_ON_BIT) | (GDSC_POWER_ON_STATUS_BIT)));
-	} else
-		ASSERT(1);
+	} else {
+		reg &= ~BIT(0);
+		writel(reg, MDP_GDSCR);
+		while(!(readl(MDP_GDSCR) & ((GDSC_POWER_ON_BIT))));
+	}
 }
 
 /* Configure MDP clock */
@@ -363,6 +366,13 @@ void mdp_clock_init(void)
 		ASSERT(0);
 	}
 
+	ret = clk_get_set_enable("mdss_vsync_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mdss vsync clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
 	ret = clk_get_set_enable("mdss_mdp_clk", 0, 1);
 	if(ret)
 	{
@@ -376,6 +386,18 @@ void mdp_clock_init(void)
 		dprintf(CRITICAL, "failed to set lut_mdp clk ret = %d\n", ret);
 		ASSERT(0);
 	}
+}
+
+void mdp_clock_disable(void)
+{
+	writel(0x0, DSI_BYTE0_CBCR);
+	writel(0x0, DSI_PIXEL0_CBCR);
+	clk_disable(clk_get("mdss_vsync_clk"));
+	clk_disable(clk_get("mdss_mdp_clk"));
+	clk_disable(clk_get("mdss_mdp_lut_clk"));
+	clk_disable(clk_get("mdss_mdp_clk_src"));
+	clk_disable(clk_get("mdp_ahb_clk"));
+
 }
 
 /* Initialize all clocks needed by Display */
@@ -424,4 +446,21 @@ void mmss_clock_init(void)
 	writel(0x102, DSI_PIXEL0_CFG_RCGR);
 	writel(0x1, DSI_PIXEL0_CMD_RCGR);
 	writel(0x1, DSI_PIXEL0_CBCR);
+}
+
+void mmss_clock_disable(void)
+{
+
+	/* Disable ESC clock */
+	clk_disable(clk_get("mdss_esc0_clk"));
+
+	/* Disable MDSS AXI clock */
+	clk_disable(clk_get("mdss_axi_clk"));
+
+	/* Disable MMSSNOC S0AXI clock */
+	clk_disable(clk_get("mmss_s0_axi_clk"));
+
+	/* Disable MMSSNOC AXI clock */
+	clk_disable(clk_get("mmss_mmssnoc_axi_clk"));
+
 }

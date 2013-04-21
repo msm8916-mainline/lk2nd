@@ -426,6 +426,23 @@ static struct rcg_clk dsi_esc0_clk_src = {
 	},
 };
 
+static struct clk_freq_tbl ftbl_mdss_vsync_clk[] = {
+	F_MM(19200000,    cxo,   1,   0,   0),
+	F_END
+};
+
+static struct rcg_clk vsync_clk_src = {
+	.cmd_reg  = (uint32_t *) VSYNC_CMD_RCGR,
+	.cfg_reg  = (uint32_t *) VSYNC_CFG_RCGR,
+	.set_rate = clock_lib2_rcg_set_rate_hid,
+	.freq_tbl = ftbl_mdss_vsync_clk,
+
+	.c        = {
+		.dbg_name = "vsync_clk_src",
+		.ops      = &clk_ops_rcg,
+	},
+};
+
 static struct rcg_clk mdp_axi_clk_src = {
 	.cmd_reg  = (uint32_t *) MDP_AXI_CMD_RCGR,
 	.cfg_reg  = (uint32_t *) MDP_AXI_CFG_RCGR,
@@ -527,6 +544,17 @@ static struct branch_clk mdss_mdp_lut_clk = {
 	},
 };
 
+static struct branch_clk mdss_vsync_clk = {
+	.cbcr_reg    = MDSS_VSYNC_CBCR,
+	.parent      = &vsync_clk_src.c,
+	.has_sibling = 0,
+
+	.c           = {
+		.dbg_name = "mdss_vsync_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
 /* Clock lookup table */
 static struct clk_lookup msm_clocks_8974[] =
 {
@@ -558,6 +586,7 @@ static struct clk_lookup msm_clocks_8974[] =
 	CLK_LOOKUP("mdss_axi_clk",         mdss_axi_clk.c),
 	CLK_LOOKUP("mmss_mmssnoc_axi_clk", mmss_mmssnoc_axi_clk.c),
 	CLK_LOOKUP("mmss_s0_axi_clk",      mmss_s0_axi_clk.c),
+	CLK_LOOKUP("mdss_vsync_clk",       mdss_vsync_clk.c),
 	CLK_LOOKUP("mdss_mdp_clk_src",     mdss_mdp_clk_src.c),
 	CLK_LOOKUP("mdss_mdp_clk",         mdss_mdp_clk.c),
 	CLK_LOOKUP("mdss_mdp_lut_clk",     mdss_mdp_lut_clk.c),

@@ -42,6 +42,9 @@
 #define GDSC_EN_FEW_WAIT_MASK           (0x0F << 16)
 #define GDSC_EN_FEW_WAIT_256_MASK       BIT(19)
 
+#define VSYNC_CMD_RCGR                  REG_MM(0x2080)
+#define VSYNC_CFG_RCGR                  REG_MM(0x2084)
+#define MDSS_VSYNC_CBCR                 REG_MM(0x2328)
 #define MDP_CMD_RCGR                    REG_MM(0x2040)
 #define MDP_CFG_RCGR                    REG_MM(0x2044)
 #define MDP_CBCR                        REG_MM(0x231C)
