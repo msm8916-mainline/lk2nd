@@ -71,13 +71,16 @@ static int msm8974_mdss_dsi_panel_clock(uint8_t enable)
 		mmss_clock_init();
 	} else if(!target_cont_splash_screen()) {
 		// * Add here for continuous splash  *
+		mmss_clock_disable();
+		mdp_clock_disable();
+		mdp_gdsc_ctrl(enable);
 	}
 
 	return 0;
 }
 
 /* Pull DISP_RST_N high to get panel out of reset */
-static void msm8974_mdss_mipi_panel_reset(void)
+static void msm8974_mdss_mipi_panel_reset(uint8_t enable)
 {
 	struct pm8x41_gpio gpio19_param = {
 		.direction = PM_GPIO_DIR_OUT,
@@ -86,17 +89,23 @@ static void msm8974_mdss_mipi_panel_reset(void)
 	};
 
 	pm8x41_gpio_config(19, &gpio19_param);
-	gpio_tlmm_config(58, 0, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_8MA, GPIO_DISABLE);
+	if (enable) {
+		gpio_tlmm_config(58, 0, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_8MA, GPIO_DISABLE);
 
-	pm8x41_gpio_set(19, PM_GPIO_FUNC_HIGH);
-	mdelay(2);
-	pm8x41_gpio_set(19, PM_GPIO_FUNC_LOW);
-	mdelay(5);
-	pm8x41_gpio_set(19, PM_GPIO_FUNC_HIGH);
-	mdelay(2);
-	gpio_set(58, 2);
+		pm8x41_gpio_set(19, PM_GPIO_FUNC_HIGH);
+		mdelay(2);
+		pm8x41_gpio_set(19, PM_GPIO_FUNC_LOW);
+		mdelay(5);
+		pm8x41_gpio_set(19, PM_GPIO_FUNC_HIGH);
+		mdelay(2);
+		gpio_set(58, 2);
+	} else {
+		gpio19_param.out_strength = PM_GPIO_OUT_DRIVE_LOW;
+		pm8x41_gpio_config(19, &gpio19_param);
+		pm8x41_gpio_set(19, PM_GPIO_FUNC_LOW);
+		gpio_set(58, 2);
+	}
 }
-
 
 static int msm8974_mipi_panel_power(uint8_t enable)
 {
@@ -122,8 +131,14 @@ static int msm8974_mipi_panel_power(uint8_t enable)
 
 		dprintf(SPEW, " Panel Reset \n");
 		/* Panel Reset */
-		msm8974_mdss_mipi_panel_reset();
+		msm8974_mdss_mipi_panel_reset(enable);
 		dprintf(SPEW, " Panel Reset Done\n");
+	} else {
+		msm8974_mdss_mipi_panel_reset(enable);
+		pm8x41_wled_enable(enable);
+		pm8x41_ldo_control("LDO2", enable);
+		pm8x41_ldo_control("LDO22", enable);
+
 	}
 
 	return 0;
