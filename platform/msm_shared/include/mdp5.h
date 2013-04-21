@@ -45,6 +45,7 @@
 
 #define MDP_VP_0_LAYER_0_OUT_SIZE               REG_MDP(0x3204)
 #define MDP_VP_0_LAYER_0_OP_MODE                REG_MDP(0x3200)
+#define MDP_VP_0_LAYER_0_BORDER_COLOR_0         REG_MDP(0x3208)
 #define MDP_VP_0_LAYER_0_BLEND_OP               REG_MDP(0x3220)
 #define MDP_VP_0_LAYER_0_BLEND0_FG_ALPHA        REG_MDP(0x3224)
 #define MDP_VP_0_LAYER_1_BLEND_OP               REG_MDP(0x3250)
@@ -73,6 +74,7 @@
 #define MDP_CTL_0_LAYER_0                       REG_MDP(0x600)
 #define MDP_CTL_0_TOP                           REG_MDP(0x614)
 #define MDP_CTL_0_FLUSH                         REG_MDP(0x618)
+#define MDP_CTL_0_START                         REG_MDP(0x61C)
 
 #define MDP_INTF_1_HSYNC_CTL                    REG_MDP(0x12708)
 #define MDP_INTF_1_VSYNC_PERIOD_F0              REG_MDP(0x1270C)
@@ -97,6 +99,7 @@
 #define MDP_CLK_CTRL2                           REG_MDP(0x03BC)
 #define MDP_CLK_CTRL3                           REG_MDP(0x04A8)
 #define MDP_CLK_CTRL4                           REG_MDP(0x04B0)
+#define MDP_CLK_CTRL5                           REG_MDP(0x04B8)
 
 #define MMSS_MDP_SMP_ALLOC_W_0                  REG_MDP(0x0180)
 #define MMSS_MDP_SMP_ALLOC_W_1                  REG_MDP(0x0184)
