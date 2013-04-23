@@ -157,35 +157,10 @@ struct partition_entry {
 	unsigned char name[MAX_GPT_NAME_SIZE];
 };
 
-static void mbr_fill_name(struct partition_entry *partition_ent,
-			  unsigned int type);
-unsigned int mmc_boot_read_gpt(struct mmc_host *mmc_host,
-			       struct mmc_card *mmc_card);
-unsigned int mmc_boot_read_mbr(struct mmc_host *mmc_host,
-			       struct mmc_card *mmc_card);
 unsigned partition_get_index(const char *name);
 unsigned long long partition_get_size(int index);
 unsigned long long partition_get_offset(int index);
-unsigned int partition_verify_mbr_signature(unsigned size,
-					    unsigned char *buffer);
-unsigned int mbr_partition_get_type(unsigned size, unsigned char *partition,
-				    unsigned int *partition_type);
-unsigned int partition_get_type(unsigned size, unsigned char *partition,
-				unsigned int *partition_type);
-unsigned int partition_read_table(void *mmc_host,
-				  struct mmc_card *mmc_card);
-unsigned int partition_parse_gpt_header(unsigned char *buffer,
-					unsigned long long *first_usable_lba,
-					unsigned int *partition_entry_size,
-					unsigned int *header_size,
-					unsigned int *max_partition_count);
-
-unsigned int write_mbr(unsigned size, unsigned char *mbrImage,
-		       struct mmc_host *mmc_host,
-		       struct mmc_card *mmc_card);
-unsigned int write_gpt(unsigned size, unsigned char *gptImage,
-		       struct mmc_host *mmc_host,
-		       struct mmc_card *mmc_card);
+unsigned int partition_read_table();
 unsigned int write_partition(unsigned size, unsigned char *partition);
 
 /* For Debugging */
