@@ -285,7 +285,9 @@ enum {
 	MSM8110   = 161,
 	MSM8210   = 162,
 	MSM8810   = 163,
+	MSM8212   = 164,
 	MSM8612   = 165,
+	MSM8812   = 166,
 	MSM8125   = 167,
 	MDM9310   = 171,
 	APQ8064AA = 172, /* aka V2 SLOW_PRIME */
