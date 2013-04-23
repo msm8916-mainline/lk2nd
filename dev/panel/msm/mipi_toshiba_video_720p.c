@@ -43,8 +43,9 @@ int mipi_toshiba_video_720p_config(void *pdata)
 	uint8_t lane_en = 0xf;
 	uint64_t low_pwr_stop_mode = 0;
 
-	/* Needed or else will have blank line at top of display */
-	uint8_t eof_bllp_pwr = 0x8;
+	/* Needed or else will have blank line at top of display
+	   Enable LP during EOF to send DCS commands during blanking */
+	uint8_t eof_bllp_pwr = 0x9;
 
 	uint8_t interleav = 0;
 	struct lcdc_panel_info *lcdc = NULL;
