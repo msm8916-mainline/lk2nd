@@ -655,7 +655,7 @@ int boot_linux_from_mmc(void)
 			 */
 			void *dtb;
 			dtb = dev_tree_appended((void*) hdr->kernel_addr,
-						(void *)hdr->tags_addr);
+						(void *)hdr->tags_addr, hdr->kernel_size);
 			if (!dtb) {
 				dprintf(CRITICAL, "ERROR: Appended Device Tree Blob not found\n");
 				return -1;
@@ -752,7 +752,7 @@ int boot_linux_from_mmc(void)
 			 */
 			void *dtb;
 			dtb = dev_tree_appended((void*) hdr->kernel_addr,
-						(void *)hdr->tags_addr);
+						(void *)hdr->tags_addr, hdr->kernel_size);
 			if (!dtb) {
 				dprintf(CRITICAL, "ERROR: Appended Device Tree Blob not found\n");
 				return -1;
@@ -1285,7 +1285,7 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	 */
 	if (!dtb_copied) {
 		void *dtb;
-		dtb = dev_tree_appended((void *)hdr->kernel_addr, (void *)hdr->tags_addr);
+		dtb = dev_tree_appended((void *)hdr->kernel_addr, (void *)hdr->tags_addr, hdr->kernel_size);
 		if (!dtb) {
 			fastboot_fail("dtb not found");
 			return;
