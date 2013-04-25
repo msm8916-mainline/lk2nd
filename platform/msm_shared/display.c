@@ -110,9 +110,14 @@ int msm_display_config()
 		break;
 	case MIPI_CMD_PANEL:
 		dprintf(INFO, "Config MIPI_CMD_PANEL.\n");
-		ret = mipi_config(panel);
+
+		if (mdp_get_revision() == MDP_REV_50)
+			ret = mdss_dsi_config(panel);
+		else
+			ret = mipi_config(panel);
 		if (ret)
 			goto msm_display_config_out;
+
 		ret = mdp_dsi_cmd_config(pinfo, &(panel->fb));
 		if (ret)
 			goto msm_display_config_out;
@@ -176,9 +181,11 @@ int msm_display_on()
 		ret = mdp_dma_on();
 		if (ret)
 			goto msm_display_on_out;
-		ret = mipi_cmd_trigger();
-		if (ret)
-			goto msm_display_on_out;
+		if (mdp_get_revision() != MDP_REV_50) {
+			ret = mipi_cmd_trigger();
+			if (ret)
+				goto msm_display_on_out;
+		}
 		break;
 	case LCDC_PANEL:
 		dprintf(INFO, "Turn on LCDC PANEL.\n");
