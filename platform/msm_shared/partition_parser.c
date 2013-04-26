@@ -807,7 +807,7 @@ mbr_fill_name(struct partition_entry *partition_ent, unsigned int type)
 /*
  * Find index of parition in array of partition entries
  */
-unsigned partition_get_index(const char *name)
+int partition_get_index(const char *name)
 {
 	unsigned int input_string_length = strlen(name);
 	unsigned n;
