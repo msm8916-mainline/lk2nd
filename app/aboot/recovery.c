@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2011, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2013, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -433,6 +433,10 @@ int _emmc_recovery_init(void)
 		dprintf(INFO,"Recovery command: %d %s\n", sizeof(msg.command), msg.command);
 	}
 	msg.command[sizeof(msg.command)-1] = '\0'; //Ensure termination
+
+	if (!strncmp(msg.command, "boot-recovery", strlen("boot-recovery"))) {
+		boot_into_recovery = 1;
+	}
 
 	if (!strcmp("update-radio",msg.command))
 	{
