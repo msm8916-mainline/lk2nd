@@ -157,7 +157,7 @@ struct partition_entry {
 	unsigned char name[MAX_GPT_NAME_SIZE];
 };
 
-unsigned partition_get_index(const char *name);
+int partition_get_index(const char *name);
 unsigned long long partition_get_size(int index);
 unsigned long long partition_get_offset(int index);
 unsigned int partition_read_table();
