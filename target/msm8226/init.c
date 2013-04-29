@@ -31,6 +31,7 @@
 #include <reg.h>
 #include <target.h>
 #include <platform.h>
+#include <dload_util.h>
 #include <uart_dm.h>
 #include <mmc_sdhci.h>
 #include <platform/gpio.h>
@@ -318,7 +319,14 @@ unsigned target_baseband()
 
 int emmc_recovery_init(void)
 {
-       return _emmc_recovery_init();
+	return _emmc_recovery_init();
+}
+
+int set_download_mode(void)
+{
+	dload_util_write_cookie(FORCE_DLOAD_MODE_ADDR);
+
+	return 0;
 }
 
 static void set_sdc_power_ctrl()
