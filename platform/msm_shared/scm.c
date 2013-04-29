@@ -312,10 +312,6 @@ static int ssd_image_is_encrypted(uint32_t ** img_ptr, uint32_t * img_len_ptr, u
 			*img_ptr     = (uint32_t*)parse_rsp.md_end_ptr;
 			ret          = 1;
 		}
-		else
-		{
-			dprintf(INFO,"Image is not encrypted");
-		}
 	}
 	else
 	{
