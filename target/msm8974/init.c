@@ -509,3 +509,8 @@ static void set_sdc_power_ctrl()
 	tlmm_set_hdrive_ctrl(sdc1_hdrv_cfg, ARRAY_SIZE(sdc1_hdrv_cfg));
 	tlmm_set_pull_ctrl(sdc1_pull_cfg, ARRAY_SIZE(sdc1_pull_cfg));
 }
+
+int emmc_recovery_init(void)
+{
+	return _emmc_recovery_init();
+}
