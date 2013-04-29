@@ -47,9 +47,6 @@ void hsusb_clock_init(void)
 	ASSERT(iclk);
 	ASSERT(cclk);
 
-	/* Disable USB boot clock */
-	writel(0, USB_BOOT_CLOCK_CTL);
-
 	/* Disable interface and core clk */
 	clk_disable(iclk);
 	clk_disable(cclk);
