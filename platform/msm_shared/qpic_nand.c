@@ -1611,7 +1611,7 @@ flash_ecc_bch_enabled()
 
 int
 flash_write(struct ptentry *ptn,
-			unsigned extra_per_page,
+			unsigned write_extra_bytes,
 			const void *data,
 			unsigned bytes)
 {
@@ -1619,8 +1619,13 @@ flash_write(struct ptentry *ptn,
 	uint32_t lastpage = (ptn->start + ptn->length) * flash.num_pages_per_blk;
 	uint32_t *spare = (unsigned *)flash_spare_bytes;
 	const unsigned char *image = data;
-	uint32_t wsize = flash.page_size + extra_per_page;
+	uint32_t wsize;
 	int r;
+
+	if(write_extra_bytes)
+		wsize = flash.page_size + flash.spare_size;
+	else
+		wsize = flash.page_size;
 
 	memset(spare, 0xff, (flash.spare_size / flash.cws_per_page));
 
@@ -1656,9 +1661,9 @@ flash_write(struct ptentry *ptn,
 
 		memcpy(rdwr_buf, image, flash.page_size);
 
-		if (extra_per_page)
+		if (write_extra_bytes)
 		{
-			memcpy(rdwr_buf + flash.page_size, image + flash.page_size, extra_per_page);
+			memcpy(rdwr_buf + flash.page_size, image + flash.page_size, flash.spare_size);
 			r = qpic_nand_write_page(page,
 									 NAND_CFG,
 									 rdwr_buf,
