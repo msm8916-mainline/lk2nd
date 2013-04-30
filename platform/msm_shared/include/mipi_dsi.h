@@ -672,6 +672,7 @@ struct mdss_dsi_phy_ctrl {
 struct mipi_dsi_cmd {
 	int size;
 	char *payload;
+	int wait;
 };
 
 struct mipi_dsi_panel_config {
