@@ -159,23 +159,10 @@ extern int fastboot_trigger(void);
 static void update_ker_tags_rdisk_addr(struct boot_img_hdr *hdr)
 {
 	/* overwrite the destination of specified for the project */
-	/*
-	 * Update the value to sane values only when the boot image
-	 * header does not have sane values, this is added to make sure
-	 * that we always use values from boot.img header and use the
-	 * force values when boot image header has default values.
-	 */
-#ifdef ABOOT_FORCE_KERNEL_ADDR
-	if (hdr->kernel_addr == ABOOT_DEFAULT_KERNEL_ADDR)
-		hdr->kernel_addr = ABOOT_FORCE_KERNEL_ADDR;
-#endif
-#ifdef ABOOT_FORCE_RAMDISK_ADDR
-	if (hdr->ramdisk_addr == ABOOT_DEFAULT_RAMDISK_ADDR)
-		hdr->ramdisk_addr = ABOOT_FORCE_RAMDISK_ADDR;
-#endif
-#ifdef ABOOT_FORCE_TAGS_ADDR
-	if (hdr->tags_addr == ABOOT_DEFAULT_TAGS_ADDR)
-		hdr->tags_addr = ABOOT_FORCE_TAGS_ADDR;
+#ifdef ABOOT_IGNORE_BOOT_HEADER_ADDRS
+	hdr->kernel_addr = ABOOT_FORCE_KERNEL_ADDR;
+	hdr->ramdisk_addr = ABOOT_FORCE_RAMDISK_ADDR;
+	hdr->tags_addr = ABOOT_FORCE_TAGS_ADDR;
 #endif
 }
 
