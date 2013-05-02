@@ -29,6 +29,10 @@
 #ifndef __MMC_H__
 #define __MMC_H__
 
+#if MMC_SDHCI_SUPPORT
+#include "mmc_sdhci.h"
+#include "mmc_wrapper.h"
+#else
 #ifndef MMC_SLOT
 #define MMC_SLOT            0
 #endif
@@ -614,4 +618,5 @@ void mmc_boot_mci_clk_disable();
 uint8_t card_supports_ddr_mode();
 uint8_t card_supports_hs200_mode();
 uint64_t mmc_get_device_capacity();
+#endif
 #endif
