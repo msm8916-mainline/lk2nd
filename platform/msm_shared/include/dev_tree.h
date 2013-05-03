@@ -70,5 +70,5 @@ int dev_tree_validate(struct dt_table *table, unsigned int page_size);
 int dev_tree_get_entry_info(struct dt_table *table, struct dt_entry *dt_entry_info);
 int update_device_tree(void *, const char *, void *, unsigned);
 int dev_tree_add_mem_info(void *fdt, uint32_t offset, uint32_t size, uint32_t addr);
-void *dev_tree_appended(void *kernel, void *tags, uint32_t kernel_size);
+void *dev_tree_appended(void *kernel, uint32_t kernel_size, void *tags);
 #endif
