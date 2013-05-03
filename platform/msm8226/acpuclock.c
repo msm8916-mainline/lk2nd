@@ -118,9 +118,6 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 
 	snprintf(clk_name, 64, "sdc%u_core_clk", interface);
 
-	/* Disalbe MCI_CLK before changing the sdcc clock */
-	mmc_boot_mci_clk_disable();
-
 	if(freq == MMC_CLK_400KHZ)
 	{
 		ret = clk_get_set_enable(clk_name, 400000, 1);
@@ -128,6 +125,10 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 	else if(freq == MMC_CLK_50MHZ)
 	{
 		ret = clk_get_set_enable(clk_name, 50000000, 1);
+	}
+	else if(freq == MMC_CLK_200MHZ)
+	{
+		ret = clk_get_set_enable(clk_name, 200000000, 1);
 	}
 	else
 	{
@@ -141,9 +142,6 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 		dprintf(CRITICAL, "failed to set sdc1_core_clk ret = %d\n", ret);
 		ASSERT(0);
 	}
-
-	/* Enable MCI CLK */
-	mmc_boot_mci_clk_enable();
 }
 
 /* Configure UART clock based on the UART block id*/
