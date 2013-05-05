@@ -869,6 +869,24 @@ static struct mipi_dsi_cmd novatek_panel_cmd_mode_cmds[] = {
 	{sizeof(novatek_panel_set_led_pwm3), novatek_panel_set_led_pwm3}
 };
 
+static struct mipi_dsi_cmd sharp_qhd_video_mode_cmds[] = {
+	{sizeof(novatek_panel_sw_reset), novatek_panel_sw_reset}
+	,
+	{sizeof(novatek_panel_exit_sleep), novatek_panel_exit_sleep}
+	,
+	{sizeof(novatek_panel_display_on), novatek_panel_display_on}
+	,
+	{sizeof(novatek_panel_set_twolane), novatek_panel_set_twolane}
+	,
+	{sizeof(novatek_panel_rgb_888), novatek_panel_rgb_888}
+	,
+	{sizeof(novatek_panel_set_led_pwm1), novatek_panel_set_led_pwm1}
+	,
+	{sizeof(novatek_panel_set_led_pwm2), novatek_panel_set_led_pwm2}
+	,
+	{sizeof(novatek_panel_set_led_pwm3), novatek_panel_set_led_pwm3}
+};
+
 static struct mipi_dsi_phy_ctrl mipi_dsi_novatek_panel_phy_ctrl = {
 	/* DSI_BIT_CLK at 500MHz, 2 lane, RGB888 */
 	{0x03, 0x01, 0x01, 0x00},	/* regulator */
