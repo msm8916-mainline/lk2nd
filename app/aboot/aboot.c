@@ -1528,7 +1528,7 @@ void cmd_flash_mmc(const char *arg, void *data, unsigned sz)
 	{
 		if(major_version >= 2)
 		{
-			if( !strcmp(arg,"ssd") || !strcmp(arg,"tqs") )
+			if( !strcmp(arg, "ssd") || !strcmp(arg, "tqs") )
 			{
 				ret = encrypt_scm((uint32 **) &data, &sz);
 				if (ret != 0) {
@@ -1536,10 +1536,13 @@ void cmd_flash_mmc(const char *arg, void *data, unsigned sz)
 					return;
 				}
 
-				ret = scm_protect_keystore((uint32 *) data, sz);
-				if (ret != 0) {
-					dprintf(CRITICAL, "ERROR: scm_protect_keystore Failed\n");
-					return;
+				/* Protect only for SSD */
+				if (!strcmp(arg, "ssd")) {
+					ret = scm_protect_keystore((uint32 *) data, sz);
+					if (ret != 0) {
+						dprintf(CRITICAL, "ERROR: scm_protect_keystore Failed\n");
+						return;
+					}
 				}
 			}
 			else
