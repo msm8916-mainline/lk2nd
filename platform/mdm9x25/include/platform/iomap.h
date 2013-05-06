@@ -124,6 +124,4 @@
 #define USB_HS_SYSTEM_CMD_RCGR               (CLK_CTL_BASE + 0x490)
 #define USB_HS_SYSTEM_CFG_RCGR               (CLK_CTL_BASE + 0x494)
 
-#define USB_BOOT_CLOCK_CTL                   (CLK_CTL_BASE + 0x1A00)
-
 #endif
