@@ -712,7 +712,7 @@ int mipi_dsi_video_mode_config(unsigned short disp_width,
 	writel(0x00000006, DSI_CLK_CTRL);
 	writel(0x0000000e, DSI_CLK_CTRL);
 	writel(0x0000001e, DSI_CLK_CTRL);
-	writel(0x0000003e, DSI_CLK_CTRL);
+	writel(0x0000023f, DSI_CLK_CTRL);
 
 	writel(0, DSI_CTRL);
 
@@ -746,7 +746,7 @@ int mipi_dsi_video_mode_config(unsigned short disp_width,
 
 	writel(vsync_width << 16 | 0, DSI_VIDEO_MODE_VSYNC_VPOS);
 
-	writel(1, DSI_EOT_PACKET_CTRL);
+	writel(0x0, DSI_EOT_PACKET_CTRL);
 
 	writel(0x00000100, DSI_MISR_VIDEO_CTRL);
 
@@ -760,6 +760,7 @@ int mipi_dsi_video_mode_config(unsigned short disp_width,
 				| dst_format << 4 | 0x0, DSI_VIDEO_MODE_CTRL);
 	}
 
+	writel(0x3fd08, DSI_HS_TIMER_CTRL);
 	writel(0x67, DSI_CAL_STRENGTH_CTRL);
 	writel(0x80006711, DSI_CAL_CTRL);
 	writel(0x00010100, DSI_MISR_VIDEO_CTRL);

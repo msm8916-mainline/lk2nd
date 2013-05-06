@@ -72,6 +72,7 @@
 #define DSI_CAL_STRENGTH_CTRL                 REG_DSI(0x100)
 #define DSI_CMD_MODE_DMA_SW_TRIGGER           REG_DSI(0x08C)
 #define DSI_CMD_MODE_MDP_SW_TRIGGER           REG_DSI(0x090)
+#define DSI_HS_TIMER_CTRL                     REG_DSI(0x0B8)
 
 #define DSI_LANE_CTRL                         REG_DSI(0x0A8)
 
