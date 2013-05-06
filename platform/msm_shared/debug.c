@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
- * Copyright (c) 2009, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2013, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -35,14 +35,30 @@
 #include <arch/arm/dcc.h>
 #include <dev/fbcon.h>
 #include <dev/uart.h>
+#include <platform/timer.h>
 
+static void write_dcc(char c)
+{
+	uint32_t timeout = 10;
+
+	/* Note: Smallest sampling rate for DCC is 50us.
+	 * This can be changed by SNOOPer.Rate on T32 window.
+	 */
+	while (timeout)
+	{
+		if (dcc_putc(c) == 0)
+			break;
+		udelay(50);
+		timeout--;
+	}
+}
 void _dputc(char c)
 {
 #if WITH_DEBUG_DCC
 	if (c == '\n') {
-		while (dcc_putc('\r') < 0) ;
+		write_dcc('\r');
 	}
-	while (dcc_putc(c) < 0) ;
+	write_dcc(c) ;
 #endif
 #if WITH_DEBUG_UART
 	uart_putc(0, c);
