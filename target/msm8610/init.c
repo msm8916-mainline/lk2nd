@@ -257,3 +257,14 @@ unsigned board_machtype(void)
 {
 	return 0;
 }
+
+/*
+ * Function to set the capabilities for the host
+ */
+void target_mmc_caps(struct mmc_host *host)
+{
+	host->caps.ddr_mode = 0;
+	host->caps.hs200_mode = 0;
+	host->caps.bus_width = MMC_BOOT_BUS_WIDTH_8_BIT;
+	host->caps.hs_clk_rate = MMC_CLK_50MHZ;
+}
