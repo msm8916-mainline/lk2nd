@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
- * Copyright (c) 2009-2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2013, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -721,4 +721,13 @@ int target_is_sku3()
 			ret = 0;
 	};
 	return ret;
+}
+
+/* Function to set the capabilities for the host */
+void target_mmc_caps(struct mmc_host *host)
+{
+	host->caps.ddr_mode = 0;
+	host->caps.hs200_mode = 0;
+	host->caps.bus_width = MMC_BOOT_BUS_WIDTH_4_BIT;
+	host->caps.hs_clk_rate = MMC_CLK_50MHZ;
 }
