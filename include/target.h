@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2008 Travis Geiselbrecht
  *
+ * Copyright (c) 2013, The Linux Foundation. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction,
@@ -46,6 +48,7 @@ unsigned target_pause_for_battery_charge(void);
 unsigned target_baseband(void);
 void target_serialno(unsigned char *buf);
 void target_fastboot_init(void);
+struct mmc_device *target_mmc_device();
 
 
 #endif
