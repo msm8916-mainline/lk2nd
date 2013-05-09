@@ -290,3 +290,8 @@ unsigned target_baseband()
 {
 	return board_baseband();
 }
+
+int emmc_recovery_init(void)
+{
+       return _emmc_recovery_init();
+}
