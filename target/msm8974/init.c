@@ -46,6 +46,7 @@
 #include <partition_parser.h>
 #include <scm.h>
 #include <platform/clock.h>
+#include <platform/gpio.h>
 #include <stdlib.h>
 
 extern  bool target_use_signed_kernel(void);
@@ -53,6 +54,10 @@ static void set_sdc_power_ctrl();
 
 static unsigned int target_id;
 static uint32_t pmic_ver;
+
+#if MMC_SDHCI_SUPPORT
+struct mmc_device *dev;
+#endif
 
 #define PMIC_ARB_CHANNEL_NUM    0
 #define PMIC_ARB_OWNER_ID       0
@@ -69,6 +74,11 @@ static uint32_t pmic_ver;
 #ifdef SSD_ENABLE
 #define SSD_CE_INSTANCE_1       1
 #define SSD_PARTITION_SIZE      8192
+#endif
+
+#if MMC_SDHCI_SUPPORT
+static uint32_t mmc_sdhci_base[] =
+	{ MSM_SDC1_SDHCI_BASE, MSM_SDC2_SDHCI_BASE, MSM_SDC3_SDHCI_BASE, MSM_SDC4_SDHCI_BASE };
 #endif
 
 static uint32_t mmc_sdc_base[] =
@@ -157,11 +167,110 @@ crypto_engine_type board_ce_type(void)
 	return CRYPTO_ENGINE_TYPE_HW;
 }
 
-void target_init(void)
+#if MMC_SDHCI_SUPPORT
+static target_mmc_sdhci_init()
+{
+	struct mmc_config_data config;
+	uint32_t soc_ver = 0;
+
+	/* Enable sdhci mode */
+	sdhci_mode_enable(1);
+
+	soc_ver = board_soc_version();
+
+	/*
+	 * 8974 v1 fluid devices, have a hardware bug
+	 * which limits the bus width to 4 bit.
+	 */
+	switch(board_hardware_id())
+	{
+		case HW_PLATFORM_FLUID:
+			if (soc_ver >= BOARD_SOC_VERSION2)
+				config.bus_width = DATA_BUS_WIDTH_8BIT;
+			else
+				config.bus_width = DATA_BUS_WIDTH_4BIT;
+			break;
+		default:
+			config.bus_width = DATA_BUS_WIDTH_8BIT;
+	};
+
+	config.max_clk_rate = MMC_CLK_200MHZ;
+
+	/* Trying Slot 1*/
+	config.slot = 1;
+	config.base = mmc_sdhci_base[config.slot - 1];
+
+	if (!(dev = mmc_init(&config))) {
+		/* Trying Slot 2 next */
+		config.slot = 2;
+		config.base = mmc_sdhci_base[config.slot - 1];
+		if (!(dev = mmc_init(&config))) {
+			dprintf(CRITICAL, "mmc init failed!");
+			ASSERT(0);
+		}
+	}
+}
+
+struct mmc_device *target_mmc_device()
+{
+	return dev;
+}
+#else
+static target_mmc_mci_init()
 {
 	uint32_t base_addr;
 	uint8_t slot;
 
+	/* Trying Slot 1 */
+	slot = 1;
+	base_addr = mmc_sdc_base[slot - 1];
+
+	if (mmc_boot_main(slot, base_addr))
+	{
+		/* Trying Slot 2 next */
+		slot = 2;
+		base_addr = mmc_sdc_base[slot - 1];
+		if (mmc_boot_main(slot, base_addr)) {
+			dprintf(CRITICAL, "mmc init failed!");
+			ASSERT(0);
+		}
+	}
+}
+
+/*
+ * Function to set the capabilities for the host
+ */
+void target_mmc_caps(struct mmc_host *host)
+{
+	uint32_t soc_ver = 0;
+
+	soc_ver = board_soc_version();
+
+	/*
+	 * 8974 v1 fluid devices, have a hardware bug
+	 * which limits the bus width to 4 bit.
+	 */
+	switch(board_hardware_id())
+	{
+		case HW_PLATFORM_FLUID:
+			if (soc_ver >= BOARD_SOC_VERSION2)
+				host->caps.bus_width = MMC_BOOT_BUS_WIDTH_8_BIT;
+			else
+				host->caps.bus_width = MMC_BOOT_BUS_WIDTH_4_BIT;
+			break;
+		default:
+			host->caps.bus_width = MMC_BOOT_BUS_WIDTH_8_BIT;
+	};
+
+	host->caps.ddr_mode = 1;
+	host->caps.hs200_mode = 1;
+	host->caps.hs_clk_rate = MMC_CLK_96MHZ;
+}
+#endif
+
+
+void target_init(void)
+{
 	dprintf(INFO, "target_init()\n");
 
 	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
@@ -186,19 +295,18 @@ void target_init(void)
 	 */
 	set_sdc_power_ctrl();
 
-	/* Trying Slot 1*/
-	slot = 1;
-	base_addr = mmc_sdc_base[slot - 1];
-	if (mmc_boot_main(slot, base_addr))
-	{
+#if MMC_SDHCI_SUPPORT
+	target_mmc_sdhci_init();
+#else
+	target_mmc_mci_init();
+#endif
 
-		/* Trying Slot 2 next */
-		slot = 2;
-		base_addr = mmc_sdc_base[slot - 1];
-		if (mmc_boot_main(slot, base_addr)) {
-			dprintf(CRITICAL, "mmc init failed!");
-			ASSERT(0);
-		}
+	/*
+	 * MMC initialization is complete, read the partition table info
+	 */
+	if (partition_read_table()) {
+		dprintf(CRITICAL, "Error reading the partition table info\n");
+		ASSERT(0);
 	}
 }
 
@@ -454,37 +562,6 @@ void shutdown_device()
 	mdelay(5000);
 
 	dprintf(CRITICAL, "Shutdown failed\n");
-
-}
-
-/*
- * Function to set the capabilities for the host
- */
-void target_mmc_caps(struct mmc_host *host)
-{
-	uint32_t soc_ver = 0;
-
-	soc_ver = board_soc_version();
-
-	/*
-	 * 8974 v1 fluid devices, have a hardware bug
-	 * which limits the bus width to 4 bit.
-	 */
-	switch(board_hardware_id())
-	{
-		case HW_PLATFORM_FLUID:
-			if (soc_ver >= BOARD_SOC_VERSION2)
-				host->caps.bus_width = MMC_BOOT_BUS_WIDTH_8_BIT;
-			else
-				host->caps.bus_width = MMC_BOOT_BUS_WIDTH_4_BIT;
-			break;
-		default:
-			host->caps.bus_width = MMC_BOOT_BUS_WIDTH_8_BIT;
-	};
-
-	host->caps.ddr_mode = 1;
-	host->caps.hs200_mode = 1;
-	host->caps.hs_clk_rate = MMC_CLK_96MHZ;
 }
 
 static void set_sdc_power_ctrl()
