@@ -93,7 +93,8 @@ ifeq ($(PLATFORM),msm8974)
 			$(LOCAL_DIR)/crypto_hash.o \
 			$(LOCAL_DIR)/crypto5_eng.o \
 			$(LOCAL_DIR)/crypto5_wrapper.o \
-			$(LOCAL_DIR)/i2c_qup.o
+			$(LOCAL_DIR)/i2c_qup.o \
+			$(LOCAL_DIR)/gpio.o
 endif
 
 ifeq ($(PLATFORM),msm8226)
@@ -114,7 +115,8 @@ ifeq ($(PLATFORM),msm8226)
             $(LOCAL_DIR)/crypto_hash.o \
             $(LOCAL_DIR)/crypto5_eng.o \
             $(LOCAL_DIR)/crypto5_wrapper.o \
-			$(LOCAL_DIR)/dev_tree.o
+			$(LOCAL_DIR)/dev_tree.o \
+			$(LOCAL_DIR)/gpio.o
 endif
 
 ifeq ($(PLATFORM),msm8610)
