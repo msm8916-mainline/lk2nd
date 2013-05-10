@@ -124,6 +124,7 @@ struct output_dump
  *                         cmd elements that need to be added in the next desc.
  * dump              : ptr to the result dump memory.
  * bam               : bam instance used with this CE.
+ * do_bam_init       : Flag to determine if bam should be initalized.
  */
 struct crypto_dev
 {
@@ -134,6 +135,7 @@ struct crypto_dev
 	uint32_t            cd_start;
 	struct output_dump  *dump;
 	struct bam_instance bam;
+	uint8_t             do_bam_init;
 };
 
 /* Struct to pass the initial params to CE.
@@ -144,6 +146,7 @@ struct crypto_dev
  * num_ce           : Number of cmd elements to be allocated.
  * read_fifo_size   : Size of the BAM desc read fifo.
  * write_fifo_size  : Size of the BAM desc write fifo.
+ * do_bam_init      : Flag to determine if bam should be initalized.
  */
 struct crypto_init_params
 {
@@ -154,6 +157,7 @@ struct crypto_init_params
 	uint32_t                num_ce;
 	uint32_t                read_fifo_size;
 	uint32_t                write_fifo_size;
+	uint8_t                 do_bam_init;
 	struct crypto_bam_pipes pipes;
 };
 

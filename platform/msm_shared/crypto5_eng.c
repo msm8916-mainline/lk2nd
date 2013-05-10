@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -41,13 +41,26 @@
 #define CONFIG_WRITE(dev, val)                           crypto_write_reg(&dev->bam, CRYPTO_CONFIG(dev->base), val, BAM_DESC_LOCK_FLAG)
 #define REG_WRITE(dev, addr, val)                        crypto_write_reg(&dev->bam, addr, val, 0)
 
+#ifndef CRYPTO_REG_ACCESS
+#define CE_INIT(dev)                                     dev->ce_array_index = 0; dev->cd_start = 0
 #define ADD_WRITE_CE(dev, addr, val)                     crypto_add_cmd_element(dev, addr, val)
-
 #define ADD_CMD_DESC(dev, flags)                         crypto_add_cmd_desc(dev, flags)
+#define CMD_EXEC(bam, num_desc, pipe)                    crypto_wait_for_cmd_exec(bam, num_desc, pipe)
+
+#define REG_WRITE_QUEUE_INIT(dev)                        CE_INIT(dev)
+#define REG_WRITE_QUEUE(dev, addr, val)                  ADD_WRITE_CE(dev, addr, val)
+#define REG_WRITE_QUEUE_DONE(dev, flags)                 ADD_CMD_DESC(dev, flags)
+#define REG_WRITE_EXEC(bam, num_desc, pipe)              CMD_EXEC(bam, num_desc, pipe)
+#else
+#define REG_WRITE_QUEUE_INIT(dev)                        /* nop */
+#define REG_WRITE_QUEUE(dev, addr, val)                  writel(val, addr)
+#define REG_WRITE_QUEUE_DONE(dev, flags)                 /* nop */
+#define REG_WRITE_EXEC(bam, num_desc, pipe)              /* nop */
+#endif
+
 #define ADD_READ_DESC(bam, buf_addr, buf_size, flags)    bam_add_desc(bam, CRYPTO_READ_PIPE_INDEX, buf_addr, buf_size, flags)
 #define ADD_WRITE_DESC(bam, buf_addr, buf_size, flags)   bam_add_desc(bam, CRYPTO_WRITE_PIPE_INDEX, buf_addr, buf_size, flags)
 
-#define CE_INIT(dev)                                     dev->ce_array_index = 0; dev->cd_start = 0;
 
 static struct bam_desc *crypto_allocate_fifo(uint32_t size)
 {
@@ -77,13 +90,15 @@ static struct output_dump *crypto_allocate_dump_buffer(void)
 
 static struct cmd_element *crypto_allocate_ce_array(uint32_t size)
 {
-	struct cmd_element *ptr;
+	struct cmd_element *ptr = NULL;
 
+#ifndef CRYPTO_REG_ACCESS
 	ptr = (struct cmd_element*) memalign(CACHE_LINE,
 					     ROUNDUP(size * sizeof(struct cmd_element), CACHE_LINE));
 
 	if (ptr == NULL)
 		dprintf(CRITICAL, "Could not allocate ce array buffer\n");
+#endif
 
 	return ptr;
 }
@@ -119,7 +134,9 @@ static uint32_t crypto_write_reg(struct bam_instance *bam_core,
 	uint32_t ret = 0;
 	struct cmd_element cmd_list_ptr;
 
-
+#ifdef CRYPTO_REG_ACCESS
+	writel(val, reg_addr);
+#else
 	ret = (uint32_t)bam_add_cmd_element(&cmd_list_ptr, reg_addr, val, CE_WRITE_TYPE);
 
 	/* Enqueue the desc for the above command */
@@ -138,9 +155,10 @@ static uint32_t crypto_write_reg(struct bam_instance *bam_core,
 	}
 
 	crypto_wait_for_cmd_exec(bam_core, 1, CRYPTO_WRITE_PIPE_INDEX);
+#endif
 
 crypto_read_reg_err:
-	return val;
+	return ret;
 }
 
 static void crypto_add_cmd_element(struct crypto_dev *dev,
@@ -183,9 +201,9 @@ static int crypto_bam_init(struct crypto_dev *dev)
 {
 	uint32_t bam_ret;
 
-
-	/* BAM Init. */
-	bam_init(&dev->bam);
+	/* Do BAM Init only if required. */
+	if (dev->do_bam_init)
+		bam_init(&dev->bam);
 
 	/* Initialize BAM CRYPTO read pipe */
 	bam_sys_pipe_init(&dev->bam, CRYPTO_READ_PIPE_INDEX);
@@ -229,7 +247,8 @@ void crypto5_init_params(struct crypto_dev *dev, struct crypto_init_params *para
 	dev->base     = params->crypto_base;
 	dev->instance = params->crypto_instance;
 
-	dev->bam.base = params->bam_base;
+	dev->bam.base    = params->bam_base;
+	dev->do_bam_init = params->do_bam_init;
 
 	/* Set Read pipe params. */
 	dev->bam.pipe[CRYPTO_READ_PIPE_INDEX].pipe_num   = params->pipes.read_pipe;
@@ -345,16 +364,16 @@ void crypto5_set_ctx(struct crypto_dev *dev,
     }
 
 	/* Initialize CE pointers. */
-	CE_INIT(dev);
+	REG_WRITE_QUEUE_INIT(dev);
 
-    ADD_WRITE_CE(dev, CRYPTO_AUTH_SEG_CFG(dev->base), seg_cfg_val);
+    REG_WRITE_QUEUE(dev, CRYPTO_AUTH_SEG_CFG(dev->base), seg_cfg_val);
 
     for (i = 0; i < iv_len; i++)
     {
 		if (sha256_ctx->flags & CRYPTO_FIRST_CHUNK)
-			ADD_WRITE_CE(dev, CRYPTO_AUTH_IVn(dev->base, i), BE32(*(auth_iv + i)));
+			REG_WRITE_QUEUE(dev, CRYPTO_AUTH_IVn(dev->base, i), BE32(*(auth_iv + i)));
 		else
-			ADD_WRITE_CE(dev, CRYPTO_AUTH_IVn(dev->base, i), (*(auth_iv + i)));
+			REG_WRITE_QUEUE(dev, CRYPTO_AUTH_IVn(dev->base, i), (*(auth_iv + i)));
     }
 
 	/* Check if the transfer length is a 8 beat burst multiple. */
@@ -370,19 +389,19 @@ void crypto5_set_ctx(struct crypto_dev *dev,
 	/* Typecast with crypto_SHA1_ctx because offset of auth_bytecnt
 	 * in both crypto_SHA1_ctx and crypto_SHA256_ctx are same.
 	 */
-    ADD_WRITE_CE(dev, CRYPTO_AUTH_BYTECNTn(dev->base, 0), ((crypto_SHA1_ctx *) ctx_ptr)->auth_bytecnt[0]);
-    ADD_WRITE_CE(dev, CRYPTO_AUTH_BYTECNTn(dev->base, 1), ((crypto_SHA1_ctx *) ctx_ptr)->auth_bytecnt[1]);
+    REG_WRITE_QUEUE(dev, CRYPTO_AUTH_BYTECNTn(dev->base, 0), ((crypto_SHA1_ctx *) ctx_ptr)->auth_bytecnt[0]);
+    REG_WRITE_QUEUE(dev, CRYPTO_AUTH_BYTECNTn(dev->base, 1), ((crypto_SHA1_ctx *) ctx_ptr)->auth_bytecnt[1]);
 
 	/* Assume no header, always. */
-	ADD_WRITE_CE(dev, CRYPTO_AUTH_SEG_START(dev->base), 0);
+	REG_WRITE_QUEUE(dev, CRYPTO_AUTH_SEG_START(dev->base), 0);
 
-    ADD_WRITE_CE(dev, CRYPTO_AUTH_SEG_SIZE(dev->base), bytes_to_write);
-    ADD_WRITE_CE(dev, CRYPTO_SEG_SIZE(dev->base), total_bytes_to_write);
-    ADD_WRITE_CE(dev, CRYPTO_GOPROC(dev->base), GOPROC_GO);
+    REG_WRITE_QUEUE(dev, CRYPTO_AUTH_SEG_SIZE(dev->base), bytes_to_write);
+    REG_WRITE_QUEUE(dev, CRYPTO_SEG_SIZE(dev->base), total_bytes_to_write);
+    REG_WRITE_QUEUE(dev, CRYPTO_GOPROC(dev->base), GOPROC_GO);
 
-	ADD_CMD_DESC(dev, BAM_DESC_LOCK_FLAG | BAM_DESC_INT_FLAG);
+	REG_WRITE_QUEUE_DONE(dev, BAM_DESC_LOCK_FLAG | BAM_DESC_INT_FLAG);
 
-	crypto_wait_for_cmd_exec(&dev->bam, 1, CRYPTO_WRITE_PIPE_INDEX);
+	REG_WRITE_EXEC(&dev->bam, 1, CRYPTO_WRITE_PIPE_INDEX);
 }
 
 uint32_t crypto5_send_data(struct crypto_dev *dev,
