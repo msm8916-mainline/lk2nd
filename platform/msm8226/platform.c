@@ -36,6 +36,7 @@
 #include <arch/arm/mmu.h>
 #include <smem.h>
 #include <board.h>
+#include <boot_stats.h>
 
 #define MB (1024*1024)
 
@@ -73,6 +74,16 @@ void platform_init(void)
 void platform_uninit(void)
 {
 	qtimer_uninit();
+}
+
+uint32_t platform_get_sclk_count(void)
+{
+	return readl(MPM2_MPM_SLEEP_TIMETICK_COUNT_VAL);
+}
+
+addr_t get_bs_info_addr()
+{
+	return ((addr_t)BS_INFO_ADDR);
 }
 
 /* Setup memory for this platform */

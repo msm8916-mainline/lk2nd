@@ -45,6 +45,10 @@
 #define DLOAD_MODE_ADDR             (MSM_SHARED_IMEM_BASE + 0x0)
 #define EMERGENCY_DLOAD_MODE_ADDR   (MSM_SHARED_IMEM_BASE + 0xFE0)
 
+#define BS_INFO_OFFSET                       (0x6B0)
+#define BS_INFO_ADDR                         (MSM_SHARED_IMEM_BASE + BS_INFO_OFFSET)
+#define MPM2_MPM_SLEEP_TIMETICK_COUNT_VAL    0xFC4A3000
+
 #define MSM_GIC_DIST_BASE           APPS_SS_BASE
 #define MSM_GIC_CPU_BASE            (APPS_SS_BASE + 0x2000)
 #define APPS_APCS_QTMR_AC_BASE      (APPS_SS_BASE + 0x00020000)
