@@ -24,7 +24,6 @@
 #include <debug.h>
 #include <target.h>
 #include <compiler.h>
-#include <mmc.h>
 
 #define EXPAND(NAME) #NAME
 #define TARGET(NAME) EXPAND(NAME)
@@ -117,15 +116,4 @@ __WEAK void target_usb_init(void)
 /* Default target specific usb shutdown */
 __WEAK void target_usb_stop(void)
 {
-}
-
-/*
- * Default target specific function to set the capabilities for the host
- */
-__WEAK void target_mmc_caps(struct mmc_host *host)
-{
-	host->caps.ddr_mode = 0;
-	host->caps.hs200_mode = 0;
-	host->caps.bus_width = MMC_BOOT_BUS_WIDTH_4_BIT;
-	host->caps.hs_clk_rate = MMC_CLK_50MHZ;
 }
