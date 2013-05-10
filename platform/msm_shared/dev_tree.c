@@ -45,30 +45,44 @@ extern uint32_t target_dev_tree_mem(void *fdt, uint32_t memory_node_offset);
  *
  * Arguments:    kernel - Start address of the kernel loaded in RAM
  *               tags - Start address of the tags loaded in RAM
+ *               kernel_size - Size of the kernel in bytes
+ *
  * Return Value: DTB address : If appended device tree is found
  *               'NULL'         : Otherwise
  */
-void *dev_tree_appended(void *kernel, void *tags)
+void *dev_tree_appended(void *kernel, void *tags, uint32_t kernel_size)
 {
 	uint32_t app_dtb_offset = 0;
-	uint32_t dtb_magic = 0;
 
 	memcpy((void*) &app_dtb_offset, (void*) (kernel + DTB_OFFSET), sizeof(uint32_t));
-	memcpy((void*) &dtb_magic, (void*) (kernel + app_dtb_offset), sizeof(uint32_t));
 
-	if (dtb_magic == DTB_MAGIC) {
-		void *dtb;
-		int rc;
+	/*
+	 * Check if we have valid offset for the DTB, if not return error.
+	 * If the kernel image does not have appeneded device tree, DTB offset
+	 * might contain some random address which is not accessible & cause
+	 * data abort. If kernel start + dtb offset address exceed the total
+	 * size of the kernel, then we dont have an appeneded DTB.
+	 */
+	if (app_dtb_offset < kernel_size)
+	{
+		if (!fdt_check_header((void*) (kernel + app_dtb_offset)))
+		{
+			void *dtb;
+			int rc;
 
-		dprintf(INFO, "Found Appeneded Flattened Device tree\n");
-		dtb = kernel + app_dtb_offset;
-		rc = fdt_open_into(dtb, tags, fdt_totalsize(dtb));
-		if (rc == 0) {
-			/* clear out the old DTB magic so kernel doesn't find it */
-			*((uint32_t *)dtb) = 0;
-			return tags;
+			dprintf(INFO, "Found Appeneded Flattened Device tree\n");
+			dtb = kernel + app_dtb_offset;
+			rc = fdt_open_into(dtb, tags, fdt_totalsize(dtb));
+			if (rc == 0)
+			{
+				/* clear out the old DTB magic so kernel doesn't find it */
+				*((uint32_t *)dtb) = 0;
+				return tags;
+			}
 		}
 	}
+	else
+		dprintf(CRITICAL, "DTB offset is incorrect, kernel image does not have appended DTB\n");
 
 	return NULL;
 }
