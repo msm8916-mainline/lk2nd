@@ -297,10 +297,11 @@ int recovery_init (void)
 	// get recovery message
 	if (get_recovery_message(&msg))
 		return -1;
-	if (msg.command[0] != 0 && msg.command[0] != 255) {
-		dprintf(INFO, "Recovery command: %.*s\n", sizeof(msg.command), msg.command);
-	}
 	msg.command[sizeof(msg.command)-1] = '\0'; //Ensure termination
+	if (msg.command[0] != 0 && msg.command[0] != 255) {
+		dprintf(INFO,"Recovery command: %d %s\n",
+			sizeof(msg.command), msg.command);
+	}
 
 	if (!strcmp("boot-recovery",msg.command))
 	{
@@ -431,10 +432,11 @@ int _emmc_recovery_init(void)
 	// get recovery message
 	if(emmc_get_recovery_msg(&msg))
 		return -1;
-	if (msg.command[0] != 0 && msg.command[0] != 255) {
-		dprintf(INFO,"Recovery command: %d %s\n", sizeof(msg.command), msg.command);
-	}
 	msg.command[sizeof(msg.command)-1] = '\0'; //Ensure termination
+	if (msg.command[0] != 0 && msg.command[0] != 255) {
+		dprintf(INFO,"Recovery command: %d %s\n",
+			sizeof(msg.command), msg.command);
+	}
 
 	if (!strncmp(msg.command, "boot-recovery", strlen("boot-recovery"))) {
 		boot_into_recovery = 1;
