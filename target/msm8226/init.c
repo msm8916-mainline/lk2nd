@@ -32,7 +32,7 @@
 #include <target.h>
 #include <platform.h>
 #include <uart_dm.h>
-#include <mmc.h>
+#include <mmc_sdhci.h>
 #include <platform/gpio.h>
 #include <spmi.h>
 #include <board.h>
@@ -44,6 +44,7 @@
 #include <hsusb.h>
 
 extern  bool target_use_signed_kernel(void);
+static void set_sdc_power_ctrl(void);
 
 #define PMIC_ARB_CHANNEL_NUM               0
 #define PMIC_ARB_OWNER_ID                  0
@@ -57,8 +58,10 @@ extern  bool target_use_signed_kernel(void);
 
 #define TLMM_VOL_UP_BTN_GPIO    106
 
-static uint32_t mmc_sdc_base[] =
-	{ MSM_SDC1_BASE, MSM_SDC2_BASE, MSM_SDC3_BASE };
+static uint32_t mmc_sdhci_base[] =
+	{ MSM_SDC1_SDHCI_BASE, MSM_SDC2_SDHCI_BASE, MSM_SDC3_SDHCI_BASE };
+
+struct mmc_device *dev;
 
 void target_early_init(void)
 {
@@ -124,31 +127,53 @@ void target_crypto_init_params()
 	crypto_init_params(&ce_params);
 }
 
+void target_sdc_init()
+{
+	struct mmc_config_data config;
+
+	/*
+	 * Set drive strength & pull ctrl for emmc
+	 */
+	set_sdc_power_ctrl();
+
+	/* Enable sdhci mode */
+	sdhci_mode_enable(1);
+
+	config.bus_width = DATA_BUS_WIDTH_8BIT;
+	config.max_clk_rate = MMC_CLK_200MHZ;
+
+	/* Trying Slot 1*/
+	config.slot = 1;
+	config.base = mmc_sdhci_base[config.slot - 1];
+	if (!(dev = mmc_init(&config)))
+	{
+		/* Trying Slot 2 next */
+		config.slot = 2;
+		config.base = mmc_sdhci_base[config.slot - 1];
+		if (!(dev = mmc_init(&config))) {
+			dprintf(CRITICAL, "mmc init failed!");
+			ASSERT(0);
+		}
+	}
+
+	/*
+	 * MMC initialization is complete, read the partition table info
+	 */
+	if (partition_read_table()) {
+		dprintf(CRITICAL, "Error reading the partition table info\n");
+		ASSERT(0);
+	}
+}
+
 void target_init(void)
 {
-	uint32_t base_addr;
-	uint8_t slot;
-
 	dprintf(INFO, "target_init()\n");
 
 	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
 
 	target_keystatus();
 
-	/* Trying Slot 1*/
-	slot = 1;
-	base_addr = mmc_sdc_base[slot - 1];
-	if (mmc_boot_main(slot, base_addr))
-	{
-
-		/* Trying Slot 2 next */
-		slot = 2;
-		base_addr = mmc_sdc_base[slot - 1];
-		if (mmc_boot_main(slot, base_addr)) {
-			dprintf(CRITICAL, "mmc init failed!");
-			ASSERT(0);
-		}
-	}
+	target_sdc_init();
 
 	if (target_use_signed_kernel())
 		target_crypto_init_params();
@@ -294,4 +319,32 @@ unsigned target_baseband()
 int emmc_recovery_init(void)
 {
        return _emmc_recovery_init();
+}
+
+static void set_sdc_power_ctrl()
+{
+	/* Drive strength configs for sdc pins */
+	struct tlmm_cfgs sdc1_hdrv_cfg[] =
+	{
+		{ SDC1_CLK_HDRV_CTL_OFF,  TLMM_CUR_VAL_10MA, TLMM_HDRV_MASK },
+		{ SDC1_CMD_HDRV_CTL_OFF,  TLMM_CUR_VAL_10MA, TLMM_HDRV_MASK },
+		{ SDC1_DATA_HDRV_CTL_OFF, TLMM_CUR_VAL_10MA, TLMM_HDRV_MASK },
+	};
+
+	/* Pull configs for sdc pins */
+	struct tlmm_cfgs sdc1_pull_cfg[] =
+	{
+		{ SDC1_CLK_PULL_CTL_OFF,  TLMM_NO_PULL, TLMM_PULL_MASK },
+		{ SDC1_CMD_PULL_CTL_OFF,  TLMM_PULL_UP, TLMM_PULL_MASK },
+		{ SDC1_DATA_PULL_CTL_OFF, TLMM_PULL_UP, TLMM_PULL_MASK },
+	};
+
+	/* Set the drive strength & pull control values */
+	tlmm_set_hdrive_ctrl(sdc1_hdrv_cfg, ARRAY_SIZE(sdc1_hdrv_cfg));
+	tlmm_set_pull_ctrl(sdc1_pull_cfg, ARRAY_SIZE(sdc1_pull_cfg));
+}
+
+struct mmc_device *target_mmc_device()
+{
+	return dev;
 }
