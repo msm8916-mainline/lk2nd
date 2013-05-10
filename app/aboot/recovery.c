@@ -555,6 +555,89 @@ static int read_misc(unsigned page_offset, void *buf, unsigned size)
 	return 0;
 }
 
+int write_misc(unsigned page_offset, void *buf, unsigned size)
+{
+	const char *ptn_name = "misc";
+	void *scratch_addr = target_get_scratch_address();
+	unsigned offset;
+	unsigned aligned_size;
+
+	if (size == 0 || buf == NULL || scratch_addr == NULL)
+		return -1;
+
+	if (target_is_emmc_boot())
+	{
+		int index;
+		unsigned long long ptn;
+		unsigned long long ptn_size;
+
+		index = partition_get_index(ptn_name);
+		if (index == INVALID_PTN)
+		{
+			dprintf(CRITICAL, "No '%s' partition found\n", ptn_name);
+			return -1;
+		}
+
+		ptn = partition_get_offset(index);
+		ptn_size = partition_get_size(index);
+
+		offset = page_offset * BLOCK_SIZE;
+		aligned_size = ROUND_TO_PAGE(size, (unsigned)BLOCK_SIZE - 1);
+		if (ptn_size < offset + aligned_size)
+		{
+			dprintf(CRITICAL, "Write request out of '%s' boundaries\n",
+					ptn_name);
+			return -1;
+		}
+
+		if (scratch_addr != buf)
+			memcpy(scratch_addr, buf, size);
+		if (mmc_write(ptn + offset, aligned_size, (unsigned int *)scratch_addr))
+		{
+			dprintf(CRITICAL, "Writing MMC failed\n");
+			return -1;
+		}
+	}
+	else
+	{
+		struct ptentry *ptn;
+		struct ptable *ptable;
+		unsigned pagesize = flash_page_size();
+
+		ptable = flash_get_ptable();
+		if (ptable == NULL)
+		{
+			dprintf(CRITICAL, "Partition table not found\n");
+			return -1;
+		}
+
+		ptn = ptable_find(ptable, ptn_name);
+		if (ptn == NULL)
+		{
+			dprintf(CRITICAL, "No '%s' partition found\n", ptn_name);
+			return -1;
+		}
+
+		offset = page_offset * pagesize;
+		aligned_size = ROUND_TO_PAGE(size, pagesize - 1);
+		if (ptn->length < offset + aligned_size)
+		{
+			dprintf(CRITICAL, "Write request out of '%s' boundaries\n",
+					ptn_name);
+			return -1;
+		}
+
+		if (scratch_addr != buf)
+			memcpy(scratch_addr, buf, size);
+		if (flash_write(ptn, offset, scratch_addr, aligned_size)) {
+			dprintf(CRITICAL, "Writing flash failed\n");
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
 bool get_ffbm(char *ffbm, unsigned size)
 {
 	const char *ffbm_cmd = "ffbm-";
