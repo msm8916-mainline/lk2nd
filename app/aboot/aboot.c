@@ -1834,18 +1834,28 @@ void aboot_init(const struct app_descriptor *app)
 	surf_udc_device.serialno = sn_buf;
 
 	/* Check if we should do something other than booting up */
-	if (keys_get_state(KEY_HOME) != 0)
-		boot_into_recovery = 1;
-	if (keys_get_state(KEY_VOLUMEUP) != 0)
-		boot_into_recovery = 1;
-	if(!boot_into_recovery)
+	if (keys_get_state(KEY_VOLUMEUP) && keys_get_state(KEY_VOLUMEDOWN))
 	{
-		if (keys_get_state(KEY_BACK) != 0)
-			boot_into_fastboot = true;
-		if (keys_get_state(KEY_VOLUMEDOWN) != 0)
+		dprintf(ALWAYS,"dload mode key sequence detected");
+		if (set_download_mode())
+		{
+			dprintf(CRITICAL,"dload mode not supported by target");
+		}
+		else
+		{
+			reboot_device(0);
+			dprintf(CRITICAL,"Failed to reboot into dload mode");
+		}
+		boot_into_fastboot = true;
+	}
+	if (!boot_into_fastboot)
+	{
+		if (keys_get_state(KEY_HOME) || keys_get_state(KEY_VOLUMEUP))
+			boot_into_recovery = 1;
+		if (!boot_into_recovery &&
+			(keys_get_state(KEY_BACK) || keys_get_state(KEY_VOLUMEDOWN)))
 			boot_into_fastboot = true;
 	}
-
 	#if NO_KEYPAD_DRIVER
 	if (fastboot_trigger())
 		boot_into_fastboot = true;
