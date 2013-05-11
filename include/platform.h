@@ -50,6 +50,6 @@ unsigned board_platform_id(void);
 unsigned check_reboot_mode(void);
 void platform_uninit_timer(void);
 void reboot_device(unsigned);
-
+int set_download_mode(void);
 
 #endif

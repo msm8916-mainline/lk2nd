@@ -68,6 +68,11 @@ __WEAK void reboot_device(unsigned reboot_reason)
 {
 }
 
+__WEAK int set_download_mode(void)
+{
+	return -1;
+}
+
 __WEAK unsigned target_pause_for_battery_charge(void)
 {
     return 0;
