@@ -1804,6 +1804,7 @@ void aboot_init(const struct app_descriptor *app)
 	unsigned reboot_mode = 0;
 	unsigned usb_init = 0;
 	unsigned sz = 0;
+	bool boot_into_fastboot = false;
 
 	/* Setup page size information for nand/emmc reads */
 	if (target_is_emmc_boot())
@@ -1835,54 +1836,55 @@ void aboot_init(const struct app_descriptor *app)
 	if(!boot_into_recovery)
 	{
 		if (keys_get_state(KEY_BACK) != 0)
-			goto fastboot;
+			boot_into_fastboot = true;
 		if (keys_get_state(KEY_VOLUMEDOWN) != 0)
-			goto fastboot;
+			boot_into_fastboot = true;
 	}
 
 	#if NO_KEYPAD_DRIVER
 	if (fastboot_trigger())
-		goto fastboot;
+		boot_into_fastboot = true;
 	#endif
 
 	reboot_mode = check_reboot_mode();
 	if (reboot_mode == RECOVERY_MODE) {
 		boot_into_recovery = 1;
 	} else if(reboot_mode == FASTBOOT_MODE) {
-		goto fastboot;
+		boot_into_fastboot = true;
 	}
 
-	if (target_is_emmc_boot())
+	if (!boot_into_fastboot)
 	{
-		if(emmc_recovery_init())
-			dprintf(ALWAYS,"error in emmc_recovery_init\n");
-		if(target_use_signed_kernel())
+		if (target_is_emmc_boot())
 		{
-			if((device.is_unlocked) || (device.is_tampered))
+			if(emmc_recovery_init())
+				dprintf(ALWAYS,"error in emmc_recovery_init\n");
+			if(target_use_signed_kernel())
 			{
-			#ifdef TZ_TAMPER_FUSE
-				set_tamper_fuse_cmd();
-			#endif
-			#if USE_PCOM_SECBOOT
-				set_tamper_flag(device.is_tampered);
-			#endif
+				if((device.is_unlocked) || (device.is_tampered))
+				{
+				#ifdef TZ_TAMPER_FUSE
+					set_tamper_fuse_cmd();
+				#endif
+				#if USE_PCOM_SECBOOT
+					set_tamper_flag(device.is_tampered);
+				#endif
+				}
 			}
+			boot_linux_from_mmc();
 		}
-		boot_linux_from_mmc();
+		else
+		{
+			recovery_init();
+	#if USE_PCOM_SECBOOT
+		if((device.is_unlocked) || (device.is_tampered))
+			set_tamper_flag(device.is_tampered);
+	#endif
+			boot_linux_from_flash();
+		}
+		dprintf(CRITICAL, "ERROR: Could not do normal boot. Reverting "
+			"to fastboot mode.\n");
 	}
-	else
-	{
-		recovery_init();
-#if USE_PCOM_SECBOOT
-	if((device.is_unlocked) || (device.is_tampered))
-		set_tamper_flag(device.is_tampered);
-#endif
-		boot_linux_from_flash();
-	}
-	dprintf(CRITICAL, "ERROR: Could not do normal boot. Reverting "
-		"to fastboot mode.\n");
-
-fastboot:
 
 	sz = target_get_max_flash_size();
 
