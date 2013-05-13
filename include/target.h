@@ -41,8 +41,6 @@ unsigned target_get_max_flash_size(void);
 int target_is_emmc_boot(void);
 
 unsigned* target_atag_mem(unsigned* ptr);
-void *target_get_scratch_address(void);
-unsigned target_get_max_flash_size(void);
 void target_battery_charging_enable(unsigned enable, unsigned disconnect);
 unsigned target_pause_for_battery_charge(void);
 unsigned target_baseband(void);
