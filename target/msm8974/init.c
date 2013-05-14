@@ -32,6 +32,7 @@
 #include <reg.h>
 #include <target.h>
 #include <platform.h>
+#include <dload_util.h>
 #include <uart_dm.h>
 #include <mmc.h>
 #include <spmi.h>
@@ -479,6 +480,13 @@ void reboot_device(unsigned reboot_reason)
 	mdelay(5000);
 
 	dprintf(CRITICAL, "Rebooting failed\n");
+}
+
+int set_download_mode(void)
+{
+	dload_util_write_cookie(FORCE_DLOAD_MODE_ADDR_V2);
+
+	return 0;
 }
 
 /* Do target specific usb initialization */

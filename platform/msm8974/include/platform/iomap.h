@@ -44,6 +44,8 @@
 #define RESTART_REASON_ADDR         (RPM_MSG_RAM_BASE     + 0x65C)
 #define RESTART_REASON_ADDR_V2      (MSM_SHARED_IMEM_BASE + 0x65C)
 
+#define FORCE_DLOAD_MODE_ADDR_V2    (MSM_SHARED_IMEM_BASE + 0xFE0)
+
 #define KPSS_BASE                   0xF9000000
 
 #define MSM_GIC_DIST_BASE           KPSS_BASE
