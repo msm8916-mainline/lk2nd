@@ -39,7 +39,10 @@
 #define APPS_SS_BASE                0xF9000000
 
 #define SYSTEM_IMEM_BASE            0xFE800000
-#define RESTART_REASON_ADDR         (SYSTEM_IMEM_BASE + 0x565C)
+#define MSM_SHARED_IMEM_BASE        0xFE805000
+
+#define RESTART_REASON_ADDR         (MSM_SHARED_IMEM_BASE + 0x65C)
+#define FORCE_DLOAD_MODE_ADDR       (MSM_SHARED_IMEM_BASE + 0xFE0)
 
 #define MSM_GIC_DIST_BASE           APPS_SS_BASE
 #define MSM_GIC_CPU_BASE            (APPS_SS_BASE + 0x2000)

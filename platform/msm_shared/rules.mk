@@ -117,7 +117,8 @@ ifeq ($(PLATFORM),msm8226)
             $(LOCAL_DIR)/crypto5_eng.o \
             $(LOCAL_DIR)/crypto5_wrapper.o \
 			$(LOCAL_DIR)/dev_tree.o \
-			$(LOCAL_DIR)/gpio.o
+			$(LOCAL_DIR)/gpio.o \
+			$(LOCAL_DIR)/dload_util.o
 endif
 
 ifeq ($(PLATFORM),msm8610)
