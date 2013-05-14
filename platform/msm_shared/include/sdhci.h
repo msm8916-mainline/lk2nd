@@ -31,6 +31,7 @@
 
 #include <reg.h>
 #include <bits.h>
+#include <kernel/event.h>
 
 /*
  * Capabilities for the host controller
@@ -55,6 +56,7 @@ struct host_caps {
 struct sdhci_host {
 	uint32_t base;         /* Base address for the host */
 	uint32_t cur_clk_rate; /* Running clock rate */
+	event_t* sdhc_event;    /* Event for power control irqs */
 	struct host_caps caps; /* Host capabilities */
 };
 
@@ -79,6 +81,7 @@ struct mmc_command {
 	uint32_t resp[4];       /* 128 bit response value */
 	uint32_t trans_mode;    /* Transfer mode, read/write */
 	uint32_t cmd_retry;     /* Retry the command, if card is busy */
+	uint32_t cmd23_support; /* If card supports cmd23 */
 	struct mmc_data data;   /* Data pointer */
 };
 
@@ -239,6 +242,7 @@ enum {
 #define SDHCI_BLK_CNT_EN                          BIT(1)
 #define SDHCI_DMA_EN                              BIT(0)
 #define SDHCI_AUTO_CMD23_EN                       BIT(3)
+#define SDHCI_AUTO_CMD12_EN                       BIT(2)
 #define SDHCI_ADMA_32BIT                          BIT(4)
 
 /*
