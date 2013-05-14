@@ -131,9 +131,7 @@ void bam_enable_interrupts(struct bam_instance *bam, uint8_t pipe_num)
 						P_PRCSD_DESC_EN_MASK | P_TRNSFR_END_EN_MASK;
 	uint32_t val;
 
-	/* Enable BAM error interrupts */
-	writel(BAM_ERROR_EN_MASK, BAM_IRQ_EN_REG(bam->base));
-
+	/* Leave BAM error interrupts disabled. */
 	/* Enable the interrupts for the pipe by enabling the relevant bits
 	 * in the BAM_PIPE_INTERRUPT_ENABLE register.
 	 */
