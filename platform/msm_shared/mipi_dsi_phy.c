@@ -223,7 +223,7 @@ int mdss_dsi_uniphy_pll_config(void)
 	writel(0x02, MIPI_DSI_BASE + 0x0208); /* ChgPump */
 	writel(0x00, MIPI_DSI_BASE + 0x0204); /* postDiv1 */
 	writel(0x03, MIPI_DSI_BASE + 0x0224); /* postDiv2 */
-	writel(0x03, MIPI_DSI_BASE + 0x0228); /* postDiv3 */
+	writel(0x05, MIPI_DSI_BASE + 0x0228); /* postDiv3 */
 
 	writel(0x2b, MIPI_DSI_BASE + 0x0278); /* Cal CFG3 */
 	writel(0x66, MIPI_DSI_BASE + 0x027c); /* Cal CFG4 */
