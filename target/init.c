@@ -24,6 +24,7 @@
 #include <debug.h>
 #include <target.h>
 #include <compiler.h>
+#include <dload_util.h>
 
 #define EXPAND(NAME) #NAME
 #define TARGET(NAME) EXPAND(NAME)
@@ -68,7 +69,7 @@ __WEAK void reboot_device(unsigned reboot_reason)
 {
 }
 
-__WEAK int set_download_mode(void)
+__WEAK int set_download_mode(enum dload_mode mode)
 {
 	return -1;
 }
