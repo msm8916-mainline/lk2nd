@@ -210,6 +210,14 @@ static target_mmc_sdhci_init()
 			ASSERT(0);
 		}
 	}
+
+	/*
+	 * MMC initialization is complete, read the partition table info
+	 */
+	if (partition_read_table()) {
+		dprintf(CRITICAL, "Error reading the partition table info\n");
+		ASSERT(0);
+	}
 }
 
 struct mmc_device *target_mmc_device()
@@ -301,14 +309,6 @@ void target_init(void)
 #else
 	target_mmc_mci_init();
 #endif
-
-	/*
-	 * MMC initialization is complete, read the partition table info
-	 */
-	if (partition_read_table()) {
-		dprintf(CRITICAL, "Error reading the partition table info\n");
-		ASSERT(0);
-	}
 }
 
 unsigned board_machtype(void)
