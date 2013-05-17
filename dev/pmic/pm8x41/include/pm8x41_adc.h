@@ -137,9 +137,34 @@ struct adc_conf {
 #define IBAT_MAX_UA                     3250000
 #define IUSB_MAX_UA                     2500000
 
+/* Macros for setting VDD max & charge control */
+#define CHGR_VDD_MAX                    0x1040
+
+#define VDD_MIN_UA                      3240000
+#define VDD_MAX_UA                      5790000
+#define VDD_VOL_STEP                    10000
+
+/* Macros for charge control */
+#define CHGR_CHG_CTRL                   0x1049
+#define CHGR_ENABLE                     1
+#define CHGR_EN_BIT                     7
+#define CHGR_DISABLE                    0x0
+
+/* Macros for boot done */
+#define MISC_BOOT_DONE                  0x1642
+#define BOOT_DONE                       1
+#define BOOT_DONE_BIT                   7
+
 /* Function declations */
 uint32_t pm8x41_adc_channel_read(uint16_t ch_num);
 int pm8x41_iusb_max_config(uint32_t current);
 int pm8x41_ibat_max_config(uint32_t current);
-
+/* API: To set VDD max */
+int pm8x41_chgr_vdd_max_config(uint32_t voltage);
+/* API: To enable charging */
+int pm8x41_chgr_ctl_enable(uint8_t enable);
+/* API: Get battery voltage*/
+uint32_t pm8x41_get_batt_voltage();
+/* API: Get Voltage based State of Charge */
+uint32_t pm8x41_get_voltage_based_soc(uint32_t cutoff_vol, uint32_t vdd_max);
 #endif /* _PM8X41_ADC_H_ */
