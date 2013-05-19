@@ -136,6 +136,12 @@ int msm_display_config()
 		if (ret)
 			goto msm_display_config_out;
 		break;
+	case EDP_PANEL:
+		dprintf(INFO, "Config EDP PANEL.\n");
+		ret = mdp_edp_config(pinfo, &(panel->fb));
+		if (ret)
+			goto msm_display_config_out;
+		break;
 	default:
 		return ERR_INVALID_ARGS;
 	};
@@ -207,7 +213,12 @@ int msm_display_on()
 		if (ret)
 			goto msm_display_on_out;
 		break;
-
+	case EDP_PANEL:
+		dprintf(INFO, "Turn on EDP PANEL.\n");
+		ret = mdp_edp_on();
+		if (ret)
+			goto msm_display_on_out;
+		break;
 	default:
 		return ERR_INVALID_ARGS;
 	};
@@ -301,6 +312,12 @@ int msm_display_off()
 	case LCDC_PANEL:
 		dprintf(INFO, "Turn off LCDC PANEL.\n");
 		mdp_lcdc_off();
+		break;
+	case EDP_PANEL:
+		dprintf(INFO, "Turn off EDP PANEL.\n");
+		ret = mdp_edp_off();
+		if (ret)
+			goto msm_display_off_out;
 		break;
 	default:
 		return ERR_INVALID_ARGS;
