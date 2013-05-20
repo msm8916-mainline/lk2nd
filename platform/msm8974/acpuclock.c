@@ -409,7 +409,7 @@ void mdp_clock_disable(void)
 }
 
 /* Initialize all clocks needed by Display */
-void mmss_clock_init(void)
+void mmss_clock_init(uint32_t dsi_pixel0_cfg_rcgr)
 {
 	int ret;
 
@@ -451,7 +451,7 @@ void mmss_clock_init(void)
 	}
 
 	/* Configure Pixel clock */
-	writel(0x100, DSI_PIXEL0_CFG_RCGR);
+	writel(dsi_pixel0_cfg_rcgr, DSI_PIXEL0_CFG_RCGR);
 	writel(0x1, DSI_PIXEL0_CMD_RCGR);
 	writel(0x1, DSI_PIXEL0_CBCR);
 }
