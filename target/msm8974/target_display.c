@@ -44,6 +44,7 @@ static uint8_t display_enable;
 extern int msm_display_init(struct msm_fb_panel_data *pdata);
 extern int msm_display_off();
 extern int mdss_dsi_uniphy_pll_config(void);
+extern int mdss_sharp_dsi_uniphy_pll_config(void);
 
 static int msm8974_backlight_on()
 {
@@ -72,6 +73,23 @@ static int msm8974_mdss_dsi_panel_clock(uint8_t enable)
 		mmss_clock_init(DSI0_PHY_PLL_OUT | PIXEL_SRC_DIV_1_5);
 	} else if(!target_cont_splash_screen()) {
 		// * Add here for continuous splash  *
+		mmss_clock_disable();
+		mdp_clock_disable();
+		mdp_gdsc_ctrl(enable);
+	}
+
+	return 0;
+}
+
+static int msm8974_mdss_sharp_dsi_panel_clock(uint8_t enable)
+{
+	if (enable) {
+		mdp_gdsc_ctrl(enable);
+		mdp_clock_init();
+		mdss_sharp_dsi_uniphy_pll_config();
+		mmss_clock_init(DSI0_PHY_PLL_OUT);
+	} else if (!target_cont_splash_screen()) {
+		/* Add here for continuous splash  */
 		mmss_clock_disable();
 		mdp_clock_disable();
 		mdp_gdsc_ctrl(enable);
@@ -158,6 +176,18 @@ void display_init(void)
 	case HW_PLATFORM_SURF:
 		mipi_toshiba_video_720p_init(&(panel.panel_info));
 		panel.clk_func = msm8974_mdss_dsi_panel_clock;
+		panel.power_func = msm8974_mipi_panel_power;
+		panel.fb.base = MIPI_FB_ADDR;
+		panel.fb.width =  panel.panel_info.xres;
+		panel.fb.height =  panel.panel_info.yres;
+		panel.fb.stride =  panel.panel_info.xres;
+		panel.fb.bpp =  panel.panel_info.bpp;
+		panel.fb.format = FB_FORMAT_RGB888;
+		panel.mdp_rev = MDP_REV_50;
+		break;
+	case HW_PLATFORM_DRAGON:
+		mipi_sharp_video_qhd_init(&(panel.panel_info));
+		panel.clk_func = msm8974_mdss_sharp_dsi_panel_clock;
 		panel.power_func = msm8974_mipi_panel_power;
 		panel.fb.base = MIPI_FB_ADDR;
 		panel.fb.width =  panel.panel_info.xres;
