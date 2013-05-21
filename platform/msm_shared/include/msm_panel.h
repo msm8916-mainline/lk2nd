@@ -106,6 +106,7 @@ struct lcdc_panel_info {
 struct mipi_panel_info {
 	char mode;		/* video/cmd */
 	char interleave_mode;
+	int eof_bllp_power;
 	char crc_check;
 	char ecc_check;
 	char dst_format;	/* shared by video and command */
@@ -174,6 +175,9 @@ struct msm_panel_info {
 	uint32_t type;
 	uint32_t wait_cycle;
 	uint32_t clk_rate;
+	uint32_t rotation;
+	uint32_t broadcastmode;
+	char     lowpowerstop;
 
 	struct lcd_panel_info lcd;
 	struct lcdc_panel_info lcdc;
