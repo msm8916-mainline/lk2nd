@@ -68,6 +68,9 @@
 #define DSI_PIXEL0_CFG_RCGR             REG_MM(0x2004)
 #define DSI_PIXEL0_CBCR                 REG_MM(0x2314)
 
+#define DSI0_PHY_PLL_OUT                BIT(8)
+#define PIXEL_SRC_DIV_1_5               BIT(1)
+
 void platform_clock_init(void);
 
 void clock_init_mmc(uint32_t interface);
