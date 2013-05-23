@@ -99,6 +99,7 @@ struct lcdc_panel_info {
 	uint32_t xres_pad;
 	/* Pad height */
 	uint32_t yres_pad;
+	uint8_t dual_pipe;
 };
 
 struct mipi_panel_info {
@@ -150,6 +151,8 @@ struct mipi_panel_info {
 	/* Clock required during LP commands */
 	char force_clk_lane_hs;
 	char lane_swap;
+	uint8_t dual_dsi;
+	uint8_t broadcast;
 };
 
 enum lvds_mode {
