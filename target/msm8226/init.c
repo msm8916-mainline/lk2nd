@@ -28,6 +28,7 @@
 
 #include <debug.h>
 #include <platform/iomap.h>
+#include <platform/irqs.h>
 #include <reg.h>
 #include <target.h>
 #include <platform.h>
@@ -67,8 +68,14 @@ enum target_subtype {
 	HW_PLATFORM_SUBTYPE_SKUAB = 3,
 };
 
+static uint32_t mmc_pwrctl_base[] =
+	{ MSM_SDC1_BASE, MSM_SDC2_BASE, MSM_SDC3_BASE };
+
 static uint32_t mmc_sdhci_base[] =
 	{ MSM_SDC1_SDHCI_BASE, MSM_SDC2_SDHCI_BASE, MSM_SDC3_SDHCI_BASE };
+
+static uint32_t mmc_sdc_pwrctl_irq[] =
+	{ SDCC1_PWRCTL_IRQ, SDCC2_PWRCTL_IRQ, SDCC3_PWRCTL_IRQ };
 
 struct mmc_device *dev;
 
@@ -140,27 +147,30 @@ void target_crypto_init_params()
 
 void target_sdc_init()
 {
-	struct mmc_config_data config;
+	struct mmc_config_data config = {0};
 
 	/*
 	 * Set drive strength & pull ctrl for emmc
 	 */
 	set_sdc_power_ctrl();
 
-	/* Enable sdhci mode */
-	sdhci_mode_enable(1);
-
 	config.bus_width = DATA_BUS_WIDTH_8BIT;
 	config.max_clk_rate = MMC_CLK_200MHZ;
 
 	/* Trying Slot 1*/
 	config.slot = 1;
-	config.base = mmc_sdhci_base[config.slot - 1];
+	config.sdhc_base = mmc_sdhci_base[config.slot - 1];
+	config.pwrctl_base = mmc_pwrctl_base[config.slot - 1];
+	config.pwr_irq     = mmc_sdc_pwrctl_irq[config.slot - 1];
+
 	if (!(dev = mmc_init(&config)))
 	{
 		/* Trying Slot 2 next */
 		config.slot = 2;
-		config.base = mmc_sdhci_base[config.slot - 1];
+		config.sdhc_base = mmc_sdhci_base[config.slot - 1];
+		config.pwrctl_base = mmc_pwrctl_base[config.slot - 1];
+		config.pwr_irq     = mmc_sdc_pwrctl_irq[config.slot - 1];
+
 		if (!(dev = mmc_init(&config))) {
 			dprintf(CRITICAL, "mmc init failed!");
 			ASSERT(0);
