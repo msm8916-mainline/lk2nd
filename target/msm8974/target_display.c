@@ -70,7 +70,7 @@ static int msm8974_mdss_dsi_panel_clock(uint8_t enable)
 		mdp_gdsc_ctrl(enable);
 		mdp_clock_init();
 		mdss_dsi_uniphy_pll_config();
-		mmss_clock_init(DSI0_PHY_PLL_OUT | PIXEL_SRC_DIV_1_5);
+		mmss_clock_init(DSI0_PHY_PLL_OUT);
 	} else if(!target_cont_splash_screen()) {
 		// * Add here for continuous splash  *
 		mmss_clock_disable();
