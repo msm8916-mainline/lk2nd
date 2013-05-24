@@ -109,6 +109,31 @@ static void mdss_rgb_pipe_config(struct fbcon_config *fb, struct msm_panel_info
 	writel(0x00, pipe_base + PIPE_SSPP_SRC_OP_MODE);
 }
 
+static void mdss_vbif_setup()
+{
+	int access_secure = restore_secure_cfg(SECURE_DEVICE_MDSS);
+
+	/* TZ returns an errornous ret val even if the VBIF registers were
+	 * successfully unlocked. Ignore TZ return value till it's fixed */
+	if (!access_secure || 1) {
+		dprintf(SPEW, "MDSS VBIF registers unlocked by TZ.\n");
+
+		/* Force VBIF Clocks on  */
+		writel(0x1, VBIF_VBIF_DDR_FORCE_CLK_ON);
+
+		if (readl(MDP_HW_REV) == MDSS_MDP_HW_REV_100) {
+			/* Configure DDR burst length */
+			writel(0x00000707, VBIF_VBIF_DDR_OUT_MAX_BURST);
+			writel(0x00000030, VBIF_VBIF_DDR_ARB_CTRL );
+			writel(0x00000001, VBIF_VBIF_DDR_RND_RBN_QOS_ARB);
+			writel(0x00000FFF, VBIF_VBIF_DDR_OUT_AOOO_AXI_EN);
+			writel(0x0FFF0FFF, VBIF_VBIF_DDR_OUT_AX_AOOO);
+			writel(0x22222222, VBIF_VBIF_DDR_AXI_AMEMTYPE_CONF0);
+			writel(0x00002222, VBIF_VBIF_DDR_AXI_AMEMTYPE_CONF1);
+		}
+	}
+}
+
 void mdss_smp_setup(struct msm_panel_info *pinfo)
 {
 	uint32_t smp_cnt = 0, reg_rgb0 = 0, reg_rgb1 = 0, shift = 0;
@@ -169,7 +194,6 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 	uint32_t display_hctl, active_hctl, hsync_ctl, display_vstart, display_vend;
 	struct lcdc_panel_info *lcdc = NULL;
 	unsigned mdp_rgb_size;
-	int access_secure = 0;
 	uint32_t mdss_mdp_intf_off = 0;
 
 	if (pinfo == NULL)
@@ -204,28 +228,12 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 
 	mdss_mdp_intf_off = mdss_mdp_intf_offset();
 
-	access_secure = restore_secure_cfg(SECURE_DEVICE_MDSS);
+	/* write active region size*/
+	mdp_rgb_size = (fb->height << 16) | fb->width;
 
 	mdp_clk_gating_ctrl();
 
-	/* Ignore TZ return value till it's fixed */
-	if (!access_secure || 1) {
-
-		/* Force VBIF Clocks on  */
-		writel(0x1, VBIF_VBIF_DDR_FORCE_CLK_ON);
-
-		if (readl(MDP_HW_REV) == MDSS_MDP_HW_REV_100) {
-			/* Configure DDR burst length */
-			writel(0x00000707, VBIF_VBIF_DDR_OUT_MAX_BURST);
-			writel(0x00000030, VBIF_VBIF_DDR_ARB_CTRL );
-			writel(0x00000001, VBIF_VBIF_DDR_RND_RBN_QOS_ARB);
-			writel(0x00000FFF, VBIF_VBIF_DDR_OUT_AOOO_AXI_EN);
-			writel(0x0FFF0FFF, VBIF_VBIF_DDR_OUT_AX_AOOO);
-			writel(0x22222222, VBIF_VBIF_DDR_AXI_AMEMTYPE_CONF0);
-			writel(0x00002222, VBIF_VBIF_DDR_AXI_AMEMTYPE_CONF1);
-		}
-	}
-
+	mdss_vbif_setup();
 	mdss_smp_setup(pinfo);
 
 	writel(0x0E9, MDP_QOS_REMAPPER_CLASS_0);
@@ -288,7 +296,6 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 
 	struct lcdc_panel_info *lcdc = NULL;
 	uint32_t mdp_rgb_size;
-	int access_secure = 0;
 	uint32_t mdss_mdp_intf_off = 0;
 
 	if (pinfo == NULL)
@@ -302,26 +309,11 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 	/* write active region size*/
 	mdp_rgb_size = (fb->height << 16) + fb->width;
 
-	access_secure = restore_secure_cfg(SECURE_DEVICE_MDSS);
-
 	mdp_clk_gating_ctrl();
 
 	writel(0x0100, MDP_DISP_INTF_SEL);
 
-	/* Ignore TZ return value till it's fixed */
-	if (!access_secure || 1) {
-		/* Force VBIF Clocks on  */
-		writel(0x1, VBIF_VBIF_DDR_FORCE_CLK_ON);
-		/* Configure DDR burst length */
-		writel(0x00000707, VBIF_VBIF_DDR_OUT_MAX_BURST);
-		writel(0x00000030, VBIF_VBIF_DDR_ARB_CTRL );
-		writel(0x00000001, VBIF_VBIF_DDR_RND_RBN_QOS_ARB);
-		writel(0x00000FFF, VBIF_VBIF_DDR_OUT_AOOO_AXI_EN);
-		writel(0x0FFF0FFF, VBIF_VBIF_DDR_OUT_AX_AOOO);
-		writel(0x22222222, VBIF_VBIF_DDR_AXI_AMEMTYPE_CONF0);
-		writel(0x00002222, VBIF_VBIF_DDR_AXI_AMEMTYPE_CONF1);
-	}
-
+	mdss_vbif_setup();
 	mdss_smp_setup(pinfo);
 	mdss_rgb_pipe_config(fb, pinfo, MDP_VP_0_RGB_0_BASE);
 
