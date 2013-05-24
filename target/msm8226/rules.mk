@@ -1,6 +1,7 @@
 LOCAL_DIR := $(GET_LOCAL_DIR)
 
 INCLUDES += -I$(LOCAL_DIR)/include -I$(LK_TOP_DIR)/platform/msm_shared
+INCLUDES += -I$(LK_TOP_DIR)/dev/gcdb/display -I$(LK_TOP_DIR)/dev/gcdb/display/include
 
 PLATFORM := msm8226
 
@@ -24,6 +25,7 @@ MODULES += \
 	lib/ptable \
 	dev/pmic/pm8x41 \
 	dev/panel/msm \
+	dev/gcdb/display \
 	lib/libfdt
 
 DEFINES += \
