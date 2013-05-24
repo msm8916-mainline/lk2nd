@@ -31,6 +31,7 @@
 #include <smem.h>
 #include <err.h>
 #include <msm_panel.h>
+#include <mipi_dsi.h>
 #include <pm8x41.h>
 #include <pm8x41_wled.h>
 #include <board.h>
@@ -63,15 +64,20 @@ int target_backlight_ctrl(uint8_t enable)
 	return 0;
 }
 
-int target_panel_clock(uint8_t enable)
+int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 {
+	struct mdss_dsi_pll_config *pll_data;
 	dprintf(SPEW, "target_panel_clock\n");
+
+	pll_data = pinfo->mipi.dsi_pll_config;
 
 	if (enable) {
 		mdp_gdsc_ctrl(enable);
 		mdp_clock_init();
-		mdss_dsi_uniphy_pll_config(MIPI_DSI0_BASE);
-		mmss_clock_init(0x100);
+		mdss_dsi_auto_pll_config(pll_data);
+		mmss_clock_auto_pll_init(pll_data->pclk_m,
+				pll_data->pclk_n,
+				pll_data->pclk_d);
 	} else if(!target_cont_splash_screen()) {
 		/* Add here for non-continuous splash */
 		/* FIXME:Need to disable the clocks.
