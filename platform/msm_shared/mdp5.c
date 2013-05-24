@@ -185,16 +185,14 @@ void mdss_smp_setup(struct msm_panel_info *pinfo)
 	}
 }
 
-int mdp_dsi_video_config(struct msm_panel_info *pinfo,
-		struct fbcon_config *fb)
+void mdss_intf_tg_setup(struct msm_panel_info *pinfo, uint32_t intf_base)
 {
-	int ret = NO_ERROR;
 	uint32_t hsync_period, vsync_period;
 	uint32_t hsync_start_x, hsync_end_x;
 	uint32_t display_hctl, active_hctl, hsync_ctl, display_vstart, display_vend;
+	uint32_t mdss_mdp_intf_off;
+
 	struct lcdc_panel_info *lcdc = NULL;
-	unsigned mdp_rgb_size;
-	uint32_t mdss_mdp_intf_off = 0;
 
 	if (pinfo == NULL)
 		return ERR_INVALID_ARGS;
@@ -202,6 +200,16 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 	lcdc =  &(pinfo->lcdc);
 	if (lcdc == NULL)
 		return ERR_INVALID_ARGS;
+
+	if (pinfo->lcdc.dual_pipe) {
+		if (intf_base == MDP_INTF_1_BASE) {
+			writel(BIT(8), MDP_TG_SINK);
+			writel(0x0, MDP_REG_SPLIT_DISPLAY_UPPER_PIPE_CTL);
+			writel(0x1, MDP_REG_SPLIT_DISPLAY_EN);
+		}
+	}
+
+	mdss_mdp_intf_off = intf_base + mdss_mdp_intf_offset();
 
 	hsync_period = lcdc->h_pulse_width +
 		lcdc->h_back_porch +
@@ -226,7 +234,44 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 	hsync_ctl = (hsync_period << 16) | lcdc->h_pulse_width;
 	display_hctl = (hsync_end_x << 16) | hsync_start_x;
 
-	mdss_mdp_intf_off = mdss_mdp_intf_offset();
+	writel(hsync_ctl, MDP_HSYNC_CTL + mdss_mdp_intf_off);
+	writel(vsync_period*hsync_period, MDP_VSYNC_PERIOD_F0 +
+			mdss_mdp_intf_off);
+	writel(0x00, MDP_VSYNC_PERIOD_F1 + mdss_mdp_intf_off);
+	writel(lcdc->v_pulse_width*hsync_period,
+			MDP_VSYNC_PULSE_WIDTH_F0 +
+			mdss_mdp_intf_off);
+	writel(0x00, MDP_VSYNC_PULSE_WIDTH_F1 + mdss_mdp_intf_off);
+	writel(display_hctl, MDP_DISPLAY_HCTL + mdss_mdp_intf_off);
+	writel(display_vstart, MDP_DISPLAY_V_START_F0 +
+			mdss_mdp_intf_off);
+	writel(0x00, MDP_DISPLAY_V_START_F1 + mdss_mdp_intf_off);
+	writel(display_vend, MDP_DISPLAY_V_END_F0 +
+			mdss_mdp_intf_off);
+	writel(0x00, MDP_DISPLAY_V_END_F1 + mdss_mdp_intf_off);
+	writel(0x00, MDP_ACTIVE_HCTL + mdss_mdp_intf_off);
+	writel(0x00, MDP_ACTIVE_V_START_F0 + mdss_mdp_intf_off);
+	writel(0x00, MDP_ACTIVE_V_START_F1 + mdss_mdp_intf_off);
+	writel(0x00, MDP_ACTIVE_V_END_F0 + mdss_mdp_intf_off);
+	writel(0x00, MDP_ACTIVE_V_END_F1 + mdss_mdp_intf_off);
+	writel(0xFF, MDP_UNDERFFLOW_COLOR + mdss_mdp_intf_off);
+
+	writel(0x213F, MDP_PANEL_FORMAT + mdss_mdp_intf_off);
+
+}
+
+int mdp_dsi_video_config(struct msm_panel_info *pinfo,
+		struct fbcon_config *fb)
+{
+	int ret = NO_ERROR;
+	struct lcdc_panel_info *lcdc = NULL;
+	unsigned mdp_rgb_size;
+	uint32_t intf_sel = 0x100;
+
+	mdss_intf_tg_setup(pinfo, MDP_INTF_1_BASE);
+
+	if (pinfo->mipi.dual_dsi)
+		mdss_intf_tg_setup(pinfo, MDP_INTF_2_BASE);
 
 	/* write active region size*/
 	mdp_rgb_size = (fb->height << 16) | fb->width;
@@ -237,28 +282,6 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 	mdss_smp_setup(pinfo);
 
 	writel(0x0E9, MDP_QOS_REMAPPER_CLASS_0);
-
-	writel(hsync_ctl, MDP_INTF_1_HSYNC_CTL + mdss_mdp_intf_off);
-	writel(vsync_period*hsync_period, MDP_INTF_1_VSYNC_PERIOD_F0 +
-			mdss_mdp_intf_off);
-	writel(0x00, MDP_INTF_1_VSYNC_PERIOD_F1 + mdss_mdp_intf_off);
-	writel(lcdc->v_pulse_width*hsync_period,
-			MDP_INTF_1_VSYNC_PULSE_WIDTH_F0 +
-			mdss_mdp_intf_off);
-	writel(0x00, MDP_INTF_1_VSYNC_PULSE_WIDTH_F1 + mdss_mdp_intf_off);
-	writel(display_hctl, MDP_INTF_1_DISPLAY_HCTL + mdss_mdp_intf_off);
-	writel(display_vstart, MDP_INTF_1_DISPLAY_V_START_F0 +
-			mdss_mdp_intf_off);
-	writel(0x00, MDP_INTF_1_DISPLAY_V_START_F1 + mdss_mdp_intf_off);
-	writel(display_vend, MDP_INTF_1_DISPLAY_V_END_F0 +
-			mdss_mdp_intf_off);
-	writel(0x00, MDP_INTF_1_DISPLAY_V_END_F1 + mdss_mdp_intf_off);
-	writel(0x00, MDP_INTF_1_ACTIVE_HCTL + mdss_mdp_intf_off);
-	writel(0x00, MDP_INTF_1_ACTIVE_V_START_F0 + mdss_mdp_intf_off);
-	writel(0x00, MDP_INTF_1_ACTIVE_V_START_F1 + mdss_mdp_intf_off);
-	writel(0x00, MDP_INTF_1_ACTIVE_V_END_F0 + mdss_mdp_intf_off);
-	writel(0x00, MDP_INTF_1_ACTIVE_V_END_F1 + mdss_mdp_intf_off);
-	writel(0xFF, MDP_INTF_1_UNDERFFLOW_COLOR + mdss_mdp_intf_off);
 
 	mdss_rgb_pipe_config(fb, pinfo, MDP_VP_0_RGB_0_BASE);
 	if (pinfo->lcdc.dual_pipe)
@@ -279,9 +302,12 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 	writel(0x010000200, MDP_CTL_0_LAYER_0);
 
 	writel(0x1F20, MDP_CTL_0_TOP);
-	writel(0x213F, MDP_INTF_1_PANEL_FORMAT + mdss_mdp_intf_off);
 
-	writel(0x0100, MDP_DISP_INTF_SEL);
+	if (pinfo->mipi.dual_dsi)
+		intf_sel |= BIT(16); /* INTF 2 enable */
+
+	writel(intf_sel, MDP_DISP_INTF_SEL);
+
 	writel(0x1111, MDP_VIDEO_INTF_UNDERFLOW_CTL);
 	writel(0x01, MDP_UPPER_NEW_ROI_PRIOR_RO_START);
 	writel(0x01, MDP_LOWER_NEW_ROI_PRIOR_TO_START);
@@ -331,7 +357,7 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 	/* Baselayer for layer mixer 0 */
 	writel(0x00000200, MDP_CTL_0_LAYER_0);
 
-	writel(0x213F, MDP_INTF_1_PANEL_FORMAT + mdss_mdp_intf_off);
+	writel(0x213F, MDP_INTF_1_BASE + MDP_PANEL_FORMAT + mdss_mdp_intf_off);
 
 	writel(0x20020, MDP_CTL_0_TOP);
 
