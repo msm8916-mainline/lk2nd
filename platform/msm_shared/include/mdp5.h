@@ -104,10 +104,22 @@
 #define MDP_CLK_CTRL4                           REG_MDP(0x04B0)
 #define MDP_CLK_CTRL5                           REG_MDP(0x04B8)
 
+#define MMSS_MDP_CLIENT_ID_RGB0                 0x00000010
+#define MMSS_MDP_CLIENT_ID_RGB1                 0x00000011
+
+#define MMSS_MDP_MAX_SMP_SIZE                   0x00001000
 #define MMSS_MDP_SMP_ALLOC_W_0                  REG_MDP(0x0180)
 #define MMSS_MDP_SMP_ALLOC_W_1                  REG_MDP(0x0184)
 #define MMSS_MDP_SMP_ALLOC_R_0                  REG_MDP(0x0230)
 #define MMSS_MDP_SMP_ALLOC_R_1                  REG_MDP(0x0234)
+
+#define RGB0_REQPRIORITY_FIFO_WATERMARK0        REG_MDP(0x1E50)
+#define RGB0_REQPRIORITY_FIFO_WATERMARK1        REG_MDP(0x1E54)
+#define RGB0_REQPRIORITY_FIFO_WATERMARK2        REG_MDP(0x1E58)
+
+#define RGB1_REQPRIORITY_FIFO_WATERMARK0        REG_MDP(0x2250)
+#define RGB1_REQPRIORITY_FIFO_WATERMARK1        REG_MDP(0x2254)
+#define RGB1_REQPRIORITY_FIFO_WATERMARK2        REG_MDP(0x2258)
 
 #define VBIF_VBIF_DDR_FORCE_CLK_ON              REG_MDP(0x24004)
 #define VBIF_VBIF_DDR_OUT_MAX_BURST             REG_MDP(0x240D8)

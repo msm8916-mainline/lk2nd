@@ -109,6 +109,57 @@ static void mdss_rgb_pipe_config(struct fbcon_config *fb, struct msm_panel_info
 	writel(0x00, pipe_base + PIPE_SSPP_SRC_OP_MODE);
 }
 
+void mdss_smp_setup(struct msm_panel_info *pinfo)
+{
+	uint32_t smp_cnt = 0, reg_rgb0 = 0, reg_rgb1 = 0, shift = 0;
+	uint32_t xres, bpp;
+
+	xres = pinfo->xres;
+	bpp = pinfo->bpp;
+
+	if (pinfo->lcdc.dual_pipe) {
+		/* Each pipe driving half the screen */
+		xres /= 2;
+	}
+
+	smp_cnt = ((xres) * (bpp / 8) * 2) +
+		MMSS_MDP_MAX_SMP_SIZE - 1;
+
+	smp_cnt /= MMSS_MDP_MAX_SMP_SIZE;
+
+	if (smp_cnt > 4) {
+		dprintf(CRITICAL, "ERROR: %s: Out of SMP's, cnt=%d! \n", __func__,
+				smp_cnt);
+		ASSERT(0); /* Max 4 SMPs can be allocated per client */
+	}
+
+	writel(smp_cnt * 0x40, RGB0_REQPRIORITY_FIFO_WATERMARK0);
+	writel(smp_cnt * 0x80, RGB0_REQPRIORITY_FIFO_WATERMARK1);
+	writel(smp_cnt * 0xc0, RGB0_REQPRIORITY_FIFO_WATERMARK2);
+
+	if (pinfo->lcdc.dual_pipe) {
+		writel(smp_cnt * 0x40, RGB1_REQPRIORITY_FIFO_WATERMARK0);
+		writel(smp_cnt * 0x80, RGB1_REQPRIORITY_FIFO_WATERMARK1);
+		writel(smp_cnt * 0xc0, RGB1_REQPRIORITY_FIFO_WATERMARK2);
+	}
+
+	while((smp_cnt > 0) && !(shift > 16)) {
+		reg_rgb0 |= ((MMSS_MDP_CLIENT_ID_RGB0) << (shift));
+		reg_rgb1 |= ((MMSS_MDP_CLIENT_ID_RGB1) << (shift));
+		smp_cnt--;
+		shift += 8;
+	}
+
+	/* Allocate SMP blocks */
+	writel(reg_rgb0, MMSS_MDP_SMP_ALLOC_W_0);
+	writel(reg_rgb0, MMSS_MDP_SMP_ALLOC_R_0);
+
+	if (pinfo->lcdc.dual_pipe) {
+		writel(reg_rgb1, MMSS_MDP_SMP_ALLOC_W_1);
+		writel(reg_rgb1, MMSS_MDP_SMP_ALLOC_R_1);
+	}
+}
+
 int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 		struct fbcon_config *fb)
 {
@@ -175,12 +226,7 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 		}
 	}
 
-	/* Allocate SMP blocks */
-	writel(0x00101010, MMSS_MDP_SMP_ALLOC_W_0);
-	writel(0x00000010, MMSS_MDP_SMP_ALLOC_W_1);
-	writel(0x00101010, MMSS_MDP_SMP_ALLOC_R_0);
-	writel(0x00000010, MMSS_MDP_SMP_ALLOC_R_1);
-
+	mdss_smp_setup(pinfo);
 	writel(hsync_ctl, MDP_INTF_1_HSYNC_CTL + mdss_mdp_intf_off);
 	writel(vsync_period*hsync_period, MDP_INTF_1_VSYNC_PERIOD_F0 +
 			mdss_mdp_intf_off);
@@ -273,12 +319,7 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 		writel(0x00002222, VBIF_VBIF_DDR_AXI_AMEMTYPE_CONF1);
 	}
 
-	/* Allocate SMP blocks */
-	writel(0x00101010, MMSS_MDP_SMP_ALLOC_W_0);
-	writel(0x00000010, MMSS_MDP_SMP_ALLOC_W_1);
-	writel(0x00101010, MMSS_MDP_SMP_ALLOC_R_0);
-	writel(0x00000010, MMSS_MDP_SMP_ALLOC_R_1);
-
+	mdss_smp_setup(pinfo);
 	mdss_rgb_pipe_config(fb, pinfo, MDP_VP_0_RGB_0_BASE);
 
 	writel(mdp_rgb_size,MDP_VP_0_LAYER_0_OUT_SIZE);
