@@ -669,6 +669,21 @@ struct mdss_dsi_phy_ctrl {
 	char laneCfg[45];
 };
 
+typedef struct mdss_dsi_pll_config {
+	uint32_t  pixel_clock;
+	uint32_t  pixel_clock_mhz;
+	uint32_t  byte_clock;
+	uint32_t  bit_clock;
+	uint32_t  halfbit_clock;
+	uint32_t  vco_clock;
+	uint8_t   directpath;
+	uint8_t   posdiv1;
+	uint8_t   posdiv3;
+	uint8_t   pclk_m;
+	uint8_t   pclk_n;
+	uint8_t   pclk_d;
+};
+
 struct mipi_dsi_cmd {
 	int size;
 	char *payload;
