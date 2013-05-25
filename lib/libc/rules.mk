@@ -10,6 +10,7 @@ OBJS += \
 	$(LOCAL_DIR)/printf.o \
 	$(LOCAL_DIR)/malloc.o \
 	$(LOCAL_DIR)/rand.o \
+	$(LOCAL_DIR)/stdio.o \
 	$(LOCAL_DIR)/eabi.o
 
 
