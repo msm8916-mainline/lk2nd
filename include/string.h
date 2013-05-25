@@ -69,7 +69,7 @@ extern "C"
 #endif
 
 /* non standard */
-void  *bcopy(void const *, void *, size_t);
+void   bcopy(void const *, void *, size_t);
 void   bzero(void *, size_t);
 size_t strlcat(char *, char const *, size_t);
 size_t strlcpy(char *, char const *, size_t);

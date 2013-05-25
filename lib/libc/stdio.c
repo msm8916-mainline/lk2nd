@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2013 Travis Geiselbrecht
+ * Copyright (c) 2013 Travis Geiselbrecht
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -20,32 +20,49 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#ifndef __STDIO_H
-#define __STDIO_H
-
 #include <debug.h>
-#include <printf.h>
+#include <stdio.h>
+#include <stdarg.h>
+#include <sys/types.h>
 
-/* fake FILE struct */
-typedef struct FILE {
-} FILE;
+int fputc(int c, FILE *fp)
+{
+	_dputc(c);
+	return 0;
+}
 
-#define stdin ((FILE *)1)
-#define stdout ((FILE *)2)
-#define stderr ((FILE *)3)
+int putchar(int c)
+{
+	return fputc(c, stdout);
+}
 
-int fputc(int c, FILE *fp);
-#define putc(c, fp) fputc(c, fp)
-int putchar(int c);
+int puts(const char *str)
+{
+	int err = _dputs(str);
+	if (err >= 0)
+		_dputc('\n');
 
-int fputs(const char *s, FILE *fp);
-int puts(const char *str);
+	return err;
+}
 
-int getc(FILE *fp);
-int getchar(void);
+int fputs(const char *s, FILE *fp)
+{
+	return _dputs(s);
+}
 
-size_t fwrite(const void *buf, size_t size, size_t count, FILE *stream);
-int sscanf(const char *str, const char *format, ...);
+int getc(FILE *fp)
+{
+	char c;
 
-#endif
+	int err = dgetc(&c, true);
+	if (err < 0)
+		return err;
+
+	return (unsigned char)c;
+}
+
+int getchar(void)
+{
+	return getc(stdin);
+}
 
