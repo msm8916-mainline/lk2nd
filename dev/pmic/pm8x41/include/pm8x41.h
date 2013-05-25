@@ -91,8 +91,10 @@ struct pm8x41_ldo {
 /* LDO base addresses. */
 #define PM8x41_LDO2                           0x14100
 #define PM8x41_LDO4                           0x14300
+#define PM8x41_LDO8                           0x14700
 #define PM8x41_LDO12                          0x14B00
 #define PM8x41_LDO14                          0x14D00
+#define PM8x41_LDO15                          0x14E00
 #define PM8x41_LDO19                          0x15200
 #define PM8x41_LDO22                          0x15500
 
