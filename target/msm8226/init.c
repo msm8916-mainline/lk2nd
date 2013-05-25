@@ -174,6 +174,13 @@ void target_init(void)
 
 	target_keystatus();
 
+	/* Display splash screen if enabled */
+#if DISPLAY_SPLASH_SCREEN
+	dprintf(SPEW, "Display Init: Start\n");
+	display_init();
+	dprintf(SPEW, "Display Init: Done\n");
+#endif
+
 	target_sdc_init();
 
 	if (target_use_signed_kernel())
@@ -306,6 +313,23 @@ void target_usb_init(void)
 	val = readl(USB_USBCMD);
 	val |= SESS_VLD_CTRL;
 	writel(val, USB_USBCMD);
+}
+
+/* Returns 1 if target supports continuous splash screen. */
+int target_cont_splash_screen()
+{
+	switch(board_hardware_id())
+	{
+		case HW_PLATFORM_MTP:
+		case HW_PLATFORM_QRD:
+		case HW_PLATFORM_SURF:
+			dprintf(SPEW, "Target_cont_splash=1\n");
+			return 1;
+			break;
+		default:
+			dprintf(SPEW, "Target_cont_splash=0\n");
+			return 0;
+	}
 }
 
 unsigned target_pause_for_battery_charge(void)
