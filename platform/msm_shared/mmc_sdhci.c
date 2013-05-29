@@ -1313,3 +1313,331 @@ uint32_t mmc_sdhci_write(struct mmc_device *dev, void *src,
 
 	return mmc_ret;
 }
+
+/*
+ * Send the erase group start address using CMD35
+ */
+static uint32_t mmc_send_erase_grp_start(struct mmc_device *dev, uint32_t erase_start)
+{
+	struct mmc_command cmd;
+
+	memset((struct mmc_command *)&cmd, 0, sizeof(struct mmc_command));
+
+	cmd.cmd_index = CMD35_ERASE_GROUP_START;
+	cmd.argument = erase_start;
+	cmd.cmd_type = SDHCI_CMD_TYPE_NORMAL;
+	cmd.resp_type = SDHCI_CMD_RESP_R1;
+
+	/* send command */
+	if (sdhci_send_command(&dev->host, &cmd))
+		return 1;
+
+	/*
+	 * CMD35 on failure returns address out of range error
+	 */
+	if (MMC_ADDR_OUT_OF_RANGE(cmd.resp[0]))
+	{
+		dprintf(CRITICAL, "Address for CMD35 is out of range\n");
+		return 1;
+	}
+
+	return 0;
+}
+
+/*
+ * Send the erase group end address using CMD36
+ */
+static uint32_t mmc_send_erase_grp_end(struct mmc_device *dev, uint32_t erase_end)
+{
+	struct mmc_command cmd;
+
+	memset((struct mmc_command *)&cmd, 0, sizeof(struct mmc_command));
+
+	cmd.cmd_index = CMD36_ERASE_GROUP_END;
+	cmd.argument = erase_end;
+	cmd.cmd_type = SDHCI_CMD_TYPE_NORMAL;
+	cmd.resp_type = SDHCI_CMD_RESP_R1;
+
+	/* send command */
+	if (sdhci_send_command(&dev->host, &cmd))
+		return 1;
+
+	/*
+	 * CMD3 on failure returns address out of range error
+	 */
+	if (MMC_ADDR_OUT_OF_RANGE(cmd.resp[0]))
+	{
+		dprintf(CRITICAL, "Address for CMD36 is out of range\n");
+		return 1;
+	}
+
+	return 0;
+}
+
+/*
+ * Send the erase CMD38, to erase the selected erase groups
+ */
+static uint32_t mmc_send_erase(struct mmc_device *dev)
+{
+	struct mmc_command cmd;
+	uint32_t status;
+	uint32_t retry;
+
+	memset((struct mmc_command *)&cmd, 0, sizeof(struct mmc_command));
+
+	cmd.cmd_index = CMD38_ERASE;
+	cmd.argument = 0x00000000;
+	cmd.cmd_type = SDHCI_CMD_TYPE_NORMAL;
+	cmd.resp_type = SDHCI_CMD_RESP_R1B;
+
+	/* send command */
+	if (sdhci_send_command(&dev->host, &cmd))
+		return 1;
+
+	do
+	{
+		if (mmc_get_card_status(&dev->host, &dev->card, &status))
+		{
+			dprintf(CRITICAL, "Failed to get card status after erase\n");
+			return 1;
+		}
+		/* Check if the response of erase command has eras skip status set */
+		if (status & MMC_R1_WP_ERASE_SKIP)
+			dprintf(CRITICAL, "Write Protect set for the region, only partial space was erased\n");
+
+		retry++;
+		udelay(1000);
+		if (retry == MMC_MAX_CARD_STAT_RETRY)
+		{
+			dprintf(CRITICAL, "Card status check timed out after sending erase command\n");
+			return 1;
+		}
+	} while(!(status & MMC_READY_FOR_DATA) || (MMC_CARD_STATUS(status) == MMC_PROG_STATE));
+
+
+	return 0;
+}
+
+
+/*
+ * Function: mmc sdhci erase
+ * Arg     : mmc device structure, block address and length
+ * Return  : 0 on Success, non zero on failure
+ * Flow    : Fill in the command structure & send the command
+ */
+uint32_t mmc_sdhci_erase(struct mmc_device *dev, uint32_t blk_addr, uint64_t len)
+{
+	uint32_t erase_unit_sz = 0;
+	uint32_t erase_start;
+	uint32_t erase_end;
+	uint32_t blk_end;
+	uint32_t num_erase_grps;
+	uint32_t *out;
+
+	/*
+	 * Calculate the erase unit size as per the emmc specification v4.5
+	 */
+	if (dev->card.ext_csd[MMC_ERASE_GRP_DEF])
+		erase_unit_sz = (MMC_HC_ERASE_MULT * dev->card.ext_csd[MMC_HC_ERASE_GRP_SIZE]) / MMC_BLK_SZ;
+	else
+		erase_unit_sz = (dev->card.csd.erase_grp_size + 1) * (dev->card.csd.erase_grp_mult + 1);
+
+	/* Convert length in blocks */
+	len = len / MMC_BLK_SZ;
+
+	if (len < erase_unit_sz)
+	{
+		dprintf(CRITICAL, "Requested length is less than min erase group size\n");
+		return 1;
+	}
+
+	/* Calculate erase groups based on the length in blocks */
+	num_erase_grps = len / erase_unit_sz;
+
+	/* Start address of the erase range */
+	erase_start = blk_addr;
+
+	/* Last address of the erase range */
+	erase_end = blk_addr + ((num_erase_grps - 1) * erase_unit_sz);
+
+	/* Boundary check for overlap */
+	blk_end = blk_addr + len;
+
+	if (erase_end > blk_end)
+	{
+		dprintf(CRITICAL, "The erase group overlaps the max requested for erase\n");
+		erase_end -= erase_unit_sz;
+	}
+
+	/* Send CMD35 for erase group start */
+	if (mmc_send_erase_grp_start(dev, erase_start))
+	{
+		dprintf(CRITICAL, "Failed to send erase grp start address\n");
+		return 1;
+	}
+
+	/* Send CMD36 for erase group end */
+	if (mmc_send_erase_grp_end(dev, erase_end))
+	{
+		dprintf(CRITICAL, "Failed to send erase grp end address\n");
+		return 1;
+	}
+
+	/* Send CMD38 to perform erase */
+	if (mmc_send_erase(dev))
+	{
+		dprintf(CRITICAL, "Failed to erase the specified partition\n");
+		return 1;
+	}
+	return 0;
+}
+
+/*
+ * Function: mmc get wp status
+ * Arg     : mmc device structure, block address and buffer for getting wp status
+ * Return  : 0 on Success, 1 on Failure
+ * Flow    : Get the WP group status by sending CMD31
+ */
+uint32_t mmc_get_wp_status(struct mmc_device *dev, uint32_t addr, uint8_t *wp_status)
+{
+	struct mmc_command cmd;
+
+	memset((struct mmc_command *)&cmd, 0, sizeof(struct mmc_command));
+
+	cmd.cmd_index = CMD31_SEND_WRITE_PROT_TYPE;
+	cmd.argument = addr;
+	cmd.cmd_type = SDHCI_CMD_TYPE_NORMAL;
+	cmd.resp_type = SDHCI_CMD_RESP_R1;
+	cmd.trans_mode = SDHCI_MMC_READ;
+	cmd.data_present = 0x1;
+	cmd.data.data_ptr = wp_status;
+	cmd.data.num_blocks = 0x1;
+	cmd.data.blk_sz = 0x8;
+
+	if (sdhci_send_command(&dev->host, &cmd))
+	{
+		dprintf(CRITICAL, "Failed to get status of write protect bits\n");
+		return 1;
+	}
+
+	return 0;
+}
+
+/*
+ * Function: mmc set/clear WP on user area
+ * Arg     : mmc device structure, block address,len, & flag to set or clear
+ * Return  : 0 on success, 1 on failure
+ * Flow    : Function to set/clear power on write protect on user area
+ */
+
+uint32_t mmc_set_clr_power_on_wp_user(struct mmc_device *dev, uint32_t addr, uint64_t len, uint8_t set_clr)
+{
+	struct mmc_command cmd;
+	uint32_t wp_grp_size;
+	uint32_t status;
+	uint32_t num_wp_grps;
+	uint32_t ret;
+	uint32_t retry;
+	uint32_t i;
+
+	memset((struct mmc_command *)&cmd, 0, sizeof(struct mmc_command));
+
+	/* Convert len into blocks */
+	len = len / MMC_BLK_SZ;
+
+	/* Disable PERM WP */
+	ret = mmc_switch_cmd(&dev->host, &dev->card, MMC_SET_BIT, MMC_USR_WP, MMC_US_PERM_WP_DIS);
+
+	if (ret)
+	{
+		dprintf(CRITICAL, "Failed to Disable PERM WP\n");
+		return ret;
+	}
+
+	/* Read the default values for user WP */
+	ret = mmc_get_ext_csd(&dev->host, &dev->card);
+
+	if (ret)
+	{
+		dprintf(CRITICAL, "Failed to read ext csd for the card\n");
+		return ret;
+	}
+
+	/* Check if user power on WP is disabled or perm WP is enabled */
+	if ((dev->card.ext_csd[MMC_USR_WP] & MMC_US_PWR_WP_DIS)
+		|| (dev->card.ext_csd[MMC_USR_WP] & MMC_US_PERM_WP_EN))
+	{
+		dprintf(CRITICAL, "Power on protection is disabled, cannot be set\n");
+		return 1;
+	}
+
+	/* Calculate the wp grp size */
+	if (dev->card.ext_csd[MMC_ERASE_GRP_DEF])
+		wp_grp_size = MMC_HC_ERASE_MULT * dev->card.ext_csd[MMC_HC_ERASE_GRP_SIZE] / MMC_BLK_SZ;
+	else
+		wp_grp_size = (dev->card.csd.wp_grp_size + 1) * (dev->card.csd.erase_grp_size + 1) \
+					  * (dev->card.csd.erase_grp_mult + 1);
+
+
+	if (len < wp_grp_size)
+	{
+		dprintf(CRITICAL, "Length is less than min WP size, WP was not set\n");
+		return 1;
+	}
+
+	/* Set power on USER WP */
+	ret = mmc_switch_cmd(&dev->host, &dev->card, MMC_SET_BIT, MMC_USR_WP, MMC_US_PWR_WP_EN);
+
+	if (ret)
+	{
+		dprintf(CRITICAL, "Failed to set power on WP for user\n");
+		return ret;
+	}
+
+	num_wp_grps = ROUNDUP(len, wp_grp_size) / wp_grp_size;
+
+	if (set_clr)
+		cmd.cmd_index = CMD28_SET_WRITE_PROTECT;
+	else
+		cmd.cmd_index = CMD29_CLEAR_WRITE_PROTECT;
+
+	cmd.cmd_type = SDHCI_CMD_TYPE_NORMAL;
+	cmd.resp_type = SDHCI_CMD_RESP_R1B;
+
+	for(i = 0; i < num_wp_grps; i++)
+	{
+		cmd.argument = addr + (i * wp_grp_size);
+
+		if (sdhci_send_command(&dev->host, &cmd))
+			return 1;
+
+		/* CMD28/CMD29 On failure returns address out of range error */
+		if (MMC_ADDR_OUT_OF_RANGE(cmd.resp[0]))
+		{
+			dprintf(CRITICAL, "Address for CMD28/29 is out of range\n");
+			return 1;
+		}
+
+		/* Check the card status */
+		do
+		{
+			if (mmc_get_card_status(&dev->host, &dev->card, &status))
+			{
+				dprintf(CRITICAL, "Failed to get card status afterapplying write protect\n");
+				return 1;
+			}
+
+		/* Time out for WP command */
+		retry++;
+		udelay(1000);
+		if (retry == MMC_MAX_CARD_STAT_RETRY)
+		{
+			dprintf(CRITICAL, "Card status timed out after sending write protect command\n");
+			return 1;
+		}
+		} while (!(status & MMC_READY_FOR_DATA) || (MMC_CARD_STATUS(status) == MMC_PROG_STATE));
+
+	}
+
+	return 0;
+}
