@@ -128,14 +128,22 @@ uint32_t mmc_read(uint64_t data_addr, uint32_t *out, uint32_t data_len)
  * Function: mmc erase card
  * Arg     : Block address & length
  * Return  : Returns 0
- * Flow    : This is dummy API for backward compatibility
- *           erase is not supported for sdhci
+ * Flow    : Erase the card from specified addr
  */
 uint32_t mmc_erase_card(uint64_t addr, uint64_t len)
 {
-	/* TODO: Right now with sdhci erase function
-	 * is not implemented, need to be added
-	 */
+	struct mmc_device *dev;
+
+	dev = target_mmc_device();
+
+	ASSERT(!(addr % MMC_BLK_SZ));
+	ASSERT(!(len % MMC_BLK_SZ));
+
+	if (mmc_sdhci_erase(dev, (addr / MMC_BLK_SZ), len))
+	{
+		dprintf(CRITICAL, "MMC erase failed\n");
+		return 1;
+	}
 	return 0;
 }
 
