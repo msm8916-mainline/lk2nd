@@ -189,6 +189,8 @@ void display_init(void)
 		break;
 	case HW_PLATFORM_DRAGON:
 		mipi_sharp_video_qhd_init(&(panel.panel_info));
+		wled_ctrl.ovp = 0x1; /* 32V */
+		wled_ctrl.full_current_scale = 0x14; /* 20mA */
 		panel.clk_func = msm8974_mdss_sharp_dsi_panel_clock;
 		panel.power_func = msm8974_mipi_panel_power;
 		panel.fb.base = MIPI_FB_ADDR;
