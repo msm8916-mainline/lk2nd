@@ -432,7 +432,7 @@ static uint8_t sdhci_cmd_complete(struct sdhci_host *host, struct mmc_command *c
 	/*
 	 * Clear the transfer complete interrupt
 	 */
-	if (cmd->data_present || cmd->cmd_index == SDHCI_SWITCH_CMD) {
+	if (cmd->data_present || cmd->resp_type == SDHCI_CMD_RESP_R1B) {
 		do {
 			int_status = REG_READ16(host, SDHCI_NRML_INT_STS_REG);
 			int_status &= SDHCI_INT_STS_TRANS_COMPLETE;
@@ -567,13 +567,27 @@ static struct desc_entry *sdhci_adma_transfer(struct sdhci_host *host,
 	num_blks = cmd->data.num_blocks;
 	data = cmd->data.data_ptr;
 
-	sz = num_blks * SDHCI_MMC_BLK_SZ;
+	/*
+	 * Some commands send data on DAT lines which is less
+	 * than SDHCI_MMC_BLK_SZ, in that case trying to read
+	 * more than the data sent by the card results in data
+	 * CRC errors. To avoid such errors allow data to pass
+	 * the required block size, if the block size is not
+	 * passed use the default value
+	 */
+	if (cmd->data.blk_sz)
+		sz = num_blks * cmd->data.blk_sz;
+	else
+		sz = num_blks * SDHCI_MMC_BLK_SZ;
 
 	/* Prepare adma descriptor table */
 	adma_addr = sdhci_prep_desc_table(data, sz);
 
 	/* Write the block size */
-	REG_WRITE16(host, SDHCI_MMC_BLK_SZ, SDHCI_BLKSZ_REG);
+	if (cmd->data.blk_sz)
+		REG_WRITE16(host, cmd->data.blk_sz, SDHCI_BLKSZ_REG);
+	else
+		REG_WRITE16(host, SDHCI_MMC_BLK_SZ, SDHCI_BLKSZ_REG);
 
 	/* Enalbe auto cmd 23 for multi block transfer */
 	if (num_blks > 1) {
