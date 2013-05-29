@@ -46,16 +46,18 @@ extern int msm_display_off();
 extern int mdss_dsi_uniphy_pll_config(void);
 extern int mdss_sharp_dsi_uniphy_pll_config(void);
 
+static struct pm8x41_wled_data wled_ctrl = {
+	.mod_scheme      = 0xC3,
+	.led1_brightness = (0x0F << 8) | 0xEF,
+	.led2_brightness = (0x0F << 8) | 0xEF,
+	.led3_brightness = (0x0F << 8) | 0xEF,
+	.max_duty_cycle  = 0x01,
+	.ovp = 0x2,
+	.full_current_scale = 0x19
+};
+
 static int msm8974_backlight_on()
 {
-	static struct pm8x41_wled_data wled_ctrl = {
-		.mod_scheme      = 0xC3,
-		.led1_brightness = (0x0F << 8) | 0xEF,
-		.led2_brightness = (0x0F << 8) | 0xEF,
-		.led3_brightness = (0x0F << 8) | 0xEF,
-		.max_duty_cycle  = 0x01,
-	};
-
 	pm8x41_wled_config(&wled_ctrl);
 	pm8x41_wled_sink_control(1);
 	pm8x41_wled_iled_sync_control(1);
