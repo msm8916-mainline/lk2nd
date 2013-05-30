@@ -31,6 +31,11 @@
 #include <mipi_dsi.h>
 #include <platform/iomap.h>
 
+#if (DISPLAY_TYPE_MDSS == 0)
+#define MIPI_DSI0_BASE MIPI_DSI_BASE
+#define MIPI_DSI1_BASE MIPI_DSI_BASE
+#endif
+
 static void mipi_dsi_calibration(void)
 {
 	uint32_t i = 0;
@@ -181,182 +186,213 @@ int mipi_dsi_phy_init(struct mipi_dsi_panel_config *pinfo)
 	return 0;
 }
 
-void mdss_dsi_phy_sw_reset(void)
+void mdss_dsi_phy_sw_reset(uint32_t ctl_base)
 {
 	/* start phy sw reset */
-	writel(0x0001, MIPI_DSI_BASE + 0x012c);
+	writel(0x0001, ctl_base + 0x012c);
 	udelay(1000);
 
 	/* end phy sw reset */
-	writel(0x0000, MIPI_DSI_BASE + 0x012c);
+	writel(0x0000, ctl_base + 0x012c);
 	udelay(100);
 }
 
-void mdss_dsi_uniphy_pll_lock_detect_setting(void)
+void mdss_dsi_uniphy_pll_lock_detect_setting(uint32_t ctl_base)
 {
-	writel(0x04, MIPI_DSI_BASE + 0x0264); /* LKDetect CFG2 */
+	writel(0x04, ctl_base + 0x0264); /* LKDetect CFG2 */
 	udelay(100);
-	writel(0x05, MIPI_DSI_BASE + 0x0264); /* LKDetect CFG2 */
+	writel(0x05, ctl_base + 0x0264); /* LKDetect CFG2 */
 	mdelay(1);
 }
 
-void mdss_dsi_uniphy_pll_sw_reset(void)
+void mdss_dsi_uniphy_pll_sw_reset(uint32_t ctl_base)
 {
-	writel(0x01, MIPI_DSI_BASE + 0x0268); /* PLL TEST CFG */
+	writel(0x01, ctl_base + 0x0268); /* PLL TEST CFG */
 	udelay(1);
-	writel(0x00, MIPI_DSI_BASE + 0x0268); /* PLL TEST CFG */
+	writel(0x00, ctl_base + 0x0268); /* PLL TEST CFG */
 	udelay(1);
 }
 
-int mdss_dsi_uniphy_pll_config(void)
+int mdss_dsi_uniphy_pll_config(uint32_t ctl_base)
 {
-	mdss_dsi_phy_sw_reset();
+	mdss_dsi_phy_sw_reset(ctl_base);
 
 	/* Configuring the Pll Vco clk to 424 Mhz */
 
 	/* Loop filter resistance value */
-	writel(0x08, MIPI_DSI_BASE + 0x022c);
+	writel(0x08, ctl_base + 0x022c);
 	/* Loop filter capacitance values : c1 and c2 */
-	writel(0x70, MIPI_DSI_BASE + 0x0230);
-	writel(0x15, MIPI_DSI_BASE + 0x0234);
+	writel(0x70, ctl_base + 0x0230);
+	writel(0x15, ctl_base + 0x0234);
 
-	writel(0x02, MIPI_DSI_BASE + 0x0208); /* ChgPump */
-	writel(0x00, MIPI_DSI_BASE + 0x0204); /* postDiv1 */
-	writel(0x03, MIPI_DSI_BASE + 0x0224); /* postDiv2 */
-	writel(0x05, MIPI_DSI_BASE + 0x0228); /* postDiv3 */
+	writel(0x02, ctl_base + 0x0208); /* ChgPump */
+	writel(0x00, ctl_base + 0x0204); /* postDiv1 */
+	writel(0x03, ctl_base + 0x0224); /* postDiv2 */
+	writel(0x05, ctl_base + 0x0228); /* postDiv3 */
 
-	writel(0x2b, MIPI_DSI_BASE + 0x0278); /* Cal CFG3 */
-	writel(0x66, MIPI_DSI_BASE + 0x027c); /* Cal CFG4 */
-	writel(0x05, MIPI_DSI_BASE + 0x0264); /* LKDetect CFG2 */
+	writel(0x2b, ctl_base + 0x0278); /* Cal CFG3 */
+	writel(0x66, ctl_base + 0x027c); /* Cal CFG4 */
+	writel(0x05, ctl_base + 0x0264); /* LKDetect CFG2 */
 
-	writel(0x0a, MIPI_DSI_BASE + 0x023c); /* SDM CFG1 */
-	writel(0xab, MIPI_DSI_BASE + 0x0240); /* SDM CFG2 */
-	writel(0x0a, MIPI_DSI_BASE + 0x0244); /* SDM CFG3 */
-	writel(0x00, MIPI_DSI_BASE + 0x0248); /* SDM CFG4 */
+	writel(0x0a, ctl_base + 0x023c); /* SDM CFG1 */
+	writel(0xab, ctl_base + 0x0240); /* SDM CFG2 */
+	writel(0x0a, ctl_base + 0x0244); /* SDM CFG3 */
+	writel(0x00, ctl_base + 0x0248); /* SDM CFG4 */
 
 	udelay(10);
 
-	writel(0x01, MIPI_DSI_BASE + 0x0200); /* REFCLK CFG */
-	writel(0x00, MIPI_DSI_BASE + 0x0214); /* PWRGEN CFG */
-	writel(0x71, MIPI_DSI_BASE + 0x020c); /* VCOLPF CFG */
-	writel(0x02, MIPI_DSI_BASE + 0x0210); /* VREG CFG */
-	writel(0x00, MIPI_DSI_BASE + 0x0238); /* SDM CFG0 */
+	writel(0x01, ctl_base + 0x0200); /* REFCLK CFG */
+	writel(0x00, ctl_base + 0x0214); /* PWRGEN CFG */
+	writel(0x71, ctl_base + 0x020c); /* VCOLPF CFG */
+	writel(0x02, ctl_base + 0x0210); /* VREG CFG */
+	writel(0x00, ctl_base + 0x0238); /* SDM CFG0 */
 
-	writel(0x5f, MIPI_DSI_BASE + 0x028c); /* CAL CFG8 */
-	writel(0xa8, MIPI_DSI_BASE + 0x0294); /* CAL CFG10 */
-	writel(0x01, MIPI_DSI_BASE + 0x0298); /* CAL CFG11 */
-	writel(0x0a, MIPI_DSI_BASE + 0x026c); /* CAL CFG0 */
-	writel(0x30, MIPI_DSI_BASE + 0x0284); /* CAL CFG6 */
-	writel(0x00, MIPI_DSI_BASE + 0x0288); /* CAL CFG7 */
-	writel(0x00, MIPI_DSI_BASE + 0x0290); /* CAL CFG9 */
-	writel(0x20, MIPI_DSI_BASE + 0x029c); /* EFUSE CFG */
+	writel(0x5f, ctl_base + 0x028c); /* CAL CFG8 */
+	writel(0xa8, ctl_base + 0x0294); /* CAL CFG10 */
+	writel(0x01, ctl_base + 0x0298); /* CAL CFG11 */
+	writel(0x0a, ctl_base + 0x026c); /* CAL CFG0 */
+	writel(0x30, ctl_base + 0x0284); /* CAL CFG6 */
+	writel(0x00, ctl_base + 0x0288); /* CAL CFG7 */
+	writel(0x00, ctl_base + 0x0290); /* CAL CFG9 */
+	writel(0x20, ctl_base + 0x029c); /* EFUSE CFG */
 
-	mdss_dsi_uniphy_pll_sw_reset();
-	writel(0x01, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
+	mdss_dsi_uniphy_pll_sw_reset(ctl_base);
+	writel(0x01, ctl_base + 0x0220); /* GLB CFG */
 	mdelay(1);
-	writel(0x05, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
+	writel(0x05, ctl_base + 0x0220); /* GLB CFG */
 	mdelay(1);
-	writel(0x07, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
+	writel(0x07, ctl_base + 0x0220); /* GLB CFG */
 	mdelay(1);
-	writel(0x0f, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
+	writel(0x0f, ctl_base + 0x0220); /* GLB CFG */
 	mdelay(1);
 
-	mdss_dsi_uniphy_pll_lock_detect_setting();
+	mdss_dsi_uniphy_pll_lock_detect_setting(ctl_base);
 
-	while (!(readl(MIPI_DSI_BASE + 0x02c0) & 0x01)) {
-		mdss_dsi_uniphy_pll_sw_reset();
-		writel(0x01, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
+	while (!(readl(ctl_base + 0x02c0) & 0x01)) {
+		mdss_dsi_uniphy_pll_sw_reset(ctl_base);
+		writel(0x01, ctl_base + 0x0220); /* GLB CFG */
 		mdelay(1);
-		writel(0x05, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
+		writel(0x05, ctl_base + 0x0220); /* GLB CFG */
 		mdelay(1);
-		writel(0x07, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
+		writel(0x07, ctl_base + 0x0220); /* GLB CFG */
 		mdelay(1);
-		writel(0x05, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
+		writel(0x05, ctl_base + 0x0220); /* GLB CFG */
 		mdelay(1);
-		writel(0x07, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
+		writel(0x07, ctl_base + 0x0220); /* GLB CFG */
 		mdelay(1);
-		writel(0x0f, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
+		writel(0x0f, ctl_base + 0x0220); /* GLB CFG */
 		mdelay(2);
-		mdss_dsi_uniphy_pll_lock_detect_setting();
+		mdss_dsi_uniphy_pll_lock_detect_setting(ctl_base);
 	}
 
 }
 
-int mdss_sharp_dsi_uniphy_pll_config(void)
+int mdss_sharp_dsi_uniphy_pll_config(uint32_t ctl_base)
 {
-	mdss_dsi_phy_sw_reset();
+	mdss_dsi_phy_sw_reset(ctl_base);
 
 	/* Configuring the Pll Vco clk to 500 Mhz */
 
 	/* Loop filter resistance value */
-	writel(0x08, MIPI_DSI_BASE + 0x022c);
+	writel(0x08, ctl_base + 0x022c);
 	/* Loop filter capacitance values : c1 and c2 */
-	writel(0x70, MIPI_DSI_BASE + 0x0230);
-	writel(0x15, MIPI_DSI_BASE + 0x0234);
+	writel(0x70, ctl_base + 0x0230);
+	writel(0x15, ctl_base + 0x0234);
 
-	writel(0x02, MIPI_DSI_BASE + 0x0208); /* ChgPump */
-	writel(0x00, MIPI_DSI_BASE + 0x0204); /* postDiv1 */
-	writel(0x03, MIPI_DSI_BASE + 0x0224); /* postDiv2 */
-	writel(0x0b, MIPI_DSI_BASE + 0x0228); /* postDiv3 */
+	writel(0x02, ctl_base + 0x0208); /* ChgPump */
+	writel(0x00, ctl_base + 0x0204); /* postDiv1 */
+	writel(0x03, ctl_base + 0x0224); /* postDiv2 */
+	writel(0x0b, ctl_base + 0x0228); /* postDiv3 */
 
-	writel(0x2b, MIPI_DSI_BASE + 0x0278); /* Cal CFG3 */
-	writel(0x66, MIPI_DSI_BASE + 0x027c); /* Cal CFG4 */
-	writel(0x05, MIPI_DSI_BASE + 0x0264); /* LKDetect CFG2 */
+	writel(0x2b, ctl_base + 0x0278); /* Cal CFG3 */
+	writel(0x66, ctl_base + 0x027c); /* Cal CFG4 */
+	writel(0x05, ctl_base + 0x0264); /* LKDetect CFG2 */
 
-	writel(0x0c, MIPI_DSI_BASE + 0x023c); /* SDM CFG1 */
-	writel(0x55, MIPI_DSI_BASE + 0x0240); /* SDM CFG2 */
-	writel(0x05, MIPI_DSI_BASE + 0x0244); /* SDM CFG3 */
-	writel(0x00, MIPI_DSI_BASE + 0x0248); /* SDM CFG4 */
+	writel(0x0c, ctl_base + 0x023c); /* SDM CFG1 */
+	writel(0x55, ctl_base + 0x0240); /* SDM CFG2 */
+	writel(0x05, ctl_base + 0x0244); /* SDM CFG3 */
+	writel(0x00, ctl_base + 0x0248); /* SDM CFG4 */
 
 	udelay(10);
 
-	writel(0x01, MIPI_DSI_BASE + 0x0200); /* REFCLK CFG */
-	writel(0x00, MIPI_DSI_BASE + 0x0214); /* PWRGEN CFG */
-	writel(0x01, MIPI_DSI_BASE + 0x020c); /* VCOLPF CFG */
-	writel(0x02, MIPI_DSI_BASE + 0x0210); /* VREG CFG */
-	writel(0x00, MIPI_DSI_BASE + 0x0238); /* SDM CFG0 */
+	writel(0x01, ctl_base + 0x0200); /* REFCLK CFG */
+	writel(0x00, ctl_base + 0x0214); /* PWRGEN CFG */
+	writel(0x01, ctl_base + 0x020c); /* VCOLPF CFG */
+	writel(0x02, ctl_base + 0x0210); /* VREG CFG */
+	writel(0x00, ctl_base + 0x0238); /* SDM CFG0 */
 
-	writel(0x60, MIPI_DSI_BASE + 0x028c); /* CAL CFG8 */
-	writel(0xf4, MIPI_DSI_BASE + 0x0294); /* CAL CFG10 */
-	writel(0x01, MIPI_DSI_BASE + 0x0298); /* CAL CFG11 */
-	writel(0x0a, MIPI_DSI_BASE + 0x026c); /* CAL CFG0 */
-	writel(0x30, MIPI_DSI_BASE + 0x0284); /* CAL CFG6 */
-	writel(0x00, MIPI_DSI_BASE + 0x0288); /* CAL CFG7 */
-	writel(0x00, MIPI_DSI_BASE + 0x0290); /* CAL CFG9 */
-	writel(0x20, MIPI_DSI_BASE + 0x029c); /* EFUSE CFG */
+	writel(0x60, ctl_base + 0x028c); /* CAL CFG8 */
+	writel(0xf4, ctl_base + 0x0294); /* CAL CFG10 */
+	writel(0x01, ctl_base + 0x0298); /* CAL CFG11 */
+	writel(0x0a, ctl_base + 0x026c); /* CAL CFG0 */
+	writel(0x30, ctl_base + 0x0284); /* CAL CFG6 */
+	writel(0x00, ctl_base + 0x0288); /* CAL CFG7 */
+	writel(0x00, ctl_base + 0x0290); /* CAL CFG9 */
+	writel(0x20, ctl_base + 0x029c); /* EFUSE CFG */
 
-	mdss_dsi_uniphy_pll_sw_reset();
-	writel(0x01, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
+	mdss_dsi_uniphy_pll_sw_reset(ctl_base);
+	writel(0x01, ctl_base + 0x0220); /* GLB CFG */
 	mdelay(1);
-	writel(0x05, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
+	writel(0x05, ctl_base + 0x0220); /* GLB CFG */
 	mdelay(1);
-	writel(0x07, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
+	writel(0x07, ctl_base + 0x0220); /* GLB CFG */
 	mdelay(1);
-	writel(0x0f, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
+	writel(0x0f, ctl_base + 0x0220); /* GLB CFG */
 	mdelay(1);
 
-	mdss_dsi_uniphy_pll_lock_detect_setting();
+	mdss_dsi_uniphy_pll_lock_detect_setting(ctl_base);
 
-	while (!(readl(MIPI_DSI_BASE + 0x02c0) & 0x01)) {
-		mdss_dsi_uniphy_pll_sw_reset();
-		writel(0x01, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
+	while (!(readl(ctl_base + 0x02c0) & 0x01)) {
+		mdss_dsi_uniphy_pll_sw_reset(ctl_base);
+		writel(0x01, ctl_base + 0x0220); /* GLB CFG */
 		mdelay(1);
-		writel(0x05, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
+		writel(0x05, ctl_base + 0x0220); /* GLB CFG */
 		mdelay(1);
-		writel(0x07, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
+		writel(0x07, ctl_base + 0x0220); /* GLB CFG */
 		mdelay(1);
-		writel(0x05, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
+		writel(0x05, ctl_base + 0x0220); /* GLB CFG */
 		mdelay(1);
-		writel(0x07, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
+		writel(0x07, ctl_base + 0x0220); /* GLB CFG */
 		mdelay(1);
-		writel(0x0f, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
+		writel(0x0f, ctl_base + 0x0220); /* GLB CFG */
 		mdelay(2);
-		mdss_dsi_uniphy_pll_lock_detect_setting();
+		mdss_dsi_uniphy_pll_lock_detect_setting(ctl_base);
 	}
 
 }
 
-int mdss_dsi_phy_init(struct mipi_dsi_panel_config *pinfo)
+int mdss_dsi_phy_regulator_init(struct mdss_dsi_phy_ctrl *pd)
+{
+	/* DSI0 and DSI1 have a common regulator */
+
+	static uint32_t phy0_done;
+	uint32_t off = 0x0580;	/* phy regulator ctrl settings */
+
+	if (phy0_done)  /* Regulators were already set */
+		return;
+
+	/* Regulator ctrl 0 */
+	writel(0x00, MIPI_DSI0_BASE + off + (4 * 0));
+	/* Regulator ctrl - CAL_PWD_CFG */
+	writel(pd->regulator[6], MIPI_DSI0_BASE + off + (4 * 6));
+	/* Regulator ctrl - TEST */
+	writel(pd->regulator[5], MIPI_DSI0_BASE + off + (4 * 5));
+	/* Regulator ctrl 3 */
+	writel(pd->regulator[3], MIPI_DSI0_BASE + off + (4 * 3));
+	/* Regulator ctrl 2 */
+	writel(pd->regulator[2], MIPI_DSI0_BASE + off + (4 * 2));
+	/* Regulator ctrl 1 */
+	writel(pd->regulator[1], MIPI_DSI0_BASE + off + (4 * 1));
+	/* Regulator ctrl 0 */
+	writel(pd->regulator[0], MIPI_DSI0_BASE + off + (4 * 0));
+	/* Regulator ctrl 4 */
+	writel(pd->regulator[4], MIPI_DSI0_BASE + off + (4 * 4));
+	dmb();
+	phy0_done = 1;
+
+}
+
+int mdss_dsi_phy_init(struct mipi_dsi_panel_config *pinfo, uint32_t ctl_base)
 {
 	struct mdss_dsi_phy_ctrl *pd;
 	uint32_t i, off = 0, ln, offset;
@@ -364,44 +400,27 @@ int mdss_dsi_phy_init(struct mipi_dsi_panel_config *pinfo)
 	pd = (pinfo->mdss_dsi_phy_config);
 
 	/* Strength ctrl 0 */
-	writel(pd->strength[0], MIPI_DSI_BASE + 0x0484);
+	writel(pd->strength[0], ctl_base + 0x0484);
 
-	off = 0x0580;	/* phy regulator ctrl settings */
-	/* Regulator ctrl 0 */
-	writel(0x00, MIPI_DSI_BASE + off + (4 * 0));
-	/* Regulator ctrl - CAL_PWD_CFG */
-	writel(pd->regulator[6], MIPI_DSI_BASE + off + (4 * 6));
-	/* Regulator ctrl - TEST */
-	writel(pd->regulator[5], MIPI_DSI_BASE + off + (4 * 5));
-	/* Regulator ctrl 3 */
-	writel(pd->regulator[3], MIPI_DSI_BASE + off + (4 * 3));
-	/* Regulator ctrl 2 */
-	writel(pd->regulator[2], MIPI_DSI_BASE + off + (4 * 2));
-	/* Regulator ctrl 1 */
-	writel(pd->regulator[1], MIPI_DSI_BASE + off + (4 * 1));
-	/* Regulator ctrl 0 */
-	writel(pd->regulator[0], MIPI_DSI_BASE + off + (4 * 0));
-	/* Regulator ctrl 4 */
-	writel(pd->regulator[4], MIPI_DSI_BASE + off + (4 * 4));
-	dmb();
+	mdss_dsi_phy_regulator_init(pd);
 
 	/* Strength ctrl 0 */
-	writel(0x00, MIPI_DSI_BASE + 0x04dc);
+	writel(0x00, ctl_base + 0x04dc);
 
 	off = 0x0440;	/* phy timing ctrl 0 - 11 */
 	for (i = 0; i < 12; i++) {
-		writel(pd->timing[i], MIPI_DSI_BASE + off);
+		writel(pd->timing[i], ctl_base + off);
 		dmb();
 		off += 4;
 	}
 
 	/* MMSS_DSI_0_PHY_DSIPHY_CTRL_1 */
-	writel(0x00, MIPI_DSI_BASE + 0x0474);
+	writel(0x00, ctl_base + 0x0474);
 	/* MMSS_DSI_0_PHY_DSIPHY_CTRL_0 */
-	writel(0x5f, MIPI_DSI_BASE + 0x0470);
+	writel(0x5f, ctl_base + 0x0470);
 
 	/* Strength ctrl 1 */
-	writel(pd->strength[1], MIPI_DSI_BASE + 0x0488);
+	writel(pd->strength[1], ctl_base + 0x0488);
 	dmb();
 	/* 4 lanes + clk lane configuration */
 	/* lane config n * (0 - 4) & DataPath setup */
@@ -409,28 +428,32 @@ int mdss_dsi_phy_init(struct mipi_dsi_panel_config *pinfo)
 		off = 0x0300 + (ln * 0x40);
 		for (i = 0; i < 9; i++) {
 			offset = i + (ln * 9);
-			writel(pd->laneCfg[offset], MIPI_DSI_BASE + off);
+			writel(pd->laneCfg[offset], ctl_base + off);
 			dmb();
 			off += 4;
 		}
 	}
 
 	/* MMSS_DSI_0_PHY_DSIPHY_CTRL_0 */
-	writel(0x5f, MIPI_DSI_BASE + 0x0470);
+	writel(0x5f, ctl_base + 0x0470);
 
-	/* DSI_0_PHY_DSIPHY_GLBL_TEST_CTRL */
-	writel(0x01, MIPI_DSI_BASE + 0x04d4);
+	/* DSI_PHY_DSIPHY_GLBL_TEST_CTRL */
+	if (ctl_base == MIPI_DSI0_BASE)
+		writel(0x01, ctl_base + 0x04d4);
+	else
+		writel(0x00, ctl_base + 0x04d4);
+
 	dmb();
 
 	off = 0x04b4;	/* phy BIST ctrl 0 - 5 */
 	for (i = 0; i < 6; i++) {
-		writel(pd->bistCtrl[i], MIPI_DSI_BASE + off);
+		writel(pd->bistCtrl[i], ctl_base + off);
 		off += 4;
 	}
 	dmb();
 
 	/* DSI_0_CLKOUT_TIMING_CTRL */
-	writel(0x41b, MIPI_DSI_BASE + 0x0c4);
+	writel(0x41b, ctl_base + 0x0c4);
 	dmb();
 
 }

@@ -36,6 +36,7 @@
 #include <mdp5.h>
 #include <platform/gpio.h>
 #include <platform/clock.h>
+#include <platform/iomap.h>
 #include <target/display.h>
 
 static struct msm_fb_panel_data panel;
@@ -43,8 +44,8 @@ static uint8_t display_enable;
 
 extern int msm_display_init(struct msm_fb_panel_data *pdata);
 extern int msm_display_off();
-extern int mdss_dsi_uniphy_pll_config(void);
-extern int mdss_sharp_dsi_uniphy_pll_config(void);
+extern int mdss_dsi_uniphy_pll_config(uint32_t ctl_base);
+extern int mdss_sharp_dsi_uniphy_pll_config(uint32_t ctl_base);
 
 static int msm8974_backlight_on()
 {
@@ -69,7 +70,10 @@ static int msm8974_mdss_dsi_panel_clock(uint8_t enable)
 	if (enable) {
 		mdp_gdsc_ctrl(enable);
 		mdp_clock_init();
-		mdss_dsi_uniphy_pll_config();
+		mdss_dsi_uniphy_pll_config(MIPI_DSI0_BASE);
+		if (panel.panel_info.mipi.dual_dsi &&
+				!(panel.panel_info.mipi.broadcast))
+			mdss_dsi_uniphy_pll_config(MIPI_DSI1_BASE);
 		mmss_clock_init(DSI0_PHY_PLL_OUT);
 	} else if(!target_cont_splash_screen()) {
 		// * Add here for continuous splash  *
@@ -86,7 +90,7 @@ static int msm8974_mdss_sharp_dsi_panel_clock(uint8_t enable)
 	if (enable) {
 		mdp_gdsc_ctrl(enable);
 		mdp_clock_init();
-		mdss_sharp_dsi_uniphy_pll_config();
+		mdss_sharp_dsi_uniphy_pll_config(MIPI_DSI0_BASE);
 		mmss_clock_init(DSI0_PHY_PLL_OUT);
 	} else if (!target_cont_splash_screen()) {
 		/* Add here for continuous splash  */
