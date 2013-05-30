@@ -38,6 +38,10 @@
 
 extern int target_is_emmc_boot(void);
 extern uint32_t target_dev_tree_mem(void *fdt, uint32_t memory_node_offset);
+/* TODO: This function needs to be moved to target layer to check violations
+ * against all the other regions as well.
+ */
+extern int check_aboot_addr_range_overlap(uint32_t start, uint32_t size);
 
 /*
  * Will relocate the DTB to the tags addr if the device tree is found and return
@@ -53,6 +57,7 @@ extern uint32_t target_dev_tree_mem(void *fdt, uint32_t memory_node_offset);
 void *dev_tree_appended(void *kernel, void *tags, uint32_t kernel_size)
 {
 	uint32_t app_dtb_offset = 0;
+	uint32_t size;
 
 	memcpy((void*) &app_dtb_offset, (void*) (kernel + DTB_OFFSET), sizeof(uint32_t));
 
@@ -72,7 +77,13 @@ void *dev_tree_appended(void *kernel, void *tags, uint32_t kernel_size)
 
 			dprintf(INFO, "Found Appeneded Flattened Device tree\n");
 			dtb = kernel + app_dtb_offset;
-			rc = fdt_open_into(dtb, tags, fdt_totalsize(dtb));
+			size = fdt_totalsize(dtb);
+			if (check_aboot_addr_range_overlap(tags, size))
+			{
+				dprintf(CRITICAL, "Appended dtb aboot overlap check failed.\n");
+				return NULL;
+			}
+			rc = fdt_open_into(dtb, tags, size);
 			if (rc == 0)
 			{
 				/* clear out the old DTB magic so kernel doesn't find it */
