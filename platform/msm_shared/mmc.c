@@ -2306,7 +2306,6 @@ mmc_boot_init_and_identify_cards(struct mmc_host *host,
 				mmc_return);
 			return mmc_return;
 		}
-	}
 
 		/* Enable HS200 mode by default if supported,
 		 * else if DDR mode is supported enable it.
@@ -2338,6 +2337,7 @@ mmc_boot_init_and_identify_cards(struct mmc_host *host,
 				return mmc_return;
 			}
 		}
+	}
 
 	/* Just checking whether we're in TRAN state after changing speed and bus width */
 	mmc_return = mmc_boot_get_card_status(card, 0, &status);
