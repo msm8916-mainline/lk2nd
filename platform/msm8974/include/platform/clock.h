@@ -71,6 +71,16 @@
 #define DSI0_PHY_PLL_OUT                BIT(8)
 #define PIXEL_SRC_DIV_1_5               BIT(1)
 
+#define DSI_BYTE1_CMD_RCGR              REG_MM(0x2140)
+#define DSI_BYTE1_CFG_RCGR              REG_MM(0x2144)
+#define DSI_BYTE1_CBCR                  REG_MM(0x2340)
+#define DSI_ESC1_CMD_RCGR               REG_MM(0x2180)
+#define DSI_ESC1_CFG_RCGR               REG_MM(0x2184)
+#define DSI_ESC1_CBCR                   REG_MM(0x2348)
+#define DSI_PIXEL1_CMD_RCGR             REG_MM(0x2020)
+#define DSI_PIXEL1_CFG_RCGR             REG_MM(0x2024)
+#define DSI_PIXEL1_CBCR                 REG_MM(0x2318)
+
 void platform_clock_init(void);
 
 void clock_init_mmc(uint32_t interface);

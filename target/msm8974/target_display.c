@@ -67,6 +67,7 @@ static int msm8974_backlight_on()
 
 static int msm8974_mdss_dsi_panel_clock(uint8_t enable)
 {
+	uint32_t dual_dsi = panel.panel_info.mipi.dual_dsi;
 	if (enable) {
 		mdp_gdsc_ctrl(enable);
 		mdp_clock_init();
@@ -74,11 +75,11 @@ static int msm8974_mdss_dsi_panel_clock(uint8_t enable)
 		if (panel.panel_info.mipi.dual_dsi &&
 				!(panel.panel_info.mipi.broadcast))
 			mdss_dsi_uniphy_pll_config(MIPI_DSI1_BASE);
-		mmss_clock_init(DSI0_PHY_PLL_OUT);
+		mmss_clock_init(DSI0_PHY_PLL_OUT, dual_dsi);
 	} else if(!target_cont_splash_screen()) {
 		// * Add here for continuous splash  *
-		mmss_clock_disable();
-		mdp_clock_disable();
+		mmss_clock_disable(dual_dsi);
+		mdp_clock_disable(dual_dsi);
 		mdp_gdsc_ctrl(enable);
 	}
 
