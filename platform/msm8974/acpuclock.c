@@ -481,6 +481,83 @@ void mmss_clock_init(uint32_t dsi_pixel0_cfg_rcgr, uint32_t dual_dsi)
 	}
 }
 
+void mmss_clock_auto_pll_init(uint32_t dsi_pixel0_cfg_rcgr, uint32_t dual_dsi,
+			uint8_t pclk0_m, uint8_t pclk0_n, uint8_t pclk0_d)
+{
+	int ret;
+
+	/* Configure Byte clock -autopll- This will not change because
+	byte clock does not need any divider*/
+	writel(0x100, DSI_BYTE0_CFG_RCGR);
+	writel(0x1, DSI_BYTE0_CMD_RCGR);
+	writel(0x1, DSI_BYTE0_CBCR);
+
+	/* Configure ESC clock */
+	ret = clk_get_set_enable("mdss_esc0_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set esc0_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	/* Configure MMSSNOC AXI clock */
+	ret = clk_get_set_enable("mmss_mmssnoc_axi_clk", 100000000, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mmssnoc_axi_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	/* Configure S0 AXI clock */
+	ret = clk_get_set_enable("mmss_s0_axi_clk", 100000000, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mmss_s0_axi_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	/* Configure AXI clock */
+	ret = clk_get_set_enable("mdss_axi_clk", 100000000, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mdss_axi_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	/* Configure Pixel clock */
+	writel(dsi_pixel0_cfg_rcgr, DSI_PIXEL0_CFG_RCGR);
+	writel(0x1, DSI_PIXEL0_CMD_RCGR);
+	writel(0x1, DSI_PIXEL0_CBCR);
+
+	writel(pclk0_m, DSI_PIXEL0_M);
+	writel(pclk0_n, DSI_PIXEL0_N);
+	writel(pclk0_d, DSI_PIXEL0_D);
+
+	if (dual_dsi) {
+		/* Configure Byte 1 clock */
+		writel(0x100, DSI_BYTE1_CFG_RCGR);
+		writel(0x1, DSI_BYTE1_CMD_RCGR);
+		writel(0x1, DSI_BYTE1_CBCR);
+
+		/* Configure ESC clock */
+		ret = clk_get_set_enable("mdss_esc1_clk", 0, 1);
+		if(ret)
+		{
+			dprintf(CRITICAL, "failed to set esc1_clk ret = %d\n", ret);
+			ASSERT(0);
+		}
+
+		/* Configure Pixel clock */
+		writel(dsi_pixel0_cfg_rcgr, DSI_PIXEL1_CFG_RCGR);
+		writel(0x1, DSI_PIXEL1_CMD_RCGR);
+		writel(0x1, DSI_PIXEL1_CBCR);
+
+		writel(pclk0_m, DSI_PIXEL0_M);
+		writel(pclk0_n, DSI_PIXEL0_N);
+		writel(pclk0_d, DSI_PIXEL0_D);
+	}
+}
+
 void mmss_clock_disable(uint32_t dual_dsi)
 {
 
