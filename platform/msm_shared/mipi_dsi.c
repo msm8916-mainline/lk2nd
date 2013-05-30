@@ -115,6 +115,38 @@ struct mipi_dsi_panel_config *get_panel_info(void)
 	return NULL;
 }
 
+int mdss_dual_dsi_cmd_dma_trigger_for_panel()
+{
+	uint32_t ReadValue;
+	uint32_t count = 0;
+	int status = 0;
+
+	writel(0x03030303, MIPI_DSI0_BASE + INT_CTRL);
+	writel(0x1, MIPI_DSI0_BASE + CMD_MODE_DMA_SW_TRIGGER);
+	dsb();
+
+	writel(0x03030303, MIPI_DSI1_BASE + INT_CTRL);
+	writel(0x1, MIPI_DSI1_BASE + CMD_MODE_DMA_SW_TRIGGER);
+	dsb();
+
+	ReadValue = readl(MIPI_DSI1_BASE + INT_CTRL) & 0x00000001;
+	while (ReadValue != 0x00000001) {
+		ReadValue = readl(MIPI_DSI1_BASE + INT_CTRL) & 0x00000001;
+		count++;
+		if (count > 0xffff) {
+			status = FAIL;
+			dprintf(CRITICAL,
+				"Panel CMD: command mode dma test failed\n");
+			return status;
+		}
+	}
+
+	writel((readl(MIPI_DSI1_BASE + INT_CTRL) | 0x01000001),
+			MIPI_DSI1_BASE + INT_CTRL);
+	dprintf(SPEW, "Panel CMD: command mode dma tested successfully\n");
+	return status;
+}
+
 int dsi_cmd_dma_trigger_for_panel()
 {
 	unsigned long ReadValue;
@@ -139,6 +171,36 @@ int dsi_cmd_dma_trigger_for_panel()
 	writel((readl(DSI_INT_CTRL) | 0x01000001), DSI_INT_CTRL);
 	dprintf(SPEW, "Panel CMD: command mode dma tested successfully\n");
 	return status;
+}
+
+int mdss_dual_dsi_cmds_tx(struct mipi_dsi_cmd *cmds, int count)
+{
+	int ret = 0;
+	struct mipi_dsi_cmd *cm;
+	int i = 0;
+	char pload[256];
+	uint32_t off;
+
+	/* Align pload at 8 byte boundry */
+	off = pload;
+	off &= 0x07;
+	if (off)
+		off = 8 - off;
+	off += pload;
+
+	cm = cmds;
+	for (i = 0; i < count; i++) {
+		memcpy((void *)off, (cm->payload), cm->size);
+		writel(off, MIPI_DSI0_BASE + DMA_CMD_OFFSET);
+		writel(cm->size, MIPI_DSI0_BASE + DMA_CMD_LENGTH);	// reg 0x48 for this build
+		writel(off, MIPI_DSI1_BASE + DMA_CMD_OFFSET);
+		writel(cm->size, MIPI_DSI1_BASE + DMA_CMD_LENGTH);	// reg 0x48 for this build
+		dsb();
+		ret += mdss_dual_dsi_cmd_dma_trigger_for_panel();
+		udelay(80);
+		cm++;
+	}
+	return ret;
 }
 
 int mipi_dsi_cmds_tx(struct mipi_dsi_cmd *cmds, int count)
@@ -259,7 +321,8 @@ static uint32_t mipi_novatek_manufacture_id(void)
 	return data;
 }
 
-int mdss_dsi_panel_initialize(struct mipi_dsi_panel_config *pinfo)
+int mdss_dsi_panel_initialize(struct mipi_dsi_panel_config *pinfo, uint32_t
+		broadcast)
 {
 	uint8_t DMA_STREAM1 = 0;	// for mdp display processor path
 	uint8_t EMBED_MODE1 = 1;	// from frame buffer
@@ -289,23 +352,45 @@ int mdss_dsi_panel_initialize(struct mipi_dsi_panel_config *pinfo)
 
 	PACK_TYPE1 = pinfo->pack;
 
-	writel(0x0001, DSI_SOFT_RESET);
-	writel(0x0000, DSI_SOFT_RESET);
+	if (broadcast) {
+		writel(0x0001, MIPI_DSI1_BASE + SOFT_RESET);
+		writel(0x0000, MIPI_DSI1_BASE + SOFT_RESET);
 
-	writel((0 << 16) | 0x3f, DSI_CLK_CTRL);	/* Turn on all DSI Clks */
-	writel(DMA_STREAM1 << 8 | 0x04, DSI_TRIG_CTRL);	// reg 0x80 dma trigger: sw
+		writel((0 << 16) | 0x3f, MIPI_DSI1_BASE + CLK_CTRL);	/* Turn on all DSI Clks */
+		writel(DMA_STREAM1 << 8 | 0x04, MIPI_DSI1_BASE + TRIG_CTRL);	// reg 0x80 dma trigger: sw
+		// trigger 0x4; dma stream1
+
+		writel(0 << 30 | DLNx_EN << 4 | 0x105, MIPI_DSI1_BASE + CTRL);	// reg 0x00 for this
+		// build
+		writel(broadcast << 31 | EMBED_MODE1 << 28 | POWER_MODE2 << 26
+				| PACK_TYPE1 << 24 | VC1 << 22 | DT1 << 16 | WC1,
+				MIPI_DSI1_BASE + COMMAND_MODE_DMA_CTRL);
+	}
+
+	writel(0x0001, MIPI_DSI0_BASE + SOFT_RESET);
+	writel(0x0000, MIPI_DSI0_BASE + SOFT_RESET);
+
+	writel((0 << 16) | 0x3f, MIPI_DSI0_BASE + CLK_CTRL);	/* Turn on all DSI Clks */
+	writel(DMA_STREAM1 << 8 | 0x04, MIPI_DSI0_BASE + TRIG_CTRL);	// reg 0x80 dma trigger: sw
 	// trigger 0x4; dma stream1
 
-	writel(0 << 30 | DLNx_EN << 4 | 0x105, DSI_CTRL);	// reg 0x00 for this
+	writel(0 << 30 | DLNx_EN << 4 | 0x105, MIPI_DSI0_BASE + CTRL);	// reg 0x00 for this
 	// build
-	writel(EMBED_MODE1 << 28 | POWER_MODE2 << 26
+	writel(broadcast << 31 | EMBED_MODE1 << 28 | POWER_MODE2 << 26
 	       | PACK_TYPE1 << 24 | VC1 << 22 | DT1 << 16 | WC1,
-	       DSI_COMMAND_MODE_DMA_CTRL);
+	       MIPI_DSI0_BASE + COMMAND_MODE_DMA_CTRL);
 
-	if (pinfo->panel_cmds)
-		status = mipi_dsi_cmds_tx(pinfo->panel_cmds,
-					  pinfo->num_of_panel_cmds);
+	if (pinfo->panel_cmds) {
 
+		if (broadcast) {
+			status = mdss_dual_dsi_cmds_tx(pinfo->panel_cmds,
+					pinfo->num_of_panel_cmds);
+
+		} else {
+			status = mipi_dsi_cmds_tx(pinfo->panel_cmds,
+					pinfo->num_of_panel_cmds);
+		}
+	}
 	return status;
 }
 
@@ -825,7 +910,7 @@ int mdss_dsi_config(struct msm_fb_panel_data *panel)
 	if (pinfo->mipi.dual_dsi)
 		mdss_dsi_phy_init(&mipi_pinfo, MIPI_DSI1_BASE);
 
-	ret += mdss_dsi_panel_initialize(&mipi_pinfo);
+	ret += mdss_dsi_panel_initialize(&mipi_pinfo, pinfo->mipi.broadcast);
 
 	if (pinfo->rotate && panel->rotate)
 		pinfo->rotate();
