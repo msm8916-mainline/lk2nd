@@ -44,12 +44,25 @@
 #define TRIG_CTRL                             0x084
 #define CTRL                                  0x004
 #define COMMAND_MODE_DMA_CTRL                 0x03C
+#define ERR_INT_MASK0                         0x10C
+
+#define VIDEO_MODE_ACTIVE_H                   0x024
+#define VIDEO_MODE_ACTIVE_V                   0x028
+#define VIDEO_MODE_TOTAL                      0x02C
+#define VIDEO_MODE_HSYNC                      0x030
+#define VIDEO_MODE_VSYNC                      0x034
+#define VIDEO_MODE_VSYNC_VPOS                 0x038
 
 #define DMA_CMD_OFFSET                        0x048
 #define DMA_CMD_LENGTH                        0x04C
 
 #define INT_CTRL                              0x110
 #define CMD_MODE_DMA_SW_TRIGGER               0x090
+
+#define EOT_PACKET_CTRL                       0x0C8
+#define MISR_VIDEO_CTRL                       0x0A4
+#define VIDEO_MODE_CTRL                       0x010
+#define HS_TIMER_CTRL                         0x0BC
 
 #define DSIPHY_SW_RESET                       REG_DSI(0x128)
 #define DSIPHY_PLL_RDY                        REG_DSI(0x280)
@@ -950,6 +963,24 @@ enum {		/* mipi dsi panel */
 
 int mipi_config(struct msm_fb_panel_data *panel);
 int mdss_dsi_config(struct msm_fb_panel_data *panel);
+
+int mdss_dsi_video_mode_config(uint16_t disp_width,
+	uint16_t disp_height,
+	uint16_t img_width,
+	uint16_t img_height,
+	uint16_t hsync_porch0_fp,
+	uint16_t hsync_porch0_bp,
+	uint16_t vsync_porch0_fp,
+	uint16_t vsync_porch0_bp,
+	uint16_t hsync_width,
+	uint16_t vsync_width,
+	uint16_t dst_format,
+	uint16_t traffic_mode,
+	uint8_t lane_en,
+	uint16_t low_pwr_stop_mode,
+	uint8_t eof_bllp_pwr,
+	uint8_t interleav,
+	uint32_t ctl_base);
 
 int mipi_dsi_video_mode_config(unsigned short disp_width,
 		unsigned short disp_height,
