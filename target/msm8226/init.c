@@ -221,7 +221,13 @@ void target_baseband_detect(struct board_data *board)
 	case MSM8826:
 	case MSM8626:
 	case MSM8226:
+	case MSM8926:
+	case MSM8126:
+	case MSM8326:
 		board->baseband = BASEBAND_MSM;
+		break;
+	case APQ8026:
+		board->baseband = BASEBAND_APQ;
 		break;
 	default:
 		dprintf(CRITICAL, "Platform type: %u is not supported\n", platform);
