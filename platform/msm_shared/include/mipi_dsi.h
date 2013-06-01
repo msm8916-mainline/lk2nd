@@ -47,6 +47,7 @@
 #define ERR_INT_MASK0                         0x10C
 
 #define LANE_SWAP_CTL                         0x0B0
+#define TIMING_CTL                            0x0C4
 
 #define VIDEO_MODE_ACTIVE_H                   0x024
 #define VIDEO_MODE_ACTIVE_V                   0x028
@@ -678,6 +679,8 @@ struct mipi_dsi_panel_config {
 	char num_of_lanes;
 	char lane_swap;
 	char pack;
+	uint8_t t_clk_pre;
+	uint8_t t_clk_post;
 	struct mipi_dsi_phy_ctrl *dsi_phy_config;
 	struct mdss_dsi_phy_ctrl *mdss_dsi_phy_config;
 	struct mipi_dsi_cmd *panel_cmds;
