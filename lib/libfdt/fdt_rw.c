@@ -351,8 +351,7 @@ int fdt_add_subnode_namelen(void *fdt, int parentoffset,
 		return offset;
 
 	/* Try to place the new node after the parent's properties and all the sub nodes already present. */
-	fdt_next_tag(fdt, parentoffset, &nextoffset); /* skip the BEGIN_NODE */
-	count++; /* Track the BIGIN_NODEs */
+	tag = fdt_next_tag(fdt, parentoffset, &nextoffset); /* skip the BEGIN_NODE */
 	do {
 		if (tag == FDT_BEGIN_NODE)
 			count++;
