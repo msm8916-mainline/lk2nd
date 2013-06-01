@@ -32,6 +32,7 @@
 #define UPDATE_MAGIC       "MSM-RADIO-UPDATE"
 #define UPDATE_MAGIC_SIZE  16
 #define UPDATE_VERSION     0x00010000
+#define FFBM_MODE_BUF_SIZE 8
 
 
 /* Recovery Message */
@@ -71,8 +72,14 @@ int read_update_header_for_bootloader(struct update_header *header);
 int update_firmware_image (struct update_header *header, char *name);
 
 int recovery_init (void);
-
-bool get_ffbm(char *ffbm, unsigned size);
+/* This function will look for the ffbm cookie in the misc partition.
+ * Upon finding a valid cookie it will return 1 and place the cookie
+ * into ffbm.If it does not find a valid cookie it will return 0.If
+ * an error is hit it will return -1.If either of these return values
+ * is seen the data in ffbm should not be used and should be considered
+ * invalid.
+ */
+int get_ffbm(char *ffbm, unsigned size);
 
 extern unsigned boot_into_recovery;
 

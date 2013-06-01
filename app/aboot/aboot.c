@@ -105,6 +105,11 @@ static const char *baseband_dsda    = " androidboot.baseband=dsda";
 static const char *baseband_dsda2   = " androidboot.baseband=dsda2";
 static const char *baseband_sglte2  = " androidboot.baseband=sglte2";
 
+static unsigned page_size = 0;
+static unsigned page_mask = 0;
+static char ffbm_mode_string[FFBM_MODE_BUF_SIZE];
+static bool boot_into_ffbm;
+
 /* Assuming unauthorized kernel image by default */
 static int auth_kernel_img = 0;
 
@@ -187,8 +192,6 @@ unsigned char *update_cmdline(const char * cmdline)
 	int have_cmdline = 0;
 	unsigned char *cmdline_final = NULL;
 	int pause_at_bootup = 0;
-	char ffbm[10];
-	bool boot_into_ffbm = get_ffbm(ffbm, sizeof(ffbm));
 
 	if (cmdline && cmdline[0]) {
 		cmdline_len = strlen(cmdline);
@@ -203,7 +206,7 @@ unsigned char *update_cmdline(const char * cmdline)
 
 	if (boot_into_ffbm) {
 		cmdline_len += strlen(androidboot_mode);
-		cmdline_len += strlen(ffbm);
+		cmdline_len += strlen(ffbm_mode_string);
 		/* reduce kernel console messages to speed-up boot */
 		cmdline_len += strlen(loglevel);
 	} else if (target_pause_for_battery_charge()) {
@@ -286,7 +289,7 @@ unsigned char *update_cmdline(const char * cmdline)
 			src = androidboot_mode;
 			if (have_cmdline) --dst;
 			while ((*dst++ = *src++));
-			src = ffbm;
+			src = ffbm_mode_string;
 			if (have_cmdline) --dst;
 			while ((*dst++ = *src++));
 			src = loglevel;
@@ -361,9 +364,7 @@ unsigned char *update_cmdline(const char * cmdline)
 				break;
 		}
 	}
-
 	dprintf(INFO, "cmdline: %s\n", cmdline_final);
-
 	return cmdline_final;
 }
 
@@ -500,9 +501,6 @@ void boot_linux(void *kernel, unsigned *tags,
 	entry(0, machtype, (unsigned*)tags_phys);
 }
 
-unsigned page_size = 0;
-unsigned page_mask = 0;
-
 #define ROUND_TO_PAGE(x,y) (((x) + (y)) & (~(y)))
 
 BUF_DMA_ALIGN(buf, 4096); //Equal to max-supported pagesize
@@ -515,6 +513,7 @@ int boot_linux_from_mmc(void)
 	struct boot_img_hdr *hdr = (void*) buf;
 	struct boot_img_hdr *uhdr;
 	unsigned offset = 0;
+	int rcode;
 	unsigned long long ptn = 0;
 	int index = INVALID_PTN;
 
@@ -530,7 +529,17 @@ int boot_linux_from_mmc(void)
 	unsigned dt_table_offset;
 	uint32_t dt_actual;
 #endif
-
+	if (!boot_into_recovery) {
+		memset(ffbm_mode_string, '\0', sizeof(ffbm_mode_string));
+		rcode = get_ffbm(ffbm_mode_string, sizeof(ffbm_mode_string));
+		if (rcode <= 0) {
+			boot_into_ffbm = false;
+			if (rcode < 0)
+				dprintf(CRITICAL,"failed to get ffbm cookie");
+		} else
+			boot_into_ffbm = true;
+	} else
+		boot_into_ffbm = false;
 	uhdr = (struct boot_img_hdr *)EMMC_BOOT_IMG_HEADER_ADDR;
 	if (!memcmp(uhdr->magic, BOOT_MAGIC, BOOT_MAGIC_SIZE)) {
 		dprintf(INFO, "Unified boot method!\n");
@@ -580,7 +589,6 @@ int boot_linux_from_mmc(void)
 	hdr->kernel_addr = VA((addr_t)(hdr->kernel_addr));
 	hdr->ramdisk_addr = VA((addr_t)(hdr->ramdisk_addr));
 	hdr->tags_addr = VA((addr_t)(hdr->tags_addr));
-
 	/* Authenticate Kernel */
 	if(target_use_signed_kernel() && (!device.is_unlocked) && (!device.is_tampered))
 	{
@@ -1937,6 +1945,11 @@ void aboot_init(const struct app_descriptor *app)
 	partition_dump();
 	fastboot_init(target_get_scratch_address(), sz);
 	udc_start();
+}
+
+uint32_t get_page_size()
+{
+	return page_size;
 }
 
 APP_START(aboot)
