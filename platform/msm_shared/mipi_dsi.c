@@ -333,6 +333,7 @@ int mdss_dsi_panel_initialize(struct mipi_dsi_panel_config *pinfo, uint32_t
 	uint8_t WC1 = 0;	// for non embedded mode only
 	int status = 0;
 	uint8_t DLNx_EN;
+	uint8_t lane_swap = 0;
 
 	switch (pinfo->num_of_lanes) {
 	default:
@@ -351,6 +352,7 @@ int mdss_dsi_panel_initialize(struct mipi_dsi_panel_config *pinfo, uint32_t
 	}
 
 	PACK_TYPE1 = pinfo->pack;
+	lane_swap = pinfo->lane_swap;
 
 	if (broadcast) {
 		writel(0x0001, MIPI_DSI1_BASE + SOFT_RESET);
@@ -365,6 +367,8 @@ int mdss_dsi_panel_initialize(struct mipi_dsi_panel_config *pinfo, uint32_t
 		writel(broadcast << 31 | EMBED_MODE1 << 28 | POWER_MODE2 << 26
 				| PACK_TYPE1 << 24 | VC1 << 22 | DT1 << 16 | WC1,
 				MIPI_DSI1_BASE + COMMAND_MODE_DMA_CTRL);
+
+		writel(lane_swap, MIPI_DSI1_BASE + LANE_SWAP_CTL);
 	}
 
 	writel(0x0001, MIPI_DSI0_BASE + SOFT_RESET);
@@ -379,6 +383,8 @@ int mdss_dsi_panel_initialize(struct mipi_dsi_panel_config *pinfo, uint32_t
 	writel(broadcast << 31 | EMBED_MODE1 << 28 | POWER_MODE2 << 26
 	       | PACK_TYPE1 << 24 | VC1 << 22 | DT1 << 16 | WC1,
 	       MIPI_DSI0_BASE + COMMAND_MODE_DMA_CTRL);
+
+	writel(lane_swap, MIPI_DSI0_BASE + LANE_SWAP_CTL);
 
 	if (pinfo->panel_cmds) {
 
