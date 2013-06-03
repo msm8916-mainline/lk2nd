@@ -142,6 +142,11 @@ uint32_t board_hardware_id()
 	return board.platform_hw;
 }
 
+uint32_t board_hardware_subtype(void)
+{
+	return board.platform_subtype;
+}
+
 uint8_t board_pmic_info(struct board_pmic_data *info, uint8_t num_ent)
 {
 	uint8_t i;

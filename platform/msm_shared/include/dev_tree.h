@@ -34,7 +34,8 @@
 #define DEV_TREE_SUCCESS        0
 #define DEV_TREE_MAGIC          0x54444351 /* "QCDT" */
 #define DEV_TREE_MAGIC_LEN      4
-#define DEV_TREE_VERSION        1
+#define DEV_TREE_VERSION_V1     1
+#define DEV_TREE_VERSION_V2     2
 #define DEV_TREE_HEADER_SIZE    12
 
 #define DTB_MAGIC               0xedfe0dd0
@@ -46,6 +47,7 @@ struct dt_entry
 {
 	uint32_t platform_id;
 	uint32_t variant_id;
+	uint32_t board_hw_subtype;
 	uint32_t soc_rev;
 	uint32_t offset;
 	uint32_t size;
@@ -64,7 +66,8 @@ enum dt_err_codes
 	DT_OP_FAILURE = -1,
 };
 
-struct dt_entry * dev_tree_get_entry_ptr(struct dt_table *);
+int dev_tree_validate(struct dt_table *table, unsigned int page_size);
+int dev_tree_get_entry_info(struct dt_table *table, struct dt_entry *dt_entry_info);
 int update_device_tree(void *, const char *, void *, unsigned);
 int dev_tree_add_mem_info(void *fdt, uint32_t offset, uint32_t size, uint32_t addr);
 void *dev_tree_appended(void *kernel, void *tags, uint32_t kernel_size);

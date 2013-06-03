@@ -36,6 +36,15 @@
 #include <platform.h>
 #include <board.h>
 
+struct dt_entry_v1
+{
+	uint32_t platform_id;
+	uint32_t variant_id;
+	uint32_t soc_rev;
+	uint32_t offset;
+	uint32_t size;
+};
+
 extern int target_is_emmc_boot(void);
 extern uint32_t target_dev_tree_mem(void *fdt, uint32_t memory_node_offset);
 /* TODO: This function needs to be moved to target layer to check violations
@@ -98,47 +107,118 @@ void *dev_tree_appended(void *kernel, void *tags, uint32_t kernel_size)
 	return NULL;
 }
 
-/* Function to return the pointer to the start of the correct device tree
+/* Returns 0 if the device tree is valid. */
+int dev_tree_validate(struct dt_table *table, unsigned int page_size)
+{
+	int dt_entry_size;
+
+	/* Validate the device tree table header */
+	if(table->magic != DEV_TREE_MAGIC) {
+		dprintf(CRITICAL, "ERROR: Bad magic in device tree table \n");
+		return -1;
+	}
+
+	if (table->version == DEV_TREE_VERSION_V1) {
+		dt_entry_size = sizeof(struct dt_entry_v1);
+	} else if (table->version == DEV_TREE_VERSION_V2) {
+		dt_entry_size = sizeof(struct dt_entry);
+	} else {
+		dprintf(CRITICAL, "ERROR: Unsupported version (%d) in DT table \n",
+				table->version);
+		return -1;
+	}
+
+	/* Restriction that the device tree entry table should be less than a page*/
+	ASSERT(((table->num_entries * dt_entry_size)+ DEV_TREE_HEADER_SIZE) < page_size);
+
+	return 0;
+}
+
+/* Function to obtain the index information for the correct device tree
  *  based on the platform data.
+ *  If a matching device tree is found, the information is returned in the
+ *  "dt_entry_info" out parameter and a function value of 0 is returned, otherwise
+ *  a non-zero function value is returned.
  */
-struct dt_entry * dev_tree_get_entry_ptr(struct dt_table *table)
+int dev_tree_get_entry_info(struct dt_table *table, struct dt_entry *dt_entry_info)
 {
 	uint32_t i;
-	struct dt_entry *dt_entry_ptr;
-	struct dt_entry *latest_dt_entry = NULL;
+	unsigned char *table_ptr;
+	struct dt_entry dt_entry_buf_1;
+	struct dt_entry dt_entry_buf_2;
+	struct dt_entry *cur_dt_entry;
+	struct dt_entry *best_match_dt_entry;
+	struct dt_entry_v1 *dt_entry_v1;
 
-	dt_entry_ptr = (struct dt_entry *)((char *)table + DEV_TREE_HEADER_SIZE);
+	if (!dt_entry_info) {
+		dprintf(CRITICAL, "ERROR: Bad parameter passed to %s \n",
+				__func__);
+		return -1;
+	}
+
+	table_ptr = (unsigned char *)table + DEV_TREE_HEADER_SIZE;
+	cur_dt_entry = &dt_entry_buf_1;
+	best_match_dt_entry = NULL;
 
 	for(i = 0; i < table->num_entries; i++)
 	{
+		memset(cur_dt_entry, 0, sizeof(struct dt_entry));
+		switch(table->version) {
+		case DEV_TREE_VERSION_V1:
+			dt_entry_v1 = (struct dt_entry_v1 *)table_ptr;
+			cur_dt_entry->platform_id = dt_entry_v1->platform_id;
+			cur_dt_entry->variant_id = dt_entry_v1->variant_id;
+			cur_dt_entry->soc_rev = dt_entry_v1->soc_rev;
+			cur_dt_entry->board_hw_subtype = board_hardware_subtype();
+			cur_dt_entry->offset = dt_entry_v1->offset;
+			cur_dt_entry->size = dt_entry_v1->size;
+			table_ptr += sizeof(struct dt_entry_v1);
+			break;
+		case DEV_TREE_VERSION_V2:
+			memcpy(cur_dt_entry, (struct dt_entry *)table_ptr,
+				   sizeof(struct dt_entry));
+			table_ptr += sizeof(struct dt_entry);
+			break;
+		default:
+			dprintf(CRITICAL, "ERROR: Unsupported version (%d) in DT table \n",
+					table->version);
+			return -1;
+		}
+
 		/* DTBs are stored in the ascending order of soc revision.
 		 * For eg: Rev0..Rev1..Rev2 & so on.
 		 * we pickup the DTB with highest soc rev number which is less
 		 * than or equal to actual hardware
 		 */
-		if((dt_entry_ptr->platform_id == board_platform_id()) &&
-		   (dt_entry_ptr->variant_id == board_hardware_id()) &&
-		   (dt_entry_ptr->soc_rev == board_soc_version()))
-			{
-				return dt_entry_ptr;
+		if((cur_dt_entry->platform_id == board_platform_id()) &&
+		   (cur_dt_entry->variant_id == board_hardware_id()) &&
+		   (cur_dt_entry->board_hw_subtype == board_hardware_subtype()))
+		{
+			if(cur_dt_entry->soc_rev == board_soc_version()) {
+				/* copy structure */
+				*dt_entry_info = *cur_dt_entry;
+				return 0;
+			} else if (cur_dt_entry->soc_rev < board_soc_version()){
+				/* Keep this as the next best candidate. */
+				if (!best_match_dt_entry) {
+					best_match_dt_entry = cur_dt_entry;
+					cur_dt_entry = &dt_entry_buf_2;
+				} else {
+					/* Swap dt_entry buffers */
+					struct dt_entry *temp = cur_dt_entry;
+					cur_dt_entry = best_match_dt_entry;
+					best_match_dt_entry = temp;
+				}
 			}
-		/* if the exact match not found, return the closest match
-		 * assuming it to be the nearest soc version
-		 */
-		if((dt_entry_ptr->platform_id == board_platform_id()) &&
-		  (dt_entry_ptr->variant_id == board_hardware_id()) &&
-		  (dt_entry_ptr->soc_rev <= board_soc_version())) {
-			latest_dt_entry = dt_entry_ptr;
 		}
-		dt_entry_ptr++;
 	}
 
-	if (latest_dt_entry) {
-		dprintf(SPEW, "Loading DTB with SOC version:%x\n", latest_dt_entry->soc_rev);
-		return latest_dt_entry;
+	if (best_match_dt_entry) {
+		*dt_entry_info = *best_match_dt_entry;
+		return 0;
 	}
 
-	return NULL;
+	return -1;
 }
 
 /* Function to add the first RAM partition info to the device tree.
