@@ -83,6 +83,50 @@ struct pm8x41_gpio {
 	int disable_pin;
 };
 
+struct pm8x41_ldo {
+	uint8_t  type;
+	uint32_t base;
+};
+
+/* LDO base addresses. */
+#define PM8x41_LDO2                           0x14100
+#define PM8x41_LDO4                           0x14300
+#define PM8x41_LDO12                          0x14B00
+#define PM8x41_LDO14                          0x14D00
+#define PM8x41_LDO19                          0x15200
+#define PM8x41_LDO22                          0x15500
+
+/* LDO voltage ranges */
+#define NLDO_UV_MIN                           375000
+#define NLDO_UV_MAX                           1537500
+#define NLDO_UV_STEP                          12500
+#define NLDO_UV_VMIN_LOW                      750000
+
+#define PLDO_UV_VMIN_LOW                      750000
+#define PLDO_UV_VMIN_MID                      1500000
+#define PLDO_UV_VMIN_HIGH                     1750000
+
+#define PLDO_UV_MIN                           1537500
+#define PDLO_UV_MID                           3075000
+#define PLDO_UV_MAX                           4900000
+#define PLDO_UV_STEP_LOW                      12500
+#define PLDO_UV_STEP_MID                      25000
+#define PLDO_UV_STEP_HIGH                     50000
+
+#define LDO_RANGE_SEL_BIT                     0
+#define LDO_VSET_SEL_BIT                      0
+#define LDO_VREG_ENABLE_BIT                   7
+#define LDO_NORMAL_PWR_BIT                    7
+
+#define PLDO_TYPE                             0
+#define NLDO_TYPE                             1
+
+#define LDO(_base, _type) \
+{ \
+	.type = _type, \
+	.base = _base, \
+}
+
 int pm8x41_gpio_get(uint8_t gpio, uint8_t *status);
 int pm8x41_gpio_set(uint8_t gpio, uint8_t value);
 int pm8x41_gpio_config(uint8_t gpio, struct pm8x41_gpio *config);
@@ -91,17 +135,9 @@ uint32_t pm8x41_resin_status();
 uint32_t pm8x41_resin_bark_workaround_status();
 void pm8x41_reset_configure(uint8_t);
 void pm8x41_v2_reset_configure(uint8_t);
-int pm8x41_ldo_set_voltage(const char *, uint32_t);
-int pm8x41_ldo_control(const char *, uint8_t);
+int pm8x41_ldo_set_voltage(struct pm8x41_ldo *ldo, uint32_t voltage);
+int pm8x41_ldo_control(struct pm8x41_ldo *ldo, uint8_t enable);
 uint8_t pm8x41_get_pmic_rev();
 uint8_t pm8x41_get_pon_reason();
 
-struct pm8x41_ldo {
-	const char *name;
-	uint8_t type;
-	uint32_t base;
-	uint32_t range_reg;
-	uint32_t step_reg;
-	uint32_t enable_reg;
-};
 #endif
