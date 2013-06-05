@@ -150,7 +150,11 @@ void display_init(void)
 	case HW_PLATFORM_QRD:
 	case HW_PLATFORM_MTP:
 	case HW_PLATFORM_SURF:
+#if DISPLAY_TYPE_CMD_MODE
+		mipi_nt35590_cmd_720p_init(&(panel.panel_info));
+#else
 		mipi_nt35590_video_720p_init(&(panel.panel_info));
+#endif
 		panel.clk_func = msm8226_mdss_dsi_panel_clock;
 		panel.power_func = msm8226_mipi_panel_power;
 		panel.fb.base = MIPI_FB_ADDR;
