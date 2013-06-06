@@ -529,6 +529,30 @@ void edp_clk_enable(void)
 {
 	int ret;
 
+	/* Configure MMSSNOC AXI clock */
+	ret = clk_get_set_enable("mmss_mmssnoc_axi_clk", 100000000, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mmssnoc_axi_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	/* Configure MMSSNOC AXI clock */
+	ret = clk_get_set_enable("mmss_s0_axi_clk", 100000000, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mmss_s0_axi_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	/* Configure AXI clock */
+	ret = clk_get_set_enable("mdss_axi_clk", 100000000, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mdss_axi_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
 	ret = clk_get_set_enable("edp_pixel_clk", 138500000, 1);
 	if (ret) {
 		dprintf(CRITICAL, "failed to set edp_pixel_clk ret = %d\n",
@@ -541,4 +565,20 @@ void edp_clk_enable(void)
 		dprintf(CRITICAL, "failed to set edp_link_clk ret = %d\n", ret);
 		ASSERT(0);
 	}
+
+	ret = clk_get_set_enable("edp_aux_clk", 19200000, 1);
+	if (ret) {
+		dprintf(CRITICAL, "failed to set edp_aux_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+}
+
+void edp_clk_disable(void)
+{
+
+	writel(0x0, MDSS_EDPPIXEL_CBCR);
+	writel(0x0, MDSS_EDPLINK_CBCR);
+	clk_disable(clk_get("edp_pixel_clk"));
+	clk_disable(clk_get("edp_link_clk"));
+	clk_disable(clk_get("edp_aux_clk"));
 }

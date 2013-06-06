@@ -83,6 +83,7 @@
 
 #define MDSS_EDPPIXEL_CBCR              REG_MM(0x232C)
 #define MDSS_EDPLINK_CBCR               REG_MM(0x2330)
+#define MDSS_EDPAUX_CBCR               	REG_MM(0x2334)
 #define EDPPIXEL_M                      REG_MM(0x20A8)
 #define EDPPIXEL_N                      REG_MM(0x20AC)
 #define EDPPIXEL_D                      REG_MM(0x20B0)
@@ -90,6 +91,8 @@
 #define EDPPIXEL_CMD_RCGR               REG_MM(0x20A0)
 #define EDPLINK_CFG_RCGR                REG_MM(0x20C4)
 #define EDPLINK_CMD_RCGR                REG_MM(0x20C0)
+#define EDPAUX_CFG_RCGR                	REG_MM(0x20E4)
+#define EDPAUX_CMD_RCGR                	REG_MM(0x20E0)
 
 void platform_clock_init(void);
 

@@ -626,6 +626,33 @@ static struct branch_clk mdss_vsync_clk = {
 	},
 };
 
+static struct clk_freq_tbl ftbl_mdss_edpaux_clk[] = {
+	F_MM(19200000,    cxo,   1,   0,   0),
+	F_END
+};
+
+static struct rcg_clk edpaux_clk_src = {
+	.cmd_reg  = (uint32_t *) EDPAUX_CMD_RCGR,
+	.set_rate = clock_lib2_rcg_set_rate_hid,
+	.freq_tbl = ftbl_mdss_edpaux_clk,
+
+	.c        = {
+		.dbg_name = "edpaux_clk_src",
+		.ops      = &clk_ops_rcg,
+	},
+};
+
+static struct branch_clk mdss_edpaux_clk = {
+	.cbcr_reg    = MDSS_EDPAUX_CBCR,
+	.parent      = &edpaux_clk_src.c,
+	.has_sibling = 0,
+
+	.c           = {
+		.dbg_name = "mdss_edpaux_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
 static struct clk_freq_tbl ftbl_mdss_edplink_clk[] = {
 	F_MDSS(162000000, edppll_270,   2,   0,   0),
 	F_MDSS(270000000, edppll_270,  11,   0,   0),
@@ -770,6 +797,7 @@ static struct clk_lookup msm_clocks_8974[] =
 
 	CLK_LOOKUP("edp_pixel_clk",        mdss_edppixel_clk.c),
 	CLK_LOOKUP("edp_link_clk",         mdss_edplink_clk.c),
+	CLK_LOOKUP("edp_aux_clk",          mdss_edpaux_clk.c),
 
 	/* USB 3.0 */
 	CLK_LOOKUP("usb30_iface_clk",  gcc_sys_noc_usb30_axi_clk.c),
