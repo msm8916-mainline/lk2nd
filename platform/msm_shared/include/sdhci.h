@@ -63,6 +63,7 @@ struct sdhci_host {
  */
 struct mmc_data {
 	void *data_ptr;      /* Points to stream of data */
+	uint32_t blk_sz;     /* Block size for the data */
 	uint32_t num_blocks; /* num of blocks, each always of size SDHCI_MMC_BLK_SZ */
 };
 
