@@ -88,7 +88,7 @@ struct mmc_command {
 struct desc_entry {
 	uint16_t tran_att;   /* Attribute for transfer data */
 	uint16_t len;        /* Length of data */
-	void *addr;          /* Address of the data */
+	uint32_t addr;       /* Address of the data */
 };
 
 /*
