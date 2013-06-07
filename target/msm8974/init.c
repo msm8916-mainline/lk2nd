@@ -160,6 +160,12 @@ void target_crypto_init_params()
 	ce_params.read_fifo_size   = CE_FIFO_SIZE;
 	ce_params.write_fifo_size  = CE_FIFO_SIZE;
 
+	/* BAM is initialized by TZ for this platform.
+	 * Do not do it again as the initialization address space
+	 * is locked.
+	 */
+	ce_params.do_bam_init      = 0;
+
 	crypto_init_params(&ce_params);
 }
 
