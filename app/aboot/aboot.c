@@ -51,6 +51,7 @@
 #include <crypto_hash.h>
 #include <malloc.h>
 #include <boot_stats.h>
+#include <sha.h>
 
 #if DEVICE_TREE
 #include <libfdt.h>
@@ -675,6 +676,11 @@ int boot_linux_from_mmc(void)
 #endif
 
 	/* Authenticate Kernel */
+	dprintf(INFO, "use_signed_kernel=%d, is_unlocked=%d, is_tampered=%d.\n",
+		(int) target_use_signed_kernel(),
+		device.is_unlocked,
+		device.is_tampered);
+
 	if(target_use_signed_kernel() && (!device.is_unlocked) && (!device.is_tampered))
 	{
 		offset = 0;
@@ -807,7 +813,6 @@ int boot_linux_from_mmc(void)
 
 		#if DEVICE_TREE
 		if(hdr->dt_size != 0) {
-
 			/* Read the device tree table into buffer */
 			if(mmc_read(ptn + offset,(unsigned int *) dt_buf, page_size)) {
 				dprintf(CRITICAL, "ERROR: Cannot read the Device Tree Table\n");
@@ -842,6 +847,12 @@ int boot_linux_from_mmc(void)
 				dprintf(CRITICAL, "ERROR: Cannot read device tree\n");
 				return -1;
 			}
+			#ifdef TZ_SAVE_KERNEL_HASH
+			aboot_save_boot_hash_mmc(hdr->kernel_addr, kernel_actual,
+				       hdr->ramdisk_addr, ramdisk_actual,
+				       ptn, offset, hdr->dt_size);
+			#endif /* TZ_SAVE_KERNEL_HASH */
+
 		} else {
 			/*
 			 * If appended dev tree is found, update the atags with
@@ -2072,6 +2083,62 @@ void aboot_init(const struct app_descriptor *app)
 uint32_t get_page_size()
 {
 	return page_size;
+}
+
+/*
+ * Calculated and save hash (SHA256) for non-signed boot image.
+ *
+ * Hash the same data that is checked on the signed boot image.
+ * Kernel and Ramdisk are already read to memory buffers.
+ * Need to read the entire device-tree from mmc
+ * since non-signed image only read the DT tags of the relevant platform.
+ *
+ * @param kernel_addr - kernel bufer
+ * @param kernel_actual - kernel size in bytes
+ * @param ramdisk_addr - ramdisk buffer
+ * @param ramdisk_actual - ramdisk size
+ * @param ptn - partition
+ * @param dt_offset - device tree offset on mmc partition
+ * @param dt_size
+ *
+ * @return int - 0 on success, negative value on failure.
+ */
+int aboot_save_boot_hash_mmc(void *kernel_addr, unsigned kernel_actual,
+		   void *ramdisk_addr, unsigned ramdisk_actual,
+		   unsigned long long ptn,
+		   unsigned dt_offset, unsigned dt_size)
+{
+	SHA256_CTX sha256_ctx;
+	char digest[32]={0};
+	char *buf = (char *)target_get_scratch_address();
+	unsigned dt_actual = ROUND_TO_PAGE(dt_size, page_mask);
+	unsigned imagesize_actual = page_size + kernel_actual + ramdisk_actual + dt_actual;
+
+	SHA256_Init(&sha256_ctx);
+
+	/* Read Boot Header */
+	if (mmc_read(ptn, buf, page_size))
+	{
+		dprintf(CRITICAL, "ERROR: mmc_read() fail.\n");
+		return -1;
+	}
+	/* Read entire Device Tree */
+	if (mmc_read(ptn + dt_offset, buf+page_size, dt_actual))
+	{
+		dprintf(CRITICAL, "ERROR: mmc_read() fail.\n");
+		return -1;
+	}
+	SHA256_Update(&sha256_ctx, buf, page_size); // Boot Header
+	SHA256_Update(&sha256_ctx, kernel_addr, kernel_actual);
+	SHA256_Update(&sha256_ctx, ramdisk_addr, ramdisk_actual);
+	SHA256_Update(&sha256_ctx, buf+page_size, dt_actual); // Device Tree
+
+	SHA256_Final(digest, &sha256_ctx);
+
+	save_kernel_hash_cmd(digest);
+	dprintf(INFO, "aboot_save_boot_hash_mmc: imagesize_actual size %d bytes.\n", (int) imagesize_actual);
+
+	return 0;
 }
 
 APP_START(aboot)
