@@ -111,6 +111,12 @@ image_verify(unsigned char *image_ptr,
 	hash_size =
 	    (hash_type == CRYPTO_AUTH_ALG_SHA256) ? SHA256_SIZE : SHA1_SIZE;
 	hash_find(image_ptr, image_size, (unsigned char *)&digest, hash_type);
+#ifdef TZ_SAVE_KERNEL_HASH
+	if (hash_type == CRYPTO_AUTH_ALG_SHA256)
+		save_kernel_hash_cmd(digest);
+	else
+		dprintf(INFO, "image_verify: hash is not SHA-256.\n");
+#endif
 	if (memcmp(plain_text, digest, hash_size) != 0) {
 		dprintf(CRITICAL,
 			"ERROR: Image Invalid! Please use another image!\n");
@@ -119,12 +125,6 @@ image_verify(unsigned char *image_ptr,
 	} else {
 		/* Authorized image */
 		auth = 1;
-#ifdef TZ_SAVE_KERNEL_HASH
-		if (hash_type == CRYPTO_AUTH_ALG_SHA256)
-			save_kernel_hash_cmd(digest);
-		else
-			dprintf(INFO, "image_verify: hash is not SHA-256.\n");
-#endif
 	}
 
 	/* Cleanup after complete usage of openssl - cached data and objects */
