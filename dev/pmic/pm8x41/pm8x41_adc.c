@@ -234,7 +234,7 @@ uint32_t pm8x41_adc_channel_read(uint16_t ch_num)
 	adc = get_channel_prop(ch_num);
 	if (!adc) {
 		dprintf(CRITICAL, "Error: requested channel is not supported: %u\n", ch_num);
-		return -1;
+		return 0;
 	}
 
 	result = adc_configure(adc);
@@ -289,4 +289,97 @@ int pm8x41_ibat_max_config(uint32_t current)
 	REG_WRITE(IBAT_MAX_REG, mul);
 
 	return 0;
+}
+
+/*
+ * API: pm8x41_chgr_vdd_max_config
+ * Configure the VDD max to i/p value
+ */
+int pm8x41_chgr_vdd_max_config(uint32_t vol)
+{
+	uint8_t mul;
+
+	/* Check for permissible range of i/p */
+	if (vol < VDD_MIN_UA || vol > VDD_MAX_UA)
+	{
+		dprintf(CRITICAL, "Error: Voltage values are not in permissible range\n");
+		return -1;
+	}
+
+	/* Calculate the multiplier */
+	mul = (vol - VDD_MIN_UA) / VDD_VOL_STEP;
+
+	/* Write to VDD_MAX register */
+	REG_WRITE(CHGR_VDD_MAX, mul);
+
+	return 0;
+}
+
+/*
+ * API: pm8x41_chgr_ctl_enable
+ * Enable FSM-controlled autonomous charging
+ */
+int pm8x41_chgr_ctl_enable(uint8_t enable)
+{
+	/* If charging has to be enabled?
+	 * 1. Enable charging in charge control
+	 * 2. Enable boot done to enable charging
+	 */
+	if (enable)
+	{
+		REG_WRITE(CHGR_CHG_CTRL, (CHGR_ENABLE << CHGR_EN_BIT));
+		REG_WRITE(MISC_BOOT_DONE, (BOOT_DONE << BOOT_DONE_BIT));
+	}
+	else
+		REG_WRITE(CHGR_CHG_CTRL, CHGR_DISABLE);
+
+	return 0;
+}
+
+/*
+ * API: pm8x41_get_batt_voltage
+ * Get calibrated battery voltage from VADC, in UV
+ */
+uint32_t pm8x41_get_batt_voltage()
+{
+	uint32_t voltage;
+
+	voltage = pm8x41_adc_channel_read(VADC_BAT_VOL_CHAN_ID);
+
+	if(!voltage)
+	{
+		dprintf(CRITICAL, "Error getting battery Voltage\n");
+		return 0;
+	}
+
+	return voltage;
+}
+
+/*
+ * API: pm8x41_get_voltage_based_soc
+ * Get voltage based State Of Charge, this takes vdd max & battery cutoff
+ * voltage as i/p in uV
+ */
+uint32_t pm8x41_get_voltage_based_soc(uint32_t cutoff_vol, uint32_t vdd_max)
+{
+	uint32_t vol_soc;
+	uint32_t batt_vol;
+
+	batt_vol = pm8x41_get_batt_voltage();
+
+	if(!batt_vol)
+	{
+		dprintf(CRITICAL, "Error: Getting battery voltage based Soc\n");
+		return 0;
+	}
+
+	if (cutoff_vol >= vdd_max)
+	{
+		dprintf(CRITICAL, "Cutoff is greater than VDD max, Voltage based soc can't be calculated\n");
+		return 0;
+	}
+
+	vol_soc = ((batt_vol - cutoff_vol) * 100) / (vdd_max - cutoff_vol);
+
+	return vol_soc;
 }
