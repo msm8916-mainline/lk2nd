@@ -32,16 +32,19 @@
 
 #include <msm_panel.h>
 
-#define MDP_VP_0_RGB_0_SSPP_SRC0_ADDR           REG_MDP(0x1E14)
-#define MDP_VP_0_RGB_0_SSPP_SRC_YSTRIDE         REG_MDP(0x1E24)
-#define MDP_VP_0_RGB_0_SSPP_SRC_IMG_SIZE        REG_MDP(0x1E04)
-#define MDP_VP_0_RGB_0_SSPP_SRC_SIZE            REG_MDP(0x1E00)
-#define MDP_VP_0_RGB_0_SSPP_SRC_OUT_SIZE        REG_MDP(0x1E0C)
-#define MDP_VP_0_RGB_0_SSPP_SRC_XY              REG_MDP(0x1E08)
-#define MDP_VP_0_RGB_0_SSPP_OUT_XY              REG_MDP(0x1E10)
-#define MDP_VP_0_RGB_0_SSPP_SRC_FORMAT          REG_MDP(0x1E30)
-#define MDP_VP_0_RGB_0_SSPP_SRC_UNPACK_PATTERN  REG_MDP(0x1E34)
-#define MDP_VP_0_RGB_0_SSPP_SRC_OP_MODE         REG_MDP(0x1E38)
+#define MDP_VP_0_RGB_0_BASE                     REG_MDP(0x1E00)
+#define MDP_VP_0_RGB_1_BASE                     REG_MDP(0x2200)
+
+#define PIPE_SSPP_SRC0_ADDR                     0x14
+#define PIPE_SSPP_SRC_YSTRIDE                   0x24
+#define PIPE_SSPP_SRC_IMG_SIZE                  0x04
+#define PIPE_SSPP_SRC_SIZE                      0x00
+#define PIPE_SSPP_SRC_OUT_SIZE                  0x0C
+#define PIPE_SSPP_SRC_XY                        0x08
+#define PIPE_SSPP_OUT_XY                        0x10
+#define PIPE_SSPP_SRC_FORMAT                    0x30
+#define PIPE_SSPP_SRC_UNPACK_PATTERN            0x34
+#define PIPE_SSPP_SRC_OP_MODE                   0x38
 
 #define MDP_VP_0_LAYER_0_OUT_SIZE               REG_MDP(0x3204)
 #define MDP_VP_0_LAYER_0_OP_MODE                REG_MDP(0x3200)

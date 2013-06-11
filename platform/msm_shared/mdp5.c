@@ -80,6 +80,35 @@ void mdp_clk_gating_ctrl(void)
 	writel(0x40000000, MDP_CLK_CTRL4);
 }
 
+static void mdss_rgb_pipe_config(struct fbcon_config *fb, struct msm_panel_info
+		*pinfo, uint32_t pipe_base)
+{
+	uint32_t src_size, out_size, stride;
+
+	/* write active region size*/
+	src_size = (fb->height << 16) + fb->width;
+	out_size = src_size;
+
+	if (pinfo->lcdc.dual_pipe) {
+		out_size = (fb->height << 16) + (fb->width / 2);
+	}
+
+	stride = (fb->stride * fb->bpp/8);
+
+	writel(fb->base, pipe_base + PIPE_SSPP_SRC0_ADDR);
+	writel(stride, pipe_base + PIPE_SSPP_SRC_YSTRIDE);
+	writel(src_size, pipe_base + PIPE_SSPP_SRC_IMG_SIZE);
+	writel(out_size, pipe_base + PIPE_SSPP_SRC_SIZE);
+	writel(out_size, pipe_base + PIPE_SSPP_SRC_OUT_SIZE);
+	writel(0x00, pipe_base + PIPE_SSPP_SRC_XY);
+	writel(0x00, pipe_base + PIPE_SSPP_OUT_XY);
+
+	/* Tight Packing 3bpp 0-Alpha 8-bit R B G */
+	writel(0x0002243F, pipe_base + PIPE_SSPP_SRC_FORMAT);
+	writel(0x00020001, pipe_base + PIPE_SSPP_SRC_UNPACK_PATTERN);
+	writel(0x00, pipe_base + PIPE_SSPP_SRC_OP_MODE);
+}
+
 int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 		struct fbcon_config *fb)
 {
@@ -123,9 +152,6 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 	display_hctl = (hsync_end_x << 16) | hsync_start_x;
 
 	mdss_mdp_intf_off = mdss_mdp_intf_offset();
-
-	/* write active region size*/
-	mdp_rgb_size = (fb->height << 16) + fb->width;
 
 	access_secure = restore_secure_cfg(SECURE_DEVICE_MDSS);
 
@@ -177,17 +203,9 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 	writel(0x00, MDP_INTF_1_ACTIVE_V_END_F1 + mdss_mdp_intf_off);
 	writel(0xFF, MDP_INTF_1_UNDERFFLOW_COLOR + mdss_mdp_intf_off);
 
-	writel(fb->base, MDP_VP_0_RGB_0_SSPP_SRC0_ADDR);
-	writel((fb->stride * fb->bpp/8),MDP_VP_0_RGB_0_SSPP_SRC_YSTRIDE);
-	writel(mdp_rgb_size, MDP_VP_0_RGB_0_SSPP_SRC_IMG_SIZE);
-	writel(mdp_rgb_size, MDP_VP_0_RGB_0_SSPP_SRC_SIZE);
-	writel(mdp_rgb_size, MDP_VP_0_RGB_0_SSPP_SRC_OUT_SIZE);
-	writel(0x00, MDP_VP_0_RGB_0_SSPP_SRC_XY);
-	writel(0x00, MDP_VP_0_RGB_0_SSPP_OUT_XY);
-	/* Tight Packing 3bpp 0-Alpha 8-bit R B G */
-	writel(0x0002243F, MDP_VP_0_RGB_0_SSPP_SRC_FORMAT);
-	writel(0x00020001, MDP_VP_0_RGB_0_SSPP_SRC_UNPACK_PATTERN);
-	writel(0x00, MDP_VP_0_RGB_0_SSPP_SRC_OP_MODE);
+	mdss_rgb_pipe_config(fb, pinfo, MDP_VP_0_RGB_0_BASE);
+	if (pinfo->lcdc.dual_pipe)
+		mdss_rgb_pipe_config(fb, pinfo, MDP_VP_0_RGB_1_BASE);
 
 	writel(mdp_rgb_size,MDP_VP_0_LAYER_0_OUT_SIZE);
 	writel(0x00, MDP_VP_0_LAYER_0_OP_MODE);
@@ -261,17 +279,7 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 	writel(0x00101010, MMSS_MDP_SMP_ALLOC_R_0);
 	writel(0x00000010, MMSS_MDP_SMP_ALLOC_R_1);
 
-	writel(fb->base, MDP_VP_0_RGB_0_SSPP_SRC0_ADDR);
-	writel((fb->stride * fb->bpp/8),MDP_VP_0_RGB_0_SSPP_SRC_YSTRIDE);
-	writel(mdp_rgb_size, MDP_VP_0_RGB_0_SSPP_SRC_IMG_SIZE);
-	writel(mdp_rgb_size, MDP_VP_0_RGB_0_SSPP_SRC_SIZE);
-	writel(mdp_rgb_size, MDP_VP_0_RGB_0_SSPP_SRC_OUT_SIZE);
-	writel(0x00, MDP_VP_0_RGB_0_SSPP_SRC_XY);
-	writel(0x00, MDP_VP_0_RGB_0_SSPP_OUT_XY);
-	/* Tight Packing 3bpp 0-Alpha 8-bit R B G */
-	writel(0x0002243F, MDP_VP_0_RGB_0_SSPP_SRC_FORMAT);
-	writel(0x00020001, MDP_VP_0_RGB_0_SSPP_SRC_UNPACK_PATTERN);
-	writel(0x00, MDP_VP_0_RGB_0_SSPP_SRC_OP_MODE);
+	mdss_rgb_pipe_config(fb, pinfo, MDP_VP_0_RGB_0_BASE);
 
 	writel(mdp_rgb_size,MDP_VP_0_LAYER_0_OUT_SIZE);
 	writel(0x00, MDP_VP_0_LAYER_0_OP_MODE);
