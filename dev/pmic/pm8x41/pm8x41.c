@@ -356,3 +356,19 @@ uint8_t pm8x41_get_pon_reason()
 {
 	return REG_READ(PON_PON_REASON1);
 }
+
+void pm8x41_enable_mpp(struct pm8x41_mpp *mpp, enum mpp_en_ctl enable)
+{
+	ASSERT(mpp);
+
+	REG_WRITE(mpp->base + MPP_EN_CTL, enable << MPP_EN_CTL_ENABLE_SHIFT);
+}
+
+void pm8x41_config_output_mpp(struct pm8x41_mpp *mpp)
+{
+	ASSERT(mpp);
+
+	REG_WRITE(mpp->base + MPP_DIG_VIN_CTL, mpp->vin);
+
+	REG_WRITE(mpp->base + MPP_MODE_CTL, mpp->mode | (MPP_DIGITAL_OUTPUT << MPP_MODE_CTL_MODE_SHIFT));
+}

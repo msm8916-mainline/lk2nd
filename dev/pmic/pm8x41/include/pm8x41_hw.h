@@ -79,6 +79,14 @@
 #define S2_RESET_TYPE_WARM                    0x1
 #define PON_RESIN_N_RESET_S2_TIMER_MAX_VALUE  0x7
 
+/* MPP registers */
+#define MPP_DIG_VIN_CTL                       0x41
+#define MPP_MODE_CTL                          0x40
+#define MPP_EN_CTL                            0x46
+
+#define MPP_MODE_CTL_MODE_SHIFT               4
+#define MPP_EN_CTL_ENABLE_SHIFT               7
+
 void pm8x41_reg_write(uint32_t addr, uint8_t val);
 uint8_t pm8x41_reg_read(uint32_t addr);
 

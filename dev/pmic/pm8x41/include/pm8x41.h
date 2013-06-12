@@ -127,6 +127,57 @@ struct pm8x41_ldo {
 	.base = _base, \
 }
 
+enum mpp_vin_select
+{
+	MPP_VIN0,
+	MPP_VIN1,
+	MPP_VIN2,
+	MPP_VIN3,
+};
+
+enum mpp_mode_en_source_select
+{
+	MPP_LOW,
+	MPP_HIGH,
+	MPP_PAIRED_MPP,
+	MPP_NOT_PAIRED_MPP,
+	MPP_DTEST1 = 8,
+	MPP_NOT_DTEST1,
+	MPP_DTEST2,
+	MPP_NOT_DTEST2,
+	MPP_DTEST3,
+	MPP_NOT_DTEST3,
+	MPP_DTEST4,
+	MPP_NOT_DTEST4,
+};
+
+enum mpp_en_ctl
+{
+	MPP_DISABLE,
+	MPP_ENABLE,
+};
+
+enum mpp_mode
+{
+	MPP_DIGITAL_INPUT,
+	MPP_DIGITAL_OUTPUT,
+	MPP_DIGITAL_IN_AND_OUT,
+	MPP_BIDIRECTIONAL,
+	MPP_ANALOG_INPUT,
+	MPP_ANALOG_OUTPUT,
+	MPP_CURRENT_SINK,
+	MPP_RESERVED,
+};
+
+struct pm8x41_mpp
+{
+	uint32_t                       base;
+	enum mpp_vin_select            vin;
+	enum mpp_mode_en_source_select mode;
+};
+
+#define PM8x41_MMP3_BASE                      0xA200
+
 int pm8x41_gpio_get(uint8_t gpio, uint8_t *status);
 int pm8x41_gpio_set(uint8_t gpio, uint8_t value);
 int pm8x41_gpio_config(uint8_t gpio, struct pm8x41_gpio *config);
@@ -139,5 +190,7 @@ int pm8x41_ldo_set_voltage(struct pm8x41_ldo *ldo, uint32_t voltage);
 int pm8x41_ldo_control(struct pm8x41_ldo *ldo, uint8_t enable);
 uint8_t pm8x41_get_pmic_rev();
 uint8_t pm8x41_get_pon_reason();
+void pm8x41_config_output_mpp(struct pm8x41_mpp *mpp);
+void pm8x41_enable_mpp(struct pm8x41_mpp *mpp, enum mpp_en_ctl enable);
 
 #endif
