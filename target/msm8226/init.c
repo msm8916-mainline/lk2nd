@@ -328,9 +328,10 @@ int emmc_recovery_init(void)
 	return _emmc_recovery_init();
 }
 
-int set_download_mode(void)
+int set_download_mode(enum dload_mode mode)
 {
-	dload_util_write_cookie(FORCE_DLOAD_MODE_ADDR);
+	dload_util_write_cookie(mode == NORMAL_DLOAD ?
+		DLOAD_MODE_ADDR : EMERGENCY_DLOAD_MODE_ADDR, mode);
 
 	return 0;
 }

@@ -23,6 +23,8 @@
 #ifndef __PLATFORM_H
 #define __PLATFORM_H
 
+#include <dload_util.h>
+
 #define PA(x) platform_get_virt_to_phys_mapping(x)
 #define VA(x) platform_get_phys_to_virt_mapping(x)
 
@@ -50,6 +52,6 @@ unsigned board_platform_id(void);
 unsigned check_reboot_mode(void);
 void platform_uninit_timer(void);
 void reboot_device(unsigned);
-int set_download_mode(void);
+int set_download_mode(enum dload_mode mode);
 
 #endif

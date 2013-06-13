@@ -488,9 +488,10 @@ void reboot_device(unsigned reboot_reason)
 	dprintf(CRITICAL, "Rebooting failed\n");
 }
 
-int set_download_mode(void)
+int set_download_mode(enum dload_mode mode)
 {
-	dload_util_write_cookie(FORCE_DLOAD_MODE_ADDR_V2);
+	dload_util_write_cookie(mode == NORMAL_DLOAD ?
+		DLOAD_MODE_ADDR_V2 : EMERGENCY_DLOAD_MODE_ADDR_V2, mode);
 
 	return 0;
 }

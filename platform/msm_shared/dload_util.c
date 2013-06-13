@@ -28,18 +28,34 @@
 
 #include <stdlib.h>
 #include <reg.h>
+#include <dload_util.h>
 
-#define FORCE_DLOAD_COOKIE_0    0x322A4F99
-#define FORCE_DLOAD_COOKIE_1    0xC67E4350
-#define FORCE_DLOAD_COOKIE_2    0x77777777
+#define NORMAL_DLOAD_COOKIE_0       0xE47B337D
+#define NORMAL_DLOAD_COOKIE_1       0xCE14091A
+
+#define EMERGENCY_DLOAD_COOKIE_0    0x322A4F99
+#define EMERGENCY_DLOAD_COOKIE_1    0xC67E4350
+#define EMERGENCY_DLOAD_COOKIE_2    0x77777777
 
 extern void dsb();
 
-void dload_util_write_cookie(uint32_t target_dload_mode_addr)
+void dload_util_write_cookie(uint32_t target_dload_mode_addr,
+		enum dload_mode mode)
 {
-	writel(FORCE_DLOAD_COOKIE_0, target_dload_mode_addr);
-	writel(FORCE_DLOAD_COOKIE_1, target_dload_mode_addr + sizeof(uint32_t));
-	writel(FORCE_DLOAD_COOKIE_2, target_dload_mode_addr + 2 * sizeof(uint32_t));
+	if (mode == NORMAL_DLOAD)
+	{
+		writel(NORMAL_DLOAD_COOKIE_0, target_dload_mode_addr);
+		writel(NORMAL_DLOAD_COOKIE_1,
+				target_dload_mode_addr + sizeof(uint32_t));
+	}
+	else
+	{
+		writel(EMERGENCY_DLOAD_COOKIE_0, target_dload_mode_addr);
+		writel(EMERGENCY_DLOAD_COOKIE_1,
+				target_dload_mode_addr + sizeof(uint32_t));
+		writel(EMERGENCY_DLOAD_COOKIE_2,
+				target_dload_mode_addr + 2 * sizeof(uint32_t));
+	}
 
 	dsb();
 }
