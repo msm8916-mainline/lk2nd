@@ -84,6 +84,7 @@ static void mdss_rgb_pipe_config(struct fbcon_config *fb, struct msm_panel_info
 		*pinfo, uint32_t pipe_base)
 {
 	uint32_t src_size, out_size, stride;
+	uint32_t fb_off = 0;
 
 	/* write active region size*/
 	src_size = (fb->height << 16) + fb->width;
@@ -91,6 +92,12 @@ static void mdss_rgb_pipe_config(struct fbcon_config *fb, struct msm_panel_info
 
 	if (pinfo->lcdc.dual_pipe) {
 		out_size = (fb->height << 16) + (fb->width / 2);
+		if ((pinfo->lcdc.pipe_swap == TRUE) && (pipe_base ==
+					MDP_VP_0_RGB_0_BASE))
+			fb_off = (pinfo->xres / 2);
+		else if ((pinfo->lcdc.pipe_swap != TRUE) && (pipe_base ==
+					MDP_VP_0_RGB_1_BASE))
+			fb_off = (pinfo->xres / 2);
 	}
 
 	stride = (fb->stride * fb->bpp/8);
@@ -100,7 +107,7 @@ static void mdss_rgb_pipe_config(struct fbcon_config *fb, struct msm_panel_info
 	writel(src_size, pipe_base + PIPE_SSPP_SRC_IMG_SIZE);
 	writel(out_size, pipe_base + PIPE_SSPP_SRC_SIZE);
 	writel(out_size, pipe_base + PIPE_SSPP_SRC_OUT_SIZE);
-	writel(0x00, pipe_base + PIPE_SSPP_SRC_XY);
+	writel(fb_off, pipe_base + PIPE_SSPP_SRC_XY);
 	writel(0x00, pipe_base + PIPE_SSPP_OUT_XY);
 
 	/* Tight Packing 3bpp 0-Alpha 8-bit R B G */
