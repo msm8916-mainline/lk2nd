@@ -32,6 +32,7 @@
 
 #define PM_WLED_BASE                 0x1D800
 #define PM_WLED_CTNL_REG(n)          (PM_WLED_BASE + n)
+#define PM_WLED_LED_CTNL_REG(n)      (PM_WLED_BASE + 0x60 + (n-1)*10)
 
 #define PM_WLED_LED1_BRIGHTNESS_LSB  PM_WLED_CTNL_REG(0x40)
 #define PM_WLED_LED1_BRIGHTNESS_MSB  PM_WLED_CTNL_REG(0x41)
@@ -43,7 +44,9 @@
 #define PM_WLED_ILED_SYNC_BIT        PM_WLED_CTNL_REG(0x47)
 #define PM_WLED_MODULATION_SCHEME    PM_WLED_CTNL_REG(0x4A)
 #define PM_WLED_MAX_DUTY_CYCLE       PM_WLED_CTNL_REG(0x4B)
+#define PM_WLED_OVP                  PM_WLED_CTNL_REG(0x4D)
 #define PM_WLED_CURRENT_SINK         PM_WLED_CTNL_REG(0x4F)
+#define LEDn_FULL_SCALE_CURRENT(n)   (PM_WLED_LED_CTNL_REG(n) + 0x2)
 
 #define PM_WLED_LED1_SINK_MASK       BIT(7)
 #define PM_WLED_LED2_SINK_MASK       BIT(6)
@@ -61,6 +64,8 @@ struct pm8x41_wled_data{
 	uint16_t led2_brightness;
 	uint16_t led3_brightness;
 	uint8_t max_duty_cycle;
+	uint8_t ovp;
+	uint8_t full_current_scale;;
 };
 
 void pm8x41_wled_config(struct pm8x41_wled_data *wled_ctrl);

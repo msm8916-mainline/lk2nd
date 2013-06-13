@@ -48,6 +48,10 @@ void pm8x41_wled_config(struct pm8x41_wled_data *wled_ctrl) {
 	REG_WRITE(PM_WLED_LED3_BRIGHTNESS_MSB, ((wled_ctrl->led3_brightness >> 8) & 0xFF));
 
 	REG_WRITE(PM_WLED_MAX_DUTY_CYCLE, wled_ctrl->max_duty_cycle);
+	REG_WRITE(PM_WLED_OVP, wled_ctrl->ovp);
+	REG_WRITE(LEDn_FULL_SCALE_CURRENT(1), wled_ctrl->full_current_scale);
+	REG_WRITE(LEDn_FULL_SCALE_CURRENT(2), wled_ctrl->full_current_scale);
+	REG_WRITE(LEDn_FULL_SCALE_CURRENT(3), wled_ctrl->full_current_scale);
 
 	dprintf(SPEW, "WLED Configuration Success.\n");
 
