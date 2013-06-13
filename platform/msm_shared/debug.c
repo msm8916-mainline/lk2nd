@@ -36,6 +36,7 @@
 #include <dev/fbcon.h>
 #include <dev/uart.h>
 #include <platform/timer.h>
+#include <platform.h>
 
 static void write_dcc(char c)
 {
@@ -91,6 +92,16 @@ int dgetc(char *c, bool wait)
 
 void platform_halt(void)
 {
-	dprintf(INFO, "HALT: spinning forever...\n");
+	if (set_download_mode(NORMAL_DLOAD) == 0)
+	{
+		dprintf(CRITICAL, "HALT: reboot into dload mode...\n");
+		reboot_device(0);
+		dprintf(CRITICAL, "HALT: reboot_device failed\n");
+	}
+	else
+	{
+		dprintf(CRITICAL, "HALT: set_download_mode not supported\n");
+	}
+	dprintf(CRITICAL, "HALT: spinning forever...\n");
 	for (;;) ;
 }
