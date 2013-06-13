@@ -95,6 +95,7 @@ int set_recovery_message(const struct recovery_message *in)
 	unsigned offset = 0;
 	unsigned pagesize = flash_page_size();
 	unsigned n = 0;
+	void *scratch_addr = target_get_scratch_address();
 
 	ptable = flash_get_ptable();
 
@@ -111,15 +112,15 @@ int set_recovery_message(const struct recovery_message *in)
 
 	n = pagesize * (MISC_COMMAND_PAGE + 1);
 
-	if (flash_read(ptn, offset, (void *) SCRATCH_ADDR, n)) {
+	if (flash_read(ptn, offset, scratch_addr, n)) {
 		dprintf(CRITICAL, "ERROR: Cannot read recovery_header\n");
 		return -1;
 	}
 
 	offset += (pagesize * MISC_COMMAND_PAGE);
-	offset += SCRATCH_ADDR;
+	offset += (unsigned) scratch_addr;
 	memcpy((void *) offset, in, sizeof(*in));
-	if (flash_write(ptn, 0, (void *)SCRATCH_ADDR, n)) {
+	if (flash_write(ptn, 0, scratch_addr, n)) {
 		dprintf(CRITICAL, "ERROR: flash write fail!\n");
 		return -1;
 	}
@@ -165,6 +166,7 @@ int update_firmware_image (struct update_header *header, char *name)
 	unsigned pagesize = flash_page_size();
 	unsigned pagemask = pagesize -1;
 	unsigned n = 0;
+	void *scratch_addr = target_get_scratch_address();
 
 	ptable = flash_get_ptable();
 	if (ptable == NULL) {
@@ -181,7 +183,7 @@ int update_firmware_image (struct update_header *header, char *name)
 	offset += header->image_offset;
 	n = (header->image_length + pagemask) & (~pagemask);
 
-	if (flash_read(ptn, offset, (void *) SCRATCH_ADDR, n)) {
+	if (flash_read(ptn, offset, scratch_addr, n)) {
 		dprintf(CRITICAL, "ERROR: Cannot read radio image\n");
 		return -1;
 	}
@@ -192,7 +194,7 @@ int update_firmware_image (struct update_header *header, char *name)
 		return -1;
 	}
 
-	if (flash_write(ptn, 0, (void *) SCRATCH_ADDR, n)) {
+	if (flash_write(ptn, 0, scratch_addr, n)) {
 		dprintf(CRITICAL, "ERROR: flash write fail!\n");
 		return -1;
 	}
