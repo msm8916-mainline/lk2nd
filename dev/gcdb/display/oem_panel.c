@@ -43,6 +43,7 @@
 #include "include/panel_toshiba_720p_video.h"
 #include "include/panel_nt35590_720p_video.h"
 #include "include/panel_nt35590_720p_cmd.h"
+#include "include/panel_nt35596_1080p_video.h"
 
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
@@ -50,7 +51,8 @@
 enum {
 TOSHIBA_720P_VIDEO_PANEL,
 NT35590_720P_CMD_PANEL,
-NT35590_720P_VIDEO_PANEL
+NT35590_720P_VIDEO_PANEL,
+NT35596_1080P_VIDEO_PANEL
 };
 
 static uint32_t panel_id;
@@ -148,6 +150,25 @@ static void init_panel_data(struct panel_struct *panelstruct,
 					= NT35590_720P_CMD_ON_COMMAND;
 		memcpy(phy_db->timing,
 				nt35590_720p_cmd_timings, TIMING_SIZE);
+		break;
+	case NT35596_1080P_VIDEO_PANEL:
+		panelstruct->paneldata    = &nt35596_1080p_video_panel_data;
+		panelstruct->panelres     = &nt35596_1080p_video_panel_res;
+		panelstruct->color        = &nt35596_1080p_video_color;
+		panelstruct->videopanel   = &nt35596_1080p_video_video_panel;
+		panelstruct->commandpanel = &nt35596_1080p_video_command_panel;
+		panelstruct->state        = &nt35596_1080p_video_state;
+		panelstruct->laneconfig   = &nt35596_1080p_video_lane_config;
+		panelstruct->paneltiminginfo
+					= &nt35596_1080p_video_timing_info;
+		panelstruct->backlightinfo
+					= &nt35596_1080p_video_backlight;
+		pinfo->mipi.panel_cmds
+					= nt35596_1080p_video_on_command;
+		pinfo->mipi.num_of_panel_cmds
+					= NT35596_1080P_VIDEO_ON_COMMAND;
+		memcpy(phy_db->timing,
+				nt35596_1080p_video_timings, TIMING_SIZE);
 		break;
 	}
 }
