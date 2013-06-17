@@ -102,6 +102,7 @@ static const char *androidboot_mode = " androidboot.mode=";
 static const char *loglevel         = " quiet";
 static const char *battchg_pause = " androidboot.mode=charger";
 static const char *auth_kernel = " androidboot.authorized_kernel=true";
+static const char *secondary_gpt_enable = " gpt";
 
 static const char *baseband_apq     = " androidboot.baseband=apq";
 static const char *baseband_msm     = " androidboot.baseband=msm";
@@ -200,6 +201,7 @@ unsigned char *update_cmdline(const char * cmdline)
 	int have_cmdline = 0;
 	unsigned char *cmdline_final = NULL;
 	int pause_at_bootup = 0;
+	bool gpt_exists = partition_gpt_exists();
 
 	if (cmdline && cmdline[0]) {
 		cmdline_len = strlen(cmdline);
@@ -211,6 +213,9 @@ unsigned char *update_cmdline(const char * cmdline)
 
 	cmdline_len += strlen(usb_sn_cmdline);
 	cmdline_len += strlen(sn_buf);
+
+	if (boot_into_recovery && gpt_exists)
+		cmdline_len += strlen(secondary_gpt_enable);
 
 	if (boot_into_ffbm) {
 		cmdline_len += strlen(androidboot_mode);
@@ -292,6 +297,12 @@ unsigned char *update_cmdline(const char * cmdline)
 		if (have_cmdline) --dst;
 		have_cmdline = 1;
 		while ((*dst++ = *src++));
+
+		if (boot_into_recovery && gpt_exists) {
+			src = secondary_gpt_enable;
+			if (have_cmdline) --dst;
+			while ((*dst++ = *src++));
+		}
 
 		if (boot_into_ffbm) {
 			src = androidboot_mode;
