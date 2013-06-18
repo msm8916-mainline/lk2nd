@@ -32,20 +32,125 @@
 #include <mmc.h>
 #include <clock.h>
 #include <platform/clock.h>
+#include <platform/iomap.h>
 
 void hsusb_clock_init(void)
 {
+	int ret;
+	struct clk *iclk, *cclk;
+
+	ret = clk_get_set_enable("usb_iface_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set usb_iface_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("usb_core_clk", 75000000, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set usb_core_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	/* Wait for the clocks to be stable since we are disabling soon after. */
+	mdelay(1);
+
+	iclk = clk_get("usb_iface_clk");
+	cclk = clk_get("usb_core_clk");
+
+	clk_disable(iclk);
+	clk_disable(cclk);
+
+	/* Wait for the clock disable to complete. */
+	mdelay(1);
+
+	/* Start the block reset for usb */
+	writel(1, USB_HS_BCR);
+
+	/* Wait for reset to complete. */
+	mdelay(1);
+
+	/* Take usb block out of reset */
+	writel(0, USB_HS_BCR);
+
+	/* Wait for the block to be brought out of reset. */
+	mdelay(1);
+
+	ret = clk_enable(iclk);
+
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set usb_iface_clk after async ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_enable(cclk);
+
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set usb_iface_clk after async ret = %d\n", ret);
+		ASSERT(0);
+	}
+
 }
 
 void clock_init_mmc(uint32_t interface)
 {
+	char clk_name[64];
+	int ret;
+
+	snprintf(clk_name, 64, "sdc%u_iface_clk", interface);
+
+	/* enable interface clock */
+	ret = clk_get_set_enable(clk_name, 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set sdc%u_iface_clk ret = %d\n", interface, ret);
+		ASSERT(0);
+	}
 }
 
 /* Configure MMC clock */
 void clock_config_mmc(uint32_t interface, uint32_t freq)
 {
-	/* Disalbe MCI_CLK before changing the sdcc clock */
+	int ret;
+	uint32_t reg;
+	char clk_name[64];
+
+	snprintf(clk_name, 64, "sdc%u_core_clk", interface);
+
+	/* Disable MCI_CLK before changing the sdcc clock */
 	mmc_boot_mci_clk_disable();
+
+	if(freq == MMC_CLK_400KHZ)
+	{
+		ret = clk_get_set_enable(clk_name, 400000, 1);
+	}
+	else if(freq == MMC_CLK_50MHZ)
+	{
+		ret = clk_get_set_enable(clk_name, 50000000, 1);
+	}
+	else if(freq == MMC_CLK_96MHZ)
+	{
+		ret = clk_get_set_enable(clk_name, 100000000, 1);
+	}
+	else if(freq == MMC_CLK_200MHZ)
+	{
+		ret = clk_get_set_enable(clk_name, 200000000, 1);
+	}
+	else
+	{
+		dprintf(CRITICAL, "sdc frequency (%u) is not supported\n", freq);
+		ASSERT(0);
+	}
+
+
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set sdc%u_core_clk ret = %d\n", interface, ret);
+		ASSERT(0);
+	}
 
 	/* Enable MCI CLK */
 	mmc_boot_mci_clk_enable();
@@ -54,6 +159,26 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 /* Configure UART clock based on the UART block id*/
 void clock_config_uart_dm(uint8_t id)
 {
+	int ret;
+	char iclk[64];
+	char cclk[64];
+
+	snprintf(iclk, 64, "uart%u_iface_clk", id);
+	snprintf(cclk, 64, "uart%u_core_clk", id);
+
+	ret = clk_get_set_enable(iclk, 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set uart%u_iface_clk ret = %d\n", id, ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable(cclk, 7372800, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set uart%u_core_clk ret = %d\n", id, ret);
+		ASSERT(0);
+	}
 }
 
 /* Function to asynchronously reset CE (Crypto Engine).
