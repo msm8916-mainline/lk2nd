@@ -58,9 +58,9 @@ static struct mmc_card *get_mmc_card()
  */
 uint32_t mmc_write(uint64_t data_addr, uint32_t data_len, void *in)
 {
-	int val = 0;
+	uint32_t val = 0;
 	uint32_t write_size = SDHCI_ADMA_MAX_TRANS_SZ;
-	void *sptr = in;
+	uint8_t *sptr = (uint8_t *)in;
 	struct mmc_device *dev;
 
 	dev = target_mmc_device();
@@ -76,14 +76,22 @@ uint32_t mmc_write(uint64_t data_addr, uint32_t data_len, void *in)
 	 * limitations
 	 */
 	while (data_len > write_size) {
-		val = mmc_sdhci_write(dev, sptr, (data_addr / MMC_BLK_SZ), (write_size / MMC_BLK_SZ));
+		val = mmc_sdhci_write(dev, (void *)sptr, (data_addr / MMC_BLK_SZ), (write_size / MMC_BLK_SZ));
+		if (val)
+		{
+			dprintf(CRITICAL, "Failed Writing block @ %x\n", (data_addr / MMC_BLK_SZ));
+			return val;
+		}
 		sptr += write_size;
 		data_addr += write_size;
 		data_len -= write_size;
 	}
 
 	if (data_len)
-		val = mmc_sdhci_write(dev, sptr, (data_addr / MMC_BLK_SZ), (data_len / MMC_BLK_SZ));
+		val = mmc_sdhci_write(dev, (void *)sptr, (data_addr / MMC_BLK_SZ), (data_len / MMC_BLK_SZ));
+
+	if (val)
+		dprintf(CRITICAL, "Failed Writing block @ %x\n", (data_addr / MMC_BLK_SZ));
 
 	return val;
 }
@@ -99,7 +107,7 @@ uint32_t mmc_read(uint64_t data_addr, uint32_t *out, uint32_t data_len)
 	uint32_t ret = 0;
 	uint32_t read_size = SDHCI_ADMA_MAX_TRANS_SZ;
 	struct mmc_device *dev;
-	void *sptr = out;
+	uint8_t *sptr = (uint8_t *)out;
 
 	ASSERT(!(data_addr % MMC_BLK_SZ));
 	ASSERT(!(data_len % MMC_BLK_SZ));
@@ -112,14 +120,22 @@ uint32_t mmc_read(uint64_t data_addr, uint32_t *out, uint32_t data_len)
 	 * limitations
 	 */
 	while (data_len > read_size) {
-		ret = mmc_sdhci_read(dev, sptr, (data_addr / MMC_BLK_SZ), (read_size / MMC_BLK_SZ));
+		ret = mmc_sdhci_read(dev, (void *)sptr, (data_addr / MMC_BLK_SZ), (read_size / MMC_BLK_SZ));
+		if (ret)
+		{
+			dprintf(CRITICAL, "Failed Reading block @ %x\n", (data_addr / MMC_BLK_SZ));
+			return ret;
+		}
 		sptr += read_size;
 		data_addr += read_size;
 		data_len -= read_size;
 	}
 
 	if (data_len)
-		ret = mmc_sdhci_read(dev, sptr, (data_addr / MMC_BLK_SZ), (data_len / MMC_BLK_SZ));
+		ret = mmc_sdhci_read(dev, (void *)sptr, (data_addr / MMC_BLK_SZ), (data_len / MMC_BLK_SZ));
+
+	if (ret)
+		dprintf(CRITICAL, "Failed Reading block @ %x\n", (data_addr / MMC_BLK_SZ));
 
 	return ret;
 }
