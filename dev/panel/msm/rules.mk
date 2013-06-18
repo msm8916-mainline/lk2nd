@@ -32,3 +32,8 @@ OBJS += \
 	$(LOCAL_DIR)/mipi_nt35590_video_720p.o \
 	$(LOCAL_DIR)/mipi_nt35590_cmd_720p.o
 endif
+
+ifeq ($(PLATFORM),msm8610)
+OBJS += \
+	$(LOCAL_DIR)/mipi_truly_video_wvga.o
+endif
