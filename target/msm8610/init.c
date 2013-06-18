@@ -103,6 +103,11 @@ void target_init(void)
 
 	target_keystatus();
 
+	/* Display splash screen if enabled */
+	dprintf(SPEW, "Display Init: Start\n");
+	display_init();
+	dprintf(SPEW, "Display Init: Done\n");
+
 	/* Trying Slot 1*/
 	slot = 1;
 	base_addr = mmc_sdc_base[slot - 1];
@@ -212,6 +217,23 @@ void reboot_device(unsigned reboot_reason)
 	mdelay(5000);
 
 	dprintf(CRITICAL, "Rebooting failed\n");
+}
+
+int target_cont_splash_screen()
+{
+	int ret = 0;
+	switch(board_hardware_id())
+	{
+		case HW_PLATFORM_MTP:
+		case HW_PLATFORM_QRD:
+		case HW_PLATFORM_SURF:
+			dprintf(SPEW, "Target_cont_splash=0\n");
+			ret = 0;
+		default:
+			dprintf(SPEW, "Target_cont_splash=0\n");
+			ret = 0;
+	}
+	return ret;
 }
 
 unsigned target_pause_for_battery_charge(void)
