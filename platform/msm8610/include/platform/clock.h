@@ -32,7 +32,42 @@
 #include <clock.h>
 #include <clock_lib2.h>
 
+#define REG_MM(off)                     (MSM_MMSS_CLK_CTL_BASE + (off))
+
+#define VSYNC_CMD_RCGR                  REG_MM(0x2080)
+#define VSYNC_CFG_RCGR                  REG_MM(0x2084)
+#define AXI_CMD_RCGR                    REG_MM(0x5040)
+#define AXI_CFG_RCGR                    REG_MM(0x5044)
+
+#define MDP_AXI_CBCR                    REG_MM(0x2314)
+#define MDP_AHB_CBCR                    REG_MM(0x2318)
+#define MDP_VSYNC_CBCR                  REG_MM(0x231C)
+#define MDP_DSI_CBCR                    REG_MM(0x2320)
+#define MDP_LCDC_CBCR                   REG_MM(0x2340)
+
+#define MMSS_S0_AXI_CBCR                REG_MM(0x5064)
+#define MMSS_MMSSNOC_AXI_CBCR           REG_MM(0x506C)
+
+#define DSI_CBCR                        REG_MM(0x2324)
+#define DSI_BYTE_CBCR                   REG_MM(0x2328)
+#define DSI_ESC_CBCR                    REG_MM(0x232C)
+#define DSI_AHB_CBCR                    REG_MM(0x2330)
+#define DSI_PCLK_CBCR                   REG_MM(0x233C)
+
+#define DSI_CMD_RCGR                    REG_MM(0x2020)
+#define DSI_CFG_RCGR                    REG_MM(0x2024)
+#define DSI_PCLK_CMD_RCGR               REG_MM(0x2000)
+#define DSI_PCLK_CFG_RCGR               REG_MM(0x2004)
+#define DSI_BYTE_CMD_RCGR               REG_MM(0x2120)
+#define DSI_BYTE_CFG_RCGR               REG_MM(0x2124)
+
 #define UART_DM_CLK_RX_TX_BIT_RATE 0xCC
+
+#define VCO_MAX_DIVIDER		 256
+#define VCO_MIN_RATE       600000000
+#define VCO_MAX_RATE       1200000000
+#define VCO_PREF_DIV_RATIO 26
+#define VCO_PARENT_RATE    19200000
 
 void platform_clock_init(void);
 
@@ -40,5 +75,9 @@ void clock_init_mmc(uint32_t interface);
 void clock_config_mmc(uint32_t interface, uint32_t freq);
 void clock_config_uart_dm(uint8_t id);
 void hsusb_clock_init(void);
+void mdp_clock_enable(void);
+void mdp_clock_disable(void);
+void dsi_clock_enable(uint32_t dsiclk_rate, uint32_t byteclk_rate);
+void dsi_clock_disable(void);
 
 #endif

@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -270,6 +270,143 @@ static struct branch_clk gcc_usb_hs_ahb_clk =
 	},
 };
 
+/* Diplay related clock LUT */
+static struct clk_freq_tbl ftbl_mmss_axi_clk[] = {
+	F_MM(19200000,     cxo,     1,   0,   0),
+	F_MM(100000000,  gpll0,     6,   0,   0),
+	F_END
+};
+
+static struct clk_freq_tbl ftbl_mdss_vsync_clk[] = {
+	F_MM(19200000,    cxo,   1,   0,   0),
+	F_END
+};
+
+static struct rcg_clk vsync_clk_src = {
+	.cmd_reg  = (uint32_t *) VSYNC_CMD_RCGR,
+	.cfg_reg  = (uint32_t *) VSYNC_CFG_RCGR,
+	.set_rate = clock_lib2_rcg_set_rate_hid,
+	.freq_tbl = ftbl_mdss_vsync_clk,
+	.c        = {
+		.dbg_name = "vsync_clk_src",
+		.ops      = &clk_ops_rcg,
+	},
+};
+
+static struct rcg_clk axi_clk_src = {
+	.cmd_reg  = (uint32_t *) AXI_CMD_RCGR,
+	.cfg_reg  = (uint32_t *) AXI_CFG_RCGR,
+	.set_rate = clock_lib2_rcg_set_rate_hid,
+	.freq_tbl = ftbl_mmss_axi_clk,
+	.c        = {
+		.dbg_name = "axi_clk_src",
+		.ops      = &clk_ops_rcg,
+	},
+};
+
+static struct branch_clk mdp_ahb_clk = {
+	.cbcr_reg    = (uint32_t *) MDP_AHB_CBCR,
+	.has_sibling = 1,
+	.c           = {
+		.dbg_name = "mdp_ahb_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
+static struct branch_clk mdp_axi_clk = {
+	.cbcr_reg    = (uint32_t *) MDP_AXI_CBCR,
+	.parent      = &axi_clk_src.c,
+	.c           = {
+		.dbg_name = "mdp_axi_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
+static struct branch_clk mdp_dsi_clk = {
+	.cbcr_reg    = (uint32_t *) MDP_DSI_CBCR,
+	.c           = {
+		.dbg_name = "mdp_dsi_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
+static struct branch_clk mmss_mmssnoc_axi_clk = {
+	.cbcr_reg    = (uint32_t *) MMSS_MMSSNOC_AXI_CBCR,
+	.parent      = &axi_clk_src.c,
+	.c           = {
+		.dbg_name = "mmss_mmssnoc_axi_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
+static struct branch_clk mmss_s0_axi_clk = {
+	.cbcr_reg    = (uint32_t *) MMSS_S0_AXI_CBCR,
+	.parent      = &axi_clk_src.c,
+	.c           = {
+		.dbg_name = "mmss_s0_axi_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
+static struct branch_clk mdp_vsync_clk = {
+	.cbcr_reg    = MDP_VSYNC_CBCR,
+	.parent      = &vsync_clk_src.c,
+	.c           = {
+		.dbg_name = "mdp_vsync_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
+static struct branch_clk mdp_lcdc_clk = {
+	.cbcr_reg    = MDP_LCDC_CBCR,
+	.parent      = &axi_clk_src.c,
+	.c           = {
+		.dbg_name = "mdp_lcdc_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
+static struct branch_clk dsi_clk = {
+	.cbcr_reg = DSI_CBCR,
+	.c = {
+		.dbg_name = "dsi_clk",
+		.ops = &clk_ops_branch,
+	},
+};
+
+static struct branch_clk dsi_ahb_clk = {
+	.cbcr_reg = DSI_AHB_CBCR,
+	.has_sibling = 1,
+	.c = {
+		.dbg_name = "dsi_ahb_clk",
+		.ops = &clk_ops_branch,
+	},
+};
+
+static struct branch_clk dsi_byte_clk = {
+	.cbcr_reg = DSI_BYTE_CBCR,
+	.c = {
+		.dbg_name = "dsi_byte_clk",
+		.ops = &clk_ops_branch,
+	},
+};
+
+static struct branch_clk dsi_esc_clk = {
+	.cbcr_reg = DSI_ESC_CBCR,
+	.c = {
+		.dbg_name = "dsi_esc_clk",
+		.ops = &clk_ops_branch,
+	},
+};
+
+static struct branch_clk dsi_pclk_clk = {
+	.cbcr_reg = DSI_PCLK_CBCR,
+	.c = {
+		.dbg_name = "dsi_pclk_clk",
+		.ops = &clk_ops_branch,
+	},
+};
+
 /* Clock lookup table */
 static struct clk_lookup msm_clocks_8610[] =
 {
@@ -281,6 +418,21 @@ static struct clk_lookup msm_clocks_8610[] =
 
 	CLK_LOOKUP("usb_iface_clk",  gcc_usb_hs_ahb_clk.c),
 	CLK_LOOKUP("usb_core_clk",   gcc_usb_hs_system_clk.c),
+
+	CLK_LOOKUP("axi_clk_src",          axi_clk_src.c),
+	CLK_LOOKUP("mmss_mmssnoc_axi_clk", mmss_mmssnoc_axi_clk.c),
+	CLK_LOOKUP("mmss_s0_axi_clk",      mmss_s0_axi_clk.c),
+	CLK_LOOKUP("mdp_axi_clk",          mdp_axi_clk.c),
+	CLK_LOOKUP("mdp_dsi_clk",          mdp_dsi_clk.c),
+	CLK_LOOKUP("mdp_vsync_clk",        mdp_vsync_clk.c),
+	CLK_LOOKUP("mdp_lcdc_clk",         mdp_lcdc_clk.c),
+	CLK_LOOKUP("mdp_ahb_clk",          mdp_ahb_clk.c),
+
+	CLK_LOOKUP("dsi_clk",              dsi_clk.c),
+	CLK_LOOKUP("dsi_ahb_clk",          dsi_ahb_clk.c),
+	CLK_LOOKUP("dsi_byte_clk",         dsi_byte_clk.c),
+	CLK_LOOKUP("dsi_esc_clk",          dsi_esc_clk.c),
+	CLK_LOOKUP("dsi_pclk_clk",         dsi_pclk_clk.c),
 };
 
 void platform_clock_init(void)
