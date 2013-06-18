@@ -130,6 +130,11 @@ static void msm8974_mdss_mipi_panel_reset(uint8_t enable)
 
 static int msm8974_mipi_panel_power(uint8_t enable)
 {
+
+	struct pm8x41_ldo ldo2  = LDO(PM8x41_LDO2, NLDO_TYPE);
+	struct pm8x41_ldo ldo12 = LDO(PM8x41_LDO12, PLDO_TYPE);
+	struct pm8x41_ldo ldo22 = LDO(PM8x41_LDO22, PLDO_TYPE);
+
 	if (enable) {
 
 		/* Enable backlight */
@@ -137,18 +142,18 @@ static int msm8974_mipi_panel_power(uint8_t enable)
 
 		/* Turn on LDO8 for lcd1 mipi vdd */
 		dprintf(SPEW, " Setting LDO22\n");
-		pm8x41_ldo_set_voltage("LDO22", 3000000);
-		pm8x41_ldo_control("LDO22", enable);
+		pm8x41_ldo_set_voltage(&ldo22, 3000000);
+		pm8x41_ldo_control(&ldo22, enable);
 
 		dprintf(SPEW, " Setting LDO12\n");
 		/* Turn on LDO23 for lcd1 mipi vddio */
-		pm8x41_ldo_set_voltage("LDO12", 1800000);
-		pm8x41_ldo_control("LDO12", enable);
+		pm8x41_ldo_set_voltage(&ldo12, 1800000);
+		pm8x41_ldo_control(&ldo12, enable);
 
 		dprintf(SPEW, " Setting LDO2\n");
 		/* Turn on LDO2 for vdda_mipi_dsi */
-		pm8x41_ldo_set_voltage("LDO2", 1200000);
-		pm8x41_ldo_control("LDO2", enable);
+		pm8x41_ldo_set_voltage(&ldo2, 1200000);
+		pm8x41_ldo_control(&ldo2, enable);
 
 		dprintf(SPEW, " Panel Reset \n");
 		/* Panel Reset */
@@ -157,8 +162,8 @@ static int msm8974_mipi_panel_power(uint8_t enable)
 	} else {
 		msm8974_mdss_mipi_panel_reset(enable);
 		pm8x41_wled_enable(enable);
-		pm8x41_ldo_control("LDO2", enable);
-		pm8x41_ldo_control("LDO22", enable);
+		pm8x41_ldo_control(&ldo2, enable);
+		pm8x41_ldo_control(&ldo22, enable);
 
 	}
 

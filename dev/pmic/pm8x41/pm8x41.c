@@ -35,12 +35,6 @@
 #include <pm8x41.h>
 #include <platform/timer.h>
 
-struct pm8x41_ldo ldo_data[] = {
-	LDO("LDO2",  NLDO_TYPE, 0x14100, LDO_RANGE_CTRL, LDO_STEP_CTRL, LDO_EN_CTL_REG),
-	LDO("LDO12", PLDO_TYPE, 0x14B00, LDO_RANGE_CTRL, LDO_STEP_CTRL, LDO_EN_CTL_REG),
-	LDO("LDO22", PLDO_TYPE, 0x15500, LDO_RANGE_CTRL, LDO_STEP_CTRL, LDO_EN_CTL_REG),
-};
-
 /* SPMI helper functions */
 uint8_t pm8x41_reg_read(uint32_t addr)
 {
@@ -260,34 +254,20 @@ void pm8x41_reset_configure(uint8_t reset_type)
 	REG_WRITE(PON_PS_HOLD_RESET_CTL2, BIT(S2_RESET_EN_BIT));
 }
 
-static struct pm8x41_ldo *ldo_get(const char *ldo_name)
-{
-	uint8_t i;
-	struct pm8x41_ldo *ldo = NULL;
-
-	for (i = 0; i < ARRAY_SIZE(ldo_data); i++) {
-		ldo = &ldo_data[i];
-		if (!strncmp(ldo->name, ldo_name, strlen(ldo_name)))
-			break;
-	}
-	return ldo;
-}
-
 /*
  * LDO set voltage, takes ldo name & voltage in UV as input
  */
-int pm8x41_ldo_set_voltage(const char *name, uint32_t voltage)
+int pm8x41_ldo_set_voltage(struct pm8x41_ldo *ldo, uint32_t voltage)
 {
 	uint32_t range = 0;
 	uint32_t step = 0;
 	uint32_t mult = 0;
 	uint32_t val = 0;
 	uint32_t vmin = 0;
-	struct pm8x41_ldo *ldo;
 
-	ldo = ldo_get(name);
-	if (!ldo) {
-		dprintf(CRITICAL, "LDO requsted is not supported: %s\n", name);
+	if (!ldo)
+	{
+		dprintf(CRITICAL, "LDO pointer is invalid: %p\n", ldo);
 		return 1;
 	}
 
@@ -300,21 +280,29 @@ int pm8x41_ldo_set_voltage(const char *name, uint32_t voltage)
 	 * Select range, step & vmin based on input voltage & type of LDO
 	 * LDO can operate in low, mid, high power mode
 	 */
-	if (ldo->type == PLDO_TYPE) {
-		if (voltage < PLDO_UV_MIN) {
+	if (ldo->type == PLDO_TYPE)
+	{
+		if (voltage < PLDO_UV_MIN)
+		{
 			range = 2;
 			step = PLDO_UV_STEP_LOW;
 			vmin = PLDO_UV_VMIN_LOW;
-		} else if (voltage < PDLO_UV_MID) {
+		}
+		else if (voltage < PDLO_UV_MID)
+		{
 			range = 3;
 			step = PLDO_UV_STEP_MID;
 			vmin = PLDO_UV_VMIN_MID;
-		} else {
+		}
+		else
+		{
 			range = 4;
 			step = PLDO_UV_STEP_HIGH;
 			vmin = PLDO_UV_VMIN_HIGH;
 		}
-	} else {
+	}
+	else
+	{
 		range = 2;
 		step = NLDO_UV_STEP;
 		vmin = NLDO_UV_VMIN_LOW;
@@ -325,12 +313,12 @@ int pm8x41_ldo_set_voltage(const char *name, uint32_t voltage)
 	/* Set Range in voltage ctrl register */
 	val = 0x0;
 	val = range << LDO_RANGE_SEL_BIT;
-	REG_WRITE((ldo->base + ldo->range_reg), val);
+	REG_WRITE((ldo->base + LDO_RANGE_CTRL), val);
 
 	/* Set multiplier in voltage ctrl register */
 	val = 0x0;
 	val = mult << LDO_VSET_SEL_BIT;
-	REG_WRITE((ldo->base + ldo->step_reg), val);
+	REG_WRITE((ldo->base + LDO_STEP_CTRL), val);
 
 	return 0;
 }
@@ -338,14 +326,13 @@ int pm8x41_ldo_set_voltage(const char *name, uint32_t voltage)
 /*
  * Enable or Disable LDO
  */
-int pm8x41_ldo_control(const char *name, uint8_t enable)
+int pm8x41_ldo_control(struct pm8x41_ldo *ldo, uint8_t enable)
 {
 	uint32_t val = 0;
-	struct pm8x41_ldo *ldo;
 
-	ldo = ldo_get(name);
-	if (!ldo) {
-		dprintf(CRITICAL, "Requested LDO is not supported : %s\n", name);
+	if (!ldo)
+	{
+		dprintf(CRITICAL, "LDO pointer is invalid: %p\n", ldo);
 		return 1;
 	}
 
@@ -355,7 +342,7 @@ int pm8x41_ldo_control(const char *name, uint8_t enable)
 	else
 		val = (0 << LDO_VREG_ENABLE_BIT);
 
-	REG_WRITE((ldo->base + ldo->enable_reg), val);
+	REG_WRITE((ldo->base + LDO_EN_CTL_REG), val);
 
 	return 0;
 }
