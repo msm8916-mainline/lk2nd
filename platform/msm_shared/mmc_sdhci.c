@@ -32,6 +32,7 @@
 #include <reg.h>
 #include <mmc_sdhci.h>
 #include <sdhci.h>
+#include <sdhci_msm.h>
 #include <partition_parser.h>
 #include <platform/iomap.h>
 #include <platform/timer.h>
@@ -85,8 +86,7 @@ static uint32_t mmc_decode_and_save_csd(struct mmc_card *card)
 
 	mmc_csd.cmmc_structure = UNPACK_BITS(raw_csd, 126, 2, mmc_sizeof);
 
-	if ((card->type == MMC_TYPE_SDHC)
-	    || (card->type == MMC_TYPE_STD_SD)) {
+	if (MMC_CARD_SD(card)) {
 		/* Parse CSD according to SD card spec. */
 
 		/* CSD register is little bit differnet for CSD version 2.0 High
@@ -133,7 +133,7 @@ static uint32_t mmc_decode_and_save_csd(struct mmc_card *card)
 			mmc_csd.temp_wp = UNPACK_BITS(raw_csd, 12, 1, mmc_sizeof);
 
 			/* Calculate the card capcity */
-			card->capacity = (1 + mmc_csd.c_size) * 512 * 1024;
+			card->capacity = (unsigned long long) (1 + mmc_csd.c_size) * 512 * 1024;
 		} else {
 			/* CSD Version 1.0 */
 			mmc_csd.card_cmd_class = UNPACK_BITS(raw_csd, 84, 12, mmc_sizeof);
@@ -177,7 +177,7 @@ static uint32_t mmc_decode_and_save_csd(struct mmc_card *card)
 
 			/* Calculate the card capacity */
 			mmc_temp = (1 << (mmc_csd.c_size_mult + 2)) * (mmc_csd.c_size + 1);
-			card->capacity = mmc_temp * mmc_csd.read_blk_len;
+			card->capacity = (unsigned long long)mmc_temp * mmc_csd.read_blk_len;
 		}
 	} else {
 		/* Parse CSD according to MMC card spec. */
@@ -213,7 +213,7 @@ static uint32_t mmc_decode_and_save_csd(struct mmc_card *card)
 		if (mmc_csd.c_size != 0xFFF) {
 			/* For cards less than or equal to 2GB */
 			mmc_temp = (1 << (mmc_csd.c_size_mult + 2)) * (mmc_csd.c_size + 1);
-			card->capacity = mmc_temp * mmc_csd.read_blk_len;
+			card->capacity = (unsigned long long) mmc_temp * mmc_csd.read_blk_len;
 		} else {
 			/* For cards greater than 2GB, Ext CSD register's SEC_COUNT
 			 * is used to calculate the size.
@@ -224,7 +224,6 @@ static uint32_t mmc_decode_and_save_csd(struct mmc_card *card)
 						| (card->ext_csd[MMC_SEC_COUNT3] << MMC_SEC_COUNT3_SHIFT)
 						| (card->ext_csd[MMC_SEC_COUNT2] << MMC_SEC_COUNT2_SHIFT)
 						| card->ext_csd[MMC_SEC_COUNT1];
-
 			card->capacity = sec_count * MMC_BLK_SZ;
 		}
 	}
@@ -234,22 +233,22 @@ static uint32_t mmc_decode_and_save_csd(struct mmc_card *card)
 			sizeof(struct mmc_csd));
 
 	dprintf(SPEW, "Decoded CSD fields:\n");
-	dprintf(SPEW, "cmmc_structure: %d\n", mmc_csd.cmmc_structure);
+	dprintf(SPEW, "cmmc_structure: %u\n", mmc_csd.cmmc_structure);
 	dprintf(SPEW, "card_cmd_class: %x\n", mmc_csd.card_cmd_class);
-	dprintf(SPEW, "write_blk_len: %d\n", mmc_csd.write_blk_len);
-	dprintf(SPEW, "read_blk_len: %d\n", mmc_csd.read_blk_len);
-	dprintf(SPEW, "r2w_factor: %d\n", mmc_csd.r2w_factor);
-	dprintf(SPEW, "sector_size: %d\n", mmc_csd.sector_size);
-	dprintf(SPEW, "c_size_mult:%d\n", mmc_csd.c_size_mult);
-	dprintf(SPEW, "c_size: %d\n", mmc_csd.c_size);
-	dprintf(SPEW, "nsac_clk_cycle: %d\n", mmc_csd.nsac_clk_cycle);
-	dprintf(SPEW, "taac_ns: %d\n", mmc_csd.taac_ns);
-	dprintf(SPEW, "tran_speed: %d kbps\n", mmc_csd.tran_speed);
-	dprintf(SPEW, "erase_blk_len: %d\n", mmc_csd.erase_blk_len);
-	dprintf(SPEW, "read_blk_misalign: %d\n", mmc_csd.read_blk_misalign);
-	dprintf(SPEW, "write_blk_misalign: %d\n", mmc_csd.write_blk_misalign);
-	dprintf(SPEW, "read_blk_partial: %d\n", mmc_csd.read_blk_partial);
-	dprintf(SPEW, "write_blk_partial: %d\n", mmc_csd.write_blk_partial);
+	dprintf(SPEW, "write_blk_len: %u\n", mmc_csd.write_blk_len);
+	dprintf(SPEW, "read_blk_len: %u\n", mmc_csd.read_blk_len);
+	dprintf(SPEW, "r2w_factor: %u\n", mmc_csd.r2w_factor);
+	dprintf(SPEW, "sector_size: %u\n", mmc_csd.sector_size);
+	dprintf(SPEW, "c_size_mult:%u\n", mmc_csd.c_size_mult);
+	dprintf(SPEW, "c_size: %u\n", mmc_csd.c_size);
+	dprintf(SPEW, "nsac_clk_cycle: %u\n", mmc_csd.nsac_clk_cycle);
+	dprintf(SPEW, "taac_ns: %u\n", mmc_csd.taac_ns);
+	dprintf(SPEW, "tran_speed: %u kbps\n", mmc_csd.tran_speed);
+	dprintf(SPEW, "erase_blk_len: %u\n", mmc_csd.erase_blk_len);
+	dprintf(SPEW, "read_blk_misalign: %u\n", mmc_csd.read_blk_misalign);
+	dprintf(SPEW, "write_blk_misalign: %u\n", mmc_csd.write_blk_misalign);
+	dprintf(SPEW, "read_blk_partial: %u\n", mmc_csd.read_blk_partial);
+	dprintf(SPEW, "write_blk_partial: %u\n", mmc_csd.write_blk_partial);
 	dprintf(SPEW, "Card Capacity: %llu Bytes\n", card->capacity);
 
 	return 0;
@@ -274,8 +273,7 @@ static uint32_t mmc_decode_and_save_cid(struct mmc_card *card,
 
 	mmc_sizeof = sizeof(uint32_t) * 8;
 
-	if ((card->type == MMC_TYPE_SDHC) ||
-		(card->type == MMC_TYPE_STD_SD)) {
+	if (MMC_CARD_SD(card)) {
 		mmc_cid.mid = UNPACK_BITS(raw_cid, 120, 8, mmc_sizeof);
 		mmc_cid.oid = UNPACK_BITS(raw_cid, 104, 16, mmc_sizeof);
 
@@ -467,8 +465,7 @@ static uint32_t mmc_send_relative_address(struct sdhci_host *host,
 	/* CMD3 Format:
 	 * [31:0] stuff bits
 	 */
-	if (card->type == MMC_TYPE_SDHC ||
-		card->type == MMC_TYPE_STD_SD) {
+	if (MMC_CARD_SD(card)) {
 		cmd.cmd_index = CMD3_SEND_RELATIVE_ADDR;
 		cmd.argument = 0;
 		cmd.cmd_type = SDHCI_CMD_TYPE_NORMAL;
@@ -535,14 +532,13 @@ static uint32_t mmc_send_csd(struct sdhci_host *host, struct mmc_card *card)
 
 /*
  * Function: mmc select card
- * Arg     : host, card structure & RCA
+ * Arg     : host, card structure
  * Return  : 0 on Success, 1 on Failure
  * Flow    : Selects a card by sending CMD7 to the card with its RCA.
  *           If RCA field is set as 0 ( or any other address ),
  *           the card will be de-selected. (CMD7)
  */
-static uint32_t mmc_select_card(struct sdhci_host *host, struct mmc_card *card,
-						 uint32_t rca)
+static uint32_t mmc_select_card(struct sdhci_host *host, struct mmc_card *card)
 {
 	struct mmc_command cmd;
 	uint32_t mmc_arg = 0;
@@ -554,16 +550,15 @@ static uint32_t mmc_select_card(struct sdhci_host *host, struct mmc_card *card,
 	 * [31:16] RCA
 	 * [15:0] stuff bits
 	 */
-	mmc_arg |= rca << 16;
+	mmc_arg |= card->rca << 16;
 
 	cmd.cmd_index = CMD7_SELECT_DESELECT_CARD;
 	cmd.argument = mmc_arg;
 	cmd.cmd_type = SDHCI_CMD_TYPE_NORMAL;
 
 	/* If we are deselecting card, we do not get response */
-	if (rca == card->rca && rca) {
-		if (card->type == MMC_TYPE_SDHC ||
-			card->type == MMC_TYPE_STD_SD)
+	if (card->rca) {
+		if (MMC_CARD_SD(card))
 			cmd.resp_type = SDHCI_CMD_RESP_R1B;
 		else
 			cmd.resp_type = SDHCI_CMD_RESP_R1;
@@ -896,9 +891,26 @@ static uint8_t mmc_host_init(struct mmc_device *dev)
 
 	struct sdhci_host *host;
 	struct mmc_config_data *cfg;
+	struct sdhci_msm_data data;
+
+	event_t sdhc_event;
 
 	host = &dev->host;
 	cfg = &dev->config;
+
+	event_init(&sdhc_event, false, EVENT_FLAG_AUTOUNSIGNAL);
+
+	host->base = cfg->sdhc_base;
+	host->sdhc_event = &sdhc_event;
+
+	data.sdhc_event = &sdhc_event;
+	data.pwrctl_base = cfg->pwrctl_base;
+	data.pwr_irq = cfg->pwr_irq;
+
+	/*
+	 * MSM specific sdhc init
+	 */
+	sdhci_msm_init(&data);
 
 	/*
 	 * Initialize the controller, read the host capabilities
@@ -953,7 +965,7 @@ static uint32_t mmc_identify_card(struct sdhci_host *host, struct mmc_card *card
 	}
 
 	/* Select the card (CMD7) */
-	mmc_return = mmc_select_card(host, card, card->rca);
+	mmc_return = mmc_select_card(host, card);
 	if (mmc_return) {
 		dprintf(CRITICAL, "Failure selecting the Card with RCA: %x\n",card->rca);
 		return mmc_return;
@@ -989,6 +1001,7 @@ static uint32_t mmc_reset_card_and_send_op(struct sdhci_host *host, struct mmc_c
 	 * Send CMD1 to identify and reject cards that do not match host's VDD range
 	 * profile. Cards sends its OCR register in response.
 	 */
+
 	mmc_return = mmc_send_op_cond(host, card);
 
 	/* OCR is not received, init could not complete */
@@ -996,6 +1009,257 @@ static uint32_t mmc_reset_card_and_send_op(struct sdhci_host *host, struct mmc_c
 		dprintf(CRITICAL, "Failure getting OCR response from MMC Card\n");
 		return mmc_return;
 	}
+
+	return 0;
+}
+
+static uint32_t mmc_send_app_cmd(struct sdhci_host *host, struct mmc_card *card)
+{
+	struct mmc_command cmd = {0};
+
+	cmd.cmd_index = CMD55_APP_CMD;
+	cmd.argument = (card->rca << 16);
+	cmd.cmd_type = SDHCI_CMD_TYPE_NORMAL;
+	cmd.resp_type = SDHCI_CMD_RESP_R1;
+
+	if (sdhci_send_command(host, &cmd))
+	{
+		dprintf(CRITICAL, "Failed Sending CMD55\n");
+		return 1;
+	}
+	return 0;
+}
+
+uint32_t mmc_sd_card_init(struct sdhci_host *host, struct mmc_card *card)
+{
+	uint8_t i;
+	uint32_t mmc_ret;
+	struct mmc_command cmd;
+
+	memset((struct mmc_command *)&cmd, 0, sizeof(struct mmc_command));
+
+	/* Use the SD card RCA 0x0 during init */
+	card->rca = SD_CARD_RCA;
+
+	/* Send CMD8 for voltage check*/
+	for (i = 0 ;i < SD_CMD8_MAX_RETRY; i++)
+	{
+		cmd.cmd_index = CMD8_SEND_IF_COND;
+		cmd.argument = MMC_SD_HC_VOLT_SUPPLIED;
+		cmd.cmd_type = SDHCI_CMD_TYPE_NORMAL;
+		cmd.resp_type = SDHCI_CMD_RESP_R7;
+
+		if (sdhci_send_command(host, &cmd))
+		{
+			dprintf(CRITICAL, "The response for CMD8 does not match the supplied value\n");
+			return 1;
+		}
+		else
+		{
+			/* If the command response echos the voltage back */
+			if (cmd.resp[0] == MMC_SD_HC_VOLT_SUPPLIED)
+				break;
+		}
+		/* As per SDCC the spec try for max three times with
+		 * 1 ms delay
+		 */
+		mdelay(1);
+	}
+
+	if (i == SD_CMD8_MAX_RETRY && (cmd.resp[0] != MMC_SD_HC_VOLT_SUPPLIED))
+	{
+		dprintf(CRITICAL, "Error: CMD8 response timed out\n");
+		return 1;
+	}
+
+	/* Send ACMD41 for OCR */
+	for (i = 0; i < SD_ACMD41_MAX_RETRY; i++)
+	{
+		/* Send APP_CMD before ACMD41*/
+		if (mmc_send_app_cmd(host, card))
+		{
+			dprintf(CRITICAL, "Failed sending App command\n");
+			return 1;
+		}
+
+		/* APP_CMD is successful, send ACMD41 now */
+		cmd.cmd_index = ACMD41_SEND_OP_COND;
+		cmd.argument = MMC_SD_OCR | MMC_SD_HC_HCS;
+		cmd.cmd_type = SDHCI_CMD_TYPE_NORMAL;
+		cmd.resp_type = SDHCI_CMD_RESP_R3;
+
+		if (sdhci_send_command(host, &cmd))
+		{
+			dprintf(CRITICAL, "Failure sending ACMD41\n");
+			return 1;
+		}
+		else
+		{
+			if (cmd.resp[0] & MMC_SD_DEV_READY)
+			{
+				if (cmd.resp[0] & (1 << 30))
+					card->type = MMC_CARD_TYPE_SDHC;
+				else
+					card->type = MMC_CARD_TYPE_STD_SD;
+
+				break;
+			}
+		}
+		/*
+		 * As per SDCC spec try for max 1 second
+		 */
+		mdelay(50);
+	}
+
+	if (i == SD_ACMD41_MAX_RETRY && !(cmd.resp[0] & MMC_SD_DEV_READY))
+	{
+		dprintf(CRITICAL, "Error: ACMD41 response timed out\n");
+		return 1;
+	}
+
+	return 0;
+}
+
+/*
+ * Function to read SD card information from SD status
+ */
+static uint32_t mmc_sd_get_card_ssr(struct sdhci_host *host, struct mmc_card *card)
+{
+	BUF_DMA_ALIGN(raw_sd_status, 64);
+	struct mmc_command cmd = {0};
+	uint32_t sd_status[16];
+	uint32_t *status = sd_status;
+	uint32_t au_size;
+	int i;
+	int j;
+
+	if (mmc_send_app_cmd(host, card))
+	{
+		dprintf(CRITICAL, "Failed sending App command\n");
+		return 1;
+	}
+
+	cmd.cmd_index = ACMD13_SEND_SD_STATUS;
+	cmd.argument = 0x0;
+	cmd.cmd_type = SDHCI_CMD_TYPE_NORMAL;
+	cmd.resp_type = SDHCI_CMD_RESP_R2;
+	cmd.trans_mode = SDHCI_MMC_READ;
+	cmd.data_present = 0x1;
+	cmd.data.data_ptr = raw_sd_status;
+	cmd.data.num_blocks = 0x1;
+	cmd.data.blk_sz = 0x40;
+
+	/* send command */
+	if (sdhci_send_command(host, &cmd))
+		return 1;
+
+	memcpy(sd_status, raw_sd_status, sizeof(sd_status));
+
+	for (i = 15, j = 0; i >=0 ; i--, j++)
+		sd_status[i] = swap_endian32(sd_status[j]);
+
+	au_size = UNPACK_BITS(status, MMC_SD_AU_SIZE_BIT, MMC_SD_AU_SIZE_LEN, 32);
+	/* Card AU size in sectors */
+	card->ssr.au_size = 1 << (au_size + 4);
+	card->ssr.num_aus = UNPACK_BITS(status, MMC_SD_ERASE_SIZE_BIT, MMC_SD_ERASE_SIZE_LEN, 32);
+
+	return 0;
+}
+
+/*
+ * Function to read the SD CARD configuration register
+ */
+static uint32_t mmc_sd_get_card_scr(struct sdhci_host *host, struct mmc_card *card)
+{
+	BUF_DMA_ALIGN(scr_resp, 8);
+	struct mmc_command cmd = {0};
+	uint32_t raw_scr[2];
+
+	/* Now read the SCR register */
+	/* Send APP_CMD before ACMD51*/
+	if (mmc_send_app_cmd(host, card))
+	{
+		dprintf(CRITICAL, "Failed sending App command\n");
+		return 1;
+	}
+
+	cmd.cmd_index = ACMD51_READ_CARD_SCR;
+	cmd.argument = 0x0;
+	cmd.cmd_type = SDHCI_CMD_TYPE_NORMAL;
+	cmd.resp_type = SDHCI_CMD_RESP_R1;
+	cmd.trans_mode = SDHCI_MMC_READ;
+	cmd.data_present = 0x1;
+	cmd.data.data_ptr = scr_resp;
+	cmd.data.num_blocks = 0x1;
+	cmd.data.blk_sz = 0x8;
+
+	/* send command */
+	if (sdhci_send_command(host, &cmd))
+		return 1;
+
+	memcpy(raw_scr, scr_resp, sizeof(raw_scr));
+
+	card->raw_scr[0] = swap_endian32(raw_scr[0]);
+	card->raw_scr[1] = swap_endian32(raw_scr[1]);
+
+	/*
+	 * Parse & Populate the SCR data as per sdcc spec
+	 */
+	card->scr.bus_widths = (card->raw_scr[0] & SD_SCR_BUS_WIDTH_MASK) >> SD_SCR_BUS_WIDTH;
+	card->scr.cmd23_support = (card->raw_scr[0] & SD_SCR_CMD23_SUPPORT);
+	card->scr.sd_spec = (card->raw_scr[0] & SD_SCR_SD_SPEC_MASK) >> SD_SCR_SD_SPEC;
+	card->scr.sd3_spec = (card->raw_scr[0] & SD_SCR_SD_SPEC3_MASK) >> SD_SCR_SD_SPEC3;
+
+	return 0;
+}
+
+/*
+ * Function: mmc_set_sd_bus_width
+ * Arg     : host, device structure & width
+ * Return  : 0 on Success, 1 on Failure
+ * Flow    : Set the bus width for the card
+ */
+uint32_t mmc_sd_set_bus_width(struct sdhci_host *host, struct mmc_card *card, uint8_t width)
+{
+	struct mmc_command cmd = {0};
+
+	/* Send APP_CMD before ACMD6*/
+	if (mmc_send_app_cmd(host, card))
+	{
+		dprintf(CRITICAL, "Failed sending App command\n");
+		return 1;
+	}
+
+	cmd.cmd_index = ACMD6_SET_BUS_WIDTH;
+	cmd.argument = (width == DATA_BUS_WIDTH_4BIT) ? (1<<1) : 0;
+	cmd.cmd_type = SDHCI_CMD_TYPE_NORMAL;
+	cmd.resp_type = SDHCI_CMD_RESP_R1;
+
+	/* send command */
+	if (sdhci_send_command(host, &cmd))
+		return 1;
+
+	return 0;
+}
+
+uint32_t mmc_sd_set_hs(struct sdhci_host *host, struct mmc_card *card)
+{
+       struct mmc_command cmd = {0};
+       BUF_DMA_ALIGN(switch_resp, 64);
+
+       cmd.cmd_index = CMD6_SWITCH_FUNC;
+       cmd.argument = MMC_SD_SWITCH_HS;
+       cmd.cmd_type = SDHCI_CMD_TYPE_NORMAL;
+       cmd.resp_type = SDHCI_CMD_RESP_R1;
+       cmd.trans_mode = SDHCI_MMC_READ;
+       cmd.data_present = 0x1;
+       cmd.data.data_ptr = switch_resp;
+       cmd.data.num_blocks = 0x1;
+       cmd.data.blk_sz = 0x40;
+
+       /* send command */
+       if (sdhci_send_command(host, &cmd))
+             return 1;
 
 	return 0;
 }
@@ -1028,10 +1292,19 @@ static uint32_t mmc_card_init(struct mmc_device *dev)
 	/* TODO: Get the OCR params from target */
 	card->ocr = MMC_OCR_27_36 | MMC_OCR_SEC_MODE;
 
-	/* Reset the card & get the OCR */
+	/* Initialize the internal MMC */
 	mmc_return = mmc_reset_card_and_send_op(host, card);
 	if (mmc_return)
-		return mmc_return;
+	{
+		dprintf(CRITICAL, "MMC card failed to respond, try for SD card\n");
+		/* Reset the card & get the OCR */
+		mmc_return = mmc_sd_card_init(host, card);
+		if (mmc_return)
+		{
+			dprintf(CRITICAL, "Failed to initialize SD card\n");
+			return mmc_return;
+		}
+	}
 
 	/* Identify (CMD2, CMD3 & CMD9) and select the card (CMD7) */
 	mmc_return = mmc_identify_card(host, card);
@@ -1039,18 +1312,30 @@ static uint32_t mmc_card_init(struct mmc_device *dev)
 		return mmc_return;
 
 	/* set interface speed */
-	mmc_return = mmc_set_hs_interface(host, card);
-	if (mmc_return) {
-		dprintf(CRITICAL, "Error adjusting interface speed!\n");
-		return mmc_return;
+	if (MMC_CARD_SD(card))
+	{
+		mmc_return = mmc_sd_set_hs(host, card);
+		if (mmc_return)
+		{
+			dprintf(CRITICAL, "Failed to set HS for SD card\n");
+			return mmc_return;
+		}
+	}
+	else
+	{
+		mmc_return = mmc_set_hs_interface(host, card);
+		if (mmc_return) {
+			dprintf(CRITICAL, "Error adjusting interface speed!\n");
+			return mmc_return;
+		}
 	}
 
 	/* Set the sdcc clock to 50 MHZ */
 	sdhci_clk_supply(host, SDHCI_CLK_50MHZ);
 
 	/* Now get the extended CSD for the card */
-	if ((card->type == MMC_TYPE_STD_MMC) ||
-		(card->type == MMC_TYPE_MMCHC)) {
+	if (MMC_CARD_MMC(card))
+	{
 			/* For MMC cards, also get the extended csd */
 			mmc_return = mmc_get_ext_csd(host, card);
 
@@ -1058,6 +1343,21 @@ static uint32_t mmc_card_init(struct mmc_device *dev)
 				dprintf(CRITICAL, "Failure getting card's ExtCSD information!\n");
 				return mmc_return;
 			}
+	}
+	else
+	{
+		/*Read SCR for sd card */
+		if (mmc_sd_get_card_scr(host, card))
+		{
+			dprintf(CRITICAL, "Failure getting card's SCR register\n");
+			return 1;
+		}
+		/* Read SSR for the SD card */
+		if (mmc_sd_get_card_ssr(host, card))
+		{
+			dprintf(CRITICAL, "Failed to get SSR from the card\n");
+			return 1;
+		}
 	}
 
 	/* Decode and save the CSD register */
@@ -1068,53 +1368,79 @@ static uint32_t mmc_card_init(struct mmc_device *dev)
 	}
 
 
-	/* Set the bus width based on host, target capbilities */
-	if (cfg->bus_width == DATA_BUS_WIDTH_8BIT && host->caps.bus_width_8bit)
-			bus_width = DATA_BUS_WIDTH_8BIT;
-	/*
-	 * Host contoller by default supports 4 bit & 1 bit mode.
-	 * No need to check for host support here
-	 */
-	else if (cfg->bus_width == DATA_BUS_WIDTH_4BIT)
-			bus_width = DATA_BUS_WIDTH_4BIT;
+	if (MMC_CARD_MMC(card))
+	{
+		/* Set the bus width based on host, target capbilities */
+		if (cfg->bus_width == DATA_BUS_WIDTH_8BIT && host->caps.bus_width_8bit)
+				bus_width = DATA_BUS_WIDTH_8BIT;
+		/*
+		 * Host contoller by default supports 4 bit & 1 bit mode.
+		 * No need to check for host support here
+		 */
+		else if (cfg->bus_width == DATA_BUS_WIDTH_4BIT)
+				bus_width = DATA_BUS_WIDTH_4BIT;
+		else
+				bus_width = DATA_BUS_WIDTH_1BIT;
+
+		/* Set 4/8 bit SDR bus width in controller */
+		mmc_return = sdhci_set_bus_width(host, bus_width);
+
+		if (mmc_return) {
+			dprintf(CRITICAL, "Failed to set bus width for host controller\n");
+			return 1;
+		}
+
+		/* Enable high speed mode in the follwing order:
+		 * 1. HS200 mode if supported by host & card
+		 * 2. DDR mode host, if supported by host & card
+		 * 3. Use normal speed mode with supported bus width
+		 */
+		if (mmc_card_supports_hs200_mode(card) && host->caps.sdr50_support) {
+			mmc_return = mmc_set_hs200_mode(host, card, bus_width);
+
+			if (mmc_return) {
+				dprintf(CRITICAL, "Failure to set HS200 mode for Card(RCA:%x)\n",
+								  card->rca);
+				return mmc_return;
+			}
+		} else if (mmc_card_supports_ddr_mode(card) && host->caps.ddr_support) {
+			mmc_return = mmc_set_ddr_mode(host, card);
+
+			if (mmc_return) {
+				dprintf(CRITICAL, "Failure to set DDR mode for Card(RCA:%x)\n",
+								  card->rca);
+				return mmc_return;
+			}
+		} else {
+			/* Set 4/8 bit bus width for the card */
+			mmc_return = mmc_set_bus_width(host, card, bus_width);
+			if (mmc_return) {
+				dprintf(CRITICAL, "Failure to set wide bus for Card(RCA:%x)\n",
+								  card->rca);
+				return mmc_return;
+			}
+		}
+	}
 	else
+	{
+		/* Check the supported bus width for the card from SCR register */
+		if (card->scr.bus_widths & SD_SCR_WIDTH_4BIT)
+			bus_width = DATA_BUS_WIDTH_4BIT;
+		else
 			bus_width = DATA_BUS_WIDTH_1BIT;
 
-	/* Set 4/8 bit SDR bus width in controller */
-	mmc_return = sdhci_set_bus_width(host, bus_width);
-
-	if (mmc_return) {
-		dprintf(CRITICAL, "Failed to set bus width for host controller\n");
-		return 1;
-	}
-
-	/* Enable high speed mode in the follwing order:
-	 * 1. HS200 mode if supported by host & card
-	 * 2. DDR mode host, if supported by host & card
-	 * 3. Use normal speed mode with supported bus width
-	 */
-	if (mmc_card_supports_hs200_mode(card) && host->caps.sdr50_support) {
-		mmc_return = mmc_set_hs200_mode(host, card, bus_width);
-
-		if (mmc_return) {
-			dprintf(CRITICAL, "Failure to set HS200 mode for Card(RCA:%x)\n",
-							  card->rca);
+		mmc_return = mmc_sd_set_bus_width(host, card, bus_width);
+		if (mmc_return)
+		{
+			dprintf(CRITICAL, "Failed to set bus width for the card\n");
 			return mmc_return;
 		}
-	} else if (mmc_card_supports_ddr_mode(card) && host->caps.ddr_support) {
-		mmc_return = mmc_set_ddr_mode(host, card);
 
-		if (mmc_return) {
-			dprintf(CRITICAL, "Failure to set DDR mode for Card(RCA:%x)\n",
-							  card->rca);
-			return mmc_return;
-		}
-	} else {
-		/* Set 4/8 bit bus width for the card */
-		mmc_return = mmc_set_bus_width(host, card, bus_width);
-		if (mmc_return) {
-			dprintf(CRITICAL, "Failure to set wide bus for Card(RCA:%x)\n",
-							  card->rca);
+		/* Set bit SDR bus width in controller */
+		mmc_return = sdhci_set_bus_width(host, bus_width);
+		if (mmc_return)
+		{
+			dprintf(CRITICAL, "Failed to set bus width for host controller\n");
 			return mmc_return;
 		}
 	}
@@ -1174,8 +1500,6 @@ struct mmc_device *mmc_init(struct mmc_config_data *data)
 
 	memset((struct mmc_card *)&dev->card, 0, sizeof(struct mmc_card));
 
-	dev->host.base = data->base;
-
 	/* Initialize the host & clock */
 	dprintf(SPEW, " Initializing MMC host data structure and clock!\n");
 
@@ -1227,6 +1551,8 @@ uint32_t mmc_sdhci_read(struct mmc_device *dev, void *dest,
 	cmd.resp_type = SDHCI_CMD_RESP_R1;
 	cmd.trans_mode = SDHCI_MMC_READ;
 	cmd.data_present = 0x1;
+	/* Use CMD23 If card supports cMD23 */
+	cmd.cmd23_support = dev->card.scr.cmd23_support;
 	cmd.data.data_ptr = dest;
 	cmd.data.num_blocks = num_blocks;
 
@@ -1284,6 +1610,8 @@ uint32_t mmc_sdhci_write(struct mmc_device *dev, void *src,
 	cmd.cmd_type = SDHCI_CMD_TYPE_NORMAL;
 	cmd.resp_type = SDHCI_CMD_RESP_R1;
 	cmd.trans_mode = SDHCI_MMC_WRITE;
+	/* Use CMD23 If card supports cMD23 */
+	cmd.cmd23_support = dev->card.scr.cmd23_support;
 	cmd.data_present = 0x1;
 	cmd.data.data_ptr = src;
 	cmd.data.num_blocks = num_blocks;
@@ -1320,10 +1648,15 @@ uint32_t mmc_sdhci_write(struct mmc_device *dev, void *src,
 static uint32_t mmc_send_erase_grp_start(struct mmc_device *dev, uint32_t erase_start)
 {
 	struct mmc_command cmd;
+	struct mmc_card *card = &dev->card;
 
 	memset((struct mmc_command *)&cmd, 0, sizeof(struct mmc_command));
 
-	cmd.cmd_index = CMD35_ERASE_GROUP_START;
+	if (MMC_CARD_MMC(card))
+		cmd.cmd_index = CMD35_ERASE_GROUP_START;
+	else
+		cmd.cmd_index = CMD32_ERASE_WR_BLK_START;
+
 	cmd.argument = erase_start;
 	cmd.cmd_type = SDHCI_CMD_TYPE_NORMAL;
 	cmd.resp_type = SDHCI_CMD_RESP_R1;
@@ -1350,10 +1683,15 @@ static uint32_t mmc_send_erase_grp_start(struct mmc_device *dev, uint32_t erase_
 static uint32_t mmc_send_erase_grp_end(struct mmc_device *dev, uint32_t erase_end)
 {
 	struct mmc_command cmd;
+	struct mmc_card *card = &dev->card;
 
 	memset((struct mmc_command *)&cmd, 0, sizeof(struct mmc_command));
 
-	cmd.cmd_index = CMD36_ERASE_GROUP_END;
+	if (MMC_CARD_MMC(card))
+		cmd.cmd_index = CMD36_ERASE_GROUP_END;
+	else
+		cmd.cmd_index = CMD33_ERASE_WR_BLK_END;
+
 	cmd.argument = erase_end;
 	cmd.cmd_type = SDHCI_CMD_TYPE_NORMAL;
 	cmd.resp_type = SDHCI_CMD_RESP_R1;
@@ -1433,14 +1771,29 @@ uint32_t mmc_sdhci_erase(struct mmc_device *dev, uint32_t blk_addr, uint64_t len
 	uint32_t blk_end;
 	uint32_t num_erase_grps;
 	uint32_t *out;
+	struct mmc_card *card;
+
+
+	card = &dev->card;
 
 	/*
-	 * Calculate the erase unit size as per the emmc specification v4.5
+	 * Calculate the erase unit size,
+	 * 1. Based on emmc 4.5 spec for emmc card
+	 * 2. Use SD Card Status info for SD cards
 	 */
-	if (dev->card.ext_csd[MMC_ERASE_GRP_DEF])
-		erase_unit_sz = (MMC_HC_ERASE_MULT * dev->card.ext_csd[MMC_HC_ERASE_GRP_SIZE]) / MMC_BLK_SZ;
+	if (MMC_CARD_MMC(card))
+	{
+		/*
+		 * Calculate the erase unit size as per the emmc specification v4.5
+		 */
+		if (dev->card.ext_csd[MMC_ERASE_GRP_DEF])
+			erase_unit_sz = (MMC_HC_ERASE_MULT * dev->card.ext_csd[MMC_HC_ERASE_GRP_SIZE]) / MMC_BLK_SZ;
+		else
+			erase_unit_sz = (dev->card.csd.erase_grp_size + 1) * (dev->card.csd.erase_grp_mult + 1);
+	}
 	else
-		erase_unit_sz = (dev->card.csd.erase_grp_size + 1) * (dev->card.csd.erase_grp_mult + 1);
+		erase_unit_sz = dev->card.ssr.au_size * dev->card.ssr.num_aus;
+
 
 	/* Convert length in blocks */
 	len = len / MMC_BLK_SZ;
