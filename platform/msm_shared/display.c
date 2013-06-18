@@ -73,6 +73,7 @@ static int msm_fb_alloc(struct fbcon_config *fb)
 int msm_display_config()
 {
 	int ret = NO_ERROR;
+	int mdp_rev;
 	struct msm_panel_info *pinfo;
 
 	if (!panel)
@@ -93,7 +94,8 @@ int msm_display_config()
 	case MIPI_VIDEO_PANEL:
 		dprintf(INFO, "Config MIPI_VIDEO_PANEL.\n");
 
-		if (mdp_get_revision() == MDP_REV_50)
+		mdp_rev = mdp_get_revision();
+		if (mdp_rev == MDP_REV_50 || mdp_rev == MDP_REV_304)
 			ret = mdss_dsi_config(panel);
 		else
 			ret = mipi_config(panel);

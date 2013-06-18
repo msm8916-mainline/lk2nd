@@ -748,7 +748,7 @@ struct fbcon_config *mipi_init(void)
 	}
 
 	/* Enable MMSS_AHB_ARB_MATER_PORT_E for arbiter master0 and master 1 request */
-#if (!DISPLAY_MIPI_PANEL_RENESAS && !DISPLAY_TYPE_DSI6G)
+#if (!DISPLAY_MIPI_PANEL_RENESAS && !DISPLAY_TYPE_DSI6G && !DISPLAY_TYPE_8610)
 	writel(0x00001800, MMSS_SFPB_GPREG);
 #endif
 
@@ -795,7 +795,7 @@ int mipi_config(struct msm_fb_panel_data *panel)
 
 	/* Enable MMSS_AHB_ARB_MATER_PORT_E for
 	   arbiter master0 and master 1 request */
-#if (!DISPLAY_MIPI_PANEL_RENESAS && !DISPLAY_TYPE_DSI6G)
+#if (!DISPLAY_MIPI_PANEL_RENESAS && !DISPLAY_TYPE_DSI6G && !DISPLAY_TYPE_8610)
 	writel(0x00001800, MMSS_SFPB_GPREG);
 #endif
 
