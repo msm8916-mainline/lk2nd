@@ -123,3 +123,8 @@ __WEAK void target_usb_init(void)
 __WEAK void target_usb_stop(void)
 {
 }
+
+/* Default target specific target uninit */
+__WEAK void target_uninit(void)
+{
+}
