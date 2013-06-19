@@ -286,6 +286,11 @@ void target_usb_stop(void)
 	ulpi_write(ULPI_MISC_A_VBUSVLDEXTSEL | ULPI_MISC_A_VBUSVLDEXT, ULPI_MISC_A_CLEAR);
 }
 
+void target_uninit(void)
+{
+	mmc_put_card_to_sleep(dev);
+}
+
 void target_usb_init(void)
 {
 	uint32_t val;
