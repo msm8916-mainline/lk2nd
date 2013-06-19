@@ -557,8 +557,13 @@ unsigned target_pause_for_battery_charge(void)
 	return 0;
 }
 
-void target_usb_stop(void)
+void target_uninit(void)
 {
+#if MMC_SDHCI_SUPPORT
+	mmc_put_card_to_sleep(dev);
+#else
+	mmc_put_card_to_sleep();
+#endif
 #ifdef SSD_ENABLE
 	clock_ce_disable(SSD_CE_INSTANCE_1);
 #endif
