@@ -386,7 +386,7 @@ static uint8_t sdhci_cmd_err_status(struct sdhci_host *host)
 static uint8_t sdhci_cmd_complete(struct sdhci_host *host, struct mmc_command *cmd)
 {
 	uint8_t i;
-	uint16_t retry = 0;
+	uint32_t retry = 0;
 	uint32_t int_status;
 
 	do {
@@ -485,14 +485,14 @@ static struct desc_entry *sdhci_prep_desc_table(void *data, uint32_t len)
 
 	if (len <= SDHCI_ADMA_DESC_LINE_SZ) {
 		/* Allocate only one descriptor */
-		sg_list = (struct desc_entry *) memalign(4, sizeof(struct desc_entry));
+		sg_list = (struct desc_entry *) memalign(lcm(4, CACHE_LINE), ROUNDUP(sizeof(struct desc_entry), CACHE_LINE));
 
 		if (!sg_list) {
 			dprintf(CRITICAL, "Error allocating memory\n");
 			ASSERT(0);
 		}
 
-		sg_list[0].addr = data;
+		sg_list[0].addr = (uint32_t)data;
 		sg_list[0].len = len;
 		sg_list[0].tran_att = SDHCI_ADMA_TRANS_VALID | SDHCI_ADMA_TRANS_DATA
 							  | SDHCI_ADMA_TRANS_END;
@@ -502,13 +502,14 @@ static struct desc_entry *sdhci_prep_desc_table(void *data, uint32_t len)
 		/* Calculate the number of entries in desc table */
 		sg_len = len / SDHCI_ADMA_DESC_LINE_SZ;
 		remain = len - (sg_len * SDHCI_ADMA_DESC_LINE_SZ);
-		/* Allocate sg_len + 1 entries */
+
+		/* Allocate sg_len + 1 entries if there are remaining bytes at the end */
 		if (remain)
 			sg_len++;
 
 		table_len = (sg_len * sizeof(struct desc_entry));
 
-		sg_list = (struct desc_entry *) memalign(4, table_len);
+		sg_list = (struct desc_entry *) memalign(lcm(4, CACHE_LINE), ROUNDUP(table_len, CACHE_LINE));
 
 		if (!sg_list) {
 			dprintf(CRITICAL, "Error allocating memory\n");
@@ -525,7 +526,7 @@ static struct desc_entry *sdhci_prep_desc_table(void *data, uint32_t len)
 		 * |_____________|_______________|_____________________|
 		 */
 		for (i = 0; i < (sg_len - 1); i++) {
-				sg_list[i].addr = data;
+				sg_list[i].addr = (uint32_t)data;
 				sg_list[i].len = SDHCI_ADMA_DESC_LINE_SZ;
 				sg_list[i].tran_att = SDHCI_ADMA_TRANS_VALID | SDHCI_ADMA_TRANS_DATA;
 				data += SDHCI_ADMA_DESC_LINE_SZ;
@@ -535,10 +536,10 @@ static struct desc_entry *sdhci_prep_desc_table(void *data, uint32_t len)
 			/* Fill the last entry of the table with Valid & End
 			 * attributes
 			 */
-			sg_list[sg_len - 1].addr = data;
+			sg_list[sg_len - 1].addr = (uint32_t)data;
 			sg_list[sg_len - 1].len = len;
-			sg_list[sg_len - 1].tran_att = SDHCI_ADMA_TRANS_VALID | SDHCI_ADMA_TRANS_DATA
-										   | SDHCI_ADMA_TRANS_END;
+			sg_list[sg_len - 1].tran_att = SDHCI_ADMA_TRANS_VALID | SDHCI_ADMA_TRANS_DATA |
+										   SDHCI_ADMA_TRANS_END;
 		}
 
 	arch_clean_invalidate_cache_range((addr_t)sg_list, table_len);
@@ -550,16 +551,15 @@ static struct desc_entry *sdhci_prep_desc_table(void *data, uint32_t len)
  * Function: sdhci adma transfer
  * Arg     : Host structure & command stucture
  * Return  : Pointer to desc table
- * Flow    : 1. Prepare data transfer properties
+ * Flow    : 1. Prepare descriptor table
  *           2. Write adma register
- *           3. Write transfer mode register
+ *           3. Write block size & block count register
  */
 static struct desc_entry *sdhci_adma_transfer(struct sdhci_host *host,
 											  struct mmc_command *cmd)
 {
 	uint32_t num_blks = 0;
 	uint32_t sz;
-	uint16_t trans_mode = 0;
 	void *data;
 	struct desc_entry *adma_addr;
 
@@ -583,34 +583,19 @@ static struct desc_entry *sdhci_adma_transfer(struct sdhci_host *host,
 	/* Prepare adma descriptor table */
 	adma_addr = sdhci_prep_desc_table(data, sz);
 
+	/* Write adma address to adma register */
+	REG_WRITE32(host, (uint32_t) adma_addr, SDHCI_ADM_ADDR_REG);
+
 	/* Write the block size */
 	if (cmd->data.blk_sz)
 		REG_WRITE16(host, cmd->data.blk_sz, SDHCI_BLKSZ_REG);
 	else
 		REG_WRITE16(host, SDHCI_MMC_BLK_SZ, SDHCI_BLKSZ_REG);
 
-	/* Enalbe auto cmd 23 for multi block transfer */
-	if (num_blks > 1) {
-		trans_mode |= SDHCI_TRANS_MULTI | SDHCI_AUTO_CMD23_EN | SDHCI_BLK_CNT_EN;
-		REG_WRITE32(host, num_blks, SDHCI_ARG2_REG);
-	}
-
 	/*
 	 * Set block count in block count register
 	 */
-
 	REG_WRITE16(host, num_blks, SDHCI_BLK_CNT_REG);
-
-	if (cmd->trans_mode == SDHCI_MMC_READ)
-		trans_mode |= SDHCI_READ_MODE;
-
-	trans_mode |= SDHCI_DMA_EN;
-
-	/* Write adma address to adma register */
-	REG_WRITE32(host, (uint32_t) adma_addr, SDHCI_ADM_ADDR_REG);
-
-	/* Set transfer mode */
-	REG_WRITE16(host, trans_mode, SDHCI_TRANS_MODE_REG);
 
 	return adma_addr;
 }
@@ -628,6 +613,7 @@ uint32_t sdhci_send_command(struct sdhci_host *host, struct mmc_command *cmd)
 {
 	uint8_t retry = 0;
 	uint32_t resp_type = 0;
+	uint16_t trans_mode = 0;
 	uint16_t present_state;
 	uint32_t flags;
 	struct desc_entry *sg_list = NULL;
@@ -710,6 +696,25 @@ uint32_t sdhci_send_command(struct sdhci_host *host, struct mmc_command *cmd)
 
 	/* Write the argument 1 */
 	REG_WRITE32(host, cmd->argument, SDHCI_ARGUMENT_REG);
+
+	/* Set the Transfer mode */
+	if (cmd->data_present)
+	{
+		/* Enable DMA */
+		trans_mode |= SDHCI_DMA_EN;
+
+		if (cmd->trans_mode == SDHCI_MMC_READ)
+			trans_mode |= SDHCI_READ_MODE;
+
+		/* Enable auto cmd 23 for multi block transfer */
+		if (cmd->data.num_blocks > 1) {
+			trans_mode |= SDHCI_TRANS_MULTI | SDHCI_AUTO_CMD23_EN | SDHCI_BLK_CNT_EN;
+			REG_WRITE32(host, cmd->data.num_blocks, SDHCI_ARG2_REG);
+		}
+	}
+
+	/* Write to transfer mode register */
+	REG_WRITE16(host, trans_mode, SDHCI_TRANS_MODE_REG);
 
 	/* Write the command register */
 	REG_WRITE16(host, SDHCI_PREP_CMD(cmd->cmd_index, flags), SDHCI_CMD_REG);
