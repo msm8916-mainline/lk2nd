@@ -52,7 +52,7 @@ endif
 
 INCLUDES := -I$(BUILDDIR) -Iinclude
 CFLAGS := -O2 -g -finline -W -Wall -Wno-multichar -Wno-unused-parameter -Wno-unused-function $(LKLE_CFLAGS) -include $(CONFIGHEADER)
-CFLAGS += -fno-common
+CFLAGS += -fno-common -Wstrict-prototypes
 #CFLAGS += -Werror
 
 ifeq ($(SIGNED_KERNEL),1)
