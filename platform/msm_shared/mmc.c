@@ -552,8 +552,10 @@ static unsigned int mmc_boot_send_command(struct mmc_boot_command *cmd)
 	/* 2a. Write command index in CMD_INDEX field */
 	cmd_index = cmd->cmd_index;
 	mmc_cmd |= cmd->cmd_index;
-	/* 2b. Set RESPONSE bit to 1 for all cmds except CMD0 */
-	if (cmd_index != CMD0_GO_IDLE_STATE) {
+	/* 2b. Set RESPONSE bit to 1 for all cmds except CMD0
+	 * And dont set RESPONSE bit for commands with no response
+	 */
+	if (cmd_index != CMD0_GO_IDLE_STATE && cmd->resp_type != MMC_BOOT_RESP_NONE) {
 		mmc_cmd |= MMC_BOOT_MCI_CMD_RESPONSE;
 	}
 
@@ -3404,4 +3406,33 @@ uint8_t card_supports_hs200_mode()
 uint64_t mmc_get_device_capacity()
 {
 	return mmc_card.capacity;
+}
+
+void mmc_put_card_to_sleep(void)
+{
+	uint32_t mmc_ret;
+	struct mmc_boot_command cmd = {0};
+
+	cmd.cmd_index = CMD7_SELECT_DESELECT_CARD;
+	cmd.argument = 0x00000000;
+	cmd.cmd_type = MMC_BOOT_CMD_ADDRESS;
+	cmd.resp_type = MMC_BOOT_RESP_NONE;
+
+	/* send command */
+	mmc_ret = mmc_boot_send_command(&cmd);
+	if (mmc_ret != MMC_BOOT_E_SUCCESS)
+	{
+		dprintf(CRITICAL, "card deselect error: %d\n", mmc_ret);
+		return;
+	}
+
+	cmd.cmd_index = CMD5_SLEEP_AWAKE;
+	cmd.argument = (mmc_card.rca << MMC_CARD_RCA_BIT) | MMC_CARD_SLEEP;
+	cmd.cmd_type = MMC_BOOT_CMD_ADDRESS;
+	cmd.resp_type = MMC_BOOT_RESP_R1B;
+
+	/* send command */
+	mmc_ret = mmc_boot_send_command(&cmd);
+	if (mmc_ret != MMC_BOOT_E_SUCCESS)
+		dprintf(CRITICAL, "card sleep error: %d\n", mmc_ret);
 }
