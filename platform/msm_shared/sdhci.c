@@ -493,7 +493,7 @@ static struct desc_entry *sdhci_prep_desc_table(void *data, uint32_t len)
 		}
 
 		sg_list[0].addr = (uint32_t)data;
-		sg_list[0].len = len;
+		sg_list[0].len = (len < SDHCI_ADMA_DESC_LINE_SZ) ? len : (SDHCI_ADMA_DESC_LINE_SZ & 0xffff);
 		sg_list[0].tran_att = SDHCI_ADMA_TRANS_VALID | SDHCI_ADMA_TRANS_DATA
 							  | SDHCI_ADMA_TRANS_END;
 
@@ -527,7 +527,13 @@ static struct desc_entry *sdhci_prep_desc_table(void *data, uint32_t len)
 		 */
 		for (i = 0; i < (sg_len - 1); i++) {
 				sg_list[i].addr = (uint32_t)data;
-				sg_list[i].len = SDHCI_ADMA_DESC_LINE_SZ;
+				/*
+				 * Length attribute is 16 bit value & max transfer size for one
+				 * descriptor line is 65536 bytes, As per SD Spec3.0 'len = 0'
+				 * implies 65536 bytes. Truncate the length to limit to 16 bit
+				 * range.
+				 */
+				sg_list[i].len = (SDHCI_ADMA_DESC_LINE_SZ & 0xffff);
 				sg_list[i].tran_att = SDHCI_ADMA_TRANS_VALID | SDHCI_ADMA_TRANS_DATA;
 				data += SDHCI_ADMA_DESC_LINE_SZ;
 				len -= SDHCI_ADMA_DESC_LINE_SZ;
@@ -537,7 +543,7 @@ static struct desc_entry *sdhci_prep_desc_table(void *data, uint32_t len)
 			 * attributes
 			 */
 			sg_list[sg_len - 1].addr = (uint32_t)data;
-			sg_list[sg_len - 1].len = len;
+			sg_list[sg_len - 1].len = (len < SDHCI_ADMA_DESC_LINE_SZ) ? len : (SDHCI_ADMA_DESC_LINE_SZ & 0xffff);
 			sg_list[sg_len - 1].tran_att = SDHCI_ADMA_TRANS_VALID | SDHCI_ADMA_TRANS_DATA |
 										   SDHCI_ADMA_TRANS_END;
 		}
