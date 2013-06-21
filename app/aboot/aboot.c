@@ -591,7 +591,7 @@ int boot_linux_from_mmc(void)
 
 #if DEVICE_TREE
 	struct dt_table *table;
-	struct dt_entry *dt_entry_ptr;
+	struct dt_entry dt_entry;
 	unsigned dt_table_offset;
 	uint32_t dt_actual;
 #endif
@@ -735,29 +735,24 @@ int boot_linux_from_mmc(void)
 
 			memmove((void *) dt_buf, (char *)dt_table_offset, page_size);
 
-			/* Restriction that the device tree entry table should be less than a page*/
-			ASSERT(((table->num_entries * sizeof(struct dt_entry))+ DEV_TREE_HEADER_SIZE) < hdr->page_size);
-
-			/* Validate the device tree table header */
-			if((table->magic != DEV_TREE_MAGIC) && (table->version != DEV_TREE_VERSION)) {
+			if (dev_tree_validate(table, hdr->page_size) != 0) {
 				dprintf(CRITICAL, "ERROR: Cannot validate Device Tree Table \n");
 				return -1;
 			}
-
 			/* Find index of device tree within device tree table */
-			if((dt_entry_ptr = dev_tree_get_entry_ptr(table)) == NULL){
+			if(dev_tree_get_entry_info(table, &dt_entry) != 0){
 				dprintf(CRITICAL, "ERROR: Device Tree Blob cannot be found\n");
 				return -1;
 			}
 
 			/* Validate and Read device device tree in the "tags_add */
-			if (check_aboot_addr_range_overlap(hdr->tags_addr, dt_entry_ptr->size))
+			if (check_aboot_addr_range_overlap(hdr->tags_addr, dt_entry.size))
 			{
 				dprintf(CRITICAL, "Device tree addresses overlap with aboot addresses.\n");
 				return -1;
 			}
 
-			memmove((void *)hdr->tags_addr, (char *)dt_table_offset + dt_entry_ptr->offset, dt_entry_ptr->size);
+			memmove((void *)hdr->tags_addr, (char *)dt_table_offset + dt_entry.offset, dt_entry.size);
 		} else {
 			/*
 			 * If appended dev tree is found, update the atags with
@@ -820,30 +815,26 @@ int boot_linux_from_mmc(void)
 			}
 			table = (struct dt_table*) dt_buf;
 
-			/* Restriction that the device tree entry table should be less than a page*/
-			ASSERT(((table->num_entries * sizeof(struct dt_entry))+ DEV_TREE_HEADER_SIZE) < hdr->page_size);
-
-			/* Validate the device tree table header */
-			if((table->magic != DEV_TREE_MAGIC) && (table->version != DEV_TREE_VERSION)) {
+			if (dev_tree_validate(table, hdr->page_size) != 0) {
 				dprintf(CRITICAL, "ERROR: Cannot validate Device Tree Table \n");
 				return -1;
 			}
 
-			/* Calculate the offset of device tree within device tree table */
-			if((dt_entry_ptr = dev_tree_get_entry_ptr(table)) == NULL){
+			/* Find index of device tree within device tree table */
+			if(dev_tree_get_entry_info(table, &dt_entry) != 0){
 				dprintf(CRITICAL, "ERROR: Getting device tree address failed\n");
 				return -1;
 			}
 
 			/* Validate and Read device device tree in the "tags_add */
-			if (check_aboot_addr_range_overlap(hdr->tags_addr, dt_entry_ptr->size))
+			if (check_aboot_addr_range_overlap(hdr->tags_addr, dt_entry.size))
 			{
 				dprintf(CRITICAL, "Device tree addresses overlap with aboot addresses.\n");
 				return -1;
 			}
 
-			if(mmc_read(ptn + offset + dt_entry_ptr->offset,
-						 (void *)hdr->tags_addr, dt_entry_ptr->size)) {
+			if(mmc_read(ptn + offset + dt_entry.offset,
+						 (void *)hdr->tags_addr, dt_entry.size)) {
 				dprintf(CRITICAL, "ERROR: Cannot read device tree\n");
 				return -1;
 			}
@@ -894,7 +885,7 @@ int boot_linux_from_flash(void)
 
 #if DEVICE_TREE
 	struct dt_table *table;
-	struct dt_entry *dt_entry_ptr;
+	struct dt_entry dt_entry;
 	uint32_t dt_actual;
 #endif
 
@@ -1024,7 +1015,7 @@ int boot_linux_from_flash(void)
 		memmove((void*) hdr->ramdisk_addr, (char *)(image_addr + page_size + kernel_actual), hdr->ramdisk_size);
 #if DEVICE_TREE
 		/* Validate and Read device device tree in the "tags_add */
-		if (check_aboot_addr_range_overlap(hdr->tags_addr, dt_entry_ptr->size))
+		if (check_aboot_addr_range_overlap(hdr->tags_addr, dt_entry.size))
 		{
 			dprintf(CRITICAL, "Device tree addresses overlap with aboot addresses.\n");
 			return -1;
@@ -1087,31 +1078,27 @@ int boot_linux_from_flash(void)
 
 			table = (struct dt_table*) dt_buf;
 
-			/* Restriction that the device tree entry table should be less than a page*/
-			ASSERT(((table->num_entries * sizeof(struct dt_entry))+ DEV_TREE_HEADER_SIZE) < hdr->page_size);
-
-			/* Validate the device tree table header */
-			if((table->magic != DEV_TREE_MAGIC) && (table->version != DEV_TREE_VERSION)) {
+			if (dev_tree_validate(table, hdr->page_size) != 0) {
 				dprintf(CRITICAL, "ERROR: Cannot validate Device Tree Table \n");
 				return -1;
 			}
 
-			/* Calculate the offset of device tree within device tree table */
-			if((dt_entry_ptr = dev_tree_get_entry_ptr(table)) == NULL){
+			/* Find index of device tree within device tree table */
+			if(dev_tree_get_entry_info(table, &dt_entry) != 0){
 				dprintf(CRITICAL, "ERROR: Getting device tree address failed\n");
 				return -1;
 			}
 
 			/* Validate and Read device device tree in the "tags_add */
-			if (check_aboot_addr_range_overlap(hdr->tags_addr, dt_entry_ptr->size))
+			if (check_aboot_addr_range_overlap(hdr->tags_addr, dt_entry.size))
 			{
 				dprintf(CRITICAL, "Device tree addresses overlap with aboot addresses.\n");
 				return -1;
 			}
 
 			/* Read device device tree in the "tags_add */
-			if(flash_read(ptn, offset + dt_entry_ptr->offset,
-						 (void *)hdr->tags_addr, dt_entry_ptr->size)) {
+			if(flash_read(ptn, offset + dt_entry.offset,
+						 (void *)hdr->tags_addr, dt_entry.size)) {
 				dprintf(CRITICAL, "ERROR: Cannot read device tree\n");
 				return -1;
 			}
@@ -1298,7 +1285,7 @@ int copy_dtb(uint8_t *boot_image_start)
 	uint32 dt_image_offset = 0;
 	uint32_t n;
 	struct dt_table *table;
-	struct dt_entry *dt_entry_ptr;
+	struct dt_entry dt_entry;
 
 	struct boot_img_hdr *hdr = (struct boot_img_hdr *) (boot_image_start);
 
@@ -1322,23 +1309,18 @@ int copy_dtb(uint8_t *boot_image_start)
 		/* offset now point to start of dt.img */
 		table = (struct dt_table*)(boot_image_start + dt_image_offset);
 
-		/* Restriction that the device tree entry table should be less than a page*/
-		ASSERT(((table->num_entries * sizeof(struct dt_entry))+ DEV_TREE_HEADER_SIZE) < hdr->page_size);
-
-		/* Validate the device tree table header */
-		if((table->magic != DEV_TREE_MAGIC) && (table->version != DEV_TREE_VERSION)) {
+		if (dev_tree_validate(table, hdr->page_size) != 0) {
 			dprintf(CRITICAL, "ERROR: Cannot validate Device Tree Table \n");
 			return -1;
 		}
-
-		/* Calculate the offset of device tree within device tree table */
-		if((dt_entry_ptr = dev_tree_get_entry_ptr(table)) == NULL){
+		/* Find index of device tree within device tree table */
+		if(dev_tree_get_entry_info(table, &dt_entry) != 0){
 			dprintf(CRITICAL, "ERROR: Getting device tree address failed\n");
 			return -1;
 		}
 
 		/* Validate and Read device device tree in the "tags_add */
-		if (check_aboot_addr_range_overlap(hdr->tags_addr, dt_entry_ptr->size))
+		if (check_aboot_addr_range_overlap(hdr->tags_addr, dt_entry.size))
 		{
 			dprintf(CRITICAL, "Device tree addresses overlap with aboot addresses.\n");
 			return -1;
@@ -1346,8 +1328,8 @@ int copy_dtb(uint8_t *boot_image_start)
 
 		/* Read device device tree in the "tags_add */
 		memmove((void*) hdr->tags_addr,
-				boot_image_start + dt_image_offset +  dt_entry_ptr->offset,
-				dt_entry_ptr->size);
+				boot_image_start + dt_image_offset +  dt_entry.offset,
+				dt_entry.size);
 	} else
 		return -1;
 

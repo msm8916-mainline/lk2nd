@@ -60,5 +60,5 @@ uint32_t board_baseband();
 uint32_t board_hardware_id();
 uint8_t board_pmic_info(struct board_pmic_data *, uint8_t num_ent);
 uint32_t board_soc_version();
-
+uint32_t board_hardware_subtype(void);
 #endif
