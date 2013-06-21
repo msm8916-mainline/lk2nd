@@ -1641,3 +1641,31 @@ uint32_t mmc_set_clr_power_on_wp_user(struct mmc_device *dev, uint32_t addr, uin
 
 	return 0;
 }
+
+/* Function to put the mmc card to sleep */
+void mmc_put_card_to_sleep(struct mmc_device *dev)
+{
+	struct mmc_command cmd = {0};
+	struct mmc_card *card = &dev->card;
+
+	cmd.cmd_index = CMD7_SELECT_DESELECT_CARD;
+	cmd.argument = 0x00000000;
+	cmd.cmd_type = SDHCI_CMD_TYPE_NORMAL;
+	cmd.resp_type = SDHCI_CMD_RESP_NONE;
+
+	/* send command */
+	if(sdhci_send_command(&dev->host, &cmd))
+	{
+		dprintf(CRITICAL, "card deselect error: %s\n", __func__);
+		return;
+	}
+
+	cmd.cmd_index = CMD5_SLEEP_AWAKE;
+	cmd.argument = (card->rca << MMC_CARD_RCA_BIT) | MMC_CARD_SLEEP;
+	cmd.cmd_type = SDHCI_CMD_TYPE_NORMAL;
+	cmd.resp_type = SDHCI_CMD_RESP_R1B;
+
+	/* send command */
+	if(sdhci_send_command(&dev->host, &cmd))
+		dprintf(CRITICAL, "card sleep error: %s\n", __func__);
+}

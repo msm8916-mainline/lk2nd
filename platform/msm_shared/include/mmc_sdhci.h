@@ -37,6 +37,7 @@
 #define CMD2_ALL_SEND_CID                         2
 #define CMD3_SEND_RELATIVE_ADDR                   3
 #define CMD4_SET_DSR                              4
+#define CMD5_SLEEP_AWAKE                          5
 #define CMD6_SWITCH_FUNC                          6
 #define CMD7_SELECT_DESELECT_CARD                 7
 #define CMD8_SEND_EXT_CSD                         8
@@ -124,9 +125,11 @@
 
 /* RCA of the card */
 #define MMC_RCA                                   2
+#define MMC_CARD_RCA_BIT                          16
 
 /* Misc card macros */
 #define MMC_BLK_SZ                                512
+#define MMC_CARD_SLEEP                            (1 << 15)
 
 /* Clock rates */
 #define MMC_CLK_400KHZ                            400000
@@ -236,4 +239,6 @@ uint32_t mmc_sdhci_erase(struct mmc_device *dev, uint32_t blk_addr, uint64_t len
 uint32_t mmc_set_clr_power_on_wp_user(struct mmc_device *dev, uint32_t addr, uint64_t len, uint8_t set_clr);
 /* API: Get the WP status of write protect groups starting at addr */
 uint32_t mmc_get_wp_status(struct mmc_device *dev, uint32_t addr, uint8_t *wp_status);
+/* API: Put the mmc card in sleep mode */
+void mmc_put_card_to_sleep(struct mmc_device *dev);
 #endif
