@@ -191,6 +191,7 @@ void mdss_intf_tg_setup(struct msm_panel_info *pinfo, uint32_t intf_base)
 	uint32_t hsync_start_x, hsync_end_x;
 	uint32_t display_hctl, active_hctl, hsync_ctl, display_vstart, display_vend;
 	uint32_t mdss_mdp_intf_off;
+	uint32_t adjust_xres = 0;
 
 	struct lcdc_panel_info *lcdc = NULL;
 
@@ -201,7 +202,9 @@ void mdss_intf_tg_setup(struct msm_panel_info *pinfo, uint32_t intf_base)
 	if (lcdc == NULL)
 		return ERR_INVALID_ARGS;
 
+	adjust_xres = pinfo->xres;
 	if (pinfo->lcdc.dual_pipe) {
+		adjust_xres /= 2;
 		if (intf_base == MDP_INTF_1_BASE) {
 			writel(BIT(8), MDP_TG_SINK);
 			writel(0x0, MDP_REG_SPLIT_DISPLAY_UPPER_PIPE_CTL);
@@ -213,7 +216,7 @@ void mdss_intf_tg_setup(struct msm_panel_info *pinfo, uint32_t intf_base)
 
 	hsync_period = lcdc->h_pulse_width +
 		lcdc->h_back_porch +
-		pinfo->xres + lcdc->xres_pad + lcdc->h_front_porch;
+		adjust_xres + lcdc->xres_pad + lcdc->h_front_porch;
 	vsync_period = (lcdc->v_pulse_width +
 			lcdc->v_back_porch +
 			pinfo->yres + lcdc->yres_pad +
