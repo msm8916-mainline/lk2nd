@@ -46,6 +46,8 @@
 #define COMMAND_MODE_DMA_CTRL                 0x03C
 #define ERR_INT_MASK0                         0x10C
 
+#define LANE_SWAP_CTL                         0x0B0
+
 #define VIDEO_MODE_ACTIVE_H                   0x024
 #define VIDEO_MODE_ACTIVE_V                   0x028
 #define VIDEO_MODE_TOTAL                      0x02C
