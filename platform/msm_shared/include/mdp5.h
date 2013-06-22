@@ -46,17 +46,20 @@
 #define PIPE_SSPP_SRC_UNPACK_PATTERN            0x34
 #define PIPE_SSPP_SRC_OP_MODE                   0x38
 
-#define MDP_VP_0_LAYER_0_OUT_SIZE               REG_MDP(0x3204)
-#define MDP_VP_0_LAYER_0_OP_MODE                REG_MDP(0x3200)
-#define MDP_VP_0_LAYER_0_BORDER_COLOR_0         REG_MDP(0x3208)
-#define MDP_VP_0_LAYER_0_BLEND_OP               REG_MDP(0x3220)
-#define MDP_VP_0_LAYER_0_BLEND0_FG_ALPHA        REG_MDP(0x3224)
-#define MDP_VP_0_LAYER_1_BLEND_OP               REG_MDP(0x3250)
-#define MDP_VP_0_LAYER_1_BLEND0_FG_ALPHA        REG_MDP(0x3254)
-#define MDP_VP_0_LAYER_2_BLEND_OP               REG_MDP(0x3280)
-#define MDP_VP_0_LAYER_2_BLEND0_FG_ALPHA        REG_MDP(0x3284)
-#define MDP_VP_0_LAYER_3_BLEND_OP               REG_MDP(0x32B0)
-#define MDP_VP_0_LAYER_3_BLEND0_FG_ALPHA        REG_MDP(0x32B4)
+#define MDP_VP_0_MIXER_0_BASE                   REG_MDP(0x3200)
+#define MDP_VP_0_MIXER_1_BASE                   REG_MDP(0x3600)
+
+#define LAYER_0_OUT_SIZE                        0x04
+#define LAYER_0_OP_MODE                         0x00
+#define LAYER_0_BORDER_COLOR_0                  0x08
+#define LAYER_0_BLEND_OP                        0x20
+#define LAYER_0_BLEND0_FG_ALPHA                 0x24
+#define LAYER_1_BLEND_OP                        0x50
+#define LAYER_1_BLEND0_FG_ALPHA                 0x54
+#define LAYER_2_BLEND_OP                        0x80
+#define LAYER_2_BLEND0_FG_ALPHA                 0x84
+#define LAYER_3_BLEND_OP                        0xB0
+#define LAYER_3_BLEND0_FG_ALPHA                 0xB4
 
 
 #define MDSS_MDP_HW_REV_100                     0x10000000
@@ -74,10 +77,14 @@
 
 #define MDP_INTF_1_TIMING_ENGINE_EN             REG_MDP(0x12700)
 
-#define MDP_CTL_0_LAYER_0                       REG_MDP(0x600)
-#define MDP_CTL_0_TOP                           REG_MDP(0x614)
-#define MDP_CTL_0_FLUSH                         REG_MDP(0x618)
-#define MDP_CTL_0_START                         REG_MDP(0x61C)
+#define MDP_CTL_0_BASE                          REG_MDP(0x600)
+#define MDP_CTL_1_BASE                          REG_MDP(0x700)
+
+#define CTL_LAYER_0                             0x00
+#define CTL_LAYER_1                             0x04
+#define CTL_TOP                                 0x14
+#define CTL_FLUSH                               0x18
+#define CTL_START                               0x1C
 
 #define MDP_TG_SINK                             REG_MDP(0x4F0)
 #define MDP_REG_SPLIT_DISPLAY_EN                REG_MDP(0x3F4)

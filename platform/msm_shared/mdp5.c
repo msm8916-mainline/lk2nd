@@ -260,21 +260,62 @@ void mdss_intf_tg_setup(struct msm_panel_info *pinfo, uint32_t intf_base)
 
 }
 
+void mdss_layer_mixer_setup(struct fbcon_config *fb, struct msm_panel_info
+		*pinfo)
+{
+	uint32_t mdp_rgb_size, height, width;
+
+	height = (fb->height << 16);
+	width = fb->width;
+
+	if (pinfo->lcdc.dual_pipe)
+		width /= 2;
+
+	/* write active region size*/
+	mdp_rgb_size = (height << 16) | width;
+
+	writel(mdp_rgb_size, MDP_VP_0_MIXER_0_BASE + LAYER_0_OUT_SIZE);
+	writel(0x00, MDP_VP_0_MIXER_0_BASE + LAYER_0_OP_MODE);
+	writel(0x100, MDP_VP_0_MIXER_0_BASE + LAYER_0_BLEND_OP);
+	writel(0xFF, MDP_VP_0_MIXER_0_BASE + LAYER_0_BLEND0_FG_ALPHA);
+	writel(0x100, MDP_VP_0_MIXER_0_BASE + LAYER_1_BLEND_OP);
+	writel(0xFF, MDP_VP_0_MIXER_0_BASE + LAYER_1_BLEND0_FG_ALPHA);
+	writel(0x100, MDP_VP_0_MIXER_0_BASE + LAYER_2_BLEND_OP);
+	writel(0xFF, MDP_VP_0_MIXER_0_BASE + LAYER_2_BLEND0_FG_ALPHA);
+	writel(0x100, MDP_VP_0_MIXER_0_BASE + LAYER_3_BLEND_OP);
+	writel(0xFF, MDP_VP_0_MIXER_0_BASE + LAYER_3_BLEND0_FG_ALPHA);
+
+	/* Baselayer for layer mixer 0 */
+	writel(0x0000200, MDP_CTL_0_BASE + CTL_LAYER_0);
+
+	if (pinfo->lcdc.dual_pipe) {
+		writel(mdp_rgb_size, MDP_VP_0_MIXER_1_BASE + LAYER_0_OUT_SIZE);
+		writel(0x00, MDP_VP_0_MIXER_1_BASE + LAYER_0_OP_MODE);
+		writel(0x100, MDP_VP_0_MIXER_1_BASE + LAYER_0_BLEND_OP);
+		writel(0xFF, MDP_VP_0_MIXER_1_BASE + LAYER_0_BLEND0_FG_ALPHA);
+		writel(0x100, MDP_VP_0_MIXER_1_BASE + LAYER_1_BLEND_OP);
+		writel(0xFF, MDP_VP_0_MIXER_1_BASE + LAYER_1_BLEND0_FG_ALPHA);
+		writel(0x100, MDP_VP_0_MIXER_1_BASE + LAYER_2_BLEND_OP);
+		writel(0xFF, MDP_VP_0_MIXER_1_BASE + LAYER_2_BLEND0_FG_ALPHA);
+		writel(0x100, MDP_VP_0_MIXER_1_BASE + LAYER_3_BLEND_OP);
+		writel(0xFF, MDP_VP_0_MIXER_1_BASE + LAYER_3_BLEND0_FG_ALPHA);
+
+		/* Baselayer for layer mixer 0 */
+		writel(0x04000, MDP_CTL_1_BASE + CTL_LAYER_1);
+	}
+}
+
 int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 		struct fbcon_config *fb)
 {
 	int ret = NO_ERROR;
 	struct lcdc_panel_info *lcdc = NULL;
-	unsigned mdp_rgb_size;
 	uint32_t intf_sel = 0x100;
 
 	mdss_intf_tg_setup(pinfo, MDP_INTF_1_BASE);
 
 	if (pinfo->mipi.dual_dsi)
 		mdss_intf_tg_setup(pinfo, MDP_INTF_2_BASE);
-
-	/* write active region size*/
-	mdp_rgb_size = (fb->height << 16) | fb->width;
 
 	mdp_clk_gating_ctrl();
 
@@ -287,24 +328,14 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 	if (pinfo->lcdc.dual_pipe)
 		mdss_rgb_pipe_config(fb, pinfo, MDP_VP_0_RGB_1_BASE);
 
-	writel(mdp_rgb_size,MDP_VP_0_LAYER_0_OUT_SIZE);
-	writel(0x00, MDP_VP_0_LAYER_0_OP_MODE);
-	writel(0x100, MDP_VP_0_LAYER_0_BLEND_OP);
-	writel(0xFF, MDP_VP_0_LAYER_0_BLEND0_FG_ALPHA);
-	writel(0x100, MDP_VP_0_LAYER_1_BLEND_OP);
-	writel(0xFF, MDP_VP_0_LAYER_1_BLEND0_FG_ALPHA);
-	writel(0x100, MDP_VP_0_LAYER_2_BLEND_OP);
-	writel(0xFF, MDP_VP_0_LAYER_2_BLEND0_FG_ALPHA);
-	writel(0x100, MDP_VP_0_LAYER_3_BLEND_OP);
-	writel(0xFF, MDP_VP_0_LAYER_3_BLEND0_FG_ALPHA);
+	mdss_layer_mixer_setup(fb, pinfo);
 
-	/* Baselayer for layer mixer 0 */
-	writel(0x010000200, MDP_CTL_0_LAYER_0);
+	writel(0x1F20, MDP_CTL_0_BASE + CTL_TOP);
 
-	writel(0x1F20, MDP_CTL_0_TOP);
-
-	if (pinfo->mipi.dual_dsi)
+	if (pinfo->mipi.dual_dsi) {
+		writel(0x1F30, MDP_CTL_1_BASE + CTL_TOP);
 		intf_sel |= BIT(16); /* INTF 2 enable */
+	}
 
 	writel(intf_sel, MDP_DISP_INTF_SEL);
 
@@ -321,7 +352,6 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 	int ret = NO_ERROR;
 
 	struct lcdc_panel_info *lcdc = NULL;
-	uint32_t mdp_rgb_size;
 	uint32_t mdss_mdp_intf_off = 0;
 
 	if (pinfo == NULL)
@@ -332,8 +362,6 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 		return ERR_INVALID_ARGS;
 
 	mdss_mdp_intf_off = mdss_mdp_intf_offset();
-	/* write active region size*/
-	mdp_rgb_size = (fb->height << 16) + fb->width;
 
 	mdp_clk_gating_ctrl();
 
@@ -343,23 +371,11 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 	mdss_smp_setup(pinfo);
 	mdss_rgb_pipe_config(fb, pinfo, MDP_VP_0_RGB_0_BASE);
 
-	writel(mdp_rgb_size,MDP_VP_0_LAYER_0_OUT_SIZE);
-	writel(0x00, MDP_VP_0_LAYER_0_OP_MODE);
-	writel(0x100, MDP_VP_0_LAYER_0_BLEND_OP);
-	writel(0xFF, MDP_VP_0_LAYER_0_BLEND0_FG_ALPHA);
-	writel(0x100, MDP_VP_0_LAYER_1_BLEND_OP);
-	writel(0xFF, MDP_VP_0_LAYER_1_BLEND0_FG_ALPHA);
-	writel(0x100, MDP_VP_0_LAYER_2_BLEND_OP);
-	writel(0xFF, MDP_VP_0_LAYER_2_BLEND0_FG_ALPHA);
-	writel(0x100, MDP_VP_0_LAYER_3_BLEND_OP);
-	writel(0xFF, MDP_VP_0_LAYER_3_BLEND0_FG_ALPHA);
-
-	/* Baselayer for layer mixer 0 */
-	writel(0x00000200, MDP_CTL_0_LAYER_0);
+	mdss_layer_mixer_setup(fb, pinfo);
 
 	writel(0x213F, MDP_INTF_1_BASE + MDP_PANEL_FORMAT + mdss_mdp_intf_off);
 
-	writel(0x20020, MDP_CTL_0_TOP);
+	writel(0x20020, MDP_CTL_0_BASE + CTL_TOP);
 
 	return ret;
 }
@@ -367,7 +383,8 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 int mdp_dsi_video_on(void)
 {
 	int ret = NO_ERROR;
-	writel(0x32048, MDP_CTL_0_FLUSH);
+	writel(0x32048, MDP_CTL_0_BASE + CTL_FLUSH);
+	writel(0x32090, MDP_CTL_1_BASE + CTL_FLUSH);
 	writel(0x01, MDP_INTF_1_TIMING_ENGINE_EN  + mdss_mdp_intf_offset());
 	return ret;
 }
@@ -404,8 +421,8 @@ int mdp_dsi_cmd_off()
 
 int mdp_dma_on(void)
 {
-	writel(0x32048, MDP_CTL_0_FLUSH);
-	writel(0x01, MDP_CTL_0_START);
+	writel(0x32048, MDP_CTL_0_BASE + CTL_FLUSH);
+	writel(0x01, MDP_CTL_0_BASE + CTL_START);
 	return NO_ERROR;
 }
 
