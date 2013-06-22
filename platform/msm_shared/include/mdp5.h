@@ -79,23 +79,30 @@
 #define MDP_CTL_0_FLUSH                         REG_MDP(0x618)
 #define MDP_CTL_0_START                         REG_MDP(0x61C)
 
-#define MDP_INTF_1_HSYNC_CTL                    REG_MDP(0x12708)
-#define MDP_INTF_1_VSYNC_PERIOD_F0              REG_MDP(0x1270C)
-#define MDP_INTF_1_VSYNC_PERIOD_F1              REG_MDP(0x12710)
-#define MDP_INTF_1_VSYNC_PULSE_WIDTH_F0         REG_MDP(0x12714)
-#define MDP_INTF_1_VSYNC_PULSE_WIDTH_F1         REG_MDP(0x12718)
-#define MDP_INTF_1_DISPLAY_HCTL                 REG_MDP(0x1273C)
-#define MDP_INTF_1_DISPLAY_V_START_F0           REG_MDP(0x1271C)
-#define MDP_INTF_1_DISPLAY_V_START_F1           REG_MDP(0x12720)
-#define MDP_INTF_1_DISPLAY_V_END_F0             REG_MDP(0x12724)
-#define MDP_INTF_1_DISPLAY_V_END_F1             REG_MDP(0x12728)
-#define MDP_INTF_1_ACTIVE_HCTL                  REG_MDP(0x12740)
-#define MDP_INTF_1_ACTIVE_V_START_F0            REG_MDP(0x1272C)
-#define MDP_INTF_1_ACTIVE_V_START_F1            REG_MDP(0x12730)
-#define MDP_INTF_1_ACTIVE_V_END_F0              REG_MDP(0x12734)
-#define MDP_INTF_1_ACTIVE_V_END_F1              REG_MDP(0x12738)
-#define MDP_INTF_1_UNDERFFLOW_COLOR             REG_MDP(0x12748)
-#define MDP_INTF_1_PANEL_FORMAT                 REG_MDP(0x12790)
+#define MDP_TG_SINK                             REG_MDP(0x4F0)
+#define MDP_REG_SPLIT_DISPLAY_EN                REG_MDP(0x3F4)
+#define MDP_REG_SPLIT_DISPLAY_UPPER_PIPE_CTL    REG_MDP(0x3F8)
+
+#define MDP_INTF_1_BASE                         REG_MDP(0x12700)
+#define MDP_INTF_2_BASE                         REG_MDP(0x12900)
+
+#define MDP_HSYNC_CTL                           0x08
+#define MDP_VSYNC_PERIOD_F0                     0x0C
+#define MDP_VSYNC_PERIOD_F1                     0x10
+#define MDP_VSYNC_PULSE_WIDTH_F0                0x14
+#define MDP_VSYNC_PULSE_WIDTH_F1                0x18
+#define MDP_DISPLAY_HCTL                        0x3C
+#define MDP_DISPLAY_V_START_F0                  0x1C
+#define MDP_DISPLAY_V_START_F1                  0x20
+#define MDP_DISPLAY_V_END_F0                    0x24
+#define MDP_DISPLAY_V_END_F1                    0x28
+#define MDP_ACTIVE_HCTL                         0x40
+#define MDP_ACTIVE_V_START_F0                   0x2C
+#define MDP_ACTIVE_V_START_F1                   0x30
+#define MDP_ACTIVE_V_END_F0                     0x34
+#define MDP_ACTIVE_V_END_F1                     0x38
+#define MDP_UNDERFFLOW_COLOR                    0x48
+#define MDP_PANEL_FORMAT                        0x90
 
 #define MDP_CLK_CTRL0                           REG_MDP(0x03AC)
 #define MDP_CLK_CTRL1                           REG_MDP(0x03B4)
