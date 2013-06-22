@@ -100,6 +100,7 @@ struct lcdc_panel_info {
 	/* Pad height */
 	uint32_t yres_pad;
 	uint8_t dual_pipe;
+	uint8_t pipe_swap;
 };
 
 struct mipi_panel_info {
