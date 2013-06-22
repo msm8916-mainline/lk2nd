@@ -227,6 +227,9 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 	}
 
 	mdss_smp_setup(pinfo);
+
+	writel(0x0E9, MDP_QOS_REMAPPER_CLASS_0);
+
 	writel(hsync_ctl, MDP_INTF_1_HSYNC_CTL + mdss_mdp_intf_off);
 	writel(vsync_period*hsync_period, MDP_INTF_1_VSYNC_PERIOD_F0 +
 			mdss_mdp_intf_off);
