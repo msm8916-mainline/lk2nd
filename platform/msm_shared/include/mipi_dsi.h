@@ -39,6 +39,18 @@
 #define DSI_SOFT_RESET                        REG_DSI(0x114)
 #define DSI_CAL_CTRL                          REG_DSI(0x0F4)
 
+#define SOFT_RESET                            0x118
+#define CLK_CTRL                              0x11C
+#define TRIG_CTRL                             0x084
+#define CTRL                                  0x004
+#define COMMAND_MODE_DMA_CTRL                 0x03C
+
+#define DMA_CMD_OFFSET                        0x048
+#define DMA_CMD_LENGTH                        0x04C
+
+#define INT_CTRL                              0x110
+#define CMD_MODE_DMA_SW_TRIGGER               0x090
+
 #define DSIPHY_SW_RESET                       REG_DSI(0x128)
 #define DSIPHY_PLL_RDY                        REG_DSI(0x280)
 #define DSIPHY_REGULATOR_CAL_PWR_CFG          REG_DSI(0x518)
