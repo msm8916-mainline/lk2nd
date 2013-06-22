@@ -359,7 +359,7 @@ void mdp_clock_init(void)
 {
 	int ret;
 
-	/* Set MDP clock to 200MHz */
+	/* Set MDP clock to 240MHz */
 	ret = clk_get_set_enable("mdp_ahb_clk", 0, 1);
 	if(ret)
 	{
@@ -367,7 +367,7 @@ void mdp_clock_init(void)
 		ASSERT(0);
 	}
 
-	ret = clk_get_set_enable("mdss_mdp_clk_src", 75000000, 1);
+	ret = clk_get_set_enable("mdss_mdp_clk_src", 240000000, 1);
 	if(ret)
 	{
 		dprintf(CRITICAL, "failed to set mdp_clk_src ret = %d\n", ret);

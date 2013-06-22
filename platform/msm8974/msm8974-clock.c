@@ -416,6 +416,7 @@ static struct clk_freq_tbl ftbl_mmss_axi_clk[] = {
 
 static struct clk_freq_tbl ftbl_mdp_clk[] = {
 	F_MM( 75000000,  gpll0,   8,   0,   0),
+	F_MM( 240000000,  gpll0,   2.5,   0,   0),
 	F_END
 };
 
