@@ -334,6 +334,7 @@ int mdss_dsi_panel_initialize(struct mipi_dsi_panel_config *pinfo, uint32_t
 	int status = 0;
 	uint8_t DLNx_EN;
 	uint8_t lane_swap = 0;
+	uint32_t timing_ctl = 0;
 
 	switch (pinfo->num_of_lanes) {
 	default:
@@ -353,6 +354,7 @@ int mdss_dsi_panel_initialize(struct mipi_dsi_panel_config *pinfo, uint32_t
 
 	PACK_TYPE1 = pinfo->pack;
 	lane_swap = pinfo->lane_swap;
+	timing_ctl = ((pinfo->t_clk_post << 8) | pinfo->t_clk_pre);
 
 	if (broadcast) {
 		writel(0x0001, MIPI_DSI1_BASE + SOFT_RESET);
@@ -369,6 +371,7 @@ int mdss_dsi_panel_initialize(struct mipi_dsi_panel_config *pinfo, uint32_t
 				MIPI_DSI1_BASE + COMMAND_MODE_DMA_CTRL);
 
 		writel(lane_swap, MIPI_DSI1_BASE + LANE_SWAP_CTL);
+		writel(timing_ctl, MIPI_DSI1_BASE + TIMING_CTL);
 	}
 
 	writel(0x0001, MIPI_DSI0_BASE + SOFT_RESET);
@@ -385,6 +388,7 @@ int mdss_dsi_panel_initialize(struct mipi_dsi_panel_config *pinfo, uint32_t
 	       MIPI_DSI0_BASE + COMMAND_MODE_DMA_CTRL);
 
 	writel(lane_swap, MIPI_DSI0_BASE + LANE_SWAP_CTL);
+	writel(timing_ctl, MIPI_DSI0_BASE + TIMING_CTL);
 
 	if (pinfo->panel_cmds) {
 
@@ -907,6 +911,8 @@ int mdss_dsi_config(struct msm_fb_panel_data *panel)
 	mipi_pinfo.num_of_panel_cmds = pinfo->mipi.num_of_panel_cmds;
 	mipi_pinfo.lane_swap = pinfo->mipi.lane_swap;
 	mipi_pinfo.pack = 0;
+	mipi_pinfo.t_clk_pre = pinfo->mipi.t_clk_pre;
+	mipi_pinfo.t_clk_post = pinfo->mipi.t_clk_post;
 
 	mdss_dsi_phy_init(&mipi_pinfo, MIPI_DSI0_BASE);
 	if (pinfo->mipi.dual_dsi)
