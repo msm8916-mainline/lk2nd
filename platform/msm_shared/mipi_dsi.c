@@ -809,7 +809,8 @@ int mdss_dsi_video_mode_config(uint16_t disp_width,
 	uint8_t lane_en,
 	uint16_t low_pwr_stop_mode,
 	uint8_t eof_bllp_pwr,
-	uint8_t interleav)
+	uint8_t interleav,
+	uint32_t ctl_base)
 {
 
 	int status = 0;
@@ -817,73 +818,68 @@ int mdss_dsi_video_mode_config(uint16_t disp_width,
 	/* disable mdp first */
 	mdp_disable();
 
-	writel(0x00000000, DSI_CLK_CTRL);
-	writel(0x00000000, DSI_CLK_CTRL);
-	writel(0x00000000, DSI_CLK_CTRL);
-	writel(0x00000000, DSI_CLK_CTRL);
-	writel(0x00000002, DSI_CLK_CTRL);
-	writel(0x00000006, DSI_CLK_CTRL);
-	writel(0x0000000e, DSI_CLK_CTRL);
-	writel(0x0000001e, DSI_CLK_CTRL);
-	writel(0x0000023f, DSI_CLK_CTRL);
+	writel(0x00000000, ctl_base + CLK_CTRL);
+	writel(0x00000002, ctl_base + CLK_CTRL);
+	writel(0x00000006, ctl_base + CLK_CTRL);
+	writel(0x0000000e, ctl_base + CLK_CTRL);
+	writel(0x0000001e, ctl_base + CLK_CTRL);
+	writel(0x0000023f, ctl_base + CLK_CTRL);
 
-	writel(0, DSI_CTRL);
+	writel(0, ctl_base + CTRL);
 
-	writel(0, DSI_ERR_INT_MASK0);
+	writel(0, ctl_base + DSI_ERR_INT_MASK0);
 
-	writel(0x02020202, DSI_INT_CTRL);
+	writel(0x02020202, ctl_base + INT_CTRL);
 
 	writel(((disp_width + hsync_porch0_bp) << 16) | hsync_porch0_bp,
-			DSI_VIDEO_MODE_ACTIVE_H);
+			ctl_base + VIDEO_MODE_ACTIVE_H);
 
 	writel(((disp_height + vsync_porch0_bp) << 16) | (vsync_porch0_bp),
-			DSI_VIDEO_MODE_ACTIVE_V);
+			ctl_base + VIDEO_MODE_ACTIVE_V);
 
 	if (mdp_get_revision() >= MDP_REV_41) {
 		writel(((disp_height + vsync_porch0_fp
 			+ vsync_porch0_bp - 1) << 16)
 			| (disp_width + hsync_porch0_fp
 			+ hsync_porch0_bp - 1),
-			DSI_VIDEO_MODE_TOTAL);
+			ctl_base + VIDEO_MODE_TOTAL);
 	} else {
 		writel(((disp_height + vsync_porch0_fp
 			+ vsync_porch0_bp) << 16)
 			| (disp_width + hsync_porch0_fp
 			+ hsync_porch0_bp),
-			DSI_VIDEO_MODE_TOTAL);
+			ctl_base + VIDEO_MODE_TOTAL);
 	}
 
-	writel((hsync_width << 16) | 0, DSI_VIDEO_MODE_HSYNC);
+	writel((hsync_width << 16) | 0, ctl_base + VIDEO_MODE_HSYNC);
 
-	writel(0 << 16 | 0, DSI_VIDEO_MODE_VSYNC);
+	writel(0 << 16 | 0, ctl_base + VIDEO_MODE_VSYNC);
 
-	writel(vsync_width << 16 | 0, DSI_VIDEO_MODE_VSYNC_VPOS);
+	writel(vsync_width << 16 | 0, ctl_base + VIDEO_MODE_VSYNC_VPOS);
 
-	writel(0x0, DSI_EOT_PACKET_CTRL);
+	writel(0x0, ctl_base + EOT_PACKET_CTRL);
 
-	writel(0x00000100, DSI_MISR_VIDEO_CTRL);
+	writel(0x00000100, ctl_base + MISR_VIDEO_CTRL);
 
 	if (mdp_get_revision() >= MDP_REV_41) {
 		writel(low_pwr_stop_mode << 16 |
 				eof_bllp_pwr << 12 | traffic_mode << 8
-				| dst_format << 4 | 0x0, DSI_VIDEO_MODE_CTRL);
+				| dst_format << 4 | 0x0, ctl_base + VIDEO_MODE_CTRL);
 	} else {
 		writel(1 << 28 | 1 << 24 | 1 << 20 | low_pwr_stop_mode << 16 |
 				eof_bllp_pwr << 12 | traffic_mode << 8
-				| dst_format << 4 | 0x0, DSI_VIDEO_MODE_CTRL);
+				| dst_format << 4 | 0x0, ctl_base + VIDEO_MODE_CTRL);
 	}
 
-	writel(0x3fd08, DSI_HS_TIMER_CTRL);
-	writel(0x67, DSI_CAL_STRENGTH_CTRL);
-	writel(0x80006711, DSI_CAL_CTRL);
-	writel(0x00010100, DSI_MISR_VIDEO_CTRL);
+	writel(0x3fd08, ctl_base + HS_TIMER_CTRL);
+	writel(0x00010100, ctl_base + MISR_VIDEO_CTRL);
 
-	writel(0x00010100, DSI_INT_CTRL);
-	writel(0x02010202, DSI_INT_CTRL);
-	writel(0x02030303, DSI_INT_CTRL);
+	writel(0x00010100, ctl_base + INT_CTRL);
+	writel(0x02010202, ctl_base + INT_CTRL);
+	writel(0x02030303, ctl_base + INT_CTRL);
 
 	writel(interleav << 30 | 0 << 24 | 0 << 20 | lane_en << 4
-			| 0x103, DSI_CTRL);
+			| 0x103, ctl_base + CTRL);
 
 	return status;
 }

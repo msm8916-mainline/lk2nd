@@ -31,6 +31,7 @@
 #include <msm_panel.h>
 #include <mipi_dsi.h>
 #include <sys/types.h>
+#include <platform/iomap.h>
 #include <err.h>
 #include <reg.h>
 #include <mdp4.h>
@@ -73,7 +74,8 @@ int mipi_toshiba_video_720p_config(void *pdata)
 			lane_en,
 			low_pwr_stop_mode,
 			eof_bllp_pwr,
-			interleav);
+			interleav,
+			MIPI_DSI0_BASE);
 	return ret;
 }
 
