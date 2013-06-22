@@ -48,6 +48,11 @@ extern void mdp_shutdown(void);
 extern void mdp_start_dma(void);
 extern void dsb(void);
 
+#if (DISPLAY_TYPE_MDSS == 0)
+#define MIPI_DSI0_BASE MIPI_DSI_BASE
+#define MIPI_DSI1_BASE MIPI_DSI_BASE
+#endif
+
 #if DISPLAY_MIPI_PANEL_TOSHIBA
 static struct fbcon_config mipi_fb_cfg = {
 	.height = TSH_MIPI_FB_HEIGHT,
@@ -816,7 +821,9 @@ int mdss_dsi_config(struct msm_fb_panel_data *panel)
 	mipi_pinfo.lane_swap = pinfo->mipi.lane_swap;
 	mipi_pinfo.pack = 0;
 
-	mdss_dsi_phy_init(&mipi_pinfo);
+	mdss_dsi_phy_init(&mipi_pinfo, MIPI_DSI0_BASE);
+	if (pinfo->mipi.dual_dsi)
+		mdss_dsi_phy_init(&mipi_pinfo, MIPI_DSI1_BASE);
 
 	ret += mdss_dsi_panel_initialize(&mipi_pinfo);
 

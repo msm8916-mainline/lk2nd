@@ -39,7 +39,7 @@
 #define MIPI_VSYNC_BACK_PORCH_LINES  3
 #define MIPI_VSYNC_FRONT_PORCH_LINES 9
 
-extern int mdss_dsi_phy_init(struct mipi_dsi_panel_config *);
-extern int mdss_dsi_uniphy_pll_config(void);
+extern int mdss_dsi_phy_init(struct mipi_dsi_panel_config *, uint32_t ctl_base);
+extern int mdss_dsi_uniphy_pll_config(uint32_t ctl_base);
 
 #endif
