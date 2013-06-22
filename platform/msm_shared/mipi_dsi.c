@@ -254,6 +254,57 @@ static uint32_t mipi_novatek_manufacture_id(void)
 	return data;
 }
 
+int mdss_dsi_panel_initialize(struct mipi_dsi_panel_config *pinfo)
+{
+	uint8_t DMA_STREAM1 = 0;	// for mdp display processor path
+	uint8_t EMBED_MODE1 = 1;	// from frame buffer
+	uint8_t POWER_MODE2 = 1;	// from frame buffer
+	uint8_t PACK_TYPE1;		// long packet
+	uint8_t VC1 = 0;
+	uint8_t DT1 = 0;	// non embedded mode
+	uint8_t WC1 = 0;	// for non embedded mode only
+	int status = 0;
+	uint8_t DLNx_EN;
+
+	switch (pinfo->num_of_lanes) {
+	default:
+	case 1:
+		DLNx_EN = 1;	// 1 lane
+		break;
+	case 2:
+		DLNx_EN = 3;	// 2 lane
+		break;
+	case 3:
+		DLNx_EN = 7;	// 3 lane
+		break;
+	case 4:
+		DLNx_EN = 0x0F;	/* 4 lanes */
+		break;
+	}
+
+	PACK_TYPE1 = pinfo->pack;
+
+	writel(0x0001, DSI_SOFT_RESET);
+	writel(0x0000, DSI_SOFT_RESET);
+
+	writel((0 << 16) | 0x3f, DSI_CLK_CTRL);	/* Turn on all DSI Clks */
+	writel(DMA_STREAM1 << 8 | 0x04, DSI_TRIG_CTRL);	// reg 0x80 dma trigger: sw
+	// trigger 0x4; dma stream1
+
+	writel(0 << 30 | DLNx_EN << 4 | 0x105, DSI_CTRL);	// reg 0x00 for this
+	// build
+	writel(EMBED_MODE1 << 28 | POWER_MODE2 << 26
+	       | PACK_TYPE1 << 24 | VC1 << 22 | DT1 << 16 | WC1,
+	       DSI_COMMAND_MODE_DMA_CTRL);
+
+	if (pinfo->panel_cmds)
+		status = mipi_dsi_cmds_tx(pinfo->panel_cmds,
+					  pinfo->num_of_panel_cmds);
+
+	return status;
+}
+
+
 int mipi_dsi_panel_initialize(struct mipi_dsi_panel_config *pinfo)
 {
 	uint8_t DMA_STREAM1 = 0;	// for mdp display processor path
@@ -653,6 +704,100 @@ int mipi_config(struct msm_fb_panel_data *panel)
 	return ret;
 }
 
+int mdss_dsi_video_mode_config(uint16_t disp_width,
+	uint16_t disp_height,
+	uint16_t img_width,
+	uint16_t img_height,
+	uint16_t hsync_porch0_fp,
+	uint16_t hsync_porch0_bp,
+	uint16_t vsync_porch0_fp,
+	uint16_t vsync_porch0_bp,
+	uint16_t hsync_width,
+	uint16_t vsync_width,
+	uint16_t dst_format,
+	uint16_t traffic_mode,
+	uint8_t lane_en,
+	uint16_t low_pwr_stop_mode,
+	uint8_t eof_bllp_pwr,
+	uint8_t interleav)
+{
+
+	int status = 0;
+
+	/* disable mdp first */
+	mdp_disable();
+
+	writel(0x00000000, DSI_CLK_CTRL);
+	writel(0x00000000, DSI_CLK_CTRL);
+	writel(0x00000000, DSI_CLK_CTRL);
+	writel(0x00000000, DSI_CLK_CTRL);
+	writel(0x00000002, DSI_CLK_CTRL);
+	writel(0x00000006, DSI_CLK_CTRL);
+	writel(0x0000000e, DSI_CLK_CTRL);
+	writel(0x0000001e, DSI_CLK_CTRL);
+	writel(0x0000023f, DSI_CLK_CTRL);
+
+	writel(0, DSI_CTRL);
+
+	writel(0, DSI_ERR_INT_MASK0);
+
+	writel(0x02020202, DSI_INT_CTRL);
+
+	writel(((disp_width + hsync_porch0_bp) << 16) | hsync_porch0_bp,
+			DSI_VIDEO_MODE_ACTIVE_H);
+
+	writel(((disp_height + vsync_porch0_bp) << 16) | (vsync_porch0_bp),
+			DSI_VIDEO_MODE_ACTIVE_V);
+
+	if (mdp_get_revision() >= MDP_REV_41) {
+		writel(((disp_height + vsync_porch0_fp
+			+ vsync_porch0_bp - 1) << 16)
+			| (disp_width + hsync_porch0_fp
+			+ hsync_porch0_bp - 1),
+			DSI_VIDEO_MODE_TOTAL);
+	} else {
+		writel(((disp_height + vsync_porch0_fp
+			+ vsync_porch0_bp) << 16)
+			| (disp_width + hsync_porch0_fp
+			+ hsync_porch0_bp),
+			DSI_VIDEO_MODE_TOTAL);
+	}
+
+	writel((hsync_width << 16) | 0, DSI_VIDEO_MODE_HSYNC);
+
+	writel(0 << 16 | 0, DSI_VIDEO_MODE_VSYNC);
+
+	writel(vsync_width << 16 | 0, DSI_VIDEO_MODE_VSYNC_VPOS);
+
+	writel(0x0, DSI_EOT_PACKET_CTRL);
+
+	writel(0x00000100, DSI_MISR_VIDEO_CTRL);
+
+	if (mdp_get_revision() >= MDP_REV_41) {
+		writel(low_pwr_stop_mode << 16 |
+				eof_bllp_pwr << 12 | traffic_mode << 8
+				| dst_format << 4 | 0x0, DSI_VIDEO_MODE_CTRL);
+	} else {
+		writel(1 << 28 | 1 << 24 | 1 << 20 | low_pwr_stop_mode << 16 |
+				eof_bllp_pwr << 12 | traffic_mode << 8
+				| dst_format << 4 | 0x0, DSI_VIDEO_MODE_CTRL);
+	}
+
+	writel(0x3fd08, DSI_HS_TIMER_CTRL);
+	writel(0x67, DSI_CAL_STRENGTH_CTRL);
+	writel(0x80006711, DSI_CAL_CTRL);
+	writel(0x00010100, DSI_MISR_VIDEO_CTRL);
+
+	writel(0x00010100, DSI_INT_CTRL);
+	writel(0x02010202, DSI_INT_CTRL);
+	writel(0x02030303, DSI_INT_CTRL);
+
+	writel(interleav << 30 | 0 << 24 | 0 << 20 | lane_en << 4
+			| 0x103, DSI_CTRL);
+
+	return status;
+}
+
 int mdss_dsi_config(struct msm_fb_panel_data *panel)
 {
 	int ret = NO_ERROR;
@@ -673,7 +818,7 @@ int mdss_dsi_config(struct msm_fb_panel_data *panel)
 
 	mdss_dsi_phy_init(&mipi_pinfo);
 
-	ret += mipi_dsi_panel_initialize(&mipi_pinfo);
+	ret += mdss_dsi_panel_initialize(&mipi_pinfo);
 
 	if (pinfo->rotate && panel->rotate)
 		pinfo->rotate();
