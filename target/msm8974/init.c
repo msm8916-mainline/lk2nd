@@ -496,9 +496,20 @@ int set_download_mode(enum dload_mode mode)
 	return 0;
 }
 
+/* Check if MSM needs VBUS mimic for USB */
+static int target_needs_vbus_mimic()
+{
+	if (target_is_8974())
+		return 0;
+
+	return 1;
+}
+
 /* Do target specific usb initialization */
 void target_usb_init(void)
 {
+	uint32_t val;
+
 	/* Enable secondary USB PHY on DragonBoard8074 */
 	if (board_hardware_id() == HW_PLATFORM_DRAGON) {
 		/* Route ChipIDea to use secondary USB HS port2 */
@@ -523,6 +534,21 @@ void target_usb_init(void)
 		* then configure related parameters within the PHY */
 		writel_relaxed(((readl_relaxed(USB_PORTSC) & 0xC0000000)
 				| 0x8c000004), USB_PORTSC);
+	}
+
+	if (target_needs_vbus_mimic())
+	{
+		/* Select and enable external configuration with USB PHY */
+		ulpi_write(ULPI_MISC_A_VBUSVLDEXTSEL | ULPI_MISC_A_VBUSVLDEXT, ULPI_MISC_A_SET);
+
+		/* Enable sess_vld */
+		val = readl(USB_GENCONFIG_2) | GEN2_SESS_VLD_CTRL_EN;
+		writel(val, USB_GENCONFIG_2);
+
+		/* Enable external vbus configuration in the LINK */
+		val = readl(USB_USBCMD);
+		val |= SESS_VLD_CTRL;
+		writel(val, USB_USBCMD);
 	}
 }
 
@@ -613,4 +639,13 @@ static void set_sdc_power_ctrl()
 int emmc_recovery_init(void)
 {
 	return _emmc_recovery_init();
+}
+
+void target_usb_stop(void)
+{
+	uint32_t platform = board_platform_id();
+
+	/* Disable VBUS mimicing in the controller. */
+	if (target_needs_vbus_mimic())
+		ulpi_write(ULPI_MISC_A_VBUSVLDEXTSEL | ULPI_MISC_A_VBUSVLDEXT, ULPI_MISC_A_CLEAR);
 }
