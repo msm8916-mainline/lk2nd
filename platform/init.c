@@ -92,6 +92,12 @@ __WEAK void ce_clock_init(void)
 {
 }
 
-__WEAK void bs_set_timestamp(enum bs_entry bs_id)
+__WEAK addr_t get_bs_info_addr()
 {
+	return NULL;
+}
+
+__WEAK uint32_t platform_get_sclk_count(void)
+{
+	return 0;
 }
