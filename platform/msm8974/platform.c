@@ -82,38 +82,20 @@ void platform_init(void)
 	dprintf(INFO, "platform_init()\n");
 }
 
-static uint32_t platform_get_sclk_count(void)
+uint32_t platform_get_sclk_count(void)
 {
 	return readl(MPM2_MPM_SLEEP_TIMETICK_COUNT_VAL);
 }
 
-static uint32_t kernel_load_start;
-void bs_set_timestamp(enum bs_entry bs_id)
+addr_t get_bs_info_addr()
 {
-	void *bs_imem;
 	uint32_t soc_ver = board_soc_version();
 
-	if (bs_id >= BS_MAX) {
-		dprintf(CRITICAL, "bad bs id: %u, max: %u\n", bs_id, BS_MAX);
-		ASSERT(0);
-	}
-
-	if (bs_id == BS_KERNEL_LOAD_START) {
-		kernel_load_start = platform_get_sclk_count();
-		return;
-	}
-
 	if (soc_ver < BOARD_SOC_VERSION2)
-		bs_imem = (void *)BS_INFO_ADDR_V1;
+		return ((addr_t)BS_INFO_ADDR_V1);
 	else
-		bs_imem = (void *)BS_INFO_ADDR_V2;
+		return ((addr_t)BS_INFO_ADDR_V2);
 
-	if(bs_id == BS_KERNEL_LOAD_DONE)
-		writel(platform_get_sclk_count() - kernel_load_start,
-			   bs_imem + (sizeof(uint32_t) * BS_KERNEL_LOAD_TIME));
-	else
-		writel(platform_get_sclk_count(),
-			   bs_imem + (sizeof(uint32_t) * bs_id));
 }
 
 void platform_uninit(void)
