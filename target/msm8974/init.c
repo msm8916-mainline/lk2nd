@@ -77,6 +77,8 @@ struct mmc_device *dev;
 #define SSD_PARTITION_SIZE      8192
 #endif
 
+#define BOARD_SOC_VERSION1(soc_rev) (soc_rev >= 0x10000 && soc_rev < 0x20000)
+
 #if MMC_SDHCI_SUPPORT
 static uint32_t mmc_sdhci_base[] =
 	{ MSM_SDC1_SDHCI_BASE, MSM_SDC2_SDHCI_BASE, MSM_SDC3_SDHCI_BASE, MSM_SDC4_SDHCI_BASE };
@@ -90,6 +92,27 @@ void target_early_init(void)
 #if WITH_DEBUG_UART
 	uart_dm_init(1, 0, BLSP1_UART1_BASE);
 #endif
+}
+
+/* Check for 8974 chip */
+static int target_is_8974()
+{
+	uint32_t platform = board_platform_id();
+	int ret = 0;
+
+	switch(platform)
+	{
+		case APQ8074:
+		case MSM8274:
+		case MSM8674:
+		case MSM8974:
+			ret = 1;
+			break;
+		default:
+			ret = 0;
+	};
+
+	return ret;
 }
 
 /* Return 1 if vol_up pressed */
@@ -192,10 +215,10 @@ static target_mmc_sdhci_init()
 	switch(board_hardware_id())
 	{
 		case HW_PLATFORM_FLUID:
-			if (soc_ver >= BOARD_SOC_VERSION2)
-				config.bus_width = DATA_BUS_WIDTH_8BIT;
-			else
+			if (target_is_8974() && BOARD_SOC_VERSION1(soc_ver))
 				config.bus_width = DATA_BUS_WIDTH_4BIT;
+			else
+				config.bus_width = DATA_BUS_WIDTH_8BIT;
 			break;
 		default:
 			config.bus_width = DATA_BUS_WIDTH_8BIT;
@@ -268,10 +291,10 @@ void target_mmc_caps(struct mmc_host *host)
 	switch(board_hardware_id())
 	{
 		case HW_PLATFORM_FLUID:
-			if (soc_ver >= BOARD_SOC_VERSION2)
-				host->caps.bus_width = MMC_BOOT_BUS_WIDTH_8_BIT;
-			else
+			if (target_is_8974() && BOARD_SOC_VERSION1(soc_ver))
 				host->caps.bus_width = MMC_BOOT_BUS_WIDTH_4_BIT;
+			else
+				host->caps.bus_width = MMC_BOOT_BUS_WIDTH_8_BIT;
 			break;
 		default:
 			host->caps.bus_width = MMC_BOOT_BUS_WIDTH_8_BIT;
@@ -451,10 +474,10 @@ unsigned check_reboot_mode(void)
 
 	soc_ver = board_soc_version();
 
-	if (soc_ver >= BOARD_SOC_VERSION2)
-		restart_reason_addr = RESTART_REASON_ADDR_V2;
-	else
+	if (target_is_8974() && BOARD_SOC_VERSION1(soc_ver))
 		restart_reason_addr = RESTART_REASON_ADDR;
+	else
+		restart_reason_addr = RESTART_REASON_ADDR_V2;
 
 	/* Read reboot reason and scrub it */
 	restart_reason = readl(restart_reason_addr);
@@ -470,10 +493,10 @@ void reboot_device(unsigned reboot_reason)
 	soc_ver = board_soc_version();
 
 	/* Write the reboot reason */
-	if (soc_ver >= BOARD_SOC_VERSION2)
-		writel(reboot_reason, RESTART_REASON_ADDR_V2);
-	else
+	if (target_is_8974() && BOARD_SOC_VERSION1(soc_ver))
 		writel(reboot_reason, RESTART_REASON_ADDR);
+	else
+		writel(reboot_reason, RESTART_REASON_ADDR_V2);
 
 	/* Configure PMIC for warm reset */
 	if (pmic_ver == PMIC_VERSION_V2)
