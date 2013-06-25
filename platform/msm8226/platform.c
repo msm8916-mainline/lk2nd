@@ -73,6 +73,10 @@ void platform_init(void)
 
 void platform_uninit(void)
 {
+#if DISPLAY_SPLASH_SCREEN
+	display_shutdown();
+#endif
+
 	qtimer_uninit();
 }
 
