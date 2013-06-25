@@ -73,6 +73,7 @@ extern  bool target_use_signed_kernel(void);
 extern void dsb();
 extern void isb();
 extern void platform_uninit(void);
+extern void target_uninit(void);
 
 void write_device_info_mmc(device_info *dev);
 void write_device_info_flash(device_info *dev);
@@ -490,6 +491,9 @@ void boot_linux(void *kernel, unsigned *tags,
 	/* Generating the Atags */
 	generate_atags(tags, final_cmdline, ramdisk, ramdisk_size);
 #endif
+
+	/* Perform target specific cleanup */
+	target_uninit();
 
 	dprintf(INFO, "booting linux @ %p, ramdisk @ %p (%d), tags/device tree @ %p\n",
 		entry, ramdisk, ramdisk_size, tags_phys);
