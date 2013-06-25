@@ -38,7 +38,6 @@
 #include <mipi_dsi.h>
 #include <err.h>
 #include <clock.h>
-#include <mdp5.h>
 #include <scm.h>
 
 int restore_secure_cfg(uint32_t id);
@@ -60,10 +59,13 @@ uint32_t mdss_mdp_intf_offset()
 	uint32_t mdss_mdp_intf_off;
 	uint32_t mdss_mdp_rev = readl(MDP_HW_REV);
 
-	if (mdss_mdp_rev > MDSS_MDP_HW_REV_100)
+	if (mdss_mdp_rev ==  MDSS_MDP_HW_REV_100
+		|| mdss_mdp_rev ==  MDSS_MDP_HW_REV_102)
 		mdss_mdp_intf_off = 0;
-	else
+	else if (mdss_mdp_rev ==  MDSS_MDP_HW_REV_101)
 		mdss_mdp_intf_off = 0xEC00;
+	else
+		mdss_mdp_intf_off = 0;
 
 	return mdss_mdp_intf_off;
 }
@@ -119,16 +121,17 @@ static void mdss_rgb_pipe_config(struct fbcon_config *fb, struct msm_panel_info
 static void mdss_vbif_setup()
 {
 	int access_secure = restore_secure_cfg(SECURE_DEVICE_MDSS);
+	uint32_t mdp_hw_rev = readl(MDP_HW_REV);
 
 	/* TZ returns an errornous ret val even if the VBIF registers were
 	 * successfully unlocked. Ignore TZ return value till it's fixed */
 	if (!access_secure || 1) {
 		dprintf(SPEW, "MDSS VBIF registers unlocked by TZ.\n");
-
 		/* Force VBIF Clocks on  */
 		writel(0x1, VBIF_VBIF_DDR_FORCE_CLK_ON);
 
-		if (readl(MDP_HW_REV) == MDSS_MDP_HW_REV_100) {
+		if (mdp_hw_rev == MDSS_MDP_HW_REV_100
+			|| mdp_hw_rev == MDSS_MDP_HW_REV_102) {
 			/* Configure DDR burst length */
 			writel(0x00000707, VBIF_VBIF_DDR_OUT_MAX_BURST);
 			writel(0x00000030, VBIF_VBIF_DDR_ARB_CTRL );
@@ -137,6 +140,9 @@ static void mdss_vbif_setup()
 			writel(0x0FFF0FFF, VBIF_VBIF_DDR_OUT_AX_AOOO);
 			writel(0x22222222, VBIF_VBIF_DDR_AXI_AMEMTYPE_CONF0);
 			writel(0x00002222, VBIF_VBIF_DDR_AXI_AMEMTYPE_CONF1);
+		} else if (mdp_hw_rev == MDSS_MDP_HW_REV_101) {
+			writel(0x00000707, VBIF_VBIF_DDR_OUT_MAX_BURST);
+			writel(0x00000003, VBIF_VBIF_DDR_ARB_CTRL);
 		}
 	}
 }
@@ -145,9 +151,19 @@ void mdss_smp_setup(struct msm_panel_info *pinfo)
 {
 	uint32_t smp_cnt = 0, reg_rgb0 = 0, reg_rgb1 = 0, shift = 0;
 	uint32_t xres, bpp;
+	uint32_t rgb0_client_id = MMSS_MDP_CLIENT_ID_UNUSED;
+	uint32_t rgb1_client_id = MMSS_MDP_1_2_CLIENT_ID_RGB1;
+	uint32_t mdss_mdp_rev = readl(MDP_HW_REV);
 
 	xres = pinfo->xres;
 	bpp = pinfo->bpp;
+
+	if (mdss_mdp_rev == MDSS_MDP_HW_REV_101) {
+		rgb0_client_id = MMSS_MDP_1_1_CLIENT_ID_RGB0;
+	} else if (mdss_mdp_rev == MDSS_MDP_HW_REV_100
+		|| mdss_mdp_rev == MDSS_MDP_HW_REV_102) {
+		rgb0_client_id = MMSS_MDP_1_2_CLIENT_ID_RGB0;
+	}
 
 	if (pinfo->lcdc.dual_pipe) {
 		/* Each pipe driving half the screen */
@@ -176,8 +192,8 @@ void mdss_smp_setup(struct msm_panel_info *pinfo)
 	}
 
 	while((smp_cnt > 0) && !(shift > 16)) {
-		reg_rgb0 |= ((MMSS_MDP_CLIENT_ID_RGB0) << (shift));
-		reg_rgb1 |= ((MMSS_MDP_CLIENT_ID_RGB1) << (shift));
+		reg_rgb0 |= ((rgb0_client_id) << (shift));
+		reg_rgb1 |= ((rgb1_client_id) << (shift));
 		smp_cnt--;
 		shift += 8;
 	}

@@ -63,6 +63,7 @@
 
 
 #define MDSS_MDP_HW_REV_100                     0x10000000
+#define MDSS_MDP_HW_REV_101                     0x10010000
 #define MDSS_MDP_HW_REV_102                     0x10020000
 
 #define MDP_HW_REV                              REG_MDP(0x0100)
@@ -118,8 +119,10 @@
 #define MDP_CLK_CTRL4                           REG_MDP(0x04B0)
 #define MDP_CLK_CTRL5                           REG_MDP(0x04B8)
 
-#define MMSS_MDP_CLIENT_ID_RGB0                 0x00000010
-#define MMSS_MDP_CLIENT_ID_RGB1                 0x00000011
+#define MMSS_MDP_CLIENT_ID_UNUSED               0x00000000
+#define MMSS_MDP_1_1_CLIENT_ID_RGB0             0x00000007
+#define MMSS_MDP_1_2_CLIENT_ID_RGB0             0x00000010
+#define MMSS_MDP_1_2_CLIENT_ID_RGB1             0x00000011
 
 #define MMSS_MDP_MAX_SMP_SIZE                   0x00001000
 #define MMSS_MDP_SMP_ALLOC_W_0                  REG_MDP(0x0180)
