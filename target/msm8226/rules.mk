@@ -22,6 +22,7 @@ MODULES += \
 	dev/keys \
 	lib/ptable \
 	dev/pmic/pm8x41 \
+	dev/panel/msm \
 	lib/libfdt
 
 DEFINES += \
@@ -36,4 +37,5 @@ DEFINES += \
 
 OBJS += \
     $(LOCAL_DIR)/init.o \
-    $(LOCAL_DIR)/meminfo.o
+    $(LOCAL_DIR)/meminfo.o \
+    $(LOCAL_DIR)/target_display.o
