@@ -1171,8 +1171,6 @@ int mipi_dsi_off()
 	{
 		writel(0, DSI_CLK_CTRL);
 		writel(0x1F1, DSI_CTRL);
-		writel(0x00000001, DSIPHY_SW_RESET);
-		writel(0x00000000, DSIPHY_SW_RESET);
 		mdelay(10);
 		writel(0x0001, DSI_SOFT_RESET);
 		writel(0x0000, DSI_SOFT_RESET);
