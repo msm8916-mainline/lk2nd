@@ -279,3 +279,139 @@ void clock_config_ce(uint8_t instance)
 
 }
 
+void mdp_gdsc_ctrl(uint8_t enable)
+{
+	uint32_t reg = 0;
+	reg = readl(MDP_GDSCR);
+	if (enable) {
+		if (reg & 0x1) {
+			reg &=  ~(BIT(0) | GDSC_EN_FEW_WAIT_MASK);
+			reg |= GDSC_EN_FEW_WAIT_256_MASK;
+			writel(reg, MDP_GDSCR);
+		}
+
+		while(readl(MDP_GDSCR) & ((GDSC_POWER_ON_BIT) | (GDSC_POWER_ON_STATUS_BIT)));
+	} else {
+		reg &= ~BIT(0);
+		writel(reg, MDP_GDSCR);
+		while(!(readl(MDP_GDSCR) & ((GDSC_POWER_ON_BIT))));
+	}
+}
+
+/* Configure MDP clock */
+void mdp_clock_init(void)
+{
+	int ret;
+
+	/* Set MDP clock to 100MHz */
+	ret = clk_get_set_enable("mdp_ahb_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mdp_ahb_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("mdss_mdp_clk_src", 100000000, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mdp_clk_src ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("mdss_vsync_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mdss vsync clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("mdss_mdp_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mdp_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("mdss_mdp_lut_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set lut_mdp clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+}
+
+void mdp_clock_disable(void)
+{
+	writel(0x0, DSI_BYTE0_CBCR);
+	writel(0x0, DSI_PIXEL0_CBCR);
+	clk_disable(clk_get("mdss_vsync_clk"));
+	clk_disable(clk_get("mdss_mdp_clk"));
+	clk_disable(clk_get("mdss_mdp_lut_clk"));
+	clk_disable(clk_get("mdss_mdp_clk_src"));
+	clk_disable(clk_get("mdp_ahb_clk"));
+}
+
+/* Initialize all clocks needed by Display */
+void mmss_clock_init(uint32_t dsi_pixel0_cfg_rcgr)
+{
+	int ret;
+
+	/* Configure Byte clock */
+	writel(0x100, DSI_BYTE0_CFG_RCGR);
+	writel(0x1, DSI_BYTE0_CMD_RCGR);
+	writel(0x1, DSI_BYTE0_CBCR);
+
+	/* Configure ESC clock */
+	ret = clk_get_set_enable("mdss_esc0_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set esc0_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	/* Configure MMSSNOC AXI clock */
+	ret = clk_get_set_enable("mmss_mmssnoc_axi_clk", 100000000, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mmssnoc_axi_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	/* Configure MMSSNOC AXI clock */
+	ret = clk_get_set_enable("mmss_s0_axi_clk", 100000000, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mmss_s0_axi_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	/* Configure AXI clock */
+	ret = clk_get_set_enable("mdss_axi_clk", 100000000, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mdss_axi_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	/* Configure Pixel clock */
+	writel(dsi_pixel0_cfg_rcgr, DSI_PIXEL0_CFG_RCGR);
+	writel(0x1, DSI_PIXEL0_CMD_RCGR);
+	writel(0x1, DSI_PIXEL0_CBCR);
+}
+
+void mmss_clock_disable(void)
+{
+
+	/* Disable ESC clock */
+	clk_disable(clk_get("mdss_esc0_clk"));
+
+	/* Disable MDSS AXI clock */
+	clk_disable(clk_get("mdss_axi_clk"));
+
+	/* Disable MMSSNOC S0AXI clock */
+	clk_disable(clk_get("mmss_s0_axi_clk"));
+
+	/* Disable MMSSNOC AXI clock */
+	clk_disable(clk_get("mmss_mmssnoc_axi_clk"));
+
+}

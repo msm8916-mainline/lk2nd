@@ -150,4 +150,14 @@
 
 /* DRV strength for sdcc */
 #define SDC1_HDRV_PULL_CTL           (TLMM_BASE_ADDR + 0x00002044)
+
+/* MDSS */
+#define MSM_MMSS_CLK_CTL_BASE       0xFD8C0000
+#define MIPI_DSI_BASE               (0xFD922800)
+#define MIPI_DSI0_BASE              MIPI_DSI_BASE
+#define MIPI_DSI1_BASE              MIPI_DSI_BASE
+#define REG_DSI(off)                (MIPI_DSI_BASE + 0x04 + (off))
+#define MDP_BASE                    (0xfd900000)
+#define REG_MDP(off)                (MDP_BASE + (off))
+
 #endif
