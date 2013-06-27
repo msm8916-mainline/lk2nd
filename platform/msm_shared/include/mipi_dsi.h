@@ -39,34 +39,6 @@
 #define DSI_SOFT_RESET                        REG_DSI(0x114)
 #define DSI_CAL_CTRL                          REG_DSI(0x0F4)
 
-#define SOFT_RESET                            0x118
-#define CLK_CTRL                              0x11C
-#define TRIG_CTRL                             0x084
-#define CTRL                                  0x004
-#define COMMAND_MODE_DMA_CTRL                 0x03C
-#define ERR_INT_MASK0                         0x10C
-
-#define LANE_SWAP_CTL                         0x0B0
-#define TIMING_CTL                            0x0C4
-
-#define VIDEO_MODE_ACTIVE_H                   0x024
-#define VIDEO_MODE_ACTIVE_V                   0x028
-#define VIDEO_MODE_TOTAL                      0x02C
-#define VIDEO_MODE_HSYNC                      0x030
-#define VIDEO_MODE_VSYNC                      0x034
-#define VIDEO_MODE_VSYNC_VPOS                 0x038
-
-#define DMA_CMD_OFFSET                        0x048
-#define DMA_CMD_LENGTH                        0x04C
-
-#define INT_CTRL                              0x110
-#define CMD_MODE_DMA_SW_TRIGGER               0x090
-
-#define EOT_PACKET_CTRL                       0x0C8
-#define MISR_VIDEO_CTRL                       0x0A4
-#define VIDEO_MODE_CTRL                       0x010
-#define HS_TIMER_CTRL                         0x0BC
-
 #define DSIPHY_SW_RESET                       REG_DSI(0x128)
 #define DSIPHY_PLL_RDY                        REG_DSI(0x280)
 #define DSIPHY_REGULATOR_CAL_PWR_CFG          REG_DSI(0x518)

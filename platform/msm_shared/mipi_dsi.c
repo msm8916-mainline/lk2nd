@@ -121,6 +121,7 @@ int mdss_dual_dsi_cmd_dma_trigger_for_panel()
 	uint32_t count = 0;
 	int status = 0;
 
+#if (DISPLAY_TYPE_MDSS == 1)
 	writel(0x03030303, MIPI_DSI0_BASE + INT_CTRL);
 	writel(0x1, MIPI_DSI0_BASE + CMD_MODE_DMA_SW_TRIGGER);
 	dsb();
@@ -144,6 +145,7 @@ int mdss_dual_dsi_cmd_dma_trigger_for_panel()
 	writel((readl(MIPI_DSI1_BASE + INT_CTRL) | 0x01000001),
 			MIPI_DSI1_BASE + INT_CTRL);
 	dprintf(SPEW, "Panel CMD: command mode dma tested successfully\n");
+#endif
 	return status;
 }
 
@@ -181,6 +183,7 @@ int mdss_dual_dsi_cmds_tx(struct mipi_dsi_cmd *cmds, int count)
 	char pload[256];
 	uint32_t off;
 
+#if (DISPLAY_TYPE_MDSS == 1)
 	/* Align pload at 8 byte boundry */
 	off = pload;
 	off &= 0x07;
@@ -200,6 +203,7 @@ int mdss_dual_dsi_cmds_tx(struct mipi_dsi_cmd *cmds, int count)
 		udelay(80);
 		cm++;
 	}
+#endif
 	return ret;
 }
 
@@ -336,6 +340,7 @@ int mdss_dsi_panel_initialize(struct mipi_dsi_panel_config *pinfo, uint32_t
 	uint8_t lane_swap = 0;
 	uint32_t timing_ctl = 0;
 
+#if (DISPLAY_TYPE_MDSS == 1)
 	switch (pinfo->num_of_lanes) {
 	default:
 	case 1:
@@ -401,9 +406,9 @@ int mdss_dsi_panel_initialize(struct mipi_dsi_panel_config *pinfo, uint32_t
 					pinfo->num_of_panel_cmds);
 		}
 	}
+#endif
 	return status;
 }
-
 
 int mipi_dsi_panel_initialize(struct mipi_dsi_panel_config *pinfo)
 {
@@ -822,9 +827,9 @@ int mdss_dsi_video_mode_config(uint16_t disp_width,
 	uint8_t interleav,
 	uint32_t ctl_base)
 {
-
 	int status = 0;
 
+#if (DISPLAY_TYPE_MDSS == 1)
 	/* disable mdp first */
 	mdp_disable();
 
@@ -890,6 +895,7 @@ int mdss_dsi_video_mode_config(uint16_t disp_width,
 
 	writel(interleav << 30 | 0 << 24 | 0 << 20 | lane_en << 4
 			| 0x103, ctl_base + CTRL);
+#endif
 
 	return status;
 }
@@ -900,6 +906,7 @@ int mdss_dsi_config(struct msm_fb_panel_data *panel)
 	struct msm_panel_info *pinfo;
 	struct mipi_dsi_panel_config mipi_pinfo;
 
+#if (DISPLAY_TYPE_MDSS == 1)
 	if (!panel)
 		return ERR_INVALID_ARGS;
 
@@ -922,6 +929,7 @@ int mdss_dsi_config(struct msm_fb_panel_data *panel)
 
 	if (pinfo->rotate && panel->rotate)
 		pinfo->rotate();
+#endif
 
 	return ret;
 }
@@ -1036,6 +1044,7 @@ int mdss_dsi_cmd_mode_config(uint16_t disp_width,
 	uint8_t ystride = 0x03;
 	// disable mdp first
 
+#if (DISPLAY_TYPE_MDSS == 1)
 	writel(0x00000000, DSI_CLK_CTRL);
 	writel(0x00000000, DSI_CLK_CTRL);
 	writel(0x00000000, DSI_CLK_CTRL);
@@ -1075,6 +1084,7 @@ int mdss_dsi_cmd_mode_config(uint16_t disp_width,
 	       DSI_CTRL);
 	writel(0x10000000, DSI_COMMAND_MODE_DMA_CTRL);
 	writel(0x10000000, DSI_MISR_CMD_CTRL);
+#endif
 
 	return NO_ERROR;
 }

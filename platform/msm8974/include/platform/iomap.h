@@ -174,6 +174,34 @@
 #define MDP_BASE                    (0xfd900000)
 #define REG_MDP(off)                (MDP_BASE + (off))
 
+#define SOFT_RESET                  0x118
+#define CLK_CTRL                    0x11C
+#define TRIG_CTRL                   0x084
+#define CTRL                        0x004
+#define COMMAND_MODE_DMA_CTRL       0x03C
+#define ERR_INT_MASK0               0x10C
+
+#define LANE_SWAP_CTL               0x0B0
+#define TIMING_CTL                  0x0C4
+
+#define VIDEO_MODE_ACTIVE_H         0x024
+#define VIDEO_MODE_ACTIVE_V         0x028
+#define VIDEO_MODE_TOTAL            0x02C
+#define VIDEO_MODE_HSYNC            0x030
+#define VIDEO_MODE_VSYNC            0x034
+#define VIDEO_MODE_VSYNC_VPOS       0x038
+
+#define DMA_CMD_OFFSET              0x048
+#define DMA_CMD_LENGTH              0x04C
+
+#define INT_CTRL                    0x110
+#define CMD_MODE_DMA_SW_TRIGGER     0x090
+
+#define EOT_PACKET_CTRL             0x0C8
+#define MISR_VIDEO_CTRL             0x0A4
+#define VIDEO_MODE_CTRL             0x010
+#define HS_TIMER_CTRL               0x0BC
+
 /* DRV strength for sdcc */
 #define SDC1_HDRV_PULL_CTL           (TLMM_BASE_ADDR + 0x00002044)
 
