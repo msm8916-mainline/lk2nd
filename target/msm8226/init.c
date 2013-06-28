@@ -59,6 +59,12 @@ static void set_sdc_power_ctrl(void);
 
 #define TLMM_VOL_UP_BTN_GPIO    106
 
+enum target_subtype {
+	HW_PLATFORM_SUBTYPE_SKUAA = 1,
+	HW_PLATFORM_SUBTYPE_SKUF = 2,
+	HW_PLATFORM_SUBTYPE_SKUAB = 3,
+};
+
 static uint32_t mmc_sdhci_base[] =
 	{ MSM_SDC1_SDHCI_BASE, MSM_SDC2_SDHCI_BASE, MSM_SDC3_SDHCI_BASE };
 
@@ -217,6 +223,12 @@ void target_baseband_detect(struct board_data *board)
 	switch(platform_subtype)
 	{
 	case HW_PLATFORM_SUBTYPE_UNKNOWN:
+		break;
+	case HW_PLATFORM_SUBTYPE_SKUAA:
+		break;
+	case HW_PLATFORM_SUBTYPE_SKUF:
+		break;
+	case HW_PLATFORM_SUBTYPE_SKUAB:
 		break;
 	default:
 		dprintf(CRITICAL, "Platform Subtype : %u is not supported\n", platform_subtype);
