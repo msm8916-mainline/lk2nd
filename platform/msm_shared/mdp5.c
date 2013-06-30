@@ -59,13 +59,10 @@ uint32_t mdss_mdp_intf_offset()
 	uint32_t mdss_mdp_intf_off;
 	uint32_t mdss_mdp_rev = readl(MDP_HW_REV);
 
-	if (mdss_mdp_rev ==  MDSS_MDP_HW_REV_100
-		|| mdss_mdp_rev ==  MDSS_MDP_HW_REV_102)
+	if (mdss_mdp_rev >= MDSS_MDP_HW_REV_102)
 		mdss_mdp_intf_off = 0;
-	else if (mdss_mdp_rev ==  MDSS_MDP_HW_REV_101)
-		mdss_mdp_intf_off = 0xEC00;
 	else
-		mdss_mdp_intf_off = 0;
+		mdss_mdp_intf_off = 0xEC00;
 
 	return mdss_mdp_intf_off;
 }
@@ -131,7 +128,7 @@ static void mdss_vbif_setup()
 		writel(0x1, VBIF_VBIF_DDR_FORCE_CLK_ON);
 
 		if (mdp_hw_rev == MDSS_MDP_HW_REV_100
-			|| mdp_hw_rev == MDSS_MDP_HW_REV_102) {
+			|| mdp_hw_rev >= MDSS_MDP_HW_REV_102) {
 			/* Configure DDR burst length */
 			writel(0x00000707, VBIF_VBIF_DDR_OUT_MAX_BURST);
 			writel(0x00000030, VBIF_VBIF_DDR_ARB_CTRL );
@@ -140,7 +137,7 @@ static void mdss_vbif_setup()
 			writel(0x0FFF0FFF, VBIF_VBIF_DDR_OUT_AX_AOOO);
 			writel(0x22222222, VBIF_VBIF_DDR_AXI_AMEMTYPE_CONF0);
 			writel(0x00002222, VBIF_VBIF_DDR_AXI_AMEMTYPE_CONF1);
-		} else if (mdp_hw_rev == MDSS_MDP_HW_REV_101) {
+		} else if (mdp_hw_rev >= MDSS_MDP_HW_REV_101) {
 			writel(0x00000707, VBIF_VBIF_DDR_OUT_MAX_BURST);
 			writel(0x00000003, VBIF_VBIF_DDR_ARB_CTRL);
 		}
@@ -158,12 +155,11 @@ void mdss_smp_setup(struct msm_panel_info *pinfo)
 	xres = pinfo->xres;
 	bpp = pinfo->bpp;
 
-	if (mdss_mdp_rev == MDSS_MDP_HW_REV_101) {
-		rgb0_client_id = MMSS_MDP_1_1_CLIENT_ID_RGB0;
-	} else if (mdss_mdp_rev == MDSS_MDP_HW_REV_100
-		|| mdss_mdp_rev == MDSS_MDP_HW_REV_102) {
+	if (mdss_mdp_rev == MDSS_MDP_HW_REV_100
+		|| mdss_mdp_rev >= MDSS_MDP_HW_REV_102)
 		rgb0_client_id = MMSS_MDP_1_2_CLIENT_ID_RGB0;
-	}
+	else if (mdss_mdp_rev >= MDSS_MDP_HW_REV_101)
+		rgb0_client_id = MMSS_MDP_1_1_CLIENT_ID_RGB0;
 
 	if (pinfo->lcdc.dual_pipe) {
 		/* Each pipe driving half the screen */
