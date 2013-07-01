@@ -283,7 +283,7 @@ int msm_display_off()
 		ret = mdp_dsi_video_off();
 		if (ret)
 			goto msm_display_off_out;
-		ret = mipi_dsi_off();
+		ret = mipi_dsi_off(pinfo);
 		if (ret)
 			goto msm_display_off_out;
 		break;
@@ -292,7 +292,7 @@ int msm_display_off()
 		ret = mdp_dsi_cmd_off();
 		if (ret)
 			goto msm_display_off_out;
-		ret = mipi_dsi_off();
+		ret = mipi_dsi_off(pinfo);
 		if (ret)
 			goto msm_display_off_out;
 		break;

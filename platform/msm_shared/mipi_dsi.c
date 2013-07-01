@@ -1175,7 +1175,7 @@ int mipi_dsi_on()
 	return ret;
 }
 
-int mipi_dsi_off()
+int mipi_dsi_off(struct msm_panel_info *pinfo)
 {
 	if(!target_cont_splash_screen())
 	{
@@ -1189,6 +1189,8 @@ int mipi_dsi_off()
 	}
 
 	writel(0x1115501, DSI_INT_CTRL);
+	if (pinfo->mipi.broadcast)
+		writel(0x1115501, DSI_INT_CTRL + 0x600);
 
 	return NO_ERROR;
 }
