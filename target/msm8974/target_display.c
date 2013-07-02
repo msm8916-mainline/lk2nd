@@ -59,6 +59,18 @@ static struct pm8x41_wled_data wled_ctrl = {
 
 static int msm8974_backlight_on()
 {
+	uint32_t platform_id = board_platform_id();
+	uint32_t hardware_id = board_hardware_id();
+	uint8_t slave_id = 1, i;
+	struct board_pmic_data *pmic_info;
+
+	if (platform_id == MSM8974AC)
+		if ((hardware_id == HW_PLATFORM_SURF)
+		    || (hardware_id == HW_PLATFORM_MTP)
+		    || (hardware_id == HW_PLATFORM_LIQUID))
+			slave_id = 3;
+
+	pm8x41_wled_config_slave_id(slave_id);
 	pm8x41_wled_config(&wled_ctrl);
 	pm8x41_wled_sink_control(1);
 	pm8x41_wled_iled_sync_control(1);
@@ -108,27 +120,40 @@ static int msm8974_mdss_sharp_dsi_panel_clock(uint8_t enable)
 /* Pull DISP_RST_N high to get panel out of reset */
 static void msm8974_mdss_mipi_panel_reset(uint8_t enable)
 {
-	struct pm8x41_gpio gpio19_param = {
+	uint32_t rst_gpio = 19;
+	uint32_t platform_id = board_platform_id();
+	uint32_t hardware_id = board_hardware_id();
+
+	struct pm8x41_gpio gpio_param = {
 		.direction = PM_GPIO_DIR_OUT,
 		.output_buffer = PM_GPIO_OUT_CMOS,
 		.out_strength = PM_GPIO_OUT_DRIVE_MED,
 	};
 
-	pm8x41_gpio_config(19, &gpio19_param);
+	if (platform_id == MSM8974AC)
+		if ((hardware_id == HW_PLATFORM_SURF)
+		    || (hardware_id == HW_PLATFORM_MTP)
+		    || (hardware_id == HW_PLATFORM_LIQUID))
+			rst_gpio = 20;
+
+	dprintf(SPEW, "platform_id: %u, rst_gpio: %u\n",
+				platform_id, rst_gpio);
+
+	pm8x41_gpio_config(rst_gpio, &gpio_param);
 	if (enable) {
 		gpio_tlmm_config(58, 0, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_8MA, GPIO_DISABLE);
 
-		pm8x41_gpio_set(19, PM_GPIO_FUNC_HIGH);
+		pm8x41_gpio_set(rst_gpio, PM_GPIO_FUNC_HIGH);
 		mdelay(2);
-		pm8x41_gpio_set(19, PM_GPIO_FUNC_LOW);
+		pm8x41_gpio_set(rst_gpio, PM_GPIO_FUNC_LOW);
 		mdelay(5);
-		pm8x41_gpio_set(19, PM_GPIO_FUNC_HIGH);
+		pm8x41_gpio_set(rst_gpio, PM_GPIO_FUNC_HIGH);
 		mdelay(2);
 		gpio_set(58, 2);
 	} else {
-		gpio19_param.out_strength = PM_GPIO_OUT_DRIVE_LOW;
-		pm8x41_gpio_config(19, &gpio19_param);
-		pm8x41_gpio_set(19, PM_GPIO_FUNC_LOW);
+		gpio_param.out_strength = PM_GPIO_OUT_DRIVE_LOW;
+		pm8x41_gpio_config(rst_gpio, &gpio_param);
+		pm8x41_gpio_set(rst_gpio, PM_GPIO_FUNC_LOW);
 		gpio_set(58, 2);
 	}
 }
