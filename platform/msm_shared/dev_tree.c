@@ -134,34 +134,31 @@ int dev_tree_validate(struct dt_table *table, unsigned int page_size)
 	return 0;
 }
 
-static int __dev_tree_get_entry_info(struct dt_table *table, struct dt_entry *dt_entry_info, uint32_t target_variant_id);
-
-/* Function to obtain the index information for the correct device tree
- *  based on the platform data.
- *  If a matching device tree is found, the information is returned in the
- *  "dt_entry_info" out parameter and a function value of 0 is returned, otherwise
- *  a non-zero function value is returned.
- */
-int dev_tree_get_entry_info(struct dt_table *table, struct dt_entry *dt_entry_info)
+static int platform_dt_match(struct dt_entry *cur_dt_entry, uint32_t target_variant_id, uint32_t subtype_mask)
 {
-	uint32_t target_variant_id;
+	/* 1. must match the platform_id, hardware_id, platform_version
+	*  2. soc rev number equal then return 0
+	*  3. dt soc rev number less than cdt return -1
+	*  4. otherwise return 1
+	*/
+	uint32_t cur_dt_target_id ;
 
-	if(board_hardware_id() == HW_PLATFORM_QRD) {
-		target_variant_id = board_target_id();
-		if (__dev_tree_get_entry_info(table, dt_entry_info, target_variant_id) == 0) {
+	cur_dt_target_id  = cur_dt_entry->variant_id | ((cur_dt_entry->board_hw_subtype & subtype_mask & 0xff) << 24);
+
+	if((cur_dt_entry->platform_id == board_platform_id()) &&
+		(cur_dt_target_id == target_variant_id)) {
+		if(cur_dt_entry->soc_rev == board_soc_version()) {
 			return 0;
+		} else if(cur_dt_entry->soc_rev < board_soc_version()) {
+			return -1;
 		}
 	}
-	/*
-	* for compatible with version 1 and version 2 dtbtool
-	* will compare the subtype inside the variant id
-	*/
-	target_variant_id = board_hardware_id() | ((board_hardware_subtype() & 0xff) << 24);
 
-	return __dev_tree_get_entry_info(table, dt_entry_info, target_variant_id);
+	return 1;
 }
 
-static int __dev_tree_get_entry_info(struct dt_table *table, struct dt_entry *dt_entry_info, uint32_t target_variant_id)
+static int __dev_tree_get_entry_info(struct dt_table *table, struct dt_entry *dt_entry_info,
+										uint32_t target_variant_id, uint32_t subtype_mask)
 {
 	uint32_t i;
 	unsigned char *table_ptr;
@@ -170,6 +167,7 @@ static int __dev_tree_get_entry_info(struct dt_table *table, struct dt_entry *dt
 	struct dt_entry *cur_dt_entry;
 	struct dt_entry *best_match_dt_entry;
 	struct dt_entry_v1 *dt_entry_v1;
+	uint32_t found = 0;
 
 	if (!dt_entry_info) {
 		dprintf(CRITICAL, "ERROR: Bad parameter passed to %s \n",
@@ -181,7 +179,7 @@ static int __dev_tree_get_entry_info(struct dt_table *table, struct dt_entry *dt
 	cur_dt_entry = &dt_entry_buf_1;
 	best_match_dt_entry = NULL;
 
-	for(i = 0; i < table->num_entries; i++)
+	for(i = 0; found == 0 && i < table->num_entries; i++)
 	{
 		memset(cur_dt_entry, 0, sizeof(struct dt_entry));
 		switch(table->version) {
@@ -211,29 +209,33 @@ static int __dev_tree_get_entry_info(struct dt_table *table, struct dt_entry *dt
 		 * we pickup the DTB with highest soc rev number which is less
 		 * than or equal to actual hardware
 		 */
-		if((cur_dt_entry->platform_id == board_platform_id()) &&
-		   ((cur_dt_entry->variant_id | ((cur_dt_entry->board_hw_subtype & 0xff) << 24)) == target_variant_id))
-		{
-			if(cur_dt_entry->soc_rev == board_soc_version()) {
+		switch(platform_dt_match(cur_dt_entry, target_variant_id, subtype_mask)) {
+		case 0:
+			best_match_dt_entry = cur_dt_entry;
+			found = 1;
+			break;
+		case -1:
+			if (!best_match_dt_entry) {
+				/* copy structure */
 				best_match_dt_entry = cur_dt_entry;
-				break;
-			} else if (cur_dt_entry->soc_rev < board_soc_version()){
-				/* Keep this as the next best candidate. */
-				if (!best_match_dt_entry) {
-					best_match_dt_entry = cur_dt_entry;
-					cur_dt_entry = &dt_entry_buf_2;
-				} else {
-					/* Swap dt_entry buffers */
-					struct dt_entry *temp = cur_dt_entry;
-					cur_dt_entry = best_match_dt_entry;
-					best_match_dt_entry = temp;
-				}
+				cur_dt_entry = &dt_entry_buf_2;
+			} else {
+				/* Swap dt_entry buffers */
+				struct dt_entry *temp = cur_dt_entry;
+				cur_dt_entry = best_match_dt_entry;
+				best_match_dt_entry = temp;
 			}
+		default:
+			break;
 		}
 	}
 
 	if (best_match_dt_entry) {
 		*dt_entry_info = *best_match_dt_entry;
+		found = 1;
+	}
+
+	if (found != 0) {
 		dprintf(INFO, "Using DTB entry %u/%08x/%u/%u for device %u/%08x/%u/%u\n",
 				dt_entry_info->platform_id, dt_entry_info->soc_rev,
 				dt_entry_info->variant_id, dt_entry_info->board_hw_subtype,
@@ -246,6 +248,38 @@ static int __dev_tree_get_entry_info(struct dt_table *table, struct dt_entry *dt
 			board_platform_id(), board_soc_version(),
 			board_hardware_id(), board_hardware_subtype());
 	return -1;
+}
+
+/* Function to obtain the index information for the correct device tree
+ *  based on the platform data.
+ *  If a matching device tree is found, the information is returned in the
+ *  "dt_entry_info" out parameter and a function value of 0 is returned, otherwise
+ *  a non-zero function value is returned.
+ */
+int dev_tree_get_entry_info(struct dt_table *table, struct dt_entry *dt_entry_info)
+{
+	uint32_t target_variant_id;
+
+	if(board_hardware_id() == HW_PLATFORM_QRD) {
+		target_variant_id = board_target_id();
+		if (__dev_tree_get_entry_info(table, dt_entry_info, target_variant_id, 0xff) == 0) {
+			return 0;
+		}
+	}
+	/*
+	* for compatible with version 1 and version 2 dtbtool
+	* will compare the subtype inside the variant id
+	*/
+	target_variant_id = board_hardware_id() | ((board_hardware_subtype() & 0xff) << 24);
+	if (__dev_tree_get_entry_info(table, dt_entry_info, target_variant_id, 0xff) == 0) {
+		return 0;
+	}
+
+	/*
+	* add compatible with old device selection method which don't compare subtype
+	*/
+	target_variant_id = board_hardware_id();
+	return __dev_tree_get_entry_info(table, dt_entry_info, target_variant_id, 0);
 }
 
 /* Function to add the first RAM partition info to the device tree.
