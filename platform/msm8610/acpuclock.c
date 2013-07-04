@@ -172,3 +172,278 @@ void clock_config_ce(uint8_t instance)
 {
 }
 
+/* Configure MDP clock */
+void mdp_clock_enable(void)
+{
+	int ret;
+
+	ret = clk_get_set_enable("axi_clk_src", 100000000, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set axi_clk_src ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("mmss_mmssnoc_axi_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mmss_mmssnoc_axi_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("mmss_s0_axi_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mmss_s0_axi_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("mdp_ahb_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mdp_ahb_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("mdp_axi_clk" , 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mdp_axi_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("mdp_vsync_clk" , 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mdp_vsync_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+}
+
+void mdp_clock_disable(void)
+{
+	clk_disable(clk_get("mdp_vsync_clk"));
+	clk_disable(clk_get("mdp_axi_clk"));
+	clk_disable(clk_get("mdp_ahb_clk"));
+	clk_disable(clk_get("mmss_s0_axi_clk"));
+	clk_disable(clk_get("mmss_mmssnoc_axi_clk"));
+}
+
+int dsi_vco_set_rate(uint32_t rate)
+{
+	uint32_t temp, val;
+	unsigned long fb_divider;
+
+	temp = rate / 10;
+	val = VCO_PARENT_RATE / 10;
+	fb_divider = (temp * VCO_PREF_DIV_RATIO) / val;
+	fb_divider = fb_divider / 2 - 1;
+
+	temp = readl(DSIPHY_PLL_CTRL(1));
+	val = (temp & 0xFFFFFF00) | (fb_divider & 0xFF);
+	writel(val, DSIPHY_PLL_CTRL(1));
+
+	temp = readl(DSIPHY_PLL_CTRL(2));
+	val = (temp & 0xFFFFFFF8) | ((fb_divider >> 8) & 0x07);
+	writel(val, DSIPHY_PLL_CTRL(2));
+
+	temp = readl(DSIPHY_PLL_CTRL(3));
+	val = (temp & 0xFFFFFFC0) | (VCO_PREF_DIV_RATIO - 1);
+	writel(val, DSIPHY_PLL_CTRL(3));
+	return 0;
+}
+
+uint32_t dsi_vco_round_rate(uint32_t rate)
+{
+	uint32_t vco_rate = rate;
+
+	if (rate < VCO_MIN_RATE)
+		vco_rate = VCO_MIN_RATE;
+	else if (rate > VCO_MAX_RATE)
+		vco_rate = VCO_MAX_RATE;
+
+	return vco_rate;
+}
+
+int dsi_byte_clk_set(uint32_t *vcoclk_rate, uint32_t rate)
+{
+	int div, ret;
+	uint32_t vco_rate, bitclk_rate;
+	uint32_t temp, val;
+
+	bitclk_rate = 8 * rate;
+
+	for (div = 1; div < VCO_MAX_DIVIDER; div++)
+	{
+		vco_rate = dsi_vco_round_rate(bitclk_rate * div);
+
+		if (vco_rate == bitclk_rate * div)
+			break;
+
+		if (vco_rate < bitclk_rate * div)
+			return -1;
+	}
+
+	if (vco_rate != bitclk_rate * div)
+		return -1;
+
+	ret = dsi_vco_set_rate(vco_rate);
+	if (ret)
+	{
+		dprintf(CRITICAL, "fail to set vco rate, ret = %d\n", ret);
+		return ret;
+	}
+	*vcoclk_rate = vco_rate;
+
+	/* set the bit clk divider */
+	temp =  readl(DSIPHY_PLL_CTRL(8));
+	val = (temp & 0xFFFFFFF0) | (div - 1);
+	writel(val, DSIPHY_PLL_CTRL(8));
+
+	/* set the byte clk divider */
+	temp = readl(DSIPHY_PLL_CTRL(9));
+	val = (temp & 0xFFFFFF00) | (vco_rate / rate - 1);
+	writel(val, DSIPHY_PLL_CTRL(9));
+
+	return 0;
+}
+
+int dsi_dsi_clk_set(uint32_t vco_rate, uint32_t rate)
+{
+	uint32_t temp, val;
+
+	if (vco_rate % rate != 0)
+	{
+		dprintf(CRITICAL, "dsiclk_set_rate invalid rate\n");
+		return -1;
+	}
+
+	temp = readl(DSIPHY_PLL_CTRL(10));
+	val = (temp & 0xFFFFFF00) | (vco_rate / rate - 1);
+	writel(val, DSIPHY_PLL_CTRL(10));
+
+	return 0;
+}
+
+void dsi_setup_dividers(uint32_t val, uint32_t cfg_rcgr,
+	uint32_t cmd_rcgr)
+{
+	uint32_t i = 0;
+	uint32_t term_cnt = 5000;
+	int32_t reg;
+
+	writel(val, cfg_rcgr);
+	writel(0x1, cmd_rcgr);
+	reg = readl(cmd_rcgr);
+	while (reg & 0x1)
+	{
+		i++;
+		if (i > term_cnt)
+		{
+			dprintf(CRITICAL, "some dsi clock not enabled"
+					"exceeded polling TIMEOUT!\n");
+			break;
+		}
+		udelay(1);
+		reg = readl(cmd_rcgr);
+	}
+}
+
+void vco_enable(int enable)
+{
+	if (enable)
+	{
+		writel(0x1, DSIPHY_PLL_CTRL(0));
+		while (!(readl(DSIPHY_PLL_READY) & 0x01))
+			udelay(1);
+	} else {
+		writel(0x0, DSIPHY_PLL_CTRL(0));
+	}
+}
+
+void dsi_clock_enable(uint32_t dsiclk_rate, uint32_t byteclk_rate)
+{
+	uint32_t vcoclk_rate;
+	int ret;
+
+	ret = clk_get_set_enable("dsi_ahb_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set dsi_ahb_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = dsi_byte_clk_set(&vcoclk_rate, byteclk_rate);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set byteclk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = dsi_dsi_clk_set(vcoclk_rate, dsiclk_rate);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set dsiclk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	vco_enable(1);
+
+	dsi_setup_dividers(0x105, DSI_PCLK_CFG_RCGR, DSI_PCLK_CMD_RCGR);
+	dsi_setup_dividers(0x101, DSI_BYTE_CFG_RCGR, DSI_BYTE_CMD_RCGR);
+	dsi_setup_dividers(0x101, DSI_CFG_RCGR, DSI_CMD_RCGR);
+
+	ret = clk_get_set_enable("dsi_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set dsi_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("dsi_byte_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set dsi_byte_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("dsi_esc_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set dsi_esc_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("dsi_pclk_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set dsi_pclk_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("mdp_lcdc_clk" , 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mdp_lcdc_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("mdp_dsi_clk" , 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mdp_dsi_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+}
+
+void dsi_clock_disable(void)
+{
+	clk_disable(clk_get("mdp_dsi_clk"));
+	clk_disable(clk_get("mdp_lcdc_clk"));
+	clk_disable(clk_get("dsi_pclk_clk"));
+	clk_disable(clk_get("dsi_esc_clk"));
+	clk_disable(clk_get("dsi_byte_clk"));
+	clk_disable(clk_get("dsi_clk"));
+	vco_enable(0);
+	clk_disable(clk_get("dsi_ahb_clk"));
+}

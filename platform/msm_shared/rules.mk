@@ -130,6 +130,7 @@ DEFINES += DISPLAY_TYPE_MDSS=1
 endif
 
 ifeq ($(PLATFORM),msm8610)
+DEFINES += DISPLAY_TYPE_MDSS=1
     OBJS += $(LOCAL_DIR)/qgic.o \
             $(LOCAL_DIR)/qtimer.o \
             $(LOCAL_DIR)/qtimer_mmap.o \
