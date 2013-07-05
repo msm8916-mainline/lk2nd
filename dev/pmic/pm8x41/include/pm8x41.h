@@ -62,7 +62,12 @@
 #define PON_PSHOLD_WARM_RESET   0x1
 #define PON_PSHOLD_SHUTDOWN     0x4
 
-#define PMIC_VERSION_V2         1
+enum PM8X41_VERSIONS
+{
+	PM8X41_VERSION_V1 = 0,
+	PM8X41_VERSION_V2 = 1,
+};
+
 
 /*Target power on reasons*/
 #define DC_CHG                  8
@@ -184,8 +189,8 @@ int pm8x41_gpio_get(uint8_t gpio, uint8_t *status);
 int pm8x41_gpio_set(uint8_t gpio, uint8_t value);
 int pm8x41_gpio_config(uint8_t gpio, struct pm8x41_gpio *config);
 void pm8x41_set_boot_done();
+uint32_t pm8x41_v2_resin_status();
 uint32_t pm8x41_resin_status();
-uint32_t pm8x41_resin_bark_workaround_status();
 void pm8x41_reset_configure(uint8_t);
 void pm8x41_v2_reset_configure(uint8_t);
 int pm8x41_ldo_set_voltage(struct pm8x41_ldo *ldo, uint32_t voltage);

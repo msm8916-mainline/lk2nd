@@ -187,7 +187,7 @@ void pm8x41_resin_s2_reset_disable()
 }
 
 /* Resin irq status for faulty pmic*/
-uint32_t pm8x41_resin_bark_workaround_status()
+uint32_t pm8x41_v2_resin_status()
 {
 	uint8_t rt_sts = 0;
 
