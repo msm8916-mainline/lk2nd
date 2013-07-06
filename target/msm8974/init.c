@@ -146,8 +146,8 @@ static int target_volume_up()
 uint32_t target_volume_down()
 {
 	/* Volume down button is tied in with RESIN on MSM8974. */
-	if (pmic_ver == PMIC_VERSION_V2)
-		return pm8x41_resin_bark_workaround_status();
+	if (target_is_8974() && (pmic_ver == PM8X41_VERSION_V2))
+		return pm8x41_v2_resin_status();
 	else
 		return pm8x41_resin_status();
 }
@@ -499,7 +499,7 @@ void reboot_device(unsigned reboot_reason)
 		writel(reboot_reason, RESTART_REASON_ADDR_V2);
 
 	/* Configure PMIC for warm reset */
-	if (pmic_ver == PMIC_VERSION_V2)
+	if (target_is_8974() && (pmic_ver == PM8X41_VERSION_V2))
 		pm8x41_v2_reset_configure(PON_PSHOLD_WARM_RESET);
 	else
 		pm8x41_reset_configure(PON_PSHOLD_WARM_RESET);
@@ -635,7 +635,7 @@ void shutdown_device()
 	dprintf(CRITICAL, "Going down for shutdown.\n");
 
 	/* Configure PMIC for shutdown. */
-	if (pmic_ver == PMIC_VERSION_V2)
+	if (target_is_8974() && (pmic_ver == PM8X41_VERSION_V2))
 		pm8x41_v2_reset_configure(PON_PSHOLD_SHUTDOWN);
 	else
 		pm8x41_reset_configure(PON_PSHOLD_SHUTDOWN);
