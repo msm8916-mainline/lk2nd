@@ -2057,7 +2057,14 @@ void aboot_init(const struct app_descriptor *app)
 	fastboot_publish("product", TARGET(BOARD));
 	fastboot_publish("kernel", "lk");
 	fastboot_publish("serialno", sn_buf);
-	publish_getvar_partition_info(part_info, ARRAY_SIZE(part_info));
+	/*
+	 * fastboot publish is supported only for emmc partitions
+	 * Calling this for NAND prints some error messages which
+	 * is harmless but misleading. Avoid calling this for NAND
+	 * devices.
+	 */
+	if (target_is_emmc_boot())
+		publish_getvar_partition_info(part_info, ARRAY_SIZE(part_info));
 	/* Max download size supported */
 	snprintf(max_download_size, MAX_RSP_SIZE, "\t0x%x", sz);
 	fastboot_publish("max-download-size", (const char *) max_download_size);
