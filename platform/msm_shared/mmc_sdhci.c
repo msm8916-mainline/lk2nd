@@ -1381,7 +1381,7 @@ static uint32_t mmc_send_erase(struct mmc_device *dev)
 {
 	struct mmc_command cmd;
 	uint32_t status;
-	uint32_t retry;
+	uint32_t retry = 0;
 
 	memset((struct mmc_command *)&cmd, 0, sizeof(struct mmc_command));
 
@@ -1537,7 +1537,7 @@ uint32_t mmc_set_clr_power_on_wp_user(struct mmc_device *dev, uint32_t addr, uin
 	uint32_t status;
 	uint32_t num_wp_grps;
 	uint32_t ret;
-	uint32_t retry;
+	uint32_t retry = 0;
 	uint32_t i;
 
 	memset((struct mmc_command *)&cmd, 0, sizeof(struct mmc_command));
