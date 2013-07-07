@@ -253,6 +253,11 @@ void mdss_intf_tg_setup(struct msm_panel_info *pinfo, uint32_t intf_base)
 	display_vend = ((vsync_period - lcdc->v_front_porch) * hsync_period)
 		+lcdc->hsync_skew - 1;
 
+	if (intf_base == MDP_INTF_0_BASE) { /* eDP */
+		display_vstart += lcdc->h_pulse_width + lcdc->h_back_porch;
+		display_vend -= lcdc->h_front_porch;
+	}
+
 	hsync_ctl = (hsync_period << 16) | lcdc->h_pulse_width;
 	display_hctl = (hsync_end_x << 16) | hsync_start_x;
 
@@ -278,8 +283,10 @@ void mdss_intf_tg_setup(struct msm_panel_info *pinfo, uint32_t intf_base)
 	writel(0x00, MDP_ACTIVE_V_END_F1 + mdss_mdp_intf_off);
 	writel(0xFF, MDP_UNDERFFLOW_COLOR + mdss_mdp_intf_off);
 
-	writel(0x213F, MDP_PANEL_FORMAT + mdss_mdp_intf_off);
-
+	if (intf_base == MDP_INTF_0_BASE) /* eDP */
+		writel(0x212A, MDP_PANEL_FORMAT + mdss_mdp_intf_off);
+	else
+		writel(0x213F, MDP_PANEL_FORMAT + mdss_mdp_intf_off);
 }
 
 void mdss_layer_mixer_setup(struct fbcon_config *fb, struct msm_panel_info
@@ -361,6 +368,33 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 
 	writel(intf_sel, MDP_DISP_INTF_SEL);
 
+	writel(0x1111, MDP_VIDEO_INTF_UNDERFLOW_CTL);
+	writel(0x01, MDP_UPPER_NEW_ROI_PRIOR_RO_START);
+	writel(0x01, MDP_LOWER_NEW_ROI_PRIOR_TO_START);
+
+	return 0;
+}
+
+int mdp_edp_config(struct msm_panel_info *pinfo, struct fbcon_config *fb)
+{
+	int ret = NO_ERROR;
+	struct lcdc_panel_info *lcdc = NULL;
+
+	mdss_intf_tg_setup(pinfo, MDP_INTF_0_BASE);
+
+	mdp_clk_gating_ctrl();
+
+	mdss_vbif_setup();
+	mdss_smp_setup(pinfo);
+
+	writel(0x0E9, MDP_QOS_REMAPPER_CLASS_0);
+
+	mdss_rgb_pipe_config(fb, pinfo, MDP_VP_0_RGB_0_BASE);
+
+	mdss_layer_mixer_setup(fb, pinfo);
+
+	writel(0x1F10, MDP_CTL_0_BASE + CTL_TOP);
+	writel(0x9, MDP_DISP_INTF_SEL);
 	writel(0x1111, MDP_VIDEO_INTF_UNDERFLOW_CTL);
 	writel(0x01, MDP_UPPER_NEW_ROI_PRIOR_RO_START);
 	writel(0x01, MDP_LOWER_NEW_ROI_PRIOR_TO_START);
@@ -451,4 +485,27 @@ int mdp_dma_on(void)
 void mdp_disable(void)
 {
 
+}
+
+int mdp_edp_on(void)
+{
+	writel(0x32048, MDP_CTL_0_BASE + CTL_FLUSH);
+	writel(0x01, MDP_INTF_0_TIMING_ENGINE_EN  + mdss_mdp_intf_offset());
+	return NO_ERROR;
+}
+
+int mdp_edp_off(void)
+{
+	if (!target_cont_splash_screen()) {
+
+		writel(0x00000000, MDP_INTF_0_TIMING_ENGINE_EN +
+				mdss_mdp_intf_offset());
+		mdelay(60);
+		/* Ping-Pong done Tear Check Read/Write  */
+		/* Underrun(Interface 0/1/2/3) VSYNC Interrupt Enable  */
+		writel(0xFF777713, MDP_INTR_CLEAR);
+		writel(0x00000000, MDP_INTR_EN);
+	}
+
+	return NO_ERROR;
 }

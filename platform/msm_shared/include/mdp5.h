@@ -76,6 +76,7 @@
 #define MDP_UPPER_NEW_ROI_PRIOR_RO_START        REG_MDP(0x02EC)
 #define MDP_LOWER_NEW_ROI_PRIOR_TO_START        REG_MDP(0x04F8)
 
+#define MDP_INTF_0_TIMING_ENGINE_EN             REG_MDP(0x12500)
 #define MDP_INTF_1_TIMING_ENGINE_EN             REG_MDP(0x12700)
 
 #define MDP_CTL_0_BASE                          REG_MDP(0x600)
@@ -91,6 +92,7 @@
 #define MDP_REG_SPLIT_DISPLAY_EN                REG_MDP(0x3F4)
 #define MDP_REG_SPLIT_DISPLAY_UPPER_PIPE_CTL    REG_MDP(0x3F8)
 
+#define MDP_INTF_0_BASE                         REG_MDP(0x12500)
 #define MDP_INTF_1_BASE                         REG_MDP(0x12700)
 #define MDP_INTF_2_BASE                         REG_MDP(0x12900)
 
@@ -156,6 +158,9 @@ int mipi_dsi_cmd_config(struct fbcon_config mipi_fb_cfg,
 			unsigned short num_of_lanes);
 int mdp_dsi_video_on(void);
 int mdp_dma_on(void);
+int mdp_edp_config(struct msm_panel_info *pinfo, struct fbcon_config *fb);
+int mdp_edp_on(void);
+int mdp_edp_off(void);
 void mdp_disable(void);
 
 #endif
