@@ -14,3 +14,9 @@ DEFINES += WITH_DEBUG_UART=1
 DEFINES += DEVICE_TREE=1
 #DEFINES += MMC_BOOT_BAM=1
 #DEFINES += CRYPTO_BAM=1
+
+#Disable thumb mode
+#TODO: The gold linker has issues generating correct
+#thumb interworking code for LK. Confirm that the issue
+#is with the linker and file a bug report.
+ENABLE_THUMB := false
