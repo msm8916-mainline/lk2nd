@@ -107,6 +107,15 @@ __WEAK bool target_use_signed_kernel(void)
 #endif
 }
 
+__WEAK bool target_is_ssd_enabled(void)
+{
+#ifdef SSD_ENABLE
+	return 1;
+#else
+	return 0;
+#endif
+}
+
 __WEAK void target_load_ssd_keystore(void)
 {
 }
