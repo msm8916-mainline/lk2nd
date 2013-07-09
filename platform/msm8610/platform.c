@@ -89,6 +89,10 @@ addr_t get_bs_info_addr()
 
 void platform_uninit(void)
 {
+#if DISPLAY_SPLASH_SCREEN
+	display_shutdown();
+#endif
+
 	qtimer_uninit();
 }
 

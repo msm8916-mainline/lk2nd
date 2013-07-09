@@ -14,10 +14,15 @@ KERNEL_ADDR      := BASE_ADDR+0x00008000
 RAMDISK_ADDR     := BASE_ADDR+0x01000000
 SCRATCH_ADDR     := 0x0E000000
 
+DEFINES += DISPLAY_TYPE_8610=1
+DEFINES += DISPLAY_SPLASH_SCREEN=1
+DEFINES += DISPLAY_TYPE_MIPI=1
+
 MODULES += \
 	dev/keys \
 	lib/ptable \
 	dev/pmic/pm8x41 \
+	dev/panel/msm \
 	lib/libfdt
 
 DEFINES += \
@@ -32,4 +37,5 @@ DEFINES += \
 
 OBJS += \
     $(LOCAL_DIR)/init.o \
-    $(LOCAL_DIR)/meminfo.o
+    $(LOCAL_DIR)/meminfo.o \
+    $(LOCAL_DIR)/target_display.o
