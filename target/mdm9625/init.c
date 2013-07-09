@@ -54,6 +54,11 @@ static struct ptable flash_ptable;
 #define DATA_PRODUCER_PIPE                            1
 #define CMD_PIPE                                      2
 
+/* NANDc BAM pipe groups */
+#define DATA_PRODUCER_PIPE_GRP                        0
+#define DATA_CONSUMER_PIPE_GRP                        0
+#define CMD_PIPE_GRP                                  1
+
 /* NANDc EE */
 #define QPIC_NAND_EE                                  0
 
@@ -121,6 +126,10 @@ void target_init(void)
 	config.pipes.read_pipe = DATA_PRODUCER_PIPE;
 	config.pipes.write_pipe = DATA_CONSUMER_PIPE;
 	config.pipes.cmd_pipe = CMD_PIPE;
+
+	config.pipes.read_pipe_grp = DATA_PRODUCER_PIPE_GRP;
+	config.pipes.write_pipe_grp = DATA_CONSUMER_PIPE_GRP;
+	config.pipes.cmd_pipe_grp = CMD_PIPE_GRP;
 
 	config.bam_base = MSM_NAND_BAM_BASE;
 	config.nand_base = MSM_NAND_BASE;
