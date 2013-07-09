@@ -259,6 +259,7 @@ qpic_bam_init(struct qpic_nand_init_config *config)
 	bam.pipe[DATA_PRODUCER_PIPE_INDEX].trans_type = BAM2SYS;
 	bam.pipe[DATA_PRODUCER_PIPE_INDEX].fifo.size = QPIC_BAM_DATA_FIFO_SIZE;
 	bam.pipe[DATA_PRODUCER_PIPE_INDEX].fifo.head = data_desc_fifo;
+	bam.pipe[DATA_PRODUCER_PIPE_INDEX].lock_grp = config->pipes.read_pipe_grp;
 
 	/* Set Write pipe params. */
 	bam.pipe[DATA_CONSUMER_PIPE_INDEX].pipe_num = config->pipes.write_pipe;
@@ -266,6 +267,7 @@ qpic_bam_init(struct qpic_nand_init_config *config)
 	bam.pipe[DATA_CONSUMER_PIPE_INDEX].trans_type = SYS2BAM;
 	bam.pipe[DATA_CONSUMER_PIPE_INDEX].fifo.size = QPIC_BAM_DATA_FIFO_SIZE;
 	bam.pipe[DATA_CONSUMER_PIPE_INDEX].fifo.head = data_desc_fifo;
+	bam.pipe[DATA_CONSUMER_PIPE_INDEX].lock_grp = config->pipes.write_pipe_grp;
 
 	/* Set Cmd pipe params. */
 	bam.pipe[CMD_PIPE_INDEX].pipe_num = config->pipes.cmd_pipe;
@@ -273,6 +275,7 @@ qpic_bam_init(struct qpic_nand_init_config *config)
 	bam.pipe[CMD_PIPE_INDEX].trans_type = BAM2SYS;
 	bam.pipe[CMD_PIPE_INDEX].fifo.size = QPIC_BAM_CMD_FIFO_SIZE;
 	bam.pipe[CMD_PIPE_INDEX].fifo.head = cmd_desc_fifo;
+	bam.pipe[CMD_PIPE_INDEX].lock_grp = config->pipes.cmd_pipe_grp;
 
 	/* Programs the threshold for BAM transfer
 	 * When this threshold is reached, BAM signals the peripheral via the pipe_bytes_available

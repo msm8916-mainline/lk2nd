@@ -325,6 +325,9 @@ struct qpic_nand_bam_pipes
 	unsigned read_pipe;
 	unsigned write_pipe;
 	unsigned cmd_pipe;
+	uint8_t  read_pipe_grp;
+	uint8_t  write_pipe_grp;
+	uint8_t  cmd_pipe_grp;
 };
 
 /* Structure to define the initial nand config */
