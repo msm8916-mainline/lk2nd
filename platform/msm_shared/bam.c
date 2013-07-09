@@ -223,6 +223,9 @@ int bam_pipe_fifo_init(struct bam_instance *bam,
 	/* Initialize FIFO offset for the first read */
 	bam->pipe[pipe_num].fifo.offset = BAM_DESC_SIZE;
 
+	writel(P_ENABLE | readl(BAM_P_CTRLn(bam->pipe[pipe_num].pipe_num, bam->base)),
+		   BAM_P_CTRLn(bam->pipe[pipe_num].pipe_num, bam->base));
+
 	/* Everything is set.
 	 * Flag pipe init done.
 	 */
@@ -243,9 +246,9 @@ void bam_sys_pipe_init(struct bam_instance *bam,
 	/* Pipe event threshold register is not relevant in sys modes */
 
 	/* Enable pipe in system mode and set the direction */
-	writel(P_SYS_MODE_MASK | P_ENABLE |
-			(bam->pipe[pipe_num].trans_type << P_DIRECTION_SHIFT),
-			BAM_P_CTRLn(bam->pipe[pipe_num].pipe_num, bam->base));
+	writel(P_SYS_MODE_MASK | bam->pipe[pipe_num].lock_grp <<  P_LOCK_GRP_SHIFT |
+		   (bam->pipe[pipe_num].trans_type << P_DIRECTION_SHIFT),
+		   BAM_P_CTRLn(bam->pipe[pipe_num].pipe_num, bam->base));
 
 	/* Mark the pipe FIFO as uninitialized. */
 	bam->pipe[pipe_num].initialized = 0;

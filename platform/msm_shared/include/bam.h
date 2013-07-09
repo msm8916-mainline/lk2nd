@@ -81,6 +81,7 @@ enum p_int_type
 #define P_SYS_MODE_MASK                 (1 << 5)
 /* 1: Producer mode 0: Consumer mode */
 #define P_DIRECTION_SHIFT               3
+#define P_LOCK_GRP_SHIFT                16
 #define P_ENABLE                        (1 << 1)
 
 #define BAM_P_RSTn(n, x)                (0x00001000 + 0x4 + 0x1000 * (n) + (x))
@@ -198,6 +199,7 @@ struct bam_pipe {
 	uint8_t spi_num;
 	uint8_t int_mode;
 	uint8_t initialized;
+	uint8_t lock_grp;
 };
 
 /* Structure to define a BAM instance being used
