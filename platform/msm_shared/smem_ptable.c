@@ -42,6 +42,8 @@
 static struct smem_ptable smem_ptable;
 static unsigned smem_apps_flash_start = 0xFFFFFFFF;
 
+static ram_partition_table ptable;
+
 static void dump_smem_ptable(void)
 {
 	unsigned i;
@@ -150,6 +152,44 @@ void smem_add_modem_partitions(struct ptable *flash_ptable)
 	}
 }
 
+static void smem_copy_ram_ptable(void *buf)
+{
+	struct smem_ram_ptable *table_v0;
+	struct smem_ram_ptable_v1 *table_v1;
+	uint32_t pentry = 0;
+
+	ptable.hdr = *(struct smem_ram_ptable_hdr*)buf;
+
+	/* Perform member to member copy from smem_ram_ptable to wrapper struct ram_ptable */
+	if(ptable.hdr.version == SMEM_RAM_PTABLE_VERSION_1)
+	{
+		table_v1 = (struct smem_ram_ptable_v1*)buf;
+
+		memcpy(&ptable, table_v1, sizeof(ram_partition_table));
+	}
+	else if(ptable.hdr.version == SMEM_RAM_PTABLE_VERSION_0)
+	{
+		table_v0 = (struct smem_ram_ptable*)buf;
+
+		for(pentry = 0; pentry < ((struct smem_ram_ptable_hdr*)buf)->len; pentry++)
+		{
+			ptable.parts[pentry].start          = table_v0->parts[pentry].start;
+			ptable.parts[pentry].size           = table_v0->parts[pentry].size;
+			ptable.parts[pentry].attr           = table_v0->parts[pentry].attr;
+			ptable.parts[pentry].category       = table_v0->parts[pentry].category;
+			ptable.parts[pentry].domain         = table_v0->parts[pentry].domain;
+			ptable.parts[pentry].type           = table_v0->parts[pentry].type;
+			ptable.parts[pentry].num_partitions = table_v0->parts[pentry].num_partitions;
+		}
+
+	}
+	else
+	{
+		dprintf(CRITICAL,"ERROR: Unknown smem ram ptable version: %u", ptable.hdr.version);
+		ASSERT(0);
+	}
+}
+
 /* RAM Partition table from SMEM */
 int smem_ram_ptable_init(struct smem_ram_ptable *smem_ram_ptable)
 {
@@ -168,5 +208,71 @@ int smem_ram_ptable_init(struct smem_ram_ptable *smem_ram_ptable)
 	dprintf(SPEW, "smem ram ptable found: ver: %d len: %d\n",
 		smem_ram_ptable->version, smem_ram_ptable->len);
 
+	smem_copy_ram_ptable((void*)smem_ram_ptable);
+
 	return 1;
+}
+
+/* RAM Partition table from SMEM */
+static uint32_t buffer[sizeof(struct smem_ram_ptable_v1)];
+int smem_ram_ptable_init_v1()
+{
+	uint32_t i;
+	uint32_t ret;
+	uint32_t version;
+	uint32_t smem_ram_ptable_size;
+	struct smem_ram_ptable_hdr *ram_ptable_hdr;
+
+	/* Check smem ram partition table version and decide on length of ram_ptable */
+	ret = smem_read_alloc_entry_offset(SMEM_USABLE_RAM_PARTITION_TABLE,
+						&version,
+						sizeof(version),
+						SMEM_RAM_PTABLE_VERSION_OFFSET);
+
+	if(ret)
+		return 0;
+
+	if(version == SMEM_RAM_PTABLE_VERSION_1)
+		smem_ram_ptable_size = sizeof(struct smem_ram_ptable_v1);
+	else if(version == SMEM_RAM_PTABLE_VERSION_0)
+		smem_ram_ptable_size = sizeof(struct smem_ram_ptable);
+	else
+	{
+		dprintf(CRITICAL,"ERROR: Wrong smem_ram_ptable version: %u", version);
+		ASSERT(0);
+	}
+
+	i = smem_read_alloc_entry(SMEM_USABLE_RAM_PARTITION_TABLE,
+				  (void*)buffer,
+				  smem_ram_ptable_size);
+	if (i != 0)
+		return 0;
+
+	ram_ptable_hdr = (struct smem_ram_ptable_hdr *)buffer;
+
+	if (ram_ptable_hdr->magic[0] != _SMEM_RAM_PTABLE_MAGIC_1 ||
+	    ram_ptable_hdr->magic[1] != _SMEM_RAM_PTABLE_MAGIC_2)
+		return 0;
+
+	smem_copy_ram_ptable((void*)buffer);
+
+	dprintf(SPEW, "smem ram ptable found: ver: %u len: %u\n",
+		ram_ptable_hdr->version, ram_ptable_hdr->len);
+
+	return 1;
+}
+
+void smem_get_ram_ptable_entry(ram_partition *ptn, uint32_t entry)
+{
+	memcpy(ptn, &(ptable.parts[entry]), sizeof(ram_partition));
+}
+
+uint32_t smem_get_ram_ptable_len(void)
+{
+	return ptable.hdr.len;
+}
+
+uint32_t smem_get_ram_ptable_version(void)
+{
+	return ptable.hdr.version;
 }
