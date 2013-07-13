@@ -29,6 +29,80 @@
 #ifndef _TARGET_MSM8226_DISPLAY_H
 #define _TARGET_MSM8226_DISPLAY_H
 
+/*---------------------------------------------------------------------------*/
+/* HEADER files                                                              */
+/*---------------------------------------------------------------------------*/
+#include <display_resource.h>
+
+/*---------------------------------------------------------------------------*/
+/* GPIO configuration                                                        */
+/*---------------------------------------------------------------------------*/
+static struct gpio_pin reset_gpio = {
+  "msmgpio", 25, 3, 1, 0, 1
+};
+
+static struct gpio_pin enable_gpio = {
+  0, 0, 0, 0, 0, 0
+};
+
+static struct gpio_pin te_gpio = {
+  0, 0, 0, 0, 0, 0
+};
+
+static struct gpio_pin pwm_gpio = {
+  0, 0, 0, 0, 0, 0
+};
+
+static struct panel_reset_sequence reset_sequence = {
+  { 1, 0, 1, }, { 20, 20, 20, }, 2
+};
+
+
+/*---------------------------------------------------------------------------*/
+/* LDO configuration                                                         */
+/*---------------------------------------------------------------------------*/
+static struct ldo_entry ldo_entry_array[] = {
+  { "vdd", 15, 0, 2800000, 100000, 100, 0, 20, 0, 20},
+{ "vddio", 8, 0, 1800000, 100000, 100, 0, 30, 0, 30},
+{ "vdda", 4, 1, 1200000, 100000, 100, 0, 20, 0, 30},
+};
+
+#define TOTAL_LDO_DEFINED 3
+
+/*---------------------------------------------------------------------------*/
+/* Target Physical configuration                                             */
+/*---------------------------------------------------------------------------*/
+
+static const uint32_t panel_strength_ctrl[] = {
+  0xff, 0x06
+};
+
+static const char panel_bist_ctrl[] = {
+  0x00, 0x00, 0xb1, 0xff, 0x00, 0x00
+};
+
+static const uint32_t panel_regulator_settings[] = {
+  0x07, 0x09, 0x03, 0x00, 0x20, 0x00, 0x01
+};
+
+static const char panel_lane_config[] = {
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x97,
+  0x00, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x01, 0x97,
+  0x00, 0x00, 0x00, 0x00, 0x0a, 0x00, 0x00, 0x01, 0x97,
+  0x00, 0x00, 0x00, 0x00, 0x0f, 0x00, 0x00, 0x01, 0x97,
+  0x00, 0xc0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0xbb
+};
+
+static const uint32_t panel_physical_ctrl[] = {
+  0x5f, 0x00, 0x00, 0x10
+};
+
+/*---------------------------------------------------------------------------*/
+/* Other Configuration                                                       */
+/*---------------------------------------------------------------------------*/
+
+#define msm8226_DSI_FEATURE_ENABLE 0
+
 #define MIPI_FB_ADDR  0x0D200000
 
 #define MIPI_HSYNC_PULSE_WIDTH       12
