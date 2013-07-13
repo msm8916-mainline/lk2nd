@@ -41,6 +41,7 @@
 #include "panel_display.h"
 #include "gcdb_display.h"
 #include "target/display.h"
+#include "gcdb_autopll.h"
 
 /*---------------------------------------------------------------------------*/
 /* static                                                                    */
@@ -76,9 +77,16 @@ static uint32_t mdss_dsi_panel_reset(uint8_t enable)
 	return ret;
 }
 
-static uint32_t mdss_dsi_panel_clock(uint8_t enable)
+static uint32_t mdss_dsi_panel_clock(uint8_t enable,
+				struct msm_panel_info *pinfo)
 {
 	uint32_t ret = NO_ERROR;
+
+	ret = calculate_clock_config(pinfo);
+	if (ret) {
+		dprintf(CRITICAL, "Clock calculation failed \n");
+		/* should it stop here ? check with display team */
+	}
 
 	ret = target_panel_clock(enable);
 
@@ -167,7 +175,7 @@ void gcdb_display_init(uint32_t rev, void *base)
 
 	panel.panel_info.mipi.mdss_dsi_phy_db = &dsi_video_mode_phy_db;
 
-	panel.clk_func = mdss_dsi_panel_clock;
+	panel.pll_clk_func = mdss_dsi_panel_clock;
 	panel.power_func = mdss_dsi_panel_power;
 	panel.fb.base = base;
 	panel.fb.width =  panel.panel_info.xres;
