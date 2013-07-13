@@ -238,6 +238,10 @@ int msm_display_init(struct msm_fb_panel_data *pdata)
 	if (pdata->clk_func)
 		ret = pdata->clk_func(1);
 
+	/* Only enabled for auto PLL calculation */
+	if (pdata->pll_clk_func)
+		ret = pdata->pll_clk_func(1, &(panel->panel_info));
+
 	if (ret)
 		goto msm_display_init_out;
 
@@ -311,6 +315,10 @@ int msm_display_off()
 	/* Disable clock */
 	if (panel->clk_func)
 		ret = panel->clk_func(0);
+
+	/* Only for AUTO PLL calculation */
+	if (panel->pll_clk_func)
+		ret = panel->pll_clk_func(0, pinfo);
 
 	if (ret)
 		goto msm_display_off_out;
