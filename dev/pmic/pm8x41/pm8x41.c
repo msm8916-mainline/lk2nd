@@ -372,3 +372,13 @@ void pm8x41_config_output_mpp(struct pm8x41_mpp *mpp)
 
 	REG_WRITE(mpp->base + MPP_MODE_CTL, mpp->mode | (MPP_DIGITAL_OUTPUT << MPP_MODE_CTL_MODE_SHIFT));
 }
+
+uint8_t pm8x41_get_is_cold_boot()
+{
+	if (REG_READ(PON_WARMBOOT_STATUS1) || REG_READ(PON_WARMBOOT_STATUS2)) {
+		dprintf(INFO,"%s: Warm boot\n", __func__);
+		return 0;
+	}
+	dprintf(INFO,"%s: cold boot\n", __func__);
+	return 1;
+}

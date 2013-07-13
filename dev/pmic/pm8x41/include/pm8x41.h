@@ -199,5 +199,6 @@ uint8_t pm8x41_get_pmic_rev();
 uint8_t pm8x41_get_pon_reason();
 void pm8x41_config_output_mpp(struct pm8x41_mpp *mpp);
 void pm8x41_enable_mpp(struct pm8x41_mpp *mpp, enum mpp_en_ctl enable);
+uint8_t pm8x41_get_is_cold_boot();
 
 #endif

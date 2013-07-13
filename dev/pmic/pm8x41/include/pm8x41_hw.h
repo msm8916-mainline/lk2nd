@@ -57,6 +57,8 @@
 
 /* PON Peripheral registers */
 #define PON_PON_REASON1                       0x808
+#define PON_WARMBOOT_STATUS1                  0x80A
+#define PON_WARMBOOT_STATUS2                  0x80B
 #define PON_INT_RT_STS                        0x810
 #define PON_INT_SET_TYPE                      0x811
 #define PON_INT_POLARITY_HIGH                 0x812
