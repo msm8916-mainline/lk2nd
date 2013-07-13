@@ -68,6 +68,9 @@
 #define DSI_PIXEL0_CMD_RCGR             REG_MM(0x2000)
 #define DSI_PIXEL0_CFG_RCGR             REG_MM(0x2004)
 #define DSI_PIXEL0_CBCR                 REG_MM(0x2314)
+#define DSI_PIXEL0_M                    REG_MM(0x2008)
+#define DSI_PIXEL0_N                    REG_MM(0x200C)
+#define DSI_PIXEL0_D                    REG_MM(0x2010)
 
 void platform_clock_init(void);
 
