@@ -88,7 +88,7 @@ static uint32_t mdss_dsi_panel_clock(uint8_t enable,
 		/* should it stop here ? check with display team */
 	}
 
-	ret = target_panel_clock(enable);
+	ret = target_panel_clock(enable, pinfo);
 
 	return ret;
 }
