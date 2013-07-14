@@ -111,4 +111,10 @@ int mdp_lcdc_on();
 int mdp_lcdc_off();
 void mdp_set_revision(int rev);
 int mdp_get_revision();
+
+/* defining no-op functions that are implemented only for mdp5 */
+int mdp_edp_config(struct msm_panel_info *pinfo, struct fbcon_config *fb);
+int mdp_edp_on(void);
+int mdp_edp_off(void);
+
 #endif

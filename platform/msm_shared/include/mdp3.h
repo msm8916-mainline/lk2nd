@@ -28,6 +28,8 @@
  */
 
 #include <dev/fbcon.h>
+#include <msm_panel.h>
+
 //TODO: Make a global PASS / FAIL define
 #define PASS                        0
 #define FAIL                        1
@@ -51,3 +53,8 @@ void mdp_disable(void);
 void mdp_shutdown(void);
 void mdp_set_revision(int rev);
 int mdp_get_revision();
+
+/* defining no-op functions that are implemented only for mdp5 */
+int mdp_edp_config(struct msm_panel_info *pinfo, struct fbcon_config *fb);
+int mdp_edp_on(void);
+int mdp_edp_off(void);
