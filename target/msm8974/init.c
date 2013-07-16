@@ -416,10 +416,8 @@ void target_baseband_detect(struct board_data *board)
 	 */
 	switch(platform_subtype) {
 	case HW_PLATFORM_SUBTYPE_UNKNOWN:
+	case HW_PLATFORM_SUBTYPE_8974PRO_PM8084:
 		break;
-	case HW_PLATFORM_SUBTYPE_MDM:
-		board->baseband = BASEBAND_MDM;
-		return;
 	default:
 		dprintf(CRITICAL, "Platform Subtype : %u is not supported\n",platform_subtype);
 		ASSERT(0);
