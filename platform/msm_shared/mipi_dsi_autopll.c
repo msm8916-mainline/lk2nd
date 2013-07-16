@@ -255,8 +255,13 @@ static uint32_t dsi_pll_enable_seq(void)
 	}
 
 	/* 6 enable seq for 8226 target */
-	else if (platformid == MSM8226 ||
-		 platformid == MSM8626) {
+	else if (platformid == MSM8826 ||
+		 platformid == MSM8626 ||
+		 platformid == MSM8226 ||
+		 platformid == MSM8926 ||
+		 platformid == MSM8126 ||
+		 platformid == MSM8326 ||
+		 platformid == APQ8026) {
 		if (dsi_pll_enable_seq_m()) {
 		} else if (dsi_pll_enable_seq_d()) {
 		} else if (dsi_pll_enable_seq_d()) {
@@ -267,7 +272,7 @@ static uint32_t dsi_pll_enable_seq(void)
 			dprintf(CRITICAL, "Not able to enable the pll\n");
 		}
 	} else {
-		dprintf(CRITICAL, "Target not supported\n");
+		dprintf(CRITICAL, "Target not supported in auto PLL\n");
 	}
 
 }
