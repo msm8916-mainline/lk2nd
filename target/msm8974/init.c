@@ -70,6 +70,8 @@ struct mmc_device *dev;
 #define CE_FIFO_SIZE            64
 #define CE_READ_PIPE            3
 #define CE_WRITE_PIPE           2
+#define CE_READ_PIPE_LOCK_GRP   0
+#define CE_WRITE_PIPE_LOCK_GRP  0
 #define CE_ARRAY_SIZE           20
 
 #ifdef SSD_ENABLE
@@ -174,9 +176,11 @@ void target_crypto_init_params()
 	ce_params.bam_base         = MSM_CE2_BAM_BASE;
 
 	/* Set up BAM config. */
-	ce_params.bam_ee           = CE_EE;
-	ce_params.pipes.read_pipe  = CE_READ_PIPE;
-	ce_params.pipes.write_pipe = CE_WRITE_PIPE;
+	ce_params.bam_ee               = CE_EE;
+	ce_params.pipes.read_pipe      = CE_READ_PIPE;
+	ce_params.pipes.write_pipe     = CE_WRITE_PIPE;
+	ce_params.pipes.read_pipe_grp  = CE_READ_PIPE_LOCK_GRP;
+	ce_params.pipes.write_pipe_grp = CE_WRITE_PIPE_LOCK_GRP;
 
 	/* Assign buffer sizes. */
 	ce_params.num_ce           = CE_ARRAY_SIZE;
