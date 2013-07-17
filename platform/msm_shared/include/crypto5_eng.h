@@ -103,6 +103,8 @@ struct crypto_bam_pipes
 {
 	uint8_t read_pipe;
 	uint8_t write_pipe;
+	uint8_t read_pipe_grp;
+	uint8_t write_pipe_grp;
 };
 
 struct output_dump

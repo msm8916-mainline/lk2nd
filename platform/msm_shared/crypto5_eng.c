@@ -256,6 +256,7 @@ void crypto5_init_params(struct crypto_dev *dev, struct crypto_init_params *para
 	dev->bam.pipe[CRYPTO_READ_PIPE_INDEX].trans_type = BAM2SYS;
 	dev->bam.pipe[CRYPTO_READ_PIPE_INDEX].fifo.size  = params->read_fifo_size;
 	dev->bam.pipe[CRYPTO_READ_PIPE_INDEX].fifo.head  = crypto_allocate_fifo(params->read_fifo_size);
+	dev->bam.pipe[CRYPTO_READ_PIPE_INDEX].lock_grp   = params->pipes.read_pipe_grp;
 
 	/* Set Write pipe params. */
 	dev->bam.pipe[CRYPTO_WRITE_PIPE_INDEX].pipe_num   = params->pipes.write_pipe;
@@ -263,6 +264,7 @@ void crypto5_init_params(struct crypto_dev *dev, struct crypto_init_params *para
 	dev->bam.pipe[CRYPTO_WRITE_PIPE_INDEX].trans_type = SYS2BAM;
 	dev->bam.pipe[CRYPTO_WRITE_PIPE_INDEX].fifo.size  = params->write_fifo_size;
 	dev->bam.pipe[CRYPTO_WRITE_PIPE_INDEX].fifo.head  = crypto_allocate_fifo(params->write_fifo_size);
+	dev->bam.pipe[CRYPTO_WRITE_PIPE_INDEX].lock_grp   = params->pipes.write_pipe_grp;
 
 	dev->bam.threshold = CRYPTO_MAX_THRESHOLD;
 
