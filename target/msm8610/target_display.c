@@ -136,7 +136,6 @@ static void msm8610_mdss_mipi_panel_reset(int enable)
 static int msm8610_mipi_panel_power(uint8_t enable)
 {
 	int ret;
-	struct pm8x41_ldo ldo4 = LDO(PM8x41_LDO4, NLDO_TYPE);
 	struct pm8x41_ldo ldo14 = LDO(PM8x41_LDO14, PLDO_TYPE);
 	struct pm8x41_ldo ldo19 = LDO(PM8x41_LDO19, PLDO_TYPE);
 
@@ -151,8 +150,6 @@ static int msm8610_mipi_panel_power(uint8_t enable)
 		pm8x41_ldo_control(&ldo14, enable);
 		pm8x41_ldo_set_voltage(&ldo19, 2850000);
 		pm8x41_ldo_control(&ldo19, enable);
-		pm8x41_ldo_set_voltage(&ldo4, 1200000);
-		pm8x41_ldo_control(&ldo4, enable);
 
 		/* reset */
 		msm8610_mdss_mipi_panel_reset(enable);
@@ -162,7 +159,6 @@ static int msm8610_mipi_panel_power(uint8_t enable)
 
 		pm8x41_ldo_control(&ldo19, enable);
 		pm8x41_ldo_control(&ldo14, enable);
-		pm8x41_ldo_control(&ldo4, enable);
 	}
 	return 0;
 }
