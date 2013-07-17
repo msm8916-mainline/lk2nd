@@ -70,6 +70,7 @@ enum PM8X41_VERSIONS
 
 
 /*Target power on reasons*/
+#define HARD_RST                1
 #define DC_CHG                  8
 #define USB_CHG                 16
 #define PON1                    32
