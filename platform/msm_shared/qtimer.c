@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -93,7 +93,7 @@ void mdelay(unsigned msecs)
 {
 	uint64_t ticks;
 
-	ticks = (msecs * ticks_per_sec) / 1000;
+	ticks = ((uint64_t) msecs * ticks_per_sec) / 1000;
 
 	delay(ticks);
 }
@@ -102,7 +102,7 @@ void udelay(unsigned usecs)
 {
 	uint64_t ticks;
 
-	ticks = (usecs * ticks_per_sec) / 1000000;
+	ticks = ((uint64_t) usecs * ticks_per_sec) / 1000000;
 
 	delay(ticks);
 }
