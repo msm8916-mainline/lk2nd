@@ -408,6 +408,8 @@ int mdss_dsi_v2_phy_init(struct mipi_dsi_panel_config *pinfo, uint32_t ctl_base)
 	writel(0x5F, ctl_base + off + (4 * 0));
 
 	off = 0x500;
+	/* use LDO mode */
+	writel(0x25, ctl_base + 0x4B0);
 	for (i = 0; i < 5; i++)
 		writel(pd->regulator[i], ctl_base + off + (4 * i));
 
