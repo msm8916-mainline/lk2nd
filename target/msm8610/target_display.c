@@ -171,6 +171,17 @@ void display_init(void)
 
 	switch (hw_id) {
 	case HW_PLATFORM_QRD:
+		mipi_hx8379a_video_wvga_init(&(panel.panel_info));
+		panel.clk_func = msm8610_mdss_dsi_panel_clock;
+		panel.power_func = msm8610_mipi_panel_power;
+		panel.fb.base = MIPI_FB_ADDR;
+		panel.fb.width =  panel.panel_info.xres;
+		panel.fb.height =  panel.panel_info.yres;
+		panel.fb.stride =  panel.panel_info.xres;
+		panel.fb.bpp =  panel.panel_info.bpp;
+		panel.fb.format = FB_FORMAT_RGB888;
+		panel.mdp_rev = MDP_REV_304;
+		break;
 	case HW_PLATFORM_MTP:
 	case HW_PLATFORM_SURF:
 		mipi_truly_video_wvga_init(&(panel.panel_info));
