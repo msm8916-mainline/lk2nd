@@ -50,5 +50,6 @@ void target_load_ssd_keystore(void);
 bool target_is_ssd_enabled(void);
 struct mmc_device *target_mmc_device();
 
+bool target_display_panel_node(char *pbuf, uint16_t buf_size);
 
 #endif

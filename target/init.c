@@ -140,3 +140,8 @@ __WEAK void target_usb_stop(void)
 __WEAK void target_uninit(void)
 {
 }
+
+__WEAK bool target_display_panel_node(char *pbuf, uint16_t buf_size)
+{
+	return false;
+}
