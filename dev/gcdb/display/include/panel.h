@@ -43,7 +43,7 @@
 /*Panel Configuration */
 typedef struct panel_config{
 
-	char  *panel_name;
+	char  *panel_node_id;
 	char  *panel_controller;
 	char  *panel_compatible;
 	uint16_t panel_interface;
