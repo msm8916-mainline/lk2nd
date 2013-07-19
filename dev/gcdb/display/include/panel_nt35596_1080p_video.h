@@ -46,7 +46,7 @@
 /*---------------------------------------------------------------------------*/
 
 static struct panel_config nt35596_1080p_video_panel_data = {
-  "nt35596 1080p video mode dsi panel", "mdss_dsi0", "qcom,mdss-dsi-panel",
+  "qcom,mdss_dsi_nt35596_1080p_video", "dsi:0:", "qcom,mdss-dsi-panel",
   10, 0, "DISPLAY_1", 0, 0, 60, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 
