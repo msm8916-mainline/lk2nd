@@ -194,8 +194,13 @@ bool oem_panel_select(struct panel_struct *panelstruct,
 			return false;
 		}
 		break;
-	case MSM8226:
+	case MSM8826:
 	case MSM8626:
+	case MSM8226:
+	case MSM8926:
+	case MSM8126:
+	case MSM8326:
+	case APQ8026:
 		switch (hw_id) {
 		case HW_PLATFORM_QRD:
 		case HW_PLATFORM_MTP:
@@ -208,6 +213,10 @@ bool oem_panel_select(struct panel_struct *panelstruct,
 			return false;
 		}
 		break;
+	default:
+		dprintf(CRITICAL, "GCDB:Display: Platform id:%d not supported\n"
+					, platformid);
+		return false;
 	}
 
 	init_panel_data(panelstruct, pinfo, phy_db);
