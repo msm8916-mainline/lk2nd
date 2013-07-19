@@ -79,6 +79,8 @@ struct mmc_device *dev;
 #define SSD_PARTITION_SIZE      8192
 #endif
 
+#define FASTBOOT_MODE           0x77665500
+
 #define BOARD_SOC_VERSION1(soc_rev) (soc_rev >= 0x10000 && soc_rev < 0x20000)
 
 #if MMC_SDHCI_SUPPORT
@@ -493,6 +495,7 @@ unsigned check_reboot_mode(void)
 void reboot_device(unsigned reboot_reason)
 {
 	uint32_t soc_ver = 0;
+	uint8_t reset_type = 0;
 
 	soc_ver = board_soc_version();
 
@@ -502,11 +505,16 @@ void reboot_device(unsigned reboot_reason)
 	else
 		writel(reboot_reason, RESTART_REASON_ADDR_V2);
 
+	if(reboot_reason == FASTBOOT_MODE)
+		reset_type = PON_PSHOLD_WARM_RESET;
+	else
+		reset_type = PON_PSHOLD_HARD_RESET;
+
 	/* Configure PMIC for warm reset */
 	if (target_is_8974() && (pmic_ver == PM8X41_VERSION_V2))
-		pm8x41_v2_reset_configure(PON_PSHOLD_WARM_RESET);
+		pm8x41_v2_reset_configure(reset_type);
 	else
-		pm8x41_reset_configure(PON_PSHOLD_WARM_RESET);
+		pm8x41_reset_configure(reset_type);
 
 	/* Disable Watchdog Debug.
 	 * Required becuase of a H/W bug which causes the system to
