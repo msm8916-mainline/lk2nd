@@ -61,6 +61,7 @@
 
 #define PON_PSHOLD_WARM_RESET   0x1
 #define PON_PSHOLD_SHUTDOWN     0x4
+#define PON_PSHOLD_HARD_RESET   0x7
 
 enum PM8X41_VERSIONS
 {
