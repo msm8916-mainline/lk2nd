@@ -28,6 +28,7 @@
 
 #include <debug.h>
 #include <platform/iomap.h>
+#include <platform/irqs.h>
 #include <platform/gpio.h>
 #include <reg.h>
 #include <target.h>
@@ -90,6 +91,9 @@ static uint32_t mmc_sdhci_base[] =
 
 static uint32_t mmc_sdc_base[] =
 	{ MSM_SDC1_BASE, MSM_SDC2_BASE, MSM_SDC3_BASE, MSM_SDC4_BASE };
+
+static uint32_t mmc_sdc_pwrctl_irq[] =
+	{ SDCC1_PWRCTL_IRQ, SDCC2_PWRCTL_IRQ, SDCC3_PWRCTL_IRQ, SDCC4_PWRCTL_IRQ };
 
 void target_early_init(void)
 {
@@ -204,13 +208,10 @@ crypto_engine_type board_ce_type(void)
 }
 
 #if MMC_SDHCI_SUPPORT
-static target_mmc_sdhci_init()
+static void target_mmc_sdhci_init()
 {
-	struct mmc_config_data config;
+	struct mmc_config_data config = {0};
 	uint32_t soc_ver = 0;
-
-	/* Enable sdhci mode */
-	sdhci_mode_enable(1);
 
 	soc_ver = board_soc_version();
 
@@ -234,12 +235,17 @@ static target_mmc_sdhci_init()
 
 	/* Trying Slot 1*/
 	config.slot = 1;
-	config.base = mmc_sdhci_base[config.slot - 1];
+	config.sdhc_base = mmc_sdhci_base[config.slot - 1];
+	config.pwrctl_base = mmc_sdc_base[config.slot - 1];
+	config.pwr_irq     = mmc_sdc_pwrctl_irq[config.slot - 1];
 
 	if (!(dev = mmc_init(&config))) {
 		/* Trying Slot 2 next */
 		config.slot = 2;
-		config.base = mmc_sdhci_base[config.slot - 1];
+		config.sdhc_base = mmc_sdhci_base[config.slot - 1];
+		config.pwrctl_base = mmc_sdc_base[config.slot - 1];
+		config.pwr_irq     = mmc_sdc_pwrctl_irq[config.slot - 1];
+
 		if (!(dev = mmc_init(&config))) {
 			dprintf(CRITICAL, "mmc init failed!");
 			ASSERT(0);
@@ -259,8 +265,9 @@ struct mmc_device *target_mmc_device()
 {
 	return dev;
 }
+
 #else
-static target_mmc_mci_init()
+static void target_mmc_mci_init()
 {
 	uint32_t base_addr;
 	uint8_t slot;
