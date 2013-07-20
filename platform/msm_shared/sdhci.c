@@ -40,41 +40,6 @@
 
 
 /*
- * Function: sdhci int handler
- * Arg     : Event argument
- * Return  : 0
- * Flow:   : 1. Read the power control mask register
- *           2. Check if bus is ON
- *           3. Write success to ack regiser
- * Details : This is power control interrupt handler.
- *           Once we receive the interrupt, we will ack the power control
- *           register that we have successfully completed pmic transactions
- */
-enum handler_return sdhci_int_handler(void *arg)
-{
-	uint32_t ack;
-	uint32_t status;
-
-	/*
-	 * Read the mask register to check if BUS & IO level
-	 * interrupts are enabled
-	 */
-	status = readl(SDCC_HC_PWRCTL_MASK_REG);
-
-	if (status & (SDCC_HC_BUS_ON | SDCC_HC_BUS_OFF))
-		ack = SDCC_HC_BUS_ON_OFF_SUCC;
-	if (status & (SDCC_HC_IO_SIG_LOW | SDCC_HC_IO_SIG_HIGH))
-		ack |= SDCC_HC_IO_SIG_SUCC;
-
-	/* Write success to power control register */
-	writel(ack, SDCC_HC_PWRCTL_CTL_REG);
-
-	event_signal((event_t *)arg, false);
-
-	return 0;
-}
-
-/*
  * Function: sdhci error status enable
  * Arg     : Host structure
  * Return  : None
@@ -207,7 +172,7 @@ static void sdhci_set_bus_power_on(struct sdhci_host *host)
 	voltage = host->caps.voltage;
 
 	voltage <<= SDHCI_BUS_VOL_SEL;
-	REG_WRITE8(host, voltage, SDHCI_BUS_PWR_EN);
+	REG_WRITE8(host, voltage, SDHCI_PWR_CTRL_REG);
 
 	voltage |= SDHCI_BUS_PWR_EN;
 
@@ -458,6 +423,8 @@ err:
 	if (int_status & SDHCI_ERR_INT_STAT_MASK) {
 		if (sdhci_cmd_err_status(host)) {
 			dprintf(CRITICAL, "Error: Command completed with errors\n");
+			/* Reset the command & Data line */
+			REG_WRITE8(host, (SOFT_RESET_CMD | SOFT_RESET_DATA), SDHCI_RESET_REG);
 			return 1;
 		}
 	}
@@ -712,10 +679,16 @@ uint32_t sdhci_send_command(struct sdhci_host *host, struct mmc_command *cmd)
 		if (cmd->trans_mode == SDHCI_MMC_READ)
 			trans_mode |= SDHCI_READ_MODE;
 
-		/* Enable auto cmd 23 for multi block transfer */
+		/* Enable auto cmd23 or cmd12 for multi block transfer
+		 * based on what command card supports
+		 */
 		if (cmd->data.num_blocks > 1) {
-			trans_mode |= SDHCI_TRANS_MULTI | SDHCI_AUTO_CMD23_EN | SDHCI_BLK_CNT_EN;
-			REG_WRITE32(host, cmd->data.num_blocks, SDHCI_ARG2_REG);
+			if (cmd->cmd23_support) {
+				trans_mode |= SDHCI_TRANS_MULTI | SDHCI_AUTO_CMD23_EN | SDHCI_BLK_CNT_EN;
+				REG_WRITE32(host, cmd->data.num_blocks, SDHCI_ARG2_REG);
+			}
+			else
+				trans_mode |= SDHCI_TRANS_MULTI | SDHCI_AUTO_CMD12_EN | SDHCI_BLK_CNT_EN;
 		}
 	}
 
@@ -763,20 +736,6 @@ static void sdhci_reset(struct sdhci_host *host)
 }
 
 /*
- * Function: sdhci mode enable
- * Arg     : Flag (0/1)
- * Return  : None
- * Flow:   : Enable/Disable Sdhci mode
- */
-void sdhci_mode_enable(uint8_t enable)
-{
-	if (enable)
-		writel(SDHCI_HC_MODE_EN, SDCC_MCI_HC_MODE);
-	else
-		writel(SDHCI_HC_MODE_DIS, SDCC_MCI_HC_MODE);
-}
-
-/*
  * Function: sdhci init
  * Arg     : Host structure
  * Return  : None
@@ -791,9 +750,6 @@ void sdhci_mode_enable(uint8_t enable)
 void sdhci_init(struct sdhci_host *host)
 {
 	uint32_t caps[2];
-	event_t sdhc_event;
-
-	event_init(&sdhc_event, false, EVENT_FLAG_AUTOUNSIGNAL);
 
 	/*
 	 * Reset the controller
@@ -832,20 +788,11 @@ void sdhci_init(struct sdhci_host *host)
 	/* SDR50 mode support */
 	host->caps.sdr50_support = (caps[1] & SDHCI_SDR50_MODE_MASK) ? 1 : 0;
 
-	/*
-	 * Register the interrupt handler for pwr irq
-	 */
-	register_int_handler(SDCC_PWRCTRL_IRQ, sdhci_int_handler, &sdhc_event);
-	unmask_interrupt(SDCC_PWRCTRL_IRQ);
-
-	/* Enable pwr control interrupt */
-	writel(SDCC_HC_PWR_CTRL_INT, SDCC_HC_PWRCTL_MASK_REG);
-
 	/* Set bus power on */
 	sdhci_set_bus_power_on(host);
 
 	/* Wait for power interrupt to be handled */
-	event_wait(&sdhc_event);
+	event_wait(host->sdhc_event);
 
 	/* Set bus width */
 	sdhci_set_bus_width(host, SDHCI_BUS_WITDH_1BIT);
