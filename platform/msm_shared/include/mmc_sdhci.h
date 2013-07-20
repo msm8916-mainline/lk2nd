@@ -143,6 +143,44 @@
 
 #define MMC_ADDR_OUT_OF_RANGE(resp)              ((resp >> 31) & 0x01)
 
+/* SD card related Macros */
+/* Arguments for commands */
+#define MMC_SD_HC_VOLT_SUPPLIED                   0x000001AA
+#define MMC_SD_OCR                                0x00FF8000
+#define MMC_SD_HC_HCS                             0x40000000
+#define MMC_SD_DEV_READY                          0x80000000
+#define MMC_CARD_TYPE_SDHC                        0x1
+#define MMC_CARD_TYPE_STD_SD                      0x0
+#define SD_CARD_RCA                               0x0
+#define MMC_SD_SWITCH_HS                          0x80FFFFF1
+
+#define SD_CMD8_MAX_RETRY                         0x3
+#define SD_ACMD41_MAX_RETRY                       0x14
+
+/* SCR(SD Card Register) related */
+#define SD_SCR_BUS_WIDTH                          16
+#define SD_SCR_SD_SPEC                            24
+#define SD_SCR_SD_SPEC3                           15
+#define SD_SCR_BUS_WIDTH_MASK                     0xf0000
+#define SD_SCR_SD_SPEC_MASK                       0x0f000000
+#define SD_SCR_SD_SPEC3_MASK                      0x8000
+#define SD_SCR_CMD23_SUPPORT                      BIT(1)
+#define SD_SCR_WIDTH_4BIT                         BIT(2)
+
+/* SSR related macros */
+#define MMC_SD_AU_SIZE_BIT                        428
+#define MMC_SD_AU_SIZE_LEN                        4
+#define MMC_SD_ERASE_SIZE_BIT                     408
+#define MMC_SD_ERASE_SIZE_LEN                     16
+
+/* Commands for SD card */
+#define CMD8_SEND_IF_COND                         8
+#define ACMD6_SET_BUS_WIDTH                       6
+#define ACMD13_SEND_SD_STATUS                     13
+#define ACMD41_SEND_OP_COND                       41
+#define ACMD51_READ_CARD_SCR                      51
+#define CMD55_APP_CMD                             55
+
 /* Can be used to unpack array of upto 32 bits data */
 #define UNPACK_BITS(array, start, len, size_of)           \
     ({                                                    \
@@ -155,6 +193,20 @@
      unpck |= array[indx2] << ((size_of) - offset);       \
      unpck & mask;                                        \
      })
+
+#define swap_endian32(x) \
+	((uint32_t)( \
+	(((uint32_t)(x) & (uint32_t)0x000000ffUL) << 24) | \
+	(((uint32_t)(x) & (uint32_t)0x0000ff00UL) <<  8) | \
+	(((uint32_t)(x) & (uint32_t)0x00ff0000UL) >>  8) | \
+	(((uint32_t)(x) & (uint32_t)0xff000000UL) >> 24) ))
+
+
+#define MMC_CARD_SD(card) ((card->type == MMC_CARD_TYPE_SDHC) || \
+						   (card->type == MMC_CARD_TYPE_STD_SD))
+
+#define MMC_CARD_MMC(card) ((card->type == MMC_TYPE_STD_MMC) || \
+							(card->type == MMC_TYPE_MMCHC))
 
 /* CSD Register.
  * Note: not all the fields have been defined here
@@ -196,6 +248,20 @@ struct mmc_cid {
 	uint32_t year;  /* 4 bits manufacturing year */
 };
 
+/* SCR register for SD card */
+struct mmc_sd_scr {
+	uint32_t bus_widths;  /* Bus width support, 8 or 1 bit */
+	uint32_t sd_spec;     /* sd spec version */
+	uint32_t sd3_spec;    /* sd spec 3 version */
+	uint32_t cmd23_support; /* cmd23 supported or not */
+};
+
+/* SD Status Register */
+struct mmc_sd_ssr {
+	uint32_t au_size;     /* Allocation unit (AU) size */
+	uint32_t num_aus;      /* Number of AUs */
+};
+
 /* mmc card register */
 struct mmc_card {
 	uint32_t rca;            /* Relative addres of the card*/
@@ -205,14 +271,19 @@ struct mmc_card {
 	uint32_t status;         /* Card status */
 	uint8_t *ext_csd;        /* Ext CSD for the card info */
 	uint32_t raw_csd[4];     /* Raw CSD for the card */
+	uint32_t raw_scr[2];     /* SCR for SD card */
 	struct mmc_cid cid;      /* CID structure */
 	struct mmc_csd csd;      /* CSD structure */
+	struct mmc_sd_scr scr;   /* SCR structure */
+	struct mmc_sd_ssr ssr;   /* SSR Register */
 };
 
 /* mmc device config data */
 struct mmc_config_data {
 	uint8_t slot;          /* Sdcc slot used */
-	uint32_t base;         /* Based address for the sdcc */
+	uint8_t pwr_irq;       /* Power Irq from card to host */
+	uint32_t sdhc_base;    /* Base address for the sdhc */
+	uint32_t pwrctl_base;  /* Base address for power control registers */
 	uint16_t bus_width;    /* Bus width used */
 	uint32_t max_clk_rate; /* Max clock rate supported */
 };
