@@ -366,12 +366,14 @@ unsigned target_pause_for_battery_charge(void)
 	uint8_t is_cold_boot = pm8x41_get_is_cold_boot();
 	dprintf(INFO, "%s : pon_reason is %d cold_boot:%d\n", __func__,
 			pon_reason, is_cold_boot);
-	/*In case of fastboot reboot or adb reboot we do not want go into
-	 * charger mode.
+	/* In case of fastboot reboot,adb reboot or if we see the power key
+	 * pressed we do not want go into charger mode.
 	 * fastboot reboot is warm boot with PON hard reset bit not set
 	 * adb reboot is a cold boot with PON hard reset bit set
 	 */
-	if (is_cold_boot && (!(pon_reason & HARD_RST)) &&
+	if (is_cold_boot &&
+			(!(pon_reason & HARD_RST)) &&
+			(!(pon_reason & KPDPWR_N)) &&
 			((pon_reason & USB_CHG) || (pon_reason & DC_CHG)))
 		return 1;
 	else
