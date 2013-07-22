@@ -59,7 +59,7 @@ unsigned int ext3_count = 0;
 unsigned int vfat_count = 0;
 
 struct partition_entry partition_entries[NUM_PARTITIONS];
-unsigned gpt_partitions_exist = 0;
+static unsigned gpt_partitions_exist = 0;
 unsigned partition_count = 0;
 
 unsigned int partition_read_table()
@@ -956,4 +956,9 @@ partition_parse_gpt_header(unsigned char *buffer,
 	    GET_LWORD_FROM_BYTE(&buffer[PENTRY_SIZE_OFFSET]);
 
 	return 0;
+}
+
+bool partition_gpt_exists()
+{
+	return (gpt_partitions_exist != 0);
 }

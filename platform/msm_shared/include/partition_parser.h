@@ -162,6 +162,7 @@ unsigned long long partition_get_size(int index);
 unsigned long long partition_get_offset(int index);
 unsigned int partition_read_table();
 unsigned int write_partition(unsigned size, unsigned char *partition);
+bool partition_gpt_exists();
 
 /* For Debugging */
 void partition_dump(void);
