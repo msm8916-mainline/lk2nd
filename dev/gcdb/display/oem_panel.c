@@ -43,6 +43,7 @@
 #include "include/panel_toshiba_720p_video.h"
 #include "include/panel_nt35590_720p_video.h"
 #include "include/panel_nt35590_720p_cmd.h"
+#include "include/panel_hx8394a_720p_video.h"
 #include "include/panel_nt35596_1080p_video.h"
 
 /*---------------------------------------------------------------------------*/
@@ -52,7 +53,8 @@ enum {
 TOSHIBA_720P_VIDEO_PANEL,
 NT35590_720P_CMD_PANEL,
 NT35590_720P_VIDEO_PANEL,
-NT35596_1080P_VIDEO_PANEL
+NT35596_1080P_VIDEO_PANEL,
+HX8394A_720P_VIDEO_PANEL
 };
 
 static uint32_t panel_id;
@@ -134,6 +136,25 @@ static void init_panel_data(struct panel_struct *panelstruct,
 		memcpy(phy_db->timing,
 				nt35590_720p_video_timings, TIMING_SIZE);
 		break;
+	case HX8394A_720P_VIDEO_PANEL:
+		panelstruct->paneldata    = &hx8394a_720p_video_panel_data;
+		panelstruct->panelres     = &hx8394a_720p_video_panel_res;
+		panelstruct->color        = &hx8394a_720p_video_color;
+		panelstruct->videopanel   = &hx8394a_720p_video_video_panel;
+		panelstruct->commandpanel = &hx8394a_720p_video_command_panel;
+		panelstruct->state        = &hx8394a_720p_video_state;
+		panelstruct->laneconfig   = &hx8394a_720p_video_lane_config;
+		panelstruct->paneltiminginfo
+					 = &hx8394a_720p_video_timing_info;
+		panelstruct->backlightinfo = &hx8394a_720p_video_backlight;
+		pinfo->mipi.panel_cmds
+					= hx8394a_720p_video_on_command;
+		pinfo->mipi.num_of_panel_cmds
+					= HX8394A_720P_VIDEO_ON_COMMAND;
+		memcpy(phy_db->timing,
+				hx8394a_720p_video_timings, TIMING_SIZE);
+		break;
+
 	case NT35590_720P_CMD_PANEL:
 		panelstruct->paneldata    = &nt35590_720p_cmd_panel_data;
 		panelstruct->panelres     = &nt35590_720p_cmd_panel_res;
@@ -179,6 +200,7 @@ bool oem_panel_select(struct panel_struct *panelstruct,
 {
 	uint32_t hw_id = board_hardware_id();
 	uint32_t platformid = board_platform_id();
+	uint32_t target_id = board_target_id();
 
 	switch (platformid) {
 	case MSM8974:
@@ -203,6 +225,16 @@ bool oem_panel_select(struct panel_struct *panelstruct,
 	case APQ8026:
 		switch (hw_id) {
 		case HW_PLATFORM_QRD:
+			if (((target_id >> 16) & 0xFF) == 0x1)
+				panel_id = NT35590_720P_VIDEO_PANEL;
+			else if (((target_id >> 16) & 0xFF) == 0x2)
+				panel_id = HX8394A_720P_VIDEO_PANEL;
+			else {
+				dprintf(CRITICAL, "Not supported device, target_id=%x\n"
+						, target_id);
+				return false;
+			}
+			break;
 		case HW_PLATFORM_MTP:
 		case HW_PLATFORM_SURF:
 			panel_id = NT35590_720P_VIDEO_PANEL;
