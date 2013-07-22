@@ -30,7 +30,7 @@
 #include <debug.h>
 #include <reg.h>
 
-#define PM_WLED_BASE                 0x1D800
+#define PM_WLED_BASE                 0x0D800
 #define PM_WLED_CTNL_REG(n)          (PM_WLED_BASE + n)
 #define PM_WLED_LED_CTNL_REG(n)      (PM_WLED_BASE + 0x60 + (n-1)*10)
 
@@ -57,7 +57,7 @@
 #define PM_WLED_LED3_ILED_SYNC_MASK  BIT(0)
 
 #define PM_WLED_ENABLE_MODULE_MASK   BIT(7)
-
+#define DEFAULT_SLAVE_ID             0x1
 struct pm8x41_wled_data{
 	uint8_t mod_scheme;
 	uint16_t led1_brightness;
@@ -72,3 +72,4 @@ void pm8x41_wled_config(struct pm8x41_wled_data *wled_ctrl);
 void pm8x41_wled_iled_sync_control(uint8_t enable);
 void pm8x41_wled_sink_control(uint8_t enable);
 void pm8x41_wled_enable(uint8_t enable);
+void pm8x41_wled_config_slave_id(uint8_t slave_id);
