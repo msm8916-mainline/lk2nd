@@ -103,5 +103,6 @@ void mdp_gdsc_ctrl(uint8_t enable);
 void edp_clk_enable(void);
 void clock_ce_enable(uint8_t instance);
 void clock_ce_disable(uint8_t instance);
+void clock_usb30_init(void);
 
 #endif
