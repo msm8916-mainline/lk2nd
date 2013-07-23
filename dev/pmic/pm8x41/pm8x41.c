@@ -382,3 +382,22 @@ uint8_t pm8x41_get_is_cold_boot()
 	dprintf(INFO,"%s: cold boot\n", __func__);
 	return 1;
 }
+
+/* api to control diff clock */
+void pm8x41_diff_clock_ctrl(uint8_t enable)
+{
+	uint8_t reg;
+
+	reg = REG_READ(DIFF_CLK1_EN_CTL);
+
+	if (enable)
+	{
+		reg |= BIT(DIFF_CLK1_EN_BIT);
+	}
+	else
+	{
+		reg &= ~BIT(DIFF_CLK1_EN_BIT);
+	}
+
+	REG_WRITE(DIFF_CLK1_EN_CTL, reg);
+}

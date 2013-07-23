@@ -105,4 +105,8 @@ uint8_t pm8x41_reg_read(uint32_t addr);
 #define LDO_POWER_MODE                        0x45
 #define LDO_EN_CTL_REG                        0x46
 
+/* USB3 phy clock */
+#define DIFF_CLK1_EN_CTL                      0x5746
+#define DIFF_CLK1_EN_BIT                      7
+
 #endif
