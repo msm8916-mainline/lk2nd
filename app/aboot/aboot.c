@@ -33,7 +33,6 @@
 #include <app.h>
 #include <debug.h>
 #include <arch/arm.h>
-#include <dev/udc.h>
 #include <string.h>
 #include <stdlib.h>
 #include <kernel/thread.h>
@@ -123,14 +122,6 @@ static bool boot_into_ffbm;
 static int auth_kernel_img = 0;
 
 static device_info device = {DEVICE_MAGIC, 0, 0};
-
-static struct udc_device surf_udc_device = {
-	.vendor_id	= 0x18d1,
-	.product_id	= 0xD00D,
-	.version_id	= 0x0100,
-	.manufacturer	= "Google",
-	.product	= "Android",
-};
 
 struct atag_ptbl_entry
 {
@@ -1940,11 +1931,50 @@ static void publish_getvar_partition_info(struct getvar_partition_info *info, ui
 	}
 }
 
+/* register commands and variables for fastboot */
+void aboot_fastboot_register_commands(void)
+{
+	if (target_is_emmc_boot())
+	{
+		fastboot_register("flash:", cmd_flash_mmc);
+		fastboot_register("erase:", cmd_erase_mmc);
+	}
+	else
+	{
+		fastboot_register("flash:", cmd_flash);
+		fastboot_register("erase:", cmd_erase);
+	}
+
+	fastboot_register("boot",              cmd_boot);
+	fastboot_register("continue",          cmd_continue);
+	fastboot_register("reboot",            cmd_reboot);
+	fastboot_register("reboot-bootloader", cmd_reboot_bootloader);
+	fastboot_register("oem unlock",        cmd_oem_unlock);
+	fastboot_register("oem device-info",   cmd_oem_devinfo);
+	fastboot_register("preflash",          cmd_preflash);
+
+	/* publish variables and their values */
+	fastboot_publish("product",  TARGET(BOARD));
+	fastboot_publish("kernel",   "lk");
+	fastboot_publish("serialno", sn_buf);
+
+	/*
+	 * partition info is supported only for emmc partitions
+	 * Calling this for NAND prints some error messages which
+	 * is harmless but misleading. Avoid calling this for NAND
+	 * devices.
+	 */
+	if (target_is_emmc_boot())
+		publish_getvar_partition_info(part_info, ARRAY_SIZE(part_info));
+
+	/* Max download size supported */
+	snprintf(max_download_size, MAX_RSP_SIZE, "\t0x%x", target_get_max_flash_size());
+	fastboot_publish("max-download-size", (const char *) max_download_size);
+}
+
 void aboot_init(const struct app_descriptor *app)
 {
 	unsigned reboot_mode = 0;
-	unsigned usb_init = 0;
-	unsigned sz = 0;
 	bool boot_into_fastboot = false;
 
 	/* Setup page size information for nand/emmc reads */
@@ -1969,7 +1999,6 @@ void aboot_init(const struct app_descriptor *app)
 
 	target_serialno((unsigned char *) sn_buf);
 	dprintf(SPEW,"serial number: %s\n",sn_buf);
-	surf_udc_device.serialno = sn_buf;
 
 	/* Check if we should do something other than booting up */
 	if (keys_get_state(KEY_VOLUMEUP) && keys_get_state(KEY_VOLUMEDOWN))
@@ -2039,49 +2068,16 @@ void aboot_init(const struct app_descriptor *app)
 			"to fastboot mode.\n");
 	}
 
-	sz = target_get_max_flash_size();
+	/* We are here means regular boot did not happen. Start fastboot. */
 
-	target_fastboot_init();
+	/* register aboot specific fastboot commands */
+	aboot_fastboot_register_commands();
 
-	if(!usb_init)
-		udc_init(&surf_udc_device);
-
-	fastboot_register("boot", cmd_boot);
-
-	if (target_is_emmc_boot())
-	{
-		fastboot_register("flash:", cmd_flash_mmc);
-		fastboot_register("erase:", cmd_erase_mmc);
-	}
-	else
-	{
-		fastboot_register("flash:", cmd_flash);
-		fastboot_register("erase:", cmd_erase);
-	}
-
-	fastboot_register("continue", cmd_continue);
-	fastboot_register("reboot", cmd_reboot);
-	fastboot_register("reboot-bootloader", cmd_reboot_bootloader);
-	fastboot_register("oem unlock", cmd_oem_unlock);
-	fastboot_register("oem device-info", cmd_oem_devinfo);
-	fastboot_register("preflash", cmd_preflash);
-	fastboot_publish("product", TARGET(BOARD));
-	fastboot_publish("kernel", "lk");
-	fastboot_publish("serialno", sn_buf);
-	/*
-	 * fastboot publish is supported only for emmc partitions
-	 * Calling this for NAND prints some error messages which
-	 * is harmless but misleading. Avoid calling this for NAND
-	 * devices.
-	 */
-	if (target_is_emmc_boot())
-		publish_getvar_partition_info(part_info, ARRAY_SIZE(part_info));
-	/* Max download size supported */
-	snprintf(max_download_size, MAX_RSP_SIZE, "\t0x%x", sz);
-	fastboot_publish("max-download-size", (const char *) max_download_size);
+	/* dump partition table for debug info */
 	partition_dump();
-	fastboot_init(target_get_scratch_address(), sz);
-	udc_start();
+
+	/* initialize and start fastboot */
+	fastboot_init(target_get_scratch_address(), target_get_max_flash_size());
 }
 
 uint32_t get_page_size()
