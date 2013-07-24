@@ -221,6 +221,11 @@ bool oem_panel_select(struct panel_struct *panelstruct,
 	uint32_t hw_id = board_hardware_id();
 	uint32_t platformid = board_platform_id();
 	uint32_t target_id = board_target_id();
+	uint32_t nt35590_panel_id = NT35590_720P_VIDEO_PANEL;
+
+#if DISPLAY_TYPE_CMD_MODE
+	nt35590_panel_id = NT35590_720P_CMD_PANEL;
+#endif
 
 	switch (platformid) {
 	case MSM8974:
@@ -249,7 +254,7 @@ bool oem_panel_select(struct panel_struct *panelstruct,
 				panel_id = NT35521_720P_VIDEO_PANEL;
 			} else {
 				if (((target_id >> 16) & 0xFF) == 0x1) //EVT
-					panel_id = NT35590_720P_VIDEO_PANEL;
+					panel_id = nt35590_panel_id;
 				else if (((target_id >> 16) & 0xFF) == 0x2) //DVT
 					panel_id = HX8394A_720P_VIDEO_PANEL;
 				else {
@@ -261,7 +266,7 @@ bool oem_panel_select(struct panel_struct *panelstruct,
 			break;
 		case HW_PLATFORM_MTP:
 		case HW_PLATFORM_SURF:
-			panel_id = NT35590_720P_VIDEO_PANEL;
+			panel_id = nt35590_panel_id;
 			break;
 		default:
 			dprintf(CRITICAL, "Display not enabled for %d HW type\n"
