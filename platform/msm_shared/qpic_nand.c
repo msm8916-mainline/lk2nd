@@ -274,7 +274,7 @@ qpic_bam_init(struct qpic_nand_init_config *config)
 	/* Set Cmd pipe params. */
 	bam.pipe[CMD_PIPE_INDEX].pipe_num = config->pipes.cmd_pipe;
 	/* System consumer */
-	bam.pipe[CMD_PIPE_INDEX].trans_type = BAM2SYS;
+	bam.pipe[CMD_PIPE_INDEX].trans_type = SYS2BAM;
 	bam.pipe[CMD_PIPE_INDEX].fifo.size = QPIC_BAM_CMD_FIFO_SIZE;
 	bam.pipe[CMD_PIPE_INDEX].fifo.head = cmd_desc_fifo;
 	bam.pipe[CMD_PIPE_INDEX].lock_grp = config->pipes.cmd_pipe_grp;
