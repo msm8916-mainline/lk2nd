@@ -41,6 +41,7 @@
 static struct adc_conf adc_data[] = {
 	CHAN_INIT(VADC_USR1_BASE, VADC_BAT_CHAN_ID,     VADC_MODE_NORMAL, VADC_DECIM_RATIO_VAL, HW_SET_DELAY_100US, FAST_AVG_SAMP_1, CALIB_RATIO),
 	CHAN_INIT(VADC_USR1_BASE, VADC_BAT_VOL_CHAN_ID, VADC_MODE_NORMAL, VADC_DECIM_RATIO_VAL, HW_SET_DELAY_100US, FAST_AVG_SAMP_1, CALIB_ABS),
+	CHAN_INIT(VADC_USR1_BASE, MPP_8_CHAN_ID, VADC_MODE_NORMAL, VADC_DECIM_RATIO_VAL, HW_SET_DELAY_100US, FAST_AVG_SAMP_1, CALIB_ABS),
 };
 
 
@@ -382,4 +383,32 @@ uint32_t pm8x41_get_voltage_based_soc(uint32_t cutoff_vol, uint32_t vdd_max)
 	vol_soc = ((batt_vol - cutoff_vol) * 100) / (vdd_max - cutoff_vol);
 
 	return vol_soc;
+}
+
+/*
+ * API: pm8x41_enable_mpp_as_adc
+ * Configurate the MPP pin as the ADC feature.
+ */
+void pm8x41_enable_mpp_as_adc(uint16_t mpp_num)
+{
+	uint32_t val;
+	if(mpp_num > MPP_MAX_NUM)
+	{
+		dprintf(CRITICAL, "Error: The MPP pin number is unavailable\n");
+		return;
+	}
+	/* set the MPP mode as AIN */
+	val = (MPP_MODE_AIN << Q_REG_MODE_SEL_SHIFT) \
+			| (0x1 << Q_REG_OUT_INVERT_SHIFT) \
+			| (0x0 << Q_REG_SRC_SEL_SHIFT);
+	REG_WRITE((MPP_REG_BASE + mpp_num * MPP_REG_RANGE + Q_REG_MODE_CTL), val);
+
+	/* Enable the MPP */
+	val = (MPP_MASTER_ENABLE << Q_REG_MASTER_EN_SHIFT);
+	REG_WRITE((MPP_REG_BASE + mpp_num * MPP_REG_RANGE + Q_REG_EN_CTL), val);
+
+	/* AIN route to AMUX8 */
+	val = (MPP_AIN_ROUTE_AMUX3 << Q_REG_AIN_ROUTE_SHIFT);
+	REG_WRITE((MPP_REG_BASE + mpp_num * MPP_REG_RANGE + Q_REG_AIN_CTL), val);
+
 }

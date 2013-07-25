@@ -103,6 +103,7 @@ struct adc_conf {
 #define VREF_125_CHAN_ID                10
 #define GND_REF_CHAN_ID                 14
 #define VDD_VADC_CHAN_ID                15
+#define MPP_8_CHAN_ID                   39
 #define VADC_BAT_CHAN_ID                49
 
 /* Calibration type */
@@ -155,6 +156,43 @@ struct adc_conf {
 #define BOOT_DONE                       1
 #define BOOT_DONE_BIT                   7
 
+
+/* MPP defines */
+#define MPP_REG_BASE                    0xA000
+#define MPP_REG_RANGE                   0x100
+#define MPP_MAX_NUM                     0x7
+
+#define MPP_MODE_AIN                    0x4
+#define MPP_MASTER_ENABLE               0x1
+#define MPP_AIN_ROUTE_AMUX3             0x3
+
+/* control register base address offsets */
+#define Q_REG_MODE_CTL                  0x40
+#define Q_REG_DIG_VIN_CTL               0x41
+#define Q_REG_DIG_PULL_CTL              0x42
+#define Q_REG_DIG_IN_CTL                0x43
+#define Q_REG_DIG_OUT_CTL               0x45
+#define Q_REG_EN_CTL                    0x46
+#define Q_REG_AOUT_CTL                  0x48
+#define Q_REG_AIN_CTL                   0x4A
+#define Q_REG_SINK_CTL                  0x4C
+
+/* control reg: mode */
+#define Q_REG_OUT_INVERT_SHIFT          0
+#define Q_REG_OUT_INVERT_MASK           0x1
+#define Q_REG_SRC_SEL_SHIFT             1
+#define Q_REG_SRC_SEL_MASK              0xE
+#define Q_REG_MODE_SEL_SHIFT            4
+#define Q_REG_MODE_SEL_MASK             0x70
+
+/* control reg: en */
+#define Q_REG_MASTER_EN_SHIFT           7
+#define Q_REG_MASTER_EN_MASK            0x80
+
+/* control reg: ana_in */
+#define Q_REG_AIN_ROUTE_SHIFT           0
+#define Q_REG_AIN_ROUTE_MASK            0x7
+
 /* Function declations */
 uint32_t pm8x41_adc_channel_read(uint16_t ch_num);
 int pm8x41_iusb_max_config(uint32_t current);
@@ -167,4 +205,7 @@ int pm8x41_chgr_ctl_enable(uint8_t enable);
 uint32_t pm8x41_get_batt_voltage();
 /* API: Get Voltage based State of Charge */
 uint32_t pm8x41_get_voltage_based_soc(uint32_t cutoff_vol, uint32_t vdd_max);
+/* API: Set the MMP pin as ADC */
+void pm8x41_enable_mpp_as_adc(uint16_t mpp_num);
+
 #endif /* _PM8X41_ADC_H_ */
