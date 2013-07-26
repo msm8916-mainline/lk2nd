@@ -47,6 +47,7 @@ struct host_caps {
 	uint8_t sdr_support;     /* Single Data rate */
 	uint8_t ddr_support;     /* Dual Data rate */
 	uint8_t sdr50_support;   /* UHS mode, with 100 MHZ clock */
+	uint8_t sdr104_support;  /* UHS mode, with 200 MHZ clock */
 };
 
 /*
@@ -54,10 +55,13 @@ struct host_caps {
  * controller parameters
  */
 struct sdhci_host {
-	uint32_t base;         /* Base address for the host */
-	uint32_t cur_clk_rate; /* Running clock rate */
-	event_t* sdhc_event;    /* Event for power control irqs */
-	struct host_caps caps; /* Host capabilities */
+	uint32_t base;           /* Base address for the host */
+	uint32_t cur_clk_rate;   /* Running clock rate */
+	uint32_t timing;         /* current timing for the host */
+	bool tuning_in_progress; /* Tuning is being executed */
+	event_t* sdhc_event;     /* Event for power control irqs */
+	struct host_caps caps;   /* Host capabilities */
+	struct sdhci_msm_data *msm_host; /* MSM specific host info */
 };
 
 /*
@@ -123,6 +127,7 @@ enum {
 
 #define REG_READ32(host, a)                       readl(host->base + a)
 #define REG_WRITE32(host, v, a)                   writel(v, (host->base + a))
+#define REG_RMW32(host, a, s, w, v)               RMWREG32((host->base + a), s, w, v)
 
 #define REG_READ16(host, a)                      readhw(host->base + a)
 #define REG_WRITE16(host, v, a)                  writehw(v, (host->base + a))
@@ -269,7 +274,7 @@ enum {
 #define SDHCI_SWITCH_CMD                          6
 #define SDHCI_CMD_TIMEOUT                         0xF
 #define SDHCI_MAX_CMD_RETRY                       10000
-#define SDHCI_MAX_TRANS_RETRY                     100000
+#define SDHCI_MAX_TRANS_RETRY                     10000
 
 #define SDHCI_PREP_CMD(c, f)                      ((((c) & 0xff) << 8) | ((f) & 0xff))
 
@@ -309,14 +314,29 @@ enum {
 #define SDHCI_CLK_50MHZ                           50000000
 #define SDHCI_CLK_100MHZ                          100000000
 #define SDHCI_CLK_200MHZ                          200000000
+#define SDHCI_CLK_400MHZ                          400000000
+
+/* UHS macros */
+#define SDHCI_UHS_MODE_MASK                       0x0007
 
 /* DDR mode related macros */
-#define SDHCI_DDR_MODE_EN                         0x0004
-#define SDHCI_DDR_MODE_MASK                       BIT(2)
+#define SDHCI_DDR50_MODE_EN                       0x0004
+#define SDHCI_DDR50_MODE_MASK                     BIT(2)
 
 /* HS200/SDR50 mode related macros */
+#define SDHCI_SDR25_MODE_EN                       0x0001
+#define SDHCI_SDR12_MODE_EN                       0x0000
 #define SDHCI_SDR50_MODE_MASK                     BIT(0)
 #define SDHCI_SDR50_MODE_EN                       0x0002
+
+#define SDHCI_SDR104_MODE_MASK                    BIT(1)
+#define SDHCI_SDR104_MODE_EN                      0x0003
+
+#define SDHCI_SDR104_MODE                         0x3
+#define SDHCI_SDR50_MODE                          0x2
+#define SDHCI_DDR50_MODE                          0x4
+#define SDHCI_SDR25_MODE                          0x1
+#define SDHCI_SDR12_MODE                          0x0
 
 /*
  * APIs and macros exposed for mmc/sd drivers
@@ -338,8 +358,8 @@ uint32_t sdhci_send_command(struct sdhci_host *, struct mmc_command *);
 uint8_t  sdhci_set_bus_width(struct sdhci_host *, uint16_t);
 /* API: Clock supply for the controller */
 uint32_t sdhci_clk_supply(struct sdhci_host *, uint32_t);
-/* API: Enable DDR mode */
-void sdhci_set_ddr_mode(struct sdhci_host *);
-/* API: To enable SDR mode */
-void sdhci_set_sdr_mode(struct sdhci_host *);
+/* API: To enable SDR/DDR mode */
+void sdhci_set_uhs_mode(struct sdhci_host *, uint32_t);
+/* API: Soft reset for the controller */
+void sdhci_reset(struct sdhci_host *host, uint8_t mask);
 #endif

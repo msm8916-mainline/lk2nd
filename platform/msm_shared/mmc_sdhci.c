@@ -768,9 +768,23 @@ static uint32_t mmc_set_bus_width(struct sdhci_host *host,
 
 
 /*
- * Function: mmc card supports ddr mode
+ * Function: mmc card supports hs400 mode
  * Arg     : None
- * Return  : 1 if DDR mode is supported, 0 otherwise
+ * Return  : 1 if hs400 mode is supported, 0 otherwise
+ * Flow    : Check the ext csd attributes of the card
+ */
+static uint8_t mmc_card_supports_hs400_mode(struct mmc_card *card)
+{
+	if (card->ext_csd[MMC_DEVICE_TYPE] & MMC_HS_HS400_MODE)
+		return 1;
+	else
+		return 0;
+}
+
+/*
+ * Function: mmc card supports hs200 mode
+ * Arg     : None
+ * Return  : 1 if HS200 mode is supported, 0 otherwise
  * Flow    : Check the ext csd attributes of the card
  */
 static uint8_t mmc_card_supports_hs200_mode(struct mmc_card *card)
@@ -824,8 +838,25 @@ static uint32_t mmc_set_hs200_mode(struct sdhci_host *host,
 		return mmc_ret;
 	}
 
-	/* Enable hs200 mode in controller */
-	sdhci_set_sdr_mode(host);
+	/* Run the clock @ 400 Mhz */
+	if (mmc_card_supports_hs400_mode(card))
+	{
+		clock_config_mmc(host->msm_host->slot, SDHCI_CLK_400MHZ);
+		/* Save the timing value, before changing the clock */
+		MMC_SAVE_TIMING(host, MMC_HS400_TIMING);
+	}
+	else
+	{
+		/* Save the timing value, before changing the clock */
+		MMC_SAVE_TIMING(host, MMC_HS200_TIMING);
+	}
+
+	/* Enable SDR104 mode in controller */
+	sdhci_set_uhs_mode(host, SDHCI_SDR104_MODE);
+
+	/* Execute Tuning for hs200 mode */
+	if ((mmc_ret = sdhci_msm_execute_tuning(host, width)))
+		dprintf(CRITICAL, "Tuning for hs200 failed\n");
 
 	return mmc_ret;
 }
@@ -849,7 +880,11 @@ static uint8_t mmc_set_ddr_mode(struct sdhci_host *host, struct mmc_card *card)
 		return mmc_ret;
 	}
 
-	sdhci_set_ddr_mode(host);
+	/* Save the timing value, before changing the clock */
+	MMC_SAVE_TIMING(host, SDHCI_DDR50_MODE);
+
+	/* Set the DDR mode in controller */
+	sdhci_set_uhs_mode(host, SDHCI_DDR50_MODE);
 
 	return 0;
 }
@@ -875,7 +910,95 @@ static uint32_t mmc_set_hs_interface(struct sdhci_host *host,
 		return mmc_ret;
 	}
 
+	/* Save the timing value, before changing the clock */
+	MMC_SAVE_TIMING(host, SDHCI_SDR25_MODE);
+
+	/* Set the SDR25 mode in controller */
+	sdhci_set_uhs_mode(host, SDHCI_SDR25_MODE);
+
 	return 0;
+}
+
+/*
+ * Function : Enable HS400 mode
+ * Arg      : Host, card structure and bus width
+ * Return   : 0 on Success, 1 on Failure
+ * Flow     :
+ *           - Set the bus width to 8 bit DDR
+ *           - Set the HS_TIMING on ext_csd 185 for the card
+ */
+uint32_t mmc_set_hs400_mode(struct sdhci_host *host,
+								   struct mmc_card *card, uint32_t width)
+{
+	uint32_t mmc_ret = 0;
+
+	/*
+	 * Emmc 5.0 spec does not allow changing to hs400 mode directly
+	 * Need to follow the sequence to change to hs400 mode
+	 * 1. Enable HS200 mode, perform tuning
+	 * 2. Change to high speed mode
+	 * 3. Enable DDR mode
+	 * 4. Enable HS400 mode & execute tuning
+	 */
+
+	/* HS400 mode is supported only in DDR 8-bit */
+	if (width != DATA_BUS_WIDTH_8BIT)
+	{
+		dprintf(CRITICAL, "Bus width is not 8-bit, cannot switch to hs400: %u\n", width);
+		return 1;
+	}
+
+	/* 1.Enable HS200 mode */
+	mmc_ret = mmc_set_hs200_mode(host, card, width);
+
+	if (mmc_ret)
+	{
+		dprintf(CRITICAL, "Failure Setting HS200 mode %s\t%d\n",__func__, __LINE__);
+		return mmc_ret;
+	}
+
+	/* 2. Enable High speed mode */
+	/* This is needed to set the clock to a low value &
+	 * so that we can switch to hs_timing --> 0x1 */
+	/* Save the timing value, before changing the clock */
+	MMC_SAVE_TIMING(host, SDHCI_SDR12_MODE);
+	sdhci_set_uhs_mode(host, SDHCI_SDR12_MODE);
+
+	/* 3. Set HS_TIMING to 0x1 */
+	mmc_ret = mmc_set_hs_interface(host, card);
+	if (mmc_ret)
+	{
+		dprintf(CRITICAL, "Error adjusting interface speed!:%s\t%d\n", __func__, __LINE__);
+		return mmc_ret;
+	}
+
+	/*4. Enable DDR mode */
+	mmc_ret = mmc_set_ddr_mode(host, card);
+	if (mmc_ret)
+	{
+		dprintf(CRITICAL, "Failure setting DDR mode:%s\t%d\n", __func__, __LINE__);
+		return mmc_ret;
+	}
+
+	/*5. Set hs400 timing */
+	mmc_ret = mmc_switch_cmd(host, card, MMC_ACCESS_WRITE, MMC_EXT_MMC_HS_TIMING, MMC_HS400_TIMING);
+
+	if (mmc_ret)
+	{
+		dprintf(CRITICAL, "Switch cmd returned failure %s\t%d\n",__func__,  __LINE__);
+		return mmc_ret;
+	}
+
+	/* 6. Enable SDR104 mode in controller */
+	/* Save the timing value, before changing the clock */
+	MMC_SAVE_TIMING(host, MMC_HS400_TIMING);
+	sdhci_set_uhs_mode(host, SDHCI_SDR104_MODE);
+
+	/* 7. Execute Tuning for hs400 mode */
+	if ((mmc_ret = sdhci_msm_execute_tuning(host, width)))
+		dprintf(CRITICAL, "Tuning for hs400 failed\n");
+
+	return mmc_ret;
 }
 
 /*
@@ -891,7 +1014,7 @@ static uint8_t mmc_host_init(struct mmc_device *dev)
 
 	struct sdhci_host *host;
 	struct mmc_config_data *cfg;
-	struct sdhci_msm_data data;
+	struct sdhci_msm_data *data;
 
 	event_t sdhc_event;
 
@@ -903,9 +1026,15 @@ static uint8_t mmc_host_init(struct mmc_device *dev)
 	host->base = cfg->sdhc_base;
 	host->sdhc_event = &sdhc_event;
 
-	data.sdhc_event = &sdhc_event;
-	data.pwrctl_base = cfg->pwrctl_base;
-	data.pwr_irq = cfg->pwr_irq;
+	data = (struct sdhci_msm_data *) malloc(sizeof(struct sdhci_msm_data));
+	ASSERT(data);
+
+	data->sdhc_event = &sdhc_event;
+	data->pwrctl_base = cfg->pwrctl_base;
+	data->pwr_irq = cfg->pwr_irq;
+	data->slot = cfg->slot;
+
+	host->msm_host = data;
 
 	/* Initialize any clocks needed for SDC controller */
 	clock_init_mmc(cfg->slot);
@@ -915,7 +1044,7 @@ static uint8_t mmc_host_init(struct mmc_device *dev)
 	/*
 	 * MSM specific sdhc init
 	 */
-	sdhci_msm_init(&data);
+	sdhci_msm_init(host, data);
 
 	/*
 	 * Initialize the controller, read the host capabilities
@@ -1261,6 +1390,9 @@ uint32_t mmc_sd_set_hs(struct sdhci_host *host, struct mmc_card *card)
        if (sdhci_send_command(host, &cmd))
              return 1;
 
+	/* Set the SDR25 mode in controller*/
+	sdhci_set_uhs_mode(host, SDHCI_SDR25_MODE);
+
 	return 0;
 }
 
@@ -1330,9 +1462,6 @@ static uint32_t mmc_card_init(struct mmc_device *dev)
 		}
 	}
 
-	/* Set the sdcc clock to 50 MHZ */
-	sdhci_clk_supply(host, SDHCI_CLK_50MHZ);
-
 	/* Now get the extended CSD for the card */
 	if (MMC_CARD_MMC(card))
 	{
@@ -1391,11 +1520,23 @@ static uint32_t mmc_card_init(struct mmc_device *dev)
 		}
 
 		/* Enable high speed mode in the follwing order:
+		 * 1. HS400 mode if supported by host & card
 		 * 1. HS200 mode if supported by host & card
 		 * 2. DDR mode host, if supported by host & card
 		 * 3. Use normal speed mode with supported bus width
 		 */
-		if (mmc_card_supports_hs200_mode(card) && host->caps.sdr50_support) {
+		if (mmc_card_supports_hs400_mode(card) && host->caps.sdr104_support)
+		{
+			mmc_return = mmc_set_hs400_mode(host, card, bus_width);
+			if (mmc_return)
+			{
+				dprintf(CRITICAL, "Failure to set HS400 mode for Card(RCA:%x)\n",
+								  card->rca);
+				return mmc_return;
+			}
+		}
+		else if (mmc_card_supports_hs200_mode(card) && host->caps.sdr104_support)
+		{
 			mmc_return = mmc_set_hs200_mode(host, card, bus_width);
 
 			if (mmc_return) {
@@ -1584,6 +1725,7 @@ uint32_t mmc_sdhci_read(struct mmc_device *dev, void *dest,
 {
 	uint32_t mmc_ret = 0;
 	struct mmc_command cmd;
+	struct mmc_card *card = &dev->card;
 
 	memset((struct mmc_command *)&cmd, 0, sizeof(struct mmc_command));
 
@@ -1600,8 +1742,19 @@ uint32_t mmc_sdhci_read(struct mmc_device *dev, void *dest,
 	cmd.resp_type = SDHCI_CMD_RESP_R1;
 	cmd.trans_mode = SDHCI_MMC_READ;
 	cmd.data_present = 0x1;
-	/* Use CMD23 If card supports cMD23 */
-	cmd.cmd23_support = dev->card.scr.cmd23_support;
+
+	/* Use CMD23 If card supports CMD23:
+	 * For SD card use the value read from SCR register
+	 * For emmc by default use CMD23.
+	 * Also as per SDCC spec always use CMD23 to stop
+	 * multiblock read/write if UHS (Ultra High Speed) is
+	 * enabled
+	 */
+	if (MMC_CARD_SD(card))
+		cmd.cmd23_support = dev->card.scr.cmd23_support;
+	else
+		cmd.cmd23_support = 0x1;
+
 	cmd.data.data_ptr = dest;
 	cmd.data.num_blocks = num_blocks;
 
@@ -1633,6 +1786,7 @@ uint32_t mmc_sdhci_write(struct mmc_device *dev, void *src,
 {
 	uint32_t mmc_ret = 0;
 	struct mmc_command cmd;
+	struct mmc_card *card = &dev->card;
 
 	memset((struct mmc_command *)&cmd, 0, sizeof(struct mmc_command));
 
@@ -1649,8 +1803,19 @@ uint32_t mmc_sdhci_write(struct mmc_device *dev, void *src,
 	cmd.cmd_type = SDHCI_CMD_TYPE_NORMAL;
 	cmd.resp_type = SDHCI_CMD_RESP_R1;
 	cmd.trans_mode = SDHCI_MMC_WRITE;
-	/* Use CMD23 If card supports cMD23 */
-	cmd.cmd23_support = dev->card.scr.cmd23_support;
+
+	/* Use CMD23 If card supports CMD23:
+	 * For SD card use the value read from SCR register
+	 * For emmc by default use CMD23.
+	 * Also as per SDCC spec always use CMD23 to stop
+	 * multiblock read/write if UHS (Ultra High Speed) is
+	 * enabled
+	 */
+	if (MMC_CARD_SD(card))
+		cmd.cmd23_support = dev->card.scr.cmd23_support;
+	else
+		cmd.cmd23_support = 0x1;
+
 	cmd.data_present = 0x1;
 	cmd.data.data_ptr = src;
 	cmd.data.num_blocks = num_blocks;
