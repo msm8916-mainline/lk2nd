@@ -79,6 +79,7 @@ int bam_wait_for_interrupt(struct bam_instance *bam,
                            enum p_int_type interrupt)
 {
 	uint32_t val;
+	uint32_t bamsts;
 
 	while (1)
 	{
@@ -90,8 +91,12 @@ int bam_wait_for_interrupt(struct bam_instance *bam,
 		} while (!((val & 0x7FFF) & (1 << bam->pipe[pipe_num].pipe_num)));
 
 		/* Check the reason for this BAM interrupt */
-		if (readl(BAM_IRQ_STTS(bam->base)))
+		bamsts = readl(BAM_IRQ_STTS(bam->base));
+		if (bamsts)
+		{
+			dprintf(CRITICAL,"ERROR:BAM_IRQ_STTS %u \n", bamsts);
 			goto bam_wait_int_error;
+		}
 
 		/* Check the interrupt type */
 		/* Read interrupt status register */
@@ -109,17 +114,11 @@ int bam_wait_for_interrupt(struct bam_instance *bam,
 			writel (val, BAM_P_IRQ_CLRn(bam->pipe[pipe_num].pipe_num, bam->base));
 			return BAM_RESULT_SUCCESS;
 		}
-		else if (val & P_TRNSFR_END_EN_MASK)
-		{
-			dprintf(CRITICAL,
-					"Trasfer end signalled before the last descc was processed\n");
-			goto bam_wait_int_error;
-		}
 	}
 
 bam_wait_int_error:
 
-	dprintf(CRITICAL, "Unexpected interrupt\n");
+	dprintf(CRITICAL, "Unexpected interrupt : val %u\n", val);
 	return BAM_RESULT_FAILURE;
 }
 
@@ -128,7 +127,7 @@ void bam_enable_interrupts(struct bam_instance *bam, uint8_t pipe_num)
 {
 
 	uint32_t int_mask = P_ERR_EN_MASK | P_OUT_OF_DESC_EN_MASK |
-						P_PRCSD_DESC_EN_MASK | P_TRNSFR_END_EN_MASK;
+						P_PRCSD_DESC_EN_MASK;
 	uint32_t val;
 
 	/* Leave BAM error interrupts disabled. */
