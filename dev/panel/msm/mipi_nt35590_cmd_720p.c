@@ -2385,7 +2385,9 @@ int mipi_nt35590_cmd_720p_config(void *pdata)
 			(pinfo->xres),
 			(pinfo->yres),
 			pinfo->mipi.dst_format,
-			pinfo->mipi.traffic_mode);
+			pinfo->bpp / 8,
+			0xf,
+			pinfo->mipi.interleave_mode);
 
 	return ret;
 }
