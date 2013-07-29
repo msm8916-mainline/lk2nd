@@ -112,8 +112,8 @@ int msm_display_config()
 		break;
 	case MIPI_CMD_PANEL:
 		dprintf(INFO, "Config MIPI_CMD_PANEL.\n");
-
-		if (mdp_get_revision() == MDP_REV_50)
+		mdp_rev = mdp_get_revision();
+		if (mdp_rev == MDP_REV_50 || mdp_rev == MDP_REV_304)
 			ret = mdss_dsi_config(panel);
 		else
 			ret = mipi_config(panel);
@@ -150,6 +150,7 @@ msm_display_config_out:
 int msm_display_on()
 {
 	int ret = NO_ERROR;
+	int mdp_rev;
 	struct msm_panel_info *pinfo;
 
 	if (!panel)
@@ -183,7 +184,8 @@ int msm_display_on()
 		ret = mdp_dma_on();
 		if (ret)
 			goto msm_display_on_out;
-		if (mdp_get_revision() != MDP_REV_50) {
+		mdp_rev = mdp_get_revision();
+		if (mdp_rev != MDP_REV_50 && mdp_rev != MDP_REV_304) {
 			ret = mipi_cmd_trigger();
 			if (ret)
 				goto msm_display_on_out;
