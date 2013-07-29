@@ -1185,6 +1185,9 @@ static char nt35521_720p_video_on_cmd204[] = {
 0x53, 0x2C, 0xFF, 0xFF,  };
 
 
+static char nt35521_720p_video_on_cmd205[] = {
+0x02, 0x00, 0x29, 0xC0,
+0x51, 0xFF, 0xFF, 0xFF,  };
 
 
 static struct mipi_dsi_cmd nt35521_720p_video_on_command[] = {
@@ -1392,9 +1395,10 @@ static struct mipi_dsi_cmd nt35521_720p_video_on_command[] = {
 { 0x4 , nt35521_720p_video_on_cmd201},
 { 0xc , nt35521_720p_video_on_cmd202},
 { 0xc , nt35521_720p_video_on_cmd203},
-{ 0x8 , nt35521_720p_video_on_cmd204}
+{ 0x8 , nt35521_720p_video_on_cmd204},
+{ 0x8 , nt35521_720p_video_on_cmd205}
 };
-#define NT35521_720P_VIDEO_ON_COMMAND 205
+#define NT35521_720P_VIDEO_ON_COMMAND 206
 
 
 static char nt35521_720p_videooff_cmd0[] = {
