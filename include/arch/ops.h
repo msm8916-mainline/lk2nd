@@ -53,6 +53,7 @@ void arch_clean_cache_range(addr_t start, size_t len);
 void arch_clean_invalidate_cache_range(addr_t start, size_t len);
 void arch_invalidate_cache_range(addr_t start, size_t len);
 void arch_sync_cache_range(addr_t start, size_t len);
+void cache_clean_invalidate_unaligned_start_addr(addr_t start, size_t size);
 	
 void arch_idle(void);
 
