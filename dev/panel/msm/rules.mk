@@ -35,5 +35,6 @@ endif
 
 ifeq ($(PLATFORM),msm8610)
 OBJS += \
-	$(LOCAL_DIR)/mipi_truly_video_wvga.o
+	$(LOCAL_DIR)/mipi_truly_video_wvga.o \
+	$(LOCAL_DIR)/mipi_truly_cmd_wvga.o
 endif
