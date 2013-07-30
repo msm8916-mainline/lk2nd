@@ -165,6 +165,10 @@ void target_init(void)
 	target_sdc_init();
 }
 
+void target_uninit(void)
+{
+        mmc_put_card_to_sleep(dev);
+}
 /* Do any target specific intialization needed before entering fastboot mode */
 void target_fastboot_init(void)
 {
