@@ -287,7 +287,7 @@ static uint32_t mmc_decode_and_save_cid(struct mmc_card *card,
 		mmc_cid.pnm[6] = 0;
 
 		mmc_cid.prv = UNPACK_BITS(raw_cid, 56, 8, mmc_sizeof);
-		mmc_cid.psn = UNPACK_BITS(raw_cid, 24, 31, mmc_sizeof);
+		mmc_cid.psn = UNPACK_BITS(raw_cid, 24, 32, mmc_sizeof);
 		mmc_cid.month = UNPACK_BITS(raw_cid, 8, 4, mmc_sizeof);
 		mmc_cid.year = UNPACK_BITS(raw_cid, 12, 8, mmc_sizeof);
 		mmc_cid.year += 2000;
@@ -302,7 +302,7 @@ static uint32_t mmc_decode_and_save_cid(struct mmc_card *card,
 		mmc_cid.pnm[6] = 0;
 
 		mmc_cid.prv = UNPACK_BITS(raw_cid, 48, 8, mmc_sizeof);
-		mmc_cid.psn = UNPACK_BITS(raw_cid, 16, 31, mmc_sizeof);
+		mmc_cid.psn = UNPACK_BITS(raw_cid, 16, 32, mmc_sizeof);
 		mmc_cid.month = UNPACK_BITS(raw_cid, 8, 4, mmc_sizeof);
 		mmc_cid.year = UNPACK_BITS(raw_cid, 12, 4, mmc_sizeof);
 		mmc_cid.year += 1997;
