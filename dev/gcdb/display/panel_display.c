@@ -184,21 +184,14 @@ int dsi_video_panel_config(struct msm_panel_info *pinfo,
 	if (pinfo->mipi.dual_dsi)
 		panel_width = panel_width / 2;
 
-	switch (pinfo->mipi.num_of_lanes) {
-	case 1:
-		lane_enable = 0x1; /*1 lane only */
-		break;
-	case 2:
-		lane_enable = 0x3; /* 2 lanes only */
-		break;
-	case 3:
-		lane_enable = 0x7; /* 3 lanes only */
-		break;
-	case 4:
-	default:
-		lane_enable = 0xf; /* 4 lanes */
-		break;
-	}
+	if (pinfo->mipi.data_lane0)
+		lane_enable |= (1 << 0);
+	if (pinfo->mipi.data_lane1)
+		lane_enable |= (1 << 1);
+	if (pinfo->mipi.data_lane2)
+		lane_enable |= (1 << 2);
+	if (pinfo->mipi.data_lane3)
+		lane_enable |= (1 << 3);
 
 	ret = mdss_dsi_video_mode_config((panel_width + plcdc->xres_pad),
 			(pinfo->yres + plcdc->yres_pad),
@@ -245,11 +238,24 @@ int dsi_cmd_panel_config (struct msm_panel_info *pinfo,
 			struct lcdc_panel_info *plcdc)
 {
 	int ret = NO_ERROR;
+	uint8_t lane_en = 0;
+	uint8_t ystride = pinfo->bpp / 8;
+
+	if (pinfo->mipi.data_lane0)
+		lane_en |= (1 << 0);
+	if (pinfo->mipi.data_lane1)
+		lane_en |= (1 << 1);
+	if (pinfo->mipi.data_lane2)
+		lane_en |= (1 << 2);
+	if (pinfo->mipi.data_lane3)
+		lane_en |= (1 << 3);
 
 	ret = mdss_dsi_cmd_mode_config((pinfo->xres + plcdc->xres_pad),
 			(pinfo->yres + plcdc->yres_pad),
 			(pinfo->xres), (pinfo->yres),
-			pinfo->mipi.dst_format, pinfo->mipi.traffic_mode);
+			pinfo->mipi.dst_format,
+			ystride, lane_en,
+			pinfo->mipi.interleave_mode);
 
 	return ret;
 }

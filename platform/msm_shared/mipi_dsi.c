@@ -951,7 +951,6 @@ int mipi_dsi_video_mode_config(unsigned short disp_width,
 	unsigned char eof_bllp_pwr,
 	unsigned char interleav)
 {
-
 	int status = 0;
 
 	/* disable mdp first */
@@ -1033,16 +1032,27 @@ int mdss_dsi_cmd_mode_config(uint16_t disp_width,
 	uint16_t img_width,
 	uint16_t img_height,
 	uint16_t dst_format,
-	uint16_t traffic_mode)
+	uint8_t ystride,
+	uint8_t lane_en,
+	uint8_t interleav)
 {
-	uint8_t DST_FORMAT;
-	uint8_t TRAFIC_MODE;
-	uint8_t DLNx_EN;
-	// video mode data ctrl
-	int status = 0;
-	uint8_t interleav = 0;
-	uint8_t ystride = 0x03;
-	// disable mdp first
+	uint16_t dst_fmt = 0;
+
+	switch (dst_format) {
+	case DSI_VIDEO_DST_FORMAT_RGB565:
+		dst_fmt = DSI_CMD_DST_FORMAT_RGB565;
+		break;
+	case DSI_VIDEO_DST_FORMAT_RGB666:
+	case DSI_VIDEO_DST_FORMAT_RGB666_LOOSE:
+		dst_fmt = DSI_CMD_DST_FORMAT_RGB666;
+		break;
+	case DSI_VIDEO_DST_FORMAT_RGB888:
+		dst_fmt = DSI_CMD_DST_FORMAT_RGB888;
+		break;
+	default:
+		dprintf(CRITICAL, "unsupported dst format\n");
+		return ERROR;
+	}
 
 #if (DISPLAY_TYPE_MDSS == 1)
 	writel(0x00000000, DSI_CLK_CTRL);
@@ -1061,16 +1071,7 @@ int mdss_dsi_cmd_mode_config(uint16_t disp_width,
 
 	writel(0x02020202, DSI_INT_CTRL);
 
-	DST_FORMAT = 8;		// RGB888
-	dprintf(SPEW, "DSI_Cmd_Mode - Dst Format: RGB888\n");
-
-	DLNx_EN = 0xf;		// 4 lane with clk programming
-	dprintf(SPEW, "Data Lane: 4 lane\n");
-
-	TRAFIC_MODE = 0;	// non burst mode with sync pulses
-	dprintf(SPEW, "Traffic mode: non burst mode with sync pulses\n");
-
-	writel(DST_FORMAT, DSI_COMMAND_MODE_MDP_CTRL);
+	writel(dst_fmt, DSI_COMMAND_MODE_MDP_CTRL);
 	writel((img_width * ystride + 1) << 16 | 0x0039,
 	       DSI_COMMAND_MODE_MDP_STREAM0_CTRL);
 	writel((img_width * ystride + 1) << 16 | 0x0039,
@@ -1080,13 +1081,13 @@ int mdss_dsi_cmd_mode_config(uint16_t disp_width,
 	writel(img_height << 16 | img_width,
 	       DSI_COMMAND_MODE_MDP_STREAM1_TOTAL);
 	writel(0x13c2c, DSI_COMMAND_MODE_MDP_DCS_CMD_CTRL);
-	writel(interleav << 30 | 0 << 24 | 0 << 20 | DLNx_EN << 4 | 0x105,
+	writel(interleav << 30 | 0 << 24 | 0 << 20 | lane_en << 4 | 0x105,
 	       DSI_CTRL);
 	writel(0x10000000, DSI_COMMAND_MODE_DMA_CTRL);
 	writel(0x10000000, DSI_MISR_CMD_CTRL);
 #endif
 
-	return NO_ERROR;
+	return 0;
 }
 
 int mipi_dsi_cmd_mode_config(unsigned short disp_width,
