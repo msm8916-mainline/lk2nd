@@ -38,6 +38,7 @@ int atoi(const char *num);
 unsigned int atoui(const char *num);
 long atol(const char *num);
 unsigned long atoul(const char *num);
+unsigned long long atoull(const char *num);
 int itoa(int num, unsigned char* str, int len, int base);
 long int strtol(const char *nptr, char **endptr, int base);
 char *getenv(const char *atypeofinformation);
