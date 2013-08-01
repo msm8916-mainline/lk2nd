@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012, Linux Foundation. All rights reserved.
+ * Copyright (c) 2011-2013, Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -153,6 +153,18 @@
 
 #define PLDO_TYPE                             0
 #define NLDO_TYPE                             1
+
+#define SSBI_REG_ADDR_WLED_CTRL_BASE    0x25A
+#define SSBI_REG_ADDR_WLED_CTRL(n)      (SSBI_REG_ADDR_WLED_CTRL_BASE + (n) - 1)
+
+/* wled control registers */
+#define WLED_MOD_CTRL_REG              SSBI_REG_ADDR_WLED_CTRL(1)
+#define WLED_SYNC_REG                  SSBI_REG_ADDR_WLED_CTRL(11)
+#define WLED_BOOST_CFG_REG             SSBI_REG_ADDR_WLED_CTRL(14)
+#define WLED_HIGH_POLE_CAP_REG         SSBI_REG_ADDR_WLED_CTRL(16)
+#define WLED_SYNC_VAL                  0x07
+#define WLED_SYNC_RESET_VAL            0x00
+#define WLED_SYNC_MASK                 0xF8
 
 #define PM8921_MVS_5V_HDMI_SWITCH             0x70
 

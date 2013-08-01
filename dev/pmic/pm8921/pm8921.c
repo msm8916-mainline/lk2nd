@@ -747,3 +747,23 @@ int pm89xx_ldo_set_voltage(const char *ldo_name, uint32_t voltage)
 
 	return 0;
 }
+
+int pm8921_configure_wled(void)
+{
+	pm8921_masked_write(WLED_BOOST_CFG_REG, 0xFF, 0x47);
+	pm8921_masked_write(WLED_HIGH_POLE_CAP_REG, 0xFF, 0x2c);
+	pm8921_masked_write(SSBI_REG_ADDR_WLED_CTRL(2), 0xFF, 0x19);
+	pm8921_masked_write(SSBI_REG_ADDR_WLED_CTRL(3), 0xFF, 0x59);
+	pm8921_masked_write(SSBI_REG_ADDR_WLED_CTRL(4), 0xFF, 0x59);
+	pm8921_masked_write(SSBI_REG_ADDR_WLED_CTRL(5), 0xFF, 0x66);
+	pm8921_masked_write(SSBI_REG_ADDR_WLED_CTRL(6), 0xFF, 0x66);
+	pm8921_masked_write(SSBI_REG_ADDR_WLED_CTRL(7), 0xFF, 0x0f);
+	pm8921_masked_write(SSBI_REG_ADDR_WLED_CTRL(8), 0xFF, 0xff);
+	pm8921_masked_write(SSBI_REG_ADDR_WLED_CTRL(9), 0xFF, 0x0f);
+	pm8921_masked_write(SSBI_REG_ADDR_WLED_CTRL(10), 0xFF, 0xff);
+	pm8921_masked_write(SSBI_REG_ADDR_WLED_CTRL(12), 0xFF, 0x16);
+	pm8921_masked_write(SSBI_REG_ADDR_WLED_CTRL(13), 0xFF, 0x55);
+	pm8921_masked_write(WLED_MOD_CTRL_REG, 0xFF, 0x7f);
+	pm8921_masked_write(WLED_SYNC_REG, WLED_SYNC_MASK,	WLED_SYNC_VAL);
+	pm8921_masked_write(WLED_SYNC_REG, WLED_SYNC_MASK,	WLED_SYNC_RESET_VAL);
+}
