@@ -43,7 +43,7 @@
 #include "include/display_resource.h"
 
 static struct pm8x41_wled_data wled_ctrl = {
-	.mod_scheme      = 0xC3,
+	.mod_scheme      = 0x00,
 	.led1_brightness = (0x0F << 8) | 0xEF,
 	.led2_brightness = (0x0F << 8) | 0xEF,
 	.led3_brightness = (0x0F << 8) | 0xEF,
