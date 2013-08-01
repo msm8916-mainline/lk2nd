@@ -29,7 +29,7 @@
 #include <edp.h>
 #include <msm_panel.h>
 
-static void edp_auo_1080p_init_edid_data(struct edp_edid *edid)
+static void edp_auo_1080p_init_edid_data(struct edp_edid_x *edid)
 {
 	edid->id_name[0] = 'A';
 	edid->id_name[0] = 'U';
@@ -65,7 +65,7 @@ static void edp_auo_1080p_init_edid_data(struct edp_edid *edid)
 
 }
 
-static void edp_auo_1080p_init_dpcd_data(struct dpcd_cap *cap)
+static void edp_auo_1080p_init_dpcd_data(struct dpcd_cap_x *cap)
 {
 	cap->max_lane_count = 2;
 	cap->max_link_clk = 270;

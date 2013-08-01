@@ -100,6 +100,8 @@ DEFINES += DISPLAY_TYPE_MDSS=1
 			$(LOCAL_DIR)/gpio.o \
 			$(LOCAL_DIR)/dload_util.o \
 			$(LOCAL_DIR)/edp.o \
+			$(LOCAL_DIR)/edp_util.o \
+			$(LOCAL_DIR)/edp_aux.o \
 			$(LOCAL_DIR)/edp_phy.o
 endif
 

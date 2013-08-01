@@ -258,6 +258,19 @@ int msm_display_init(struct msm_fb_panel_data *pdata)
 	if (ret)
 		goto msm_display_init_out;
 
+	/* pinfo prepare  */
+	if (pdata->panel_info.prepare) {
+		/* this is for edp which pinfo derived from edid */
+		ret = pdata->panel_info.prepare();
+		panel->fb.width =  panel->panel_info.xres;
+		panel->fb.height =  panel->panel_info.yres;
+		panel->fb.stride =  panel->panel_info.xres;
+		panel->fb.bpp =  panel->panel_info.bpp;
+	}
+
+	if (ret)
+		goto msm_display_init_out;
+
 	ret = msm_fb_alloc(&(panel->fb));
 	if (ret)
 		goto msm_display_init_out;
