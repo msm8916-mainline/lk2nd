@@ -98,7 +98,9 @@ DEFINES += DISPLAY_TYPE_MDSS=1
 			$(LOCAL_DIR)/crypto5_wrapper.o \
 			$(LOCAL_DIR)/i2c_qup.o \
 			$(LOCAL_DIR)/gpio.o \
-			$(LOCAL_DIR)/dload_util.o
+			$(LOCAL_DIR)/dload_util.o \
+			$(LOCAL_DIR)/edp.o \
+			$(LOCAL_DIR)/edp_phy.o
 endif
 
 ifeq ($(PLATFORM),msm8226)
