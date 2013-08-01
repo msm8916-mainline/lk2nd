@@ -70,8 +70,8 @@ uint32_t target_dev_tree_mem(void *fdt, uint32_t memory_node_offset)
 				 */
 				ret = dev_tree_add_mem_info(fdt,
 											memory_node_offset,
-											ram_ptable.parts[i].start + 2*SIZE_1M,
-											ram_ptable.parts[i].size  - 2*SIZE_1M);
+											ram_ptable.parts[i].start + 3*SIZE_1M,
+											ram_ptable.parts[i].size  - 3*SIZE_1M);
 
 			}
 			else

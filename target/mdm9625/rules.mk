@@ -4,13 +4,13 @@ INCLUDES += -I$(LOCAL_DIR)/include -I$(LK_TOP_DIR)/platform/msm_shared
 
 PLATFORM := mdm9x25
 
-MEMBASE                             := 0x01E00000
+MEMBASE                             := 0x07E00000
 MEMSIZE                             := 0x00100000 # 1MB
-SCRATCH_ADDR                        := 0x00200000
-SCRATCH_REGION1                     := 0x00200000
-SCRATCH_REGION1_SIZE                := 0x01C00000 #28 MB
-SCRATCH_REGION2                     := 0x07600000
-SCRATCH_REGION2_SIZE                := 0x00A00000 #10 MB
+SCRATCH_ADDR                        := 0x00300000
+SCRATCH_REGION1                     := 0x00300000
+SCRATCH_REGION1_SIZE                := 0x01000000 #16 MB
+SCRATCH_REGION2                     := 0x06800000
+SCRATCH_REGION2_SIZE                := 0x01600000 #22 MB
 
 DEFINES += NO_KEYPAD_DRIVER=1
 DEFINES += PERIPH_BLK_BLSP=1
