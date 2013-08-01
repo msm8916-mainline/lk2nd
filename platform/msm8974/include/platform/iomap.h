@@ -182,6 +182,8 @@
 #define MIPI_DSI1_BASE              (0xFD922E00)
 #define REG_DSI(off)                (MIPI_DSI_BASE + 0x04 + (off))
 
+#define EDP_BASE                    (0xFD923400)
+
 #define MDP_BASE                    (0xfd900000)
 #define REG_MDP(off)                (MDP_BASE + (off))
 
