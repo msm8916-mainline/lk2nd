@@ -59,7 +59,10 @@ struct msm_id
 	uint32_t soc_rev;
 };
 
-static bool is_dev_tree_compatible(void *dtb)
+/* Returns soc version if platform id and hardware id matches
+   otherwise return 0xFFFFFFFF */
+#define INVALID_SOC_REV_ID 0XFFFFFFFF
+static uint32_t dev_tree_compatible(void *dtb)
 {
 	int root_offset;
 	const void *prop;
@@ -97,8 +100,7 @@ static bool is_dev_tree_compatible(void *dtb)
 		msm_id.platform_id, msm_id.hardware_id, msm_id.soc_rev);
 
 	if (msm_id.platform_id != board_platform_id() ||
-	    msm_id.hardware_id != board_hardware_id() ||
-	    msm_id.soc_rev != board_soc_version()) {
+		msm_id.hardware_id != board_hardware_id()) {
 		dprintf(INFO, "Device tree's msm_id doesn't match the board: <%d %d 0x%x> != <%d %d 0x%x>\n",
 			msm_id.platform_id,
 			msm_id.hardware_id,
@@ -106,10 +108,17 @@ static bool is_dev_tree_compatible(void *dtb)
 			board_platform_id(),
 			board_hardware_id(),
 			board_soc_version());
-		return false;
+		return INVALID_SOC_REV_ID;
 	}
 
-	return true;
+	dprintf(INFO, "Device tree's msm_id matchs the board: <%d %d 0x%x> != <%d %d 0x%x>\n",
+		msm_id.platform_id,
+		msm_id.hardware_id,
+		msm_id.soc_rev,
+		board_platform_id(),
+		board_hardware_id(),
+		board_soc_version());
+	return msm_id.soc_rev;
 }
 
 /*
@@ -128,12 +137,15 @@ void *dev_tree_appended(void *kernel, uint32_t kernel_size, void *tags)
 	void *kernel_end = kernel + kernel_size;
 	uint32_t app_dtb_offset = 0;
 	void *dtb;
+	void *bestmatch_tag = NULL;
+	uint32_t bestmatch_tag_size;
+	uint32_t bestmatch_soc_rev_id = INVALID_SOC_REV_ID;
 
 	memcpy((void*) &app_dtb_offset, (void*) (kernel + DTB_OFFSET), sizeof(uint32_t));
 
 	dtb = kernel + app_dtb_offset;
 	while (dtb + sizeof(struct fdt_header) < kernel_end) {
-		bool compat;
+		uint32_t dtb_soc_rev_id;
 		struct fdt_header dtb_hdr;
 		uint32_t dtb_size;
 
@@ -149,15 +161,34 @@ void *dev_tree_appended(void *kernel, uint32_t kernel_size, void *tags)
 		 * it somewhere aligned, like tags */
 		memcpy(tags, dtb, dtb_size);
 
-		compat = is_dev_tree_compatible(tags);
-		if (compat) {
+		dtb_soc_rev_id = dev_tree_compatible(tags);
+		if (dtb_soc_rev_id == board_soc_version()) {
 			/* clear out the old DTB magic so kernel doesn't find it */
 			*((uint32_t *)(kernel + app_dtb_offset)) = 0;
 			return tags;
+		} else if ((dtb_soc_rev_id != INVALID_SOC_REV_ID) &&
+				   (dtb_soc_rev_id < board_soc_version())) {
+			/* if current bestmatch is less than new dtb_soc_rev_id then update
+			   bestmatch_tag */
+			if((bestmatch_soc_rev_id == INVALID_SOC_REV_ID) ||
+			   (bestmatch_soc_rev_id < dtb_soc_rev_id)) {
+				bestmatch_tag = dtb;
+				bestmatch_tag_size = dtb_size;
+				bestmatch_soc_rev_id = dtb_soc_rev_id;
+			}
 		}
 
 		/* goto the next device tree if any */
 		dtb += dtb_size;
+	}
+
+	if(bestmatch_tag) {
+		dprintf(INFO,"DTB found with bestmatch soc rev id 0x%x.Board soc rev id 0x%x\n",
+				bestmatch_soc_rev_id, board_soc_version());
+		memcpy(tags, bestmatch_tag, bestmatch_tag_size);
+		/* clear out the old DTB magic so kernel doesn't find it */
+		*((uint32_t *)(kernel + app_dtb_offset)) = 0;
+		return tags;
 	}
 
 	dprintf(CRITICAL, "DTB offset is incorrect, kernel image does not have appended DTB\n");
