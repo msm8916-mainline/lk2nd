@@ -70,6 +70,16 @@
 			| BVAL(10, 8, s##_mm_source_val), \
 	}
 
+#define F_MDSS(f, s, div, m, n) \
+	{ \
+		.freq_hz = (f), \
+		.m_val = (m), \
+		.n_val = ~((n)-(m)) * !!(n), \
+		.d_val = ~(n),\
+		.div_src_val = BVAL(4, 0, (int)(2*(div) - 1)) \
+			| BVAL(10, 8, s##_mm_source_val), \
+	}
+
 /* Branch Clock Bits */
 #define CBCR_BRANCH_ENABLE_BIT  BIT(0)
 #define CBCR_BRANCH_OFF_BIT     BIT(31)
