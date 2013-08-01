@@ -308,10 +308,11 @@ static int ssd_image_is_encrypted(uint32_t ** img_ptr, uint32_t * img_len_ptr, u
 		if(parse_rsp.status == SSD_PMD_ENCRYPTED)
 		{
 			*ctx_id      = parse_rsp.md_ctx_id;
-			*img_len_ptr = *img_len_ptr - (parse_rsp.md_end_ptr - *img_ptr);
+			*img_len_ptr = *img_len_ptr - ((uint8_t*)parse_rsp.md_end_ptr - (uint8_t*)*img_ptr);
 			*img_ptr     = (uint32_t*)parse_rsp.md_end_ptr;
-			ret          = 1;
 		}
+
+		ret = parse_rsp.status;
 	}
 	else
 	{
@@ -330,43 +331,62 @@ int decrypt_scm_v2(uint32_t ** img_ptr, uint32_t * img_len_ptr)
 	ssd_decrypt_img_frag_req decrypt_req;
 	ssd_decrypt_img_frag_rsp decrypt_rsp;
 
-	if(ssd_image_is_encrypted(img_ptr,img_len_ptr,&ctx_id))
+	ret = ssd_image_is_encrypted(img_ptr,img_len_ptr,&ctx_id);
+	switch(ret)
 	{
+		case SSD_PMD_ENCRYPTED:
+			/* Image data is operated upon by TZ, which accesses only the main memory.
+			* It must be flushed/invalidated before and after TZ call.
+			*/
 
-		/* Image data is operated upon by TZ, which accesses only the main memory.
-		 * It must be flushed/invalidated before and after TZ call.
-		 */
+			arch_clean_invalidate_cache_range((addr_t) *img_ptr, *img_len_ptr);
 
-		arch_clean_invalidate_cache_range((addr_t) *img_ptr, *img_len_ptr);
+			/*decrypt the image here*/
 
-		/*decrypt the image here*/
+			decrypt_req.md_ctx_id = ctx_id;
+			decrypt_req.last_frag = 1;
+			decrypt_req.frag_len  = *img_len_ptr;
+			decrypt_req.frag      = *img_ptr;
 
-		decrypt_req.md_ctx_id = ctx_id;
-		decrypt_req.last_frag = 1;
-		decrypt_req.frag_len  = *img_len_ptr;
-		decrypt_req.frag      = *img_ptr;
+			ret = scm_call(SCM_SVC_SSD,
+					SSD_DECRYPT_IMG_FRAG_ID,
+					&decrypt_req,
+					sizeof(decrypt_req),
+					&decrypt_rsp,
+					sizeof(decrypt_rsp));
 
-		ret = scm_call(SCM_SVC_SSD,
-				SSD_DECRYPT_IMG_FRAG_ID,
-				&decrypt_req,
-				sizeof(decrypt_req),
-				&decrypt_rsp,
-				sizeof(decrypt_rsp));
+			if(!ret){
+				ret = decrypt_rsp.status;
+			}
 
-		if(!ret){
-			ret = decrypt_rsp.status;
-		}
+			/* Values at img_ptr and img_len_ptr are updated by TZ. Must be invalidated
+			* before we use them.
+			*/
+			arch_invalidate_cache_range((addr_t) img_ptr, sizeof(img_ptr));
+			arch_invalidate_cache_range((addr_t) img_len_ptr, sizeof(img_len_ptr));
 
-		/* Values at img_ptr and img_len_ptr are updated by TZ. Must be invalidated
-		* before we use them.
-		*/
-		arch_invalidate_cache_range((addr_t) img_ptr, sizeof(img_ptr));
-		arch_invalidate_cache_range((addr_t) img_len_ptr, sizeof(img_len_ptr));
+			/* Invalidate the updated image data */
+			arch_invalidate_cache_range((addr_t) *img_ptr, *img_len_ptr);
 
-		/* Invalidate the updated image data */
-		arch_invalidate_cache_range((addr_t) *img_ptr, *img_len_ptr);
+			break;
+
+		case SSD_PMD_NOT_ENCRYPTED:
+		case SSD_PMD_NO_MD_FOUND:
+			ret = 0;
+			break;
+
+		case SSD_PMD_BUSY:
+		case SSD_PMD_BAD_MD_PTR_OR_LEN:
+		case SSD_PMD_PARSING_INCOMPLETE:
+		case SSD_PMD_PARSING_FAILED:
+		case SSD_PMD_SETUP_CIPHER_FAILED:
+			dprintf(CRITICAL,"decrypt_scm_v2: failed status %d\n",ret);
+			break;
+
+		default:
+			dprintf(CRITICAL,"decrypt_scm_v2: case default: failed status %d\n",ret);
+			break;
 	}
-
 	return ret;
 }
 
