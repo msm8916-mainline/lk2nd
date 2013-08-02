@@ -111,7 +111,7 @@ static uint32_t dev_tree_compatible(void *dtb)
 		return INVALID_SOC_REV_ID;
 	}
 
-	dprintf(INFO, "Device tree's msm_id matchs the board: <%d %d 0x%x> != <%d %d 0x%x>\n",
+	dprintf(INFO, "Device tree's msm_id matches the board: <%d %d 0x%x> == <%d %d 0x%x>\n",
 		msm_id.platform_id,
 		msm_id.hardware_id,
 		msm_id.soc_rev,
