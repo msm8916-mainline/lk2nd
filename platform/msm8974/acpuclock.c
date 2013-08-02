@@ -142,14 +142,14 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 	}
 	else
 	{
-		dprintf(CRITICAL, "sdc frequency (%d) is not supported\n", freq);
+		dprintf(CRITICAL, "sdc frequency (%u) is not supported\n", freq);
 		ASSERT(0);
 	}
 
 
 	if(ret)
 	{
-		dprintf(CRITICAL, "failed to set sdc1_core_clk ret = %d\n", ret);
+		dprintf(CRITICAL, "failed to set sdc%u_core_clk ret = %d\n", interface, ret);
 		ASSERT(0);
 	}
 
