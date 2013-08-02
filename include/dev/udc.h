@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
+ * Copyright (c) 2013, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -9,7 +10,7 @@
  *    notice, this list of conditions and the following disclaimer.
  *  * Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the 
+ *    the documentation and/or other materials provided with the
  *    distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -19,7 +20,7 @@
  * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
  * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED 
+ * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
  * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
@@ -77,7 +78,7 @@ struct udc_device {
 	const char *product;
 	const char *serialno;
 };
-	
+
 int udc_init(struct udc_device *devinfo);
 int udc_register_gadget(struct udc_gadget *gadget);
 int udc_start(void);
@@ -95,12 +96,16 @@ int udc_stop(void);
 #define GET_INTERFACE        10
 #define SET_INTERFACE        11
 #define SYNCH_FRAME          12
+#define SET_SEL              48
 
 #define TYPE_DEVICE          1
 #define TYPE_CONFIGURATION   2
 #define TYPE_STRING          3
 #define TYPE_INTERFACE       4
 #define TYPE_ENDPOINT        5
+#define TYPE_BOS             15
+#define TYPE_DEVICE_CAP      16
+#define TYPE_SS_EP_COMP      48
 
 #define DEVICE_READ          0x80
 #define DEVICE_WRITE         0x00
