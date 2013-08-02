@@ -227,7 +227,10 @@ static unsigned int mmc_boot_read_gpt()
 	/* Print out the GPT first */
 	ret = mmc_read(PROTECTIVE_MBR_SIZE, (unsigned int *)data, BLOCK_SIZE);
 	if (ret)
+	{
 		dprintf(CRITICAL, "GPT: Could not read primary gpt from mmc\n");
+		return ret;
+	}
 
 	ret = partition_parse_gpt_header(data, &first_usable_lba,
 					 &partition_entry_size, &header_size,
@@ -441,7 +444,7 @@ unsigned int calculate_crc32(unsigned char *buffer, int len)
 {
 	int byte_length = 8;	/*length of unit (i.e. byte) */
 	int msb = 0;
-	int polynomial = 0x104C11DB7;	/* IEEE 32bit polynomial */
+	int polynomial = 0x04C11DB7;	/* IEEE 32bit polynomial */
 	unsigned int regs = 0xFFFFFFFF;	/* init to all ones */
 	int regs_mask = 0xFFFFFFFF;	/* ensure only 32 bit answer */
 	int regs_msb = 0;
