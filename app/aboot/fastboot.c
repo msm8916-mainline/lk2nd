@@ -32,6 +32,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <platform.h>
+#include <target.h>
 #include <kernel/thread.h>
 #include <kernel/event.h>
 #include <dev/udc.h>
@@ -40,6 +41,26 @@
 #define MAX_USBFS_BULK_SIZE (32 * 1024)
 
 void boot_linux(void *bootimg, unsigned sz);
+static void fastboot_notify(struct udc_gadget *gadget, unsigned event);
+static struct udc_endpoint *fastboot_endpoints[2];
+
+static struct udc_device surf_udc_device = {
+	.vendor_id    = 0x18d1,
+	.product_id   = 0xD00D,
+	.version_id   = 0x0100,
+	.manufacturer = "Google",
+	.product      = "Android",
+};
+
+static struct udc_gadget fastboot_gadget = {
+	.notify        = fastboot_notify,
+	.ifc_class     = 0xff,
+	.ifc_subclass  = 0x42,
+	.ifc_protocol  = 0x03,
+	.ifc_endpoints = 2,
+	.ifc_string    = "fastboot",
+	.ept           = fastboot_endpoints,
+};
 
 /* todo: give lk strtoul and nuke this */
 static unsigned hex2unsigned(const char *x)
@@ -81,7 +102,7 @@ struct fastboot_var {
 	const char *name;
 	const char *value;
 };
-	
+
 static struct fastboot_cmd *cmdlist;
 
 void fastboot_register(const char *prefix,
@@ -305,6 +326,14 @@ static void fastboot_command_loop(void)
 	}
 again:
 	while (fastboot_state != STATE_ERROR) {
+
+		/* Read buffer must be cleared first. If buffer is not cleared,
+		 * the original data in buf trailing the received command is
+		 * interpreted as part of the command.
+		 */
+		memset(buffer, 0, MAX_RSP_SIZE);
+		arch_clean_invalidate_cache_range((addr_t) buffer, MAX_RSP_SIZE);
+
 		r = usb_read(buffer, MAX_RSP_SIZE);
 		if (r < 0) break;
 		buffer[r] = 0;
@@ -322,7 +351,7 @@ again:
 		}
 
 		fastboot_fail("unknown command");
-			
+
 	}
 	fastboot_state = STATE_OFFLINE;
 	dprintf(INFO,"fastboot: oops!\n");
@@ -345,25 +374,25 @@ static void fastboot_notify(struct udc_gadget *gadget, unsigned event)
 	}
 }
 
-static struct udc_endpoint *fastboot_endpoints[2];
-
-static struct udc_gadget fastboot_gadget = {
-	.notify		= fastboot_notify,
-	.ifc_class	= 0xff,
-	.ifc_subclass	= 0x42,
-	.ifc_protocol	= 0x03,
-	.ifc_endpoints	= 2,
-	.ifc_string	= "fastboot",
-	.ept		= fastboot_endpoints,
-};
-
 int fastboot_init(void *base, unsigned size)
 {
+	char sn_buf[13];
 	thread_t *thr;
 	dprintf(INFO, "fastboot_init()\n");
 
 	download_base = base;
 	download_max = size;
+
+	/* target specific initialization before going into fastboot. */
+	target_fastboot_init();
+
+	/* setup serialno */
+	target_serialno((unsigned char *) sn_buf);
+	dprintf(SPEW,"serial number: %s\n",sn_buf);
+	surf_udc_device.serialno = sn_buf;
+
+	/* register udc device */
+	udc_init(&surf_udc_device);
 
 	event_init(&usb_online, 0, EVENT_FLAG_AUTOUNSIGNAL);
 	event_init(&txn_done, 0, EVENT_FLAG_AUTOUNSIGNAL);
@@ -382,6 +411,7 @@ int fastboot_init(void *base, unsigned size)
 	if (!req)
 		goto fail_alloc_req;
 
+	/* register gadget */
 	if (udc_register_gadget(&fastboot_gadget))
 		goto fail_udc_register;
 
@@ -395,12 +425,15 @@ int fastboot_init(void *base, unsigned size)
 		goto fail_alloc_in;
 	}
 	thread_resume(thr);
+
+	udc_start();
+
 	return 0;
 
 fail_udc_register:
 	udc_request_free(req);
 fail_alloc_req:
-	udc_endpoint_free(out);	
+	udc_endpoint_free(out);
 fail_alloc_out:
 	udc_endpoint_free(in);
 fail_alloc_in:
