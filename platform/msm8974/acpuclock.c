@@ -524,3 +524,21 @@ void clock_usb30_init(void)
 		ASSERT(0);
 	}
 }
+
+void edp_clk_enable(void)
+{
+	int ret;
+
+	ret = clk_get_set_enable("edp_pixel_clk", 138500000, 1);
+	if (ret) {
+		dprintf(CRITICAL, "failed to set edp_pixel_clk ret = %d\n",
+				ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("edp_link_clk", 270000000, 1);
+	if (ret) {
+		dprintf(CRITICAL, "failed to set edp_link_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+}
