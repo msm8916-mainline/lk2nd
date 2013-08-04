@@ -85,9 +85,31 @@
 #define BLSP1_UART5_BASE            (PERIPH_SS_BASE + 0x00122000)
 #define MSM_USB_BASE                (PERIPH_SS_BASE + 0x00255000)
 
+#define MSM_USB30_BASE               0xF9200000
+#define MSM_USB30_QSCRATCH_BASE      0xF92F8800
+
 #define CLK_CTL_BASE                0xFC400000
 
 #define GCC_WDOG_DEBUG              (CLK_CTL_BASE +  0x00001780)
+
+/* USB 3.0 clocks */
+#define SYS_NOC_USB3_AXI_CBCR       (CLK_CTL_BASE + 0x0108)
+
+#define GCC_USB_30_BCR               0xFC4003C0
+#define GCC_USB_30_MISC              0xFC4003C4
+
+#define GCC_USB30_MASTER_CBCR        0xFC4003C8
+#define GCC_USB30_SLEEP_CBCR         0xFC4003CC
+#define GCC_USB30_MOCK_UTMI_CBCR     0xFC4003D0
+
+#define GCC_USB30_MASTER_CMD_RCGR    0xFC4003D4
+#define GCC_USB30_MASTER_CFG_RCGR    0xFC4003D8
+#define GCC_USB30_MASTER_M           0xFC4003DC
+#define GCC_USB30_MASTER_N           0xFC4003E0
+#define GCC_USB30_MASTER_D           0xFC4003E4
+
+#define GCC_USB3_PHY_BCR             0xFC4003FC
+
 
 #define USB_HS_BCR                  (CLK_CTL_BASE + 0x480)
 
