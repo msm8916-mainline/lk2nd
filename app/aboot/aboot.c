@@ -882,6 +882,9 @@ int boot_linux_from_mmc(void)
 		#endif
 	}
 
+	if (boot_into_recovery && !device.is_unlocked && !device.is_tampered)
+		target_load_ssd_keystore();
+
 unified_boot:
 
 	boot_linux((void *)hdr->kernel_addr, (void *)hdr->tags_addr,
