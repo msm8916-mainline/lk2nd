@@ -35,6 +35,7 @@
 #include <dload_util.h>
 #include <uart_dm.h>
 #include <mmc_sdhci.h>
+#include <platform/clock.h>
 #include <platform/gpio.h>
 #include <spmi.h>
 #include <board.h>
@@ -44,6 +45,9 @@
 #include <pm8x41.h>
 #include <crypto5_wrapper.h>
 #include <hsusb.h>
+#include <scm.h>
+#include <stdlib.h>
+#include <partition_parser.h>
 
 extern  bool target_use_signed_kernel(void);
 static void set_sdc_power_ctrl(void);
@@ -62,6 +66,8 @@ static void set_sdc_power_ctrl(void);
 
 #define TLMM_VOL_UP_BTN_GPIO    106
 
+#define SSD_CE_INSTANCE         1
+
 enum target_subtype {
 	HW_PLATFORM_SUBTYPE_SKUAA = 1,
 	HW_PLATFORM_SUBTYPE_SKUF = 2,
@@ -78,6 +84,48 @@ static uint32_t mmc_sdc_pwrctl_irq[] =
 	{ SDCC1_PWRCTL_IRQ, SDCC2_PWRCTL_IRQ, SDCC3_PWRCTL_IRQ };
 
 struct mmc_device *dev;
+
+void target_load_ssd_keystore(void)
+{
+	uint64_t ptn;
+	int      index;
+	uint64_t size;
+	uint32_t *buffer;
+
+	if (!target_is_ssd_enabled())
+		return;
+
+	index = partition_get_index("ssd");
+
+	ptn = partition_get_offset(index);
+	if (ptn == 0){
+		dprintf(CRITICAL, "Error: ssd partition not found\n");
+		return;
+	}
+
+	size = partition_get_size(index);
+	if (size == 0) {
+		dprintf(CRITICAL, "Error: invalid ssd partition size\n");
+		return;
+	}
+
+	buffer = memalign(CACHE_LINE, ROUNDUP(size, CACHE_LINE));
+	if (!buffer) {
+		dprintf(CRITICAL, "Error: allocating memory for ssd buffer\n");
+		return;
+	}
+
+	if (mmc_read(ptn, buffer, size)) {
+		dprintf(CRITICAL, "Error: cannot read data\n");
+		free(buffer);
+		return;
+	}
+
+	clock_ce_enable(SSD_CE_INSTANCE);
+	scm_protect_keystore(buffer, size);
+	clock_ce_disable(SSD_CE_INSTANCE);
+	free(buffer);
+}
 
 void target_early_init(void)
 {
@@ -141,6 +189,8 @@ void target_crypto_init_params()
 	ce_params.num_ce           = CRYPTO_ENGINE_CMD_ARRAY_SIZE;
 	ce_params.read_fifo_size   = CRYPTO_ENGINE_FIFO_SIZE;
 	ce_params.write_fifo_size  = CRYPTO_ENGINE_FIFO_SIZE;
+
+	ce_params.do_bam_init = 0;
 
 	crypto_init_params(&ce_params);
 }
@@ -212,6 +262,11 @@ void target_fastboot_init(void)
 {
 	/* Set the BOOT_DONE flag in PM8026 */
 	pm8x41_set_boot_done();
+
+	if (target_is_ssd_enabled()) {
+		clock_ce_enable(SSD_CE_INSTANCE);
+		target_load_ssd_keystore();
+	}
 }
 
 /* Detect the target type */
@@ -324,6 +379,9 @@ void target_usb_stop(void)
 void target_uninit(void)
 {
 	mmc_put_card_to_sleep(dev);
+
+	if (target_is_ssd_enabled())
+		clock_ce_disable(SSD_CE_INSTANCE);
 }
 
 void target_usb_init(void)
