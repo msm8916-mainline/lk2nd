@@ -466,6 +466,10 @@ void crypto5_cleanup(struct crypto_dev *dev)
 {
 	CLEAR_STATUS(dev);
 
+	/* reset the pipes. */
+	bam_pipe_reset(&(dev->bam), CRYPTO_READ_PIPE_INDEX);
+	bam_pipe_reset(&(dev->bam), CRYPTO_WRITE_PIPE_INDEX);
+
 	/* Free all related memory. */
 	free(dev->dump);
 	free(dev->ce_array);
