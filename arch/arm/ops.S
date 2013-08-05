@@ -209,6 +209,12 @@ FUNCTION(arm_read_cr1)
 /* void arm_write_cr1(uint32_t val) */
 FUNCTION(arm_write_cr1)
 	mcr		p15, 0, r0, c1, c0, 0
+#if ARM_CPU_CORTEX_A8
+	isb		sy
+#elif ARM_CPU_ARM1136
+	mov		r0, #0
+	mcr		p15, 0, r0, c7, c5, 4
+#endif
 	bx		lr
 
 /* uint32_t arm_read_cr1_aux(void) */
@@ -235,6 +241,18 @@ FUNCTION(arm_write_dacr)
 FUNCTION(arm_invalidate_tlb)
 	mov		r0, #0
 	mcr	p15, 0, r0, c8, c7, 0
+#if ARM_CPU_CORTEX_A8
+	dsb		sy
+#elif ARM_CPU_ARM1136
+	mov		r0, #0
+	mcr		p15, 0, r0, c7, c10, 4
+#endif
+#if ARM_CPU_CORTEX_A8
+	isb		sy
+#elif ARM_CPU_ARM1136
+	mov		r0, #0
+	mcr		p15, 0, r0, c7, c5, 4
+#endif
 	bx		lr
 
 /* void arch_switch_stacks_and_call(addr_t call, addr_t stack) */
@@ -249,26 +267,6 @@ FUNCTION(dmb)
 #elif ARM_CPU_ARM1136
 	mov		r0, #0
 	mcr		p15, 0, r0, c7, c10, 5
-#endif
-	bx		lr
-
-/*void isb(void) */
-FUNCTION(isb)
-#if ARM_CPU_CORTEX_A8
-	isb		sy
-#elif ARM_CPU_ARM1136
-	mov		r0, #0
-	mcr		p15, 0, r0, c7, c5, 4
-#endif
-	bx		lr
-
-/*void dsb(void) */
-FUNCTION(dsb)
-#if ARM_CPU_CORTEX_A8
-	dsb		sy
-#elif ARM_CPU_ARM1136
-	mov		r0, #0
-	mcr		p15, 0, r0, c7, c10, 4
 #endif
 	bx		lr
 
