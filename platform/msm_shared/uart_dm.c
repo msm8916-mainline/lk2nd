@@ -43,7 +43,6 @@
 #define NULL        0
 #endif
 
-extern void dsb(void);
 
 static int uart_init_flag = 0;
 

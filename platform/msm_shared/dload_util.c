@@ -37,8 +37,6 @@
 #define EMERGENCY_DLOAD_COOKIE_1    0xC67E4350
 #define EMERGENCY_DLOAD_COOKIE_2    0x77777777
 
-extern void dsb();
-
 void dload_util_write_cookie(uint32_t target_dload_mode_addr,
 		enum dload_mode mode)
 {
