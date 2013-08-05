@@ -42,6 +42,8 @@
 
 #include "include/display_resource.h"
 
+#define HFPLL_LDO_ID 8
+
 static struct pm8x41_wled_data wled_ctrl = {
 	.mod_scheme      = 0x00,
 	.led1_brightness = (0x0F << 8) | 0xEF,
@@ -129,11 +131,16 @@ int target_ldo_ctrl(uint8_t enable, struct ldo_entry ldo_entry_array[],
 				ldo_entry_array[ldocounter].ldo_id);
 
 		/* Set voltage during power on */
-		if (enable == 1) {
+		if (enable) {
 			pm8x41_ldo_set_voltage(&ldo_entry,
 					ldo_entry_array[ldocounter].ldo_voltage);
+
+			pm8x41_ldo_control(&ldo_entry, enable);
+
+		} else if(!target_cont_splash_screen() &&
+				ldo_entry_array[ldocounter].ldo_id != HFPLL_LDO_ID) {
+			pm8x41_ldo_control(&ldo_entry, enable);
 		}
-		pm8x41_ldo_control(&ldo_entry, enable);
 		ldocounter++;
 	}
 
