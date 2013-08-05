@@ -69,8 +69,6 @@
 #include "scm.h"
 
 extern  bool target_use_signed_kernel(void);
-extern void dsb();
-extern void isb();
 extern void platform_uninit(void);
 extern void target_uninit(void);
 
