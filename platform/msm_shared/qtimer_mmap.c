@@ -30,6 +30,7 @@
 #include <reg.h>
 #include <compiler.h>
 #include <qtimer.h>
+#include <arch/defines.h>
 #include <platform/irqs.h>
 #include <platform/iomap.h>
 #include <platform/interrupts.h>
@@ -42,7 +43,6 @@ static time_t timer_interval;
 static volatile uint32_t current_time;
 static uint32_t tick_count;
 
-extern void dsb();
 static void qtimer_enable();
 
 static enum handler_return qtimer_irq(void *arg)

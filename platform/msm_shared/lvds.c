@@ -31,6 +31,7 @@
 #include <reg.h>
 #include <err.h>
 #include <bits.h>
+#include <arch/defines.h>
 #include <platform/iomap.h>
 #include <platform/clock.h>
 #include <dev/fbcon.h>

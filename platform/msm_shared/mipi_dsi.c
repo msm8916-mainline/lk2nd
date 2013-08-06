@@ -46,7 +46,6 @@ extern int mipi_dsi_cmd_config(struct fbcon_config mipi_fb_cfg,
 			       unsigned short num_of_lanes);
 extern void mdp_shutdown(void);
 extern void mdp_start_dma(void);
-extern void dsb(void);
 
 #if (DISPLAY_TYPE_MDSS == 0)
 #define MIPI_DSI0_BASE MIPI_DSI_BASE

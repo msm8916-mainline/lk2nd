@@ -26,6 +26,7 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <arch/defines.h>
 #include <string.h>
 #include <endian.h>
 #include <debug.h>
@@ -37,7 +38,6 @@
 #include <scm.h>
 #include <smem.h>
 
-extern void dsb(void);
 extern void ce_async_reset();
 
 void wr_ce(uint32_t val,uint32_t reg)

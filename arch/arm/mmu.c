@@ -25,6 +25,7 @@
 #include <compiler.h>
 #include <arch.h>
 #include <arch/arm.h>
+#include <arch/defines.h>
 #include <arch/arm/mmu.h>
 
 #if ARM_WITH_MMU
@@ -94,6 +95,10 @@ void arm_mmu_init(void)
 
 void arch_disable_mmu(void)
 {
+	/* Ensure all memory access are complete
+	 * before disabling MMU
+	 */
+	dsb();
 	arm_write_cr1(arm_read_cr1() & ~(1<<0));
 	arm_invalidate_tlb();
 }
