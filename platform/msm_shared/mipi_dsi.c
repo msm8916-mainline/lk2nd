@@ -228,7 +228,11 @@ int mipi_dsi_cmds_tx(struct mipi_dsi_cmd *cmds, int count)
 		writel(cm->size, DSI_DMA_CMD_LENGTH);	// reg 0x48 for this build
 		dsb();
 		ret += dsi_cmd_dma_trigger_for_panel();
-		udelay(80);
+		dsb();
+		if (cm->wait)
+			mdelay(cm->wait);
+		else
+			udelay(80);
 		cm++;
 	}
 	return ret;

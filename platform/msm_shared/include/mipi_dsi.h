@@ -659,6 +659,7 @@ typedef struct mdss_dsi_pll_config {
 struct mipi_dsi_cmd {
 	int size;
 	char *payload;
+	int wait;
 };
 
 struct mipi_dsi_panel_config {
