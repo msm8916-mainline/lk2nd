@@ -85,6 +85,8 @@
 #define BLSP2_UART4_BASE            (PERIPH_SS_BASE + 0x00161000)
 #define BLSP2_UART5_BASE            (PERIPH_SS_BASE + 0x00162000)
 
+#define MSM_USB_BASE                (PERIPH_SS_BASE + 0x00255000)
+
 #define CLK_CTL_BASE                0xFC400000
 
 #define GCC_WDOG_DEBUG              (CLK_CTL_BASE +  0x00001780)
