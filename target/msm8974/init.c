@@ -144,6 +144,9 @@ static int target_volume_up()
 
 	pm8x41_gpio_config(5, &gpio);
 
+	/* Wait for the pmic gpio config to take effect */
+	thread_sleep(1);
+
 	/* Get status of P_GPIO_5 */
 	pm8x41_gpio_get(5, &status);
 
