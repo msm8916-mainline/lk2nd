@@ -119,7 +119,7 @@ static bool boot_into_ffbm;
 /* Assuming unauthorized kernel image by default */
 static int auth_kernel_img = 0;
 
-static device_info device = {DEVICE_MAGIC, 0, 0};
+static device_info device = {DEVICE_MAGIC, 0, 0, 0};
 
 struct atag_ptbl_entry
 {
@@ -153,6 +153,7 @@ struct getvar_partition_info part_info[] =
 };
 
 char max_download_size[MAX_RSP_SIZE];
+char charger_screen_enabled[MAX_RSP_SIZE];
 char sn_buf[13];
 
 extern int emmc_recovery_init(void);
@@ -211,7 +212,8 @@ unsigned char *update_cmdline(const char * cmdline)
 		cmdline_len += strlen(ffbm_mode_string);
 		/* reduce kernel console messages to speed-up boot */
 		cmdline_len += strlen(loglevel);
-	} else if (target_pause_for_battery_charge()) {
+	} else if (device.charger_screen_enabled &&
+			target_pause_for_battery_charge()) {
 		pause_at_bootup = 1;
 		cmdline_len += strlen(battchg_pause);
 	}
@@ -1192,6 +1194,7 @@ void read_device_info_mmc(device_info *dev)
 		memcpy(info->magic, DEVICE_MAGIC, DEVICE_MAGIC_SIZE);
 		info->is_unlocked = 0;
 		info->is_tampered = 0;
+		info->charger_screen_enabled = 0;
 
 		write_device_info_mmc(info);
 	}
@@ -1834,6 +1837,22 @@ void cmd_reboot_bootloader(const char *arg, void *data, unsigned sz)
 	reboot_device(FASTBOOT_MODE);
 }
 
+void cmd_oem_enable_charger_screen(const char *arg, void *data, unsigned size)
+{
+	dprintf(INFO, "Enabling charger screen check\n");
+	device.charger_screen_enabled = 1;
+	write_device_info(&device);
+	fastboot_okay("");
+}
+
+void cmd_oem_disable_charger_screen(const char *arg, void *data, unsigned size)
+{
+	dprintf(INFO, "Disabling charger screen check\n");
+	device.charger_screen_enabled = 0;
+	write_device_info(&device);
+	fastboot_okay("");
+}
+
 void cmd_oem_unlock(const char *arg, void *data, unsigned sz)
 {
 	if(!device.is_unlocked)
@@ -1847,9 +1866,11 @@ void cmd_oem_unlock(const char *arg, void *data, unsigned sz)
 void cmd_oem_devinfo(const char *arg, void *data, unsigned sz)
 {
 	char response[64];
-	snprintf(response, 64, "\tDevice tampered: %s", (device.is_tampered ? "true" : "false"));
+	snprintf(response, sizeof(response), "\tDevice tampered: %s", (device.is_tampered ? "true" : "false"));
 	fastboot_info(response);
-	snprintf(response, 64, "\tDevice unlocked: %s", (device.is_unlocked ? "true" : "false"));
+	snprintf(response, sizeof(response), "\tDevice unlocked: %s", (device.is_unlocked ? "true" : "false"));
+	fastboot_info(response);
+	snprintf(response, sizeof(response), "\tCharger screen enabled: %s", (device.charger_screen_enabled ? "true" : "false"));
 	fastboot_info(response);
 	fastboot_okay("");
 }
@@ -1969,7 +1990,10 @@ void aboot_fastboot_register_commands(void)
 	fastboot_register("oem unlock",        cmd_oem_unlock);
 	fastboot_register("oem device-info",   cmd_oem_devinfo);
 	fastboot_register("preflash",          cmd_preflash);
-
+	fastboot_register("oem enable-charger-screen",
+			cmd_oem_enable_charger_screen);
+	fastboot_register("oem disable-charger-screen",
+			cmd_oem_disable_charger_screen);
 	/* publish variables and their values */
 	fastboot_publish("product",  TARGET(BOARD));
 	fastboot_publish("kernel",   "lk");
@@ -1985,8 +2009,14 @@ void aboot_fastboot_register_commands(void)
 		publish_getvar_partition_info(part_info, ARRAY_SIZE(part_info));
 
 	/* Max download size supported */
-	snprintf(max_download_size, MAX_RSP_SIZE, "\t0x%x", target_get_max_flash_size());
+	snprintf(max_download_size, MAX_RSP_SIZE, "\t0x%x",
+			target_get_max_flash_size());
 	fastboot_publish("max-download-size", (const char *) max_download_size);
+	/* Is the charger screen check enabled */
+	snprintf(charger_screen_enabled, MAX_RSP_SIZE, "%d",
+			device.charger_screen_enabled);
+	fastboot_publish("charger-screen-enabled",
+			(const char *) charger_screen_enabled);
 }
 
 void aboot_init(const struct app_descriptor *app)
@@ -2008,11 +2038,7 @@ void aboot_init(const struct app_descriptor *app)
 
 	ASSERT((MEMBASE + MEMSIZE) > MEMBASE);
 
-	if(target_use_signed_kernel())
-	{
-		read_device_info(&device);
-
-	}
+	read_device_info(&device);
 
 	target_serialno((unsigned char *) sn_buf);
 	dprintf(SPEW,"serial number: %s\n",sn_buf);
