@@ -83,7 +83,7 @@ static void target_keystatus()
 		keys_post_event(KEY_VOLUMEUP, 1);
 }
 
-static target_mmc_mci_init()
+static void target_mmc_mci_init()
 {
 	uint32_t base_addr;
 	uint8_t slot;
@@ -142,7 +142,8 @@ void target_init(void)
 	 * Set drive strength & pull ctrl for
 	 * emmc
 	 */
-	set_sdc_power_ctrl();
+	/*Uncomment during bringup after the pull up values are finalized*/
+	//set_sdc_power_ctrl();
 
 	target_mmc_mci_init();
 
@@ -175,6 +176,34 @@ void target_detect(struct board_data *board)
 /* Detect the modem type */
 void target_baseband_detect(struct board_data *board)
 {
+	uint32_t platform;
+	uint32_t platform_subtype;
+
+	platform = board->platform;
+	platform_subtype = board->platform_subtype;
+
+	/*
+	 * Look for platform subtype if present, else
+	 * check for platform type to decide on the
+	 * baseband type
+	 */
+	switch(platform_subtype) {
+	case HW_PLATFORM_SUBTYPE_UNKNOWN:
+		break;
+
+	default:
+		dprintf(CRITICAL, "Platform Subtype : %u is not supported\n",platform_subtype);
+		ASSERT(0);
+	};
+
+	switch(platform) {
+	case APQ8084:
+		board->baseband = BASEBAND_APQ;
+		break;
+	default:
+		dprintf(CRITICAL, "Platform type: %u is not supported\n",platform);
+		ASSERT(0);
+	}
 }
 
 unsigned target_baseband()
