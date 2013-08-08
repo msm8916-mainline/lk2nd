@@ -160,6 +160,7 @@ enum {
 #define SDHCI_SOFT_RESET                          BIT(0)
 #define SOFT_RESET_CMD                            BIT(1)
 #define SOFT_RESET_DATA                           BIT(2)
+#define SDHCI_RESET_MAX_TIMEOUT                   0x64
 #define SDHCI_1_8_VOL_SET                         BIT(3)
 
 /*
@@ -281,7 +282,6 @@ enum {
 /*
  * Power control relatd macros
  */
-#define SDHCI_SOFT_RESET_MASK                     (BIT(0) | BIT(1) | BIT(2))
 #define SDCC_HC_PWR_CTRL_INT                      0xF
 #define SDCC_HC_BUS_ON                            BIT(0)
 #define SDCC_HC_BUS_OFF                           BIT(1)
