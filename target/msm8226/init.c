@@ -423,7 +423,6 @@ int target_cont_splash_screen()
 
 unsigned target_pause_for_battery_charge(void)
 {
-#if 0
 	uint8_t pon_reason = pm8x41_get_pon_reason();
 	uint8_t is_cold_boot = pm8x41_get_is_cold_boot();
 	dprintf(INFO, "%s : pon_reason is %d cold_boot:%d\n", __func__,
@@ -439,7 +438,6 @@ unsigned target_pause_for_battery_charge(void)
 			((pon_reason & USB_CHG) || (pon_reason & DC_CHG)))
 		return 1;
 	else
-#endif
 		return 0;
 }
 
