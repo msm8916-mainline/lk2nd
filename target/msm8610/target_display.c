@@ -166,12 +166,19 @@ static int msm8610_mipi_panel_power(uint8_t enable)
 void display_init(void)
 {
 	uint32_t hw_id = board_hardware_id();
+	uint32_t platform_subtype = board_hardware_subtype();
 
 	dprintf(SPEW, "display_init(),target_id=%d.\n", hw_id);
+	dprintf(SPEW, "display_init(),platform_subtype=%d.\n",
+		platform_subtype);
 
 	switch (hw_id) {
 	case HW_PLATFORM_QRD:
-		mipi_hx8379a_video_wvga_init(&(panel.panel_info));
+		if ((0 == platform_subtype) || (1 == platform_subtype))
+			mipi_hx8379a_video_wvga_init(&(panel.panel_info));
+		else if (3 == platform_subtype)
+			mipi_otm8018b_video_wvga_init(&(panel.panel_info));
+
 		panel.clk_func = msm8610_mdss_dsi_panel_clock;
 		panel.power_func = msm8610_mipi_panel_power;
 		panel.fb.base = MIPI_FB_ADDR;
