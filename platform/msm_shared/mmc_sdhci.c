@@ -907,6 +907,11 @@ static uint8_t mmc_host_init(struct mmc_device *dev)
 	data.pwrctl_base = cfg->pwrctl_base;
 	data.pwr_irq = cfg->pwr_irq;
 
+	/* Initialize any clocks needed for SDC controller */
+	clock_init_mmc(cfg->slot);
+
+	clock_config_mmc(cfg->slot, cfg->max_clk_rate);
+
 	/*
 	 * MSM specific sdhc init
 	 */
@@ -918,12 +923,7 @@ static uint8_t mmc_host_init(struct mmc_device *dev)
 	 */
 	sdhci_init(host);
 
-	/* Initialize any clocks needed for SDC controller */
-	clock_init_mmc(cfg->slot);
-
 	/* Setup initial freq to 400KHz */
-	clock_config_mmc(cfg->slot, cfg->max_clk_rate);
-
 	mmc_ret = sdhci_clk_supply(host, SDHCI_CLK_400KHZ);
 
 	return mmc_ret;
