@@ -112,6 +112,7 @@ int dsi_panel_init(struct msm_panel_info *pinfo,
 	pinfo->mipi.stream = pstruct->paneldata->dsi_stream;
 	pinfo->mipi.dual_dsi = (pstruct->paneldata->panel_operating_mode
 								 & 0x1);
+	pinfo->mipi.mode_gpio_state = pstruct->paneldata->mode_gpio_state;
 	pinfo->mipi.bitclock = pstruct->paneldata->panel_bitclock_freq;
 
 	/* Video Panel configuration */

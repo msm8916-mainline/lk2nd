@@ -76,8 +76,8 @@ static uint32_t mdss_dsi_panel_reset(uint8_t enable)
 {
 	uint32_t ret = NO_ERROR;
 
-	ret = target_panel_reset(enable, &reset_gpio,
-			 &enable_gpio, panelstruct.panelresetseq);
+	ret = target_panel_reset(enable, panelstruct.panelresetseq,
+						&panel.panel_info);
 
 	return ret;
 }
@@ -110,8 +110,7 @@ static int mdss_dsi_panel_power(uint8_t enable)
 			dprintf(CRITICAL, "Backlight enable failed \n");
 			return ret;
 		}
-		ret = target_ldo_ctrl(enable, ldo_entry_array,
-						 TOTAL_LDO_DEFINED);
+		ret = target_ldo_ctrl(enable);
 		if (ret) {
 			dprintf(CRITICAL, "LDO control enable failed \n");
 			return ret;
@@ -138,8 +137,7 @@ static int mdss_dsi_panel_power(uint8_t enable)
 			return ret;
 		}
 
-		ret = target_ldo_ctrl(enable, ldo_entry_array,
-						TOTAL_LDO_DEFINED);
+		ret = target_ldo_ctrl(enable);
 		if (ret) {
 			dprintf(CRITICAL, "ldo control disable failed \n");
 			return ret;

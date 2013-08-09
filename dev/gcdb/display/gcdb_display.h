@@ -53,12 +53,9 @@
 
 int target_backlight_ctrl(uint8_t enable);
 int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo);
-int target_panel_reset(uint8_t enable,
-				struct gpio_pin *resetgpio,
-				struct gpio_pin *enablegpio,
-				struct panel_reset_sequence *resetseq);
-int target_ldo_ctrl(uint8_t enable, struct ldo_entry ldo_entry_array[],
-				uint8_t totalldo);
+int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
+						struct msm_panel_info *pinfo);
+int target_ldo_ctrl(uint8_t enable);
 
 void gcdb_display_init(unsigned int rev, void *base);
 void gcdb_display_shutdown();
