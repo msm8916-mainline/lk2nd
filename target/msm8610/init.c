@@ -276,11 +276,14 @@ int target_cont_splash_screen()
 	int ret = 0;
 	switch(board_hardware_id())
 	{
-		case HW_PLATFORM_MTP:
 		case HW_PLATFORM_QRD:
-		case HW_PLATFORM_SURF:
-			dprintf(SPEW, "Target_cont_splash=0\n");
 			ret = 0;
+			break;
+		case HW_PLATFORM_MTP:
+		case HW_PLATFORM_SURF:
+			dprintf(SPEW, "Target_cont_splash=1\n");
+			ret = 1;
+			break;
 		default:
 			dprintf(SPEW, "Target_cont_splash=0\n");
 			ret = 0;
