@@ -64,7 +64,7 @@ static struct flash_id supported_flash[] = {
 	/* Flash ID    ID Mask      Density(MB)    Wid Pgsz    Blksz              oobsz   8-bit ECCf */
 	{0x1590AC2C,   0xFFFFFFFF,  0x20000000,    0,  2048,   0x00020000,        0x40,   0},
 	{0x2690AC2C,   0xFFFFFFFF,  0x20000000,    0,  4096,   0x00040000,        0xE0,   1},
-	{0x1590ACAD,   0xFFFFFFFF,  0x20000000,    0,  2048,   0x00020000,        0x80,   1},
+	{0x1590ACAD,   0xFFFFFFFF,  0x20000000,    0,  2048,   0x00020000,        0x80,   0},
 	/* Note: Width flag is 0 for 8 bit Flash and 1 for 16 bit flash   */
 };
 
