@@ -143,6 +143,13 @@ typedef struct panel_timing {
 	uint8_t tclk_pre;
 };
 
+enum {
+	BL_PWM = 0,
+	BL_WLED,
+	BL_DCS,
+	BL_LPG,
+};
+
 typedef struct backlight {
 	uint16_t bl_interface_type;
 	uint16_t bl_min_level;

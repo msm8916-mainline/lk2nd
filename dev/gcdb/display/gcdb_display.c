@@ -58,11 +58,15 @@ static struct mdss_dsi_phy_ctrl dsi_video_mode_phy_db;
 extern int msm_display_init(struct msm_fb_panel_data *pdata);
 extern int msm_display_off();
 
+/* TODO: add other backlight type support */
 static uint32_t panel_backlight_ctrl(uint8_t enable)
 {
 	uint32_t ret = NO_ERROR;
 
-	ret = target_backlight_ctrl(enable);
+	if (panelstruct.backlightinfo->bl_pmic_controltype != BL_DCS) {
+		/* deal with non-dcs backlight */
+		ret = target_backlight_ctrl(enable);
+	}
 
 	return ret;
 }
