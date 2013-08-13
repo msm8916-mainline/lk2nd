@@ -40,6 +40,38 @@
 
 
 /*
+ * Function: sdhci reset
+ * Arg     : Host structure & mask to write to reset register
+ * Return  : None
+ * Flow:   : Reset the host controller
+ */
+static void sdhci_reset(struct sdhci_host *host, uint8_t mask)
+{
+	uint32_t reg;
+	uint32_t timeout = SDHCI_RESET_MAX_TIMEOUT;
+
+	REG_WRITE8(host, mask, SDHCI_RESET_REG);
+
+	/* Wait for the reset to complete */
+	do {
+		reg = REG_READ8(host, SDHCI_RESET_REG);
+		reg &= mask;
+
+		if (!reg)
+			break;
+		if (!timeout)
+		{
+			dprintf(CRITICAL, "Error: sdhci reset failed for: %x\n", mask);
+			break;
+		}
+
+		timeout--;
+		mdelay(1);
+
+	} while(1);
+}
+
+/*
  * Function: sdhci error status enable
  * Arg     : Host structure
  * Return  : None
@@ -424,14 +456,14 @@ err:
 		if (sdhci_cmd_err_status(host)) {
 			dprintf(CRITICAL, "Error: Command completed with errors\n");
 			/* Reset the command & Data line */
-			REG_WRITE8(host, (SOFT_RESET_CMD | SOFT_RESET_DATA), SDHCI_RESET_REG);
+			sdhci_reset(host, (SOFT_RESET_CMD | SOFT_RESET_DATA));
 			return 1;
 		}
 	}
 
 	/* Reset data & command line */
 	if (cmd->data_present)
-		REG_WRITE8(host, (SOFT_RESET_CMD | SOFT_RESET_DATA), SDHCI_RESET_REG);
+		sdhci_reset(host, (SOFT_RESET_CMD | SOFT_RESET_DATA));
 
 	return 0;
 }
@@ -714,28 +746,6 @@ uint32_t sdhci_send_command(struct sdhci_host *host, struct mmc_command *cmd)
 }
 
 /*
- * Function: sdhci reset
- * Arg     : Host structure
- * Return  : None
- * Flow:   : Reset the host controller
- */
-static void sdhci_reset(struct sdhci_host *host)
-{
-	uint32_t reg;
-
-	REG_WRITE8(host, SDHCI_SOFT_RESET, SDHCI_RESET_REG);
-
-	/* Wait for the reset to complete */
-	do {
-		reg = REG_READ8(host, SDHCI_RESET_REG);
-		reg &= SDHCI_SOFT_RESET_MASK;
-
-		if (!reg)
-			break;
-	} while(1);
-}
-
-/*
  * Function: sdhci init
  * Arg     : Host structure
  * Return  : None
@@ -754,7 +764,7 @@ void sdhci_init(struct sdhci_host *host)
 	/*
 	 * Reset the controller
 	 */
-	sdhci_reset(host);
+	sdhci_reset(host, SDHCI_SOFT_RESET);
 
 	/* Read the capabilities register & store the info */
 	caps[0] = REG_READ32(host, SDHCI_CAPS_REG1);
