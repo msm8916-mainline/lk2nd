@@ -172,6 +172,17 @@
 #define SDCC2_N                     (CLK_CTL_BASE + 0x51C) /* n */
 #define SDCC2_D                     (CLK_CTL_BASE + 0x520) /* d */
 
+/* SDCC3 */
+#define SDCC3_BCR                   (CLK_CTL_BASE + 0x540) /* block reset */
+#define SDCC3_APPS_CBCR             (CLK_CTL_BASE + 0x544) /* branch control */
+#define SDCC3_AHB_CBCR              (CLK_CTL_BASE + 0x548)
+#define SDCC3_INACTIVITY_TIMER_CBCR (CLK_CTL_BASE + 0x54C)
+#define SDCC3_CMD_RCGR              (CLK_CTL_BASE + 0x550) /* cmd */
+#define SDCC3_CFG_RCGR              (CLK_CTL_BASE + 0x554) /* cfg */
+#define SDCC3_M                     (CLK_CTL_BASE + 0x558) /* m */
+#define SDCC3_N                     (CLK_CTL_BASE + 0x55C) /* n */
+#define SDCC3_D                     (CLK_CTL_BASE + 0x560) /* d */
+
 /* UART */
 #define BLSP1_AHB_CBCR              (CLK_CTL_BASE + 0x5C4)
 #define BLSP2_AHB_CBCR              (CLK_CTL_BASE + 0x944)
