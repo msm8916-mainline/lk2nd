@@ -48,5 +48,6 @@
 #define dsb() __asm__ volatile ("mcr p15, 0, %0, c7, c10, 4" : : "r" (0): "memory");
 #endif
 
-#endif
+#define GET_CAHE_LINE_START_ADDR(addr) ROUNDDOWN(addr, CACHE_LINE)
 
+#endif
