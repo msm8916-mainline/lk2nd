@@ -166,7 +166,7 @@ static char nt35521_720p_video_on_cmd16[] = {
 
 static char nt35521_720p_video_on_cmd17[] = {
 0x03, 0x00, 0x29, 0xC0,
-0xD9, 0x00, 0x28, 0xFF,  };
+0xD9, 0x03, 0x06, 0xFF,  };
 
 
 static char nt35521_720p_video_on_cmd18[] = {
