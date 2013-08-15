@@ -36,6 +36,8 @@
 #include <debug.h>
 #include <smem.h>
 
+#define TOTAL_RESET_GPIO_CTRL 5
+
 /*---------------------------------------------------------------------------*/
 /* Structure definition                                                      */
 /*---------------------------------------------------------------------------*/
@@ -148,6 +150,12 @@ enum {
 	BL_WLED,
 	BL_DCS,
 	BL_LPG,
+};
+
+typedef struct panel_reset_sequence {
+	uint8_t pin_state[TOTAL_RESET_GPIO_CTRL];
+	uint32_t sleep[TOTAL_RESET_GPIO_CTRL];
+	uint8_t pin_direction;
 };
 
 typedef struct backlight {

@@ -1466,6 +1466,10 @@ static struct panel_timing nt35521_720p_video_timing_info = {
   0, 4, 0x20, 0x2D
 };
 
+static struct panel_reset_sequence nt35521_720p_video_panel_reset_seq = {
+{ 1, 0, 1, }, { 20, 20, 20, }, 2
+};
+
 /*---------------------------------------------------------------------------*/
 /* Backlight Settings                                                        */
 /*---------------------------------------------------------------------------*/

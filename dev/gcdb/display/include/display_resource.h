@@ -37,8 +37,6 @@
 #include <smem.h>
 #include <board.h>
 
-#define TOTAL_RESET_GPIO_CTRL 5
-
 #define TOTAL_LDO_CTRL 5
 
 /*---------------------------------------------------------------------------*/
@@ -54,13 +52,6 @@ typedef struct gpio_pin{
 	uint32_t pin_direction;
 	uint32_t pin_pull;
 	uint32_t pin_state;
-};
-
-typedef struct panel_reset_sequence {
-
-	uint8_t  pin_state[TOTAL_RESET_GPIO_CTRL];
-	uint32_t sleep[TOTAL_RESET_GPIO_CTRL];
-	uint8_t  pin_direction;
 };
 
 /*LDO entry structure for different LDO entries. */

@@ -332,6 +332,10 @@ static struct panel_timing toshiba_720p_video_timing_info = {
   0x0, 0x04, 0x04, 0x1b
 };
 
+static struct panel_reset_sequence toshiba_720p_video_panel_reset_seq = {
+{ 1, 0, 1, }, { 20, 200, 20, }, 2
+};
+
 /*---------------------------------------------------------------------------*/
 /* Backlight Settings                                                        */
 /*---------------------------------------------------------------------------*/

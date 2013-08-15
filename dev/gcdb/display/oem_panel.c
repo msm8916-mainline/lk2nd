@@ -112,6 +112,8 @@ static void init_panel_data(struct panel_struct *panelstruct,
 		panelstruct->laneconfig   = &toshiba_720p_video_lane_config;
 		panelstruct->paneltiminginfo
 					 = &toshiba_720p_video_timing_info;
+		panelstruct->panelresetseq
+					 = &toshiba_720p_video_panel_reset_seq;
 		panelstruct->backlightinfo = &toshiba_720p_video_backlight;
 		pinfo->mipi.panel_cmds
 					= toshiba_720p_video_on_command;
@@ -130,6 +132,8 @@ static void init_panel_data(struct panel_struct *panelstruct,
 		panelstruct->laneconfig   = &nt35590_720p_video_lane_config;
 		panelstruct->paneltiminginfo
 					 = &nt35590_720p_video_timing_info;
+		panelstruct->panelresetseq
+					 = &nt35590_720p_video_panel_reset_seq;
 		panelstruct->backlightinfo = &nt35590_720p_video_backlight;
 		pinfo->mipi.panel_cmds
 					= nt35590_720p_video_on_command;
@@ -148,6 +152,8 @@ static void init_panel_data(struct panel_struct *panelstruct,
 		panelstruct->laneconfig   = &nt35521_720p_video_lane_config;
 		panelstruct->paneltiminginfo
 					 = &nt35521_720p_video_timing_info;
+		panelstruct->panelresetseq
+					 = &nt35521_720p_video_panel_reset_seq;
 		panelstruct->backlightinfo = &nt35521_720p_video_backlight;
 		pinfo->mipi.panel_cmds
 					= nt35521_720p_video_on_command;
@@ -166,6 +172,8 @@ static void init_panel_data(struct panel_struct *panelstruct,
 		panelstruct->laneconfig   = &hx8394a_720p_video_lane_config;
 		panelstruct->paneltiminginfo
 					 = &hx8394a_720p_video_timing_info;
+		panelstruct->panelresetseq
+					 = &hx8394a_720p_video_panel_reset_seq;
 		panelstruct->backlightinfo = &hx8394a_720p_video_backlight;
 		pinfo->mipi.panel_cmds
 					= hx8394a_720p_video_on_command;
@@ -184,6 +192,8 @@ static void init_panel_data(struct panel_struct *panelstruct,
 		panelstruct->state        = &nt35590_720p_cmd_state;
 		panelstruct->laneconfig   = &nt35590_720p_cmd_lane_config;
 		panelstruct->paneltiminginfo = &nt35590_720p_cmd_timing_info;
+		panelstruct->panelresetseq
+					= &nt35590_720p_cmd_panel_reset_seq;
 		panelstruct->backlightinfo = &nt35590_720p_cmd_backlight;
 		pinfo->mipi.panel_cmds
 					= nt35590_720p_cmd_on_command;
@@ -202,6 +212,8 @@ static void init_panel_data(struct panel_struct *panelstruct,
 		panelstruct->laneconfig   = &nt35596_1080p_video_lane_config;
 		panelstruct->paneltiminginfo
 					= &nt35596_1080p_video_timing_info;
+		panelstruct->panelresetseq
+					= &nt35596_1080p_video_panel_reset_seq;
 		panelstruct->backlightinfo
 					= &nt35596_1080p_video_backlight;
 		pinfo->mipi.panel_cmds
