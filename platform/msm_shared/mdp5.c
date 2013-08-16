@@ -222,7 +222,7 @@ void mdss_intf_tg_setup(struct msm_panel_info *pinfo, uint32_t intf_base)
 		return ERR_INVALID_ARGS;
 
 	adjust_xres = pinfo->xres;
-	if (pinfo->lcdc.dual_pipe) {
+	if (pinfo->lcdc.split_display) {
 		adjust_xres /= 2;
 		if (intf_base == MDP_INTF_1_BASE) {
 			writel(BIT(8), MDP_TG_SINK);
@@ -329,8 +329,11 @@ void mdss_layer_mixer_setup(struct fbcon_config *fb, struct msm_panel_info
 		writel(0x100, MDP_VP_0_MIXER_1_BASE + LAYER_3_BLEND_OP);
 		writel(0xFF, MDP_VP_0_MIXER_1_BASE + LAYER_3_BLEND0_FG_ALPHA);
 
-		/* Baselayer for layer mixer 0 */
-		writel(0x04000, MDP_CTL_1_BASE + CTL_LAYER_1);
+		/* Baselayer for layer mixer 1 */
+		if (pinfo->lcdc.split_display)
+			writel(0x04000, MDP_CTL_1_BASE + CTL_LAYER_1);
+		else
+			writel(0x01000, MDP_CTL_0_BASE + CTL_LAYER_1);
 	}
 }
 
@@ -390,10 +393,18 @@ int mdp_edp_config(struct msm_panel_info *pinfo, struct fbcon_config *fb)
 	writel(0x0E9, MDP_QOS_REMAPPER_CLASS_0);
 
 	mdss_rgb_pipe_config(fb, pinfo, MDP_VP_0_RGB_0_BASE);
+	if (pinfo->lcdc.dual_pipe)
+		mdss_rgb_pipe_config(fb, pinfo, MDP_VP_0_RGB_1_BASE);
+
 
 	mdss_layer_mixer_setup(fb, pinfo);
 
-	writel(0x1F10, MDP_CTL_0_BASE + CTL_TOP);
+
+	if (pinfo->lcdc.dual_pipe)
+		writel(0x181F10, MDP_CTL_0_BASE + CTL_TOP);
+	else
+		writel(0x1F10, MDP_CTL_0_BASE + CTL_TOP);
+
 	writel(0x9, MDP_DISP_INTF_SEL);
 	writel(0x1111, MDP_VIDEO_INTF_UNDERFLOW_CTL);
 	writel(0x01, MDP_UPPER_NEW_ROI_PRIOR_RO_START);
@@ -506,6 +517,8 @@ int mdp_edp_off(void)
 		writel(0xFF777713, MDP_INTR_CLEAR);
 		writel(0x00000000, MDP_INTR_EN);
 	}
+
+	writel(0x00000000, MDP_INTR_EN);
 
 	return NO_ERROR;
 }
