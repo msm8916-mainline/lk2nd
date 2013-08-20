@@ -223,10 +223,19 @@ static void target_mmc_sdhci_init()
 			config.bus_width = DATA_BUS_WIDTH_8BIT;
 	};
 
-	config.max_clk_rate = MMC_CLK_200MHZ;
-
 	/* Trying Slot 1*/
 	config.slot = 1;
+	/*
+	 * For 8974 AC & 8x62 platforms the software clock
+	 * plan recommends to use the following frequencies:
+	 * 200 MHz --> 192 MHZ
+	 * 400 MHZ --> 384 MHZ
+	 * only for emmc slot
+	 */
+	if (platform_is_8974ac() || platform_is_8x62())
+		config.max_clk_rate = MMC_CLK_192MHZ;
+	else
+		config.max_clk_rate = MMC_CLK_200MHZ;
 	config.sdhc_base = mmc_sdhci_base[config.slot - 1];
 	config.pwrctl_base = mmc_sdc_base[config.slot - 1];
 	config.pwr_irq     = mmc_sdc_pwrctl_irq[config.slot - 1];
@@ -234,6 +243,7 @@ static void target_mmc_sdhci_init()
 	if (!(dev = mmc_init(&config))) {
 		/* Trying Slot 2 next */
 		config.slot = 2;
+		config.max_clk_rate = MMC_CLK_200MHZ;
 		config.sdhc_base = mmc_sdhci_base[config.slot - 1];
 		config.pwrctl_base = mmc_sdc_base[config.slot - 1];
 		config.pwr_irq     = mmc_sdc_pwrctl_irq[config.slot - 1];

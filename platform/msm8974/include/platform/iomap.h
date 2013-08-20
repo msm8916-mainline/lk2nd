@@ -153,6 +153,9 @@
 #define APCS_GPLL_ENA_VOTE          (CLK_CTL_BASE + 0x1480)
 #define APCS_CLOCK_BRANCH_ENA_VOTE  (CLK_CTL_BASE + 0x1484)
 
+/* GPLL4 */
+#define GPLL4_STATUS                (CLK_CTL_BASE + 0x1DDC)
+
 /* SDCC */
 #define SDCC1_BCR                   (CLK_CTL_BASE + 0x4C0) /* block reset */
 #define SDCC1_APPS_CBCR             (CLK_CTL_BASE + 0x4C4) /* branch control */
@@ -163,6 +166,10 @@
 #define SDCC1_M                     (CLK_CTL_BASE + 0x4D8) /* m */
 #define SDCC1_N                     (CLK_CTL_BASE + 0x4DC) /* n */
 #define SDCC1_D                     (CLK_CTL_BASE + 0x4E0) /* d */
+
+/* SDCC clocks for CDC calibration*/
+#define SDCC1_CDCCAL_SLEEP_CBCR     (CLK_CTL_BASE + 0x04E4)
+#define SDCC1_CDCCAL_FF_CBCR        (CLK_CTL_BASE + 0x04E8)
 
 /* SDCC2 */
 #define SDCC2_BCR                   (CLK_CTL_BASE + 0x500) /* block reset */
