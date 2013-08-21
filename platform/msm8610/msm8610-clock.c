@@ -316,6 +316,7 @@ static struct branch_clk gcc_usb_hs_ahb_clk =
 static struct clk_freq_tbl ftbl_mmss_axi_clk[] = {
 	F_MM(19200000,     cxo,     1,   0,   0),
 	F_MM(100000000,  gpll0,     6,   0,   0),
+	F_MM(200000000,  gpll0,     3,   0,   0),
 	F_END
 };
 
