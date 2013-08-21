@@ -57,7 +57,7 @@ extern struct smem_ram_ptable* target_smem_ram_ptable_init();
 #define IOMAP_MEMORY                          (MMU_MEMORY_TYPE_DEVICE_SHARED | \
                                               MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
 
-#define SCRATCH_REGION1_VIRT_START            (MEMBASE + MEMSIZE)
+#define SCRATCH_REGION1_VIRT_START            SCRATCH_REGION1
 #define SCRATCH_REGION2_VIRT_START            (SCRATCH_REGION1_VIRT_START + \
                                               (SCRATCH_REGION1_SIZE))
 
