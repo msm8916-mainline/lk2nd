@@ -855,7 +855,8 @@ int mdss_dsi_video_mode_config(uint16_t disp_width,
 	writel(((disp_height + vsync_porch0_bp) << 16) | (vsync_porch0_bp),
 			ctl_base + VIDEO_MODE_ACTIVE_V);
 
-	if (mdp_get_revision() >= MDP_REV_41) {
+	if (mdp_get_revision() >= MDP_REV_41 ||
+				mdp_get_revision() == MDP_REV_304) {
 		writel(((disp_height + vsync_porch0_fp
 			+ vsync_porch0_bp - 1) << 16)
 			| (disp_width + hsync_porch0_fp

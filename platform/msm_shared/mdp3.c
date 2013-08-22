@@ -45,6 +45,7 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 	unsigned long vsync_period_intmd;
 	struct lcdc_panel_info *lcdc = NULL;
 	int ystride = 3;
+	int mdp_rev = mdp_get_revision();
 
 	if (pinfo == NULL)
 		return ERR_INVALID_ARGS;
@@ -59,6 +60,10 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 			lcdc->h_back_porch + 1;
 	vsync_period_intmd = pinfo->yres + lcdc->v_front_porch + \
 				lcdc->v_back_porch + 1;
+	if (mdp_rev == MDP_REV_304) {
+		hsync_period += lcdc->h_pulse_width - 1;
+		vsync_period_intmd += lcdc->v_pulse_width - 1;
+	}
 	vsync_period = vsync_period_intmd * hsync_period;
 
 	// ------------- programming MDP_DMA_P_CONFIG ---------------------
@@ -73,12 +78,23 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 	writel(vsync_period, MDP_DSI_VIDEO_VSYNC_PERIOD);
 	writel(lcdc->v_pulse_width * hsync_period, \
 			MDP_DSI_VIDEO_VSYNC_PULSE_WIDTH);
-	writel((pinfo->xres + lcdc->h_back_porch - 1) << 16 | \
-			lcdc->h_back_porch, MDP_DSI_VIDEO_DISPLAY_HCTL);
-	writel(lcdc->v_back_porch * hsync_period, \
-			MDP_DSI_VIDEO_DISPLAY_V_START);
-	writel((pinfo->yres + lcdc->v_back_porch) * hsync_period,
+	if (mdp_rev == MDP_REV_304) {
+		writel((pinfo->xres + lcdc->h_back_porch + \
+			lcdc->h_pulse_width - 1) << 16 | \
+			lcdc->h_back_porch + lcdc->h_pulse_width, \
+			MDP_DSI_VIDEO_DISPLAY_HCTL);
+		writel((lcdc->v_back_porch + lcdc->v_pulse_width) \
+			* hsync_period, MDP_DSI_VIDEO_DISPLAY_V_START);
+		writel(vsync_period - lcdc->v_front_porch * hsync_period - 1,
 	       MDP_DSI_VIDEO_DISPLAY_V_END);
+	} else {
+		writel((pinfo->xres + lcdc->h_back_porch - 1) << 16 | \
+			lcdc->h_back_porch, MDP_DSI_VIDEO_DISPLAY_HCTL);
+		writel(lcdc->v_back_porch * hsync_period, \
+			MDP_DSI_VIDEO_DISPLAY_V_START);
+		writel((pinfo->yres + lcdc->v_back_porch) * hsync_period,
+	       MDP_DSI_VIDEO_DISPLAY_V_END);
+	}
 	writel(0x00ABCDEF, MDP_DSI_VIDEO_BORDER_CLR);
 	writel(0x00000000, MDP_DSI_VIDEO_HSYNC_SKEW);
 	writel(0x00000000, MDP_DSI_VIDEO_CTL_POLARITY);
