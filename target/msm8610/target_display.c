@@ -179,32 +179,29 @@ void display_init(void)
 		else if (3 == platform_subtype)
 			mipi_otm8018b_video_wvga_init(&(panel.panel_info));
 
-		panel.clk_func = msm8610_mdss_dsi_panel_clock;
-		panel.power_func = msm8610_mipi_panel_power;
-		panel.fb.base = MIPI_FB_ADDR;
-		panel.fb.width =  panel.panel_info.xres;
-		panel.fb.height =  panel.panel_info.yres;
-		panel.fb.stride =  panel.panel_info.xres;
-		panel.fb.bpp =  panel.panel_info.bpp;
-		panel.fb.format = FB_FORMAT_RGB888;
-		panel.mdp_rev = MDP_REV_304;
 		break;
 	case HW_PLATFORM_MTP:
+		if (0 == platform_subtype)
+			mipi_truly_video_wvga_init(&(panel.panel_info));
+		else
+			mipi_nt35590_video_720p_init(&(panel.panel_info));
+		break;
 	case HW_PLATFORM_SURF:
 		mipi_truly_video_wvga_init(&(panel.panel_info));
-		panel.clk_func = msm8610_mdss_dsi_panel_clock;
-		panel.power_func = msm8610_mipi_panel_power;
-		panel.fb.base = MIPI_FB_ADDR;
-		panel.fb.width =  panel.panel_info.xres;
-		panel.fb.height =  panel.panel_info.yres;
-		panel.fb.stride =  panel.panel_info.xres;
-		panel.fb.bpp =  panel.panel_info.bpp;
-		panel.fb.format = FB_FORMAT_RGB888;
-		panel.mdp_rev = MDP_REV_304;
 		break;
 	default:
 		return;
 	};
+
+	panel.clk_func = msm8610_mdss_dsi_panel_clock;
+	panel.power_func = msm8610_mipi_panel_power;
+	panel.fb.base = MIPI_FB_ADDR;
+	panel.fb.width =  panel.panel_info.xres;
+	panel.fb.height =  panel.panel_info.yres;
+	panel.fb.stride =  panel.panel_info.xres;
+	panel.fb.bpp =	panel.panel_info.bpp;
+	panel.fb.format = FB_FORMAT_RGB888;
+	panel.mdp_rev = MDP_REV_304;
 
 	if (msm_display_init(&panel))
 	{
