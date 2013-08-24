@@ -79,5 +79,7 @@ void mdp_clock_enable(void);
 void mdp_clock_disable(void);
 void dsi_clock_enable(uint32_t dsiclk_rate, uint32_t byteclk_rate);
 void dsi_clock_disable(void);
+void clock_ce_enable(uint8_t instance);
+void clock_ce_disable(uint8_t instance);
 
 #endif

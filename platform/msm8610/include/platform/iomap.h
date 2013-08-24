@@ -246,4 +246,13 @@
 #define SDCC_HC_PWRCTL_MASK_REG     (0x000000E0)
 #define SDCC_HC_PWRCTL_CLEAR_REG    (0x000000E4)
 #define SDCC_HC_PWRCTL_CTL_REG      (0x000000E8)
+
+/* CE 1 */
+#define  GCC_CE1_BCR                (CLK_CTL_BASE + 0x1040)
+#define  GCC_CE1_CMD_RCGR           (CLK_CTL_BASE + 0x1050)
+#define  GCC_CE1_CFG_RCGR           (CLK_CTL_BASE + 0x1054)
+#define  GCC_CE1_CBCR               (CLK_CTL_BASE + 0x1044)
+#define  GCC_CE1_AXI_CBCR           (CLK_CTL_BASE + 0x1048)
+#define  GCC_CE1_AHB_CBCR           (CLK_CTL_BASE + 0x104C)
+
 #endif
