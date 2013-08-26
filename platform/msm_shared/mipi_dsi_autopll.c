@@ -64,220 +64,8 @@ uint64_t div_s64(uint64_t dividend, uint32_t divisor, uint32_t *remainder)
 	return dividend / divisor;
 }
 
-static uint32_t dsi_pll_enable_seq_m(void)
-{
-	uint32_t i = 0;
-	uint32_t pll_locked = 0;
-
-	mdss_dsi_uniphy_pll_sw_reset(MIPI_DSI_BASE);
-
-	/*
-	 * Add hardware recommended delays between register writes for
-	 * the updates to take effect. These delays are necessary for the
-	 * PLL to successfully lock
-	 */
-	writel(0x01, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
-	udelay(200);
-	writel(0x05, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
-	udelay(200);
-	writel(0x0f, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
-	udelay(1000);
-
-	mdss_dsi_uniphy_pll_lock_detect_setting(MIPI_DSI_BASE);
-	pll_locked = readl(MIPI_DSI_BASE + 0x02c0) & 0x01;
-	for (i = 0; (i < 4) && !pll_locked; i++) {
-		writel(0x07, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
-		if (i != 0)
-			writel(0x34, MIPI_DSI_BASE + 0x00270); /* CAL CFG1*/
-		udelay(1);
-		writel(0x0f, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
-		udelay(1000);
-		mdss_dsi_uniphy_pll_lock_detect_setting(MIPI_DSI_BASE);
-		pll_locked = readl(MIPI_DSI_BASE + 0x02c0) & 0x01;
-	}
-
-	return pll_locked;
-}
-
-static uint32_t dsi_pll_enable_seq_d(void)
-{
-	uint32_t pll_locked = 0;
-
-	mdss_dsi_uniphy_pll_sw_reset(MIPI_DSI_BASE);
-
-	/*
-	 * Add hardware recommended delays between register writes for
-	 * the updates to take effect. These delays are necessary for the
-	 * PLL to successfully lock
-	 */
-	writel(0x01, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
-	udelay(200);
-	writel(0x05, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
-	udelay(200);
-	writel(0x07, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
-	udelay(200);
-	writel(0x05, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
-	udelay(200);
-	writel(0x07, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
-	udelay(200);
-	writel(0x0f, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
-	udelay(1000);
-
-	mdss_dsi_uniphy_pll_lock_detect_setting(MIPI_DSI_BASE);
-	pll_locked = readl(MIPI_DSI_BASE + 0x02c0) & 0x01;
-
-	return pll_locked;
-}
-
-static uint32_t dsi_pll_enable_seq_f1(void)
-{
-	uint32_t pll_locked = 0;
-
-	mdss_dsi_uniphy_pll_sw_reset(MIPI_DSI_BASE);
-
-	/*
-	 * Add hardware recommended delays between register writes for
-	 * the updates to take effect. These delays are necessary for the
-	 * PLL to successfully lock
-	 */
-	writel(0x01, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
-	udelay(200);
-	writel(0x05, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
-	udelay(200);
-	writel(0x0f, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
-	udelay(200);
-	writel(0x0d, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
-	udelay(200);
-	writel(0x0f, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
-	udelay(1000);
-
-	mdss_dsi_uniphy_pll_lock_detect_setting(MIPI_DSI_BASE);
-	pll_locked = readl(MIPI_DSI_BASE + 0x02c0) & 0x01;
-
-	return pll_locked;
-}
-
-static uint32_t dsi_pll_enable_seq_c(void)
-{
-	uint32_t pll_locked = 0;
-
-	mdss_dsi_uniphy_pll_sw_reset(MIPI_DSI_BASE);
-
-	/*
-	 * Add hardware recommended delays between register writes for
-	 * the updates to take effect. These delays are necessary for the
-	 * PLL to successfully lock
-	 */
-	writel(0x01, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
-	udelay(200);
-	writel(0x05, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
-	udelay(200);
-	writel(0x0f, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
-	udelay(1000);
-
-	mdss_dsi_uniphy_pll_lock_detect_setting(MIPI_DSI_BASE);
-	pll_locked = readl(MIPI_DSI_BASE + 0x02c0) & 0x01;
-
-	return pll_locked;
-}
-
-static uint32_t dsi_pll_enable_seq_e(void)
-{
-	uint32_t pll_locked = 0;
-
-	mdss_dsi_uniphy_pll_sw_reset(MIPI_DSI_BASE);
-
-	/*
-	 * Add hardware recommended delays between register writes for
-	 * the updates to take effect. These delays are necessary for the
-	 * PLL to successfully lock
-	 */
-	writel(0x01, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
-	udelay(200);
-	writel(0x05, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
-	udelay(200);
-	writel(0x0d, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
-	udelay(1);
-	writel(0x0f, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
-	udelay(1000);
-
-	mdss_dsi_uniphy_pll_lock_detect_setting(MIPI_DSI_BASE);
-	pll_locked = readl(MIPI_DSI_BASE + 0x02c0) & 0x01;
-
-	return pll_locked;
-}
-
-
-
-static uint32_t dsi_pll_enable_seq_8974(void)
-{
-	uint32_t rc = 0;
-
-	mdss_dsi_uniphy_pll_sw_reset(MIPI_DSI_BASE);
-
-	writel(0x01, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
-	mdelay(1);
-	writel(0x05, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
-	mdelay(1);
-	writel(0x07, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
-	mdelay(1);
-	writel(0x0f, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
-	mdelay(1);
-
-	mdss_dsi_uniphy_pll_lock_detect_setting(MIPI_DSI_BASE);
-
-	while (!(readl(MIPI_DSI_BASE + 0x02c0) & 0x01)) {
-		mdss_dsi_uniphy_pll_sw_reset(MIPI_DSI_BASE);
-		writel(0x01, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
-		mdelay(1);
-		writel(0x05, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
-		mdelay(1);
-		writel(0x07, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
-		mdelay(1);
-		writel(0x05, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
-		mdelay(1);
-		writel(0x07, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
-		mdelay(1);
-		writel(0x0f, MIPI_DSI_BASE + 0x0220); /* GLB CFG */
-		mdelay(2);
-		mdss_dsi_uniphy_pll_lock_detect_setting(MIPI_DSI_BASE);
-	}
-	return rc;
-}
-
-static uint32_t dsi_pll_enable_seq(void)
-{
-	uint32_t platformid = board_platform_id();
-
-	/* Only one enable seq for 8974 target */
-	if (platformid == MSM8974) {
-		dsi_pll_enable_seq_8974();
-	}
-
-	/* 6 enable seq for 8226 target */
-	else if (platformid == MSM8826 ||
-		 platformid == MSM8626 ||
-		 platformid == MSM8226 ||
-		 platformid == MSM8926 ||
-		 platformid == MSM8126 ||
-		 platformid == MSM8326 ||
-		 platformid == APQ8026) {
-		if (dsi_pll_enable_seq_m()) {
-		} else if (dsi_pll_enable_seq_d()) {
-		} else if (dsi_pll_enable_seq_d()) {
-		} else if (dsi_pll_enable_seq_f1()) {
-		} else if (dsi_pll_enable_seq_c()) {
-		} else if (dsi_pll_enable_seq_e()) {
-		} else {
-			dprintf(CRITICAL, "Not able to enable the pll\n");
-		}
-	} else {
-		dprintf(CRITICAL, "Target not supported in auto PLL\n");
-	}
-
-}
-
-int32_t mdss_dsi_auto_pll_config(struct mdss_dsi_pll_config *pd)
+int32_t mdss_dsi_auto_pll_config(uint32_t ctl_base,
+				struct mdss_dsi_pll_config *pd)
 {
 	uint32_t rem, divider;
 	uint32_t refclk_cfg = 0, frac_n_mode = 0, ref_doubler_en_b = 0;
@@ -299,25 +87,25 @@ int32_t mdss_dsi_auto_pll_config(struct mdss_dsi_pll_config *pd)
 		return rc;
 	}
 
-	mdss_dsi_phy_sw_reset(MIPI_DSI_BASE);
+	mdss_dsi_phy_sw_reset(ctl_base);
 
 	/* Loop filter resistance value */
-	writel(lpfr_lut[i].resistance, MIPI_DSI_BASE + 0x022c);
+	writel(lpfr_lut[i].resistance, ctl_base + 0x022c);
 	/* Loop filter capacitance values : c1 and c2 */
-	writel(0x70, MIPI_DSI_BASE + 0x0230);
-	writel(0x15, MIPI_DSI_BASE + 0x0234);
+	writel(0x70, ctl_base + 0x0230);
+	writel(0x15, ctl_base + 0x0234);
 
-	writel(0x02, MIPI_DSI_BASE + 0x0208); /* ChgPump */
+	writel(0x02, ctl_base + 0x0208); /* ChgPump */
 	/* postDiv1 - calculated in pll config*/
-	writel(pd->posdiv1, MIPI_DSI_BASE + 0x0204);
+	writel(pd->posdiv1, ctl_base + 0x0204);
 	/* postDiv2 - fixed devision 4 */
-	writel(0x03, MIPI_DSI_BASE + 0x0224);
+	writel(0x03, ctl_base + 0x0224);
 	/* postDiv3 - calculated in pll config */
-	writel(pd->posdiv3, MIPI_DSI_BASE + 0x0228); /* postDiv3 */
+	writel(pd->posdiv3, ctl_base + 0x0228); /* postDiv3 */
 
-	writel(0x2b, MIPI_DSI_BASE + 0x0278); /* Cal CFG3 */
-	writel(0x66, MIPI_DSI_BASE + 0x027c); /* Cal CFG4 */
-	writel(0x05, MIPI_DSI_BASE + 0x0264); /* LKDetect CFG2 */
+	writel(0x2b, ctl_base + 0x0278); /* Cal CFG3 */
+	writel(0x66, ctl_base + 0x027c); /* Cal CFG4 */
+	writel(0x05, ctl_base + 0x0264); /* LKDetect CFG2 */
 
 	rem = pd->vco_clock % VCO_REF_CLOCK_RATE;
 	if (rem) {
@@ -361,27 +149,25 @@ int32_t mdss_dsi_auto_pll_config(struct mdss_dsi_pll_config *pd)
 	cal_cfg11 = gen_vco_clk / 256000000;
 	cal_cfg10 = (gen_vco_clk % 256000000) / 1000000;
 
-	writel(sdm_cfg1 , MIPI_DSI_BASE + 0x023c); /* SDM CFG1 */
-	writel(sdm_cfg2 , MIPI_DSI_BASE + 0x0240); /* SDM CFG2 */
-	writel(sdm_cfg3 , MIPI_DSI_BASE + 0x0244); /* SDM CFG3 */
-	writel(0x00, MIPI_DSI_BASE + 0x0248); /* SDM CFG4 */
+	writel(sdm_cfg1 , ctl_base + 0x023c); /* SDM CFG1 */
+	writel(sdm_cfg2 , ctl_base + 0x0240); /* SDM CFG2 */
+	writel(sdm_cfg3 , ctl_base + 0x0244); /* SDM CFG3 */
+	writel(0x00, ctl_base + 0x0248); /* SDM CFG4 */
 
 	udelay(10);
 
-	writel(refclk_cfg, MIPI_DSI_BASE + 0x0200); /* REFCLK CFG */
-	writel(0x00, MIPI_DSI_BASE + 0x0214); /* PWRGEN CFG */
-	writel(0x71, MIPI_DSI_BASE + 0x020c); /* VCOLPF CFG */
-	writel(pd->directpath, MIPI_DSI_BASE + 0x0210); /* VREG CFG */
-	writel(sdm_cfg0, MIPI_DSI_BASE + 0x0238); /* SDM CFG0 */
+	writel(refclk_cfg, ctl_base + 0x0200); /* REFCLK CFG */
+	writel(0x00, ctl_base + 0x0214); /* PWRGEN CFG */
+	writel(0x71, ctl_base + 0x020c); /* VCOLPF CFG */
+	writel(pd->directpath, ctl_base + 0x0210); /* VREG CFG */
+	writel(sdm_cfg0, ctl_base + 0x0238); /* SDM CFG0 */
 
-	writel(0x0a, MIPI_DSI_BASE + 0x026c); /* CAL CFG0 */
-	writel(0x30, MIPI_DSI_BASE + 0x0284); /* CAL CFG6 */
-	writel(0x00, MIPI_DSI_BASE + 0x0288); /* CAL CFG7 */
-	writel(0x60, MIPI_DSI_BASE + 0x028c); /* CAL CFG8 */
-	writel(0x00, MIPI_DSI_BASE + 0x0290); /* CAL CFG9 */
-	writel(cal_cfg10, MIPI_DSI_BASE + 0x0294); /* CAL CFG10 */
-	writel(cal_cfg11, MIPI_DSI_BASE + 0x0298); /* CAL CFG11 */
-	writel(0x20, MIPI_DSI_BASE + 0x029c); /* EFUSE CFG */
-
-	dsi_pll_enable_seq();
+	writel(0x0a, ctl_base + 0x026c); /* CAL CFG0 */
+	writel(0x30, ctl_base + 0x0284); /* CAL CFG6 */
+	writel(0x00, ctl_base + 0x0288); /* CAL CFG7 */
+	writel(0x60, ctl_base + 0x028c); /* CAL CFG8 */
+	writel(0x00, ctl_base + 0x0290); /* CAL CFG9 */
+	writel(cal_cfg10, ctl_base + 0x0294); /* CAL CFG10 */
+	writel(cal_cfg11, ctl_base + 0x0298); /* CAL CFG11 */
+	writel(0x20, ctl_base + 0x029c); /* EFUSE CFG */
 }
