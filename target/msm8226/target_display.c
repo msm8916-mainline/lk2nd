@@ -54,6 +54,149 @@ static struct pm8x41_wled_data wled_ctrl = {
 	.fdbck = 0x1
 };
 
+static uint32_t dsi_pll_enable_seq_m(uint32_t ctl_base)
+{
+	uint32_t i = 0;
+	uint32_t pll_locked = 0;
+
+	mdss_dsi_uniphy_pll_sw_reset(ctl_base);
+
+	/*
+	 * Add hardware recommended delays between register writes for
+	 * the updates to take effect. These delays are necessary for the
+	 * PLL to successfully lock
+	 */
+	writel(0x01, ctl_base + 0x0220); /* GLB CFG */
+	udelay(200);
+	writel(0x05, ctl_base + 0x0220); /* GLB CFG */
+	udelay(200);
+	writel(0x0f, ctl_base + 0x0220); /* GLB CFG */
+	udelay(1000);
+
+	mdss_dsi_uniphy_pll_lock_detect_setting(ctl_base);
+	pll_locked = readl(ctl_base + 0x02c0) & 0x01;
+	for (i = 0; (i < 4) && !pll_locked; i++) {
+		writel(0x07, ctl_base + 0x0220); /* GLB CFG */
+		if (i != 0)
+			writel(0x34, ctl_base + 0x00270); /* CAL CFG1*/
+		udelay(1);
+		writel(0x0f, ctl_base + 0x0220); /* GLB CFG */
+		udelay(1000);
+		mdss_dsi_uniphy_pll_lock_detect_setting(ctl_base);
+		pll_locked = readl(ctl_base + 0x02c0) & 0x01;
+	}
+
+	return pll_locked;
+}
+
+static uint32_t dsi_pll_enable_seq_d(uint32_t ctl_base)
+{
+	uint32_t pll_locked = 0;
+
+	mdss_dsi_uniphy_pll_sw_reset(ctl_base);
+
+	/*
+	 * Add hardware recommended delays between register writes for
+	 * the updates to take effect. These delays are necessary for the
+	 * PLL to successfully lock
+	 */
+	writel(0x01, ctl_base + 0x0220); /* GLB CFG */
+	udelay(200);
+	writel(0x05, ctl_base + 0x0220); /* GLB CFG */
+	udelay(200);
+	writel(0x07, ctl_base + 0x0220); /* GLB CFG */
+	udelay(200);
+	writel(0x05, ctl_base + 0x0220); /* GLB CFG */
+	udelay(200);
+	writel(0x07, ctl_base + 0x0220); /* GLB CFG */
+	udelay(200);
+	writel(0x0f, ctl_base + 0x0220); /* GLB CFG */
+	udelay(1000);
+
+	mdss_dsi_uniphy_pll_lock_detect_setting(ctl_base);
+	pll_locked = readl(ctl_base + 0x02c0) & 0x01;
+
+	return pll_locked;
+}
+
+static uint32_t dsi_pll_enable_seq_f1(uint32_t ctl_base)
+{
+	uint32_t pll_locked = 0;
+
+	mdss_dsi_uniphy_pll_sw_reset(ctl_base);
+
+	/*
+	 * Add hardware recommended delays between register writes for
+	 * the updates to take effect. These delays are necessary for the
+	 * PLL to successfully lock
+	 */
+	writel(0x01, ctl_base + 0x0220); /* GLB CFG */
+	udelay(200);
+	writel(0x05, ctl_base + 0x0220); /* GLB CFG */
+	udelay(200);
+	writel(0x0f, ctl_base + 0x0220); /* GLB CFG */
+	udelay(200);
+	writel(0x0d, ctl_base + 0x0220); /* GLB CFG */
+	udelay(200);
+	writel(0x0f, ctl_base + 0x0220); /* GLB CFG */
+	udelay(1000);
+
+	mdss_dsi_uniphy_pll_lock_detect_setting(ctl_base);
+	pll_locked = readl(ctl_base + 0x02c0) & 0x01;
+
+	return pll_locked;
+}
+
+static uint32_t dsi_pll_enable_seq_c(uint32_t ctl_base)
+{
+	uint32_t pll_locked = 0;
+
+	mdss_dsi_uniphy_pll_sw_reset(ctl_base);
+
+	/*
+	 * Add hardware recommended delays between register writes for
+	 * the updates to take effect. These delays are necessary for the
+	 * PLL to successfully lock
+	 */
+	writel(0x01, ctl_base + 0x0220); /* GLB CFG */
+	udelay(200);
+	writel(0x05, ctl_base + 0x0220); /* GLB CFG */
+	udelay(200);
+	writel(0x0f, ctl_base + 0x0220); /* GLB CFG */
+	udelay(1000);
+
+	mdss_dsi_uniphy_pll_lock_detect_setting(ctl_base);
+	pll_locked = readl(ctl_base + 0x02c0) & 0x01;
+
+	return pll_locked;
+}
+
+static uint32_t dsi_pll_enable_seq_e(uint32_t ctl_base)
+{
+	uint32_t pll_locked = 0;
+
+	mdss_dsi_uniphy_pll_sw_reset(ctl_base);
+
+	/*
+	 * Add hardware recommended delays between register writes for
+	 * the updates to take effect. These delays are necessary for the
+	 * PLL to successfully lock
+	 */
+	writel(0x01, ctl_base + 0x0220); /* GLB CFG */
+	udelay(200);
+	writel(0x05, ctl_base + 0x0220); /* GLB CFG */
+	udelay(200);
+	writel(0x0d, ctl_base + 0x0220); /* GLB CFG */
+	udelay(1);
+	writel(0x0f, ctl_base + 0x0220); /* GLB CFG */
+	udelay(1000);
+
+	mdss_dsi_uniphy_pll_lock_detect_setting(ctl_base);
+	pll_locked = readl(ctl_base + 0x02c0) & 0x01;
+
+	return pll_locked;
+}
+
 int target_backlight_ctrl(uint8_t enable)
 {
 	dprintf(SPEW, "target_backlight_ctrl\n");
@@ -66,6 +209,19 @@ int target_backlight_ctrl(uint8_t enable)
 	return 0;
 }
 
+static void dsi_pll_enable_seq(uint32_t ctl_base)
+{
+	if (dsi_pll_enable_seq_m(ctl_base)) {
+	} else if (dsi_pll_enable_seq_d(ctl_base)) {
+	} else if (dsi_pll_enable_seq_d(ctl_base)) {
+	} else if (dsi_pll_enable_seq_f1(ctl_base)) {
+	} else if (dsi_pll_enable_seq_c(ctl_base)) {
+	} else if (dsi_pll_enable_seq_e(ctl_base)) {
+	} else {
+		dprintf(CRITICAL, "Not able to enable the pll\n");
+	}
+}
+
 int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 {
 	struct mdss_dsi_pll_config *pll_data;
@@ -76,7 +232,8 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 	if (enable) {
 		mdp_gdsc_ctrl(enable);
 		mdp_clock_init();
-		mdss_dsi_auto_pll_config(pll_data);
+		mdss_dsi_auto_pll_config(MIPI_DSI0_BASE, pll_data);
+		dsi_pll_enable_seq(MIPI_DSI0_BASE);
 		mmss_clock_auto_pll_init(pll_data->pclk_m,
 				pll_data->pclk_n,
 				pll_data->pclk_d);

@@ -110,5 +110,4 @@ static const uint32_t panel_physical_ctrl[] = {
 
 extern int mdss_dsi_phy_init(struct mipi_dsi_panel_config *, uint32_t ctl_base);
 extern int mdss_dsi_uniphy_pll_config(uint32_t ctl_base);
-int mdss_dsi_auto_pll_config(struct mipi_dsi_panel_config *);
 #endif
