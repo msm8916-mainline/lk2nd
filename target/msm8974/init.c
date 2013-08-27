@@ -51,6 +51,11 @@
 #include <platform/gpio.h>
 #include <stdlib.h>
 
+enum hw_platform_subtype
+{
+	HW_PLATFORM_SUBTYPE_CDP_INTERPOSER = 8,
+};
+
 extern  bool target_use_signed_kernel(void);
 static void set_sdc_power_ctrl();
 
@@ -339,7 +344,10 @@ void target_init(void)
 	/* Display splash screen if enabled */
 #if DISPLAY_SPLASH_SCREEN
 	dprintf(INFO, "Display Init: Start\n");
-	display_init();
+	if (board_hardware_subtype() != HW_PLATFORM_SUBTYPE_CDP_INTERPOSER)
+	{
+		display_init();
+	}
 	dprintf(INFO, "Display Init: Done\n");
 #endif
 
@@ -423,21 +431,6 @@ void target_baseband_detect(struct board_data *board)
 	uint32_t platform_subtype;
 
 	platform = board->platform;
-	platform_subtype = board->platform_subtype;
-
-	/*
-	 * Look for platform subtype if present, else
-	 * check for platform type to decide on the
-	 * baseband type
-	 */
-	switch(platform_subtype) {
-	case HW_PLATFORM_SUBTYPE_UNKNOWN:
-	case HW_PLATFORM_SUBTYPE_8974PRO_PM8084:
-		break;
-	default:
-		dprintf(CRITICAL, "Platform Subtype : %u is not supported\n",platform_subtype);
-		ASSERT(0);
-	};
 
 	switch(platform) {
 	case MSM8974:
@@ -452,12 +445,15 @@ void target_baseband_detect(struct board_data *board)
 	case MSM8974AA:
 	case MSM8974AB:
 	case MSM8974AC:
+	case MSMSAMARIUM2:
+	case MSMSAMARIUM9:
 		board->baseband = BASEBAND_MSM;
 		break;
 	case APQ8074:
 	case APQ8074AA:
 	case APQ8074AB:
 	case APQ8074AC:
+	case MSMSAMARIUM0:
 		board->baseband = BASEBAND_APQ;
 		break;
 	default:
