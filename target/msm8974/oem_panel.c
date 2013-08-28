@@ -42,13 +42,15 @@
 /*---------------------------------------------------------------------------*/
 #include "include/panel_toshiba_720p_video.h"
 #include "include/panel_sharp_qhd_video.h"
+#include "include/panel_jdi_1080p_video.h"
 
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
 /*---------------------------------------------------------------------------*/
 enum {
 TOSHIBA_720P_VIDEO_PANEL,
-SHARP_QHD_VIDEO_PANEL
+SHARP_QHD_VIDEO_PANEL,
+JDI_1080P_VIDEO_PANEL
 };
 
 static uint32_t panel_id;
@@ -119,6 +121,26 @@ static void init_panel_data(struct panel_struct *panelstruct,
 					= SHARP_QHD_VIDEO_ON_COMMAND;
 		memcpy(phy_db->timing,
 				sharp_qhd_video_timings, TIMING_SIZE);
+		break;
+	case JDI_1080P_VIDEO_PANEL:
+		panelstruct->paneldata    = &jdi_1080p_video_panel_data;
+		panelstruct->panelres     = &jdi_1080p_video_panel_res;
+		panelstruct->color        = &jdi_1080p_video_color;
+		panelstruct->videopanel   = &jdi_1080p_video_video_panel;
+		panelstruct->commandpanel = &jdi_1080p_video_command_panel;
+		panelstruct->state        = &jdi_1080p_video_state;
+		panelstruct->laneconfig   = &jdi_1080p_video_lane_config;
+		panelstruct->paneltiminginfo
+			= &jdi_1080p_video_timing_info;
+		panelstruct->panelresetseq
+					 = &jdi_1080p_video_panel_reset_seq;
+		panelstruct->backlightinfo = &jdi_1080p_video_backlight;
+		pinfo->mipi.panel_cmds
+			= jdi_1080p_video_on_command;
+		pinfo->mipi.num_of_panel_cmds
+			= JDI_1080P_VIDEO_ON_COMMAND;
+		memcpy(phy_db->timing,
+			jdi_1080p_video_timings, TIMING_SIZE);
 		break;
 	}
 }
