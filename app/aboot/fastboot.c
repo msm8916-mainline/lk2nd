@@ -159,6 +159,100 @@ static void req_complete(struct udc_request *req, unsigned actual, int status)
 	event_signal(&txn_done, 0);
 }
 
+#ifdef USB30_SUPPORT
+static int usb_read(void *buf, unsigned len)
+{
+	int r;
+	struct udc_request req;
+
+	ASSERT(buf);
+	ASSERT(len);
+
+	if (fastboot_state == STATE_ERROR)
+		goto oops;
+
+	dprintf(SPEW, "usb_read(): len = %d\n", len);
+
+	req.buf      = (void*) PA((addr_t)buf);
+	req.length   = len;
+	req.complete = req_complete;
+
+	r = udc_request_queue(out, &req);
+	if (r < 0)
+	{
+		dprintf(CRITICAL, "usb_read() queue failed. r = %d\n", r);
+		goto oops;
+	}
+	event_wait(&txn_done);
+
+	if (txn_status < 0)
+	{
+		dprintf(CRITICAL, "usb_read() transaction failed. txn_status = %d\n",
+				txn_status);
+		goto oops;
+	}
+
+	/* note: req->length is update by callback to reflect the amount of data
+	 * actually read.
+	 */
+	dprintf(SPEW, "usb_read(): DONE. req.length = %d\n", req.length);
+
+	/* invalidate any cached buf data (controller updates main memory) */
+	arch_invalidate_cache_range((addr_t) buf, len);
+
+	return req.length;
+
+oops:
+	fastboot_state = STATE_ERROR;
+	dprintf(CRITICAL, "usb_read(): DONE: ERROR: len = %d\n", len);
+	return -1;
+}
+
+static int usb_write(void *buf, unsigned len)
+{
+	int r;
+	struct udc_request req;
+
+	ASSERT(buf);
+	ASSERT(len);
+
+	if (fastboot_state == STATE_ERROR)
+		goto oops;
+
+	dprintf(SPEW, "usb_write(): len = %d str = %s\n", len, (char *) buf);
+
+	/* flush buffer to main memory before giving to udc */
+	arch_clean_invalidate_cache_range((addr_t) buf, len);
+
+	req.buf      = (void*) PA((addr_t)buf);
+	req.length   = len;
+	req.complete = req_complete;
+
+	r = udc_request_queue(in, &req);
+	if (r < 0) {
+		dprintf(CRITICAL, "usb_write() queue failed. r = %d\n", r);
+		goto oops;
+	}
+	event_wait(&txn_done);
+
+	dprintf(SPEW, "usb_write(): DONE: len = %d req->length = %d str = %s\n",
+			len, req.length, (char *) buf);
+
+	if (txn_status < 0) {
+		dprintf(CRITICAL, "usb_write() transaction failed. txn_status = %d\n",
+				txn_status);
+		goto oops;
+	}
+
+	return req.length;
+
+oops:
+	fastboot_state = STATE_ERROR;
+	dprintf(CRITICAL, "usb_write(): DONE: ERROR: len = %d\n", len);
+	return -1;
+}
+
+#else
 static int usb_read(void *_buf, unsigned len)
 {
 	int r;
@@ -231,6 +325,7 @@ oops:
 	fastboot_state = STATE_ERROR;
 	return -1;
 }
+#endif
 
 void fastboot_ack(const char *code, const char *reason)
 {
