@@ -95,10 +95,12 @@ void write_device_info_flash(device_info *dev);
 
 /* make 4096 as default size to ensure EFS,EXT4's erasing */
 #define DEFAULT_ERASE_SIZE  4096
+#define MAX_PANEL_BUF_SIZE 64
 
 static const char *emmc_cmdline = " androidboot.emmc=true";
 static const char *usb_sn_cmdline = " androidboot.serialno=";
 static const char *androidboot_mode = " androidboot.mode=";
+static const char *display_cmdline = " mdss_mdp.panel=";
 static const char *loglevel         = " quiet";
 static const char *battchg_pause = " androidboot.mode=charger";
 static const char *auth_kernel = " androidboot.authorized_kernel=true";
@@ -158,6 +160,7 @@ struct getvar_partition_info part_info[] =
 char max_download_size[MAX_RSP_SIZE];
 char charger_screen_enabled[MAX_RSP_SIZE];
 char sn_buf[13];
+char display_panel_buf[MAX_PANEL_BUF_SIZE];
 
 extern int emmc_recovery_init(void);
 
@@ -263,6 +266,13 @@ unsigned char *update_cmdline(const char * cmdline)
 		case BASEBAND_DSDA2:
 			cmdline_len += strlen(baseband_dsda2);
 			break;
+	}
+
+	if (target_display_panel_node(display_panel_buf, MAX_PANEL_BUF_SIZE) &&
+	    strlen(display_panel_buf))
+	{
+		cmdline_len += strlen(display_cmdline);
+		cmdline_len += strlen(display_panel_buf);
 	}
 
 	if (cmdline_len > 0) {
@@ -376,7 +386,18 @@ unsigned char *update_cmdline(const char * cmdline)
 				while ((*dst++ = *src++));
 				break;
 		}
+
+		if (strlen(display_panel_buf)) {
+			src = display_cmdline;
+			if (have_cmdline) --dst;
+			while ((*dst++ = *src++));
+			src = display_panel_buf;
+			if (have_cmdline) --dst;
+			while ((*dst++ = *src++));
+		}
 	}
+
+
 	dprintf(INFO, "cmdline: %s\n", cmdline_final);
 	return cmdline_final;
 }
@@ -2051,6 +2072,8 @@ void aboot_init(const struct app_descriptor *app)
 
 	target_serialno((unsigned char *) sn_buf);
 	dprintf(SPEW,"serial number: %s\n",sn_buf);
+
+	memset(display_panel_buf, '\0', MAX_PANEL_BUF_SIZE);
 
 	/* Check if we should do something other than booting up */
 	if (keys_get_state(KEY_VOLUMEUP) && keys_get_state(KEY_VOLUMEDOWN))
