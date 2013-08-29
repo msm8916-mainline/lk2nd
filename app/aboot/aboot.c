@@ -93,6 +93,9 @@ void write_device_info_flash(device_info *dev);
 #define RECOVERY_MODE   0x77665502
 #define FASTBOOT_MODE   0x77665500
 
+/* make 4096 as default size to ensure EFS,EXT4's erasing */
+#define DEFAULT_ERASE_SIZE  4096
+
 static const char *emmc_cmdline = " androidboot.emmc=true";
 static const char *usb_sn_cmdline = " androidboot.serialno=";
 static const char *androidboot_mode = " androidboot.mode=";
@@ -1494,8 +1497,9 @@ void cmd_erase(const char *arg, void *data, unsigned sz)
 
 void cmd_erase_mmc(const char *arg, void *data, unsigned sz)
 {
-	BUF_DMA_ALIGN(out, 512);
+	BUF_DMA_ALIGN(out, DEFAULT_ERASE_SIZE);
 	unsigned long long ptn = 0;
+	unsigned long long size;
 	int index = INVALID_PTN;
 
 	index = partition_get_index(arg);
@@ -1505,9 +1509,14 @@ void cmd_erase_mmc(const char *arg, void *data, unsigned sz)
 		fastboot_fail("Partition table doesn't exist\n");
 		return;
 	}
+
+	size = partition_get_size(index);
+	if (size > DEFAULT_ERASE_SIZE)
+		size = DEFAULT_ERASE_SIZE;
+
 	/* Simple inefficient version of erase. Just writing
-       0 in first block */
-	if (mmc_write(ptn , 512, (unsigned int *)out)) {
+       0 in first several blocks */
+	if (mmc_write(ptn , size, (unsigned int *)out)) {
 		fastboot_fail("failed to erase partition");
 		return;
 	}
