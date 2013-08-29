@@ -171,7 +171,7 @@ void mdp_clock_enable(void)
 {
 	int ret;
 
-	ret = clk_get_set_enable("axi_clk_src", 100000000, 1);
+	ret = clk_get_set_enable("axi_clk_src", 200000000, 1);
 	if(ret)
 	{
 		dprintf(CRITICAL, "failed to set axi_clk_src ret = %d\n", ret);
