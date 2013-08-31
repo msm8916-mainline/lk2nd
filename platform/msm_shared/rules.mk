@@ -187,7 +187,8 @@ ifeq ($(PLATFORM),apq8084)
             $(LOCAL_DIR)/bam.o \
             $(LOCAL_DIR)/qpic_nand.o \
             $(LOCAL_DIR)/dev_tree.o \
-			$(LOCAL_DIR)/gpio.o
+            $(LOCAL_DIR)/gpio.o \
+            $(LOCAL_DIR)/scm.o
 endif
 
 ifeq ($(PLATFORM),msm7x27a)
