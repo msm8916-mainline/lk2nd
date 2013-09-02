@@ -317,6 +317,12 @@ enum {
 	MSM8674AC  = 216,
 	MSM8974AA  = 217,
 	MSM8974AB  = 218,
+	APQ8028  = 219,
+	MSM8128  = 220,
+	MSM8228  = 221,
+	MSM8528  = 222,
+	MSM8628  = 223,
+	MSM8928  = 224,
 };
 
 enum platform {
