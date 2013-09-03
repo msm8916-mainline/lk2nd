@@ -42,6 +42,9 @@
 /*---------------------------------------------------------------------------*/
 #include "include/panel_truly_wvga_cmd.h"
 #include "include/panel_truly_wvga_video.h"
+#include "include/panel_hx8379a_wvga_video.h"
+#include "include/panel_otm8018b_fwvga_video.h"
+#include "include/panel_nt35590_720p_video.h"
 
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
@@ -49,6 +52,9 @@
 enum {
 TRULY_WVGA_CMD_PANEL,
 TRULY_WVGA_VIDEO_PANEL,
+HX8379A_WVGA_VIDEO_PANEL,
+OTM8018B_FWVGA_VIDEO_PANEL,
+NT35590_720P_VIDEO_PANEL,
 };
 
 static uint32_t panel_id;
@@ -90,6 +96,8 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 		panelstruct->laneconfig   = &truly_wvga_cmd_lane_config;
 		panelstruct->paneltiminginfo
 					 = &truly_wvga_cmd_timing_info;
+		panelstruct->panelresetseq
+					 = &truly_wvga_cmd_reset_seq;
 		panelstruct->backlightinfo = &truly_wvga_cmd_backlight;
 		pinfo->mipi.panel_cmds
 					= truly_wvga_cmd_on_command;
@@ -108,6 +116,8 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 		panelstruct->laneconfig   = &truly_wvga_video_lane_config;
 		panelstruct->paneltiminginfo
 					 = &truly_wvga_video_timing_info;
+		panelstruct->panelresetseq
+					 = &truly_wvga_video_reset_seq;
 		panelstruct->backlightinfo = &truly_wvga_video_backlight;
 		pinfo->mipi.panel_cmds
 					= truly_wvga_video_on_command;
@@ -115,6 +125,66 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 					= TRULY_WVGA_VIDEO_ON_COMMAND;
 		memcpy(phy_db->timing,
 				truly_wvga_video_timings, TIMING_SIZE);
+		break;
+	case HX8379A_WVGA_VIDEO_PANEL:
+		panelstruct->paneldata    = &hx8379a_wvga_video_panel_data;
+		panelstruct->panelres     = &hx8379a_wvga_video_panel_res;
+		panelstruct->color        = &hx8379a_wvga_video_color;
+		panelstruct->videopanel   = &hx8379a_wvga_video_video_panel;
+		panelstruct->commandpanel = &hx8379a_wvga_video_command_panel;
+		panelstruct->state        = &hx8379a_wvga_video_state;
+		panelstruct->laneconfig   = &hx8379a_wvga_video_lane_config;
+		panelstruct->paneltiminginfo
+					 = &hx8379a_wvga_video_timing_info;
+		panelstruct->panelresetseq
+					 = &hx8379a_wvga_video_reset_seq;
+		panelstruct->backlightinfo = &hx8379a_wvga_video_backlight;
+		pinfo->mipi.panel_cmds
+					= hx8379a_wvga_video_on_command;
+		pinfo->mipi.num_of_panel_cmds
+					= HX8379A_WVGA_VIDEO_ON_COMMAND;
+		memcpy(phy_db->timing,
+				hx8379a_wvga_video_timings, TIMING_SIZE);
+		break;
+	case OTM8018B_FWVGA_VIDEO_PANEL:
+		panelstruct->paneldata    = &otm8018b_fwvga_video_panel_data;
+		panelstruct->panelres     = &otm8018b_fwvga_video_panel_res;
+		panelstruct->color        = &otm8018b_fwvga_video_color;
+		panelstruct->videopanel   = &otm8018b_fwvga_video_video_panel;
+		panelstruct->commandpanel = &otm8018b_fwvga_video_command_panel;
+		panelstruct->state        = &otm8018b_fwvga_video_state;
+		panelstruct->laneconfig   = &otm8018b_fwvga_video_lane_config;
+		panelstruct->paneltiminginfo
+					 = &otm8018b_fwvga_video_timing_info;
+		panelstruct->panelresetseq
+					 = &otm8018b_fwvga_video_reset_seq;
+		panelstruct->backlightinfo = &otm8018b_fwvga_video_backlight;
+		pinfo->mipi.panel_cmds
+					= otm8018b_fwvga_video_on_command;
+		pinfo->mipi.num_of_panel_cmds
+					= OTM8018B_FWVGA_VIDEO_ON_COMMAND;
+		memcpy(phy_db->timing,
+				otm8018b_fwvga_video_timings, TIMING_SIZE);
+		break;
+	case NT35590_720P_VIDEO_PANEL:
+		panelstruct->paneldata    = &nt35590_720p_video_panel_data;
+		panelstruct->panelres     = &nt35590_720p_video_panel_res;
+		panelstruct->color        = &nt35590_720p_video_color;
+		panelstruct->videopanel   = &nt35590_720p_video_video_panel;
+		panelstruct->commandpanel = &nt35590_720p_video_command_panel;
+		panelstruct->state        = &nt35590_720p_video_state;
+		panelstruct->laneconfig   = &nt35590_720p_video_lane_config;
+		panelstruct->paneltiminginfo
+					 = &nt35590_720p_video_timing_info;
+		panelstruct->panelresetseq
+					 = &nt35590_720p_video_panel_reset_seq;
+		panelstruct->backlightinfo = &nt35590_720p_video_backlight;
+		pinfo->mipi.panel_cmds
+					= nt35590_720p_video_on_command;
+		pinfo->mipi.num_of_panel_cmds
+					= NT35590_720P_VIDEO_ON_COMMAND;
+		memcpy(phy_db->timing,
+				nt35590_720p_video_timings, TIMING_SIZE);
 		break;
 	default:
 		dprintf(CRITICAL, "Panel ID not detected %d\n", panel_id);
@@ -128,10 +198,22 @@ bool oem_panel_select(struct panel_struct *panelstruct,
 			struct mdss_dsi_phy_ctrl *phy_db)
 {
 	uint32_t hw_id = board_hardware_id();
+	uint32_t platform_subtype = board_hardware_subtype();
 
 	switch (hw_id) {
 	case HW_PLATFORM_QRD:
+		if ((0 == platform_subtype) || (1 == platform_subtype))
+			panel_id = HX8379A_WVGA_VIDEO_PANEL;
+		else if (3 == platform_subtype)
+			panel_id = OTM8018B_FWVGA_VIDEO_PANEL;
+		break;
 	case HW_PLATFORM_MTP:
+		if (0 == platform_subtype)
+			panel_id = TRULY_WVGA_VIDEO_PANEL;
+		else
+			panel_id = NT35590_720P_VIDEO_PANEL;
+		break;
+
 	case HW_PLATFORM_SURF:
 		panel_id = TRULY_WVGA_VIDEO_PANEL;
 		break;
