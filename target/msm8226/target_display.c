@@ -49,7 +49,8 @@ static struct pm8x41_wled_data wled_ctrl = {
 	.led1_brightness = (0x0F << 8) | 0xEF,
 	.max_duty_cycle  = 0x01,
 	.ovp = 0x0,
-	.full_current_scale = 0x19
+	.full_current_scale = 0x19,
+	.fdbck = 0x1
 };
 
 int target_backlight_ctrl(uint8_t enable)
