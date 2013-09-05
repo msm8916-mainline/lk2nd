@@ -44,13 +44,16 @@
 #include "include/panel_sharp_qhd_video.h"
 #include "include/panel_jdi_1080p_video.h"
 
+#define DISPLAY_MAX_PANEL_DETECTION 2
+
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
 /*---------------------------------------------------------------------------*/
 enum {
+JDI_1080P_VIDEO_PANEL,
 TOSHIBA_720P_VIDEO_PANEL,
 SHARP_QHD_VIDEO_PANEL,
-JDI_1080P_VIDEO_PANEL
+UNKNOWN_PANEL
 };
 
 static uint32_t panel_id;
@@ -101,6 +104,7 @@ static void init_panel_data(struct panel_struct *panelstruct,
 					= TOSHIBA_720P_VIDEO_ON_COMMAND;
 		memcpy(phy_db->timing,
 			toshiba_720p_video_timings, TIMING_SIZE);
+		pinfo->mipi.signature 	= TOSHIBA_720P_VIDEO_SIGNATURE;
 		break;
 	case SHARP_QHD_VIDEO_PANEL:
 		panelstruct->paneldata    = &sharp_qhd_video_panel_data;
@@ -141,9 +145,25 @@ static void init_panel_data(struct panel_struct *panelstruct,
 			= JDI_1080P_VIDEO_ON_COMMAND;
 		memcpy(phy_db->timing,
 			jdi_1080p_video_timings, TIMING_SIZE);
+		pinfo->mipi.signature = JDI_1080P_VIDEO_SIGNATURE;
+		break;
+	case UNKNOWN_PANEL:
+		memset(panelstruct, 0, sizeof(struct panel_struct));
+		memset(pinfo->mipi.panel_cmds, 0, sizeof(struct mipi_dsi_cmd));
+		pinfo->mipi.num_of_panel_cmds = 0;
+		memset(phy_db->timing, 0, TIMING_SIZE);
+		pinfo->mipi.signature = 0;
 		break;
 	}
 }
+
+uint32_t oem_panel_max_auto_detect_panels()
+{
+	return target_panel_auto_detect_enabled() ?
+			DISPLAY_MAX_PANEL_DETECTION : 0;
+}
+
+static uint32_t auto_pan_loop = 0;
 
 bool oem_panel_select(struct panel_struct *panelstruct,
 			struct msm_panel_info *pinfo,
@@ -151,12 +171,25 @@ bool oem_panel_select(struct panel_struct *panelstruct,
 {
 	uint32_t hw_id = board_hardware_id();
 	uint32_t target_id = board_target_id();
+	bool ret = true;
 
 	switch (hw_id) {
 	case HW_PLATFORM_MTP:
 	case HW_PLATFORM_FLUID:
 	case HW_PLATFORM_SURF:
-		panel_id = TOSHIBA_720P_VIDEO_PANEL;
+		switch (auto_pan_loop) {
+		case 0:
+			panel_id = JDI_1080P_VIDEO_PANEL;
+			break;
+		case 1:
+			panel_id = TOSHIBA_720P_VIDEO_PANEL;
+			break;
+		default:
+			panel_id = UNKNOWN_PANEL;
+			ret = false;
+			break;
+		}
+		auto_pan_loop++;
 		break;
 	case HW_PLATFORM_DRAGON:
 		panel_id = SHARP_QHD_VIDEO_PANEL;
@@ -169,5 +202,5 @@ bool oem_panel_select(struct panel_struct *panelstruct,
 
 	init_panel_data(panelstruct, pinfo, phy_db);
 
-	return true;
+	return ret;
 }
