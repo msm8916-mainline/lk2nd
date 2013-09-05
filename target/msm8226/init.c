@@ -317,9 +317,15 @@ void target_baseband_detect(struct board_data *board)
 	case MSM8926:
 	case MSM8126:
 	case MSM8326:
+	case MSM8528:
+	case MSM8628:
+	case MSM8228:
+	case MSM8928:
+	case MSM8128:
 		board->baseband = BASEBAND_MSM;
 		break;
 	case APQ8026:
+	case APQ8028:
 		board->baseband = BASEBAND_APQ;
 		break;
 	default:
