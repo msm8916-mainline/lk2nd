@@ -217,11 +217,7 @@ int mdss_dsi_phy_regulator_init(struct mdss_dsi_phy_ctrl *pd)
 {
 	/* DSI0 and DSI1 have a common regulator */
 
-	static uint32_t phy0_done;
 	uint32_t off = 0x0580;	/* phy regulator ctrl settings */
-
-	if (phy0_done)  /* Regulators were already set */
-		return;
 
 	/* Regulator ctrl 0 */
 	writel(0x00, MIPI_DSI0_BASE + off + (4 * 0));
@@ -240,8 +236,6 @@ int mdss_dsi_phy_regulator_init(struct mdss_dsi_phy_ctrl *pd)
 	/* Regulator ctrl 4 */
 	writel(pd->regulator[4], MIPI_DSI0_BASE + off + (4 * 4));
 	dmb();
-	phy0_done = 1;
-
 }
 
 int mdss_dsi_v2_phy_init(struct mipi_dsi_panel_config *pinfo, uint32_t ctl_base)
