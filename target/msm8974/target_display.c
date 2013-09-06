@@ -66,8 +66,7 @@ static int msm8974_backlight_on()
 	struct board_pmic_data *pmic_info;
 
 	if (platform_id == MSM8974AC)
-		if ((hardware_id == HW_PLATFORM_SURF)
-		    || (hardware_id == HW_PLATFORM_MTP)
+		if ((hardware_id == HW_PLATFORM_MTP)
 		    || (hardware_id == HW_PLATFORM_LIQUID))
 			slave_id = 3;
 
@@ -132,8 +131,7 @@ static void msm8974_mdss_mipi_panel_reset(uint8_t enable)
 	};
 
 	if (platform_id == MSM8974AC)
-		if ((hardware_id == HW_PLATFORM_SURF)
-		    || (hardware_id == HW_PLATFORM_MTP)
+		if ((hardware_id == HW_PLATFORM_MTP)
 		    || (hardware_id == HW_PLATFORM_LIQUID))
 			rst_gpio = 20;
 
