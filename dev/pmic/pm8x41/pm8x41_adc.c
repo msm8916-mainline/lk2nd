@@ -242,7 +242,7 @@ uint32_t pm8x41_adc_channel_read(uint16_t ch_num)
 
 	calib_result = vadc_calibrate(result, adc->calib_type);
 
-	dprintf(SPEW, "Result: Raw %u\tCalibrated:%llu\n", result, calib_result);
+	dprintf(SPEW, "Result: Raw %u\tCalibrated:%u\n", result, calib_result);
 
 	return calib_result;
 }
