@@ -42,6 +42,7 @@
 #define PM_WLED_LED3_BRIGHTNESS_MSB  PM_WLED_CTNL_REG(0x45)
 #define PM_WLED_ENABLE               PM_WLED_CTNL_REG(0x46)
 #define PM_WLED_ILED_SYNC_BIT        PM_WLED_CTNL_REG(0x47)
+#define PM_WLED_FDBCK_CONTROL        PM_WLED_CTNL_REG(0x48)
 #define PM_WLED_MODULATION_SCHEME    PM_WLED_CTNL_REG(0x4A)
 #define PM_WLED_MAX_DUTY_CYCLE       PM_WLED_CTNL_REG(0x4B)
 #define PM_WLED_OVP                  PM_WLED_CTNL_REG(0x4D)
@@ -65,7 +66,8 @@ struct pm8x41_wled_data{
 	uint16_t led3_brightness;
 	uint8_t max_duty_cycle;
 	uint8_t ovp;
-	uint8_t full_current_scale;;
+	uint8_t full_current_scale;
+	uint8_t fdbck;
 };
 
 void pm8x41_wled_config(struct pm8x41_wled_data *wled_ctrl);

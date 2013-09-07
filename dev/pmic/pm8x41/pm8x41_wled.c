@@ -72,6 +72,7 @@ void pm8x41_wled_config(struct pm8x41_wled_data *wled_ctrl) {
 	wled_reg_write(LEDn_FULL_SCALE_CURRENT(2), wled_ctrl->full_current_scale);
 	wled_reg_write(LEDn_FULL_SCALE_CURRENT(3), wled_ctrl->full_current_scale);
 
+	wled_reg_write(PM_WLED_FDBCK_CONTROL, wled_ctrl->fdbck);
 	dprintf(SPEW, "WLED Configuration Success.\n");
 
 }
@@ -98,8 +99,8 @@ void pm8x41_wled_iled_sync_control(uint8_t enable) {
 
 	if (enable) {
 		value = PM_WLED_LED1_ILED_SYNC_MASK |
-			PM_WLED_LED1_ILED_SYNC_MASK |
-			PM_WLED_LED1_ILED_SYNC_MASK;
+			PM_WLED_LED2_ILED_SYNC_MASK |
+			PM_WLED_LED3_ILED_SYNC_MASK;
 	}
 
 	wled_reg_write(PM_WLED_ILED_SYNC_BIT, value);
