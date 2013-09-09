@@ -38,5 +38,6 @@ OBJS += \
 	$(LOCAL_DIR)/mipi_truly_video_wvga.o \
 	$(LOCAL_DIR)/mipi_truly_cmd_wvga.o \
 	$(LOCAL_DIR)/mipi_hx8379a_video_wvga.o \
-	$(LOCAL_DIR)/mipi_otm8018b_video_fwvga.o
+	$(LOCAL_DIR)/mipi_otm8018b_video_fwvga.o \
+	$(LOCAL_DIR)/mipi_nt35590_video_720p.o
 endif
