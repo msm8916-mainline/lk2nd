@@ -40,6 +40,7 @@
 #include <platform/iomap.h>
 #include <target/display.h>
 
+#include "include/panel.h"
 #include "include/display_resource.h"
 
 #define HFPLL_LDO_ID 8
