@@ -147,4 +147,9 @@
 #define SDCC_HC_PWRCTL_CLEAR_REG    (0x000000E4)
 #define SDCC_HC_PWRCTL_CTL_REG      (0x000000E8)
 
+/* Boot config */
+#define SEC_CTRL_CORE_BASE          0xFC4B8000
+#define BOOT_CONFIG_OFFSET          0x00006034
+#define BOOT_CONFIG_REG             (SEC_CTRL_CORE_BASE+BOOT_CONFIG_OFFSET)
+
 #endif
