@@ -52,12 +52,13 @@
 #include <platform/timer.h>
 #include <stdlib.h>
 #include <ufs.h>
-#include <boot_config.h>
 
 #define PMIC_ARB_CHANNEL_NUM    0
 #define PMIC_ARB_OWNER_ID       0
 
 #define FASTBOOT_MODE           0x77665500
+
+#define BOOT_DEVICE_MASK(val)   ((val & 0x3E) >>1)
 
 enum cdp_subtype
 {
@@ -228,6 +229,23 @@ void target_sdc_init()
 	}
 }
 
+static uint32_t boot_device;
+static uint32_t target_read_boot_config()
+{
+	uint32_t val;
+
+	val = readl(BOOT_CONFIG_REG);
+
+	val = BOOT_DEVICE_MASK(val);
+
+	return val;
+}
+
+uint32_t target_get_boot_device()
+{
+	return boot_device;
+}
+
 /*
  * Return 1 if boot from emmc else 0
  */
@@ -235,7 +253,7 @@ uint32_t target_boot_device_emmc()
 {
 	uint32_t boot_dev_type;
 
-	boot_dev_type = platform_get_boot_device();
+	boot_dev_type = target_get_boot_device();
 
 	if (boot_dev_type == BOOT_EMMC || boot_dev_type == BOOT_DEFAULT)
 		boot_dev_type = 1;
@@ -260,6 +278,8 @@ void target_init(void)
 	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
 
 	target_keystatus();
+
+	boot_device = target_read_boot_config();
 
 	if (target_boot_device_emmc())
 		target_sdc_init();

@@ -150,3 +150,8 @@ __WEAK uint32_t target_boot_device_emmc()
 {
 	return 1;
 }
+
+__WEAK uint32_t target_get_boot_device()
+{
+	return 0;
+}
