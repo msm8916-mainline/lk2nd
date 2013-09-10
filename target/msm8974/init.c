@@ -248,9 +248,9 @@ static void target_mmc_sdhci_init()
 	}
 }
 
-struct mmc_device *target_mmc_device()
+void *target_mmc_device()
 {
-	return dev;
+	return (void *) dev;
 }
 
 #else
