@@ -1454,6 +1454,8 @@ static uint32_t mmc_card_init(struct mmc_device *dev)
 	if (MMC_CARD_STATUS(status) != MMC_TRAN_STATE)
 		mmc_return = 1;
 
+	card->block_size = MMC_BLK_SZ;
+
 	return mmc_return;
 }
 

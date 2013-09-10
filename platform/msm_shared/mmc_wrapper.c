@@ -193,3 +193,17 @@ uint64_t mmc_get_device_capacity()
 	return card->capacity;
 }
 
+/*
+ * Function: mmc get pagesize
+ * Arg     : None
+ * Return  : Returns the density of the emmc card
+ * Flow    : Get the density from card
+ */
+uint32_t mmc_get_device_blocksize()
+{
+	struct mmc_card *card;
+
+	card = get_mmc_card();
+
+	return card->block_size;
+}
