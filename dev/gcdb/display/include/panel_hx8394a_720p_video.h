@@ -265,6 +265,10 @@ static struct panel_timing hx8394a_720p_video_timing_info = {
   0, 4, 0x1f, 0x2d
 };
 
+static struct panel_reset_sequence hx8394a_720p_video_panel_reset_seq = {
+{ 1, 0, 1, }, { 20, 20, 20, }, 2
+};
+
 /*---------------------------------------------------------------------------*/
 /* Backlight Settings                                                        */
 /*---------------------------------------------------------------------------*/

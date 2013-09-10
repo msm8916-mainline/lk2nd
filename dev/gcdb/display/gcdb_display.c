@@ -77,7 +77,7 @@ static uint32_t mdss_dsi_panel_reset(uint8_t enable)
 	uint32_t ret = NO_ERROR;
 
 	ret = target_panel_reset(enable, &reset_gpio,
-			 &enable_gpio, &reset_sequence);
+			 &enable_gpio, panelstruct.panelresetseq);
 
 	return ret;
 }

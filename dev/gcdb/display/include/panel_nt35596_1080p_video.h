@@ -3251,6 +3251,10 @@ static struct panel_timing nt35596_1080p_video_timing_info = {
   0, 4, 0x1e, 0x38
 };
 
+static struct panel_reset_sequence nt35596_1080p_video_panel_reset_seq = {
+{ 1, 0, 1, }, { 20, 20, 20, }, 2
+};
+
 /*---------------------------------------------------------------------------*/
 /* Backlight Settings                                                        */
 /*---------------------------------------------------------------------------*/

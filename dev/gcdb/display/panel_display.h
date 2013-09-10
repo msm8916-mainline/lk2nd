@@ -43,15 +43,16 @@
 /* struct definition                                                         */
 /*---------------------------------------------------------------------------*/
 typedef struct panel_struct{
- struct panel_config       *paneldata;
- struct panel_resolution   *panelres;
- struct color_info         *color;
- struct videopanel_info    *videopanel;
- struct commandpanel_info  *commandpanel;
- struct command_state      *state;
- struct lane_configuration *laneconfig;
- struct panel_timing       *paneltiminginfo;
- struct backlight          *backlightinfo;
+	struct panel_config         *paneldata;
+	struct panel_resolution     *panelres;
+	struct color_info           *color;
+	struct videopanel_info      *videopanel;
+	struct commandpanel_info    *commandpanel;
+	struct command_state        *state;
+	struct lane_configuration   *laneconfig;
+	struct panel_timing         *paneltiminginfo;
+	struct panel_reset_sequence *panelresetseq;
+	struct backlight            *backlightinfo;
 };
 
 
