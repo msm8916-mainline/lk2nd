@@ -31,6 +31,7 @@
 
 #include <mmc_sdhci.h>
 
+#define BOARD_KERNEL_PAGESIZE                2048
 /* Wrapper APIs */
 
 struct mmc_device *get_mmc_device();
@@ -42,4 +43,6 @@ uint32_t mmc_erase_card(uint64_t, uint64_t);
 uint64_t mmc_get_device_capacity(void);
 uint32_t mmc_erase_card(uint64_t addr, uint64_t len);
 uint32_t mmc_get_device_blocksize();
+uint32_t mmc_page_size();
+void mmc_device_sleep();
 #endif
