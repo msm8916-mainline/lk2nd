@@ -35,7 +35,7 @@
 #define SDRAM_START_ADDR            0x00000000
 #define SDRAM_SEC_BANK_START_ADDR   0x10000000
 
-#define MSM_SHARED_BASE             0x0FA00000
+#define MSM_SHARED_BASE             0x1C100000
 
 #define RPM_MSG_RAM_BASE            0xFC42B000
 #define SYSTEM_IMEM_BASE            0xFE800000

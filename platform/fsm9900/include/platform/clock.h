@@ -32,7 +32,7 @@
 #include <clock.h>
 #include <clock_lib2.h>
 
-#define UART_DM_CLK_RX_TX_BIT_RATE 0xFF
+#define UART_DM_CLK_RX_TX_BIT_RATE 0xcc
 
 void platform_clock_init(void);
 
