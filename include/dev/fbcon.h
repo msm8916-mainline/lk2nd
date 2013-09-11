@@ -31,6 +31,25 @@
 #ifndef __DEV_FBCON_H
 #define __DEV_FBCON_H
 
+#include <stdint.h>
+#define LOGO_IMG_OFFSET (12*1024*1024)
+#define LOGO_IMG_MAGIC "SPLASH!!"
+#define LOGO_IMG_MAGIC_SIZE sizeof(LOGO_IMG_MAGIC) - 1
+
+
+struct logo_img_header {
+    unsigned char magic[LOGO_IMG_MAGIC_SIZE]; // "SPLASH!!"
+    uint32_t width; // logo's width, little endian
+    uint32_t height; // logo's height, little endian
+    uint32_t offset;
+    unsigned char reserved[512-20];
+};
+
+struct fbimage {
+	struct logo_img_header  header;
+	void *image;
+};
+
 #define FB_FORMAT_RGB565 0
 #define FB_FORMAT_RGB666 1
 #define FB_FORMAT_RGB666_LOOSE 2
