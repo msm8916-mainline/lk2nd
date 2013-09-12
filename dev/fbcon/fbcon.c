@@ -225,7 +225,11 @@ void display_image_on_screen()
 		fbimg = &default_fbimg;
 		fbimg->header.width = SPLASH_IMAGE_HEIGHT;
 		fbimg->header.height = SPLASH_IMAGE_WIDTH;
+#if DISPLAY_TYPE_MIPI
 		fbimg->image = (unsigned char *)imageBuffer_rgb888;
+#else
+		fbimg->image = (unsigned char *)imageBuffer;
+#endif
 	}
 
 	fbcon_putImage(fbimg, flag);
@@ -305,7 +309,7 @@ void fbcon_putImage(struct fbimage *fbimg, bool flag)
         for (i = 0; i < header->width; i++)
         {
             memcpy (config->base + ((image_base + (i * (config->width))) * bytes_per_bpp),
-		   fbimg->Image + (i * header->height * bytes_per_bpp),
+		   fbimg->image + (i * header->height * bytes_per_bpp),
 		   header->height * bytes_per_bpp);
         }
     }
