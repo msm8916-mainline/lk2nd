@@ -54,6 +54,13 @@ void gpio_set(uint32_t gpio, uint32_t dir)
 /* Configure gpio for blsp uart 2 */
 void gpio_config_uart_dm(uint8_t id)
 {
+   /* configure rx gpio */
+	gpio_tlmm_config(52, 2, GPIO_INPUT, GPIO_NO_PULL,
+				GPIO_8MA, GPIO_DISABLE);
+
+    /* configure tx gpio */
+	gpio_tlmm_config(51, 2, GPIO_OUTPUT, GPIO_NO_PULL,
+				GPIO_8MA, GPIO_DISABLE);
 }
 
 void gpio_config_blsp_i2c(uint8_t blsp_id, uint8_t qup_id)
