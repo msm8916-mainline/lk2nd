@@ -66,7 +66,7 @@ enum dt_err_codes
 	DT_OP_FAILURE = -1,
 };
 
-int dev_tree_validate(struct dt_table *table, unsigned int page_size);
+int dev_tree_validate(struct dt_table *table, unsigned int page_size, uint32_t *dt_hdr_size);
 int dev_tree_get_entry_info(struct dt_table *table, struct dt_entry *dt_entry_info);
 int update_device_tree(void *, const char *, void *, unsigned);
 int dev_tree_add_mem_info(void *fdt, uint32_t offset, uint32_t size, uint32_t addr);

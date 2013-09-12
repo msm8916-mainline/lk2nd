@@ -624,6 +624,7 @@ int boot_linux_from_mmc(void)
 	struct dt_entry dt_entry;
 	unsigned dt_table_offset;
 	uint32_t dt_actual;
+	uint32_t dt_hdr_size;
 #endif
 	if (!boot_into_recovery) {
 		memset(ffbm_mode_string, '\0', sizeof(ffbm_mode_string));
@@ -773,15 +774,14 @@ int boot_linux_from_mmc(void)
 
 		#if DEVICE_TREE
 		if(hdr->dt_size) {
-			table = (struct dt_table*) dt_buf;
 			dt_table_offset = ((uint32_t)image_addr + page_size + kernel_actual + ramdisk_actual + second_actual);
+			table = (struct dt_table*) dt_table_offset;
 
-			memmove((void *) dt_buf, (char *)dt_table_offset, page_size);
-
-			if (dev_tree_validate(table, hdr->page_size) != 0) {
+			if (dev_tree_validate(table, hdr->page_size, &dt_hdr_size) != 0) {
 				dprintf(CRITICAL, "ERROR: Cannot validate Device Tree Table \n");
 				return -1;
 			}
+
 			/* Find index of device tree within device tree table */
 			if(dev_tree_get_entry_info(table, &dt_entry) != 0){
 				dprintf(CRITICAL, "ERROR: Device Tree Blob cannot be found\n");
@@ -852,15 +852,25 @@ int boot_linux_from_mmc(void)
 
 		#if DEVICE_TREE
 		if(hdr->dt_size != 0) {
-			/* Read the device tree table into buffer */
+			/* Read the first page of device tree table into buffer */
 			if(mmc_read(ptn + offset,(unsigned int *) dt_buf, page_size)) {
 				dprintf(CRITICAL, "ERROR: Cannot read the Device Tree Table\n");
 				return -1;
 			}
 			table = (struct dt_table*) dt_buf;
 
-			if (dev_tree_validate(table, hdr->page_size) != 0) {
+			if (dev_tree_validate(table, hdr->page_size, &dt_hdr_size) != 0) {
 				dprintf(CRITICAL, "ERROR: Cannot validate Device Tree Table \n");
+				return -1;
+			}
+
+			table = (struct dt_table*) memalign(CACHE_LINE, dt_hdr_size);
+			if (!table)
+				return -1;
+
+			/* Read the entire device tree table into buffer */
+			if(mmc_read(ptn + offset,(unsigned int *) table, dt_hdr_size)) {
+				dprintf(CRITICAL, "ERROR: Cannot read the Device Tree Table\n");
 				return -1;
 			}
 
@@ -935,6 +945,7 @@ int boot_linux_from_flash(void)
 	struct dt_table *table;
 	struct dt_entry dt_entry;
 	uint32_t dt_actual;
+	uint32_t dt_hdr_size;
 #endif
 
 	if (target_is_emmc_boot()) {
@@ -1126,10 +1137,21 @@ int boot_linux_from_flash(void)
 
 			table = (struct dt_table*) dt_buf;
 
-			if (dev_tree_validate(table, hdr->page_size) != 0) {
+			if (dev_tree_validate(table, hdr->page_size, &dt_hdr_size) != 0) {
 				dprintf(CRITICAL, "ERROR: Cannot validate Device Tree Table \n");
 				return -1;
 			}
+
+			table = (struct dt_table*) memalign(CACHE_LINE, dt_hdr_size);
+			if (!table)
+				return -1;
+
+			/* Read the entire device tree table into buffer */
+			if(flash_read(ptn, offset, (void *)table, dt_hdr_size)) {
+				dprintf(CRITICAL, "ERROR: Cannot read the Device Tree Table\n");
+				return -1;
+			}
+
 
 			/* Find index of device tree within device tree table */
 			if(dev_tree_get_entry_info(table, &dt_entry) != 0){
@@ -1335,6 +1357,7 @@ int copy_dtb(uint8_t *boot_image_start)
 	uint32_t n;
 	struct dt_table *table;
 	struct dt_entry dt_entry;
+	uint32_t dt_hdr_size;
 
 	struct boot_img_hdr *hdr = (struct boot_img_hdr *) (boot_image_start);
 
@@ -1358,7 +1381,7 @@ int copy_dtb(uint8_t *boot_image_start)
 		/* offset now point to start of dt.img */
 		table = (struct dt_table*)(boot_image_start + dt_image_offset);
 
-		if (dev_tree_validate(table, hdr->page_size) != 0) {
+		if (dev_tree_validate(table, hdr->page_size, &dt_hdr_size) != 0) {
 			dprintf(CRITICAL, "ERROR: Cannot validate Device Tree Table \n");
 			return -1;
 		}
