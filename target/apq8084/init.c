@@ -50,8 +50,15 @@
 #include <platform/gpio.h>
 #include <stdlib.h>
 
+#define PMIC_ARB_CHANNEL_NUM    0
+#define PMIC_ARB_OWNER_ID       0
+
+#define FASTBOOT_MODE           0x77665500
+
 static uint32_t mmc_sdc_base[] =
 	{ MSM_SDC1_BASE, MSM_SDC2_BASE, MSM_SDC3_BASE, MSM_SDC4_BASE };
+
+extern void ulpi_write(unsigned val, unsigned reg);
 
 void target_early_init(void)
 {
@@ -63,13 +70,27 @@ void target_early_init(void)
 /* Return 1 if vol_up pressed */
 static int target_volume_up()
 {
-	return 0;
+	uint8_t status = 0;
+	struct pm8x41_gpio gpio;
+
+	/* Configure the GPIO */
+	gpio.direction = PM_GPIO_DIR_IN;
+	gpio.function  = 0;
+	gpio.pull      = PM_GPIO_PULL_UP_30;
+	gpio.vin_sel   = 2;
+
+	pm8x41_gpio_config(2, &gpio);
+
+	/* Get status of P_GPIO_2 */
+	pm8x41_gpio_get(2, &status);
+
+	return !status; /* active low */
 }
 
 /* Return 1 if vol_down pressed */
 uint32_t target_volume_down()
 {
-	return 0;
+	return pm8x41_resin_status();
 }
 
 static void target_keystatus()
@@ -81,6 +102,30 @@ static void target_keystatus()
 
 	if(target_volume_up())
 		keys_post_event(KEY_VOLUMEUP, 1);
+}
+
+/* Do target specific usb initialization */
+void target_usb_init(void)
+{
+	uint32_t val;
+
+	/* Select and enable external configuration with USB PHY */
+	ulpi_write(ULPI_MISC_A_VBUSVLDEXTSEL | ULPI_MISC_A_VBUSVLDEXT, ULPI_MISC_A_SET);
+
+	/* Enable sess_vld */
+	val = readl(USB_GENCONFIG_2) | GEN2_SESS_VLD_CTRL_EN;
+	writel(val, USB_GENCONFIG_2);
+
+	/* Enable external vbus configuration in the LINK */
+	val = readl(USB_USBCMD);
+	val |= SESS_VLD_CTRL;
+	writel(val, USB_USBCMD);
+}
+
+void target_usb_stop(void)
+{
+	/* Disable VBUS mimicing in the controller. */
+	ulpi_write(ULPI_MISC_A_VBUSVLDEXTSEL | ULPI_MISC_A_VBUSVLDEXT, ULPI_MISC_A_CLEAR);
 }
 
 static void target_mmc_mci_init()
@@ -135,6 +180,8 @@ static void set_sdc_power_ctrl()
 void target_init(void)
 {
 	dprintf(INFO, "target_init()\n");
+
+	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
 
 	target_keystatus();
 
@@ -222,8 +269,36 @@ void target_serialno(unsigned char *buf)
 
 unsigned check_reboot_mode(void)
 {
+	uint32_t restart_reason = 0;
+	uint32_t restart_reason_addr;
+
+	restart_reason_addr = RESTART_REASON_ADDR;
+
+	/* Read reboot reason and scrub it */
+	restart_reason = readl(restart_reason_addr);
+	writel(0x00, restart_reason_addr);
+
+	return restart_reason;
 }
 
 void reboot_device(unsigned reboot_reason)
 {
+	uint8_t reset_type = 0;
+
+	/* Write the reboot reason */
+	writel(reboot_reason, RESTART_REASON_ADDR);
+
+	if(reboot_reason == FASTBOOT_MODE)
+		reset_type = PON_PSHOLD_WARM_RESET;
+	else
+		reset_type = PON_PSHOLD_HARD_RESET;
+
+	pm8x41_reset_configure(reset_type);
+
+	/* Drop PS_HOLD for MSM */
+	writel(0x00, MPM2_MPM_PS_HOLD);
+
+	mdelay(5000);
+
+	dprintf(CRITICAL, "Rebooting failed\n");
 }
