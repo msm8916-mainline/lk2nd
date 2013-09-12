@@ -28,6 +28,7 @@
 
 #include <debug.h>
 #include <platform/iomap.h>
+#include <platform/irqs.h>
 #include <platform/gpio.h>
 #include <reg.h>
 #include <target.h>
@@ -48,6 +49,7 @@
 #include <scm.h>
 #include <platform/clock.h>
 #include <platform/gpio.h>
+#include <platform/timer.h>
 #include <stdlib.h>
 
 #define PMIC_ARB_CHANNEL_NUM    0
@@ -55,8 +57,18 @@
 
 #define FASTBOOT_MODE           0x77665500
 
-static uint32_t mmc_sdc_base[] =
-	{ MSM_SDC1_BASE, MSM_SDC2_BASE, MSM_SDC3_BASE, MSM_SDC4_BASE };
+static void set_sdc_power_ctrl(void);
+
+static uint32_t mmc_pwrctl_base[] =
+	{ MSM_SDC1_BASE, MSM_SDC2_BASE };
+
+static uint32_t mmc_sdhci_base[] =
+	{ MSM_SDC1_SDHCI_BASE, MSM_SDC2_SDHCI_BASE };
+
+static uint32_t  mmc_sdc_pwrctl_irq[] =
+	{ SDCC1_PWRCTL_IRQ, SDCC2_PWRCTL_IRQ };
+
+struct mmc_device *dev;
 
 extern void ulpi_write(unsigned val, unsigned reg);
 
@@ -128,32 +140,6 @@ void target_usb_stop(void)
 	ulpi_write(ULPI_MISC_A_VBUSVLDEXTSEL | ULPI_MISC_A_VBUSVLDEXT, ULPI_MISC_A_CLEAR);
 }
 
-static void target_mmc_mci_init()
-{
-	uint32_t base_addr;
-	uint8_t slot;
-
-	slot = MMC_SLOT;
-	base_addr = mmc_sdc_base[slot - 1];
-
-	if (mmc_boot_main(slot, base_addr))
-	{
-		dprintf(CRITICAL, "mmc init failed!");
-		ASSERT(0);
-	}
-}
-
-/*
- * Function to set the capabilities for the host
- */
-void target_mmc_caps(struct mmc_host *host)
-{
-	host->caps.bus_width = MMC_BOOT_BUS_WIDTH_8_BIT;
-	host->caps.ddr_mode = 1;
-	host->caps.hs200_mode = 1;
-	host->caps.hs_clk_rate = MMC_CLK_96MHZ;
-}
-
 static void set_sdc_power_ctrl()
 {
 	/* Drive strength configs for sdc pins */
@@ -177,6 +163,50 @@ static void set_sdc_power_ctrl()
 	tlmm_set_pull_ctrl(sdc1_pull_cfg, ARRAY_SIZE(sdc1_pull_cfg));
 }
 
+void target_sdc_init()
+{
+	struct mmc_config_data config;
+
+	/* Set drive strength & pull ctrl values */
+	set_sdc_power_ctrl();
+
+	config.bus_width = DATA_BUS_WIDTH_8BIT;
+	config.max_clk_rate = MMC_CLK_200MHZ;
+
+	/* Try slot 1*/
+	config.slot = 1;
+	config.sdhc_base = mmc_sdhci_base[config.slot - 1];
+	config.pwrctl_base = mmc_pwrctl_base[config.slot - 1];
+	config.pwr_irq     = mmc_sdc_pwrctl_irq[config.slot - 1];
+
+	if (!(dev = mmc_init(&config)))
+	{
+		/* Try slot 2 */
+		config.slot = 2;
+		config.sdhc_base = mmc_sdhci_base[config.slot - 1];
+		config.pwrctl_base = mmc_pwrctl_base[config.slot - 1];
+		config.pwr_irq     = mmc_sdc_pwrctl_irq[config.slot - 1];
+
+		if (!(dev = mmc_init(&config)))
+		{
+			dprintf(CRITICAL, "mmc init failed!");
+			ASSERT(0);
+		}
+	}
+
+	/* MMC initialization is complete, read the partition table info */
+	if (partition_read_table())
+	{
+		dprintf(CRITICAL, "Error reading the partition table info\n");
+		ASSERT(0);
+	}
+}
+
+struct mmc_device *target_mmc_device()
+{
+	return dev;
+}
+
 void target_init(void)
 {
 	dprintf(INFO, "target_init()\n");
@@ -185,33 +215,12 @@ void target_init(void)
 
 	target_keystatus();
 
-	/*
-	 * Set drive strength & pull ctrl for
-	 * emmc
-	 */
-	/*Uncomment during bringup after the pull up values are finalized*/
-	//set_sdc_power_ctrl();
-
-	target_mmc_mci_init();
-
-	/*
-	 * MMC initialization is complete, read the partition table info
-	 */
-	if (partition_read_table())
-	{
-		dprintf(CRITICAL, "Error reading the partition table info\n");
-		ASSERT(0);
-	}
+	target_sdc_init();
 }
 
 unsigned board_machtype(void)
 {
 	return LINUX_MACHTYPE_UNKNOWN;
-}
-
-void target_fastboot_init(void)
-{
-	/* Set the BOOT_DONE flag in PM8921 */
 }
 
 /* Detect the target type */

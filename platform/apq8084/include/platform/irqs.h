@@ -62,5 +62,8 @@
 #define NR_IRQS                                (NR_MSM_IRQS + NR_GPIO_IRQS + \
                                                NR_BOARD_IRQS)
 
-#define SDCC_PWRCTRL_IRQ                       (GIC_SPI_START + 138)
+#define SDCC1_PWRCTL_IRQ                       (GIC_SPI_START + 138)
+#define SDCC2_PWRCTL_IRQ                       (GIC_SPI_START + 221)
+#define SDCC3_PWRCTL_IRQ                       (GIC_SPI_START + 224)
+#define SDCC4_PWRCTL_IRQ                       (GIC_SPI_START + 227)
 #endif	/* __IRQS_APQ8084_H */
