@@ -49,6 +49,15 @@
 #endif
 
 // define a macro that unconditionally swaps
+#define SWAP_64(x) \
+		((((x) & 0xff00000000000000ull) >> 56) \
+		| (((x) & 0x00ff000000000000ull) >> 40) \
+		| (((x) & 0x0000ff0000000000ull) >> 24) \
+		| (((x) & 0x000000ff00000000ull) >> 8) \
+		| (((x) & 0x00000000ff000000ull) << 8) \
+		| (((x) & 0x0000000000ff0000ull) << 24) \
+		| (((x) & 0x000000000000ff00ull) << 40) \
+		| (((x) & 0x00000000000000ffull) << 56))
 #define SWAP_32(x) \
 	(((uint32_t)(x) << 24) | (((uint32_t)(x) & 0xff00) << 8) |(((uint32_t)(x) & 0x00ff0000) >> 8) | ((uint32_t)(x) >> 24))
 #define SWAP_16(x) \
@@ -56,19 +65,25 @@
 
 // standard swap macros
 #if BYTE_ORDER == BIG_ENDIAN
+#define LE64(val) SWAP_64(val)
 #define LE32(val) SWAP_32(val)
 #define LE16(val) SWAP_16(val)
+#define BE64(val) (val)
 #define BE32(val) (val)
 #define BE16(val) (val)
 #else
+#define LE64(val) (val)
 #define LE32(val) (val)
 #define LE16(val) (val)
+#define BE64(val) SWAP_64(val)
 #define BE32(val) SWAP_32(val)
 #define BE16(val) SWAP_16(val)
 #endif
 
+#define LE64SWAP(var) (var) = LE64(var);
 #define LE32SWAP(var) (var) = LE32(var);
 #define LE16SWAP(var) (var) = LE16(var);
+#define BE64SWAP(var) (var) = BE64(var);
 #define BE32SWAP(var) (var) = BE32(var);
 #define BE16SWAP(var) (var) = BE16(var);
 
