@@ -39,8 +39,7 @@
 
 void platform_early_init(void)
 {
-	/* Uncomment board_init when bootchain is available. */
-	/* board_init(); */
+	board_init();
 	platform_clock_init();
 	qgic_init();
 	qtimer_init();

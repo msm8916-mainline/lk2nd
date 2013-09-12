@@ -61,6 +61,42 @@
 #define BLSP1_UART4_BASE            (PERIPH_SS_BASE + 0x00121000)
 #define BLSP1_UART5_BASE            (PERIPH_SS_BASE + 0x00122000)
 
+#define CLK_CTL_BASE                0xFC400000
+
+/* GPLL */
+#define GPLL0_STATUS                (CLK_CTL_BASE + 0x001C)
+#define APCS_GPLL_ENA_VOTE          (CLK_CTL_BASE + 0x1480)
+#define APCS_CLOCK_BRANCH_ENA_VOTE  (CLK_CTL_BASE + 0x1484)
+
+/* UART */
+#define BLSP1_AHB_CBCR              (CLK_CTL_BASE + 0x5C4)
+#define BLSP2_AHB_CBCR              (CLK_CTL_BASE + 0x944)
+#define BLSP1_UART2_APPS_CBCR       (CLK_CTL_BASE + 0x704)
+#define BLSP1_UART2_APPS_CMD_RCGR   (CLK_CTL_BASE + 0x70C)
+#define BLSP1_UART2_APPS_CFG_RCGR   (CLK_CTL_BASE + 0x710)
+#define BLSP1_UART2_APPS_M          (CLK_CTL_BASE + 0x714)
+#define BLSP1_UART2_APPS_N          (CLK_CTL_BASE + 0x718)
+#define BLSP1_UART2_APPS_D          (CLK_CTL_BASE + 0x71C)
+
+/* USB */
+#define USB_HS_BCR                  (CLK_CTL_BASE + 0x480)
+
+#define USB_HS_SYSTEM_CBCR          (CLK_CTL_BASE + 0x484)
+#define USB_HS_AHB_CBCR             (CLK_CTL_BASE + 0x488)
+#define USB_HS_SYSTEM_CMD_RCGR      (CLK_CTL_BASE + 0x490)
+#define USB_HS_SYSTEM_CFG_RCGR      (CLK_CTL_BASE + 0x494)
+
+/* SDCC */
+#define SDCC1_BCR                   (CLK_CTL_BASE + 0x4C0) /* block reset */
+#define SDCC1_APPS_CBCR             (CLK_CTL_BASE + 0x4C4) /* branch control */
+#define SDCC1_AHB_CBCR              (CLK_CTL_BASE + 0x4C8)
+#define SDCC1_CMD_RCGR              (CLK_CTL_BASE + 0x4D0) /* cmd */
+#define SDCC1_CFG_RCGR              (CLK_CTL_BASE + 0x4D4) /* cfg */
+#define SDCC1_M                     (CLK_CTL_BASE + 0x4D8) /* m */
+#define SDCC1_N                     (CLK_CTL_BASE + 0x4DC) /* n */
+#define SDCC1_D                     (CLK_CTL_BASE + 0x4E0) /* d */
+#define SDCC1_CDCCAL_SLEEP_CBCR     (CLK_CTL_BASE + 0x4E4)
+
 /* Addresses below this point needs to be verified.
  * Included only for compilation purposes.
  */
@@ -91,8 +127,4 @@
 /* DRV strength for sdcc */
 #define SDC1_HDRV_PULL_CTL           (TLMM_BASE_ADDR + 0x00002044)
 
-/* SDHCI */
-#define SDCC_MCI_HC_MODE            (PERIPH_SS_BASE + 0x00024078)
-#define SDCC_HC_PWRCTL_MASK_REG     (PERIPH_SS_BASE + 0x000240E0)
-#define SDCC_HC_PWRCTL_CTL_REG      (PERIPH_SS_BASE + 0x000240E8)
 #endif
