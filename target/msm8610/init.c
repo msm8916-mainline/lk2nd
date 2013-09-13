@@ -122,12 +122,6 @@ void target_sdc_init()
 	/* Set drive strength & pull ctrl values */
 	set_sdc_power_ctrl();
 
-	/* Display splash screen if enabled */
-	dprintf(SPEW, "Display Init: Start\n");
-	display_init();
-	dprintf(SPEW, "Display Init: Done\n");
-
-
 	config.bus_width = DATA_BUS_WIDTH_8BIT;
 	config.max_clk_rate = MMC_CLK_200MHZ;
 
@@ -169,6 +163,11 @@ void target_init(void)
 	target_keystatus();
 
 	target_sdc_init();
+
+	/* Display splash screen if enabled */
+	dprintf(SPEW, "Display Init: Start\n");
+	display_init();
+	dprintf(SPEW, "Display Init: Done\n");
 }
 
 void target_uninit(void)
