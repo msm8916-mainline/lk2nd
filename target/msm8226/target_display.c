@@ -91,40 +91,37 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 	return 0;
 }
 
-int target_panel_reset(uint8_t enable,
-				struct gpio_pin *resetgpio,
-				struct gpio_pin *enablegpio,
-				struct panel_reset_sequence *resetseq)
+int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
+						struct msm_panel_info *pinfo)
 {
 	int ret = NO_ERROR;
 	if (enable) {
-		gpio_tlmm_config(resetgpio->pin_id, 0,
-				resetgpio->pin_direction, resetgpio->pin_pull,
-				resetgpio->pin_strength, resetgpio->pin_state);
+		gpio_tlmm_config(reset_gpio.pin_id, 0,
+				reset_gpio.pin_direction, reset_gpio.pin_pull,
+				reset_gpio.pin_strength, reset_gpio.pin_state);
 
-		gpio_set_dir(resetgpio->pin_id, 2);
+		gpio_set_dir(reset_gpio.pin_id, 2);
 
-		gpio_set_value(resetgpio->pin_id, resetseq->pin_state[0]);
+		gpio_set_value(reset_gpio.pin_id, resetseq->pin_state[0]);
 		mdelay(resetseq->sleep[0]);
-		gpio_set_value(resetgpio->pin_id, resetseq->pin_state[1]);
+		gpio_set_value(reset_gpio.pin_id, resetseq->pin_state[1]);
 		mdelay(resetseq->sleep[1]);
-		gpio_set_value(resetgpio->pin_id, resetseq->pin_state[2]);
+		gpio_set_value(reset_gpio.pin_id, resetseq->pin_state[2]);
 		mdelay(resetseq->sleep[2]);
 	} else if(!target_cont_splash_screen()) {
-		gpio_set_value(resetgpio->pin_id, 0);
+		gpio_set_value(reset_gpio.pin_id, 0);
 	}
 
 	return ret;
 }
 
-int target_ldo_ctrl(uint8_t enable, struct ldo_entry ldo_entry_array[],
-			uint8_t ldo_array_size)
+int target_ldo_ctrl(uint8_t enable)
 {
 	uint32_t ret = NO_ERROR;
 	uint32_t ldocounter = 0;
 	uint32_t pm8x41_ldo_base = 0x13F00;
 
-	while (ldocounter < ldo_array_size) {
+	while (ldocounter < TOTAL_LDO_DEFINED) {
 		struct pm8x41_ldo ldo_entry = LDO((pm8x41_ldo_base +
 			0x100 * ldo_entry_array[ldocounter].ldo_id),
 			ldo_entry_array[ldocounter].ldo_type);
