@@ -462,6 +462,8 @@ int set_download_mode(enum dload_mode mode)
 	dload_util_write_cookie(mode == NORMAL_DLOAD ?
 		DLOAD_MODE_ADDR : EMERGENCY_DLOAD_MODE_ADDR, mode);
 
+	pm8x41_clear_pmic_watchdog();
+
 	return 0;
 }
 
