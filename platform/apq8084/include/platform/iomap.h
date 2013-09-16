@@ -119,6 +119,8 @@
 
 #define USB_HS_BCR                  (CLK_CTL_BASE + 0x480)
 
+#define UFS_BASE                    (0xFC590000 + 0x00004000)
+
 #define SPMI_BASE                   0xFC4C0000
 #define SPMI_GENI_BASE              (SPMI_BASE + 0xA000)
 #define SPMI_PIC_BASE               (SPMI_BASE + 0xB000)

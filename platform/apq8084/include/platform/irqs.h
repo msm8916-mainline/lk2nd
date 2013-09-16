@@ -45,6 +45,8 @@
 
 #define INT_QTMR_FRM_0_PHYSICAL_TIMER_EXP      (GIC_SPI_START + 8)
 
+#define UFS_IRQ                                (GIC_SPI_START + 28)
+
 #define USB1_HS_BAM_IRQ                        (GIC_SPI_START + 135)
 #define USB1_HS_IRQ                            (GIC_SPI_START + 134)
 #define USB2_IRQ                               (GIC_SPI_START + 141)
