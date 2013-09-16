@@ -116,6 +116,11 @@ static void target_keystatus()
 		keys_post_event(KEY_VOLUMEUP, 1);
 }
 
+void target_uninit(void)
+{
+	mmc_put_card_to_sleep(dev);
+}
+
 /* Do target specific usb initialization */
 void target_usb_init(void)
 {
