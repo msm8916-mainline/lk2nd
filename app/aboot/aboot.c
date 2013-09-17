@@ -585,6 +585,7 @@ static void verify_signed_bootimg(uint32_t bootimg_addr, uint32_t bootimg_size)
 	{
 		/* Authorized kernel */
 		device.is_tampered = 0;
+		auth_kernel_img = 1;
 	}
 
 #if USE_PCOM_SECBOOT
