@@ -203,4 +203,5 @@ void pm8x41_config_output_mpp(struct pm8x41_mpp *mpp);
 void pm8x41_enable_mpp(struct pm8x41_mpp *mpp, enum mpp_en_ctl enable);
 uint8_t pm8x41_get_is_cold_boot();
 void pm8x41_diff_clock_ctrl(uint8_t enable);
+void pm8x41_clear_pmic_watchdog(void);
 #endif

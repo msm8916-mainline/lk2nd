@@ -401,3 +401,8 @@ void pm8x41_diff_clock_ctrl(uint8_t enable)
 
 	REG_WRITE(DIFF_CLK1_EN_CTL, reg);
 }
+
+void pm8x41_clear_pmic_watchdog(void)
+{
+	pm8x41_reg_write(PMIC_WD_RESET_S2_CTL2, 0x0);
+}
