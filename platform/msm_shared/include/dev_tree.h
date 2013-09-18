@@ -43,6 +43,18 @@
 
 #define DTB_PAD_SIZE            1024
 
+/*
+ * For DTB V1: The DTB entries would be of the format
+ * qcom,msm-id = <msm8974, CDP, rev_1>; (3 * sizeof(uint32_t))
+ * For DTB V2: The DTB entries would be of the format
+ * qcom,msm-id   = <msm8974, rev_1>;  (2 * sizeof(uint32_t))
+ * qcom,board-id = <CDP, subtype_ID>; (2 * sizeof(uint32_t))
+ * The macros below are defined based on these.
+ */
+#define DT_ENTRY_V1_SIZE        0xC
+#define PLAT_ID_SIZE            0x8
+#define BOARD_ID_SIZE           0x8
+
 struct dt_entry
 {
 	uint32_t platform_id;
@@ -58,6 +70,18 @@ struct dt_table
 	uint32_t magic;
 	uint32_t version;
 	uint32_t num_entries;
+};
+
+struct plat_id
+{
+	uint32_t platform_id;
+	uint32_t soc_rev;
+};
+
+struct board_id
+{
+	uint32_t variant_id;
+	uint32_t platform_subtype;
 };
 
 enum dt_err_codes
