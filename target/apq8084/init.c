@@ -57,8 +57,33 @@
 
 #define FASTBOOT_MODE           0x77665500
 
-static void set_sdc_power_ctrl(void);
+enum cdp_subtype
+{
+	CDP_SUBTYPE_SMB349 = 0,
+	CDP_SUBTYPE_9x25_SMB349,
+	CDP_SUBTYPE_9x25_SMB1357,
+	CDP_SUBTYPE_9x35,
+	CDP_SUBTYPE_SMB1357
+};
 
+enum mtp_subtype
+{
+	MTP_SUBTYPE_SMB349 = 0,
+	MTP_SUBTYPE_9x25_SMB349,
+	MTP_SUBTYPE_9x25_SMB1357,
+	MTP_SUBTYPE_9x35,
+};
+
+enum rcm_subtype
+{
+	RCM_SUBTYPE_SMB349 = 0,
+	RCM_SUBTYPE_9x25_SMB349,
+	RCM_SUBTYPE_9x25_SMB1357,
+	RCM_SUBTYPE_9x35,
+	RCM_SUBTYPE_SMB1357,
+};
+
+static void set_sdc_power_ctrl(void);
 static uint32_t mmc_pwrctl_base[] =
 	{ MSM_SDC1_BASE, MSM_SDC2_BASE };
 
@@ -234,37 +259,105 @@ void target_detect(struct board_data *board)
 	board->target = LINUX_MACHTYPE_UNKNOWN;
 }
 
+void set_cdp_baseband(struct board_data *board)
+{
+
+	uint32_t platform_subtype;
+	platform_subtype = board->platform_subtype;
+
+	switch(platform_subtype) {
+	case CDP_SUBTYPE_9x25_SMB349:
+	case CDP_SUBTYPE_9x25_SMB1357:
+	case CDP_SUBTYPE_9x35:
+		board->baseband = BASEBAND_MDM;
+		break;
+	case CDP_SUBTYPE_SMB349:
+	case CDP_SUBTYPE_SMB1357:
+		board->baseband = BASEBAND_APQ;
+		break;
+	default:
+		dprintf(CRITICAL, "CDP platform subtype :%u is not supported\n",
+				platform_subtype);
+		ASSERT(0);
+	};
+
+}
+
+void set_mtp_baseband(struct board_data *board)
+{
+
+	uint32_t platform_subtype;
+	platform_subtype = board->platform_subtype;
+
+	switch(platform_subtype) {
+	case MTP_SUBTYPE_9x25_SMB349:
+	case MTP_SUBTYPE_9x25_SMB1357:
+	case MTP_SUBTYPE_9x35:
+		board->baseband = BASEBAND_MDM;
+		break;
+	case MTP_SUBTYPE_SMB349:
+		board->baseband = BASEBAND_APQ;
+		break;
+	default:
+		dprintf(CRITICAL, "MTP platform subtype :%u is not supported\n",
+				platform_subtype);
+		ASSERT(0);
+	};
+}
+
+void set_rcm_baseband(struct board_data *board)
+{
+	uint32_t platform_subtype;
+	platform_subtype = board->platform_subtype;
+
+	switch(platform_subtype) {
+	case RCM_SUBTYPE_9x25_SMB349:
+	case RCM_SUBTYPE_9x25_SMB1357:
+	case RCM_SUBTYPE_9x35:
+		board->baseband = BASEBAND_MDM;
+		break;
+	case RCM_SUBTYPE_SMB349:
+	case RCM_SUBTYPE_SMB1357:
+		board->baseband = BASEBAND_APQ;
+		break;
+	default:
+		dprintf(CRITICAL, "RCM platform subtype :%u is not supported\n",
+				platform_subtype);
+		ASSERT(0);
+	};
+}
+
+
+
 /* Detect the modem type */
 void target_baseband_detect(struct board_data *board)
 {
 	uint32_t platform;
 	uint32_t platform_subtype;
+	uint32_t platform_hardware;
 
 	platform = board->platform;
-	platform_subtype = board->platform_subtype;
 
-	/*
-	 * Look for platform subtype if present, else
-	 * check for platform type to decide on the
-	 * baseband type
-	 */
-	switch(platform_subtype) {
-	case HW_PLATFORM_SUBTYPE_UNKNOWN:
+	platform_hardware = board->platform_hw;
+
+	switch(platform_hardware) {
+	case HW_PLATFORM_SURF:
+		set_cdp_baseband(board);
 		break;
-
-	default:
-		dprintf(CRITICAL, "Platform Subtype : %u is not supported\n",platform_subtype);
-		ASSERT(0);
-	};
-
-	switch(platform) {
-	case APQ8084:
+	case HW_PLATFORM_MTP:
+		set_mtp_baseband(board);
+		break;
+	case HW_PLATFORM_RCM:
+		set_rcm_baseband(board);
+		break;
+	case HW_PLATFORM_LIQUID:
 		board->baseband = BASEBAND_APQ;
 		break;
 	default:
-		dprintf(CRITICAL, "Platform type: %u is not supported\n",platform);
+		dprintf(CRITICAL, "Platform :%u is not supported\n",
+				platform_hardware);
 		ASSERT(0);
-	}
+	};
 }
 
 unsigned target_baseband()
