@@ -231,18 +231,18 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 
 	if (enable) {
 		mdp_gdsc_ctrl(enable);
-		mdp_clock_init();
+		mmss_bus_clocks_enable();
+		mdp_clock_enable();
 		mdss_dsi_auto_pll_config(MIPI_DSI0_BASE, pll_data);
 		dsi_pll_enable_seq(MIPI_DSI0_BASE);
-		mmss_clock_auto_pll_init(pll_data->pclk_m,
+		mmss_dsi_clocks_enable(pll_data->pclk_m,
 				pll_data->pclk_n,
 				pll_data->pclk_d);
 	} else if(!target_cont_splash_screen()) {
-		/* Add here for non-continuous splash */
-		/* FIXME:Need to disable the clocks.
-		 * For now leave the clocks enabled until the kernel
-		 * hang issue gets resolved
-		 */
+		mmss_dsi_clocks_disable();
+		mdp_clock_disable();
+		mmss_bus_clocks_disable();
+		mdp_gdsc_ctrl(enable);
 	}
 
 	return 0;
