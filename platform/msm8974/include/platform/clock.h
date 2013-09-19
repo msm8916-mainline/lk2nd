@@ -67,6 +67,9 @@
 #define DSI_PIXEL0_CMD_RCGR             REG_MM(0x2000)
 #define DSI_PIXEL0_CFG_RCGR             REG_MM(0x2004)
 #define DSI_PIXEL0_CBCR                 REG_MM(0x2314)
+#define DSI_PIXEL0_M                    REG_MM(0x2008)
+#define DSI_PIXEL0_N                    REG_MM(0x200C)
+#define DSI_PIXEL0_D                    REG_MM(0x2010)
 
 #define DSI0_PHY_PLL_OUT                BIT(8)
 #define PIXEL_SRC_DIV_1_5               BIT(1)
@@ -80,6 +83,9 @@
 #define DSI_PIXEL1_CMD_RCGR             REG_MM(0x2020)
 #define DSI_PIXEL1_CFG_RCGR             REG_MM(0x2024)
 #define DSI_PIXEL1_CBCR                 REG_MM(0x2318)
+#define DSI_PIXEL1_M                    REG_MM(0x2028)
+#define DSI_PIXEL1_N                    REG_MM(0x202C)
+#define DSI_PIXEL1_D                    REG_MM(0x2030)
 
 #define MDSS_EDPPIXEL_CBCR              REG_MM(0x232C)
 #define MDSS_EDPLINK_CBCR               REG_MM(0x2330)
