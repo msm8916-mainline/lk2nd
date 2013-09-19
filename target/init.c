@@ -145,3 +145,8 @@ __WEAK bool target_display_panel_node(char *pbuf, uint16_t buf_size)
 {
 	return false;
 }
+
+__WEAK uint32_t target_boot_device_emmc()
+{
+	return 1;
+}

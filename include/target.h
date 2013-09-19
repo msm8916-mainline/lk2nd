@@ -48,7 +48,7 @@ void target_serialno(unsigned char *buf);
 void target_fastboot_init(void);
 void target_load_ssd_keystore(void);
 bool target_is_ssd_enabled(void);
-struct mmc_device *target_mmc_device();
+void *target_mmc_device();
 
 bool target_display_panel_node(char *pbuf, uint16_t buf_size);
 
