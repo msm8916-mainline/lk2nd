@@ -383,8 +383,11 @@ static uint8_t sdhci_cmd_err_status(struct sdhci_host *host)
 static uint8_t sdhci_cmd_complete(struct sdhci_host *host, struct mmc_command *cmd)
 {
 	uint8_t i;
+	uint8_t ret = 0;
+	uint8_t need_reset = 0;
 	uint32_t retry = 0;
 	uint32_t int_status;
+	uint32_t trans_complete = 0;
 
 	do {
 		int_status = REG_READ16(host, SDHCI_NRML_INT_STS_REG);
@@ -397,6 +400,7 @@ static uint8_t sdhci_cmd_complete(struct sdhci_host *host, struct mmc_command *c
 		udelay(500);
 		if (retry == SDHCI_MAX_CMD_RETRY) {
 			dprintf(CRITICAL, "Error: Command never completed\n");
+			ret = 1;
 			goto err;
 		}
 	} while(1);
@@ -435,12 +439,16 @@ static uint8_t sdhci_cmd_complete(struct sdhci_host *host, struct mmc_command *c
 			int_status &= SDHCI_INT_STS_TRANS_COMPLETE;
 
 			if (int_status & SDHCI_INT_STS_TRANS_COMPLETE)
+			{
+				trans_complete = 1;
 				break;
+			}
 
 			retry++;
 			udelay(1000);
 			if (retry == SDHCI_MAX_TRANS_RETRY) {
 				dprintf(CRITICAL, "Error: Transfer never completed\n");
+				ret = 1;
 				goto err;
 			}
 		} while(1);
@@ -452,20 +460,41 @@ static uint8_t sdhci_cmd_complete(struct sdhci_host *host, struct mmc_command *c
 err:
 	/* Look for errors */
 	int_status = REG_READ16(host, SDHCI_NRML_INT_STS_REG);
-	if (int_status & SDHCI_ERR_INT_STAT_MASK) {
-		if (sdhci_cmd_err_status(host)) {
-			dprintf(CRITICAL, "Error: Command completed with errors\n");
-			/* Reset the command & Data line */
-			sdhci_reset(host, (SOFT_RESET_CMD | SOFT_RESET_DATA));
-			return 1;
+
+	if (int_status & SDHCI_ERR_INT_STAT_MASK)
+	{
+		/*
+		 * As per SDHC spec transfer complete has higher priority than data timeout
+		 * If both transfer complete & data timeout are set then we should ignore
+		 * data timeout error.
+		 * ---------------------------------------------------------------------------
+		 * | Transfer complete | Data timeout error | Meaning of the Status           |
+		 * |--------------------------------------------------------------------------|
+		 * |      0            |       0            | Interrupted by another factor   |
+		 * |--------------------------------------------------------------------------|
+		 * |      0            |       1            | Time out occured during transfer|
+		 * |--------------------------------------------------------------------------|
+		 * |      1            |  Don't Care        | Command execution complete      |
+		 *  --------------------------------------------------------------------------
+		 */
+		if ((REG_READ16(host, SDHCI_ERR_INT_STS_REG) & SDHCI_DAT_TIMEOUT_MASK) && trans_complete)
+		{
+			ret = 0;
 		}
+		else if (sdhci_cmd_err_status(host))
+		{
+			dprintf(CRITICAL, "Error: Command completed with errors\n");
+			ret = 1;
+		}
+		/* Reset Command & Dat lines on error */
+		need_reset = 1;
 	}
 
 	/* Reset data & command line */
-	if (cmd->data_present)
+	if (cmd->data_present || need_reset)
 		sdhci_reset(host, (SOFT_RESET_CMD | SOFT_RESET_DATA));
 
-	return 0;
+	return ret;
 }
 
 /*
