@@ -37,6 +37,20 @@
 #define SMEM_V8_SMEM_MAX_PMIC_DEVICES   3
 #define SMEM_MAX_PMIC_DEVICES           SMEM_V8_SMEM_MAX_PMIC_DEVICES
 
+#define SMEM_RAM_PTABLE_VERSION_OFFSET  8
+
+#define RAM_PART_NAME_LENGTH            16
+#define RAM_NUM_PART_ENTRIES            32
+
+#define _SMEM_RAM_PTABLE_MAGIC_1        0x9DA5E0A8
+#define _SMEM_RAM_PTABLE_MAGIC_2        0xAF9EC4E2
+
+enum smem_ram_ptable_version
+{
+	SMEM_RAM_PTABLE_VERSION_0,
+	SMEM_RAM_PTABLE_VERSION_1,
+};
+
 struct smem_proc_comm {
 	unsigned command;
 	unsigned status;
@@ -437,34 +451,53 @@ struct smem {
 
 struct smem_ram_ptn {
 	char name[16];
-	unsigned start;
-	unsigned size;
+	uint32_t start;
+	uint32_t size;
+	uint32_t attr;          /* RAM Partition attribute: READ_ONLY, READWRITE etc.*/
+	uint32_t category;      /* RAM Partition category: EBI0, EBI1, IRAM, IMEM */
+	uint32_t domain;        /* RAM Partition domain: APPS, MODEM, APPS & MODEM (SHARED) etc. */
+	uint32_t type;          /* RAM Partition type: system, bootloader, appsboot, apps etc. */
+	uint32_t num_partitions;/* Number of memory partitions */
+	uint32_t reserved3;
+	uint32_t reserved4;
+	uint32_t reserved5;
+} __attribute__ ((__packed__));
 
-	/* RAM Partition attribute: READ_ONLY, READWRITE etc.  */
-	unsigned attr;
-
-	/* RAM Partition category: EBI0, EBI1, IRAM, IMEM */
-	unsigned category;
-
-	/* RAM Partition domain: APPS, MODEM, APPS & MODEM (SHARED) etc. */
-	unsigned domain;
-
-	/* RAM Partition type: system, bootloader, appsboot, apps etc. */
-	unsigned type;
-
-	/* reserved for future expansion without changing version number */
-	unsigned reserved2, reserved3, reserved4, reserved5;
+struct smem_ram_ptn_v1 {
+	char name[RAM_PART_NAME_LENGTH];
+	uint64_t start;
+	uint64_t size;
+	uint32_t attr;          /* RAM Partition attribute: READ_ONLY, READWRITE etc.*/
+	uint32_t category;      /* RAM Partition category: EBI0, EBI1, IRAM, IMEM */
+	uint32_t domain;        /* RAM Partition domain: APPS, MODEM, APPS & MODEM (SHARED) etc. */
+	uint32_t type;          /* RAM Partition type: system, bootloader, appsboot, apps etc. */
+	uint32_t num_partitions;/* Number of memory partitions */
+	uint32_t reserved3;
+	uint32_t reserved4;     /* Reserved for future use */
+	uint32_t reserved5;     /* Reserved for future use */
 } __attribute__ ((__packed__));
 
 struct smem_ram_ptable {
-#define _SMEM_RAM_PTABLE_MAGIC_1 0x9DA5E0A8
-#define _SMEM_RAM_PTABLE_MAGIC_2 0xAF9EC4E2
 	unsigned magic[2];
 	unsigned version;
 	unsigned reserved1;
 	unsigned len;
 	struct smem_ram_ptn parts[32];
 	unsigned buf;
+} __attribute__ ((__packed__));
+
+struct smem_ram_ptable_hdr
+{
+	uint32_t magic[2];
+	uint32_t version;
+	uint32_t reserved1;
+	uint32_t len;
+} __attribute__ ((__packed__));
+
+struct smem_ram_ptable_v1 {
+	struct smem_ram_ptable_hdr hdr;
+	uint32_t reserved2;     /* Added for 8 bytes alignment of header */
+	struct smem_ram_ptn_v1 parts[RAM_NUM_PART_ENTRIES];
 } __attribute__ ((__packed__));
 
 /* Power on reason/status info */
@@ -495,7 +528,13 @@ struct smem_ptable {
 	struct smem_ptn parts[SMEM_PTABLE_MAX_PARTS];
 } __attribute__ ((__packed__));
 
+typedef struct smem_ram_ptable_v1 ram_partition_table;
+typedef struct smem_ram_ptn_v1 ram_partition;
+
 unsigned smem_read_alloc_entry_offset(smem_mem_type_t type, void *buf, int len, int offset);
 int smem_ram_ptable_init(struct smem_ram_ptable *smem_ram_ptable);
-
+int smem_ram_ptable_init_v1(); /* Used on platforms that use ram ptable v1 */
+void smem_get_ram_ptable_entry(ram_partition*, uint32_t entry);
+uint32_t smem_get_ram_ptable_version(void);
+uint32_t smem_get_ram_ptable_len(void);
 #endif				/* __PLATFORM_MSM_SHARED_SMEM_H */
