@@ -46,6 +46,7 @@
 #include "include/panel_hx8394a_720p_video.h"
 #include "include/panel_nt35596_1080p_video.h"
 #include "include/panel_nt35521_720p_video.h"
+#include "include/panel_ssd2080m_720p_video.h"
 
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
@@ -56,7 +57,8 @@ NT35590_720P_CMD_PANEL,
 NT35590_720P_VIDEO_PANEL,
 NT35596_1080P_VIDEO_PANEL,
 HX8394A_720P_VIDEO_PANEL,
-NT35521_720P_VIDEO_PANEL
+NT35521_720P_VIDEO_PANEL,
+SSD2080M_720P_VIDEO_PANEL
 };
 
 static uint32_t panel_id;
@@ -162,6 +164,26 @@ static void init_panel_data(struct panel_struct *panelstruct,
 		memcpy(phy_db->timing,
 				nt35521_720p_video_timings, TIMING_SIZE);
 		break;
+	case SSD2080M_720P_VIDEO_PANEL:
+		panelstruct->paneldata    = &ssd2080m_720p_video_panel_data;
+		panelstruct->panelres     = &ssd2080m_720p_video_panel_res;
+		panelstruct->color        = &ssd2080m_720p_video_color;
+		panelstruct->videopanel   = &ssd2080m_720p_video_video_panel;
+		panelstruct->commandpanel = &ssd2080m_720p_video_command_panel;
+		panelstruct->state        = &ssd2080m_720p_video_state;
+		panelstruct->laneconfig   = &ssd2080m_720p_video_lane_config;
+		panelstruct->paneltiminginfo
+					 = &ssd2080m_720p_video_timing_info;
+		panelstruct->panelresetseq
+					 = &ssd2080m_720p_video_panel_reset_seq;
+		panelstruct->backlightinfo = &ssd2080m_720p_video_backlight;
+		pinfo->mipi.panel_cmds
+					= ssd2080m_720p_video_on_command;
+		pinfo->mipi.num_of_panel_cmds
+					= SSD2080M_720P_VIDEO_ON_COMMAND;
+		memcpy(phy_db->timing,
+				ssd2080m_720p_video_timings, TIMING_SIZE);
+		break;
 	case HX8394A_720P_VIDEO_PANEL:
 		panelstruct->paneldata    = &hx8394a_720p_video_panel_data;
 		panelstruct->panelres     = &hx8394a_720p_video_panel_res;
@@ -240,8 +262,10 @@ bool oem_panel_select(struct panel_struct *panelstruct,
 
 	switch (hw_id) {
 	case HW_PLATFORM_QRD:
-		if (board_hardware_subtype() == 2) {
+		if (board_hardware_subtype() == 2) { //HW_PLATFORM_SUBTYPE_SKUF
 			panel_id = NT35521_720P_VIDEO_PANEL;
+		} else if (board_hardware_subtype() == 5) { //HW_PLATFORM_SUBTYPE_SKUG
+			panel_id = SSD2080M_720P_VIDEO_PANEL;
 		} else {
 			if (((target_id >> 16) & 0xFF) == 0x1) //EVT
 				panel_id = nt35590_panel_id;
