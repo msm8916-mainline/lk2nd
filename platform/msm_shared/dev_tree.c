@@ -45,6 +45,8 @@ struct dt_entry_v1
 	uint32_t size;
 };
 
+static struct dt_mem_node_info mem_node;
+
 static int platform_dt_match(struct dt_entry *cur_dt_entry, uint32_t target_variant_id, uint32_t subtype_mask);
 extern int target_is_emmc_boot(void);
 extern uint32_t target_dev_tree_mem(void *fdt, uint32_t memory_node_offset);
@@ -551,7 +553,6 @@ int dev_tree_add_first_mem_info(uint32_t *fdt, uint32_t offset, uint32_t addr, u
 				ret);
 	}
 
-
 	ret = fdt_appendprop_u32(fdt, offset, "reg", size);
 
 	if (ret)
@@ -563,37 +564,172 @@ int dev_tree_add_first_mem_info(uint32_t *fdt, uint32_t offset, uint32_t addr, u
 	return ret;
 }
 
-/* Function to add the subsequent RAM partition info to the device tree. */
-int dev_tree_add_mem_info(void *fdt, uint32_t offset, uint32_t addr, uint32_t size)
+static int dev_tree_query_memory_cell_sizes(void *fdt, struct dt_mem_node_info *mem_node, uint32_t mem_node_offset)
 {
-	static int mem_info_cnt = 0;
-	int ret;
+	int      len;
+	uint32_t *valp;
+	int      ret;
+	uint32_t offset;
 
-	if (!mem_info_cnt)
+	mem_node->offset = mem_node_offset;
+
+	/* Get offset of the root node */
+	ret = fdt_path_offset(fdt, "/");
+	if (ret < 0)
+	{
+		dprintf(CRITICAL, "Could not find memory node.\n");
+		return ret;
+	}
+
+	offset = ret;
+
+	/* Find the #address-cells size. */
+	valp = (uint32_t*)fdt_getprop(fdt, offset, "#address-cells", &len);
+	if (len <= 0)
+	{
+		if (len == -FDT_ERR_NOTFOUND)
+		{
+			/* Property not found.
+			* Assume standard sizes.
+			*/
+			mem_node->addr_cell_size = 2;
+			dprintf(CRITICAL, "Using default #addr_cell_size: %u\n", mem_node->addr_cell_size);
+		}
+		else
+		{
+			dprintf(CRITICAL, "Error finding the #address-cells property\n");
+			return len;
+		}
+	}
+	else
+		mem_node->addr_cell_size = fdt32_to_cpu(*valp);
+
+	/* Find the #size-cells size. */
+	valp = (uint32_t*)fdt_getprop(fdt, offset, "#size-cells", &len);
+	if (len <= 0)
+	{
+		if (len == -FDT_ERR_NOTFOUND)
+		{
+			/* Property not found.
+			* Assume standard sizes.
+			*/
+			mem_node->size_cell_size = 1;
+			dprintf(CRITICAL, "Using default #size_cell_size: %u\n", mem_node->size_cell_size);
+		}
+		else
+		{
+			dprintf(CRITICAL, "Error finding the #size-cells property\n");
+			return len;
+		}
+	}
+	else
+		mem_node->size_cell_size = fdt32_to_cpu(*valp);
+
+	return 0;
+}
+
+static void dev_tree_update_memory_node(uint32_t offset)
+{
+	mem_node.offset = offset;
+	mem_node.addr_cell_size = 1;
+	mem_node.size_cell_size = 1;
+}
+
+/* Function to add the subsequent RAM partition info to the device tree. */
+int dev_tree_add_mem_info(void *fdt, uint32_t offset, uint64_t addr, uint64_t size)
+{
+	int ret = 0;
+
+	if(smem_get_ram_ptable_version() >= 1)
+	{
+		ret = dev_tree_query_memory_cell_sizes(fdt, &mem_node, offset);
+		if (ret < 0)
+		{
+			dprintf(CRITICAL, "Could not find #address-cells and #size-cells properties: ret %d\n", ret);
+			return ret;
+		}
+
+	}
+	else
+	{
+		dev_tree_update_memory_node(offset);
+	}
+
+	if (!(mem_node.mem_info_cnt))
 	{
 		/* Replace any other reg prop in the memory node. */
-		ret = fdt_setprop_u32(fdt, offset, "reg", addr);
-		mem_info_cnt = 1;
+
+		/* cell_size is the number of 32 bit words used to represent an address/length in the device tree.
+		 * memory node in DT can be either 32-bit(cell-size = 1) or 64-bit(cell-size = 2).So when updating
+		 * the memory node in the device tree, we write one word or two words based on cell_size = 1 or 2.
+		 */
+
+		if(mem_node.addr_cell_size == 2)
+		{
+			ret = fdt_setprop_u32(fdt, mem_node.offset, "reg", addr >> 32);
+			if(ret)
+			{
+				dprintf(CRITICAL, "ERROR: Could not set prop reg for memory node\n");
+				return ret;
+			}
+
+			ret = fdt_appendprop_u32(fdt, mem_node.offset, "reg", (uint32_t)addr);
+			if(ret)
+			{
+				dprintf(CRITICAL, "ERROR: Could not append prop reg for memory node\n");
+				return ret;
+			}
+		}
+		else
+		{
+			ret = fdt_setprop_u32(fdt, mem_node.offset, "reg", (uint32_t)addr);
+			if(ret)
+			{
+				dprintf(CRITICAL, "ERROR: Could not set prop reg for memory node\n");
+				return ret;
+			}
+		}
+
+		mem_node.mem_info_cnt = 1;
 	}
 	else
 	{
 		/* Append the mem info to the reg prop for subsequent nodes.  */
-		ret = fdt_appendprop_u32(fdt, offset, "reg", addr);
+		if(mem_node.addr_cell_size == 2)
+		{
+			ret = fdt_appendprop_u32(fdt, mem_node.offset, "reg", addr >> 32);
+			if(ret)
+			{
+				dprintf(CRITICAL, "ERROR: Could not append prop reg for memory node\n");
+				return ret;
+			}
+		}
+
+		ret = fdt_appendprop_u32(fdt, mem_node.offset, "reg", (uint32_t)addr);
+		if(ret)
+		{
+			dprintf(CRITICAL, "ERROR: Could not append prop reg for memory node\n");
+			return ret;
+		}
 	}
 
-	if (ret)
+	if(mem_node.size_cell_size == 2)
 	{
-		dprintf(CRITICAL, "Failed to add the memory information addr: %d\n",
-				ret);
+		ret = fdt_appendprop_u32(fdt, mem_node.offset, "reg", size>>32);
+		if(ret)
+		{
+			dprintf(CRITICAL, "ERROR: Could not append prop reg for memory node\n");
+			return ret;
+		}
 	}
 
-
-	ret = fdt_appendprop_u32(fdt, offset, "reg", size);
+	ret = fdt_appendprop_u32(fdt, mem_node.offset, "reg", (uint32_t)size);
 
 	if (ret)
 	{
 		dprintf(CRITICAL, "Failed to add the memory information size: %d\n",
 				ret);
+		return ret;
 	}
 
 	return ret;
