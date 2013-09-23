@@ -79,6 +79,9 @@
 #define APCS_GPLL_ENA_VOTE          (CLK_CTL_BASE + 0x1480)
 #define APCS_CLOCK_BRANCH_ENA_VOTE  (CLK_CTL_BASE + 0x1484)
 
+/*GPLL4 */
+#define GPLL4_STATUS                (CLK_CTL_BASE + 0x1DDC)
+
 /* UART */
 #define BLSP1_AHB_CBCR              (CLK_CTL_BASE + 0x5C4)
 #define BLSP2_AHB_CBCR              (CLK_CTL_BASE + 0x944)
@@ -132,6 +135,9 @@
 #define MSM_USB30_BASE               0xF9200000
 #define MSM_USB30_QSCRATCH_BASE      0xF92F8800
 
+/* SDCC clocks for CDC calibration*/
+#define SDCC1_CDCCAL_SLEEP_CBCR     (CLK_CTL_BASE + 0x04E4)
+#define SDCC1_CDCCAL_FF_CBCR        (CLK_CTL_BASE + 0x04E8)
 
 /* Addresses below this point needs to be verified.
  * Included only for compilation purposes.

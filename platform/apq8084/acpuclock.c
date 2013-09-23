@@ -124,6 +124,10 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 	{
 		ret = clk_get_set_enable(clk_name, 400000, 1);
 	}
+	else if(freq == MMC_CLK_25MHZ)
+	{
+		ret = clk_get_set_enable(clk_name, 25000000, 1);
+	}
 	else if(freq == MMC_CLK_50MHZ)
 	{
 		ret = clk_get_set_enable(clk_name, 50000000, 1);
@@ -134,7 +138,11 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 	}
 	else if(freq == MMC_CLK_200MHZ)
 	{
-		ret = clk_get_set_enable(clk_name, 200000000, 1);
+		ret = clk_get_set_enable(clk_name, 192000000, 1);
+	}
+	else if(freq == MMC_CLK_400MHZ)
+	{
+		ret = clk_get_set_enable(clk_name, 384000000, 1);
 	}
 	else
 	{
@@ -149,6 +157,30 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 		ASSERT(0);
 	}
 
+}
+
+/* Configure clocks for SDCC Calibration circuit */
+void clock_config_cdc(uint32_t interface)
+{
+	int ret = 0;
+	char clk_name[64];
+
+	snprintf(clk_name, sizeof(clk_name), "gcc_sdcc%u_cdccal_sleep_clk", interface);
+
+	ret = clk_get_set_enable(clk_name, 0 , 1);
+	if (ret)
+	{
+		dprintf(CRITICAL, "Failed to enable clock: %s\n", clk_name);
+		ASSERT(0);
+	}
+
+	snprintf(clk_name, sizeof(clk_name), "gcc_sdcc%u_cdccal_ff_clk", interface);
+	ret = clk_get_set_enable(clk_name, 0 , 1);
+	if (ret)
+	{
+		dprintf(CRITICAL, "Failed to enable clock: %s\n", clk_name);
+		ASSERT(0);
+	}
 }
 
 /* Configure UART clock based on the UART block id*/

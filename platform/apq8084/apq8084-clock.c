@@ -39,6 +39,7 @@
 /* Mux source select values */
 #define cxo_source_val    0
 #define gpll0_source_val  1
+#define gpll4_source_val  5
 #define cxo_mm_source_val 0
 #define mmpll0_mm_source_val 1
 #define mmpll1_mm_source_val 2
@@ -95,6 +96,19 @@ static struct fixed_clk cxo_clk_src =
 		.rate     = 19200000,
 		.dbg_name = "cxo_clk_src",
 		.ops      = &clk_ops_cxo,
+	},
+};
+
+static struct pll_vote_clk gpll4_clk_src = {
+	.en_reg      = (void *)APCS_GPLL_ENA_VOTE,
+	.en_mask     = BIT(4),
+	.status_reg  = (void *)GPLL4_STATUS,
+	.status_mask = BIT(17),
+
+	.c = {
+		.rate     = 768000000,
+		.dbg_name = "gpll4_clk_src",
+		.ops      = &clk_ops_pll_vote,
 	},
 };
 
@@ -229,7 +243,7 @@ static struct branch_clk gcc_usb_hs_ahb_clk =
 };
 
 /* SDCC Clocks */
-static struct clk_freq_tbl ftbl_gcc_sdcc1_2_apps_clk[] =
+static struct clk_freq_tbl ftbl_gcc_sdcc1_4_apps_clk[] =
 {
 	F(   144000,    cxo,  16,   3,  25),
 	F(   400000,    cxo,  12,   1,   4),
@@ -237,7 +251,8 @@ static struct clk_freq_tbl ftbl_gcc_sdcc1_2_apps_clk[] =
 	F( 25000000,  gpll0,  12,   1,   2),
 	F( 50000000,  gpll0,  12,   0,   0),
 	F(100000000,  gpll0,   6,   0,   0),
-	F(200000000,  gpll0,   3,   0,   0),
+	F(192000000,  gpll4,   4,   0,   0),
+	F(384000000,  gpll4,   2,   0,   0),
 	F_END
 };
 
@@ -250,7 +265,7 @@ static struct rcg_clk sdcc1_apps_clk_src =
 	.d_reg        = (uint32_t *) SDCC1_D,
 
 	.set_rate     = clock_lib2_rcg_set_rate_mnd,
-	.freq_tbl     = ftbl_gcc_sdcc1_2_apps_clk,
+	.freq_tbl     = ftbl_gcc_sdcc1_4_apps_clk,
 	.current_freq = &rcg_dummy_freq,
 
 	.c = {
@@ -516,12 +531,34 @@ static struct branch_clk mdss_vsync_clk = {
 	},
 };
 
+static struct branch_clk gcc_sdcc1_cdccal_ff_clk = {
+	.cbcr_reg    = SDCC1_CDCCAL_FF_CBCR,
+	.has_sibling = 1,
+
+    .c = {
+        .dbg_name = "gcc_sdcc1_cdccal_ff_clk",
+        .ops      = &clk_ops_branch,
+    },
+};
+
+static struct branch_clk gcc_sdcc1_cdccal_sleep_clk = {
+	.cbcr_reg    = SDCC1_CDCCAL_SLEEP_CBCR,
+	.has_sibling = 1,
+
+    .c = {
+        .dbg_name = "gcc_sdcc1_cdccal_sleep_clk",
+        .ops      = &clk_ops_branch,
+    },
+};
 
 /* Clock lookup table */
 static struct clk_lookup msm_clocks_8084[] =
 {
 	CLK_LOOKUP("sdc1_iface_clk", gcc_sdcc1_ahb_clk.c),
 	CLK_LOOKUP("sdc1_core_clk",  gcc_sdcc1_apps_clk.c),
+
+	CLK_LOOKUP("gcc_sdcc1_cdccal_sleep_clk", gcc_sdcc1_cdccal_sleep_clk.c),
+	CLK_LOOKUP("gcc_sdcc1_cdccal_ff_clk",    gcc_sdcc1_cdccal_ff_clk.c),
 
 	CLK_LOOKUP("uart7_iface_clk", gcc_blsp2_ahb_clk.c),
 	CLK_LOOKUP("uart7_core_clk",  gcc_blsp2_uart2_apps_clk.c),
