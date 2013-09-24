@@ -43,8 +43,6 @@
 #define BIST_SIZE 6
 #define LANE_SIZE 45
 
-#define MAX_DSI_STREAM_LEN 6
-
 #define MAX_PANEL_FORMAT_STRING 2
 
 /*---------------------------------------------------------------------------*/

@@ -152,9 +152,15 @@ bool target_display_panel_node(char *pbuf, uint16_t buf_size)
 {
 	char *dsi_id = panelstruct.paneldata->panel_controller;
 	char *panel_node = panelstruct.paneldata->panel_node_id;
+	uint16_t dsi_id_len = 0;
 	bool ret = true;
 
-	if (buf_size < (strlen(panel_node) + MAX_DSI_STREAM_LEN +
+	if (dsi_id == NULL || panel_node == NULL)
+		return false;
+
+	dsi_id_len = strlen(dsi_id);
+
+	if (buf_size < (strlen(panel_node) + dsi_id_len +
 			MAX_PANEL_FORMAT_STRING + 1) ||
 		!strlen(panel_node) ||
 		!strlen(dsi_id))
@@ -169,8 +175,8 @@ bool target_display_panel_node(char *pbuf, uint16_t buf_size)
 		buf_size -= MAX_PANEL_FORMAT_STRING;
 
 		strlcpy(pbuf, dsi_id, buf_size);
-		pbuf += MAX_DSI_STREAM_LEN;
-		buf_size -= MAX_DSI_STREAM_LEN;
+		pbuf += dsi_id_len;
+		buf_size -= dsi_id_len;
 
 		strlcpy(pbuf, panel_node, buf_size);
 	}
