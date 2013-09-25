@@ -41,6 +41,7 @@
 #define edp_read(offset) readl_relaxed((offset))
 #define edp_write(offset, data) writel_relaxed((data), (offset))
 
+#define EDP_MAX_LANE            4
 
 #define AUX_CMD_FIFO_LEN        144
 #define AUX_CMD_MAX             16
