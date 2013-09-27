@@ -150,10 +150,16 @@ static int mdss_dsi_panel_power(uint8_t enable)
 
 bool target_display_panel_node(char *pbuf, uint16_t buf_size)
 {
-	char *dsi_id = panelstruct.paneldata->panel_controller;
-	char *panel_node = panelstruct.paneldata->panel_node_id;
+	char *dsi_id = NULL;
+	char *panel_node = NULL;
 	uint16_t dsi_id_len = 0;
 	bool ret = true;
+
+	if (panelstruct.paneldata)
+	{
+		dsi_id = panelstruct.paneldata->panel_controller;
+		panel_node = panelstruct.paneldata->panel_node_id;
+	}
 
 	if (dsi_id == NULL || panel_node == NULL)
 		return false;
