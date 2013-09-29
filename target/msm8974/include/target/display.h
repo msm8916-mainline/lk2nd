@@ -89,8 +89,8 @@ static const uint32_t panel_physical_ctrl[] = {
 /* Other Configuration                                                       */
 /*---------------------------------------------------------------------------*/
 
-#define MIPI_FB_ADDR  0x0D200000
-#define EDP_FB_ADDR   0x7EF00000
+#define MIPI_FB_ADDR  0x03200000
+#define EDP_FB_ADDR   MIPI_FB_ADDR
 
 #define MIPI_HSYNC_PULSE_WIDTH       12
 #define MIPI_HSYNC_BACK_PORCH_DCLK   32
