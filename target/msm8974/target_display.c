@@ -142,7 +142,6 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 		// * Add here for continuous splash  *
 		mmss_clock_disable(dual_dsi);
 		mdp_clock_disable(dual_dsi);
-		mdp_gdsc_ctrl(enable);
 	}
 
 	return NO_ERROR;
@@ -343,13 +342,12 @@ void display_init(void)
 	default:
 		do {
 			ret = gcdb_display_init(MDP_REV_50, MIPI_FB_ADDR);
-			if (ret) {
+			if (!ret || ret == ERR_NOT_SUPPORTED) {
+				break;
+			} else {
 				target_force_cont_splash_disable(true);
 				msm_display_off();
 				target_force_cont_splash_disable(false);
-			}
-			else {
-				break;
 			}
 		} while (++panel_loop <= oem_panel_max_auto_detect_panels());
 		break;
