@@ -116,7 +116,7 @@ static void sdhci_clear_power_ctrl_irq(struct sdhci_msm_data *data)
 void sdhci_msm_init(struct sdhci_msm_data *config)
 {
 	/* Enable sdhc mode */
-	writel(SDHCI_HC_MODE_EN, (config->pwrctl_base + SDCC_MCI_HC_MODE));
+	RMWREG32((config->pwrctl_base + SDCC_MCI_HC_MODE), SDHCI_HC_START_BIT, SDHCI_HC_WIDTH, SDHCI_HC_MODE_EN);
 
 	/*
 	 * CORE_SW_RST may trigger power irq if previous status of PWRCTL
