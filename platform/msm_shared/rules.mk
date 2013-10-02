@@ -189,7 +189,13 @@ ifeq ($(PLATFORM),apq8084)
             $(LOCAL_DIR)/qpic_nand.o \
             $(LOCAL_DIR)/dev_tree.o \
             $(LOCAL_DIR)/gpio.o \
-            $(LOCAL_DIR)/scm.o
+            $(LOCAL_DIR)/scm.o \
+			$(LOCAL_DIR)/ufs.o \
+			$(LOCAL_DIR)/utp.o \
+			$(LOCAL_DIR)/uic.o \
+			$(LOCAL_DIR)/ucs.o \
+			$(LOCAL_DIR)/ufs_hci.o \
+			$(LOCAL_DIR)/dme.o
 endif
 
 ifeq ($(PLATFORM),msm7x27a)
