@@ -50,8 +50,8 @@ reset:
 		/* new thumb behavior, low exception vectors, i/d cache disable, mmu disabled */
 	bic		r0, r0, #(1<<15| 1<<13 | 1<<12)
 	bic		r0, r0, #(1<<2 | 1<<0)
-		/* enable alignment faults */
-	orr		r0, r0, #(1<<1)
+		/* disable alignment faults */
+	bic		r0, r0, #(1<<1)
         /* Write SCTLR */
 	mcr		p15, 0, r0, c1, c0, 0
 #ifdef ENABLE_TRUSTZONE
