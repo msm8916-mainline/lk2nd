@@ -3460,16 +3460,21 @@ flash_read_ext(struct ptentry *ptn, unsigned extra_per_page,
 }
 
 int
-flash_write(struct ptentry *ptn, unsigned extra_per_page, const void *data,
+flash_write(struct ptentry *ptn, unsigned write_extra_bytes, const void *data,
 	    unsigned bytes)
 {
 	unsigned page = ptn->start * num_pages_per_blk;
 	unsigned lastpage = (ptn->start + ptn->length) * num_pages_per_blk;
 	unsigned *spare = (unsigned *)flash_spare;
 	const unsigned char *image = data;
-	unsigned wsize = flash_pagesize + extra_per_page;
+	unsigned wsize;
 	unsigned n;
 	int r;
+
+	if(write_extra_bytes)
+		wsize = flash_pagesize + flash_info.spare_size;
+	else
+		wsize = flash_pagesize;
 
 	if ((flash_info.type == FLASH_ONENAND_DEVICE)
 	    && (ptn->type == TYPE_MODEM_PARTITION)) {
@@ -3504,7 +3509,7 @@ flash_write(struct ptentry *ptn, unsigned extra_per_page, const void *data,
 			}
 		}
 
-		if (extra_per_page) {
+		if (write_extra_bytes) {
 			r = _flash_write_page(flash_cmdlist, flash_ptrlist,
 					      page, image,
 					      image + flash_pagesize);
