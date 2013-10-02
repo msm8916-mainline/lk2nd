@@ -85,7 +85,7 @@ static int mmc_bam_transfer_data();
 static unsigned int
 mmc_boot_bam_setup_desc(unsigned int *data_ptr,
 			    unsigned int data_len, unsigned char direction);
-
+uint32_t mmc_page_size();
 
 #endif
 
@@ -157,6 +157,11 @@ unsigned int SWAP_ENDIAN(unsigned int val)
 	return ((val & 0xFF) << 24) |
 	    (((val >> 8) & 0xFF) << 16) | (((val >> 16) & 0xFF) << 8) | (val >>
 									 24);
+}
+
+uint32_t mmc_page_size()
+{
+	return BOARD_KERNEL_PAGESIZE;
 }
 
 void mmc_mclk_reg_wr_delay()
