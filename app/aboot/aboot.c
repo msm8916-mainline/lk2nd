@@ -1892,11 +1892,7 @@ void cmd_flash(const char *arg, void *data, unsigned sz)
 		|| !strcmp(ptn->name, "userdata")
 		|| !strcmp(ptn->name, "persist")
 		|| !strcmp(ptn->name, "recoveryfs")) {
-		if (flash_ecc_bch_enabled())
-			/* Spare data bytes for 8 bit ECC increased by 4 */
-			extra = ((page_size >> 9) * 20);
-		else
-			extra = ((page_size >> 9) * 16);
+			extra = 1;
 	} else
 		sz = ROUND_TO_PAGE(sz, page_mask);
 
