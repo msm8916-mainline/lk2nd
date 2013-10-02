@@ -107,27 +107,6 @@ void target_early_init(void)
 #endif
 }
 
-/* Check for 8974 chip */
-static int target_is_8974()
-{
-	uint32_t platform = board_platform_id();
-	int ret = 0;
-
-	switch(platform)
-	{
-		case APQ8074:
-		case MSM8274:
-		case MSM8674:
-		case MSM8974:
-			ret = 1;
-			break;
-		default:
-			ret = 0;
-	};
-
-	return ret;
-}
-
 /* Return 1 if vol_up pressed */
 static int target_volume_up()
 {
@@ -162,7 +141,7 @@ static int target_volume_up()
 uint32_t target_volume_down()
 {
 	/* Volume down button is tied in with RESIN on MSM8974. */
-	if (target_is_8974() && (pmic_ver == PM8X41_VERSION_V2))
+	if (platform_is_8974() && (pmic_ver == PM8X41_VERSION_V2))
 		return pm8x41_v2_resin_status();
 	else
 		return pm8x41_resin_status();
@@ -230,7 +209,7 @@ static void target_mmc_sdhci_init()
 	switch(board_hardware_id())
 	{
 		case HW_PLATFORM_FLUID:
-			if (target_is_8974() && BOARD_SOC_VERSION1(soc_ver))
+			if (platform_is_8974() && BOARD_SOC_VERSION1(soc_ver))
 				config.bus_width = DATA_BUS_WIDTH_4BIT;
 			else
 				config.bus_width = DATA_BUS_WIDTH_8BIT;
@@ -312,7 +291,7 @@ void target_mmc_caps(struct mmc_host *host)
 	switch(board_hardware_id())
 	{
 		case HW_PLATFORM_FLUID:
-			if (target_is_8974() && BOARD_SOC_VERSION1(soc_ver))
+			if (platform_is_8974() && BOARD_SOC_VERSION1(soc_ver))
 				host->caps.bus_width = MMC_BOOT_BUS_WIDTH_4_BIT;
 			else
 				host->caps.bus_width = MMC_BOOT_BUS_WIDTH_8_BIT;
@@ -484,7 +463,7 @@ unsigned check_reboot_mode(void)
 
 	soc_ver = board_soc_version();
 
-	if (target_is_8974() && BOARD_SOC_VERSION1(soc_ver))
+	if (platform_is_8974() && BOARD_SOC_VERSION1(soc_ver))
 		restart_reason_addr = RESTART_REASON_ADDR;
 	else
 		restart_reason_addr = RESTART_REASON_ADDR_V2;
@@ -504,7 +483,7 @@ void reboot_device(unsigned reboot_reason)
 	soc_ver = board_soc_version();
 
 	/* Write the reboot reason */
-	if (target_is_8974() && BOARD_SOC_VERSION1(soc_ver))
+	if (platform_is_8974() && BOARD_SOC_VERSION1(soc_ver))
 		writel(reboot_reason, RESTART_REASON_ADDR);
 	else
 		writel(reboot_reason, RESTART_REASON_ADDR_V2);
@@ -515,7 +494,7 @@ void reboot_device(unsigned reboot_reason)
 		reset_type = PON_PSHOLD_HARD_RESET;
 
 	/* Configure PMIC for warm reset */
-	if (target_is_8974() && (pmic_ver == PM8X41_VERSION_V2))
+	if (platform_is_8974() && (pmic_ver == PM8X41_VERSION_V2))
 		pm8x41_v2_reset_configure(reset_type);
 	else
 		pm8x41_reset_configure(reset_type);
@@ -550,7 +529,7 @@ int set_download_mode(enum dload_mode mode)
 /* Check if MSM needs VBUS mimic for USB */
 static int target_needs_vbus_mimic()
 {
-	if (target_is_8974())
+	if (platform_is_8974())
 		return 0;
 
 	return 1;
@@ -652,7 +631,7 @@ void shutdown_device()
 	dprintf(CRITICAL, "Going down for shutdown.\n");
 
 	/* Configure PMIC for shutdown. */
-	if (target_is_8974() && (pmic_ver == PM8X41_VERSION_V2))
+	if (platform_is_8974() && (pmic_ver == PM8X41_VERSION_V2))
 		pm8x41_v2_reset_configure(PON_PSHOLD_SHUTDOWN);
 	else
 		pm8x41_reset_configure(PON_PSHOLD_SHUTDOWN);

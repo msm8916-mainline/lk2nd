@@ -87,11 +87,32 @@ uint32_t platform_get_sclk_count(void)
 	return readl(MPM2_MPM_SLEEP_TIMETICK_COUNT_VAL);
 }
 
+/* Check for 8974 chip */
+int platform_is_8974()
+{
+	uint32_t platform = board_platform_id();
+	int ret = 0;
+
+	switch(platform)
+	{
+		case APQ8074:
+		case MSM8274:
+		case MSM8674:
+		case MSM8974:
+			ret = 1;
+			break;
+		default:
+			ret = 0;
+	};
+
+	return ret;
+}
+
 addr_t get_bs_info_addr()
 {
 	uint32_t soc_ver = board_soc_version();
 
-	if (soc_ver < BOARD_SOC_VERSION2)
+	if (platform_is_8974() && (soc_ver < BOARD_SOC_VERSION2))
 		return ((addr_t)BS_INFO_ADDR_V1);
 	else
 		return ((addr_t)BS_INFO_ADDR_V2);
