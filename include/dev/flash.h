@@ -68,7 +68,7 @@ struct flash_info *flash_get_info(void);
 int flash_erase(struct ptentry *ptn);
 int flash_read_ext(struct ptentry *ptn, unsigned extra_per_page,
 		   unsigned offset, void *data, unsigned bytes);
-int flash_write(struct ptentry *ptn, unsigned extra_per_page, const void *data,
+int flash_write(struct ptentry *ptn, unsigned write_extra_bytes, const void *data,
 		unsigned bytes);
 
 static inline int flash_read(struct ptentry *ptn, unsigned offset, void *data,
