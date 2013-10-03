@@ -51,5 +51,14 @@ bool target_is_ssd_enabled(void);
 void *target_mmc_device();
 
 bool target_display_panel_node(char *pbuf, uint16_t buf_size);
+uint32_t target_get_boot_device();
+
+/* Boot device */
+enum boot_device
+{
+	BOOT_DEFAULT=0,
+	BOOT_EMMC=2,
+	BOOT_UFS=4,
+};
 
 #endif
