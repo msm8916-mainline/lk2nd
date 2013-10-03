@@ -28,10 +28,42 @@
 
 #include <stdlib.h>
 #include <stdint.h>
-#include <mmc_sdhci.h>
 #include <mmc_wrapper.h>
+#include <mmc_sdhci.h>
 #include <sdhci.h>
+#include <ufs.h>
 #include <target.h>
+
+/*
+ * Weak function for UFS.
+ * These are needed to avoid link errors for platforms which
+ * do not support UFS. Its better to keep this inside the
+ * mmc wrapper.
+ */
+__WEAK int ufs_write(struct ufs_dev *dev, uint64_t data_addr, addr_t in, uint32_t len)
+{
+	return 0;
+}
+
+__WEAK int ufs_read(struct ufs_dev *dev, uint64_t data_addr, addr_t in, uint32_t len)
+{
+	return 0;
+}
+
+__WEAK uint32_t ufs_get_page_size(struct ufs_dev *dev)
+{
+	return 0;
+}
+
+__WEAK uint32_t ufs_get_serial_num(struct ufs_dev *dev)
+{
+	return 0;
+}
+
+__WEAK uint64_t ufs_get_dev_capacity(struct ufs_dev *dev)
+{
+	return 0;
+}
 
 /*
  * Function: get mmc card
@@ -41,11 +73,11 @@
  */
 static struct mmc_card *get_mmc_card()
 {
-	struct mmc_device *dev;
+	void *dev;
 	struct mmc_card *card;
 
 	dev = target_mmc_device();
-	card = &dev->card;
+	card = &((struct mmc_device*)dev)->card;
 
 	return card;
 }
@@ -59,39 +91,58 @@ static struct mmc_card *get_mmc_card()
 uint32_t mmc_write(uint64_t data_addr, uint32_t data_len, void *in)
 {
 	uint32_t val = 0;
+	int ret = 0;
+	uint32_t block_size = 0;
 	uint32_t write_size = SDHCI_ADMA_MAX_TRANS_SZ;
 	uint8_t *sptr = (uint8_t *)in;
-	struct mmc_device *dev;
+	void *dev;
 
 	dev = target_mmc_device();
 
-	ASSERT(!(data_addr % MMC_BLK_SZ));
+	block_size = mmc_get_device_blocksize();
 
-	if (data_len % MMC_BLK_SZ)
-		data_len = ROUNDUP(data_len, MMC_BLK_SZ);
+	ASSERT(!(data_addr % block_size));
 
-	/* TODO: This function is aware of max data that can be
-	 * tranferred using sdhci adma mode, need to have a cleaner
-	 * implementation to keep this function independent of sdhci
-	 * limitations
-	 */
-	while (data_len > write_size) {
-		val = mmc_sdhci_write(dev, (void *)sptr, (data_addr / MMC_BLK_SZ), (write_size / MMC_BLK_SZ));
-		if (val)
-		{
-			dprintf(CRITICAL, "Failed Writing block @ %x\n", (data_addr / MMC_BLK_SZ));
-			return val;
+	if (data_len % block_size)
+		data_len = ROUNDUP(data_len, block_size);
+
+	if (target_boot_device_emmc())
+	{
+		/* TODO: This function is aware of max data that can be
+		 * tranferred using sdhci adma mode, need to have a cleaner
+		 * implementation to keep this function independent of sdhci
+		 * limitations
+		 */
+		while (data_len > write_size) {
+			val = mmc_sdhci_write((struct mmc_device *)dev, (void *)sptr, (data_addr / block_size), (write_size / block_size));
+			if (val)
+			{
+				dprintf(CRITICAL, "Failed Writing block @ %x\n", (data_addr / block_size));
+				return val;
+			}
+			sptr += write_size;
+			data_addr += write_size;
+			data_len -= write_size;
 		}
-		sptr += write_size;
-		data_addr += write_size;
-		data_len -= write_size;
+
+		if (data_len)
+			val = mmc_sdhci_write((struct mmc_device *)dev, (void *)sptr, (data_addr / block_size), (data_len / block_size));
+
+		if (val)
+			dprintf(CRITICAL, "Failed Writing block @ %x\n", (data_addr / block_size));
 	}
+	else
+	{
+		arch_clean_invalidate_cache_range((addr_t)in, data_len);
 
-	if (data_len)
-		val = mmc_sdhci_write(dev, (void *)sptr, (data_addr / MMC_BLK_SZ), (data_len / MMC_BLK_SZ));
+		ret = ufs_write((struct ufs_dev *)dev, data_addr, (addr_t)in, (data_len / block_size));
 
-	if (val)
-		dprintf(CRITICAL, "Failed Writing block @ %x\n", (data_addr / MMC_BLK_SZ));
+		if (ret)
+		{
+			dprintf(CRITICAL, "Error: UFS write failed writing to block: %llu\n", data_addr);
+			val = 1;
+		}
+	}
 
 	return val;
 }
@@ -105,37 +156,53 @@ uint32_t mmc_write(uint64_t data_addr, uint32_t data_len, void *in)
 uint32_t mmc_read(uint64_t data_addr, uint32_t *out, uint32_t data_len)
 {
 	uint32_t ret = 0;
+	uint32_t block_size;
 	uint32_t read_size = SDHCI_ADMA_MAX_TRANS_SZ;
-	struct mmc_device *dev;
+	void *dev;
 	uint8_t *sptr = (uint8_t *)out;
 
-	ASSERT(!(data_addr % MMC_BLK_SZ));
-	ASSERT(!(data_len % MMC_BLK_SZ));
-
 	dev = target_mmc_device();
+	block_size = mmc_get_device_blocksize();
 
-	/* TODO: This function is aware of max data that can be
-	 * tranferred using sdhci adma mode, need to have a cleaner
-	 * implementation to keep this function independent of sdhci
-	 * limitations
-	 */
-	while (data_len > read_size) {
-		ret = mmc_sdhci_read(dev, (void *)sptr, (data_addr / MMC_BLK_SZ), (read_size / MMC_BLK_SZ));
+	ASSERT(!(data_addr % block_size));
+	ASSERT(!(data_len % block_size));
+
+
+	if (target_boot_device_emmc())
+	{
+		/* TODO: This function is aware of max data that can be
+		 * tranferred using sdhci adma mode, need to have a cleaner
+		 * implementation to keep this function independent of sdhci
+		 * limitations
+		 */
+		while (data_len > read_size) {
+			ret = mmc_sdhci_read((struct mmc_device *)dev, (void *)sptr, (data_addr / block_size), (read_size / block_size));
+			if (ret)
+			{
+				dprintf(CRITICAL, "Failed Reading block @ %x\n", (data_addr / block_size));
+				return ret;
+			}
+			sptr += read_size;
+			data_addr += read_size;
+			data_len -= read_size;
+		}
+
+		if (data_len)
+			ret = mmc_sdhci_read((struct mmc_device *)dev, (void *)sptr, (data_addr / block_size), (data_len / block_size));
+
+		if (ret)
+			dprintf(CRITICAL, "Failed Reading block @ %x\n", (data_addr / block_size));
+	}
+	else
+	{
+		ret = ufs_read((struct ufs_dev *) dev, data_addr, (addr_t)out, (data_len / block_size));
 		if (ret)
 		{
-			dprintf(CRITICAL, "Failed Reading block @ %x\n", (data_addr / MMC_BLK_SZ));
-			return ret;
+			dprintf(CRITICAL, "Error: UFS read failed writing to block: %llu\n", data_addr);
 		}
-		sptr += read_size;
-		data_addr += read_size;
-		data_len -= read_size;
+
+		arch_invalidate_cache_range((addr_t)out, data_len);
 	}
-
-	if (data_len)
-		ret = mmc_sdhci_read(dev, (void *)sptr, (data_addr / MMC_BLK_SZ), (data_len / MMC_BLK_SZ));
-
-	if (ret)
-		dprintf(CRITICAL, "Failed Reading block @ %x\n", (data_addr / MMC_BLK_SZ));
 
 	return ret;
 }
@@ -148,18 +215,25 @@ uint32_t mmc_read(uint64_t data_addr, uint32_t *out, uint32_t data_len)
  */
 uint32_t mmc_erase_card(uint64_t addr, uint64_t len)
 {
-	struct mmc_device *dev;
+	void *dev;
+	uint32_t block_size;
 
-	dev = target_mmc_device();
-
-	ASSERT(!(addr % MMC_BLK_SZ));
-	ASSERT(!(len % MMC_BLK_SZ));
-
-	if (mmc_sdhci_erase(dev, (addr / MMC_BLK_SZ), len))
+	if (target_boot_device_emmc())
 	{
-		dprintf(CRITICAL, "MMC erase failed\n");
-		return 1;
+		block_size = mmc_get_device_blocksize();
+
+		dev = target_mmc_device();
+
+		ASSERT(!(addr % block_size));
+		ASSERT(!(len % block_size));
+
+		if (mmc_sdhci_erase((struct mmc_device *)dev, (addr / block_size), len))
+		{
+			dprintf(CRITICAL, "MMC erase failed\n");
+			return 1;
+		}
 	}
+
 	return 0;
 }
 
@@ -171,11 +245,22 @@ uint32_t mmc_erase_card(uint64_t addr, uint64_t len)
  */
 uint32_t mmc_get_psn(void)
 {
-	struct mmc_card *card;
+	if (target_boot_device_emmc())
+	{
+		struct mmc_card *card;
 
-	card = get_mmc_card();
+		card = get_mmc_card();
 
-	return card->cid.psn;
+		return card->cid.psn;
+	}
+	else
+	{
+		void *dev;
+
+		dev = target_mmc_device();
+
+		return ufs_get_serial_num((struct ufs_dev *)dev);
+	}
 }
 
 /*
@@ -186,24 +271,85 @@ uint32_t mmc_get_psn(void)
  */
 uint64_t mmc_get_device_capacity()
 {
-	struct mmc_card *card;
+	if (target_boot_device_emmc())
+	{
+		struct mmc_card *card;
 
-	card = get_mmc_card();
+		card = get_mmc_card();
 
-	return card->capacity;
+		return card->capacity;
+	}
+	else
+	{
+		void *dev;
+
+		dev = target_mmc_device();
+
+		return ufs_get_dev_capacity((struct ufs_dev *)dev);
+	}
 }
 
 /*
- * Function: mmc get pagesize
+ * Function: mmc get blocksize
  * Arg     : None
- * Return  : Returns the density of the emmc card
- * Flow    : Get the density from card
+ * Return  : Returns the block size of the storage
+ * Flow    : Get the block size form the card
  */
 uint32_t mmc_get_device_blocksize()
 {
-	struct mmc_card *card;
+	if (target_boot_device_emmc())
+	{
+		struct mmc_card *card;
 
-	card = get_mmc_card();
+		card = get_mmc_card();
 
-	return card->block_size;
+		return card->block_size;
+	}
+	else
+	{
+		void *dev;
+
+		dev = target_mmc_device();
+
+		return ufs_get_page_size((struct ufs_dev *)dev);
+	}
+}
+
+/*
+ * Function: storage page size
+ * Arg     : None
+ * Return  : Returns the page size for the card
+ * Flow    : Get the page size for storage
+ */
+uint32_t mmc_page_size()
+{
+	if (target_boot_device_emmc())
+	{
+		return BOARD_KERNEL_PAGESIZE;
+	}
+	else
+	{
+		void *dev;
+
+		dev = target_mmc_device();
+
+		return ufs_get_page_size((struct ufs_dev *)dev);
+	}
+}
+
+/*
+ * Function: mmc device sleep
+ * Arg     : None
+ * Return  : Clean up function for storage
+ * Flow    : Put the mmc card to sleep
+ */
+void mmc_device_sleep()
+{
+	void *dev;
+	dev = target_mmc_device();
+
+	if (target_boot_device_emmc())
+	{
+		mmc_put_card_to_sleep((struct mmc_device *)dev);
+	}
 }
