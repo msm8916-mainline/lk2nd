@@ -1195,6 +1195,7 @@ void write_device_info_mmc(device_info *dev)
 	unsigned long long ptn = 0;
 	unsigned long long size;
 	int index = INVALID_PTN;
+	uint32_t blocksize;
 
 	index = partition_get_index("aboot");
 	ptn = partition_get_offset(index);
@@ -1207,7 +1208,9 @@ void write_device_info_mmc(device_info *dev)
 
 	memcpy(info, dev, sizeof(device_info));
 
-	if(mmc_write((ptn + size - 512), 512, (void *)info_buf))
+	blocksize = mmc_get_device_blocksize();
+
+	if(mmc_write((ptn + size - blocksize), blocksize, (void *)info_buf))
 	{
 		dprintf(CRITICAL, "ERROR: Cannot write device info\n");
 		return;
@@ -1220,6 +1223,7 @@ void read_device_info_mmc(device_info *dev)
 	unsigned long long ptn = 0;
 	unsigned long long size;
 	int index = INVALID_PTN;
+	uint32_t blocksize;
 
 	index = partition_get_index("aboot");
 	ptn = partition_get_offset(index);
@@ -1230,7 +1234,9 @@ void read_device_info_mmc(device_info *dev)
 
 	size = partition_get_size(index);
 
-	if(mmc_read((ptn + size - 512), (void *)info_buf, 512))
+	blocksize = mmc_get_device_blocksize();
+
+	if(mmc_read((ptn + size - blocksize), (void *)info_buf, blocksize))
 	{
 		dprintf(CRITICAL, "ERROR: Cannot read device info\n");
 		return;
@@ -2210,10 +2216,10 @@ void aboot_init(const struct app_descriptor *app)
 	unsigned reboot_mode = 0;
 	bool boot_into_fastboot = false;
 
-	/* Setup page size information for nand/emmc reads */
+	/* Setup page size information for nv storage */
 	if (target_is_emmc_boot())
 	{
-		page_size = 2048;
+		page_size = mmc_page_size();
 		page_mask = page_size - 1;
 	}
 	else
