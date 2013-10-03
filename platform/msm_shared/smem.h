@@ -341,6 +341,8 @@ enum {
 	MSM8528  = 222,
 	MSM8628  = 223,
 	MSM8928  = 224,
+	MSM8510  = 225,
+	MSM8512  = 226,
 };
 
 enum platform {
