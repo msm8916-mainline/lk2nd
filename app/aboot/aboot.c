@@ -51,6 +51,7 @@
 #include <malloc.h>
 #include <boot_stats.h>
 #include <sha.h>
+#include <platform/iomap.h>
 
 #if DEVICE_TREE
 #include <libfdt.h>
@@ -97,7 +98,12 @@ void write_device_info_flash(device_info *dev);
 #define DEFAULT_ERASE_SIZE  4096
 #define MAX_PANEL_BUF_SIZE 64
 
+#if UFS_SUPPORT
+static const char *emmc_cmdline = " androidboot.bootdevice=msm_sdcc.1";
+static const char *ufs_cmdline = " androidboot.bootdevice=msm_ufs.1";
+#else
 static const char *emmc_cmdline = " androidboot.emmc=true";
+#endif
 static const char *usb_sn_cmdline = " androidboot.serialno=";
 static const char *androidboot_mode = " androidboot.mode=";
 static const char *display_cmdline = " mdss_mdp.panel=";
@@ -191,11 +197,39 @@ static void ptentry_to_tag(unsigned **ptr, struct ptentry *ptn)
 	*ptr += sizeof(struct atag_ptbl_entry) / sizeof(unsigned);
 }
 
+#if UFS_SUPPORT
+char* get_boot_dev_cmdline()
+{
+	const char *boot_device;
+	uint32_t val = 0;
+
+	val = target_get_boot_device();
+	switch(val)
+	{
+		case BOOT_DEFAULT:
+		case BOOT_EMMC:
+			boot_device = emmc_cmdline;
+			break;
+		case BOOT_UFS:
+			boot_device = ufs_cmdline;
+			break;
+		default:
+			dprintf(CRITICAL,"ERROR: Unexpected boot_device val=%x",val);
+			ASSERT(0);
+	};
+
+	return boot_device;
+}
+#endif
+
 unsigned char *update_cmdline(const char * cmdline)
 {
 	int cmdline_len = 0;
 	int have_cmdline = 0;
 	unsigned char *cmdline_final = NULL;
+#if UFS_SUPPORT
+	const char *boot_dev_cmdline = NULL;
+#endif
 	int pause_at_bootup = 0;
 	bool gpt_exists = partition_gpt_exists();
 
@@ -204,7 +238,12 @@ unsigned char *update_cmdline(const char * cmdline)
 		have_cmdline = 1;
 	}
 	if (target_is_emmc_boot()) {
+#if UFS_SUPPORT
+		boot_dev_cmdline = get_boot_dev_cmdline();
+		cmdline_len += strlen(boot_dev_cmdline);
+#else
 		cmdline_len += strlen(emmc_cmdline);
+#endif
 	}
 
 	cmdline_len += strlen(usb_sn_cmdline);
@@ -287,7 +326,11 @@ unsigned char *update_cmdline(const char * cmdline)
 			while ((*dst++ = *src++));
 		}
 		if (target_is_emmc_boot()) {
+#if UFS_SUPPORT
+			src = boot_dev_cmdline;
+#else
 			src = emmc_cmdline;
+#endif
 			if (have_cmdline) --dst;
 			have_cmdline = 1;
 			while ((*dst++ = *src++));
