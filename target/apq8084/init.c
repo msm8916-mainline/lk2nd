@@ -51,6 +51,8 @@
 #include <platform/gpio.h>
 #include <platform/timer.h>
 #include <stdlib.h>
+#include <ufs.h>
+#include <boot_config.h>
 
 #define PMIC_ARB_CHANNEL_NUM    0
 #define PMIC_ARB_OWNER_ID       0
@@ -94,6 +96,7 @@ static uint32_t  mmc_sdc_pwrctl_irq[] =
 	{ SDCC1_PWRCTL_IRQ, SDCC2_PWRCTL_IRQ };
 
 struct mmc_device *dev;
+struct ufs_dev ufs_device;
 
 extern void ulpi_write(unsigned val, unsigned reg);
 
@@ -223,18 +226,31 @@ void target_sdc_init()
 			ASSERT(0);
 		}
 	}
-
-	/* MMC initialization is complete, read the partition table info */
-	if (partition_read_table())
-	{
-		dprintf(CRITICAL, "Error reading the partition table info\n");
-		ASSERT(0);
-	}
 }
 
-struct mmc_device *target_mmc_device()
+/*
+ * Return 1 if boot from emmc else 0
+ */
+uint32_t target_boot_device_emmc()
 {
-	return dev;
+	uint32_t boot_dev_type;
+
+	boot_dev_type = platform_get_boot_device();
+
+	if (boot_dev_type == BOOT_EMMC || boot_dev_type == BOOT_DEFAULT)
+		boot_dev_type = 1;
+	else
+		boot_dev_type = 0;
+
+	return boot_dev_type;
+}
+
+void *target_mmc_device()
+{
+	if (target_boot_device_emmc())
+		return (void *) dev;
+	else
+		return (void *) &ufs_device;
 }
 
 void target_init(void)
@@ -245,7 +261,21 @@ void target_init(void)
 
 	target_keystatus();
 
-	target_sdc_init();
+	if (target_boot_device_emmc())
+		target_sdc_init();
+	else
+	{
+		ufs_device.base = UFS_BASE;
+		ufs_init(&ufs_device);
+	}
+
+	/* Storage initialization is complete, read the partition table info */
+	if (partition_read_table())
+	{
+		dprintf(CRITICAL, "Error reading the partition table info\n");
+		ASSERT(0);
+	}
+
 }
 
 unsigned board_machtype(void)
