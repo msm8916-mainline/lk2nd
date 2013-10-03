@@ -72,6 +72,8 @@
 extern  bool target_use_signed_kernel(void);
 extern void platform_uninit(void);
 extern void target_uninit(void);
+extern int get_target_boot_params(const char *cmdline, const char *part,
+				  char *buf, int buflen);
 
 void write_device_info_mmc(device_info *dev);
 void write_device_info_flash(device_info *dev);
@@ -126,6 +128,7 @@ static unsigned page_size = 0;
 static unsigned page_mask = 0;
 static char ffbm_mode_string[FFBM_MODE_BUF_SIZE];
 static bool boot_into_ffbm;
+static char target_boot_params[64];
 
 /* Assuming unauthorized kernel image by default */
 static int auth_kernel_img = 0;
@@ -232,6 +235,7 @@ unsigned char *update_cmdline(const char * cmdline)
 #endif
 	int pause_at_bootup = 0;
 	bool gpt_exists = partition_gpt_exists();
+	int have_target_boot_params = 0;
 
 	if (cmdline && cmdline[0]) {
 		cmdline_len = strlen(cmdline);
@@ -265,6 +269,14 @@ unsigned char *update_cmdline(const char * cmdline)
 
 	if(target_use_signed_kernel() && auth_kernel_img) {
 		cmdline_len += strlen(auth_kernel);
+	}
+
+	if (get_target_boot_params(cmdline, boot_into_recovery ? "recoveryfs" :
+								 "system",
+				   target_boot_params,
+				   sizeof(target_boot_params)) == 0) {
+		have_target_boot_params = 1;
+		cmdline_len += strlen(target_boot_params);
 	}
 
 	/* Determine correct androidboot.baseband to use */
@@ -436,6 +448,12 @@ unsigned char *update_cmdline(const char * cmdline)
 			while ((*dst++ = *src++));
 			src = display_panel_buf;
 			if (have_cmdline) --dst;
+			while ((*dst++ = *src++));
+		}
+
+		if (have_target_boot_params) {
+			if (have_cmdline) --dst;
+			src = target_boot_params;
 			while ((*dst++ = *src++));
 		}
 	}
