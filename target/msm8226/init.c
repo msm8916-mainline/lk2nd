@@ -490,7 +490,7 @@ static void set_sdc_power_ctrl()
 	tlmm_set_pull_ctrl(sdc1_pull_cfg, ARRAY_SIZE(sdc1_pull_cfg));
 }
 
-struct mmc_device *target_mmc_device()
+void *target_mmc_device()
 {
-	return dev;
+	return (void *) dev;
 }
