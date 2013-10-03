@@ -512,6 +512,7 @@ struct mmc_card {
 	unsigned int status;
 #define MMC_BOOT_STATUS_INACTIVE         0
 #define MMC_BOOT_STATUS_ACTIVE           1
+	uint32_t block_size;
 	unsigned int rd_timeout_ns;
 	unsigned int wr_timeout_ns;
 	unsigned int rd_block_len;

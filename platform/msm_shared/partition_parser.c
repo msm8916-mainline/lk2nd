@@ -31,8 +31,8 @@
 #include "mmc.h"
 #include "partition_parser.h"
 
-static uint32_t mmc_boot_read_gpt();
-static uint32_t mmc_boot_read_mbr();
+static uint32_t mmc_boot_read_gpt(uint32_t block_size);
+static uint32_t mmc_boot_read_mbr(uint32_t block_size);
 static void mbr_fill_name(struct partition_entry *partition_ent,
 						  uint32_t type);
 static uint32_t partition_verify_mbr_signature(uint32_t size,
@@ -48,8 +48,8 @@ static uint32_t partition_parse_gpt_header(uint8_t *buffer,
 										   uint32_t *header_size,
 										   uint32_t *max_partition_count);
 
-static uint32_t write_mbr(uint32_t, uint8_t *mbrImage);
-static uint32_t write_gpt(uint32_t size, uint8_t *gptImage);
+static uint32_t write_mbr(uint32_t, uint8_t *mbrImage, uint32_t block_size);
+static uint32_t write_gpt(uint32_t size, uint8_t *gptImage, uint32_t block_size);
 
 char *ext3_partitions[] =
     { "system", "userdata", "persist", "cache", "tombstones" };
@@ -65,9 +65,12 @@ unsigned partition_count = 0;
 unsigned int partition_read_table()
 {
 	unsigned int ret;
+	uint32_t block_size;
+
+	block_size = mmc_get_device_blocksize();
 
 	/* Read MBR of the card */
-	ret = mmc_boot_read_mbr();
+	ret = mmc_boot_read_mbr(block_size);
 	if (ret) {
 		dprintf(CRITICAL, "MMC Boot: MBR read failed!\n");
 		return 1;
@@ -75,7 +78,7 @@ unsigned int partition_read_table()
 
 	/* Read GPT of the card if exist */
 	if (gpt_partitions_exist) {
-		ret = mmc_boot_read_gpt();
+		ret = mmc_boot_read_gpt(block_size);
 		if (ret) {
 			dprintf(CRITICAL, "MMC Boot: GPT read failed!\n");
 			return 1;
@@ -87,9 +90,9 @@ unsigned int partition_read_table()
 /*
  * Read MBR from MMC card and fill partition table.
  */
-static unsigned int mmc_boot_read_mbr()
+static unsigned int mmc_boot_read_mbr(uint32_t block_size)
 {
-	BUF_DMA_ALIGN(buffer, BLOCK_SIZE);
+	uint8_t *buffer = NULL;
 	unsigned int dtype;
 	unsigned int dfirstsec;
 	unsigned int EBR_first_sec;
@@ -97,17 +100,26 @@ static unsigned int mmc_boot_read_mbr()
 	int ret = 0;
 	int idx, i;
 
+	buffer = (uint8_t *)memalign(CACHE_LINE, ROUNDUP(block_size, CACHE_LINE));
+
+	if (!buffer)
+	{
+		dprintf(CRITICAL, "Error allocating memory while reading partition table\n");
+		ret = -1;
+		goto end;
+	}
+
 	/* Print out the MBR first */
-	ret = mmc_read(0, (unsigned int *)buffer, BLOCK_SIZE);
+	ret = mmc_read(0, (unsigned int *)buffer, block_size);
 	if (ret) {
 		dprintf(CRITICAL, "Could not read partition from mmc\n");
-		return ret;
+		goto end;
 	}
 
 	/* Check to see if signature exists */
-	ret = partition_verify_mbr_signature(BLOCK_SIZE, buffer);
+	ret = partition_verify_mbr_signature(block_size, buffer);
 	if (ret) {
-		return ret;
+		goto end;
 	}
 
 	/*
@@ -121,7 +133,7 @@ static unsigned int mmc_boot_read_mbr()
 		dtype = buffer[idx + i * TABLE_ENTRY_SIZE + OFFSET_TYPE];
 		if (dtype == MBR_PROTECTED_TYPE) {
 			gpt_partitions_exist = 1;
-			return ret;
+			goto end;
 		}
 		partition_entries[partition_count].dtype = dtype;
 		partition_entries[partition_count].attribute_flag =
@@ -139,24 +151,24 @@ static unsigned int mmc_boot_read_mbr()
 			      partition_entries[partition_count].dtype);
 		partition_count++;
 		if (partition_count == NUM_PARTITIONS)
-			return ret;
+			goto end;
 	}
 
 	/* See if the last partition is EBR, if not, parsing is done */
 	if (dtype != MBR_EBR_TYPE) {
-		return ret;
+		goto end;
 	}
 
 	EBR_first_sec = dfirstsec;
 	EBR_current_sec = dfirstsec;
 
-	ret = mmc_read((EBR_first_sec * 512), (unsigned int *)buffer, BLOCK_SIZE);
+	ret = mmc_read((EBR_first_sec * block_size), (unsigned int *)buffer, block_size);
 	if (ret)
-		return ret;
+		goto end;
 
 	/* Loop to parse the EBR */
 	for (i = 0;; i++) {
-		ret = partition_verify_mbr_signature(BLOCK_SIZE, buffer);
+		ret = partition_verify_mbr_signature(block_size, buffer);
 		if (ret) {
 			ret = 0;
 			break;
@@ -175,7 +187,7 @@ static unsigned int mmc_boot_read_mbr()
 			      partition_entries[partition_count].dtype);
 		partition_count++;
 		if (partition_count == NUM_PARTITIONS)
-			return ret;
+			goto end;
 
 		dfirstsec =
 		    GET_LWORD_FROM_BYTE(&buffer
@@ -187,22 +199,25 @@ static unsigned int mmc_boot_read_mbr()
 		/* More EBR to follow - read in the next EBR sector */
 		dprintf(SPEW, "Reading EBR block from 0x%X\n", EBR_first_sec
 			+ dfirstsec);
-		ret = mmc_read(((EBR_first_sec + dfirstsec) * 512),(unsigned int *)buffer,
-						BLOCK_SIZE);
+		ret = mmc_read(((EBR_first_sec + dfirstsec) * block_size),(unsigned int *)buffer,
+						block_size);
 		if (ret)
-			return ret;
+			goto end;
 
 		EBR_current_sec = EBR_first_sec + dfirstsec;
 	}
+end:
+	if (buffer)
+		free(buffer);
+
 	return ret;
 }
 
 /*
  * Read GPT from MMC and fill partition table
  */
-static unsigned int mmc_boot_read_gpt()
+static unsigned int mmc_boot_read_gpt(uint32_t block_size)
 {
-	BUF_DMA_ALIGN(data, BLOCK_SIZE);
 	int ret = 0;
 	unsigned int header_size;
 	unsigned long long first_usable_lba;
@@ -210,13 +225,15 @@ static unsigned int mmc_boot_read_gpt()
 	unsigned long long card_size_sec;
 	unsigned int max_partition_count = 0;
 	unsigned int partition_entry_size;
-	unsigned int i = 0;	/* Counter for each 512 block */
-	unsigned int j = 0;	/* Counter for each 128 entry in the 512 block */
+	unsigned int i = 0;	/* Counter for each block */
+	unsigned int j = 0;	/* Counter for each entry in a block */
 	unsigned int n = 0;	/* Counter for UTF-16 -> 8 conversion */
 	unsigned char UTF16_name[MAX_GPT_NAME_SIZE];
 	/* LBA of first partition -- 1 Block after Protected MBR + 1 for PT */
 	unsigned long long partition_0;
 	uint64_t device_density;
+	uint8_t *data = NULL;
+	uint32_t part_entry_cnt = block_size / ENTRY_SIZE;
 
 	partition_count = 0;
 
@@ -224,12 +241,20 @@ static unsigned int mmc_boot_read_gpt()
 
 	device_density = mmc_get_device_capacity();
 
+	data = (uint8_t *)memalign(CACHE_LINE, ROUNDUP(block_size, CACHE_LINE));
+	if (!data)
+	{
+		dprintf(CRITICAL, "Failed to Allocate memory to read partition table\n");
+		ret = -1;
+		goto end;
+	}
+
 	/* Print out the GPT first */
-	ret = mmc_read(PROTECTIVE_MBR_SIZE, (unsigned int *)data, BLOCK_SIZE);
+	ret = mmc_read(block_size, (unsigned int *)data, block_size);
 	if (ret)
 	{
 		dprintf(CRITICAL, "GPT: Could not read primary gpt from mmc\n");
-		return ret;
+		goto end;
 	}
 
 	ret = partition_parse_gpt_header(data, &first_usable_lba,
@@ -241,17 +266,17 @@ static unsigned int mmc_boot_read_gpt()
 		/* Check the backup gpt */
 
 		/* Get size of MMC */
-		card_size_sec = (device_density) / BLOCK_SIZE;
+		card_size_sec = (device_density) / block_size;
 		ASSERT (card_size_sec > 0);
 
 		backup_header_lba = card_size_sec - 1;
-		ret = mmc_read((backup_header_lba * BLOCK_SIZE), (unsigned int *)data,
-						BLOCK_SIZE);
+		ret = mmc_read((backup_header_lba * block_size), (unsigned int *)data,
+						block_size);
 
 		if (ret) {
 			dprintf(CRITICAL,
 				"GPT: Could not read backup gpt from mmc\n");
-			return ret;
+			goto end;
 		}
 
 		ret = partition_parse_gpt_header(data, &first_usable_lba,
@@ -261,23 +286,23 @@ static unsigned int mmc_boot_read_gpt()
 		if (ret) {
 			dprintf(CRITICAL,
 				"GPT: Primary and backup signatures invalid\n");
-			return ret;
+			goto end;
 		}
 	}
 	partition_0 = GET_LLWORD_FROM_BYTE(&data[PARTITION_ENTRIES_OFFSET]);
 	/* Read GPT Entries */
-	for (i = 0; i < (ROUNDUP(max_partition_count, 4)) / 4; i++) {
+	for (i = 0; i < (ROUNDUP(max_partition_count, part_entry_cnt)) / part_entry_cnt; i++) {
 		ASSERT(partition_count < NUM_PARTITIONS);
-		ret = mmc_read((partition_0 * BLOCK_SIZE) + (i * BLOCK_SIZE),
-						(uint32_t *) data, BLOCK_SIZE);
+		ret = mmc_read((partition_0 * block_size) + (i * block_size),
+						(uint32_t *) data, block_size);
 
 		if (ret) {
 			dprintf(CRITICAL,
 				"GPT: mmc read card failed reading partition entries.\n");
-			return ret;
+			goto end;
 		}
 
-		for (j = 0; j < 4; j++) {
+		for (j = 0; j < part_entry_cnt; j++) {
 			memcpy(&(partition_entries[partition_count].type_guid),
 			       &data[(j * partition_entry_size)],
 			       PARTITION_TYPE_GUID_SIZE);
@@ -285,7 +310,7 @@ static unsigned int mmc_boot_read_gpt()
 			    0x00
 			    && partition_entries[partition_count].
 			    type_guid[1] == 0x00) {
-				i = ROUNDUP(max_partition_count, 4);
+				i = ROUNDUP(max_partition_count, part_entry_cnt);
 				break;
 			}
 			memcpy(&
@@ -325,10 +350,14 @@ static unsigned int mmc_boot_read_gpt()
 			partition_count++;
 		}
 	}
+end:
+	if (data)
+		free(data);
+
 	return ret;
 }
 
-static unsigned int write_mbr_in_blocks(unsigned size, unsigned char *mbrImage)
+static unsigned int write_mbr_in_blocks(uint32_t size, uint8_t *mbrImage, uint32_t block_size)
 {
 	unsigned int dtype;
 	unsigned int dfirstsec;
@@ -339,7 +368,7 @@ static unsigned int write_mbr_in_blocks(unsigned size, unsigned char *mbrImage)
 	unsigned int ret;
 
 	/* Write the first block */
-	ret = mmc_write(0, BLOCK_SIZE, (unsigned int *)mbrImage);
+	ret = mmc_write(0, block_size, (unsigned int *)mbrImage);
 	if (ret) {
 		dprintf(CRITICAL, "Failed to write mbr partition\n");
 		goto end;
@@ -362,7 +391,7 @@ static unsigned int write_mbr_in_blocks(unsigned size, unsigned char *mbrImage)
 		goto end;
 	}
 	/* EBR exists.  Write each EBR block to mmc */
-	ebrImage = mbrImage + BLOCK_SIZE;
+	ebrImage = mbrImage + block_size;
 	ebrSectorOffset =
 	    GET_LWORD_FROM_BYTE(&mbrImage
 				[idx + i * TABLE_ENTRY_SIZE +
@@ -372,10 +401,10 @@ static unsigned int write_mbr_in_blocks(unsigned size, unsigned char *mbrImage)
 	lastAddress = mbrImage + size;
 	while (ebrImage < lastAddress) {
 		dprintf(SPEW, "writing to 0x%X\n",
-			(ebrSectorOffset + dfirstsec) * BLOCK_SIZE);
+			(ebrSectorOffset + dfirstsec) * block_size);
 		ret =
-		    mmc_write((ebrSectorOffset + dfirstsec) * BLOCK_SIZE,
-			      BLOCK_SIZE, (unsigned int *)ebrImage);
+		    mmc_write((ebrSectorOffset + dfirstsec) * block_size,
+			      block_size, (unsigned int *)ebrImage);
 		if (ret) {
 			dprintf(CRITICAL,
 				"Failed to write EBR block to sector 0x%X\n",
@@ -385,7 +414,7 @@ static unsigned int write_mbr_in_blocks(unsigned size, unsigned char *mbrImage)
 		dfirstsec =
 		    GET_LWORD_FROM_BYTE(&ebrImage
 					[TABLE_ENTRY_1 + OFFSET_FIRST_SEC]);
-		ebrImage += BLOCK_SIZE;
+		ebrImage += block_size;
 	}
 	dprintf(INFO, "MBR written to mmc successfully\n");
  end:
@@ -393,7 +422,7 @@ static unsigned int write_mbr_in_blocks(unsigned size, unsigned char *mbrImage)
 }
 
 /* Write the MBR/EBR to the MMC. */
-static unsigned int write_mbr(unsigned size, unsigned char *mbrImage)
+static unsigned int write_mbr(uint32_t size, uint8_t *mbrImage, uint32_t block_size)
 {
 	unsigned int ret;
 
@@ -404,13 +433,13 @@ static unsigned int write_mbr(unsigned size, unsigned char *mbrImage)
 	}
 
 	/* Write the MBR/EBR to mmc */
-	ret = write_mbr_in_blocks(size, mbrImage);
+	ret = write_mbr_in_blocks(size, mbrImage, block_size);
 	if (ret) {
 		dprintf(CRITICAL, "Failed to write MBR block to mmc.\n");
 		goto end;
 	}
 	/* Re-read the MBR partition into mbr table */
-	ret = mmc_boot_read_mbr();
+	ret = mmc_boot_read_mbr(block_size);
 	if (ret) {
 		dprintf(CRITICAL, "Failed to re-read mbr partition.\n");
 		goto end;
@@ -475,9 +504,10 @@ unsigned int calculate_crc32(unsigned char *buffer, int len)
  * Write the GPT Partition Entry Array to the MMC.
  */
 static unsigned int
-write_gpt_partition_array(unsigned char *header,
-			  unsigned int partition_array_start,
-			  unsigned int array_size)
+write_gpt_partition_array(uint8_t *header,
+						  uint32_t partition_array_start,
+						  uint32_t array_size,
+						  uint32_t block_size)
 {
 	unsigned int ret = 1;
 	unsigned long long partition_entry_lba;
@@ -485,7 +515,7 @@ write_gpt_partition_array(unsigned char *header,
 
 	partition_entry_lba =
 	    GET_LLWORD_FROM_BYTE(&header[PARTITION_ENTRIES_OFFSET]);
-	partition_entry_array_start_location = partition_entry_lba * BLOCK_SIZE;
+	partition_entry_array_start_location = partition_entry_lba * block_size;
 
 	ret = mmc_write(partition_entry_array_start_location, array_size,
 			(unsigned int *)partition_array_start);
@@ -500,8 +530,8 @@ write_gpt_partition_array(unsigned char *header,
 }
 
 static void
-patch_gpt(unsigned char *gptImage, uint64_t density, unsigned int array_size,
-		  unsigned int max_part_count, unsigned int part_entry_size)
+patch_gpt(uint8_t *gptImage, uint64_t density, uint32_t array_size,
+		  uint32_t max_part_count, uint32_t part_entry_size, uint32_t block_size)
 {
 	unsigned int partition_entry_array_start;
 	unsigned char *primary_gpt_header;
@@ -513,14 +543,14 @@ patch_gpt(unsigned char *gptImage, uint64_t density, unsigned int array_size,
 	unsigned int crc_value;
 
 	/* Get size of MMC */
-	card_size_sec = (density) / 512;
+	card_size_sec = (density) / block_size;
 	/* Working around cap at 4GB */
 	if (card_size_sec == 0) {
 		card_size_sec = 4 * 1024 * 1024 * 2 - 1;
 	}
 
 	/* Patching primary header */
-	primary_gpt_header = (gptImage + PROTECTIVE_MBR_SIZE);
+	primary_gpt_header = (gptImage + block_size);
 	PUT_LONG_LONG(primary_gpt_header + BACKUP_HEADER_OFFSET,
 		      ((long long)(card_size_sec - 1)));
 	PUT_LONG_LONG(primary_gpt_header + LAST_USABLE_LBA_OFFSET,
@@ -528,7 +558,7 @@ patch_gpt(unsigned char *gptImage, uint64_t density, unsigned int array_size,
 
 	/* Patching backup GPT */
 	offset = (2 * array_size);
-	secondary_gpt_header = offset + BLOCK_SIZE + primary_gpt_header;
+	secondary_gpt_header = offset + block_size + primary_gpt_header;
 	PUT_LONG_LONG(secondary_gpt_header + PRIMARY_HEADER_OFFSET,
 		      ((long long)(card_size_sec - 1)));
 	PUT_LONG_LONG(secondary_gpt_header + LAST_USABLE_LBA_OFFSET,
@@ -537,7 +567,7 @@ patch_gpt(unsigned char *gptImage, uint64_t density, unsigned int array_size,
 		      ((long long)(card_size_sec - 33)));
 
 	/* Find last partition */
-	while (*(primary_gpt_header + BLOCK_SIZE + total_part * ENTRY_SIZE) !=
+	while (*(primary_gpt_header + block_size + total_part * ENTRY_SIZE) !=
 	       0) {
 		total_part++;
 	}
@@ -545,13 +575,13 @@ patch_gpt(unsigned char *gptImage, uint64_t density, unsigned int array_size,
 	/* Patching last partition */
 	last_part_offset =
 	    (total_part - 1) * ENTRY_SIZE + PARTITION_ENTRY_LAST_LBA;
-	PUT_LONG_LONG(primary_gpt_header + BLOCK_SIZE + last_part_offset,
+	PUT_LONG_LONG(primary_gpt_header + block_size + last_part_offset,
 		      (long long)(card_size_sec - 34));
-	PUT_LONG_LONG(primary_gpt_header + BLOCK_SIZE + last_part_offset +
+	PUT_LONG_LONG(primary_gpt_header + block_size + last_part_offset +
 		      array_size, (long long)(card_size_sec - 34));
 
 	/* Updating CRC of the Partition entry array in both headers */
-	partition_entry_array_start = primary_gpt_header + BLOCK_SIZE;
+	partition_entry_array_start = primary_gpt_header + block_size;
 	crc_value = calculate_crc32(partition_entry_array_start,
 				    max_part_count * part_entry_size);
 	PUT_LONG(primary_gpt_header + PARTITION_CRC_OFFSET, crc_value);
@@ -574,7 +604,7 @@ patch_gpt(unsigned char *gptImage, uint64_t density, unsigned int array_size,
 /*
  * Write the GPT to the MMC.
  */
-static unsigned int write_gpt(unsigned size, unsigned char *gptImage)
+static unsigned int write_gpt(uint32_t size, uint8_t *gptImage, uint32_t block_size)
 {
 	unsigned int ret = 1;
 	unsigned int header_size;
@@ -592,7 +622,7 @@ static unsigned int write_gpt(unsigned size, unsigned char *gptImage)
 	uint64_t device_density;
 
 	/* Verify that passed block has a valid GPT primary header */
-	primary_gpt_header = (gptImage + PROTECTIVE_MBR_SIZE);
+	primary_gpt_header = (gptImage + block_size);
 	ret = partition_parse_gpt_header(primary_gpt_header, &first_usable_lba,
 					 &partition_entry_size, &header_size,
 					 &max_partition_count);
@@ -612,7 +642,7 @@ static unsigned int write_gpt(unsigned size, unsigned char *gptImage)
 		partition_entry_array_size = MIN_PARTITION_ARRAY_SIZE;
 	}
 	offset = (2 * partition_entry_array_size);
-	secondary_gpt_header = offset + BLOCK_SIZE + primary_gpt_header;
+	secondary_gpt_header = offset + block_size + primary_gpt_header;
 	ret =
 	    partition_parse_gpt_header(secondary_gpt_header, &first_usable_lba,
 				       &partition_entry_size, &header_size,
@@ -625,7 +655,7 @@ static unsigned int write_gpt(unsigned size, unsigned char *gptImage)
 
 	/* Patching the primary and the backup header of the GPT table */
 	patch_gpt(gptImage, device_density, partition_entry_array_size,
-		  max_partition_count, partition_entry_size);
+		  max_partition_count, partition_entry_size, block_size);
 
 	/* Erasing the eMMC card before writing */
 	ret = mmc_erase_card(0x00000000, device_density);
@@ -635,14 +665,14 @@ static unsigned int write_gpt(unsigned size, unsigned char *gptImage)
 	}
 
 	/* Writing protective MBR */
-	ret = mmc_write(0, PROTECTIVE_MBR_SIZE, (unsigned int *)gptImage);
+	ret = mmc_write(0, block_size, (unsigned int *)gptImage);
 	if (ret) {
 		dprintf(CRITICAL, "Failed to write Protective MBR\n");
 		goto end;
 	}
 	/* Writing the primary GPT header */
-	primary_header_location = PROTECTIVE_MBR_SIZE;
-	ret = mmc_write(primary_header_location, BLOCK_SIZE,
+	primary_header_location = block_size;
+	ret = mmc_write(primary_header_location, block_size,
 			(unsigned int *)primary_gpt_header);
 	if (ret) {
 		dprintf(CRITICAL, "Failed to write GPT header\n");
@@ -652,8 +682,8 @@ static unsigned int write_gpt(unsigned size, unsigned char *gptImage)
 	/* Writing the backup GPT header */
 	backup_header_lba = GET_LLWORD_FROM_BYTE
 	    (&primary_gpt_header[BACKUP_HEADER_OFFSET]);
-	secondary_header_location = backup_header_lba * BLOCK_SIZE;
-	ret = mmc_write(secondary_header_location, BLOCK_SIZE,
+	secondary_header_location = backup_header_lba * block_size;
+	ret = mmc_write(secondary_header_location, block_size,
 			(unsigned int *)secondary_gpt_header);
 	if (ret) {
 		dprintf(CRITICAL, "Failed to write GPT backup header\n");
@@ -661,10 +691,10 @@ static unsigned int write_gpt(unsigned size, unsigned char *gptImage)
 	}
 
 	/* Writing the partition entries array for the primary header */
-	partition_entry_array_start = primary_gpt_header + BLOCK_SIZE;
+	partition_entry_array_start = primary_gpt_header + block_size;
 	ret = write_gpt_partition_array(primary_gpt_header,
 					partition_entry_array_start,
-					partition_entry_array_size);
+					partition_entry_array_size, block_size);
 	if (ret) {
 		dprintf(CRITICAL,
 			"GPT: Could not write GPT Partition entries array\n");
@@ -672,11 +702,11 @@ static unsigned int write_gpt(unsigned size, unsigned char *gptImage)
 	}
 
 	/*Writing the partition entries array for the backup header */
-	partition_entry_array_start = primary_gpt_header + BLOCK_SIZE +
+	partition_entry_array_start = primary_gpt_header + block_size +
 	    partition_entry_array_size;
 	ret = write_gpt_partition_array(secondary_gpt_header,
 					partition_entry_array_start,
-					partition_entry_array_size);
+					partition_entry_array_size, block_size);
 	if (ret) {
 		dprintf(CRITICAL,
 			"GPT: Could not write GPT Partition entries array\n");
@@ -685,7 +715,7 @@ static unsigned int write_gpt(unsigned size, unsigned char *gptImage)
 
 	/* Re-read the GPT partition table */
 	dprintf(INFO, "Re-reading the GPT Partition Table\n");
-	ret = mmc_boot_read_gpt();
+	ret = mmc_boot_read_gpt(block_size);
 	if (ret) {
 		dprintf(CRITICAL,
 			"GPT: Failure to re- read the GPT Partition table\n");
@@ -703,12 +733,14 @@ unsigned int write_partition(unsigned size, unsigned char *partition)
 {
 	unsigned int ret = 1;
 	unsigned int partition_type;
+	uint32_t block_size;
 
 	if (partition == 0) {
 		dprintf(CRITICAL, "NULL partition\n");
 		goto end;
 	}
 
+	block_size = mmc_get_device_blocksize();
 	ret = partition_get_type(size, partition, &partition_type);
 	if (ret)
 		goto end;
@@ -716,12 +748,12 @@ unsigned int write_partition(unsigned size, unsigned char *partition)
 	switch (partition_type) {
 	case PARTITION_TYPE_MBR:
 		dprintf(INFO, "Writing MBR partition\n");
-		ret = write_mbr(size, partition);
+		ret = write_mbr(size, partition, block_size);
 		break;
 
 	case PARTITION_TYPE_GPT:
 		dprintf(INFO, "Writing GPT partition\n");
-		ret = write_gpt(size, partition);
+		ret = write_gpt(size, partition, block_size);
 		dprintf(CRITICAL, "Re-Flash all the partitions\n");
 		break;
 
@@ -833,20 +865,28 @@ int partition_get_index(const char *name)
 /* Get size of the partition */
 unsigned long long partition_get_size(int index)
 {
+	uint32_t block_size;
+
+	block_size = mmc_get_device_blocksize();
+
 	if (index == INVALID_PTN)
 		return 0;
 	else {
-		return partition_entries[index].size * BLOCK_SIZE;
+		return partition_entries[index].size * block_size;
 	}
 }
 
 /* Get offset of the partition */
 unsigned long long partition_get_offset(int index)
 {
+	uint32_t block_size;
+
+	block_size = mmc_get_device_blocksize();
+
 	if (index == INVALID_PTN)
 		return 0;
 	else {
-		return partition_entries[index].first_lba * BLOCK_SIZE;
+		return partition_entries[index].first_lba * block_size;
 	}
 }
 

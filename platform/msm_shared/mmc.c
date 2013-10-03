@@ -2163,6 +2163,9 @@ mmc_boot_init_card(struct mmc_host *host, struct mmc_card *card)
                 Initialization not completed\n", mmc_return);
 		return MMC_BOOT_E_CARD_BUSY;
 	}
+
+	card->block_size = BLOCK_SIZE;
+
 	return MMC_BOOT_E_SUCCESS;
 }
 
@@ -3406,6 +3409,12 @@ uint8_t card_supports_hs200_mode()
 uint64_t mmc_get_device_capacity()
 {
 	return mmc_card.capacity;
+}
+
+/* Return the block size of the mmc device */
+uint32_t mmc_get_device_blocksize()
+{
+	return mmc_card.block_size;
 }
 
 void mmc_put_card_to_sleep(void)
