@@ -37,6 +37,8 @@
 #define MMC_SLOT            0
 #endif
 
+#define BOARD_KERNEL_PAGESIZE                2048
+
 extern unsigned int mmc_boot_mci_base;
 
 #define MMC_BOOT_MCI_REG(offset)          ((mmc_boot_mci_base) + offset)
