@@ -213,6 +213,27 @@ int dme_read_string_desc(struct ufs_dev *dev, uint8_t index, struct ufs_string_d
 	return -UFS_FAILURE;
 }
 
+static uint32_t dme_parse_serial_no(struct ufs_string_desc *desc)
+{
+	uint32_t serial_no=0;
+	uint16_t *ptr;
+	int index=0,len=0;
+
+	if(desc->desc_len <= 0)
+		return -UFS_FAILURE;
+
+	ptr = desc->serial_num;
+	len = (desc->desc_len-2)/2;
+
+	for(index=0; index<len; index++)
+	{
+		serial_no += *ptr;
+		ptr++;
+	}
+
+	return serial_no;
+}
+
 int dme_read_device_desc(struct ufs_dev *dev)
 {
 	STACKBUF_DMA_ALIGN(dev_desc, sizeof(struct ufs_dev_desc));
@@ -242,7 +263,7 @@ int dme_read_device_desc(struct ufs_dev *dev)
 	/* Flush buffer. */
 	arch_invalidate_cache_range((addr_t) str_desc, sizeof(struct ufs_string_desc));
 
-	dev->serial_num = 0;
+	dev->serial_num = dme_parse_serial_no(str_desc);
 	
 	return UFS_SUCCESS;
 }
