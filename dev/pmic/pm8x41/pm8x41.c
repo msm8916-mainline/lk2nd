@@ -347,6 +347,16 @@ int pm8x41_ldo_control(struct pm8x41_ldo *ldo, uint8_t enable)
 	return 0;
 }
 
+/*
+ * lpg channel register write:
+ */
+void pm8x41_lpg_write(uint8_t chan, uint8_t off, uint8_t val)
+{
+	uint32_t lpg_base = LPG_N_PERIPHERAL_BASE(chan);
+
+	REG_WRITE(lpg_base + off, val);
+}
+
 uint8_t pm8x41_get_pmic_rev()
 {
 	return REG_READ(REVID_REVISION4);
