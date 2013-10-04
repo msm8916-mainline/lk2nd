@@ -45,6 +45,9 @@
 #define MODE_GPIO_STATE_ENABLE 1
 
 #define MODE_GPIO_STATE_DISABLE 2
+#define GPIO_STATE_LOW 0
+#define GPIO_STATE_HIGH 2
+#define RESET_GPIO_SEQ_LEN 3
 
 int target_backlight_ctrl(uint8_t enable)
 {
@@ -86,6 +89,7 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 						struct msm_panel_info *pinfo)
 {
+	uint8_t i = 0;
 	dprintf(SPEW, "msm8610_mdss_mipi_panel_reset, enable = %d\n", enable);
 
 	if (enable) {
@@ -98,12 +102,13 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 				mode_gpio.pin_strength, mode_gpio.pin_state);
 
 		/* reset */
-		gpio_set(reset_gpio.pin_id, resetseq->pin_state[0]);
-		mdelay(resetseq->sleep[0]);
-		gpio_set(reset_gpio.pin_id, resetseq->pin_state[1]);
-		mdelay(resetseq->sleep[1]);
-		gpio_set(reset_gpio.pin_id, resetseq->pin_state[2]);
-		mdelay(resetseq->sleep[2]);
+		for (i = 0; i < RESET_GPIO_SEQ_LEN; i++) {
+			if (resetseq->pin_state[i] == GPIO_STATE_LOW)
+				gpio_set(reset_gpio.pin_id, GPIO_STATE_LOW);
+			else
+				gpio_set(reset_gpio.pin_id, GPIO_STATE_HIGH);
+			mdelay(resetseq->sleep[i]);
+		}
 
 		if (pinfo->mipi.mode_gpio_state == MODE_GPIO_STATE_ENABLE)
 			gpio_set(mode_gpio.pin_id, 2);
