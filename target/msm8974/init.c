@@ -702,3 +702,21 @@ void target_usb_stop(void)
 	if (target_needs_vbus_mimic())
 		ulpi_write(ULPI_MISC_A_VBUSVLDEXTSEL | ULPI_MISC_A_VBUSVLDEXT, ULPI_MISC_A_CLEAR);
 }
+
+/* identify the usb controller to be used for the target */
+const char * target_usb_controller()
+{
+	switch(board_platform_id())
+	{
+		/* use dwc controller for PRO chips (with some exceptions) */
+		case MSM8974AA:
+		case MSM8974AB:
+		case MSM8974AC:
+			/* exceptions based on hardware id */
+			if (board_hardware_id() != HW_PLATFORM_DRAGON)
+				return "dwc";
+		/* fall through to default "ci" for anything that did'nt select "dwc" */
+		default:
+			return "ci";
+	}
+}
