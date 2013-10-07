@@ -646,10 +646,32 @@ void shutdown_device()
 
 static void set_sdc_power_ctrl()
 {
+	uint8_t tlmm_hdrv_clk = 0;
+	uint32_t platform_id = 0;
+
+	platform_id = board_platform_id();
+
+	switch(platform_id)
+	{
+		case MSM8274AA:
+		case MSM8274AB:
+		case MSM8674AA:
+		case MSM8674AB:
+		case MSM8974AA:
+		case MSM8974AB:
+			if (board_hardware_id() == HW_PLATFORM_MTP)
+				tlmm_hdrv_clk = TLMM_CUR_VAL_10MA;
+			else
+				tlmm_hdrv_clk = TLMM_CUR_VAL_16MA;
+			break;
+		default:
+			tlmm_hdrv_clk = TLMM_CUR_VAL_16MA;
+	};
+
 	/* Drive strength configs for sdc pins */
 	struct tlmm_cfgs sdc1_hdrv_cfg[] =
 	{
-		{ SDC1_CLK_HDRV_CTL_OFF,  TLMM_CUR_VAL_16MA, TLMM_HDRV_MASK },
+		{ SDC1_CLK_HDRV_CTL_OFF,  tlmm_hdrv_clk, TLMM_HDRV_MASK },
 		{ SDC1_CMD_HDRV_CTL_OFF,  TLMM_CUR_VAL_10MA, TLMM_HDRV_MASK },
 		{ SDC1_DATA_HDRV_CTL_OFF, TLMM_CUR_VAL_10MA, TLMM_HDRV_MASK },
 	};
