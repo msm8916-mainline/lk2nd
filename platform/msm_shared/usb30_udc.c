@@ -227,7 +227,7 @@ static void usb30_init(void)
 }
 
 /* udc_init: creates and registers various usb descriptor */
-int udc_init(struct udc_device *dev_info)
+int usb30_udc_init(struct udc_device *dev_info)
 {
 	/* create and initialize udc instance */
 	udc_dev = (udc_t*) malloc(sizeof(udc_t));
@@ -265,7 +265,7 @@ int udc_init(struct udc_device *dev_info)
 /* application registers its gadget by calling this func.
  * gadget == interface descriptor
  */
-int udc_register_gadget(struct udc_gadget *gadget)
+int usb30_udc_register_gadget(struct udc_gadget *gadget)
 {
 	ASSERT(gadget);
 
@@ -287,7 +287,7 @@ int udc_register_gadget(struct udc_gadget *gadget)
 }
 
 /* udc_start: */
-int udc_start(void)
+int usb30_udc_start(void)
 {
 	/* 19. run
 	 * enable device to receive SOF packets and
@@ -617,7 +617,7 @@ void udc_request_complete(void *context, uint32_t actual, int status)
 }
 
 /* App interface to queue in data transfer requests for control and data ep */
-int udc_request_queue(struct udc_endpoint *ept, struct udc_request *req)
+int usb30_udc_request_queue(struct udc_endpoint *ept, struct udc_request *req)
 {
 	int ret;
     dwc_dev_t *dwc_dev = udc_dev->dwc;
@@ -716,7 +716,7 @@ static struct udc_endpoint *_udc_endpoint_alloc(uint8_t num,
 }
 
 /* Called to create non-control in/out End Point structures by the APP */
-struct udc_endpoint *udc_endpoint_alloc(unsigned type, unsigned maxpkt)
+struct udc_endpoint *usb30_udc_endpoint_alloc(unsigned type, unsigned maxpkt)
 {
 	struct udc_endpoint *ept;
 	uint8_t in;
@@ -1050,7 +1050,7 @@ static void udc_descriptor_register(udc_t *udc, struct udc_descriptor *desc)
 }
 
 
-struct udc_request *udc_request_alloc(void)
+struct udc_request *usb30_udc_request_alloc(void)
 {
 	struct udc_request *req;
 
@@ -1065,17 +1065,17 @@ struct udc_request *udc_request_alloc(void)
 	return req;
 }
 
-void udc_request_free(struct udc_request *req)
+void usb30_udc_request_free(struct udc_request *req)
 {
 	free(req);
 }
 
-void udc_endpoint_free(struct udc_endpoint *ept)
+void usb30_udc_endpoint_free(struct udc_endpoint *ept)
 {
 	/* TODO */
 }
 
-int udc_stop(void)
+int usb30_udc_stop(void)
 {
 	dwc_device_run(udc_dev->dwc, 0);
 
