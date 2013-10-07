@@ -155,3 +155,9 @@ __WEAK uint32_t target_get_boot_device()
 {
 	return 0;
 }
+
+/* default usb controller to be used. */
+__WEAK const char * target_usb_controller()
+{
+	return "ci";
+}
