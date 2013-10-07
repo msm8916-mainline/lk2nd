@@ -1557,7 +1557,7 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 #endif
 
 	fastboot_okay("");
-	udc_stop();
+	fastboot_stop();
 
 	boot_linux((void*) hdr->kernel_addr, (void*) hdr->tags_addr,
 		   (const char*) hdr->cmdline, board_machtype(),
@@ -1957,7 +1957,7 @@ void cmd_flash(const char *arg, void *data, unsigned sz)
 void cmd_continue(const char *arg, void *data, unsigned sz)
 {
 	fastboot_okay("");
-	udc_stop();
+	fastboot_stop();
 	if (target_is_emmc_boot())
 	{
 		boot_linux_from_mmc();
