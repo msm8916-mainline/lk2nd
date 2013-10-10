@@ -38,6 +38,28 @@
 #include <dev/udc.h>
 #include "fastboot.h"
 
+#ifdef USB30_SUPPORT
+#include <usb30_udc.h>
+#endif
+
+typedef struct
+{
+	int (*udc_init)(struct udc_device *devinfo);
+	int (*udc_register_gadget)(struct udc_gadget *gadget);
+	int (*udc_start)(void);
+	int (*udc_stop)(void);
+
+	struct udc_endpoint *(*udc_endpoint_alloc)(unsigned type, unsigned maxpkt);
+	void (*udc_endpoint_free)(struct udc_endpoint *ept);
+	struct udc_request *(*udc_request_alloc)(void);
+	void (*udc_request_free)(struct udc_request *req);
+
+	int (*usb_read)(void *buf, unsigned len);
+	int (*usb_write)(void *buf, unsigned len);
+} usb_controller_interface_t;
+
+usb_controller_interface_t usb_if;
+
 #define MAX_USBFS_BULK_SIZE (32 * 1024)
 
 void boot_linux(void *bootimg, unsigned sz);
@@ -160,7 +182,7 @@ static void req_complete(struct udc_request *req, unsigned actual, int status)
 }
 
 #ifdef USB30_SUPPORT
-static int usb_read(void *buf, unsigned len)
+static int usb30_usb_read(void *buf, unsigned len)
 {
 	int r;
 	struct udc_request req;
@@ -177,7 +199,7 @@ static int usb_read(void *buf, unsigned len)
 	req.length   = len;
 	req.complete = req_complete;
 
-	r = udc_request_queue(out, &req);
+	r = usb30_udc_request_queue(out, &req);
 	if (r < 0)
 	{
 		dprintf(CRITICAL, "usb_read() queue failed. r = %d\n", r);
@@ -208,7 +230,7 @@ oops:
 	return -1;
 }
 
-static int usb_write(void *buf, unsigned len)
+static int usb30_usb_write(void *buf, unsigned len)
 {
 	int r;
 	struct udc_request req;
@@ -228,7 +250,7 @@ static int usb_write(void *buf, unsigned len)
 	req.length   = len;
 	req.complete = req_complete;
 
-	r = udc_request_queue(in, &req);
+	r = usb30_udc_request_queue(in, &req);
 	if (r < 0) {
 		dprintf(CRITICAL, "usb_write() queue failed. r = %d\n", r);
 		goto oops;
@@ -251,9 +273,9 @@ oops:
 	dprintf(CRITICAL, "usb_write(): DONE: ERROR: len = %d\n", len);
 	return -1;
 }
+#endif
 
-#else
-static int usb_read(void *_buf, unsigned len)
+static int hsusb_usb_read(void *_buf, unsigned len)
 {
 	int r;
 	unsigned xfer;
@@ -299,7 +321,7 @@ oops:
 	return -1;
 }
 
-static int usb_write(void *buf, unsigned len)
+static int hsusb_usb_write(void *buf, unsigned len)
 {
 	int r;
 
@@ -325,7 +347,6 @@ oops:
 	fastboot_state = STATE_ERROR;
 	return -1;
 }
-#endif
 
 void fastboot_ack(const char *code, const char *reason)
 {
@@ -340,7 +361,7 @@ void fastboot_ack(const char *code, const char *reason)
 	snprintf(response, MAX_RSP_SIZE, "%s%s", code, reason);
 	fastboot_state = STATE_COMPLETE;
 
-	usb_write(response, strlen(response));
+	usb_if.usb_write(response, strlen(response));
 
 }
 
@@ -356,7 +377,7 @@ void fastboot_info(const char *reason)
 
 	snprintf(response, MAX_RSP_SIZE, "INFO%s", reason);
 
-	usb_write(response, strlen(response));
+	usb_if.usb_write(response, strlen(response));
 }
 
 void fastboot_fail(const char *reason)
@@ -395,10 +416,10 @@ static void cmd_download(const char *arg, void *data, unsigned sz)
 	}
 
 	snprintf(response, MAX_RSP_SIZE, "DATA%08x", len);
-	if (usb_write(response, strlen(response)) < 0)
+	if (usb_if.usb_write(response, strlen(response)) < 0)
 		return;
 
-	r = usb_read(download_base, len);
+	r = usb_if.usb_read(download_base, len);
 	if ((r < 0) || ((unsigned) r != len)) {
 		fastboot_state = STATE_ERROR;
 		return;
@@ -429,7 +450,7 @@ again:
 		memset(buffer, 0, MAX_RSP_SIZE);
 		arch_clean_invalidate_cache_range((addr_t) buffer, MAX_RSP_SIZE);
 
-		r = usb_read(buffer, MAX_RSP_SIZE);
+		r = usb_if.usb_read(buffer, MAX_RSP_SIZE);
 		if (r < 0) break;
 		buffer[r] = 0;
 		dprintf(INFO,"fastboot: %s\n", buffer);
@@ -486,28 +507,64 @@ int fastboot_init(void *base, unsigned size)
 	dprintf(SPEW,"serial number: %s\n",sn_buf);
 	surf_udc_device.serialno = sn_buf;
 
+	if(!strcmp(target_usb_controller(), "dwc"))
+	{
+#ifdef USB30_SUPPORT
+		/* initialize udc functions to use dwc controller */
+		usb_if.udc_init            = usb30_udc_init;
+		usb_if.udc_register_gadget = usb30_udc_register_gadget;
+		usb_if.udc_start           = usb30_udc_start;
+		usb_if.udc_stop            = usb30_udc_stop;
+
+		usb_if.udc_endpoint_alloc  = usb30_udc_endpoint_alloc;
+		usb_if.udc_request_alloc   = usb30_udc_request_alloc;
+		usb_if.udc_request_free    = usb30_udc_request_free;
+
+		usb_if.usb_read            = usb30_usb_read;
+		usb_if.usb_write           = usb30_usb_write;
+#else
+		dprintf(CRITICAL, "USB30 needs to be enabled for this target.\n");
+		ASSERT(0);
+#endif
+	}
+	else
+	{
+		/* initialize udc functions to use the default chipidea controller */
+		usb_if.udc_init            = udc_init;
+		usb_if.udc_register_gadget = udc_register_gadget;
+		usb_if.udc_start           = udc_start;
+		usb_if.udc_stop            = udc_stop;
+
+		usb_if.udc_endpoint_alloc  = udc_endpoint_alloc;
+		usb_if.udc_request_alloc   = udc_request_alloc;
+		usb_if.udc_request_free    = udc_request_free;
+
+		usb_if.usb_read            = hsusb_usb_read;
+		usb_if.usb_write           = hsusb_usb_write;
+	}
+
 	/* register udc device */
-	udc_init(&surf_udc_device);
+	usb_if.udc_init(&surf_udc_device);
 
 	event_init(&usb_online, 0, EVENT_FLAG_AUTOUNSIGNAL);
 	event_init(&txn_done, 0, EVENT_FLAG_AUTOUNSIGNAL);
 
-	in = udc_endpoint_alloc(UDC_TYPE_BULK_IN, 512);
+	in = usb_if.udc_endpoint_alloc(UDC_TYPE_BULK_IN, 512);
 	if (!in)
 		goto fail_alloc_in;
-	out = udc_endpoint_alloc(UDC_TYPE_BULK_OUT, 512);
+	out = usb_if.udc_endpoint_alloc(UDC_TYPE_BULK_OUT, 512);
 	if (!out)
 		goto fail_alloc_out;
 
 	fastboot_endpoints[0] = in;
 	fastboot_endpoints[1] = out;
 
-	req = udc_request_alloc();
+	req = usb_if.udc_request_alloc();
 	if (!req)
 		goto fail_alloc_req;
 
 	/* register gadget */
-	if (udc_register_gadget(&fastboot_gadget))
+	if (usb_if.udc_register_gadget(&fastboot_gadget))
 		goto fail_udc_register;
 
 	fastboot_register("getvar:", cmd_getvar);
@@ -521,16 +578,21 @@ int fastboot_init(void *base, unsigned size)
 	}
 	thread_resume(thr);
 
-	udc_start();
+	usb_if.udc_start();
 
 	return 0;
 
 fail_udc_register:
-	udc_request_free(req);
+	usb_if.udc_request_free(req);
 fail_alloc_req:
-	udc_endpoint_free(out);
+	usb_if.udc_endpoint_free(out);
 fail_alloc_out:
-	udc_endpoint_free(in);
+	usb_if.udc_endpoint_free(in);
 fail_alloc_in:
 	return -1;
+}
+
+void fastboot_stop(void)
+{
+	usb_if.udc_stop();
 }
