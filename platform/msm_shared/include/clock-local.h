@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -130,7 +130,7 @@ struct rcg_clk {
 	struct bank_masks *const bank_masks;
 
 	void   (*set_rate)(struct rcg_clk *, struct clk_freq_tbl *);
-	struct clk_freq_tbl *const freq_tbl;
+	struct clk_freq_tbl *freq_tbl;
 	struct clk_freq_tbl *current_freq;
 
 	struct clk *depends;
