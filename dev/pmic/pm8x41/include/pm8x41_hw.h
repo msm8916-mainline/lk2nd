@@ -37,6 +37,12 @@
 
 #define REVID_REVISION4                       0x103
 
+/* LPG Registers */
+#define LPG_SLAVE_ID                  	0x10000	/* slave_id == 1 */
+#define LPG_PERIPHERAL_BASE		(0x0B100 | LPG_SLAVE_ID)
+/* Peripheral base address for LPG channel */
+#define LPG_N_PERIPHERAL_BASE(x)            (LPG_PERIPHERAL_BASE + ((x) - 1) * 0x100)
+
 /* GPIO Registers */
 #define GPIO_PERIPHERAL_BASE                  0xC000
 /* Peripheral base address for GPIO_X */
