@@ -234,12 +234,31 @@ static int msm8974_mdss_edp_panel_clock(int enable)
 	return 0;
 }
 
+static void msm8974_lpg_backlight_enable(void)
+{
+	/* lpg channel 8 */
+	pm8x41_lpg_write(8, 0x41, 0x33); /* LPG_PWM_SIZE_CLK, */
+	pm8x41_lpg_write(8, 0x42, 0x01); /* LPG_PWM_FREQ_PREDIV */
+	pm8x41_lpg_write(8, 0x43, 0x20); /* LPG_PWM_TYPE_CONFIG */
+	pm8x41_lpg_write(8, 0x44, 0xb2); /* LPG_VALUE_LSB */
+	pm8x41_lpg_write(8, 0x45, 0x01);  /* LPG_VALUE_MSB */
+	pm8x41_lpg_write(8, 0x46, 0xe4); /* LPG_ENABLE_CONTROL */
+}
+
+static void msm8974_lpg_backlight_disable(void)
+{
+	pm8x41_lpg_write(8, 0x46, 0x00); /* LPG_ENABLE_CONTROL */
+}
+
 static int msm8974_edp_panel_power(int enable)
 {
 	struct pm8x41_gpio gpio36_param = {
 		.direction = PM_GPIO_DIR_OUT,
+		.function = PM_GPIO_FUNC_2,
+		.vin_sel = 2,	/* VIN_2 */
+		.pull = PM_GPIO_PULL_UP_1_5 | PM_GPIO_PULLDOWN_10,
 		.output_buffer = PM_GPIO_OUT_CMOS,
-		.out_strength = PM_GPIO_OUT_DRIVE_MED,
+		.out_strength = PM_GPIO_OUT_DRIVE_HIGH,
 	};
 
 	struct pm8x41_ldo ldo12 = LDO(PM8x41_LDO12, PLDO_TYPE);
@@ -248,7 +267,7 @@ static int msm8974_edp_panel_power(int enable)
 		/* Enable backlight */
 		dprintf(SPEW, "Enable Backlight\n");
 		pm8x41_gpio_config(36, &gpio36_param);
-		pm8x41_gpio_set(36, PM_GPIO_FUNC_HIGH);
+		msm8974_lpg_backlight_enable();
 		dprintf(SPEW, "Enable Backlight Done\n");
 
 		/* Turn on LDO12 for edp vdda */
@@ -266,7 +285,7 @@ static int msm8974_edp_panel_power(int enable)
 	} else {
 		/* Keep LDO12 on, otherwise kernel will not boot */
 		gpio_set(58, 0);
-		pm8x41_gpio_set(36, PM_GPIO_FUNC_LOW);
+		msm8974_lpg_backlight_disable();
 	}
 
 	return 0;
