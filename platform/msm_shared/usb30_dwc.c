@@ -150,6 +150,59 @@ void dwc_debug_lookup_init(void)
 	cmd_lookup[DEPCMD_CMD_START_NEW_CONF]  = "DEPCMD_CMD_START_NEW_CONF ";
 }
 
+static void dwc_print_ep_event_details(dwc_dev_t *dev, uint32_t *event)
+{
+	dwc_event_ep_event_id_t event_id   = DWC_EVENT_EP_EVENT_ID(*event);
+	uint8_t  ep_phy_num                = DWC_EVENT_EP_EVENT_EP_NUM(*event);
+	uint8_t  event_ctrl_stage          = DWC_EVENT_EP_EVENT_CTRL_STAGE(*event);
+	uint8_t  event_status              = DWC_EVENT_EP_EVENT_STATUS(*event);
+	uint8_t  xfer_res_idx              = DWC_EVENT_EP_EVENT_XFER_RES_IDX(*event);
+	uint16_t event_param               = DWC_EVENT_EP_EVENT_PARAM(*event);
+	dwc_dep_cmd_id_t cmd               = DWC_EVENT_EP_EVENT_CMD_TYPE(*event);
+
+	ERR("\n\n");
+	ERR("EP event (0x%x) details\n", *event);
+	ERR("event_id         = %d, %s\n", event_id, event_lookup_ep[event_id]);
+	ERR("ep_phy_num       = %d\n", ep_phy_num);
+	ERR("event_ctrl_stage = %d, %s\n", event_ctrl_stage, dev_ctrl_state_lookup[event_ctrl_stage]);
+	ERR("event_status     = %d\n", event_status);
+	ERR("xfer_res_idx     = %d\n", xfer_res_idx);
+	ERR("event_param      = %d\n", event_param);
+	ERR("event_cmd_type   = %d, %s\n", cmd, cmd_lookup[cmd]);
+	ERR("\n");
+}
+
+static void dwc_print_ep_details(dwc_dev_t *dev, uint8_t ep_index)
+{
+	ERR("\n");
+	ERR("EP ( index = %d) status: \n", ep_index);
+	ERR("phy_num      = %d \n", dev->ep[ep_index].phy_num);
+	ERR("usb ep num   = %d \n", dev->ep[ep_index].number);
+	ERR("dir          = %d \n", dev->ep[ep_index].dir);
+	ERR("type         = %d \n", dev->ep[ep_index].type);
+	ERR("resource_idx = %d \n", dev->ep[ep_index].resource_idx);
+	ERR("trb_queued   = %d \n", dev->ep[ep_index].trb_queued);
+	ERR("bytes_queued = %d \n", dev->ep[ep_index].bytes_queued);
+	ERR("state        = %d, %s \n", dev->ep[ep_index].state, ep_state_lookup[dev->ep[ep_index].state]);
+	ERR("ep req len   = %d trbctl = %d\n", dev->ep[ep_index].req.len, dev->ep[ep_index].req.trbctl);
+	ERR("\n");
+}
+
+static void dwc_print_current_state(dwc_dev_t *dev)
+{
+	uint8_t i = 0;
+
+	ERR("\n");
+	ERR("dwc core = 0x%x\n", dev->core_id);
+	ERR("ctrl_state = %d, %s\n", dev->ctrl_state, dev_ctrl_state_lookup[dev->ctrl_state]);
+
+	for (i = 0; i < DWC_MAX_NUM_OF_EP; i++)
+	{
+		dwc_print_ep_details(dev, i);
+	}
+
+	ERR("\n");
+}
 
 /******************************** DWC global **********************************/
 /* Initialize DWC driver. */
@@ -184,10 +237,8 @@ dwc_dev_t* dwc_init(dwc_config_t *config)
 	/* register for interrupt */
 	register_int_handler(USB30_EE1_IRQ, dwc_irq_handler_ee1, dev);
 
-#ifdef DEBUG_USB
 	/* note: only for debug */
 	dwc_debug_lookup_init();
-#endif
 
 	return dev;
 }
@@ -279,6 +330,10 @@ void dwc_event_handler_device(dwc_dev_t *dev, uint32_t *event)
 		break;
 
 	default:
+		ERR("\nUnhandled DEVICE_EVENT: %s in %s \n",
+			event_lookup_device[event_id],
+			dev_ctrl_state_lookup[dev->ctrl_state]);
+		dwc_print_current_state(dev);
 		ASSERT(0);
 	}
 }
@@ -488,6 +543,9 @@ void dwc_event_handler_ep_ctrl(dwc_dev_t *dev, uint32_t *event)
 		break;
 
 	default:
+		ERR("Invalid ctrl_state = %d\n", dev->ctrl_state);
+		dwc_print_ep_event_details(dev, event);
+		dwc_print_current_state(dev);
 		ASSERT(0);
 	}
 
@@ -677,10 +735,13 @@ static void dwc_event_handler_ep_ctrl_state_setup(dwc_dev_t *dev,
 	case DWC_EVENT_EP_XFER_IN_PROGRESS:
 	default:
 		/* event is not expected in this state */
-		ERR("\n unhandled event_id = %d \n", event_id);
+		ERR("\n Unexpected EP event.");
+		dwc_print_ep_event_details(dev, event);
+		dwc_print_current_state(dev);
 		ASSERT(0);
 	}
 }
+
 
 /* handle all events occurring in Control-Data state */
 static void dwc_event_handler_ep_ctrl_state_data(dwc_dev_t *dev,
@@ -789,6 +850,9 @@ static void dwc_event_handler_ep_ctrl_state_data(dwc_dev_t *dev,
 	case DWC_EVENT_EP_XFER_IN_PROGRESS:
 	default:
 		 /* event is not expected in this state */
+		ERR("\n Unexpected EP event.");
+		dwc_print_ep_event_details(dev, event);
+		dwc_print_current_state(dev);
 		ASSERT(0);
 	}
 }
@@ -842,6 +906,9 @@ static void dwc_event_handler_ep_ctrl_state_wait_for_host_2(dwc_dev_t *dev,
 	case DWC_EVENT_EP_XFER_COMPLETE:
 	default:
 		/* event not expected in this state. */
+		ERR("\n Unexpected EP event.");
+		dwc_print_ep_event_details(dev, event);
+		dwc_print_current_state(dev);
 		ASSERT(0);
 	}
 }
@@ -894,6 +961,9 @@ static void dwc_event_handler_ep_ctrl_state_wait_for_host_3(dwc_dev_t *dev,
 	case DWC_EVENT_EP_XFER_COMPLETE:
 	default:
 		/* event is not expected in this state */
+		ERR("\n Unexpected EP event.");
+		dwc_print_ep_event_details(dev, event);
+		dwc_print_current_state(dev);
 		ASSERT(0);
 	}
 }
@@ -965,6 +1035,9 @@ static void dwc_event_handler_ep_ctrl_state_status_2(dwc_dev_t *dev,
 	case DWC_EVENT_EP_XFER_IN_PROGRESS:
 	default:
 		/* event is not expected in this state */
+		ERR("\n Unexpected EP event.");
+		dwc_print_ep_event_details(dev, event);
+		dwc_print_current_state(dev);
 		ASSERT(0);
 	}
 }
@@ -1041,6 +1114,9 @@ static void dwc_event_handler_ep_ctrl_state_status_3(dwc_dev_t *dev,
 	case DWC_EVENT_EP_XFER_IN_PROGRESS:
 	default:
 		/* event is not expected in this state */
+		ERR("\n Unexpected EP event.");
+		dwc_print_ep_event_details(dev, event);
+		dwc_print_current_state(dev);
 		ASSERT(0);
 	}
 }
@@ -1113,6 +1189,9 @@ static void dwc_event_handler_ep_bulk_state_inactive(dwc_dev_t *dev,
 	case DWC_EVENT_EP_XFER_COMPLETE:
 	default:
 		/* event is not expected in this state */
+		ERR("\n Unexpected EP event.");
+		dwc_print_ep_event_details(dev, event);
+		dwc_print_current_state(dev);
 		ASSERT(0);
 	}
 }
@@ -1160,6 +1239,9 @@ static void dwc_event_handler_ep_bulk_state_start_transfer(dwc_dev_t *dev,
 		}
 		break;
 	default:
+		ERR("\n Unexpected EP event.");
+		dwc_print_ep_event_details(dev, event);
+		dwc_print_current_state(dev);
 		ASSERT(0);
 	}
 }
@@ -1237,6 +1319,9 @@ static void dwc_event_handler_ep_bulk_state_xfer_in_prog(dwc_dev_t *dev,
 		}
 		break;
 	default:
+		ERR("\n Unexpected EP event.");
+		dwc_print_ep_event_details(dev, event);
+		dwc_print_current_state(dev);
 		ASSERT(0);
 	}
 }
@@ -1281,7 +1366,9 @@ void dwc_event_handler_ep_bulk(dwc_dev_t *dev, uint32_t *event)
 		}
 		break;
 	default:
-		DBG("\n EP state is invalid. Asserting...\n");
+		ERR("\n EP state is invalid. Asserting...\n");
+		dwc_print_ep_event_details(dev, event);
+		dwc_print_current_state(dev);
 		ASSERT(0);
 	}
 
@@ -1774,8 +1861,9 @@ static int dwc_request_queue(dwc_dev_t     *dev,
 	}
 	else
 	{
-		DBG("\n Attempting START_TRANSFER in invalid state: %s. .......\n",
+		ERR("\n Attempting START_TRANSFER in invalid state: %s. .......\n",
 			ep_state_lookup[ep->state]);
+		dwc_print_current_state(dev);
 		ASSERT(0);
 	}
 
