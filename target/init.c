@@ -161,3 +161,8 @@ __WEAK const char * target_usb_controller()
 {
 	return "ci";
 }
+
+/* override for target specific usb phy reset. */
+__WEAK void target_usb_phy_reset(void)
+{
+}

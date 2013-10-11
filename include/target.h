@@ -53,6 +53,10 @@ void *target_mmc_device();
 bool target_display_panel_node(char *pbuf, uint16_t buf_size);
 uint32_t target_get_boot_device();
 
+const char * target_usb_controller();
+void target_usb_phy_reset(void);
+void target_usb_phy_mux_configure(void);
+
 /* Boot device */
 enum boot_device
 {
