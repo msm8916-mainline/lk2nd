@@ -281,6 +281,54 @@ static struct branch_clk gcc_sdcc1_ahb_clk =
 	},
 };
 
+/* USB 3.0 Clocks */
+static struct clk_freq_tbl ftbl_gcc_usb30_master_clk[] =
+{
+	F(125000000, gpll0, 1, 5, 24),
+	F_END
+};
+
+static struct rcg_clk usb30_master_clk_src =
+{
+	.cmd_reg      = (uint32_t *) GCC_USB30_MASTER_CMD_RCGR,
+	.cfg_reg      = (uint32_t *) GCC_USB30_MASTER_CFG_RCGR,
+	.m_reg        = (uint32_t *) GCC_USB30_MASTER_M,
+	.n_reg        = (uint32_t *) GCC_USB30_MASTER_N,
+	.d_reg        = (uint32_t *) GCC_USB30_MASTER_D,
+
+	.set_rate     = clock_lib2_rcg_set_rate_mnd,
+	.freq_tbl     = ftbl_gcc_usb30_master_clk,
+	.current_freq = &rcg_dummy_freq,
+
+	.c = {
+		.dbg_name = "usb30_master_clk_src",
+		.ops      = &clk_ops_rcg,
+	},
+};
+
+
+static struct branch_clk gcc_usb30_master_clk =
+{
+	.cbcr_reg     = (uint32_t *) GCC_USB30_MASTER_CBCR,
+	.parent       = &usb30_master_clk_src.c,
+
+	.c = {
+		.dbg_name = "gcc_usb30_master_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
+static struct branch_clk gcc_sys_noc_usb30_axi_clk =
+{
+	.cbcr_reg     = (uint32_t *) SYS_NOC_USB3_AXI_CBCR,
+	.has_sibling  = 1,
+
+	.c = {
+		.dbg_name = "gcc_sys_noc_usb3_axi_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
 /* Clock lookup table */
 static struct clk_lookup msm_clocks_8084[] =
 {
@@ -292,6 +340,10 @@ static struct clk_lookup msm_clocks_8084[] =
 
 	CLK_LOOKUP("usb_iface_clk",  gcc_usb_hs_ahb_clk.c),
 	CLK_LOOKUP("usb_core_clk",   gcc_usb_hs_system_clk.c),
+
+	/* USB 3.0 */
+	CLK_LOOKUP("usb30_iface_clk",  gcc_sys_noc_usb30_axi_clk.c),
+	CLK_LOOKUP("usb30_master_clk", gcc_usb30_master_clk.c),
 };
 
 void platform_clock_init(void)

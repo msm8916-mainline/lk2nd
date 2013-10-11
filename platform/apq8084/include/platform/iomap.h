@@ -108,13 +108,36 @@
 #define SDCC1_D                     (CLK_CTL_BASE + 0x4E0) /* d */
 #define SDCC1_CDCCAL_SLEEP_CBCR     (CLK_CTL_BASE + 0x4E4)
 
+/* USB 3.0 clocks */
+#define SYS_NOC_USB3_AXI_CBCR       (CLK_CTL_BASE + 0x0108)
+
+#define GCC_USB_30_BCR              (CLK_CTL_BASE + 0x03C0)
+#define GCC_USB_30_MISC             (CLK_CTL_BASE + 0x03C4)
+
+#define GCC_USB30_MASTER_CBCR       (CLK_CTL_BASE + 0x03C8)
+#define GCC_USB30_SLEEP_CBCR        (CLK_CTL_BASE + 0x03CC)
+#define GCC_USB30_MOCK_UTMI_CBCR    (CLK_CTL_BASE + 0x03D0)
+
+#define GCC_USB30_MASTER_CMD_RCGR   (CLK_CTL_BASE + 0x03D4)
+#define GCC_USB30_MASTER_CFG_RCGR   (CLK_CTL_BASE + 0x03D8)
+#define GCC_USB30_MASTER_M          (CLK_CTL_BASE + 0x03DC)
+#define GCC_USB30_MASTER_N          (CLK_CTL_BASE + 0x03E0)
+#define GCC_USB30_MASTER_D          (CLK_CTL_BASE + 0x03E4)
+
+#define GCC_USB3_PHY_BCR            (CLK_CTL_BASE + 0x03FC)
+#define GCC_USB30_GDSCR             (CLK_CTL_BASE + 0x1E84)
+
+/* USB30 base */
+#define MSM_USB30_BASE               0xF9200000
+#define MSM_USB30_QSCRATCH_BASE      0xF92F8800
+
+
 /* Addresses below this point needs to be verified.
  * Included only for compilation purposes.
  */
 #define MSM_USB_BASE                (PERIPH_SS_BASE + 0x00255000)
 
 #define CLK_CTL_BASE                0xFC400000
-
 #define GCC_WDOG_DEBUG              (CLK_CTL_BASE +  0x00001780)
 
 #define USB_HS_BCR                  (CLK_CTL_BASE + 0x480)
@@ -128,6 +151,7 @@
 #define MSM_CE2_BAM_BASE            0xFD444000
 #define MSM_CE2_BASE                0xFD45A000
 #define USB2_PHY_SEL                0xFD4AB000
+#define COPSS_USB_CONTROL_WITH_JDR  0xFD4AB204
 
 #define TLMM_BASE_ADDR              0xFD510000
 #define GPIO_CONFIG_ADDR(x)         (TLMM_BASE_ADDR + 0x1000 + (x)*0x10)

@@ -206,3 +206,36 @@ void clock_config_ce(uint8_t instance)
 	clock_ce_enable(instance);
 
 }
+
+void clock_usb30_gdsc_enable(void)
+{
+	uint32_t reg = readl(GCC_USB30_GDSCR);
+
+	reg &= ~(0x1);
+
+	writel(reg, GCC_USB30_GDSCR);
+}
+
+/* enables usb30 interface and master clocks */
+void clock_usb30_init(void)
+{
+	int ret;
+
+	/* interface clock */
+	ret = clk_get_set_enable("usb30_iface_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set usb30_iface_clk. ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	clock_usb30_gdsc_enable();
+
+	/* master clock */
+	ret = clk_get_set_enable("usb30_master_clk", 125000000, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set usb30_master_clk. ret = %d\n", ret);
+		ASSERT(0);
+	}
+}
