@@ -59,6 +59,8 @@ void usb_wrapper_ss_phy_electrical_config(usb_wrapper_dev_t *dev);
 void usb_wrapper_hs_phy_init(usb_wrapper_dev_t *dev);
 void usb_wrapper_hs_phy_configure(usb_wrapper_dev_t *dev);
 
+void usb_wrapper_vbus_override(usb_wrapper_dev_t *dev);
+
 void usb_wrapper_workaround_10(usb_wrapper_dev_t *dev);
 void usb_wrapper_workaround_11(usb_wrapper_dev_t *dev);
 void usb_wrapper_workaround_13(usb_wrapper_dev_t *dev);

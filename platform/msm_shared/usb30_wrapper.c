@@ -128,7 +128,6 @@ void usb_wrapper_workaround_10(usb_wrapper_dev_t *dev)
 	if ( (board_platform_id() == MSM8974) &&
 		 (board_soc_version() < BOARD_SOC_VERSION2))
 	{
-		/* TODO: confirm if V1 in HPG only applies to 8974 */
 		REG_WRITE(dev, GENERAL_CFG, 0x78);
 	}
 }
@@ -152,6 +151,23 @@ void usb_wrapper_workaround_13(usb_wrapper_dev_t *dev)
 	REG_WRITE_FIELD(dev, SS_PHY_PARAM_CTRL_1, LOS_BIAS, 0x5);
 }
 
+void usb_wrapper_vbus_override(usb_wrapper_dev_t *dev)
+{
+	/* set extenal vbus valid select */
+	REG_WRITE_FIELD(dev, HS_PHY_CTRL_COMMON, VBUSVLDEXTSEL0, 0x1);
+
+	/* enable D+ pullup */
+	REG_WRITE_FIELD(dev, HS_PHY_CTRL, VBUSVLDEXT0, 0x1);
+
+	/* set otg vbus valid from hs phy to controller */
+	REG_WRITE_FIELD(dev, HS_PHY_CTRL, UTMI_OTG_VBUS_VALID, 0x1);
+
+	/* Indicate value is driven by UTMI_OTG_VBUS_VALID bit */
+	REG_WRITE_FIELD(dev, HS_PHY_CTRL, SW_SESSVLD_SEL, 0x1);
+
+	/* Indicate power present to SS phy */
+	REG_WRITE_FIELD(dev, SS_PHY_CTRL, LANE0_PWR_PRESENT, 0x1);
+}
 
 /* API to read SS PHY registers */
 uint16_t usb_wrapper_ss_phy_read(usb_wrapper_dev_t *dev, uint16_t addr)

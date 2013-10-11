@@ -139,6 +139,39 @@
 #define HWIO_RAM1_REG_RAM11_EN_BMSK                                              0x1
 #define HWIO_RAM1_REG_RAM11_EN_SHFT                                              0x0
 
+/* Note: HS_PHYCTRL_COMMON register is added only from 8084 and onwards. */
+#define HWIO_HS_PHY_CTRL_COMMON_ADDR(x)                                     ((x) + 0x000000ec)
+#define HWIO_HS_PHY_CTRL_COMMON_RMSK                                            0x7fff
+#define HWIO_HS_PHY_CTRL_COMMON_IN(x)      \
+        in_dword_masked(HWIO_HS_PHY_CTRL_COMMON_ADDR(x), HWIO_HS_PHY_CTRL_COMMON_RMSK)
+#define HWIO_HS_PHY_CTRL_COMMON_INM(x, m)      \
+        in_dword_masked(HWIO_HS_PHY_CTRL_COMMON_ADDR(x), m)
+#define HWIO_HS_PHY_CTRL_COMMON_OUT(x, v)      \
+        out_dword(HWIO_HS_PHY_CTRL_COMMON_ADDR(x),v)
+#define HWIO_HS_PHY_CTRL_COMMON_OUTM(x,m,v) \
+        out_dword_masked_ns(HWIO_HS_PHY_CTRL_COMMON_ADDR(x),m,v,HWIO_HS_PHY_CTRL_COMMON_IN(x))
+#define HWIO_HS_PHY_CTRL_COMMON_USE_CLKCORE_BMSK                                0x4000
+#define HWIO_HS_PHY_CTRL_COMMON_USE_CLKCORE_SHFT                                   0xe
+#define HWIO_HS_PHY_CTRL_COMMON_ACAENB0_BMSK                                    0x2000
+#define HWIO_HS_PHY_CTRL_COMMON_ACAENB0_SHFT                                       0xd
+#define HWIO_HS_PHY_CTRL_COMMON_VBUSVLDEXTSEL0_BMSK                             0x1000
+#define HWIO_HS_PHY_CTRL_COMMON_VBUSVLDEXTSEL0_SHFT                                0xc
+#define HWIO_HS_PHY_CTRL_COMMON_OTGDISABLE0_BMSK                                 0x800
+#define HWIO_HS_PHY_CTRL_COMMON_OTGDISABLE0_SHFT                                   0xb
+#define HWIO_HS_PHY_CTRL_COMMON_OTGTUNE0_BMSK                                    0x700
+#define HWIO_HS_PHY_CTRL_COMMON_OTGTUNE0_SHFT                                      0x8
+#define HWIO_HS_PHY_CTRL_COMMON_COMMONONN_BMSK                                    0x80
+#define HWIO_HS_PHY_CTRL_COMMON_COMMONONN_SHFT                                     0x7
+#define HWIO_HS_PHY_CTRL_COMMON_FSEL_BMSK                                         0x70
+#define HWIO_HS_PHY_CTRL_COMMON_FSEL_SHFT                                          0x4
+#define HWIO_HS_PHY_CTRL_COMMON_RETENABLEN_BMSK                                    0x8
+#define HWIO_HS_PHY_CTRL_COMMON_RETENABLEN_SHFT                                    0x3
+#define HWIO_HS_PHY_CTRL_COMMON_SIDDQ_BMSK                                         0x4
+#define HWIO_HS_PHY_CTRL_COMMON_SIDDQ_SHFT                                         0x2
+#define HWIO_HS_PHY_CTRL_COMMON_VATESTENB_BMSK                                     0x3
+#define HWIO_HS_PHY_CTRL_COMMON_VATESTENB_SHFT                                     0x0
+
+
 #define HWIO_HS_PHY_CTRL_ADDR(x)                                          ((x) + 0x00000010)
 #define HWIO_HS_PHY_CTRL_RMSK                                              0x7ffffff
 #define HWIO_HS_PHY_CTRL_POR                                              0x072203b2
@@ -150,6 +183,11 @@
         out_dword(HWIO_HS_PHY_CTRL_ADDR(x),v)
 #define HWIO_HS_PHY_CTRL_OUTM(x,m,v) \
         out_dword_masked_ns(HWIO_HS_PHY_CTRL_ADDR(x),m,v,HWIO_HS_PHY_CTRL_IN(x))
+
+/* Note: This field is introduced only in 8084 and onwards. */
+#define HWIO_HS_PHY_CTRL_SW_SESSVLD_SEL_BMSK                             0x10000000
+#define HWIO_HS_PHY_CTRL_SW_SESSVLD_SEL_SHFT                                   0x1c
+
 #define HWIO_HS_PHY_CTRL_CLAMP_MPM_DPSE_DMSE_EN_N_BMSK                     0x4000000
 #define HWIO_HS_PHY_CTRL_CLAMP_MPM_DPSE_DMSE_EN_N_SHFT                          0x1a
 #define HWIO_HS_PHY_CTRL_FREECLK_SEL_BMSK                                  0x2000000
