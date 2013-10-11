@@ -62,8 +62,6 @@ static mmu_section_t mmu_section_table[] = {
 	{SYSTEM_IMEM_BASE, SYSTEM_IMEM_BASE, 1,              IMEM_MEMORY},
 };
 
-static struct smem_ram_ptable ram_ptable;
-
 /* Boot timestamps */
 #define BS_INFO_OFFSET     (0x6B0)
 #define BS_INFO_ADDR_V1    (RPM_MSG_RAM_BASE     + BS_INFO_OFFSET)
@@ -127,40 +125,47 @@ void platform_init_mmu_mappings(void)
 {
 	uint32_t i;
 	uint32_t sections;
+	ram_partition ptn_entry;
 	uint32_t table_size = ARRAY_SIZE(mmu_section_table);
+	uint32_t len = 0;
 
-	ASSERT(smem_ram_ptable_init(&ram_ptable));
+	ASSERT(smem_ram_ptable_init_v1());
+
+	len = smem_get_ram_ptable_len();
 
 	/* Configure the MMU page entries for SDRAM and IMEM memory read
-	   from the smem ram table*/
-	for(i = 0; i < ram_ptable.len; i++)
+	   from the smem ram table */
+	for (i = 0; i < len; i++)
 	{
-		if(ram_ptable.parts[i].type == SYS_MEMORY)
+		smem_get_ram_ptable_entry(&ptn_entry, i);
+		if ((ptn_entry.type == SYS_MEMORY) &&
+		    ((ptn_entry.category == SDRAM) ||
+		     (ptn_entry.category == IMEM)))
 		{
-			if((ram_ptable.parts[i].category == SDRAM) ||
-			   (ram_ptable.parts[i].category == IMEM))
-			{
-				/* Check to ensure that start address is 1MB aligned */
-				ASSERT((ram_ptable.parts[i].start & 0xFFFFF) == 0);
+			/* Check to ensure that start address is 1MB aligned */
+			ASSERT((ptn_entry.start & (MB-1)) == 0);
 
-				sections = (ram_ptable.parts[i].size) / MB;
-				while(sections--) {
-					arm_mmu_map_section(ram_ptable.parts[i].start +
-								sections * MB,
-								ram_ptable.parts[i].start +
-								sections * MB,
-								(MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
-								MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN));
-				}
+			sections = ptn_entry.size / MB;
+			while(sections--)
+			{
+				arm_mmu_map_section(
+					(ptn_entry.start + sections * MB),
+					(ptn_entry.start + sections * MB),
+					(MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH |
+					 MMU_MEMORY_AP_READ_WRITE |
+					 MMU_MEMORY_XN));
 			}
 		}
 	}
+
 	/* Configure the MMU page entries for memory read from the
 	   mmu_section_table */
-	for (i = 0; i < table_size; i++) {
+	for (i = 0; i < table_size; i++)
+	{
 		sections = mmu_section_table[i].num_of_sections;
 
-		while (sections--) {
+		while (sections--)
+		{
 			arm_mmu_map_section(mmu_section_table[i].paddress +
 					    sections * MB,
 					    mmu_section_table[i].vaddress +
