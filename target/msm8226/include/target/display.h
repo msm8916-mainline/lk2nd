@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -95,8 +95,7 @@ static const uint32_t panel_physical_ctrl[] = {
 /*---------------------------------------------------------------------------*/
 /* Other Configuration                                                       */
 /*---------------------------------------------------------------------------*/
-
-#define msm8226_DSI_FEATURE_ENABLE 0
+#define DISPLAY_CMDLINE_PREFIX " mdss_mdp.panel="
 
 #define MIPI_FB_ADDR  0x03200000
 
