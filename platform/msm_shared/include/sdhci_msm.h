@@ -31,6 +31,9 @@
 
 #include <kernel/event.h>
 
+#define SDHCI_HC_START_BIT                         0x0
+#define SDHCI_HC_WIDTH                             0x1
+
 struct sdhci_msm_data
 {
 	uint32_t pwrctl_base;
