@@ -267,7 +267,7 @@ bool oem_panel_select(struct panel_struct *panelstruct,
 		} else if (board_hardware_subtype() == 5) { //HW_PLATFORM_SUBTYPE_SKUG
 			panel_id = SSD2080M_720P_VIDEO_PANEL;
 		} else {
-			if (((target_id >> 16) & 0xFF) == 0x1) //EVT
+			if (((target_id >> 16) & 0xFF) == 0x1 || ((target_id >> 16) & 0xFF) == 0x3) //EVT || PVT
 				panel_id = nt35590_panel_id;
 			else if (((target_id >> 16) & 0xFF) == 0x2) //DVT
 				panel_id = HX8394A_720P_VIDEO_PANEL;
