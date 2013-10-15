@@ -43,38 +43,44 @@
  */
 uint32_t target_dev_tree_mem(void *fdt, uint32_t memory_node_offset)
 {
-    struct smem_ram_ptable ram_ptable;
-    unsigned int i;
+	ram_partition ptn_entry;
+	unsigned int index;
 	int ret = 0;
+	uint32_t len = 0;
 
 	/* Make sure RAM partition table is initialized */
-	ASSERT(smem_ram_ptable_init(&ram_ptable));
+	ASSERT(smem_ram_ptable_init_v1());
 
-     /* Calculating the size of the mem_info_ptr */
-    for (i = 0 ; i < ram_ptable.len; i++)
-    {
-        if((ram_ptable.parts[i].category == SDRAM) &&
-           (ram_ptable.parts[i].type == SYS_MEMORY))
-        {
+	len = smem_get_ram_ptable_len();
+
+	/* Calculating the size of the mem_info_ptr */
+	for (index = 0 ; index < len; index++)
+	{
+		smem_get_ram_ptable_entry(&ptn_entry, index);
+
+		if((ptn_entry.category == SDRAM) &&
+			(ptn_entry.type == SYS_MEMORY))
+		{
 
 			/* Pass along all other usable memory regions to Linux */
 			ret = dev_tree_add_mem_info(fdt,
-										memory_node_offset,
-										ram_ptable.parts[i].start,
-										ram_ptable.parts[i].size);
+							memory_node_offset,
+							ptn_entry.start,
+							ptn_entry.size);
 
 			if (ret)
 			{
-				dprintf(CRITICAL, "Failed to add secondary banks memory addresses\n");
+				dprintf(CRITICAL,
+					"Failed to add secondary banks memory addresses\n");
 				goto target_dev_tree_mem_err;
 			}
 
-       }
-    }
+		}
+	}
 
 target_dev_tree_mem_err:
 
-    return ret;
+	return ret;
 }
 
 void *target_get_scratch_address(void)
