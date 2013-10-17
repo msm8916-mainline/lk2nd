@@ -39,6 +39,8 @@
 #include <usb30_dwc_hwio.h>
 #include <usb30_dwc.h>
 #include <usb30_dwc_hw.h>
+#include <smem.h>
+#include <board.h>
 
 extern char* ss_link_state_lookup[20];
 extern char* hs_link_state_lookup[20];
@@ -58,6 +60,11 @@ extern char* speed_lookup[20];
 #endif
 
 #define ERR(...) dprintf(ALWAYS, __VA_ARGS__)
+
+__WEAK int platform_is_8974()
+{
+	return 0;
+}
 
 /* This file provides interface to interact with DWC hardware. This code
  * does not maintain any soft states. It programs the h/w as requested by the
@@ -532,7 +539,11 @@ void dwc_usb2_phy_soft_reset(dwc_dev_t *dev)
 void dwc_ss_phy_workaround_12(dwc_dev_t *dev)
 {
 	/* 12. */
-	REG_WRITEI(dev, GUSB3PIPECTL, 0, 0x30C0003);
+	if ( platform_is_8974() &&
+		 (board_soc_version() < BOARD_SOC_VERSION2))
+	{
+		REG_WRITEI(dev, GUSB3PIPECTL, 0, 0x30C0003);
+	}
 }
 
 /*  AXI master config */
@@ -540,11 +551,16 @@ void dwc_axi_master_config(dwc_dev_t *dev)
 {
 	uint32_t reg = 0;
 
-	reg = (DWC_GSBUSCFG0_INCR4BRSTENA_BMSK |
-		   DWC_GSBUSCFG0_INCR8BRSTENA_BMSK |
-		   DWC_GSBUSCFG0_INCR16BRSTENA_BMSK);
+	/* 17. */
+	if ( platform_is_8974() &&
+		 (board_soc_version() < BOARD_SOC_VERSION2))
+	{
+		reg = (DWC_GSBUSCFG0_INCR4BRSTENA_BMSK |
+			   DWC_GSBUSCFG0_INCR8BRSTENA_BMSK |
+			   DWC_GSBUSCFG0_INCR16BRSTENA_BMSK);
 
-	REG_WRITE(dev, GSBUSCFG0, reg);
+		REG_WRITE(dev, GSBUSCFG0, reg);
+	}
 }
 
 /* read the controller id and version information */

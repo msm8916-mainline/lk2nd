@@ -43,6 +43,9 @@
 #include <usb30_dwc.h>
 #include <usb30_wrapper.h>
 #include <usb30_udc.h>
+#include <smem.h>
+#include <board.h>
+#include <platform/timer.h>
 
 //#define DEBUG_USB
 
@@ -100,24 +103,64 @@ static int udc_handle_setup(void *context, uint8_t *data);
 static udc_t *udc_dev = NULL;
 
 
-/* TODO: need to find right place for the tcsr functions. */
-
-/* UTMI MUX configuration to connect PHY to SNPS controller:
- * Configure primary HS phy mux to use UTMI interface
- * (connected to usb30 controller).
- */
-void tcsr_hs_phy_mux_configure(void)
+__WEAK int platform_is_8974()
 {
-	uint32_t reg;
-
-	reg = readl(USB2_PHY_SEL);
-
-	writel(reg | 0x1, USB2_PHY_SEL);
+	return 0;
 }
 
-void tcsr_hs_phy_mux_de_configure(void)
+__WEAK int platform_is_8974Pro()
 {
-	writel(0x0, USB2_PHY_SEL);
+	return 0;
+}
+
+static void phy_mux_configure(void)
+{
+	/* configuring of hs phy mux is different for some platforms. */
+	target_usb_phy_mux_configure();
+}
+
+static void phy_reset(usb_wrapper_dev_t *wrapper)
+{
+	/* phy reset is different for some platforms. */
+	if (platform_is_8974() || platform_is_8974Pro())
+	{
+		/* SS PHY */
+		usb_wrapper_ss_phy_reset(wrapper);
+
+		/* For 8974: hs phy is reset as part of soft reset.
+		 * No need for explicit reset.
+		 */
+	}
+	else if (board_platform_id() == APQ8084)
+	{
+		target_usb_phy_reset();
+	}
+}
+
+/* Initialize HS phy */
+void hs_phy_init(udc_t *dev)
+{
+	/* only for 8974 */
+	if (platform_is_8974() || platform_is_8974Pro())
+	{
+		/* 5.a, 5.b */
+		usb_wrapper_hs_phy_init(dev->wrapper_dev);
+
+		/* 5.d */
+		dwc_usb2_phy_soft_reset(dev->dwc);
+	}
+}
+
+/* vbus override */
+void vbus_override(udc_t *dev)
+{
+	/* when vbus signal is not available directly to the controller,
+	 * simulate vbus presense.
+	 */
+	if (board_platform_id() == APQ8084)
+	{
+		usb_wrapper_vbus_override(dev->wrapper_dev);
+	}
 }
 
 
@@ -175,26 +218,21 @@ static void usb30_init(void)
 	/* section 4.4.2: Initialization and configuration sequences */
 
 	/* 1. UTMI Mux configuration */
-	tcsr_hs_phy_mux_configure();
+	phy_mux_configure();
 
 	/* 2. Put controller in reset */
 	dwc_reset(dwc, 1);
 
-	/* PHY reset (steps 3 - 7) must be done while dwc is in reset condition */
+	/* Steps 3 - 7 must be done while dwc is in reset condition */
 
-	/* 3. Reset SS PHY */
-	usb_wrapper_ss_phy_reset(wrapper);
-
-	/* HS PHY is reset as part of soft reset. No need for explicit reset. */
+	/* 3. Reset PHY */
+	phy_reset(wrapper);
 
 	/* 4. SS phy config */
 	usb_wrapper_ss_phy_configure(wrapper);
 
 	/* 5. HS phy init */
 	usb_wrapper_hs_phy_init(wrapper);
-
-	/* 5.d */
-	dwc_usb2_phy_soft_reset(dwc);
 
 	/* 6. hs phy config */
 	usb_wrapper_hs_phy_configure(wrapper);
@@ -221,6 +259,11 @@ static void usb30_init(void)
 	usb_wrapper_workaround_13(wrapper);
 
 	/* 14. needed only for host mode. ignored. */
+
+	/* If the target does not support vbus detection in controller,
+	 * simulate vbus presence.
+	 */
+	vbus_override(udc_dev);
 
 	/* 15 - 20 */
 	dwc_device_init(dwc);
