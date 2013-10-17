@@ -725,3 +725,25 @@ const char * target_usb_controller()
 			return "ci";
 	}
 }
+
+/* UTMI MUX configuration to connect PHY to SNPS controller:
+ * Configure primary HS phy mux to use UTMI interface
+ * (connected to usb30 controller).
+ */
+static void tcsr_hs_phy_mux_configure(void)
+{
+	uint32_t reg;
+
+	reg = readl(USB2_PHY_SEL);
+
+	writel(reg | 0x1, USB2_PHY_SEL);
+}
+
+/* configure hs phy mux if using dwc controller */
+void target_usb_phy_mux_configure(void)
+{
+	if(!strcmp(target_usb_controller(), "dwc"))
+	{
+		tcsr_hs_phy_mux_configure();
+	}
+}
