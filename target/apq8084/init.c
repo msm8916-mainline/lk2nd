@@ -459,3 +459,49 @@ void reboot_device(unsigned reboot_reason)
 
 	dprintf(CRITICAL, "Rebooting failed\n");
 }
+
+/* identify the usb controller to be used for the target */
+const char * target_usb_controller()
+{
+	return "dwc";
+}
+
+/* mux hs phy to route to dwc controller */
+static void phy_mux_configure_with_jdr()
+{
+	uint32_t val;
+
+	val = readl(COPSS_USB_CONTROL_WITH_JDR);
+
+	/* Note: there are no details regarding this bit in hpg or swi. */
+	val |= BIT(8);
+
+	writel(val, COPSS_USB_CONTROL_WITH_JDR);
+}
+
+/* configure hs phy mux if using dwc controller */
+void target_usb_phy_mux_configure(void)
+{
+	if(!strcmp(target_usb_controller(), "dwc"))
+	{
+		phy_mux_configure_with_jdr();
+	}
+}
+
+void target_usb_phy_reset(void)
+{
+	uint32_t val;
+
+	/* SS PHY reset */
+	val = readl(GCC_USB3_PHY_BCR) | BIT(0);
+	writel(val, GCC_USB3_PHY_BCR);
+	udelay(10);
+	writel(val & ~BIT(0), GCC_USB3_PHY_BCR);
+
+	/* HS PHY reset */
+	/* Note: reg/bit details are not mentioned in hpg or swi. */
+	val = readl(COPSS_USB_CONTROL_WITH_JDR) | BIT(11);
+	writel(val, COPSS_USB_CONTROL_WITH_JDR);
+	udelay(10);
+	writel(val & ~BIT(11), COPSS_USB_CONTROL_WITH_JDR);
+}
