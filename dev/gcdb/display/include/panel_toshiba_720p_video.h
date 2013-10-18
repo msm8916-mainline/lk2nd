@@ -343,6 +343,7 @@ static struct panel_reset_sequence toshiba_720p_video_panel_reset_seq = {
 static struct backlight toshiba_720p_video_backlight = {
   1, 1, 4095, 100, 1, "PMIC_8941"
 };
+#define TOSHIBA_720P_VIDEO_SIGNATURE 0xFFF4
 
 
 #endif /*_PANEL_TOSHIBA_720P_VIDEO_H_*/

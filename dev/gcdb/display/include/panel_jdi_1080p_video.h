@@ -175,6 +175,7 @@ static struct panel_reset_sequence jdi_1080p_video_panel_reset_seq = {
 static struct backlight jdi_1080p_video_backlight = {
   1, 1, 4095, 100, 1, "PMIC_8941"
 };
+#define JDI_1080P_VIDEO_SIGNATURE 0xFF22
 
 
 #endif /*_PANEL_JDI_1080P_VIDEO_H_*/
