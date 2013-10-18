@@ -103,13 +103,6 @@ static int mdss_dsi_panel_power(uint8_t enable)
 	int ret = NO_ERROR;
 
 	if (enable) {
-
-		/* Enable backlight */
-		ret = panel_backlight_ctrl(enable);
-		if (ret) {
-			dprintf(CRITICAL, "Backlight enable failed \n");
-			return ret;
-		}
 		ret = target_ldo_ctrl(enable);
 		if (ret) {
 			dprintf(CRITICAL, "LDO control enable failed \n");
@@ -124,16 +117,10 @@ static int mdss_dsi_panel_power(uint8_t enable)
 		}
 		dprintf(SPEW, "Panel power on done\n");
 	} else {
-		/* Disable panel, backlight and ldo */
+		/* Disable panel and ldo */
 		ret = mdss_dsi_panel_reset(enable);
 		if (ret) {
 			dprintf(CRITICAL, "panel reset disable failed \n");
-			return ret;
-		}
-
-		ret = panel_backlight_ctrl(enable);
-		if (ret) {
-			dprintf(CRITICAL, "Backlight disable failed \n");
 			return ret;
 		}
 
@@ -145,6 +132,17 @@ static int mdss_dsi_panel_power(uint8_t enable)
 		dprintf(SPEW, "Panel power off done\n");
 	}
 
+	return ret;
+}
+
+static int mdss_dsi_bl_enable(uint8_t enable)
+{
+	int ret = NO_ERROR;
+
+	ret = panel_backlight_ctrl(enable);
+	if (ret)
+		dprintf(CRITICAL, "Backlight %s failed\n", enable ? "enable" :
+							"disable");
 	return ret;
 }
 
@@ -224,6 +222,7 @@ int gcdb_display_init(uint32_t rev, void *base)
 
 	panel.pll_clk_func = mdss_dsi_panel_clock;
 	panel.power_func = mdss_dsi_panel_power;
+	panel.bl_func = mdss_dsi_bl_enable;
 	panel.fb.base = base;
 	panel.fb.width =  panel.panel_info.xres;
 	panel.fb.height =  panel.panel_info.yres;
