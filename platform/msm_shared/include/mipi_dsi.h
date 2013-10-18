@@ -83,6 +83,8 @@
 #define DTYPE_GEN_LWRITE 0x29	/* 4th Byte is 0xc0 */
 #define DTYPE_DCS_WRITE1 0x15	/* 4th Byte is 0x80 */
 
+#define DSI_RDBK_DATA0 0x06C
+
 //BEGINNING OF Tochiba Config- video mode
 
 static const unsigned char toshiba_panel_mcap_off[8] = {
@@ -234,6 +236,7 @@ static char novatek_panel_rgb_888[4] = { 0x3A, 0x77, 0x15, 0x80 };	/* DTYPE_DCS_
 static char novatek_panel_set_twolane[4] = { 0xae, 0x03, 0x15, 0x80 };	/* DTYPE_DCS_WRITE1 */
 
 static char novatek_panel_manufacture_id[4] = { 0x04, 0x00, 0x06, 0xA0 };	/* DTYPE_DCS_READ */
+static char read_id_a1h_cmd[4] = { 0xA1, 0x00, 0x06, 0xA0 };	/* DTYPE_DCS_READ */
 
 /* commands by Novatke */
 static char novatek_panel_f4[4] = { 0xf4, 0x55, 0x15, 0x80 };	/* DTYPE_DCS_WRITE1 */
@@ -673,6 +676,7 @@ struct mipi_dsi_panel_config {
 	struct mdss_dsi_phy_ctrl *mdss_dsi_phy_config;
 	struct mipi_dsi_cmd *panel_cmds;
 	int num_of_panel_cmds;
+	uint32_t signature;
 };
 
 static struct mipi_dsi_cmd toshiba_panel_video_mode_cmds[] = {
@@ -857,6 +861,9 @@ static struct mipi_dsi_phy_ctrl mipi_dsi_toshiba_mdt61_panel_phy_ctrl = {
 
 static struct mipi_dsi_cmd novatek_panel_manufacture_id_cmd =
     { sizeof(novatek_panel_manufacture_id), novatek_panel_manufacture_id };
+
+static struct mipi_dsi_cmd read_ddb_start_cmd =
+	{sizeof(read_id_a1h_cmd), read_id_a1h_cmd};
 
 static struct mipi_dsi_cmd novatek_panel_cmd_mode_cmds[] = {
 	{sizeof(novatek_panel_sw_reset), novatek_panel_sw_reset}

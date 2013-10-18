@@ -206,6 +206,58 @@ int mdss_dual_dsi_cmds_tx(struct mipi_dsi_cmd *cmds, int count)
 	return ret;
 }
 
+int mdss_dsi_cmds_rx(uint32_t **rp, int rp_len, int rdbk_len)
+{
+	uint32_t *lp, data;
+	char *dp;
+	int i, off;
+	int rlen, res;
+
+	if (rdbk_len > rp_len) {
+		return 0;
+	}
+
+	if (rdbk_len <= 2)
+		rlen = 4;	/* short read */
+	else
+		rlen = MIPI_DSI_MRPS + 6;	/* 4 bytes header + 2 bytes crc */
+
+	if (rlen > MIPI_DSI_REG_LEN) {
+		return 0;
+	}
+
+	res = rlen & 0x03;
+
+	rlen += res;		/* 4 byte align */
+	lp = *rp;
+
+	rlen += 3;
+	rlen >>= 2;
+
+	if (rlen > 4)
+		rlen = 4;	/* 4 x 32 bits registers only */
+
+	off = DSI_RDBK_DATA0;
+	off += ((rlen - 1) * 4);
+
+	for (i = 0; i < rlen; i++) {
+		data = readl(MIPI_DSI_BASE + off);
+		*lp = ntohl(data);	/* to network byte order */
+		lp++;
+
+		off -= 4;
+	}
+
+	if (rdbk_len > 2) {
+		/*First 4 bytes + paded bytes will be header next len bytes would be payload */
+		for (i = 0; i < rdbk_len; i++) {
+			dp = *rp;
+			dp[i] = dp[(res + i) >> 2];
+		}
+	}
+	return rdbk_len;
+}
+
 int mipi_dsi_cmds_tx(struct mipi_dsi_cmd *cmds, int count)
 {
 	int ret = 0;
@@ -407,6 +459,9 @@ int mdss_dsi_panel_initialize(struct mipi_dsi_panel_config *pinfo, uint32_t
 		} else {
 			status = mipi_dsi_cmds_tx(pinfo->panel_cmds,
 					pinfo->num_of_panel_cmds);
+			if (!status && target_panel_auto_detect_enabled())
+				status =
+					target_read_panel_signature(pinfo->signature);
 		}
 	}
 #endif
@@ -924,6 +979,7 @@ int mdss_dsi_config(struct msm_fb_panel_data *panel)
 	mipi_pinfo.pack = 0;
 	mipi_pinfo.t_clk_pre = pinfo->mipi.t_clk_pre;
 	mipi_pinfo.t_clk_post = pinfo->mipi.t_clk_post;
+	mipi_pinfo.signature = pinfo->mipi.signature;
 
 	mdss_dsi_phy_init(&mipi_pinfo, MIPI_DSI0_BASE);
 	if (pinfo->mipi.dual_dsi)
