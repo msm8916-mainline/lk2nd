@@ -29,7 +29,7 @@
 #ifndef _UCS_H
 #define _UCS_H
 
-#define SCSI_MAX_DATA_TRANS_BLK_LEN    0x01
+#define SCSI_MAX_DATA_TRANS_BLK_LEN    0x40
 #define UFS_DEFAULT_SECTORE_SIZE       4096
 
 #define SCSI_STATUS_GOOD               0x00
