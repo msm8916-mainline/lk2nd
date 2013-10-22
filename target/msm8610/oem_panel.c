@@ -43,6 +43,7 @@
 #include "include/panel_truly_wvga_cmd.h"
 #include "include/panel_truly_wvga_video.h"
 #include "include/panel_hx8379a_wvga_video.h"
+#include "include/panel_hx8389b_qhd_video.h"
 #include "include/panel_otm8018b_fwvga_video.h"
 #include "include/panel_nt35590_720p_video.h"
 
@@ -55,6 +56,13 @@ TRULY_WVGA_VIDEO_PANEL,
 HX8379A_WVGA_VIDEO_PANEL,
 OTM8018B_FWVGA_VIDEO_PANEL,
 NT35590_720P_VIDEO_PANEL,
+HX8389B_QHD_VIDEO_PANEL,
+};
+
+enum {
+QRD_DEF,
+QRD_SKUAA,
+QRD_SKUAB = 3,
 };
 
 static uint32_t panel_id;
@@ -186,6 +194,26 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 		memcpy(phy_db->timing,
 				nt35590_720p_video_timings, TIMING_SIZE);
 		break;
+	case HX8389B_QHD_VIDEO_PANEL:
+		panelstruct->paneldata    = &hx8389b_qhd_video_panel_data;
+		panelstruct->panelres     = &hx8389b_qhd_video_panel_res;
+		panelstruct->color        = &hx8389b_qhd_video_color;
+		panelstruct->videopanel   = &hx8389b_qhd_video_video_panel;
+		panelstruct->commandpanel = &hx8389b_qhd_video_command_panel;
+		panelstruct->state        = &hx8389b_qhd_video_state;
+		panelstruct->laneconfig   = &hx8389b_qhd_video_lane_config;
+		panelstruct->paneltiminginfo
+					 = &hx8389b_qhd_video_timing_info;
+		panelstruct->panelresetseq
+					 = &hx8389b_qhd_video_reset_seq;
+		panelstruct->backlightinfo = &hx8389b_qhd_video_backlight;
+		pinfo->mipi.panel_cmds
+					= hx8389b_qhd_video_on_command;
+		pinfo->mipi.num_of_panel_cmds
+					= HX8389B_QHD_VIDEO_ON_COMMAND;
+		memcpy(phy_db->timing,
+				hx8389b_qhd_video_timings, TIMING_SIZE);
+		break;
 	default:
 		dprintf(CRITICAL, "Panel ID not detected %d\n", panel_id);
 		return false;
@@ -199,13 +227,31 @@ bool oem_panel_select(struct panel_struct *panelstruct,
 {
 	uint32_t hw_id = board_hardware_id();
 	uint32_t platform_subtype = board_hardware_subtype();
+	uint32_t target_id = board_target_id();
+
+	target_id = (target_id >> 16) & 0xFF;
 
 	switch (hw_id) {
 	case HW_PLATFORM_QRD:
-		if ((0 == platform_subtype) || (1 == platform_subtype))
-			panel_id = HX8379A_WVGA_VIDEO_PANEL;
-		else if (3 == platform_subtype)
-			panel_id = OTM8018B_FWVGA_VIDEO_PANEL;
+		switch (platform_subtype) {
+			case QRD_DEF:
+			case QRD_SKUAA:
+				panel_id = HX8379A_WVGA_VIDEO_PANEL;
+				break;
+			case QRD_SKUAB:
+				if (target_id == 0x1)	// 1st HW version
+					panel_id = OTM8018B_FWVGA_VIDEO_PANEL;
+				else if (target_id == 0x2)	//2nd HW version
+					panel_id = HX8389B_QHD_VIDEO_PANEL;
+				else
+					dprintf(CRITICAL, "SKUAB Display not enabled for %d type\n",
+							target_id);
+				break;
+			default:
+				dprintf(CRITICAL, "QRD Display not enabled for %d type\n",
+							platform_subtype);
+				return false;
+		}
 		break;
 	case HW_PLATFORM_MTP:
 		if (0 == platform_subtype)
