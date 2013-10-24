@@ -1,6 +1,7 @@
 LOCAL_DIR := $(GET_LOCAL_DIR)
 
 INCLUDES += -I$(LOCAL_DIR)/include -I$(LK_TOP_DIR)/platform/msm_shared
+INCLUDES += -I$(LK_TOP_DIR)/dev/gcdb/display -I$(LK_TOP_DIR)/dev/gcdb/display/include
 
 PLATFORM := apq8084
 
