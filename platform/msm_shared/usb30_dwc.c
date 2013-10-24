@@ -1432,7 +1432,7 @@ static void dwc_ep_ctrl_init(dwc_dev_t *dev)
 	dev->ep[index].bytes_queued      = 0;
 
 	/* Control IN */
-	index = DWC_EP_INDEX(0, DWC_EP_DIRECTION_OUT);
+	index = DWC_EP_INDEX(0, DWC_EP_DIRECTION_IN);
 
 	dev->ep[index].number            = 0;
 	dev->ep[index].dir               = DWC_EP_DIRECTION_IN;
