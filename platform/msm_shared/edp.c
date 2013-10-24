@@ -200,7 +200,7 @@ void edp_panel_init(struct msm_panel_info *pinfo)
 	if (!pinfo)
 		return;
 
-	pinfo->lcdc.dual_pipe = 1;
+	pinfo->lcdc.dual_pipe = 0;
 	pinfo->lcdc.split_display = 0;
 
 	edp_pinfo = pinfo;
