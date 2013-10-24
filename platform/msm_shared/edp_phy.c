@@ -81,19 +81,26 @@ void edp_phy_powerup(int enable)
 
 void edp_lane_power_ctrl(int max_lane, int up)
 {
-        int i, off;
-        unsigned int data;
+	int i, off;
+	unsigned int data;
 
-        if (up)
-                data = 0;       /* power up */
-        else
-                data = 0x7;     /* power down */
+	if (up)
+		data = 0;       /* power up */
+	else
+		data = 0x7;     /* power down */
 
-        /* EDP_PHY_EDPPHY_LNn_PD_CTL */
-        for (i = 0; i < max_lane; i++) {
-                off = 0x40 * i;
-                edp_write(EDP_BASE + 0x404 + off , data);
-        }
+	/* EDP_PHY_EDPPHY_LNn_PD_CTL */
+	for (i = 0; i < max_lane; i++) {
+		off = 0x40 * i;
+		edp_write(EDP_BASE + 0x404 + off , data);
+	}
+
+	/* power down un used lane */
+	data = 0x7;     /* power down */
+	for (i = max_lane; i < EDP_MAX_LANE; i++) {
+		off = 0x40 * i;
+		edp_write(EDP_BASE + 0x404 + off , data);
+	}
 }
 
 void edp_phy_sw_reset(void)
@@ -321,7 +328,7 @@ void edp_unconfig_clk(void)
 	edp_enable_aux_clk(0);
 }
 
-void edp_phy_misc_cfg(void)
+void edp_phy_vm_pe_init(void)
 {
 	/* EDP_PHY_EDPPHY_GLB_VM_CFG0 */
 	edp_write(EDP_BASE + 0x510, 0x3);
@@ -329,6 +336,4 @@ void edp_phy_misc_cfg(void)
 	edp_write(EDP_BASE + 0x514, 0x64);
 	/* EDP_PHY_EDPPHY_GLB_MISC9 */
 	edp_write(EDP_BASE + 0x518, 0x6c);
-	/* EDP_MISC1_MISC0 */
-	edp_write(EDP_BASE + 0x2c, 0x1);
 }

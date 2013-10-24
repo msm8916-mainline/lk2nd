@@ -33,32 +33,79 @@
 #define RGB_COMPONENTS		3
 #define MAX_NUMBER_EDP_LANES	4
 
+struct edp_aux_ctrl edpctrl;
+
 static struct msm_panel_info *edp_pinfo;
 
-static void edp_config_sync(void)
+static void edp_config_ctrl(void)
 {
-	int ret = 0;
+	struct edp_aux_ctrl *ep;
+	struct dpcd_cap *cap;
+	struct display_timing_desc *dp;
+	unsigned long data = 0;
 
-	ret = edp_read(EDP_BASE + 0xc); /* EDP_CONFIGURATION_CTRL */
-	ret &= ~0x733;
-	ret |= (0x55 & 0x733);
-	edp_write(EDP_BASE + 0xc, ret);
-	edp_write(EDP_BASE + 0xc, 0x55); /* EDP_CONFIGURATION_CTRL */
+	ep = &edpctrl;
+
+	dp = &ep->edid.timing[0];
+
+	cap = &ep->dpcd;
+
+	data = cap->max_lane_count - 1;
+	data <<= 4;
+
+	if (cap->enhanced_frame)
+		data |= 0x40;
+
+	if (ep->edid.color_depth == 8) {
+		/* 0 == 6 bits, 1 == 8 bits */
+		data |= 0x100;  /* bit 8 */
+	}
+
+	if (!dp->interlaced)    /* progressive */
+		data |= 0x04;
+
+	data |= 0x03;   /* sycn clock & static Mvid */
+
+	dprintf(SPEW, "%s: data=%x\n", __func__, data);
+
+	edp_write(EDP_BASE + 0xc, data); /* EDP_CONFIGURATION_CTRL */
 }
 
-static void edp_config_sw_div(void)
+static void edp_config_sw_mvid_nvid(void)
 {
 	edp_write(EDP_BASE + 0x14, 0x13b); /* EDP_SOFTWARE_MVID */
 	edp_write(EDP_BASE + 0x18, 0x266); /* EDP_SOFTWARE_NVID */
 }
 
-static void edp_config_static_mdiv(void)
+void edp_clock_synchrous(void)
 {
-	int ret = 0;
+	struct edp_aux_ctrl *ep;
+	unsigned long data;
+	unsigned long color;
 
-	ret = edp_read(EDP_BASE + 0xc); /* EDP_CONFIGURATION_CTRL */
-	edp_write(EDP_BASE + 0xc, ret | 0x2); /* EDP_CONFIGURATION_CTRL */
-	edp_write(EDP_BASE + 0xc, 0x57); /* EDP_CONFIGURATION_CTRL */
+	ep = &edpctrl;
+
+	data = 1;	/* sync */
+
+	/* only legacy rgb mode supported */
+	color = 0; /* 6 bits */
+	if (ep->edid.color_depth == 8)
+		color = 0x01;
+	else if (ep->edid.color_depth == 10)
+		color = 0x02;
+	else if (ep->edid.color_depth == 12)
+		color = 0x03;
+	else if (ep->edid.color_depth == 16)
+		color = 0x04;
+
+	color <<= 5;    /* bit 5 to bit 7 */
+
+	data |= color;
+
+	dprintf(SPEW, "%s: data=%x\n", __func__, data);
+
+	/* EDP_MISC1_MISC0 */
+	edp_write(EDP_BASE + 0x2c, data);
 }
 
 static void edp_config_tu(void)
@@ -127,10 +174,10 @@ int edp_on(void)
 {
 	mdss_edp_pll_configure();
 	mdss_edp_phy_pll_ready();
-	edp_phy_misc_cfg();
-	edp_config_sync();
-	edp_config_sw_div();
-	edp_config_static_mdiv();
+	edp_phy_vm_pe_init();
+	edp_config_ctrl();
+	edp_config_sw_mvid_nvid();
+	edp_clock_synchrous();
 	edp_config_timing(edp_pinfo);
 	edp_config_tu();
 
@@ -146,7 +193,7 @@ int edp_on(void)
 	mdss_edp_wait_for_video_ready();
 
 	mdss_edp_irq_disable();
-        dprintf(INFO, "%s:\n", __func__);
+	dprintf(SPEW, "%s:\n", __func__);
 
 	return 0;
 }
@@ -165,8 +212,7 @@ int edp_off(void)
 	mdss_edp_lane_power_ctrl(0);
 	edp_phy_powerup(0);
 
-        dprintf(INFO, "%s:\n", __func__);
-
+	dprintf(SPEW, "%s:\n", __func__);
 
 	return 0;
 }
@@ -190,7 +236,7 @@ int edp_prepare(void)
 	edp_edid2pinfo(edp_pinfo);
 	edp_cap2pinfo(edp_pinfo);
 
-        dprintf(INFO, "%s:\n", __func__);
+	dprintf(SPEW, "%s:\n", __func__);
 
 	return 0;
 }

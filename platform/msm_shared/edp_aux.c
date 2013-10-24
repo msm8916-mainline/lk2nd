@@ -49,7 +49,7 @@ int edp_edid_buf_error(char *buf, int len)
 
 	bp = buf;
 	if (len < 128) {
-		dprintf(INFO, "edp_edid_bur_error: Error: len=%x\n",  len);
+		dprintf(INFO, "%s: Error: len=%x\n", __func__, len);
 		return -1;
 	}
 
@@ -57,12 +57,12 @@ int edp_edid_buf_error(char *buf, int len)
 		csum += *bp++;
 
 	if (csum != 0) {
-		dprintf(INFO, "edp_edid_bur_error: Error: csum=%x\n",  csum);
+		dprintf(INFO, "%s: Error: csum=%x\n", __func__, csum);
 		return -1;
 	}
 
 	if (buf[1] != 0xff) {
-		dprintf(INFO, "edp_edid_buf_error: Error: header\n");
+		dprintf(INFO, "%s: Error: header\n", __func__);
 		return -1;
 	}
 
@@ -88,7 +88,7 @@ void edp_extract_edid_manufacturer(struct edp_edid *edid, char *buf)
 	edid->id_name[2] = 'A' + data - 1;
 	edid->id_name[3] = 0;
 
-	dprintf(INFO, "%s: edid manufacturer = %s", __func__,edid->id_name);
+	dprintf(SPEW, "%s: edid manufacturer = %s", __func__, edid->id_name);
 }
 
 void edp_extract_edid_product(struct edp_edid *edid, char *buf)
@@ -104,21 +104,21 @@ void edp_extract_edid_product(struct edp_edid *edid, char *buf)
 	data <<= 8;
 	edid->id_product |= data;
 
-	dprintf(INFO, "edid product = 0x%x",  edid->id_product);
+	dprintf(SPEW, "%s: edid product = 0x%x\n", __func__, edid->id_product);
 };
 
 void edp_extract_edid_version(struct edp_edid *edid, char *buf)
 {
 	edid->version = buf[0x12];
 	edid->revision = buf[0x13];
-	dprintf(INFO, "edid version = %d.%d",  edid->version,
-			edid->revision);
+	dprintf(SPEW, "%s: edid version = %d.%d", __func__,
+					edid->version, edid->revision);
 };
 
 void edp_extract_edid_ext_block_cnt(struct edp_edid *edid, char *buf)
 {
 	edid->ext_block_cnt = buf[0x7e];
-	dprintf(INFO, "edid extension = %d", edid->ext_block_cnt);
+	dprintf(SPEW, "%s: edid extension = %d", __func__, edid->ext_block_cnt);
 };
 
 void edp_extract_edid_video_support(struct edp_edid *edid, char *buf)
@@ -134,11 +134,11 @@ void edp_extract_edid_video_support(struct edp_edid *edid, char *buf)
 			edid->color_depth *= 2;
 			edid->color_depth += 4;
 		}
-		dprintf(INFO, "Digital Video intf=%d color_depth=%d\n",
-			  edid->video_intf, edid->color_depth);
+		dprintf(SPEW, "%s: Digital Video intf=%d color_depth=%d\n",
+			  __func__, edid->video_intf, edid->color_depth);
 		return;
 	}
-	dprintf(INFO, "Error, Analog video interface");
+	dprintf(INFO, "%s: Error, Analog video interface", __func__);
 };
 
 void edp_extract_edid_feature(struct edp_edid *edid, char *buf)
@@ -161,8 +161,8 @@ void edp_extract_edid_feature(struct edp_edid *edid, char *buf)
 		}
 	}
 
-	dprintf(INFO, "edid dpm=%d color_format=%d",
-			edid->dpm, edid->color_format);
+	dprintf(SPEW, "%s: edid dpm=%d color_format=%d",
+			__func__, edid->dpm, edid->color_format);
 };
 
 void edp_extract_edid_detailed_timing_description(struct edp_edid *edid,
@@ -268,23 +268,23 @@ void edp_extract_edid_detailed_timing_description(struct edp_edid *edid,
 		}
 	}
 
-	dprintf(INFO, "pixel_clock = %d\n", dp->pclk);
+	dprintf(SPEW, "%s: pixel_clock = %d\n", __func__, dp->pclk);
 
-	dprintf(INFO, "horizontal=%d, blank=%d, porch=%d, sync=%d\n"
-			,  dp->h_addressable, dp->h_blank,
+	dprintf(SPEW, "%s: horizontal=%d, blank=%d, porch=%d, sync=%d\n",
+			__func__, dp->h_addressable, dp->h_blank,
 			dp->h_fporch, dp->h_sync_pulse);
-	dprintf(INFO, "vertical=%d, blank=%d, porch=%d, vsync=%d\n"
-			,  dp->v_addressable, dp->v_blank,
+	dprintf(SPEW, "%s: vertical=%d, blank=%d, porch=%d, vsync=%d\n",
+			__func__, dp->v_addressable, dp->v_blank,
 			dp->v_fporch, dp->v_sync_pulse);
-	dprintf(INFO, "panel size in mm, width=%d height=%d\n",
-			dp->width_mm, dp->height_mm);
-	dprintf(INFO, "panel border horizontal=%d vertical=%d\n",
-				dp->h_border, dp->v_border);
-	dprintf(INFO, "flags: interlaced=%d stereo=%d sync_type=%d sync_sep=%d\n"
-			,  dp->interlaced, dp->stereo,
+	dprintf(SPEW, "%s: panel size in mm, width=%d height=%d\n",
+			__func__, dp->width_mm, dp->height_mm);
+	dprintf(SPEW, "%s: panel border horizontal=%d vertical=%d\n",
+			__func__, dp->h_border, dp->v_border);
+	dprintf(SPEW, "%s: interlaced=%d stereo=%d sync_type=%d sync_sep=%d\n",
+			__func__, dp->interlaced, dp->stereo,
 			dp->sync_type, dp->sync_separate);
-	dprintf(INFO, "polarity vsync=%d, hsync=%d\n",
-			dp->vsync_pol, dp->hsync_pol);
+	dprintf(SPEW, "%s: polarity vsync=%d, hsync=%d\n",
+			__func__, dp->vsync_pol, dp->hsync_pol);
 }
 
 
@@ -316,10 +316,10 @@ static int edp_aux_chan_ready(struct edp_aux_ctrl *ep)
 	cnt = 5;
 	while(cnt--) {
 		ret = edp_aux_write_buf(ep, 0x50, &data, 1, 1);
-		dprintf(INFO, "edp_aux_chan_ready: ret=%d\n", ret);
+		dprintf(SPEW, "%s: ret=%d\n", __func__, ret);
 		if (ret >= 0)
 			break;
-		dprintf(INFO, "edp_aux_chan_ready: failed in write\n");
+		dprintf(INFO, "%s: failed in write\n", __func__);
 		mdelay(100);
 	}
 
@@ -338,13 +338,13 @@ static int edp_sink_edid_read(struct edp_aux_ctrl *ep, int block)
 
 start:
 	cnt = 5;
-dprintf(INFO, "%s: cnt=%d\n", __func__, cnt);
+	dprintf(SPEW, "%s: cnt=%d\n", __func__, cnt);
 	/* need to write a dummy byte before read edid */
 	while(cnt--) {
 		ret = edp_aux_write_buf(ep, 0x50, &data, 1, 1);
 		if (ret >= 0)
 			break;
-		dprintf(INFO, "edp_sink_edid_read: failed in write\n");
+		dprintf(INFO, "%s: failed in write\n", __func__);
 		mdelay(100);
 	}
 
@@ -353,7 +353,7 @@ dprintf(INFO, "%s: cnt=%d\n", __func__, cnt);
 
 	rlen = edp_aux_read_buf(ep, 0x50, 128, 1);
 
-dprintf(INFO, "edp_sink_edid_read: rlen=%d\n", rlen);
+	dprintf(SPEW, "%s: rlen=%d\n", rlen, __func__);
 
 	if (rlen < 0)
 		goto start;
@@ -430,11 +430,11 @@ static void edp_sink_capability_read(struct edp_aux_ctrl *ep,
 	struct edp_buf *rp;
 	int rlen;
 
-	dprintf(INFO, "%s:\n",__func__);
+	dprintf(SPEW, "%s:\n",__func__);
 
 	rlen = edp_aux_read_buf(ep, 0, len, 0);
 	if (rlen <= 0) {
-		dprintf(INFO, "edp_sink_capability_read: edp aux read failed\n");
+		dprintf(INFO, "%s: edp aux read failed\n", __func__);
 		return;
 	}
 	rp = &ep->rxp;
@@ -446,14 +446,14 @@ static void edp_sink_capability_read(struct edp_aux_ctrl *ep,
 	cap->minor = data & 0x0f;
 	if (--rlen <= 0)
 		return;
-	dprintf(INFO, "edp_sink_cap_read: version: %d.%d\n",  cap->major, cap->minor);
+	dprintf(SPEW, "%s: version: %d.%d\n", __func__,  cap->major, cap->minor);
 
 	data = *bp++; /* byte 1 */
 	/* 162, 270 and 540 MB, symbol rate, NOT bit rate */
 	cap->max_link_rate = data * 27;
 	if (--rlen <= 0)
 		return;
-	dprintf(INFO, "edp_sink_cap_read: link_rate=%d\n",  cap->max_link_rate);
+	dprintf(SPEW, "%s: link_rate=%d\n",  __func__, cap->max_link_rate);
 
 	data = *bp++; /* byte 2 */
 	if (data & BIT(7))
@@ -464,24 +464,24 @@ static void edp_sink_capability_read(struct edp_aux_ctrl *ep,
 	cap->max_lane_count = data;
 	if (--rlen <= 0)
 		return;
-	dprintf(INFO, "edp_sink_cap_read: lane_count=%d\n",  cap->max_lane_count);
+	dprintf(SPEW, "%s: lane_count=%d\n", __func__,  cap->max_lane_count);
 
 	data = *bp++; /* byte 3 */
 	if (data & BIT(0)) {
 		cap->flags |= DPCD_MAX_DOWNSPREAD_0_5;
-		dprintf(INFO, "edp_sink_cap_read: max_downspread\n");
+		dprintf(SPEW, "%s: max_downspread\n", __func__);
 	}
 
 	if (data & BIT(6)) {
 		cap->flags |= DPCD_NO_AUX_HANDSHAKE;
-		dprintf(INFO, "edp_sink_cap_read: NO Link Training\n");
+		dprintf(SPEW, "%s: NO Link Training\n", __func__);
 	}
 	if (--rlen <= 0)
 		return;
 
 	data = *bp++; /* byte 4 */
 	cap->num_rx_port = (data & BIT(0)) + 1;
-	dprintf(INFO, "edp_sink_cap_read: rx_ports=%d",  cap->num_rx_port);
+	dprintf(SPEW, "%s: rx_ports=%d", __func__,  cap->num_rx_port);
 	if (--rlen <= 0)
 		return;
 
@@ -493,14 +493,14 @@ static void edp_sink_capability_read(struct edp_aux_ctrl *ep,
 	data = *bp++; /* byte 8 */
 	if (data & BIT(1)) {
 		cap->flags |= DPCD_PORT_0_EDID_PRESENTED;
-		dprintf(INFO, "edp_sink_cap_read: edid presented\n");
+		dprintf(SPEW, "%s: edid presented\n", __func__);
 	}
 	if (--rlen <= 0)
 		return;
 
 	data = *bp++; /* byte 9 */
 	cap->rx_port0_buf_size = (data + 1) * 32;
-	dprintf(INFO, "edp_sink_cap_read: lane_buf_size=%d",  cap->rx_port0_buf_size);
+	dprintf(SPEW, "%s: lane_buf_size=%d", __func__, cap->rx_port0_buf_size);
 	if (--rlen <= 0)
 		return;
 
@@ -512,17 +512,17 @@ static void edp_sink_capability_read(struct edp_aux_ctrl *ep,
 	data = *bp++;	/* byte 12 */
 	cap->i2c_speed_ctrl = data;
 	if (cap->i2c_speed_ctrl > 0)
-		dprintf(INFO, "edp_sink_cap_read: i2c_rate=%d",  cap->i2c_speed_ctrl);
+		dprintf(SPEW, "%s: i2c_rate=%d", __func__, cap->i2c_speed_ctrl);
 	if (--rlen <= 0)
 		return;
 
 	data = *bp++;	/* byte 13 */
 	cap->scrambler_reset = data & BIT(0);
-	dprintf(INFO, "edp_sink_cap_read: scrambler_reset=%d\n",
+	dprintf(SPEW, "%s: scrambler_reset=%d\n", __func__,
 					cap->scrambler_reset);
 
 	cap->enhanced_frame = data & BIT(1);
-	dprintf(INFO, "edp_sink_cap_read: enhanced_framing=%d\n",
+	dprintf(SPEW, "%s: enhanced_framing=%d\n", __func__,
 					cap->enhanced_frame);
 	if (--rlen <= 0)
 		return;
@@ -532,7 +532,7 @@ static void edp_sink_capability_read(struct edp_aux_ctrl *ep,
 		cap->training_read_interval = 100; /* us */
 	else
 		cap->training_read_interval = 4000 * data; /* us */
-	dprintf(INFO, "edp_sink_cap_read: training_interval=%d\n",
+	dprintf(SPEW, "%s: training_interval=%d\n", __func__,
 			 cap->training_read_interval);
 }
 
@@ -547,9 +547,9 @@ static void edp_link_status_read(struct edp_aux_ctrl *ep, int len)
 
 	/* skip byte 0x200 and 0x201 */
 	rlen = edp_aux_read_buf(ep, 0x202, len, 0);
-	dprintf(INFO, "%s: rlen=%d\n", __func__, rlen);
+	dprintf(SPEW, "%s: rlen=%d\n", __func__, rlen);
 	if (rlen <= 0) {
-		dprintf(INFO, "edp_link_status_read: edp aux read failed\n");
+		dprintf(SPEW, "%s: edp aux read failed\n", __func__);
 		return;
 	}
 	rp = &ep->rxp;
@@ -600,10 +600,10 @@ static void edp_link_status_read(struct edp_aux_ctrl *ep, int len)
 	sp->req_pre_emphasis[3] = data & 0x03;
 
 	bp = rp->data;
-dprintf(INFO, "%s: %x %x %x %x %x %x\n", __func__, *bp,
+	dprintf(SPEW, "%s: %x %x %x %x %x %x\n", __func__, *bp,
 	*(bp+1), *(bp+2), *(bp+3), *(bp+4), *(bp+5));
 
-	dprintf(INFO, "%s: align=%d v=%d p=%d\n", __func__,
+	dprintf(SPEW, "%s: align=%d v=%d p=%d\n", __func__,
 	sp->interlane_align_done, sp->req_voltage_swing[0], sp->req_pre_emphasis[0]);
 }
 
@@ -613,7 +613,8 @@ static int edp_cap_lane_rate_set(struct edp_aux_ctrl *ep)
 	char buf[4];
 	int len = 0;
 
-	dprintf(INFO, "cap_lane_set: bw=%x lane=%d\n", ep->link_rate, ep->lane_cnt);
+	dprintf(SPEW, "%s: bw=%x lane=%d\n", __func__,
+				ep->link_rate, ep->lane_cnt);
 	buf[0] = ep->link_rate;
 	buf[1] = ep->lane_cnt;
 	len = edp_aux_write_buf(ep, 0x100, buf, 2, 0);
@@ -639,7 +640,7 @@ static int edp_lane_set_write(struct edp_aux_ctrl *ep, int voltage_level,
 	for (i = 0; i < 4; i++)
 		buf[i] = voltage_level | pre_emphasis_level;
 
-	dprintf(INFO, "%s: p|v=0x%x\n", __func__, voltage_level | pre_emphasis_level);
+	dprintf(SPEW, "%s: p|v=0x%x\n", __func__, voltage_level | pre_emphasis_level);
 	return edp_aux_write_buf(ep, 0x103, buf, 4, 0);
 }
 
@@ -677,7 +678,7 @@ static int edp_sink_clock_recovery_done(struct edp_aux_ctrl *ep)
 		data |= ep->link_status.lane_01_status;
 	}
 
-dprintf(INFO, "clock_recovery_done: data=%x mask=%x\n",  data, mask);
+	dprintf(SPEW, "%s: data=%x mask=%x\n", __func__, data, mask);
 	data &= mask;
 	if (data == mask) /* all done */
 		return 1;
@@ -707,7 +708,7 @@ static int edp_sink_channel_eq_done(struct edp_aux_ctrl *ep)
 		data |= ep->link_status.lane_01_status;
 	}
 
-dprintf(INFO, "%s: data=%x mask=%x\n", __func__,  data, mask);
+	dprintf(SPEW, "%s: data=%x mask=%x\n", __func__,  data, mask);
 
 	data &= mask;
 	if (data == mask)/* all done */
@@ -738,7 +739,7 @@ void edp_sink_train_set_adjust(struct edp_aux_ctrl *ep)
 	}
 
 	ep->p_level = max;
-	dprintf(INFO, "train_set_adjust: v_level=%d, p_level=%d\n",
+	dprintf(SPEW, "%s: v_level=%d, p_level=%d\n", __func__,
 					ep->v_level, ep->p_level);
 }
 
@@ -762,7 +763,7 @@ static void edp_host_train_set(struct edp_aux_ctrl *ep, int train)
 	}
 
 	if (cnt == 0)
-		dprintf(INFO, "%s: set link_train=%d failed\n",  __func__, train);
+		dprintf(SPEW, "%s: set link_train=%d failed\n",  __func__, train);
 }
 
 char vm_pre_emphasis[4][4] = {
@@ -784,7 +785,7 @@ static void edp_voltage_pre_emphasise_set(struct edp_aux_ctrl *ep)
 	int value0 = 0;
 	int value1 = 0;
 
-	dprintf(INFO, "voltage_pre_emphasis_set: v=%d p=%d\n",  ep->v_level, ep->p_level);
+	dprintf(SPEW, "%s: v=%d p=%d\n", __func__, ep->v_level, ep->p_level);
 
 	value0 = vm_pre_emphasis[(int)(ep->v_level)][(int)(ep->p_level)];
 	value1 = vm_voltage_swing[(int)(ep->v_level)][(int)(ep->p_level)];
@@ -793,7 +794,7 @@ static void edp_voltage_pre_emphasise_set(struct edp_aux_ctrl *ep)
 	if (value0 != 0xFF && value1 != 0xFF) {
 		edp_write(EDP_BASE + EDP_PHY_EDPPHY_GLB_VM_CFG0, value0);
 		edp_write(EDP_BASE + EDP_PHY_EDPPHY_GLB_VM_CFG1, value1);
-		dprintf(INFO, "voltage_pre_emphasis_set: value0=0x%x value1=0x%x\n",
+		dprintf(SPEW, "%s: value0=0x%x value1=0x%x\n", __func__,
 						value0, value1);
 		edp_lane_set_write(ep, ep->v_level, ep->p_level);
 	}
@@ -805,7 +806,7 @@ static int edp_start_link_train_1(struct edp_aux_ctrl *ep)
 	int tries, old_v_level;
 	int ret = 0;
 
-	dprintf(INFO, "link_train_1\n");
+	dprintf(SPEW, "%s:\n", __func__);
 
 	edp_host_train_set(ep, 0x01); /* train_1 */
 	edp_voltage_pre_emphasise_set(ep);
@@ -851,7 +852,7 @@ static int edp_start_link_train_2(struct edp_aux_ctrl *ep)
 	int ret = 0;
 	char pattern;
 
-	dprintf(INFO, "link_train_2\n");
+	dprintf(SPEW, "%s\n", __func__);
 
 	if (ep->dpcd.flags & DPCD_TPS3)
 		pattern = 0x03;
@@ -894,7 +895,7 @@ static int edp_link_rate_shift(struct edp_aux_ctrl *ep)
 
 static void edp_clear_training_pattern(struct edp_aux_ctrl *ep)
 {
-	dprintf(INFO, "clear_training_pattern:\n");
+	dprintf(SPEW, "%s:\n", __func__);
 	edp_write(EDP_BASE + EDP_STATE_CTRL, 0);
 	edp_train_pattern_set_write(ep, 0);
 	udelay(ep->dpcd.training_read_interval);
@@ -904,10 +905,11 @@ static int edp_aux_link_train(struct edp_aux_ctrl *ep)
 {
 	int ret = 0;
 
-	dprintf(INFO, "%s:\n", __func__);
+	dprintf(SPEW, "%s:\n", __func__);
 	ret = edp_aux_chan_ready(ep);
 	if (ret == 0) {
-		dprintf(INFO, "link_train: LINK Train failed: aux chan NOT ready\n");
+		dprintf(INFO, "%s: Error: aux chan NOT ready\n",
+							__func__);
 		return ret;
 	}
 
@@ -930,7 +932,7 @@ train_start:
 		if (edp_link_rate_shift(ep) == 0) {
 			goto train_start;
 		} else {
-			dprintf(INFO, "Training 1 failed\n");
+			dprintf(INFO, "%s: Training 1 failed\n", __func__);
 			ret = -1;
 			goto clear;
 		}
@@ -944,7 +946,7 @@ train_start:
 		if (edp_link_rate_shift(ep) == 0) {
 			goto train_start;
 		} else {
-			dprintf(INFO, "Training 2 failed\n");
+			dprintf(INFO, "%s: Training 2 failed\n", __func__);
 			ret = -1;
 			goto clear;
 		}
