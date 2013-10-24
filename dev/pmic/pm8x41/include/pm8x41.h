@@ -55,6 +55,7 @@
 #define PM_GPIO_FUNC_LOW        0x00
 #define PM_GPIO_FUNC_HIGH       0x01
 #define PM_GPIO_FUNC_2          0x06
+#define PM_GPIO_FUNC_1          0x04
 
 #define PM_GPIO_MODE_MASK       0x70
 #define PM_GPIO_OUTPUT_MASK     0x0F
