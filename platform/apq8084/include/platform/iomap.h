@@ -176,4 +176,43 @@
 #define BOOT_CONFIG_OFFSET          0x00006034
 #define BOOT_CONFIG_REG             (SEC_CTRL_CORE_BASE+BOOT_CONFIG_OFFSET)
 
+/* mdss */
+#define MSM_MMSS_CLK_CTL_BASE       0xFD8C0000
+
+#define MIPI_DSI_BASE               (0xFD922800)
+#define MIPI_DSI0_BASE              (MIPI_DSI_BASE)
+#define MIPI_DSI1_BASE              (0xFD922E00)
+#define REG_DSI(off)                (MIPI_DSI_BASE + 0x04 + (off))
+
+#define MDP_BASE                    (0xfd900000)
+#define REG_MDP(off)                (MDP_BASE + (off))
+
+#define SOFT_RESET                  0x118
+#define CLK_CTRL                    0x11C
+#define TRIG_CTRL                   0x084
+#define CTRL                        0x004
+#define COMMAND_MODE_DMA_CTRL       0x03C
+#define ERR_INT_MASK0               0x10C
+
+#define LANE_SWAP_CTL               0x0B0
+#define TIMING_CTL                  0x0C4
+
+#define VIDEO_MODE_ACTIVE_H         0x024
+#define VIDEO_MODE_ACTIVE_V         0x028
+#define VIDEO_MODE_TOTAL            0x02C
+#define VIDEO_MODE_HSYNC            0x030
+#define VIDEO_MODE_VSYNC            0x034
+#define VIDEO_MODE_VSYNC_VPOS       0x038
+
+#define DMA_CMD_OFFSET              0x048
+#define DMA_CMD_LENGTH              0x04C
+
+#define INT_CTRL                    0x110
+#define CMD_MODE_DMA_SW_TRIGGER     0x090
+
+#define EOT_PACKET_CTRL             0x0C8
+#define MISR_VIDEO_CTRL             0x0A4
+#define VIDEO_MODE_CTRL             0x010
+#define HS_TIMER_CTRL               0x0BC
+
 #endif

@@ -34,6 +34,58 @@
 
 #define UART_DM_CLK_RX_TX_BIT_RATE 0xCC
 
+#define REG_MM(off)                     (MSM_MMSS_CLK_CTL_BASE + (off))
+
+#define MDP_GDSCR                       REG_MM(0x2304)
+#define GDSC_POWER_ON_BIT               BIT(31)
+#define GDSC_POWER_ON_STATUS_BIT        BIT(29)
+#define GDSC_EN_FEW_WAIT_MASK           (0x0F << 16)
+#define GDSC_EN_FEW_WAIT_256_MASK       BIT(19)
+
+#define VSYNC_CMD_RCGR                  REG_MM(0x2080)
+#define VSYNC_CFG_RCGR                  REG_MM(0x2084)
+#define MDSS_VSYNC_CBCR                 REG_MM(0x2328)
+#define MDP_CMD_RCGR                    REG_MM(0x2040)
+#define MDP_CFG_RCGR                    REG_MM(0x2044)
+#define MDP_CBCR                        REG_MM(0x231C)
+#define MDP_LUT_CBCR                    REG_MM(0x2320)
+#define MDP_AHB_CBCR                    REG_MM(0x2308)
+
+#define MDP_AXI_CMD_RCGR                REG_MM(0x5040)
+#define MDP_AXI_CFG_RCGR                REG_MM(0x5044)
+
+#define MDP_AXI_CBCR                    REG_MM(0x2310)
+#define MMSS_S0_AXI_CBCR                REG_MM(0x5064)
+#define MMSS_MMSSNOC_AXI_CBCR           REG_MM(0x506C)
+
+#define DSI_BYTE0_CMD_RCGR              REG_MM(0x2120)
+#define DSI_BYTE0_CFG_RCGR              REG_MM(0x2124)
+#define DSI_BYTE0_CBCR                  REG_MM(0x233C)
+#define DSI_ESC0_CMD_RCGR               REG_MM(0x2160)
+#define DSI_ESC0_CFG_RCGR               REG_MM(0x2164)
+#define DSI_ESC0_CBCR                   REG_MM(0x2344)
+#define DSI_PIXEL0_CMD_RCGR             REG_MM(0x2000)
+#define DSI_PIXEL0_CFG_RCGR             REG_MM(0x2004)
+#define DSI_PIXEL0_CBCR                 REG_MM(0x2314)
+#define DSI_PIXEL0_M                    REG_MM(0x2008)
+#define DSI_PIXEL0_N                    REG_MM(0x200C)
+#define DSI_PIXEL0_D                    REG_MM(0x2010)
+
+#define DSI0_PHY_PLL_OUT                BIT(8)
+#define PIXEL_SRC_DIV_1_5               BIT(1)
+
+#define DSI_BYTE1_CMD_RCGR              REG_MM(0x2140)
+#define DSI_BYTE1_CFG_RCGR              REG_MM(0x2144)
+#define DSI_BYTE1_CBCR                  REG_MM(0x2340)
+#define DSI_ESC1_CMD_RCGR               REG_MM(0x2180)
+#define DSI_ESC1_CFG_RCGR               REG_MM(0x2184)
+#define DSI_ESC1_CBCR                   REG_MM(0x2348)
+#define DSI_PIXEL1_CMD_RCGR             REG_MM(0x2020)
+#define DSI_PIXEL1_CFG_RCGR             REG_MM(0x2024)
+#define DSI_PIXEL1_CBCR                 REG_MM(0x2318)
+#define DSI_PIXEL1_M                    REG_MM(0x2028)
+#define DSI_PIXEL1_N                    REG_MM(0x202C)
+#define DSI_PIXEL1_D                    REG_MM(0x2030)
 
 void platform_clock_init(void);
 
