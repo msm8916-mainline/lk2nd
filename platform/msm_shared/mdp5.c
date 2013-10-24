@@ -177,14 +177,14 @@ void mdss_smp_setup(struct msm_panel_info *pinfo)
 		ASSERT(0); /* Max 4 SMPs can be allocated per client */
 	}
 
-	writel(smp_cnt * 0x40, RGB0_REQPRIORITY_FIFO_WATERMARK0);
-	writel(smp_cnt * 0x80, RGB0_REQPRIORITY_FIFO_WATERMARK1);
-	writel(smp_cnt * 0xc0, RGB0_REQPRIORITY_FIFO_WATERMARK2);
+	writel(smp_cnt * 0x40, MDP_VP_0_RGB_0_BASE + REQPRIORITY_FIFO_WATERMARK0);
+	writel(smp_cnt * 0x80, MDP_VP_0_RGB_0_BASE + REQPRIORITY_FIFO_WATERMARK1);
+	writel(smp_cnt * 0xc0, MDP_VP_0_RGB_0_BASE + REQPRIORITY_FIFO_WATERMARK2);
 
 	if (pinfo->lcdc.dual_pipe) {
-		writel(smp_cnt * 0x40, RGB1_REQPRIORITY_FIFO_WATERMARK0);
-		writel(smp_cnt * 0x80, RGB1_REQPRIORITY_FIFO_WATERMARK1);
-		writel(smp_cnt * 0xc0, RGB1_REQPRIORITY_FIFO_WATERMARK2);
+		writel(smp_cnt * 0x40, MDP_VP_0_RGB_1_BASE + REQPRIORITY_FIFO_WATERMARK0);
+		writel(smp_cnt * 0x80, MDP_VP_0_RGB_1_BASE + REQPRIORITY_FIFO_WATERMARK1);
+		writel(smp_cnt * 0xc0, MDP_VP_0_RGB_1_BASE + REQPRIORITY_FIFO_WATERMARK2);
 	}
 
 	while((smp_cnt > 0) && !(shift > 16)) {

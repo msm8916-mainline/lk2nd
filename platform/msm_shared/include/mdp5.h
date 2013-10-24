@@ -32,8 +32,13 @@
 
 #include <msm_panel.h>
 
+#ifdef MDP_VER_5_3
+#define MDP_VP_0_RGB_0_BASE                     REG_MDP(0x2200)
+#define MDP_VP_0_RGB_1_BASE                     REG_MDP(0x2600)
+#else
 #define MDP_VP_0_RGB_0_BASE                     REG_MDP(0x1E00)
 #define MDP_VP_0_RGB_1_BASE                     REG_MDP(0x2200)
+#endif
 
 #define PIPE_SSPP_SRC0_ADDR                     0x14
 #define PIPE_SSPP_SRC_YSTRIDE                   0x24
@@ -45,9 +50,17 @@
 #define PIPE_SSPP_SRC_FORMAT                    0x30
 #define PIPE_SSPP_SRC_UNPACK_PATTERN            0x34
 #define PIPE_SSPP_SRC_OP_MODE                   0x38
+#define REQPRIORITY_FIFO_WATERMARK0        	0x50
+#define REQPRIORITY_FIFO_WATERMARK1        	0x54
+#define REQPRIORITY_FIFO_WATERMARK2        	0x58
 
+#ifdef MDP_VER_5_3
+#define MDP_VP_0_MIXER_0_BASE                   REG_MDP(0x3A00)
+#define MDP_VP_0_MIXER_1_BASE                   REG_MDP(0x3E00)
+#else
 #define MDP_VP_0_MIXER_0_BASE                   REG_MDP(0x3200)
 #define MDP_VP_0_MIXER_1_BASE                   REG_MDP(0x3600)
+#endif
 
 #define LAYER_0_OUT_SIZE                        0x04
 #define LAYER_0_OP_MODE                         0x00
@@ -131,14 +144,6 @@
 #define MMSS_MDP_SMP_ALLOC_W_1                  REG_MDP(0x0184)
 #define MMSS_MDP_SMP_ALLOC_R_0                  REG_MDP(0x0230)
 #define MMSS_MDP_SMP_ALLOC_R_1                  REG_MDP(0x0234)
-
-#define RGB0_REQPRIORITY_FIFO_WATERMARK0        REG_MDP(0x1E50)
-#define RGB0_REQPRIORITY_FIFO_WATERMARK1        REG_MDP(0x1E54)
-#define RGB0_REQPRIORITY_FIFO_WATERMARK2        REG_MDP(0x1E58)
-
-#define RGB1_REQPRIORITY_FIFO_WATERMARK0        REG_MDP(0x2250)
-#define RGB1_REQPRIORITY_FIFO_WATERMARK1        REG_MDP(0x2254)
-#define RGB1_REQPRIORITY_FIFO_WATERMARK2        REG_MDP(0x2258)
 
 #define MDP_QOS_REMAPPER_CLASS_0                REG_MDP(0x02E0)
 
