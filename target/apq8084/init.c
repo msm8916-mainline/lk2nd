@@ -296,6 +296,12 @@ void target_init(void)
 		ASSERT(0);
 	}
 
+	/* Display splash screen if enabled */
+#if DISPLAY_SPLASH_SCREEN
+	dprintf(INFO, "Display Init: Start\n");
+	display_init();
+	dprintf(INFO, "Display Init: Done\n");
+#endif
 }
 
 unsigned board_machtype(void)
@@ -377,7 +383,22 @@ void set_rcm_baseband(struct board_data *board)
 	};
 }
 
-
+/* Returns 1 if target supports continuous splash screen. */
+int target_cont_splash_screen()
+{
+	switch(board_hardware_id())
+	{
+		case HW_PLATFORM_SURF:
+		case HW_PLATFORM_MTP:
+		case HW_PLATFORM_FLUID:
+			dprintf(INFO, "Target_cont_splash=1\n");
+			return 1;
+			break;
+		default:
+			dprintf(SPEW, "Target_cont_splash=0\n");
+			return 0;
+	}
+}
 
 /* Detect the modem type */
 void target_baseband_detect(struct board_data *board)
