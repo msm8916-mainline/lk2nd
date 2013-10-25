@@ -36,6 +36,7 @@
 #include <pm8x41_wled.h>
 #include <board.h>
 #include <mdp5.h>
+#include <scm.h>
 #include <platform/gpio.h>
 #include <platform/iomap.h>
 #include <target/display.h>
@@ -224,6 +225,7 @@ static void dsi_pll_enable_seq(uint32_t ctl_base)
 
 int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 {
+	int32_t ret;
 	struct mdss_dsi_pll_config *pll_data;
 	dprintf(SPEW, "target_panel_clock\n");
 
@@ -231,18 +233,28 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 
 	if (enable) {
 		mdp_gdsc_ctrl(enable);
-		mdp_clock_init();
+		mmss_bus_clocks_enable();
+		mdp_clock_enable();
+		ret = restore_secure_cfg(SECURE_DEVICE_MDSS);
+		if (ret) {
+			dprintf(CRITICAL,
+				"%s: Failed to restore MDP security configs",
+				__func__);
+			mdp_clock_disable();
+			mmss_bus_clocks_disable();
+			mdp_gdsc_ctrl(0);
+			return ret;
+		}
 		mdss_dsi_auto_pll_config(MIPI_DSI0_BASE, pll_data);
 		dsi_pll_enable_seq(MIPI_DSI0_BASE);
-		mmss_clock_auto_pll_init(pll_data->pclk_m,
+		mmss_dsi_clocks_enable(pll_data->pclk_m,
 				pll_data->pclk_n,
 				pll_data->pclk_d);
 	} else if(!target_cont_splash_screen()) {
-		/* Add here for non-continuous splash */
-		/* FIXME:Need to disable the clocks.
-		 * For now leave the clocks enabled until the kernel
-		 * hang issue gets resolved
-		 */
+		mmss_dsi_clocks_disable();
+		mdp_clock_disable();
+		mmss_bus_clocks_disable();
+		mdp_gdsc_ctrl(enable);
 	}
 
 	return 0;

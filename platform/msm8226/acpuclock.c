@@ -298,8 +298,8 @@ void mdp_gdsc_ctrl(uint8_t enable)
 	}
 }
 
-/* Configure MDP clock */
-void mdp_clock_init(void)
+/* Enable all the MDP branch clocks */
+void mdp_clock_enable(void)
 {
 	int ret;
 
@@ -340,10 +340,9 @@ void mdp_clock_init(void)
 	}
 }
 
+/* Disable all the MDP branch clocks */
 void mdp_clock_disable(void)
 {
-	writel(0x0, DSI_BYTE0_CBCR);
-	writel(0x0, DSI_PIXEL0_CBCR);
 	clk_disable(clk_get("mdss_vsync_clk"));
 	clk_disable(clk_get("mdss_mdp_clk"));
 	clk_disable(clk_get("mdss_mdp_lut_clk"));
@@ -351,23 +350,23 @@ void mdp_clock_disable(void)
 	clk_disable(clk_get("mdp_ahb_clk"));
 }
 
-/* Initialize all clocks needed by Display */
-void mmss_clock_init(uint32_t dsi_pixel0_cfg_rcgr)
+/* Disable all the bus clocks needed by MDP */
+void mmss_bus_clocks_disable(void)
+{
+	/* Disable MDSS AXI clock */
+	clk_disable(clk_get("mdss_axi_clk"));
+
+	/* Disable MMSSNOC S0AXI clock */
+	clk_disable(clk_get("mmss_s0_axi_clk"));
+
+	/* Disable MMSSNOC AXI clock */
+	clk_disable(clk_get("mmss_mmssnoc_axi_clk"));
+}
+
+/* Enable all the bus clocks needed by MDP */
+void mmss_bus_clocks_enable(void)
 {
 	int ret;
-
-	/* Configure Byte clock */
-	writel(0x100, DSI_BYTE0_CFG_RCGR);
-	writel(0x1, DSI_BYTE0_CMD_RCGR);
-	writel(0x1, DSI_BYTE0_CBCR);
-
-	/* Configure ESC clock */
-	ret = clk_get_set_enable("mdss_esc0_clk", 0, 1);
-	if(ret)
-	{
-		dprintf(CRITICAL, "failed to set esc0_clk ret = %d\n", ret);
-		ASSERT(0);
-	}
 
 	/* Configure MMSSNOC AXI clock */
 	ret = clk_get_set_enable("mmss_mmssnoc_axi_clk", 100000000, 1);
@@ -392,14 +391,18 @@ void mmss_clock_init(uint32_t dsi_pixel0_cfg_rcgr)
 		dprintf(CRITICAL, "failed to set mdss_axi_clk ret = %d\n", ret);
 		ASSERT(0);
 	}
-
-	/* Configure Pixel clock */
-	writel(dsi_pixel0_cfg_rcgr, DSI_PIXEL0_CFG_RCGR);
-	writel(0x1, DSI_PIXEL0_CMD_RCGR);
-	writel(0x1, DSI_PIXEL0_CBCR);
 }
 
-void mmss_clock_auto_pll_init(uint8_t pclk0_m, uint8_t pclk0_n, uint8_t pclk0_d)
+/* Disable all the branch clocks needed by the DSI controller */
+void mmss_dsi_clocks_disable(void)
+{
+	clk_disable(clk_get("mdss_esc0_clk"));
+	writel(0x0, DSI_PIXEL0_CBCR);
+	writel(0x0, DSI_BYTE0_CBCR);
+}
+
+/* Configure all the branch clocks needed by the DSI controller */
+void mmss_dsi_clocks_enable(uint8_t pclk0_m, uint8_t pclk0_n, uint8_t pclk0_d)
 {
 	int ret;
 
@@ -409,34 +412,6 @@ void mmss_clock_auto_pll_init(uint8_t pclk0_m, uint8_t pclk0_n, uint8_t pclk0_d)
 	writel(0x1, DSI_BYTE0_CMD_RCGR);
 	writel(0x1, DSI_BYTE0_CBCR);
 
-	/* Configure ESC clock */
-	ret = clk_get_set_enable("mdss_esc0_clk", 0, 1);
-	if (ret) {
-		dprintf(CRITICAL, "failed to set esc0_clk ret = %d\n", ret);
-		ASSERT(0);
-	}
-
-	/* Configure MMSSNOC AXI clock */
-	ret = clk_get_set_enable("mmss_mmssnoc_axi_clk", 100000000, 1);
-	if (ret) {
-		dprintf(CRITICAL, "failed to set mmssnoc_axi_clk ret = %d\n", ret);
-		ASSERT(0);
-	}
-
-	/* Configure MMSSNOC AXI clock */
-	ret = clk_get_set_enable("mmss_s0_axi_clk", 100000000, 1);
-	if (ret) {
-		dprintf(CRITICAL, "failed to set mmss_s0_axi_clk ret = %d\n", ret);
-		ASSERT(0);
-	}
-
-	/* Configure AXI clock */
-	ret = clk_get_set_enable("mdss_axi_clk", 100000000, 1);
-	if (ret) {
-		dprintf(CRITICAL, "failed to set mdss_axi_clk ret = %d\n", ret);
-		ASSERT(0);
-	}
-
 	/* Configure Pixel clock */
 	writel(0x100, DSI_PIXEL0_CFG_RCGR);
 	writel(0x1, DSI_PIXEL0_CMD_RCGR);
@@ -445,21 +420,11 @@ void mmss_clock_auto_pll_init(uint8_t pclk0_m, uint8_t pclk0_n, uint8_t pclk0_d)
 	writel(pclk0_m, DSI_PIXEL0_M);
 	writel(pclk0_n, DSI_PIXEL0_N);
 	writel(pclk0_d, DSI_PIXEL0_D);
-}
 
-void mmss_clock_disable(void)
-{
-
-	/* Disable ESC clock */
-	clk_disable(clk_get("mdss_esc0_clk"));
-
-	/* Disable MDSS AXI clock */
-	clk_disable(clk_get("mdss_axi_clk"));
-
-	/* Disable MMSSNOC S0AXI clock */
-	clk_disable(clk_get("mmss_s0_axi_clk"));
-
-	/* Disable MMSSNOC AXI clock */
-	clk_disable(clk_get("mmss_mmssnoc_axi_clk"));
-
+	/* Configure ESC clock */
+	ret = clk_get_set_enable("mdss_esc0_clk", 0, 1);
+	if (ret) {
+		dprintf(CRITICAL, "failed to set esc0_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
 }
