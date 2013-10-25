@@ -67,8 +67,10 @@ typedef struct panel_struct{
 int dsi_panel_init(struct msm_panel_info *pinfo,
 		struct panel_struct *pstruct);
 
-int dsi_panel_on();
-int dsi_panel_off();
+int dsi_panel_pre_on();
+int dsi_panel_post_on();
+int dsi_panel_pre_off();
+int dsi_panel_post_off();
 int dsi_panel_rotation();
 int dsi_panel_config(void *);
 
