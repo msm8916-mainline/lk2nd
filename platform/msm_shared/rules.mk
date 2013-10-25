@@ -177,7 +177,6 @@ endif
 
 ifeq ($(PLATFORM),apq8084)
 DEFINES += DISPLAY_TYPE_MDSS=1
-DEFINES += MDP_VER_5_3=1
     OBJS += $(LOCAL_DIR)/qgic.o \
             $(LOCAL_DIR)/qtimer.o \
             $(LOCAL_DIR)/qtimer_mmap.o \
