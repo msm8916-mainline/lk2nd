@@ -595,7 +595,7 @@ int check_aboot_addr_range_overlap(uint32_t start, uint32_t size)
 	/* Check for memory overlap. */
 	if ((start < MEMBASE) && ((start + size) <= MEMBASE))
 		return 0;
-	else if (start > (MEMBASE + MEMSIZE))
+	else if (start >= (MEMBASE + MEMSIZE))
 		return 0;
 	else
 		return -1;
