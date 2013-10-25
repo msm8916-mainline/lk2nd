@@ -391,9 +391,9 @@ void mmss_dsi_clock_enable(uint32_t dsi_pixel0_cfg_rcgr, uint32_t dual_dsi,
 		writel(0x1, DSI_PIXEL1_CMD_RCGR);
 		writel(0x1, DSI_PIXEL1_CBCR);
 
-		writel(pclk0_m, DSI_PIXEL0_M);
-		writel(pclk0_n, DSI_PIXEL0_N);
-		writel(pclk0_d, DSI_PIXEL0_D);
+		writel(pclk0_m, DSI_PIXEL1_M);
+		writel(pclk0_n, DSI_PIXEL1_N);
+		writel(pclk0_d, DSI_PIXEL1_D);
 
 		/* Configure ESC clock */
 		ret = clk_get_set_enable("mdss_esc1_clk", 0, 1);
