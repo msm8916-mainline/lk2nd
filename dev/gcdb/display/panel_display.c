@@ -67,10 +67,12 @@ int dsi_panel_init(struct msm_panel_info *pinfo,
 	pinfo->lcdc.yres_pad = pstruct->panelres->vtop_border +
 				 pstruct->panelres->vbottom_border;
 
-	pinfo->lcdc.dual_pipe = (pstruct->paneldata->panel_operating_mode
-								 & 0x2);
-	pinfo->lcdc.pipe_swap = (pstruct->paneldata->panel_operating_mode
-								 & 0x4);
+	if (pstruct->paneldata->panel_operating_mode & DUAL_PIPE_FLAG)
+		pinfo->lcdc.dual_pipe = 1;
+	if (pstruct->paneldata->panel_operating_mode & PIPE_SWAP_FLAG)
+		pinfo->lcdc.pipe_swap = 1;
+	if (pstruct->paneldata->panel_operating_mode & SPLIT_DISPLAY_FLAG)
+		pinfo->lcdc.split_display = 1;
 
 	/* Color setting*/
 	pinfo->lcdc.border_clr = pstruct->color->border_color;
@@ -105,13 +107,13 @@ int dsi_panel_init(struct msm_panel_info *pinfo,
 	pinfo->clk_rate = pstruct->paneldata->panel_clockrate;
 	pinfo->rotation = pstruct->paneldata->panel_orientation;
 	pinfo->mipi.interleave_mode = pstruct->paneldata->interleave_mode;
-	pinfo->broadcastmode = pstruct->paneldata->panel_broadcast_mode;
+	pinfo->mipi.broadcast = pstruct->paneldata->panel_broadcast_mode;
 	pinfo->lowpowerstop = pstruct->paneldata->dsi_lp11_atinit;
 	pinfo->mipi.vc = pstruct->paneldata->dsi_virtualchannel_id;
 	pinfo->mipi.frame_rate = pstruct->paneldata->panel_framerate;
 	pinfo->mipi.stream = pstruct->paneldata->dsi_stream;
-	pinfo->mipi.dual_dsi = (pstruct->paneldata->panel_operating_mode
-								 & 0x1);
+	if (pstruct->paneldata->panel_operating_mode & DUAL_DSI_FLAG)
+		pinfo->mipi.dual_dsi = 1;
 	pinfo->mipi.mode_gpio_state = pstruct->paneldata->mode_gpio_state;
 	pinfo->mipi.bitclock = pstruct->paneldata->panel_bitclock_freq;
 
