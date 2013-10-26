@@ -1526,6 +1526,53 @@ struct mmc_device *mmc_init(struct mmc_config_data *data)
 	return dev;
 }
 
+static uint32_t mmc_parse_response(uint32_t resp)
+{
+	/* Trying to write beyond card capacity */
+	if (resp & MMC_R1_ADDR_OUT_OF_RANGE) {
+		dprintf(CRITICAL, "Attempting to read or write beyond the Device capacity\n");
+		return 1;
+	}
+
+	/* Misaligned address not matching block length */
+	if (resp & MMC_R1_ADDR_ERR) {
+		dprintf(CRITICAL, "The misaligned address did not match the block length used\n");
+		return 1;
+	}
+
+	/* Invalid block length */
+	if (resp & MMC_R1_BLOCK_LEN_ERR) {
+		dprintf(CRITICAL, "The transferred bytes does not match the block length\n");
+		return 1;
+	}
+
+	/* Tried to program write protected block */
+	if (resp & MMC_R1_WP_VIOLATION) {
+		dprintf(CRITICAL, "Attempt to program a write protected block\n");
+		return 1;
+	}
+
+	/* card controller error */
+	if (resp & MMC_R1_CC_ERROR) {
+		dprintf(CRITICAL, "Device error occurred, which is not related to the host command\n");
+		return 1;
+	}
+
+	/* Generic error */
+	if (resp & MMC_R1_GENERIC_ERR) {
+		dprintf(CRITICAL, "A generic Device error\n");
+		return 1;
+	}
+
+	/* Finally check for card in TRAN state */
+	if (MMC_CARD_STATUS(resp) != MMC_TRAN_STATE) {
+		dprintf(CRITICAL, "MMC card is not in TRAN state\n");
+		return 1;
+	}
+
+	return 0;
+}
+
 /*
  * Function: mmc sdhci read
  * Arg     : mmc device structure, block address, number of blocks & destination
@@ -1564,22 +1611,12 @@ uint32_t mmc_sdhci_read(struct mmc_device *dev, void *dest,
 		return mmc_ret;
 	}
 
-	/* Response contains 32 bit Card status. Here we'll check
-		BLOCK_LEN_ERROR and ADDRESS_ERROR */
-	if (cmd.resp[0] & MMC_R1_BLOCK_LEN_ERR) {
-		dprintf(CRITICAL, "The transferred bytes does not match the block length\n");
-		return 1;
-	}
-
-	/* Misaligned address not matching block length */
-	if (cmd.resp[0] & MMC_R1_ADDR_ERR) {
-		dprintf(CRITICAL, "The misaligned address did not match the block length used\n");
-		return 1;
-	}
-
-	if (MMC_CARD_STATUS(cmd.resp[0]) != MMC_TRAN_STATE) {
-		dprintf(CRITICAL, "MMC read failed, card is not in TRAN state\n");
-		return 1;
+	/* Response contains 32 bit Card status.
+	 * Parse the errors & provide relevant information */
+	if ((mmc_ret = mmc_parse_response(cmd.resp[0])))
+	{
+		dprintf(CRITICAL,"MMC Read failed, found errors in card response: %s\t%d\n", __func__, __LINE__);
+		return mmc_ret;
 	}
 
 	return mmc_ret;
@@ -1623,22 +1660,12 @@ uint32_t mmc_sdhci_write(struct mmc_device *dev, void *src,
 	if (mmc_ret)
 		return mmc_ret;
 
-	/* Response contains 32 bit Card status. Here we'll check
-		BLOCK_LEN_ERROR and ADDRESS_ERROR */
-	if (cmd.resp[0] & MMC_R1_BLOCK_LEN_ERR) {
-		dprintf(CRITICAL, "The transferred bytes does not match the block length\n");
-		return 1;
-	}
-
-	/* Misaligned address not matching block length */
-	if (cmd.resp[0] & MMC_R1_ADDR_ERR) {
-		dprintf(CRITICAL, "The misaligned address did not match the block length used\n");
-		return 1;
-	}
-
-	if (MMC_CARD_STATUS(cmd.resp[0]) != MMC_TRAN_STATE) {
-		dprintf(CRITICAL, "MMC read failed, card is not in TRAN state\n");
-		return 1;
+	/* Response contains 32 bit Card status.
+	 * Parse the errors & provide relevant information */
+	if ((mmc_ret = mmc_parse_response(cmd.resp[0])))
+	{
+		dprintf(CRITICAL,"MMC Write failed, found errors in card response: %s\t%d\n", __func__, __LINE__);
+		return mmc_ret;
 	}
 
 	return mmc_ret;
