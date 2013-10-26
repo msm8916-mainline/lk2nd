@@ -242,6 +242,6 @@ int utp_build_query_req_upiu(struct upiu_trans_mgmt_query_hdr *req_upiu,
 								  struct upiu_req_build_type *upiu_data);
 int dme_send_nop_query(struct ufs_dev *dev);
 int dme_set_fdeviceinit(struct ufs_dev *dev);
-int dme_read_unit_desc(struct ufs_dev *dev, uint8_t index, uint64_t *capacity);
+int dme_read_unit_desc(struct ufs_dev *dev, uint8_t index);
 
 #endif
