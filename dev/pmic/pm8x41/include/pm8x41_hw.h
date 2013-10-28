@@ -116,4 +116,23 @@ uint8_t pm8x41_reg_read(uint32_t addr);
 #define DIFF_CLK1_EN_CTL                      0x5746
 #define DIFF_CLK1_EN_BIT                      7
 
+/* SMBB registers */
+#define PM8XXX_IBAT_ATC_A                     0x1054
+#define PM8XXX_VBAT_DET                       0x105D
+#define PM8XXX_SEC_ACCESS                     0x10D0
+#define PM8XXX_COMP_OVR0                      0x10ED
+#define PM8XXX_VCP                            0x1247
+#define PM8XXX_TRKL_CHG_TEST                  0x10E2
+#define PM8XXX_VBAT_IN_TSTS                   0x1010
+
+/* Macros for broken battery */
+#define VBAT_DET_LO_4_30V                     0x35
+#define SEC_ACCESS                            0xa5
+#define OVR0_DIS_VTRKL_FAULT                  0x08
+#define CHG_TRICKLE_FORCED_ON                 0x01
+#define VBAT_DET_HI_RT_STS                    0x02
+#define VCP_ENABLE                            0x01
+
+int pm8xxx_is_battery_broken(void);
+
 #endif

@@ -416,3 +416,53 @@ void pm8x41_clear_pmic_watchdog(void)
 {
 	pm8x41_reg_write(PMIC_WD_RESET_S2_CTL2, 0x0);
 }
+
+/* API to check for borken battery */
+int pm8xxx_is_battery_broken()
+{
+	uint8_t trkl_default = 0;
+	uint8_t vbat_det_default = 0;
+	int batt_is_broken = 0;
+
+	/* Store original trickle charging current setting */
+	trkl_default = pm8x41_reg_read(PM8XXX_IBAT_ATC_A);
+	/* Store original VBAT_DET_LO setting */
+	vbat_det_default = pm8x41_reg_read(PM8XXX_VBAT_DET);
+
+	/*Set trickle charge current to 50mA (IBAT_ATC_A = 0x00) */
+	pm8x41_reg_write(PM8XXX_IBAT_ATC_A, 0x00);
+	/* Set VBAT_DET_LO to 4.3V so that VBAT_DET_HI = 4.52V (VBAT_DET_LO = 0x35) */
+	pm8x41_reg_write(PM8XXX_VBAT_DET, VBAT_DET_LO_4_30V);
+	/* Unlock SMBBP Secured Register */
+	pm8x41_reg_write(PM8XXX_SEC_ACCESS, SEC_ACCESS);
+	/* Disable VTRKL_FAULT comp (SMBBP_CHGR_COMP_OVR0 = 0x08) */
+	pm8x41_reg_write(PM8XXX_COMP_OVR0, OVR0_DIS_VTRKL_FAULT);
+	/* Disable VCP (SMBB_BAT_IF_VCP = 0x00) */
+	pm8x41_reg_write(PM8XXX_VCP, 0x00);
+	/* Unlock SMBBP Secured Register */
+	pm8x41_reg_write(PM8XXX_SEC_ACCESS, SEC_ACCESS);
+	/* Force trickle charging (SMBB_CHGR_TRKL_CHG_TEST = 0x01) */
+	pm8x41_reg_write(PM8XXX_TRKL_CHG_TEST, CHG_TRICKLE_FORCED_ON);
+	/* Wait for vbat to rise */
+	mdelay(12);
+
+	/* Check Above VBAT_DET_HIGH status */
+	if (pm8x41_reg_read(PM8XXX_VBAT_IN_TSTS) & VBAT_DET_HI_RT_STS)
+		batt_is_broken = 1;
+	else
+		batt_is_broken = 0;
+
+	/* Unlock SMBBP Secured Register */
+	pm8x41_reg_write(PM8XXX_SEC_ACCESS, SEC_ACCESS);
+
+	/* Disable force trickle charging */
+	pm8x41_reg_write(PM8XXX_TRKL_CHG_TEST, 0x00);
+	/* re-enable VCP */
+	pm8x41_reg_write(PM8XXX_VCP, VCP_ENABLE);
+	/* restore trickle charging default current */
+	pm8x41_reg_write(PM8XXX_IBAT_ATC_A, trkl_default);
+	/* restore VBAT_DET_LO setting to original value */
+	pm8x41_reg_write(PM8XXX_VBAT_DET, vbat_det_default);
+
+	return batt_is_broken;
+}
