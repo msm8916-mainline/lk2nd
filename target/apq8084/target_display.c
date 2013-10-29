@@ -137,7 +137,7 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 					pll_data->pclk_d);
 	} else if(!target_cont_splash_screen()) {
 		/* Disable clocks if continuous splash off */
-		mmss_dsi_clock_enable(dual_dsi);
+		mmss_dsi_clock_disable(dual_dsi);
 		mdp_clock_disable();
 		mmss_bus_clock_disable();
 		mdp_gdsc_ctrl(enable);
