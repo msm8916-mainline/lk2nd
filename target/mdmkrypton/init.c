@@ -39,6 +39,7 @@
 #include <pm8x41.h>
 #include <reg.h>
 #include <platform/timer.h>
+#include <hsusb.h>
 
 extern void smem_ptable_init(void);
 extern void smem_add_modem_partitions(struct ptable *flash_ptable);
@@ -68,6 +69,8 @@ static struct ptable flash_ptable;
 #define LAST_NAND_PTN_LEN_PATTERN                     0xFFFFFFFF
 
 struct qpic_nand_init_config config;
+
+extern void ulpi_write(unsigned val, unsigned reg);
 
 void update_ptable_names(void)
 {
@@ -138,6 +141,24 @@ void target_init(void)
 	update_ptable_names();
 
 	flash_set_ptable(&flash_ptable);
+}
+
+/* Do target specific usb initialization */
+void target_usb_init(void)
+{
+	uint32_t val;
+
+	/* Select and enable external configuration with USB PHY */
+	ulpi_write(ULPI_MISC_A_VBUSVLDEXTSEL | ULPI_MISC_A_VBUSVLDEXT, ULPI_MISC_A_SET);
+
+	/* Enable sess_vld */
+	val = readl(USB_GENCONFIG_2) | GEN2_SESS_VLD_CTRL_EN;
+	writel(val, USB_GENCONFIG_2);
+
+	/* Enable external vbus configuration in the LINK */
+	val = readl(USB_USBCMD);
+	val |= SESS_VLD_CTRL;
+	writel(val, USB_USBCMD);
 }
 
 /* reboot */
