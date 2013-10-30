@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -47,6 +47,9 @@
 #include "include/panel_otm8018b_fwvga_video.h"
 #include "include/panel_nt35590_720p_video.h"
 
+/* Number of dectectable panels */
+#define DISPLAY_MAX_PANEL_DETECTION 2
+
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
 /*---------------------------------------------------------------------------*/
@@ -54,9 +57,10 @@ enum {
 TRULY_WVGA_CMD_PANEL,
 TRULY_WVGA_VIDEO_PANEL,
 HX8379A_WVGA_VIDEO_PANEL,
-OTM8018B_FWVGA_VIDEO_PANEL,
 NT35590_720P_VIDEO_PANEL,
 HX8389B_QHD_VIDEO_PANEL,
+OTM8018B_FWVGA_VIDEO_PANEL,
+UNKNOWN_PANEL
 };
 
 enum {
@@ -214,11 +218,25 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 		memcpy(phy_db->timing,
 				hx8389b_qhd_video_timings, TIMING_SIZE);
 		break;
+	case UNKNOWN_PANEL:
+		memset(panelstruct, 0, sizeof(struct panel_struct));
+		memset(pinfo->mipi.panel_cmds, 0, sizeof(struct mipi_dsi_cmd));
+		pinfo->mipi.num_of_panel_cmds = 0;
+		memset(phy_db->timing, 0, TIMING_SIZE);
+		pinfo->mipi.signature = 0;
+		dprintf(CRITICAL, "Unknown Panel");
+		return false;
 	default:
 		dprintf(CRITICAL, "Panel ID not detected %d\n", panel_id);
 		return false;
 	}
 	return true;
+}
+
+uint32_t oem_panel_max_auto_detect_panels()
+{
+	return target_panel_auto_detect_enabled() ?
+			DISPLAY_MAX_PANEL_DETECTION : 0;
 }
 
 bool oem_panel_select(struct panel_struct *panelstruct,
