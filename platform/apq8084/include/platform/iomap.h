@@ -126,6 +126,7 @@
 
 #define GCC_USB3_PHY_BCR            (CLK_CTL_BASE + 0x03FC)
 #define GCC_USB30_GDSCR             (CLK_CTL_BASE + 0x1E84)
+#define GCC_USB30_PHY_COM_BCR       (CLK_CTL_BASE + 0x1E80)
 
 /* USB30 base */
 #define MSM_USB30_BASE               0xF9200000

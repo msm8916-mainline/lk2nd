@@ -525,4 +525,10 @@ void target_usb_phy_reset(void)
 	writel(val, COPSS_USB_CONTROL_WITH_JDR);
 	udelay(10);
 	writel(val & ~BIT(11), COPSS_USB_CONTROL_WITH_JDR);
+
+	/* PHY_COMMON reset */
+	val = readl(GCC_USB30_PHY_COM_BCR) | BIT(0);
+	writel(val, GCC_USB30_PHY_COM_BCR);
+	udelay(10);
+	writel(val & ~BIT(0), GCC_USB30_PHY_COM_BCR);
 }
