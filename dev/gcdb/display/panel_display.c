@@ -149,8 +149,10 @@ int dsi_panel_init(struct msm_panel_info *pinfo,
 	pinfo->mipi.mdp_trigger = pstruct->paneltiminginfo->dsi_mdp_trigger;
 	pinfo->mipi.dma_trigger = pstruct->paneltiminginfo->dsi_dma_trigger;
 
-	pinfo->on = dsi_panel_on;
-	pinfo->off = dsi_panel_off;
+	pinfo->pre_on = dsi_panel_pre_on;
+	pinfo->pre_off = dsi_panel_pre_off;
+	pinfo->on = dsi_panel_post_on;
+	pinfo->off = dsi_panel_post_off;
 	pinfo->rotate = dsi_panel_rotation;
 	pinfo->config = dsi_panel_config;
 
@@ -161,13 +163,35 @@ int dsi_panel_init(struct msm_panel_info *pinfo,
 /* Panel Callbacks                                                           */
 /*---------------------------------------------------------------------------*/
 
-int dsi_panel_on()
+int dsi_panel_pre_on()
 {
+	return target_display_pre_on();
+}
+
+int dsi_panel_pre_off()
+{
+	return target_display_pre_off();
+}
+
+int dsi_panel_post_on()
+{
+	int ret = NO_ERROR;
+
+	ret = target_display_post_on();
+	if (ret)
+		return ret;
+
 	return oem_panel_on();
 }
 
-int dsi_panel_off()
+int dsi_panel_post_off()
 {
+	int ret = NO_ERROR;
+
+	ret = target_display_post_off();
+	if (ret)
+		return ret;
+
 	return oem_panel_off();
 }
 
