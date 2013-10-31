@@ -41,12 +41,14 @@
 /* GCDB Panel Database                                                       */
 /*---------------------------------------------------------------------------*/
 #include "include/panel_jdi_1080p_video.h"
+#include "include/panel_jdi_qhd_dualdsi_video.h"
 
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
 /*---------------------------------------------------------------------------*/
 enum {
 JDI_1080P_VIDEO_PANEL,
+JDI_QHD_DUALDSI_VIDEO_PANEL,
 UNKNOWN_PANEL
 };
 
@@ -101,6 +103,26 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 		memcpy(phy_db->timing,
 			jdi_1080p_video_timings, TIMING_SIZE);
 		break;
+	case JDI_QHD_DUALDSI_VIDEO_PANEL:
+		panelstruct->paneldata    = &jdi_qhd_dualdsi_video_panel_data;
+		panelstruct->panelres     = &jdi_qhd_dualdsi_video_panel_res;
+		panelstruct->color        = &jdi_qhd_dualdsi_video_color;
+		panelstruct->videopanel   = &jdi_qhd_dualdsi_video_video_panel;
+		panelstruct->commandpanel = &jdi_qhd_dualdsi_video_command_panel;
+		panelstruct->state        = &jdi_qhd_dualdsi_video_state;
+		panelstruct->laneconfig   = &jdi_qhd_dualdsi_video_lane_config;
+		panelstruct->paneltiminginfo
+			= &jdi_qhd_dualdsi_video_timing_info;
+		panelstruct->panelresetseq
+					 = &jdi_qhd_dualdsi_video_reset_seq;
+		panelstruct->backlightinfo = &jdi_qhd_dualdsi_video_backlight;
+		pinfo->mipi.panel_cmds
+			= jdi_qhd_dualdsi_video_on_command;
+		pinfo->mipi.num_of_panel_cmds
+			= JDI_QHD_DUALDSI_VIDEO_ON_COMMAND;
+		memcpy(phy_db->timing,
+			jdi_qhd_dualdsi_video_timings, TIMING_SIZE);
+		break;
 	default:
 	case UNKNOWN_PANEL:
 		ret = false;
@@ -122,6 +144,9 @@ bool oem_panel_select(struct panel_struct *panelstruct,
 	case HW_PLATFORM_FLUID:
 	case HW_PLATFORM_SURF:
 		panel_id = JDI_1080P_VIDEO_PANEL;
+		break;
+	case HW_PLATFORM_LIQUID:
+		panel_id = JDI_QHD_DUALDSI_VIDEO_PANEL;
 		break;
 	default:
 		dprintf(CRITICAL, "Display not enabled for %d HW type\n"
