@@ -147,7 +147,8 @@ static void target_keystatus()
 
 void target_uninit(void)
 {
-	mmc_put_card_to_sleep(dev);
+	if(target_boot_device_emmc())
+		mmc_put_card_to_sleep(dev);
 }
 
 /* Do target specific usb initialization */
