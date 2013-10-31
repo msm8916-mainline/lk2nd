@@ -294,7 +294,7 @@ void mdss_layer_mixer_setup(struct fbcon_config *fb, struct msm_panel_info
 {
 	uint32_t mdp_rgb_size, height, width;
 
-	height = (fb->height << 16);
+	height = fb->height;
 	width = fb->width;
 
 	if (pinfo->lcdc.dual_pipe)
@@ -331,7 +331,7 @@ void mdss_layer_mixer_setup(struct fbcon_config *fb, struct msm_panel_info
 
 		/* Baselayer for layer mixer 1 */
 		if (pinfo->lcdc.split_display)
-			writel(0x04000, MDP_CTL_1_BASE + CTL_LAYER_1);
+			writel(0x1000, MDP_CTL_1_BASE + CTL_LAYER_1);
 		else
 			writel(0x01000, MDP_CTL_0_BASE + CTL_LAYER_1);
 	}
