@@ -166,6 +166,12 @@ int msm_display_on()
 
 	pinfo = &(panel->panel_info);
 
+	if (pinfo->pre_on) {
+		ret = pinfo->pre_on();
+		if (ret)
+			goto msm_display_on_out;
+	}
+
 	switch (pinfo->type) {
 	case LVDS_PANEL:
 		dprintf(INFO, "Turn on LVDS PANEL.\n");
@@ -305,6 +311,12 @@ int msm_display_off()
 		return ERR_INVALID_ARGS;
 
 	pinfo = &(panel->panel_info);
+
+	if (pinfo->pre_off) {
+		ret = pinfo->pre_off();
+		if (ret)
+			goto msm_display_off_out;
+	}
 
 	switch (pinfo->type) {
 	case LVDS_PANEL:
