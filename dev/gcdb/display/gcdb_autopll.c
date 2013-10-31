@@ -41,8 +41,12 @@ static uint32_t calculate_bitclock(struct msm_panel_info *pinfo)
 {
 	uint32_t ret = NO_ERROR;
 	uint32_t h_period = 0, v_period = 0;
+	uint32_t width = pinfo->xres;
 
-	h_period = pinfo->xres + pinfo->lcdc.h_back_porch +
+	if (pinfo->mipi.dual_dsi)
+		width = pinfo->xres / 2;
+
+	h_period = width + pinfo->lcdc.h_back_porch +
 		pinfo->lcdc.h_front_porch + pinfo->lcdc.h_pulse_width +
 		pinfo->lcdc.xres_pad;
 
