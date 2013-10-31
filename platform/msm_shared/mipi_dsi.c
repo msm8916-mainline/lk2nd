@@ -199,7 +199,10 @@ int mdss_dual_dsi_cmds_tx(struct mipi_dsi_cmd *cmds, int count)
 		writel(cm->size, MIPI_DSI1_BASE + DMA_CMD_LENGTH);	// reg 0x48 for this build
 		dsb();
 		ret += mdss_dual_dsi_cmd_dma_trigger_for_panel();
-		udelay(80);
+		if (cm->wait)
+			mdelay(cm->wait);
+		else
+			udelay(80);
 		cm++;
 	}
 #endif
