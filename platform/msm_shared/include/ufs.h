@@ -96,4 +96,5 @@ int ufs_erase(struct ufs_dev* dev, uint64_t start_lba, uint32_t num_blocks);
 uint64_t ufs_get_dev_capacity(struct ufs_dev* dev);
 uint32_t ufs_get_serial_num(struct ufs_dev* dev);
 uint32_t ufs_get_erase_blk_size(struct ufs_dev* dev);
+void ufs_dump_hc_registers(struct ufs_dev* dev);
 #endif
