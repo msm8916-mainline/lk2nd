@@ -35,6 +35,7 @@
 #include <mmc.h>
 #include <spmi.h>
 #include <board.h>
+#include <hsusb.h>
 
 #define PMIC_ARB_CHANNEL_NUM    0
 #define PMIC_ARB_OWNER_ID       0
@@ -45,7 +46,7 @@ static uint32_t mmc_sdc_base[] =
 void target_early_init(void)
 {
 #if WITH_DEBUG_UART
-	uart_dm_init(1, 0, BLSP1_UART1_BASE);
+	uart_dm_init(4, 0, BLSP1_UART4_BASE); /* DEBUG_UART BLSP1_UART5 */
 #endif
 }
 void target_mmc_caps(struct mmc_host *host)
@@ -97,4 +98,28 @@ void target_serialno(unsigned char *buf)
 
 unsigned board_machtype(void)
 {
+}
+
+/* Do target specific usb initialization */
+void target_usb_init(void)
+{
+	uint32_t val;
+
+	/* Select and enable external configuration with USB PHY */
+	ulpi_write(ULPI_MISC_A_VBUSVLDEXTSEL | ULPI_MISC_A_VBUSVLDEXT, ULPI_MISC_A_SET);
+
+	/* Enable sess_vld */
+	val = readl(USB_GENCONFIG_2) | GEN2_SESS_VLD_CTRL_EN;
+	writel(val, USB_GENCONFIG_2);
+
+	/* Enable external vbus configuration in the LINK */
+	val = readl(USB_USBCMD);
+	val |= SESS_VLD_CTRL;
+	writel(val, USB_USBCMD);
+}
+
+void target_usb_stop(void)
+{
+	/* Disable VBUS mimicing in the controller. */
+	ulpi_write(ULPI_MISC_A_VBUSVLDEXTSEL | ULPI_MISC_A_VBUSVLDEXT, ULPI_MISC_A_CLEAR);
 }
