@@ -42,7 +42,7 @@ static struct gpio_pin reset_gpio = {
 };
 
 static struct gpio_pin enable_gpio = {
-  0, 0, 0, 0, 0, 0
+  "msmgpio", 109, 3, 1, 0, 1
 };
 
 static struct gpio_pin te_gpio = {
