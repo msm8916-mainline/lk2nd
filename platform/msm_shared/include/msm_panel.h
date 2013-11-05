@@ -162,6 +162,7 @@ struct mipi_panel_info {
 	uint8_t broadcast;
 	uint8_t mode_gpio_state;
 	uint32_t signature;
+	uint32_t use_enable_gpio;
 };
 
 struct edp_panel_info {
