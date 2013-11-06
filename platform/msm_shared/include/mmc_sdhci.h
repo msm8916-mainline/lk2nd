@@ -49,6 +49,7 @@
 #define CMD16_SET_BLOCKLEN                        16
 #define CMD17_READ_SINGLE_BLOCK                   17
 #define CMD18_READ_MULTIPLE_BLOCK                 18
+#define CMD21_SEND_TUNING_BLOCK                   21
 #define CMD23_SET_BLOCK_COUNT                     23
 #define CMD24_WRITE_SINGLE_BLOCK                  24
 #define CMD25_WRITE_MULTIPLE_BLOCK                25
@@ -101,10 +102,12 @@
 /* Values for ext csd fields */
 #define MMC_HS_TIMING                             0x1
 #define MMC_HS200_TIMING                          0x2
+#define MMC_HS400_TIMING                          0x3
 #define MMC_ACCESS_WRITE                          0x3
 #define MMC_SET_BIT                               0x1
 #define MMC_HS_DDR_MODE                           (BIT(2) | BIT(3))
 #define MMC_HS_HS200_MODE                         (BIT(4) | BIT(5))
+#define MMC_HS_HS400_MODE                         (BIT(6) | BIT(7))
 #define MMC_SEC_COUNT4_SHIFT                      24
 #define MMC_SEC_COUNT3_SHIFT                      16
 #define MMC_SEC_COUNT2_SHIFT                      8
@@ -146,6 +149,8 @@
 #define MMC_CLK_50MHZ                             49152000
 #define MMC_CLK_96MHZ                             96000000
 #define MMC_CLK_200MHZ                            200000000
+#define MMC_CLK_192MHZ                            192000000
+#define MMC_CLK_400MHZ                            400000000
 
 #define MMC_ADDR_OUT_OF_RANGE(resp)              ((resp >> 31) & 0x01)
 
@@ -186,6 +191,8 @@
 #define ACMD41_SEND_OP_COND                       41
 #define ACMD51_READ_CARD_SCR                      51
 #define CMD55_APP_CMD                             55
+
+#define MMC_SAVE_TIMING(host, TIMING)              host->timing = TIMING
 
 /* Can be used to unpack array of upto 32 bits data */
 #define UNPACK_BITS(array, start, len, size_of)           \

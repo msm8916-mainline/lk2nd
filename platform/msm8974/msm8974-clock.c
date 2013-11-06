@@ -39,6 +39,7 @@
 /* Mux source select values */
 #define cxo_source_val    0
 #define gpll0_source_val  1
+#define gpll4_source_val  5
 #define cxo_mm_source_val 0
 #define mmpll0_mm_source_val 1
 #define mmpll1_mm_source_val 2
@@ -115,8 +116,41 @@ static struct pll_vote_clk gpll0_clk_src =
 	},
 };
 
+static struct pll_vote_clk gpll4_clk_src =
+{
+	.en_reg       = (void *) APCS_GPLL_ENA_VOTE,
+	.en_mask      = BIT(4),
+	.status_reg   = (void *) GPLL4_STATUS,
+	.status_mask  = BIT(17),
+	.parent       = &cxo_clk_src.c,
+
+	.c = {
+		.rate     = 768000000,
+		.dbg_name = "gpll4_clk_src",
+		.ops      = &clk_ops_pll_vote,
+	},
+};
+
 /* SDCC Clocks */
-static struct clk_freq_tbl ftbl_gcc_sdcc1_2_apps_clk[] =
+/* This table is for sdc1 apps clk only for MSM8974 PRO AC */
+static struct clk_freq_tbl ftbl_gcc_sdcc1_apps_clk_ac[] =
+{
+	F(   144000,    cxo,  16,   3,  25),
+	F(   400000,    cxo,  12,   1,   4),
+	F( 20000000,  gpll0,  15,   1,   2),
+	F( 25000000,  gpll0,  12,   1,   2),
+	F( 50000000,  gpll0,  12,   0,   0),
+	F(100000000,  gpll0,   6,   0,   0),
+	F(192000000,  gpll4,   4,   0,   0),
+	F(384000000,  gpll4,   2,   0,   0),
+	F_END
+};
+
+/* This table is for
+ * sdc[1-4] for all MSM8974 excluding MSM8974PROAC
+ * sdc[2-4] for MSM8974PRO AC
+ */
+static struct clk_freq_tbl ftbl_gcc_sdcc1_4_apps_clk[] =
 {
 	F(   144000,    cxo,  16,   3,  25),
 	F(   400000,    cxo,  12,   1,   4),
@@ -137,7 +171,7 @@ static struct rcg_clk sdcc1_apps_clk_src =
 	.d_reg        = (uint32_t *) SDCC1_D,
 
 	.set_rate     = clock_lib2_rcg_set_rate_mnd,
-	.freq_tbl     = ftbl_gcc_sdcc1_2_apps_clk,
+	.freq_tbl     = ftbl_gcc_sdcc1_4_apps_clk,
 	.current_freq = &rcg_dummy_freq,
 
 	.c = {
@@ -168,6 +202,28 @@ static struct branch_clk gcc_sdcc1_ahb_clk =
 	},
 };
 
+static struct branch_clk gcc_sdcc1_cdccal_sleep_clk =
+{
+	.cbcr_reg = SDCC1_CDCCAL_SLEEP_CBCR,
+	.has_sibling = 1,
+
+	.c = {
+		.dbg_name = "gcc_sdcc1_cdccal_sleep_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
+static struct branch_clk gcc_sdcc1_cdccal_ff_clk =
+{
+	.cbcr_reg = SDCC1_CDCCAL_FF_CBCR,
+	.has_sibling = 1,
+
+	.c = {
+		.dbg_name = "gcc_sdcc1_cdccal_ff_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
 static struct rcg_clk sdcc2_apps_clk_src =
 {
 	.cmd_reg      = (uint32_t *) SDCC2_CMD_RCGR,
@@ -177,7 +233,7 @@ static struct rcg_clk sdcc2_apps_clk_src =
 	.d_reg        = (uint32_t *) SDCC2_D,
 
 	.set_rate     = clock_lib2_rcg_set_rate_mnd,
-	.freq_tbl     = ftbl_gcc_sdcc1_2_apps_clk,
+	.freq_tbl     = ftbl_gcc_sdcc1_4_apps_clk,
 	.current_freq = &rcg_dummy_freq,
 
 	.c = {
@@ -761,6 +817,9 @@ static struct clk_lookup msm_clocks_8974[] =
 	CLK_LOOKUP("sdc1_iface_clk", gcc_sdcc1_ahb_clk.c),
 	CLK_LOOKUP("sdc1_core_clk",  gcc_sdcc1_apps_clk.c),
 
+	CLK_LOOKUP("gcc_sdcc1_cdccal_sleep_clk", gcc_sdcc1_cdccal_sleep_clk.c),
+	CLK_LOOKUP("gcc_sdcc1_cdccal_ff_clk",    gcc_sdcc1_cdccal_ff_clk.c),
+
 	CLK_LOOKUP("sdc2_iface_clk", gcc_sdcc2_ahb_clk.c),
 	CLK_LOOKUP("sdc2_core_clk",  gcc_sdcc2_apps_clk.c),
 
@@ -804,8 +863,14 @@ static struct clk_lookup msm_clocks_8974[] =
 	CLK_LOOKUP("usb30_master_clk", gcc_usb30_master_clk.c),
 };
 
+void msm8974_ac_clock_override()
+{
+	sdcc1_apps_clk_src.freq_tbl = ftbl_gcc_sdcc1_apps_clk_ac;
+}
 
 void platform_clock_init(void)
 {
+	if (platform_is_8974ac() || platform_is_8x62())
+		msm8974_ac_clock_override();
 	clk_init(msm_clocks_8974, ARRAY_SIZE(msm_clocks_8974));
 }

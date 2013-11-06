@@ -34,12 +34,19 @@
 
 /* Current values for tlmm pins */
 enum {
-	TLMM_CUR_VAL_16MA = 0x7,
-	TLMM_CUR_VAL_10MA = 0x4,
+	TLMM_CUR_VAL_2MA = 0x0,
+	TLMM_CUR_VAL_4MA,
+	TLMM_CUR_VAL_6MA,
+	TLMM_CUR_VAL_8MA,
+	TLMM_CUR_VAL_10MA,
+	TLMM_CUR_VAL_12MA,
+	TLMM_CUR_VAL_14MA,
+	TLMM_CUR_VAL_16MA,
 } tlmm_drive_config;
 
 enum {
 	TLMM_PULL_UP = 0x3,
+	TLMM_PULL_DOWN = 0x1,
 	TLMM_NO_PULL = 0x0,
 } tlmm_pull_values;
 
@@ -51,6 +58,7 @@ enum {
 	SDC1_DATA_PULL_CTL_OFF = 9,
 	SDC1_CMD_PULL_CTL_OFF  = 11,
 	SDC1_CLK_PULL_CTL_OFF  = 13,
+	SDC1_RCLK_PULL_CTL_OFF = 15,
 } tlmm_drv_ctrl;
 
 /* Input for the tlmm config function */

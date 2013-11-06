@@ -136,6 +136,27 @@ int platform_is_8974Pro()
 
 	switch(platform)
 	{
+		case MSM8974AC:
+		case MSM8674AC:
+		case MSM8274AC:
+		case APQ8074AC:
+			ret = 1;
+			break;
+		default:
+			ret = 0;
+	};
+
+	return ret;
+}
+
+/* Check for 8974PRO AC chip */
+int platform_is_8974ac()
+{
+	uint32_t platform = board_platform_id();
+	int ret = 0;
+
+	switch(platform)
+	{
 		case APQ8074AA:
 		case APQ8074AB:
 		case APQ8074AC:

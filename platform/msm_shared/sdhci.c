@@ -45,7 +45,7 @@
  * Return  : None
  * Flow:   : Reset the host controller
  */
-static void sdhci_reset(struct sdhci_host *host, uint8_t mask)
+void sdhci_reset(struct sdhci_host *host, uint8_t mask)
 {
 	uint32_t reg;
 	uint32_t timeout = SDHCI_RESET_MAX_TIMEOUT;
@@ -102,12 +102,7 @@ uint32_t sdhci_clk_supply(struct sdhci_host *host, uint32_t clk)
 	uint32_t freq = 0;
 	uint16_t clk_val = 0;
 
-	if (clk > host->caps.base_clk_rate) {
-		dprintf(CRITICAL, "Error: Requested clk freq is more than supported\n");
-		return 1;
-	}
-
-	if (clk == host->caps.base_clk_rate)
+	if (clk >= host->caps.base_clk_rate)
 		goto clk_ctrl;
 
 	/* As per the sd spec div should be a multiplier of 2 */
@@ -141,7 +136,7 @@ clk_ctrl:
 	clk_val |= SDHCI_CLK_EN;
 	REG_WRITE16(host, clk_val, SDHCI_CLK_CTRL_REG);
 
-	host->cur_clk_rate = freq;
+	host->cur_clk_rate = clk;
 
 	return 0;
 }
@@ -212,58 +207,23 @@ static void sdhci_set_bus_power_on(struct sdhci_host *host)
 
 }
 
+
 /*
  * Function: sdhci set SDR mode
- * Arg     : Host structure
+ * Arg     : Host structure, UHS mode
  * Return  : None
  * Flow:   : 1. Disable the clock
- *           2. Enable sdr mode
+ *           2. Enable UHS mode
  *           3. Enable the clock
  * Details : SDR50/SDR104 mode is nothing but HS200
  *			 mode SDCC spec refers to it as SDR mode
  *			 & emmc spec refers as HS200 mode.
  */
-void sdhci_set_sdr_mode(struct sdhci_host *host)
+void sdhci_set_uhs_mode(struct sdhci_host *host, uint32_t mode)
 {
 	uint16_t clk;
 	uint16_t ctrl = 0;
-
-	/* Disable the clock */
-	clk = REG_READ16(host, SDHCI_CLK_CTRL_REG);
-	clk &= ~SDHCI_CLK_EN;
-	REG_WRITE16(host, clk, SDHCI_CLK_CTRL_REG);
-
-	/* Enable SDR50 mode:
-	 * Right now we support only SDR50 mode which runs at
-	 * 100 MHZ sdcc clock, we dont need tuning with SDR50
-	 * mode
-	 */
-	ctrl = REG_READ16(host, SDHCI_HOST_CTRL2_REG);
-
-	/* Enable SDR50/SDR104 mode based on the controller
-	 * capabilities.
-	 */
-	if (host->caps.sdr50_support)
-		ctrl |= SDHCI_SDR50_MODE_EN;
-
-	REG_WRITE16(host, ctrl, SDHCI_HOST_CTRL2_REG);
-
-	/* Run the clock back */
-	sdhci_clk_supply(host, SDHCI_CLK_100MHZ);
-}
-
-/*
- * Function: sdhci set ddr mode
- * Arg     : Host structure
- * Return  : None
- * Flow:   : 1. Disable the clock
- *           2. Enable DDR mode
- *           3. Enable the clock
- */
-void sdhci_set_ddr_mode(struct sdhci_host *host)
-{
-	uint16_t clk;
-	uint16_t ctrl = 0;
+	uint32_t clk_val = 0;
 
 	/* Disable the clock */
 	clk = REG_READ16(host, SDHCI_CLK_CTRL_REG);
@@ -271,13 +231,48 @@ void sdhci_set_ddr_mode(struct sdhci_host *host)
 	REG_WRITE16(host, clk, SDHCI_CLK_CTRL_REG);
 
 	ctrl = REG_READ16(host, SDHCI_HOST_CTRL2_REG);
-	ctrl |= SDHCI_DDR_MODE_EN;
 
-	/* Enalbe DDR mode */
+	ctrl &= ~SDHCI_UHS_MODE_MASK;
+
+	/* Enable SDR50/SDR104/DDR50 mode */
+	switch (mode)
+	{
+		case SDHCI_SDR104_MODE:
+			ctrl |= SDHCI_SDR104_MODE_EN;
+			clk_val = SDHCI_CLK_200MHZ;
+			break;
+		case SDHCI_SDR50_MODE:
+			ctrl |= SDHCI_SDR50_MODE_EN;
+			clk_val = SDHCI_CLK_100MHZ;
+			break;
+		case SDHCI_DDR50_MODE:
+			ctrl |= SDHCI_DDR50_MODE_EN;
+			clk_val = SDHCI_CLK_50MHZ;
+			break;
+		case SDHCI_SDR25_MODE:
+			ctrl |= SDHCI_SDR25_MODE_EN;
+			clk_val = SDHCI_CLK_50MHZ;
+			break;
+		case SDHCI_SDR12_MODE_EN:
+			ctrl |= SDHCI_SDR12_MODE_EN;
+			clk_val = SDHCI_CLK_25MHZ;
+			break;
+		default:
+			dprintf(CRITICAL, "Error: Invalid UHS mode: %x\n", mode);
+			ASSERT(0);
+	};
+
 	REG_WRITE16(host, ctrl, SDHCI_HOST_CTRL2_REG);
 
+	/*
+	 * SDHC spec does not have matching UHS mode
+	 * So we use Vendor specific registers to enable
+	 * HS400 mode
+	 */
+	sdhci_msm_set_mci_clk(host);
+
 	/* Run the clock back */
-	sdhci_clk_supply(host, host->cur_clk_rate);
+	sdhci_clk_supply(host, clk_val);
 }
 
 /*
@@ -388,6 +383,7 @@ static uint8_t sdhci_cmd_complete(struct sdhci_host *host, struct mmc_command *c
 	uint32_t retry = 0;
 	uint32_t int_status;
 	uint32_t trans_complete = 0;
+	uint32_t err_status;
 
 	do {
 		int_status = REG_READ16(host, SDHCI_NRML_INT_STS_REG);
@@ -442,6 +438,20 @@ static uint8_t sdhci_cmd_complete(struct sdhci_host *host, struct mmc_command *c
 			{
 				trans_complete = 1;
 				break;
+			}
+
+			/*
+			 * If we are in tuning then we need to wait until Data timeout , Data end
+			 * or Data CRC error
+			 */
+			if (host->tuning_in_progress)
+			{
+				err_status = REG_READ16(host, SDHCI_ERR_INT_STS_REG);
+				if ((err_status & SDHCI_DAT_TIMEOUT_MASK) || (err_status & SDHCI_DAT_CRC_MASK))
+				{
+					sdhci_reset(host, (SOFT_RESET_CMD | SOFT_RESET_DATA));
+					return 0;
+				}
 			}
 
 			retry++;
@@ -790,10 +800,6 @@ void sdhci_init(struct sdhci_host *host)
 {
 	uint32_t caps[2];
 
-	/*
-	 * Reset the controller
-	 */
-	sdhci_reset(host, SDHCI_SOFT_RESET);
 
 	/* Read the capabilities register & store the info */
 	caps[0] = REG_READ32(host, SDHCI_CAPS_REG1);
@@ -822,10 +828,13 @@ void sdhci_init(struct sdhci_host *host)
 		host->caps.voltage = SDHCI_VOL_1_8;
 
 	/* DDR mode support */
-	host->caps.ddr_support = (caps[1] & SDHCI_DDR_MODE_MASK) ? 1 : 0;
+	host->caps.ddr_support = (caps[1] & SDHCI_DDR50_MODE_MASK) ? 1 : 0;
 
 	/* SDR50 mode support */
 	host->caps.sdr50_support = (caps[1] & SDHCI_SDR50_MODE_MASK) ? 1 : 0;
+
+	/* SDR104 mode support */
+	host->caps.sdr104_support = (caps[1] & SDHCI_SDR104_MODE_MASK) ? 1 : 0;
 
 	/* Set bus power on */
 	sdhci_set_bus_power_on(host);
