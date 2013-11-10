@@ -265,6 +265,15 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 {
 	int ret = NO_ERROR;
 	if (enable) {
+		if (pinfo->mipi.use_enable_gpio) {
+			gpio_tlmm_config(enable_gpio.pin_id, 0,
+				enable_gpio.pin_direction, enable_gpio.pin_pull,
+				enable_gpio.pin_strength,
+				enable_gpio.pin_state);
+
+			gpio_set_dir(enable_gpio.pin_id, 2);
+		}
+
 		gpio_tlmm_config(reset_gpio.pin_id, 0,
 				reset_gpio.pin_direction, reset_gpio.pin_pull,
 				reset_gpio.pin_strength, reset_gpio.pin_state);
@@ -279,6 +288,8 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 		mdelay(resetseq->sleep[2]);
 	} else if(!target_cont_splash_screen()) {
 		gpio_set_value(reset_gpio.pin_id, 0);
+		if (pinfo->mipi.use_enable_gpio)
+			gpio_set_value(enable_gpio.pin_id, 0);
 	}
 
 	return ret;

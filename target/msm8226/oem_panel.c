@@ -47,6 +47,7 @@
 #include "include/panel_nt35596_1080p_video.h"
 #include "include/panel_nt35521_720p_video.h"
 #include "include/panel_ssd2080m_720p_video.h"
+#include "include/panel_jdi_1080p_video.h"
 
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
@@ -58,7 +59,17 @@ NT35590_720P_VIDEO_PANEL,
 NT35596_1080P_VIDEO_PANEL,
 HX8394A_720P_VIDEO_PANEL,
 NT35521_720P_VIDEO_PANEL,
-SSD2080M_720P_VIDEO_PANEL
+SSD2080M_720P_VIDEO_PANEL,
+JDI_1080P_VIDEO_PANEL
+};
+
+enum target_subtype {
+	HW_PLATFORM_SUBTYPE_720P = 0,
+	HW_PLATFORM_SUBTYPE_SKUAA = 1,
+	HW_PLATFORM_SUBTYPE_SKUF = 2,
+	HW_PLATFORM_SUBTYPE_1080P = 2,
+	HW_PLATFORM_SUBTYPE_SKUAB = 3,
+	HW_PLATFORM_SUBTYPE_SKUG = 5,
 };
 
 static uint32_t panel_id;
@@ -244,6 +255,26 @@ static void init_panel_data(struct panel_struct *panelstruct,
 					= NT35596_1080P_VIDEO_ON_COMMAND;
 		memcpy(phy_db->timing,
 				nt35596_1080p_video_timings, TIMING_SIZE);
+	case JDI_1080P_VIDEO_PANEL:
+		panelstruct->paneldata    = &jdi_1080p_video_panel_data;
+		panelstruct->paneldata->panel_with_enable_gpio = 1;
+		panelstruct->panelres     = &jdi_1080p_video_panel_res;
+		panelstruct->color        = &jdi_1080p_video_color;
+		panelstruct->videopanel   = &jdi_1080p_video_video_panel;
+		panelstruct->commandpanel = &jdi_1080p_video_command_panel;
+		panelstruct->state        = &jdi_1080p_video_state;
+		panelstruct->laneconfig   = &jdi_1080p_video_lane_config;
+		panelstruct->paneltiminginfo
+			= &jdi_1080p_video_timing_info;
+		panelstruct->panelresetseq
+					 = &jdi_1080p_video_panel_reset_seq;
+		panelstruct->backlightinfo = &jdi_1080p_video_backlight;
+		pinfo->mipi.panel_cmds
+			= jdi_1080p_video_on_command;
+		pinfo->mipi.num_of_panel_cmds
+			= JDI_1080P_VIDEO_ON_COMMAND;
+		memcpy(phy_db->timing,
+			jdi_1080p_video_timings, TIMING_SIZE);
 		break;
 	}
 }
@@ -255,6 +286,7 @@ bool oem_panel_select(struct panel_struct *panelstruct,
 	uint32_t hw_id = board_hardware_id();
 	uint32_t target_id = board_target_id();
 	uint32_t nt35590_panel_id = NT35590_720P_VIDEO_PANEL;
+	uint32_t hw_subtype = board_hardware_subtype();
 
 #if DISPLAY_TYPE_CMD_MODE
 	nt35590_panel_id = NT35590_720P_CMD_PANEL;
@@ -262,9 +294,9 @@ bool oem_panel_select(struct panel_struct *panelstruct,
 
 	switch (hw_id) {
 	case HW_PLATFORM_QRD:
-		if (board_hardware_subtype() == 2) { //HW_PLATFORM_SUBTYPE_SKUF
+		if (hw_subtype == HW_PLATFORM_SUBTYPE_SKUF) {
 			panel_id = NT35521_720P_VIDEO_PANEL;
-		} else if (board_hardware_subtype() == 5) { //HW_PLATFORM_SUBTYPE_SKUG
+		} else if (hw_subtype == HW_PLATFORM_SUBTYPE_SKUG) {
 			panel_id = SSD2080M_720P_VIDEO_PANEL;
 		} else {
 			if (((target_id >> 16) & 0xFF) == 0x1 || ((target_id >> 16) & 0xFF) == 0x3) //EVT || PVT
@@ -280,7 +312,15 @@ bool oem_panel_select(struct panel_struct *panelstruct,
 		break;
 	case HW_PLATFORM_MTP:
 	case HW_PLATFORM_SURF:
-		panel_id = nt35590_panel_id;
+		if (hw_subtype == HW_PLATFORM_SUBTYPE_720P) {
+			panel_id = nt35590_panel_id;
+		} else if (hw_subtype == HW_PLATFORM_SUBTYPE_1080P) {
+			panel_id = JDI_1080P_VIDEO_PANEL;
+		} else {
+			dprintf(CRITICAL, "Unsupported target_id=%d hw_subtype=%d\n"
+				, target_id, hw_subtype);
+			return false;
+		}
 		break;
 	default:
 		dprintf(CRITICAL, "Display not enabled for %d HW type\n"
