@@ -611,6 +611,11 @@ BUF_DMA_ALIGN(dt_buf, 4096);
 static void verify_signed_bootimg(uint32_t bootimg_addr, uint32_t bootimg_size)
 {
 	int ret;
+#if IMAGE_VERIF_ALGO_SHA1
+	uint32_t auth_algo = CRYPTO_AUTH_ALG_SHA1;
+#else
+	uint32_t auth_algo = CRYPTO_AUTH_ALG_SHA256;
+#endif
 
 	/* Assume device is rooted at this time. */
 	device.is_tampered = 1;
@@ -620,7 +625,7 @@ static void verify_signed_bootimg(uint32_t bootimg_addr, uint32_t bootimg_size)
 	ret = image_verify((unsigned char *)bootimg_addr,
 					   (unsigned char *)(bootimg_addr + bootimg_size),
 					   bootimg_size,
-					   CRYPTO_AUTH_ALG_SHA256);
+					   auth_algo);
 
 	dprintf(INFO, "Authenticating boot image: done return value = %d\n", ret);
 
