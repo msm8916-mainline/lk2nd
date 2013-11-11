@@ -293,7 +293,7 @@ static int ssd_image_is_encrypted(uint32_t ** img_ptr, uint32_t * img_len_ptr, u
 
 			parse_req.md_len *= MULTIPLICATION_FACTOR;
 
-			arch_clean_invalidate_cache_range((addr_t) *(img_ptr + prev_len),
+			arch_clean_invalidate_cache_range((addr_t) (*img_ptr + prev_len),
 		                                         (parse_req.md_len - prev_len) );
 
 			continue;
