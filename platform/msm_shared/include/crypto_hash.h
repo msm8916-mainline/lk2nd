@@ -71,17 +71,18 @@ typedef struct {
 	unsigned int auth_bytecnt[2];
 	unsigned char saved_buff[64];
 	unsigned char saved_buff_indx;
-	unsigned int auth_iv[5];
+	uint32_t bytes_to_write;
 	uint32_t flags;
+	unsigned int auth_iv[5];
 } crypto_SHA1_ctx;
 
 typedef struct {
 	unsigned int auth_bytecnt[2];
 	unsigned char saved_buff[64];
 	unsigned char saved_buff_indx;
-	unsigned int auth_iv[8];
 	uint32_t bytes_to_write;
 	uint32_t flags;
+	unsigned int auth_iv[8];
 } crypto_SHA256_ctx;
 
 extern void crypto_eng_reset(void);

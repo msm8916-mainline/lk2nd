@@ -321,12 +321,22 @@ crypto_init_err:
 
 static uint32_t crypto5_get_sha_cfg(void *ctx_ptr, crypto_auth_alg_type auth_alg)
 {
-   crypto_SHA256_ctx *sha256_ctx = (crypto_SHA256_ctx *) ctx_ptr;
-   uint32_t seg_cfg_val;
+	crypto_SHA256_ctx *sha256_ctx = (crypto_SHA256_ctx *) ctx_ptr;
+	crypto_SHA1_ctx *sha1_ctx = (crypto_SHA1_ctx *) ctx_ptr;
+	uint32_t seg_cfg_val;
 
-   seg_cfg_val = SEG_CFG_AUTH_ALG_SHA;
+	seg_cfg_val = SEG_CFG_AUTH_ALG_SHA;
 
-	if (auth_alg == CRYPTO_AUTH_ALG_SHA256)
+	if (auth_alg == CRYPTO_AUTH_ALG_SHA1)
+	{
+		seg_cfg_val |= SEG_CFG_AUTH_SIZE_SHA1;
+
+		if (sha1_ctx->flags & CRYPTO_LAST_CHUNK)
+		{
+			seg_cfg_val |= SEG_CFG_LAST;
+		}
+	}
+	else if (auth_alg == CRYPTO_AUTH_ALG_SHA256)
 	{
 		seg_cfg_val |= SEG_CFG_AUTH_SIZE_SHA256;
 
@@ -348,35 +358,45 @@ void crypto5_set_ctx(struct crypto_dev *dev,
 					 void *ctx_ptr,
 					 crypto_auth_alg_type auth_alg)
 {
-    crypto_SHA256_ctx *sha256_ctx = (crypto_SHA256_ctx *) ctx_ptr;
-    uint32_t i = 0;
-    uint32_t iv_len = SHA256_INIT_VECTOR_SIZE;
-    uint32_t *auth_iv = sha256_ctx->auth_iv;
-    uint32_t seg_cfg_val;
-    uint32_t total_bytes_to_write = sha256_ctx->bytes_to_write;
-    uint32_t bytes_to_write = total_bytes_to_write;
-    uint32_t burst_mask;
+	crypto_SHA256_ctx *sha256_ctx = (crypto_SHA256_ctx *) ctx_ptr;
+	crypto_SHA1_ctx *sha1_ctx = (crypto_SHA1_ctx *) ctx_ptr;
+	uint32_t i = 0;
+	uint32_t iv_len = 0;
+	uint32_t *auth_iv = sha1_ctx->auth_iv;
+	uint32_t seg_cfg_val;
+	uint32_t total_bytes_to_write = sha256_ctx->bytes_to_write;
+	uint32_t bytes_to_write = total_bytes_to_write;
+	uint32_t burst_mask;
 
-    seg_cfg_val = crypto5_get_sha_cfg(ctx_ptr, auth_alg);
+	if(auth_alg == CRYPTO_AUTH_ALG_SHA1)
+	{
+		iv_len = SHA1_INIT_VECTOR_SIZE;
+	}
+	else if(auth_alg == CRYPTO_AUTH_ALG_SHA256)
+	{
+		iv_len = SHA256_INIT_VECTOR_SIZE;
+	}
 
-    if (!seg_cfg_val)
-    {
+	seg_cfg_val = crypto5_get_sha_cfg(ctx_ptr, auth_alg);
+
+	if (!seg_cfg_val)
+	{
 		dprintf(CRITICAL, "Authentication alg config failed.\n");
 		return;
-    }
+	}
 
 	/* Initialize CE pointers. */
 	REG_WRITE_QUEUE_INIT(dev);
 
-    REG_WRITE_QUEUE(dev, CRYPTO_AUTH_SEG_CFG(dev->base), seg_cfg_val);
+	REG_WRITE_QUEUE(dev, CRYPTO_AUTH_SEG_CFG(dev->base), seg_cfg_val);
 
-    for (i = 0; i < iv_len; i++)
-    {
+	for (i = 0; i < iv_len; i++)
+	{
 		if (sha256_ctx->flags & CRYPTO_FIRST_CHUNK)
 			REG_WRITE_QUEUE(dev, CRYPTO_AUTH_IVn(dev->base, i), BE32(*(auth_iv + i)));
 		else
 			REG_WRITE_QUEUE(dev, CRYPTO_AUTH_IVn(dev->base, i), (*(auth_iv + i)));
-    }
+	}
 
 	/* Check if the transfer length is a 8 beat burst multiple. */
 	burst_mask = CRYPTO_BURST_LEN - 1;
@@ -391,15 +411,15 @@ void crypto5_set_ctx(struct crypto_dev *dev,
 	/* Typecast with crypto_SHA1_ctx because offset of auth_bytecnt
 	 * in both crypto_SHA1_ctx and crypto_SHA256_ctx are same.
 	 */
-    REG_WRITE_QUEUE(dev, CRYPTO_AUTH_BYTECNTn(dev->base, 0), ((crypto_SHA1_ctx *) ctx_ptr)->auth_bytecnt[0]);
-    REG_WRITE_QUEUE(dev, CRYPTO_AUTH_BYTECNTn(dev->base, 1), ((crypto_SHA1_ctx *) ctx_ptr)->auth_bytecnt[1]);
+	REG_WRITE_QUEUE(dev, CRYPTO_AUTH_BYTECNTn(dev->base, 0), ((crypto_SHA1_ctx *) ctx_ptr)->auth_bytecnt[0]);
+	REG_WRITE_QUEUE(dev, CRYPTO_AUTH_BYTECNTn(dev->base, 1), ((crypto_SHA1_ctx *) ctx_ptr)->auth_bytecnt[1]);
 
 	/* Assume no header, always. */
 	REG_WRITE_QUEUE(dev, CRYPTO_AUTH_SEG_START(dev->base), 0);
 
-    REG_WRITE_QUEUE(dev, CRYPTO_AUTH_SEG_SIZE(dev->base), bytes_to_write);
-    REG_WRITE_QUEUE(dev, CRYPTO_SEG_SIZE(dev->base), total_bytes_to_write);
-    REG_WRITE_QUEUE(dev, CRYPTO_GOPROC(dev->base), GOPROC_GO);
+	REG_WRITE_QUEUE(dev, CRYPTO_AUTH_SEG_SIZE(dev->base), bytes_to_write);
+	REG_WRITE_QUEUE(dev, CRYPTO_SEG_SIZE(dev->base), total_bytes_to_write);
+	REG_WRITE_QUEUE(dev, CRYPTO_GOPROC(dev->base), GOPROC_GO);
 
 	REG_WRITE_QUEUE_DONE(dev, BAM_DESC_LOCK_FLAG | BAM_DESC_INT_FLAG);
 
