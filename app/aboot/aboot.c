@@ -1593,17 +1593,24 @@ void cmd_erase_mmc(const char *arg, void *data, unsigned sz)
 {
 	BUF_DMA_ALIGN(out, DEFAULT_ERASE_SIZE);
 	unsigned long long ptn = 0;
-	unsigned long long size;
+	unsigned long long size = 0;
 	int index = INVALID_PTN;
 
 	index = partition_get_index(arg);
 	ptn = partition_get_offset(index);
+	size = partition_get_size(index);
 
 	if(ptn == 0) {
 		fastboot_fail("Partition table doesn't exist\n");
 		return;
 	}
 
+#if MMC_SDHCI_SUPPORT
+	if (mmc_erase_card(ptn, size)) {
+		fastboot_fail("failed to erase partition\n");
+		return;
+	}
+#else
 	size = partition_get_size(index);
 	if (size > DEFAULT_ERASE_SIZE)
 		size = DEFAULT_ERASE_SIZE;
@@ -1614,6 +1621,7 @@ void cmd_erase_mmc(const char *arg, void *data, unsigned sz)
 		fastboot_fail("failed to erase partition");
 		return;
 	}
+#endif
 	fastboot_okay("");
 }
 

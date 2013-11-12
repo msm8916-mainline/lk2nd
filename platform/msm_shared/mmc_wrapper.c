@@ -33,6 +33,7 @@
 #include <sdhci.h>
 #include <ufs.h>
 #include <target.h>
+#include <string.h>
 
 /*
  * Weak function for UFS.
@@ -208,6 +209,86 @@ uint32_t mmc_read(uint64_t data_addr, uint32_t *out, uint32_t data_len)
 }
 
 /*
+ * Function: mmc get erase unit size
+ * Arg     : None
+ * Return  : Returns the erase unit size of the storage
+ * Flow    : Get the erase unit size from the card
+ */
+
+uint32_t mmc_get_eraseunit_size()
+{
+	uint32_t erase_unit_sz = 0;
+
+	if (target_boot_device_emmc()) {
+		struct mmc_device *dev;
+		struct mmc_card *card;
+
+		dev = target_mmc_device();
+		card = &dev->card;
+		/*
+		 * Calculate the erase unit size,
+		 * 1. Based on emmc 4.5 spec for emmc card
+		 * 2. Use SD Card Status info for SD cards
+		 */
+		if (MMC_CARD_MMC(card))
+		{
+			/*
+			 * Calculate the erase unit size as per the emmc specification v4.5
+			 */
+			if (dev->card.ext_csd[MMC_ERASE_GRP_DEF])
+				erase_unit_sz = (MMC_HC_ERASE_MULT * dev->card.ext_csd[MMC_HC_ERASE_GRP_SIZE]) / MMC_BLK_SZ;
+			else
+				erase_unit_sz = (dev->card.csd.erase_grp_size + 1) * (dev->card.csd.erase_grp_mult + 1);
+		}
+		else
+			erase_unit_sz = dev->card.ssr.au_size * dev->card.ssr.num_aus;
+	}
+
+	return erase_unit_sz;
+}
+
+/*
+ * Function: Zero out blk_len blocks at the blk_addr by writing zeros. The
+ *           function can be used when we want to erase the blocks not
+ *           aligned with the mmc erase group.
+ * Arg     : Block address & length
+ * Return  : Returns 0
+ * Flow    : Erase the card from specified addr
+ */
+
+static uint32_t mmc_zero_out(struct mmc_device* dev, uint32_t blk_addr, uint32_t num_blks)
+{
+	uint32_t *out;
+	uint32_t block_size;
+	int i;
+
+	dprintf(INFO, "erasing 0x%x:0x%x\n", blk_addr, num_blks);
+	block_size = mmc_get_device_blocksize();
+
+	/* Assume there are at least block_size bytes available in the heap */
+	out = memalign(CACHE_LINE, ROUNDUP(block_size, CACHE_LINE));
+
+	if (!out)
+	{
+		dprintf(CRITICAL, "Error allocating memory\n");
+		return 1;
+	}
+	memset((void *)out, 0, ROUNDUP(block_size, CACHE_LINE));
+
+	for (i = 0; i < num_blks; i++)
+	{
+		if (mmc_sdhci_write(dev, out, blk_addr + i, 1))
+		{
+			dprintf(CRITICAL, "failed to erase the partition: %x\n", blk_addr);
+			free(out);
+			return 1;
+		}
+	}
+	free(out);
+	return 0;
+}
+
+/*
  * Function: mmc erase card
  * Arg     : Block address & length
  * Return  : Returns 0
@@ -215,23 +296,72 @@ uint32_t mmc_read(uint64_t data_addr, uint32_t *out, uint32_t data_len)
  */
 uint32_t mmc_erase_card(uint64_t addr, uint64_t len)
 {
-	void *dev;
+	struct mmc_device *dev;
 	uint32_t block_size;
+	uint32_t unaligned_blks;
+	uint32_t head_unit;
+	uint32_t tail_unit;
+	uint32_t erase_unit_sz;
+	uint32_t blk_addr;
+	uint32_t blk_count;
+	uint64_t blks_to_erase;
 
 	if (target_boot_device_emmc())
 	{
 		block_size = mmc_get_device_blocksize();
-
-		dev = target_mmc_device();
+		erase_unit_sz = mmc_get_eraseunit_size();
+		dprintf(SPEW, "erase_unit_sz:0x%x\n", erase_unit_sz);
 
 		ASSERT(!(addr % block_size));
 		ASSERT(!(len % block_size));
 
-		if (mmc_sdhci_erase((struct mmc_device *)dev, (addr / block_size), len))
+		blk_addr = addr / block_size;
+		blk_count = len / block_size;
+
+		dev = target_mmc_device();
+
+		dprintf(INFO, "Erasing card: 0x%x:0x%x\n", blk_addr, blk_count);
+
+		head_unit = blk_addr / erase_unit_sz;
+		tail_unit = (blk_addr + blk_count - 1) / erase_unit_sz;
+
+		if (tail_unit - head_unit <= 1)
+		{
+			dprintf(INFO, "SDHCI unit erase not required\n");
+			return mmc_zero_out(dev, blk_addr, blk_count);
+		}
+
+		unaligned_blks = erase_unit_sz - (blk_addr % erase_unit_sz);
+
+		if (unaligned_blks < erase_unit_sz)
+		{
+			dprintf(SPEW, "Handling unaligned head blocks\n");
+			if (mmc_zero_out(dev, blk_addr, unaligned_blks))
+				return 1;
+
+			blk_addr += unaligned_blks;
+			blk_count -= unaligned_blks;
+		}
+
+		unaligned_blks = blk_count % erase_unit_sz;
+		blks_to_erase = blk_count - unaligned_blks;
+
+		dprintf(SPEW, "Performing SDHCI erase: 0x%x:0x%x\n", blk_addr, blks_to_erase);
+		if (mmc_sdhci_erase((struct mmc_device *)dev, blk_addr, blks_to_erase * block_size))
 		{
 			dprintf(CRITICAL, "MMC erase failed\n");
 			return 1;
 		}
+
+		blk_addr += blks_to_erase;
+
+		if (unaligned_blks)
+		{
+			dprintf(SPEW, "Handling unaligned tail blocks\n");
+			if (mmc_zero_out(dev, blk_addr, unaligned_blks))
+				return 1;
+		}
+
 	}
 
 	return 0;
