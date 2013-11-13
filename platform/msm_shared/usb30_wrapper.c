@@ -253,3 +253,8 @@ usb_wrapper_dev_t * usb_wrapper_init(usb_wrapper_config_t *config)
 
 	return wrapper;
 }
+
+void usb_wrapper_hs_phy_ctrl_force_write(usb_wrapper_dev_t *dev)
+{
+	REG_WRITE(dev, HS_PHY_CTRL_COMMON, 0x00001CB8);
+}

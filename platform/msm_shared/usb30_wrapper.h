@@ -64,5 +64,6 @@ void usb_wrapper_vbus_override(usb_wrapper_dev_t *dev);
 void usb_wrapper_workaround_10(usb_wrapper_dev_t *dev);
 void usb_wrapper_workaround_11(usb_wrapper_dev_t *dev);
 void usb_wrapper_workaround_13(usb_wrapper_dev_t *dev);
+void usb_wrapper_hs_phy_ctrl_force_write(usb_wrapper_dev_t *dev);
 
 #endif

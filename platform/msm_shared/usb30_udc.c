@@ -139,6 +139,13 @@ static void phy_reset(usb_wrapper_dev_t *wrapper)
 	else if (board_platform_id() == APQ8084)
 	{
 		target_usb_phy_reset();
+
+		/* On some CDPs PHY_COMMON reset does not set
+		 * reset values in the phy_ctrl_common register.
+		 * Due to this USB does not get enumerated in fastboot
+		 * Force write the reset value
+		 */
+		usb_wrapper_hs_phy_ctrl_force_write(wrapper);
 	}
 }
 
