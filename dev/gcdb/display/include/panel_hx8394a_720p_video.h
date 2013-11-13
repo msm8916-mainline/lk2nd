@@ -277,5 +277,6 @@ static struct backlight hx8394a_720p_video_backlight = {
   1, 1, 4095, 100, 1, "bl_ctrl_wled"
 };
 
+#define HX8394A_720P_VIDEO_SIGNATURE 0xa0087
 
 #endif /*_HX8394A_720P_VIDEO_H_*/
