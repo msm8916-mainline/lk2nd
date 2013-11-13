@@ -117,6 +117,7 @@ static const char *baseband_msm     = " androidboot.baseband=msm";
 static const char *baseband_csfb    = " androidboot.baseband=csfb";
 static const char *baseband_svlte2a = " androidboot.baseband=svlte2a";
 static const char *baseband_mdm     = " androidboot.baseband=mdm";
+static const char *baseband_mdm2    = " androidboot.baseband=mdm2";
 static const char *baseband_sglte   = " androidboot.baseband=sglte";
 static const char *baseband_dsda    = " androidboot.baseband=dsda";
 static const char *baseband_dsda2   = " androidboot.baseband=dsda2";
@@ -290,6 +291,10 @@ unsigned char *update_cmdline(const char * cmdline)
 			cmdline_len += strlen(baseband_mdm);
 			break;
 
+		case BASEBAND_MDM2:
+			cmdline_len += strlen(baseband_mdm2);
+			break;
+
 		case BASEBAND_SGLTE:
 			cmdline_len += strlen(baseband_sglte);
 			break;
@@ -401,6 +406,12 @@ unsigned char *update_cmdline(const char * cmdline)
 
 			case BASEBAND_MDM:
 				src = baseband_mdm;
+				if (have_cmdline) --dst;
+				while ((*dst++ = *src++));
+				break;
+
+			case BASEBAND_MDM2:
+				src = baseband_mdm2;
 				if (have_cmdline) --dst;
 				while ((*dst++ = *src++));
 				break;
