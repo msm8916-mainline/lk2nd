@@ -175,6 +175,7 @@
 #define COMMAND_MODE_MDP_STREAM1_CTRL   0x05C
 #define COMMAND_MODE_MDP_STREAM1_TOTAL  0x060
 #define ERR_INT_MASK0               0x108
+#define RDBK_DATA0                  0x068
 
 #define LANE_SWAP_CTL               0x0AC
 #define TIMING_CTL                  0x0C0
