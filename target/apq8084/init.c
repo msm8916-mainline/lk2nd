@@ -66,7 +66,8 @@ enum cdp_subtype
 	CDP_SUBTYPE_9x25_SMB349,
 	CDP_SUBTYPE_9x25_SMB1357,
 	CDP_SUBTYPE_9x35,
-	CDP_SUBTYPE_SMB1357
+	CDP_SUBTYPE_SMB1357,
+	CDP_SUBTYPE_SMB350
 };
 
 enum mtp_subtype
@@ -84,6 +85,7 @@ enum rcm_subtype
 	RCM_SUBTYPE_9x25_SMB1357,
 	RCM_SUBTYPE_9x35,
 	RCM_SUBTYPE_SMB1357,
+	RCM_SUBTYPE_SMB350
 };
 
 static void set_sdc_power_ctrl(void);
@@ -331,6 +333,7 @@ void set_cdp_baseband(struct board_data *board)
 		break;
 	case CDP_SUBTYPE_SMB349:
 	case CDP_SUBTYPE_SMB1357:
+	case CDP_SUBTYPE_SMB350:
 		board->baseband = BASEBAND_APQ;
 		break;
 	default:
@@ -376,6 +379,7 @@ void set_rcm_baseband(struct board_data *board)
 		break;
 	case RCM_SUBTYPE_SMB349:
 	case RCM_SUBTYPE_SMB1357:
+	case RCM_SUBTYPE_SMB350:
 		board->baseband = BASEBAND_APQ;
 		break;
 	default:
