@@ -613,6 +613,20 @@ uint8_t target_panel_auto_detect_enabled()
 	return 0;
 }
 
+uint8_t target_is_edp()
+{
+	switch(board_hardware_id())
+	{
+		case HW_PLATFORM_LIQUID:
+			return 1;
+			break;
+		default:
+			return 0;
+			break;
+	}
+	return 0;
+}
+
 static uint8_t splash_override;
 /* Returns 1 if target supports continuous splash screen. */
 int target_cont_splash_screen()
