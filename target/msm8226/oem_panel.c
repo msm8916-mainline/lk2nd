@@ -255,6 +255,7 @@ static void init_panel_data(struct panel_struct *panelstruct,
 					= NT35596_1080P_VIDEO_ON_COMMAND;
 		memcpy(phy_db->timing,
 				nt35596_1080p_video_timings, TIMING_SIZE);
+		break;
 	case JDI_1080P_VIDEO_PANEL:
 		panelstruct->paneldata    = &jdi_1080p_video_panel_data;
 		panelstruct->paneldata->panel_with_enable_gpio = 1;
