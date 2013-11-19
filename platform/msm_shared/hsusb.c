@@ -373,7 +373,7 @@ static void handle_ept_complete(struct udc_endpoint *ept)
 	struct ept_queue_item *item;
 	unsigned actual, total_len;
 	int status, len;
-	struct usb_request *req;
+	struct usb_request *req=NULL;
 	void *buf;
 
 	DBG("ept%d %s complete req=%p\n",
@@ -381,9 +381,13 @@ static void handle_ept_complete(struct udc_endpoint *ept)
 
 	arch_invalidate_cache_range((addr_t) ept,
 					  sizeof(struct udc_endpoint));
-	req = VA(ept->req);
-	arch_invalidate_cache_range((addr_t) ept->req,
-					  sizeof(struct usb_request));
+
+	if(ept->req)
+	{
+		req = VA(ept->req);
+		arch_invalidate_cache_range((addr_t) ept->req,
+						sizeof(struct usb_request));
+	}
 
 	if (req) {
 		item = VA(req->item);
