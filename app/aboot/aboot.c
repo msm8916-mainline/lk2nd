@@ -1948,7 +1948,8 @@ void cmd_flash(const char *arg, void *data, unsigned sz)
 	if (!strcmp(ptn->name, "system")
 		|| !strcmp(ptn->name, "userdata")
 		|| !strcmp(ptn->name, "persist")
-		|| !strcmp(ptn->name, "recoveryfs")) {
+		|| !strcmp(ptn->name, "recoveryfs")
+		|| !strcmp(ptn->name, "modem")) {
 			extra = 1;
 	} else
 		sz = ROUND_TO_PAGE(sz, page_mask);
