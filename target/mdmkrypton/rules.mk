@@ -8,9 +8,9 @@ MEMBASE                             := 0x07E00000
 MEMSIZE                             := 0x00100000 # 1MB
 SCRATCH_ADDR                        := 0x00000000
 SCRATCH_REGION1                     := 0x00000000
-SCRATCH_REGION1_SIZE                := 0x01000000 #16 MB
-SCRATCH_REGION2                     := 0x06D00000
-SCRATCH_REGION2_SIZE                := 0x01100000 #17 MB
+SCRATCH_REGION1_SIZE                := 0x01000000 #16MB
+SCRATCH_REGION2                     := 0x01300000
+SCRATCH_REGION2_SIZE                := 0x06B00000 # 107MB
 
 DEFINES += NO_KEYPAD_DRIVER=1
 DEFINES += PERIPH_BLK_BLSP=1
