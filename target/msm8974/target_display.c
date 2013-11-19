@@ -36,7 +36,6 @@
 #include <pm8x41_wled.h>
 #include <board.h>
 #include <mdp5.h>
-#include <endian.h>
 #include <platform/gpio.h>
 #include <platform/clock.h>
 #include <platform/iomap.h>
@@ -216,33 +215,6 @@ int target_ldo_ctrl(uint8_t enable)
 	}
 
 	return NO_ERROR;
-}
-
-static uint32_t response_value = 0;
-
-uint32_t target_read_panel_signature(uint32_t panel_signature)
-{
-	uint32_t rec_buf[1];
-	uint32_t *lp = rec_buf, data;
-	int ret = response_value;
-
-	if (ret && ret != panel_signature)
-		goto exit_read_signature;
-
-	ret = mipi_dsi_cmds_tx(&read_ddb_start_cmd, 1);
-	if (ret)
-		goto exit_read_signature;
-	if (!mdss_dsi_cmds_rx(&lp, 1, 1))
-		goto exit_read_signature;
-
-	data = ntohl(*lp);
-	data = data >> 8;
-	response_value = data;
-	if (response_value != panel_signature)
-		ret = response_value;
-
-exit_read_signature:
-	return ret;
 }
 
 static int msm8974_mdss_edp_panel_clock(int enable)
