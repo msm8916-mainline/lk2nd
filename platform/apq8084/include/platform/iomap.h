@@ -74,6 +74,22 @@
 
 #define CLK_CTL_BASE                0xFC400000
 
+/* CE 1 */
+#define  GCC_CE1_BCR                (CLK_CTL_BASE + 0x1040)
+#define  GCC_CE1_CMD_RCGR           (CLK_CTL_BASE + 0x1050)
+#define  GCC_CE1_CFG_RCGR           (CLK_CTL_BASE + 0x1054)
+#define  GCC_CE1_CBCR               (CLK_CTL_BASE + 0x1044)
+#define  GCC_CE1_AXI_CBCR           (CLK_CTL_BASE + 0x1048)
+#define  GCC_CE1_AHB_CBCR           (CLK_CTL_BASE + 0x104C)
+
+/* CE 2 */
+#define  GCC_CE2_BCR                (CLK_CTL_BASE + 0x1080)
+#define  GCC_CE2_CMD_RCGR           (CLK_CTL_BASE + 0x1090)
+#define  GCC_CE2_CFG_RCGR           (CLK_CTL_BASE + 0x1094)
+#define  GCC_CE2_CBCR               (CLK_CTL_BASE + 0x1084)
+#define  GCC_CE2_AXI_CBCR           (CLK_CTL_BASE + 0x1088)
+#define  GCC_CE2_AHB_CBCR           (CLK_CTL_BASE + 0x108C)
+
 /* GPLL */
 #define GPLL0_STATUS                (CLK_CTL_BASE + 0x001C)
 #define APCS_GPLL_ENA_VOTE          (CLK_CTL_BASE + 0x1480)

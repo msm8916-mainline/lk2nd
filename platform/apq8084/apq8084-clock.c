@@ -396,6 +396,111 @@ static struct branch_clk gcc_sys_noc_usb30_axi_clk =
 	},
 };
 
+/* CE Clocks */
+static struct clk_freq_tbl ftbl_gcc_ce2_clk[] = {
+	F( 50000000,  gpll0,  12,   0,   0),
+	F(100000000,  gpll0,   6,   0,   0),
+	F_END
+};
+
+static struct rcg_clk ce2_clk_src = {
+	.cmd_reg      = (uint32_t *) GCC_CE2_CMD_RCGR,
+	.cfg_reg      = (uint32_t *) GCC_CE2_CFG_RCGR,
+	.set_rate     = clock_lib2_rcg_set_rate_hid,
+	.freq_tbl     = ftbl_gcc_ce2_clk,
+	.current_freq = &rcg_dummy_freq,
+
+	.c = {
+		.dbg_name = "ce2_clk_src",
+		.ops      = &clk_ops_rcg,
+	},
+};
+
+static struct vote_clk gcc_ce2_clk = {
+	.cbcr_reg = (uint32_t *) GCC_CE2_CBCR,
+	.vote_reg = (uint32_t *) APCS_CLOCK_BRANCH_ENA_VOTE,
+	.en_mask  = BIT(2),
+
+	.c = {
+		.dbg_name = "gcc_ce2_clk",
+		.ops      = &clk_ops_vote,
+	},
+};
+
+static struct vote_clk gcc_ce2_ahb_clk = {
+	.cbcr_reg = (uint32_t *) GCC_CE2_AHB_CBCR,
+	.vote_reg = (uint32_t *) APCS_CLOCK_BRANCH_ENA_VOTE,
+	.en_mask  = BIT(0),
+
+	.c = {
+		.dbg_name = "gcc_ce2_ahb_clk",
+		.ops      = &clk_ops_vote,
+	},
+};
+
+static struct vote_clk gcc_ce2_axi_clk = {
+	.cbcr_reg = (uint32_t *) GCC_CE2_AXI_CBCR,
+	.vote_reg = (uint32_t *) APCS_CLOCK_BRANCH_ENA_VOTE,
+	.en_mask  = BIT(1),
+
+	.c = {
+		.dbg_name = "gcc_ce2_axi_clk",
+		.ops      = &clk_ops_vote,
+	},
+};
+
+static struct clk_freq_tbl ftbl_gcc_ce1_clk[] = {
+	F( 50000000,  gpll0,  12,   0,   0),
+	F(100000000,  gpll0,   6,   0,   0),
+	F_END
+};
+
+static struct rcg_clk ce1_clk_src = {
+	.cmd_reg      = (uint32_t *) GCC_CE1_CMD_RCGR,
+	.cfg_reg      = (uint32_t *) GCC_CE1_CFG_RCGR,
+	.set_rate     = clock_lib2_rcg_set_rate_hid,
+	.freq_tbl     = ftbl_gcc_ce1_clk,
+	.current_freq = &rcg_dummy_freq,
+
+	.c = {
+		.dbg_name = "ce1_clk_src",
+		.ops      = &clk_ops_rcg,
+	},
+};
+
+static struct vote_clk gcc_ce1_clk = {
+	.cbcr_reg = (uint32_t *) GCC_CE1_CBCR,
+	.vote_reg = (uint32_t *) APCS_CLOCK_BRANCH_ENA_VOTE,
+	.en_mask  = BIT(5),
+
+	.c = {
+		.dbg_name = "gcc_ce1_clk",
+		.ops      = &clk_ops_vote,
+	},
+};
+
+static struct vote_clk gcc_ce1_ahb_clk = {
+	.cbcr_reg = (uint32_t *) GCC_CE1_AHB_CBCR,
+	.vote_reg = (uint32_t *) APCS_CLOCK_BRANCH_ENA_VOTE,
+	.en_mask  = BIT(3),
+
+	.c = {
+		.dbg_name = "gcc_ce1_ahb_clk",
+		.ops      = &clk_ops_vote,
+	},
+};
+
+static struct vote_clk gcc_ce1_axi_clk = {
+	.cbcr_reg = (uint32_t *) GCC_CE1_AXI_CBCR,
+	.vote_reg = (uint32_t *) APCS_CLOCK_BRANCH_ENA_VOTE,
+	.en_mask  = BIT(4),
+
+	.c = {
+		.dbg_name = "gcc_ce1_axi_clk",
+		.ops      = &clk_ops_vote,
+	},
+};
+
 /* Display clocks */
 static struct clk_freq_tbl ftbl_mdss_esc0_1_clk[] = {
 	F_MM(19200000,    cxo,   1,   0,   0),
@@ -620,6 +725,16 @@ static struct clk_lookup msm_clocks_8084[] =
 
 	CLK_LOOKUP("usb_iface_clk",  gcc_usb_hs_ahb_clk.c),
 	CLK_LOOKUP("usb_core_clk",   gcc_usb_hs_system_clk.c),
+
+	CLK_LOOKUP("ce2_ahb_clk",  gcc_ce2_ahb_clk.c),
+	CLK_LOOKUP("ce2_axi_clk",  gcc_ce2_axi_clk.c),
+	CLK_LOOKUP("ce2_core_clk", gcc_ce2_clk.c),
+	CLK_LOOKUP("ce2_src_clk",  ce2_clk_src.c),
+
+	CLK_LOOKUP("ce1_ahb_clk",  gcc_ce1_ahb_clk.c),
+	CLK_LOOKUP("ce1_axi_clk",  gcc_ce1_axi_clk.c),
+	CLK_LOOKUP("ce1_core_clk", gcc_ce1_clk.c),
+	CLK_LOOKUP("ce1_src_clk",  ce1_clk_src.c),
 
 	/* USB 3.0 */
 	CLK_LOOKUP("usb30_iface_clk",  gcc_sys_noc_usb30_axi_clk.c),
