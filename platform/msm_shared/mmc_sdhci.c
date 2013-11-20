@@ -838,6 +838,9 @@ static uint32_t mmc_set_hs200_mode(struct sdhci_host *host,
 		return mmc_ret;
 	}
 
+	/* Enable SDR104 mode in controller */
+	sdhci_set_uhs_mode(host, SDHCI_SDR104_MODE);
+
 	/* Run the clock @ 400 Mhz */
 	if (mmc_card_supports_hs400_mode(card))
 	{
@@ -850,9 +853,6 @@ static uint32_t mmc_set_hs200_mode(struct sdhci_host *host,
 		/* Save the timing value, before changing the clock */
 		MMC_SAVE_TIMING(host, MMC_HS200_TIMING);
 	}
-
-	/* Enable SDR104 mode in controller */
-	sdhci_set_uhs_mode(host, SDHCI_SDR104_MODE);
 
 	/* Execute Tuning for hs200 mode */
 	if ((mmc_ret = sdhci_msm_execute_tuning(host, width)))
