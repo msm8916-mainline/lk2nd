@@ -291,6 +291,11 @@ int msm_display_init(struct msm_fb_panel_data *pdata)
 	if (ret)
 		goto msm_display_init_out;
 
+	if (pdata->post_power_func)
+		ret = pdata->post_power_func(1);
+	if (ret)
+		goto msm_display_init_out;
+
 	/* Turn on backlight */
 	if (pdata->bl_func)
 		ret = pdata->bl_func(1);
@@ -359,6 +364,11 @@ int msm_display_off()
 		dprintf(INFO, "Continuous splash enabled, keeping panel alive.\n");
 		return NO_ERROR;
 	}
+
+	if (panel->post_power_func)
+		ret = panel->post_power_func(0);
+	if (ret)
+		goto msm_display_off_out;
 
 	/* Turn off backlight */
 	if (panel->bl_func)
