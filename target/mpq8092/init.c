@@ -36,9 +36,15 @@
 #include <spmi.h>
 #include <board.h>
 #include <hsusb.h>
+#include <smem.h>
+#include <baseband.h>
+#include <dev/keys.h>
+#include <pm8x41.h>
+#include <platform/gpio.h>
 
 #define PMIC_ARB_CHANNEL_NUM    0
 #define PMIC_ARB_OWNER_ID       0
+#define FASTBOOT_MODE           0x77665500
 
 static uint32_t mmc_sdc_base[] =
 	{ MSM_SDC1_BASE, MSM_SDC2_BASE, MSM_SDC3_BASE, MSM_SDC4_BASE };
@@ -49,6 +55,7 @@ void target_early_init(void)
 	uart_dm_init(4, 0, BLSP1_UART4_BASE); /* DEBUG_UART BLSP1_UART5 */
 #endif
 }
+
 void target_mmc_caps(struct mmc_host *host)
 {
 	host->caps.ddr_mode = 0;
@@ -56,8 +63,45 @@ void target_mmc_caps(struct mmc_host *host)
 	host->caps.bus_width = MMC_BOOT_BUS_WIDTH_8_BIT;
 	host->caps.hs_clk_rate = MMC_CLK_50MHZ;
 }
+
+/* Return 1 if vol_up pressed */
+static int target_volume_up()
+{
+	uint8_t status = 0;
+	struct pm8x41_gpio gpio;
+
+	/* Configure the GPIO */
+	gpio.direction = PM_GPIO_DIR_IN;
+	gpio.function  = 0;
+	gpio.pull      = PM_GPIO_PULL_UP_30;
+	gpio.vin_sel   = 2;
+
+	pm8x41_gpio_config(2, &gpio);
+
+	/* Wait for the pmic gpio configuration to take effect */
+	thread_sleep(1);
+
+	/* Get status of P_GPIO_2 */
+	pm8x41_gpio_get(2, &status);
+
+	return !status; /* active low */
+}
+
+/* Return 1 if vol_down pressed */
+uint32_t target_volume_down()
+{
+	return pm8x41_resin_status();
+}
+
 static void target_keystatus()
 {
+	keys_init();
+
+	if(target_volume_down())
+		keys_post_event(KEY_VOLUMEDOWN, 1);
+
+	if(target_volume_up())
+		keys_post_event(KEY_VOLUMEUP, 1);
 }
 
 void target_init(void)
@@ -98,6 +142,7 @@ void target_serialno(unsigned char *buf)
 
 unsigned board_machtype(void)
 {
+	return LINUX_MACHTYPE_UNKNOWN;
 }
 
 /* Do target specific usb initialization */
@@ -122,4 +167,47 @@ void target_usb_stop(void)
 {
 	/* Disable VBUS mimicing in the controller. */
 	ulpi_write(ULPI_MISC_A_VBUSVLDEXTSEL | ULPI_MISC_A_VBUSVLDEXT, ULPI_MISC_A_CLEAR);
+}
+
+void reboot_device(unsigned reboot_reason)
+{
+	uint8_t reset_type = 0;
+
+	/* Write the reboot reason */
+	writel(reboot_reason, RESTART_REASON_ADDR);
+
+	if(reboot_reason == FASTBOOT_MODE)
+		reset_type = PON_PSHOLD_WARM_RESET;
+	else
+		reset_type = PON_PSHOLD_HARD_RESET;
+
+	pm8x41_reset_configure(reset_type);
+
+	/* Drop PS_HOLD for MSM */
+	writel(0x00, MPM2_MPM_PS_HOLD);
+	mdelay(5000);
+
+	dprintf(CRITICAL, "Rebooting failed\n");
+}
+
+/* Detect the target type */
+void target_detect(struct board_data *board)
+{
+	board->target = LINUX_MACHTYPE_UNKNOWN;
+}
+
+void target_baseband_detect(struct board_data *board)
+{
+	uint32_t platform;
+
+	platform         = board->platform;
+	switch(platform)
+	{
+	case MPQ8092:
+		board->baseband = BASEBAND_APQ;
+	break;
+	default:
+		dprintf(CRITICAL, "Platform type: %u is not supported\n", platform);
+	ASSERT(0);
+	};
 }
