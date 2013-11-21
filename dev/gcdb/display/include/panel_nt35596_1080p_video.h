@@ -3263,5 +3263,6 @@ static struct backlight nt35596_1080p_video_backlight = {
   1, 1, 4095, 100, 1, "PMIC_8941"
 };
 
+#define NT35596_1080P_VIDEO_SIGNATURE 0xFFFF
 
 #endif /*_PANEL_NT35596_1080P_VIDEO_H_*/
