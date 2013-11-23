@@ -86,7 +86,7 @@
 /************ CLOCKS ***********/
 
 /* GPLL */
-#define GPLL0_STATUS                         (CLK_CTL_BASE + 0x001C)
+#define GPLL0_STATUS                         (CLK_CTL_BASE + 0x0000)
 #define APCS_GPLL_ENA_VOTE                   (CLK_CTL_BASE + 0x1480)
 
 /* UART */
