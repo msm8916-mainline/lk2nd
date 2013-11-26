@@ -163,6 +163,9 @@ struct mipi_panel_info {
 	uint8_t mode_gpio_state;
 	uint32_t signature;
 	uint32_t use_enable_gpio;
+
+	uint8_t lp11_init;
+	uint32_t init_delay;
 };
 
 struct edp_panel_info {
@@ -219,6 +222,7 @@ struct msm_fb_panel_data {
 	int (*clk_func) (int enable);
 	int (*bl_func) (int enable);
 	int (*pll_clk_func) (int enable, struct msm_panel_info *);
+	int (*post_power_func)(int enable);
 };
 
 #endif
