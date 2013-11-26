@@ -43,8 +43,9 @@
 #include "include/panel_toshiba_720p_video.h"
 #include "include/panel_sharp_qhd_video.h"
 #include "include/panel_jdi_1080p_video.h"
+#include "include/panel_generic_720p_cmd.h"
 
-#define DISPLAY_MAX_PANEL_DETECTION 2
+#define DISPLAY_MAX_PANEL_DETECTION 3
 
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
@@ -53,6 +54,7 @@ enum {
 JDI_1080P_VIDEO_PANEL,
 TOSHIBA_720P_VIDEO_PANEL,
 SHARP_QHD_VIDEO_PANEL,
+GENERIC_720P_CMD_PANEL,
 UNKNOWN_PANEL
 };
 
@@ -147,6 +149,27 @@ static void init_panel_data(struct panel_struct *panelstruct,
 			jdi_1080p_video_timings, TIMING_SIZE);
 		pinfo->mipi.signature = JDI_1080P_VIDEO_SIGNATURE;
 		break;
+	case GENERIC_720P_CMD_PANEL:
+		panelstruct->paneldata    = &generic_720p_cmd_panel_data;
+		panelstruct->panelres     = &generic_720p_cmd_panel_res;
+		panelstruct->color        = &generic_720p_cmd_color;
+		panelstruct->videopanel   = &generic_720p_cmd_video_panel;
+		panelstruct->commandpanel = &generic_720p_cmd_command_panel;
+		panelstruct->state        = &generic_720p_cmd_state;
+		panelstruct->laneconfig   = &generic_720p_cmd_lane_config;
+		panelstruct->paneltiminginfo
+			= &generic_720p_cmd_timing_info;
+		panelstruct->panelresetseq
+					 = &generic_720p_cmd_reset_seq;
+		panelstruct->backlightinfo = &generic_720p_cmd_backlight;
+		pinfo->mipi.panel_cmds
+			= generic_720p_cmd_on_command;
+		pinfo->mipi.num_of_panel_cmds
+			= GENERIC_720P_CMD_ON_COMMAND;
+		memcpy(phy_db->timing,
+			generic_720p_cmd_timings, TIMING_SIZE);
+		pinfo->mipi.signature = GENERIC_720P_CMD_SIGNATURE;
+		break;
 	case UNKNOWN_PANEL:
 		memset(panelstruct, 0, sizeof(struct panel_struct));
 		memset(pinfo->mipi.panel_cmds, 0, sizeof(struct mipi_dsi_cmd));
@@ -183,6 +206,9 @@ bool oem_panel_select(struct panel_struct *panelstruct,
 			break;
 		case 1:
 			panel_id = TOSHIBA_720P_VIDEO_PANEL;
+			break;
+		case 2:
+			panel_id = GENERIC_720P_CMD_PANEL;
 			break;
 		default:
 			panel_id = UNKNOWN_PANEL;
