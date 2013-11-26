@@ -7,7 +7,7 @@ else
   SIGNED_KERNEL := SIGNED_KERNEL=0
 endif
 
-ifeq ($(call is-board-platform,msm8660),true)
+ifeq ($(TARGET_BOARD_PLATFORM),msm8660)
   BOOTLOADER_PLATFORM := msm8660_surf
 else
   BOOTLOADER_PLATFORM := $(TARGET_BOARD_PLATFORM)
