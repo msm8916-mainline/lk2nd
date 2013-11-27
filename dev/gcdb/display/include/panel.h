@@ -65,6 +65,8 @@ typedef struct panel_config{
 	uint32_t panel_operating_mode;
 	uint32_t panel_with_enable_gpio;
 	uint8_t  mode_gpio_state;
+	uint8_t panel_lp11_init;
+	uint32_t  panel_init_delay;
 };
 
 typedef struct panel_resolution{
