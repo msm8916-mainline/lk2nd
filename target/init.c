@@ -166,6 +166,11 @@ __WEAK uint8_t target_panel_auto_detect_enabled()
 	return 0;
 }
 
+__WEAK uint8_t target_is_edp()
+{
+	return 0;
+}
+
 /* default usb controller to be used. */
 __WEAK const char * target_usb_controller()
 {
