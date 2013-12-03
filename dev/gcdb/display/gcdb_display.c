@@ -177,11 +177,25 @@ bool target_display_panel_node(char *pbuf, uint16_t buf_size)
 	char *panel_node = NULL;
 	uint16_t dsi_id_len = 0;
 	bool ret = true;
+	char *default_str;
 
 	if (panelstruct.paneldata)
 	{
 		dsi_id = panelstruct.paneldata->panel_controller;
 		panel_node = panelstruct.paneldata->panel_node_id;
+	}
+	else
+	{
+		if (target_is_edp())
+		{
+			default_str = "0:edp:";
+		}
+		else
+		{
+			default_str = "0:dsi:0:";
+		}
+		strlcpy(pbuf, default_str, buf_size);
+		return true;
 	}
 
 	if (dsi_id == NULL || panel_node == NULL)
