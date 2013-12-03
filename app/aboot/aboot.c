@@ -98,6 +98,9 @@ void write_device_info_flash(device_info *dev);
 #define DEFAULT_ERASE_SIZE  4096
 #define MAX_PANEL_BUF_SIZE 64
 
+#define UBI_MAGIC      "UBI#"
+#define UBI_MAGIC_SIZE 0x04
+
 #if UFS_SUPPORT
 static const char *emmc_cmdline = " androidboot.bootdevice=msm_sdcc.1";
 static const char *ufs_cmdline = " androidboot.bootdevice=msm_ufs.1";
@@ -1949,9 +1952,14 @@ void cmd_flash(const char *arg, void *data, unsigned sz)
 		|| !strcmp(ptn->name, "userdata")
 		|| !strcmp(ptn->name, "persist")
 		|| !strcmp(ptn->name, "recoveryfs")
-		|| !strcmp(ptn->name, "modem")) {
+		|| !strcmp(ptn->name, "modem"))
+	{
+		if (memcmp((void *)data, UBI_MAGIC, UBI_MAGIC_SIZE))
 			extra = 1;
-	} else
+		else
+			extra = 0;
+	}
+	else
 		sz = ROUND_TO_PAGE(sz, page_mask);
 
 	dprintf(INFO, "writing %d bytes to '%s'\n", sz, ptn->name);
