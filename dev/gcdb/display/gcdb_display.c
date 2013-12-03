@@ -137,26 +137,22 @@ static int mdss_dsi_panel_power(uint8_t enable)
 	return ret;
 }
 
-static int mdss_dsi_panel_post_power(uint8_t enable)
+static int mdss_dsi_panel_pre_init(void)
 {
 	int ret = NO_ERROR;
 
-	if (enable) {
-		/* Panel Reset */
-		if (panelstruct.paneldata->panel_lp11_init) {
-			ret = mdss_dsi_panel_reset(enable);
-			if (ret) {
-				dprintf(CRITICAL, "panel reset failed\n");
-				return ret;
-			}
+	if (panelstruct.paneldata->panel_lp11_init) {
+		ret = mdss_dsi_panel_reset(1);
+		if (ret) {
+			dprintf(CRITICAL, "panel reset failed\n");
+			return ret;
 		}
-
-		if(panelstruct.paneldata->panel_init_delay)
-			udelay(panelstruct.paneldata->panel_init_delay);
-
-		dprintf(SPEW, "Panel post power on done\n");
 	}
 
+	if(panelstruct.paneldata->panel_init_delay)
+		udelay(panelstruct.paneldata->panel_init_delay);
+
+	dprintf(SPEW, "Panel pre init done\n");
 	return ret;
 }
 
@@ -261,7 +257,7 @@ int gcdb_display_init(uint32_t rev, void *base)
 
 	panel.pll_clk_func = mdss_dsi_panel_clock;
 	panel.power_func = mdss_dsi_panel_power;
-	panel.post_power_func = mdss_dsi_panel_post_power;
+	panel.pre_init_func = mdss_dsi_panel_pre_init;
 	panel.bl_func = mdss_dsi_bl_enable;
 	panel.fb.base = base;
 	panel.fb.width =  panel.panel_info.xres;
