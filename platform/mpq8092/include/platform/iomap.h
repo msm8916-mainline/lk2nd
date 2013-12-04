@@ -37,6 +37,10 @@
 #define MSM_SHARED_BASE             0x0FA00000
 
 #define APPS_SS_BASE                0xF9000000
+#define SYSTEM_IMEM_BASE            0xFE800000
+#define MSM_SHARED_IMEM_BASE        0xFE805000
+
+#define RESTART_REASON_ADDR         (MSM_SHARED_IMEM_BASE + 0x65C)
 
 #define MSM_GIC_DIST_BASE           APPS_SS_BASE
 #define MSM_GIC_CPU_BASE            (APPS_SS_BASE + 0x2000)
