@@ -130,4 +130,6 @@ static crypto_result_type crypto_sha256(unsigned char *buff_ptr,
 static crypto_result_type crypto_sha1(unsigned char *buff_ptr,
 				      unsigned int buff_size,
 				      unsigned char *digest_ptr);
+
+bool crypto_initialized(void);
 #endif
