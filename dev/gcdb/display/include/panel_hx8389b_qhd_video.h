@@ -52,7 +52,7 @@ static struct panel_config hx8389b_qhd_video_panel_data = {
 /* Panel resolution                                                          */
 /*---------------------------------------------------------------------------*/
 static struct panel_resolution hx8389b_qhd_video_panel_res = {
-	540, 960, 48, 96, 96, 0, 9, 13, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0
+	540, 960, 60, 39, 39, 0, 9, 13, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 
 /*---------------------------------------------------------------------------*/
@@ -262,7 +262,7 @@ static struct lane_configuration hx8389b_qhd_video_lane_config = {
 /* Panel timing                                                              */
 /*---------------------------------------------------------------------------*/
 static const uint32_t hx8389b_qhd_video_timings[] = {
-	0x97, 0x23, 0x17, 0x00, 0x4B, 0x53, 0x1C, 0x27, 0x27, 0x03, 0x04, 0x00
+	0x87, 0x1E, 0x14, 0x00, 0x44, 0x4B, 0x19, 0x21, 0x22, 0x03, 0x04, 0x00
 };
 
 static struct panel_timing hx8389b_qhd_video_timing_info = {
