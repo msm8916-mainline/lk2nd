@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2014, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -31,6 +31,24 @@
 #include "mmc.h"
 #include "partition_parser.h"
 
+__WEAK void mmc_set_lun(uint8_t lun)
+{
+}
+
+__WEAK uint8_t mmc_get_lun(void)
+{
+	return 0;
+}
+
+__WEAK void mmc_read_partition_table(uint8_t arg)
+{
+	if(partition_read_table())
+	{
+		dprintf(CRITICAL, "Error reading the partition table info\n");
+		ASSERT(0);
+	}
+}
+
 static uint32_t mmc_boot_read_gpt(uint32_t block_size);
 static uint32_t mmc_boot_read_mbr(uint32_t block_size);
 static void mbr_fill_name(struct partition_entry *partition_ent,
@@ -60,7 +78,7 @@ unsigned int vfat_count = 0;
 
 struct partition_entry *partition_entries;
 static unsigned gpt_partitions_exist = 0;
-unsigned partition_count = 0;
+static unsigned partition_count;
 
 unsigned int partition_read_table()
 {
@@ -70,8 +88,11 @@ unsigned int partition_read_table()
 	block_size = mmc_get_device_blocksize();
 
 	/* Allocate partition entries array */
-	partition_entries = (struct partition_entry *) calloc(NUM_PARTITIONS, sizeof(struct partition_entry));
-	ASSERT(partition_entries);
+	if(!partition_entries)
+	{
+		partition_entries = (struct partition_entry *) calloc(NUM_PARTITIONS, sizeof(struct partition_entry));
+		ASSERT(partition_entries);
+	}
 
 	/* Read MBR of the card */
 	ret = mmc_boot_read_mbr(block_size);
@@ -130,7 +151,6 @@ static unsigned int mmc_boot_read_mbr(uint32_t block_size)
 	 * Process each of the four partitions in the MBR by reading the table
 	 * information into our mbr table.
 	 */
-	partition_count = 0;
 	idx = TABLE_ENTRY_0;
 	for (i = 0; i < 4; i++) {
 		/* Type 0xEE indicates end of MBR and GPT partitions exist */
@@ -239,8 +259,6 @@ static unsigned int mmc_boot_read_gpt(uint32_t block_size)
 	uint8_t *data = NULL;
 	uint32_t part_entry_cnt = block_size / ENTRY_SIZE;
 
-	partition_count = 0;
-
 	/* Get the density of the mmc device */
 
 	device_density = mmc_get_device_capacity();
@@ -343,6 +361,8 @@ static unsigned int mmc_boot_read_gpt(uint32_t block_size)
 			memcpy(UTF16_name, &data[(j * partition_entry_size) +
 						 PARTITION_NAME_OFFSET],
 			       MAX_GPT_NAME_SIZE);
+			partition_entries[partition_count].lun = mmc_get_lun();
+
 			/*
 			 * Currently partition names in *.xml are UTF-8 and lowercase
 			 * Only supporting english for now so removing 2nd byte of UTF-16
@@ -719,12 +739,8 @@ static unsigned int write_gpt(uint32_t size, uint8_t *gptImage, uint32_t block_s
 
 	/* Re-read the GPT partition table */
 	dprintf(INFO, "Re-reading the GPT Partition Table\n");
-	ret = mmc_boot_read_gpt(block_size);
-	if (ret) {
-		dprintf(CRITICAL,
-			"GPT: Failure to re- read the GPT Partition table\n");
-		goto end;
-	}
+	partition_count = 0;
+	mmc_read_partition_table(0);
 	partition_dump();
 	dprintf(CRITICAL, "GPT: Partition Table written\n");
 	memset(primary_gpt_header, 0x00, size);
@@ -892,6 +908,11 @@ unsigned long long partition_get_offset(int index)
 	else {
 		return partition_entries[index].first_lba * block_size;
 	}
+}
+
+uint8_t partition_get_lun(int index)
+{
+	return partition_entries[index].lun;
 }
 
 /* Debug: Print all parsed partitions */
