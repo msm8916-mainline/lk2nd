@@ -1271,6 +1271,7 @@ void write_device_info_mmc(device_info *dev)
 	unsigned long long size;
 	int index = INVALID_PTN;
 	uint32_t blocksize;
+	uint8_t lun = 0;
 
 	index = partition_get_index("aboot");
 	ptn = partition_get_offset(index);
@@ -1278,6 +1279,9 @@ void write_device_info_mmc(device_info *dev)
 	{
 		return;
 	}
+
+	lun = partition_get_lun(index);
+	mmc_set_lun(lun);
 
 	size = partition_get_size(index);
 
@@ -1627,6 +1631,7 @@ void cmd_erase_mmc(const char *arg, void *data, unsigned sz)
 	unsigned long long ptn = 0;
 	unsigned long long size = 0;
 	int index = INVALID_PTN;
+	uint8_t lun = 0;
 
 	index = partition_get_index(arg);
 	ptn = partition_get_offset(index);
@@ -1636,6 +1641,9 @@ void cmd_erase_mmc(const char *arg, void *data, unsigned sz)
 		fastboot_fail("Partition table doesn't exist\n");
 		return;
 	}
+
+	lun = partition_get_lun(index);
+	mmc_set_lun(lun);
 
 #if MMC_SDHCI_SUPPORT
 	if (mmc_erase_card(ptn, size)) {
@@ -1663,8 +1671,22 @@ void cmd_flash_mmc_img(const char *arg, void *data, unsigned sz)
 	unsigned long long ptn = 0;
 	unsigned long long size = 0;
 	int index = INVALID_PTN;
+	char *token = NULL;
+	char *pname = NULL;
+	uint8_t lun = 0;
+	bool lun_set = false;
 
-	if (!strcmp(arg, "partition"))
+	token = strtok(arg, ":");
+	pname = token;
+	token = strtok(NULL, ":");
+	if(token)
+	{
+		lun = atoi(token);
+		mmc_set_lun(lun);
+		lun_set = true;
+	}
+
+	if (!strcmp(pname, "partition"))
 	{
 		dprintf(INFO, "Attempt to write partition image.\n");
 		if (write_partition(sz, (unsigned char *) data)) {
@@ -1674,18 +1696,24 @@ void cmd_flash_mmc_img(const char *arg, void *data, unsigned sz)
 	}
 	else
 	{
-		index = partition_get_index(arg);
+		index = partition_get_index(pname);
 		ptn = partition_get_offset(index);
 		if(ptn == 0) {
 			fastboot_fail("partition table doesn't exist");
 			return;
 		}
 
-		if (!strcmp(arg, "boot") || !strcmp(arg, "recovery")) {
+		if (!strcmp(pname, "boot") || !strcmp(pname, "recovery")) {
 			if (memcmp((void *)data, BOOT_MAGIC, BOOT_MAGIC_SIZE)) {
 				fastboot_fail("image is not a boot image");
 				return;
 			}
+		}
+
+		if(!lun_set)
+		{
+			lun = partition_get_lun(index);
+			mmc_set_lun(lun);
 		}
 
 		size = partition_get_size(index);
@@ -1716,6 +1744,7 @@ void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 	unsigned long long size = 0;
 	int index = INVALID_PTN;
 	int i;
+	uint8_t lun = 0;
 
 	index = partition_get_index(arg);
 	ptn = partition_get_offset(index);
@@ -1729,6 +1758,9 @@ void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 		fastboot_fail("size too large");
 		return;
 	}
+
+	lun = partition_get_lun(index);
+	mmc_set_lun(lun);
 
 	/* Read and skip over sparse image header */
 	sparse_header = (sparse_header_t *) data;
