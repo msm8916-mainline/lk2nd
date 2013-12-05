@@ -185,7 +185,10 @@ void target_init(void)
 
 void target_uninit(void)
 {
-        mmc_put_card_to_sleep(dev);
+	mmc_put_card_to_sleep(dev);
+
+	if (crypto_initialized())
+		crypto_eng_cleanup();
 }
 
 #define SSD_CE_INSTANCE         1
