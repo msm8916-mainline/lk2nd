@@ -285,9 +285,9 @@ int dme_read_unit_desc(struct ufs_dev *dev, uint8_t index)
 	/* Flush buffer. */
 	arch_invalidate_cache_range((addr_t) desc, sizeof(struct ufs_unit_desc));
 
-	dev->capacity = BE64(desc->logical_blk_cnt) * dev->block_size;
+	dev->lun_cfg[index].logical_blk_cnt = BE64(desc->logical_blk_cnt);
 
-	dev->erase_blk_size = BE32(desc->erase_blk_size) * dev->block_size;
+	dev->lun_cfg[index].erase_blk_size = BE32(desc->erase_blk_size);
 
 	return UFS_SUCCESS;
 }

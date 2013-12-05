@@ -243,7 +243,7 @@ int ucs_do_scsi_unmap(struct ufs_dev *dev, struct scsi_unmap_req *req)
 	req_upiu.data_buffer_addr          = (addr_t) param;
 	req_upiu.data_len                  = sizeof(struct unmap_param_list);
 	req_upiu.flags                     = UPIU_FLAGS_WRITE;
-	req_upiu.lun                       = 0;
+	req_upiu.lun                       = req->lun;
 	req_upiu.dd                        = UTRD_SYSTEM_TO_TARGET;
 
 	if (ucs_do_scsi_cmd(dev, &req_upiu))
