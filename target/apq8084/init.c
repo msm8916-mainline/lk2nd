@@ -329,8 +329,10 @@ void set_cdp_baseband(struct board_data *board)
 	switch(platform_subtype) {
 	case CDP_SUBTYPE_9x25_SMB349:
 	case CDP_SUBTYPE_9x25_SMB1357:
-	case CDP_SUBTYPE_9x35:
 		board->baseband = BASEBAND_MDM;
+		break;
+	case CDP_SUBTYPE_9x35:
+		board->baseband = BASEBAND_MDM2;
 		break;
 	case CDP_SUBTYPE_SMB349:
 	case CDP_SUBTYPE_SMB1357:
@@ -354,8 +356,10 @@ void set_mtp_baseband(struct board_data *board)
 	switch(platform_subtype) {
 	case MTP_SUBTYPE_9x25_SMB349:
 	case MTP_SUBTYPE_9x25_SMB1357:
-	case MTP_SUBTYPE_9x35:
 		board->baseband = BASEBAND_MDM;
+		break;
+	case MTP_SUBTYPE_9x35:
+		board->baseband = BASEBAND_MDM2;
 		break;
 	case MTP_SUBTYPE_SMB349:
 		board->baseband = BASEBAND_APQ;
@@ -375,8 +379,10 @@ void set_rcm_baseband(struct board_data *board)
 	switch(platform_subtype) {
 	case RCM_SUBTYPE_9x25_SMB349:
 	case RCM_SUBTYPE_9x25_SMB1357:
-	case RCM_SUBTYPE_9x35:
 		board->baseband = BASEBAND_MDM;
+		break;
+	case RCM_SUBTYPE_9x35:
+		board->baseband = BASEBAND_MDM2;
 		break;
 	case RCM_SUBTYPE_SMB349:
 	case RCM_SUBTYPE_SMB1357:
