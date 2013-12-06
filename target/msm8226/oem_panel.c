@@ -49,6 +49,8 @@
 #include "include/panel_ssd2080m_720p_video.h"
 #include "include/panel_jdi_1080p_video.h"
 
+#define DISPLAY_MAX_PANEL_DETECTION 2
+
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
 /*---------------------------------------------------------------------------*/
@@ -60,7 +62,8 @@ NT35596_1080P_VIDEO_PANEL,
 HX8394A_720P_VIDEO_PANEL,
 NT35521_720P_VIDEO_PANEL,
 SSD2080M_720P_VIDEO_PANEL,
-JDI_1080P_VIDEO_PANEL
+JDI_1080P_VIDEO_PANEL,
+UNKNOWN_PANEL
 };
 
 enum target_subtype {
@@ -214,6 +217,7 @@ static void init_panel_data(struct panel_struct *panelstruct,
 					= HX8394A_720P_VIDEO_ON_COMMAND;
 		memcpy(phy_db->timing,
 				hx8394a_720p_video_timings, TIMING_SIZE);
+		pinfo->mipi.signature = HX8394A_720P_VIDEO_SIGNATURE;
 		break;
 
 	case NT35590_720P_CMD_PANEL:
@@ -255,6 +259,7 @@ static void init_panel_data(struct panel_struct *panelstruct,
 					= NT35596_1080P_VIDEO_ON_COMMAND;
 		memcpy(phy_db->timing,
 				nt35596_1080p_video_timings, TIMING_SIZE);
+		pinfo->mipi.signature = NT35596_1080P_VIDEO_SIGNATURE;
 		break;
 	case JDI_1080P_VIDEO_PANEL:
 		panelstruct->paneldata    = &jdi_1080p_video_panel_data;
@@ -277,8 +282,23 @@ static void init_panel_data(struct panel_struct *panelstruct,
 		memcpy(phy_db->timing,
 			jdi_1080p_video_timings, TIMING_SIZE);
 		break;
+        case UNKNOWN_PANEL:
+                memset(panelstruct, 0, sizeof(struct panel_struct));
+                memset(pinfo->mipi.panel_cmds, 0, sizeof(struct mipi_dsi_cmd));
+                pinfo->mipi.num_of_panel_cmds = 0;
+                memset(phy_db->timing, 0, TIMING_SIZE);
+                pinfo->mipi.signature = 0;
+                break;
 	}
 }
+
+uint32_t oem_panel_max_auto_detect_panels()
+{
+        return target_panel_auto_detect_enabled() ?
+                        DISPLAY_MAX_PANEL_DETECTION : 0;
+}
+
+static uint32_t auto_pan_loop = 0;
 
 bool oem_panel_select(struct panel_struct *panelstruct,
 			struct msm_panel_info *pinfo,
@@ -288,6 +308,7 @@ bool oem_panel_select(struct panel_struct *panelstruct,
 	uint32_t target_id = board_target_id();
 	uint32_t nt35590_panel_id = NT35590_720P_VIDEO_PANEL;
 	uint32_t hw_subtype = board_hardware_subtype();
+	bool ret = true;
 
 #if DISPLAY_TYPE_CMD_MODE
 	nt35590_panel_id = NT35590_720P_CMD_PANEL;
@@ -302,8 +323,23 @@ bool oem_panel_select(struct panel_struct *panelstruct,
 		} else {
 			if (((target_id >> 16) & 0xFF) == 0x1 || ((target_id >> 16) & 0xFF) == 0x3) //EVT || PVT
 				panel_id = nt35590_panel_id;
-			else if (((target_id >> 16) & 0xFF) == 0x2) //DVT
+			else if (((target_id >> 16) & 0xFF) == 0x2) { //DVT
 				panel_id = HX8394A_720P_VIDEO_PANEL;
+				switch (auto_pan_loop) {
+					case 0:
+						panel_id = HX8394A_720P_VIDEO_PANEL;
+						break;
+					case 1:
+						panel_id = NT35596_1080P_VIDEO_PANEL;
+						break;
+					default:
+						panel_id = UNKNOWN_PANEL;
+						ret = false;
+						dprintf(CRITICAL, "Unknown panel\n");
+						return ret;
+				}
+				auto_pan_loop++;
+			}
 			else {
 				dprintf(CRITICAL, "Not supported device, target_id=%x\n"
 									, target_id);
@@ -331,5 +367,5 @@ bool oem_panel_select(struct panel_struct *panelstruct,
 
 	init_panel_data(panelstruct, pinfo, phy_db);
 
-	return true;
+	return ret;
 }

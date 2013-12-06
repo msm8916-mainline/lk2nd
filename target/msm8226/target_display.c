@@ -328,7 +328,20 @@ int target_ldo_ctrl(uint8_t enable)
 
 void display_init(void)
 {
-	gcdb_display_init(MDP_REV_50, MIPI_FB_ADDR);
+        uint32_t panel_loop = 0;
+        uint32_t ret = 0;
+
+	do {
+		ret = gcdb_display_init(MDP_REV_50, MIPI_FB_ADDR);
+		if (!ret || ret == ERR_NOT_SUPPORTED) {
+			break;
+		} else {
+			target_force_cont_splash_disable(true);
+			msm_display_off();
+			target_force_cont_splash_disable(false);
+		}
+	} while (++panel_loop <= oem_panel_max_auto_detect_panels());
+
 }
 
 void display_shutdown(void)
