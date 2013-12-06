@@ -202,10 +202,14 @@ int target_backlight_ctrl(uint8_t enable)
 {
 	dprintf(SPEW, "target_backlight_ctrl\n");
 
-	pm8x41_wled_config(&wled_ctrl);
-	pm8x41_wled_sink_control(1);
-	pm8x41_wled_iled_sync_control(1);
-	pm8x41_wled_enable(1);
+	if (enable) {
+		pm8x41_wled_config(&wled_ctrl);
+		pm8x41_wled_sink_control(enable);
+		pm8x41_wled_iled_sync_control(enable);
+		pm8x41_wled_led_mod_enable(enable);
+	}
+
+	pm8x41_wled_enable(enable);
 
 	return 0;
 }
