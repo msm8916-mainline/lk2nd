@@ -58,7 +58,7 @@ char *vfat_partitions[] = { "modem", "mdm", "NONE" };
 unsigned int ext3_count = 0;
 unsigned int vfat_count = 0;
 
-struct partition_entry partition_entries[NUM_PARTITIONS];
+struct partition_entry *partition_entries;
 static unsigned gpt_partitions_exist = 0;
 unsigned partition_count = 0;
 
@@ -68,6 +68,10 @@ unsigned int partition_read_table()
 	uint32_t block_size;
 
 	block_size = mmc_get_device_blocksize();
+
+	/* Allocate partition entries array */
+	partition_entries = (struct partition_entry *) calloc(NUM_PARTITIONS, sizeof(struct partition_entry));
+	ASSERT(partition_entries);
 
 	/* Read MBR of the card */
 	ret = mmc_boot_read_mbr(block_size);

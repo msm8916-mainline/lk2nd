@@ -72,7 +72,7 @@
 #define MAX_GPT_NAME_SIZE          72
 #define PARTITION_TYPE_GUID_SIZE   16
 #define UNIQUE_PARTITION_GUID_SIZE 16
-#define NUM_PARTITIONS             32
+#define NUM_PARTITIONS             128
 
 /* Some useful define used to access the MBR/EBR table */
 #define BLOCK_SIZE                0x200
