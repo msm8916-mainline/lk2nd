@@ -399,6 +399,7 @@ extern unsigned int mmc_boot_mci_base;
 
 /* EXT_CSD */
 #define MMC_BOOT_ACCESS_WRITE             0x3
+#define MMC_BOOT_SET_BIT                  0x1
 
 #define MMC_BOOT_EXT_USER_WP              171
 #define MMC_BOOT_EXT_ERASE_GROUP_DEF      175

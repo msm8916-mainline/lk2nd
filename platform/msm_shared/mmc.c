@@ -2559,7 +2559,7 @@ mmc_boot_set_clr_power_on_wp_user(struct mmc_card *card,
 	       sizeof(struct mmc_boot_command));
 
 	/* Disabling PERM_WP for USER AREA (CMD6) */
-	mmc_ret = mmc_boot_switch_cmd(card, MMC_BOOT_ACCESS_WRITE,
+	mmc_ret = mmc_boot_switch_cmd(card, MMC_BOOT_SET_BIT,
 				      MMC_BOOT_EXT_USER_WP,
 				      MMC_BOOT_US_PERM_WP_DIS);
 
@@ -2606,8 +2606,7 @@ mmc_boot_set_clr_power_on_wp_user(struct mmc_card *card,
 	}
 
 	/* Setting POWER_ON_WP for USER AREA (CMD6) */
-
-	mmc_ret = mmc_boot_switch_cmd(card, MMC_BOOT_ACCESS_WRITE,
+	mmc_ret = mmc_boot_switch_cmd(card, MMC_BOOT_SET_BIT,
 				      MMC_BOOT_EXT_USER_WP,
 				      MMC_BOOT_US_PWR_WP_EN);
 
@@ -2690,13 +2689,29 @@ mmc_wp(unsigned int sector, unsigned int size, unsigned char set_clear_wp)
 	unsigned int rc = MMC_BOOT_E_SUCCESS;
 
 	/* Checking whether group write protection feature is available */
-	if (mmc_card.csd.wp_grp_enable) {
+	if (mmc_card.csd.wp_grp_enable)
+	{
 		rc = mmc_boot_get_wp_status(&mmc_card, sector);
+		if (rc != MMC_BOOT_E_SUCCESS)
+		{
+			dprintf(CRITICAL, "Failure in getting wp_status (%u):%s:%u\n", rc, __FILE__, __LINE__);
+			return rc;
+		}
 		rc = mmc_boot_set_clr_power_on_wp_user(&mmc_card, sector, size,
 						       set_clear_wp);
+		if (rc != MMC_BOOT_E_SUCCESS)
+		{
+			dprintf(CRITICAL, "Failure in setting power on wp user (%u):%s:%u\n", rc, __FILE__, __LINE__);
+			return rc;
+		}
 		rc = mmc_boot_get_wp_status(&mmc_card, sector);
-		return rc;
-	} else
+		if (rc != MMC_BOOT_E_SUCCESS)
+		{
+			dprintf(CRITICAL, "Failure in getting wp_status (%u)%s:%u\n", rc, __FILE__, __LINE__);
+			return rc;
+		}
+	}
+	else
 		return MMC_BOOT_E_FAILURE;
 }
 
