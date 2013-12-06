@@ -109,6 +109,21 @@ void pm8x41_wled_iled_sync_control(uint8_t enable) {
 
 }
 
+void pm8x41_wled_led_mod_enable(uint8_t enable) {
+
+	uint8_t value = 0x0;
+
+	if (enable)
+		value = PM_WLED_LED_MODULATOR_EN;
+
+	wled_reg_write(PM_WLED_LED_CTNL_REG(1), value);
+	wled_reg_write(PM_WLED_LED_CTNL_REG(2), value);
+	wled_reg_write(PM_WLED_LED_CTNL_REG(3), value);
+
+	dprintf(SPEW, "WLED LED Module Enable Success\n");
+
+}
+
 void pm8x41_wled_enable(uint8_t enable) {
 
 	uint8_t value = 0x0;

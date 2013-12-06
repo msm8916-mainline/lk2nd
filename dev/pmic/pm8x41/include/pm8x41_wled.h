@@ -53,6 +53,7 @@
 #define PM_WLED_LED2_SINK_MASK       BIT(6)
 #define PM_WLED_LED3_SINK_MASK       BIT(7)
 
+#define PM_WLED_LED_MODULATOR_EN     BIT(7)
 #define PM_WLED_LED1_ILED_SYNC_MASK  BIT(0)
 #define PM_WLED_LED2_ILED_SYNC_MASK  BIT(1)
 #define PM_WLED_LED3_ILED_SYNC_MASK  BIT(2)
@@ -73,5 +74,6 @@ struct pm8x41_wled_data{
 void pm8x41_wled_config(struct pm8x41_wled_data *wled_ctrl);
 void pm8x41_wled_iled_sync_control(uint8_t enable);
 void pm8x41_wled_sink_control(uint8_t enable);
+void pm8x41_wled_led_mod_enable(uint8_t enable);
 void pm8x41_wled_enable(uint8_t enable);
 void pm8x41_wled_config_slave_id(uint8_t slave_id);
