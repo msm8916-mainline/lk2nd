@@ -29,6 +29,8 @@
 #ifndef __PLATFORM_MPQ8092_GPIO_H
 #define __PLATFORM_MPQ8092_GPIO_H
 
+#include <gpio.h>
+
 /* GPIO TLMM: Direction */
 #define GPIO_INPUT      0
 #define GPIO_OUTPUT     1

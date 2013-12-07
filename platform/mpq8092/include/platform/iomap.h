@@ -141,6 +141,8 @@
 #define SDCC1_N                     (CLK_CTL_BASE + 0x4DC) /* n */
 #define SDCC1_D                     (CLK_CTL_BASE + 0x4E0) /* d */
 
+#define SDC1_HDRV_PULL_CTL          (TLMM_BASE_ADDR + 0x00002044)
+
 /* UART */
 #define BLSP1_UART2_APPS_CBCR       (CLK_CTL_BASE + 0x704)
 #define BLSP1_UART2_APPS_CMD_RCGR   (CLK_CTL_BASE + 0x70C)
