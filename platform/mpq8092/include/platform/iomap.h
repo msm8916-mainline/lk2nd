@@ -73,6 +73,7 @@
 
 #define MSM_USB_BASE                (PERIPH_SS_BASE + 0x00255000)
 
+#define USB2_PHY_SEL                0xFD4AB000
 #define CLK_CTL_BASE                0xFC400000
 
 #define BLSP1_AHB_CBCR              (CLK_CTL_BASE + 0x5C4)
