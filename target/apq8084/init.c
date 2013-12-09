@@ -431,6 +431,9 @@ void target_baseband_detect(struct board_data *board)
 	case HW_PLATFORM_LIQUID:
 		board->baseband = BASEBAND_APQ;
 		break;
+	case HW_PLATFORM_SBC:
+		board->baseband = BASEBAND_APQ;
+		break;
 	default:
 		dprintf(CRITICAL, "Platform :%u is not supported\n",
 				platform_hardware);
