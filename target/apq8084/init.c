@@ -60,6 +60,8 @@
 
 #define BOOT_DEVICE_MASK(val)   ((val & 0x3E) >>1)
 
+#define SSD_CE_INSTANCE         1
+
 enum cdp_subtype
 {
 	CDP_SUBTYPE_SMB349 = 0,
@@ -313,6 +315,58 @@ void target_init(void)
 	display_init();
 	dprintf(INFO, "Display Init: Done\n");
 #endif
+}
+
+void target_load_ssd_keystore(void)
+{
+	uint64_t ptn;
+	int      index;
+	uint64_t size;
+	uint32_t *buffer = NULL;
+
+	if (!target_is_ssd_enabled())
+		return;
+
+	index = partition_get_index("ssd");
+
+	ptn = partition_get_offset(index);
+	if (ptn == 0){
+		dprintf(CRITICAL, "Error: ssd partition not found\n");
+		return;
+	}
+
+	size = partition_get_size(index);
+	if (size == 0) {
+		dprintf(CRITICAL, "Error: invalid ssd partition size\n");
+		return;
+	}
+
+	buffer = memalign(CACHE_LINE, ROUNDUP(size, CACHE_LINE));
+	if (!buffer) {
+		dprintf(CRITICAL, "Error: allocating memory for ssd buffer\n");
+		return;
+	}
+
+	if (mmc_read(ptn, buffer, size)) {
+		dprintf(CRITICAL, "Error: cannot read data\n");
+		free(buffer);
+		return;
+	}
+
+	clock_ce_enable(SSD_CE_INSTANCE);
+	scm_protect_keystore(buffer, size);
+	clock_ce_disable(SSD_CE_INSTANCE);
+	free(buffer);
+}
+
+/* Do any target specific intialization needed before entering fastboot mode */
+void target_fastboot_init(void)
+{
+	if (target_is_ssd_enabled()) {
+		clock_ce_enable(SSD_CE_INSTANCE);
+		target_load_ssd_keystore();
+	}
+
 }
 
 unsigned board_machtype(void)
