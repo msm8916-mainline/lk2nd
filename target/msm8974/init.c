@@ -679,6 +679,8 @@ void target_uninit(void)
 #ifdef SSD_ENABLE
 	clock_ce_disable(SSD_CE_INSTANCE_1);
 #endif
+	if (crypto_initialized())
+		crypto_eng_cleanup();
 }
 
 void shutdown_device()
