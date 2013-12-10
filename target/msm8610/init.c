@@ -49,9 +49,19 @@
 #include <partition_parser.h>
 #include <platform/clock.h>
 #include <platform/timer.h>
+#include <crypto5_wrapper.h>
 
 #define PMIC_ARB_CHANNEL_NUM    0
 #define PMIC_ARB_OWNER_ID       0
+
+#define CRYPTO_ENGINE_INSTANCE             1
+#define CRYPTO_ENGINE_EE                   1
+#define CRYPTO_ENGINE_FIFO_SIZE            64
+#define CRYPTO_ENGINE_READ_PIPE            3
+#define CRYPTO_ENGINE_WRITE_PIPE           2
+#define CRYPTO_READ_PIPE_LOCK_GRP          0
+#define CRYPTO_WRITE_PIPE_LOCK_GRP         0
+#define CRYPTO_ENGINE_CMD_ARRAY_SIZE       20
 
 #define TLMM_VOL_UP_BTN_GPIO    72
 
@@ -168,6 +178,9 @@ void target_init(void)
 	dprintf(SPEW, "Display Init: Start\n");
 	display_init();
 	dprintf(SPEW, "Display Init: Done\n");
+
+	if (target_use_signed_kernel())
+		target_crypto_init_params();
 }
 
 void target_uninit(void)
@@ -431,4 +444,36 @@ static void set_sdc_power_ctrl()
 void *target_mmc_device()
 {
 	return (void *) dev;
+}
+
+/* Set up params for h/w CRYPTO_ENGINE. */
+void target_crypto_init_params()
+{
+	struct crypto_init_params ce_params;
+
+	/* Set up base addresses and instance. */
+	ce_params.crypto_instance  = CRYPTO_ENGINE_INSTANCE;
+	ce_params.crypto_base      = MSM_CE1_BASE;
+	ce_params.bam_base         = MSM_CE1_BAM_BASE;
+
+	/* Set up BAM config. */
+	ce_params.bam_ee               = CRYPTO_ENGINE_EE;
+	ce_params.pipes.read_pipe      = CRYPTO_ENGINE_READ_PIPE;
+	ce_params.pipes.write_pipe     = CRYPTO_ENGINE_WRITE_PIPE;
+	ce_params.pipes.read_pipe_grp  = CRYPTO_READ_PIPE_LOCK_GRP;
+	ce_params.pipes.write_pipe_grp = CRYPTO_WRITE_PIPE_LOCK_GRP;
+
+	/* Assign buffer sizes. */
+	ce_params.num_ce           = CRYPTO_ENGINE_CMD_ARRAY_SIZE;
+	ce_params.read_fifo_size   = CRYPTO_ENGINE_FIFO_SIZE;
+	ce_params.write_fifo_size  = CRYPTO_ENGINE_FIFO_SIZE;
+
+	ce_params.do_bam_init = 0;
+
+	crypto_init_params(&ce_params);
+}
+
+crypto_engine_type board_ce_type(void)
+{
+	return CRYPTO_ENGINE_TYPE_HW;
 }
