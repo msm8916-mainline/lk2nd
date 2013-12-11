@@ -66,29 +66,6 @@ void target_mmc_caps(struct mmc_host *host)
 	host->caps.hs_clk_rate = MMC_CLK_50MHZ;
 }
 
-/* Return 1 if vol_up pressed */
-static int target_volume_up()
-{
-	uint8_t status = 0;
-	struct pm8x41_gpio gpio;
-
-	/* Configure the GPIO */
-	gpio.direction = PM_GPIO_DIR_IN;
-	gpio.function  = 0;
-	gpio.pull      = PM_GPIO_PULL_UP_30;
-	gpio.vin_sel   = 2;
-
-	pm8x41_gpio_config(2, &gpio);
-
-	/* Wait for the pmic gpio configuration to take effect */
-	thread_sleep(1);
-
-	/* Get status of P_GPIO_2 */
-	pm8x41_gpio_get(2, &status);
-
-	return !status; /* active low */
-}
-
 /* Return 1 if vol_down pressed */
 uint32_t target_volume_down()
 {
@@ -101,9 +78,6 @@ static void target_keystatus()
 
 	if(target_volume_down())
 		keys_post_event(KEY_VOLUMEDOWN, 1);
-
-	if(target_volume_up())
-		keys_post_event(KEY_VOLUMEUP, 1);
 }
 
 static void set_sdc_power_ctrl()
