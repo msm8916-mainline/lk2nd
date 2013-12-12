@@ -149,6 +149,7 @@ ifeq ($(PLATFORM),mpq8092)
 			$(LOCAL_DIR)/spmi.o \
 			$(LOCAL_DIR)/bam.o \
 			$(LOCAL_DIR)/qpic_nand.o \
+			$(LOCAL_DIR)/gpio.o \
 			$(LOCAL_DIR)/dev_tree.o
 endif
 
