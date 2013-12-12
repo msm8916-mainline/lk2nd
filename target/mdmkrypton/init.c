@@ -223,3 +223,41 @@ unsigned check_reboot_mode(void)
 	return restart_reason;
 }
 
+int get_target_boot_params(const char *cmdline, const char *part, char *buf,
+			   int buflen)
+{
+	struct ptable *ptable;
+	int system_ptn_index = -1;
+
+	if (!cmdline || !part || !buf || buflen < 0) {
+		dprintf(CRITICAL, "WARN: Invalid input param\n");
+		return -1;
+	}
+
+	ptable = flash_get_ptable();
+	if (!ptable) {
+		dprintf(CRITICAL,
+			"WARN: Cannot get flash partition table\n");
+		return -1;
+	}
+
+	system_ptn_index = ptable_get_index(ptable, part);
+	if (system_ptn_index < 0) {
+		dprintf(CRITICAL,
+			"WARN: Cannot get partition index for %s\n", part);
+		return -1;
+	}
+
+	/*
+	 * check if cmdline contains "root=" at the beginning of buffer or
+	 * " root=" in the middle of buffer.
+	 */
+	if (((!strncmp(cmdline, "root=", strlen("root="))) ||
+	     (strstr(cmdline, " root="))))
+		dprintf(DEBUG, "DEBUG: cmdline has root=\n");
+	else
+		snprintf(buf, buflen, " root=/dev/mtdblock%d",
+			 system_ptn_index);
+
+	return 0;
+}

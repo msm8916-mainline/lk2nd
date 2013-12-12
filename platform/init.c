@@ -105,3 +105,9 @@ __WEAK uint32_t platform_get_sclk_count(void)
 __WEAK void clock_config_cdc(uint8_t slot)
 {
 }
+
+__WEAK int get_target_boot_params(const char *cmdline, const char *part,
+				  char *buf, int buflen)
+{
+	return -1;
+}
