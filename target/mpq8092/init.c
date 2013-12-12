@@ -239,3 +239,8 @@ void target_baseband_detect(struct board_data *board)
 	ASSERT(0);
 	};
 }
+
+unsigned target_baseband()
+{
+	return board_baseband();
+}
