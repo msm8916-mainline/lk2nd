@@ -178,6 +178,24 @@ void target_usb_init(void)
 {
 	uint32_t val;
 
+	/* Route ChipIDea to use secondary USB HS port2 */
+	writel(1, USB2_PHY_SEL);
+
+	/* Enable access to secondary PHY by clamping the low
+	* voltage interface between DVDD of the PHY and Vddcx
+	* (set bit16 (USB2_PHY_HS2_DIG_CLAMP_N_2) = 1) */
+	writel(readl(USB_OTG_HS_PHY_SEC_CTRL)
+				| 0x00010000, USB_OTG_HS_PHY_SEC_CTRL);
+
+	/* Perform power-on-reset of the PHY.
+	*  Delay values are arbitrary */
+	writel(readl(USB_OTG_HS_PHY_SEC_CTRL)|1,
+				USB_OTG_HS_PHY_SEC_CTRL);
+	thread_sleep(10);
+	writel(readl(USB_OTG_HS_PHY_SEC_CTRL) & 0xFFFFFFFE,
+				USB_OTG_HS_PHY_SEC_CTRL);
+	thread_sleep(10);
+
 	/* Select and enable external configuration with USB PHY */
 	ulpi_write(ULPI_MISC_A_VBUSVLDEXTSEL | ULPI_MISC_A_VBUSVLDEXT, ULPI_MISC_A_SET);
 
