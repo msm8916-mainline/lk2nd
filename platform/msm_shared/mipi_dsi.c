@@ -415,7 +415,7 @@ static uint32_t mipi_novatek_manufacture_id(void)
 	return data;
 }
 
-int mdss_dsi_panel_initialize(struct mipi_dsi_panel_config *pinfo, uint32_t
+int mdss_dsi_host_init(struct mipi_dsi_panel_config *pinfo, uint32_t
 		broadcast)
 {
 	uint8_t DMA_STREAM1 = 0;	// for mdp display processor path
@@ -425,7 +425,6 @@ int mdss_dsi_panel_initialize(struct mipi_dsi_panel_config *pinfo, uint32_t
 	uint8_t VC1 = 0;
 	uint8_t DT1 = 0;	// non embedded mode
 	uint8_t WC1 = 0;	// for non embedded mode only
-	int status = 0;
 	uint8_t DLNx_EN;
 	uint8_t lane_swap = 0;
 	uint32_t timing_ctl = 0;
@@ -484,7 +483,17 @@ int mdss_dsi_panel_initialize(struct mipi_dsi_panel_config *pinfo, uint32_t
 
 	writel(lane_swap, MIPI_DSI0_BASE + LANE_SWAP_CTL);
 	writel(timing_ctl, MIPI_DSI0_BASE + TIMING_CTL);
+#endif
 
+	return 0;
+}
+
+int mdss_dsi_panel_initialize(struct mipi_dsi_panel_config *pinfo, uint32_t
+		broadcast)
+{
+	int status = 0;
+
+#if (DISPLAY_TYPE_MDSS == 1)
 	if (pinfo->panel_cmds) {
 
 		if (broadcast) {
@@ -1020,12 +1029,31 @@ int mdss_dsi_config(struct msm_fb_panel_data *panel)
 	if (pinfo->mipi.dual_dsi)
 		mdss_dsi_phy_init(&mipi_pinfo, MIPI_DSI1_BASE);
 
-	ret += mdss_dsi_panel_initialize(&mipi_pinfo, pinfo->mipi.broadcast);
+	ret = mdss_dsi_host_init(&mipi_pinfo, pinfo->mipi.broadcast);
+	if (ret) {
+		dprintf(CRITICAL, "dsi host init error\n");
+		goto error;
+	}
+
+	if (panel->pre_init_func) {
+		ret = panel->pre_init_func();
+		if (ret) {
+			dprintf(CRITICAL, "pre_init_func error\n");
+			goto error;
+		}
+	}
+
+	ret = mdss_dsi_panel_initialize(&mipi_pinfo, pinfo->mipi.broadcast);
+	if (ret) {
+		dprintf(CRITICAL, "dsi panel init error\n");
+		goto error;
+	}
 
 	if (pinfo->rotate && panel->rotate)
 		pinfo->rotate();
 #endif
 
+error:
 	return ret;
 }
 
