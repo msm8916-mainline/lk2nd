@@ -455,10 +455,11 @@ again:
 		buffer[r] = 0;
 		dprintf(INFO,"fastboot: %s\n", buffer);
 
+		fastboot_state = STATE_COMMAND;
+
 		for (cmd = cmdlist; cmd; cmd = cmd->next) {
 			if (memcmp(buffer, cmd->prefix, cmd->prefix_len))
 				continue;
-			fastboot_state = STATE_COMMAND;
 			cmd->handle((const char*) buffer + cmd->prefix_len,
 				    (void*) download_base, download_size);
 			if (fastboot_state == STATE_COMMAND)
