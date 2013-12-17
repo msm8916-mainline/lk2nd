@@ -37,6 +37,7 @@
 #include <board.h>
 #include <platform/gpio.h>
 #include <platform/iomap.h>
+#include <platform/pm_pwm.h>
 #include <target/display.h>
 
 #include "include/panel.h"
@@ -49,16 +50,29 @@
 #define GPIO_STATE_HIGH 2
 #define RESET_GPIO_SEQ_LEN 3
 
+#define PWM_DUTY_US 13
+#define PWM_PERIOD_US 27
+
 int target_backlight_ctrl(uint8_t enable)
 {
 	struct pm8x41_mpp mpp;
+	int rc;
+
 	mpp.base = PM8x41_MMP3_BASE;
-	mpp.mode = MPP_HIGH;
 	mpp.vin = MPP_VIN3;
 	if (enable) {
+		pm_pwm_enable(false);
+		rc = pm_pwm_config(PWM_DUTY_US, PWM_PERIOD_US);
+		if (rc < 0)
+			mpp.mode = MPP_HIGH;
+		else {
+			mpp.mode = MPP_DTEST1;
+			pm_pwm_enable(true);
+		}
 		pm8x41_config_output_mpp(&mpp);
 		pm8x41_enable_mpp(&mpp, MPP_ENABLE);
 	} else {
+		pm_pwm_enable(false);
 		pm8x41_enable_mpp(&mpp, MPP_DISABLE);
 	}
 	/* Need delay before power on regulators */
