@@ -69,7 +69,8 @@ enum cdp_subtype
 	CDP_SUBTYPE_9x25_SMB1357,
 	CDP_SUBTYPE_9x35,
 	CDP_SUBTYPE_SMB1357,
-	CDP_SUBTYPE_SMB350
+	CDP_SUBTYPE_SMB350,
+	CDP_SUBTYPE_9x35_M
 };
 
 enum mtp_subtype
@@ -78,6 +79,7 @@ enum mtp_subtype
 	MTP_SUBTYPE_9x25_SMB349,
 	MTP_SUBTYPE_9x25_SMB1357,
 	MTP_SUBTYPE_9x35,
+	MTP_SUBTYPE_9x35_M
 };
 
 enum rcm_subtype
@@ -87,7 +89,8 @@ enum rcm_subtype
 	RCM_SUBTYPE_9x25_SMB1357,
 	RCM_SUBTYPE_9x35,
 	RCM_SUBTYPE_SMB1357,
-	RCM_SUBTYPE_SMB350
+	RCM_SUBTYPE_SMB350,
+	RCM_SUBTYPE_9x35_M
 };
 
 enum liquid_subtype
@@ -392,6 +395,7 @@ void set_cdp_baseband(struct board_data *board)
 		board->baseband = BASEBAND_MDM;
 		break;
 	case CDP_SUBTYPE_9x35:
+	case CDP_SUBTYPE_9x35_M:
 		board->baseband = BASEBAND_MDM2;
 		break;
 	case CDP_SUBTYPE_SMB349:
@@ -419,6 +423,7 @@ void set_mtp_baseband(struct board_data *board)
 		board->baseband = BASEBAND_MDM;
 		break;
 	case MTP_SUBTYPE_9x35:
+	case MTP_SUBTYPE_9x35_M:
 		board->baseband = BASEBAND_MDM2;
 		break;
 	case MTP_SUBTYPE_SMB349:
@@ -442,6 +447,7 @@ void set_rcm_baseband(struct board_data *board)
 		board->baseband = BASEBAND_MDM;
 		break;
 	case RCM_SUBTYPE_9x35:
+	case RCM_SUBTYPE_9x35_M:
 		board->baseband = BASEBAND_MDM2;
 		break;
 	case RCM_SUBTYPE_SMB349:
