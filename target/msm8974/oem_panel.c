@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -44,6 +44,8 @@
 #include "include/panel_sharp_qhd_video.h"
 #include "include/panel_jdi_1080p_video.h"
 #include "include/panel_generic_720p_cmd.h"
+#include "include/panel_jdi_qhd_dualdsi_video.h"
+#include "include/panel_jdi_qhd_dualdsi_cmd.h"
 
 #define DISPLAY_MAX_PANEL_DETECTION 3
 
@@ -55,6 +57,8 @@ JDI_1080P_VIDEO_PANEL,
 TOSHIBA_720P_VIDEO_PANEL,
 SHARP_QHD_VIDEO_PANEL,
 GENERIC_720P_CMD_PANEL,
+JDI_QHD_DUALDSI_VIDEO_PANEL,
+JDI_QHD_DUALDSI_CMD_PANEL,
 UNKNOWN_PANEL
 };
 
@@ -169,6 +173,46 @@ static void init_panel_data(struct panel_struct *panelstruct,
 		memcpy(phy_db->timing,
 			generic_720p_cmd_timings, TIMING_SIZE);
 		pinfo->mipi.signature = GENERIC_720P_CMD_SIGNATURE;
+		break;
+	case JDI_QHD_DUALDSI_VIDEO_PANEL:
+		panelstruct->paneldata    = &jdi_qhd_dualdsi_video_panel_data;
+		panelstruct->panelres     = &jdi_qhd_dualdsi_video_panel_res;
+		panelstruct->color        = &jdi_qhd_dualdsi_video_color;
+		panelstruct->videopanel   = &jdi_qhd_dualdsi_video_video_panel;
+		panelstruct->commandpanel = &jdi_qhd_dualdsi_video_command_panel;
+		panelstruct->state        = &jdi_qhd_dualdsi_video_state;
+		panelstruct->laneconfig   = &jdi_qhd_dualdsi_video_lane_config;
+		panelstruct->paneltiminginfo
+			= &jdi_qhd_dualdsi_video_timing_info;
+		panelstruct->panelresetseq
+					 = &jdi_qhd_dualdsi_video_reset_seq;
+		panelstruct->backlightinfo = &jdi_qhd_dualdsi_video_backlight;
+		pinfo->mipi.panel_cmds
+			= jdi_qhd_dualdsi_video_on_command;
+		pinfo->mipi.num_of_panel_cmds
+			= JDI_QHD_DUALDSI_VIDEO_ON_COMMAND;
+		memcpy(phy_db->timing,
+			jdi_qhd_dualdsi_video_timings, TIMING_SIZE);
+		break;
+	case JDI_QHD_DUALDSI_CMD_PANEL:
+		panelstruct->paneldata    = &jdi_qhd_dualdsi_cmd_panel_data;
+		panelstruct->panelres     = &jdi_qhd_dualdsi_cmd_panel_res;
+		panelstruct->color        = &jdi_qhd_dualdsi_cmd_color;
+		panelstruct->videopanel   = &jdi_qhd_dualdsi_cmd_video_panel;
+		panelstruct->commandpanel = &jdi_qhd_dualdsi_cmd_command_panel;
+		panelstruct->state        = &jdi_qhd_dualdsi_cmd_state;
+		panelstruct->laneconfig   = &jdi_qhd_dualdsi_cmd_lane_config;
+		panelstruct->paneltiminginfo
+			= &jdi_qhd_dualdsi_cmd_timing_info;
+		panelstruct->panelresetseq
+					 = &jdi_qhd_dualdsi_cmd_reset_seq;
+		panelstruct->backlightinfo = &jdi_qhd_dualdsi_cmd_backlight;
+		pinfo->mipi.panel_cmds
+			= jdi_qhd_dualdsi_cmd_on_command;
+		pinfo->mipi.num_of_panel_cmds
+			= JDI_QHD_DUALDSI_CMD_ON_COMMAND;
+		memcpy(phy_db->timing,
+			jdi_qhd_dualdsi_cmd_timings, TIMING_SIZE);
 		break;
 	case UNKNOWN_PANEL:
 		memset(panelstruct, 0, sizeof(struct panel_struct));
