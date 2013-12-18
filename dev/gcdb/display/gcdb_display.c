@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -59,17 +59,9 @@ static struct mdss_dsi_phy_ctrl dsi_video_mode_phy_db;
 extern int msm_display_init(struct msm_fb_panel_data *pdata);
 extern int msm_display_off();
 
-/* TODO: add other backlight type support */
 static uint32_t panel_backlight_ctrl(uint8_t enable)
 {
-	uint32_t ret = NO_ERROR;
-
-	if (panelstruct.backlightinfo->bl_pmic_controltype != BL_DCS) {
-		/* deal with non-dcs backlight */
-		ret = target_backlight_ctrl(enable);
-	}
-
-	return ret;
+	return target_backlight_ctrl(panelstruct.backlightinfo, enable);
 }
 
 static uint32_t mdss_dsi_panel_reset(uint8_t enable)
