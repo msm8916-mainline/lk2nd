@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -94,7 +94,7 @@ static uint32_t dsi_pll_enable_seq(uint32_t ctl_base)
 	return rc;
 }
 
-int target_backlight_ctrl(uint8_t enable)
+static int msm8974_wled_backlight_ctrl(uint8_t enable)
 {
 	uint32_t platform_id = board_platform_id();
 	uint32_t hardware_id = board_hardware_id();
@@ -115,6 +115,62 @@ int target_backlight_ctrl(uint8_t enable)
 	pm8x41_wled_enable(enable);
 
 	return NO_ERROR;
+}
+
+static int msm8974_pwm_backlight_ctrl(int gpio_num, int lpg_chan, int enable)
+{
+	struct pm8x41_gpio gpio_param = {
+		.direction = PM_GPIO_DIR_OUT,
+		.function = PM_GPIO_FUNC_2,
+		.vin_sel = 2,   /* VIN_2 */
+		.pull = PM_GPIO_PULL_UP_1_5 | PM_GPIO_PULLDOWN_10,
+		.output_buffer = PM_GPIO_OUT_CMOS,
+		.out_strength = PM_GPIO_OUT_DRIVE_HIGH,
+	};
+
+	dprintf(SPEW, "%s: gpio=%d lpg=%d enable=%d\n", __func__,
+				gpio_num, lpg_chan, enable);
+
+	if (enable) {
+		pm8x41_gpio_config(gpio_num, &gpio_param);
+		pm8x41_lpg_write(lpg_chan, 0x41, 0x33); /* LPG_PWM_SIZE_CLK, */
+		pm8x41_lpg_write(lpg_chan, 0x42, 0x01); /* LPG_PWM_FREQ_PREDIV */
+		pm8x41_lpg_write(lpg_chan, 0x43, 0x20); /* LPG_PWM_TYPE_CONFIG */
+		pm8x41_lpg_write(lpg_chan, 0x44, 0xb2); /* LPG_VALUE_LSB */
+		pm8x41_lpg_write(lpg_chan, 0x45, 0x01);  /* LPG_VALUE_MSB */
+		pm8x41_lpg_write(lpg_chan, 0x46, 0xe4); /* LPG_ENABLE_CONTROL */
+	} else {
+		pm8x41_lpg_write(lpg_chan, 0x46, 0x00);
+	}
+
+	return NO_ERROR;
+}
+
+int target_backlight_ctrl(struct backlight *bl, uint8_t enable)
+{
+	uint32_t ret = NO_ERROR;
+
+	if (!bl) {
+		dprintf(CRITICAL, "backlight structure is not available\n");
+		return ERR_INVALID_ARGS;
+	}
+
+	switch (bl->bl_interface_type) {
+		case BL_WLED:
+			ret = msm8974_wled_backlight_ctrl(enable);
+			break;
+		case BL_PWM:
+			ret = msm8974_pwm_backlight_ctrl(bl->bl_pwm_gpio_num,
+							bl->bl_lpg_chan_id,
+							enable);
+			break;
+		default:
+			dprintf(CRITICAL, "backlight type:%d not supported\n",
+							bl->bl_interface_type);
+			return ERR_NOT_SUPPORTED;
+	}
+
+	return ret;
 }
 
 int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
@@ -234,22 +290,6 @@ static int msm8974_mdss_edp_panel_clock(int enable)
 	return 0;
 }
 
-static void msm8974_lpg_backlight_enable(void)
-{
-	/* lpg channel 8 */
-	pm8x41_lpg_write(8, 0x41, 0x33); /* LPG_PWM_SIZE_CLK, */
-	pm8x41_lpg_write(8, 0x42, 0x01); /* LPG_PWM_FREQ_PREDIV */
-	pm8x41_lpg_write(8, 0x43, 0x20); /* LPG_PWM_TYPE_CONFIG */
-	pm8x41_lpg_write(8, 0x44, 0xb2); /* LPG_VALUE_LSB */
-	pm8x41_lpg_write(8, 0x45, 0x01);  /* LPG_VALUE_MSB */
-	pm8x41_lpg_write(8, 0x46, 0xe4); /* LPG_ENABLE_CONTROL */
-}
-
-static void msm8974_lpg_backlight_disable(void)
-{
-	pm8x41_lpg_write(8, 0x46, 0x00); /* LPG_ENABLE_CONTROL */
-}
-
 static int msm8974_edp_panel_power(int enable)
 {
 	struct pm8x41_gpio gpio36_param = {
@@ -266,8 +306,7 @@ static int msm8974_edp_panel_power(int enable)
 	if (enable) {
 		/* Enable backlight */
 		dprintf(SPEW, "Enable Backlight\n");
-		pm8x41_gpio_config(36, &gpio36_param);
-		msm8974_lpg_backlight_enable();
+		msm8974_pwm_backlight_ctrl(36, 8, 1);
 		dprintf(SPEW, "Enable Backlight Done\n");
 
 		/* Turn on LDO12 for edp vdda */
@@ -285,7 +324,7 @@ static int msm8974_edp_panel_power(int enable)
 	} else {
 		/* Keep LDO12 on, otherwise kernel will not boot */
 		gpio_set(58, 0);
-		msm8974_lpg_backlight_disable();
+		msm8974_pwm_backlight_ctrl(36, 8, 0);
 	}
 
 	return 0;
