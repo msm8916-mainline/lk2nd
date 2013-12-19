@@ -68,6 +68,7 @@
 #define DGT_COUNT_VAL     TMR_REG(0x0028)
 #define DGT_ENABLE        TMR_REG(0x002C)
 #define DGT_CLEAR         TMR_REG(0x0030)
+#define DGT_CLK_CTL       TMR_REG(0x0034)
 /* TMR_STS - status of SCSS timers */
 #define SPSS_TIMER_STATUS TMR_REG(0x0088)
 

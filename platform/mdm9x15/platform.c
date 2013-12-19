@@ -76,7 +76,12 @@ void platform_init_timer(void)
 	/* disable timer */
 	writel(0, DGT_ENABLE);
 
-	ticks_per_sec = 19200000; /* Uses CXO (19.2 MHz) */
+	/* DGT uses CXO source which is 19.2MHz.
+	* Set clock divider to 4.
+	*/
+	writel(3, DGT_CLK_CTL);
+
+	ticks_per_sec = 4800000; /* (19.2MHz/4) */
 }
 
 /* Returns timer ticks per sec */
