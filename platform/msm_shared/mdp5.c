@@ -124,12 +124,17 @@ static void mdss_vbif_setup()
 	 * successfully unlocked. Ignore TZ return value till it's fixed */
 	if (!access_secure || 1) {
 		dprintf(SPEW, "MDSS VBIF registers unlocked by TZ.\n");
-		/* Force VBIF Clocks on  */
-		writel(0x1, VBIF_VBIF_DDR_FORCE_CLK_ON);
 
-		if (mdp_hw_rev == MDSS_MDP_HW_REV_100
-			|| mdp_hw_rev >= MDSS_MDP_HW_REV_102) {
-			/* Configure DDR burst length */
+		/* Force VBIF Clocks on */
+		if (mdp_hw_rev < MDSS_MDP_HW_REV_103)
+			writel(0x1, VBIF_VBIF_DDR_FORCE_CLK_ON);
+
+		/*
+		 * Following configuration is needed because on some versions,
+		 * recommended reset values are not stored.
+		 */
+		if (MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev,
+			MDSS_MDP_HW_REV_100)) {
 			writel(0x00000707, VBIF_VBIF_DDR_OUT_MAX_BURST);
 			writel(0x00000030, VBIF_VBIF_DDR_ARB_CTRL );
 			writel(0x00000001, VBIF_VBIF_DDR_RND_RBN_QOS_ARB);
@@ -137,7 +142,8 @@ static void mdss_vbif_setup()
 			writel(0x0FFF0FFF, VBIF_VBIF_DDR_OUT_AX_AOOO);
 			writel(0x22222222, VBIF_VBIF_DDR_AXI_AMEMTYPE_CONF0);
 			writel(0x00002222, VBIF_VBIF_DDR_AXI_AMEMTYPE_CONF1);
-		} else if (mdp_hw_rev >= MDSS_MDP_HW_REV_101) {
+		} else if (MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev,
+			MDSS_MDP_HW_REV_101)) {
 			writel(0x00000707, VBIF_VBIF_DDR_OUT_MAX_BURST);
 			writel(0x00000003, VBIF_VBIF_DDR_ARB_CTRL);
 		}
