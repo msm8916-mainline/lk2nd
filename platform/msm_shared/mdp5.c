@@ -150,32 +150,62 @@ static void mdss_vbif_setup()
 	}
 }
 
-void mdss_smp_setup(struct msm_panel_info *pinfo)
+static uint32_t mdss_smp_alloc(uint32_t client_id, uint32_t smp_cnt,
+	uint32_t fixed_smp_cnt, uint32_t free_smp_offset)
 {
-	uint32_t smp_cnt = 0, reg_rgb0 = 0, reg_rgb1 = 0, shift = 0;
-	uint32_t xres, bpp;
-	uint32_t rgb0_client_id = MMSS_MDP_CLIENT_ID_UNUSED;
-	uint32_t rgb1_client_id = MMSS_MDP_1_2_CLIENT_ID_RGB1;
+	uint32_t i, j;
+	uint32_t reg_val = 0;
 	uint32_t mdss_mdp_rev = readl(MDP_HW_REV);
 
-	xres = pinfo->xres;
-	bpp = pinfo->bpp;
-
-	if (mdss_mdp_rev == MDSS_MDP_HW_REV_100
-		|| mdss_mdp_rev >= MDSS_MDP_HW_REV_102)
-		rgb0_client_id = MMSS_MDP_1_2_CLIENT_ID_RGB0;
-	else if (mdss_mdp_rev >= MDSS_MDP_HW_REV_101)
-		rgb0_client_id = MMSS_MDP_1_1_CLIENT_ID_RGB0;
-
-	if (pinfo->lcdc.dual_pipe) {
-		/* Each pipe driving half the screen */
-		xres /= 2;
+	for (i = fixed_smp_cnt, j = 0; i < smp_cnt; i++) {
+		/* max 3 MMB per register */
+		reg_val |= client_id << (((j++) % 3) * 8);
+		if ((j % 3) == 0) {
+			writel(reg_val, MMSS_MDP_SMP_ALLOC_W_BASE +
+				free_smp_offset);
+			writel(reg_val, MMSS_MDP_SMP_ALLOC_R_BASE +
+				free_smp_offset);
+			reg_val = 0;
+			free_smp_offset += 4;
+		}
 	}
 
-	smp_cnt = ((xres) * (bpp / 8) * 2) +
-		MMSS_MDP_MAX_SMP_SIZE - 1;
+	if (j % 3) {
+		writel(reg_val, MMSS_MDP_SMP_ALLOC_W_BASE + free_smp_offset);
+		writel(reg_val, MMSS_MDP_SMP_ALLOC_R_BASE + free_smp_offset);
+		free_smp_offset += 4;
+	}
 
-	smp_cnt /= MMSS_MDP_MAX_SMP_SIZE;
+	return free_smp_offset;
+}
+
+void mdss_smp_setup(struct msm_panel_info *pinfo)
+{
+	uint32_t rgb0_client_id, rgb1_client_id;
+	uint32_t bpp = 3, free_smp_offset = 0, xres = MDSS_MAX_LINE_BUF_WIDTH;
+	uint32_t smp_cnt, smp_size = 4096, fixed_smp_cnt = 0;
+	uint32_t mdss_mdp_rev = readl(MDP_HW_REV);
+
+	if ((mdss_mdp_rev >= MDSS_MDP_HW_REV_103) &&
+		(mdss_mdp_rev < MDSS_MDP_HW_REV_200)) {
+		smp_size = 8192;
+		fixed_smp_cnt = 2;
+		free_smp_offset = 0xC;
+	}
+
+	rgb1_client_id = 0x11; /* 17 */
+	if (MDSS_IS_MAJOR_MINOR_MATCHING(mdss_mdp_rev, MDSS_MDP_HW_REV_101))
+		rgb0_client_id = 0x7;
+	else
+		rgb0_client_id = 0x10; /* 16 */
+
+	/* Each pipe driving half the screen */
+	if (pinfo->lcdc.dual_pipe)
+		xres /= 2;
+
+	/* bpp = bytes per pixel of input image */
+	smp_cnt = (xres * bpp * 2) + smp_size - 1;
+	smp_cnt /= smp_size;
 
 	if (smp_cnt > 4) {
 		dprintf(CRITICAL, "ERROR: %s: Out of SMP's, cnt=%d! \n", __func__,
@@ -193,21 +223,11 @@ void mdss_smp_setup(struct msm_panel_info *pinfo)
 		writel(smp_cnt * 0xc0, MDP_VP_0_RGB_1_BASE + REQPRIORITY_FIFO_WATERMARK2);
 	}
 
-	while((smp_cnt > 0) && !(shift > 16)) {
-		reg_rgb0 |= ((rgb0_client_id) << (shift));
-		reg_rgb1 |= ((rgb1_client_id) << (shift));
-		smp_cnt--;
-		shift += 8;
-	}
-
-	/* Allocate SMP blocks */
-	writel(reg_rgb0, MMSS_MDP_SMP_ALLOC_W_0);
-	writel(reg_rgb0, MMSS_MDP_SMP_ALLOC_R_0);
-
-	if (pinfo->lcdc.dual_pipe) {
-		writel(reg_rgb1, MMSS_MDP_SMP_ALLOC_W_1);
-		writel(reg_rgb1, MMSS_MDP_SMP_ALLOC_R_1);
-	}
+	free_smp_offset = mdss_smp_alloc(rgb0_client_id, smp_cnt,
+		fixed_smp_cnt, free_smp_offset);
+	if (pinfo->lcdc.dual_pipe)
+		mdss_smp_alloc(rgb1_client_id, smp_cnt, fixed_smp_cnt,
+			free_smp_offset);
 }
 
 void mdss_intf_tg_setup(struct msm_panel_info *pinfo, uint32_t intf_base)
