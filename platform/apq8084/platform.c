@@ -89,6 +89,16 @@ int platform_use_identity_mmu_mappings(void)
 	return 0;
 }
 
+uint32_t platform_get_sclk_count(void)
+{
+	return readl(MPM2_MPM_SLEEP_TIMETICK_COUNT_VAL);
+}
+
+addr_t get_bs_info_addr()
+{
+	return ((addr_t)BS_INFO_ADDR);
+}
+
 /* Setup memory for this platform */
 void platform_init_mmu_mappings(void)
 {
