@@ -415,16 +415,23 @@ void target_usb_init(void)
 
 uint8_t target_panel_auto_detect_enabled()
 {
+	uint8_t ret = 0;
+
         switch(board_hardware_id())
         {
 		case HW_PLATFORM_QRD:
-                        return 1;
+			/* Enable auto detect for DVT boards only */
+			if (((board_target_id() >> 16) & 0xFF) == 0x2)
+				ret = 1;
+			else
+				ret = 0;
+			break;
 		case HW_PLATFORM_SURF:
 		case HW_PLATFORM_MTP:
                 default:
-                        return 0;
+                        ret = 0;
         }
-        return 0;
+        return ret;
 }
 
 static uint8_t splash_override;
