@@ -174,6 +174,9 @@ int scm_protect_keystore(uint32_t * img_ptr, uint32_t  img_len);
 #define SCM_SVC_ES                      0x10
 #define SCM_SAVE_PARTITION_HASH_ID      0x01
 
+#define SCM_SVC_PWR                     0x9
+#define SCM_IO_DISABLE_PMIC_ARBITER     0x1
+
 enum ap_ce_channel_type {
 AP_CE_REGISTER_USE = 0,
 AP_CE_ADM_USE = 1
@@ -186,6 +189,8 @@ uint8_t switch_ce_chn_cmd(enum ap_ce_channel_type channel);
 
 
 void set_tamper_fuse_cmd();
+
+int scm_halt_pmic_arbiter();
 
 /**
  * struct scm_command - one SCM command buffer

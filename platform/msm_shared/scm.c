@@ -29,6 +29,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <err.h>
+#include <asm.h>
+#include <bits.h>
 #include <arch/ops.h>
 #include "scm.h"
 
@@ -40,6 +42,14 @@
 #ifndef offsetof
 #  define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
 #endif
+
+#define SCM_CLASS_REGISTER         (0x2 << 8)
+#define SCM_MASK_IRQS              BIT(5)
+#define SCM_ATOMIC(svc, cmd, n)    ((((((svc) & 0x3f) << 10)|((cmd) & 0x3ff)) << 12) | \
+                                   SCM_CLASS_REGISTER | \
+                                   SCM_MASK_IRQS | \
+                                   ((n) & 0xf))
+
 
 /**
  * alloc_scm_command() - Allocate an SCM command
@@ -118,6 +128,32 @@ static uint32_t smc(uint32_t cmd_addr)
 	register uint32_t r1 __asm__("r1") = (uint32_t) & context_id;
 	register uint32_t r2 __asm__("r2") = cmd_addr;
  __asm__("1:smc	#0	@ switch to secure world\n" "cmp	r0, #1				\n" "beq	1b				\n": "=r"(r0): "r"(r0), "r"(r1), "r"(r2):"r3", "cc");
+	return r0;
+}
+
+/**
+* scm_call_automic: Make scm call with one or no argument
+* @svc: service id
+* @cmd: command id
+* @ arg1: argument
+*/
+
+static int scm_call_atomic(uint32_t svc, uint32_t cmd, uint32_t arg1)
+{
+	uint32_t context_id;
+	register uint32_t r0 __asm__("r0") = SCM_ATOMIC(svc, cmd, 1);
+	register uint32_t r1 __asm__("r1") = &context_id;
+	register uint32_t r2 __asm__("r2") = arg1;
+
+	__asm__ volatile(
+		__asmeq("%0", "r0")
+		__asmeq("%1", "r0")
+		__asmeq("%2", "r1")
+		__asmeq("%3", "r2")
+		"smc    #0  @ switch to secure world\n"
+		: "=r" (r0)
+		: "r" (r0), "r" (r1), "r" (r2)
+		: "r3");
 	return r0;
 }
 
@@ -561,3 +597,11 @@ uint8_t switch_ce_chn_cmd(enum ap_ce_channel_type channel)
 	return resp_buf;
 }
 
+int scm_halt_pmic_arbiter()
+{
+	int ret = 0;
+
+	ret = scm_call_atomic(SCM_SVC_PWR, SCM_IO_DISABLE_PMIC_ARBITER, 0);
+
+	return ret;
+}
