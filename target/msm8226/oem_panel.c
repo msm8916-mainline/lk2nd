@@ -354,14 +354,10 @@ bool oem_panel_select(struct panel_struct *panelstruct,
 		break;
 	case HW_PLATFORM_MTP:
 	case HW_PLATFORM_SURF:
-		if (hw_subtype == HW_PLATFORM_SUBTYPE_720P) {
-			panel_id = nt35590_panel_id;
-		} else if (hw_subtype == HW_PLATFORM_SUBTYPE_1080P) {
+		if (hw_subtype == HW_PLATFORM_SUBTYPE_1080P) {
 			panel_id = JDI_1080P_VIDEO_PANEL;
 		} else {
-			dprintf(CRITICAL, "Unsupported target_id=%d hw_subtype=%d\n"
-				, target_id, hw_subtype);
-			return false;
+			panel_id = nt35590_panel_id;
 		}
 		break;
 	default:
