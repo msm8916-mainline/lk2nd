@@ -139,6 +139,15 @@ static void sdhci_clear_power_ctrl_irq(struct sdhci_msm_data *data)
  */
 void sdhci_msm_init(struct sdhci_host *host, struct sdhci_msm_data *config)
 {
+	/* Disable HC mode */
+	RMWREG32((config->pwrctl_base + SDCC_MCI_HC_MODE), SDHCI_HC_START_BIT, SDHCI_HC_WIDTH, 0);
+
+	/* Core power reset */
+	RMWREG32((config->pwrctl_base + SDCC_MCI_POWER), CORE_SW_RST_START, CORE_SW_RST_WIDTH, 1);
+
+	/* Wait for the core power reset to complete*/
+	 mdelay(1);
+
 	/* Enable sdhc mode */
 	RMWREG32((config->pwrctl_base + SDCC_MCI_HC_MODE), SDHCI_HC_START_BIT, SDHCI_HC_WIDTH, SDHCI_HC_MODE_EN);
 

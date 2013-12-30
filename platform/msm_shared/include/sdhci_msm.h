@@ -34,6 +34,10 @@
 #define SDHCI_HC_START_BIT                         0x0
 #define SDHCI_HC_WIDTH                             0x1
 
+#define SDCC_MCI_POWER                             0x0
+#define CORE_SW_RST_START                          0x7
+#define CORE_SW_RST_WIDTH                          0x1
+
 /* DLL & CDC registers
  * DLL: Delay Line
  * CDC: Calibrated Delay Circuit
