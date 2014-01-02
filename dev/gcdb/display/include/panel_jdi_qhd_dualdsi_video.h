@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -220,7 +220,7 @@ static struct panel_reset_sequence jdi_qhd_dualdsi_video_reset_seq = {
 /* Backlight setting                                                         */
 /*---------------------------------------------------------------------------*/
 static struct backlight jdi_qhd_dualdsi_video_backlight = {
-	0, 1, 4095, 100, 0, 0
+	0, 1, 4095, 100, 0, 0, 7, 3
 };
 
 #endif /*_PANEL_JDI_QHD_DUALDSI_VIDEO_H_*/
