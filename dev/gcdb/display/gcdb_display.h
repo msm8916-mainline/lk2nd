@@ -43,7 +43,10 @@
 #define BIST_SIZE 6
 #define LANE_SIZE 45
 
-#define MAX_PANEL_FORMAT_STRING 2
+#define LK_OVERRIDE_PANEL      "1:"
+#define LK_OVERRIDE_PANEL_LEN  2
+#define DSI_1_STRING           ":1:"
+#define DSI_1_STRING_LEN       3
 
 /*---------------------------------------------------------------------------*/
 /* API                                                                       */
