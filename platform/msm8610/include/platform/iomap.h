@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
@@ -168,6 +168,12 @@
 #define TRIG_CTRL                   0x080
 #define CTRL                        0x000
 #define COMMAND_MODE_DMA_CTRL       0x038
+#define COMMAND_MODE_MDP_CTRL       0x03C
+#define COMMAND_MODE_MDP_DCS_CMD_CTRL   0x040
+#define COMMAND_MODE_MDP_STREAM0_CTRL   0x054
+#define COMMAND_MODE_MDP_STREAM0_TOTAL  0x058
+#define COMMAND_MODE_MDP_STREAM1_CTRL   0x05C
+#define COMMAND_MODE_MDP_STREAM1_TOTAL  0x060
 #define ERR_INT_MASK0               0x108
 
 #define LANE_SWAP_CTL               0x0AC
@@ -187,6 +193,7 @@
 #define CMD_MODE_DMA_SW_TRIGGER     0x08C
 
 #define EOT_PACKET_CTRL             0x0C8
+#define MISR_CMD_CTRL               0x09C
 #define MISR_VIDEO_CTRL             0x0A0
 #define VIDEO_MODE_CTRL             0x00C
 #define HS_TIMER_CTRL               0x0B8
