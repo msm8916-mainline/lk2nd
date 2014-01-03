@@ -44,8 +44,9 @@
 /* Panel configuration                                                       */
 /*---------------------------------------------------------------------------*/
 static struct panel_config jdi_qhd_dualdsi_video_panel_data = {
-	"", "", "qcom,mdss-dsi-panel",
-	10, 0, "DISPLAY_1", 0, 0, 60, 0, 0, 1, 0, 0, 0, 0, 0, 11, 0
+	"qcom,dsi_jdi_qhd_video_0", "dsi:0:", "qcom,mdss-dsi-panel",
+	10, 0, "DISPLAY_1", 0, 0, 60, 0, 0, 1, 0, 0, 0, 0, 0, 11, 0, 0,
+	"qcom,dsi_jdi_qhd_video_1",
 };
 
 /*---------------------------------------------------------------------------*/
