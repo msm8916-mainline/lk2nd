@@ -1,8 +1,8 @@
-# top level project rules for the mdmkrypton project
+# top level project rules for the mdm9635 project
 #
 LOCAL_DIR := $(GET_LOCAL_DIR)
 
-TARGET := mdmkrypton
+TARGET := mdm9635
 
 MODULES += app/aboot
 
