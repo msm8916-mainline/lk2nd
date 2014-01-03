@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -269,6 +269,10 @@ int dsi_cmd_panel_config (struct msm_panel_info *pinfo,
 	int ret = NO_ERROR;
 	uint8_t lane_en = 0;
 	uint8_t ystride = pinfo->bpp / 8;
+	uint32_t panel_width = pinfo->xres;
+
+	if (pinfo->mipi.dual_dsi)
+		panel_width = panel_width / 2;
 
 	if (pinfo->mipi.data_lane0)
 		lane_en |= (1 << 0);
@@ -279,12 +283,22 @@ int dsi_cmd_panel_config (struct msm_panel_info *pinfo,
 	if (pinfo->mipi.data_lane3)
 		lane_en |= (1 << 3);
 
-	ret = mdss_dsi_cmd_mode_config((pinfo->xres + plcdc->xres_pad),
+	ret = mdss_dsi_cmd_mode_config((panel_width + plcdc->xres_pad),
 			(pinfo->yres + plcdc->yres_pad),
-			(pinfo->xres), (pinfo->yres),
+			panel_width, (pinfo->yres),
 			pinfo->mipi.dst_format,
 			ystride, lane_en,
-			pinfo->mipi.interleave_mode);
+			pinfo->mipi.interleave_mode,
+			MIPI_DSI0_BASE);
+
+	if (pinfo->mipi.dual_dsi)
+		ret = mdss_dsi_cmd_mode_config((panel_width + plcdc->xres_pad),
+			(pinfo->yres + plcdc->yres_pad),
+			panel_width, (pinfo->yres),
+			pinfo->mipi.dst_format,
+			ystride, lane_en,
+			pinfo->mipi.interleave_mode,
+			MIPI_DSI1_BASE);
 
 	return ret;
 }
