@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -152,7 +152,6 @@ enum {
 	BL_PWM = 0,
 	BL_WLED,
 	BL_DCS,
-	BL_LPG,
 };
 
 typedef struct panel_reset_sequence {
@@ -168,6 +167,8 @@ typedef struct backlight {
 	uint16_t bl_step;
 	uint16_t bl_pmic_controltype;
 	char     *bl_pmic_model;
+	uint16_t bl_pwm_gpio_num;
+	uint16_t bl_lpg_chan_id;
 };
 
 #endif /*_PANEL_H_ */
