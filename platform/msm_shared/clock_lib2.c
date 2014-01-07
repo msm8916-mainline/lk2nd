@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -223,7 +223,4 @@ void clock_lib2_vote_clk_disable(struct clk *c)
 	vote_regval = readl(vclk->vote_reg);
 	vote_regval &= ~vclk->en_mask;
     writel_relaxed(vote_regval, vclk->vote_reg);
-
-    /* wait until status shows it is disabled */
-	while(!(readl(vclk->cbcr_reg) & CBCR_BRANCH_OFF_BIT));
 }
