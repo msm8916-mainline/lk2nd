@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -1157,7 +1157,8 @@ int mdss_dsi_cmd_mode_config(uint16_t disp_width,
 	uint16_t dst_format,
 	uint8_t ystride,
 	uint8_t lane_en,
-	uint8_t interleav)
+	uint8_t interleav,
+	uint32_t ctl_base)
 {
 	uint16_t dst_fmt = 0;
 
@@ -1178,36 +1179,36 @@ int mdss_dsi_cmd_mode_config(uint16_t disp_width,
 	}
 
 #if (DISPLAY_TYPE_MDSS == 1)
-	writel(0x00000000, DSI_CLK_CTRL);
-	writel(0x00000000, DSI_CLK_CTRL);
-	writel(0x00000000, DSI_CLK_CTRL);
-	writel(0x00000000, DSI_CLK_CTRL);
-	writel(0x00000002, DSI_CLK_CTRL);
-	writel(0x00000006, DSI_CLK_CTRL);
-	writel(0x0000000e, DSI_CLK_CTRL);
-	writel(0x0000001e, DSI_CLK_CTRL);
-	writel(0x0000023f, DSI_CLK_CTRL);
+	writel(0x00000000, ctl_base + CLK_CTRL);
+	writel(0x00000000, ctl_base + CLK_CTRL);
+	writel(0x00000000, ctl_base + CLK_CTRL);
+	writel(0x00000000, ctl_base + CLK_CTRL);
+	writel(0x00000002, ctl_base + CLK_CTRL);
+	writel(0x00000006, ctl_base + CLK_CTRL);
+	writel(0x0000000e, ctl_base + CLK_CTRL);
+	writel(0x0000001e, ctl_base + CLK_CTRL);
+	writel(0x0000023f, ctl_base + CLK_CTRL);
 
-	writel(0, DSI_CTRL);
+	writel(0, ctl_base + CTRL);
 
-	writel(0, DSI_ERR_INT_MASK0);
+	writel(0, ctl_base + ERR_INT_MASK0);
 
-	writel(0x02020202, DSI_INT_CTRL);
+	writel(0x02020202, ctl_base + INT_CTRL);
 
-	writel(dst_fmt, DSI_COMMAND_MODE_MDP_CTRL);
+	writel(dst_fmt, ctl_base + COMMAND_MODE_MDP_CTRL);
 	writel((img_width * ystride + 1) << 16 | 0x0039,
-	       DSI_COMMAND_MODE_MDP_STREAM0_CTRL);
+	       ctl_base + COMMAND_MODE_MDP_STREAM0_CTRL);
 	writel((img_width * ystride + 1) << 16 | 0x0039,
-	       DSI_COMMAND_MODE_MDP_STREAM1_CTRL);
+	       ctl_base + COMMAND_MODE_MDP_STREAM1_CTRL);
 	writel(img_height << 16 | img_width,
-	       DSI_COMMAND_MODE_MDP_STREAM0_TOTAL);
+	       ctl_base + COMMAND_MODE_MDP_STREAM0_TOTAL);
 	writel(img_height << 16 | img_width,
-	       DSI_COMMAND_MODE_MDP_STREAM1_TOTAL);
-	writel(0x13c2c, DSI_COMMAND_MODE_MDP_DCS_CMD_CTRL);
+	       ctl_base + COMMAND_MODE_MDP_STREAM1_TOTAL);
+	writel(0x13c2c, ctl_base + COMMAND_MODE_MDP_DCS_CMD_CTRL);
 	writel(interleav << 30 | 0 << 24 | 0 << 20 | lane_en << 4 | 0x105,
-	       DSI_CTRL);
-	writel(0x10000000, DSI_COMMAND_MODE_DMA_CTRL);
-	writel(0x10000000, DSI_MISR_CMD_CTRL);
+	       ctl_base + CTRL);
+	writel(0x10000000, ctl_base + COMMAND_MODE_DMA_CTRL);
+	writel(0x10000000, ctl_base + MISR_CMD_CTRL);
 #endif
 
 	return 0;
