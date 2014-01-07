@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -198,9 +198,20 @@ static uint32_t dsi_pll_enable_seq_e(uint32_t ctl_base)
 	return pll_locked;
 }
 
-int target_backlight_ctrl(uint8_t enable)
+int target_backlight_ctrl(struct backlight *bl, uint8_t enable)
 {
 	dprintf(SPEW, "target_backlight_ctrl\n");
+
+	if (!bl) {
+		dprintf(CRITICAL, "backlight structure is not available\n");
+		return ERR_INVALID_ARGS;
+	}
+
+	if (bl->bl_interface_type != BL_WLED) {
+		dprintf(CRITICAL, "backlight type:%d not supported\n",
+							bl->bl_interface_type);
+		return ERR_NOT_SUPPORTED;
+	}
 
 	if (enable) {
 		pm8x41_wled_config(&wled_ctrl);
