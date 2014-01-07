@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -434,19 +434,45 @@ uint32_t crypto5_send_data(struct crypto_dev *dev,
 	crypto_SHA256_ctx *sha256_ctx = (crypto_SHA256_ctx *) ctx_ptr;
 	uint32_t wr_flags = BAM_DESC_NWD_FLAG | BAM_DESC_INT_FLAG | BAM_DESC_EOT_FLAG;
 	uint32_t ret_status;
+	uint32_t minor_ver = 0;
+	uint8_t *buffer = NULL;
 
-	/* A H/W bug on Crypto 5.0.0 enforces a rule that the desc lengths must be burst aligned. */
-	if ((uint32_t) data_ptr & (CRYPTO_BURST_LEN - 1))
+	/* Bits 23:16 - minor version */
+	minor_ver = (readl(CRYPTO_VERSION(dev->base)) & 0x00FF0000) >> 16;
+
+	/* A H/W bug on Crypto 5.0.0 enforces a rule that the desc lengths must be burst aligned.
+	 * This bug is fixed in 5.1.0 onwards.*/
+
+	if(minor_ver == 0)
 	{
-		dprintf(CRITICAL, "Crypto send data failed\n");
-		dprintf(CRITICAL, "Data start not aligned at burst length.\n");
-		ret_status = CRYPTO_ERR_FAIL;
-		goto CRYPTO_SEND_DATA_ERR;
+		if ((uint32_t) data_ptr & (CRYPTO_BURST_LEN - 1))
+		{
+			dprintf(CRITICAL, "Data start not aligned at burst length.\n");
+
+			buffer = (uint8_t *)memalign(CRYPTO_BURST_LEN, sha256_ctx->bytes_to_write);
+			if(!buffer)
+			{
+				dprintf(CRITICAL, "ERROR: Failed to allocate burst aligned crypto buffer\n");
+				ret_status = CRYPTO_ERR_FAIL;
+				goto CRYPTO_SEND_DATA_ERR;
+			}
+
+			memset(buffer, 0, sha256_ctx->bytes_to_write);
+			memcpy(buffer, data_ptr, sha256_ctx->bytes_to_write);
+		}
 	}
 
-	arch_clean_invalidate_cache_range((addr_t) data_ptr, sha256_ctx->bytes_to_write);
+	if(buffer)
+	{
+		arch_clean_invalidate_cache_range((addr_t) buffer, sha256_ctx->bytes_to_write);
 
-	bam_status = ADD_WRITE_DESC(&dev->bam, data_ptr, sha256_ctx->bytes_to_write, wr_flags);
+		bam_status = ADD_WRITE_DESC(&dev->bam, buffer, sha256_ctx->bytes_to_write, wr_flags);
+	}
+	else
+	{
+		arch_clean_invalidate_cache_range((addr_t) data_ptr, sha256_ctx->bytes_to_write);
+		bam_status = ADD_WRITE_DESC(&dev->bam, data_ptr, sha256_ctx->bytes_to_write, wr_flags);
+	}
 
 	if (bam_status)
 	{
@@ -478,6 +504,9 @@ uint32_t crypto5_send_data(struct crypto_dev *dev,
 	ret_status = CRYPTO_ERR_NONE;
 
 CRYPTO_SEND_DATA_ERR:
+
+	if(buffer)
+		free(buffer);
 
 	return ret_status;
 }
