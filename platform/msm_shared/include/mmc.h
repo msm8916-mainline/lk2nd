@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -609,6 +609,14 @@ struct mmc_host {
 
 #define MMC_CLK_ENABLE      1
 #define MMC_CLK_DISABLE     0
+
+/* SDHC mode & core sw reset related macros */
+#define MMC_BOOT_MCI_HC_MODE                       MMC_BOOT_MCI_REG(0x078)
+#define SDHCI_HC_START_BIT                         0x0
+#define SDHCI_HC_WIDTH                             0x1
+
+#define CORE_SW_RST_START                          0x7
+#define CORE_SW_RST_WIDTH                          0x1
 
 unsigned int mmc_boot_main(unsigned char slot, unsigned int base);
 unsigned int mmc_write(unsigned long long data_addr,

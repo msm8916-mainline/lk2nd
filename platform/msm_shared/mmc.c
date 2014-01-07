@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -1904,6 +1904,18 @@ unsigned int mmc_boot_init(struct mmc_host *host)
 
 	host->ocr = MMC_BOOT_OCR_27_36 | MMC_BOOT_OCR_SEC_MODE;
 	host->cmd_retry = MMC_BOOT_MAX_COMMAND_RETRY;
+
+	/* Disable sdhc mode */
+	RMWREG32(MMC_BOOT_MCI_HC_MODE, SDHCI_HC_START_BIT, SDHCI_HC_WIDTH, 0);
+
+	/* Wait for the MMC_BOOT_MCI_POWER write to go through. */
+	mmc_mclk_reg_wr_delay();
+
+	/* Reset controller */
+	RMWREG32(MMC_BOOT_MCI_POWER, CORE_SW_RST_START, CORE_SW_RST_WIDTH, 1);
+
+	/* Wait for the MMC_BOOT_MCI_POWER write to go through. */
+	mmc_mclk_reg_wr_delay();
 
 	/* Initialize any clocks needed for SDC controller */
 	clock_init_mmc(mmc_slot);
