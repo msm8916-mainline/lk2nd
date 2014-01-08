@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -120,9 +120,6 @@
 #define MSM_CE2_BAM_BASE            0xFD444000
 #define MSM_CE2_BASE                0xFD45A000
 #define USB2_PHY_SEL                0xFD4AB000
-
-#define MSM_CE1_BAM_BASE            0xFD404000
-#define MSM_CE1_BASE                0xFD41A000
 
 #define TLMM_BASE_ADDR              0xFD510000
 #define GPIO_CONFIG_ADDR(x)         (TLMM_BASE_ADDR + 0x1000 + (x)*0x10)
