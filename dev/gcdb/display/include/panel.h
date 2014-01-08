@@ -166,8 +166,6 @@ typedef struct backlight {
 	uint16_t bl_step;
 	uint16_t bl_pmic_controltype;
 	char     *bl_pmic_model;
-	uint16_t bl_pwm_gpio_num;
-	uint16_t bl_lpg_chan_id;
 };
 
 #endif /*_PANEL_H_ */
