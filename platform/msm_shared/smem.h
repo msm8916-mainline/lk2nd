@@ -2,7 +2,7 @@
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2013, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -323,9 +323,9 @@ enum {
 	FSM9915   = 192,
 	FSM9910   = 193,
 	MSM8974AC = 194,
-	MSM8962   = 195,
-	MSM8262   = 196,
-	APQ8062   = 197,
+	MSMSAMARIUM9 = 195,
+	MSMSAMARIUM2 = 196,
+	MSMSAMARIUM0 = 197,
 	MSM8126   = 198,
 	APQ8026   = 199,
 	MSM8926   = 200,
