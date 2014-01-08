@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -68,26 +68,6 @@ static struct smem_ram_ptable ram_ptable;
 #define BS_INFO_OFFSET     (0x6B0)
 #define BS_INFO_ADDR_V1    (RPM_MSG_RAM_BASE     + BS_INFO_OFFSET)
 #define BS_INFO_ADDR_V2    (MSM_SHARED_IMEM_BASE + BS_INFO_OFFSET)
-
-/* Check for 8962 chip */
-int platform_is_8x62()
-{
-	uint32_t platform = board_platform_id();
-	int ret = 0;
-
-	switch(platform)
-	{
-		case APQ8062:
-		case MSM8262:
-		case MSM8962:
-			ret = 1;
-			break;
-		default:
-			ret = 0;
-	};
-
-	return ret;
-}
 
 void platform_early_init(void)
 {

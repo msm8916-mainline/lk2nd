@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -50,6 +50,11 @@
 #include <platform/clock.h>
 #include <platform/gpio.h>
 #include <stdlib.h>
+
+enum hw_platform_subtype
+{
+	HW_PLATFORM_SUBTYPE_CDP_INTERPOSER = 8,
+};
 
 extern  bool target_use_signed_kernel(void);
 static void set_sdc_power_ctrl();
@@ -338,7 +343,7 @@ void target_init(void)
 	/* Display splash screen if enabled */
 #if DISPLAY_SPLASH_SCREEN
 	dprintf(INFO, "Display Init: Start\n");
-	if (!platform_is_8x62())
+	if (board_hardware_subtype() != HW_PLATFORM_SUBTYPE_CDP_INTERPOSER)
 	{
 		display_init();
 	}
@@ -404,8 +409,7 @@ static void ssd_load_keystore_from_emmc()
 void target_fastboot_init(void)
 {
 	/* Set the BOOT_DONE flag in PM8921 */
-	if (!platform_is_8x62())
-		pm8x41_set_boot_done();
+	pm8x41_set_boot_done();
 
 #ifdef SSD_ENABLE
 	clock_ce_enable(SSD_CE_INSTANCE_1);
@@ -423,6 +427,7 @@ void target_detect(struct board_data *board)
 void target_baseband_detect(struct board_data *board)
 {
 	uint32_t platform;
+	uint32_t platform_subtype;
 
 	platform = board->platform;
 
@@ -439,15 +444,15 @@ void target_baseband_detect(struct board_data *board)
 	case MSM8974AA:
 	case MSM8974AB:
 	case MSM8974AC:
-	case MSM8262:
-	case MSM8962:
+	case MSMSAMARIUM2:
+	case MSMSAMARIUM9:
 		board->baseband = BASEBAND_MSM;
 		break;
 	case APQ8074:
 	case APQ8074AA:
 	case APQ8074AB:
 	case APQ8074AC:
-	case APQ8062:
+	case MSMSAMARIUM0:
 		board->baseband = BASEBAND_APQ;
 		break;
 	default:
