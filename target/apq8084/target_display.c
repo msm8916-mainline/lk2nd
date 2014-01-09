@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -224,7 +224,6 @@ int target_display_pre_on()
 	writel(0xCCCCC0C0, MDP_CLK_CTRL5);
 	writel(0x00CCC000, MDP_CLK_CTRL7);
 
-	writel(0x00000001, VBIF_VBIF_DDR_FORCE_CLK_ON);
 	writel(0x00080808, VBIF_VBIF_IN_RD_LIM_CONF0);
 	writel(0x08000808, VBIF_VBIF_IN_RD_LIM_CONF1);
 	writel(0x00080808, VBIF_VBIF_IN_RD_LIM_CONF2);
