@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -363,6 +363,27 @@ void mdss_layer_mixer_setup(struct fbcon_config *fb, struct msm_panel_info
 	}
 }
 
+void mdss_qos_remapper_setup(void)
+{
+	uint32_t mdp_hw_rev = readl(MDP_HW_REV);
+	uint32_t map;
+
+	if (MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev, MDSS_MDP_HW_REV_100) ||
+		MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev,
+						MDSS_MDP_HW_REV_102))
+		map = 0xE9;
+	else if (MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev,
+						MDSS_MDP_HW_REV_101))
+		map = 0xA5;
+	else if (MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev,
+						MDSS_MDP_HW_REV_103))
+		map = 0xFA;
+	else
+		return;
+
+	writel(map, MDP_QOS_REMAPPER_CLASS_0);
+}
+
 int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 		struct fbcon_config *fb)
 {
@@ -380,7 +401,7 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 	mdss_vbif_setup();
 	mdss_smp_setup(pinfo);
 
-	writel(0x0E9, MDP_QOS_REMAPPER_CLASS_0);
+	mdss_qos_remapper_setup();
 
 	mdss_rgb_pipe_config(fb, pinfo, MDP_VP_0_RGB_0_BASE);
 	if (pinfo->lcdc.dual_pipe)
@@ -416,7 +437,7 @@ int mdp_edp_config(struct msm_panel_info *pinfo, struct fbcon_config *fb)
 	mdss_vbif_setup();
 	mdss_smp_setup(pinfo);
 
-	writel(0x0E9, MDP_QOS_REMAPPER_CLASS_0);
+	mdss_qos_remapper_setup();
 
 	mdss_rgb_pipe_config(fb, pinfo, MDP_VP_0_RGB_0_BASE);
 	if (pinfo->lcdc.dual_pipe)
@@ -462,6 +483,8 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 
 	mdss_vbif_setup();
 	mdss_smp_setup(pinfo);
+	mdss_qos_remapper_setup();
+
 	mdss_rgb_pipe_config(fb, pinfo, MDP_VP_0_RGB_0_BASE);
 
 	mdss_layer_mixer_setup(fb, pinfo);
