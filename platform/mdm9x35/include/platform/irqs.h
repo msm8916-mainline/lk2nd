@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef __IRQS_MDMKRYPTON_H
-#define __IRQS_MDMKRYPTON_H
+#ifndef __IRQS_MDM9635_H
+#define __IRQS_MDM9635_H
 
 /* TBD: The numbers need to be reviewed */
 

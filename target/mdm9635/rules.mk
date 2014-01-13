@@ -2,7 +2,7 @@ LOCAL_DIR := $(GET_LOCAL_DIR)
 
 INCLUDES += -I$(LOCAL_DIR)/include -I$(LK_TOP_DIR)/platform/msm_shared
 
-PLATFORM := mdmkrypton
+PLATFORM := mdm9x35
 
 MEMBASE                             := 0x07E00000
 MEMSIZE                             := 0x00100000 # 1MB

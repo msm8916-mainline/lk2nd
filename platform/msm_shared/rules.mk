@@ -282,7 +282,7 @@ ifeq ($(PLATFORM),mdm9x25)
 			$(LOCAL_DIR)/clock_lib2.o
 endif
 
-ifeq ($(PLATFORM),mdmkrypton)
+ifeq ($(PLATFORM),mdm9x35)
 	OBJS += $(LOCAL_DIR)/qgic.o \
 			$(LOCAL_DIR)/uart_dm.o \
 			$(LOCAL_DIR)/interrupts.o \
