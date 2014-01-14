@@ -108,7 +108,6 @@ int dsi_panel_init(struct msm_panel_info *pinfo,
 	pinfo->rotation = pstruct->paneldata->panel_orientation;
 	pinfo->mipi.interleave_mode = pstruct->paneldata->interleave_mode;
 	pinfo->mipi.broadcast = pstruct->paneldata->panel_broadcast_mode;
-	pinfo->lowpowerstop = pstruct->paneldata->dsi_lp11_atinit;
 	pinfo->mipi.vc = pstruct->paneldata->dsi_virtualchannel_id;
 	pinfo->mipi.frame_rate = pstruct->paneldata->panel_framerate;
 	pinfo->mipi.stream = pstruct->paneldata->dsi_stream;
@@ -235,7 +234,7 @@ int dsi_video_panel_config(struct msm_panel_info *pinfo,
 			pinfo->mipi.dst_format,
 			pinfo->mipi.traffic_mode,
 			lane_enable,
-			pinfo->lowpowerstop,
+			pinfo->mipi.hsa_power_stop,
 			pinfo->mipi.eof_bllp_power,
 			pinfo->mipi.interleave_mode,
 			MIPI_DSI0_BASE);
@@ -255,7 +254,7 @@ int dsi_video_panel_config(struct msm_panel_info *pinfo,
 			pinfo->mipi.dst_format,
 			pinfo->mipi.traffic_mode,
 			lane_enable,
-			pinfo->lowpowerstop,
+			pinfo->mipi.hsa_power_stop,
 			pinfo->mipi.eof_bllp_power,
 			pinfo->mipi.interleave_mode,
 			MIPI_DSI1_BASE);
