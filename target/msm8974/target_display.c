@@ -160,8 +160,8 @@ int target_backlight_ctrl(struct backlight *bl, uint8_t enable)
 			ret = msm8974_wled_backlight_ctrl(enable);
 			break;
 		case BL_PWM:
-			ret = msm8974_pwm_backlight_ctrl(bl->bl_pwm_gpio_num,
-							bl->bl_lpg_chan_id,
+			ret = msm8974_pwm_backlight_ctrl(pwm_gpio.pin_id,
+							PWM_BL_LPG_CHAN_ID,
 							enable);
 			break;
 		default:

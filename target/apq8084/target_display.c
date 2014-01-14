@@ -109,17 +109,17 @@ int target_backlight_ctrl(struct backlight *bl, uint8_t enable)
 	}
 
 	if (enable) {
-		pm8x41_gpio_config(bl->bl_pwm_gpio_num, &pwmgpio_param);
+		pm8x41_gpio_config(pwm_gpio.pin_id, &pwmgpio_param);
 
 		/* lpg channel 2 */
-		pm8x41_lpg_write(bl->bl_lpg_chan_id, 0x41, 0x33); /* LPG_PWM_SIZE_CLK, */
-		pm8x41_lpg_write(bl->bl_lpg_chan_id, 0x42, 0x01); /* LPG_PWM_FREQ_PREDIV */
-		pm8x41_lpg_write(bl->bl_lpg_chan_id, 0x43, 0x20); /* LPG_PWM_TYPE_CONFIG */
-		pm8x41_lpg_write(bl->bl_lpg_chan_id, 0x44, 0xcc); /* LPG_VALUE_LSB */
-		pm8x41_lpg_write(bl->bl_lpg_chan_id, 0x45, 0x00);  /* LPG_VALUE_MSB */
-		pm8x41_lpg_write(bl->bl_lpg_chan_id, 0x46, 0xe4); /* LPG_ENABLE_CONTROL */
+		pm8x41_lpg_write(PWM_BL_LPG_CHAN_ID, 0x41, 0x33); /* LPG_PWM_SIZE_CLK, */
+		pm8x41_lpg_write(PWM_BL_LPG_CHAN_ID, 0x42, 0x01); /* LPG_PWM_FREQ_PREDIV */
+		pm8x41_lpg_write(PWM_BL_LPG_CHAN_ID, 0x43, 0x20); /* LPG_PWM_TYPE_CONFIG */
+		pm8x41_lpg_write(PWM_BL_LPG_CHAN_ID, 0x44, 0xcc); /* LPG_VALUE_LSB */
+		pm8x41_lpg_write(PWM_BL_LPG_CHAN_ID, 0x45, 0x00);  /* LPG_VALUE_MSB */
+		pm8x41_lpg_write(PWM_BL_LPG_CHAN_ID, 0x46, 0xe4); /* LPG_ENABLE_CONTROL */
 	} else {
-		pm8x41_lpg_write(bl->bl_lpg_chan_id, 0x46, 0x0); /* LPG_ENABLE_CONTROL */
+		pm8x41_lpg_write(PWM_BL_LPG_CHAN_ID, 0x46, 0x0); /* LPG_ENABLE_CONTROL */
 	}
 
 	return NO_ERROR;

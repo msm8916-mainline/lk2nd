@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -103,5 +103,7 @@ static const uint32_t panel_physical_ctrl[] = {
 #define MIPI_VSYNC_PULSE_WIDTH       4
 #define MIPI_VSYNC_BACK_PORCH_LINES  3
 #define MIPI_VSYNC_FRONT_PORCH_LINES 9
+
+#define PWM_BL_LPG_CHAN_ID           3
 
 #endif
