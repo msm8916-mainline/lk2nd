@@ -221,7 +221,7 @@ static struct panel_reset_sequence jdi_qhd_dualdsi_video_reset_seq = {
 /* Backlight setting                                                         */
 /*---------------------------------------------------------------------------*/
 static struct backlight jdi_qhd_dualdsi_video_backlight = {
-	0, 1, 4095, 100, 0, 0, 7, 3
+	0, 1, 4095, 100, 1, "PMIC_8941"
 };
 
 #endif /*_PANEL_JDI_QHD_DUALDSI_VIDEO_H_*/
