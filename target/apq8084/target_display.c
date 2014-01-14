@@ -97,17 +97,6 @@ int target_backlight_ctrl(struct backlight *bl, uint8_t enable)
 		.out_strength = 0x03,
 	};
 
-	if (!bl) {
-		dprintf(CRITICAL, "backlight structure is not available\n");
-		return ERR_INVALID_ARGS;
-	}
-
-	if (bl->bl_interface_type != BL_PWM) {
-		dprintf(CRITICAL, "backlight type:%d not supported\n",
-							bl->bl_interface_type);
-		return ERR_NOT_SUPPORTED;
-	}
-
 	if (enable) {
 		pm8x41_gpio_config(pwm_gpio.pin_id, &pwmgpio_param);
 
