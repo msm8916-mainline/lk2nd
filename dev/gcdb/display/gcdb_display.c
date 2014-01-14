@@ -163,14 +163,20 @@ bool target_display_panel_node(char *pbuf, uint16_t buf_size)
 {
 	char *dsi_id = NULL;
 	char *panel_node = NULL;
-	uint16_t dsi_id_len = 0;
+	char *slave_panel_node = NULL;
+	uint16_t dsi_id_len = 0, panel_node_len = 0, slave_panel_node_len = 0;
+	uint32_t arg_size = 0;
 	bool ret = true;
 	char *default_str;
+	int panel_mode = SPLIT_DISPLAY_FLAG | DUAL_PIPE_FLAG;
 
 	if (panelstruct.paneldata)
 	{
 		dsi_id = panelstruct.paneldata->panel_controller;
 		panel_node = panelstruct.paneldata->panel_node_id;
+		panel_mode = panelstruct.paneldata->panel_operating_mode &
+							panel_mode;
+		slave_panel_node = panelstruct.paneldata->slave_panel_node_id;
 	}
 	else
 	{
@@ -186,31 +192,57 @@ bool target_display_panel_node(char *pbuf, uint16_t buf_size)
 		return true;
 	}
 
-	if (dsi_id == NULL || panel_node == NULL)
+	if (dsi_id == NULL || panel_node == NULL) {
+		dprintf(CRITICAL, "panel node or dsi ctrl not present\n");
 		return false;
+	}
+
+	if (panel_mode && slave_panel_node == NULL) {
+		dprintf(CRITICAL, "slave node not present in dual dsi case\n");
+		return false;
+	}
 
 	dsi_id_len = strlen(dsi_id);
+	panel_node_len = strlen(panel_node);
+	slave_panel_node_len = strlen(slave_panel_node);
 
-	if (buf_size < (strlen(panel_node) + dsi_id_len +
-			MAX_PANEL_FORMAT_STRING + 1) ||
-		!strlen(panel_node) ||
-		!strlen(dsi_id))
+	arg_size = dsi_id_len + panel_node_len + LK_OVERRIDE_PANEL_LEN + 1;
+
+	/* For dual pipe or split display */
+	if (panel_mode)
+		arg_size += DSI_1_STRING_LEN + slave_panel_node_len;
+
+	if (buf_size < arg_size)
 	{
+		dprintf(CRITICAL, "display command line buffer is small\n");
 		ret = false;
 	}
 	else
 	{
-		pbuf[0] = '1'; // 1 indicates that LK is overriding the panel
-		pbuf[1] = ':'; // seperator
-		pbuf += MAX_PANEL_FORMAT_STRING;
-		buf_size -= MAX_PANEL_FORMAT_STRING;
+		strlcpy(pbuf, LK_OVERRIDE_PANEL, buf_size);
+		pbuf += LK_OVERRIDE_PANEL_LEN;
+		buf_size -= LK_OVERRIDE_PANEL_LEN;
 
 		strlcpy(pbuf, dsi_id, buf_size);
 		pbuf += dsi_id_len;
 		buf_size -= dsi_id_len;
 
 		strlcpy(pbuf, panel_node, buf_size);
+
+		/* Return string for single dsi */
+		if (!panel_mode)
+			goto end;
+
+		pbuf += panel_node_len;
+		buf_size -= panel_node_len;
+
+		strlcpy(pbuf, DSI_1_STRING, buf_size);
+		pbuf += DSI_1_STRING_LEN;
+		buf_size -= DSI_1_STRING_LEN;
+
+		strlcpy(pbuf, slave_panel_node, buf_size);
 	}
+end:
 	return ret;
 }
 
