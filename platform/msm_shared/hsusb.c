@@ -2,7 +2,7 @@
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2013, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -480,7 +480,7 @@ static struct udc_endpoint *ep0in, *ep0out;
 static struct udc_request *ep0req;
 
 static void
-ep0_setup_ack_complete(struct udc_endpoint *ep, struct usb_request *req)
+ep0_setup_ack_complete()
 {
 	uint32_t mode;
 
