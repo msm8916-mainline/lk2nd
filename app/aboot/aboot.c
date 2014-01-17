@@ -98,6 +98,7 @@ static int aboot_save_boot_hash_mmc(uint32_t image_addr, uint32_t image_size);
 
 #define RECOVERY_MODE   0x77665502
 #define FASTBOOT_MODE   0x77665500
+#define ALARM_BOOT      0x77665503
 
 /* make 4096 as default size to ensure EFS,EXT4's erasing */
 #define DEFAULT_ERASE_SIZE  4096
@@ -119,6 +120,7 @@ static const char *emmc_cmdline = " androidboot.emmc=true";
 #endif
 static const char *usb_sn_cmdline = " androidboot.serialno=";
 static const char *androidboot_mode = " androidboot.mode=";
+static const char *alarmboot_cmdline = " androidboot.alarmboot=true";
 static const char *loglevel         = " quiet";
 static const char *battchg_pause = " androidboot.mode=charger";
 static const char *auth_kernel = " androidboot.authorized_kernel=true";
@@ -141,6 +143,7 @@ static unsigned page_mask = 0;
 static char ffbm_mode_string[FFBM_MODE_BUF_SIZE];
 static bool boot_into_ffbm;
 static char target_boot_params[64];
+static bool boot_reason_alarm;
 
 /* Assuming unauthorized kernel image by default */
 static int auth_kernel_img = 0;
@@ -252,6 +255,8 @@ unsigned char *update_cmdline(const char * cmdline)
 		cmdline_len += strlen(ffbm_mode_string);
 		/* reduce kernel console messages to speed-up boot */
 		cmdline_len += strlen(loglevel);
+	} else if (boot_reason_alarm) {
+		cmdline_len += strlen(alarmboot_cmdline);
 	} else if (device.charger_screen_enabled &&
 			target_pause_for_battery_charge()) {
 		pause_at_bootup = 1;
@@ -381,6 +386,10 @@ unsigned char *update_cmdline(const char * cmdline)
 			if (have_cmdline) --dst;
 			while ((*dst++ = *src++));
 			src = loglevel;
+			if (have_cmdline) --dst;
+			while ((*dst++ = *src++));
+		} else if (boot_reason_alarm) {
+			src = alarmboot_cmdline;
 			if (have_cmdline) --dst;
 			while ((*dst++ = *src++));
 		} else if (pause_at_bootup) {
@@ -2669,6 +2678,8 @@ void aboot_init(const struct app_descriptor *app)
 		boot_into_recovery = 1;
 	} else if(reboot_mode == FASTBOOT_MODE) {
 		boot_into_fastboot = true;
+	} else if(reboot_mode == ALARM_BOOT) {
+		boot_reason_alarm = true;
 	}
 
 normal_boot:
