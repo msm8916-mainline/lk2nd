@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -186,6 +186,7 @@ struct pm8x41_mpp
 	enum mpp_mode_en_source_select mode;
 };
 
+#define PM8x41_MMP2_BASE                      0xA100
 #define PM8x41_MMP3_BASE                      0xA200
 
 void pm8x41_lpg_write(uint8_t chan, uint8_t off, uint8_t val);
