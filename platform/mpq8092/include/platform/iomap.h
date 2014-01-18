@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -53,12 +53,14 @@
 #define MSM_SDC1_BAM_BASE           (PERIPH_SS_BASE + 0x00004000)
 #define MSM_SDC1_BASE               (PERIPH_SS_BASE + 0x00024000)
 #define MSM_SDC1_DML_BASE           (PERIPH_SS_BASE + 0x00024800)
+#define MSM_SDC1_SDHCI_BASE         (PERIPH_SS_BASE + 0x00024900)
 #define MSM_SDC3_BAM_BASE           (PERIPH_SS_BASE + 0x00044000)
 #define MSM_SDC3_BASE               (PERIPH_SS_BASE + 0x00064000)
 #define MSM_SDC3_DML_BASE           (PERIPH_SS_BASE + 0x00064800)
 #define MSM_SDC2_BAM_BASE           (PERIPH_SS_BASE + 0x00084000)
 #define MSM_SDC2_BASE               (PERIPH_SS_BASE + 0x000A4000)
 #define MSM_SDC2_DML_BASE           (PERIPH_SS_BASE + 0x000A4800)
+#define MSM_SDC2_SDHCI_BASE         (PERIPH_SS_BASE + 0x000A4900)
 #define MSM_SDC4_BAM_BASE           (PERIPH_SS_BASE + 0x000C4000)
 #define MSM_SDC4_BASE               (PERIPH_SS_BASE + 0x000E4000)
 #define MSM_SDC4_DML_BASE           (PERIPH_SS_BASE + 0x000E4800)
@@ -143,6 +145,24 @@
 #define SDCC1_D                     (CLK_CTL_BASE + 0x4E0) /* d */
 
 #define SDC1_HDRV_PULL_CTL          (TLMM_BASE_ADDR + 0x00002044)
+
+/* SDCC2 */
+#define SDCC2_BCR                   (CLK_CTL_BASE + 0x500) /* block reset */
+#define SDCC2_APPS_CBCR             (CLK_CTL_BASE + 0x504) /* branch control */
+#define SDCC2_AHB_CBCR              (CLK_CTL_BASE + 0x508)
+#define SDCC2_INACTIVITY_TIMER_CBCR (CLK_CTL_BASE + 0x50C)
+#define SDCC2_CMD_RCGR              (CLK_CTL_BASE + 0x510) /* cmd */
+#define SDCC2_CFG_RCGR              (CLK_CTL_BASE + 0x514) /* cfg */
+#define SDCC2_M                     (CLK_CTL_BASE + 0x518) /* m */
+#define SDCC2_N                     (CLK_CTL_BASE + 0x51C) /* n */
+#define SDCC2_D                     (CLK_CTL_BASE + 0x520) /* d */
+
+/* SDHCI */
+#define SDCC_MCI_HC_MODE            (0x00000078)
+#define SDCC_HC_PWRCTL_STATUS_REG   (0x000000DC)
+#define SDCC_HC_PWRCTL_MASK_REG     (0x000000E0)
+#define SDCC_HC_PWRCTL_CLEAR_REG    (0x000000E4)
+#define SDCC_HC_PWRCTL_CTL_REG      (0x000000E8)
 
 /* UART */
 #define BLSP1_UART2_APPS_CBCR       (CLK_CTL_BASE + 0x704)

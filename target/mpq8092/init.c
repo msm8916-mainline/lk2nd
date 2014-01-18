@@ -41,29 +41,29 @@
 #include <dev/keys.h>
 #include <pm8x41.h>
 #include <platform/gpio.h>
+#include <platform/irqs.h>
 
 #define PMIC_ARB_CHANNEL_NUM    0
 #define PMIC_ARB_OWNER_ID       0
 #define FASTBOOT_MODE           0x77665500
 
-static uint32_t mmc_sdc_base[] =
+static uint32_t mmc_pwrctl_base[] =
 	{ MSM_SDC1_BASE, MSM_SDC2_BASE, MSM_SDC3_BASE, MSM_SDC4_BASE };
+
+static uint32_t mmc_sdhci_base[] =
+	{ MSM_SDC1_SDHCI_BASE, MSM_SDC2_SDHCI_BASE };
+
+static uint32_t  mmc_sdc_pwrctl_irq[] =
+	{ SDCC1_PWRCTL_IRQ, SDCC2_PWRCTL_IRQ };
 
 static void set_sdc_power_ctrl();
 
+struct mmc_device *dev;
 void target_early_init(void)
 {
 #if WITH_DEBUG_UART
 	uart_dm_init(4, 0, BLSP1_UART4_BASE); /* DEBUG_UART BLSP1_UART5 */
 #endif
-}
-
-void target_mmc_caps(struct mmc_host *host)
-{
-	host->caps.ddr_mode = 0;
-	host->caps.hs200_mode = 0;
-	host->caps.bus_width = MMC_BOOT_BUS_WIDTH_8_BIT;
-	host->caps.hs_clk_rate = MMC_CLK_50MHZ;
 }
 
 /* Return 1 if vol_down pressed */
@@ -104,6 +104,37 @@ static void set_sdc_power_ctrl()
 	tlmm_set_pull_ctrl(sdc1_pull_cfg, ARRAY_SIZE(sdc1_pull_cfg));
 }
 
+void target_sdc_init()
+{
+	struct mmc_config_data config;
+
+	/* Set drive strength & pull ctrl values */
+	set_sdc_power_ctrl();
+
+	config.bus_width = DATA_BUS_WIDTH_8BIT;
+	config.max_clk_rate = MMC_CLK_200MHZ;
+
+	/* Try slot 1*/
+	config.slot = 1;
+	config.sdhc_base    = mmc_sdhci_base[config.slot - 1];
+	config.pwrctl_base  = mmc_pwrctl_base[config.slot - 1];
+	config.pwr_irq      = mmc_sdc_pwrctl_irq[config.slot - 1];
+
+	if (!(dev = mmc_init(&config))) {
+		/* Try slot 2 */
+		config.slot = 2;
+		config.sdhc_base    = mmc_sdhci_base[config.slot - 1];
+		config.pwrctl_base  = mmc_pwrctl_base[config.slot - 1];
+		config.pwr_irq      = mmc_sdc_pwrctl_irq[config.slot - 1];
+
+		if (!(dev = mmc_init(&config))) {
+			dprintf(CRITICAL, "mmc init failed!");
+			ASSERT(0);
+		}
+	}
+}
+
+
 /*Turn on DVB tuner regulator required by
  * kernel drivers for probing devices*/
 static void dvb_tuner_enable(void)
@@ -122,31 +153,21 @@ static void dvb_tuner_enable(void)
 
 void target_init(void)
 {
-	uint32_t base_addr;
-	uint8_t slot;
-
 	dprintf(INFO, "target_init()\n");
 
 	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
 
 	target_keystatus();
 
-	set_sdc_power_ctrl();
+	target_sdc_init();
 
-	/* Trying Slot 1*/
-	slot = 1;
-	base_addr = mmc_sdc_base[slot - 1];
-	if (mmc_boot_main(slot, base_addr))
+	/* Storage initialization is complete, read the partition table info */
+	if (partition_read_table())
 	{
-
-	/* Trying Slot 2 next */
-	slot = 2;
-	base_addr = mmc_sdc_base[slot - 1];
-	if (mmc_boot_main(slot, base_addr)) {
-		dprintf(CRITICAL, "mmc init failed!");
+		dprintf(CRITICAL, "Error reading the partition table info\n");
 		ASSERT(0);
 	}
-	}
+
 	dvb_tuner_enable();
 }
 
@@ -263,4 +284,9 @@ void target_baseband_detect(struct board_data *board)
 unsigned target_baseband()
 {
 	return board_baseband();
+}
+
+void *target_mmc_device()
+{
+	return (void *) dev;
 }

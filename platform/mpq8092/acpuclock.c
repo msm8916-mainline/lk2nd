@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -114,7 +114,6 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 	char clk_name[64];
 
 	snprintf(clk_name, sizeof(clk_name), "sdc%u_core_clk", interface);
-	mmc_boot_mci_clk_disable();
 	if(freq == MMC_CLK_400KHZ)
 	{
 		ret = clk_get_set_enable(clk_name, 400000, 1);
@@ -142,8 +141,6 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 		dprintf(CRITICAL, "failed to set sdc%u_core_clk ret = %d\n", interface, ret);
 		ASSERT(0);
 	}
-	/* Enable MCI clk */
-	mmc_boot_mci_clk_enable();
 }
 
 /* Configure UART clock based on the UART block id*/
