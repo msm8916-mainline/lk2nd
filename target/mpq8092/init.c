@@ -104,6 +104,22 @@ static void set_sdc_power_ctrl()
 	tlmm_set_pull_ctrl(sdc1_pull_cfg, ARRAY_SIZE(sdc1_pull_cfg));
 }
 
+/*Turn on DVB tuner regulator required by
+ * kernel drivers for probing devices*/
+static void dvb_tuner_enable(void)
+{
+	struct pm8x41_mpp mpp;
+	mpp.base = PM8x41_MMP2_BASE;
+	mpp.mode = MPP_HIGH;
+	mpp.vin = MPP_VIN3;
+
+	pm8x41_config_output_mpp(&mpp);
+	pm8x41_enable_mpp(&mpp, MPP_ENABLE);
+
+	/* Need delay before power on regulators */
+	mdelay(20);
+}
+
 void target_init(void)
 {
 	uint32_t base_addr;
@@ -131,6 +147,7 @@ void target_init(void)
 		ASSERT(0);
 	}
 	}
+	dvb_tuner_enable();
 }
 
 void target_serialno(unsigned char *buf)
