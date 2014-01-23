@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -74,6 +74,7 @@ enum target_subtype {
 	HW_PLATFORM_SUBTYPE_SKUF = 2,
 	HW_PLATFORM_SUBTYPE_1080P = 2,
 	HW_PLATFORM_SUBTYPE_SKUAB = 3,
+	HW_PLATFORM_SUBTYPE_1080P_EXT_BUCK = 3,
 	HW_PLATFORM_SUBTYPE_SKUG = 5,
 };
 
@@ -354,11 +355,11 @@ bool oem_panel_select(struct panel_struct *panelstruct,
 		break;
 	case HW_PLATFORM_MTP:
 	case HW_PLATFORM_SURF:
-		if (hw_subtype == HW_PLATFORM_SUBTYPE_1080P) {
+		if ((hw_subtype == HW_PLATFORM_SUBTYPE_1080P) ||
+			(hw_subtype == HW_PLATFORM_SUBTYPE_1080P_EXT_BUCK))
 			panel_id = JDI_1080P_VIDEO_PANEL;
-		} else {
+		else
 			panel_id = nt35590_panel_id;
-		}
 		break;
 	default:
 		dprintf(CRITICAL, "Display not enabled for %d HW type\n"
