@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -83,7 +83,7 @@
 #define DTYPE_GEN_LWRITE 0x29	/* 4th Byte is 0xc0 */
 #define DTYPE_DCS_WRITE1 0x15	/* 4th Byte is 0x80 */
 
-#define DSI_RDBK_DATA0 0x06C
+#define RDBK_DATA0 0x06C
 
 //BEGINNING OF Tochiba Config- video mode
 
