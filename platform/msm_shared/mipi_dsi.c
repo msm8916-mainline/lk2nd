@@ -272,7 +272,7 @@ int mdss_dsi_cmds_rx(uint32_t **rp, int rp_len, int rdbk_len)
 	if (rlen > 4)
 		rlen = 4;	/* 4 x 32 bits registers only */
 
-	off = DSI_RDBK_DATA0;
+	off = RDBK_DATA0;
 	off += ((rlen - 1) * 4);
 
 	for (i = 0; i < rlen; i++) {
