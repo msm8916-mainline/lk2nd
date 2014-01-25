@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -32,7 +32,7 @@
 
 #define PM_WLED_BASE                 0x0D800
 #define PM_WLED_CTNL_REG(n)          (PM_WLED_BASE + n)
-#define PM_WLED_LED_CTNL_REG(n)      (PM_WLED_BASE + 0x60 + (n-1)*10)
+#define PM_WLED_LED_CTNL_REG(n)      (PM_WLED_BASE + 0x60 + (n-1)*0x10)
 
 #define PM_WLED_LED1_BRIGHTNESS_LSB  PM_WLED_CTNL_REG(0x40)
 #define PM_WLED_LED1_BRIGHTNESS_MSB  PM_WLED_CTNL_REG(0x41)
