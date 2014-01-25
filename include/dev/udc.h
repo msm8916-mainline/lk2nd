@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
- * Copyright (c) 2013, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -119,6 +119,10 @@ int udc_stop(void);
 #define PORTSC_PTC           (0xF << 16)
 #define PORTSC_PTC_SE0_NAK	 (0x03 << 16)
 #define PORTSC_PTC_TST_PKT   (0x4 << 16)
+
+#define USB_EP_NUM_MASK      0x0f
+#define USB_EP_DIR_MASK      0x80
+#define USB_EP_DIR_IN        0x80
 
 struct setup_packet {
 	unsigned char type;

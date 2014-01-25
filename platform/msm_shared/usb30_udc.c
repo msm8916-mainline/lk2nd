@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -610,8 +610,40 @@ static int udc_handle_setup(void *context, uint8_t *data)
 		break;
 	case SETUP(ENDPOINT_WRITE, CLEAR_FEATURE):
 		{
-			DBG("\n DEVICE_WRITE : CLEAR_FEATURE");
-			goto stall;
+			uint8_t usb_epnum;
+			uint8_t dir;
+
+			DBG("\n ENDPOINT_WRITE : CLEAR_FEATURE");
+
+			/*
+			 * setup packet received from the host has
+			 * index field containing information about the USB
+			 * endpoint as below:
+			 *  __________________________________
+			 * | (7)  |   (6 - 4)   |  (3 - 0)    |
+			 * |DIR   |  Reserved   |  EP number  |
+			 * |______|_____________|_____________|
+			 */
+			usb_epnum = (s.index & USB_EP_NUM_MASK);
+			dir = (s.index & USB_EP_DIR_MASK == USB_EP_DIR_IN) ? 0x1 : 0x0;
+
+			/*
+			 * Convert the logical ep number to physical before
+			 * sending the clear stall command.
+			 * As per the data book we use fixed mapping as
+			 * below:
+			 * physical ep 0 --> logical ep0 OUT
+			 * physical ep 1 --> logical ep0 IN
+			 * physical ep 2 --> logical ep 1 OUT
+			 * physical ep 3 --> logical ep 1 IN
+			 * :
+			 * :
+			 * physical ep 30 --> logical ep 15 OUT
+			 * physical ep 31 --> logical ep 15 IN
+			 */
+			dwc_ep_cmd_clear_stall(dwc, DWC_EP_PHY_NUM(usb_epnum, dir));
+
+			return DWC_SETUP_2_STAGE;
 		}
 		break;
 	case SETUP(DEVICE_WRITE, SET_SEL):
