@@ -121,9 +121,6 @@
 #define MSM_CE2_BASE                0xFD45A000
 #define USB2_PHY_SEL                0xFD4AB000
 
-#define MSM_CE1_BAM_BASE            0xFD404000
-#define MSM_CE1_BASE                0xFD41A000
-
 #define TLMM_BASE_ADDR              0xFD510000
 #define GPIO_CONFIG_ADDR(x)         (TLMM_BASE_ADDR + 0x1000 + (x)*0x10)
 #define GPIO_IN_OUT_ADDR(x)         (TLMM_BASE_ADDR + 0x1004 + (x)*0x10)
