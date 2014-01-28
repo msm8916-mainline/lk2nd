@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2014, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -103,6 +103,19 @@ typedef struct{
   uint32 status;
 } ssd_protect_keystore_rsp;
 
+typedef struct {
+	uint64_t el1_x0;
+	uint64_t el1_x1;
+	uint64_t el1_x2;
+	uint64_t el1_x3;
+	uint64_t el1_x4;
+	uint64_t el1_x5;
+	uint64_t el1_x6;
+	uint64_t el1_x7;
+	uint64_t el1_x8;
+	uint64_t el1_elr;
+} el1_system_param;
+
 /* Service IDs */
 #define TZBSP_SVC_INFO              0x06
 #define SCM_SVC_SSD                 0x07
@@ -177,6 +190,9 @@ int scm_protect_keystore(uint32_t * img_ptr, uint32_t  img_len);
 #define SCM_SVC_PWR                     0x9
 #define SCM_IO_DISABLE_PMIC_ARBITER     0x1
 
+#define SCM_SVC_MILESTONE_32_64_ID      0x1
+#define SCM_SVC_MILESTONE_CMD_ID        0xf
+
 enum ap_ce_channel_type {
 AP_CE_REGISTER_USE = 0,
 AP_CE_ADM_USE = 1
@@ -191,6 +207,8 @@ uint8_t switch_ce_chn_cmd(enum ap_ce_channel_type channel);
 void set_tamper_fuse_cmd();
 
 int scm_halt_pmic_arbiter();
+
+void scm_elexec_call(paddr_t kernel_entry, paddr_t dtb_offset);
 
 /**
  * struct scm_command - one SCM command buffer
@@ -235,7 +253,4 @@ struct scm_response {
 	uint32_t buf_offset;
 	uint32_t is_complete;
 };
-
-
-
 #endif

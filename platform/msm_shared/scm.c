@@ -606,3 +606,40 @@ int scm_halt_pmic_arbiter()
 
 	return ret;
 }
+
+/* Execption Level exec secure-os call
+ * Jumps to kernel via secure-os and does not return
+ * on successful jump. System parameters are setup &
+ * passed on to secure-os and are utilized to boot the
+ * kernel.
+ *
+ @ kernel_entry	: kernel entry point passed in as link register.
+ @ dtb_offset	: dt blob address passed in as w0.
+ @ svc_id	: indicates direction of switch 32->64 or 64->32
+ *
+ * Assumes all sanity checks have been performed on arguments.
+ */
+
+void scm_elexec_call(paddr_t kernel_entry, paddr_t dtb_offset)
+{
+	uint32_t svc_id = SCM_SVC_MILESTONE_32_64_ID;
+	uint32_t cmd_id = SCM_SVC_MILESTONE_CMD_ID;
+	void *cmd_buf;
+	size_t cmd_len;
+	static el1_system_param param;
+
+	param.el1_x0 = dtb_offset;
+	param.el1_elr = kernel_entry;
+
+	/* Command Buffer */
+	cmd_buf = (void *)&param;
+	cmd_len = sizeof(el1_system_param);
+
+	/* Response Buffer = Null as no response expected */
+	dprintf(INFO, "Jumping to kernel via monitor\n");
+	scm_call(svc_id, cmd_id, cmd_buf, cmd_len, NULL, 0);
+
+	/* Assert if execution ever reaches here */
+	dprintf(CRITICAL, "Failed to jump to kernel\n");
+	ASSERT(0);
+}
