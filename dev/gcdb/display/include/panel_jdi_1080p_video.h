@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -133,7 +133,7 @@ static struct commandpanel_info jdi_1080p_video_command_panel = {
 /*---------------------------------------------------------------------------*/
 
 static struct videopanel_info jdi_1080p_video_video_panel = {
-  0, 0, 0, 0, 1, 1, 2, 0, 0
+  0, 0, 0, 0, 1, 1, 2, 0, 0x9
 };
 
 /*---------------------------------------------------------------------------*/
