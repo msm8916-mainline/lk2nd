@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -96,6 +96,11 @@
 #define SDCC_HC_MCLK_SEL_IN_EN_WIDTH              0x1
 
 #define MAX_PHASES                                16
+
+/* SDCC version macros */
+#define MCI_VERSION                               0x50
+#define CORE_VERSION_MAJOR_MASK                   0xF0000000
+#define CORE_VERSION_MAJOR_SHIFT                  0x1C
 
 struct sdhci_msm_data
 {
