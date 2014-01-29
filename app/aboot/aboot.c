@@ -111,7 +111,6 @@ static const char *emmc_cmdline = " androidboot.emmc=true";
 #endif
 static const char *usb_sn_cmdline = " androidboot.serialno=";
 static const char *androidboot_mode = " androidboot.mode=";
-static const char *display_cmdline = " mdss_mdp.panel=";
 static const char *loglevel         = " quiet";
 static const char *battchg_pause = " androidboot.mode=charger";
 static const char *auth_kernel = " androidboot.authorized_kernel=true";
@@ -330,7 +329,6 @@ unsigned char *update_cmdline(const char * cmdline)
 	if (target_display_panel_node(display_panel_buf, MAX_PANEL_BUF_SIZE) &&
 	    strlen(display_panel_buf))
 	{
-		cmdline_len += strlen(display_cmdline);
 		cmdline_len += strlen(display_panel_buf);
 	}
 
@@ -457,9 +455,6 @@ unsigned char *update_cmdline(const char * cmdline)
 		}
 
 		if (strlen(display_panel_buf)) {
-			src = display_cmdline;
-			if (have_cmdline) --dst;
-			while ((*dst++ = *src++));
 			src = display_panel_buf;
 			if (have_cmdline) --dst;
 			while ((*dst++ = *src++));
