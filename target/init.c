@@ -176,3 +176,9 @@ __WEAK const char * target_usb_controller()
 __WEAK void target_usb_phy_reset(void)
 {
 }
+
+/* determine if target is in warm boot. */
+__WEAK bool target_warm_boot(void)
+{
+	return false;
+}
