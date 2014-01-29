@@ -169,6 +169,7 @@ bool target_display_panel_node(char *pbuf, uint16_t buf_size)
 	bool ret = true;
 	char *default_str;
 	int panel_mode = SPLIT_DISPLAY_FLAG | DUAL_PIPE_FLAG;
+	int prefix_string_len = strlen(DISPLAY_CMDLINE_PREFIX);
 
 	if (panelstruct.paneldata)
 	{
@@ -188,6 +189,18 @@ bool target_display_panel_node(char *pbuf, uint16_t buf_size)
 		{
 			default_str = "0:dsi:0:";
 		}
+
+		arg_size = prefix_string_len + strlen(default_str);
+		if (buf_size < arg_size)
+		{
+			dprintf(CRITICAL, "display command line buffer is small\n");
+			return false;
+		}
+
+		strlcpy(pbuf, DISPLAY_CMDLINE_PREFIX, buf_size);
+		pbuf += prefix_string_len;
+		buf_size -= prefix_string_len;
+
 		strlcpy(pbuf, default_str, buf_size);
 		return true;
 	}
@@ -206,7 +219,8 @@ bool target_display_panel_node(char *pbuf, uint16_t buf_size)
 	panel_node_len = strlen(panel_node);
 	slave_panel_node_len = strlen(slave_panel_node);
 
-	arg_size = dsi_id_len + panel_node_len + LK_OVERRIDE_PANEL_LEN + 1;
+	arg_size = prefix_string_len + dsi_id_len + panel_node_len +
+						LK_OVERRIDE_PANEL_LEN + 1;
 
 	/* For dual pipe or split display */
 	if (panel_mode)
@@ -219,6 +233,10 @@ bool target_display_panel_node(char *pbuf, uint16_t buf_size)
 	}
 	else
 	{
+		strlcpy(pbuf, DISPLAY_CMDLINE_PREFIX, buf_size);
+		pbuf += prefix_string_len;
+		buf_size -= prefix_string_len;
+
 		strlcpy(pbuf, LK_OVERRIDE_PANEL, buf_size);
 		pbuf += LK_OVERRIDE_PANEL_LEN;
 		buf_size -= LK_OVERRIDE_PANEL_LEN;
