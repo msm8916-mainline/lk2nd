@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -110,5 +110,5 @@ struct sdhci_msm_data
 
 void sdhci_msm_init(struct sdhci_host *host, struct sdhci_msm_data *data);
 uint32_t sdhci_msm_execute_tuning(struct sdhci_host *host, uint32_t bus_width);
-
+void sdhci_mode_disable(struct sdhci_host *host);
 #endif

@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -623,3 +623,13 @@ out:
 	host->msm_host->tuning_done = true;
 	return ret;
 }
+
+/*
+ * API to disable HC mode
+ */
+void sdhci_mode_disable(struct sdhci_host *host)
+{
+	/* Disable HC mode */
+	RMWREG32((host->msm_host->pwrctl_base + SDCC_MCI_HC_MODE), SDHCI_HC_START_BIT, SDHCI_HC_WIDTH, 0);
+}
+
