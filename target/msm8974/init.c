@@ -680,6 +680,9 @@ void target_uninit(void)
 #endif
 	if (crypto_initialized())
 		crypto_eng_cleanup();
+
+	/* Disable HC mode before jumping to kernel */
+	sdhci_mode_disable(&dev->host);
 }
 
 void shutdown_device()
