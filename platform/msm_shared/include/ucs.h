@@ -98,6 +98,28 @@ struct scsi_rdwr_cdb
 	uint8_t  resv[6];
 }__PACKED;
 
+struct scsi_unmap_req
+{
+	uint8_t  lun;
+	uint64_t start_lba;
+	uint32_t num_blocks;
+}__PACKED;
+
+struct unmap_blk_desc
+{
+	uint64_t lba;
+	uint32_t num_blks;
+	uint32_t reserved;
+}__PACKED;
+
+struct unmap_param_list
+{
+	uint16_t data_len;
+	uint16_t blk_desc_data_len;
+	uint32_t reserved;
+	struct unmap_blk_desc blk_desc;
+}__PACKED;
+
 struct scsi_sense_cdb
 {
 	uint8_t  opcode;

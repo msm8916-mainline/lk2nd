@@ -206,6 +206,58 @@ int ucs_do_scsi_write(struct ufs_dev *dev, struct scsi_rdwr_req *req)
 	return UFS_SUCCESS;
 }
 
+int ucs_do_scsi_unmap(struct ufs_dev *dev, struct scsi_unmap_req *req)
+{
+	STACKBUF_DMA_ALIGN(cdb_param, SCSI_CDB_PARAM_LEN);
+	STACKBUF_DMA_ALIGN(param, sizeof(struct unmap_param_list));
+	struct scsi_req_build_type req_upiu;
+	struct unmap_param_list *param_list;
+	struct unmap_blk_desc *blk_desc;
+
+	param_list                    = (struct unmap_param_list *)param;
+	param_list->data_len          = (sizeof(struct unmap_param_list) - 1) << 0x8; /* n-1 */
+
+	param_list->blk_desc_data_len = sizeof(struct unmap_blk_desc) << 0x8;
+
+
+	blk_desc = &(param_list->blk_desc);
+
+	blk_desc->lba      = BE64(req->start_lba);
+	blk_desc->num_blks = BE32(req->num_blocks);
+
+	memset((void*)cdb_param, 0, SCSI_CDB_PARAM_LEN);
+	cdb_param[0] = SCSI_CMD_UNMAP;
+	cdb_param[1] = 0;                    /*ANCHOR = 0 for UFS*/
+	cdb_param[6] = 0;                    /*Group No = 0*/
+	cdb_param[7] = 0;                    /* Param list length is 1, we erase 1 contiguous blk*/
+	cdb_param[8] = sizeof(struct unmap_param_list);
+	cdb_param[9] = 0;
+
+        /* Flush cdb to memory. */
+	dsb();
+	arch_invalidate_cache_range((addr_t) cdb_param, SCSI_CDB_PARAM_LEN);
+
+	memset((void*)&req_upiu, 0 , sizeof(struct scsi_req_build_type));
+
+	req_upiu.cdb                       = (addr_t) cdb_param;
+	req_upiu.data_buffer_addr          = (addr_t) param;
+	req_upiu.data_len                  = sizeof(struct unmap_param_list);
+	req_upiu.flags                     = UPIU_FLAGS_WRITE;
+	req_upiu.lun                       = 0;
+	req_upiu.dd                        = UTRD_SYSTEM_TO_TARGET;
+
+	if (ucs_do_scsi_cmd(dev, &req_upiu))
+	{
+		dprintf(CRITICAL, "Failed to send SCSI unmap command \n");
+		return -UFS_FAILURE;
+	}
+
+	/* Flush buffer. */
+	arch_invalidate_cache_range((addr_t) param, SCSI_INQUIRY_LEN);
+
+	return UFS_SUCCESS;
+}
+
 int ucs_scsi_send_inquiry(struct ufs_dev *dev)
 {
 	STACKBUF_DMA_ALIGN(cdb_param, SCSI_CDB_PARAM_LEN);
@@ -240,6 +292,17 @@ int ucs_scsi_send_inquiry(struct ufs_dev *dev)
 	arch_invalidate_cache_range((addr_t) param, SCSI_INQUIRY_LEN);
 
 	return UFS_SUCCESS;
+}
+
+void dump_sense_buffer(uint8_t *buf, int buf_len)
+{
+	int index=0;
+
+	dprintf(CRITICAL,"----Sense buffer----\n");
+	for(index=0; index < buf_len; index++)
+		dprintf(CRITICAL,"buf[%d] = %x\n",index, buf[index]);
+
+	dprintf(CRITICAL,"----end of buffer---\n");
 }
 
 static int ucs_do_request_sense(struct ufs_dev *dev)
@@ -277,6 +340,8 @@ static int ucs_do_request_sense(struct ufs_dev *dev)
 
 	/* Flush buffer. */
 	arch_invalidate_cache_range((addr_t) buf, SCSI_INQUIRY_LEN);
+
+	dump_sense_buffer(buf, SCSI_SENSE_BUF_LEN);
 
 	return UFS_SUCCESS;
 }

@@ -72,6 +72,8 @@ struct ufs_dev
 	uint8_t                      num_lus;
 	uint32_t                      serial_num;
 	uint32_t                     block_size;
+	uint32_t                     erase_blk_size;
+	uint64_t                     capacity;
 
 	/* UTRD maintainance data structures.*/
 	struct ufs_utp_req_meta_data utrd_data;
@@ -90,7 +92,8 @@ struct ufs_dev
 int ufs_init(struct ufs_dev *dev);
 int ufs_read(struct ufs_dev* dev, uint64_t start_lba, addr_t buffer, uint32_t num_blocks);
 int ufs_write(struct ufs_dev* dev, uint64_t start_lba, addr_t buffer, uint32_t num_blocks);
+int ufs_erase(struct ufs_dev* dev, uint64_t start_lba, uint32_t num_blocks);
 uint64_t ufs_get_dev_capacity(struct ufs_dev* dev);
 uint32_t ufs_get_serial_num(struct ufs_dev* dev);
-
+uint32_t ufs_get_erase_blk_size(struct ufs_dev* dev);
 #endif
