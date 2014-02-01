@@ -60,7 +60,7 @@ int ucs_do_scsi_cmd(struct ufs_dev *dev, struct scsi_req_build_type *req)
 
 	if (utp_enqueue_upiu(dev, &req_upiu))
 	{
-		dprintf(CRITICAL, "Data read failed\n");
+		dprintf(CRITICAL, "ucs_do_scsi_cmd: enqueue failed\n");
 		return -UFS_FAILURE;
 	}
 
@@ -73,7 +73,7 @@ int ucs_do_scsi_cmd(struct ufs_dev *dev, struct scsi_req_build_type *req)
 				dprintf(CRITICAL, "SCSI request sense failed.\n");
 		}
 
-		dprintf(CRITICAL, "SCSI read failed. status = %x\n", resp_upiu.status);
+		dprintf(CRITICAL, "ucs_do_scsi_cmd failed status = %x\n", resp_upiu.status);
 		return -UFS_FAILURE;
 	}
 
@@ -132,7 +132,7 @@ int ucs_do_scsi_read(struct ufs_dev *dev, struct scsi_rdwr_req *req)
 
 		if (ucs_do_scsi_cmd(dev, &req_upiu))
 		{
-			dprintf(CRITICAL, "Data read failed\n");
+			dprintf(CRITICAL, "ucs_do_scsi_read: failed\n");
 			return -UFS_FAILURE;
 		}
 
@@ -195,7 +195,7 @@ int ucs_do_scsi_write(struct ufs_dev *dev, struct scsi_rdwr_req *req)
 
 		if (ucs_do_scsi_cmd(dev, &req_upiu))
 		{
-			dprintf(CRITICAL, "Data read failed\n");
+			dprintf(CRITICAL, "ucs_do_scsi_write: failed\n");
 			return -UFS_FAILURE;
 		}
 
@@ -334,7 +334,7 @@ static int ucs_do_request_sense(struct ufs_dev *dev)
 
 	if (ucs_do_scsi_cmd(dev, &req_upiu))
 	{
-		dprintf(CRITICAL, "Data read failed\n");
+		dprintf(CRITICAL, "ucs_do_request_sense: failed\n");
 		return -UFS_FAILURE;
 	}
 

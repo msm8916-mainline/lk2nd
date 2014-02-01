@@ -99,6 +99,7 @@ int ufs_read(struct ufs_dev* dev, uint64_t start_lba, addr_t buffer, uint32_t nu
 	if (ret)
 	{
 		dprintf(CRITICAL, "UFS read failed.\n");
+		ufs_dump_hc_registers(dev);
 	}
 
 	return ret;
@@ -118,6 +119,7 @@ int ufs_write(struct ufs_dev* dev, uint64_t start_lba, addr_t buffer, uint32_t n
 	if (ret)
 	{
 		dprintf(CRITICAL, "UFS write failed.\n");
+		ufs_dump_hc_registers(dev);
 	}
 
 	return ret;
@@ -159,6 +161,7 @@ uint32_t ufs_get_serial_num(struct ufs_dev* dev)
 	if (ret)
 	{
 		dprintf(CRITICAL, "UFS get serial number failed.\n");
+		ufs_dump_hc_registers(dev);
 	}
 
 	return dev->serial_num;
@@ -180,7 +183,7 @@ int ufs_init(struct ufs_dev *dev)
 	ret = ufs_dev_init(dev);
 	if (ret != UFS_SUCCESS)
 	{
-		dprintf(CRITICAL, "UFS init failed\n");
+		dprintf(CRITICAL, "UFS dev_init failed\n");
 		goto ufs_init_err;
 	}
 
@@ -188,7 +191,7 @@ int ufs_init(struct ufs_dev *dev)
 	ret = uic_init(dev);
 	if (ret != UFS_SUCCESS)
 	{
-		dprintf(CRITICAL, "UFS init failed\n");
+		dprintf(CRITICAL, "UFS uic_init failed\n");
 		goto ufs_init_err;
 	}
 
@@ -199,32 +202,53 @@ int ufs_init(struct ufs_dev *dev)
 	ret = dme_send_nop_query(dev);
 	if (ret != UFS_SUCCESS)
 	{
-		dprintf(CRITICAL, "UFS init failed\n");
+		dprintf(CRITICAL, "UFS dme_send_nop_query failed\n");
 		goto ufs_init_err;
 	}
 
 	ret = dme_set_fdeviceinit(dev);
-
 	if (ret != UFS_SUCCESS)
 	{
-		dprintf(CRITICAL, "UFS init failed\n");
+		dprintf(CRITICAL, "UFS dme_set_fdeviceinit failed\n");
 		goto ufs_init_err;
 	}
 
 	ret = ucs_scsi_send_inquiry(dev);
 	if (ret != UFS_SUCCESS)
 	{
-		dprintf(CRITICAL, "UFS init failed\n");
+		dprintf(CRITICAL, "UFS ucs_scsi_send_inquiry failed\n");
 		goto ufs_init_err;
 	}
 
 	ret = dme_read_unit_desc(dev, 0);
 	if (ret != UFS_SUCCESS)
 	{
-		dprintf(CRITICAL, "UFS init failed\n");
+		dprintf(CRITICAL, "UFS dme_read_unit_desc failed\n");
 		goto ufs_init_err;
 	}
 
+	dprintf(CRITICAL,"UFS init success\n");
+
 ufs_init_err:
+
+	if(ret != UFS_SUCCESS)
+	{
+		ufs_dump_hc_registers(dev);
+	}
+
 	return ret;
+}
+
+void ufs_dump_hc_registers(struct ufs_dev *dev)
+{
+	uint32_t base = dev->base;
+
+	dprintf(CRITICAL,"------Host controller register dump ---------\n");
+	dprintf(CRITICAL,"UFS_UECPA 0x%x\n",readl(UFS_UECPA(base)));
+	dprintf(CRITICAL,"UFS_UECDL 0x%x\n",readl(UFS_UECDL(base)));
+	dprintf(CRITICAL,"UFS_UECN 0x%x\n", readl(UFS_UECN(base)));
+	dprintf(CRITICAL,"UFS_UECT 0x%x\n",readl(UFS_UECT(base)));
+	dprintf(CRITICAL,"UFS_UECDME 0x%x\n",readl(UFS_UECDME(base)));
+	dprintf(CRITICAL,"UFS_HCS 0x%x\n", readl(UFS_HCS(base)));
+	dprintf(CRITICAL,"-----------End--------------------------------\n");
 }
