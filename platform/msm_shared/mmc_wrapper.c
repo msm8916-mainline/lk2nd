@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -75,6 +75,12 @@ __WEAK int ufs_erase(struct ufs_dev* dev, uint64_t start_lba, uint32_t num_block
 {
 	return 0;
 }
+
+__WEAK uint8_t ufs_get_num_of_luns(struct ufs_dev* dev)
+{
+	return 0;
+}
+
 /*
  * Function: get mmc card
  * Arg     : None
@@ -500,5 +506,74 @@ void mmc_device_sleep()
 	if (target_boot_device_emmc())
 	{
 		mmc_put_card_to_sleep((struct mmc_device *)dev);
+	}
+}
+
+/*
+ * Function     : mmc set LUN for ufs
+ * Arg          : LUN number
+ * Return type  : void
+ */
+void mmc_set_lun(uint8_t lun)
+{
+	void *dev;
+	dev = target_mmc_device();
+
+	if (!target_boot_device_emmc())
+	{
+		((struct ufs_dev*)dev)->current_lun = lun;
+	}
+}
+
+/*
+ * Function     : mmc get LUN from ufs
+ * Arg          : LUN number
+ * Return type  : lun number for UFS and 0 for emmc
+ */
+uint8_t mmc_get_lun(void)
+{
+	void *dev;
+	uint8_t lun=0;
+
+	dev = target_mmc_device();
+
+	if (!target_boot_device_emmc())
+	{
+		lun = ((struct ufs_dev*)dev)->current_lun;
+	}
+
+	return lun;
+}
+
+void mmc_read_partition_table(uint8_t arg)
+{
+	void *dev;
+	uint8_t lun = 0;
+	uint8_t max_luns;
+
+	dev = target_mmc_device();
+
+	if(!target_boot_device_emmc())
+	{
+		max_luns = ufs_get_num_of_luns((struct ufs_dev*)dev);
+
+		ASSERT(max_luns);
+
+		for(lun = arg; lun < max_luns; lun++)
+		{
+			mmc_set_lun(lun);
+
+			if(partition_read_table())
+			{
+				dprintf(CRITICAL, "Error reading the partition table info for lun %d\n", lun);
+			}
+		}
+	}
+	else
+	{
+		if(partition_read_table())
+		{
+			dprintf(CRITICAL, "Error reading the partition table info\n");
+		}
 	}
 }
