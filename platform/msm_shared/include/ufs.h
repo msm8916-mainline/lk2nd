@@ -65,15 +65,38 @@ struct ufs_uic_meta_data
 	event_t  uic_event;
 };
 
+struct ufs_unit_desc
+{
+	uint8_t   desc_len;
+	uint8_t   desc_type;
+	uint8_t   unit_index;
+	uint8_t   lu_enable;
+	uint8_t   boot_lun_id;
+	uint8_t   lu_wp;
+	uint8_t   lu_queue_depth;
+	uint8_t   resv;
+	uint8_t   mem_type;
+	uint8_t   data_reliability;
+	uint8_t   logical_blk_size;
+	uint64_t  logical_blk_cnt;
+	uint32_t  erase_blk_size;
+	uint8_t   provisioning_type;
+	uint8_t   phy_mem_resource_cnt[8];
+	uint16_t  ctx_capabilities;
+	uint8_t   large_unit_size_m1;
+}__PACKED;
+
 struct ufs_dev
 {
 	uint8_t                      instance;
 	uint32_t                     base;
 	uint8_t                      num_lus;
-	uint32_t                      serial_num;
+	uint8_t                      current_lun;
+	uint32_t                     serial_num;
 	uint32_t                     block_size;
 	uint32_t                     erase_blk_size;
 	uint64_t                     capacity;
+	struct ufs_unit_desc         lun_cfg[8];
 
 	/* UTRD maintainance data structures.*/
 	struct ufs_utp_req_meta_data utrd_data;
@@ -95,6 +118,7 @@ int ufs_write(struct ufs_dev* dev, uint64_t start_lba, addr_t buffer, uint32_t n
 int ufs_erase(struct ufs_dev* dev, uint64_t start_lba, uint32_t num_blocks);
 uint64_t ufs_get_dev_capacity(struct ufs_dev* dev);
 uint32_t ufs_get_serial_num(struct ufs_dev* dev);
+uint8_t ufs_get_num_of_luns(struct ufs_dev* dev);
 uint32_t ufs_get_erase_blk_size(struct ufs_dev* dev);
 void ufs_dump_hc_registers(struct ufs_dev* dev);
 #endif
