@@ -380,6 +380,9 @@ void target_load_ssd_keystore(void)
 /* Do any target specific intialization needed before entering fastboot mode */
 void target_fastboot_init(void)
 {
+	/* We are entering fastboot mode, so read partition table */
+	mmc_read_partition_table(1);
+
 	if (target_is_ssd_enabled()) {
 		clock_ce_enable(SSD_CE_INSTANCE);
 		target_load_ssd_keystore();
