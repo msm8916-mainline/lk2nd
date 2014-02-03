@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -48,6 +48,7 @@ struct host_caps {
 	uint8_t ddr_support;     /* Dual Data rate */
 	uint8_t sdr50_support;   /* UHS mode, with 100 MHZ clock */
 	uint8_t sdr104_support;  /* UHS mode, with 200 MHZ clock */
+	uint8_t hs400_support;   /* Hs400 mode, with 400 MHZ clock */
 };
 
 /*

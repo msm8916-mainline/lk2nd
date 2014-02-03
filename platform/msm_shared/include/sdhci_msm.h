@@ -97,6 +97,11 @@
 
 #define MAX_PHASES                                16
 
+/* SDCC version macros */
+#define MCI_VERSION                               0x50
+#define CORE_VERSION_MAJOR_MASK                   0xF0000000
+#define CORE_VERSION_MAJOR_SHIFT                  0x1C
+
 struct sdhci_msm_data
 {
 	uint32_t pwrctl_base;

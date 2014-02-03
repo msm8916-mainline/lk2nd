@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -37,7 +37,7 @@
 #include <bits.h>
 #include <debug.h>
 #include <sdhci.h>
-
+#include <sdhci_msm.h>
 
 /*
  * Function: sdhci reset
@@ -799,7 +799,7 @@ uint32_t sdhci_send_command(struct sdhci_host *host, struct mmc_command *cmd)
 void sdhci_init(struct sdhci_host *host)
 {
 	uint32_t caps[2];
-
+	uint8_t sdcc_version = 0;
 
 	/* Read the capabilities register & store the info */
 	caps[0] = REG_READ32(host, SDHCI_CAPS_REG1);
@@ -835,6 +835,14 @@ void sdhci_init(struct sdhci_host *host)
 
 	/* SDR104 mode support */
 	host->caps.sdr104_support = (caps[1] & SDHCI_SDR104_MODE_MASK) ? 1 : 0;
+
+	/* HS400 mode support:
+	 * The last four bits of MCI_VERSION indicate the SDCC major version
+	 * Version 0 --> SDCC4 core
+	 * Version >= 1 --> SDCC5 or above core
+	 */
+	sdcc_version  = ((readl(host->msm_host->pwrctl_base + MCI_VERSION)) & CORE_VERSION_MAJOR_MASK) >> CORE_VERSION_MAJOR_SHIFT;
+	host->caps.hs400_support = (sdcc_version >= 1) ? 1 : 0;
 
 	/* Set bus power on */
 	sdhci_set_bus_power_on(host);
