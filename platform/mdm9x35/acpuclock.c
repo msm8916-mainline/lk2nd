@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -31,6 +31,7 @@
 #include <debug.h>
 #include <reg.h>
 #include <clock.h>
+#include <pm8x41.h>
 #include <platform/clock.h>
 #include <platform/iomap.h>
 #include <platform/timer.h>
@@ -101,3 +102,72 @@ void clock_config_uart_dm(uint8_t id)
 	}
 }
 
+/*
+ * Disable power collapse using GDSCR:
+ * Globally Distributed Switch Controller Register
+ */
+void clock_usb30_gdsc_enable(void)
+{
+	uint32_t reg = readl(GCC_USB30_GDSCR);
+
+	reg &= ~(0x1);
+
+	writel(reg, GCC_USB30_GDSCR);
+}
+
+/* enables usb30 clocks */
+void clock_usb30_init(void)
+{
+	int ret;
+
+	ret = clk_get_set_enable("usb30_iface_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set usb30_iface_clk. ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	clock_usb30_gdsc_enable();
+
+	ret = clk_get_set_enable("usb30_master_clk", 125000000, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set usb30_master_clk. ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("usb30_pipe_clk", 19200000, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set usb30_pipe_clk. ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("usb30_aux_clk", 1000000, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set usb30_aux_clk. ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("usb_phy_cfg_ahb_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set usb_phy_cfg_ahb_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	pm8x41_lnbb_clock_ctrl(1);
+}
+
+void clock_bumpup_pipe3_clk()
+{
+	int ret = 0;
+
+	ret = clk_get_set_enable("usb30_pipe_clk", 125000000, 0);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set usb30_pipe_clk. ret = %d\n", ret);
+		ASSERT(0);
+	}
+}

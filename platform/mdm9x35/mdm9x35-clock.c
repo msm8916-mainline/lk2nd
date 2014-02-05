@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -39,6 +39,7 @@
 /* Mux source select values */
 #define cxo_source_val    0
 #define gpll0_source_val  1
+#define usb30_pipe_source_val    2
 
 struct clk_freq_tbl rcg_dummy_freq = F_END;
 
@@ -271,8 +272,127 @@ static struct branch_clk gcc_usb_hs_ahb_clk =
 	},
 };
 
+static struct clk_freq_tbl ftbl_gcc_usb30_pipe_clk[] = {
+	F(          19200000,            cxo,    1,    0,     0),
+	F_EXT_SRC(	125000000,    usb30_pipe,    1,    0,     0),
+	F_END
+};
+
+static struct rcg_clk usb30_pipe_clk_src = {
+	.cmd_reg      = (uint32_t *) USB3_PIPE_CMD_RCGR,
+	.cfg_reg      = (uint32_t *) USB3_PIPE_CFG_RCGR,
+	.set_rate     = clock_lib2_rcg_set_rate_hid,
+	.freq_tbl     = ftbl_gcc_usb30_pipe_clk,
+	.current_freq = &rcg_dummy_freq,
+
+	.c = {
+		.dbg_name = "usb30_pipe_clk_src",
+		.ops      = &clk_ops_rcg,
+	},
+};
+
+static struct branch_clk gcc_usb30_pipe_clk = {
+	.cbcr_reg     = (uint32_t *) USB3_PIPE_CBCR,
+	.parent       = &usb30_pipe_clk_src.c,
+	.has_sibling  = 0,
+
+	.c = {
+		.dbg_name = "gcc_usb30_pipe_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
+static struct clk_freq_tbl ftbl_gcc_usb30_master_clk[] =
+{
+	F(125000000, gpll0, 1, 5, 24),
+	F_END
+};
+
+static struct rcg_clk usb30_master_clk_src =
+{
+	.cmd_reg      = (uint32_t *) GCC_USB30_MASTER_CMD_RCGR,
+	.cfg_reg      = (uint32_t *) GCC_USB30_MASTER_CFG_RCGR,
+	.m_reg        = (uint32_t *) GCC_USB30_MASTER_M,
+	.n_reg        = (uint32_t *) GCC_USB30_MASTER_N,
+	.d_reg        = (uint32_t *) GCC_USB30_MASTER_D,
+
+	.set_rate     = clock_lib2_rcg_set_rate_mnd,
+	.freq_tbl     = ftbl_gcc_usb30_master_clk,
+	.current_freq = &rcg_dummy_freq,
+
+	.c = {
+		.dbg_name = "usb30_master_clk_src",
+		.ops      = &clk_ops_rcg,
+	},
+};
+
+
+static struct branch_clk gcc_usb30_master_clk =
+{
+	.cbcr_reg     = (uint32_t *) GCC_USB30_MASTER_CBCR,
+	.parent       = &usb30_master_clk_src.c,
+
+	.c = {
+		.dbg_name = "gcc_usb30_master_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
+static struct clk_freq_tbl ftbl_gcc_usb30_aux_clk[] = {
+	F(   1000000,         cxo,    1,    5,    96),
+	F_END
+};
+
+static struct rcg_clk usb30_aux_clk_src = {
+	.cmd_reg      = (uint32_t *) USB3_AUX_CMD_RCGR,
+	.cfg_reg      = (uint32_t *) USB3_AUX_CFG_RCGR,
+	.m_reg        = (uint32_t *) USB3_AUX_M,
+	.n_reg        = (uint32_t *) USB3_AUX_N,
+	.d_reg        = (uint32_t *) USB3_AUX_D,
+
+	.set_rate     = clock_lib2_rcg_set_rate_mnd,
+	.freq_tbl     = ftbl_gcc_usb30_aux_clk,
+	.current_freq = &rcg_dummy_freq,
+
+	.c = {
+		.dbg_name = "usb30_aux_clk_src",
+		.ops      = &clk_ops_rcg_mnd,
+	},
+};
+
+static struct branch_clk gcc_usb30_aux_clk = {
+	.cbcr_reg = (uint32_t *) USB3_AUX_CBCR,
+	.parent   = &usb30_aux_clk_src.c,
+
+	.c = {
+		.dbg_name = "gcc_usb30_aux_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
+static struct branch_clk gcc_sys_noc_usb30_axi_clk =
+{
+	.cbcr_reg     = (uint32_t *) SYS_NOC_USB3_AXI_CBCR,
+	.has_sibling  = 1,
+
+	.c = {
+		.dbg_name = "gcc_sys_noc_usb3_axi_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
+static struct branch_clk gcc_usb_phy_cfg_ahb_clk = {
+	.cbcr_reg    = (uint32_t *) USB_PHY_CFG_AHB_CBCR,
+	.has_sibling = 1,
+
+	.c = {
+		.dbg_name = "gcc_usb_phy_cfg_ahb_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
 /* Clock lookup table */
-static struct clk_lookup mdm_9625_clocks[] =
+static struct clk_lookup mdm_9635_clocks[] =
 {
 	CLK_LOOKUP("uart_iface_clk", gcc_blsp1_ahb_clk.c),
 	CLK_LOOKUP("uart1_core_clk", gcc_blsp1_uart1_apps_clk.c),
@@ -281,10 +401,17 @@ static struct clk_lookup mdm_9625_clocks[] =
 
 	CLK_LOOKUP("usb_iface_clk",  gcc_usb_hs_ahb_clk.c),
 	CLK_LOOKUP("usb_core_clk",   gcc_usb_hs_system_clk.c),
+
+	CLK_LOOKUP("usb30_iface_clk",  gcc_sys_noc_usb30_axi_clk.c),
+	CLK_LOOKUP("usb30_master_clk", gcc_usb30_master_clk.c),
+	CLK_LOOKUP("usb30_pipe_clk",   gcc_usb30_pipe_clk.c),
+	CLK_LOOKUP("usb30_aux_clk",    gcc_usb30_aux_clk.c),
+
+	CLK_LOOKUP("usb_phy_cfg_ahb_clk", gcc_usb_phy_cfg_ahb_clk.c),
 };
 
 
 void platform_clock_init(void)
 {
-	clk_init(mdm_9625_clocks, ARRAY_SIZE(mdm_9625_clocks));
+	clk_init(mdm_9635_clocks, ARRAY_SIZE(mdm_9635_clocks));
 }
