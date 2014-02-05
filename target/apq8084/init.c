@@ -173,7 +173,10 @@ static void target_keystatus()
 void target_uninit(void)
 {
 	if(target_boot_device_emmc())
+	{
 		mmc_put_card_to_sleep(dev);
+		sdhci_mode_disable(&dev->host);
+	}
 }
 
 /* Do target specific usb initialization */
