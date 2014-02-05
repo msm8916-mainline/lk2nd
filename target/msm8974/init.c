@@ -394,6 +394,20 @@ void target_fastboot_init(void)
 #endif
 }
 
+/* Initialize target specific USB handlers */
+target_usb_iface_t* target_usb30_init()
+{
+	target_usb_iface_t *t_usb_iface;
+
+	t_usb_iface = calloc(1, sizeof(target_usb_iface_t));
+	ASSERT(t_usb_iface);
+
+	t_usb_iface->mux_config = target_usb_phy_mux_configure;
+	t_usb_iface->clock_init = clock_usb30_init;
+
+	return t_usb_iface;
+}
+
 /* Detect the target type */
 void target_detect(struct board_data *board)
 {
