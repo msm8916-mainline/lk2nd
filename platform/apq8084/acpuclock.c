@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -31,6 +31,7 @@
 #include <reg.h>
 #include <mmc.h>
 #include <clock.h>
+#include <pm8x41.h>
 #include <platform/clock.h>
 #include <platform/iomap.h>
 
@@ -370,6 +371,9 @@ void clock_usb30_init(void)
 		dprintf(CRITICAL, "failed to set usb30_master_clk. ret = %d\n", ret);
 		ASSERT(0);
 	}
+
+	/* Enable pmic diff clock */
+	pm8x41_diff_clock_ctrl(1);
 }
 
 void mdp_gdsc_ctrl(uint8_t enable)
