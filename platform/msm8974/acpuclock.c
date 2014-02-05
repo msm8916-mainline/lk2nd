@@ -36,6 +36,7 @@
 #include <clock.h>
 #include <platform/clock.h>
 #include <blsp_qup.h>
+#include <pm8x41.h>
 
 void hsusb_clock_init(void)
 {
@@ -635,6 +636,9 @@ void clock_usb30_init(void)
 		dprintf(CRITICAL, "failed to set usb30_master_clk. ret = %d\n", ret);
 		ASSERT(0);
 	}
+
+	/* Enable pmic diff clock */
+	pm8x41_diff_clock_ctrl(1);
 }
 
 void edp_clk_enable(void)
