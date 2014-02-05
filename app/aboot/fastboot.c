@@ -511,6 +511,8 @@ int fastboot_init(void *base, unsigned size)
 	if(!strcmp(target_usb_controller(), "dwc"))
 	{
 #ifdef USB30_SUPPORT
+		surf_udc_device.t_usb_if = target_usb30_init();
+
 		/* initialize udc functions to use dwc controller */
 		usb_if.udc_init            = usb30_udc_init;
 		usb_if.udc_register_gadget = usb30_udc_register_gadget;
