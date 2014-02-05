@@ -25,6 +25,16 @@
 #ifndef __TARGET_H
 #define __TARGET_H
 
+
+/* Target helper functions exposed to USB driver */
+typedef struct {
+	void (*mux_config) ();
+	void (*phy_reset) ();
+	void (*phy_init) ();
+	void (*clock_init) ();
+	uint8_t vbus_override;
+} target_usb_iface_t;
+
 /* super early platform initialization, before almost everything */
 void target_early_init(void);
 
@@ -60,6 +70,7 @@ uint32_t target_get_boot_device();
 const char * target_usb_controller();
 void target_usb_phy_reset(void);
 void target_usb_phy_mux_configure(void);
+target_usb_iface_t * target_usb30_init();
 
 /* Boot device */
 enum boot_device

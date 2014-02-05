@@ -30,6 +30,8 @@
 #ifndef __DEV_UDC_H
 #define __DEV_UDC_H
 
+#include <target.h>
+
 /* USB Device Controller Transfer Request */
 struct udc_request {
 	void *buf;
@@ -77,6 +79,7 @@ struct udc_device {
 	const char *manufacturer;
 	const char *product;
 	const char *serialno;
+	target_usb_iface_t *t_usb_if;
 };
 
 int udc_init(struct udc_device *devinfo);
