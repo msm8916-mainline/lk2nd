@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -391,14 +391,35 @@ int dev_tree_validate(struct dt_table *table, unsigned int page_size, uint32_t *
 
 static int platform_dt_match(struct dt_entry *cur_dt_entry, uint32_t target_variant_id, uint32_t subtype_mask)
 {
-	/* 1. must match the platform_id, hardware_id, platform_version
+	/*
+	 * 1. Check if cur_dt_entry has platform_hw_version major & minor present?
+	 * 2. If present, calculate cur_dt_target_id for the current platform as:
+	 * 3. bit no |31  24 | 23   16| 15   8 |7         0|
+	 * 4.        |subtype| major  | minor  |hw_platform|
+	 */
+	uint32_t cur_dt_target_id ;
+
+	/*
+	 * if variant_id has platform_hw_ver has major = 0xff and minor = 0xff,
+	 * ignore the major & minor versions from the DTB entry
+	 */
+	if ((cur_dt_entry->variant_id & 0xffff00) == 0xffff00)
+		cur_dt_target_id  = (cur_dt_entry->variant_id & 0xff0000ff) | (target_variant_id & 0xffff00);
+	/*
+	 * We have a valid platform_hw_version major & minor numbers in the board-id, so
+	 * use the board-id from the DTB.
+	 * Note: For some QRD platforms the format used is qcom, board-id = <0xMVmVPT 0xPS>
+	 * where: MV: platform major ver, mV: platform minor ver, PT: platform type
+	 * PS: platform subtype, so we need to put PS @ bit 24-31 to be backward compatible.
+	 */
+	else
+		cur_dt_target_id = cur_dt_entry->variant_id | ((cur_dt_entry->board_hw_subtype & subtype_mask & 0xff) << 24);
+
+	/* 1. must match the platform_id, platform_hw_id, platform_version
 	*  2. soc rev number equal then return 0
 	*  3. dt soc rev number less than cdt return -1
 	*  4. otherwise return 1
 	*/
-	uint32_t cur_dt_target_id ;
-
-	cur_dt_target_id  = cur_dt_entry->variant_id | ((cur_dt_entry->board_hw_subtype & subtype_mask & 0xff) << 24);
 
 	if((cur_dt_entry->platform_id == board_platform_id()) &&
 		(cur_dt_target_id == target_variant_id)) {
@@ -491,17 +512,17 @@ static int __dev_tree_get_entry_info(struct dt_table *table, struct dt_entry *dt
 	}
 
 	if (found != 0) {
-		dprintf(INFO, "Using DTB entry %u/%08x/%u/%u for device %u/%08x/%u/%u\n",
+		dprintf(INFO, "Using DTB entry %u/%08x/0x%08x/%u for device %u/%08x/0x%08x/%u\n",
 				dt_entry_info->platform_id, dt_entry_info->soc_rev,
 				dt_entry_info->variant_id, dt_entry_info->board_hw_subtype,
 				board_platform_id(), board_soc_version(),
-				board_hardware_id(), board_hardware_subtype());
+				board_target_id(), board_hardware_subtype());
 		return 0;
 	}
 
-	dprintf(CRITICAL, "ERROR: Unable to find suitable device tree for device (%u/0x%08x/%u/%u)\n",
+	dprintf(CRITICAL, "ERROR: Unable to find suitable device tree for device (%u/0x%08x/0x%08x/%u)\n",
 			board_platform_id(), board_soc_version(),
-			board_hardware_id(), board_hardware_subtype());
+			board_target_id(), board_hardware_subtype());
 	return -1;
 }
 
@@ -515,16 +536,15 @@ int dev_tree_get_entry_info(struct dt_table *table, struct dt_entry *dt_entry_in
 {
 	uint32_t target_variant_id;
 
-	if(board_hardware_id() == HW_PLATFORM_QRD) {
-		target_variant_id = board_target_id();
-		if (__dev_tree_get_entry_info(table, dt_entry_info, target_variant_id, 0xff) == 0) {
-			return 0;
-		}
+	target_variant_id = board_target_id();
+	if (__dev_tree_get_entry_info(table, dt_entry_info, target_variant_id, 0xff) == 0) {
+		return 0;
 	}
+
 	/*
-	* for compatible with version 1 and version 2 dtbtool
-	* will compare the subtype inside the variant id
-	*/
+	 * for compatible with version 1 and version 2 dtbtool
+	 * will compare the subtype inside the variant id
+	 */
 	target_variant_id = board_hardware_id() | ((board_hardware_subtype() & 0xff) << 24);
 	if (__dev_tree_get_entry_info(table, dt_entry_info, target_variant_id, 0xff) == 0) {
 		return 0;
