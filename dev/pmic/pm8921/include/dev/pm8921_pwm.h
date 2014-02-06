@@ -151,7 +151,7 @@ struct pm8921_pwm_config {
     uint8_t clk;
     uint8_t pre_div;
     uint8_t pre_div_exp;
-    uint8_t pwm_value;
+    uint32_t pwm_value;
     uint8_t bypass_lut;
     uint8_t pwm_ctl[NUM_LPG_CTL_REGS];
 };
