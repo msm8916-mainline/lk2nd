@@ -126,6 +126,7 @@ static const char *baseband_sglte   = " androidboot.baseband=sglte";
 static const char *baseband_dsda    = " androidboot.baseband=dsda";
 static const char *baseband_dsda2   = " androidboot.baseband=dsda2";
 static const char *baseband_sglte2  = " androidboot.baseband=sglte2";
+static const char *warmboot_cmdline = " qpnp-power-on.warm_boot=1";
 
 static unsigned page_size = 0;
 static unsigned page_mask = 0;
@@ -237,6 +238,7 @@ unsigned char *update_cmdline(const char * cmdline)
 	const char *boot_dev_cmdline = NULL;
 #endif
 	int pause_at_bootup = 0;
+	bool warm_boot = false;
 	bool gpt_exists = partition_gpt_exists();
 	int have_target_boot_params = 0;
 
@@ -332,6 +334,11 @@ unsigned char *update_cmdline(const char * cmdline)
 		cmdline_len += strlen(display_panel_buf);
 	}
 
+	if (target_warm_boot()) {
+		warm_boot = true;
+		cmdline_len += strlen(warmboot_cmdline);
+	}
+
 	if (cmdline_len > 0) {
 		const char *src;
 		unsigned char *dst = (unsigned char*) malloc((cmdline_len + 4) & (~3));
@@ -362,6 +369,11 @@ unsigned char *update_cmdline(const char * cmdline)
 		if (have_cmdline) --dst;
 		have_cmdline = 1;
 		while ((*dst++ = *src++));
+		if (warm_boot) {
+			if (have_cmdline) --dst;
+			src = warmboot_cmdline;
+			while ((*dst++ = *src++));
+		}
 
 		if (boot_into_recovery && gpt_exists) {
 			src = secondary_gpt_enable;
