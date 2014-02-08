@@ -656,6 +656,14 @@ void target_usb_phy_reset(void)
 	writel(val & ~BIT(0), GCC_USB30_PHY_COM_BCR);
 }
 
+bool target_warm_boot(void)
+{
+	uint8_t is_cold_boot = pm8x41_get_is_cold_boot();
+	if (is_cold_boot)
+		return false;
+	else
+		return true;
+}
 /* Set up params for h/w CE. */
 void target_crypto_init_params()
 {
