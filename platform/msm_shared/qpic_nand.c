@@ -1582,8 +1582,11 @@ flash_read_ext(struct ptentry *ptn,
 			return NANDC_RESULT_SUCCESS;
 		}
 
-		result = qpic_nand_read_page(page, rdwr_buf, (unsigned char *)spare);
-
+#if CONTIGUOUS_MEMORY
+		result = qpic_nand_read_page(page, image, (unsigned char *) spare);
+#else
+		result = qpic_nand_read_page(page, rdwr_buf, (unsigned char *) spare);
+#endif
 		if (result == NANDC_RESULT_BAD_PAGE)
 		{
 			/* bad page, go to next page. */
@@ -1599,14 +1602,19 @@ flash_read_ext(struct ptentry *ptn,
 			continue;
 		}
 
+#ifndef CONTIGUOUS_MEMORY
 		/* Copy the read page into correct location. */
 		memcpy(image, rdwr_buf, flash.page_size);
-
+#endif
 		page++;
 		image += flash.page_size;
 		/* Copy spare bytes to image */
-		memcpy(image, spare, extra_per_page);
-		image += extra_per_page;
+		if(extra_per_page)
+		{
+			memcpy(image, spare, extra_per_page);
+			image += extra_per_page;
+		}
+
 		count -= 1;
 	}
 
