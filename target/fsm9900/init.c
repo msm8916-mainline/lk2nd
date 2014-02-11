@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -312,7 +312,7 @@ void target_fastboot_init(void)
 /* Detect the target type */
 void target_detect(struct board_data *board)
 {
-	board->target = LINUX_MACHTYPE_UNKNOWN;
+	/* This property is filled as part of board.c */
 }
 
 /* Detect the modem type */
