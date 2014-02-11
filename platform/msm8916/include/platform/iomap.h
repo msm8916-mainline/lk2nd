@@ -29,12 +29,12 @@
 #ifndef _PLATFORM_MSM8916_IOMAP_H_
 #define _PLATFORM_MSM8916_IOMAP_H_
 
-#define MSM_IOMAP_BASE              0xF9000000
-#define MSM_IOMAP_END               0xFEFFFFFF
+#define MSM_IOMAP_BASE              0x0B000000
+#define MSM_IOMAP_END               0xBEFFFFF
 
 #define SDRAM_START_ADDR            0x80000000
 
-#define MSM_SHARED_BASE             0xFA000000
+#define MSM_SHARED_BASE             0x8E380000
 
 #define APPS_SS_BASE                0x0B000000
 
@@ -64,15 +64,15 @@
 #define SPMI_GENI_BASE              (SPMI_BASE + 0xA000)
 #define SPMI_PIC_BASE               (SPMI_BASE + 0xB000)
 
-#define MSM_CE1_BAM_BASE            0xFD404000
-#define MSM_CE1_BASE                0xFD41A000
+#define MSM_CE1_BAM_BASE            0x00704000
+#define MSM_CE1_BASE                0x0073A000
 
-#define TLMM_BASE_ADDR              0xFD510000
+#define TLMM_BASE_ADDR              0x1000000
 #define GPIO_CONFIG_ADDR(x)         (TLMM_BASE_ADDR + 0x1000 + (x)*0x10)
 #define GPIO_IN_OUT_ADDR(x)         (TLMM_BASE_ADDR + 0x1004 + (x)*0x10)
 
-#define MPM2_MPM_CTRL_BASE          0xFC4A1000
-#define MPM2_MPM_PS_HOLD            0xFC4AB000
+#define MPM2_MPM_CTRL_BASE          0x004A1000
+#define MPM2_MPM_PS_HOLD            0x004AB0000
 
 /* CE 2 */
 #define  GCC_CE2_BCR                (CLK_CTL_BASE + 0x1080)
