@@ -401,7 +401,7 @@ unsigned board_machtype(void)
 /* Detect the target type */
 void target_detect(struct board_data *board)
 {
-	board->target = LINUX_MACHTYPE_UNKNOWN;
+	/* This is alreay filled as part of board.c */
 }
 
 void set_cdp_baseband(struct board_data *board)
