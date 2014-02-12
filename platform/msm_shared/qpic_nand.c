@@ -1621,14 +1621,17 @@ flash_write(struct ptentry *ptn,
 	uint32_t *spare = (unsigned *)flash_spare_bytes;
 	const unsigned char *image = data;
 	uint32_t wsize;
+	uint32_t spare_byte_count = 0;
 	int r;
 
+	spare_byte_count = ((flash.cw_size * flash.cws_per_page)- flash.page_size);
+
 	if(write_extra_bytes)
-		wsize = flash.page_size + flash.spare_size;
+		wsize = flash.page_size + spare_byte_count;
 	else
 		wsize = flash.page_size;
 
-	memset(spare, 0xff, (flash.spare_size / flash.cws_per_page));
+	memset(spare, 0xff, (spare_byte_count / flash.cws_per_page));
 
 	while (bytes > 0)
 	{
@@ -1664,7 +1667,7 @@ flash_write(struct ptentry *ptn,
 
 		if (write_extra_bytes)
 		{
-			memcpy(rdwr_buf + flash.page_size, image + flash.page_size, flash.spare_size);
+			memcpy(rdwr_buf + flash.page_size, image + flash.page_size, spare_byte_count);
 			r = qpic_nand_write_page(page,
 									 NAND_CFG,
 									 rdwr_buf,
