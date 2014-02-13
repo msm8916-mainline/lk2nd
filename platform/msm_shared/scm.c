@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -69,6 +69,7 @@ static struct scm_command *alloc_scm_command(size_t cmd_size, size_t resp_size)
 
 	cmd = memalign(CACHE_LINE, ROUNDUP(len, CACHE_LINE));
 	if (cmd) {
+		memset(cmd, 0, len);
 		cmd->len = len;
 		cmd->buf_offset = offsetof(struct scm_command, buf);
 		cmd->resp_hdr_offset = cmd->buf_offset + cmd_size;
