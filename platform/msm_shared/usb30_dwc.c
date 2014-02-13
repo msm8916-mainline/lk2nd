@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -867,6 +867,12 @@ static void dwc_event_handler_ep_ctrl_state_wait_for_host_2(dwc_dev_t *dev,
 
 	switch (event_id)
 	{
+	case DWC_EVENT_EP_CMD_COMPLETE:
+	{
+		dwc_dep_cmd_id_t cmd = DWC_EVENT_EP_EVENT_CMD_TYPE(*event);
+		DBG("\n cmd = %s has no action. ignored.", cmd_lookup[cmd]);
+	}
+		break;
 	case DWC_EVENT_EP_XFER_NOT_READY:
 		{
 			if (event_ctrl_stage == CONTROL_DATA_REQUEST)
@@ -923,6 +929,12 @@ static void dwc_event_handler_ep_ctrl_state_wait_for_host_3(dwc_dev_t *dev,
 
 	switch (event_id)
 	{
+	case DWC_EVENT_EP_CMD_COMPLETE:
+	{
+		dwc_dep_cmd_id_t cmd = DWC_EVENT_EP_EVENT_CMD_TYPE(*event);
+		DBG("\n cmd = %s has no action. ignored.", cmd_lookup[cmd]);
+	}
+		break;
 	case DWC_EVENT_EP_XFER_NOT_READY:
 		{
 			if (event_ctrl_stage == CONTROL_DATA_REQUEST)/* data request */
