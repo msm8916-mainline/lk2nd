@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -792,20 +792,24 @@ int update_device_tree(void *fdt, const char *cmdline,
 		return ret;
 	}
 
-	/* Adding the initrd-start to the chosen node */
-	ret = fdt_setprop_u32(fdt, offset, "linux,initrd-start", (uint32_t)ramdisk);
-	if (ret)
-	{
-		dprintf(CRITICAL, "ERROR: Cannot update chosen node [linux,initrd-start]\n");
-		return ret;
-	}
+	if (ramdisk_size) {
+		/* Adding the initrd-start to the chosen node */
+		ret = fdt_setprop_u32(fdt, offset, "linux,initrd-start",
+				      (uint32_t)ramdisk);
+		if (ret)
+		{
+			dprintf(CRITICAL, "ERROR: Cannot update chosen node [linux,initrd-start]\n");
+			return ret;
+		}
 
-	/* Adding the initrd-end to the chosen node */
-	ret = fdt_setprop_u32(fdt, offset, "linux,initrd-end", ((uint32_t)ramdisk + ramdisk_size));
-	if (ret)
-	{
-		dprintf(CRITICAL, "ERROR: Cannot update chosen node [linux,initrd-end]\n");
-		return ret;
+		/* Adding the initrd-end to the chosen node */
+		ret = fdt_setprop_u32(fdt, offset, "linux,initrd-end",
+				      ((uint32_t)ramdisk + ramdisk_size));
+		if (ret)
+		{
+			dprintf(CRITICAL, "ERROR: Cannot update chosen node [linux,initrd-end]\n");
+			return ret;
+		}
 	}
 
 	fdt_pack(fdt);
