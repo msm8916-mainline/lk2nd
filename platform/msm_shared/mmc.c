@@ -2479,9 +2479,24 @@ unsigned int
 mmc_read(unsigned long long data_addr, unsigned int *out, unsigned int data_len)
 {
 	int val = 0;
-	val =
-	    mmc_boot_read_from_card(&mmc_host, &mmc_card, data_addr, data_len,
-				    out);
+	unsigned int data_limit = mmc_card.rd_block_len * 0xffff;
+	unsigned int this_len;
+
+	do {
+		this_len = (data_len > data_limit) ? data_limit : data_len;
+
+		val =
+		    mmc_boot_read_from_card(&mmc_host, &mmc_card, data_addr,
+				    this_len, out);
+
+		if (val != MMC_BOOT_E_SUCCESS)
+			return val;
+
+		data_len -= this_len;
+		data_addr += this_len;
+		out += (this_len / sizeof(*out));
+	} while (data_len > 0);
+
 	return val;
 }
 
