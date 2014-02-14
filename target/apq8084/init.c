@@ -122,6 +122,7 @@ struct mmc_device *dev;
 struct ufs_dev ufs_device;
 
 extern void ulpi_write(unsigned val, unsigned reg);
+extern int _emmc_recovery_init(void);
 
 void target_early_init(void)
 {
@@ -566,6 +567,11 @@ void target_serialno(unsigned char *buf)
 		serialno = mmc_get_psn();
 		snprintf((char *)buf, 13, "%x", serialno);
 	}
+}
+
+int emmc_recovery_init(void)
+{
+	return _emmc_recovery_init();
 }
 
 unsigned check_reboot_mode(void)
