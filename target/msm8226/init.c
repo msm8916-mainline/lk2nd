@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -416,15 +416,19 @@ void target_usb_init(void)
 uint8_t target_panel_auto_detect_enabled()
 {
 	uint8_t ret = 0;
+	uint32_t hw_subtype = board_hardware_subtype();
 
         switch(board_hardware_id())
         {
 		case HW_PLATFORM_QRD:
-			/* Enable auto detect for DVT boards only */
-			if (((board_target_id() >> 16) & 0xFF) == 0x2)
-				ret = 1;
-			else
-				ret = 0;
+			if (hw_subtype != HW_PLATFORM_SUBTYPE_SKUF
+				&& hw_subtype != HW_PLATFORM_SUBTYPE_SKUG) {
+				/* Enable autodetect for 8x26 DVT boards only */
+				if (((board_target_id() >> 16) & 0xFF) == 0x2)
+					ret = 1;
+				else
+					ret = 0;
+			}
 			break;
 		case HW_PLATFORM_SURF:
 		case HW_PLATFORM_MTP:
