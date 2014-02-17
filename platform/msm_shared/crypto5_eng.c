@@ -364,9 +364,6 @@ void crypto5_set_ctx(struct crypto_dev *dev,
 	uint32_t iv_len = 0;
 	uint32_t *auth_iv = sha1_ctx->auth_iv;
 	uint32_t seg_cfg_val;
-	uint32_t total_bytes_to_write = sha256_ctx->bytes_to_write;
-	uint32_t bytes_to_write = total_bytes_to_write;
-	uint32_t burst_mask;
 
 	if(auth_alg == CRYPTO_AUTH_ALG_SHA1)
 	{
@@ -388,6 +385,8 @@ void crypto5_set_ctx(struct crypto_dev *dev,
 	/* Initialize CE pointers. */
 	REG_WRITE_QUEUE_INIT(dev);
 
+	/* For authentication operation set the encryption cfg reg to 0 as per HPG */
+	REG_WRITE_QUEUE(dev, CRYPTO_ENCR_SEG_CFG(dev->base), 0);
 	REG_WRITE_QUEUE(dev, CRYPTO_AUTH_SEG_CFG(dev->base), seg_cfg_val);
 
 	for (i = 0; i < iv_len; i++)
@@ -398,31 +397,77 @@ void crypto5_set_ctx(struct crypto_dev *dev,
 			REG_WRITE_QUEUE(dev, CRYPTO_AUTH_IVn(dev->base, i), (*(auth_iv + i)));
 	}
 
-	/* Check if the transfer length is a 8 beat burst multiple. */
-	burst_mask = CRYPTO_BURST_LEN - 1;
-	if (bytes_to_write & burst_mask)
-	{
-		/* Add trailer to make it a burst multiple. */
-		total_bytes_to_write = (bytes_to_write + burst_mask) & (~burst_mask);
-	}
-
-	sha256_ctx->bytes_to_write = total_bytes_to_write;
-
 	/* Typecast with crypto_SHA1_ctx because offset of auth_bytecnt
 	 * in both crypto_SHA1_ctx and crypto_SHA256_ctx are same.
 	 */
 	REG_WRITE_QUEUE(dev, CRYPTO_AUTH_BYTECNTn(dev->base, 0), ((crypto_SHA1_ctx *) ctx_ptr)->auth_bytecnt[0]);
 	REG_WRITE_QUEUE(dev, CRYPTO_AUTH_BYTECNTn(dev->base, 1), ((crypto_SHA1_ctx *) ctx_ptr)->auth_bytecnt[1]);
+}
 
-	/* Assume no header, always. */
-	REG_WRITE_QUEUE(dev, CRYPTO_AUTH_SEG_START(dev->base), 0);
+/* Function: crypto5_set_auth_cfg
+ * Arg     : dev, ptr to data buffer, buffer_size, burst_mask for alignment
+ * Return  : aligned buffer incase of unaligned data_ptr and total no. of bytes
+ *           passed to crypto HW(includes header and trailer size).
+ * Flow    : If data buffer is aligned, we just configure the crypto auth
+ *           registers for start, size of data etc. If buffer is unaligned
+ *           we align it to burst(64-byte) boundary and also make the no. of
+ *           bytes a multiple of 64 for bam and then configure the registers
+ *           for header/trailer settings.
+ */
 
+static void crypto5_set_auth_cfg(struct crypto_dev *dev, uint8_t **buffer,
+							uint8_t *data_ptr,
+							uint32_t burst_mask,
+							uint32_t bytes_to_write,
+							uint32_t *total_bytes_to_write)
+{
+	uint32_t minor_ver = 0;
+	uint32_t auth_seg_start = 0;
+
+	/* Bits 23:16 - minor version */
+        minor_ver = (readl(CRYPTO_VERSION(dev->base)) & 0x00FF0000) >> 16;
+
+	/* A H/W bug on Crypto 5.0.0 enforces a rule that the desc lengths must
+	 * be burst aligned. Here we use the header/trailer crypto register settings.
+         * buffer                : The previous 64 byte aligned address for data_ptr.
+         * CRYPTO_AUTH_SEG_START : Number of bytes to skip to reach the address data_ptr.
+         * CRYPTO_AUTH_SEG_SIZE  : Number of  bytes to be sent to crypto HW.
+         * CRYPTO_SEG_SIZE       : CRYPTO_AUTH_SEG_START + CRYPTO_AUTH_SEG_SIZE.
+         * Function: We pick a previous 64 byte aligned address buffer, and tell crypto to
+         * skip (data_ptr - buffer) number of bytes.
+         * This bug is fixed in 5.1.0 onwards.*/
+
+	if(minor_ver == 0)
+	{
+		if ((uint32_t) data_ptr & (CRYPTO_BURST_LEN - 1))
+		{
+			dprintf(CRITICAL, "Data start not aligned at burst length.\n");
+
+			*buffer = (uint8_t *)ROUNDDOWN((uint32_t)data_ptr, CRYPTO_BURST_LEN);
+
+			/* Header & Trailer */
+			*total_bytes_to_write = ((bytes_to_write +(data_ptr - *buffer) + burst_mask) & (~burst_mask));
+
+			auth_seg_start = (data_ptr - *buffer);
+		}
+		else
+		{
+			/* No header */
+			/* Add trailer to make it a burst multiple as 5.0.x HW mandates data to be a multiple of 64. */
+			*total_bytes_to_write = (bytes_to_write + burst_mask) & (~burst_mask);
+		}
+	}
+	else
+	{
+		/* No header. 5.1 crypto HW doesnt require alignment as partial reads and writes are possible*/
+		*total_bytes_to_write = bytes_to_write;
+	}
+
+	REG_WRITE_QUEUE(dev, CRYPTO_AUTH_SEG_START(dev->base), auth_seg_start);
 	REG_WRITE_QUEUE(dev, CRYPTO_AUTH_SEG_SIZE(dev->base), bytes_to_write);
-	REG_WRITE_QUEUE(dev, CRYPTO_SEG_SIZE(dev->base), total_bytes_to_write);
+	REG_WRITE_QUEUE(dev, CRYPTO_SEG_SIZE(dev->base), *total_bytes_to_write);
 	REG_WRITE_QUEUE(dev, CRYPTO_GOPROC(dev->base), GOPROC_GO);
-
 	REG_WRITE_QUEUE_DONE(dev, BAM_DESC_LOCK_FLAG | BAM_DESC_INT_FLAG);
-
 	REG_WRITE_EXEC(&dev->bam, 1, CRYPTO_WRITE_PIPE_INDEX);
 }
 
@@ -434,44 +479,22 @@ uint32_t crypto5_send_data(struct crypto_dev *dev,
 	crypto_SHA256_ctx *sha256_ctx = (crypto_SHA256_ctx *) ctx_ptr;
 	uint32_t wr_flags = BAM_DESC_NWD_FLAG | BAM_DESC_INT_FLAG | BAM_DESC_EOT_FLAG;
 	uint32_t ret_status;
-	uint32_t minor_ver = 0;
 	uint8_t *buffer = NULL;
+	uint32_t total_bytes_to_write = 0;
 
-	/* Bits 23:16 - minor version */
-	minor_ver = (readl(CRYPTO_VERSION(dev->base)) & 0x00FF0000) >> 16;
-
-	/* A H/W bug on Crypto 5.0.0 enforces a rule that the desc lengths must be burst aligned.
-	 * This bug is fixed in 5.1.0 onwards.*/
-
-	if(minor_ver == 0)
-	{
-		if ((uint32_t) data_ptr & (CRYPTO_BURST_LEN - 1))
-		{
-			dprintf(CRITICAL, "Data start not aligned at burst length.\n");
-
-			buffer = (uint8_t *)memalign(CRYPTO_BURST_LEN, sha256_ctx->bytes_to_write);
-			if(!buffer)
-			{
-				dprintf(CRITICAL, "ERROR: Failed to allocate burst aligned crypto buffer\n");
-				ret_status = CRYPTO_ERR_FAIL;
-				goto CRYPTO_SEND_DATA_ERR;
-			}
-
-			memset(buffer, 0, sha256_ctx->bytes_to_write);
-			memcpy(buffer, data_ptr, sha256_ctx->bytes_to_write);
-		}
-	}
+	crypto5_set_auth_cfg(dev, &buffer, data_ptr, CRYPTO_BURST_LEN - 1, sha256_ctx->bytes_to_write,
+											&total_bytes_to_write);
 
 	if(buffer)
 	{
-		arch_clean_invalidate_cache_range((addr_t) buffer, sha256_ctx->bytes_to_write);
+		arch_clean_invalidate_cache_range((addr_t) buffer, total_bytes_to_write);
 
-		bam_status = ADD_WRITE_DESC(&dev->bam, buffer, sha256_ctx->bytes_to_write, wr_flags);
+		bam_status = ADD_WRITE_DESC(&dev->bam, buffer, total_bytes_to_write, wr_flags);
 	}
 	else
 	{
-		arch_clean_invalidate_cache_range((addr_t) data_ptr, sha256_ctx->bytes_to_write);
-		bam_status = ADD_WRITE_DESC(&dev->bam, data_ptr, sha256_ctx->bytes_to_write, wr_flags);
+		arch_clean_invalidate_cache_range((addr_t) data_ptr, total_bytes_to_write);
+		bam_status = ADD_WRITE_DESC(&dev->bam, data_ptr, total_bytes_to_write, wr_flags);
 	}
 
 	if (bam_status)
@@ -504,9 +527,6 @@ uint32_t crypto5_send_data(struct crypto_dev *dev,
 	ret_status = CRYPTO_ERR_NONE;
 
 CRYPTO_SEND_DATA_ERR:
-
-	if(buffer)
-		free(buffer);
 
 	return ret_status;
 }
