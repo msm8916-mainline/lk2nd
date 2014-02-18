@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -870,7 +870,7 @@ void msm8974_ac_clock_override()
 
 void platform_clock_init(void)
 {
-	if (platform_is_8974ac() || platform_is_8x62())
+	if (platform_is_8974ac())
 		msm8974_ac_clock_override();
 	clk_init(msm_clocks_8974, ARRAY_SIZE(msm_clocks_8974));
 }
