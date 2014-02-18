@@ -585,12 +585,6 @@ uint8_t dwc_event_check_trb_status(dwc_dev_t *dev,
 	{
 		bytes_remaining += REG_READ_FIELD_LOCAL(&trb->f3, TRB_F3, BUFSIZ);
 
-		/* point to next trb */
-		trb++;
-
-		/* decrement trb count */
-		num_of_trb--;
-
 		/* The first non-zero status indicates the transfer status. Update
 		 * "status" only once but still go through all the TRBs to find out
 		 * the bytes still remaining to be transferred.
@@ -611,6 +605,12 @@ uint8_t dwc_event_check_trb_status(dwc_dev_t *dev,
 			REG_WRITE_FIELD_LOCAL(&trb->f4, TRB_F4, HWO, 0x0);
 			trb_updated = 1;
 		}
+
+		/* point to next trb */
+		trb++;
+
+		/* decrement trb count */
+		num_of_trb--;
 	}
 
 	/* flush out any updates to trb before continuing */
