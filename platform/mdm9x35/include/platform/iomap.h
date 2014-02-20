@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -54,6 +54,9 @@
 /* MPM2_MPM */
 #define MPM2_MPM_SLEEP_TIMETICK_COUNT_VAL    0xFC4A3000
 #define MPM2_MPM_PS_HOLD                     0xFC4AB000
+
+#define BS_INFO_OFFSET            (0x6B0)
+#define BS_INFO_ADDR              (MSM_SHARED_IMEM_BASE + BS_INFO_OFFSET)
 
 #define SPMI_BASE                 0xFC4C0000
 #define SPMI_GENI_BASE            (SPMI_BASE + 0xA000)
