@@ -2,6 +2,8 @@
  * Copyright (C) 2008 The Android Open Source Project
  * All rights reserved.
  *
+ * Copyright (c) 2014, The Linux Foundation. All rights reserved.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -33,8 +35,9 @@ typedef struct boot_img_hdr boot_img_hdr;
 
 #define BOOT_MAGIC "ANDROID!"
 #define BOOT_MAGIC_SIZE 8
-#define BOOT_NAME_SIZE 16
-#define BOOT_ARGS_SIZE 512
+#define BOOT_NAME_SIZE  16
+#define BOOT_ARGS_SIZE  512
+#define BOOT_IMG_MAX_PAGE_SIZE 4096
 
 struct boot_img_hdr
 {
@@ -97,4 +100,21 @@ boot_img_hdr *mkbootimg(void *kernel, unsigned kernel_size,
                         unsigned *bootimg_size);
 
 void bootimg_set_cmdline(boot_img_hdr *hdr, const char *cmdline);                
+
+#define KERNEL64_HDR_MAGIC 0x644D5241 /* ARM64 */
+
+struct kernel64_hdr
+{
+    uint32_t insn;
+    uint32_t res1;
+    uint64_t text_offset;
+    uint64_t res2;
+    uint64_t res3;
+    uint64_t res4;
+    uint64_t res5;
+    uint64_t res6;
+    uint32_t magic_64;
+    uint32_t res7;
+};
+
 #endif

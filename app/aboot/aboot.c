@@ -102,6 +102,8 @@ void write_device_info_flash(device_info *dev);
 #define UBI_MAGIC      "UBI#"
 #define UBI_MAGIC_SIZE 0x04
 
+#define IS_ARM64(ptr) (ptr->magic_64 == KERNEL64_HDR_MAGIC) ? true : false
+
 #if UFS_SUPPORT
 static const char *emmc_cmdline = " androidboot.bootdevice=msm_sdcc.1";
 static const char *ufs_cmdline = " androidboot.bootdevice=msm_ufs.1";
@@ -181,11 +183,14 @@ extern int emmc_recovery_init(void);
 extern int fastboot_trigger(void);
 #endif
 
-static void update_ker_tags_rdisk_addr(struct boot_img_hdr *hdr)
+static void update_ker_tags_rdisk_addr(struct boot_img_hdr *hdr, bool is_arm64)
 {
 	/* overwrite the destination of specified for the project */
 #ifdef ABOOT_IGNORE_BOOT_HEADER_ADDRS
-	hdr->kernel_addr = ABOOT_FORCE_KERNEL_ADDR;
+	if (is_arm64)
+		hdr->kernel_addr = ABOOT_FORCE_KERNEL64_ADDR;
+	else
+		hdr->kernel_addr = ABOOT_FORCE_KERNEL_ADDR;
 	hdr->ramdisk_addr = ABOOT_FORCE_RAMDISK_ADDR;
 	hdr->tags_addr = ABOOT_FORCE_TAGS_ADDR;
 #endif
@@ -579,6 +584,7 @@ void boot_linux(void *kernel, unsigned *tags,
 
 	void (*entry)(unsigned, unsigned, unsigned*) = (entry_func_ptr*)(PA((addr_t)kernel));
 	uint32_t tags_phys = PA((addr_t)tags);
+	struct kernel64_hdr *kptr = (struct kernel64_hdr*)kernel;
 
 	ramdisk = PA(ramdisk);
 
@@ -623,7 +629,13 @@ void boot_linux(void *kernel, unsigned *tags,
 	arch_disable_mmu();
 #endif
 	bs_set_timestamp(BS_KERNEL_ENTRY);
-	entry(0, machtype, (unsigned*)tags_phys);
+
+	if (IS_ARM64(kptr))
+		/* Jump to a 64bit kernel */
+		scm_elexec_call((paddr_t)kernel, tags_phys);
+	else
+		/* Jump to a 32bit kernel */
+		entry(0, machtype, (unsigned*)tags_phys);
 }
 
 /* Function to check if the memory address range falls within the aboot
@@ -648,9 +660,9 @@ int check_aboot_addr_range_overlap(uint32_t start, uint32_t size)
 
 #define ROUND_TO_PAGE(x,y) (((x) + (y)) & (~(y)))
 
-BUF_DMA_ALIGN(buf, 4096); //Equal to max-supported pagesize
+BUF_DMA_ALIGN(buf, BOOT_IMG_MAX_PAGE_SIZE); //Equal to max-supported pagesize
 #if DEVICE_TREE
-BUF_DMA_ALIGN(dt_buf, 4096);
+BUF_DMA_ALIGN(dt_buf, BOOT_IMG_MAX_PAGE_SIZE);
 #endif
 
 static void verify_signed_bootimg(uint32_t bootimg_addr, uint32_t bootimg_size)
@@ -763,6 +775,9 @@ int boot_linux_from_mmc(void)
 	uint32_t dt_actual;
 	uint32_t dt_hdr_size;
 #endif
+	BUF_DMA_ALIGN(kbuf, BOOT_IMG_MAX_PAGE_SIZE);
+	struct kernel64_hdr *kptr = (void*) kbuf;
+
 	if (check_format_bit())
 		boot_into_recovery = 1;
 
@@ -815,12 +830,21 @@ int boot_linux_from_mmc(void)
 		page_mask = page_size - 1;
 	}
 
+	/* Read the next page to get kernel Image header
+	 * which lives in the second page for arm64 targets.
+	 */
+
+	if (mmc_read(ptn + page_size, (unsigned int *) kbuf, page_size)) {
+		dprintf(CRITICAL, "ERROR: Cannot read boot image header\n");
+                return -1;
+	}
+
 	/*
 	 * Update the kernel/ramdisk/tags address if the boot image header
 	 * has default values, these default values come from mkbootimg when
 	 * the boot image is flashed using fastboot flash:raw
 	 */
-	update_ker_tags_rdisk_addr(hdr);
+	update_ker_tags_rdisk_addr(hdr, IS_ARM64(kptr));
 
 	/* Get virtual addresses since the hdr saves physical addresses. */
 	hdr->kernel_addr = VA((addr_t)(hdr->kernel_addr));
@@ -1141,7 +1165,7 @@ int boot_linux_from_flash(void)
 	 * has default values, these default values come from mkbootimg when
 	 * the boot image is flashed using fastboot flash:raw
 	 */
-	update_ker_tags_rdisk_addr(hdr);
+	update_ker_tags_rdisk_addr(hdr, false);
 
 	/* Get virtual addresses since the hdr saves physical addresses. */
 	hdr->kernel_addr = VA((addr_t)(hdr->kernel_addr));
@@ -1327,7 +1351,7 @@ continue_boot:
 	return 0;
 }
 
-BUF_DMA_ALIGN(info_buf, 4096);
+BUF_DMA_ALIGN(info_buf, BOOT_IMG_MAX_PAGE_SIZE);
 void write_device_info_mmc(device_info *dev)
 {
 	struct device_info *info = (void*) info_buf;
@@ -1565,6 +1589,7 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	unsigned kernel_actual;
 	unsigned ramdisk_actual;
 	struct boot_img_hdr *hdr;
+	struct kernel64_hdr *kptr;
 	char *ptr = ((char*) data);
 	int ret = 0;
 	uint8_t dtb_copied = 0;
@@ -1592,7 +1617,8 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	 * has default values, these default values come from mkbootimg when
 	 * the boot image is flashed using fastboot flash:raw
 	 */
-	update_ker_tags_rdisk_addr(hdr);
+	kptr = (struct kernel64_hdr*)((char*) data + page_size);
+	update_ker_tags_rdisk_addr(hdr, IS_ARM64(kptr));
 
 	/* Get virtual addresses since the hdr saves physical addresses. */
 	hdr->kernel_addr = VA(hdr->kernel_addr);
