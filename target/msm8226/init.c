@@ -49,6 +49,7 @@
 #include <stdlib.h>
 #include <partition_parser.h>
 #include <shutdown_detect.h>
+#include <vibrator.h>
 
 extern  bool target_use_signed_kernel(void);
 static void set_sdc_power_ctrl(void);
@@ -66,6 +67,7 @@ static void set_sdc_power_ctrl(void);
 #define CRYPTO_ENGINE_CMD_ARRAY_SIZE       20
 
 #define TLMM_VOL_UP_BTN_GPIO    106
+#define VIBRATE_TIME    250
 
 #define SSD_CE_INSTANCE         1
 
@@ -250,6 +252,9 @@ void target_init(void)
 
 	shutdown_detect();
 
+	/* turn on vibrator to indicate that phone is booting up to end user */
+	vib_timed_turn_on(VIBRATE_TIME);
+
 	/* Display splash screen if enabled */
 #if DISPLAY_SPLASH_SCREEN
 	dprintf(SPEW, "Display Init: Start\n");
@@ -408,6 +413,9 @@ void target_usb_stop(void)
 
 void target_uninit(void)
 {
+	/* wait for the vibrator timer is expried */
+	wait_vib_timeout();
+
 	mmc_put_card_to_sleep(dev);
 
 	if (target_is_ssd_enabled())
