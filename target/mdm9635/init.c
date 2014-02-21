@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -186,8 +186,7 @@ void reboot_device(unsigned reboot_reason)
 /* Identify the current target */
 void target_detect(struct board_data *board)
 {
-	/* Not used. set to unknown */
-	board->target = LINUX_MACHTYPE_UNKNOWN;
+	/* This property is filled as part of board.c */
 }
 
 unsigned board_machtype(void)
