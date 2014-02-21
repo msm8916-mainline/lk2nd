@@ -262,7 +262,7 @@ unsigned check_reboot_mode(void)
 /* Detect the target type */
 void target_detect(struct board_data *board)
 {
-	board->target = LINUX_MACHTYPE_UNKNOWN;
+	/* This property is filled as part of board.c */
 }
 
 void target_baseband_detect(struct board_data *board)
