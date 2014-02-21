@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -104,18 +104,15 @@ static void platform_detect()
 		board.platform_subtype = board_info_v8.platform_subtype;
 
 		/*
-		* fill in board.target with variant_id information
-		*                 bit no |31  24 | 23   16| 15   8 |7         0|
-		*          board.target =|subtype| major  | minor  |hw_platform|
-		* Have QRD board.target =| OEM   | EVT/DVT|Reserved| QRD        |
-		*
-		*/
-		if (board_info_v8.board_info_v3.hw_platform == HW_PLATFORM_QRD) {
-			board.target = (((board_info_v8.platform_subtype & 0xff) << 24) |
-					(((board_info_v8.platform_version >> 16) & 0xff) << 16) |
-					((board_info_v8.platform_version & 0xff) << 8) |
-					((board_info_v8.board_info_v3.hw_platform & 0xff) << 0));
-		}
+		 * fill in board.target with variant_id information
+		 * bit no         |31  24 | 23   16            | 15   8             |7         0|
+		 * board.target = |subtype| plat_hw_ver major  | plat_hw_ver minor  |hw_platform|
+		 *
+		 */
+		board.target = (((board_info_v8.platform_subtype & 0xff) << 24) |
+					   (((board_info_v8.platform_version >> 16) & 0xff) << 16) |
+					   ((board_info_v8.platform_version & 0xff) << 8) |
+					   (board_info_v8.board_info_v3.hw_platform & 0xff));
 
 		for (i = 0; i < SMEM_V8_SMEM_MAX_PMIC_DEVICES; i++) {
 			board.pmic_info[i].pmic_type = board_info_v8.pmic_info[i].pmic_type;
