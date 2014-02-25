@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012, 2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -69,7 +69,7 @@ static int msm7627a_lcdc_clock_init(int enable)
 	}
 	return ret;
 }
-void display_init(void)
+void target_display_init(void)
 {
 	unsigned mach_type;
 	mach_type = board_machtype();
@@ -155,7 +155,7 @@ void display_init(void)
 	display_enabled = 1;
 }
 
-void display_shutdown(void)
+void target_display_shutdown(void)
 {
 	dprintf(SPEW, "display_shutdown()\n");
 	if (display_enabled)

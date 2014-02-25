@@ -328,7 +328,7 @@ void target_init(void)
 	/* Display splash screen if enabled */
 #if DISPLAY_SPLASH_SCREEN
 	dprintf(INFO, "Display Init: Start\n");
-	display_init();
+	target_display_init();
 	dprintf(INFO, "Display Init: Done\n");
 #endif
 
@@ -683,6 +683,8 @@ void target_uninit(void)
 
 	/* Disable HC mode before jumping to kernel */
 	sdhci_mode_disable(&dev->host);
+
+	target_display_shutdown();
 }
 
 void shutdown_device()

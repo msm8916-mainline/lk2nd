@@ -162,7 +162,7 @@ int target_ldo_ctrl(uint8_t enable)
 	return 0;
 }
 
-void display_init(void)
+void target_display_init(void)
 {
 	uint32_t panel_loop = 0;
 	uint32_t ret = 0;
@@ -180,7 +180,7 @@ void display_init(void)
 
 }
 
-void display_shutdown(void)
+void target_display_shutdown(void)
 {
 	gcdb_display_shutdown();
 }

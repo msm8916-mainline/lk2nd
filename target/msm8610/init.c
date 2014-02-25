@@ -176,7 +176,7 @@ void target_init(void)
 
 	/* Display splash screen if enabled */
 	dprintf(SPEW, "Display Init: Start\n");
-	display_init();
+	target_display_init();
 	dprintf(SPEW, "Display Init: Done\n");
 
 	if (target_use_signed_kernel())
@@ -189,6 +189,8 @@ void target_uninit(void)
 
 	if (crypto_initialized())
 		crypto_eng_cleanup();
+
+	target_display_shutdown();
 }
 
 #define SSD_CE_INSTANCE         1
