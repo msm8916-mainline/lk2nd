@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
- * Copyright (c) 2009-2013, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -38,6 +38,10 @@
 #include <dev/uart.h>
 #include <platform/timer.h>
 #include <platform.h>
+
+#if PON_VIB_SUPPORT
+#include <vibrator.h>
+#endif
 
 static void write_dcc(char c)
 {
@@ -134,6 +138,9 @@ int dgetc(char *c, bool wait)
 
 void platform_halt(void)
 {
+#if PON_VIB_SUPPORT
+	vib_turn_off();
+#endif
 	if (set_download_mode(NORMAL_DLOAD) == 0)
 	{
 		dprintf(CRITICAL, "HALT: reboot into dload mode...\n");
