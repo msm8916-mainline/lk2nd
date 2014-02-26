@@ -69,7 +69,7 @@ static int msm7627a_lcdc_clock_init(int enable)
 	}
 	return ret;
 }
-void target_display_init(void)
+void target_display_init(const char *panel_name)
 {
 	unsigned mach_type;
 	mach_type = board_machtype();

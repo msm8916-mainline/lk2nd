@@ -52,7 +52,7 @@ void *target_mmc_device();
 uint32_t target_boot_device_emmc();
 
 bool target_display_panel_node(char *pbuf, uint16_t buf_size);
-void target_display_init(void);
+void target_display_init(const char *panel_name);
 void target_display_shutdown(void);
 
 uint32_t target_get_boot_device();
