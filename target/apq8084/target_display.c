@@ -244,7 +244,7 @@ int target_display_pre_on()
 void target_display_init(const char *panel_name)
 {
 	uint32_t ret = 0;
-	ret = gcdb_display_init(MDP_REV_50, MIPI_FB_ADDR);
+	ret = gcdb_display_init(panel_name, MDP_REV_50, MIPI_FB_ADDR);
 	if (ret) {
 		msm_display_off();
 	}
