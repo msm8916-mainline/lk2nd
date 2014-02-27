@@ -202,6 +202,7 @@ int pm8x41_ldo_set_voltage(struct pm8x41_ldo *ldo, uint32_t voltage);
 int pm8x41_ldo_control(struct pm8x41_ldo *ldo, uint8_t enable);
 uint8_t pm8x41_get_pmic_rev();
 uint8_t pm8x41_get_pon_reason();
+uint32_t pm8x41_get_pwrkey_is_pressed();
 void pm8x41_config_output_mpp(struct pm8x41_mpp *mpp);
 void pm8x41_enable_mpp(struct pm8x41_mpp *mpp, enum mpp_en_ctl enable);
 uint8_t pm8x41_get_is_cold_boot();

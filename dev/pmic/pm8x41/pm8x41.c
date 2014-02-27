@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -217,6 +217,19 @@ uint32_t pm8x41_resin_status()
 	rt_sts = REG_READ(PON_INT_RT_STS);
 
 	return (rt_sts & BIT(RESIN_ON_INT_BIT));
+}
+
+/* Return 1 if power key is pressed */
+uint32_t pm8x41_get_pwrkey_is_pressed()
+{
+	uint8_t pwr_sts = 0;
+
+	pwr_sts = REG_READ(PON_INT_RT_STS);
+
+	if (pwr_sts & BIT(KPDPWR_ON_INT_BIT))
+		return 1;
+	else
+		return 0;
 }
 
 void pm8x41_v2_reset_configure(uint8_t reset_type)
