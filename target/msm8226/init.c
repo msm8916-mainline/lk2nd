@@ -48,6 +48,7 @@
 #include <scm.h>
 #include <stdlib.h>
 #include <partition_parser.h>
+#include <shutdown_detect.h>
 
 extern  bool target_use_signed_kernel(void);
 static void set_sdc_power_ctrl(void);
@@ -246,6 +247,8 @@ void target_init(void)
 	target_keystatus();
 
 	target_sdc_init();
+
+	shutdown_detect();
 
 	/* Display splash screen if enabled */
 #if DISPLAY_SPLASH_SCREEN
