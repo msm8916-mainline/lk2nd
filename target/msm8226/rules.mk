@@ -26,6 +26,7 @@ MODULES += \
 	dev/pmic/pm8x41 \
 	dev/panel/msm \
 	dev/gcdb/display \
+	dev/vib \
 	lib/libfdt
 
 DEFINES += \
