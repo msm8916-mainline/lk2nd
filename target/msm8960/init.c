@@ -90,11 +90,6 @@ void shutdown_device(void)
 	dprintf(CRITICAL, "Shutdown failed.\n");
 }
 
-void target_uninit(void)
-{
-	target_display_shutdown();
-}
-
 void target_init(void)
 {
 	unsigned base_addr;
@@ -146,12 +141,6 @@ void target_init(void)
 	default:
 		dprintf(CRITICAL,"Keyboard is not supported for platform: %d\n",platform_id);
 	};
-
-	/* Display splash screen if enabled */
-#if DISPLAY_SPLASH_SCREEN
-	target_display_init();
-	dprintf(SPEW, "Diplay initialized\n");
-#endif
 
 	if ((platform_id == MSM8960) || (platform_id == MSM8960AB) ||
 		(platform_id == APQ8060AB) || (platform_id == MSM8260AB) ||

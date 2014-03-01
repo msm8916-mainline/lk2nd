@@ -603,6 +603,12 @@ void boot_linux(void *kernel, unsigned *tags,
 	/* Perform target specific cleanup */
 	target_uninit();
 
+	/* Turn off splash screen if enabled */
+#if DISPLAY_SPLASH_SCREEN
+	target_display_shutdown();
+#endif
+
+
 	dprintf(INFO, "booting linux @ %p, ramdisk @ %p (%d), tags/device tree @ %p\n",
 		entry, ramdisk, ramdisk_size, tags_phys);
 
@@ -2364,6 +2370,14 @@ void aboot_init(const struct app_descriptor *app)
 	ASSERT((MEMBASE + MEMSIZE) > MEMBASE);
 
 	read_device_info(&device);
+
+	/* Display splash screen if enabled */
+#if DISPLAY_SPLASH_SCREEN
+	dprintf(SPEW, "Display Init: Start\n");
+	target_display_init();
+	dprintf(SPEW, "Display Init: Done\n");
+#endif
+
 
 	target_serialno((unsigned char *) sn_buf);
 	dprintf(SPEW,"serial number: %s\n",sn_buf);

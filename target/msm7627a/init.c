@@ -169,11 +169,6 @@ void keypad_init(void);
 
 int target_is_emmc_boot(void);
 
-void target_uninit(void)
-{
-	target_display_shutdown();
-}
-
 void target_init(void)
 {
 	unsigned offset;
@@ -189,12 +184,6 @@ void target_init(void)
 #if (!ENABLE_NANDWRITE)
 	keys_init();
 	keypad_init();
-#endif
-
-	/* Display splash screen if enabled */
-#if DISPLAY_SPLASH_SCREEN
-	target_display_init();
-	dprintf(SPEW, "Diplay initialized\n");
 #endif
 
 	if (target_is_emmc_boot()) {
