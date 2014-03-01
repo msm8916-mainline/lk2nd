@@ -39,5 +39,9 @@ $(OUTPUT_TZ_BIN): $(INPUT_TZ_BIN)
 	$(NOECHO)$(OBJCOPY) -I binary -B arm -O elf32-littlearm $(INPUT_TZ_BIN) $(OUTPUT_TZ_BIN)
 endif
 
+$(OUTELF_STRIP): $(OUTELF)
+	@echo generating stripped elf: $@
+	$(NOECHO)$(STRIP) -S $< -o $@
+
 include arch/$(ARCH)/compile.mk
 

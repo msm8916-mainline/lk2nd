@@ -37,6 +37,8 @@ LK_TOP_DIR:= .
 BUILDDIR := $(BOOTLOADER_OUT)/build-$(PROJECT)
 OUTBIN := $(BUILDDIR)/lk.bin
 OUTELF := $(BUILDDIR)/lk
+OUTELF_STRIP := $(BUILDDIR)/lk_s.elf
+
 CONFIGHEADER := $(BUILDDIR)/config.h
 
 #Initialize the command-line flag ENABLE_TRUSTZONE. Value for flag passed in at command-line will take precedence
@@ -60,6 +62,8 @@ endif
 
 # When the host arch is ARM, ensure stack protection code is not emitted since
 # it's not supported by the bootloader's libc
+# setup toolchain prefix
+TOOLCHAIN_PREFIX ?= arm-eabi-
 ifneq ($(shell uname -m | grep "arm.*"),)
   CFLAGS += -fno-stack-protector
 endif
@@ -72,7 +76,7 @@ CFLAGS += -ffunction-sections -fdata-sections
 LDFLAGS += -gc-sections
 
 # top level rule
-all:: $(OUTBIN) $(OUTELF).lst $(OUTELF).debug.lst $(OUTELF).sym $(OUTELF).size APPSBOOTHEADER
+all:: $(OUTBIN) $(OUTELF).lst $(OUTELF).debug.lst $(OUTELF).sym $(OUTELF).size $(OUTELF_STRIP) APPSBOOTHEADER
 
 # the following three object lists are identical except for the ordering
 # which is bootobjs, kobjs, objs
@@ -149,7 +153,10 @@ DEPS := $(ALLOBJS:%o=%d)
 # default to no ccache
 CCACHE ?= 
 CC := $(CCACHE) $(TOOLCHAIN_PREFIX)gcc
+ifeq ($(LD),ld)
 LD := $(TOOLCHAIN_PREFIX)ld
+endif
+STRIP := $(TOOLCHAIN_PREFIX)strip
 OBJDUMP := $(TOOLCHAIN_PREFIX)objdump
 OBJCOPY := $(TOOLCHAIN_PREFIX)objcopy
 CPPFILT := $(TOOLCHAIN_PREFIX)c++filt
@@ -163,7 +170,7 @@ NOECHO ?= @
 include make/build.mk
 
 clean: $(EXTRA_CLEANDEPS)
-	rm -f $(ALLOBJS) $(DEPS) $(GENERATED) $(OUTBIN) $(OUTELF) $(OUTELF).lst
+	rm -f $(ALLOBJS) $(DEPS) $(GENERATED) $(OUTBIN) $(OUTELF) $(OUTELF).lst $(OUTELF_STRIP)
 
 install: all
 	scp $(OUTBIN) 192.168.0.4:/tftproot
