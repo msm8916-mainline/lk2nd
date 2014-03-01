@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
- * Copyright (c) 2009-2013, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -169,6 +169,11 @@ void keypad_init(void);
 
 int target_is_emmc_boot(void);
 
+void target_uninit(void)
+{
+	target_display_shutdown();
+}
+
 void target_init(void)
 {
 	unsigned offset;
@@ -188,7 +193,7 @@ void target_init(void)
 
 	/* Display splash screen if enabled */
 #if DISPLAY_SPLASH_SCREEN
-	display_init();
+	target_display_init();
 	dprintf(SPEW, "Diplay initialized\n");
 #endif
 

@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -255,7 +255,7 @@ static int msm8960_liquid_mipi_panel_power(int enable)
 	return 0;
 }
 
-void display_init(void)
+void target_display_init(void)
 {
 	int target_id = board_target_id();
 
@@ -345,7 +345,7 @@ void display_init(void)
 	display_enable = 1;
 }
 
-void display_shutdown(void)
+void target_display_shutdown(void)
 {
 	if (display_enable) {
 		msm_display_off();

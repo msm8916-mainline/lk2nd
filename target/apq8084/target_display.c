@@ -241,7 +241,7 @@ int target_display_pre_on()
 	return NO_ERROR;
 }
 
-void display_init(void)
+void target_display_init(void)
 {
 	uint32_t ret = 0;
 	ret = gcdb_display_init(MDP_REV_50, MIPI_FB_ADDR);
@@ -250,7 +250,7 @@ void display_init(void)
 	}
 }
 
-void display_shutdown(void)
+void target_display_shutdown(void)
 {
 	gcdb_display_shutdown();
 }
