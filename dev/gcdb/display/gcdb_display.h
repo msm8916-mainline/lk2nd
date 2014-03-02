@@ -58,7 +58,7 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 						struct msm_panel_info *pinfo);
 int target_ldo_ctrl(uint8_t enable);
 
-int gcdb_display_init(uint32_t rev, void *base);
+int gcdb_display_init(const char *panel_name, uint32_t rev, void *base);
 void gcdb_display_shutdown();
 
 #endif /*_GCDB_DISPLAY_H_ */

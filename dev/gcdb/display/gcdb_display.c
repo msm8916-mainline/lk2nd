@@ -277,11 +277,11 @@ static void init_platform_data()
 	memcpy(dsi_video_mode_phy_db.laneCfg, panel_lane_config, LANE_SIZE);
 }
 
-int gcdb_display_init(uint32_t rev, void *base)
+int gcdb_display_init(const char *panel_name, uint32_t rev, void *base)
 {
 	int ret = NO_ERROR;
 
-	if (!oem_panel_select(&panelstruct, &(panel.panel_info),
+	if (!oem_panel_select(panel_name, &panelstruct, &(panel.panel_info),
 				 &dsi_video_mode_phy_db)) {
 		dprintf(CRITICAL, "Target panel init not found!\n");
 		ret = ERR_NOT_SUPPORTED;

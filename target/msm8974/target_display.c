@@ -353,7 +353,8 @@ void target_display_init(const char *panel_name)
 		break;
 	default:
 		do {
-			ret = gcdb_display_init(MDP_REV_50, MIPI_FB_ADDR);
+			ret = gcdb_display_init(panel_name, MDP_REV_50,
+				MIPI_FB_ADDR);
 			if (!ret || ret == ERR_NOT_SUPPORTED) {
 				break;
 			} else {

@@ -239,7 +239,7 @@ uint32_t oem_panel_max_auto_detect_panels()
 			DISPLAY_MAX_PANEL_DETECTION : 0;
 }
 
-bool oem_panel_select(struct panel_struct *panelstruct,
+bool oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 			struct msm_panel_info *pinfo,
 			struct mdss_dsi_phy_ctrl *phy_db)
 {
