@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2014, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -29,11 +29,22 @@
 #ifndef _BOOTLOADER_RECOVERY_H
 #define _BOOTLOADER_RECOVERY_H
 
-#define UPDATE_MAGIC       "MSM-RADIO-UPDATE"
-#define UPDATE_MAGIC_SIZE  16
-#define UPDATE_VERSION     0x00010000
-#define FFBM_MODE_BUF_SIZE 8
+#define UPDATE_MAGIC         "MSM-RADIO-UPDATE"
+#define UPDATE_MAGIC_SIZE    16
+#define UPDATE_VERSION       0x00010000
+#define FFBM_MODE_BUF_SIZE   8
+#define BOOTSELECT_SIGNATURE ('B' | ('S' << 8) | ('e' << 16) | ('l' << 24))
+#define BOOTSELECT_VERSION   0x00010001
+#define BOOTSELECT_FORMAT    (1 << 31)
+#define BOOTSELECT_FACTORY   (1 << 30)
 
+/* bootselect partition format structure */
+struct boot_selection_info {
+	uint32_t signature;                // Contains value BOOTSELECT_SIGNATURE defined above
+	uint32_t version;
+	uint32_t boot_partition_selection; // Decodes which partitions to boot: 0-Windows,1-Android
+	uint32_t state_info;               // Contains factory and format bit as definded above
+};
 
 /* Recovery Message */
 struct recovery_message {
