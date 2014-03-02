@@ -52,6 +52,7 @@
 #define DISPLAY_MAX_PANEL_DETECTION 2
 
 #define SSD2080M_720P_VIDEO_PANEL_ON_DELAY 200
+#define MAX_PANEL_ID_LEN 64
 
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
@@ -78,7 +79,60 @@ enum target_subtype {
 	HW_PLATFORM_SUBTYPE_SKUG = 5,
 };
 
+struct panel_list {
+	char name[MAX_PANEL_ID_LEN];
+	uint32_t id;
+};
+
+/*
+ * The list of panels that are supported on this target.
+ * Any panel in this list can be selected using fastboot oem command.
+ */
+static struct panel_list supp_panels[] = {
+	{"toshiba_720p_video", TOSHIBA_720P_VIDEO_PANEL},
+	{"nt35590_720p_cmd", NT35590_720P_CMD_PANEL},
+	{"nt35590_720p_video", NT35590_720P_VIDEO_PANEL},
+	{"nt35596_1080p_video", NT35596_1080P_VIDEO_PANEL},
+	{"hx8394a_720p_video", HX8394A_720P_VIDEO_PANEL},
+	{"nt35521_720p_video", NT35521_720P_VIDEO_PANEL},
+	{"ssd2080m_720p_video", SSD2080M_720P_VIDEO_PANEL},
+	{"jdi_1080p_video", JDI_1080P_VIDEO_PANEL},
+};
+
 static uint32_t panel_id;
+
+static uint32_t panel_name_to_id(const char *panel_name)
+{
+	uint32_t i;
+	uint32_t panel_id = UNKNOWN_PANEL;
+
+	/* Remove any leading whitespaces */
+	panel_name += strspn(panel_name, " ");
+	for (i = 0; i < ARRAY_SIZE(supp_panels); i++) {
+		if (!strncmp(panel_name, supp_panels[i].name,
+			MAX_PANEL_ID_LEN)) {
+			panel_id = supp_panels[i].id;
+			break;
+		}
+	}
+
+	return panel_id;
+}
+
+static const char *panel_id_to_name(uint32_t panel_id)
+{
+	uint32_t i;
+	char *panel_name = "???";
+
+	for (i = 0; i < ARRAY_SIZE(supp_panels); i++) {
+		if (supp_panels[i].id == panel_id) {
+			panel_name = supp_panels[i].name;
+			break;
+		}
+	}
+
+	return panel_name;
+}
 
 int oem_panel_rotation()
 {
@@ -315,10 +369,22 @@ bool oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	uint32_t nt35590_panel_id = NT35590_720P_VIDEO_PANEL;
 	uint32_t hw_subtype = board_hardware_subtype();
 	bool ret = true;
+	uint32_t panel_override_id = UNKNOWN_PANEL;
 
-#if DISPLAY_TYPE_CMD_MODE
-	nt35590_panel_id = NT35590_720P_CMD_PANEL;
-#endif
+	if (panel_name) {
+		panel_override_id = panel_name_to_id(panel_name);
+		dprintf(INFO, "%s: OEM panel override=%s\n", __func__,
+			panel_id_to_name(panel_override_id));
+	}
+
+	if (panel_override_id != UNKNOWN_PANEL) {
+		/* panel override using fastboot oem command */
+		panel_id = panel_override_id;
+		goto panel_init;
+	} else {
+		dprintf(INFO, "%s: Invalid panel override. Initializing default panel\n",
+			__func__);
+	}
 
 	switch (hw_id) {
 	case HW_PLATFORM_QRD:
@@ -367,6 +433,7 @@ bool oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 		return false;
 	}
 
+panel_init:
 	init_panel_data(panelstruct, pinfo, phy_db);
 
 	return ret;
