@@ -162,7 +162,7 @@ int target_ldo_ctrl(uint8_t enable)
 	return 0;
 }
 
-void target_display_init(void)
+void target_display_init(const char *panel_name)
 {
 	uint32_t panel_loop = 0;
 	uint32_t ret = 0;

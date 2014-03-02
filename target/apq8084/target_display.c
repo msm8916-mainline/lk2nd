@@ -241,7 +241,7 @@ int target_display_pre_on()
 	return NO_ERROR;
 }
 
-void target_display_init(void)
+void target_display_init(const char *panel_name)
 {
 	uint32_t ret = 0;
 	ret = gcdb_display_init(MDP_REV_50, MIPI_FB_ADDR);

@@ -2374,7 +2374,7 @@ void aboot_init(const struct app_descriptor *app)
 	/* Display splash screen if enabled */
 #if DISPLAY_SPLASH_SCREEN
 	dprintf(SPEW, "Display Init: Start\n");
-	target_display_init();
+	target_display_init(NULL);
 	dprintf(SPEW, "Display Init: Done\n");
 #endif
 

@@ -255,7 +255,7 @@ static int msm8960_liquid_mipi_panel_power(int enable)
 	return 0;
 }
 
-void target_display_init(void)
+void target_display_init(const char *panel_name)
 {
 	int target_id = board_target_id();
 

@@ -330,7 +330,7 @@ static int msm8974_edp_panel_power(int enable)
 	return 0;
 }
 
-void target_display_init(void)
+void target_display_init(const char *panel_name)
 {
 	uint32_t hw_id = board_hardware_id();
 	uint32_t panel_loop = 0;
