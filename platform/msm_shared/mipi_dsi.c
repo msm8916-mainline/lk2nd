@@ -1209,8 +1209,8 @@ int mdss_dsi_cmd_mode_config(uint16_t disp_width,
 	       ctl_base + CTRL);
 	writel(0x10000000, ctl_base + COMMAND_MODE_DMA_CTRL);
 	writel(0x10000000, ctl_base + MISR_CMD_CTRL);
+	writel(0x1, ctl_base + EOT_PACKET_CTRL);
 #endif
-
 	return 0;
 }
 
