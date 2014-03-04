@@ -15,3 +15,6 @@ DEFINES += DEVICE_TREE=1
 
 #disable Thumb mode for the codesourcery/arm-2011.03 toolchain
 ENABLE_THUMB := false
+
+#Override linker
+LD := $(TOOLCHAIN_PREFIX)ld.bfd
