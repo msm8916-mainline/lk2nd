@@ -38,6 +38,7 @@
 #include <err.h>
 #include <reg.h>
 #include <mdp5.h>
+#include <string.h>
 
 
 /*---------------------------------------------------------------------------*/
@@ -324,4 +325,29 @@ int dsi_panel_config(void *pdata)
 	}
 
 	return ret;
+}
+
+int32_t panel_name_to_id(struct panel_list supp_panels[],
+			  uint32_t supp_panels_size,
+			  const char *panel_name)
+{
+	uint32_t i;
+	int32_t panel_id = ERR_NOT_FOUND;
+
+	if (!panel_name) {
+		dprintf(CRITICAL, "Invalid panel name\n");
+		return panel_id;
+	}
+
+	/* Remove any leading whitespaces */
+	panel_name += strspn(panel_name, " ");
+	for (i = 0; i < supp_panels_size; i++) {
+		if (!strncmp(panel_name, supp_panels[i].name,
+			MAX_PANEL_ID_LEN)) {
+			panel_id = supp_panels[i].id;
+			break;
+		}
+	}
+
+	return panel_id;
 }

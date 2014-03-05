@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -44,6 +44,8 @@
 #define DUAL_PIPE_FLAG 0x2
 #define PIPE_SWAP_FLAG 0x4
 #define SPLIT_DISPLAY_FLAG 0x8
+
+#define MAX_PANEL_ID_LEN 64
 /*---------------------------------------------------------------------------*/
 /* struct definition                                                         */
 /*---------------------------------------------------------------------------*/
@@ -60,6 +62,10 @@ typedef struct panel_struct{
 	struct backlight            *backlightinfo;
 };
 
+struct panel_list {
+	char name[MAX_PANEL_ID_LEN];
+	uint32_t id;
+};
 
 /*---------------------------------------------------------------------------*/
 /* API                                                                       */
@@ -79,4 +85,7 @@ int oem_panel_rotation();
 int oem_panel_on();
 int oem_panel_off();
 
+/* OEM support API */
+int32_t panel_name_to_id(struct panel_list supp_panels[],
+	uint32_t supp_panels_size, const char *panel_name);
 #endif /*_PLATFORM_DISPLAY_H_ */
