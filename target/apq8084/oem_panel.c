@@ -54,6 +54,16 @@ JDI_QHD_DUALDSI_CMD_PANEL,
 UNKNOWN_PANEL
 };
 
+/*
+ * The list of panels that are supported on this target.
+ * Any panel in this list can be selected using fastboot oem command.
+ */
+static struct panel_list supp_panels[] = {
+	{"jdi_1080p_video", JDI_1080P_VIDEO_PANEL},
+	{"jdi_qhd_dualdsi_video", JDI_QHD_DUALDSI_VIDEO_PANEL},
+	{"jdi_qhd_dualdsi_cmd", JDI_QHD_DUALDSI_CMD_PANEL},
+};
+
 static uint32_t panel_id;
 
 int oem_panel_rotation()
@@ -158,8 +168,24 @@ bool oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 			struct mdss_dsi_phy_ctrl *phy_db)
 {
 	uint32_t hw_id = board_hardware_id();
-	uint32_t target_id = board_target_id();
-	bool ret = true;
+	int32_t panel_override_id;
+
+	if (panel_name) {
+		panel_override_id = panel_name_to_id(supp_panels,
+				ARRAY_SIZE(supp_panels), panel_name);
+
+		if (panel_override_id < 0) {
+			dprintf(CRITICAL, "Not able to search the panel:%s\n",
+					 panel_name + strspn(panel_name, " "));
+		} else if (panel_override_id < UNKNOWN_PANEL) {
+			/* panel override using fastboot oem command */
+			panel_id = panel_override_id;
+
+			dprintf(INFO, "OEM panel override:%s\n",
+					panel_name + strspn(panel_name, " "));
+			goto panel_init;
+		}
+	}
 
 	switch (hw_id) {
 	case HW_PLATFORM_MTP:
@@ -176,5 +202,6 @@ bool oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 		return false;
 	}
 
+panel_init:
 	return init_panel_data(panelstruct, pinfo, phy_db);
 }
