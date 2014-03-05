@@ -29,7 +29,11 @@
 #include <bits.h>
 #include <debug.h>
 #include <reg.h>
+#if SPMI_CORE_V2
+#include <spmi_v2.h>
+#else
 #include <spmi.h>
+#endif
 #include <string.h>
 #include <pm8x41_hw.h>
 #include <pm8x41.h>
