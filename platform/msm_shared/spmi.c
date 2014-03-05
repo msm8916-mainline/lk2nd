@@ -28,7 +28,11 @@
 
 #include <debug.h>
 #include <reg.h>
+#if SPMI_CORE_V2
+#include <spmi_v2.h>
+#else
 #include <spmi.h>
+#endif
 #include <platform/iomap.h>
 #include <platform/irqs.h>
 #include <platform/interrupts.h>
