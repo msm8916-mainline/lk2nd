@@ -79,11 +79,6 @@ enum target_subtype {
 	HW_PLATFORM_SUBTYPE_SKUG = 5,
 };
 
-struct panel_list {
-	char name[MAX_PANEL_ID_LEN];
-	uint32_t id;
-};
-
 /*
  * The list of panels that are supported on this target.
  * Any panel in this list can be selected using fastboot oem command.
@@ -100,39 +95,6 @@ static struct panel_list supp_panels[] = {
 };
 
 static uint32_t panel_id;
-
-static uint32_t panel_name_to_id(const char *panel_name)
-{
-	uint32_t i;
-	uint32_t panel_id = UNKNOWN_PANEL;
-
-	/* Remove any leading whitespaces */
-	panel_name += strspn(panel_name, " ");
-	for (i = 0; i < ARRAY_SIZE(supp_panels); i++) {
-		if (!strncmp(panel_name, supp_panels[i].name,
-			MAX_PANEL_ID_LEN)) {
-			panel_id = supp_panels[i].id;
-			break;
-		}
-	}
-
-	return panel_id;
-}
-
-static const char *panel_id_to_name(uint32_t panel_id)
-{
-	uint32_t i;
-	char *panel_name = "???";
-
-	for (i = 0; i < ARRAY_SIZE(supp_panels); i++) {
-		if (supp_panels[i].id == panel_id) {
-			panel_name = supp_panels[i].name;
-			break;
-		}
-	}
-
-	return panel_name;
-}
 
 int oem_panel_rotation()
 {
@@ -369,21 +331,23 @@ bool oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	uint32_t nt35590_panel_id = NT35590_720P_VIDEO_PANEL;
 	uint32_t hw_subtype = board_hardware_subtype();
 	bool ret = true;
-	uint32_t panel_override_id = UNKNOWN_PANEL;
+	int32_t panel_override_id;
 
 	if (panel_name) {
-		panel_override_id = panel_name_to_id(panel_name);
-		dprintf(INFO, "%s: OEM panel override=%s\n", __func__,
-			panel_id_to_name(panel_override_id));
-	}
+		panel_override_id = panel_name_to_id(supp_panels,
+				ARRAY_SIZE(supp_panels), panel_name);
 
-	if (panel_override_id != UNKNOWN_PANEL) {
-		/* panel override using fastboot oem command */
-		panel_id = panel_override_id;
-		goto panel_init;
-	} else {
-		dprintf(INFO, "%s: Invalid panel override. Initializing default panel\n",
-			__func__);
+		if (panel_override_id < 0) {
+			dprintf(CRITICAL, "Not able to search the panel:%s\n",
+					 panel_name + strspn(panel_name, " "));
+		} else if (panel_override_id < UNKNOWN_PANEL) {
+			/* panel override using fastboot oem command */
+			panel_id = panel_override_id;
+
+			dprintf(INFO, "OEM panel override:%s\n",
+					panel_name + strspn(panel_name, " "));
+			goto panel_init;
+		}
 	}
 
 	switch (hw_id) {
