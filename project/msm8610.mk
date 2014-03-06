@@ -10,6 +10,9 @@ DEBUG := 1
 EMMC_BOOT := 1
 ENABLE_SDHCI_SUPPORT := 1
 
+#enable power on vibrator feature
+ENABLE_PON_VIB_SUPPORT := true
+
 #DEFINES += WITH_DEBUG_DCC=1
 DEFINES += WITH_DEBUG_UART=1
 DEFINES += WITH_DEBUG_LOG_BUF=1
@@ -28,6 +31,10 @@ DEFINES += ABOOT_FORCE_TAGS_ADDR=0x01e00000
 #thumb interworking code for LK. Confirm that the issue
 #is with the linker and file a bug report.
 ENABLE_THUMB := false
+
+ifeq ($(ENABLE_PON_VIB_SUPPORT),true)
+DEFINES += PON_VIB_SUPPORT=1
+endif
 
 ifeq ($(ENABLE_SDHCI_SUPPORT),1)
 DEFINES += MMC_SDHCI_SUPPORT=1
