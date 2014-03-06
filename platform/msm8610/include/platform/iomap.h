@@ -195,7 +195,7 @@
 #define INT_CTRL                    0x10C
 #define CMD_MODE_DMA_SW_TRIGGER     0x08C
 
-#define EOT_PACKET_CTRL             0x0CC
+#define EOT_PACKET_CTRL             0x0C8
 #define MISR_CMD_CTRL               0x09C
 #define MISR_VIDEO_CTRL             0x0A0
 #define VIDEO_MODE_CTRL             0x00C
