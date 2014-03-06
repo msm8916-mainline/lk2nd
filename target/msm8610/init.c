@@ -51,6 +51,7 @@
 #include <platform/clock.h>
 #include <platform/timer.h>
 #include <crypto5_wrapper.h>
+#include <shutdown_detect.h>
 
 #define PMIC_ARB_CHANNEL_NUM    0
 #define PMIC_ARB_OWNER_ID       0
@@ -175,6 +176,8 @@ void target_init(void)
 	target_keystatus();
 
 	target_sdc_init();
+
+	shutdown_detect();
 
 	if (target_use_signed_kernel())
 		target_crypto_init_params();
