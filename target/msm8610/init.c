@@ -32,6 +32,7 @@
 #include <reg.h>
 #include <target.h>
 #include <platform.h>
+#include <dload_util.h>
 #include <uart_dm.h>
 #include <mmc.h>
 #include <platform/gpio.h>
@@ -501,6 +502,16 @@ void target_crypto_init_params()
 	ce_params.do_bam_init = 0;
 
 	crypto_init_params(&ce_params);
+}
+
+int set_download_mode(enum dload_mode mode)
+{
+	dload_util_write_cookie(mode == NORMAL_DLOAD ?
+		DLOAD_MODE_ADDR : EMERGENCY_DLOAD_MODE_ADDR, mode);
+
+	pm8x41_clear_pmic_watchdog();
+
+	return 0;
 }
 
 crypto_engine_type board_ce_type(void)
