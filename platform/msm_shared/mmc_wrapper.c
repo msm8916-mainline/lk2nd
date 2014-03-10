@@ -275,32 +275,31 @@ uint32_t mmc_get_eraseunit_size()
 static uint32_t mmc_zero_out(struct mmc_device* dev, uint32_t blk_addr, uint32_t num_blks)
 {
 	uint32_t *out;
-	uint32_t block_size;
-	int i;
+	uint32_t block_size = mmc_get_device_blocksize();
+	uint32_t erase_size = (block_size * num_blks);
+	uint32_t scratch_size = target_get_max_flash_size();
 
 	dprintf(INFO, "erasing 0x%x:0x%x\n", blk_addr, num_blks);
-	block_size = mmc_get_device_blocksize();
 
-	/* Assume there are at least block_size bytes available in the heap */
-	out = memalign(CACHE_LINE, ROUNDUP(block_size, CACHE_LINE));
-
-	if (!out)
+	if (erase_size <= scratch_size)
 	{
-		dprintf(CRITICAL, "Error allocating memory\n");
+		/* Use scratch address if the unaligned blocks */
+		out = (uint32_t *) target_get_scratch_address();
+	}
+	else
+	{
+		dprintf(CRITICAL, "Erase Fail: Erase size: %u is bigger than scratch region:%u\n", scratch_size);
 		return 1;
 	}
-	memset((void *)out, 0, ROUNDUP(block_size, CACHE_LINE));
 
-	for (i = 0; i < num_blks; i++)
+	memset((void *)out, 0, erase_size);
+
+	if (mmc_sdhci_write(dev, out, blk_addr, num_blks))
 	{
-		if (mmc_sdhci_write(dev, out, blk_addr + i, 1))
-		{
-			dprintf(CRITICAL, "failed to erase the partition: %x\n", blk_addr);
-			free(out);
-			return 1;
-		}
+		dprintf(CRITICAL, "failed to erase the partition: %x\n", blk_addr);
+		return 1;
 	}
-	free(out);
+
 	return 0;
 }
 
