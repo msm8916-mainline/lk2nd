@@ -229,6 +229,7 @@ static void target_mmc_sdhci_init()
 	config.sdhc_base = mmc_sdhci_base[config.slot - 1];
 	config.pwrctl_base = mmc_sdc_base[config.slot - 1];
 	config.pwr_irq     = mmc_sdc_pwrctl_irq[config.slot - 1];
+	config.hs400_support = 1;
 
 	if (!(dev = mmc_init(&config))) {
 		/* Trying Slot 2 next */
