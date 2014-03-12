@@ -515,8 +515,8 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 int mdp_dsi_video_on(void)
 {
 	int ret = NO_ERROR;
-	writel(0x32048, MDP_CTL_0_BASE + CTL_FLUSH);
-	writel(0x32090, MDP_CTL_1_BASE + CTL_FLUSH);
+	writel(0x22048, MDP_CTL_0_BASE + CTL_FLUSH);
+	writel(0x24090, MDP_CTL_1_BASE + CTL_FLUSH);
 	writel(0x01, MDP_INTF_1_TIMING_ENGINE_EN  + mdss_mdp_intf_offset());
 	return ret;
 }
@@ -553,8 +553,8 @@ int mdp_dsi_cmd_off()
 
 int mdp_dma_on(void)
 {
-	writel(0x32048, MDP_CTL_0_BASE + CTL_FLUSH);
-	writel(0x32090, MDP_CTL_1_BASE + CTL_FLUSH);
+	writel(0x22048, MDP_CTL_0_BASE + CTL_FLUSH);
+	writel(0x24090, MDP_CTL_1_BASE + CTL_FLUSH);
 	writel(0x01, MDP_CTL_0_BASE + CTL_START);
 	return NO_ERROR;
 }
@@ -566,7 +566,7 @@ void mdp_disable(void)
 
 int mdp_edp_on(void)
 {
-	writel(0x32048, MDP_CTL_0_BASE + CTL_FLUSH);
+	writel(0x22048, MDP_CTL_0_BASE + CTL_FLUSH);
 	writel(0x01, MDP_INTF_0_TIMING_ENGINE_EN  + mdss_mdp_intf_offset());
 	return NO_ERROR;
 }
