@@ -377,6 +377,7 @@ static uint8_t sdhci_cmd_complete(struct sdhci_host *host, struct mmc_command *c
 	uint32_t int_status;
 	uint32_t trans_complete = 0;
 	uint32_t err_status;
+	uint64_t max_trans_retry = (cmd->cmd_timeout ? cmd->cmd_timeout : SDHCI_MAX_TRANS_RETRY);
 
 	do {
 		int_status = REG_READ16(host, SDHCI_NRML_INT_STS_REG);
@@ -449,7 +450,7 @@ static uint8_t sdhci_cmd_complete(struct sdhci_host *host, struct mmc_command *c
 
 			retry++;
 			udelay(1000);
-			if (retry == SDHCI_MAX_TRANS_RETRY) {
+			if (retry == max_trans_retry) {
 				dprintf(CRITICAL, "Error: Transfer never completed\n");
 				ret = 1;
 				goto err;
