@@ -844,9 +844,15 @@ static uint32_t mmc_set_hs200_mode(struct sdhci_host *host,
 	/* Run the clock @ 400 Mhz */
 	if (host->caps.hs400_support && mmc_card_supports_hs400_mode(card))
 	{
-		clock_config_mmc(host->msm_host->slot, SDHCI_CLK_400MHZ);
 		/* Save the timing value, before changing the clock */
 		MMC_SAVE_TIMING(host, MMC_HS400_TIMING);
+		/*
+		* Set the MCI_CLK divider before changing the sdcc core
+		* core clk to ensure card receives no more than 200 MHZ
+		* clock frequency
+		*/
+		sdhci_msm_set_mci_clk(host);
+		clock_config_mmc(host->msm_host->slot, SDHCI_CLK_400MHZ);
 	}
 	else
 	{
@@ -993,6 +999,10 @@ uint32_t mmc_set_hs400_mode(struct sdhci_host *host,
 	/* Save the timing value, before changing the clock */
 	MMC_SAVE_TIMING(host, MMC_HS400_TIMING);
 	sdhci_set_uhs_mode(host, SDHCI_SDR104_MODE);
+	/*
+	* Enable HS400 mode
+	*/
+	sdhci_msm_set_mci_clk(host);
 
 	/* 7. Execute Tuning for hs400 mode */
 	if ((mmc_ret = sdhci_msm_execute_tuning(host, width)))
