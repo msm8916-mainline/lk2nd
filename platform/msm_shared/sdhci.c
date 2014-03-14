@@ -264,13 +264,6 @@ void sdhci_set_uhs_mode(struct sdhci_host *host, uint32_t mode)
 
 	REG_WRITE16(host, ctrl, SDHCI_HOST_CTRL2_REG);
 
-	/*
-	 * SDHC spec does not have matching UHS mode
-	 * So we use Vendor specific registers to enable
-	 * HS400 mode
-	 */
-	sdhci_msm_set_mci_clk(host);
-
 	/* Run the clock back */
 	sdhci_clk_supply(host, clk_val);
 }
