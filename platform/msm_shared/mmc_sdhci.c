@@ -1035,6 +1035,7 @@ static uint8_t mmc_host_init(struct mmc_device *dev)
 
 	host->base = cfg->sdhc_base;
 	host->sdhc_event = &sdhc_event;
+	host->caps.hs400_support = cfg->hs400_support;
 
 	data = (struct sdhci_msm_data *) malloc(sizeof(struct sdhci_msm_data));
 	ASSERT(data);
