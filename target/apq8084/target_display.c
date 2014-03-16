@@ -277,9 +277,43 @@ int target_display_pre_on()
 	return NO_ERROR;
 }
 
+bool target_display_panel_node(char *panel_name, char *pbuf, uint16_t buf_size)
+{
+	int prefix_string_len = strlen(DISPLAY_CMDLINE_PREFIX);
+	bool ret = true;
+
+	panel_name += strspn(panel_name, " ");
+
+	if (!strcmp(panel_name, HDMI_PANEL_NAME)) {
+		if (buf_size < (prefix_string_len + LK_OVERRIDE_PANEL_LEN +
+				HDMI_CONTROLLER_STRING)) {
+			dprintf(CRITICAL, "command line argument is greater than buffer size\n");
+			return false;
+		}
+
+		strlcpy(pbuf, DISPLAY_CMDLINE_PREFIX, buf_size);
+		buf_size -= prefix_string_len;
+		strlcat(pbuf, LK_OVERRIDE_PANEL, buf_size);
+		buf_size -= LK_OVERRIDE_PANEL_LEN;
+		strlcat(pbuf, HDMI_CONTROLLER_STRING, buf_size);
+	} else {
+		ret = gcdb_display_cmdline_arg(pbuf, buf_size);
+	}
+
+	return ret;
+}
+
 void target_display_init(const char *panel_name)
 {
 	uint32_t ret = 0;
+
+	panel_name += strspn(panel_name, " ");
+
+	if (!strcmp(panel_name, HDMI_PANEL_NAME)) {
+		dprintf(INFO, "%s: HDMI is primary\n", __func__);
+		return;
+	}
+
 	ret = gcdb_display_init(panel_name, MDP_REV_50, MIPI_FB_ADDR);
 	if (ret) {
 		msm_display_off();
