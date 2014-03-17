@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2008 Travis Geiselbrecht
- * Copyright (c) 2013, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -338,7 +338,7 @@ FUNCTION(arch_clean_cache_range)
 	bhs		0b
 	
 	mov		r0, #0
-	mcr		p15, 0, r0, c7, c10, 4		// data sync barrier (formerly drain write buffer)
+	dsb
 
 	bx		lr
 
@@ -351,7 +351,7 @@ FUNCTION(arch_clean_invalidate_cache_range)
 	bhs		0b
 
 	mov		r0, #0
-	mcr		p15, 0, r0, c7, c10, 4		// data sync barrier (formerly drain write buffer)
+	dsb
 
 	bx		lr
 
@@ -364,8 +364,7 @@ FUNCTION(arch_invalidate_cache_range)
 	subs	r1, r1, #CACHE_LINE
 	bhs		0b
 	mov		r0, #0
-	/* data sync barrier (formerly drain write buffer*/
-	mcr		p15, 0, r0, c7, c10, 4
+	dsb
 	bx		lr
 
 	/* void arch_sync_cache_range(addr_t start, size_t len); */
