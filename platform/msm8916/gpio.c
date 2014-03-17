@@ -44,10 +44,31 @@ void gpio_tlmm_config(uint32_t gpio, uint8_t func,
 	return;
 }
 
-void gpio_set(uint32_t gpio, uint32_t dir)
+void gpio_set_dir(uint32_t gpio, uint32_t dir)
 {
 	writel(dir, (uint32_t *)GPIO_IN_OUT_ADDR(gpio));
 	return;
+}
+
+void gpio_set_value(uint32_t gpio, uint32_t value)
+{
+	/* GPIO_OUTPUT */
+	if (value) {
+		writel(GPIO_OUT_VAL(gpio),
+			(uint32_t *)GPIO_OUT_SET_ADDR(gpio));
+	} else {
+		writel(GPIO_OUT_VAL(gpio),
+			(uint32_t *)GPIO_OUT_CLR_ADDR(gpio));
+	}
+	/* GPIO_OE */
+	writel(GPIO_OUT_OE_VAL(gpio),
+			(uint32_t *)GPIO_OUT_OE_SET_ADDR(gpio));
+	return;
+}
+
+uint32_t gpio_status(uint32_t gpio)
+{
+	return readl(GPIO_IN_OUT_ADDR(gpio)) & GPIO_IN;
 }
 
 /* Configure gpio for blsp uart 2 */
