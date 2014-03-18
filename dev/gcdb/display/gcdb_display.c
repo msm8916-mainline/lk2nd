@@ -159,7 +159,7 @@ static int mdss_dsi_bl_enable(uint8_t enable)
 	return ret;
 }
 
-bool target_display_panel_node(char *pbuf, uint16_t buf_size)
+bool gcdb_display_cmdline_arg(char *pbuf, uint16_t buf_size)
 {
 	char *dsi_id = NULL;
 	char *panel_node = NULL;

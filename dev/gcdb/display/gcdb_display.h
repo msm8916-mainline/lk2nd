@@ -43,8 +43,6 @@
 #define BIST_SIZE 6
 #define LANE_SIZE 45
 
-#define LK_OVERRIDE_PANEL      "1:"
-#define LK_OVERRIDE_PANEL_LEN  2
 #define DSI_1_STRING           ":1:"
 #define DSI_1_STRING_LEN       3
 
@@ -59,6 +57,7 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 int target_ldo_ctrl(uint8_t enable);
 
 int gcdb_display_init(const char *panel_name, uint32_t rev, void *base);
+bool gcdb_display_cmdline_arg(char *pbuf, uint16_t buf_size);
 void gcdb_display_shutdown();
 
 #endif /*_GCDB_DISPLAY_H_ */

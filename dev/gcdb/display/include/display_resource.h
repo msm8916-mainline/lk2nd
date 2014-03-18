@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -38,6 +38,9 @@
 #include <board.h>
 
 #define TOTAL_LDO_CTRL 5
+
+#define LK_OVERRIDE_PANEL      "1:"
+#define LK_OVERRIDE_PANEL_LEN  2
 
 /*---------------------------------------------------------------------------*/
 /* Structure definition                                                      */
