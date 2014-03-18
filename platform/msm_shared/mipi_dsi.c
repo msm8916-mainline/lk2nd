@@ -599,7 +599,7 @@ config_dsi_video_mode(unsigned short disp_width, unsigned short disp_height,
 
 	writel(0, DSI_CTRL);
 
-	writel(0, DSI_ERR_INT_MASK0);
+	writel(0x13ff3fe0, DSI_ERR_INT_MASK0);
 
 	DST_FORMAT = 0;		// RGB565
 	dprintf(SPEW, "DSI_Video_Mode - Dst Format: RGB565\n");
@@ -680,7 +680,7 @@ config_dsi_cmd_mode(unsigned short disp_width, unsigned short disp_height,
 	writel(0x0000001e, DSI_CLK_CTRL);
 	writel(0x0000003e, DSI_CLK_CTRL);
 
-	writel(0x10000000, DSI_ERR_INT_MASK0);
+	writel(0x13ff3fe0, DSI_ERR_INT_MASK0);
 
 	// writel(0, DSI_CTRL);
 
@@ -713,9 +713,9 @@ config_dsi_cmd_mode(unsigned short disp_width, unsigned short disp_height,
 	writel(interleav << 30 | 0 << 24 | 0 << 20 | DLNx_EN << 4 | 0x105,
 	       DSI_CTRL);
 	mdelay(10);
-	writel(0x10000000, DSI_COMMAND_MODE_DMA_CTRL);
+	writel(0x14000000, DSI_COMMAND_MODE_DMA_CTRL);
 	writel(0x10000000, DSI_MISR_CMD_CTRL);
-	writel(0x00000040, DSI_ERR_INT_MASK0);
+	writel(0x13ff3fe0, DSI_ERR_INT_MASK0);
 	writel(0x1, DSI_EOT_PACKET_CTRL);
 	// writel(0x0, MDP_OVERLAYPROC0_START);
 	mdp_start_dma();
@@ -944,7 +944,7 @@ int mdss_dsi_video_mode_config(uint16_t disp_width,
 
 	writel(0, ctl_base + CTRL);
 
-	writel(0, ctl_base + ERR_INT_MASK0);
+	writel(0x13ff3fe0, ctl_base + ERR_INT_MASK0);
 
 	writel(0x02020202, ctl_base + INT_CTRL);
 
@@ -1091,7 +1091,7 @@ int mipi_dsi_video_mode_config(unsigned short disp_width,
 
 	writel(0, DSI_CTRL);
 
-	writel(0, DSI_ERR_INT_MASK0);
+	writel(0x13ff3fe0, DSI_ERR_INT_MASK0);
 
 	writel(0x02020202, DSI_INT_CTRL);
 
@@ -1191,7 +1191,7 @@ int mdss_dsi_cmd_mode_config(uint16_t disp_width,
 
 	writel(0, ctl_base + CTRL);
 
-	writel(0, ctl_base + ERR_INT_MASK0);
+	writel(0x13ff3fe0, ctl_base + ERR_INT_MASK0);
 
 	writel(0x02020202, ctl_base + INT_CTRL);
 
@@ -1207,7 +1207,7 @@ int mdss_dsi_cmd_mode_config(uint16_t disp_width,
 	writel(0x13c2c, ctl_base + COMMAND_MODE_MDP_DCS_CMD_CTRL);
 	writel(interleav << 30 | 0 << 24 | 0 << 20 | lane_en << 4 | 0x105,
 	       ctl_base + CTRL);
-	writel(0x10000000, ctl_base + COMMAND_MODE_DMA_CTRL);
+	writel(0x14000000, ctl_base + COMMAND_MODE_DMA_CTRL);
 	writel(0x10000000, ctl_base + MISR_CMD_CTRL);
 	writel(0x1, ctl_base + EOT_PACKET_CTRL);
 #endif
@@ -1240,7 +1240,7 @@ int mipi_dsi_cmd_mode_config(unsigned short disp_width,
 	writel(0x0000001e, DSI_CLK_CTRL);
 	writel(0x0000003e, DSI_CLK_CTRL);
 
-	writel(0x10000000, DSI_ERR_INT_MASK0);
+	writel(0x13ff3fe0, DSI_ERR_INT_MASK0);
 
 
 	DST_FORMAT = 8;		// RGB888
@@ -1269,9 +1269,9 @@ int mipi_dsi_cmd_mode_config(unsigned short disp_width,
 	writel(0x13c2c, DSI_COMMAND_MODE_MDP_DCS_CMD_CTRL);
 	writel(interleav << 30 | 0 << 24 | 0 << 20 | DLNx_EN << 4 | 0x105,
 	       DSI_CTRL);
-	writel(0x10000000, DSI_COMMAND_MODE_DMA_CTRL);
+	writel(0x14000000, DSI_COMMAND_MODE_DMA_CTRL);
 	writel(0x10000000, DSI_MISR_CMD_CTRL);
-	writel(0x00000040, DSI_ERR_INT_MASK0);
+	writel(0x13ff3fe0, DSI_ERR_INT_MASK0);
 	writel(0x1, DSI_EOT_PACKET_CTRL);
 
 	return NO_ERROR;
