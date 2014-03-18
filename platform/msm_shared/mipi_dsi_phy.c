@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -199,10 +199,9 @@ void mdss_dsi_phy_sw_reset(uint32_t ctl_base)
 
 void mdss_dsi_uniphy_pll_lock_detect_setting(uint32_t ctl_base)
 {
-	writel(0x04, ctl_base + 0x0264); /* LKDetect CFG2 */
+	writel(0x0c, ctl_base + 0x0264); /* LKDetect CFG2 */
 	udelay(100);
-	writel(0x05, ctl_base + 0x0264); /* LKDetect CFG2 */
-	mdelay(1);
+	writel(0x0d, ctl_base + 0x0264); /* LKDetect CFG2 */
 }
 
 void mdss_dsi_uniphy_pll_sw_reset(uint32_t ctl_base)
