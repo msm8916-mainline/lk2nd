@@ -88,7 +88,7 @@ static void platform_detect()
 		board.pmic_info[0].pmic_type = board_info_v7.pmic_type;
 		board.pmic_info[0].pmic_version = board_info_v7.pmic_version;
 	}
-	else if (format == 8)
+	else if (format == 8 || format == 9)
 	{
 		board_info_len = sizeof(board_info_v8);
 
