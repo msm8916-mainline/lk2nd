@@ -1352,6 +1352,10 @@ qpic_nand_read_page(uint32_t page, unsigned char* buffer, unsigned char* sparead
 	uint32_t status;
 	uint32_t i;
 	int nand_ret = NANDC_RESULT_SUCCESS;
+	uint8_t flags = 0;
+	uint32_t *cmd_list_temp = NULL;
+
+	uint32_t temp_status = 0;
 	/* UD bytes in last CW is 512 - cws_per_page *4.
 	 * Since each of the CW read earlier reads 4 spare bytes.
 	 */
@@ -1384,6 +1388,8 @@ qpic_nand_read_page(uint32_t page, unsigned char* buffer, unsigned char* sparead
 	/* Reset and Configure erased CW/page detection controller */
 	qpic_nand_erased_status_reset(ce_array, BAM_DESC_LOCK_FLAG);
 
+	/* Queue up the command and data descriptors for all the codewords in a page
+	 * and do a single bam transfer at the end.*/
 	for (i = 0; i < flash.cws_per_page; i++)
 	{
 		num_cmd_desc = 0;
@@ -1436,7 +1442,7 @@ qpic_nand_read_page(uint32_t page, unsigned char* buffer, unsigned char* sparead
 							 DATA_PRODUCER_PIPE_INDEX,
 							 (unsigned char *)PA((addr_t)buffer),
 							 DATA_BYTES_IN_IMG_PER_CW,
-							 BAM_DESC_INT_FLAG);
+							 0);
 			num_data_desc++;
 			bam_sys_gen_event(&bam, DATA_PRODUCER_PIPE_INDEX, num_data_desc);
 		}
@@ -1454,39 +1460,57 @@ qpic_nand_read_page(uint32_t page, unsigned char* buffer, unsigned char* sparead
 							CE_WRITE_TYPE);
 		cmd_list_ptr++;
 
-	/* Enqueue the desc for the above commands */
-	bam_add_one_desc(&bam,
+		/* Enqueue the desc for the above commands */
+		bam_add_one_desc(&bam,
 					 CMD_PIPE_INDEX,
 					 (unsigned char*)cmd_list_ptr_start,
 					 PA((uint32_t)cmd_list_ptr - (uint32_t)cmd_list_ptr_start),
-					 BAM_DESC_NWD_FLAG | BAM_DESC_CMD_FLAG | BAM_DESC_INT_FLAG);
-	num_cmd_desc++;
+					 BAM_DESC_NWD_FLAG | BAM_DESC_CMD_FLAG);
+		num_cmd_desc++;
 
-	qpic_nand_wait_for_cmd_exec(num_cmd_desc);
+		bam_add_cmd_element(cmd_list_ptr, NAND_FLASH_STATUS, (uint32_t)PA((addr_t)&(flash_sts[i])), CE_READ_TYPE);
+
+		cmd_list_temp = cmd_list_ptr;
+
+		cmd_list_ptr++;
+
+		bam_add_cmd_element(cmd_list_ptr, NAND_BUFFER_STATUS, (uint32_t)PA((addr_t)&(buffer_sts[i])), CE_READ_TYPE);
+		cmd_list_ptr++;
+
+		if (i == flash.cws_per_page - 1)
+		{
+			flags = BAM_DESC_CMD_FLAG | BAM_DESC_UNLOCK_FLAG;
+		}
+		else
+			flags = BAM_DESC_CMD_FLAG;
+
+		/* Enqueue the desc for the above command */
+		bam_add_one_desc(&bam,
+					CMD_PIPE_INDEX,
+					(unsigned char*)PA((addr_t)cmd_list_temp),
+					PA((uint32_t)cmd_list_ptr - (uint32_t)cmd_list_temp),
+					flags);
+		num_cmd_desc++;
+
+		buffer += DATA_BYTES_IN_IMG_PER_CW;
+
+		/* Notify BAM HW about the newly added descriptors */
+		bam_sys_gen_event(&bam, CMD_PIPE_INDEX, num_cmd_desc);
+	}
 
 	qpic_nand_wait_for_data(DATA_PRODUCER_PIPE_INDEX);
 
-	/* Save the status registers. */
-	flash_sts[i] = qpic_nand_read_reg(NAND_FLASH_STATUS, 0, cmd_list_ptr++);
-	buffer_sts[i] = qpic_nand_read_reg(NAND_BUFFER_STATUS, 0, cmd_list_ptr++);
-
-	flash_sts[i] = qpic_nand_check_status(flash_sts[i]);
-
-	buffer += DATA_BYTES_IN_IMG_PER_CW;
-	}
-
-	/* Read the buffer status again so that we can unlock the bam with this desc. */
-	buffer_sts[--i] = qpic_nand_read_reg(NAND_BUFFER_STATUS, BAM_DESC_UNLOCK_FLAG, cmd_list_ptr++);
-
 	/* Check status */
 	for (i = 0; i < flash.cws_per_page ; i ++)
+	{
+		flash_sts[i] = qpic_nand_check_status(flash_sts[i]);
 		if (flash_sts[i])
 		{
 			nand_ret = NANDC_RESULT_BAD_PAGE;
-			dprintf(CRITICAL, "NAND page read failed. page: %x\n", page);
+			dprintf(CRITICAL, "NAND page read failed. page: %x status %x\n", page, flash_sts[i]);
 			goto qpic_nand_read_page_error;
 		}
-
+	}
 qpic_nand_read_page_error:
 return nand_ret;
 }

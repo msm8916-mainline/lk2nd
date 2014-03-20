@@ -271,9 +271,13 @@ void bam_sys_gen_event(struct bam_instance *bam,
 		return;
 	}
 
+	/* bits 0:15 of BAM_P_EVNT_REGn denotes the offset. We read the offset,
+	 * and update the offset to notify BAM HW that new descriptors have been written
+	 */
+	val = readl(BAM_P_EVNT_REGn(bam->pipe[pipe_num].pipe_num, bam->base));
+
 	/* Update the fifo peer offset */
-	val = (num_desc - 1) * BAM_DESC_SIZE;
-	val += bam->pipe[pipe_num].fifo.offset;
+	val += (num_desc) * BAM_DESC_SIZE;
 	val &= (bam->pipe[pipe_num].fifo.size * BAM_DESC_SIZE - 1);
 
 	writel(val, BAM_P_EVNT_REGn(bam->pipe[pipe_num].pipe_num, bam->base));
@@ -282,9 +286,11 @@ void bam_sys_gen_event(struct bam_instance *bam,
 /* Function to read the updates for FIFO offsets.
  * bam : BAM that uses the FIFO.
  * pipe : BAM pipe that uses the FIFO.
- * return : FIFO offset where the next descriptor should be written.
- * Note : S/W maintains the circular properties of the FIFO and updates
- *        the offsets accordingly.
+ * return : void.
+ * Note : As per IPCAT This register denotes the pointer Offset of the first un-Acknowledged Descriptor.
+ *        This register is only used by the Software. After receiving an interrupt, software reads this register
+ *        in order to know what descriptors has been processed. Although being Writable, Software
+ *        should never write to this register.
  */
 void bam_read_offset_update(struct bam_instance *bam, unsigned int pipe_num)
 {
@@ -294,12 +300,6 @@ void bam_read_offset_update(struct bam_instance *bam, unsigned int pipe_num)
 	offset &= 0xFFFF;
 
 	dprintf(SPEW, "Offset value is %d \n", offset);
-
-	/* Save the next offset to be written to. */
-		bam->pipe[pipe_num].fifo.current = (struct bam_desc*)
-											((uint32_t)bam->pipe[pipe_num].fifo.head + offset);
-
-	bam->pipe[pipe_num].fifo.offset = offset + BAM_DESC_SIZE ;
 }
 
 /* Function to get the next desc address.
