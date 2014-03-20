@@ -203,7 +203,7 @@ static struct panel_timing jdi_qhd_dualdsi_cmd_timing_info = {
 /* Panel reset sequence                                                      */
 /*---------------------------------------------------------------------------*/
 static struct panel_reset_sequence jdi_qhd_dualdsi_cmd_reset_seq = {
-	{1, 0, 1, }, {20, 200, 20, }, 2
+	{1, 0, 1, }, {10, 10, 10, }, 2
 };
 
 /*---------------------------------------------------------------------------*/

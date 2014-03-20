@@ -165,7 +165,7 @@ static struct panel_timing jdi_1080p_video_timing_info = {
 };
 
 static struct panel_reset_sequence jdi_1080p_video_panel_reset_seq = {
-{ 1, 0, 1, }, { 20, 200, 20, }, 2
+{ 1, 0, 1, }, { 10, 10, 10, }, 2
 };
 
 /*---------------------------------------------------------------------------*/
