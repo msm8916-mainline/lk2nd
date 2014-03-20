@@ -12,7 +12,7 @@ DEBUG := 1
 DEFINES += WITH_DEBUG_UART=1
 #DEFINES += WITH_DEBUG_FBCON=1
 DEFINES += DEVICE_TREE=1
-
+DEFINES += CONTIGUOUS_MEMORY=1
 #disable Thumb mode for the codesourcery/arm-2011.03 toolchain
 ENABLE_THUMB := false
 
