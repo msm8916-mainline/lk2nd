@@ -155,6 +155,7 @@ ifeq ($(PLATFORM),mpq8092)
 			$(LOCAL_DIR)/dev_tree.o
 endif
 ifeq ($(PLATFORM),msm8916)
+DEFINES += DISPLAY_TYPE_MDSS=1
 	OBJS += $(LOCAL_DIR)/qgic.o \
 		$(LOCAL_DIR)/qtimer.o \
 		$(LOCAL_DIR)/qtimer_mmap.o \
@@ -169,7 +170,12 @@ ifeq ($(PLATFORM),msm8916)
 		$(LOCAL_DIR)/scm.o \
 		$(LOCAL_DIR)/qpic_nand.o \
 		$(LOCAL_DIR)/gpio.o \
-		$(LOCAL_DIR)/dev_tree.o
+		$(LOCAL_DIR)/dev_tree.o \
+		$(LOCAL_DIR)/mdp5.o \
+		$(LOCAL_DIR)/display.o \
+		$(LOCAL_DIR)/mipi_dsi.o \
+		$(LOCAL_DIR)/mipi_dsi_phy.o \
+		$(LOCAL_DIR)/mipi_dsi_autopll.o
 endif
 
 

@@ -59,7 +59,9 @@ uint32_t mdss_mdp_intf_offset()
 	uint32_t mdss_mdp_intf_off;
 	uint32_t mdss_mdp_rev = readl(MDP_HW_REV);
 
-	if (mdss_mdp_rev >= MDSS_MDP_HW_REV_102)
+	if (mdss_mdp_rev == MDSS_MDP_HW_REV_106)
+		mdss_mdp_intf_off = 0x59100;
+	else if (mdss_mdp_rev >= MDSS_MDP_HW_REV_102)
 		mdss_mdp_intf_off = 0;
 	else
 		mdss_mdp_intf_off = 0xEC00;
@@ -122,13 +124,12 @@ static void mdss_vbif_setup()
 	int access_secure = restore_secure_cfg(SECURE_DEVICE_MDSS);
 	uint32_t mdp_hw_rev = readl(MDP_HW_REV);
 
-	/* TZ returns an errornous ret val even if the VBIF registers were
-	 * successfully unlocked. Ignore TZ return value till it's fixed */
-	if (!access_secure || 1) {
+	if (!access_secure) {
 		dprintf(SPEW, "MDSS VBIF registers unlocked by TZ.\n");
 
-		/* Force VBIF Clocks on */
-		if (mdp_hw_rev < MDSS_MDP_HW_REV_103)
+		/* Force VBIF Clocks on, not needed for 8084 */
+		if ((mdp_hw_rev < MDSS_MDP_HW_REV_103) ||
+				(mdp_hw_rev == MDSS_MDP_HW_REV_106))
 			writel(0x1, VBIF_VBIF_DDR_FORCE_CLK_ON);
 
 		/*
@@ -145,9 +146,11 @@ static void mdss_vbif_setup()
 			writel(0x22222222, VBIF_VBIF_DDR_AXI_AMEMTYPE_CONF0);
 			writel(0x00002222, VBIF_VBIF_DDR_AXI_AMEMTYPE_CONF1);
 		} else if (MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev,
-			MDSS_MDP_HW_REV_101)) {
+				MDSS_MDP_HW_REV_101) ||
+				MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev,
+				MDSS_MDP_HW_REV_106)) {
 			writel(0x00000707, VBIF_VBIF_DDR_OUT_MAX_BURST);
-			writel(0x00000003, VBIF_VBIF_DDR_ARB_CTRL);
+			writel(0x00000003, VBIF_VBIF_DDR_RND_RBN_QOS_ARB);
 		}
 	}
 }
@@ -189,7 +192,10 @@ static void mdss_smp_setup(struct msm_panel_info *pinfo, uint32_t left_pipe,
 	uint32_t smp_cnt, smp_size = 4096, fixed_smp_cnt = 0;
 	uint32_t mdss_mdp_rev = readl(MDP_HW_REV);
 
-	if ((mdss_mdp_rev >= MDSS_MDP_HW_REV_103) &&
+	if (mdss_mdp_rev == MDSS_MDP_HW_REV_106) {
+		/* 8Kb per SMP on 8916 */
+		smp_size = 8192;
+	} else if ((mdss_mdp_rev >= MDSS_MDP_HW_REV_103) &&
 		(mdss_mdp_rev < MDSS_MDP_HW_REV_200)) {
 		smp_size = 8192;
 		fixed_smp_cnt = 2;
@@ -201,7 +207,8 @@ static void mdss_smp_setup(struct msm_panel_info *pinfo, uint32_t left_pipe,
 	else
 		right_sspp_client_id = 0x11; /* 17 */
 
-	if (MDSS_IS_MAJOR_MINOR_MATCHING(mdss_mdp_rev, MDSS_MDP_HW_REV_101))
+	if (MDSS_IS_MAJOR_MINOR_MATCHING(mdss_mdp_rev, MDSS_MDP_HW_REV_101) ||
+		MDSS_IS_MAJOR_MINOR_MATCHING(mdss_mdp_rev, MDSS_MDP_HW_REV_106))
 		left_sspp_client_id = (pinfo->use_dma_pipe) ? 0x4 : 0x07; /* 4 or 7 */
 	else
 		left_sspp_client_id = (pinfo->use_dma_pipe) ? 0xA : 0x10; /* 10 or 16 */
@@ -384,7 +391,9 @@ void mdss_qos_remapper_setup(void)
 						MDSS_MDP_HW_REV_102))
 		map = 0xE9;
 	else if (MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev,
-						MDSS_MDP_HW_REV_101))
+			MDSS_MDP_HW_REV_101) ||
+			MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev,
+			MDSS_MDP_HW_REV_106))
 		map = 0xA5;
 	else if (MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev,
 						MDSS_MDP_HW_REV_103))
