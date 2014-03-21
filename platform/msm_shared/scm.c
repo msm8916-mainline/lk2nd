@@ -159,6 +159,36 @@ static int scm_call_atomic(uint32_t svc, uint32_t cmd, uint32_t arg1)
 }
 
 /**
+ * scm_call_atomic2() - Send an atomic SCM command with two arguments
+ * @svc_id: service identifier
+ * @cmd_id: command identifier
+ * @arg1: first argument
+ * @arg2: second argument
+ *
+ * This shall only be used with commands that are guaranteed to be
+ * uninterruptable, atomic and SMP safe.
+ */
+int scm_call_atomic2(uint32_t svc, uint32_t cmd, uint32_t arg1, uint32_t arg2)
+{
+	int context_id;
+	register uint32_t r0 __asm__("r0") = SCM_ATOMIC(svc, cmd, 2);
+	register uint32_t r1 __asm__("r1") = &context_id;
+	register uint32_t r2 __asm__("r2") = arg1;
+	register uint32_t r3 __asm__("r3") = arg2;
+
+	__asm__ volatile(
+		__asmeq("%0", "r0")
+		__asmeq("%1", "r0")
+		__asmeq("%2", "r1")
+		__asmeq("%3", "r2")
+		__asmeq("%4", "r3")
+		"smc	#0	@ switch to secure world\n"
+		: "=r" (r0)
+		: "r" (r0), "r" (r1), "r" (r2), "r" (r3));
+	return r0;
+}
+
+/**
  * scm_call() - Send an SCM command
  * @svc_id: service identifier
  * @cmd_id: command identifier
