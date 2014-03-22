@@ -381,6 +381,11 @@ ifeq ($(PLATFORM),msmplutonium)
 			$(LOCAL_DIR)/dme.o
 endif
 
+ifeq ($(ENABLE_BOOT_CONFIG_SUPPORT), 1)
+	OBJS += \
+		$(LOCAL_DIR)/boot_device.o
+endif
+
 ifeq ($(ENABLE_USB30_SUPPORT),1)
 	OBJS += \
 		$(LOCAL_DIR)/usb30_dwc.o \
