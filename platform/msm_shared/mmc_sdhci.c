@@ -1937,7 +1937,7 @@ static uint32_t mmc_send_erase_grp_end(struct mmc_device *dev, uint32_t erase_en
 /*
  * Send the erase CMD38, to erase the selected erase groups
  */
-static uint32_t mmc_send_erase(struct mmc_device *dev)
+static uint32_t mmc_send_erase(struct mmc_device *dev, uint64_t erase_timeout)
 {
 	struct mmc_command cmd;
 	uint32_t status;
@@ -1949,6 +1949,7 @@ static uint32_t mmc_send_erase(struct mmc_device *dev)
 	cmd.argument = 0x00000000;
 	cmd.cmd_type = SDHCI_CMD_TYPE_NORMAL;
 	cmd.resp_type = SDHCI_CMD_RESP_R1B;
+	cmd.cmd_timeout = erase_timeout;
 
 	/* send command */
 	if (sdhci_send_command(&dev->host, &cmd))
@@ -1992,6 +1993,7 @@ uint32_t mmc_sdhci_erase(struct mmc_device *dev, uint32_t blk_addr, uint64_t len
 	uint32_t erase_end;
 	uint32_t blk_end;
 	uint32_t num_erase_grps;
+	uint64_t erase_timeout = 0;
 	uint32_t *out;
 	struct mmc_card *card;
 
@@ -2058,12 +2060,19 @@ uint32_t mmc_sdhci_erase(struct mmc_device *dev, uint32_t blk_addr, uint64_t len
 		return 1;
 	}
 
+	/*
+	 * As per emmc 4.5 spec section 7.4.27, calculate the erase timeout
+	 * erase_timeout = 300 * ERASE_TIMEOUT_MULT * num_erase_grps
+	 */
+	erase_timeout = (300 * card->ext_csd[MMC_ERASE_TIMEOUT_MULT] * num_erase_grps);
+
 	/* Send CMD38 to perform erase */
-	if (mmc_send_erase(dev))
+	if (mmc_send_erase(dev, erase_timeout))
 	{
 		dprintf(CRITICAL, "Failed to erase the specified partition\n");
 		return 1;
 	}
+
 	return 0;
 }
 

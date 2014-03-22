@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -97,6 +97,7 @@
 #define MMC_PART_CONFIG                           179
 #define MMC_ERASE_GRP_DEF                         175
 #define MMC_USR_WP                                171
+#define MMC_ERASE_TIMEOUT_MULT                    223
 #define MMC_HC_ERASE_GRP_SIZE                     224
 
 /* Values for ext csd fields */
