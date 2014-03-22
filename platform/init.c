@@ -119,3 +119,13 @@ __WEAK uint32_t platform_get_smem_base_addr()
 {
 	return (uint32_t)MSM_SHARED_BASE;
 }
+
+__WEAK uint32_t platform_boot_dev_isemmc()
+{
+        return 1;
+}
+
+__WEAK uint32_t platform_get_boot_dev()
+{
+        return 0;
+}
