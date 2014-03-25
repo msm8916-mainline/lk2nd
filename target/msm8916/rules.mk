@@ -11,6 +11,7 @@ MEMSIZE := 0x00100000 # 1MB
 BASE_ADDR        := 0x80000000
 SCRATCH_ADDR     := 0x90000000
 
+DEFINES += DISPLAY_SPLASH_SCREEN=1
 DEFINES += DISPLAY_TYPE_MIPI=1
 DEFINES += DISPLAY_TYPE_DSI6G=1
 
@@ -18,7 +19,8 @@ MODULES += \
 	dev/keys \
 	lib/ptable \
 	dev/pmic/pm8x41 \
-	lib/libfdt
+	lib/libfdt \
+	dev/gcdb/display
 
 DEFINES += \
 	MEMSIZE=$(MEMSIZE) \
@@ -29,4 +31,6 @@ DEFINES += \
 
 OBJS += \
 	$(LOCAL_DIR)/init.o \
-	$(LOCAL_DIR)/meminfo.o
+	$(LOCAL_DIR)/meminfo.o \
+	$(LOCAL_DIR)/target_display.o \
+	$(LOCAL_DIR)/oem_panel.o
