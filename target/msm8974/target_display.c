@@ -58,70 +58,70 @@ static struct pm8x41_wled_data wled_ctrl = {
 	.full_current_scale = 0x19
 };
 
-static uint32_t dsi_pll_lock_status(uint32_t ctl_base)
+static uint32_t dsi_pll_lock_status(uint32_t pll_base)
 {
 	uint32_t counter, status;
 
 	udelay(100);
-	mdss_dsi_uniphy_pll_lock_detect_setting(ctl_base);
+	mdss_dsi_uniphy_pll_lock_detect_setting(pll_base);
 
-	status = readl(ctl_base + 0x02c0) & 0x01;
+	status = readl(pll_base + 0x00c0) & 0x01;
 	for (counter = 0; counter < 5 && !status; counter++) {
 		udelay(100);
-		status = readl(ctl_base + 0x02c0) & 0x01;
+		status = readl(pll_base + 0x00c0) & 0x01;
 	}
 
 	return status;
 }
 
-static uint32_t dsi_pll_enable_seq_b(uint32_t ctl_base)
+static uint32_t dsi_pll_enable_seq_b(uint32_t pll_base)
 {
-	mdss_dsi_uniphy_pll_sw_reset(ctl_base);
+	mdss_dsi_uniphy_pll_sw_reset(pll_base);
 
-	writel(0x01, ctl_base + 0x0220); /* GLB CFG */
+	writel(0x01, pll_base + 0x0020); /* GLB CFG */
 	udelay(1);
-	writel(0x05, ctl_base + 0x0220); /* GLB CFG */
+	writel(0x05, pll_base + 0x0020); /* GLB CFG */
 	udelay(200);
-	writel(0x07, ctl_base + 0x0220); /* GLB CFG */
+	writel(0x07, pll_base + 0x0020); /* GLB CFG */
 	udelay(500);
-	writel(0x0f, ctl_base + 0x0220); /* GLB CFG */
+	writel(0x0f, pll_base + 0x0020); /* GLB CFG */
 	udelay(500);
 
-	return dsi_pll_lock_status(ctl_base);
+	return dsi_pll_lock_status(pll_base);
 }
 
-static uint32_t dsi_pll_enable_seq_d(uint32_t ctl_base)
+static uint32_t dsi_pll_enable_seq_d(uint32_t pll_base)
 {
-	mdss_dsi_uniphy_pll_sw_reset(ctl_base);
+	mdss_dsi_uniphy_pll_sw_reset(pll_base);
 
-	writel(0x01, ctl_base + 0x0220); /* GLB CFG */
+	writel(0x01, pll_base + 0x0020); /* GLB CFG */
 	udelay(1);
-	writel(0x05, ctl_base + 0x0220); /* GLB CFG */
+	writel(0x05, pll_base + 0x0020); /* GLB CFG */
 	udelay(200);
-	writel(0x07, ctl_base + 0x0220); /* GLB CFG */
+	writel(0x07, pll_base + 0x0020); /* GLB CFG */
 	udelay(250);
-	writel(0x05, ctl_base + 0x0220); /* GLB CFG */
+	writel(0x05, pll_base + 0x0020); /* GLB CFG */
 	udelay(200);
-	writel(0x07, ctl_base + 0x0220); /* GLB CFG */
+	writel(0x07, pll_base + 0x0220); /* GLB CFG */
 	udelay(500);
-	writel(0x0f, ctl_base + 0x0220); /* GLB CFG */
+	writel(0x0f, pll_base + 0x0220); /* GLB CFG */
 	udelay(500);
 
-	return dsi_pll_lock_status(ctl_base);
+	return dsi_pll_lock_status(pll_base);
 }
 
-static void dsi_pll_enable_seq(uint32_t ctl_base)
+static void dsi_pll_enable_seq(uint32_t pll_base)
 {
 	uint32_t counter, status;
 
 	for (counter = 0; counter < 3; counter++) {
-		status = dsi_pll_enable_seq_b(ctl_base);
+		status = dsi_pll_enable_seq_b(pll_base);
 		if (status)
 			break;
-		status = dsi_pll_enable_seq_d(ctl_base);
+		status = dsi_pll_enable_seq_d(pll_base);
 		if (status)
 			break;
-		status = dsi_pll_enable_seq_d(ctl_base);
+		status = dsi_pll_enable_seq_d(pll_base);
 		if(status)
 			break;
 	}
@@ -219,12 +219,14 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 	if (enable) {
 		mdp_gdsc_ctrl(enable);
 		mdp_clock_init();
-		mdss_dsi_auto_pll_config(MIPI_DSI0_BASE, pll_data);
-		dsi_pll_enable_seq(MIPI_DSI0_BASE);
+		mdss_dsi_auto_pll_config(DSI0_PLL_BASE,
+						MIPI_DSI0_BASE, pll_data);
+		dsi_pll_enable_seq(DSI0_PLL_BASE);
 		if (panel.panel_info.mipi.dual_dsi &&
 				!(panel.panel_info.mipi.broadcast)) {
-			mdss_dsi_auto_pll_config(MIPI_DSI1_BASE, pll_data);
-			dsi_pll_enable_seq(MIPI_DSI1_BASE);
+			mdss_dsi_auto_pll_config(DSI1_PLL_BASE,
+						MIPI_DSI1_BASE, pll_data);
+			dsi_pll_enable_seq(DSI1_PLL_BASE);
 		}
 		mmss_clock_auto_pll_init(DSI0_PHY_PLL_OUT, dual_dsi,
 					pll_data->pclk_m,
