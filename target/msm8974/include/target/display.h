@@ -109,6 +109,4 @@ static const uint32_t panel_physical_ctrl[] = {
 #define HDMI_PANEL_NAME              "hdmi"
 #define HDMI_CONTROLLER_STRING       "hdmi:0"
 
-extern int mdss_dsi_phy_init(struct mipi_dsi_panel_config *, uint32_t ctl_base);
-
 #endif

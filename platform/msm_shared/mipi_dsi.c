@@ -1025,9 +1025,9 @@ int mdss_dsi_config(struct msm_fb_panel_data *panel)
 	mipi_pinfo.t_clk_post = pinfo->mipi.t_clk_post;
 	mipi_pinfo.signature = pinfo->mipi.signature;
 
-	mdss_dsi_phy_init(&mipi_pinfo, MIPI_DSI0_BASE);
+	mdss_dsi_phy_init(&mipi_pinfo, MIPI_DSI0_BASE, DSI0_PHY_BASE);
 	if (pinfo->mipi.dual_dsi)
-		mdss_dsi_phy_init(&mipi_pinfo, MIPI_DSI1_BASE);
+		mdss_dsi_phy_init(&mipi_pinfo, MIPI_DSI1_BASE, DSI1_PHY_BASE);
 
 	ret = mdss_dsi_host_init(&mipi_pinfo, pinfo->mipi.broadcast);
 	if (ret) {

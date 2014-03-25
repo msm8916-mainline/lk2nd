@@ -119,5 +119,4 @@ enum target_subtype {
 	HW_PLATFORM_SUBTYPE_SKUG = 5,
 };
 
-extern int mdss_dsi_phy_init(struct mipi_dsi_panel_config *, uint32_t ctl_base);
 #endif
