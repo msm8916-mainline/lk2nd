@@ -76,7 +76,7 @@ void target_sdc_init()
 	set_sdc_power_ctrl();
 
 	config.bus_width = DATA_BUS_WIDTH_8BIT;
-	config.max_clk_rate = MMC_CLK_200MHZ;
+	config.max_clk_rate = MMC_CLK_177MHZ;
 
 	/* Try slot 1*/
 	config.slot         = 1;
@@ -88,6 +88,7 @@ void target_sdc_init()
 	if (!(dev = mmc_init(&config))) {
 	/* Try slot 2 */
 		config.slot         = 2;
+		config.max_clk_rate = MMC_CLK_200MHZ;
 		config.sdhc_base    = mmc_sdhci_base[config.slot - 1];
 		config.pwrctl_base  = mmc_pwrctl_base[config.slot - 1];
 		config.pwr_irq      = mmc_sdc_pwrctl_irq[config.slot - 1];
