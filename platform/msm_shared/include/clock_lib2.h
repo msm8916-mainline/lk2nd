@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Linux Foundation. All rights reserved.
+ * Copyright (c) 2012-2014, Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -51,6 +51,17 @@
         { \
                 .freq_hz = (f), \
                 .src_clk = &s##_clk_src.c, \
+                .m_val   = (m), \
+                .n_val   = ~((n)-(m)) * !!(n), \
+                .d_val   = ~(n),\
+                .div_src_val = BVAL(4, 0, (int)(2*(div) - 1)) \
+                              | BVAL(10, 8, s##_source_val), \
+        }
+
+/* F(frequency, source, div, m, n) */
+#define F_EXT_SRC(f, s, div, m, n) \
+        { \
+                .freq_hz = (f), \
                 .m_val   = (m), \
                 .n_val   = ~((n)-(m)) * !!(n), \
                 .d_val   = ~(n),\
