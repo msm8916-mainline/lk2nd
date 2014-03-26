@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -33,5 +33,6 @@
 
 void hsusb_clock_init(void);
 void clock_config_uart_dm(uint8_t id);
+void clock_usb30_init(void);
 
 #endif

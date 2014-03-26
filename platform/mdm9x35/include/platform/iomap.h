@@ -77,6 +77,11 @@
 
 /* USB */
 #define MSM_USB_BASE              (PERIPH_SS_BASE + 0x00255000)
+#define MSM_USB30_BASE            0xF9200000
+#define MSM_USB30_QSCRATCH_BASE   0xF92F8800
+
+/* SS QMP (Qulacomm Multi Protocol) */
+#define QMP_PHY_BASE              0xF9B38000
 
 /* UART */
 #define MSM_UART2_BASE             0xF991F000
@@ -126,5 +131,86 @@
 #define GCC_USB_HS_INACTIVITY_TIMERS_CBCR    (CLK_CTL_BASE + 0x48C)
 #define USB_HS_SYSTEM_CMD_RCGR               (CLK_CTL_BASE + 0x490)
 #define USB_HS_SYSTEM_CFG_RCGR               (CLK_CTL_BASE + 0x494)
+
+#define GCC_USB3_PHY_BCR                     (CLK_CTL_BASE + 0x03FC)
+#define GCC_USB30_PHY_COM_BCR                (CLK_CTL_BASE + 0x1B88)
+#define GCC_USB30PHY_PHY_BCR                 (CLK_CTL_BASE + 0x1B8C)
+
+/* USB 3.0 clocks */
+#define SYS_NOC_USB3_AXI_CBCR                (CLK_CTL_BASE + 0x0108)
+#define GCC_USB_30_BCR                       (CLK_CTL_BASE + 0x03C0)
+#define GCC_USB_30_MISC                      (CLK_CTL_BASE + 0x03C4)
+#define GCC_USB30_MASTER_CBCR                (CLK_CTL_BASE + 0x03C8)
+#define GCC_USB30_SLEEP_CBCR                 (CLK_CTL_BASE + 0x03CC)
+#define GCC_USB30_MOCK_UTMI_CBCR             (CLK_CTL_BASE + 0x03D0)
+#define GCC_USB30_MASTER_CMD_RCGR            (CLK_CTL_BASE + 0x03D4)
+#define GCC_USB30_MASTER_CFG_RCGR            (CLK_CTL_BASE + 0x03D8)
+#define GCC_USB30_MASTER_M                   (CLK_CTL_BASE + 0x03DC)
+#define GCC_USB30_MASTER_N                   (CLK_CTL_BASE + 0x03E0)
+#define GCC_USB30_MASTER_D                   (CLK_CTL_BASE + 0x03E4)
+#define GCC_USB30_GDSCR                      (CLK_CTL_BASE + 0x1B80)
+
+/* USB30 base */
+#define USB3_PIPE_CMD_RCGR                   (CLK_CTL_BASE + 0x1B98)
+#define USB3_PIPE_CFG_RCGR                   (CLK_CTL_BASE + 0x1B9C)
+#define USB3_PIPE_CBCR                       (CLK_CTL_BASE + 0x1B90)
+#define USB3_AUX_CMD_RCGR                    (CLK_CTL_BASE + 0x1BC0)
+#define USB3_AUX_CBCR                        (CLK_CTL_BASE + 0x1B94)
+#define USB_PHY_CFG_AHB_CBCR                 (CLK_CTL_BASE + 0x1B84)
+#define USB3_AUX_CFG_RCGR                    (CLK_CTL_BASE + 0x1BC4)
+#define USB3_AUX_M                           (CLK_CTL_BASE + 0x1BC8)
+#define USB3_AUX_N                           (CLK_CTL_BASE + 0x1BCC)
+#define USB3_AUX_D                           (CLK_CTL_BASE + 0x1BD0)
+
+/* QMP register offsets */
+#define PCIE_USB3_PHY_POWER_DOWN_CONTROL     0x604
+
+#define QSERDES_COM_SYSCLK_EN_SEL_TXBAND     0x48
+#define QSERDES_COM_DEC_START1               0xA4
+#define QSERDES_COM_DEC_START2               0x104
+#define QSERDES_COM_DIV_FRAC_START1          0xF8
+#define QSERDES_COM_DIV_FRAC_START2          0xFC
+#define QSERDES_COM_DIV_FRAC_START3          0x100
+#define QSERDES_COM_PLLLOCK_CMP_EN           0x94
+#define QSERDES_COM_PLLLOCK_CMP1             0x88
+#define QSERDES_COM_PLLLOCK_CMP2             0x8C
+#define QSERDES_COM_PLL_CRCTRL               0x10C
+#define QSERDES_COM_PLL_CP_SETI              0x34
+#define QSERDES_COM_PLL_IP_SETP              0x38
+#define QSERDES_COM_PLL_CP_SETP              0x3C
+#define QSERDES_COM_PLL_IP_SETI              0x24
+#define QSERDES_COM_IE_TRIM                  0xC
+#define QSERDES_COM_IP_TRIM                  0x10
+#define QSERDES_COM_PLL_CNTRL                0x14
+#define QSERDES_RX_CDR_CONTROL1              0x400
+#define QSERDES_RX_CDR_CONTROL2              0x404
+#define QSERDES_COM_RESETSM_CNTRL            0x4C
+#define QSERDES_COM_RESETSM_CNTRL2           0x50
+#define QSERDES_COM_RES_CODE_START_SEG1      0xD8
+#define QSERDES_COM_RES_CODE_CAL_CSR         0xE0
+#define QSERDES_COM_RES_TRIM_CONTROL         0xE8
+#define QSERDES_TX_RCV_DETECT_LVL            0x268
+#define QSERDES_RX_RX_EQU_ADAPTOR_CNTRL2     0x4BC
+#define QSERDES_RX_RX_EQU_ADAPTOR_CNTRL3     0x4C0
+#define QSERDES_RX_RX_EQU_ADAPTOR_CNTRL4     0x4C4
+#define QSERDES_RX_SIGDET_ENABLES            0x4F8
+#define QSERDES_RX_SIGDET_CNTRL              0x500
+#define QSERDES_RX_SIGDET_DEGLITCH_CNTRL     0x504
+#define PCIE_USB3_PHY_RX_IDLE_DTCT_CNTRL     0x64C
+#define QSERDES_COM_SSC_EN_CENTER            0xAC
+#define QSERDES_COM_SSC_ADJ_PER1             0xB0
+#define QSERDES_COM_SSC_PER1                 0xB8
+#define QSERDES_COM_SSC_PER2                 0xBC
+#define QSERDES_COM_SSC_STEP_SIZE1           0xC0
+#define QSERDES_COM_SSC_STEP_SIZE2           0xC4
+#define PCIE_USB3_PHY_POWER_STATE_CONFIG2    0x654
+#define PCIE_USB3_PHY_RCVR_DTCT_DLY_P1U2_L   0x5C
+#define PCIE_USB3_PHY_RCVR_DTCT_DLY_P1U2_H   0x60
+#define PCIE_USB3_PHY_SW_RESET               0x600
+#define PCIE_USB3_PHY_START                  0x608
+
+/* USB3.0 Mux selector */
+#define TCSR_PHSS_USB2_PHY_SEL               0xFD4AB000
+#define PERIPH_SS_AHB2PHY_TOP_CFG            0xF9B3E010
 
 #endif
