@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -238,12 +238,6 @@ usb_wrapper_dev_t * usb_wrapper_init(usb_wrapper_config_t *config)
 
 	/* save qscratch base */
 	wrapper->base = config->qscratch_base;
-
-	/* initialize usb clocks */
-	clock_usb30_init();
-
-	/* enable ss phy clock */
-	pm8x41_diff_clock_ctrl(1);
 
 	/* HPG: section 4.4.1 Control sequence */
 	usb_wrapper_dbm_mode(wrapper, DBM_MODE_BYPASS);

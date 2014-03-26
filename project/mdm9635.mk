@@ -18,3 +18,9 @@ ENABLE_THUMB := false
 
 #Override linker for mdm targets
 LD := $(TOOLCHAIN_PREFIX)ld.bfd
+
+ENABLE_USB30_SUPPORT := 1
+
+ifeq ($(ENABLE_USB30_SUPPORT),1)
+DEFINES += USB30_SUPPORT=1
+endif

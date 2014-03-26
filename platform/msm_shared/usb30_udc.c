@@ -113,13 +113,7 @@ __WEAK int platform_is_8974Pro()
 	return 0;
 }
 
-static void phy_mux_configure(void)
-{
-	/* configuring of hs phy mux is different for some platforms. */
-	target_usb_phy_mux_configure();
-}
-
-static void phy_reset(usb_wrapper_dev_t *wrapper)
+static void phy_reset(usb_wrapper_dev_t *wrapper, struct udc_device *dev_info)
 {
 	/* phy reset is different for some platforms. */
 	if (platform_is_8974() || platform_is_8974Pro())
@@ -131,16 +125,18 @@ static void phy_reset(usb_wrapper_dev_t *wrapper)
 		 * No need for explicit reset.
 		 */
 	}
-	else if (board_platform_id() == APQ8084)
+	else
 	{
-		target_usb_phy_reset();
+		if (dev_info->t_usb_if->phy_reset)
+			dev_info->t_usb_if->phy_reset();
 
 		/* On some CDPs PHY_COMMON reset does not set
 		 * reset values in the phy_ctrl_common register.
 		 * Due to this USB does not get enumerated in fastboot
 		 * Force write the reset value
 		 */
-		usb_wrapper_hs_phy_ctrl_force_write(wrapper);
+		if (board_platform_id() == APQ8084)
+			usb_wrapper_hs_phy_ctrl_force_write(wrapper);
 	}
 }
 
@@ -164,21 +160,22 @@ void vbus_override(udc_t *dev)
 	/* when vbus signal is not available directly to the controller,
 	 * simulate vbus presense.
 	 */
-	if (board_platform_id() == APQ8084)
-	{
-		usb_wrapper_vbus_override(dev->wrapper_dev);
-	}
+	usb_wrapper_vbus_override(dev->wrapper_dev);
 }
 
 
 /* Initialize usb wrapper and dwc h/w blocks. */
-static void usb30_init(void)
+static void usb30_init(struct udc_device *dev_info)
 {
 	usb_wrapper_dev_t* wrapper;
 	usb_wrapper_config_t wrapper_config;
 
 	dwc_dev_t *dwc;
 	dwc_config_t dwc_config;
+
+	/* initialize usb clocks */
+	if (dev_info->t_usb_if->clock_init)
+		dev_info->t_usb_if->clock_init();
 
 	/* initialize the usb wrapper h/w block */
 	wrapper_config.qscratch_base = (void*) MSM_USB30_QSCRATCH_BASE;
@@ -225,7 +222,8 @@ static void usb30_init(void)
 	/* section 4.4.2: Initialization and configuration sequences */
 
 	/* 1. UTMI Mux configuration */
-	phy_mux_configure();
+	if (dev_info->t_usb_if->mux_config)
+		dev_info->t_usb_if->mux_config();
 
 	/* 2. Put controller in reset */
 	dwc_reset(dwc, 1);
@@ -233,7 +231,7 @@ static void usb30_init(void)
 	/* Steps 3 - 7 must be done while dwc is in reset condition */
 
 	/* 3. Reset PHY */
-	phy_reset(wrapper);
+	phy_reset(wrapper, dev_info);
 
 	/* 4. SS phy config */
 	usb_wrapper_ss_phy_configure(wrapper);
@@ -253,6 +251,10 @@ static void usb30_init(void)
 	/* 9. */
 	usb_wrapper_ss_phy_electrical_config(wrapper);
 
+	/* Perform phy init */
+	if (dev_info->t_usb_if->phy_init)
+		dev_info->t_usb_if->phy_init();
+
 	/* 10. */
 	usb_wrapper_workaround_10(wrapper);
 
@@ -270,7 +272,8 @@ static void usb30_init(void)
 	/* If the target does not support vbus detection in controller,
 	 * simulate vbus presence.
 	 */
-	vbus_override(udc_dev);
+	if (dev_info->t_usb_if->vbus_override)
+		vbus_override(udc_dev);
 
 	/* 15 - 20 */
 	dwc_device_init(dwc);
@@ -301,7 +304,7 @@ int usb30_udc_init(struct udc_device *dev_info)
 	udc_dev->ept_alloc_table = EPT_TX(0) | EPT_RX(0);
 	udc_dev->ept_list        = NULL;
 
-	usb30_init();
+	usb30_init(dev_info);
 
 	/* register descriptors */
 	udc_register_language_desc(udc_dev);
