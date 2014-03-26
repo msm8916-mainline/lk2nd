@@ -113,11 +113,6 @@ __WEAK int platform_is_8974Pro()
 	return 0;
 }
 
-__WEAK int platform_is_8x62()
-{
-	return 0;
-}
-
 static void phy_mux_configure(void)
 {
 	/* configuring of hs phy mux is different for some platforms. */
@@ -127,7 +122,7 @@ static void phy_mux_configure(void)
 static void phy_reset(usb_wrapper_dev_t *wrapper)
 {
 	/* phy reset is different for some platforms. */
-	if (platform_is_8974() || platform_is_8974Pro() || platform_is_8x62())
+	if (platform_is_8974() || platform_is_8974Pro())
 	{
 		/* SS PHY */
 		usb_wrapper_ss_phy_reset(wrapper);
@@ -153,7 +148,7 @@ static void phy_reset(usb_wrapper_dev_t *wrapper)
 void hs_phy_init(udc_t *dev)
 {
 	/* only for 8974 */
-	if (platform_is_8974() || platform_is_8974Pro() || platform_is_8x62())
+	if (platform_is_8974() || platform_is_8974Pro())
 	{
 		/* 5.a, 5.b */
 		usb_wrapper_hs_phy_init(dev->wrapper_dev);
