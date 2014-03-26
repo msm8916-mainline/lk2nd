@@ -117,6 +117,9 @@ uint8_t pm8x41_reg_read(uint32_t addr);
 #define DIFF_CLK1_EN_CTL                      0x5746
 #define DIFF_CLK1_EN_BIT                      7
 
+#define LNBB_CLK_EN_CTL                      0x5246
+#define LNBB_CLK_EN_BIT                      7
+
 /* SMBB registers */
 #define PM8XXX_IBAT_ATC_A                     0x1054
 #define PM8XXX_VBAT_DET                       0x105D

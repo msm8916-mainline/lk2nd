@@ -410,6 +410,25 @@ uint8_t pm8x41_get_is_cold_boot()
 	return 1;
 }
 
+/* api to control lnbb clock */
+void pm8x41_lnbb_clock_ctrl(uint8_t enable)
+{
+	uint8_t reg;
+
+	reg = REG_READ(LNBB_CLK_EN_CTL);
+
+	if (enable)
+	{
+		reg |= BIT(LNBB_CLK_EN_BIT);
+	}
+	else
+	{
+		reg &= ~BIT(LNBB_CLK_EN_BIT);
+	}
+
+	REG_WRITE(LNBB_CLK_EN_CTL, reg);
+}
+
 /* api to control diff clock */
 void pm8x41_diff_clock_ctrl(uint8_t enable)
 {
