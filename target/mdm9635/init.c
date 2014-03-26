@@ -39,7 +39,10 @@
 #include <pm8x41.h>
 #include <reg.h>
 #include <platform/timer.h>
+#include <platform/clock.h>
 #include <hsusb.h>
+#include <bits.h>
+#include <qmp_phy.h>
 
 extern void smem_ptable_init(void);
 extern void smem_add_modem_partitions(struct ptable *flash_ptable);
@@ -161,6 +164,22 @@ void target_usb_init(void)
 	writel(val, USB_USBCMD);
 }
 
+target_usb_iface_t* target_usb30_init()
+{
+	target_usb_iface_t *t_usb_iface;
+
+	t_usb_iface = calloc(1, sizeof(target_usb_iface_t));
+	ASSERT(t_usb_iface);
+
+	t_usb_iface->mux_config = target_usb_phy_mux_configure;
+	t_usb_iface->phy_init   = usb30_qmp_phy_init;
+	t_usb_iface->phy_reset  = usb30_qmp_phy_reset;
+	t_usb_iface->clock_init = clock_usb30_init;
+	t_usb_iface->vbus_override = 1;
+
+	return t_usb_iface;
+}
+
 /* reboot */
 void reboot_device(unsigned reboot_reason)
 {
@@ -259,4 +278,26 @@ int get_target_boot_params(const char *cmdline, const char *part, char *buf,
 			 system_ptn_index);
 
 	return 0;
+}
+
+/* identify the usb controller to be used for the target */
+const char * target_usb_controller()
+{
+    return "dwc";
+}
+
+/* mux hs phy to route to dwc controller */
+static void phy_mux_configure_with_tcsr()
+{
+	/* As per the hardware team, set the mux for snps controller */
+	RMWREG32(TCSR_PHSS_USB2_PHY_SEL, 0x0, 0x1, 0x1);
+}
+
+/* configure hs phy mux if using dwc controller */
+void target_usb_phy_mux_configure(void)
+{
+    if(!strcmp(target_usb_controller(), "dwc"))
+    {
+        phy_mux_configure_with_tcsr();
+    }
 }
