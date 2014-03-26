@@ -315,7 +315,8 @@ ifeq ($(PLATFORM),mdm9x35)
 			$(LOCAL_DIR)/dev_tree.o \
 			$(LOCAL_DIR)/clock.o \
 			$(LOCAL_DIR)/clock_pll.o \
-			$(LOCAL_DIR)/clock_lib2.o
+			$(LOCAL_DIR)/clock_lib2.o \
+			$(LOCAL_DIR)/qmp_usb30_phy.o
 endif
 
 ifeq ($(PLATFORM),fsm9900)
