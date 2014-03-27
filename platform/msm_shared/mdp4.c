@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -229,7 +229,7 @@ void mdp_shutdown(void)
 	writel(0x00000003, MDP_OVERLAYPROC0_CFG);
 }
 
-int mdp_dma_on(void)
+int mdp_dma_on(struct msm_panel_info *pinfo)
 {
 	int ret = 0;
 
@@ -364,7 +364,7 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 	return ret;
 }
 
-int mdp_dsi_video_on()
+int mdp_dsi_video_on(struct msm_panel_info *pinfo)
 {
 	int ret = NO_ERROR;
 
@@ -414,7 +414,7 @@ int mdp_edp_config(struct msm_panel_info *pinfo, struct fbcon_config *fb)
 	return NO_ERROR;
 }
 
-int mdp_edp_on(void)
+int mdp_edp_on(struct msm_panel_info *pinfo)
 {
 	return NO_ERROR;
 }

@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -184,7 +184,7 @@ int msm_display_on()
 		break;
 	case MIPI_VIDEO_PANEL:
 		dprintf(INFO, "Turn on MIPI_VIDEO_PANEL.\n");
-		ret = mdp_dsi_video_on();
+		ret = mdp_dsi_video_on(pinfo);
 		if (ret)
 			goto msm_display_on_out;
 		ret = mipi_dsi_on();
@@ -193,7 +193,7 @@ int msm_display_on()
 		break;
 	case MIPI_CMD_PANEL:
 		dprintf(INFO, "Turn on MIPI_CMD_PANEL.\n");
-		ret = mdp_dma_on();
+		ret = mdp_dma_on(pinfo);
 		if (ret)
 			goto msm_display_on_out;
 		mdp_rev = mdp_get_revision();
@@ -221,7 +221,7 @@ int msm_display_on()
 		break;
 	case EDP_PANEL:
 		dprintf(INFO, "Turn on EDP PANEL.\n");
-		ret = mdp_edp_on();
+		ret = mdp_edp_on(pinfo);
 		if (ret)
 			goto msm_display_on_out;
 		break;
