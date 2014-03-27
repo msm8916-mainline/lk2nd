@@ -698,6 +698,49 @@ static void verify_signed_bootimg(uint32_t bootimg_addr, uint32_t bootimg_size)
 	}
 }
 
+static bool check_format_bit()
+{
+	bool ret = false;
+	int index;
+	uint64_t offset;
+	struct boot_selection_info *in = NULL;
+	char *buf = NULL;
+
+	index = partition_get_index("bootselect");
+	if (index == INVALID_PTN)
+	{
+		dprintf(INFO, "Unable to locate /bootselect partition\n");
+		return ret;
+	}
+	offset = partition_get_offset(index);
+	if(!offset)
+	{
+		dprintf(INFO, "partition /bootselect doesn't exist\n");
+		return ret;
+	}
+	buf = (char *) memalign(CACHE_LINE, ROUNDUP(page_size, CACHE_LINE));
+	ASSERT(buf);
+	if (mmc_read(offset, (unsigned int *)buf, page_size))
+	{
+		dprintf(INFO, "mmc read failure /bootselect %d\n", page_size);
+		free(buf);
+		return ret;
+	}
+	in = (struct boot_selection_info *) buf;
+	if ((in->signature == BOOTSELECT_SIGNATURE) &&
+			(in->version == BOOTSELECT_VERSION)) {
+		if ((in->state_info & BOOTSELECT_FORMAT) &&
+				!(in->state_info & BOOTSELECT_FACTORY))
+			ret = true;
+	} else {
+		dprintf(CRITICAL, "Signature: 0x%08x or version: 0x%08x mismatched of /bootselect\n",
+				in->signature, in->version);
+		ASSERT(0);
+	}
+	free(buf);
+	return ret;
+}
+
 int boot_linux_from_mmc(void)
 {
 	struct boot_img_hdr *hdr = (void*) buf;
@@ -720,6 +763,9 @@ int boot_linux_from_mmc(void)
 	uint32_t dt_actual;
 	uint32_t dt_hdr_size;
 #endif
+	if (check_format_bit())
+		boot_into_recovery = 1;
+
 	if (!boot_into_recovery) {
 		memset(ffbm_mode_string, '\0', sizeof(ffbm_mode_string));
 		rcode = get_ffbm(ffbm_mode_string, sizeof(ffbm_mode_string));
