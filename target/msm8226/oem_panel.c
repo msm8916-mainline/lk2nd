@@ -48,6 +48,7 @@
 #include "include/panel_nt35521_720p_video.h"
 #include "include/panel_ssd2080m_720p_video.h"
 #include "include/panel_jdi_1080p_video.h"
+#include "include/panel_nt35590_qvga_cmd.h"
 
 #define DISPLAY_MAX_PANEL_DETECTION 2
 
@@ -66,6 +67,7 @@ HX8394A_720P_VIDEO_PANEL,
 NT35521_720P_VIDEO_PANEL,
 SSD2080M_720P_VIDEO_PANEL,
 JDI_1080P_VIDEO_PANEL,
+NT35590_QVGA_CMD_PANEL,
 UNKNOWN_PANEL
 };
 
@@ -76,6 +78,7 @@ enum target_subtype {
 	HW_PLATFORM_SUBTYPE_1080P = 2,
 	HW_PLATFORM_SUBTYPE_SKUAB = 3,
 	HW_PLATFORM_SUBTYPE_1080P_EXT_BUCK = 3,
+	HW_PLATFORM_SUBTYPE_QVGA = 4,
 	HW_PLATFORM_SUBTYPE_SKUG = 5,
 };
 
@@ -92,6 +95,7 @@ static struct panel_list supp_panels[] = {
 	{"nt35521_720p_video", NT35521_720P_VIDEO_PANEL},
 	{"ssd2080m_720p_video", SSD2080M_720P_VIDEO_PANEL},
 	{"jdi_1080p_video", JDI_1080P_VIDEO_PANEL},
+	{"nt35590_qvga_cmd", NT35590_QVGA_CMD_PANEL},
 };
 
 static uint32_t panel_id;
@@ -304,6 +308,25 @@ static void init_panel_data(struct panel_struct *panelstruct,
 		memcpy(phy_db->timing,
 			jdi_1080p_video_timings, TIMING_SIZE);
 		break;
+	case NT35590_QVGA_CMD_PANEL:
+		panelstruct->paneldata    = &nt35590_qvga_cmd_panel_data;
+		panelstruct->panelres     = &nt35590_qvga_cmd_panel_res;
+		panelstruct->color        = &nt35590_qvga_cmd_color;
+		panelstruct->videopanel   = &nt35590_qvga_cmd_video_panel;
+		panelstruct->commandpanel = &nt35590_qvga_cmd_command_panel;
+		panelstruct->state        = &nt35590_qvga_cmd_state;
+		panelstruct->laneconfig   = &nt35590_qvga_cmd_lane_config;
+		panelstruct->paneltiminginfo = &nt35590_qvga_cmd_timing_info;
+		panelstruct->panelresetseq
+					= &nt35590_qvga_cmd_panel_reset_seq;
+		panelstruct->backlightinfo = &nt35590_qvga_cmd_backlight;
+		pinfo->mipi.panel_cmds
+					= nt35590_qvga_cmd_on_command;
+		pinfo->mipi.num_of_panel_cmds
+					= NT35590_QVGA_CMD_ON_COMMAND;
+		memcpy(phy_db->timing,
+				nt35590_qvga_cmd_timings, TIMING_SIZE);
+		break;
         case UNKNOWN_PANEL:
                 memset(panelstruct, 0, sizeof(struct panel_struct));
                 memset(pinfo->mipi.panel_cmds, 0, sizeof(struct mipi_dsi_cmd));
@@ -388,6 +411,8 @@ bool oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 		if ((hw_subtype == HW_PLATFORM_SUBTYPE_1080P) ||
 			(hw_subtype == HW_PLATFORM_SUBTYPE_1080P_EXT_BUCK))
 			panel_id = JDI_1080P_VIDEO_PANEL;
+		else if (hw_subtype == HW_PLATFORM_SUBTYPE_QVGA)
+			panel_id = NT35590_QVGA_CMD_PANEL;
 		else
 			panel_id = nt35590_panel_id;
 		break;
