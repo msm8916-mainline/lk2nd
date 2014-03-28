@@ -2,6 +2,8 @@
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
  *
+ * Copyright (c) 2014, The Linux Foundation. All rights reserved.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -33,7 +35,7 @@
 
 #include "smem.h"
 
-static struct smem *smem = (void *)(MSM_SHARED_BASE);
+static struct smem *smem;
 
 /* buf MUST be 4byte aligned, and len MUST be a multiple of 8. */
 unsigned smem_read_alloc_entry(smem_mem_type_t type, void *buf, int len)
@@ -42,6 +44,11 @@ unsigned smem_read_alloc_entry(smem_mem_type_t type, void *buf, int len)
 	unsigned *dest = buf;
 	unsigned src;
 	unsigned size;
+	uint32_t smem_addr = 0;
+
+	smem_addr = platform_get_smem_base_addr();
+
+	smem = (struct smem *)smem_addr;
 
 	if (((len & 0x3) != 0) || (((unsigned)buf & 0x3) != 0))
 		return 1;
@@ -59,7 +66,7 @@ unsigned smem_read_alloc_entry(smem_mem_type_t type, void *buf, int len)
 	if (size != (unsigned)((len + 7) & ~0x00000007))
 		return 1;
 
-	src = MSM_SHARED_BASE + readl(&ainfo->offset);
+	src = smem_addr + readl(&ainfo->offset);
 	for (; len > 0; src += 4, len -= 4)
 		*(dest++) = readl(src);
 
@@ -74,6 +81,11 @@ smem_read_alloc_entry_offset(smem_mem_type_t type, void *buf, int len,
 	unsigned *dest = buf;
 	unsigned src;
 	unsigned size = len;
+	uint32_t smem_addr = 0;
+
+	smem_addr = platform_get_smem_base_addr();
+
+	smem = (struct smem *)smem_addr;
 
 	if (((len & 0x3) != 0) || (((unsigned)buf & 0x3) != 0))
 		return 1;
@@ -85,7 +97,7 @@ smem_read_alloc_entry_offset(smem_mem_type_t type, void *buf, int len,
 	if (readl(&ainfo->allocated) == 0)
 		return 1;
 
-	src = MSM_SHARED_BASE + readl(&ainfo->offset) + offset;
+	src = smem_addr + readl(&ainfo->offset) + offset;
 	for (; size > 0; src += 4, size -= 4)
 		*(dest++) = readl(src);
 
