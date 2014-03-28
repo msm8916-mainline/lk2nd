@@ -345,9 +345,13 @@ void target_display_init(const char *panel_name)
 {
         uint32_t panel_loop = 0;
         uint32_t ret = 0;
+	uint32_t fb_addr = MIPI_FB_ADDR;
+
+	if (board_hardware_subtype() == HW_PLATFORM_SUBTYPE_QVGA)
+		fb_addr = MIPI_FB_ADDR_QVGA;
 
 	do {
-		ret = gcdb_display_init(panel_name, MDP_REV_50, MIPI_FB_ADDR);
+		ret = gcdb_display_init(panel_name, MDP_REV_50, fb_addr);
 		if (!ret || ret == ERR_NOT_SUPPORTED) {
 			break;
 		} else {
