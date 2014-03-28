@@ -72,6 +72,7 @@
 #define SPMI_BASE                   0x02000000
 #define SPMI_GENI_BASE              (SPMI_BASE + 0xA000)
 #define SPMI_PIC_BASE               (SPMI_BASE +  0x01800000)
+#define PMIC_ARB_CORE               0x200F000
 
 #define TLMM_BASE_ADDR              0x1000000
 #define GPIO_CONFIG_ADDR(x)         (TLMM_BASE_ADDR + (x)*0x1000)
