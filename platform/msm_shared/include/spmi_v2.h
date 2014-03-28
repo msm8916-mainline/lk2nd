@@ -49,11 +49,10 @@
 #define PMIC_ARB_CHNLn_WDATA(x, n)           (PMIC_ARB_CORE_REG_BASE + 0x00000010 + (x) * 0x8000 + (n) * 4)
 #define PMIC_ARB_CHNLn_RDATA(x,n)            (PMIC_ARB_CORE_REG_BASE + 0x00000018 + (x) * 0x8000 + (n) * 4)
 
+#define PMIC_ARB_REG_CHLN(n)                 (PMIC_ARB_CORE + 0x00000800 + 0x4 * (n))
 #define PMIC_ARB_CHNLn_CMD0(x)               (PMIC_ARB_CORE_REG_BASE + (x) * 0x8000)
 #define PMIC_ARB_CMD_OPCODE_SHIFT            27
 #define PMIC_ARB_CMD_PRIORITY_SHIFT          26
-#define PMIC_ARB_CMD_SLAVE_ID_SHIFT          20
-#define PMIC_ARB_CMD_ADDR_SHIFT              12
 #define PMIC_ARB_CMD_ADDR_OFFSET_SHIFT       4
 #define PMIC_ARB_CMD_BYTE_CNT_SHIFT          0
 
@@ -84,6 +83,9 @@
 #define SPMI_CMD_MASTER_READ                 0x0F
 #define SPMI_CMD_DEV_DESC_BLK_MASTER_READ    0x10
 #define SPMI_CMD_DEV_DESC_BLK_SLAVE_READ     0x11
+
+/* Max number of Peripherals supported by SPMI */
+#define MAX_PERIPH 128
 
 enum spmi_geni_cmd_return_value{
 	SPMI_CMD_DONE,
