@@ -37,7 +37,7 @@
 #include <board.h>
 #include <platform/gpio.h>
 #include <platform/iomap.h>
-#include <platform/pm_pwm.h>
+#include <pm_pwm.h>
 #include <target/display.h>
 
 #include "include/panel.h"
