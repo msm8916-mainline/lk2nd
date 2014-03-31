@@ -33,6 +33,14 @@
 #include <bits.h>
 #include <kernel/event.h>
 
+//#define DEBUG_SDHCI
+
+#ifdef DEBUG_SDHCI
+#define DBG(...) dprintf(ALWAYS, __VA_ARGS__)
+#else
+#define DBG(...)
+#endif
+
 /*
  * Capabilities for the host controller
  * These values are read from the capabilities
@@ -124,7 +132,7 @@ enum {
 /*
  * Helper macros for writing byte, word & long registers
  */
-#define REG_READ8(host, a)                        readb(host->base + a);
+#define REG_READ8(host, a)                        readb(host->base + a)
 #define REG_WRITE8(host, v, a)                    writeb(v, (host->base + a))
 
 #define REG_READ32(host, a)                       readl(host->base + a)
@@ -156,9 +164,11 @@ enum {
 #define SDHCI_ERR_INT_STS_EN_REG                  (0x036)
 #define SDHCI_NRML_INT_SIG_EN_REG                 (0x038)
 #define SDHCI_ERR_INT_SIG_EN_REG                  (0x03A)
+#define SDHCI_AUTO_CMD_ERR                        (0x03C)
 #define SDHCI_HOST_CTRL2_REG                      (0x03E)
 #define SDHCI_CAPS_REG1                           (0x040)
 #define SDHCI_CAPS_REG2                           (0x044)
+#define SDHCI_ADM_ERR_REG                         (0x054)
 #define SDHCI_ADM_ADDR_REG                        (0x058)
 
 /*
