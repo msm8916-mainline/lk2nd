@@ -33,6 +33,7 @@
 #include <msm_panel.h>
 #include <board.h>
 #include <mipi_dsi.h>
+#include <target/display.h>
 
 #include "include/panel.h"
 #include "panel_display.h"
@@ -69,17 +70,6 @@ SSD2080M_720P_VIDEO_PANEL,
 JDI_1080P_VIDEO_PANEL,
 NT35590_QVGA_CMD_PANEL,
 UNKNOWN_PANEL
-};
-
-enum target_subtype {
-	HW_PLATFORM_SUBTYPE_720P = 0,
-	HW_PLATFORM_SUBTYPE_SKUAA = 1,
-	HW_PLATFORM_SUBTYPE_SKUF = 2,
-	HW_PLATFORM_SUBTYPE_1080P = 2,
-	HW_PLATFORM_SUBTYPE_SKUAB = 3,
-	HW_PLATFORM_SUBTYPE_1080P_EXT_BUCK = 3,
-	HW_PLATFORM_SUBTYPE_QVGA = 4,
-	HW_PLATFORM_SUBTYPE_SKUG = 5,
 };
 
 /*

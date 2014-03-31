@@ -98,6 +98,7 @@ static const uint32_t panel_physical_ctrl[] = {
 #define DISPLAY_CMDLINE_PREFIX " mdss_mdp.panel="
 
 #define MIPI_FB_ADDR  0x03200000
+#define MIPI_FB_ADDR_QVGA  0x04200000
 
 #define MIPI_HSYNC_PULSE_WIDTH       12
 #define MIPI_HSYNC_BACK_PORCH_DCLK   32
@@ -106,6 +107,17 @@ static const uint32_t panel_physical_ctrl[] = {
 #define MIPI_VSYNC_PULSE_WIDTH       4
 #define MIPI_VSYNC_BACK_PORCH_LINES  3
 #define MIPI_VSYNC_FRONT_PORCH_LINES 9
+
+enum target_subtype {
+	HW_PLATFORM_SUBTYPE_720P = 0,
+	HW_PLATFORM_SUBTYPE_SKUAA = 1,
+	HW_PLATFORM_SUBTYPE_SKUF = 2,
+	HW_PLATFORM_SUBTYPE_1080P = 2,
+	HW_PLATFORM_SUBTYPE_SKUAB = 3,
+	HW_PLATFORM_SUBTYPE_1080P_EXT_BUCK = 3,
+	HW_PLATFORM_SUBTYPE_QVGA = 4,
+	HW_PLATFORM_SUBTYPE_SKUG = 5,
+};
 
 extern int mdss_dsi_phy_init(struct mipi_dsi_panel_config *, uint32_t ctl_base);
 #endif
