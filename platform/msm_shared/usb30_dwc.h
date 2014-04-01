@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -449,7 +449,7 @@ void dwc_device_run(dwc_dev_t *dev, uint8_t run);
 void dwc_device_set_addr(dwc_dev_t *dev, uint16_t addr);
 void dwc_device_set_configuration(dwc_dev_t *dev);
 void dwc_device_set_periodic_param(dwc_dev_t *dev, uint32_t val);
-void dwc_device_add_ep(dwc_dev_t *dev, dwc_ep_t new_ep);
+void dwc_device_add_ep(dwc_dev_t *dev, dwc_ep_t *new_ep);
 
 /* data transfer apis */
 int dwc_transfer_request(dwc_dev_t *dwc,

@@ -1571,9 +1571,9 @@ void dwc_device_init(dwc_dev_t *dev)
  * every time. The cleanup during usb reset is not cleanly removing the
  * endpoints added during a set config. This works fine for our usecase.
  */
-void dwc_device_add_ep(dwc_dev_t *dev, dwc_ep_t new_ep)
+void dwc_device_add_ep(dwc_dev_t *dev, dwc_ep_t *new_ep)
 {
-	uint8_t index = DWC_EP_INDEX(new_ep.number, new_ep.dir);
+	uint8_t index = DWC_EP_INDEX(new_ep->number, new_ep->dir);
 
 	dwc_ep_t *ep = &dev->ep[index];
 
@@ -1581,14 +1581,14 @@ void dwc_device_add_ep(dwc_dev_t *dev, dwc_ep_t new_ep)
 
 	/* copy client specified params */
 
-	ep->number        = new_ep.number;
-	ep->dir           = new_ep.dir;
-	ep->type          = new_ep.type;
-	ep->max_pkt_size  = new_ep.max_pkt_size;
-	ep->burst_size    = new_ep.burst_size;
-	ep->zlp           = new_ep.zlp;
-	ep->trb_count     = new_ep.trb_count;
-	ep->trb           = new_ep.trb;
+	ep->number        = new_ep->number;
+	ep->dir           = new_ep->dir;
+	ep->type          = new_ep->type;
+	ep->max_pkt_size  = new_ep->max_pkt_size;
+	ep->burst_size    = new_ep->burst_size;
+	ep->zlp           = new_ep->zlp;
+	ep->trb_count     = new_ep->trb_count;
+	ep->trb           = new_ep->trb;
 
 	ASSERT(ep->trb);
 
