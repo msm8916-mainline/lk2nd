@@ -213,4 +213,9 @@ static struct backlight jdi_qhd_dualdsi_cmd_backlight = {
 	0, 1, 4095, 100, 1, "PMIC_8941"
 };
 
+/*---------------------------------------------------------------------------*/
+/* Other configuration                                                       */
+/*---------------------------------------------------------------------------*/
+#define JDI_QHD_DUALDSI_CMD_PANEL_ON_DELAY 30
+
 #endif /*_PANEL_JDI_QHD_DUALDSI_CMD_H_*/

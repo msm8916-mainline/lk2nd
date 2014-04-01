@@ -68,22 +68,25 @@ static uint32_t panel_id;
 
 int oem_panel_rotation()
 {
-	/* OEM can keep there panel spefic on instructions in this
+	/* OEM can keep there panel specific on instructions in this
 	function */
 	return NO_ERROR;
 }
 
-
 int oem_panel_on()
 {
-	/* OEM can keep there panel spefic on instructions in this
+	/* OEM can keep there panel specific on instructions in this
 	function */
+	if (panel_id == JDI_QHD_DUALDSI_CMD_PANEL) {
+		/* needs extra delay to avoid unexpected artifacts */
+		mdelay(JDI_QHD_DUALDSI_CMD_PANEL_ON_DELAY);
+	}
 	return NO_ERROR;
 }
 
 int oem_panel_off()
 {
-	/* OEM can keep there panel spefic off instructions in this
+	/* OEM can keep there panel specific off instructions in this
 	function */
 	return NO_ERROR;
 }
