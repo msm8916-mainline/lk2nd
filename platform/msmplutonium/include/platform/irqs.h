@@ -43,7 +43,7 @@
 #define INT_QTMR_NON_SECURE_PHY_TIMER_EXP      (GIC_PPI_START + 3)
 #define INT_QTMR_VIRTUAL_TIMER_EXP             (GIC_PPI_START + 4)
 
-#define INT_QTMR_FRM_0_PHYSICAL_TIMER_EXP      (GIC_SPI_START + 8)
+#define INT_QTMR_FRM_0_PHYSICAL_TIMER_EXP      (GIC_SPI_START + 9)
 
 #define USB1_HS_IRQ                            (GIC_SPI_START + 134)
 
