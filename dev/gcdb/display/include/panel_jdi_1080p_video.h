@@ -54,7 +54,7 @@ static struct panel_config jdi_1080p_video_panel_data = {
 /* Panel resolution                                                          */
 /*---------------------------------------------------------------------------*/
 static struct panel_resolution jdi_1080p_video_panel_res = {
-  1080, 1920, 96, 64, 16, 0, 3, 4, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  1080, 1920, 96, 64, 16, 0, 4, 16, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 
 /*---------------------------------------------------------------------------*/
@@ -149,7 +149,7 @@ static struct lane_configuration jdi_1080p_video_lane_config = {
 /* Panel Timing                                                              */
 /*---------------------------------------------------------------------------*/
 static const uint32_t jdi_1080p_video_timings[] = {
-  0xe1, 0x37, 0x25, 0x00, 0x67, 0x6b, 0x2a, 0x3a,  0x59, 0x03, 0x04, 0x00
+  0xe7, 0x36, 0x24, 0x00, 0x66, 0x6a, 0x2a, 0x3a,  0x2d, 0x03, 0x04, 0x00
 };
 
 
