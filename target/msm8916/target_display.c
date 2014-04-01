@@ -352,11 +352,18 @@ bool target_display_panel_node(char *panel_name, char *pbuf, uint16_t buf_size)
 
 void target_display_init(const char *panel_name)
 {
+	uint32_t panel_loop = 0;
 	uint32_t ret = 0;
-	ret = gcdb_display_init(panel_name, MDP_REV_50, MIPI_FB_ADDR);
-	if (ret) {
-		msm_display_off();
-	}
+	do {
+		ret = gcdb_display_init(panel_name, MDP_REV_50, MIPI_FB_ADDR);
+		if (!ret || ret == ERR_NOT_SUPPORTED) {
+			break;
+		} else {
+			target_force_cont_splash_disable(true);
+			msm_display_off();
+			target_force_cont_splash_disable(false);
+		}
+	} while (++panel_loop <= oem_panel_max_auto_detect_panels());
 }
 
 void target_display_shutdown(void)
