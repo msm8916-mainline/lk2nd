@@ -168,6 +168,7 @@ ifeq ($(PLATFORM),msm8916)
 		$(LOCAL_DIR)/bam.o \
 		$(LOCAL_DIR)/scm.o \
 		$(LOCAL_DIR)/qpic_nand.o \
+		$(LOCAL_DIR)/dload_util.o \
 		$(LOCAL_DIR)/gpio.o \
 		$(LOCAL_DIR)/dev_tree.o
 endif
