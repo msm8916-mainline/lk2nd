@@ -149,6 +149,7 @@ ifeq ($(PLATFORM),mpq8092)
 			$(LOCAL_DIR)/board.o \
 			$(LOCAL_DIR)/spmi.o \
 			$(LOCAL_DIR)/bam.o \
+			$(LOCAL_DIR)/scm.o \
 			$(LOCAL_DIR)/qpic_nand.o \
 			$(LOCAL_DIR)/gpio.o \
 			$(LOCAL_DIR)/dev_tree.o
@@ -165,6 +166,7 @@ ifeq ($(PLATFORM),msm8916)
 		$(LOCAL_DIR)/board.o \
 		$(LOCAL_DIR)/spmi.o \
 		$(LOCAL_DIR)/bam.o \
+		$(LOCAL_DIR)/scm.o \
 		$(LOCAL_DIR)/qpic_nand.o \
 		$(LOCAL_DIR)/gpio.o \
 		$(LOCAL_DIR)/dev_tree.o
@@ -283,6 +285,7 @@ ifeq ($(PLATFORM),mdm9x15)
 			$(LOCAL_DIR)/nand.o \
 			$(LOCAL_DIR)/uart_dm.o \
 			$(LOCAL_DIR)/interrupts.o \
+			$(LOCAL_DIR)/scm.o \
 			$(LOCAL_DIR)/timer.o
 endif
 
@@ -296,6 +299,7 @@ ifeq ($(PLATFORM),mdm9x25)
 			$(LOCAL_DIR)/spmi.o \
 			$(LOCAL_DIR)/qpic_nand.o \
 			$(LOCAL_DIR)/bam.o \
+			$(LOCAL_DIR)/scm.o \
 			$(LOCAL_DIR)/dev_tree.o \
 			$(LOCAL_DIR)/clock.o \
 			$(LOCAL_DIR)/clock_pll.o \
@@ -312,6 +316,7 @@ ifeq ($(PLATFORM),mdm9x35)
 			$(LOCAL_DIR)/spmi.o \
 			$(LOCAL_DIR)/qpic_nand.o \
 			$(LOCAL_DIR)/bam.o \
+			$(LOCAL_DIR)/scm.o \
 			$(LOCAL_DIR)/dev_tree.o \
 			$(LOCAL_DIR)/clock.o \
 			$(LOCAL_DIR)/clock_pll.o \
