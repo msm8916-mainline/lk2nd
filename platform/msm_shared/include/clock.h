@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, 2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -187,4 +187,10 @@ struct clk_list *clk_get_list(void);
  * @num: number of clocks in the list
  */
 void clk_init(struct clk_lookup *clist, unsigned num);
+/**
+ * clk_reset - Reset block using BCR
+ * @clk: pointer to clock
+ * @action: clock assert or deassert
+ */
+int clk_reset(struct clk *clk, enum clk_reset_action);
 #endif
