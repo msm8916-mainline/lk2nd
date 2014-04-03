@@ -32,29 +32,95 @@
 #include <qmp_phy.h>
 #include <reg.h>
 #include <bits.h>
+#include <clock.h>
+#include <debug.h>
+
+#define HS_PHY_COMMON_CTRL             0xEC
+#define USE_CORECLK                    BIT(14)
+#define PLLBTUNE                       BIT(15)
+#define FSEL                           (0x7 << 4)
+#define DIS_RETENTION                  BIT(18)
 
 /* USB3.0 QMP phy reset */
 void usb30_qmp_phy_reset(void)
 {
+	int ret = 0;
 	uint32_t val;
 
-	/* phy com reset */
-	val = readl(GCC_USB30_PHY_COM_BCR) | BIT(0);
-	writel(val, GCC_USB30_PHY_COM_BCR);
-	udelay(10);
-	writel(val & ~BIT(0), GCC_USB30_PHY_COM_BCR);
+	struct clk *usb2b_clk = NULL;
+	struct clk *usb_pipe_clk = NULL;
+	struct clk *phy_com_clk = NULL;
+	struct clk *phy_clk = NULL;
 
-	/* SS PHY reset */
-	val = readl(GCC_USB3_PHY_BCR) | BIT(0);
-	writel(val, GCC_USB3_PHY_BCR);
-	udelay(10);
-	writel(val & ~BIT(0), GCC_USB3_PHY_BCR);
+	usb2b_clk = clk_get("usb2b_phy_sleep_clk");
+	ASSERT(usb2b_clk);
 
-	/* pipe clk reset */
-	val = readl(GCC_USB30PHY_PHY_BCR) | BIT(0);
-	writel(val, GCC_USB30PHY_PHY_BCR);
-	udelay(10);
-	writel(val & ~BIT(0), GCC_USB30PHY_PHY_BCR);
+	phy_com_clk = clk_get("usb30_phy_com_reset");
+	ASSERT(phy_com_clk);
+
+	phy_clk  = clk_get("usb30_phy_reset");
+	ASSERT(phy_clk);
+
+	usb_pipe_clk = clk_get("usb30_pipe_clk");
+	ASSERT(usb_pipe_clk);
+
+	/* ASSERT */
+	ret = clk_reset(usb2b_clk, CLK_RESET_ASSERT);
+	if (ret)
+	{
+		dprintf(CRITICAL, "Failed to assert usb2b_phy_clk\n");
+		return;
+	}
+
+	ret = clk_reset(phy_com_clk, CLK_RESET_ASSERT);
+	if (ret)
+	{
+		dprintf(CRITICAL, "Failed to assert phy_com_clk\n");
+		goto deassert_usb2b_clk;
+	}
+
+	ret = clk_reset(phy_clk, CLK_RESET_ASSERT);
+	if (ret)
+	{
+		dprintf(CRITICAL, "Failed to assert phy_clk\n");
+		goto deassert_phy_com_clk;
+	}
+
+	ret = clk_reset(usb_pipe_clk, CLK_RESET_ASSERT);
+	if (ret)
+	{
+		dprintf(CRITICAL, "Failed to assert usb_pipe_clk\n");
+		goto deassert_phy_clk;
+	}
+
+	udelay(100);
+
+	/* DEASSERT */
+	ret = clk_reset(usb_pipe_clk, CLK_RESET_DEASSERT);
+	if (ret)
+		dprintf(CRITICAL, "Failed to deassert usb_pipe_clk\n");
+
+deassert_phy_clk:
+	ret = clk_reset(phy_clk, CLK_RESET_DEASSERT);
+	if (ret)
+		dprintf(CRITICAL, "Failed to deassert phy_clk\n");
+
+deassert_phy_com_clk:
+	ret = clk_reset(phy_com_clk, CLK_RESET_DEASSERT);
+	if (ret)
+		dprintf(CRITICAL, "Failed to deassert phy_com_clk\n");
+
+deassert_usb2b_clk:
+	ret = clk_reset(usb2b_clk, CLK_RESET_DEASSERT);
+	if (ret)
+		dprintf(CRITICAL, "Failed to deassert usb2b_phy_clk\n");
+
+	/* Override the phy common control values */
+	val = readl(MSM_USB30_QSCRATCH_BASE + HS_PHY_COMMON_CTRL);
+	val |= USE_CORECLK | PLLBTUNE;
+	val &= ~FSEL;
+	val &= ~DIS_RETENTION;
+	writel(val, MSM_USB30_QSCRATCH_BASE + HS_PHY_COMMON_CTRL);
 }
 
 /* USB 3.0 phy init: HPG for QMP phy*/
@@ -98,7 +164,7 @@ void usb30_qmp_phy_init()
 	writel(0x6C, QMP_PHY_BASE + QSERDES_RX_RX_EQU_ADAPTOR_CNTRL3);
 	writel(0xC7, QMP_PHY_BASE + QSERDES_RX_RX_EQU_ADAPTOR_CNTRL4);
 	writel(0x40, QMP_PHY_BASE + QSERDES_RX_SIGDET_ENABLES);
-	writel(0x70, QMP_PHY_BASE + QSERDES_RX_SIGDET_CNTRL);
+	writel(0x73, QMP_PHY_BASE + QSERDES_RX_SIGDET_CNTRL);
 	writel(0x06, QMP_PHY_BASE + QSERDES_RX_SIGDET_DEGLITCH_CNTRL);
 	writel(0x48, QMP_PHY_BASE + PCIE_USB3_PHY_RX_IDLE_DTCT_CNTRL);
 	writel(0x01, QMP_PHY_BASE + QSERDES_COM_SSC_EN_CENTER);
