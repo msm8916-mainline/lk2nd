@@ -34,6 +34,8 @@
 
 #define MDP_VP_0_RGB_0_BASE                     REG_MDP(0x1E00)
 #define MDP_VP_0_RGB_1_BASE                     REG_MDP(0x2200)
+#define MDP_VP_0_DMA_0_BASE                     REG_MDP(0x2A00)
+#define MDP_VP_0_DMA_1_BASE                     REG_MDP(0x2E00)
 
 #define PIPE_SSPP_SRC0_ADDR                     0x14
 #define PIPE_SSPP_SRC_YSTRIDE                   0x24
@@ -176,10 +178,10 @@ int mdp_get_revision();
 int mdp_dsi_video_config(struct msm_panel_info *pinfo, struct fbcon_config *fb);
 int mipi_dsi_cmd_config(struct fbcon_config mipi_fb_cfg,
 			unsigned short num_of_lanes);
-int mdp_dsi_video_on(void);
-int mdp_dma_on(void);
+int mdp_dsi_video_on(struct msm_panel_info *pinfo);
+int mdp_dma_on(struct msm_panel_info *pinfo);
 int mdp_edp_config(struct msm_panel_info *pinfo, struct fbcon_config *fb);
-int mdp_edp_on(void);
+int mdp_edp_on(struct msm_panel_info *pinfo);
 int mdp_edp_off(void);
 void mdp_disable(void);
 

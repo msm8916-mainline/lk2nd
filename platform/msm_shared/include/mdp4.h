@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -104,7 +104,7 @@ void mdp_shutdown(void);
 void mdp_disable(void);
 void mdp_start_dma(void);
 int mdp_dsi_video_off();
-int mdp_dsi_video_on();
+int mdp_dsi_video_on(struct msm_panel_info *pinfo);
 int mdp_dsi_video_config(struct msm_panel_info *pinfo, struct fbcon_config *fb);
 int mdp_lcdc_config(struct msm_panel_info *pinfo, struct fbcon_config *fb);
 int mdp_lcdc_on();
@@ -114,7 +114,7 @@ int mdp_get_revision();
 
 /* defining no-op functions that are implemented only for mdp5 */
 int mdp_edp_config(struct msm_panel_info *pinfo, struct fbcon_config *fb);
-int mdp_edp_on(void);
+int mdp_edp_on(struct msm_panel_info *pinfo);
 int mdp_edp_off(void);
 
 #endif
