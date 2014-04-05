@@ -129,6 +129,12 @@ int oem_panel_off()
 	return NO_ERROR;
 }
 
+static void mdss_source_pipe_select(struct msm_panel_info *pinfo)
+{
+	/* Use DMA pipe for splash logo on 8x26 */
+	pinfo->use_dma_pipe = 1;
+}
+
 static void init_panel_data(struct panel_struct *panelstruct,
 			struct msm_panel_info *pinfo,
 			struct mdss_dsi_phy_ctrl *phy_db)
@@ -414,6 +420,7 @@ bool oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 
 panel_init:
 	init_panel_data(panelstruct, pinfo, phy_db);
+	mdss_source_pipe_select(pinfo);
 
 	return ret;
 }
