@@ -188,6 +188,7 @@ struct pm8x41_mpp
 
 #define PM8x41_MMP2_BASE                      0xA100
 #define PM8x41_MMP3_BASE                      0xA200
+#define PM8x41_MMP4_BASE                      0xA300
 
 void pm8x41_lpg_write(uint8_t chan, uint8_t off, uint8_t val);
 int pm8x41_gpio_get(uint8_t gpio, uint8_t *status);
