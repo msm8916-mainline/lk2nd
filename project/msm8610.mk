@@ -12,6 +12,7 @@ ENABLE_SDHCI_SUPPORT := 1
 
 #enable power on vibrator feature
 ENABLE_PON_VIB_SUPPORT := true
+ENABLE_PWM_SUPPORT := true
 
 #DEFINES += WITH_DEBUG_DCC=1
 DEFINES += WITH_DEBUG_UART=1
