@@ -31,9 +31,12 @@
 
 #include <sys/types.h>
 
+#define DLOAD 1
+
 enum dload_mode {
 	NORMAL_DLOAD,
-	EMERGENCY_DLOAD
+	EMERGENCY_DLOAD,
+	NORMAL_MODE
 };
 
 void dload_util_write_cookie(uint32_t target_dload_mode_addr,

@@ -117,6 +117,7 @@ typedef struct {
 } el1_system_param;
 
 /* Service IDs */
+#define SCM_SVC_BOOT                0x01
 #define TZBSP_SVC_INFO              0x06
 #define SCM_SVC_SSD                 0x07
 #define SVC_MEMORY_PROTECTION       0x0C
@@ -127,13 +128,18 @@ typedef struct {
 #define SSD_PROTECT_KEYSTORE_ID     0x05
 #define SSD_PARSE_MD_ID             0x06
 #define SSD_DECRYPT_IMG_FRAG_ID     0x07
-
+#define WDOG_DEBUG_DISABLE          0x09
+#define SCM_DLOAD_CMD               0x10
 
 #define SECURE_DEVICE_MDSS          0x01
 
 #define IOMMU_SECURE_CFG            0x02
 
 #define TZ_INFO_GET_FEATURE_ID      0x03
+
+/* Download Mode specific arguments to be passed to TZ */
+#define SCM_EDLOAD_MODE 0x02
+#define SCM_DLOAD_MODE  0x10
 
 /* SSD parsing status messages from TZ */
 #define SSD_PMD_ENCRYPTED           0
@@ -207,6 +213,7 @@ uint8_t switch_ce_chn_cmd(enum ap_ce_channel_type channel);
 void set_tamper_fuse_cmd();
 
 int scm_halt_pmic_arbiter();
+int scm_call_atomic2(uint32_t svc, uint32_t cmd, uint32_t arg1, uint32_t arg2);
 
 void scm_elexec_call(paddr_t kernel_entry, paddr_t dtb_offset);
 
