@@ -2484,7 +2484,7 @@ void aboot_init(const struct app_descriptor *app)
 		}
 		else
 		{
-			reboot_device(0);
+			reboot_device(DLOAD);
 			dprintf(CRITICAL,"Failed to reboot into dload mode\n");
 		}
 		boot_into_fastboot = true;
