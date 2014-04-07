@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012, 2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -95,10 +95,32 @@ unsigned int pmic_arb_write_cmd(struct pmic_arb_cmd *cmd,
 	uint32_t bytes_written = 0;
 	uint32_t error;
 	uint32_t val = 0;
+#ifdef SPMI_CORE_V2
+	uint32_t slave_id;
+	uint32_t ppid_address;
+	int i;
+	int channel_not_found = 1;
 
+	for(i = 0; i < MAX_PERIPH ; i++)
+	{
+		slave_id = (readl(PMIC_ARB_REG_CHLN(i)) & 0xf0000) >> 16;
+		ppid_address = (readl(PMIC_ARB_REG_CHLN(i)) & 0xff00) >> 8;
+		if((cmd->slave_id == slave_id) && (cmd->address == ppid_address)) {
+			pmic_arb_chnl_num = i;
+			channel_not_found = 0;
+			dprintf(INFO, "pmic_arb_write_cmd: \
+				channel found for slave %x, ppid %x\n", cmd->slave_id, cmd->address);
+			break;
+		}
+	}
+	if(channel_not_found) {
+		dprintf(CRITICAL, "pmic_arb_write_cmd: \
+			channel not found for slave %x, ppid %x\n", cmd->slave_id, cmd->address);
+		return channel_not_found;
+	}
+#endif
 	/* Disable IRQ mode for the current channel*/
 	writel(0x0, PMIC_ARB_CHNLn_CONFIG(pmic_arb_chnl_num));
-
 	/* Write parameters for the cmd */
 	if (cmd == NULL)
 	{
@@ -130,8 +152,10 @@ unsigned int pmic_arb_write_cmd(struct pmic_arb_cmd *cmd,
 	val = 0;
 	val |= ((uint32_t)(cmd->opcode) << PMIC_ARB_CMD_OPCODE_SHIFT);
 	val |= ((uint32_t)(cmd->priority) << PMIC_ARB_CMD_PRIORITY_SHIFT);
+#ifndef SPMI_CORE_V2
 	val |= ((uint32_t)(cmd->slave_id) << PMIC_ARB_CMD_SLAVE_ID_SHIFT);
 	val |= ((uint32_t)(cmd->address) << PMIC_ARB_CMD_ADDR_SHIFT);
+#endif
 	val |= ((uint32_t)(cmd->offset) << PMIC_ARB_CMD_ADDR_OFFSET_SHIFT);
 	val |= ((uint32_t)(cmd->byte_cnt));
 
@@ -195,8 +219,31 @@ unsigned int pmic_arb_read_cmd(struct pmic_arb_cmd *cmd,
 	uint32_t error;
 	uint32_t addr;
 	uint8_t bytes_read = 0;
+#ifdef SPMI_CORE_V2
+	int channel_not_found = 1;
+	int i;
+	uint32_t slave_id;
+	uint32_t ppid_address;
 
-	/* Disable IRQ mode for the current channel*/
+	for(i = 0; i < MAX_PERIPH ; i++)
+	{
+		slave_id = (readl(PMIC_ARB_REG_CHLN(i)) & 0xf0000) >> 16;
+		ppid_address = (readl(PMIC_ARB_REG_CHLN(i)) & 0xff00) >> 8;
+		if((cmd->slave_id == slave_id) && (cmd->address == ppid_address)) {
+			pmic_arb_chnl_num = i;
+			channel_not_found = 0;
+			dprintf(INFO, "pmic_arb_read_cmd: \
+				channel found for slave %x, ppid %x\n", cmd->slave_id, cmd->address);
+			break;
+		}
+	}
+	if(channel_not_found) {
+		dprintf(CRITICAL, "pmic_arb_read_cmd: \
+			channel not found for slave %x, ppid %x\n", cmd->slave_id, cmd->address);
+		return channel_not_found;
+	}
+#endif
+	 /* Disable IRQ mode for the current channel*/
 	writel(0x0, PMIC_ARB_CHNLn_CONFIG(pmic_arb_chnl_num));
 
 	/* Fill in the byte count for the command
@@ -208,8 +255,10 @@ unsigned int pmic_arb_read_cmd(struct pmic_arb_cmd *cmd,
 
 	val |= ((uint32_t)(cmd->opcode) << PMIC_ARB_CMD_OPCODE_SHIFT);
 	val |= ((uint32_t)(cmd->priority) << PMIC_ARB_CMD_PRIORITY_SHIFT);
+#ifndef SPMI_CORE_V2
 	val |= ((uint32_t)(cmd->slave_id) << PMIC_ARB_CMD_SLAVE_ID_SHIFT);
 	val |= ((uint32_t)(cmd->address) << PMIC_ARB_CMD_ADDR_SHIFT);
+#endif
 	val |= ((uint32_t)(cmd->offset) << PMIC_ARB_CMD_ADDR_OFFSET_SHIFT);
 	val |= ((uint32_t)(cmd->byte_cnt));
 
