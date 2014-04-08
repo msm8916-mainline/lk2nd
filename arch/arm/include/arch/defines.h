@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008 Travis Geiselbrecht
  *
- * Copyright (c) 2013, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -44,8 +44,10 @@
 
 #if ARM_ISA_ARMV7
 #define dsb() __asm__ volatile ("dsb" : : : "memory");
+#define dmb() __asm__ volatile ("dmb" : : : "memory");
 #elif ARM_ISA_ARMV6
 #define dsb() __asm__ volatile ("mcr p15, 0, %0, c7, c10, 4" : : "r" (0): "memory");
+#define dmb() __asm__ volatile ("mcr p15, 0, %0, c7, c10, 5" : : "r" (0): "memory");
 #endif
 
 #define GET_CAHE_LINE_START_ADDR(addr) ROUNDDOWN(addr, CACHE_LINE)
