@@ -78,6 +78,11 @@ enum target_subtype {
 	HW_PLATFORM_SUBTYPE_SKUG = 5,
 };
 
+enum mtp_cdp_subtype
+{
+	HW_PLATFORM_SUBTYPE_QVGA = 4,
+};
+
 static uint32_t mmc_pwrctl_base[] =
 	{ MSM_SDC1_BASE, MSM_SDC2_BASE, MSM_SDC3_BASE };
 
@@ -280,6 +285,11 @@ void target_detect(struct board_data *board)
 	*/
 }
 
+bool target_is_cdp_qvga()
+{
+	return board_hardware_subtype() == HW_PLATFORM_SUBTYPE_QVGA;
+}
+
 /* Detect the modem type */
 void target_baseband_detect(struct board_data *board)
 {
@@ -305,6 +315,8 @@ void target_baseband_detect(struct board_data *board)
 	case HW_PLATFORM_SUBTYPE_SKUAB:
 		break;
 	case HW_PLATFORM_SUBTYPE_SKUG:
+		break;
+	case HW_PLATFORM_SUBTYPE_QVGA:
 		break;
 	default:
 		dprintf(CRITICAL, "Platform Subtype : %u is not supported\n", platform_subtype);

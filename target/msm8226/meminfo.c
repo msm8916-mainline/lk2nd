@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -34,6 +34,7 @@
 #include <libfdt.h>
 #include <platform/iomap.h>
 #include <dev_tree.h>
+#include <target.h>
 
 /* Funtion to add the ram partition entries into device tree.
  * The function assumes that all the entire fixed memory regions should
@@ -77,10 +78,24 @@ target_dev_tree_mem_err:
 
 void *target_get_scratch_address(void)
 {
-	return ((void *)SCRATCH_ADDR);
+	void *scratch_addr = 0;
+
+	if(target_is_cdp_qvga())
+		scratch_addr = (void *)SCRATCH_ADDR_128MAP;
+	else
+		scratch_addr = (void *)SCRATCH_ADDR_512MAP;
+
+	return scratch_addr;
 }
 
 unsigned target_get_max_flash_size(void)
 {
-	return (512 * 1024 * 1024);
+	uint32_t max_flash_size = 0;
+
+	if(target_is_cdp_qvga())
+		max_flash_size = SCRATCH_SIZE_128MAP;
+	else
+		max_flash_size = SCRATCH_SIZE_512MAP;
+
+	return max_flash_size;
 }
