@@ -1879,7 +1879,15 @@ static uint32_t mmc_send_erase_grp_start(struct mmc_device *dev, uint32_t erase_
 	else
 		cmd.cmd_index = CMD32_ERASE_WR_BLK_START;
 
-	cmd.argument = erase_start;
+	/*
+	 * Standard emmc cards use byte mode addressing
+	 * convert the block address to byte address before
+	 * sending the command
+	 */
+	if (card->type == MMC_TYPE_STD_MMC)
+		cmd.argument = erase_start * card->block_size;
+	else
+		cmd.argument = erase_start;
 	cmd.cmd_type = SDHCI_CMD_TYPE_NORMAL;
 	cmd.resp_type = SDHCI_CMD_RESP_R1;
 
@@ -1914,7 +1922,15 @@ static uint32_t mmc_send_erase_grp_end(struct mmc_device *dev, uint32_t erase_en
 	else
 		cmd.cmd_index = CMD33_ERASE_WR_BLK_END;
 
-	cmd.argument = erase_end;
+	/*
+	 * Standard emmc cards use byte mode addressing
+	 * convert the block address to byte address before
+	 * sending the command
+	 */
+	if (card->type == MMC_TYPE_STD_MMC)
+		cmd.argument = erase_end * card->block_size;
+	else
+		cmd.argument = erase_end;
 	cmd.cmd_type = SDHCI_CMD_TYPE_NORMAL;
 	cmd.resp_type = SDHCI_CMD_RESP_R1;
 
