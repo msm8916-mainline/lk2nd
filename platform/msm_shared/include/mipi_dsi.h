@@ -972,6 +972,8 @@ enum {		/* mipi dsi panel */
 
 int mipi_config(struct msm_fb_panel_data *panel);
 int mdss_dsi_config(struct msm_fb_panel_data *panel);
+int mdss_dsi_phy_init(struct mipi_dsi_panel_config *,
+		uint32_t ctl_base, uint32_t phy_base);
 
 int mdss_dsi_video_mode_config(uint16_t disp_width,
 	uint16_t disp_height,

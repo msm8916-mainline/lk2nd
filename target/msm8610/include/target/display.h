@@ -111,5 +111,4 @@ static const uint32_t panel_physical_ctrl[] = {
 #define MIPI_VSYNC_BACK_PORCH_LINES  10
 #define MIPI_VSYNC_FRONT_PORCH_LINES 12
 
-extern int mdss_dsi_v2_phy_init(struct mipi_dsi_panel_config *);
 #endif
