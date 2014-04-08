@@ -37,7 +37,13 @@ ifeq ($(ENABLE_SDHCI_SUPPORT),1)
 DEFINES += MMC_SDHCI_SUPPORT=1
 endif
 
+#enable power on vibrator feature
+ENABLE_PON_VIB_SUPPORT := true
+
 ifeq ($(EMMC_BOOT),1)
 DEFINES += _EMMC_BOOT=1
 endif
 
+ifeq ($(ENABLE_PON_VIB_SUPPORT),true)
+DEFINES += PON_VIB_SUPPORT=1
+endif
