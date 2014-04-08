@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -64,7 +64,22 @@ uint64_t div_s64(uint64_t dividend, uint32_t divisor, uint32_t *remainder)
 	return dividend / divisor;
 }
 
-int32_t mdss_dsi_auto_pll_config(uint32_t ctl_base,
+void mdss_dsi_uniphy_pll_lock_detect_setting(uint32_t pll_base)
+{
+	writel(0x0c, pll_base + 0x0064); /* LKDetect CFG2 */
+	udelay(100);
+	writel(0x0d, pll_base + 0x0064); /* LKDetect CFG2 */
+}
+
+void mdss_dsi_uniphy_pll_sw_reset(uint32_t pll_base)
+{
+	writel(0x01, pll_base + 0x0068); /* PLL TEST CFG */
+	udelay(1);
+	writel(0x00, pll_base + 0x0068); /* PLL TEST CFG */
+	udelay(1);
+}
+
+int32_t mdss_dsi_auto_pll_config(uint32_t pll_base, uint32_t ctl_base,
 				struct mdss_dsi_pll_config *pd)
 {
 	uint32_t rem, divider;
@@ -90,22 +105,22 @@ int32_t mdss_dsi_auto_pll_config(uint32_t ctl_base,
 	mdss_dsi_phy_sw_reset(ctl_base);
 
 	/* Loop filter resistance value */
-	writel(lpfr_lut[i].resistance, ctl_base + 0x022c);
+	writel(lpfr_lut[i].resistance, pll_base + 0x002c);
 	/* Loop filter capacitance values : c1 and c2 */
-	writel(0x70, ctl_base + 0x0230);
-	writel(0x15, ctl_base + 0x0234);
+	writel(0x70, pll_base + 0x0030);
+	writel(0x15, pll_base + 0x0034);
 
-	writel(0x02, ctl_base + 0x0208); /* ChgPump */
+	writel(0x02, pll_base + 0x0008); /* ChgPump */
 	/* postDiv1 - calculated in pll config*/
-	writel(pd->posdiv1, ctl_base + 0x0204);
+	writel(pd->posdiv1, pll_base + 0x0004);
 	/* postDiv2 - fixed devision 4 */
-	writel(0x03, ctl_base + 0x0224);
+	writel(0x03, pll_base + 0x0024);
 	/* postDiv3 - calculated in pll config */
-	writel(pd->posdiv3, ctl_base + 0x0228); /* postDiv3 */
+	writel(pd->posdiv3, pll_base + 0x0028); /* postDiv3 */
 
-	writel(0x2b, ctl_base + 0x0278); /* Cal CFG3 */
-	writel(0x66, ctl_base + 0x027c); /* Cal CFG4 */
-	writel(0x05, ctl_base + 0x0264); /* LKDetect CFG2 */
+	writel(0x2b, pll_base + 0x0078); /* Cal CFG3 */
+	writel(0x66, pll_base + 0x007c); /* Cal CFG4 */
+	writel(0x05, pll_base + 0x0064); /* LKDetect CFG2 */
 
 	rem = pd->vco_clock % VCO_REF_CLOCK_RATE;
 	if (rem) {
@@ -149,25 +164,25 @@ int32_t mdss_dsi_auto_pll_config(uint32_t ctl_base,
 	cal_cfg11 = gen_vco_clk / 256000000;
 	cal_cfg10 = (gen_vco_clk % 256000000) / 1000000;
 
-	writel(sdm_cfg1 , ctl_base + 0x023c); /* SDM CFG1 */
-	writel(sdm_cfg2 , ctl_base + 0x0240); /* SDM CFG2 */
-	writel(sdm_cfg3 , ctl_base + 0x0244); /* SDM CFG3 */
-	writel(0x00, ctl_base + 0x0248); /* SDM CFG4 */
+	writel(sdm_cfg1 , pll_base + 0x003c); /* SDM CFG1 */
+	writel(sdm_cfg2 , pll_base + 0x0040); /* SDM CFG2 */
+	writel(sdm_cfg3 , pll_base + 0x0044); /* SDM CFG3 */
+	writel(0x00, pll_base + 0x0048); /* SDM CFG4 */
 
 	udelay(10);
 
-	writel(refclk_cfg, ctl_base + 0x0200); /* REFCLK CFG */
-	writel(0x00, ctl_base + 0x0214); /* PWRGEN CFG */
-	writel(0x71, ctl_base + 0x020c); /* VCOLPF CFG */
-	writel(pd->directpath, ctl_base + 0x0210); /* VREG CFG */
-	writel(sdm_cfg0, ctl_base + 0x0238); /* SDM CFG0 */
+	writel(refclk_cfg, pll_base + 0x0000); /* REFCLK CFG */
+	writel(0x00, pll_base + 0x0014); /* PWRGEN CFG */
+	writel(0x71, pll_base + 0x000c); /* VCOLPF CFG */
+	writel(pd->directpath, pll_base + 0x0010); /* VREG CFG */
+	writel(sdm_cfg0, pll_base + 0x0038); /* SDM CFG0 */
 
-	writel(0x0a, ctl_base + 0x026c); /* CAL CFG0 */
-	writel(0x30, ctl_base + 0x0284); /* CAL CFG6 */
-	writel(0x00, ctl_base + 0x0288); /* CAL CFG7 */
-	writel(0x60, ctl_base + 0x028c); /* CAL CFG8 */
-	writel(0x00, ctl_base + 0x0290); /* CAL CFG9 */
-	writel(cal_cfg10, ctl_base + 0x0294); /* CAL CFG10 */
-	writel(cal_cfg11, ctl_base + 0x0298); /* CAL CFG11 */
-	writel(0x20, ctl_base + 0x029c); /* EFUSE CFG */
+	writel(0x0a, pll_base + 0x006c); /* CAL CFG0 */
+	writel(0x30, pll_base + 0x0084); /* CAL CFG6 */
+	writel(0x00, pll_base + 0x0088); /* CAL CFG7 */
+	writel(0x60, pll_base + 0x008c); /* CAL CFG8 */
+	writel(0x00, pll_base + 0x0090); /* CAL CFG9 */
+	writel(cal_cfg10, pll_base + 0x0094); /* CAL CFG10 */
+	writel(cal_cfg11, pll_base + 0x0098); /* CAL CFG11 */
+	writel(0x20, pll_base + 0x009c); /* EFUSE CFG */
 }

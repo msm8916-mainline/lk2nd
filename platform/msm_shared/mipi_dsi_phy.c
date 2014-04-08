@@ -197,21 +197,6 @@ void mdss_dsi_phy_sw_reset(uint32_t ctl_base)
 	udelay(100);
 }
 
-void mdss_dsi_uniphy_pll_lock_detect_setting(uint32_t ctl_base)
-{
-	writel(0x0c, ctl_base + 0x0264); /* LKDetect CFG2 */
-	udelay(100);
-	writel(0x0d, ctl_base + 0x0264); /* LKDetect CFG2 */
-}
-
-void mdss_dsi_uniphy_pll_sw_reset(uint32_t ctl_base)
-{
-	writel(0x01, ctl_base + 0x0268); /* PLL TEST CFG */
-	udelay(1);
-	writel(0x00, ctl_base + 0x0268); /* PLL TEST CFG */
-	udelay(1);
-}
-
 int mdss_dsi_phy_regulator_init(struct mdss_dsi_phy_ctrl *pd)
 {
 	/* DSI0 and DSI1 have a common regulator */
