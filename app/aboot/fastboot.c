@@ -2,7 +2,7 @@
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2013, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -324,24 +324,38 @@ oops:
 static int hsusb_usb_write(void *buf, unsigned len)
 {
 	int r;
+	uint32_t xfer;
+	unsigned char *_buf = buf;
+	int count = 0;
 
 	if (fastboot_state == STATE_ERROR)
 		goto oops;
 
-	req->buf = PA((addr_t)buf);
-	req->length = len;
-	req->complete = req_complete;
-	r = udc_request_queue(in, req);
-	if (r < 0) {
-		dprintf(INFO, "usb_write() queue failed\n");
-		goto oops;
+	while (len > 0) {
+		xfer = (len > MAX_USBFS_BULK_SIZE) ? MAX_USBFS_BULK_SIZE : len;
+		req->buf = PA((addr_t)_buf);
+		req->length = xfer;
+		req->complete = req_complete;
+		r = udc_request_queue(in, req);
+		if (r < 0) {
+			dprintf(INFO, "usb_write() queue failed\n");
+			goto oops;
+		}
+		event_wait(&txn_done);
+		if (txn_status < 0) {
+			dprintf(INFO, "usb_write() transaction failed\n");
+			goto oops;
+		}
+
+		count += req->length;
+		_buf += req->length;
+		len -= req->length;
+
+		/* short transfer? */
+		if (req->length != xfer) break;
 	}
-	event_wait(&txn_done);
-	if (txn_status < 0) {
-		dprintf(INFO, "usb_write() transaction failed\n");
-		goto oops;
-	}
-	return req->length;
+
+	return count;
 
 oops:
 	fastboot_state = STATE_ERROR;
