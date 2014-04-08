@@ -320,6 +320,25 @@ void target_usb_init(void)
 	writel(val, USB_USBCMD);
 }
 
+/* Returns 1 if target supports continuous splash screen. */
+int target_cont_splash_screen()
+{
+	uint8_t splash_screen = 0;
+	switch (board_hardware_id())
+	{
+		case HW_PLATFORM_MTP:
+		case HW_PLATFORM_SURF:
+			dprintf(SPEW, "Target_cont_splash=1\n");
+			splash_screen = 1;
+			break;
+		default:
+		dprintf(SPEW, "Target_cont_splash=0\n");
+			splash_screen = 0;
+			break;
+	}
+        return splash_screen;
+}
+
 void target_usb_stop(void)
 {
 	/* Disable VBUS mimicing in the controller. */
