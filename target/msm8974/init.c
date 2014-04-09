@@ -522,17 +522,6 @@ void reboot_device(unsigned reboot_reason)
 	else
 		pm8x41_reset_configure(reset_type);
 
-	/* Disable Watchdog Debug.
-	 * Required becuase of a H/W bug which causes the system to
-	 * reset partially even for non watchdog resets.
-	 */
-	writel(readl(GCC_WDOG_DEBUG) & ~(1 << WDOG_DEBUG_DISABLE_BIT), GCC_WDOG_DEBUG);
-
-	dsb();
-
-	/* Wait until the write takes effect. */
-	while(readl(GCC_WDOG_DEBUG) & (1 << WDOG_DEBUG_DISABLE_BIT));
-
 	/* Drop PS_HOLD for MSM */
 	writel(0x00, MPM2_MPM_PS_HOLD);
 
