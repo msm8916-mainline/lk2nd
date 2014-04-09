@@ -44,6 +44,9 @@
 #include "include/panel.h"
 #include "include/display_resource.h"
 
+#define DDR_LDO_ID 2
+#define QFPROM_LDO_ID 6
+
 #define GPIO_STATE_LOW 0
 #define GPIO_STATE_HIGH 2
 #define RESET_GPIO_SEQ_LEN 3
@@ -331,7 +334,9 @@ int target_ldo_ctrl(uint8_t enable)
 			/* TODO: Set the LDO voltage before enabling it */
 			pm8x41_ldo_control(&ldo_entry, enable);
 
-		} else if(!target_cont_splash_screen()) {
+		} else if(!target_cont_splash_screen() &&
+			ldo_entry_array[ldocounter].ldo_id != DDR_LDO_ID &&
+			ldo_entry_array[ldocounter].ldo_id != QFPROM_LDO_ID) {
 			pm8x41_ldo_control(&ldo_entry, enable);
 		}
 		ldocounter++;
