@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2012, 2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -29,6 +29,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <debug.h>
+#include <kernel/thread.h>
 #include <reg.h>
 #include <sys/types.h>
 #include <platform/iomap.h>
@@ -339,6 +340,8 @@ msm_boot_uart_dm_write(uint32_t base, char *data, unsigned int num_of_chars)
 		}
 	}
 
+	//We need to make sure the DM_NO_CHARS_FOR_TX&DM_TF are are programmed atmoically.
+	enter_critical_section();
 	/* We are here. FIFO is ready to be written. */
 	/* Write number of characters to be written */
 	writel(num_of_chars, MSM_BOOT_UART_DM_NO_CHARS_FOR_TX(base));
@@ -366,6 +369,7 @@ msm_boot_uart_dm_write(uint32_t base, char *data, unsigned int num_of_chars)
 		tx_char_left = num_of_chars - (i + 1) * 4;
 		tx_data = tx_data + num_chars_written;
 	}
+	exit_critical_section();
 
 	return MSM_BOOT_UART_DM_E_SUCCESS;
 }
