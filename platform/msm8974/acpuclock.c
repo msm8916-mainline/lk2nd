@@ -178,6 +178,12 @@ void clock_config_cdc(uint32_t interface)
 	int ret = 0;
 	char clk_name[64];
 
+	/* CDC clocks are not supported for 8974 v1 & v2
+	 * only pro msm's support it
+	 */
+	if (platform_is_8974())
+		return;
+
 	snprintf(clk_name, sizeof(clk_name), "gcc_sdcc%u_cdccal_sleep_clk", interface);
 	ret = clk_get_set_enable(clk_name, 0 , 1);
 	if (ret)
