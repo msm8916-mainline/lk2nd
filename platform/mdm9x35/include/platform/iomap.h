@@ -132,11 +132,14 @@
 #define USB_HS_SYSTEM_CMD_RCGR               (CLK_CTL_BASE + 0x490)
 #define USB_HS_SYSTEM_CFG_RCGR               (CLK_CTL_BASE + 0x494)
 
-#define GCC_USB3_PHY_BCR                     (CLK_CTL_BASE + 0x03FC)
-#define GCC_USB30_PHY_COM_BCR                (CLK_CTL_BASE + 0x1B88)
-#define GCC_USB30PHY_PHY_BCR                 (CLK_CTL_BASE + 0x1B8C)
+/* USB Phy reset */
+#define USB3_PHY_BCR                         (CLK_CTL_BASE + 0x03FC)
+#define USB3_PHY_COM_BCR                     (CLK_CTL_BASE + 0x1B88)
+#define USB3PHY_PHY_BCR                      (CLK_CTL_BASE + 0x1B8C)
+#define USB2B_PHY_BCR                        (CLK_CTL_BASE + 0x04B0)
 
 /* USB 3.0 clocks */
+#define USB2B_PHY_SLEEP_CBCR                 (CLK_CTL_BASE + 0x04B4)
 #define SYS_NOC_USB3_AXI_CBCR                (CLK_CTL_BASE + 0x0108)
 #define GCC_USB_30_BCR                       (CLK_CTL_BASE + 0x03C0)
 #define GCC_USB_30_MISC                      (CLK_CTL_BASE + 0x03C4)

@@ -45,11 +45,17 @@ struct clk_freq_tbl rcg_dummy_freq = F_END;
 
 
 /* Clock Operations */
+static struct clk_ops clk_ops_reset =
+{
+	.reset     = clock_lib2_reset_clk_reset,
+};
+
 static struct clk_ops clk_ops_branch =
 {
 	.enable     = clock_lib2_branch_clk_enable,
 	.disable    = clock_lib2_branch_clk_disable,
 	.set_rate   = clock_lib2_branch_set_rate,
+	.reset      = clock_lib2_branch_clk_reset,
 };
 
 static struct clk_ops clk_ops_rcg_mnd =
@@ -292,6 +298,7 @@ static struct rcg_clk usb30_pipe_clk_src = {
 };
 
 static struct branch_clk gcc_usb30_pipe_clk = {
+	.bcr_reg      = (uint32_t *) USB3PHY_PHY_BCR,
 	.cbcr_reg     = (uint32_t *) USB3_PIPE_CBCR,
 	.parent       = &usb30_pipe_clk_src.c,
 	.has_sibling  = 0,
@@ -391,6 +398,35 @@ static struct branch_clk gcc_usb_phy_cfg_ahb_clk = {
 	},
 };
 
+static struct reset_clk gcc_usb30_phy_com_reset = {
+	.bcr_reg = (uint32_t *) USB3_PHY_COM_BCR,
+
+	.c = {
+		.dbg_name = "usb30_phy_com_reset",
+		.ops      = &clk_ops_reset,
+	},
+};
+
+static struct reset_clk gcc_usb30_phy_reset = {
+	.bcr_reg = (uint32_t *) USB3_PHY_BCR,
+
+	.c = {
+		.dbg_name = "usb30_phy_reset",
+		.ops      = &clk_ops_reset,
+	},
+};
+
+static struct branch_clk gcc_usb2b_phy_sleep_clk = {
+	.bcr_reg      = (uint32_t *) USB2B_PHY_BCR,
+	.cbcr_reg     = (uint32_t *) USB2B_PHY_SLEEP_CBCR,
+	.has_sibling  = 1,
+
+	.c = {
+		.dbg_name = "usb2b_phy_sleep_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
 /* Clock lookup table */
 static struct clk_lookup mdm_9635_clocks[] =
 {
@@ -406,6 +442,10 @@ static struct clk_lookup mdm_9635_clocks[] =
 	CLK_LOOKUP("usb30_master_clk", gcc_usb30_master_clk.c),
 	CLK_LOOKUP("usb30_pipe_clk",   gcc_usb30_pipe_clk.c),
 	CLK_LOOKUP("usb30_aux_clk",    gcc_usb30_aux_clk.c),
+
+	CLK_LOOKUP("usb2b_phy_sleep_clk", gcc_usb2b_phy_sleep_clk.c),
+	CLK_LOOKUP("usb30_phy_reset",     gcc_usb30_phy_reset.c),
+	CLK_LOOKUP("usb30_phy_com_reset", gcc_usb30_phy_com_reset.c),
 
 	CLK_LOOKUP("usb_phy_cfg_ahb_clk", gcc_usb_phy_cfg_ahb_clk.c),
 };
