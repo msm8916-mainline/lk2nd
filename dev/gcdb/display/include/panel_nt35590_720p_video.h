@@ -2948,5 +2948,6 @@ static struct backlight nt35590_720p_video_backlight = {
   1, 1, 4095, 100, 1, "PMIC_8941"
 };
 
+#define NT35590_720P_VIDEO_SIGNATURE 0x210000
 
 #endif /*_PANEL_NT35590_720P_VIDEO_H_*/
