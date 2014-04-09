@@ -320,23 +320,45 @@ void target_usb_init(void)
 	writel(val, USB_USBCMD);
 }
 
+uint8_t target_panel_auto_detect_enabled()
+{
+	uint8_t ret = 0;
+	uint32_t hw_subtype = board_hardware_subtype();
+
+	switch(board_hardware_id()) {
+	case HW_PLATFORM_SURF:
+		ret = 1;
+		break;
+	default:
+		ret = 0;
+		break;
+	}
+	return ret;
+}
+
+static uint8_t splash_override;
 /* Returns 1 if target supports continuous splash screen. */
 int target_cont_splash_screen()
 {
 	uint8_t splash_screen = 0;
-	switch (board_hardware_id())
-	{
+	if (!splash_override) {
+		switch (board_hardware_id()) {
 		case HW_PLATFORM_MTP:
 		case HW_PLATFORM_SURF:
-			dprintf(SPEW, "Target_cont_splash=1\n");
 			splash_screen = 1;
 			break;
 		default:
-		dprintf(SPEW, "Target_cont_splash=0\n");
 			splash_screen = 0;
 			break;
+		}
+		dprintf(SPEW, "Target_cont_splash=%d\n", splash_screen);
 	}
-        return splash_screen;
+	return splash_screen;
+}
+
+void target_force_cont_splash_disable(uint8_t override)
+{
+        splash_override = override;
 }
 
 void target_usb_stop(void)

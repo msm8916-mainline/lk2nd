@@ -41,12 +41,20 @@
 /* GCDB Panel Database                                                       */
 /*---------------------------------------------------------------------------*/
 #include "include/panel_jdi_1080p_video.h"
+#include "include/panel_nt35590_720p_video.h"
+#include "include/panel_nt35590_720p_cmd.h"
+
+#define DISPLAY_MAX_PANEL_DETECTION 2
 
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
 /*---------------------------------------------------------------------------*/
+static uint32_t auto_pan_loop = 0;
+
 enum {
 JDI_1080P_VIDEO_PANEL,
+NT35590_720P_VIDEO_PANEL,
+NT35590_720P_CMD_PANEL,
 UNKNOWN_PANEL
 };
 
@@ -56,6 +64,8 @@ UNKNOWN_PANEL
  */
 static struct panel_list supp_panels[] = {
 	{"jdi_1080p_video", JDI_1080P_VIDEO_PANEL},
+	{"nt35590_720p_video", NT35590_720P_VIDEO_PANEL},
+	{"nt35590_720p_cmd", NT35590_720P_CMD_PANEL},
 };
 
 static uint32_t panel_id;
@@ -105,6 +115,48 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 			= JDI_1080P_VIDEO_ON_COMMAND;
 		memcpy(phy_db->timing,
 			jdi_1080p_video_timings, TIMING_SIZE);
+		pinfo->mipi.signature 	= JDI_1080P_VIDEO_SIGNATURE;
+		break;
+	case NT35590_720P_VIDEO_PANEL:
+		panelstruct->paneldata    = &nt35590_720p_video_panel_data;
+		panelstruct->panelres     = &nt35590_720p_video_panel_res;
+		panelstruct->color        = &nt35590_720p_video_color;
+		panelstruct->videopanel   = &nt35590_720p_video_video_panel;
+		panelstruct->commandpanel = &nt35590_720p_video_command_panel;
+		panelstruct->state        = &nt35590_720p_video_state;
+		panelstruct->laneconfig   = &nt35590_720p_video_lane_config;
+		panelstruct->paneltiminginfo
+					 = &nt35590_720p_video_timing_info;
+		panelstruct->panelresetseq
+					 = &nt35590_720p_video_panel_reset_seq;
+		panelstruct->backlightinfo = &nt35590_720p_video_backlight;
+		pinfo->mipi.panel_cmds
+					= nt35590_720p_video_on_command;
+		pinfo->mipi.num_of_panel_cmds
+					= NT35590_720P_VIDEO_ON_COMMAND;
+		memcpy(phy_db->timing,
+				nt35590_720p_video_timings, TIMING_SIZE);
+		pinfo->mipi.signature 	= NT35590_720P_VIDEO_SIGNATURE;
+		break;
+	case NT35590_720P_CMD_PANEL:
+		panelstruct->paneldata    = &nt35590_720p_cmd_panel_data;
+		panelstruct->panelres     = &nt35590_720p_cmd_panel_res;
+		panelstruct->color        = &nt35590_720p_cmd_color;
+		panelstruct->videopanel   = &nt35590_720p_cmd_video_panel;
+		panelstruct->commandpanel = &nt35590_720p_cmd_command_panel;
+		panelstruct->state        = &nt35590_720p_cmd_state;
+		panelstruct->laneconfig   = &nt35590_720p_cmd_lane_config;
+		panelstruct->paneltiminginfo = &nt35590_720p_cmd_timing_info;
+		panelstruct->panelresetseq
+					= &nt35590_720p_cmd_panel_reset_seq;
+		panelstruct->backlightinfo = &nt35590_720p_cmd_backlight;
+		pinfo->mipi.panel_cmds
+					= nt35590_720p_cmd_on_command;
+		pinfo->mipi.num_of_panel_cmds
+					= NT35590_720P_CMD_ON_COMMAND;
+		memcpy(phy_db->timing,
+				nt35590_720p_cmd_timings, TIMING_SIZE);
+		pinfo->mipi.signature 	= NT35590_720P_CMD_SIGNATURE;
 		break;
 	default:
         case UNKNOWN_PANEL:
@@ -118,12 +170,19 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 	return ret;
 }
 
+uint32_t oem_panel_max_auto_detect_panels()
+{
+        return target_panel_auto_detect_enabled() ?
+                        DISPLAY_MAX_PANEL_DETECTION : 0;
+}
+
 bool oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 			struct msm_panel_info *pinfo,
 			struct mdss_dsi_phy_ctrl *phy_db)
 {
 	uint32_t hw_id = board_hardware_id();
 	int32_t panel_override_id;
+	bool ret = true;
 
 	if (panel_name) {
 		panel_override_id = panel_name_to_id(supp_panels,
@@ -144,8 +203,24 @@ bool oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 
 	switch (hw_id) {
 	case HW_PLATFORM_MTP:
+		panel_id = JDI_1080P_VIDEO_PANEL;
+		break;
 	case HW_PLATFORM_SURF:
 		panel_id = JDI_1080P_VIDEO_PANEL;
+		switch (auto_pan_loop) {
+		case 0:
+			panel_id = JDI_1080P_VIDEO_PANEL;
+			break;
+		case 1:
+			panel_id = NT35590_720P_VIDEO_PANEL;
+			break;
+		default:
+			panel_id = UNKNOWN_PANEL;
+			ret = false;
+			dprintf(CRITICAL, "Unknown panel\n");
+			return ret;
+		}
+		auto_pan_loop++;
 		break;
 	default:
 		dprintf(CRITICAL, "Display not enabled for %d HW type\n",
