@@ -39,6 +39,57 @@
 #include <sdhci.h>
 #include <sdhci_msm.h>
 
+static void sdhci_dumpregs(struct sdhci_host *host)
+{
+	DBG("****************** SDHC REG DUMP START ********************\n");
+
+	DBG("Version:      0x%08x\n", REG_READ32(host, SDHCI_ARG2_REG));
+	DBG("Arg2:         0x%08x\t Blk Cnt:      0x%08x\n",
+							REG_READ32(host, SDHCI_ARG2_REG),
+							REG_READ16(host, SDHCI_BLK_CNT_REG));
+	DBG("Arg1:         0x%08x\t Blk Sz :      0x%08x\n",
+							REG_READ32(host, SDHCI_ARGUMENT_REG),
+							REG_READ16(host, SDHCI_BLKSZ_REG));
+	DBG("Command:      0x%08x\t Trans mode:   0x%08x\n",
+							REG_READ16(host, SDHCI_CMD_REG),
+							REG_READ16(host, SDHCI_TRANS_MODE_REG));
+	DBG("Resp0:        0x%08x\t Resp1:        0x%08x\n",
+							REG_READ32(host, SDHCI_RESP_REG),
+							REG_READ32(host, SDHCI_RESP_REG + 0x4));
+	DBG("Resp2:        0x%08x\t Resp3:        0x%08x\n",
+							REG_READ32(host, SDHCI_RESP_REG + 0x8),
+							REG_READ32(host, SDHCI_RESP_REG + 0xC));
+	DBG("Prsnt State:  0x%08x\t Host Ctrl1:   0x%08x\n",
+							REG_READ32(host, SDHCI_PRESENT_STATE_REG),
+							REG_READ8(host, SDHCI_HOST_CTRL1_REG));
+	DBG("Timeout ctrl: 0x%08x\t Power Ctrl:   0x%08x\n",
+							REG_READ8(host, SDHCI_TIMEOUT_REG),
+							REG_READ8(host, SDHCI_PWR_CTRL_REG));
+	DBG("Error stat:   0x%08x\t Int Status:   0x%08x\n",
+							REG_READ32(host, SDHCI_ERR_INT_STS_REG),
+							REG_READ32(host, SDHCI_NRML_INT_STS_REG));
+	DBG("Host Ctrl2:   0x%08x\t Clock ctrl:   0x%08x\n",
+							REG_READ32(host, SDHCI_HOST_CTRL2_REG),
+							REG_READ32(host, SDHCI_CLK_CTRL_REG));
+	DBG("Caps1:        0x%08x\t Caps2:        0x%08x\n",
+							REG_READ32(host, SDHCI_CAPS_REG1),
+							REG_READ32(host, SDHCI_CAPS_REG1));
+	DBG("Adma Err:     0x%08x\t Auto Cmd err: 0x%08x\n",
+							REG_READ8(host, SDHCI_ADM_ERR_REG),
+							REG_READ16(host, SDHCI_AUTO_CMD_ERR));
+	DBG("Adma addr1:   0x%08x\t Adma addr2:   0x%08x\n",
+							REG_READ32(host, SDHCI_ADM_ADDR_REG),
+							REG_READ32(host, SDHCI_ADM_ADDR_REG + 0x4));
+
+	DBG("****************** SDHC REG DUMP END ********************\n");
+
+	DBG("************* SDHC VENDOR REG DUMPS START ***************\n");
+	DBG("SDCC_DLL_CONFIG_REG:       0x%08x\n", REG_READ32(host, SDCC_DLL_CONFIG_REG));
+	DBG("SDCC_VENDOR_SPECIFIC_FUNC: 0x%08x\n", REG_READ32(host, SDCC_VENDOR_SPECIFIC_FUNC));
+	DBG("SDCC_REG_DLL_STATUS:       0x%08x\n", REG_READ32(host, SDCC_REG_DLL_STATUS));
+	DBG("************* SDHC VENDOR REG DUMPS END   ***************\n");
+}
+
 /*
  * Function: sdhci reset
  * Arg     : Host structure & mask to write to reset register
@@ -138,6 +189,8 @@ clk_ctrl:
 
 	host->cur_clk_rate = clk;
 
+	DBG("\n %s: clock_rate: %d clock_div:0x%08x\n", __func__, clk, div);
+
 	return 0;
 }
 
@@ -202,6 +255,8 @@ static void sdhci_set_bus_power_on(struct sdhci_host *host)
 	REG_WRITE8(host, voltage, SDHCI_PWR_CTRL_REG);
 
 	voltage |= SDHCI_BUS_PWR_EN;
+
+	DBG("\n %s: voltage: 0x%02x\n", __func__, voltage);
 
 	REG_WRITE8(host, voltage, SDHCI_PWR_CTRL_REG);
 
@@ -307,6 +362,8 @@ uint8_t sdhci_set_bus_width(struct sdhci_host *host, uint16_t width)
 			return 1;
 	}
 
+	DBG("\n %s: bus width:0x%04x\n", __func__, width);
+
 	REG_WRITE8(host, (reg | width), SDHCI_HOST_CTRL1_REG);
 
 	return 0;
@@ -385,6 +442,19 @@ static uint8_t sdhci_cmd_complete(struct sdhci_host *host, struct mmc_command *c
 
 		if (int_status == SDHCI_INT_STS_CMD_COMPLETE)
 			break;
+
+		/*
+		 * If Tuning is in progress ignore cmd crc & cmd end bit errors
+		 */
+		if (host->tuning_in_progress)
+		{
+			err_status = REG_READ16(host, SDHCI_ERR_INT_STS_REG);
+			if ((err_status & SDHCI_CMD_CRC_MASK) || (err_status & SDHCI_DAT_END_BIT_MASK))
+			{
+				sdhci_reset(host, (SOFT_RESET_CMD | SOFT_RESET_DATA));
+				return 0;
+			}
+		}
 
 		retry++;
 		udelay(500);
@@ -487,8 +557,9 @@ err:
 		}
 		else if (sdhci_cmd_err_status(host))
 		{
-			dprintf(CRITICAL, "Error: Command completed with errors\n");
 			ret = 1;
+			/* Dump sdhc registers on error */
+			sdhci_dumpregs(host);
 		}
 		/* Reset Command & Dat lines on error */
 		need_reset = 1;
@@ -529,7 +600,8 @@ static struct desc_entry *sdhci_prep_desc_table(void *data, uint32_t len)
 		sg_list[0].tran_att = SDHCI_ADMA_TRANS_VALID | SDHCI_ADMA_TRANS_DATA
 							  | SDHCI_ADMA_TRANS_END;
 
-		arch_clean_invalidate_cache_range((addr_t)sg_list, sizeof(struct desc_entry));
+		sg_len = 1;
+		table_len = sizeof(struct desc_entry);
 	} else {
 		/* Calculate the number of entries in desc table */
 		sg_len = len / SDHCI_ADMA_DESC_LINE_SZ;
@@ -581,6 +653,12 @@ static struct desc_entry *sdhci_prep_desc_table(void *data, uint32_t len)
 		}
 
 	arch_clean_invalidate_cache_range((addr_t)sg_list, table_len);
+
+	for (i = 0; i < sg_len; i++)
+	{
+		DBG("\n %s: sg_list: addr: 0x%08x len: 0x%04x attr: 0x%04x\n", __func__, sg_list[i].addr,
+			(sg_list[i].len ? sg_list[i].len : SDHCI_ADMA_DESC_LINE_SZ), sg_list[i].tran_att);
+	}
 
 	return sg_list;
 }
@@ -656,6 +734,9 @@ uint32_t sdhci_send_command(struct sdhci_host *host, struct mmc_command *cmd)
 	uint32_t flags;
 	struct desc_entry *sg_list = NULL;
 
+	DBG("\n %s: START: cmd:0x%04d, arg:0x%08x, resp_type:0x%04x, data_present:%d\n",
+				__func__, cmd->cmd_index, cmd->argument, cmd->resp_type, cmd->data_present);
+
 	if (cmd->data_present)
 		ASSERT(cmd->data.data_ptr);
 
@@ -725,6 +806,23 @@ uint32_t sdhci_send_command(struct sdhci_host *host, struct mmc_command *cmd)
 	flags |= (cmd->data_present << SDHCI_CMD_DATA_PRESENT_BIT);
 	flags |= (cmd->cmd_type << SDHCI_CMD_CMD_TYPE_BIT);
 
+	/* Enable Command CRC & Index check for commands with response
+	 * R1, R6, R7 & R1B. Also only CRC check for R2 response
+	 */
+	switch(cmd->resp_type) {
+		case SDHCI_CMD_RESP_R1:
+		case SDHCI_CMD_RESP_R6:
+		case SDHCI_CMD_RESP_R7:
+		case SDHCI_CMD_RESP_R1B:
+			flags |= (1 << SDHCI_CMD_CRC_CHECK_BIT) | (1 << SDHCI_CMD_IDX_CHECK_BIT);
+			break;
+		case SDHCI_CMD_RESP_R2:
+			flags |= (1 << SDHCI_CMD_CRC_CHECK_BIT);
+			break;
+		default:
+			break;
+	};
+
 	/* Set the timeout value */
 	REG_WRITE8(host, SDHCI_CMD_TIMEOUT, SDHCI_TIMEOUT_REG);
 
@@ -775,6 +873,9 @@ uint32_t sdhci_send_command(struct sdhci_host *host, struct mmc_command *cmd)
 	if (sg_list)
 		free(sg_list);
 
+	DBG("\n %s: END: cmd:%04d, arg:0x%08x, resp:0x%08x 0x%08x 0x%08x 0x%08x\n",
+				__func__, cmd->cmd_index, cmd->argument, cmd->resp[0], cmd->resp[1], cmd->resp[2], cmd->resp[3]);
+
 	return 0;
 }
 
@@ -797,6 +898,9 @@ void sdhci_init(struct sdhci_host *host)
 	/* Read the capabilities register & store the info */
 	caps[0] = REG_READ32(host, SDHCI_CAPS_REG1);
 	caps[1] = REG_READ32(host, SDHCI_CAPS_REG2);
+
+
+	DBG("\n %s: Host capability: cap1:0x%08x, cap2: 0x%08x\n", __func__, caps[0], caps[1]);
 
 	host->caps.base_clk_rate = (caps[0] & SDHCI_CLK_RATE_MASK) >> SDHCI_CLK_RATE_BIT;
 	host->caps.base_clk_rate *= 1000000;

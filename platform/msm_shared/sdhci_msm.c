@@ -151,6 +151,9 @@ void sdhci_msm_init(struct sdhci_host *host, struct sdhci_msm_data *config)
 	/* Enable sdhc mode */
 	RMWREG32((config->pwrctl_base + SDCC_MCI_HC_MODE), SDHCI_HC_START_BIT, SDHCI_HC_WIDTH, SDHCI_HC_MODE_EN);
 
+	/* Set the FF_CLK_SW_RST_DIS to 1 */
+	RMWREG32((config->pwrctl_base + SDCC_MCI_HC_MODE), FF_CLK_SW_RST_DIS_START, FF_CLK_SW_RST_DIS_WIDTH, 1);
+
 	/*
 	 * Reset the controller
 	 */
@@ -247,13 +250,16 @@ static void msm_set_dll_freq(struct sdhci_host *host)
 	else if (host->cur_clk_rate <= 200000000)
 		reg_val = 0x7;
 
+	DBG("\n %s: DLL freq: 0x%08x\n", __func__, reg_val);
+
 	REG_RMW32(host, SDCC_DLL_CONFIG_REG, SDCC_DLL_CONFIG_MCLK_START, SDCC_DLL_CONFIG_MCLK_WIDTH, reg_val);
 }
 
 /* Initialize DLL (Programmable Delay Line) */
-static void sdhci_msm_init_dll(struct sdhci_host *host)
+static uint32_t sdhci_msm_init_dll(struct sdhci_host *host)
 {
 	uint32_t pwr_save = 0;
+	uint32_t timeout = SDHCI_DLL_TIMEOUT;
 
 	pwr_save = REG_READ32(host, SDCC_VENDOR_SPECIFIC_FUNC) & SDCC_DLL_PWR_SAVE_EN;
 
@@ -276,17 +282,31 @@ static void sdhci_msm_init_dll(struct sdhci_host *host)
 	REG_WRITE32(host, (REG_READ32(host, SDCC_DLL_CONFIG_REG) | SDCC_DLL_EN), SDCC_DLL_CONFIG_REG);
 	/* Write 1 to CLK_OUT_EN */
 	REG_WRITE32(host, (REG_READ32(host, SDCC_DLL_CONFIG_REG) | SDCC_DLL_CLK_OUT_EN), SDCC_DLL_CONFIG_REG);
-	/* Wait for DLL_LOCK in DLL_STATUS register */
+	/* Wait for DLL_LOCK in DLL_STATUS register, wait time 50us */
 	while(!((REG_READ32(host, SDCC_REG_DLL_STATUS)) & SDCC_DLL_LOCK_STAT));
+	{
+		udelay(1);
+		timeout--;
+		if (!timeout)
+		{
+			dprintf(CRITICAL, "%s: Failed to get DLL lock: 0x%08x\n", __func__, REG_READ32(host, SDCC_REG_DLL_STATUS));
+			return 1;
+		}
+	}
+
 	/* Set the powersave back on */
 	if (pwr_save)
 		REG_WRITE32(host, (REG_READ32(host, SDCC_DLL_CONFIG_REG) | SDCC_DLL_PWR_SAVE_EN), SDCC_VENDOR_SPECIFIC_FUNC);
+
+	return 0;
 }
 
 /* Configure DLL with delay value based on 'phase' */
-static void sdhci_msm_config_dll(struct sdhci_host *host, uint32_t phase)
+static uint32_t sdhci_msm_config_dll(struct sdhci_host *host, uint32_t phase)
 {
 	uint32_t core_cfg = 0;
+	uint32_t timeout = SDHCI_DLL_TIMEOUT;
+
 	/* Gray code values from SWI */
 	uint32_t gray_code [] = { 0x0, 0x1, 0x3, 0x2, 0x6, 0x7, 0x5, 0x4, 0xC, 0xD, 0xF, 0xE, 0xA, 0xB, 0x9, 0x8 };
 
@@ -304,8 +324,17 @@ static void sdhci_msm_config_dll(struct sdhci_host *host, uint32_t phase)
 
 	REG_WRITE32(host, (REG_READ32(host, SDCC_DLL_CONFIG_REG) | SDCC_DLL_CLK_OUT_EN), SDCC_DLL_CONFIG_REG);
 
-	/* Wait until CLK_OUT_EN is 1 */
-	while(!(REG_READ32(host, SDCC_DLL_CONFIG_REG) & SDCC_DLL_CLK_OUT_EN));
+	/* Wait until CLK_OUT_EN is 1, wait time 50us */
+	while(!(REG_READ32(host, SDCC_DLL_CONFIG_REG) & SDCC_DLL_CLK_OUT_EN))
+	{
+		timeout--;
+		udelay(1);
+		if (!timeout)
+		{
+			dprintf(CRITICAL, "%s: clk_out_en timed out: %08x\n", __func__, REG_READ32(host, SDCC_DLL_CONFIG_REG));
+			return 1;
+		}
+	}
 
 	core_cfg = REG_READ32(host, SDCC_DLL_CONFIG_REG);
 
@@ -314,7 +343,7 @@ static void sdhci_msm_config_dll(struct sdhci_host *host, uint32_t phase)
 
 	REG_WRITE32(host, core_cfg, SDCC_DLL_CONFIG_REG);
 
-	return;
+	return 0;
 }
 
 /*
@@ -427,17 +456,15 @@ static uint32_t sdhci_msm_cdclp533_calibration(struct sdhci_host *host)
 	uint32_t timeout;
 	uint32_t cdc_err;
 
+	DBG("\n CDCLP533 Calibration Start\n");
+
 	/* Reset & Initialize the DLL block */
-	sdhci_msm_init_dll(host);
+	if (sdhci_msm_init_dll(host))
+		return 1;
 
 	/* Write the save phase */
-	sdhci_msm_config_dll(host, host->msm_host->saved_phase);
-
-	/* Configure the clocks needed for CDC */
-	clock_config_cdc(host->msm_host->slot);
-
-	/* Set the FF_CLK_SW_RST_DIS to 1 */
-	REG_WRITE32(host, (REG_READ32(host, SDCC_MCI_HC_MODE) | FW_CLK_SW_RST_DIS), SDCC_MCI_HC_MODE);
+	if (sdhci_msm_config_dll(host, host->msm_host->saved_phase))
+		return 1;
 
 	/* Write 1 to CMD_DAT_TRACK_SEL field in DLL_CONFIG */
 	REG_WRITE32(host, (REG_READ32(host, SDCC_DLL_CONFIG_REG) | CMD_DAT_TRACK_SEL), SDCC_DLL_CONFIG_REG);
@@ -492,7 +519,7 @@ static uint32_t sdhci_msm_cdclp533_calibration(struct sdhci_host *host)
 	REG_WRITE32(host, (REG_READ32(host, SDCC_CSR_CDC_CAL_TIMER_CFG0) | CDC_TIMER_EN), SDCC_CSR_CDC_CAL_TIMER_CFG0);
 
 	/* Wait for CALIBRATION_DONE in CDC_STATUS */
-	timeout = 50;
+	timeout = CDC_STATUS_TIMEOUT;
 	while (!(REG_READ32(host, SDCC_CSR_CDC_STATUS0) & BIT(0)))
 	{
 		timeout--;
@@ -513,6 +540,8 @@ static uint32_t sdhci_msm_cdclp533_calibration(struct sdhci_host *host)
 	/* Write 1 to START_CDC_TRAFFIC field in CORE_DDR200_CFG */
 	REG_WRITE32(host, (REG_READ32(host, SDCC_CDC_DDR200_CFG) | START_CDC_TRAFFIC), SDCC_CDC_DDR200_CFG);
 
+	DBG("\n CDCLP533 Calibration Done\n");
+
 	return 0;
 }
 
@@ -531,6 +560,7 @@ uint32_t sdhci_msm_execute_tuning(struct sdhci_host *host, uint32_t bus_width)
 	uint32_t phase = 0;
 	uint32_t tuned_phase_cnt = 0;
 	int ret = 0;
+	int i;
 	struct sdhci_msm_data *msm_host;
 
 	msm_host = host->msm_host;
@@ -563,14 +593,22 @@ uint32_t sdhci_msm_execute_tuning(struct sdhci_host *host, uint32_t bus_width)
 	ASSERT(tuning_data);
 
 	/* Reset & Initialize the DLL block */
-	sdhci_msm_init_dll(host);
+	if (sdhci_msm_init_dll(host))
+	{
+			ret = 1;
+			goto free;
+	}
 
 	while (phase < MAX_PHASES)
 	{
 		struct mmc_command cmd = {0};
 
 		/* configure dll to set phase delay */
-		sdhci_msm_config_dll(host, phase);
+		if (sdhci_msm_config_dll(host, phase))
+		{
+			ret = 1;
+			goto free;
+		}
 
 		cmd.cmd_index = CMD21_SEND_TUNING_BLOCK;
 		cmd.argument = 0x0;
@@ -592,6 +630,12 @@ uint32_t sdhci_msm_execute_tuning(struct sdhci_host *host, uint32_t bus_width)
 	/* Find the appropriate tuned phase */
 	if (tuned_phase_cnt)
 	{
+		DBG("\n Tuned phase\n");
+		for (i = 0 ; i < tuned_phase_cnt ; i++)
+		{
+			DBG("%d\t", tuned_phases[i]);
+		}
+
 		ret = sdhci_msm_find_appropriate_phase(host, tuned_phases, tuned_phase_cnt);
 
 		if (ret < 0)
@@ -604,7 +648,10 @@ uint32_t sdhci_msm_execute_tuning(struct sdhci_host *host, uint32_t bus_width)
 		phase = (uint32_t) ret;
 		ret = 0;
 
-		sdhci_msm_config_dll(host, phase);
+		DBG("\n: %s: Tuned Phase: 0x%08x\n", __func__, phase);
+
+		if (sdhci_msm_config_dll(host, phase))
+			goto free;
 
 		/* Save the tuned phase */
 		host->msm_host->saved_phase = phase;

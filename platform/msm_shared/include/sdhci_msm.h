@@ -76,7 +76,8 @@
 #define CDC_SWITCH_BYPASS_OFF                     BIT(0)
 #define CDC_SWITCH_RC_EN                          BIT(1)
 #define START_CDC_TRAFFIC                         BIT(6)
-#define FW_CLK_SW_RST_DIS                         BIT(13)
+#define FF_CLK_SW_RST_DIS_START                   0xD
+#define FF_CLK_SW_RST_DIS_WIDTH                   0x1
 #define CDC_SW_TRIGGER_FULL_CALIB                 BIT(16)
 #define CDC_HW_AUTO_CAL_EN                        BIT(17)
 #define CDC_TIMER_EN                              BIT(16)
@@ -101,6 +102,9 @@
 #define MCI_VERSION                               0x50
 #define CORE_VERSION_MAJOR_MASK                   0xF0000000
 #define CORE_VERSION_MAJOR_SHIFT                  0x1C
+
+#define SDHCI_DLL_TIMEOUT                         50
+#define CDC_STATUS_TIMEOUT                        50
 
 struct sdhci_msm_data
 {

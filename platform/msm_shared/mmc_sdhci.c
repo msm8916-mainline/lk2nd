@@ -822,6 +822,8 @@ static uint32_t mmc_set_hs200_mode(struct sdhci_host *host,
 {
 	uint32_t mmc_ret = 0;
 
+	DBG("\n Enabling HS200 Mode Start\n");
+
 	/* Set 4/8 bit SDR bus width */
 	mmc_ret = mmc_set_bus_width(host, card, width);
 	if (mmc_ret) {
@@ -864,6 +866,8 @@ static uint32_t mmc_set_hs200_mode(struct sdhci_host *host,
 	if ((mmc_ret = sdhci_msm_execute_tuning(host, width)))
 		dprintf(CRITICAL, "Tuning for hs200 failed\n");
 
+	DBG("\n Enabling HS200 Mode Done\n");
+
 	return mmc_ret;
 }
 
@@ -876,6 +880,8 @@ static uint32_t mmc_set_hs200_mode(struct sdhci_host *host,
 static uint8_t mmc_set_ddr_mode(struct sdhci_host *host, struct mmc_card *card)
 {
 	uint8_t mmc_ret = 0;
+
+	DBG("\n Enabling DDR Mode Start\n");
 
 	/* Set width for 8 bit DDR mode by default */
 	mmc_ret = mmc_set_bus_width(host, card, DATA_DDR_BUS_WIDTH_8BIT);
@@ -891,6 +897,8 @@ static uint8_t mmc_set_ddr_mode(struct sdhci_host *host, struct mmc_card *card)
 
 	/* Set the DDR mode in controller */
 	sdhci_set_uhs_mode(host, SDHCI_DDR50_MODE);
+
+	DBG("\n Enabling DDR Mode Done\n");
 
 	return 0;
 }
@@ -947,6 +955,7 @@ uint32_t mmc_set_hs400_mode(struct sdhci_host *host,
 	 * 4. Enable HS400 mode & execute tuning
 	 */
 
+	DBG("\n Enabling HS400 Mode Start\n");
 	/* HS400 mode is supported only in DDR 8-bit */
 	if (width != DATA_BUS_WIDTH_8BIT)
 	{
@@ -1008,6 +1017,8 @@ uint32_t mmc_set_hs400_mode(struct sdhci_host *host,
 	if ((mmc_ret = sdhci_msm_execute_tuning(host, width)))
 		dprintf(CRITICAL, "Tuning for hs400 failed\n");
 
+	DBG("\n Enabling HS400 Mode Done\n");
+
 	return mmc_ret;
 }
 
@@ -1051,6 +1062,12 @@ static uint8_t mmc_host_init(struct mmc_device *dev)
 	clock_init_mmc(cfg->slot);
 
 	clock_config_mmc(cfg->slot, cfg->max_clk_rate);
+
+	/* Configure the CDC clocks needed for emmc storage
+	 * we use slot '1' for emmc
+	 */
+	if (cfg->slot == 1)
+		clock_config_cdc(cfg->slot);
 
 	/*
 	 * MSM specific sdhc init
