@@ -183,6 +183,16 @@ struct vote_clk {
     struct clk c;
 };
 
+struct reset_clk {
+	uint32_t bcr_reg;
+	struct clk c;
+};
+
+static inline struct reset_clk *to_reset_clk(struct clk *clk)
+{
+	return container_of(clk, struct reset_clk, c);
+}
+
 static inline struct rcg_clk *to_rcg_clk(struct clk *clk)
 {
 	return container_of(clk, struct rcg_clk, c);
@@ -216,4 +226,7 @@ int  clock_lib2_branch_set_rate(struct clk *c, unsigned rate);
 /* Vote clock functions*/
 int clock_lib2_vote_clk_enable(struct clk *c);
 void clock_lib2_vote_clk_disable(struct clk *c);
+/* clock reset function */
+int clock_lib2_reset_clk_reset(struct clk *c, enum clk_reset_action action);
+int clock_lib2_branch_clk_reset(struct clk *c, enum clk_reset_action action);
 #endif

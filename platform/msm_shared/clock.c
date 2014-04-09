@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, 2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -51,6 +51,17 @@ struct clk *clk_get_parent(struct clk *clk)
 		return NULL;
 
 	return clk->ops->get_parent(clk);
+}
+
+int clk_reset(struct clk *clk, enum clk_reset_action action)
+{
+	if (!clk)
+		return 0;
+
+	if (!clk->ops->reset)
+		return 0;
+
+	return clk->ops->reset(clk, action);
 }
 
 /*
