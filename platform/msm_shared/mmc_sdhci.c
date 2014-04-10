@@ -2190,7 +2190,8 @@ uint32_t mmc_set_clr_power_on_wp_user(struct mmc_device *dev, uint32_t addr, uin
 
 	/* Calculate the wp grp size */
 	if (dev->card.ext_csd[MMC_ERASE_GRP_DEF])
-		wp_grp_size = MMC_HC_ERASE_MULT * dev->card.ext_csd[MMC_HC_ERASE_GRP_SIZE] / MMC_BLK_SZ;
+		wp_grp_size = (MMC_HC_ERASE_MULT * dev->card.ext_csd[MMC_HC_ERASE_GRP_SIZE]
+					  * dev->card.ext_csd[MMC_EXT_HC_WP_GRP_SIZE]) / MMC_BLK_SZ;
 	else
 		wp_grp_size = (dev->card.csd.wp_grp_size + 1) * (dev->card.csd.erase_grp_size + 1) \
 					  * (dev->card.csd.erase_grp_mult + 1);
