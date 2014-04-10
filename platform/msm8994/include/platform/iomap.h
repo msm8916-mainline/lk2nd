@@ -76,6 +76,12 @@
 
 #define MSM_USB_BASE                (PERIPH_SS_BASE + 0x00255000)
 
+#define MSM_USB30_BASE              0xF9200000
+#define MSM_USB30_QSCRATCH_BASE     0xF92F8800
+
+/* SS QMP (Qulacomm Multi Protocol) */
+#define QMP_PHY_BASE                0xF9B38000
+
 /* Clocks */
 #define CLK_CTL_BASE                0xFC400000
 
@@ -108,6 +114,29 @@
 #define USB_HS_AHB_CBCR             (CLK_CTL_BASE + 0x488)
 #define USB_HS_SYSTEM_CMD_RCGR      (CLK_CTL_BASE + 0x490)
 #define USB_HS_SYSTEM_CFG_RCGR      (CLK_CTL_BASE + 0x494)
+
+/* USB3 clocks */
+#define SYS_NOC_USB3_AXI_CBCR       (CLK_CTL_BASE + 0x03FC)
+#define USB2B_PHY_SLEEP_CBCR        (CLK_CTL_BASE + 0x04AC)
+#define USB2B_PHY_BCR               (CLK_CTL_BASE + 0x04A8)
+#define USB30_MASTER_CMD_RCGR       (CLK_CTL_BASE + 0x03D4)
+#define USB30_MASTER_CFG_RCGR       (CLK_CTL_BASE + 0x03D8)
+#define USB30_MASTER_M              (CLK_CTL_BASE + 0x03DC)
+#define USB30_MASTER_N              (CLK_CTL_BASE + 0x03E0)
+#define USB30_MASTER_D              (CLK_CTL_BASE + 0x03E4)
+#define USB30_MASTER_CBCR           (CLK_CTL_BASE + 0x03C8)
+#define USB_30_BCR                  (CLK_CTL_BASE + 0x03C0)
+#define USB30_MOCK_UTMI_CMD_RCGR    (CLK_CTL_BASE + 0x03E8)
+#define USB30_MOCK_UTMI_CFG_RCGR    (CLK_CTL_BASE + 0x03EC)
+#define USB30_MOCK_UTMI_CBCR        (CLK_CTL_BASE + 0x03D0)
+#define USB30_SLEEP_CBCR            (CLK_CTL_BASE + 0x03CC)
+#define USB30_PHY_AUX_CMD_RCGR      (CLK_CTL_BASE + 0x1414)
+#define USB30_PHY_AUX_CFG_RCGR      (CLK_CTL_BASE + 0x1418)
+#define USB30_PHY_AUX_CBCR          (CLK_CTL_BASE + 0x1408)
+#define USB30_PHY_PIPE_CBCR         (CLK_CTL_BASE + 0x140C)
+#define USB30_PHY_BCR               (CLK_CTL_BASE + 0x1400)
+#define USB30PHY_PHY_BCR            (CLK_CTL_BASE + 0x1404)
+#define GCC_USB30_GDSCR             (CLK_CTL_BASE + 0x03C4)
 
 /* SDCC */
 #define SDCC1_BCR                   (CLK_CTL_BASE + 0x4C0) /* block reset */
@@ -166,5 +195,8 @@
 #define BOOT_CONFIG_REG             (SEC_CTRL_CORE_BASE+BOOT_CONFIG_OFFSET)
 
 #define MPM2_MPM_SLEEP_TIMETICK_COUNT_VAL    0xFC4A3000
+
+#define TCSR_PHSS_USB2_PHY_SEL               0xFD4AB000
+#define PLATFORM_QMP_OFFSET                  0x8
 
 #endif
