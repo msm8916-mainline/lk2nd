@@ -910,6 +910,33 @@ unsigned long long partition_get_offset(int index)
 	}
 }
 
+struct partition_info partition_get_info(const char *name)
+{
+	struct partition_info info = {0};
+
+	int index = INVALID_PTN;
+
+	if(!name)
+	{
+		dprintf(CRITICAL, "Invalid partition name passed\n");
+		goto out;
+	}
+
+	index = partition_get_index(name);
+
+	if (index != INVALID_PTN)
+	{
+		info.offset = partition_get_offset(index);
+		info.size   = partition_get_size(index);
+	}
+	else
+	{
+		dprintf(CRITICAL, "Error unable to find partition : [%s]\n", name);
+	}
+out:
+	return info;
+}
+
 uint8_t partition_get_lun(int index)
 {
 	return partition_entries[index].lun;
