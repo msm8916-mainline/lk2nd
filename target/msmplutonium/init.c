@@ -124,7 +124,7 @@ static void target_keystatus()
 
 void target_uninit(void)
 {
-	if (target_is_emmc_boot())
+	if (target_boot_device_emmc())
 		mmc_put_card_to_sleep(dev);
 }
 
