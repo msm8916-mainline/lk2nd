@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -140,4 +140,20 @@ void platform_init_mmu_mappings(void)
 								mmu_section_table[i].flags);
 		}
 	}
+}
+
+/* DYNAMIC SMEM REGION feature enables LK to dynamically read the SMEM address from MSM_DYNAMIC_SHARED_BASE.
+ * If the feature is enabled(by reading the MAGIC as mentioned below) then the SMEM address is read from
+ * MSM_DYNAMIC_SHARED_BASE otherwise revert to the older way of getting SMEM address - MSM_SHARED_BASE */
+
+uint32_t platform_get_smem_base_addr()
+{
+	uint32_t smem_addr = 0;
+
+	if(readl(SMEM_TARGET_INFO_ADDR) == SMEM_TARGET_INFO_IDENTIFIER)
+		smem_addr = readl(MSM_DYNAMIC_SHARED_BASE);
+	else
+		smem_addr = MSM_SHARED_BASE;
+
+	return smem_addr;
 }
