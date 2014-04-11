@@ -45,6 +45,8 @@
 #define _SMEM_RAM_PTABLE_MAGIC_1        0x9DA5E0A8
 #define _SMEM_RAM_PTABLE_MAGIC_2        0xAF9EC4E2
 
+#define SMEM_TARGET_INFO_IDENTIFIER     0x49494953
+
 enum smem_ram_ptable_version
 {
 	SMEM_RAM_PTABLE_VERSION_0,
