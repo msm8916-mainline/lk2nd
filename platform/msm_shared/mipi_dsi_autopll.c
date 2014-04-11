@@ -69,6 +69,7 @@ void mdss_dsi_uniphy_pll_lock_detect_setting(uint32_t pll_base)
 	writel(0x0c, pll_base + 0x0064); /* LKDetect CFG2 */
 	udelay(100);
 	writel(0x0d, pll_base + 0x0064); /* LKDetect CFG2 */
+	mdelay(1);
 }
 
 void mdss_dsi_uniphy_pll_sw_reset(uint32_t pll_base)
