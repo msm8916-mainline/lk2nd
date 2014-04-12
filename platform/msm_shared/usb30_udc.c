@@ -538,18 +538,27 @@ static int udc_handle_setup(void *context, uint8_t *data)
 					else
 					{
 						/* add this ep to dwc ep list */
-						dwc_ep_t ep;
+						dwc_ep_t *ep = (dwc_ep_t *) malloc(sizeof(dwc_ep_t));
 
-						ep.number        = ept->num;
-						ep.dir           = ept->in;
-						ep.type          = EP_TYPE_BULK; /* the only one supported */
-						ep.max_pkt_size  = ept->maxpkt;
-						ep.burst_size    = ept->maxburst;
-						ep.zlp           = 0;             /* TODO: zlp could be made part of ept */
-						ep.trb_count     = ept->trb_count;
-						ep.trb           = ept->trb;
+						if(!ep)
+						{
+							dprintf(CRITICAL, "udc_handle_setup: DEVICE_WRITE : SET_CONFIGURATION malloc failed for ep\n");
+							ASSERT(0);
+						}
+
+						ep->number        = ept->num;
+						ep->dir           = ept->in;
+						ep->type          = EP_TYPE_BULK; /* the only one supported */
+						ep->max_pkt_size  = ept->maxpkt;
+						ep->burst_size    = ept->maxburst;
+						ep->zlp           = 0;             /* TODO: zlp could be made part of ept */
+						ep->trb_count     = ept->trb_count;
+						ep->trb           = ept->trb;
 
 						dwc_device_add_ep(dwc, ep);
+
+						if(ep)
+							free(ep);
 					}
 				}
 
