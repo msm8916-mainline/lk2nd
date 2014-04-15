@@ -22,7 +22,6 @@ DEFINES += DISPLAY_TYPE_DSI6G=1
 MODULES += \
 	dev/keys \
 	dev/pmic/pm8x41 \
-	dev/panel/msm \
 	dev/gcdb/display \
     lib/ptable \
     lib/libfdt
