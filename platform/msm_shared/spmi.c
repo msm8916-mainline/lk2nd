@@ -28,28 +28,64 @@
 
 #include <debug.h>
 #include <reg.h>
-#if SPMI_CORE_V2
-#include <spmi_v2.h>
-#else
 #include <spmi.h>
-#endif
+#include <bits.h>
 #include <platform/iomap.h>
 #include <platform/irqs.h>
 #include <platform/interrupts.h>
+
+#define PMIC_ARB_V2 0x20010000
+#define CHNL_IDX(sid, pid) ((sid << 8) | pid)
 
 static uint32_t pmic_arb_chnl_num;
 static uint32_t pmic_arb_owner_id;
 static uint8_t pmic_irq_perph_id;
 static spmi_callback callback;
+static uint32_t pmic_arb_ver;
+static uint8_t *chnl_tbl;
+
+static void spmi_lookup_chnl_number()
+{
+	int i;
+	uint8_t slave_id;
+	uint8_t ppid_address;
+	/* We need a max of sid (4 bits) + pid (8bits) of uint8_t's */
+	uint32_t chnl_tbl_sz = BIT(12) * sizeof(uint8_t);
+
+	/* Allocate the channel table */
+	chnl_tbl = (uint8_t *) malloc(chnl_tbl_sz);
+	ASSERT(chnl_tbl);
+
+	for(i = 0; i < MAX_PERIPH ; i++)
+	{
+#if SPMI_CORE_V2
+		slave_id = (readl(PMIC_ARB_REG_CHLN(i)) & 0xf0000) >> 16;
+		ppid_address = (readl(PMIC_ARB_REG_CHLN(i)) & 0xff00) >> 8;
+#endif
+		chnl_tbl[CHNL_IDX(slave_id, ppid_address)] = i;
+	}
+}
 
 /* Function to initialize SPMI controller.
  * chnl_num : Channel number to be used by this EE.
  */
 void spmi_init(uint32_t chnl_num, uint32_t owner_id)
 {
-	/* Initialize PMIC Arbiter Channel Number */
-	pmic_arb_chnl_num = chnl_num;
-	pmic_arb_owner_id = owner_id;
+	/* Read the version numver */
+	pmic_arb_ver = readl(PMIC_ARB_SPMI_HW_VERSION);
+
+	if (pmic_arb_ver < PMIC_ARB_V2)
+	{
+		/* Initialize PMIC Arbiter Channel Number to
+		 * 0 by default of V1 HW
+		 */
+		pmic_arb_chnl_num = chnl_num;
+		pmic_arb_owner_id = owner_id;
+	}
+	else
+	{
+		spmi_lookup_chnl_number();
+	}
 }
 
 static void write_wdata_from_array(uint8_t *array,
@@ -71,7 +107,6 @@ static void write_wdata_from_array(uint8_t *array,
 
 	writel(val, PMIC_ARB_CHNLn_WDATA(pmic_arb_chnl_num, reg_num));
 }
-
 
 /* Initiate a write cmd by writing to cmd register.
  * Commands are written according to cmd parameters
@@ -95,30 +130,16 @@ unsigned int pmic_arb_write_cmd(struct pmic_arb_cmd *cmd,
 	uint32_t bytes_written = 0;
 	uint32_t error;
 	uint32_t val = 0;
-#ifdef SPMI_CORE_V2
-	uint32_t slave_id;
-	uint32_t ppid_address;
-	int i;
-	int channel_not_found = 1;
 
-	for(i = 0; i < MAX_PERIPH ; i++)
+	/* Look up for pmic channel only for V2 hardware
+	 * For V1-HW we dont care for channel number & always
+	 * use '0'
+	 */
+	if (pmic_arb_ver >= PMIC_ARB_V2)
 	{
-		slave_id = (readl(PMIC_ARB_REG_CHLN(i)) & 0xf0000) >> 16;
-		ppid_address = (readl(PMIC_ARB_REG_CHLN(i)) & 0xff00) >> 8;
-		if((cmd->slave_id == slave_id) && (cmd->address == ppid_address)) {
-			pmic_arb_chnl_num = i;
-			channel_not_found = 0;
-			dprintf(INFO, "pmic_arb_write_cmd: \
-				channel found for slave %x, ppid %x\n", cmd->slave_id, cmd->address);
-			break;
-		}
+		pmic_arb_chnl_num = chnl_tbl[CHNL_IDX(cmd->slave_id, cmd->address)];
 	}
-	if(channel_not_found) {
-		dprintf(CRITICAL, "pmic_arb_write_cmd: \
-			channel not found for slave %x, ppid %x\n", cmd->slave_id, cmd->address);
-		return channel_not_found;
-	}
-#endif
+
 	/* Disable IRQ mode for the current channel*/
 	writel(0x0, PMIC_ARB_CHNLn_CONFIG(pmic_arb_chnl_num));
 	/* Write parameters for the cmd */
@@ -219,31 +240,17 @@ unsigned int pmic_arb_read_cmd(struct pmic_arb_cmd *cmd,
 	uint32_t error;
 	uint32_t addr;
 	uint8_t bytes_read = 0;
-#ifdef SPMI_CORE_V2
-	int channel_not_found = 1;
-	int i;
-	uint32_t slave_id;
-	uint32_t ppid_address;
 
-	for(i = 0; i < MAX_PERIPH ; i++)
+	/* Look up for pmic channel only for V2 hardware
+	 * For V1-HW we dont care for channel number & always
+	 * use '0'
+	 */
+	if (pmic_arb_ver >= PMIC_ARB_V2)
 	{
-		slave_id = (readl(PMIC_ARB_REG_CHLN(i)) & 0xf0000) >> 16;
-		ppid_address = (readl(PMIC_ARB_REG_CHLN(i)) & 0xff00) >> 8;
-		if((cmd->slave_id == slave_id) && (cmd->address == ppid_address)) {
-			pmic_arb_chnl_num = i;
-			channel_not_found = 0;
-			dprintf(INFO, "pmic_arb_read_cmd: \
-				channel found for slave %x, ppid %x\n", cmd->slave_id, cmd->address);
-			break;
-		}
+		pmic_arb_chnl_num = chnl_tbl[CHNL_IDX(cmd->slave_id, cmd->address)];
 	}
-	if(channel_not_found) {
-		dprintf(CRITICAL, "pmic_arb_read_cmd: \
-			channel not found for slave %x, ppid %x\n", cmd->slave_id, cmd->address);
-		return channel_not_found;
-	}
-#endif
-	 /* Disable IRQ mode for the current channel*/
+
+	/* Disable IRQ mode for the current channel*/
 	writel(0x0, PMIC_ARB_CHNLn_CONFIG(pmic_arb_chnl_num));
 
 	/* Fill in the byte count for the command

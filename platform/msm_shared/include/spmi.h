@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012,2014 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -29,6 +29,9 @@
 #ifndef __SPMI_H
 #define __SPMI_H
 
+#if SPMI_CORE_V2
+#include <spmi_v2.h>
+#else
 #define SPMI_MSM8974_MASTER_ID               0
 
 #define SPMI_GENI_REG(x)                     (SPMI_GENI_BASE + (x))
@@ -54,12 +57,6 @@
 #define SPMI_GENI_RX_FIFOn(x)                (SPMI_GENI_RX_FIFO_BASE + 4 * (x))
 
 #define PMIC_ARB_CHNLn_CMD0(x)               (SPMI_BASE + 0xF800 + (x) * 0x80)
-#define PMIC_ARB_CMD_OPCODE_SHIFT            27
-#define PMIC_ARB_CMD_PRIORITY_SHIFT          26
-#define PMIC_ARB_CMD_SLAVE_ID_SHIFT          20
-#define PMIC_ARB_CMD_ADDR_SHIFT              12
-#define PMIC_ARB_CMD_ADDR_OFFSET_SHIFT       4
-#define PMIC_ARB_CMD_BYTE_CNT_SHIFT          0
 
 #define PMIC_ARB_CHNLn_CONFIG(x)             (SPMI_BASE + 0xF804 + (x) * 0x80)
 #define PMIC_ARB_CHNLn_STATUS(x)             (SPMI_BASE + 0xF808 + (x) * 0x80)
@@ -73,6 +70,14 @@
 #define SPMI_PIC_ACC_ENABLEn(n)              (SPMI_PIC_BASE + 0x200 + 4 * (n))
 #define SPMI_PIC_IRQ_STATUSn(n)              (SPMI_PIC_BASE + 0x600 + 0x4 * (n))
 #define SPMI_PIC_IRQ_CLEARn(n)               (SPMI_PIC_BASE + 0xA00 + 0x4 * (n))
+#endif
+
+#define PMIC_ARB_CMD_OPCODE_SHIFT            27
+#define PMIC_ARB_CMD_PRIORITY_SHIFT          26
+#define PMIC_ARB_CMD_SLAVE_ID_SHIFT          20
+#define PMIC_ARB_CMD_ADDR_SHIFT              12
+#define PMIC_ARB_CMD_ADDR_OFFSET_SHIFT       4
+#define PMIC_ARB_CMD_BYTE_CNT_SHIFT          0
 
 /* SPMI Commands */
 #define SPMI_CMD_EXT_REG_WRTIE_LONG          0x00
@@ -95,6 +100,10 @@
 #define SPMI_CMD_MASTER_READ                 0x0F
 #define SPMI_CMD_DEV_DESC_BLK_MASTER_READ    0x10
 #define SPMI_CMD_DEV_DESC_BLK_SLAVE_READ     0x11
+
+/* Max number of Peripherals supported by SPMI */
+#define MAX_PERIPH                           128
+#define PMIC_ARB_SPMI_HW_VERSION             (SPMI_BASE + 0xF000)
 
 enum spmi_geni_cmd_return_value{
 	SPMI_CMD_DONE,
