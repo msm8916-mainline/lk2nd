@@ -651,6 +651,7 @@ typedef struct mdss_dsi_pll_config {
 	uint32_t  bit_clock;
 	uint32_t  halfbit_clock;
 	uint32_t  vco_clock;
+	uint32_t  vco_delay;
 	uint8_t   directpath;
 	uint8_t   posdiv1;
 	uint8_t   posdiv3;

@@ -170,7 +170,10 @@ int32_t mdss_dsi_auto_pll_config(uint32_t pll_base, uint32_t ctl_base,
 	writel(sdm_cfg3 , pll_base + 0x0044); /* SDM CFG3 */
 	writel(0x00, pll_base + 0x0048); /* SDM CFG4 */
 
-	udelay(10);
+	if (pd->vco_delay)
+		udelay(pd->vco_delay);
+	else
+		udelay(10);
 
 	writel(refclk_cfg, pll_base + 0x0000); /* REFCLK CFG */
 	writel(0x00, pll_base + 0x0014); /* PWRGEN CFG */
