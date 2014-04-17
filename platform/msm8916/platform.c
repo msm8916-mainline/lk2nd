@@ -40,6 +40,7 @@
 #define MB (1024*1024)
 
 #define MSM_IOMAP_SIZE ((MSM_IOMAP_END - MSM_IOMAP_BASE)/MB)
+#define A53_SS_SIZE    ((A53_SS_END - A53_SS_BASE)/MB)
 
 /* LK memory - cacheable, write through */
 #define LK_MEMORY         (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
@@ -49,10 +50,16 @@
 #define IOMAP_MEMORY      (MMU_MEMORY_TYPE_DEVICE_SHARED | \
 			MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
 
+/* IMEM memory - cacheable, write through */
+#define IMEM_MEMORY       (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
+                           MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
+
 static mmu_section_t mmu_section_table[] = {
-/*       Physical addr,    Virtual addr,    Size (in MB),    Flags */
-	{    MEMBASE,          MEMBASE,        (MEMSIZE / MB),   LK_MEMORY},
-	{    MSM_IOMAP_BASE,   MSM_IOMAP_BASE,  MSM_IOMAP_SIZE,  IOMAP_MEMORY},
+/*           Physical addr,     Virtual addr,     Size (in MB),     Flags */
+	{    MEMBASE,           MEMBASE,          (MEMSIZE / MB),   LK_MEMORY},
+	{    MSM_IOMAP_BASE,    MSM_IOMAP_BASE,   MSM_IOMAP_SIZE,   IOMAP_MEMORY},
+	{    A53_SS_BASE,       A53_SS_BASE,      A53_SS_SIZE,      IOMAP_MEMORY},
+	{    SYSTEM_IMEM_BASE,  SYSTEM_IMEM_BASE, 1,                IMEM_MEMORY},
 };
 
 static struct smem_ram_ptable ram_ptable;
@@ -85,6 +92,11 @@ addr_t get_bs_info_addr()
 	return ((addr_t)BS_INFO_ADDR);
 }
 
+int platform_use_identity_mmu_mappings(void)
+{
+	/* Use only the mappings specified in this file. */
+	return 0;
+}
 /* Setup memory for this platform */
 void platform_init_mmu_mappings(void)
 {
@@ -140,4 +152,16 @@ void platform_init_mmu_mappings(void)
 								mmu_section_table[i].flags);
 		}
 	}
+}
+
+addr_t platform_get_virt_to_phys_mapping(addr_t virt_addr)
+{
+	/* Using 1-1 mapping on this platform. */
+	return virt_addr;
+}
+
+addr_t platform_get_phys_to_virt_mapping(addr_t phys_addr)
+{
+	/* Using 1-1 mapping on this platform. */
+	return phys_addr;
 }
