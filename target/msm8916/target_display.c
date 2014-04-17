@@ -277,6 +277,9 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 						struct msm_panel_info *pinfo)
 {
 	int ret = NO_ERROR;
+	uint32_t hw_id = board_hardware_id();
+	uint32_t hw_subtype = board_hardware_subtype();
+
 	if (enable) {
 		if (pinfo->mipi.use_enable_gpio) {
 			gpio_tlmm_config(enable_gpio.pin_id, 0,
@@ -285,6 +288,23 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 				enable_gpio.pin_state);
 
 			gpio_set_dir(enable_gpio.pin_id, 2);
+		}
+
+		if(hw_id == HW_PLATFORM_QRD &&
+			hw_subtype == HW_PLATFORM_SUBTYPE_SKUH) {
+			/* for tps65132 ENP */
+			gpio_tlmm_config(enp_gpio.pin_id, 0,
+				enp_gpio.pin_direction, enp_gpio.pin_pull,
+				enp_gpio.pin_strength,
+				enp_gpio.pin_state);
+			gpio_set_dir(enp_gpio.pin_id, 2);
+
+			/* for tps65132 ENN */
+			gpio_tlmm_config(enn_gpio.pin_id, 0,
+				enn_gpio.pin_direction, enn_gpio.pin_pull,
+				enn_gpio.pin_strength,
+				enn_gpio.pin_state);
+			gpio_set_dir(enn_gpio.pin_id, 2);
 		}
 
 		gpio_tlmm_config(bkl_gpio.pin_id, 0,
@@ -310,6 +330,12 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 		gpio_set_dir(reset_gpio.pin_id, 0);
 		if (pinfo->mipi.use_enable_gpio)
 			gpio_set_dir(enable_gpio.pin_id, 0);
+
+		if(hw_id == HW_PLATFORM_QRD &&
+			hw_subtype == HW_PLATFORM_SUBTYPE_SKUH) {
+			gpio_set_dir(enp_gpio.pin_id, 0); /* ENP */
+			gpio_set_dir(enn_gpio.pin_id, 0); /* ENN */
+		}
 	}
 
 	return ret;

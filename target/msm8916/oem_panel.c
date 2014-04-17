@@ -33,6 +33,7 @@
 #include <msm_panel.h>
 #include <board.h>
 #include <mipi_dsi.h>
+#include <target/display.h>
 
 #include "include/panel.h"
 #include "panel_display.h"
@@ -43,6 +44,7 @@
 #include "include/panel_jdi_1080p_video.h"
 #include "include/panel_nt35590_720p_video.h"
 #include "include/panel_nt35590_720p_cmd.h"
+#include "include/panel_innolux_720p_video.h"
 
 #define DISPLAY_MAX_PANEL_DETECTION 2
 
@@ -55,6 +57,7 @@ enum {
 JDI_1080P_VIDEO_PANEL,
 NT35590_720P_VIDEO_PANEL,
 NT35590_720P_CMD_PANEL,
+INNOLUX_720P_VIDEO_PANEL,
 UNKNOWN_PANEL
 };
 
@@ -66,6 +69,7 @@ static struct panel_list supp_panels[] = {
 	{"jdi_1080p_video", JDI_1080P_VIDEO_PANEL},
 	{"nt35590_720p_video", NT35590_720P_VIDEO_PANEL},
 	{"nt35590_720p_cmd", NT35590_720P_CMD_PANEL},
+	{"innolux_720p_video", INNOLUX_720P_VIDEO_PANEL},
 };
 
 static uint32_t panel_id;
@@ -158,14 +162,34 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 				nt35590_720p_cmd_timings, TIMING_SIZE);
 		pinfo->mipi.signature 	= NT35590_720P_CMD_SIGNATURE;
 		break;
+	case INNOLUX_720P_VIDEO_PANEL:
+		panelstruct->paneldata    = &innolux_720p_video_panel_data;
+		panelstruct->panelres     = &innolux_720p_video_panel_res;
+		panelstruct->color        = &innolux_720p_video_color;
+		panelstruct->videopanel   = &innolux_720p_video_video_panel;
+		panelstruct->commandpanel = &innolux_720p_video_command_panel;
+		panelstruct->state        = &innolux_720p_video_state;
+		panelstruct->laneconfig   = &innolux_720p_video_lane_config;
+		panelstruct->paneltiminginfo
+			= &innolux_720p_video_timing_info;
+		panelstruct->panelresetseq
+					 = &innolux_720p_video_reset_seq;
+		panelstruct->backlightinfo = &innolux_720p_video_backlight;
+		pinfo->mipi.panel_cmds
+			= innolux_720p_video_on_command;
+		pinfo->mipi.num_of_panel_cmds
+		= INNOLUX_720P_VIDEO_ON_COMMAND;
+		memcpy(phy_db->timing,
+			innolux_720p_video_timings, TIMING_SIZE);
+		break;
+	case UNKNOWN_PANEL:
 	default:
-        case UNKNOWN_PANEL:
-                memset(panelstruct, 0, sizeof(struct panel_struct));
-                memset(pinfo->mipi.panel_cmds, 0, sizeof(struct mipi_dsi_cmd));
-                pinfo->mipi.num_of_panel_cmds = 0;
-                memset(phy_db->timing, 0, TIMING_SIZE);
+		memset(panelstruct, 0, sizeof(struct panel_struct));
+		memset(pinfo->mipi.panel_cmds, 0, sizeof(struct mipi_dsi_cmd));
+		pinfo->mipi.num_of_panel_cmds = 0;
+		memset(phy_db->timing, 0, TIMING_SIZE);
 		ret = false;
-                break;
+		break;
 	}
 	return ret;
 }
@@ -181,6 +205,7 @@ bool oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 			struct mdss_dsi_phy_ctrl *phy_db)
 {
 	uint32_t hw_id = board_hardware_id();
+	uint32_t hw_subtype = board_hardware_subtype();
 	int32_t panel_override_id;
 	bool ret = true;
 
@@ -221,6 +246,15 @@ bool oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 			return ret;
 		}
 		auto_pan_loop++;
+		break;
+	case HW_PLATFORM_QRD:
+		if(hw_subtype == HW_PLATFORM_SUBTYPE_SKUH) {
+			panel_id = INNOLUX_720P_VIDEO_PANEL;
+		} else {
+			dprintf(CRITICAL, "Invalid subtype id %d for QRD HW\n",
+				hw_subtype);
+			return false;
+		}
 		break;
 	default:
 		dprintf(CRITICAL, "Display not enabled for %d HW type\n",
