@@ -49,6 +49,14 @@ static struct gpio_pin bkl_gpio = {
   "msmgpio", 98, 3, 1, 0, 1
 };
 
+static struct gpio_pin enp_gpio = {
+  "msmgpio", 97, 3, 1, 0, 1
+};
+
+static struct gpio_pin enn_gpio = {
+  "msmgpio", 32, 3, 1, 0, 1
+};
+
 static struct gpio_pin te_gpio = {
   0, 0, 0, 0, 0, 0
 };
@@ -110,5 +118,12 @@ static const uint32_t panel_physical_ctrl[] = {
 #define MIPI_VSYNC_PULSE_WIDTH       4
 #define MIPI_VSYNC_BACK_PORCH_LINES  3
 #define MIPI_VSYNC_FRONT_PORCH_LINES 9
+
+enum qrd_subtype
+{
+	HW_PLATFORM_SUBTYPE_DEFAULT = 0,
+	HW_PLATFORM_SUBTYPE_SKUH = 4,
+	HW_PLATFORM_SUBTYPE_SKUI = 5,
+};
 
 #endif
