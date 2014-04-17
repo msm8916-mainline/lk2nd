@@ -51,7 +51,11 @@
 #include <platform/clock.h>
 #include <platform/timer.h>
 #include <crypto5_wrapper.h>
+
+#if LONG_PRESS_POWER_ON
 #include <shutdown_detect.h>
+#endif
+
 #include <vibrator.h>
 
 #define PMIC_ARB_CHANNEL_NUM    0
@@ -179,7 +183,9 @@ void target_init(void)
 
 	target_sdc_init();
 
+#if LONG_PRESS_POWER_ON
 	shutdown_detect();
+#endif
 
 	/* turn on vibrator to indicate that phone is booting up to end user */
 	vib_timed_turn_on(VIBRATE_TIME);
