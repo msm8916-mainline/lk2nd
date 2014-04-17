@@ -48,7 +48,11 @@
 #include <scm.h>
 #include <stdlib.h>
 #include <partition_parser.h>
+
+#if LONG_PRESS_POWER_ON
 #include <shutdown_detect.h>
+#endif
+
 #include <vibrator.h>
 
 extern  bool target_use_signed_kernel(void);
@@ -256,7 +260,9 @@ void target_init(void)
 
 	target_sdc_init();
 
+#if LONG_PRESS_POWER_ON
 	shutdown_detect();
+#endif
 
 	/* turn on vibrator to indicate that phone is booting up to end user */
 	vib_timed_turn_on(VIBRATE_TIME);
