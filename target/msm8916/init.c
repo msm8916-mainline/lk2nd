@@ -49,9 +49,17 @@
 #include <shutdown_detect.h>
 #endif
 
+#if PON_VIB_SUPPORT
+#include <vibrator.h>
+#endif
+
 #define PMIC_ARB_CHANNEL_NUM    0
 #define PMIC_ARB_OWNER_ID       0
 #define TLMM_VOL_UP_BTN_GPIO    107
+
+#if PON_VIB_SUPPORT
+#define VIBRATE_TIME    250
+#endif
 
 #define FASTBOOT_MODE           0x77665500
 
@@ -168,6 +176,11 @@ void target_init(void)
 
 #if LONG_PRESS_POWER_ON
 	shutdown_detect();
+#endif
+
+#if PON_VIB_SUPPORT
+	/* turn on vibrator to indicate that phone is booting up to end user */
+	vib_timed_turn_on(VIBRATE_TIME);
 #endif
 }
 
@@ -416,6 +429,11 @@ void target_usb_stop(void)
 
 void target_uninit(void)
 {
+#if PON_VIB_SUPPORT
+	/* wait for the vibrator timer is expried */
+	wait_vib_timeout();
+#endif
+
 	mmc_put_card_to_sleep(dev);
 	sdhci_mode_disable(&dev->host);
 }
