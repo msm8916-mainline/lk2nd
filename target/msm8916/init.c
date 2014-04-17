@@ -45,6 +45,10 @@
 #include <platform/gpio.h>
 #include <platform/irqs.h>
 
+#if LONG_PRESS_POWER_ON
+#include <shutdown_detect.h>
+#endif
+
 #define PMIC_ARB_CHANNEL_NUM    0
 #define PMIC_ARB_OWNER_ID       0
 #define TLMM_VOL_UP_BTN_GPIO    107
@@ -161,6 +165,10 @@ void target_init(void)
 		dprintf(CRITICAL, "Error reading the partition table info\n");
 		ASSERT(0);
 	}
+
+#if LONG_PRESS_POWER_ON
+	shutdown_detect();
+#endif
 }
 
 void target_serialno(unsigned char *buf)
