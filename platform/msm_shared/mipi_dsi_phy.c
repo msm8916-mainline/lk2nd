@@ -288,10 +288,15 @@ int mdss_dsi_phy_init(struct mipi_dsi_panel_config *pinfo,
 	/* Strength ctrl 0 */
 	writel(pd->strength[0], phy_base + 0x0184);
 
+	if (pd->regulator_mode == DSI_PHY_REGULATOR_LDO_MODE)
+		pd->regulator[0] = 0x2; /* LDO mode */
 	mdss_dsi_phy_regulator_init(pd);
 
-	/* Strength ctrl 0 */
-	writel(0x00, phy_base + 0x01dc);
+	/* DSIPHY_REGULATOR_CTRL_0 */
+	if (pd->regulator_mode == DSI_PHY_REGULATOR_LDO_MODE)
+		writel(0x25, phy_base + 0x01dc); /* LDO mode */
+	else
+		writel(0x00, phy_base + 0x01dc); /* DCDC mode */
 
 	off = 0x0140;	/* phy timing ctrl 0 - 11 */
 	for (i = 0; i < 12; i++) {
