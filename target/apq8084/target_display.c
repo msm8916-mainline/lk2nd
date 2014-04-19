@@ -164,12 +164,6 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 		mdss_dsi_auto_pll_config(DSI0_PLL_BASE,
 						MIPI_DSI0_BASE, pll_data);
 		dsi_pll_enable_seq(DSI0_PLL_BASE);
-		if (pinfo->mipi.dual_dsi &&
-				!(pinfo->mipi.broadcast)) {
-			mdss_dsi_auto_pll_config(DSI1_PLL_BASE,
-						MIPI_DSI1_BASE, pll_data);
-			dsi_pll_enable_seq(DSI1_PLL_BASE);
-		}
 		mmss_dsi_clock_enable(DSI0_PHY_PLL_OUT, dual_dsi,
 					pll_data->pclk_m,
 					pll_data->pclk_n,
