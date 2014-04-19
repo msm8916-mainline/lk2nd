@@ -36,6 +36,7 @@
 #include <pm8x41_wled.h>
 #include <board.h>
 #include <mdp5.h>
+#include <scm.h>
 #include <endian.h>
 #include <platform/gpio.h>
 #include <platform/clock.h>
@@ -152,6 +153,7 @@ int target_backlight_ctrl(struct backlight *bl, uint8_t enable)
 
 int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 {
+	uint32_t ret;
 	struct mdss_dsi_pll_config *pll_data;
 	uint32_t dual_dsi = pinfo->mipi.dual_dsi;
 	dprintf(SPEW, "target_panel_clock\n");
@@ -161,6 +163,16 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 		mdp_gdsc_ctrl(enable);
 		mmss_bus_clock_enable();
 		mdp_clock_enable();
+		ret = restore_secure_cfg(SECURE_DEVICE_MDSS);
+		if (ret) {
+			dprintf(CRITICAL,
+				"%s: Failed to restore MDP security configs",
+				__func__);
+			mdp_clock_disable();
+			mmss_bus_clock_disable();
+			mdp_gdsc_ctrl(0);
+			return ret;
+		}
 		mdss_dsi_auto_pll_config(DSI0_PLL_BASE,
 						MIPI_DSI0_BASE, pll_data);
 		dsi_pll_enable_seq(DSI0_PLL_BASE);
