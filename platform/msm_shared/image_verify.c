@@ -115,10 +115,12 @@ image_verify(unsigned char *image_ptr,
 
 	/*
 	 * Decrypt the pre-calculated expected image hash.
+	 * Return value, ret should be equal to hash_size. Otherwise it means a failure. With this check
+	 * we avoid a potential vulnerability due to trailing data placed at the end of digest.
 	 */
 	ret = image_decrypt_signature(signature_ptr, plain_text);
-	if (ret == -1) {
-		dprintf(CRITICAL, "ERROR: Image Invalid! Decryption failed!\n");
+	if (ret != hash_size) {
+		dprintf(CRITICAL, "ERROR: Image Invalid! signature check failed! ret %d\n", ret);
 		goto cleanup;
 	}
 
