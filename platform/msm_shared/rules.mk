@@ -177,7 +177,13 @@ DEFINES += DISPLAY_TYPE_MDSS=1
 		$(LOCAL_DIR)/mipi_dsi.o \
 		$(LOCAL_DIR)/mipi_dsi_phy.o \
 		$(LOCAL_DIR)/mipi_dsi_autopll.o \
-		$(LOCAL_DIR)/shutdown_detect.o
+		$(LOCAL_DIR)/shutdown_detect.o \
+		$(LOCAL_DIR)/certificate.o \
+		$(LOCAL_DIR)/image_verify.o \
+		$(LOCAL_DIR)/crypto_hash.o \
+		$(LOCAL_DIR)/crypto5_eng.o \
+		$(LOCAL_DIR)/crypto5_wrapper.o
+
 endif
 
 

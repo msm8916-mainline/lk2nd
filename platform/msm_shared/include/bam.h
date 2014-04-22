@@ -32,6 +32,38 @@
 #include <stdint.h>
 #include <compiler.h>
 
+#if BAM_V170
+#define BAM_IRQ_SRCS(x, n)              (0x00003000 + 0x1000 * (n) + (x))
+#define BAM_IRQ_SRCS_MSK(x, n)          (0x00003004 + 0x1000 * (n) + (x))
+#define BAM_IRQ_SRCS_UNMASKED(x)        (0x00003018 + (x))
+#define BAM_TRUST_REG(x)                (0x00002000 + (x))
+#define BAM_P_CTRLn(n, x)               (0x00013000 + 0x1000 * (n) + (x))
+#define BAM_P_RSTn(n, x)                (0x00013000 + 0x4 + 0x1000 * (n) + (x))
+#define BAM_P_IRQ_STTSn(n, x)           (0x00013000 + 0x10 + 0x1000 * (n) + (x))
+#define BAM_P_IRQ_CLRn(n, x)            (0x00013000 + 0x14 + 0x1000 * (n) + (x))
+#define BAM_P_IRQ_ENn(n, x)             (0x00013000 + 0x18 + 0x1000 * (n) + (x))
+#define BAM_P_TRUST_REGn(n, x)          (0x2020 + 0x4* (n) + (x))
+#define BAM_P_SW_OFSTSn(n, x)           (0x00013800 + 0x1000 * (n) + (x))
+#define BAM_P_EVNT_REGn(n, x)           (0x00013818 + 0x1000 * (n) + (x))
+#define BAM_P_DESC_FIFO_ADDRn(n, x)     (0x0001381C + 0x1000 * (n) + (x))
+#define BAM_P_FIFO_SIZESn(n, x)         (0x00013820 + 0x1000 * (n) + (x))
+#else
+#define BAM_IRQ_SRCS(x, n)              (0x00000800 + (0x80 * (n)) + (x))
+#define BAM_IRQ_SRCS_MSK(x, n)          (0x00000804 + (0x80 * (n)) + (x))
+#define BAM_IRQ_SRCS_UNMASKED(x)        (0x00000030 + (x))
+#define BAM_TRUST_REG(x)                (0x00000070 + (x))
+#define BAM_P_CTRLn(n, x)               (0x00001000 + 0x1000 * (n) + (x))
+#define BAM_P_RSTn(n, x)                (0x00001000 + 0x4 + 0x1000 * (n) + (x))
+#define BAM_P_IRQ_STTSn(n, x)           (0x00001000 + 0x10 + 0x1000 * (n) + (x))
+#define BAM_P_IRQ_CLRn(n, x)            (0x00001000 + 0x14 + 0x1000 * (n) + (x))
+#define BAM_P_IRQ_ENn(n, x)             (0x00001000 + 0x18 + 0x1000 * (n) + (x))
+#define BAM_P_TRUST_REGn(n, x)          (0x00001000 + 0x30 + 0x1000 * (n) + (x))
+#define BAM_P_SW_OFSTSn(n, x)           (0x00001800 + 0x1000 * (n) + (x))
+#define BAM_P_EVNT_REGn(n, x)           (0x00001818 + 0x1000 * (n) + (x))
+#define BAM_P_DESC_FIFO_ADDRn(n, x)     (0x0000181C + 0x1000 * (n) + (x))
+#define BAM_P_FIFO_SIZESn(n, x)         (0x00001820 + 0x1000 * (n) + (x))
+#endif
+
 #define BAM_DESC_SIZE                   8
 #define BAM_CE_SIZE                     16
 #define BAM_MAX_DESC_DATA_LEN           0xFFFF
@@ -45,22 +77,10 @@
 
 #define BAM_DESC_CNT_TRSHLD_REG(x)      (0x0008 + (x))
 #define COUNT_TRESHOLD_MASK             0xFF
-#define BAM_IRQ_SRCS(x, n)                 (0x00000800 + (0x80 * (n)) + (x))
-#define BAM_IRQ_SRCS_MSK(x, n)             (0x00000804 + (0x80 * (n)) + (x))
 #define BAM_IRQ_MASK                    (1 << 31)
 #define P_IRQ_MASK                      (1)
 
-/* Pipe Interrupt masks */
-enum p_int_type
-{
-	P_PRCSD_DESC_EN_MASK = 1,
-	P_OUT_OF_DESC_EN_MASK = (1 << 3),
-	P_ERR_EN_MASK = (1 << 4),
-	P_TRNSFR_END_EN_MASK = (1 << 5)
-};
-
 #define BAM_IRQ_STTS(x)                 (0x00000014 + (x))
-#define BAM_IRQ_SRCS_UNMASKED(x)        (0x00000030 + (x))
 
 #define BAM_IRQ_EN_REG(x)               (0x001C + (x))
 #define BAM_TIMER_EN_MASK               (1 << 4)
@@ -70,31 +90,20 @@ enum p_int_type
 /* Available only in BAM */
 #define BAM_HRESP_ERR_EN_MASK           (1 << 1)
 
-#define BAM_TRUST_REG(x)                (0x00000070 + (x))
 #define BAM_EE_MASK                     (7 << 0)
 #define BAM_RESET_BLK_MASK              (1 << 7)
 #define BAM_LOCK_EE_CTRL_MASK           (1 << 13)
 
 #define BAM_CNFG_BITS(x)                (0x0000007C + (x))
 
-#define BAM_P_CTRLn(n, x)               (0x00001000 + 0x1000 * (n) + (x))
 #define P_SYS_MODE_MASK                 (1 << 5)
 /* 1: Producer mode 0: Consumer mode */
 #define P_DIRECTION_SHIFT               3
 #define P_LOCK_GRP_SHIFT                16
 #define P_ENABLE                        (1 << 1)
 
-#define BAM_P_RSTn(n, x)                (0x00001000 + 0x4 + 0x1000 * (n) + (x))
-#define BAM_P_IRQ_STTSn(n, x)           (0x00001000 + 0x10 + 0x1000 * (n) + (x))
-#define BAM_P_IRQ_CLRn(n, x)            (0x00001000 + 0x14 + 0x1000 * (n) + (x))
-#define BAM_P_IRQ_ENn(n, x)             (0x00001000 + 0x18 + 0x1000 * (n) + (x))
-#define BAM_P_TRUST_REGn(n, x)          (0x00001000 + 0x30 + 0x1000 * (n) + (x))
-#define BAM_P_SW_OFSTSn(n, x)           (0x00001800 + 0x1000 * (n) + (x))
-#define BAM_P_EVNT_REGn(n, x)           (0x00001818 + 0x1000 * (n) + (x))
 #define P_DESC_FIFO_PEER_OFST_MASK      0xFF
 
-#define BAM_P_DESC_FIFO_ADDRn(n, x)     (0x0000181C + 0x1000 * (n) + (x))
-#define BAM_P_FIFO_SIZESn(n, x)         (0x00001820 + 0x1000 * (n) + (x))
 
 /* Flags for descriptors */
 #define BAM_DESC_INT_FLAG               (1 << 7)
@@ -104,6 +113,15 @@ enum p_int_type
 #define BAM_DESC_CMD_FLAG               (1 << 3)
 #define BAM_DESC_LOCK_FLAG              (1 << 2)
 #define BAM_DESC_UNLOCK_FLAG            (1 << 1)
+
+/* Pipe Interrupt masks */
+enum p_int_type
+{
+	P_PRCSD_DESC_EN_MASK = 1,
+	P_OUT_OF_DESC_EN_MASK = (1 << 3),
+	P_ERR_EN_MASK = (1 << 4),
+	P_TRNSFR_END_EN_MASK = (1 << 5)
+};
 
 enum bam_ce_cmd_t{
 	CE_WRITE_TYPE = 0,
