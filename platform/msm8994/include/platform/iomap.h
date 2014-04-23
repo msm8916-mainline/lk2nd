@@ -75,6 +75,12 @@
 #define BLSP2_UART1_BASE            (PERIPH_SS_BASE + 0x0015E000)
 
 #define MSM_USB_BASE                (PERIPH_SS_BASE + 0x00255000)
+#define USB2_PHY_SEL                0xFD4AB000
+
+/* QUSB2 PHY */
+#define QUSB2_PHY_BASE              (PERIPH_SS_BASE + 0x00339000)
+
+#define QUSB2PHY_PORT_POWERDOWN     (QUSB2_PHY_BASE + 0x000000B4)
 
 #define MSM_USB30_BASE              0xF9200000
 #define MSM_USB30_QSCRATCH_BASE     0xF92F8800
@@ -137,6 +143,7 @@
 #define USB30_PHY_BCR               (CLK_CTL_BASE + 0x1400)
 #define USB30PHY_PHY_BCR            (CLK_CTL_BASE + 0x1404)
 #define GCC_USB30_GDSCR             (CLK_CTL_BASE + 0x03C4)
+#define GCC_QUSB2_PHY_BCR           (CLK_CTL_BASE + 0x04B8)
 
 /* SDCC */
 #define SDCC1_BCR                   (CLK_CTL_BASE + 0x4C0) /* block reset */

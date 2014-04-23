@@ -135,6 +135,26 @@ void target_usb_init(void)
 {
 	uint32_t val;
 
+	if(board_hardware_id() == HW_PLATFORM_DRAGON)
+	{
+		/* Select the QUSB2 PHY */
+		writel(0x1, USB2_PHY_SEL);
+
+		/* Block Reset */
+		val = readl(GCC_QUSB2_PHY_BCR) | BIT(0);
+		writel(val, GCC_QUSB2_PHY_BCR);
+		udelay(10);
+		writel(val & ~BIT(0), GCC_QUSB2_PHY_BCR);
+
+		/* Deassert POWERDOWN by clearing bit 0 to enable the PHY */
+		val = readl(QUSB2PHY_PORT_POWERDOWN);
+		writel(val & ~BIT(0), QUSB2PHY_PORT_POWERDOWN);
+		udelay(10);
+
+		/* set CLAMP_N_EN and FREEZIO_N */
+		writel(0x22, QUSB2PHY_PORT_POWERDOWN);
+	}
+
 	/* Select and enable external configuration with USB PHY */
 	ulpi_write(ULPI_MISC_A_VBUSVLDEXTSEL | ULPI_MISC_A_VBUSVLDEXT, ULPI_MISC_A_SET);
 
