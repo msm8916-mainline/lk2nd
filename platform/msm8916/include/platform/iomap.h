@@ -29,8 +29,10 @@
 #ifndef _PLATFORM_MSM8916_IOMAP_H_
 #define _PLATFORM_MSM8916_IOMAP_H_
 
-#define MSM_IOMAP_BASE              0x00100000
-#define MSM_IOMAP_END               0x00867FFF
+#define MSM_IOMAP_BASE              0x00000000
+#define MSM_IOMAP_END               0x08000000
+#define A53_SS_BASE                 0x0B000000
+#define A53_SS_END                  0x0B200000
 
 #define SYSTEM_IMEM_BASE            0x08600000
 #define MSM_SHARED_IMEM_BASE        0x08600000
