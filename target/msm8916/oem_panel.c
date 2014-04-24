@@ -248,6 +248,8 @@ bool oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 		auto_pan_loop++;
 		break;
 	case HW_PLATFORM_QRD:
+		/* LDO mode */
+		phy_db->regulator_mode = DSI_PHY_REGULATOR_LDO_MODE;
 		if(hw_subtype == HW_PLATFORM_SUBTYPE_SKUH) {
 			panel_id = INNOLUX_720P_VIDEO_PANEL;
 		} else {
