@@ -198,8 +198,53 @@ static uint32_t dsi_pll_enable_seq_e(uint32_t pll_base)
 	return pll_locked;
 }
 
+static int msm8226_wled_backlight_ctrl(uint8_t enable)
+{
+	if (enable) {
+		pm8x41_wled_config(&wled_ctrl);
+		pm8x41_wled_sink_control(enable);
+		pm8x41_wled_iled_sync_control(enable);
+		pm8x41_wled_led_mod_enable(enable);
+	}
+	pm8x41_wled_enable(enable);
+
+	return NO_ERROR;
+}
+
+static int msm8226_pwm_backlight_ctrl(int gpio_num, int lpg_chan, int enable)
+{
+	struct pm8x41_gpio gpio_param = {
+		.direction = PM_GPIO_DIR_OUT,
+		.function = PM_GPIO_FUNC_2,
+		.vin_sel = 2,   /* VIN_2 */
+		.pull = PM_GPIO_PULL_UP_1_5 | PM_GPIO_PULLDOWN_10,
+		.output_buffer = PM_GPIO_OUT_CMOS,
+		.out_strength = PM_GPIO_OUT_DRIVE_HIGH,
+	};
+
+	dprintf(SPEW, "%s: gpio=%d lpg=%d enable=%d\n", __func__,
+				gpio_num, lpg_chan, enable);
+
+	if (enable) {
+		pm8x41_gpio_config(gpio_num, &gpio_param);
+		pm8x41_lpg_write(lpg_chan, 0x41, 0x33); /* LPG_PWM_SIZE_CLK, */
+		pm8x41_lpg_write(lpg_chan, 0x42, 0x01); /* LPG_PWM_FREQ_PREDIV */
+		pm8x41_lpg_write(lpg_chan, 0x43, 0x20); /* LPG_PWM_TYPE_CONFIG */
+		pm8x41_lpg_write(lpg_chan, 0x44, 0xb2); /* LPG_VALUE_LSB */
+		pm8x41_lpg_write(lpg_chan, 0x45, 0x01);  /* LPG_VALUE_MSB */
+		pm8x41_lpg_write(lpg_chan, 0x46, 0xe4); /* LPG_ENABLE_CONTROL */
+	} else {
+		pm8x41_lpg_write(lpg_chan, 0x46, 0x00);
+	}
+
+	return NO_ERROR;
+}
+
+
 int target_backlight_ctrl(struct backlight *bl, uint8_t enable)
 {
+	uint32_t ret = NO_ERROR;
+
 	dprintf(SPEW, "target_backlight_ctrl\n");
 
 	if (!bl) {
@@ -207,22 +252,22 @@ int target_backlight_ctrl(struct backlight *bl, uint8_t enable)
 		return ERR_INVALID_ARGS;
 	}
 
-	if (bl->bl_interface_type != BL_WLED) {
-		dprintf(CRITICAL, "backlight type:%d not supported\n",
+	switch (bl->bl_interface_type) {
+		case BL_WLED:
+			ret = msm8226_wled_backlight_ctrl(enable);
+			break;
+		case BL_PWM:
+			ret = msm8226_pwm_backlight_ctrl(pwm_gpio.pin_id,
+							PWM_BL_LPG_CHAN_ID,
+							enable);
+			break;
+		default:
+			dprintf(CRITICAL, "backlight type:%d not supported\n",
 							bl->bl_interface_type);
-		return ERR_NOT_SUPPORTED;
+			return ERR_NOT_SUPPORTED;
 	}
 
-	if (enable) {
-		pm8x41_wled_config(&wled_ctrl);
-		pm8x41_wled_sink_control(enable);
-		pm8x41_wled_iled_sync_control(enable);
-		pm8x41_wled_led_mod_enable(enable);
-	}
-
-	pm8x41_wled_enable(enable);
-
-	return 0;
+	return ret;
 }
 
 static void dsi_pll_enable_seq(uint32_t pll_base)

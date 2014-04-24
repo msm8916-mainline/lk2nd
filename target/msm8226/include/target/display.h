@@ -108,6 +108,8 @@ static const uint32_t panel_physical_ctrl[] = {
 #define MIPI_VSYNC_BACK_PORCH_LINES  3
 #define MIPI_VSYNC_FRONT_PORCH_LINES 9
 
+#define PWM_BL_LPG_CHAN_ID           8
+
 enum target_subtype {
 	HW_PLATFORM_SUBTYPE_720P = 0,
 	HW_PLATFORM_SUBTYPE_SKUAA = 1,
