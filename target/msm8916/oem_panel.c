@@ -45,6 +45,7 @@
 #include "include/panel_nt35590_720p_video.h"
 #include "include/panel_nt35590_720p_cmd.h"
 #include "include/panel_innolux_720p_video.h"
+#include "include/panel_otm8019a_fwvga_video.h"
 
 #define DISPLAY_MAX_PANEL_DETECTION 2
 
@@ -58,6 +59,7 @@ JDI_1080P_VIDEO_PANEL,
 NT35590_720P_VIDEO_PANEL,
 NT35590_720P_CMD_PANEL,
 INNOLUX_720P_VIDEO_PANEL,
+OTM8019A_FWVGA_VIDEO_PANEL,
 UNKNOWN_PANEL
 };
 
@@ -70,6 +72,7 @@ static struct panel_list supp_panels[] = {
 	{"nt35590_720p_video", NT35590_720P_VIDEO_PANEL},
 	{"nt35590_720p_cmd", NT35590_720P_CMD_PANEL},
 	{"innolux_720p_video", INNOLUX_720P_VIDEO_PANEL},
+	{"otm8019a_fwvga_video", OTM8019A_FWVGA_VIDEO_PANEL},
 };
 
 static uint32_t panel_id;
@@ -182,6 +185,27 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 		memcpy(phy_db->timing,
 			innolux_720p_video_timings, TIMING_SIZE);
 		break;
+	case OTM8019A_FWVGA_VIDEO_PANEL:
+                panelstruct->paneldata    = &otm8019a_fwvga_video_panel_data;
+                panelstruct->panelres     = &otm8019a_fwvga_video_panel_res;
+                panelstruct->color        = &otm8019a_fwvga_video_color;
+                panelstruct->videopanel   = &otm8019a_fwvga_video_video_panel;
+                panelstruct->commandpanel = &otm8019a_fwvga_video_command_panel;
+                panelstruct->state        = &otm8019a_fwvga_video_state;
+                panelstruct->laneconfig   = &otm8019a_fwvga_video_lane_config;
+                panelstruct->paneltiminginfo
+                        = &otm8019a_fwvga_video_timing_info;
+                panelstruct->panelresetseq
+                                         = &otm8019a_fwvga_video_reset_seq;
+                panelstruct->backlightinfo = &otm8019a_fwvga_video_backlight;
+                pinfo->mipi.panel_cmds
+                        = otm8019a_fwvga_video_on_command;
+                pinfo->mipi.num_of_panel_cmds
+                = OTM8019A_FWVGA_VIDEO_ON_COMMAND;
+                memcpy(phy_db->timing,
+                        otm8019a_fwvga_video_timings, TIMING_SIZE);
+                break;
+
 	case UNKNOWN_PANEL:
 	default:
 		memset(panelstruct, 0, sizeof(struct panel_struct));
@@ -250,9 +274,14 @@ bool oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	case HW_PLATFORM_QRD:
 		/* LDO mode */
 		phy_db->regulator_mode = DSI_PHY_REGULATOR_LDO_MODE;
-		if(hw_subtype == HW_PLATFORM_SUBTYPE_SKUH) {
+		switch (hw_subtype) {
+		case HW_PLATFORM_SUBTYPE_SKUH:
 			panel_id = INNOLUX_720P_VIDEO_PANEL;
-		} else {
+			break;
+		case HW_PLATFORM_SUBTYPE_SKUI:
+			panel_id = OTM8019A_FWVGA_VIDEO_PANEL;
+			break;
+		default:
 			dprintf(CRITICAL, "Invalid subtype id %d for QRD HW\n",
 				hw_subtype);
 			return false;
