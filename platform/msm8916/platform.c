@@ -29,6 +29,7 @@
 #include <debug.h>
 #include <reg.h>
 #include <platform/iomap.h>
+#include <platform/irqs.h>
 #include <qgic.h>
 #include <qtimer.h>
 #include <mmu.h>
@@ -64,12 +65,22 @@ static mmu_section_t mmu_section_table[] = {
 
 static struct smem_ram_ptable ram_ptable;
 
+static int platform_is_msm8939();
+
 void platform_early_init(void)
 {
 	board_init();
 	platform_clock_init();
 	qgic_init();
 	qtimer_init();
+}
+
+int qtmr_irq()
+{
+	if (platform_is_msm8939())
+		return INT_QTMR_FRM_0_PHYSICAL_TIMER_EXP_8x39;
+	else
+		return INT_QTMR_FRM_0_PHYSICAL_TIMER_EXP_8x16;
 }
 
 void platform_init(void)
@@ -164,4 +175,25 @@ addr_t platform_get_phys_to_virt_mapping(addr_t phys_addr)
 {
 	/* Using 1-1 mapping on this platform. */
 	return phys_addr;
+}
+
+static int platform_is_msm8939()
+{
+	uint32_t platform = board_platform_id();
+	uint32_t ret = 0;
+
+	switch(platform)
+	{
+		case MSM8939:
+		case APQ8036:
+		case APQ8039:
+		case MSM8236:
+		case MSM8636:
+			ret = 1;
+			break;
+		default:
+			ret = 0;
+	};
+
+	return ret;
 }
