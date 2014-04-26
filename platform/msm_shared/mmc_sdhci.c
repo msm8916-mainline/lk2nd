@@ -739,7 +739,7 @@ static uint32_t mmc_switch_cmd(struct sdhci_host *host, struct mmc_card *card,
 	}
 
 	if (MMC_CARD_STATUS(mmc_status) != MMC_TRAN_STATE) {
-		dprintf(CRITICAL, "Switch cmd failed. Card not in tran state\n");
+		dprintf(CRITICAL, "Switch cmd failed. Card not in tran state %x\n", mmc_status);
 		mmc_ret = 1;
 	}
 
@@ -751,6 +751,20 @@ static uint32_t mmc_switch_cmd(struct sdhci_host *host, struct mmc_card *card,
 	return mmc_ret;
 }
 
+bool mmc_set_drv_type(struct sdhci_host *host, struct mmc_card *card, uint8_t drv_type)
+{
+	uint32_t ret = 0;
+	bool drv_type_changed = false;
+
+	uint32_t value = ((drv_type << 4) | MMC_HS200_TIMING);
+
+	if (card->ext_csd[MMC_EXT_MMC_DRV_STRENGTH] & (1 << drv_type))
+		ret = mmc_switch_cmd(host, card, MMC_ACCESS_WRITE, MMC_EXT_MMC_HS_TIMING, value);
+	if (!ret)
+		drv_type_changed = true;
+
+	return drv_type_changed;
+}
 /*
  * Function: mmc set bus width
  * Arg     : Host, card structure & width
@@ -871,7 +885,7 @@ static uint32_t mmc_set_hs200_mode(struct sdhci_host *host,
 	}
 
 	/* Execute Tuning for hs200 mode */
-	if ((mmc_ret = sdhci_msm_execute_tuning(host, width)))
+	if ((mmc_ret = sdhci_msm_execute_tuning(host, card, width)))
 		dprintf(CRITICAL, "Tuning for hs200 failed\n");
 
 	DBG("\n Enabling HS200 Mode Done\n");
@@ -1022,7 +1036,7 @@ uint32_t mmc_set_hs400_mode(struct sdhci_host *host,
 	sdhci_msm_set_mci_clk(host);
 
 	/* 7. Execute Tuning for hs400 mode */
-	if ((mmc_ret = sdhci_msm_execute_tuning(host, width)))
+	if ((mmc_ret = sdhci_msm_execute_tuning(host, card, width)))
 		dprintf(CRITICAL, "Tuning for hs400 failed\n");
 
 	DBG("\n Enabling HS400 Mode Done\n");

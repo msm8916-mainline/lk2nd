@@ -89,6 +89,7 @@
 #define MMC_EXT_MMC_BUS_WIDTH                     183
 #define MMC_EXT_MMC_HS_TIMING                     185
 #define MMC_DEVICE_TYPE                           196
+#define MMC_EXT_MMC_DRV_STRENGTH                  197
 #define MMC_EXT_HC_WP_GRP_SIZE                    221
 #define MMC_SEC_COUNT4                            215
 #define MMC_SEC_COUNT3                            214
@@ -330,4 +331,6 @@ uint32_t mmc_set_clr_power_on_wp_user(struct mmc_device *dev, uint32_t addr, uin
 uint32_t mmc_get_wp_status(struct mmc_device *dev, uint32_t addr, uint8_t *wp_status);
 /* API: Put the mmc card in sleep mode */
 void mmc_put_card_to_sleep(struct mmc_device *dev);
+/* API: Change the driver type of the card */
+bool mmc_set_drv_type(struct sdhci_host *host, struct mmc_card *card, uint8_t drv_type);
 #endif
