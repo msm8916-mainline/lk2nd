@@ -47,6 +47,7 @@
 #define DDR_LDO_ID 2
 #define QFPROM_LDO_ID 6
 
+#define VCO_DELAY_USEC 1000
 #define GPIO_STATE_LOW 0
 #define GPIO_STATE_HIGH 2
 #define RESET_GPIO_SEQ_LEN 3
@@ -242,6 +243,7 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 	dprintf(SPEW, "target_panel_clock\n");
 
 	pll_data = pinfo->mipi.dsi_pll_config;
+	pll_data->vco_delay = VCO_DELAY_USEC;
 
 	if (enable) {
 		mdp_gdsc_ctrl(enable);
