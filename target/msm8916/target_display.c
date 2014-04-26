@@ -54,144 +54,40 @@
 #define PWM_DUTY_US 13
 #define PWM_PERIOD_US 27
 
-static uint32_t dsi_pll_enable_seq_m(uint32_t pll_base)
+static void mdss_dsi_uniphy_pll_sw_reset_8916(uint32_t pll_base)
 {
-	uint32_t i = 0;
-	uint32_t pll_locked = 0;
-
-	mdss_dsi_uniphy_pll_sw_reset(pll_base);
-
-	/*
-	 * Add hardware recommended delays between register writes for
-	 * the updates to take effect. These delays are necessary for the
-	 * PLL to successfully lock
-	 */
-	writel(0x01, pll_base + 0x0020); /* GLB CFG */
-	udelay(200);
-	writel(0x05, pll_base + 0x0020); /* GLB CFG */
-	udelay(200);
-	writel(0x0f, pll_base + 0x0020); /* GLB CFG */
-	udelay(1000);
-
-	mdss_dsi_uniphy_pll_lock_detect_setting(pll_base);
-	pll_locked = readl(pll_base + 0x00c0) & 0x01;
-	for (i = 0; (i < 4) && !pll_locked; i++) {
-		writel(0x07, pll_base + 0x0020); /* GLB CFG */
-		if (i != 0)
-			writel(0x34, pll_base + 0x00070); /* CAL CFG1*/
-		udelay(1);
-		writel(0x0f, pll_base + 0x0020); /* GLB CFG */
-		udelay(1000);
-		mdss_dsi_uniphy_pll_lock_detect_setting(pll_base);
-		pll_locked = readl(pll_base + 0x00c0) & 0x01;
-	}
-
-	return pll_locked;
+	writel(0x01, pll_base + 0x0068); /* PLL TEST CFG */
+	mdelay(1);
+	writel(0x00, pll_base + 0x0068); /* PLL TEST CFG */
+	mdelay(1);
 }
 
-static uint32_t dsi_pll_enable_seq_d(uint32_t pll_base)
+static uint32_t dsi_pll_enable_seq_8916(uint32_t pll_base)
 {
 	uint32_t pll_locked = 0;
 
-	mdss_dsi_uniphy_pll_sw_reset(pll_base);
+	writel(0x01, pll_base + 0x0068); /* PLL TEST CFG */
+	udelay(1);
+	writel(0x00, pll_base + 0x0068); /* PLL TEST CFG */
 
 	/*
 	 * Add hardware recommended delays between register writes for
 	 * the updates to take effect. These delays are necessary for the
 	 * PLL to successfully lock
 	 */
+	writel(0x34, pll_base + 0x0070); /* CAL CFG1*/
+	udelay(1);
 	writel(0x01, pll_base + 0x0020); /* GLB CFG */
-	udelay(200);
+	udelay(1);
 	writel(0x05, pll_base + 0x0020); /* GLB CFG */
-	udelay(200);
-	writel(0x07, pll_base + 0x0020); /* GLB CFG */
-	udelay(200);
-	writel(0x05, pll_base + 0x0020); /* GLB CFG */
-	udelay(200);
-	writel(0x07, pll_base + 0x0020); /* GLB CFG */
-	udelay(200);
-	writel(0x0f, pll_base + 0x0020); /* GLB CFG */
-	udelay(1000);
-
-	mdss_dsi_uniphy_pll_lock_detect_setting(pll_base);
-	pll_locked = readl(pll_base + 0x00c0) & 0x01;
-
-	return pll_locked;
-}
-
-static uint32_t dsi_pll_enable_seq_f1(uint32_t pll_base)
-{
-	uint32_t pll_locked = 0;
-
-	mdss_dsi_uniphy_pll_sw_reset(pll_base);
-
-	/*
-	 * Add hardware recommended delays between register writes for
-	 * the updates to take effect. These delays are necessary for the
-	 * PLL to successfully lock
-	 */
-	writel(0x01, pll_base + 0x0020); /* GLB CFG */
-	udelay(200);
-	writel(0x05, pll_base + 0x0020); /* GLB CFG */
-	udelay(200);
-	writel(0x0f, pll_base + 0x0020); /* GLB CFG */
-	udelay(200);
-	writel(0x0d, pll_base + 0x0020); /* GLB CFG */
-	udelay(200);
-	writel(0x0f, pll_base + 0x0020); /* GLB CFG */
-	udelay(1000);
-
-	mdss_dsi_uniphy_pll_lock_detect_setting(pll_base);
-	pll_locked = readl(pll_base + 0x00c0) & 0x01;
-
-	return pll_locked;
-}
-
-static uint32_t dsi_pll_enable_seq_c(uint32_t pll_base)
-{
-	uint32_t pll_locked = 0;
-
-	mdss_dsi_uniphy_pll_sw_reset(pll_base);
-
-	/*
-	 * Add hardware recommended delays between register writes for
-	 * the updates to take effect. These delays are necessary for the
-	 * PLL to successfully lock
-	 */
-	writel(0x01, pll_base + 0x0020); /* GLB CFG */
-	udelay(200);
-	writel(0x05, pll_base + 0x0020); /* GLB CFG */
-	udelay(200);
-	writel(0x0f, pll_base + 0x0020); /* GLB CFG */
-	udelay(1000);
-
-	mdss_dsi_uniphy_pll_lock_detect_setting(pll_base);
-	pll_locked = readl(pll_base + 0x00c0) & 0x01;
-
-	return pll_locked;
-}
-
-static uint32_t dsi_pll_enable_seq_e(uint32_t pll_base)
-{
-	uint32_t pll_locked = 0;
-
-	mdss_dsi_uniphy_pll_sw_reset(pll_base);
-
-	/*
-	 * Add hardware recommended delays between register writes for
-	 * the updates to take effect. These delays are necessary for the
-	 * PLL to successfully lock
-	 */
-	writel(0x01, pll_base + 0x0020); /* GLB CFG */
-	udelay(200);
-	writel(0x05, pll_base + 0x0020); /* GLB CFG */
-	udelay(200);
-	writel(0x0d, pll_base + 0x0020); /* GLB CFG */
 	udelay(1);
 	writel(0x0f, pll_base + 0x0020); /* GLB CFG */
-	udelay(1000);
+	udelay(1);
 
-	mdss_dsi_uniphy_pll_lock_detect_setting(pll_base);
+	writel(0x04, pll_base + 0x0064); /* LKDetect CFG2 */
+	udelay(1);
+	writel(0x05, pll_base + 0x0064); /* LKDetect CFG2 */
+	udelay(512);
 	pll_locked = readl(pll_base + 0x00c0) & 0x01;
 
 	return pll_locked;
@@ -223,19 +119,6 @@ int target_backlight_ctrl(struct backlight *bl, uint8_t enable)
 	return 0;
 }
 
-static void dsi_pll_enable_seq(uint32_t pll_base)
-{
-	if (dsi_pll_enable_seq_m(pll_base)) {
-	} else if (dsi_pll_enable_seq_d(pll_base)) {
-	} else if (dsi_pll_enable_seq_d(pll_base)) {
-	} else if (dsi_pll_enable_seq_f1(pll_base)) {
-	} else if (dsi_pll_enable_seq_c(pll_base)) {
-	} else if (dsi_pll_enable_seq_e(pll_base)) {
-	} else {
-		dprintf(CRITICAL, "Not able to enable the pll\n");
-	}
-}
-
 int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 {
 	int32_t ret = 0;
@@ -259,9 +142,11 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 			mdp_gdsc_ctrl(0);
 			return ret;
 		}
+		mdss_dsi_uniphy_pll_sw_reset_8916(DSI0_PLL_BASE);
 		mdss_dsi_auto_pll_config(DSI0_PLL_BASE,
 						MIPI_DSI0_BASE, pll_data);
-		dsi_pll_enable_seq(DSI0_PLL_BASE);
+		if (!dsi_pll_enable_seq_8916(DSI0_PLL_BASE))
+			dprintf(CRITICAL, "Not able to enable the pll\n");
 		gcc_dsi_clocks_enable(pll_data->pclk_m,
 				pll_data->pclk_n,
 				pll_data->pclk_d);
