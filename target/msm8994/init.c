@@ -297,7 +297,7 @@ void target_baseband_detect(struct board_data *board)
 	platform = board->platform;
 
 	switch(platform) {
-	case MSMPLUTONIUM:
+	case MSM8994:
 		board->baseband = BASEBAND_MSM;
 		break;
 	default:
