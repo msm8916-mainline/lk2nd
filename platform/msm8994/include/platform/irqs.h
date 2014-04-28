@@ -27,8 +27,8 @@
  */
 
 
-#ifndef __IRQS_MSMPLUTONIUM_H
-#define __IRQS_MSMPLUTONIUM_H
+#ifndef __IRQS_MSM8994_H
+#define __IRQS_MSM8994_H
 
 /* MSM ACPU Interrupt Numbers */
 
@@ -66,4 +66,4 @@
 #define NR_IRQS                                (NR_MSM_IRQS + NR_GPIO_IRQS + \
                                                NR_BOARD_IRQS)
 
-#endif	/* __IRQS_MSMPLUTONIUM_H */
+#endif	/* __IRQS_MSM8994_H */
