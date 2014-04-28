@@ -357,7 +357,7 @@ ifeq ($(PLATFORM),fsm9900)
 			$(LOCAL_DIR)/dload_util.o
 endif
 
-ifeq ($(PLATFORM),msmplutonium)
+ifeq ($(PLATFORM),msm8994)
 	OBJS += $(LOCAL_DIR)/qgic.o \
 			$(LOCAL_DIR)/qtimer.o \
 			$(LOCAL_DIR)/qtimer_mmap.o \
