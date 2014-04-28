@@ -74,4 +74,6 @@ void hsusb_clock_init(void);
 void clock_config_ce(uint8_t instance);
 void mdp_clock_init(void);
 void mdp_gdsc_ctrl(uint8_t enable);
+void clock_ce_enable(uint8_t instance);
+void clock_ce_disable(uint8_t instance);
 #endif
