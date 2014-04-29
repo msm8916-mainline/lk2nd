@@ -155,16 +155,6 @@ __WEAK void target_display_shutdown(void)
 {
 }
 
-__WEAK uint32_t target_boot_device_emmc()
-{
-	return 1;
-}
-
-__WEAK uint32_t target_get_boot_device()
-{
-	return 0;
-}
-
 __WEAK uint8_t target_panel_auto_detect_enabled()
 {
 	return 0;
