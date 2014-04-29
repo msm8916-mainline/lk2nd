@@ -52,6 +52,7 @@
 #include <boot_stats.h>
 #include <sha.h>
 #include <platform/iomap.h>
+#include <boot_device.h>
 
 #if DEVICE_TREE
 #include <libfdt.h>
@@ -101,12 +102,12 @@ void write_device_info_flash(device_info *dev);
 
 #define UBI_MAGIC      "UBI#"
 #define UBI_MAGIC_SIZE 0x04
+#define BOOT_DEV_MAX_LEN  64
 
 #define IS_ARM64(ptr) (ptr->magic_64 == KERNEL64_HDR_MAGIC) ? true : false
 
 #if UFS_SUPPORT
-static const char *emmc_cmdline = " androidboot.bootdevice=msm_sdcc.1";
-static const char *ufs_cmdline = " androidboot.bootdevice=msm_ufs.1";
+static const char *emmc_cmdline = " androidboot.bootdevice=";
 #else
 static const char *emmc_cmdline = " androidboot.emmc=true";
 #endif
@@ -209,54 +210,28 @@ static void ptentry_to_tag(unsigned **ptr, struct ptentry *ptn)
 	*ptr += sizeof(struct atag_ptbl_entry) / sizeof(unsigned);
 }
 
-#if UFS_SUPPORT
-char* get_boot_dev_cmdline()
-{
-	const char *boot_device;
-	uint32_t val = 0;
-
-	val = target_get_boot_device();
-	switch(val)
-	{
-		case BOOT_DEFAULT:
-		case BOOT_EMMC:
-			boot_device = emmc_cmdline;
-			break;
-		case BOOT_UFS:
-			boot_device = ufs_cmdline;
-			break;
-		default:
-			dprintf(CRITICAL,"ERROR: Unexpected boot_device val=%x",val);
-			ASSERT(0);
-	};
-
-	return boot_device;
-}
-#endif
-
 unsigned char *update_cmdline(const char * cmdline)
 {
 	int cmdline_len = 0;
 	int have_cmdline = 0;
 	unsigned char *cmdline_final = NULL;
-#if UFS_SUPPORT
-	const char *boot_dev_cmdline = NULL;
-#endif
 	int pause_at_bootup = 0;
 	bool warm_boot = false;
 	bool gpt_exists = partition_gpt_exists();
 	int have_target_boot_params = 0;
+	char *boot_dev_buf = NULL;
 
 	if (cmdline && cmdline[0]) {
 		cmdline_len = strlen(cmdline);
 		have_cmdline = 1;
 	}
 	if (target_is_emmc_boot()) {
-#if UFS_SUPPORT
-		boot_dev_cmdline = get_boot_dev_cmdline();
-		cmdline_len += strlen(boot_dev_cmdline);
-#else
 		cmdline_len += strlen(emmc_cmdline);
+#if UFS_SUPPORT
+		boot_dev_buf = (char *) malloc(sizeof(char) * BOOT_DEV_MAX_LEN);
+		ASSERT(boot_dev_buf);
+		platform_boot_dev_cmdline(boot_dev_buf);
+		cmdline_len += strlen(boot_dev_buf);
 #endif
 	}
 
@@ -356,14 +331,15 @@ unsigned char *update_cmdline(const char * cmdline)
 			while ((*dst++ = *src++));
 		}
 		if (target_is_emmc_boot()) {
-#if UFS_SUPPORT
-			src = boot_dev_cmdline;
-#else
 			src = emmc_cmdline;
-#endif
 			if (have_cmdline) --dst;
 			have_cmdline = 1;
 			while ((*dst++ = *src++));
+#if UFS_SUPPORT
+			src = boot_dev_buf;
+			if (have_cmdline) --dst;
+			while ((*dst++ = *src++));
+#endif
 		}
 
 		src = usb_sn_cmdline;
@@ -484,6 +460,9 @@ unsigned char *update_cmdline(const char * cmdline)
 		}
 	}
 
+
+	if (boot_dev_buf)
+		free(boot_dev_buf);
 
 	dprintf(INFO, "cmdline: %s\n", cmdline_final);
 	return cmdline_final;
