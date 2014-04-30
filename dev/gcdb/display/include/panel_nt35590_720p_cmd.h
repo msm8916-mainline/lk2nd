@@ -2935,6 +2935,6 @@ static struct backlight nt35590_720p_cmd_backlight = {
   1, 1, 4095, 100, 1, "PMIC_8941"
 };
 
-#define NT35590_720P_CMD_SIGNATURE 0x210000
+#define NT35590_720P_CMD_SIGNATURE 0xFFFF
 
 #endif /*_PANEL_NT35590_720P_CMD_H_*/
