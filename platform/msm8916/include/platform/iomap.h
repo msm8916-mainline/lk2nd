@@ -42,7 +42,7 @@
 #define BS_INFO_ADDR                (MSM_SHARED_IMEM_BASE + BS_INFO_OFFSET)
 #define SDRAM_START_ADDR            0x80000000
 
-#define MSM_SHARED_BASE             0x8E200000
+#define MSM_SHARED_BASE             0x86300000
 
 #define APPS_SS_BASE                0x0B000000
 
