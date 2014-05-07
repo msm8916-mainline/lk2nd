@@ -29,8 +29,7 @@
 #ifndef _PLATFORM_MSM8994_IOMAP_H_
 #define _PLATFORM_MSM8994_IOMAP_H_
 
-#define MSM_SHARED_BASE             0x0FA00000
-
+#define MSM_SHARED_BASE             0x06A00000
 
 #define MSM_IOMAP_BASE              0xF9000000
 #define MSM_IOMAP_END               0xFEFFFFFF
