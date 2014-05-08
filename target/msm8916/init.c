@@ -461,11 +461,11 @@ void target_uninit(void)
 	mmc_put_card_to_sleep(dev);
 	sdhci_mode_disable(&dev->host);
 
-	if (target_is_ssd_enabled())
-		clock_ce_disable(CE1_INSTANCE);
-
 	if (crypto_initialized())
 		crypto_eng_cleanup();
+
+	if (target_is_ssd_enabled())
+		clock_ce_disable(CE1_INSTANCE);
 }
 
 /* Do any target specific intialization needed before entering fastboot mode */
