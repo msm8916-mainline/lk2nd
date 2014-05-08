@@ -445,11 +445,11 @@ void target_uninit(void)
 
 	mmc_put_card_to_sleep(dev);
 
-	if (target_is_ssd_enabled())
-		clock_ce_disable(SSD_CE_INSTANCE);
-
 	if (crypto_initialized())
 		crypto_eng_cleanup();
+
+	if (target_is_ssd_enabled())
+		clock_ce_disable(SSD_CE_INSTANCE);
 }
 
 void target_usb_init(void)
