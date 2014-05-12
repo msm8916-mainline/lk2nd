@@ -197,3 +197,20 @@ static int platform_is_msm8939()
 
 	return ret;
 }
+
+/* DYNAMIC SMEM REGION feature enables LK to dynamically
+ * read the SMEM addr info from TCSR_TZ_WONCE register.
+ * The first word read, if indicates a MAGIC number, then
+ * Dynamic SMEM is assumed to be enabled. Read the remaining
+ * SMEM info for SMEM Size and Phy_addr from the other bytes.
+ */
+uint32_t platform_get_smem_base_addr()
+{
+	struct smem_addr_info *smem_info = NULL;
+
+	smem_info = (struct smem_addr_info *)readl(TCSR_TZ_WONCE);
+	if(smem_info && (smem_info->identifier == SMEM_TARGET_INFO_IDENTIFIER))
+		return smem_info->phy_addr;
+	else
+		return MSM_SHARED_BASE;
+}
