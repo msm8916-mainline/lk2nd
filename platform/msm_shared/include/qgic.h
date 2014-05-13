@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -55,6 +55,10 @@
 #define GIC_DIST_TARGET             GIC_DIST_REG(0x800)
 #define GIC_DIST_CONFIG             GIC_DIST_REG(0xc00)
 #define GIC_DIST_SOFTINT            GIC_DIST_REG(0xf00)
+#define MAX_CPUS_PER_CLUSTER        0x4
+
+/* Bits [15:8] of the mpidr contain the cluster ID*/
+#define CLUSTER_ID_OFFSET           0x8
 
 struct ihandler {
 	int_handler func;

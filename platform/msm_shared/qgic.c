@@ -2,7 +2,7 @@
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2011, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2011,2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -46,6 +46,25 @@ static void qgic_dist_init(void)
 	uint32_t i;
 	uint32_t num_irq = 0;
 	uint32_t cpumask = 1;
+	uint32_t mpidr;
+	uint32_t core = 0;
+	uint32_t cluster;
+	uint32_t cpu_id;
+
+	/* Read the mpidr register to find out the boot up cluster */
+	__asm__ volatile("mrc p15, 0, %0, c0, c0, 5" : "=r" (mpidr));
+
+	/* Bits [15:8] of the mpidr contain the cluster ID*/
+	cluster = (mpidr & 0xff00) >> CLUSTER_ID_OFFSET;
+
+	/* Bits [7:0] of the mpidr gives the CPU id*/
+	cpu_id = mpidr & 0xff;
+
+	/* According to the cluster and CPU id, select the core currently running */
+	core = (cpu_id + cluster * MAX_CPUS_PER_CLUSTER);
+
+	/* Based on the core,shift the bit to adjust the cpumask */
+	cpumask = cpumask << core;
 
 	cpumask |= cpumask << 8;
 	cpumask |= cpumask << 16;
