@@ -44,6 +44,11 @@
 #define QMP_PHY_MAX_TIMEOUT            1000
 #define PHYSTATUS                      BIT(6)
 
+__WEAK uint32_t target_override_pll()
+{
+	return 0;
+}
+
 /* USB3.0 QMP phy reset */
 void usb30_qmp_phy_reset(void)
 {
@@ -144,6 +149,10 @@ void usb30_qmp_phy_init()
 
 	writel(0x01, QMP_PHY_BASE + PCIE_USB3_PHY_POWER_DOWN_CONTROL);
 	writel(0x08, QMP_PHY_BASE + QSERDES_COM_SYSCLK_EN_SEL_TXBAND);
+
+	if (target_override_pll())
+		writel(0xE1, QMP_PHY_BASE + QSERDES_COM_PLL_VCOTAIL_EN);
+
 	writel(0x82, QMP_PHY_BASE + QSERDES_COM_DEC_START1);
 	writel(0x03, QMP_PHY_BASE + QSERDES_COM_DEC_START2);
 	writel(0xD5, QMP_PHY_BASE + QSERDES_COM_DIV_FRAC_START1);
@@ -167,7 +176,10 @@ void usb30_qmp_phy_init()
 
 	/* Calibration Settings */
 	writel(0x90, QMP_PHY_BASE + QSERDES_COM_RESETSM_CNTRL);
-	writel(0x05, QMP_PHY_BASE + QSERDES_COM_RESETSM_CNTRL2);
+	if (target_override_pll())
+		writel(0x07, QMP_PHY_BASE + QSERDES_COM_RESETSM_CNTRL2);
+	else
+		writel(0x05, QMP_PHY_BASE + QSERDES_COM_RESETSM_CNTRL2);
 
 	writel(0x20, QMP_PHY_BASE + QSERDES_COM_RES_CODE_START_SEG1);
 	writel(0x77, QMP_PHY_BASE + QSERDES_COM_RES_CODE_CAL_CSR);
