@@ -301,3 +301,8 @@ void target_usb_phy_mux_configure(void)
         phy_mux_configure_with_tcsr();
     }
 }
+
+uint32_t target_override_pll()
+{
+	return board_soc_version() == BOARD_SOC_VERSION2 ? 1 : 0;
+}
