@@ -16,7 +16,6 @@ SCRATCH_ADDR     := 0x11000000
 
 MODULES += \
 	dev/keys \
-	dev/panel/msm \
     lib/ptable \
     lib/libfdt
 
