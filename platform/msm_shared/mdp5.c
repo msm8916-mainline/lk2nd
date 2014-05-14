@@ -127,9 +127,8 @@ static void mdss_vbif_setup()
 	if (!access_secure) {
 		dprintf(SPEW, "MDSS VBIF registers unlocked by TZ.\n");
 
-		/* Force VBIF Clocks on, not needed for 8084 */
-		if ((mdp_hw_rev < MDSS_MDP_HW_REV_103) ||
-				(mdp_hw_rev == MDSS_MDP_HW_REV_106))
+		/* Force VBIF Clocks on, needed for 8974 and 8x26 */
+		if (mdp_hw_rev < MDSS_MDP_HW_REV_103)
 			writel(0x1, VBIF_VBIF_DDR_FORCE_CLK_ON);
 
 		/*
@@ -146,9 +145,7 @@ static void mdss_vbif_setup()
 			writel(0x22222222, VBIF_VBIF_DDR_AXI_AMEMTYPE_CONF0);
 			writel(0x00002222, VBIF_VBIF_DDR_AXI_AMEMTYPE_CONF1);
 		} else if (MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev,
-				MDSS_MDP_HW_REV_101) ||
-				MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev,
-				MDSS_MDP_HW_REV_106)) {
+				MDSS_MDP_HW_REV_101)) {
 			writel(0x00000707, VBIF_VBIF_DDR_OUT_MAX_BURST);
 			writel(0x00000003, VBIF_VBIF_DDR_RND_RBN_QOS_ARB);
 		}
@@ -391,10 +388,11 @@ void mdss_qos_remapper_setup(void)
 						MDSS_MDP_HW_REV_102))
 		map = 0xE9;
 	else if (MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev,
-			MDSS_MDP_HW_REV_101) ||
-			MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev,
-			MDSS_MDP_HW_REV_106))
+			MDSS_MDP_HW_REV_101))
 		map = 0xA5;
+	else if (MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev,
+			MDSS_MDP_HW_REV_106))
+		map = 0xAA;
 	else if (MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev,
 						MDSS_MDP_HW_REV_103))
 		map = 0xFA;
