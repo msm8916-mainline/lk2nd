@@ -384,7 +384,8 @@ ifeq ($(PLATFORM),msm8994)
 			$(LOCAL_DIR)/uic.o \
 			$(LOCAL_DIR)/ucs.o \
 			$(LOCAL_DIR)/ufs_hci.o \
-			$(LOCAL_DIR)/dme.o
+			$(LOCAL_DIR)/dme.o \
+			$(LOCAL_DIR)/qmp_usb30_phy.o
 endif
 
 ifeq ($(ENABLE_BOOT_CONFIG_SUPPORT), 1)

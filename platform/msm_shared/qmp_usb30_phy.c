@@ -26,6 +26,7 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <sys/types.h>
 #include <stdint.h>
 #include <platform/clock.h>
 #include <platform/iomap.h>
@@ -40,23 +41,28 @@
 #define PLLBTUNE                       BIT(15)
 #define FSEL                           (0x7 << 4)
 #define DIS_RETENTION                  BIT(18)
+#define QMP_PHY_MAX_TIMEOUT            1000
+#define PHYSTATUS                      BIT(6)
 
 /* USB3.0 QMP phy reset */
 void usb30_qmp_phy_reset(void)
 {
 	int ret = 0;
 	uint32_t val;
+	bool phy_com_reset = false;
 
 	struct clk *usb2b_clk = NULL;
 	struct clk *usb_pipe_clk = NULL;
 	struct clk *phy_com_clk = NULL;
 	struct clk *phy_clk = NULL;
 
+	/* Look if phy com clock is present */
+	phy_com_clk = clk_get("usb30_phy_com_reset");
+	if (phy_com_clk)
+		phy_com_reset = true;
+
 	usb2b_clk = clk_get("usb2b_phy_sleep_clk");
 	ASSERT(usb2b_clk);
-
-	phy_com_clk = clk_get("usb30_phy_com_reset");
-	ASSERT(phy_com_clk);
 
 	phy_clk  = clk_get("usb30_phy_reset");
 	ASSERT(phy_clk);
@@ -72,11 +78,14 @@ void usb30_qmp_phy_reset(void)
 		return;
 	}
 
-	ret = clk_reset(phy_com_clk, CLK_RESET_ASSERT);
-	if (ret)
+	if (phy_com_reset)
 	{
-		dprintf(CRITICAL, "Failed to assert phy_com_clk\n");
-		goto deassert_usb2b_clk;
+		ret = clk_reset(phy_com_clk, CLK_RESET_ASSERT);
+		if (ret)
+		{
+			dprintf(CRITICAL, "Failed to assert phy_com_clk\n");
+			goto deassert_usb2b_clk;
+		}
 	}
 
 	ret = clk_reset(phy_clk, CLK_RESET_ASSERT);
@@ -106,9 +115,12 @@ deassert_phy_clk:
 		dprintf(CRITICAL, "Failed to deassert phy_clk\n");
 
 deassert_phy_com_clk:
-	ret = clk_reset(phy_com_clk, CLK_RESET_DEASSERT);
-	if (ret)
-		dprintf(CRITICAL, "Failed to deassert phy_com_clk\n");
+	if (phy_com_reset)
+	{
+		ret = clk_reset(phy_com_clk, CLK_RESET_DEASSERT);
+		if (ret)
+			dprintf(CRITICAL, "Failed to deassert phy_com_clk\n");
+	}
 
 deassert_usb2b_clk:
 	ret = clk_reset(usb2b_clk, CLK_RESET_DEASSERT);
@@ -126,8 +138,9 @@ deassert_usb2b_clk:
 /* USB 3.0 phy init: HPG for QMP phy*/
 void usb30_qmp_phy_init()
 {
+	int timeout = QMP_PHY_MAX_TIMEOUT;
+
 	/* Sequence as per HPG */
-	writel(0x11, PERIPH_SS_AHB2PHY_TOP_CFG);
 
 	writel(0x01, QMP_PHY_BASE + PCIE_USB3_PHY_POWER_DOWN_CONTROL);
 	writel(0x08, QMP_PHY_BASE + QSERDES_COM_SYSCLK_EN_SEL_TXBAND);
@@ -175,11 +188,16 @@ void usb30_qmp_phy_init()
 	writel(0x19, QMP_PHY_BASE + QSERDES_COM_SSC_STEP_SIZE2);
 	writel(0x08, QMP_PHY_BASE + PCIE_USB3_PHY_POWER_STATE_CONFIG2);
 
-	writel(0xE5, QMP_PHY_BASE + PCIE_USB3_PHY_RCVR_DTCT_DLY_P1U2_L);
-	writel(0x03, QMP_PHY_BASE + PCIE_USB3_PHY_RCVR_DTCT_DLY_P1U2_H);
-
 	writel(0x00, QMP_PHY_BASE + PCIE_USB3_PHY_SW_RESET);
 	writel(0x03, QMP_PHY_BASE + PCIE_USB3_PHY_START);
+
+	while ((readl(QMP_PHY_BASE + PCIE_USB3_PHY_PCS_STATUS) & PHYSTATUS) && timeout--);
+
+	if (!timeout)
+	{
+		dprintf(CRITICAL, "QMP phy initialization failed\n");
+		return;
+	}
 
 	clock_bumpup_pipe3_clk();
 }
