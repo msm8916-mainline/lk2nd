@@ -190,13 +190,6 @@ FUNCTION(arch_enable_cache)
 	// NOTE: trashes a bunch of registers, can't be spilling stuff to the stack
 	bl		invalidate_cache_v7
 
-#if ARM_WITH_L2
-	// enable the L2, if present
-	mrc     p15, 0, r0, c1, c0, 1		// aux cr1
-	orr		r0, #(1<<1)
-	mcr		p15, 0, r0, c1, c0, 1		// enable L2 dcache
-#endif
-
 	mrc     p15, 0, r0, c1, c0, 0		// cr1
 	orr		r0, #(1<<2)
 	mcr		p15, 0, r0, c1, c0, 0		// enable dcache
