@@ -296,7 +296,7 @@ static uint32_t sdhci_msm_init_dll(struct sdhci_host *host)
 
 	/* Set the powersave back on */
 	if (pwr_save)
-		REG_WRITE32(host, (REG_READ32(host, SDCC_DLL_CONFIG_REG) | SDCC_DLL_PWR_SAVE_EN), SDCC_VENDOR_SPECIFIC_FUNC);
+		REG_WRITE32(host, (REG_READ32(host, SDCC_VENDOR_SPECIFIC_FUNC) | SDCC_DLL_PWR_SAVE_EN), SDCC_VENDOR_SPECIFIC_FUNC);
 
 	return 0;
 }
