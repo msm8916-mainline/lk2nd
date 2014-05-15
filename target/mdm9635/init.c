@@ -43,6 +43,7 @@
 #include <hsusb.h>
 #include <bits.h>
 #include <qmp_phy.h>
+#include <scm.h>
 
 extern void smem_ptable_init(void);
 extern void smem_add_modem_partitions(struct ptable *flash_ptable);
@@ -180,9 +181,27 @@ target_usb_iface_t* target_usb30_init()
 	return t_usb_iface;
 }
 
+
+static int scm_clear_boot_partition_select()
+{
+	int ret = 0;
+
+	ret = scm_call_atomic2(SCM_SVC_BOOT, WDOG_DEBUG_DISABLE, 1, 0);
+	if (ret)
+		dprintf(CRITICAL, "Failed to disable the wdog debug \n");
+
+	return ret;
+}
+
 /* reboot */
 void reboot_device(unsigned reboot_reason)
 {
+	uint8_t reset_type = 0;
+
+	/* Clear the boot partition select cookie to indicate
+	 * its a normal reset and avoid going to download mode */
+	scm_clear_boot_partition_select();
+
 	/* Write the reboot reason */
 	writel(reboot_reason, RESTART_REASON_ADDR);
 
@@ -191,7 +210,12 @@ void reboot_device(unsigned reboot_reason)
 	 * This call should be based on the pmic version
 	 * when PM8019 v2 is available.
 	 */
-	pm8x41_v2_reset_configure(PON_PSHOLD_WARM_RESET);
+	if(reboot_reason)
+		reset_type = PON_PSHOLD_WARM_RESET;
+	else
+		reset_type = PON_PSHOLD_HARD_RESET;
+
+	pm8x41_v2_reset_configure(reset_type);
 
 	/* Drop PS_HOLD for MSM */
 	writel(0x00, MPM2_MPM_PS_HOLD);
