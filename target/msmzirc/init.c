@@ -126,6 +126,8 @@ void target_init(void)
 
 	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
 
+	platform_read_boot_config();
+
 	if (platform_boot_dev_isemmc()) {
 		target_sdc_init();
 		if (partition_read_table()) {
