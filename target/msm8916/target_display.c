@@ -40,6 +40,8 @@
 #include <platform/gpio.h>
 #include <platform/iomap.h>
 #include <target/display.h>
+#include <i2c_qup.h>
+#include <blsp_qup.h>
 
 #include "include/panel.h"
 #include "include/display_resource.h"
@@ -160,6 +162,50 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 	return 0;
 }
 
+#define QRD_LCD_I2C_ADDRESS		0x3E
+#define QRD_LCD_VPOS_ADDRESS		0x00
+#define QRD_LCD_VNEG_ADDRESS		0x01
+#define QRD_LCD_DIS_ADDRESS		0x03
+#define QRD_LCD_CONTROL_ADDRESS		0xFF
+
+static struct qup_i2c_dev  *i2c_dev;
+static int qrd_lcd_i2c_read(uint8_t addr)
+{
+	int ret = 0;
+	/* Create a i2c_msg buffer, that is used to put the controller into read
+	   mode and then to read some data. */
+	struct i2c_msg msg_buf[] = {
+		{QRD_LCD_I2C_ADDRESS, I2C_M_WR, 1, &addr},
+		{QRD_LCD_I2C_ADDRESS, I2C_M_RD, 1, &ret}
+	};
+
+	ret = qup_i2c_xfer(i2c_dev, msg_buf, 2);
+	if(ret < 0) {
+		dprintf(CRITICAL, "qup_i2c_xfer error %d\n", ret);
+		return ret;
+	}
+	return 0;
+}
+
+static int qrd_lcd_i2c_write(uint8_t addr, uint8_t val)
+{
+	int ret = 0;
+	uint8_t data_buf[] = { addr, val };
+
+	/* Create a i2c_msg buffer, that is used to put the controller into write
+	   mode and then to write some data. */
+	struct i2c_msg msg_buf[] = { {QRD_LCD_I2C_ADDRESS,
+				      I2C_M_WR, 2, data_buf}
+	};
+
+	ret = qup_i2c_xfer(i2c_dev, msg_buf, 1);
+	if(ret < 0) {
+		dprintf(CRITICAL, "qup_i2c_xfer error %d\n", ret);
+		return ret;
+	}
+	return 0;
+}
+
 int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 						struct msm_panel_info *pinfo)
 {
@@ -179,19 +225,45 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 
 		if(hw_id == HW_PLATFORM_QRD &&
 			hw_subtype == HW_PLATFORM_SUBTYPE_SKUH) {
-			/* for tps65132 ENP */
+			/* for tps65132 chip ENP */
 			gpio_tlmm_config(enp_gpio.pin_id, 0,
 				enp_gpio.pin_direction, enp_gpio.pin_pull,
 				enp_gpio.pin_strength,
 				enp_gpio.pin_state);
 			gpio_set_dir(enp_gpio.pin_id, 2);
 
-			/* for tps65132 ENN */
+			/* for tps65132 chip ENN */
 			gpio_tlmm_config(enn_gpio.pin_id, 0,
 				enn_gpio.pin_direction, enn_gpio.pin_pull,
 				enn_gpio.pin_strength,
 				enn_gpio.pin_state);
 			gpio_set_dir(enn_gpio.pin_id, 2);
+
+			i2c_dev = qup_blsp_i2c_init(BLSP_ID_1, QUP_ID_1, 100000, 19200000);
+			if(!i2c_dev) {
+				dprintf(CRITICAL, "qup_blsp_i2c_init failed \n");
+				ASSERT(0);
+			}
+
+			ret = qrd_lcd_i2c_write(QRD_LCD_VPOS_ADDRESS, 0x0E); /* 5.4V */
+			if (ret) {
+				dprintf(CRITICAL, "VPOS Register: I2C Write failure\n");
+			}
+
+			ret = qrd_lcd_i2c_write(QRD_LCD_VNEG_ADDRESS, 0x0E); /* -5.4V */
+			if (ret) {
+				dprintf(CRITICAL, "VNEG Register: I2C write failure\n");
+			}
+
+			ret = qrd_lcd_i2c_write(QRD_LCD_DIS_ADDRESS, 0x0F);
+			if (ret) {
+				dprintf(CRITICAL, "Apps freq DIS Register: I2C write failure\n");
+			}
+
+			ret = qrd_lcd_i2c_write(QRD_LCD_CONTROL_ADDRESS, 0xF0);
+			if (ret) {
+				dprintf(CRITICAL, "Control Register: I2C write failure\n");
+			}
 		}
 
 		gpio_tlmm_config(bkl_gpio.pin_id, 0,
