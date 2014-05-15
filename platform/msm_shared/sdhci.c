@@ -66,11 +66,11 @@ static void sdhci_dumpregs(struct sdhci_host *host)
 							REG_READ8(host, SDHCI_TIMEOUT_REG),
 							REG_READ8(host, SDHCI_PWR_CTRL_REG));
 	DBG("Error stat:   0x%08x\t Int Status:   0x%08x\n",
-							REG_READ32(host, SDHCI_ERR_INT_STS_REG),
-							REG_READ32(host, SDHCI_NRML_INT_STS_REG));
+							REG_READ16(host, SDHCI_ERR_INT_STS_REG),
+							REG_READ16(host, SDHCI_NRML_INT_STS_REG));
 	DBG("Host Ctrl2:   0x%08x\t Clock ctrl:   0x%08x\n",
-							REG_READ32(host, SDHCI_HOST_CTRL2_REG),
-							REG_READ32(host, SDHCI_CLK_CTRL_REG));
+							REG_READ16(host, SDHCI_HOST_CTRL2_REG),
+							REG_READ16(host, SDHCI_CLK_CTRL_REG));
 	DBG("Caps1:        0x%08x\t Caps2:        0x%08x\n",
 							REG_READ32(host, SDHCI_CAPS_REG1),
 							REG_READ32(host, SDHCI_CAPS_REG1));
@@ -734,7 +734,7 @@ uint32_t sdhci_send_command(struct sdhci_host *host, struct mmc_command *cmd)
 	uint32_t flags;
 	struct desc_entry *sg_list = NULL;
 
-	DBG("\n %s: START: cmd:0x%04d, arg:0x%08x, resp_type:0x%04x, data_present:%d\n",
+	DBG("\n %s: START: cmd:%04d, arg:0x%08x, resp_type:0x%04x, data_present:%d\n",
 				__func__, cmd->cmd_index, cmd->argument, cmd->resp_type, cmd->data_present);
 
 	if (cmd->data_present)
