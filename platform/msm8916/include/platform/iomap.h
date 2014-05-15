@@ -93,6 +93,13 @@
 #define  GCC_CRYPTO_CBCR            (CLK_CTL_BASE + 0x1601C)
 #define  GCC_CRYPTO_AXI_CBCR        (CLK_CTL_BASE + 0x16020)
 #define  GCC_CRYPTO_AHB_CBCR        (CLK_CTL_BASE + 0x16024)
+
+/* I2C */
+#define BLSP_QUP_BASE(blsp_id, qup_id) (PERIPH_SS_BASE + 0xB5000 + 0x1000 * qup_id)
+#define GCC_BLSP1_QUP2_APPS_CBCR    (CLK_CTL_BASE + 0x3010)
+#define GCC_BLSP1_QUP2_CFG_RCGR     (CLK_CTL_BASE + 0x3018)
+#define GCC_BLSP1_QUP2_CMD_RCGR     (CLK_CTL_BASE + 0x3014)
+
 /* GPLL */
 #define GPLL0_STATUS                (CLK_CTL_BASE + 0x2101C)
 #define APCS_GPLL_ENA_VOTE          (CLK_CTL_BASE + 0x45000)

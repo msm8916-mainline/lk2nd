@@ -76,4 +76,5 @@ void mdp_clock_init(void);
 void mdp_gdsc_ctrl(uint8_t enable);
 void clock_ce_enable(uint8_t instance);
 void clock_ce_disable(uint8_t instance);
+void clock_config_blsp_i2c(uint8_t blsp_id, uint8_t qup_id);
 #endif

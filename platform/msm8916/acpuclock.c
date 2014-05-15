@@ -35,6 +35,7 @@
 #include <mmc.h>
 #include <clock.h>
 #include <platform/clock.h>
+#include <blsp_qup.h>
 
 void hsusb_clock_init(void)
 {
@@ -397,4 +398,42 @@ void clock_config_ce(uint8_t instance)
 	ce_async_reset(instance);
 
 	clock_ce_enable(instance);
+}
+
+void clock_config_blsp_i2c(uint8_t blsp_id, uint8_t qup_id)
+{
+	uint8_t ret = 0;
+	char clk_name[64];
+
+	struct clk *qup_clk;
+
+	if((blsp_id != BLSP_ID_1) || (qup_id != QUP_ID_1)) {
+		dprintf(CRITICAL, "Incorrect BLSP-%d or QUP-%d configuration\n", blsp_id, qup_id);
+		ASSERT(0);
+	}
+
+	snprintf(clk_name, sizeof(clk_name), "blsp1_qup2_ahb_iface_clk");
+
+	ret = clk_get_set_enable(clk_name, 0 , 1);
+
+	if (ret) {
+		dprintf(CRITICAL, "Failed to enable %s clock\n", clk_name);
+		return;
+	}
+
+	snprintf(clk_name, sizeof(clk_name), "gcc_blsp1_qup2_i2c_apps_clk");
+
+	qup_clk = clk_get(clk_name);
+
+	if (!qup_clk) {
+		dprintf(CRITICAL, "Failed to get %s\n", clk_name);
+		return;
+	}
+
+	ret = clk_enable(qup_clk);
+
+	if (ret) {
+		dprintf(CRITICAL, "Failed to enable %s\n", clk_name);
+		return;
+	}
 }
