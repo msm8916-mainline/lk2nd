@@ -266,7 +266,7 @@ void mdss_intf_tg_setup(struct msm_panel_info *pinfo, uint32_t intf_base)
 		adjust_xres /= 2;
 		if (intf_base == MDP_INTF_1_BASE) {
 			writel(BIT(8), MDP_REG_SPLIT_DISPLAY_LOWER_PIPE_CTL);
-			writel(0x0, MDP_REG_SPLIT_DISPLAY_UPPER_PIPE_CTL);
+			writel(BIT(8), MDP_REG_SPLIT_DISPLAY_UPPER_PIPE_CTL);
 			writel(0x1, MDP_REG_SPLIT_DISPLAY_EN);
 		}
 	}
@@ -516,7 +516,7 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 
 	if (pinfo->lcdc.split_display) {
 		writel(0x102, MDP_REG_SPLIT_DISPLAY_UPPER_PIPE_CTL);
-		writel(0x2, MDP_REG_SPLIT_DISPLAY_LOWER_PIPE_CTL);
+		writel(0x102, MDP_REG_SPLIT_DISPLAY_LOWER_PIPE_CTL);
 		writel(0x1, MDP_REG_SPLIT_DISPLAY_EN);
 	}
 
