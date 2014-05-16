@@ -51,6 +51,8 @@
 #include <platform/gpio.h>
 #include <stdlib.h>
 
+#define HW_PLATFORM_8994_INTERPOSER    0x3
+
 extern  bool target_use_signed_kernel(void);
 static void set_sdc_power_ctrl();
 
@@ -100,6 +102,11 @@ void target_early_init(void)
 #if WITH_DEBUG_UART
 	uart_dm_init(1, 0, BLSP1_UART1_BASE);
 #endif
+}
+
+uint32_t target_hw_interposer()
+{
+	return board_hardware_subtype() == HW_PLATFORM_8994_INTERPOSER ? 1 : 0;
 }
 
 /* Return 1 if vol_up pressed */
@@ -431,6 +438,7 @@ void target_baseband_detect(struct board_data *board)
 	switch(platform_subtype) {
 	case HW_PLATFORM_SUBTYPE_UNKNOWN:
 	case HW_PLATFORM_SUBTYPE_8974PRO_PM8084:
+	case HW_PLATFORM_8994_INTERPOSER:
 		break;
 	default:
 		dprintf(CRITICAL, "Platform Subtype : %u is not supported\n",platform_subtype);
@@ -781,7 +789,7 @@ const char * target_usb_controller()
 		case MSM8974AB:
 		case MSM8974AC:
 			/* exceptions based on hardware id */
-			if (board_hardware_id() != HW_PLATFORM_DRAGON)
+			if (board_hardware_id() != HW_PLATFORM_DRAGON && !target_hw_interposer())
 				return "dwc";
 		/* fall through to default "ci" for anything that did'nt select "dwc" */
 		default:
