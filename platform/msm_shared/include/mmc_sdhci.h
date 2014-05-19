@@ -282,6 +282,7 @@ struct mmc_card {
 	uint32_t rca;            /* Relative addres of the card*/
 	uint32_t ocr;            /* Operating range of the card*/
 	uint32_t block_size;     /* Block size for the card */
+	uint32_t wp_grp_size;    /* WP group size for the card */
 	uint64_t capacity;       /* card capacity */
 	uint32_t type;           /* Type of the card */
 	uint32_t status;         /* Card status */
