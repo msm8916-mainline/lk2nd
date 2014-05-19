@@ -83,6 +83,13 @@ struct smem_board_info_v2 {
 	unsigned raw_msm_version;
 };
 
+struct smem_addr_info
+{
+	uint32_t identifier; /* Shared memory magic number */
+	uint32_t size; /* Shared memory Size */
+	uint32_t phy_addr; /* Shared memory Addr */
+};
+
 typedef enum
 {
    PMIC_IS_PM6610,
