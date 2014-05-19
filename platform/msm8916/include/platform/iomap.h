@@ -224,4 +224,5 @@
 #define VIDEO_MODE_CTRL             0x010
 #define HS_TIMER_CTRL               0x0BC
 
+#define TCSR_TZ_WONCE               0x193D000
 #endif
