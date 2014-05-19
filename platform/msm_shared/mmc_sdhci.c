@@ -2182,6 +2182,7 @@ uint32_t mmc_get_wp_status(struct mmc_device *dev, uint32_t addr, uint8_t *wp_st
 uint32_t mmc_set_clr_power_on_wp_user(struct mmc_device *dev, uint32_t addr, uint64_t len, uint8_t set_clr)
 {
 	struct mmc_command cmd;
+	struct mmc_card *card = &dev->card;
 	uint32_t wp_grp_size;
 	uint32_t status;
 	uint32_t num_wp_grps;
@@ -2248,7 +2249,15 @@ uint32_t mmc_set_clr_power_on_wp_user(struct mmc_device *dev, uint32_t addr, uin
 
 	for(i = 0; i < num_wp_grps; i++)
 	{
-		cmd.argument = addr + (i * wp_grp_size);
+		/*
+		* Standard emmc cards use byte mode addressing
+		* convert the block address to byte address before
+		* sending the command
+		*/
+		if (card->type == MMC_TYPE_STD_MMC)
+			cmd.argument = (addr + (i * wp_grp_size)) * card->block_size;
+		else
+			cmd.argument = addr + (i * wp_grp_size);
 
 		if (sdhci_send_command(&dev->host, &cmd))
 			return 1;
