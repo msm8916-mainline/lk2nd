@@ -50,78 +50,92 @@ static void platform_detect()
 	unsigned ret = 0;
 	unsigned format = 0;
 	uint8_t i;
+	uint16_t format_major = 0;
+	uint16_t format_minor = 0;
 
 	ret = smem_read_alloc_entry_offset(SMEM_BOARD_INFO_LOCATION,
 						   &format, sizeof(format), 0);
 	if (ret)
 		return;
 
-	if (format == 6)
+	/* Extract the major & minor version info,
+	 * Upper two bytes: major info
+	 * Lower two byets: minor info
+	 */
+	format_major = (format & 0xffff0000) >> 16;
+	format_minor = format & 0x0000ffff;
+
+	if (format_major == 0x0)
 	{
+		if (format_minor == 6)
+		{
 			board_info_len = sizeof(board_info_v6);
 
-		ret = smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
-				&board_info_v6,
-				board_info_len);
-		if (ret)
-			return;
+			ret = smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
+					&board_info_v6,
+					board_info_len);
+			if (ret)
+				return;
 
-		board.platform = board_info_v6.board_info_v3.msm_id;
-		board.platform_version = board_info_v6.board_info_v3.msm_version;
-		board.platform_hw = board_info_v6.board_info_v3.hw_platform;
-		board.platform_subtype = board_info_v6.platform_subtype;
-	}
-	else if (format == 7)
-	{
-		board_info_len = sizeof(board_info_v7);
+			board.platform = board_info_v6.board_info_v3.msm_id;
+			board.platform_version = board_info_v6.board_info_v3.msm_version;
+			board.platform_hw = board_info_v6.board_info_v3.hw_platform;
+			board.platform_subtype = board_info_v6.platform_subtype;
+		}
+		else if (format_minor == 7)
+		{
+			board_info_len = sizeof(board_info_v7);
 
-		ret = smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
-				&board_info_v7,
-				board_info_len);
-		if (ret)
-			return;
+			ret = smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
+					&board_info_v7,
+					board_info_len);
+			if (ret)
+				return;
 
-		board.platform = board_info_v7.board_info_v3.msm_id;
-		board.platform_version = board_info_v7.board_info_v3.msm_version;
-		board.platform_hw = board_info_v7.board_info_v3.hw_platform;
-		board.platform_subtype = board_info_v7.platform_subtype;
-		board.pmic_info[0].pmic_type = board_info_v7.pmic_type;
-		board.pmic_info[0].pmic_version = board_info_v7.pmic_version;
-	}
-	else if (format == 8 || format == 9)
-	{
-		board_info_len = sizeof(board_info_v8);
+			board.platform = board_info_v7.board_info_v3.msm_id;
+			board.platform_version = board_info_v7.board_info_v3.msm_version;
+			board.platform_hw = board_info_v7.board_info_v3.hw_platform;
+			board.platform_subtype = board_info_v7.platform_subtype;
+			board.pmic_info[0].pmic_type = board_info_v7.pmic_type;
+			board.pmic_info[0].pmic_version = board_info_v7.pmic_version;
+		}
+		else if (format_minor >= 8)
+		{
+			dprintf(INFO, "Minor socinfo format detected: %u.%u\n", format_major, format_minor);
 
-		ret = smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
-				&board_info_v8,
-				board_info_len);
-		if (ret)
-			return;
+			board_info_len = sizeof(board_info_v8);
 
-		board.platform = board_info_v8.board_info_v3.msm_id;
-		board.platform_version = board_info_v8.board_info_v3.msm_version;
-		board.platform_hw = board_info_v8.board_info_v3.hw_platform;
-		board.platform_subtype = board_info_v8.platform_subtype;
+			ret = smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
+					&board_info_v8,
+					board_info_len);
+			if (ret)
+				return;
 
-		/*
-		 * fill in board.target with variant_id information
-		 * bit no         |31  24 | 23   16            | 15   8             |7         0|
-		 * board.target = |subtype| plat_hw_ver major  | plat_hw_ver minor  |hw_platform|
-		 *
-		 */
-		board.target = (((board_info_v8.platform_subtype & 0xff) << 24) |
-					   (((board_info_v8.platform_version >> 16) & 0xff) << 16) |
-					   ((board_info_v8.platform_version & 0xff) << 8) |
-					   (board_info_v8.board_info_v3.hw_platform & 0xff));
+			board.platform = board_info_v8.board_info_v3.msm_id;
+			board.platform_version = board_info_v8.board_info_v3.msm_version;
+			board.platform_hw = board_info_v8.board_info_v3.hw_platform;
+			board.platform_subtype = board_info_v8.platform_subtype;
 
-		for (i = 0; i < SMEM_V8_SMEM_MAX_PMIC_DEVICES; i++) {
-			board.pmic_info[i].pmic_type = board_info_v8.pmic_info[i].pmic_type;
-			board.pmic_info[i].pmic_version = board_info_v8.pmic_info[i].pmic_version;
+			/*
+			 * fill in board.target with variant_id information
+			 * bit no         |31  24 | 23   16            | 15   8             |7         0|
+			 * board.target = |subtype| plat_hw_ver major  | plat_hw_ver minor  |hw_platform|
+			 *
+			 */
+			board.target = (((board_info_v8.platform_subtype & 0xff) << 24) |
+						   (((board_info_v8.platform_version >> 16) & 0xff) << 16) |
+						   ((board_info_v8.platform_version & 0xff) << 8) |
+						   (board_info_v8.board_info_v3.hw_platform & 0xff));
+
+			for (i = 0; i < SMEM_V8_SMEM_MAX_PMIC_DEVICES; i++) {
+				board.pmic_info[i].pmic_type = board_info_v8.pmic_info[i].pmic_type;
+				board.pmic_info[i].pmic_version = board_info_v8.pmic_info[i].pmic_version;
+			}
 		}
 	}
 	else
 	{
-		dprintf(CRITICAL, "Unsupported board info format\n");
+		dprintf(CRITICAL, "Unsupported board info format %u.%u\n", format_major, format_minor);
 		ASSERT(0);
 	}
 }
