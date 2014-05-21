@@ -98,6 +98,12 @@ enum dt_err_codes
 	DT_OP_FAILURE = -1,
 };
 
+struct board_dt_entry
+{
+	uint32_t target_variant_id;
+	uint32_t platform_variant_id;
+};
+
 int dev_tree_validate(struct dt_table *table, unsigned int page_size, uint32_t *dt_hdr_size);
 int dev_tree_get_entry_info(struct dt_table *table, struct dt_entry *dt_entry_info);
 int update_device_tree(void *fdt, const char *, void *, unsigned);

@@ -34,6 +34,7 @@
 
 static struct board_data board = {UNKNOWN,
 	0,
+	0,
 	HW_PLATFORM_UNKNOWN,
 	HW_PLATFORM_SUBTYPE_UNKNOWN,
 	LINUX_MACHTYPE_UNKNOWN,
@@ -131,6 +132,9 @@ static void platform_detect()
 				board.pmic_info[i].pmic_type = board_info_v8.pmic_info[i].pmic_type;
 				board.pmic_info[i].pmic_version = board_info_v8.pmic_info[i].pmic_version;
 			}
+
+			if (format_minor == 0x9)
+				board.foundry_id = board_info_v8.foundry_id;
 		}
 
 		/* HLOS subtype
@@ -177,6 +181,11 @@ uint32_t board_hardware_id()
 uint32_t board_hardware_subtype(void)
 {
 	return board.platform_subtype;
+}
+
+uint32_t board_foundry_id(void)
+{
+	return board.foundry_id;
 }
 
 uint8_t board_pmic_info(struct board_pmic_data *info, uint8_t num_ent)

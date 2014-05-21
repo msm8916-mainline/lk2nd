@@ -43,6 +43,7 @@ struct board_pmic_data {
 
 struct board_data {
 	uint32_t platform;
+	uint32_t foundry_id;
 	uint32_t platform_version;
 	uint32_t platform_hw;
 	uint32_t platform_subtype;
@@ -79,4 +80,5 @@ enum subtype_ddr {
        SUBTYPE_512MB = 1,
 };
 
+uint32_t board_foundry_id(void);
 #endif
