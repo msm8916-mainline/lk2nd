@@ -251,8 +251,12 @@
 #define VIDEO_MODE_VSYNC            0x034
 #define VIDEO_MODE_VSYNC_VPOS       0x038
 
+#define MDP_VP_0_VIG_0_BASE         REG_MDP(0x1200)
+#define MDP_VP_0_VIG_1_BASE         REG_MDP(0x1600)
 #define MDP_VP_0_RGB_0_BASE         REG_MDP(0x2200)
 #define MDP_VP_0_RGB_1_BASE         REG_MDP(0x2600)
+#define MDP_VP_0_DMA_0_BASE         REG_MDP(0x3200)
+#define MDP_VP_0_DMA_1_BASE         REG_MDP(0x3600)
 #define MDP_VP_0_MIXER_0_BASE       REG_MDP(0x3A00)
 #define MDP_VP_0_MIXER_1_BASE       REG_MDP(0x3E00)
 
