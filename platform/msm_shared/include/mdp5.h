@@ -32,6 +32,8 @@
 
 #include <msm_panel.h>
 
+#define MDP_VP_0_VIG_0_BASE                     REG_MDP(0x1200)
+#define MDP_VP_0_VIG_1_BASE                     REG_MDP(0x1600)
 #define MDP_VP_0_RGB_0_BASE                     REG_MDP(0x1E00)
 #define MDP_VP_0_RGB_1_BASE                     REG_MDP(0x2200)
 #define MDP_VP_0_DMA_0_BASE                     REG_MDP(0x2A00)
