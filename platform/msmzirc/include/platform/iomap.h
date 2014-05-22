@@ -139,6 +139,7 @@
 #define USB_HS_AHB_CBCR             (CLK_CTL_BASE + 0x41008)
 #define USB_HS_SYSTEM_CMD_RCGR      (CLK_CTL_BASE + 0x41010)
 #define USB_HS_SYSTEM_CFG_RCGR      (CLK_CTL_BASE + 0x41014)
+#define QUSB2A_PHY_BCR              (CLK_CTL_BASE + 0x41028)
 
 /* USB 3.0 clock */
 #define SYS_NOC_USB3_AXI_CBCR       (CLK_CTL_BASE + 0x5E084)

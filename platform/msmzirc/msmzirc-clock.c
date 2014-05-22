@@ -357,6 +357,15 @@ static struct reset_clk gcc_usb30_phy_reset = {
 	},
 };
 
+static struct reset_clk gcc_usb2a_phy_sleep_clk = {
+	.bcr_reg = (uint32_t *) QUSB2A_PHY_BCR,
+
+	.c = {
+		.dbg_name = "usb2b_phy_sleep_clk",
+		.ops      = &clk_ops_reset,
+	},
+};
+
 static struct clk_lookup msm_clocks_zirc[] =
 {
 	CLK_LOOKUP("sdc1_iface_clk", gcc_sdcc1_ahb_clk.c),
@@ -370,6 +379,7 @@ static struct clk_lookup msm_clocks_zirc[] =
 	CLK_LOOKUP("usb30_pipe_clk",   gcc_usb30_pipe_clk.c),
 	CLK_LOOKUP("usb30_aux_clk",    gcc_usb30_aux_clk.c),
 
+	CLK_LOOKUP("usb2b_phy_sleep_clk", gcc_usb2a_phy_sleep_clk.c),
 	CLK_LOOKUP("usb30_phy_reset",     gcc_usb30_phy_reset.c),
 
 	CLK_LOOKUP("usb_phy_cfg_ahb_clk", gcc_usb_phy_cfg_ahb_clk.c),
