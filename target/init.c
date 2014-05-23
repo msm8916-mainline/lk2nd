@@ -181,3 +181,9 @@ __WEAK bool target_warm_boot(void)
 {
 	return false;
 }
+
+/* Determine the HLOS subtype of the target */
+__WEAK uint32_t target_get_hlos_subtype(void)
+{
+	return 0;
+}
