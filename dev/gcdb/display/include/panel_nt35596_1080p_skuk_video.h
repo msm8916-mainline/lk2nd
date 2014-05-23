@@ -1616,7 +1616,7 @@ static char nt35596_1080p_skuk_video_on_cmd309[] = {
 
 static char nt35596_1080p_skuk_video_on_cmd310[] = {
 	0x02, 0x00, 0x29, 0xC0,
-	0x53, 0x05, 0xFF, 0xFF,
+	0x53, 0x2C, 0xFF, 0xFF,
 };
 
 static char nt35596_1080p_skuk_video_on_cmd311[] = {
