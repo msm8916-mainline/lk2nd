@@ -31,6 +31,7 @@
 #include <platform/iomap.h>
 
 /* QMP register offsets */
+#define QSERDES_COM_PLL_VCOTAIL_EN           (PLATFORM_QMP_OFFSET + 0x004)
 #define QSERDES_COM_SYSCLK_EN_SEL_TXBAND     (PLATFORM_QMP_OFFSET + 0x48)
 #define QSERDES_COM_DEC_START1               (PLATFORM_QMP_OFFSET + 0xA4)
 #define QSERDES_COM_DEC_START2               (PLATFORM_QMP_OFFSET + 0x104)
