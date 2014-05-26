@@ -973,7 +973,7 @@ static struct panel_reset_sequence innolux_720p_video_reset_seq = {
 /* Backlight setting                                                         */
 /*---------------------------------------------------------------------------*/
 static struct backlight innolux_720p_video_backlight = {
-	0, 1, 255, 0, 2, 0
+	2, 1, 255, 0, 2, 0
 };
 
 #endif /*_PANEL_INNOLUX_720P_VIDEO_H_*/
