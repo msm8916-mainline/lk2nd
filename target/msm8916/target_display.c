@@ -98,6 +98,9 @@ int target_backlight_ctrl(struct backlight *bl, uint8_t enable)
 	struct pm8x41_mpp mpp;
 	int rc;
 
+	if (bl->bl_interface_type == BL_DCS)
+		return 0;
+
 	mpp.base = PM8x41_MMP4_BASE;
 	mpp.vin = MPP_VIN0;
 	if (enable) {
