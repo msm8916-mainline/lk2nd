@@ -149,7 +149,9 @@
 #define REG_MDP(off)                (MDP_BASE + (off))
 
 #define MDP_HW_REV                              REG_MDP(0x1000)
+#define MDP_VP_0_VIG_0_BASE                     REG_MDP(0x5000)
 #define MDP_VP_0_RGB_0_BASE                     REG_MDP(0x15000)
+#define MDP_VP_0_DMA_0_BASE                     REG_MDP(0x25000)
 #define MDP_VP_0_MIXER_0_BASE                   REG_MDP(0x45000)
 #define MDP_DISP_INTF_SEL                       REG_MDP(0x1004)
 #define MDP_VIDEO_INTF_UNDERFLOW_CTL            REG_MDP(0x12E0)
