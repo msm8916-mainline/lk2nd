@@ -51,6 +51,12 @@
 #define LVDS_PANEL		11	/* LVDS */
 #define EDP_PANEL		12	/* EDP */
 
+enum mdss_mdp_pipe_type {
+	MDSS_MDP_PIPE_TYPE_VIG,
+	MDSS_MDP_PIPE_TYPE_RGB,
+	MDSS_MDP_PIPE_TYPE_DMA,
+};
+
 enum msm_mdp_hw_revision {
 	MDP_REV_20 = 1,
 	MDP_REV_22,
@@ -189,8 +195,8 @@ struct msm_panel_info {
 	uint32_t wait_cycle;
 	uint32_t clk_rate;
 	uint32_t rotation;
-	/*  Enable if DMA pipe used for handoff */
-	uint32_t use_dma_pipe;
+	/*  Select pipe type for handoff */
+	uint32_t pipe_type;
 	char     lowpowerstop;
 
 	struct lcd_panel_info lcd;
