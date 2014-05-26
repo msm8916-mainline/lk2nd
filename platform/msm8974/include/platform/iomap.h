@@ -215,8 +215,8 @@
                                          (PERIPH_SS_BASE + 0x00163000 + \
                                          (qup_id * 0x1000)))
 
+/* MDSS */
 #define MSM_MMSS_CLK_CTL_BASE       0xFD8C0000
-
 #define MIPI_DSI_BASE               (0xFD922800)
 #define MIPI_DSI0_BASE              (MIPI_DSI_BASE)
 #define MIPI_DSI1_BASE              (0xFD922E00)
@@ -225,11 +225,17 @@
 #define DSI0_PLL_BASE               (0xFD922A00)
 #define DSI1_PLL_BASE               (0xFD923000)
 #define REG_DSI(off)                (MIPI_DSI_BASE + 0x04 + (off))
-
 #define EDP_BASE                    (0xFD923400)
-
 #define MDP_BASE                    (0xfd900000)
 #define REG_MDP(off)                (MDP_BASE + (off))
+#define MDP_VP_0_VIG_0_BASE          REG_MDP(0x1200)
+#define MDP_VP_0_VIG_1_BASE          REG_MDP(0x1600)
+#define MDP_VP_0_RGB_0_BASE          REG_MDP(0x1E00)
+#define MDP_VP_0_RGB_1_BASE          REG_MDP(0x2200)
+#define MDP_VP_0_DMA_0_BASE          REG_MDP(0x2A00)
+#define MDP_VP_0_DMA_1_BASE          REG_MDP(0x2E00)
+#define MDP_VP_0_MIXER_0_BASE        REG_MDP(0x3200)
+#define MDP_VP_0_MIXER_1_BASE        REG_MDP(0x3600)
 
 #define SOFT_RESET                  0x118
 #define CLK_CTRL                    0x11C

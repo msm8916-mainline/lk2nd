@@ -213,21 +213,6 @@
 #define BOOT_CONFIG_OFFSET          0x00006034
 #define BOOT_CONFIG_REG             (SEC_CTRL_CORE_BASE+BOOT_CONFIG_OFFSET)
 
-/* mdss */
-#define MSM_MMSS_CLK_CTL_BASE       0xFD8C0000
-
-#define MIPI_DSI_BASE               (0xFD922800)
-#define MIPI_DSI0_BASE              (MIPI_DSI_BASE)
-#define MIPI_DSI1_BASE              (0xFD922E00)
-#define DSI0_PHY_BASE               (0xFD922B00)
-#define DSI1_PHY_BASE               (0xFD923100)
-#define DSI0_PLL_BASE               (0xFD922A00)
-#define DSI1_PLL_BASE               (0xFD923000)
-#define REG_DSI(off)                (MIPI_DSI_BASE + 0x04 + (off))
-
-#define MDP_BASE                    (0xfd900000)
-#define REG_MDP(off)                (MDP_BASE + (off))
-
 #define SOFT_RESET                  0x118
 #define CLK_CTRL                    0x11C
 #define TRIG_CTRL                   0x084
@@ -251,6 +236,18 @@
 #define VIDEO_MODE_VSYNC            0x034
 #define VIDEO_MODE_VSYNC_VPOS       0x038
 
+/* MDSS */
+#define MSM_MMSS_CLK_CTL_BASE       0xFD8C0000
+#define MIPI_DSI_BASE               (0xFD922800)
+#define MIPI_DSI0_BASE              (MIPI_DSI_BASE)
+#define MIPI_DSI1_BASE              (0xFD922E00)
+#define DSI0_PHY_BASE               (0xFD922B00)
+#define DSI1_PHY_BASE               (0xFD923100)
+#define DSI0_PLL_BASE               (0xFD922A00)
+#define DSI1_PLL_BASE               (0xFD923000)
+#define REG_DSI(off)                (MIPI_DSI_BASE + 0x04 + (off))
+#define MDP_BASE                    (0xfd900000)
+#define REG_MDP(off)                (MDP_BASE + (off))
 #define MDP_VP_0_VIG_0_BASE         REG_MDP(0x1200)
 #define MDP_VP_0_VIG_1_BASE         REG_MDP(0x1600)
 #define MDP_VP_0_RGB_0_BASE         REG_MDP(0x2200)
