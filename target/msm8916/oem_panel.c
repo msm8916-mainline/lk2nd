@@ -48,6 +48,7 @@
 #include "include/panel_otm8019a_fwvga_video.h"
 
 #define DISPLAY_MAX_PANEL_DETECTION 2
+#define OTM8019A_FWVGA_VIDEO_PANEL_ON_DELAY 50
 
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
@@ -84,6 +85,15 @@ int oem_panel_rotation()
 
 int oem_panel_on()
 {
+	/*
+	 *OEM can keep there panel specific on instructions in this
+	 *function
+	 */
+	if (panel_id == OTM8019A_FWVGA_VIDEO_PANEL) {
+		/* needs extra delay to avoid unexpected artifacts */
+		mdelay(OTM8019A_FWVGA_VIDEO_PANEL_ON_DELAY);
+	}
+
 	return NO_ERROR;
 }
 
