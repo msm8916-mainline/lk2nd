@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2008 Travis Geiselbrecht
  *
+ * Copyright (c) 2014, The Linux Foundation. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction,
@@ -66,6 +68,21 @@ void _panic(void *caller, const char *fmt, ...) __PRINTFLIKE(2, 3);
 #define panic(x...) _panic(__GET_CALLER(), x)
 
 #define PANIC_UNIMPLEMENTED panic("%s unimplemented\n", __PRETTY_FUNCTION__)
+
+void * __stack_chk_guard;
+
+/*
+* Initialize the stack protector canary value.
+*/
+static inline void __stack_chk_guard_setup()
+{
+	void *canary;
+	canary = get_canary();
+	__stack_chk_guard =  canary;
+}
+
+void __attribute__ ((noreturn))
+	__stack_chk_fail (void);
 
 /* spin the cpu for a period of (short) time */
 void spin(uint32_t usecs);
