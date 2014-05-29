@@ -152,6 +152,7 @@ static struct clk_freq_tbl ftbl_gcc_blsp1_2_uart1_6_apps_clk[] =
 	F(56000000,  gpll0,    1,   7,     75),
 	F(58982400,  gpll0,    1, 1536, 15625),
 	F(60000000,  gpll0,   10,   0,      0),
+	F(63160000,  gpll0,  9.5,   0,      0),
 	F_END
 };
 
@@ -287,9 +288,9 @@ static struct clk_freq_tbl ftbl_gcc_sdcc1_4_apps_clk[] =
 	F( 20000000,  gpll0,  15,   1,   2),
 	F( 25000000,  gpll0,  12,   1,   2),
 	F( 50000000,  gpll0,  12,   0,   0),
-	F( 96000000,  gpll4,  16,   0,   0),
-	F(192000000,  gpll4,   8,   0,   0),
-	F(384000000,  gpll4,   4,   0,   0),
+	F( 96000000,  gpll4,   6,   0,   0),
+	F(192000000,  gpll4,   2,   0,   0),
+	F(384000000,  gpll4,   1,   0,   0),
 	F_END
 };
 

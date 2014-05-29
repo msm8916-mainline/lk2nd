@@ -199,7 +199,7 @@ static void set_sdc_power_ctrl()
 
 void target_sdc_init()
 {
-	struct mmc_config_data config;
+	struct mmc_config_data config = {0};
 
 	/* Set drive strength & pull ctrl values */
 	set_sdc_power_ctrl();
