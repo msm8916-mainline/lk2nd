@@ -64,6 +64,8 @@ int dgetc(char *c, bool wait);
 /* systemwide halts */
 void halt(void);
 
+void dump_frame(void *frame);
+
 void _panic(void *caller, const char *fmt, ...) __PRINTFLIKE(2, 3);
 #define panic(x...) _panic(__GET_CALLER(), x)
 

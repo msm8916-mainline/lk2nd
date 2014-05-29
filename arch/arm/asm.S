@@ -69,7 +69,7 @@ FUNCTION(arm_context_switch)
 FUNCTION(arm_save_mode_regs)
 	mrs		r1, cpsr
 
-#if ARM_ISA_ARMv6
+#if ARM_ISA_ARMv6 || ARM_ISA_ARMV7
 	cps		#0x11			/* fiq */
 	str		r13, [r0], #4
 	str		r14, [r0], #4
