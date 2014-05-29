@@ -304,5 +304,6 @@ bool oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	}
 
 panel_init:
+	pinfo->pipe_type = MDSS_MDP_PIPE_TYPE_RGB;
 	return init_panel_data(panelstruct, pinfo, phy_db);
 }
