@@ -144,15 +144,17 @@
 #define DSI0_PLL_BASE               (0x1A98300)
 #define DSI1_PLL_BASE               DSI0_PLL_BASE
 #define REG_DSI(off)                (MIPI_DSI_BASE + 0x04 + (off))
-
 #define MDP_BASE                    (0x1A00000)
 #define REG_MDP(off)                (MDP_BASE + (off))
-
 #define MDP_HW_REV                              REG_MDP(0x1000)
 #define MDP_VP_0_VIG_0_BASE                     REG_MDP(0x5000)
+#define MDP_VP_0_VIG_1_BASE                     REG_MDP(0x7000)
 #define MDP_VP_0_RGB_0_BASE                     REG_MDP(0x15000)
+#define MDP_VP_0_RGB_1_BASE                     REG_MDP(0x17000)
 #define MDP_VP_0_DMA_0_BASE                     REG_MDP(0x25000)
+#define MDP_VP_0_DMA_1_BASE                     REG_MDP(0x27000)
 #define MDP_VP_0_MIXER_0_BASE                   REG_MDP(0x45000)
+#define MDP_VP_0_MIXER_1_BASE                   REG_MDP(0x46000)
 #define MDP_DISP_INTF_SEL                       REG_MDP(0x1004)
 #define MDP_VIDEO_INTF_UNDERFLOW_CTL            REG_MDP(0x12E0)
 #define MDP_UPPER_NEW_ROI_PRIOR_RO_START        REG_MDP(0x11EC)

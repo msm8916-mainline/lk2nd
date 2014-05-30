@@ -32,13 +32,6 @@
 
 #include <msm_panel.h>
 
-#define MDP_VP_0_VIG_0_BASE                     REG_MDP(0x1200)
-#define MDP_VP_0_VIG_1_BASE                     REG_MDP(0x1600)
-#define MDP_VP_0_RGB_0_BASE                     REG_MDP(0x1E00)
-#define MDP_VP_0_RGB_1_BASE                     REG_MDP(0x2200)
-#define MDP_VP_0_DMA_0_BASE                     REG_MDP(0x2A00)
-#define MDP_VP_0_DMA_1_BASE                     REG_MDP(0x2E00)
-
 #define PIPE_SSPP_SRC0_ADDR                     0x14
 #define PIPE_SSPP_SRC_YSTRIDE                   0x24
 #define PIPE_SSPP_SRC_IMG_SIZE                  0x04
@@ -52,9 +45,6 @@
 #define REQPRIORITY_FIFO_WATERMARK0        	0x50
 #define REQPRIORITY_FIFO_WATERMARK1        	0x54
 #define REQPRIORITY_FIFO_WATERMARK2        	0x58
-
-#define MDP_VP_0_MIXER_0_BASE                   REG_MDP(0x3200)
-#define MDP_VP_0_MIXER_1_BASE                   REG_MDP(0x3600)
 
 #define LAYER_0_OUT_SIZE                        0x04
 #define LAYER_0_OP_MODE                         0x00
