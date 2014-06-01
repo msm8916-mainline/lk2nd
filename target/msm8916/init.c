@@ -567,3 +567,8 @@ void target_crypto_init_params()
 
 	crypto_init_params(&ce_params);
 }
+
+uint32_t target_get_hlos_subtype()
+{
+	return board_hlos_subtype();
+}
