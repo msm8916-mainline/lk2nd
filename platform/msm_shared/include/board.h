@@ -49,6 +49,7 @@ struct board_data {
 	uint32_t target;
 	uint32_t baseband;
 	struct board_pmic_data pmic_info[MAX_PMIC_DEVICES];
+	uint32_t platform_hlos_subtype;
 };
 
 void board_init();
@@ -61,4 +62,21 @@ uint32_t board_hardware_id();
 uint8_t board_pmic_info(struct board_pmic_data *, uint8_t num_ent);
 uint32_t board_soc_version();
 uint32_t board_hardware_subtype(void);
+uint32_t board_get_ddr_subtype(void);
+uint32_t board_hlos_subtype(void);
+
+/* DDR Subtype Macros
+ * Determine the DDR Size on the device and define
+ * the below subtype enums based on the DDR size.
+ * These defines are matched with that of the DT
+ * subtype
+ */
+
+#define MB             (1024 * 1024)
+#define DDR_512MB      (512 * MB)
+
+enum subtype_ddr {
+       SUBTYPE_512MB = 1,
+};
+
 #endif

@@ -398,6 +398,7 @@ static int platform_dt_match(struct dt_entry *cur_dt_entry, uint32_t target_vari
 	 * 4.        |subtype| major  | minor  |hw_platform|
 	 */
 	uint32_t cur_dt_target_id ;
+	uint32_t cur_dt_hlos_subtype;
 
 	/*
 	 * if variant_id has platform_hw_ver has major = 0xff and minor = 0xff,
@@ -414,6 +415,8 @@ static int platform_dt_match(struct dt_entry *cur_dt_entry, uint32_t target_vari
 	 */
 	else
 		cur_dt_target_id = cur_dt_entry->variant_id | ((cur_dt_entry->board_hw_subtype & subtype_mask & 0xff) << 24);
+	/* Determine the bits 23:8 to check the DT with the DDR Size */
+	cur_dt_hlos_subtype = (cur_dt_entry->board_hw_subtype & 0xffff00);
 
 	/* 1. must match the platform_id, platform_hw_id, platform_version
 	*  2. soc rev number equal then return 0
@@ -422,7 +425,9 @@ static int platform_dt_match(struct dt_entry *cur_dt_entry, uint32_t target_vari
 	*/
 
 	if((cur_dt_entry->platform_id == board_platform_id()) &&
-		(cur_dt_target_id == target_variant_id)) {
+		(cur_dt_target_id == target_variant_id) &&
+		(cur_dt_hlos_subtype == target_get_hlos_subtype())) {
+
 		if(cur_dt_entry->soc_rev == board_soc_version()) {
 			return 0;
 		} else if(cur_dt_entry->soc_rev < board_soc_version()) {

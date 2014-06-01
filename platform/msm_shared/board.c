@@ -132,6 +132,13 @@ static void platform_detect()
 				board.pmic_info[i].pmic_version = board_info_v8.pmic_info[i].pmic_version;
 			}
 		}
+
+		/* HLOS subtype
+		 * bit no                        |31    16 | 15          8 | 7     0|
+		 * board.platform_hlos_subtype = |reserved | DDR detection | subtype|
+		 *                               |  bits   |       bits    |        |
+		 */
+		board.platform_hlos_subtype = board_get_ddr_subtype() << 8;
 	}
 	else
 	{
@@ -188,4 +195,44 @@ uint8_t board_pmic_info(struct board_pmic_data *info, uint8_t num_ent)
 uint32_t board_soc_version()
 {
 	return board.platform_version;
+}
+
+uint32_t board_get_ddr_subtype(void)
+{
+	ram_partition ptn_entry;
+	unsigned int index;
+	uint32_t ret = 0;
+	uint32_t len = 0;
+	unsigned ddr_size = 0;
+
+	len = smem_get_ram_ptable_len();
+
+	/* Calculating the size of the mem_info_ptr */
+	for (index = 0 ; index < len; index++)
+	{
+		smem_get_ram_ptable_entry(&ptn_entry, index);
+
+		if((ptn_entry.category == SDRAM) &&
+			(ptn_entry.type == SYS_MEMORY))
+		{
+			ddr_size += ptn_entry.size;
+		}
+	}
+
+	switch(ddr_size)
+	{
+	case DDR_512MB:
+		ret = SUBTYPE_512MB;
+	break;
+	default:
+		ret = 0;
+	break;
+	};
+
+	return ret;
+}
+
+uint32_t board_hlos_subtype(void)
+{
+	return board.platform_hlos_subtype;
 }
