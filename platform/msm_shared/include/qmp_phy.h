@@ -31,8 +31,6 @@
 #include <platform/iomap.h>
 
 /* QMP register offsets */
-#define QSERDES_COM_PLL_VCOTAIL_EN           (PLATFORM_QMP_OFFSET + 0x004)
-#define QSERDES_COM_SYSCLK_EN_SEL_TXBAND     (PLATFORM_QMP_OFFSET + 0x48)
 #define QSERDES_COM_DEC_START1               (PLATFORM_QMP_OFFSET + 0xA4)
 #define QSERDES_COM_DEC_START2               (PLATFORM_QMP_OFFSET + 0x104)
 #define QSERDES_COM_DIV_FRAC_START1          (PLATFORM_QMP_OFFSET + 0xF8)
@@ -52,6 +50,7 @@
 #define QSERDES_COM_SSC_STEP_SIZE1           (PLATFORM_QMP_OFFSET + 0xC0)
 #define QSERDES_COM_SSC_STEP_SIZE2           (PLATFORM_QMP_OFFSET + 0xC4)
 
+#define QSERDES_COM_PLL_VCOTAIL_EN           0x004
 #define QSERDES_COM_IE_TRIM                  0x0C
 #define QSERDES_COM_IP_TRIM                  0x10
 #define QSERDES_COM_PLL_CNTRL                0x14
@@ -60,6 +59,7 @@
 #define QSERDES_COM_PLL_IP_SETP              0x38
 #define QSERDES_COM_PLL_CP_SETP              0x3C
 #define QSERDES_COM_RESETSM_CNTRL            0x4C
+#define QSERDES_COM_SYSCLK_EN_SEL_TXBAND     0x48
 #define QSERDES_COM_RESETSM_CNTRL2           0x50
 #define PCIE_USB3_PHY_RCVR_DTCT_DLY_P1U2_L   0x5C
 #define PCIE_USB3_PHY_RCVR_DTCT_DLY_P1U2_H   0x60

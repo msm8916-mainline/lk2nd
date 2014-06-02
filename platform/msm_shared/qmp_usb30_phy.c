@@ -203,13 +203,16 @@ void usb30_qmp_phy_init()
 	writel(0x00, QMP_PHY_BASE + PCIE_USB3_PHY_SW_RESET);
 	writel(0x03, QMP_PHY_BASE + PCIE_USB3_PHY_START);
 
-	while ((readl(QMP_PHY_BASE + PCIE_USB3_PHY_PCS_STATUS) & PHYSTATUS) && timeout--);
-
-	if (!timeout)
-	{
-		dprintf(CRITICAL, "QMP phy initialization failed\n");
-		return;
-	}
-
 	clock_bumpup_pipe3_clk();
+
+	while ((readl(QMP_PHY_BASE + PCIE_USB3_PHY_PCS_STATUS) & PHYSTATUS))
+	{
+		udelay(1);
+		timeout--;
+		if (!timeout)
+		{
+			dprintf(CRITICAL, "QMP phy initialization failed\n");
+			return;
+		}
+	}
 }
