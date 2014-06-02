@@ -468,13 +468,24 @@ static struct branch_clk gcc_usb30_pipe_clk = {
 };
 
 static struct reset_clk gcc_usb30_phy_reset = {
-	.bcr_reg = (uint32_t *)USB30_PHY_BCR,
+	.bcr_reg = (uint32_t )USB30_PHY_BCR,
 
 	.c = {
 		.dbg_name = "usb30_phy_reset",
 		.ops      = &clk_ops_rst,
 	},
 };
+
+static struct branch_clk gcc_usb_phy_cfg_ahb2phy_clk = {
+	.cbcr_reg = (uint32_t *)USB_PHY_CFG_AHB2PHY_CBCR,
+	.has_sibling = 1,
+
+	.c = {
+		.dbg_name = "usb_phy_cfg_ahb2phy_clk",
+		.ops = &clk_ops_branch,
+	},
+};
+
 
 /* Clock lookup table */
 static struct clk_lookup msm_8994_clocks[] =
@@ -491,12 +502,14 @@ static struct clk_lookup msm_8994_clocks[] =
 	/* USB30 clocks */
 	CLK_LOOKUP("usb2b_phy_sleep_clk", gcc_usb2b_phy_sleep_clk.c),
 	CLK_LOOKUP("usb30_master_clk",    gcc_usb30_master_clk.c),
-	CLK_LOOKUP("usb30_iface_clk",     gcc_sys_noc_usb30_axi_clk),
+	CLK_LOOKUP("usb30_iface_clk",     gcc_sys_noc_usb30_axi_clk.c),
 	CLK_LOOKUP("usb30_mock_utmi_clk", gcc_usb30_mock_utmi_clk.c),
 	CLK_LOOKUP("usb30_sleep_clk",     gcc_usb30_sleep_clk.c),
 	CLK_LOOKUP("usb30_phy_aux_clk",   gcc_usb30_phy_aux_clk.c),
 	CLK_LOOKUP("usb30_pipe_clk",      gcc_usb30_pipe_clk.c),
 	CLK_LOOKUP("usb30_phy_reset",     gcc_usb30_phy_reset.c),
+
+	CLK_LOOKUP("usb_phy_cfg_ahb2phy_clk",     gcc_usb_phy_cfg_ahb2phy_clk.c),
 };
 
 void platform_clock_init(void)
