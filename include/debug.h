@@ -58,6 +58,10 @@ int _dvprintf(const char *fmt, va_list ap);
 #define dprintf(level, x...) do { if ((level) <= DEBUGLEVEL) { _dprintf(x); } } while (0)
 #define dvprintf(level, x...) do { if ((level) <= DEBUGLEVEL) { _dvprintf(x); } } while (0)
 
+/* lk_log */
+char* lk_log_getbuf(void);
+unsigned lk_log_getsize(void);
+
 /* input */
 int dgetc(char *c, bool wait);
 
