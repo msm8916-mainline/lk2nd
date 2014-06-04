@@ -44,9 +44,6 @@
 #include "include/panel.h"
 #include "include/display_resource.h"
 
-#define DDR_LDO_ID 2
-#define QFPROM_LDO_ID 6
-
 #define VCO_DELAY_USEC 1000
 #define GPIO_STATE_LOW 0
 #define GPIO_STATE_HIGH 2
@@ -236,32 +233,11 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 
 int target_ldo_ctrl(uint8_t enable)
 {
-	uint32_t ret = NO_ERROR;
-	uint32_t ldocounter = 0;
-	uint32_t pm8x41_ldo_base = 0x13F00;
-
-	while (ldocounter < TOTAL_LDO_DEFINED) {
-		dprintf(SPEW, "Setting %i\n",
-				ldo_entry_array[ldocounter].ldo_id);
-		struct pm8x41_ldo ldo_entry = LDO((pm8x41_ldo_base +
-			0x100 * ldo_entry_array[ldocounter].ldo_id),
-			ldo_entry_array[ldocounter].ldo_type);
-
-
-		/* Set voltage during power on */
-		if (enable) {
-			/* TODO: Set the LDO voltage before enabling it */
-			pm8x41_ldo_control(&ldo_entry, enable);
-
-		} else if(!target_cont_splash_screen() &&
-			ldo_entry_array[ldocounter].ldo_id != DDR_LDO_ID &&
-			ldo_entry_array[ldocounter].ldo_id != QFPROM_LDO_ID) {
-			pm8x41_ldo_control(&ldo_entry, enable);
-		}
-		ldocounter++;
-	}
-
-	return ret;
+	/*
+	 * The PMIC regulators needed for display are enabled in SBL.
+	 * There is no access to the regulators is LK.
+	 */
+	return NO_ERROR;
 }
 
 bool target_display_panel_node(char *panel_name, char *pbuf, uint16_t buf_size)
