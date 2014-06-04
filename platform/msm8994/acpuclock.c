@@ -257,6 +257,13 @@ void clock_usb30_init(void)
 		ASSERT(0);
 	}
 
+	ret = clk_get_set_enable("usb_phy_cfg_ahb2phy_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to enable usb_phy_cfg_ahb2phy_clk = %d\n", ret);
+		ASSERT(0);
+	}
+
 	pm8x41_lnbb_clock_ctrl(1);
 }
 

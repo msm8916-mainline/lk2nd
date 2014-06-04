@@ -144,6 +144,7 @@
 #define USB30PHY_PHY_BCR            (CLK_CTL_BASE + 0x1404)
 #define GCC_USB30_GDSCR             (CLK_CTL_BASE + 0x03C4)
 #define GCC_QUSB2_PHY_BCR           (CLK_CTL_BASE + 0x04B8)
+#define USB_PHY_CFG_AHB2PHY_CBCR    (CLK_CTL_BASE + 0x1A84)
 
 /* SDCC */
 #define SDCC1_BCR                   (CLK_CTL_BASE + 0x4C0) /* block reset */
