@@ -444,12 +444,13 @@ static uint8_t sdhci_cmd_complete(struct sdhci_host *host, struct mmc_command *c
 			break;
 
 		/*
-		 * If Tuning is in progress ignore cmd crc & cmd end bit errors
+		 * If Tuning is in progress ignore cmd crc, cmd timeout & cmd end bit errors
 		 */
 		if (host->tuning_in_progress)
 		{
 			err_status = REG_READ16(host, SDHCI_ERR_INT_STS_REG);
-			if ((err_status & SDHCI_CMD_CRC_MASK) || (err_status & SDHCI_DAT_END_BIT_MASK))
+			if ((err_status & SDHCI_CMD_CRC_MASK) || (err_status & SDHCI_DAT_END_BIT_MASK)
+				|| err_status & SDHCI_CMD_TIMEOUT_MASK)
 			{
 				sdhci_reset(host, (SOFT_RESET_CMD | SOFT_RESET_DATA));
 				return 0;
