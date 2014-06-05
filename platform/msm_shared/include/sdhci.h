@@ -68,6 +68,9 @@ struct sdhci_host {
 	uint32_t cur_clk_rate;   /* Running clock rate */
 	uint32_t timing;         /* current timing for the host */
 	bool tuning_in_progress; /* Tuning is being executed */
+	uint8_t major;           /* host controller minor ver */
+	uint16_t minor;          /* host controller major ver */
+	bool use_cdclp533;       /* Use cdclp533 calibration circuit */
 	event_t* sdhc_event;     /* Event for power control irqs */
 	struct host_caps caps;   /* Host capabilities */
 	struct sdhci_msm_data *msm_host; /* MSM specific host info */

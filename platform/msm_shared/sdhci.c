@@ -449,7 +449,7 @@ static uint8_t sdhci_cmd_complete(struct sdhci_host *host, struct mmc_command *c
 		if (host->tuning_in_progress)
 		{
 			err_status = REG_READ16(host, SDHCI_ERR_INT_STS_REG);
-			if ((err_status & SDHCI_CMD_CRC_MASK) || (err_status & SDHCI_DAT_END_BIT_MASK)
+			if ((err_status & SDHCI_CMD_CRC_MASK) || (err_status & SDHCI_CMD_END_BIT_MASK)
 				|| err_status & SDHCI_CMD_TIMEOUT_MASK)
 			{
 				sdhci_reset(host, (SOFT_RESET_CMD | SOFT_RESET_DATA));
@@ -899,6 +899,7 @@ err:
 void sdhci_init(struct sdhci_host *host)
 {
 	uint32_t caps[2];
+	uint32_t version;
 
 	/* Read the capabilities register & store the info */
 	caps[0] = REG_READ32(host, SDHCI_CAPS_REG1);
@@ -937,6 +938,16 @@ void sdhci_init(struct sdhci_host *host)
 
 	/* SDR104 mode support */
 	host->caps.sdr104_support = (caps[1] & SDHCI_SDR104_MODE_MASK) ? 1 : 0;
+
+	version = readl(host->msm_host->pwrctl_base + MCI_VERSION);
+
+	host->major = (version & CORE_VERSION_MAJOR_MASK) >> CORE_VERSION_MAJOR_SHIFT;
+	host->minor = (version & CORE_VERSION_MINOR_MASK);
+
+	if (host->major == 0x1 && host->minor < 0x34)
+		host->use_cdclp533 = true;
+	else
+		host->use_cdclp533 = false;
 
 	/* Set bus power on */
 	sdhci_set_bus_power_on(host);

@@ -58,6 +58,17 @@
 #define SDCC_CDC_SLAVE_DDA_CFG                   0x160
 #define SDCC_CSR_CDC_STATUS0                     0x164
 
+/* Macros for CM_DLL_SDC4 related macros */
+#define SDCC_HC_VENDOR_SPECIFIC_FUNC3            0x1B0
+#define SDCC_HC_REG_DLL_CONFIG_2                 0x1B4
+#define SDCC_HC_REG_DDR_CONFIG                   0x1B8
+
+#define DDR_CAL_EN                               BIT(0)
+#define DDR_CAL_TIMEOUT_MAX                      50
+#define DDR_DLL_LOCK_JDR                         BIT(11)
+#define PWRSAVE_DLL                              BIT(3)
+#define DDR_CONFIG_VAL                           0x80040853
+
 /* DLL & CDC helper macros */
 #define SDCC_DLL_PWR_SAVE_EN                      BIT(1)
 #define SDCC_DLL_LOCK_STAT                        BIT(7)
@@ -102,6 +113,7 @@
 #define MCI_VERSION                               0x50
 #define CORE_VERSION_MAJOR_MASK                   0xF0000000
 #define CORE_VERSION_MAJOR_SHIFT                  0x1C
+#define CORE_VERSION_MINOR_MASK                   0x000000FF
 
 #define SDHCI_DLL_TIMEOUT                         50
 #define CDC_STATUS_TIMEOUT                        50

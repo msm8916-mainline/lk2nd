@@ -454,23 +454,45 @@ static int sdhci_msm_find_appropriate_phase(struct sdhci_host *host,
 	return selected_phase;
 }
 
+static uint32_t sdhci_msm_cm_dll_sdc4_calibration(struct sdhci_host *host)
+{
+	uint32_t timeout = 0;
+
+	DBG("\n CM_DLL_SDC4 Calibration Start\n");
+
+	/*1.Write the default value to  SDCC_HC_REG_DDR_CONFIG register*/
+	REG_WRITE32(host, DDR_CONFIG_VAL, SDCC_HC_REG_DDR_CONFIG);
+
+	/*2. Write DDR_CAL_EN to '1' */
+	REG_WRITE32(host, (REG_READ32(host, SDCC_HC_REG_DLL_CONFIG_2) | DDR_CAL_EN), SDCC_HC_REG_DLL_CONFIG_2);
+
+	/*3. Wait for DLL_LOCK for hs400 to be set */
+	timeout = DDR_CAL_TIMEOUT_MAX;
+	while (!(REG_READ32(host, SDCC_REG_DLL_STATUS) & DDR_DLL_LOCK_JDR))
+	{
+		timeout--;
+		mdelay(1);
+		if (!timeout)
+		{
+			dprintf(CRITICAL, "Error: DLL lock for hs400 operation is not set\n");
+			return 1;
+		}
+	}
+
+	/*4. Set powersave dll */
+	REG_WRITE32(host, (REG_READ32(host, SDCC_HC_VENDOR_SPECIFIC_FUNC3) | PWRSAVE_DLL), SDCC_HC_VENDOR_SPECIFIC_FUNC3);
+
+	DBG("\n CM_DLL_SDC4 Calibration Done\n");
+
+	return 0;
+}
+
 static uint32_t sdhci_msm_cdclp533_calibration(struct sdhci_host *host)
 {
 	uint32_t timeout;
 	uint32_t cdc_err;
 
 	DBG("\n CDCLP533 Calibration Start\n");
-
-	/* Reset & Initialize the DLL block */
-	if (sdhci_msm_init_dll(host))
-		return 1;
-
-	/* Write the save phase */
-	if (sdhci_msm_config_dll(host, host->msm_host->saved_phase))
-		return 1;
-
-	/* Write 1 to CMD_DAT_TRACK_SEL field in DLL_CONFIG */
-	REG_WRITE32(host, (REG_READ32(host, SDCC_DLL_CONFIG_REG) | CMD_DAT_TRACK_SEL), SDCC_DLL_CONFIG_REG);
 
 	/* Write 0 to CDC_T4_DLY_SEL field in VENDOR_SPEC_DDR200_CFG */
 	REG_WRITE32(host, (REG_READ32(host, SDCC_CDC_DDR200_CFG) & ~CDC_T4_DLY_SEL), SDCC_CDC_DDR200_CFG);
@@ -548,11 +570,37 @@ static uint32_t sdhci_msm_cdclp533_calibration(struct sdhci_host *host)
 	return 0;
 }
 
+
+static uint32_t sdhci_msm_hs400_calibration(struct sdhci_host *host)
+{
+	DBG("\n HS400 Calibration Start\n");
+
+	/* Reset & Initialize the DLL block */
+	if (sdhci_msm_init_dll(host))
+		return 1;
+
+	/* Write the save phase */
+	if (sdhci_msm_config_dll(host, host->msm_host->saved_phase))
+		return 1;
+
+	/* Write 1 to CMD_DAT_TRACK_SEL field in DLL_CONFIG */
+	REG_WRITE32(host, (REG_READ32(host, SDCC_DLL_CONFIG_REG) | CMD_DAT_TRACK_SEL), SDCC_DLL_CONFIG_REG);
+
+	if (host->use_cdclp533)
+		return sdhci_msm_cdclp533_calibration(host);
+	else
+		return sdhci_msm_cm_dll_sdc4_calibration(host);
+
+	DBG("\n HS400 Calibration Done\n");
+
+	return 0;
+}
+
 /*
  * Function: sdhci msm execute tuning
  * Arg     : Host structure & bus width
  * Return  : 0 on Success, 1 on Failure
- * Flow:   : Execute Tuning sequence for HS200
+ * Flow:   : Execute Tuning sequence for HS200 and calibration for hs400
  */
 uint32_t sdhci_msm_execute_tuning(struct sdhci_host *host, struct mmc_card *card, uint32_t bus_width)
 {
@@ -576,7 +624,7 @@ uint32_t sdhci_msm_execute_tuning(struct sdhci_host *host, struct mmc_card *card
 	/* Calibration for CDCLP533 needed for HS400 mode */
 	if (msm_host->tuning_done && !msm_host->calibration_done && host->timing == MMC_HS400_TIMING)
 	{
-		ret = sdhci_msm_cdclp533_calibration(host);
+		ret = sdhci_msm_hs400_calibration(host);
 		if (!ret)
 			msm_host->calibration_done = true;
 		goto out;
