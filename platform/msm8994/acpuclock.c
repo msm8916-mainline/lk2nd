@@ -136,6 +136,10 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 	{
 		ret = clk_get_set_enable(clk_name, 192000000, 1);
 	}
+	else if(freq == MMC_CLK_400MHZ)
+	{
+		ret = clk_get_set_enable(clk_name, 384000000, 1);
+	}
 	else
 	{
 		dprintf(CRITICAL, "sdc frequency (%u) is not supported\n", freq);
