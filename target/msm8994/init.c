@@ -55,6 +55,15 @@
 #include <boot_device.h>
 #include <qmp_phy.h>
 
+#define CE_INSTANCE             3
+#define CE_EE                   1
+#define CE_FIFO_SIZE            64
+#define CE_READ_PIPE            3
+#define CE_WRITE_PIPE           2
+#define CE_READ_PIPE_LOCK_GRP   0
+#define CE_WRITE_PIPE_LOCK_GRP  0
+#define CE_ARRAY_SIZE           20
+
 #define PMIC_ARB_CHANNEL_NUM    0
 #define PMIC_ARB_OWNER_ID       0
 
@@ -132,6 +141,9 @@ void target_uninit(void)
 		/* Disable HC mode before jumping to kernel */
 		sdhci_mode_disable(&dev->host);
 	}
+
+	if (crypto_initialized())
+		crypto_eng_cleanup();
 }
 
 /* Do target specific usb initialization */
@@ -249,6 +261,10 @@ void target_init(void)
 	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
 
 	target_keystatus();
+
+
+	if (target_use_signed_kernel())
+		target_crypto_init_params();
 
 	platform_read_boot_config();
 
@@ -393,4 +409,40 @@ void target_usb_phy_mux_configure(void)
 uint32_t target_override_pll()
 {
 	return 1;
+}
+
+/* Set up params for h/w CE. */
+void target_crypto_init_params()
+{
+	struct crypto_init_params ce_params;
+
+	/* Set up base addresses and instance. */
+	ce_params.crypto_instance  = CE_INSTANCE;
+	ce_params.crypto_base      = MSM_CE3_BASE;
+	ce_params.bam_base         = MSM_CE3_BAM_BASE;
+
+	/* Set up BAM config. */
+	ce_params.bam_ee               = CE_EE;
+	ce_params.pipes.read_pipe      = CE_READ_PIPE;
+	ce_params.pipes.write_pipe     = CE_WRITE_PIPE;
+	ce_params.pipes.read_pipe_grp  = CE_READ_PIPE_LOCK_GRP;
+	ce_params.pipes.write_pipe_grp = CE_WRITE_PIPE_LOCK_GRP;
+
+	/* Assign buffer sizes. */
+	ce_params.num_ce           = CE_ARRAY_SIZE;
+	ce_params.read_fifo_size   = CE_FIFO_SIZE;
+	ce_params.write_fifo_size  = CE_FIFO_SIZE;
+
+	/* BAM is initialized by TZ for this platform.
+	 * Do not do it again as the initialization address space
+	 * is locked.
+	 */
+	ce_params.do_bam_init      = 0;
+
+	crypto_init_params(&ce_params);
+}
+
+crypto_engine_type board_ce_type(void)
+{
+	return CRYPTO_ENGINE_TYPE_HW;
 }
