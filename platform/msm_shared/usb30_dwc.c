@@ -211,7 +211,7 @@ dwc_dev_t* dwc_init(dwc_config_t *config)
 	dwc_dev_t *dev = (dwc_dev_t*) malloc(sizeof(dwc_dev_t));
 	ASSERT(dev);
 
-	memset(dev, 0, sizeof(dev));
+	memset(dev, 0, sizeof(dwc_dev_t));
 
 	/* save config info */
 	dev->base                = config->base;
