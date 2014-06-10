@@ -250,20 +250,19 @@ scm_call(uint32_t svc_id, uint32_t cmd_id, const void *cmd_buf,
 
 int restore_secure_cfg(uint32_t id)
 {
-	int ret, scm_ret = 0;
+	int ret = 0;
 	tz_secure_cfg secure_cfg;
 
 	secure_cfg.id    = id;
 	secure_cfg.spare = 0;
 
 	ret = scm_call(SVC_MEMORY_PROTECTION, IOMMU_SECURE_CFG, &secure_cfg, sizeof(secure_cfg),
-			&scm_ret, sizeof(scm_ret));
+			NULL, 0);
 
-	if (ret || scm_ret) {
+	if (ret) {
 		dprintf(CRITICAL, "Secure Config failed\n");
 		ret = 1;
-	} else
-		ret = 0;
+	}
 
 	return ret;
 
