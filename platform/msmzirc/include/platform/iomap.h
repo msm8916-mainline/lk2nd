@@ -166,6 +166,11 @@
 /* USB 3.0 phy */
 #define USB3_PHY_BCR                (CLK_CTL_BASE + 0x0005E034)
 
+/* QUSB2 PHY */
+#define QUSB2_PHY_BASE              0x00079000
+#define QUSB2PHY_PORT_POWERDOWN     (QUSB2_PHY_BASE + 0x000000B4)
+#define GCC_QUSB2_PHY_BCR           (CLK_CTL_BASE + 0x00041028)
+
 /* SS QMP (Qulacomm Multi Protocol) */
 #define QMP_PHY_BASE                0x78000
 
