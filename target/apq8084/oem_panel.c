@@ -51,7 +51,8 @@ enum {
 JDI_1080P_VIDEO_PANEL,
 JDI_QHD_DUALDSI_VIDEO_PANEL,
 JDI_QHD_DUALDSI_CMD_PANEL,
-UNKNOWN_PANEL
+EDP_OEM_PANEL,
+UNKNOWN_PANEL,
 };
 
 /*
@@ -62,6 +63,7 @@ static struct panel_list supp_panels[] = {
 	{"jdi_1080p_video", JDI_1080P_VIDEO_PANEL},
 	{"jdi_qhd_dualdsi_video", JDI_QHD_DUALDSI_VIDEO_PANEL},
 	{"jdi_qhd_dualdsi_cmd", JDI_QHD_DUALDSI_CMD_PANEL},
+	{"edp", EDP_OEM_PANEL},
 };
 
 static uint32_t panel_id;
@@ -91,14 +93,15 @@ int oem_panel_off()
 	return NO_ERROR;
 }
 
-static bool init_panel_data(struct panel_struct *panelstruct,
+static int init_panel_data(struct panel_struct *panelstruct,
 			struct msm_panel_info *pinfo,
 			struct mdss_dsi_phy_ctrl *phy_db)
 {
-	bool ret = true;
+	int pan_type;
 
 	switch (panel_id) {
 	case JDI_1080P_VIDEO_PANEL:
+		pan_type = PANEL_TYPE_DSI;
 		panelstruct->paneldata    = &jdi_1080p_video_panel_data;
 		panelstruct->panelres     = &jdi_1080p_video_panel_res;
 		panelstruct->color        = &jdi_1080p_video_color;
@@ -119,6 +122,7 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 			jdi_1080p_video_timings, TIMING_SIZE);
 		break;
 	case JDI_QHD_DUALDSI_VIDEO_PANEL:
+		pan_type = PANEL_TYPE_DSI;
 		panelstruct->paneldata    = &jdi_qhd_dualdsi_video_panel_data;
 		panelstruct->panelres     = &jdi_qhd_dualdsi_video_panel_res;
 		panelstruct->color        = &jdi_qhd_dualdsi_video_color;
@@ -139,6 +143,7 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 			jdi_qhd_dualdsi_video_timings, TIMING_SIZE);
 		break;
 	case JDI_QHD_DUALDSI_CMD_PANEL:
+		pan_type = PANEL_TYPE_DSI;
 		panelstruct->paneldata    = &jdi_qhd_dualdsi_cmd_panel_data;
 		panelstruct->panelres     = &jdi_qhd_dualdsi_cmd_panel_res;
 		panelstruct->color        = &jdi_qhd_dualdsi_cmd_color;
@@ -158,15 +163,20 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 		memcpy(phy_db->timing,
 			jdi_qhd_dualdsi_cmd_timings, TIMING_SIZE);
 		break;
+	case EDP_OEM_PANEL:
+		pan_type = PANEL_TYPE_EDP;
+		/* edp panel init base on edid */
+		break;
 	default:
 	case UNKNOWN_PANEL:
-		ret = false;
+		pan_type = PANEL_TYPE_UNKNOWN;
 		break;
 	}
-	return ret;
+
+	return pan_type;
 }
 
-bool oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
+int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 			struct msm_panel_info *pinfo,
 			struct mdss_dsi_phy_ctrl *phy_db)
 {
@@ -202,7 +212,7 @@ bool oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	default:
 		dprintf(CRITICAL, "Display not enabled for %d HW type\n"
 					, hw_id);
-		return false;
+		return PANEL_TYPE_UNKNOWN;
 	}
 
 panel_init:

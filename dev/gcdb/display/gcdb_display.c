@@ -278,36 +278,116 @@ static void init_platform_data()
 	memcpy(dsi_video_mode_phy_db.laneCfg, panel_lane_config, LANE_SIZE);
 }
 
-int gcdb_display_init(const char *panel_name, uint32_t rev, void *base)
+static void mdss_edp_panel_init(struct msm_panel_info *pinfo)
+{
+	return target_edp_panel_init(pinfo);
+}
+
+static uint32_t mdss_edp_panel_clock(uint8_t enable,
+				struct msm_panel_info *pinfo)
+{
+	return target_edp_panel_clock(enable, pinfo);
+}
+
+static uint32_t mdss_edp_panel_enable(void)
+{
+	return target_edp_panel_enable();
+}
+
+static uint32_t mdss_edp_panel_disable(void)
+{
+	return target_edp_panel_disable();
+}
+
+static int mdss_edp_panel_power(uint8_t enable)
 {
 	int ret = NO_ERROR;
 
-	if (!oem_panel_select(panel_name, &panelstruct, &(panel.panel_info),
-				 &dsi_video_mode_phy_db)) {
+	if (enable) {
+		ret = target_ldo_ctrl(enable);
+		if (ret) {
+			dprintf(CRITICAL, "LDO control enable failed\n");
+			return ret;
+		}
+
+		ret = mdss_edp_panel_enable();
+		if (ret) {
+			dprintf(CRITICAL, "%s: panel enable failed\n", __func__);
+			return ret;
+		}
+		dprintf(SPEW, "EDP Panel power on done\n");
+	} else {
+		/* Disable panel and ldo */
+		ret = mdss_edp_panel_disable();
+		if (ret) {
+			dprintf(CRITICAL, "%s: panel disable failed\n", __func__);
+			return ret;
+		}
+
+		ret = target_ldo_ctrl(enable);
+		if (ret) {
+			dprintf(CRITICAL, "%s: ldo control disable failed\n", __func__);
+			return ret;
+		}
+		dprintf(SPEW, "EDP Panel power off done\n");
+	}
+
+	return ret;
+}
+
+static int mdss_edp_bl_enable(uint8_t enable)
+{
+	int ret = NO_ERROR;
+
+	ret = target_edp_bl_ctrl(enable);
+	if (ret)
+		dprintf(CRITICAL, "Backlight %s failed\n", enable ? "enable" :
+							"disable");
+	return ret;
+}
+
+int gcdb_display_init(const char *panel_name, uint32_t rev, void *base)
+{
+	int ret = NO_ERROR;
+	int pan_type;
+
+	pan_type = oem_panel_select(panel_name, &panelstruct, &(panel.panel_info),
+				 &dsi_video_mode_phy_db);
+
+	if (pan_type == PANEL_TYPE_DSI) {
+		init_platform_data();
+		if (dsi_panel_init(&(panel.panel_info), &panelstruct)) {
+			dprintf(CRITICAL, "DSI panel init failed!\n");
+			ret = ERROR;
+			goto error_gcdb_display_init;
+		}
+
+		panel.panel_info.mipi.mdss_dsi_phy_db = &dsi_video_mode_phy_db;
+		panel.pll_clk_func = mdss_dsi_panel_clock;
+		panel.power_func = mdss_dsi_panel_power;
+		panel.pre_init_func = mdss_dsi_panel_pre_init;
+		panel.bl_func = mdss_dsi_bl_enable;
+		panel.fb.base = base;
+		panel.fb.width =  panel.panel_info.xres;
+		panel.fb.height =  panel.panel_info.yres;
+		panel.fb.stride =  panel.panel_info.xres;
+		panel.fb.bpp =  panel.panel_info.bpp;
+		panel.fb.format = panel.panel_info.mipi.dst_format;
+	} else if (pan_type == PANEL_TYPE_EDP) {
+		mdss_edp_panel_init(&(panel.panel_info));
+		/* prepare func is set up at edp_panel_init */
+                panel.clk_func = mdss_edp_panel_clock;
+                panel.power_func = mdss_edp_panel_power;
+		panel.bl_func = mdss_edp_bl_enable;
+                panel.fb.format = FB_FORMAT_RGB888;
+	} else {
 		dprintf(CRITICAL, "Target panel init not found!\n");
 		ret = ERR_NOT_SUPPORTED;
 		goto error_gcdb_display_init;
-	}
-	init_platform_data();
 
-	if (dsi_panel_init(&(panel.panel_info), &panelstruct)) {
-		dprintf(CRITICAL, "DSI panel init failed!\n");
-		ret = ERROR;
-		goto error_gcdb_display_init;
 	}
 
-	panel.panel_info.mipi.mdss_dsi_phy_db = &dsi_video_mode_phy_db;
-
-	panel.pll_clk_func = mdss_dsi_panel_clock;
-	panel.power_func = mdss_dsi_panel_power;
-	panel.pre_init_func = mdss_dsi_panel_pre_init;
-	panel.bl_func = mdss_dsi_bl_enable;
 	panel.fb.base = base;
-	panel.fb.width =  panel.panel_info.xres;
-	panel.fb.height =  panel.panel_info.yres;
-	panel.fb.stride =  panel.panel_info.xres;
-	panel.fb.bpp =  panel.panel_info.bpp;
-	panel.fb.format = panel.panel_info.mipi.dst_format;
 	panel.mdp_rev = rev;
 
 	ret = msm_display_init(&panel);

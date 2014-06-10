@@ -93,10 +93,12 @@ int oem_panel_off()
 	return NO_ERROR;
 }
 
-static bool init_panel_data(struct panel_struct *panelstruct,
+static int init_panel_data(struct panel_struct *panelstruct,
 			struct msm_panel_info *pinfo,
 			struct mdss_dsi_phy_ctrl *phy_db)
 {
+	int pan_type = PANEL_TYPE_DSI;
+
 	switch (panel_id) {
 	case TRULY_WVGA_CMD_PANEL:
 		panelstruct->paneldata    = &truly_wvga_cmd_panel_data;
@@ -225,12 +227,12 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 		memset(phy_db->timing, 0, TIMING_SIZE);
 		pinfo->mipi.signature = 0;
 		dprintf(CRITICAL, "Unknown Panel");
-		return false;
+		return PANEL_TYPE_UNKNOWN;
 	default:
 		dprintf(CRITICAL, "Panel ID not detected %d\n", panel_id);
-		return false;
+		return PANEL_TYPE_UNKNOWN;
 	}
-	return true;
+	return pan_type;
 }
 
 uint32_t oem_panel_max_auto_detect_panels()
@@ -239,7 +241,7 @@ uint32_t oem_panel_max_auto_detect_panels()
 			DISPLAY_MAX_PANEL_DETECTION : 0;
 }
 
-bool oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
+int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 			struct msm_panel_info *pinfo,
 			struct mdss_dsi_phy_ctrl *phy_db)
 {
@@ -268,7 +270,7 @@ bool oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 			default:
 				dprintf(CRITICAL, "QRD Display not enabled for %d type\n",
 							platform_subtype);
-				return false;
+				return PANEL_TYPE_UNKNOWN;
 		}
 		break;
 	case HW_PLATFORM_MTP:
@@ -283,7 +285,7 @@ bool oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 		break;
 	default:
 		dprintf(CRITICAL, "Display not enabled for %d HW type\n", hw_id);
-		return false;
+		return PANEL_TYPE_UNKNOWN;
 	}
 
 	return init_panel_data(panelstruct, pinfo, phy_db);
