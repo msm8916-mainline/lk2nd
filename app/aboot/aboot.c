@@ -1042,6 +1042,13 @@ int boot_linux_from_mmc(void)
 			#endif /* TZ_SAVE_KERNEL_HASH */
 
 		} else {
+
+			/* Validate the tags_addr */
+			if (check_aboot_addr_range_overlap(hdr->tags_addr, kernel_actual))
+			{
+				dprintf(CRITICAL, "Device tree addresses overlap with aboot addresses.\n");
+				return -1;
+			}
 			/*
 			 * If appended dev tree is found, update the atags with
 			 * memory address to the DTB appended location on RAM.
