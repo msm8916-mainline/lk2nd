@@ -205,8 +205,12 @@ void mdp_clock_enable(void)
 		ASSERT(0);
 	}
 
-	/* Set MDP clock to 320MHz */
-	ret = clk_get_set_enable("mdss_mdp_clk_src", 320000000, 1);
+	if (platform_is_msm8939())
+		ret = clk_get_set_enable("mdss_mdp_clk_src", 307200000, 1);
+	else
+		/* Set MDP clock to 320MHz */
+		ret = clk_get_set_enable("mdss_mdp_clk_src", 320000000, 1);
+
 	if(ret)
 	{
 		dprintf(CRITICAL, "failed to set mdp_clk_src ret = %d\n", ret);
