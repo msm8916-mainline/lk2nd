@@ -282,8 +282,6 @@ bool oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 		auto_pan_loop++;
 		break;
 	case HW_PLATFORM_QRD:
-		/* LDO mode */
-		phy_db->regulator_mode = DSI_PHY_REGULATOR_LDO_MODE;
 		switch (hw_subtype) {
 		case HW_PLATFORM_SUBTYPE_SKUH:
 			panel_id = INNOLUX_720P_VIDEO_PANEL;
@@ -304,6 +302,10 @@ bool oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	}
 
 panel_init:
+	/* Set LDO mode */
+	if (platform_is_msm8939() || (hw_id == HW_PLATFORM_QRD))
+		phy_db->regulator_mode = DSI_PHY_REGULATOR_LDO_MODE;
+
 	pinfo->pipe_type = MDSS_MDP_PIPE_TYPE_RGB;
 	return init_panel_data(panelstruct, pinfo, phy_db);
 }
