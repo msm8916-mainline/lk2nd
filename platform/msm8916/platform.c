@@ -65,7 +65,7 @@ static mmu_section_t mmu_section_table[] = {
 
 static struct smem_ram_ptable ram_ptable;
 
-static int platform_is_msm8939();
+int platform_is_msm8939();
 
 void platform_early_init(void)
 {
@@ -177,7 +177,7 @@ addr_t platform_get_phys_to_virt_mapping(addr_t phys_addr)
 	return phys_addr;
 }
 
-static int platform_is_msm8939()
+int platform_is_msm8939()
 {
 	uint32_t platform = board_platform_id();
 	uint32_t ret = 0;
@@ -189,6 +189,7 @@ static int platform_is_msm8939()
 		case APQ8039:
 		case MSM8236:
 		case MSM8636:
+		case MSM8936:
 			ret = 1;
 			break;
 		default:
