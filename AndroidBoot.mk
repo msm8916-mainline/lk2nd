@@ -1,6 +1,10 @@
 #Android makefile to build lk bootloader as a part of Android Build
 
+ifndef 2ND_TARGET_GCC_VERSION
 CROSS_COMPILE := ../../../prebuilts/gcc/linux-x86/arm/arm-eabi-$(TARGET_GCC_VERSION)/bin/arm-eabi-
+else
+CROSS_COMPILE := ../../../prebuilts/gcc/linux-x86/arm/arm-eabi-$(2ND_TARGET_GCC_VERSION)/bin/arm-eabi-
+endif
 
 # Set flags if we need to include security libs
 ifeq ($(TARGET_BOOTIMG_SIGNED),true)
