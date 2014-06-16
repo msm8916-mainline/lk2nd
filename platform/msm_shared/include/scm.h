@@ -104,6 +104,11 @@ typedef struct{
 } ssd_protect_keystore_rsp;
 
 typedef struct {
+	uint32_t config;
+	uint32_t spare;
+} tz_xpu_prot_cmd;
+
+typedef struct {
 	uint64_t el1_x0;
 	uint64_t el1_x1;
 	uint64_t el1_x2;
@@ -129,6 +134,7 @@ struct tz_prng_data {
 #define TZ_SVC_CRYPTO               0x0A
 
 /*Service specific command IDs */
+#define ERR_FATAL_ENABLE            0x0
 #define SSD_DECRYPT_ID              0x01
 #define SSD_ENCRYPT_ID              0x02
 #define SSD_PROTECT_KEYSTORE_ID     0x05
@@ -136,6 +142,7 @@ struct tz_prng_data {
 #define SSD_DECRYPT_IMG_FRAG_ID     0x07
 #define WDOG_DEBUG_DISABLE          0x09
 #define SCM_DLOAD_CMD               0x10
+#define XPU_ERR_FATAL               0xe
 
 #define SECURE_DEVICE_MDSS          0x01
 
@@ -225,6 +232,8 @@ int scm_call_atomic2(uint32_t svc, uint32_t cmd, uint32_t arg1, uint32_t arg2);
 
 void scm_elexec_call(paddr_t kernel_entry, paddr_t dtb_offset);
 void *get_canary();
+/* API to configure XPU violations as fatal */
+int scm_xpu_err_fatal_init();
 
 /**
  * struct scm_command - one SCM command buffer
