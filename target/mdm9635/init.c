@@ -291,15 +291,25 @@ int get_target_boot_params(const char *cmdline, const char *part, char *buf,
 	}
 
 	/*
-	 * check if cmdline contains "root=" at the beginning of buffer or
-	 * " root=" in the middle of buffer.
+	 * check if cmdline contains "root="/"ubi.mtd" at the beginning of buffer or
+	 * " root="/"ubi.mtd" in the middle of buffer.
 	 */
-	if (((!strncmp(cmdline, "root=", strlen("root="))) ||
-	     (strstr(cmdline, " root="))))
-		dprintf(DEBUG, "DEBUG: cmdline has root=\n");
-	else
-		snprintf(buf, buflen, " root=/dev/mtdblock%d",
-			 system_ptn_index);
+
+	if (strstr(cmdline, "rootfstype=yaffs2")) {
+		if (((!strncmp(cmdline, "root=", strlen("root="))) ||
+			(strstr(cmdline, " root="))))
+			dprintf(DEBUG, "DEBUG: cmdline has root=\n");
+		else
+			snprintf(buf, buflen, " root=/dev/mtdblock%d",
+					system_ptn_index);
+	} else if (strstr(cmdline, "rootfstype=ubifs")){
+		if (((!strncmp(cmdline, "ubi.mtd=", strlen("ubi.mtd="))) ||
+			(strstr(cmdline, " ubi.mtd="))))
+			dprintf(DEBUG, "DEBUG: cmdline has ubi.mtd=\n");
+		else
+			snprintf(buf, buflen, " ubi.mtd=%d",
+				system_ptn_index);
+	}
 
 	return 0;
 }
