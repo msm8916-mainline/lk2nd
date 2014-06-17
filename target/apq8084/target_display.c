@@ -51,6 +51,10 @@
 #define GPIO_STATE_HIGH 2
 #define RESET_GPIO_SEQ_LEN 3
 
+static struct backlight edp_bklt = {
+	0, 1, 4095, 100, 1, "PMIC_8941"
+};
+
 static uint32_t dsi_pll_lock_status(uint32_t pll_base)
 {
 	uint32_t counter, status;
@@ -137,7 +141,7 @@ int target_backlight_ctrl(struct backlight *bl, uint8_t enable)
 	if (enable) {
 		pm8x41_gpio_config(pwm_gpio.pin_id, &pwmgpio_param);
 
-		/* lpg channel 2 */
+		/* lpg channel 3 */
 		pm8x41_lpg_write(PWM_BL_LPG_CHAN_ID, 0x41, 0x33); /* LPG_PWM_SIZE_CLK, */
 		pm8x41_lpg_write(PWM_BL_LPG_CHAN_ID, 0x42, 0x01); /* LPG_PWM_FREQ_PREDIV */
 		pm8x41_lpg_write(PWM_BL_LPG_CHAN_ID, 0x43, 0x20); /* LPG_PWM_TYPE_CONFIG */
@@ -283,6 +287,79 @@ int target_display_pre_on()
 	writel(0x00000003, VBIF_VBIF_DDR_RND_RBN_QOS_ARB);
 
 	return NO_ERROR;
+}
+
+void target_edp_panel_init(struct msm_panel_info *pinfo)
+{
+	edp_panel_init(pinfo);
+}
+
+int target_edp_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
+{
+	uint32_t ret;
+
+	dprintf(SPEW, "%s: target_panel_clock\n", __func__);
+
+	if (enable) {
+		mdp_gdsc_ctrl(enable);
+		mmss_bus_clock_enable();
+		mdp_clock_enable();
+		ret = restore_secure_cfg(SECURE_DEVICE_MDSS);
+		if (ret) {
+			dprintf(CRITICAL,
+				"%s: Failed to restore MDP security configs",
+				__func__);
+			mdp_clock_disable();
+			mmss_bus_clock_disable();
+			mdp_gdsc_ctrl(0);
+			return ret;
+		}
+
+		edp_clk_enable();
+	} else if(!target_cont_splash_screen()) {
+		/* Disable clocks if continuous splash off */
+		edp_clk_disable();
+		mdp_clock_disable();
+		mmss_bus_clock_disable();
+		mdp_gdsc_ctrl(enable);
+	}
+
+	return NO_ERROR;
+}
+
+int target_edp_panel_enable(void)
+{
+	gpio_tlmm_config(enable_gpio.pin_id, 0,		/* gpio 137 */
+		enable_gpio.pin_direction, enable_gpio.pin_pull,
+		enable_gpio.pin_strength, enable_gpio.pin_state);
+
+
+	gpio_tlmm_config(edp_hpd_gpio.pin_id, 0,	/* hpd 103 */
+		edp_hpd_gpio.pin_direction, edp_hpd_gpio.pin_pull,
+		edp_hpd_gpio.pin_strength, edp_hpd_gpio.pin_state);
+
+
+	gpio_tlmm_config(edp_lvl_en_gpio.pin_id, 0,	/* lvl_en 91 */
+		edp_lvl_en_gpio.pin_direction, edp_lvl_en_gpio.pin_pull,
+		edp_lvl_en_gpio.pin_strength, edp_lvl_en_gpio.pin_state);
+
+	gpio_set(enable_gpio.pin_id, 2);
+	gpio_set(edp_lvl_en_gpio.pin_id, 2);
+
+	return NO_ERROR;
+}
+
+int target_edp_panel_disable(void)
+{
+	gpio_set(edp_lvl_en_gpio.pin_id, 0);
+	gpio_set(enable_gpio.pin_id, 0);
+
+	return NO_ERROR;
+}
+
+int target_edp_bl_ctrl(int enable)
+{
+	return target_backlight_ctrl(&edp_bklt, enable);
 }
 
 bool target_display_panel_node(char *panel_name, char *pbuf, uint16_t buf_size)

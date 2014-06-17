@@ -45,6 +45,8 @@
 #define mmpll1_mm_source_val 2
 #define mmpll3_mm_source_val 3
 #define gpll0_mm_source_val 5
+#define edppll_270_mm_source_val 4
+#define edppll_350_mm_source_val 4
 
 struct clk_freq_tbl rcg_dummy_freq = F_END;
 
@@ -688,6 +690,87 @@ static struct branch_clk mdss_vsync_clk = {
 	},
 };
 
+static struct clk_freq_tbl ftbl_mdss_edpaux_clk[] = {
+	F_MM(19200000,    cxo,   1,   0,   0),
+	F_END
+};
+
+static struct rcg_clk edpaux_clk_src = {
+	.cmd_reg  = (uint32_t *) EDPAUX_CMD_RCGR,
+	.set_rate = clock_lib2_rcg_set_rate_hid,
+	.freq_tbl = ftbl_mdss_edpaux_clk,
+
+	.c        = {
+		.dbg_name = "edpaux_clk_src",
+		.ops      = &clk_ops_rcg,
+	},
+};
+
+static struct branch_clk mdss_edpaux_clk = {
+	.cbcr_reg    = MDSS_EDPAUX_CBCR,
+	.parent      = &edpaux_clk_src.c,
+	.has_sibling = 0,
+
+	.c           = {
+		.dbg_name = "mdss_edpaux_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
+static struct clk_freq_tbl ftbl_mdss_edplink_clk[] = {
+	F_MDSS(162000000, edppll_270,   2,   0,   0),
+	F_MDSS(270000000, edppll_270,  11,   0,   0),
+	F_END
+};
+
+static struct rcg_clk edplink_clk_src = {
+	.cmd_reg = (uint32_t *)EDPLINK_CMD_RCGR,
+	.set_rate = clock_lib2_rcg_set_rate_hid,
+	.freq_tbl = ftbl_mdss_edplink_clk,
+	.current_freq = &rcg_dummy_freq,
+	.c = {
+		.dbg_name = "edplink_clk_src",
+		.ops = &clk_ops_rcg,
+	},
+};
+
+static struct clk_freq_tbl ftbl_mdss_edppixel_clk[] = {
+	F_MDSS(138500000, edppll_350,   2,   0,   0),
+	F_MDSS(350000000, edppll_350,  11,   0,   0),
+	F_END
+};
+
+static struct rcg_clk edppixel_clk_src = {
+	.cmd_reg = (uint32_t *)EDPPIXEL_CMD_RCGR,
+	.set_rate = clock_lib2_rcg_set_rate_mnd,
+	.freq_tbl = ftbl_mdss_edppixel_clk,
+	.current_freq = &rcg_dummy_freq,
+	.c = {
+		.dbg_name = "edppixel_clk_src",
+		.ops = &clk_ops_rcg_mnd,
+	},
+};
+
+static struct branch_clk mdss_edplink_clk = {
+	.cbcr_reg = (uint32_t *)MDSS_EDPLINK_CBCR,
+	.has_sibling = 0,
+	.parent = &edplink_clk_src.c,
+	.c = {
+		.dbg_name = "mdss_edplink_clk",
+		.ops = &clk_ops_branch,
+	},
+};
+
+static struct branch_clk mdss_edppixel_clk = {
+	.cbcr_reg = (uint32_t *)MDSS_EDPPIXEL_CBCR,
+	.has_sibling = 0,
+	.parent = &edppixel_clk_src.c,
+	.c = {
+		.dbg_name = "mdss_edppixel_clk",
+		.ops = &clk_ops_branch,
+	},
+};
+
 static struct branch_clk gcc_sdcc1_cdccal_ff_clk = {
 	.cbcr_reg    = SDCC1_CDCCAL_FF_CBCR,
 	.has_sibling = 1,
@@ -751,6 +834,10 @@ static struct clk_lookup msm_clocks_8084[] =
 	CLK_LOOKUP("mdss_mdp_clk_src",     mdss_mdp_clk_src.c),
 	CLK_LOOKUP("mdss_mdp_clk",         mdss_mdp_clk.c),
 	CLK_LOOKUP("mdss_mdp_lut_clk",     mdss_mdp_lut_clk.c),
+
+	CLK_LOOKUP("edp_pixel_clk",        mdss_edppixel_clk.c),
+	CLK_LOOKUP("edp_link_clk",         mdss_edplink_clk.c),
+	CLK_LOOKUP("edp_aux_clk",          mdss_edpaux_clk.c),
 };
 
 void platform_clock_init(void)
