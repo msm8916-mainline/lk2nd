@@ -46,6 +46,7 @@
 #include "include/panel_nt35590_720p_cmd.h"
 #include "include/panel_innolux_720p_video.h"
 #include "include/panel_otm8019a_fwvga_video.h"
+#include "include/panel_otm1283a_720p_video.h"
 
 #define DISPLAY_MAX_PANEL_DETECTION 2
 #define OTM8019A_FWVGA_VIDEO_PANEL_ON_DELAY 50
@@ -61,6 +62,7 @@ NT35590_720P_VIDEO_PANEL,
 NT35590_720P_CMD_PANEL,
 INNOLUX_720P_VIDEO_PANEL,
 OTM8019A_FWVGA_VIDEO_PANEL,
+OTM1283A_720P_VIDEO_PANEL,
 UNKNOWN_PANEL
 };
 
@@ -74,6 +76,7 @@ static struct panel_list supp_panels[] = {
 	{"nt35590_720p_cmd", NT35590_720P_CMD_PANEL},
 	{"innolux_720p_video", INNOLUX_720P_VIDEO_PANEL},
 	{"otm8019a_fwvga_video", OTM8019A_FWVGA_VIDEO_PANEL},
+	{"otm1283a_720p_video", OTM1283A_720P_VIDEO_PANEL},
 };
 
 static uint32_t panel_id;
@@ -184,38 +187,57 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 		panelstruct->state        = &innolux_720p_video_state;
 		panelstruct->laneconfig   = &innolux_720p_video_lane_config;
 		panelstruct->paneltiminginfo
-			= &innolux_720p_video_timing_info;
+					= &innolux_720p_video_timing_info;
 		panelstruct->panelresetseq
-					 = &innolux_720p_video_reset_seq;
+					= &innolux_720p_video_reset_seq;
 		panelstruct->backlightinfo = &innolux_720p_video_backlight;
 		pinfo->mipi.panel_cmds
-			= innolux_720p_video_on_command;
+					= innolux_720p_video_on_command;
 		pinfo->mipi.num_of_panel_cmds
-		= INNOLUX_720P_VIDEO_ON_COMMAND;
+					= INNOLUX_720P_VIDEO_ON_COMMAND;
 		memcpy(phy_db->timing,
-			innolux_720p_video_timings, TIMING_SIZE);
+				innolux_720p_video_timings, TIMING_SIZE);
 		break;
 	case OTM8019A_FWVGA_VIDEO_PANEL:
-                panelstruct->paneldata    = &otm8019a_fwvga_video_panel_data;
-                panelstruct->panelres     = &otm8019a_fwvga_video_panel_res;
-                panelstruct->color        = &otm8019a_fwvga_video_color;
-                panelstruct->videopanel   = &otm8019a_fwvga_video_video_panel;
-                panelstruct->commandpanel = &otm8019a_fwvga_video_command_panel;
-                panelstruct->state        = &otm8019a_fwvga_video_state;
-                panelstruct->laneconfig   = &otm8019a_fwvga_video_lane_config;
-                panelstruct->paneltiminginfo
-                        = &otm8019a_fwvga_video_timing_info;
-                panelstruct->panelresetseq
-                                         = &otm8019a_fwvga_video_reset_seq;
-                panelstruct->backlightinfo = &otm8019a_fwvga_video_backlight;
-                pinfo->mipi.panel_cmds
-                        = otm8019a_fwvga_video_on_command;
-                pinfo->mipi.num_of_panel_cmds
-                = OTM8019A_FWVGA_VIDEO_ON_COMMAND;
-                memcpy(phy_db->timing,
-                        otm8019a_fwvga_video_timings, TIMING_SIZE);
-                break;
-
+		panelstruct->paneldata    = &otm8019a_fwvga_video_panel_data;
+		panelstruct->panelres     = &otm8019a_fwvga_video_panel_res;
+		panelstruct->color        = &otm8019a_fwvga_video_color;
+		panelstruct->videopanel   = &otm8019a_fwvga_video_video_panel;
+		panelstruct->commandpanel = &otm8019a_fwvga_video_command_panel;
+		panelstruct->state        = &otm8019a_fwvga_video_state;
+		panelstruct->laneconfig   = &otm8019a_fwvga_video_lane_config;
+		panelstruct->paneltiminginfo
+					= &otm8019a_fwvga_video_timing_info;
+		panelstruct->panelresetseq
+					= &otm8019a_fwvga_video_reset_seq;
+		panelstruct->backlightinfo = &otm8019a_fwvga_video_backlight;
+		pinfo->mipi.panel_cmds
+					= otm8019a_fwvga_video_on_command;
+		pinfo->mipi.num_of_panel_cmds
+					= OTM8019A_FWVGA_VIDEO_ON_COMMAND;
+		memcpy(phy_db->timing,
+				otm8019a_fwvga_video_timings, TIMING_SIZE);
+		break;
+	case OTM1283A_720P_VIDEO_PANEL:
+		panelstruct->paneldata    = &otm1283a_720p_video_panel_data;
+		panelstruct->panelres     = &otm1283a_720p_video_panel_res;
+		panelstruct->color        = &otm1283a_720p_video_color;
+		panelstruct->videopanel   = &otm1283a_720p_video_video_panel;
+		panelstruct->commandpanel = &otm1283a_720p_video_command_panel;
+		panelstruct->state        = &otm1283a_720p_video_state;
+		panelstruct->laneconfig   = &otm1283a_720p_video_lane_config;
+		panelstruct->paneltiminginfo
+					= &otm1283a_720p_video_timing_info;
+		panelstruct->panelresetseq
+					= &otm1283a_720p_video_reset_seq;
+		panelstruct->backlightinfo = &otm1283a_720p_video_backlight;
+		pinfo->mipi.panel_cmds
+					= otm1283a_720p_video_on_command;
+		pinfo->mipi.num_of_panel_cmds
+					= OTM1283A_720P_VIDEO_ON_COMMAND;
+		memcpy(phy_db->timing,
+				otm1283a_720p_video_timings, TIMING_SIZE);
+		break;
 	case UNKNOWN_PANEL:
 	default:
 		memset(panelstruct, 0, sizeof(struct panel_struct));
@@ -242,6 +264,7 @@ bool oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	uint32_t hw_subtype = board_hardware_subtype();
 	int32_t panel_override_id;
 	bool ret = true;
+	uint32_t target_id, plat_hw_ver_major;
 
 	if (panel_name) {
 		panel_override_id = panel_name_to_id(supp_panels,
@@ -284,7 +307,14 @@ bool oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	case HW_PLATFORM_QRD:
 		switch (hw_subtype) {
 		case HW_PLATFORM_SUBTYPE_SKUH:
-			panel_id = INNOLUX_720P_VIDEO_PANEL;
+			target_id = board_target_id();
+			plat_hw_ver_major = ((target_id >> 16) & 0xFF);
+
+			/* qrd fan-out hw ? */
+			if ((plat_hw_ver_major >> 4) == 0x1)
+				panel_id = OTM1283A_720P_VIDEO_PANEL;
+			else
+				panel_id = INNOLUX_720P_VIDEO_PANEL;
 			break;
 		case HW_PLATFORM_SUBTYPE_SKUI:
 			panel_id = OTM8019A_FWVGA_VIDEO_PANEL;
