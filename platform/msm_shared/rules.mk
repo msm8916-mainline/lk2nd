@@ -355,7 +355,8 @@ ifeq ($(PLATFORM),msmzirc)
 			$(LOCAL_DIR)/clock_lib2.o \
 			$(LOCAL_DIR)/gpio.o \
 			$(LOCAL_DIR)/scm.o \
-			$(LOCAL_DIR)/qmp_usb30_phy.o
+			$(LOCAL_DIR)/qmp_usb30_phy.o \
+			$(LOCAL_DIR)/qusb2_phy.o
 endif
 
 ifeq ($(PLATFORM),fsm9900)

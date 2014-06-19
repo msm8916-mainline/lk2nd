@@ -45,6 +45,7 @@
 #include <platform/gpio.h>
 #include <platform/clock.h>
 #include <qmp_phy.h>
+#include <qusb2_phy.h>
 
 extern void smem_ptable_init(void);
 extern void smem_add_modem_partitions(struct ptable *flash_ptable);
@@ -316,6 +317,12 @@ void target_uninit(void)
 	}
 }
 
+void target_usb_phy_reset(void)
+{
+	qusb2_phy_reset();
+	usb30_qmp_phy_reset();
+}
+
 target_usb_iface_t* target_usb30_init()
 {
 	target_usb_iface_t *t_usb_iface;
@@ -325,7 +332,7 @@ target_usb_iface_t* target_usb30_init()
 
 	t_usb_iface->mux_config = NULL;
 	t_usb_iface->phy_init   = usb30_qmp_phy_init;
-	t_usb_iface->phy_reset  = usb30_qmp_phy_reset;
+	t_usb_iface->phy_reset  = target_usb_phy_reset;
 	t_usb_iface->clock_init = clock_usb30_init;
 	t_usb_iface->vbus_override = 1;
 
