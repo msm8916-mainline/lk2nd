@@ -118,6 +118,6 @@ struct sdhci_msm_data
 };
 
 void sdhci_msm_init(struct sdhci_host *host, struct sdhci_msm_data *data);
-uint32_t sdhci_msm_execute_tuning(struct sdhci_host *host, uint32_t bus_width);
+uint32_t sdhci_msm_execute_tuning(struct sdhci_host *host, struct mmc_card * card, uint32_t bus_width);
 void sdhci_mode_disable(struct sdhci_host *host);
 #endif

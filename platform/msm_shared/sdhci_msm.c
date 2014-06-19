@@ -40,6 +40,9 @@
 #include <sdhci.h>
 #include <sdhci_msm.h>
 
+
+#define MX_DRV_SUPPORTED_HS200 3
+
 /* Known data stored in the card & read during tuning
  * process. 64 bytes for 4bit bus width & 128 bytes
  * of data for 8 bit bus width.
@@ -551,7 +554,7 @@ static uint32_t sdhci_msm_cdclp533_calibration(struct sdhci_host *host)
  * Return  : 0 on Success, 1 on Failure
  * Flow:   : Execute Tuning sequence for HS200
  */
-uint32_t sdhci_msm_execute_tuning(struct sdhci_host *host, uint32_t bus_width)
+uint32_t sdhci_msm_execute_tuning(struct sdhci_host *host, struct mmc_card *card, uint32_t bus_width)
 {
 	uint32_t *tuning_block;
 	uint32_t *tuning_data;
@@ -559,6 +562,8 @@ uint32_t sdhci_msm_execute_tuning(struct sdhci_host *host, uint32_t bus_width)
 	uint32_t size;
 	uint32_t phase = 0;
 	uint32_t tuned_phase_cnt = 0;
+	uint8_t drv_type = 0;
+	bool drv_type_changed = false;
 	int ret = 0;
 	int i;
 	struct sdhci_msm_data *msm_host;
@@ -599,6 +604,10 @@ uint32_t sdhci_msm_execute_tuning(struct sdhci_host *host, uint32_t bus_width)
 			goto free;
 	}
 
+retry_tuning:
+	tuned_phase_cnt = 0;
+	phase = 0;
+
 	while (phase < MAX_PHASES)
 	{
 		struct mmc_command cmd = {0};
@@ -626,6 +635,25 @@ uint32_t sdhci_msm_execute_tuning(struct sdhci_host *host, uint32_t bus_width)
 
 		phase++;
 	}
+
+	/*
+	 * Check if all the tuning phases passed */
+	if (tuned_phase_cnt == MAX_PHASES)
+	{
+		/* Change the driver type & rerun tuning */
+		while(++drv_type < MX_DRV_SUPPORTED_HS200)
+		{
+			drv_type_changed = mmc_set_drv_type(host, card, drv_type);
+			if (drv_type_changed)
+			{
+				goto retry_tuning;
+			}
+		}
+	}
+
+	/* Restore the driver strength to default value */
+	if (drv_type_changed)
+		mmc_set_drv_type(host, card, 0);
 
 	/* Find the appropriate tuned phase */
 	if (tuned_phase_cnt)
