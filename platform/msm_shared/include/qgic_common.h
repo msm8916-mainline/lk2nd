@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, 2014, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2011,2014 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -27,27 +27,35 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __PLATFORM_MSM_SHARED_QGIC_H
-#define __PLATFORM_MSM_SHARED_QGIC_H
+#ifndef __PLATFORM_MSM_SHARED_QGIC_COMMON_H
+#define __PLATFORM_MSM_SHARED_QGIC_COMMON_H
 
-#include "qgic_common.h"
+#include <platform/iomap.h>
+#include <platform/irqs.h>
+#include <platform/interrupts.h>
 
-#define GIC_CPU_REG(off)            (MSM_GIC_CPU_BASE  + (off))
+#define GIC_DIST_REG(off)           (MSM_GIC_DIST_BASE + (off))
 
-#define GIC_CPU_CTRL                GIC_CPU_REG(0x00)
-#define GIC_CPU_PRIMASK             GIC_CPU_REG(0x04)
-#define GIC_CPU_BINPOINT            GIC_CPU_REG(0x08)
-#define GIC_CPU_INTACK              GIC_CPU_REG(0x0c)
-#define GIC_CPU_EOI                 GIC_CPU_REG(0x10)
-#define GIC_CPU_RUNNINGPRI          GIC_CPU_REG(0x14)
-#define GIC_CPU_HIGHPRI             GIC_CPU_REG(0x18)
+#define GIC_DIST_CTRL               GIC_DIST_REG(0x000)
+#define GIC_DIST_CTR                GIC_DIST_REG(0x004)
+#define GIC_DIST_ENABLE_SET         GIC_DIST_REG(0x100)
+#define GIC_DIST_ENABLE_CLEAR       GIC_DIST_REG(0x180)
+#define GIC_DIST_PENDING_SET        GIC_DIST_REG(0x200)
+#define GIC_DIST_PENDING_CLEAR      GIC_DIST_REG(0x280)
+#define GIC_DIST_ACTIVE_BIT         GIC_DIST_REG(0x300)
+#define GIC_DIST_PRI                GIC_DIST_REG(0x400)
+#define GIC_DIST_TARGET             GIC_DIST_REG(0x800)
+#define GIC_DIST_CONFIG             GIC_DIST_REG(0xc00)
+#define GIC_DIST_SOFTINT            GIC_DIST_REG(0xf00)
 
-#define INTERRUPT_LVL_N_TO_N        0x0
-#define INTERRUPT_LVL_1_TO_N        0x1
-#define INTERRUPT_EDGE_N_TO_N       0x2
-#define INTERRUPT_EDGE_1_TO_N       0x3
+struct ihandler {
+	int_handler func;
+	void *arg;
+};
 
-uint32_t qgic_read_iar(void);
-void qgic_write_eoi(uint32_t);
-
+void qgic_init(void);
+void qgic_dist_config(uint32_t);
+void qgic_dist_init(void);
+void qgic_cpu_init(void);
+void qgic_change_interrupt_cfg(uint32_t spi_number, uint8_t type);
 #endif

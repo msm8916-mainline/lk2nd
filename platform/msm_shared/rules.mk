@@ -14,7 +14,12 @@ OBJS += \
 	$(LOCAL_DIR)/jtag.o \
 	$(LOCAL_DIR)/partition_parser.o \
 	$(LOCAL_DIR)/hsusb.o \
-	$(LOCAL_DIR)/boot_stats.o
+	$(LOCAL_DIR)/boot_stats.o \
+	$(LOCAL_DIR)/qgic_common.o
+
+ifeq ($(ENABLE_QGIC3), 1)
+OBJS += $(LOCAL_DIR)/qgic_v3.o
+endif
 
 ifeq ($(ENABLE_SMD_SUPPORT),1)
 OBJS += \

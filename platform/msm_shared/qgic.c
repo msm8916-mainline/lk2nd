@@ -32,11 +32,7 @@
  */
 
 #include <reg.h>
-#include <bits.h>
-#include <debug.h>
 #include <arch/arm.h>
-#include <kernel/thread.h>
-#include <platform/irqs.h>
 #include <qgic.h>
 
 static struct ihandler handler[NR_IRQS];
@@ -53,15 +49,11 @@ static uint8_t qgic_get_cpumask()
 		if (mask)
 			break;
 	}
-
-	if (!mask)
-		dprintf(CRITICAL, "GIC CPU mask not found\n");
-
 	return mask;
 }
 
 /* Intialize distributor */
-static void qgic_dist_init(void)
+void qgic_dist_init(void)
 {
 	uint32_t i;
 	uint32_t num_irq = 0;
@@ -81,123 +73,29 @@ static void qgic_dist_init(void)
 	num_irq = readl(GIC_DIST_CTR) & 0x1f;
 	num_irq = (num_irq + 1) * 32;
 
-	/* Set each interrupt line to use N-N software model
-	 * and edge sensitive, active high
-	 */
-	for (i = 32; i < num_irq; i += 16)
-		writel(0xffffffff, GIC_DIST_CONFIG + i * 4 / 16);
-
-	writel(0xffffffff, GIC_DIST_CONFIG + 4);
-
 	/* Set up interrupts for this CPU */
 	for (i = 32; i < num_irq; i += 4)
 		writel(cpumask, GIC_DIST_TARGET + i * 4 / 4);
 
-	/* Set priority of all interrupts */
-
-	/*
-	 * In bootloader we dont care about priority so
-	 * setting up equal priorities for all
-	 */
-	for (i = 0; i < num_irq; i += 4)
-		writel(0xa0a0a0a0, GIC_DIST_PRI + i * 4 / 4);
-
-	/* Disabling interrupts */
-	for (i = 0; i < num_irq; i += 32)
-		writel(0xffffffff, GIC_DIST_ENABLE_CLEAR + i * 4 / 32);
-
-	writel(0x0000ffff, GIC_DIST_ENABLE_SET);
+	qgic_dist_config(num_irq);
 
 	/*Enabling GIC */
 	writel(1, GIC_DIST_CTRL);
 }
 
 /* Intialize cpu specific controller */
-static void qgic_cpu_init(void)
+void qgic_cpu_init(void)
 {
 	writel(0xf0, GIC_CPU_PRIMASK);
 	writel(1, GIC_CPU_CTRL);
 }
 
-/* Initialize QGIC. Called from platform specific init code */
-void qgic_init(void)
+uint32_t qgic_read_iar()
 {
-	qgic_dist_init();
-	qgic_cpu_init();
+	return readl(GIC_CPU_INTACK);
 }
 
-/* IRQ handler */
-enum handler_return gic_platform_irq(struct arm_iframe *frame)
+void qgic_write_eoi(uint32_t num)
 {
-	uint32_t num;
-	enum handler_return ret;
-
-	num = readl(GIC_CPU_INTACK);
-	if (num >= NR_IRQS)
-		return 0;
-
-	ret = handler[num].func(handler[num].arg);
 	writel(num, GIC_CPU_EOI);
-
-	return ret;
-}
-
-/* FIQ handler */
-void gic_platform_fiq(struct arm_iframe *frame)
-{
-	PANIC_UNIMPLEMENTED;
-}
-
-/* Mask interrupt */
-status_t gic_mask_interrupt(unsigned int vector)
-{
-	uint32_t reg = GIC_DIST_ENABLE_CLEAR + (vector / 32) * 4;
-	uint32_t bit = 1 << (vector & 31);
-
-	writel(bit, reg);
-
-	return 0;
-}
-
-/* Un-mask interrupt */
-status_t gic_unmask_interrupt(unsigned int vector)
-{
-	uint32_t reg = GIC_DIST_ENABLE_SET + (vector / 32) * 4;
-	uint32_t bit = 1 << (vector & 31);
-
-	writel(bit, reg);
-
-	return 0;
-}
-
-/* Register interrupt handler */
-void gic_register_int_handler(unsigned int vector, int_handler func, void *arg)
-{
-	ASSERT(vector < NR_IRQS);
-
-	enter_critical_section();
-	handler[vector].func = func;
-	handler[vector].arg = arg;
-	exit_critical_section();
-}
-
-void qgic_change_interrupt_cfg(uint32_t spi_number, uint8_t type)
-{
-	uint32_t register_number, register_address, bit_number, value;
-	register_number = spi_number >> 4; // r = n DIV 16
-	bit_number = (spi_number % 16) << 1; // b = (n MOD 16) * 2
-	value = readl(GIC_DIST_CONFIG + (register_number << 2));
-	// there are two bits per register to indicate the level
-	if (type == INTERRUPT_LVL_N_TO_N)
-		value &= ~(BIT(bit_number)|BIT(bit_number+1)); // 0x0 0x0
-	else if (type == INTERRUPT_LVL_1_TO_N)
-		value = (value & ~BIT(bit_number+1)) | BIT(bit_number); // 0x0 0x1
-	else if (type == INTERRUPT_EDGE_N_TO_N)
-		value =  BIT(bit_number+1) | (value & ~BIT(bit_number));// 0x1 0x0
-	else if (type == INTERRUPT_EDGE_1_TO_N)
-		value |= (BIT(bit_number)|BIT(bit_number+1)); // 0x1 0x1
-	else
-		dprintf(CRITICAL, "Invalid interrupt type change requested\n");
-	register_address = GIC_DIST_CONFIG + (register_number << 2);
-	writel(value, register_address);
 }
