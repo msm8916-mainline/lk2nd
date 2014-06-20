@@ -33,7 +33,7 @@
 /* GPIO that controls the button
  * for FASTBOOT.
  */
-#define FASTBOOT_KEY_GPIO_ID        58
+#define FASTBOOT_KEY_GPIO_ID        17
 
 /*
  * Returns fastboot button state.
