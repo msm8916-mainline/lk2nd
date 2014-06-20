@@ -40,7 +40,8 @@
 #define cxo_source_val    0
 #define gpll0_source_val  1
 #define cxo_mm_source_val 0
-#define gpll0_mm_source_val 1
+#define gpll0_mm_source_val 5
+#define gpll1_mm_source_val 1
 struct clk_freq_tbl rcg_dummy_freq = F_END;
 
 
@@ -105,6 +106,21 @@ static struct pll_vote_clk gpll0_clk_src =
 	.c = {
 		.rate     = 800000000,
 		.dbg_name = "gpll0_clk_src",
+		.ops      = &clk_ops_pll_vote,
+	},
+};
+
+static struct pll_vote_clk gpll1_clk_src =
+{
+	.en_reg       = (void *) APCS_GPLL_ENA_VOTE,
+	.en_mask      = BIT(1),
+	.status_reg   = (void *) GPLL1_STATUS,
+	.status_mask  = BIT(17),
+	.parent       = &cxo_clk_src.c,
+
+	.c = {
+		.rate     = 614400000,
+		.dbg_name = "gpll1_clk_src",
 		.ops      = &clk_ops_pll_vote,
 	},
 };
@@ -328,10 +344,23 @@ static struct clk_freq_tbl ftbl_mdss_esc0_1_clk[] = {
 };
 
 static struct clk_freq_tbl ftbl_mdp_clk[] = {
-	F_MM( 80000000,  gpll0,   10,    0,    0),
-	F_MM( 100000000, gpll0,   8,    0,    0),
-	F_MM( 200000000, gpll0,   4,    0,    0),
-	F_MM( 320000000, gpll0,   2.5,    0,    0),
+	F( 80000000,  gpll0,   10,    0,    0),
+	F( 100000000, gpll0,    8,    0,    0),
+	F( 200000000, gpll0,    4,    0,    0),
+	F( 320000000, gpll0,  2.5,    0,    0),
+	F_END
+};
+
+static struct clk_freq_tbl ftbl_mdss_mdp_clk_src[] = {
+	F_MM( 50000000,   gpll0,  16,    0,    0),
+	F_MM( 80000000,   gpll0,  10,    0,    0),
+	F_MM( 100000000,  gpll0,   8,    0,    0),
+	F_MM( 153600000,  gpll1,   4,    0,    0),
+	F_MM( 160000000,  gpll0,   5,    0,    0),
+	F_MM( 177780000,  gpll0, 4.5,    0,    0),
+	F_MM( 200000000,  gpll0,   4,    0,    0),
+	F_MM( 266670000,  gpll0,   3,    0,    0),
+	F_MM( 307200000,  gpll1,   2,    0,    0),
 	F_END
 };
 
@@ -537,7 +566,14 @@ static struct clk_lookup msm_clocks_8916[] =
 	CLK_LOOKUP("gcc_blsp1_qup2_i2c_apps_clk", gcc_blsp1_qup2_i2c_apps_clk.c),
 };
 
+void msm8939_clock_override()
+{
+	mdss_mdp_clk_src.freq_tbl = ftbl_mdss_mdp_clk_src;
+}
+
 void platform_clock_init(void)
 {
+	if (platform_is_msm8939())
+		msm8939_clock_override();
 	clk_init(msm_clocks_8916, ARRAY_SIZE(msm_clocks_8916));
 }
