@@ -2,7 +2,7 @@
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2011, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2011,2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,12 +40,33 @@
 
 static struct ihandler handler[NR_IRQS];
 
+static uint8_t qgic_get_cpumask()
+{
+	uint32_t mask=0, i;
+
+	/* Fetch the CPU MASK from the SGI/PPI reg */
+	for (i=0; i < 32; i += 4) {
+		mask = readl(GIC_DIST_TARGET + i);
+		mask |= mask >> 16;
+		mask |= mask >> 8;
+		if (mask)
+			break;
+	}
+
+	if (!mask)
+		dprintf(CRITICAL, "GIC CPU mask not found\n");
+
+	return mask;
+}
+
 /* Intialize distributor */
 static void qgic_dist_init(void)
 {
 	uint32_t i;
 	uint32_t num_irq = 0;
-	uint32_t cpumask = 1;
+	uint32_t cpumask;
+
+	cpumask = qgic_get_cpumask();
 
 	cpumask |= cpumask << 8;
 	cpumask |= cpumask << 16;
