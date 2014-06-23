@@ -101,6 +101,7 @@ void write_device_info_flash(device_info *dev);
 #define MAX_PANEL_BUF_SIZE 128
 
 #define UBI_MAGIC      "UBI#"
+#define DISPLAY_DEFAULT_PREFIX "mdss_mdp"
 #define UBI_MAGIC_SIZE 0x04
 #define BOOT_DEV_MAX_LEN  64
 
@@ -308,7 +309,8 @@ unsigned char *update_cmdline(const char * cmdline)
 			break;
 	}
 
-	if (target_display_panel_node(device.display_panel,
+	if ((strstr(cmdline, DISPLAY_DEFAULT_PREFIX) == NULL) &&
+		target_display_panel_node(device.display_panel,
 		display_panel_buf, MAX_PANEL_BUF_SIZE) &&
 		strlen(display_panel_buf)) {
 		cmdline_len += strlen(display_panel_buf);
