@@ -207,4 +207,5 @@
 #define TCSR_PHSS_USB2_PHY_SEL               0xFD4AB000
 #define PLATFORM_QMP_OFFSET                  0x8
 
+#define SMEM_TARG_INFO_ADDR                  0xFE805FF0
 #endif
