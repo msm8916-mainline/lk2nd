@@ -319,6 +319,11 @@ void *dev_tree_appended(void *kernel, uint32_t kernel_size, void *tags)
 			break;
 		dtb_size = fdt_totalsize(&dtb_hdr);
 
+		if (check_aboot_addr_range_overlap(tags, dtb_size)) {
+			dprintf(CRITICAL, "Tags addresses overlap with aboot addresses.\n");
+			return NULL;
+		}
+
 		/* now that we know we have a valid DTB, we need to copy
 		 * it somewhere aligned, like tags */
 		memcpy(tags, dtb, dtb_size);
