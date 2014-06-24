@@ -205,6 +205,9 @@ uint32_t board_get_ddr_subtype(void)
 	uint32_t len = 0;
 	unsigned ddr_size = 0;
 
+	/* Make sure RAM partition table is initialized */
+	ASSERT(smem_ram_ptable_init_v1());
+
 	len = smem_get_ram_ptable_len();
 
 	/* Calculating the size of the mem_info_ptr */
