@@ -56,7 +56,7 @@
 #include <qmp_phy.h>
 #include <qusb2_phy.h>
 
-#define CE_INSTANCE             3
+#define CE_INSTANCE             2
 #define CE_EE                   1
 #define CE_FIFO_SIZE            64
 #define CE_READ_PIPE            3
@@ -413,8 +413,8 @@ void target_crypto_init_params()
 
 	/* Set up base addresses and instance. */
 	ce_params.crypto_instance  = CE_INSTANCE;
-	ce_params.crypto_base      = MSM_CE3_BASE;
-	ce_params.bam_base         = MSM_CE3_BAM_BASE;
+	ce_params.crypto_base      = MSM_CE2_BASE;
+	ce_params.bam_base         = MSM_CE2_BAM_BASE;
 
 	/* Set up BAM config. */
 	ce_params.bam_ee               = CE_EE;
