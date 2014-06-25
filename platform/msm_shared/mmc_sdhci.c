@@ -1577,6 +1577,7 @@ static uint32_t mmc_card_init(struct mmc_device *dev)
 		 */
 		if (host->caps.hs400_support && mmc_card_supports_hs400_mode(card))
 		{
+			dprintf(INFO, "SDHC Running in HS400 mode\n");
 			mmc_return = mmc_set_hs400_mode(host, card, bus_width);
 			if (mmc_return)
 			{
@@ -1587,6 +1588,7 @@ static uint32_t mmc_card_init(struct mmc_device *dev)
 		}
 		else if (host->caps.sdr104_support && mmc_card_supports_hs200_mode(card))
 		{
+			dprintf(INFO, "SDHC Running in HS200 mode\n");
 			mmc_return = mmc_set_hs200_mode(host, card, bus_width);
 
 			if (mmc_return) {
@@ -1595,6 +1597,7 @@ static uint32_t mmc_card_init(struct mmc_device *dev)
 				return mmc_return;
 			}
 		} else if (host->caps.ddr_support && mmc_card_supports_ddr_mode(card)) {
+			dprintf(INFO, "SDHC Running in DDR mode\n");
 			mmc_return = mmc_set_ddr_mode(host, card);
 
 			if (mmc_return) {
@@ -1603,7 +1606,15 @@ static uint32_t mmc_card_init(struct mmc_device *dev)
 				return mmc_return;
 			}
 		} else {
-			/* Set 4/8 bit bus width for the card */
+			dprintf(INFO, "SDHC Running in High Speed mode\n");
+			/* Set HS_TIMING mode */
+			mmc_return = mmc_set_hs_interface(host, card);
+			if (mmc_return) {
+				dprintf(CRITICAL, "Failure to enalbe HS mode for Card(RCA:%x)\n",
+								  card->rca);
+				return mmc_return;
+			}
+			/* Set wide bus mode */
 			mmc_return = mmc_set_bus_width(host, card, bus_width);
 			if (mmc_return) {
 				dprintf(CRITICAL, "Failure to set wide bus for Card(RCA:%x)\n",
