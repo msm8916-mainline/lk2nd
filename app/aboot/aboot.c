@@ -1579,6 +1579,7 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	unsigned ramdisk_actual;
 	uint32_t image_actual;
 	uint32_t dt_actual = 0;
+	uint32_t sig_actual = SIGNATURE_SIZE;
 	struct boot_img_hdr *hdr;
 	struct kernel64_hdr *kptr;
 	char *ptr = ((char*) data);
@@ -1610,9 +1611,12 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	image_actual = ADD_OF(image_actual, ramdisk_actual);
 	image_actual = ADD_OF(image_actual, dt_actual);
 
+	if (target_use_signed_kernel() && (!device.is_unlocked))
+		image_actual = ADD_OF(image_actual, sig_actual);
+
 	/* sz should have atleast raw boot image */
 	if (image_actual > sz) {
-		fastboot_fail("incomplete bootimage");
+		fastboot_fail("bootimage: incomplete or not signed");
 		return;
 	}
 
@@ -1620,7 +1624,10 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	 * device & page_size are initialized in aboot_init
 	 */
 	if (target_use_signed_kernel() && (!device.is_unlocked))
-		verify_signed_bootimg((uint32_t)data, image_actual);
+		/* Pass size excluding signature size, otherwise we would try to
+		 * access signature beyond its length
+		 */
+		verify_signed_bootimg((uint32_t)data, (image_actual - sig_actual));
 
 	/*
 	 * Update the kernel/ramdisk/tags address if the boot image header
