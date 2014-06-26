@@ -71,6 +71,9 @@ void platform_early_init(void)
 void platform_init(void)
 {
 	dprintf(INFO, "platform_init()\n");
+#if ENABLE_XPU_VIOLATION
+	scm_xpu_err_fatal_init();
+#endif
 }
 
 void platform_uninit(void)
