@@ -810,6 +810,11 @@ int boot_linux_from_mmc(void)
 	}
 
 	if (hdr->page_size && (hdr->page_size != page_size)) {
+
+		if (hdr->page_size > BOOT_IMG_MAX_PAGE_SIZE) {
+			dprintf(CRITICAL, "ERROR: Invalid page size\n");
+			return -1;
+		}
 		page_size = hdr->page_size;
 		page_mask = page_size - 1;
 	}
