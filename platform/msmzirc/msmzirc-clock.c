@@ -119,12 +119,11 @@ static struct clk_freq_tbl ftbl_gcc_sdcc1_2_apps_clk[] =
 {
 	F(   144000,    cxo,  16,   3,  25),
 	F(   400000,    cxo,  12,   1,   4),
-	F( 20000000,  gpll0,  10,   1,   4),
-	F( 25000000,  gpll0,  16,   1,   2),
-	F( 50000000,  gpll0,  16,   0,   0),
-	F(100000000,  gpll0,   8,   0,   0),
-	F(177770000,  gpll0, 4.5,   0,   0),
-	F(200000000,  gpll0,   4,   0,   0),
+	F( 20000000,  gpll0,  15,   1,   2),
+	F( 25000000,  gpll0,  12,   1,   2),
+	F( 50000000,  gpll0,  12,   0,   0),
+	F(100000000,  gpll0,   6,   0,   0),
+	F(200000000,  gpll0,   3,   0,   0),
 	F_END
 };
 
@@ -171,21 +170,21 @@ static struct branch_clk gcc_sdcc1_ahb_clk =
 /* UART Clocks */
 static struct clk_freq_tbl ftbl_gcc_blsp1_2_uart1_6_apps_clk[] =
 {
-	F( 3686400,  gpll0,    1,  72,  15625),
-	F( 7372800,  gpll0,    1, 144,  15625),
-	F(14745600,  gpll0,    1, 288,  15625),
-	F(16000000,  gpll0,   10,   1,      5),
+	F( 3686400,  gpll0,    1,  96,  15625),
+	F( 7372800,  gpll0,    1, 192,  15625),
+	F(14745600,  gpll0,    1, 384,  15625),
+	F(16000000,  gpll0,    5,   2,     15),
 	F(19200000,    cxo,    1,   0,      0),
-	F(24000000,  gpll0,    1,   3,    100),
-	F(25000000,  gpll0,   16,   1,      2),
-	F(32000000,  gpll0,    1,   1,     25),
-	F(40000000,  gpll0,    1,   1,     20),
-	F(46400000,  gpll0,    1,  29,    500),
-	F(48000000,  gpll0,    1,   3,     50),
-	F(51200000,  gpll0,    1,   8,    125),
-	F(56000000,  gpll0,    1,   7,    100),
-	F(58982400,  gpll0,    1,1152,  15625),
-	F(60000000,  gpll0,    1,   3,     40),
+	F(24000000,  gpll0,    5,   1,      5),
+	F(32000000,  gpll0,    1,   4,     75),
+	F(40000000,  gpll0,   15,   0,      0),
+	F(46400000,  gpll0,    1,  29,    375),
+	F(48000000,  gpll0, 12.5,   0,      0),
+	F(51200000,  gpll0,    1,  32,    375),
+	F(56000000,  gpll0,    1,   7,     75),
+	F(58982400,  gpll0,    1, 1536, 15625),
+	F(60000000,  gpll0,   10,   0,      0),
+	F(63160000,  gpll0,  9.5,   0,      0),
 	F_END
 };
 
@@ -230,49 +229,6 @@ static struct vote_clk gcc_blsp1_ahb_clk = {
 };
 
 /* USB Clocks */
-static struct clk_freq_tbl ftbl_gcc_usb_hs_system_clk[] =
-{
-	F(80000000,  gpll0,   10,   0,   0),
-	F_END
-};
-
-static struct rcg_clk usb_hs_system_clk_src =
-{
-	.cmd_reg      = (uint32_t *) USB_HS_SYSTEM_CMD_RCGR,
-	.cfg_reg      = (uint32_t *) USB_HS_SYSTEM_CFG_RCGR,
-
-	.set_rate     = clock_lib2_rcg_set_rate_hid,
-	.freq_tbl     = ftbl_gcc_usb_hs_system_clk,
-	.current_freq = &rcg_dummy_freq,
-
-	.c = {
-		.dbg_name = "usb_hs_system_clk",
-		.ops      = &clk_ops_rcg,
-	},
-};
-
-static struct branch_clk gcc_usb_hs_system_clk =
-{
-	.cbcr_reg     = (uint32_t *) USB_HS_SYSTEM_CBCR,
-	.parent       = &usb_hs_system_clk_src.c,
-
-	.c = {
-		.dbg_name = "gcc_usb_hs_system_clk",
-		.ops      = &clk_ops_branch,
-	},
-};
-
-static struct branch_clk gcc_usb_hs_ahb_clk =
-{
-	.cbcr_reg     = (uint32_t *) USB_HS_AHB_CBCR,
-	.has_sibling  = 1,
-
-	.c = {
-		.dbg_name = "gcc_usb_hs_ahb_clk",
-		.ops      = &clk_ops_branch,
-	},
-};
-
 static struct branch_clk gcc_sys_noc_usb30_axi_clk =
 {
 	.cbcr_reg     = (uint32_t *) SYS_NOC_USB3_AXI_CBCR,
@@ -408,9 +364,6 @@ static struct clk_lookup msm_clocks_zirc[] =
 
 	CLK_LOOKUP("uart2_iface_clk", gcc_blsp1_ahb_clk.c),
 	CLK_LOOKUP("uart2_core_clk",  gcc_blsp1_uart2_apps_clk.c),
-
-	CLK_LOOKUP("usb_iface_clk",  gcc_usb_hs_ahb_clk.c),
-	CLK_LOOKUP("usb_core_clk",   gcc_usb_hs_system_clk.c),
 
 	CLK_LOOKUP("usb30_iface_clk",  gcc_sys_noc_usb30_axi_clk.c),
 	CLK_LOOKUP("usb30_master_clk", gcc_usb30_master_clk.c),
