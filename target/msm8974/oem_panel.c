@@ -99,10 +99,12 @@ int oem_panel_off()
 	return NO_ERROR;
 }
 
-static void init_panel_data(struct panel_struct *panelstruct,
+static int init_panel_data(struct panel_struct *panelstruct,
 			struct msm_panel_info *pinfo,
 			struct mdss_dsi_phy_ctrl *phy_db)
 {
+	int pan_type = PANEL_TYPE_DSI;
+
 	switch (panel_id) {
 	case TOSHIBA_720P_VIDEO_PANEL:
 		panelstruct->paneldata    = &toshiba_720p_video_panel_data;
@@ -233,8 +235,11 @@ static void init_panel_data(struct panel_struct *panelstruct,
 		pinfo->mipi.num_of_panel_cmds = 0;
 		memset(phy_db->timing, 0, TIMING_SIZE);
 		pinfo->mipi.signature = 0;
+		pan_type = PANEL_TYPE_UNKNOWN;
 		break;
 	}
+
+	return pan_type;
 }
 
 uint32_t oem_panel_max_auto_detect_panels()
@@ -245,13 +250,12 @@ uint32_t oem_panel_max_auto_detect_panels()
 
 static uint32_t auto_pan_loop = 0;
 
-bool oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
+int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 			struct msm_panel_info *pinfo,
 			struct mdss_dsi_phy_ctrl *phy_db)
 {
 	uint32_t hw_id = board_hardware_id();
 	uint32_t target_id = board_target_id();
-	bool ret = true;
 	int32_t panel_override_id;
 
 	if (panel_name) {
@@ -287,7 +291,6 @@ bool oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 			break;
 		default:
 			panel_id = UNKNOWN_PANEL;
-			ret = false;
 			break;
 		}
 		auto_pan_loop++;
@@ -298,11 +301,9 @@ bool oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	default:
 		dprintf(CRITICAL, "Display not enabled for %d HW type\n"
 					, hw_id);
-		return false;
+		return PANEL_TYPE_UNKNOWN;
 	}
 
 panel_init:
-	init_panel_data(panelstruct, pinfo, phy_db);
-
-	return ret;
+	return init_panel_data(panelstruct, pinfo, phy_db);
 }

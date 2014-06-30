@@ -108,11 +108,11 @@ int oem_panel_off()
 	return NO_ERROR;
 }
 
-static bool init_panel_data(struct panel_struct *panelstruct,
+static int init_panel_data(struct panel_struct *panelstruct,
 			struct msm_panel_info *pinfo,
 			struct mdss_dsi_phy_ctrl *phy_db)
 {
-	bool ret = true;
+	int pan_type = PANEL_TYPE_DSI;
 
 	switch (panel_id) {
 	case JDI_1080P_VIDEO_PANEL:
@@ -244,10 +244,10 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 		memset(pinfo->mipi.panel_cmds, 0, sizeof(struct mipi_dsi_cmd));
 		pinfo->mipi.num_of_panel_cmds = 0;
 		memset(phy_db->timing, 0, TIMING_SIZE);
-		ret = false;
+		pan_type = PANEL_TYPE_UNKNOWN;
 		break;
 	}
-	return ret;
+	return pan_type;
 }
 
 uint32_t oem_panel_max_auto_detect_panels()
@@ -256,14 +256,13 @@ uint32_t oem_panel_max_auto_detect_panels()
                         DISPLAY_MAX_PANEL_DETECTION : 0;
 }
 
-bool oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
+int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 			struct msm_panel_info *pinfo,
 			struct mdss_dsi_phy_ctrl *phy_db)
 {
 	uint32_t hw_id = board_hardware_id();
 	uint32_t hw_subtype = board_hardware_subtype();
 	int32_t panel_override_id;
-	bool ret = true;
 	uint32_t target_id, plat_hw_ver_major;
 
 	if (panel_name) {
@@ -298,9 +297,8 @@ bool oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 			break;
 		default:
 			panel_id = UNKNOWN_PANEL;
-			ret = false;
 			dprintf(CRITICAL, "Unknown panel\n");
-			return ret;
+			return PANEL_TYPE_UNKNOWN;
 		}
 		auto_pan_loop++;
 		break;
@@ -322,13 +320,13 @@ bool oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 		default:
 			dprintf(CRITICAL, "Invalid subtype id %d for QRD HW\n",
 				hw_subtype);
-			return false;
+			return PANEL_TYPE_UNKNOWN;
 		}
 		break;
 	default:
 		dprintf(CRITICAL, "Display not enabled for %d HW type\n",
 			hw_id);
-		return false;
+		return PANEL_TYPE_UNKNOWN;
 	}
 
 panel_init:

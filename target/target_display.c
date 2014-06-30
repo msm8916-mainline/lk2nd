@@ -62,3 +62,28 @@ __WEAK int target_display_post_off()
 {
 	return 0;
 }
+
+__WEAK void target_edp_panel_init(struct msm_panel_info *pinfo)
+{
+	return;
+}
+
+__WEAK int target_edp_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
+{
+	return 0;
+}
+
+__WEAK int target_edp_panel_enable(void)
+{
+	return 0;
+}
+
+__WEAK int target_edp_panel_disable(void)
+{
+	return 0;
+}
+
+__WEAK int target_edp_bl_ctrl(int enable)
+{
+	return 0;
+}
