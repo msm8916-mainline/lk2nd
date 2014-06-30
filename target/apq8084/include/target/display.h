@@ -52,6 +52,15 @@ static struct gpio_pin bkl_gpio = {
 static struct gpio_pin pwm_gpio = {
   "pm8084", 7, 3, 1, 0, 1
 };
+
+static struct gpio_pin edp_lvl_en_gpio = {
+  "msmgpio", 91, 3, 1, 0, 1
+};
+
+static struct gpio_pin edp_hpd_gpio = {	/* input */
+  "msmgpio", 103, 3, 0, 0, 1
+};
+
 /*---------------------------------------------------------------------------*/
 /* LDO configuration                                                         */
 /*---------------------------------------------------------------------------*/

@@ -213,6 +213,8 @@
 #define BOOT_CONFIG_OFFSET          0x00006034
 #define BOOT_CONFIG_REG             (SEC_CTRL_CORE_BASE+BOOT_CONFIG_OFFSET)
 
+#define EDP_BASE                    (0xFD923400)
+
 #define SOFT_RESET                  0x118
 #define CLK_CTRL                    0x11C
 #define TRIG_CTRL                   0x084
