@@ -5,6 +5,7 @@ ARM_CPU := cortex-a8
 CPU     := generic
 
 DEFINES += ARM_CPU_CORE_KRAIT
+DEFINES += ARM_CORE_V8
 
 MMC_SLOT         := 1
 
