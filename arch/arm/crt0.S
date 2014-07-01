@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2008 Travis Geiselbrecht
  *
+ * Copyright (c) 2014, The Linux Foundation. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction,
@@ -52,6 +54,10 @@ reset:
 	bic		r0, r0, #(1<<2 | 1<<0)
 		/* disable alignment faults */
 	bic		r0, r0, #(1<<1)
+	/* Enable CP15 barriers by default */
+#ifdef ARM_CORE_V8
+	orr		r0, r0, #(1<<5)
+#endif
         /* Write SCTLR */
 	mcr		p15, 0, r0, c1, c0, 0
 #ifdef ENABLE_TRUSTZONE
