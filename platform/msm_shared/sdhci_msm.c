@@ -516,7 +516,7 @@ static uint32_t sdhci_msm_cdclp533_calibration(struct sdhci_host *host)
 	 * SDCC_CSR_CDC_CAL_TIMER_CFG1 -->  0x4
 	 * SDCC_CSR_CDC_REFCOUNT_CFG -->   0xCB732020
 	 * SDCC_CSR_CDC_COARSE_CAL_CFG -->  0xB19
-	 * SDCC_CSR_CDC_DELAY_CFG  -->   0x3AC
+	 * SDCC_CSR_CDC_DELAY_CFG  -->   0x4E2
 	 * SDCC_CDC_OFFSET_CFG     -->   0x0
 	 * SDCC_CDC_SLAVE_DDA_CFG  -->   0x16334
 	 */
@@ -527,7 +527,7 @@ static uint32_t sdhci_msm_cdclp533_calibration(struct sdhci_host *host)
 	REG_WRITE32(host, 0x4,        SDCC_CSR_CDC_CAL_TIMER_CFG1);
 	REG_WRITE32(host, 0xCB732020, SDCC_CSR_CDC_REFCOUNT_CFG);
 	REG_WRITE32(host, 0xB19,      SDCC_CSR_CDC_COARSE_CAL_CFG);
-	REG_WRITE32(host, 0x3AC,      SDCC_CSR_CDC_DELAY_CFG);
+	REG_WRITE32(host, 0x4E2,      SDCC_CSR_CDC_DELAY_CFG);
 	REG_WRITE32(host, 0x0,        SDCC_CDC_OFFSET_CFG);
 	REG_WRITE32(host, 0x16334,    SDCC_CDC_SLAVE_DDA_CFG);
 
