@@ -60,13 +60,9 @@ ifeq ($(SIGNED_KERNEL),1)
   CFLAGS += -D_SIGNED_KERNEL=1
 endif
 
-# When the host arch is ARM, ensure stack protection code is not emitted since
-# it's not supported by the bootloader's libc
 # setup toolchain prefix
 TOOLCHAIN_PREFIX ?= arm-eabi-
-ifneq ($(shell uname -m | grep "arm.*"),)
-  CFLAGS += -fno-stack-protector
-endif
+CFLAGS += -fstack-protector-all
 CPPFLAGS := -fno-exceptions -fno-rtti -fno-threadsafe-statics
 #CPPFLAGS += -Weffc++
 ASMFLAGS := -DASSEMBLY
