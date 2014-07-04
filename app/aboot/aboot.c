@@ -328,11 +328,13 @@ unsigned char *update_cmdline(const char * cmdline)
 
 	if (cmdline_len > 0) {
 		const char *src;
-		unsigned char *dst = (unsigned char*) malloc((cmdline_len + 4) & (~3));
-		ASSERT(dst != NULL);
+		unsigned char *dst;
+
+		cmdline_final = (unsigned char*) malloc((cmdline_len + 4) & (~3));
+		ASSERT(cmdline_final != NULL);
+		dst = cmdline_final;
 
 		/* Save start ptr for debug print */
-		cmdline_final = dst;
 		if (have_cmdline) {
 			src = cmdline;
 			while ((*dst++ = *src++));
@@ -592,6 +594,7 @@ void boot_linux(void *kernel, unsigned *tags,
 	generate_atags(tags, final_cmdline, ramdisk, ramdisk_size);
 #endif
 
+	free(final_cmdline);
 	/* Perform target specific cleanup */
 	target_uninit();
 
