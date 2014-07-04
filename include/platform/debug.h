@@ -26,6 +26,7 @@
 #include <sys/types.h>
 #include <stdarg.h>
 #include <compiler.h>
+#include <scm.h>
 
 #if defined(__cplusplus)
 extern "C" {
