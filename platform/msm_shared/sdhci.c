@@ -567,7 +567,7 @@ err:
 	}
 
 	/* Reset data & command line */
-	if (cmd->data_present || need_reset)
+	if (need_reset)
 		sdhci_reset(host, (SOFT_RESET_CMD | SOFT_RESET_DATA));
 
 	return ret;
