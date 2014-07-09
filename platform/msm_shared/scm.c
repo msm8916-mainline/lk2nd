@@ -708,3 +708,23 @@ void * get_canary()
 
 	return canary;
 }
+
+int scm_xpu_err_fatal_init()
+{
+	uint32_t ret = 0;
+	uint32_t response = 0;
+	tz_xpu_prot_cmd cmd;
+
+	cmd.config = ERR_FATAL_ENABLE;
+	cmd.spare = 0;
+
+	ret = scm_call(SVC_MEMORY_PROTECTION, XPU_ERR_FATAL, &cmd, sizeof(cmd), &response,
+				   sizeof(response));
+
+	if (ret)
+		dprintf(CRITICAL, "Failed to set XPU violations as fatal errors: %u\n", response);
+	else
+		dprintf(INFO, "Configured XPU violations to be fatal errors\n");
+
+	return ret;
+}
