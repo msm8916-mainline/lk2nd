@@ -171,6 +171,12 @@ void target_display_init(const char *panel_name)
 {
 	uint32_t panel_loop = 0;
 	uint32_t ret = 0;
+
+	if (!strcmp(panel_name, NO_PANEL_CONFIG)) {
+		dprintf(INFO, "Skip panel configuration\n");
+		return;
+	}
+
 	do {
 		ret = gcdb_display_init(panel_name, MDP_REV_304, MIPI_FB_ADDR);
 		if (ret) {

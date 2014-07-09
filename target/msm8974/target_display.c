@@ -399,6 +399,11 @@ void target_display_init(const char *panel_name)
 
 	panel_name += strspn(panel_name, " ");
 
+	if (!strcmp(panel_name, NO_PANEL_CONFIG)) {
+		dprintf(INFO, "Skip panel configuration\n");
+		return;
+	}
+
 	if (!strcmp(panel_name, HDMI_PANEL_NAME)) {
 		dprintf(INFO, "%s: HDMI is primary\n", __func__);
 		return;

@@ -42,6 +42,8 @@
 #define LK_OVERRIDE_PANEL      "1:"
 #define LK_OVERRIDE_PANEL_LEN  2
 
+#define NO_PANEL_CONFIG "none"
+
 /*---------------------------------------------------------------------------*/
 /* Structure definition                                                      */
 /*---------------------------------------------------------------------------*/
