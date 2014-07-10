@@ -842,7 +842,14 @@ uint32_t sdhci_send_command(struct sdhci_host *host, struct mmc_command *cmd)
 		trans_mode |= SDHCI_DMA_EN;
 
 		if (cmd->trans_mode == SDHCI_MMC_READ)
+		{
 			trans_mode |= SDHCI_READ_MODE;
+			sdhci_msm_toggle_cdr(host, true);
+		}
+		else
+		{
+			sdhci_msm_toggle_cdr(host, false);
+		}
 
 		/* Enable auto cmd23 or cmd12 for multi block transfer
 		 * based on what command card supports
