@@ -689,7 +689,7 @@ retry_tuning:
 	if (tuned_phase_cnt == MAX_PHASES)
 	{
 		/* Change the driver type & rerun tuning */
-		while(++drv_type < MX_DRV_SUPPORTED_HS200)
+		while(++drv_type <= MX_DRV_SUPPORTED_HS200)
 		{
 			drv_type_changed = mmc_set_drv_type(host, card, drv_type);
 			if (drv_type_changed)

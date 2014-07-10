@@ -1648,14 +1648,6 @@ static uint32_t mmc_card_init(struct mmc_device *dev)
 	}
 
 
-	/* Verify TRAN state after changing speed and bus width */
-	mmc_return = mmc_get_card_status(host, card, &status);
-	if (mmc_return)
-		return mmc_return;
-
-	if (MMC_CARD_STATUS(status) != MMC_TRAN_STATE)
-		mmc_return = 1;
-
 	card->block_size = MMC_BLK_SZ;
 
 	return mmc_return;
