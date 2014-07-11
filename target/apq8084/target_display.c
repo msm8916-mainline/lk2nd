@@ -371,7 +371,7 @@ bool target_display_panel_node(char *panel_name, char *pbuf, uint16_t buf_size)
 
 	if (!strcmp(panel_name, HDMI_PANEL_NAME)) {
 		if (buf_size < (prefix_string_len + LK_OVERRIDE_PANEL_LEN +
-				HDMI_CONTROLLER_STRING)) {
+				strlen(HDMI_CONTROLLER_STRING))) {
 			dprintf(CRITICAL, "command line argument is greater than buffer size\n");
 			return false;
 		}
