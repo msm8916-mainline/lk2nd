@@ -127,6 +127,7 @@ static void mdss_source_pipe_config(struct fbcon_config *fb, struct msm_panel_in
 {
 	uint32_t src_size, out_size, stride;
 	uint32_t fb_off = 0;
+	uint32_t flip_bits = 0;
 
 	/* write active region size*/
 	src_size = (fb->height << 16) + fb->width;
@@ -152,7 +153,15 @@ static void mdss_source_pipe_config(struct fbcon_config *fb, struct msm_panel_in
 	/* Tight Packing 3bpp 0-Alpha 8-bit R B G */
 	writel(0x0002243F, pipe_base + PIPE_SSPP_SRC_FORMAT);
 	writel(0x00020001, pipe_base + PIPE_SSPP_SRC_UNPACK_PATTERN);
-	writel(0x00, pipe_base + PIPE_SSPP_SRC_OP_MODE);
+
+	/* bit(0) is set if hflip is required.
+	 * bit(1) is set if vflip is required.
+	 */
+	if (pinfo->orientation & 0x1)
+		flip_bits |= MDSS_MDP_OP_MODE_FLIP_LR;
+	if (pinfo->orientation & 0x2)
+		flip_bits |= MDSS_MDP_OP_MODE_FLIP_UD;
+	writel(flip_bits, pipe_base + PIPE_SSPP_SRC_OP_MODE);
 }
 
 static void mdss_vbif_setup()

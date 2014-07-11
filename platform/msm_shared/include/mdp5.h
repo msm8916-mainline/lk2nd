@@ -144,6 +144,10 @@
 #define MMSS_MDP_SMP_ALLOC_W_BASE               REG_MDP(0x0180)
 #define MMSS_MDP_SMP_ALLOC_R_BASE               REG_MDP(0x0230)
 
+/* source pipe opmode bits for flip */
+#define MDSS_MDP_OP_MODE_FLIP_UD                BIT(14)
+#define MDSS_MDP_OP_MODE_FLIP_LR                BIT(13)
+
 #define MDP_QOS_REMAPPER_CLASS_0                REG_MDP(0x02E0)
 #define MDP_QOS_REMAPPER_CLASS_1                REG_MDP(0x02E4)
 
