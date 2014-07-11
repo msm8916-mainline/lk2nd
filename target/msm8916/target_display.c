@@ -206,6 +206,84 @@ static int qrd_lcd_i2c_write(uint8_t addr, uint8_t val)
 	return 0;
 }
 
+static int target_panel_reset_skuh(uint8_t enable)
+{
+	int ret = NO_ERROR;
+	if (enable) {
+		/* for tps65132 ENP pin */
+		gpio_tlmm_config(enp_gpio.pin_id, 0,
+			enp_gpio.pin_direction, enp_gpio.pin_pull,
+			enp_gpio.pin_strength,
+			enp_gpio.pin_state);
+		gpio_set_dir(enp_gpio.pin_id, 2);
+
+		/* for tps65132 ENN pin*/
+		gpio_tlmm_config(enn_gpio.pin_id, 0,
+			enn_gpio.pin_direction, enn_gpio.pin_pull,
+			enn_gpio.pin_strength,
+			enn_gpio.pin_state);
+		gpio_set_dir(enn_gpio.pin_id, 2);
+
+		i2c_dev = qup_blsp_i2c_init(BLSP_ID_1, QUP_ID_1, 100000, 19200000);
+		if(!i2c_dev) {
+			dprintf(CRITICAL, "qup_blsp_i2c_init failed \n");
+			ASSERT(0);
+		}
+
+		ret = qrd_lcd_i2c_write(QRD_LCD_VPOS_ADDRESS, 0x0E); /* 5.4V */
+		if (ret) {
+			dprintf(CRITICAL, "VPOS Register: I2C Write failure\n");
+		}
+
+		ret = qrd_lcd_i2c_write(QRD_LCD_VNEG_ADDRESS, 0x0E); /* -5.4V */
+		if (ret) {
+			dprintf(CRITICAL, "VNEG Register: I2C write failure\n");
+		}
+
+		ret = qrd_lcd_i2c_write(QRD_LCD_DIS_ADDRESS, 0x0F);
+		if (ret) {
+			dprintf(CRITICAL, "Apps freq DIS Register: I2C write failure\n");
+		}
+
+		ret = qrd_lcd_i2c_write(QRD_LCD_CONTROL_ADDRESS, 0xF0);
+		if (ret) {
+			dprintf(CRITICAL, "Control Register: I2C write failure\n");
+		}
+	} else {
+		gpio_set_dir(enp_gpio.pin_id, 0); /* ENP */
+		gpio_set_dir(enn_gpio.pin_id, 0); /* ENN */
+	}
+	return 0;
+}
+
+static int target_panel_reset_skuk(uint8_t enable)
+{
+	if (enable) {
+		/* for tps65132 ENP pin*/
+		gpio_tlmm_config(enp_gpio_skuk.pin_id, 0,
+			enp_gpio_skuk.pin_direction, enp_gpio_skuk.pin_pull,
+			enp_gpio_skuk.pin_strength, enp_gpio_skuk.pin_state);
+		gpio_set_dir(enp_gpio_skuk.pin_id, 2);
+
+		/* for tps65132 ENN pin*/
+		gpio_tlmm_config(enn_gpio_skuk.pin_id, 0,
+			enn_gpio_skuk.pin_direction, enn_gpio_skuk.pin_pull,
+			enn_gpio_skuk.pin_strength, enn_gpio_skuk.pin_state);
+		gpio_set_dir(enn_gpio_skuk.pin_id, 2);
+
+		/* configure backlight gpio for SKUK */
+		gpio_tlmm_config(bkl_gpio_skuk.pin_id, 0,
+			bkl_gpio_skuk.pin_direction, bkl_gpio_skuk.pin_pull,
+			bkl_gpio_skuk.pin_strength, bkl_gpio_skuk.pin_state);
+		gpio_set_dir(bkl_gpio_skuk.pin_id, 2);
+	} else {
+		gpio_set_dir(bkl_gpio_skuk.pin_id, 0);
+		gpio_set_dir(enp_gpio_skuk.pin_id, 0); /* ENP */
+		gpio_set_dir(enn_gpio_skuk.pin_id, 0); /* ENN */
+	}
+	return 0;
+}
+
 int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 						struct msm_panel_info *pinfo)
 {
@@ -223,47 +301,14 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 			gpio_set_dir(enable_gpio.pin_id, 2);
 		}
 
-		if (hw_id == HW_PLATFORM_QRD &&
-			hw_subtype == HW_PLATFORM_SUBTYPE_SKUH) {
-			/* for tps65132 chip ENP */
-			gpio_tlmm_config(enp_gpio.pin_id, 0,
-				enp_gpio.pin_direction, enp_gpio.pin_pull,
-				enp_gpio.pin_strength,
-				enp_gpio.pin_state);
-			gpio_set_dir(enp_gpio.pin_id, 2);
-
-			/* for tps65132 chip ENN */
-			gpio_tlmm_config(enn_gpio.pin_id, 0,
-				enn_gpio.pin_direction, enn_gpio.pin_pull,
-				enn_gpio.pin_strength,
-				enn_gpio.pin_state);
-			gpio_set_dir(enn_gpio.pin_id, 2);
-
-			i2c_dev = qup_blsp_i2c_init(BLSP_ID_1, QUP_ID_1, 100000, 19200000);
-			if(!i2c_dev) {
-				dprintf(CRITICAL, "qup_blsp_i2c_init failed \n");
-				ASSERT(0);
-			}
-
-			ret = qrd_lcd_i2c_write(QRD_LCD_VPOS_ADDRESS, 0x0E); /* 5.4V */
-			if (ret) {
-				dprintf(CRITICAL, "VPOS Register: I2C Write failure\n");
-			}
-
-			ret = qrd_lcd_i2c_write(QRD_LCD_VNEG_ADDRESS, 0x0E); /* -5.4V */
-			if (ret) {
-				dprintf(CRITICAL, "VNEG Register: I2C write failure\n");
-			}
-
-			ret = qrd_lcd_i2c_write(QRD_LCD_DIS_ADDRESS, 0x0F);
-			if (ret) {
-				dprintf(CRITICAL, "Apps freq DIS Register: I2C write failure\n");
-			}
-
-			ret = qrd_lcd_i2c_write(QRD_LCD_CONTROL_ADDRESS, 0xF0);
-			if (ret) {
-				dprintf(CRITICAL, "Control Register: I2C write failure\n");
-			}
+		if (platform_is_msm8939()) {
+			if ((hw_id == HW_PLATFORM_QRD) &&
+				 (hw_subtype == HW_PLATFORM_SUBTYPE_SKUK))
+				target_panel_reset_skuk(enable);
+		} else { /* msm8916 */
+			if ((hw_id == HW_PLATFORM_QRD) &&
+				 (hw_subtype == HW_PLATFORM_SUBTYPE_SKUH))
+				target_panel_reset_skuh(enable);
 		}
 
 		if (hw_id == HW_PLATFORM_MTP || hw_id == HW_PLATFORM_SURF) {
@@ -293,10 +338,14 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 		if (pinfo->mipi.use_enable_gpio)
 			gpio_set_dir(enable_gpio.pin_id, 0);
 
-		if(hw_id == HW_PLATFORM_QRD &&
-			hw_subtype == HW_PLATFORM_SUBTYPE_SKUH) {
-			gpio_set_dir(enp_gpio.pin_id, 0); /* ENP */
-			gpio_set_dir(enn_gpio.pin_id, 0); /* ENN */
+		if (platform_is_msm8939()) {
+			if ((hw_id == HW_PLATFORM_QRD) &&
+				 (hw_subtype == HW_PLATFORM_SUBTYPE_SKUK))
+				target_panel_reset_skuk(enable);
+		} else { /* msm8916 */
+			if ((hw_id == HW_PLATFORM_QRD) &&
+				 (hw_subtype == HW_PLATFORM_SUBTYPE_SKUH))
+				target_panel_reset_skuh(enable);
 		}
 	}
 
