@@ -367,6 +367,7 @@ enum {
 	MSM8216  = 248,
 	MSM8116  = 249,
 	MSM8616  = 250,
+	APQ8094  = 253,
 };
 
 enum platform {
