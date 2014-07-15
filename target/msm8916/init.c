@@ -178,7 +178,6 @@ void target_init(void)
 	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
 
 	target_keystatus();
-	set_sdc_power_ctrl();
 
 	target_sdc_init();
 	if (partition_read_table())
