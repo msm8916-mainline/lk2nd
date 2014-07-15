@@ -630,7 +630,7 @@ void boot_linux(void *kernel, unsigned *tags,
 int check_aboot_addr_range_overlap(uint32_t start, uint32_t size)
 {
 	/* Check for boundary conditions. */
-	if ((start + size) < start)
+	if ((UINT_MAX - start) < size)
 		return -1;
 
 	/* Check for memory overlap. */
