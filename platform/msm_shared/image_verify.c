@@ -55,6 +55,11 @@ image_decrypt_signature(unsigned char *signature_ptr, unsigned char *plain_text)
 		goto cleanup;
 	}
 	pub_key = X509_get_pubkey(x509_certificate);
+	if (pub_key == NULL) {
+		dprintf(CRITICAL, "ERROR: Boot Invalid, PUB_KEY is NULL!\n");
+		goto cleanup;
+	}
+
 	rsa_key = EVP_PKEY_get1_RSA(pub_key);
 	if (rsa_key == NULL) {
 		dprintf(CRITICAL, "ERROR: Boot Invalid, RSA_KEY is NULL!\n");
