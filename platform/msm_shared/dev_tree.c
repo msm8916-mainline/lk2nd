@@ -305,8 +305,11 @@ void *dev_tree_appended(void *kernel, uint32_t kernel_size, void *tags)
 
 	memcpy((void*) &app_dtb_offset, (void*) (kernel + DTB_OFFSET), sizeof(uint32_t));
 
+	if (((uintptr_t)kernel + (uintptr_t)app_dtb_offset) < (uintptr_t)kernel) {
+		return NULL;
+	}
 	dtb = kernel + app_dtb_offset;
-	while (dtb + sizeof(struct fdt_header) < kernel_end) {
+	while (((uintptr_t)dtb + sizeof(struct fdt_header)) < (uintptr_t)kernel_end) {
 		uint32_t dtb_soc_rev_id;
 		struct fdt_header dtb_hdr;
 		uint32_t dtb_size;
@@ -315,7 +318,8 @@ void *dev_tree_appended(void *kernel, uint32_t kernel_size, void *tags)
 		 * and operate on it separately */
 		memcpy(&dtb_hdr, dtb, sizeof(struct fdt_header));
 		if (fdt_check_header((const void *)&dtb_hdr) != 0 ||
-		    (dtb + fdt_totalsize((const void *)&dtb_hdr) > kernel_end))
+		    ((uintptr_t)dtb + (uintptr_t)fdt_totalsize((const void *)&dtb_hdr) < (uintptr_t)dtb) ||
+			((uintptr_t)dtb + (uintptr_t)fdt_totalsize((const void *)&dtb_hdr) > (uintptr_t)kernel_end))
 			break;
 		dtb_size = fdt_totalsize(&dtb_hdr);
 
