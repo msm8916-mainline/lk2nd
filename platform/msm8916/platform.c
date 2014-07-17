@@ -30,6 +30,7 @@
 #include <reg.h>
 #include <platform/iomap.h>
 #include <platform/irqs.h>
+#include <platform/clock.h>
 #include <qgic.h>
 #include <qtimer.h>
 #include <mmu.h>
@@ -37,8 +38,7 @@
 #include <smem.h>
 #include <board.h>
 #include <boot_stats.h>
-
-#define MB (1024*1024)
+#include <platform.h>
 
 #define MSM_IOMAP_SIZE ((MSM_IOMAP_END - MSM_IOMAP_BASE)/MB)
 #define A53_SS_SIZE    ((A53_SS_END - A53_SS_BASE)/MB)
@@ -67,7 +67,6 @@ static mmu_section_t mmu_section_table[] = {
 	{    BASE_ADDR_1,       BASE_ADDR_1,     1024,              COMMON_MEMORY},
 };
 
-static struct smem_ram_ptable ram_ptable;
 
 int platform_is_msm8939();
 
