@@ -25,7 +25,6 @@
 #ifndef __TARGET_H
 #define __TARGET_H
 
-
 /* Target helper functions exposed to USB driver */
 typedef struct {
 	void (*mux_config) ();
@@ -76,4 +75,12 @@ bool target_is_cdp_qvga();
 uint32_t target_hw_interposer();
 uint32_t target_override_pll();
 uint32_t target_ddr_cfg_val();
+void target_usb_init(void);
+void target_usb_stop(void);
+uint32_t target_get_hlos_subtype(void);
+void shutdown_device();
+bool target_warm_boot(void);
+bool target_use_signed_kernel(void);
+int _emmc_recovery_init(void);
+void ulpi_write(unsigned val, unsigned reg);
 #endif
