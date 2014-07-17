@@ -4,14 +4,14 @@ INCLUDES += -I$(LOCAL_DIR)/include -I$(LK_TOP_DIR)/platform/msm_shared
 
 PLATFORM := msmzirc
 
-MEMBASE                             := 0x8F100000
+MEMBASE                             := 0x87C00000
 MEMSIZE                             := 0x00100000 # 1MB
 BASE_ADDR                           := 0x80000000
-SCRATCH_ADDR                        := 0x90000000
-SCRATCH_REGION1                     := 0x90000000
-SCRATCH_REGION1_SIZE                := 0x01000000 #16MB
-SCRATCH_REGION2                     := 0x91300000
-SCRATCH_REGION2_SIZE                := 0x06B00000 # 107MB
+SCRATCH_ADDR                        := 0x80000000
+SCRATCH_REGION1                     := 0x80000000
+SCRATCH_REGION1_SIZE                := 0x07C00000 # 124MB
+SCRATCH_REGION2                     := 0x88000000
+SCRATCH_REGION2_SIZE                := 0x08000000 # 128MB
 
 DEFINES += NO_KEYPAD_DRIVER=1
 DEFINES += PERIPH_BLK_BLSP=1
