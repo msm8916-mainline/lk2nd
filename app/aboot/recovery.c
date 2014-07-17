@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2014, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -32,6 +32,8 @@
 #include <string.h>
 #include <kernel/thread.h>
 #include <arch/ops.h>
+#include <arch/defines.h>
+#include <malloc.h>
 
 #include <dev/flash.h>
 #include <lib/ptable.h>
@@ -409,43 +411,54 @@ static int emmc_get_recovery_msg(struct recovery_message *in)
 {
 	char *ptn_name = "misc";
 	unsigned long long ptn = 0;
-	unsigned int size = ROUND_TO_PAGE(sizeof(*in),511);
-	unsigned char data[size];
+	unsigned int size;
 	int index = INVALID_PTN;
 
+	size = mmc_get_device_blocksize();
 	index = partition_get_index((unsigned char *) ptn_name);
 	ptn = partition_get_offset(index);
 	if(ptn == 0) {
 		dprintf(CRITICAL,"partition %s doesn't exist\n",ptn_name);
 		return -1;
 	}
-	if (mmc_read(ptn , (unsigned int*)data, size)) {
+	if (mmc_read(ptn , (unsigned int*)in, size)) {
 		dprintf(CRITICAL,"mmc read failure %s %d\n",ptn_name, size);
 		return -1;
 	}
-	memcpy(in, data, sizeof(*in));
+
 	return 0;
 }
 
 int _emmc_recovery_init(void)
 {
 	int update_status = 0;
-	struct recovery_message msg;
+	struct recovery_message *msg;
+	uint32_t block_size = 0;
+
+	block_size = mmc_get_device_blocksize();
 
 	// get recovery message
-	if(emmc_get_recovery_msg(&msg))
+	msg = (struct recovery_message *)memalign(CACHE_LINE, block_size);
+	ASSERT(msg);
+
+	if(emmc_get_recovery_msg(msg))
+	{
+		if(msg)
+			free(msg);
 		return -1;
-	msg.command[sizeof(msg.command)-1] = '\0'; //Ensure termination
-	if (msg.command[0] != 0 && msg.command[0] != 255) {
-		dprintf(INFO,"Recovery command: %d %s\n",
-			sizeof(msg.command), msg.command);
 	}
 
-	if (!strncmp(msg.command, "boot-recovery", strlen("boot-recovery"))) {
+	msg->command[sizeof(msg->command)-1] = '\0'; //Ensure termination
+	if (msg->command[0] != 0 && msg->command[0] != 255) {
+		dprintf(INFO,"Recovery command: %d %s\n",
+			sizeof(msg->command), msg->command);
+	}
+
+	if (!strncmp(msg->command, "boot-recovery", strlen("boot-recovery"))) {
 		boot_into_recovery = 1;
 	}
 
-	if (!strcmp("update-radio",msg.command))
+	if (!strcmp("update-radio",msg->command))
 	{
 		/* We're now here due to radio update, so check for update status */
 		int ret = get_boot_info_apps(UPDATE_STATUS, (unsigned int *) &update_status);
@@ -453,28 +466,32 @@ int _emmc_recovery_init(void)
 		if(!ret && (update_status & 0x01))
 		{
 			dprintf(INFO,"radio update success\n");
-			strlcpy(msg.status, "OKAY", sizeof(msg.status));
+			strlcpy(msg->status, "OKAY", sizeof(msg->status));
 		}
 		else
 		{
 			dprintf(INFO,"radio update failed\n");
-			strlcpy(msg.status, "failed-update", sizeof(msg.status));
+			strlcpy(msg->status, "failed-update", sizeof(msg->status));
 		}
 		boot_into_recovery = 1;		// Boot in recovery mode
 	}
-	if (!strcmp("reset-device-info",msg.command))
+	if (!strcmp("reset-device-info",msg->command))
 	{
 		reset_device_info();
 	}
-	if (!strcmp("root-detect",msg.command))
+	if (!strcmp("root-detect",msg->command))
 	{
 		set_device_root();
 	}
 	else
-		return 0;	// do nothing
+		goto out;// do nothing
 
-	strlcpy(msg.command, "", sizeof(msg.command));	// clearing recovery command
-	emmc_set_recovery_msg(&msg);	// send recovery message
+	strlcpy(msg->command, "", sizeof(msg->command));	// clearing recovery command
+	emmc_set_recovery_msg(msg);	// send recovery message
+
+out:
+	if(msg)
+		free(msg);
 	return 0;
 }
 
