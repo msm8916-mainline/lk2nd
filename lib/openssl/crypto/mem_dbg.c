@@ -537,7 +537,11 @@ void CRYPTO_dbg_malloc(void *addr, int num, const char *file, int line,
 				m->addr, m->num);
 #endif
 			if (options & V_CRYPTO_MDEBUG_TIME)
+#ifndef LK_NO_TIME
 				m->time=time(NULL);
+#else
+				m->time=0;
+#endif
 			else
 				m->time=0;
 
@@ -753,6 +757,10 @@ static void print_leak_doall_arg(const MEM *m, MEM_LEAK *l)
 		}
 #endif
 	}
+#else
+static void print_leak_doall_arg(const MEM *m, MEM_LEAK *l)
+{
+}
 #endif
 
 static IMPLEMENT_LHASH_DOALL_ARG_FN(print_leak, const MEM, MEM_LEAK)

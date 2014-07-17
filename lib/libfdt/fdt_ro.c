@@ -85,7 +85,7 @@ static int _fdt_string_eq(const void *fdt, int stroffset,
 {
 	const char *p = fdt_string(fdt, stroffset);
 
-	return (strlen(p) == len) && (memcmp(p, s, len) == 0);
+	return (strlen(p) == (size_t)len) && (memcmp(p, s, len) == 0);
 }
 
 int fdt_get_mem_rsv(const void *fdt, int n, uint64_t *address, uint64_t *size)
@@ -494,7 +494,7 @@ int fdt_node_offset_by_phandle(const void *fdt, uint32_t phandle)
 {
 	int offset;
 
-	if ((phandle == 0) || (phandle == -1))
+	if ((phandle == 0))
 		return -FDT_ERR_BADPHANDLE;
 
 	FDT_CHECK_HEADER(fdt);

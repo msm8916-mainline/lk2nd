@@ -713,7 +713,7 @@ void ERR_put_error(int lib, int func, int reason, const char *file,
 	 * anyways for now.
 	 */
 #ifdef LK_NO_ERR_STATE
-	return
+	return;
 #endif
 
 #ifdef _OSD_POSIX

@@ -43,6 +43,7 @@ void __attribute__ ((noreturn))
 __stack_chk_fail (void)
 {
 	panic("stack smashing detected.");
+	for(;;);
 }
 
 void spin(uint32_t usecs)
@@ -97,7 +98,7 @@ int _dprintf(const char *fmt, ...)
 	char ts_buf[13];
 	int err;
 
-	snprintf(ts_buf, sizeof(ts_buf), "[%u] ", current_time());
+	snprintf(ts_buf, sizeof(ts_buf), "[%u] ",(unsigned int)current_time());
 	dputs(ALWAYS, ts_buf);
 
 	va_list ap;

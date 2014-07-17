@@ -91,6 +91,7 @@ static const EVP_MD sha1_md=
 	EVP_PKEY_RSA_method,
 	SHA_CBLOCK,
 	sizeof(EVP_MD *)+sizeof(SHA_CTX),
+	NULL
 	};
 
 const EVP_MD *EVP_sha1(void)
@@ -128,6 +129,7 @@ static const EVP_MD sha224_md=
 	EVP_PKEY_RSA_method,
 	SHA256_CBLOCK,
 	sizeof(EVP_MD *)+sizeof(SHA256_CTX),
+	NULL
 	};
 
 const EVP_MD *EVP_sha224(void)
@@ -147,6 +149,7 @@ static const EVP_MD sha256_md=
 	EVP_PKEY_RSA_method,
 	SHA256_CBLOCK,
 	sizeof(EVP_MD *)+sizeof(SHA256_CTX),
+	NULL
 	};
 
 const EVP_MD *EVP_sha256(void)
@@ -178,6 +181,7 @@ static const EVP_MD sha384_md=
 	EVP_PKEY_RSA_method,
 	SHA512_CBLOCK,
 	sizeof(EVP_MD *)+sizeof(SHA512_CTX),
+	NULL
 	};
 
 const EVP_MD *EVP_sha384(void)
@@ -197,6 +201,7 @@ static const EVP_MD sha512_md=
 	EVP_PKEY_RSA_method,
 	SHA512_CBLOCK,
 	sizeof(EVP_MD *)+sizeof(SHA512_CTX),
+	NULL
 	};
 
 const EVP_MD *EVP_sha512(void)

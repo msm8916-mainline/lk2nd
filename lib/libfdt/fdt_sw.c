@@ -78,7 +78,7 @@ static void *_fdt_grab_space(void *fdt, size_t len)
 	spaceleft = fdt_totalsize(fdt) - fdt_off_dt_struct(fdt)
 		- fdt_size_dt_strings(fdt);
 
-	if ((offset + len < offset) || (offset + len > spaceleft))
+	if (((int)(offset + len) < offset) || ((int)(offset + len) > spaceleft))
 		return NULL;
 
 	fdt_set_size_dt_struct(fdt, offset + len);
@@ -89,7 +89,7 @@ int fdt_create(void *buf, int bufsize)
 {
 	void *fdt = buf;
 
-	if (bufsize < sizeof(struct fdt_header))
+	if (bufsize < (int)sizeof(struct fdt_header))
 		return -FDT_ERR_NOSPACE;
 
 	memset(buf, 0, bufsize);
@@ -180,7 +180,7 @@ static int _fdt_find_add_string(void *fdt, const char *s)
 	/* Add it */
 	offset = -strtabsize - len;
 	struct_top = fdt_off_dt_struct(fdt) + fdt_size_dt_struct(fdt);
-	if (fdt_totalsize(fdt) + offset < struct_top)
+	if ((int)(fdt_totalsize(fdt) + offset) < struct_top)
 		return 0; /* no more room :( */
 
 	memcpy(strtab + offset, s, len);

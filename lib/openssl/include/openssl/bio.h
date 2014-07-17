@@ -61,7 +61,7 @@
 
 #include <openssl/e_os2.h>
 
-#ifndef OPENSSL_NO_FP_API
+#if !defined(OPENSSL_NO_FP_API)|| defined(OPENSSL_LK)
 # include <stdio.h>
 #endif
 #include <stdarg.h>
@@ -564,7 +564,7 @@ int BIO_asn1_set_suffix(BIO *b, asn1_ps_func *suffix,
 int BIO_asn1_get_suffix(BIO *b, asn1_ps_func **psuffix,
 					asn1_ps_func **psuffix_free);
 
-# ifndef OPENSSL_NO_FP_API
+# if !(defined(OPENSSL_NO_FP_API)) || defined(OPENSSL_LK)
 BIO_METHOD *BIO_s_file(void );
 BIO *BIO_new_file(const char *filename, const char *mode);
 BIO *BIO_new_fp(FILE *stream, int close_flag);

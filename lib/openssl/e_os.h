@@ -62,6 +62,7 @@
 #include <openssl/opensslconf.h>
 
 #include <openssl/e_os2.h>
+#include <stdlib.h>
 /* <openssl/e_os2.h> contains what we can justify to make visible
  * to the outside; this file e_os.h is not part of the exported
  * interface. */
@@ -645,7 +646,7 @@ static unsigned int _strlen31(const char *str)
 #  endif
 #endif
 
-#if defined(sun) && !defined(__svr4__) && !defined(__SVR4)
+#if defined(OPENSSL_LK) || defined(sun) && !defined(__svr4__) && !defined(__SVR4)
   /* include headers first, so our defines don't break it */
 #include <stdlib.h>
 #include <string.h>
@@ -679,9 +680,9 @@ extern char *sys_errlist[]; extern int sys_nerr;
 #define IRIX_CC_BUG	/* CDS++ up to V2.0Bsomething suffered from the same bug.*/
 #endif
 
-#if defined(OPENSSL_SYS_WINDOWS)
-#  define strcasecmp _stricmp
-#  define strncasecmp _strnicmp
+#if defined(OPENSSL_SYS_WINDOWS) || defined(OPENSSL_LK)
+#  define strcasecmp strcmp
+#  define strncasecmp strnicmp
 #elif defined(OPENSSL_SYS_VMS)
 /* VMS below version 7.0 doesn't have strcasecmp() */
 #  include "o_str.h"
