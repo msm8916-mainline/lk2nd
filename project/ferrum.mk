@@ -24,6 +24,12 @@ DEFINES += DEVICE_TREE=1
 #Disable thumb mode
 ENABLE_THUMB := false
 
+ENABLE_SDHCI_SUPPORT := 1
+
+ifeq ($(ENABLE_SDHCI_SUPPORT),1)
+DEFINES += MMC_SDHCI_SUPPORT=1
+endif
+
 ifeq ($(EMMC_BOOT),1)
 DEFINES += _EMMC_BOOT=1
 endif
