@@ -132,7 +132,7 @@ enum handler_return gic_platform_irq(struct arm_iframe *frame)
 	enum handler_return ret;
 
 	num = readl(GIC_CPU_INTACK);
-	if (num > NR_IRQS)
+	if (num >= NR_IRQS)
 		return 0;
 
 	ret = handler[num].func(handler[num].arg);
