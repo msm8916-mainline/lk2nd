@@ -619,7 +619,7 @@ static int dev_tree_query_memory_cell_sizes(void *fdt, struct dt_mem_node_info *
 
 	/* Find the #address-cells size. */
 	valp = (uint32_t*)fdt_getprop(fdt, offset, "#address-cells", &len);
-	if (len <= 0)
+	if (len <= 0 || !valp)
 	{
 		if (len == -FDT_ERR_NOTFOUND)
 		{
@@ -640,7 +640,7 @@ static int dev_tree_query_memory_cell_sizes(void *fdt, struct dt_mem_node_info *
 
 	/* Find the #size-cells size. */
 	valp = (uint32_t*)fdt_getprop(fdt, offset, "#size-cells", &len);
-	if (len <= 0)
+	if (len <= 0 || !valp)
 	{
 		if (len == -FDT_ERR_NOTFOUND)
 		{
