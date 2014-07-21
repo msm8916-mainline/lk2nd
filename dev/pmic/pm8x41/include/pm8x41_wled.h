@@ -77,3 +77,5 @@ void pm8x41_wled_sink_control(uint8_t enable);
 void pm8x41_wled_led_mod_enable(uint8_t enable);
 void pm8x41_wled_enable(uint8_t enable);
 void pm8x41_wled_config_slave_id(uint8_t slave_id);
+uint8_t pm8x41_wled_reg_read(uint32_t addr);
+void pm8x41_wled_reg_write(uint32_t addr, uint8_t val);
