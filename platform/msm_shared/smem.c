@@ -37,6 +37,26 @@
 
 static struct smem *smem;
 
+/* DYNAMIC SMEM REGION feature enables LK to dynamically
+ * read the SMEM addr info from TCSR register or IMEM location.
+ * The first word read, if indicates a MAGIC number, then
+ * Dynamic SMEM is assumed to be enabled. Read the remaining
+ * SMEM info for SMEM Size and Phy_addr from the other bytes.
+ */
+
+#if DYNAMIC_SMEM
+uint32_t smem_get_base_addr()
+{
+	struct smem_addr_info *smem_info = NULL;
+
+	smem_info = (struct smem_addr_info *) SMEM_TARG_INFO_ADDR;
+	if(smem_info && (smem_info->identifier == SMEM_TARGET_INFO_IDENTIFIER))
+		return smem_info->phy_addr;
+	else
+		return MSM_SHARED_BASE;
+}
+#endif
+
 /* buf MUST be 4byte aligned, and len MUST be a multiple of 8. */
 unsigned smem_read_alloc_entry(smem_mem_type_t type, void *buf, int len)
 {
@@ -46,7 +66,11 @@ unsigned smem_read_alloc_entry(smem_mem_type_t type, void *buf, int len)
 	unsigned size;
 	uint32_t smem_addr = 0;
 
+#if DYNAMIC_SMEM
+	smem_addr = smem_get_base_addr();
+#else
 	smem_addr = platform_get_smem_base_addr();
+#endif
 
 	smem = (struct smem *)smem_addr;
 
@@ -83,7 +107,11 @@ smem_read_alloc_entry_offset(smem_mem_type_t type, void *buf, int len,
 	unsigned size = len;
 	uint32_t smem_addr = 0;
 
+#if DYNAMIC_SMEM
+	smem_addr = smem_get_base_addr();
+#else
 	smem_addr = platform_get_smem_base_addr();
+#endif
 
 	smem = (struct smem *)smem_addr;
 
