@@ -63,6 +63,7 @@ endif
 # setup toolchain prefix
 TOOLCHAIN_PREFIX ?= arm-eabi-
 CFLAGS += -fstack-protector-all
+CFLAGS += -fno-strict-overflow
 CPPFLAGS := -fno-exceptions -fno-rtti -fno-threadsafe-statics
 #CPPFLAGS += -Weffc++
 ASMFLAGS := -DASSEMBLY
