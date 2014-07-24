@@ -364,6 +364,7 @@ int mdss_dsi_host_init(struct mipi_dsi_panel_config *pinfo, uint32_t
 	uint8_t DLNx_EN;
 	uint8_t lane_swap = 0;
 	uint32_t timing_ctl = 0;
+	uint32_t lane_swap_dsi1 = 0;
 
 #if (DISPLAY_TYPE_MDSS == 1)
 	switch (pinfo->num_of_lanes) {
@@ -400,7 +401,11 @@ int mdss_dsi_host_init(struct mipi_dsi_panel_config *pinfo, uint32_t
 				| PACK_TYPE1 << 24 | VC1 << 22 | DT1 << 16 | WC1,
 				MIPI_DSI1_BASE + COMMAND_MODE_DMA_CTRL);
 
-		writel(lane_swap, MIPI_DSI1_BASE + LANE_SWAP_CTL);
+		if (readl(MIPI_DSI_BASE) == DSI_HW_REV_103_1) /*for 8939 hw dsi1 has Lane_map as 3210*/
+			lane_swap_dsi1 = 0x7;
+		else
+			lane_swap_dsi1 = lane_swap;
+		writel(lane_swap_dsi1, MIPI_DSI1_BASE + LANE_SWAP_CTL);
 		writel(timing_ctl, MIPI_DSI1_BASE + TIMING_CTL);
 	}
 

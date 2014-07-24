@@ -329,7 +329,8 @@ int mdss_dsi_phy_init(struct mipi_dsi_panel_config *pinfo,
 	writel(0x5f, phy_base + 0x0170);
 
 	/* DSI_PHY_DSIPHY_GLBL_TEST_CTRL */
-	if (phy_base == DSI0_PHY_BASE)
+	if (phy_base == DSI0_PHY_BASE ||
+		(readl(MIPI_DSI0_BASE) == DSI_HW_REV_103_1))
 		writel(0x01, phy_base + 0x01d4);
 	else
 		writel(0x00, phy_base + 0x01d4);
