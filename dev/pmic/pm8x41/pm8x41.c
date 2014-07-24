@@ -390,6 +390,13 @@ uint8_t pm8x41_get_pon_poff_reason2()
 	return REG_READ(PON_POFF_REASON2);
 }
 
+void pm8x41_enable_mvs(struct pm8x41_mvs *mvs, enum mvs_en_ctl enable)
+{
+	ASSERT(mvs);
+
+	REG_WRITE(mvs->base + MVS_EN_CTL, enable << MVS_EN_CTL_ENABLE_SHIFT);
+}
+
 void pm8x41_enable_mpp(struct pm8x41_mpp *mpp, enum mpp_en_ctl enable)
 {
 	ASSERT(mpp);
