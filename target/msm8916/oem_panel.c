@@ -48,6 +48,7 @@
 #include "include/panel_otm8019a_fwvga_video.h"
 #include "include/panel_otm1283a_720p_video.h"
 #include "include/panel_nt35596_1080p_skuk_video.h"
+#include "include/panel_sharp_wqxga_dualdsi_video.h"
 
 #define DISPLAY_MAX_PANEL_DETECTION 2
 #define OTM8019A_FWVGA_VIDEO_PANEL_ON_DELAY 50
@@ -65,6 +66,7 @@ INNOLUX_720P_VIDEO_PANEL,
 OTM8019A_FWVGA_VIDEO_PANEL,
 OTM1283A_720P_VIDEO_PANEL,
 NT35596_1080P_VIDEO_PANEL,
+SHARP_WQXGA_DUALDSI_VIDEO_PANEL,
 UNKNOWN_PANEL
 };
 
@@ -80,6 +82,7 @@ static struct panel_list supp_panels[] = {
 	{"otm8019a_fwvga_video", OTM8019A_FWVGA_VIDEO_PANEL},
 	{"otm1283a_720p_video", OTM1283A_720P_VIDEO_PANEL},
 	{"nt35596_1080p_video", NT35596_1080P_VIDEO_PANEL},
+	{"sharp_wqxga_dualdsi_video",SHARP_WQXGA_DUALDSI_VIDEO_PANEL},
 };
 
 static uint32_t panel_id;
@@ -260,6 +263,27 @@ static int init_panel_data(struct panel_struct *panelstruct,
 					= NT35596_1080P_SKUK_VIDEO_ON_COMMAND;
 		memcpy(phy_db->timing,
 				nt35596_1080p_skuk_video_timings, TIMING_SIZE);
+		break;
+	case SHARP_WQXGA_DUALDSI_VIDEO_PANEL:
+		panelstruct->paneldata    = &sharp_wqxga_dualdsi_video_panel_data;
+		panelstruct->panelres     = &sharp_wqxga_dualdsi_video_panel_res;
+		panelstruct->color        = &sharp_wqxga_dualdsi_video_color;
+		panelstruct->videopanel   = &sharp_wqxga_dualdsi_video_video_panel;
+		panelstruct->commandpanel = &sharp_wqxga_dualdsi_video_command_panel;
+		panelstruct->state        = &sharp_wqxga_dualdsi_video_state;
+		panelstruct->laneconfig   = &sharp_wqxga_dualdsi_video_lane_config;
+		panelstruct->paneltiminginfo
+			= &sharp_wqxga_dualdsi_video_timing_info;
+		panelstruct->panelresetseq
+					 = &sharp_wqxga_dualdsi_video_reset_seq;
+		panelstruct->backlightinfo = &sharp_wqxga_dualdsi_video_backlight;
+		pinfo->mipi.panel_cmds
+			= sharp_wqxga_dualdsi_video_on_command;
+		pinfo->mipi.num_of_panel_cmds
+			= SHARP_WQXGA_DUALDSI_VIDEO_ON_COMMAND;
+		memcpy(phy_db->timing,
+			sharp_wqxga_dualdsi_video_timings, TIMING_SIZE);
+		pinfo->mipi.signature 	= SHARP_WQXGA_DUALDSI_VIDEO_SIGNATURE;
 		break;
 	case UNKNOWN_PANEL:
 	default:
