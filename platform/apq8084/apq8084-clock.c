@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -47,6 +47,7 @@
 #define gpll0_mm_source_val 5
 #define edppll_270_mm_source_val 4
 #define edppll_350_mm_source_val 4
+#define hdmipll_mm_source_val 3
 
 struct clk_freq_tbl rcg_dummy_freq = F_END;
 
@@ -690,6 +691,69 @@ static struct branch_clk mdss_vsync_clk = {
 	},
 };
 
+static struct branch_clk mdss_hdmi_ahb_clk = {
+	.cbcr_reg = MDSS_HDMI_AHB_CBCR,
+	.has_sibling = 1,
+	.c = {
+		.dbg_name = "mdss_hdmi_ahb_clk",
+		.ops = &clk_ops_branch,
+	},
+};
+
+static struct clk_freq_tbl ftbl_mdss_hdmi_clk[] = {
+        F_MM( 19200000,  cxo,    1, 0, 0),
+        F_END
+};
+
+static struct rcg_clk hdmi_clk_src = {
+        .cmd_reg = HDMI_CMD_RCGR,
+	.cfg_reg = HDMI_CFG_RCGR,
+        .set_rate = clock_lib2_rcg_set_rate_hid,
+        .freq_tbl = ftbl_mdss_hdmi_clk,
+        .current_freq = &rcg_dummy_freq,
+        .c = {
+                .dbg_name = "hdmi_clk_src",
+                .ops = &clk_ops_rcg,
+        },
+};
+
+static struct branch_clk mdss_hdmi_clk = {
+	.cbcr_reg = MDSS_HDMI_CBCR,
+	.has_sibling = 0,
+	.parent = &hdmi_clk_src.c,
+	.c = {
+		.dbg_name = "mdss_hdmi_clk",
+		.ops = &clk_ops_branch,
+	},
+};
+
+static struct clk_freq_tbl ftbl_mdss_extpclk_clk[] = {
+	F_MDSS(148500000, hdmipll, 1, 0, 0),
+	F_END
+};
+
+static struct rcg_clk extpclk_clk_src = {
+	.cmd_reg = EXTPCLK_CMD_RCGR,
+	.cfg_reg = EXTPCLK_CFG_RCGR,
+	.set_rate = clock_lib2_rcg_set_rate_hid,
+	.freq_tbl = ftbl_mdss_extpclk_clk,
+	.current_freq = &rcg_dummy_freq,
+	.c = {
+		.dbg_name = "extpclk_clk_src",
+		.ops = &clk_ops_rcg,
+	},
+};
+
+static struct branch_clk mdss_extpclk_clk = {
+	.cbcr_reg = MDSS_EXTPCLK_CBCR,
+	.has_sibling = 0,
+	.parent = &extpclk_clk_src.c,
+	.c = {
+		.dbg_name = "mdss_extpclk_clk",
+		.ops = &clk_ops_branch,
+	},
+};
+
 static struct clk_freq_tbl ftbl_mdss_edpaux_clk[] = {
 	F_MM(19200000,    cxo,   1,   0,   0),
 	F_END
@@ -838,6 +902,10 @@ static struct clk_lookup msm_clocks_8084[] =
 	CLK_LOOKUP("edp_pixel_clk",        mdss_edppixel_clk.c),
 	CLK_LOOKUP("edp_link_clk",         mdss_edplink_clk.c),
 	CLK_LOOKUP("edp_aux_clk",          mdss_edpaux_clk.c),
+
+        CLK_LOOKUP("hdmi_ahb_clk",         mdss_hdmi_ahb_clk.c),
+        CLK_LOOKUP("hdmi_core_clk",        mdss_hdmi_clk.c),
+        CLK_LOOKUP("hdmi_extp_clk",        mdss_extpclk_clk.c),
 };
 
 void platform_clock_init(void)
