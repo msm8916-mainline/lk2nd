@@ -263,15 +263,20 @@ void mdss_bus_clocks_enable(void)
 }
 
 /* Disable all the branch clocks needed by the DSI controller */
-void gcc_dsi_clocks_disable(void)
+void gcc_dsi_clocks_disable(uint8_t dual_dsi)
 {
 	clk_disable(clk_get("mdss_esc0_clk"));
 	writel(0x0, DSI_PIXEL0_CBCR);
 	writel(0x0, DSI_BYTE0_CBCR);
+	if (dual_dsi) {
+		clk_disable(clk_get("mdss_esc1_clk"));
+		writel(0x0, DSI_PIXEL1_CBCR);
+		writel(0x0, DSI_BYTE1_CBCR);
+	}
 }
 
 /* Configure all the branch clocks needed by the DSI controller */
-void gcc_dsi_clocks_enable(uint8_t pclk0_m, uint8_t pclk0_n, uint8_t pclk0_d)
+void gcc_dsi_clocks_enable(uint8_t dual_dsi, uint8_t pclk0_m, uint8_t pclk0_n, uint8_t pclk0_d)
 {
 	int ret;
 
@@ -295,6 +300,30 @@ void gcc_dsi_clocks_enable(uint8_t pclk0_m, uint8_t pclk0_n, uint8_t pclk0_d)
 	if (ret) {
 		dprintf(CRITICAL, "failed to set esc0_clk ret = %d\n", ret);
 		ASSERT(0);
+	}
+
+	if (dual_dsi) {
+		/* Configure Byte clock -autopll- This will not change becasue
+		byte clock does not need any divider*/
+		writel(0x100, DSI_BYTE1_CFG_RCGR);
+		writel(0x1, DSI_BYTE1_CMD_RCGR);
+		writel(0x1, DSI_BYTE1_CBCR);
+
+		/* Configure Pixel clock */
+		writel(0x100, DSI_PIXEL1_CFG_RCGR);
+		writel(0x1, DSI_PIXEL1_CMD_RCGR);
+		writel(0x1, DSI_PIXEL1_CBCR);
+
+		writel(pclk0_m, DSI_PIXEL1_M);
+		writel(pclk0_n, DSI_PIXEL1_N);
+		writel(pclk0_d, DSI_PIXEL1_D);
+
+		/* Configure ESC clock */
+		ret = clk_get_set_enable("mdss_esc1_clk", 0, 1);
+		if (ret) {
+			dprintf(CRITICAL, "failed to set esc1_clk ret = %d\n", ret);
+			ASSERT(0);
+		}
 	}
 }
 
