@@ -602,7 +602,7 @@ int mdp_edp_config(struct msm_panel_info *pinfo, struct fbcon_config *fb)
 	return 0;
 }
 
-int mdp_hdmi_config(struct msm_panel_info *pinfo, struct fbcon_config *fb)
+int mdss_hdmi_config(struct msm_panel_info *pinfo, struct fbcon_config *fb)
 {
 	int ret = NO_ERROR;
 	struct lcdc_panel_info *lcdc = NULL;
@@ -765,7 +765,7 @@ int mdp_edp_on(struct msm_panel_info *pinfo)
 	return NO_ERROR;
 }
 
-int mdp_hdmi_on(struct msm_panel_info *pinfo)
+int mdss_hdmi_on(struct msm_panel_info *pinfo)
 {
 	uint32_t ctl0_reg_val, ctl1_reg_val;
 

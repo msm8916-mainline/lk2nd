@@ -33,23 +33,6 @@
 #include <mipi_dsi.h>
 #include <boot_stats.h>
 
-#ifndef DISPLAY_TYPE_HDMI
-static int hdmi_dtv_init(void)
-{
-        return 0;
-}
-
-static int hdmi_dtv_on(void)
-{
-        return 0;
-}
-
-static int hdmi_msm_turn_on(void)
-{
-        return 0;
-}
-#endif
-
 static struct msm_fb_panel_data *panel;
 
 extern int lvds_on(struct msm_fb_panel_data *pdata);
@@ -132,7 +115,7 @@ int msm_display_config()
 		break;
 	case HDMI_PANEL:
 		dprintf(INFO, "Config HDMI PANEL.\n");
-		ret = hdmi_dtv_init();
+		ret = mdss_hdmi_config(pinfo, &(panel->fb));
 		if (ret)
 			goto msm_display_config_out;
 		break;
@@ -211,11 +194,11 @@ int msm_display_on()
 		break;
 	case HDMI_PANEL:
 		dprintf(INFO, "Turn on HDMI PANEL.\n");
-		ret = hdmi_dtv_on();
+		ret = mdss_hdmi_init();
 		if (ret)
 			goto msm_display_on_out;
 
-		ret = hdmi_msm_turn_on();
+		ret = mdss_hdmi_on();
 		if (ret)
 			goto msm_display_on_out;
 		break;
