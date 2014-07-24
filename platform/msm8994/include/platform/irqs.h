@@ -55,6 +55,8 @@
 
 #define UFS_IRQ                                (GIC_SPI_START + 265)
 
+#define SMD_IRQ                                (GIC_SPI_START + 168)
+
 /* Retrofit universal macro names */
 #define INT_USB_HS                             USB1_HS_IRQ
 

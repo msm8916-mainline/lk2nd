@@ -55,6 +55,7 @@
 #include <boot_device.h>
 #include <qmp_phy.h>
 #include <qusb2_phy.h>
+#include <rpm-smd.h>
 
 #define CE_INSTANCE             2
 #define CE_EE                   1
@@ -145,6 +146,8 @@ void target_uninit(void)
 
 	if (crypto_initialized())
 		crypto_eng_cleanup();
+
+	rpm_smd_uninit();
 }
 
 /* Do target specific usb initialization */
@@ -280,6 +283,8 @@ void target_init(void)
 		dprintf(CRITICAL, "Error reading the partition table info\n");
 		ASSERT(0);
 	}
+
+	rpm_smd_init();
 }
 
 unsigned board_machtype(void)
