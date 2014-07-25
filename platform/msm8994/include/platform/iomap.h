@@ -209,4 +209,64 @@
 #define PLATFORM_QMP_OFFSET                  0x8
 
 #define SMEM_TARG_INFO_ADDR                  0xFE805FF0
+
+/* Display */
+#define EDP_BASE                    0xFD990000
+
+#define SOFT_RESET                  0x118
+#define CLK_CTRL                    0x11C
+#define TRIG_CTRL                   0x084
+#define CTRL                        0x004
+#define COMMAND_MODE_DMA_CTRL       0x03C
+#define COMMAND_MODE_MDP_CTRL       0x040
+#define COMMAND_MODE_MDP_DCS_CMD_CTRL   0x044
+#define COMMAND_MODE_MDP_STREAM0_CTRL   0x058
+#define COMMAND_MODE_MDP_STREAM0_TOTAL  0x05C
+#define COMMAND_MODE_MDP_STREAM1_CTRL   0x060
+#define COMMAND_MODE_MDP_STREAM1_TOTAL  0x064
+#define ERR_INT_MASK0               0x10C
+
+#define LANE_SWAP_CTL               0x0B0
+#define TIMING_CTL                  0x0C4
+
+#define VIDEO_MODE_ACTIVE_H         0x024
+#define VIDEO_MODE_ACTIVE_V         0x028
+#define VIDEO_MODE_TOTAL            0x02C
+#define VIDEO_MODE_HSYNC            0x030
+#define VIDEO_MODE_VSYNC            0x034
+#define VIDEO_MODE_VSYNC_VPOS       0x038
+
+/* MDSS */
+#define MSM_MMSS_CLK_CTL_BASE       0xFD8C0000
+#define MIPI_DSI_BASE               0xFD998000
+#define MIPI_DSI0_BASE              (MIPI_DSI_BASE)
+#define MIPI_DSI1_BASE              0xFD9A0000
+#define DSI0_PHY_BASE               0xFD998500
+#define DSI1_PHY_BASE               0xFD9A0500
+#define DSI0_PLL_BASE               0xFD998300
+#define DSI1_PLL_BASE               0xFD9A0300
+#define REG_DSI(off)                (MIPI_DSI_BASE + 0x04 + (off))
+#define MDP_BASE                    (0xfd900000)
+#define REG_MDP(off)                (MDP_BASE + (off))
+#define MDP_VP_0_VIG_0_BASE         REG_MDP(0x1200)
+#define MDP_VP_0_VIG_1_BASE         REG_MDP(0x1600)
+#define MDP_VP_0_RGB_0_BASE         REG_MDP(0x2200)
+#define MDP_VP_0_RGB_1_BASE         REG_MDP(0x2600)
+#define MDP_VP_0_DMA_0_BASE         REG_MDP(0x3200)
+#define MDP_VP_0_DMA_1_BASE         REG_MDP(0x3600)
+#define MDP_VP_0_MIXER_0_BASE       REG_MDP(0x3A00)
+#define MDP_VP_0_MIXER_1_BASE       REG_MDP(0x3E00)
+
+#define DMA_CMD_OFFSET              0x048
+#define DMA_CMD_LENGTH              0x04C
+
+#define INT_CTRL                    0x110
+#define CMD_MODE_DMA_SW_TRIGGER     0x090
+
+#define EOT_PACKET_CTRL             0x0CC
+#define MISR_CMD_CTRL               0x0A0
+#define MISR_VIDEO_CTRL             0x0A4
+#define VIDEO_MODE_CTRL             0x010
+#define HS_TIMER_CTRL               0x0BC
+
 #endif
