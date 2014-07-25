@@ -75,7 +75,7 @@ void platform_boot_dev_cmdline(char *buf)
 			sprintf(buf, "%x.sdhci", ((struct mmc_device *)dev)->host.base);
 			break;
 		case BOOT_UFS:
-			sprintf(buf, "%x.ufs", ((struct ufs_dev *)dev)->base);
+			sprintf(buf, "%x.ufshc", ((struct ufs_dev *)dev)->base);
 			break;
 		default:
 			dprintf(CRITICAL,"ERROR: Unexpected boot_device val=%x",val);
