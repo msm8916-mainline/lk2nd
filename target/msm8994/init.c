@@ -462,3 +462,9 @@ void shutdown_device()
 
 	ASSERT(0);
 }
+
+void target_fastboot_init(void)
+{
+	/* We are entering fastboot mode, so read partition table */
+	mmc_read_partition_table(1);
+}
