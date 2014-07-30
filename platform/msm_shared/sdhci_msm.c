@@ -286,7 +286,7 @@ static uint32_t sdhci_msm_init_dll(struct sdhci_host *host)
 	/* Write 1 to CLK_OUT_EN */
 	REG_WRITE32(host, (REG_READ32(host, SDCC_DLL_CONFIG_REG) | SDCC_DLL_CLK_OUT_EN), SDCC_DLL_CONFIG_REG);
 	/* Wait for DLL_LOCK in DLL_STATUS register, wait time 50us */
-	while(!((REG_READ32(host, SDCC_REG_DLL_STATUS)) & SDCC_DLL_LOCK_STAT));
+	while(!((REG_READ32(host, SDCC_REG_DLL_STATUS)) & SDCC_DLL_LOCK_STAT))
 	{
 		udelay(1);
 		timeout--;
