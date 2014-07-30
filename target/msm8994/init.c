@@ -160,9 +160,6 @@ void target_usb_init(void)
 		qusb2_phy_reset();
 	}
 
-	/* Select and enable external configuration with USB PHY */
-	ulpi_write(ULPI_MISC_A_VBUSVLDEXTSEL | ULPI_MISC_A_VBUSVLDEXT, ULPI_MISC_A_SET);
-
 	/* Enable sess_vld */
 	val = readl(USB_GENCONFIG_2) | GEN2_SESS_VLD_CTRL_EN;
 	writel(val, USB_GENCONFIG_2);
@@ -175,8 +172,6 @@ void target_usb_init(void)
 
 void target_usb_stop(void)
 {
-	/* Disable VBUS mimicing in the controller. */
-	ulpi_write(ULPI_MISC_A_VBUSVLDEXTSEL | ULPI_MISC_A_VBUSVLDEXT, ULPI_MISC_A_CLEAR);
 }
 
 static void set_sdc_power_ctrl()
@@ -386,6 +381,8 @@ target_usb_iface_t* target_usb30_init()
 /* identify the usb controller to be used for the target */
 const char * target_usb_controller()
 {
+    if(board_hardware_id() == HW_PLATFORM_DRAGON)
+	    return "ci";
 	return "dwc";
 }
 
