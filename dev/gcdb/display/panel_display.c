@@ -74,6 +74,8 @@ int dsi_panel_init(struct msm_panel_info *pinfo,
 		pinfo->lcdc.pipe_swap = 1;
 	if (pstruct->paneldata->panel_operating_mode & SPLIT_DISPLAY_FLAG)
 		pinfo->lcdc.split_display = 1;
+	if (pstruct->paneldata->panel_operating_mode & DST_SPLIT_FLAG)
+		pinfo->lcdc.dst_split = 1;
 
 	/* Color setting*/
 	pinfo->lcdc.border_clr = pstruct->color->border_color;

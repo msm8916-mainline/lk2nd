@@ -168,7 +168,7 @@ bool gcdb_display_cmdline_arg(char *pbuf, uint16_t buf_size)
 	uint32_t arg_size = 0;
 	bool ret = true;
 	char *default_str;
-	int panel_mode = SPLIT_DISPLAY_FLAG | DUAL_PIPE_FLAG;
+	int panel_mode = SPLIT_DISPLAY_FLAG | DUAL_PIPE_FLAG | DST_SPLIT_FLAG;
 	int prefix_string_len = strlen(DISPLAY_CMDLINE_PREFIX);
 
 	if (panelstruct.paneldata)

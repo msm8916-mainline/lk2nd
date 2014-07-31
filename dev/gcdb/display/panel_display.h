@@ -44,6 +44,7 @@
 #define DUAL_PIPE_FLAG 0x2
 #define PIPE_SWAP_FLAG 0x4
 #define SPLIT_DISPLAY_FLAG 0x8
+#define DST_SPLIT_FLAG 0x10
 
 #define MAX_PANEL_ID_LEN 64
 /*---------------------------------------------------------------------------*/

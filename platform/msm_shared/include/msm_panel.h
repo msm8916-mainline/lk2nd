@@ -110,6 +110,7 @@ struct lcdc_panel_info {
 	uint8_t dual_pipe;
 	uint8_t split_display;
 	uint8_t pipe_swap;
+	uint8_t dst_split;
 };
 
 struct mipi_panel_info {
