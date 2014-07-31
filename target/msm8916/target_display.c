@@ -149,11 +149,11 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 						MIPI_DSI0_BASE, pll_data);
 		if (!dsi_pll_enable_seq_8916(DSI0_PLL_BASE))
 			dprintf(CRITICAL, "Not able to enable the pll\n");
-		gcc_dsi_clocks_enable(pll_data->pclk_m,
+		gcc_dsi_clocks_enable(pinfo->mipi.dual_dsi, pll_data->pclk_m,
 				pll_data->pclk_n,
 				pll_data->pclk_d);
 	} else if(!target_cont_splash_screen()) {
-		gcc_dsi_clocks_disable();
+		gcc_dsi_clocks_disable(pinfo->mipi.dual_dsi);
 		mdp_clock_disable();
 		mdss_bus_clocks_disable();
 		mdp_gdsc_ctrl(enable);

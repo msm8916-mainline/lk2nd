@@ -146,9 +146,9 @@
 /* MDSS */
 #define MIPI_DSI_BASE               (0x1A98000)
 #define MIPI_DSI0_BASE              MIPI_DSI_BASE
-#define MIPI_DSI1_BASE              MIPI_DSI_BASE
+#define MIPI_DSI1_BASE              (0x1AA0000)
 #define DSI0_PHY_BASE               (0x1A98500)
-#define DSI1_PHY_BASE               DSI0_PHY_BASE
+#define DSI1_PHY_BASE               (0x1AA0500)
 #define DSI0_PLL_BASE               (0x1A98300)
 #define DSI1_PLL_BASE               DSI0_PLL_BASE
 #define REG_DSI(off)                (MIPI_DSI_BASE + 0x04 + (off))
@@ -175,6 +175,17 @@
 #define MDP_CLK_CTRL3                           REG_MDP(0x013A8)
 #define MDP_CLK_CTRL4                           REG_MDP(0x013B0)
 #define MDP_CLK_CTRL5                           REG_MDP(0x013B8)
+
+#define MDP_INTF_0_BASE                         REG_MDP(0x11F00)
+#define MDP_INTF_1_BASE                         REG_MDP(0x12700)
+#define MDP_INTF_2_BASE                         REG_MDP(0x12F00)
+
+#define MDP_REG_SPLIT_DISPLAY_EN                REG_MDP(0x12f4)
+#define MDP_REG_SPLIT_DISPLAY_UPPER_PIPE_CTL    REG_MDP(0x12F8)
+#define MDP_REG_SPLIT_DISPLAY_LOWER_PIPE_CTL    REG_MDP(0x13F0)
+
+#define MDP_REG_PPB0_CNTL                       REG_MDP(0x1420)
+#define MDP_REG_PPB0_CONFIG                     REG_MDP(0x1424)
 
 #define MMSS_MDP_SMP_ALLOC_W_BASE               REG_MDP(0x1080)
 #define MMSS_MDP_SMP_ALLOC_R_BASE               REG_MDP(0x1130)

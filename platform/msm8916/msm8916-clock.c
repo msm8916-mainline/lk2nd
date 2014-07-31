@@ -343,6 +343,11 @@ static struct clk_freq_tbl ftbl_mdss_esc0_1_clk[] = {
 	F_END
 };
 
+static struct clk_freq_tbl ftbl_mdss_esc1_1_clk[] = {
+	F_MM(19200000,    cxo,   1,   0,   0),
+	F_END
+};
+
 static struct clk_freq_tbl ftbl_mdp_clk[] = {
 	F( 80000000,  gpll0,   10,    0,    0),
 	F( 100000000, gpll0,    8,    0,    0),
@@ -376,6 +381,18 @@ static struct rcg_clk dsi_esc0_clk_src = {
 	},
 };
 
+static struct rcg_clk dsi_esc1_clk_src = {
+	.cmd_reg  = (uint32_t *) DSI_ESC1_CMD_RCGR,
+	.cfg_reg  = (uint32_t *) DSI_ESC1_CFG_RCGR,
+	.set_rate = clock_lib2_rcg_set_rate_hid,
+	.freq_tbl = ftbl_mdss_esc1_1_clk,
+
+	.c        = {
+		.dbg_name = "dsi_esc1_clk_src",
+		.ops      = &clk_ops_rcg,
+	},
+};
+
 static struct clk_freq_tbl ftbl_mdss_vsync_clk[] = {
 	F_MM(19200000,    cxo,   1,   0,   0),
 	F_END
@@ -400,6 +417,17 @@ static struct branch_clk mdss_esc0_clk = {
 
 	.c           = {
 		.dbg_name = "mdss_esc0_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
+static struct branch_clk mdss_esc1_clk = {
+	.cbcr_reg    = (uint32_t *) DSI_ESC1_CBCR,
+	.parent      = &dsi_esc1_clk_src.c,
+	.has_sibling = 0,
+
+	.c           = {
+		.dbg_name = "mdss_esc1_clk",
 		.ops      = &clk_ops_branch,
 	},
 };
@@ -551,6 +579,7 @@ static struct clk_lookup msm_clocks_8916[] =
 
 	CLK_LOOKUP("mdp_ahb_clk",          mdp_ahb_clk.c),
 	CLK_LOOKUP("mdss_esc0_clk",        mdss_esc0_clk.c),
+	CLK_LOOKUP("mdss_esc1_clk",        mdss_esc1_clk.c),
 	CLK_LOOKUP("mdss_axi_clk",         mdss_axi_clk.c),
 	CLK_LOOKUP("mdss_vsync_clk",       mdss_vsync_clk.c),
 	CLK_LOOKUP("mdss_mdp_clk_src",     mdss_mdp_clk_src.c),
