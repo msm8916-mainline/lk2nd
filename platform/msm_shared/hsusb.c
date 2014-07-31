@@ -159,6 +159,7 @@ struct udc_endpoint *_udc_endpoint_alloc(unsigned num, unsigned in,
 	unsigned cfg;
 
 	ept = memalign(CACHE_LINE, ROUNDUP(sizeof(*ept), CACHE_LINE));
+	ASSERT(ept);
 
 	ept->maxpkt = max_pkt;
 	ept->num = num;
@@ -249,6 +250,7 @@ struct udc_request *udc_request_alloc(void)
 {
 	struct usb_request *req;
 	req = memalign(CACHE_LINE, ROUNDUP(sizeof(*req), CACHE_LINE));
+	ASSERT(req);
 	req->req.buf = 0;
 	req->req.length = 0;
 	req->item = memalign(CACHE_LINE, ROUNDUP(sizeof(struct ept_queue_item),
@@ -693,6 +695,7 @@ int udc_init(struct udc_device *dev)
 	writel(0x08, USB_AHB_MODE);
 
 	epts = memalign(lcm(4096, CACHE_LINE), ROUNDUP(4096, CACHE_LINE));
+	ASSERT(epts);
 
 	dprintf(INFO, "USB init ept @ %p\n", epts);
 	memset(epts, 0, 32 * sizeof(struct ept_queue_head));
