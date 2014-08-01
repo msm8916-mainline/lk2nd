@@ -47,6 +47,8 @@
 
 #define SMEM_TARGET_INFO_IDENTIFIER     0x49494953
 
+#define SMEM_NUM_SMD_STREAM_CHANNELS        64
+
 enum smem_ram_ptable_version
 {
 	SMEM_RAM_PTABLE_VERSION_0,
@@ -71,7 +73,7 @@ struct smem_alloc_info {
 	unsigned allocated;
 	unsigned offset;
 	unsigned size;
-	unsigned reserved;
+	unsigned base_ext;
 };
 
 struct smem_board_info_v2 {
@@ -415,12 +417,15 @@ enum platform_subtype {
 
 typedef enum {
 	SMEM_SPINLOCK_ARRAY = 7,
-
 	SMEM_AARM_PARTITION_TABLE = 9,
+	SMEM_CHANNEL_ALLOC_TBL = 13,
+	SMEM_SMD_BASE_ID = 14,
 
 	SMEM_APPS_BOOT_MODE = 106,
 
 	SMEM_BOARD_INFO_LOCATION = 137,
+
+	SMEM_SMD_FIFO_BASE_ID = 338,
 
 	SMEM_USABLE_RAM_PARTITION_TABLE = 402,
 
@@ -571,4 +576,5 @@ int smem_ram_ptable_init_v1(); /* Used on platforms that use ram ptable v1 */
 void smem_get_ram_ptable_entry(ram_partition*, uint32_t entry);
 uint32_t smem_get_ram_ptable_version(void);
 uint32_t smem_get_ram_ptable_len(void);
+void* smem_get_alloc_entry(smem_mem_type_t type, uint32_t* size);
 #endif				/* __PLATFORM_MSM_SHARED_SMEM_H */

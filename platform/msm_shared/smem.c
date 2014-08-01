@@ -97,6 +97,45 @@ unsigned smem_read_alloc_entry(smem_mem_type_t type, void *buf, int len)
 	return 0;
 }
 
+/* Return a pointer to smem_item with size */
+void* smem_get_alloc_entry(smem_mem_type_t type, uint32_t* size)
+{
+	struct smem_alloc_info *ainfo = NULL;
+	uint32_t smem_addr = 0;
+	uint32_t base_ext = 0;
+	uint32_t offset = 0;
+	void *ret = 0;
+
+#if DYNAMIC_SMEM
+	smem_addr = smem_get_base_addr();
+#else
+	smem_addr = platform_get_smem_base_addr();
+#endif
+	smem = (struct smem *)smem_addr;
+
+	if (type < SMEM_FIRST_VALID_TYPE || type > SMEM_LAST_VALID_TYPE)
+		return 1;
+
+	ainfo = &smem->alloc_info[type];
+	if (readl(&ainfo->allocated) == 0)
+		return 1;
+
+	*size = readl(&ainfo->size);
+	base_ext = readl(&ainfo->base_ext);
+	offset = readl(&ainfo->offset);
+
+	if(base_ext)
+	{
+		ret = base_ext + offset;
+	}
+	else
+	{
+		ret = (void*) smem_addr + offset;
+	}
+
+	return ret;
+}
+
 unsigned
 smem_read_alloc_entry_offset(smem_mem_type_t type, void *buf, int len,
 			     int offset)
