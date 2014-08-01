@@ -16,6 +16,13 @@ OBJS += \
 	$(LOCAL_DIR)/hsusb.o \
 	$(LOCAL_DIR)/boot_stats.o
 
+ifeq ($(ENABLE_SMD_SUPPORT),1)
+OBJS += \
+	$(LOCAL_DIR)/rpm-smd.o \
+	$(LOCAL_DIR)/smd.o \
+	$(LOCAL_DIR)/regulator.o
+endif
+
 ifeq ($(ENABLE_SDHCI_SUPPORT),1)
 OBJS += \
 	$(LOCAL_DIR)/sdhci.o \
