@@ -335,6 +335,11 @@ void mdss_intf_tg_setup(struct msm_panel_info *pinfo, uint32_t intf_base)
 		}
 	}
 
+	if (pinfo->lcdc.dst_split &&  (intf_base == MDP_INTF_1_BASE)) {
+		writel(BIT(16), MDP_REG_PPB0_CONFIG);
+		writel(BIT(5), MDP_REG_PPB0_CNTL);
+	}
+
 	mdss_mdp_intf_off = intf_base + mdss_mdp_intf_offset();
 
 	hsync_period = lcdc->h_pulse_width +
@@ -532,9 +537,15 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 	reg = 0x1f00 | mdss_mdp_ctl_out_sel(pinfo, 1);
 	writel(reg, MDP_CTL_0_BASE + CTL_TOP);
 
+	/*If dst_split is enabled only intf 2 needs to be enabled.
+	CTL_1 path should not be set since CTL_0 itself is going
+	to split after DSPP block*/
+
 	if (pinfo->mipi.dual_dsi) {
-		reg = 0x1f00 | mdss_mdp_ctl_out_sel(pinfo, 0);
-		writel(reg, MDP_CTL_1_BASE + CTL_TOP);
+		if (!pinfo->lcdc.dst_split) {
+			reg = 0x1f00 | mdss_mdp_ctl_out_sel(pinfo,0);
+			writel(reg, MDP_CTL_1_BASE + CTL_TOP);
+		}
 		intf_sel |= BIT(16); /* INTF 2 enable */
 	}
 
