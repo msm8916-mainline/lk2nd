@@ -823,7 +823,7 @@ int update_device_tree(void *fdt, const char *cmdline,
 
 	offset = ret;
 	/* Adding the cmdline to the chosen node */
-	ret = fdt_setprop_string(fdt, offset, (const char*)"bootargs", (const void*)cmdline);
+	ret = fdt_appendprop_string(fdt, offset, (const char*)"bootargs", (const void*)cmdline);
 	if (ret)
 	{
 		dprintf(CRITICAL, "ERROR: Cannot update chosen node [bootargs]\n");
