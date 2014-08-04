@@ -454,7 +454,7 @@ int _emmc_recovery_init(void)
 			sizeof(msg->command), msg->command);
 	}
 
-	if (!strncmp(msg->command, "boot-recovery", strlen("boot-recovery"))) {
+	if (!strcmp(msg->command, "boot-recovery")) {
 		boot_into_recovery = 1;
 	}
 
