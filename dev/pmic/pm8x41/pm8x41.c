@@ -380,6 +380,16 @@ uint8_t pm8x41_get_pon_reason()
 	return REG_READ(PON_PON_REASON1);
 }
 
+uint8_t pm8x41_get_pon_poff_reason1()
+{
+	return REG_READ(PON_POFF_REASON1);
+}
+
+uint8_t pm8x41_get_pon_poff_reason2()
+{
+	return REG_READ(PON_POFF_REASON2);
+}
+
 void pm8x41_enable_mpp(struct pm8x41_mpp *mpp, enum mpp_en_ctl enable)
 {
 	ASSERT(mpp);
