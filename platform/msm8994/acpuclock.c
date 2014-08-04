@@ -93,6 +93,12 @@ void hsusb_clock_init(void)
 		ASSERT(0);
 	}
 
+	ret = clk_get_set_enable("usb_phy_cfg_ahb2phy_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to enable usb_phy_cfg_ahb2phy_clk = %d\n", ret);
+		ASSERT(0);
+	}
 }
 
 void clock_init_mmc(uint32_t interface)
