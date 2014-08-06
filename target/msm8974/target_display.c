@@ -30,16 +30,20 @@
 #include <debug.h>
 #include <smem.h>
 #include <err.h>
+#include <qtimer.h>
+#include <string.h>
 #include <msm_panel.h>
 #include <mipi_dsi.h>
 #include <pm8x41.h>
 #include <pm8x41_wled.h>
 #include <board.h>
 #include <mdp5.h>
+#include <edp.h>
 #include <platform/gpio.h>
 #include <platform/clock.h>
 #include <platform/iomap.h>
 #include <target/display.h>
+#include <gcdb_display.h>
 #include "include/panel.h"
 #include "include/display_resource.h"
 
@@ -47,6 +51,30 @@ static struct msm_fb_panel_data panel;
 static uint8_t edp_enable;
 
 #define HFPLL_LDO_ID 12
+
+/*---------------------------------------------------------------------------*/
+/* GPIO configuration                                                        */
+/*---------------------------------------------------------------------------*/
+static struct gpio_pin reset_gpio = {
+  "pm8941_gpios", 19, 2, 1, 0, 1
+};
+
+static struct gpio_pin enable_gpio = {
+  "msmgpio", 58, 3, 1, 0, 1
+};
+
+static struct gpio_pin pwm_gpio = {
+  "pm8941_gpios", 36, 3, 1, 0, 1
+};
+
+/*---------------------------------------------------------------------------*/
+/* LDO configuration                                                         */
+/*---------------------------------------------------------------------------*/
+static struct ldo_entry ldo_entry_array[] = {
+  { "vdd", 22, 0, 3000000, 100000, 100, 0, 20, 0, 0},
+  { "vddio", 12, 0, 1800000, 100000, 100, 0, 20, 0, 0},
+  { "vdda", 2, 1, 1200000, 100000, 100, 0, 0, 0, 0},
+};
 
 static struct pm8x41_wled_data wled_ctrl = {
 	.mod_scheme      = 0x00,
@@ -289,7 +317,7 @@ int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 			0x100 * ldo_entry_array[ldocounter].ldo_id),
 			ldo_entry_array[ldocounter].ldo_type);
 
-		dprintf(SPEW, "Setting %s\n",
+		dprintf(SPEW, "Setting %u\n",
 				ldo_entry_array[ldocounter].ldo_id);
 
 		/* Set voltage during power on */
@@ -306,7 +334,7 @@ int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 	return NO_ERROR;
 }
 
-static int msm8974_mdss_edp_panel_clock(int enable, struct msm_panel_info *pinfo)
+static uint32_t msm8974_mdss_edp_panel_clock(uint8_t enable , struct msm_panel_info *pinfo)
 {
 	uint32_t dual_dsi = pinfo->mipi.dual_dsi;
 	if (enable) {
@@ -323,17 +351,8 @@ static int msm8974_mdss_edp_panel_clock(int enable, struct msm_panel_info *pinfo
 	return 0;
 }
 
-static int msm8974_edp_panel_power(int enable)
+static int msm8974_edp_panel_power(uint8_t enable)
 {
-	struct pm8x41_gpio gpio36_param = {
-		.direction = PM_GPIO_DIR_OUT,
-		.function = PM_GPIO_FUNC_2,
-		.vin_sel = 2,	/* VIN_2 */
-		.pull = PM_GPIO_PULL_UP_1_5 | PM_GPIO_PULLDOWN_10,
-		.output_buffer = PM_GPIO_OUT_CMOS,
-		.out_strength = PM_GPIO_OUT_DRIVE_HIGH,
-	};
-
 	struct pm8x41_ldo ldo12 = LDO(PM8x41_LDO12, PLDO_TYPE);
 
 	if (enable) {
@@ -372,7 +391,7 @@ bool target_display_panel_node(char *panel_name, char *pbuf, uint16_t buf_size)
 
 	if (!strcmp(panel_name, HDMI_PANEL_NAME)) {
 		if (buf_size < (prefix_string_len + LK_OVERRIDE_PANEL_LEN +
-				HDMI_CONTROLLER_STRING)) {
+				strlen(HDMI_CONTROLLER_STRING))) {
 			dprintf(CRITICAL, "command line argument is greater than buffer size\n");
 			return false;
 		}
@@ -393,7 +412,7 @@ void target_display_init(const char *panel_name)
 {
 	uint32_t hw_id = board_hardware_id();
 	uint32_t panel_loop = 0;
-	uint32_t ret = 0;
+	int ret = 0;
 
 	if (target_hw_interposer())
 		return;
@@ -432,14 +451,14 @@ void target_display_init(const char *panel_name)
 		do {
 			target_force_cont_splash_disable(false);
 			ret = gcdb_display_init(panel_name, MDP_REV_50,
-				MIPI_FB_ADDR);
+				(void *)MIPI_FB_ADDR);
 			if (!ret || ret == ERR_NOT_SUPPORTED) {
 				break;
 			} else {
 				target_force_cont_splash_disable(true);
 				msm_display_off();
 			}
-		} while (++panel_loop <= oem_panel_max_auto_detect_panels());
+		} while (++panel_loop <= (uint32_t)oem_panel_max_auto_detect_panels());
 		break;
 	}
 }

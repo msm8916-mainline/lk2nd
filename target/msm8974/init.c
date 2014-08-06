@@ -31,6 +31,7 @@
 #include <platform/irqs.h>
 #include <platform/gpio.h>
 #include <reg.h>
+#include <string.h>
 #include <target.h>
 #include <platform.h>
 #include <dload_util.h>
@@ -46,6 +47,8 @@
 #include <hsusb.h>
 #include <clock.h>
 #include <partition_parser.h>
+#include <sdhci_msm.h>
+#include <qtimer.h>
 #include <scm.h>
 #include <platform/clock.h>
 #include <platform/gpio.h>
@@ -53,6 +56,8 @@
 
 #define HW_PLATFORM_8994_INTERPOSER    0x3
 
+extern int platform_is_8974();
+extern int platform_is_8974ac();
 extern  bool target_use_signed_kernel(void);
 static void set_sdc_power_ctrl();
 
@@ -384,7 +389,7 @@ static void ssd_load_keystore_from_emmc()
 
 	ret = scm_protect_keystore((uint32_t *)&buffer[0],size);
 	if(ret != 0)
-		dprintf(CRITICAL,"ERROR: scm_protect_keystore Failed");
+		dprintf(CRITICAL,"ERROR: scm_protect_keystore Failed\n");
 
 	free(buffer);
 }
@@ -663,7 +668,6 @@ void target_force_cont_splash_disable(uint8_t override)
 
 unsigned target_pause_for_battery_charge(void)
 {
-	uint8_t pon_reason = pm8x41_get_pon_reason();
 
         /* This function will always return 0 to facilitate
          * automated testing/reboot with usb connected.
@@ -772,7 +776,6 @@ int emmc_recovery_init(void)
 
 void target_usb_stop(void)
 {
-	uint32_t platform = board_platform_id();
 
 	/* Disable VBUS mimicing in the controller. */
 	if (target_needs_vbus_mimic())
