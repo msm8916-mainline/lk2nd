@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -33,7 +33,7 @@
 
 static uint8_t wled_slave_id;
 
-static void wled_reg_write(uint32_t addr, uint8_t val)
+void pm8x41_wled_reg_write(uint32_t addr, uint8_t val)
 {
 	uint32_t new_addr;
 	if (wled_slave_id) {
@@ -43,6 +43,21 @@ static void wled_reg_write(uint32_t addr, uint8_t val)
 		new_addr = addr + (DEFAULT_SLAVE_ID << 16);
 		REG_WRITE(new_addr, val);
 	}
+}
+
+uint8_t pm8x41_wled_reg_read(uint32_t addr)
+{
+	uint32_t new_addr;
+	uint8_t val;
+
+	if (wled_slave_id) {
+		new_addr = addr + (wled_slave_id << 16);
+		val = REG_READ(new_addr);
+	} else {
+		new_addr = addr + (DEFAULT_SLAVE_ID << 16);
+		val = REG_READ(new_addr);
+	}
+	return val;
 }
 
 void pm8x41_wled_config_slave_id(uint8_t slave_id)
@@ -57,22 +72,22 @@ void pm8x41_wled_config(struct pm8x41_wled_data *wled_ctrl) {
 		return;
 	}
 
-	wled_reg_write(PM_WLED_MODULATION_SCHEME, wled_ctrl->mod_scheme);
+	pm8x41_wled_reg_write(PM_WLED_MODULATION_SCHEME, wled_ctrl->mod_scheme);
 
-	wled_reg_write(PM_WLED_LED1_BRIGHTNESS_LSB, (wled_ctrl->led1_brightness & 0xFF));
-	wled_reg_write(PM_WLED_LED1_BRIGHTNESS_MSB, ((wled_ctrl->led1_brightness >> 8) & 0xFF));
-	wled_reg_write(PM_WLED_LED2_BRIGHTNESS_LSB, (wled_ctrl->led2_brightness & 0xFF));
-	wled_reg_write(PM_WLED_LED2_BRIGHTNESS_MSB, ((wled_ctrl->led2_brightness >> 8) & 0xFF));
-	wled_reg_write(PM_WLED_LED3_BRIGHTNESS_LSB, (wled_ctrl->led3_brightness & 0xFF));
-	wled_reg_write(PM_WLED_LED3_BRIGHTNESS_MSB, ((wled_ctrl->led3_brightness >> 8) & 0xFF));
+	pm8x41_wled_reg_write(PM_WLED_LED1_BRIGHTNESS_LSB, (wled_ctrl->led1_brightness & 0xFF));
+	pm8x41_wled_reg_write(PM_WLED_LED1_BRIGHTNESS_MSB, ((wled_ctrl->led1_brightness >> 8) & 0xFF));
+	pm8x41_wled_reg_write(PM_WLED_LED2_BRIGHTNESS_LSB, (wled_ctrl->led2_brightness & 0xFF));
+	pm8x41_wled_reg_write(PM_WLED_LED2_BRIGHTNESS_MSB, ((wled_ctrl->led2_brightness >> 8) & 0xFF));
+	pm8x41_wled_reg_write(PM_WLED_LED3_BRIGHTNESS_LSB, (wled_ctrl->led3_brightness & 0xFF));
+	pm8x41_wled_reg_write(PM_WLED_LED3_BRIGHTNESS_MSB, ((wled_ctrl->led3_brightness >> 8) & 0xFF));
 
-	wled_reg_write(PM_WLED_MAX_DUTY_CYCLE, wled_ctrl->max_duty_cycle);
-	wled_reg_write(PM_WLED_OVP, wled_ctrl->ovp);
-	wled_reg_write(LEDn_FULL_SCALE_CURRENT(1), wled_ctrl->full_current_scale);
-	wled_reg_write(LEDn_FULL_SCALE_CURRENT(2), wled_ctrl->full_current_scale);
-	wled_reg_write(LEDn_FULL_SCALE_CURRENT(3), wled_ctrl->full_current_scale);
+	pm8x41_wled_reg_write(PM_WLED_MAX_DUTY_CYCLE, wled_ctrl->max_duty_cycle);
+	pm8x41_wled_reg_write(PM_WLED_OVP, wled_ctrl->ovp);
+	pm8x41_wled_reg_write(LEDn_FULL_SCALE_CURRENT(1), wled_ctrl->full_current_scale);
+	pm8x41_wled_reg_write(LEDn_FULL_SCALE_CURRENT(2), wled_ctrl->full_current_scale);
+	pm8x41_wled_reg_write(LEDn_FULL_SCALE_CURRENT(3), wled_ctrl->full_current_scale);
 
-	wled_reg_write(PM_WLED_FDBCK_CONTROL, wled_ctrl->fdbck);
+	pm8x41_wled_reg_write(PM_WLED_FDBCK_CONTROL, wled_ctrl->fdbck);
 	dprintf(SPEW, "WLED Configuration Success.\n");
 
 }
@@ -87,7 +102,7 @@ void pm8x41_wled_sink_control(uint8_t enable) {
 			PM_WLED_LED3_SINK_MASK;
 	}
 
-	wled_reg_write(PM_WLED_CURRENT_SINK, value);
+	pm8x41_wled_reg_write(PM_WLED_CURRENT_SINK, value);
 
 	dprintf(SPEW, "WLED Sink Success\n");
 
@@ -103,7 +118,7 @@ void pm8x41_wled_iled_sync_control(uint8_t enable) {
 			PM_WLED_LED3_ILED_SYNC_MASK;
 	}
 
-	wled_reg_write(PM_WLED_ILED_SYNC_BIT, value);
+	pm8x41_wled_reg_write(PM_WLED_ILED_SYNC_BIT, value);
 
 	dprintf(SPEW, "WLED ILED Sync Success\n");
 
@@ -116,9 +131,9 @@ void pm8x41_wled_led_mod_enable(uint8_t enable) {
 	if (enable)
 		value = PM_WLED_LED_MODULATOR_EN;
 
-	wled_reg_write(PM_WLED_LED_CTNL_REG(1), value);
-	wled_reg_write(PM_WLED_LED_CTNL_REG(2), value);
-	wled_reg_write(PM_WLED_LED_CTNL_REG(3), value);
+	pm8x41_wled_reg_write(PM_WLED_LED_CTNL_REG(1), value);
+	pm8x41_wled_reg_write(PM_WLED_LED_CTNL_REG(2), value);
+	pm8x41_wled_reg_write(PM_WLED_LED_CTNL_REG(3), value);
 
 	dprintf(SPEW, "WLED LED Module Enable Success\n");
 
@@ -131,7 +146,7 @@ void pm8x41_wled_enable(uint8_t enable) {
 	if (enable)
 		value = PM_WLED_ENABLE_MODULE_MASK;
 
-	wled_reg_write(PM_WLED_ENABLE, value);
+	pm8x41_wled_reg_write(PM_WLED_ENABLE, value);
 
 	dprintf(SPEW, "WLED Enable Success\n");
 

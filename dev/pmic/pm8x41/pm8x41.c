@@ -35,6 +35,13 @@
 #include <pm8x41.h>
 #include <platform/timer.h>
 
+static uint8_t mpp_slave_id;
+
+uint8_t pmi8994_config_mpp_slave_id(uint8_t slave_id)
+{
+	mpp_slave_id = slave_id;
+}
+
 /* SPMI helper functions */
 uint8_t pm8x41_reg_read(uint32_t addr)
 {
@@ -394,16 +401,16 @@ void pm8x41_enable_mpp(struct pm8x41_mpp *mpp, enum mpp_en_ctl enable)
 {
 	ASSERT(mpp);
 
-	REG_WRITE(mpp->base + MPP_EN_CTL, enable << MPP_EN_CTL_ENABLE_SHIFT);
+	REG_WRITE(((mpp->base + MPP_EN_CTL) + (mpp_slave_id << 16)), enable << MPP_EN_CTL_ENABLE_SHIFT);
 }
 
 void pm8x41_config_output_mpp(struct pm8x41_mpp *mpp)
 {
 	ASSERT(mpp);
 
-	REG_WRITE(mpp->base + MPP_DIG_VIN_CTL, mpp->vin);
+	REG_WRITE(((mpp->base + MPP_DIG_VIN_CTL) + (mpp_slave_id << 16)), mpp->vin);
 
-	REG_WRITE(mpp->base + MPP_MODE_CTL, mpp->mode | (MPP_DIGITAL_OUTPUT << MPP_MODE_CTL_MODE_SHIFT));
+	REG_WRITE(((mpp->base + MPP_MODE_CTL) + (mpp_slave_id << 16)), mpp->mode | (MPP_DIGITAL_OUTPUT << MPP_MODE_CTL_MODE_SHIFT));
 }
 
 uint8_t pm8x41_get_is_cold_boot()
