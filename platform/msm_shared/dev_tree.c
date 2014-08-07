@@ -47,7 +47,7 @@ struct dt_entry_v1
 
 static struct dt_mem_node_info mem_node;
 
-static int platform_dt_match(struct dt_entry *cur_dt_entry, uint32_t target_variant_id, uint32_t subtype_mask);
+static int platform_dt_match(struct dt_entry *cur_dt_entry, struct board_dt_entry *board_dt_data, uint32_t subtype_mask);
 extern int target_is_emmc_boot(void);
 extern uint32_t target_dev_tree_mem(void *fdt, uint32_t memory_node_offset);
 /* TODO: This function needs to be moved to target layer to check violations
@@ -81,6 +81,7 @@ static uint32_t dev_tree_compatible(void *dtb)
 	uint32_t msm_data_count;
 	uint32_t board_data_count;
 	uint32_t soc_rev;
+	struct board_dt_entry board_dt_data;
 
 	root_offset = fdt_path_offset(dtb, "/");
 	if (root_offset < 0)
@@ -135,13 +136,14 @@ static uint32_t dev_tree_compatible(void *dtb)
 			cur_dt_entry.soc_rev = fdt32_to_cpu(((const struct dt_entry_v1 *)plat_prop)->soc_rev);
 			cur_dt_entry.board_hw_subtype = board_hardware_subtype();
 
-			target_variant_id = board_hardware_id();
+			board_dt_data.target_variant_id = board_hardware_id();
+			board_dt_data.platform_variant_id = board_platform_id();
 
 			dprintf(SPEW, "Found an appended flattened device tree (%s - %u %u 0x%x)\n",
 				*model ? model : "unknown",
 				cur_dt_entry.platform_id, cur_dt_entry.variant_id, cur_dt_entry.soc_rev);
 
-			if (platform_dt_match(&cur_dt_entry, target_variant_id, 0) == 1)
+			if (platform_dt_match(&cur_dt_entry, &board_dt_data, 0) == 1)
 			{
 				dprintf(SPEW, "Device tree's msm_id doesn't match the board: <%u %u 0x%x> != <%u %u 0x%x>\n",
 							  cur_dt_entry.platform_id,
@@ -223,9 +225,15 @@ static uint32_t dev_tree_compatible(void *dtb)
 
 		/* Now find the matching entry in the merged list */
 		if (board_hardware_id() == HW_PLATFORM_QRD)
-			target_variant_id = board_target_id();
+		{
+			board_dt_data.target_variant_id = board_target_id();
+			board_dt_data.platform_variant_id = board_platform_id();
+		}
 		else
-			target_variant_id = board_hardware_id() | ((board_hardware_subtype() & 0xff) << 24);
+		{
+			board_dt_data.target_variant_id = board_hardware_id() | ((board_hardware_subtype() & 0xff) << 24);
+			board_dt_data.platform_variant_id = board_platform_id();
+		}
 
 		for (i=0 ;i < num_entries; i++)
 		{
@@ -233,7 +241,7 @@ static uint32_t dev_tree_compatible(void *dtb)
 				*model ? model : "unknown",
 				dt_entry_v2[i].platform_id, dt_entry_v2[i].variant_id, dt_entry_v2[i].board_hw_subtype, dt_entry_v2[i].soc_rev);
 
-			if (platform_dt_match(&dt_entry_v2[i], target_variant_id, 0xff) == 1)
+			if (platform_dt_match(&dt_entry_v2[i], &board_dt_data, 0xff) == 1)
 			{
 				dprintf(SPEW, "Device tree's msm_id doesn't match the board: <%u %u %u 0x%x> != <%u %u %u 0x%x>\n",
 							  dt_entry_v2[i].platform_id,
@@ -402,7 +410,7 @@ int dev_tree_validate(struct dt_table *table, unsigned int page_size, uint32_t *
 	return 0;
 }
 
-static int platform_dt_match(struct dt_entry *cur_dt_entry, uint32_t target_variant_id, uint32_t subtype_mask)
+static int platform_dt_match(struct dt_entry *cur_dt_entry, struct board_dt_entry *board_dt_data, uint32_t subtype_mask)
 {
 	/*
 	 * 1. Check if cur_dt_entry has platform_hw_version major & minor present?
@@ -418,7 +426,7 @@ static int platform_dt_match(struct dt_entry *cur_dt_entry, uint32_t target_vari
 	 * ignore the major & minor versions from the DTB entry
 	 */
 	if ((cur_dt_entry->variant_id & 0xffff00) == 0xffff00)
-		cur_dt_target_id  = (cur_dt_entry->variant_id & 0xff0000ff) | (target_variant_id & 0xffff00);
+		cur_dt_target_id  = (cur_dt_entry->variant_id & 0xff0000ff) | (board_dt_data->target_variant_id & 0xffff00);
 	/*
 	 * We have a valid platform_hw_version major & minor numbers in the board-id, so
 	 * use the board-id from the DTB.
@@ -437,10 +445,9 @@ static int platform_dt_match(struct dt_entry *cur_dt_entry, uint32_t target_vari
 	*  4. otherwise return 1
 	*/
 
-	if((cur_dt_entry->platform_id == board_platform_id()) &&
-		(cur_dt_target_id == target_variant_id) &&
+	if((cur_dt_entry->platform_id == board_dt_data->platform_variant_id) &&
+		(cur_dt_target_id == board_dt_data->target_variant_id) &&
 		(cur_dt_hlos_subtype == target_get_hlos_subtype())) {
-
 		if(cur_dt_entry->soc_rev == board_soc_version()) {
 			return 0;
 		} else if(cur_dt_entry->soc_rev < board_soc_version()) {
@@ -452,7 +459,7 @@ static int platform_dt_match(struct dt_entry *cur_dt_entry, uint32_t target_vari
 }
 
 static int __dev_tree_get_entry_info(struct dt_table *table, struct dt_entry *dt_entry_info,
-										uint32_t target_variant_id, uint32_t subtype_mask)
+										struct board_dt_entry *board_dt_data, uint32_t subtype_mask)
 {
 	uint32_t i;
 	unsigned char *table_ptr;
@@ -503,7 +510,7 @@ static int __dev_tree_get_entry_info(struct dt_table *table, struct dt_entry *dt
 		 * we pickup the DTB with highest soc rev number which is less
 		 * than or equal to actual hardware
 		 */
-		switch(platform_dt_match(cur_dt_entry, target_variant_id, subtype_mask)) {
+		switch(platform_dt_match(cur_dt_entry, board_dt_data, subtype_mask)) {
 		case 0:
 			best_match_dt_entry = cur_dt_entry;
 			found = 1;
@@ -530,17 +537,17 @@ static int __dev_tree_get_entry_info(struct dt_table *table, struct dt_entry *dt
 	}
 
 	if (found != 0) {
-		dprintf(INFO, "Using DTB entry %u/%08x/0x%08x/%u for device %u/%08x/0x%08x/%u\n",
+		dprintf(INFO, "Using DTB entry 0x%08x/%08x/0x%08x/%u for device 0x%08x/%08x/0x%08x/%u\n",
 				dt_entry_info->platform_id, dt_entry_info->soc_rev,
 				dt_entry_info->variant_id, dt_entry_info->board_hw_subtype,
-				board_platform_id(), board_soc_version(),
-				board_target_id(), board_hardware_subtype());
+				board_dt_data->platform_variant_id, board_soc_version(),
+				board_dt_data->target_variant_id, board_hardware_subtype());
 		return 0;
 	}
 
-	dprintf(CRITICAL, "ERROR: Unable to find suitable device tree for device (%u/0x%08x/0x%08x/%u)\n",
-			board_platform_id(), board_soc_version(),
-			board_target_id(), board_hardware_subtype());
+	dprintf(CRITICAL, "INFO: Unable to find suitable device tree for device (0x%08x/0x%08x/0x%08x/%u)\n",
+			board_dt_data->platform_variant_id, board_soc_version(),
+			board_dt_data->target_variant_id, board_hardware_subtype());
 	return -1;
 }
 
@@ -552,10 +559,23 @@ static int __dev_tree_get_entry_info(struct dt_table *table, struct dt_entry *dt
  */
 int dev_tree_get_entry_info(struct dt_table *table, struct dt_entry *dt_entry_info)
 {
-	uint32_t target_variant_id;
+	struct board_dt_entry board_dt_data;
 
-	target_variant_id = board_target_id();
-	if (__dev_tree_get_entry_info(table, dt_entry_info, target_variant_id, 0xff) == 0) {
+	/* 1. Look for new board-id (platform version + hw + subtype) & new msm-id (soc ver + soc id + foundry-id) */
+	board_dt_data.target_variant_id = board_target_id();
+	/* Platform-id
+	 * bit no |31    24|23      16|15   0|
+	 *        |reserved|foundry-id|msm-id|
+	 */
+	board_dt_data.platform_variant_id = board_platform_id() | (board_foundry_id() << 16);
+	if (__dev_tree_get_entry_info(table, dt_entry_info, &board_dt_data, 0xff) == 0) {
+		return 0;
+	}
+
+	/* 2. Look for new board-id & old msm-id (no foundry-id) */
+	board_dt_data.target_variant_id = board_target_id();
+	board_dt_data.platform_variant_id = board_platform_id();
+	if (__dev_tree_get_entry_info(table, dt_entry_info, &board_dt_data, 0xff) == 0) {
 		return 0;
 	}
 
@@ -563,16 +583,26 @@ int dev_tree_get_entry_info(struct dt_table *table, struct dt_entry *dt_entry_in
 	 * for compatible with version 1 and version 2 dtbtool
 	 * will compare the subtype inside the variant id
 	 */
-	target_variant_id = board_hardware_id() | ((board_hardware_subtype() & 0xff) << 24);
-	if (__dev_tree_get_entry_info(table, dt_entry_info, target_variant_id, 0xff) == 0) {
+
+	/* 3. Look for old board-id (no platform version) & new msm-id (with foundry-id) */
+	board_dt_data.target_variant_id = board_hardware_id() | ((board_hardware_subtype() & 0xff) << 24);
+	board_dt_data.platform_variant_id = board_platform_id() | (board_foundry_id() << 16);
+	if (__dev_tree_get_entry_info(table, dt_entry_info, &board_dt_data, 0xff) == 0) {
+		return 0;
+	}
+	/* 4. Look for old board-id (no platform versions) & old msm-id(no foundry-id) */
+	board_dt_data.target_variant_id = board_hardware_id() | ((board_hardware_subtype() & 0xff) << 24);
+	board_dt_data.platform_variant_id = board_platform_id();
+	if (__dev_tree_get_entry_info(table, dt_entry_info, &board_dt_data, 0xff) == 0) {
 		return 0;
 	}
 
 	/*
 	* add compatible with old device selection method which don't compare subtype
 	*/
-	target_variant_id = board_hardware_id();
-	return __dev_tree_get_entry_info(table, dt_entry_info, target_variant_id, 0);
+	board_dt_data.target_variant_id = board_hardware_id();
+	board_dt_data.platform_variant_id = board_platform_id();
+	return __dev_tree_get_entry_info(table, dt_entry_info, &board_dt_data, 0);
 }
 
 /* Function to add the first RAM partition info to the device tree.
