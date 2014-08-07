@@ -72,6 +72,7 @@
 #define FASTBOOT_MODE           0x77665500
 
 #define BOOT_DEVICE_MASK(val)   ((val & 0x3E) >>1)
+#define PMIC_WLED_SLAVE_ID      3
 
 static void set_sdc_power_ctrl(void);
 static uint32_t mmc_pwrctl_base[] =
@@ -280,6 +281,10 @@ void target_init(void)
 	}
 
 	rpm_smd_init();
+
+	/* QPNP WLED init for display backlight */
+	pm8x41_wled_config_slave_id(PMIC_WLED_SLAVE_ID);
+	qpnp_wled_init();
 }
 
 unsigned board_machtype(void)
