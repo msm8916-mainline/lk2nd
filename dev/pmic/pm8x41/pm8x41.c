@@ -37,11 +37,10 @@
 
 static uint8_t mpp_slave_id;
 
-uint8_t pmi8994_config_mpp_slave_id(uint8_t slave_id)
+void pmi8994_config_mpp_slave_id(uint8_t slave_id)
 {
 	mpp_slave_id = slave_id;
 }
-
 /* SPMI helper functions */
 uint8_t pm8x41_reg_read(uint32_t addr)
 {
