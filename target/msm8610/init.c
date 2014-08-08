@@ -97,6 +97,8 @@ static uint32_t  mmc_sdc_pwrctl_irq[] =
 
 struct mmc_device *dev;
 
+void target_crypto_init_params();
+
 void target_early_init(void)
 {
 #if WITH_DEBUG_UART
@@ -473,8 +475,6 @@ unsigned board_machtype(void)
 
 static void set_sdc_power_ctrl()
 {
-	uint8_t data_hdrv = 0;
-	uint32_t platform = board_platform_id();
 
 	/* Drive strength configs for sdc pins */
 	struct tlmm_cfgs sdc1_hdrv_cfg[] =

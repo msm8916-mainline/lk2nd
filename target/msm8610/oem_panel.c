@@ -29,10 +29,12 @@
 
 #include <debug.h>
 #include <err.h>
+#include <string.h>
 #include <smem.h>
 #include <msm_panel.h>
 #include <board.h>
 #include <mipi_dsi.h>
+#include <target/display.h>
 
 #include "include/panel.h"
 #include "panel_display.h"
