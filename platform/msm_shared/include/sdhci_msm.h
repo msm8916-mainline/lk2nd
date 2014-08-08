@@ -30,6 +30,7 @@
 #define __SDHCI_MSM_H__
 
 #include <kernel/event.h>
+#include <mmc_sdhci.h>
 
 #define SDHCI_HC_START_BIT                         0x0
 #define SDHCI_HC_WIDTH                             0x1
@@ -140,4 +141,5 @@ uint32_t sdhci_msm_execute_tuning(struct sdhci_host *host, struct mmc_card * car
 void sdhci_mode_disable(struct sdhci_host *host);
 /* API: Toggle the bit for clock-data recovery */
 void sdhci_msm_toggle_cdr(struct sdhci_host *host, bool enable);
+void sdhci_msm_set_mci_clk(struct sdhci_host *host);
 #endif

@@ -47,4 +47,5 @@ int image_decrypt_signature_rsa(unsigned char *signature_ptr,
 /* Find hash of image */
 void image_find_digest(unsigned char *image_ptr, unsigned int image_size,
 		unsigned hash_type, unsigned char *digest);
+void save_kernel_hash_cmd(void *digest);
 #endif

@@ -32,6 +32,7 @@
 #define __PLATFORM_MSM_SHARED_SMEM_H
 
 #include <sys/types.h>
+#include <platform.h>
 
 #define SMEM_V7_SMEM_MAX_PMIC_DEVICES   1
 #define SMEM_V8_SMEM_MAX_PMIC_DEVICES   3

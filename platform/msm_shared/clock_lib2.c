@@ -270,5 +270,5 @@ int clock_lib2_branch_clk_reset(struct clk *c, enum clk_reset_action action)
 	if (!bclk)
 		return 0;
 
-	return __clock_lib2_branch_clk_reset(bclk->bcr_reg, action);
+	return __clock_lib2_branch_clk_reset((uint32_t)bclk->bcr_reg, action);
 }

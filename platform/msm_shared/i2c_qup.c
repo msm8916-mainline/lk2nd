@@ -702,6 +702,7 @@ void qup_i2c_sec_init(struct qup_i2c_dev *dev, uint32_t clk_freq,
 	mask_interrupt(dev->qup_irq);
 }
 
+#if DEFINE_GSBI_I2C
 struct qup_i2c_dev *qup_i2c_init(uint8_t gsbi_id, unsigned clk_freq,
 				 unsigned src_clk_freq)
 {
@@ -739,6 +740,7 @@ struct qup_i2c_dev *qup_i2c_init(uint8_t gsbi_id, unsigned clk_freq,
 
 	return dev;
 }
+#endif
 
 struct qup_i2c_dev *qup_blsp_i2c_init(uint8_t blsp_id, uint8_t qup_id,
 									  uint32_t clk_freq, uint32_t src_clk_freq)

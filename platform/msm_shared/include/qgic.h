@@ -31,6 +31,9 @@
 #define __PLATFORM_MSM_SHARED_QGIC_H
 
 #include "qgic_common.h"
+#include <platform/iomap.h>
+#include <platform/interrupts.h>
+#include <arch/arm.h>
 
 #define GIC_CPU_REG(off)            (MSM_GIC_CPU_BASE  + (off))
 
@@ -50,4 +53,9 @@
 uint32_t qgic_read_iar(void);
 void qgic_write_eoi(uint32_t);
 
+enum handler_return gic_platform_irq(struct arm_iframe *frame);
+void gic_platform_fiq(struct arm_iframe *frame);
+status_t gic_mask_interrupt(unsigned int vector);
+status_t gic_unmask_interrupt(unsigned int vector);
+void gic_register_int_handler(unsigned int vector, int_handler func, void *arg);
 #endif

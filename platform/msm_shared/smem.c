@@ -104,7 +104,7 @@ void* smem_get_alloc_entry(smem_mem_type_t type, uint32_t* size)
 	uint32_t smem_addr = 0;
 	uint32_t base_ext = 0;
 	uint32_t offset = 0;
-	void *ret = 0;
+	void *ret = NULL;
 
 #if DYNAMIC_SMEM
 	smem_addr = smem_get_base_addr();
@@ -114,11 +114,11 @@ void* smem_get_alloc_entry(smem_mem_type_t type, uint32_t* size)
 	smem = (struct smem *)smem_addr;
 
 	if (type < SMEM_FIRST_VALID_TYPE || type > SMEM_LAST_VALID_TYPE)
-		return 1;
+		return ret;
 
 	ainfo = &smem->alloc_info[type];
 	if (readl(&ainfo->allocated) == 0)
-		return 1;
+		return ret;
 
 	*size = readl(&ainfo->size);
 	base_ext = readl(&ainfo->base_ext);
@@ -126,7 +126,7 @@ void* smem_get_alloc_entry(smem_mem_type_t type, uint32_t* size)
 
 	if(base_ext)
 	{
-		ret = base_ext + offset;
+		ret = (void*)base_ext + offset;
 	}
 	else
 	{

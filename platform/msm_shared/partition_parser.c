@@ -605,12 +605,12 @@ patch_gpt(uint8_t *gptImage, uint64_t density, uint32_t array_size,
 		      array_size, (long long)(card_size_sec - 34));
 
 	/* Updating CRC of the Partition entry array in both headers */
-	partition_entry_array_start = primary_gpt_header + block_size;
-	crc_value = calculate_crc32(partition_entry_array_start,
+	partition_entry_array_start = (unsigned int)primary_gpt_header + block_size;
+	crc_value = calculate_crc32((unsigned char *)partition_entry_array_start,
 				    max_part_count * part_entry_size);
 	PUT_LONG(primary_gpt_header + PARTITION_CRC_OFFSET, crc_value);
 
-	crc_value = calculate_crc32(partition_entry_array_start + array_size,
+	crc_value = calculate_crc32((unsigned char *)partition_entry_array_start + array_size,
 				    max_part_count * part_entry_size);
 	PUT_LONG(secondary_gpt_header + PARTITION_CRC_OFFSET, crc_value);
 
@@ -715,7 +715,7 @@ static unsigned int write_gpt(uint32_t size, uint8_t *gptImage, uint32_t block_s
 	}
 
 	/* Writing the partition entries array for the primary header */
-	partition_entry_array_start = primary_gpt_header + block_size;
+	partition_entry_array_start = (unsigned int)primary_gpt_header + block_size;
 	ret = write_gpt_partition_array(primary_gpt_header,
 					partition_entry_array_start,
 					partition_entry_array_size, block_size);
@@ -726,7 +726,7 @@ static unsigned int write_gpt(uint32_t size, uint8_t *gptImage, uint32_t block_s
 	}
 
 	/*Writing the partition entries array for the backup header */
-	partition_entry_array_start = primary_gpt_header + block_size +
+	partition_entry_array_start = (unsigned int)primary_gpt_header + block_size +
 	    partition_entry_array_size;
 	ret = write_gpt_partition_array(secondary_gpt_header,
 					partition_entry_array_start,

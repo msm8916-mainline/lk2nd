@@ -33,6 +33,7 @@
 #include <platform/iomap.h>
 #include <platform/irqs.h>
 #include <platform/interrupts.h>
+#include <malloc.h>
 
 #define PMIC_ARB_V2 0x20010000
 #define CHNL_IDX(sid, pid) ((sid << 8) | pid)
@@ -47,8 +48,8 @@ static uint8_t *chnl_tbl;
 static void spmi_lookup_chnl_number()
 {
 	int i;
-	uint8_t slave_id;
-	uint8_t ppid_address;
+	uint8_t slave_id = 0;
+	uint8_t ppid_address = 0;
 	/* We need a max of sid (4 bits) + pid (8bits) of uint8_t's */
 	uint32_t chnl_tbl_sz = BIT(12) * sizeof(uint8_t);
 
@@ -95,7 +96,6 @@ static void write_wdata_from_array(uint8_t *array,
 {
 	uint32_t shift_value[] = {0, 8, 16, 24};
 	int i;
-	int j;
 	uint32_t val = 0;
 
 	/* Write to WDATA */
@@ -154,12 +154,12 @@ unsigned int pmic_arb_write_cmd(struct pmic_arb_cmd *cmd,
 	 */
 
 	/* Write first 4 bytes to WDATA0 */
-	write_wdata_from_array(param->buffer, 0, param->size, &bytes_written);
+	write_wdata_from_array(param->buffer, 0, param->size,(uint8_t *)&bytes_written);
 
 	if (bytes_written < param->size)
 	{
 		/* Write next 4 bytes to WDATA1 */
-		write_wdata_from_array(param->buffer, 1, param->size, &bytes_written);
+		write_wdata_from_array(param->buffer, 1, param->size, (uint8_t *)&bytes_written);
 	}
 
 	/* Fill in the byte count for the command
@@ -241,7 +241,6 @@ unsigned int pmic_arb_read_cmd(struct pmic_arb_cmd *cmd,
 {
 	uint32_t val = 0;
 	uint32_t error;
-	uint32_t addr;
 	uint8_t bytes_read = 0;
 
 	/* Look up for pmic channel only for V2 hardware
@@ -382,7 +381,7 @@ void spmi_enable_periph_interrupts(uint8_t periph_id)
 {
 	pmic_irq_perph_id = periph_id;
 
-	register_int_handler(EE0_KRAIT_HLOS_SPMI_PERIPH_IRQ , spmi_irq, 0);
+	register_int_handler(EE0_KRAIT_HLOS_SPMI_PERIPH_IRQ ,(int_handler)spmi_irq, 0);
 	unmask_interrupt(EE0_KRAIT_HLOS_SPMI_PERIPH_IRQ);
 
 }

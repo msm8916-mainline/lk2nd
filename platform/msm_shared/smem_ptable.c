@@ -61,7 +61,7 @@ void smem_ptable_init(void)
 {
 	unsigned i;
 	unsigned ret;
-	unsigned len;
+	unsigned len = 0;
 
 	/* Read only the header portion of ptable */
 	ret = smem_read_alloc_entry_offset(SMEM_AARM_PARTITION_TABLE,
@@ -220,7 +220,7 @@ int smem_ram_ptable_init_v1()
 	uint32_t i;
 	uint32_t ret;
 	uint32_t version;
-	uint32_t smem_ram_ptable_size;
+	uint32_t smem_ram_ptable_size = 0;
 	struct smem_ram_ptable_hdr *ram_ptable_hdr;
 
 	/* Check smem ram partition table version and decide on length of ram_ptable */

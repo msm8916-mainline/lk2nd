@@ -36,6 +36,7 @@
 #include <partition_parser.h>
 #include <platform/iomap.h>
 #include <platform/timer.h>
+#include <platform.h>
 
 extern void clock_init_mmc(uint32_t);
 extern void clock_config_mmc(uint32_t, uint32_t);
@@ -1136,7 +1137,6 @@ static uint8_t mmc_host_init(struct mmc_device *dev)
 static uint32_t mmc_identify_card(struct sdhci_host *host, struct mmc_card *card)
 {
 	uint32_t mmc_return = 0;
-	uint32_t raw_csd[4];
 
 	/* Ask card to send its unique card identification (CID) number (CMD2) */
 	mmc_return = mmc_all_send_cid(host, card);
@@ -1228,7 +1228,6 @@ static uint32_t mmc_send_app_cmd(struct sdhci_host *host, struct mmc_card *card)
 uint32_t mmc_sd_card_init(struct sdhci_host *host, struct mmc_card *card)
 {
 	uint8_t i;
-	uint32_t mmc_ret;
 	struct mmc_command cmd;
 
 	memset((struct mmc_command *)&cmd, 0, sizeof(struct mmc_command));
@@ -1473,7 +1472,6 @@ uint32_t mmc_sd_set_hs(struct sdhci_host *host, struct mmc_card *card)
 static uint32_t mmc_card_init(struct mmc_device *dev)
 {
 	uint32_t mmc_return = 0;
-	uint32_t status;
 	uint8_t bus_width = 0;
 
 	struct sdhci_host *host;
@@ -2108,7 +2106,6 @@ uint32_t mmc_sdhci_erase(struct mmc_device *dev, uint32_t blk_addr, uint64_t len
 	uint32_t blk_end;
 	uint32_t num_erase_grps;
 	uint64_t erase_timeout = 0;
-	uint32_t *out;
 	struct mmc_card *card;
 
 

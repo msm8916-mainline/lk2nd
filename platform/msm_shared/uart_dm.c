@@ -119,11 +119,11 @@ void udelay(unsigned usecs);
  */
 static unsigned int
 msm_boot_uart_calculate_num_chars_to_write(char *data_in,
-				 uint32_t *num_of_chars)
+				uint32_t *num_of_chars)
 {
-	int i = 0, j = 0;
+	uint32_t i = 0, j = 0;
 
-	if ((data_in == NULL) || (*num_of_chars < 0)) {
+	if ((data_in == NULL)) {
 		return MSM_BOOT_UART_DM_E_INVAL;
 	}
 
@@ -357,7 +357,7 @@ msm_boot_uart_dm_write(uint32_t base, char *data, unsigned int num_of_chars)
 
 	for (i = 0; i < (int)tx_word_count; i++) {
 		tx_char = (tx_char_left < 4) ? tx_char_left : 4;
-		num_chars_written = pack_chars_into_words(tx_data, tx_char, &tx_word);
+		num_chars_written = pack_chars_into_words((uint8_t *)tx_data, tx_char, &tx_word);
 
 		/* Wait till TX FIFO has space */
 		while (!(readl(MSM_BOOT_UART_DM_SR(base)) & MSM_BOOT_UART_DM_SR_TXRDY)) {
