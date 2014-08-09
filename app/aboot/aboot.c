@@ -471,7 +471,7 @@ unsigned char *update_cmdline(const char * cmdline)
 	if (boot_dev_buf)
 		free(boot_dev_buf);
 
-	dprintf(INFO, "cmdline: %s\n", cmdline_final);
+	dprintf(INFO, "cmdline: %s\n", cmdline_final ? cmdline_final : "");
 	return cmdline_final;
 }
 
