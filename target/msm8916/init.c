@@ -168,6 +168,23 @@ static void target_keystatus()
 		keys_post_event(KEY_VOLUMEUP, 1);
 }
 
+#if USER_FORCE_RESET_SUPPORT
+/* Return 1 if it is a force resin triggered by user. */
+uint32_t is_user_force_reset(void)
+{
+	uint8_t poff_reason1 = pm8x41_get_pon_poff_reason1();
+	uint8_t poff_reason2 = pm8x41_get_pon_poff_reason2();
+
+	dprintf(SPEW, "poff_reason1: %d\n", poff_reason1);
+	dprintf(SPEW, "poff_reason2: %d\n", poff_reason2);
+	if (pm8x41_get_is_cold_boot() && (poff_reason1 == KPDPWR_AND_RESIN ||
+							poff_reason2 == STAGE3))
+		return 1;
+	else
+		return 0;
+}
+#endif
+
 void target_init(void)
 {
 	uint32_t base_addr;
