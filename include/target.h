@@ -59,6 +59,7 @@ void target_fastboot_init(void);
 void target_load_ssd_keystore(void);
 bool target_is_ssd_enabled(void);
 void *target_mmc_device();
+uint32_t is_user_force_reset(void);
 
 bool target_display_panel_node(char *panel_name, char *pbuf,
 	uint16_t buf_size);

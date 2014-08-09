@@ -2497,6 +2497,13 @@ void aboot_init(const struct app_descriptor *app)
 
 	memset(display_panel_buf, '\0', MAX_PANEL_BUF_SIZE);
 
+	/*
+	 * Check power off reason if user force reset,
+	 * if yes phone will do normal boot.
+	 */
+	if (is_user_force_reset())
+		goto normal_boot;
+
 	/* Check if we should do something other than booting up */
 	if (keys_get_state(KEY_VOLUMEUP) && keys_get_state(KEY_VOLUMEDOWN))
 	{
@@ -2532,6 +2539,7 @@ void aboot_init(const struct app_descriptor *app)
 		boot_into_fastboot = true;
 	}
 
+normal_boot:
 	if (!boot_into_fastboot)
 	{
 		if (target_is_emmc_boot())

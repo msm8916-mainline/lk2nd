@@ -69,6 +69,11 @@ __WEAK void reboot_device(unsigned reboot_reason)
 {
 }
 
+__WEAK uint32_t is_user_force_reset(void)
+{
+	return 0;
+}
+
 __WEAK int set_download_mode(enum dload_mode mode)
 {
 	return -1;
