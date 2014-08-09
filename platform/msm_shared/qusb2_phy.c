@@ -41,11 +41,28 @@ void qusb2_phy_reset(void)
 	udelay(10);
 	writel(val & ~BIT(0), GCC_QUSB2_PHY_BCR);
 
-	/* Deassert POWERDOWN by clearing bit 0 to enable the PHY */
-	val = readl(QUSB2PHY_PORT_POWERDOWN);
-	writel(val & ~BIT(0), QUSB2PHY_PORT_POWERDOWN);
+	/* set CLAMP_N_EN and stay with disabled USB PHY */
+	writel(0x23, QUSB2PHY_PORT_POWERDOWN);
+
+	/* Set HS impedance to 42ohms */
+	writel(0xA0, QUSB2PHY_PORT_TUNE1);
+
+	/* Set TX current to 19mA, TX SR and TX bias current to 1, 1 */
+	writel(0xA5, QUSB2PHY_PORT_TUNE2);
+
+	/* Increase autocalibration bias circuit settling time
+	 * and enable utocalibration  */
+	writel(0x81, QUSB2PHY_PORT_TUNE3);
+
+	writel(0x85, QUSB2PHY_PORT_TUNE4);
+	/* Wait for tuning params to take effect right before re-enabling power*/
 	udelay(10);
 
-	/* set CLAMP_N_EN and FREEZIO_N */
+	/* Disable the PHY */
+	writel(0x23, QUSB2PHY_PORT_POWERDOWN);
+	/* Enable ULPI mode */
+	writel(0x0,  QUSB2PHY_PORT_UTMI_CTRL2);
+	/* Enable PHY */
+	/* set CLAMP_N_EN and USB PHY is enabled*/
 	writel(0x22, QUSB2PHY_PORT_POWERDOWN);
 }
