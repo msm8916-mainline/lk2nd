@@ -2,6 +2,8 @@
  * Copyright (C) 2008 The Android Open Source Project
  * All rights reserved.
  *
+ * Copyright (C) 2008-2014, The Linux Foundation. All rights reserved.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -11,6 +13,9 @@
  *    notice, this list of conditions and the following disclaimer in
  *    the documentation and/or other materials provided with the
  *    distribution.
+ *   * Neither the name of The Linux Foundation nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -32,10 +37,11 @@
 #define STATUS_OKAY  1
 #define STATUS_FAIL  2
 #define STATUS_PRINT 3
+#define JTAG_CMD_NUM  256
 
 volatile unsigned _jtag_cmd = 0;
 volatile unsigned _jtag_msg = 0;
-unsigned char _jtag_cmd_buffer[128];
+unsigned char _jtag_cmd_buffer[JTAG_CMD_NUM];
 unsigned char _jtag_msg_buffer[128];
 
 volatile unsigned _jtag_arg0 = 0;
@@ -82,7 +88,7 @@ void jtag_cmd_loop(void (*do_cmd) (const char *, unsigned, unsigned, unsigned))
 		if (jtag_cmd_pending()) {
 			do_cmd((const char *)_jtag_cmd_buffer, _jtag_arg0,
 			       _jtag_arg1, _jtag_arg2);
-			for (n = 0; n < 256; n++)
+			for (n = 0; n < JTAG_CMD_NUM; n++)
 				_jtag_cmd_buffer[n] = 0;
 			_jtag_arg0 = 0;
 			_jtag_arg1 = 0;
