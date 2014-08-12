@@ -215,8 +215,104 @@
 
 #define SMEM_TARG_INFO_ADDR                  0xFE805FF0
 
-/* Display */
-#define EDP_BASE                    0xFD990000
+/* MDSS */
+#define MSM_MMSS_CLK_CTL_BASE       0xFD8C0000
+#define MIPI_DSI_BASE               (0xFD998000)
+#define MIPI_DSI0_BASE              (MIPI_DSI_BASE)
+#define MIPI_DSI1_BASE              (0xFD9A0000)
+#define DSI0_PHY_BASE               (0xFD998500)
+#define DSI1_PHY_BASE               (0xFD9A0500)
+#define DSI0_PLL_BASE               (0xFD998300)
+#define DSI1_PLL_BASE               (0xFD9A0300)
+#define REG_DSI(off)                (MIPI_DSI_BASE + 0x04 + (off))
+
+#define MDP_BASE                    (0xfd900000)
+
+#define REG_MDP(off)                (MDP_BASE + (off))
+#define MDP_HW_REV                              REG_MDP(0x1000)
+#define MDP_INTR_EN                             REG_MDP(0x1010)
+#define MDP_INTR_CLEAR                          REG_MDP(0x1018)
+#define MDP_HIST_INTR_EN                        REG_MDP(0x101C)
+
+#define MDP_DISP_INTF_SEL                       REG_MDP(0x1004)
+#define MDP_VIDEO_INTF_UNDERFLOW_CTL            REG_MDP(0x12E0)
+#define MDP_UPPER_NEW_ROI_PRIOR_RO_START        REG_MDP(0x11EC)
+#define MDP_LOWER_NEW_ROI_PRIOR_TO_START        REG_MDP(0x13F8)
+
+#define MDP_INTF_0_TIMING_ENGINE_EN             REG_MDP(0x6b000)
+#define MDP_INTF_1_TIMING_ENGINE_EN             REG_MDP(0x6b800)
+
+#define MDP_CTL_0_BASE              		REG_MDP(0x2000)
+#define MDP_CTL_1_BASE              		REG_MDP(0x2200)
+
+#define MDP_REG_SPLIT_DISPLAY_EN                REG_MDP(0x12F4)
+#define MDP_REG_SPLIT_DISPLAY_UPPER_PIPE_CTL    REG_MDP(0x12F8)
+#define MDP_REG_SPLIT_DISPLAY_LOWER_PIPE_CTL    REG_MDP(0x13F0)
+
+/* can not find following two registers */
+#define MDP_REG_PPB0_CNTL                       REG_MDP(0x1420)
+#define MDP_REG_PPB0_CONFIG                     REG_MDP(0x1424)
+
+#define MDP_INTF_0_BASE                         REG_MDP(0x6b000)
+#define MDP_INTF_1_BASE                         REG_MDP(0x6b800)
+#define MDP_INTF_2_BASE                         REG_MDP(0x6c000)
+
+
+#define MDP_CLK_CTRL0                           REG_MDP(0x12AC)
+#define MDP_CLK_CTRL1                           REG_MDP(0x12B4)
+#define MDP_CLK_CTRL2                           REG_MDP(0x12BC)
+#define MDP_CLK_CTRL3                           REG_MDP(0x13A8)
+#define MDP_CLK_CTRL4                           REG_MDP(0x13B0)
+#define MDP_CLK_CTRL5                           REG_MDP(0x13B8)
+#define MDP_CLK_CTRL6                           REG_MDP(0x12C4)
+#define MDP_CLK_CTRL7                           REG_MDP(0x13D0)
+
+#define MMSS_MDP_SMP_ALLOC_W_BASE               REG_MDP(0x1080)
+#define MMSS_MDP_SMP_ALLOC_R_BASE               REG_MDP(0x1130)
+
+#define MDP_QOS_REMAPPER_CLASS_0                REG_MDP(0x13d8)
+#define MDP_QOS_REMAPPER_CLASS_1                REG_MDP(0x13dc)
+
+#define VBIF_VBIF_DDR_FORCE_CLK_ON              REG_MDP(0xc8004)
+#define VBIF_VBIF_DDR_OUT_MAX_BURST             REG_MDP(0xc80D8)
+#define VBIF_VBIF_DDR_ARB_CTRL                  REG_MDP(0xc80F0)
+#define VBIF_VBIF_DDR_RND_RBN_QOS_ARB           REG_MDP(0xc8124)
+#define VBIF_VBIF_DDR_AXI_AMEMTYPE_CONF0        REG_MDP(0xc8160)
+#define VBIF_VBIF_DDR_AXI_AMEMTYPE_CONF1        REG_MDP(0xc8164)
+#define VBIF_VBIF_DDR_OUT_AOOO_AXI_EN           REG_MDP(0xc8178)
+#define VBIF_VBIF_DDR_OUT_AX_AOOO               REG_MDP(0xc817C)
+#define VBIF_VBIF_IN_RD_LIM_CONF0               REG_MDP(0xc80B0)
+#define VBIF_VBIF_IN_RD_LIM_CONF1               REG_MDP(0xc80B4)
+#define VBIF_VBIF_IN_RD_LIM_CONF2               REG_MDP(0xc80B8)
+#define VBIF_VBIF_IN_RD_LIM_CONF3               REG_MDP(0xc80BC)
+#define VBIF_VBIF_IN_WR_LIM_CONF0               REG_MDP(0xc80C0)
+#define VBIF_VBIF_IN_WR_LIM_CONF1               REG_MDP(0xc80C4)
+#define VBIF_VBIF_IN_WR_LIM_CONF2               REG_MDP(0xc80C8)
+#define VBIF_VBIF_IN_WR_LIM_CONF3               REG_MDP(0xc80CC)
+#define VBIF_VBIF_ABIT_SHORT                    REG_MDP(0xc8070)
+#define VBIF_VBIF_ABIT_SHORT_CONF               REG_MDP(0xc8074)
+#define VBIF_VBIF_GATE_OFF_WRREQ_EN             REG_MDP(0xc80A8)
+
+#define MDP_VP_0_VIG_0_BASE                     REG_MDP(0x5000)
+#define MDP_VP_0_VIG_1_BASE                     REG_MDP(0x7000)
+#define MDP_VP_0_RGB_0_BASE                     REG_MDP(0x15000)
+#define MDP_VP_0_RGB_1_BASE                     REG_MDP(0x17000)
+#define MDP_VP_0_DMA_0_BASE                     REG_MDP(0x25000)
+#define MDP_VP_0_DMA_1_BASE                     REG_MDP(0x27000)
+#define MDP_VP_0_MIXER_0_BASE                   REG_MDP(0x45000)
+#define MDP_VP_0_MIXER_1_BASE                   REG_MDP(0x46000)
+
+#define DMA_CMD_OFFSET              0x048
+#define DMA_CMD_LENGTH              0x04C
+
+#define INT_CTRL                    0x110
+#define CMD_MODE_DMA_SW_TRIGGER     0x090
+
+#define EOT_PACKET_CTRL             0x0CC
+#define MISR_CMD_CTRL               0x0A0
+#define MISR_VIDEO_CTRL             0x0A4
+#define VIDEO_MODE_CTRL             0x010
+#define HS_TIMER_CTRL               0x0BC
 
 #define SOFT_RESET                  0x118
 #define CLK_CTRL                    0x11C
@@ -240,38 +336,5 @@
 #define VIDEO_MODE_HSYNC            0x030
 #define VIDEO_MODE_VSYNC            0x034
 #define VIDEO_MODE_VSYNC_VPOS       0x038
-
-/* MDSS */
-#define MSM_MMSS_CLK_CTL_BASE       0xFD8C0000
-#define MIPI_DSI_BASE               0xFD998000
-#define MIPI_DSI0_BASE              (MIPI_DSI_BASE)
-#define MIPI_DSI1_BASE              0xFD9A0000
-#define DSI0_PHY_BASE               0xFD998500
-#define DSI1_PHY_BASE               0xFD9A0500
-#define DSI0_PLL_BASE               0xFD998300
-#define DSI1_PLL_BASE               0xFD9A0300
-#define REG_DSI(off)                (MIPI_DSI_BASE + 0x04 + (off))
-#define MDP_BASE                    (0xfd900000)
-#define REG_MDP(off)                (MDP_BASE + (off))
-#define MDP_VP_0_VIG_0_BASE         REG_MDP(0x1200)
-#define MDP_VP_0_VIG_1_BASE         REG_MDP(0x1600)
-#define MDP_VP_0_RGB_0_BASE         REG_MDP(0x2200)
-#define MDP_VP_0_RGB_1_BASE         REG_MDP(0x2600)
-#define MDP_VP_0_DMA_0_BASE         REG_MDP(0x3200)
-#define MDP_VP_0_DMA_1_BASE         REG_MDP(0x3600)
-#define MDP_VP_0_MIXER_0_BASE       REG_MDP(0x3A00)
-#define MDP_VP_0_MIXER_1_BASE       REG_MDP(0x3E00)
-
-#define DMA_CMD_OFFSET              0x048
-#define DMA_CMD_LENGTH              0x04C
-
-#define INT_CTRL                    0x110
-#define CMD_MODE_DMA_SW_TRIGGER     0x090
-
-#define EOT_PACKET_CTRL             0x0CC
-#define MISR_CMD_CTRL               0x0A0
-#define MISR_VIDEO_CTRL             0x0A4
-#define VIDEO_MODE_CTRL             0x010
-#define HS_TIMER_CTRL               0x0BC
 
 #endif
