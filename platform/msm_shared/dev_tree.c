@@ -93,14 +93,20 @@ static uint32_t dev_tree_compatible(void *dtb)
 		ASSERT(model);
 		strlcpy(model, prop, len);
 	} else {
-		model[0] = '\0';
+		dprintf(INFO, "model does not exist in device tree\n");
 	}
 
 	/* Find the board-id prop from DTB , if board-id is present then
 	 * the DTB is version 2 */
 	board_prop = (const char *)fdt_getprop(dtb, root_offset, "qcom,board-id", &len_board_id);
-	if (board_prop)
+	if (board_prop && len_board_id > 0)
 	{
+		if (len_board_id % BOARD_ID_SIZE)
+		{
+			dprintf(CRITICAL, "qcom,board-id in device tree is (%d) not a multiple of (%d)\n",
+				len_board_id, BOARD_ID_SIZE);
+			return false;
+		}
 		dtb_ver = DEV_TREE_VERSION_V2;
 		min_plat_id_len = PLAT_ID_SIZE;
 	}
@@ -140,7 +146,7 @@ static uint32_t dev_tree_compatible(void *dtb)
 			board_dt_data.platform_variant_id = board_platform_id();
 
 			dprintf(SPEW, "Found an appended flattened device tree (%s - %u %u 0x%x)\n",
-				*model ? model : "unknown",
+				model ? model : "unknown",
 				cur_dt_entry.platform_id, cur_dt_entry.variant_id, cur_dt_entry.soc_rev);
 
 			if (platform_dt_match(&cur_dt_entry, &board_dt_data, 0) == 1)
@@ -200,94 +206,123 @@ static uint32_t dev_tree_compatible(void *dtb)
 
 		/* We need to merge board & platform data into dt entry structure */
 		num_entries = msm_data_count * board_data_count;
-		dt_entry_v2 = (struct dt_entry*) malloc(sizeof(struct dt_entry) * num_entries);
-		ASSERT(dt_entry_v2);
 
-		/* If we have '<X>; <Y>; <Z>' as platform data & '<A>; <B>; <C>' as board data.
-		 * Then dt entry should look like
-		 * <X ,A >;<X, B>;<X, C>;
-		 * <Y ,A >;<Y, B>;<Y, C>;
-		 * <Z ,A >;<Z, B>;<Z, C>;
-		 */
-		i = 0;
-		k = 0;
-		for (i = 0; i < msm_data_count; i++)
-		{
-			for (j = 0; j < board_data_count; j++)
+		if (((uint64_t)msm_data_count * (uint64_t)board_data_count) == msm_data_count * board_data_count) {
+			dt_entry_v2 = (struct dt_entry*) malloc(sizeof(struct dt_entry) * num_entries);
+			ASSERT(dt_entry_v2);
+
+			/* If we have '<X>; <Y>; <Z>' as platform data & '<A>; <B>; <C>' as board data.
+			 * Then dt entry should look like
+			 * <X ,A >;<X, B>;<X, C>;
+			 * <Y ,A >;<Y, B>;<Y, C>;
+			 * <Z ,A >;<Z, B>;<Z, C>;
+			 */
+			i = 0;
+			k = 0;
+			for (i = 0; i < msm_data_count; i++)
 			{
-				dt_entry_v2[k].platform_id = platform_data[i].platform_id;
-				dt_entry_v2[k].soc_rev = platform_data[i].soc_rev;
-				dt_entry_v2[k].variant_id = board_data[j].variant_id;
-				dt_entry_v2[k].board_hw_subtype = board_data[j].platform_subtype;
-				k++;
+				for (j = 0; j < board_data_count; j++)
+				{
+					dt_entry_v2[k].platform_id = platform_data[i].platform_id;
+					dt_entry_v2[k].soc_rev = platform_data[i].soc_rev;
+					dt_entry_v2[k].variant_id = board_data[j].variant_id;
+					dt_entry_v2[k].board_hw_subtype = board_data[j].platform_subtype;
+					k++;
+				}
 			}
-		}
 
-		/* Now find the matching entry in the merged list */
-		if (board_hardware_id() == HW_PLATFORM_QRD)
-		{
-			board_dt_data.target_variant_id = board_target_id();
-			board_dt_data.platform_variant_id = board_platform_id();
-		}
-		else
-		{
-			board_dt_data.target_variant_id = board_hardware_id() | ((board_hardware_subtype() & 0xff) << 24);
-			board_dt_data.platform_variant_id = board_platform_id();
-		}
-
-		for (i=0 ;i < num_entries; i++)
-		{
-			dprintf(SPEW, "Found an appended flattened device tree (%s - %u %u %u 0x%x)\n",
-				*model ? model : "unknown",
-				dt_entry_v2[i].platform_id, dt_entry_v2[i].variant_id, dt_entry_v2[i].board_hw_subtype, dt_entry_v2[i].soc_rev);
-
-			if (platform_dt_match(&dt_entry_v2[i], &board_dt_data, 0xff) == 1)
+			/* Now find the matching entry in the merged list */
+			if (board_hardware_id() == HW_PLATFORM_QRD)
 			{
-				dprintf(SPEW, "Device tree's msm_id doesn't match the board: <%u %u %u 0x%x> != <%u %u %u 0x%x>\n",
-							  dt_entry_v2[i].platform_id,
-							  dt_entry_v2[i].variant_id,
-							  dt_entry_v2[i].soc_rev,
-							  dt_entry_v2[i].board_hw_subtype,
-							  board_platform_id(),
-							  board_hardware_id(),
-							  board_hardware_subtype(),
-							  board_soc_version());
-				continue;
+				board_dt_data.target_variant_id = board_target_id();
+				board_dt_data.platform_variant_id = board_platform_id();
 			}
 			else
 			{
-				/* If found a match, return the cur_dt_entry */
-				found = 1;
-				cur_dt_entry = dt_entry_v2[i];
-				break;
+				board_dt_data.target_variant_id = board_hardware_id() | ((board_hardware_subtype() & 0xff) << 24);
+				board_dt_data.platform_variant_id = board_platform_id();
+			}
+
+			for (i=0 ;i < num_entries; i++)
+			{
+				dprintf(SPEW, "Found an appended flattened device tree (%s - %u %u %u 0x%x)\n",
+					*model ? model : "unknown",
+					dt_entry_v2[i].platform_id, dt_entry_v2[i].variant_id, dt_entry_v2[i].board_hw_subtype, dt_entry_v2[i].soc_rev);
+
+				if (platform_dt_match(&dt_entry_v2[i], &board_dt_data, 0xff) == 1)
+				{
+					dprintf(SPEW, "Device tree's msm_id doesn't match the board: <%u %u %u 0x%x> != <%u %u %u 0x%x>\n",
+									  dt_entry_v2[i].platform_id,
+									  dt_entry_v2[i].variant_id,
+									  dt_entry_v2[i].soc_rev,
+									  dt_entry_v2[i].board_hw_subtype,
+									board_platform_id(),
+									board_hardware_id(),
+									board_hardware_subtype(),
+									board_soc_version());
+						continue;
+				}
+				else
+				{
+					/* If found a match, return the cur_dt_entry */
+					found = 1;
+					cur_dt_entry = dt_entry_v2[i];
+					break;
+				}
 			}
 		}
+		else
+			dprintf(CRITICAL, "Device tree got corrupted\n");
 	}
 
-	if (!found)
+	if (dtb_ver == DEV_TREE_VERSION_V1)
 	{
-		soc_rev =  INVALID_SOC_REV_ID;
-		goto end;
-	}
-	else
-		soc_rev = cur_dt_entry.soc_rev;
+		if (!found)
+			soc_rev =  INVALID_SOC_REV_ID;
+		else
+		{
+			soc_rev = cur_dt_entry.soc_rev;
 
-	dprintf(INFO, "Device tree's msm_id matches the board: <%u %u %u 0x%x> == <%u %u %u 0x%x>\n",
-		cur_dt_entry.platform_id,
-		cur_dt_entry.variant_id,
-		cur_dt_entry.board_hw_subtype,
-		cur_dt_entry.soc_rev,
-		board_platform_id(),
-		board_hardware_id(),
-		board_hardware_subtype(),
-		board_soc_version());
+		dprintf(INFO, "Device tree's msm_id matches the board: <%u %u %u 0x%x> == <%u %u %u 0x%x>\n",
+			cur_dt_entry.platform_id,
+			cur_dt_entry.variant_id,
+			cur_dt_entry.board_hw_subtype,
+			cur_dt_entry.soc_rev,
+			board_platform_id(),
+			board_hardware_id(),
+			board_hardware_subtype(),
+			board_soc_version());
+		}
+		return soc_rev;
+	}
+	else if (dtb_ver == DEV_TREE_VERSION_V2)
+	{
+		if (!found)
+		{
+			soc_rev =  INVALID_SOC_REV_ID;
+			goto end;
+		}
+		else
+			soc_rev = cur_dt_entry.soc_rev;
+
+		dprintf(INFO, "Device tree's msm_id matches the board: <%u %u %u 0x%x> == <%u %u %u 0x%x>\n",
+			cur_dt_entry.platform_id,
+			cur_dt_entry.variant_id,
+			cur_dt_entry.board_hw_subtype,
+			cur_dt_entry.soc_rev,
+			board_platform_id(),
+			board_hardware_id(),
+			board_hardware_subtype(),
+			board_soc_version());
+	}
 
 end:
 	free(board_data);
 	free(platform_data);
 	free(dt_entry_v2);
-	free(model);
-
+	if(model) {
+		free(model);
+	}
 	return soc_rev;
 }
 
