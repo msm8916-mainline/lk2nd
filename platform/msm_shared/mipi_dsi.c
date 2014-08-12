@@ -684,6 +684,8 @@ int mdss_dsi_config(struct msm_fb_panel_data *panel)
 		goto error;
 	}
 
+	mdss_dsi_phy_contention_detection(&mipi_pinfo, DSI0_PHY_BASE);
+
 	if (panel->pre_init_func) {
 		ret = panel->pre_init_func();
 		if (ret) {
