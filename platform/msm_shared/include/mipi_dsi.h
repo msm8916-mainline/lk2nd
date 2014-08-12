@@ -165,6 +165,7 @@ struct mdss_dsi_phy_ctrl {
 	char bistCtrl[MAX_BIST_CONFIG];
 	char laneCfg[MAX_LANE_CONFIG];
 	enum dsi_reg_mode regulator_mode;
+	int is_pll_20nm;
 };
 
 typedef struct mdss_dsi_pll_config {
@@ -181,6 +182,15 @@ typedef struct mdss_dsi_pll_config {
 	uint8_t   pclk_m;
 	uint8_t   pclk_n;
 	uint8_t   pclk_d;
+
+	/* pll 20nm */
+	uint32_t  dec_start;
+	uint32_t  frac_start;
+	uint32_t  lock_comp;
+	uint8_t  hr_oclk2;
+	uint8_t  hr_oclk3;
+	uint8_t  lp_div_mux;
+	uint8_t  ndiv;
 };
 
 struct mipi_dsi_cmd {
