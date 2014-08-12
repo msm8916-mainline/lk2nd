@@ -298,6 +298,22 @@ void target_detect(struct board_data *board)
 	/* This is filled from board.c */
 }
 
+/* Returns 1 if target supports continuous splash screen. */
+int target_cont_splash_screen()
+{
+        switch(board_hardware_id())
+        {
+                case HW_PLATFORM_SURF:
+                case HW_PLATFORM_MTP:
+                case HW_PLATFORM_FLUID:
+                        dprintf(SPEW, "Target_cont_splash=1\n");
+                        return 1;
+                default:
+                        dprintf(SPEW, "Target_cont_splash=0\n");
+                        return 0;
+        }
+}
+
 /* Detect the modem type */
 void target_baseband_detect(struct board_data *board)
 {
