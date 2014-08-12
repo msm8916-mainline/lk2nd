@@ -159,7 +159,7 @@ static int mdss_dsi_bl_enable(uint8_t enable)
 	return ret;
 }
 
-bool gcdb_display_cmdline_arg(char *pbuf, uint16_t buf_size)
+bool gcdb_display_cmdline_arg(char *panel_name, char *pbuf, uint16_t buf_size)
 {
 	char *dsi_id = NULL;
 	char *panel_node = NULL;
@@ -171,28 +171,29 @@ bool gcdb_display_cmdline_arg(char *pbuf, uint16_t buf_size)
 	int panel_mode = SPLIT_DISPLAY_FLAG | DUAL_PIPE_FLAG | DST_SPLIT_FLAG;
 	int prefix_string_len = strlen(DISPLAY_CMDLINE_PREFIX);
 
-	if (panelstruct.paneldata)
-	{
+	if (!strcmp(panel_name, SIM_VIDEO_PANEL)) {
+		dsi_id = SIM_DSI_ID;
+		panel_mode = 0;
+		panel_node = SIM_VIDEO_PANEL_NODE;
+	}  else if (!strcmp(panel_name, SIM_DUALDSI_VIDEO_PANEL)) {
+		dsi_id = SIM_DSI_ID;
+		panel_mode = 1;
+		panel_node = SIM_DUALDSI_VIDEO_PANEL_NODE;
+		slave_panel_node = SIM_DUALDSI_VIDEO_SLAVE_PANEL_NODE;
+	} else if (panelstruct.paneldata) {
 		dsi_id = panelstruct.paneldata->panel_controller;
 		panel_node = panelstruct.paneldata->panel_node_id;
 		panel_mode = panelstruct.paneldata->panel_operating_mode &
 							panel_mode;
 		slave_panel_node = panelstruct.paneldata->slave_panel_node_id;
-	}
-	else
-	{
+	} else {
 		if (target_is_edp())
-		{
 			default_str = "0:edp:";
-		}
 		else
-		{
 			default_str = "0:dsi:0:";
-		}
 
 		arg_size = prefix_string_len + strlen(default_str);
-		if (buf_size < arg_size)
-		{
+		if (buf_size < arg_size) {
 			dprintf(CRITICAL, "display command line buffer is small\n");
 			return false;
 		}
@@ -227,13 +228,10 @@ bool gcdb_display_cmdline_arg(char *pbuf, uint16_t buf_size)
 	if (panel_mode)
 		arg_size += DSI_1_STRING_LEN + slave_panel_node_len;
 
-	if (buf_size < arg_size)
-	{
+	if (buf_size < arg_size) {
 		dprintf(CRITICAL, "display command line buffer is small\n");
 		ret = false;
-	}
-	else
-	{
+	} else {
 		strlcpy(pbuf, DISPLAY_CMDLINE_PREFIX, buf_size);
 		pbuf += prefix_string_len;
 		buf_size -= prefix_string_len;

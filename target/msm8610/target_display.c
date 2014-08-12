@@ -164,7 +164,7 @@ int target_ldo_ctrl(uint8_t enable)
 
 bool target_display_panel_node(char *panel_name, char *pbuf, uint16_t buf_size)
 {
-	return gcdb_display_cmdline_arg(pbuf, buf_size);
+	return gcdb_display_cmdline_arg(panel_name, pbuf, buf_size);
 }
 
 void target_display_init(const char *panel_name)

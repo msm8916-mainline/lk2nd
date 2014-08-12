@@ -382,7 +382,7 @@ bool target_display_panel_node(char *panel_name, char *pbuf, uint16_t buf_size)
 		buf_size -= LK_OVERRIDE_PANEL_LEN;
 		strlcat(pbuf, HDMI_CONTROLLER_STRING, buf_size);
 	} else {
-		ret = gcdb_display_cmdline_arg(pbuf, buf_size);
+		ret = gcdb_display_cmdline_arg(panel_name, pbuf, buf_size);
 	}
 
 	return ret;
@@ -394,20 +394,20 @@ void target_display_init(const char *panel_name)
 
 	panel_name += strspn(panel_name, " ");
 
-	if (!strcmp(panel_name, NO_PANEL_CONFIG)) {
-		dprintf(INFO, "Skip panel configuration\n");
+	if ((!strcmp(panel_name, NO_PANEL_CONFIG))
+			|| (!strcmp(panel_name, SIM_VIDEO_PANEL))
+			|| (!strcmp(panel_name, SIM_DUALDSI_VIDEO_PANEL))) {
+		dprintf(INFO, "Selected panel: %s\nSkip panel configuration\n",
+								panel_name);
 		return;
-	}
-
-	if (!strcmp(panel_name, HDMI_PANEL_NAME)) {
+	} else if (!strcmp(panel_name, HDMI_PANEL_NAME)) {
 		dprintf(INFO, "%s: HDMI is primary\n", __func__);
 		return;
 	}
 
 	ret = gcdb_display_init(panel_name, MDP_REV_50, MIPI_FB_ADDR);
-	if (ret) {
+	if (ret)
 		msm_display_off();
-	}
 }
 
 void target_display_shutdown(void)

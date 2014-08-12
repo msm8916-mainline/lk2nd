@@ -389,7 +389,7 @@ int target_ldo_ctrl(uint8_t enable)
 
 bool target_display_panel_node(char *panel_name, char *pbuf, uint16_t buf_size)
 {
-	return gcdb_display_cmdline_arg(pbuf, buf_size);
+	return gcdb_display_cmdline_arg(panel_name, pbuf, buf_size);
 }
 
 void target_display_init(const char *panel_name)
@@ -398,8 +398,10 @@ void target_display_init(const char *panel_name)
         uint32_t ret = 0;
 	uint32_t fb_addr = MIPI_FB_ADDR;
 
-	if (!strcmp(panel_name, NO_PANEL_CONFIG)) {
-		dprintf(INFO, "Skip panel configuration\n");
+	if ((!strcmp(panel_name, NO_PANEL_CONFIG))
+			|| (!strcmp(panel_name, SIM_VIDEO_PANEL))) {
+		dprintf(INFO, "Selected panel: %s\nSkip panel configuration\n",
+								panel_name);
 		return;
 	}
 
