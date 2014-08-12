@@ -43,8 +43,13 @@
 #define SDRAM_START_ADDR            0x80000000
 
 #define MSM_SHARED_BASE             0x86300000
-
 #define APPS_SS_BASE                0x0B000000
+
+#define DDR_START                   get_ddr_start()
+#define ABOOT_FORCE_KERNEL_ADDR     DDR_START + 0x8000
+#define ABOOT_FORCE_KERNEL64_ADDR   DDR_START + 0x80000
+#define ABOOT_FORCE_RAMDISK_ADDR    DDR_START + 0x2000000
+#define ABOOT_FORCE_TAGS_ADDR       DDR_START + 0x1E00000
 
 #define MSM_GIC_DIST_BASE           APPS_SS_BASE
 #define MSM_GIC_CPU_BASE            (APPS_SS_BASE + 0x2000)
