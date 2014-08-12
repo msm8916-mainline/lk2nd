@@ -37,6 +37,7 @@
 
 void platform_early_init(void)
 {
+	board_init();
 	qgic_init();
 	qtimer_init();
 }
