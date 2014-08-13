@@ -167,8 +167,20 @@ uint8_t* smd_read(smd_channel_info_t *ch, uint32_t *len, int ch_type)
 		return -1;
 	}
 
-	/* Clear the data_written flag */
-	ch->port_info->ch1.data_written = 0;
+	/* Wait until the data updated in the smd buffer is equal to smd packet header*/
+	while ((ch->port_info->ch1.write_index - ch->port_info->ch1.read_index) < sizeof(smd_pkt_hdr))
+	{
+		/* Get the update info from memory */
+		arch_invalidate_cache_range((addr_t) ch->port_info, size);
+
+		if ((ch->port_info->ch1.read_index + sizeof(smd_pkt_hdr)) >= ch->fifo_size)
+		{
+			dprintf(CRITICAL, "At %d:%s:RX channel read index [%u] is greater than RX fifo size[%u]\n",
+							   __LINE__,__func__, ch->port_info->ch1.read_index, ch->fifo_size);
+			return -1;
+		}
+	}
+
 
 	arch_invalidate_cache_range((addr_t)(ch->recv_buf + ch->port_info->ch1.read_index), sizeof(smd_hdr));
 
@@ -177,6 +189,21 @@ uint8_t* smd_read(smd_channel_info_t *ch, uint32_t *len, int ch_type)
 
 	*len = smd_hdr.pkt_size;
 
+	/* Wait on the data being updated in SMEM before returing the response */
+	while ((ch->port_info->ch1.write_index - ch->port_info->ch1.read_index) < smd_hdr.pkt_size)
+	{
+		/* Get the update info from memory */
+		arch_invalidate_cache_range((addr_t) ch->port_info, size);
+
+		if ((ch->port_info->ch1.read_index + sizeof(smd_hdr) + smd_hdr.pkt_size) >= ch->fifo_size)
+		{
+			dprintf(CRITICAL, "At %d:%s:RX channel read index [%u] is greater than RX fifo size[%u]\n",
+							   __LINE__,__func__, ch->port_info->ch1.read_index, ch->fifo_size);
+			return -1;
+		}
+	}
+
+	/* We are good to return the response now */
 	return (uint8_t*)(ch->recv_buf + ch->port_info->ch1.read_index + sizeof(smd_hdr));
 }
 
@@ -184,10 +211,12 @@ void smd_signal_read_complete(smd_channel_info_t *ch, uint32_t len)
 {
 	ch->port_info->ch1.read_index += sizeof(smd_pkt_hdr) + len;
 
+	/* Clear the data_written flag */
+	ch->port_info->ch1.data_written = 0;
+
 	/* Set the data_read flag */
-	ch->port_info->ch1.data_read = 1;
+	ch->port_info->ch0.data_read = 1;
 	ch->port_info->ch0.mask_recv_intr = 1;
-	ch->port_info->ch0.state_updated = 1;
 
 	dsb();
 
@@ -244,7 +273,6 @@ int smd_write(smd_channel_info_t *ch, void *data, uint32_t len, int ch_type)
 
 	ch->port_info->ch0.data_written = 1;
 	ch->port_info->ch0.mask_recv_intr = 0;
-	ch->port_info->ch0.state_updated = 1;
 
 	dsb();
 
