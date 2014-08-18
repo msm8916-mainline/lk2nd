@@ -878,15 +878,27 @@ static uint32_t mmc_set_hs200_mode(struct sdhci_host *host,
 		sdhci_msm_set_mci_clk(host);
 		clock_config_mmc(host->msm_host->slot, SDHCI_CLK_400MHZ);
 	}
+
+	/* Execute Tuning for hs200 mode */
+	if ((mmc_ret = sdhci_msm_execute_tuning(host, card, width)))
+		dprintf(CRITICAL, "Tuning for hs200 failed\n");
+
+	/* Once the tuning is executed revert back the clock to 200MHZ
+	 * and disable the MCI_CLK divider so that we can use SDHC clock
+	 * divider to supply clock to the card
+	 */
+	if (host->timing == MMC_HS400_TIMING)
+	{
+		MMC_SAVE_TIMING(host, MMC_HS200_TIMING);
+		sdhci_msm_set_mci_clk(host);
+		clock_config_mmc(host->msm_host->slot, MMC_CLK_192MHZ);
+	}
 	else
 	{
 		/* Save the timing value, before changing the clock */
 		MMC_SAVE_TIMING(host, MMC_HS200_TIMING);
 	}
 
-	/* Execute Tuning for hs200 mode */
-	if ((mmc_ret = sdhci_msm_execute_tuning(host, card, width)))
-		dprintf(CRITICAL, "Tuning for hs200 failed\n");
 
 	DBG("\n Enabling HS200 Mode Done\n");
 
@@ -1034,6 +1046,8 @@ uint32_t mmc_set_hs400_mode(struct sdhci_host *host,
 	* Enable HS400 mode
 	*/
 	sdhci_msm_set_mci_clk(host);
+	/* Set the clock back to 400 MHZ */
+	clock_config_mmc(host->msm_host->slot, SDHCI_CLK_400MHZ);
 
 	/* 7. Execute Tuning for hs400 mode */
 	if ((mmc_ret = sdhci_msm_execute_tuning(host, card, width)))
