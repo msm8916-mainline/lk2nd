@@ -404,6 +404,7 @@ ifeq ($(PLATFORM),fsm9010)
 endif
 
 ifeq ($(PLATFORM),msm8994)
+DEFINES += DISPLAY_TYPE_MDSS=1
 	OBJS += $(LOCAL_DIR)/qgic.o \
 			$(LOCAL_DIR)/qtimer.o \
 			$(LOCAL_DIR)/qtimer_mmap.o \
@@ -431,7 +432,13 @@ ifeq ($(PLATFORM),msm8994)
 			$(LOCAL_DIR)/crypto_hash.o \
 			$(LOCAL_DIR)/crypto5_eng.o \
 			$(LOCAL_DIR)/crypto5_wrapper.o \
-			$(LOCAL_DIR)/qusb2_phy.o
+			$(LOCAL_DIR)/qusb2_phy.o \
+			$(LOCAL_DIR)/mdp5.o \
+			$(LOCAL_DIR)/display.o \
+			$(LOCAL_DIR)/mipi_dsi.o \
+			$(LOCAL_DIR)/mipi_dsi_phy.o \
+			$(LOCAL_DIR)/mipi_dsi_autopll.o \
+			$(LOCAL_DIR)/mipi_dsi_autopll_20nm.o
 endif
 
 ifeq ($(PLATFORM),ferrum)
