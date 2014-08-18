@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -27,6 +27,7 @@
 */
 
 #include <debug.h>
+#include <list.h>
 
 #ifndef __DEVICE_TREE__
 #define __DEVICE_TREE__
@@ -36,6 +37,8 @@
 #define DEV_TREE_MAGIC_LEN      4
 #define DEV_TREE_VERSION_V1     1
 #define DEV_TREE_VERSION_V2     2
+#define DEV_TREE_VERSION_V3     3
+
 #define DEV_TREE_HEADER_SIZE    12
 
 #define DTB_MAGIC               0xedfe0dd0
@@ -54,6 +57,18 @@
 #define DT_ENTRY_V1_SIZE        0xC
 #define PLAT_ID_SIZE            0x8
 #define BOARD_ID_SIZE           0x8
+#define PMIC_ID_SIZE           0x8
+
+
+struct dt_entry_v2
+{
+	uint32_t platform_id;
+	uint32_t variant_id;
+	uint32_t board_hw_subtype;
+	uint32_t soc_rev;
+	uint32_t offset;
+	uint32_t size;
+};
 
 struct dt_entry
 {
@@ -61,6 +76,7 @@ struct dt_entry
 	uint32_t variant_id;
 	uint32_t board_hw_subtype;
 	uint32_t soc_rev;
+	uint32_t pmic_rev[4];
 	uint32_t offset;
 	uint32_t size;
 };
@@ -84,6 +100,11 @@ struct board_id
 	uint32_t platform_subtype;
 };
 
+struct pmic_id
+{
+	uint32_t pmic_version[4];
+};
+
 struct dt_mem_node_info
 {
 	uint32_t offset;
@@ -92,17 +113,28 @@ struct dt_mem_node_info
 	uint32_t size_cell_size;
 };
 
+enum dt_entry_info
+{
+	DTB_FOUNDRY = 0,
+	DTB_SOC,
+	DTB_MAJOR_MINOR,
+	DTB_PMIC0,
+	DTB_PMIC1,
+	DTB_PMIC2,
+	DTB_PMIC3,
+	DTB_PMIC_MODEL,
+};
+
 enum dt_err_codes
 {
 	DT_OP_SUCCESS,
 	DT_OP_FAILURE = -1,
 };
 
-struct board_dt_entry
-{
-	uint32_t target_variant_id;
-	uint32_t platform_variant_id;
-};
+typedef struct dt_entry_node {
+	struct list_node node;
+	struct dt_entry * dt_entry_m;
+}dt_node;
 
 int dev_tree_validate(struct dt_table *table, unsigned int page_size, uint32_t *dt_hdr_size);
 int dev_tree_get_entry_info(struct dt_table *table, struct dt_entry *dt_entry_info);

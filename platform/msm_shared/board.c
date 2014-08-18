@@ -50,6 +50,7 @@ static void platform_detect()
 	unsigned int board_info_len = 0;
 	unsigned ret = 0;
 	unsigned format = 0;
+	unsigned pmic_type = 0;
 	uint8_t i;
 	uint16_t format_major = 0;
 	uint16_t format_minor = 0;
@@ -131,6 +132,17 @@ static void platform_detect()
 			for (i = 0; i < SMEM_V8_SMEM_MAX_PMIC_DEVICES; i++) {
 				board.pmic_info[i].pmic_type = board_info_v8.pmic_info[i].pmic_type;
 				board.pmic_info[i].pmic_version = board_info_v8.pmic_info[i].pmic_version;
+
+				/*
+				 * fill in pimc_board_info with pmic type and pmic version information
+				 * bit no  		  	    |31  24   | 23  16 	    | 15   8 	     |7		  0|
+				 * pimc_board_info = |Unused | Major version | Minor version|PMIC_MODEL|
+				 *
+				 */
+				pmic_type = board_info_v8.pmic_info[i].pmic_type == PMIC_IS_INVALID? 0 : board_info_v8.pmic_info[i].pmic_type;
+
+				board.pmic_info[i].pmic_target = (((board_info_v8.pmic_info[i].pmic_version >> 16) & 0xff) << 16) |
+					   ((board_info_v8.pmic_info[i].pmic_version & 0xff) << 8) | (pmic_type & 0xff);
 			}
 
 			if (format_minor == 0x9)
@@ -195,10 +207,19 @@ uint8_t board_pmic_info(struct board_pmic_data *info, uint8_t num_ent)
 	for (i = 0; i < num_ent && i < SMEM_MAX_PMIC_DEVICES; i++) {
 		info->pmic_type = board.pmic_info[i].pmic_type;
 		info->pmic_version = board.pmic_info[i].pmic_version;
+		info->pmic_target = board.pmic_info[i].pmic_target;
 		info++;
 	}
 
 	return (i--);
+}
+
+uint32_t board_pmic_target(uint8_t num_ent)
+{
+	if (num_ent < SMEM_MAX_PMIC_DEVICES) {
+		return board.pmic_info[num_ent].pmic_target;
+	}
+	return 0;
 }
 
 uint32_t board_soc_version()
