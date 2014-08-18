@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -37,9 +37,8 @@
 
 static struct mdss_dsi_pll_config pll_data;
 
-static uint32_t calculate_bitclock(struct msm_panel_info *pinfo)
+static void calculate_bitclock(struct msm_panel_info *pinfo)
 {
-	uint32_t ret = NO_ERROR;
 	uint32_t h_period = 0, v_period = 0;
 	uint32_t width = pinfo->xres;
 
@@ -67,8 +66,6 @@ static uint32_t calculate_bitclock(struct msm_panel_info *pinfo)
 	pll_data.byte_clock = pll_data.bit_clock >> 3;
 
 	pll_data.halfbit_clock = pll_data.bit_clock >> 1;
-
-	return ret;
 }
 
 static uint32_t calculate_div1()
@@ -140,9 +137,38 @@ static uint32_t calculate_div3(uint8_t bpp, uint8_t num_of_lanes)
 	pll_data.posdiv3--;	/* Register needs one value less */
 }
 
-static uint32_t calculate_vco(uint8_t bpp, uint8_t num_of_lanes)
+static uint32_t calculate_dec_frac_start()
 {
-	uint32_t ret = NO_ERROR;
+	uint32_t refclk = 19200000;
+	uint32_t vco_rate = pll_data.vco_clock;
+	uint32_t tmp, mod;
+
+	vco_rate /= 2;
+	pll_data.dec_start = vco_rate / refclk;
+	tmp = vco_rate % refclk; /* module, fraction */
+	tmp /= 192;
+	tmp *= 1024;
+	tmp /= 100;
+	tmp *= 1024;
+	tmp /= 1000;
+	pll_data.frac_start = tmp;
+
+	vco_rate *= 2; /* restore */
+	tmp = vco_rate / refclk;/* div 1000 first */
+	mod = vco_rate % refclk;
+	tmp *= 127;
+	mod *= 127;
+	mod /= refclk;
+	tmp += mod;
+	tmp /= 10;
+	pll_data.lock_comp = tmp;
+
+	dprintf(SPEW, "%s: dec_start=%u dec_frac=%u lock_comp=%u\n", __func__,
+		pll_data.dec_start, pll_data.frac_start, pll_data.lock_comp);
+}
+
+static uint32_t calculate_vco_28nm(uint8_t bpp, uint8_t num_of_lanes)
+{
 	uint8_t  counter = 0;
 	uint32_t temprate = 0;
 
@@ -172,7 +198,85 @@ static uint32_t calculate_vco(uint8_t bpp, uint8_t num_of_lanes)
 	/* calculate mnd and div3 for direct and indirect path */
 	calculate_div3(bpp, num_of_lanes);
 
-	return ret;
+	return NO_ERROR;
+}
+
+static uint32_t calculate_vco_20nm(uint8_t bpp, uint8_t lanes)
+{
+	uint32_t vco, dsi_clk;
+	int mod, ndiv, hr_oclk2, hr_oclk3;
+	int m = 1;
+	int n = 1;
+	int bpp_m = 3;	/* bpp = 3 */
+	int bpp_n = 1;
+
+	if (bpp == BITS_18) {
+		bpp_m = 9; /* bpp = 2.25 */
+		bpp_n = 4;
+
+		if (lanes == 2) {
+			m = 2;
+			n = 9;
+		} else if (lanes == 4) {
+			m = 4;
+			n = 9;
+		}
+	} else if (bpp == BITS_16) {
+		bpp_m = 2; /* bpp = 2 */
+		bpp_n = 1;
+		if (lanes == 3) {
+			m = 3;
+			n = 8;
+		}
+	}
+
+	hr_oclk2 = 4;
+
+	/* If bitclock is more than VCO min value */
+	if (pll_data.halfbit_clock >= HALF_VCO_MIN_CLOCK_20NM) {
+		/* Direct Mode */
+		vco  = pll_data.halfbit_clock << 1;
+		/* support vco clock to max value only */
+		if (vco > VCO_MAX_CLOCK_20NM)
+			vco = VCO_MAX_CLOCK_20NM;
+
+		pll_data.directpath = 0x0;
+		pll_data.byte_clock = vco / 2 / hr_oclk2;
+		pll_data.lp_div_mux = 0x0;
+		ndiv = 1;
+		hr_oclk3 = hr_oclk2 * m / n * bpp_m / bpp_n / lanes;
+	} else {
+		/* Indirect Mode */
+		mod =  VCO_MIN_CLOCK_20NM % (4 * pll_data.halfbit_clock );
+		ndiv = VCO_MIN_CLOCK_20NM / (4 * pll_data.halfbit_clock );
+		if (mod)
+			ndiv += 1;
+
+		vco = pll_data.halfbit_clock * 4 * ndiv;
+		pll_data.lp_div_mux = 0x1;
+		pll_data.directpath = 0x02; /* set bit 1 to enable for
+						 indirect path */
+
+		pll_data.byte_clock = vco / 4 / hr_oclk2 / ndiv;
+		hr_oclk3 = hr_oclk2 * m / n  * ndiv * 2 * bpp_m / bpp_n / lanes;
+	}
+
+	pll_data.vco_clock = vco;
+	dsi_clk = vco / 2 / hr_oclk3;
+	pll_data.ndiv = ndiv;
+	pll_data.hr_oclk2 = hr_oclk2 - 1; 	/* strat from 0 */
+	pll_data.hr_oclk3 = hr_oclk3 - 1; 	/* strat from 0 */
+
+	pll_data.pclk_m = m;		/* M */
+	pll_data.pclk_n = ~(n - m); 	/* ~(N-M) */
+	pll_data.pclk_d = ~n;		/* ~N  */
+
+	dprintf(SPEW, "%s: oclk2=%d oclk3=%d ndiv=%d vco=%u dsi_clk=%u byte_clk=%u\n",
+	__func__, hr_oclk2, hr_oclk3, ndiv, vco, dsi_clk, pll_data.byte_clock);
+
+	calculate_dec_frac_start();
+
+	return NO_ERROR;
 }
 
 uint32_t calculate_clock_config(struct msm_panel_info *pinfo)
@@ -181,7 +285,10 @@ uint32_t calculate_clock_config(struct msm_panel_info *pinfo)
 
 	calculate_bitclock(pinfo);
 
-	calculate_vco(pinfo->bpp, pinfo->mipi.num_of_lanes);
+	if (pinfo->mipi.mdss_dsi_phy_db->is_pll_20nm)
+		ret = calculate_vco_20nm(pinfo->bpp, pinfo->mipi.num_of_lanes);
+	else
+		ret = calculate_vco_28nm(pinfo->bpp, pinfo->mipi.num_of_lanes);
 
 	pinfo->mipi.dsi_pll_config = &pll_data;
 
