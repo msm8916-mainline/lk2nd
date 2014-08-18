@@ -36,6 +36,23 @@
 #define MIPI_DSI1_BASE MIPI_DSI_BASE
 #endif
 
+#define MMSS_DSI_CLKOUT_TIMING_CTRL               0x0c4
+#define MMSS_DSI_PHY_TIMING_CTRL_0                0x0140
+#define MMSS_DSI_PHY_CTRL_0                       0x0170
+#define MMSS_DSI_PHY_CTRL_1                       0x0174
+#define MMSS_DSI_PHY_CTRL_2                       0x0178
+#define MMSS_DSI_PHY_STRENGTH_CTRL_0              0x0184
+#define MMSS_DSI_PHY_STRENGTH_CTRL_1              0x0188
+#define MMSS_DSI_PHY_BIST_CTRL_0                  0x01b4
+#define MMSS_DSI_PHY_GLBL_TEST_CTRL               0x01d4
+#define MMSS_DSI_PHY_LDO_CTRL                     0x01dc
+
+#define TOTAL_TIMING_CTRL_CONFIG                  12
+#define TOTAL_BIST_CTRL_CONFIG                    6
+/* 4 data lanes and 1 clock lanes */
+#define TOTAL_LANE_COUNT                          5
+#define CONFIG_REG_FOR_EACH_LANE                  9
+
 static void mipi_dsi_calibration(void)
 {
 	uint32_t i = 0;
@@ -274,7 +291,7 @@ int mdss_dsi_v2_phy_init(struct mipi_dsi_panel_config *pinfo, uint32_t ctl_base)
 	return 0;
 }
 
-int mdss_dsi_phy_init(struct mipi_dsi_panel_config *pinfo,
+static int mdss_dsi_phy_28nm_init(struct mipi_dsi_panel_config *pinfo,
 				uint32_t ctl_base, uint32_t phy_base)
 {
 	struct mdss_dsi_phy_ctrl *pd;
@@ -362,3 +379,81 @@ void mdss_dsi_phy_contention_detection(
 	dmb();
 }
 
+static int mdss_dsi_phy_20nm_init(struct mipi_dsi_panel_config *pinfo,
+				uint32_t ctl_base, uint32_t phy_base)
+{
+	struct mdss_dsi_phy_ctrl *pd = pinfo->mdss_dsi_phy_config;
+	uint32_t i, off = 0, ln, offset;
+
+	/* Strength ctrl 0 */
+	writel(pd->strength[0], phy_base + MMSS_DSI_PHY_STRENGTH_CTRL_0);
+
+	if (pd->regulator_mode == DSI_PHY_REGULATOR_LDO_MODE)
+		pd->regulator[0] = 0x2; /* LDO mode */
+	mdss_dsi_phy_regulator_init(pd);
+
+	if (pd->regulator_mode == DSI_PHY_REGULATOR_LDO_MODE)
+		writel(0x25, phy_base + MMSS_DSI_PHY_LDO_CTRL); /* LDO mode */
+	else
+		writel(0x00, phy_base + MMSS_DSI_PHY_LDO_CTRL); /* DCDC mode */
+
+	off = MMSS_DSI_PHY_TIMING_CTRL_0;
+	for (i = 0; i < TOTAL_TIMING_CTRL_CONFIG; i++, off += 4) {
+		writel(pd->timing[i], phy_base + off);
+		dmb();
+	}
+
+        /* Currently the Phy settings for the DSI 0 is done in clk prepare*/
+	if (phy_base == DSI1_PHY_BASE) {
+		writel(0x00, phy_base + MMSS_DSI_PHY_CTRL_1);
+		writel(0x05, phy_base + MMSS_DSI_PHY_CTRL_0);
+		dmb();
+
+		writel(0x7f, phy_base + MMSS_DSI_PHY_CTRL_0);
+		dmb();
+
+		/* BITCLK_HS_SEL should be set to 0 for left */
+		writel(0x00, phy_base + MMSS_DSI_PHY_GLBL_TEST_CTRL);
+
+		writel(0x00, phy_base + MMSS_DSI_PHY_CTRL_2);
+		writel(0x02, phy_base + MMSS_DSI_PHY_CTRL_2);
+		writel(0x03, phy_base + MMSS_DSI_PHY_CTRL_2);
+		dmb();
+	}
+
+	writel(pd->strength[1], phy_base + MMSS_DSI_PHY_STRENGTH_CTRL_1);
+	dmb();
+
+	for (ln = 0; ln < TOTAL_LANE_COUNT; ln++) {
+		off = (ln * 0x40);
+		for (i = 0; i < CONFIG_REG_FOR_EACH_LANE; i++, off += 4) {
+			offset = i + (ln * CONFIG_REG_FOR_EACH_LANE);
+			writel(pd->laneCfg[offset], phy_base + off);
+			dmb();
+		}
+	}
+
+	dmb();
+
+	off = MMSS_DSI_PHY_BIST_CTRL_0;
+	for (i = 0; i < TOTAL_BIST_CTRL_CONFIG; i++, off +=4) {
+		writel(pd->bistCtrl[i], phy_base + off);
+	}
+	dmb();
+
+	writel(0x41b, ctl_base + MMSS_DSI_CLKOUT_TIMING_CTRL);
+	dmb();
+}
+
+int mdss_dsi_phy_init (struct mipi_dsi_panel_config *pinfo,
+				uint32_t ctl_base, uint32_t phy_base)
+{
+	int ret;
+
+	if (pinfo->mdss_dsi_phy_config->is_pll_20nm)
+		ret = mdss_dsi_phy_20nm_init(pinfo, ctl_base, phy_base);
+	else
+		ret = mdss_dsi_phy_28nm_init(pinfo, ctl_base, phy_base);
+
+	return ret;
+}
