@@ -49,7 +49,7 @@
 #include "include/panel_otm1283a_720p_video.h"
 #include "include/panel_nt35596_1080p_skuk_video.h"
 #include "include/panel_sharp_wqxga_dualdsi_video.h"
-#include "include/panel_jdi_fhd_video.h""
+#include "include/panel_jdi_fhd_video.h"
 #include "include/panel_hx8379a_fwvga_video.h"
 
 #define DISPLAY_MAX_PANEL_DETECTION 2
