@@ -85,6 +85,9 @@
 #define MIPI_DSI_MRPS       0x04	/* Maximum Return Packet Size */
 #define MIPI_DSI_REG_LEN    16	/* 4 x 4 bytes register */
 
+#define TIMING_FLUSH		     0x1E4
+#define TIMING_DB_MODE		     0x1E8
+
 #define DSI_HW_REV_103_1		0x10030001	/* 8936/8939 */
 
 #define DTYPE_GEN_WRITE2 0x23	/* 4th Byte is 0x80 */

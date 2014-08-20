@@ -105,6 +105,7 @@ static void mdp_select_pipe_type(struct msm_panel_info *pinfo,
 static void mdss_mdp_set_flush(struct msm_panel_info *pinfo,
 				uint32_t *ctl0_reg_val, uint32_t *ctl1_reg_val)
 {
+	uint32_t mdss_mdp_rev = readl(MDP_HW_REV);
 	switch (pinfo->pipe_type) {
 		case MDSS_MDP_PIPE_TYPE_RGB:
 			*ctl0_reg_val = 0x22048;
@@ -119,6 +120,12 @@ static void mdss_mdp_set_flush(struct msm_panel_info *pinfo,
 			*ctl0_reg_val = 0x22041;
 			*ctl1_reg_val = 0x24082;
 			break;
+	}
+	/* For 8916/8939, MDP INTF registers are double buffered */
+	if ((mdss_mdp_rev == MDSS_MDP_HW_REV_106) ||
+		(mdss_mdp_rev == MDSS_MDP_HW_REV_108)) {
+			*ctl0_reg_val |= BIT(30);
+			*ctl1_reg_val |= BIT(30);
 	}
 }
 
