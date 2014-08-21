@@ -3,7 +3,7 @@
 ifndef 2ND_TARGET_GCC_VERSION
 CROSS_COMPILE := ../../../prebuilts/gcc/linux-x86/arm/arm-eabi-$(TARGET_GCC_VERSION)/bin/arm-eabi-
 else
-CROSS_COMPILE := ../../../prebuilts/gcc/linux-x86/arm/arm-eabi-4.7/bin/arm-eabi-
+CROSS_COMPILE := ../../../prebuilts/gcc/linux-x86/arm/arm-eabi-$(2ND_TARGET_GCC_VERSION)/bin/arm-eabi-
 endif
 
 # Set flags if we need to include security libs
