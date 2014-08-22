@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -39,6 +39,7 @@
 struct board_pmic_data {
 	uint32_t pmic_type;
 	uint32_t pmic_version;
+	uint32_t pmic_target;
 };
 
 struct board_data {
@@ -65,6 +66,7 @@ uint32_t board_soc_version();
 uint32_t board_hardware_subtype(void);
 uint32_t board_get_ddr_subtype(void);
 uint32_t board_hlos_subtype(void);
+uint32_t board_pmic_target(uint8_t num_ent);
 
 /* DDR Subtype Macros
  * Determine the DDR Size on the device and define
