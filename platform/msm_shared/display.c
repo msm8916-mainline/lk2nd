@@ -248,7 +248,7 @@ int msm_display_init(struct msm_fb_panel_data *pdata)
 
 	/* Turn on panel */
 	if (pdata->power_func)
-		ret = pdata->power_func(1);
+		ret = pdata->power_func(1, &(panel->panel_info));
 
 	if (ret)
 		goto msm_display_init_out;
@@ -390,7 +390,7 @@ int msm_display_off()
 
 	/* Disable panel */
 	if (panel->power_func)
-		ret = panel->power_func(0);
+		ret = panel->power_func(0, pinfo);
 
 msm_display_off_out:
 	return ret;
