@@ -103,9 +103,6 @@ int rpm_send_data(uint32_t *data, uint32_t len, msg_type type)
 
 			ret = smd_write(&ch, smd_data, len_to_smd, SMD_APPS_RPM);
 
-			/* TODO: Use events */
-			mdelay(1);
-
 			/* Read the response */
 			ack_msg_len = rpm_recv_data(&rlen);
 
