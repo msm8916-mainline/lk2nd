@@ -756,6 +756,16 @@ static struct branch_clk mdss_edppixel_clk = {
 	},
 };
 
+static struct branch_clk mmss_misc_ahb_clk = {
+	.cbcr_reg = MMSS_MISC_AHB_CBCR,
+	.has_sibling = 1,
+
+	.c = {
+		.dbg_name = "mmss_misc_ahb_clk",
+		.ops = &clk_ops_branch,
+    },
+};
+
 /* Clock lookup table */
 static struct clk_lookup msm_8994_clocks[] =
 {
@@ -791,6 +801,7 @@ static struct clk_lookup msm_8994_clocks[] =
 	CLK_LOOKUP("mdss_mdp_clk_src",     mdss_mdp_clk_src.c),
 	CLK_LOOKUP("mdss_mdp_clk",         mdss_mdp_clk.c),
 	CLK_LOOKUP("mdss_mdp_lut_clk",     mdss_mdp_lut_clk.c),
+	CLK_LOOKUP("mmss_misc_ahb_clk",    mmss_misc_ahb_clk.c),
 
 	CLK_LOOKUP("edp_pixel_clk",        mdss_edppixel_clk.c),
 	CLK_LOOKUP("edp_link_clk",         mdss_edplink_clk.c),
