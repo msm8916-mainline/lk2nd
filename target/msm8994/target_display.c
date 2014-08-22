@@ -124,7 +124,7 @@ static int msm8994_pwm_backlight_ctrl(uint8_t enable)
 	return NO_ERROR;
 }
 
-void lcd_reg_en(void)
+void lcd_reg_enable(void)
 {
        struct pm8x41_gpio gpio = {
                 .direction = PM_GPIO_DIR_OUT,
@@ -134,8 +134,13 @@ void lcd_reg_en(void)
                 .out_strength = PM_GPIO_OUT_DRIVE_MED,
         };
 
-        pm8x41_gpio_config(14, &gpio);
-	pm8x41_gpio_set(14, 1);
+        pm8x41_gpio_config(lcd_reg_en.pin_id, &gpio);
+	pm8x41_gpio_set(lcd_reg_en.pin_id, 1);
+}
+
+void lcd_reg_disable(void)
+{
+	pm8x41_gpio_set(lcd_reg_en.pin_id, 0);
 }
 
 int target_backlight_ctrl(struct backlight *bl, uint8_t enable)
@@ -257,7 +262,13 @@ int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 		mdelay(10);
 		qpnp_ibb_enable(true);	/* +5V and -5V */
 		mdelay(50);
+
+		if (pinfo->lcd_reg_en)
+			lcd_reg_enable();
 	} else {
+		if (pinfo->lcd_reg_en)
+			lcd_reg_disable();
+
 		regulator_disable();
 	}
 
