@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -50,6 +50,13 @@
 #define MDP_CBCR                        REG_MM(0x231C)
 #define MDP_LUT_CBCR                    REG_MM(0x2320)
 #define MDP_AHB_CBCR                    REG_MM(0x2308)
+#define MDSS_HDMI_AHB_CBCR              REG_MM(0x230C)
+#define MDSS_HDMI_CBCR                  REG_MM(0x2338)
+#define MDSS_EXTPCLK_CBCR               REG_MM(0x2324)
+#define EXTPCLK_CMD_RCGR                REG_MM(0x2060)
+#define EXTPCLK_CFG_RCGR                REG_MM(0x2064)
+#define HDMI_CMD_RCGR                   REG_MM(0x2100)
+#define HDMI_CFG_RCGR                   REG_MM(0x2104)
 
 #define MDP_AXI_CMD_RCGR                REG_MM(0x5040)
 #define MDP_AXI_CFG_RCGR                REG_MM(0x5044)
