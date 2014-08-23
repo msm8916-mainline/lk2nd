@@ -227,6 +227,15 @@ static void pll_20nm_phy_config(uint32_t pll_base)
 	pll_20nm_phy_loop_bw_config(pll_base);
 }
 
+static void mdss_dsi_pll_20nm_disable(uint32_t pll_base)
+{
+	dprintf(SPEW, "Disabling DSI PHY PLL \n");
+	writel(0x042, pll_base + MMSS_DSI_PHY_PLL_PLL_VCOTAIL_EN);
+	writel(0x002, pll_base + MMSS_DSI_PHY_PLL_BIAS_EN_CLKBUFLR_EN);
+	writel(0x002, pll_base + MMSS_DSI_PHY_PLL_RESETSM_CNTRL3);
+	dmb();
+}
+
 int32_t mdss_dsi_auto_pll_20nm_config(uint32_t pll_base, uint32_t ctl_base,
 				struct mdss_dsi_pll_config *pd)
 {
@@ -234,6 +243,15 @@ int32_t mdss_dsi_auto_pll_20nm_config(uint32_t pll_base, uint32_t ctl_base,
 
 	mdss_dsi_phy_sw_reset(ctl_base);
 	pll_20nm_phy_config(pll_base);
+
+	/*
+	 * For 20nm PHY, DSI PLL 1 drains some current in its reset state.
+	 * Need to turn off the DSI1 PLL explicitly.
+	 */
+	if (ctl_base == MIPI_DSI0_BASE) {
+		dprintf(SPEW, "Calling disable function for PHY PLL 1 \n");
+		mdss_dsi_pll_20nm_disable(DSI1_PLL_BASE);
+	}
 
 	/* set up divider */
 	data = readl(pll_base + MMSS_DSI_PHY_PLL_POST_DIVIDER_CONTROL);
