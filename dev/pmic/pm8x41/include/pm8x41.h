@@ -171,6 +171,12 @@ enum mpp_en_ctl
 	MPP_ENABLE,
 };
 
+enum mvs_en_ctl
+{
+	MVS_DISABLE,
+	MVS_ENABLE,
+};
+
 enum mpp_mode
 {
 	MPP_DIGITAL_INPUT,
@@ -190,9 +196,15 @@ struct pm8x41_mpp
 	enum mpp_mode_en_source_select mode;
 };
 
+struct pm8x41_mvs
+{
+	uint32_t                       base;
+};
+
 #define PM8x41_MMP2_BASE                      0xA100
 #define PM8x41_MMP3_BASE                      0xA200
 #define PM8x41_MMP4_BASE                      0xA300
+#define PM8x41_MVS1_BASE                      0x18400
 
 void pm8x41_lpg_write(uint8_t chan, uint8_t off, uint8_t val);
 int pm8x41_gpio_get(uint8_t gpio, uint8_t *status);
@@ -212,6 +224,7 @@ uint8_t pm8x41_get_pon_poff_reason2();
 uint32_t pm8x41_get_pwrkey_is_pressed();
 void pm8x41_config_output_mpp(struct pm8x41_mpp *mpp);
 void pm8x41_enable_mpp(struct pm8x41_mpp *mpp, enum mpp_en_ctl enable);
+void pm8x41_enable_mvs(struct pm8x41_mvs *mvs, enum mvs_en_ctl enable);
 uint8_t pm8x41_get_is_cold_boot();
 void pm8x41_diff_clock_ctrl(uint8_t enable);
 void pm8x41_clear_pmic_watchdog(void);

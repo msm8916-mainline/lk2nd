@@ -99,6 +99,10 @@
 #define MPP_MODE_CTL_MODE_SHIFT               4
 #define MPP_EN_CTL_ENABLE_SHIFT               7
 
+/* MVS registers */
+#define MVS_EN_CTL                            0x46
+#define MVS_EN_CTL_ENABLE_SHIFT               7
+
 void pm8x41_reg_write(uint32_t addr, uint8_t val);
 uint8_t pm8x41_reg_read(uint32_t addr);
 
