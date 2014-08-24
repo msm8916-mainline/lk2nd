@@ -375,6 +375,7 @@ enum {
 	FSM9010  = 255,
 	FSM9016  = 256,
 	FSM9055  = 257,
+	MSM8239  = 263,
 };
 
 enum platform {
