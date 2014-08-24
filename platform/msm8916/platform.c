@@ -190,6 +190,7 @@ int platform_is_msm8939()
 		case MSM8236:
 		case MSM8636:
 		case MSM8936:
+		case MSM8239:
 			ret = 1;
 			break;
 		default:
