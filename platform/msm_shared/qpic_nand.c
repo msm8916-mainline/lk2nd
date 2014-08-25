@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
- * Copyright (c) 2009-2013, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2014, The Linux Foundation. All rights reserved.
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -66,6 +66,7 @@ static struct flash_id supported_flash[] = {
 	{0x1590AA2C,   0xFFFFFFFF,  0x10000000,    0,  2048,   0x00020000,        0xE0,   1},
 	{0x2690AC2C,   0xFFFFFFFF,  0x20000000,    0,  4096,   0x00040000,        0xE0,   1},
 	{0x1590ACAD,   0xFFFFFFFF,  0x20000000,    0,  2048,   0x00020000,        0x80,   0},
+	{0x9590DC2C,   0xFFFFFFFF,  0x10000000,    0,  2048,   0x00020000,        0x40,   0},
 	/* Note: Width flag is 0 for 8 bit Flash and 1 for 16 bit flash   */
 };
 
