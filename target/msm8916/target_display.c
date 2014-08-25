@@ -371,6 +371,7 @@ void target_display_init(const char *panel_name)
 	uint32_t panel_loop = 0;
 	uint32_t ret = 0;
 
+	panel_name += strspn(panel_name, " ");
 	if ((!strcmp(panel_name, NO_PANEL_CONFIG))
 			|| (!strcmp(panel_name, SIM_VIDEO_PANEL))) {
 		dprintf(INFO, "Selected panel: %s\nSkip panel configuration\n",
