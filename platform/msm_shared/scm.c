@@ -50,6 +50,33 @@
                                    SCM_MASK_IRQS | \
                                    ((n) & 0xf))
 
+/* SCM interface as per ARM spec present? */
+bool scm_arm_support;
+
+static void scm_arm_support_available(uint32_t svc_id, uint32_t cmd_id)
+{
+	uint32_t ret;
+	scmcall_arg scm_arg = {0};
+	scmcall_arg scm_ret = {0};
+	/* Make a call to check if SCM call available using new interface,
+	 * if this returns 0 then scm implementation as per arm spec
+	 * otherwise use the old interface for scm calls
+	 */
+	scm_arg.x0 = MAKE_SIP_SCM_CMD(SCM_SVC_INFO, IS_CALL_AVAIL_CMD);
+	scm_arg.x1 = MAKE_SCM_ARGS(0x1);
+	scm_arg.x2 = MAKE_SIP_SCM_CMD(svc_id, cmd_id);
+
+	ret = scm_call2(&scm_arg, &scm_ret);
+
+	if (!ret)
+		scm_arm_support = true;
+}
+
+
+void scm_init()
+{
+	scm_arm_support_available(SCM_SVC_INFO, IS_CALL_AVAIL_CMD);
+}
 
 /**
  * alloc_scm_command() - Allocate an SCM command
@@ -255,17 +282,30 @@ int restore_secure_cfg(uint32_t id)
 
 	secure_cfg.id    = id;
 	secure_cfg.spare = 0;
+	scmcall_arg scm_arg = {0};
 
-	ret = scm_call(SVC_MEMORY_PROTECTION, IOMMU_SECURE_CFG, &secure_cfg, sizeof(secure_cfg),
-			NULL, 0);
+	if(!scm_arm_support)
+	{
+		ret = scm_call(SVC_MEMORY_PROTECTION, IOMMU_SECURE_CFG, &secure_cfg, sizeof(secure_cfg),
+					   NULL, 0);
+	}
+	else
+	{
+		scm_arg.x0 = MAKE_SIP_SCM_CMD(SVC_MEMORY_PROTECTION, IOMMU_SECURE_CFG);
+		scm_arg.x1 = MAKE_SCM_ARGS(0x2);
+		scm_arg.x2 = id;
+		scm_arg.x3 = 0x0; /* Spare unused */
 
-	if (ret) {
+		ret = scm_call2(&scm_arg, NULL);
+	}
+
+	if (ret)
+	{
 		dprintf(CRITICAL, "Secure Config failed\n");
 		ret = 1;
 	}
 
 	return ret;
-
 }
 
 /* SCM Encrypt Command */
@@ -273,6 +313,12 @@ int encrypt_scm(uint32_t ** img_ptr, uint32_t * img_len_ptr)
 {
 	int ret;
 	img_req cmd;
+
+	if (scm_arm_support)
+	{
+		dprintf(INFO, "%s:SCM call is not supported\n",__func__);
+		return -1;
+	}
 
 	cmd.img_ptr     = (uint32*) img_ptr;
 	cmd.img_len_ptr = img_len_ptr;
@@ -301,6 +347,12 @@ int decrypt_scm(uint32_t ** img_ptr, uint32_t * img_len_ptr)
 {
 	int ret;
 	img_req cmd;
+
+	if (scm_arm_support)
+	{
+		dprintf(INFO, "%s:SCM call is not supported\n",__func__);
+		return -1;
+	}
 
 	cmd.img_ptr     = (uint32*) img_ptr;
 	cmd.img_len_ptr = img_len_ptr;
@@ -331,6 +383,12 @@ static int ssd_image_is_encrypted(uint32_t ** img_ptr, uint32_t * img_len_ptr, u
 	ssd_parse_md_req parse_req;
 	ssd_parse_md_rsp parse_rsp;
 	int              prev_len = 0;
+
+	if (scm_arm_support)
+	{
+		dprintf(INFO, "%s:SCM call is not supported\n",__func__);
+		return -1;
+	}
 
 	/* Populate meta-data ptr. Here md_len is the meta-data length.
 	 * The Code below follows a growing length approach. First send
@@ -397,6 +455,12 @@ int decrypt_scm_v2(uint32_t ** img_ptr, uint32_t * img_len_ptr)
 	ssd_decrypt_img_frag_req decrypt_req;
 	ssd_decrypt_img_frag_rsp decrypt_rsp;
 
+	if (scm_arm_support)
+	{
+		dprintf(INFO, "%s:SCM call is not supported\n",__func__);
+		return -1;
+	}
+
 	ret = ssd_image_is_encrypted(img_ptr,img_len_ptr,&ctx_id);
 	switch(ret)
 	{
@@ -461,15 +525,30 @@ int scm_svc_version(uint32 * major, uint32 * minor)
 	feature_version_req feature_req;
 	feature_version_rsp feature_rsp;
 	int                 ret = 0;
+	scmcall_arg scm_arg = {0};
+	scmcall_ret scm_ret = {0};
 
 	feature_req.feature_id = TZBSP_FVER_SSD;
 
-	ret = scm_call(TZBSP_SVC_INFO,
-		       TZ_INFO_GET_FEATURE_ID,
-		       &feature_req,
-		       sizeof(feature_req),
-		       &feature_rsp,
-		       sizeof(feature_rsp));
+	if (!scm_arm_support)
+	{
+		ret = scm_call(TZBSP_SVC_INFO,
+					   TZ_INFO_GET_FEATURE_ID,
+					   &feature_req,
+					   sizeof(feature_req),
+					   &feature_rsp,
+					   sizeof(feature_rsp));
+	}
+	else
+	{
+		scm_arg.x0 = MAKE_SIP_SCM_CMD(TZBSP_SVC_INFO, TZ_INFO_GET_FEATURE_ID);
+		scm_arg.x1 = MAKE_SCM_ARGS(0x1);
+		scm_arg.x2 = feature_req.feature_id;
+
+		ret = scm_call2(&scm_arg, &scm_ret);
+		feature_rsp.version = scm_ret.x1;
+	}
+
 	if(!ret)
 		*major = TZBSP_GET_FEATURE_VERSION(feature_rsp.version);
 
@@ -481,6 +560,12 @@ int scm_protect_keystore(uint32_t * img_ptr, uint32_t  img_len)
 	int                      ret=0;
 	ssd_protect_keystore_req protect_req;
 	ssd_protect_keystore_rsp protect_rsp;
+
+	if (scm_arm_support)
+	{
+		dprintf(INFO, "%s:SCM call is not supported\n",__func__);
+		return -1;
+	}
 
 	protect_req.keystore_ptr = img_ptr;
 	protect_req.keystore_len = img_len;
@@ -522,6 +607,12 @@ void set_tamper_fuse_cmd()
 	cmd_buf = (void *)&fuse_id;
 	cmd_len = sizeof(fuse_id);
 
+	if (scm_arm_support)
+	{
+		dprintf(INFO, "%s:SCM call is not supported\n",__func__);
+		return;
+	}
+
 	/*no response */
 	resp_buf = NULL;
 	resp_len = 0;
@@ -543,6 +634,13 @@ uint8_t get_tamper_fuse_cmd()
 	uint8_t resp_buf;
 
 	uint32_t fuse_id = HLOS_IMG_TAMPER_FUSE;
+
+	if (scm_arm_support)
+	{
+		dprintf(INFO, "%s:SCM call is not supported\n",__func__);
+		return;
+	}
+
 	cmd_buf = (void *)&fuse_id;
 	cmd_len = sizeof(fuse_id);
 
@@ -577,6 +675,7 @@ void save_kernel_hash_cmd(void *digest)
 	void *resp_buf = NULL;
 	size_t resp_len = 0;
 	struct qseecom_save_partition_hash_req req;
+	scmcall_arg scm_arg = {0};
 
 	/*no response */
 	resp_buf = NULL;
@@ -585,12 +684,26 @@ void save_kernel_hash_cmd(void *digest)
 	req.partition_id = 0; /* kernel */
 	memcpy(req.digest, digest, sizeof(req.digest));
 
-	svc_id = SCM_SVC_ES;
-	cmd_id = SCM_SAVE_PARTITION_HASH_ID;
-	cmd_buf = (void *)&req;
-	cmd_len = sizeof(req);
+	if (!scm_arm_support)
+	{
+		svc_id = SCM_SVC_ES;
+		cmd_id = SCM_SAVE_PARTITION_HASH_ID;
+		cmd_buf = (void *)&req;
+		cmd_len = sizeof(req);
 
-	scm_call(svc_id, cmd_id, cmd_buf, cmd_len, resp_buf, resp_len);
+		scm_call(svc_id, cmd_id, cmd_buf, cmd_len, resp_buf, resp_len);
+	}
+	else
+	{
+		scm_arg.x0 = MAKE_SIP_SCM_CMD(SCM_SVC_ES, SCM_SAVE_PARTITION_HASH_ID);
+		scm_arg.x1 = MAKE_SCM_ARGS(0x3, 0, SMC_PARAM_TYPE_BUFFER_READWRITE);
+		scm_arg.x2 = req.partition_id;
+		scm_arg.x3 = (uint8_t *)&req.digest;
+		scm_arg.x4 = sizeof(req.digest);
+
+		if (scm_call2(&scm_arg, NULL))
+			dprintf(CRITICAL, "Failed to Save kernel hash\n");
+	}
 }
 
 /*
@@ -612,6 +725,12 @@ uint8_t switch_ce_chn_cmd(enum ap_ce_channel_type channel)
 		uint32_t chn_id;
 		}__PACKED switch_ce_chn_buf;
 
+	if (scm_arm_support)
+	{
+		dprintf(INFO, "%s:SCM call is not supported\n",__func__);
+		return 0;
+	}
+
 	switch_ce_chn_buf.resource = TZ_RESOURCE_CE_AP;
 	switch_ce_chn_buf.chn_id = channel;
 	cmd_buf = (void *)&switch_ce_chn_buf;
@@ -630,6 +749,12 @@ uint8_t switch_ce_chn_cmd(enum ap_ce_channel_type channel)
 int scm_halt_pmic_arbiter()
 {
 	int ret = 0;
+
+	if (scm_arm_support)
+	{
+		dprintf(INFO, "%s:SCM call is not supported\n",__func__);
+		return -1;
+	}
 
 	ret = scm_call_atomic(SCM_SVC_PWR, SCM_IO_DISABLE_PMIC_ARBITER, 0);
 
@@ -656,17 +781,31 @@ void scm_elexec_call(paddr_t kernel_entry, paddr_t dtb_offset)
 	void *cmd_buf;
 	size_t cmd_len;
 	static el1_system_param param;
+	scmcall_arg scm_arg = {0};
 
 	param.el1_x0 = dtb_offset;
 	param.el1_elr = kernel_entry;
 
-	/* Command Buffer */
-	cmd_buf = (void *)&param;
-	cmd_len = sizeof(el1_system_param);
-
 	/* Response Buffer = Null as no response expected */
 	dprintf(INFO, "Jumping to kernel via monitor\n");
-	scm_call(svc_id, cmd_id, cmd_buf, cmd_len, NULL, 0);
+
+	if (!scm_arm_support)
+	{
+		/* Command Buffer */
+		cmd_buf = (void *)&param;
+		cmd_len = sizeof(el1_system_param);
+
+		scm_call(svc_id, cmd_id, cmd_buf, cmd_len, NULL, 0);
+	}
+	else
+	{
+		scm_arg.x0 = MAKE_SIP_SCM_CMD(SCM_SVC_MILESTONE_32_64_ID, SCM_SVC_MILESTONE_CMD_ID);
+		scm_arg.x1 = MAKE_SCM_ARGS(0x2, SMC_PARAM_TYPE_BUFFER_READ);
+		scm_arg.x2 = (void *)&param;
+		scm_arg.x3 = sizeof(el1_system_param);
+
+		scm_call2(&scm_arg, NULL);
+	}
 
 	/* Assert if execution ever reaches here */
 	dprintf(CRITICAL, "Failed to jump to kernel\n");
@@ -678,19 +817,36 @@ int scm_random(uint32_t * rbuf, uint32_t  r_len)
 {
 	int ret;
 	struct tz_prng_data data;
+	scmcall_arg scm_arg = {0};
 
-	data.out_buf     = (uint8_t*) rbuf;
-	data.out_buf_size = r_len;
+	if (!scm_arm_support)
+	{
+		data.out_buf     = (uint8_t*) rbuf;
+		data.out_buf_size = r_len;
 
-	/*
-	 * random buffer must be flushed/invalidated before and after TZ call.
-	 */
-	arch_clean_invalidate_cache_range((addr_t) rbuf, r_len);
+		/*
+		 * random buffer must be flushed/invalidated before and after TZ call.
+		 */
+		arch_clean_invalidate_cache_range((addr_t) rbuf, r_len);
 
-	ret = scm_call(TZ_SVC_CRYPTO, PRNG_CMD_ID, &data, sizeof(data), NULL, 0);
+		ret = scm_call(TZ_SVC_CRYPTO, PRNG_CMD_ID, &data, sizeof(data), NULL, 0);
 
-	/* Invalidate the updated random buffer */
-	arch_clean_invalidate_cache_range((addr_t) rbuf, r_len);
+		/* Invalidate the updated random buffer */
+		arch_clean_invalidate_cache_range((addr_t) rbuf, r_len);
+	}
+	else
+	{
+		scm_arg.x0 = MAKE_SIP_SCM_CMD(TZ_SVC_CRYPTO, PRNG_CMD_ID);
+		scm_arg.x1 = MAKE_SCM_ARGS(0x2,SMC_PARAM_TYPE_BUFFER_READWRITE);
+		scm_arg.x2 = (uint8_t *) rbuf;
+		scm_arg.x3 = r_len;
+
+		ret = scm_call2(&scm_arg, NULL);
+		if (!ret)
+			arch_clean_invalidate_cache_range((addr_t) rbuf, r_len);
+		else
+			dprintf(CRITICAL, "Secure canary SCM failed: %x\n", ret);
+	}
 
 	return ret;
 }
@@ -714,12 +870,26 @@ int scm_xpu_err_fatal_init()
 	uint32_t ret = 0;
 	uint32_t response = 0;
 	tz_xpu_prot_cmd cmd;
+	scmcall_arg scm_arg = {0};
+	scmcall_ret scm_ret = {0};
 
-	cmd.config = ERR_FATAL_ENABLE;
-	cmd.spare = 0;
+	if (!scm_arm_support)
+	{
+		cmd.config = ERR_FATAL_ENABLE;
+		cmd.spare = 0;
 
-	ret = scm_call(SVC_MEMORY_PROTECTION, XPU_ERR_FATAL, &cmd, sizeof(cmd), &response,
-				   sizeof(response));
+		ret = scm_call(SVC_MEMORY_PROTECTION, XPU_ERR_FATAL, &cmd, sizeof(cmd), &response,
+					   sizeof(response));
+	}
+	else
+	{
+		scm_arg.x0 = MAKE_SIP_SCM_CMD(SVC_MEMORY_PROTECTION, XPU_ERR_FATAL);
+		scm_arg.x1 = MAKE_SCM_ARGS(0x2);
+		scm_arg.x2 = ERR_FATAL_ENABLE;
+		scm_arg.x3 = 0x0;
+		ret =  scm_call2(&scm_arg, &scm_ret);
+		response = scm_ret.x1;
+	}
 
 	if (ret)
 		dprintf(CRITICAL, "Failed to set XPU violations as fatal errors: %u\n", response);
@@ -727,4 +897,75 @@ int scm_xpu_err_fatal_init()
 		dprintf(INFO, "Configured XPU violations to be fatal errors\n");
 
 	return ret;
+}
+
+static uint32_t scm_call_a32(uint32_t x0, uint32_t x1, uint32_t x2, uint32_t x3, uint32_t x4, uint32_t x5, scmcall_ret *ret)
+{
+	register uint32_t r0 __asm__("r0") = x0;
+	register uint32_t r1 __asm__("r1") = x1;
+	register uint32_t r2 __asm__("r2") = x2;
+	register uint32_t r3 __asm__("r3") = x3;
+	register uint32_t r4 __asm__("r4") = x4;
+	register uint32_t r5 __asm__("r5") = x5;
+
+	__asm__ volatile(
+		__asmeq("%0", "r0")
+		__asmeq("%1", "r1")
+		__asmeq("%2", "r2")
+		__asmeq("%3", "r3")
+		__asmeq("%4", "r0")
+		__asmeq("%5", "r1")
+		__asmeq("%6", "r2")
+		__asmeq("%7", "r3")
+		__asmeq("%8", "r4")
+		__asmeq("%9", "r5")
+		"smc    #0  @ switch to secure world\n"
+		: "=r" (r0), "=r" (r1), "=r" (r2), "=r" (r3)
+		: "r" (r0), "r" (r1), "r" (r2), "r" (r3), "r" (r4), "r" (r5));
+
+	if (ret)
+	{
+		ret->x1 = r1;
+		ret->x2 = r2;
+		ret->x3 = r3;
+	}
+
+	return r0;
+}
+
+uint32_t scm_call2(scmcall_arg *arg, scmcall_ret *ret)
+{
+	uint32_t *indir_arg = NULL;
+	uint32_t x5;
+	int i;
+	uint32_t rc;
+
+	arg->x0 = arg->atomic ? (arg->x0 | SCM_ATOMIC_BIT) : arg->x0;
+	x5 = arg->x5[0];
+
+	if ((arg->x1 & 0xF) > SCM_MAX_ARG_LEN)
+	{
+		indir_arg = memalign(CACHE_LINE, (SCM_INDIR_MAX_LEN * sizeof(uint32_t)));
+		ASSERT(indir_arg);
+
+		for (i = 0 ; i < SCM_INDIR_MAX_LEN; i++)
+		{
+			indir_arg[i] = arg->x5[i];
+		}
+		arch_clean_invalidate_cache_range((addr_t) indir_arg, ROUNDUP((SCM_INDIR_MAX_LEN * sizeof(uint32_t)), CACHE_LINE));
+		x5 = (addr_t) indir_arg;
+	}
+
+	rc = scm_call_a32(arg->x0, arg->x1, arg->x2, arg->x3, arg->x4, x5, ret);
+
+	if (rc)
+	{
+		dprintf(CRITICAL, "SCM call: 0x%x failed with :%x\n", arg->x0, rc);
+		return rc;
+	}
+
+	if (indir_arg)
+		free(indir_arg);
+
+	return 0;
 }

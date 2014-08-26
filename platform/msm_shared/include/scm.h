@@ -29,6 +29,34 @@
 #ifndef __SCM_H__
 #define __SCM_H__
 
+/* ARM SCM format support related flags */
+#define SIP_SVC_CALLS                          0x02000000
+#define MAKE_SIP_SCM_CMD(svc_id, cmd_id)       ((((svc_id << 8) | (cmd_id)) & 0xFFFF) | SIP_SVC_CALLS)
+#define MAKE_SCM_VAR_ARGS(num_args, t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, ...) (\
+						  (((t0) & 0xff) << 4) | \
+						  (((t1) & 0xff) << 6) | \
+						  (((t2) & 0xff) << 8) | \
+						  (((t3) & 0xff) << 10) | \
+						  (((t4) & 0xff) << 12) | \
+						  (((t5) & 0xff) << 14) | \
+						  (((t6) & 0xff) << 16) | \
+						  (((t7) & 0xff) << 18) | \
+						  (((t8) & 0xff) << 20) | \
+						  (((t9) & 0xff) << 22) | \
+						  (num_args & 0xffff))
+#define MAKE_SCM_ARGS(...)                     MAKE_SCM_VAR_ARGS(__VA_ARGS__, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+#define SCM_ATOMIC_BIT                         BIT(31)
+#define SCM_MAX_ARG_LEN                        5
+#define SCM_INDIR_MAX_LEN                      10
+
+enum
+{
+	SMC_PARAM_TYPE_VALUE = 0,
+	SMC_PARAM_TYPE_BUFFER_READ,
+	SMC_PARAM_TYPE_BUFFER_READWRITE,
+	SMC_PARAM_TYPE_BUFFER_VALIDATION,
+} scm_arg_type;
+
 /* 8 Byte SSD magic number (LE) */
 #define DECRYPT_MAGIC_0 0x73737A74
 #define DECRYPT_MAGIC_1 0x676D6964
@@ -126,12 +154,62 @@ struct tz_prng_data {
 	uint32_t out_buf_size;
 }__packed;
 
+/* SCM support as per ARM spec */
+/*
+ * Structure to define the argument for scm call
+ * x0: is the command ID
+ * x1: Number of argument & type of arguments
+ *   : Type can be any of
+ *   : SMC_PARAM_TYPE_VALUE             0
+ *   : SMC_PARAM_TYPE_BUFFER_READ       1
+ *   : SMC_PARAM_TYPE_BUFFER_READWRITE  2
+ *   : SMC_PARAM_TYPE_BUFFER_VALIDATION 3
+ *   @Note: Number of argument count starts from X2.
+ * x2-x4: Arguments
+ * X5[10]: if the number of argument is more, an indirect
+ *       : list can be passed here.
+ */
+typedef struct {
+	uint32_t x0;/* command ID details as per ARMv8 spec :
+					0:7 command, 8:15 service id
+					0x02000000: SIP calls
+					30: SMC32 or SMC64
+					31: Standard or fast calls*/
+	uint32_t x1; /* # of args and attributes for buffers
+				  * 0-3: arg #
+				  * 4-5: type of arg1
+				  * 6-7: type of arg2
+				  * :
+				  * :
+				  * 20-21: type of arg8
+				  * 22-23: type of arg9
+				  */
+	uint32_t x2; /* Param1 */
+	uint32_t x3; /* Param2 */
+	uint32_t x4; /* Param3 */
+	uint32_t x5[10]; /* Indirect parameter list */
+	uint32_t atomic; /* To indicate if its standard or fast call */
+} scmcall_arg;
+
+/* Return value for the SCM call:
+ * SCM call returns values in register if its less than
+ * 12 bytes, anything greater need to be input buffer + input len
+ * arguments
+ */
+typedef struct
+{
+	uint32_t x1;
+	uint32_t x2;
+	uint32_t x3;
+} scmcall_ret;
+
 /* Service IDs */
 #define SCM_SVC_BOOT                0x01
 #define TZBSP_SVC_INFO              0x06
 #define SCM_SVC_SSD                 0x07
 #define SVC_MEMORY_PROTECTION       0x0C
 #define TZ_SVC_CRYPTO               0x0A
+#define SCM_SVC_INFO                0x06
 
 /*Service specific command IDs */
 #define ERR_FATAL_ENABLE            0x0
@@ -151,6 +229,7 @@ struct tz_prng_data {
 #define TZ_INFO_GET_FEATURE_ID      0x03
 
 #define PRNG_CMD_ID                 0x01
+#define IS_CALL_AVAIL_CMD           0x01
 
 /* Download Mode specific arguments to be passed to TZ */
 #define SCM_EDLOAD_MODE 0x02
@@ -235,6 +314,11 @@ void *get_canary();
 /* API to configure XPU violations as fatal */
 int scm_xpu_err_fatal_init();
 
+/* APIs to support ARM scm standard
+ * Takes arguments : x0-x5 and returns result
+ * in x0-x3*/
+uint32_t scm_call2(scmcall_arg *arg, scmcall_ret *ret);
+
 /**
  * struct scm_command - one SCM command buffer
  * @len: total available memory for command and response
@@ -278,4 +362,8 @@ struct scm_response {
 	uint32_t buf_offset;
 	uint32_t is_complete;
 };
+/* Perform any scm init needed before making scm calls
+ * Used for checking if armv8 SCM support present
+ */
+void scm_init();
 #endif
