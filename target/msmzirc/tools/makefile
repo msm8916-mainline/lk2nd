@@ -6,7 +6,7 @@ else
 APPSBOOTOUT_DIR := $(BOOTLOADER_OUT)/../..
 endif
 
-ABOOTMBN := emmc_appsboot.mbn
+ABOOTMBN := appsboot.mbn
 APPSBOOTHEADER: $(ABOOTMBN)
 
 $(ABOOTMBN): $(OUTELF_STRIP)
