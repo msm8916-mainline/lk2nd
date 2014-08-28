@@ -57,6 +57,7 @@
 #define PMIC_ARB_CHANNEL_NUM    0
 #define PMIC_ARB_OWNER_ID       0
 
+#define RECOVERY_MODE           0x77665502
 #define FASTBOOT_MODE           0x77665500
 
 #define BOOT_DEVICE_MASK(val)   ((val & 0x3E) >>1)
@@ -572,7 +573,7 @@ void reboot_device(unsigned reboot_reason)
 	/* Write the reboot reason */
 	writel(reboot_reason, RESTART_REASON_ADDR);
 
-	if(reboot_reason == FASTBOOT_MODE)
+	if(reboot_reason == FASTBOOT_MODE || reboot_reason == RECOVERY_MODE)
 		reset_type = PON_PSHOLD_WARM_RESET;
 	else
 		reset_type = PON_PSHOLD_HARD_RESET;
