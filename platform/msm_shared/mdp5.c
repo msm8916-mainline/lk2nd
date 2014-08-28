@@ -602,6 +602,41 @@ int mdp_edp_config(struct msm_panel_info *pinfo, struct fbcon_config *fb)
 	return 0;
 }
 
+int mdp_hdmi_config(struct msm_panel_info *pinfo, struct fbcon_config *fb)
+{
+	int ret = NO_ERROR;
+	struct lcdc_panel_info *lcdc = NULL;
+	uint32_t left_pipe, right_pipe;
+
+	mdss_intf_tg_setup(pinfo, MDP_INTF_3_BASE);
+	mdp_select_pipe_type(pinfo, &left_pipe, &right_pipe);
+
+	mdp_clk_gating_ctrl();
+	mdss_vbif_setup();
+
+	mdss_smp_setup(pinfo, left_pipe, right_pipe);
+
+	mdss_qos_remapper_setup();
+
+	mdss_source_pipe_config(fb, pinfo, left_pipe);
+	if (pinfo->lcdc.dual_pipe)
+		mdss_source_pipe_config(fb, pinfo, right_pipe);
+
+	mdss_layer_mixer_setup(fb, pinfo);
+
+	if (pinfo->lcdc.dual_pipe)
+		writel(0x181F40, MDP_CTL_0_BASE + CTL_TOP);
+	else
+		writel(0x40, MDP_CTL_0_BASE + CTL_TOP);
+
+	writel(BIT(24) | BIT(25), MDP_DISP_INTF_SEL);
+	writel(0x1111, MDP_VIDEO_INTF_UNDERFLOW_CTL);
+	writel(0x01, MDP_UPPER_NEW_ROI_PRIOR_RO_START);
+	writel(0x01, MDP_LOWER_NEW_ROI_PRIOR_TO_START);
+
+	return 0;
+}
+
 int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
                 struct fbcon_config *fb)
 {
@@ -727,6 +762,18 @@ int mdp_edp_on(struct msm_panel_info *pinfo)
 	mdss_mdp_set_flush(pinfo, &ctl0_reg_val, &ctl1_reg_val);
 	writel(ctl0_reg_val, MDP_CTL_0_BASE + CTL_FLUSH);
 	writel(0x01, MDP_INTF_0_TIMING_ENGINE_EN  + mdss_mdp_intf_offset());
+	return NO_ERROR;
+}
+
+int mdp_hdmi_on(struct msm_panel_info *pinfo)
+{
+	uint32_t ctl0_reg_val, ctl1_reg_val;
+
+	mdss_mdp_set_flush(pinfo, &ctl0_reg_val, &ctl1_reg_val);
+	writel(ctl0_reg_val, MDP_CTL_0_BASE + CTL_FLUSH);
+
+	writel(0x01, MDP_INTF_3_TIMING_ENGINE_EN + mdss_mdp_intf_offset());
+
 	return NO_ERROR;
 }
 
