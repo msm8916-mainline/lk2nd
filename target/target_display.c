@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -84,6 +84,20 @@ __WEAK int target_edp_panel_disable(void)
 }
 
 __WEAK int target_edp_bl_ctrl(int enable)
+{
+	return 0;
+}
+
+__WEAK int target_hdmi_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
+{
+	return 0;
+}
+
+__WEAK int target_hdmi_regulator_ctrl(bool enable)
+{
+	return 0;
+}
+__WEAK int mdss_hdmi_init(void)
 {
 	return 0;
 }

@@ -289,6 +289,77 @@ int target_display_pre_on()
 	return NO_ERROR;
 }
 
+int target_hdmi_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
+{
+	uint32_t ret;
+
+	dprintf(SPEW, "%s: target_panel_clock\n", __func__);
+
+	if (enable) {
+		mdp_gdsc_ctrl(enable);
+		mmss_bus_clock_enable();
+		mdp_clock_enable();
+		ret = restore_secure_cfg(SECURE_DEVICE_MDSS);
+		if (ret) {
+			dprintf(CRITICAL,
+				"%s: Failed to restore MDP security configs",
+				__func__);
+			mdp_clock_disable();
+			mmss_bus_clock_disable();
+			mdp_gdsc_ctrl(0);
+			return ret;
+		}
+
+		hdmi_phy_reset();
+		hdmi_pll_config();
+		hdmi_vco_enable();
+		hdmi_clk_enable();
+	} else if(!target_cont_splash_screen()) {
+		/* Disable clocks if continuous splash off */
+		hdmi_clk_disable();
+		hdmi_vco_disable();
+		mdp_clock_disable();
+		mmss_bus_clock_disable();
+		mdp_gdsc_ctrl(enable);
+	}
+
+	return NO_ERROR;
+}
+
+static void target_hdmi_mvs_enable(bool enable)
+{
+	struct pm8x41_mvs mvs;
+	mvs.base = PM8x41_MVS1_BASE;
+
+	if (enable)
+		pm8x41_enable_mvs(&mvs, MVS_ENABLE);
+	else
+		pm8x41_enable_mvs(&mvs, MVS_DISABLE);
+}
+
+static void target_hdmi_vreg_enable(bool enable)
+{
+	struct pm8x41_mpp mpp;
+	mpp.base = PM8x41_MMP3_BASE;
+
+	if (enable) {
+		mpp.mode = MPP_HIGH;
+		mpp.vin = MPP_VIN2;
+		pm8x41_config_output_mpp(&mpp);
+		pm8x41_enable_mpp(&mpp, MPP_ENABLE);
+	} else {
+		pm8x41_enable_mpp(&mpp, MPP_DISABLE);
+	}
+}
+
+int target_hdmi_regulator_ctrl(bool enable)
+{
+	target_hdmi_mvs_enable(enable);
+	target_hdmi_vreg_enable(enable);
+
+	return 0;
+}
+
 void target_edp_panel_init(struct msm_panel_info *pinfo)
 {
 	edp_panel_init(pinfo);
