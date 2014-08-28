@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2011,2014 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -27,6 +27,8 @@
 #ifndef __IMAGE_VERIFY_H
 #define __IMAGE_VERIFY_H
 
+#include <x509.h>
+
 #define SHA1_SIZE      16
 #define SHA256_SIZE    32
 /* For keys of length 2048 bits */
@@ -37,4 +39,12 @@ static int image_decrypt_signature(unsigned char *signature_ptr,
 int image_verify(unsigned char *image_ptr,
 		 unsigned char *signature_ptr,
 		 unsigned int image_size, unsigned hash_type);
+
+/* Decrypt signature with RSA public key */
+int image_decrypt_signature_rsa(unsigned char *signature_ptr,
+		unsigned char *plain_text, RSA *rsa_key);
+
+/* Find hash of image */
+void image_find_digest(unsigned char *image_ptr, unsigned int image_size,
+		unsigned hash_type, unsigned char *digest);
 #endif

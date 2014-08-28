@@ -33,6 +33,27 @@
 /*
  * Returns -1 if decryption failed otherwise size of plain_text in bytes
  */
+int image_decrypt_signature_rsa(unsigned char *signature_ptr,
+		unsigned char *plain_text, RSA *rsa_key)
+{
+	int ret = -1;
+
+	if (rsa_key == NULL) {
+		dprintf(CRITICAL, "ERROR: Boot Invalid, RSA_KEY is NULL!\n");
+		return ret;
+	}
+
+	ret = RSA_public_decrypt(SIGNATURE_SIZE, signature_ptr, plain_text,
+				 rsa_key, RSA_PKCS1_PADDING);
+	dprintf(SPEW, "DEBUG openssl: Return of RSA_public_decrypt = %d\n",
+		ret);
+
+	return ret;
+}
+
+/*
+ * Returns -1 if decryption failed otherwise size of plain_text in bytes
+ */
 static int
 image_decrypt_signature(unsigned char *signature_ptr, unsigned char *plain_text)
 {
@@ -66,8 +87,7 @@ image_decrypt_signature(unsigned char *signature_ptr, unsigned char *plain_text)
 		goto cleanup;
 	}
 
-	ret = RSA_public_decrypt(SIGNATURE_SIZE, signature_ptr, plain_text,
-				 rsa_key, RSA_PKCS1_PADDING);
+	ret = image_decrypt_signature_rsa(signature_ptr, plain_text, rsa_key);
 	dprintf(SPEW, "DEBUG openssl: Return of RSA_public_decrypt = %d\n",
 		ret);
 
@@ -79,6 +99,23 @@ image_decrypt_signature(unsigned char *signature_ptr, unsigned char *plain_text)
 	if (pub_key != NULL)
 		EVP_PKEY_free(pub_key);
 	return ret;
+}
+
+/* Calculates digest of an image and save it in digest buffer */
+void image_find_digest(unsigned char *image_ptr, unsigned int image_size,
+		unsigned hash_type, unsigned char *digest)
+{
+	/*
+	 * Calculate hash of image and save calculated hash on TZ.
+	 */
+	hash_find(image_ptr, image_size, (unsigned char *)digest, hash_type);
+#ifdef TZ_SAVE_KERNEL_HASH
+	if (hash_type == CRYPTO_AUTH_ALG_SHA256) {
+		save_kernel_hash_cmd(digest);
+		dprintf(INFO, "Image hash saved.\n");
+	} else
+		dprintf(INFO, "image_verify: hash is not SHA-256.\n");
+#endif
 }
 
 /*
@@ -109,14 +146,8 @@ image_verify(unsigned char *image_ptr,
 	 */
 	hash_size =
 	    (hash_type == CRYPTO_AUTH_ALG_SHA256) ? SHA256_SIZE : SHA1_SIZE;
-	hash_find(image_ptr, image_size, (unsigned char *)&digest, hash_type);
-#ifdef TZ_SAVE_KERNEL_HASH
-	if (hash_type == CRYPTO_AUTH_ALG_SHA256) {
-		save_kernel_hash_cmd(digest);
-		dprintf(INFO, "Image hash saved.\n");
-	} else
-		dprintf(INFO, "image_verify: hash is not SHA-256.\n");
-#endif
+	image_find_digest(image_ptr, image_size, hash_type,
+			(unsigned char *)&digest);
 
 	/*
 	 * Decrypt the pre-calculated expected image hash.

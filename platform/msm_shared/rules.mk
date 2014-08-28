@@ -34,6 +34,11 @@ OBJS += \
 	$(LOCAL_DIR)/mmc.o
 endif
 
+ifeq ($(ENABLE_VERIFIED_BOOT),1)
+OBJS += \
+	$(LOCAL_DIR)/boot_verifier.o
+endif
+
 ifeq ($(PLATFORM),msm8x60)
 	OBJS += $(LOCAL_DIR)/mipi_dsi.o \
 			$(LOCAL_DIR)/i2c_qup.o \
