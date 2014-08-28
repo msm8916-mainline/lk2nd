@@ -271,4 +271,20 @@
 #define VIDEO_MODE_CTRL             0x010
 #define HS_TIMER_CTRL               0x0BC
 
+/* HDMI reg addresses */
+#define HDMI_BASE               0xFD922100
+#define REG_HDMI(off)           (HDMI_BASE + (off))
+
+#define HDMI_USEC_REFTIMER      REG_HDMI(0x208)
+#define HDMI_CTRL               REG_HDMI(0x000)
+#define HDMI_HPD_INT_STATUS     REG_HDMI(0x250)
+#define HDMI_HPD_INT_CTRL       REG_HDMI(0x254)
+#define HDMI_HPD_CTRL           REG_HDMI(0x258)
+#define HDMI_PHY_CTRL           REG_HDMI(0x2D4)
+#define HDMI_TOTAL              REG_HDMI(0x2C0)
+#define HDMI_ACTIVE_HSYNC       REG_HDMI(0x2B4)
+#define HDMI_ACTIVE_VSYNC       REG_HDMI(0x2B8)
+#define HDMI_VSYNC_TOTAL_F2     REG_HDMI(0x2C4)
+#define HDMI_VSYNC_ACTIVE_F2    REG_HDMI(0x2BC)
+#define HDMI_FRAME_CTRL         REG_HDMI(0x2C8)
 #endif
