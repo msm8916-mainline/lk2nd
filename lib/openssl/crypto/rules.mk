@@ -102,6 +102,7 @@ OBJS += \
 	$(LOCAL_DIR)/asn1/x_pkey.o \
 	$(LOCAL_DIR)/asn1/x_pubkey.o \
 	$(LOCAL_DIR)/asn1/x_req.o \
+	$(LOCAL_DIR)/asn1/x_sig.o \
 	$(LOCAL_DIR)/asn1/x_spki.o \
 	$(LOCAL_DIR)/asn1/x_val.o \
 	$(LOCAL_DIR)/asn1/x_x509.o \
@@ -489,6 +490,5 @@ removed_source_files := uid.o o_time.o o_dir.o \
 Files_removed_error_during_link := \
 	$(LOCAL_DIR)/rsa/rsa_oaep.o \
 	$(LOCAL_DIR)/rsa/rsa_ssl.o \
-	$(LOCAL_DIR)/asn1/x_sig.o \
 	$(LOCAL_DIR)/bn/bn_rand.o \
 	$(LOCAL_DIR)/asn1/t_pkey.o
