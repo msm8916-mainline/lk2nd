@@ -30,13 +30,18 @@
 #define __SPMI_V2_H
 
 #define PMIC_ARB_CORE_REG_BASE               (SPMI_BASE + 0x00400000)
+#define PMIC_ARB_OBS_CORE_REG_BASE           (SPMI_BASE + 0x00C00000)
 #define PMIC_ARB_CHNLn_CONFIG(x)             (PMIC_ARB_CORE_REG_BASE + 0x00000004 + (x) * 0x8000)
+#define PMIC_ARB_OBS_CHNLn_CONFIG(x)         (PMIC_ARB_OBS_CORE_REG_BASE + 0x00000004 + (x) * 0x8000)
 #define PMIC_ARB_CHNLn_STATUS(x)             (PMIC_ARB_CORE_REG_BASE + 0x00000008 + (x) * 0x8000)
+#define PMIC_ARB_OBS_CHNLn_STATUS(x)         (PMIC_ARB_OBS_CORE_REG_BASE + 0x00000008 + (x) * 0x8000)
 #define PMIC_ARB_CHNLn_WDATA(x, n)           (PMIC_ARB_CORE_REG_BASE + 0x00000010 + (x) * 0x8000 + (n) * 4)
 #define PMIC_ARB_CHNLn_RDATA(x,n)            (PMIC_ARB_CORE_REG_BASE + 0x00000018 + (x) * 0x8000 + (n) * 4)
+#define PMIC_ARB_OBS_CHNLn_RDATA(x,n)        (PMIC_ARB_OBS_CORE_REG_BASE + 0x00000018 + (x) * 0x8000 + (n) * 4)
 
 #define PMIC_ARB_REG_CHLN(n)                 (PMIC_ARB_CORE + 0x00000800 + 0x4 * (n))
 #define PMIC_ARB_CHNLn_CMD0(x)               (PMIC_ARB_CORE_REG_BASE + (x) * 0x8000)
+#define PMIC_ARB_OBS_CHNLn_CMD0(x)           (PMIC_ARB_OBS_CORE_REG_BASE + (x) * 0x8000)
 
 /* PIC Registers */
 #define SPMI_PIC_OWNERm_ACC_STATUSn(m, n)    (SPMI_PIC_BASE + 0x00100000 + 0x1000 * (m) + 0x4 * (n))

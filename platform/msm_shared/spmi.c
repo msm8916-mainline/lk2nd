@@ -207,8 +207,11 @@ static void read_rdata_into_array(uint8_t *array,
 	uint8_t shift_value[] = {0, 8, 16, 24};
 	int i;
 
-	val = readl(PMIC_ARB_CHNLn_RDATA(pmic_arb_chnl_num, reg_num));
-
+#if SPMI_CORE_V2
+		val = readl(PMIC_ARB_OBS_CHNLn_RDATA(pmic_arb_chnl_num, reg_num));
+#else
+		val = readl(PMIC_ARB_CHNLn_RDATA(pmic_arb_chnl_num, reg_num));
+#endif
 	/* Read at most 4 bytes */
 	for (i = 0; (i < 4) && (*bytes_read < array_size); i++)
 	{
@@ -250,8 +253,13 @@ unsigned int pmic_arb_read_cmd(struct pmic_arb_cmd *cmd,
 		pmic_arb_chnl_num = chnl_tbl[CHNL_IDX(cmd->slave_id, cmd->address)];
 	}
 
+
 	/* Disable IRQ mode for the current channel*/
-	writel(0x0, PMIC_ARB_CHNLn_CONFIG(pmic_arb_chnl_num));
+#if SPMI_CORE_V2
+		writel(0x0, PMIC_ARB_OBS_CHNLn_CONFIG(pmic_arb_chnl_num));
+#else
+		writel(0x0, PMIC_ARB_CHNLn_CONFIG(pmic_arb_chnl_num));
+#endif
 
 	/* Fill in the byte count for the command
 	 * Note: Byte count is one less than the number of bytes transferred.
@@ -269,10 +277,18 @@ unsigned int pmic_arb_read_cmd(struct pmic_arb_cmd *cmd,
 	val |= ((uint32_t)(cmd->offset) << PMIC_ARB_CMD_ADDR_OFFSET_SHIFT);
 	val |= ((uint32_t)(cmd->byte_cnt));
 
-	writel(val, PMIC_ARB_CHNLn_CMD0(pmic_arb_chnl_num));
+#if SPMI_CORE_V2
+		writel(val, PMIC_ARB_OBS_CHNLn_CMD0(pmic_arb_chnl_num));
+#else
+		writel(val, PMIC_ARB_CHNLn_CMD0(pmic_arb_chnl_num));
+#endif
 
 	/* Wait till CMD DONE status */
-	while (!(val = readl(PMIC_ARB_CHNLn_STATUS(pmic_arb_chnl_num))));
+#if SPMI_CORE_V2
+		while (!(val = readl(PMIC_ARB_OBS_CHNLn_STATUS(pmic_arb_chnl_num))));
+#else
+		while (!(val = readl(PMIC_ARB_CHNLn_STATUS(pmic_arb_chnl_num))));
+#endif
 
 	/* Check for errors */
 	error = val ^ (1 << PMIC_ARB_CMD_DONE);
