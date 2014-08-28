@@ -29,6 +29,8 @@
 #ifndef __PLATFORM_MSM8909_GPIO_H
 #define __PLATFORM_MSM8909_GPIO_H
 
+#include <bits.h>
+#include <gpio.h>
 
 /* GPIO TLMM: Direction */
 #define GPIO_INPUT      0
@@ -54,6 +56,9 @@
 #define GPIO_ENABLE     0
 #define GPIO_DISABLE    1
 
+/* GPIO_IN_OUT register shifts. */
+#define GPIO_IN         BIT(0)
+#define GPIO_OUT        BIT(1)
 
 void gpio_config_uart_dm(uint8_t id);
 #endif

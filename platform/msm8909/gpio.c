@@ -62,3 +62,9 @@ void gpio_config_uart_dm(uint8_t id)
 	gpio_tlmm_config(20, 2, GPIO_OUTPUT, GPIO_NO_PULL,
 				GPIO_8MA, GPIO_DISABLE);
 }
+
+uint32_t gpio_status(uint32_t gpio)
+{
+	return readl(GPIO_IN_OUT_ADDR(gpio)) & GPIO_IN;
+}
+
