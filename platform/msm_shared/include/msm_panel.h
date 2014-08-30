@@ -199,6 +199,7 @@ struct msm_panel_info {
 	/*  Select pipe type for handoff */
 	uint32_t pipe_type;
 	char     lowpowerstop;
+	char     lcd_reg_en;
 
 	struct lcd_panel_info lcd;
 	struct lcdc_panel_info lcdc;

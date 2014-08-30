@@ -41,7 +41,7 @@ static struct gpio_pin reset_gpio = {
   "msmgpio", 78, 3, 1, 0, 1
 };
 
-static struct gpio_pin enable_gpio = {	/* lcd_reg_en */
+static struct gpio_pin lcd_reg_en = {	/* boost regulator */
   "pm8994_gpios", 14, 3, 1, 0, 1
 };
 
