@@ -90,12 +90,13 @@ static uint32_t mdss_dsi_panel_clock(uint8_t enable,
 	return ret;
 }
 
-static int mdss_dsi_panel_power(uint8_t enable)
+static int mdss_dsi_panel_power(uint8_t enable,
+				struct msm_panel_info *pinfo)
 {
 	int ret = NO_ERROR;
 
 	if (enable) {
-		ret = target_ldo_ctrl(enable);
+		ret = target_ldo_ctrl(enable, pinfo);
 		if (ret) {
 			dprintf(CRITICAL, "LDO control enable failed\n");
 			return ret;
@@ -118,7 +119,7 @@ static int mdss_dsi_panel_power(uint8_t enable)
 			return ret;
 		}
 
-		ret = target_ldo_ctrl(enable);
+		ret = target_ldo_ctrl(enable, pinfo);
 		if (ret) {
 			dprintf(CRITICAL, "ldo control disable failed\n");
 			return ret;
@@ -297,12 +298,13 @@ static uint32_t mdss_edp_panel_disable(void)
 	return target_edp_panel_disable();
 }
 
-static int mdss_edp_panel_power(uint8_t enable)
+static int mdss_edp_panel_power(uint8_t enable,
+				struct msm_panel_info *pinfo)
 {
 	int ret = NO_ERROR;
 
 	if (enable) {
-		ret = target_ldo_ctrl(enable);
+		ret = target_ldo_ctrl(enable, pinfo);
 		if (ret) {
 			dprintf(CRITICAL, "LDO control enable failed\n");
 			return ret;
@@ -322,7 +324,7 @@ static int mdss_edp_panel_power(uint8_t enable)
 			return ret;
 		}
 
-		ret = target_ldo_ctrl(enable);
+		ret = target_ldo_ctrl(enable, pinfo);
 		if (ret) {
 			dprintf(CRITICAL, "%s: ldo control disable failed\n", __func__);
 			return ret;

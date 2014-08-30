@@ -224,7 +224,7 @@ struct msm_fb_panel_data {
 	int rotate;
 
 	/* function entry chain */
-	int (*power_func) (int enable);
+	int (*power_func) (int enable, struct msm_panel_info *);
 	int (*clk_func) (int enable);
 	int (*bl_func) (int enable);
 	int (*pll_clk_func) (int enable, struct msm_panel_info *);

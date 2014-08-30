@@ -62,6 +62,10 @@ __WEAK int target_display_post_off()
 {
 	return 0;
 }
+__WEAK int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
+{
+    return 0;
+}
 
 __WEAK void target_edp_panel_init(struct msm_panel_info *pinfo)
 {

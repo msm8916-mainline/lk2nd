@@ -250,7 +250,7 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 	return NO_ERROR;
 }
 
-int target_ldo_ctrl(uint8_t enable)
+int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 {
 	if (enable) {
 		regulator_enable();	/* L2, L12, L14, and L28 */

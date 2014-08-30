@@ -356,7 +356,7 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 	return ret;
 }
 
-int target_ldo_ctrl(uint8_t enable)
+int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 {
 	uint32_t ret = NO_ERROR;
 	uint32_t ldocounter = 0;
