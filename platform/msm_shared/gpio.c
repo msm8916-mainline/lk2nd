@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -36,13 +36,20 @@ static void tlmm_set_sdc_pins(struct tlmm_cfgs *cfg)
 {
 	uint32_t reg_val;
 
-	reg_val = readl(SDC1_HDRV_PULL_CTL);
+	/* To support backward compatibility for this API
+	 * If the reg is not passed then use SDC1 TLMM as
+	 * the default value.
+	 */
+	if (!cfg->reg)
+		cfg->reg = SDC1_HDRV_PULL_CTL;
+
+	reg_val = readl(cfg->reg);
 
 	reg_val &= ~(cfg->mask << cfg->off);
 
 	reg_val |= (cfg->val << cfg->off);
 
-	writel(reg_val, SDC1_HDRV_PULL_CTL);
+	writel(reg_val, cfg->reg);
 }
 
 void tlmm_set_hdrive_ctrl(struct tlmm_cfgs *hdrv_cfgs, uint8_t sz)

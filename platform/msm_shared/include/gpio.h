@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -66,6 +66,7 @@ struct tlmm_cfgs {
 	uint32_t off;  /* Bit offeset in the register */
 	uint8_t val;   /* Current value */
 	uint8_t mask;  /* Mask for the clk/dat/cmd control */
+	uint32_t reg;  /* TLMM ping register */
 };
 
 /* APIs: exposed for other drivers */
