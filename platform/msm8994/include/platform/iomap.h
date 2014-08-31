@@ -229,6 +229,7 @@
 
 /* MDSS */
 #define MSM_MMSS_CLK_CTL_BASE       0xFD8C0000
+#define MMSS_MISC_AHB_CBCR          (MSM_MMSS_CLK_CTL_BASE + 0x502C)
 #define MIPI_DSI_BASE               (0xFD998000)
 #define MIPI_DSI0_BASE              (MIPI_DSI_BASE)
 #define MIPI_DSI1_BASE              (0xFD9A0000)
