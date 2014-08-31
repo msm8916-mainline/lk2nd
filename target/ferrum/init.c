@@ -170,3 +170,36 @@ unsigned board_machtype(void)
 {
 }
 
+/* Detect the target type */
+void target_detect(struct board_data *board)
+{
+	/*
+	* already fill the board->target on board.c
+	*/
+}
+
+void target_baseband_detect(struct board_data *board)
+{
+	uint32_t platform;
+
+	platform = board->platform;
+	switch(platform)
+	{
+	case MSM8909:
+	case MSM8209:
+	case MSM8208:
+		board->baseband = BASEBAND_MSM;
+		break;
+
+	case MDM9209:
+	case MDM9309:
+	case MDM9609:
+		board->baseband = BASEBAND_MDM;
+		break;
+
+	default:
+		dprintf(CRITICAL, "Platform type: %u is not supported\n", platform);
+		ASSERT(0);
+	};
+}
+
