@@ -1335,7 +1335,7 @@ static uint32_t mmc_sd_get_card_ssr(struct sdhci_host *host, struct mmc_card *ca
 	cmd.cmd_index = ACMD13_SEND_SD_STATUS;
 	cmd.argument = 0x0;
 	cmd.cmd_type = SDHCI_CMD_TYPE_NORMAL;
-	cmd.resp_type = SDHCI_CMD_RESP_R2;
+	cmd.resp_type = SDHCI_CMD_RESP_R1;
 	cmd.trans_mode = SDHCI_MMC_READ;
 	cmd.data_present = 0x1;
 	cmd.data.data_ptr = raw_sd_status;

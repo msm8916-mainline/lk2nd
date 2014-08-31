@@ -438,10 +438,11 @@ static uint8_t sdhci_cmd_complete(struct sdhci_host *host, struct mmc_command *c
 
 	do {
 		int_status = REG_READ16(host, SDHCI_NRML_INT_STS_REG);
-		int_status &= SDHCI_INT_STS_CMD_COMPLETE;
 
-		if (int_status == SDHCI_INT_STS_CMD_COMPLETE)
+		if (int_status  & SDHCI_INT_STS_CMD_COMPLETE)
 			break;
+		else if (int_status & SDHCI_ERR_INT_STAT_MASK && !host->tuning_in_progress)
+			goto err;
 
 		/*
 		 * If Tuning is in progress ignore cmd crc, cmd timeout & cmd end bit errors
@@ -497,13 +498,14 @@ static uint8_t sdhci_cmd_complete(struct sdhci_host *host, struct mmc_command *c
 	if (cmd->data_present || cmd->resp_type == SDHCI_CMD_RESP_R1B) {
 		do {
 			int_status = REG_READ16(host, SDHCI_NRML_INT_STS_REG);
-			int_status &= SDHCI_INT_STS_TRANS_COMPLETE;
 
 			if (int_status & SDHCI_INT_STS_TRANS_COMPLETE)
 			{
 				trans_complete = 1;
 				break;
 			}
+			else if (int_status & SDHCI_ERR_INT_STAT_MASK && !host->tuning_in_progress)
+				goto err;
 
 			/*
 			 * If we are in tuning then we need to wait until Data timeout , Data end
