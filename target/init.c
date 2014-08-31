@@ -192,3 +192,8 @@ __WEAK uint32_t target_get_hlos_subtype(void)
 {
 	return 0;
 }
+
+/* Initialize crypto parameters */
+__WEAK void target_crypto_init_params()
+{
+}

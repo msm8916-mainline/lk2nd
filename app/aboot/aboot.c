@@ -79,6 +79,7 @@ extern int get_target_boot_params(const char *cmdline, const char *part,
 
 void write_device_info_mmc(device_info *dev);
 void write_device_info_flash(device_info *dev);
+static int aboot_save_boot_hash_mmc(uint32_t image_addr, uint32_t image_size);
 
 #define EXPAND(NAME) #NAME
 #define TARGET(NAME) EXPAND(NAME)
@@ -1037,60 +1038,57 @@ int boot_linux_from_mmc(void)
 	{
 		second_actual  = ROUND_TO_PAGE(hdr->second_size,  page_mask);
 
+		image_addr = (unsigned char *)target_get_scratch_address();
+#if DEVICE_TREE
+		dt_actual = ROUND_TO_PAGE(hdr->dt_size, page_mask);
+		imagesize_actual = (page_size + kernel_actual + ramdisk_actual + dt_actual);
+
+		if (check_aboot_addr_range_overlap(hdr->tags_addr, dt_actual))
+		{
+			dprintf(CRITICAL, "Device tree addresses overlap with aboot addresses.\n");
+			return -1;
+		}
+#else
+		imagesize_actual = (page_size + kernel_actual + ramdisk_actual);
+
+#endif
+		if (check_aboot_addr_range_overlap(image_addr, imagesize_actual))
+		{
+			dprintf(CRITICAL, "Boot image buffer address overlaps with aboot addresses.\n");
+			return -1;
+		}
+
 		dprintf(INFO, "Loading boot image (%d): start\n",
-				kernel_actual + ramdisk_actual);
+				imagesize_actual);
 		bs_set_timestamp(BS_KERNEL_LOAD_START);
 
-		offset = page_size;
+		offset = 0;
 
-		/* Load kernel */
-		if (mmc_read(ptn + offset, (void *)hdr->kernel_addr, kernel_actual)) {
-			dprintf(CRITICAL, "ERROR: Cannot read kernel image\n");
+		/* Load the entire boot image */
+		if (mmc_read(ptn + offset, (void *)image_addr, imagesize_actual)) {
+			dprintf(CRITICAL, "ERROR: Cannot read boot image\n");
 					return -1;
 		}
-		offset += kernel_actual;
-
-		/* Load ramdisk */
-		if(ramdisk_actual != 0)
-		{
-			if (mmc_read(ptn + offset, (void *)hdr->ramdisk_addr, ramdisk_actual)) {
-				dprintf(CRITICAL, "ERROR: Cannot read ramdisk image\n");
-				return -1;
-			}
-		}
-		offset += ramdisk_actual;
 
 		dprintf(INFO, "Loading boot image (%d): done\n",
-				kernel_actual + ramdisk_actual);
+				imagesize_actual);
 		bs_set_timestamp(BS_KERNEL_LOAD_DONE);
 
-		if(hdr->second_size != 0) {
-			offset += second_actual;
-			/* Second image loading not implemented. */
-			ASSERT(0);
-		}
+		#ifdef TZ_SAVE_KERNEL_HASH
+		aboot_save_boot_hash_mmc(image_addr, imagesize_actual);
+		#endif /* TZ_SAVE_KERNEL_HASH */
+
+		/* Move kernel, ramdisk and device tree to correct address */
+		memmove((void*) hdr->kernel_addr, (char *)(image_addr + page_size), hdr->kernel_size);
+		memmove((void*) hdr->ramdisk_addr, (char *)(image_addr + page_size + kernel_actual), hdr->ramdisk_size);
 
 		#if DEVICE_TREE
-		if(hdr->dt_size != 0) {
-			/* Read the first page of device tree table into buffer */
-			if(mmc_read(ptn + offset,(unsigned int *) dt_buf, page_size)) {
-				dprintf(CRITICAL, "ERROR: Cannot read the Device Tree Table\n");
-				return -1;
-			}
-			table = (struct dt_table*) dt_buf;
+		if(hdr->dt_size) {
+			dt_table_offset = ((uint32_t)image_addr + page_size + kernel_actual + ramdisk_actual + second_actual);
+			table = (struct dt_table*) dt_table_offset;
 
 			if (dev_tree_validate(table, hdr->page_size, &dt_hdr_size) != 0) {
 				dprintf(CRITICAL, "ERROR: Cannot validate Device Tree Table \n");
-				return -1;
-			}
-
-			table = (struct dt_table*) memalign(CACHE_LINE, dt_hdr_size);
-			if (!table)
-				return -1;
-
-			/* Read the entire device tree table into buffer */
-			if(mmc_read(ptn + offset,(unsigned int *) table, dt_hdr_size)) {
-				dprintf(CRITICAL, "ERROR: Cannot read the Device Tree Table\n");
 				return -1;
 			}
 
@@ -1100,26 +1098,15 @@ int boot_linux_from_mmc(void)
 				return -1;
 			}
 
-			/* Validate and Read device device tree in the "tags_add */
+			/* Validate and Read device device tree in the tags_addr */
 			if (check_aboot_addr_range_overlap(hdr->tags_addr, dt_entry.size))
 			{
 				dprintf(CRITICAL, "Device tree addresses overlap with aboot addresses.\n");
 				return -1;
 			}
 
-			if(mmc_read(ptn + offset + dt_entry.offset,
-						 (void *)hdr->tags_addr, dt_entry.size)) {
-				dprintf(CRITICAL, "ERROR: Cannot read device tree\n");
-				return -1;
-			}
-			#ifdef TZ_SAVE_KERNEL_HASH
-			aboot_save_boot_hash_mmc(hdr->kernel_addr, kernel_actual,
-				       hdr->ramdisk_addr, ramdisk_actual,
-				       ptn, offset, hdr->dt_size);
-			#endif /* TZ_SAVE_KERNEL_HASH */
-
+			memmove((void *)hdr->tags_addr, (char *)dt_table_offset + dt_entry.offset, dt_entry.size);
 		} else {
-
 			/* Validate the tags_addr */
 			if (check_aboot_addr_range_overlap(hdr->tags_addr, kernel_actual))
 			{
@@ -2737,55 +2724,25 @@ uint32_t get_page_size()
 /*
  * Calculated and save hash (SHA256) for non-signed boot image.
  *
- * Hash the same data that is checked on the signed boot image.
- * Kernel and Ramdisk are already read to memory buffers.
- * Need to read the entire device-tree from mmc
- * since non-signed image only read the DT tags of the relevant platform.
- *
- * @param kernel_addr - kernel bufer
- * @param kernel_actual - kernel size in bytes
- * @param ramdisk_addr - ramdisk buffer
- * @param ramdisk_actual - ramdisk size
- * @param ptn - partition
- * @param dt_offset - device tree offset on mmc partition
- * @param dt_size
+ * @param image_addr - Boot image address
+ * @param image_size - Size of the boot image
  *
  * @return int - 0 on success, negative value on failure.
  */
-int aboot_save_boot_hash_mmc(void *kernel_addr, unsigned kernel_actual,
-		   void *ramdisk_addr, unsigned ramdisk_actual,
-		   unsigned long long ptn,
-		   unsigned dt_offset, unsigned dt_size)
+static int aboot_save_boot_hash_mmc(uint32_t image_addr, uint32_t image_size)
 {
-	SHA256_CTX sha256_ctx;
-	char digest[32]={0};
-	char *buf = (char *)target_get_scratch_address();
-	unsigned dt_actual = ROUND_TO_PAGE(dt_size, page_mask);
-	unsigned imagesize_actual = page_size + kernel_actual + ramdisk_actual + dt_actual;
+	unsigned int digest[8];
+#if IMAGE_VERIF_ALGO_SHA1
+	uint32_t auth_algo = CRYPTO_AUTH_ALG_SHA1;
+#else
+	uint32_t auth_algo = CRYPTO_AUTH_ALG_SHA256;
+#endif
 
-	SHA256_Init(&sha256_ctx);
-
-	/* Read Boot Header */
-	if (mmc_read(ptn, buf, page_size))
-	{
-		dprintf(CRITICAL, "ERROR: mmc_read() fail.\n");
-		return -1;
-	}
-	/* Read entire Device Tree */
-	if (mmc_read(ptn + dt_offset, buf+page_size, dt_actual))
-	{
-		dprintf(CRITICAL, "ERROR: mmc_read() fail.\n");
-		return -1;
-	}
-	SHA256_Update(&sha256_ctx, buf, page_size); // Boot Header
-	SHA256_Update(&sha256_ctx, kernel_addr, kernel_actual);
-	SHA256_Update(&sha256_ctx, ramdisk_addr, ramdisk_actual);
-	SHA256_Update(&sha256_ctx, buf+page_size, dt_actual); // Device Tree
-
-	SHA256_Final(digest, &sha256_ctx);
+	target_crypto_init_params();
+	hash_find(image_addr, image_size, (unsigned char *)&digest, auth_algo);
 
 	save_kernel_hash_cmd(digest);
-	dprintf(INFO, "aboot_save_boot_hash_mmc: imagesize_actual size %d bytes.\n", (int) imagesize_actual);
+	dprintf(INFO, "aboot_save_boot_hash_mmc: imagesize_actual size %d bytes.\n", (int) image_size);
 
 	return 0;
 }
