@@ -54,6 +54,7 @@
 
 #define DISPLAY_MAX_PANEL_DETECTION 2
 #define OTM8019A_FWVGA_VIDEO_PANEL_ON_DELAY 50
+#define NT35590_720P_CMD_PANEL_ON_DELAY 40
 
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
@@ -101,12 +102,15 @@ int oem_panel_rotation()
 int oem_panel_on()
 {
 	/*
-	 *OEM can keep there panel specific on instructions in this
+	 *OEM can keep their panel specific on instructions in this
 	 *function
 	 */
 	if (panel_id == OTM8019A_FWVGA_VIDEO_PANEL) {
 		/* needs extra delay to avoid unexpected artifacts */
 		mdelay(OTM8019A_FWVGA_VIDEO_PANEL_ON_DELAY);
+	} else if (panel_id == NT35590_720P_CMD_PANEL) {
+		/* needs extra delay to avoid snow screen artifacts */
+		mdelay(NT35590_720P_CMD_PANEL_ON_DELAY);
 	}
 
 	return NO_ERROR;
