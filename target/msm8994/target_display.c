@@ -108,7 +108,7 @@ static uint32_t dsi_pll_20nm_enable_seq(uint32_t pll_base)
 
 static int msm8994_wled_backlight_ctrl(uint8_t enable)
 {
-	uint8_t slave_id = 3;
+	uint8_t slave_id = 3;	/* pmi */
 
 	if (enable) {
 		pm8x41_wled_config_slave_id(slave_id);
@@ -120,8 +120,67 @@ static int msm8994_wled_backlight_ctrl(uint8_t enable)
 
 static int msm8994_pwm_backlight_ctrl(uint8_t enable)
 {
-	dprintf(INFO, "%s: NOt implemented\n", __func__);
-	return NO_ERROR;
+	uint8_t slave_id = 3; /* lpg at pmi */
+
+        if (enable) {
+		/* mpp-1 had been configured already */
+                /* lpg channel 4 */
+
+		 /* LPG_ENABLE_CONTROL */
+                pm8x41_lpg_write_sid(slave_id, PWM_BL_LPG_CHAN_ID, 0x46, 0x0);
+		mdelay(100);
+
+		 /* LPG_VALUE_LSB, duty cycle = 0x80/0x200 = 1/4 */
+                pm8x41_lpg_write_sid(slave_id, PWM_BL_LPG_CHAN_ID, 0x44, 0x80);
+		/* LPG_VALUE_MSB */
+                pm8x41_lpg_write_sid(slave_id, PWM_BL_LPG_CHAN_ID, 0x45, 0x00);
+		/* LPG_PWM_SYNC */
+                pm8x41_lpg_write_sid(slave_id, PWM_BL_LPG_CHAN_ID, 0x47, 0x01);
+
+		 /* LPG_PWM_SIZE_CLK, */
+                pm8x41_lpg_write_sid(slave_id, PWM_BL_LPG_CHAN_ID, 0x41, 0x13);
+		 /* LPG_PWM_FREQ_PREDIV */
+                pm8x41_lpg_write_sid(slave_id, PWM_BL_LPG_CHAN_ID, 0x42, 0x02);
+		 /* LPG_PWM_TYPE_CONFIG */
+                pm8x41_lpg_write_sid(slave_id, PWM_BL_LPG_CHAN_ID, 0x43, 0x20);
+		 /* LPG_ENABLE_CONTROL */
+                pm8x41_lpg_write_sid(slave_id, PWM_BL_LPG_CHAN_ID, 0x46, 0x04);
+
+		 /* SEC_ACCESS */
+                pm8x41_lpg_write_sid(slave_id, PWM_BL_LPG_CHAN_ID, 0xD0, 0xA5);
+		 /* DTEST4, OUT_HI */
+                pm8x41_lpg_write_sid(slave_id, PWM_BL_LPG_CHAN_ID, 0xE5, 0x01);
+		 /* LPG_ENABLE_CONTROL */
+                pm8x41_lpg_write_sid(slave_id, PWM_BL_LPG_CHAN_ID, 0x46, 0xA4);
+        } else {
+		 /* LPG_ENABLE_CONTROL */
+                pm8x41_lpg_write_sid(slave_id, PWM_BL_LPG_CHAN_ID, 0x46, 0x0);
+        }
+
+        return NO_ERROR;
+}
+
+void lcd_bklt_reg_enable(void)
+{
+	uint8_t slave_id = 2;	/* gpio at pmi */
+
+	struct pm8x41_gpio gpio = {
+                .direction = PM_GPIO_DIR_OUT,
+                .function = PM_GPIO_FUNC_HIGH,
+                .vin_sel = 2,   /* VIN_2 */
+                .output_buffer = PM_GPIO_OUT_CMOS,
+                .out_strength = PM_GPIO_OUT_DRIVE_LOW,
+        };
+
+        pm8x41_gpio_config_sid(slave_id, bklt_gpio.pin_id, &gpio);
+	pm8x41_gpio_set_sid(slave_id, bklt_gpio.pin_id, 1);
+}
+
+void lcd_bklt_reg_disable(void)
+{
+	uint8_t slave_id = 2;	/* gpio at pmi */
+
+	pm8x41_gpio_set_sid(slave_id, bklt_gpio.pin_id, 0);
 }
 
 void lcd_reg_enable(void)
@@ -181,6 +240,19 @@ int target_backlight_ctrl(struct backlight *bl, uint8_t enable)
 		ret = msm8994_wled_backlight_ctrl(enable);
 		break;
 	case BL_PWM:
+		/* Enable MPP1 */
+		pmi8994_config_mpp_slave_id(PMIC_MPP_SLAVE_ID);
+	        mpp.base = PM8x41_MMP1_BASE;
+		mpp.vin = MPP_VIN2;
+		mpp.mode = MPP_DTEST4;
+		if (enable) {
+			pm8x41_config_output_mpp(&mpp);
+			pm8x41_enable_mpp(&mpp, MPP_ENABLE);
+		} else {
+			pm8x41_enable_mpp(&mpp, MPP_DISABLE);
+		}
+		/* Need delay before power on regulators */
+		mdelay(20);
 		ret = msm8994_pwm_backlight_ctrl(enable);
 		break;
 	default:
@@ -248,7 +320,9 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 				gpio_set(reset_gpio.pin_id, GPIO_STATE_HIGH);
 			mdelay(resetseq->sleep[i]);
 		}
+		lcd_bklt_reg_enable();
 	} else {
+		lcd_bklt_reg_disable();
 		gpio_set(reset_gpio.pin_id, 0);
 	}
 
