@@ -552,7 +552,7 @@ static int platform_dt_absolute_match(struct dt_entry *cur_dt_entry, struct dt_e
 	*/
 	cur_dt_msm_id = (cur_dt_entry->platform_id & 0x0000ffff);
 	cur_dt_hw_platform = (cur_dt_entry->variant_id & 0x000000ff);
-	cur_dt_hw_subtype = (cur_dt_entry->board_hw_subtype);
+	cur_dt_hw_subtype = (cur_dt_entry->board_hw_subtype & 0xff);
 
 
 	/* Determine the bits 23:8 to check the DT with the DDR Size */
