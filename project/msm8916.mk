@@ -6,7 +6,12 @@ TARGET := msm8916
 
 MODULES += app/aboot
 
+ifeq ($(TARGET_BUILD_VARIANT),user)
+DEBUG := 0
+else
 DEBUG := 1
+endif
+
 EMMC_BOOT := 1
 
 #DEFINES += WITH_DEBUG_DCC=1
