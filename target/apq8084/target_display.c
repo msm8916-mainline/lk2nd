@@ -360,6 +360,50 @@ int target_hdmi_regulator_ctrl(bool enable)
 	return 0;
 }
 
+int target_hdmi_gpio_ctrl(bool enable)
+{
+	gpio_tlmm_config(hdmi_cec_gpio.pin_id, 1,	/* gpio 31, CEC */
+		hdmi_cec_gpio.pin_direction, hdmi_cec_gpio.pin_pull,
+		hdmi_cec_gpio.pin_strength, hdmi_cec_gpio.pin_state);
+
+	gpio_tlmm_config(hdmi_ddc_clk_gpio.pin_id, 1,	/* gpio 32, DDC CLK */
+		hdmi_ddc_clk_gpio.pin_direction, hdmi_ddc_clk_gpio.pin_pull,
+		hdmi_ddc_clk_gpio.pin_strength, hdmi_ddc_clk_gpio.pin_state);
+
+
+	gpio_tlmm_config(hdmi_ddc_data_gpio.pin_id, 1,	/* gpio 33, DDC DATA */
+		hdmi_ddc_data_gpio.pin_direction, hdmi_ddc_data_gpio.pin_pull,
+		hdmi_ddc_data_gpio.pin_strength, hdmi_ddc_data_gpio.pin_state);
+
+	gpio_tlmm_config(hdmi_hpd_gpio.pin_id, 1,	/* gpio 34, HPD */
+		hdmi_hpd_gpio.pin_direction, hdmi_hpd_gpio.pin_pull,
+		hdmi_hpd_gpio.pin_strength, hdmi_hpd_gpio.pin_state);
+
+	gpio_set(hdmi_cec_gpio.pin_id,      hdmi_cec_gpio.pin_direction);
+	gpio_set(hdmi_ddc_clk_gpio.pin_id,  hdmi_ddc_clk_gpio.pin_direction);
+	gpio_set(hdmi_ddc_data_gpio.pin_id, hdmi_ddc_data_gpio.pin_direction);
+	gpio_set(hdmi_hpd_gpio.pin_id,      hdmi_hpd_gpio.pin_direction);
+
+	/* MUX */
+	gpio_tlmm_config(hdmi_mux_lpm_gpio.pin_id, 0,   /* gpio 27 MUX LPM */
+		hdmi_mux_lpm_gpio.pin_direction, hdmi_mux_lpm_gpio.pin_pull,
+		hdmi_mux_lpm_gpio.pin_strength, hdmi_mux_lpm_gpio.pin_state);
+
+	gpio_tlmm_config(hdmi_mux_en_gpio.pin_id, 0,    /* gpio 83 MUX EN */
+		hdmi_mux_en_gpio.pin_direction, hdmi_mux_en_gpio.pin_pull,
+		hdmi_mux_en_gpio.pin_strength, hdmi_mux_en_gpio.pin_state);
+
+	gpio_tlmm_config(hdmi_mux_sel_gpio.pin_id, 0,   /* gpio 85 MUX SEL */
+		hdmi_mux_sel_gpio.pin_direction, hdmi_mux_sel_gpio.pin_pull,
+		hdmi_mux_sel_gpio.pin_strength, hdmi_mux_sel_gpio.pin_state);
+
+	gpio_set(hdmi_mux_lpm_gpio.pin_id, hdmi_mux_lpm_gpio.pin_direction);
+	gpio_set(hdmi_mux_en_gpio.pin_id,  hdmi_mux_en_gpio.pin_direction);
+	gpio_set(hdmi_mux_sel_gpio.pin_id, hdmi_mux_sel_gpio.pin_direction);
+
+	return NO_ERROR;
+}
+
 void target_edp_panel_init(struct msm_panel_info *pinfo)
 {
 	edp_panel_init(pinfo);
