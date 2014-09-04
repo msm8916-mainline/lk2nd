@@ -930,6 +930,8 @@ static void dwc_event_handler_ep_ctrl_state_wait_for_host_3(dwc_dev_t *dev,
 	uint8_t ep_phy_num                 = DWC_EVENT_EP_EVENT_EP_NUM(*event);
 	dwc_event_ep_event_id_t event_id   = DWC_EVENT_EP_EVENT_ID(*event);
 	uint8_t event_ctrl_stage           = DWC_EVENT_EP_EVENT_CTRL_STAGE(*event);
+	dwc_ep_t *ep = &dev->ep[DWC_EP_PHY_TO_INDEX(ep_phy_num)];
+	ASSERT(ep != NULL);
 
 	switch (event_id)
 	{
@@ -943,15 +945,32 @@ static void dwc_event_handler_ep_ctrl_state_wait_for_host_3(dwc_dev_t *dev,
 		{
 			if (event_ctrl_stage == CONTROL_DATA_REQUEST)/* data request */
 			{
-				/* TODO:
-				 * special case handling when data stage transfer length
-				 * was exact multiple of max_pkt_size.
-				 * Need to setup a TRB to complete data stage with a zero
-				 * length pkt transfer.
-				 * Not implemented currently since all data during enumeration
-				 * is less then max_pkt_size.
-				 */
-				ASSERT(0);
+				if (ep->state == EP_STATE_START_TRANSFER ||
+								ep->state == EP_STATE_XFER_IN_PROG) {
+					/*
+					 * special case handling when data stage transfer length
+					 * was exact multiple of max_pkt_size.
+					 * Need to setup a TRB to complete data stage with a zero
+					 * length pkt transfer.
+					 */
+
+					dwc_request_t req;
+
+					req.callback = 0x0;
+					req.context  = 0x0;
+					req.data     = 0x0;
+					req.len      = 0x0;
+					req.trbctl   = TRBCTL_CONTROL_DATA;
+
+					DBG("\n Sending the elp to host as the end of xfer\n");
+					dwc_request_queue(dev, ep_phy_num, &req);
+					dev->ctrl_state = EP_FSM_CTRL_DATA;
+				} else {
+					DBG("\n attempting to start data when setup did not indicate"
+						"data stage. stall...\n\n");
+					dwc_ep_cmd_stall(dev, ep_phy_num);
+					dev->ctrl_state  = EP_FSM_STALL;
+				}
 			}
 			else if (event_ctrl_stage ==  CONTROL_STATUS_REQUEST)/* stat req */
 			{
