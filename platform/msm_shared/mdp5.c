@@ -225,6 +225,67 @@ static uint32_t mdss_smp_alloc(uint32_t client_id, uint32_t smp_cnt,
 	return free_smp_offset;
 }
 
+static void mdp_select_pipe_client_id(struct msm_panel_info *pinfo,
+		uint32_t *left_sspp_client_id, uint32_t *right_sspp_client_id)
+{
+	uint32_t mdss_mdp_rev = readl(MDP_HW_REV);
+	if (MDSS_IS_MAJOR_MINOR_MATCHING(mdss_mdp_rev, MDSS_MDP_HW_REV_101) ||
+		MDSS_IS_MAJOR_MINOR_MATCHING(mdss_mdp_rev, MDSS_MDP_HW_REV_106) ||
+		MDSS_IS_MAJOR_MINOR_MATCHING(mdss_mdp_rev, MDSS_MDP_HW_REV_108)) {
+		switch (pinfo->pipe_type) {
+			case MDSS_MDP_PIPE_TYPE_RGB:
+				*left_sspp_client_id = 0x7; /* 7 */
+				*right_sspp_client_id = 0x11; /* 17 */
+				break;
+			case MDSS_MDP_PIPE_TYPE_DMA:
+				*left_sspp_client_id = 0x4; /* 4 */
+				*right_sspp_client_id = 0xD; /* 13 */
+				break;
+			case MDSS_MDP_PIPE_TYPE_VIG:
+			default:
+				*left_sspp_client_id = 0x1; /* 1 */
+				*right_sspp_client_id = 0x4; /* 4 */
+				break;
+		}
+	} else {
+		switch (pinfo->pipe_type) {
+			case MDSS_MDP_PIPE_TYPE_RGB:
+				*left_sspp_client_id = 0x10; /* 16 */
+				*right_sspp_client_id = 0x11; /* 17 */
+				break;
+			case MDSS_MDP_PIPE_TYPE_DMA:
+				*left_sspp_client_id = 0xA; /* 10 */
+				*right_sspp_client_id = 0xD; /* 13 */
+				break;
+			case MDSS_MDP_PIPE_TYPE_VIG:
+			default:
+				*left_sspp_client_id = 0x1; /* 1 */
+				*right_sspp_client_id = 0x4; /* 4 */
+				break;
+		}
+	}
+}
+
+static void mdp_select_pipe_xin_id(struct msm_panel_info *pinfo,
+		uint32_t *left_pipe_xin_id, uint32_t *right_pipe_xin_id)
+{
+	switch (pinfo->pipe_type) {
+		case MDSS_MDP_PIPE_TYPE_RGB:
+			*left_pipe_xin_id = 0x1; /* 1 */
+			*right_pipe_xin_id = 0x5; /* 5 */
+			break;
+		case MDSS_MDP_PIPE_TYPE_DMA:
+			*left_pipe_xin_id = 0x2; /* 2 */
+			*right_pipe_xin_id = 0xA; /* 10 */
+			break;
+		case MDSS_MDP_PIPE_TYPE_VIG:
+		default:
+			*left_pipe_xin_id = 0x0; /* 0 */
+			*right_pipe_xin_id = 0x4; /* 4 */
+			break;
+	}
+}
+
 static void mdss_smp_setup(struct msm_panel_info *pinfo, uint32_t left_pipe,
 		uint32_t right_pipe)
 
@@ -250,41 +311,8 @@ static void mdss_smp_setup(struct msm_panel_info *pinfo, uint32_t left_pipe,
 			fixed_smp_cnt = 0;
 	}
 
-	if (MDSS_IS_MAJOR_MINOR_MATCHING(mdss_mdp_rev, MDSS_MDP_HW_REV_101) ||
-		MDSS_IS_MAJOR_MINOR_MATCHING(mdss_mdp_rev, MDSS_MDP_HW_REV_106) ||
-		MDSS_IS_MAJOR_MINOR_MATCHING(mdss_mdp_rev, MDSS_MDP_HW_REV_108)) {
-		switch (pinfo->pipe_type) {
-			case MDSS_MDP_PIPE_TYPE_RGB:
-				left_sspp_client_id = 0x7; /* 7 */
-				right_sspp_client_id = 0x11; /* 17 */
-				break;
-			case MDSS_MDP_PIPE_TYPE_DMA:
-				left_sspp_client_id = 0x4; /* 4 */
-				right_sspp_client_id = 0xD; /* 13 */
-				break;
-			case MDSS_MDP_PIPE_TYPE_VIG:
-			default:
-				left_sspp_client_id = 0x1; /* 1 */
-				right_sspp_client_id = 0x4; /* 4 */
-				break;
-		}
-	} else {
-		switch (pinfo->pipe_type) {
-			case MDSS_MDP_PIPE_TYPE_RGB:
-				left_sspp_client_id = 0x10; /* 16 */
-				right_sspp_client_id = 0x11; /* 17 */
-				break;
-			case MDSS_MDP_PIPE_TYPE_DMA:
-				left_sspp_client_id = 0xA; /* 10 */
-				right_sspp_client_id = 0xD; /* 13 */
-				break;
-			case MDSS_MDP_PIPE_TYPE_VIG:
-			default:
-				left_sspp_client_id = 0x1; /* 1 */
-				right_sspp_client_id = 0x4; /* 4 */
-				break;
-		}
-	}
+	mdp_select_pipe_client_id(pinfo,
+			&left_sspp_client_id, &right_sspp_client_id);
 
 	/* Each pipe driving half the screen */
 	if (pinfo->lcdc.dual_pipe)
@@ -487,8 +515,10 @@ void mdss_qos_remapper_setup(void)
 	else if (MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev,
 			MDSS_MDP_HW_REV_106) ||
 		 MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev,
-			MDSS_MDP_HW_REV_108))
-		map = 0xAA;
+			MDSS_MDP_HW_REV_108) ||
+		 MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev,
+			MDSS_MDP_HW_REV_105))
+		map = 0xE4;
 	else if (MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev,
 						MDSS_MDP_HW_REV_103))
 		map = 0xFA;
@@ -496,6 +526,46 @@ void mdss_qos_remapper_setup(void)
 		return;
 
 	writel(map, MDP_QOS_REMAPPER_CLASS_0);
+}
+
+void mdss_vbif_qos_remapper_setup(struct msm_panel_info *pinfo)
+{
+	uint32_t mask, reg_val, i;
+	uint32_t left_pipe_xin_id, right_pipe_xin_id;
+	uint32_t mdp_hw_rev = readl(MDP_HW_REV);
+	uint32_t vbif_qos[4] = {0, 0, 0, 0};
+
+	mdp_select_pipe_xin_id(pinfo,
+			&left_pipe_xin_id, &right_pipe_xin_id);
+
+	if (MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev, MDSS_MDP_HW_REV_106) ||
+		 MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev, MDSS_MDP_HW_REV_108)) {
+		vbif_qos[0] = 2;
+		vbif_qos[1] = 2;
+		vbif_qos[2] = 2;
+		vbif_qos[3] = 2;
+	} else if (MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev, MDSS_MDP_HW_REV_105)) {
+		vbif_qos[0] = 2;
+		vbif_qos[1] = 2;
+		vbif_qos[2] = 2;
+		vbif_qos[3] = 1;
+	} else {
+		return;
+	}
+
+	for (i = 0; i < 4; i++) {
+		reg_val = readl(VBIF_VBIF_QOS_REMAP_00 + i*4);
+		mask = 0x3 << (left_pipe_xin_id * 2);
+		reg_val &= ~(mask);
+		reg_val |= vbif_qos[i] << (left_pipe_xin_id * 2);
+
+		if (pinfo->lcdc.dual_pipe) {
+			mask = 0x3 << (right_pipe_xin_id * 2);
+			reg_val &= ~(mask);
+			reg_val |= vbif_qos[i] << (right_pipe_xin_id * 2);
+		}
+		writel(reg_val, VBIF_VBIF_QOS_REMAP_00 + i*4);
+	}
 }
 
 static uint32_t mdss_mdp_ctl_out_sel(struct msm_panel_info *pinfo,
@@ -535,6 +605,7 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 	mdss_smp_setup(pinfo, left_pipe, right_pipe);
 
 	mdss_qos_remapper_setup();
+	mdss_vbif_qos_remapper_setup(pinfo);
 
 	mdss_source_pipe_config(fb, pinfo, left_pipe);
 
@@ -582,6 +653,7 @@ int mdp_edp_config(struct msm_panel_info *pinfo, struct fbcon_config *fb)
 	mdss_smp_setup(pinfo, left_pipe, right_pipe);
 
 	mdss_qos_remapper_setup();
+	mdss_vbif_qos_remapper_setup(pinfo);
 
 	mdss_source_pipe_config(fb, pinfo, left_pipe);
 	if (pinfo->lcdc.dual_pipe)
@@ -679,6 +751,7 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 	mdss_vbif_setup();
 	mdss_smp_setup(pinfo, left_pipe, right_pipe);
 	mdss_qos_remapper_setup();
+	mdss_vbif_qos_remapper_setup(pinfo);
 
 	mdss_source_pipe_config(fb, pinfo, left_pipe);
 
