@@ -832,8 +832,17 @@ static struct branch_clk mdss_hdmi_clk = {
 };
 
 static struct clk_freq_tbl ftbl_mdss_extpclk_clk[] = {
-	F_MDSS(148500000, hdmipll, 1, 0, 0),
-	F_END
+        F_MDSS( 74250000, hdmipll, 1, 0, 0),
+        F_MDSS( 25200000, hdmipll, 1, 0, 0),
+        F_MDSS( 27000000, hdmipll, 1, 0, 0),
+        F_MDSS( 27030000, hdmipll, 1, 0, 0),
+        F_MDSS( 27070000, hdmipll, 1, 0, 0),
+        F_MDSS( 65000000, hdmipll, 1, 0, 0),
+        F_MDSS(108000000, hdmipll, 1, 0, 0),
+        F_MDSS(148500000, hdmipll, 1, 0, 0),
+        F_MDSS(268500000, hdmipll, 1, 0, 0),
+        F_MDSS(297000000, hdmipll, 1, 0, 0),
+        F_END
 };
 
 static struct rcg_clk extpclk_clk_src = {
