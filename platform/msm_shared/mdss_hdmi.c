@@ -261,25 +261,40 @@ static int mdss_hdmi_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 	return target_hdmi_panel_clock(enable, pinfo);
 }
 
-static int mdss_hdmi_enable_power(uint8_t enable)
+static int mdss_hdmi_enable_power(uint8_t enable, struct msm_panel_info *pinfo)
 {
         int ret = NO_ERROR;
 
-        ret = target_ldo_ctrl(enable);
+        ret = target_ldo_ctrl(enable, pinfo);
         if (ret) {
-                dprintf(CRITICAL, "LDO control enable failed\n");
-                return ret;
+		dprintf(CRITICAL, "LDO control enable failed\n");
+		goto bail_ldo_fail;
         }
 
         ret = target_hdmi_regulator_ctrl(enable);
         if (ret) {
-                dprintf(CRITICAL, "hdmi regulator control enable failed\n");
-                return ret;
+		dprintf(CRITICAL, "hdmi regulator control enable failed\n");
+		goto bail_regulator_fail;
         }
 
-        dprintf(SPEW, "HDMI Panel power %s done\n", enable ? "on" : "off");
+	ret = target_hdmi_gpio_ctrl(enable);
+	if (ret) {
+		dprintf(CRITICAL, "hdmi gpio control enable failed\n");
+		goto bail_gpio_fail;
+        }
 
-        return ret;
+	dprintf(SPEW, "HDMI Panel power %s done\n", enable ? "on" : "off");
+
+	return ret;
+
+bail_gpio_fail:
+	target_hdmi_regulator_ctrl(0);
+
+bail_regulator_fail:
+	target_ldo_ctrl(0, pinfo);
+
+bail_ldo_fail:
+	return ret;
 }
 
 static void mdss_hdmi_set_mode(bool on)

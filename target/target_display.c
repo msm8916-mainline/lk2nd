@@ -105,3 +105,8 @@ __WEAK int mdss_hdmi_init(void)
 {
 	return 0;
 }
+
+__WEAK int target_hdmi_gpio_ctrl(bool enable)
+{
+	return 0;
+}
