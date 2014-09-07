@@ -105,6 +105,157 @@ uint32_t mdss_hdmi_avi_info_db[] = {
 	0x10, 0x28, 0x00, 0x04, 0x00, 0x00, 0x00,
 	0xD1, 0x02, 0x00, 0x00, 0x01, 0x05};
 
+static void mdss_hdmi_audio_acr_setup(void)
+{
+	int n, cts, layout, multiplier;
+	uint32_t aud_pck_ctrl_2_reg = 0, acr_pck_ctrl_reg = 0;
+
+	/* 74.25MHz ACR settings */
+	n = 4096;
+	cts = 74250;
+	layout = 0;
+	multiplier = 1;
+
+	/* AUDIO_PRIORITY | SOURCE */
+	acr_pck_ctrl_reg |= 0x80000100;
+
+	/* N_MULTIPLE(multiplier) */
+	acr_pck_ctrl_reg |= (multiplier & 7) << 16;
+
+	/* SELECT(3) */
+	acr_pck_ctrl_reg |= 3 << 4;
+
+	/* CTS_48 */
+	cts <<= 12;
+
+	/* CTS: need to determine how many fractional bits */
+	writel(cts, HDMI_ACR_48_0);
+
+	/* N */
+	/* HDMI_ACR_48_1 */
+	writel(n, HDMI_ACR_48_1);
+
+	/* Payload layout depends on number of audio channels */
+	aud_pck_ctrl_2_reg = 1 | (layout << 1);
+
+	/* override | layout */
+	writel(aud_pck_ctrl_2_reg, HDMI_AUDIO_PKT_CTRL2);
+
+	/* SEND | CONT */
+	acr_pck_ctrl_reg |= 0x3;
+
+	writel(acr_pck_ctrl_reg, HDMI_ACR_PKT_CTRL);
+}
+
+static int mdss_hdmi_audio_info_setup(void)
+{
+	uint32_t channel_count = 1;	/* Default to 2 channels
+					   -> See Table 17 in CEA-D spec */
+	uint32_t channel_allocation = 0;
+	uint32_t level_shift = 0;
+	uint32_t down_mix = 0;
+	uint32_t check_sum, audio_info_0_reg, audio_info_1_reg;
+	uint32_t audio_info_ctrl_reg;
+	uint32_t aud_pck_ctrl_2_reg;
+	uint32_t layout;
+
+	layout = 0;
+	aud_pck_ctrl_2_reg = 1 | (layout << 1);
+	writel(aud_pck_ctrl_2_reg, HDMI_AUDIO_PKT_CTRL2);
+
+	/* Read first then write because it is bundled with other controls */
+	audio_info_ctrl_reg = readl(HDMI_INFOFRAME_CTRL0);
+
+	channel_allocation = 0;	/* Default to FR,FL */
+
+	/* Program the Channel-Speaker allocation */
+	audio_info_1_reg = 0;
+
+	/* CA(channel_allocation) */
+	audio_info_1_reg |= channel_allocation & 0xff;
+
+	/* Program the Level shifter */
+	/* LSV(level_shift) */
+	audio_info_1_reg |= (level_shift << 11) & 0x00007800;
+
+	/* Program the Down-mix Inhibit Flag */
+	/* DM_INH(down_mix) */
+	audio_info_1_reg |= (down_mix << 15) & 0x00008000;
+
+	writel(audio_info_1_reg, HDMI_AUDIO_INFO1);
+
+	check_sum = 0;
+	/* HDMI_AUDIO_INFO_FRAME_PACKET_HEADER_TYPE[0x84] */
+	check_sum += 0x84;
+	/* HDMI_AUDIO_INFO_FRAME_PACKET_HEADER_VERSION[0x01] */
+	check_sum += 1;
+	/* HDMI_AUDIO_INFO_FRAME_PACKET_LENGTH[0x0A] */
+	check_sum += 0x0A;
+	check_sum += channel_count;
+	check_sum += channel_allocation;
+	/* See Table 8.5 in HDMI spec */
+	check_sum += (level_shift & 0xF) << 3 | (down_mix & 0x1) << 7;
+	check_sum &= 0xFF;
+	check_sum = (256 - check_sum);
+
+	audio_info_0_reg = 0;
+	/* CHECKSUM(check_sum) */
+	audio_info_0_reg |= check_sum & 0xff;
+	/* CC(channel_count) */
+	audio_info_0_reg |= (channel_count << 8) & 0x00000700;
+
+	writel(audio_info_0_reg, HDMI_AUDIO_INFO0);
+
+	/* Set these flags */
+	/* AUDIO_INFO_UPDATE | AUDIO_INFO_SOURCE | AUDIO_INFO_CONT
+	 | AUDIO_INFO_SEND */
+	audio_info_ctrl_reg |= 0xF0;
+
+	/* HDMI_INFOFRAME_CTRL0[0x002C] */
+	writel(audio_info_ctrl_reg, HDMI_INFOFRAME_CTRL0);
+
+	return 0;
+}
+
+static void mdss_hdmi_audio_playback(void)
+{
+	uint32_t base_addr;
+
+	base_addr = memalign(4096, 0x1000);
+	if (base_addr == NULL) {
+		dprintf(CRITICAL, "%s: Error audio buffer alloc\n", __func__);
+		return;
+	}
+
+	memset(base_addr, 0, 0x1000);
+
+	writel(0x00000010, HDMI_AUDIO_PKT_CTRL);
+	writel(0x00000080, HDMI_AUDIO_CFG);
+
+	writel(0x0000096E, LPASS_LPAIF_RDDMA_CTL0);
+	writel(0x00000A6E, LPASS_LPAIF_RDDMA_CTL0);
+	writel(0x00002000, HDMI_VBI_PKT_CTRL);
+	writel(0x00000000, HDMI_GEN_PKT_CTRL);
+	writel(0x0000096E, LPASS_LPAIF_RDDMA_CTL0);
+	writel(base_addr,  LPASS_LPAIF_RDDMA_BASE0);
+	writel(0x000005FF, LPASS_LPAIF_RDDMA_BUFF_LEN0);
+	writel(0x000005FF, LPASS_LPAIF_RDDMA_PER_LEN0);
+	writel(0x0000096F, LPASS_LPAIF_RDDMA_CTL0);
+	writel(0x00000010, LPASS_LPAIF_DEBUG_CTL);
+	writel(0x00000000, HDMI_GC);
+	writel(0x00002030, HDMI_VBI_PKT_CTRL);
+	writel(0x00002030, HDMI_VBI_PKT_CTRL);
+	writel(0x00002030, HDMI_VBI_PKT_CTRL);
+
+	mdss_hdmi_audio_acr_setup();
+	mdss_hdmi_audio_info_setup();
+
+	writel(0x00000010, HDMI_AUDIO_PKT_CTRL);
+	writel(0x00000080, HDMI_AUDIO_CFG);
+	writel(0x00000011, HDMI_AUDIO_PKT_CTRL);
+	writel(0x00000081, HDMI_AUDIO_CFG);
+}
+
 static int mdss_hdmi_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 {
 	return target_hdmi_panel_clock(enable, pinfo);
@@ -299,16 +450,19 @@ int mdss_hdmi_init(void)
 
 	hdmi_phy_init();
 
-	// Enable USEC REF timer
+	/* Enable USEC REF timer */
 	writel(0x0001001B, HDMI_USEC_REFTIMER);
 
-	// Video setup for HDMI
+	/* Audio settings */
+	mdss_hdmi_audio_playback();
+
+	/* Video settings */
 	mdss_hdmi_video_setup();
 
-	// AVI info setup
+	/* AVI info settings */
 	mdss_hdmi_avi_info_frame();
 
-	// Write 1 to HDMI_CTRL to enable HDMI
+	/* Enable HDMI */
 	mdss_hdmi_set_mode(true);
 
 	return 0;
