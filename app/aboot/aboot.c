@@ -2274,16 +2274,16 @@ struct fbimage* splash_screen_flash()
 
 	fb_display = fbcon_display();
 	if (fb_display) {
-		uint8_t *base = (uint8_t *) fb_display->base;
-		if (logo->header.width != fb_display->width || logo->header.height != fb_display->height) {
-				base += LOGO_IMG_OFFSET;
+		if ((logo->header.width != fb_display->width) || (logo->header.height != fb_display->height)) {
+			dprintf(CRITICAL, "Logo config doesn't match with fb config. Fall back to default logo\n");
+			return NULL;
 		}
-
+		uint8_t *base = (uint8_t *) fb_display->base;
 		if (flash_read(ptn + sizeof(logo->header), 0,
 			base,
 			((((logo->header.width * logo->header.height * fb_display->bpp/8) + 511) >> 9) << 9))) {
 			fbcon_clear();
-			dprintf(CRITICAL, "ERROR: Cannot read splash image\n");
+			dprintf(CRITICAL, "ERROR: Cannot read splash image from partition\n");
 			return NULL;
 		}
 		logo->image = base;
@@ -2323,15 +2323,16 @@ struct fbimage* splash_screen_mmc()
 
 	fb_display = fbcon_display();
 	if (fb_display) {
+		if ((logo->header.width != fb_display->width) || (logo->header.height != fb_display->height)) {
+			dprintf(CRITICAL, "Logo config doesn't match with fb config. Fall back default logo\n");
+			return NULL;
+		}
 		uint8_t *base = (uint8_t *) fb_display->base;
-		if (logo->header.width != fb_display->width || logo->header.height != fb_display->height)
-				base += LOGO_IMG_OFFSET;
-
 		if (mmc_read(ptn + sizeof(logo->header),
 			base,
 			((((logo->header.width * logo->header.height * fb_display->bpp/8) + 511) >> 9) << 9))) {
 			fbcon_clear();
-			dprintf(CRITICAL, "ERROR: Cannot read splash image\n");
+			dprintf(CRITICAL, "ERROR: Cannot read splash image from partition\n");
 			return NULL;
 		}
 
