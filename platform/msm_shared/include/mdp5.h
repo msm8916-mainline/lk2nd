@@ -120,6 +120,7 @@
 #define MDP_INTF_2_BASE                         REG_MDP(0x12900)
 #define MDP_INTF_3_BASE                         REG_MDP(0x12B00)
 
+#define MDP_INTF_CONFIG                         0x04
 #define MDP_HSYNC_CTL                           0x08
 #define MDP_VSYNC_PERIOD_F0                     0x0C
 #define MDP_VSYNC_PERIOD_F1                     0x10
@@ -137,6 +138,7 @@
 #define MDP_ACTIVE_V_END_F1                     0x38
 #define MDP_UNDERFFLOW_COLOR                    0x48
 #define MDP_PANEL_FORMAT                        0x90
+#define MDP_PROG_FETCH_START                    0x170
 
 #define MDP_CLK_CTRL0                           REG_MDP(0x03AC)
 #define MDP_CLK_CTRL1                           REG_MDP(0x03B4)

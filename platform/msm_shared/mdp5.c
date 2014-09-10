@@ -40,6 +40,9 @@
 #include <clock.h>
 #include <scm.h>
 
+#define MDP_MIN_FETCH		9
+#define MDSS_MDP_MAX_FETCH	12
+
 int restore_secure_cfg(uint32_t id);
 
 static int mdp_rev;
@@ -121,11 +124,14 @@ static void mdss_mdp_set_flush(struct msm_panel_info *pinfo,
 			*ctl1_reg_val = 0x24082;
 			break;
 	}
-	/* For 8916/8939, MDP INTF registers are double buffered */
+	/* For targets from MDP v1.5, MDP INTF registers are double buffered */
 	if ((mdss_mdp_rev == MDSS_MDP_HW_REV_106) ||
 		(mdss_mdp_rev == MDSS_MDP_HW_REV_108)) {
 			*ctl0_reg_val |= BIT(30);
-			*ctl1_reg_val |= BIT(30);
+			*ctl1_reg_val |= BIT(31);
+	} else if (mdss_mdp_rev == MDSS_MDP_HW_REV_105) {
+			*ctl0_reg_val |= BIT(30);
+			*ctl1_reg_val |= BIT(29);
 	}
 }
 
@@ -442,6 +448,63 @@ void mdss_intf_tg_setup(struct msm_panel_info *pinfo, uint32_t intf_base)
 		writel(0x213F, MDP_PANEL_FORMAT + mdss_mdp_intf_off);
 }
 
+void mdss_intf_fetch_start_config(struct msm_panel_info *pinfo,
+					uint32_t intf_base)
+{
+	uint32_t mdp_hw_rev = readl(MDP_HW_REV);
+	uint32_t mdss_mdp_intf_off;
+	uint32_t v_total, h_total, fetch_start, vfp_start, fetch_lines;
+	uint32_t adjust_xres = 0;
+
+	struct lcdc_panel_info *lcdc = NULL;
+
+	if (pinfo == NULL)
+		return;
+
+	lcdc =  &(pinfo->lcdc);
+	if (lcdc == NULL)
+		return;
+
+	/*
+	 * MDP programmable fetch is for MDP with rev >= 1.05.
+	 * Programmable fetch is not needed if vertical back porch
+	 * is >= 9.
+	 */
+	if (mdp_hw_rev < MDSS_MDP_HW_REV_105 ||
+			lcdc->v_back_porch >= MDP_MIN_FETCH)
+		return;
+
+	mdss_mdp_intf_off = intf_base + mdss_mdp_intf_offset();
+
+	adjust_xres = pinfo->xres;
+	if (pinfo->lcdc.split_display)
+		adjust_xres /= 2;
+
+	/*
+	 * Fetch should always be outside the active lines. If the fetching
+	 * is programmed within active region, hardware behavior is unknown.
+	 */
+	v_total = lcdc->v_pulse_width + lcdc->v_back_porch + pinfo->yres +
+							lcdc->v_front_porch;
+	h_total = lcdc->h_pulse_width + lcdc->h_back_porch + adjust_xres +
+							lcdc->h_front_porch;
+	vfp_start = lcdc->v_pulse_width + lcdc->v_back_porch + pinfo->yres;
+
+	fetch_lines = v_total - vfp_start;
+
+	/*
+	 * In some cases, vertical front porch is too high. In such cases limit
+	 * the mdp fetch lines  as the last 12 lines of vertical front porch.
+	 */
+	if (fetch_lines > MDSS_MDP_MAX_FETCH)
+		fetch_lines = MDSS_MDP_MAX_FETCH;
+
+	fetch_start = (v_total - fetch_lines) * h_total + 1;
+
+	writel(fetch_start, MDP_PROG_FETCH_START + mdss_mdp_intf_off);
+	writel(BIT(31), MDP_INTF_CONFIG + mdss_mdp_intf_off);
+}
+
 void mdss_layer_mixer_setup(struct fbcon_config *fb, struct msm_panel_info
 		*pinfo)
 {
@@ -601,9 +664,12 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 	uint32_t reg;
 
 	mdss_intf_tg_setup(pinfo, MDP_INTF_1_BASE);
+	mdss_intf_fetch_start_config(pinfo, MDP_INTF_1_BASE);
 
-	if (pinfo->mipi.dual_dsi)
+	if (pinfo->mipi.dual_dsi) {
 		mdss_intf_tg_setup(pinfo, MDP_INTF_2_BASE);
+		mdss_intf_fetch_start_config(pinfo, MDP_INTF_2_BASE);
+	}
 
 	mdp_clk_gating_ctrl();
 
