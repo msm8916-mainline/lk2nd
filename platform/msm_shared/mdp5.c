@@ -522,12 +522,13 @@ void mdss_qos_remapper_setup(void)
 	else if (MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev,
 			MDSS_MDP_HW_REV_106) ||
 		 MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev,
-			MDSS_MDP_HW_REV_108) ||
-		 MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev,
-			MDSS_MDP_HW_REV_105))
+			MDSS_MDP_HW_REV_108))
 		map = 0xE4;
 	else if (MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev,
-						MDSS_MDP_HW_REV_103))
+			MDSS_MDP_HW_REV_105))
+		map = 0xA4;
+	else if (MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev,
+			MDSS_MDP_HW_REV_103))
 		map = 0xFA;
 	else
 		return;
@@ -552,10 +553,10 @@ void mdss_vbif_qos_remapper_setup(struct msm_panel_info *pinfo)
 		vbif_qos[2] = 2;
 		vbif_qos[3] = 2;
 	} else if (MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev, MDSS_MDP_HW_REV_105)) {
-		vbif_qos[0] = 2;
+		vbif_qos[0] = 1;
 		vbif_qos[1] = 2;
 		vbif_qos[2] = 2;
-		vbif_qos[3] = 1;
+		vbif_qos[3] = 2;
 	} else {
 		return;
 	}
