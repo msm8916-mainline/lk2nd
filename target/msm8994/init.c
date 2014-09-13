@@ -181,18 +181,36 @@ void target_usb_stop(void)
 static void set_sdc_power_ctrl(uint8_t slot)
 {
 	uint32_t reg = 0;
+	uint8_t clk;
+	uint8_t cmd;
+	uint8_t dat;
 
 	if (slot == 0x1)
+	{
+		clk = TLMM_CUR_VAL_16MA;
+		cmd = TLMM_CUR_VAL_8MA;
+		dat = TLMM_CUR_VAL_8MA;
 		reg = SDC1_HDRV_PULL_CTL;
+	}
 	else if (slot == 0x2)
+	{
+		clk = TLMM_CUR_VAL_16MA;
+		cmd = TLMM_CUR_VAL_10MA;
+		dat = TLMM_CUR_VAL_10MA;
 		reg = SDC2_HDRV_PULL_CTL;
+	}
+	else
+	{
+		dprintf(CRITICAL, "Unsupported SDC slot passed\n");
+		return;
+	}
 
 	/* Drive strength configs for sdc pins */
 	struct tlmm_cfgs sdc1_hdrv_cfg[] =
 	{
-		{ SDC1_CLK_HDRV_CTL_OFF,  TLMM_CUR_VAL_16MA, TLMM_HDRV_MASK, reg },
-		{ SDC1_CMD_HDRV_CTL_OFF,  TLMM_CUR_VAL_10MA, TLMM_HDRV_MASK, reg },
-		{ SDC1_DATA_HDRV_CTL_OFF, TLMM_CUR_VAL_10MA, TLMM_HDRV_MASK, reg },
+		{ SDC1_CLK_HDRV_CTL_OFF,  clk, TLMM_HDRV_MASK, reg },
+		{ SDC1_CMD_HDRV_CTL_OFF,  cmd, TLMM_HDRV_MASK, reg },
+		{ SDC1_DATA_HDRV_CTL_OFF, dat, TLMM_HDRV_MASK, reg },
 	};
 
 	/* Pull configs for sdc pins */
