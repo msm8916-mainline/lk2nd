@@ -201,15 +201,20 @@ struct pm8x41_mvs
 	uint32_t                       base;
 };
 
+#define PM8x41_MMP1_BASE                      0xA000
 #define PM8x41_MMP2_BASE                      0xA100
 #define PM8x41_MMP3_BASE                      0xA200
 #define PM8x41_MMP4_BASE                      0xA300
 #define PM8x41_MVS1_BASE                      0x18400
 
 void pm8x41_lpg_write(uint8_t chan, uint8_t off, uint8_t val);
+void pm8x41_lpg_write_sid(uint8_t sid, uint8_t chan, uint8_t off, uint8_t val);
 int pm8x41_gpio_get(uint8_t gpio, uint8_t *status);
+int pm8x41_gpio_get_sid(uint8_t sid, uint8_t gpio, uint8_t *status);
 int pm8x41_gpio_set(uint8_t gpio, uint8_t value);
+int pm8x41_gpio_set_sid(uint8_t sid, uint8_t gpio, uint8_t value);
 int pm8x41_gpio_config(uint8_t gpio, struct pm8x41_gpio *config);
+int pm8x41_gpio_config_sid(uint8_t sid, uint8_t gpio, struct pm8x41_gpio *config);
 void pm8x41_set_boot_done();
 uint32_t pm8x41_v2_resin_status();
 uint32_t pm8x41_resin_status();
