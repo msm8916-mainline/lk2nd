@@ -88,6 +88,7 @@ struct mmc_device *dev;
 struct ufs_dev ufs_device;
 
 extern void ulpi_write(unsigned val, unsigned reg);
+extern int platform_is_msm8994();
 
 void target_early_init(void)
 {
@@ -364,7 +365,10 @@ unsigned check_reboot_mode(void)
 	uint32_t restart_reason = 0;
 	uint32_t restart_reason_addr;
 
-	restart_reason_addr = RESTART_REASON_ADDR;
+	if (platform_is_msm8994())
+		restart_reason_addr = RESTART_REASON_ADDR;
+	else
+		restart_reason_addr = RESTART_REASON_ADDR2;
 
 	/* Read reboot reason and scrub it */
 	restart_reason = readl(restart_reason_addr);

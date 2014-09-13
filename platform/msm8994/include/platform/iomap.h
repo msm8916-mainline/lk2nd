@@ -36,11 +36,13 @@
 
 #define SYSTEM_IMEM_BASE            0xFE800000
 #define MSM_SHARED_IMEM_BASE        0xFE87F000
+#define MSM_SHARED_IMEM_BASE2       0xFE80F000
 #define RESTART_REASON_ADDR         (MSM_SHARED_IMEM_BASE + 0x65C)
+#define RESTART_REASON_ADDR2        (MSM_SHARED_IMEM_BASE2 + 0x65C)
 
-#define BS_INFO_OFFSET                       (0x6B0)
-#define BS_INFO_ADDR                         (MSM_SHARED_IMEM_BASE + BS_INFO_OFFSET)
-
+#define BS_INFO_OFFSET              (0x6B0)
+#define BS_INFO_ADDR                (MSM_SHARED_IMEM_BASE + BS_INFO_OFFSET)
+#define BS_INFO_ADDR2               (MSM_SHARED_IMEM_BASE2 + BS_INFO_OFFSET)
 
 #define KPSS_BASE                   0xF9000000
 
