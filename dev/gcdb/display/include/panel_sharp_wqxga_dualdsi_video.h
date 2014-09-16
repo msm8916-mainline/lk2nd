@@ -53,7 +53,7 @@ static struct panel_config sharp_wqxga_dualdsi_video_panel_data = {
 /* Panel resolution                                                          */
 /*---------------------------------------------------------------------------*/
 static struct panel_resolution sharp_wqxga_dualdsi_video_panel_res = {
-	1600, 2560, 76, 32, 16, 0, 4, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0
+	1600, 2560, 76, 32, 16, 0, 2, 11, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 
 /*---------------------------------------------------------------------------*/
@@ -126,11 +126,11 @@ static struct lane_configuration sharp_wqxga_dualdsi_video_lane_config = {
 /* Panel timing                                                              */
 /*---------------------------------------------------------------------------*/
 static const uint32_t sharp_wqxga_dualdsi_video_timings[] = {
-	0x32, 0x36, 0x24, 0x00, 0x66, 0x68, 0x28, 0x38,  0x2a, 0x03, 0x04, 0x00
+	0xe2, 0x36, 0x24, 0x00, 0x66, 0x6a, 0x28, 0x38,  0x2a, 0x03, 0x04, 0x00
 };
 
 static struct panel_timing sharp_wqxga_dualdsi_video_timing_info = {
-	0x0, 0x04, 0x07, 0x0d
+	0x0, 0x04, 0x02, 0x2a
 };
 
 /*---------------------------------------------------------------------------*/
