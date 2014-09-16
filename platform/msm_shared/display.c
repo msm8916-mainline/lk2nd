@@ -78,7 +78,8 @@ int msm_display_config()
 		dprintf(INFO, "Config MIPI_VIDEO_PANEL.\n");
 
 		mdp_rev = mdp_get_revision();
-		if (mdp_rev == MDP_REV_50 || mdp_rev == MDP_REV_304)
+		if (mdp_rev == MDP_REV_50 || mdp_rev == MDP_REV_304 ||
+						mdp_rev == MDP_REV_305)
 			ret = mdss_dsi_config(panel);
 		else
 			ret = mipi_config(panel);
@@ -96,7 +97,8 @@ int msm_display_config()
 	case MIPI_CMD_PANEL:
 		dprintf(INFO, "Config MIPI_CMD_PANEL.\n");
 		mdp_rev = mdp_get_revision();
-		if (mdp_rev == MDP_REV_50 || mdp_rev == MDP_REV_304)
+		if (mdp_rev == MDP_REV_50 || mdp_rev == MDP_REV_304 ||
+						mdp_rev == MDP_REV_305)
 			ret = mdss_dsi_config(panel);
 		else
 			ret = mipi_config(panel);
@@ -180,7 +182,8 @@ int msm_display_on()
 		if (ret)
 			goto msm_display_on_out;
 		mdp_rev = mdp_get_revision();
-		if (mdp_rev != MDP_REV_50 && mdp_rev != MDP_REV_304) {
+		if (mdp_rev != MDP_REV_50 && mdp_rev != MDP_REV_304 &&
+						mdp_rev != MDP_REV_305) {
 			ret = mipi_cmd_trigger();
 			if (ret)
 				goto msm_display_on_out;

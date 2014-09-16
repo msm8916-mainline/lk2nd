@@ -202,4 +202,36 @@ void target_baseband_detect(struct board_data *board)
 		ASSERT(0);
 	};
 }
+uint8_t target_panel_auto_detect_enabled()
+{
+	uint8_t ret = 0;
+
+	switch(board_hardware_id()) {
+	default:
+		ret = 0;
+		break;
+	}
+	return ret;
+}
+
+static uint8_t splash_override;
+/* Returns 1 if target supports continuous splash screen. */
+int target_cont_splash_screen()
+{
+	uint8_t splash_screen = 0;
+	if (!splash_override) {
+		switch (board_hardware_id()) {
+		default:
+			splash_screen = 0;
+			break;
+		}
+		dprintf(SPEW, "Target_cont_splash=%d\n", splash_screen);
+	}
+	return splash_screen;
+}
+
+void target_force_cont_splash_disable(uint8_t override)
+{
+        splash_override = override;
+}
 
