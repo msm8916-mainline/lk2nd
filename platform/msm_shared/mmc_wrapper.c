@@ -567,6 +567,7 @@ void mmc_read_partition_table(uint8_t arg)
 				dprintf(CRITICAL, "Error reading the partition table info for lun %d\n", lun);
 			}
 		}
+		mmc_set_lun(0);
 	}
 	else
 	{
