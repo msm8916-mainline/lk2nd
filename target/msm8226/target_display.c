@@ -409,13 +409,13 @@ void target_display_init(const char *panel_name)
 		fb_addr = MIPI_FB_ADDR_QVGA;
 
 	do {
+		target_force_cont_splash_disable(false);
 		ret = gcdb_display_init(panel_name, MDP_REV_50, fb_addr);
 		if (!ret || ret == ERR_NOT_SUPPORTED) {
 			break;
 		} else {
 			target_force_cont_splash_disable(true);
 			msm_display_off();
-			target_force_cont_splash_disable(false);
 		}
 	} while (++panel_loop <= oem_panel_max_auto_detect_panels());
 
