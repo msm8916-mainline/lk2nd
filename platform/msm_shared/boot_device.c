@@ -30,6 +30,7 @@
 #include <ufs.h>
 #include <platform/iomap.h>
 #include <boot_device.h>
+#include <qpic_nand.h>
 
 static uint32_t boot_device;
 
@@ -76,6 +77,9 @@ void platform_boot_dev_cmdline(char *buf)
 			break;
 		case BOOT_UFS:
 			sprintf(buf, "%x.ufshc", ((struct ufs_dev *)dev)->base);
+			break;
+		case BOOT_NAND:
+			sprintf(buf, "%x.nandc", nand_device_base());
 			break;
 		default:
 			dprintf(CRITICAL,"ERROR: Unexpected boot_device val=%x",val);

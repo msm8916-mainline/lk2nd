@@ -346,5 +346,7 @@ unsigned
 flash_block_size(void);
 void
 qpic_nand_uninit();
+/* Api to return the nand base */
+uint32_t nand_device_base();
 
 #endif
