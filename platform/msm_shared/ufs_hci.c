@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -35,6 +35,7 @@
 #include <platform/irqs.h>
 #include <ufs_hw.h>
 #include <utp.h>
+#include <ufs.h>
 
 uint64_t ufs_alloc_trans_req_list()
 {
@@ -97,10 +98,32 @@ enum handler_return ufs_irq_handler(void* data)
 
 	val = readl(UFS_IS(dev->base));
 
-	if (val & UFS_IS_SBFES || val & UFS_IS_HCFES || val & UFS_IS_UTPES || val & UFS_IS_DFES || val & UFS_IS_UE)
+	if (val & UFS_IS_SBFES)
 	{
 		/* Controller might be in a bad state, unrecoverable error. */
-		dprintf(CRITICAL, "UFS error\n");
+		dprintf(CRITICAL, "UFS error: System Bus Fatal Error\n");
+		ASSERT(0);
+	}
+	else if (val & UFS_IS_UTPES)
+	{
+		/* Unrecoverable error occured at the utp layer */
+		dprintf(CRITICAL, "UFS error: UTP Error\n");
+		ASSERT(0);
+	}
+	else if ((val & UFS_IS_HCFES) || (val & UFS_IS_DFES))
+	{
+		/* Controller might be in a bad state, unrecoverable error. */
+		/* HCFES: Host Controller Fatal Error Status */
+		/* DFES: Device Fatal Error Status */
+		dprintf(CRITICAL, "UFS error: HCFES:0x%x DFES:0x%x\n",
+		                val & UFS_IS_HCFES, val & UFS_IS_DFES);
+		ASSERT(0);
+	}
+	else if (val & UFS_IS_UE)
+	{
+		/* Error in one of the layers in the UniPro stack */
+		dprintf(CRITICAL, "UFS error: UE. Dumping UIC Error code registers\n");
+		ufs_dump_hc_registers(dev);
 		ASSERT(0);
 	}
 
