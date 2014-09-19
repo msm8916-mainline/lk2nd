@@ -377,6 +377,13 @@ bool target_display_panel_node(char *panel_name, char *pbuf, uint16_t buf_size)
 
 void target_display_init(const char *panel_name)
 {
+	if ((!strcmp(panel_name, NO_PANEL_CONFIG))
+			|| (!strcmp(panel_name, SIM_VIDEO_PANEL))
+			|| (!strcmp(panel_name, SIM_DUALDSI_VIDEO_PANEL))) {
+		dprintf(INFO, "Selected panel: %s\nSkip panel configuration\n",
+				panel_name);
+		return;
+	}
 	if (gcdb_display_init(panel_name, MDP_REV_50, MIPI_FB_ADDR))
 		msm_display_off();
 }
