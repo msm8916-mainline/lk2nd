@@ -47,6 +47,7 @@
 #include <partition_parser.h>
 #include <stdlib.h>
 #include <gpio.h>
+#include <rpm-smd.h>
 
 #if LONG_PRESS_POWER_ON
 #include <shutdown_detect.h>
@@ -222,6 +223,8 @@ void target_init(void)
 
 	if (target_use_signed_kernel())
 		target_crypto_init_params();
+
+	rpm_smd_init();
 }
 
 void target_serialno(unsigned char *buf)
@@ -458,6 +461,8 @@ void target_uninit(void)
 
 	if (target_is_ssd_enabled())
 		clock_ce_disable(CE1_INSTANCE);
+
+	rpm_smd_uninit();
 }
 
 /* Do any target specific intialization needed before entering fastboot mode */
