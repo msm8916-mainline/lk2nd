@@ -139,11 +139,7 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 			= &jdi_qhd_dualdsi_video_timing_info;
 		panelstruct->panelresetseq
 					 = &jdi_qhd_dualdsi_video_reset_seq;
-
-		/* force backlight to WLED */
 		panelstruct->backlightinfo = &jdi_qhd_dualdsi_video_backlight;
-		jdi_qhd_dualdsi_video_backlight.bl_interface_type = BL_WLED;
-
 		pinfo->mipi.panel_cmds
 			= jdi_qhd_dualdsi_video_on_command;
 		pinfo->mipi.num_of_panel_cmds
@@ -165,11 +161,7 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 			= &jdi_qhd_dualdsi_cmd_timing_info;
 		panelstruct->panelresetseq
 					 = &jdi_qhd_dualdsi_cmd_reset_seq;
-
-		/* force backlight to WLED */
-		jdi_qhd_dualdsi_cmd_backlight.bl_interface_type = BL_WLED;
 		panelstruct->backlightinfo = &jdi_qhd_dualdsi_cmd_backlight;
-
 		pinfo->mipi.panel_cmds
 			= jdi_qhd_dualdsi_cmd_on_command;
 		pinfo->mipi.num_of_panel_cmds

@@ -45,13 +45,10 @@ static struct gpio_pin lcd_reg_en = {	/* boost regulator */
   "pm8994_gpios", 14, 3, 1, 0, 1
 };
 
-static struct gpio_pin bkl_gpio = {	/* lcd_bklt_reg_en */
+static struct gpio_pin bklt_gpio = {	/* lcd_bklt_reg_en */
   "pmi8994_gpios", 2, 3, 1, 0, 1
 };
 
-static struct gpio_pin pwm_gpio = {	/* pmi_mpp01, lpg = 0 */
-  "pmi8994_mpps", 1, 0, 1, 0, 1
-};
 /*---------------------------------------------------------------------------*/
 /* LDO configuration                                                         */
 /*---------------------------------------------------------------------------*/
@@ -107,6 +104,6 @@ static const uint32_t panel_physical_ctrl[] = {
 #define MIPI_VSYNC_BACK_PORCH_LINES  2
 #define MIPI_VSYNC_FRONT_PORCH_LINES 4
 
-#define PWM_BL_LPG_CHAN_ID           0
+#define PWM_BL_LPG_CHAN_ID           4	/* lpg_out<3> */
 
 #endif
