@@ -48,6 +48,7 @@
 #include <stdlib.h>
 #include <gpio.h>
 #include <rpm-smd.h>
+#include <qpic_nand.h>
 
 #if LONG_PRESS_POWER_ON
 #include <shutdown_detect.h>
@@ -76,6 +77,32 @@
 #define CE_WRITE_PIPE_LOCK_GRP  0
 #define CE_ARRAY_SIZE           20
 
+extern void smem_ptable_init(void);
+extern void smem_add_modem_partitions(struct ptable *flash_ptable);
+void target_sdc_init();
+
+static struct ptable flash_ptable;
+
+/* NANDc BAM pipe numbers */
+#define DATA_CONSUMER_PIPE                            0
+#define DATA_PRODUCER_PIPE                            1
+#define CMD_PIPE                                      2
+
+/* NANDc BAM pipe groups */
+#define DATA_PRODUCER_PIPE_GRP                        0
+#define DATA_CONSUMER_PIPE_GRP                        0
+#define CMD_PIPE_GRP                                  1
+
+/* NANDc EE */
+#define QPIC_NAND_EE                                  0
+
+/* NANDc max desc length. */
+#define QPIC_NAND_MAX_DESC_LEN                        0x7FFF
+
+#define LAST_NAND_PTN_LEN_PATTERN                     0xFFFFFFFF
+
+struct qpic_nand_init_config config;
+
 struct mmc_device *dev;
 
 static uint32_t mmc_pwrctl_base[] =
@@ -89,11 +116,47 @@ static uint32_t  mmc_sdc_pwrctl_irq[] =
 
 static void set_sdc_power_ctrl(void);
 
+void update_ptable_names(void)
+{
+	uint32_t ptn_index;
+	struct ptentry *ptentry_ptr = flash_ptable.parts;
+	struct ptentry *boot_ptn;
+	unsigned i;
+	uint32_t len;
+
+	/* Change all names to lower case. */
+	for (ptn_index = 0; ptn_index != (uint32_t)flash_ptable.count; ptn_index++)
+	{
+		len = strlen(ptentry_ptr[ptn_index].name);
+
+		for (i = 0; i < len; i++)
+		{
+			if (isupper(ptentry_ptr[ptn_index].name[i]))
+			{
+				ptentry_ptr[ptn_index].name[i] = tolower(ptentry_ptr[ptn_index].name[i]);
+			}
+		}
+
+		/* SBL fills in the last partition length as 0xFFFFFFFF.
+		* Update the length field based on the number of blocks on the flash.
+		*/
+		if ((uint32_t)(ptentry_ptr[ptn_index].length) == LAST_NAND_PTN_LEN_PATTERN)
+		{
+			ptentry_ptr[ptn_index].length = flash_num_blocks() - ptentry_ptr[ptn_index].start;
+		}
+	}
+}
+
 void target_early_init(void)
 {
 #if WITH_DEBUG_UART
 	uart_dm_init(1, 0, BLSP1_UART1_BASE);
 #endif
+}
+
+int target_is_emmc_boot(void)
+{
+	return platform_boot_dev_isemmc();
 }
 
 void target_sdc_init()
@@ -203,12 +266,38 @@ void target_init(void)
 
 	target_keystatus();
 
-	target_sdc_init();
+	platform_read_boot_config();
 
-	if (partition_read_table())
-	{
-		dprintf(CRITICAL, "Error reading the partition table info\n");
-		ASSERT(0);
+	if (platform_boot_dev_isemmc()) {
+		target_sdc_init();
+		if (partition_read_table())
+		{
+			dprintf(CRITICAL, "Error reading the partition table info\n");
+			ASSERT(0);
+		}
+
+	} else {
+		config.pipes.read_pipe = DATA_PRODUCER_PIPE;
+		config.pipes.write_pipe = DATA_CONSUMER_PIPE;
+		config.pipes.cmd_pipe = CMD_PIPE;
+
+		config.pipes.read_pipe_grp = DATA_PRODUCER_PIPE_GRP;
+		config.pipes.write_pipe_grp = DATA_CONSUMER_PIPE_GRP;
+		config.pipes.cmd_pipe_grp = CMD_PIPE_GRP;
+
+		config.bam_base = MSM_NAND_BAM_BASE;
+		config.nand_base = MSM_NAND_BASE;
+		config.ee = QPIC_NAND_EE;
+		config.max_desc_len = QPIC_NAND_MAX_DESC_LEN;
+
+		qpic_nand_init(&config);
+
+		ptable_init(&flash_ptable);
+		smem_ptable_init();
+		smem_add_modem_partitions(&flash_ptable);
+
+		update_ptable_names();
+		flash_set_ptable(&flash_ptable);
 	}
 
 #if LONG_PRESS_POWER_ON
@@ -392,6 +481,47 @@ void target_force_cont_splash_disable(uint8_t override)
         splash_override = override;
 }
 
+int get_target_boot_params(const char *cmdline, const char *part, char *buf,
+                           int buflen)
+{
+	struct ptable *ptable;
+	int system_ptn_index = -1;
+
+	if (!target_is_emmc_boot()) {
+		if (!cmdline || !part || !buf || buflen < 0) {
+			dprintf(CRITICAL, "WARN: Invalid input param\n");
+			return -1;
+		}
+
+		ptable = flash_get_ptable();
+		if (!ptable) {
+			dprintf(CRITICAL,
+				"WARN: Cannot get flash partition table\n");
+			return -1;
+		}
+
+		system_ptn_index = ptable_get_index(ptable, part);
+		if (system_ptn_index < 0) {
+			dprintf(CRITICAL,
+				"WARN: Cannot get partition index for %s\n", part);
+			return -1;
+		}
+
+		/*
+		* check if cmdline contains "root=" at the beginning of buffer or
+		* " root=" in the middle of buffer.
+		*/
+		if (((!strncmp(cmdline, "root=", strlen("root="))) ||
+			(strstr(cmdline, " root="))))
+			dprintf(DEBUG, "DEBUG: cmdline has root=\n");
+		else
+			snprintf(buf, buflen, " root=/dev/mtdblock%d",
+                                 system_ptn_index);
+	}
+
+	return 0;
+}
+
 unsigned target_baseband()
 {
 	return board_baseband();
@@ -453,8 +583,11 @@ void target_uninit(void)
 	wait_vib_timeout();
 #endif
 
-	mmc_put_card_to_sleep(dev);
-	sdhci_mode_disable(&dev->host);
+	if (platform_boot_dev_isemmc())
+	{
+		mmc_put_card_to_sleep(dev);
+		sdhci_mode_disable(&dev->host);
+	}
 
 	if (crypto_initialized())
 		crypto_eng_cleanup();

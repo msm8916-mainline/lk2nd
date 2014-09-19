@@ -46,6 +46,10 @@
 
 #define MSM_SHARED_BASE             0x86300000
 
+#define MSM_NAND_BASE               0x79B0000
+/* NAND BAM */
+#define MSM_NAND_BAM_BASE           0x7984000
+
 #define APPS_SS_BASE                0x0B000000
 
 #define MSM_GIC_DIST_BASE           APPS_SS_BASE
@@ -228,4 +232,10 @@
 #define HS_TIMER_CTRL               0x0BC
 
 #define TCSR_TZ_WONCE               0x193D000
+
+/* Boot config */
+#define SEC_CTRL_CORE_BASE          0x00058000
+#define BOOT_CONFIG_OFFSET          0x0000602C
+#define BOOT_CONFIG_REG             (SEC_CTRL_CORE_BASE + BOOT_CONFIG_OFFSET)
+
 #endif
