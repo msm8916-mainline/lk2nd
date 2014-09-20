@@ -36,6 +36,7 @@
 #include <sys/types.h>
 #include <platform.h>
 #include <platform/clock.h>
+#include <platform/iomap.h>
 
 static uint32_t nand_base;
 static struct ptable *flash_ptable;
@@ -1758,4 +1759,9 @@ flash_write(struct ptentry *ptn,
 
 	dprintf(INFO, "flash_write_image: success\n");
 	return 0;
+}
+
+uint32_t nand_device_base()
+{
+	return nand_base;
 }

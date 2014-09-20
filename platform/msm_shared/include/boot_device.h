@@ -39,6 +39,7 @@ enum boot_device
 	BOOT_DEFAULT=0,
 	BOOT_EMMC=2,
 	BOOT_UFS=4,
+	BOOT_NAND=5,
 };
 
 void platform_read_boot_config();
