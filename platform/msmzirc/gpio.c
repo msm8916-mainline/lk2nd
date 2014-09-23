@@ -64,13 +64,13 @@ uint32_t gpio_get_state(uint32_t gpio)
 
 void gpio_config_uart_dm(uint8_t id)
 {
-	if (id == 2)
+	if (id == 3)
 	{
 		/* configure rx gpio. */
-		gpio_tlmm_config(9, 1, GPIO_INPUT, GPIO_NO_PULL, GPIO_8MA, GPIO_DISABLE);
+		gpio_tlmm_config(9, 3, GPIO_INPUT, GPIO_NO_PULL, GPIO_6MA, GPIO_DISABLE);
 
 		/* configure tx gpio. */
-		gpio_tlmm_config(8, 1, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_8MA, GPIO_DISABLE);
+		gpio_tlmm_config(8, 3, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_6MA, GPIO_DISABLE);
 	}
 	else
 	{

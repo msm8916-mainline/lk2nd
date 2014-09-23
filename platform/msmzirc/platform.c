@@ -50,16 +50,11 @@ extern struct smem_ram_ptable* target_smem_ram_ptable_init();
 #define LK_MEMORY                             (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
                                               MMU_MEMORY_AP_READ_WRITE)
 /* Scratch memory - Strongly ordered, non-executable */
-#define SCRATCH_MEMORY                        (MMU_MEMORY_TYPE_NORMAL | \
+#define SCRATCH_MEMORY                        (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
                                               MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
 /* Peripherals - shared device */
 #define IOMAP_MEMORY                          (MMU_MEMORY_TYPE_DEVICE_SHARED | \
                                               MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
-
-#define SCRATCH_REGION1_VIRT_START            SCRATCH_REGION1
-#define SCRATCH_REGION2_VIRT_START            SCRATCH_REGION2
-
-#define SDRAM_BANK0_LAST_FIXED_ADDR           (SCRATCH_REGION2 + SCRATCH_REGION2_SIZE)
 
 /* Map all the accesssible memory according to the following rules:
  * 1. Map 1MB from MSM_SHARED_BASE with 1 -1 mapping.
@@ -74,8 +69,9 @@ mmu_section_t mmu_section_table[] = {
 	{MSM_SHARED_BASE,       MSM_SHARED_BASE,            1,                         SCRATCH_MEMORY},
 	{MEMBASE,               MEMBASE,                    MEMSIZE / MB,              LK_MEMORY},
 	{MSM_IOMAP_BASE,        MSM_IOMAP_BASE,             MSM_IOMAP_SIZE,            IOMAP_MEMORY},
-	{SCRATCH_REGION1,       SCRATCH_REGION1_VIRT_START, SCRATCH_REGION1_SIZE / MB, SCRATCH_MEMORY},
-	{SCRATCH_REGION2,       SCRATCH_REGION2_VIRT_START, SCRATCH_REGION2_SIZE / MB, SCRATCH_MEMORY},
+	{SCRATCH_REGION1,       SCRATCH_REGION1, SCRATCH_REGION1_SIZE / MB, SCRATCH_MEMORY},
+	{SCRATCH_REGION2,       SCRATCH_REGION2, SCRATCH_REGION2_SIZE / MB, SCRATCH_MEMORY},
+	{KERNEL_REGION,         KERNEL_REGION, KERNEL_REGION_SIZE / MB, SCRATCH_MEMORY},
 };
 
 void platform_early_init(void)
@@ -126,41 +122,7 @@ void platform_init_mmu_mappings(void)
 {
 	uint32_t i;
 	uint32_t sections;
-	ram_partition ptn_entry;
 	uint32_t table_size = ARRAY_SIZE(mmu_section_table);
-	uint32_t len = 0;
-
-	ASSERT(smem_ram_ptable_init_v1());
-
-	len = smem_get_ram_ptable_len();
-
-	/* Configure the MMU page entries for SDRAM and IMEM memory read
-	   from the smem ram table*/
-	for(i = 0; i < len; i++)
-	{
-		smem_get_ram_ptable_entry(&ptn_entry, i);
-		if(ptn_entry.type == SYS_MEMORY)
-		{
-			if((ptn_entry.category == SDRAM) ||
-			   (ptn_entry.category == IMEM))
-			{
-				/* Check to ensure that start address is 1MB aligned */
-				ASSERT((ptn_entry.start & (MB-1)) == 0);
-
-				sections = (ptn_entry.size) / MB;
-				while(sections--)
-				{
-					arm_mmu_map_section(ptn_entry.start +
-										sections * MB,
-										ptn_entry.start +
-										sections * MB,
-										(MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH |
-										 MMU_MEMORY_AP_READ_WRITE |
-										 MMU_MEMORY_XN));
-				}
-			}
-		}
-	}
 
 	/* Configure the MMU page entries for memory read from the
 	   mmu_section_table */
@@ -181,50 +143,12 @@ void platform_init_mmu_mappings(void)
 
 addr_t platform_get_virt_to_phys_mapping(addr_t virt_addr)
 {
-	uint32_t paddr;
-	uint32_t table_size = ARRAY_SIZE(mmu_section_table);
-	uint32_t limit;
-
-	for (uint32_t i = 0; i < table_size; i++)
-	{
-		limit = (mmu_section_table[i].num_of_sections * MB) - 0x1;
-
-		if (virt_addr >= mmu_section_table[i].vaddress &&
-			virt_addr <= (mmu_section_table[i].vaddress + limit))
-		{
-				paddr = mmu_section_table[i].paddress + (virt_addr - mmu_section_table[i].vaddress);
-				return paddr;
-		}
-	}
-	/* No special mapping found.
-	 * Assume 1-1 mapping.
-	 */
-	 paddr = virt_addr;
-	return paddr;
+	/* Fixed 1-1 mapping */
+	return virt_addr;
 }
 
 addr_t platform_get_phys_to_virt_mapping(addr_t phys_addr)
 {
-	uint32_t vaddr;
-	uint32_t table_size = ARRAY_SIZE(mmu_section_table);
-	uint32_t limit;
-
-	for (uint32_t i = 0; i < table_size; i++)
-	{
-		limit = (mmu_section_table[i].num_of_sections * MB) - 0x1;
-
-		if (phys_addr >= mmu_section_table[i].paddress &&
-			phys_addr <= (mmu_section_table[i].paddress + limit))
-		{
-				vaddr = mmu_section_table[i].vaddress + (phys_addr - mmu_section_table[i].paddress);
-				return vaddr;
-		}
-	}
-
-	/* No special mapping found.
-	 * Assume 1-1 mapping.
-	 */
-	 vaddr = phys_addr;
-
-	return vaddr;
+	/* Fixed 1-1 mapping */
+	return phys_addr;
 }

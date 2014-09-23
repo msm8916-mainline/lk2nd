@@ -77,10 +77,10 @@ target_dev_tree_mem_err:
 
 void *target_get_scratch_address(void)
 {
-	return ((void *) VA((addr_t)SCRATCH_REGION2));
+	return ((void *) VA((addr_t)SCRATCH_REGION1));
 }
 
 unsigned target_get_max_flash_size(void)
 {
-	return (SCRATCH_REGION2_SIZE);
+	return (SCRATCH_REGION1_SIZE);
 }

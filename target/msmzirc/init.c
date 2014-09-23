@@ -111,7 +111,7 @@ void update_ptable_names(void)
 void target_early_init(void)
 {
 #if WITH_DEBUG_UART
-	uart_dm_init(2, 0, BLSP1_UART1_BASE);
+	uart_dm_init(3, 0, BLSP1_UART2_BASE);
 #endif
 }
 
@@ -319,8 +319,8 @@ void target_uninit(void)
 
 void target_usb_phy_reset(void)
 {
-	qusb2_phy_reset();
 	usb30_qmp_phy_reset();
+	qusb2_phy_reset();
 }
 
 target_usb_iface_t* target_usb30_init()
@@ -337,4 +337,9 @@ target_usb_iface_t* target_usb30_init()
 	t_usb_iface->vbus_override = 1;
 
 	return t_usb_iface;
+}
+
+uint32_t target_override_pll()
+{
+	return 1;
 }
