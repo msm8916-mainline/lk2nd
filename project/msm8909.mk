@@ -1,8 +1,8 @@
-# top level project rules for the ferrum project
+# top level project rules for the msm8909 project
 #
 LOCAL_DIR := $(GET_LOCAL_DIR)
 
-TARGET := ferrum
+TARGET := msm8909
 
 MODULES += app/aboot
 
