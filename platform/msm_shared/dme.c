@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -149,6 +149,51 @@ static int dme_send_query_upiu(struct ufs_dev *dev, struct utp_query_req_upiu_ty
 
 utp_send_query_upiu_err:
 	return ret;
+}
+
+int dme_set_fpoweronwpen(struct ufs_dev *dev)
+{
+	STACKBUF_DMA_ALIGN(result, sizeof(uint32_t));
+	uint32_t try_again                        = DME_FPOWERONWPEN_RETRIES;
+	struct utp_query_req_upiu_type read_query = {UPIU_QUERY_OP_READ_FLAG,
+                                                 UFS_IDX_fPowerOnWPEn,
+                                                 0,
+                                                 0,
+                                                 (addr_t) result,
+                                                 sizeof(uint32_t)};
+	struct utp_query_req_upiu_type set_query  = {UPIU_QUERY_OP_SET_FLAG,
+                                                 UFS_IDX_fPowerOnWPEn,
+                                                 0,
+                                                 0,
+                                                 (addr_t) result,
+                                                 sizeof(uint32_t)};
+
+
+	if (dme_send_query_upiu(dev, &read_query))
+		return -UFS_FAILURE;
+
+	arch_invalidate_cache_range((addr_t) result, sizeof(uint32_t));
+
+	if (*result == 1)
+		goto utp_set_fpoweronwpen_done;
+
+	do
+	{
+		try_again--;
+		dprintf(CRITICAL, "Power on Write Protect request failed. Retrying again.\n");
+
+		if (dme_send_query_upiu(dev, &set_query))
+			return -UFS_FAILURE;
+		if (dme_send_query_upiu(dev, &read_query))
+			return -UFS_FAILURE;
+
+		if (*result == 1)
+			break;
+	} while (try_again);
+
+utp_set_fpoweronwpen_done:
+	dprintf(INFO,"Power on Write Protect status: %u\n", *result);
+	return UFS_SUCCESS;
 }
 
 int dme_set_fdeviceinit(struct ufs_dev *dev)
