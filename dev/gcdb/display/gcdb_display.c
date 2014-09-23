@@ -181,7 +181,7 @@ bool gcdb_display_cmdline_arg(char *panel_name, char *pbuf, uint16_t buf_size)
 		panel_mode = 1;
 		panel_node = SIM_DUALDSI_VIDEO_PANEL_NODE;
 		slave_panel_node = SIM_DUALDSI_VIDEO_SLAVE_PANEL_NODE;
-	} else if (panelstruct.paneldata) {
+	} else if (panelstruct.paneldata && target_cont_splash_screen()) {
 		dsi_id = panelstruct.paneldata->panel_controller;
 		panel_node = panelstruct.paneldata->panel_node_id;
 		panel_mode = panelstruct.paneldata->panel_operating_mode &

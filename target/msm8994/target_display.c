@@ -384,8 +384,10 @@ void target_display_init(const char *panel_name)
 				panel_name);
 		return;
 	}
-	if (gcdb_display_init(panel_name, MDP_REV_50, MIPI_FB_ADDR))
+	if (gcdb_display_init(panel_name, MDP_REV_50, MIPI_FB_ADDR)) {
+		target_force_cont_splash_disable(true);
 		msm_display_off();
+	}
 }
 
 void target_display_shutdown(void)

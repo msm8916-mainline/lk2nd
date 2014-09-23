@@ -178,12 +178,12 @@ void target_display_init(const char *panel_name)
 	}
 
 	do {
+		target_force_cont_splash_disable(false);
 		ret = gcdb_display_init(panel_name, MDP_REV_304, MIPI_FB_ADDR);
 		if (ret) {
 			/*Panel signature did not match, turn off the display*/
 			target_force_cont_splash_disable(true);
 			msm_display_off();
-			target_force_cont_splash_disable(false);
 		} else {
 			break;
 		}
