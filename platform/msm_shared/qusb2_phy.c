@@ -31,6 +31,11 @@
 #include <bits.h>
 #include <debug.h>
 
+__WEAK int platform_is_msm8994()
+{
+	return 0;
+}
+
 void qusb2_phy_reset(void)
 {
 	uint32_t val;
@@ -61,7 +66,8 @@ void qusb2_phy_reset(void)
 	/* Disable the PHY */
 	writel(0x23, QUSB2PHY_PORT_POWERDOWN);
 	/* Enable ULPI mode */
-	writel(0x0,  QUSB2PHY_PORT_UTMI_CTRL2);
+	if (platform_is_msm8994())
+		writel(0x0,  QUSB2PHY_PORT_UTMI_CTRL2);
 	/* Enable PHY */
 	/* set CLAMP_N_EN and USB PHY is enabled*/
 	writel(0x22, QUSB2PHY_PORT_POWERDOWN);

@@ -90,14 +90,6 @@ int bam_wait_for_interrupt(struct bam_instance *bam,
 			/* Flush out the right most global interrupt bit */
 		} while (!((val & 0x7FFF) & (1 << bam->pipe[pipe_num].pipe_num)));
 
-		/* Check the reason for this BAM interrupt */
-		bamsts = readl(BAM_IRQ_STTS(bam->base));
-		if (bamsts)
-		{
-			dprintf(CRITICAL,"ERROR:BAM_IRQ_STTS %u \n", bamsts);
-			goto bam_wait_int_error;
-		}
-
 		/* Check the interrupt type */
 		/* Read interrupt status register */
 		val = readl(BAM_P_IRQ_STTSn(bam->pipe[pipe_num].pipe_num, bam->base));
