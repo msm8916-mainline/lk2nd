@@ -130,8 +130,15 @@ static uint32_t read_der_message_length(unsigned char* input)
 static int verify_digest(unsigned char* input, unsigned char *digest, int hash_size)
 {
 	int ret = -1;
+	X509_SIG *sig = NULL;
 	uint32_t len = read_der_message_length(input);
-	X509_SIG *sig = d2i_X509_SIG(NULL, &input, len);
+	if(!len)
+	{
+		dprintf(CRITICAL, "boot_verifier: Signature length is invalid.\n");
+		return ret;
+	}
+
+	sig = d2i_X509_SIG(NULL, &input, len);
 	if(sig == NULL)
 	{
 		dprintf(CRITICAL, "boot_verifier: Reading digest failed\n");
@@ -299,12 +306,21 @@ static bool verify_keystore(unsigned char * ks_addr, KEYSTORE *ks)
 
 static void read_oem_keystore()
 {
+	KEYSTORE *ks = NULL;
+	uint32_t len = 0;
+	unsigned char *input = OEM_KEYSTORE;
+
 	if(oem_keystore != NULL)
 		return;
 
-	unsigned char *input = OEM_KEYSTORE;
-	uint32_t len = read_der_message_length(input);
-	KEYSTORE *ks = d2i_KEYSTORE(NULL, &input, len);
+	len = read_der_message_length(input);
+	if(!len)
+	{
+		dprintf(CRITICAL, "boot_verifier: oem keystore length is invalid.\n");
+		return;
+	}
+
+	ks = d2i_KEYSTORE(NULL, &input, len);
 	if(ks != NULL)
 	{
 		oem_keystore = ks;
@@ -334,8 +350,15 @@ static int read_user_keystore_ptn()
 static void read_user_keystore(unsigned char *user_addr)
 {
 	unsigned char *input = user_addr;
+	KEYSTORE *ks = NULL;
 	uint32_t len = read_der_message_length(input);
-	KEYSTORE *ks = d2i_KEYSTORE(NULL, &input, len);
+	if(!len)
+	{
+		dprintf(CRITICAL, "boot_verifier: user keystore length is invalid.\n");
+		return;
+	}
+
+	ks = d2i_KEYSTORE(NULL, &input, len);
 	if(ks != NULL)
 	{
 		if(verify_keystore(user_addr, ks) == false)
@@ -454,8 +477,15 @@ bool boot_verify_validate_keystore(unsigned char * user_addr)
 {
 	bool ret = false;
 	unsigned char *input = user_addr;
+	KEYSTORE *ks = NULL;
 	uint32_t len = read_der_message_length(input);
-	KEYSTORE *ks = d2i_KEYSTORE(NULL, &input, len);
+	if(!len)
+	{
+		dprintf(CRITICAL, "boot_verifier: keystore length is invalid.\n");
+		return ret;
+	}
+
+	ks = d2i_KEYSTORE(NULL, &input, len);
 	if(ks != NULL)
 	{
 		ret = true;
