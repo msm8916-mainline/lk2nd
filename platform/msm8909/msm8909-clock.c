@@ -506,7 +506,7 @@ static struct branch_clk gcc_blsp1_qup2_i2c_apps_clk = {
 	},
 };
 /* Clock lookup table */
-static struct clk_lookup msm_clocks_ferrum[] =
+static struct clk_lookup msm_clocks_msm8909[] =
 {
 	CLK_LOOKUP("sdc1_iface_clk", gcc_sdcc1_ahb_clk.c),
 	CLK_LOOKUP("sdc1_core_clk",  gcc_sdcc1_apps_clk.c),
@@ -539,5 +539,5 @@ static struct clk_lookup msm_clocks_ferrum[] =
 
 void platform_clock_init(void)
 {
-	clk_init(msm_clocks_ferrum, ARRAY_SIZE(msm_clocks_ferrum));
+	clk_init(msm_clocks_msm8909, ARRAY_SIZE(msm_clocks_msm8909));
 }

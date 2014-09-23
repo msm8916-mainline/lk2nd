@@ -26,19 +26,34 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __FERRUM_CLOCK_H
-#define __FERRUM_CLOCK_H
+#ifndef __PLATFORM_MSM8909_GPIO_H
+#define __PLATFORM_MSM8909_GPIO_H
 
-#include <clock.h>
-#include <clock_lib2.h>
 
-#define UART_DM_CLK_RX_TX_BIT_RATE 0xCC
+/* GPIO TLMM: Direction */
+#define GPIO_INPUT      0
+#define GPIO_OUTPUT     1
 
-void platform_clock_init(void);
+/* GPIO TLMM: Pullup/Pulldown */
+#define GPIO_NO_PULL    0
+#define GPIO_PULL_DOWN  1
+#define GPIO_KEEPER     2
+#define GPIO_PULL_UP    3
 
-void clock_init_mmc(uint32_t interface);
-void clock_config_mmc(uint32_t interface, uint32_t freq);
-void clock_config_uart_dm(uint8_t id);
-void hsusb_clock_init(void);
-void clock_config_ce(uint8_t instance);
+/* GPIO TLMM: Drive Strength */
+#define GPIO_2MA        0
+#define GPIO_4MA        1
+#define GPIO_6MA        2
+#define GPIO_8MA        3
+#define GPIO_10MA       4
+#define GPIO_12MA       5
+#define GPIO_14MA       6
+#define GPIO_16MA       7
+
+/* GPIO TLMM: Status */
+#define GPIO_ENABLE     0
+#define GPIO_DISABLE    1
+
+
+void gpio_config_uart_dm(uint8_t id);
 #endif
