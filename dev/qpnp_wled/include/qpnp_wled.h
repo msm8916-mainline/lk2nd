@@ -250,4 +250,4 @@ int qpnp_wled_init();
 
 /* Enable IBB */
 int qpnp_ibb_enable();
-void qpnp_wled_enable_backlight(enable);
+void qpnp_wled_enable_backlight(int enable);
