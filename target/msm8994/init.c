@@ -51,11 +51,15 @@
 #include <platform/gpio.h>
 #include <platform/timer.h>
 #include <stdlib.h>
+#include <string.h>
 #include <ufs.h>
 #include <boot_device.h>
 #include <qmp_phy.h>
 #include <qusb2_phy.h>
 #include <rpm-smd.h>
+#include <sdhci_msm.h>
+#include <pm8x41_wled.h>
+#include <qpnp_wled.h>
 
 #define CE_INSTANCE             2
 #define CE_EE                   1
@@ -71,7 +75,6 @@
 
 #define FASTBOOT_MODE           0x77665500
 
-#define BOOT_DEVICE_MASK(val)   ((val & 0x3E) >>1)
 #define PMIC_WLED_SLAVE_ID      3
 
 static void set_sdc_power_ctrl(uint8_t slot);
