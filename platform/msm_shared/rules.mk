@@ -19,8 +19,7 @@ OBJS += \
 ifeq ($(ENABLE_SMD_SUPPORT),1)
 OBJS += \
 	$(LOCAL_DIR)/rpm-smd.o \
-	$(LOCAL_DIR)/smd.o \
-	$(LOCAL_DIR)/regulator.o
+	$(LOCAL_DIR)/smd.o
 endif
 
 ifeq ($(ENABLE_SDHCI_SUPPORT),1)
