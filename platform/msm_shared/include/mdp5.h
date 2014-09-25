@@ -102,6 +102,9 @@
 #define MDP_CTL_0_BASE                          REG_MDP(0x600)
 #define MDP_CTL_1_BASE                          REG_MDP(0x700)
 
+#define MDP_PP_0_BASE                           REG_MDP(0x12D00)
+#define MDP_PP_1_BASE                           REG_MDP(0x12E00)
+
 #define CTL_LAYER_0                             0x00
 #define CTL_LAYER_1                             0x04
 #define CTL_TOP                                 0x14
@@ -177,6 +180,10 @@
 #define VBIF_VBIF_ABIT_SHORT                    REG_MDP(0x24070)
 #define VBIF_VBIF_ABIT_SHORT_CONF               REG_MDP(0x24074)
 #define VBIF_VBIF_GATE_OFF_WRREQ_EN             REG_MDP(0x240A8)
+
+#define MDSS_MDP_REG_PP_FBC_MODE                0x034
+#define MDSS_MDP_REG_PP_FBC_BUDGET_CTL          0x038
+#define MDSS_MDP_REG_PP_FBC_LOSSY_MODE          0x03C
 
 void mdp_set_revision(int rev);
 int mdp_get_revision();

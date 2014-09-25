@@ -243,6 +243,17 @@
 
 #define MDP_BASE                    (0xfd900000)
 
+
+#ifdef MDP_PP_0_BASE
+#undef MDP_PP_0_BASE
+#endif
+#define MDP_PP_0_BASE               REG_MDP(0x71000)
+
+#ifdef MDP_PP_1_BASE
+#undef MDP_PP_1_BASE
+#endif
+#define MDP_PP_1_BASE               REG_MDP(0x71800)
+
 #define REG_MDP(off)                (MDP_BASE + (off))
 #define MDP_HW_REV                              REG_MDP(0x1000)
 #define MDP_INTR_EN                             REG_MDP(0x1010)
