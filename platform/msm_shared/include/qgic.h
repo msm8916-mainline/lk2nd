@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2011, 2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -56,11 +56,17 @@
 #define GIC_DIST_CONFIG             GIC_DIST_REG(0xc00)
 #define GIC_DIST_SOFTINT            GIC_DIST_REG(0xf00)
 
+#define INTERRUPT_LVL_N_TO_N        0x0
+#define INTERRUPT_LVL_1_TO_N        0x1
+#define INTERRUPT_EDGE_N_TO_N       0x2
+#define INTERRUPT_EDGE_1_TO_N       0x3
+
 struct ihandler {
 	int_handler func;
 	void *arg;
 };
 
 void qgic_init(void);
+void qgic_change_interrupt_cfg(uint32_t spi_number, uint8_t type);
 
 #endif
