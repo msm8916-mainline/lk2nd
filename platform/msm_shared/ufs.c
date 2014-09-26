@@ -34,8 +34,10 @@
 #include <uic.h>
 #include <ucs.h>
 #include <dme.h>
+#include <qgic.h>
 #include <string.h>
 #include <platform/iomap.h>
+#include <platform/irqs.h>
 #include <kernel/mutex.h>
 
 static int ufs_dev_init(struct ufs_dev *dev)
@@ -83,6 +85,8 @@ static void ufs_setup_req_lists(struct ufs_dev *dev)
 	/* Enable the required irqs. */
 	val = UFS_IE_UEE | UFS_IE_UCCE ;
 	ufs_irq_enable(dev, val);
+	// Change UFS_IRQ to level based
+	qgic_change_interrupt_cfg(UFS_IRQ, INTERRUPT_LVL_N_TO_N);
 }
 
 int ufs_read(struct ufs_dev* dev, uint64_t start_lba, addr_t buffer, uint32_t num_blocks)
