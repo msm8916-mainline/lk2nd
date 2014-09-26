@@ -745,6 +745,11 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 		writel(0x1, MDP_REG_SPLIT_DISPLAY_EN);
 	}
 
+	if (pinfo->lcdc.dst_split) {
+		writel(BIT(16), MDP_REG_PPB0_CONFIG);
+		writel(BIT(5), MDP_REG_PPB0_CNTL);
+	}
+
 	mdss_mdp_intf_off = mdss_mdp_intf_offset();
 
 	mdp_clk_gating_ctrl();
@@ -773,8 +778,10 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 
 	if (pinfo->mipi.dual_dsi) {
 		writel(0x213F, MDP_INTF_2_BASE + MDP_PANEL_FORMAT + mdss_mdp_intf_off);
-		reg = 0x21f00 | mdss_mdp_ctl_out_sel(pinfo, 0);
-		writel(reg, MDP_CTL_1_BASE + CTL_TOP);
+		if (!pinfo->lcdc.dst_split) {
+			reg = 0x21f00 | mdss_mdp_ctl_out_sel(pinfo, 0);
+			writel(reg, MDP_CTL_1_BASE + CTL_TOP);
+		}
 	}
 
 	return ret;
