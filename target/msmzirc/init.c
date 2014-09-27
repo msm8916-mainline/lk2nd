@@ -75,6 +75,9 @@ static struct ptable flash_ptable;
 
 #define LAST_NAND_PTN_LEN_PATTERN                     0xFFFFFFFF
 
+#define EXT4_CMDLINE  " rootfstype=ext4 root=/dev/mmcblk0p"
+#define UBI_CMDLINE " rootfstype=ubifs rootflags=bulk_read ubi.fm_autoconvert=1"
+
 struct qpic_nand_init_config config;
 
 void update_ptable_names(void)
@@ -217,39 +220,45 @@ int get_target_boot_params(const char *cmdline, const char *part, char *buf,
 	struct ptable *ptable;
 	int system_ptn_index = -1;
 
-	if (!target_is_emmc_boot()) {
-		if (!cmdline || !part || !buf || buflen < 0) {
-			dprintf(CRITICAL, "WARN: Invalid input param\n");
-			return -1;
-		}
-
-		ptable = flash_get_ptable();
-		if (!ptable) {
-			dprintf(CRITICAL,
-				"WARN: Cannot get flash partition table\n");
-			return -1;
-		}
-
-		system_ptn_index = ptable_get_index(ptable, part);
-		if (system_ptn_index < 0) {
-			dprintf(CRITICAL,
-				"WARN: Cannot get partition index for %s\n", part);
-			return -1;
-		}
-
-		/*
-		 * check if cmdline contains "root=" at the beginning of buffer or
-		 * " root=" in the middle of buffer.
-		 */
-		if (((!strncmp(cmdline, "root=", strlen("root="))) ||
-		     (strstr(cmdline, " root="))))
-			dprintf(DEBUG, "DEBUG: cmdline has root=\n");
-		else
-			snprintf(buf, buflen, " root=/dev/mtdblock%d",
-				 system_ptn_index);
+	if (!cmdline || !part || !buf || buflen < 0) {
+		dprintf(CRITICAL, "WARN: Invalid input param\n");
+		return -1;
 	}
 
-	return 0;
+	if (!strstr(cmdline, "root=/dev/ram")) /* This check is to handle kdev boot */
+	{
+		if (!target_is_emmc_boot()) {
+			/* Below is for NAND boot */
+			ptable = flash_get_ptable();
+			if (!ptable) {
+				dprintf(CRITICAL,
+						"WARN: Cannot get flash partition table\n");
+				return -1;
+			}
+
+			system_ptn_index = ptable_get_index(ptable, part);
+			if (system_ptn_index < 0) {
+				dprintf(CRITICAL,
+					"WARN: Cannot get partition index for %s\n", part);
+				return -1;
+			}
+			/* Adding command line parameters according to target boot type */
+			snprintf(buf, buflen, UBI_CMDLINE);
+			snprintf(buf+strlen(buf), buflen, " root=ubi0:rootfs ubi.mtd=%d", system_ptn_index);
+		}
+		else {
+			/* Below is for emmc boot */
+			system_ptn_index = partition_get_index(part);
+			if (system_ptn_index < 0) {
+				dprintf(CRITICAL,
+						"WARN: Cannot get partition index for %s\n", part);
+				return -1;
+			}
+			snprintf(buf, buflen, EXT4_CMDLINE"%d", system_ptn_index);
+		}
+
+		return 0;
+	}
 }
 
 const char * target_usb_controller()
