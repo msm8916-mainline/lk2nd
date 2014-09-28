@@ -450,6 +450,9 @@ void target_uninit(void)
 
 	if (target_is_ssd_enabled())
 		clock_ce_disable(SSD_CE_INSTANCE);
+
+	/* Disable HC mode before jumping to kernel */
+	sdhci_mode_disable(&dev->host);
 }
 
 void target_usb_init(void)
