@@ -285,8 +285,8 @@
 #define MMSS_MDP_SMP_ALLOC_W_BASE               REG_MDP(0x1080)
 #define MMSS_MDP_SMP_ALLOC_R_BASE               REG_MDP(0x1130)
 
-#define MDP_QOS_REMAPPER_CLASS_0                REG_MDP(0x13d8)
-#define MDP_QOS_REMAPPER_CLASS_1                REG_MDP(0x13dc)
+#define MDP_QOS_REMAPPER_CLASS_0                REG_MDP(0x11E0)
+#define MDP_QOS_REMAPPER_CLASS_1                REG_MDP(0x11E4)
 
 #define VBIF_VBIF_DDR_FORCE_CLK_ON              REG_MDP(0xc8004)
 #define VBIF_VBIF_DDR_OUT_MAX_BURST             REG_MDP(0xc80D8)
