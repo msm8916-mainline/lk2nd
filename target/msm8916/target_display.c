@@ -293,6 +293,10 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 
 	if (enable) {
 		if (pinfo->mipi.use_enable_gpio) {
+			/* set enable gpio pin for SKUT1 */
+			if ((hw_id == HW_PLATFORM_QRD) &&
+				 (hw_subtype == HW_PLATFORM_SUBTYPE_SKUT1))
+				enable_gpio = enable_gpio_skut1;
 			gpio_tlmm_config(enable_gpio.pin_id, 0,
 				enable_gpio.pin_direction, enable_gpio.pin_pull,
 				enable_gpio.pin_strength,

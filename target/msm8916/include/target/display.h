@@ -77,6 +77,10 @@ static struct gpio_pin enn_gpio_skuk = {
   "msmgpio", 98, 3, 1, 0, 1
 };
 
+static struct gpio_pin enable_gpio_skut1 = {
+  "msmgpio", 8, 3, 1, 0, 1
+};
+
 /*---------------------------------------------------------------------------*/
 /* Target Physical configuration                                             */
 /*---------------------------------------------------------------------------*/
@@ -126,6 +130,7 @@ enum qrd_subtype
 	HW_PLATFORM_SUBTYPE_SKUH = 4,
 	HW_PLATFORM_SUBTYPE_SKUI = 5, /* msm8916 */
 	HW_PLATFORM_SUBTYPE_SKUK = 5, /* msm8939 */
+	HW_PLATFORM_SUBTYPE_SKUT1 = 0x40, /* msm8916 */
 };
 
 #endif
