@@ -448,10 +448,10 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 				break;
 			case HW_PLATFORM_SUBTYPE_SKUI:
 				/* qrd SKUIC */
-				if ((plat_hw_ver_major >> 4) == 0x1)
-					panel_id = HX8379A_FWVGA_VIDEO_PANEL;
-				else
+				if ((plat_hw_ver_major >> 4) == 0)
 					panel_id = OTM8019A_FWVGA_VIDEO_PANEL;
+				else
+					panel_id = HX8379A_FWVGA_VIDEO_PANEL;
 				break;
 			default:
 				dprintf(CRITICAL, "Invalid subtype id %d for QRD HW\n",
