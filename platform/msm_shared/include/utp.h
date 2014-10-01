@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -145,5 +145,5 @@ struct utp_bitmap_access_type
 
 int utp_enqueue_upiu(struct ufs_dev *dev, struct upiu_req_build_type *upiu_data);
 void utp_process_req_completion(struct ufs_req_irq_type *irq);
-
+int utp_poll_utrd_complete(struct ufs_dev *dev);
 #endif

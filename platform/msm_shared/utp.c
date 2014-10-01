@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -37,6 +37,7 @@
 #include <stdlib.h>
 #include <ufs_hw.h>
 #include <utp.h>
+#include <ufs.h>
 #include <platform/iomap.h>
 #include <platform/clock.h>
 #include <arch/ops.h>
@@ -215,6 +216,44 @@ utp_get_desc_slot_addr_err:
 	return desc;
 }
 
+int utp_poll_utrd_complete(struct ufs_dev *dev)
+{
+	int ret;
+	struct ufs_req_irq_type irq;
+	uint32_t val, base;
+	base = dev->base;
+	val = readl(UFS_IS(base));
+	irq.irq_handled = 0;
+	/* Wait till the desc has been processed. */
+	while(((val & UFS_IS_UTRCS) == 0) && ((val & UFS_IS_UTMRCS) == 0))
+	{
+		val = readl(UFS_IS(base));
+#ifdef DEBUG_UFS
+		dprintf(INFO, "Waiting for UTRCS/URMRCS Completion...\n");
+#endif
+	}
+	if (readl(UFS_IS(base)) & UFS_IS_UTRCS)
+	{
+		val = readl(UFS_IS(base)) & UFS_IS_UTRCS;
+		writel(UFS_IS_UTRCS, UFS_IS(base));
+		irq.irq_handled = UFS_IS_UTRCS;
+		irq.list = &(dev->utrd_data.list_head.list_node);
+		irq.door_bell_reg = UFS_UTRLDBR(base);
+		utp_process_req_completion(&irq);
+		ret = INT_NO_RESCHEDULE;
+	}
+	else if (readl(UFS_IS(base)) & (UFS_IS_UTMRCS))
+	{
+		val = readl(UFS_IS(base)) & UFS_IS_UTMRCS;
+		writel(UFS_IS_UTMRCS, UFS_IS(base));
+		irq.irq_handled = UFS_IS_UTMRCS;
+		irq.list = &(dev->utmrd_data.list_head.list_node);
+		utp_process_req_completion(&irq);
+		ret = INT_NO_RESCHEDULE;
+	}
+	return ret;
+}
+
 static int utp_enqueue_utrd(struct ufs_dev *dev, struct utp_utrd_req_build_type *utrd_req)
 {
 	int                           ret;
@@ -252,12 +291,21 @@ static int utp_enqueue_utrd(struct ufs_dev *dev, struct utp_utrd_req_build_type 
 
 	dsb();
 
-	utp_ring_door_bell(UFS_UTRLDBR(dev->base), door_bell_bit_val);
+#ifdef DEBUG_UFS
+	// print IS before write
+	ufs_dump_is_register(dev);
+#endif
+
+	utp_ring_door_bell(UFS_UTRLDBR(dev->base), door_bell_bit_val);
 
 	dsb();
 
-	/* Wait till the desc has been processed. */
-	ret = event_wait_timeout(&utrd_evt, utrd_req->timeout);
+#ifdef DEBUG_UFS
+	// print IS after write
+	ufs_dump_is_register(dev);
+#endif
+	ret = utp_poll_utrd_complete(dev);
+
 	if (ret)
 	{
 		if (ret == ERR_TIMED_OUT)

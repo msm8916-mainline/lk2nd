@@ -81,7 +81,7 @@ static void ufs_setup_req_lists(struct ufs_dev *dev)
 	writel(1, UFS_UTRLRSR(dev->base));
 
 	/* Enable the required irqs. */
-	val = UFS_IE_UTRCE | UFS_IE_UEE | UFS_IE_UTMRCE | UFS_IE_UCCE ;
+	val = UFS_IE_UEE | UFS_IE_UCCE ;
 	ufs_irq_enable(dev, val);
 }
 
