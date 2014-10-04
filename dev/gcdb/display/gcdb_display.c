@@ -219,15 +219,14 @@ bool gcdb_display_cmdline_arg(char *panel_name, char *pbuf, uint16_t buf_size)
 
 	dsi_id_len = strlen(dsi_id);
 	panel_node_len = strlen(panel_node);
-	if (slave_panel_node)
-		slave_panel_node_len = strlen(slave_panel_node);
+	if (!slave_panel_node)
+		slave_panel_node = NO_PANEL_CONFIG;
+	slave_panel_node_len = strlen(slave_panel_node);
 
 	arg_size = prefix_string_len + dsi_id_len + panel_node_len +
 						LK_OVERRIDE_PANEL_LEN + 1;
 
-	/* For dual pipe or split display */
-	if (panel_mode)
-		arg_size += DSI_1_STRING_LEN + slave_panel_node_len;
+	arg_size += DSI_1_STRING_LEN + slave_panel_node_len;
 
 	if (buf_size < arg_size) {
 		dprintf(CRITICAL, "display command line buffer is small\n");
@@ -247,18 +246,13 @@ bool gcdb_display_cmdline_arg(char *panel_name, char *pbuf, uint16_t buf_size)
 
 		strlcpy(pbuf, panel_node, buf_size);
 
-		/* Return string for single dsi */
-		if (!panel_mode)
-			goto end;
-
 		pbuf += panel_node_len;
 		buf_size -= panel_node_len;
 
 		strlcpy(pbuf, DSI_1_STRING, buf_size);
 		pbuf += DSI_1_STRING_LEN;
 		buf_size -= DSI_1_STRING_LEN;
-		if (slave_panel_node)
-			strlcpy(pbuf, slave_panel_node, buf_size);
+		strlcpy(pbuf, slave_panel_node, buf_size);
 	}
 end:
 	return ret;
