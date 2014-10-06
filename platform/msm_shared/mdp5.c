@@ -129,7 +129,8 @@ static void mdss_mdp_set_flush(struct msm_panel_info *pinfo,
 		(mdss_mdp_rev == MDSS_MDP_HW_REV_108)) {
 			*ctl0_reg_val |= BIT(30);
 			*ctl1_reg_val |= BIT(31);
-	} else if (mdss_mdp_rev == MDSS_MDP_HW_REV_105) {
+	} else if ((mdss_mdp_rev == MDSS_MDP_HW_REV_105) ||
+		(mdss_mdp_rev == MDSS_MDP_HW_REV_109)) {
 			*ctl0_reg_val |= BIT(30);
 			*ctl1_reg_val |= BIT(29);
 	}
@@ -588,7 +589,9 @@ void mdss_qos_remapper_setup(void)
 			MDSS_MDP_HW_REV_108))
 		map = 0xE4;
 	else if (MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev,
-			MDSS_MDP_HW_REV_105))
+			MDSS_MDP_HW_REV_105) ||
+		 MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev,
+			MDSS_MDP_HW_REV_109))
 		map = 0xA4;
 	else if (MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev,
 			MDSS_MDP_HW_REV_103))
@@ -615,7 +618,8 @@ void mdss_vbif_qos_remapper_setup(struct msm_panel_info *pinfo)
 		vbif_qos[1] = 2;
 		vbif_qos[2] = 2;
 		vbif_qos[3] = 2;
-	} else if (MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev, MDSS_MDP_HW_REV_105)) {
+	} else if (MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev, MDSS_MDP_HW_REV_105) ||
+		 MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev, MDSS_MDP_HW_REV_109)) {
 		vbif_qos[0] = 1;
 		vbif_qos[1] = 2;
 		vbif_qos[2] = 2;
