@@ -60,7 +60,7 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 			lcdc->h_back_porch + 1;
 	vsync_period_intmd = pinfo->yres + lcdc->v_front_porch + \
 				lcdc->v_back_porch + 1;
-	if (mdp_rev == MDP_REV_304) {
+	if (mdp_rev == MDP_REV_304 || mdp_rev == MDP_REV_305) {
 		hsync_period += lcdc->h_pulse_width - 1;
 		vsync_period_intmd += lcdc->v_pulse_width - 1;
 	}
@@ -78,7 +78,7 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 	writel(vsync_period, MDP_DSI_VIDEO_VSYNC_PERIOD);
 	writel(lcdc->v_pulse_width * hsync_period, \
 			MDP_DSI_VIDEO_VSYNC_PULSE_WIDTH);
-	if (mdp_rev == MDP_REV_304) {
+	if (mdp_rev == MDP_REV_304 || mdp_rev == MDP_REV_305) {
 		writel((pinfo->xres + lcdc->h_back_porch + \
 			lcdc->h_pulse_width - 1) << 16 | \
 			lcdc->h_back_porch + lcdc->h_pulse_width, \
