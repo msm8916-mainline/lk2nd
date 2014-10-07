@@ -114,4 +114,85 @@
 #define USB_HS_SYSTEM_CMD_RCGR      (CLK_CTL_BASE + 0x41010)
 #define USB_HS_SYSTEM_CFG_RCGR      (CLK_CTL_BASE + 0x41014)
 
+
+/* MDSS */
+#define MIPI_DSI_BASE               (0x1AC8000)
+#define MIPI_DSI0_BASE              MIPI_DSI_BASE
+#define MIPI_DSI1_BASE              MIPI_DSI_BASE
+#define DSI0_PHY_BASE               (0x1AC8500)
+#define DSI1_PHY_BASE               DSI0_PHY_BASE
+#define DSI0_PLL_BASE               (0x1AC8300)
+#define DSI1_PLL_BASE               DSI0_PLL_BASE
+#define REG_DSI(off)                (MIPI_DSI_BASE + 0x04 + (off))
+
+
+/* MDP */
+#define MDP_BASE                    0x1A00000
+#define REG_MDP(off)                (MDP_BASE + (off))
+
+#define MDP_DMA_P_CONFIG            REG_MDP(0x90000)
+#define MDP_DMA_P_OUT_XY            REG_MDP(0x90010)
+#define MDP_DMA_P_SIZE              REG_MDP(0x90004)
+#define MDP_DMA_P_BUF_ADDR          REG_MDP(0x90008)
+#define MDP_DMA_P_BUF_Y_STRIDE      REG_MDP(0x9000C)
+
+#define MDP_DSI_VIDEO_EN                 REG_MDP(0xF0000)
+#define MDP_DSI_VIDEO_HSYNC_CTL          REG_MDP(0xF0004)
+#define MDP_DSI_VIDEO_VSYNC_PERIOD       REG_MDP(0xF0008)
+#define MDP_DSI_VIDEO_VSYNC_PULSE_WIDTH  REG_MDP(0xF000C)
+#define MDP_DSI_VIDEO_DISPLAY_HCTL       REG_MDP(0xF0010)
+#define MDP_DSI_VIDEO_DISPLAY_V_START    REG_MDP(0xF0014)
+#define MDP_DSI_VIDEO_DISPLAY_V_END      REG_MDP(0xF0018)
+#define MDP_DSI_VIDEO_BORDER_CLR         REG_MDP(0xF0028)
+#define MDP_DSI_VIDEO_HSYNC_SKEW         REG_MDP(0xF0030)
+#define MDP_DSI_VIDEO_CTL_POLARITY       REG_MDP(0xF0038)
+#define MDP_DSI_VIDEO_TEST_CTL           REG_MDP(0xF0034)
+
+#define MDP_DMA_P_START                REG_MDP(0x00044)
+#define MDP_DMA_S_START                REG_MDP(0x00048)
+#define MDP_DISP_INTF_SEL              REG_MDP(0x00038)
+#define MDP_MAX_RD_PENDING_CMD_CONFIG  REG_MDP(0x0004C)
+#define MDP_INTR_ENABLE                REG_MDP(0x00020)
+#define MDP_INTR_CLEAR                 REG_MDP(0x00028)
+#define MDP_DSI_CMD_MODE_ID_MAP        REG_MDP(0xF1000)
+#define MDP_DSI_CMD_MODE_TRIGGER_EN    REG_MDP(0XF1004)
+
+#define MDP_TEST_MODE_CLK           REG_MDP(0xF0000)
+#define MDP_INTR_STATUS             REG_MDP(0x00054)
+
+#define SOFT_RESET                  0x118
+#define CLK_CTRL                    0x11C
+#define TRIG_CTRL                   0x084
+#define CTRL                        0x004
+#define COMMAND_MODE_DMA_CTRL       0x03C
+#define COMMAND_MODE_MDP_CTRL       0x040
+#define COMMAND_MODE_MDP_DCS_CMD_CTRL   0x044
+#define COMMAND_MODE_MDP_STREAM0_CTRL   0x058
+#define COMMAND_MODE_MDP_STREAM0_TOTAL  0x05C
+#define COMMAND_MODE_MDP_STREAM1_CTRL   0x060
+#define COMMAND_MODE_MDP_STREAM1_TOTAL  0x064
+#define ERR_INT_MASK0               0x10C
+
+#define LANE_SWAP_CTL               0x0B0
+#define TIMING_CTL                  0x0C4
+
+#define VIDEO_MODE_ACTIVE_H         0x024
+#define VIDEO_MODE_ACTIVE_V         0x028
+#define VIDEO_MODE_TOTAL            0x02C
+#define VIDEO_MODE_HSYNC            0x030
+#define VIDEO_MODE_VSYNC            0x034
+#define VIDEO_MODE_VSYNC_VPOS       0x038
+
+#define DMA_CMD_OFFSET              0x048
+#define DMA_CMD_LENGTH              0x04C
+
+#define INT_CTRL                    0x110
+#define CMD_MODE_DMA_SW_TRIGGER     0x090
+
+#define EOT_PACKET_CTRL             0x0CC
+#define MISR_CMD_CTRL               0x0A0
+#define MISR_VIDEO_CTRL             0x0A4
+#define VIDEO_MODE_CTRL             0x010
+#define HS_TIMER_CTRL               0x0BC
+
 #endif
