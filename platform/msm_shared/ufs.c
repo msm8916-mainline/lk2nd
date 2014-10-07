@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -264,6 +264,12 @@ ufs_init_err:
 	}
 
 	return ret;
+}
+
+void ufs_dump_is_register(struct ufs_dev *dev)
+{
+	uint32_t base = dev->base;
+	dprintf(CRITICAL,"UFS_IS 0x%x\n",readl(UFS_IS(base)));
 }
 
 void ufs_dump_hc_registers(struct ufs_dev *dev)
