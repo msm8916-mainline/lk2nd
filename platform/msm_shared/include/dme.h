@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -50,6 +50,7 @@
 /* Retry value for commands. */
 #define DME_NOP_NUM_RETRIES                              20
 #define DME_FDEVICEINIT_RETRIES                          20
+#define DME_FPOWERONWPEN_RETRIES                         20
 
 /* Timeout value for commands. */
 #define DME_NOP_QUERY_TIMEOUT                            10
@@ -221,6 +222,7 @@ int utp_build_query_req_upiu(struct upiu_trans_mgmt_query_hdr *req_upiu,
 								  struct upiu_req_build_type *upiu_data);
 int dme_send_nop_query(struct ufs_dev *dev);
 int dme_set_fdeviceinit(struct ufs_dev *dev);
+int dme_set_fpoweronwpen(struct ufs_dev *dev);
 int dme_read_unit_desc(struct ufs_dev *dev, uint8_t index);
 
 #endif
