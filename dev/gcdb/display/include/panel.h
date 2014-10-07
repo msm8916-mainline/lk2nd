@@ -178,4 +178,24 @@ typedef struct backlight {
 	char     *bl_pmic_model;
 };
 
+typedef struct fb_compression {
+	uint32_t enabled;
+	uint32_t comp_ratio;
+	uint32_t comp_mode;
+	uint32_t qerr_enable;
+	uint32_t cd_bias;
+	uint32_t pat_enable;
+	uint32_t vlc_enable;
+	uint32_t bflc_enable;
+
+	uint32_t line_x_budget;
+	uint32_t block_x_budget;
+	uint32_t block_budget;
+
+	uint32_t lossless_mode_thd;
+	uint32_t lossy_mode_thd;
+	uint32_t lossy_rgb_thd;
+	uint32_t lossy_mode_idx;
+};
+
 #endif /*_PANEL_H_ */

@@ -43,7 +43,10 @@ static void calculate_bitclock(struct msm_panel_info *pinfo)
 	uint32_t width = pinfo->xres;
 
 	if (pinfo->mipi.dual_dsi)
-		width = pinfo->xres / 2;
+		width /= 2;
+
+	if (pinfo->fbc.enabled && pinfo->fbc.comp_ratio)
+		width /= pinfo->fbc.comp_ratio;
 
 	h_period = width + pinfo->lcdc.h_back_porch +
 		pinfo->lcdc.h_front_porch + pinfo->lcdc.h_pulse_width +

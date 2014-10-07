@@ -153,6 +153,27 @@ int dsi_panel_init(struct msm_panel_info *pinfo,
 	pinfo->mipi.mdp_trigger = pstruct->paneltiminginfo->dsi_mdp_trigger;
 	pinfo->mipi.dma_trigger = pstruct->paneltiminginfo->dsi_dma_trigger;
 
+	pinfo->fbc.enabled = pstruct->fbcinfo.enabled;
+	if (pinfo->fbc.enabled) {
+		pinfo->fbc.enabled = pstruct->fbcinfo.enabled;
+		pinfo->fbc.comp_ratio= pstruct->fbcinfo.comp_ratio;
+		pinfo->fbc.comp_mode = pstruct->fbcinfo.comp_mode;
+		pinfo->fbc.qerr_enable = pstruct->fbcinfo.qerr_enable;
+		pinfo->fbc.cd_bias = pstruct->fbcinfo.cd_bias;
+		pinfo->fbc.pat_enable = pstruct->fbcinfo.pat_enable;
+		pinfo->fbc.vlc_enable = pstruct->fbcinfo.vlc_enable;
+		pinfo->fbc.bflc_enable = pstruct->fbcinfo.bflc_enable;
+		pinfo->fbc.line_x_budget = pstruct->fbcinfo.line_x_budget;
+		pinfo->fbc.block_x_budget = pstruct->fbcinfo.block_x_budget;
+		pinfo->fbc.block_budget = pstruct->fbcinfo.block_budget;
+		pinfo->fbc.lossless_mode_thd = pstruct->fbcinfo.lossless_mode_thd;
+		pinfo->fbc.lossy_mode_thd = pstruct->fbcinfo.lossy_mode_thd;
+		pinfo->fbc.lossy_rgb_thd = pstruct->fbcinfo.lossy_rgb_thd;
+		pinfo->fbc.lossy_mode_idx = pstruct->fbcinfo.lossy_mode_idx;
+	} else {
+		pinfo->fbc.comp_ratio = 1;
+	}
+
 	pinfo->pre_on = dsi_panel_pre_on;
 	pinfo->pre_off = dsi_panel_pre_off;
 	pinfo->on = dsi_panel_post_on;
@@ -211,6 +232,9 @@ int dsi_video_panel_config(struct msm_panel_info *pinfo,
 	int ret = NO_ERROR;
 	uint8_t lane_enable = 0;
 	uint32_t panel_width = pinfo->xres;
+	uint32_t final_xres, final_yres, final_width;
+	uint32_t final_height, final_hbp, final_hfp,final_vbp;
+	uint32_t final_vfp, final_hpw, final_vpw;
 
 	if (pinfo->mipi.dual_dsi)
 		panel_width = panel_width / 2;
@@ -224,16 +248,29 @@ int dsi_video_panel_config(struct msm_panel_info *pinfo,
 	if (pinfo->mipi.data_lane3)
 		lane_enable |= (1 << 3);
 
-	ret = mdss_dsi_video_mode_config((panel_width + plcdc->xres_pad),
-			(pinfo->yres + plcdc->yres_pad),
-			(panel_width),
-			(pinfo->yres),
-			(plcdc->h_front_porch),
-			(plcdc->h_back_porch + plcdc->h_pulse_width),
-			(plcdc->v_front_porch),
-			(plcdc->v_back_porch + plcdc->v_pulse_width),
-			(plcdc->h_pulse_width),
-			(plcdc->v_pulse_width),
+	final_xres = panel_width;
+	final_width = panel_width + pinfo->lcdc.xres_pad;
+
+	if (pinfo->fbc.enabled && pinfo->fbc.comp_ratio) {
+		final_xres /= pinfo->fbc.comp_ratio;
+		final_width /=	pinfo->fbc.comp_ratio;
+		dprintf(SPEW, "DSI xres =%d final_width=%d\n", final_xres,
+				final_width);
+	}
+	final_yres = pinfo->yres;
+	final_height = pinfo->yres + pinfo->lcdc.yres_pad;
+	final_hbp = pinfo->lcdc.h_back_porch;
+	final_hfp = pinfo->lcdc.h_front_porch;
+	final_vbp = pinfo->lcdc.v_back_porch;
+	final_vfp = pinfo->lcdc.v_front_porch;
+	final_hpw = pinfo->lcdc.h_pulse_width;
+	final_vpw = pinfo->lcdc.v_pulse_width;
+
+	ret = mdss_dsi_video_mode_config(final_width, final_height,
+			final_xres, final_yres,
+			final_hfp, final_hbp + final_hpw,
+			final_vfp, final_vbp + final_vpw,
+			final_hpw, final_vpw,
 			pinfo->mipi.dst_format,
 			pinfo->mipi.traffic_mode,
 			lane_enable,
@@ -243,24 +280,18 @@ int dsi_video_panel_config(struct msm_panel_info *pinfo,
 			MIPI_DSI0_BASE);
 
 	if (pinfo->mipi.dual_dsi)
-		ret = mdss_dsi_video_mode_config(
-			(panel_width + plcdc->xres_pad),
-			(pinfo->yres + plcdc->yres_pad),
-			(panel_width),
-			(pinfo->yres),
-			(plcdc->h_front_porch),
-			(plcdc->h_back_porch + plcdc->h_pulse_width),
-			(plcdc->v_front_porch),
-			(plcdc->v_back_porch + plcdc->v_pulse_width),
-			(plcdc->h_pulse_width),
-			(plcdc->v_pulse_width),
-			pinfo->mipi.dst_format,
-			pinfo->mipi.traffic_mode,
-			lane_enable,
-			pinfo->mipi.hsa_power_stop,
-			pinfo->mipi.eof_bllp_power,
-			pinfo->mipi.interleave_mode,
-			MIPI_DSI1_BASE);
+		ret = mdss_dsi_video_mode_config(final_width, final_height,
+				final_xres, final_yres,
+				final_hfp, final_hbp + final_hpw,
+				final_vfp, final_vbp + final_vpw,
+				final_hpw, final_vpw,
+				pinfo->mipi.dst_format,
+				pinfo->mipi.traffic_mode,
+				lane_enable,
+				pinfo->mipi.hsa_power_stop,
+				pinfo->mipi.eof_bllp_power,
+				pinfo->mipi.interleave_mode,
+				MIPI_DSI1_BASE);
 
 	return ret;
 }
