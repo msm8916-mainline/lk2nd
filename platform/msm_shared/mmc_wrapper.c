@@ -357,6 +357,15 @@ uint32_t mmc_erase_card(uint64_t addr, uint64_t len)
 
 			blk_addr += unaligned_blks;
 			blk_count -= unaligned_blks;
+
+			head_unit = blk_addr / erase_unit_sz;
+			tail_unit = (blk_addr + blk_count - 1) / erase_unit_sz;
+
+			if (tail_unit - head_unit <= 1)
+			{
+				dprintf(INFO, "SDHCI unit erase not required\n");
+				return mmc_zero_out(dev, blk_addr, blk_count);
+			}
 		}
 
 		unaligned_blks = blk_count % erase_unit_sz;
