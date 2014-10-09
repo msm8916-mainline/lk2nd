@@ -25,6 +25,7 @@
 #include <target.h>
 #include <compiler.h>
 #include <dload_util.h>
+#include <sdhci_msm.h>
 
 #define EXPAND(NAME) #NAME
 #define TARGET(NAME) EXPAND(NAME)
@@ -196,4 +197,10 @@ __WEAK uint32_t target_get_hlos_subtype(void)
 /* Initialize crypto parameters */
 __WEAK void target_crypto_init_params()
 {
+}
+
+/* Default CFG delay value */
+__WEAK uint32_t target_ddr_cfg_val()
+{
+	return DDR_CONFIG_VAL;
 }
