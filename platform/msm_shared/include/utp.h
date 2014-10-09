@@ -47,6 +47,7 @@
 #define UTP_MUTEX_ACQUIRE_TIMEOUT                          0x100000
 
 #define UTP_GENERIC_CMD_TIMEOUT                            40000
+#define UTP_MAX_COMMAND_RETRY                              5000000
 
 struct utp_prdt_entry
 {

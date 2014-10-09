@@ -220,7 +220,7 @@ int utp_poll_utrd_complete(struct ufs_dev *dev)
 {
 	int ret;
 	struct ufs_req_irq_type irq;
-	uint32_t val, base;
+	uint32_t val, base, retry = 0;
 	base = dev->base;
 	val = readl(UFS_IS(base));
 	irq.irq_handled = 0;
@@ -228,6 +228,13 @@ int utp_poll_utrd_complete(struct ufs_dev *dev)
 	while(((val & UFS_IS_UTRCS) == 0) && ((val & UFS_IS_UTMRCS) == 0))
 	{
 		val = readl(UFS_IS(base));
+		retry++;
+		udelay(1);
+		if(retry == UTP_MAX_COMMAND_RETRY)
+		{
+			dprintf(CRITICAL, "UTP command never completed.\n");
+			return 1;
+		}
 #ifdef DEBUG_UFS
 		dprintf(INFO, "Waiting for UTRCS/URMRCS Completion...\n");
 #endif
