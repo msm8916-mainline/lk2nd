@@ -32,6 +32,16 @@
 #define MSM_IOMAP_BASE              0x00000000
 #define MSM_IOMAP_END               0x08000000
 
+#define A7_SS_BASE                 0x0B000000
+#define A7_SS_END                  0x0B200000
+
+#define SYSTEM_IMEM_BASE            0x08600000
+#define MSM_SHARED_IMEM_BASE        0x08600000
+
+#define RESTART_REASON_ADDR         (MSM_SHARED_IMEM_BASE + 0x65C)
+#define BS_INFO_OFFSET              (0x6B0)
+#define BS_INFO_ADDR                (MSM_SHARED_IMEM_BASE + BS_INFO_OFFSET)
+
 #define SDRAM_START_ADDR            0x80000000
 
 #define MSM_SHARED_BASE             0x86300000
@@ -74,14 +84,27 @@
 
 #define MPM2_MPM_CTRL_BASE          0x004A0000
 #define MPM2_MPM_PS_HOLD            0x004AB000
+#define MPM2_MPM_SLEEP_TIMETICK_COUNT_VAL  0x004A3000
 
 /* CRYPTO ENGINE */
 #define  MSM_CE1_BASE               0x073A000
 #define  MSM_CE1_BAM_BASE           0x0704000
+#define  GCC_CRYPTO_BCR             (CLK_CTL_BASE + 0x16000)
+#define  GCC_CRYPTO_CMD_RCGR        (CLK_CTL_BASE + 0x16004)
+#define  GCC_CRYPTO_CFG_RCGR        (CLK_CTL_BASE + 0x16008)
+#define  GCC_CRYPTO_CBCR            (CLK_CTL_BASE + 0x1601C)
+#define  GCC_CRYPTO_AXI_CBCR        (CLK_CTL_BASE + 0x16020)
+#define  GCC_CRYPTO_AHB_CBCR        (CLK_CTL_BASE + 0x16024)
+
+/* I2C */
+#define GCC_BLSP1_QUP2_APPS_CBCR    (CLK_CTL_BASE + 0x3010)
+#define GCC_BLSP1_QUP2_CFG_RCGR     (CLK_CTL_BASE + 0x3018)
+#define GCC_BLSP1_QUP2_CMD_RCGR     (CLK_CTL_BASE + 0x3014)
 
 
 /* GPLL */
 #define GPLL0_STATUS                (CLK_CTL_BASE + 0x21024)
+#define GPLL1_STATUS                (CLK_CTL_BASE + 0x2001C)
 #define APCS_GPLL_ENA_VOTE          (CLK_CTL_BASE + 0x45000)
 #define APCS_CLOCK_BRANCH_ENA_VOTE  (CLK_CTL_BASE + 0x45004)
 
@@ -96,6 +119,14 @@
 #define SDCC1_N                     (CLK_CTL_BASE + 0x42010) /* n */
 #define SDCC1_D                     (CLK_CTL_BASE + 0x42014) /* d */
 
+#define SDCC2_BCR                   (CLK_CTL_BASE + 0x43000) /* block reset */
+#define SDCC2_APPS_CBCR             (CLK_CTL_BASE + 0x43018) /* branch control */
+#define SDCC2_AHB_CBCR              (CLK_CTL_BASE + 0x4301C)
+#define SDCC2_CMD_RCGR              (CLK_CTL_BASE + 0x43004) /* cmd */
+#define SDCC2_CFG_RCGR              (CLK_CTL_BASE + 0x43008) /* cfg */
+#define SDCC2_M                     (CLK_CTL_BASE + 0x4300C) /* m */
+#define SDCC2_N                     (CLK_CTL_BASE + 0x43010) /* n */
+#define SDCC2_D                     (CLK_CTL_BASE + 0x43014) /* d */
 
 /* UART */
 #define BLSP1_AHB_CBCR              (CLK_CTL_BASE + 0x1008)
@@ -195,4 +226,5 @@
 #define VIDEO_MODE_CTRL             0x010
 #define HS_TIMER_CTRL               0x0BC
 
+#define TCSR_TZ_WONCE               0x193D000
 #endif
