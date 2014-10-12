@@ -76,6 +76,7 @@ void platform_early_init(void)
 	platform_clock_init();
 	qgic_init();
 	qtimer_init();
+	scm_init();
 }
 
 int qtmr_irq()
