@@ -277,7 +277,7 @@ ssize_t bio_read(bdev_t *dev, void *buf, off_t offset, size_t len)
 {
 	LTRACEF("dev '%s', buf %p, offset %lld, len %zd\n", dev->name, buf, offset, len);
 
-	DEBUG_ASSERT(dev->ref > 0);	
+	DEBUG_ASSERT(dev->ref > 0);
 
 	/* range check */
 	if (offset < 0)
@@ -295,7 +295,7 @@ ssize_t bio_read(bdev_t *dev, void *buf, off_t offset, size_t len)
 ssize_t bio_read_block(bdev_t *dev, void *buf, bnum_t block, uint count)
 {
 	LTRACEF("dev '%s', buf %p, block %d, count %u\n", dev->name, buf, block, count);
-		
+
 	DEBUG_ASSERT(dev->ref > 0);
 
 	/* range check */
@@ -312,7 +312,7 @@ ssize_t bio_read_block(bdev_t *dev, void *buf, bnum_t block, uint count)
 ssize_t bio_write(bdev_t *dev, const void *buf, off_t offset, size_t len)
 {
 	LTRACEF("dev '%s', buf %p, offset %lld, len %zd\n", dev->name, buf, offset, len);
-		
+
 	DEBUG_ASSERT(dev->ref > 0);
 
 	/* range check */
@@ -348,7 +348,7 @@ ssize_t bio_write_block(bdev_t *dev, const void *buf, bnum_t block, uint count)
 ssize_t bio_erase(bdev_t *dev, off_t offset, size_t len)
 {
 	LTRACEF("dev '%s', offset %lld, len %zd\n", dev->name, offset, len);
-		
+
 	DEBUG_ASSERT(dev->ref > 0);
 
 	/* range check */
@@ -387,6 +387,9 @@ void bio_initialize_bdev(bdev_t *dev, const char *name, size_t block_size, bnum_
 	dev->block_count = block_count;
 	dev->size = (off_t)block_count * block_size;
 	dev->ref = 0;
+	dev->label = NULL;
+	dev->is_gpt = false;
+	dev->is_subdev = false;
 
 	/* set up the default hooks, the sub driver should override the block operations at least */
 	dev->read = bio_default_read;
