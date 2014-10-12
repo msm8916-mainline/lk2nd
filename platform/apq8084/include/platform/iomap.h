@@ -259,6 +259,16 @@
 #define MDP_VP_0_MIXER_0_BASE       REG_MDP(0x3A00)
 #define MDP_VP_0_MIXER_1_BASE       REG_MDP(0x3E00)
 
+#ifdef MDP_PP_0_BASE
+#undef MDP_PP_0_BASE
+#endif
+#define MDP_PP_0_BASE               REG_MDP(0x12F00)
+
+#ifdef MDP_PP_1_BASE
+#undef MDP_PP_1_BASE
+#endif
+#define MDP_PP_1_BASE               REG_MDP(0x13000)
+
 #define DMA_CMD_OFFSET              0x048
 #define DMA_CMD_LENGTH              0x04C
 
