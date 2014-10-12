@@ -52,6 +52,7 @@
 #include "include/panel_jdi_fhd_video.h"
 #include "include/panel_hx8379a_fwvga_video.h"
 #include "include/panel_hx8394d_720p_video.h"
+#include "include/panel_nt35521_wxga_video.h"
 
 #define DISPLAY_MAX_PANEL_DETECTION 2
 #define OTM8019A_FWVGA_VIDEO_PANEL_ON_DELAY 50
@@ -74,6 +75,7 @@ SHARP_WQXGA_DUALDSI_VIDEO_PANEL,
 JDI_FHD_VIDEO_PANEL,
 HX8379A_FWVGA_VIDEO_PANEL,
 HX8394D_720P_VIDEO_PANEL,
+NT35521_WXGA_VIDEO_PANEL,
 UNKNOWN_PANEL
 };
 
@@ -92,7 +94,8 @@ static struct panel_list supp_panels[] = {
 	{"sharp_wqxga_dualdsi_video",SHARP_WQXGA_DUALDSI_VIDEO_PANEL},
 	{"jdi_fhd_video", JDI_FHD_VIDEO_PANEL},
 	{"hx8379a_wvga_video", HX8379A_FWVGA_VIDEO_PANEL},
-	{"hx8394d_720p_video", HX8394D_720P_VIDEO_PANEL}
+	{"hx8394d_720p_video", HX8394D_720P_VIDEO_PANEL},
+	{"nt35521_wxga_video", NT35521_WXGA_VIDEO_PANEL}
 };
 
 static uint32_t panel_id;
@@ -359,6 +362,26 @@ static int init_panel_data(struct panel_struct *panelstruct,
 				hx8394d_720p_video_timings, TIMING_SIZE);
 		pinfo->mipi.signature = HX8394D_720P_VIDEO_SIGNATURE;
 		break;
+	case NT35521_WXGA_VIDEO_PANEL:
+		panelstruct->paneldata    = &nt35521_wxga_video_panel_data;
+		panelstruct->panelres     = &nt35521_wxga_video_panel_res;
+		panelstruct->color        = &nt35521_wxga_video_color;
+		panelstruct->videopanel   = &nt35521_wxga_video_video_panel;
+		panelstruct->commandpanel = &nt35521_wxga_video_command_panel;
+		panelstruct->state        = &nt35521_wxga_video_state;
+		panelstruct->laneconfig   = &nt35521_wxga_video_lane_config;
+		panelstruct->paneltiminginfo
+					= &nt35521_wxga_video_timing_info;
+		panelstruct->panelresetseq
+					= &nt35521_wxga_video_reset_seq;
+		panelstruct->backlightinfo = &nt35521_wxga_video_backlight;
+		pinfo->mipi.panel_cmds
+					= nt35521_wxga_video_on_command;
+		pinfo->mipi.num_of_panel_cmds
+					= NT35521_WXGA_VIDEO_ON_COMMAND;
+		memcpy(phy_db->timing,
+				nt35521_wxga_video_timings, TIMING_SIZE);
+		break;
 	case UNKNOWN_PANEL:
 	default:
 		memset(panelstruct, 0, sizeof(struct panel_struct));
@@ -452,6 +475,10 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 					panel_id = OTM8019A_FWVGA_VIDEO_PANEL;
 				else
 					panel_id = HX8379A_FWVGA_VIDEO_PANEL;
+				break;
+			case HW_PLATFORM_SUBTYPE_SKUT1:
+				/* qrd SKUT1 */
+				panel_id = NT35521_WXGA_VIDEO_PANEL;
 				break;
 			default:
 				dprintf(CRITICAL, "Invalid subtype id %d for QRD HW\n",
