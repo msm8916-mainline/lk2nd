@@ -76,6 +76,7 @@
 #define FASTBOOT_MODE           0x77665500
 
 #define PMIC_WLED_SLAVE_ID      3
+#define DDR_CFG_DLY_VAL         0x80040870
 
 static void set_sdc_power_ctrl(uint8_t slot);
 static uint32_t mmc_pwrctl_base[] =
@@ -558,4 +559,9 @@ void target_fastboot_init(void)
 {
 	/* We are entering fastboot mode, so read partition table */
 	mmc_read_partition_table(1);
+}
+
+uint32_t target_ddr_cfg_val()
+{
+	return DDR_CFG_DLY_VAL;
 }
