@@ -47,6 +47,7 @@
 #define DST_SPLIT_FLAG 0x10
 
 #define MAX_PANEL_ID_LEN 64
+#include "panel.h"
 /*---------------------------------------------------------------------------*/
 /* struct definition                                                         */
 /*---------------------------------------------------------------------------*/
@@ -61,6 +62,7 @@ typedef struct panel_struct{
 	struct panel_timing         *paneltiminginfo;
 	struct panel_reset_sequence *panelresetseq;
 	struct backlight            *backlightinfo;
+	struct fb_compression	    fbcinfo;
 };
 
 struct panel_list {
