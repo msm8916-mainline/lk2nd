@@ -78,6 +78,8 @@ void platform_init(void)
 void platform_uninit(void)
 {
 	qtimer_uninit();
+	if (!platform_boot_dev_isemmc())
+		qpic_nand_uninit();
 }
 
 uint32_t platform_get_sclk_count(void)
