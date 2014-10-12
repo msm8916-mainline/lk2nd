@@ -44,7 +44,7 @@
 
 #define SDRAM_START_ADDR            0x80000000
 
-#define MSM_SHARED_BASE             0x86300000
+#define MSM_SHARED_BASE             0x87D00000
 
 #define MSM_NAND_BASE               0x79B0000
 /* NAND BAM */
