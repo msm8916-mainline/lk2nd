@@ -50,7 +50,7 @@ enum {
 	TLMM_NO_PULL = 0x0,
 } tlmm_pull_values;
 
-/* Bit offsets in the TLMM register */
+/* SDC Bit offsets in the TLMM register */
 enum {
 	SDC1_DATA_HDRV_CTL_OFF = 0,
 	SDC1_CMD_HDRV_CTL_OFF  = 3,
@@ -59,7 +59,25 @@ enum {
 	SDC1_CMD_PULL_CTL_OFF  = 11,
 	SDC1_CLK_PULL_CTL_OFF  = 13,
 	SDC1_RCLK_PULL_CTL_OFF = 15,
-} tlmm_drv_ctrl;
+} tlmm_sdc_drv_ctrl;
+
+/* EBI2 Bit offsets in the TLMM register */
+enum {
+	EBI2_BUSY_HDRV_CTL_OFF = 29,
+	EBI2_WE_HDRV_CTL_OFF   = 24,
+	EBI2_OE_HDRV_CTL_OFF   = 9,
+	EBI2_CLE_HDRV_CTL_OFF  = 19,
+	EBI2_ALE_HDRV_CTL_OFF  = 14,
+	EBI2_CS_HDRV_CTL_OFF   = 4,
+	EBI2_DATA_HDRV_CTL_OFF = 17,
+	EBI2_BUSY_PULL_CTL_OFF = 27,
+	EBI2_WE_PULL_CTL_OFF   = 22,
+	EBI2_OE_PULL_CTL_OFF   = 7 ,
+	EBI2_CLE_PULL_CTL_OFF  = 17,
+	EBI2_ALE_PULL_CTL_OFF  = 12,
+	EBI2_CS_PULL_CTL_OFF   = 2,
+	EBI2_DATA_PULL_CTL_OFF = 15,
+} tlmm_ebi2_drv_ctrl;
 
 /* Input for the tlmm config function */
 struct tlmm_cfgs {
