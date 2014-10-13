@@ -115,6 +115,7 @@ static uint32_t  mmc_sdc_pwrctl_irq[] =
 	{ SDCC1_PWRCTL_IRQ, SDCC2_PWRCTL_IRQ };
 
 static void set_sdc_power_ctrl(void);
+static void set_ebi2_config(void);
 
 void update_ptable_names(void)
 {
@@ -237,17 +238,17 @@ static void set_sdc_power_ctrl()
 	/* Drive strength configs for sdc pins */
 	struct tlmm_cfgs sdc1_hdrv_cfg[] =
 	{
-		{ SDC1_CLK_HDRV_CTL_OFF,  TLMM_CUR_VAL_16MA, TLMM_HDRV_MASK },
-		{ SDC1_CMD_HDRV_CTL_OFF,  TLMM_CUR_VAL_10MA, TLMM_HDRV_MASK },
-		{ SDC1_DATA_HDRV_CTL_OFF, TLMM_CUR_VAL_6MA, TLMM_HDRV_MASK },
+		{ SDC1_CLK_HDRV_CTL_OFF,  TLMM_CUR_VAL_16MA, TLMM_HDRV_MASK, SDC1_HDRV_PULL_CTL },
+		{ SDC1_CMD_HDRV_CTL_OFF,  TLMM_CUR_VAL_10MA, TLMM_HDRV_MASK, SDC1_HDRV_PULL_CTL },
+		{ SDC1_DATA_HDRV_CTL_OFF, TLMM_CUR_VAL_6MA, TLMM_HDRV_MASK, SDC1_HDRV_PULL_CTL },
 	};
 
 	/* Pull configs for sdc pins */
 	struct tlmm_cfgs sdc1_pull_cfg[] =
 	{
-		{ SDC1_CLK_PULL_CTL_OFF,  TLMM_NO_PULL, TLMM_PULL_MASK },
-		{ SDC1_CMD_PULL_CTL_OFF,  TLMM_PULL_UP, TLMM_PULL_MASK },
-		{ SDC1_DATA_PULL_CTL_OFF, TLMM_PULL_UP, TLMM_PULL_MASK },
+		{ SDC1_CLK_PULL_CTL_OFF,  TLMM_NO_PULL, TLMM_PULL_MASK, SDC1_HDRV_PULL_CTL },
+		{ SDC1_CMD_PULL_CTL_OFF,  TLMM_PULL_UP, TLMM_PULL_MASK, SDC1_HDRV_PULL_CTL },
+		{ SDC1_DATA_PULL_CTL_OFF, TLMM_PULL_UP, TLMM_PULL_MASK, SDC1_HDRV_PULL_CTL },
 	};
 
 	/* Set the drive strength & pull control values */
@@ -255,6 +256,37 @@ static void set_sdc_power_ctrl()
 	tlmm_set_pull_ctrl(sdc1_pull_cfg, ARRAY_SIZE(sdc1_pull_cfg));
 }
 
+static void set_ebi2_config()
+{
+	/* Drive strength configs for ebi2 pins */
+	struct tlmm_cfgs ebi2_hdrv_cfg[] =
+	{
+		{ EBI2_BUSY_HDRV_CTL_OFF,  TLMM_CUR_VAL_16MA, TLMM_HDRV_MASK, TLMM_EBI2_EMMC_GPIO_CFG },
+		{ EBI2_WE_HDRV_CTL_OFF,  TLMM_CUR_VAL_16MA, TLMM_HDRV_MASK, TLMM_EBI2_EMMC_GPIO_CFG },
+		{ EBI2_OE_HDRV_CTL_OFF,  TLMM_CUR_VAL_16MA, TLMM_HDRV_MASK, TLMM_EBI2_EMMC_GPIO_CFG },
+		{ EBI2_CLE_HDRV_CTL_OFF,  TLMM_CUR_VAL_16MA, TLMM_HDRV_MASK, TLMM_EBI2_EMMC_GPIO_CFG },
+		{ EBI2_ALE_HDRV_CTL_OFF,  TLMM_CUR_VAL_16MA, TLMM_HDRV_MASK, TLMM_EBI2_EMMC_GPIO_CFG },
+		{ EBI2_CS_HDRV_CTL_OFF,  TLMM_CUR_VAL_10MA, TLMM_HDRV_MASK, TLMM_EBI2_EMMC_GPIO_CFG },
+		{ EBI2_DATA_HDRV_CTL_OFF, TLMM_CUR_VAL_6MA, TLMM_HDRV_MASK, SDC1_HDRV_PULL_CTL },
+	};
+
+	/* Pull configs for ebi2 pins */
+	struct tlmm_cfgs ebi2_pull_cfg[] =
+	{
+		{ EBI2_BUSY_PULL_CTL_OFF,  TLMM_NO_PULL, TLMM_PULL_MASK, TLMM_EBI2_EMMC_GPIO_CFG },
+		{ EBI2_WE_PULL_CTL_OFF,  TLMM_PULL_UP, TLMM_PULL_MASK, TLMM_EBI2_EMMC_GPIO_CFG },
+		{ EBI2_OE_PULL_CTL_OFF,  TLMM_PULL_UP, TLMM_PULL_MASK, TLMM_EBI2_EMMC_GPIO_CFG },
+		{ EBI2_CLE_PULL_CTL_OFF,  TLMM_PULL_UP, TLMM_PULL_MASK, TLMM_EBI2_EMMC_GPIO_CFG },
+		{ EBI2_ALE_PULL_CTL_OFF,  TLMM_PULL_UP, TLMM_PULL_MASK, TLMM_EBI2_EMMC_GPIO_CFG },
+		{ EBI2_CS_PULL_CTL_OFF,  TLMM_PULL_UP, TLMM_PULL_MASK, TLMM_EBI2_EMMC_GPIO_CFG },
+		{ EBI2_DATA_PULL_CTL_OFF, TLMM_PULL_UP, TLMM_PULL_MASK, SDC1_HDRV_PULL_CTL },
+	};
+
+	/* Set the drive strength & pull control values */
+	tlmm_set_hdrive_ctrl(ebi2_hdrv_cfg, ARRAY_SIZE(ebi2_hdrv_cfg));
+	tlmm_set_pull_ctrl(ebi2_pull_cfg, ARRAY_SIZE(ebi2_pull_cfg));
+
+}
 void target_init(void)
 {
 	uint32_t base_addr;
@@ -279,6 +311,7 @@ void target_init(void)
 		}
 
 	} else {
+		set_ebi2_config();
 		config.pipes.read_pipe = DATA_PRODUCER_PIPE;
 		config.pipes.write_pipe = DATA_CONSUMER_PIPE;
 		config.pipes.cmd_pipe = CMD_PIPE;
