@@ -118,6 +118,9 @@
 #define SDHCI_DLL_TIMEOUT                         50
 #define CDC_STATUS_TIMEOUT                        50
 
+#define HC_IO_PAD_PWR_SWITCH_EN                   BIT(15)
+#define HC_IO_PAD_PWR_SWITCH                      BIT(16)
+
 struct sdhci_msm_data
 {
 	uint32_t pwrctl_base;
@@ -126,6 +129,7 @@ struct sdhci_msm_data
 	uint8_t calibration_done;
 	uint8_t saved_phase;
 	uint8_t slot;
+	uint8_t use_io_switch;
 	event_t*  sdhc_event;
 };
 
