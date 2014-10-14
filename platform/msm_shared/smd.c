@@ -153,10 +153,63 @@ bool is_channel_open(smd_channel_info_t *ch)
 		return false;
 }
 
+/* Copy the local buffer to fifo buffer.
+ * Takes care of fifo overlap.
+ * Uses the fifo as circular buffer, if the request data
+ * exceeds the max size of the buffer start from the beginning.
+ */
+static void memcpy_to_fifo(smd_channel_info_t *ch_ptr, uint32_t *src, size_t len)
+{
+	uint32_t write_index = ch_ptr->port_info->ch0.write_index;
+	uint32_t *dest = (uint32_t *)(ch_ptr->send_buf + write_index);
+
+	while(len)
+	{
+		*dest++ = *src++;
+		write_index += 4;
+		len -= 4;
+
+		if (write_index >= ch_ptr->fifo_size)
+		{
+			write_index = 0;
+			dest = (uint32_t *)(ch_ptr->send_buf + write_index);
+		}
+	}
+	ch_ptr->port_info->ch0.write_index = write_index;
+}
+
+/* Copy the fifo buffer to a local destination.
+ * Takes care of fifo overlap.
+ * If the response data is split across with some part at
+ * end of fifo and some at the beginning of the fifo
+ */
+void memcpy_from_fifo(smd_channel_info_t *ch_ptr, uint32_t *dest, size_t len)
+{
+	uint32_t read_index = ch_ptr->port_info->ch1.read_index;
+	uint32_t *src = (uint32_t *)(ch_ptr->recv_buf + read_index);
+
+	while(len)
+	{
+		*dest++ = *src++;
+		read_index += 4;
+		len -= 4;
+
+		if (read_index >= ch_ptr->fifo_size)
+		{
+			read_index = 0;
+			src = (uint32_t *) (ch_ptr->recv_buf + read_index);
+		}
+	}
+
+	ch_ptr->port_info->ch1.read_index = read_index;
+}
+
 uint8_t* smd_read(smd_channel_info_t *ch, uint32_t *len, int ch_type)
 {
 	smd_pkt_hdr smd_hdr;
 	uint32_t size = 0;
+	/* Response as per the current design does not exceed 20 bytes */
+	uint32_t response[5];
 
 	/* Read the indices from smem */
 	ch->port_info = smem_get_alloc_entry(SMEM_SMD_BASE_ID + ch->alloc_entry.cid,
@@ -172,20 +225,12 @@ uint8_t* smd_read(smd_channel_info_t *ch, uint32_t *len, int ch_type)
 	{
 		/* Get the update info from memory */
 		arch_invalidate_cache_range((addr_t) ch->port_info, size);
-
-		if ((ch->port_info->ch1.read_index + sizeof(smd_pkt_hdr)) >= ch->fifo_size)
-		{
-			dprintf(CRITICAL, "At %d:%s:RX channel read index [%u] is greater than RX fifo size[%u]\n",
-							   __LINE__,__func__, ch->port_info->ch1.read_index, ch->fifo_size);
-			return -1;
-		}
 	}
 
-
-	arch_invalidate_cache_range((addr_t)(ch->recv_buf + ch->port_info->ch1.read_index), sizeof(smd_hdr));
-
 	/* Copy the smd buffer to local buf */
-	memcpy(&smd_hdr, (void*)(ch->recv_buf + ch->port_info->ch1.read_index), sizeof(smd_hdr));
+	memcpy_from_fifo(ch, &smd_hdr, sizeof(smd_hdr));
+
+	arch_invalidate_cache_range((addr_t)&smd_hdr, sizeof(smd_hdr));
 
 	*len = smd_hdr.pkt_size;
 
@@ -194,23 +239,18 @@ uint8_t* smd_read(smd_channel_info_t *ch, uint32_t *len, int ch_type)
 	{
 		/* Get the update info from memory */
 		arch_invalidate_cache_range((addr_t) ch->port_info, size);
-
-		if ((ch->port_info->ch1.read_index + sizeof(smd_hdr) + smd_hdr.pkt_size) >= ch->fifo_size)
-		{
-			dprintf(CRITICAL, "At %d:%s:RX channel read index [%u] is greater than RX fifo size[%u]\n",
-							   __LINE__,__func__, ch->port_info->ch1.read_index, ch->fifo_size);
-			return -1;
-		}
 	}
 
 	/* We are good to return the response now */
-	return (uint8_t*)(ch->recv_buf + ch->port_info->ch1.read_index + sizeof(smd_hdr));
+	memcpy_from_fifo(ch, response, sizeof(response));
+
+	arch_invalidate_cache_range((addr_t)response, sizeof(response));
+
+	return response;
 }
 
 void smd_signal_read_complete(smd_channel_info_t *ch, uint32_t len)
 {
-	ch->port_info->ch1.read_index += sizeof(smd_pkt_hdr) + len;
-
 	/* Clear the data_written flag */
 	ch->port_info->ch1.data_written = 0;
 
@@ -258,14 +298,9 @@ int smd_write(smd_channel_info_t *ch, void *data, uint32_t len, int ch_type)
 	/*copy the local buf to smd buf */
 	smd_hdr.pkt_size = len;
 
-	memcpy(ch->send_buf + ch->port_info->ch0.write_index, &smd_hdr, sizeof(smd_hdr));
+	memcpy_to_fifo(ch, (uint32_t *)&smd_hdr, sizeof(smd_hdr));
 
-	memcpy(ch->send_buf + ch->port_info->ch0.write_index + sizeof(smd_hdr), data, len);
-
-	arch_invalidate_cache_range((addr_t)ch->send_buf+ch->port_info->ch0.write_index, sizeof(smd_hdr) + len);
-
-	/* Update write index */
-	ch->port_info->ch0.write_index += sizeof(smd_hdr) + len;
+	memcpy_to_fifo(ch, data, len);
 
 	dsb();
 
