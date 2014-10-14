@@ -170,6 +170,11 @@ int msm_display_on()
 		ret = mdp_dsi_video_on(pinfo);
 		if (ret)
 			goto msm_display_on_out;
+
+		ret = mdss_dsi_post_on(panel);
+		if (ret)
+			goto msm_display_on_out;
+
 		ret = mipi_dsi_on();
 		if (ret)
 			goto msm_display_on_out;
@@ -185,6 +190,11 @@ int msm_display_on()
 			if (ret)
 				goto msm_display_on_out;
 		}
+
+		ret = mdss_dsi_post_on(panel);
+		if (ret)
+			goto msm_display_on_out;
+
 		break;
 	case LCDC_PANEL:
 		dprintf(INFO, "Turn on LCDC PANEL.\n");
