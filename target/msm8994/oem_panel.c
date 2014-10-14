@@ -43,6 +43,7 @@
 #include "include/panel_sharp_wqxga_dualdsi_video.h"
 #include "include/panel_jdi_qhd_dualdsi_video.h"
 #include "include/panel_jdi_qhd_dualdsi_cmd.h"
+#include "include/panel_jdi_4k_dualdsi_video.h"
 
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
@@ -51,6 +52,7 @@ enum {
 SHARP_WQXGA_DUALDSI_VIDEO_PANEL,
 JDI_QHD_DUALDSI_VIDEO_PANEL,
 JDI_QHD_DUALDSI_CMD_PANEL,
+JDI_4K_DUALDSI_VIDEO_PANEL,
 UNKNOWN_PANEL
 };
 
@@ -62,6 +64,7 @@ static struct panel_list supp_panels[] = {
 	{"sharp_wqxga_dualdsi_video", SHARP_WQXGA_DUALDSI_VIDEO_PANEL},
 	{"jdi_qhd_dualdsi_video", JDI_QHD_DUALDSI_VIDEO_PANEL},
 	{"jdi_qhd_dualdsi_cmd", JDI_QHD_DUALDSI_CMD_PANEL},
+	{"jdi_4k_dualdsi_video", JDI_4K_DUALDSI_VIDEO_PANEL},
 };
 
 static uint32_t panel_id;
@@ -169,6 +172,31 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 		memcpy(phy_db->timing,
 			jdi_qhd_dualdsi_cmd_timings, TIMING_SIZE);
 		break;
+	case JDI_4K_DUALDSI_VIDEO_PANEL:
+		pan_type = PANEL_TYPE_DSI;
+		pinfo->lcd_reg_en = 1;
+		pinfo->mipi.cmds_post_tg = 1;
+		panelstruct->paneldata    = &jdi_4k_dualdsi_video_panel_data;
+		panelstruct->panelres     = &jdi_4k_dualdsi_video_panel_res;
+		panelstruct->color        = &jdi_4k_dualdsi_video_color;
+		panelstruct->videopanel   = &jdi_4k_dualdsi_video_video_panel;
+		panelstruct->commandpanel = &jdi_4k_dualdsi_video_command_panel;
+		panelstruct->state        = &jdi_4k_dualdsi_video_state;
+		panelstruct->laneconfig   = &jdi_4k_dualdsi_video_lane_config;
+		panelstruct->paneltiminginfo
+			= &jdi_4k_dualdsi_video_timing_info;
+		panelstruct->panelresetseq
+					 = &jdi_4k_dualdsi_video_reset_seq;
+		panelstruct->backlightinfo = &jdi_4k_dualdsi_video_backlight;
+		pinfo->mipi.panel_cmds
+			= jdi_4k_dualdsi_video_on_command;
+		pinfo->mipi.num_of_panel_cmds
+			= JDI_4K_DUALDSI_VIDEO_ON_COMMAND;
+		memcpy(phy_db->timing,
+			jdi_4k_dualdsi_video_timings, TIMING_SIZE);
+		memcpy(&panelstruct->fbcinfo, &jdi_4k_dualdsi_video_fbc,
+				sizeof(struct fb_compression));
+		break;
 	default:
 	case UNKNOWN_PANEL:
 		pan_type = PANEL_TYPE_UNKNOWN;
@@ -207,6 +235,9 @@ bool oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	case HW_PLATFORM_SURF:
 		panel_id = SHARP_WQXGA_DUALDSI_VIDEO_PANEL;
 		break;
+	case HW_PLATFORM_LIQUID:
+		panel_id = JDI_4K_DUALDSI_VIDEO_PANEL;
+		break;
 	default:
 		dprintf(CRITICAL, "Display not enabled for %d HW type\n"
 					, hw_id);
@@ -214,5 +245,7 @@ bool oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	}
 
 panel_init:
+	if (panel_id == JDI_4K_DUALDSI_VIDEO_PANEL)
+		phy_db->regulator_mode = DSI_PHY_REGULATOR_LDO_MODE;
 	return init_panel_data(panelstruct, pinfo, phy_db);
 }
