@@ -76,6 +76,9 @@ mmu_section_t mmu_section_table[] = {
 
 void platform_early_init(void)
 {
+	/* Read boot config for identifying boot device */
+	platform_read_boot_config();
+
 	/* Initialize board identifier data */
 	board_init();
 
