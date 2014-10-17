@@ -32,6 +32,7 @@
  */
 
 #include <reg.h>
+#include <bits.h>
 #include <debug.h>
 #include <arch/arm.h>
 #include <kernel/thread.h>
@@ -178,4 +179,25 @@ void gic_register_int_handler(unsigned int vector, int_handler func, void *arg)
 	handler[vector].func = func;
 	handler[vector].arg = arg;
 	exit_critical_section();
+}
+
+void qgic_change_interrupt_cfg(uint32_t spi_number, uint8_t type)
+{
+	uint32_t register_number, register_address, bit_number, value;
+	register_number = spi_number >> 4; // r = n DIV 16
+	bit_number = (spi_number % 16) << 1; // b = (n MOD 16) * 2
+	value = readl(GIC_DIST_CONFIG + (register_number << 2));
+	// there are two bits per register to indicate the level
+	if (type == INTERRUPT_LVL_N_TO_N)
+		value &= ~(BIT(bit_number)|BIT(bit_number+1)); // 0x0 0x0
+	else if (type == INTERRUPT_LVL_1_TO_N)
+		value = (value & ~BIT(bit_number+1)) | BIT(bit_number); // 0x0 0x1
+	else if (type == INTERRUPT_EDGE_N_TO_N)
+		value =  BIT(bit_number+1) | (value & ~BIT(bit_number));// 0x1 0x0
+	else if (type == INTERRUPT_EDGE_1_TO_N)
+		value |= (BIT(bit_number)|BIT(bit_number+1)); // 0x1 0x1
+	else
+		dprintf(CRITICAL, "Invalid interrupt type change requested\n");
+	register_address = GIC_DIST_CONFIG + (register_number << 2);
+	writel(value, register_address);
 }
