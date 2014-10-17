@@ -554,12 +554,14 @@ static struct clk_freq_tbl ftbl_mdss_esc1_1_clk[] = {
 static struct clk_freq_tbl ftbl_mmss_axi_clk[] = {
 	F_MM(19200000,     cxo,     1,   0,   0),
 	F_MM(100000000,  gpll0,     6,   0,   0),
+	F_MM(300000000,  gpll0,     2,   0,   0),
 	F_END
 };
 
 static struct clk_freq_tbl ftbl_mdp_clk[] = {
 	F_MM( 75000000,  gpll0,   8,   0,   0),
 	F_MM( 240000000,  gpll0,   2.5,   0,   0),
+	F_MM(300000000,  gpll0,     2,   0,   0),
 	F_END
 };
 
