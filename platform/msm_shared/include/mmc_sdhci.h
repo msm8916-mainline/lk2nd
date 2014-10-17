@@ -305,6 +305,7 @@ struct mmc_config_data {
 	uint16_t bus_width;    /* Bus width used */
 	uint32_t max_clk_rate; /* Max clock rate supported */
 	uint8_t hs400_support; /* SDHC HS400 mode supported or not */
+	uint8_t use_io_switch; /* IO pad switch flag for shared sdc controller */
 };
 
 /* mmc device structure */

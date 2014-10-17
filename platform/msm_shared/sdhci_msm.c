@@ -142,6 +142,8 @@ static void sdhci_clear_power_ctrl_irq(struct sdhci_msm_data *data)
  */
 void sdhci_msm_init(struct sdhci_host *host, struct sdhci_msm_data *config)
 {
+	uint32_t io_switch;
+
 	/* Disable HC mode */
 	RMWREG32((config->pwrctl_base + SDCC_MCI_HC_MODE), SDHCI_HC_START_BIT, SDHCI_HC_WIDTH, 0);
 
@@ -161,6 +163,19 @@ void sdhci_msm_init(struct sdhci_host *host, struct sdhci_msm_data *config)
 	 * Reset the controller
 	 */
 	sdhci_reset(host, SDHCI_SOFT_RESET);
+
+	/*
+	 * Some platforms have same SDC instance shared between emmc & sd card.
+	 * For such platforms the emmc IO voltage has to be switched from 3.3 to
+	 * 1.8 for the contoller to work with emmc.
+	 */
+
+	if(config->use_io_switch)
+	{
+		io_switch = REG_READ32(host, SDCC_VENDOR_SPECIFIC_FUNC);
+		io_switch |= HC_IO_PAD_PWR_SWITCH | HC_IO_PAD_PWR_SWITCH_EN;
+		REG_WRITE32(host, io_switch, SDCC_VENDOR_SPECIFIC_FUNC);
+	}
 
 	/*
 	 * CORE_SW_RST may trigger power irq if previous status of PWRCTL

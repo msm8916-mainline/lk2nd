@@ -1091,6 +1091,7 @@ static uint8_t mmc_host_init(struct mmc_device *dev)
 	data->pwrctl_base = cfg->pwrctl_base;
 	data->pwr_irq = cfg->pwr_irq;
 	data->slot = cfg->slot;
+	data->use_io_switch = cfg->use_io_switch;
 
 	host->msm_host = data;
 
