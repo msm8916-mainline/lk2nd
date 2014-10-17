@@ -31,16 +31,27 @@
 
 #include <sys/types.h>
 
+#if USE_MDM_BOOT_CFG
+#define BOOT_DEVICE_MASK(val)   ((val & 0x1E) >> 1)
+#else
 #define BOOT_DEVICE_MASK(val)   ((val & 0x3E) >> 1)
+#endif
 
 /* Boot device */
+#if USE_MDM_BOOT_CFG
 enum boot_device
 {
-	BOOT_DEFAULT=0,
+	BOOT_DEFAULT=0, /* NAND */
+	BOOT_EMMC=3,
+};
+#else
+enum boot_device
+{
+	BOOT_DEFAULT=0, /* EMMC */
 	BOOT_EMMC=2,
 	BOOT_UFS=4,
-	BOOT_NAND=5,
 };
+#endif
 
 void platform_read_boot_config();
 uint32_t platform_get_boot_dev();

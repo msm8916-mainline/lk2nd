@@ -53,7 +53,12 @@ uint32_t platform_boot_dev_isemmc()
 
 	boot_dev_type = platform_get_boot_dev();
 
+#if USE_MDM_BOOT_CFG
+	/* For MDM default boot device is NAND */
+	if (boot_dev_type == BOOT_EMMC)
+#else
 	if (boot_dev_type == BOOT_EMMC || boot_dev_type == BOOT_DEFAULT)
+#endif
 		boot_dev_type = 1;
 	else
 		boot_dev_type = 0;
@@ -71,15 +76,16 @@ void platform_boot_dev_cmdline(char *buf)
 	val = platform_get_boot_dev();
 	switch(val)
 	{
+#if !USE_MDM_BOOT_CFG
 		case BOOT_DEFAULT:
-		case BOOT_EMMC:
 			sprintf(buf, "%x.sdhci", ((struct mmc_device *)dev)->host.base);
 			break;
 		case BOOT_UFS:
 			sprintf(buf, "%x.ufshc", ((struct ufs_dev *)dev)->base);
 			break;
-		case BOOT_NAND:
-			sprintf(buf, "%x.nandc", nand_device_base());
+#endif
+		case BOOT_EMMC:
+			sprintf(buf, "%x.sdhci", ((struct mmc_device *)dev)->host.base);
 			break;
 		default:
 			dprintf(CRITICAL,"ERROR: Unexpected boot_device val=%x",val);
