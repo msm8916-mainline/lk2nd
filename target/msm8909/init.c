@@ -313,7 +313,9 @@ void target_init(void)
 	if (target_use_signed_kernel())
 		target_crypto_init_params();
 
+#if ENABLE_SMD_SUPPORT
 	rpm_smd_init();
+#endif
 }
 
 void target_serialno(unsigned char *buf)
@@ -595,7 +597,9 @@ void target_uninit(void)
 	if (target_is_ssd_enabled())
 		clock_ce_disable(CE1_INSTANCE);
 
+#if ENABLE_SMD_SUPPORT
 	rpm_smd_uninit();
+#endif
 }
 
 /* Do any target specific intialization needed before entering fastboot mode */
