@@ -1471,7 +1471,12 @@ void read_device_info_mmc(device_info *dev)
 	if (memcmp(info->magic, DEVICE_MAGIC, DEVICE_MAGIC_SIZE))
 	{
 		memcpy(info->magic, DEVICE_MAGIC, DEVICE_MAGIC_SIZE);
+#if DEFAULT_UNLOCK
+		info->is_unlocked = 1;
+#else
 		info->is_unlocked = 0;
+#endif
+		info->is_verified = 0;
 		info->is_tampered = 0;
 		info->charger_screen_enabled = 0;
 
