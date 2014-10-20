@@ -313,12 +313,8 @@ int encrypt_scm(uint32_t ** img_ptr, uint32_t * img_len_ptr)
 {
 	int ret;
 	img_req cmd;
+	scmcall_arg scm_arg = {0};
 
-	if (scm_arm_support)
-	{
-		dprintf(INFO, "%s:SCM call is not supported\n",__func__);
-		return -1;
-	}
 
 	cmd.img_ptr     = (uint32*) img_ptr;
 	cmd.img_len_ptr = img_len_ptr;
@@ -328,7 +324,19 @@ int encrypt_scm(uint32_t ** img_ptr, uint32_t * img_len_ptr)
 	 */
 	arch_clean_invalidate_cache_range((addr_t) *img_ptr, *img_len_ptr);
 
-	ret = scm_call(SCM_SVC_SSD, SSD_ENCRYPT_ID, &cmd, sizeof(cmd), NULL, 0);
+	if (!scm_arm_support)
+	{
+		ret = scm_call(SCM_SVC_SSD, SSD_ENCRYPT_ID, &cmd, sizeof(cmd), NULL, 0);
+	}
+	else
+	{
+		scm_arg.x0 = MAKE_SIP_SCM_CMD(SCM_SVC_SSD,SSD_ENCRYPT_ID);
+		scm_arg.x1 = MAKE_SCM_ARGS(0x2,SMC_PARAM_TYPE_BUFFER_READWRITE,SMC_PARAM_TYPE_VALUE);
+		scm_arg.x2 = cmd.img_ptr;
+		scm_arg.x3 = cmd.img_len_ptr;
+
+		ret = scm_call2(&scm_arg, NULL);
+	}
 
 	/* Values at img_ptr and img_len_ptr are updated by TZ. Must be invalidated
 	 * before we use them.
@@ -383,13 +391,8 @@ static int ssd_image_is_encrypted(uint32_t ** img_ptr, uint32_t * img_len_ptr, u
 	ssd_parse_md_req parse_req;
 	ssd_parse_md_rsp parse_rsp;
 	int              prev_len = 0;
-
-	if (scm_arm_support)
-	{
-		dprintf(INFO, "%s:SCM call is not supported\n",__func__);
-		return -1;
-	}
-
+	scmcall_arg scm_arg = {0};
+	scmcall_ret scm_ret = {0};
 	/* Populate meta-data ptr. Here md_len is the meta-data length.
 	 * The Code below follows a growing length approach. First send
 	 * min(img_len_ptr,SSD_HEADER_MIN_SIZE) say 128 bytes for example.
@@ -404,13 +407,25 @@ static int ssd_image_is_encrypted(uint32_t ** img_ptr, uint32_t * img_len_ptr, u
 
 	do
 	{
-		ret = scm_call(SCM_SVC_SSD,
-				SSD_PARSE_MD_ID,
-				&parse_req,
-				sizeof(parse_req),
-				&parse_rsp,
-				sizeof(parse_rsp));
+		if (!scm_arm_support)
+		{
+			ret = scm_call(SCM_SVC_SSD,
+					SSD_PARSE_MD_ID,
+					&parse_req,
+					sizeof(parse_req),
+					&parse_rsp,
+					sizeof(parse_rsp));
+		}
+		else
+		{
+			scm_arg.x0 = MAKE_SIP_SCM_CMD(SCM_SVC_SSD, SSD_PARSE_MD_ID);
+			scm_arg.x1 = MAKE_SCM_ARGS(0x2,SMC_PARAM_TYPE_VALUE,SMC_PARAM_TYPE_BUFFER_READWRITE);
+			scm_arg.x2 = parse_req.md_len;
+			scm_arg.x3 = parse_req.md;
 
+			ret = scm_call2(&scm_arg, &scm_ret);
+			parse_rsp.status = scm_ret.x1;
+		}
 		if(!ret && (parse_rsp.status == SSD_PMD_PARSING_INCOMPLETE))
 		{
 			prev_len          = parse_req.md_len;
@@ -454,12 +469,9 @@ int decrypt_scm_v2(uint32_t ** img_ptr, uint32_t * img_len_ptr)
 	uint32                   ctx_id = 0;
 	ssd_decrypt_img_frag_req decrypt_req;
 	ssd_decrypt_img_frag_rsp decrypt_rsp;
+	scmcall_arg scm_arg = {0};
+	scmcall_ret scm_ret = {0};
 
-	if (scm_arm_support)
-	{
-		dprintf(INFO, "%s:SCM call is not supported\n",__func__);
-		return -1;
-	}
 
 	ret = ssd_image_is_encrypted(img_ptr,img_len_ptr,&ctx_id);
 	switch(ret)
@@ -478,13 +490,27 @@ int decrypt_scm_v2(uint32_t ** img_ptr, uint32_t * img_len_ptr)
 			decrypt_req.frag_len  = *img_len_ptr;
 			decrypt_req.frag      = *img_ptr;
 
-			ret = scm_call(SCM_SVC_SSD,
-					SSD_DECRYPT_IMG_FRAG_ID,
-					&decrypt_req,
-					sizeof(decrypt_req),
-					&decrypt_rsp,
-					sizeof(decrypt_rsp));
+			if (!scm_arm_support)
+			{
+				ret = scm_call(SCM_SVC_SSD,
+						SSD_DECRYPT_IMG_FRAG_ID,
+						&decrypt_req,
+						sizeof(decrypt_req),
+						&decrypt_rsp,
+						sizeof(decrypt_rsp));
+			}
+			else
+			{
+				scm_arg.x0 = MAKE_SIP_SCM_CMD(SCM_SVC_SSD, SSD_DECRYPT_IMG_FRAG_ID);
+				scm_arg.x1 = MAKE_SCM_ARGS(0x4,SMC_PARAM_TYPE_VALUE,SMC_PARAM_TYPE_VALUE,SMC_PARAM_TYPE_VALUE,SMC_PARAM_TYPE_BUFFER_READWRITE);
+				scm_arg.x2 = decrypt_req.md_ctx_id;
+				scm_arg.x3 = decrypt_req.last_frag;
+				scm_arg.x4 = decrypt_req.frag_len;
+				scm_arg.x5[0] = decrypt_req.frag;
 
+				ret = scm_call2(&scm_arg, &scm_ret);
+				decrypt_rsp.status = scm_ret.x1;
+			}
 			if(!ret){
 				ret = decrypt_rsp.status;
 			}
@@ -542,7 +568,7 @@ int scm_svc_version(uint32 * major, uint32 * minor)
 	else
 	{
 		scm_arg.x0 = MAKE_SIP_SCM_CMD(TZBSP_SVC_INFO, TZ_INFO_GET_FEATURE_ID);
-		scm_arg.x1 = MAKE_SCM_ARGS(0x1);
+		scm_arg.x1 = MAKE_SCM_ARGS(0x1,SMC_PARAM_TYPE_VALUE);
 		scm_arg.x2 = feature_req.feature_id;
 
 		ret = scm_call2(&scm_arg, &scm_ret);
@@ -560,24 +586,33 @@ int scm_protect_keystore(uint32_t * img_ptr, uint32_t  img_len)
 	int                      ret=0;
 	ssd_protect_keystore_req protect_req;
 	ssd_protect_keystore_rsp protect_rsp;
-
-	if (scm_arm_support)
-	{
-		dprintf(INFO, "%s:SCM call is not supported\n",__func__);
-		return -1;
-	}
+	scmcall_arg scm_arg = {0};
+	scmcall_ret scm_ret = {0};
 
 	protect_req.keystore_ptr = img_ptr;
 	protect_req.keystore_len = img_len;
 
 	arch_clean_invalidate_cache_range((addr_t) img_ptr, img_len);
 
-	ret = scm_call(SCM_SVC_SSD,
-		       SSD_PROTECT_KEYSTORE_ID,
-		       &protect_req,
-		       sizeof(protect_req),
-		       &protect_rsp,
-		       sizeof(protect_rsp));
+	if (!scm_arm_support)
+	{
+		ret = scm_call(SCM_SVC_SSD,
+				SSD_PROTECT_KEYSTORE_ID,
+				&protect_req,
+				sizeof(protect_req),
+				&protect_rsp,
+				sizeof(protect_rsp));
+	}
+	else
+	{
+		scm_arg.x0 = MAKE_SIP_SCM_CMD(SCM_SVC_SSD, SSD_PROTECT_KEYSTORE_ID);
+		scm_arg.x1 = MAKE_SCM_ARGS(0x2,SMC_PARAM_TYPE_BUFFER_READWRITE,SMC_PARAM_TYPE_VALUE);
+		scm_arg.x2 = protect_req.keystore_ptr;
+		scm_arg.x3 = protect_req.keystore_len;
+
+		ret = scm_call2(&scm_arg, &scm_ret);
+		protect_rsp.status = scm_ret.x1;
+	}
 	if(!ret)
 	{
 		if(protect_rsp.status == TZBSP_SSD_PKS_SUCCESS)
@@ -602,26 +637,34 @@ void set_tamper_fuse_cmd()
 	size_t cmd_len;
 	void *resp_buf = NULL;
 	size_t resp_len = 0;
+	scmcall_arg scm_arg = {0};
 
 	uint32_t fuse_id = HLOS_IMG_TAMPER_FUSE;
 	cmd_buf = (void *)&fuse_id;
 	cmd_len = sizeof(fuse_id);
 
-	if (scm_arm_support)
+	if (!scm_arm_support)
 	{
-		dprintf(INFO, "%s:SCM call is not supported\n",__func__);
-		return;
+		/*no response */
+		resp_buf = NULL;
+		resp_len = 0;
+
+		svc_id = SCM_SVC_FUSE;
+		cmd_id = SCM_BLOW_SW_FUSE_ID;
+
+		scm_call(svc_id, cmd_id, cmd_buf, cmd_len, resp_buf, resp_len);
+	}
+	else
+	{
+		scm_arg.x0 = MAKE_SIP_SCM_CMD(SCM_SVC_FUSE, SCM_BLOW_SW_FUSE_ID);
+		scm_arg.x1 = MAKE_SCM_ARGS(0x2,SMC_PARAM_TYPE_BUFFER_READWRITE,SMC_PARAM_TYPE_VALUE);
+		scm_arg.x2  = cmd_buf;
+		scm_arg.x3 = cmd_len;
+
+		scm_call2(&scm_arg, NULL);
+
 	}
 
-	/*no response */
-	resp_buf = NULL;
-	resp_len = 0;
-
-	svc_id = SCM_SVC_FUSE;
-	cmd_id = SCM_BLOW_SW_FUSE_ID;
-
-	scm_call(svc_id, cmd_id, cmd_buf, cmd_len, resp_buf, resp_len);
-	return;
 }
 
 uint8_t get_tamper_fuse_cmd()
@@ -634,24 +677,33 @@ uint8_t get_tamper_fuse_cmd()
 	uint8_t resp_buf;
 
 	uint32_t fuse_id = HLOS_IMG_TAMPER_FUSE;
-
-	if (scm_arm_support)
-	{
-		dprintf(INFO, "%s:SCM call is not supported\n",__func__);
-		return;
-	}
+	scmcall_arg scm_arg = {0};
+	scmcall_ret scm_ret = {0};
 
 	cmd_buf = (void *)&fuse_id;
 	cmd_len = sizeof(fuse_id);
 
-	/*response */
-	resp_len = sizeof(resp_buf);
+	if (!scm_arm_support)
+	{
+		/*response */
+		resp_len = sizeof(resp_buf);
 
-	svc_id = SCM_SVC_FUSE;
-	cmd_id = SCM_IS_SW_FUSE_BLOWN_ID;
+		svc_id = SCM_SVC_FUSE;
+		cmd_id = SCM_IS_SW_FUSE_BLOWN_ID;
 
-	scm_call(svc_id, cmd_id, cmd_buf, cmd_len, &resp_buf, resp_len);
-	return resp_buf;
+		scm_call(svc_id, cmd_id, cmd_buf, cmd_len, &resp_buf, resp_len);
+		return resp_buf;
+	}
+	else
+	{
+		scm_arg.x0 = MAKE_SIP_SCM_CMD(SCM_SVC_FUSE, SCM_IS_SW_FUSE_BLOWN_ID);
+		scm_arg.x1 = MAKE_SCM_ARGS(0x2,SMC_PARAM_TYPE_BUFFER_READWRITE,SMC_PARAM_TYPE_VALUE);
+		scm_arg.x2  = cmd_buf;
+		scm_arg.x3 = cmd_len;
+
+		scm_call2(&scm_arg, &scm_ret);
+		return (uint8_t)scm_ret.x1;
+	}
 }
 
 #define SHA256_DIGEST_LENGTH	(256/8)
