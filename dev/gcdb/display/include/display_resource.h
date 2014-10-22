@@ -45,11 +45,16 @@
 #define NO_PANEL_CONFIG "none"
 #define SIM_VIDEO_PANEL "sim_video_panel"
 #define SIM_DUALDSI_VIDEO_PANEL "sim_dualdsi_video_panel"
+#define SIM_CMD_PANEL "sim_cmd_panel"
+#define SIM_DUALDSI_CMD_PANEL "sim_dualdsi_cmd_panel"
 
 #define SIM_DSI_ID "dsi:0:"
 #define SIM_VIDEO_PANEL_NODE "qcom,mdss_dsi_sim_video"
 #define SIM_DUALDSI_VIDEO_PANEL_NODE "qcom,mdss_dsi_sim_video_0"
 #define SIM_DUALDSI_VIDEO_SLAVE_PANEL_NODE "qcom,mdss_dsi_sim_video_1"
+#define SIM_CMD_PANEL_NODE "qcom,mdss_dsi_sim_cmd"
+#define SIM_DUALDSI_CMD_PANEL_NODE "qcom,mdss_dsi_sim_cmd_0"
+#define SIM_DUALDSI_CMD_SLAVE_PANEL_NODE "qcom,mdss_dsi_sim_cmd_1"
 
 /*---------------------------------------------------------------------------*/
 /* Structure definition                                                      */
