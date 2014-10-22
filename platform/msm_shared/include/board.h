@@ -45,6 +45,7 @@ struct board_pmic_data {
 struct board_data {
 	uint32_t platform;
 	uint32_t foundry_id;
+	uint32_t chip_serial;
 	uint32_t platform_version;
 	uint32_t platform_hw;
 	uint32_t platform_subtype;
@@ -67,6 +68,7 @@ uint32_t board_hardware_subtype(void);
 uint32_t board_get_ddr_subtype(void);
 uint32_t board_hlos_subtype(void);
 uint32_t board_pmic_target(uint8_t num_ent);
+uint32_t board_chip_serial(void);
 
 /* DDR Subtype Macros
  * Determine the DDR Size on the device and define

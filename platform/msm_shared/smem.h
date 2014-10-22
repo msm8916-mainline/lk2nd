@@ -188,7 +188,8 @@ struct smem_board_info_v8 {
 	 * Need for 8 bytes alignment
 	 * while reading from shared memory
 	 */
-	uint32_t foundry_id; /* Used as foundry_id only for v9 and used as an alignment field for v8 */
+	uint32_t foundry_id; /* Used as foundry_id only for v9  */
+	uint32_t chip_serial; /* Used as serial number for v10 */
 };
 
 typedef struct {
