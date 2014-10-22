@@ -1057,3 +1057,8 @@ bool partition_gpt_exists()
 {
 	return (gpt_partitions_exist != 0);
 }
+
+int partition_read_only(int index)
+{
+	 return partition_entries[index].attribute_flag >> PART_ATT_READONLY_OFFSET;
+}

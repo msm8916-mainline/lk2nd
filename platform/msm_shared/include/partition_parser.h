@@ -73,6 +73,7 @@
 #define PARTITION_TYPE_GUID_SIZE   16
 #define UNIQUE_PARTITION_GUID_SIZE 16
 #define NUM_PARTITIONS             128
+#define PART_ATT_READONLY_OFFSET   60
 
 /* Some useful define used to access the MBR/EBR table */
 #define BLOCK_SIZE                0x200
@@ -179,5 +180,6 @@ struct partition_info partition_get_info(const char *name);
 
 /* For Debugging */
 void partition_dump(void);
-
+/* Read only attribute for partition */
+int partition_read_only(int index);
 #endif
