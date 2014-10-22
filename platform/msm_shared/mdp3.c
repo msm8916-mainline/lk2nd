@@ -87,6 +87,12 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 	int ystride = 3;
 	int mdp_rev = mdp_get_revision();
 	unsigned long long panic_config = 0;
+	int display_start_x, display_end_x;
+	int display_start_y, display_end_y;
+	int active_start_x, active_end_x;
+	int active_start_y, active_end_y;
+	int xres = pinfo->xres;
+	int yres = pinfo->yres;
 
 	if (pinfo == NULL)
 		return ERR_INVALID_ARGS;
@@ -98,16 +104,30 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 		return ERR_INVALID_ARGS;
 
 	dprintf(SPEW, "MDP3.0.3 for DSI Video Mode\n");
+	xres -= (lcdc->border_left + lcdc->border_right);
+	yres -= (lcdc->border_top + lcdc->border_bottom);
 
-	hsync_period = pinfo->xres + lcdc->h_front_porch + \
+	hsync_period = xres + lcdc->h_front_porch + \
 			lcdc->h_back_porch + 1;
-	vsync_period_intmd = pinfo->yres + lcdc->v_front_porch + \
+	vsync_period_intmd = yres + lcdc->v_front_porch + \
 				lcdc->v_back_porch + 1;
 	if (mdp_rev == MDP_REV_304 || mdp_rev == MDP_REV_305) {
 		hsync_period += lcdc->h_pulse_width - 1;
 		vsync_period_intmd += lcdc->v_pulse_width - 1;
 	}
+	hsync_period += lcdc->border_left + lcdc->border_right;
+	vsync_period_intmd += lcdc->border_top + lcdc->border_bottom;
+
 	vsync_period = vsync_period_intmd * hsync_period;
+
+	display_start_x = lcdc->h_back_porch + lcdc->h_pulse_width;
+	display_end_x = hsync_period - lcdc->h_front_porch - 1;
+	display_start_y = (lcdc->v_back_porch + lcdc->v_pulse_width) * hsync_period;
+	display_end_y = vsync_period - lcdc->v_front_porch * hsync_period - 1;
+	active_start_x = display_start_x + lcdc->border_left;
+	active_end_x = display_end_x - lcdc->border_right;
+	active_start_y = display_start_y + (lcdc->border_top * hsync_period);
+	active_end_y = display_end_y - (lcdc->border_bottom * hsync_period);
 
 	/*Program QOS remapper settings*/
 	writel(0x1A9, MDP_DMA_P_QOS_REMAPPER);
@@ -125,37 +145,37 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 	// ------------- programming MDP_DMA_P_CONFIG ---------------------
 	writel(0x1800bf, MDP_DMA_P_CONFIG);	// rgb888
 
-	writel(0x00000000, MDP_DMA_P_OUT_XY);
-	writel(pinfo->yres << 16 | pinfo->xres, MDP_DMA_P_SIZE);
+
+	writel(active_start_x | active_start_y << 16, MDP_DMA_P_OUT_XY);
+	writel(yres << 16 | xres, MDP_DMA_P_SIZE);
 	writel(MIPI_FB_ADDR, MDP_DMA_P_BUF_ADDR);
 	writel(pinfo->xres * ystride, MDP_DMA_P_BUF_Y_STRIDE);
-	writel(hsync_period << 16 | lcdc->h_pulse_width, \
-			MDP_DSI_VIDEO_HSYNC_CTL);
+	writel(hsync_period << 16 | lcdc->h_pulse_width,
+		MDP_DSI_VIDEO_HSYNC_CTL);
 	writel(vsync_period, MDP_DSI_VIDEO_VSYNC_PERIOD);
-	writel(lcdc->v_pulse_width * hsync_period, \
-			MDP_DSI_VIDEO_VSYNC_PULSE_WIDTH);
+	writel(lcdc->v_pulse_width * hsync_period,
+		MDP_DSI_VIDEO_VSYNC_PULSE_WIDTH);
 	if (mdp_rev == MDP_REV_304 || mdp_rev == MDP_REV_305) {
-		writel((pinfo->xres + lcdc->h_back_porch + \
-			lcdc->h_pulse_width - 1) << 16 | \
-			lcdc->h_back_porch + lcdc->h_pulse_width, \
+		writel(display_start_x | (display_end_x << 16),
 			MDP_DSI_VIDEO_DISPLAY_HCTL);
-		writel((lcdc->v_back_porch + lcdc->v_pulse_width) \
-			* hsync_period, MDP_DSI_VIDEO_DISPLAY_V_START);
-		writel(vsync_period - lcdc->v_front_porch * hsync_period - 1,
-	       MDP_DSI_VIDEO_DISPLAY_V_END);
+		writel(display_start_y, MDP_DSI_VIDEO_DISPLAY_V_START);
+		writel(display_end_y, MDP_DSI_VIDEO_DISPLAY_V_END);
+		writel(1 << 31 | active_start_x | (active_end_x << 16),
+			MDP_DSI_VIDEO_ACTIVE_HCTL);
+		writel(1 << 31 | active_start_y, MDP_DSI_VIDEO_ACTIVE_V_START);
+		writel(active_end_y, MDP_DSI_VIDEO_ACTIVE_V_END);
 	} else {
 		writel((pinfo->xres + lcdc->h_back_porch - 1) << 16 | \
 			lcdc->h_back_porch, MDP_DSI_VIDEO_DISPLAY_HCTL);
 		writel(lcdc->v_back_porch * hsync_period, \
 			MDP_DSI_VIDEO_DISPLAY_V_START);
 		writel((pinfo->yres + lcdc->v_back_porch) * hsync_period,
-	       MDP_DSI_VIDEO_DISPLAY_V_END);
+			MDP_DSI_VIDEO_DISPLAY_V_END);
 	}
-	writel(0x00ABCDEF, MDP_DSI_VIDEO_BORDER_CLR);
+	writel(lcdc->border_clr, MDP_DSI_VIDEO_BORDER_CLR);
 	writel(0x00000000, MDP_DSI_VIDEO_HSYNC_SKEW);
 	writel(0x00000000, MDP_DSI_VIDEO_CTL_POLARITY);
 	// end of cmd mdp
-
 	return 0;
 }
 

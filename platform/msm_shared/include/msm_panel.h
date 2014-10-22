@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -112,6 +112,10 @@ struct lcdc_panel_info {
 	uint8_t split_display;
 	uint8_t pipe_swap;
 	uint8_t dst_split;
+	uint32_t border_top;
+	uint32_t border_bottom;
+	uint32_t border_left;
+	uint32_t border_right;
 };
 
 struct fbc_panel_info {
@@ -241,6 +245,10 @@ struct msm_panel_info {
 	uint32_t pipe_type;
 	char     lowpowerstop;
 	char     lcd_reg_en;
+	uint32_t border_top;
+	uint32_t border_bottom;
+	uint32_t border_left;
+	uint32_t border_right;
 
 	struct lcd_panel_info lcd;
 	struct lcdc_panel_info lcdc;
