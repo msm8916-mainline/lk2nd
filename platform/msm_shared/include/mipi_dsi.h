@@ -79,6 +79,10 @@
 
 #define DSI_LANE_CTRL                         REG_DSI(0x0A8)
 
+#define DSI_VIDEO_MODE_DONE_MASK              BIT(17)
+#define DSI_VIDEO_MODE_DONE_AK                BIT(16)
+#define DSI_VIDEO_MODE_DONE_STAT              BIT(16)
+
 /**********************************************************
   DSI register configuration options
  **********************************************************/
@@ -200,6 +204,7 @@ struct mipi_dsi_cmd {
 	int size;
 	char *payload;
 	int wait;
+	uint8_t cmds_post_tg;
 };
 
 struct mipi_dsi_panel_config {
@@ -214,6 +219,7 @@ struct mipi_dsi_panel_config {
 	struct mipi_dsi_cmd *panel_cmds;
 	int num_of_panel_cmds;
 	uint32_t signature;
+	char cmds_post_tg;
 };
 
 static char read_id_a1h_cmd[4] = { 0xA1, 0x00, 0x06, 0xA0 };	/* DTYPE_DCS_READ */

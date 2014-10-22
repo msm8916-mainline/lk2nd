@@ -154,6 +154,7 @@ struct intf_timing_params {
 };
 
 struct mipi_panel_info {
+	char cmds_post_tg;	/* send on commands after tg on */
 	char mode;		/* video/cmd */
 	char interleave_mode;
 	int eof_bllp_power;
