@@ -618,6 +618,16 @@ void boot_linux(void *kernel, unsigned *tags,
 #endif
 
 	free(final_cmdline);
+
+#if VERIFIED_BOOT
+	/* Write protect the device info */
+	if (mmc_write_protect("devinfo", 1))
+	{
+		dprintf(INFO, "Failed to write protect dev info\n");
+		ASSERT(0);
+	}
+#endif
+
 	/* Perform target specific cleanup */
 	target_uninit();
 
@@ -1432,7 +1442,12 @@ void write_device_info_mmc(device_info *dev)
 	uint32_t blocksize;
 	uint8_t lun = 0;
 
+#if VERIFIED_BOOT
+	index = partition_get_index("devinfo");
+#else
 	index = partition_get_index("aboot");
+#endif
+
 	ptn = partition_get_offset(index);
 	if(ptn == 0)
 	{
@@ -1448,7 +1463,11 @@ void write_device_info_mmc(device_info *dev)
 
 	blocksize = mmc_get_device_blocksize();
 
+#if VERIFIED_BOOT
+	if(mmc_write(ptn, blocksize, (void *)info_buf))
+#else
 	if(mmc_write((ptn + size - blocksize), blocksize, (void *)info_buf))
+#endif
 	{
 		dprintf(CRITICAL, "ERROR: Cannot write device info\n");
 		return;
@@ -1463,18 +1482,29 @@ void read_device_info_mmc(device_info *dev)
 	int index = INVALID_PTN;
 	uint32_t blocksize;
 
+#if VERIFIED_BOOT
+	index = partition_get_index("devinfo");
+#else
 	index = partition_get_index("aboot");
+#endif
+
 	ptn = partition_get_offset(index);
 	if(ptn == 0)
 	{
 		return;
 	}
 
+	mmc_set_lun(partition_get_lun(index));
+
 	size = partition_get_size(index);
 
 	blocksize = mmc_get_device_blocksize();
 
+#if VERIFIED_BOOT
+	if(mmc_read(ptn, (void *)info_buf, blocksize))
+#else
 	if(mmc_read((ptn + size - blocksize), (void *)info_buf, blocksize))
+#endif
 	{
 		dprintf(CRITICAL, "ERROR: Cannot read device info\n");
 		return;
