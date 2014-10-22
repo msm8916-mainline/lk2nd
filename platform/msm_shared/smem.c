@@ -87,7 +87,7 @@ unsigned smem_read_alloc_entry(smem_mem_type_t type, void *buf, int len)
 
 	size = readl(&ainfo->size);
 
-	if (size != (unsigned)((len + 7) & ~0x00000007))
+	if (size < (unsigned)((len + 7) & ~0x00000007))
 		return 1;
 
 	src = smem_addr + readl(&ainfo->offset);
