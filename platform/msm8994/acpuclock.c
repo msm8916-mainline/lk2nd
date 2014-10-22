@@ -348,20 +348,12 @@ void mdp_clock_enable(void)
 		dprintf(CRITICAL, "failed to set mdp_clk ret = %d\n", ret);
 		ASSERT(0);
 	}
-
-	ret = clk_get_set_enable("mdss_mdp_lut_clk", 0, 1);
-	if(ret)
-	{
-		dprintf(CRITICAL, "failed to set lut_mdp clk ret = %d\n", ret);
-		ASSERT(0);
-	}
 }
 
 void mdp_clock_disable()
 {
 	clk_disable(clk_get("mdss_vsync_clk"));
 	clk_disable(clk_get("mdss_mdp_clk"));
-	clk_disable(clk_get("mdss_mdp_lut_clk"));
 	clk_disable(clk_get("mdss_mdp_clk_src"));
 	clk_disable(clk_get("mdp_ahb_clk"));
 
