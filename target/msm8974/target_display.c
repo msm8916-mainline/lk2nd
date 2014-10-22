@@ -399,11 +399,13 @@ void target_display_init(const char *panel_name)
 
 	panel_name += strspn(panel_name, " ");
 
-	if ((!strcmp(panel_name, NO_PANEL_CONFIG))
-			|| (!strcmp(panel_name, SIM_VIDEO_PANEL))
-			|| (!strcmp(panel_name, SIM_DUALDSI_VIDEO_PANEL))) {
-		dprintf(INFO, "Selected panel: %s\nSkip panel configuration",
-								panel_name);
+	if (!strcmp(panel_name, NO_PANEL_CONFIG)
+		|| !strcmp(panel_name, SIM_VIDEO_PANEL)
+		|| !strcmp(panel_name, SIM_DUALDSI_VIDEO_PANEL)
+		|| !strcmp(panel_name, SIM_CMD_PANEL)
+		|| !strcmp(panel_name, SIM_DUALDSI_CMD_PANEL)) {
+		dprintf(INFO, "Selected panel: %s\nSkip panel configuration\n",
+			panel_name);
 		return;
 	} else if (!strcmp(panel_name, HDMI_PANEL_NAME)) {
 		dprintf(INFO, "%s: HDMI is primary\n", __func__);

@@ -398,10 +398,11 @@ void target_display_init(const char *panel_name)
         uint32_t ret = 0;
 	uint32_t fb_addr = MIPI_FB_ADDR;
 
-	if ((!strcmp(panel_name, NO_PANEL_CONFIG))
-			|| (!strcmp(panel_name, SIM_VIDEO_PANEL))) {
+	if (!strcmp(panel_name, NO_PANEL_CONFIG)
+		|| !strcmp(panel_name, SIM_VIDEO_PANEL)
+		|| !strcmp(panel_name, SIM_CMD_PANEL)) {
 		dprintf(INFO, "Selected panel: %s\nSkip panel configuration\n",
-								panel_name);
+			panel_name);
 		return;
 	}
 
