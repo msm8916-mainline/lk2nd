@@ -58,4 +58,5 @@
 #define NR_IRQS                                (NR_MSM_IRQS + NR_GPIO_IRQS + \
                                                NR_BOARD_IRQS)
 
+#define SMD_IRQ                                (GIC_SPI_START + 168)
 #endif /* __IRQS_9635_H */
