@@ -162,37 +162,35 @@ crypto_engine_type board_ce_type(void)
 #if MMC_SDHCI_SUPPORT
 static void target_mmc_sdhci_init()
 {
+	static uint32_t mmc_clks[] = {
+		MMC_CLK_96MHZ, MMC_CLK_50MHZ };
+
 	struct mmc_config_data config = {0};
+	int i;
 
 	config.bus_width = DATA_BUS_WIDTH_8BIT;
-	config.max_clk_rate = MMC_CLK_96MHZ;
 
 	/* Trying Slot 1*/
 	config.slot = 1;
 	config.sdhc_base = mmc_sdhci_base[config.slot - 1];
 	config.pwrctl_base = mmc_sdc_base[config.slot - 1];
 	config.pwr_irq     = mmc_sdc_pwrctl_irq[config.slot - 1];
+	config.hs400_support = 0;
 
-	if (!(dev = mmc_init(&config))) {
-		/* Trying Slot 2 next */
-		config.slot = 2;
-		config.sdhc_base = mmc_sdhci_base[config.slot - 1];
-		config.pwrctl_base = mmc_sdc_base[config.slot - 1];
-		config.pwr_irq     = mmc_sdc_pwrctl_irq[config.slot - 1];
-
-		if (!(dev = mmc_init(&config))) {
-			dprintf(CRITICAL, "mmc init failed!");
-			ASSERT(0);
-		}
+	for (i = 0; i < ARRAY_SIZE(mmc_clks); ++i) {
+		config.max_clk_rate = mmc_clks[i];
+		dprintf(INFO, "SDHC Running at %u MHz\n",
+			config.max_clk_rate / 1000000);
+		dev = mmc_init(&config);
+		if (dev && partition_read_table() == 0)
+			return;
 	}
 
-	/*
-	 * MMC initialization is complete, read the partition table info
-	 */
-	if (partition_read_table()) {
+	if (dev == NULL)
+		dprintf(CRITICAL, "mmc init failed!");
+	else
 		dprintf(CRITICAL, "Error reading the partition table info\n");
-		ASSERT(0);
-	}
+	ASSERT(0);
 }
 
 void *target_mmc_device()
