@@ -32,7 +32,7 @@
 #include <platform/iomap.h>
 #include <gpio.h>
 
-static void tlmm_set_sdc_pins(struct tlmm_cfgs *cfg)
+static void tlmm_set_pins(struct tlmm_cfgs *cfg)
 {
 	uint32_t reg_val;
 
@@ -57,7 +57,7 @@ void tlmm_set_hdrive_ctrl(struct tlmm_cfgs *hdrv_cfgs, uint8_t sz)
 	uint8_t i;
 
 	for (i = 0; i < sz; i++)
-		tlmm_set_sdc_pins(&hdrv_cfgs[i]);
+		tlmm_set_pins(&hdrv_cfgs[i]);
 }
 
 void tlmm_set_pull_ctrl(struct tlmm_cfgs *pull_cfgs, uint8_t sz)
@@ -65,5 +65,5 @@ void tlmm_set_pull_ctrl(struct tlmm_cfgs *pull_cfgs, uint8_t sz)
 	uint8_t i;
 
 	for (i = 0; i < sz; i++)
-		tlmm_set_sdc_pins(&pull_cfgs[i]);
+		tlmm_set_pins(&pull_cfgs[i]);
 }
