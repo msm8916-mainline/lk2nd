@@ -37,6 +37,7 @@
 #include <dme.h>
 #include <uic.h>
 #include <utp.h>
+#include <ucs.h>
 
 int dme_send_linkstartup_req(struct ufs_dev *dev)
 {
@@ -309,7 +310,29 @@ int dme_read_device_desc(struct ufs_dev *dev)
 	arch_invalidate_cache_range((addr_t) str_desc, sizeof(struct ufs_string_desc));
 
 	dev->serial_num = dme_parse_serial_no(str_desc);
-	
+
+	return UFS_SUCCESS;
+}
+
+
+int dme_read_geo_desc(struct ufs_dev *dev)
+{
+	struct ufs_geometry_desc *desc;
+	STACKBUF_DMA_ALIGN(geometry_desc, sizeof(struct ufs_geometry_desc));
+	desc = geometry_desc;
+	struct utp_query_req_upiu_type query = {UPIU_QUERY_OP_READ_DESCRIPTOR,
+											UFS_DESC_IDN_GEOMETRY,
+											0,
+											0,
+											(addr_t) geometry_desc,
+											sizeof(struct ufs_geometry_desc)};
+
+	if (dme_send_query_upiu(dev, &query))
+		return -UFS_FAILURE;
+
+	// Flush buffer.
+	arch_invalidate_cache_range((addr_t) desc, sizeof(struct ufs_geometry_desc));
+	dev->rpmb_rw_size = desc->rpmb_read_write_size;
 	return UFS_SUCCESS;
 }
 
@@ -333,6 +356,10 @@ int dme_read_unit_desc(struct ufs_dev *dev, uint8_t index)
 	dev->lun_cfg[index].logical_blk_cnt = BE64(desc->logical_blk_cnt);
 
 	dev->lun_cfg[index].erase_blk_size = BE32(desc->erase_blk_size);
+
+	// use only the lower 32 bits for rpmb partition size
+	if (index == UFS_WLUN_RPMB)
+		dev->rpmb_num_blocks = BE32(desc->logical_blk_cnt >> 32);
 
 	return UFS_SUCCESS;
 }
