@@ -148,10 +148,25 @@ void target_init(void)
 	flash_set_ptable(&flash_ptable);
 	rpm_smd_init();
 }
+
+int target_cont_splash_screen()
+{
+	/*
+	 * FOR OEMs - Set cont_splash_screen to keep the splash enable after LK.
+	 * By default: the cont-splash-screen is ON
+	 */
+	return false;
+}
+
 void target_uninit()
 {
-	rpm_smd_uninit();
+#if DISPLAY_SPLASH_SCREEN
+	/* target_display_shutdown will uninitialize it in case of cont-splash */
+	if(target_cont_splash_screen())
+#endif
+		rpm_smd_uninit();
 }
+
 /* Do target specific usb initialization */
 void target_usb_init(void)
 {
