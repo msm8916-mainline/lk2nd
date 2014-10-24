@@ -50,6 +50,7 @@
 #define WRITEBACK_PANEL		10	/* Wifi display */
 #define LVDS_PANEL		11	/* LVDS */
 #define EDP_PANEL		12	/* EDP */
+#define QPIC_PANEL		13	/* QPIC */
 
 enum mdss_mdp_pipe_type {
 	MDSS_MDP_PIPE_TYPE_VIG,
