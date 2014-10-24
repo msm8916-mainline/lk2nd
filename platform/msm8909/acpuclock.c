@@ -39,24 +39,136 @@
 
 void hsusb_clock_init(void)
 {
+	int ret;
+	struct clk *iclk, *cclk;
 
+	ret = clk_get_set_enable("usb_iface_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set usb_iface_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("usb_core_clk", 80000000, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set usb_core_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	mdelay(20);
+
+	iclk = clk_get("usb_iface_clk");
+	cclk = clk_get("usb_core_clk");
+
+	clk_disable(iclk);
+	clk_disable(cclk);
+
+	mdelay(20);
+
+	/* Start the block reset for usb */
+	writel(1, USB_HS_BCR);
+
+	mdelay(20);
+
+	/* Take usb block out of reset */
+	writel(0, USB_HS_BCR);
+
+	mdelay(20);
+
+	ret = clk_enable(iclk);
+
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set usb_iface_clk after async ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_enable(cclk);
+
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set usb_iface_clk after async ret = %d\n", ret);
+		ASSERT(0);
+	}
 }
 
 void clock_init_mmc(uint32_t interface)
 {
+	char clk_name[64];
+	int ret;
 
+	snprintf(clk_name, sizeof(clk_name), "sdc%u_iface_clk", interface);
+
+	/* enable interface clock */
+	ret = clk_get_set_enable(clk_name, 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set sdc1_iface_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
 }
 
 /* Configure MMC clock */
 void clock_config_mmc(uint32_t interface, uint32_t freq)
 {
+	int ret;
+	char clk_name[64];
 
+	snprintf(clk_name, sizeof(clk_name), "sdc%u_core_clk", interface);
+
+	if(freq == MMC_CLK_400KHZ)
+	{
+		ret = clk_get_set_enable(clk_name, 400000, 1);
+	}
+	else if(freq == MMC_CLK_50MHZ)
+	{
+		ret = clk_get_set_enable(clk_name, 50000000, 1);
+	}
+	else if(freq == MMC_CLK_200MHZ)
+	{
+		ret = clk_get_set_enable(clk_name, 200000000, 1);
+	}
+	else if(freq == MMC_CLK_177MHZ)
+	{
+		ret = clk_get_set_enable(clk_name, 177770000, 1);
+	}
+	else
+	{
+		dprintf(CRITICAL, "sdc frequency (%u) is not supported\n", freq);
+		ASSERT(0);
+	}
+
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set %s ret = %d\n", clk_name, ret);
+		ASSERT(0);
+	}
 }
 
 /* Configure UART clock based on the UART block id*/
 void clock_config_uart_dm(uint8_t id)
 {
+	int ret;
+	char iclk[64];
+	char cclk[64];
 
+	snprintf(iclk, sizeof(iclk), "uart%u_iface_clk", id);
+	snprintf(cclk, sizeof(cclk), "uart%u_core_clk", id);
+
+	ret = clk_get_set_enable(iclk, 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set %s ret = %d\n", iclk, ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable(cclk, 7372800, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set %s ret = %d\n", cclk, ret);
+		ASSERT(0);
+	}
 }
 
 /* Function to asynchronously reset CE.
@@ -64,17 +176,90 @@ void clock_config_uart_dm(uint8_t id)
  */
 static void ce_async_reset(uint8_t instance)
 {
+	/* Start the block reset for CE */
+	writel(1, GCC_CRYPTO_BCR);
 
+	udelay(2);
+
+	/* Take CE block out of reset */
+	writel(0, GCC_CRYPTO_BCR);
+
+	udelay(2);
 }
 
 void clock_ce_enable(uint8_t instance)
 {
+	int ret;
+	char clk_name[64];
 
+	snprintf(clk_name, sizeof(clk_name), "ce%u_src_clk", instance);
+	ret = clk_get_set_enable(clk_name, 160000000, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set ce%u_src_clk ret = %d\n", instance, ret);
+		ASSERT(0);
+	}
+
+	snprintf(clk_name, sizeof(clk_name), "ce%u_core_clk", instance);
+	ret = clk_get_set_enable(clk_name, 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set ce%u_core_clk ret = %d\n", instance, ret);
+		ASSERT(0);
+	}
+
+	snprintf(clk_name, sizeof(clk_name), "ce%u_ahb_clk", instance);
+	ret = clk_get_set_enable(clk_name, 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set ce%u_ahb_clk ret = %d\n", instance, ret);
+		ASSERT(0);
+	}
+
+	snprintf(clk_name, sizeof(clk_name), "ce%u_axi_clk", instance);
+	ret = clk_get_set_enable(clk_name, 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set ce%u_axi_clk ret = %d\n", instance, ret);
+		ASSERT(0);
+	}
+
+	/* Wait for 48 * #pipes cycles.
+	* This is necessary as immediately after an access control reset (boot up)
+	* or a debug re-enable, the Crypto core sequentially clears its internal
+	* pipe key storage memory. If pipe key initialization writes are attempted
+	* during this time, they may be overwritten by the internal clearing logic.
+	*/
+	udelay(1);
 }
 
 void clock_ce_disable(uint8_t instance)
 {
+	struct clk *ahb_clk;
+	struct clk *cclk;
+	struct clk *axi_clk;
+	struct clk *src_clk;
+	char clk_name[64];
 
+	snprintf(clk_name, sizeof(clk_name), "ce%u_src_clk", instance);
+	src_clk = clk_get(clk_name);
+
+	snprintf(clk_name, sizeof(clk_name), "ce%u_ahb_clk", instance);
+	ahb_clk = clk_get(clk_name);
+
+	snprintf(clk_name, sizeof(clk_name), "ce%u_axi_clk", instance);
+	axi_clk = clk_get(clk_name);
+
+	snprintf(clk_name, sizeof(clk_name), "ce%u_core_clk", instance);
+	cclk    = clk_get(clk_name);
+
+	clk_disable(ahb_clk);
+	clk_disable(axi_clk);
+	clk_disable(cclk);
+	clk_disable(src_clk);
+
+	/* Some delay for the clocks to stabalize. */
+	udelay(1);
 }
 
 void clock_config_ce(uint8_t instance)

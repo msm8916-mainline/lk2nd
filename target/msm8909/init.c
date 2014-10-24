@@ -266,7 +266,9 @@ void target_init(void)
 
 	target_keystatus();
 
+#if ENABLE_BOOT_CONFIG_SUPPORT
 	platform_read_boot_config();
+#endif
 
 	if (platform_boot_dev_isemmc()) {
 		target_sdc_init();
