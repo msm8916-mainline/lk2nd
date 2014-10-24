@@ -109,6 +109,10 @@
 #define	OP_WRITE_MEMORY_CONTINUE  0x3C /* size not fixed */
 #define	OP_WRITE_MEMORY_START   0x2C /* size not fixed */
 
+/* ILI9341 commands */
+#define OP_ILI9341_INTERFACE_CONTROL    0xf6
+#define OP_ILI9341_TEARING_EFFECT_LINE_ON    0x35
+
 struct qpic_panel_io_desc {
 	int rst_gpio;
 	int cs_gpio;
@@ -122,7 +126,7 @@ struct qpic_panel_io_desc {
 
 int mdss_qpic_panel_io_init(struct qpic_panel_io_desc *qpic_panel_io);
 uint32_t qpic_panel_get_cmd(uint32_t command, uint32_t size);
-int dummy_panel_on(struct qpic_panel_io_desc *qpic_panel_io);
-void dummy_panel_off(struct qpic_panel_io_desc *qpic_panel_io);
+int ili9341_on(struct qpic_panel_io_desc *qpic_panel_io);
+void ili9341_off(struct qpic_panel_io_desc *qpic_panel_io);
 
 #endif /* MDSS_QPIC_PANEL_H */

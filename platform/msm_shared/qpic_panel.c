@@ -127,8 +127,8 @@ int mdss_qpic_panel_off(struct qpic_panel_io_desc *panel_io)
 
 int mdss_qpic_panel_init(struct qpic_panel_io_desc *panel_io)
 {
-	qpic_panel_on = dummy_panel_on;
-	qpic_panel_off = dummy_panel_off;
+	qpic_panel_on = ili9341_on;
+	qpic_panel_off = ili9341_off;
 
 	return 0;
 }
