@@ -246,7 +246,7 @@ int get_target_boot_params(const char *cmdline, const char *part, char *buf,
 		}
 		else {
 			/* Below is for emmc boot */
-			system_ptn_index = partition_get_index(part);
+			system_ptn_index = partition_get_index(part) + 1; /* Adding +1 as offsets for eMMC start at 1 and NAND at 0 */
 			if (system_ptn_index < 0) {
 				dprintf(CRITICAL,
 						"WARN: Cannot get partition index for %s\n", part);
