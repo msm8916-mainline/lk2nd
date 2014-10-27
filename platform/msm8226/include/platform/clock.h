@@ -83,5 +83,10 @@ void clock_ce_enable(uint8_t instance);
 void clock_ce_disable(uint8_t instance);
 void mdp_clock_init(void);
 void mdp_gdsc_ctrl(uint8_t enable);
-
+void mdp_clock_disable(void);
+void mdp_clock_enable(void);
+void mmss_bus_clocks_enable(void);
+void mmss_bus_clocks_disable(void);
+void mmss_dsi_clocks_enable(uint8_t pclk0_m, uint8_t pclk0_n, uint8_t pclk0_d);
+void mmss_dsi_clocks_disable(void);
 #endif
