@@ -95,6 +95,8 @@ struct ufs_dev
 	uint32_t                     serial_num;
 	uint32_t                     block_size;
 	uint32_t                     erase_blk_size;
+	uint32_t                     rpmb_rw_size;
+	uint32_t                     rpmb_num_blocks;
 	uint64_t                     capacity;
 	struct ufs_unit_desc         lun_cfg[8];
 

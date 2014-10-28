@@ -150,28 +150,39 @@ struct ufs_dev_desc
 
 struct ufs_geometry_desc
 {
-	uint8_t  desc_len;
-	uint8_t  desc_type;
-	uint8_t  media_tech;
-	uint8_t  resv_0;
-	uint8_t  raw_dev_capacity[8];
-	uint8_t  resv_1;
-	uint32_t segment_size;
-	uint8_t  alloc_unit_size;
-	uint8_t  min_addr_blk_size;
-	uint8_t  optimal_read_blk_size;
-	uint8_t  optimal_write_blk_size;
-	uint8_t  max_inbuf_size;
-	uint8_t  maxoutbuf_size;
-	uint8_t  rpmb_rdwr_size;
-	uint8_t  resv_2;
-	uint8_t  data_ordering;
-	uint8_t  resv_3[5];
-	uint8_t  max_ctx_id_num;
-	uint8_t  sys_data_tag_unit_size;
-	uint8_t  sys_data_tag_res_size;
-	uint8_t  supp_sec_rt_types;
-	uint16_t supp_mem_types;
+	uint8_t   desc_len;
+	uint8_t   desc_type;
+	uint8_t   media_technology;
+	uint8_t   resv1;
+	uint64_t  total_raw_device_capacity;
+	uint8_t   resv2;
+	uint32_t  segment_size;
+	uint8_t   allocation_unit_size;
+	uint8_t   min_addr_block_size;
+	uint8_t   optimal_read_block_size;
+	uint8_t   optimal_write_block_size;
+	uint8_t   max_in_buffer_size;
+	uint8_t   max_out_buffer_zie;
+	uint8_t   rpmb_read_write_size;
+	uint8_t   resv3;
+	uint8_t   data_ordering;
+	uint8_t   max_context_id_number;
+	uint8_t   sys_data_tag_unit_size;
+	uint8_t   sys_data_tag_res_size;
+	uint8_t   supported_sec_r_types;
+	uint16_t  supported_memory_types;
+	uint32_t  system_code_max_n_alloc_u;
+	uint16_t  system_code_cap_adj_fac;
+	uint32_t  non_persist_max_n_alloc_u;
+	uint16_t  non_persist_cap_adj_fac;
+	uint32_t  enhanced_1_max_n_alloc_u;
+	uint16_t  enhanced_1_cap_adj_fac;
+	uint32_t  enhanced_2_max_n_alloc_u;
+	uint16_t  enhanced_2_cap_adj_fac;
+	uint32_t  enhanced_3_max_n_alloc_u;
+	uint16_t  enhanced_3_cap_adj_fac;
+	uint32_t  enhanced_4_max_n_alloc_u;
+	uint16_t  enhanced_4_cap_adj_fac;
 }__PACKED;
 
 struct ufs_dev_desc_config_params
@@ -224,5 +235,10 @@ int dme_send_nop_query(struct ufs_dev *dev);
 int dme_set_fdeviceinit(struct ufs_dev *dev);
 int dme_set_fpoweronwpen(struct ufs_dev *dev);
 int dme_read_unit_desc(struct ufs_dev *dev, uint8_t index);
+
+/* Geometry Descriptor contains RPMB read write size which indicates total
+   number of rpmb frames allowed in a single SCSI security command
+*/
+int dme_read_geometry_desc(struct ufs_dev *dev);
 
 #endif
