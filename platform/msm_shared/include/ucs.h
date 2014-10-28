@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -40,6 +40,12 @@
 #define SCSI_SENSE_BUF_LEN             0x20
 #define SCSI_INQUIRY_LEN               36
 #define SCSI_CDB_PARAM_LEN             16
+#define SCSI_SEC_PROT                  0xEC
+#define SCSI_SEC_UFS_PROT_ID           0x0001
+
+#define RPMB_BLK_SIZE                  512
+#define RPMB_FRAME_SIZE                512
+#define RPMB_MIN_BLK_CNT               1
 
 /* FLAGS for indication of read or write */
 enum scsi_upiu_flags
@@ -86,6 +92,18 @@ struct scsi_rdwr_req
 	uint32_t num_blocks;
 	uint32_t data_buffer_base;
 };
+
+struct scsi_sec_protocol_cdb
+{
+	uint8_t  opcode;
+	uint8_t  cdb1;
+	uint16_t sec_protocol_specific;
+	uint8_t  resv1;
+	uint8_t  resv2;
+	uint32_t alloc_tlen;
+	uint8_t  resv3;
+	uint8_t  control;
+}__PACKED;
 
 struct scsi_rdwr_cdb
 {
@@ -147,5 +165,14 @@ struct scsi_failure_sense_data
 int ucs_scsi_send_inquiry(struct ufs_dev *dev);
 int ucs_do_scsi_read(struct ufs_dev *dev, struct scsi_rdwr_req *req);
 int ucs_do_scsi_write(struct ufs_dev *dev, struct scsi_rdwr_req *req);
+
+/*
+ * ucs_do_sci_rpmb_read function takes a RPMB frame, sector address and number of
+ * blocks to be read from RPMB partition as input and returns one or more RPMB
+ * frames as response along with total length of the reponse. The response is then
+ * processed by upper layers.
+ */
+int ucs_do_scsi_rpmb_read(struct ufs_dev *dev, uint32_t *req_buf, uint32_t blk_cnt,
+                                 uint32_t *resp_buffer, uint32_t *response_length);
 
 #endif

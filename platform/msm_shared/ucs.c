@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -77,6 +77,108 @@ int ucs_do_scsi_cmd(struct ufs_dev *dev, struct scsi_req_build_type *req)
 		return -UFS_FAILURE;
 	}
 
+	return UFS_SUCCESS;
+}
+
+int ucs_do_scsi_rpmb_read(struct ufs_dev *dev, uint32_t *req_buf, uint32_t blk_cnt,
+                                 uint32_t *resp_buf, uint32_t *resp_len)
+{
+	// validate input parameters
+	ASSERT(req_buf);
+	ASSERT(resp_buf);
+	ASSERT(resp_len);
+
+	STACKBUF_DMA_ALIGN(cdb, sizeof(struct scsi_sec_protocol_cdb));
+	struct scsi_req_build_type   req_upiu;
+	struct scsi_sec_protocol_cdb *cdb_out_param, *cdb_in_param;
+	uint32_t                     blks_remaining;
+	uint32_t                     blks_to_transfer;
+	uint64_t                     bytes_to_transfer;
+	uint32_t                     start_blk;
+	uint64_t                     max_size;
+	blks_remaining    = blk_cnt;
+	blks_to_transfer  = blks_remaining;
+	bytes_to_transfer = blks_to_transfer * RPMB_FRAME_SIZE;
+
+	// check if total bytes to transfer exceed max supported size
+	max_size = dev->rpmb_rw_size * RPMB_FRAME_SIZE * blk_cnt;
+	if (bytes_to_transfer > max_size)
+	{
+		dprintf(CRITICAL, "RPMB request transfer size %llu greater than max transfer size %llu\n", bytes_to_transfer, max_size);
+		return -UFS_FAILURE;
+	}
+#ifdef DEBUG_UFS
+	dprintf(INFO, "rpmb_read: req_buf: 0x%x blk_count: 0x%x\n", *req_buf, blk_cnt);
+	dprintf(INFO, "rpmb_read: bytes_to_transfer: 0x%x blks_to_transfer: 0x%x\n",
+                   bytes_to_transfer, blks_to_transfer);
+#endif
+	// send the request
+	cdb_out_param = (struct scsi_sec_protocol_cdb*) cdb;
+	memset(cdb_out_param, 0, sizeof(struct scsi_sec_protocol_cdb));
+
+	cdb_out_param->opcode                = SCSI_CMD_SECPROT_OUT;
+	cdb_out_param->cdb1                  = SCSI_SEC_PROT;
+	cdb_out_param->sec_protocol_specific = BE16(SCSI_SEC_UFS_PROT_ID);
+	cdb_out_param->alloc_tlen            = BE32(bytes_to_transfer);
+
+	// Flush CDB to memory
+	dsb();
+	arch_clean_invalidate_cache_range((addr_t) cdb_out_param, sizeof(struct scsi_sec_protocol_cdb));
+
+	memset(&req_upiu, 0, sizeof(struct scsi_req_build_type));
+
+	req_upiu.cdb              = (addr_t) cdb_out_param;
+	req_upiu.data_buffer_addr = req_buf;
+	req_upiu.data_len         = bytes_to_transfer;
+	req_upiu.flags            = UPIU_FLAGS_WRITE;
+	req_upiu.lun              = UFS_WLUN_RPMB;
+	req_upiu.dd               = UTRD_TARGET_TO_SYSTEM;
+
+#ifdef DEBUG_UFS
+	dprintf(INFO, "Sending RPMB Read request\n");
+#endif
+	if (ucs_do_scsi_cmd(dev, &req_upiu))
+	{
+		dprintf(CRITICAL, "%s:%d ucs_do_scsi_rpmb_read: failed\n", __func__, __LINE__);
+		return -UFS_FAILURE;
+	}
+#ifdef DEBUG_UFS
+	dprintf(INFO, "Sending RPMB Read request complete\n");
+#endif
+	// read the response
+	cdb_in_param = (struct scsi_sec_protocol_cdb*) cdb;
+	memset(cdb_in_param, 0, sizeof(struct scsi_sec_protocol_cdb));
+
+	cdb_in_param->opcode                = SCSI_CMD_SECPROT_IN;
+	cdb_in_param->cdb1                  = SCSI_SEC_PROT;
+	cdb_in_param->sec_protocol_specific = BE16(SCSI_SEC_UFS_PROT_ID);
+	cdb_in_param->alloc_tlen            = BE32(bytes_to_transfer);
+
+	// Flush CDB to memory
+	dsb();
+	arch_clean_invalidate_cache_range((addr_t) cdb_in_param, sizeof(struct scsi_sec_protocol_cdb));
+
+	memset(&req_upiu, 0, sizeof(struct scsi_req_build_type));
+
+	req_upiu.cdb              = (addr_t) cdb_in_param;
+	req_upiu.data_buffer_addr = resp_buf;
+	req_upiu.data_len         = bytes_to_transfer;
+	req_upiu.flags            = UPIU_FLAGS_READ;
+	req_upiu.lun              = UFS_WLUN_RPMB;
+	req_upiu.dd               = UTRD_SYSTEM_TO_TARGET;
+
+#ifdef DEBUG_UFS
+	dprintf(INFO, "Sending RPMB Read response\n");
+#endif
+	if (ucs_do_scsi_cmd(dev, &req_upiu))
+	{
+		dprintf(CRITICAL, "%s:%d ucs_do_scsi_rpmb_read: failed\n", __func__, __LINE__);
+		return -UFS_FAILURE;
+	}
+#ifdef DEBUG_UFS
+	dprintf(SPEW, "Sending RPMB Read response complete\n");
+#endif
+	*resp_len = bytes_to_transfer;
 	return UFS_SUCCESS;
 }
 
