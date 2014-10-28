@@ -64,6 +64,7 @@ static mmu_section_t mmu_section_table[] = {
 	{    MSM_SHARED_BASE,   MSM_SHARED_BASE,  1,                COMMON_MEMORY},
 	{    BASE_ADDR,         BASE_ADDR,        90,               COMMON_MEMORY},
 	{    SCRATCH_ADDR,      SCRATCH_ADDR,     256,              COMMON_MEMORY},
+	{    BASE_ADDR_1,       BASE_ADDR_1,     1024,              COMMON_MEMORY},
 };
 
 static struct smem_ram_ptable ram_ptable;
