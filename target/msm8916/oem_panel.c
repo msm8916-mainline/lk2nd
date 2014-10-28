@@ -68,6 +68,10 @@
 /*---------------------------------------------------------------------------*/
 static uint32_t auto_pan_loop = 0;
 
+uint32_t panel_regulator_settings[] = {
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+};
+
 /*
  * The list of panels that are supported on this target.
  * Any panel in this list can be selected using fastboot oem command.
@@ -578,16 +582,25 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	}
 
 panel_init:
-	/* Set LDO mode */
+	/*
+	 * Update all data structures after 'panel_init' label. Only panel
+	 * selection is supposed to happen before that.
+	 */
 	if ((platform_is_msm8939() && (board_soc_version() !=
 		BOARD_SOC_VERSION3)) || platform_is_msm8929() ||
 		(hw_id == HW_PLATFORM_QRD)) {
 		phy_db->regulator_mode = DSI_PHY_REGULATOR_LDO_MODE;
+		memcpy(panel_regulator_settings,
+				ldo_regulator_settings, REGULATOR_SIZE);
 	} else if (platform_is_msm8939() && (board_soc_version() ==
-			BOARD_SOC_VERSION3) && (hw_id != HW_PLATFORM_SURF)) {
+		BOARD_SOC_VERSION3) && (hw_id != HW_PLATFORM_SURF)) {
 		phy_db->regulator_mode = DSI_PHY_REGULATOR_LDO_MODE;
+		memcpy(panel_regulator_settings,
+				ldo_regulator_settings, REGULATOR_SIZE);
 	} else {
 		phy_db->regulator_mode = DSI_PHY_REGULATOR_DCDC_MODE;
+		memcpy(panel_regulator_settings,
+				dcdc_regulator_settings, REGULATOR_SIZE);
 	}
 
 	pinfo->pipe_type = MDSS_MDP_PIPE_TYPE_RGB;

@@ -39,6 +39,7 @@
 #define BPP_24 24
 
 #define TIMING_SIZE 48
+#define REGULATOR_SIZE 28
 
 #define DUAL_DSI_FLAG 0x1
 #define DUAL_PIPE_FLAG 0x2
