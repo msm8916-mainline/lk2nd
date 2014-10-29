@@ -24,7 +24,7 @@
 #include <arch/arm.h>
 #include <kernel/thread.h>
 
-static void dump_fault_frame(struct arm_fault_frame *frame)
+void dump_fault_frame(struct arm_fault_frame *frame)
 {
 	dprintf(CRITICAL, "r0  0x%08x r1  0x%08x r2  0x%08x r3  0x%08x\n", frame->r[0], frame->r[1], frame->r[2], frame->r[3]);
 	dprintf(CRITICAL, "r4  0x%08x r5  0x%08x r6  0x%08x r7  0x%08x\n", frame->r[4], frame->r[5], frame->r[6], frame->r[7]);
