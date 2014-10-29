@@ -666,7 +666,7 @@ int mdss_dsi_video_mode_config(uint16_t disp_width,
 	writel(0x02020202, ctl_base + INT_CTRL);
 
 	/* For 8916/8939, enable DSI timing double buffering */
-	if (readl(ctl_base) == DSI_HW_REV_103_1 &&
+	if (readl(ctl_base) >= DSI_HW_REV_103 &&
 				mdp_get_revision() != MDP_REV_305)
 		writel(0x1, ctl_base + TIMING_DB_MODE);
 
@@ -699,7 +699,7 @@ int mdss_dsi_video_mode_config(uint16_t disp_width,
 	writel(vsync_width << 16 | 0, ctl_base + VIDEO_MODE_VSYNC_VPOS);
 
 	/* For 8916/8939, flush the DSI timing registers */
-	if (readl(ctl_base) == DSI_HW_REV_103_1 &&
+	if (readl(ctl_base) >= DSI_HW_REV_103 &&
 				mdp_get_revision() != MDP_REV_305)
 		writel(0x1, ctl_base + TIMING_FLUSH);
 
