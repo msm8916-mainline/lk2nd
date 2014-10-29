@@ -86,6 +86,7 @@
 
 /* EXT_CSD */
 /* Offsets in the ext csd */
+#define MMC_EXT_CSD_RST_N_FUNC                    162
 #define MMC_EXT_MMC_BUS_WIDTH                     183
 #define MMC_EXT_MMC_HS_TIMING                     185
 #define MMC_DEVICE_TYPE                           196
@@ -114,6 +115,7 @@
 #define MMC_SEC_COUNT3_SHIFT                      16
 #define MMC_SEC_COUNT2_SHIFT                      8
 #define MMC_HC_ERASE_MULT                         (512 * 1024)
+#define RST_N_FUNC_ENABLE                         BIT(0)
 
 /* Command related */
 #define MMC_MAX_COMMAND_RETRY                     1000

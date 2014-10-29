@@ -1665,6 +1665,18 @@ static uint32_t mmc_card_init(struct mmc_device *dev)
 
 	card->block_size = MMC_BLK_SZ;
 
+	/* Enable RST_n_FUNCTION */
+	if (!card->ext_csd[MMC_EXT_CSD_RST_N_FUNC])
+	{
+		mmc_return = mmc_switch_cmd(host, card, MMC_SET_BIT, MMC_EXT_CSD_RST_N_FUNC, RST_N_FUNC_ENABLE);
+
+		if (mmc_return)
+		{
+			dprintf(CRITICAL, "Failed to enable RST_n_FUNCTION\n");
+			return mmc_return;
+		}
+	}
+
 	return mmc_return;
 }
 
