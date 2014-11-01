@@ -60,6 +60,10 @@ ifeq ($(SIGNED_KERNEL),1)
   CFLAGS += -D_SIGNED_KERNEL=1
 endif
 
+ifeq ($(TARGET_BUILD_VARIANT),user)
+  CFLAGS += -DDISABLE_FASTBOOT_CMDS=1
+endif
+
 # setup toolchain prefix
 TOOLCHAIN_PREFIX ?= arm-eabi-
 CFLAGS += -fstack-protector-all
