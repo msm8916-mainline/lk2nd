@@ -89,7 +89,7 @@ static uint32_t dsi_pll_20nm_enable_seq(uint32_t pll_base)
          * PLL power up sequence.
          * Add necessary delays recommeded by hardware.
          */
-        writel(0x0D, pll_base + 0x9c); /* MMSS_DSI_PHY_PLL_PLLLOCK_CMP_EN */
+        writel(0x01, pll_base + 0x9c); /* MMSS_DSI_PHY_PLL_PLLLOCK_CMP_EN */
         writel(0x07, pll_base + 0x14); /* MMSS_DSI_PHY_PLL_PLL_CNTRL */
         writel(0x00, pll_base + 0x2c); /* MMSS_DSI_PHY_PLL_PLL_BKG_KVCO_CAL_EN */
         udelay(500);
