@@ -144,7 +144,7 @@ static uint32_t calculate_dec_frac_start()
 {
 	uint32_t refclk = 19200000;
 	uint32_t vco_rate = pll_data.vco_clock;
-	uint32_t tmp, mod;
+	uint32_t tmp;
 
 	vco_rate /= 2;
 	pll_data.dec_start = vco_rate / refclk;
@@ -157,16 +157,13 @@ static uint32_t calculate_dec_frac_start()
 	pll_data.frac_start = tmp;
 
 	vco_rate *= 2; /* restore */
-	tmp = vco_rate / refclk;/* div 1000 first */
-	mod = vco_rate % refclk;
-	tmp *= 127;
-	mod *= 127;
-	mod /= refclk;
-	tmp += mod;
+	tmp = vco_rate / (refclk / 1000);/* div 1000 first */
+	tmp *= 1024;
+	tmp /= 1000;
 	tmp /= 10;
-	pll_data.lock_comp = tmp;
+	pll_data.lock_comp = tmp - 1;
 
-	dprintf(SPEW, "%s: dec_start=%u dec_frac=%u lock_comp=%u\n", __func__,
+	dprintf(SPEW, "%s: dec_start=0x%x dec_frac=0x%x lock_comp=0x%x\n", __func__,
 		pll_data.dec_start, pll_data.frac_start, pll_data.lock_comp);
 }
 
