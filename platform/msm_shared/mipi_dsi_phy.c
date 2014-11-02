@@ -214,29 +214,58 @@ void mdss_dsi_phy_sw_reset(uint32_t ctl_base)
 	udelay(100);
 }
 
-int mdss_dsi_phy_regulator_init(struct mdss_dsi_phy_ctrl *pd)
+int mdss_dsi_phy_regulator_init(struct mdss_dsi_phy_ctrl *pd, uint32_t phy_base)
 {
 	/* DSI0 and DSI1 have a common regulator */
 
 	uint32_t off = 0x0280;	/* phy regulator ctrl settings */
 
-	/* Regulator ctrl 0 */
-	writel(0x00, DSI0_PHY_BASE + off + (4 * 0));
-	/* Regulator ctrl - CAL_PWD_CFG */
-	writel(pd->regulator[6], DSI0_PHY_BASE + off + (4 * 6));
-	/* Regulator ctrl - TEST */
-	writel(pd->regulator[5], DSI0_PHY_BASE + off + (4 * 5));
-	/* Regulator ctrl 3 */
-	writel(pd->regulator[3], DSI0_PHY_BASE + off + (4 * 3));
-	/* Regulator ctrl 2 */
-	writel(pd->regulator[2], DSI0_PHY_BASE + off + (4 * 2));
-	/* Regulator ctrl 1 */
-	writel(pd->regulator[1], DSI0_PHY_BASE + off + (4 * 1));
-	/* Regulator ctrl 0 */
-	writel(pd->regulator[0], DSI0_PHY_BASE + off + (4 * 0));
-	/* Regulator ctrl 4 */
-	writel(pd->regulator[4], DSI0_PHY_BASE + off + (4 * 4));
-	dmb();
+	if (pd->regulator_mode == DSI_PHY_REGULATOR_LDO_MODE) {
+		/* Regulator ctrl 0 */
+		writel(0x00, DSI0_PHY_BASE + off + (4 * 0));
+		/* Regulator ctrl - CAL_PWD_CFG */
+		writel(pd->regulator[6], DSI0_PHY_BASE + off + (4 * 6));
+		/* Add h/w recommended delay */
+		udelay(1000);
+		/* Regulator ctrl - TEST */
+		writel(pd->regulator[5], DSI0_PHY_BASE + off + (4 * 5));
+		/* Regulator ctrl 3 */
+		writel(pd->regulator[3], DSI0_PHY_BASE + off + (4 * 3));
+		/* Regulator ctrl 2 */
+		writel(pd->regulator[2], DSI0_PHY_BASE + off + (4 * 2));
+		/* Regulator ctrl 1 */
+		writel(pd->regulator[1], DSI0_PHY_BASE + off + (4 * 1));
+		/* Regulator ctrl 4 */
+		writel(pd->regulator[4], DSI0_PHY_BASE + off + (4 * 4));
+		/* LDO ctrl */
+		if (readl(MIPI_DSI0_BASE) == DSI_HW_REV_103_1) /* 8916/8939 */
+			writel(0x05, phy_base + 0x01dc);
+		else if (readl(MIPI_DSI0_BASE) == DSI_HW_REV_103) /* 8994 */
+			writel(0x1d, phy_base + 0x01dc);
+		else
+			writel(0x0d, phy_base + 0x01dc);
+		dmb();
+	} else {
+		/* Regulator ctrl 0 */
+		writel(0x00, DSI0_PHY_BASE + off + (4 * 0));
+		/* Regulator ctrl - CAL_PWD_CFG */
+		writel(pd->regulator[6], DSI0_PHY_BASE + off + (4 * 6));
+		/* Add h/w recommended delay */
+		udelay(1000);
+		/* Regulator ctrl 1 */
+		writel(pd->regulator[1], DSI0_PHY_BASE + off + (4 * 1));
+		/* Regulator ctrl 2 */
+		writel(pd->regulator[2], DSI0_PHY_BASE + off + (4 * 2));
+		/* Regulator ctrl 3 */
+		writel(pd->regulator[3], DSI0_PHY_BASE + off + (4 * 3));
+		/* Regulator ctrl 4 */
+		writel(pd->regulator[4], DSI0_PHY_BASE + off + (4 * 4));
+		/* LDO ctrl */
+		writel(0x00, phy_base + 0x01dc);
+		/* Regulator ctrl 0 */
+		writel(pd->regulator[0], DSI0_PHY_BASE + off + (4 * 0));
+		dmb();
+	}
 }
 
 int mdss_dsi_v2_phy_init(struct mipi_dsi_panel_config *pinfo, uint32_t ctl_base)
@@ -305,15 +334,7 @@ static int mdss_dsi_phy_28nm_init(struct mipi_dsi_panel_config *pinfo,
 	/* Strength ctrl 0 */
 	writel(pd->strength[0], phy_base + 0x0184);
 
-	if (pd->regulator_mode == DSI_PHY_REGULATOR_LDO_MODE)
-		pd->regulator[0] = 0x2; /* LDO mode */
-	mdss_dsi_phy_regulator_init(pd);
-
-	/* DSIPHY_REGULATOR_CTRL_0 */
-	if (pd->regulator_mode == DSI_PHY_REGULATOR_LDO_MODE)
-		writel(0x25, phy_base + 0x01dc); /* LDO mode */
-	else
-		writel(0x00, phy_base + 0x01dc); /* DCDC mode */
+	mdss_dsi_phy_regulator_init(pd, phy_base);
 
 	off = 0x0140;	/* phy timing ctrl 0 - 11 */
 	for (i = 0; i < 12; i++) {
@@ -388,14 +409,7 @@ static int mdss_dsi_phy_20nm_init(struct mipi_dsi_panel_config *pinfo,
 	/* Strength ctrl 0 */
 	writel(pd->strength[0], phy_base + MMSS_DSI_PHY_STRENGTH_CTRL_0);
 
-	if (pd->regulator_mode == DSI_PHY_REGULATOR_LDO_MODE)
-		pd->regulator[0] = 0x2; /* LDO mode */
-	mdss_dsi_phy_regulator_init(pd);
-
-	if (pd->regulator_mode == DSI_PHY_REGULATOR_LDO_MODE)
-		writel(0x25, phy_base + MMSS_DSI_PHY_LDO_CTRL); /* LDO mode */
-	else
-		writel(0x00, phy_base + MMSS_DSI_PHY_LDO_CTRL); /* DCDC mode */
+	mdss_dsi_phy_regulator_init(pd, phy_base);
 
 	off = MMSS_DSI_PHY_TIMING_CTRL_0;
 	for (i = 0; i < TOTAL_TIMING_CTRL_CONFIG; i++, off += 4) {
