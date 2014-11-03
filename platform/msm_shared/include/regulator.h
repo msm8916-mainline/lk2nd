@@ -30,6 +30,12 @@
 #ifndef __REGULATOR_H
 #define __REGULATOR_H
 
+#define GENERIC_DISABLE 0
+#define GENERIC_ENABLE  1
+#define SW_MODE_LDO_IPEAK 1
+#define LDOA_RES_TYPE 0x616F646C //aodl
+#define SMPS_RES_TYPE 0x61706D73 //apms
+
 #define KEY_SOFTWARE_ENABLE                0x6E657773 // swen - software enable
 #define KEY_LDO_SOFTWARE_MODE              0X646D736C // lsmd - LDO software mode
 #define KEY_SMPS_SOFTWARE_MODE             0X646D7373 // ssmd - SMPS software mode

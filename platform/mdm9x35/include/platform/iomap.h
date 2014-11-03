@@ -170,4 +170,8 @@
 #define PERIPH_SS_AHB2PHY_TOP_CFG            0xF9B3E010
 
 #define PLATFORM_QMP_OFFSET                  0x0
+
+/* QPIC DISPLAY */
+#define QPIC_BASE                            0xF9AC0000
+#define APCS_ALIAS0_IPC_INTERRUPT            0xF9011008
 #endif

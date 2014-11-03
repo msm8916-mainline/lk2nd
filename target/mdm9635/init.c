@@ -44,6 +44,7 @@
 #include <bits.h>
 #include <qmp_phy.h>
 #include <scm.h>
+#include <rpm-smd.h>
 
 extern void smem_ptable_init(void);
 extern void smem_add_modem_partitions(struct ptable *flash_ptable);
@@ -145,8 +146,12 @@ void target_init(void)
 	update_ptable_names();
 
 	flash_set_ptable(&flash_ptable);
+	rpm_smd_init();
 }
-
+void target_uninit()
+{
+	rpm_smd_uninit();
+}
 /* Do target specific usb initialization */
 void target_usb_init(void)
 {
