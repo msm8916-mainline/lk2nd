@@ -205,7 +205,6 @@ struct mipi_dsi_cmd {
 	int size;
 	char *payload;
 	int wait;
-	uint8_t cmds_post_tg;
 };
 
 struct mipi_dsi_panel_config {

@@ -164,6 +164,10 @@ int mdss_dsi_wait4_video_done()
 	unsigned long count = 0;
 	int status = 0;
 
+	/* If video mode is not enabled, return here */
+	if ((readl(DSI_CTRL) & BIT(1)) == 0)
+		return 0;
+
 	read = readl(DSI_INT_CTRL);
 	/* Enable VIDEO MODE DONE MASK and clear the interrupt */
 	read = read | DSI_VIDEO_MODE_DONE_MASK | DSI_VIDEO_MODE_DONE_AK;
@@ -183,6 +187,10 @@ int mdss_dsi_wait4_video_done()
 
 	writel((readl(DSI_INT_CTRL) | 0x01000001), DSI_INT_CTRL);
 	dprintf(SPEW, "Panel wait_4_video_done: Recieved video mode done ack\n");
+
+	/* Skip BLLP 4ms */
+	mdelay(4);
+
 	return status;
 
 }
@@ -205,15 +213,10 @@ int mdss_dual_dsi_cmds_tx(struct mipi_dsi_cmd *cmds, int count)
 
 	cm = cmds;
 	for (i = 0; i < count; i++) {
-		if (cmds->cmds_post_tg) {
-			/* Wait for VIDEO_MODE_DONE */
-			ret = mdss_dsi_wait4_video_done();
-			if (ret)
-				goto wait4video_error;
-
-			/* Skip BLLP 4ms */
-			mdelay(4);
-		}
+		/* Wait for VIDEO_MODE_DONE */
+		ret = mdss_dsi_wait4_video_done();
+		if (ret)
+			goto wait4video_error;
 
 		memcpy((void *)off, (cm->payload), cm->size);
 		writel(off, MIPI_DSI0_BASE + DMA_CMD_OFFSET);
@@ -228,8 +231,8 @@ int mdss_dual_dsi_cmds_tx(struct mipi_dsi_cmd *cmds, int count)
 			udelay(80);
 		cm++;
 	}
-#endif
 wait4video_error:
+#endif
 	return ret;
 }
 
@@ -302,15 +305,11 @@ int mipi_dsi_cmds_tx(struct mipi_dsi_cmd *cmds, int count)
 
 	cm = cmds;
 	for (i = 0; i < count; i++) {
-		if (cmds->cmds_post_tg) {
-			/* Wait for VIDEO_MODE_DONE */
-			ret = mdss_dsi_wait4_video_done();
-			if (ret)
-				goto mipi_cmds_error;
+		/* Wait for VIDEO_MODE_DONE */
+		ret = mdss_dsi_wait4_video_done();
+		if (ret)
+			goto mipi_cmds_error;
 
-			/* Skip BLLP 4ms */
-			mdelay(4);
-		}
 		memcpy((void *)off, (cm->payload), cm->size);
 		writel(off, DSI_DMA_CMD_OFFSET);
 		writel(cm->size, DSI_DMA_CMD_LENGTH);	// reg 0x48 for this build
