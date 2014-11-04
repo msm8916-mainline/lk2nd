@@ -149,10 +149,14 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		panelstruct->panelresetseq
 					 = &toshiba_720p_video_panel_reset_seq;
 		panelstruct->backlightinfo = &toshiba_720p_video_backlight;
-		pinfo->mipi.panel_cmds
+		pinfo->mipi.panel_on_cmds
 					= toshiba_720p_video_on_command;
-		pinfo->mipi.num_of_panel_cmds
+		pinfo->mipi.num_of_panel_on_cmds
 					= TOSHIBA_720P_VIDEO_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+					= toshiba_720p_video_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+					= TOSHIBA_720P_VIDEO_OFF_COMMAND;
 		memcpy(phy_db->timing,
 			toshiba_720p_video_timings, TIMING_SIZE);
 		break;
@@ -169,10 +173,14 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		panelstruct->panelresetseq
 					 = &nt35590_720p_video_panel_reset_seq;
 		panelstruct->backlightinfo = &nt35590_720p_video_backlight;
-		pinfo->mipi.panel_cmds
+		pinfo->mipi.panel_on_cmds
 					= nt35590_720p_video_on_command;
-		pinfo->mipi.num_of_panel_cmds
+		pinfo->mipi.num_of_panel_on_cmds
 					= NT35590_720P_VIDEO_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+					= nt35590_720p_video_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+					= NT35590_720P_VIDEO_OFF_COMMAND;
 		memcpy(phy_db->timing,
 				nt35590_720p_video_timings, TIMING_SIZE);
 		break;
@@ -189,10 +197,14 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		panelstruct->panelresetseq
 					 = &nt35521_720p_video_panel_reset_seq;
 		panelstruct->backlightinfo = &nt35521_720p_video_backlight;
-		pinfo->mipi.panel_cmds
+		pinfo->mipi.panel_on_cmds
 					= nt35521_720p_video_on_command;
-		pinfo->mipi.num_of_panel_cmds
+		pinfo->mipi.num_of_panel_on_cmds
 					= NT35521_720P_VIDEO_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+					= nt35521_720p_video_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+					= NT35521_720P_VIDEO_OFF_COMMAND;
 		memcpy(phy_db->timing,
 				nt35521_720p_video_timings, TIMING_SIZE);
 		break;
@@ -209,10 +221,14 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		panelstruct->panelresetseq
 					 = &ssd2080m_720p_video_panel_reset_seq;
 		panelstruct->backlightinfo = &ssd2080m_720p_video_backlight;
-		pinfo->mipi.panel_cmds
+		pinfo->mipi.panel_on_cmds
 					= ssd2080m_720p_video_on_command;
-		pinfo->mipi.num_of_panel_cmds
+		pinfo->mipi.num_of_panel_on_cmds
 					= SSD2080M_720P_VIDEO_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+					= ssd2080m_720p_video_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+					= SSD2080M_720P_VIDEO_OFF_COMMAND;
 		memcpy(phy_db->timing,
 				ssd2080m_720p_video_timings, TIMING_SIZE);
 		break;
@@ -229,10 +245,14 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		panelstruct->panelresetseq
 					 = &hx8394a_720p_video_panel_reset_seq;
 		panelstruct->backlightinfo = &hx8394a_720p_video_backlight;
-		pinfo->mipi.panel_cmds
+		pinfo->mipi.panel_on_cmds
 					= hx8394a_720p_video_on_command;
-		pinfo->mipi.num_of_panel_cmds
+		pinfo->mipi.num_of_panel_on_cmds
 					= HX8394A_720P_VIDEO_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+					= hx8394a_720p_video_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+					= HX8394A_720P_VIDEO_OFF_COMMAND;
 		memcpy(phy_db->timing,
 				hx8394a_720p_video_timings, TIMING_SIZE);
 		pinfo->mipi.signature = HX8394A_720P_VIDEO_SIGNATURE;
@@ -250,10 +270,14 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		panelstruct->panelresetseq
 					= &nt35590_720p_cmd_panel_reset_seq;
 		panelstruct->backlightinfo = &nt35590_720p_cmd_backlight;
-		pinfo->mipi.panel_cmds
+		pinfo->mipi.panel_on_cmds
 					= nt35590_720p_cmd_on_command;
-		pinfo->mipi.num_of_panel_cmds
+		pinfo->mipi.num_of_panel_on_cmds
 					= NT35590_720P_CMD_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+					= nt35590_720p_cmd_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+					= NT35590_720P_CMD_OFF_COMMAND;
 		memcpy(phy_db->timing,
 				nt35590_720p_cmd_timings, TIMING_SIZE);
 		break;
@@ -271,10 +295,14 @@ static int init_panel_data(struct panel_struct *panelstruct,
 					= &nt35596_1080p_video_panel_reset_seq;
 		panelstruct->backlightinfo
 					= &nt35596_1080p_video_backlight;
-		pinfo->mipi.panel_cmds
+		pinfo->mipi.panel_on_cmds
 					= nt35596_1080p_video_on_command;
-		pinfo->mipi.num_of_panel_cmds
+		pinfo->mipi.num_of_panel_on_cmds
 					= NT35596_1080P_VIDEO_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+					= nt35596_1080p_video_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+					= NT35596_1080P_VIDEO_OFF_COMMAND;
 		memcpy(phy_db->timing,
 				nt35596_1080p_video_timings, TIMING_SIZE);
 		pinfo->mipi.signature = NT35596_1080P_VIDEO_SIGNATURE;
@@ -293,10 +321,14 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		panelstruct->panelresetseq
 					 = &jdi_1080p_video_panel_reset_seq;
 		panelstruct->backlightinfo = &jdi_1080p_video_backlight;
-		pinfo->mipi.panel_cmds
+		pinfo->mipi.panel_on_cmds
 			= jdi_1080p_video_on_command;
-		pinfo->mipi.num_of_panel_cmds
+		pinfo->mipi.num_of_panel_on_cmds
 			= JDI_1080P_VIDEO_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+			= jdi_1080p_video_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+			= JDI_1080P_VIDEO_OFF_COMMAND;
 		memcpy(phy_db->timing,
 			jdi_1080p_video_timings, TIMING_SIZE);
 		break;
@@ -312,17 +344,25 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		panelstruct->panelresetseq
 					= &nt35590_qvga_cmd_panel_reset_seq;
 		panelstruct->backlightinfo = &nt35590_qvga_cmd_backlight;
-		pinfo->mipi.panel_cmds
+		pinfo->mipi.panel_on_cmds
 					= nt35590_qvga_cmd_on_command;
-		pinfo->mipi.num_of_panel_cmds
+		pinfo->mipi.num_of_panel_on_cmds
 					= NT35590_QVGA_CMD_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+					= nt35590_qvga_cmd_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+					= NT35590_QVGA_CMD_OFF_COMMAND;
 		memcpy(phy_db->timing,
 				nt35590_qvga_cmd_timings, TIMING_SIZE);
 		break;
         case UNKNOWN_PANEL:
                 memset(panelstruct, 0, sizeof(struct panel_struct));
-                memset(pinfo->mipi.panel_cmds, 0, sizeof(struct mipi_dsi_cmd));
-                pinfo->mipi.num_of_panel_cmds = 0;
+                memset(pinfo->mipi.panel_on_cmds, 0,
+				sizeof(struct mipi_dsi_cmd));
+                pinfo->mipi.num_of_panel_on_cmds = 0;
+                memset(pinfo->mipi.panel_off_cmds, 0,
+				sizeof(struct mipi_dsi_cmd));
+                pinfo->mipi.num_of_panel_off_cmds = 0;
                 memset(phy_db->timing, 0, TIMING_SIZE);
                 pinfo->mipi.signature = 0;
 		pan_type = PANEL_TYPE_UNKNOWN;
