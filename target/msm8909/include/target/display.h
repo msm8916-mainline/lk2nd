@@ -46,7 +46,7 @@ static struct gpio_pin enable_gpio = {
 };
 
 static struct gpio_pin bkl_gpio = {
-  "msmgpio", 98, 3, 1, 0, 1
+  "msmgpio", 37, 3, 1, 0, 1
 };
 
 static struct gpio_pin enp_gpio = {
@@ -78,7 +78,7 @@ static const char panel_bist_ctrl[] = {
 };
 
 static const uint32_t panel_regulator_settings[] = {
-  0x07, 0x09, 0x03, 0x00, 0x20, 0x00, 0x01
+  0x00, 0x01, 0x01, 0x00, 0x20, 0x07, 0x00
 };
 
 static const char panel_lane_config[] = {
