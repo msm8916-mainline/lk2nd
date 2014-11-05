@@ -2630,7 +2630,7 @@ void aboot_fastboot_register_commands(void)
 											{"preflash", cmd_preflash},
 											{"oem enable-charger-screen", cmd_oem_enable_charger_screen},
 											{"oem disable-charger-screen", cmd_oem_disable_charger_screen},
-											{"oem-select-display-panel", cmd_oem_select_display_panel},
+											{"oem select-display-panel", cmd_oem_select_display_panel},
 #endif
 										  };
 
