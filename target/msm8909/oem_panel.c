@@ -38,6 +38,7 @@
 #include "panel_display.h"
 
 #include "include/panel_hx8394d_720p_video.h"
+#include "include/panel_sharp_qhd_video.h"
 
 #define DISPLAY_MAX_PANEL_DETECTION 0
 
@@ -48,6 +49,7 @@ static uint32_t auto_pan_loop = 0;
 
 enum {
 	HX8394D_720P_VIDEO_PANEL,
+	SHARP_QHD_VIDEO_PANEL,
 	UNKNOWN_PANEL
 };
 
@@ -56,7 +58,8 @@ enum {
  * Any panel in this list can be selected using fastboot oem command.
  */
 static struct panel_list supp_panels[] = {
-	{"hx8394d_720p_video", HX8394D_720P_VIDEO_PANEL}
+	{"hx8394d_720p_video", HX8394D_720P_VIDEO_PANEL},
+	{"sharp_qhd_video", SHARP_QHD_VIDEO_PANEL}
 };
 
 static uint32_t panel_id;
@@ -111,6 +114,25 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		memcpy(phy_db->timing,
 				hx8394d_720p_video_timings, TIMING_SIZE);
 		pinfo->mipi.signature = HX8394D_720P_VIDEO_SIGNATURE;
+		break;
+        case SHARP_QHD_VIDEO_PANEL:
+		panelstruct->paneldata    = &sharp_qhd_video_panel_data;
+		panelstruct->panelres     = &sharp_qhd_video_panel_res;
+		panelstruct->color        = &sharp_qhd_video_color;
+		panelstruct->videopanel   = &sharp_qhd_video_video_panel;
+		panelstruct->commandpanel = &sharp_qhd_video_command_panel;
+		panelstruct->state        = &sharp_qhd_video_state;
+		panelstruct->laneconfig   = &sharp_qhd_video_lane_config;
+		panelstruct->paneltiminginfo
+					= &sharp_qhd_video_timing_info;
+		panelstruct->panelresetseq
+					= &sharp_qhd_video_panel_reset_seq;
+		panelstruct->backlightinfo = &sharp_qhd_video_backlight;
+		pinfo->mipi.panel_cmds
+					= sharp_qhd_video_on_command;
+		pinfo->mipi.num_of_panel_cmds
+					= SHARP_QHD_VIDEO_ON_COMMAND;
+		memcpy(phy_db->timing, sharp_qhd_video_timings, TIMING_SIZE);
 		break;
 	case UNKNOWN_PANEL:
 	default:
