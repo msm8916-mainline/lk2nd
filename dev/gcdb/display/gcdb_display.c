@@ -239,7 +239,8 @@ bool gcdb_display_cmdline_arg(char *panel_name, char *pbuf, uint16_t buf_size)
 		return false;
 	}
 
-	if (panel_mode && slave_panel_node == NULL) {
+	if (((panel_mode & SPLIT_DISPLAY_FLAG) ||
+	     (panel_mode & DST_SPLIT_FLAG)) && slave_panel_node == NULL) {
 		dprintf(CRITICAL, "slave node not present in dual dsi case\n");
 		return false;
 	}
