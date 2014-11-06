@@ -109,18 +109,29 @@ static void mdss_mdp_set_flush(struct msm_panel_info *pinfo,
 				uint32_t *ctl0_reg_val, uint32_t *ctl1_reg_val)
 {
 	uint32_t mdss_mdp_rev = readl(MDP_HW_REV);
+	bool dual_pipe_single_ctl = pinfo->lcdc.dual_pipe &&
+		!pinfo->mipi.dual_dsi && !pinfo->lcdc.split_display;
 	switch (pinfo->pipe_type) {
 		case MDSS_MDP_PIPE_TYPE_RGB:
-			*ctl0_reg_val = 0x22048;
+			if (dual_pipe_single_ctl)
+				*ctl0_reg_val = 0x220D8;
+			else
+				*ctl0_reg_val = 0x22048;
 			*ctl1_reg_val = 0x24090;
 			break;
 		case MDSS_MDP_PIPE_TYPE_DMA:
-			*ctl0_reg_val = 0x22840;
+			if (dual_pipe_single_ctl)
+				*ctl0_reg_val = 0x238C0;
+			else
+				*ctl0_reg_val = 0x22840;
 			*ctl1_reg_val = 0x25080;
 			break;
 		case MDSS_MDP_PIPE_TYPE_VIG:
 		default:
-			*ctl0_reg_val = 0x22041;
+			if (dual_pipe_single_ctl)
+				*ctl0_reg_val = 0x220C3;
+			else
+				*ctl0_reg_val = 0x22041;
 			*ctl1_reg_val = 0x24082;
 			break;
 	}
@@ -762,6 +773,12 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 	mdss_layer_mixer_setup(fb, pinfo);
 
 	reg = 0x1f00 | mdss_mdp_ctl_out_sel(pinfo, 1);
+
+	/* enable 3D mux for dual_pipe but single interface config */
+	if (pinfo->lcdc.dual_pipe && !pinfo->mipi.dual_dsi &&
+		!pinfo->lcdc.split_display)
+		reg |= BIT(19) | BIT(20);
+
 	writel(reg, MDP_CTL_0_BASE + CTL_TOP);
 
 	/*If dst_split is enabled only intf 2 needs to be enabled.
