@@ -35,3 +35,8 @@ OBJS += \
 	$(LOCAL_DIR)/meminfo.o \
 	$(LOCAL_DIR)/target_display.o \
 	$(LOCAL_DIR)/oem_panel.o
+
+ifeq ($(ENABLE_SMD_SUPPORT),1)
+OBJS += \
+    $(LOCAL_DIR)/regulator.o
+endif
