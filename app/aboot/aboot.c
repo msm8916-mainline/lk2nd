@@ -81,6 +81,14 @@ void write_device_info_mmc(device_info *dev);
 void write_device_info_flash(device_info *dev);
 static int aboot_save_boot_hash_mmc(uint32_t image_addr, uint32_t image_size);
 
+/* fastboot command function pointer */
+typedef void (*fastboot_cmd_fn) (const char *, void *, unsigned);
+
+struct fastboot_cmd_desc {
+	char * name;
+	fastboot_cmd_fn cb;
+};
+
 #define EXPAND(NAME) #NAME
 #define TARGET(NAME) EXPAND(NAME)
 
@@ -1784,7 +1792,7 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 		   (void*) hdr->ramdisk_addr, hdr->ramdisk_size);
 }
 
-void cmd_erase(const char *arg, void *data, unsigned sz)
+void cmd_erase_nand(const char *arg, void *data, unsigned sz)
 {
 	struct ptentry *ptn;
 	struct ptable *ptable;
@@ -1860,6 +1868,13 @@ void cmd_erase_mmc(const char *arg, void *data, unsigned sz)
 	fastboot_okay("");
 }
 
+void cmd_erase(const char *arg, void *data, unsigned sz)
+{
+	if(target_is_emmc_boot())
+		cmd_erase_mmc(arg, data, sz);
+	else
+		cmd_erase_nand(arg, data, sz);
+}
 
 void cmd_flash_mmc_img(const char *arg, void *data, unsigned sz)
 {
@@ -2213,7 +2228,7 @@ void cmd_flash_mmc(const char *arg, void *data, unsigned sz)
 	return;
 }
 
-void cmd_flash(const char *arg, void *data, unsigned sz)
+void cmd_flash_nand(const char *arg, void *data, unsigned sz)
 {
 	struct ptentry *ptn;
 	struct ptable *ptable;
@@ -2259,6 +2274,14 @@ void cmd_flash(const char *arg, void *data, unsigned sz)
 	}
 	dprintf(INFO, "partition '%s' updated\n", ptn->name);
 	fastboot_okay("");
+}
+
+void cmd_flash(const char *arg, void *data, unsigned sz)
+{
+	if(target_is_emmc_boot())
+		cmd_flash_mmc(arg, data, sz);
+	else
+		cmd_flash_nand(arg, data, sz);
 }
 
 void cmd_continue(const char *arg, void *data, unsigned sz)
@@ -2554,32 +2577,37 @@ static void publish_getvar_partition_info(struct getvar_partition_info *info, ui
 /* register commands and variables for fastboot */
 void aboot_fastboot_register_commands(void)
 {
-	if (target_is_emmc_boot())
-	{
-		fastboot_register("flash:", cmd_flash_mmc);
-		fastboot_register("erase:", cmd_erase_mmc);
-	}
-	else
-	{
-		fastboot_register("flash:", cmd_flash);
-		fastboot_register("erase:", cmd_erase);
-	}
+	int i;
 
-	fastboot_register("boot",              cmd_boot);
-	fastboot_register("continue",          cmd_continue);
-	fastboot_register("reboot",            cmd_reboot);
-	fastboot_register("reboot-bootloader", cmd_reboot_bootloader);
-	fastboot_register("oem unlock",        cmd_oem_unlock);
-	fastboot_register("oem lock",          cmd_oem_lock);
-	fastboot_register("oem verified",      cmd_oem_verified);
-	fastboot_register("oem device-info",   cmd_oem_devinfo);
-	fastboot_register("preflash",          cmd_preflash);
-	fastboot_register("oem enable-charger-screen",
-			cmd_oem_enable_charger_screen);
-	fastboot_register("oem disable-charger-screen",
-			cmd_oem_disable_charger_screen);
-	fastboot_register("oem select-display-panel",
-			cmd_oem_select_display_panel);
+	struct fastboot_cmd_desc cmd_list[] = {
+											/* By default the enabled list is empty. */
+											{"", NULL},
+											/* move commands enclosed within the below ifndef to here
+											 * if they need to be enabled in user build.
+											 */
+#ifndef DISABLE_FASTBOOT_CMDS
+											/* Register the following commands only for non-user builds */
+											{"flash:", cmd_flash},
+											{"erase:", cmd_erase},
+											{"boot", cmd_boot},
+											{"continue", cmd_continue},
+											{"reboot", cmd_reboot},
+											{"reboot-bootloader", cmd_reboot_bootloader},
+											{"oem unlock", cmd_oem_unlock},
+											{"oem lock", cmd_oem_lock},
+											{"oem verified", cmd_oem_verified},
+											{"oem device-info", cmd_oem_devinfo},
+											{"preflash", cmd_preflash},
+											{"oem enable-charger-screen", cmd_oem_enable_charger_screen},
+											{"oem disable-charger-screen", cmd_oem_disable_charger_screen},
+											{"oem select-display-panel", cmd_oem_select_display_panel},
+#endif
+										  };
+
+	int fastboot_cmds_count = sizeof(cmd_list)/sizeof(cmd_list[0]);
+	for (i = 1; i < fastboot_cmds_count; i++)
+		fastboot_register(cmd_list[i].name,cmd_list[i].cb);
+
 	/* publish variables and their values */
 	fastboot_publish("product",  TARGET(BOARD));
 	fastboot_publish("kernel",   "lk");
