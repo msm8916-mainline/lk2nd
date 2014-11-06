@@ -94,7 +94,6 @@ int ucs_do_scsi_rpmb_read(struct ufs_dev *dev, uint32_t *req_buf, uint32_t blk_c
 	uint32_t                     blks_remaining;
 	uint32_t                     blks_to_transfer;
 	uint64_t                     bytes_to_transfer;
-	uint32_t                     start_blk;
 	uint64_t                     max_size;
 	blks_remaining    = blk_cnt;
 	blks_to_transfer  = blks_remaining;
@@ -128,7 +127,7 @@ int ucs_do_scsi_rpmb_read(struct ufs_dev *dev, uint32_t *req_buf, uint32_t blk_c
 	memset(&req_upiu, 0, sizeof(struct scsi_req_build_type));
 
 	req_upiu.cdb              = (addr_t) cdb_out_param;
-	req_upiu.data_buffer_addr = req_buf;
+	req_upiu.data_buffer_addr = (addr_t) req_buf;
 	req_upiu.data_len         = bytes_to_transfer;
 	req_upiu.flags            = UPIU_FLAGS_WRITE;
 	req_upiu.lun              = UFS_WLUN_RPMB;
@@ -161,7 +160,7 @@ int ucs_do_scsi_rpmb_read(struct ufs_dev *dev, uint32_t *req_buf, uint32_t blk_c
 	memset(&req_upiu, 0, sizeof(struct scsi_req_build_type));
 
 	req_upiu.cdb              = (addr_t) cdb_in_param;
-	req_upiu.data_buffer_addr = resp_buf;
+	req_upiu.data_buffer_addr = (addr_t) resp_buf;
 	req_upiu.data_len         = bytes_to_transfer;
 	req_upiu.flags            = UPIU_FLAGS_READ;
 	req_upiu.lun              = UFS_WLUN_RPMB;
@@ -414,7 +413,7 @@ static int ucs_do_request_sense(struct ufs_dev *dev)
 	struct scsi_sense_cdb      *cdb_param;
 	uint8_t                    buf[SCSI_SENSE_BUF_LEN];
 
-	cdb_param = cdb;
+	cdb_param = (struct scsi_sense_cdb *) cdb;
 
 	memset(cdb, 0, sizeof(struct scsi_sense_cdb));
 

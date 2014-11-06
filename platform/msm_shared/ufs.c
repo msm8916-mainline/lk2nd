@@ -102,7 +102,7 @@ static void ufs_rpmb_init(struct ufs_dev *dev)
 	}
 
 	// gets the number of rpmb frames allowed in a single UPIU commands
-	ret = dme_read_geo_desc(dev, UFS_WLUN_RPMB);
+	ret = dme_read_geo_desc(dev);
 	if (ret != UFS_SUCCESS)
 	{
 		dprintf(CRITICAL, "UFS dme_read_geo_desc failed for RPMB Partition\n");
@@ -219,7 +219,6 @@ uint8_t ufs_get_num_of_luns(struct ufs_dev* dev)
 int ufs_init(struct ufs_dev *dev)
 {
 	uint32_t ret = UFS_SUCCESS;
-	uint64_t cap;
 	uint8_t lun = 0;
 
 	dev->block_size = 4096;

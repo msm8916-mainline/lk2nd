@@ -231,14 +231,35 @@ int dme_send_linkstartup_req(struct ufs_dev *dev);
 int dme_get_req(struct ufs_dev *dev, struct dme_get_req_type *req);
 int utp_build_query_req_upiu(struct upiu_trans_mgmt_query_hdr *req_upiu,
 								  struct upiu_req_build_type *upiu_data);
+
+/* Nop Query is used to check the connection to the device
+ */
 int dme_send_nop_query(struct ufs_dev *dev);
+
+/* Device Init is used to set the fDeviceInit flag to initiate device
+ * initialization
+ */
 int dme_set_fdeviceinit(struct ufs_dev *dev);
+
+/* Power On WP Enable is used to enable Power on WP for all LUN's
+ * that have WP bit enabled.
+ */
 int dme_set_fpoweronwpen(struct ufs_dev *dev);
+
+/* Unit descriptor gives the characteristics and capabilities of
+ * logical units.
+ */
 int dme_read_unit_desc(struct ufs_dev *dev, uint8_t index);
 
+/* Device descriptor is the main descriptor and it provides the device
+ * class, sub-class, the protocol to access the device and the maximum
+ * number oflogical units in the device.
+ */
+int dme_read_device_desc(struct ufs_dev *dev);
+
 /* Geometry Descriptor contains RPMB read write size which indicates total
-   number of rpmb frames allowed in a single SCSI security command
+   number of rpmb frames allowed in a single SCSI security command.
 */
-int dme_read_geometry_desc(struct ufs_dev *dev);
+int dme_read_geo_desc(struct ufs_dev *dev);
 
 #endif
