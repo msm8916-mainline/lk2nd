@@ -143,6 +143,8 @@ static void sdhci_clear_power_ctrl_irq(struct sdhci_msm_data *data)
 void sdhci_msm_init(struct sdhci_host *host, struct sdhci_msm_data *config)
 {
 	uint32_t io_switch;
+	uint32_t caps = 0;
+	uint32_t version;
 
 	/* Disable HC mode */
 	RMWREG32((config->pwrctl_base + SDCC_MCI_HC_MODE), SDHCI_HC_START_BIT, SDHCI_HC_WIDTH, 0);
@@ -195,6 +197,25 @@ void sdhci_msm_init(struct sdhci_host *host, struct sdhci_msm_data *config)
 
 	/* Enable pwr control interrupt */
 	writel(SDCC_HC_PWR_CTRL_INT, (config->pwrctl_base + SDCC_HC_PWRCTL_MASK_REG));
+
+	version = readl(host->msm_host->pwrctl_base + MCI_VERSION);
+
+	host->major = (version & CORE_VERSION_MAJOR_MASK) >> CORE_VERSION_MAJOR_SHIFT;
+	host->minor = (version & CORE_VERSION_MINOR_MASK);
+
+	/*
+	 * For SDCC5 the capabilities registers does not have voltage advertised
+	 * Override the values using SDCC_HC_VENDOR_SPECIFIC_CAPABILITIES0
+	 */
+	if (host->major >= 1 && host->minor != 0x11 && host->minor != 0x12)
+	{
+		caps = REG_READ32(host, SDHCI_CAPS_REG1);
+
+		if (config->slot == 0x1)
+			REG_WRITE32(host, (caps | SDHCI_1_8_VOL_MASK), SDCC_HC_VENDOR_SPECIFIC_CAPABILITIES0);
+		else
+			REG_WRITE32(host, (caps | SDHCI_3_0_VOL_MASK), SDCC_HC_VENDOR_SPECIFIC_CAPABILITIES0);
+	}
 
 	config->tuning_done = false;
 	config->calibration_done = false;

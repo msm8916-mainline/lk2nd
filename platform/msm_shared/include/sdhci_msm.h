@@ -121,6 +121,8 @@
 #define HC_IO_PAD_PWR_SWITCH_EN                   BIT(15)
 #define HC_IO_PAD_PWR_SWITCH                      BIT(16)
 
+#define SDCC_HC_VENDOR_SPECIFIC_CAPABILITIES0     0x11C
+
 struct sdhci_msm_data
 {
 	uint32_t pwrctl_base;
