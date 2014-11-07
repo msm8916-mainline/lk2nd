@@ -54,7 +54,7 @@ void utp_process_req_completion(struct ufs_req_irq_type *irq)
 	/* Make sure we have more nodes than just the head in the list. */
 	if (list_next(irq->list, irq->list) == NULL)
 	{
-		dprintf(CRITICAL, "UTRD/ UTMRD processed signalled and the wait queue is empty\n");
+		dprintf(CRITICAL, "%s:%d UTRD/ UTMRD processed signalled and the wait queue is empty\n", __func__, __LINE__);
 		ASSERT(0);
 	}
 
@@ -74,7 +74,7 @@ void utp_process_req_completion(struct ufs_req_irq_type *irq)
 
 			if (event_signal(req->event, false))
 			{
-				dprintf(CRITICAL, "Event signal failed.\n");
+				dprintf(CRITICAL, "%s:%d Event signal failed.\n",__func__, __LINE__);
 				ASSERT(0);
 
 			}
@@ -113,11 +113,8 @@ static uint32_t utp_get_door_bell_bit(uint32_t reg, uint32_t *reg_bitmap, uint32
 
 	if (!found)
 	{
-		/* TODO: This case shouldd wait on a semaphore instead od returning error.
-		 * Return error until LK adds semaphore support.
-		 */
 		doorbell_bit_val = 0;
-		dprintf(CRITICAL, "Unable to find a free slot for transaction.\n");
+		dprintf(CRITICAL, "%s:%d Unable to find a free slot for transaction.\n",__func__, __LINE__);
 	}
 
 	return doorbell_bit_val;
@@ -232,8 +229,8 @@ int utp_poll_utrd_complete(struct ufs_dev *dev)
 		udelay(1);
 		if(retry == UTP_MAX_COMMAND_RETRY)
 		{
-			dprintf(CRITICAL, "UTP command never completed.\n");
-			return 1;
+			dprintf(CRITICAL, "%s:%d UTP command never completed.\n", __func__, __LINE__);
+			return ERR_TIMED_OUT;
 		}
 #ifdef DEBUG_UFS
 		dprintf(INFO, "Waiting for UTRCS/URMRCS Completion...\n");
@@ -313,15 +310,11 @@ static int utp_enqueue_utrd(struct ufs_dev *dev, struct utp_utrd_req_build_type 
 #endif
 	ret = utp_poll_utrd_complete(dev);
 
-	if (ret)
+	if (ret == ERR_TIMED_OUT)
 	{
-		if (ret == ERR_TIMED_OUT)
-		{
-			/* Transaction not completed even after timeout ms. */
-			ret = utp_utrd_process_timeout_req(dev, utrd_req, &req);
-		}
-		else
-			ret = -UFS_FAILURE;
+		/* Transaction not completed even after timeout ms. */
+		dprintf(CRITICAL, "%s:%d Transaction timeout after polling %d times\n",__func__, __LINE__, UTP_MAX_COMMAND_RETRY);
+		ret = utp_utrd_process_timeout_req(dev, utrd_req, &req);
 		goto utp_enqueue_utrd_err;
 	}
 	else
@@ -336,7 +329,7 @@ static int utp_enqueue_utrd(struct ufs_dev *dev, struct utp_utrd_req_build_type 
 		/* Check the response. */
 		if (desc->overall_cmd_status != UTRD_OCS_SUCCESS)
 		{
-			dprintf(CRITICAL, "Command failed. command type = %x\n", utrd_req->cmd_type);
+			dprintf(CRITICAL, "%s:%d Command failed. command type = %x\n", __func__, __LINE__, utrd_req->cmd_type);
 			ret = -UFS_FAILURE;
 			goto utp_enqueue_utrd_err;
 		}
@@ -363,7 +356,7 @@ static int utp_get_prdt_len(uint32_t data_len, uint32_t *num_prdt)
 
 	if (*num_prdt > UTP_MAX_PRD_TABLE_ENTRIES)
 	{
-		dprintf(CRITICAL, "Data length exceeds for a single upiu transfer.\n");
+		dprintf(CRITICAL, "%s:%d Data length exceeds for a single upiu transfer.\n", __func__,__LINE__);
 		return -UFS_FAILURE;
 	}
 
@@ -388,6 +381,7 @@ static int utp_fill_req_upiu(struct ufs_dev *dev, struct upiu_req_build_type *up
 	{
 		if (upiu_data->data_buffer_addr & 0x3)
 		{
+			dprintf(CRITICAL, "%s:%d Alignment and length check failed for data tranfer command.\n", __func__, __LINE__);
 			return -UFS_FAILURE;
 		}
 	}
@@ -475,7 +469,7 @@ int utp_enqueue_upiu(struct ufs_dev *dev, struct upiu_req_build_type *upiu_data)
 	req_upiu = (struct upiu_gen_hdr*) memalign((size_t ) lcm(CACHE_LINE, UTP_CMD_DESC_BASE_ALIGNMENT_SIZE), ROUNDUP(cmd_desc_len, CACHE_LINE));
 	if (!req_upiu)
 	{
-		dprintf(CRITICAL, "Unable to allocate request upiu\n");
+		dprintf(CRITICAL, "%s:%d Unable to allocate request upiu\n",__func__, __LINE__);
 		return -UFS_FAILURE;
 	}
 
@@ -506,7 +500,7 @@ int utp_enqueue_upiu(struct ufs_dev *dev, struct upiu_req_build_type *upiu_data)
 	ret = utp_enqueue_utrd(dev, &utrd);
 	if (ret)
 	{
-		dprintf(CRITICAL, "Command failed. command = %x\n", req_upiu->basic_hdr.trans_type);
+		dprintf(CRITICAL, "%s:%d Command failed. command = %x\n", __func__, __LINE__, req_upiu->basic_hdr.trans_type);
 		goto utp_enqueue_upiu_err;
 	}
 

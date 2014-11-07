@@ -53,7 +53,7 @@ int dme_send_linkstartup_req(struct ufs_dev *dev)
 	return UFS_SUCCESS;
 
 dme_send_linkstartup_req_err:
-	dprintf(CRITICAL, "DME_LINKSTARTUP command failed.\n");
+	dprintf(CRITICAL, "%s:%d DME_LINKSTARTUP command failed.\n",__func__, __LINE__);
 	return -UFS_FAILURE;
 }
 
@@ -75,7 +75,7 @@ int dme_get_req(struct ufs_dev *dev, struct dme_get_req_type *req)
 	return UFS_SUCCESS;
 
 dme_get_req_err:
-	dprintf(CRITICAL, "DME_GET command failed.\n");
+	dprintf(CRITICAL, "%s:%d DME_GET command failed.\n", __func__, __LINE__);
 	return -UFS_FAILURE;
 }
 
@@ -89,9 +89,15 @@ static int dme_get_query_resp(struct ufs_dev *dev,
 	resp_upiu = (struct upiu_trans_mgmt_query_hdr *) req_upiu->resp_ptr;
 
 	if (resp_upiu->opcode != req_upiu->opcode)
+	{
+		dprintf(CRITICAL, "%s:%d Opcode from respose does not match with Opcode from request\n", __func__, __LINE__);
 		return -UFS_FAILURE;
+	}
 	if (resp_upiu->basic_hdr.response != UPIU_QUERY_RESP_SUCCESS)
+	{
+		dprintf(CRITICAL, "%s:%d UPIU Response is not SUCCESS\n", __func__, __LINE__);
 		return -UFS_FAILURE;
+	}
 
 	switch (resp_upiu->opcode)
 	{
@@ -99,7 +105,7 @@ static int dme_get_query_resp(struct ufs_dev *dev,
 		case UPIU_QUERY_OP_SET_FLAG:
 									  if (buf_len < sizeof(uint32_t))
 									  {
-										dprintf(CRITICAL, "Insufficient buffer space.\n");
+										dprintf(CRITICAL, "%s:%d Insufficient buffer space.\n", __func__, __LINE__);
 										return -UFS_FAILURE;
 									  }
 
@@ -109,8 +115,9 @@ static int dme_get_query_resp(struct ufs_dev *dev,
 		case UPIU_QUERY_OP_CLEAR_FLAG:
 		case UPIU_QUERY_OP_READ_DESCRIPTOR:
 									 break;
-		default: dprintf(CRITICAL, "UPIU query opcode not supported.\n");
-				 return -UFS_FAILURE;
+		default:
+				dprintf(CRITICAL, "%s:%d UPIU query opcode not supported.\n", __func__, __LINE__);
+				return -UFS_FAILURE;
 	}
 
 	return UFS_SUCCESS;
@@ -171,7 +178,10 @@ int dme_set_fpoweronwpen(struct ufs_dev *dev)
 
 
 	if (dme_send_query_upiu(dev, &read_query))
+	{
+		dprintf(CRITICAL, "%s:%d DME Power On Write Read Request failed\n", __func__, __LINE__);
 		return -UFS_FAILURE;
+	}
 
 	arch_invalidate_cache_range((addr_t) result, sizeof(uint32_t));
 
@@ -184,9 +194,16 @@ int dme_set_fpoweronwpen(struct ufs_dev *dev)
 		dprintf(CRITICAL, "Power on Write Protect request failed. Retrying again.\n");
 
 		if (dme_send_query_upiu(dev, &set_query))
+		{
+			dprintf(CRITICAL, "%s:%d DME Power On Write Set Request failed\n", __func__, __LINE__);
 			return -UFS_FAILURE;
+		}
+
 		if (dme_send_query_upiu(dev, &read_query))
+		{
+			dprintf(CRITICAL, "%s:%d DME Power On Write Read Request failed\n", __func__, __LINE__);
 			return -UFS_FAILURE;
+		}
 
 		if (*result == 1)
 			break;
@@ -216,7 +233,10 @@ int dme_set_fdeviceinit(struct ufs_dev *dev)
 
 
 	if (dme_send_query_upiu(dev, &read_query))
+	{
+		dprintf(CRITICAL, "%s:%d DME Device Init Read request failed\n", __func__, __LINE__);
 		return -UFS_FAILURE;
+	}
 
 	arch_invalidate_cache_range((addr_t) result, sizeof(uint32_t));
 
@@ -228,10 +248,16 @@ int dme_set_fdeviceinit(struct ufs_dev *dev)
 		try_again--;
 
 		if (dme_send_query_upiu(dev, &set_query))
+		{
+			dprintf(CRITICAL, "%s:%d DME Device Init Set request failed\n", __func__, __LINE__);
 			return -UFS_FAILURE;
+		}
 
 		if (dme_send_query_upiu(dev, &read_query))
+		{
+			dprintf(CRITICAL, "%s:%d DME Device Init Read request failed\n", __func__, __LINE__);
 			return -UFS_FAILURE;
+		}
 
 		if (*result == 1)
 			break;
@@ -251,11 +277,14 @@ int dme_read_string_desc(struct ufs_dev *dev, uint8_t index, struct ufs_string_d
 											sizeof(struct ufs_string_desc)};
 
 	if (dme_send_query_upiu(dev, &query))
+	{
+		dprintf(CRITICAL, "%s:%d DME Read String Descriptor request failed\n", __func__, __LINE__);
 		return -UFS_FAILURE;
+	}
 
 	if (desc->desc_len != 0)
 		return UFS_SUCCESS;
-
+	dprintf(CRITICAL, "%s:%d DME Read String Descriptor is length 0\n", __func__, __LINE__);
 	return -UFS_FAILURE;
 }
 
@@ -266,7 +295,10 @@ static uint32_t dme_parse_serial_no(struct ufs_string_desc *desc)
 	int index=0,len=0;
 
 	if(desc->desc_len <= 0)
+	{
+		dprintf(CRITICAL, "%s:%d Invalid string descriptor length\n", __func__, __LINE__);
 		return -UFS_FAILURE;
+	}
 
 	ptr = desc->serial_num;
 	len = (desc->desc_len-2)/2;
@@ -294,7 +326,10 @@ int dme_read_device_desc(struct ufs_dev *dev)
 											sizeof(struct ufs_dev_desc)};
 
 	if (dme_send_query_upiu(dev, &query))
+	{
+		dprintf(CRITICAL, "%s:%d DME Read Device Descriptor request failed\n", __func__, __LINE__);
 		return -UFS_FAILURE;
+	}
 
 	/* Flush buffer. */
 	arch_invalidate_cache_range((addr_t) device_desc, sizeof(struct ufs_dev_desc));
@@ -328,7 +363,10 @@ int dme_read_geo_desc(struct ufs_dev *dev)
 											sizeof(struct ufs_geometry_desc)};
 
 	if (dme_send_query_upiu(dev, &query))
+	{
+		dprintf(CRITICAL, "%s:%d DME Read Geometry Descriptor request failed\n", __func__, __LINE__);
 		return -UFS_FAILURE;
+	}
 
 	// Flush buffer.
 	arch_invalidate_cache_range((addr_t) desc, sizeof(struct ufs_geometry_desc));
@@ -348,8 +386,10 @@ int dme_read_unit_desc(struct ufs_dev *dev, uint8_t index)
 											sizeof(struct ufs_unit_desc)};
 
 	if (dme_send_query_upiu(dev, &query))
+	{
+		dprintf(CRITICAL, "%s:%d DME Read Unit Descriptor request failed\n", __func__, __LINE__);
 		return -UFS_FAILURE;
-
+	}
 	/* Flush buffer. */
 	arch_invalidate_cache_range((addr_t) desc, sizeof(struct ufs_unit_desc));
 
@@ -376,7 +416,10 @@ int dme_read_config_desc(struct ufs_dev *dev)
 											sizeof(struct ufs_config_desc)};
 
 	if (dme_send_query_upiu(dev, &query))
+	{
+		dprintf(CRITICAL, "%s:%d DME Read Config Descriptor request failed\n", __func__, __LINE__);
 		return -UFS_FAILURE;
+	}
 
 	/* Flush buffer. */
 	arch_invalidate_cache_range((addr_t) config_desc, sizeof(struct ufs_config_desc));
@@ -417,14 +460,14 @@ int dme_send_nop_query(struct ufs_dev *dev)
 		}
 		else if (ret == -UFS_FAILURE)
 		{
-			dprintf(CRITICAL, "sending nop out failed.\n");
+			dprintf(CRITICAL, "%s:%d Sending nop out failed.\n", __func__, __LINE__);
 			goto upiu_send_nop_out_err;
 		}
 
 		/* Check response UPIU */
 		if (resp_upiu.trans_type != UPIU_TYPE_NOP_IN)
 		{
-			dprintf(CRITICAL, "Command failed. command = %x. Invalid response.\n", req_upiu.trans_type);
+			dprintf(CRITICAL, "%s:%d Command failed. command = %x. Invalid response.\n",__func__,__LINE__, req_upiu.trans_type);
 			ret = -UFS_FAILURE;
 			goto upiu_send_nop_out_err;
 		}
@@ -456,8 +499,9 @@ int utp_build_query_req_upiu(struct upiu_trans_mgmt_query_hdr *req_upiu,
 		case UPIU_QUERY_OP_SET_FLAG:
 									 req_upiu->basic_hdr.query_task_mgmt_func = UPIU_QUERY_FUNC_STD_WRITE_REQ;
 									 break;
-		default: dprintf(CRITICAL, "UPIU query opcode not supported.\n");
-				 return -UFS_FAILURE;
+		default:
+				dprintf(CRITICAL, "%s:%d UPIU query opcode not supported.\n", __func__, __LINE__);
+				return -UFS_FAILURE;
 	}
 
 	return UFS_SUCCESS;
