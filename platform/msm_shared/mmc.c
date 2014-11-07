@@ -3146,13 +3146,6 @@ void mmc_boot_mci_clk_enable()
 
 	/* Wait for the MMC_BOOT_MCI_CLK write to go through. */
 	mmc_mclk_reg_wr_delay();
-
-	/* Enable power save */
-	reg |= MMC_BOOT_MCI_CLK_PWRSAVE;
-	writel(reg, MMC_BOOT_MCI_CLK);
-
-	/* Wait for the MMC_BOOT_MCI_CLK write to go through. */
-	mmc_mclk_reg_wr_delay();
 }
 
 #if MMC_BOOT_BAM
