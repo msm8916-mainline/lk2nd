@@ -76,7 +76,7 @@ static char sharp_wqxga_dualdsi_video_on_cmd1[] = {
 
 static struct mipi_dsi_cmd sharp_wqxga_dualdsi_video_on_command[] = {
 	{0x4, sharp_wqxga_dualdsi_video_on_cmd0, 0x0a},
-	{0x4, sharp_wqxga_dualdsi_video_on_cmd1, 0x0a}
+	{0x4, sharp_wqxga_dualdsi_video_on_cmd1, 0x02}
 };
 
 #define SHARP_WQXGA_DUALDSI_VIDEO_ON_COMMAND 2
@@ -137,7 +137,7 @@ static struct panel_timing sharp_wqxga_dualdsi_video_timing_info = {
 /* Panel reset sequence                                                      */
 /*---------------------------------------------------------------------------*/
 static struct panel_reset_sequence sharp_wqxga_dualdsi_video_reset_seq = {
-	{1, 0, 1, }, {10, 10, 120, }, 2
+	{1, 0, 1, }, {2, 5, 120, }, 2
 };
 
 /*---------------------------------------------------------------------------*/
