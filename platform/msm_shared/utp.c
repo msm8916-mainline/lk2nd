@@ -40,6 +40,7 @@
 #include <ufs.h>
 #include <platform/iomap.h>
 #include <platform/clock.h>
+#include <platform/timer.h>
 #include <arch/ops.h>
 #include <endian.h>
 #include <stdlib.h>

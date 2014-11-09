@@ -300,7 +300,7 @@ static uint32_t dme_parse_serial_no(struct ufs_string_desc *desc)
 		return -UFS_FAILURE;
 	}
 
-	ptr = desc->serial_num;
+	ptr = (uint16_t *) desc->serial_num;
 	len = (desc->desc_len-2)/2;
 
 	for(index=0; index<len; index++)
@@ -316,8 +316,8 @@ int dme_read_device_desc(struct ufs_dev *dev)
 {
 	STACKBUF_DMA_ALIGN(dev_desc, sizeof(struct ufs_dev_desc));
 	STACKBUF_DMA_ALIGN(desc, sizeof(struct ufs_string_desc));
-	struct ufs_dev_desc            *device_desc = dev_desc;
-	struct ufs_string_desc         *str_desc    = desc;
+	struct ufs_dev_desc            *device_desc = (struct ufs_dev_desc *) dev_desc;
+	struct ufs_string_desc         *str_desc    = (struct ufs_string_desc *) desc;
 	struct utp_query_req_upiu_type query = {UPIU_QUERY_OP_READ_DESCRIPTOR,
 											UFS_DESC_IDN_DEVICE,
 											0,
@@ -338,7 +338,7 @@ int dme_read_device_desc(struct ufs_dev *dev)
 	dev->num_lus = device_desc->num_lu;
 
 	/* Get serial number for the device based on the string index. */
-	if (dme_read_string_desc(dev, device_desc->serial_num, desc))
+	if (dme_read_string_desc(dev, device_desc->serial_num, (struct ufs_string_desc *) desc))
 		return -UFS_FAILURE;
 
 	/* Flush buffer. */
@@ -354,7 +354,7 @@ int dme_read_geo_desc(struct ufs_dev *dev)
 {
 	struct ufs_geometry_desc *desc;
 	STACKBUF_DMA_ALIGN(geometry_desc, sizeof(struct ufs_geometry_desc));
-	desc = geometry_desc;
+	desc = (struct ufs_geometry_desc *) geometry_desc;
 	struct utp_query_req_upiu_type query = {UPIU_QUERY_OP_READ_DESCRIPTOR,
 											UFS_DESC_IDN_GEOMETRY,
 											0,
@@ -377,7 +377,7 @@ int dme_read_geo_desc(struct ufs_dev *dev)
 int dme_read_unit_desc(struct ufs_dev *dev, uint8_t index)
 {
 	STACKBUF_DMA_ALIGN(unit_desc, sizeof(struct ufs_unit_desc));
-	struct ufs_unit_desc           *desc = unit_desc;
+	struct ufs_unit_desc           *desc = (struct ufs_unit_desc *) unit_desc;
 	struct utp_query_req_upiu_type query = {UPIU_QUERY_OP_READ_DESCRIPTOR,
 											UFS_DESC_IDN_UNIT,
 											index,
@@ -407,7 +407,7 @@ int dme_read_unit_desc(struct ufs_dev *dev, uint8_t index)
 int dme_read_config_desc(struct ufs_dev *dev)
 {
 	STACKBUF_DMA_ALIGN(desc, sizeof(struct ufs_config_desc));
-	struct ufs_config_desc         *config_desc = desc;
+	struct ufs_config_desc         *config_desc = (struct ufs_config_desc *)desc;
 	struct utp_query_req_upiu_type query = {UPIU_QUERY_OP_READ_DESCRIPTOR,
 											UFS_DESC_IDN_CONFIGURATION,
 											0,

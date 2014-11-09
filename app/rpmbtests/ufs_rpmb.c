@@ -35,12 +35,12 @@
 #include <ucs.h>
 #include <dme.h>
 #include <rpmb.h>
+#include <rand.h>
 #include <string.h>
 #include <stdlib.h>
 #include <endian.h>
+#include <target.h>
 #include "ufs_rpmb.h"
-#include <platform/iomap.h>
-#include <kernel/mutex.h>
 
 void rpmb_run_test()
 {
@@ -89,7 +89,6 @@ void dump_rpmb_data(struct rpmb_frame *result_frame)
 bool rpmb_test(struct ufs_dev *dev, uint16_t address, uint16_t rpmb_num_blocks)
 {
 	struct rpmb_frame data_frame, result_frame[rpmb_num_blocks];
-	uint8_t *temp = (uint8_t )&address;
 	int i = 0, ret;
 	uint32_t response_len = 0;
 	// check if address + sectors requested for read do not exceed total size of rpmb
@@ -117,7 +116,7 @@ bool rpmb_test(struct ufs_dev *dev, uint16_t address, uint16_t rpmb_num_blocks)
 	if (ret)
 	{
 		dprintf(CRITICAL, "RPMB Read error\n");
-		return;
+		return false;
 	}
 	for (i = 0; i < rpmb_num_blocks; i++)
 	{

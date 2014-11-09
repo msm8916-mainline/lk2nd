@@ -165,7 +165,7 @@ struct scsi_failure_sense_data
 int ucs_scsi_send_inquiry(struct ufs_dev *dev);
 int ucs_do_scsi_read(struct ufs_dev *dev, struct scsi_rdwr_req *req);
 int ucs_do_scsi_write(struct ufs_dev *dev, struct scsi_rdwr_req *req);
-
+int ucs_do_scsi_unmap(struct ufs_dev *dev, struct scsi_unmap_req *req);
 /*
  * ucs_do_sci_rpmb_read function takes a RPMB frame, sector address and number of
  * blocks to be read from RPMB partition as input and returns one or more RPMB

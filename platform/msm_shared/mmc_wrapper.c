@@ -35,7 +35,7 @@
 #include <target.h>
 #include <string.h>
 #include <partition_parser.h>
-
+#include <dme.h>
 /*
  * Weak function for UFS.
  * These are needed to avoid link errors for platforms which
