@@ -98,7 +98,7 @@ int32_t mdss_dsi_auto_pll_config(uint32_t pll_base, uint32_t ctl_base,
 			break;
 	if (i == LPFR_LUT_SIZE) {
 		dprintf(INFO, "unable to get loop filter resistance. vco=%d\n"
-						, lpfr_lut[i].vco_rate);
+						, lpfr_lut[i-1].vco_rate);
 		rc = ERROR;
 		return rc;
 	}
