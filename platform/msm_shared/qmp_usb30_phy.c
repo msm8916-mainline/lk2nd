@@ -61,6 +61,9 @@ void usb30_qmp_phy_reset(void)
 	struct clk *phy_com_clk = NULL;
 	struct clk *phy_clk = NULL;
 
+#if USB_RESET_FROM_CLK
+	clock_reset_usb_phy();
+#else
 	/* Look if phy com clock is present */
 	phy_com_clk = clk_get("usb30_phy_com_reset");
 	if (phy_com_clk)
@@ -131,6 +134,7 @@ deassert_usb2b_clk:
 	ret = clk_reset(usb2b_clk, CLK_RESET_DEASSERT);
 	if (ret)
 		dprintf(CRITICAL, "Failed to deassert usb2b_phy_clk\n");
+#endif
 
 	/* Override the phy common control values */
 	val = readl(MSM_USB30_QSCRATCH_BASE + HS_PHY_COMMON_CTRL);
