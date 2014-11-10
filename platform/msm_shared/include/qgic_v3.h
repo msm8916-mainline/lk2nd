@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, 2014, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -27,25 +27,17 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __PLATFORM_MSM_SHARED_QGIC_H
-#define __PLATFORM_MSM_SHARED_QGIC_H
+#ifndef __PLATFORM_MSM_SHARED_QGIC_V3_H
+#define __PLATFORM_MSM_SHARED_QGIC_V3_H
 
 #include "qgic_common.h"
 
-#define GIC_CPU_REG(off)            (MSM_GIC_CPU_BASE  + (off))
+#define GICD_IROUTER                GIC_DIST_REG(0x6000)
+#define GICR_WAKER_CPU0             MSM_GIC_REDIST_BASE
 
-#define GIC_CPU_CTRL                GIC_CPU_REG(0x00)
-#define GIC_CPU_PRIMASK             GIC_CPU_REG(0x04)
-#define GIC_CPU_BINPOINT            GIC_CPU_REG(0x08)
-#define GIC_CPU_INTACK              GIC_CPU_REG(0x0c)
-#define GIC_CPU_EOI                 GIC_CPU_REG(0x10)
-#define GIC_CPU_RUNNINGPRI          GIC_CPU_REG(0x14)
-#define GIC_CPU_HIGHPRI             GIC_CPU_REG(0x18)
-
-#define INTERRUPT_LVL_N_TO_N        0x0
-#define INTERRUPT_LVL_1_TO_N        0x1
-#define INTERRUPT_EDGE_N_TO_N       0x2
-#define INTERRUPT_EDGE_1_TO_N       0x3
+#define ENABLE_GRP0_SEC             BIT(0)
+#define ENABLE_GRP1_NS              BIT(1)
+#define ENABLE_ARE                  BIT(4)
 
 uint32_t qgic_read_iar(void);
 void qgic_write_eoi(uint32_t);
