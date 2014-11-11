@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2008-2009 Travis Geiselbrecht
  *
+ * Copyright (c) 2014, The Linux Foundation. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction,
@@ -264,7 +266,8 @@ static enum handler_return timer_tick(void *arg, time_t now)
 #endif
 
 	// XXX fix this, should return ret
-	return INT_RESCHEDULE;
+	ret = INT_RESCHEDULE;
+	return ret;
 }
 
 void timer_init(void)
