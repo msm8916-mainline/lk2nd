@@ -242,6 +242,10 @@ struct msm_panel_info {
 	uint32_t pipe_type;
 	char     lowpowerstop;
 	char     lcd_reg_en;
+	uint32_t border_top;
+	uint32_t border_bottom;
+	uint32_t border_left;
+	uint32_t border_right;
 
 	struct lcd_panel_info lcd;
 	struct lcdc_panel_info lcdc;
