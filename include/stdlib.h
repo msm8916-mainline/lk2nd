@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008 Travis Geiselbrecht
  *
- * Copyright (c) 2013, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2013, 2014 The Linux Foundation. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -39,6 +39,9 @@ unsigned int atoui(const char *num);
 long atol(const char *num);
 unsigned long atoul(const char *num);
 int itoa(int num, unsigned char* str, int len, int base);
+long int strtol(const char *nptr, char **endptr, int base);
+char *getenv(const char *atypeofinformation);
+void qsort(void *buf, size_t num, size_t size, int (*compare) (const void *, const void *));
 
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
