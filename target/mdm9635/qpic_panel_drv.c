@@ -106,7 +106,7 @@ static void panel_io_off(struct qpic_panel_io_desc *qpic_panel_io)
 	return;
 }
 
-void dummy_panel_off(struct qpic_panel_io_desc *qpic_panel_io)
+void ili9341_off(struct qpic_panel_io_desc *qpic_panel_io)
 {
 	panel_io_off(qpic_panel_io);
 }
@@ -136,7 +136,7 @@ static int panel_io_on(struct qpic_panel_io_desc *qpic_panel_io)
 	return rc;
 }
 
-int dummy_panel_on(struct qpic_panel_io_desc *qpic_panel_io)
+int ili9341_on(struct qpic_panel_io_desc *qpic_panel_io)
 {
 	uint8_t param[4];
 	int ret;
@@ -144,8 +144,43 @@ int dummy_panel_on(struct qpic_panel_io_desc *qpic_panel_io)
 	ret = panel_io_on(qpic_panel_io);
 	if (ret)
 		return ret;
-	/* add panel init code here */
 	qpic_send_pkt(OP_SOFT_RESET, NULL, 0);
+	/* wait for 120 ms after reset as panel spec suggests */
+	mdelay(120);
+	qpic_send_pkt(OP_SET_DISPLAY_OFF, NULL, 0);
+	/* wait for 20 ms after disply off */
+	mdelay(20);
+
+	/* set memory access control */
+	param[0] = MEM_ACCESS_MODE;
+	qpic_send_pkt(OP_SET_ADDRESS_MODE, param, 1);
+	/* wait for 20 ms after command sent as panel spec suggests */
+	mdelay(20);
+
+	param[0] = MEM_ACCESS_FORMAT;
+	qpic_send_pkt(OP_SET_PIXEL_FORMAT, param, 1);
+	mdelay(20);
+
+	/* set interface */
+	param[0] = 1;
+	param[1] = 0;
+	param[2] = 0;
+	qpic_send_pkt(OP_ILI9341_INTERFACE_CONTROL, param, 3);
+	mdelay(20);
+
+	qpic_send_pkt(OP_EXIT_SLEEP_MODE, NULL, 0);
+	mdelay(20);
+
+	qpic_send_pkt(OP_ENTER_NORMAL_MODE, NULL, 0);
+	mdelay(20);
+
+	qpic_send_pkt(OP_SET_DISPLAY_ON, NULL, 0);
+	mdelay(20);
+
+	param[0] = 0;
+	qpic_send_pkt(OP_ILI9341_TEARING_EFFECT_LINE_ON, param, 1);
+
 	param[0] = qpic_read_data(OP_GET_PIXEL_FORMAT, 1);
+
 	return 0;
 }

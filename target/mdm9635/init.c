@@ -155,7 +155,7 @@ int target_cont_splash_screen()
 	 * FOR OEMs - Set cont_splash_screen to keep the splash enable after LK.
 	 * By default: the cont-splash-screen is ON
 	 */
-	return false;
+	return true;
 }
 
 void target_uninit()
