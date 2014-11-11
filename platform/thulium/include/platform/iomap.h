@@ -143,6 +143,7 @@
 #define SPMI_BASE                   0x4000000
 #define SPMI_GENI_BASE              (SPMI_BASE + 0xA000)
 #define SPMI_PIC_BASE               (SPMI_BASE + 0x1800000)
+#define PMIC_ARB_CORE               0x400F000
 
 #define MSM_CE_BAM_BASE             0x67A000
 #define MSM_CE_BASE                 0x644000
