@@ -155,6 +155,7 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	}
 	switch (hw_id) {
 	case HW_PLATFORM_SURF:
+	case HW_PLATFORM_MTP:
 		panel_id = HX8394D_720P_VIDEO_PANEL;
 		break;
 	default:
@@ -164,5 +165,6 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	}
 
 panel_init:
+	phy_db->regulator_mode = DSI_PHY_REGULATOR_LDO_MODE;
 	return init_panel_data(panelstruct, pinfo, phy_db);
 }
