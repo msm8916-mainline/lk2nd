@@ -34,6 +34,37 @@
 
 #define UART_DM_CLK_RX_TX_BIT_RATE 0xCC
 
+#define REG_MM(off)                     (CLK_CTL_BASE + (off))
+
+#define MDP_GDSCR                       REG_MM(0x4D078)
+#define GDSC_POWER_ON_BIT               BIT(31)
+#define GDSC_POWER_ON_STATUS_BIT        BIT(29)
+#define GDSC_EN_FEW_WAIT_MASK           (0x0F << 16)
+#define GDSC_EN_FEW_WAIT_256_MASK       BIT(19)
+
+#define VSYNC_CMD_RCGR                  REG_MM(0x4D02C)
+#define VSYNC_CFG_RCGR                  REG_MM(0x4D030)
+#define MDSS_VSYNC_CBCR                 REG_MM(0x4D090)
+
+#define MDP_CMD_RCGR                    REG_MM(0x4D014)
+#define MDP_CFG_RCGR                    REG_MM(0x4D018)
+#define MDP_CBCR                        REG_MM(0x4D088)
+#define MDP_AHB_CBCR                    REG_MM(0x4D07C)
+#define MDP_AXI_CBCR                    REG_MM(0x4D080)
+
+#define DSI_BYTE0_CMD_RCGR              REG_MM(0x4D044)
+#define DSI_BYTE0_CFG_RCGR              REG_MM(0x4D048)
+#define DSI_BYTE0_CBCR                  REG_MM(0x4D094)
+#define DSI_ESC0_CMD_RCGR               REG_MM(0x4D05C)
+#define DSI_ESC0_CFG_RCGR               REG_MM(0x4D060)
+#define DSI_ESC0_CBCR                   REG_MM(0x4D098)
+#define DSI_PIXEL0_CMD_RCGR             REG_MM(0x4D000)
+#define DSI_PIXEL0_CFG_RCGR             REG_MM(0x4D004)
+#define DSI_PIXEL0_CBCR                 REG_MM(0x4D084)
+#define DSI_PIXEL0_M                    REG_MM(0x4D008)
+#define DSI_PIXEL0_N                    REG_MM(0x4D00C)
+#define DSI_PIXEL0_D                    REG_MM(0x4D010)
+
 void platform_clock_init(void);
 
 void clock_init_mmc(uint32_t interface);
@@ -41,4 +72,6 @@ void clock_config_mmc(uint32_t interface, uint32_t freq);
 void clock_config_uart_dm(uint8_t id);
 void hsusb_clock_init(void);
 void clock_config_ce(uint8_t instance);
+void mdp_clock_init(void);
+void mdp_gdsc_ctrl(uint8_t enable);
 #endif
