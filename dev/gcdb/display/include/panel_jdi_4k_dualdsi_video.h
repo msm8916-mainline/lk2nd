@@ -83,10 +83,10 @@ static char jdi_4k_dualdsi_video_on_cmd3[] = {
 };
 
 static struct mipi_dsi_cmd jdi_4k_dualdsi_video_on_command[] = {
-	{0x4, jdi_4k_dualdsi_video_on_cmd0, 0x78, 1},
-	{0x4, jdi_4k_dualdsi_video_on_cmd1, 0x78, 1},
-	{0x4, jdi_4k_dualdsi_video_on_cmd2, 0x78, 1},
-	{0x4, jdi_4k_dualdsi_video_on_cmd3, 0x78, 1}
+	{0x4, jdi_4k_dualdsi_video_on_cmd0, 0x78},
+	{0x4, jdi_4k_dualdsi_video_on_cmd1, 0x78},
+	{0x4, jdi_4k_dualdsi_video_on_cmd2, 0x78},
+	{0x4, jdi_4k_dualdsi_video_on_cmd3, 0x78}
 };
 
 #define JDI_4K_DUALDSI_VIDEO_ON_COMMAND 4
