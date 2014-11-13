@@ -204,6 +204,8 @@
 #define MDP_TEST_MODE_CLK           REG_MDP(0xF0000)
 #define MDP_INTR_STATUS             REG_MDP(0x00054)
 
+#define MDP_CGC_EN                  REG_MDP(0x100)
+
 #define SOFT_RESET                  0x118
 #define CLK_CTRL                    0x11C
 #define TRIG_CTRL                   0x084
