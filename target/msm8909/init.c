@@ -504,6 +504,10 @@ int target_cont_splash_screen()
 	uint8_t splash_screen = 0;
 	if (!splash_override) {
 		switch (board_hardware_id()) {
+		case HW_PLATFORM_SURF:
+		case HW_PLATFORM_MTP:
+			splash_screen = 1;
+			break;
 		default:
 			splash_screen = 0;
 			break;
