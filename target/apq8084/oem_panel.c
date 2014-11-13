@@ -114,10 +114,14 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		panelstruct->panelresetseq
 					 = &jdi_1080p_video_panel_reset_seq;
 		panelstruct->backlightinfo = &jdi_1080p_video_backlight;
-		pinfo->mipi.panel_cmds
+		pinfo->mipi.panel_on_cmds
 			= jdi_1080p_video_on_command;
-		pinfo->mipi.num_of_panel_cmds
+		pinfo->mipi.num_of_panel_on_cmds
 			= JDI_1080P_VIDEO_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+			= jdi_1080p_video_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+			= JDI_1080P_VIDEO_OFF_COMMAND;
 		memcpy(phy_db->timing,
 			jdi_1080p_video_timings, TIMING_SIZE);
 		break;
@@ -135,10 +139,14 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		panelstruct->panelresetseq
 					 = &jdi_qhd_dualdsi_video_reset_seq;
 		panelstruct->backlightinfo = &jdi_qhd_dualdsi_video_backlight;
-		pinfo->mipi.panel_cmds
+		pinfo->mipi.panel_on_cmds
 			= jdi_qhd_dualdsi_video_on_command;
-		pinfo->mipi.num_of_panel_cmds
+		pinfo->mipi.num_of_panel_on_cmds
 			= JDI_QHD_DUALDSI_VIDEO_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+			= jdi_qhd_dualdsi_video_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+			= JDI_QHD_DUALDSI_VIDEO_OFF_COMMAND;
 		memcpy(phy_db->timing,
 			jdi_qhd_dualdsi_video_timings, TIMING_SIZE);
 		break;
@@ -156,10 +164,14 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		panelstruct->panelresetseq
 					 = &jdi_qhd_dualdsi_cmd_reset_seq;
 		panelstruct->backlightinfo = &jdi_qhd_dualdsi_cmd_backlight;
-		pinfo->mipi.panel_cmds
+		pinfo->mipi.panel_on_cmds
 			= jdi_qhd_dualdsi_cmd_on_command;
-		pinfo->mipi.num_of_panel_cmds
+		pinfo->mipi.num_of_panel_on_cmds
 			= JDI_QHD_DUALDSI_CMD_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+			= jdi_qhd_dualdsi_cmd_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+			= JDI_QHD_DUALDSI_CMD_OFF_COMMAND;
 		memcpy(phy_db->timing,
 			jdi_qhd_dualdsi_cmd_timings, TIMING_SIZE);
 		break;

@@ -494,23 +494,23 @@ int mdss_dsi_panel_initialize(struct mipi_dsi_panel_config *pinfo, uint32_t
 	uint32_t ctrl_mode = 0;
 
 #if (DISPLAY_TYPE_MDSS == 1)
-	if (pinfo->panel_cmds) {
+	if (pinfo->panel_on_cmds) {
 
 		ctrl_mode = readl(MIPI_DSI0_BASE + CTRL);
 		if (broadcast) {
 			/* Enable command mode before sending the commands. */
 			writel(ctrl_mode | 0x04, MIPI_DSI0_BASE + CTRL);
 			writel(ctrl_mode | 0x04, MIPI_DSI1_BASE + CTRL);
-			status = mdss_dual_dsi_cmds_tx(pinfo->panel_cmds,
-					pinfo->num_of_panel_cmds);
+			status = mdss_dual_dsi_cmds_tx(pinfo->panel_on_cmds,
+					pinfo->num_of_panel_on_cmds);
 			writel(ctrl_mode, MIPI_DSI0_BASE + CTRL);
 			writel(ctrl_mode, MIPI_DSI1_BASE + CTRL);
 
 		} else {
 			/* Enable command mode before sending the commands. */
 			writel(ctrl_mode | 0x04, MIPI_DSI0_BASE + CTRL);
-			status = mipi_dsi_cmds_tx(pinfo->panel_cmds,
-					pinfo->num_of_panel_cmds);
+			status = mipi_dsi_cmds_tx(pinfo->panel_on_cmds,
+					pinfo->num_of_panel_on_cmds);
 			writel(ctrl_mode, MIPI_DSI0_BASE + CTRL);
 			if (!status && target_panel_auto_detect_enabled())
 				status =
@@ -564,9 +564,9 @@ int mipi_dsi_panel_initialize(struct mipi_dsi_panel_config *pinfo)
 	       | PACK_TYPE1 << 24 | VC1 << 22 | DT1 << 16 | WC1,
 	       DSI_COMMAND_MODE_DMA_CTRL);
 
-	if (pinfo->panel_cmds)
-		status = mipi_dsi_cmds_tx(pinfo->panel_cmds,
-					  pinfo->num_of_panel_cmds);
+	if (pinfo->panel_on_cmds)
+		status = mipi_dsi_cmds_tx(pinfo->panel_on_cmds,
+					  pinfo->num_of_panel_on_cmds);
 
 	return status;
 }
@@ -606,8 +606,8 @@ int mipi_config(struct msm_fb_panel_data *panel)
 	mipi_pinfo.mode = pinfo->mipi.mode;
 	mipi_pinfo.num_of_lanes = pinfo->mipi.num_of_lanes;
 	mipi_pinfo.dsi_phy_config = pinfo->mipi.dsi_phy_db;
-	mipi_pinfo.panel_cmds = pinfo->mipi.panel_cmds;
-	mipi_pinfo.num_of_panel_cmds = pinfo->mipi.num_of_panel_cmds;
+	mipi_pinfo.panel_on_cmds = pinfo->mipi.panel_on_cmds;
+	mipi_pinfo.num_of_panel_on_cmds = pinfo->mipi.num_of_panel_on_cmds;
 	mipi_pinfo.lane_swap = pinfo->mipi.lane_swap;
 	mipi_pinfo.pack = 1;
 
@@ -744,8 +744,8 @@ int mdss_dsi_config(struct msm_fb_panel_data *panel)
 	mipi_pinfo.mode = pinfo->mipi.mode;
 	mipi_pinfo.num_of_lanes = pinfo->mipi.num_of_lanes;
 	mipi_pinfo.mdss_dsi_phy_config = pinfo->mipi.mdss_dsi_phy_db;
-	mipi_pinfo.panel_cmds = pinfo->mipi.panel_cmds;
-	mipi_pinfo.num_of_panel_cmds = pinfo->mipi.num_of_panel_cmds;
+	mipi_pinfo.panel_on_cmds = pinfo->mipi.panel_on_cmds;
+	mipi_pinfo.num_of_panel_on_cmds = pinfo->mipi.num_of_panel_on_cmds;
 	mipi_pinfo.lane_swap = pinfo->mipi.lane_swap;
 	mipi_pinfo.pack = 0;
 	mipi_pinfo.t_clk_pre = pinfo->mipi.t_clk_pre;
@@ -797,8 +797,9 @@ int mdss_dsi_post_on(struct msm_fb_panel_data *panel)
 	struct mipi_dsi_panel_config mipi_pinfo;
 
 	if (pinfo->mipi.cmds_post_tg) {
-		mipi_pinfo.panel_cmds = pinfo->mipi.panel_cmds;
-		mipi_pinfo.num_of_panel_cmds = pinfo->mipi.num_of_panel_cmds;
+		mipi_pinfo.panel_on_cmds = pinfo->mipi.panel_on_cmds;
+		mipi_pinfo.num_of_panel_on_cmds =
+				pinfo->mipi.num_of_panel_on_cmds;
 		mipi_pinfo.signature = pinfo->mipi.signature;
 
 		ret = mdss_dsi_panel_initialize(&mipi_pinfo, pinfo->mipi.broadcast);
