@@ -35,6 +35,7 @@
 static struct board_data board = {UNKNOWN,
 	0,
 	0,
+	0,
 	HW_PLATFORM_UNKNOWN,
 	HW_PLATFORM_SUBTYPE_UNKNOWN,
 	LINUX_MACHTYPE_UNKNOWN,
@@ -147,6 +148,9 @@ static void platform_detect()
 
 			if (format_minor == 0x9)
 				board.foundry_id = board_info_v8.foundry_id;
+
+			if (format_minor == 0xA)
+				board.chip_serial = board_info_v8.chip_serial;
 		}
 
 		/* HLOS subtype
@@ -198,6 +202,11 @@ uint32_t board_hardware_subtype(void)
 uint32_t board_foundry_id(void)
 {
 	return board.foundry_id;
+}
+
+uint32_t board_chip_serial(void)
+{
+	return board.chip_serial;
 }
 
 uint8_t board_pmic_info(struct board_pmic_data *info, uint8_t num_ent)
