@@ -73,6 +73,10 @@
 #define EPT_TX(n) (1 << ((n) + 16))
 #define EPT_RX(n) (1 << (n))
 
+/* Macro for bulk SS EP descriptors */
+#define EP_BULK_IN_INDEX          21
+#define EP_BULK_OUT_INDEX         34
+
 /* Local functions */
 static struct udc_descriptor *udc_descriptor_alloc(uint32_t type,
 												   uint32_t num,
@@ -677,9 +681,11 @@ static int udc_handle_setup(void *context, uint8_t *data)
 		break;
 
 	default:
-		ERR("\n Unknown setup req.\n type = 0x%x value = %d index = %d"
+		/* some of the requests from host are not handled, add a debug
+		 * for the command not being handled, this is not fatal
+		 */
+		DBG("\n Unknown setup req.\n type = 0x%x value = %d index = %d"
 			" length = %d\n", s.type, s.value, s.index, s.length);
-		ASSERT(0);
 	}
 
 stall:
@@ -751,10 +757,44 @@ int usb30_udc_request_queue(struct udc_endpoint *ept, struct udc_request *req)
 	return ret;
 }
 
+static void udc_update_ep_desc(udc_t *udc, uint16_t max_pkt_sz_bulk)
+{
+	struct udc_descriptor *desc= NULL;
+	struct udc_endpoint *ept = NULL;
+
+	/*
+	 * By default the bulk EP are registered with 512 Bytes
+	 * as the max packet size. As per SS spec the max packet
+	 * size for bulk is 1024. Some hosts treat the descriptor
+	 * as invalid if the packet size is < 1024. Update the
+	 * descriptors once we are notifed with SS connect event
+	 */
+	for (desc = udc->desc_list; desc; desc = desc->next)
+	{
+		if (desc->data[EP_BULK_IN_INDEX] == EP_TYPE_BULK)
+		{
+			desc->data[EP_BULK_IN_INDEX + 1] = max_pkt_sz_bulk;
+			desc->data[EP_BULK_IN_INDEX + 2]  = max_pkt_sz_bulk >> 8;
+		}
+
+		if (desc->data[EP_BULK_OUT_INDEX] == EP_TYPE_BULK)
+		{
+			desc->data[EP_BULK_OUT_INDEX + 1] = max_pkt_sz_bulk;
+			desc->data[EP_BULK_OUT_INDEX + 2]  = max_pkt_sz_bulk >> 8;
+		}
+	}
+
+	for (ept = udc->ept_list; ept; ept = ept->next)
+	{
+		ept->maxpkt = max_pkt_sz_bulk;
+	}
+}
+
 /* callback function called by dwc layer if any dwc event occurs */
 void udc_dwc_notify(void *context, dwc_notify_event_t event)
 {
 	udc_t *udc = (udc_t *) context;
+	uint32_t max_pkt_size = 0;
 
 	switch (event)
 	{
@@ -763,12 +803,27 @@ void udc_dwc_notify(void *context, dwc_notify_event_t event)
 		break;
 	case DWC_NOTIFY_EVENT_CONNECTED_FS:
 		udc->speed = UDC_SPEED_FS;
+		/* For FS connection update the ep descriptor
+		 * with FS max packet size
+		 */
+		max_pkt_size = 64;
+		udc_update_ep_desc(udc, max_pkt_size);
 		break;
 	case DWC_NOTIFY_EVENT_CONNECTED_HS:
 		udc->speed = UDC_SPEED_HS;
+		/* For HS connection update the ep descriptor
+		 * with HS max packet size
+		 */
+		max_pkt_size = 512;
+		udc_update_ep_desc(udc, max_pkt_size);
 		break;
 	case DWC_NOTIFY_EVENT_CONNECTED_SS:
 		udc->speed = UDC_SPEED_SS;
+		/* For SS connection update the ep descriptor
+		 * with SS max packet size
+		 */
+		max_pkt_size = 1024;
+		udc_update_ep_desc(udc, max_pkt_size);
 		break;
 	case DWC_NOTIFY_EVENT_DISCONNECTED:
 	case DWC_NOTIFY_EVENT_OFFLINE:
