@@ -33,6 +33,7 @@
 #include <msm_panel.h>
 #include <mipi_dsi.h>
 #include <pm8x41.h>
+#include <pm8x41_wled.h>
 #include <board.h>
 #include <mdp3.h>
 #include <scm.h>
@@ -97,7 +98,7 @@ int target_backlight_ctrl(struct backlight *bl, uint8_t enable)
 	if (bl->bl_interface_type == BL_DCS)
 		return 0;
 
-	mpp.base = PM8x41_MMP4_BASE;
+	mpp.base = PM8x41_MMP2_BASE;
 	mpp.vin = MPP_VIN0;
 	if (enable) {
 		pm_pwm_enable(false);
@@ -131,6 +132,12 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 		mdp_gdsc_ctrl(enable);
 		mdss_bus_clocks_enable();
 		mdp_clock_enable();
+
+		/*
+		 * Enable auto functional gating
+		 * on DSI CMD AXI fetch from DDR
+		 */
+		writel(0x3ffff, MDP_CGC_EN);
 		ret = restore_secure_cfg(SECURE_DEVICE_MDSS);
 		if (ret) {
 			dprintf(CRITICAL,
@@ -173,35 +180,35 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 				enable_gpio.pin_strength,
 				enable_gpio.pin_state);
 
-			gpio_set_dir(enable_gpio.pin_id, 2);
+			gpio_set(enable_gpio.pin_id, 2);
 		}
 
-		if (hw_id == HW_PLATFORM_SURF) {
-			/* configure backlight gpio for CDP */
+		if (hw_id == HW_PLATFORM_SURF || (hw_id == HW_PLATFORM_MTP)) {
+			/* configure backlight gpio for CDP and MTP */
 			gpio_tlmm_config(bkl_gpio.pin_id, 0,
 				bkl_gpio.pin_direction, bkl_gpio.pin_pull,
 				bkl_gpio.pin_strength, bkl_gpio.pin_state);
-			gpio_set_dir(bkl_gpio.pin_id, 2);
+			gpio_set(bkl_gpio.pin_id, 2);
 		}
 
 		gpio_tlmm_config(reset_gpio.pin_id, 0,
 				reset_gpio.pin_direction, reset_gpio.pin_pull,
 				reset_gpio.pin_strength, reset_gpio.pin_state);
 
-		gpio_set_dir(reset_gpio.pin_id, 2);
+		gpio_set(reset_gpio.pin_id, 2);
 
 		/* reset */
 		for (int i = 0; i < RESET_GPIO_SEQ_LEN; i++) {
 			if (resetseq->pin_state[i] == GPIO_STATE_LOW)
-				gpio_set_dir(reset_gpio.pin_id, GPIO_STATE_LOW);
+				gpio_set(reset_gpio.pin_id, GPIO_STATE_LOW);
 			else
-				gpio_set_dir(reset_gpio.pin_id, GPIO_STATE_HIGH);
+				gpio_set(reset_gpio.pin_id, GPIO_STATE_HIGH);
 			mdelay(resetseq->sleep[i]);
 		}
 	} else if(!target_cont_splash_screen()) {
-		gpio_set_dir(reset_gpio.pin_id, 0);
+		gpio_set(reset_gpio.pin_id, 0);
 		if (pinfo->mipi.use_enable_gpio)
-			gpio_set_dir(enable_gpio.pin_id, 0);
+			gpio_set(enable_gpio.pin_id, 0);
 	}
 
 	return ret;
@@ -218,7 +225,7 @@ int target_ldo_ctrl(uint8_t enable)
 
 bool target_display_panel_node(char *panel_name, char *pbuf, uint16_t buf_size)
 {
-	return gcdb_display_cmdline_arg(pbuf, buf_size);
+	return gcdb_display_cmdline_arg(panel_name, pbuf, buf_size);
 }
 
 void target_display_init(const char *panel_name)
