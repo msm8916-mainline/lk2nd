@@ -57,6 +57,12 @@
 #define LDOA_RES_TYPE 0x616F646C //aodl
 #define SMPS_RES_TYPE 0x61706D73 //apms
 
+/* RPM clock helper macros */
+#define RPM_CLK_BUFFER_A_REQ                   0x616B6C63 //aklc
+#define RPM_KEY_PIN_CTRL_CLK_BUFFER_ENABLE_KEY 0x62636370 //pccb - clk buffer pin control
+#define LNBB_CLK_ID                            0x8
+#define RPM_CLK_BUFFER_PIN_CONTROL_ENABLE_NONE 0x0
+
 void regulator_enable();
 void regulator_disable();
 
