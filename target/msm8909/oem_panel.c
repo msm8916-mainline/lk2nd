@@ -138,10 +138,14 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		panelstruct->panelresetseq
 					 = &hx8379a_fwvga_skua_video_reset_seq;
 		panelstruct->backlightinfo = &hx8379a_fwvga_skua_video_backlight;
-		pinfo->mipi.panel_cmds
+		pinfo->mipi.panel_on_cmds
 					= hx8379a_fwvga_skua_video_on_command;
-		pinfo->mipi.num_of_panel_cmds
+		pinfo->mipi.num_of_panel_on_cmds
 					= HX8379A_FWVGA_SKUA_VIDEO_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+					= hx8379a_fwvga_skua_video_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+					= HX8379A_FWVGA_SKUA_VIDEO_OFF_COMMAND;
 		memcpy(phy_db->timing,
 				hx8379a_fwvga_skua_video_timings, TIMING_SIZE);
 		pinfo->mipi.signature = HX8379A_FWVGA_SKUA_VIDEO_SIGNATURE;
