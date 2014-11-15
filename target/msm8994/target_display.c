@@ -434,8 +434,28 @@ int target_display_get_base_offset(uint32_t base)
 
 bool target_display_panel_node(char *panel_name, char *pbuf, uint16_t buf_size)
 {
-	return gcdb_display_cmdline_arg(panel_name, pbuf, buf_size);
+	int prefix_string_len = strlen(DISPLAY_CMDLINE_PREFIX);
+	bool ret = true;
 
+	panel_name += strspn(panel_name, " ");
+
+	if (!strcmp(panel_name, HDMI_PANEL_NAME)) {
+		if (buf_size < (prefix_string_len + LK_OVERRIDE_PANEL_LEN +
+				strlen(HDMI_CONTROLLER_STRING))) {
+			dprintf(CRITICAL, "command line argument is greater than buffer size\n");
+			return false;
+		}
+
+		strlcpy(pbuf, DISPLAY_CMDLINE_PREFIX, buf_size);
+		buf_size -= prefix_string_len;
+		strlcat(pbuf, LK_OVERRIDE_PANEL, buf_size);
+		buf_size -= LK_OVERRIDE_PANEL_LEN;
+		strlcat(pbuf, HDMI_CONTROLLER_STRING, buf_size);
+	} else {
+		ret = gcdb_display_cmdline_arg(panel_name, pbuf, buf_size);
+	}
+
+	return ret;
 }
 
 void target_display_init(const char *panel_name)
@@ -451,6 +471,8 @@ void target_display_init(const char *panel_name)
 		|| !strcmp(panel_name, SIM_DUALDSI_CMD_PANEL)) {
 		dprintf(INFO, "Selected panel: %s\nSkip panel configuration\n",
 			panel_name);
+		return;
+	} else if (!strcmp(panel_name, HDMI_PANEL_NAME)) {
 		return;
 	}
 
