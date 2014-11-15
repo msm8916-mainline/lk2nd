@@ -127,11 +127,12 @@ int smd_init(smd_channel_info_t *ch, uint32_t ch_type)
 	smd_get_channel_info(ch, ch_type);
 
 	register_int_handler(SMD_IRQ, smd_irq_handler, ch);
-	unmask_interrupt(SMD_IRQ);
 
 	smd_set_state(ch, SMD_SS_OPENING, 1);
 
 	smd_notify_rpm();
+
+	unmask_interrupt(SMD_IRQ);
 
 	return 0;
 }
