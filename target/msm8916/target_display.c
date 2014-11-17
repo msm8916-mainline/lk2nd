@@ -290,6 +290,7 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 	int ret = NO_ERROR;
 	uint32_t hw_id = board_hardware_id();
 	uint32_t hw_subtype = board_hardware_subtype();
+	uint32_t panel_id = get_panel_id();
 
 	if (enable) {
 		if (pinfo->mipi.use_enable_gpio) {
@@ -317,10 +318,29 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 
 		if (hw_id == HW_PLATFORM_MTP || hw_id == HW_PLATFORM_SURF) {
 			/* configure backlight gpio for MTP & CDP */
-			gpio_tlmm_config(bkl_gpio.pin_id, 0,
-				bkl_gpio.pin_direction, bkl_gpio.pin_pull,
-				bkl_gpio.pin_strength, bkl_gpio.pin_state);
-			gpio_set_dir(bkl_gpio.pin_id, 2);
+			/*JDI incell panel requires two additional GPIO's in 75->98->77 order*/
+                        if (panel_id == JDI_FHD_VIDEO_PANEL) {
+                                dprintf(INFO, "panel_id = %d \n", panel_id);
+                                gpio_tlmm_config(bkl_gpio_1.pin_id, 0,
+                                        bkl_gpio_1.pin_direction, bkl_gpio_1.pin_pull,
+                                        bkl_gpio_1.pin_strength, bkl_gpio_1.pin_state);
+                                gpio_set_dir(bkl_gpio_1.pin_id, 2);
+
+                                gpio_tlmm_config(bkl_gpio.pin_id, 0,
+                                        bkl_gpio.pin_direction, bkl_gpio.pin_pull,
+                                        bkl_gpio.pin_strength, bkl_gpio.pin_state);
+                                gpio_set_dir(bkl_gpio.pin_id, 2);
+
+                                gpio_tlmm_config(bkl_gpio_2.pin_id, 0,
+                                        bkl_gpio_2.pin_direction, bkl_gpio_2.pin_pull,
+                                        bkl_gpio_2.pin_strength, bkl_gpio_2.pin_state);
+                                gpio_set_dir(bkl_gpio_2.pin_id, 2);
+                        } else {
+                                gpio_tlmm_config(bkl_gpio.pin_id, 0,
+                                        bkl_gpio.pin_direction, bkl_gpio.pin_pull,
+                                        bkl_gpio.pin_strength, bkl_gpio.pin_state);
+                                gpio_set_dir(bkl_gpio.pin_id, 2);
+                        }
 		}
 
 		gpio_tlmm_config(reset_gpio.pin_id, 0,

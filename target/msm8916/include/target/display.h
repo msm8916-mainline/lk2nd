@@ -49,6 +49,14 @@ static struct gpio_pin bkl_gpio = {
   "msmgpio", 98, 3, 1, 0, 1
 };
 
+static struct gpio_pin bkl_gpio_1 = {
+  "msmgpio", 75, 3, 1, 0, 1
+};
+
+static struct gpio_pin bkl_gpio_2 = {
+  "msmgpio", 77, 3, 1, 0, 1
+};
+
 static struct gpio_pin enp_gpio = {
   "msmgpio", 97, 3, 1, 0, 1
 };
@@ -132,5 +140,23 @@ enum qrd_subtype
 	HW_PLATFORM_SUBTYPE_SKUK = 5, /* msm8939 */
 	HW_PLATFORM_SUBTYPE_SKUT1 = 0x40, /* msm8916 */
 };
+
+enum {
+	JDI_1080P_VIDEO_PANEL,
+	NT35590_720P_VIDEO_PANEL,
+	NT35590_720P_CMD_PANEL,
+	INNOLUX_720P_VIDEO_PANEL,
+	OTM8019A_FWVGA_VIDEO_PANEL,
+	OTM1283A_720P_VIDEO_PANEL,
+	NT35596_1080P_VIDEO_PANEL,
+	SHARP_WQXGA_DUALDSI_VIDEO_PANEL,
+	JDI_FHD_VIDEO_PANEL,
+	HX8379A_FWVGA_VIDEO_PANEL,
+	HX8394D_720P_VIDEO_PANEL,
+	NT35521_WXGA_VIDEO_PANEL,
+	UNKNOWN_PANEL
+};
+
+uint32_t get_panel_id(void);
 
 #endif
