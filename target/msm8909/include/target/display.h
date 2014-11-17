@@ -96,7 +96,7 @@ static const uint32_t panel_physical_ctrl[] = {
 /*---------------------------------------------------------------------------*/
 /* Other Configuration                                                       */
 /*---------------------------------------------------------------------------*/
-#define DISPLAY_CMDLINE_PREFIX " mdss_mdp.panel="
+#define DISPLAY_CMDLINE_PREFIX " mdss_mdp3.panel="
 
 #define MIPI_FB_ADDR 0x83200000
 
