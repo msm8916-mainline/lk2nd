@@ -178,7 +178,13 @@
 #define BOOT_CONFIG_OFFSET          0x00006044
 #define BOOT_CONFIG_REG             (SEC_CTRL_CORE_BASE + BOOT_CONFIG_OFFSET)
 
-/* Fix This */
-#define PLATFORM_QMP_OFFSET                  0x8
+/* QMP rev registers */
+#define USB3_PHY_REVISION_ID0       (QMP_PHY_BASE + 0x788)
+#define USB3_PHY_REVISION_ID1       (QMP_PHY_BASE + 0x78C)
+#define USB3_PHY_REVISION_ID2       (QMP_PHY_BASE + 0x790)
+#define USB3_PHY_REVISION_ID3       (QMP_PHY_BASE + 0x794)
+
+/* Dummy macro needed for compilation only */
+#define PLATFORM_QMP_OFFSET         0x0
 
 #endif
