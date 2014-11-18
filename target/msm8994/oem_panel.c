@@ -44,6 +44,7 @@
 #include "include/panel_jdi_qhd_dualdsi_video.h"
 #include "include/panel_jdi_qhd_dualdsi_cmd.h"
 #include "include/panel_jdi_4k_dualdsi_video.h"
+#include "include/panel_jdi_1080p_video.h"
 
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
@@ -53,6 +54,7 @@ SHARP_WQXGA_DUALDSI_VIDEO_PANEL,
 JDI_QHD_DUALDSI_VIDEO_PANEL,
 JDI_QHD_DUALDSI_CMD_PANEL,
 JDI_4K_DUALDSI_VIDEO_PANEL,
+JDI_1080P_VIDEO_PANEL,
 UNKNOWN_PANEL
 };
 
@@ -65,6 +67,7 @@ static struct panel_list supp_panels[] = {
 	{"jdi_qhd_dualdsi_video", JDI_QHD_DUALDSI_VIDEO_PANEL},
 	{"jdi_qhd_dualdsi_cmd", JDI_QHD_DUALDSI_CMD_PANEL},
 	{"jdi_4k_dualdsi_video", JDI_4K_DUALDSI_VIDEO_PANEL},
+	{"jdi_1080p_video", JDI_1080P_VIDEO_PANEL},
 };
 
 static uint32_t panel_id;
@@ -212,6 +215,31 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 			jdi_4k_dualdsi_video_timings, TIMING_SIZE);
 		memcpy(&panelstruct->fbcinfo, &jdi_4k_dualdsi_video_fbc,
 				sizeof(struct fb_compression));
+	case JDI_1080P_VIDEO_PANEL:
+		pan_type = PANEL_TYPE_DSI;
+		pinfo->lcd_reg_en = 1;
+		panelstruct->paneldata    = &jdi_1080p_video_panel_data;
+		panelstruct->panelres     = &jdi_1080p_video_panel_res;
+		panelstruct->color        = &jdi_1080p_video_color;
+		panelstruct->videopanel   = &jdi_1080p_video_video_panel;
+		panelstruct->commandpanel = &jdi_1080p_video_command_panel;
+		panelstruct->state        = &jdi_1080p_video_state;
+		panelstruct->laneconfig   = &jdi_1080p_video_lane_config;
+		panelstruct->paneltiminginfo
+			= &jdi_1080p_video_timing_info;
+		panelstruct->panelresetseq
+					 = &jdi_1080p_video_panel_reset_seq;
+		panelstruct->backlightinfo = &jdi_1080p_video_backlight;
+		pinfo->mipi.panel_on_cmds
+			= jdi_1080p_video_on_command;
+		pinfo->mipi.num_of_panel_on_cmds
+			= JDI_1080P_VIDEO_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+			= jdi_1080p_video_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+			= JDI_1080P_VIDEO_OFF_COMMAND;
+		memcpy(phy_db->timing,
+			jdi_1080p_video_timings, TIMING_SIZE);
 		break;
 	default:
 	case UNKNOWN_PANEL:
