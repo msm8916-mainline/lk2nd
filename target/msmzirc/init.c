@@ -309,12 +309,13 @@ void target_sdc_init()
 	set_sdc_power_ctrl();
 
 	config.slot = 1;
-	config.bus_width = DATA_BUS_WIDTH_4BIT;
+	config.bus_width = DATA_BUS_WIDTH_8BIT;
 	config.max_clk_rate = MMC_CLK_200MHZ;
 	config.sdhc_base    = MSM_SDC1_SDHCI_BASE;
 	config.pwrctl_base  = MSM_SDC1_BASE;
 	config.pwr_irq      = SDCC1_PWRCTL_IRQ;
 	config.hs400_support = 0;
+	config.hs200_support = 0;
 	config.use_io_switch = 1;
 
 	if (!(dev = mmc_init(&config))) {
