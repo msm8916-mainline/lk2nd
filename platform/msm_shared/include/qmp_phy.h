@@ -30,6 +30,12 @@
 
 #include <platform/iomap.h>
 
+struct qmp_reg
+{
+	uint32_t off;
+	uint32_t val;
+};
+
 /* QMP register offsets */
 #define QSERDES_COM_DEC_START1               (PLATFORM_QMP_OFFSET + 0xA4)
 #define QSERDES_COM_DEC_START2               (PLATFORM_QMP_OFFSET + 0x104)
