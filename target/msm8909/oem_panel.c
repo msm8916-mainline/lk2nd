@@ -43,6 +43,7 @@
 #include "include/panel_hx8379a_fwvga_skua_video.h"
 #include "include/panel_ili9806e_fwvga_video.h"
 #include "include/panel_hx8394d_qhd_video.h"
+#include "include/panel_hx8379c_fwvga_video.h"
 
 #define DISPLAY_MAX_PANEL_DETECTION 0
 
@@ -64,6 +65,7 @@ enum {
 	HX8379A_FWVGA_SKUA_VIDEO_PANEL,
 	ILI9806E_FWVGA_VIDEO_PANEL,
 	HX8394D_QHD_VIDEO_PANEL,
+	HX8379C_FWVGA_VIDEO_PANEL,
 	UNKNOWN_PANEL
 };
 
@@ -77,7 +79,8 @@ static struct panel_list supp_panels[] = {
 	{"truly_wvga_cmd", TRULY_WVGA_CMD_PANEL},
 	{"hx8379a_fwvga_skua_video", HX8379A_FWVGA_SKUA_VIDEO_PANEL},
 	{"ili9806e_fwvga_video",ILI9806E_FWVGA_VIDEO_PANEL},
-	{"hx8394d_qhd_video", HX8394D_QHD_VIDEO_PANEL}
+	{"hx8394d_qhd_video", HX8394D_QHD_VIDEO_PANEL},
+	{"hx8379c_fwvga_video",HX8379C_FWVGA_VIDEO_PANEL},
 };
 
 static uint32_t panel_id;
@@ -234,6 +237,26 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		memcpy(phy_db->timing,
 				hx8394d_qhd_video_timings, TIMING_SIZE);
 		pinfo->mipi.signature = HX8394D_QHD_VIDEO_SIGNATURE;
+	case HX8379C_FWVGA_VIDEO_PANEL:
+		panelstruct->paneldata    = &hx8379c_fwvga_video_panel_data;
+		panelstruct->panelres     = &hx8379c_fwvga_video_panel_res;
+		panelstruct->color        = &hx8379c_fwvga_video_color;
+		panelstruct->videopanel   = &hx8379c_fwvga_video_video_panel;
+		panelstruct->commandpanel = &hx8379c_fwvga_video_command_panel;
+		panelstruct->state        = &hx8379c_fwvga_video_state;
+		panelstruct->laneconfig   = &hx8379c_fwvga_video_lane_config;
+		panelstruct->paneltiminginfo
+					= &hx8379c_fwvga_video_timing_info;
+		panelstruct->panelresetseq
+					= &hx8379c_fwvga_video_reset_seq;
+		panelstruct->backlightinfo = &hx8379c_fwvga_video_backlight;
+		pinfo->mipi.panel_cmds
+					= hx8379c_fwvga_video_on_command;
+		pinfo->mipi.num_of_panel_cmds
+					= HX8379C_FWVGA_VIDEO_ON_COMMAND;
+		memcpy(phy_db->timing,
+					hx8379c_fwvga_video_timings, TIMING_SIZE);
+		pinfo->mipi.signature = HX8379C_FWVGA_VIDEO_SIGNATURE;
 		break;
 	case UNKNOWN_PANEL:
 	default:
@@ -292,6 +315,8 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 				panel_id = ILI9806E_FWVGA_VIDEO_PANEL;
 				break;
 			case QRD_SKUE:
+				panel_id = HX8379C_FWVGA_VIDEO_PANEL;
+				break;
 			default:
 				dprintf(CRITICAL, "QRD Display not enabled for %d type\n",
 						platform_subtype);
