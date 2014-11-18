@@ -184,3 +184,27 @@ uint32_t platform_get_smem_base_addr()
 		return MSM_SHARED_BASE;
 }
 
+int platform_is_msm8909()
+{
+	uint32_t platform = board_platform_id();
+	uint32_t ret = 0;
+
+	switch(platform)
+	{
+		case MSM8909:
+		case MSM8209:
+		case MSM8208:
+		case APQ8009:
+			ret = 1;
+			break;
+		default:
+			ret = 0;
+	};
+
+	return ret;
+}
+
+int boot_device_mask(int val)
+{
+	return ((val & 0x0E) >> 1);
+}
