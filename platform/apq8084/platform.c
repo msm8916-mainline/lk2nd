@@ -167,3 +167,8 @@ addr_t platform_get_phys_to_virt_mapping(addr_t phys_addr)
 	/* Using 1-1 mapping on this platform. */
 	return phys_addr;
 }
+
+int boot_device_mask(int val)
+{
+	return ((val & 0x3E) >> 1);
+}
