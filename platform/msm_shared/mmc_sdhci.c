@@ -1082,6 +1082,7 @@ static uint8_t mmc_host_init(struct mmc_device *dev)
 
 	host->base = cfg->sdhc_base;
 	host->sdhc_event = &sdhc_event;
+	host->caps.hs200_support = cfg->hs200_support;
 	host->caps.hs400_support = cfg->hs400_support;
 
 	data = (struct sdhci_msm_data *) malloc(sizeof(struct sdhci_msm_data));
@@ -1601,7 +1602,11 @@ static uint32_t mmc_card_init(struct mmc_device *dev)
 				return mmc_return;
 			}
 		}
+#if USE_TARGET_HS200_CAPS
+		else if (host->caps.hs200_support && host->caps.sdr104_support && mmc_card_supports_hs200_mode(card))
+#else
 		else if (host->caps.sdr104_support && mmc_card_supports_hs200_mode(card))
+#endif
 		{
 			dprintf(INFO, "SDHC Running in HS200 mode\n");
 			mmc_return = mmc_set_hs200_mode(host, card, bus_width);
