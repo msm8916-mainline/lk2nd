@@ -30,11 +30,12 @@
 #define __BOOT_DEVICE_H
 
 #include <sys/types.h>
+#include <platform.h>
 
 #if USE_MDM_BOOT_CFG
 #define BOOT_DEVICE_MASK(val)   ((val & 0x1E) >> 1)
 #else
-#define BOOT_DEVICE_MASK(val)   ((val & 0x3E) >> 1)
+#define BOOT_DEVICE_MASK(val)   boot_device_mask(val)
 #endif
 
 /* Boot device */
