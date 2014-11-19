@@ -46,6 +46,8 @@
 #include <platform/clock.h>
 #include <qmp_phy.h>
 #include <qusb2_phy.h>
+#include <rpm-smd.h>
+#include <scm.h>
 
 extern void smem_ptable_init(void);
 extern void smem_add_modem_partitions(struct ptable *flash_ptable);
@@ -158,6 +160,7 @@ void target_init(void)
 
 		update_ptable_names();
 		flash_set_ptable(&flash_ptable);
+		rpm_smd_init();
 	}
 }
 
@@ -326,6 +329,7 @@ void target_sdc_init()
 
 void target_uninit(void)
 {
+	rpm_smd_uninit();
 	if (platform_boot_dev_isemmc())
 	{
 		mmc_put_card_to_sleep(dev);

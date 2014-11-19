@@ -34,3 +34,8 @@ ENABLE_THUMB := false
 
 #Override linker for mdm targets
 LD := $(TOOLCHAIN_PREFIX)ld.bfd
+
+ENABLE_SMD_SUPPORT := 1
+ifeq ($(ENABLE_SMD_SUPPORT),1)
+DEFINES += SMD_SUPPORT=1
+endif

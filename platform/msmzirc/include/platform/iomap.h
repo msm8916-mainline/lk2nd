@@ -190,4 +190,7 @@
 #define BOOT_CONFIG_OFFSET          0x0000602C
 #define BOOT_CONFIG_REG             (SEC_CTRL_CORE_BASE + BOOT_CONFIG_OFFSET)
 
+/* QPIC DISPLAY */
+#define QPIC_BASE                   0x7980000
+#define APCS_ALIAS0_IPC_INTERRUPT   0xB011008
 #endif
