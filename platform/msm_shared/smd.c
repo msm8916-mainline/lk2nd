@@ -220,7 +220,7 @@ void smd_read(smd_channel_info_t *ch, uint32_t *len, int ch_type, uint32_t *resp
 	if(!ch->port_info->ch1.DTR_DSR)
 	{
 		dprintf(CRITICAL,"%s: DTR is off\n", __func__);
-		return;
+		ASSERT(0);
 	}
 
 	/* Wait until the data updated in the smd buffer is equal to smd packet header*/
@@ -231,7 +231,7 @@ void smd_read(smd_channel_info_t *ch, uint32_t *len, int ch_type, uint32_t *resp
 	}
 
 	/* Copy the smd buffer to local buf */
-	memcpy_from_fifo(ch, &smd_hdr, sizeof(smd_hdr));
+	memcpy_from_fifo(ch, (uint32_t *)&smd_hdr, sizeof(smd_hdr));
 
 	arch_invalidate_cache_range((addr_t)&smd_hdr, sizeof(smd_hdr));
 

@@ -34,6 +34,7 @@
 #include <arch/defines.h>
 #include <debug.h>
 #include <stdlib.h>
+#include <platform/timer.h>
 
 #define RPM_REQ_MAGIC 0x00716572
 #define RPM_CMD_MAGIC 0x00646d63
@@ -56,8 +57,6 @@ void rpm_smd_uninit()
 
 static void fill_kvp_object(kvp_data **kdata, uint32_t *data, uint32_t len)
 {
-	uint32_t i =0;
-
 	*kdata = (kvp_data *) memalign(CACHE_LINE, ROUNDUP(len, CACHE_LINE));
 	ASSERT(*kdata);
 
