@@ -625,3 +625,38 @@ int pm8xxx_is_battery_broken()
 
 	return batt_is_broken;
 }
+
+/* Detect broken battery for pmi 8994*/
+bool pmi8994_is_battery_broken()
+{
+	bool batt_is_broken;
+	uint8_t fast_charge = 0;
+
+	/* Disable the input missing ppoller */
+	REG_WRITE(PMI8994_CHGR_TRIM_OPTIONS_7_0, REG_READ(PMI8994_CHGR_TRIM_OPTIONS_7_0) & ~INPUT_MISSING_POLLER_EN);
+	/* Disable current termination */
+	REG_WRITE(PMI8994_CHGR_CFG2, REG_READ(PMI8994_CHGR_CFG2) & ~CURRENT_TERM_EN);
+	/* Fast-charge current to 300 mA */
+	fast_charge = REG_READ(PMI8994_FCC_CFG);
+	REG_WRITE(PMI8994_FCC_CFG, 0x0);
+	/* Change the float voltage to 4.50V */
+	REG_WRITE(PMI8994_FV_CFG, 0x3F);
+
+	mdelay(5);
+
+	if (REG_READ(PMI8994_INT_RT_STS) & BAT_TAPER_MODE_CHARGING_RT_STS)
+		batt_is_broken = true;
+	else
+		batt_is_broken = false;
+
+	/* Set float voltage back to 4.35V */
+	REG_WRITE(PMI8994_FV_CFG, 0x2B);
+	/* Enable current termination */
+	REG_WRITE(PMI8994_CHGR_CFG2, REG_READ(PMI8994_CHGR_CFG2) | CURRENT_TERM_EN);
+	/* Fast-charge current back to default mA */
+	REG_WRITE(PMI8994_FCC_CFG, fast_charge);
+	/* Re-enable the input missing poller */
+	REG_WRITE(PMI8994_CHGR_TRIM_OPTIONS_7_0, REG_READ(PMI8994_CHGR_TRIM_OPTIONS_7_0) | INPUT_MISSING_POLLER_EN);
+
+	return batt_is_broken;
+}

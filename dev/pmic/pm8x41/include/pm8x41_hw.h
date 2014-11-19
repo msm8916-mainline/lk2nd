@@ -143,6 +143,16 @@ uint8_t pm8x41_reg_read(uint32_t addr);
 #define VBAT_DET_HI_RT_STS                    0x02
 #define VCP_ENABLE                            0x01
 
+#define PMI8994_CHGR_CFG2                     0x210FC
+#define CURRENT_TERM_EN                       BIT(3)
+#define PMI8994_FCC_CFG                       0x210F2
+#define PMI8994_FV_CFG                        0x210F4
+#define PMI8994_INT_RT_STS                    0x21010
+#define BAT_TAPER_MODE_CHARGING_RT_STS        BIT(6)
+#define PMI8994_CHGR_TRIM_OPTIONS_7_0         0x216F6
+#define INPUT_MISSING_POLLER_EN               BIT(3)
+
 int pm8xxx_is_battery_broken(void);
+bool pmi8994_battery_broken(void);
 
 #endif
