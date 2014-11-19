@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -96,6 +96,8 @@ struct mdss_hdmi_timing_info {
 
 #define HDMI_VFRMT_1280x720p60_16_9	4
 #define HDMI_RESOLUTION_DATA HDMI_VFRMT_1280x720p60_16_9##_TIMING
+
+#define HDMI_VIC_STR_MAX	3
 
 #define HDMI_VFRMT_1280x720p60_16_9_TIMING				\
 	{HDMI_VFRMT_1280x720p60_16_9, 1280, 110, 40, 220, false,	\
@@ -307,6 +309,17 @@ static void mdss_hdmi_set_mode(bool on)
 	} else {
 		writel(val, HDMI_CTRL);
 	}
+}
+
+void mdss_hdmi_get_vic(char *buf)
+{
+	struct mdss_hdmi_timing_info tinfo = HDMI_RESOLUTION_DATA;
+
+	if (buf == NULL)
+		return;
+
+	snprintf(buf, (HDMI_VIC_STR_MAX <= sizeof(buf) ? HDMI_VIC_STR_MAX :
+				sizeof(buf)), "%d", tinfo.video_format);
 }
 
 static void mdss_hdmi_panel_init(struct msm_panel_info *pinfo)
