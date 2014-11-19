@@ -48,7 +48,8 @@ static uint32_t cfg0_raw;
 static uint32_t cfg1_raw;
 static uint32_t ecc_bch_cfg;
 
-struct cmd_element ce_array[100];
+struct cmd_element ce_array[100] __attribute__ ((aligned(16)));
+struct cmd_element ce_read_array[20] __attribute__ ((aligned(16)));
 
 #define QPIC_BAM_DATA_FIFO_SIZE          64
 #define QPIC_BAM_CMD_FIFO_SIZE           64
@@ -97,17 +98,17 @@ qpic_nand_wait_for_data(uint32_t pipe_num)
 
 static uint32_t
 qpic_nand_read_reg(uint32_t reg_addr,
-				   uint8_t flags,
-				   struct cmd_element *cmd_list_ptr)
+				   uint8_t flags)
 {
 	uint32_t val;
+	struct cmd_element *cmd_list_read_ptr = ce_read_array;
 
-	bam_add_cmd_element(cmd_list_ptr, reg_addr, (uint32_t)PA((addr_t)&val), CE_READ_TYPE);
+	bam_add_cmd_element(cmd_list_read_ptr, reg_addr, (uint32_t)PA((addr_t)&val), CE_READ_TYPE);
 
 	/* Enqueue the desc for the above command */
 	bam_add_one_desc(&bam,
 					 CMD_PIPE_INDEX,
-					 (unsigned char*)PA((addr_t)cmd_list_ptr),
+					 (unsigned char*)PA((addr_t)cmd_list_read_ptr),
 					 BAM_CE_SIZE,
 					 BAM_DESC_CMD_FLAG| BAM_DESC_INT_FLAG | flags);
 
@@ -165,7 +166,7 @@ qpic_nand_check_status(uint32_t status)
 		/* Check if this is an ECC error on an erased page. */
 		if (status & NAND_FLASH_OP_ERR)
 		{
-			erase_sts = qpic_nand_read_reg(NAND_ERASED_CW_DETECT_STATUS, 0, ce_array);
+			erase_sts = qpic_nand_read_reg(NAND_ERASED_CW_DETECT_STATUS, 0);
 			if ((erase_sts & (1 << NAND_ERASED_CW_DETECT_STATUS_PAGE_ALL_ERASED)))
 			{
 				/* Mask the OP ERROR. */
@@ -227,7 +228,7 @@ qpic_nand_fetch_id(struct flash_info *flash)
 	cmd_list_ptr = ce_array;
 
 	/* Read the status register */
-	status = qpic_nand_read_reg(NAND_FLASH_STATUS, 0, cmd_list_ptr);
+	status = qpic_nand_read_reg(NAND_FLASH_STATUS, 0);
 
 	/* Check for errors */
 	nand_ret = qpic_nand_check_status(status);
@@ -238,7 +239,7 @@ qpic_nand_fetch_id(struct flash_info *flash)
 	}
 
 	/* Read the id */
-	id = qpic_nand_read_reg(NAND_READ_ID, BAM_DESC_UNLOCK_FLAG, cmd_list_ptr);
+	id = qpic_nand_read_reg(NAND_READ_ID, BAM_DESC_UNLOCK_FLAG);
 
 	flash->id = id;
 	flash->vendor = id & 0xff;
@@ -433,7 +434,7 @@ onfi_probe_cmd_exec(struct onfi_probe_params *params,
 	qpic_nand_wait_for_cmd_exec(num_desc);
 
 	/* Read buffer status and check for errors. */
-	status = qpic_nand_read_reg(NAND_FLASH_STATUS, 0, cmd_list_ptr++);
+	status = qpic_nand_read_reg(NAND_FLASH_STATUS, 0);
 
 	if (qpic_nand_check_status(status))
 	{
@@ -613,8 +614,8 @@ qpic_nand_onfi_probe(struct flash_info *flash)
 	ASSERT(buffer != NULL);
 
 	/* Read the vld and dev_cmd1 registers before modifying */
-	vld = qpic_nand_read_reg(NAND_DEV_CMD_VLD, 0, ce_array);
-	dev_cmd1 = qpic_nand_read_reg(NAND_DEV_CMD1, 0, ce_array);
+	vld = qpic_nand_read_reg(NAND_DEV_CMD_VLD, 0);
+	dev_cmd1 = qpic_nand_read_reg(NAND_DEV_CMD1, 0);
 
 	/* Initialize flash cmd */
 	params.cfg.cmd = NAND_CMD_PAGE_READ;
@@ -724,11 +725,21 @@ qpic_nand_add_cmd_ce(struct cfg_params *cfg,
 	return cmd_list_ptr;
 }
 
-/* Reads nand_flash_status and resets nand_flash_status and nand_read_status */
+/* Reads nand_flash_status */
 struct cmd_element*
-qpic_nand_add_read_n_reset_status_ce(struct cmd_element *start,
-									 uint32_t *flash_status_read,
-									 uint32_t read_status)
+qpic_nand_add_read_ce(struct cmd_element *start, uint32_t *flash_status_read)
+{
+	struct cmd_element *cmd_list_ptr = start;
+
+	bam_add_cmd_element(cmd_list_ptr, NAND_FLASH_STATUS, (uint32_t)PA((addr_t)flash_status_read), CE_READ_TYPE);
+	cmd_list_ptr++;
+
+	return cmd_list_ptr;
+}
+
+/* Resets nand_flash_status and nand_read_status */
+struct cmd_element*
+qpic_nand_reset_status_ce(struct cmd_element *start, uint32_t read_status)
 {
 	struct cmd_element *cmd_list_ptr = start;
 	uint32_t flash_status_reset;
@@ -738,8 +749,6 @@ qpic_nand_add_read_n_reset_status_ce(struct cmd_element *start,
 	flash_status_reset = NAND_FLASH_STATUS_RESET;
 	read_status_reset = NAND_READ_STATUS_RESET;
 
-	bam_add_cmd_element(cmd_list_ptr, NAND_FLASH_STATUS, (uint32_t)PA((addr_t)flash_status_read), CE_READ_TYPE);
-	cmd_list_ptr++;
 	bam_add_cmd_element(cmd_list_ptr, NAND_FLASH_STATUS, (uint32_t)flash_status_reset, CE_WRITE_TYPE);
 	cmd_list_ptr++;
 
@@ -802,12 +811,12 @@ qpic_nand_block_isbad_exec(struct cfg_params *params,
 
 	qpic_nand_wait_for_cmd_exec(num_desc);
 
-	status = qpic_nand_read_reg(NAND_FLASH_STATUS, 0, cmd_list_ptr);
+	status = qpic_nand_read_reg(NAND_FLASH_STATUS, 0);
 
 	nand_ret = qpic_nand_check_status(status);
 
 	/* Dummy read to unlock pipe. */
-	status = qpic_nand_read_reg(NAND_FLASH_STATUS, BAM_DESC_UNLOCK_FLAG, cmd_list_ptr);
+	status = qpic_nand_read_reg(NAND_FLASH_STATUS, BAM_DESC_UNLOCK_FLAG);
 
 	if (nand_ret)
 		return NANDC_RESULT_FAILURE;
@@ -891,7 +900,9 @@ qpic_nand_blk_erase(uint32_t page)
 {
 	struct cfg_params cfg;
 	struct cmd_element *cmd_list_ptr = ce_array;
+	struct cmd_element *cmd_list_read_ptr = ce_read_array;
 	struct cmd_element *cmd_list_ptr_start = ce_array;
+	struct cmd_element *cmd_list_read_ptr_start = ce_read_array;
 	uint32_t status;
 	int num_desc = 0;
 	uint32_t blk_addr = page / flash.num_pages_per_blk;
@@ -929,32 +940,40 @@ qpic_nand_blk_erase(uint32_t page)
 
 	qpic_nand_wait_for_cmd_exec(num_desc);
 
-	status = qpic_nand_read_reg(NAND_FLASH_STATUS, 0, cmd_list_ptr);
+	status = qpic_nand_read_reg(NAND_FLASH_STATUS, 0);
 
-	cmd_list_ptr++;
 	cmd_list_ptr_start = cmd_list_ptr;
+	cmd_list_read_ptr_start = cmd_list_read_ptr;
 
 	/* QPIC controller automatically sends
 	 * GET_STATUS cmd to the nand card because
 	 * of the configuration programmed.
 	 * Read the result of GET_STATUS cmd.
 	 */
-	cmd_list_ptr = qpic_nand_add_read_n_reset_status_ce(cmd_list_ptr, &status, 1);
+	cmd_list_read_ptr = qpic_nand_add_read_ce(cmd_list_read_ptr, &status);
 
-	/* Enqueue the desc for the above commands */
+	/* Enqueue the desc for the NAND_FLASH_STATUS read command */
+	bam_add_one_desc(&bam,
+					 CMD_PIPE_INDEX,
+					 (unsigned char*)cmd_list_read_ptr_start,
+					 PA((uint32_t)cmd_list_read_ptr - (uint32_t)cmd_list_read_ptr_start),
+					 BAM_DESC_CMD_FLAG) ;
+
+	cmd_list_ptr = qpic_nand_reset_status_ce(cmd_list_ptr, 1);
+
+	/* Enqueue the desc for NAND_FLASH_STATUS and NAND_READ_STATUS write commands */
 	bam_add_one_desc(&bam,
 					 CMD_PIPE_INDEX,
 					 (unsigned char*)cmd_list_ptr_start,
 					 PA((uint32_t)cmd_list_ptr - (uint32_t)cmd_list_ptr_start),
 					 BAM_DESC_INT_FLAG | BAM_DESC_CMD_FLAG) ;
-
-	num_desc = 1;
+	num_desc = 2;
 	qpic_nand_wait_for_cmd_exec(num_desc);
 
 	status = qpic_nand_check_status(status);
 
 	/* Dummy read to unlock pipe. */
-	nand_ret = qpic_nand_read_reg(NAND_FLASH_STATUS, BAM_DESC_UNLOCK_FLAG, cmd_list_ptr);
+	nand_ret = qpic_nand_read_reg(NAND_FLASH_STATUS, BAM_DESC_UNLOCK_FLAG);
 
 	/* Check for status errors*/
 	if (status)
@@ -979,7 +998,9 @@ qpic_nand_add_wr_page_cws_cmd_desc(struct cfg_params *cfg,
 								   enum nand_cfg_value cfg_mode)
 {
 	struct cmd_element *cmd_list_ptr = ce_array;
+	struct cmd_element *cmd_list_read_ptr = ce_read_array;
 	struct cmd_element *cmd_list_ptr_start = ce_array;
+	struct cmd_element *cmd_list_read_ptr_start = ce_read_array;
 	uint32_t ecc;
 	int num_desc = 0;
 	int int_flag = 0;
@@ -1026,26 +1047,29 @@ qpic_nand_add_wr_page_cws_cmd_desc(struct cfg_params *cfg,
 
 		num_desc++;
 		cmd_list_ptr_start = cmd_list_ptr;
+		cmd_list_read_ptr_start = cmd_list_read_ptr;
+
+		cmd_list_read_ptr = qpic_nand_add_read_ce(cmd_list_read_ptr_start, &status[i]);
+		/* Enqueue the desc for the NAND_FLASH_STATUS read command */
+		bam_add_one_desc(&bam,
+						 CMD_PIPE_INDEX,
+						 (unsigned char*)cmd_list_read_ptr_start,
+						 PA((uint32_t)cmd_list_read_ptr - (uint32_t)cmd_list_read_ptr_start),
+						 BAM_DESC_CMD_FLAG);
 
 		/* Set interrupt bit only for the last CW */
 		if (i == flash.cws_per_page - 1)
-		{
-			cmd_list_ptr = qpic_nand_add_read_n_reset_status_ce(cmd_list_ptr,
-																&status[i],
-																1);
-		}
+			cmd_list_ptr = qpic_nand_reset_status_ce(cmd_list_ptr, 1);
 		else
-			cmd_list_ptr = qpic_nand_add_read_n_reset_status_ce(cmd_list_ptr,
-																&status[i],
-																0);
+			cmd_list_ptr = qpic_nand_reset_status_ce(cmd_list_ptr, 0);
 
-		/* Enqueue the desc for the above commands */
+		/* Enqueue the desc for NAND_FLASH_STATUS and NAND_READ_STATUS write commands */
 		bam_add_one_desc(&bam,
 						 CMD_PIPE_INDEX,
 						 (unsigned char*)cmd_list_ptr_start,
 						 PA((uint32_t)cmd_list_ptr - (uint32_t)cmd_list_ptr_start),
 						 int_flag | BAM_DESC_CMD_FLAG);
-		num_desc++;
+		num_desc += 2;
 
 		qpic_nand_wait_for_cmd_exec(num_desc);
 
