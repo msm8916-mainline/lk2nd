@@ -383,6 +383,7 @@ enum {
 	MDM9309  = 261,
 	MDM9609  = 262,
 	MSM8239  = 263,
+	APQ8009  = 265,
 };
 
 enum platform {
