@@ -304,6 +304,17 @@
 #define LPASS_LPAIF_RDDMA_PER_LEN0   0xFE152010
 #define LPASS_LPAIF_DEBUG_CTL        0xFE15E004
 
+#define HDMI_DDC_SPEED          REG_HDMI(0x220)
+#define HDMI_DDC_SETUP          REG_HDMI(0x224)
+#define HDMI_DDC_REF            REG_HDMI(0x27C)
+#define HDMI_DDC_DATA           REG_HDMI(0x238)
+#define HDMI_DDC_TRANS0         REG_HDMI(0x228)
+#define HDMI_DDC_TRANS1         REG_HDMI(0x22C)
+#define HDMI_DDC_CTRL           REG_HDMI(0x20C)
+#define HDMI_DDC_INT_CTRL       REG_HDMI(0x214)
+#define HDMI_DDC_SW_STATUS      REG_HDMI(0x218)
+#define HDMI_DDC_ARBITRATION    REG_HDMI(0x210)
+
 #define HDMI_USEC_REFTIMER      REG_HDMI(0x208)
 #define HDMI_CTRL               REG_HDMI(0x000)
 #define HDMI_HPD_INT_STATUS     REG_HDMI(0x250)
