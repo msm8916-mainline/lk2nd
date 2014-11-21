@@ -184,10 +184,23 @@ struct smem_board_info_v8 {
 	unsigned fused_chip;
 	unsigned platform_subtype;
 	struct smem_pmic_info pmic_info[SMEM_V8_SMEM_MAX_PMIC_DEVICES];
-	/*
-	 * Need for 8 bytes alignment
-	 * while reading from shared memory
-	 */
+};
+
+struct smem_board_info_v9 {
+	struct smem_board_info_v3 board_info_v3;
+	unsigned platform_version;
+	unsigned fused_chip;
+	unsigned platform_subtype;
+	struct smem_pmic_info pmic_info[SMEM_V8_SMEM_MAX_PMIC_DEVICES];
+	uint32_t foundry_id; /* Used as foundry_id only for v9  */
+};
+
+struct smem_board_info_v10 {
+	struct smem_board_info_v3 board_info_v3;
+	unsigned platform_version;
+	unsigned fused_chip;
+	unsigned platform_subtype;
+	struct smem_pmic_info pmic_info[SMEM_V8_SMEM_MAX_PMIC_DEVICES];
 	uint32_t foundry_id; /* Used as foundry_id only for v9  */
 	uint32_t chip_serial; /* Used as serial number for v10 */
 };
