@@ -285,6 +285,10 @@
 #define HDMI_BASE               0xFD922100
 #define REG_HDMI(off)           (HDMI_BASE + (off))
 
+#define HDMI_ACR_32_0           REG_HDMI(0xC4)
+#define HDMI_ACR_32_1           REG_HDMI(0xC8)
+#define HDMI_ACR_44_0           REG_HDMI(0xCC)
+#define HDMI_ACR_44_1           REG_HDMI(0xD0)
 #define HDMI_ACR_48_0           REG_HDMI(0xD4)
 #define HDMI_ACR_48_1           REG_HDMI(0xD8)
 #define HDMI_AUDIO_PKT_CTRL2    REG_HDMI(0x44)
