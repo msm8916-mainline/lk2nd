@@ -30,6 +30,7 @@
 #include <smd.h>
 #include <smem.h>
 #include <debug.h>
+#include <kernel/event.h>
 #include <platform/irqs.h>
 #include <platform/iomap.h>
 #include <platform/interrupts.h>
@@ -38,7 +39,7 @@
 #include <bits.h>
 
 smd_channel_alloc_entry_t *smd_channel_alloc_entry;
-
+static event_t smd_closed;
 
 static void smd_write_state(smd_channel_info_t *ch, uint32_t state)
 {
@@ -138,9 +139,12 @@ int smd_init(smd_channel_info_t *ch, uint32_t ch_type)
 
 void smd_uninit(smd_channel_info_t *ch)
 {
+	event_init(&smd_closed, false, EVENT_FLAG_AUTOUNSIGNAL);
 	smd_set_state(ch, SMD_SS_CLOSING, 1);
 
 	smd_notify_rpm();
+	/* Wait for the SMD-RPM channel to be closed */
+	event_wait(&smd_closed);
 }
 
 bool is_channel_open(smd_channel_info_t *ch)
@@ -389,6 +393,7 @@ enum handler_return smd_irq_handler(void* data)
 	if(ch->current_state == SMD_SS_CLOSED)
 	{
 		free(smd_channel_alloc_entry);
+		event_signal(&smd_closed, false);
 		return INT_NO_RESCHEDULE;
 	}
 
