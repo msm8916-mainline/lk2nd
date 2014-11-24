@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -420,11 +420,11 @@ static struct lane_configuration truly_wvga_cmd_lane_config = {
 /* Panel timing                                                              */
 /*---------------------------------------------------------------------------*/
 static const uint32_t truly_wvga_cmd_timings[] = {
-	0x5D, 0x12, 0x0C, 0x00, 0x33, 0x38, 0x10, 0x16, 0x1E, 0x03, 0x04, 0x00
+	0x7B, 0x1A, 0x10, 0x00, 0x3C, 0x42, 0x14, 0x1C, 0x15, 0x3, 0x4, 0x00
 };
 
 static struct panel_timing truly_wvga_cmd_timing_info = {
-	2, 4, 0x04, 0x1b
+	2, 4, 0x04, 0x1a
 };
 
 /*---------------------------------------------------------------------------*/
