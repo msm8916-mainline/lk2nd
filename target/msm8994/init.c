@@ -212,7 +212,7 @@ static void set_sdc_power_ctrl(uint8_t slot)
 
 	if (slot == 0x1)
 	{
-		clk = TLMM_CUR_VAL_16MA;
+		clk = TLMM_CUR_VAL_10MA;
 		cmd = TLMM_CUR_VAL_8MA;
 		dat = TLMM_CUR_VAL_8MA;
 		reg = SDC1_HDRV_PULL_CTL;
