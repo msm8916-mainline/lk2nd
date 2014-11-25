@@ -2492,6 +2492,9 @@ struct fbimage* splash_screen_mmc()
 	unsigned long long ptn = 0;
 	struct fbcon_config *fb_display = NULL;
 	struct fbimage *logo = &logo_header;
+	uint32_t blocksize;
+	uint32_t readsize;
+	uint32_t ptn_size;
 
 	index = partition_get_index("splash");
 	if (index == 0) {
@@ -2505,7 +2508,11 @@ struct fbimage* splash_screen_mmc()
 		return NULL;
 	}
 
-	if (mmc_read(ptn, (uint32_t *) logo, sizeof(logo->header))) {
+	ptn_size = partition_get_size(index);
+	blocksize = mmc_get_device_blocksize();
+	readsize = ROUNDUP(sizeof(logo->header), blocksize);
+
+	if (mmc_read(ptn, (uint32_t *) logo, readsize)) {
 		dprintf(CRITICAL, "ERROR: Cannot read splash image header\n");
 		return NULL;
 	}
@@ -2522,9 +2529,15 @@ struct fbimage* splash_screen_mmc()
 			return NULL;
 		}
 		uint8_t *base = (uint8_t *) fb_display->base;
-		if (mmc_read(ptn + sizeof(logo->header),
-			(uint32_t *)base,
-			((((logo->header.width * logo->header.height * fb_display->bpp/8) + 511) >> 9) << 9))) {
+		readsize = ROUNDUP((logo->header.width * logo->header.height * fb_display->bpp/8), blocksize);
+
+		if (readsize > ptn_size)
+		{
+			dprintf(CRITICAL, "@%d:Invalid logo header readsize:%u exceeds ptn_size:%u\n", __LINE__, readsize,ptn_size);
+			return NULL;
+		}
+
+		if (mmc_read(ptn + sizeof(logo->header),(uint32_t *)base, readsize)) {
 			fbcon_clear();
 			dprintf(CRITICAL, "ERROR: Cannot read splash image from partition\n");
 			return NULL;
