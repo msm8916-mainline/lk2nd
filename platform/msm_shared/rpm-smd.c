@@ -131,12 +131,10 @@ int rpm_send_data(uint32_t *data, uint32_t len, msg_type type)
 uint32_t rpm_recv_data(uint32_t* len)
 {
 	rpm_ack_msg *resp;
-	msg_type type = RPM_REQUEST_TYPE;
-	rpm_ack_msg response;
-	resp = &response;
+	msg_type type;
 	uint32_t ret = 0;
 
-	resp = (rpm_ack_msg *)smd_read(&ch, len, SMD_APPS_RPM, (uint32_t *)resp);
+	resp = (rpm_ack_msg*)smd_read(&ch, len, SMD_APPS_RPM);
 
 	arch_invalidate_cache_range((addr_t)resp, sizeof(rpm_gen_hdr));
 

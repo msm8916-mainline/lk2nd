@@ -209,12 +209,12 @@ void memcpy_from_fifo(smd_channel_info_t *ch_ptr, uint32_t *dest, size_t len)
 	ch_ptr->port_info->ch1.read_index = read_index;
 }
 
-uint8_t* smd_read(smd_channel_info_t *ch, uint32_t *len, int ch_type, uint32_t *resp)
+uint8_t* smd_read(smd_channel_info_t *ch, uint32_t *len, int ch_type)
 {
 	smd_pkt_hdr smd_hdr;
 	uint32_t size = 0;
 	/* Response as per the current design does not exceed 20 bytes */
-	uint32_t *response = resp;
+	uint32_t response[5];
 
 	/* Read the indices from smem */
 	ch->port_info = smem_get_alloc_entry(SMEM_SMD_BASE_ID + ch->alloc_entry.cid,
