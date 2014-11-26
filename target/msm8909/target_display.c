@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -240,8 +240,12 @@ void target_display_init(const char *panel_name)
 	uint32_t panel_loop = 0;
 	uint32_t ret = 0;
 
-	if (!strcmp(panel_name, NO_PANEL_CONFIG)) {
-		dprintf(INFO, "Skip panel configuration\n");
+	panel_name += strspn(panel_name, " ");
+	if (!strcmp(panel_name, NO_PANEL_CONFIG)
+		|| !strcmp(panel_name, SIM_VIDEO_PANEL)
+		|| !strcmp(panel_name, SIM_CMD_PANEL)) {
+		dprintf(INFO, "Selected %s: Skip panel configuration\n",
+				panel_name);
 		return;
 	}
 
