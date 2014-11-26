@@ -348,7 +348,7 @@ DEFINES += DISPLAY_TYPE_QPIC=1
 			$(LOCAL_DIR)/qpic_panel.o
 endif
 
-ifeq ($(PLATFORM),msmzirc)
+ifeq ($(PLATFORM),mdm9640)
 	OBJS += $(LOCAL_DIR)/qgic.o \
 			$(LOCAL_DIR)/uart_dm.o \
 			$(LOCAL_DIR)/interrupts.o \
