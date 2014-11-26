@@ -501,7 +501,7 @@ static struct branch_clk mdss_mdp_clk = {
 };
 
 static struct branch_clk mdss_mdp_lut_clk = {
-	.cbcr_reg    = MDP_LUT_CBCR,
+	.cbcr_reg    = (uint32_t *)MDP_LUT_CBCR,
 	.parent      = &mdss_mdp_clk_src.c,
 	.has_sibling = 1,
 
@@ -512,7 +512,7 @@ static struct branch_clk mdss_mdp_lut_clk = {
 };
 
 static struct branch_clk mdss_vsync_clk = {
-	.cbcr_reg    = MDSS_VSYNC_CBCR,
+	.cbcr_reg    = (uint32_t *)MDSS_VSYNC_CBCR,
 	.parent      = &vsync_clk_src.c,
 	.has_sibling = 0,
 
