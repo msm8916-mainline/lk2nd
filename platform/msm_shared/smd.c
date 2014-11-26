@@ -204,12 +204,10 @@ void memcpy_from_fifo(smd_channel_info_t *ch_ptr, uint32_t *dest, size_t len)
 	ch_ptr->port_info->ch1.read_index = read_index;
 }
 
-uint8_t* smd_read(smd_channel_info_t *ch, uint32_t *len, int ch_type)
+void smd_read(smd_channel_info_t *ch, uint32_t *len, int ch_type, uint32_t *response)
 {
 	smd_pkt_hdr smd_hdr;
 	uint32_t size = 0;
-	/* Response as per the current design does not exceed 20 bytes */
-	uint32_t response[5];
 
 	/* Read the indices from smem */
 	ch->port_info = smem_get_alloc_entry(SMEM_SMD_BASE_ID + ch->alloc_entry.cid,
@@ -217,7 +215,7 @@ uint8_t* smd_read(smd_channel_info_t *ch, uint32_t *len, int ch_type)
 	if(!ch->port_info->ch1.DTR_DSR)
 	{
 		dprintf(CRITICAL,"%s: DTR is off\n", __func__);
-		return -1;
+		return;
 	}
 
 	/* Wait until the data updated in the smd buffer is equal to smd packet header*/
@@ -242,9 +240,9 @@ uint8_t* smd_read(smd_channel_info_t *ch, uint32_t *len, int ch_type)
 	}
 
 	/* We are good to return the response now */
-	memcpy_from_fifo(ch, response, sizeof(response));
+	memcpy_from_fifo(ch, response, smd_hdr.pkt_size);
 
-	arch_invalidate_cache_range((addr_t)response, sizeof(response));
+	arch_invalidate_cache_range((addr_t)response, smd_hdr.pkt_size);
 
 	return response;
 }
