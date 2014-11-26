@@ -15,15 +15,17 @@ SCRATCH_REGION2_SIZE                := 0x08000000 # 128MB
 KERNEL_REGION                       := 0x80000000
 KERNEL_REGION_SIZE                  := 0x01200000 # 18MB
 
-
+DEFINES += DISPLAY_SPLASH_SCREEN=1
 DEFINES += NO_KEYPAD_DRIVER=1
 DEFINES += PERIPH_BLK_BLSP=1
 
+DEVS += fbcon
 MODULES += \
 	dev/keys \
 	lib/ptable \
 	dev/pmic/pm8x41 \
-	lib/libfdt
+	lib/libfdt \
+	dev/fbcon
 
 DEFINES += \
 	MEMBASE=$(MEMBASE) \
@@ -41,4 +43,6 @@ DEFINES += \
 OBJS += \
 	$(LOCAL_DIR)/init.o \
 	$(LOCAL_DIR)/meminfo.o \
+	$(LOCAL_DIR)/target_display.o \
+	$(LOCAL_DIR)/qpic_panel_drv.o \
 	$(LOCAL_DIR)/keypad.o
