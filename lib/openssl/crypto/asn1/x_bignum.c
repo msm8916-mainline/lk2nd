@@ -81,7 +81,8 @@ static ASN1_PRIMITIVE_FUNCS bignum_pf = {
 	bn_free,
 	0,
 	bn_c2i,
-	bn_i2c
+	bn_i2c,
+	NULL
 };
 
 ASN1_ITEM_start(BIGNUM)

@@ -62,6 +62,7 @@
 #include <openssl/conf.h>
 #include <openssl/conf_api.h>
 #include <openssl/lhash.h>
+#include <bio.h>
 
 const char CONF_version[]="CONF" OPENSSL_VERSION_PTEXT;
 
@@ -94,9 +95,9 @@ LHASH_OF(CONF_VALUE) *CONF_load(LHASH_OF(CONF_VALUE) *conf, const char *file,
 	BIO *in=NULL;
 
 #ifdef OPENSSL_SYS_VMS
-	in=BIO_new_file(file, "r");
+	in= (BIO *)BIO_new_file(file, "r");
 #else
-	in=BIO_new_file(file, "rb");
+	in= (BIO *)BIO_new_file(file, "rb");
 #endif
 	if (in == NULL)
 		{

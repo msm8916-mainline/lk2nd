@@ -92,6 +92,7 @@ static const EVP_MD ripemd160_md=
 	EVP_PKEY_RSA_method,
 	RIPEMD160_CBLOCK,
 	sizeof(EVP_MD *)+sizeof(RIPEMD160_CTX),
+	NULL
 	};
 
 const EVP_MD *EVP_ripemd160(void)

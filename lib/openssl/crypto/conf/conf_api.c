@@ -65,6 +65,7 @@
 
 #include <assert.h>
 #include <string.h>
+#include <stdlib.h>
 #include <openssl/conf.h>
 #include <openssl/conf_api.h>
 #include <openssl/e_os.h>

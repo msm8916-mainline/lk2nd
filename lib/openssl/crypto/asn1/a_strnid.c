@@ -57,10 +57,12 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <ctype.h>
 #include "cryptlib.h"
 #include <openssl/asn1.h>
 #include <openssl/objects.h>
+#include "../../e_os.h"
 
 
 static STACK_OF(ASN1_STRING_TABLE) *stable = NULL;

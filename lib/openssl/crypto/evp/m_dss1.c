@@ -91,6 +91,7 @@ static const EVP_MD dss1_md=
 	EVP_PKEY_DSA_method,
 	SHA_CBLOCK,
 	sizeof(EVP_MD *)+sizeof(SHA_CTX),
+	NULL
 	};
 
 const EVP_MD *EVP_dss1(void)

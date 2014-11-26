@@ -13,7 +13,8 @@ INCLUDES += \
 			-I$(LOCAL_DIR)/x509 \
 			-I$(LOCAL_DIR)/../.. \
 			-I$(LOCAL_DIR)/../include \
-			-I$(LOCAL_DIR)/../include/openssl
+			-I$(LOCAL_DIR)/../include/openssl \
+			-I$(LOCAL_DIR)/../../openssl
 
 OBJS +=  $(LOCAL_DIR)/bn/asm/armv4-mont.o
 

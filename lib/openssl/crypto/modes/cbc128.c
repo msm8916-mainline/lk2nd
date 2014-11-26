@@ -176,7 +176,7 @@ void CRYPTO_cbc128_decrypt(const unsigned char *in, unsigned char *out,
 				for(n=0; n<16; n+=sizeof(size_t)) {
 					c = *(size_t *)(in+n);
 					*(size_t *)(out+n) =
-					*(size_t *)(tmp.c+n) ^ *(size_t *)(ivec+n);
+					*(tmp.c+n) ^ *(size_t *)(ivec+n);
 					*(size_t *)(ivec+n) = c;
 				}
 				len -= 16;
