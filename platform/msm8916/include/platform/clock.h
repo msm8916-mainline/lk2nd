@@ -79,7 +79,8 @@
 #define DSI_PIXEL1_D                    REG_MM(0x4D0C8)
 
 void platform_clock_init(void);
-
+void mdp_clock_enable(void);
+void mdp_clock_disable(void);
 void clock_init_mmc(uint32_t interface);
 void clock_config_mmc(uint32_t interface, uint32_t freq);
 void clock_config_uart_dm(uint8_t id);
@@ -87,6 +88,10 @@ void hsusb_clock_init(void);
 void clock_config_ce(uint8_t instance);
 void mdp_clock_init(void);
 void mdp_gdsc_ctrl(uint8_t enable);
+void mdss_bus_clocks_enable(void);
+void mdss_bus_clocks_disable(void);
+void gcc_dsi_clocks_enable(uint8_t dual_dsi,uint8_t pclk0_m, uint8_t pclk0_n, uint8_t pclk0_d);
+void gcc_dsi_clocks_disable(uint8_t dual_dsi);
 void clock_ce_enable(uint8_t instance);
 void clock_ce_disable(uint8_t instance);
 void clock_config_blsp_i2c(uint8_t blsp_id, uint8_t qup_id);

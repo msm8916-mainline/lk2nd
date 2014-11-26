@@ -36,6 +36,7 @@
 #include <clock.h>
 #include <platform/clock.h>
 #include <blsp_qup.h>
+#include <platform.h>
 
 void hsusb_clock_init(void)
 {
@@ -112,8 +113,7 @@ void clock_init_mmc(uint32_t interface)
 /* Configure MMC clock */
 void clock_config_mmc(uint32_t interface, uint32_t freq)
 {
-	int ret;
-	uint32_t reg;
+	int ret = 1;
 	char clk_name[64];
 
 	snprintf(clk_name, sizeof(clk_name), "sdc%u_core_clk", interface);
