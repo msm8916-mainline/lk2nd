@@ -26,8 +26,8 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __PLATFORM_MSMZIRC_GPIO_H
-#define __PLATFORM_MSMZIRC_GPIO_H
+#ifndef __PLATFORM_MDM9640_GPIO_H
+#define __PLATFORM_MDM9640_GPIO_H
 
 #include <bits.h>
 #include <gpio.h>

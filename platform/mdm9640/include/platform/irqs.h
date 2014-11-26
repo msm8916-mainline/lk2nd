@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef __IRQS_MSMZIRC_H
-#define __IRQS_MSMZIRC_H
+#ifndef __IRQS_MDM9640_H
+#define __IRQS_MDM9640_H
 
 /* TBD: The numbers need to be reviewed */
 
@@ -59,4 +59,4 @@
 #define NR_IRQS                                (NR_MSM_IRQS + NR_GPIO_IRQS + \
                                                NR_BOARD_IRQS)
 #define SMD_IRQ                                (GIC_SPI_START + 168)
-#endif /* __IRQS_9635_H */
+#endif /* __IRQS_9640_H */

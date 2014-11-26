@@ -2,7 +2,7 @@ LOCAL_DIR := $(GET_LOCAL_DIR)
 
 INCLUDES += -I$(LOCAL_DIR)/include -I$(LK_TOP_DIR)/platform/msm_shared
 
-PLATFORM := msmzirc
+PLATFORM := mdm9640
 
 MEMBASE                             := 0x81200000
 MEMSIZE                             := 0x00100000 # 1MB

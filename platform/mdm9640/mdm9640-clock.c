@@ -368,7 +368,7 @@ static struct reset_clk gcc_usb2a_phy_sleep_clk = {
 	},
 };
 
-static struct clk_lookup msm_clocks_zirc[] =
+static struct clk_lookup msm_clocks_9640[] =
 {
 	CLK_LOOKUP("sdc1_iface_clk", gcc_sdcc1_ahb_clk.c),
 	CLK_LOOKUP("sdc1_core_clk",  gcc_sdcc1_apps_clk.c),
@@ -389,5 +389,5 @@ static struct clk_lookup msm_clocks_zirc[] =
 
 void platform_clock_init(void)
 {
-	clk_init(msm_clocks_zirc, ARRAY_SIZE(msm_clocks_zirc));
+	clk_init(msm_clocks_9640, ARRAY_SIZE(msm_clocks_9640));
 }

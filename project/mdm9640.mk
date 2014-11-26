@@ -1,8 +1,8 @@
-# top level project rules for the msmzirc project
+# top level project rules for the mdm9640 project
 #
 LOCAL_DIR := $(GET_LOCAL_DIR)
 
-TARGET := msmzirc
+TARGET := mdm9640
 
 ifeq ($(TARGET_BUILD_VARIANT),user)
 DEBUG := 0
