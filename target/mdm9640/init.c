@@ -131,6 +131,7 @@ void target_init(void)
 	dprintf(INFO, "target_init()\n");
 
 	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
+	rpm_smd_init();
 
 	if (platform_boot_dev_isemmc()) {
 		target_sdc_init();
@@ -160,7 +161,6 @@ void target_init(void)
 
 		update_ptable_names();
 		flash_set_ptable(&flash_ptable);
-		rpm_smd_init();
 	}
 }
 
