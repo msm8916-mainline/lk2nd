@@ -89,6 +89,10 @@ static struct gpio_pin enable_gpio_skut1 = {
   "msmgpio", 8, 3, 1, 0, 1
 };
 
+static struct gpio_pin enable_gpio_skut2 = {
+  "msmgpio", 22, 3, 1, 0, 1
+};
+
 /*---------------------------------------------------------------------------*/
 /* Target Physical configuration                                             */
 /*---------------------------------------------------------------------------*/
@@ -163,6 +167,7 @@ enum {
 	HX8379A_FWVGA_VIDEO_PANEL,
 	HX8394D_720P_VIDEO_PANEL,
 	NT35521_WXGA_VIDEO_PANEL,
+	SAMSUNG_WXGA_VIDEO_PANEL,
 	UNKNOWN_PANEL
 };
 
