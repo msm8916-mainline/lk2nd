@@ -208,3 +208,22 @@ int boot_device_mask(int val)
 {
 	return ((val & 0x0E) >> 1);
 }
+
+uint32_t platform_detect_panel()
+{
+	uint32_t panel;
+
+	/* Bits 28:29 of this register are read to know
+	the panel config, and pick up DT accordingly.
+
+	00 -no limit, suport HD
+	01 - limit to 720P
+	10- limit to qHD
+	11- limit to fWVGA
+
+	*/
+	panel = readl(SECURITY_CONTROL_CORE_FEATURE_CONFIG0);
+	panel = (panel & 0x30000000) >> 28;
+
+	return panel;
+}
