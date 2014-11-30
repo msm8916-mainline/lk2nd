@@ -40,6 +40,7 @@
 #include "include/panel_hx8394d_720p_video.h"
 #include "include/panel_hx8379a_fwvga_skua_video.h"
 #include "include/panel_sharp_qhd_video.h"
+#include "include/panel_ili9806e_fwvga_video.h"
 
 #define DISPLAY_MAX_PANEL_DETECTION 0
 
@@ -58,6 +59,7 @@ enum {
 	HX8394D_720P_VIDEO_PANEL,
 	HX8379A_FWVGA_SKUA_VIDEO_PANEL,
 	SHARP_QHD_VIDEO_PANEL,
+	ILI9806E_FWVGA_VIDEO_PANEL,
 	UNKNOWN_PANEL
 };
 
@@ -68,7 +70,8 @@ enum {
 static struct panel_list supp_panels[] = {
 	{"hx8394d_720p_video", HX8394D_720P_VIDEO_PANEL},
 	{"hx8379a_fwvga_skua_video", HX8379A_FWVGA_SKUA_VIDEO_PANEL},
-	{"sharp_qhd_video", SHARP_QHD_VIDEO_PANEL}
+	{"sharp_qhd_video", SHARP_QHD_VIDEO_PANEL},
+	{"ili9806e_fwvga_video",ILI9806E_FWVGA_VIDEO_PANEL},
 };
 
 static uint32_t panel_id;
@@ -176,6 +179,31 @@ static int init_panel_data(struct panel_struct *panelstruct,
 					= SHARP_QHD_VIDEO_OFF_COMMAND;
 		memcpy(phy_db->timing, sharp_qhd_video_timings, TIMING_SIZE);
 		break;
+	case ILI9806E_FWVGA_VIDEO_PANEL:
+                panelstruct->paneldata    = &ili9806e_fwvga_video_panel_data;
+                panelstruct->panelres     = &ili9806e_fwvga_video_panel_res;
+                panelstruct->color        = &ili9806e_fwvga_video_color;
+                panelstruct->videopanel   = &ili9806e_fwvga_video_video_panel;
+                panelstruct->commandpanel = &ili9806e_fwvga_video_command_panel;
+                panelstruct->state        = &ili9806e_fwvga_video_state;
+                panelstruct->laneconfig   = &ili9806e_fwvga_video_lane_config;
+                panelstruct->paneltiminginfo
+                                         = &ili9806e_fwvga_video_timing_info;
+                panelstruct->panelresetseq
+                                         = &ili9806e_fwvga_video_reset_seq;
+                panelstruct->backlightinfo = &ili9806e_fwvga_video_backlight;
+                pinfo->mipi.panel_on_cmds
+                                        = ili9806e_fwvga_video_on_command;
+                pinfo->mipi.num_of_panel_on_cmds
+                                        = ILI9806E_FWVGA_VIDEO_ON_COMMAND;
+                pinfo->mipi.panel_off_cmds
+                                        = ili9806e_fwvga_video_off_command;
+                pinfo->mipi.num_of_panel_off_cmds
+                                        = ILI9806E_FWVGA_VIDEO_OFF_COMMAND;
+                memcpy(phy_db->timing,
+                                ili9806e_fwvga_video_timings, TIMING_SIZE);
+                pinfo->mipi.signature = ILI9806E_FWVGA_VIDEO_SIGNATURE;
+                break;
 	case UNKNOWN_PANEL:
 	default:
 		memset(panelstruct, 0, sizeof(struct panel_struct));
@@ -233,6 +261,8 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 				panel_id = HX8379A_FWVGA_SKUA_VIDEO_PANEL;
 				break;
 			case QRD_SKUC:
+				panel_id = ILI9806E_FWVGA_VIDEO_PANEL;
+				break;
 			case QRD_SKUE:
 			default:
 				dprintf(CRITICAL, "QRD Display not enabled for %d type\n",
