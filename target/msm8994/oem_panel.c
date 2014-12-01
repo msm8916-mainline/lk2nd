@@ -46,6 +46,8 @@
 #include "include/panel_jdi_4k_dualdsi_video.h"
 #include "include/panel_jdi_1080p_video.h"
 #include "include/panel_hx8379a_truly_fwvga_video.h"
+#include "include/panel_nt35597_wqxga_video.h"
+#include "include/panel_nt35597_wqxga_cmd.h"
 
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
@@ -57,6 +59,8 @@ JDI_QHD_DUALDSI_CMD_PANEL,
 JDI_4K_DUALDSI_VIDEO_PANEL,
 JDI_1080P_VIDEO_PANEL,
 HX8379A_TRULY_FWVGA_VIDEO_PANEL,
+NOVATEK_WQXGA_VIDEO_PANEL,
+NOVATEK_WQXGA_CMD_PANEL,
 UNKNOWN_PANEL
 };
 
@@ -71,6 +75,8 @@ static struct panel_list supp_panels[] = {
 	{"jdi_4k_dualdsi_video", JDI_4K_DUALDSI_VIDEO_PANEL},
 	{"jdi_1080p_video", JDI_1080P_VIDEO_PANEL},
 	{"hx8379a_truly_fwvga_video", HX8379A_TRULY_FWVGA_VIDEO_PANEL},
+	{"nt35597_wqxga_video", NOVATEK_WQXGA_VIDEO_PANEL},
+	{"nt35597_wqxga_cmd", NOVATEK_WQXGA_CMD_PANEL},
 };
 
 static uint32_t panel_id;
@@ -271,6 +277,65 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 		pinfo->mipi.broadcast = 0;
 		memcpy(phy_db->timing,
 					hx8379a_truly_fwvga_video_timings, TIMING_SIZE);
+	case NOVATEK_WQXGA_VIDEO_PANEL:
+		dprintf(ALWAYS, " Novatek 35597 panel selected\n");
+		pan_type = PANEL_TYPE_DSI;
+		pinfo->lcd_reg_en = 0;
+		panelstruct->paneldata    = &nt35597_wqxga_video_panel_data;
+		panelstruct->paneldata->panel_with_enable_gpio = 0;
+		panelstruct->panelres     = &nt35597_wqxga_video_panel_res;
+		panelstruct->color        = &nt35597_wqxga_video_color;
+		panelstruct->videopanel   = &nt35597_wqxga_video_video_panel;
+		panelstruct->commandpanel = &nt35597_wqxga_video_command_panel;
+		panelstruct->state        = &nt35597_wqxga_video_state;
+		panelstruct->laneconfig   = &nt35597_wqxga_video_lane_config;
+		panelstruct->paneltiminginfo
+			= &nt35597_wqxga_video_timing_info;
+		panelstruct->panelresetseq
+					 = &nt35597_wqxga_video_reset_seq;
+		panelstruct->backlightinfo = &nt35597_wqxga_video_backlight;
+		pinfo->mipi.panel_on_cmds
+			= nt35597_wqxga_video_on_command;
+		pinfo->mipi.num_of_panel_on_cmds
+			= NT35597_WQXGA_VIDEO_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+			= nt35597_wqxga_video_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+			= NT35597_WQXGA_VIDEO_OFF_COMMAND;
+		memcpy(phy_db->timing,
+			nt35597_wqxga_video_timings, TIMING_SIZE);
+		memcpy(&panelstruct->fbcinfo, &nt35597_wqxga_video_fbc,
+				sizeof(struct fb_compression));
+		break;
+	case NOVATEK_WQXGA_CMD_PANEL:
+		dprintf(ALWAYS, " Novatek 35597 command mode panel selected\n");
+		pan_type = PANEL_TYPE_DSI;
+		pinfo->lcd_reg_en = 1;
+		panelstruct->paneldata    = &nt35597_wqxga_cmd_panel_data;
+		panelstruct->paneldata->panel_with_enable_gpio = 0;
+		panelstruct->panelres     = &nt35597_wqxga_cmd_panel_res;
+		panelstruct->color        = &nt35597_wqxga_cmd_color;
+		panelstruct->videopanel   = &nt35597_wqxga_cmd_video_panel;
+		panelstruct->commandpanel = &nt35597_wqxga_cmd_command_panel;
+		panelstruct->state        = &nt35597_wqxga_cmd_state;
+		panelstruct->laneconfig   = &nt35597_wqxga_cmd_lane_config;
+		panelstruct->paneltiminginfo
+			= &nt35597_wqxga_cmd_timing_info;
+		panelstruct->panelresetseq
+					 = &nt35597_wqxga_cmd_reset_seq;
+		panelstruct->backlightinfo = &nt35597_wqxga_cmd_backlight;
+		pinfo->mipi.panel_on_cmds
+			= nt35597_wqxga_cmd_on_command;
+		pinfo->mipi.num_of_panel_on_cmds
+			= NT35597_WQXGA_CMD_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+			= nt35597_wqxga_cmd_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+			= NT35597_WQXGA_CMD_OFF_COMMAND;
+		memcpy(phy_db->timing,
+			nt35597_wqxga_cmd_timings, TIMING_SIZE);
+		memcpy(&panelstruct->fbcinfo, &nt35597_wqxga_cmd_fbc,
+				sizeof(struct fb_compression));
 		break;
 	default:
 	case UNKNOWN_PANEL:
