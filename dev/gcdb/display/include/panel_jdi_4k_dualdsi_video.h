@@ -159,7 +159,7 @@ static struct backlight jdi_4k_dualdsi_video_backlight = {
 };
 
 static struct fb_compression jdi_4k_dualdsi_video_fbc = {
-	1, 2, 1, 1, 2, 1, 1, 1, 1200, 5, 91, 0x200, 192, 4, 3
+	1, 2, 1, 1, 2, 1, 1, 1, 1200, 5, 91, 0x200, 192, 4, 3, 0, 0, 0
 };
 
 #endif /*_PANEL_JDI_4K_DUALDSI_VIDEO_H_*/
