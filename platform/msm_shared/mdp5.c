@@ -621,39 +621,46 @@ void mdss_fbc_cfg(struct msm_panel_info *pinfo)
 	uint32_t mode = 0;
 	uint32_t budget_ctl = 0;
 	uint32_t lossy_mode = 0;
-	uint32_t xres;
 	struct fbc_panel_info *fbc;
-	uint32_t enc_mode;
+	uint32_t enc_mode, width;
 
 	fbc = &pinfo->fbc;
-	xres = pinfo->xres;
 
 	if (!pinfo->fbc.enabled)
 		return;
 
-	if (pinfo->mipi.dual_dsi)
-		xres /= 2;
-
 	/* enc_mode defines FBC version. 0 = FBC 1.0 and 1 = FBC 2.0 */
 	enc_mode = (fbc->comp_ratio == 2) ? 0 : 1;
 
-	mode = ((xres) << 16) | (enc_mode) << 9 | ((fbc->comp_mode) << 8) |
-		((fbc->qerr_enable) << 7) | ((fbc->cd_bias) << 4) |
-		((fbc->pat_enable) << 3) | ((fbc->vlc_enable) << 2) |
-		((fbc->bflc_enable) << 1) | 1;
+	width = pinfo->xres;
+	if (enc_mode)
+		width = (pinfo->xres/fbc->comp_ratio);
 
-	dprintf(SPEW, "xres = %d, comp_mode %d, qerr_enable = %d, cd_bias = %d\n",
-			xres, fbc->comp_mode, fbc->qerr_enable, fbc->cd_bias);
+	if (pinfo->mipi.dual_dsi)
+		width /= 2;
+
+	mode = ((width) << 16) | ((fbc->slice_height) << 11) |
+		((fbc->pred_mode) << 10) | (enc_mode) << 9 |
+		((fbc->comp_mode) << 8) | ((fbc->qerr_enable) << 7) |
+		((fbc->cd_bias) << 4) | ((fbc->pat_enable) << 3) |
+		((fbc->vlc_enable) << 2) | ((fbc->bflc_enable) << 1) | 1;
+
+	dprintf(SPEW, "width = %d, slice height = %d, pred_mode =%d, enc_mode = %d, \
+			comp_mode %d, qerr_enable = %d, cd_bias = %d\n",
+			width, fbc->slice_height, fbc->pred_mode, enc_mode,
+			fbc->comp_mode, fbc->qerr_enable, fbc->cd_bias);
 	dprintf(SPEW, "pat_enable %d, vlc_enable = %d, bflc_enable\n",
 			fbc->pat_enable, fbc->vlc_enable, fbc->bflc_enable);
 
 	budget_ctl = ((fbc->line_x_budget) << 12) |
 		((fbc->block_x_budget) << 8) | fbc->block_budget;
 
-	lossy_mode = ((fbc->lossless_mode_thd) << 16) |
+	lossy_mode = (((fbc->max_pred_err) << 28) | (fbc->lossless_mode_thd) << 16) |
 		((fbc->lossy_mode_thd) << 8) |
 		((fbc->lossy_rgb_thd) << 4) | fbc->lossy_mode_idx;
 
+	dprintf(SPEW, "mode= 0x%x, budget_ctl = 0x%x, lossy_mode= 0x%x\n",
+			mode, budget_ctl, lossy_mode);
 	writel(mode, MDP_PP_0_BASE + MDSS_MDP_REG_PP_FBC_MODE);
 	writel(budget_ctl, MDP_PP_0_BASE + MDSS_MDP_REG_PP_FBC_BUDGET_CTL);
 	writel(lossy_mode, MDP_PP_0_BASE + MDSS_MDP_REG_PP_FBC_LOSSY_MODE);

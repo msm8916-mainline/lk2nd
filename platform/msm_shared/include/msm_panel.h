@@ -133,6 +133,10 @@ struct fbc_panel_info {
 	uint32_t lossy_mode_thd;
 	uint32_t lossy_rgb_thd;
 	uint32_t lossy_mode_idx;
+
+	uint32_t slice_height;
+	uint32_t pred_mode;
+	uint32_t max_pred_err;
 };
 
 /* intf timing settings */
