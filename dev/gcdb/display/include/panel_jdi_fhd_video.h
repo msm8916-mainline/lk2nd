@@ -118,11 +118,11 @@ static char jdi_fhd_video_on_cmd12[] = {
 };
 
 static char jdi_fhd_video_on_cmd13[] = {
-	0x11, 0xFF, 0x05, 0x80
+	0x11, 0x00, 0x05, 0x80
 };
 
 static char jdi_fhd_video_on_cmd14[] = {
-	0x29, 0xFF, 0x05, 0x80
+	0x29, 0x00, 0x05, 0x80
 };
 
 static struct mipi_dsi_cmd jdi_fhd_video_on_command[] = {
