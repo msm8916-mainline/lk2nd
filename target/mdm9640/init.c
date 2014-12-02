@@ -131,7 +131,6 @@ void target_init(void)
 	dprintf(INFO, "target_init()\n");
 
 	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
-	rpm_smd_init();
 
 	if (platform_boot_dev_isemmc()) {
 		target_sdc_init();
@@ -327,9 +326,14 @@ void target_sdc_init()
 	}
 }
 
+int target_cont_splash_screen()
+{
+	/* FOR OEMs - Set cont_splash_screen to keep the splash enable after LK.*/
+	return true;
+}
+
 void target_uninit(void)
 {
-	rpm_smd_uninit();
 	if (platform_boot_dev_isemmc())
 	{
 		mmc_put_card_to_sleep(dev);
