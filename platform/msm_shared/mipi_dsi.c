@@ -487,6 +487,51 @@ int mdss_dsi_host_init(struct mipi_dsi_panel_config *pinfo, uint32_t
 	return 0;
 }
 
+void mdss_dsi_panel_shutdown(struct msm_panel_info *pinfo)
+{
+#if (DISPLAY_TYPE_MDSS == 1)
+	unsigned long read_val = 0;
+	if (pinfo->mipi.panel_off_cmds) {
+		/*
+		 * Once MDP TG is disabled, reset of DSI controller is
+		 * needed before we send panel OFF commands.
+		 */
+		if (pinfo->type == MIPI_VIDEO_PANEL) {
+			read_val = readl(MIPI_DSI0_BASE + CTRL);
+			writel((read_val & ~BIT(0)), MIPI_DSI0_BASE + CTRL);
+			writel(0x0001, MIPI_DSI0_BASE + SOFT_RESET);
+			dsb();
+			writel(0x0000, MIPI_DSI0_BASE + SOFT_RESET);
+			dsb();
+			/* Enable cmd mode only */
+			writel(((read_val & ~BIT(1)) | BIT(2)),
+						MIPI_DSI0_BASE + CTRL);
+		}
+
+		if (pinfo->mipi.broadcast) {
+			if (pinfo->type == MIPI_VIDEO_PANEL) {
+				read_val = readl(MIPI_DSI1_BASE + CTRL);
+				writel((read_val & ~BIT(0)),
+					MIPI_DSI1_BASE + CTRL);
+
+				writel(0x0001, MIPI_DSI1_BASE + SOFT_RESET);
+				dsb();
+				writel(0x0000, MIPI_DSI1_BASE + SOFT_RESET);
+				dsb();
+
+				writel(((read_val & ~BIT(1)) | BIT(2)),
+							MIPI_DSI1_BASE + CTRL);
+			}
+			mdss_dual_dsi_cmds_tx(pinfo->mipi.panel_off_cmds,
+					pinfo->mipi.num_of_panel_off_cmds);
+		} else {
+			mipi_dsi_cmds_tx(pinfo->mipi.panel_off_cmds,
+					pinfo->mipi.num_of_panel_off_cmds);
+		}
+	}
+#endif
+}
+
 int mdss_dsi_panel_initialize(struct mipi_dsi_panel_config *pinfo, uint32_t
 		broadcast)
 {
@@ -902,11 +947,8 @@ int mipi_dsi_off(struct msm_panel_info *pinfo)
 {
 	if(!target_cont_splash_screen())
 	{
+		mdss_dsi_panel_shutdown(pinfo);
 		writel(0, DSI_CLK_CTRL);
-		writel(0x1F1, DSI_CTRL);
-		mdelay(10);
-		writel(0x0001, DSI_SOFT_RESET);
-		writel(0x0000, DSI_SOFT_RESET);
 		writel(0, DSI_CTRL);
 	}
 
