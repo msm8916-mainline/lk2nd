@@ -92,7 +92,7 @@ uint32_t mdss_dsi_read_panel_signature(uint32_t panel_signature)
 
 exit_read_signature:
 	/* Keep the non detectable panel at the end and set panel signature 0xFFFF */
-	if (panel_signature == 0xFFFF)
+	if ((panel_signature == 0) || (panel_signature == 0xFFFF))
 		ret = 0;
 #endif
 	return ret;
@@ -516,6 +516,7 @@ int mdss_dsi_panel_initialize(struct mipi_dsi_panel_config *pinfo, uint32_t
 			if (!status && target_panel_auto_detect_enabled())
 				status =
 					mdss_dsi_read_panel_signature(pinfo->signature);
+			dprintf(SPEW, "Read panel signature status = 0x%x \n", status);
 		}
 	}
 #endif
