@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -511,6 +511,7 @@ int target_cont_splash_screen()
 		case HW_PLATFORM_SURF:
 		case HW_PLATFORM_MTP:
 		case HW_PLATFORM_QRD:
+		case HW_PLATFORM_RCM:
 			splash_screen = 1;
 			break;
 		default:
