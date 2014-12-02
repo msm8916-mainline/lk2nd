@@ -349,6 +349,7 @@ DEFINES += DISPLAY_TYPE_QPIC=1
 endif
 
 ifeq ($(PLATFORM),mdm9640)
+DEFINES += DISPLAY_TYPE_QPIC=1
 	OBJS += $(LOCAL_DIR)/qgic.o \
 			$(LOCAL_DIR)/uart_dm.o \
 			$(LOCAL_DIR)/interrupts.o \
@@ -365,7 +366,10 @@ ifeq ($(PLATFORM),mdm9640)
 			$(LOCAL_DIR)/gpio.o \
 			$(LOCAL_DIR)/scm.o \
 			$(LOCAL_DIR)/qmp_usb30_phy.o \
-			$(LOCAL_DIR)/qusb2_phy.o
+			$(LOCAL_DIR)/qusb2_phy.o \
+			$(LOCAL_DIR)/display.o \
+			$(LOCAL_DIR)/qpic.o \
+			$(LOCAL_DIR)/qpic_panel.o
 endif
 
 ifeq ($(PLATFORM),fsm9900)
