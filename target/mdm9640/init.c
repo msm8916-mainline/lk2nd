@@ -329,7 +329,7 @@ void target_sdc_init()
 int target_cont_splash_screen()
 {
 	/* FOR OEMs - Set cont_splash_screen to keep the splash enable after LK.*/
-	return true;
+	return false;
 }
 
 void target_uninit(void)
