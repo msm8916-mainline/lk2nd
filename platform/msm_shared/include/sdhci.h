@@ -98,7 +98,7 @@ struct mmc_command {
 	uint32_t trans_mode;    /* Transfer mode, read/write */
 	uint32_t cmd_retry;     /* Retry the command, if card is busy */
 	uint32_t cmd23_support; /* If card supports cmd23 */
-	uint64_t cmd_timeout;   /* Command timeout in ms */
+	uint64_t cmd_timeout;   /* Command timeout in us */
 	struct mmc_data data;   /* Data pointer */
 };
 
