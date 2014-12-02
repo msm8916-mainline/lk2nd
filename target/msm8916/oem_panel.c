@@ -418,22 +418,28 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	switch (hw_id) {
 	case HW_PLATFORM_MTP:
 		panel_id = JDI_1080P_VIDEO_PANEL;
+		if (hw_subtype == HW_PLATFORM_SUBTYPE_MTP_3)
+			panel_id = JDI_FHD_VIDEO_PANEL;
 		break;
 	case HW_PLATFORM_SURF:
-		panel_id = JDI_1080P_VIDEO_PANEL;
-		switch (auto_pan_loop) {
-		case 0:
+		if (hw_subtype == HW_PLATFORM_SUBTYPE_CDP_1) {
+			panel_id = JDI_FHD_VIDEO_PANEL;
+		} else {
 			panel_id = JDI_1080P_VIDEO_PANEL;
-			break;
-		case 1:
-			panel_id = NT35590_720P_VIDEO_PANEL;
-			break;
-		default:
-			panel_id = UNKNOWN_PANEL;
-			dprintf(CRITICAL, "Unknown panel\n");
-			return PANEL_TYPE_UNKNOWN;
+			switch (auto_pan_loop) {
+			case 0:
+				panel_id = JDI_1080P_VIDEO_PANEL;
+				break;
+			case 1:
+				panel_id = NT35590_720P_VIDEO_PANEL;
+				break;
+			default:
+				panel_id = UNKNOWN_PANEL;
+				dprintf(CRITICAL, "Unknown panel\n");
+				return PANEL_TYPE_UNKNOWN;
+			}
+			auto_pan_loop++;
 		}
-		auto_pan_loop++;
 		break;
 	case HW_PLATFORM_QRD:
 		target_id = board_target_id();

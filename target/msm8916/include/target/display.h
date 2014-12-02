@@ -135,6 +135,8 @@ static const uint32_t panel_physical_ctrl[] = {
 enum qrd_subtype
 {
 	HW_PLATFORM_SUBTYPE_DEFAULT = 0,
+	HW_PLATFORM_SUBTYPE_CDP_1 = 1,
+	HW_PLATFORM_SUBTYPE_MTP_3 = 3,
 	HW_PLATFORM_SUBTYPE_SKUH = 4,
 	HW_PLATFORM_SUBTYPE_SKUI = 5, /* msm8916 */
 	HW_PLATFORM_SUBTYPE_SKUK = 5, /* msm8939 */
