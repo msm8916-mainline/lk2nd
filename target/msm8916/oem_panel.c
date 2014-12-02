@@ -63,22 +63,6 @@
 /*---------------------------------------------------------------------------*/
 static uint32_t auto_pan_loop = 0;
 
-enum {
-JDI_1080P_VIDEO_PANEL,
-NT35590_720P_VIDEO_PANEL,
-NT35590_720P_CMD_PANEL,
-INNOLUX_720P_VIDEO_PANEL,
-OTM8019A_FWVGA_VIDEO_PANEL,
-OTM1283A_720P_VIDEO_PANEL,
-NT35596_1080P_VIDEO_PANEL,
-SHARP_WQXGA_DUALDSI_VIDEO_PANEL,
-JDI_FHD_VIDEO_PANEL,
-HX8379A_FWVGA_VIDEO_PANEL,
-HX8394D_720P_VIDEO_PANEL,
-NT35521_WXGA_VIDEO_PANEL,
-UNKNOWN_PANEL
-};
-
 /*
  * The list of panels that are supported on this target.
  * Any panel in this list can be selected using fastboot oem command.
@@ -128,6 +112,11 @@ int oem_panel_off()
 	 * in this function
 	 */
 	return NO_ERROR;
+}
+
+uint32_t get_panel_id(void)
+{
+	return panel_id;
 }
 
 static int init_panel_data(struct panel_struct *panelstruct,
