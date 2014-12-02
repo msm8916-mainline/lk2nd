@@ -197,6 +197,7 @@
 
 #define MSM_CE2_BAM_BASE            0xFD444000
 #define MSM_CE2_BASE                0xFD45A000
+#define  GCC_CE2_BCR                (CLK_CTL_BASE + 0x1080)
 
 #define TLMM_BASE_ADDR              0xFD510000
 #define GPIO_CONFIG_ADDR(x)         (TLMM_BASE_ADDR + 0x1000 + (x)*0x10)
