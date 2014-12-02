@@ -218,6 +218,7 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 			jdi_4k_dualdsi_video_timings, TIMING_SIZE);
 		memcpy(&panelstruct->fbcinfo, &jdi_4k_dualdsi_video_fbc,
 				sizeof(struct fb_compression));
+		break;
 	case JDI_1080P_VIDEO_PANEL:
 		pan_type = PANEL_TYPE_DSI;
 		pinfo->lcd_reg_en = 1;
