@@ -110,10 +110,8 @@ static int msm8994_wled_backlight_ctrl(uint8_t enable)
 {
 	uint8_t slave_id = 3;	/* pmi */
 
-	if (enable) {
-		pm8x41_wled_config_slave_id(slave_id);
-		qpnp_wled_enable_backlight(enable);
-	}
+	pm8x41_wled_config_slave_id(slave_id);
+	qpnp_wled_enable_backlight(enable);
 	qpnp_ibb_enable(enable);
 	return NO_ERROR;
 }
