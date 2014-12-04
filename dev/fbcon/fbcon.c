@@ -233,6 +233,8 @@ void display_image_on_screen()
 	}
 
 	fbcon_putImage(fbimg, flag);
+	if (fbimg)
+		free(fbimg);
 }
 
 void fbcon_putImage(struct fbimage *fbimg, bool flag)
