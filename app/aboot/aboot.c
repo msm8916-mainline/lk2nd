@@ -2425,7 +2425,6 @@ void cmd_preflash(const char *arg, void *data, unsigned sz)
 	fastboot_okay("");
 }
 
-static struct fbimage logo_header = {{{0}, 0, 0, 0, {0}}, 0};
 struct fbimage* splash_screen_flash();
 
 int splash_screen_check_header(struct fbimage *logo)
@@ -2442,35 +2441,38 @@ struct fbimage* splash_screen_flash()
 	struct ptentry *ptn;
 	struct ptable *ptable;
 	struct fbcon_config *fb_display = NULL;
-	struct fbimage *logo = &logo_header;
+	struct fbimage *logo = NULL;
 
+
+	logo = (struct fbimage *) malloc(ROUNDUP(page_size, sizeof(struct fbimage)));
+	ASSERT(logo);
 
 	ptable = flash_get_ptable();
 	if (ptable == NULL) {
 	dprintf(CRITICAL, "ERROR: Partition table not found\n");
-	return NULL;
+	goto err;
 	}
 	ptn = ptable_find(ptable, "splash");
 	if (ptn == NULL) {
 		dprintf(CRITICAL, "ERROR: splash Partition not found\n");
-		return NULL;
+		goto err;
 	}
 
 	if (flash_read(ptn, 0,(unsigned int *) logo, sizeof(logo->header))) {
 		dprintf(CRITICAL, "ERROR: Cannot read boot image header\n");
-		return NULL;
+		goto err;
 	}
 
 	if (splash_screen_check_header(logo)) {
 		dprintf(CRITICAL, "ERROR: Boot image header invalid\n");
-		return NULL;
+		goto err;
 	}
 
 	fb_display = fbcon_display();
 	if (fb_display) {
 		if ((logo->header.width != fb_display->width) || (logo->header.height != fb_display->height)) {
 			dprintf(CRITICAL, "Logo config doesn't match with fb config. Fall back to default logo\n");
-			return NULL;
+			goto err;
 		}
 		uint8_t *base = (uint8_t *) fb_display->base;
 		if (flash_read(ptn + sizeof(logo->header), 0,
@@ -2478,12 +2480,16 @@ struct fbimage* splash_screen_flash()
 			((((logo->header.width * logo->header.height * fb_display->bpp/8) + 511) >> 9) << 9))) {
 			fbcon_clear();
 			dprintf(CRITICAL, "ERROR: Cannot read splash image from partition\n");
-			return NULL;
+			goto err;
 		}
 		logo->image = base;
 	}
 
 	return logo;
+
+err:
+	free(logo);
+	return NULL;
 }
 
 struct fbimage* splash_screen_mmc()
@@ -2491,7 +2497,7 @@ struct fbimage* splash_screen_mmc()
 	int index = INVALID_PTN;
 	unsigned long long ptn = 0;
 	struct fbcon_config *fb_display = NULL;
-	struct fbimage *logo = &logo_header;
+	struct fbimage *logo = NULL;
 	uint32_t blocksize;
 	uint32_t readsize;
 	uint32_t ptn_size;
@@ -2512,21 +2518,24 @@ struct fbimage* splash_screen_mmc()
 	blocksize = mmc_get_device_blocksize();
 	readsize = ROUNDUP(sizeof(logo->header), blocksize);
 
+	logo = (struct fbimage *)memalign(CACHE_LINE, ROUNDUP(readsize, CACHE_LINE));
+	ASSERT(logo);
+
 	if (mmc_read(ptn, (uint32_t *) logo, readsize)) {
 		dprintf(CRITICAL, "ERROR: Cannot read splash image header\n");
-		return NULL;
+		goto err;
 	}
 
 	if (splash_screen_check_header(logo)) {
 		dprintf(CRITICAL, "ERROR: Splash image header invalid\n");
-		return NULL;
+		goto err;
 	}
 
 	fb_display = fbcon_display();
 	if (fb_display) {
 		if ((logo->header.width != fb_display->width) || (logo->header.height != fb_display->height)) {
 			dprintf(CRITICAL, "Logo config doesn't match with fb config. Fall back default logo\n");
-			return NULL;
+			goto err;
 		}
 		uint8_t *base = (uint8_t *) fb_display->base;
 		readsize = ROUNDUP((logo->header.width * logo->header.height * fb_display->bpp/8), blocksize);
@@ -2534,19 +2543,23 @@ struct fbimage* splash_screen_mmc()
 		if (readsize > ptn_size)
 		{
 			dprintf(CRITICAL, "@%d:Invalid logo header readsize:%u exceeds ptn_size:%u\n", __LINE__, readsize,ptn_size);
-			return NULL;
+			goto err;
 		}
 
 		if (mmc_read(ptn + sizeof(logo->header),(uint32_t *)base, readsize)) {
 			fbcon_clear();
 			dprintf(CRITICAL, "ERROR: Cannot read splash image from partition\n");
-			return NULL;
+			goto err;
 		}
 
 		logo->image = base;
 	}
 
 	return logo;
+
+err:
+	free(logo);
+	return NULL;
 }
 
 
