@@ -151,7 +151,10 @@ void target_uninit(void)
 	}
 
 	if (crypto_initialized())
+	{
 		crypto_eng_cleanup();
+		clock_ce_disable(CE_INSTANCE);
+	}
 
 	rpm_smd_uninit();
 }

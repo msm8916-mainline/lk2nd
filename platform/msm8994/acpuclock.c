@@ -33,6 +33,26 @@
 #include <clock.h>
 #include <platform/clock.h>
 #include <platform/iomap.h>
+#include <rpm-smd.h>
+#include <regulator.h>
+
+#define RPM_CE_CLK_TYPE    0x6563
+#define CE2_CLK_ID         0x1
+#define RPM_SMD_KEY_RATE   0x007A484B
+
+uint32_t CE2_CLK[][8]=
+{
+	{
+		RPM_CE_CLK_TYPE, CE2_CLK_ID,
+		KEY_SOFTWARE_ENABLE, 4, GENERIC_DISABLE,
+		RPM_SMD_KEY_RATE, 4, 0,
+	},
+	{
+		RPM_CE_CLK_TYPE, CE2_CLK_ID,
+		KEY_SOFTWARE_ENABLE, 4, GENERIC_ENABLE,
+		RPM_SMD_KEY_RATE, 4, 176128,
+	},
+};
 
 void hsusb_clock_init(void)
 {
@@ -194,14 +214,42 @@ void clock_config_uart_dm(uint8_t id)
  */
 static void ce_async_reset(uint8_t instance)
 {
+	if (instance == 2)
+	{
+		/* Start the block reset for CE */
+		writel(1, GCC_CE2_BCR);
+		udelay(2);
+		/* Take CE block out of reset */
+		writel(0, GCC_CE2_BCR);
+		udelay(2);
+	}
+	else
+	{
+		dprintf(CRITICAL, "Unsupported CE instance: %u\n", instance);
+		ASSERT(0);
+	}
 }
 
 void clock_ce_enable(uint8_t instance)
 {
+	if (instance == 2)
+		rpm_send_data(&CE2_CLK[GENERIC_ENABLE][0], 24, RPM_REQUEST_TYPE);
+	else
+	{
+		dprintf(CRITICAL, "Unsupported CE instance: %u\n", instance);
+		ASSERT(0);
+	}
 }
 
 void clock_ce_disable(uint8_t instance)
 {
+	if (instance == 2)
+		rpm_send_data(&CE2_CLK[GENERIC_DISABLE][0], 24, RPM_REQUEST_TYPE);
+	else
+	{
+		dprintf(CRITICAL, "Unsupported CE instance: %u\n", instance);
+		ASSERT(0);
+	}
 }
 
 void clock_config_ce(uint8_t instance)
