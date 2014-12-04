@@ -182,3 +182,8 @@ addr_t get_bs_info_addr()
 	else
 		return ((addr_t)BS_INFO_ADDR2);
 }
+
+int boot_device_mask(int val)
+{
+	return ((val & 0x3E) >> 1);
+}
