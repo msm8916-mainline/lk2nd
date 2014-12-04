@@ -49,12 +49,9 @@ static struct gpio_pin bkl_gpio = {
   "msmgpio", 98, 3, 1, 0, 1
 };
 
-static struct gpio_pin bkl_gpio_1 = {
+/*Use GPIO 75 for incell panel setup*/
+static struct gpio_pin enable_gpio_1 = {
   "msmgpio", 75, 3, 1, 0, 1
-};
-
-static struct gpio_pin bkl_gpio_2 = {
-  "msmgpio", 77, 3, 1, 0, 1
 };
 
 static struct gpio_pin enp_gpio = {
@@ -63,6 +60,11 @@ static struct gpio_pin enp_gpio = {
 
 static struct gpio_pin enn_gpio = {
   "msmgpio", 32, 3, 1, 0, 1
+};
+
+/*Use GPIO 77 for incell panel setup*/
+static struct gpio_pin enn_gpio_1 = {
+  "msmgpio", 77, 3, 1, 0, 1
 };
 
 static struct gpio_pin te_gpio = {
@@ -158,7 +160,5 @@ enum {
 	NT35521_WXGA_VIDEO_PANEL,
 	UNKNOWN_PANEL
 };
-
-uint32_t get_panel_id(void);
 
 #endif
