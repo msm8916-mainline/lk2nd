@@ -224,6 +224,10 @@
 #define VBIF_VBIF_ABIT_SHORT_CONF               REG_MDP(0xc8074)
 #define VBIF_VBIF_GATE_OFF_WRREQ_EN             REG_MDP(0xc80A8)
 
+#define MDSS_MDP_REG_PP_FBC_MODE                0x034
+#define MDSS_MDP_REG_PP_FBC_BUDGET_CTL          0x038
+#define MDSS_MDP_REG_PP_FBC_LOSSY_MODE          0x03C
+
 #define SOFT_RESET                  0x118
 #define CLK_CTRL                    0x11C
 #define TRIG_CTRL                   0x084
