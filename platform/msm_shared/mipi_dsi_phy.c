@@ -91,6 +91,7 @@ static void mipi_dsi_calibration(void)
 	}
 }
 
+#if (DISPLAY_TYPE_MDSS == 0)
 int mipi_dsi_phy_init(struct mipi_dsi_panel_config *pinfo)
 {
 	struct mipi_dsi_phy_ctrl *pd;
@@ -202,6 +203,7 @@ int mipi_dsi_phy_init(struct mipi_dsi_panel_config *pinfo)
 	}
 	return 0;
 }
+#endif
 
 void mdss_dsi_phy_sw_reset(uint32_t ctl_base)
 {

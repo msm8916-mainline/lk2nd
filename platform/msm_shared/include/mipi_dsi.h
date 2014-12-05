@@ -35,49 +35,27 @@
 #define PASS                        0
 #define FAIL                        1
 
-/**********************************************************
-  DSI register offset
- **********************************************************/
+/*
+ * DSI register offsets defined here are only used for non-MDSS targets.
+ * For MDSS targets, all offset definitions are picked up from corresponding
+ * target files.
+ */
+#if (DISPLAY_TYPE_MDSS == 0)
 #define DSI_CLKOUT_TIMING_CTRL                REG_DSI(0x0C0)
 #define DSI_SOFT_RESET                        REG_DSI(0x114)
-#define DSI_CAL_CTRL                          REG_DSI(0x0F4)
-
 #define DSIPHY_SW_RESET                       REG_DSI(0x128)
 #define DSIPHY_PLL_RDY                        REG_DSI(0x280)
-#define DSIPHY_REGULATOR_CAL_PWR_CFG          REG_DSI(0x518)
-
 #define DSI_CLK_CTRL                          REG_DSI(0x118)
 #define DSI_TRIG_CTRL                         REG_DSI(0x080)
-#define DSI_CTRL                              REG_DSI(0x000)
 #define DSI_COMMAND_MODE_DMA_CTRL             REG_DSI(0x038)
-#define DSI_COMMAND_MODE_MDP_CTRL             REG_DSI(0x03C)
-#define DSI_COMMAND_MODE_MDP_DCS_CMD_CTRL     REG_DSI(0x040)
-#define DSI_DMA_CMD_OFFSET                    REG_DSI(0x044)
-#define DSI_DMA_CMD_LENGTH                    REG_DSI(0x048)
-#define DSI_COMMAND_MODE_MDP_STREAM0_CTRL     REG_DSI(0x054)
-#define DSI_COMMAND_MODE_MDP_STREAM0_TOTAL    REG_DSI(0x058)
-#define DSI_COMMAND_MODE_MDP_STREAM1_CTRL     REG_DSI(0x05C)
-#define DSI_COMMAND_MODE_MDP_STREAM1_TOTAL    REG_DSI(0x060)
 #define DSI_ERR_INT_MASK0                     REG_DSI(0x108)
 #define DSI_INT_CTRL                          REG_DSI(0x10C)
-
-#define DSI_VIDEO_MODE_ACTIVE_H               REG_DSI(0x020)
-#define DSI_VIDEO_MODE_ACTIVE_V               REG_DSI(0x024)
-#define DSI_VIDEO_MODE_TOTAL                  REG_DSI(0x028)
-#define DSI_VIDEO_MODE_HSYNC                  REG_DSI(0x02C)
-#define DSI_VIDEO_MODE_VSYNC                  REG_DSI(0x030)
-#define DSI_VIDEO_MODE_VSYNC_VPOS             REG_DSI(0x034)
-
-#define DSI_MISR_CMD_CTRL                     REG_DSI(0x09C)
-#define DSI_MISR_VIDEO_CTRL                   REG_DSI(0x0A0)
-#define DSI_EOT_PACKET_CTRL                   REG_DSI(0x0C8)
-#define DSI_VIDEO_MODE_CTRL                   REG_DSI(0x00C)
-#define DSI_CAL_STRENGTH_CTRL                 REG_DSI(0x100)
 #define DSI_CMD_MODE_DMA_SW_TRIGGER           REG_DSI(0x08C)
+#define DSI_DMA_CMD_OFFSET                    REG_DSI(0x044)
+#define DSI_DMA_CMD_LENGTH                    REG_DSI(0x048)
+#define DSI_CTRL                              REG_DSI(0x000)
 #define DSI_CMD_MODE_MDP_SW_TRIGGER           REG_DSI(0x090)
-#define DSI_HS_TIMER_CTRL                     REG_DSI(0x0B8)
-
-#define DSI_LANE_CTRL                         REG_DSI(0x0A8)
+#endif
 
 #define DSI_VIDEO_MODE_DONE_MASK              BIT(17)
 #define DSI_VIDEO_MODE_DONE_AK                BIT(16)
@@ -202,8 +180,8 @@ typedef struct mdss_dsi_pll_config {
 };
 
 struct mipi_dsi_cmd {
-	int size;
-	char *payload;
+	uint32_t size;
+	uint8_t *payload;
 	int wait;
 };
 
@@ -261,7 +239,7 @@ int mdss_dsi_video_mode_config(uint16_t disp_width,
 
 int mipi_dsi_on();
 int mipi_dsi_off(struct msm_panel_info *pinfo);
-int mipi_dsi_cmds_tx(struct mipi_dsi_cmd *cmds, int count);
-int mipi_dsi_cmds_rx(char **rp, int len);
+int mdss_dsi_cmds_tx(struct mipi_dsi_cmd *cmds, int count, char dual_dsi);
+int mdss_dsi_cmds_rx(uint32_t **rp, int rp_len, int rdbk_len);
 
 #endif
