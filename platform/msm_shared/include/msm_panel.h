@@ -232,6 +232,18 @@ struct lvds_panel_info {
 	char channel_swap;
 };
 
+struct labibb_desc {
+	char amoled_panel; /* lcd = 0, amoled = 1*/
+	char force_config; /* 0 to use default value */
+	uint32_t ibb_min_volt;
+	uint32_t ibb_max_volt;
+	uint32_t lab_min_volt;
+	uint32_t lab_max_volt;
+	char pwr_up_delay; /* ndx to => 1250, 2500, 5000 and 10000 us */
+	char pwr_down_delay; /* ndx to => 1250, 2500, 5000 and 10000 us */
+	char ibb_discharge_en;
+};
+
 struct msm_panel_info {
 	uint32_t xres;
 	uint32_t yres;
@@ -256,6 +268,8 @@ struct msm_panel_info {
 	struct lvds_panel_info lvds;
 	struct hdmi_panel_info hdmi;
 	struct edp_panel_info edp;
+
+	struct labibb_desc *labibb;
 
 	int (*on) (void);
 	int (*off) (void);
