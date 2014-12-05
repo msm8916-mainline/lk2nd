@@ -53,33 +53,33 @@
 #define TOTAL_LANE_COUNT                          5
 #define CONFIG_REG_FOR_EACH_LANE                  9
 
-static void mipi_dsi_calibration(void)
+static void mipi_dsi_calibration(uint32_t ctl_base)
 {
 	uint32_t i = 0;
 	uint32_t term_cnt = 5000;
-	int32_t cal_busy = readl(MIPI_DSI_BASE + 0x550);
+	int32_t cal_busy = readl(ctl_base + 0x550);
 
 	/* DSI1_DSIPHY_REGULATOR_CAL_PWR_CFG */
-	writel(0x01, MIPI_DSI_BASE + 0x0518);
+	writel(0x01, ctl_base + 0x0518);
 
 	/* DSI1_DSIPHY_CAL_SW_CFG2 */
-	writel(0x0, MIPI_DSI_BASE + 0x0534);
+	writel(0x0, ctl_base + 0x0534);
 	/* DSI1_DSIPHY_CAL_HW_CFG1 */
-	writel(0x5a, MIPI_DSI_BASE + 0x053c);
+	writel(0x5a, ctl_base + 0x053c);
 	/* DSI1_DSIPHY_CAL_HW_CFG3 */
-	writel(0x10, MIPI_DSI_BASE + 0x0544);
+	writel(0x10, ctl_base + 0x0544);
 	/* DSI1_DSIPHY_CAL_HW_CFG4 */
-	writel(0x01, MIPI_DSI_BASE + 0x0548);
+	writel(0x01, ctl_base + 0x0548);
 	/* DSI1_DSIPHY_CAL_HW_CFG0 */
-	writel(0x01, MIPI_DSI_BASE + 0x0538);
+	writel(0x01, ctl_base + 0x0538);
 
 	/* DSI1_DSIPHY_CAL_HW_TRIGGER */
-	writel(0x01, MIPI_DSI_BASE + 0x0528);
+	writel(0x01, ctl_base + 0x0528);
 
 	/* DSI1_DSIPHY_CAL_HW_TRIGGER */
-	writel(0x00, MIPI_DSI_BASE + 0x0528);
+	writel(0x00, ctl_base + 0x0528);
 
-	cal_busy = readl(MIPI_DSI_BASE + 0x550);
+	cal_busy = readl(ctl_base + 0x550);
 	while (cal_busy & 0x10) {
 		i++;
 		if (i > term_cnt) {
@@ -87,7 +87,7 @@ static void mipi_dsi_calibration(void)
 					"exceeded polling TIMEOUT!\n");
 			break;
 		}
-		cal_busy = readl(MIPI_DSI_BASE + 0x550);
+		cal_busy = readl(ctl_base + 0x550);
 	}
 }
 
@@ -177,7 +177,7 @@ int mipi_dsi_phy_init(struct mipi_dsi_panel_config *pinfo)
 			writel(pd->regulator[i], MIPI_DSI_BASE + off);
 			off += 4;
 		}
-		mipi_dsi_calibration();
+		mipi_dsi_calibration(MIPI_DSI_BASE);
 
 		off = 0x0204;		/* pll ctrl 1 - 19, skip 0 */
 		for (i = 1; i < 20; i++) {
@@ -216,10 +216,10 @@ void mdss_dsi_phy_sw_reset(uint32_t ctl_base)
 	udelay(100);
 }
 
-int mdss_dsi_phy_regulator_init(struct mdss_dsi_phy_ctrl *pd, uint32_t phy_base)
+static int mdss_dsi_phy_regulator_init(struct mdss_dsi_phy_ctrl *pd,
+	uint32_t phy_base)
 {
 	/* DSI0 and DSI1 have a common regulator */
-
 	uint32_t off = 0x0280;	/* phy regulator ctrl settings */
 
 	if (pd->regulator_mode == DSI_PHY_REGULATOR_LDO_MODE) {
@@ -270,12 +270,12 @@ int mdss_dsi_phy_regulator_init(struct mdss_dsi_phy_ctrl *pd, uint32_t phy_base)
 	}
 }
 
-int mdss_dsi_v2_phy_init(struct mipi_dsi_panel_config *pinfo, uint32_t ctl_base)
+int mdss_dsi_v2_phy_init(struct mipi_panel_info *mipi, uint32_t ctl_base)
 {
 	struct mdss_dsi_phy_ctrl *pd;
 	uint32_t i, ln, off = 0, offset;
 
-	pd = pinfo->mdss_dsi_phy_config;
+	pd = mipi->mdss_dsi_phy_db;
 	/* DSI PHY configuration */
 	off = 0x480;
 	writel(pd->strength[0], ctl_base + off + (4 * 0));
@@ -291,7 +291,7 @@ int mdss_dsi_v2_phy_init(struct mipi_dsi_panel_config *pinfo, uint32_t ctl_base)
 	for (i = 0; i < 5; i++)
 		writel(pd->regulator[i], ctl_base + off + (4 * i));
 
-	mipi_dsi_calibration();
+	mipi_dsi_calibration(ctl_base);
 
 	/* 4 lanes + clk lane configuration */
 	/* lane config n * (0 - 4) & DataPath setup */
@@ -309,12 +309,12 @@ int mdss_dsi_v2_phy_init(struct mipi_dsi_panel_config *pinfo, uint32_t ctl_base)
 	for (i = 0; i < 12; i++)
 		writel(pd->timing[i], ctl_base + off + (4 * i));
 
-	if (1 == pinfo->num_of_lanes)
+	if (1 == mipi->num_of_lanes)
 		writel(0x8, ctl_base + 0x200 + (4 * 11));
 
 
-	if (pinfo->lane_swap)
-		writel(pinfo->lane_swap, ctl_base + 0x0ac);
+	if (mipi->lane_swap)
+		writel(mipi->lane_swap, ctl_base + 0x0ac);
 
 	/* T_CLK_POST, T_CLK_PRE for CLK lane P/N HS 200 mV timing
 	length should > data lane HS timing length */
@@ -322,16 +322,16 @@ int mdss_dsi_v2_phy_init(struct mipi_dsi_panel_config *pinfo, uint32_t ctl_base)
 	return 0;
 }
 
-static int mdss_dsi_phy_28nm_init(struct mipi_dsi_panel_config *pinfo,
+static int mdss_dsi_phy_28nm_init(struct mipi_panel_info *mipi,
 				uint32_t ctl_base, uint32_t phy_base)
 {
 	struct mdss_dsi_phy_ctrl *pd;
 	uint32_t i, off = 0, ln, offset;
 
 	if (mdp_get_revision() == MDP_REV_304)
-		return mdss_dsi_v2_phy_init(pinfo, ctl_base);
+		return mdss_dsi_v2_phy_init(mipi, ctl_base);
 
-	pd = (pinfo->mdss_dsi_phy_config);
+	pd = (mipi->mdss_dsi_phy_db);
 
 	/* Strength ctrl 0 */
 	writel(pd->strength[0], phy_base + 0x0184);
@@ -389,7 +389,7 @@ static int mdss_dsi_phy_28nm_init(struct mipi_dsi_panel_config *pinfo,
 }
 
 void mdss_dsi_phy_contention_detection(
-		struct mipi_dsi_panel_config *pinfo,
+		struct mipi_panel_info *mipi,
 		uint32_t phy_base)
 {
         struct mdss_dsi_phy_ctrl *pd;
@@ -397,15 +397,15 @@ void mdss_dsi_phy_contention_detection(
         if (mdp_get_revision() == MDP_REV_304)
                 return;
 
-        pd = (pinfo->mdss_dsi_phy_config);
+        pd = (mipi->mdss_dsi_phy_db);
 	writel(pd->strength[1], phy_base + 0x0188);
 	dmb();
 }
 
-static int mdss_dsi_phy_20nm_init(struct mipi_dsi_panel_config *pinfo,
+static int mdss_dsi_phy_20nm_init(struct mipi_panel_info *mipi,
 				uint32_t ctl_base, uint32_t phy_base)
 {
-	struct mdss_dsi_phy_ctrl *pd = pinfo->mdss_dsi_phy_config;
+	struct mdss_dsi_phy_ctrl *pd = mipi->mdss_dsi_phy_db;
 	uint32_t i, off = 0, ln, offset;
 
 	/* Strength ctrl 0 */
@@ -461,15 +461,15 @@ static int mdss_dsi_phy_20nm_init(struct mipi_dsi_panel_config *pinfo,
 	dmb();
 }
 
-int mdss_dsi_phy_init (struct mipi_dsi_panel_config *pinfo,
+int mdss_dsi_phy_init (struct mipi_panel_info *mipi,
 				uint32_t ctl_base, uint32_t phy_base)
 {
 	int ret;
 
-	if (pinfo->mdss_dsi_phy_config->is_pll_20nm)
-		ret = mdss_dsi_phy_20nm_init(pinfo, ctl_base, phy_base);
+	if (mipi->mdss_dsi_phy_db->is_pll_20nm)
+		ret = mdss_dsi_phy_20nm_init(mipi, ctl_base, phy_base);
 	else
-		ret = mdss_dsi_phy_28nm_init(pinfo, ctl_base, phy_base);
+		ret = mdss_dsi_phy_28nm_init(mipi, ctl_base, phy_base);
 
 	return ret;
 }

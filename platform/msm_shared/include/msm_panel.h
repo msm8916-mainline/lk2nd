@@ -52,6 +52,10 @@
 #define EDP_PANEL		12	/* EDP */
 #define QPIC_PANEL		13	/* QPIC */
 
+#define DISPLAY_UNKNOWN		0
+#define DISPLAY_1		1
+#define DISPLAY_2		2
+
 enum mdss_mdp_pipe_type {
 	MDSS_MDP_PIPE_TYPE_VIG,
 	MDSS_MDP_PIPE_TYPE_RGB,
@@ -218,6 +222,10 @@ struct mipi_panel_info {
 	uint8_t mode_gpio_state;
 	uint32_t signature;
 	uint32_t use_enable_gpio;
+	uint32_t ctl_base;
+	uint32_t phy_base;
+	uint32_t sctl_base;
+	uint32_t sphy_base;
 };
 
 struct edp_panel_info {
@@ -244,6 +252,7 @@ struct msm_panel_info {
 	uint32_t wait_cycle;
 	uint32_t clk_rate;
 	uint32_t orientation;
+	uint32_t dest;
 	/*  Select pipe type for handoff */
 	uint32_t pipe_type;
 	char     lowpowerstop;

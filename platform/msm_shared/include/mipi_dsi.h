@@ -214,9 +214,9 @@ enum {		/* mipi dsi panel */
  **********************************************************/
 int mipi_config(struct msm_fb_panel_data *panel);
 int mdss_dsi_config(struct msm_fb_panel_data *panel);
-int mdss_dsi_phy_init(struct mipi_dsi_panel_config *,
+int mdss_dsi_phy_init(struct mipi_panel_info *mipi,
 		uint32_t ctl_base, uint32_t phy_base);
-void mdss_dsi_phy_contention_detection(struct mipi_dsi_panel_config *,
+void mdss_dsi_phy_contention_detection(struct mipi_panel_info *mipi,
 				uint32_t phy_base);
 
 int mdss_dsi_video_mode_config(uint16_t disp_width,
@@ -237,9 +237,11 @@ int mdss_dsi_video_mode_config(uint16_t disp_width,
 	uint8_t interleav,
 	uint32_t ctl_base);
 
-int mipi_dsi_on();
+int mipi_dsi_on(struct msm_panel_info *pinfo);
 int mipi_dsi_off(struct msm_panel_info *pinfo);
-int mdss_dsi_cmds_tx(struct mipi_dsi_cmd *cmds, int count, char dual_dsi);
-int mdss_dsi_cmds_rx(uint32_t **rp, int rp_len, int rdbk_len);
+int mdss_dsi_cmds_tx(struct mipi_panel_info *mipi,
+	struct mipi_dsi_cmd *cmds, int count, char dual_dsi);
+int mdss_dsi_cmds_rx(struct mipi_panel_info *mipi, uint32_t **rp, int rp_len,
+	int rdbk_len);
 
 #endif

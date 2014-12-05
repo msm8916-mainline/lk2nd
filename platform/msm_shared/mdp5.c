@@ -138,12 +138,22 @@ static void mdss_mdp_set_flush(struct msm_panel_info *pinfo,
 	/* For targets from MDP v1.5, MDP INTF registers are double buffered */
 	if ((mdss_mdp_rev == MDSS_MDP_HW_REV_106) ||
 		(mdss_mdp_rev == MDSS_MDP_HW_REV_108)) {
+		if (pinfo->dest == DISPLAY_2) {
+			*ctl0_reg_val |= BIT(31);
+			*ctl1_reg_val |= BIT(30);
+		} else {
 			*ctl0_reg_val |= BIT(30);
 			*ctl1_reg_val |= BIT(31);
+		}
 	} else if ((mdss_mdp_rev == MDSS_MDP_HW_REV_105) ||
 		(mdss_mdp_rev == MDSS_MDP_HW_REV_109)) {
+		if (pinfo->dest == DISPLAY_2) {
+			*ctl0_reg_val |= BIT(29);
+			*ctl1_reg_val |= BIT(30);
+		} else {
 			*ctl0_reg_val |= BIT(30);
 			*ctl1_reg_val |= BIT(29);
+		}
 	}
 }
 
@@ -386,12 +396,11 @@ static void mdss_smp_setup(struct msm_panel_info *pinfo, uint32_t left_pipe,
 			free_smp_offset);
 }
 
-void mdss_intf_tg_setup(struct msm_panel_info *pinfo, uint32_t intf_base)
+static void mdss_intf_tg_setup(struct msm_panel_info *pinfo, uint32_t intf_base)
 {
 	uint32_t hsync_period, vsync_period;
 	uint32_t hsync_start_x, hsync_end_x;
 	uint32_t display_hctl, hsync_ctl, display_vstart, display_vend;
-	uint32_t mdss_mdp_intf_off;
 	uint32_t adjust_xres = 0;
 
 	struct lcdc_panel_info *lcdc = NULL;
@@ -437,9 +446,6 @@ void mdss_intf_tg_setup(struct msm_panel_info *pinfo, uint32_t intf_base)
 	itp.underflow_clr = pinfo->lcdc.underflow_clr;
 	itp.hsync_skew = pinfo->lcdc.hsync_skew;
 
-
-	mdss_mdp_intf_off = intf_base + mdss_mdp_intf_offset();
-
 	hsync_period = itp.hsync_pulse_width + itp.h_back_porch +
 			itp.width + itp.h_front_porch;
 
@@ -466,39 +472,38 @@ void mdss_intf_tg_setup(struct msm_panel_info *pinfo, uint32_t intf_base)
 	hsync_ctl = (hsync_period << 16) | itp.hsync_pulse_width;
 	display_hctl = (hsync_end_x << 16) | hsync_start_x;
 
-	writel(hsync_ctl, MDP_HSYNC_CTL + mdss_mdp_intf_off);
+	writel(hsync_ctl, MDP_HSYNC_CTL + intf_base);
 	writel(vsync_period*hsync_period, MDP_VSYNC_PERIOD_F0 +
-			mdss_mdp_intf_off);
-	writel(0x00, MDP_VSYNC_PERIOD_F1 + mdss_mdp_intf_off);
+			intf_base);
+	writel(0x00, MDP_VSYNC_PERIOD_F1 + intf_base);
 	writel(itp.vsync_pulse_width*hsync_period,
 			MDP_VSYNC_PULSE_WIDTH_F0 +
-			mdss_mdp_intf_off);
-	writel(0x00, MDP_VSYNC_PULSE_WIDTH_F1 + mdss_mdp_intf_off);
-	writel(display_hctl, MDP_DISPLAY_HCTL + mdss_mdp_intf_off);
+			intf_base);
+	writel(0x00, MDP_VSYNC_PULSE_WIDTH_F1 + intf_base);
+	writel(display_hctl, MDP_DISPLAY_HCTL + intf_base);
 	writel(display_vstart, MDP_DISPLAY_V_START_F0 +
-			mdss_mdp_intf_off);
-	writel(0x00, MDP_DISPLAY_V_START_F1 + mdss_mdp_intf_off);
+			intf_base);
+	writel(0x00, MDP_DISPLAY_V_START_F1 + intf_base);
 	writel(display_vend, MDP_DISPLAY_V_END_F0 +
-			mdss_mdp_intf_off);
-	writel(0x00, MDP_DISPLAY_V_END_F1 + mdss_mdp_intf_off);
-	writel(0x00, MDP_ACTIVE_HCTL + mdss_mdp_intf_off);
-	writel(0x00, MDP_ACTIVE_V_START_F0 + mdss_mdp_intf_off);
-	writel(0x00, MDP_ACTIVE_V_START_F1 + mdss_mdp_intf_off);
-	writel(0x00, MDP_ACTIVE_V_END_F0 + mdss_mdp_intf_off);
-	writel(0x00, MDP_ACTIVE_V_END_F1 + mdss_mdp_intf_off);
-	writel(0xFF, MDP_UNDERFFLOW_COLOR + mdss_mdp_intf_off);
+			intf_base);
+	writel(0x00, MDP_DISPLAY_V_END_F1 + intf_base);
+	writel(0x00, MDP_ACTIVE_HCTL + intf_base);
+	writel(0x00, MDP_ACTIVE_V_START_F0 + intf_base);
+	writel(0x00, MDP_ACTIVE_V_START_F1 + intf_base);
+	writel(0x00, MDP_ACTIVE_V_END_F0 + intf_base);
+	writel(0x00, MDP_ACTIVE_V_END_F1 + intf_base);
+	writel(0xFF, MDP_UNDERFFLOW_COLOR + intf_base);
 
-	if (intf_base == MDP_INTF_0_BASE) /* eDP */
-		writel(0x212A, MDP_PANEL_FORMAT + mdss_mdp_intf_off);
+	if (intf_base == (MDP_INTF_0_BASE + mdss_mdp_intf_offset())) /* eDP */
+		writel(0x212A, MDP_PANEL_FORMAT + intf_base);
 	else
-		writel(0x213F, MDP_PANEL_FORMAT + mdss_mdp_intf_off);
+		writel(0x213F, MDP_PANEL_FORMAT + intf_base);
 }
 
-void mdss_intf_fetch_start_config(struct msm_panel_info *pinfo,
+static void mdss_intf_fetch_start_config(struct msm_panel_info *pinfo,
 					uint32_t intf_base)
 {
 	uint32_t mdp_hw_rev = readl(MDP_HW_REV);
-	uint32_t mdss_mdp_intf_off;
 	uint32_t v_total, h_total, fetch_start, vfp_start, fetch_lines;
 	uint32_t adjust_xres = 0;
 
@@ -519,8 +524,6 @@ void mdss_intf_fetch_start_config(struct msm_panel_info *pinfo,
 	if (mdp_hw_rev < MDSS_MDP_HW_REV_105 ||
 			lcdc->v_back_porch >= MDP_MIN_FETCH)
 		return;
-
-	mdss_mdp_intf_off = intf_base + mdss_mdp_intf_offset();
 
 	adjust_xres = pinfo->xres;
 	if (pinfo->lcdc.split_display)
@@ -547,8 +550,8 @@ void mdss_intf_fetch_start_config(struct msm_panel_info *pinfo,
 
 	fetch_start = (v_total - fetch_lines) * h_total + 1;
 
-	writel(fetch_start, MDP_PROG_FETCH_START + mdss_mdp_intf_off);
-	writel(BIT(31), MDP_INTF_CONFIG + mdss_mdp_intf_off);
+	writel(fetch_start, MDP_PROG_FETCH_START + intf_base);
+	writel(BIT(31), MDP_INTF_CONFIG + intf_base);
 }
 
 void mdss_layer_mixer_setup(struct fbcon_config *fb, struct msm_panel_info
@@ -749,17 +752,41 @@ void mdss_vbif_qos_remapper_setup(struct msm_panel_info *pinfo)
 static uint32_t mdss_mdp_ctl_out_sel(struct msm_panel_info *pinfo,
 	int is_main_ctl)
 {
-	if (pinfo->lcdc.pipe_swap) {
-		if (is_main_ctl)
-			return BIT(4) | BIT(5); /* Interface 2 */
-		else
-			return BIT(5); /* Interface 1 */
+	uint32_t mctl_intf_sel;
+	uint32_t sctl_intf_sel;
+
+	if ((pinfo->dest == DISPLAY_2) ||
+		((pinfo->dest = DISPLAY_1) && (pinfo->lcdc.pipe_swap))) {
+		mctl_intf_sel = BIT(4) | BIT(5); /* Interface 2 */
+		sctl_intf_sel = BIT(5); /* Interface 1 */
 	} else {
-		if (is_main_ctl)
-			return BIT(5); /* Interface 1 */
-		else
-			return BIT(4) | BIT(5); /* Interface 2 */
+		mctl_intf_sel = BIT(5); /* Interface 1 */
+		sctl_intf_sel = BIT(4) | BIT(5); /* Interface 2 */
 	}
+	dprintf(SPEW, "%s: main ctl dest=%s sec ctl dest=%s\n", __func__,
+		(mctl_intf_sel & BIT(4)) ? "Intf2" : "Intf1",
+		(sctl_intf_sel & BIT(4)) ? "Intf2" : "Intf1");
+	return is_main_ctl ? mctl_intf_sel : sctl_intf_sel;
+}
+
+static void mdp_set_intf_base(struct msm_panel_info *pinfo,
+	uint32_t *intf_sel, uint32_t *sintf_sel,
+	uint32_t *intf_base, uint32_t *sintf_base)
+{
+	if (pinfo->dest == DISPLAY_2) {
+		*intf_sel = BIT(16);
+		*sintf_sel = BIT(8);
+		*intf_base = MDP_INTF_2_BASE + mdss_mdp_intf_offset();
+		*sintf_base = MDP_INTF_1_BASE + mdss_mdp_intf_offset();
+	} else {
+		*intf_sel = BIT(8);
+		*sintf_sel = BIT(16);
+		*intf_base = MDP_INTF_1_BASE + mdss_mdp_intf_offset();
+		*sintf_base = MDP_INTF_2_BASE + mdss_mdp_intf_offset();
+	}
+	dprintf(SPEW, "%s: main intf=%s, sec intf=%s\n", __func__,
+		(pinfo->dest == DISPLAY_2) ? "Intf2" : "Intf1",
+		(pinfo->dest == DISPLAY_2) ? "Intf1" : "Intf2");
 }
 
 int mdp_dsi_video_config(struct msm_panel_info *pinfo,
@@ -767,16 +794,19 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 {
 	int ret = NO_ERROR;
 	struct lcdc_panel_info *lcdc = NULL;
-	uint32_t intf_sel = 0x100;
+	uint32_t intf_sel, sintf_sel;
+	uint32_t intf_base, sintf_base;
 	uint32_t left_pipe, right_pipe;
 	uint32_t reg;
 
-	mdss_intf_tg_setup(pinfo, MDP_INTF_1_BASE);
-	mdss_intf_fetch_start_config(pinfo, MDP_INTF_1_BASE);
+	mdp_set_intf_base(pinfo, &intf_sel, &sintf_sel, &intf_base, &sintf_base);
+
+	mdss_intf_tg_setup(pinfo, intf_base);
+	mdss_intf_fetch_start_config(pinfo, intf_base);
 
 	if (pinfo->mipi.dual_dsi) {
-		mdss_intf_tg_setup(pinfo, MDP_INTF_2_BASE);
-		mdss_intf_fetch_start_config(pinfo, MDP_INTF_2_BASE);
+		mdss_intf_tg_setup(pinfo, sintf_base);
+		mdss_intf_fetch_start_config(pinfo, sintf_base);
 	}
 
 	mdp_clk_gating_ctrl();
@@ -815,7 +845,7 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 			reg = 0x1f00 | mdss_mdp_ctl_out_sel(pinfo,0);
 			writel(reg, MDP_CTL_1_BASE + CTL_TOP);
 		}
-		intf_sel |= BIT(16); /* INTF 2 enable */
+		intf_sel |= sintf_sel; /* INTF 2 enable */
 	}
 
 	writel(intf_sel, MDP_DISP_INTF_SEL);
@@ -901,13 +931,13 @@ int mdss_hdmi_config(struct msm_panel_info *pinfo, struct fbcon_config *fb)
 int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
                 struct fbcon_config *fb)
 {
-	uint32_t intf_sel = BIT(8);
+	uint32_t intf_sel, sintf_sel;
+	uint32_t intf_base, sintf_base;
 	uint32_t reg;
 	int ret = NO_ERROR;
 	uint32_t left_pipe, right_pipe;
 
 	struct lcdc_panel_info *lcdc = NULL;
-	uint32_t mdss_mdp_intf_off = 0;
 
 	if (pinfo == NULL)
 		return ERR_INVALID_ARGS;
@@ -915,6 +945,8 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 	lcdc =  &(pinfo->lcdc);
 	if (lcdc == NULL)
 		return ERR_INVALID_ARGS;
+
+	mdp_set_intf_base(pinfo, &intf_sel, &sintf_sel, &intf_base, &sintf_base);
 
 	if (pinfo->lcdc.split_display) {
 		reg = BIT(1); /* Command mode */
@@ -932,12 +964,10 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 		writel(BIT(5), MDP_REG_PPB0_CNTL);
 	}
 
-	mdss_mdp_intf_off = mdss_mdp_intf_offset();
-
 	mdp_clk_gating_ctrl();
 
 	if (pinfo->mipi.dual_dsi)
-		intf_sel |= BIT(16); /* INTF 2 enable */
+		intf_sel |= sintf_sel; /* INTF 2 enable */
 
 	writel(intf_sel, MDP_DISP_INTF_SEL);
 
@@ -954,7 +984,7 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 
 	mdss_layer_mixer_setup(fb, pinfo);
 
-	writel(0x213F, MDP_INTF_1_BASE + MDP_PANEL_FORMAT + mdss_mdp_intf_off);
+	writel(0x213F, MDP_PANEL_FORMAT + intf_base);
 	reg = 0x21f00 | mdss_mdp_ctl_out_sel(pinfo, 1);
 	writel(reg, MDP_CTL_0_BASE + CTL_TOP);
 
@@ -962,7 +992,7 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 		mdss_fbc_cfg(pinfo);
 
 	if (pinfo->mipi.dual_dsi) {
-		writel(0x213F, MDP_INTF_2_BASE + MDP_PANEL_FORMAT + mdss_mdp_intf_off);
+		writel(0x213F, sintf_base + MDP_PANEL_FORMAT);
 		if (!pinfo->lcdc.dst_split) {
 			reg = 0x21f00 | mdss_mdp_ctl_out_sel(pinfo, 0);
 			writel(reg, MDP_CTL_1_BASE + CTL_TOP);
@@ -975,20 +1005,33 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 int mdp_dsi_video_on(struct msm_panel_info *pinfo)
 {
 	uint32_t ctl0_reg_val, ctl1_reg_val;
+	uint32_t timing_engine_en;
+
 	mdss_mdp_set_flush(pinfo, &ctl0_reg_val, &ctl1_reg_val);
 	writel(ctl0_reg_val, MDP_CTL_0_BASE + CTL_FLUSH);
 	writel(ctl1_reg_val, MDP_CTL_1_BASE + CTL_FLUSH);
-	writel(0x01, MDP_INTF_1_TIMING_ENGINE_EN  + mdss_mdp_intf_offset());
+
+	if (pinfo->dest == DISPLAY_1)
+		timing_engine_en = MDP_INTF_1_TIMING_ENGINE_EN;
+	else
+		timing_engine_en = MDP_INTF_2_TIMING_ENGINE_EN;
+	writel(0x01, timing_engine_en + mdss_mdp_intf_offset());
 
 	return NO_ERROR;
 }
 
-int mdp_dsi_video_off()
+int mdp_dsi_video_off(struct msm_panel_info *pinfo)
 {
+	uint32_t timing_engine_en;
+
+	if (pinfo->dest == DISPLAY_1)
+		timing_engine_en = MDP_INTF_1_TIMING_ENGINE_EN;
+	else
+		timing_engine_en = MDP_INTF_2_TIMING_ENGINE_EN;
+
 	if(!target_cont_splash_screen())
 	{
-		writel(0x00000000, MDP_INTF_1_TIMING_ENGINE_EN +
-				mdss_mdp_intf_offset());
+		writel(0x00000000, timing_engine_en + mdss_mdp_intf_offset());
 		mdelay(60);
 		/* Ping-Pong done Tear Check Read/Write  */
 		/* Underrun(Interface 0/1/2/3) VSYNC Interrupt Enable  */
