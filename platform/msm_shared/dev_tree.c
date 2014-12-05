@@ -38,6 +38,7 @@
 #include <list.h>
 #include <kernel/thread.h>
 #include <target.h>
+#include <partial_goods.h>
 
 struct dt_entry_v1
 {
@@ -1327,6 +1328,10 @@ int update_device_tree(void *fdt, const char *cmdline,
 	}
 
 	fdt_pack(fdt);
+
+#if ENABLE_PARTIAL_GOODS_SUPPORT
+	update_partial_goods_dtb_nodes(fdt);
+#endif
 
 	return ret;
 }
