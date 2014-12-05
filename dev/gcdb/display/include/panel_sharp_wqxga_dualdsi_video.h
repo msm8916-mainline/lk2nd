@@ -147,6 +147,10 @@ static struct backlight sharp_wqxga_dualdsi_video_backlight = {
 	1, 1, 4095, 100, 1, "PMIC_8941"		/* BL_WLED */
 };
 
+static struct labibb_desc sharp_wqxga_dualdsi_video_labibb = {
+	0, 1, 5500000, 5500000, 5500000, 5500000, 3, 3, 1
+};
+
 #define SHARP_WQXGA_DUALDSI_VIDEO_SIGNATURE 0x210000
 
 #endif /*_PANEL_SHARP_WQXGA_DUALDSI_VIDEO_H_*/

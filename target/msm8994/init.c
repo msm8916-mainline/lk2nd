@@ -58,8 +58,6 @@
 #include <qusb2_phy.h>
 #include <rpm-smd.h>
 #include <sdhci_msm.h>
-#include <pm8x41_wled.h>
-#include <qpnp_wled.h>
 
 #define CE_INSTANCE             2
 #define CE_EE                   1
@@ -334,10 +332,6 @@ void target_init(void)
 	mmc_read_partition_table(0);
 
 	rpm_smd_init();
-
-	/* QPNP WLED init for display backlight */
-	pm8x41_wled_config_slave_id(PMIC_WLED_SLAVE_ID);
-	qpnp_wled_init();
 }
 
 unsigned board_machtype(void)

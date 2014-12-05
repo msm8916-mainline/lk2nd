@@ -327,11 +327,68 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 	return NO_ERROR;
 }
 
+static void wled_init(struct msm_panel_info *pinfo)
+{
+	struct qpnp_wled_config_data config = {0};
+	struct labibb_desc *labibb;
+	int display_type = 0;
+
+	labibb = pinfo->labibb;
+
+	if (labibb)
+		display_type = labibb->amoled_panel;
+
+	config.display_type = display_type;
+	config.lab_init_volt = 4600000;	/* fixed, see pmi register */
+	config.ibb_init_volt = 1400000;	/* fixed, see pmi register */
+
+	if (labibb && labibb->force_config) {
+		config.lab_min_volt = labibb->lab_min_volt;
+		config.lab_max_volt = labibb->lab_max_volt;
+		config.ibb_min_volt = labibb->ibb_min_volt;
+		config.ibb_max_volt = labibb->ibb_max_volt;
+		config.pwr_up_delay = labibb->pwr_up_delay;
+		config.pwr_down_delay = labibb->pwr_down_delay;
+		config.ibb_discharge_en = labibb->ibb_discharge_en;
+	} else {
+		/* default */
+		config.pwr_up_delay = 3;
+		config.pwr_down_delay =  3;
+		config.ibb_discharge_en = 1;
+		if (display_type) {	/* amoled */
+			config.lab_min_volt = 4600000;
+			config.lab_max_volt = 4600000;
+			config.ibb_min_volt = 4000000;
+			config.ibb_max_volt = 4000000;
+		} else { /* lcd */
+			config.lab_min_volt = 5500000;
+			config.lab_max_volt = 5500000;
+			config.ibb_min_volt = 5500000;
+			config.ibb_max_volt = 5500000;
+		}
+	}
+
+	dprintf(SPEW, "%s: %d %d %d %d %d %d %d %d %d %d\n", __func__,
+		config.display_type,
+		config.lab_min_volt, config.lab_max_volt,
+		config.ibb_min_volt, config.ibb_max_volt,
+		config.lab_init_volt, config.ibb_init_volt,
+		config.pwr_up_delay, config.pwr_down_delay,
+		config.ibb_discharge_en);
+
+
+	/* QPNP WLED init for display backlight */
+	pm8x41_wled_config_slave_id(PMIC_WLED_SLAVE_ID);
+
+	qpnp_wled_init(&config);
+}
+
 int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 {
 	if (enable) {
 		regulator_enable();	/* L2, L12, L14, and L28 */
 		mdelay(10);
+		wled_init(pinfo);
 		qpnp_ibb_enable(true);	/* +5V and -5V */
 		mdelay(50);
 

@@ -127,6 +127,9 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 		panelstruct->panelresetseq
 					 = &sharp_wqxga_dualdsi_video_reset_seq;
 		panelstruct->backlightinfo = &sharp_wqxga_dualdsi_video_backlight;
+
+		pinfo->labibb = &sharp_wqxga_dualdsi_video_labibb;
+
 		pinfo->mipi.panel_on_cmds
 			= sharp_wqxga_dualdsi_video_on_command;
 		pinfo->mipi.num_of_panel_on_cmds
