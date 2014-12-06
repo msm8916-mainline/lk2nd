@@ -284,13 +284,38 @@ static int target_panel_reset_skuk(uint8_t enable)
 	return 0;
 }
 
+int target_panel_reset_incell(uint8_t enable)
+{
+	/*Enable the gpios in 75->97->77 order for incell panel*/
+	if (enable) {
+		gpio_tlmm_config(enable_gpio_1.pin_id, 0,
+			enable_gpio_1.pin_direction, enable_gpio_1.pin_pull,
+			enable_gpio_1.pin_strength, enable_gpio_1.pin_state);
+		gpio_set_dir(enable_gpio_1.pin_id, 2);
+
+		gpio_tlmm_config(enp_gpio.pin_id, 0,
+			enp_gpio.pin_direction, enp_gpio.pin_pull,
+			enp_gpio.pin_strength, enp_gpio.pin_state);
+		gpio_set_dir(enp_gpio.pin_id, 2);
+
+		gpio_tlmm_config(enn_gpio_1.pin_id, 0,
+			enn_gpio_1.pin_direction, enn_gpio_1.pin_pull,
+			enn_gpio_1.pin_strength, enn_gpio_1.pin_state);
+		gpio_set_dir(enn_gpio_1.pin_id, 2);
+	}
+	else {
+		gpio_set_dir(enable_gpio_1.pin_id, 0);
+		gpio_set_dir(enp_gpio.pin_id, 0); /* ENP */
+		gpio_set_dir(enn_gpio_1.pin_id, 0); /* ENN */
+	}
+}
+
 int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 						struct msm_panel_info *pinfo)
 {
 	int ret = NO_ERROR;
 	uint32_t hw_id = board_hardware_id();
 	uint32_t hw_subtype = board_hardware_subtype();
-	uint32_t panel_id = get_panel_id();
 	uint32_t target_id, plat_hw_ver_major;
 
 	if (enable) {
@@ -317,6 +342,9 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 			if ((hw_id == HW_PLATFORM_QRD) &&
 				 (hw_subtype == HW_PLATFORM_SUBTYPE_SKUK))
 				target_panel_reset_skuk(enable);
+			if ((hw_subtype == HW_PLATFORM_SUBTYPE_CDP_1) ||
+				 (hw_subtype == HW_PLATFORM_SUBTYPE_MTP_3))
+				target_panel_reset_incell(enable);
 		} else { /* msm8916 */
 			if ((hw_id == HW_PLATFORM_QRD) &&
 				 (hw_subtype == HW_PLATFORM_SUBTYPE_SKUH))
@@ -325,29 +353,10 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 
 		if (hw_id == HW_PLATFORM_MTP || hw_id == HW_PLATFORM_SURF) {
 			/* configure backlight gpio for MTP & CDP */
-			/*JDI incell panel requires two additional GPIO's in 75->98->77 order*/
-			if (panel_id == JDI_FHD_VIDEO_PANEL) {
-				dprintf(INFO, "panel_id = %d \n", panel_id);
-				gpio_tlmm_config(bkl_gpio_1.pin_id, 0,
-					bkl_gpio_1.pin_direction, bkl_gpio_1.pin_pull,
-					bkl_gpio_1.pin_strength, bkl_gpio_1.pin_state);
-				gpio_set_dir(bkl_gpio_1.pin_id, 2);
-
-				gpio_tlmm_config(bkl_gpio.pin_id, 0,
-					bkl_gpio.pin_direction, bkl_gpio.pin_pull,
-					bkl_gpio.pin_strength, bkl_gpio.pin_state);
-				gpio_set_dir(bkl_gpio.pin_id, 2);
-
-				gpio_tlmm_config(bkl_gpio_2.pin_id, 0,
-					bkl_gpio_2.pin_direction, bkl_gpio_2.pin_pull,
-					bkl_gpio_2.pin_strength, bkl_gpio_2.pin_state);
-				gpio_set_dir(bkl_gpio_2.pin_id, 2);
-			} else {
-				gpio_tlmm_config(bkl_gpio.pin_id, 0,
-					bkl_gpio.pin_direction, bkl_gpio.pin_pull,
-					bkl_gpio.pin_strength, bkl_gpio.pin_state);
-				gpio_set_dir(bkl_gpio.pin_id, 2);
-			}
+			gpio_tlmm_config(bkl_gpio.pin_id, 0,
+				bkl_gpio.pin_direction, bkl_gpio.pin_pull,
+				bkl_gpio.pin_strength, bkl_gpio.pin_state);
+			gpio_set_dir(bkl_gpio.pin_id, 2);
 		}
 
 		gpio_tlmm_config(reset_gpio.pin_id, 0,
