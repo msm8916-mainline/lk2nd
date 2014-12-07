@@ -706,7 +706,7 @@ int mdss_dsi_video_mode_config(uint16_t disp_width,
 
 	writel(0, ctl_base + CTRL);
 
-	writel(0x13ff3fe0, ctl_base + ERR_INT_MASK0);
+	writel(0x03f03fe0, ctl_base + ERR_INT_MASK0);
 
 	writel(0x02020202, ctl_base + INT_CTRL);
 
@@ -897,7 +897,7 @@ int mdss_dsi_cmd_mode_config(uint16_t disp_width,
 
 	writel(0, ctl_base + CTRL);
 
-	writel(0x13ff3fe0, ctl_base + ERR_INT_MASK0);
+	writel(0x03f03fe0, ctl_base + ERR_INT_MASK0);
 
 	writel(0x02020202, ctl_base + INT_CTRL);
 
