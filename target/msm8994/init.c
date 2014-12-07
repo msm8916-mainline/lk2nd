@@ -78,6 +78,7 @@
 #define PMIC_WLED_SLAVE_ID      3
 #define DDR_CFG_DLY_VAL         0x80040870
 
+void target_crypto_init_params(void);
 static void set_sdc_power_ctrl(uint8_t slot);
 static uint32_t mmc_pwrctl_base[] =
 	{ MSM_SDC1_BASE, MSM_SDC2_BASE };
