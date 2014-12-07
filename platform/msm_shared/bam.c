@@ -79,7 +79,6 @@ int bam_wait_for_interrupt(struct bam_instance *bam,
                            enum p_int_type interrupt)
 {
 	uint32_t val;
-	uint32_t bamsts;
 
 	while (1)
 	{

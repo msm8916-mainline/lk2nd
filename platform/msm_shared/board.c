@@ -31,6 +31,7 @@
 #include <board.h>
 #include <smem.h>
 #include <baseband.h>
+#include <boot_device.h>
 
 static struct board_data board = {UNKNOWN,
 	0,
