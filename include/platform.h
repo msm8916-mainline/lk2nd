@@ -62,4 +62,5 @@ void clock_config_cdc(uint32_t interface);
 int platform_is_msm8939();
 int platform_is_msm8909();
 int boot_device_mask(int);
+uint32_t platform_detect_panel();
 #endif
