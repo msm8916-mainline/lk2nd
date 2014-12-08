@@ -98,6 +98,7 @@
 
 #define MDP_INTF_0_TIMING_ENGINE_EN             REG_MDP(0x12500)
 #define MDP_INTF_1_TIMING_ENGINE_EN             REG_MDP(0x12700)
+#define MDP_INTF_2_TIMING_ENGINE_EN             REG_MDP(0x12900)
 #define MDP_INTF_3_TIMING_ENGINE_EN             REG_MDP(0x12B00)
 
 #define MDP_CTL_0_BASE                          REG_MDP(0x600)

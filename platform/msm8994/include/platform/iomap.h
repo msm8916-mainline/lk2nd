@@ -267,6 +267,7 @@
 
 #define MDP_INTF_0_TIMING_ENGINE_EN             REG_MDP(0x6b000)
 #define MDP_INTF_1_TIMING_ENGINE_EN             REG_MDP(0x6b800)
+#define MDP_INTF_2_TIMING_ENGINE_EN             REG_MDP(0x6C000)
 
 #define MDP_CTL_0_BASE              		REG_MDP(0x2000)
 #define MDP_CTL_1_BASE              		REG_MDP(0x2200)
