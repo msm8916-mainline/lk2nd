@@ -266,7 +266,17 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 {
 	uint32_t ret;
 	struct mdss_dsi_pll_config *pll_data;
-	uint32_t dual_dsi = pinfo->mipi.dual_dsi;
+	uint32_t flags;
+
+	if (pinfo->dest == DISPLAY_2) {
+		flags = MMSS_DSI_CLKS_FLAG_DSI1;
+		if (pinfo->mipi.dual_dsi)
+			flags |= MMSS_DSI_CLKS_FLAG_DSI0;
+	} else {
+		flags = MMSS_DSI_CLKS_FLAG_DSI0;
+		if (pinfo->mipi.dual_dsi)
+			flags |= MMSS_DSI_CLKS_FLAG_DSI1;
+	}
 
 	pll_data = pinfo->mipi.dsi_pll_config;
 	if (enable) {
@@ -286,13 +296,13 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 		mdss_dsi_auto_pll_20nm_config(DSI0_PLL_BASE,
 						MIPI_DSI0_BASE, pll_data);
 		dsi_pll_20nm_enable_seq(DSI0_PLL_BASE);
-		mmss_dsi_clock_enable(DSI0_PHY_PLL_OUT, dual_dsi,
+		mmss_dsi_clock_enable(DSI0_PHY_PLL_OUT, flags,
 					pll_data->pclk_m,
 					pll_data->pclk_n,
 					pll_data->pclk_d);
 	} else if(!target_cont_splash_screen()) {
 		/* Disable clocks if continuous splash off */
-		mmss_dsi_clock_disable(dual_dsi);
+		mmss_dsi_clock_disable(flags);
 		mdp_clock_disable();
 		mmss_bus_clock_disable();
 		mdp_gdsc_ctrl(enable);
