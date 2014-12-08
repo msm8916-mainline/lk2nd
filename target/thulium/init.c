@@ -75,7 +75,7 @@ extern void ulpi_write(unsigned val, unsigned reg);
 void target_early_init(void)
 {
 #if WITH_DEBUG_UART
-	uart_dm_init(2, 0, BLSP1_UART1_BASE);
+	uart_dm_init(8, 0, BLSP2_UART1_BASE);
 #endif
 }
 
