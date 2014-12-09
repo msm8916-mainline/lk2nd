@@ -165,7 +165,8 @@ static void pm_pwm_calc_pwm_value(struct pm_pwm_config *pwm_config,
 				      unsigned int period_us,
 				      unsigned int duty_us)
 {
-	unsigned int max_pwm_value, tmp;
+	int max_pwm_value;
+	unsigned int tmp;
 
 	/* Figure out pwm_value with overflow handling */
 	tmp = 1 << (sizeof(tmp) * 8 - pwm_config->pwm_size);

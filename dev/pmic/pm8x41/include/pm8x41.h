@@ -234,4 +234,7 @@ uint8_t pm8x41_get_is_cold_boot();
 void pm8x41_diff_clock_ctrl(uint8_t enable);
 void pm8x41_clear_pmic_watchdog(void);
 void pm8x41_lnbb_clock_ctrl(uint8_t enable);
+void pmi8994_config_mpp_slave_id(uint8_t slave_id);
+void pm_pwm_enable(bool enable);
+int pm_pwm_config(unsigned int duty_us, unsigned int period_us);
 #endif
