@@ -158,24 +158,6 @@ static struct clk_freq_tbl ftbl_gcc_blsp1_2_uart1_6_apps_clk[] =
 	F_END
 };
 
-static struct rcg_clk blsp2_uart2_apps_clk_src =
-{
-	.cmd_reg      = (uint32_t *) BLSP2_UART2_APPS_CMD_RCGR,
-	.cfg_reg      = (uint32_t *) BLSP2_UART2_APPS_CFG_RCGR,
-	.m_reg        = (uint32_t *) BLSP2_UART2_APPS_M,
-	.n_reg        = (uint32_t *) BLSP2_UART2_APPS_N,
-	.d_reg        = (uint32_t *) BLSP2_UART2_APPS_D,
-
-	.set_rate     = clock_lib2_rcg_set_rate_mnd,
-	.freq_tbl     = ftbl_gcc_blsp1_2_uart1_6_apps_clk,
-	.current_freq = &rcg_dummy_freq,
-
-	.c = {
-		.dbg_name = "blsp1_uart2_apps_clk",
-		.ops      = &clk_ops_rcg_mnd,
-	},
-};
-
 static struct rcg_clk blsp1_uart2_apps_clk_src =
 {
 	.cmd_reg      = (uint32_t *) BLSP1_UART2_APPS_CMD_RCGR,
@@ -191,17 +173,6 @@ static struct rcg_clk blsp1_uart2_apps_clk_src =
 	.c = {
 		.dbg_name = "blsp1_uart2_apps_clk",
 		.ops      = &clk_ops_rcg_mnd,
-	},
-};
-
-static struct branch_clk gcc_blsp2_uart2_apps_clk =
-{
-	.cbcr_reg     = (uint32_t *) BLSP2_UART2_APPS_CBCR,
-	.parent       = &blsp2_uart2_apps_clk_src.c,
-
-	.c = {
-		.dbg_name = "gcc_blsp2_uart2_apps_clk",
-		.ops      = &clk_ops_branch,
 	},
 };
 
@@ -223,17 +194,6 @@ static struct vote_clk gcc_blsp1_ahb_clk = {
 
 	.c = {
 		.dbg_name = "gcc_blsp1_ahb_clk",
-		.ops      = &clk_ops_vote,
-	},
-};
-
-static struct vote_clk gcc_blsp2_ahb_clk = {
-	.cbcr_reg     = (uint32_t *) BLSP2_AHB_CBCR,
-	.vote_reg     = (uint32_t *) APCS_CLOCK_BRANCH_ENA_VOTE,
-	.en_mask      = BIT(15),
-
-	.c = {
-		.dbg_name = "gcc_blsp2_ahb_clk",
 		.ops      = &clk_ops_vote,
 	},
 };
@@ -708,7 +668,7 @@ static struct branch_clk mdss_mdp_clk = {
 };
 
 static struct branch_clk mdss_mdp_lut_clk = {
-	.cbcr_reg    = MDP_LUT_CBCR,
+	.cbcr_reg    = (uint32_t *) MDP_LUT_CBCR,
 	.parent      = &mdss_mdp_clk_src.c,
 	.has_sibling = 1,
 
@@ -719,7 +679,7 @@ static struct branch_clk mdss_mdp_lut_clk = {
 };
 
 static struct branch_clk mdss_vsync_clk = {
-	.cbcr_reg    = MDSS_VSYNC_CBCR,
+	.cbcr_reg    = (uint32_t *) MDSS_VSYNC_CBCR,
 	.parent      = &vsync_clk_src.c,
 	.has_sibling = 0,
 
@@ -746,7 +706,7 @@ static struct rcg_clk edpaux_clk_src = {
 };
 
 static struct branch_clk mdss_edpaux_clk = {
-	.cbcr_reg    = MDSS_EDPAUX_CBCR,
+	.cbcr_reg    = (uint32_t *) MDSS_EDPAUX_CBCR,
 	.parent      = &edpaux_clk_src.c,
 	.has_sibling = 0,
 
@@ -811,7 +771,7 @@ static struct branch_clk mdss_edppixel_clk = {
 };
 
 static struct branch_clk mmss_misc_ahb_clk = {
-	.cbcr_reg = MMSS_MISC_AHB_CBCR,
+	.cbcr_reg = (uint32_t *) MMSS_MISC_AHB_CBCR,
 	.has_sibling = 1,
 
 	.c = {
