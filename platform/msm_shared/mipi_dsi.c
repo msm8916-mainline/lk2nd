@@ -603,7 +603,9 @@ int mdss_dsi_config(struct msm_fb_panel_data *panel)
 		goto error;
 	}
 
-	mdss_dsi_phy_contention_detection(mipi, DSI0_PHY_BASE);
+	mdss_dsi_phy_contention_detection(mipi, mipi->phy_base);
+	if (mipi->dual_dsi)
+		mdss_dsi_phy_contention_detection(mipi, mipi->sphy_base);
 
 	if (panel->pre_init_func) {
 		ret = panel->pre_init_func();
