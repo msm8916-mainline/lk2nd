@@ -199,6 +199,7 @@ bool gcdb_display_cmdline_arg(char *panel_name, char *pbuf, uint16_t buf_size)
 	char *default_str;
 	int panel_mode = SPLIT_DISPLAY_FLAG | DUAL_PIPE_FLAG | DST_SPLIT_FLAG;
 	int prefix_string_len = strlen(DISPLAY_CMDLINE_PREFIX);
+	char *sctl_string;
 
 	panel_name += strspn(panel_name, " ");
 
@@ -254,7 +255,12 @@ bool gcdb_display_cmdline_arg(char *panel_name, char *pbuf, uint16_t buf_size)
 	arg_size = prefix_string_len + dsi_id_len + panel_node_len +
 						LK_OVERRIDE_PANEL_LEN + 1;
 
-	arg_size += DSI_1_STRING_LEN + slave_panel_node_len;
+	if (!strcmp(panelstruct.paneldata->panel_destination, "DISPLAY_2"))
+		sctl_string = DSI_0_STRING;
+	else
+		sctl_string = DSI_1_STRING;
+
+	arg_size += strlen(sctl_string) + slave_panel_node_len;
 
 	if (buf_size < arg_size) {
 		dprintf(CRITICAL, "display command line buffer is small\n");
@@ -277,9 +283,9 @@ bool gcdb_display_cmdline_arg(char *panel_name, char *pbuf, uint16_t buf_size)
 		pbuf += panel_node_len;
 		buf_size -= panel_node_len;
 
-		strlcpy(pbuf, DSI_1_STRING, buf_size);
-		pbuf += DSI_1_STRING_LEN;
-		buf_size -= DSI_1_STRING_LEN;
+		strlcpy(pbuf, sctl_string, buf_size);
+		pbuf += strlen(sctl_string);
+		buf_size -= strlen(sctl_string);
 		strlcpy(pbuf, slave_panel_node, buf_size);
 	}
 end:
