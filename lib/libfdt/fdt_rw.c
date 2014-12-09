@@ -467,9 +467,9 @@ int fdt_open_into(const void *fdt, void *buf, int bufsize)
 	fdtend = fdtstart + fdt_totalsize(fdt);
 	FDT_CHECK_HEADER(fdt);
 
-	if ((fdt_num_mem_rsv(fdt)+1) > (UINT_MAX / sizeof(struct fdt_reserve_entry)))  {
+	if ((fdt_num_mem_rsv(fdt) + 1) >
+			(int) (UINT_MAX / sizeof(struct fdt_reserve_entry)))
 		return err;
-	}
 
 	mem_rsv_size = (fdt_num_mem_rsv(fdt)+1)
 		* sizeof(struct fdt_reserve_entry);
@@ -504,7 +504,7 @@ int fdt_open_into(const void *fdt, void *buf, int bufsize)
 	/* Need to reorder */
 	newsize = FDT_ALIGN(sizeof(struct fdt_header), 8) + mem_rsv_size
 		+ struct_size + fdt_size_dt_strings(fdt);
-	if (bufsize < newsize)
+	if (bufsize < (int) newsize)
 		return -FDT_ERR_NOSPACE;
 
 	/* First attempt to build converted tree at beginning of buffer */
