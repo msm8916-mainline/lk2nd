@@ -59,7 +59,7 @@ static void scm_arm_support_available(uint32_t svc_id, uint32_t cmd_id)
 {
 	uint32_t ret;
 	scmcall_arg scm_arg = {0};
-	scmcall_arg scm_ret = {0};
+	scmcall_ret scm_ret = {0};
 	/* Make a call to check if SCM call available using new interface,
 	 * if this returns 0 then scm implementation as per arm spec
 	 * otherwise use the old interface for scm calls
@@ -334,8 +334,8 @@ int encrypt_scm(uint32_t ** img_ptr, uint32_t * img_len_ptr)
 	{
 		scm_arg.x0 = MAKE_SIP_SCM_CMD(SCM_SVC_SSD,SSD_ENCRYPT_ID);
 		scm_arg.x1 = MAKE_SCM_ARGS(0x2,SMC_PARAM_TYPE_BUFFER_READWRITE,SMC_PARAM_TYPE_VALUE);
-		scm_arg.x2 = cmd.img_ptr;
-		scm_arg.x3 = cmd.img_len_ptr;
+		scm_arg.x2 = (uint32_t) cmd.img_ptr;
+		scm_arg.x3 = (uint32_t) cmd.img_len_ptr;
 
 		ret = scm_call2(&scm_arg, NULL);
 	}
@@ -423,7 +423,7 @@ static int ssd_image_is_encrypted(uint32_t ** img_ptr, uint32_t * img_len_ptr, u
 			scm_arg.x0 = MAKE_SIP_SCM_CMD(SCM_SVC_SSD, SSD_PARSE_MD_ID);
 			scm_arg.x1 = MAKE_SCM_ARGS(0x2,SMC_PARAM_TYPE_VALUE,SMC_PARAM_TYPE_BUFFER_READWRITE);
 			scm_arg.x2 = parse_req.md_len;
-			scm_arg.x3 = parse_req.md;
+			scm_arg.x3 = (uint32_t) parse_req.md;
 
 			ret = scm_call2(&scm_arg, &scm_ret);
 			parse_rsp.status = scm_ret.x1;
@@ -508,7 +508,7 @@ int decrypt_scm_v2(uint32_t ** img_ptr, uint32_t * img_len_ptr)
 				scm_arg.x2 = decrypt_req.md_ctx_id;
 				scm_arg.x3 = decrypt_req.last_frag;
 				scm_arg.x4 = decrypt_req.frag_len;
-				scm_arg.x5[0] = decrypt_req.frag;
+				scm_arg.x5[0] = (uint32_t) decrypt_req.frag;
 
 				ret = scm_call2(&scm_arg, &scm_ret);
 				decrypt_rsp.status = scm_ret.x1;
@@ -609,7 +609,7 @@ int scm_protect_keystore(uint32_t * img_ptr, uint32_t  img_len)
 	{
 		scm_arg.x0 = MAKE_SIP_SCM_CMD(SCM_SVC_SSD, SSD_PROTECT_KEYSTORE_ID);
 		scm_arg.x1 = MAKE_SCM_ARGS(0x2,SMC_PARAM_TYPE_BUFFER_READWRITE,SMC_PARAM_TYPE_VALUE);
-		scm_arg.x2 = protect_req.keystore_ptr;
+		scm_arg.x2 = (uint32_t) protect_req.keystore_ptr;
 		scm_arg.x3 = protect_req.keystore_len;
 
 		ret = scm_call2(&scm_arg, &scm_ret);
@@ -660,7 +660,7 @@ void set_tamper_fuse_cmd()
 	{
 		scm_arg.x0 = MAKE_SIP_SCM_CMD(SCM_SVC_FUSE, SCM_BLOW_SW_FUSE_ID);
 		scm_arg.x1 = MAKE_SCM_ARGS(0x2,SMC_PARAM_TYPE_BUFFER_READWRITE,SMC_PARAM_TYPE_VALUE);
-		scm_arg.x2  = cmd_buf;
+		scm_arg.x2  = (uint32_t) cmd_buf;
 		scm_arg.x3 = cmd_len;
 
 		scm_call2(&scm_arg, NULL);
@@ -700,7 +700,7 @@ uint8_t get_tamper_fuse_cmd()
 	{
 		scm_arg.x0 = MAKE_SIP_SCM_CMD(SCM_SVC_FUSE, SCM_IS_SW_FUSE_BLOWN_ID);
 		scm_arg.x1 = MAKE_SCM_ARGS(0x2,SMC_PARAM_TYPE_BUFFER_READWRITE,SMC_PARAM_TYPE_VALUE);
-		scm_arg.x2  = cmd_buf;
+		scm_arg.x2  = (uint32_t) cmd_buf;
 		scm_arg.x3 = cmd_len;
 
 		scm_call2(&scm_arg, &scm_ret);
@@ -708,7 +708,6 @@ uint8_t get_tamper_fuse_cmd()
 	}
 }
 
-#define SHA256_DIGEST_LENGTH	(256/8)
 /*
  * struct qseecom_save_partition_hash_req
  * @partition_id - partition id.
@@ -752,7 +751,7 @@ void save_kernel_hash_cmd(void *digest)
 		scm_arg.x0 = MAKE_SIP_SCM_CMD(SCM_SVC_ES, SCM_SAVE_PARTITION_HASH_ID);
 		scm_arg.x1 = MAKE_SCM_ARGS(0x3, 0, SMC_PARAM_TYPE_BUFFER_READWRITE);
 		scm_arg.x2 = req.partition_id;
-		scm_arg.x3 = (uint8_t *)&req.digest;
+		scm_arg.x3 = (uint32_t) &req.digest;
 		scm_arg.x4 = sizeof(req.digest);
 
 		if (scm_call2(&scm_arg, NULL))
@@ -855,7 +854,7 @@ void scm_elexec_call(paddr_t kernel_entry, paddr_t dtb_offset)
 	{
 		scm_arg.x0 = MAKE_SIP_SCM_CMD(SCM_SVC_MILESTONE_32_64_ID, SCM_SVC_MILESTONE_CMD_ID);
 		scm_arg.x1 = MAKE_SCM_ARGS(0x2, SMC_PARAM_TYPE_BUFFER_READ);
-		scm_arg.x2 = (void *)&param;
+		scm_arg.x2 = (uint32_t ) &param;
 		scm_arg.x3 = sizeof(el1_system_param);
 
 		scm_call2(&scm_arg, NULL);
@@ -892,7 +891,7 @@ int scm_random(uint32_t * rbuf, uint32_t  r_len)
 	{
 		scm_arg.x0 = MAKE_SIP_SCM_CMD(TZ_SVC_CRYPTO, PRNG_CMD_ID);
 		scm_arg.x1 = MAKE_SCM_ARGS(0x2,SMC_PARAM_TYPE_BUFFER_READWRITE);
-		scm_arg.x2 = (uint8_t *) rbuf;
+		scm_arg.x2 = (uint32_t) rbuf;
 		scm_arg.x3 = r_len;
 
 		ret = scm_call2(&scm_arg, NULL);

@@ -249,7 +249,6 @@ void smd_read(smd_channel_info_t *ch, uint32_t *len, int ch_type, uint32_t *resp
 
 	arch_invalidate_cache_range((addr_t)response, smd_hdr.pkt_size);
 
-	return response;
 }
 
 void smd_signal_read_complete(smd_channel_info_t *ch, uint32_t len)

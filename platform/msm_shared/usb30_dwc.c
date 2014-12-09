@@ -879,8 +879,8 @@ static void dwc_event_handler_ep_ctrl_state_wait_for_host_2(dwc_dev_t *dev,
 	{
 	case DWC_EVENT_EP_CMD_COMPLETE:
 	{
-		dwc_dep_cmd_id_t cmd = DWC_EVENT_EP_EVENT_CMD_TYPE(*event);
-		DBG("\n cmd = %s has no action. ignored.", cmd_lookup[cmd]);
+		DBG("\n cmd = %s has no action. ignored.",
+			cmd_lookup[DWC_EVENT_EP_EVENT_CMD_TYPE(*event)]);
 	}
 		break;
 	case DWC_EVENT_EP_XFER_NOT_READY:
@@ -944,8 +944,8 @@ static void dwc_event_handler_ep_ctrl_state_wait_for_host_3(dwc_dev_t *dev,
 	{
 	case DWC_EVENT_EP_CMD_COMPLETE:
 	{
-		dwc_dep_cmd_id_t cmd = DWC_EVENT_EP_EVENT_CMD_TYPE(*event);
-		DBG("\n cmd = %s has no action. ignored.", cmd_lookup[cmd]);
+		DBG("\n cmd = %s has no action. ignored.",
+			cmd_lookup[DWC_EVENT_EP_EVENT_CMD_TYPE(*event)]);
 	}
 		break;
 	case DWC_EVENT_EP_XFER_NOT_READY:
@@ -1208,15 +1208,14 @@ static void dwc_event_handler_ep_ctrl_state_stall(dwc_dev_t *dev,
 static void dwc_event_handler_ep_bulk_state_inactive(dwc_dev_t *dev,
 													 uint32_t *event)
 {
-	uint8_t ep_phy_num                 = DWC_EVENT_EP_EVENT_EP_NUM(*event);
-	dwc_dep_cmd_id_t cmd               = DWC_EVENT_EP_EVENT_CMD_TYPE(*event);
 	dwc_event_ep_event_id_t event_id   = DWC_EVENT_EP_EVENT_ID(*event);
 
 	switch (event_id)
 	{
 	case DWC_EVENT_EP_CMD_COMPLETE:
 		{
-			DBG("\n cmd = %s has no action. ignored.", cmd_lookup[cmd]);
+			DBG("\n cmd = %s has no action. ignored.",
+				cmd_lookup[DWC_EVENT_EP_EVENT_CMD_TYPE(*event)]);
 		}
 		break;
 	case DWC_EVENT_EP_XFER_NOT_READY:

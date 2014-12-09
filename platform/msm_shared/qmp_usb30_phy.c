@@ -35,6 +35,7 @@
 #include <bits.h>
 #include <clock.h>
 #include <debug.h>
+#include <qtimer.h>
 
 #define HS_PHY_COMMON_CTRL             0xEC
 #define USE_CORECLK                    BIT(14)

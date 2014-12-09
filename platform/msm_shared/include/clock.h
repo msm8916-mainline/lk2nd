@@ -193,4 +193,6 @@ void clk_init(struct clk_lookup *clist, unsigned num);
  * @action: clock assert or deassert
  */
 int clk_reset(struct clk *clk, enum clk_reset_action);
+
+void clock_bumpup_pipe3_clk();
 #endif

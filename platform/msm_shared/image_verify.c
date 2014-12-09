@@ -29,6 +29,7 @@
 #include <certificate.h>
 #include <crypto_hash.h>
 #include <string.h>
+#include <openssl/err.h>
 #include "image_verify.h"
 #include "scm.h"
 
