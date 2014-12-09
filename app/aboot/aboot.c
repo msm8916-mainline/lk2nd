@@ -493,7 +493,10 @@ unsigned char *update_cmdline(const char * cmdline)
 	if (boot_dev_buf)
 		free(boot_dev_buf);
 
-	dprintf(INFO, "cmdline: %s\n", cmdline_final ? cmdline_final : "");
+	if (cmdline_final)
+		dprintf(INFO, "cmdline: %s\n", cmdline_final);
+	else
+		dprintf(INFO, "cmdline is NULL\n");
 	return cmdline_final;
 }
 
@@ -1080,7 +1083,7 @@ int boot_linux_from_mmc(void)
 		imagesize_actual = (page_size + kernel_actual + ramdisk_actual);
 
 #endif
-		if (check_aboot_addr_range_overlap(image_addr, imagesize_actual))
+		if (check_aboot_addr_range_overlap((uint32_t) image_addr, imagesize_actual))
 		{
 			dprintf(CRITICAL, "Boot image buffer address overlaps with aboot addresses.\n");
 			return -1;
@@ -1103,7 +1106,7 @@ int boot_linux_from_mmc(void)
 		bs_set_timestamp(BS_KERNEL_LOAD_DONE);
 
 		#ifdef TZ_SAVE_KERNEL_HASH
-		aboot_save_boot_hash_mmc(image_addr, imagesize_actual);
+		aboot_save_boot_hash_mmc((uint32_t) image_addr, imagesize_actual);
 		#endif /* TZ_SAVE_KERNEL_HASH */
 
 		/* Move kernel, ramdisk and device tree to correct address */
@@ -2166,10 +2169,10 @@ void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 void cmd_flash_mmc(const char *arg, void *data, unsigned sz)
 {
 	sparse_header_t *sparse_header;
-	/* 8 Byte Magic + 2048 Byte xml + Encrypted Data */
-	unsigned int *magic_number = (unsigned int *) data;
 
 #ifdef SSD_ENABLE
+	/* 8 Byte Magic + 2048 Byte xml + Encrypted Data */
+	unsigned int *magic_number = (unsigned int *) data;
 	int              ret=0;
 	uint32           major_version=0;
 	uint32           minor_version=0;
@@ -2841,7 +2844,7 @@ static int aboot_save_boot_hash_mmc(uint32_t image_addr, uint32_t image_size)
 #endif
 
 	target_crypto_init_params();
-	hash_find(image_addr, image_size, (unsigned char *)&digest, auth_algo);
+	hash_find((unsigned char *) image_addr, image_size, (unsigned char *)&digest, auth_algo);
 
 	save_kernel_hash_cmd(digest);
 	dprintf(INFO, "aboot_save_boot_hash_mmc: imagesize_actual size %d bytes.\n", (int) image_size);
