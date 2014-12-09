@@ -38,6 +38,7 @@ static int fls(uint16_t n)
 }
 
 static struct qpnp_wled *gwled;
+static int qpnp_labibb_regulator_set_voltage(struct qpnp_wled *wled);
 
 static int qpnp_wled_sec_access(struct qpnp_wled *wled, uint16_t base_addr)
 {
@@ -106,9 +107,9 @@ int qpnp_ibb_enable(bool state)
 	/* enable lab */
 	if (gwled->ibb_bias_active) {
 		rc = qpnp_wled_enable(gwled, gwled->lab_base, state);
+		udelay(QPNP_WLED_LAB_START_DLY_US + 1);
 		if (rc < 0)
 			return rc;
-			udelay(QPNP_WLED_LAB_START_DLY_US + 1);
 	} else {
 		reg = pm8x41_wled_reg_read(QPNP_WLED_LAB_IBB_RDY_REG(gwled->lab_base));
 		if (reg < 0)
@@ -436,6 +437,11 @@ static int qpnp_wled_config(struct qpnp_wled *wled)
 	else if (wled->ibb_pwrup_dly_ms > QPNP_WLED_IBB_PWRUP_DLY_MAX_MS)
 		wled->ibb_pwrup_dly_ms = QPNP_WLED_IBB_PWRUP_DLY_MAX_MS;
 
+	if (wled->ibb_pwrdn_dly_ms < QPNP_WLED_IBB_PWRDN_DLY_MIN_MS)
+		wled->ibb_pwrdn_dly_ms = QPNP_WLED_IBB_PWRDN_DLY_MIN_MS;
+	else if (wled->ibb_pwrdn_dly_ms > QPNP_WLED_IBB_PWRDN_DLY_MAX_MS)
+		wled->ibb_pwrdn_dly_ms = QPNP_WLED_IBB_PWRDN_DLY_MAX_MS;
+
 	reg = pm8x41_wled_reg_read(
 			QPNP_WLED_IBB_BIAS_REG(wled->ibb_base));
 	if (reg < 0)
@@ -444,9 +450,11 @@ static int qpnp_wled_config(struct qpnp_wled *wled)
 	reg &= QPNP_WLED_IBB_BIAS_MASK;
 	reg |= (!wled->ibb_bias_active << QPNP_WLED_IBB_BIAS_SHIFT);
 
-	temp = fls(wled->ibb_pwrup_dly_ms) - 1;
+	temp = wled->ibb_pwrup_dly_ms;
 	reg &= QPNP_WLED_IBB_PWRUP_DLY_MASK;
 	reg |= (temp << QPNP_WLED_IBB_PWRUP_DLY_SHIFT);
+	reg |= wled->ibb_pwrdn_dly_ms;
+	reg |= (wled->ibb_discharge_en << 2);
 
 	rc = qpnp_wled_sec_access(wled, wled->ibb_base);
 	if (rc)
@@ -464,11 +472,15 @@ static int qpnp_wled_config(struct qpnp_wled *wled)
 	if (rc < 0)
 		return rc;
 
+	rc = qpnp_labibb_regulator_set_voltage(wled);
+	if (rc < 0)
+		return rc;
+
 	return 0;
 }
 
 /* Setup wled default parameters */
-static int qpnp_wled_setup(struct qpnp_wled *wled)
+static int qpnp_wled_setup(struct qpnp_wled *wled, struct qpnp_wled_config_data *config)
 {
 	int rc, i;
 
@@ -501,14 +513,22 @@ static int qpnp_wled_setup(struct qpnp_wled *wled)
 			wled->strings[i] = i;
 
 	wled->ibb_bias_active = false;
-	wled->ibb_pwrup_dly_ms = 8;
-	wled->lab_fast_precharge = false;
-	wled->disp_type_amoled = false;
+	wled->lab_fast_precharge = true;
+	wled->ibb_pwrup_dly_ms = config->pwr_up_delay;
+	wled->ibb_pwrdn_dly_ms = config->pwr_down_delay;
+	wled->ibb_discharge_en = config->ibb_discharge_en;
+	wled->disp_type_amoled = config->display_type;
+	wled->lab_min_volt = config->lab_min_volt;
+	wled->lab_max_volt = config->lab_max_volt;
+	wled->ibb_min_volt = config->ibb_min_volt;
+	wled->ibb_max_volt = config->ibb_max_volt;
+	wled->ibb_init_volt = config->ibb_init_volt;
+	wled->lab_init_volt = config->lab_init_volt;
 
 	return 0;
 }
 
-int qpnp_wled_init()
+int qpnp_wled_init(struct qpnp_wled_config_data *config)
 {
 	int rc, i;
 	struct qpnp_wled *wled;
@@ -519,7 +539,7 @@ int qpnp_wled_init()
 
 	memset(wled, 0, sizeof(struct qpnp_wled));
 
-	rc = qpnp_wled_setup(wled);
+	rc = qpnp_wled_setup(wled, config);
 	if (rc) {
 		dprintf(CRITICAL, "Setting WLED parameters failed\n");
 		return rc;
@@ -534,4 +554,56 @@ int qpnp_wled_init()
 	gwled = wled;
 
 	return rc;
+}
+
+static int qpnp_labibb_regulator_set_voltage(struct qpnp_wled *wled)
+{
+	int rc=-1, new_uV;
+	uint8_t val, mask=0;
+
+	if (wled->lab_min_volt < wled->lab_init_volt) {
+		dprintf(CRITICAL,"qpnp_lab_regulator_set_voltage failed, min_uV %d is less than init volt %d\n",
+		wled->lab_min_volt, wled->lab_init_volt);
+		return rc;
+	}
+
+	val = (((wled->lab_min_volt - wled->lab_init_volt) + (IBB_LAB_VREG_STEP_SIZE - 1)) / IBB_LAB_VREG_STEP_SIZE);
+	new_uV = val * IBB_LAB_VREG_STEP_SIZE + wled->lab_init_volt;
+
+	if (new_uV > wled->lab_max_volt) {
+		dprintf(CRITICAL,"qpnp_ibb_regulator_set_voltage unable to set voltage (%d %d)\n",
+		wled->lab_min_volt, wled->lab_max_volt);
+		return rc;
+	}
+	val |= QPNP_LAB_OUTPUT_OVERRIDE_EN;
+	mask = pm8x41_wled_reg_read(wled->lab_base + QPNP_LABIBB_OUTPUT_VOLTAGE);
+	mask &= ~(QPNP_LAB_SET_VOLTAGE_MASK | QPNP_LAB_OUTPUT_OVERRIDE_EN);
+	mask |= val & (QPNP_LAB_SET_VOLTAGE_MASK | QPNP_LAB_OUTPUT_OVERRIDE_EN);
+
+	pm8x41_wled_reg_write(wled->lab_base + QPNP_LABIBB_OUTPUT_VOLTAGE, mask);
+	udelay(2);
+
+	/* IBB Set Voltage */
+	if (wled->ibb_min_volt < wled->ibb_init_volt) {
+		dprintf(CRITICAL, "qpnp_ibb_regulator_set_voltage failed, min_uV %d is less than init volt %d\n",
+		wled->ibb_min_volt, wled->ibb_init_volt);
+		return rc;
+	}
+
+	val = (((wled->ibb_min_volt - wled->ibb_init_volt) + (IBB_LAB_VREG_STEP_SIZE - 1)) / IBB_LAB_VREG_STEP_SIZE);
+	new_uV = val * IBB_LAB_VREG_STEP_SIZE + wled->ibb_init_volt;
+	if (new_uV > wled->ibb_max_volt) {
+		dprintf(CRITICAL,"qpnp_ibb_regulator_set_voltage unable to set voltage %d %d\n",
+		wled->ibb_min_volt, wled->ibb_max_volt);
+		return rc;
+	}
+	val |= QPNP_LAB_OUTPUT_OVERRIDE_EN;
+	mask = pm8x41_wled_reg_read(wled->ibb_base + QPNP_LABIBB_OUTPUT_VOLTAGE);
+	udelay(2);
+	mask &= ~(QPNP_IBB_SET_VOLTAGE_MASK | QPNP_LAB_OUTPUT_OVERRIDE_EN);
+	mask |= (val & (QPNP_IBB_SET_VOLTAGE_MASK | QPNP_LAB_OUTPUT_OVERRIDE_EN));
+
+	pm8x41_wled_reg_write(wled->ibb_base + QPNP_LABIBB_OUTPUT_VOLTAGE,mask);
+
+	return 0;
 }
