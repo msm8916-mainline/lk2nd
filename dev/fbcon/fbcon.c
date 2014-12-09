@@ -244,9 +244,9 @@ void fbcon_putImage(struct fbimage *fbimg, bool flag)
     unsigned total_y;
     unsigned bytes_per_bpp;
     unsigned image_base;
-    unsigned width, pitch, height;
-    unsigned char *logo_base;
-    struct logo_img_header *header;
+    unsigned width = 0, pitch = 0, height = 0;
+    unsigned char *logo_base = NULL;
+    struct logo_img_header *header = NULL;
 
 
 	if (!config) {
@@ -268,7 +268,7 @@ void fbcon_putImage(struct fbimage *fbimg, bool flag)
 #if DISPLAY_TYPE_MIPI
 	if (bytes_per_bpp == 3)
 	{
-		if(flag) {
+		if(flag && header) {
 			if (header->width == config->width && header->height == config->height)
 				return;
 			else {
