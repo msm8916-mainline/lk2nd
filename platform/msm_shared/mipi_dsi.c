@@ -35,6 +35,7 @@
 #include <string.h>
 #include <debug.h>
 #include <target/display.h>
+#include <mdp5.h>
 #include <platform/iomap.h>
 #include <platform/clock.h>
 #include <platform/timer.h>
