@@ -178,6 +178,10 @@ int dsi_panel_init(struct msm_panel_info *pinfo,
 		pinfo->fbc.lossy_mode_thd = pstruct->fbcinfo.lossy_mode_thd;
 		pinfo->fbc.lossy_rgb_thd = pstruct->fbcinfo.lossy_rgb_thd;
 		pinfo->fbc.lossy_mode_idx = pstruct->fbcinfo.lossy_mode_idx;
+		pinfo->fbc.slice_height = pstruct->fbcinfo.slice_height;
+		pinfo->fbc.pred_mode = pstruct->fbcinfo.pred_mode;
+		pinfo->fbc.max_pred_err = pstruct->fbcinfo.max_pred_err;
+
 	} else {
 		pinfo->fbc.comp_ratio = 1;
 	}
