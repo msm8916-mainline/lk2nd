@@ -315,6 +315,8 @@ int dsi_cmd_panel_config (struct msm_panel_info *pinfo,
 	uint8_t lane_en = 0;
 	uint8_t ystride = pinfo->bpp / 8;
 	uint32_t panel_width = pinfo->xres;
+	uint32_t final_xres, final_yres, final_width;
+	uint32_t final_height;
 
 	if (pinfo->mipi.dual_dsi)
 		panel_width = panel_width / 2;
@@ -328,22 +330,32 @@ int dsi_cmd_panel_config (struct msm_panel_info *pinfo,
 	if (pinfo->mipi.data_lane3)
 		lane_en |= (1 << 3);
 
-	ret = mdss_dsi_cmd_mode_config((panel_width + plcdc->xres_pad),
-			(pinfo->yres + plcdc->yres_pad),
-			panel_width, (pinfo->yres),
+	final_xres = panel_width;
+	final_width = panel_width + pinfo->lcdc.xres_pad;
+
+	if (pinfo->fbc.enabled && pinfo->fbc.comp_ratio) {
+		final_xres /= pinfo->fbc.comp_ratio;
+		final_width /=	pinfo->fbc.comp_ratio;
+		dprintf(SPEW, "DSI xres =%d final_width=%d\n", final_xres,
+				final_width);
+	}
+	final_yres = pinfo->yres;
+	final_height = pinfo->yres + pinfo->lcdc.yres_pad;
+
+	ret = mdss_dsi_cmd_mode_config(final_width, final_height,
+			final_xres, final_yres,
 			pinfo->mipi.dst_format,
 			ystride, lane_en,
 			pinfo->mipi.interleave_mode,
 			MIPI_DSI0_BASE);
 
 	if (pinfo->mipi.dual_dsi)
-		ret = mdss_dsi_cmd_mode_config((panel_width + plcdc->xres_pad),
-			(pinfo->yres + plcdc->yres_pad),
-			panel_width, (pinfo->yres),
-			pinfo->mipi.dst_format,
-			ystride, lane_en,
-			pinfo->mipi.interleave_mode,
-			MIPI_DSI1_BASE);
+		ret = mdss_dsi_cmd_mode_config(final_width, final_height,
+				final_xres, final_yres,
+				pinfo->mipi.dst_format,
+				ystride, lane_en,
+				pinfo->mipi.interleave_mode,
+				MIPI_DSI1_BASE);
 
 	return ret;
 }
