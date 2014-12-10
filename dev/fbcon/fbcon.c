@@ -233,7 +233,7 @@ void display_image_on_screen()
 	}
 
 	fbcon_putImage(fbimg, flag);
-	if (fbimg)
+	if(flag)
 		free(fbimg);
 }
 
