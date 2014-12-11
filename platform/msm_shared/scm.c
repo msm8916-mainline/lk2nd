@@ -54,6 +54,7 @@
 
 /* SCM interface as per ARM spec present? */
 bool scm_arm_support;
+static uint32_t scm_io_write(addr_t address, uint32_t val);
 
 static void scm_arm_support_available(uint32_t svc_id, uint32_t cmd_id)
 {
@@ -958,14 +959,29 @@ uint8_t switch_ce_chn_cmd(enum ap_ce_channel_type channel)
 int scm_halt_pmic_arbiter()
 {
 	int ret = 0;
+	scmcall_arg scm_arg = {0};
 
-	if (scm_arm_support)
-	{
-		dprintf(INFO, "%s:SCM call is not supported\n",__func__);
-		return -1;
+	if (scm_arm_support) {
+		scm_arg.x0 = MAKE_SIP_SCM_CMD(SCM_SVC_PWR, SCM_IO_DISABLE_PMIC_ARBITER);
+		scm_arg.x1 = MAKE_SCM_ARGS(0x1);
+		scm_arg.x2 = 0;
+		scm_arg.atomic = true;
+		ret = scm_call2(&scm_arg, NULL);
+	} else {
+		ret = scm_call_atomic(SCM_SVC_PWR, SCM_IO_DISABLE_PMIC_ARBITER, 0);
 	}
 
-	ret = scm_call_atomic(SCM_SVC_PWR, SCM_IO_DISABLE_PMIC_ARBITER, 0);
+	/* Retry with the SCM_IO_DISABLE_PMIC_ARBITER1 func ID if the above Func ID fails*/
+	if(ret) {
+		if (scm_arm_support) {
+			scm_arg.x0 = MAKE_SIP_SCM_CMD(SCM_SVC_PWR, SCM_IO_DISABLE_PMIC_ARBITER1);
+			scm_arg.x1 = MAKE_SCM_ARGS(0x1);
+			scm_arg.x2 = 0;
+			scm_arg.atomic = true;
+			ret = scm_call2(&scm_arg, NULL);
+		} else
+			ret = scm_call_atomic(SCM_SVC_PWR, SCM_IO_DISABLE_PMIC_ARBITER1, 0);
+	}
 
 	return ret;
 }
@@ -1177,4 +1193,77 @@ uint32_t scm_call2(scmcall_arg *arg, scmcall_ret *ret)
 		free(indir_arg);
 
 	return 0;
+}
+
+static bool secure_boot_enable = false;
+static bool wdog_debug_fuse_disable = false;
+
+void scm_check_boot_fuses()
+{
+	uint32_t ret = 0;
+	uint32_t resp[2];
+	scmcall_arg scm_arg = {0};
+	scmcall_ret scm_ret = {0};
+
+	if (!scm_arm_support) {
+		ret = scm_call_atomic2(TZBSP_SVC_INFO, IS_SECURE_BOOT_ENABLED, resp, sizeof(resp));
+	} else {
+		scm_arg.x0 = MAKE_SIP_SCM_CMD(TZBSP_SVC_INFO, IS_SECURE_BOOT_ENABLED);
+		ret = scm_call2(&scm_arg, &scm_ret);
+		resp[0] = scm_ret.x1;
+	}
+
+	/* Parse Bit 0 and Bit 2 of the response */
+	if(!ret) {
+		/* Bit 0 - SECBOOT_ENABLE_CHECK */
+		if(resp[0] & 0x1)
+			secure_boot_enable = true;
+		/* Bit 2 - DEBUG_DISABLE_CHECK */
+		if(resp[0] & 0x4)
+			wdog_debug_fuse_disable = true;
+	} else
+		dprintf(CRITICAL, "scm call to check secure boot fuses failed\n");
+}
+
+bool is_secure_boot_enable()
+{
+	scm_check_boot_fuses();
+	return secure_boot_enable;
+}
+
+static uint32_t scm_io_read(addr_t address)
+{
+	uint32_t ret;
+	scmcall_arg scm_arg = {0};
+	scmcall_ret scm_ret = {0};
+
+	if (!scm_arm_support) {
+		ret = scm_call_atomic(SCM_SVC_IO, SCM_IO_READ, address);
+	} else {
+		scm_arg.x0 = MAKE_SIP_SCM_CMD(SCM_SVC_IO, SCM_IO_READ);
+		scm_arg.x1 = MAKE_SCM_ARGS(0x1);
+		scm_arg.x2 = address;
+		scm_arg.atomic = true;
+		ret = scm_call2(&scm_arg, &scm_ret);
+	}
+	return ret;
+}
+
+static uint32_t scm_io_write(uint32_t address, uint32_t val)
+{
+	uint32_t ret;
+	scmcall_arg scm_arg = {0};
+	scmcall_ret scm_ret = {0};
+
+	if (!scm_arm_support) {
+		ret = scm_call_atomic2(SCM_SVC_IO, SCM_IO_WRITE, address, val);
+	} else {
+		scm_arg.x0 = MAKE_SIP_SCM_CMD(SCM_SVC_IO, SCM_IO_WRITE);
+		scm_arg.x1 = MAKE_SCM_ARGS(0x2);
+		scm_arg.x2 = address;
+		scm_arg.x3 = val;
+		scm_arg.atomic = true;
+		ret = scm_call2(&scm_arg, &scm_ret);
+	}
+	return ret;
 }
