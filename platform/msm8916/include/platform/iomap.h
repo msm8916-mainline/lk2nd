@@ -265,4 +265,5 @@
 #define HS_TIMER_CTRL               0x0BC
 
 #define TCSR_TZ_WONCE               0x193D000
+#define TCSR_BOOT_MISC_DETECT       0x193D100
 #endif

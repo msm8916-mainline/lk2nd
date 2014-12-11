@@ -257,29 +257,6 @@ unsigned check_hard_reboot_mode(void)
 	return hard_restart_reason;
 }
 
-static int scm_dload_mode(int mode)
-{
-	int ret = 0;
-	uint32_t dload_type;
-
-	dprintf(SPEW, "DLOAD mode: %d\n", mode);
-	if (mode == NORMAL_DLOAD)
-		dload_type = SCM_DLOAD_MODE;
-	else if(mode == EMERGENCY_DLOAD)
-		dload_type = SCM_EDLOAD_MODE;
-	else
-		dload_type = 0;
-
-	ret = scm_call_atomic2(SCM_SVC_BOOT, SCM_DLOAD_CMD, dload_type, 0);
-	if (ret)
-		dprintf(CRITICAL, "Failed to write to boot misc: %d\n", ret);
-
-	ret = scm_call_atomic2(SCM_SVC_BOOT, WDOG_DEBUG_DISABLE, 1, 0);
-	if (ret)
-		dprintf(CRITICAL, "Failed to disable the wdog debug \n");
-
-	return ret;
-}
 /* Configure PMIC and Drop PS_HOLD for shutdown */
 void shutdown_device()
 {
