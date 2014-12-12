@@ -256,68 +256,250 @@
 #define MDP_PP_1_BASE               REG_MDP(0x71800)
 
 #define REG_MDP(off)                (MDP_BASE + (off))
+
+#ifdef MDP_HW_REV
+#undef MDP_HW_REV
+#endif
 #define MDP_HW_REV                              REG_MDP(0x1000)
+
+#ifdef MDP_INTR_EN
+#undef MDP_INTR_EN
+#endif
 #define MDP_INTR_EN                             REG_MDP(0x1010)
+
+#ifdef MDP_INTR_CLEAR
+#undef MDP_INTR_CLEAR
+#endif
 #define MDP_INTR_CLEAR                          REG_MDP(0x1018)
+
+#ifdef MDP_HIST_INTR_EN
+#undef MDP_HIST_INTR_EN
+#endif
 #define MDP_HIST_INTR_EN                        REG_MDP(0x101C)
 
+#ifdef MDP_DISP_INTF_SEL
+#undef MDP_DISP_INTF_SEL
+#endif
 #define MDP_DISP_INTF_SEL                       REG_MDP(0x1004)
+
+#ifdef MDP_VIDEO_INTF_UNDERFLOW_CTL
+#undef MDP_VIDEO_INTF_UNDERFLOW_CTL
+#endif
 #define MDP_VIDEO_INTF_UNDERFLOW_CTL            REG_MDP(0x12E0)
+
+#ifdef MDP_UPPER_NEW_ROI_PRIOR_RO_START
+#undef MDP_UPPER_NEW_ROI_PRIOR_RO_START
+#endif
 #define MDP_UPPER_NEW_ROI_PRIOR_RO_START        REG_MDP(0x11EC)
+
+#ifdef MDP_LOWER_NEW_ROI_PRIOR_TO_START
+#undef MDP_LOWER_NEW_ROI_PRIOR_TO_START
+#endif
 #define MDP_LOWER_NEW_ROI_PRIOR_TO_START        REG_MDP(0x13F8)
 
+#ifdef MDP_INTF_0_TIMING_ENGINE_EN
+#undef MDP_INTF_0_TIMING_ENGINE_EN
+#endif
 #define MDP_INTF_0_TIMING_ENGINE_EN             REG_MDP(0x6b000)
+
+#ifdef MDP_INTF_1_TIMING_ENGINE_EN
+#undef MDP_INTF_1_TIMING_ENGINE_EN
+#endif
 #define MDP_INTF_1_TIMING_ENGINE_EN             REG_MDP(0x6b800)
 
-#define MDP_CTL_0_BASE              		REG_MDP(0x2000)
-#define MDP_CTL_1_BASE              		REG_MDP(0x2200)
+#ifdef MDP_CTL_0_BASE
+#undef MDP_CTL_0_BASE
+#endif
+#define MDP_CTL_0_BASE				REG_MDP(0x2000)
 
+#ifdef MDP_CTL_1_BASE
+#undef MDP_CTL_1_BASE
+#endif
+#define MDP_CTL_1_BASE				REG_MDP(0x2200)
+
+#ifdef MDP_REG_SPLIT_DISPLAY_EN
+#undef MDP_REG_SPLIT_DISPLAY_EN
+#endif
 #define MDP_REG_SPLIT_DISPLAY_EN                REG_MDP(0x12F4)
+
+#ifdef MDP_REG_SPLIT_DISPLAY_UPPER_PIPE_CTL
+#undef MDP_REG_SPLIT_DISPLAY_UPPER_PIPE_CTL
+#endif
 #define MDP_REG_SPLIT_DISPLAY_UPPER_PIPE_CTL    REG_MDP(0x12F8)
+
+#ifdef MDP_REG_SPLIT_DISPLAY_LOWER_PIPE_CTL
+#undef MDP_REG_SPLIT_DISPLAY_LOWER_PIPE_CTL
+#endif
 #define MDP_REG_SPLIT_DISPLAY_LOWER_PIPE_CTL    REG_MDP(0x13F0)
 
-/* can not find following two registers */
-#define MDP_REG_PPB0_CNTL                       REG_MDP(0x1420)
-#define MDP_REG_PPB0_CONFIG                     REG_MDP(0x1424)
-
+#ifdef MDP_INTF_0_BASE
+#undef MDP_INTF_0_BASE
+#endif
 #define MDP_INTF_0_BASE                         REG_MDP(0x6b000)
+
+#ifdef MDP_INTF_1_BASE
+#undef MDP_INTF_1_BASE
+#endif
 #define MDP_INTF_1_BASE                         REG_MDP(0x6b800)
+
+#ifdef MDP_INTF_2_BASE
+#undef MDP_INTF_2_BASE
+#endif
 #define MDP_INTF_2_BASE                         REG_MDP(0x6c000)
 
-
+#ifdef MDP_CLK_CTRL0
+#undef MDP_CLK_CTRL0
+#endif
 #define MDP_CLK_CTRL0                           REG_MDP(0x12AC)
+
+#ifdef MDP_CLK_CTRL1
+#undef MDP_CLK_CTRL1
+#endif
 #define MDP_CLK_CTRL1                           REG_MDP(0x12B4)
+
+#ifdef MDP_CLK_CTRL2
+#undef MDP_CLK_CTRL2
+#endif
 #define MDP_CLK_CTRL2                           REG_MDP(0x12BC)
+
+#ifdef MDP_CLK_CTRL3
+#undef MDP_CLK_CTRL3
+#endif
 #define MDP_CLK_CTRL3                           REG_MDP(0x13A8)
+
+#ifdef MDP_CLK_CTRL4
+#undef MDP_CLK_CTRL4
+#endif
 #define MDP_CLK_CTRL4                           REG_MDP(0x13B0)
+
+#ifdef MDP_CLK_CTRL5
+#undef MDP_CLK_CTRL5
+#endif
 #define MDP_CLK_CTRL5                           REG_MDP(0x13B8)
+
+#ifdef MDP_CLK_CTRL6
+#undef MDP_CLK_CTRL6
+#endif
 #define MDP_CLK_CTRL6                           REG_MDP(0x12C4)
+
+#ifdef MDP_CLK_CTRL7
+#undef MDP_CLK_CTRL7
+#endif
 #define MDP_CLK_CTRL7                           REG_MDP(0x13D0)
 
+#ifdef MMSS_MDP_SMP_ALLOC_W_BASE
+#undef MMSS_MDP_SMP_ALLOC_W_BASE
+#endif
 #define MMSS_MDP_SMP_ALLOC_W_BASE               REG_MDP(0x1080)
+
+#ifdef MMSS_MDP_SMP_ALLOC_R_BASE
+#undef MMSS_MDP_SMP_ALLOC_R_BASE
+#endif
 #define MMSS_MDP_SMP_ALLOC_R_BASE               REG_MDP(0x1130)
 
+#ifdef MDP_QOS_REMAPPER_CLASS_0
+#undef MDP_QOS_REMAPPER_CLASS_0
+#endif
 #define MDP_QOS_REMAPPER_CLASS_0                REG_MDP(0x11E0)
+
+#ifdef MDP_QOS_REMAPPER_CLASS_1
+#undef MDP_QOS_REMAPPER_CLASS_1
+#endif
 #define MDP_QOS_REMAPPER_CLASS_1                REG_MDP(0x11E4)
 
+#ifdef VBIF_VBIF_DDR_FORCE_CLK_ON
+#undef VBIF_VBIF_DDR_FORCE_CLK_ON
+#endif
 #define VBIF_VBIF_DDR_FORCE_CLK_ON              REG_MDP(0xc8004)
+
+#ifdef VBIF_VBIF_DDR_OUT_MAX_BURST
+#undef VBIF_VBIF_DDR_OUT_MAX_BURST
+#endif
 #define VBIF_VBIF_DDR_OUT_MAX_BURST             REG_MDP(0xc80D8)
+
+#ifdef VBIF_VBIF_DDR_ARB_CTRL
+#undef VBIF_VBIF_DDR_ARB_CTRL
+#endif
 #define VBIF_VBIF_DDR_ARB_CTRL                  REG_MDP(0xc80F0)
+
+#ifdef VBIF_VBIF_DDR_RND_RBN_QOS_ARB
+#undef VBIF_VBIF_DDR_RND_RBN_QOS_ARB
+#endif
 #define VBIF_VBIF_DDR_RND_RBN_QOS_ARB           REG_MDP(0xc8124)
+
+#ifdef VBIF_VBIF_DDR_AXI_AMEMTYPE_CONF0
+#undef VBIF_VBIF_DDR_AXI_AMEMTYPE_CONF0
+#endif
 #define VBIF_VBIF_DDR_AXI_AMEMTYPE_CONF0        REG_MDP(0xc8160)
+
+#ifdef VBIF_VBIF_DDR_AXI_AMEMTYPE_CONF1
+#undef VBIF_VBIF_DDR_AXI_AMEMTYPE_CONF1
+#endif
 #define VBIF_VBIF_DDR_AXI_AMEMTYPE_CONF1        REG_MDP(0xc8164)
+
+#ifdef VBIF_VBIF_DDR_OUT_AOOO_AXI_EN
+#undef VBIF_VBIF_DDR_OUT_AOOO_AXI_EN
+#endif
 #define VBIF_VBIF_DDR_OUT_AOOO_AXI_EN           REG_MDP(0xc8178)
+
+#ifdef VBIF_VBIF_DDR_OUT_AX_AOOO
+#undef VBIF_VBIF_DDR_OUT_AX_AOOO
+#endif
 #define VBIF_VBIF_DDR_OUT_AX_AOOO               REG_MDP(0xc817C)
+
+#ifdef VBIF_VBIF_IN_RD_LIM_CONF0
+#undef VBIF_VBIF_IN_RD_LIM_CONF0
+#endif
 #define VBIF_VBIF_IN_RD_LIM_CONF0               REG_MDP(0xc80B0)
+
+#ifdef VBIF_VBIF_IN_RD_LIM_CONF1
+#undef VBIF_VBIF_IN_RD_LIM_CONF1
+#endif
 #define VBIF_VBIF_IN_RD_LIM_CONF1               REG_MDP(0xc80B4)
+
+#ifdef VBIF_VBIF_IN_RD_LIM_CONF2
+#undef VBIF_VBIF_IN_RD_LIM_CONF2
+#endif
 #define VBIF_VBIF_IN_RD_LIM_CONF2               REG_MDP(0xc80B8)
+
+#ifdef VBIF_VBIF_IN_RD_LIM_CONF3
+#undef VBIF_VBIF_IN_RD_LIM_CONF3
+#endif
 #define VBIF_VBIF_IN_RD_LIM_CONF3               REG_MDP(0xc80BC)
+
+#ifdef VBIF_VBIF_IN_WR_LIM_CONF0
+#undef VBIF_VBIF_IN_WR_LIM_CONF0
+#endif
 #define VBIF_VBIF_IN_WR_LIM_CONF0               REG_MDP(0xc80C0)
+
+#ifdef VBIF_VBIF_IN_WR_LIM_CONF1
+#undef VBIF_VBIF_IN_WR_LIM_CONF1
+#endif
 #define VBIF_VBIF_IN_WR_LIM_CONF1               REG_MDP(0xc80C4)
+
+#ifdef VBIF_VBIF_IN_WR_LIM_CONF2
+#undef VBIF_VBIF_IN_WR_LIM_CONF2
+#endif
 #define VBIF_VBIF_IN_WR_LIM_CONF2               REG_MDP(0xc80C8)
+
+#ifdef VBIF_VBIF_IN_WR_LIM_CONF3
+#undef VBIF_VBIF_IN_WR_LIM_CONF3
+#endif
 #define VBIF_VBIF_IN_WR_LIM_CONF3               REG_MDP(0xc80CC)
+
+#ifdef VBIF_VBIF_ABIT_SHORT
+#undef VBIF_VBIF_ABIT_SHORT
+#endif
 #define VBIF_VBIF_ABIT_SHORT                    REG_MDP(0xc8070)
+
+#ifdef VBIF_VBIF_ABIT_SHORT_CONF
+#undef VBIF_VBIF_ABIT_SHORT_CONF
+#endif
 #define VBIF_VBIF_ABIT_SHORT_CONF               REG_MDP(0xc8074)
+
+#ifdef VBIF_VBIF_GATE_OFF_WRREQ_EN
+#undef VBIF_VBIF_GATE_OFF_WRREQ_EN
+#endif
 #define VBIF_VBIF_GATE_OFF_WRREQ_EN             REG_MDP(0xc80A8)
 
 #define MDP_VP_0_VIG_0_BASE                     REG_MDP(0x5000)
