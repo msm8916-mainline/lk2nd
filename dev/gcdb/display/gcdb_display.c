@@ -30,11 +30,13 @@
 #include <debug.h>
 #include <err.h>
 #include <smem.h>
+#include <clock.h>
 #include <msm_panel.h>
 #include <string.h>
 #include <stdlib.h>
 #include <board.h>
 #include <mdp5.h>
+#include <qtimer.h>
 #include <platform/gpio.h>
 #include <mipi_dsi.h>
 
@@ -282,7 +284,6 @@ bool gcdb_display_cmdline_arg(char *panel_name, char *pbuf, uint16_t buf_size)
 		buf_size -= DSI_1_STRING_LEN;
 		strlcpy(pbuf, slave_panel_node, buf_size);
 	}
-end:
 	return ret;
 }
 

@@ -97,7 +97,6 @@ static uint32_t calculate_div1()
 
 static uint32_t calculate_div3(uint8_t bpp, uint8_t num_of_lanes)
 {
-	uint32_t ret = NO_ERROR;
 	pll_data.pclk_m = 0x1; /* M = 1, N= 1 */
 	pll_data.pclk_n = 0xFF; /* ~ (N-M) = 0xff */
 	pll_data.pclk_d = 0xFF; /* ~N = 0xFF */
@@ -138,6 +137,7 @@ static uint32_t calculate_div3(uint8_t bpp, uint8_t num_of_lanes)
 	}
 
 	pll_data.posdiv3--;	/* Register needs one value less */
+	return NO_ERROR;
 }
 
 static uint32_t calculate_dec_frac_start()
@@ -165,13 +165,11 @@ static uint32_t calculate_dec_frac_start()
 
 	dprintf(SPEW, "%s: dec_start=0x%x dec_frac=0x%x lock_comp=0x%x\n", __func__,
 		pll_data.dec_start, pll_data.frac_start, pll_data.lock_comp);
+	return NO_ERROR;
 }
 
 static uint32_t calculate_vco_28nm(uint8_t bpp, uint8_t num_of_lanes)
 {
-	uint8_t  counter = 0;
-	uint32_t temprate = 0;
-
 	/* If half bitclock is more than VCO min value */
 	if (pll_data.halfbit_clock > VCO_MIN_CLOCK) {
 
