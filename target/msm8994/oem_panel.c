@@ -28,11 +28,13 @@
  */
 
 #include <debug.h>
+#include <string.h>
 #include <err.h>
 #include <smem.h>
 #include <msm_panel.h>
 #include <board.h>
 #include <mipi_dsi.h>
+#include <qtimer.h>
 
 #include "include/panel.h"
 #include "panel_display.h"

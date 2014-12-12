@@ -30,6 +30,8 @@
 #include <debug.h>
 #include <platform.h>
 
+#include "include/msm_panel.h"
+
 __WEAK int mdp_lcdc_config(void)
 {
 	return 0;

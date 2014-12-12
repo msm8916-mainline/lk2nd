@@ -34,31 +34,6 @@
 /*---------------------------------------------------------------------------*/
 #include <display_resource.h>
 
-/*---------------------------------------------------------------------------*/
-/* GPIO configuration                                                        */
-/*---------------------------------------------------------------------------*/
-static struct gpio_pin reset_gpio = {
-  "msmgpio", 78, 3, 1, 0, 1
-};
-
-static struct gpio_pin lcd_reg_en = {	/* boost regulator */
-  "pm8994_gpios", 14, 3, 1, 0, 1
-};
-
-static struct gpio_pin bklt_gpio = {	/* lcd_bklt_reg_en */
-  "pmi8994_gpios", 2, 3, 1, 0, 1
-};
-
-/*---------------------------------------------------------------------------*/
-/* LDO configuration                                                         */
-/*---------------------------------------------------------------------------*/
-static struct ldo_entry ldo_entry_array[] = {
-  { "vdd", 14, 0, 1800000, 100000, 100, 0, 20, 0, 0},
-  { "vddio", 12, 0, 1800000, 100000, 100, 0, 20, 0, 0},
-  { "vdda", 2, 1, 1250000, 100000, 100, 0, 0, 0, 0},
-  { "vcca", 28, 1, 1000000, 10000, 100, 0, 0, 0, 0},
-};
-
 #define TOTAL_LDO_DEFINED 3
 
 /*---------------------------------------------------------------------------*/
@@ -107,3 +82,16 @@ static const uint32_t panel_physical_ctrl[] = {
 #define PWM_BL_LPG_CHAN_ID           4	/* lpg_out<3> */
 
 #endif
+
+/*---------------------------------------------------------------------------*/
+/* Functions		                                                     */
+/*---------------------------------------------------------------------------*/
+int target_display_pre_on();
+int target_display_pre_off();
+int target_display_post_on();
+int target_display_post_off();
+int target_cont_splash_screen();
+void target_force_cont_splash_disable(uint8_t override);
+uint8_t target_panel_auto_detect_enabled();
+
+

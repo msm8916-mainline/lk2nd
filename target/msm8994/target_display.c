@@ -28,6 +28,7 @@
  */
 
 #include <debug.h>
+#include <string.h>
 #include <smem.h>
 #include <err.h>
 #include <msm_panel.h>
@@ -39,12 +40,16 @@
 #include <mdp5.h>
 #include <scm.h>
 #include <endian.h>
+#include <regulator.h>
+#include <qtimer.h>
+#include <arch/defines.h>
 #include <platform/gpio.h>
 #include <platform/clock.h>
 #include <platform/iomap.h>
 #include <target/display.h>
 #include "include/panel.h"
 #include "include/display_resource.h"
+#include "gcdb_display.h"
 
 #define HFPLL_LDO_ID 12
 
@@ -56,6 +61,21 @@
 #define PWM_PERIOD_US 27
 #define PMIC_WLED_SLAVE_ID 3
 #define PMIC_MPP_SLAVE_ID 2
+
+/*---------------------------------------------------------------------------*/
+/* GPIO configuration                                                        */
+/*---------------------------------------------------------------------------*/
+static struct gpio_pin reset_gpio = {
+  "msmgpio", 78, 3, 1, 0, 1
+};
+
+static struct gpio_pin lcd_reg_en = {	/* boost regulator */
+  "pm8994_gpios", 14, 3, 1, 0, 1
+};
+
+static struct gpio_pin bklt_gpio = {	/* lcd_bklt_reg_en */
+  "pmi8994_gpios", 2, 3, 1, 0, 1
+};
 
 static void dsi_pll_20nm_phy_init( uint32_t pll_base, int off)
 {
@@ -363,12 +383,8 @@ int target_display_pre_on()
 
 bool target_display_panel_node(char *panel_name, char *pbuf, uint16_t buf_size)
 {
-	int prefix_string_len = strlen(DISPLAY_CMDLINE_PREFIX);
-	bool ret = true;
+	return gcdb_display_cmdline_arg(panel_name, pbuf, buf_size);
 
-	ret = gcdb_display_cmdline_arg(panel_name, pbuf, buf_size);
-
-	return ret;
 }
 
 void target_display_init(const char *panel_name)
@@ -384,7 +400,7 @@ void target_display_init(const char *panel_name)
 			panel_name);
 		return;
 	}
-	if (gcdb_display_init(panel_name, MDP_REV_50, MIPI_FB_ADDR)) {
+	if (gcdb_display_init(panel_name, MDP_REV_50, (void *)MIPI_FB_ADDR)) {
 		target_force_cont_splash_disable(true);
 		msm_display_off();
 	}
