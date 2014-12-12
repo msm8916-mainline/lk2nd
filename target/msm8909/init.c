@@ -298,7 +298,7 @@ void target_init(void)
 
 	target_keystatus();
 
-#if ENABLE_BOOT_CONFIG_SUPPORT
+#if BOOT_CONFIG_SUPPORT
 	platform_read_boot_config();
 #endif
 
@@ -348,7 +348,7 @@ void target_init(void)
 	if (target_use_signed_kernel())
 		target_crypto_init_params();
 
-#if ENABLE_SMD_SUPPORT
+#if SMD_SUPPORT
 	rpm_smd_init();
 #endif
 }
@@ -638,7 +638,7 @@ void target_uninit(void)
 	if (target_is_ssd_enabled())
 		clock_ce_disable(CE1_INSTANCE);
 
-#if ENABLE_SMD_SUPPORT
+#if SMD_SUPPORT
 	rpm_smd_uninit();
 #endif
 }
