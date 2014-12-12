@@ -56,4 +56,6 @@ void platform_uninit_timer(void);
 void reboot_device(unsigned);
 int set_download_mode(enum dload_mode mode);
 uint32_t platform_get_smem_base_addr();
+int platform_is_msm8909();
+int boot_device_mask(int);
 #endif
