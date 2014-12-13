@@ -305,6 +305,7 @@
 #undef MDP_INTF_1_TIMING_ENGINE_EN
 #endif
 #define MDP_INTF_1_TIMING_ENGINE_EN             REG_MDP(0x6b800)
+#define MDP_INTF_2_TIMING_ENGINE_EN             REG_MDP(0x6C000)
 
 #ifdef MDP_CTL_0_BASE
 #undef MDP_CTL_0_BASE
