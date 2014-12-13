@@ -79,7 +79,7 @@ uint32_t mdss_dsi_read_panel_signature(uint32_t panel_signature)
 	if (ret && ret != panel_signature)
 		goto exit_read_signature;
 
-	ret = mipi_dsi_cmds_tx(&read_ddb_start_cmd, 1);
+	ret = mdss_dsi_cmds_tx(&read_ddb_start_cmd, 1, 0);
 	if (ret)
 		goto exit_read_signature;
 	if (!mdss_dsi_cmds_rx(&lp, 1, 1))
@@ -99,24 +99,27 @@ exit_read_signature:
 	return ret;
 }
 
-int mdss_dual_dsi_cmd_dma_trigger_for_panel()
+static int mdss_dsi_cmd_dma_trigger_for_panel(char dual_dsi)
 {
 	uint32_t ReadValue;
 	uint32_t count = 0;
 	int status = 0;
+	uint32_t ctl_base = dual_dsi ? MIPI_DSI1_BASE : MIPI_DSI0_BASE;
 
 #if (DISPLAY_TYPE_MDSS == 1)
 	writel(0x03030303, MIPI_DSI0_BASE + INT_CTRL);
 	writel(0x1, MIPI_DSI0_BASE + CMD_MODE_DMA_SW_TRIGGER);
 	dsb();
 
-	writel(0x03030303, MIPI_DSI1_BASE + INT_CTRL);
-	writel(0x1, MIPI_DSI1_BASE + CMD_MODE_DMA_SW_TRIGGER);
-	dsb();
+	if (dual_dsi) {
+		writel(0x03030303, MIPI_DSI1_BASE + INT_CTRL);
+		writel(0x1, MIPI_DSI1_BASE + CMD_MODE_DMA_SW_TRIGGER);
+		dsb();
+	}
 
-	ReadValue = readl(MIPI_DSI1_BASE + INT_CTRL) & 0x00000001;
+	ReadValue = readl(ctl_base + INT_CTRL) & 0x00000001;
 	while (ReadValue != 0x00000001) {
-		ReadValue = readl(MIPI_DSI1_BASE + INT_CTRL) & 0x00000001;
+		ReadValue = readl(ctl_base + INT_CTRL) & 0x00000001;
 		count++;
 		if (count > 0xffff) {
 			status = FAIL;
@@ -126,57 +129,31 @@ int mdss_dual_dsi_cmd_dma_trigger_for_panel()
 		}
 	}
 
-	writel((readl(MIPI_DSI1_BASE + INT_CTRL) | 0x01000001),
-			MIPI_DSI1_BASE + INT_CTRL);
+	writel((readl(ctl_base + INT_CTRL) | 0x01000001),
+			ctl_base + INT_CTRL);
 	dprintf(SPEW, "Panel CMD: command mode dma tested successfully\n");
 #endif
 	return status;
 }
 
-int dsi_cmd_dma_trigger_for_panel()
-{
-	unsigned long ReadValue;
-	unsigned long count = 0;
-	int status = 0;
-
-	writel(0x03030303, DSI_INT_CTRL);
-	writel(0x1, DSI_CMD_MODE_DMA_SW_TRIGGER);
-	dsb();
-	ReadValue = readl(DSI_INT_CTRL) & 0x00000001;
-	while (ReadValue != 0x00000001) {
-		ReadValue = readl(DSI_INT_CTRL) & 0x00000001;
-		count++;
-		if (count > 0xffff) {
-			status = FAIL;
-			dprintf(CRITICAL,
-				"Panel CMD: command mode dma test failed\n");
-			return status;
-		}
-	}
-
-	writel((readl(DSI_INT_CTRL) | 0x01000001), DSI_INT_CTRL);
-	dprintf(SPEW, "Panel CMD: command mode dma tested successfully\n");
-	return status;
-}
-
-int mdss_dsi_wait4_video_done()
+static int mdss_dsi_wait4_video_done()
 {
 	unsigned long read;
 	unsigned long count = 0;
 	int status = 0;
 
 	/* If video mode is not enabled, return here */
-	if ((readl(DSI_CTRL) & BIT(1)) == 0)
+	if ((readl(MIPI_DSI0_BASE + CTRL) & BIT(1)) == 0)
 		return 0;
 
-	read = readl(DSI_INT_CTRL);
+	read = readl(MIPI_DSI0_BASE + INT_CTRL);
 	/* Enable VIDEO MODE DONE MASK and clear the interrupt */
 	read = read | DSI_VIDEO_MODE_DONE_MASK | DSI_VIDEO_MODE_DONE_AK;
-	writel(read, DSI_INT_CTRL);
+	writel(read, MIPI_DSI0_BASE + INT_CTRL);
 	dsb();
-	read = readl(DSI_INT_CTRL) & DSI_VIDEO_MODE_DONE_STAT;
-	while (!read) {
-		read = readl(DSI_INT_CTRL) & DSI_VIDEO_MODE_DONE_STAT;
+	do {
+		read = readl(MIPI_DSI0_BASE + INT_CTRL) &
+			DSI_VIDEO_MODE_DONE_STAT;
 		count++;
 		if (count > 0xffff) {
 			status = FAIL;
@@ -184,33 +161,34 @@ int mdss_dsi_wait4_video_done()
 				"Panel CMD: Did not recieve video mode done interrupt\n");
 			return status;
 		}
-	}
+	} while (!read);
 
-	writel((readl(DSI_INT_CTRL) | 0x01000001), DSI_INT_CTRL);
+	writel((readl(MIPI_DSI0_BASE + INT_CTRL) | 0x01000001),
+		MIPI_DSI0_BASE + INT_CTRL);
 	dprintf(SPEW, "Panel wait_4_video_done: Recieved video mode done ack\n");
 
 	/* Skip BLLP 4ms */
 	mdelay(4);
 
 	return status;
-
 }
 
-int mdss_dual_dsi_cmds_tx(struct mipi_dsi_cmd *cmds, int count)
+int mdss_dsi_cmds_tx(struct mipi_dsi_cmd *cmds, int count, char dual_dsi)
 {
 	int ret = 0;
+#if (DISPLAY_TYPE_MDSS == 1)
 	struct mipi_dsi_cmd *cm;
 	int i = 0;
-	char pload[256];
+	uint8_t pload[256];
 	uint32_t off;
+	uint32_t size;
 
-#if (DISPLAY_TYPE_MDSS == 1)
-	/* Align pload at 8 byte boundry */
-	off = pload;
+	/* Align pload at 8 byte boundary */
+	off = (uint32_t) pload;
 	off &= 0x07;
 	if (off)
 		off = 8 - off;
-	off += pload;
+	off += (uint32_t) pload;
 
 	cm = cmds;
 	for (i = 0; i < count; i++) {
@@ -219,13 +197,22 @@ int mdss_dual_dsi_cmds_tx(struct mipi_dsi_cmd *cmds, int count)
 		if (ret)
 			goto wait4video_error;
 
-		memcpy((void *)off, (cm->payload), cm->size);
+		/* The payload size has to be a multiple of 4 */
+		size = cm->size;
+		size &= 0x03;
+		if (size)
+			size = 4 - size;
+		size += cm->size;
+		memcpy((uint8_t *)off, (cm->payload), size);
 		writel(off, MIPI_DSI0_BASE + DMA_CMD_OFFSET);
-		writel(cm->size, MIPI_DSI0_BASE + DMA_CMD_LENGTH);	// reg 0x48 for this build
-		writel(off, MIPI_DSI1_BASE + DMA_CMD_OFFSET);
-		writel(cm->size, MIPI_DSI1_BASE + DMA_CMD_LENGTH);	// reg 0x48 for this build
+
+		writel(size, MIPI_DSI0_BASE + DMA_CMD_LENGTH);
+		if (dual_dsi) {
+			writel(off, MIPI_DSI1_BASE + DMA_CMD_OFFSET);
+			writel(size, MIPI_DSI1_BASE + DMA_CMD_LENGTH);
+		}
 		dsb();
-		ret += mdss_dual_dsi_cmd_dma_trigger_for_panel();
+		ret += mdss_dsi_cmd_dma_trigger_for_panel(dual_dsi);
 		if (cm->wait)
 			mdelay(cm->wait);
 		else
@@ -289,101 +276,7 @@ int mdss_dsi_cmds_rx(uint32_t **rp, int rp_len, int rdbk_len)
 	return rdbk_len;
 }
 
-int mipi_dsi_cmds_tx(struct mipi_dsi_cmd *cmds, int count)
-{
-	int ret = 0;
-	struct mipi_dsi_cmd *cm;
-	int i = 0;
-	char pload[256];
-	uint32_t off;
-
-	/* Align pload at 8 byte boundry */
-	off = pload;
-	off &= 0x07;
-	if (off)
-		off = 8 - off;
-	off += pload;
-
-	cm = cmds;
-	for (i = 0; i < count; i++) {
-		/* Wait for VIDEO_MODE_DONE */
-		ret = mdss_dsi_wait4_video_done();
-		if (ret)
-			goto mipi_cmds_error;
-
-		memcpy((void *)off, (cm->payload), cm->size);
-		writel(off, DSI_DMA_CMD_OFFSET);
-		writel(cm->size, DSI_DMA_CMD_LENGTH);	// reg 0x48 for this build
-		dsb();
-		ret += dsi_cmd_dma_trigger_for_panel();
-		dsb();
-		if (cm->wait)
-			mdelay(cm->wait);
-		else
-			udelay(80);
-		cm++;
-	}
-mipi_cmds_error:
-	return ret;
-}
-
-/*
- * mipi_dsi_cmd_rx: can receive at most 16 bytes
- * per transaction since it only have 4 32bits reigsters
- * to hold data.
- * therefore Maximum Return Packet Size need to be set to 16.
- * any return data more than MRPS need to be break down
- * to multiple transactions.
- */
-int mipi_dsi_cmds_rx(char **rp, int len)
-{
-	uint32_t *lp, data;
-	char *dp;
-	int i, off, cnt;
-	int rlen, res;
-
-	if (len <= 2)
-		rlen = 4;	/* short read */
-	else
-		rlen = MIPI_DSI_MRPS + 6;	/* 4 bytes header + 2 bytes crc */
-
-	if (rlen > MIPI_DSI_REG_LEN) {
-		return 0;
-	}
-
-	res = rlen & 0x03;
-
-	rlen += res;		/* 4 byte align */
-	lp = (uint32_t *) (*rp);
-
-	cnt = rlen;
-	cnt += 3;
-	cnt >>= 2;
-
-	if (cnt > 4)
-		cnt = 4;	/* 4 x 32 bits registers only */
-
-	off = 0x068;		/* DSI_RDBK_DATA0 */
-	off += ((cnt - 1) * 4);
-
-	for (i = 0; i < cnt; i++) {
-		data = (uint32_t) readl(MIPI_DSI_BASE + off);
-		*lp++ = ntohl(data);	/* to network byte order */
-		off -= 4;
-	}
-
-	if (len > 2) {
-		/*First 4 bytes + paded bytes will be header next len bytes would be payload */
-		for (i = 0; i < len; i++) {
-			dp = *rp;
-			dp[i] = dp[4 + res + i];
-		}
-	}
-
-	return len;
-}
-
-static int mipi_dsi_cmd_bta_sw_trigger(void)
+static int mdss_dsi_cmd_bta_sw_trigger(void)
 {
 	uint32_t data;
 	int cnt = 0;
@@ -523,12 +416,10 @@ void mdss_dsi_panel_shutdown(struct msm_panel_info *pinfo)
 				writel(((read_val & ~BIT(1)) | BIT(2)),
 							MIPI_DSI1_BASE + CTRL);
 			}
-			mdss_dual_dsi_cmds_tx(pinfo->mipi.panel_off_cmds,
-					pinfo->mipi.num_of_panel_off_cmds);
-		} else {
-			mipi_dsi_cmds_tx(pinfo->mipi.panel_off_cmds,
-					pinfo->mipi.num_of_panel_off_cmds);
 		}
+		mdss_dsi_cmds_tx(pinfo->mipi.panel_off_cmds,
+			pinfo->mipi.num_of_panel_off_cmds,
+			pinfo->mipi.broadcast);
 	}
 #endif
 }
@@ -540,138 +431,27 @@ int mdss_dsi_panel_initialize(struct mipi_dsi_panel_config *pinfo, uint32_t
 	uint32_t ctrl_mode = 0;
 
 #if (DISPLAY_TYPE_MDSS == 1)
-	if (pinfo->panel_on_cmds) {
+	if (!pinfo->panel_on_cmds)
+		goto end;
 
-		ctrl_mode = readl(MIPI_DSI0_BASE + CTRL);
-		if (broadcast) {
-			/* Enable command mode before sending the commands. */
-			writel(ctrl_mode | 0x04, MIPI_DSI0_BASE + CTRL);
-			writel(ctrl_mode | 0x04, MIPI_DSI1_BASE + CTRL);
-			status = mdss_dual_dsi_cmds_tx(pinfo->panel_on_cmds,
-					pinfo->num_of_panel_on_cmds);
-			writel(ctrl_mode, MIPI_DSI0_BASE + CTRL);
-			writel(ctrl_mode, MIPI_DSI1_BASE + CTRL);
+	ctrl_mode = readl(MIPI_DSI0_BASE + CTRL);
 
-		} else {
-			/* Enable command mode before sending the commands. */
-			writel(ctrl_mode | 0x04, MIPI_DSI0_BASE + CTRL);
-			status = mipi_dsi_cmds_tx(pinfo->panel_on_cmds,
-					pinfo->num_of_panel_on_cmds);
-			writel(ctrl_mode, MIPI_DSI0_BASE + CTRL);
-			if (!status && target_panel_auto_detect_enabled())
-				status =
-					mdss_dsi_read_panel_signature(pinfo->signature);
-			dprintf(SPEW, "Read panel signature status = 0x%x \n", status);
-		}
-	}
+	/* Enable command mode before sending the commands. */
+	writel(ctrl_mode | 0x04, MIPI_DSI0_BASE + CTRL);
+	if (broadcast)
+		writel(ctrl_mode | 0x04, MIPI_DSI1_BASE + CTRL);
+	status = mdss_dsi_cmds_tx(pinfo->panel_on_cmds,
+			pinfo->num_of_panel_on_cmds, broadcast);
+	writel(ctrl_mode, MIPI_DSI0_BASE + CTRL);
+	if (broadcast)
+		writel(ctrl_mode, MIPI_DSI1_BASE + CTRL);
+
+	if (!broadcast && !status && target_panel_auto_detect_enabled())
+		status = mdss_dsi_read_panel_signature(pinfo->signature);
+
+end:
 #endif
 	return status;
-}
-
-int mipi_dsi_panel_initialize(struct mipi_dsi_panel_config *pinfo)
-{
-	uint8_t DMA_STREAM1 = 0;	// for mdp display processor path
-	uint8_t EMBED_MODE1 = 1;	// from frame buffer
-	uint8_t POWER_MODE2 = 1;	// from frame buffer
-	uint8_t PACK_TYPE1;		// long packet
-	uint8_t VC1 = 0;
-	uint8_t DT1 = 0;	// non embedded mode
-	uint8_t WC1 = 0;	// for non embedded mode only
-	int status = 0;
-	uint8_t DLNx_EN;
-
-	switch (pinfo->num_of_lanes) {
-	default:
-	case 1:
-		DLNx_EN = 1;	// 1 lane
-		break;
-	case 2:
-		DLNx_EN = 3;	// 2 lane
-		break;
-	case 3:
-		DLNx_EN = 7;	// 3 lane
-		break;
-	case 4:
-		DLNx_EN = 0x0F;	/* 4 lanes */
-		break;
-	}
-
-	PACK_TYPE1 = pinfo->pack;
-
-	writel(0x0001, DSI_SOFT_RESET);
-	writel(0x0000, DSI_SOFT_RESET);
-
-	writel((0 << 16) | 0x3f, DSI_CLK_CTRL);	/* Turn on all DSI Clks */
-	writel(DMA_STREAM1 << 8 | 0x04, DSI_TRIG_CTRL);	// reg 0x80 dma trigger: sw
-	// trigger 0x4; dma stream1
-
-	writel(0 << 30 | DLNx_EN << 4 | 0x105, DSI_CTRL);	// reg 0x00 for this
-	// build
-	writel(EMBED_MODE1 << 28 | POWER_MODE2 << 26
-	       | PACK_TYPE1 << 24 | VC1 << 22 | DT1 << 16 | WC1,
-	       DSI_COMMAND_MODE_DMA_CTRL);
-
-	if (pinfo->panel_on_cmds)
-		status = mipi_dsi_cmds_tx(pinfo->panel_on_cmds,
-					  pinfo->num_of_panel_on_cmds);
-
-	return status;
-}
-
-void mipi_dsi_shutdown(void)
-{
-	if(!target_cont_splash_screen())
-	{
-		mdp_shutdown();
-		writel(0x01010101, DSI_INT_CTRL);
-		writel(0x13FF3BFF, DSI_ERR_INT_MASK0);
-
-		writel(0, DSI_CLK_CTRL);
-		writel(0, DSI_CTRL);
-		writel(0, DSIPHY_PLL_CTRL(0));
-	}
-	else
-	{
-        /* To keep the splash screen displayed till kernel driver takes
-        control, do not turn off the video mode engine and clocks.
-        Only disabling the MIPI DSI IRQs */
-        writel(0x01010101, DSI_INT_CTRL);
-        writel(0x13FF3BFF, DSI_ERR_INT_MASK0);
-	}
-}
-
-int mipi_config(struct msm_fb_panel_data *panel)
-{
-	int ret = NO_ERROR;
-	struct msm_panel_info *pinfo;
-	struct mipi_dsi_panel_config mipi_pinfo;
-
-	if (!panel)
-		return ERR_INVALID_ARGS;
-
-	pinfo = &(panel->panel_info);
-	mipi_pinfo.mode = pinfo->mipi.mode;
-	mipi_pinfo.num_of_lanes = pinfo->mipi.num_of_lanes;
-	mipi_pinfo.dsi_phy_config = pinfo->mipi.dsi_phy_db;
-	mipi_pinfo.panel_on_cmds = pinfo->mipi.panel_on_cmds;
-	mipi_pinfo.num_of_panel_on_cmds = pinfo->mipi.num_of_panel_on_cmds;
-	mipi_pinfo.lane_swap = pinfo->mipi.lane_swap;
-	mipi_pinfo.pack = 1;
-
-	/* Enable MMSS_AHB_ARB_MATER_PORT_E for
-	   arbiter master0 and master 1 request */
-#if (!DISPLAY_MIPI_PANEL_RENESAS && !DISPLAY_TYPE_DSI6G && !DISPLAY_TYPE_8610)
-	writel(0x00001800, MMSS_SFPB_GPREG);
-#endif
-
-	mipi_dsi_phy_init(&mipi_pinfo);
-
-	ret += mipi_dsi_panel_initialize(&mipi_pinfo);
-
-	if (pinfo->rotate && panel->rotate)
-		pinfo->rotate();
-
-	return ret;
 }
 
 int mdss_dsi_video_mode_config(uint16_t disp_width,
@@ -927,12 +707,12 @@ int mipi_dsi_on()
 	unsigned long ReadValue;
 	unsigned long count = 0;
 
-	ReadValue = readl(DSI_INT_CTRL) & 0x00010000;
+	ReadValue = readl(MIPI_DSI0_BASE + INT_CTRL) & 0x00010000;
 
 	mdelay(10);
 
 	while (ReadValue != 0x00010000) {
-		ReadValue = readl(DSI_INT_CTRL) & 0x00010000;
+		ReadValue = readl(MIPI_DSI0_BASE + INT_CTRL) & 0x00010000;
 		count++;
 		if (count > 0xffff) {
 			dprintf(CRITICAL, "Video lane test failed\n");
@@ -949,8 +729,8 @@ int mipi_dsi_off(struct msm_panel_info *pinfo)
 	if(!target_cont_splash_screen())
 	{
 		mdss_dsi_panel_shutdown(pinfo);
-		writel(0, DSI_CLK_CTRL);
-		writel(0, DSI_CTRL);
+		writel(0, MIPI_DSI0_BASE + CLK_CTRL);
+		writel(0x1F1, MIPI_DSI0_BASE + CTRL);
 	}
 
 	writel(0x1115501, MIPI_DSI0_BASE + INT_CTRL);
@@ -960,9 +740,241 @@ int mipi_dsi_off(struct msm_panel_info *pinfo)
 	return NO_ERROR;
 }
 
+#if (DISPLAY_TYPE_MDSS == 0)
+static int dsi_cmd_dma_trigger_for_panel()
+{
+	unsigned long ReadValue;
+	unsigned long count = 0;
+	int status = 0;
+
+	writel(0x03030303, DSI_INT_CTRL);
+	writel(0x1, DSI_CMD_MODE_DMA_SW_TRIGGER);
+	dsb();
+	ReadValue = readl(DSI_INT_CTRL) & 0x00000001;
+	while (ReadValue != 0x00000001) {
+		ReadValue = readl(DSI_INT_CTRL) & 0x00000001;
+		count++;
+		if (count > 0xffff) {
+			status = FAIL;
+			dprintf(CRITICAL,
+				"Panel CMD: command mode dma test failed\n");
+			return status;
+		}
+	}
+
+	writel((readl(DSI_INT_CTRL) | 0x01000001), DSI_INT_CTRL);
+	dprintf(SPEW, "Panel CMD: command mode dma tested successfully\n");
+	return status;
+}
+
+int mipi_dsi_cmds_tx(struct mipi_dsi_cmd *cmds, int count)
+{
+	int ret = 0;
+	struct mipi_dsi_cmd *cm;
+	int i = 0;
+	char pload[256];
+	uint32_t off;
+
+	/* Align pload at 8 byte boundry */
+	off = pload;
+	off &= 0x07;
+	if (off)
+		off = 8 - off;
+	off += pload;
+
+	cm = cmds;
+	for (i = 0; i < count; i++) {
+		/* Wait for VIDEO_MODE_DONE */
+		ret = mdss_dsi_wait4_video_done();
+		if (ret)
+			goto mipi_cmds_error;
+
+		memcpy((void *)off, (cm->payload), cm->size);
+		writel(off, DSI_DMA_CMD_OFFSET);
+		writel(cm->size, DSI_DMA_CMD_LENGTH);	// reg 0x48 for this build
+		dsb();
+		ret += dsi_cmd_dma_trigger_for_panel();
+		dsb();
+		if (cm->wait)
+			mdelay(cm->wait);
+		else
+			udelay(80);
+		cm++;
+	}
+mipi_cmds_error:
+	return ret;
+}
+
+/*
+ * mipi_dsi_cmd_rx: can receive at most 16 bytes
+ * per transaction since it only have 4 32bits reigsters
+ * to hold data.
+ * therefore Maximum Return Packet Size need to be set to 16.
+ * any return data more than MRPS need to be break down
+ * to multiple transactions.
+ */
+int mipi_dsi_cmds_rx(char **rp, int len)
+{
+	uint32_t *lp, data;
+	char *dp;
+	int i, off, cnt;
+	int rlen, res;
+
+	if (len <= 2)
+		rlen = 4;	/* short read */
+	else
+		rlen = MIPI_DSI_MRPS + 6;	/* 4 bytes header + 2 bytes crc */
+
+	if (rlen > MIPI_DSI_REG_LEN) {
+		return 0;
+	}
+
+	res = rlen & 0x03;
+
+	rlen += res;		/* 4 byte align */
+	lp = (uint32_t *) (*rp);
+
+	cnt = rlen;
+	cnt += 3;
+	cnt >>= 2;
+
+	if (cnt > 4)
+		cnt = 4;	/* 4 x 32 bits registers only */
+
+	off = 0x068;		/* DSI_RDBK_DATA0 */
+	off += ((cnt - 1) * 4);
+
+	for (i = 0; i < cnt; i++) {
+		data = (uint32_t) readl(MIPI_DSI_BASE + off);
+		*lp++ = ntohl(data);	/* to network byte order */
+		off -= 4;
+	}
+
+	if (len > 2) {
+		/*First 4 bytes + paded bytes will be header next len bytes would be payload */
+		for (i = 0; i < len; i++) {
+			dp = *rp;
+			dp[i] = dp[4 + res + i];
+		}
+	}
+
+	return len;
+}
+
+static int mipi_dsi_panel_initialize(struct mipi_dsi_panel_config *pinfo)
+{
+	uint8_t DMA_STREAM1 = 0;	// for mdp display processor path
+	uint8_t EMBED_MODE1 = 1;	// from frame buffer
+	uint8_t POWER_MODE2 = 1;	// from frame buffer
+	uint8_t PACK_TYPE1;		// long packet
+	uint8_t VC1 = 0;
+	uint8_t DT1 = 0;	// non embedded mode
+	uint8_t WC1 = 0;	// for non embedded mode only
+	int status = 0;
+	uint8_t DLNx_EN;
+
+	switch (pinfo->num_of_lanes) {
+	default:
+	case 1:
+		DLNx_EN = 1;	// 1 lane
+		break;
+	case 2:
+		DLNx_EN = 3;	// 2 lane
+		break;
+	case 3:
+		DLNx_EN = 7;	// 3 lane
+		break;
+	case 4:
+		DLNx_EN = 0x0F;	/* 4 lanes */
+		break;
+	}
+
+	PACK_TYPE1 = pinfo->pack;
+
+	writel(0x0001, DSI_SOFT_RESET);
+	writel(0x0000, DSI_SOFT_RESET);
+
+	writel((0 << 16) | 0x3f, DSI_CLK_CTRL);	/* Turn on all DSI Clks */
+	writel(DMA_STREAM1 << 8 | 0x04, DSI_TRIG_CTRL);	// reg 0x80 dma trigger: sw
+	// trigger 0x4; dma stream1
+
+	writel(0 << 30 | DLNx_EN << 4 | 0x105, DSI_CTRL);	// reg 0x00 for this
+	// build
+	writel(EMBED_MODE1 << 28 | POWER_MODE2 << 26
+	       | PACK_TYPE1 << 24 | VC1 << 22 | DT1 << 16 | WC1,
+	       DSI_COMMAND_MODE_DMA_CTRL);
+
+	if (pinfo->panel_on_cmds)
+		status = mipi_dsi_cmds_tx(pinfo->panel_on_cmds,
+					  pinfo->num_of_panel_on_cmds);
+
+	return status;
+}
+#endif
+
+void mipi_dsi_shutdown(void)
+{
+#if (DISPLAY_TYPE_MDSS == 0)
+	if(!target_cont_splash_screen())
+	{
+		mdp_shutdown();
+		writel(0x01010101, DSI_INT_CTRL);
+		writel(0x13FF3BFF, DSI_ERR_INT_MASK0);
+
+		writel(0, DSI_CLK_CTRL);
+		writel(0, DSI_CTRL);
+		writel(0, DSIPHY_PLL_CTRL(0));
+	}
+	else
+	{
+        /* To keep the splash screen displayed till kernel driver takes
+        control, do not turn off the video mode engine and clocks.
+        Only disabling the MIPI DSI IRQs */
+        writel(0x01010101, DSI_INT_CTRL);
+        writel(0x13FF3BFF, DSI_ERR_INT_MASK0);
+	}
+#endif
+}
+
 int mipi_cmd_trigger()
 {
+#if (DISPLAY_TYPE_MDSS == 0)
 	writel(0x1, DSI_CMD_MODE_MDP_SW_TRIGGER);
-
+#endif
 	return NO_ERROR;
+}
+
+int mipi_config(struct msm_fb_panel_data *panel)
+{
+	int ret = NO_ERROR;
+#if (DISPLAY_TYPE_MDSS == 0)
+	struct msm_panel_info *pinfo;
+	struct mipi_dsi_panel_config mipi_pinfo;
+
+	if (!panel)
+		return ERR_INVALID_ARGS;
+
+	pinfo = &(panel->panel_info);
+	mipi_pinfo.mode = pinfo->mipi.mode;
+	mipi_pinfo.num_of_lanes = pinfo->mipi.num_of_lanes;
+	mipi_pinfo.dsi_phy_config = pinfo->mipi.dsi_phy_db;
+	mipi_pinfo.panel_on_cmds = pinfo->mipi.panel_on_cmds;
+	mipi_pinfo.num_of_panel_on_cmds = pinfo->mipi.num_of_panel_on_cmds;
+	mipi_pinfo.lane_swap = pinfo->mipi.lane_swap;
+	mipi_pinfo.pack = 1;
+
+	/* Enable MMSS_AHB_ARB_MATER_PORT_E for
+	   arbiter master0 and master 1 request */
+#if (!DISPLAY_MIPI_PANEL_RENESAS && !DISPLAY_TYPE_DSI6G && !DISPLAY_TYPE_8610)
+	writel(0x00001800, MMSS_SFPB_GPREG);
+#endif
+
+	mipi_dsi_phy_init(&mipi_pinfo);
+
+	ret += mipi_dsi_panel_initialize(&mipi_pinfo);
+
+	if (pinfo->rotate && panel->rotate)
+		pinfo->rotate();
+#endif
+	return ret;
 }
