@@ -380,9 +380,6 @@ bool oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	case HW_PLATFORM_LIQUID:
 		panel_id = JDI_4K_DUALDSI_VIDEO_PANEL;
 		break;
-	case HW_PLATFORM_DRAGON:
-		panel_id = HX8379A_TRULY_FWVGA_VIDEO_PANEL;
-		break;
 	default:
 		dprintf(CRITICAL, "Display not enabled for %d HW type\n"
 					, hw_id);
