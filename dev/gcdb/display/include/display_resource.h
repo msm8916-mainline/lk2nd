@@ -42,6 +42,11 @@
 #define LK_OVERRIDE_PANEL      "1:"
 #define LK_OVERRIDE_PANEL_LEN  2
 
+#define DSI_0_STRING           ":0:"
+#define DSI_0_STRING_LEN       3
+#define DSI_1_STRING           ":1:"
+#define DSI_1_STRING_LEN       3
+
 #define NO_PANEL_CONFIG "none"
 #define SIM_VIDEO_PANEL "sim_video_panel"
 #define SIM_DUALDSI_VIDEO_PANEL "sim_dualdsi_video_panel"
