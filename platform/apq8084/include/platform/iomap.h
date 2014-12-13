@@ -247,7 +247,6 @@
 #define DSI1_PHY_BASE               (0xFD923100)
 #define DSI0_PLL_BASE               (0xFD922A00)
 #define DSI1_PLL_BASE               (0xFD923000)
-#define REG_DSI(off)                (MIPI_DSI_BASE + 0x04 + (off))
 #define MDP_BASE                    (0xfd900000)
 #define REG_MDP(off)                (MDP_BASE + (off))
 #define MDP_VP_0_VIG_0_BASE         REG_MDP(0x1200)

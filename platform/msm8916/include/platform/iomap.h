@@ -159,8 +159,6 @@
 #define DSI1_PHY_BASE               (0x1AA0500)
 #define DSI0_PLL_BASE               (0x1A98300)
 #define DSI1_PLL_BASE               DSI0_PLL_BASE
-#define DSIPHY_PLL_CTRL(x)       REG_DSI(DSI0_PLL_BASE + (x) * 4)
-#define REG_DSI(off)                (MIPI_DSI_BASE + 0x04 + (off))
 #define MDP_BASE                    (0x1A00000)
 #define REG_MDP(off)                (MDP_BASE + (off))
 #define MDP_HW_REV                              REG_MDP(0x1000)
