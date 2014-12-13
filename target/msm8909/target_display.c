@@ -216,10 +216,9 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 
 int target_ldo_ctrl(uint8_t enable)
 {
-	/*
-	 * The PMIC regulators needed for display are enabled in SBL.
-	 * There is no access to the regulators is LK.
-	 */
+	if (enable)
+		regulator_enable();     /* L2, L6, and L17 */
+
 	return NO_ERROR;
 }
 
