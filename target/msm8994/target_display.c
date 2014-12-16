@@ -77,51 +77,20 @@ static struct gpio_pin bklt_gpio = {	/* lcd_bklt_reg_en */
   "pmi8994_gpios", 2, 3, 1, 0, 1
 };
 
-static void dsi_pll_20nm_phy_init( uint32_t pll_base, int off)
-{
-	mdss_dsi_pll_20nm_sw_reset_st_machine(pll_base);
-
-	dmb();
-
-        /* MMSS_DSI_0_PHY_DSIPHY_CTRL_1 */
-        writel(0x80, pll_base + off + 0x0174);
-
-        /* MMSS_DSI_0_PHY_DSIPHY_CTRL_1 */
-        writel(0x00, pll_base + off + 0x0174);
-        udelay(5000);
-        /* Strength ctrl 0 */
-        writel(0x77, pll_base + off + 0x0184);
-        /* MMSS_DSI_0_PHY_DSIPHY_CTRL_0 */
-        writel(0x7f, pll_base + off + 0x0170);
-
-        /* DSI_0_PHY_DSIPHY_GLBL_TEST_CTRL */
-        writel(0x00, pll_base + off + 0x01d4);
-
-        /* MMSS_DSI_0_PHY_DSIPHY_CTRL_2 */
-        writel(0x00, pll_base + off + 0x0178);
-}
-
 static uint32_t dsi_pll_20nm_enable_seq(uint32_t pll_base)
 {
 	uint32_t pll_locked;
-
-        /*
-         * PLL power up sequence.
-         * Add necessary delays recommeded by hardware.
-         */
-        writel(0x01, pll_base + 0x9c); /* MMSS_DSI_PHY_PLL_PLLLOCK_CMP_EN */
-        writel(0x07, pll_base + 0x14); /* MMSS_DSI_PHY_PLL_PLL_CNTRL */
-        writel(0x00, pll_base + 0x2c); /* MMSS_DSI_PHY_PLL_PLL_BKG_KVCO_CAL_EN */
-        udelay(500);
-
-        dsi_pll_20nm_phy_init(pll_base, 0x200); /* Ctrl 0 */
+	/* MDSS_DSI_0_PHY_DSIPHY_CTRL_1 */
+	writel(0x00, pll_base + 0x374);
 	dmb();
-
-        pll_locked = mdss_dsi_pll_20nm_lock_status(pll_base);
-        if (!pll_locked)
-                dprintf(INFO, "%s: DSI PLL lock failed\n", __func__);
-        else
-                dprintf(INFO, "%s: DSI PLL lock Success\n", __func__);
+	/* MDSS_DSI_0_PHY_DSIPHY_CTRL_0 */
+	writel(0x7f, pll_base + 0x370);
+	dmb();
+	pll_locked = mdss_dsi_pll_20nm_lock_status(pll_base);
+	if (!pll_locked)
+		dprintf(INFO, "%s: DSI PLL lock failed\n", __func__);
+	else
+		dprintf(INFO, "%s: DSI PLL lock Success\n", __func__);
 
 	return  pll_locked;
 }
