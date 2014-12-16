@@ -141,9 +141,15 @@
 #define QPNP_WLED_IBB_BIAS_SHIFT               7
 #define QPNP_WLED_IBB_PWRUP_DLY_MASK           0xCF
 #define QPNP_WLED_IBB_PWRUP_DLY_SHIFT          4
-#define QPNP_WLED_IBB_PWRUP_DLY_MIN_MS         1
-#define QPNP_WLED_IBB_PWRUP_DLY_MAX_MS         8
-
+#define QPNP_WLED_IBB_PWRUP_DLY_MIN_MS         0
+#define QPNP_WLED_IBB_PWRUP_DLY_MAX_MS         3
+#define QPNP_WLED_IBB_PWRDN_DLY_MIN_MS         0
+#define QPNP_WLED_IBB_PWRDN_DLY_MAX_MS         3
+#define IBB_LAB_VREG_STEP_SIZE                 100000
+#define QPNP_LABIBB_OUTPUT_VOLTAGE             0x41
+#define QPNP_LAB_OUTPUT_OVERRIDE_EN            BIT(7)
+#define QPNP_LAB_SET_VOLTAGE_MASK              (BIT(4) - 1)
+#define QPNP_IBB_SET_VOLTAGE_MASK              (BIT(6) - 1)
 #define QPNP_WLED_LAB_IBB_RDY_REG(b)           (b + 0x49)
 #define QPNP_WLED_LAB_FAST_PC_REG(b)           (b + 0x5E)
 #define QPNP_WLED_LAB_FAST_PC_MASK             0xFB
@@ -233,6 +239,8 @@ struct qpnp_wled {
 	uint16_t boost_duty_ns;
 	uint16_t fs_curr_ua;
 	uint16_t ibb_pwrup_dly_ms;
+	uint16_t ibb_pwrdn_dly_ms;
+	uint16_t ibb_discharge_en;
 	uint16_t ramp_ms;
 	uint16_t ramp_step;
 	uint8_t strings[QPNP_WLED_MAX_STRINGS];
@@ -243,11 +251,29 @@ struct qpnp_wled {
 	bool disp_type_amoled;
 	bool ibb_bias_active;
 	bool lab_fast_precharge;
+	uint32_t lab_min_volt;
+	uint32_t lab_max_volt;
+	uint32_t ibb_min_volt;
+	uint32_t ibb_max_volt;
+	uint32_t ibb_init_volt;
+	uint32_t lab_init_volt;
 };
 
+struct qpnp_wled_config_data {
+	bool display_type;
+	char pwr_up_delay;
+	char pwr_down_delay;
+	char ibb_discharge_en;
+	uint32_t lab_min_volt;
+	uint32_t lab_max_volt;
+	uint32_t ibb_min_volt;
+	uint32_t ibb_max_volt;
+	uint32_t ibb_init_volt;
+	uint32_t lab_init_volt;
+};
 /* WLED Initial Setup */
-int qpnp_wled_init();
+int qpnp_wled_init(struct qpnp_wled_config_data *config);
 
 /* Enable IBB */
-int qpnp_ibb_enable();
+int qpnp_ibb_enable(bool state);
 void qpnp_wled_enable_backlight(int enable);
