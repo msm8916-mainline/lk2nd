@@ -30,6 +30,7 @@
 #include <debug.h>
 #include <reg.h>
 #include <platform/iomap.h>
+#include <platform.h>
 
 static uint32_t kernel_load_start;
 void bs_set_timestamp(enum bs_entry bs_id)

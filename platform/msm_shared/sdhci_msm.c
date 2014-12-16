@@ -191,7 +191,7 @@ void sdhci_msm_init(struct sdhci_host *host, struct sdhci_msm_data *config)
 	/*
 	 * Register the interrupt handler for pwr irq
 	 */
-	register_int_handler(config->pwr_irq, sdhci_int_handler, (void *)config);
+	register_int_handler(config->pwr_irq, (int_handler)sdhci_int_handler, (void *)config);
 
 	unmask_interrupt(config->pwr_irq);
 
@@ -418,7 +418,7 @@ static int sdhci_msm_find_appropriate_phase(struct sdhci_host *host,
 										   uint32_t total_phases)
 {
 	int sub_phases[MAX_PHASES][MAX_PHASES]={{0}};
-	int phases_per_row[MAX_PHASES] = {0};
+	uint32_t phases_per_row[MAX_PHASES] = {0};
 	uint32_t i,j;
 	int selected_phase = 0;
 	uint32_t row_index = 0;
@@ -660,14 +660,14 @@ uint32_t sdhci_msm_execute_tuning(struct sdhci_host *host, struct mmc_card *card
 {
 	uint32_t *tuning_block;
 	uint32_t *tuning_data;
-	uint32_t tuned_phases[MAX_PHASES] = {{0}};
+	uint32_t tuned_phases[MAX_PHASES] = {0};
 	uint32_t size;
 	uint32_t phase = 0;
 	uint32_t tuned_phase_cnt = 0;
 	uint8_t drv_type = 0;
 	bool drv_type_changed = false;
 	int ret = 0;
-	int i;
+	uint32_t i;
 	struct sdhci_msm_data *msm_host;
 
 	msm_host = host->msm_host;
@@ -686,12 +686,12 @@ uint32_t sdhci_msm_execute_tuning(struct sdhci_host *host, struct mmc_card *card
 
 	if (bus_width == DATA_BUS_WIDTH_8BIT)
 	{
-		tuning_block = tuning_block_128;
+		tuning_block = (uint32_t *)tuning_block_128;
 		size = sizeof(tuning_block_128);
 	}
 	else
 	{
-		tuning_block = tuning_block_64;
+		tuning_block = (uint32_t *)tuning_block_64;
 		size = sizeof(tuning_block_64);
 	}
 

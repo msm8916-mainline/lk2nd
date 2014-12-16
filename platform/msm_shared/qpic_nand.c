@@ -903,10 +903,9 @@ qpic_nand_blk_erase(uint32_t page)
 	struct cmd_element *cmd_list_read_ptr = ce_read_array;
 	struct cmd_element *cmd_list_ptr_start = ce_array;
 	struct cmd_element *cmd_list_read_ptr_start = ce_read_array;
-	uint32_t status;
+	uint32_t status, nand_ret;
 	int num_desc = 0;
 	uint32_t blk_addr = page / flash.num_pages_per_blk;
-	int nand_ret;
 
 	/* Erase only if the block is not bad */
 	if (qpic_nand_block_isbad(page))
@@ -1277,7 +1276,6 @@ void
 qpic_nand_init(struct qpic_nand_init_config *config)
 {
 	uint32_t i;
-	int nand_ret;
 
 	nand_base = config->nand_base;
 
@@ -1383,7 +1381,6 @@ qpic_nand_read_page(uint32_t page, unsigned char* buffer, unsigned char* sparead
 	uint8_t flags = 0;
 	uint32_t *cmd_list_temp = NULL;
 
-	uint32_t temp_status = 0;
 	/* UD bytes in last CW is 512 - cws_per_page *4.
 	 * Since each of the CW read earlier reads 4 spare bytes.
 	 */
@@ -1498,7 +1495,7 @@ qpic_nand_read_page(uint32_t page, unsigned char* buffer, unsigned char* sparead
 
 		bam_add_cmd_element(cmd_list_ptr, NAND_FLASH_STATUS, (uint32_t)PA((addr_t)&(flash_sts[i])), CE_READ_TYPE);
 
-		cmd_list_temp = cmd_list_ptr;
+		cmd_list_temp = (uint32_t *)cmd_list_ptr;
 
 		cmd_list_ptr++;
 

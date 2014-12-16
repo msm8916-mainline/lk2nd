@@ -37,6 +37,7 @@
 #include <board.h>
 #include <list.h>
 #include <kernel/thread.h>
+#include <target.h>
 
 struct dt_entry_v1
 {
@@ -455,7 +456,7 @@ void *dev_tree_appended(void *kernel, uint32_t kernel_size, void *tags)
 			break;
 		dtb_size = fdt_totalsize(&dtb_hdr);
 
-		if (check_aboot_addr_range_overlap(tags, dtb_size)) {
+		if (check_aboot_addr_range_overlap((uint32_t)tags, dtb_size)) {
 			dprintf(CRITICAL, "Tags addresses overlap with aboot addresses.\n");
 			return NULL;
 		}

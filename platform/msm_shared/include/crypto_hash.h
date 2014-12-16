@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -132,4 +132,9 @@ static crypto_result_type crypto_sha1(unsigned char *buff_ptr,
 				      unsigned char *digest_ptr);
 
 bool crypto_initialized(void);
+void
+hash_find(unsigned char *addr, unsigned int size, unsigned char *digest,
+          unsigned char auth_alg);
+
+crypto_engine_type board_ce_type(void);
 #endif

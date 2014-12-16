@@ -25,10 +25,13 @@
  * SUCH DAMAGE.
  */
 #include <x509.h>
+#include <err.h>
 #include <certificate.h>
 #include <crypto_hash.h>
+#include <string.h>
 #include "image_verify.h"
 #include "scm.h"
+
 
 /*
  * Returns -1 if decryption failed otherwise size of plain_text in bytes
@@ -62,7 +65,7 @@ image_decrypt_signature(unsigned char *signature_ptr, unsigned char *plain_text)
 	 */
 	int ret = -1;
 	X509 *x509_certificate = NULL;
-	unsigned char *cert_ptr = certBuffer;
+	const unsigned char *cert_ptr = (const unsigned char *)certBuffer;
 	unsigned int cert_size = sizeof(certBuffer);
 	EVP_PKEY *pub_key = NULL;
 	RSA *rsa_key = NULL;
@@ -133,7 +136,7 @@ image_verify(unsigned char *image_ptr,
 	int auth = 0;
 	unsigned char *plain_text = NULL;
 	unsigned int digest[8];
-	unsigned int hash_size;
+	int hash_size;
 
 	plain_text = (unsigned char *)calloc(sizeof(char), SIGNATURE_SIZE);
 	if (plain_text == NULL) {

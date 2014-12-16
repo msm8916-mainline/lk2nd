@@ -31,6 +31,7 @@
 #include <platform/irqs.h>
 #include <platform/interrupts.h>
 #include <debug.h>
+#include <qgic.h>
 
 extern int target_supports_qgic();
 

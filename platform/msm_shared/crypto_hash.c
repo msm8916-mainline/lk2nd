@@ -27,6 +27,7 @@
  */
 
 #include <string.h>
+#include <sha.h>
 #include <debug.h>
 #include <sys/types.h>
 #include "crypto_hash.h"

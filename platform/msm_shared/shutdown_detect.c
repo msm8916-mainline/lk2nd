@@ -34,6 +34,8 @@
 #include <kernel/timer.h>
 #include <platform/timer.h>
 #include <shutdown_detect.h>
+#include <platform.h>
+#include <target.h>
 
 /* sleep clock is 32.768 khz, 0x8000 count per second */
 #define MPM_SLEEP_TIMETICK_COUNT    0x8000
@@ -102,7 +104,7 @@ static enum handler_return long_press_pwrkey_timer_func(struct timer *p_timer,
 			 * for software to be safely detect if there is a key release action.
 			 */
 			timer_set_oneshot(p_timer, PWRKEY_DETECT_FREQUENCY,
-				long_press_pwrkey_timer_func, NULL);
+				(timer_callback)long_press_pwrkey_timer_func, NULL);
 		} else {
 			shutdown_device();
 		}
@@ -146,7 +148,7 @@ void shutdown_detect()
 	 */
 	if (is_pwrkey_pon_reason() && is_pwrkey_time_expired()) {
 		timer_initialize(&pon_timer);
-		timer_set_oneshot(&pon_timer, 0, long_press_pwrkey_timer_func, NULL);
+		timer_set_oneshot(&pon_timer, 0,(timer_callback)long_press_pwrkey_timer_func, NULL);
 
 		/*
 		 * Wait until long press power key timeout

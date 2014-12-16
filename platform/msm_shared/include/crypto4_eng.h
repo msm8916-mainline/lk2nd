@@ -73,4 +73,5 @@
 
 #define GOPROC_GO					1
 
+void crypto_eng_cleanup(void);
 #endif
