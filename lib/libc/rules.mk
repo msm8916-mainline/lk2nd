@@ -2,6 +2,7 @@ LOCAL_DIR := $(GET_LOCAL_DIR)
 
 OBJS += \
 	$(LOCAL_DIR)/atoi.o \
+	$(LOCAL_DIR)/bsearch.o \
 	$(LOCAL_DIR)/ctype.o \
 	$(LOCAL_DIR)/gcd_lcm.o \
 	$(LOCAL_DIR)/itoa.o \

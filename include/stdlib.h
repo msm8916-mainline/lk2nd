@@ -41,8 +41,6 @@ unsigned long atoul(const char *num);
 unsigned long long atoull(const char *num);
 int itoa(int num, unsigned char* str, int len, int base);
 long int strtol(const char *nptr, char **endptr, int base);
-char *getenv(const char *atypeofinformation);
-void qsort(void *buf, size_t num, size_t size, int (*compare) (const void *, const void *));
 
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
@@ -64,5 +62,12 @@ void qsort(void *buf, size_t num, size_t size, int (*compare) (const void *, con
  */
 #define BUF_DMA_ALIGN(var, size) \
 	static uint8_t var[ROUNDUP(size, CACHE_LINE)] __attribute__((aligned(CACHE_LINE)));
+
+void abort(void) __attribute__((noreturn));
+void qsort(void *aa, size_t n, size_t es, int (*cmp)(const void *, const void *));
+void *bsearch(const void *key, const void *base, size_t num_elems, size_t size,
+              int (*compare)(const void *, const void *));
+unsigned long int strtoul(const char *nptr, char **endptr, int base);
+char *getenv(const char *name);
 
 #endif
