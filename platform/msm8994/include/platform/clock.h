@@ -100,6 +100,9 @@
 #define EDPAUX_CFG_RCGR                 REG_MM(0x20E4)
 #define EDPAUX_CMD_RCGR                 REG_MM(0x20E0)
 
+#define MMSS_DSI_CLKS_FLAG_DSI0         BIT(0)
+#define MMSS_DSI_CLKS_FLAG_DSI1         BIT(1)
+
 void platform_clock_init(void);
 
 void clock_init_mmc(uint32_t interface);

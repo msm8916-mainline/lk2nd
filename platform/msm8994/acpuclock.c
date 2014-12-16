@@ -448,41 +448,39 @@ void mmss_bus_clock_disable(void)
 	clk_disable(clk_get("mmss_mmssnoc_axi_clk"));
 }
 
-void mmss_dsi_clock_enable(uint32_t dsi_pixel0_cfg_rcgr, uint32_t dual_dsi,
+void mmss_dsi_clock_enable(uint32_t dsi_pixel0_cfg_rcgr, uint32_t flags,
 			uint8_t pclk0_m, uint8_t pclk0_n, uint8_t pclk0_d)
 {
 	int ret;
 
-	/* Configure Byte clock -autopll- This will not change because
-	byte clock does not need any divider*/
-	writel(0x100, DSI_BYTE0_CFG_RCGR);
-	writel(0x1, DSI_BYTE0_CMD_RCGR);
-	writel(0x1, DSI_BYTE0_CBCR);
+	if (flags & MMSS_DSI_CLKS_FLAG_DSI0) {
+		/* Enable DSI0 branch clocks */
+		writel(0x100, DSI_BYTE0_CFG_RCGR);
+		writel(0x1, DSI_BYTE0_CMD_RCGR);
+		writel(0x1, DSI_BYTE0_CBCR);
 
-	/* Configure Pixel clock */
-	writel(dsi_pixel0_cfg_rcgr, DSI_PIXEL0_CFG_RCGR);
-	writel(0x1, DSI_PIXEL0_CMD_RCGR);
-	writel(0x1, DSI_PIXEL0_CBCR);
+		writel(dsi_pixel0_cfg_rcgr, DSI_PIXEL0_CFG_RCGR);
+		writel(0x1, DSI_PIXEL0_CMD_RCGR);
+		writel(0x1, DSI_PIXEL0_CBCR);
 
-	writel(pclk0_m, DSI_PIXEL0_M);
-	writel(pclk0_n, DSI_PIXEL0_N);
-	writel(pclk0_d, DSI_PIXEL0_D);
+		writel(pclk0_m, DSI_PIXEL0_M);
+		writel(pclk0_n, DSI_PIXEL0_N);
+		writel(pclk0_d, DSI_PIXEL0_D);
 
-	/* Configure ESC clock */
-	ret = clk_get_set_enable("mdss_esc0_clk", 0, 1);
-	if(ret)
-	{
-		dprintf(CRITICAL, "failed to set esc0_clk ret = %d\n", ret);
-		ASSERT(0);
+		ret = clk_get_set_enable("mdss_esc0_clk", 0, 1);
+		if(ret)
+		{
+			dprintf(CRITICAL, "failed to set esc0_clk ret = %d\n", ret);
+			ASSERT(0);
+		}
 	}
 
-	if (dual_dsi) {
-		/* Configure Byte 1 clock */
+	if (flags & MMSS_DSI_CLKS_FLAG_DSI1) {
+		/* Enable DSI1 branch clocks */
 		writel(0x100, DSI_BYTE1_CFG_RCGR);
 		writel(0x1, DSI_BYTE1_CMD_RCGR);
 		writel(0x1, DSI_BYTE1_CBCR);
 
-		/* Configure Pixel clock */
 		writel(dsi_pixel0_cfg_rcgr, DSI_PIXEL1_CFG_RCGR);
 		writel(0x1, DSI_PIXEL1_CMD_RCGR);
 		writel(0x1, DSI_PIXEL1_CBCR);
@@ -491,7 +489,6 @@ void mmss_dsi_clock_enable(uint32_t dsi_pixel0_cfg_rcgr, uint32_t dual_dsi,
 		writel(pclk0_n, DSI_PIXEL1_N);
 		writel(pclk0_d, DSI_PIXEL1_D);
 
-		/* Configure ESC clock */
 		ret = clk_get_set_enable("mdss_esc1_clk", 0, 1);
 		if(ret)
 		{
@@ -501,15 +498,15 @@ void mmss_dsi_clock_enable(uint32_t dsi_pixel0_cfg_rcgr, uint32_t dual_dsi,
 	}
 }
 
-void mmss_dsi_clock_disable(uint32_t dual_dsi)
+void mmss_dsi_clock_disable(uint32_t flags)
 {
-	/* Disable ESC clock */
-	clk_disable(clk_get("mdss_esc0_clk"));
-	writel(0x0, DSI_BYTE0_CBCR);
-	writel(0x0, DSI_PIXEL0_CBCR);
+	if (flags & MMSS_DSI_CLKS_FLAG_DSI0) {
+		clk_disable(clk_get("mdss_esc0_clk"));
+		writel(0x0, DSI_BYTE0_CBCR);
+		writel(0x0, DSI_PIXEL0_CBCR);
+	}
 
-	if (dual_dsi) {
-		/* Disable ESC clock */
+	if (flags & MMSS_DSI_CLKS_FLAG_DSI1) {
 		clk_disable(clk_get("mdss_esc1_clk"));
 		writel(0x0, DSI_BYTE1_CBCR);
 		writel(0x0, DSI_PIXEL1_CBCR);
