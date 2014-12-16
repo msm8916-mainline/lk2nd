@@ -186,7 +186,7 @@ int msm_display_on()
 		if (ret)
 			goto msm_display_on_out;
 
-		ret = mipi_dsi_on();
+		ret = mipi_dsi_on(pinfo);
 		if (ret)
 			goto msm_display_on_out;
 		break;
@@ -348,7 +348,7 @@ int msm_display_off()
 		break;
 	case MIPI_VIDEO_PANEL:
 		dprintf(INFO, "Turn off MIPI_VIDEO_PANEL.\n");
-		ret = mdp_dsi_video_off();
+		ret = mdp_dsi_video_off(pinfo);
 		if (ret)
 			goto msm_display_off_out;
 		ret = mipi_dsi_off(pinfo);

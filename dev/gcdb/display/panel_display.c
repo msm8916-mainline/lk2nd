@@ -47,12 +47,41 @@
 #include "include/panel.h"
 #include "target/display.h"
 
+static int dsi_panel_ctl_base_setup(struct msm_panel_info *pinfo,
+	char *panel_destination)
+{
+	if (!strcmp(panel_destination, "DISPLAY_1")) {
+		pinfo->dest = DISPLAY_1;
+		pinfo->mipi.ctl_base = MIPI_DSI0_BASE;
+		pinfo->mipi.phy_base = DSI0_PHY_BASE;
+		pinfo->mipi.sctl_base = MIPI_DSI1_BASE;
+		pinfo->mipi.sphy_base = DSI1_PHY_BASE;
+	} else if (!strcmp(panel_destination, "DISPLAY_2")) {
+		pinfo->dest = DISPLAY_2;
+		pinfo->mipi.ctl_base = MIPI_DSI1_BASE;
+		pinfo->mipi.phy_base = DSI1_PHY_BASE;
+		pinfo->mipi.sctl_base = MIPI_DSI0_BASE;
+		pinfo->mipi.sphy_base = DSI0_PHY_BASE;
+	} else {
+		pinfo->dest = DISPLAY_UNKNOWN;
+		dprintf(CRITICAL, "%s: Unkown panel destination: %d\n",
+			__func__, pinfo->dest);
+		return ERROR;
+	}
+
+	dprintf(SPEW, "%s: panel dest=%s, ctl_base=0x%08x, phy_base=0x%08x\n",
+		__func__, panel_destination, pinfo->mipi.ctl_base,
+		pinfo->mipi.phy_base);
+	return NO_ERROR;
+}
+
 /*---------------------------------------------------------------------------*/
 /* Panel Init                                                                */
 /*---------------------------------------------------------------------------*/
 int dsi_panel_init(struct msm_panel_info *pinfo,
 			struct panel_struct *pstruct)
 {
+	int ret = NO_ERROR;
 	/* Resolution setting*/
 	pinfo->xres = pstruct->panelres->panel_width;
 	pinfo->yres = pstruct->panelres->panel_height;
@@ -128,6 +157,10 @@ int dsi_panel_init(struct msm_panel_info *pinfo,
 	pinfo->mipi.bitclock = pstruct->paneldata->panel_bitclock_freq;
 	pinfo->mipi.use_enable_gpio =
 		pstruct->paneldata->panel_with_enable_gpio;
+	ret = dsi_panel_ctl_base_setup(pinfo,
+		pstruct->paneldata->panel_destination);
+	if (ret)
+		return ret;
 
 	/* Video Panel configuration */
 	pinfo->mipi.pulse_mode_hsa_he = pstruct->videopanel->hsync_pulse;
@@ -289,7 +322,7 @@ int dsi_video_panel_config(struct msm_panel_info *pinfo,
 			pinfo->mipi.hsa_power_stop,
 			pinfo->mipi.eof_bllp_power,
 			pinfo->mipi.interleave_mode,
-			MIPI_DSI0_BASE);
+			pinfo->mipi.ctl_base);
 
 	if (pinfo->mipi.dual_dsi)
 		ret = mdss_dsi_video_mode_config(final_width, final_height,
@@ -303,7 +336,7 @@ int dsi_video_panel_config(struct msm_panel_info *pinfo,
 				pinfo->mipi.hsa_power_stop,
 				pinfo->mipi.eof_bllp_power,
 				pinfo->mipi.interleave_mode,
-				MIPI_DSI1_BASE);
+				pinfo->mipi.sctl_base);
 
 	return ret;
 }
@@ -347,7 +380,7 @@ int dsi_cmd_panel_config (struct msm_panel_info *pinfo,
 			pinfo->mipi.dst_format,
 			ystride, lane_en,
 			pinfo->mipi.interleave_mode,
-			MIPI_DSI0_BASE);
+			pinfo->mipi.ctl_base);
 
 	if (pinfo->mipi.dual_dsi)
 		ret = mdss_dsi_cmd_mode_config(final_width, final_height,
@@ -355,7 +388,7 @@ int dsi_cmd_panel_config (struct msm_panel_info *pinfo,
 				pinfo->mipi.dst_format,
 				ystride, lane_en,
 				pinfo->mipi.interleave_mode,
-				MIPI_DSI1_BASE);
+				pinfo->mipi.sctl_base);
 
 	return ret;
 }

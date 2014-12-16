@@ -69,20 +69,21 @@ uint32_t secure_readl(uint32_t);
 
 static uint32_t response_value = 0;
 
-uint32_t mdss_dsi_read_panel_signature(uint32_t panel_signature)
+static uint32_t mdss_dsi_read_panel_signature(struct mipi_panel_info *mipi)
 {
 	uint32_t rec_buf[1];
 	uint32_t *lp = rec_buf, data;
 	int ret = response_value;
+	uint32_t panel_signature = mipi->signature;
 
 #if (DISPLAY_TYPE_MDSS == 1)
 	if (ret && ret != panel_signature)
 		goto exit_read_signature;
 
-	ret = mdss_dsi_cmds_tx(&read_ddb_start_cmd, 1, 0);
+	ret = mdss_dsi_cmds_tx(mipi, &read_ddb_start_cmd, 1, 0);
 	if (ret)
 		goto exit_read_signature;
-	if (!mdss_dsi_cmds_rx(&lp, 1, 1))
+	if (!mdss_dsi_cmds_rx(mipi, &lp, 1, 1))
 		goto exit_read_signature;
 
 	data = ntohl(*lp);
@@ -99,27 +100,28 @@ exit_read_signature:
 	return ret;
 }
 
-static int mdss_dsi_cmd_dma_trigger_for_panel(char dual_dsi)
+static int mdss_dsi_cmd_dma_trigger_for_panel(char dual_dsi,
+	uint32_t ctl_base, uint32_t sctl_base)
 {
 	uint32_t ReadValue;
 	uint32_t count = 0;
 	int status = 0;
-	uint32_t ctl_base = dual_dsi ? MIPI_DSI1_BASE : MIPI_DSI0_BASE;
+	uint32_t base = dual_dsi ? sctl_base : ctl_base;
 
 #if (DISPLAY_TYPE_MDSS == 1)
-	writel(0x03030303, MIPI_DSI0_BASE + INT_CTRL);
-	writel(0x1, MIPI_DSI0_BASE + CMD_MODE_DMA_SW_TRIGGER);
+	writel(0x03030303, ctl_base + INT_CTRL);
+	writel(0x1, ctl_base + CMD_MODE_DMA_SW_TRIGGER);
 	dsb();
 
 	if (dual_dsi) {
-		writel(0x03030303, MIPI_DSI1_BASE + INT_CTRL);
-		writel(0x1, MIPI_DSI1_BASE + CMD_MODE_DMA_SW_TRIGGER);
+		writel(0x03030303, sctl_base + INT_CTRL);
+		writel(0x1, sctl_base + CMD_MODE_DMA_SW_TRIGGER);
 		dsb();
 	}
 
-	ReadValue = readl(ctl_base + INT_CTRL) & 0x00000001;
+	ReadValue = readl(base + INT_CTRL) & 0x00000001;
 	while (ReadValue != 0x00000001) {
-		ReadValue = readl(ctl_base + INT_CTRL) & 0x00000001;
+		ReadValue = readl(base + INT_CTRL) & 0x00000001;
 		count++;
 		if (count > 0xffff) {
 			status = FAIL;
@@ -129,30 +131,29 @@ static int mdss_dsi_cmd_dma_trigger_for_panel(char dual_dsi)
 		}
 	}
 
-	writel((readl(ctl_base + INT_CTRL) | 0x01000001),
-			ctl_base + INT_CTRL);
+	writel((readl(base + INT_CTRL) | 0x01000001), base + INT_CTRL);
 	dprintf(SPEW, "Panel CMD: command mode dma tested successfully\n");
 #endif
 	return status;
 }
 
-static int mdss_dsi_wait4_video_done()
+static int mdss_dsi_wait4_video_done(uint32_t ctl_base)
 {
 	unsigned long read;
 	unsigned long count = 0;
 	int status = 0;
 
 	/* If video mode is not enabled, return here */
-	if ((readl(MIPI_DSI0_BASE + CTRL) & BIT(1)) == 0)
+	if ((readl(ctl_base + CTRL) & BIT(1)) == 0)
 		return 0;
 
-	read = readl(MIPI_DSI0_BASE + INT_CTRL);
+	read = readl(ctl_base + INT_CTRL);
 	/* Enable VIDEO MODE DONE MASK and clear the interrupt */
 	read = read | DSI_VIDEO_MODE_DONE_MASK | DSI_VIDEO_MODE_DONE_AK;
-	writel(read, MIPI_DSI0_BASE + INT_CTRL);
+	writel(read, ctl_base + INT_CTRL);
 	dsb();
 	do {
-		read = readl(MIPI_DSI0_BASE + INT_CTRL) &
+		read = readl(ctl_base + INT_CTRL) &
 			DSI_VIDEO_MODE_DONE_STAT;
 		count++;
 		if (count > 0xffff) {
@@ -163,8 +164,7 @@ static int mdss_dsi_wait4_video_done()
 		}
 	} while (!read);
 
-	writel((readl(MIPI_DSI0_BASE + INT_CTRL) | 0x01000001),
-		MIPI_DSI0_BASE + INT_CTRL);
+	writel((readl(ctl_base + INT_CTRL) | 0x01000001), ctl_base + INT_CTRL);
 	dprintf(SPEW, "Panel wait_4_video_done: Recieved video mode done ack\n");
 
 	/* Skip BLLP 4ms */
@@ -173,7 +173,8 @@ static int mdss_dsi_wait4_video_done()
 	return status;
 }
 
-int mdss_dsi_cmds_tx(struct mipi_dsi_cmd *cmds, int count, char dual_dsi)
+int mdss_dsi_cmds_tx(struct mipi_panel_info *mipi,
+	struct mipi_dsi_cmd *cmds, int count, char dual_dsi)
 {
 	int ret = 0;
 #if (DISPLAY_TYPE_MDSS == 1)
@@ -182,6 +183,16 @@ int mdss_dsi_cmds_tx(struct mipi_dsi_cmd *cmds, int count, char dual_dsi)
 	uint8_t pload[256];
 	uint32_t off;
 	uint32_t size;
+	uint32_t ctl_base, sctl_base;
+
+	/* if dest controller is not specified, default to DSI0 */
+	if (!mipi) {
+		ctl_base = MIPI_DSI0_BASE;
+		sctl_base = MIPI_DSI1_BASE;
+	} else {
+		ctl_base = mipi->ctl_base;
+		sctl_base = mipi->sctl_base;
+	}
 
 	/* Align pload at 8 byte boundary */
 	off = (uint32_t) pload;
@@ -193,7 +204,7 @@ int mdss_dsi_cmds_tx(struct mipi_dsi_cmd *cmds, int count, char dual_dsi)
 	cm = cmds;
 	for (i = 0; i < count; i++) {
 		/* Wait for VIDEO_MODE_DONE */
-		ret = mdss_dsi_wait4_video_done();
+		ret = mdss_dsi_wait4_video_done(ctl_base);
 		if (ret)
 			goto wait4video_error;
 
@@ -204,15 +215,15 @@ int mdss_dsi_cmds_tx(struct mipi_dsi_cmd *cmds, int count, char dual_dsi)
 			size = 4 - size;
 		size += cm->size;
 		memcpy((uint8_t *)off, (cm->payload), size);
-		writel(off, MIPI_DSI0_BASE + DMA_CMD_OFFSET);
-
-		writel(size, MIPI_DSI0_BASE + DMA_CMD_LENGTH);
+		writel(off, ctl_base + DMA_CMD_OFFSET);
+		writel(size, ctl_base + DMA_CMD_LENGTH);
 		if (dual_dsi) {
-			writel(off, MIPI_DSI1_BASE + DMA_CMD_OFFSET);
-			writel(size, MIPI_DSI1_BASE + DMA_CMD_LENGTH);
+			writel(off, sctl_base + DMA_CMD_OFFSET);
+			writel(size, sctl_base + DMA_CMD_LENGTH);
 		}
 		dsb();
-		ret += mdss_dsi_cmd_dma_trigger_for_panel(dual_dsi);
+		ret += mdss_dsi_cmd_dma_trigger_for_panel(dual_dsi, ctl_base,
+			sctl_base);
 		if (cm->wait)
 			mdelay(cm->wait);
 		else
@@ -224,12 +235,20 @@ wait4video_error:
 	return ret;
 }
 
-int mdss_dsi_cmds_rx(uint32_t **rp, int rp_len, int rdbk_len)
+int mdss_dsi_cmds_rx(struct mipi_panel_info *mipi, uint32_t **rp, int rp_len,
+	int rdbk_len)
 {
 	uint32_t *lp, data;
 	char *dp;
 	int i, off;
 	int rlen, res;
+	uint32_t ctl_base;
+
+	/* if dest controller is not specified, default to DSI0 */
+	if (!mipi)
+		ctl_base = MIPI_DSI0_BASE;
+	else
+		ctl_base = mipi->ctl_base;
 
 	if (rdbk_len > rp_len) {
 		return 0;
@@ -259,7 +278,7 @@ int mdss_dsi_cmds_rx(uint32_t **rp, int rp_len, int rdbk_len)
 	off += ((rlen - 1) * 4);
 
 	for (i = 0; i < rlen; i++) {
-		data = readl(MIPI_DSI_BASE + off);
+		data = readl(ctl_base + off);
 		*lp = ntohl(data);	/* to network byte order */
 		lp++;
 
@@ -276,15 +295,15 @@ int mdss_dsi_cmds_rx(uint32_t **rp, int rp_len, int rdbk_len)
 	return rdbk_len;
 }
 
-static int mdss_dsi_cmd_bta_sw_trigger(void)
+static int mdss_dsi_cmd_bta_sw_trigger(uint32_t ctl_base)
 {
 	uint32_t data;
 	int cnt = 0;
 	int err = 0;
 
-	writel(0x01, MIPI_DSI_BASE + 0x094);	/* trigger */
+	writel(0x01, ctl_base + 0x094);	/* trigger */
 	while (cnt < 10000) {
-		data = readl(MIPI_DSI_BASE + 0x0004);	/*DSI_STATUS */
+		data = readl(ctl_base + 0x0004);	/*DSI_STATUS */
 		if ((data & 0x0010) == 0)
 			break;
 		cnt++;
@@ -294,13 +313,13 @@ static int mdss_dsi_cmd_bta_sw_trigger(void)
 	return err;
 }
 
-int mdss_dsi_host_init(struct mipi_dsi_panel_config *pinfo, uint32_t
+int mdss_dsi_host_init(struct mipi_panel_info *mipi, uint32_t
 		dual_dsi, uint32_t broadcast)
 {
 	uint8_t DMA_STREAM1 = 0;	// for mdp display processor path
 	uint8_t EMBED_MODE1 = 1;	// from frame buffer
 	uint8_t POWER_MODE2 = 1;	// from frame buffer
-	uint8_t PACK_TYPE1;		// long packet
+	uint8_t PACK_TYPE1 = 0;		// long packet
 	uint8_t VC1 = 0;
 	uint8_t DT1 = 0;	// non embedded mode
 	uint8_t WC1 = 0;	// for non embedded mode only
@@ -311,7 +330,7 @@ int mdss_dsi_host_init(struct mipi_dsi_panel_config *pinfo, uint32_t
 	uint32_t ctrl_mode = 0x105;	//Default is command mode to send cmds.
 
 #if (DISPLAY_TYPE_MDSS == 1)
-	switch (pinfo->num_of_lanes) {
+	switch (mipi->num_of_lanes) {
 	default:
 	case 1:
 		DLNx_EN = 1;	// 1 lane
@@ -327,11 +346,10 @@ int mdss_dsi_host_init(struct mipi_dsi_panel_config *pinfo, uint32_t
 		break;
 	}
 
-	PACK_TYPE1 = pinfo->pack;
-	lane_swap = pinfo->lane_swap;
-	timing_ctl = ((pinfo->t_clk_post << 8) | pinfo->t_clk_pre);
+	lane_swap = mipi->lane_swap;
+	timing_ctl = ((mipi->t_clk_post << 8) | mipi->t_clk_pre);
 
-	if (pinfo->cmds_post_tg) {
+	if (mipi->cmds_post_tg) {
 		/*
 		 * Need to send pixel data before sending the ON commands
 		 * so need to configure controller to VIDEO MODE.
@@ -340,42 +358,41 @@ int mdss_dsi_host_init(struct mipi_dsi_panel_config *pinfo, uint32_t
 	}
 
 	if (dual_dsi) {
-		writel(0x0001, MIPI_DSI1_BASE + SOFT_RESET);
-		writel(0x0000, MIPI_DSI1_BASE + SOFT_RESET);
+		writel(0x0001, mipi->sctl_base + SOFT_RESET);
+		writel(0x0000, mipi->sctl_base + SOFT_RESET);
 
-		writel((0 << 16) | 0x3f, MIPI_DSI1_BASE + CLK_CTRL);	/* Turn on all DSI Clks */
-		writel(DMA_STREAM1 << 8 | 0x04, MIPI_DSI1_BASE + TRIG_CTRL);	// reg 0x80 dma trigger: sw
-		// trigger 0x4; dma stream1
+		/* Turn on all DSI Clks */
+		writel((0 << 16) | 0x3f, mipi->sctl_base + CLK_CTRL);
+		writel(DMA_STREAM1 << 8 | 0x04, mipi->sctl_base + TRIG_CTRL);
 
-		writel(0 << 30 | DLNx_EN << 4 | ctrl_mode, MIPI_DSI1_BASE + CTRL);	// reg 0x00 for this
-		// build
+		writel(0 << 30 | DLNx_EN << 4 | ctrl_mode, mipi->sctl_base + CTRL);
 		writel(broadcast << 31 | EMBED_MODE1 << 28 | POWER_MODE2 << 26
 				| PACK_TYPE1 << 24 | VC1 << 22 | DT1 << 16 | WC1,
-				MIPI_DSI1_BASE + COMMAND_MODE_DMA_CTRL);
+				mipi->sctl_base + COMMAND_MODE_DMA_CTRL);
 
-		if (readl(MIPI_DSI_BASE) == DSI_HW_REV_103_1) /*for 8939 hw dsi1 has Lane_map as 3210*/
+		/* for 8939 hw dsi1 has Lane_map as 3210 */
+		if (readl(MIPI_DSI_BASE) == DSI_HW_REV_103_1)
 			lane_swap_dsi1 = 0x7;
 		else
 			lane_swap_dsi1 = lane_swap;
-		writel(lane_swap_dsi1, MIPI_DSI1_BASE + LANE_SWAP_CTL);
-		writel(timing_ctl, MIPI_DSI1_BASE + TIMING_CTL);
+		writel(lane_swap_dsi1, mipi->sctl_base + LANE_SWAP_CTL);
+		writel(timing_ctl, mipi->sctl_base + TIMING_CTL);
 	}
 
-	writel(0x0001, MIPI_DSI0_BASE + SOFT_RESET);
-	writel(0x0000, MIPI_DSI0_BASE + SOFT_RESET);
+	writel(0x0001, mipi->ctl_base + SOFT_RESET);
+	writel(0x0000, mipi->ctl_base + SOFT_RESET);
 
-	writel((0 << 16) | 0x3f, MIPI_DSI0_BASE + CLK_CTRL);	/* Turn on all DSI Clks */
-	writel(DMA_STREAM1 << 8 | 0x04, MIPI_DSI0_BASE + TRIG_CTRL);	// reg 0x80 dma trigger: sw
-	// trigger 0x4; dma stream1
+	/* Turn on all DSI Clks */
+	writel((0 << 16) | 0x3f, mipi->ctl_base + CLK_CTRL);
+	writel(DMA_STREAM1 << 8 | 0x04, mipi->ctl_base + TRIG_CTRL);
 
-	writel(0 << 30 | DLNx_EN << 4 | ctrl_mode, MIPI_DSI0_BASE + CTRL);	// reg 0x00 for this
-	// build
+	writel(0 << 30 | DLNx_EN << 4 | ctrl_mode, mipi->ctl_base + CTRL);
 	writel(broadcast << 31 | EMBED_MODE1 << 28 | POWER_MODE2 << 26
 	       | PACK_TYPE1 << 24 | VC1 << 22 | DT1 << 16 | WC1,
-	       MIPI_DSI0_BASE + COMMAND_MODE_DMA_CTRL);
+	       mipi->ctl_base + COMMAND_MODE_DMA_CTRL);
 
-	writel(lane_swap, MIPI_DSI0_BASE + LANE_SWAP_CTL);
-	writel(timing_ctl, MIPI_DSI0_BASE + TIMING_CTL);
+	writel(lane_swap, mipi->ctl_base + LANE_SWAP_CTL);
+	writel(timing_ctl, mipi->ctl_base + TIMING_CTL);
 #endif
 
 	return 0;
@@ -385,69 +402,72 @@ void mdss_dsi_panel_shutdown(struct msm_panel_info *pinfo)
 {
 #if (DISPLAY_TYPE_MDSS == 1)
 	unsigned long read_val = 0;
+	uint32_t ctl_base = pinfo->mipi.ctl_base;
+	uint32_t sctl_base = pinfo->mipi.sctl_base;
+
 	if (pinfo->mipi.panel_off_cmds) {
 		/*
 		 * Once MDP TG is disabled, reset of DSI controller is
 		 * needed before we send panel OFF commands.
 		 */
 		if (pinfo->type == MIPI_VIDEO_PANEL) {
-			read_val = readl(MIPI_DSI0_BASE + CTRL);
-			writel((read_val & ~BIT(0)), MIPI_DSI0_BASE + CTRL);
-			writel(0x0001, MIPI_DSI0_BASE + SOFT_RESET);
+			read_val = readl(ctl_base + CTRL);
+			writel((read_val & ~BIT(0)), ctl_base + CTRL);
+			writel(0x0001, ctl_base + SOFT_RESET);
 			dsb();
-			writel(0x0000, MIPI_DSI0_BASE + SOFT_RESET);
+			writel(0x0000, ctl_base + SOFT_RESET);
 			dsb();
 			/* Enable cmd mode only */
 			writel(((read_val & ~BIT(1)) | BIT(2)),
-						MIPI_DSI0_BASE + CTRL);
+				ctl_base + CTRL);
 		}
 
 		if (pinfo->mipi.broadcast) {
 			if (pinfo->type == MIPI_VIDEO_PANEL) {
-				read_val = readl(MIPI_DSI1_BASE + CTRL);
+				read_val = readl(sctl_base + CTRL);
 				writel((read_val & ~BIT(0)),
-					MIPI_DSI1_BASE + CTRL);
+					sctl_base + CTRL);
 
-				writel(0x0001, MIPI_DSI1_BASE + SOFT_RESET);
+				writel(0x0001, sctl_base + SOFT_RESET);
 				dsb();
-				writel(0x0000, MIPI_DSI1_BASE + SOFT_RESET);
+				writel(0x0000, sctl_base + SOFT_RESET);
 				dsb();
 
 				writel(((read_val & ~BIT(1)) | BIT(2)),
-							MIPI_DSI1_BASE + CTRL);
+					sctl_base + CTRL);
 			}
 		}
-		mdss_dsi_cmds_tx(pinfo->mipi.panel_off_cmds,
+		mdss_dsi_cmds_tx(&pinfo->mipi, pinfo->mipi.panel_off_cmds,
 			pinfo->mipi.num_of_panel_off_cmds,
 			pinfo->mipi.broadcast);
 	}
 #endif
 }
 
-int mdss_dsi_panel_initialize(struct mipi_dsi_panel_config *pinfo, uint32_t
+int mdss_dsi_panel_initialize(struct mipi_panel_info *mipi, uint32_t
 		broadcast)
 {
 	int status = 0;
 	uint32_t ctrl_mode = 0;
 
 #if (DISPLAY_TYPE_MDSS == 1)
-	if (!pinfo->panel_on_cmds)
+	if (!mipi->panel_on_cmds)
 		goto end;
 
-	ctrl_mode = readl(MIPI_DSI0_BASE + CTRL);
+	ctrl_mode = readl(mipi->ctl_base + CTRL);
 
 	/* Enable command mode before sending the commands. */
-	writel(ctrl_mode | 0x04, MIPI_DSI0_BASE + CTRL);
+	writel(ctrl_mode | 0x04, mipi->ctl_base + CTRL);
 	if (broadcast)
-		writel(ctrl_mode | 0x04, MIPI_DSI1_BASE + CTRL);
-	status = mdss_dsi_cmds_tx(pinfo->panel_on_cmds,
-			pinfo->num_of_panel_on_cmds, broadcast);
-	writel(ctrl_mode, MIPI_DSI0_BASE + CTRL);
+		writel(ctrl_mode | 0x04, mipi->sctl_base + CTRL);
+	status = mdss_dsi_cmds_tx(mipi, mipi->panel_on_cmds,
+			mipi->num_of_panel_on_cmds, broadcast);
+	writel(ctrl_mode, mipi->ctl_base + CTRL);
 	if (broadcast)
-		writel(ctrl_mode, MIPI_DSI1_BASE + CTRL);
+		writel(ctrl_mode, mipi->sctl_base + CTRL);
 
 	if (!broadcast && !status && target_panel_auto_detect_enabled())
-		status = mdss_dsi_read_panel_signature(pinfo->signature);
+		status = mdss_dsi_read_panel_signature(mipi);
 
 end:
 #endif
@@ -561,37 +581,30 @@ int mdss_dsi_config(struct msm_fb_panel_data *panel)
 {
 	int ret = NO_ERROR;
 	struct msm_panel_info *pinfo;
-	struct mipi_dsi_panel_config mipi_pinfo;
+	struct mipi_panel_info *mipi;
 
 #if (DISPLAY_TYPE_MDSS == 1)
 	if (!panel)
 		return ERR_INVALID_ARGS;
 
 	pinfo = &(panel->panel_info);
-	mipi_pinfo.mode = pinfo->mipi.mode;
-	mipi_pinfo.num_of_lanes = pinfo->mipi.num_of_lanes;
-	mipi_pinfo.mdss_dsi_phy_config = pinfo->mipi.mdss_dsi_phy_db;
-	mipi_pinfo.panel_on_cmds = pinfo->mipi.panel_on_cmds;
-	mipi_pinfo.num_of_panel_on_cmds = pinfo->mipi.num_of_panel_on_cmds;
-	mipi_pinfo.lane_swap = pinfo->mipi.lane_swap;
-	mipi_pinfo.pack = 0;
-	mipi_pinfo.t_clk_pre = pinfo->mipi.t_clk_pre;
-	mipi_pinfo.t_clk_post = pinfo->mipi.t_clk_post;
-	mipi_pinfo.signature = pinfo->mipi.signature;
-	mipi_pinfo.cmds_post_tg = pinfo->mipi.cmds_post_tg;
+	mipi = &(pinfo->mipi);
 
-	mdss_dsi_phy_init(&mipi_pinfo, MIPI_DSI0_BASE, DSI0_PHY_BASE);
-	if (pinfo->mipi.dual_dsi)
-		mdss_dsi_phy_init(&mipi_pinfo, MIPI_DSI1_BASE, DSI1_PHY_BASE);
+	dprintf(SPEW, "ctl_base=0x%08x, phy_base=0x%08x\n", mipi->ctl_base,
+		mipi->phy_base);
 
-	ret = mdss_dsi_host_init(&mipi_pinfo, pinfo->mipi.dual_dsi,
-						pinfo->mipi.broadcast);
+	mdss_dsi_phy_init(mipi, mipi->ctl_base, mipi->phy_base);
+	if (mipi->dual_dsi)
+		mdss_dsi_phy_init(mipi, mipi->sctl_base, mipi->sphy_base);
+
+	ret = mdss_dsi_host_init(mipi, mipi->dual_dsi,
+						mipi->broadcast);
 	if (ret) {
 		dprintf(CRITICAL, "dsi host init error\n");
 		goto error;
 	}
 
-	mdss_dsi_phy_contention_detection(&mipi_pinfo, DSI0_PHY_BASE);
+	mdss_dsi_phy_contention_detection(mipi, DSI0_PHY_BASE);
 
 	if (panel->pre_init_func) {
 		ret = panel->pre_init_func();
@@ -601,8 +614,8 @@ int mdss_dsi_config(struct msm_fb_panel_data *panel)
 		}
 	}
 
-	if (!mipi_pinfo.cmds_post_tg) {
-		ret = mdss_dsi_panel_initialize(&mipi_pinfo, pinfo->mipi.broadcast);
+	if (!mipi->cmds_post_tg) {
+		ret = mdss_dsi_panel_initialize(mipi, mipi->broadcast);
 		if (ret) {
 			dprintf(CRITICAL, "dsi panel init error\n");
 			goto error;
@@ -621,15 +634,9 @@ int mdss_dsi_post_on(struct msm_fb_panel_data *panel)
 {
 	int ret = 0;
 	struct msm_panel_info *pinfo = &(panel->panel_info);
-	struct mipi_dsi_panel_config mipi_pinfo;
 
 	if (pinfo->mipi.cmds_post_tg) {
-		mipi_pinfo.panel_on_cmds = pinfo->mipi.panel_on_cmds;
-		mipi_pinfo.num_of_panel_on_cmds =
-				pinfo->mipi.num_of_panel_on_cmds;
-		mipi_pinfo.signature = pinfo->mipi.signature;
-
-		ret = mdss_dsi_panel_initialize(&mipi_pinfo, pinfo->mipi.broadcast);
+		ret = mdss_dsi_panel_initialize(&pinfo->mipi, pinfo->mipi.broadcast);
 		if (ret) {
 			dprintf(CRITICAL, "dsi panel init error\n");
 		}
@@ -701,18 +708,18 @@ int mdss_dsi_cmd_mode_config(uint16_t disp_width,
 	return 0;
 }
 
-int mipi_dsi_on()
+int mipi_dsi_on(struct msm_panel_info *pinfo)
 {
 	int ret = NO_ERROR;
 	unsigned long ReadValue;
 	unsigned long count = 0;
 
-	ReadValue = readl(MIPI_DSI0_BASE + INT_CTRL) & 0x00010000;
+	ReadValue = readl(pinfo->mipi.ctl_base + INT_CTRL) & 0x00010000;
 
 	mdelay(10);
 
 	while (ReadValue != 0x00010000) {
-		ReadValue = readl(MIPI_DSI0_BASE + INT_CTRL) & 0x00010000;
+		ReadValue = readl(pinfo->mipi.ctl_base + INT_CTRL) & 0x00010000;
 		count++;
 		if (count > 0xffff) {
 			dprintf(CRITICAL, "Video lane test failed\n");
@@ -729,13 +736,13 @@ int mipi_dsi_off(struct msm_panel_info *pinfo)
 	if(!target_cont_splash_screen())
 	{
 		mdss_dsi_panel_shutdown(pinfo);
-		writel(0, MIPI_DSI0_BASE + CLK_CTRL);
-		writel(0x1F1, MIPI_DSI0_BASE + CTRL);
+		writel(0, pinfo->mipi.ctl_base + CLK_CTRL);
+		writel(0x1F1, pinfo->mipi.ctl_base + CTRL);
 	}
 
-	writel(0x1115501, MIPI_DSI0_BASE + INT_CTRL);
+	writel(0x1115501, pinfo->mipi.ctl_base + INT_CTRL);
 	if (pinfo->mipi.broadcast)
-		writel(0x1115501, MIPI_DSI1_BASE + INT_CTRL);
+		writel(0x1115501, pinfo->mipi.sctl_base + INT_CTRL);
 
 	return NO_ERROR;
 }
