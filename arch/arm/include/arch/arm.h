@@ -87,6 +87,8 @@ void arm_write_ttbr(uint32_t val);
 void arm_write_dacr(uint32_t val);
 void arm_invalidate_tlb(void);
 
+void dump_fault_frame(struct arm_fault_frame *frame);
+
 #if defined(__cplusplus)
 }
 #endif
