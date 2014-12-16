@@ -37,6 +37,8 @@
 #include <malloc.h>
 #include <bits.h>
 
+#define SMD_CHANNEL_ACCESS_RETRY 1000000
+
 smd_channel_alloc_entry_t *smd_channel_alloc_entry;
 
 
@@ -63,7 +65,7 @@ static void smd_state_update(smd_channel_info_t *ch, uint32_t flag)
 	ch->port_info->ch0.state_updated = flag;
 }
 
-void smd_get_channel_entry(smd_channel_info_t *ch, uint32_t ch_type)
+int smd_get_channel_entry(smd_channel_info_t *ch, uint32_t ch_type)
 {
 	int i = 0;
 
@@ -76,12 +78,14 @@ void smd_get_channel_entry(smd_channel_info_t *ch, uint32_t ch_type)
 		}
 	}
 
-	/* Channel not found */
+	/* Channel not found, retry again */
 	if(i == SMEM_NUM_SMD_STREAM_CHANNELS)
 	{
-		dprintf(CRITICAL, "smd channel type %x not found\n", ch_type);
-		ASSERT(0);
+		dprintf(SPEW, "Channel not found, wait and retry for the update\n");
+		return -1;
 	}
+
+	return 0;
 }
 
 int smd_get_channel_info(smd_channel_info_t *ch, uint32_t ch_type)
@@ -91,8 +95,10 @@ int smd_get_channel_info(smd_channel_info_t *ch, uint32_t ch_type)
 	uint32_t fifo_buf_size = 0;
 	uint32_t size = 0;
 
-	smd_get_channel_entry(ch, ch_type);
+	ret = smd_get_channel_entry(ch, ch_type);
 
+	if (ret)
+		return ret;
 
 	ch->port_info = smem_get_alloc_entry(SMEM_SMD_BASE_ID + ch->alloc_entry.cid,
 										 &size);
@@ -111,20 +117,35 @@ int smd_get_channel_info(smd_channel_info_t *ch, uint32_t ch_type)
 int smd_init(smd_channel_info_t *ch, uint32_t ch_type)
 {
 	unsigned ret = 0;
+	int chnl_found = 0;
+	uint64_t timeout = SMD_CHANNEL_ACCESS_RETRY;
 
 	smd_channel_alloc_entry = (smd_channel_alloc_entry_t*)memalign(CACHE_LINE, SMD_CHANNEL_ALLOC_MAX);
 	ASSERT(smd_channel_alloc_entry);
 
-	ret = smem_read_alloc_entry(SMEM_CHANNEL_ALLOC_TBL,
-							(void*)smd_channel_alloc_entry,
-							SMD_CHANNEL_ALLOC_MAX);
-	if(ret)
-	{
-		dprintf(CRITICAL,"ERROR reading smem channel alloc tbl\n");
-		return -1;
-	}
+	dprintf(INFO, "Waiting for the RPM to populate smd channel table\n");
 
-	smd_get_channel_info(ch, ch_type);
+	do
+	{
+		ret = smem_read_alloc_entry(SMEM_CHANNEL_ALLOC_TBL,
+									(void*)smd_channel_alloc_entry,
+									SMD_CHANNEL_ALLOC_MAX);
+		if(ret)
+		{
+			dprintf(CRITICAL,"ERROR reading smem channel alloc tbl\n");
+			return -1;
+		}
+
+		chnl_found = smd_get_channel_info(ch, ch_type);
+		timeout--;
+		udelay(10);
+	} while(timeout && chnl_found);
+
+	if (!timeout)
+	{
+		dprintf(CRITICAL, "Apps timed out waiting for RPM-->APPS channel entry\n");
+		ASSERT(0);
+	}
 
 	register_int_handler(SMD_IRQ, smd_irq_handler, ch);
 

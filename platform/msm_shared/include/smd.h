@@ -121,7 +121,7 @@ void smd_uninit(smd_channel_info_t *ch);
 uint8_t* smd_read(smd_channel_info_t *ch, uint32_t *len, int ch_type);
 int smd_write(smd_channel_info_t *ch, void *data, uint32_t len, int type);
 int smd_get_channel_info(smd_channel_info_t *ch, uint32_t ch_type);
-void smd_get_channel_entry(smd_channel_info_t *ch, uint32_t ch_type);
+int smd_get_channel_entry(smd_channel_info_t *ch, uint32_t ch_type);
 void smd_notify_rpm();
 enum handler_return smd_irq_handler(void* data);
 void smd_set_state(smd_channel_info_t *ch, uint32_t state, uint32_t flag);
