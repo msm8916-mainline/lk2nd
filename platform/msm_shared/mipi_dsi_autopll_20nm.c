@@ -154,29 +154,33 @@ pll_done:
 	return status;
 }
 
-uint32_t mdss_dsi_pll_20nm_sw_reset_st_machine(uint32_t pll_base)
+static void mdss_dsi_pll_20nm_config_common_block(uint32_t pll_base)
 {
-	writel(0x64, pll_base + MMSS_DSI_PHY_PLL_RES_CODE_START_SEG1);
-	writel(0x64, pll_base + MMSS_DSI_PHY_PLL_RES_CODE_START_SEG2);
-	writel(0x15, pll_base + MMSS_DSI_PHY_PLL_RES_TRIM_CONTROL);
-
-	writel(0x20, pll_base + MMSS_DSI_PHY_PLL_RESETSM_CNTRL);
-	writel(0x07, pll_base + MMSS_DSI_PHY_PLL_RESETSM_CNTRL2);
+	writel(0x82, pll_base + MMSS_DSI_PHY_PLL_PLL_VCOTAIL_EN);
+	writel(0x2a, pll_base + MMSS_DSI_PHY_PLL_BIAS_EN_CLKBUFLR_EN);
+	writel(0x2b, pll_base + MMSS_DSI_PHY_PLL_BIAS_EN_CLKBUFLR_EN);
 	writel(0x02, pll_base + MMSS_DSI_PHY_PLL_RESETSM_CNTRL3);
-	writel(0x03, pll_base + MMSS_DSI_PHY_PLL_RESETSM_CNTRL3);
-}
-
-static void pll_20nm_phy_kvco_config(uint32_t pll_base)
-{
-
+	writel(0x40, pll_base + MMSS_DSI_PHY_PLL_SYS_CLK_CTRL);
+	writel(0x0f, pll_base + MMSS_DSI_PHY_PLL_IE_TRIM);
+	writel(0x0f, pll_base + MMSS_DSI_PHY_PLL_IP_TRIM);
+	writel(0x08, pll_base + MMSS_DSI_PHY_PLL_PLL_PHSEL_CONTROL);
+	writel(0x0e, pll_base + MMSS_DSI_PHY_PLL_IPTAT_TRIM_VCCA_TX_SEL);
+	writel(0x08, pll_base + MMSS_DSI_PHY_PLL_PLL_BKG_KVCO_CAL_EN);
+	writel(0x4a, pll_base + MMSS_DSI_PHY_PLL_SYSCLK_EN_SEL_TXBAND);
 	writel(0x00, pll_base + MMSS_DSI_PHY_PLL_DIV_REF1);
 	writel(0x01, pll_base + MMSS_DSI_PHY_PLL_DIV_REF2);
+	writel(0x07, pll_base + MMSS_DSI_PHY_PLL_PLL_CNTRL);
+	writel(0x1f, pll_base + MMSS_DSI_PHY_PLL_KVCO_CAL_CNTRL);
 	writel(0x8a, pll_base + MMSS_DSI_PHY_PLL_KVCO_COUNT1);
-	writel(0x00, pll_base + MMSS_DSI_PHY_PLL_KVCO_CAL_CNTRL);
-	writel(0x00, pll_base + MMSS_DSI_PHY_PLL_KVCO_CODE);
+	writel(0x10, pll_base + MMSS_DSI_PHY_PLL_VREF_CFG3);
+	writel(0x00, pll_base + MMSS_DSI_PHY_PLL_SSC_EN_CENTER);
+	writel(0x0c, pll_base + MMSS_DSI_PHY_PLL_FAUX_EN);
+	writel(0x0a, pll_base + MMSS_DSI_PHY_PLL_PLL_RXTXEPCLK_EN);
+	writel(0x0f, pll_base + MMSS_DSI_PHY_PLL_LOW_POWER_RO_CONTROL);
+	writel(0x00, pll_base + MMSS_DSI_PHY_PLL_CMN_MODE);
 }
 
-static void pll_20nm_phy_loop_bw_config(uint32_t pll_base)
+static void mdss_dsi_pll_20nm_config_loop_bw(uint32_t pll_base)
 {
 	writel(0x03, pll_base + MMSS_DSI_PHY_PLL_PLL_IP_SETI);
 	writel(0x3f, pll_base + MMSS_DSI_PHY_PLL_PLL_CP_SETI);
@@ -185,74 +189,16 @@ static void pll_20nm_phy_loop_bw_config(uint32_t pll_base)
 	writel(0x77, pll_base + MMSS_DSI_PHY_PLL_PLL_CRCTRL);
 }
 
-static void pll_20nm_phy_config(uint32_t pll_base)
+static void mdss_dsi_pll_20nm_phy_config(uint32_t pll_base)
 {
-	writel(0x40, pll_base + MMSS_DSI_PHY_PLL_SYS_CLK_CTRL);
-	writel(0x00, pll_base + MMSS_DSI_PHY_PLL_PLL_VCOTAIL_EN);
-	writel(0x00, pll_base + MMSS_DSI_PHY_PLL_CMN_MODE);
-	writel(0x0f, pll_base + MMSS_DSI_PHY_PLL_IE_TRIM);
-	writel(0x0f, pll_base + MMSS_DSI_PHY_PLL_IP_TRIM);
-	writel(0x08, pll_base + MMSS_DSI_PHY_PLL_PLL_PHSEL_CONTROL);
-	writel(0x0e, pll_base + MMSS_DSI_PHY_PLL_IPTAT_TRIM_VCCA_TX_SEL);
-	writel(0x00, pll_base + MMSS_DSI_PHY_PLL_PLL_PHSEL_DC);
-	writel(0x00, pll_base + MMSS_DSI_PHY_PLL_CORE_CLK_IN_SYNC_SEL);
-	writel(0x08, pll_base + MMSS_DSI_PHY_PLL_PLL_BKG_KVCO_CAL_EN);
-	writel(0x3f, pll_base + MMSS_DSI_PHY_PLL_BIAS_EN_CLKBUFLR_EN);
-	writel(0x00, pll_base + MMSS_DSI_PHY_PLL_ATB_SEL1);
-	writel(0x00, pll_base + MMSS_DSI_PHY_PLL_ATB_SEL2);
-	writel(0x4b, pll_base + MMSS_DSI_PHY_PLL_SYSCLK_EN_SEL_TXBAND);
-	udelay(1000);
-
-	pll_20nm_phy_kvco_config(pll_base);
-
-	writel(0x00, pll_base + MMSS_DSI_PHY_PLL_VREF_CFG1);
-	writel(0x00, pll_base + MMSS_DSI_PHY_PLL_VREF_CFG2);
-	writel(0x10, pll_base + MMSS_DSI_PHY_PLL_VREF_CFG3);
-	writel(0x00, pll_base + MMSS_DSI_PHY_PLL_VREF_CFG4);
-	writel(0x0f, pll_base + MMSS_DSI_PHY_PLL_BGTC);
-	writel(0x00, pll_base + MMSS_DSI_PHY_PLL_PLL_TEST_UPDN);
-	writel(0x00, pll_base + MMSS_DSI_PHY_PLL_PLL_VCO_TUNE);
-	writel(0x00, pll_base + MMSS_DSI_PHY_PLL_PLL_AMP_OS);
-	writel(0x00, pll_base + MMSS_DSI_PHY_PLL_SSC_EN_CENTER);
-	writel(0x00, pll_base + MMSS_DSI_PHY_PLL_RES_CODE_UP);
-	writel(0x00, pll_base + MMSS_DSI_PHY_PLL_RES_CODE_DN);
-	writel(0x00, pll_base + MMSS_DSI_PHY_PLL_RES_CODE_CAL_CSR);
-	writel(0x00, pll_base + MMSS_DSI_PHY_PLL_RES_TRIM_EN_VCOCALDONE);
-	writel(0x0c, pll_base + MMSS_DSI_PHY_PLL_FAUX_EN);
-	writel(0x0f, pll_base + MMSS_DSI_PHY_PLL_PLL_RXTXEPCLK_EN);
-
-	writel(0x0f, pll_base + MMSS_DSI_PHY_PLL_LOW_POWER_RO_CONTROL);
-	udelay(1000);
-
-	pll_20nm_phy_loop_bw_config(pll_base);
+	mdss_dsi_pll_20nm_config_common_block(pll_base);
+	mdss_dsi_pll_20nm_config_loop_bw(pll_base);
 }
 
-static void mdss_dsi_pll_20nm_disable(uint32_t pll_base)
+static void mdss_dsi_pll_20nm_config_vco_rate(uint32_t pll_base, struct mdss_dsi_pll_config *pd)
 {
-	dprintf(SPEW, "Disabling DSI PHY PLL \n");
-	writel(0x042, pll_base + MMSS_DSI_PHY_PLL_PLL_VCOTAIL_EN);
-	writel(0x002, pll_base + MMSS_DSI_PHY_PLL_BIAS_EN_CLKBUFLR_EN);
-	writel(0x002, pll_base + MMSS_DSI_PHY_PLL_RESETSM_CNTRL3);
-	dmb();
-}
 
-int32_t mdss_dsi_auto_pll_20nm_config(uint32_t pll_base, uint32_t ctl_base,
-				struct mdss_dsi_pll_config *pd)
-{
 	uint32_t data;
-
-	mdss_dsi_phy_sw_reset(ctl_base);
-	pll_20nm_phy_config(pll_base);
-
-	/*
-	 * For 20nm PHY, DSI PLL 1 drains some current in its reset state.
-	 * Need to turn off the DSI1 PLL explicitly.
-	 */
-	if (ctl_base == MIPI_DSI0_BASE) {
-		dprintf(SPEW, "Calling disable function for PHY PLL 1 \n");
-		mdss_dsi_pll_20nm_disable(DSI1_PLL_BASE);
-	}
-
 	/* set up divider */
 	data = readl(pll_base + MMSS_DSI_PHY_PLL_POST_DIVIDER_CONTROL);
 	data |= 0x080; /* bit 7 */
@@ -285,10 +231,69 @@ int32_t mdss_dsi_auto_pll_20nm_config(uint32_t pll_base, uint32_t ctl_base,
 	writel(((pd->lock_comp >> 16) & 0xff),
 				pll_base + MMSS_DSI_PHY_PLL_PLLLOCK_CMP3);
 
+	writel(0x01, pll_base + MMSS_DSI_PHY_PLL_PLLLOCK_CMP_EN);
+
+
+	dprintf(SPEW, "div frac1=0x%x, div frac2 = 0x%x, div frac3=0x%x\n",
+			readl(pll_base + MMSS_DSI_PHY_PLL_DIV_FRAC_START1),
+			readl(pll_base + MMSS_DSI_PHY_PLL_DIV_FRAC_START2),
+			readl(pll_base + MMSS_DSI_PHY_PLL_DIV_FRAC_START3));
+	dprintf(SPEW, "dec start1=0x%x, dec start2 = 0x%x\n",
+			readl(pll_base + MMSS_DSI_PHY_PLL_DEC_START1),
+			readl(pll_base + MMSS_DSI_PHY_PLL_DEC_START2));
+	dprintf(SPEW, "plllock cmp1=0x%x,plllock cmp2= 0x%x, plllock cmp3=0x%x\n",
+			readl(pll_base + MMSS_DSI_PHY_PLL_PLLLOCK_CMP1),
+			readl(pll_base + MMSS_DSI_PHY_PLL_PLLLOCK_CMP2),
+			readl(pll_base + MMSS_DSI_PHY_PLL_PLLLOCK_CMP3));
+
 	/*
 	 * Make sure that PLL vco configuration is complete
 	 * before controlling the state machine.
 	 */
 	udelay(1000);
 	dmb();
+}
+
+static void mdss_dsi_pll_20nm_config_resetsm(uint32_t pll_base)
+{
+	writel(0x24, pll_base + MMSS_DSI_PHY_PLL_RESETSM_CNTRL);
+	writel(0x07, pll_base + MMSS_DSI_PHY_PLL_RESETSM_CNTRL2);
+}
+
+static void mdss_dsi_pll_20nm_config_vco_start(uint32_t pll_base)
+{
+	writel(0x03, pll_base + MMSS_DSI_PHY_PLL_PLL_VCOTAIL_EN);
+	writel(0x02, pll_base + MMSS_DSI_PHY_PLL_RESETSM_CNTRL3);
+	udelay(10);
+	writel(0x03, pll_base + MMSS_DSI_PHY_PLL_RESETSM_CNTRL3);
+}
+
+static void mdss_dsi_pll_20nm_disable(uint32_t pll_base)
+{
+	dprintf(SPEW, "Disabling DSI PHY PLL \n");
+	writel(0x02, pll_base + MMSS_DSI_PHY_PLL_PLL_VCOTAIL_EN);
+	writel(0x06, pll_base + MMSS_DSI_PHY_PLL_RESETSM_CNTRL3);
+	dmb();
+}
+
+void mdss_dsi_auto_pll_20nm_config(uint32_t pll_base, uint32_t ctl_base,
+				struct mdss_dsi_pll_config *pd)
+{
+
+	mdss_dsi_pll_20nm_phy_config(pll_base);
+
+	/*
+	 * For 20nm PHY, DSI PLL 1 drains some current in its reset state.
+	 * Need to turn off the DSI1 PLL explicitly.
+	 */
+	if (ctl_base == MIPI_DSI0_BASE) {
+		dprintf(SPEW, "Calling disable function for PHY PLL 1 \n");
+		mdss_dsi_pll_20nm_disable(DSI1_PLL_BASE);
+	}
+
+	mdss_dsi_pll_20nm_config_vco_rate(pll_base, pd);
+
+	mdss_dsi_pll_20nm_config_resetsm(pll_base);
+	mdss_dsi_pll_20nm_config_vco_start(pll_base);
+	udelay(1000);
 }
