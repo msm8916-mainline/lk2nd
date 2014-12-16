@@ -398,7 +398,7 @@ void mdss_dsi_phy_contention_detection(
                 return;
 
         pd = (mipi->mdss_dsi_phy_db);
-	writel(pd->strength[1], phy_base + 0x0188);
+	writel(pd->strength[1], phy_base + MMSS_DSI_PHY_STRENGTH_CTRL_1);
 	dmb();
 }
 
@@ -436,9 +436,6 @@ static int mdss_dsi_phy_20nm_init(struct mipi_panel_info *mipi,
 		writel(0x03, phy_base + MMSS_DSI_PHY_CTRL_2);
 		dmb();
 	}
-
-	writel(pd->strength[1], phy_base + MMSS_DSI_PHY_STRENGTH_CTRL_1);
-	dmb();
 
 	for (ln = 0; ln < TOTAL_LANE_COUNT; ln++) {
 		off = (ln * 0x40);
