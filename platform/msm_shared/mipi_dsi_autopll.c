@@ -32,6 +32,7 @@
 #include <smem.h>
 #include <mipi_dsi.h>
 #include <platform/iomap.h>
+#include <platform/timer.h>
 
 #define LPFR_LUT_SIZE 10
 
@@ -39,7 +40,7 @@
 
 #define FRAC_DIVIDER 10000
 
-typedef struct lpfr_cfg {
+struct lpfr_cfg {
 	uint32_t vco_rate;
 	uint8_t  resistance;
 };
@@ -89,7 +90,6 @@ int32_t mdss_dsi_auto_pll_config(uint32_t pll_base, uint32_t ctl_base,
 	uint32_t ref_clk_to_pll = 0, frac_n_value = 0;
 	uint32_t sdm_cfg0, sdm_cfg1, sdm_cfg2, sdm_cfg3;
 	uint32_t gen_vco_clk, cal_cfg10, cal_cfg11;
-	uint32_t res;
 	uint8_t i, rc = NO_ERROR;
 
 	/* Configure the Loop filter resistance */
@@ -189,4 +189,5 @@ int32_t mdss_dsi_auto_pll_config(uint32_t pll_base, uint32_t ctl_base,
 	writel(cal_cfg10, pll_base + 0x0094); /* CAL CFG10 */
 	writel(cal_cfg11, pll_base + 0x0098); /* CAL CFG11 */
 	writel(0x20, pll_base + 0x009c); /* EFUSE CFG */
+	return rc;
 }

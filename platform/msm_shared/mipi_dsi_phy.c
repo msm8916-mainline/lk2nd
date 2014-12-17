@@ -29,7 +29,10 @@
 #include <debug.h>
 #include <reg.h>
 #include <mipi_dsi.h>
+#include <mdp5.h>
+#include <platform/timer.h>
 #include <platform/iomap.h>
+#include <arch/defines.h>
 
 #if (DISPLAY_TYPE_MDSS == 0)
 #define MIPI_DSI0_BASE MIPI_DSI_BASE
@@ -216,7 +219,7 @@ void mdss_dsi_phy_sw_reset(uint32_t ctl_base)
 	udelay(100);
 }
 
-static int mdss_dsi_20nm_phy_regulator_init(struct mdss_dsi_phy_ctrl *pd, uint32_t phy_base)
+static void mdss_dsi_20nm_phy_regulator_init(struct mdss_dsi_phy_ctrl *pd, uint32_t phy_base)
 {
 	/* DSI0 and DSI1 have a common regulator */
 	uint32_t off = 0x0280;	/* phy regulator ctrl settings */
@@ -243,7 +246,7 @@ static int mdss_dsi_20nm_phy_regulator_init(struct mdss_dsi_phy_ctrl *pd, uint32
 	}
 }
 
-static int mdss_dsi_phy_regulator_init(struct mdss_dsi_phy_ctrl *pd,
+static void mdss_dsi_phy_regulator_init(struct mdss_dsi_phy_ctrl *pd,
 	uint32_t phy_base)
 {
 	/* DSI0 and DSI1 have a common regulator */
@@ -412,6 +415,7 @@ static int mdss_dsi_phy_28nm_init(struct mipi_panel_info *mipi,
 	/* DSI_0_CLKOUT_TIMING_CTRL */
 	writel(0x41b, ctl_base + 0x0c4);
 	dmb();
+	return 0;
 
 }
 
@@ -461,6 +465,7 @@ static int mdss_dsi_phy_20nm_init(struct mipi_panel_info *mipi,
 	dmb();
 	writel(0x7f, phy_base + MMSS_DSI_PHY_CTRL_0);
 	dmb();
+	return 0;
 }
 
 int mdss_dsi_phy_init (struct mipi_panel_info *mipi,

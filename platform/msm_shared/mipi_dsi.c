@@ -53,7 +53,7 @@ extern void mdp_start_dma(void);
 #define MIPI_DSI1_BASE MIPI_DSI_BASE
 #endif
 
-static struct fbcon_config mipi_fb_cfg = {
+struct fbcon_config mipi_fb_cfg = {
 	.height = 0,
 	.width = 0,
 	.stride = 0,
@@ -63,7 +63,10 @@ static struct fbcon_config mipi_fb_cfg = {
 	.update_done = NULL,
 };
 
-static int cmd_mode_status = 0;
+static char read_id_a1h_cmd[4] = { 0xA1, 0x00, 0x06, 0xA0 };	/* DTYPE_DCS_READ */
+static struct mipi_dsi_cmd read_ddb_start_cmd =
+	{sizeof(read_id_a1h_cmd), read_id_a1h_cmd,  0x00};
+
 void secure_writel(uint32_t, uint32_t);
 uint32_t secure_readl(uint32_t);
 
@@ -73,7 +76,7 @@ static uint32_t mdss_dsi_read_panel_signature(struct mipi_panel_info *mipi)
 {
 	uint32_t rec_buf[1];
 	uint32_t *lp = rec_buf, data;
-	int ret = response_value;
+	uint32_t ret = response_value;
 	uint32_t panel_signature = mipi->signature;
 
 #if (DISPLAY_TYPE_MDSS == 1)
@@ -239,7 +242,7 @@ int mdss_dsi_cmds_rx(struct mipi_panel_info *mipi, uint32_t **rp, int rp_len,
 	int rdbk_len)
 {
 	uint32_t *lp, data;
-	char *dp;
+	uint32_t *dp;
 	int i, off;
 	int rlen, res;
 	uint32_t ctl_base;

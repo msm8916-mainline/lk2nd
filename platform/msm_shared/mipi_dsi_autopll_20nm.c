@@ -32,6 +32,8 @@
 #include <smem.h>
 #include <mipi_dsi.h>
 #include <platform/iomap.h>
+#include <qtimer.h>
+#include <arch/defines.h>
 
 #define LPFR_LUT_SIZE 10
 
