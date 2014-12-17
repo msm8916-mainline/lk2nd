@@ -237,11 +237,11 @@ static void platform_detect()
 		}
 
 		/* HLOS subtype
-		 * bit no                        |31    20 | 19        16| 15          8 | 7     0|
-		 * board.platform_hlos_subtype = |reserved | Boot device | DDR detection | subtype|
-		 *                               |  bits   |             |   bits        |
+		 * bit no                        |31    20 | 19        16|15    13 |12      11 | 10          8 | 7     0|
+		 * board.platform_hlos_subtype = |reserved | Boot device |Reserved | Panel     | DDR detection | subtype|
+		 *                               |  bits   |             |  bits   | Detection |
 		 */
-		board.platform_hlos_subtype = (board_get_ddr_subtype() << 8) | (platform_get_boot_dev() << 16);
+		board.platform_hlos_subtype = (board_get_ddr_subtype() << 8) | (platform_get_boot_dev() << 16) | (platform_detect_panel() << 11);
 	}
 	else
 	{

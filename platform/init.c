@@ -135,3 +135,8 @@ __WEAK int boot_device_mask(int val)
 {
 	return ((val & 0x3E) >> 1);
 }
+
+__WEAK uint32_t platform_detect_panel()
+{
+	return 0;
+}
