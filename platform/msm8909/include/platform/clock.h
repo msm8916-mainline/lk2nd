@@ -73,5 +73,7 @@ void clock_config_uart_dm(uint8_t id);
 void hsusb_clock_init(void);
 void clock_config_ce(uint8_t instance);
 void mdp_clock_init(void);
+void mdp_clock_enable(void);
+void mdp_clock_disable(void);
 void mdp_gdsc_ctrl(uint8_t enable);
 #endif
