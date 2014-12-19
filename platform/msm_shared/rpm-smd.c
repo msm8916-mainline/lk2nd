@@ -114,7 +114,7 @@ int rpm_send_data(uint32_t *data, uint32_t len, msg_type type)
 		case RPM_CMD_TYPE:
 			cmd.hdr.type = RPM_CMD_MAGIC;
 			cmd.hdr.len = CMD_MSG_LENGTH;//0x8;
-			len_to_smd  = 0x12;
+			len_to_smd  = sizeof(rpm_cmd);
 
 			fill_kvp_object(&cmd.data, data, len);
 			ret = smd_write(&ch, (void *)&cmd, len_to_smd, SMD_APPS_RPM);
