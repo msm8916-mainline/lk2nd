@@ -32,6 +32,11 @@
 #include <mdp4.h>
 #include <mipi_dsi.h>
 #include <boot_stats.h>
+#include <platform.h>
+#include <malloc.h>
+#ifdef DISPLAY_TYPE_MDSS
+#include <target/display.h>
+#endif
 
 static struct msm_fb_panel_data *panel;
 
@@ -220,7 +225,7 @@ int msm_display_on()
 		if (ret)
 			goto msm_display_on_out;
 
-		ret = mdss_hdmi_on();
+		ret = mdss_hdmi_on(pinfo);
 		if (ret)
 			goto msm_display_on_out;
 		break;
@@ -272,7 +277,7 @@ int msm_display_init(struct msm_fb_panel_data *pdata)
 
 	/* Enable clock */
 	if (pdata->clk_func)
-		ret = pdata->clk_func(1);
+		ret = pdata->clk_func(1, &(panel->panel_info));
 
 	/* Only enabled for auto PLL calculation */
 	if (pdata->pll_clk_func)
@@ -404,7 +409,7 @@ int msm_display_off()
 
 	/* Disable clock */
 	if (panel->clk_func)
-		ret = panel->clk_func(0);
+		ret = panel->clk_func(0, pinfo);
 
 	/* Only for AUTO PLL calculation */
 	if (panel->pll_clk_func)

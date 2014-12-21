@@ -154,7 +154,7 @@ struct mdss_dsi_phy_ctrl {
 	int is_pll_20nm;
 };
 
-typedef struct mdss_dsi_pll_config {
+struct mdss_dsi_pll_config {
 	uint32_t  pixel_clock;
 	uint32_t  pixel_clock_mhz;
 	uint32_t  byte_clock;
@@ -181,7 +181,7 @@ typedef struct mdss_dsi_pll_config {
 
 struct mipi_dsi_cmd {
 	uint32_t size;
-	uint8_t *payload;
+	char *payload;
 	int wait;
 };
 
@@ -200,10 +200,6 @@ struct mipi_dsi_panel_config {
 	char cmds_post_tg;
 };
 
-static char read_id_a1h_cmd[4] = { 0xA1, 0x00, 0x06, 0xA0 };	/* DTYPE_DCS_READ */
-static struct mipi_dsi_cmd read_ddb_start_cmd =
-	{sizeof(read_id_a1h_cmd), read_id_a1h_cmd};
-
 enum {		/* mipi dsi panel */
 	DSI_VIDEO_MODE,
 	DSI_CMD_MODE,
@@ -214,10 +210,12 @@ enum {		/* mipi dsi panel */
  **********************************************************/
 int mipi_config(struct msm_fb_panel_data *panel);
 int mdss_dsi_config(struct msm_fb_panel_data *panel);
+void mdss_dsi_phy_sw_reset(uint32_t ctl_base);
 int mdss_dsi_phy_init(struct mipi_panel_info *mipi,
 		uint32_t ctl_base, uint32_t phy_base);
 void mdss_dsi_phy_contention_detection(struct mipi_panel_info *mipi,
 				uint32_t phy_base);
+int mipi_dsi_phy_init(struct mipi_dsi_panel_config *pinfo);
 
 int mdss_dsi_video_mode_config(uint16_t disp_width,
 	uint16_t disp_height,
@@ -236,12 +234,30 @@ int mdss_dsi_video_mode_config(uint16_t disp_width,
 	uint8_t eof_bllp_pwr,
 	uint8_t interleav,
 	uint32_t ctl_base);
+int mdss_dsi_cmd_mode_config(uint16_t disp_width,
+	uint16_t disp_height,
+	uint16_t img_width,
+	uint16_t img_height,
+	uint16_t dst_format,
+	uint8_t ystride,
+	uint8_t lane_en,
+	uint8_t interleav,
+	uint32_t ctl_base);
 
 int mipi_dsi_on(struct msm_panel_info *pinfo);
+int mipi_cmd_trigger();
 int mipi_dsi_off(struct msm_panel_info *pinfo);
 int mdss_dsi_cmds_tx(struct mipi_panel_info *mipi,
 	struct mipi_dsi_cmd *cmds, int count, char dual_dsi);
 int mdss_dsi_cmds_rx(struct mipi_panel_info *mipi, uint32_t **rp, int rp_len,
 	int rdbk_len);
-
+int32_t mdss_dsi_auto_pll_config(uint32_t pll_base, uint32_t ctl_base,
+	struct mdss_dsi_pll_config *pd);
+void mdss_dsi_auto_pll_20nm_config(uint32_t pll_base, uint32_t ctl_base,
+	struct mdss_dsi_pll_config *pd);
+void mdss_dsi_pll_20nm_sw_reset_st_machine(uint32_t pll_base);
+uint32_t mdss_dsi_pll_20nm_lock_status(uint32_t pll_base);
+void mdss_dsi_uniphy_pll_lock_detect_setting(uint32_t pll_base);
+void mdss_dsi_uniphy_pll_sw_reset(uint32_t pll_base);
+int mdss_dsi_post_on(struct msm_fb_panel_data *panel);
 #endif

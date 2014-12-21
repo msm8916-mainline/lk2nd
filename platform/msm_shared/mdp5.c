@@ -192,8 +192,7 @@ static void mdss_source_pipe_config(struct fbcon_config *fb, struct msm_panel_in
 
 	dprintf(SPEW,"%s: src=%x fb_off=%x src_xy=%x dst_xy=%x\n",
 			 __func__, out_size, fb_off, src_xy, dst_xy);
-
-	writel(fb->base, pipe_base + PIPE_SSPP_SRC0_ADDR);
+	writel((uint32_t) fb->base, pipe_base + PIPE_SSPP_SRC0_ADDR);
 	writel(stride, pipe_base + PIPE_SSPP_SRC_YSTRIDE);
 	writel(src_size, pipe_base + PIPE_SSPP_SRC_IMG_SIZE);
 	writel(out_size, pipe_base + PIPE_SSPP_SRC_SIZE);
@@ -407,11 +406,11 @@ static void mdss_intf_tg_setup(struct msm_panel_info *pinfo, uint32_t intf_base)
 	struct intf_timing_params itp = {0};
 
 	if (pinfo == NULL)
-		return ERR_INVALID_ARGS;
+		return;
 
 	lcdc =  &(pinfo->lcdc);
 	if (lcdc == NULL)
-		return ERR_INVALID_ARGS;
+		return;
 
 	adjust_xres = pinfo->xres;
 	if (pinfo->lcdc.split_display) {
@@ -652,7 +651,7 @@ void mdss_fbc_cfg(struct msm_panel_info *pinfo)
 			comp_mode %d, qerr_enable = %d, cd_bias = %d\n",
 			width, fbc->slice_height, fbc->pred_mode, enc_mode,
 			fbc->comp_mode, fbc->qerr_enable, fbc->cd_bias);
-	dprintf(SPEW, "pat_enable %d, vlc_enable = %d, bflc_enable\n",
+	dprintf(SPEW, "pat_enable %d, vlc_enable = %d, bflc_enable = %d\n",
 			fbc->pat_enable, fbc->vlc_enable, fbc->bflc_enable);
 
 	budget_ctl = ((fbc->line_x_budget) << 12) |
@@ -792,8 +791,6 @@ static void mdp_set_intf_base(struct msm_panel_info *pinfo,
 int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 		struct fbcon_config *fb)
 {
-	int ret = NO_ERROR;
-	struct lcdc_panel_info *lcdc = NULL;
 	uint32_t intf_sel, sintf_sel;
 	uint32_t intf_base, sintf_base;
 	uint32_t left_pipe, right_pipe;
@@ -859,8 +856,6 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 
 int mdp_edp_config(struct msm_panel_info *pinfo, struct fbcon_config *fb)
 {
-	int ret = NO_ERROR;
-	struct lcdc_panel_info *lcdc = NULL;
 	uint32_t left_pipe, right_pipe;
 
 	mdss_intf_tg_setup(pinfo, MDP_INTF_0_BASE);
@@ -895,8 +890,6 @@ int mdp_edp_config(struct msm_panel_info *pinfo, struct fbcon_config *fb)
 
 int mdss_hdmi_config(struct msm_panel_info *pinfo, struct fbcon_config *fb)
 {
-	int ret = NO_ERROR;
-	struct lcdc_panel_info *lcdc = NULL;
 	uint32_t left_pipe, right_pipe;
 
 	mdss_intf_tg_setup(pinfo, MDP_INTF_3_BASE);

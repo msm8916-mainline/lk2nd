@@ -301,10 +301,10 @@ struct msm_fb_panel_data {
 	int rotate;
 
 	/* function entry chain */
-	int (*power_func) (int enable, struct msm_panel_info *);
-	int (*clk_func) (int enable);
-	int (*bl_func) (int enable);
-	int (*pll_clk_func) (int enable, struct msm_panel_info *);
+	int (*power_func) (uint8_t enable, struct msm_panel_info *);
+	uint32_t (*clk_func) (uint8_t enable, struct msm_panel_info *pinfo);
+	int (*bl_func) (uint8_t enable);
+	uint32_t (*pll_clk_func) (uint8_t enable, struct msm_panel_info *);
 	int (*post_power_func)(int enable);
 	int (*pre_init_func)(void);
 };
