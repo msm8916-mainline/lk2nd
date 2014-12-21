@@ -30,6 +30,7 @@
 #include <reg.h>
 #include <bits.h>
 #include <debug.h>
+#include <qtimer.h>
 
 __WEAK int platform_is_msm8994()
 {

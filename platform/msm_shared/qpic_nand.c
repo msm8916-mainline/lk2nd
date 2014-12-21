@@ -903,7 +903,7 @@ qpic_nand_blk_erase(uint32_t page)
 	struct cmd_element *cmd_list_read_ptr = ce_read_array;
 	struct cmd_element *cmd_list_ptr_start = ce_array;
 	struct cmd_element *cmd_list_read_ptr_start = ce_read_array;
-	uint32_t status, nand_ret;
+	uint32_t status;
 	int num_desc = 0;
 	uint32_t blk_addr = page / flash.num_pages_per_blk;
 
@@ -972,7 +972,7 @@ qpic_nand_blk_erase(uint32_t page)
 	status = qpic_nand_check_status(status);
 
 	/* Dummy read to unlock pipe. */
-	nand_ret = qpic_nand_read_reg(NAND_FLASH_STATUS, BAM_DESC_UNLOCK_FLAG);
+	qpic_nand_read_reg(NAND_FLASH_STATUS, BAM_DESC_UNLOCK_FLAG);
 
 	/* Check for status errors*/
 	if (status)

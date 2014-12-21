@@ -69,9 +69,7 @@ uint32_t platform_boot_dev_isemmc()
 void platform_boot_dev_cmdline(char *buf)
 {
 	uint32_t val = 0;
-	void *dev;
-
-	dev = target_mmc_device();
+	void *dev = target_mmc_device();
 
 	val = platform_get_boot_dev();
 	switch(val)

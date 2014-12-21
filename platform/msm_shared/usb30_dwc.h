@@ -493,6 +493,7 @@ static void dwc_event_handler_ep_ctrl_state_stall(dwc_dev_t *dev, uint32_t *even
 
 static enum handler_return dwc_irq_handler_ee1(void* arg);
 static void dwc_ep_config_init_enable(dwc_dev_t *dev, uint8_t index);
+void dwc_ep_cmd_clear_stall(dwc_dev_t *dev, uint8_t ep_phy_num);
 
 static int dwc_request_queue(dwc_dev_t *dev, uint8_t ep_phy_num, dwc_request_t *req);
 #endif
