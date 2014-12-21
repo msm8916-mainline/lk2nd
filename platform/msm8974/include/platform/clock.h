@@ -108,6 +108,8 @@ void clock_config_uart_dm(uint8_t id);
 void hsusb_clock_init(void);
 void clock_config_ce(uint8_t instance);
 void mdp_clock_init(void);
+void mdp_clock_enable(void);
+void mdp_clock_disable(uint32_t dual_dsi);
 void mdp_gdsc_ctrl(uint8_t enable);
 void edp_clk_enable(void);
 void clock_ce_enable(uint8_t instance);

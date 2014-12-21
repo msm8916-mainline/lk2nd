@@ -306,8 +306,9 @@ int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 	return NO_ERROR;
 }
 
-static int msm8974_mdss_edp_panel_clock(int enable)
+static int msm8974_mdss_edp_panel_clock(int enable, struct msm_panel_info *pinfo)
 {
+	uint32_t dual_dsi = pinfo->mipi.dual_dsi;
 	if (enable) {
 		mdp_gdsc_ctrl(enable);
 		mdp_clock_init();
@@ -315,7 +316,7 @@ static int msm8974_mdss_edp_panel_clock(int enable)
 	} else if (!target_cont_splash_screen()) {
 		/* Add here for continuous splash */
 		edp_clk_disable();
-		mdp_clock_disable();
+		mdp_clock_disable(dual_dsi);
 		mdp_gdsc_ctrl(enable);
 	}
 
