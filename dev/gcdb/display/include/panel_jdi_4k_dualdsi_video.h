@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -82,14 +82,31 @@ static char jdi_4k_dualdsi_video_on_cmd3[] = {
 	0x29, 0x00, 0x05, 0x80
 };
 
+static char jdi_4k_dualdsi_video_on_cmd_ip_0[] = {
+	0xb0, 0x04, 0x23, 0x80
+};
+
+static char jdi_4k_dualdsi_video_on_cmd_ip_1[] = {
+	0x07, 0x00, 0x29, 0xC0,
+	0xED, 0x80, 0x00, 0x34,
+	0x5B, 0x04, 0xB0, 0xFF
+};
+
+static char jdi_4k_dualdsi_video_on_cmd_ip_2[] = {
+	0xb0, 0x03, 0x23, 0x80
+};
+
 static struct mipi_dsi_cmd jdi_4k_dualdsi_video_on_command[] = {
 	{0x4, jdi_4k_dualdsi_video_on_cmd0, 0x78},
 	{0x4, jdi_4k_dualdsi_video_on_cmd1, 0x78},
 	{0x4, jdi_4k_dualdsi_video_on_cmd2, 0x78},
+	{0x4, jdi_4k_dualdsi_video_on_cmd_ip_0, 0x50},
+	{0xC, jdi_4k_dualdsi_video_on_cmd_ip_1, 0x0a},
+	{0x4, jdi_4k_dualdsi_video_on_cmd_ip_2, 0x50},
 	{0x4, jdi_4k_dualdsi_video_on_cmd3, 0x78}
 };
 
-#define JDI_4K_DUALDSI_VIDEO_ON_COMMAND 4
+#define JDI_4K_DUALDSI_VIDEO_ON_COMMAND 7
 
 
 static char jdi_4k_dualdsi_videooff_cmd0[] = {
