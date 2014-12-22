@@ -61,3 +61,6 @@ endif
 ifeq ($(ENABLE_SMD_SUPPORT),1)
 DEFINES += SMD_SUPPORT=1
 endif
+
+# Turn on Werror
+CFLAGS += -Werror
