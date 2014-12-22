@@ -50,8 +50,7 @@ __WEAK uint32_t target_override_pll()
 	return 0;
 }
 
-/* USB3.0 QMP phy reset */
-void usb30_qmp_phy_reset(void)
+static void qmp_phy_qmp_reset()
 {
 	int ret = 0;
 	uint32_t val;
@@ -62,9 +61,6 @@ void usb30_qmp_phy_reset(void)
 	struct clk *phy_com_clk = NULL;
 	struct clk *phy_clk = NULL;
 
-#if USB_RESET_FROM_CLK
-	clock_reset_usb_phy();
-#else
 	/* Look if phy com clock is present */
 	phy_com_clk = clk_get("usb30_phy_com_reset");
 	if (phy_com_clk)
@@ -135,7 +131,6 @@ deassert_usb2b_clk:
 	ret = clk_reset(usb2b_clk, CLK_RESET_DEASSERT);
 	if (ret)
 		dprintf(CRITICAL, "Failed to deassert usb2b_phy_clk\n");
-#endif
 
 	/* Override the phy common control values */
 	val = readl(MSM_USB30_QSCRATCH_BASE + HS_PHY_COMMON_CTRL);
@@ -143,6 +138,16 @@ deassert_usb2b_clk:
 	val &= ~FSEL;
 	val &= ~DIS_RETENTION;
 	writel(val, MSM_USB30_QSCRATCH_BASE + HS_PHY_COMMON_CTRL);
+}
+
+/* USB3.0 QMP phy reset */
+void usb30_qmp_phy_reset(void)
+{
+#if USB_RESET_FROM_CLK
+	clock_reset_usb_phy();
+#else
+	qmp_phy_qmp_reset();
+#endif
 }
 
 /* USB 3.0 phy init: HPG for QMP phy*/

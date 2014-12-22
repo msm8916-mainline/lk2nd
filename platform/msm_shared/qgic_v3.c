@@ -32,6 +32,7 @@
 #include <debug.h>
 #include <arch/arm.h>
 #include <arch/defines.h>
+#include <qtimer.h>
 #include <qgic_v3.h>
 
 #define GIC_WAKER_PROCESSORSLEEP                 BIT(1)
@@ -70,7 +71,6 @@ void qgic_dist_init()
 
 void qgic_cpu_init()
 {
-	uint32_t waker = 0;
 	uint32_t retry = 1000;
 	uint32_t sre = 0;
 	uint32_t pmr = 0xff;
