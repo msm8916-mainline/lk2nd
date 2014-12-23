@@ -152,7 +152,7 @@ typedef struct {
 struct tz_prng_data {
 	uint8_t *out_buf;
 	uint32_t out_buf_size;
-}__packed;
+}__PACKED;
 
 /* SCM support as per ARM spec */
 /*
