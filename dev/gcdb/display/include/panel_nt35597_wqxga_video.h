@@ -39,7 +39,7 @@
 /*---------------------------------------------------------------------------*/
 static struct panel_config nt35597_wqxga_video_panel_data = {
 	"qcom,dsi_nt35597_wqxga_video", /* panel_node_id */
-	"dsi:1:", /* panel_controller */
+	"dsi:0:", /* panel_controller */
 	"qcom,mdss-dsi-panel", /* panel_compatible */
 	10,  /* panel_interface */
 	0,  /* panel_type */
