@@ -53,6 +53,8 @@
 #include <ufs.h>
 #include <boot_device.h>
 #include <qmp_phy.h>
+#include <sdhci_msm.h>
+#include <qusb2_phy.h>
 
 #define PMIC_ARB_CHANNEL_NUM    0
 #define PMIC_ARB_OWNER_ID       0
