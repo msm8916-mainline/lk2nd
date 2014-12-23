@@ -34,6 +34,7 @@
 #include <platform/irqs.h>
 #include <platform/iomap.h>
 #include <platform/interrupts.h>
+#include <platform/timer.h>
 #include <reg.h>
 #include <malloc.h>
 #include <bits.h>
