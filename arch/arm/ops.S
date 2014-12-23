@@ -42,7 +42,13 @@ FUNCTION(arch_disable_ints)
 
 /* int atomic_swap(int *ptr, int val); */
 FUNCTION(atomic_swap)
-	swp	r0, r2, [r1]
+.L_loop_swap:
+	ldrex r12, [r0]
+	strex r2, r1, [r0]
+	cmp   r2 , #0
+	bne .L_loop_swap
+
+	mov r0, r12
 	bx	lr
 
 /* int atomic_add(int *ptr, int val); */
