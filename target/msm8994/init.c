@@ -403,9 +403,12 @@ unsigned target_baseband()
 
 void target_serialno(unsigned char *buf)
 {
-	unsigned int serialno;
+	uint32_t serialno;
 	if (target_is_emmc_boot()) {
-		serialno = mmc_get_psn();
+		if (platform_boot_dev_isemmc())
+			serialno = mmc_get_psn();
+		else
+			serialno = board_chip_serial();
 		snprintf((char *)buf, 13, "%x", serialno);
 	}
 }
