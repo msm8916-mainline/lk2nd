@@ -34,6 +34,8 @@
 #include <boot_stats.h>
 #include <platform.h>
 #include <malloc.h>
+#include <qpic.h>
+#include <target.h>
 #ifdef DISPLAY_TYPE_MDSS
 #include <target/display.h>
 #endif
@@ -61,7 +63,9 @@ static int msm_fb_alloc(struct fbcon_config *fb)
 int msm_display_config()
 {
 	int ret = NO_ERROR;
+#ifdef DISPLAY_TYPE_MDSS
 	int mdp_rev;
+#endif
 	struct msm_panel_info *pinfo;
 
 	if (!panel)
@@ -137,7 +141,7 @@ int msm_display_config()
 #ifdef DISPLAY_TYPE_QPIC
 	case QPIC_PANEL:
 		dprintf(INFO, "Config QPIC_PANEL.\n");
-		qpic_init(pinfo, panel->fb.base);
+		qpic_init(pinfo, (int) panel->fb.base);
 		break;
 #endif
 	default:
@@ -147,14 +151,18 @@ int msm_display_config()
 	if (pinfo->config)
 		ret = pinfo->config((void *)pinfo);
 
+#ifdef DISPLAY_TYPE_MDSS
 msm_display_config_out:
+#endif
 	return ret;
 }
 
 int msm_display_on()
 {
 	int ret = NO_ERROR;
+#ifdef DISPLAY_TYPE_MDSS
 	int mdp_rev;
+#endif
 	struct msm_panel_info *pinfo;
 
 	if (!panel)

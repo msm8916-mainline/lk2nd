@@ -30,6 +30,7 @@
 #ifndef MDSS_QPIC_H
 #define MDSS_QPIC_H
 
+#include <msm_panel.h>
 #include "qpic_panel.h"
 
 #define QPIC_REG_QPIC_LCDC_CTRL				0x22000
@@ -64,6 +65,10 @@ int qpic_send_pkt(uint32_t cmd, uint8_t *param, uint32_t len);
 uint32_t qpic_read_data(uint32_t cmd_index, uint32_t size);
 int mdss_qpic_panel_on(struct qpic_panel_io_desc *panel_io);
 int mdss_qpic_panel_off(struct qpic_panel_io_desc *panel_io);
+void qpic_init(struct msm_panel_info *pinfo, int base);
+int qpic_on(void);
+int qpic_off(void);
+void qpic_update(void);
 
 struct qpic_data_type {
 	uint32_t rev;
