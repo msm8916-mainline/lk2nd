@@ -237,6 +237,7 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		memcpy(phy_db->timing,
 				hx8394d_qhd_video_timings, TIMING_SIZE);
 		pinfo->mipi.signature = HX8394D_QHD_VIDEO_SIGNATURE;
+		break;
 	case HX8379C_FWVGA_VIDEO_PANEL:
 		panelstruct->paneldata    = &hx8379c_fwvga_video_panel_data;
 		panelstruct->panelres     = &hx8379c_fwvga_video_panel_res;
