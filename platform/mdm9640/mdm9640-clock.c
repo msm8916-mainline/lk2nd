@@ -351,7 +351,7 @@ static struct branch_clk gcc_usb30_aux_clk = {
 };
 
 static struct reset_clk gcc_usb30_phy_reset = {
-	.bcr_reg = (uint32_t *) USB3_PHY_BCR,
+	.bcr_reg = (uint32_t) USB3_PHY_BCR,
 
 	.c = {
 		.dbg_name = "usb30_phy_reset",
@@ -360,7 +360,7 @@ static struct reset_clk gcc_usb30_phy_reset = {
 };
 
 static struct reset_clk gcc_usb2a_phy_sleep_clk = {
-	.bcr_reg = (uint32_t *) QUSB2A_PHY_BCR,
+	.bcr_reg = (uint32_t) QUSB2A_PHY_BCR,
 
 	.c = {
 		.dbg_name = "usb2b_phy_sleep_clk",
