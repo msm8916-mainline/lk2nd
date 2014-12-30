@@ -34,30 +34,6 @@
 /*---------------------------------------------------------------------------*/
 #include <display_resource.h>
 
-/*---------------------------------------------------------------------------*/
-/* GPIO configuration                                                        */
-/*---------------------------------------------------------------------------*/
-static struct gpio_pin reset_gpio = {
-  "pm8941_gpios", 19, 2, 1, 0, 1
-};
-
-static struct gpio_pin enable_gpio = {
-  "msmgpio", 58, 3, 1, 0, 1
-};
-
-static struct gpio_pin pwm_gpio = {
-  "pm8941_gpios", 36, 3, 1, 0, 1
-};
-
-/*---------------------------------------------------------------------------*/
-/* LDO configuration                                                         */
-/*---------------------------------------------------------------------------*/
-static struct ldo_entry ldo_entry_array[] = {
-  { "vdd", 22, 0, 3000000, 100000, 100, 0, 20, 0, 0},
-{ "vddio", 12, 0, 1800000, 100000, 100, 0, 20, 0, 0},
-{ "vdda", 2, 1, 1200000, 100000, 100, 0, 0, 0, 0},
-};
-
 #define TOTAL_LDO_DEFINED 3
 
 /*---------------------------------------------------------------------------*/
@@ -109,4 +85,9 @@ static const uint32_t panel_physical_ctrl[] = {
 #define HDMI_PANEL_NAME              "hdmi"
 #define HDMI_CONTROLLER_STRING       "hdmi:0"
 
+int target_cont_splash_screen();
+uint8_t target_panel_auto_detect_enabled();
+uint32_t target_hw_interposer();
+void target_force_cont_splash_disable(uint8_t override);
+uint32_t oem_panel_max_auto_detect_panels();
 #endif

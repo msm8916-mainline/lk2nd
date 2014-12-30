@@ -33,6 +33,8 @@
 #include <msm_panel.h>
 #include <board.h>
 #include <mipi_dsi.h>
+#include <string.h>
+#include <target/display.h>
 
 #include "include/panel.h"
 #include "panel_display.h"
@@ -283,7 +285,6 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 			struct mdss_dsi_phy_ctrl *phy_db)
 {
 	uint32_t hw_id = board_hardware_id();
-	uint32_t target_id = board_target_id();
 	int32_t panel_override_id;
 
 	if (panel_name) {
