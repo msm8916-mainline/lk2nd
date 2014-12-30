@@ -34,38 +34,6 @@
 /*---------------------------------------------------------------------------*/
 #include <display_resource.h>
 
-/*---------------------------------------------------------------------------*/
-/* GPIO configuration                                                        */
-/*---------------------------------------------------------------------------*/
-static struct gpio_pin reset_gpio = {
-  "msmgpio", 41, 3, 1, 0, 1
-};
-
-static struct gpio_pin enable_gpio = {
-  0, 0, 0, 0, 0, 0
-};
-
-static struct gpio_pin te_gpio = {
-  "msmgpio", 12, 0, 2, 0, 1
-};
-
-static struct gpio_pin pwm_gpio = {
-  0, 0, 0, 0, 0, 0
-};
-
-static struct gpio_pin mode_gpio = {
-  "msmgpio", 7, 3, 1, 0, 1
-};
-
-
-/*---------------------------------------------------------------------------*/
-/* Supply configuration                                                      */
-/*---------------------------------------------------------------------------*/
-static struct ldo_entry ldo_entry_array[] = {
-{ "vddio", 14, 0, 1800000, 100000, 100, 0, 0, 0, 0},
-{ "vdda", 19, 0, 2850000, 100000, 100, 0, 0, 0, 0},
-};
-
 #define TOTAL_LDO_DEFINED 2
 
 /*---------------------------------------------------------------------------*/
@@ -111,4 +79,9 @@ static const uint32_t panel_physical_ctrl[] = {
 #define MIPI_VSYNC_BACK_PORCH_LINES  10
 #define MIPI_VSYNC_FRONT_PORCH_LINES 12
 
+int target_cont_splash_screen();
+void target_force_cont_splash_disable(uint8_t override);
+uint32_t oem_panel_max_auto_detect_panels();
+uint8_t target_panel_auto_detect_enabled();
+uint8_t target_panel_auto_detect_enabled();
 #endif

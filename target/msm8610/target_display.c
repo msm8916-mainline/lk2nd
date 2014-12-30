@@ -30,6 +30,8 @@
 #include <debug.h>
 #include <smem.h>
 #include <err.h>
+#include <string.h>
+#include <qtimer.h>
 #include <msm_panel.h>
 #include <mipi_dsi.h>
 #include <pm8x41.h>
@@ -37,8 +39,10 @@
 #include <board.h>
 #include <platform/gpio.h>
 #include <platform/iomap.h>
+#include <platform/clock.h>
 #include <pm_pwm.h>
 #include <target/display.h>
+#include <gcdb_display.h>
 
 #include "include/panel.h"
 #include "include/display_resource.h"
@@ -52,6 +56,23 @@
 
 #define PWM_DUTY_US 13
 #define PWM_PERIOD_US 27
+
+static struct gpio_pin reset_gpio = {
+  "msmgpio", 41, 3, 1, 0, 1
+};
+
+static struct gpio_pin mode_gpio = {
+  "msmgpio", 7, 3, 1, 0, 1
+};
+
+/*---------------------------------------------------------------------------*/
+/* Supply configuration                                                      */
+/*---------------------------------------------------------------------------*/
+static struct ldo_entry ldo_entry_array[] = {
+{ "vddio", 14, 0, 1800000, 100000, 100, 0, 0, 0, 0},
+{ "vdda", 19, 0, 2850000, 100000, 100, 0, 0, 0, 0},
+};
+
 
 int target_backlight_ctrl(struct backlight *bl, uint8_t enable)
 {
@@ -145,7 +166,7 @@ int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 			0x100 * ldo_entry_array[ldocounter].ldo_id),
 			ldo_entry_array[ldocounter].ldo_type);
 
-		dprintf(SPEW, "Setting %s\n",
+		dprintf(SPEW, "Setting %u\n",
 				ldo_entry_array[ldocounter].ldo_id);
 
 		/* Set voltage during power on */
@@ -179,7 +200,7 @@ void target_display_init(const char *panel_name)
 
 	do {
 		target_force_cont_splash_disable(false);
-		ret = gcdb_display_init(panel_name, MDP_REV_304, MIPI_FB_ADDR);
+		ret = gcdb_display_init(panel_name, MDP_REV_304,(void *)MIPI_FB_ADDR);
 		if (ret) {
 			/*Panel signature did not match, turn off the display*/
 			target_force_cont_splash_disable(true);
@@ -187,7 +208,7 @@ void target_display_init(const char *panel_name)
 		} else {
 			break;
 		}
-	} while (++panel_loop <= oem_panel_max_auto_detect_panels());
+	} while (++panel_loop <= (uint32_t)oem_panel_max_auto_detect_panels());
 
 }
 
