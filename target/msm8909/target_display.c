@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -231,6 +231,9 @@ void target_display_init(const char *panel_name)
 {
 	uint32_t panel_loop = 0;
 	uint32_t ret = 0;
+	char cont_splash = '\0';
+
+	set_panel_cmd_string(panel_name, &cont_splash);
 
 	if (!strcmp(panel_name, NO_PANEL_CONFIG)) {
 		dprintf(INFO, "Skip panel configuration\n");
@@ -247,6 +250,11 @@ void target_display_init(const char *panel_name)
 			msm_display_off();
 		}
 	} while (++panel_loop <= oem_panel_max_auto_detect_panels());
+
+	if (cont_splash == '0') {
+		dprintf(INFO, "Forcing continuous splash disable\n");
+		target_force_cont_splash_disable(true);
+	}
 }
 
 void target_display_shutdown(void)

@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -425,8 +425,10 @@ bool target_display_panel_node(char *panel_name, char *pbuf, uint16_t buf_size)
 
 void target_display_init(const char *panel_name)
 {
-	panel_name += strspn(panel_name, " ");
+	char cont_splash = '\0';
 
+	set_panel_cmd_string(panel_name, &cont_splash);
+	panel_name += strspn(panel_name, " ");
 	if (!strcmp(panel_name, NO_PANEL_CONFIG)
 		|| !strcmp(panel_name, SIM_VIDEO_PANEL)
 		|| !strcmp(panel_name, SIM_DUALDSI_VIDEO_PANEL)
@@ -436,9 +438,15 @@ void target_display_init(const char *panel_name)
 			panel_name);
 		return;
 	}
+
 	if (gcdb_display_init(panel_name, MDP_REV_50, (void *)MIPI_FB_ADDR)) {
 		target_force_cont_splash_disable(true);
 		msm_display_off();
+	}
+
+	if (cont_splash == '0') {
+		dprintf(INFO, "Forcing continuous splash disable\n");
+		target_force_cont_splash_disable(true);
 	}
 }
 
