@@ -84,4 +84,5 @@ bool target_use_signed_kernel(void);
 int _emmc_recovery_init(void);
 void ulpi_write(unsigned val, unsigned reg);
 void target_crypto_init_params(void);
+int target_cont_splash_screen(void);
 #endif
