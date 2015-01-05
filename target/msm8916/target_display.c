@@ -351,7 +351,7 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 			gpio_set_dir(enable_gpio.pin_id, 2);
 		}
 
-		if (platform_is_msm8939()) {
+		if (platform_is_msm8939() || platform_is_msm8929()) {
 			if ((hw_id == HW_PLATFORM_QRD) &&
 				 (hw_subtype == HW_PLATFORM_SUBTYPE_SKUK))
 				target_panel_reset_skuk(enable);
@@ -396,7 +396,7 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 		if (pinfo->mipi.use_enable_gpio)
 			gpio_set_dir(enable_gpio.pin_id, 0);
 
-		if (platform_is_msm8939()) {
+		if (platform_is_msm8939() || platform_is_msm8929()) {
 			if ((hw_id == HW_PLATFORM_QRD) &&
 				 (hw_subtype == HW_PLATFORM_SUBTYPE_SKUK))
 				target_panel_reset_skuk(enable);

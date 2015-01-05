@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -69,6 +69,7 @@ static mmu_section_t mmu_section_table[] = {
 
 
 int platform_is_msm8939();
+int platform_is_msm8929();
 
 void platform_early_init(void)
 {
@@ -81,7 +82,7 @@ void platform_early_init(void)
 
 int qtmr_irq()
 {
-	if (platform_is_msm8939())
+	if (platform_is_msm8939() || platform_is_msm8929())
 		return INT_QTMR_FRM_0_PHYSICAL_TIMER_EXP_8x39;
 	else
 		return INT_QTMR_FRM_0_PHYSICAL_TIMER_EXP_8x16;
@@ -162,6 +163,26 @@ int platform_is_msm8939()
 		case MSM8636:
 		case MSM8936:
 		case MSM8239:
+			ret = 1;
+			break;
+		default:
+			ret = 0;
+	};
+
+	return ret;
+}
+
+int platform_is_msm8929()
+{
+	uint32_t platform = board_platform_id();
+	uint32_t ret = 0;
+
+	switch(platform)
+	{
+		case MSM8929:
+		case MSM8629:
+		case MSM8229:
+		case APQ8029:
 			ret = 1;
 			break;
 		default:
