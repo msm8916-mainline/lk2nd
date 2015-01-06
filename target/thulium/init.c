@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -316,7 +316,9 @@ int emmc_recovery_init(void)
 
 void target_usb_phy_reset()
 {
+#ifndef USE_HSONLY_MODE
 	usb30_qmp_phy_reset();
+#endif
 	qusb2_phy_reset();
 }
 
@@ -327,7 +329,10 @@ target_usb_iface_t* target_usb30_init()
 	t_usb_iface = calloc(1, sizeof(target_usb_iface_t));
 	ASSERT(t_usb_iface);
 
+#ifndef USE_HSONLY_MODE
 	t_usb_iface->phy_init   = usb30_qmp_phy_init;
+#endif
+
 	t_usb_iface->phy_reset  = target_usb_phy_reset;
 	t_usb_iface->clock_init = clock_usb30_init;
 	t_usb_iface->vbus_override = 1;
