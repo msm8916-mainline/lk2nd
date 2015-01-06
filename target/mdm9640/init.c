@@ -34,6 +34,7 @@
 #include <baseband.h>
 #include <lib/ptable.h>
 #include <qpic_nand.h>
+#include <malloc.h>
 #include <ctype.h>
 #include <string.h>
 #include <pm8x41.h>
@@ -48,6 +49,11 @@
 #include <qusb2_phy.h>
 #include <rpm-smd.h>
 #include <scm.h>
+#include <spmi.h>
+#include <partition_parser.h>
+#include <sdhci_msm.h>
+#include <uart_dm.h>
+#include <boot_device.h>
 
 extern void smem_ptable_init(void);
 extern void smem_add_modem_partitions(struct ptable *flash_ptable);
@@ -86,7 +92,6 @@ void update_ptable_names(void)
 {
 	uint32_t ptn_index;
 	struct ptentry *ptentry_ptr = flash_ptable.parts;
-	struct ptentry *boot_ptn;
 	unsigned i;
 	uint32_t len;
 
@@ -263,9 +268,8 @@ int get_target_boot_params(const char *cmdline, const char *part, char *buf,
 			}
 			snprintf(buf, buflen, EXT4_CMDLINE"%d", system_ptn_index);
 		}
-
-		return 0;
 	}
+	return 0;
 }
 
 const char * target_usb_controller()
@@ -278,17 +282,17 @@ static void set_sdc_power_ctrl()
 	/* Drive strength configs for sdc pins */
 	struct tlmm_cfgs sdc1_hdrv_cfg[] =
 	{
-		{ SDC1_CLK_HDRV_CTL_OFF,  TLMM_CUR_VAL_16MA, TLMM_HDRV_MASK },
-		{ SDC1_CMD_HDRV_CTL_OFF,  TLMM_CUR_VAL_10MA, TLMM_HDRV_MASK },
-		{ SDC1_DATA_HDRV_CTL_OFF, TLMM_CUR_VAL_6MA, TLMM_HDRV_MASK },
+		{ SDC1_CLK_HDRV_CTL_OFF,  TLMM_CUR_VAL_16MA, TLMM_HDRV_MASK, 0 },
+		{ SDC1_CMD_HDRV_CTL_OFF,  TLMM_CUR_VAL_10MA, TLMM_HDRV_MASK, 0 },
+		{ SDC1_DATA_HDRV_CTL_OFF, TLMM_CUR_VAL_6MA, TLMM_HDRV_MASK, 0 },
 	};
 
 	/* Pull configs for sdc pins */
 	struct tlmm_cfgs sdc1_pull_cfg[] =
 	{
-		{ SDC1_CLK_PULL_CTL_OFF,  TLMM_NO_PULL, TLMM_PULL_MASK },
-		{ SDC1_CMD_PULL_CTL_OFF,  TLMM_PULL_UP, TLMM_PULL_MASK },
-		{ SDC1_DATA_PULL_CTL_OFF, TLMM_PULL_UP, TLMM_PULL_MASK },
+		{ SDC1_CLK_PULL_CTL_OFF,  TLMM_NO_PULL, TLMM_PULL_MASK, 0 },
+		{ SDC1_CMD_PULL_CTL_OFF,  TLMM_PULL_UP, TLMM_PULL_MASK, 0 },
+		{ SDC1_DATA_PULL_CTL_OFF, TLMM_PULL_UP, TLMM_PULL_MASK, 0 },
 	};
 
 	/* Set the drive strength & pull control values */
@@ -351,7 +355,7 @@ target_usb_iface_t* target_usb30_init()
 {
 	target_usb_iface_t *t_usb_iface;
 
-	t_usb_iface = calloc(1, sizeof(target_usb_iface_t));
+	t_usb_iface = (target_usb_iface_t *) calloc(1, sizeof(target_usb_iface_t));
 	ASSERT(t_usb_iface);
 
 	t_usb_iface->mux_config = NULL;

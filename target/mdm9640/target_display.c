@@ -30,7 +30,7 @@
 #include <debug.h>
 #include <err.h>
 #include <msm_panel.h>
-#include "splash.h"
+#include <rpm-smd.h>
 
 /* PANEL INFO */
 #define HVGA_PANEL_XRES 320
@@ -41,6 +41,8 @@
 #define QPIC_FB_ADDR  0x80000000
 
 static struct msm_fb_panel_data panel;
+extern int msm_display_init(struct msm_fb_panel_data *pdata);
+extern int msm_display_off();
 
 void target_display_init(const char *panel_name)
 {
@@ -59,7 +61,7 @@ void target_display_init(const char *panel_name)
 	panel.fb.stride =  panel.panel_info.xres;
 	panel.fb.bpp =  panel.panel_info.bpp;
 	panel.fb.format = FB_FORMAT_RGB565;
-	panel.fb.base = QPIC_FB_ADDR;
+	panel.fb.base = (void *) QPIC_FB_ADDR;
 
 	rpm_smd_init();
 	ret = msm_display_init(&panel);
