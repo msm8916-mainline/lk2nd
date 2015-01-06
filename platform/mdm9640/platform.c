@@ -31,18 +31,17 @@
 #include <qgic.h>
 #include <qtimer.h>
 #include <board.h>
+#include <boot_device.h>
 #include <mmu.h>
 #include <arch/arm/mmu.h>
 #include <platform/iomap.h>
+#include <platform/clock.h>
 #include <smem.h>
 #include <reg.h>
-#include <board.h>
 #include <qpic_nand.h>
 #include <target.h>
 
 extern struct smem_ram_ptable* target_smem_ram_ptable_init();
-
-#define MB                                  (1024*1024)
 
 #define MSM_IOMAP_SIZE                      ((MSM_IOMAP_END - MSM_IOMAP_BASE)/MB)
 
