@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
- * Copyright (c) 2009-2014, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2015, The Linux Foundation. All rights reserved.
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -1654,13 +1654,14 @@ flash_read_ext(struct ptentry *ptn,
 int
 flash_erase(struct ptentry *ptn)
 {
-	int ret = 0;
+	int ret = 0, i;
 
-	ret = qpic_nand_blk_erase(ptn->start * flash.num_pages_per_blk);
-
-	if (ret)
-		dprintf(CRITICAL, "Erase operation failed \n");
-
+	for (i = 0; i < (int)ptn->length; i++) {
+		ret = qpic_nand_blk_erase((ptn->start + i) * flash.num_pages_per_blk);
+		if (ret)
+			dprintf(CRITICAL, "Erase operation failed @ page #%d\n",
+					ptn->start + i);
+	}
 	return ret;
 }
 
