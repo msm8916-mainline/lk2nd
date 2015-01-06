@@ -30,9 +30,6 @@
 #ifndef __PLATFORM_SPLASH_H
 #define __PLATFORM_SPLASH_H
 
-#define SPLASH_IMAGE_WIDTH     113
-#define SPLASH_IMAGE_HEIGHT    124
-
 #if (!DISPLAY_TYPE_MIPI)
 #define SPLASH_IMAGE_WIDTH     124
 #define SPLASH_IMAGE_HEIGHT    113
@@ -3546,6 +3543,10 @@ static char imageBuffer[] = {
 };
 
 #else
+
+#define SPLASH_IMAGE_WIDTH     113
+#define SPLASH_IMAGE_HEIGHT    124
+
 /* This image is 228x113 raw Image resembling QuIC logo*/
 
 static char imageBuffer_rgb888[] = {

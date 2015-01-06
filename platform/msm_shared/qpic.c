@@ -31,7 +31,9 @@
 #include <err.h>
 #include <msm_panel.h>
 #include <platform/iomap.h>
+#include <platform/timer.h>
 #include <reg.h>
+#include <target.h>
 
 #include "qpic.h"
 #include "qpic_panel.h"
@@ -44,7 +46,6 @@ static int qpic_send_pkt_sw(uint32_t cmd, uint32_t len, uint8_t *param);
 
 /* for debugging */
 static uint32_t use_bam = false;
-static uint32_t use_irq = false;
 static uint32_t use_vsync;
 
 /* For compilation */
@@ -76,9 +77,9 @@ void qpic_update()
 	uint32_t fb_offset, size;
 
 	if (use_bam)
-		fb_offset = qpic_res->fb_phys + qpic_res->base;
+		fb_offset = qpic_res->fb_phys + (uint32_t) qpic_res->base;
 	else
-		fb_offset = qpic_res->fb_virt + qpic_res->base;
+		fb_offset = (uint32_t) qpic_res->fb_virt + (uint32_t) qpic_res->base;
 
 	size = qpic_res->fb_xres * qpic_res->fb_yres * qpic_res->fb_bpp;
 
@@ -207,7 +208,8 @@ static int qpic_wait_for_eof(void)
 static int qpic_send_pkt_sw(uint32_t cmd, uint32_t len, uint8_t *param)
 {
 	uint32_t bytes_left, space, data, cfg2;
-	int i, ret = 0;
+	int ret = 0;
+	uint32_t i;
 
 	if (len && !param) {
 		dprintf(CRITICAL, "Null Pointer!\n");
