@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -166,7 +166,9 @@ void usb_wrapper_vbus_override(usb_wrapper_dev_t *dev)
 	REG_WRITE_FIELD(dev, HS_PHY_CTRL, SW_SESSVLD_SEL, 0x1);
 
 	/* Indicate power present to SS phy */
+#ifndef USE_HSONLY_MODE
 	REG_WRITE_FIELD(dev, SS_PHY_CTRL, LANE0_PWR_PRESENT, 0x1);
+#endif
 }
 
 /* API to read SS PHY registers */
@@ -251,4 +253,14 @@ usb_wrapper_dev_t * usb_wrapper_init(usb_wrapper_config_t *config)
 void usb_wrapper_hs_phy_ctrl_force_write(usb_wrapper_dev_t *dev)
 {
 	REG_WRITE(dev, HS_PHY_CTRL_COMMON, 0x00001CB8);
+}
+
+void usb_wrapper_hsonly_mode(usb_wrapper_dev_t *dev)
+{
+	REG_WRITE_FIELD(dev, GENERAL_CFG, PIPE_UTMI_CLK_DIS, 0x1);
+	udelay(1);
+	REG_WRITE_FIELD(dev, GENERAL_CFG, PIPE_UTMI_CLK_SEL, 0x1);
+	REG_WRITE_FIELD(dev, GENERAL_CFG, PIPE3_PHYSTATUS_SW, 0x1);
+	udelay(1);
+	REG_WRITE_FIELD(dev, GENERAL_CFG, PIPE_UTMI_CLK_DIS, 0x0);
 }

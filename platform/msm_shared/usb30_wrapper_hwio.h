@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013,2015 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -120,6 +120,12 @@
 #define HWIO_GENERAL_CFG_XHCI_REV_SHFT                                           0x2
 #define HWIO_GENERAL_CFG_DBM_EN_BMSK                                             0x2
 #define HWIO_GENERAL_CFG_DBM_EN_SHFT                                             0x1
+#define HWIO_GENERAL_CFG_PIPE_UTMI_CLK_DIS_BMSK                                  0x100
+#define HWIO_GENERAL_CFG_PIPE_UTMI_CLK_DIS_SHFT                                  0x8
+#define HWIO_GENERAL_CFG_PIPE_UTMI_CLK_SEL_BMSK                                  0x1
+#define HWIO_GENERAL_CFG_PIPE_UTMI_CLK_SEL_SHFT                                  0x0
+#define HWIO_GENERAL_CFG_PIPE3_PHYSTATUS_SW_BMSK                                 0x8
+#define HWIO_GENERAL_CFG_PIPE3_PHYSTATUS_SW_SHFT                                 0x3
 
 #define HWIO_RAM1_REG_ADDR(x)                                             ((x) + 0x0000000c)
 #define HWIO_RAM1_REG_RMSK                                                       0x7
