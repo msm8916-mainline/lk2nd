@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -171,6 +171,23 @@ int platform_is_msm8994()
 		return 1;
 	else
 		return 0;
+}
+
+int platform_is_msm8992()
+{
+	int ret;
+
+	uint32_t platform = board_platform_id();
+	switch (platform) {
+	case MSM8992:
+	case APQ8092:
+		ret = 1;
+		break;
+	default:
+		ret = 0;
+	}
+
+	return ret;
 }
 
 addr_t get_bs_info_addr()
