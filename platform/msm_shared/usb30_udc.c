@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -232,13 +232,20 @@ static void usb30_init(struct udc_device *dev_info)
 	/* 2. Put controller in reset */
 	dwc_reset(dwc, 1);
 
+	/* HS only mode support */
+#ifdef USE_HSONLY_MODE
+	usb_wrapper_hsonly_mode(wrapper);
+#endif
+
 	/* Steps 3 - 7 must be done while dwc is in reset condition */
 
 	/* 3. Reset PHY */
 	phy_reset(wrapper, dev_info);
 
 	/* 4. SS phy config */
+#ifndef USE_HSONLY_MODE
 	usb_wrapper_ss_phy_configure(wrapper);
+#endif
 
 	/* 5. HS phy init */
 	usb_wrapper_hs_phy_init(wrapper);

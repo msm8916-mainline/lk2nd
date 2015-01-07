@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013,2015 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -65,5 +65,5 @@ void usb_wrapper_workaround_10(usb_wrapper_dev_t *dev);
 void usb_wrapper_workaround_11(usb_wrapper_dev_t *dev);
 void usb_wrapper_workaround_13(usb_wrapper_dev_t *dev);
 void usb_wrapper_hs_phy_ctrl_force_write(usb_wrapper_dev_t *dev);
-
+void usb_wrapper_hsonly_mode(usb_wrapper_dev_t *dev);
 #endif
