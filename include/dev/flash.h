@@ -70,13 +70,14 @@ int flash_read_ext(struct ptentry *ptn, unsigned extra_per_page,
 		   unsigned offset, void *data, unsigned bytes);
 int flash_write(struct ptentry *ptn, unsigned write_extra_bytes, const void *data,
 		unsigned bytes);
-
 static inline int flash_read(struct ptentry *ptn, unsigned offset, void *data,
 			     unsigned bytes)
 {
 	return flash_read_ext(ptn, 0, offset, data, bytes);
 }
 unsigned flash_page_size(void);
+unsigned flash_block_size(void);
+unsigned flash_spare_size(void);
 int flash_ecc_bch_enabled(void);
 
 

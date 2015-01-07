@@ -72,6 +72,8 @@ static struct flash_id supported_flash[] = {
 	/* Note: Width flag is 0 for 8 bit Flash and 1 for 16 bit flash   */
 };
 
+static int qpic_nand_mark_badblock(uint32_t page);
+
 static void
 qpic_nand_wait_for_cmd_exec(uint32_t num_desc)
 {
@@ -817,8 +819,13 @@ qpic_nand_block_isbad_exec(struct cfg_params *params,
 	return nand_ret;
 }
 
-static int
-qpic_nand_block_isbad(unsigned page)
+/**
+ * qpic_nand_block_isbad() - Checks is given block is bad
+ * @page - number of page the block starts at
+ *
+ * Returns nand_result_t
+ */
+nand_result_t qpic_nand_block_isbad(unsigned page)
 {
 	unsigned cwperpage;
 	struct cfg_params params;
@@ -886,8 +893,7 @@ qpic_nand_block_isbad(unsigned page)
 /* Function to erase a block on the nand.
  * page: Starting page address for the block.
  */
-static int
-qpic_nand_blk_erase(uint32_t page)
+nand_result_t qpic_nand_blk_erase(uint32_t page)
 {
 	struct cfg_params cfg;
 	struct cmd_element *cmd_list_ptr = ce_array;
@@ -962,6 +968,7 @@ qpic_nand_blk_erase(uint32_t page)
 		dprintf(CRITICAL,
 				"NAND Erase error: Block address belongs to bad block: %d\n",
 				blk_addr);
+		qpic_nand_mark_badblock(page);
 		return NANDC_RESULT_FAILURE;
 	}
 
@@ -969,6 +976,7 @@ qpic_nand_blk_erase(uint32_t page)
 	if (!(status & PROG_ERASE_OP_RESULT))
 		return NANDC_RESULT_SUCCESS;
 
+	qpic_nand_mark_badblock(page);
 	return NANDC_RESULT_FAILURE;
 }
 
@@ -1318,6 +1326,12 @@ flash_num_blocks(void)
     return flash.num_blocks;
 }
 
+unsigned
+flash_spare_size(void)
+{
+    return flash.spare_size;
+}
+
 struct ptable *
 flash_get_ptable(void)
 {
@@ -1517,6 +1531,105 @@ qpic_nand_read_page(uint32_t page, unsigned char* buffer, unsigned char* sparead
 	}
 qpic_nand_read_page_error:
 return nand_ret;
+}
+
+/**
+ * qpic_nand_read() - read data
+ * @start_page: number of page to begin reading from
+ * @num_pages: number of pages to read
+ * @buffer: buffer where to store the read data
+ * @spareaddr: buffer where to store spare data.
+ * 		If null, spare data wont be read
+ *
+ * This function reads @num_pages starting from @start_page and stores the
+ * read data in buffer. Note that it's in the caller responsibility to make
+ * sure the read pages are all from same partition.
+ *
+ * Returns nand_result_t
+ */
+nand_result_t qpic_nand_read(uint32_t start_page, uint32_t num_pages,
+		unsigned char* buffer, unsigned char* spareaddr)
+{
+	unsigned i = 0, ret = 0;
+
+	if (!buffer) {
+		dprintf(CRITICAL, "qpic_nand_read: buffer = null\n");
+		return NANDC_RESULT_PARAM_INVALID;
+	}
+	while (i < num_pages) {
+		ret = qpic_nand_read_page(start_page + i, buffer + flash.page_size * i,
+				spareaddr);
+		i++;
+		if (ret == NANDC_RESULT_BAD_PAGE)
+			qpic_nand_mark_badblock(start_page + i);
+		if (ret) {
+			dprintf(CRITICAL,
+					"qpic_nand_read: reading page %d failed with %d err\n",
+					start_page + i, ret);
+			return ret;
+		}
+	}
+	return NANDC_RESULT_SUCCESS;
+}
+
+/**
+ * qpic_nand_write() - read data
+ * @start_page: number of page to begin writing to
+ * @num_pages: number of pages to write
+ * @buffer: buffer to be written
+ * @write_extra_bytes: true if spare data (ox 0xff) to be written
+ *
+ * This function writes @num_pages starting from @start_page. Note that it's
+ * in the caller responsibility to make sure the written pages are all from
+ * same partition.
+ *
+ * Returns nand_result_t
+ */
+nand_result_t qpic_nand_write(uint32_t start_page, uint32_t num_pages,
+		unsigned char* buffer, unsigned  write_extra_bytes)
+{
+	int i = 0, ret = NANDC_RESULT_SUCCESS;
+	uint32_t *spare = (unsigned *)flash_spare_bytes;
+	uint32_t wsize;
+	uint32_t spare_byte_count = 0;
+
+	if (!buffer) {
+		dprintf(CRITICAL, "qpic_nand_write: buffer = null\n");
+		return NANDC_RESULT_PARAM_INVALID;
+	}
+	spare_byte_count = ((flash.cw_size * flash.cws_per_page)- flash.page_size);
+
+	if (write_extra_bytes)
+		wsize = flash.page_size + spare_byte_count;
+	else
+		wsize = flash.page_size;
+
+	memset(spare, 0xff, (spare_byte_count / flash.cws_per_page));
+
+	for (i = 0; i < (int)num_pages; i++) {
+		memcpy(rdwr_buf, buffer, flash.page_size);
+		if (write_extra_bytes) {
+			memcpy(rdwr_buf + flash.page_size,
+					buffer + flash.page_size, spare_byte_count);
+			ret = qpic_nand_write_page(start_page + i,
+					NAND_CFG, rdwr_buf, rdwr_buf + flash.page_size);
+		} else {
+			ret = qpic_nand_write_page(start_page + i,
+					NAND_CFG, rdwr_buf, spare);
+		}
+		if (ret) {
+			dprintf(CRITICAL,
+					"flash_write: write failure @ page %d, block %d\n",
+					start_page + i,
+					(start_page + i) / flash.num_pages_per_blk);
+			if (ret == NANDC_RESULT_BAD_PAGE)
+				qpic_nand_mark_badblock(start_page + i);
+			goto out;
+		}
+		buffer += wsize;
+	}
+out:
+	return ret;
 }
 
 /* Function to read a flash partition.
