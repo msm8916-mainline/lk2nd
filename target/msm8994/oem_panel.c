@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -35,6 +35,7 @@
 #include <board.h>
 #include <mipi_dsi.h>
 #include <qtimer.h>
+#include <platform.h>
 
 #include "include/panel.h"
 #include "panel_display.h"
@@ -124,6 +125,14 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 		panelstruct->paneldata    = &sharp_wqxga_dualdsi_video_panel_data;
 		panelstruct->paneldata->panel_operating_mode = 11;
 		panelstruct->paneldata->panel_with_enable_gpio = 0;
+
+		/*
+		 * Even though this panel can be supported with a single pipe,
+		 * enable ping-pong split and use two pipes for simplicity sake.
+		 */
+		if (platform_is_msm8992())
+			panelstruct->paneldata->panel_operating_mode |= DST_SPLIT_FLAG;
+
 		panelstruct->panelres     = &sharp_wqxga_dualdsi_video_panel_res;
 		panelstruct->color        = &sharp_wqxga_dualdsi_video_color;
 		panelstruct->videopanel   = &sharp_wqxga_dualdsi_video_video_panel;
@@ -153,6 +162,10 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 		pan_type = PANEL_TYPE_DSI;
 		pinfo->lcd_reg_en = 1;
 		panelstruct->paneldata    = &jdi_qhd_dualdsi_video_panel_data;
+
+		if (platform_is_msm8992())
+			panelstruct->paneldata->panel_operating_mode |= DST_SPLIT_FLAG;
+
 		panelstruct->panelres     = &jdi_qhd_dualdsi_video_panel_res;
 		panelstruct->color        = &jdi_qhd_dualdsi_video_color;
 		panelstruct->videopanel   = &jdi_qhd_dualdsi_video_video_panel;
@@ -179,6 +192,10 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 		pan_type = PANEL_TYPE_DSI;
 		pinfo->lcd_reg_en = 1;
 		panelstruct->paneldata    = &jdi_qhd_dualdsi_cmd_panel_data;
+
+		if (platform_is_msm8992())
+			panelstruct->paneldata->panel_operating_mode |= DST_SPLIT_FLAG;
+
 		panelstruct->panelres     = &jdi_qhd_dualdsi_cmd_panel_res;
 		panelstruct->color        = &jdi_qhd_dualdsi_cmd_color;
 		panelstruct->videopanel   = &jdi_qhd_dualdsi_cmd_video_panel;
@@ -206,6 +223,10 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 		pinfo->lcd_reg_en = 1;
 		pinfo->mipi.cmds_post_tg = 1;
 		panelstruct->paneldata    = &jdi_4k_dualdsi_video_panel_data;
+
+		if (platform_is_msm8992())
+			panelstruct->paneldata->panel_operating_mode |= DST_SPLIT_FLAG;
+
 		panelstruct->panelres     = &jdi_4k_dualdsi_video_panel_res;
 		panelstruct->color        = &jdi_4k_dualdsi_video_color;
 		panelstruct->videopanel   = &jdi_4k_dualdsi_video_video_panel;
