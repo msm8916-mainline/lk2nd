@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -226,6 +226,10 @@ struct mipi_panel_info {
 	uint32_t phy_base;
 	uint32_t sctl_base;
 	uint32_t sphy_base;
+	uint32_t reg_base;
+	uint32_t sreg_base;
+	uint32_t pll_0_base;
+	uint32_t pll_1_base;
 };
 
 struct edp_panel_info {

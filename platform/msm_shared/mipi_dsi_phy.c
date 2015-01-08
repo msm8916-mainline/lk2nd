@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -48,6 +48,12 @@
 #define MMSS_DSI_PHY_STRENGTH_CTRL_1              0x0188
 #define MMSS_DSI_PHY_BIST_CTRL_0                  0x01b4
 #define MMSS_DSI_PHY_GLBL_TEST_CTRL               0x01d4
+#define MDSS_DSI_DSIPHY_REGULATOR_CTRL_0          0x00
+#define MDSS_DSI_DSIPHY_REGULATOR_CTRL_1          0x04
+#define MDSS_DSI_DSIPHY_REGULATOR_CTRL_2          0x08
+#define MDSS_DSI_DSIPHY_REGULATOR_CTRL_3          0x0c
+#define MDSS_DSI_DSIPHY_REGULATOR_CTRL_4          0x10
+#define MDSS_DSI_DSIPHY_REGULATOR_CAL_PWR_CFG     0x18
 #define MMSS_DSI_PHY_LDO_CTRL                     0x01dc
 
 #define TOTAL_TIMING_CTRL_CONFIG                  12
@@ -219,29 +225,28 @@ void mdss_dsi_phy_sw_reset(uint32_t ctl_base)
 	udelay(100);
 }
 
-static void mdss_dsi_20nm_phy_regulator_init(struct mdss_dsi_phy_ctrl *pd, uint32_t phy_base)
+static void mdss_dsi_20nm_phy_regulator_init(struct mdss_dsi_phy_ctrl *pd,
+		uint32_t phy_base, uint32_t reg_base)
 {
 	/* DSI0 and DSI1 have a common regulator */
-	uint32_t off = 0x0280;	/* phy regulator ctrl settings */
-
 	if (pd->regulator_mode == DSI_PHY_REGULATOR_LDO_MODE) {
 		/* LDO ctrl */
-		writel(0x1d, DSI0_PHY_BASE + MMSS_DSI_PHY_LDO_CTRL);
+		writel(0x1d, phy_base + MMSS_DSI_PHY_LDO_CTRL);
 	} else {
 		/* Regulator ctrl 1 */
-		writel(pd->regulator[1], DSI0_PHY_BASE + off + (4 * 1));
+		writel(pd->regulator[1], reg_base + MDSS_DSI_DSIPHY_REGULATOR_CTRL_1);
 		/* Regulator ctrl 2 */
-		writel(pd->regulator[2], DSI0_PHY_BASE + off + (4 * 2));
+		writel(pd->regulator[2], reg_base + MDSS_DSI_DSIPHY_REGULATOR_CTRL_2);
 		/* Regulator ctrl 3 */
-		writel(pd->regulator[3], DSI0_PHY_BASE + off + (4 * 3));
+		writel(pd->regulator[3], reg_base + MDSS_DSI_DSIPHY_REGULATOR_CTRL_3);
 		/* Regulator ctrl 4 */
-		writel(pd->regulator[4], DSI0_PHY_BASE + off + (4 * 4));
+		writel(pd->regulator[4], reg_base + MDSS_DSI_DSIPHY_REGULATOR_CTRL_4);
 		/* Regulator ctrl - CAL_PWR_CFG */
-		writel(pd->regulator[6], DSI0_PHY_BASE + off + (4 * 6));
+		writel(pd->regulator[6], reg_base + MDSS_DSI_DSIPHY_REGULATOR_CAL_PWR_CFG);
 		/* LDO ctrl */
-		writel(0x00, phy_base + 0x01dc);
+		writel(0x00, phy_base + MMSS_DSI_PHY_LDO_CTRL);
 		/* Regulator ctrl 0 */
-		writel(pd->regulator[0], DSI0_PHY_BASE + off + (4 * 0));
+		writel(pd->regulator[0], reg_base + MDSS_DSI_DSIPHY_REGULATOR_CTRL_0);
 		dmb();
 	}
 }
@@ -398,7 +403,7 @@ static int mdss_dsi_phy_28nm_init(struct mipi_panel_info *mipi,
 
 	/* DSI_PHY_DSIPHY_GLBL_TEST_CTRL */
 	if (phy_base == DSI0_PHY_BASE ||
-		(readl(MIPI_DSI0_BASE) == DSI_HW_REV_103_1))
+		(readl(mipi->ctl_base) == DSI_HW_REV_103_1))
 		writel(0x01, phy_base + 0x01d4);
 	else
 		writel(0x00, phy_base + 0x01d4);
@@ -434,12 +439,12 @@ void mdss_dsi_phy_contention_detection(
 }
 
 static int mdss_dsi_phy_20nm_init(struct mipi_panel_info *mipi,
-				uint32_t ctl_base, uint32_t phy_base)
+				uint32_t ctl_base, uint32_t phy_base, uint32_t reg_base)
 {
 	struct mdss_dsi_phy_ctrl *pd = mipi->mdss_dsi_phy_db;
 	uint32_t i, off = 0, ln, offset;
 
-	mdss_dsi_20nm_phy_regulator_init(pd, phy_base);
+	mdss_dsi_20nm_phy_regulator_init(pd, phy_base, reg_base);
 
 	/* Strength ctrl 0 */
 	writel(pd->strength[0], phy_base + MMSS_DSI_PHY_STRENGTH_CTRL_0);
@@ -468,15 +473,23 @@ static int mdss_dsi_phy_20nm_init(struct mipi_panel_info *mipi,
 	return 0;
 }
 
-int mdss_dsi_phy_init (struct mipi_panel_info *mipi,
-				uint32_t ctl_base, uint32_t phy_base)
+int mdss_dsi_phy_init(struct mipi_panel_info *mipi)
 {
 	int ret;
 
-	if (mipi->mdss_dsi_phy_db->is_pll_20nm)
-		ret = mdss_dsi_phy_20nm_init(mipi, ctl_base, phy_base);
-	else
-		ret = mdss_dsi_phy_28nm_init(mipi, ctl_base, phy_base);
+	if (mipi->mdss_dsi_phy_db->is_pll_20nm) {
+		ret = mdss_dsi_phy_20nm_init(mipi, mipi->ctl_base,
+				mipi->phy_base, mipi->reg_base);
+		if (mipi->dual_dsi)
+			ret = mdss_dsi_phy_20nm_init(mipi, mipi->sctl_base,
+					mipi->sphy_base, mipi->reg_base);
+	} else {
+		ret = mdss_dsi_phy_28nm_init(mipi,
+				mipi->ctl_base, mipi->phy_base);
+		if (mipi->dual_dsi)
+			ret = mdss_dsi_phy_28nm_init(mipi, mipi->sctl_base,
+					mipi->sphy_base);
+	}
 
 	return ret;
 }

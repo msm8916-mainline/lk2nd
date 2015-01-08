@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -374,7 +374,7 @@ int mdss_dsi_host_init(struct mipi_panel_info *mipi, uint32_t
 				mipi->sctl_base + COMMAND_MODE_DMA_CTRL);
 
 		/* for 8939 hw dsi1 has Lane_map as 3210 */
-		if (readl(MIPI_DSI_BASE) == DSI_HW_REV_103_1)
+		if (readl(mipi->ctl_base) == DSI_HW_REV_103_1)
 			lane_swap_dsi1 = 0x7;
 		else
 			lane_swap_dsi1 = lane_swap;
@@ -596,9 +596,7 @@ int mdss_dsi_config(struct msm_fb_panel_data *panel)
 	dprintf(SPEW, "ctl_base=0x%08x, phy_base=0x%08x\n", mipi->ctl_base,
 		mipi->phy_base);
 
-	mdss_dsi_phy_init(mipi, mipi->ctl_base, mipi->phy_base);
-	if (mipi->dual_dsi)
-		mdss_dsi_phy_init(mipi, mipi->sctl_base, mipi->sphy_base);
+	mdss_dsi_phy_init(mipi);
 
 	ret = mdss_dsi_host_init(mipi, mipi->dual_dsi,
 						mipi->broadcast);

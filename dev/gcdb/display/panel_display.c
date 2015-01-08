@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -69,9 +69,19 @@ static int dsi_panel_ctl_base_setup(struct msm_panel_info *pinfo,
 		return ERROR;
 	}
 
+	pinfo->mipi.pll_0_base = DSI0_PLL_BASE;
+	pinfo->mipi.pll_1_base = DSI1_PLL_BASE;
+
+	/* Both DSI0 and DSI1 use the same regulator */
+	pinfo->mipi.reg_base = DSI0_REGULATOR_BASE;
+	pinfo->mipi.sreg_base = DSI0_REGULATOR_BASE;
+
 	dprintf(SPEW, "%s: panel dest=%s, ctl_base=0x%08x, phy_base=0x%08x\n",
 		__func__, panel_destination, pinfo->mipi.ctl_base,
 		pinfo->mipi.phy_base);
+	dprintf(SPEW, "pll_0_base=%08x, pll_1_base=0x%08x, reg_base=0x%08x, sreg_base=%08x\n",
+		pinfo->mipi.pll_0_base, pinfo->mipi.pll_1_base,
+		pinfo->mipi.reg_base, pinfo->mipi.sreg_base);
 	return NO_ERROR;
 }
 
