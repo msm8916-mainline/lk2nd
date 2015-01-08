@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -283,6 +283,6 @@ static struct backlight hx8394d_720p_video_backlight = {
   1, 1, 4095, 100, 1, "PMIC_8941"
 };
 
-#define HX8394D_720P_VIDEO_SIGNATURE 0xFFFF
+#define HX8394D_720P_VIDEO_SIGNATURE 0xa0087
 
 #endif /*_HX8394D_720P_VIDEO_H_*/
