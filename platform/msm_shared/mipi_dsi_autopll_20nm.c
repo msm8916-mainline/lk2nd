@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -278,8 +278,8 @@ static void mdss_dsi_pll_20nm_disable(uint32_t pll_base)
 	dmb();
 }
 
-void mdss_dsi_auto_pll_20nm_config(uint32_t pll_base, uint32_t ctl_base,
-				struct mdss_dsi_pll_config *pd)
+void mdss_dsi_auto_pll_20nm_config(uint32_t pll_base,uint32_t pll_1_base,
+		uint32_t ctl_base, struct mdss_dsi_pll_config *pd)
 {
 
 	mdss_dsi_pll_20nm_phy_config(pll_base);
@@ -290,7 +290,7 @@ void mdss_dsi_auto_pll_20nm_config(uint32_t pll_base, uint32_t ctl_base,
 	 */
 	if (ctl_base == MIPI_DSI0_BASE) {
 		dprintf(SPEW, "Calling disable function for PHY PLL 1 \n");
-		mdss_dsi_pll_20nm_disable(DSI1_PLL_BASE);
+		mdss_dsi_pll_20nm_disable(pll_1_base);
 	}
 
 	mdss_dsi_pll_20nm_config_vco_rate(pll_base, pd);
