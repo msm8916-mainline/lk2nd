@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
- * Copyright (c) 2009-2013, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -349,5 +349,11 @@ void
 qpic_nand_uninit();
 /* Api to return the nand base */
 uint32_t nand_device_base();
+nand_result_t qpic_nand_read(uint32_t start_page, uint32_t num_pages,
+		unsigned char* buffer, unsigned char* spareaddr);
+nand_result_t qpic_nand_write(uint32_t start_page, uint32_t num_pages,
+		unsigned char* buffer, unsigned  write_extra_bytes);
+nand_result_t qpic_nand_block_isbad(unsigned page);
+nand_result_t qpic_nand_blk_erase(uint32_t page);
 
 #endif
