@@ -73,6 +73,22 @@ uint32_t mdss_mdp_intf_offset()
 	return mdss_mdp_intf_off;
 }
 
+static uint32_t mdss_mdp_get_ppb_offset()
+{
+	uint32_t mdss_mdp_ppb_off = 0;
+	uint32_t mdss_mdp_rev = readl(MDP_HW_REV);
+
+	/* return MMSS_MDP_PPB0_CONFIG offset from MDSS base */
+	if (mdss_mdp_rev == MDSS_MDP_HW_REV_108)
+		mdss_mdp_ppb_off = 0x1420;
+	else if (mdss_mdp_rev == MDSS_MDP_HW_REV_110)
+		mdss_mdp_ppb_off = 0x1334;
+	else
+		dprintf(CRITICAL,"Invalid PPB0_CONFIG offset\n");
+
+	return mdss_mdp_ppb_off;
+}
+
 static uint32_t mdss_mdp_vbif_qos_remap_get_offset()
 {
 	uint32_t mdss_mdp_rev = readl(MDP_HW_REV);
@@ -128,6 +144,9 @@ static void mdss_mdp_set_flush(struct msm_panel_info *pinfo,
 			else
 				*ctl0_reg_val = 0x22048;
 			*ctl1_reg_val = 0x24090;
+
+			if (pinfo->lcdc.dst_split)
+				*ctl0_reg_val |= BIT(4);
 			break;
 		case MDSS_MDP_PIPE_TYPE_DMA:
 			if (dual_pipe_single_ctl)
@@ -135,6 +154,8 @@ static void mdss_mdp_set_flush(struct msm_panel_info *pinfo,
 			else
 				*ctl0_reg_val = 0x22840;
 			*ctl1_reg_val = 0x25080;
+			if (pinfo->lcdc.dst_split)
+				*ctl0_reg_val |= BIT(12);
 			break;
 		case MDSS_MDP_PIPE_TYPE_VIG:
 		default:
@@ -143,6 +164,8 @@ static void mdss_mdp_set_flush(struct msm_panel_info *pinfo,
 			else
 				*ctl0_reg_val = 0x22041;
 			*ctl1_reg_val = 0x24082;
+			if (pinfo->lcdc.dst_split)
+				*ctl0_reg_val |= BIT(1);
 			break;
 	}
 	/* For targets from MDP v1.5, MDP INTF registers are double buffered */
@@ -433,8 +456,9 @@ static void mdss_intf_tg_setup(struct msm_panel_info *pinfo, uint32_t intf_base)
 	}
 
 	if (pinfo->lcdc.dst_split &&  (intf_base == MDP_INTF_1_BASE)) {
-		writel(BIT(16), MDP_REG_PPB0_CONFIG);
-		writel(BIT(5), MDP_REG_PPB0_CNTL);
+		uint32_t ppb_offset = mdss_mdp_get_ppb_offset();
+		writel(BIT(16), REG_MDP(ppb_offset + 0x4)); /* MMSS_MDP_PPB0_CNTL */
+		writel(BIT(5), REG_MDP(ppb_offset)); /* MMSS_MDP_PPB0_CONFIG */
 	}
 
 	if (!pinfo->fbc.enabled || !pinfo->fbc.comp_ratio)
@@ -572,7 +596,7 @@ void mdss_layer_mixer_setup(struct fbcon_config *fb, struct msm_panel_info
 	height = fb->height;
 	width = fb->width;
 
-	if (pinfo->lcdc.dual_pipe)
+	if (pinfo->lcdc.dual_pipe && !pinfo->lcdc.dst_split)
 		width /= 2;
 
 	/* write active region size*/
@@ -605,10 +629,17 @@ void mdss_layer_mixer_setup(struct fbcon_config *fb, struct msm_panel_info
 			break;
 	}
 
+	/*
+	 * When ping-pong split is enabled and two pipes are used,
+	 * both the pipes need to be staged on the same layer mixer.
+	 */
+	if (pinfo->lcdc.dual_pipe && pinfo->lcdc.dst_split)
+		left_staging_level |= right_staging_level;
+
 	/* Base layer for layer mixer 0 */
 	writel(left_staging_level, MDP_CTL_0_BASE + CTL_LAYER_0);
 
-	if (pinfo->lcdc.dual_pipe) {
+	if (pinfo->lcdc.dual_pipe && !pinfo->lcdc.dst_split) {
 		writel(mdp_rgb_size, MDP_VP_0_MIXER_1_BASE + LAYER_0_OUT_SIZE);
 		writel(0x00, MDP_VP_0_MIXER_1_BASE + LAYER_0_OP_MODE);
 		writel(0x100, MDP_VP_0_MIXER_1_BASE + LAYER_0_BLEND_OP);
@@ -957,6 +988,8 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 
 	if (pinfo->lcdc.split_display) {
 		reg = BIT(1); /* Command mode */
+		if (pinfo->lcdc.dst_split)
+			reg |= BIT(2); /* Enable SMART_PANEL_FREE_RUN mode */
 		if (pinfo->lcdc.pipe_swap)
 			reg |= BIT(4); /* Use intf2 as trigger */
 		else
@@ -967,8 +1000,9 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 	}
 
 	if (pinfo->lcdc.dst_split) {
-		writel(BIT(16), MDP_REG_PPB0_CONFIG);
-		writel(BIT(5), MDP_REG_PPB0_CNTL);
+		uint32_t ppb_offset = mdss_mdp_get_ppb_offset();
+		writel(BIT(16) | BIT(20) | BIT(21), REG_MDP(ppb_offset + 0x4)); /* MMSS_MDP_PPB0_CNTL */
+		writel(BIT(5), REG_MDP(ppb_offset)); /* MMSS_MDP_PPB0_CONFIG */
 	}
 
 	mdp_clk_gating_ctrl();
@@ -1016,7 +1050,8 @@ int mdp_dsi_video_on(struct msm_panel_info *pinfo)
 
 	mdss_mdp_set_flush(pinfo, &ctl0_reg_val, &ctl1_reg_val);
 	writel(ctl0_reg_val, MDP_CTL_0_BASE + CTL_FLUSH);
-	writel(ctl1_reg_val, MDP_CTL_1_BASE + CTL_FLUSH);
+	if (pinfo->lcdc.dual_pipe && !pinfo->lcdc.dst_split)
+		writel(ctl1_reg_val, MDP_CTL_1_BASE + CTL_FLUSH);
 
 	if (pinfo->dest == DISPLAY_1)
 		timing_engine_en = MDP_INTF_1_TIMING_ENGINE_EN;
@@ -1068,7 +1103,9 @@ int mdp_dma_on(struct msm_panel_info *pinfo)
 	uint32_t ctl0_reg_val, ctl1_reg_val;
 	mdss_mdp_set_flush(pinfo, &ctl0_reg_val, &ctl1_reg_val);
 	writel(ctl0_reg_val, MDP_CTL_0_BASE + CTL_FLUSH);
-	writel(ctl1_reg_val, MDP_CTL_1_BASE + CTL_FLUSH);
+	if (pinfo->lcdc.dual_pipe && !pinfo->lcdc.dst_split)
+		writel(ctl1_reg_val, MDP_CTL_1_BASE + CTL_FLUSH);
+
 	writel(0x01, MDP_CTL_0_BASE + CTL_START);
 	return NO_ERROR;
 }
