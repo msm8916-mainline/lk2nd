@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -759,6 +759,64 @@ void save_kernel_hash_cmd(void *digest)
 	}
 }
 
+int mdtp_cipher_dip_cmd(uint8_t *in_buf, uint32_t in_buf_size, uint8_t *out_buf,
+                          uint32_t out_buf_size, uint32_t direction)
+{
+	uint32_t svc_id;
+	uint32_t cmd_id;
+	void *cmd_buf;
+	void *rsp_buf;
+	size_t cmd_len;
+	size_t rsp_len;
+	mdtp_cipher_dip_req req;
+	scmcall_arg scm_arg = {0};
+	scmcall_ret scm_ret = {0};
+
+	ASSERT(in_buf != NULL);
+	ASSERT(out_buf != NULL);
+
+	req.in_buf = in_buf;
+	req.in_buf_size = in_buf_size;
+	req.out_buf = out_buf;
+	req.out_buf_size = out_buf_size;
+	req.direction = direction;
+
+	if (!scm_arm_support)
+	{
+		svc_id = SCM_SVC_MDTP;
+		cmd_id = SCM_MDTP_CIPHER_DIP;
+		cmd_buf = (void *)&req;
+		cmd_len = sizeof(req);
+		rsp_buf = NULL;
+		rsp_len = 0;
+
+		if (scm_call(svc_id, cmd_id, cmd_buf, cmd_len, rsp_buf, rsp_len))
+		{
+			dprintf(CRITICAL, "Failed to call Cipher DIP SCM\n");
+			return -1;
+		}
+	}
+	else
+	{
+		scm_arg.x0 = MAKE_SIP_SCM_CMD(SCM_SVC_MDTP, SCM_MDTP_CIPHER_DIP);
+		scm_arg.x1 = MAKE_SCM_ARGS(0x5, SMC_PARAM_TYPE_BUFFER_READ, SMC_PARAM_TYPE_VALUE,
+										SMC_PARAM_TYPE_BUFFER_READWRITE, SMC_PARAM_TYPE_VALUE, SMC_PARAM_TYPE_VALUE);
+		scm_arg.x2 = (uint32_t)req.in_buf;
+		scm_arg.x3 = req.in_buf_size;
+		scm_arg.x4 = (uint32_t)req.out_buf;
+		scm_arg.x5[0] = req.out_buf_size;
+		scm_arg.x5[1] = req.direction;
+
+		if (scm_call2(&scm_arg, &scm_ret))
+		{
+			dprintf(CRITICAL, "Failed in Cipher DIP SCM call\n");
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
 /*
  * Switches the CE1 channel between ADM and register usage.
  * channel : AP_CE_REGISTER_USE, CE1 uses register interface
@@ -996,7 +1054,7 @@ uint32_t scm_call2(scmcall_arg *arg, scmcall_ret *ret)
 	arg->x0 = arg->atomic ? (arg->x0 | SCM_ATOMIC_BIT) : arg->x0;
 	x5 = arg->x5[0];
 
-	if ((arg->x1 & 0xF) > SCM_MAX_ARG_LEN)
+	if ((arg->x1 & 0xF) > SCM_MAX_ARG_LEN - 1)
 	{
 		indir_arg = memalign(CACHE_LINE, (SCM_INDIR_MAX_LEN * sizeof(uint32_t)));
 		ASSERT(indir_arg);
