@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2015, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -418,6 +418,12 @@ static int emmc_get_recovery_msg(struct recovery_message *in)
 
 	size = mmc_get_device_blocksize();
 	index = partition_get_index((const char *) ptn_name);
+	if (index < 0)
+	{
+		dprintf(CRITICAL, "%s: Partition not found\n", ptn_name);
+		return -1;
+	}
+
 	ptn = partition_get_offset(index);
 	mmc_set_lun(partition_get_lun(index));
 	if(ptn == 0) {
