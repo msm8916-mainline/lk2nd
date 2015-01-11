@@ -71,6 +71,7 @@
 #include "devinfo.h"
 #include "board.h"
 #include "scm.h"
+#include "mdtp.h"
 
 extern  bool target_use_signed_kernel(void);
 extern void platform_uninit(void);
@@ -1703,6 +1704,12 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	int ret = 0;
 	uint8_t dtb_copied = 0;
 
+#ifdef MDTP_SUPPORT
+	/* Go through Firmware Lock verification before continue with boot process */
+	mdtp_fwlock_verify_lock();
+	fbcon_clear();
+#endif /* MDTP_SUPPORT */
+
 #if VERIFIED_BOOT
 	if(!device.is_unlocked)
 	{
@@ -2323,6 +2330,12 @@ void cmd_continue(const char *arg, void *data, unsigned sz)
 	fastboot_okay("");
 	fastboot_stop();
 
+#ifdef MDTP_SUPPORT
+	/* Go through Firmware Lock verification before continue with boot process */
+	mdtp_fwlock_verify_lock();
+	fbcon_clear();
+#endif /* MDTP_SUPPORT */
+
 	if (target_is_emmc_boot())
 	{
 		boot_linux_from_mmc();
@@ -2794,6 +2807,13 @@ normal_boot:
 				#endif
 				}
 			}
+
+#ifdef MDTP_SUPPORT
+			/* Go through Firmware Lock verification before continue with boot process */
+			mdtp_fwlock_verify_lock();
+			fbcon_clear();
+#endif /* MDTP_SUPPORT */
+
 			boot_linux_from_mmc();
 		}
 		else

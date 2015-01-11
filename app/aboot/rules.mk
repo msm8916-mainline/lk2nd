@@ -9,3 +9,9 @@ OBJS += \
 	$(LOCAL_DIR)/fastboot.o \
 	$(LOCAL_DIR)/recovery.o
 
+ifeq ($(ENABLE_MDTP_SUPPORT),1)
+OBJS += \
+	$(LOCAL_DIR)/mdtp.o \
+	$(LOCAL_DIR)/mdtp_ui.o
+endif
+
