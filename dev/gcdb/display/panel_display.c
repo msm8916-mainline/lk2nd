@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -279,7 +279,7 @@ int dsi_video_panel_config(struct msm_panel_info *pinfo,
 	uint32_t panel_width = pinfo->xres;
 	uint32_t final_xres, final_yres, final_width;
 	uint32_t final_height, final_hbp, final_hfp,final_vbp;
-	uint32_t final_vfp, final_hpw, final_vpw;
+	uint32_t final_vfp, final_hpw, final_vpw, low_pwr_stop;
 
 	if (pinfo->mipi.dual_dsi)
 		panel_width = panel_width / 2;
@@ -310,6 +310,9 @@ int dsi_video_panel_config(struct msm_panel_info *pinfo,
 	final_vfp = pinfo->lcdc.v_front_porch;
 	final_hpw = pinfo->lcdc.h_pulse_width;
 	final_vpw = pinfo->lcdc.v_pulse_width;
+	low_pwr_stop = (pinfo->mipi.hfp_power_stop << 8) |
+			(pinfo->mipi.hbp_power_stop << 4) |
+			pinfo->mipi.hsa_power_stop;
 
 	ret = mdss_dsi_video_mode_config(final_width, final_height,
 			final_xres, final_yres,
@@ -319,7 +322,8 @@ int dsi_video_panel_config(struct msm_panel_info *pinfo,
 			pinfo->mipi.dst_format,
 			pinfo->mipi.traffic_mode,
 			lane_enable,
-			pinfo->mipi.hsa_power_stop,
+			pinfo->mipi.pulse_mode_hsa_he,
+			low_pwr_stop,
 			pinfo->mipi.eof_bllp_power,
 			pinfo->mipi.interleave_mode,
 			pinfo->mipi.ctl_base);
@@ -333,7 +337,8 @@ int dsi_video_panel_config(struct msm_panel_info *pinfo,
 				pinfo->mipi.dst_format,
 				pinfo->mipi.traffic_mode,
 				lane_enable,
-				pinfo->mipi.hsa_power_stop,
+				pinfo->mipi.pulse_mode_hsa_he,
+				low_pwr_stop,
 				pinfo->mipi.eof_bllp_power,
 				pinfo->mipi.interleave_mode,
 				pinfo->mipi.sctl_base);
