@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 The Linux Foundation. All rights reserved.
+ * Copyright (c) 2014-2015 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -26,6 +26,7 @@
  */
 
 #include <stdlib.h>
+#include <stdint.h>
 #include <crypto_hash.h>
 #include <boot_verifier.h>
 #include <image_verify.h>
@@ -36,6 +37,7 @@
 #include <partition_parser.h>
 #include <rsa.h>
 #include <string.h>
+#include <openssl/err.h>
 
 static KEYSTORE *oem_keystore;
 static KEYSTORE *user_keystore;
@@ -43,7 +45,7 @@ static uint32_t dev_boot_state = RED;
 BUF_DMA_ALIGN(keystore_buf, 4096);
 char KEYSTORE_PTN_NAME[] = "keystore";
 
-static char *VERIFIED_FLASH_ALLOWED_PTN[] = {
+static const char *VERIFIED_FLASH_ALLOWED_PTN[] = {
 	"aboot",
 	"boot",
 	"recovery",
@@ -138,7 +140,7 @@ static int verify_digest(unsigned char* input, unsigned char *digest, int hash_s
 		return ret;
 	}
 
-	sig = d2i_X509_SIG(NULL, &input, len);
+	sig = d2i_X509_SIG(NULL, (const unsigned char **) &input, len);
 	if(sig == NULL)
 	{
 		dprintf(CRITICAL, "boot_verifier: Reading digest failed\n");
@@ -221,7 +223,7 @@ static bool verify_image_with_sig(unsigned char* img_addr, uint32_t img_size,
 	/* Verify target name */
 	if(strncmp((char*)(sig->auth_attr->target->data), pname,
 				sig->auth_attr->target->length) ||
-				(strlen(pname) != sig->auth_attr->target->length))
+				(strlen(pname) != (unsigned long) sig->auth_attr->target->length))
 	{
 		dprintf(CRITICAL,
 				"boot_verifier: verification failure due to target name mismatch\n");
@@ -308,19 +310,19 @@ static void read_oem_keystore()
 {
 	KEYSTORE *ks = NULL;
 	uint32_t len = 0;
-	unsigned char *input = OEM_KEYSTORE;
+	const unsigned char *input = OEM_KEYSTORE;
 
 	if(oem_keystore != NULL)
 		return;
 
-	len = read_der_message_length(input);
+	len = read_der_message_length((unsigned char *)input);
 	if(!len)
 	{
 		dprintf(CRITICAL, "boot_verifier: oem keystore length is invalid.\n");
 		return;
 	}
 
-	ks = d2i_KEYSTORE(NULL, &input, len);
+	ks = d2i_KEYSTORE(NULL, (const unsigned char **) &input, len);
 	if(ks != NULL)
 	{
 		oem_keystore = ks;
@@ -358,7 +360,7 @@ static void read_user_keystore(unsigned char *user_addr)
 		return;
 	}
 
-	ks = d2i_KEYSTORE(NULL, &input, len);
+	ks = d2i_KEYSTORE(NULL, (const unsigned char **)&input, len);
 	if(ks != NULL)
 	{
 		if(verify_keystore(user_addr, ks) == false)
@@ -407,7 +409,7 @@ bool boot_verify_image(unsigned char* img_addr, uint32_t img_size, char *pname)
 		goto verify_image_error;
 	}
 
-	if((sig = d2i_VERIFIED_BOOT_SIG(NULL, &sig_addr, sig_len)) == NULL)
+	if((sig = d2i_VERIFIED_BOOT_SIG(NULL, (const unsigned char **) &sig_addr, sig_len)) == NULL)
 	{
 		dprintf(CRITICAL,
 				"boot_verifier: verification failure due to target name mismatch\n");
@@ -485,7 +487,7 @@ bool boot_verify_validate_keystore(unsigned char * user_addr)
 		return ret;
 	}
 
-	ks = d2i_KEYSTORE(NULL, &input, len);
+	ks = d2i_KEYSTORE(NULL, (const unsigned char **)&input, len);
 	if(ks != NULL)
 	{
 		ret = true;
@@ -493,9 +495,8 @@ bool boot_verify_validate_keystore(unsigned char * user_addr)
 	return ret;
 }
 
-static bool check_list(char**list, char* entry)
+static bool check_list(const char **list, const char* entry)
 {
-	int i = 0;
 	if(list == NULL || entry == NULL)
 		return false;
 
@@ -510,7 +511,7 @@ static bool check_list(char**list, char* entry)
 	return false;
 }
 
-bool boot_verify_flash_allowed(char * entry)
+bool boot_verify_flash_allowed(const char * entry)
 {
 	return check_list(VERIFIED_FLASH_ALLOWED_PTN, entry);
 }
