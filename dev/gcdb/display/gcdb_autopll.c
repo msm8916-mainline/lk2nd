@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -56,15 +56,19 @@ static void calculate_bitclock(struct msm_panel_info *pinfo)
 		pinfo->lcdc.v_front_porch + pinfo->lcdc.v_pulse_width +
 		pinfo->lcdc.yres_pad;
 
-	/* Pixel clock rate */
-	pll_data.pixel_clock = h_period * v_period * pinfo->mipi.frame_rate;
-
-	/* Store all bit clock form data */
+	/*
+	 * If a bit clock rate is not specified, calculate it based
+	 * on panel parameters
+	 */
 	if (pinfo->mipi.bitclock == 0)
-		pll_data.bit_clock = (pll_data.pixel_clock * pinfo->bpp) /
-					pinfo->mipi.num_of_lanes;
+		pll_data.bit_clock = (h_period * v_period *
+				pinfo->mipi.frame_rate * pinfo->bpp) /
+				pinfo->mipi.num_of_lanes;
 	else
 		pll_data.bit_clock = pinfo->mipi.bitclock;
+
+	pll_data.pixel_clock = (pll_data.bit_clock * pinfo->mipi.num_of_lanes) /
+				pinfo->bpp;
 
 	pll_data.byte_clock = pll_data.bit_clock >> 3;
 
