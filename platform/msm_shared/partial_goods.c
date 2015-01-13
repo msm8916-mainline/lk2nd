@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -40,10 +40,10 @@ void update_partial_goods_dtb_nodes(void *fdt)
 	int ret = 0;
 	int prop_len = 0;
 	uint32_t reg = readl(QFPROM_PTE_PART_ADDR);
-	uint32_t prop_type;
+	uint32_t prop_type = 0;
 	struct subnode_list *subnode_lst = NULL;
 	const struct fdt_property *prop = NULL;
-	const char *replace_str;
+	const char *replace_str = NULL;
 
 	/* If none of the DTB needs update */
 	if (!reg)
@@ -112,7 +112,7 @@ void update_partial_goods_dtb_nodes(void *fdt)
 					case STATUS_TYPE:
 						if (prop_len == sizeof("ok"))
 							replace_str = "no";
-						else if (prop_len = sizeof("okay"))
+						else if (prop_len == sizeof("okay"))
 							replace_str = "dsbl";
 						else
 						{
