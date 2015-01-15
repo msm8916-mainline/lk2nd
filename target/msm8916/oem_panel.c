@@ -443,7 +443,7 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 		target_id = board_target_id();
 		plat_hw_ver_major = ((target_id >> 16) & 0xFF);
 
-		if (platform_is_msm8939()) {
+		if (platform_is_msm8939() || platform_is_msm8929()) {
 			switch (hw_subtype) {
 			case HW_PLATFORM_SUBTYPE_SKUK:
 				panel_id = NT35596_1080P_VIDEO_PANEL;
@@ -488,7 +488,7 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 
 panel_init:
 	/* Set LDO mode */
-	if (platform_is_msm8939() || (hw_id == HW_PLATFORM_QRD))
+	if (platform_is_msm8939() || platform_is_msm8929() || (hw_id == HW_PLATFORM_QRD))
 		phy_db->regulator_mode = DSI_PHY_REGULATOR_LDO_MODE;
 
 	pinfo->pipe_type = MDSS_MDP_PIPE_TYPE_RGB;
