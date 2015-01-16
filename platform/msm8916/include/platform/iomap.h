@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -159,6 +159,8 @@
 #define DSI1_PHY_BASE               (0x1AA0500)
 #define DSI0_PLL_BASE               (0x1A98300)
 #define DSI1_PLL_BASE               DSI0_PLL_BASE
+#define DSI0_REGULATOR_BASE         (0x1A98780)
+#define DSI1_REGULATOR_BASE         DSI0_REGULATOR_BASE
 #define MDP_BASE                    (0x1A00000)
 #define REG_MDP(off)                (MDP_BASE + (off))
 #define MDP_HW_REV                              REG_MDP(0x1000)
