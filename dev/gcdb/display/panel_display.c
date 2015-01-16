@@ -47,21 +47,36 @@
 #include "include/panel.h"
 #include "target/display.h"
 
+static int dsi_platform_base_offset_adjust(uint32_t base)
+{
+	return target_display_get_base_offset(base);
+}
+
 static int dsi_panel_ctl_base_setup(struct msm_panel_info *pinfo,
 	char *panel_destination)
 {
+	int base_offset = 0, base1_offset = 0;
+
+	/*
+	 * Base offsets may vary for few platforms. Add the difference to get
+	 * proper base offset for the respective platform.
+	 */
+	base_offset = dsi_platform_base_offset_adjust(MIPI_DSI0_BASE);
+	base1_offset = dsi_platform_base_offset_adjust(MIPI_DSI1_BASE);
+	dprintf(SPEW, "base offset = %d, %x\n", base_offset, base_offset);
+
 	if (!strcmp(panel_destination, "DISPLAY_1")) {
 		pinfo->dest = DISPLAY_1;
-		pinfo->mipi.ctl_base = MIPI_DSI0_BASE;
-		pinfo->mipi.phy_base = DSI0_PHY_BASE;
-		pinfo->mipi.sctl_base = MIPI_DSI1_BASE;
-		pinfo->mipi.sphy_base = DSI1_PHY_BASE;
+		pinfo->mipi.ctl_base = MIPI_DSI0_BASE + base_offset;
+		pinfo->mipi.phy_base = DSI0_PHY_BASE + base_offset;
+		pinfo->mipi.sctl_base = MIPI_DSI1_BASE + base1_offset;
+		pinfo->mipi.sphy_base = DSI1_PHY_BASE + base1_offset;
 	} else if (!strcmp(panel_destination, "DISPLAY_2")) {
 		pinfo->dest = DISPLAY_2;
-		pinfo->mipi.ctl_base = MIPI_DSI1_BASE;
-		pinfo->mipi.phy_base = DSI1_PHY_BASE;
-		pinfo->mipi.sctl_base = MIPI_DSI0_BASE;
-		pinfo->mipi.sphy_base = DSI0_PHY_BASE;
+		pinfo->mipi.ctl_base = MIPI_DSI1_BASE + base1_offset;
+		pinfo->mipi.phy_base = DSI1_PHY_BASE + base1_offset;
+		pinfo->mipi.sctl_base = MIPI_DSI0_BASE + base_offset;
+		pinfo->mipi.sphy_base = DSI0_PHY_BASE + base_offset;
 	} else {
 		pinfo->dest = DISPLAY_UNKNOWN;
 		dprintf(CRITICAL, "%s: Unkown panel destination: %d\n",
@@ -69,12 +84,12 @@ static int dsi_panel_ctl_base_setup(struct msm_panel_info *pinfo,
 		return ERROR;
 	}
 
-	pinfo->mipi.pll_0_base = DSI0_PLL_BASE;
-	pinfo->mipi.pll_1_base = DSI1_PLL_BASE;
+	pinfo->mipi.pll_0_base = DSI0_PLL_BASE + base_offset;
+	pinfo->mipi.pll_1_base = DSI1_PLL_BASE + base1_offset;
 
 	/* Both DSI0 and DSI1 use the same regulator */
-	pinfo->mipi.reg_base = DSI0_REGULATOR_BASE;
-	pinfo->mipi.sreg_base = DSI0_REGULATOR_BASE;
+	pinfo->mipi.reg_base = DSI0_REGULATOR_BASE + base_offset;
+	pinfo->mipi.sreg_base = DSI0_REGULATOR_BASE + base_offset;
 
 	dprintf(SPEW, "%s: panel dest=%s, ctl_base=0x%08x, phy_base=0x%08x\n",
 		__func__, panel_destination, pinfo->mipi.ctl_base,
