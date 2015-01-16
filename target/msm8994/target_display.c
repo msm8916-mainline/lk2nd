@@ -62,6 +62,9 @@
 #define PMIC_WLED_SLAVE_ID 3
 #define PMIC_MPP_SLAVE_ID 2
 
+#define DSI0_BASE_ADJUST -0x4000
+#define DSI1_BASE_ADJUST -0xA000
+
 /*---------------------------------------------------------------------------*/
 /* GPIO configuration                                                        */
 /*---------------------------------------------------------------------------*/
@@ -416,6 +419,18 @@ int target_display_pre_on()
 	writel(0x00CCC000, MDP_CLK_CTRL7);
 
 	return NO_ERROR;
+}
+
+int target_display_get_base_offset(uint32_t base)
+{
+	if(platform_is_msm8992()) {
+		if (base == MIPI_DSI0_BASE)
+			return DSI0_BASE_ADJUST;
+		else if (base == MIPI_DSI1_BASE)
+			return DSI1_BASE_ADJUST;
+	}
+
+	return 0;
 }
 
 bool target_display_panel_node(char *panel_name, char *pbuf, uint16_t buf_size)

@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -61,6 +61,10 @@ __WEAK int target_display_pre_off()
 	return 0;
 }
 __WEAK int target_display_post_off()
+{
+	return 0;
+}
+__WEAK int target_display_get_base_offset(uint32_t base)
 {
 	return 0;
 }
