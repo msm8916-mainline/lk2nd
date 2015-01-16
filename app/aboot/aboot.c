@@ -2,7 +2,7 @@
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2014, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -690,10 +690,13 @@ BUF_DMA_ALIGN(dt_buf, BOOT_IMG_MAX_PAGE_SIZE);
 static void verify_signed_bootimg(uint32_t bootimg_addr, uint32_t bootimg_size)
 {
 	int ret;
+
+#if !VERIFIED_BOOT
 #if IMAGE_VERIF_ALGO_SHA1
 	uint32_t auth_algo = CRYPTO_AUTH_ALG_SHA1;
 #else
 	uint32_t auth_algo = CRYPTO_AUTH_ALG_SHA256;
+#endif
 #endif
 
 	/* Assume device is rooted at this time. */
@@ -1437,7 +1440,9 @@ void write_device_info_mmc(device_info *dev)
 {
 	struct device_info *info = (void*) info_buf;
 	unsigned long long ptn = 0;
+#if !VERIFIED_BOOT
 	unsigned long long size;
+#endif
 	int index = INVALID_PTN;
 	uint32_t blocksize;
 	uint8_t lun = 0;
@@ -1457,7 +1462,9 @@ void write_device_info_mmc(device_info *dev)
 	lun = partition_get_lun(index);
 	mmc_set_lun(lun);
 
+#if !VERIFIED_BOOT
 	size = partition_get_size(index);
+#endif
 
 	memcpy(info, dev, sizeof(device_info));
 
@@ -1478,7 +1485,9 @@ void read_device_info_mmc(device_info *dev)
 {
 	struct device_info *info = (void*) info_buf;
 	unsigned long long ptn = 0;
+#if !VERIFIED_BOOT
 	unsigned long long size;
+#endif
 	int index = INVALID_PTN;
 	uint32_t blocksize;
 
@@ -1496,7 +1505,9 @@ void read_device_info_mmc(device_info *dev)
 
 	mmc_set_lun(partition_get_lun(index));
 
+#if !VERIFIED_BOOT
 	size = partition_get_size(index);
+#endif
 
 	blocksize = mmc_get_device_blocksize();
 
