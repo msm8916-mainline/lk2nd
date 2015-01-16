@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -116,6 +116,14 @@ int target_backlight_ctrl(struct backlight *bl, uint8_t enable)
 		pm8x41_enable_mpp(&mpp, MPP_DISABLE);
 	}
 	mdelay(20);
+
+	if (enable) {
+		gpio_tlmm_config(bkl_gpio.pin_id, 0,
+			bkl_gpio.pin_direction, bkl_gpio.pin_pull,
+			bkl_gpio.pin_strength, bkl_gpio.pin_state);
+			gpio_set(bkl_gpio.pin_id, 2);
+	}
+
 	return 0;
 }
 
@@ -181,14 +189,6 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 				enable_gpio.pin_state);
 
 			gpio_set(enable_gpio.pin_id, 2);
-		}
-
-		if (hw_id == HW_PLATFORM_SURF || (hw_id == HW_PLATFORM_MTP)) {
-			/* configure backlight gpio for CDP and MTP */
-			gpio_tlmm_config(bkl_gpio.pin_id, 0,
-				bkl_gpio.pin_direction, bkl_gpio.pin_pull,
-				bkl_gpio.pin_strength, bkl_gpio.pin_state);
-			gpio_set(bkl_gpio.pin_id, 2);
 		}
 
 		gpio_tlmm_config(reset_gpio.pin_id, 0,
