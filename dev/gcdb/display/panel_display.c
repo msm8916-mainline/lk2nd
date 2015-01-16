@@ -180,6 +180,10 @@ int dsi_panel_init(struct msm_panel_info *pinfo,
 		pinfo->mipi.dual_dsi = 1;
 	pinfo->mipi.mode_gpio_state = pstruct->paneldata->mode_gpio_state;
 	pinfo->mipi.bitclock = pstruct->paneldata->panel_bitclock_freq;
+	if (pinfo->mipi.bitclock) {
+		/* panel_clockrate is depcrated in favor of bitclock_freq */
+		pinfo->clk_rate = pinfo->mipi.bitclock;
+	}
 	pinfo->mipi.use_enable_gpio =
 		pstruct->paneldata->panel_with_enable_gpio;
 	ret = dsi_panel_ctl_base_setup(pinfo,

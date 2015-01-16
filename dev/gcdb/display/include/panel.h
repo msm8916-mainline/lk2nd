@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -62,6 +62,7 @@ struct panel_config{
 	uint16_t panel_type;
 	char   *panel_destination;
 	uint32_t panel_orientation;
+	/* panel_clockrate is deprecated in favor of panel_bitclock_freq */
 	uint32_t panel_clockrate;
 	uint16_t panel_framerate;
 	uint16_t panel_channelid;
