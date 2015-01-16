@@ -165,7 +165,6 @@
 #define MDP_QOS_REMAPPER_CLASS_0                REG_MDP(0x02E0)
 #define MDP_QOS_REMAPPER_CLASS_1                REG_MDP(0x02E4)
 
-#define VBIF_VBIF_QOS_REMAP_00                  REG_MDP(0xC8020)
 #define VBIF_VBIF_DDR_FORCE_CLK_ON              REG_MDP(0x24004)
 #define VBIF_VBIF_DDR_OUT_MAX_BURST             REG_MDP(0x240D8)
 #define VBIF_VBIF_DDR_ARB_CTRL                  REG_MDP(0x240F0)
