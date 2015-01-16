@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -177,9 +177,9 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 			mdp_gdsc_ctrl(0);
 			return ret;
 		}
-		mdss_dsi_auto_pll_config(DSI0_PLL_BASE,
-						MIPI_DSI0_BASE, pll_data);
-		dsi_pll_enable_seq(DSI0_PLL_BASE);
+		mdss_dsi_auto_pll_config(pinfo->mipi.pll_0_base,
+						pinfo->mipi.ctl_base, pll_data);
+		dsi_pll_enable_seq(pinfo->mipi.pll_0_base);
 		mmss_dsi_clock_enable(DSI0_PHY_PLL_OUT, dual_dsi,
 					pll_data->pclk_m,
 					pll_data->pclk_n,
