@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -59,5 +59,18 @@ int gcdb_display_cmdline_arg(char *panel_name, char *pbuf, uint16_t buf_size);
 void gcdb_display_shutdown();
 int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	struct msm_panel_info *pinfo, struct mdss_dsi_phy_ctrl *phy_db);
+
+static inline void set_panel_cmd_string(const char *panel_name,
+	char *cont_splash)
+{
+	char *ch = NULL;
+	ch = strchr((char *) panel_name, ':');
+	if (ch) {
+		*cont_splash = *(ch + 1);
+		*ch = '\0';
+	} else {
+		*cont_splash = '\0';
+	}
+}
 
 #endif /*_GCDB_DISPLAY_H_ */
