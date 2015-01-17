@@ -45,6 +45,12 @@ void update_partial_goods_dtb_nodes(void *fdt)
 	const struct fdt_property *prop = NULL;
 	const char *replace_str = NULL;
 
+	/*
+	 * The PTE register bits 23 to 27 have the partial goods
+	 * info, extract the partial goods value before using
+	 */
+	reg = (reg & 0x0f800000) >> 23;
+
 	/* If none of the DTB needs update */
 	if (!reg)
 		return;
