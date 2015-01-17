@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -33,14 +33,14 @@
 /* Look up table for partial goods */
 struct partial_goods table[] =
 {
-	{0x00001, "/cpus", {{"cpu@100", "device_type"},}},
-	{0x00010, "/cpus", {{"cpu@101", "device_type"},}},
-	{0x00011, "/cpus", {{"cpu@100", "device_type"},
+	{0x1, "/cpus", {{"cpu@100", "device_type"},}},
+	{0x2, "/cpus", {{"cpu@101", "device_type"},}},
+	{0x3, "/cpus", {{"cpu@100", "device_type"},
                         {"cpu@101","device_type"},}},
-	{0x00100, "/cpus", {{"cpu@100", "device_type"},
+	{0x4, "/cpus", {{"cpu@100", "device_type"},
                         {"cpu@101", "device_type"},
                         {"cpu@1",   "device_type"},}},
-	{0x10000, "/soc",  {{"qcom,kgsl-3d0", "status"},}},
-	{0x10010, "/soc",  {{"qcom,msm-adsp-loader", "status"},}},
-	{0x10001, "/soc",  {{"qcom,vidc", "status"},}},
+	{0x10, "/soc",  {{"qcom,kgsl-3d0", "status"},}},
+	{0x11, "/soc",  {{"qcom,vidc", "status"},}},
+	{0x12, "/soc",  {{"qcom,msm-adsp-loader", "status"},}},
 };
