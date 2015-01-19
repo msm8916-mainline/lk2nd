@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -67,6 +67,7 @@
 #define BLSP1_UART3_BASE            (PERIPH_SS_BASE + 0x00120000)
 
 #define MSM_USB_BASE                (PERIPH_SS_BASE + 0x00200000)
+#define TCSR_PHSS_USB2_PHY_SEL      0xFD4AB000
 
 #define CLK_CTL_BASE                0xFC400000
 
@@ -176,4 +177,57 @@
 #define SDCC_HC_PWRCTL_MASK_REG     (0x000000E0)
 #define SDCC_HC_PWRCTL_CLEAR_REG    (0x000000E4)
 #define SDCC_HC_PWRCTL_CTL_REG      (0x000000E8)
+
+/* USB 3.0 clocks */
+#define GCC_USB30_MASTER_CBCR       (CLK_CTL_BASE + 0x0240)
+#define GCC_USB30_SLEEP_CBCR        (CLK_CTL_BASE + 0x0244)
+#define GCC_USB30_MOCK_UTMI_CBCR    (CLK_CTL_BASE + 0x0248)
+#define GCC_USB30_MASTER_CMD_RCGR   (CLK_CTL_BASE + 0x024C)
+#define GCC_USB30_MASTER_CFG_RCGR   (CLK_CTL_BASE + 0x0250)
+#define GCC_USB30_MASTER_M          (CLK_CTL_BASE + 0x0254)
+#define GCC_USB30_MASTER_N          (CLK_CTL_BASE + 0x0258)
+#define GCC_USB30_MASTER_D          (CLK_CTL_BASE + 0x025C)
+#define GCC_USB30_MOCK_UTMI_CMD_RCGR (CLK_CTL_BASE + 0x0260)
+#define GCC_USB30_MOCK_UTMI_CFG_RCGR (CLK_CTL_BASE + 0x0264)
+
+/* USB Phy */
+#define GCC_USB3_PHY_BCR            (CLK_CTL_BASE + 0x280)
+#define GCC_USB3PHY_PHY_BCR         (CLK_CTL_BASE + 0x284)
+#define GCC_USB3_PHY_AUX_CBCR       (CLK_CTL_BASE + 0x288)
+#define GCC_USB3_PHY_PIPE_CBCR      (CLK_CTL_BASE + 0x28C)
+#define GCC_USB3_PHY_PIPE_MISC      (CLK_CTL_BASE + 0x290)
+#define GCC_USB3_PHY_AUX_CMD_RCGR   (CLK_CTL_BASE + 0x294)
+#define GCC_USB3_PHY_AUX_CFG_RCGR   (CLK_CTL_BASE + 0x298)
+
+#define GCC_USB30_BCR               (CLK_CTL_BASE + 0x274)
+#define GCC_SYS_NOC_USB3_AXI_CBCR   (CLK_CTL_BASE + 0x278)
+
+/* USB Misc */
+#define GCC_USB_HS_HSIC_BCR         (CLK_CTL_BASE + 0x3C0)
+#define GCC_USB_HS_HSIC_GDSCR       (CLK_CTL_BASE + 0x3C4)
+#define GCC_USB_BOOT_CLOCK_CTL      (CLK_CTL_BASE + 0x1A00)
+#define GCC_USB_HS_PHY_CFG_AHB_CBCR (CLK_CTL_BASE + 0x3EC0)
+#define GCC_USB_SS_PHY_LDO_EN       (CLK_CTL_BASE + 0x3F00)
+
+/* USB HS */
+#define GCC_USB_HS_BCR              (CLK_CTL_BASE + 0x480)
+#define GCC_USB_HS_SYSTEM_CBCR      (CLK_CTL_BASE + 0x484)
+#define GCC_USB_HS_AHB_CBCR         (CLK_CTL_BASE + 0x488)
+#define GCC_USB_HS_SYSTEM_CMD_RCGR  (CLK_CTL_BASE + 0x490)
+#define GCC_USB_HS_SYSTEM_CFG_RCGR  (CLK_CTL_BASE + 0x494)
+#define GCC_USB2A_PHY_BCR           (CLK_CTL_BASE + 0x4A8)
+#define GCC_USB2A_PHY_SLEEP_CBCR    (CLK_CTL_BASE + 0x4AC)
+#define GCC_USB2_HS_PHY_ONLY_BCR    (CLK_CTL_BASE + 0x4B0)
+
+#define GCC_QUSB2_PHY_BCR           GCC_USB2A_PHY_BCR
+
+/* USB30 base */
+#define MSM_USB30_BASE              0xF9200000
+#define MSM_USB30_QSCRATCH_BASE     0xF92F8800
+
+/* USB PHY */
+#define CM_DWC_USB2_CM_DWC_USB2_BASE 0xFCA00000
+#define CM_DWC_USB3_CM_DWC_USB3_BASE 0xFCA10000
+#define AHB2PHY_AHB2PHY_BASE         0xFCA06000
+
 #endif

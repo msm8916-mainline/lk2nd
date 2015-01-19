@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -57,23 +57,24 @@ void gpio_config_uart_dm(uint8_t id)
 	static struct {
 		unsigned int gpio_tx;
 		unsigned int gpio_rx;
+		unsigned int function;
 	} gpio_table[] = {
-		{ 12, 13 },
-		{ 4, 5 },
-		{ 8, 6 },
-		{ 10, 11 },
+		{ 8, 6, 3 },
+		{ 4, 5, 2 },
+		{ 12, 13, 2 },
+		{ 10, 11, 1 },
 	};
 
 	if (id >= ARRAY_SIZE(gpio_table))
 		return;
 
 	/* configure rx gpio */
-	gpio_tlmm_config(gpio_table[id].gpio_rx, 2, GPIO_INPUT, GPIO_NO_PULL,
-				GPIO_8MA, GPIO_DISABLE);
+	gpio_tlmm_config(gpio_table[id].gpio_rx, gpio_table[id].function,
+		GPIO_INPUT, GPIO_NO_PULL, GPIO_8MA, GPIO_DISABLE);
 
 	/* configure tx gpio */
-	gpio_tlmm_config(gpio_table[id].gpio_tx, 2, GPIO_OUTPUT, GPIO_NO_PULL,
-				GPIO_8MA, GPIO_DISABLE);
+	gpio_tlmm_config(gpio_table[id].gpio_tx,  gpio_table[id].function,
+		GPIO_OUTPUT, GPIO_NO_PULL, GPIO_8MA, GPIO_DISABLE);
 }
 
 void gpio_config_blsp_i2c(uint8_t blsp_id, uint8_t qup_id)
