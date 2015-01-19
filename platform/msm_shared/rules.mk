@@ -534,6 +534,24 @@ ifeq ($(ENABLE_UFS_SUPPORT), 1)
 			$(LOCAL_DIR)/dme.o
 endif
 
+ifeq ($(PLATFORM),msm8952)
+	OBJS += $(LOCAL_DIR)/qgic.o \
+			$(LOCAL_DIR)/qtimer.o \
+			$(LOCAL_DIR)/qtimer_mmap.o \
+			$(LOCAL_DIR)/interrupts.o \
+			$(LOCAL_DIR)/clock.o \
+			$(LOCAL_DIR)/clock_pll.o \
+			$(LOCAL_DIR)/clock_lib2.o \
+			$(LOCAL_DIR)/uart_dm.o \
+			$(LOCAL_DIR)/board.o \
+			$(LOCAL_DIR)/spmi.o \
+			$(LOCAL_DIR)/bam.o \
+			$(LOCAL_DIR)/qpic_nand.o \
+			$(LOCAL_DIR)/scm.o \
+			$(LOCAL_DIR)/dev_tree.o \
+			$(LOCAL_DIR)/gpio.o
+endif
+
 ifeq ($(ENABLE_BOOT_CONFIG_SUPPORT), 1)
 	OBJS += \
 		$(LOCAL_DIR)/boot_device.o
