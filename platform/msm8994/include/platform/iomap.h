@@ -545,6 +545,7 @@
 #define COMMAND_MODE_MDP_STREAM1_TOTAL  0x064
 #define ERR_INT_MASK0               0x10C
 
+#define LANE_CTL                    0x0AC
 #define LANE_SWAP_CTL               0x0B0
 #define TIMING_CTL                  0x0C4
 
