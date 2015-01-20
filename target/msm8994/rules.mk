@@ -20,6 +20,7 @@ MODULES += \
 	dev/keys \
 	dev/pmic/pm8x41 \
 	dev/qpnp_wled \
+	dev/qpnp_led \
     lib/ptable \
 	dev/gcdb/display \
     lib/libfdt
