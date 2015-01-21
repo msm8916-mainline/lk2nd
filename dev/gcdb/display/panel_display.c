@@ -143,6 +143,7 @@ int dsi_panel_init(struct msm_panel_info *pinfo,
 	pinfo->lcdc.border_clr = pstruct->color->border_color;
 	pinfo->lcdc.underflow_clr = pstruct->color->underflow_color;
 	pinfo->mipi.rgb_swap = pstruct->color->color_order;
+	pinfo->bpp = pstruct->color->color_format;
 	switch (pinfo->bpp) {
 	case BPP_16:
 		pinfo->mipi.dst_format = DSI_VIDEO_DST_FORMAT_RGB565;
@@ -168,7 +169,6 @@ int dsi_panel_init(struct msm_panel_info *pinfo,
 	} else {
 		pinfo->type = MIPI_VIDEO_PANEL;
 	}
-	pinfo->bpp = pstruct->color->color_format;
 	pinfo->clk_rate = pstruct->paneldata->panel_clockrate;
 	pinfo->orientation = pstruct->paneldata->panel_orientation;
 	pinfo->mipi.interleave_mode = pstruct->paneldata->interleave_mode;
