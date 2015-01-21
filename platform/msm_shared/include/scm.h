@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2015, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -154,6 +154,14 @@ struct tz_prng_data {
 	uint32_t out_buf_size;
 }__PACKED;
 
+typedef struct {
+	uint8_t *in_buf;
+	uint32_t in_buf_size;
+	uint8_t *out_buf;
+	uint32_t out_buf_size;
+	uint32_t direction;
+} mdtp_cipher_dip_req;
+
 /* SCM support as per ARM spec */
 /*
  * Structure to define the argument for scm call
@@ -287,6 +295,9 @@ int scm_protect_keystore(uint32_t * img_ptr, uint32_t  img_len);
 #define SCM_SVC_ES                      0x10
 #define SCM_SAVE_PARTITION_HASH_ID      0x01
 
+#define SCM_SVC_MDTP                    0x12
+#define SCM_MDTP_CIPHER_DIP             0x01
+
 #define SCM_SVC_PWR                     0x9
 #define SCM_IO_DISABLE_PMIC_ARBITER     0x1
 
@@ -303,6 +314,21 @@ AP_CE_ADM_USE = 1
 
 uint8_t switch_ce_chn_cmd(enum ap_ce_channel_type channel);
 
+/**
+ * Encrypt or Decrypt a Data Integrity Partition (DIP) structure using a
+ * HW derived key. The DIP is used for storing integrity information for
+ * Mobile Device Theft Protection (MDTP) service.
+ *
+ * @in_buf[in] : Pointer to plain text buffer.
+ * @in_buf_size[in] : Plain text buffer size.
+ * @out_buf[in] : Pointer to encrypted buffer.
+ * @out_buf_size[in] : Encrypted buffer size.
+ * @direction[in] : 0 for ENCRYPTION, 1 for DECRYPTION.
+ *
+ * Returns 0 on success, negative on failure.
+ */
+int mdtp_cipher_dip_cmd(uint8_t *in_buf, uint32_t in_buf_size, uint8_t *out_buf,
+                          uint32_t out_buf_size, uint32_t direction);
 
 void set_tamper_fuse_cmd();
 
