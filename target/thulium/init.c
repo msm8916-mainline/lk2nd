@@ -56,6 +56,15 @@
 #include <sdhci_msm.h>
 #include <qusb2_phy.h>
 
+#define CE_INSTANCE             1
+#define CE_EE                   1
+#define CE_FIFO_SIZE            64
+#define CE_READ_PIPE            3
+#define CE_WRITE_PIPE           2
+#define CE_READ_PIPE_LOCK_GRP   0
+#define CE_WRITE_PIPE_LOCK_GRP  0
+#define CE_ARRAY_SIZE           20
+
 #define PMIC_ARB_CHANNEL_NUM    0
 #define PMIC_ARB_OWNER_ID       0
 
@@ -71,8 +80,6 @@ static uint32_t  mmc_sdc_pwrctl_irq[] =
 
 struct mmc_device *dev;
 struct ufs_dev ufs_device;
-
-extern void ulpi_write(unsigned val, unsigned reg);
 
 void target_early_init(void)
 {
@@ -355,4 +362,40 @@ void target_fastboot_init(void)
 {
 	/* We are entering fastboot mode, so read partition table */
 	mmc_read_partition_table(1);
+}
+
+crypto_engine_type board_ce_type(void)
+{
+	return CRYPTO_ENGINE_TYPE_SW;
+}
+
+/* Set up params for h/w CE. */
+void target_crypto_init_params()
+{
+	struct crypto_init_params ce_params;
+
+	/* Set up base addresses and instance. */
+	ce_params.crypto_instance  = CE_INSTANCE;
+	ce_params.crypto_base      = MSM_CE_BASE;
+	ce_params.bam_base         = MSM_CE_BAM_BASE;
+
+	/* Set up BAM config. */
+	ce_params.bam_ee               = CE_EE;
+	ce_params.pipes.read_pipe      = CE_READ_PIPE;
+	ce_params.pipes.write_pipe     = CE_WRITE_PIPE;
+	ce_params.pipes.read_pipe_grp  = CE_READ_PIPE_LOCK_GRP;
+	ce_params.pipes.write_pipe_grp = CE_WRITE_PIPE_LOCK_GRP;
+
+	/* Assign buffer sizes. */
+	ce_params.num_ce           = CE_ARRAY_SIZE;
+	ce_params.read_fifo_size   = CE_FIFO_SIZE;
+	ce_params.write_fifo_size  = CE_FIFO_SIZE;
+
+	/* BAM is initialized by TZ for this platform.
+	 * Do not do it again as the initialization address space
+	 * is locked.
+	 */
+	ce_params.do_bam_init      = 0;
+
+	crypto_init_params(&ce_params);
 }
