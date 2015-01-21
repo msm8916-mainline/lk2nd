@@ -1,0 +1,566 @@
+/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above
+ *       copyright notice, this list of conditions and the following
+ *       disclaimer in the documentation and/or other materials provided
+ *       with the distribution.
+ *     * Neither the name of The Linux Foundation nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+ * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
+ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+#include <debug.h>
+#include <dev/fbcon.h>
+#include <target.h>
+#include <mmc.h>
+#include <partition_parser.h>
+#include <platform.h>
+#include <crypto_hash.h>
+#include <malloc.h>
+#include <sha.h>
+#include <string.h>
+#include <rand.h>
+#include <stdlib.h>
+#include "scm.h"
+#include "mdtp.h"
+
+#define DIP_ENCRYPT 0
+#define DIP_DECRYPT 1
+
+static int mdtp_tzbsp_get_provisioned_fuse();
+static int mdtp_tzbsp_set_provisioned_fuse();
+static int mdtp_tzbsp_dec_verify_DIP(DIP_t* enc_dip, DIP_t* dec_dip, uint32_t *verified);
+static int mdtp_tzbsp_enc_hash_DIP(DIP_t* dec_dip, DIP_t* enc_dip);
+
+unsigned block_size = 0;
+
+/********************************************************************************/
+
+/* Read the DIP from EMMC */
+static int read_DIP(DIP_t* dip)
+{
+	unsigned long long ptn = 0;
+	uint32_t actual_partition_size;
+
+	int index = INVALID_PTN;
+
+	ASSERT(dip != NULL);
+
+	index = partition_get_index("dip");
+	ptn = partition_get_offset(index);
+
+	if(ptn == 0)
+	{
+		return -1;
+	}
+
+	actual_partition_size = ROUNDUP(sizeof(DIP_t), block_size);
+
+	if(mmc_read(ptn, (void *)dip, actual_partition_size))
+	{
+		dprintf(CRITICAL, "mdtp: read_DIP: ERROR, cannot read DIP info\n");
+		return -1;
+	}
+
+	dprintf(INFO, "mdtp: read_DIP: SUCCESS, read %d bytes\n", actual_partition_size);
+
+	return 0;
+}
+
+/* Store the DIP into the EMMC */
+static int write_DIP(DIP_t* dip)
+{
+	unsigned long long ptn = 0;
+	uint32_t partition_size;
+
+	int index = INVALID_PTN;
+
+	ASSERT(dip != NULL);
+
+	index = partition_get_index("dip");
+	ptn = partition_get_offset(index);
+	if(ptn == 0)
+	{
+		return -1;
+	}
+
+	partition_size = partition_get_size(index);
+
+	if(partition_size < size)
+	{
+		dprintf(CRITICAL, "mdtp: write_DIP: ERROR, DIP partition too small\n");
+		return -1;
+	}
+
+	if(mmc_write(ptn, ROUNDUP(size, block_size), (void *)dip))
+	{
+		dprintf(CRITICAL, "mdtp: write_DIP: ERROR, cannot read DIP info\n");
+		return -1;
+	}
+
+	return 0;
+}
+
+/* Provision the DIP by storing the default DIP into the EMMC */
+static void provision_DIP()
+{
+	DIP_t* enc_dip;
+	DIP_t* dec_dip;
+	int ret;
+
+	enc_dip = malloc(sizeof(DIP_t));
+	if (enc_dip == NULL)
+	{
+		dprintf(CRITICAL, "mdtp: provision_DIP: ERROR, cannot allocate DIP\n");
+		return;
+	}
+
+	dec_dip = malloc(sizeof(DIP_t));
+	if (dec_dip == NULL)
+	{
+		dprintf(CRITICAL, "mdtp: provision_DIP: ERROR, cannot allocate DIP\n");
+		free(enc_dip);
+		return;
+	}
+
+	memset(dec_dip, 0, sizeof(DIP_t));
+
+	dec_dip->status = DIP_STATUS_DEACTIVATED;
+
+	ret = mdtp_tzbsp_enc_hash_DIP(dec_dip, enc_dip);
+	if(ret < 0)
+	{
+		dprintf(CRITICAL, "mdtp: provision_DIP: ERROR, cannot cipher DIP\n");
+		goto out;
+	}
+
+	ret = write_DIP(enc_dip);
+	if(ret < 0)
+	{
+		dprintf(CRITICAL, "mdtp: provision_DIP: ERROR, cannot write DIP\n");
+		goto out;
+	}
+
+	ret = mdtp_tzbsp_set_provisioned_fuse();
+	if(ret < 0)
+	{
+		dprintf(CRITICAL, "mdtp: provision_DIP: ERROR, cannot set DIP_PROVISIONED fuse\n\n");
+		goto out;
+	}
+
+out:
+	free(enc_dip);
+	free(dec_dip);
+}
+
+/* Validate a hash calculated on entire given partition */
+static int verify_partition_single_hash(char* name, uint32_t size, DIP_hash_table_entry_t* hash_table)
+{
+	SHA256_CTX sha256_ctx;
+	unsigned char digest[32]={0};
+	unsigned long long ptn = 0;
+	int index = INVALID_PTN;
+	unsigned char *buf = (unsigned char *)target_get_scratch_address();
+	uint32_t actual_partition_size = ROUNDUP(size, block_size);
+
+	dprintf(INFO, "mdtp: verify_partition_single_hash: %s, %u\n", name, size);
+
+	ASSERT(name != NULL);
+	ASSERT(hash_table != NULL);
+
+	index = partition_get_index(name);
+	ptn = partition_get_offset(index);
+
+	if(ptn == 0) {
+		dprintf(CRITICAL, "mdtp: verify_partition_single_hash: %s: partition was not found\n", name);
+		return -1;
+	}
+
+	SHA256_Init(&sha256_ctx);
+
+	if (mmc_read(ptn, (void *)buf, actual_partition_size))
+	{
+		dprintf(CRITICAL, "mdtp: verify_partition__single_hash: %s: mmc_read() fail.\n", name);
+		return -1;
+	}
+
+	SHA256_Update(&sha256_ctx, buf, size);
+
+	SHA256_Final(digest, &sha256_ctx);
+
+	if (memcmp(digest, hash_table->hash, HASH_LEN))
+	{
+		dprintf(CRITICAL, "mdtp: verify_partition_single_hash: %s: Failed partition hash verification\n", name);
+
+		return -1;
+	}
+
+	dprintf(INFO, "verify_partition_single_hash: %s: VERIFIED!\n", name);
+
+	return 0;
+}
+
+/* Validate a hash table calculated per block of a given partition */
+static int verify_partition_block_hash(char* name,
+								uint32_t size,
+								uint32_t total_num_blocks,
+								uint32_t verify_num_blocks,
+								DIP_hash_table_entry_t* hash_table,
+							    uint8_t *force_verify_block)
+{
+	SHA256_CTX sha256_ctx;
+	unsigned char digest[32]={0};
+	unsigned long long ptn = 0;
+	int index = INVALID_PTN;
+	unsigned char *buf = (unsigned char *)target_get_scratch_address();
+	uint32_t bytes_to_read;
+	uint32_t block_num = 0;
+
+	dprintf(INFO, "mdtp: verify_partition_block_hash: %s, %u\n", name, size);
+
+	ASSERT(name != NULL);
+	ASSERT(hash_table != NULL);
+
+	index = partition_get_index(name);
+	ptn = partition_get_offset(index);
+
+	if(ptn == 0) {
+		dprintf(CRITICAL, "mdtp: verify_partition_block_hash: %s: partition was not found\n", name);
+		return -1;
+	}
+
+	while (MDTP_FWLOCK_BLOCK_SIZE * block_num < size)
+	{
+		if (*force_verify_block == 0)
+		{
+			/* Skip validation of this block with probability of verify_num_blocks / total_num_blocks */
+			if ((rand() % total_num_blocks) >= verify_num_blocks)
+			{
+				block_num++;
+				hash_table += 1;
+				force_verify_block += 1;
+				dprintf(CRITICAL, "mdtp: verify_partition_block_hash: %s: skipped verification of block %d\n", name, block_num);
+				continue;
+			}
+		}
+
+		SHA256_Init(&sha256_ctx);
+
+		if ((size - (MDTP_FWLOCK_BLOCK_SIZE * block_num) <  MDTP_FWLOCK_BLOCK_SIZE))
+		{
+			bytes_to_read = size - (MDTP_FWLOCK_BLOCK_SIZE * block_num);
+		} else
+		{
+			bytes_to_read = MDTP_FWLOCK_BLOCK_SIZE;
+		}
+
+		if (mmc_read(ptn + (MDTP_FWLOCK_BLOCK_SIZE * block_num), (void *)buf, bytes_to_read))
+		{
+			dprintf(CRITICAL, "mdtp: verify_partition_block_hash: %s: mmc_read() fail.\n", name);
+			return -1;
+		}
+
+		SHA256_Update(&sha256_ctx, buf, bytes_to_read);
+		SHA256_Update(&sha256_ctx, &block_num, sizeof(block_num));
+
+		SHA256_Final(digest, &sha256_ctx);
+
+		if (memcmp(digest, hash_table->hash, HASH_LEN))
+		{
+			dprintf(CRITICAL, "mdtp: verify_partition_block_hash: %s: Failed partition hash[%d] verification\n", name, block_num);
+			return -1;
+		}
+
+		block_num++;
+		hash_table += 1;
+		force_verify_block += 1;
+	}
+
+	dprintf(INFO, "verify_partition_block_hash: %s: VERIFIED!\n", name);
+
+	return 0;
+}
+
+/* Verify a given partitinon */
+static int verify_partition(char* name,
+						uint32_t size,
+						mdtp_fwlock_mode_t hash_mode,
+						uint32_t total_num_blocks,
+						uint32_t verify_num_blocks,
+						DIP_hash_table_entry_t *hash_table,
+						uint8_t *force_verify_block)
+{
+
+	ASSERT(name != NULL);
+	ASSERT(hash_table != NULL);
+
+	if (hash_mode == MDTP_FWLOCK_MODE_SINGLE)
+	{
+		return verify_partition_single_hash(name, size, hash_table);
+	} else if (hash_mode == MDTP_FWLOCK_MODE_BLOCK || hash_mode == MDTP_FWLOCK_MODE_FILES)
+	{
+		return verify_partition_block_hash(name, size, total_num_blocks, verify_num_blocks, hash_table, force_verify_block);
+	}
+	else
+	{
+		dprintf(CRITICAL, "mdtp: verify_partition: %s: Wrong DIP partition hash mode\n", name);
+		return -1;
+	}
+
+	return 0;
+}
+
+/* Verify all protected partitinons according to the DIP */
+static int verify_all_partitions(DIP_t *dip, verify_result_t *verify_result)
+{
+	int i;
+	int verify_failure = 0;
+	uint32_t total_num_blocks;
+
+	ASSERT(dip != NULL);
+	ASSERT(verify_result != NULL);
+
+	*verify_result = VERIFY_FAILED;
+
+	if (dip->status == DIP_STATUS_DEACTIVATED)
+	{
+		*verify_result = VERIFY_SKIPPED;
+		return 0;
+	}
+	else if (dip->status == DIP_STATUS_ACTIVATED)
+	{
+		show_checking_msg();
+
+		for(i=0; i<MAX_PARTITIONS; i++)
+		{
+			if(dip->partition_cfg[i].lock_enabled && dip->partition_cfg[i].size)
+			{
+				total_num_blocks = ((dip->partition_cfg[i].size - 1) / MDTP_FWLOCK_BLOCK_SIZE);
+
+				verify_failure |= verify_partition(dip->partition_cfg[i].name,
+							 dip->partition_cfg[i].size,
+							 dip->partition_cfg[i].hash_mode,
+							 total_num_blocks,
+							 (dip->partition_cfg[i].verify_ratio * total_num_blocks) / 100,
+							 dip->partition_cfg[i].hash_table,
+							 dip->partition_cfg[i].force_verify_block);
+			}
+		}
+
+		if (verify_failure)
+		{
+			dprintf(CRITICAL, "mdtp: verify_all_partitions: Failed partition verification\n");
+			show_invalid_msg();
+			return -1;
+		}
+
+	}
+
+	*verify_result = VERIFY_OK;
+	show_OK_msg();
+	return 0;
+}
+
+/* Verify the DIP and all protected partitions */
+static void validate_DIP_and_firmware()
+{
+	int ret;
+	DIP_t* enc_dip;
+	DIP_t* dec_dip;
+	uint32_t verified = 0;
+	verify_result_t verify_result;
+
+	enc_dip = malloc(ROUNDUP(sizeof(DIP_t), block_size));
+	if (enc_dip == NULL)
+	{
+		dprintf(CRITICAL, "mdtp: provision_DIP: ERROR, cannot allocate DIP\n");
+		return;
+	}
+
+	dec_dip = malloc(ROUNDUP(sizeof(DIP_t), block_size));
+	if (dec_dip == NULL)
+	{
+		dprintf(CRITICAL, "mdtp: provision_DIP: ERROR, cannot allocate DIP\n");
+		free(enc_dip);
+		return;
+	}
+
+	/* Read the DIP holding the MDTP Firmware Lock state from the DIP partition */
+	ret = read_DIP(enc_dip);
+	if(ret < 0)
+	{
+		dprintf(CRITICAL, "mdtp: validate_DIP_and_firmware: ERROR, cannot read DIP\n");
+		goto out;
+	}
+
+	/* Decrypt and verify the integrity of the DIP */
+	ret = mdtp_tzbsp_dec_verify_DIP(enc_dip, dec_dip, &verified);
+	if(ret < 0)
+	{
+		dprintf(CRITICAL, "mdtp: validate_DIP_and_firmware: ERROR, cannot verify DIP\n");
+		show_invalid_msg();
+		goto out;
+	}
+
+	/* In case DIP integrity verification fails, notify the user and halt */
+	if(!verified)
+	{
+		dprintf(CRITICAL, "mdtp: validate_DIP_and_firmware: ERROR, corrupted DIP\n");
+		show_invalid_msg();
+		goto out;
+	}
+
+	/* Verify the integrity of the partitions which are protectedm, according to the content of the DIP */
+	ret = verify_all_partitions(dec_dip, &verify_result);
+	if(ret < 0)
+	{
+		dprintf(CRITICAL, "mdtp: validate_DIP_and_firmware: ERROR, cannot verify firmware\n");
+		goto out;
+	}
+
+	if (verify_result == VERIFY_OK)
+	{
+		dprintf(INFO, "mdtp: validate_DIP_and_firmware: Verify OK\n");
+	}
+	else if (verify_result  == VERIFY_FAILED)
+	{
+		dprintf(CRITICAL, "mdtp: validate_DIP_and_firmware: ERROR, corrupted firmware\n");
+	} else /* VERIFY_SKIPPED */
+	{
+		dprintf(INFO, "mdtp: validate_DIP_and_firmware: Verify skipped\n");
+	}
+
+out:
+	free(enc_dip);
+	free(dec_dip);
+
+	return;
+}
+
+/********************************************************************************/
+
+/** Entry point of the MDTP Firmware Lock: If needed, verify the DIP
+ *  and all protected partitions **/
+
+int mdtp_fwlock_verify_lock()
+{
+	int provisioned_fuse;
+
+	block_size = mmc_get_device_blocksize();
+
+	provisioned_fuse = mdtp_tzbsp_get_provisioned_fuse();
+	if(provisioned_fuse < 0)
+	{
+		dprintf(CRITICAL, "mdtp: mdtp_fwlock_verify_lock: ERROR, cannot get DIP_PROVISIONED fuse\n");
+		return -1;
+	}
+
+	if (!provisioned_fuse)
+	{
+		provision_DIP();
+	}
+	else
+	{
+		validate_DIP_and_firmware();
+	}
+
+	return 0;
+}
+
+/********************************************************************************/
+
+/* Functions communicating with TZBSP */
+
+static int mdtp_tzbsp_get_provisioned_fuse()
+{
+	return 1;
+}
+
+static int mdtp_tzbsp_set_provisioned_fuse()
+{
+	return 0;
+}
+
+/* Decrypt a given DIP and verify its integrity */
+static int mdtp_tzbsp_dec_verify_DIP(DIP_t* enc_dip, DIP_t* dec_dip, uint32_t *verified)
+{
+	unsigned char* hash_p;
+	unsigned char hash[HASH_LEN];
+	SHA256_CTX sha256_ctx;
+	int ret;
+
+	ASSERT(enc_dip != NULL);
+	ASSERT(dec_dip != NULL);
+	ASSERT(verified != NULL);
+
+	ret = mdtp_cipher_dip_cmd((uint8_t*)enc_dip, sizeof(DIP_t),
+								(uint8_t*)dec_dip, sizeof(DIP_t),
+								DIP_DECRYPT);
+	if (ret)
+	{
+		dprintf(CRITICAL, "mdtp: mdtp_tzbsp_dec_verify_DIP: ERROR, cannot cipher DIP\n");
+		*verified = 0;
+		return -1;
+	}
+
+	SHA256_Init(&sha256_ctx);
+	SHA256_Update(&sha256_ctx, dec_dip, sizeof(DIP_t) - HASH_LEN);
+	SHA256_Final(hash, &sha256_ctx);
+
+	hash_p = (unsigned char*)dec_dip + sizeof(DIP_t) - HASH_LEN;
+
+	if (memcmp(hash, hash_p, HASH_LEN))
+	{
+		*verified = 0;
+	}
+	else
+	{
+		*verified = 1;
+	}
+
+	return 0;
+}
+
+static int mdtp_tzbsp_enc_hash_DIP(DIP_t* dec_dip, DIP_t* enc_dip)
+{
+	unsigned char* hash_p;
+	SHA256_CTX sha256_ctx;
+	int ret;
+
+	ASSERT(dec_dip != NULL);
+	ASSERT(enc_dip != NULL);
+
+	hash_p = (unsigned char*)dec_dip + sizeof(DIP_t) - HASH_LEN;
+
+	SHA256_Init(&sha256_ctx);
+	SHA256_Update(&sha256_ctx, dec_dip, sizeof(DIP_t) - HASH_LEN);
+	SHA256_Final(hash_p, &sha256_ctx);
+
+	ret = mdtp_cipher_dip_cmd((uint8_t*)dec_dip, sizeof(DIP_t),
+								(uint8_t*)enc_dip, sizeof(DIP_t),
+								DIP_ENCRYPT);
+	if (ret)
+	{
+		dprintf(CRITICAL, "mdtp: mdtp_tzbsp_enc_hash_DIP: ERROR, cannot cipher DIP\n");
+		return -1;
+	}
+
+	return 0;
+}
