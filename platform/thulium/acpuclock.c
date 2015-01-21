@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -202,8 +202,6 @@ void clock_usb30_init(void)
 		dprintf(CRITICAL, "failed to enable usb_phy_cfg_ahb2phy_clk = %d\n", ret);
 		ASSERT(0);
 	}
-
-	pm8x41_lnbb_clock_ctrl(1);
 }
 
 void clock_bumpup_pipe3_clk()
