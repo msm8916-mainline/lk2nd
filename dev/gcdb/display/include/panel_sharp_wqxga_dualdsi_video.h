@@ -119,7 +119,7 @@ static struct videopanel_info sharp_wqxga_dualdsi_video_video_panel = {
 /* Lane configuration                                                        */
 /*---------------------------------------------------------------------------*/
 static struct lane_configuration sharp_wqxga_dualdsi_video_lane_config = {
-	4, 0, 1, 1, 1, 1
+	4, 0, 1, 1, 1, 1, 0
 };
 
 /*---------------------------------------------------------------------------*/

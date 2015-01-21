@@ -144,7 +144,7 @@ static struct videopanel_info sharp_qhd_video_video_panel = {
 /*---------------------------------------------------------------------------*/
 
 static struct lane_configuration sharp_qhd_video_lane_config = {
-  2, 0, 1, 1, 0, 0
+  2, 0, 1, 1, 0, 0, 0
 };
 
 

@@ -413,7 +413,7 @@ static struct videopanel_info truly_wvga_cmd_video_panel = {
 /* Lane configuration                                                        */
 /*---------------------------------------------------------------------------*/
 static struct lane_configuration truly_wvga_cmd_lane_config = {
-	2, 0, 1, 1, 0, 0
+	2, 0, 1, 1, 0, 0, 0
 };
 
 /*---------------------------------------------------------------------------*/
