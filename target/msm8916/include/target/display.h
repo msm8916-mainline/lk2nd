@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -159,6 +159,7 @@ enum {
 	HX8394D_720P_VIDEO_PANEL,
 	NT35521_WXGA_VIDEO_PANEL,
 	R61318_HD_VIDEO_PANEL,
+	R63417_1080P_VIDEO_PANEL,
 	UNKNOWN_PANEL
 };
 
