@@ -333,7 +333,7 @@ int encrypt_scm(uint32_t ** img_ptr, uint32_t * img_len_ptr)
 	else
 	{
 		scm_arg.x0 = MAKE_SIP_SCM_CMD(SCM_SVC_SSD,SSD_ENCRYPT_ID);
-		scm_arg.x1 = MAKE_SCM_ARGS(0x2,SMC_PARAM_TYPE_BUFFER_READWRITE,SMC_PARAM_TYPE_VALUE);
+		scm_arg.x1 = MAKE_SCM_ARGS(0x2,SMC_PARAM_TYPE_BUFFER_READWRITE,SMC_PARAM_TYPE_BUFFER_READWRITE);
 		scm_arg.x2 = (uint32_t) cmd.img_ptr;
 		scm_arg.x3 = (uint32_t) cmd.img_len_ptr;
 
