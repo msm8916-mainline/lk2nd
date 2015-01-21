@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -147,6 +147,7 @@ int dsi_panel_init(struct msm_panel_info *pinfo,
 	pinfo->mipi.data_lane2 = pstruct->laneconfig->lane2_state;
 	pinfo->mipi.data_lane3 = pstruct->laneconfig->lane3_state;
 	pinfo->mipi.lane_swap = pstruct->laneconfig->dsi_lanemap;
+	pinfo->mipi.force_clk_lane_hs = pstruct->laneconfig->force_clk_lane_hs;
 
 	pinfo->mipi.t_clk_post = pstruct->paneltiminginfo->tclk_post;
 	pinfo->mipi.t_clk_pre = pstruct->paneltiminginfo->tclk_pre;

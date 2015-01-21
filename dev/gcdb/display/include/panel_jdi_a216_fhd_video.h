@@ -147,7 +147,7 @@ static struct videopanel_info jdi_a216_fhd_video_video_panel = {
 /* Lane configuration                                                        */
 /*---------------------------------------------------------------------------*/
 static struct lane_configuration jdi_a216_fhd_video_lane_config = {
-	4, 0, 1, 1, 1, 1
+	4, 0, 1, 1, 1, 1, 0
 };
 
 /*---------------------------------------------------------------------------*/

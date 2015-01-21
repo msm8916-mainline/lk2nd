@@ -303,7 +303,7 @@ static struct videopanel_info fl10802_fwvga_video_video_panel = {
 /* Lane configuration                                                        */
 /*---------------------------------------------------------------------------*/
 static struct lane_configuration fl10802_fwvga_video_lane_config = {
-	2, 0, 1, 1, 0, 0
+	2, 0, 1, 1, 0, 0, 0
 };
 
 /*---------------------------------------------------------------------------*/
