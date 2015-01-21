@@ -268,11 +268,13 @@ static void mdss_dsi_pll_20nm_config_vco_start(uint32_t pll_base)
 	writel(0x03, pll_base + MMSS_DSI_PHY_PLL_RESETSM_CNTRL3);
 }
 
-static void mdss_dsi_pll_20nm_disable(uint32_t pll_base)
+static void mdss_dsi_pll_20nm_config_powerdown(uint32_t pll_base)
 {
-	dprintf(SPEW, "Disabling DSI PHY PLL \n");
-	writel(0x02, pll_base + MMSS_DSI_PHY_PLL_PLL_VCOTAIL_EN);
-	writel(0x06, pll_base + MMSS_DSI_PHY_PLL_RESETSM_CNTRL3);
+	dprintf(SPEW, "Powerdown DSI PHY PLL \n");
+	writel(0x00, pll_base + MMSS_DSI_PHY_PLL_SYS_CLK_CTRL);
+	writel(0x01, pll_base + MMSS_DSI_PHY_PLL_CMN_MODE);
+	writel(0x82, pll_base + MMSS_DSI_PHY_PLL_PLL_VCOTAIL_EN);
+	writel(0x02, pll_base + MMSS_DSI_PHY_PLL_BIAS_EN_CLKBUFLR_EN);
 	dmb();
 }
 
@@ -284,8 +286,8 @@ void mdss_dsi_auto_pll_20nm_config(uint32_t pll_base, uint32_t pll_1_base,
 	 * For 20nm PHY, DSI PLL 1 drains some current in its reset state.
 	 * Need to turn off the DSI1 PLL explicitly.
 	 */
-	mdss_dsi_pll_20nm_disable(pll_1_base);
 	mdss_dsi_pll_20nm_config_common_block_1(pll_1_base);
+	mdss_dsi_pll_20nm_config_powerdown(pll_1_base);
 
 	mdss_dsi_pll_20nm_config_common_block_1(pll_base);
 	mdss_dsi_pll_20nm_config_common_block_2(pll_base);
