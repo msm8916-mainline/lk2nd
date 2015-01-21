@@ -380,6 +380,14 @@ int mdss_dsi_host_init(struct mipi_panel_info *mipi, uint32_t
 			lane_swap_dsi1 = lane_swap;
 		writel(lane_swap_dsi1, mipi->sctl_base + LANE_SWAP_CTL);
 		writel(timing_ctl, mipi->sctl_base + TIMING_CTL);
+
+		if (mipi->force_clk_lane_hs) {
+			uint32_t tmp;
+
+			tmp = readl(mipi->sctl_base + LANE_CTL);
+			tmp |= BIT(28);
+			writel(tmp, mipi->sctl_base + LANE_CTL);
+		}
 	}
 
 	writel(0x0001, mipi->ctl_base + SOFT_RESET);
@@ -396,6 +404,14 @@ int mdss_dsi_host_init(struct mipi_panel_info *mipi, uint32_t
 
 	writel(lane_swap, mipi->ctl_base + LANE_SWAP_CTL);
 	writel(timing_ctl, mipi->ctl_base + TIMING_CTL);
+
+	if (mipi->force_clk_lane_hs) {
+		uint32_t tmp;
+
+		tmp = readl(mipi->ctl_base + LANE_CTL);
+		tmp |= BIT(28);
+		writel(tmp, mipi->ctl_base + LANE_CTL);
+	}
 #endif
 
 	return 0;
