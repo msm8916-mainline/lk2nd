@@ -514,7 +514,12 @@ ifeq ($(PLATFORM),thulium)
 			$(LOCAL_DIR)/ufs_hci.o \
 			$(LOCAL_DIR)/dme.o \
 			$(LOCAL_DIR)/qmp_usb30_phy.o \
-			$(LOCAL_DIR)/qusb2_phy.o
+			$(LOCAL_DIR)/qusb2_phy.o \
+			$(LOCAL_DIR)/certificate.o \
+			$(LOCAL_DIR)/image_verify.o \
+			$(LOCAL_DIR)/crypto_hash.o \
+			$(LOCAL_DIR)/crypto5_eng.o \
+			$(LOCAL_DIR)/crypto5_wrapper.o
 endif
 
 ifeq ($(ENABLE_BOOT_CONFIG_SUPPORT), 1)
