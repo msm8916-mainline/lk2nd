@@ -37,6 +37,7 @@
 #define FALSE	0
 
 #define DFPS_MAX_FRAME_RATE 10
+#define DFPS_PLL_CODES_SIZE 0x1000 /* One page */
 
 /* panel type list */
 #define NO_PANEL		0xffff	/* No Panel */
