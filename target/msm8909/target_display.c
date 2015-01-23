@@ -50,7 +50,7 @@
 #define RESET_GPIO_SEQ_LEN 3
 #define PWM_DUTY_US 13
 #define PWM_PERIOD_US 27
-#define PM8916_SUB 0x02
+#define PM8916_VER 0x20000
 
 static void mdss_dsi_uniphy_pll_sw_reset_8909(uint32_t pll_base)
 {
@@ -95,14 +95,14 @@ int target_backlight_ctrl(struct backlight *bl, uint8_t enable)
 {
 	struct pm8x41_mpp mpp;
 	uint32_t hw_id = board_hardware_id();
-	uint32_t platform_subtype = board_hardware_subtype();
+	struct board_pmic_data pmic_info;
 	int rc;
 
 	if (bl->bl_interface_type == BL_DCS)
 		return 0;
 
-	if ((hw_id == HW_PLATFORM_SURF || hw_id == HW_PLATFORM_MTP ||
-		hw_id == HW_PLATFORM_RCM) && (platform_subtype == PM8916_SUB))
+	board_pmic_info(&pmic_info, 1);
+	if (pmic_info.pmic_version == PM8916_VER)
 		mpp.base = PM8x41_MMP4_BASE;
 	else
 		mpp.base = PM8x41_MMP2_BASE;
