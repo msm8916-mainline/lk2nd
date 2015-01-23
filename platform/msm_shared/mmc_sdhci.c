@@ -26,6 +26,7 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <err.h>
 #include <string.h>
 #include <stdlib.h>
 #include <debug.h>
@@ -36,6 +37,14 @@
 #include <partition_parser.h>
 #include <platform/iomap.h>
 #include <platform/timer.h>
+
+#if WITH_LIB_BIO
+#include <lib/bio.h>
+#endif
+
+#if WITH_LIB_PARTITION
+#include <lib/partition.h>
+#endif
 
 extern void clock_init_mmc(uint32_t);
 extern void clock_config_mmc(uint32_t, uint32_t);
@@ -1709,6 +1718,88 @@ static void mmc_display_csd(struct mmc_card *card)
 	dprintf(SPEW, "temp_wp: %d\n", card->csd.temp_wp);
 }
 
+#if WITH_LIB_BIO
+typedef struct mmc_sdhci_bdev {
+	bdev_t dev; // base device
+
+	struct mmc_device *mmcdev;
+} mmc_sdhci_bdev_t;
+
+static ssize_t mmc_sdhci_bdev_read_block(struct bdev *_bdev, void *buf, bnum_t block, uint count)
+{
+	mmc_sdhci_bdev_t *bdev = (mmc_sdhci_bdev_t *)_bdev;
+
+	uint32_t ret = 0;
+	uint32_t block_size = bdev->dev.block_size;
+	uint32_t read_size = SDHCI_ADMA_MAX_TRANS_SZ;
+	uint32_t data_len = count * block_size;
+	uint64_t data_addr = (uint64_t)((uint64_t)block * block_size);
+	uint8_t *sptr = (uint8_t *)buf;
+
+	/*
+	 * dma onto write back memory is unsafe/nonportable,
+	 * but callers to this routine normally provide
+	 * write back buffers. Invalidate cache
+	 * before read data from mmc.
+         */
+	arch_clean_invalidate_cache_range((addr_t)(sptr), data_len);
+
+	while (data_len > read_size) {
+		ret = mmc_sdhci_read(bdev->mmcdev, (void *)sptr, (data_addr / block_size), (read_size / block_size));
+		if (ret)
+			return ERR_IO;
+
+		sptr += read_size;
+		data_addr += read_size;
+		data_len -= read_size;
+	}
+
+	if (data_len)
+		ret = mmc_sdhci_read(bdev->mmcdev, (void *)sptr, (data_addr / block_size), (data_len / block_size));
+
+	if (ret)
+		return ERR_IO;
+	else
+		return count * block_size;
+}
+
+static ssize_t mmc_sdhci_bdev_write_block(struct bdev *_bdev, const void *buf, bnum_t block, uint count)
+{
+	mmc_sdhci_bdev_t *bdev = (mmc_sdhci_bdev_t *)_bdev;
+
+	uint32_t val = 0;
+	uint32_t block_size = bdev->dev.block_size;
+	uint32_t write_size = SDHCI_ADMA_MAX_TRANS_SZ;
+	uint32_t data_len = count * block_size;
+	uint64_t data_addr = (uint64_t)((uint64_t)block * block_size);
+	uint8_t *sptr = (uint8_t *)buf;
+
+	/*
+	 * Flush the cache before handing over the data to
+	 * storage driver
+	 */
+	arch_clean_invalidate_cache_range((addr_t)sptr, data_len);
+
+	while (data_len > write_size) {
+		val = mmc_sdhci_write(bdev->mmcdev, (void *)sptr, (data_addr / block_size), (write_size / block_size));
+		if (val)
+			return ERR_IO;
+
+		sptr += write_size;
+		data_addr += write_size;
+		data_len -= write_size;
+	}
+
+	if (data_len)
+		val = mmc_sdhci_write(bdev->mmcdev, (void *)sptr, (data_addr / block_size), (data_len / block_size));
+
+	if (val)
+		return ERR_IO;
+	else
+		return count * block_size;
+}
+#endif
+
 /*
  * Function: mmc_init
  * Arg     : MMC configuration data
@@ -1756,6 +1847,27 @@ struct mmc_device *mmc_init(struct mmc_config_data *data)
 	dprintf(INFO, "Done initialization of the card\n");
 
 	mmc_display_csd(&dev->card);
+
+#if WITH_LIB_BIO
+	char name[20];
+	mmc_sdhci_bdev_t *bdev = malloc(sizeof(mmc_sdhci_bdev_t));
+	snprintf(name, sizeof(name), "hd%d", data->slot);
+
+	/* set up the base device */
+	bio_initialize_bdev(&bdev->dev, name, dev->card.block_size, dev->card.capacity / dev->card.block_size);
+
+	/* our bits */
+	bdev->mmcdev = dev;
+	bdev->dev.read_block = mmc_sdhci_bdev_read_block;
+	bdev->dev.write_block = mmc_sdhci_bdev_write_block;
+
+	/* register it */
+	bio_register_device(&bdev->dev);
+
+#if WITH_LIB_PARTITION
+	partition_publish(name, 0);
+#endif
+#endif
 
 	return dev;
 }
