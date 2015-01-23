@@ -43,6 +43,19 @@ OBJS += \
 	$(LOCAL_DIR)/boot_verifier.o
 endif
 
+ifeq ($(ENABLE_GLINK_SUPPORT),1)
+OBJS += \
+		$(LOCAL_DIR)/glink/glink_api.o \
+		$(LOCAL_DIR)/glink/glink_core_if.o \
+		$(LOCAL_DIR)/glink/glink_rpmcore_setup.o \
+		$(LOCAL_DIR)/glink/glink_core_intentless_xport.o \
+		$(LOCAL_DIR)/glink/glink_os_utils_dal.o \
+		$(LOCAL_DIR)/glink/glink_vector.o \
+		$(LOCAL_DIR)/glink/xport_rpm.o \
+		$(LOCAL_DIR)/glink/xport_rpm_config.o \
+		$(LOCAL_DIR)/smem_list.o
+endif
+
 ifeq ($(PLATFORM),msm8x60)
 	OBJS += $(LOCAL_DIR)/mipi_dsi.o \
 			$(LOCAL_DIR)/i2c_qup.o \
