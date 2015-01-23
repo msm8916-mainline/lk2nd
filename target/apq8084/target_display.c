@@ -506,7 +506,9 @@ bool target_display_panel_node(char *panel_name, char *pbuf, uint16_t buf_size)
 void target_display_init(const char *panel_name)
 {
 	uint32_t ret = 0;
+	char cont_splash = '\0';
 
+	set_panel_cmd_string(panel_name, &cont_splash);
 	panel_name += strspn(panel_name, " ");
 
 	if (!strcmp(panel_name, NO_PANEL_CONFIG)
@@ -527,6 +529,11 @@ void target_display_init(const char *panel_name)
 	if (ret) {
 		target_force_cont_splash_disable(true);
 		msm_display_off();
+	}
+
+	if (cont_splash == '0') {
+		dprintf(INFO, "Forcing continuous splash disable\n");
+		target_force_cont_splash_disable(true);
 	}
 }
 

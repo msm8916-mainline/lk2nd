@@ -413,10 +413,12 @@ void target_display_init(const char *panel_name)
 	uint32_t hw_id = board_hardware_id();
 	uint32_t panel_loop = 0;
 	int ret = 0;
+	char cont_splash = '\0';
 
 	if (target_hw_interposer())
 		return;
 
+	set_panel_cmd_string(panel_name, &cont_splash);
 	panel_name += strspn(panel_name, " ");
 
 	if (!strcmp(panel_name, NO_PANEL_CONFIG)
@@ -431,6 +433,7 @@ void target_display_init(const char *panel_name)
 		dprintf(INFO, "%s: HDMI is primary\n", __func__);
 		return;
 	}
+
 	switch (hw_id) {
 	case HW_PLATFORM_LIQUID:
 		edp_panel_init(&(panel.panel_info));
@@ -460,6 +463,11 @@ void target_display_init(const char *panel_name)
 			}
 		} while (++panel_loop <= (uint32_t)oem_panel_max_auto_detect_panels());
 		break;
+	}
+
+	if (cont_splash == '0') {
+		dprintf(INFO, "Forcing continuous splash disable\n");
+		target_force_cont_splash_disable(true);
 	}
 }
 
