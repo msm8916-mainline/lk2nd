@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -58,6 +58,8 @@
 #include <qusb2_phy.h>
 #include <rpm-smd.h>
 #include <sdhci_msm.h>
+#include <pm8x41_wled.h>
+#include <qpnp_led.h>
 
 #include "target/display.h"
 
@@ -75,7 +77,7 @@
 
 #define FASTBOOT_MODE           0x77665500
 
-#define PMIC_WLED_SLAVE_ID      3
+#define PMIC_LED_SLAVE_ID      3
 #define DDR_CFG_DLY_VAL         0x80040870
 
 void target_crypto_init_params(void);
@@ -334,6 +336,14 @@ void target_init(void)
 	mmc_read_partition_table(0);
 
 	rpm_smd_init();
+
+	/* QPNP LED init for boot process notification */
+	if (board_hardware_id() == HW_PLATFORM_LIQUID){
+		pm8x41_wled_config_slave_id(PMIC_LED_SLAVE_ID);
+		qpnp_led_init(QPNP_LED_BLUE, QPNP_LED_CTRL_BASE,
+			QPNP_BLUE_LPG_CTRL_BASE);
+	}
+
 }
 
 unsigned board_machtype(void)

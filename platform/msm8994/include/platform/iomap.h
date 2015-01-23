@@ -552,4 +552,9 @@
 #define VIDEO_MODE_VSYNC            0x034
 #define VIDEO_MODE_VSYNC_VPOS       0x038
 
+#define QPNP_LED_CTRL_BASE          0xD000
+#define QPNP_BLUE_LPG_CTRL_BASE     0xB100
+#define QPNP_GREEN_LPG_CTRL_BASE    0xB200
+#define QPNP_RED_LPG_CTRL_BASE      0xB300
+
 #endif
