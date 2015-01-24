@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -50,6 +50,8 @@
 #include <platform/gpio.h>
 #include <platform/timer.h>
 #include <stdlib.h>
+#include <string.h>
+#include <sdhci_msm.h>
 
 extern  bool target_use_signed_kernel(void);
 static void set_sdc_power_ctrl();
@@ -91,7 +93,7 @@ static uint32_t mmc_sdc_base[] =
 void target_early_init(void)
 {
 #if WITH_DEBUG_UART
-	uart_dm_init(2, 0, BLSP1_UART2_BASE);
+	uart_dm_init(3, 0, BLSP1_UART3_BASE);
 #endif
 }
 
@@ -155,31 +157,39 @@ crypto_engine_type board_ce_type(void)
 }
 
 #if MMC_SDHCI_SUPPORT
+
 static void target_mmc_sdhci_init()
 {
-	struct mmc_config_data config = {0};
+	static uint32_t mmc_clks[] = {
+		MMC_CLK_200MHZ, MMC_CLK_96MHZ, MMC_CLK_50MHZ };
 
+	struct mmc_config_data config;
+	unsigned int i;
+
+	memset(&config, 0, sizeof config);
 	config.bus_width = DATA_BUS_WIDTH_8BIT;
-	config.max_clk_rate = MMC_CLK_96MHZ;
 
 	/* Trying Slot 1*/
 	config.slot = 1;
 	config.sdhc_base = mmc_sdhci_base[config.slot - 1];
 	config.pwrctl_base = mmc_sdc_base[config.slot - 1];
 	config.pwr_irq     = mmc_sdc_pwrctl_irq[config.slot - 1];
+	config.hs400_support = 0;
 
-	if (!(dev = mmc_init(&config))) {
+	for (i = 0; i < ARRAY_SIZE(mmc_clks); ++i) {
+		config.max_clk_rate = mmc_clks[i];
+		dprintf(INFO, "SDHC Running at %u MHz\n",
+			config.max_clk_rate / 1000000);
+		dev = mmc_init(&config);
+		if (dev && partition_read_table() == 0)
+			return;
+	}
+
+	if (dev == NULL)
 		dprintf(CRITICAL, "mmc init failed!");
-		ASSERT(0);
-	}
-
-	/*
-	 * MMC initialization is complete, read the partition table info
-	 */
-	if (partition_read_table()) {
+	else
 		dprintf(CRITICAL, "Error reading the partition table info\n");
-		ASSERT(0);
-	}
+	ASSERT(0);
 }
 
 void *target_mmc_device()
@@ -347,34 +357,6 @@ int set_download_mode(enum dload_mode mode)
 	return 0;
 }
 
-/* Check if MSM needs VBUS mimic for USB */
-static int target_needs_vbus_mimic()
-{
-	return 1;
-}
-
-/* Do target specific usb initialization */
-void target_usb_init(void)
-{
-	uint32_t val;
-
-	extern void ulpi_write(unsigned val, unsigned reg);
-
-	if (target_needs_vbus_mimic()) {
-		/* Select and enable external configuration with USB PHY */
-		ulpi_write(ULPI_MISC_A_VBUSVLDEXTSEL | ULPI_MISC_A_VBUSVLDEXT, ULPI_MISC_A_SET);
-
-		/* Enable sess_vld */
-		val = readl(USB_GENCONFIG_2) | GEN2_SESS_VLD_CTRL_EN;
-		writel(val, USB_GENCONFIG_2);
-
-		/* Enable external vbus configuration in the LINK */
-		val = readl(USB_USBCMD);
-		val |= SESS_VLD_CTRL;
-		writel(val, USB_USBCMD);
-	}
-}
-
 /* Returns 1 if target supports continuous splash screen. */
 int target_cont_splash_screen()
 {
@@ -390,6 +372,7 @@ void target_uninit(void)
 {
 #if MMC_SDHCI_SUPPORT
 	mmc_put_card_to_sleep(dev);
+	sdhci_mode_disable(&dev->host);
 #else
 	mmc_put_card_to_sleep();
 #endif
@@ -412,17 +395,41 @@ static void set_sdc_power_ctrl()
 	/* Drive strength configs for sdc pins */
 	struct tlmm_cfgs sdc1_hdrv_cfg[] =
 	{
-		{ SDC1_CLK_HDRV_CTL_OFF,  TLMM_CUR_VAL_10MA, TLMM_HDRV_MASK },
-		{ SDC1_CMD_HDRV_CTL_OFF,  TLMM_CUR_VAL_10MA, TLMM_HDRV_MASK },
-		{ SDC1_DATA_HDRV_CTL_OFF, TLMM_CUR_VAL_10MA, TLMM_HDRV_MASK },
+		{
+			off: SDC1_CLK_HDRV_CTL_OFF,
+			val: TLMM_CUR_VAL_10MA,
+			mask: TLMM_HDRV_MASK
+		},
+		{
+			off: SDC1_CMD_HDRV_CTL_OFF,
+			val: TLMM_CUR_VAL_10MA,
+			mask: TLMM_HDRV_MASK
+		},
+		{
+			off: SDC1_DATA_HDRV_CTL_OFF,
+			val: TLMM_CUR_VAL_10MA,
+			mask: TLMM_HDRV_MASK
+		},
 	};
 
 	/* Pull configs for sdc pins */
 	struct tlmm_cfgs sdc1_pull_cfg[] =
 	{
-		{ SDC1_CLK_PULL_CTL_OFF,  TLMM_NO_PULL, TLMM_PULL_MASK },
-		{ SDC1_CMD_PULL_CTL_OFF,  TLMM_PULL_UP, TLMM_PULL_MASK },
-		{ SDC1_DATA_PULL_CTL_OFF, TLMM_PULL_UP, TLMM_PULL_MASK },
+		{
+			off: SDC1_CLK_PULL_CTL_OFF,
+			val: TLMM_NO_PULL,
+			mask: TLMM_PULL_MASK
+		},
+		{
+			off: SDC1_CMD_PULL_CTL_OFF,
+			val: TLMM_PULL_UP,
+			mask: TLMM_PULL_MASK
+		},
+		{
+			off: SDC1_DATA_PULL_CTL_OFF,
+			val: TLMM_PULL_UP,
+			mask: TLMM_PULL_MASK
+		},
 	};
 
 	/* Set the drive strength & pull control values */
@@ -437,6 +444,92 @@ int emmc_recovery_init(void)
 	return _emmc_recovery_init();
 }
 
+#define USB30_QSCRATCH_GENERAL_CFG			(MSM_USB30_QSCRATCH_BASE + 0x08)
+#define USB30_QSCRATCH_GENERAL_CFG_PIPE_UTMI_CLK_SEL	(1 << 0)
+#define USB30_QSCRATCH_GENERAL_CFG_PIPE3_PHYSTATUS_SW	(1 << 3)
+#define USB30_QSCRATCH_GENERAL_CFG_PIPE_UTMI_CLK_DIS	(1 << 8)
+
+#define CM_DWC_USB2_USB_PHY_UTMI_CTRL5			(CM_DWC_USB2_CM_DWC_USB2_BASE + 0x74)
+#define CM_DWC_USB2_USB_PHY_HS_PHY_CTRL_COMMON0		(CM_DWC_USB2_CM_DWC_USB2_BASE + 0x78)
+#define CM_DWC_USB2_USB_PHY_PARAMETER_OVERRIDE_X0	(CM_DWC_USB2_CM_DWC_USB2_BASE + 0x98)
+#define CM_DWC_USB2_USB_PHY_PARAMETER_OVERRIDE_X1	(CM_DWC_USB2_CM_DWC_USB2_BASE + 0x9c)
+#define CM_DWC_USB2_USB_PHY_PARAMETER_OVERRIDE_X2	(CM_DWC_USB2_CM_DWC_USB2_BASE + 0xa0)
+#define CM_DWC_USB2_USB_PHY_PARAMETER_OVERRIDE_X3	(CM_DWC_USB2_CM_DWC_USB2_BASE + 0xa4)
+#define CM_DWC_USB2_USB_PHY_REFCLK_CTRL			(CM_DWC_USB2_CM_DWC_USB2_BASE + 0xe8)
+
+void target_usb_phy_mux_configure(void)
+{
+}
+
+void target_usb_phy_init(void)
+{
+	uint32_t val;
+
+	/* Disable clock */
+	val = readl(USB30_QSCRATCH_GENERAL_CFG);
+	val |= USB30_QSCRATCH_GENERAL_CFG_PIPE_UTMI_CLK_DIS;
+	writel(val, USB30_QSCRATCH_GENERAL_CFG);
+	mdelay(1);
+
+	/* Select UTMI instead of PIPE3 */
+	val |= USB30_QSCRATCH_GENERAL_CFG_PIPE_UTMI_CLK_SEL;
+	writel(val, USB30_QSCRATCH_GENERAL_CFG);
+	val |= USB30_QSCRATCH_GENERAL_CFG_PIPE3_PHYSTATUS_SW;
+	writel(val, USB30_QSCRATCH_GENERAL_CFG);
+	mdelay(1);
+
+	/* Enable clock */
+	val &= ~USB30_QSCRATCH_GENERAL_CFG_PIPE_UTMI_CLK_DIS;
+	writel(val, USB30_QSCRATCH_GENERAL_CFG);
+
+	/* Initialize HS PICO PHY */
+	writel(0xc4, CM_DWC_USB2_USB_PHY_PARAMETER_OVERRIDE_X0);
+	writel(0x88, CM_DWC_USB2_USB_PHY_PARAMETER_OVERRIDE_X1);
+	writel(0x11, CM_DWC_USB2_USB_PHY_PARAMETER_OVERRIDE_X2);
+	writel(0x03, CM_DWC_USB2_USB_PHY_PARAMETER_OVERRIDE_X3);
+
+	writel(0x02, CM_DWC_USB2_USB_PHY_UTMI_CTRL5);
+	mdelay(1);
+	writel(0x00, CM_DWC_USB2_USB_PHY_UTMI_CTRL5);
+
+	val = readl(CM_DWC_USB2_USB_PHY_REFCLK_CTRL);
+	val &= ~(7 << 1);
+	val |= (6 << 1);
+	writel(val, CM_DWC_USB2_USB_PHY_REFCLK_CTRL);
+
+	val = readl(CM_DWC_USB2_USB_PHY_HS_PHY_CTRL_COMMON0);
+	val &= ~(7 << 4);
+	val |= (7 << 4);
+	writel(val, CM_DWC_USB2_USB_PHY_HS_PHY_CTRL_COMMON0);
+}
+
+void target_usb_phy_reset(void)
+{
+}
+
+target_usb_iface_t* target_usb30_init()
+{
+	target_usb_iface_t *t_usb_iface;
+
+	t_usb_iface = calloc(1, sizeof(target_usb_iface_t));
+	ASSERT(t_usb_iface);
+
+	t_usb_iface->mux_config = target_usb_phy_mux_configure;
+	t_usb_iface->phy_init   = target_usb_phy_init;
+	t_usb_iface->phy_reset  = target_usb_phy_reset;
+	t_usb_iface->clock_init = clock_usb30_init;
+	t_usb_iface->vbus_override = 1;
+
+	return t_usb_iface;
+}
+
+/* identify the usb controller to be used for the target */
+const char * target_usb_controller()
+{
+	return "dwc";
+}
+
+/* configure hs phy mux if using dwc controller */
 void target_usb_stop(void)
 {
 }

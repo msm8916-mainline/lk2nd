@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -149,14 +149,14 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 	}
 	else
 	{
-		dprintf(CRITICAL, "sdc frequency (%d) is not supported\n", freq);
+		dprintf(CRITICAL, "sdc frequency (%u) is not supported\n", freq);
+		ret = 0;
 		ASSERT(0);
 	}
 
-
 	if(ret)
 	{
-		dprintf(CRITICAL, "failed to set sdc1_core_clk ret = %d\n", ret);
+		dprintf(CRITICAL, "failed to set sdc%u_core_clk ret = %d\n", interface, ret);
 		ASSERT(0);
 	}
 
@@ -170,21 +170,23 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 void clock_config_uart_dm(uint8_t id)
 {
 	int ret;
-	char str[256];
+	char iclk[64];
+	char cclk[64];
 
-	sprintf(str, "uart%d_iface_clk", id);
-	ret = clk_get_set_enable(str, 0, 1);
+	snprintf(iclk, sizeof(iclk), "uart%u_iface_clk", id);
+	snprintf(cclk, sizeof(cclk), "uart%u_core_clk", id);
+
+	ret = clk_get_set_enable(iclk, 0, 1);
 	if(ret)
 	{
-		dprintf(CRITICAL, "failed to set uart2_iface_clk ret = %d\n", ret);
+		dprintf(CRITICAL, "failed to set uart%u_iface_clk ret = %d\n", id, ret);
 		ASSERT(0);
 	}
 
-	sprintf(str, "uart%d_core_clk", id);
-	ret = clk_get_set_enable(str, 7372800, 1);
+	ret = clk_get_set_enable(cclk, 7372800, 1);
 	if(ret)
 	{
-		dprintf(CRITICAL, "failed to set uart1_core_clk ret = %d\n", ret);
+		dprintf(CRITICAL, "failed to set uart%u_core_clk ret = %d\n", id, ret);
 		ASSERT(0);
 	}
 }
@@ -343,3 +345,66 @@ void clock_config_blsp_i2c(uint8_t blsp_id, uint8_t qup_id)
 		return;
 	}
 }
+
+/* enables usb30 clocks */
+void clock_usb30_init(void)
+{
+	int ret;
+
+	ret = clk_get_set_enable("usb30_iface_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set usb30_iface_clk. ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("usb30_master_clk", 125000000, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set usb30_master_clk. ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("usb30_phy_aux_clk", 1200000, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set usb30_phy_aux_clk. ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("usb30_mock_utmi_clk", 60000000, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set usb30_mock_utmi_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("usb30_sleep_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set usb30_sleep_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("usb_phy_cfg_ahb2phy_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to enable usb_phy_cfg_ahb2phy_clk = %d\n", ret);
+		ASSERT(0);
+	}
+}
+
+void clock_bumpup_pipe3_clk()
+{
+	int ret = 0;
+
+	ret = clk_get_set_enable("usb30_pipe_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set usb30_pipe_clk. ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	return;
+}
+

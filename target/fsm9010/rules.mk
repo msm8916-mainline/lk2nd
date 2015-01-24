@@ -4,7 +4,7 @@ INCLUDES += -I$(LOCAL_DIR)/include -I$(LK_TOP_DIR)/platform/msm_shared
 
 PLATFORM := fsm9010
 
-MEMBASE := 0x0F900000 # SDRAM
+MEMBASE := 0x18a00000 # SDRAM
 MEMSIZE := 0x00100000 # 1MB
 
 BASE_ADDR        := 0x0b600000
@@ -12,12 +12,13 @@ BASE_ADDR        := 0x0b600000
 TAGS_ADDR        := BASE_ADDR+0x01e00000
 KERNEL_ADDR      := BASE_ADDR+0x00008000
 RAMDISK_ADDR     := BASE_ADDR+0x02000000
-SCRATCH_ADDR     := 0x0ff00000
+SCRATCH_ADDR     := 0x0e000000
 
 MODULES += \
 	dev/keys \
-    lib/ptable \
-    lib/libfdt
+	lib/ptable \
+	lib/libfdt \
+	dev/pmic/pm8x41
 
 DEFINES += \
 	MEMSIZE=$(MEMSIZE) \
