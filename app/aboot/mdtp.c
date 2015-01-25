@@ -173,7 +173,6 @@ out:
 /* Validate a hash calculated on entire given partition */
 static int verify_partition_single_hash(char* name, uint32_t size, DIP_hash_table_entry_t* hash_table)
 {
-	SHA256_CTX sha256_ctx;
 	unsigned char digest[32]={0};
 	unsigned long long ptn = 0;
 	int index = INVALID_PTN;
@@ -193,19 +192,17 @@ static int verify_partition_single_hash(char* name, uint32_t size, DIP_hash_tabl
 		return -1;
 	}
 
-	SHA256_Init(&sha256_ctx);
-
 	if (mmc_read(ptn, (void *)buf, actual_partition_size))
 	{
 		dprintf(CRITICAL, "mdtp: verify_partition__single_hash: %s: mmc_read() fail.\n", name);
 		return -1;
 	}
 
-	SHA256_Update(&sha256_ctx, buf, size);
+	/* calculating the hash value using HW crypto */
+	target_crypto_init_params();
+	hash_find(buf, size, (unsigned char *)&digest, CRYPTO_AUTH_ALG_SHA256);
 
-	SHA256_Final(digest, &sha256_ctx);
-
-	if (memcmp(digest, hash_table->hash, HASH_LEN))
+	if (memcmp(&digest[0], &(hash_table->hash[0]), HASH_LEN))
 	{
 		dprintf(CRITICAL, "mdtp: verify_partition_single_hash: %s: Failed partition hash verification\n", name);
 
@@ -225,7 +222,6 @@ static int verify_partition_block_hash(char* name,
 								DIP_hash_table_entry_t* hash_table,
 							    uint8_t *force_verify_block)
 {
-	SHA256_CTX sha256_ctx;
 	unsigned char digest[32]={0};
 	unsigned long long ptn = 0;
 	int index = INVALID_PTN;
@@ -246,6 +242,9 @@ static int verify_partition_block_hash(char* name,
 		return -1;
 	}
 
+	/* initiating parameters for hash calculation using HW crypto */
+	target_crypto_init_params();
+
 	while (MDTP_FWLOCK_BLOCK_SIZE * block_num < size)
 	{
 		if (*force_verify_block == 0)
@@ -261,8 +260,6 @@ static int verify_partition_block_hash(char* name,
 			}
 		}
 
-		SHA256_Init(&sha256_ctx);
-
 		if ((size - (MDTP_FWLOCK_BLOCK_SIZE * block_num) <  MDTP_FWLOCK_BLOCK_SIZE))
 		{
 			bytes_to_read = size - (MDTP_FWLOCK_BLOCK_SIZE * block_num);
@@ -277,12 +274,10 @@ static int verify_partition_block_hash(char* name,
 			return -1;
 		}
 
-		SHA256_Update(&sha256_ctx, buf, bytes_to_read);
-		SHA256_Update(&sha256_ctx, &block_num, sizeof(block_num));
+		/* calculating the hash value using HW */
+		hash_find(buf, bytes_to_read, (unsigned char *)&digest, CRYPTO_AUTH_ALG_SHA256);
 
-		SHA256_Final(digest, &sha256_ctx);
-
-		if (memcmp(digest, hash_table->hash, HASH_LEN))
+		if (memcmp(&digest[0], &(hash_table->hash[0]), HASH_LEN))
 		{
 			dprintf(CRITICAL, "mdtp: verify_partition_block_hash: %s: Failed partition hash[%d] verification\n", name, block_num);
 			return -1;
