@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -46,6 +46,8 @@
 #define INT_QTMR_FRM_0_PHYSICAL_TIMER_EXP      (GIC_SPI_START + 31)
 
 #define USB30_EE1_IRQ                          (GIC_SPI_START + 131)
+
+#define GLINK_IPC_IRQ                          (GIC_SPI_START + 168)
 
 /* Retrofit universal macro names */
 #define INT_USB_HS                             USB30_EE1_IRQ
