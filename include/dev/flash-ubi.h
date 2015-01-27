@@ -33,6 +33,48 @@
 #include <lib/ptable.h>
 #include <stdint.h>
 
+struct __attribute__ ((packed)) ubifs_ch {
+	uint32_t magic;
+	uint32_t crc;
+	uint64_t sqnum;
+	uint32_t len;
+#define UBIFS_SB_NODE	6
+	uint8_t node_type;
+	uint8_t group_type;
+	uint8_t padding[2];
+};
+
+/* UBIFS superblock node */
+struct __attribute__ ((packed)) ubifs_sb_node {
+	struct ubifs_ch ch;
+	uint8_t padding[2];
+	uint8_t key_hash;
+	uint8_t key_fmt;
+#define UBIFS_FLG_SPACE_FIXUP  0x04
+	uint32_t flags;
+	uint32_t min_io_size;
+	uint32_t leb_size;
+	uint32_t leb_cnt;
+	uint32_t max_leb_cnt;
+	uint64_t max_bud_bytes;
+	uint32_t log_lebs;
+	uint32_t lpt_lebs;
+	uint32_t orph_lebs;
+	uint32_t jhead_cnt;
+	uint32_t fanout;
+	uint32_t lsave_cnt;
+	uint32_t fmt_version;
+	uint16_t default_compr;
+	uint8_t padding1[2];
+	uint32_t rp_uid;
+	uint32_t rp_gid;
+	uint64_t rp_size;
+	uint32_t time_gran;
+	uint8_t uuid[16];
+	uint32_t ro_compat_version;
+	uint8_t padding2[3968];
+};
+
 /* Erase counter header magic number (ASCII "UBI#") */
 #define UBI_EC_HDR_MAGIC  0x55424923
 
@@ -44,6 +86,7 @@
 #define UBI_IMAGE_SEQ_BASE 0x12345678
 #define UBI_DEF_ERACE_COUNTER 0
 #define UBI_CRC32_INIT 0xFFFFFFFFU
+#define UBIFS_CRC32_INIT 0xFFFFFFFFU
 
 /* Erase counter header fields */
 struct __attribute__ ((packed)) ubi_ec_hdr {
@@ -83,7 +126,11 @@ struct __attribute__ ((packed)) ubi_vid_hdr {
 #define UBI_EC_HDR_SIZE_CRC  (UBI_EC_HDR_SIZE  - sizeof(uint32_t))
 #define UBI_VID_HDR_SIZE_CRC (UBI_VID_HDR_SIZE - sizeof(uint32_t))
 
-#define UBI_FM_SB_VOLUME_ID	(0x7FFFFFFF - 4096 + 1)
+#define UBI_MAX_VOLUMES 128
+#define UBI_INTERNAL_VOL_START (0x7FFFFFFF - 4096)
+#define UBI_LAYOUT_VOLUME_ID     UBI_INTERNAL_VOL_START
+#define UBI_FM_SB_VOLUME_ID	(UBI_INTERNAL_VOL_START + 1)
+
 /**
  * struct ubi_scan_info - UBI scanning information.
  * @ec: erase counters or eraseblock status for all eraseblocks
