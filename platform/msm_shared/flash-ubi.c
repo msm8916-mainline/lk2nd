@@ -465,6 +465,46 @@ static int ubi_erase_peb(int peb_num, int need_erase,
 	}
 	return 0;
 }
+
+/**
+ * remove_F_flag() - Turn off space-fixup flag in the ubifs superblock
+ * @data: pointer to the peb to check in the flashed image
+ *
+ * The UBIFS Superblock will be located at LEB 0 of the image. LEB 0 will be
+ * mapped as follows:
+ * If the image contains Fastmap superblock:
+ * - LEB 0 will be at PEB3
+ * else:
+ * - LEB 0 will be at PEB2
+ */
+static void remove_F_flag(const void *leb_data)
+{
+	struct ubifs_ch *ch;
+	struct ubifs_sb_node *ubifs_sb;
+	struct ubi_ec_hdr *ech;
+	struct ubi_vid_hdr *vidh;
+	int vol_id;
+
+	ech = (struct ubi_ec_hdr *)leb_data;
+	vidh = (struct ubi_vid_hdr *)(leb_data + BE32(ech->vid_hdr_offset));
+	vol_id = BE32(vidh->vol_id);
+
+	if (vol_id > UBI_MAX_VOLUMES &&
+			vol_id != UBI_LAYOUT_VOLUME_ID &&
+			vol_id != UBI_FM_SB_VOLUME_ID)
+		return;
+
+	ubifs_sb = (struct ubifs_sb_node *)(leb_data + BE32(ech->data_offset));
+	ch = (struct ubifs_ch *)ubifs_sb;
+	if (ch->node_type != UBIFS_SB_NODE)
+		return;
+	if (ubifs_sb->flags & UBIFS_FLG_SPACE_FIXUP) {
+		ubifs_sb->flags &= (~UBIFS_FLG_SPACE_FIXUP);
+		ch->crc = mtd_crc32(UBIFS_CRC32_INIT, (void *)ubifs_sb + 8,
+				sizeof(struct ubifs_sb_node) - 8);
+	}
+}
+
 /**
  * flash_ubi_img() - Write the provided (UBI) image to given partition
  * @ptn: partition to write the image to
@@ -516,7 +556,7 @@ int flash_ubi_img(struct ptentry *ptn, void *data, unsigned size)
 			curr_peb++;
 			continue;
 		}
-
+		remove_F_flag(img_peb);
 		/* Update the ec_header in the image */
 		old_ech = (struct ubi_ec_hdr *)img_peb;
 		update_ec_header(old_ech, si, curr_peb - ptn->start, false);
