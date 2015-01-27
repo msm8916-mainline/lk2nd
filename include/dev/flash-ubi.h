@@ -58,9 +58,32 @@ struct __attribute__ ((packed)) ubi_ec_hdr {
 	uint32_t  hdr_crc;
 };
 
-#define UBI_EC_HDR_SIZE  sizeof(struct ubi_ec_hdr)
-#define UBI_EC_HDR_SIZE_CRC  (UBI_EC_HDR_SIZE  - sizeof(uint32_t))
+/* Volume identifier header fields */
+struct __attribute__ ((packed)) ubi_vid_hdr {
+	uint32_t  magic;
+	uint8_t    version;
+	uint8_t    vol_type;
+	uint8_t    copy_flag;
+	uint8_t    compat;
+	uint32_t  vol_id;
+	uint32_t  lnum;
+	uint8_t    padding1[4];
+	uint32_t  data_size;
+	uint32_t  used_ebs;
+	uint32_t  data_pad;
+	uint32_t  data_crc;
+	uint8_t    padding2[4];
+	uint64_t  sqnum;
+	uint8_t    padding3[12];
+	uint32_t  hdr_crc;
+};
 
+#define UBI_EC_HDR_SIZE  sizeof(struct ubi_ec_hdr)
+#define UBI_VID_HDR_SIZE  sizeof(struct ubi_vid_hdr)
+#define UBI_EC_HDR_SIZE_CRC  (UBI_EC_HDR_SIZE  - sizeof(uint32_t))
+#define UBI_VID_HDR_SIZE_CRC (UBI_VID_HDR_SIZE - sizeof(uint32_t))
+
+#define UBI_FM_SB_VOLUME_ID	(0x7FFFFFFF - 4096 + 1)
 /**
  * struct ubi_scan_info - UBI scanning information.
  * @ec: erase counters or eraseblock status for all eraseblocks

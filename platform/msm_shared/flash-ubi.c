@@ -411,6 +411,61 @@ static int calc_data_len(int page_size, const void *buf, int len)
 }
 
 /**
+ * fastmap_present - returns true if Fastmap superblock is found
+ * @data: raw data to test
+ *
+ * This function returns 1 if the provided PEB data contains
+ * Fastmap superblock, 0 otherwise
+ */
+static int fastmap_present(const void *data){
+	struct ubi_ec_hdr *ec_hdr = (struct ubi_ec_hdr *)(data);
+	struct ubi_vid_hdr *vid_hdr;
+
+	vid_hdr = (struct ubi_vid_hdr *)(data + BE32(ec_hdr->vid_hdr_offset));
+	if (BE32(vid_hdr->vol_id) == UBI_FM_SB_VOLUME_ID)
+		return 1;
+	else
+		return 0;
+}
+
+/**
+ * ubi_erase_peb - Erase PEB and update EC header
+ * @peb_num: number of the PEB to erase
+ * @need_erase: if true PEB will be erased
+ * @si: UBI scan information
+ * @ptn_start: first PEB of the flashed partition
+ *
+ * This function erases the given PEB (if required) and writes a new EC
+ * header for it.
+ *
+ * Returns: -1 on error
+ *           0 on success
+ */
+static int ubi_erase_peb(int peb_num, int need_erase,
+		struct ubi_scan_info *si, int ptn_start)
+{
+	struct ubi_ec_hdr new_ech;
+	int page_size = flash_page_size();
+	int num_pages_per_blk = flash_block_size() / page_size;
+	int ret;
+
+	if (need_erase && qpic_nand_blk_erase(peb_num * num_pages_per_blk)) {
+		dprintf(INFO, "flash_ubi_img: erase of %d failed\n", peb_num);
+		return -1;
+	}
+	memset(&new_ech, 0xff, sizeof(new_ech));
+	update_ec_header(&new_ech, si, peb_num - ptn_start, true);
+
+	/* Write new ec_header */
+	ret = write_ec_header(peb_num, &new_ech);
+	if (ret) {
+		dprintf(CRITICAL, "flash_ubi_img: write ec_header to %d failed\n",
+				peb_num);
+		return -1;
+	}
+	return 0;
+}
+/**
  * flash_ubi_img() - Write the provided (UBI) image to given partition
  * @ptn: partition to write the image to
  * @data: the image to write
@@ -424,7 +479,6 @@ int flash_ubi_img(struct ptentry *ptn, void *data, unsigned size)
 {
 	struct ubi_scan_info *si;
 	struct ubi_ec_hdr *old_ech;
-	struct ubi_ec_hdr new_ech;
 	uint32_t curr_peb = ptn->start;
 	void *img_peb;
 	unsigned page_size = flash_page_size();
@@ -432,6 +486,8 @@ int flash_ubi_img(struct ptentry *ptn, void *data, unsigned size)
 	int num_pages_per_blk = block_size / page_size;
 	int num_pages;
 	int ret, need_erase;
+	int bad_blocks_cnt = 0;
+	int fmsb_peb = 0;
 
 	si = scan_partition(ptn);
 	if (!si) {
@@ -456,6 +512,7 @@ int flash_ubi_img(struct ptentry *ptn, void *data, unsigned size)
 		if (need_erase && qpic_nand_blk_erase(curr_peb * num_pages_per_blk)) {
 			dprintf(CRITICAL, "flash_ubi_img: erase of %d failed\n",
 				curr_peb);
+			bad_blocks_cnt++;
 			curr_peb++;
 			continue;
 		}
@@ -473,6 +530,7 @@ int flash_ubi_img(struct ptentry *ptn, void *data, unsigned size)
 		if (ret) {
 			dprintf(CRITICAL, "flash_ubi_img: writing to peb-%d failed\n",
 					curr_peb);
+			bad_blocks_cnt++;
 			curr_peb++;
 			continue;
 		}
@@ -480,6 +538,9 @@ int flash_ubi_img(struct ptentry *ptn, void *data, unsigned size)
 			size = 0;
 		else
 			size -= block_size;
+
+		if (fastmap_present(img_peb))
+			fmsb_peb = curr_peb;
 		img_peb += flash_block_size();
 		curr_peb++;
 	}
@@ -492,25 +553,21 @@ int flash_ubi_img(struct ptentry *ptn, void *data, unsigned size)
 	}
 
 	/* Erase and write ec_header for the rest of the blocks */
-	for (; curr_peb < ptn->start + ptn->length; curr_peb++) {
-		if (need_erase && qpic_nand_blk_erase(curr_peb * num_pages_per_blk)) {
-			dprintf(INFO, "flash_ubi_img: erase of %d failed\n", curr_peb);
-			curr_peb++;
-			continue;
-		}
-		memset(&new_ech, 0xff, sizeof(new_ech));
-		update_ec_header(&new_ech, si, curr_peb - ptn->start, true);
+	for (; curr_peb < ptn->start + ptn->length; curr_peb++)
+		if (ubi_erase_peb(curr_peb, need_erase, si, ptn->start))
+			bad_blocks_cnt++;
 
-		/* Write new ec_header */
-		ret = write_ec_header(curr_peb, &new_ech);
-		if (ret) {
-			dprintf(CRITICAL, "flash_ubi_img: write ec_header to %d failed\n",
-					curr_peb);
-			curr_peb++;
-			continue;
-		}
-	}
 	ret = 0;
+	/*
+	 * If flashed image contains fastmap data and bad blocks were found
+	 * we need to invalidate the flashed fastmap since it isn't accurate
+	 * anymore.
+	 */
+	if (bad_blocks_cnt && fmsb_peb) {
+		dprintf(CRITICAL, "flash_ubi_img: invalidate fmsb\n");
+		ret = ubi_erase_peb(ptn->start + 2, 1, si, ptn->start);
+	}
+
 out:
 	free(si->ec);
 	free(si);
