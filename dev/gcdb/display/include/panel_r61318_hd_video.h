@@ -272,11 +272,11 @@ static struct lane_configuration r61318_hd_video_lane_config = {
 /* Panel timing                                                              */
 /*---------------------------------------------------------------------------*/
 static const uint32_t r61318_hd_video_timings[] = {
-	0xab, 0x40, 0x33, 0x00, 0x57, 0x51, 0x35, 0x42, 0x52, 0x03, 0x04, 0x00
+	0xab, 0x1c, 0x14, 0x00, 0x2a, 0x27, 0x18, 0x1e, 0x21, 0x03, 0x04, 0x00
 };
 
 static struct panel_timing r61318_hd_video_timing_info = {
-	0, 4, 0x1e, 0x33
+	0, 4, 0x20, 0x2e
 };
 
 /*---------------------------------------------------------------------------*/
