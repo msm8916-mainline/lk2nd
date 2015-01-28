@@ -45,6 +45,7 @@
 
 #include "include/panel.h"
 #include "include/display_resource.h"
+#include "gcdb_display.h"
 
 #define VCO_DELAY_USEC 1000
 #define GPIO_STATE_LOW 0
