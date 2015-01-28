@@ -487,7 +487,7 @@ static struct branch_clk gcc_usb30_phy_aux_clk = {
 };
 
 static struct branch_clk gcc_usb30_pipe_clk = {
-	.bcr_reg      = (uint32_t *) GCC_USB3_PHY_PHY_BCR,
+	.bcr_reg      = (uint32_t *) GCC_USB3PHY_PHY_BCR,
 	.cbcr_reg     = (uint32_t *) GCC_USB3_PHY_PIPE_CBCR,
 	.has_sibling  = 1,
 
