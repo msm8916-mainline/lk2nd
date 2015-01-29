@@ -31,8 +31,7 @@
 #include <endian.h>
 #include <string.h>
 #include <utp.h>
-
-static int ucs_do_request_sense(struct ufs_dev *dev);
+#include <rpmb.h>
 
 int ucs_do_scsi_cmd(struct ufs_dev *dev, struct scsi_req_build_type *req)
 {
@@ -464,7 +463,7 @@ void dump_sense_buffer(uint8_t *buf, int buf_len)
 	dprintf(CRITICAL,"----end of buffer---\n");
 }
 
-static int ucs_do_request_sense(struct ufs_dev *dev)
+int ucs_do_request_sense(struct ufs_dev *dev, uint8_t lun)
 {
 	STACKBUF_DMA_ALIGN(cdb, sizeof(struct scsi_sense_cdb));
 	struct scsi_req_build_type req_upiu;
@@ -488,7 +487,7 @@ static int ucs_do_request_sense(struct ufs_dev *dev)
 	req_upiu.data_buffer_addr  = (addr_t) buf;
 	req_upiu.data_len          = SCSI_SENSE_BUF_LEN;
 	req_upiu.flags			   = UPIU_FLAGS_READ;
-	req_upiu.lun			   = 0;
+	req_upiu.lun			   = lun;
 	req_upiu.dd			       = UTRD_TARGET_TO_SYSTEM;
 
 	if (ucs_do_scsi_cmd(dev, &req_upiu))
@@ -500,7 +499,9 @@ static int ucs_do_request_sense(struct ufs_dev *dev)
 	/* Flush buffer. */
 	arch_invalidate_cache_range((addr_t) buf, SCSI_INQUIRY_LEN);
 
+#if DEBUG_UFS
 	dump_sense_buffer(buf, SCSI_SENSE_BUF_LEN);
+#endif
 
 	return UFS_SUCCESS;
 }

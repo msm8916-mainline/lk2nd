@@ -29,6 +29,8 @@
 #ifndef _UCS_H
 #define _UCS_H
 
+#include <upiu.h>
+
 #define SCSI_MAX_DATA_TRANS_BLK_LEN    0xFFFF
 #define UFS_DEFAULT_SECTORE_SIZE       4096
 
@@ -42,10 +44,6 @@
 #define SCSI_CDB_PARAM_LEN             16
 #define SCSI_SEC_PROT                  0xEC
 #define SCSI_SEC_UFS_PROT_ID           0x0001
-
-#define RPMB_BLK_SIZE                  512
-#define RPMB_FRAME_SIZE                512
-#define RPMB_MIN_BLK_CNT               1
 
 /* FLAGS for indication of read or write */
 enum scsi_upiu_flags
@@ -163,6 +161,7 @@ struct scsi_failure_sense_data
 }__PACKED;
 
 int ucs_scsi_send_inquiry(struct ufs_dev *dev);
+int ucs_do_scsi_cmd(struct ufs_dev *dev, struct scsi_req_build_type *req);
 int ucs_do_scsi_read(struct ufs_dev *dev, struct scsi_rdwr_req *req);
 int ucs_do_scsi_write(struct ufs_dev *dev, struct scsi_rdwr_req *req);
 int ucs_do_scsi_unmap(struct ufs_dev *dev, struct scsi_unmap_req *req);
@@ -177,4 +176,5 @@ int ucs_do_scsi_rpmb_read(struct ufs_dev *dev, uint32_t *req_buf, uint32_t blk_c
 
 /* This function parses the first byte of the sense data and returns the sense key */
 int parse_sense_key(uint32_t sense_data);
+int ucs_do_request_sense(struct ufs_dev *dev, uint8_t lun);
 #endif
