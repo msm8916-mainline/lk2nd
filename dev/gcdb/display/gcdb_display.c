@@ -39,6 +39,7 @@
 #include <qtimer.h>
 #include <platform/gpio.h>
 #include <mipi_dsi.h>
+#include <partition_parser.h>
 
 #include "include/display_resource.h"
 #include "include/panel.h"
@@ -149,7 +150,7 @@ static int mdss_dsi_panel_pre_init(void)
 	return ret;
 }
 
-static int mdss_dsi_dfps_get_pll_codes(struct msm_panel_info *pinfo)
+static int mdss_dsi_dfps_get_pll_codes_cal(struct msm_panel_info *pinfo)
 {
 	int ret = NO_ERROR;
 	uint32_t fps_bak;
@@ -187,6 +188,95 @@ static int mdss_dsi_dfps_get_pll_codes(struct msm_panel_info *pinfo)
 	return ret;
 }
 
+static int mdss_dsi_dfps_get_stored_pll_codes(struct msm_panel_info *pinfo)
+{
+	int ret = NO_ERROR;
+	int index;
+	unsigned long long ptn;
+	uint32_t blocksize;
+	struct dfps_info *dfps;
+
+	index = partition_get_index("splash");
+	if (index == 0) {
+		dprintf(CRITICAL, "ERROR: splash Partition table not found\n");
+		ret = ERROR;
+		goto splash_err;
+	}
+
+	ptn = partition_get_offset(index);
+	if (ptn == 0) {
+		dprintf(CRITICAL, "ERROR: splash Partition invalid offset\n");
+		ret = ERROR;
+		goto splash_err;
+	}
+
+	blocksize = mmc_get_device_blocksize();
+	if (blocksize == 0) {
+		dprintf(CRITICAL, "ERROR:splash Partition invalid blocksize\n");
+		ret = ERROR;
+		goto splash_err;
+	}
+
+	dfps = (struct dfps_info *)memalign(CACHE_LINE, ROUNDUP(PAGE_SIZE,
+			CACHE_LINE));
+	if (!dfps) {
+		dprintf(CRITICAL, "ERROR:splash Partition invalid memory\n");
+		ret = ERROR;
+		goto splash_err;
+	}
+
+	if (mmc_read(ptn, (uint32_t *) dfps, blocksize)) {
+		dprintf(CRITICAL, "mmc read splash failure%d\n", PAGE_SIZE);
+		ret = ERROR;
+		free(dfps);
+		goto splash_err;
+	}
+
+	dprintf(SPEW, "enable=%d cnt=%d\n", dfps->panel_dfps.enabled,
+		dfps->panel_dfps.frame_rate_cnt);
+
+	if (!dfps->panel_dfps.enabled || dfps->panel_dfps.frame_rate_cnt >
+		DFPS_MAX_FRAME_RATE) {
+		ret = ERROR;
+		free(dfps);
+		goto splash_err;
+	}
+
+	pinfo->dfps = *dfps;
+	free(dfps);
+
+splash_err:
+	return ret;
+}
+
+static int mdss_dsi_dfps_store_pll_codes(struct msm_panel_info *pinfo)
+{
+	int ret = NO_ERROR;
+	int index;
+	unsigned long long ptn;
+
+	index = partition_get_index("splash");
+	if (index == 0) {
+		dprintf(CRITICAL, "ERROR: splash Partition table not found\n");
+		ret = ERROR;
+		goto store_err;
+	}
+
+	ptn = partition_get_offset(index);
+	if (ptn == 0) {
+		dprintf(CRITICAL, "ERROR: splash Partition invalid offset\n");
+		ret = ERROR;
+		goto store_err;
+	}
+
+	ret = mmc_write(ptn, sizeof(uint32_t), &pinfo->dfps);
+	if (ret)
+		dprintf(CRITICAL, "mmc write failed!\n");
+
+store_err:
+	return ret;
+}
+
 static int mdss_dsi_mipi_dfps_config(struct msm_panel_info *pinfo)
 {
 	int ret = NO_ERROR;
@@ -197,8 +287,24 @@ static int mdss_dsi_mipi_dfps_config(struct msm_panel_info *pinfo)
 	if (!pinfo->dfps.panel_dfps.enabled)
 		goto dfps_done;
 
-	ret = mdss_dsi_dfps_get_pll_codes(pinfo);
+	if (!mdss_dsi_dfps_get_stored_pll_codes(pinfo)) {
+		dprintf(SPEW, "Found stored PLL codes!\n");
+		goto dfps_cal_done;
+	}
 
+	ret = mdss_dsi_dfps_get_pll_codes_cal(pinfo);
+	if (ret) {
+		dprintf(CRITICAL, "Cannot cal pll codes!\n");
+		goto dfps_done;
+	} else {
+		dprintf(SPEW, "Calibrate all pll codes!\n");
+	}
+
+	ret = mdss_dsi_dfps_store_pll_codes(pinfo);
+	if (ret)
+		dprintf(CRITICAL, "Cannot store pll codes!\n");
+
+dfps_cal_done:
 	if (pinfo->dfps.dfps_fb_base)
 		memcpy(pinfo->dfps.dfps_fb_base, &pinfo->dfps,
 			sizeof(struct dfps_info));
