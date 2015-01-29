@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -75,6 +75,24 @@ uint8_t pm8x41_reg_read(uint32_t addr)
 	pmic_arb_read_cmd(&cmd, &param);
 
 	return val;
+}
+
+/* SPMI helper function which takes slave id as the i/p */
+void pm8xxx_reg_write(uint8_t slave_id, uint32_t addr, uint8_t val)
+{
+	struct pmic_arb_cmd cmd;
+	struct pmic_arb_param param;
+
+	cmd.address = PERIPH_ID(addr);
+	cmd.offset = REG_OFFSET(addr);
+	cmd.slave_id = slave_id;
+
+	cmd.priority = 0;
+
+	param.buffer = &val;
+	param.size   = 1;
+
+	pmic_arb_write_cmd(&cmd, &param);
 }
 
 void pm8x41_reg_write(uint32_t addr, uint8_t val)
@@ -331,6 +349,24 @@ uint32_t pm8x41_get_pwrkey_is_pressed()
 		return 1;
 	else
 		return 0;
+}
+
+void pm8994_reset_configure(uint8_t reset_type)
+{
+	/* Slave ID 14 is global slave ID for all the pmics */
+	uint8_t slave_id = 14;
+
+	/* disable PS_HOLD_RESET */
+	pm8xxx_reg_write(slave_id, PON_PS_HOLD_RESET_CTL2, 0x0);
+
+	/* Delay needed for disable to kick in. */
+	udelay(300);
+
+	/* configure reset type */
+	pm8xxx_reg_write(slave_id, PON_PS_HOLD_RESET_CTL, reset_type);
+
+	/* enable PS_HOLD_RESET */
+	pm8xxx_reg_write(slave_id, PON_PS_HOLD_RESET_CTL2, BIT(S2_RESET_EN_BIT));
 }
 
 void pm8x41_v2_reset_configure(uint8_t reset_type)
