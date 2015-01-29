@@ -99,6 +99,7 @@ struct mmc_command {
 	uint32_t cmd_retry;     /* Retry the command, if card is busy */
 	uint32_t cmd23_support; /* If card supports cmd23 */
 	uint64_t cmd_timeout;   /* Command timeout in us */
+	bool write_flag;        /* Write flag, for reliable write cases */
 	struct mmc_data data;   /* Data pointer */
 };
 
