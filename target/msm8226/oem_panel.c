@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -50,6 +50,7 @@
 #include "include/panel_ssd2080m_720p_video.h"
 #include "include/panel_jdi_1080p_video.h"
 #include "include/panel_nt35590_qvga_cmd.h"
+#include "include/panel_auo_qvga_cmd.h"
 
 #define DISPLAY_MAX_PANEL_DETECTION 2
 
@@ -69,6 +70,7 @@ NT35521_720P_VIDEO_PANEL,
 SSD2080M_720P_VIDEO_PANEL,
 JDI_1080P_VIDEO_PANEL,
 NT35590_QVGA_CMD_PANEL,
+AUO_QVGA_CMD_PANEL,
 UNKNOWN_PANEL
 };
 
@@ -86,6 +88,7 @@ static struct panel_list supp_panels[] = {
 	{"ssd2080m_720p_video", SSD2080M_720P_VIDEO_PANEL},
 	{"jdi_1080p_video", JDI_1080P_VIDEO_PANEL},
 	{"nt35590_qvga_cmd", NT35590_QVGA_CMD_PANEL},
+	{"auo_qvga_cmd", AUO_QVGA_CMD_PANEL},
 };
 
 static uint32_t panel_id;
@@ -354,6 +357,29 @@ static int init_panel_data(struct panel_struct *panelstruct,
 					= NT35590_QVGA_CMD_OFF_COMMAND;
 		memcpy(phy_db->timing,
 				nt35590_qvga_cmd_timings, TIMING_SIZE);
+		break;
+	case AUO_QVGA_CMD_PANEL:
+		panelstruct->paneldata    = &auo_qvga_cmd_panel_data;
+		panelstruct->panelres     = &auo_qvga_cmd_panel_res;
+		panelstruct->color        = &auo_qvga_cmd_color;
+		panelstruct->videopanel   = &auo_qvga_cmd_video_panel;
+		panelstruct->commandpanel = &auo_qvga_cmd_command_panel;
+		panelstruct->state        = &auo_qvga_cmd_state;
+		panelstruct->laneconfig   = &auo_qvga_cmd_lane_config;
+		panelstruct->paneltiminginfo = &auo_qvga_cmd_timing_info;
+		panelstruct->panelresetseq
+					= &auo_qvga_cmd_panel_reset_seq;
+		panelstruct->backlightinfo = &auo_qvga_cmd_backlight;
+		pinfo->mipi.panel_on_cmds
+					= auo_qvga_cmd_on_command;
+		pinfo->mipi.num_of_panel_on_cmds
+					= auo_QVGA_CMD_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+					= auo_qvga_cmd_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+					= auo_QVGA_CMD_OFF_COMMAND;
+		memcpy(phy_db->timing,
+				auo_qvga_cmd_timings, TIMING_SIZE);
 		break;
         case UNKNOWN_PANEL:
                 memset(panelstruct, 0, sizeof(struct panel_struct));

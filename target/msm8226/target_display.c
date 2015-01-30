@@ -262,6 +262,8 @@ int target_backlight_ctrl(struct backlight *bl, uint8_t enable)
 							PWM_BL_LPG_CHAN_ID,
 							enable);
 			break;
+		case BL_DCS:
+			break;
 		default:
 			dprintf(CRITICAL, "backlight type:%d not supported\n",
 							bl->bl_interface_type);
