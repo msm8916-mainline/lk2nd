@@ -43,6 +43,7 @@
 
 #include "include/panel.h"
 #include "include/display_resource.h"
+#include "gcdb_display.h"
 
 #define HFPLL_LDO_ID 8
 

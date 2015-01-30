@@ -43,6 +43,7 @@
 
 #include "include/panel.h"
 #include "include/display_resource.h"
+#include "gcdb_display.h"
 
 #define VCO_DELAY_USEC 1000
 #define GPIO_STATE_LOW 0
@@ -214,7 +215,7 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 	return ret;
 }
 
-int target_ldo_ctrl(uint8_t enable)
+int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 {
 	if (enable)
 		regulator_enable();     /* L2, L6, and L17 */
