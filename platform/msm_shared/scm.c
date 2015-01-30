@@ -55,6 +55,11 @@
 bool scm_arm_support;
 static uint32_t scm_io_write(addr_t address, uint32_t val);
 
+bool is_scm_armv8_support()
+{
+	return scm_arm_support;
+}
+
 static void scm_arm_support_available(uint32_t svc_id, uint32_t cmd_id)
 {
 	uint32_t ret;
@@ -1133,20 +1138,22 @@ static uint32_t scm_call_a32(uint32_t x0, uint32_t x1, uint32_t x2, uint32_t x3,
 	register uint32_t r4 __asm__("r4") = x4;
 	register uint32_t r5 __asm__("r5") = x5;
 
-	__asm__ volatile(
-		__asmeq("%0", "r0")
-		__asmeq("%1", "r1")
-		__asmeq("%2", "r2")
-		__asmeq("%3", "r3")
-		__asmeq("%4", "r0")
-		__asmeq("%5", "r1")
-		__asmeq("%6", "r2")
-		__asmeq("%7", "r3")
-		__asmeq("%8", "r4")
-		__asmeq("%9", "r5")
-		"smc    #0  @ switch to secure world\n"
-		: "=r" (r0), "=r" (r1), "=r" (r2), "=r" (r3)
-		: "r" (r0), "r" (r1), "r" (r2), "r" (r3), "r" (r4), "r" (r5));
+	do {
+		__asm__ volatile(
+			__asmeq("%0", "r0")
+			__asmeq("%1", "r1")
+			__asmeq("%2", "r2")
+			__asmeq("%3", "r3")
+			__asmeq("%4", "r0")
+			__asmeq("%5", "r1")
+			__asmeq("%6", "r2")
+			__asmeq("%7", "r3")
+			__asmeq("%8", "r4")
+			__asmeq("%9", "r5")
+			"smc    #0  @ switch to secure world\n"
+			: "=r" (r0), "=r" (r1), "=r" (r2), "=r" (r3)
+			: "r" (r0), "r" (r1), "r" (r2), "r" (r3), "r" (r4), "r" (r5));
+	} while(r0 == 1);
 
 	if (ret)
 	{

@@ -481,6 +481,17 @@ DEFINES += DISPLAY_TYPE_MDSS=1
 			$(LOCAL_DIR)/mipi_dsi_autopll.o
 endif
 
+
+ifeq ($(ENABLE_UFS_SUPPORT), 1)
+	OBJS += \
+			$(LOCAL_DIR)/ufs.o \
+			$(LOCAL_DIR)/utp.o \
+			$(LOCAL_DIR)/uic.o \
+			$(LOCAL_DIR)/ucs.o \
+			$(LOCAL_DIR)/ufs_hci.o \
+			$(LOCAL_DIR)/dme.o
+endif
+
 ifeq ($(ENABLE_BOOT_CONFIG_SUPPORT), 1)
 	OBJS += \
 		$(LOCAL_DIR)/boot_device.o
