@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -44,6 +44,10 @@
 
 #define HMSS_APCS_F0_QTMR_V1_BASE   (MSM_IOMAP_HMSS_START + 0x00050000)
 #define QTMR_BASE                   HMSS_APCS_F0_QTMR_V1_BASE
+
+#define RPM_SS_MSG_RAM_START_ADDRESS_BASE_PHYS 0x00068000
+#define RPM_SS_MSG_RAM_START_ADDRESS_BASE      RPM_SS_MSG_RAM_START_ADDRESS_BASE_PHYS
+#define RPM_SS_MSG_RAM_START_ADDRESS_BASE_SIZE 0x00006000
 
 #define PERIPH_SS_BASE              0x07400000
 

@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -44,6 +44,9 @@
 #define LK_MEMORY         (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
                            MMU_MEMORY_AP_READ_WRITE)
 
+/* RPM MSG RAM memory - cacheable, write through */
+#define MSG_RAM_MEMORY    (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
+                           MMU_MEMORY_AP_READ_WRITE)
 /* Peripherals - non-shared device */
 #define IOMAP_MEMORY      (MMU_MEMORY_TYPE_DEVICE_SHARED | \
                            MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
@@ -59,6 +62,7 @@ static mmu_section_t mmu_section_table[] = {
 	{    KERNEL_ADDR,       KERNEL_ADDR,       KERNEL_SIZE,      SCRATCH_MEMORY},
 	{    SCRATCH_ADDR,      SCRATCH_ADDR,      SCRATCH_SIZE,     SCRATCH_MEMORY},
 	{    MSM_SHARED_BASE,   MSM_SHARED_BASE,   MSM_SHARED_SIZE,  SCRATCH_MEMORY},
+	{    RPM_SS_MSG_RAM_START_ADDRESS_BASE, RPM_SS_MSG_RAM_START_ADDRESS_BASE, RPM_SS_MSG_RAM_START_ADDRESS_BASE_SIZE, MSG_RAM_MEMORY},
 };
 
 void platform_early_init(void)
