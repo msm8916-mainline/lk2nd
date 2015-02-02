@@ -605,6 +605,8 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	case HW_PLATFORM_SURF:
 		if (hw_subtype == HW_PLATFORM_SUBTYPE_CDP_1) {
 			panel_id = JDI_FHD_VIDEO_PANEL;
+		} else if (hw_subtype == HW_PLATFORM_SUBTYPE_CDP_2) {
+			panel_id = JDI_A216_FHD_VIDEO_PANEL;
 		} else {
 			panel_id = JDI_1080P_VIDEO_PANEL;
 			switch (auto_pan_loop) {
