@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014 The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -316,7 +316,9 @@ int ucs_do_scsi_unmap(struct ufs_dev *dev, struct scsi_unmap_req *req)
 	struct unmap_blk_desc *blk_desc;
 
 	param_list                    = (struct unmap_param_list *)param;
-	param_list->data_len          = (sizeof(struct unmap_param_list) - 1) << 0x8; /* n-1 */
+
+	// data length = size of unmap block descriptor struct (n-1) - size of data length field.
+	param_list->data_len          = ((sizeof(struct unmap_param_list) - 1) - 1) << 0x8;
 
 	param_list->blk_desc_data_len = sizeof(struct unmap_blk_desc) << 0x8;
 
