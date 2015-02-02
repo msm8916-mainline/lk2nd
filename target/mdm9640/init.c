@@ -143,6 +143,9 @@ void target_init(void)
 			dprintf(CRITICAL, "Error reading the partition table info\n");
 			ASSERT(0);
 		}
+		/* Below setting is to enable EBI2 function selection in TLMM so
+		   that GPIOs can be used for display */
+		writel((readl(TLMM_EBI2_EMMC_GPIO_CFG) | EBI2_BOOT_SELECT), TLMM_EBI2_EMMC_GPIO_CFG);
 	} else {
 		config.pipes.read_pipe = DATA_PRODUCER_PIPE;
 		config.pipes.write_pipe = DATA_CONSUMER_PIPE;

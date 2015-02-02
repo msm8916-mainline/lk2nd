@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -193,4 +193,7 @@
 /* QPIC DISPLAY */
 #define QPIC_BASE                   0x7980000
 #define APCS_ALIAS0_IPC_INTERRUPT   0xB011008
+/* eMMC Display */
+#define TLMM_EBI2_EMMC_GPIO_CFG     0x01111000
+#define EBI2_BOOT_SELECT            0x2
 #endif
