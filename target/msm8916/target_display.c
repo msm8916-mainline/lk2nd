@@ -311,6 +311,18 @@ int target_panel_reset_incell(uint8_t enable)
 	}
 }
 
+int target_panel_reset_jdi_a216(uint8_t enable)
+{
+	if (enable) {
+		gpio_tlmm_config(ts_reset_gpio.pin_id, 0,
+			ts_reset_gpio.pin_direction, ts_reset_gpio.pin_pull,
+			ts_reset_gpio.pin_strength, ts_reset_gpio.pin_state);
+		gpio_set_dir(ts_reset_gpio.pin_id, GPIO_STATE_HIGH);
+	} else {
+		gpio_set_dir(ts_reset_gpio.pin_id, GPIO_STATE_LOW);
+	}
+}
+
 int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 						struct msm_panel_info *pinfo)
 {
@@ -343,9 +355,14 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 			if ((hw_id == HW_PLATFORM_QRD) &&
 				 (hw_subtype == HW_PLATFORM_SUBTYPE_SKUK))
 				target_panel_reset_skuk(enable);
-			if ((hw_subtype == HW_PLATFORM_SUBTYPE_CDP_1) ||
-				 (hw_subtype == HW_PLATFORM_SUBTYPE_MTP_3))
+			if (((hw_id == HW_PLATFORM_SURF) &&
+				(hw_subtype == HW_PLATFORM_SUBTYPE_CDP_1)) ||
+				((hw_id == HW_PLATFORM_MTP) &&
+				 (hw_subtype == HW_PLATFORM_SUBTYPE_MTP_3)))
 				target_panel_reset_incell(enable);
+			if ((hw_id == HW_PLATFORM_SURF) &&
+				(hw_subtype == HW_PLATFORM_SUBTYPE_CDP_2))
+				target_panel_reset_jdi_a216(enable);
 		} else { /* msm8916 */
 			if ((hw_id == HW_PLATFORM_QRD) &&
 				 (hw_subtype == HW_PLATFORM_SUBTYPE_SKUH))
