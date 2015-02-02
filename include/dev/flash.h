@@ -41,6 +41,7 @@ enum nand_ecc_width
 
 struct flash_info {
 	unsigned id;
+	unsigned id2;
 	unsigned type;
 	unsigned vendor;
 	unsigned device;
