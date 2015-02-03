@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -294,13 +294,35 @@ static void msm_set_dll_freq(struct sdhci_host *host)
 	REG_RMW32(host, SDCC_DLL_CONFIG_REG, SDCC_DLL_CONFIG_MCLK_START, SDCC_DLL_CONFIG_MCLK_WIDTH, reg_val);
 }
 
+static void sdhci_dll_clk_enable(struct sdhci_host *host, int enable)
+{
+	if (enable)
+	{
+		REG_WRITE32(host, (REG_READ32(host, SDCC_HC_REG_DLL_CONFIG_2) & ~SDCC_DLL_CLOCK_DISABLE), SDCC_HC_REG_DLL_CONFIG_2);
+	}
+	else
+	{
+		REG_WRITE32(host, (REG_READ32(host, SDCC_DLL_CONFIG_REG) & ~SDCC_DLL_CLK_OUT_EN), SDCC_DLL_CONFIG_REG);
+		REG_WRITE32(host, (REG_READ32(host, SDCC_HC_REG_DLL_CONFIG_2) | SDCC_DLL_CLOCK_DISABLE), SDCC_HC_REG_DLL_CONFIG_2);
+	}
+}
+
 /* Initialize DLL (Programmable Delay Line) */
 static uint32_t sdhci_msm_init_dll(struct sdhci_host *host)
 {
 	uint32_t pwr_save = 0;
 	uint32_t timeout = SDHCI_DLL_TIMEOUT;
+	uint32_t dll_cfg2;
+	uint32_t mclk_clk_freq = 0;
 
 	pwr_save = REG_READ32(host, SDCC_VENDOR_SPECIFIC_FUNC) & SDCC_DLL_PWR_SAVE_EN;
+
+	/* Dll sequence needs additional steps for sdcc core version 42 */
+	if (host->major == 1 && host->minor >= 0x42)
+	{
+		/* Disable DLL clock before configuring */
+		sdhci_dll_clk_enable(host, 0);
+	}
 
 	/* PWR SAVE to 0 */
 	if (pwr_save)
@@ -313,10 +335,33 @@ static uint32_t sdhci_msm_init_dll(struct sdhci_host *host)
 	/* Set frequency field in DLL_CONFIG */
 	msm_set_dll_freq(host);
 
+	/* Configure the mclk freq based on the current clock rate
+	 * and fll cycle count as per hpg section 15.2.2
+	 */
+	if (host->major == 1 && host->minor >= 0x42)
+	{
+		dll_cfg2 = REG_READ32(host, SDCC_HC_REG_DLL_CONFIG_2);
+		if (dll_cfg2 & SDCC_FLL_CYCLE_CNT)
+			mclk_clk_freq = (host->cur_clk_rate / TCXO_FREQ) * 8;
+		else
+			mclk_clk_freq = (host->cur_clk_rate / TCXO_FREQ) * 4;
+
+		REG_WRITE32(host, ((REG_READ32(host, SDCC_HC_REG_DLL_CONFIG_2) & ~(0xFF << 10)) | (mclk_clk_freq << 10)), SDCC_HC_REG_DLL_CONFIG_2);
+
+		udelay(5);
+	}
+
 	/* Write 0 to DLL_RST */
 	REG_WRITE32(host, (REG_READ32(host, SDCC_DLL_CONFIG_REG) & ~SDCC_DLL_RESET_EN), SDCC_DLL_CONFIG_REG);
 	/* Write 0 to DLL_PDN */
 	REG_WRITE32(host, (REG_READ32(host, SDCC_DLL_CONFIG_REG) & ~SDCC_DLL_PDN_EN), SDCC_DLL_CONFIG_REG);
+
+	/* Set the mclk clock and enable the dll clock */
+	if (host->major == 1 && host->minor >= 0x42)
+	{
+		msm_set_dll_freq(host);
+		sdhci_dll_clk_enable(host, 1);
+	}
 	/* Write 1 to DLL_EN */
 	REG_WRITE32(host, (REG_READ32(host, SDCC_DLL_CONFIG_REG) | SDCC_DLL_EN), SDCC_DLL_CONFIG_REG);
 	/* Write 1 to CLK_OUT_EN */
