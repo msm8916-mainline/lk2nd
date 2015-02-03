@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -44,7 +44,7 @@
 #define A53_SS_SIZE    ((A53_SS_END - A53_SS_BASE)/MB)
 
 /* LK memory - cacheable, write through */
-#define LK_MEMORY         (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
+#define LK_MEMORY         (MMU_MEMORY_TYPE_NORMAL_WRITE_BACK_ALLOCATE | \
 					MMU_MEMORY_AP_READ_WRITE)
 
 /* Peripherals - non-shared device */
@@ -55,6 +55,9 @@
 #define COMMON_MEMORY       (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
                            MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
 
+#define SCRATCH_MEMORY       (MMU_MEMORY_TYPE_NORMAL_WRITE_BACK_ALLOCATE | \
+                           MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
+
 static mmu_section_t mmu_section_table[] = {
 /*           Physical addr,     Virtual addr,     Size (in MB),     Flags */
 	{    MEMBASE,           MEMBASE,          (MEMSIZE / MB),   LK_MEMORY},
@@ -63,7 +66,7 @@ static mmu_section_t mmu_section_table[] = {
 	{    SYSTEM_IMEM_BASE,  SYSTEM_IMEM_BASE, 1,                COMMON_MEMORY},
 	{    MSM_SHARED_BASE,   MSM_SHARED_BASE,  1,                COMMON_MEMORY},
 	{    BASE_ADDR,         BASE_ADDR,        90,               COMMON_MEMORY},
-	{    SCRATCH_ADDR,      SCRATCH_ADDR,     256,              COMMON_MEMORY},
+	{    SCRATCH_ADDR,      SCRATCH_ADDR,     256,              SCRATCH_MEMORY},
 	{    BASE_ADDR_1,       BASE_ADDR_1,     1024,              COMMON_MEMORY},
 };
 
