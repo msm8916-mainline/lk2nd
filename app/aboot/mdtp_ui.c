@@ -46,8 +46,6 @@ extern uint32_t target_volume_down(void);
 extern void fbcon_putImage(struct fbimage *fbimg, bool flag);
 extern void mdelay(unsigned msecs);
 
-extern unsigned block_size;
-
 static struct fbimage mdtp_header;/* = {0};*/
 
 /********************************************************************************/
@@ -59,6 +57,7 @@ static struct fbimage* mdtp_images_mmc_OK()
 	unsigned long long ptn = 0;
 	struct fbcon_config *fb_display = NULL;
 	struct fbimage *logo = &mdtp_header;
+	uint32_t block_size = mmc_get_device_blocksize();
 
 	index = partition_get_index("mdtp");
 	if (index == 0) {
@@ -96,6 +95,7 @@ static struct fbimage* mdtp_images_mmc_INVALID()
 	unsigned long long ptn = 0;
 	struct fbcon_config *fb_display = NULL;
 	struct fbimage *logo = &mdtp_header;
+	uint32_t block_size = mmc_get_device_blocksize();
 
 	index = partition_get_index("mdtp");
 	if (index == 0) {
@@ -133,6 +133,7 @@ static struct fbimage* mdtp_images_mmc_CHECKING()
 	unsigned long long ptn = 0;
 	struct fbcon_config *fb_display = NULL;
 	struct fbimage *logo = &mdtp_header;
+	uint32_t block_size = mmc_get_device_blocksize();
 
 	index = partition_get_index("mdtp");
 	if (index == 0) {
@@ -170,6 +171,7 @@ static struct fbimage* mdtp_images_mmc_RECOVERED()
 	unsigned long long ptn = 0;
 	struct fbcon_config *fb_display = NULL;
 	struct fbimage *logo = &mdtp_header;
+	uint32_t block_size = mmc_get_device_blocksize();
 
 	index = partition_get_index("mdtp");
 	if (index == 0) {

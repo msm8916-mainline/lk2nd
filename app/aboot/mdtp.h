@@ -107,6 +107,9 @@ typedef enum {
 /* Start Firmware Lock verification process */
 int mdtp_fwlock_verify_lock();
 
+/* Return whether the MDTP is currently enabled or disabled in HW */
+int mdtp_fuse_get_enabled(bool *enabled);
+
 /* Display the "Firmware Valid" screen */
 void show_OK_msg();
 
