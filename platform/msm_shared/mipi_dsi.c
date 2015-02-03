@@ -40,6 +40,7 @@
 #include <platform/timer.h>
 #include <err.h>
 #include <msm_panel.h>
+#include <arch/ops.h>
 
 extern void mdp_disable(void);
 extern int mipi_dsi_cmd_config(struct fbcon_config mipi_fb_cfg,
@@ -216,6 +217,7 @@ int mdss_dual_dsi_cmds_tx(struct mipi_dsi_cmd *cmds, int count)
 		}
 
 		memcpy((void *)off, (cm->payload), cm->size);
+		arch_clean_invalidate_cache_range((addr_t)(off), cm->size);
 		writel(off, MIPI_DSI0_BASE + DMA_CMD_OFFSET);
 		writel(cm->size, MIPI_DSI0_BASE + DMA_CMD_LENGTH);	// reg 0x48 for this build
 		writel(off, MIPI_DSI1_BASE + DMA_CMD_OFFSET);
@@ -312,6 +314,7 @@ int mipi_dsi_cmds_tx(struct mipi_dsi_cmd *cmds, int count)
 			mdelay(4);
 		}
 		memcpy((void *)off, (cm->payload), cm->size);
+		arch_clean_invalidate_cache_range((addr_t)(off), cm->size);
 		writel(off, DSI_DMA_CMD_OFFSET);
 		writel(cm->size, DSI_DMA_CMD_LENGTH);	// reg 0x48 for this build
 		dsb();
