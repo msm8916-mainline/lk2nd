@@ -106,7 +106,7 @@ static int target_volume_up()
 	thread_sleep(1);
 
 	/* Get status of P_GPIO_5 */
-	pm8x41_gpio_get(3, &status);
+	pm8x41_gpio_get(2, &status);
 
 	return !status; /* active low */
 }
@@ -176,6 +176,7 @@ void target_sdc_init()
 
 	config.bus_width = DATA_BUS_WIDTH_8BIT;
 	config.max_clk_rate = MMC_CLK_192MHZ;
+	config.hs400_support = 1;
 
 	/* Try slot 1*/
 	config.slot = 1;
@@ -259,7 +260,10 @@ void target_baseband_detect(struct board_data *board)
 
 	switch(platform) {
 	case MSMTHULIUM:
-		board->baseband = BASEBAND_MSM;
+		if (board->platform_version == 0x10000)
+			board->baseband = BASEBAND_APQ;
+		else
+			board->baseband = BASEBAND_MSM;
 		break;
 	default:
 		dprintf(CRITICAL, "Platform type: %u is not supported\n",platform);

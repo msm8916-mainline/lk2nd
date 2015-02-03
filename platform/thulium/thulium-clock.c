@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -185,13 +185,13 @@ static struct branch_clk gcc_blsp2_uart2_apps_clk =
 	},
 };
 
-static struct vote_clk gcc_blsp1_ahb_clk = {
-	.cbcr_reg     = (uint32_t *) BLSP1_AHB_CBCR,
+static struct vote_clk gcc_blsp2_ahb_clk = {
+	.cbcr_reg     = (uint32_t *) BLSP2_AHB_CBCR,
 	.vote_reg     = (uint32_t *) APCS_CLOCK_BRANCH_ENA_VOTE,
-	.en_mask      = BIT(17),
+	.en_mask      = BIT(15),
 
 	.c = {
-		.dbg_name = "gcc_blsp1_ahb_clk",
+		.dbg_name = "gcc_blsp2_ahb_clk",
 		.ops      = &clk_ops_vote,
 	},
 };
@@ -204,9 +204,9 @@ static struct clk_freq_tbl ftbl_gcc_sdcc1_4_apps_clk[] =
 	F( 20000000,  gpll0,  15,   1,   2),
 	F( 25000000,  gpll0,  12,   1,   2),
 	F( 50000000,  gpll0,  12,   0,   0),
-	F( 96000000,  gpll4,  16,   0,   0),
-	F(192000000,  gpll4,   8,   0,   0),
-	F(384000000,  gpll4,   4,   0,   0),
+	F( 96000000,  gpll4,   4,   0,   0),
+	F(192000000,  gpll4,   2,   0,   0),
+	F(384000000,  gpll4,   1,   0,   0),
 	F_END
 };
 
@@ -261,7 +261,9 @@ static struct branch_clk gcc_sys_noc_usb30_axi_clk = {
 };
 
 static struct clk_freq_tbl ftbl_gcc_usb30_master_clk[] = {
-	F( 125000000, gpll0,    1,    5,    24),
+	F(  19200000, gpll0,    1,    0,    0),
+	F( 125000000, gpll0,    5,    0,    0),
+	F( 150000000, gpll0,    4,    0,    0),
 	F_END
 };
 
@@ -398,7 +400,7 @@ static struct clk_lookup msm_thulium_clocks[] =
 	CLK_LOOKUP("sdc1_iface_clk", gcc_sdcc1_ahb_clk.c),
 	CLK_LOOKUP("sdc1_core_clk",  gcc_sdcc1_apps_clk.c),
 
-	CLK_LOOKUP("uart8_iface_clk", gcc_blsp1_ahb_clk.c),
+	CLK_LOOKUP("uart8_iface_clk", gcc_blsp2_ahb_clk.c),
 	CLK_LOOKUP("uart8_core_clk",  gcc_blsp2_uart2_apps_clk.c),
 
 	/* USB30 clocks */
