@@ -148,7 +148,7 @@ static uint32_t calculate_dec_frac_start()
 {
 	uint32_t refclk = 19200000;
 	uint32_t vco_rate = pll_data.vco_clock;
-	uint32_t tmp;
+	uint32_t tmp, mod;
 
 	vco_rate /= 2;
 	pll_data.dec_start = vco_rate / refclk;
@@ -161,11 +161,22 @@ static uint32_t calculate_dec_frac_start()
 	pll_data.frac_start = tmp;
 
 	vco_rate *= 2; /* restore */
-	tmp = vco_rate / (refclk / 1000);/* div 1000 first */
-	tmp *= 1024;
-	tmp /= 1000;
-	tmp /= 10;
-	pll_data.lock_comp = tmp - 1;
+	if (pll_data.en_vco_zero_phase) {
+		tmp = vco_rate / (refclk / 1000);/* div 1000 first */
+		tmp *= 1024;
+		tmp /= 1000;
+		tmp /= 10;
+		pll_data.lock_comp = tmp - 1;
+	} else {
+		tmp = vco_rate / refclk;
+		mod = vco_rate % refclk;
+		tmp *= 127;
+		mod *= 127;
+		mod /= refclk;
+		tmp += mod;
+		tmp /= 10;
+		pll_data.lock_comp = tmp;
+	}
 
 	dprintf(SPEW, "%s: dec_start=0x%x dec_frac=0x%x lock_comp=0x%x\n", __func__,
 		pll_data.dec_start, pll_data.frac_start, pll_data.lock_comp);
@@ -203,6 +214,24 @@ static uint32_t calculate_vco_28nm(uint8_t bpp, uint8_t num_of_lanes)
 	return NO_ERROR;
 }
 
+#ifndef DISPLAY_EN_20NM_PLL_90_PHASE
+static void config_20nm_pll_vco_range(void)
+{
+	pll_data.vco_min = 300000000;
+	pll_data.vco_max = 1500000000;
+	pll_data.en_vco_zero_phase = 1;
+	dprintf(SPEW, "%s: Configured VCO for zero phase\n", __func__);
+}
+#else
+static void config_20nm_pll_vco_range(void)
+{
+	pll_data.vco_min = 1000000000;
+	pll_data.vco_max = 2000000000;
+	pll_data.en_vco_zero_phase = 0;
+	dprintf(SPEW, "%s: Configured VCO for 90 phase\n", __func__);
+}
+#endif
+
 static uint32_t calculate_vco_20nm(uint8_t bpp, uint8_t lanes)
 {
 	uint32_t vco, dsi_clk;
@@ -235,12 +264,12 @@ static uint32_t calculate_vco_20nm(uint8_t bpp, uint8_t lanes)
 	hr_oclk2 = 4;
 
 	/* If bitclock is more than VCO min value */
-	if (pll_data.halfbit_clock >= HALF_VCO_MIN_CLOCK_20NM) {
+	if (pll_data.halfbit_clock >= ((pll_data.vco_min) >> 1)) {
 		/* Direct Mode */
 		vco  = pll_data.halfbit_clock << 1;
 		/* support vco clock to max value only */
-		if (vco > VCO_MAX_CLOCK_20NM)
-			vco = VCO_MAX_CLOCK_20NM;
+		if (vco > (pll_data.vco_max))
+			vco = (pll_data.vco_max);
 
 		pll_data.directpath = 0x0;
 		pll_data.byte_clock = vco / 2 / hr_oclk2;
@@ -249,8 +278,8 @@ static uint32_t calculate_vco_20nm(uint8_t bpp, uint8_t lanes)
 		hr_oclk3 = hr_oclk2 * m / n * bpp_m / bpp_n / lanes;
 	} else {
 		/* Indirect Mode */
-		mod =  VCO_MIN_CLOCK_20NM % (4 * pll_data.halfbit_clock );
-		ndiv = VCO_MIN_CLOCK_20NM / (4 * pll_data.halfbit_clock );
+		mod =  (pll_data.vco_min) % (4 * pll_data.halfbit_clock );
+		ndiv = (pll_data.vco_min) / (4 * pll_data.halfbit_clock );
 		if (mod)
 			ndiv += 1;
 
@@ -286,6 +315,9 @@ uint32_t calculate_clock_config(struct msm_panel_info *pinfo)
 	uint32_t ret = NO_ERROR;
 
 	calculate_bitclock(pinfo);
+
+	if (pinfo->mipi.mdss_dsi_phy_db->is_pll_20nm)
+		config_20nm_pll_vco_range();
 
 	if (pinfo->mipi.mdss_dsi_phy_db->is_pll_20nm)
 		ret = calculate_vco_20nm(pinfo->bpp, pinfo->mipi.num_of_lanes);

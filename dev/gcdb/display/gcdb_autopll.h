@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -42,11 +42,6 @@
 #define HALFBIT_CLOCK2 88000000  /* VCO min clock div by 4 */
 #define HALFBIT_CLOCK3 44000000  /* VCO min clock div by 8 */
 #define HALFBIT_CLOCK4 40000000  /* VCO min clock div by 9 */
-
-#define VCO_MIN_CLOCK_20NM 	300000000
-#define VCO_MAX_CLOCK_20NM 	1500000000
-
-#define HALF_VCO_MIN_CLOCK_20NM (VCO_MIN_CLOCK_20NM >> 1)
 
 #define HALFBIT_CLOCK1_20NM 	500000000 /* VCO min clock div by 2 */
 #define HALFBIT_CLOCK2_20NM 	250000000  /* VCO min clock div by 4 */
