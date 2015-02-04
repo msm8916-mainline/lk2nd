@@ -231,8 +231,10 @@ static void mdss_dsi_pll_20nm_config_vco_rate(uint32_t pll_base, struct mdss_dsi
 	writel(((pd->lock_comp >> 16) & 0xff),
 				pll_base + MMSS_DSI_PHY_PLL_PLLLOCK_CMP3);
 
-	writel(0x01, pll_base + MMSS_DSI_PHY_PLL_PLLLOCK_CMP_EN);
-
+	if (pd->en_vco_zero_phase)
+		writel(0x01, pll_base + MMSS_DSI_PHY_PLL_PLLLOCK_CMP_EN);
+	else
+		writel(0x0d, pll_base + MMSS_DSI_PHY_PLL_PLLLOCK_CMP_EN);
 
 	dprintf(SPEW, "div frac1=0x%x, div frac2 = 0x%x, div frac3=0x%x\n",
 			readl(pll_base + MMSS_DSI_PHY_PLL_DIV_FRAC_START1),
