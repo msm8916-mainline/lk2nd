@@ -584,6 +584,48 @@ int scm_svc_version(uint32 * major, uint32 * minor)
 	return ret;
 }
 
+int scm_svc_get_secure_state(uint32_t *state_low, uint32_t *state_high)
+{
+	get_secure_state_req req;
+	get_secure_state_rsp rsp;
+
+	int ret = 0;
+
+	scmcall_arg scm_arg = {0};
+	scmcall_ret scm_ret = {0};
+
+	if (!scm_arm_support)
+	{
+		req.status_ptr = (uint32_t*)&rsp;
+		req.status_len = sizeof(rsp);
+
+		ret = scm_call(TZBSP_SVC_INFO,
+					   TZ_INFO_GET_SECURE_STATE,
+					   &req,
+					   sizeof(req),
+					   NULL,
+					   0);
+	}
+	else
+	{
+		scm_arg.x0 = MAKE_SIP_SCM_CMD(TZBSP_SVC_INFO, TZ_INFO_GET_SECURE_STATE);
+		scm_arg.x1 = MAKE_SCM_ARGS(0x0);
+
+		ret = scm_call2(&scm_arg, &scm_ret);
+
+		rsp.status_low = scm_ret.x1;
+		rsp.status_high = scm_ret.x2;
+	}
+
+	if(!ret)
+	{
+		*state_low = rsp.status_low;
+		*state_high = rsp.status_high;
+	}
+
+	return ret;
+}
+
 int scm_protect_keystore(uint32_t * img_ptr, uint32_t  img_len)
 {
 	int                      ret=0;
@@ -811,6 +853,61 @@ int mdtp_cipher_dip_cmd(uint8_t *in_buf, uint32_t in_buf_size, uint8_t *out_buf,
 		if (scm_call2(&scm_arg, &scm_ret))
 		{
 			dprintf(CRITICAL, "Failed in Cipher DIP SCM call\n");
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
+int qfprom_read_row_cmd(uint32_t row_address,
+                        uint32_t addr_type,
+                        uint32_t *row_data,
+                        uint32_t *qfprom_api_status)
+{
+	uint32_t svc_id;
+	uint32_t cmd_id;
+	void *cmd_buf;
+	void *rsp_buf;
+	size_t cmd_len;
+	size_t rsp_len;
+	qfprom_read_row_req req;
+	scmcall_arg scm_arg = {0};
+	scmcall_ret scm_ret = {0};
+
+	req.row_address = row_address;
+	req.addr_type = addr_type;
+	req.row_data = row_data;
+	req.qfprom_api_status = qfprom_api_status;
+
+	if (!scm_arm_support)
+	{
+		svc_id = SCM_SVC_FUSE;
+		cmd_id = SCM_QFPROM_READ_ROW_ID;
+		cmd_buf = (void *)&req;
+		cmd_len = sizeof(req);
+		rsp_buf = NULL;
+		rsp_len = 0;
+
+		if (scm_call(svc_id, cmd_id, cmd_buf, cmd_len, rsp_buf, rsp_len))
+		{
+			dprintf(CRITICAL, "Failed to call SCM_SVC_FUSE.SCM_QFPROM_READ_ROW_ID SCM\n");
+			return -1;
+		}
+	}
+	else
+	{
+		scm_arg.x0 = MAKE_SIP_SCM_CMD(SCM_SVC_FUSE, SCM_QFPROM_READ_ROW_ID);
+		scm_arg.x1 = MAKE_SCM_ARGS(0x4, SMC_PARAM_TYPE_VALUE, SMC_PARAM_TYPE_VALUE,
+										SMC_PARAM_TYPE_BUFFER_READWRITE, SMC_PARAM_TYPE_BUFFER_READWRITE);
+		scm_arg.x2 = req.row_address;
+		scm_arg.x3 = req.addr_type;
+		scm_arg.x4 = (uint32_t)req.row_data;
+		scm_arg.x5[0] = (uint32_t)req.qfprom_api_status;
+
+		if (scm_call2(&scm_arg, &scm_ret))
+		{
+			dprintf(CRITICAL, "Failed to call SCM_SVC_FUSE.SCM_QFPROM_READ_ROW_ID SCM\n");
 			return -1;
 		}
 	}
