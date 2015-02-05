@@ -152,8 +152,9 @@
 #define SPMI_PIC_BASE               (SPMI_BASE + 0x1800000)
 #define PMIC_ARB_CORE               0x400F000
 
-#define MSM_CE_BAM_BASE             0x67A000
-#define MSM_CE_BASE                 0x644000
+#define MSM_CE_BAM_BASE             0x644000
+#define MSM_CE_BASE                 0x67A000
+#define GCC_CE1_BCR                 (CLK_CTL_BASE + 0x00041000)
 
 #define TLMM_BASE_ADDR              0x1010000
 #define GPIO_CONFIG_ADDR(x)         (TLMM_BASE_ADDR + (x)*0x1000)
