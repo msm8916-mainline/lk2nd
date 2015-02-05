@@ -56,6 +56,7 @@
 #include "include/panel_samsung_wxga_video.h"
 #include "include/panel_hx8279a_wsvga_video.h"
 #include "include/panel_r61318_hd_video.h"
+#include "include/panel_r63417_1080p_video.h"
 
 #define DISPLAY_MAX_PANEL_DETECTION 2
 #define OTM8019A_FWVGA_VIDEO_PANEL_ON_DELAY 50
@@ -91,6 +92,7 @@ static struct panel_list supp_panels[] = {
 	{"samsung_wxga_video", SAMSUNG_WXGA_VIDEO_PANEL},
 	{"hx8279a_wsvga_video", HX8279A_WSVGA_VIDEO_PANEL},
 	{"r61318_hd_video", R61318_HD_VIDEO_PANEL},
+	{"r63417_1080p_video", R63417_1080P_VIDEO_PANEL},
 };
 
 static uint32_t panel_id;
@@ -500,6 +502,30 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		memcpy(phy_db->timing,
 				 r61318_hd_video_timings, TIMING_SIZE);
 		break;
+	case R63417_1080P_VIDEO_PANEL:
+		panelstruct->paneldata    = & r63417_1080p_video_panel_data;
+		panelstruct->panelres     = & r63417_1080p_video_panel_res;
+		panelstruct->color        = & r63417_1080p_video_color;
+		panelstruct->videopanel   = & r63417_1080p_video_video_panel;
+		panelstruct->commandpanel = & r63417_1080p_video_command_panel;
+		panelstruct->state        = & r63417_1080p_video_state;
+		panelstruct->laneconfig   = & r63417_1080p_video_lane_config;
+		panelstruct->paneltiminginfo
+					= & r63417_1080p_video_timing_info;
+		panelstruct->panelresetseq
+					= & r63417_1080p_video_reset_seq;
+		panelstruct->backlightinfo = & r63417_1080p_video_backlight;
+		pinfo->mipi.panel_on_cmds
+					=  r63417_1080p_video_on_command;
+		pinfo->mipi.num_of_panel_on_cmds
+					=  R63417_1080P_VIDEO_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+					= r63417_1080p_video_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+					= R63417_1080P_VIDEO_OFF_COMMAND;
+		memcpy(phy_db->timing,
+				r63417_1080p_video_timings, TIMING_SIZE);
+		break;
 	case UNKNOWN_PANEL:
 	default:
 		memset(panelstruct, 0, sizeof(struct panel_struct));
@@ -583,6 +609,8 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 			case HW_PLATFORM_SUBTYPE_SKUK:
 				if ((plat_hw_ver_major >> 4) == 0x1)
 					panel_id = R61318_HD_VIDEO_PANEL;
+				else if ((plat_hw_ver_major >> 4) == 0x2)
+					panel_id = R63417_1080P_VIDEO_PANEL;
 				else
 					panel_id = NT35596_1080P_VIDEO_PANEL;
 				break;
