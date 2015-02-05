@@ -44,20 +44,17 @@
 #define DIP_ENCRYPT 0
 #define DIP_DECRYPT 1
 
-static int mdtp_tzbsp_get_provisioned_fuse();
-static int mdtp_tzbsp_set_provisioned_fuse();
-static int mdtp_tzbsp_dec_verify_DIP(DIP_t* enc_dip, DIP_t* dec_dip, uint32_t *verified);
-static int mdtp_tzbsp_enc_hash_DIP(DIP_t* dec_dip, DIP_t* enc_dip);
-
-unsigned block_size = 0;
+static int mdtp_tzbsp_dec_verify_DIP(DIP_t *enc_dip, DIP_t *dec_dip, uint32_t *verified);
+static int mdtp_tzbsp_enc_hash_DIP(DIP_t *dec_dip, DIP_t *enc_dip);
 
 /********************************************************************************/
 
 /* Read the DIP from EMMC */
-static int read_DIP(DIP_t* dip)
+static int read_DIP(DIP_t *dip)
 {
 	unsigned long long ptn = 0;
 	uint32_t actual_partition_size;
+	uint32_t block_size = mmc_get_device_blocksize();
 
 	int index = INVALID_PTN;
 
@@ -85,10 +82,11 @@ static int read_DIP(DIP_t* dip)
 }
 
 /* Store the DIP into the EMMC */
-static int write_DIP(DIP_t* dip)
+static int write_DIP(DIP_t *dip)
 {
 	unsigned long long ptn = 0;
 	uint32_t partition_size;
+	uint32_t block_size = mmc_get_device_blocksize();
 
 	int index = INVALID_PTN;
 
@@ -121,8 +119,8 @@ static int write_DIP(DIP_t* dip)
 /* Provision the DIP by storing the default DIP into the EMMC */
 static void provision_DIP()
 {
-	DIP_t* enc_dip;
-	DIP_t* dec_dip;
+	DIP_t *enc_dip;
+	DIP_t *dec_dip;
 	int ret;
 
 	enc_dip = malloc(sizeof(DIP_t));
@@ -171,12 +169,13 @@ out:
 }
 
 /* Validate a hash calculated on entire given partition */
-static int verify_partition_single_hash(char* name, uint32_t size, DIP_hash_table_entry_t* hash_table)
+static int verify_partition_single_hash(char *name, uint32_t size, DIP_hash_table_entry_t *hash_table)
 {
 	unsigned char digest[32]={0};
 	unsigned long long ptn = 0;
 	int index = INVALID_PTN;
 	unsigned char *buf = (unsigned char *)target_get_scratch_address();
+	uint32_t block_size = mmc_get_device_blocksize();
 	uint32_t actual_partition_size = ROUNDUP(size, block_size);
 
 	dprintf(INFO, "mdtp: verify_partition_single_hash: %s, %u\n", name, size);
@@ -215,11 +214,11 @@ static int verify_partition_single_hash(char* name, uint32_t size, DIP_hash_tabl
 }
 
 /* Validate a hash table calculated per block of a given partition */
-static int verify_partition_block_hash(char* name,
+static int verify_partition_block_hash(char *name,
 								uint32_t size,
 								uint32_t total_num_blocks,
 								uint32_t verify_num_blocks,
-								DIP_hash_table_entry_t* hash_table,
+								DIP_hash_table_entry_t *hash_table,
 							    uint8_t *force_verify_block)
 {
 	unsigned char digest[32]={0};
@@ -294,7 +293,7 @@ static int verify_partition_block_hash(char* name,
 }
 
 /* Verify a given partitinon */
-static int verify_partition(char* name,
+static int verify_partition(char *name,
 						uint32_t size,
 						mdtp_fwlock_mode_t hash_mode,
 						uint32_t total_num_blocks,
@@ -377,10 +376,11 @@ static int verify_all_partitions(DIP_t *dip, verify_result_t *verify_result)
 static void validate_DIP_and_firmware()
 {
 	int ret;
-	DIP_t* enc_dip;
-	DIP_t* dec_dip;
+	DIP_t *enc_dip;
+	DIP_t *dec_dip;
 	uint32_t verified = 0;
 	verify_result_t verify_result;
+	uint32_t block_size = mmc_get_device_blocksize();
 
 	enc_dip = malloc(ROUNDUP(sizeof(DIP_t), block_size));
 	if (enc_dip == NULL)
@@ -456,22 +456,18 @@ out:
 
 int mdtp_fwlock_verify_lock()
 {
-	int provisioned_fuse;
+	int ret;
+	bool enabled;
 
-	block_size = mmc_get_device_blocksize();
-
-	provisioned_fuse = mdtp_tzbsp_get_provisioned_fuse();
-	if(provisioned_fuse < 0)
+	ret = mdtp_fuse_get_enabled(&enabled);
+	if(ret)
 	{
-		dprintf(CRITICAL, "mdtp: mdtp_fwlock_verify_lock: ERROR, cannot get DIP_PROVISIONED fuse\n");
+		dprintf(CRITICAL, "mdtp: mdtp_fwlock_verify_lock: ERROR, cannot get enabled fuse\n");
 		return -1;
 	}
 
-	if (!provisioned_fuse)
-	{
-		provision_DIP();
-	}
-	else
+	/* Continue with Firmware Lock verification only if enabled by eFuse */
+	if (enabled)
 	{
 		validate_DIP_and_firmware();
 	}
@@ -481,22 +477,10 @@ int mdtp_fwlock_verify_lock()
 
 /********************************************************************************/
 
-/* Functions communicating with TZBSP */
-
-static int mdtp_tzbsp_get_provisioned_fuse()
-{
-	return 1;
-}
-
-static int mdtp_tzbsp_set_provisioned_fuse()
-{
-	return 0;
-}
-
 /* Decrypt a given DIP and verify its integrity */
-static int mdtp_tzbsp_dec_verify_DIP(DIP_t* enc_dip, DIP_t* dec_dip, uint32_t *verified)
+static int mdtp_tzbsp_dec_verify_DIP(DIP_t *enc_dip, DIP_t *dec_dip, uint32_t *verified)
 {
-	unsigned char* hash_p;
+	unsigned char *hash_p;
 	unsigned char hash[HASH_LEN];
 	SHA256_CTX sha256_ctx;
 	int ret;
@@ -533,9 +517,9 @@ static int mdtp_tzbsp_dec_verify_DIP(DIP_t* enc_dip, DIP_t* dec_dip, uint32_t *v
 	return 0;
 }
 
-static int mdtp_tzbsp_enc_hash_DIP(DIP_t* dec_dip, DIP_t* enc_dip)
+static int mdtp_tzbsp_enc_hash_DIP(DIP_t *dec_dip, DIP_t *enc_dip)
 {
-	unsigned char* hash_p;
+	unsigned char *hash_p;
 	SHA256_CTX sha256_ctx;
 	int ret;
 
