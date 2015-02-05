@@ -304,6 +304,7 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	switch (hw_id) {
 	case HW_PLATFORM_SURF:
 	case HW_PLATFORM_MTP:
+	case HW_PLATFORM_RCM:
 		panel_id = HX8394D_720P_VIDEO_PANEL;
 		break;
 	case HW_PLATFORM_QRD:
