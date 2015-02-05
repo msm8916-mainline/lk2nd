@@ -25,6 +25,7 @@
 #include <arch/ops.h>
 #include <arch/arm.h>
 #include <arch/arm/mmu.h>
+#include <arch/defines.h>
 #include <platform.h>
 
 #if ARM_CPU_CORTEX_A8
@@ -58,6 +59,8 @@ void arch_early_init(void)
 	__asm__ volatile("mrc	p15, 0, %0, c1, c0, 2" : "=r" (val));
 	val |= (3<<22)|(3<<20);
 	__asm__ volatile("mcr	p15, 0, %0, c1, c0, 2" :: "r" (val));
+
+	isb();
 
 	/* set enable bit in fpexc */
 	__asm__ volatile("mrc  p10, 7, %0, c8, c0, 0" : "=r" (val));
