@@ -33,7 +33,7 @@
 #include <string.h>
 #include <pm8x41_hw.h>
 #include <pm8x41.h>
-#include <rpm-smd.h>
+#include <rpm-ipc.h>
 #include <regulator.h>
 #include <platform/timer.h>
 
