@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -27,16 +27,76 @@
  *
  */
 
-#ifndef __RPM_SMD_H
-#define __RPM_SMD_H
+#ifndef __RPM_IPC_H
+#define __RPM_IPC_H
 
 #include <arch/defines.h>
 #include <stdint.h>
 #include <sys/types.h>
-#include <rpm-ipc.h>
 
-int rpm_smd_send_data(uint32_t *data, uint32_t len, msg_type type);
-uint32_t rpm_smd_recv_data(uint32_t *len);
-void rpm_smd_init();
-void rpm_smd_uninit();
+#define RPM_REQ_MAGIC 0x00716572
+#define RPM_CMD_MAGIC 0x00646d63
+#define REQ_MSG_LENGTH 0x14
+#define CMD_MSG_LENGTH 0x08
+#define ACK_MSG_LENGTH 0x0C
+
+typedef enum
+{
+	RPM_REQUEST_TYPE,
+	RPM_CMD_TYPE,
+	RPM_SUCCESS_REQ_ACK,
+	RPM_SUCCESS_CMD_ACK,
+	RPM_ERROR_ACK,
+}msg_type;
+
+enum
+{
+	RESOURCETYPE,
+	RESOURCEID,
+	KVP_KEY,
+	KVP_LENGTH,
+	KVP_VALUE,
+};
+
+typedef struct
+{
+	uint32_t type;
+	uint32_t len;
+} rpm_gen_hdr;
+
+typedef struct
+{
+	uint32_t key;
+	uint32_t len;
+	uint32_t val;
+} kvp_data;
+
+typedef struct
+{
+	uint32_t id;
+	uint32_t set;
+	uint32_t resourceType;
+	uint32_t resourceId;
+	uint32_t dataLength;
+}rpm_req_hdr;
+
+typedef struct
+{
+	rpm_gen_hdr hdr;
+	rpm_req_hdr req_hdr;
+	kvp_data *data;
+} rpm_req;
+
+typedef struct
+{
+	rpm_gen_hdr hdr;
+	kvp_data *data;
+} rpm_cmd;
+
+typedef rpm_cmd rpm_ack_msg;
+int rpm_send_data(uint32_t *data, uint32_t len, msg_type type);
+void rpm_clk_enable(uint32_t *data, uint32_t len);
+
+void fill_kvp_object(kvp_data **kdata, uint32_t *data, uint32_t len);
+void free_kvp_object(kvp_data **kdata);
 #endif
