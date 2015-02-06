@@ -33,6 +33,7 @@
 #include <debug.h>
 #include <string.h>
 #include <malloc.h>
+#include <bits.h>
 #include <sys/types.h>
 #include <platform.h>
 #include <platform/clock.h>
@@ -63,13 +64,14 @@ static uint8_t *bbtbl;
 static uint8_t* rdwr_buf;
 
 static struct flash_id supported_flash[] = {
-	/* Flash ID    ID Mask      Density(MB)    Wid Pgsz    Blksz              oobsz   8-bit ECCf */
-	{0x1590AC2C,   0xFFFFFFFF,  0x20000000,    0,  2048,   0x00020000,        0x40,   0},
-	{0x1590AA2C,   0xFFFFFFFF,  0x10000000,    0,  2048,   0x00020000,        0xE0,   1},
-	{0x2690AC2C,   0xFFFFFFFF,  0x20000000,    0,  4096,   0x00040000,        0xE0,   1},
-	{0x1590ACAD,   0xFFFFFFFF,  0x20000000,    0,  2048,   0x00020000,        0x80,   0},
-	{0x9590DC2C,   0xFFFFFFFF,  0x10000000,    0,  2048,   0x00020000,        0x40,   0},
-	{0x1590aa98,   0xFFFFFFFF,  0x10000000,    0,  2048,   0x00020000,        0x80,   1},
+	/* Flash ID  Flash ID2 ID Mask     ID Mask2  Density(MB)    Wid Pgsz    Blksz              oobsz   8-bit ECCf */
+	{0x1590AC2C, 0x56,     0xFFFFFFFF, 0xFF,     0x20000000,    0,  2048,   0x00020000,        0x40,   0},
+	{0x1590AC2C, 0x57,     0xFFFFFFFF, 0xFF,     0x20000000,    0,  2048,   0x00020000,        0x40,   1},
+	{0x1590AA2C, 0x06,     0xFFFFFFFF, 0x0,      0x10000000,    0,  2048,   0x00020000,        0xE0,   1},
+	{0x2690AC2C, 0x54,     0xFFFFFFFF, 0x0,      0x20000000,    0,  4096,   0x00040000,        0xE0,   1},
+	{0x1590ACAD, 0,        0xFFFFFFFF, 0x0,      0x20000000,    0,  2048,   0x00020000,        0x80,   0},
+	{0x9590DC2C, 0x56,     0xFFFFFFFF, 0x0,      0x10000000,    0,  2048,   0x00020000,        0x40,   0},
+	{0x1590aa98, 0x76,     0xFFFFFFFF, 0x0,      0x10000000,    0,  2048,   0x00020000,        0x80,   1},
 	/* Note: Width flag is 0 for 8 bit Flash and 1 for 16 bit flash   */
 };
 
@@ -201,8 +203,8 @@ qpic_nand_fetch_id(struct flash_info *flash)
 	struct cmd_element *cmd_list_ptr_start = ce_array;
 	int num_desc = 0;
 	uint32_t status;
-	uint32_t id;
-	uint32_t flash_cmd = NAND_CMD_FETCH_ID;
+	uint32_t id, id2;
+	uint32_t flash_cmd = NAND_CMD_FETCH_ID | BIT(19); //bit 19 needs to be set to get extended NAND ID
 	uint32_t exec_cmd = 1;
 	int nand_ret = NANDC_RESULT_SUCCESS;
 
@@ -241,9 +243,11 @@ qpic_nand_fetch_id(struct flash_info *flash)
 	}
 
 	/* Read the id */
-	id = qpic_nand_read_reg(NAND_READ_ID, BAM_DESC_UNLOCK_FLAG);
+	id = qpic_nand_read_reg(NAND_READ_ID, 0);
+	id2 = qpic_nand_read_reg(NAND_READ_ID2, BAM_DESC_UNLOCK_FLAG);
 
 	flash->id = id;
+	flash->id2 = id2;
 	flash->vendor = id & 0xff;
 	flash->device = (id >> 8) & 0xff;
 	flash->dev_cfg = (id >> 24) & 0xFF;
@@ -1221,8 +1225,10 @@ qpic_nand_non_onfi_probe(struct flash_info *flash)
 	/* Check if we support the device */
 	for (index = 0; index < (ARRAY_SIZE(supported_flash)); index++)
 	{
-		if ((flash->id & supported_flash[index].mask) ==
-		    (supported_flash[index].flash_id & (supported_flash[index].mask)))
+		if (((flash->id & supported_flash[index].mask) ==
+		    (supported_flash[index].flash_id & (supported_flash[index].mask))) &&
+		    ((flash->id2 & supported_flash[index].mask2) ==
+		    (supported_flash[index].flash_id2 & (supported_flash[index].mask2))))
 		{
 			dev_found = 1;
 			break;

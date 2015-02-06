@@ -52,6 +52,7 @@
 #define NAND_SFLASHC_EXEC_CMD                              NAND_REG(0x003C)
 #define NAND_READ_ID                                       NAND_REG(0x0040)
 #define NAND_READ_STATUS                                   NAND_REG(0x0044)
+#define NAND_READ_ID2                                      NAND_REG(0x0048)
 #define NAND_CONFIG_DATA                                   NAND_REG(0x0050)
 #define NAND_CONFIG                                        NAND_REG(0x0054)
 #define NAND_CONFIG_MODE                                   NAND_REG(0x0058)
@@ -310,7 +311,9 @@ struct onfi_probe_params
 struct flash_id
 {
 	unsigned flash_id;
+	unsigned flash_id2;
 	unsigned mask;
+	unsigned mask2;
 	unsigned density;
 	unsigned widebus;
 	unsigned pagesize;
