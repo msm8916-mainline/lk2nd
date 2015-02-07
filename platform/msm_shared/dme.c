@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -101,6 +101,7 @@ static int dme_get_query_resp(struct ufs_dev *dev,
 
 	switch (resp_upiu->opcode)
 	{
+		case UPIU_QUERY_OP_READ_ATTRIBUTE:
 		case UPIU_QUERY_OP_READ_FLAG:
 		case UPIU_QUERY_OP_SET_FLAG:
 									  if (buf_len < sizeof(uint32_t))
@@ -157,6 +158,79 @@ static int dme_send_query_upiu(struct ufs_dev *dev, struct utp_query_req_upiu_ty
 
 utp_send_query_upiu_err:
 	return ret;
+}
+
+int dme_set_fpurgeenable(struct ufs_dev *dev)
+{
+	STACKBUF_DMA_ALIGN(result, sizeof(uint32_t));
+	STACKBUF_DMA_ALIGN(status, sizeof(uint32_t));
+	uint32_t try_again                        = DME_BPURGESTATUS_RETRIES;
+	struct utp_query_req_upiu_type set_query  = {UPIU_QUERY_OP_SET_FLAG,
+												 UFS_IDX_fPurgeEn,
+												 0,
+												 0,
+												 (addr_t) result,
+												 sizeof(uint32_t)};
+	struct utp_query_req_upiu_type read_query = {UPIU_QUERY_OP_READ_ATTRIBUTE,
+												 UFS_IDX_bPurgeStatus,
+												 0,
+												 0,
+												 (addr_t)status,
+												 sizeof(uint32_t)};
+
+	if (dme_send_query_upiu(dev, &set_query))
+	{
+		dprintf(CRITICAL, "%s:%d DME Purge Enable failed\n", __func__, __LINE__);
+		return -UFS_FAILURE;
+	}
+
+	arch_invalidate_cache_range((addr_t) result, sizeof(uint32_t));
+	dprintf(INFO, "%s:%d Purge enable status: %u\n", __func__,__LINE__, *result);
+
+	do {
+		*status = 0;
+		arch_invalidate_cache_range((addr_t) status, sizeof(uint32_t));
+		if (dme_send_query_upiu(dev, &read_query))
+		{
+			dprintf(CRITICAL, "%s:%d DME Purge Status Read failed\n", __func__, __LINE__);
+			return -UFS_FAILURE;
+		}
+
+		switch (*status)
+		{
+
+			case 0x0:
+#ifdef DEBUG_UFS
+				dprintf(INFO, "%s:%d Purge operation returning to ufs_erase. Purge Status 0x0\n", __func__, __LINE__);
+#endif
+				return UFS_SUCCESS;
+			case 0x3:
+#ifdef DEBUG_UFS
+				dprintf(INFO, "%s:%d Purge operation has completed. Purge Status:0x3\n", __func__, __LINE__);
+#endif
+				// next read of status will move to 0
+				continue;
+			case 0x1:
+#ifdef DEBUG_UFS
+				dprintf(INFO, "%s:%d Purge operation is still in progress.. Retrying\n", __func__, __LINE__);
+#endif
+				try_again--;
+				continue;
+			case 0x2:
+				dprintf(CRITICAL, "%s:%d Purge operation stopped prematurely\n", __func__, __LINE__);
+				return -UFS_FAILURE;
+			case 0x4:
+				dprintf(CRITICAL, "%s:%d Purge operation failed due to logical unit queue not empty\n", __func__, __LINE__);
+				return -UFS_FAILURE;
+			case 0x5:
+				dprintf(CRITICAL, "%s:%d Purge operation general failure\n", __func__, __LINE__);
+				return -UFS_FAILURE;
+		}
+	} while((*status == 0x1 || *status == 0x3) && try_again);
+
+	// should not come here
+	dprintf(CRITICAL, "%s:%d Purge operation timed out after checking status %d times\n", __func__, __LINE__, DME_BPURGESTATUS_RETRIES);
+	return -UFS_FAILURE;
 }
 
 int dme_set_fpoweronwpen(struct ufs_dev *dev)
@@ -491,6 +565,7 @@ int utp_build_query_req_upiu(struct upiu_trans_mgmt_query_hdr *req_upiu,
 	switch (upiu_data->opcode)
 	{
 		case UPIU_QUERY_OP_READ_FLAG:
+		case UPIU_QUERY_OP_READ_ATTRIBUTE:
 		case UPIU_QUERY_OP_READ_DESCRIPTOR:
 											req_upiu->basic_hdr.query_task_mgmt_func = UPIU_QUERY_FUNC_STD_READ_REQ;
 											break;
