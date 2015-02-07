@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -137,7 +137,7 @@ static int dme_send_query_upiu(struct ufs_dev *dev, struct utp_query_req_upiu_ty
 	req_upiu.idn           = query->idn;
 	req_upiu.trans_type    = UPIU_TYPE_QUERY_REQ;
 	req_upiu.dd            = UTRD_NO_DATA_TRANSFER;
-	req_upiu.resp_ptr      = (struct upiu_basic_hdr *) &resp_upiu;
+	req_upiu.resp_ptr      = (struct upiu_basic_resp_hdr *) &resp_upiu;
 	req_upiu.resp_len      = sizeof(resp_upiu);
 	req_upiu.resp_data_ptr = query->buf;
 	req_upiu.timeout_msecs = UTP_GENERIC_CMD_TIMEOUT;
@@ -430,7 +430,7 @@ int dme_read_config_desc(struct ufs_dev *dev)
 int dme_send_nop_query(struct ufs_dev *dev)
 {
 	struct upiu_req_build_type     req_upiu;
-	struct upiu_basic_hdr          resp_upiu;
+	struct upiu_basic_resp_hdr     resp_upiu;
 	int                            ret;
 	unsigned                       try_again;
 
