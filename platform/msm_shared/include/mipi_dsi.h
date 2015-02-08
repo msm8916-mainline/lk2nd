@@ -162,6 +162,9 @@ struct mdss_dsi_pll_config {
 	uint32_t  halfbit_clock;
 	uint32_t  vco_clock;
 	uint32_t  vco_delay;
+	uint32_t  vco_min;
+	uint32_t  vco_max;
+	uint32_t  en_vco_zero_phase;
 	uint8_t   directpath;
 	uint8_t   posdiv1;
 	uint8_t   posdiv3;
