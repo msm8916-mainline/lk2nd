@@ -70,11 +70,15 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 	}
 	else if(freq == MMC_CLK_96MHZ)
 	{
-		ret = clk_get_set_enable(clk_name, 100000000, true);
+		ret = clk_get_set_enable(clk_name, 96000000, true);
 	}
 	else if(freq == MMC_CLK_192MHZ)
 	{
 		ret = clk_get_set_enable(clk_name, 192000000, true);
+	}
+	else if(freq == MMC_CLK_400MHZ)
+	{
+		ret = clk_get_set_enable(clk_name, 384000000, 1);
 	}
 	else
 	{

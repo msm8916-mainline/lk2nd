@@ -38,6 +38,7 @@
 
 #define MSM_SHARED_IMEM_BASE        0x066BF000
 #define RESTART_REASON_ADDR         (MSM_SHARED_IMEM_BASE + 0x65C)
+#define BS_INFO_ADDR                (MSM_SHARED_IMEM_BASE + 0x6B0)
 
 #define MSM_GIC_DIST_BASE           (MSM_IOMAP_HMSS_START + 0x003C0000)
 #define MSM_GIC_REDIST_BASE         (MSM_IOMAP_HMSS_START + 0x00400000)
@@ -93,8 +94,8 @@
 #define APCS_CLOCK_BRANCH_ENA_VOTE  (CLK_CTL_BASE + 0x52004)
 
 /* UART Clocks */
-#define BLSP1_AHB_CBCR              (CLK_CTL_BASE + 0x29004)
-#define BLSP2_UART2_APPS_CBCR       (CLK_CTL_BASE + 0x29008)
+#define BLSP2_AHB_CBCR              (CLK_CTL_BASE + 0x25004)
+#define BLSP2_UART2_APPS_CBCR       (CLK_CTL_BASE + 0x29004)
 #define BLSP2_UART2_APPS_CMD_RCGR   (CLK_CTL_BASE + 0x2900C)
 #define BLSP2_UART2_APPS_CFG_RCGR   (CLK_CTL_BASE + 0x29010)
 #define BLSP2_UART2_APPS_M          (CLK_CTL_BASE + 0x29014)
@@ -163,7 +164,7 @@
 #define MPM2_MPM_SLEEP_TIMETICK_COUNT_VAL    0x4A3000
 
 /* DRV strength for sdcc */
-#define SDC1_HDRV_PULL_CTL           (TLMM_BASE_ADDR + 0x0003C000)
+#define SDC1_HDRV_PULL_CTL           (TLMM_BASE_ADDR + 0x0012C000)
 
 /* SDHCI - power control registers */
 #define SDCC_MCI_HC_MODE            (0x00000078)
