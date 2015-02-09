@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -32,6 +32,7 @@
 #include <asm.h>
 #include <bits.h>
 #include <arch/ops.h>
+#include <dload_util.h>
 #include "scm.h"
 
 #pragma GCC optimize ("O0")
@@ -801,14 +802,17 @@ uint8_t switch_ce_chn_cmd(enum ap_ce_channel_type channel)
 int scm_halt_pmic_arbiter()
 {
 	int ret = 0;
+	scmcall_arg scm_arg = {0};
 
-	if (scm_arm_support)
-	{
-		dprintf(INFO, "%s:SCM call is not supported\n",__func__);
-		return -1;
+	if (scm_arm_support) {
+		scm_arg.x0 = MAKE_SIP_SCM_CMD(SCM_SVC_PWR, SCM_IO_DISABLE_PMIC_ARBITER);
+		scm_arg.x1 = MAKE_SCM_ARGS(0x1);
+		scm_arg.x2 = 0;
+		scm_arg.atomic = true;
+		ret = scm_call2(&scm_arg, NULL);
+	} else {
+		ret = scm_call_atomic(SCM_SVC_PWR, SCM_IO_DISABLE_PMIC_ARBITER, 0);
 	}
-
-	ret = scm_call_atomic(SCM_SVC_PWR, SCM_IO_DISABLE_PMIC_ARBITER, 0);
 
 	return ret;
 }
@@ -1020,4 +1024,82 @@ uint32_t scm_call2(scmcall_arg *arg, scmcall_ret *ret)
 		free(indir_arg);
 
 	return 0;
+}
+
+uint32_t is_secure_boot_disable()
+{
+	uint32_t ret = 0;
+	uint32_t resp[2];
+	scmcall_arg scm_arg = {0};
+	scmcall_ret scm_ret = {0};
+
+	if (!scm_arm_support) {
+		ret = scm_call_atomic2(TZBSP_SVC_INFO, IS_SECURE_BOOT_ENABLED, &resp, sizeof(resp));
+	} else {
+		scm_arg.x0 = MAKE_SIP_SCM_CMD(TZBSP_SVC_INFO, IS_SECURE_BOOT_ENABLED);
+		ret = scm_call2(&scm_arg, &scm_ret);
+		resp[0] = scm_ret.x1;
+	}
+
+	/* Parse Bit 0 and Bit 2 of the response
+	* Bit 0 - SECBOOT_ENABLE_CHECK
+	* Bit 2 - DEBUG_DISABLE_CHECK
+	*/
+	if(!ret) {
+		if(!(resp[0] & 0x1))
+			ret = (resp[0] & 0x4);
+	} else
+		dprintf(CRITICAL, "SCM call is_secure_boot_disable failed\n");
+
+	return ret;
+}
+
+bool is_scm_arm_support_available()
+{
+	return scm_arm_support;
+}
+
+int scm_dload_mode(int mode)
+{
+	int ret = 0;
+	uint32_t dload_type;
+	scmcall_arg scm_arg = {0};
+
+	dprintf(SPEW, "DLOAD mode: %d\n", mode);
+	if (mode == NORMAL_DLOAD)
+		dload_type = SCM_DLOAD_MODE;
+	else if(mode == EMERGENCY_DLOAD)
+		dload_type = SCM_EDLOAD_MODE;
+	else
+		dload_type = 0;
+
+	if(!is_scm_arm_support_available()) {
+		ret = scm_call_atomic2(SCM_SVC_BOOT, SCM_DLOAD_CMD, dload_type, 0);
+	} else {
+		scm_arg.x0 = MAKE_SIP_SCM_CMD(SCM_SVC_BOOT, SCM_DLOAD_CMD);
+		scm_arg.x1 = MAKE_SCM_ARGS(0x2);
+		scm_arg.x2 = dload_type;
+		scm_arg.x3 = 0x0;
+		scm_arg.atomic = true;
+		ret = scm_call2(&scm_arg, NULL);
+	}
+	if (ret)
+		dprintf(CRITICAL, "Failed to write to boot misc: %d\n", ret);
+
+	/* Make WDOG_DEBUG DISABLE scm call only in non-secure boot */
+	if(is_secure_boot_disable()) {
+		if(!is_scm_arm_support_available()) {
+			ret = scm_call_atomic2(SCM_SVC_BOOT, WDOG_DEBUG_DISABLE, 1, 0);
+		} else {
+			scm_arg.x0 = MAKE_SIP_SCM_CMD(SCM_SVC_BOOT, WDOG_DEBUG_DISABLE);
+			scm_arg.x1 = MAKE_SCM_ARGS(0x2);
+			scm_arg.x2 = 1;
+			scm_arg.x3 = 0x0;
+			scm_arg.atomic =true;
+			ret = scm_call2(&scm_arg, NULL);
+		}
+		if (ret)
+			dprintf(CRITICAL, "Failed to disable the wdog debug \n");
+	}
+	return ret;
 }
