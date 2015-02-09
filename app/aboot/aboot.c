@@ -57,6 +57,7 @@
 #include <boot_device.h>
 #include <boot_verifier.h>
 #include <image_verify.h>
+#include <decompress.h>
 #if USE_RPMB_FOR_DEVINFO
 #include <rpmb.h>
 #endif
@@ -858,6 +859,14 @@ int boot_linux_from_mmc(void)
 	unsigned imagesize_actual;
 	unsigned second_actual = 0;
 
+	unsigned int out_len = 0;
+	unsigned int out_avai_len = 0;
+	unsigned char *out_addr = NULL;
+	uint32_t dtb_offset = 0;
+	unsigned char *kernel_start_addr = NULL;
+	unsigned int kernel_size = 0;
+	int rc;
+
 #if DEVICE_TREE
 	struct dt_table *table;
 	struct dt_entry dt_entry;
@@ -948,9 +957,20 @@ int boot_linux_from_mmc(void)
 		return -1;
 	}
 
+	/*
+	 * Update loading flow of bootimage to support compressed/uncompressed
+	 * bootimage on both 64bit and 32bit platform.
+	 * 1. Load bootimage from emmc partition onto DDR.
+	 * 2. Check if bootimage is gzip format. If yes, decompress compressed kernel
+	 * 3. Check kernel header and update kernel load addr for 64bit and 32bit
+	 *    platform accordingly.
+	 * 4. Sanity Check on kernel_addr and ramdisk_addr and copy data.
+	 */
+
 	dprintf(INFO, "Loading boot image (%d): start\n", imagesize_actual);
 	bs_set_timestamp(BS_KERNEL_LOAD_START);
 
+	/* Read image without signature */
 	if (mmc_read(ptn + offset, (void *)image_addr, imagesize_actual))
 	{
 		dprintf(CRITICAL, "ERROR: Cannot read boot image\n");
@@ -991,11 +1011,38 @@ int boot_linux_from_mmc(void)
 	}
 
 	/*
+	 * Check if the kernel image is a gzip package. If yes, need to decompress it.
+	 * If not, continue booting.
+	 */
+	if (is_gzip_package((unsigned char *)(image_addr + page_size), hdr->kernel_size))
+	{
+		out_addr = (unsigned char *)(image_addr + imagesize_actual + page_size);
+		out_avai_len = target_get_max_flash_size() - imagesize_actual - page_size;
+		dprintf(INFO, "decompress image start\n");
+		rc = decompress((unsigned char *)(image_addr + page_size),
+				hdr->kernel_size, out_addr, out_avai_len,
+				&dtb_offset, &out_len);
+		if (rc)
+		{
+			dprintf(INFO, "decompress image failed!!!\n");
+			ASSERT(0);
+		}
+
+		dprintf(INFO, "decompressed image finished.\n");
+		kptr = (struct kernel64_hdr *)out_addr;
+		kernel_start_addr = out_addr;
+		kernel_size = out_len;
+	} else {
+		kptr = (struct kernel64_hdr *)(image_addr + page_size);
+		kernel_start_addr = (unsigned char *)(image_addr + page_size);
+		kernel_size = hdr->kernel_size;
+	}
+
+	/*
 	 * Update the kernel/ramdisk/tags address if the boot image header
 	 * has default values, these default values come from mkbootimg when
 	 * the boot image is flashed using fastboot flash:raw
 	 */
-	kptr = (void *)(image_addr + page_size);
 	update_ker_tags_rdisk_addr(hdr, IS_ARM64(kptr));
 
 	/* Get virtual addresses since the hdr saves physical addresses. */
@@ -1003,8 +1050,9 @@ int boot_linux_from_mmc(void)
 	hdr->ramdisk_addr = VA((addr_t)(hdr->ramdisk_addr));
 	hdr->tags_addr = VA((addr_t)(hdr->tags_addr));
 
+	kernel_size = ROUND_TO_PAGE(kernel_size,  page_mask);
 	/* Check if the addresses in the header are valid. */
-	if (check_aboot_addr_range_overlap(hdr->kernel_addr, kernel_actual) ||
+	if (check_aboot_addr_range_overlap(hdr->kernel_addr, kernel_size) ||
 		check_aboot_addr_range_overlap(hdr->ramdisk_addr, ramdisk_actual))
 	{
 		dprintf(CRITICAL, "kernel/ramdisk addresses overlap with aboot addresses.\n");
@@ -1019,9 +1067,8 @@ int boot_linux_from_mmc(void)
 	}
 #endif
 
-
 	/* Move kernel, ramdisk and device tree to correct address */
-	memmove((void*) hdr->kernel_addr, (char *)(image_addr + page_size), hdr->kernel_size);
+	memmove((void*) hdr->kernel_addr, kernel_start_addr, kernel_size);
 	memmove((void*) hdr->ramdisk_addr, (char *)(image_addr + page_size + kernel_actual), hdr->ramdisk_size);
 
 	#if DEVICE_TREE
@@ -1061,8 +1108,8 @@ int boot_linux_from_mmc(void)
 		 * Else update with the atags address in the kernel header
 		 */
 		void *dtb;
-		dtb = dev_tree_appended((void*) hdr->kernel_addr,
-					kernel_actual,
+		dtb = dev_tree_appended((void*)(image_addr + page_size),
+					hdr->kernel_size, dtb_offset,
 					(void *)hdr->tags_addr);
 		if (!dtb) {
 			dprintf(CRITICAL, "ERROR: Appended Device Tree Blob not found\n");
@@ -1225,8 +1272,8 @@ int boot_linux_from_flash(void)
 		verify_signed_bootimg((uint32_t)image_addr, imagesize_actual);
 
 		/* Move kernel and ramdisk to correct address */
-		memmove((void*) hdr->kernel_addr, (char *)(image_addr + page_size), hdr->kernel_size);
-		memmove((void*) hdr->ramdisk_addr, (char *)(image_addr + page_size + kernel_actual), hdr->ramdisk_size);
+		memmove((void*) hdr->kernel_addr, (char*) (image_addr + page_size), hdr->kernel_size);
+		memmove((void*) hdr->ramdisk_addr, (char*) (image_addr + page_size + kernel_actual), hdr->ramdisk_size);
 #if DEVICE_TREE
 		/* Validate and Read device device tree in the "tags_add */
 		if (check_aboot_addr_range_overlap(hdr->tags_addr, dt_entry.size))
@@ -1571,7 +1618,6 @@ int copy_dtb(uint8_t *boot_image_start)
 	struct boot_img_hdr *hdr = (struct boot_img_hdr *) (boot_image_start);
 
 	if(hdr->dt_size != 0) {
-
 		/* add kernel offset */
 		dt_image_offset += page_size;
 		n = ROUND_TO_PAGE(hdr->kernel_size, page_mask);
@@ -1626,11 +1672,18 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	uint32_t image_actual;
 	uint32_t dt_actual = 0;
 	uint32_t sig_actual = SIGNATURE_SIZE;
-	struct boot_img_hdr *hdr;
-	struct kernel64_hdr *kptr;
+	struct boot_img_hdr *hdr = NULL;
+	struct kernel64_hdr *kptr = NULL;
 	char *ptr = ((char*) data);
 	int ret = 0;
 	uint8_t dtb_copied = 0;
+	unsigned int out_len = 0;
+	unsigned int out_avai_len = 0;
+	unsigned char *out_addr = NULL;
+	uint32_t dtb_offset = 0;
+	unsigned char *kernel_start_addr = NULL;
+	unsigned int kernel_size = 0;
+
 
 #ifdef MDTP_SUPPORT
 	/* Go through Firmware Lock verification before continue with boot process */
@@ -1690,11 +1743,39 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 		verify_signed_bootimg((uint32_t)data, (image_actual - sig_actual));
 
 	/*
+	 * Check if the kernel image is a gzip package. If yes, need to decompress it.
+	 * If not, continue booting.
+	 */
+	if (is_gzip_package((unsigned char *)(data + page_size), hdr->kernel_size))
+	{
+		out_addr = (unsigned char *)target_get_scratch_address();
+		out_addr = (unsigned char *)(out_addr + image_actual + page_size);
+		out_avai_len = target_get_max_flash_size() - image_actual - page_size;
+		dprintf(INFO, "decompress image start\n");
+		ret = decompress((unsigned char *)(ptr + page_size),
+				hdr->kernel_size, out_addr, out_avai_len,
+				&dtb_offset, &out_len);
+		if (ret)
+		{
+			dprintf(INFO, "decompress image failed!!!\n");
+			ASSERT(0);
+		}
+
+		dprintf(INFO, "decompressed image finished.\n");
+		kptr = (struct kernel64_hdr *)out_addr;
+		kernel_start_addr = out_addr;
+		kernel_size = out_len;
+	} else {
+		kptr = (struct kernel64_hdr*)((char *)data + page_size);
+		kernel_start_addr = (unsigned char *)((char *)data + page_size);
+		kernel_size = hdr->kernel_size;
+	}
+
+	/*
 	 * Update the kernel/ramdisk/tags address if the boot image header
 	 * has default values, these default values come from mkbootimg when
 	 * the boot image is flashed using fastboot flash:raw
 	 */
-	kptr = (struct kernel64_hdr*)((char*) data + page_size);
 	update_ker_tags_rdisk_addr(hdr, IS_ARM64(kptr));
 
 	/* Get virtual addresses since the hdr saves physical addresses. */
@@ -1702,8 +1783,9 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	hdr->ramdisk_addr = VA(hdr->ramdisk_addr);
 	hdr->tags_addr = VA(hdr->tags_addr);
 
+	kernel_size  = ROUND_TO_PAGE(kernel_size,  page_mask);
 	/* Check if the addresses in the header are valid. */
-	if (check_aboot_addr_range_overlap(hdr->kernel_addr, kernel_actual) ||
+	if (check_aboot_addr_range_overlap(hdr->kernel_addr, kernel_size) ||
 		check_aboot_addr_range_overlap(hdr->ramdisk_addr, ramdisk_actual))
 	{
 		dprintf(CRITICAL, "kernel/ramdisk addresses overlap with aboot addresses.\n");
@@ -1725,9 +1807,15 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 
 	/* Load ramdisk & kernel */
 	memmove((void*) hdr->ramdisk_addr, ptr + page_size + kernel_actual, hdr->ramdisk_size);
-	memmove((void*) hdr->kernel_addr, ptr + page_size, hdr->kernel_size);
+	memmove((void*) hdr->kernel_addr, (char*) (kernel_start_addr), kernel_size);
 
 #if DEVICE_TREE
+	if (check_aboot_addr_range_overlap(hdr->tags_addr, kernel_actual))
+	{
+		dprintf(CRITICAL, "Tags addresses overlap with aboot addresses.\n");
+		return;
+	}
+
 	/*
 	 * If dtb is not found look for appended DTB in the kernel.
 	 * If appended dev tree is found, update the atags with
@@ -1736,20 +1824,13 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	 */
 	if (!dtb_copied) {
 		void *dtb;
-		dtb = dev_tree_appended((void *)hdr->kernel_addr, hdr->kernel_size,
+		dtb = dev_tree_appended((void*)(ptr + page_size),
+					hdr->kernel_size, dtb_offset,
 					(void *)hdr->tags_addr);
 		if (!dtb) {
 			fastboot_fail("dtb not found");
 			return;
 		}
-	}
-#endif
-
-#ifndef DEVICE_TREE
-	if (check_aboot_addr_range_overlap(hdr->tags_addr, MAX_TAGS_SIZE))
-	{
-		dprintf(CRITICAL, "Tags addresses overlap with aboot addresses.\n");
-		return;
 	}
 #endif
 
