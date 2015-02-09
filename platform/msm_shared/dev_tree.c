@@ -412,7 +412,7 @@ static int dev_tree_compatible(void *dtb, uint32_t dtb_size, struct dt_entry_nod
  * Return Value: DTB address : If appended device tree is found
  *               'NULL'         : Otherwise
  */
-void *dev_tree_appended(void *kernel, uint32_t kernel_size, void *tags)
+void *dev_tree_appended(void *kernel, uint32_t kernel_size, uint32_t dtb_offset, void *tags)
 {
 	void *kernel_end = kernel + kernel_size;
 	uint32_t app_dtb_offset = 0;
@@ -435,8 +435,10 @@ void *dev_tree_appended(void *kernel, uint32_t kernel_size, void *tags)
 	}
 	list_initialize(&dt_entry_queue->node);
 
-
-	memcpy((void*) &app_dtb_offset, (void*) (kernel + DTB_OFFSET), sizeof(uint32_t));
+	if (dtb_offset)
+		app_dtb_offset = dtb_offset;
+	else
+		memcpy((void*) &app_dtb_offset, (void*) (kernel + DTB_OFFSET), sizeof(uint32_t));
 
 	if (((uintptr_t)kernel + (uintptr_t)app_dtb_offset) < (uintptr_t)kernel) {
 		return NULL;
