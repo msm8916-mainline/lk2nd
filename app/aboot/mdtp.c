@@ -76,7 +76,7 @@ static int read_DIP(DIP_t *dip)
 		return -1;
 	}
 
-	dprintf(INFO, "mdtp: read_DIP: SUCCESS, read %d bytes\n", actual_partition_size);
+	dprintf(SPEW, "mdtp: read_DIP: SUCCESS, read %d bytes\n", actual_partition_size);
 
 	return 0;
 }
@@ -85,7 +85,6 @@ static int read_DIP(DIP_t *dip)
 static int write_DIP(DIP_t *dip)
 {
 	unsigned long long ptn = 0;
-	uint32_t partition_size;
 	uint32_t block_size = mmc_get_device_blocksize();
 
 	int index = INVALID_PTN;
@@ -94,30 +93,25 @@ static int write_DIP(DIP_t *dip)
 
 	index = partition_get_index("dip");
 	ptn = partition_get_offset(index);
+
 	if(ptn == 0)
 	{
 		return -1;
 	}
 
-	partition_size = partition_get_size(index);
-
-	if(partition_size < size)
-	{
-		dprintf(CRITICAL, "mdtp: write_DIP: ERROR, DIP partition too small\n");
-		return -1;
-	}
-
-	if(mmc_write(ptn, ROUNDUP(size, block_size), (void *)dip))
+	if(mmc_write(ptn, ROUNDUP(sizeof(DIP_t), block_size), (void *)dip))
 	{
 		dprintf(CRITICAL, "mdtp: write_DIP: ERROR, cannot read DIP info\n");
 		return -1;
 	}
 
+	dprintf(SPEW, "mdtp: write_DIP: SUCCESS, write %d bytes\n", ROUNDUP(sizeof(DIP_t), block_size));
+
 	return 0;
 }
 
-/* Provision the DIP by storing the default DIP into the EMMC */
-static void provision_DIP()
+/* Deactivate MDTP by storing the default DIP into the EMMC */
+static void write_deactivated_DIP()
 {
 	DIP_t *enc_dip;
 	DIP_t *dec_dip;
@@ -126,14 +120,14 @@ static void provision_DIP()
 	enc_dip = malloc(sizeof(DIP_t));
 	if (enc_dip == NULL)
 	{
-		dprintf(CRITICAL, "mdtp: provision_DIP: ERROR, cannot allocate DIP\n");
+		dprintf(CRITICAL, "mdtp: write_deactivated_DIP: ERROR, cannot allocate DIP\n");
 		return;
 	}
 
 	dec_dip = malloc(sizeof(DIP_t));
 	if (dec_dip == NULL)
 	{
-		dprintf(CRITICAL, "mdtp: provision_DIP: ERROR, cannot allocate DIP\n");
+		dprintf(CRITICAL, "mdtp: write_deactivated_DIP: ERROR, cannot allocate DIP\n");
 		free(enc_dip);
 		return;
 	}
@@ -145,21 +139,14 @@ static void provision_DIP()
 	ret = mdtp_tzbsp_enc_hash_DIP(dec_dip, enc_dip);
 	if(ret < 0)
 	{
-		dprintf(CRITICAL, "mdtp: provision_DIP: ERROR, cannot cipher DIP\n");
+		dprintf(CRITICAL, "mdtp: write_deactivated_DIP: ERROR, cannot cipher DIP\n");
 		goto out;
 	}
 
 	ret = write_DIP(enc_dip);
 	if(ret < 0)
 	{
-		dprintf(CRITICAL, "mdtp: provision_DIP: ERROR, cannot write DIP\n");
-		goto out;
-	}
-
-	ret = mdtp_tzbsp_set_provisioned_fuse();
-	if(ret < 0)
-	{
-		dprintf(CRITICAL, "mdtp: provision_DIP: ERROR, cannot set DIP_PROVISIONED fuse\n\n");
+		dprintf(CRITICAL, "mdtp: write_deactivated_DIP: ERROR, cannot write DIP\n");
 		goto out;
 	}
 
@@ -178,7 +165,7 @@ static int verify_partition_single_hash(char *name, uint32_t size, DIP_hash_tabl
 	uint32_t block_size = mmc_get_device_blocksize();
 	uint32_t actual_partition_size = ROUNDUP(size, block_size);
 
-	dprintf(INFO, "mdtp: verify_partition_single_hash: %s, %u\n", name, size);
+	dprintf(SPEW, "mdtp: verify_partition_single_hash: %s, %u\n", name, size);
 
 	ASSERT(name != NULL);
 	ASSERT(hash_table != NULL);
@@ -208,7 +195,7 @@ static int verify_partition_single_hash(char *name, uint32_t size, DIP_hash_tabl
 		return -1;
 	}
 
-	dprintf(INFO, "verify_partition_single_hash: %s: VERIFIED!\n", name);
+	dprintf(SPEW, "verify_partition_single_hash: %s: VERIFIED!\n", name);
 
 	return 0;
 }
@@ -228,7 +215,7 @@ static int verify_partition_block_hash(char *name,
 	uint32_t bytes_to_read;
 	uint32_t block_num = 0;
 
-	dprintf(INFO, "mdtp: verify_partition_block_hash: %s, %u\n", name, size);
+	dprintf(SPEW, "mdtp: verify_partition_block_hash: %s, %u\n", name, size);
 
 	ASSERT(name != NULL);
 	ASSERT(hash_table != NULL);
@@ -287,7 +274,7 @@ static int verify_partition_block_hash(char *name,
 		force_verify_block += 1;
 	}
 
-	dprintf(INFO, "verify_partition_block_hash: %s: VERIFIED!\n", name);
+	dprintf(SPEW, "verify_partition_block_hash: %s: VERIFIED!\n", name);
 
 	return 0;
 }
@@ -321,6 +308,75 @@ static int verify_partition(char *name,
 	return 0;
 }
 
+/* Display the recovery UI to allow the user to enter the PIN and continue boot */
+static int display_recovery_ui(DIP_t *dip)
+{
+	uint32_t pin_length = 0;
+	char entered_pin[MDTP_MAX_PIN_LEN+1] = {0};
+	uint32_t i;
+	uint32_t equal_count = 0, different_count = 0;
+
+	if (dip->mdtp_cfg.enable_local_pin_authentication)
+	{
+		dprintf(SPEW, "mdtp: display_recovery_ui: Local deactivation enabled\n");
+
+		pin_length = strlen(dip->mdtp_cfg.mdtp_pin.mdtp_pin);
+
+		if (pin_length > MDTP_MAX_PIN_LEN || pin_length < MDTP_MIN_PIN_LEN)
+		{
+			dprintf(CRITICAL, "mdtp: display_recovery_ui: Error, invalid PIN length\n");
+			display_error_msg();
+			return -1;
+		}
+
+		// Set entered_pin to initial '0' string + null terminator
+		for (i=0; i<pin_length; i++)
+		{
+			entered_pin[i] = '0';
+		}
+
+		// Allow the user to enter the PIN as many times as he wishes
+		// (with INVALID_PIN_DELAY_MSECONDS after each failed attempt)
+		while (1)
+		{
+		    get_pin_from_user(entered_pin, pin_length);
+
+		    // Go over the entire PIN in any case, to prevent side-channel attacks
+		    for (i=0; i<pin_length; i++)
+		    {
+		        if (dip->mdtp_cfg.mdtp_pin.mdtp_pin[i] == entered_pin[i])
+		            equal_count++;
+		        else
+		            different_count++;
+		    }
+
+		    if (equal_count == pin_length)
+		    {
+		        // Valid PIN - deactivate and continue boot
+		        dprintf(SPEW, "mdtp: display_recovery_ui: valid PIN, continue boot\n");
+		        write_deactivated_DIP();
+		        return 0;
+		    }
+		    else
+		    {
+		        // Invalid PIN - display an appropriate message (which also includes a wait
+		        // for INVALID_PIN_DELAY_MSECONDS), and allow the user to try again
+		        dprintf(CRITICAL, "mdtp: display_recovery_ui: ERROR, invalid PIN\n");
+		        display_invalid_pin_msg();
+
+		        equal_count = 0;
+		        different_count = 0;
+		    }
+		}
+	}
+	else
+	{
+		dprintf(CRITICAL, "mdtp: display_recovery_ui: Local deactivation disabled, unable to display recovery UI\n");
+		display_error_msg();
+		return -1;
+	}
+}
+
 /* Verify all protected partitinons according to the DIP */
 static int verify_all_partitions(DIP_t *dip, verify_result_t *verify_result)
 {
@@ -340,8 +396,6 @@ static int verify_all_partitions(DIP_t *dip, verify_result_t *verify_result)
 	}
 	else if (dip->status == DIP_STATUS_ACTIVATED)
 	{
-		show_checking_msg();
-
 		for(i=0; i<MAX_PARTITIONS; i++)
 		{
 			if(dip->partition_cfg[i].lock_enabled && dip->partition_cfg[i].size)
@@ -361,14 +415,12 @@ static int verify_all_partitions(DIP_t *dip, verify_result_t *verify_result)
 		if (verify_failure)
 		{
 			dprintf(CRITICAL, "mdtp: verify_all_partitions: Failed partition verification\n");
-			show_invalid_msg();
-			return -1;
+			return 0;
 		}
 
 	}
 
 	*verify_result = VERIFY_OK;
-	show_OK_msg();
 	return 0;
 }
 
@@ -385,14 +437,14 @@ static void validate_DIP_and_firmware()
 	enc_dip = malloc(ROUNDUP(sizeof(DIP_t), block_size));
 	if (enc_dip == NULL)
 	{
-		dprintf(CRITICAL, "mdtp: provision_DIP: ERROR, cannot allocate DIP\n");
+		dprintf(CRITICAL, "mdtp: validate_DIP_and_firmware: ERROR, cannot allocate DIP\n");
 		return;
 	}
 
 	dec_dip = malloc(ROUNDUP(sizeof(DIP_t), block_size));
 	if (dec_dip == NULL)
 	{
-		dprintf(CRITICAL, "mdtp: provision_DIP: ERROR, cannot allocate DIP\n");
+		dprintf(CRITICAL, "mdtp: validate_DIP_and_firmware: ERROR, cannot allocate DIP\n");
 		free(enc_dip);
 		return;
 	}
@@ -410,7 +462,7 @@ static void validate_DIP_and_firmware()
 	if(ret < 0)
 	{
 		dprintf(CRITICAL, "mdtp: validate_DIP_and_firmware: ERROR, cannot verify DIP\n");
-		show_invalid_msg();
+		display_error_msg();
 		goto out;
 	}
 
@@ -418,7 +470,7 @@ static void validate_DIP_and_firmware()
 	if(!verified)
 	{
 		dprintf(CRITICAL, "mdtp: validate_DIP_and_firmware: ERROR, corrupted DIP\n");
-		show_invalid_msg();
+		display_error_msg();
 		goto out;
 	}
 
@@ -432,14 +484,15 @@ static void validate_DIP_and_firmware()
 
 	if (verify_result == VERIFY_OK)
 	{
-		dprintf(INFO, "mdtp: validate_DIP_and_firmware: Verify OK\n");
+		dprintf(SPEW, "mdtp: validate_DIP_and_firmware: Verify OK\n");
 	}
 	else if (verify_result  == VERIFY_FAILED)
 	{
 		dprintf(CRITICAL, "mdtp: validate_DIP_and_firmware: ERROR, corrupted firmware\n");
+		display_recovery_ui(dec_dip);
 	} else /* VERIFY_SKIPPED */
 	{
-		dprintf(INFO, "mdtp: validate_DIP_and_firmware: Verify skipped\n");
+		dprintf(SPEW, "mdtp: validate_DIP_and_firmware: Verify skipped\n");
 	}
 
 out:
