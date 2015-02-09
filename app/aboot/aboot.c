@@ -57,6 +57,9 @@
 #include <boot_device.h>
 #include <boot_verifier.h>
 #include <image_verify.h>
+#if USE_RPMB_FOR_DEVINFO
+#include <rpmb.h>
+#endif
 
 #if DEVICE_TREE
 #include <libfdt.h>
@@ -1445,7 +1448,6 @@ continue_boot:
 BUF_DMA_ALIGN(info_buf, BOOT_IMG_MAX_PAGE_SIZE);
 void write_device_info_mmc(device_info *dev)
 {
-	struct device_info *info = (void*) info_buf;
 	unsigned long long ptn = 0;
 #if !VERIFIED_BOOT
 	unsigned long long size;
@@ -1473,14 +1475,12 @@ void write_device_info_mmc(device_info *dev)
 	size = partition_get_size(index);
 #endif
 
-	memcpy(info, dev, sizeof(device_info));
-
 	blocksize = mmc_get_device_blocksize();
 
 #if VERIFIED_BOOT
-	if(mmc_write(ptn, blocksize, (void *)info_buf))
+	if(mmc_write(ptn, blocksize, (void *)dev))
 #else
-	if(mmc_write((ptn + size - blocksize), blocksize, (void *)info_buf))
+	if(mmc_write((ptn + size - blocksize), blocksize, (void *)dev))
 #endif
 	{
 		dprintf(CRITICAL, "ERROR: Cannot write device info\n");
@@ -1488,9 +1488,8 @@ void write_device_info_mmc(device_info *dev)
 	}
 }
 
-void read_device_info_mmc(device_info *dev)
+void read_device_info_mmc(struct device_info *info)
 {
-	struct device_info *info = (void*) info_buf;
 	unsigned long long ptn = 0;
 #if !VERIFIED_BOOT
 	unsigned long long size;
@@ -1519,30 +1518,15 @@ void read_device_info_mmc(device_info *dev)
 	blocksize = mmc_get_device_blocksize();
 
 #if VERIFIED_BOOT
-	if(mmc_read(ptn, (void *)info_buf, blocksize))
+	if(mmc_read(ptn, (void *)info, blocksize))
 #else
-	if(mmc_read((ptn + size - blocksize), (void *)info_buf, blocksize))
+	if(mmc_read((ptn + size - blocksize), (void *)info, blocksize))
 #endif
 	{
 		dprintf(CRITICAL, "ERROR: Cannot read device info\n");
 		return;
 	}
 
-	if (memcmp(info->magic, DEVICE_MAGIC, DEVICE_MAGIC_SIZE))
-	{
-		memcpy(info->magic, DEVICE_MAGIC, DEVICE_MAGIC_SIZE);
-#if DEFAULT_UNLOCK
-		info->is_unlocked = 1;
-#else
-		info->is_unlocked = 0;
-#endif
-		info->is_verified = 0;
-		info->is_tampered = 0;
-		info->charger_screen_enabled = 0;
-
-		write_device_info_mmc(info);
-	}
-	memcpy(dev, info, sizeof(device_info));
 }
 
 void write_device_info_flash(device_info *dev)
@@ -1614,7 +1598,15 @@ void write_device_info(device_info *dev)
 {
 	if(target_is_emmc_boot())
 	{
-		write_device_info_mmc(dev);
+		struct device_info *info = (void*) info_buf;
+		memcpy(info, dev, sizeof(struct device_info));
+
+#if USE_RPMB_FOR_DEVINFO
+		if (is_secure_boot_enable())
+			write_device_info_rpmb((void*) info, mmc_get_device_blocksize());
+#else
+		write_device_info_mmc(info);
+#endif
 	}
 	else
 	{
@@ -1626,7 +1618,29 @@ void read_device_info(device_info *dev)
 {
 	if(target_is_emmc_boot())
 	{
-		read_device_info_mmc(dev);
+		struct device_info *info = (void*) info_buf;
+
+#if USE_RPMB_FOR_DEVINFO
+		if (is_secure_boot_enable())
+			read_device_info_rpmb((void*) info, mmc_get_device_blocksize());
+#else
+		read_device_info_mmc(info);
+#endif
+
+		if (memcmp(info->magic, DEVICE_MAGIC, DEVICE_MAGIC_SIZE))
+		{
+			memcpy(info->magic, DEVICE_MAGIC, DEVICE_MAGIC_SIZE);
+			if (is_secure_boot_enable())
+				info->is_unlocked = 0;
+			else
+				info->is_unlocked = 1;
+			info->is_verified = 0;
+			info->is_tampered = 0;
+			info->charger_screen_enabled = 0;
+
+			write_device_info(info);
+		}
+		memcpy(dev, info, sizeof(device_info));
 	}
 	else
 	{
