@@ -104,6 +104,10 @@ struct fastboot_cmd_desc {
 
 #define MAX_TAGS_SIZE   1024
 
+#define RECOVERY_HARD_RESET_MODE   0x01
+#define FASTBOOT_HARD_RESET_MODE   0x02
+#define RTC_HARD_RESET_MODE        0x03
+
 #define RECOVERY_MODE   0x77665502
 #define FASTBOOT_MODE   0x77665500
 #define ALARM_BOOT      0x77665503
@@ -2640,6 +2644,7 @@ void aboot_fastboot_register_commands(void)
 void aboot_init(const struct app_descriptor *app)
 {
 	unsigned reboot_mode = 0;
+	unsigned hard_reboot_mode = 0;
 	bool boot_into_fastboot = false;
 
 	/* Setup page size information for nv storage */
@@ -2707,11 +2712,15 @@ void aboot_init(const struct app_descriptor *app)
 	#endif
 
 	reboot_mode = check_reboot_mode();
-	if (reboot_mode == RECOVERY_MODE) {
+	hard_reboot_mode = check_hard_reboot_mode();
+	if (reboot_mode == RECOVERY_MODE ||
+		hard_reboot_mode == RECOVERY_HARD_RESET_MODE) {
 		boot_into_recovery = 1;
-	} else if(reboot_mode == FASTBOOT_MODE) {
+	} else if(reboot_mode == FASTBOOT_MODE ||
+		hard_reboot_mode == FASTBOOT_HARD_RESET_MODE) {
 		boot_into_fastboot = true;
-	} else if(reboot_mode == ALARM_BOOT) {
+	} else if(reboot_mode == ALARM_BOOT ||
+		hard_reboot_mode == RTC_HARD_RESET_MODE) {
 		boot_reason_alarm = true;
 	}
 
