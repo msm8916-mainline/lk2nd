@@ -46,6 +46,7 @@
 #include <smem.h>
 #include <board.h>
 #include <platform/timer.h>
+#include <qmp_phy.h>
 
 //#define DEBUG_USB
 
@@ -232,10 +233,6 @@ static void usb30_init(struct udc_device *dev_info)
 	/* 2. Put controller in reset */
 	dwc_reset(dwc, 1);
 
-	/* HS only mode support */
-#ifdef USE_HSONLY_MODE
-	usb_wrapper_hsonly_mode(wrapper);
-#endif
 
 	/* Steps 3 - 7 must be done while dwc is in reset condition */
 
@@ -243,9 +240,8 @@ static void usb30_init(struct udc_device *dev_info)
 	phy_reset(wrapper, dev_info);
 
 	/* 4. SS phy config */
-#ifndef USE_HSONLY_MODE
-	usb_wrapper_ss_phy_configure(wrapper);
-#endif
+	if (!use_hsonly_mode())
+		usb_wrapper_ss_phy_configure(wrapper);
 
 	/* 5. HS phy init */
 	usb_wrapper_hs_phy_init(wrapper);
@@ -265,6 +261,10 @@ static void usb30_init(struct udc_device *dev_info)
 	/* Perform phy init */
 	if (dev_info->t_usb_if->phy_init)
 		dev_info->t_usb_if->phy_init();
+
+	/* HS only mode support */
+	if (use_hsonly_mode())
+		usb_wrapper_hsonly_mode(wrapper);
 
 	/* 10. */
 	usb_wrapper_workaround_10(wrapper);
