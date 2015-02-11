@@ -233,11 +233,7 @@ void target_init(void)
 	}
 
 	/* Storage initialization is complete, read the partition table info */
-	if (partition_read_table())
-	{
-		dprintf(CRITICAL, "Error reading the partition table info\n");
-		ASSERT(0);
-	}
+	mmc_read_partition_table(0);
 }
 
 unsigned board_machtype(void)
@@ -360,12 +356,6 @@ const char * target_usb_controller()
 uint32_t target_override_pll()
 {
 	return 1;
-}
-
-void target_fastboot_init(void)
-{
-	/* We are entering fastboot mode, so read partition table */
-	mmc_read_partition_table(1);
 }
 
 crypto_engine_type board_ce_type(void)
