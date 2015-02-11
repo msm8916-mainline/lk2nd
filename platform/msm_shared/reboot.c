@@ -91,6 +91,21 @@ unsigned check_hard_reboot_mode(void)
 	return hard_restart_reason;
 }
 
+/* Return true if it is triggered by alarm. */
+uint32_t check_alarm_boot(void)
+{
+	/* Check reboot reason and power on reason */
+	if (pm8x41_get_is_cold_boot()) {
+		if (pm8x41_get_pon_reason() == RTC_TRG)
+			return 1;
+	} else {
+		if (readl(RESTART_REASON_ADDR) == ALARM_BOOT)
+			return 1;
+	}
+
+	return 0;
+}
+
 void reboot_device(unsigned reboot_reason)
 {
 	uint8_t reset_type = 0;
