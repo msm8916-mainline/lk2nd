@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -83,7 +83,7 @@ static struct ptable flash_ptable;
 
 #define LAST_NAND_PTN_LEN_PATTERN                     0xFFFFFFFF
 
-#define EXT4_CMDLINE  " rootfstype=ext4 root=/dev/mmcblk0p"
+#define EXT4_CMDLINE  " rootwait rootfstype=ext4 root=/dev/mmcblk0p"
 #define UBI_CMDLINE " rootfstype=ubifs rootflags=bulk_read ubi.fm_autoconvert=1"
 
 struct qpic_nand_init_config config;
