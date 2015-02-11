@@ -897,6 +897,8 @@ int boot_linux_from_mmc(void)
                     return -1;
 		}
 	}
+	/* Set Lun for boot & recovery partitions */
+	mmc_set_lun(partition_get_lun(index));
 
 	if (mmc_read(ptn + offset, (uint32_t *) buf, page_size)) {
 		dprintf(CRITICAL, "ERROR: Cannot read boot image header\n");
