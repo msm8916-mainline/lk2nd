@@ -541,10 +541,14 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		panelstruct->panelresetseq
 					  = &jdi_a216_fhd_video_reset_seq;
 		panelstruct->backlightinfo = &jdi_a216_fhd_video_backlight;
-		pinfo->mipi.panel_cmds
+		pinfo->mipi.panel_on_cmds
 					  = jdi_a216_fhd_video_on_command;
-		pinfo->mipi.num_of_panel_cmds
+		pinfo->mipi.num_of_panel_on_cmds
 					  = JDI_A216_FHD_VIDEO_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+					  = jdi_a216_fhd_video_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+					  = JDI_A216_FHD_VIDEO_OFF_COMMAND;
 		memcpy(phy_db->timing,
 				jdi_a216_fhd_video_timings, TIMING_SIZE);
 		break;
