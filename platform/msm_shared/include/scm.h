@@ -258,7 +258,7 @@ typedef struct
 #define IS_CALL_AVAIL_CMD           0x01
 
 /* Download Mode specific arguments to be passed to TZ */
-#define SCM_EDLOAD_MODE 0x02
+#define SCM_EDLOAD_MODE 0x01
 #define SCM_DLOAD_MODE  0x10
 
 /* SSD parsing status messages from TZ */
