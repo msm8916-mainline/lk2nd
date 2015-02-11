@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -66,6 +66,7 @@
 #endif
 
 #define FASTBOOT_MODE           0x77665500
+#define PON_SOFT_RB_SPARE       0x88F
 
 #define CE1_INSTANCE            1
 #define CE_EE                   1
@@ -239,6 +240,21 @@ unsigned check_reboot_mode(void)
 	writel(0x00, RESTART_REASON_ADDR);
 
 	return restart_reason;
+}
+
+unsigned check_hard_reboot_mode(void)
+{
+	uint8_t hard_restart_reason = 0;
+	uint8_t value = 0;
+
+	/* Read reboot reason and scrub it
+	  * Bit-5, bit-6 and bit-7 of SOFT_RB_SPARE for hard reset reason
+	  */
+	value = pm8x41_reg_read(PON_SOFT_RB_SPARE);
+	hard_restart_reason = value >> 5;
+	pm8x41_reg_write(PON_SOFT_RB_SPARE, value & 0x1f);
+
+	return hard_restart_reason;
 }
 
 static int scm_dload_mode(int mode)
