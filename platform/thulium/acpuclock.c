@@ -172,10 +172,17 @@ void clock_usb30_init(void)
 
 	clock_usb30_gdsc_enable();
 
-	ret = clk_get_set_enable("usb30_master_clk", 125000000, true);
+	ret = clk_get_set_enable("usb30_master_clk", 150000000, true);
 	if(ret)
 	{
 		dprintf(CRITICAL, "failed to set usb30_master_clk. ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("gcc_aggre2_usb3_axi_clk", 150000000, true);
+	if (ret)
+	{
+		dprintf(CRITICAL, "failed to set aggre2_usb3_axi_clk, ret = %d\n", ret);
 		ASSERT(0);
 	}
 
