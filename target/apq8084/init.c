@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -285,13 +285,17 @@ void target_init(void)
 
 	platform_read_boot_config();
 
+#ifdef MMC_SDHCI_SUPPORT
 	if (platform_boot_dev_isemmc())
 		target_sdc_init();
-	else
+#endif
+#ifdef UFS_SUPPORT
+	if(!platform_boot_dev_isemmc())
 	{
 		ufs_device.base = UFS_BASE;
 		ufs_init(&ufs_device);
 	}
+#endif
 
 	/* Storage initialization is complete, read the partition table info */
 	if (partition_read_table())
