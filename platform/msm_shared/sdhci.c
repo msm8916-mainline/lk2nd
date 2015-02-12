@@ -430,7 +430,7 @@ static uint8_t sdhci_cmd_complete(struct sdhci_host *host, struct mmc_command *c
 	uint8_t i;
 	uint8_t ret = 0;
 	uint8_t need_reset = 0;
-	uint32_t retry = 0;
+	uint64_t retry = 0;
 	uint32_t int_status;
 	uint32_t trans_complete = 0;
 	uint32_t err_status;
