@@ -261,8 +261,8 @@ static struct branch_clk gcc_sys_noc_usb30_axi_clk = {
 };
 
 static struct clk_freq_tbl ftbl_gcc_usb30_master_clk[] = {
-	F(  19200000, gpll0,    1,    0,    0),
-	F( 125000000, gpll0,    5,    0,    0),
+	F(  19200000, cxo,    1,    0,    0),
+	F( 120000000, gpll0,    5,    0,    0),
 	F( 150000000, gpll0,    4,    0,    0),
 	F_END
 };
@@ -291,6 +291,16 @@ static struct branch_clk gcc_usb30_master_clk = {
 
 	.c = {
 		.dbg_name = "usb30_master_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
+static struct branch_clk gcc_aggre2_usb3_axi_clk = {
+	.cbcr_reg     = (uint32_t *) GCC_AGGRE2_USB3_AXI_CBCR,
+	.parent       = &usb30_master_clk_src.c,
+
+	.c = {
+		.dbg_name = "gcc_aggre2_usb3_axi_clk",
 		.ops      = &clk_ops_branch,
 	},
 };
@@ -405,6 +415,7 @@ static struct clk_lookup msm_thulium_clocks[] =
 
 	/* USB30 clocks */
 	CLK_LOOKUP("usb30_master_clk",    gcc_usb30_master_clk.c),
+	CLK_LOOKUP("gcc_aggre2_usb3_axi_clk", gcc_aggre2_usb3_axi_clk.c),
 	CLK_LOOKUP("usb30_iface_clk",     gcc_sys_noc_usb30_axi_clk.c),
 	CLK_LOOKUP("usb30_mock_utmi_clk", gcc_usb30_mock_utmi_clk.c),
 	CLK_LOOKUP("usb30_sleep_clk",     gcc_usb30_sleep_clk.c),

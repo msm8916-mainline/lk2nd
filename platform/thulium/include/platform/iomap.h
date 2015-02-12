@@ -104,26 +104,27 @@
 
 /* USB3 clocks */
 #define USB_30_BCR                  (CLK_CTL_BASE + 0xF000)
+#define GCC_USB30_GDSCR             (CLK_CTL_BASE + 0xF004)
 #define USB30_MASTER_CBCR           (CLK_CTL_BASE + 0xF008)
+#define USB30_SLEEP_CBCR            (CLK_CTL_BASE + 0xF00C)
+#define USB30_MOCK_UTMI_CBCR        (CLK_CTL_BASE + 0xF010)
 #define USB30_MASTER_CMD_RCGR       (CLK_CTL_BASE + 0xF014)
 #define USB30_MASTER_CFG_RCGR       (CLK_CTL_BASE + 0xF018)
 #define USB30_MASTER_M              (CLK_CTL_BASE + 0xF01C)
 #define USB30_MASTER_N              (CLK_CTL_BASE + 0xF020)
 #define USB30_MASTER_D              (CLK_CTL_BASE + 0xF024)
+#define USB30_MOCK_UTMI_CMD_RCGR    (CLK_CTL_BASE + 0xF028)
+#define USB30_MOCK_UTMI_CFG_RCGR    (CLK_CTL_BASE + 0xF02C)
 #define SYS_NOC_USB3_AXI_CBCR       (CLK_CTL_BASE + 0xF03C)
 
-#define USB30_MOCK_UTMI_CMD_RCGR    (CLK_CTL_BASE + 0xF014)
-#define USB30_MOCK_UTMI_CFG_RCGR    (CLK_CTL_BASE + 0xF018)
-#define USB30_MOCK_UTMI_CBCR        (CLK_CTL_BASE + 0xF010)
-#define USB30_SLEEP_CBCR            (CLK_CTL_BASE + 0xF00C)
 #define USB30_PHY_AUX_CMD_RCGR      (CLK_CTL_BASE + 0x5000C)
 #define USB30_PHY_AUX_CFG_RCGR      (CLK_CTL_BASE + 0x50010)
 #define USB30_PHY_AUX_CBCR          (CLK_CTL_BASE + 0x50000)
 #define USB30_PHY_PIPE_CBCR         (CLK_CTL_BASE + 0x50004)
 #define USB30_PHY_BCR               (CLK_CTL_BASE + 0x50020)
 #define USB30PHY_PHY_BCR            (CLK_CTL_BASE + 0x50024)
-#define GCC_USB30_GDSCR             (CLK_CTL_BASE + 0xF004)
 #define USB_PHY_CFG_AHB2PHY_CBCR    (CLK_CTL_BASE + 0x6A004)
+#define GCC_AGGRE2_USB3_AXI_CBCR    (CLK_CTL_BASE + 0x83018)
 
 /* SDCC */
 #define SDCC1_BCR                   (CLK_CTL_BASE + 0x13000) /* block reset */
