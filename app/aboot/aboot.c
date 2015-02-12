@@ -127,7 +127,7 @@ struct fastboot_cmd_desc {
 
 #define ADD_OF(a, b) (UINT_MAX - b > a) ? (a + b) : UINT_MAX
 
-#if UFS_SUPPORT || USE_BOOTDEV_CMDLINE
+#if USE_BOOTDEV_CMDLINE
 static const char *emmc_cmdline = " androidboot.bootdevice=";
 #else
 static const char *emmc_cmdline = " androidboot.emmc=true";
@@ -250,7 +250,7 @@ unsigned char *update_cmdline(const char * cmdline)
 	}
 	if (target_is_emmc_boot()) {
 		cmdline_len += strlen(emmc_cmdline);
-#if UFS_SUPPORT || USE_BOOTDEV_CMDLINE
+#if USE_BOOTDEV_CMDLINE
 		boot_dev_buf = (char *) malloc(sizeof(char) * BOOT_DEV_MAX_LEN);
 		ASSERT(boot_dev_buf);
 		platform_boot_dev_cmdline(boot_dev_buf);
@@ -365,7 +365,7 @@ unsigned char *update_cmdline(const char * cmdline)
 			if (have_cmdline) --dst;
 			have_cmdline = 1;
 			while ((*dst++ = *src++));
-#if UFS_SUPPORT  || USE_BOOTDEV_CMDLINE
+#if USE_BOOTDEV_CMDLINE
 			src = boot_dev_buf;
 			if (have_cmdline) --dst;
 			while ((*dst++ = *src++));
