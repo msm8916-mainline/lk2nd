@@ -2159,9 +2159,9 @@ uint32_t mmc_sdhci_erase(struct mmc_device *dev, uint32_t blk_addr, uint64_t len
 
 	/*
 	 * As per emmc 4.5 spec section 7.4.27, calculate the erase timeout
-	 * erase_timeout = 300 * ERASE_TIMEOUT_MULT * num_erase_grps
+	 * erase_timeout = 300ms * ERASE_TIMEOUT_MULT * num_erase_grps
 	 */
-	erase_timeout = (300 * card->ext_csd[MMC_ERASE_TIMEOUT_MULT] * num_erase_grps);
+	erase_timeout = (300 * 1000 * card->ext_csd[MMC_ERASE_TIMEOUT_MULT] * num_erase_grps);
 
 	/* Send CMD38 to perform erase */
 	if (mmc_send_erase(dev, erase_timeout))
