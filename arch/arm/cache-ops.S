@@ -328,6 +328,7 @@ FUNCTION(arch_clean_cache_range)
 
 	/* void arch_flush_invalidate_cache_range(addr_t start, size_t len); */
 FUNCTION(arch_clean_invalidate_cache_range)
+	dsb
 	add 	r2, r0, r1					// Calculate the end address
 	bic 	r0,#(CACHE_LINE-1)			// Align start with cache line
 0:
