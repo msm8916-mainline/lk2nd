@@ -322,16 +322,19 @@ void target_init(void)
 
 	platform_read_boot_config();
 
+#ifdef MMC_SDHCI_SUPPORT
 	if (platform_boot_dev_isemmc())
 	{
 		target_sdc_init();
 	}
-	else
+#endif
+#ifdef UFS_SUPPORT
+	if(!platform_boot_dev_isemmc())
 	{
 		ufs_device.base = UFS_BASE;
 		ufs_init(&ufs_device);
 	}
-
+#endif
 	/* Storage initialization is complete, read the partition table info */
 	mmc_read_partition_table(0);
 
