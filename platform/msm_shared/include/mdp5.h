@@ -268,6 +268,7 @@ int mdss_hdmi_init(void);
 int mdss_hdmi_on(struct msm_panel_info *pinfo);
 int mdss_hdmi_config(struct msm_panel_info *pinfo, struct fbcon_config *fb);
 void mdss_hdmi_get_vic(char *buf);
+void hdmi_phy_init(void);
 int msm_display_off();
 void display_shutdown(void);
 

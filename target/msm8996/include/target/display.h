@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -33,6 +33,7 @@
 /* HEADER files                                                              */
 /*---------------------------------------------------------------------------*/
 #include <display_resource.h>
+#include <msm_panel.h>
 
 /*---------------------------------------------------------------------------*/
 /* Target Physical configuration                                             */
@@ -93,5 +94,9 @@ int target_display_get_base_offset(uint32_t base);
 void target_force_cont_splash_disable(uint8_t override);
 uint8_t target_panel_auto_detect_enabled();
 void target_set_switch_gpio(int enable_dsi2hdmibridge);
+int target_hdmi_pll_clock(uint8_t enable, struct msm_panel_info *pinfo);
+int target_hdmi_panel_clock(uint8_t enable, struct msm_panel_info *pinfo);
+int target_hdmi_regulator_ctrl(uint8_t enable);
+int target_hdmi_gpio_ctrl(uint8_t enable);
 
 #endif

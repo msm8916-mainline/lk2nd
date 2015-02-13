@@ -582,7 +582,8 @@ DEFINES += DISPLAY_TYPE_MDSS=1
 			$(LOCAL_DIR)/mipi_dsi_autopll_thulium.o \
 			$(LOCAL_DIR)/shutdown_detect.o \
 			$(LOCAL_DIR)/i2c_qup.o \
-			$(LOCAL_DIR)/mipi_dsi_i2c.o
+			$(LOCAL_DIR)/mipi_dsi_i2c.o \
+			$(LOCAL_DIR)/mdss_hdmi.o
 endif
 
 ifeq ($(ENABLE_UFS_SUPPORT), 1)
