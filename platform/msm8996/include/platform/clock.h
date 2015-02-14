@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -58,6 +58,13 @@
 #define MMSS_MMAGIC_AHB_CBCR            REG_MM(0x5024)
 #define SMMU_MDP_AHB_CBCR               REG_MM(0x2454)
 #define MDSS_AHB_CBCR                   REG_MM(0x2308)
+#define MDSS_HDMI_AHB_CBCR              REG_MM(0x230C)
+#define MDSS_HDMI_CBCR                  REG_MM(0x2338)
+#define MDSS_EXTPCLK_CBCR               REG_MM(0x2324)
+#define EXTPCLK_CMD_RCGR                REG_MM(0x2060)
+#define EXTPCLK_CFG_RCGR                REG_MM(0x2064)
+#define HDMI_CMD_RCGR                   REG_MM(0x2100)
+#define HDMI_CFG_RCGR                   REG_MM(0x2104)
 
 #define AXI_CMD_RCGR                    REG_MM(0x5040)
 #define AXI_CFG_RCGR                    REG_MM(0x5044)
@@ -124,5 +131,8 @@ void mmss_gdsc_disable();
 void video_gdsc_enable();
 void video_gdsc_disable();
 void clock_config_blsp_i2c(uint8_t blsp_id, uint8_t qup_id);
+
+void hdmi_clk_enable(void);
+void hdmi_clk_disable(void);
 
 #endif
