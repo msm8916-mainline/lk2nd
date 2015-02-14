@@ -199,6 +199,9 @@ static int mdss_dsi_mipi_dfps_config(struct msm_panel_info *pinfo)
 
 	ret = mdss_dsi_dfps_get_pll_codes(pinfo);
 
+	if (pinfo->dfps.dfps_fb_base)
+		memcpy(pinfo->dfps.dfps_fb_base, &pinfo->dfps,
+			sizeof(struct dfps_info));
 dfps_done:
 	return ret;
 }
@@ -449,6 +452,16 @@ int gcdb_display_init(const char *panel_name, uint32_t rev, void *base)
 		panel.power_func = mdss_dsi_panel_power;
 		panel.pre_init_func = mdss_dsi_panel_pre_init;
 		panel.bl_func = mdss_dsi_bl_enable;
+		/*
+		 * If dfps enabled, reserve fb memory to store pll
+		 * codes and pass pll codes values to kernel.
+		 */
+		if (panel.panel_info.dfps.panel_dfps.enabled) {
+			panel.panel_info.dfps.dfps_fb_base = base;
+			base += DFPS_PLL_CODES_SIZE;
+			dprintf(SPEW, "fb_base=0x%p!\n", base);
+		}
+
 		panel.fb.base = base;
 		panel.fb.width =  panel.panel_info.xres;
 		panel.fb.height =  panel.panel_info.yres;
