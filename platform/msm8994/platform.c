@@ -40,7 +40,7 @@
 #define MSM_IOMAP_SIZE ((MSM_IOMAP_END - MSM_IOMAP_BASE)/MB)
 
 /* LK memory - cacheable, write through */
-#define LK_MEMORY         (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
+#define LK_MEMORY         (MMU_MEMORY_TYPE_NORMAL_WRITE_BACK_ALLOCATE | \
                            MMU_MEMORY_AP_READ_WRITE)
 
 /* Peripherals - non-shared device */
@@ -123,7 +123,7 @@ void platform_init_mmu_mappings(void)
 										sections * MB,
 										ptn_entry.start +
 										sections * MB,
-										(MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
+										(MMU_MEMORY_TYPE_NORMAL_WRITE_BACK_ALLOCATE | \
 										 MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN));
 				}
 			}
