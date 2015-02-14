@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -82,12 +82,10 @@ static uint32_t mdss_dsi_panel_clock(uint8_t enable,
 	uint32_t ret = NO_ERROR;
 
 	ret = calculate_clock_config(pinfo);
-	if (ret) {
-		dprintf(CRITICAL, "Clock calculation failed \n");
-		/* should it stop here ? check with display team */
-	}
-
-	ret = target_panel_clock(enable, pinfo);
+	if (ret)
+		dprintf(CRITICAL, "Clock calculation failed\n");
+	else
+		ret = target_panel_clock(enable, pinfo);
 
 	return ret;
 }
@@ -148,6 +146,60 @@ static int mdss_dsi_panel_pre_init(void)
 		udelay(panelstruct.paneldata->panel_init_delay);
 
 	dprintf(SPEW, "Panel pre init done\n");
+	return ret;
+}
+
+static int mdss_dsi_dfps_get_pll_codes(struct msm_panel_info *pinfo)
+{
+	int ret = NO_ERROR;
+	uint32_t fps_bak;
+	uint32_t i;
+
+	fps_bak = pinfo->mipi.frame_rate;
+
+	for (i = 0; i < pinfo->dfps.panel_dfps.frame_rate_cnt; i++) {
+		int err;
+		pinfo->mipi.frame_rate = pinfo->dfps.panel_dfps.frame_rate[i];
+
+		err = mdss_dsi_panel_clock(1, pinfo);
+		if (!err) {
+			pinfo->dfps.codes_dfps[i].is_valid = 1;
+			pinfo->dfps.codes_dfps[i].frame_rate =
+				pinfo->mipi.frame_rate;
+			pinfo->dfps.codes_dfps[i].frame_rate =
+				pinfo->mipi.frame_rate;
+			pinfo->dfps.codes_dfps[i].clk_rate =
+				pinfo->mipi.dsi_pll_config->vco_clock;
+			pinfo->dfps.codes_dfps[i].pll_codes =
+				pinfo->mipi.pll_codes;
+
+			mdss_dsi_panel_clock(0, pinfo);
+		} else {
+			ret = err;
+			pinfo->dfps.codes_dfps[i].is_valid = 0;
+			dprintf(CRITICAL, "frame_rate=%d failed!\n",
+				pinfo->mipi.frame_rate);
+		}
+	}
+
+	pinfo->mipi.frame_rate = fps_bak;
+
+	return ret;
+}
+
+static int mdss_dsi_mipi_dfps_config(struct msm_panel_info *pinfo)
+{
+	int ret = NO_ERROR;
+
+	if (!pinfo)
+		return ERROR;
+
+	if (!pinfo->dfps.panel_dfps.enabled)
+		goto dfps_done;
+
+	ret = mdss_dsi_dfps_get_pll_codes(pinfo);
+
+dfps_done:
 	return ret;
 }
 
@@ -393,6 +445,7 @@ int gcdb_display_init(const char *panel_name, uint32_t rev, void *base)
 
 		panel.panel_info.mipi.mdss_dsi_phy_db = &dsi_video_mode_phy_db;
 		panel.pll_clk_func = mdss_dsi_panel_clock;
+		panel.dfps_func = mdss_dsi_mipi_dfps_config;
 		panel.power_func = mdss_dsi_panel_power;
 		panel.pre_init_func = mdss_dsi_panel_pre_init;
 		panel.bl_func = mdss_dsi_bl_enable;
