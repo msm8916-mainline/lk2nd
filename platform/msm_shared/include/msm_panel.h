@@ -36,6 +36,8 @@
 #define TRUE	1
 #define FALSE	0
 
+#define DFPS_MAX_FRAME_RATE 10
+
 /* panel type list */
 #define NO_PANEL		0xffff	/* No Panel */
 #define MDDI_PANEL		1	/* MDDI */
@@ -143,6 +145,30 @@ struct fbc_panel_info {
 	uint32_t max_pred_err;
 };
 
+
+struct dfps_panel_info {
+	uint32_t enabled;
+	uint32_t frame_rate_cnt;
+	uint32_t frame_rate[DFPS_MAX_FRAME_RATE];
+};
+
+struct dfps_pll_codes {
+	uint32_t codes[2];
+};
+
+struct dfps_codes_info {
+	uint32_t is_valid;
+	uint32_t frame_rate;
+	uint32_t clk_rate;
+	struct dfps_pll_codes pll_codes;
+};
+
+struct dfps_info {
+	struct dfps_panel_info panel_dfps;
+	struct dfps_codes_info codes_dfps[DFPS_MAX_FRAME_RATE];
+	void *dfps_fb_base;
+};
+
 /* intf timing settings */
 struct intf_timing_params {
 	uint32_t width;
@@ -230,6 +256,8 @@ struct mipi_panel_info {
 	uint32_t sreg_base;
 	uint32_t pll_0_base;
 	uint32_t pll_1_base;
+
+	struct dfps_pll_codes pll_codes;
 };
 
 struct edp_panel_info {
@@ -286,6 +314,8 @@ struct msm_panel_info {
 	struct hdmi_panel_info hdmi;
 	struct edp_panel_info edp;
 
+	struct dfps_info dfps;
+
 	struct labibb_desc *labibb;
 
 	int (*on) (void);
@@ -309,6 +339,7 @@ struct msm_fb_panel_data {
 	uint32_t (*clk_func) (uint8_t enable, struct msm_panel_info *pinfo);
 	int (*bl_func) (uint8_t enable);
 	uint32_t (*pll_clk_func) (uint8_t enable, struct msm_panel_info *);
+	int (*dfps_func)(struct msm_panel_info *);
 	int (*post_power_func)(int enable);
 	int (*pre_init_func)(void);
 };
