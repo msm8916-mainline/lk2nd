@@ -540,6 +540,7 @@ static void mdss_intf_fetch_start_config(struct msm_panel_info *pinfo,
 	uint32_t mdp_hw_rev = readl(MDP_HW_REV);
 	uint32_t v_total, h_total, fetch_start, vfp_start, fetch_lines;
 	uint32_t adjust_xres = 0;
+	uint32_t fetch_enable = BIT(31);
 
 	struct lcdc_panel_info *lcdc = NULL;
 
@@ -584,8 +585,11 @@ static void mdss_intf_fetch_start_config(struct msm_panel_info *pinfo,
 
 	fetch_start = (v_total - fetch_lines) * h_total + 1;
 
-	writel(fetch_start, MDP_PROG_FETCH_START + intf_base);
-	writel(BIT(31), MDP_INTF_CONFIG + intf_base);
+	if (pinfo->dfps.panel_dfps.enabled)
+		fetch_enable |= BIT(23);
+
+	writel_relaxed(fetch_start, MDP_PROG_FETCH_START + intf_base);
+	writel_relaxed(fetch_enable, MDP_INTF_CONFIG + intf_base);
 }
 
 void mdss_layer_mixer_setup(struct fbcon_config *fb, struct msm_panel_info
