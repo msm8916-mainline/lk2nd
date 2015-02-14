@@ -402,6 +402,7 @@ enum {
 	APQ8009  = 265,
 	MSMTELLURIUM  = 264,
 	MSMTERBIUM    = 266,
+	FSM9916  = 276,
 };
 
 enum platform {
