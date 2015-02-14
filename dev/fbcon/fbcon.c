@@ -2,7 +2,7 @@
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2013, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -35,6 +35,7 @@
 #include <splash.h>
 #include <platform.h>
 #include <string.h>
+#include <arch/ops.h>
 
 #include "font5x12.h"
 
@@ -294,6 +295,8 @@ void fbcon_putImage(struct fbimage *fbimg, bool flag)
 			memcpy (config->base + ((image_base + (i * (config->width))) * bytes_per_bpp),
 				logo_base + (i * pitch * bytes_per_bpp), width * bytes_per_bpp);
 		}
+		/* Flush the contents to memory before giving the data to dma */
+		arch_clean_invalidate_cache_range((addr_t) config->base, (total_x * total_y * bytes_per_bpp));
 	}
 
 	fbcon_flush();
@@ -313,6 +316,7 @@ void fbcon_putImage(struct fbimage *fbimg, bool flag)
 		   header->height * bytes_per_bpp);
         }
     }
+    arch_clean_invalidate_cache_range((addr_t) config->base, (total_x * total_y * bytes_per_bpp));
     fbcon_flush();
 #endif
 }
