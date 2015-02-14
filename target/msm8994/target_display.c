@@ -256,9 +256,10 @@ int target_backlight_ctrl(struct backlight *bl, uint8_t enable)
 
 int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 {
-	uint32_t ret;
+	uint32_t ret = NO_ERROR;
 	struct mdss_dsi_pll_config *pll_data;
 	uint32_t flags;
+	struct dfps_pll_codes *pll_codes = &pinfo->mipi.pll_codes;
 
 	if (pinfo->dest == DISPLAY_2) {
 		flags = MMSS_DSI_CLKS_FLAG_DSI1;
@@ -271,36 +272,53 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 	}
 
 	pll_data = pinfo->mipi.dsi_pll_config;
-	if (enable) {
-		mdp_gdsc_ctrl(enable);
-		mmss_bus_clock_enable();
-		mdp_clock_enable();
-		ret = restore_secure_cfg(SECURE_DEVICE_MDSS);
-		if (ret) {
-			dprintf(CRITICAL,
-				"%s: Failed to restore MDP security configs",
-				__func__);
-			mdp_clock_disable();
-			mmss_bus_clock_disable();
-			mdp_gdsc_ctrl(0);
-			return ret;
-		}
-		mdss_dsi_auto_pll_20nm_config(pinfo->mipi.pll_0_base,
-				pinfo->mipi.pll_1_base, pll_data);
-		dsi_pll_20nm_enable_seq(pinfo->mipi.pll_0_base);
-		mmss_dsi_clock_enable(DSI0_PHY_PLL_OUT, flags,
-					pll_data->pclk_m,
-					pll_data->pclk_n,
-					pll_data->pclk_d);
-	} else if(!target_cont_splash_screen()) {
-		/* Disable clocks if continuous splash off */
+
+	if (!enable) {
 		mmss_dsi_clock_disable(flags);
-		mdp_clock_disable();
-		mmss_bus_clock_disable();
-		mdp_gdsc_ctrl(enable);
+		goto clks_disable;
 	}
 
+	mdp_gdsc_ctrl(enable);
+	mmss_bus_clock_enable();
+	mdp_clock_enable();
+
+	ret = restore_secure_cfg(SECURE_DEVICE_MDSS);
+	if (ret) {
+		dprintf(CRITICAL,
+			"%s: Failed to restore MDP security configs",
+			__func__);
+		goto clks_disable;
+	}
+
+	mdss_dsi_auto_pll_20nm_config(pinfo->mipi.pll_0_base,
+		pinfo->mipi.pll_1_base, pll_data);
+
+	if (!dsi_pll_20nm_enable_seq(pinfo->mipi.pll_0_base)) {
+		ret = ERROR;
+		dprintf(CRITICAL, "PLL failed to lock!\n");
+		goto clks_disable;
+	}
+
+	pll_codes->codes[0] = readl_relaxed(pinfo->mipi.pll_0_base +
+		MMSS_DSI_PHY_PLL_CORE_KVCO_CODE);
+	pll_codes->codes[1] = readl_relaxed(pinfo->mipi.pll_0_base +
+		MMSS_DSI_PHY_PLL_CORE_VCO_TUNE);
+	dprintf(SPEW, "codes %d %d\n", pll_codes->codes[0],
+		pll_codes->codes[1]);
+
+	mmss_dsi_clock_enable(DSI0_PHY_PLL_OUT, flags,
+		pll_data->pclk_m,
+		pll_data->pclk_n,
+		pll_data->pclk_d);
+
 	return NO_ERROR;
+
+clks_disable:
+	mdp_clock_disable();
+	mmss_bus_clock_disable();
+	mdp_gdsc_ctrl(0);
+
+	return ret;
 }
 
 int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
