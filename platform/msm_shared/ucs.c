@@ -236,6 +236,7 @@ int ucs_do_scsi_unmap(struct ufs_dev *dev, struct scsi_unmap_req *req)
         /* Flush cdb to memory. */
 	dsb();
 	arch_invalidate_cache_range((addr_t) cdb_param, SCSI_CDB_PARAM_LEN);
+	arch_invalidate_cache_range((addr_t) param, sizeof(struct unmap_param_list));
 
 	memset((void*)&req_upiu, 0 , sizeof(struct scsi_req_build_type));
 
