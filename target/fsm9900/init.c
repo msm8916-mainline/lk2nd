@@ -370,7 +370,7 @@ unsigned check_reboot_mode(void)
 	uint32_t restart_reason = 0;
 	uint32_t restart_reason_addr;
 
-	restart_reason_addr = RESTART_REASON_ADDR;
+	restart_reason_addr = RESTART_REASON_ADDR_V2;
 
 	/* Read reboot reason and scrub it */
 	restart_reason = readl(restart_reason_addr);
@@ -382,7 +382,7 @@ unsigned check_reboot_mode(void)
 void reboot_device(unsigned reboot_reason)
 {
 	/* Write the reboot reason */
-	writel(reboot_reason, RESTART_REASON_ADDR);
+	writel(reboot_reason, RESTART_REASON_ADDR_V2);
 
 	/* Disable Watchdog Debug.
 	 * Required becuase of a H/W bug which causes the system to
