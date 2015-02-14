@@ -41,6 +41,7 @@
 #include <usb30_dwc_hw.h>
 #include <smem.h>
 #include <board.h>
+#include <qmp_phy.h>
 
 extern char* ss_link_state_lookup[20];
 extern char* hs_link_state_lookup[20];
@@ -512,17 +513,15 @@ void dwc_event_device_enable(dwc_dev_t *dev, uint32_t events)
 void dwc_phy_digital_reset(dwc_dev_t *dev)
 {
 	REG_WRITE_FIELDI(dev, GUSB2PHYCFG,  0, PHYSOFTRST, 1);
-#ifndef USE_HSONLY_MODE
-	REG_WRITE_FIELDI(dev, GUSB3PIPECTL, 0, PHYSOFTRST, 1);
-#endif
+	if (!use_hsonly_mode())
+		REG_WRITE_FIELDI(dev, GUSB3PIPECTL, 0, PHYSOFTRST, 1);
 
 	/* per HPG */
 	udelay(100);
 
 	REG_WRITE_FIELDI(dev, GUSB2PHYCFG,  0, PHYSOFTRST, 0);
-#ifndef USE_HSONLY_MODE
-	REG_WRITE_FIELDI(dev, GUSB3PIPECTL, 0, PHYSOFTRST, 0);
-#endif
+	if (!use_hsonly_mode())
+		REG_WRITE_FIELDI(dev, GUSB3PIPECTL, 0, PHYSOFTRST, 0);
 
 	/* per HPG */
 	udelay(100);

@@ -49,6 +49,7 @@
 #include <platform/clock.h>
 #include <usb30_wrapper.h>
 #include <usb30_wrapper_hwio.h>
+#include <qmp_phy.h>
 
 
 /* Configure DBM mode: by-pass or DBM */
@@ -166,9 +167,8 @@ void usb_wrapper_vbus_override(usb_wrapper_dev_t *dev)
 	REG_WRITE_FIELD(dev, HS_PHY_CTRL, SW_SESSVLD_SEL, 0x1);
 
 	/* Indicate power present to SS phy */
-#ifndef USE_HSONLY_MODE
-	REG_WRITE_FIELD(dev, SS_PHY_CTRL, LANE0_PWR_PRESENT, 0x1);
-#endif
+	if (!use_hsonly_mode())
+		REG_WRITE_FIELD(dev, SS_PHY_CTRL, LANE0_PWR_PRESENT, 0x1);
 }
 
 /* API to read SS PHY registers */
