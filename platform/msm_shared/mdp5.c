@@ -40,8 +40,7 @@
 #include <clock.h>
 #include <scm.h>
 
-#define MDP_MIN_FETCH		9
-#define MDSS_MDP_MAX_FETCH	12
+#define MDSS_MDP_MAX_PREFILL_FETCH	25
 
 int restore_secure_cfg(uint32_t id);
 
@@ -538,7 +537,8 @@ static void mdss_intf_fetch_start_config(struct msm_panel_info *pinfo,
 					uint32_t intf_base)
 {
 	uint32_t mdp_hw_rev = readl(MDP_HW_REV);
-	uint32_t v_total, h_total, fetch_start, vfp_start, fetch_lines;
+	uint32_t v_total, h_total, fetch_start, vfp_start;
+	uint32_t prefetch_avail, prefetch_needed;
 	uint32_t adjust_xres = 0;
 	uint32_t fetch_enable = BIT(31);
 
@@ -554,10 +554,11 @@ static void mdss_intf_fetch_start_config(struct msm_panel_info *pinfo,
 	/*
 	 * MDP programmable fetch is for MDP with rev >= 1.05.
 	 * Programmable fetch is not needed if vertical back porch
-	 * is >= 9.
+	 * plus vertical puls width is >= 25.
 	 */
 	if (mdp_hw_rev < MDSS_MDP_HW_REV_105 ||
-			lcdc->v_back_porch >= MDP_MIN_FETCH)
+			(lcdc->v_back_porch + lcdc->v_pulse_width) >=
+			MDSS_MDP_MAX_PREFILL_FETCH)
 		return;
 
 	adjust_xres = pinfo->xres;
@@ -574,16 +575,19 @@ static void mdss_intf_fetch_start_config(struct msm_panel_info *pinfo,
 							lcdc->h_front_porch;
 	vfp_start = lcdc->v_pulse_width + lcdc->v_back_porch + pinfo->yres;
 
-	fetch_lines = v_total - vfp_start;
+	prefetch_avail = v_total - vfp_start;
+	prefetch_needed = MDSS_MDP_MAX_PREFILL_FETCH -
+		lcdc->v_back_porch -
+		lcdc->v_pulse_width;
 
 	/*
 	 * In some cases, vertical front porch is too high. In such cases limit
-	 * the mdp fetch lines  as the last 12 lines of vertical front porch.
+	 * the mdp fetch lines  as the last (25 - vbp - vpw) lines of vertical front porch.
 	 */
-	if (fetch_lines > MDSS_MDP_MAX_FETCH)
-		fetch_lines = MDSS_MDP_MAX_FETCH;
+	if (prefetch_avail > prefetch_needed)
+		prefetch_avail = prefetch_needed;
 
-	fetch_start = (v_total - fetch_lines) * h_total + 1;
+	fetch_start = (v_total - prefetch_avail) * h_total + 1;
 
 	if (pinfo->dfps.panel_dfps.enabled)
 		fetch_enable |= BIT(23);
