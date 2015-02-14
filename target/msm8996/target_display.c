@@ -109,6 +109,44 @@ static struct gpio_pin hdmi_hpd_gpio = {       /* HPD, input */
   "msmgpio", 34, 7, 0, 1, 1
 };
 
+static void target_hdmi_ldo_enable(uint8_t enable)
+{
+	if (enable)
+		regulator_enable(REG_LDO12);
+	else
+		regulator_disable(REG_LDO12);
+}
+
+static void target_hdmi_mpp4_enable(uint8_t enable)
+{
+	struct pm8x41_mpp mpp;
+
+	/* Enable MPP4 */
+	pmi8994_config_mpp_slave_id(0);
+
+        mpp.base = PM8x41_MMP4_BASE;
+	mpp.vin = MPP_VIN2;
+	mpp.mode = MPP_HIGH;;
+	if (enable) {
+		pm8x41_config_output_mpp(&mpp);
+		pm8x41_enable_mpp(&mpp, MPP_ENABLE);
+	} else {
+		pm8x41_enable_mpp(&mpp, MPP_DISABLE);
+	}
+
+	/* Need delay before power on regulators */
+	mdelay(20);
+}
+
+int target_hdmi_regulator_ctrl(uint8_t enable)
+{
+	target_hdmi_ldo_enable(enable);
+
+	target_hdmi_mpp4_enable(enable);
+
+	return 0;
+}
+
 int target_hdmi_gpio_ctrl(uint8_t enable)
 {
 	gpio_tlmm_config(hdmi_cec_gpio.pin_id, 1,	/* gpio 31, CEC */
