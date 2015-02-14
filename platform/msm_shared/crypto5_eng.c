@@ -139,6 +139,8 @@ static uint32_t crypto_write_reg(struct bam_instance *bam_core,
 #else
 	ret = (uint32_t)bam_add_cmd_element(&cmd_list_ptr, reg_addr, val, CE_WRITE_TYPE);
 
+	arch_clean_invalidate_cache_range((addr_t)&cmd_list_ptr, sizeof(struct cmd_element));
+
 	/* Enqueue the desc for the above command */
 	ret = bam_add_one_desc(bam_core,
 						   CRYPTO_WRITE_PIPE_INDEX,
