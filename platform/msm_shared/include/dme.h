@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -51,6 +51,7 @@
 #define DME_NOP_NUM_RETRIES                              20
 #define DME_FDEVICEINIT_RETRIES                          20
 #define DME_FPOWERONWPEN_RETRIES                         20
+#define DME_BPURGESTATUS_RETRIES                         500000
 
 /* Timeout value for commands. */
 #define DME_NOP_QUERY_TIMEOUT                            10
@@ -72,6 +73,7 @@ enum utp_ufs_desc_type
 #define UFS_IDX_bBootLunEn          0x00
 #define UFS_IDX_bCurrentPowerMode   0x01
 #define UFS_IDX_bActiveICCLevel     0x03
+#define UFS_IDX_bPurgeStatus        0x06
 #define UFS_IDX_bRefClkFreq         0x0a
 #define UFS_IDX_bConfigDescrLock    0x0b
 
@@ -84,6 +86,7 @@ enum utp_query_req_upiu_func_type
 /* Flags definitions */
 #define UFS_IDX_fDeviceInit         0x01
 #define UFS_IDX_fPowerOnWPEn        0x03
+#define UFS_IDX_fPurgeEn            0x06
 
 enum utp_query_response_upiu_type
 {
@@ -245,6 +248,9 @@ int dme_set_fdeviceinit(struct ufs_dev *dev);
  * that have WP bit enabled.
  */
 int dme_set_fpoweronwpen(struct ufs_dev *dev);
+
+/* Purge is used to securely erase blocks that are unmapped in ufs */
+int dme_set_fpurgeenable(struct ufs_dev *dev);
 
 /* Unit descriptor gives the characteristics and capabilities of
  * logical units.
