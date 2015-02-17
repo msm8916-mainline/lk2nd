@@ -603,12 +603,40 @@ bail_regulator_fail:
 	return ret;
 }
 
+static bool mdss_hdmi_is_dvi_mode(void)
+{
+	uint8_t len;
+	uint32_t ieee_tag;
+	const uint8_t *vsd = NULL;
+
+	vsd = hdmi_edid_find_block(DBC_START_OFFSET,
+		VENDOR_SPECIFIC_DATA_BLOCK, &len);
+
+	if (vsd == NULL || len == 0) {
+		dprintf(SPEW, "%s: Invalid VSDB\n", __func__);
+                return false;
+	}
+
+	ieee_tag = ((uint32_t) vsd[3] << 16) + ((uint32_t) vsd[2] << 8) +
+			(uint32_t) vsd[1];
+
+	if (ieee_tag == 0x0c03)
+		return false;
+	else
+		return true;
+}
+
 static void mdss_hdmi_set_mode(bool on)
 {
 	uint32_t val = 0;
 
-	if (on)
-		val = 0x3;
+	if (on) {
+		/* tx on */
+		val = 0x1;
+
+		if (!mdss_hdmi_is_dvi_mode())
+			val |= 0x2;
+	}
 
 	writel(val, HDMI_CTRL);
 }
@@ -1032,16 +1060,20 @@ void mdss_hdmi_avi_info_frame(void)
 
 int mdss_hdmi_init(void)
 {
+	bool is_dvi_mode = mdss_hdmi_is_dvi_mode();
+
 	mdss_hdmi_set_mode(false);
 
 	/* Audio settings */
-	mdss_hdmi_audio_playback();
+	if (!is_dvi_mode)
+		mdss_hdmi_audio_playback();
 
 	/* Video settings */
 	mdss_hdmi_video_setup();
 
 	/* AVI info settings */
-	mdss_hdmi_avi_info_frame();
+	if (!is_dvi_mode)
+		mdss_hdmi_avi_info_frame();
 
 	/* Enable HDMI */
 	mdss_hdmi_set_mode(true);
