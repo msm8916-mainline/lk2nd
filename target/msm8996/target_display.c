@@ -33,6 +33,7 @@
 #include <err.h>
 #include <msm_panel.h>
 #include <mipi_dsi.h>
+#include <mdss_hdmi.h>
 #include <pm8x41.h>
 #include <pm8x41_wled.h>
 #include <qpnp_wled.h>
@@ -170,6 +171,29 @@ int target_hdmi_gpio_ctrl(uint8_t enable)
 	gpio_set(hdmi_ddc_clk_gpio.pin_id,  hdmi_ddc_clk_gpio.pin_direction);
 	gpio_set(hdmi_ddc_data_gpio.pin_id, hdmi_ddc_data_gpio.pin_direction);
 	gpio_set(hdmi_hpd_gpio.pin_id,      hdmi_hpd_gpio.pin_direction);
+
+	return NO_ERROR;
+}
+
+int target_hdmi_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
+{
+	dprintf(SPEW, "%s: target_panel_clock\n", __func__);
+
+	if (enable) {
+		mmss_gdsc_enable();
+		mmss_bus_clock_enable();
+		mdp_clock_enable();
+		hdmi_phy_reset();
+		hdmi_pll_config(pinfo->clk_rate);
+		hdmi_vco_enable();
+		hdmi_clk_enable();
+	} else if(!target_cont_splash_screen()) {
+		hdmi_clk_disable();
+		hdmi_vco_disable();
+		mdp_clock_disable();
+		mmss_bus_clock_disable();
+		mmss_gdsc_disable();
+	}
 
 	return NO_ERROR;
 }
