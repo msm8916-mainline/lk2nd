@@ -55,6 +55,7 @@
 #include "include/panel_nt35521_wxga_video.h"
 #include "include/panel_r61318_hd_video.h"
 #include "include/panel_r63417_1080p_video.h"
+#include "include/panel_jdi_a216_fhd_video.h"
 
 #define DISPLAY_MAX_PANEL_DETECTION 2
 #define OTM8019A_FWVGA_VIDEO_PANEL_ON_DELAY 50
@@ -84,6 +85,7 @@ static struct panel_list supp_panels[] = {
 	{"nt35521_wxga_video", NT35521_WXGA_VIDEO_PANEL},
 	{"r61318_hd_video", R61318_HD_VIDEO_PANEL},
 	{"r63417_1080p_video", R63417_1080P_VIDEO_PANEL},
+	{"jdi_a216_fhd_video", JDI_A216_FHD_VIDEO_PANEL},
 };
 
 static uint32_t panel_id;
@@ -410,6 +412,26 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		memcpy(phy_db->timing,
 				r63417_1080p_video_timings, TIMING_SIZE);
 		break;
+	case JDI_A216_FHD_VIDEO_PANEL:
+                panelstruct->paneldata    = &jdi_a216_fhd_video_panel_data;
+                panelstruct->panelres     = &jdi_a216_fhd_video_panel_res;
+                panelstruct->color        = &jdi_a216_fhd_video_color;
+                panelstruct->videopanel   = &jdi_a216_fhd_video_video_panel;
+                panelstruct->commandpanel = &jdi_a216_fhd_video_command_panel;
+                panelstruct->state        = &jdi_a216_fhd_video_state;
+                panelstruct->laneconfig   = &jdi_a216_fhd_video_lane_config;
+                panelstruct->paneltiminginfo
+                                        = &jdi_a216_fhd_video_timing_info;
+                panelstruct->panelresetseq
+                                        = &jdi_a216_fhd_video_reset_seq;
+                panelstruct->backlightinfo = &jdi_a216_fhd_video_backlight;
+                pinfo->mipi.panel_cmds
+                                        = jdi_a216_fhd_video_on_command;
+                pinfo->mipi.num_of_panel_cmds
+                                        = JDI_A216_FHD_VIDEO_ON_COMMAND;
+                memcpy(phy_db->timing,
+                                jdi_a216_fhd_video_timings, TIMING_SIZE);
+                break;
 	case UNKNOWN_PANEL:
 	default:
 		memset(panelstruct, 0, sizeof(struct panel_struct));
@@ -479,6 +501,8 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	case HW_PLATFORM_SURF:
 		if (hw_subtype == HW_PLATFORM_SUBTYPE_CDP_1) {
 			panel_id = JDI_FHD_VIDEO_PANEL;
+		} else if (hw_subtype == HW_PLATFORM_SUBTYPE_CDP_2) {
+			panel_id = JDI_A216_FHD_VIDEO_PANEL;
 		} else {
 			panel_id = JDI_1080P_VIDEO_PANEL;
 			switch (auto_pan_loop) {
