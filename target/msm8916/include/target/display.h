@@ -41,6 +41,10 @@ static struct gpio_pin reset_gpio = {
   "msmgpio", 25, 3, 1, 0, 1
 };
 
+static struct gpio_pin ts_reset_gpio = {
+  "msmgpio", 12, 3, 1, 0, 1
+};
+
 static struct gpio_pin enable_gpio = {
   "msmgpio", 97, 3, 1, 0, 1
 };
@@ -138,6 +142,7 @@ enum qrd_subtype
 {
 	HW_PLATFORM_SUBTYPE_DEFAULT = 0,
 	HW_PLATFORM_SUBTYPE_CDP_1 = 1,
+	HW_PLATFORM_SUBTYPE_CDP_2 = 2,
 	HW_PLATFORM_SUBTYPE_MTP_3 = 3,
 	HW_PLATFORM_SUBTYPE_SKUH = 4,
 	HW_PLATFORM_SUBTYPE_SKUI = 5, /* msm8916 */
@@ -160,6 +165,7 @@ enum {
 	NT35521_WXGA_VIDEO_PANEL,
 	R61318_HD_VIDEO_PANEL,
 	R63417_1080P_VIDEO_PANEL,
+	JDI_A216_FHD_VIDEO_PANEL,
 	UNKNOWN_PANEL
 };
 
