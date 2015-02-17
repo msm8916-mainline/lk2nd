@@ -55,7 +55,8 @@ OBJS += \
 		$(LOCAL_DIR)/glink/glink_vector.o \
 		$(LOCAL_DIR)/glink/xport_rpm.o \
 		$(LOCAL_DIR)/glink/xport_rpm_config.o \
-		$(LOCAL_DIR)/smem_list.o
+		$(LOCAL_DIR)/smem_list.o \
+		$(LOCAL_DIR)/rpm-glink.o
 endif
 
 ifeq ($(PLATFORM),msm8x60)
