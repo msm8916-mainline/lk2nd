@@ -230,4 +230,7 @@
 #define CM_DWC_USB3_CM_DWC_USB3_BASE 0xFCA10000
 #define AHB2PHY_AHB2PHY_BASE         0xFCA06000
 
+#define QMP_PHY_BASE                 0xF9B38000
+#define PLATFORM_QMP_OFFSET          0x8
+
 #endif
