@@ -413,6 +413,7 @@ ifeq ($(PLATFORM),fsm9010)
 			$(LOCAL_DIR)/crypto5_wrapper.o \
 			$(LOCAL_DIR)/i2c_qup.o \
 			$(LOCAL_DIR)/gpio.o \
+			$(LOCAL_DIR)/qmp_usb30_phy.o \
 			$(LOCAL_DIR)/dload_util.o
 endif
 
