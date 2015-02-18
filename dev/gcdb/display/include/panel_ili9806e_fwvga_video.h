@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are
@@ -51,7 +51,7 @@ static struct panel_config ili9806e_fwvga_video_panel_data = {
 /* Panel resolution                                                          */
 /*---------------------------------------------------------------------------*/
 static struct panel_resolution ili9806e_fwvga_video_panel_res = {
-	480, 854, 52, 100, 24, 0, 8, 20, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0
+	480, 854, 54, 100, 36, 0, 8, 20, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 
 /*---------------------------------------------------------------------------*/
@@ -789,11 +789,11 @@ static struct lane_configuration ili9806e_fwvga_video_lane_config = {
 /* Panel timing                                                              */
 /*---------------------------------------------------------------------------*/
 static const uint32_t ili9806e_fwvga_video_timings[] = {
-	0x73, 0x21, 0x1A, 0x00, 0x31, 0x30, 0x1E, 0x23, 0x2B, 0x03, 0x04, 0x00
+	0x7D, 0x24, 0x19, 0x00, 0x34, 0x31, 0x1D, 0x26, 0x2A, 0x03, 0x04, 0x00
 };
 
 static struct panel_timing ili9806e_fwvga_video_timing_info = {
-	0, 4, 0x20, 0x2C
+	0, 4, 0x1F, 0x2C
 };
 
 /*---------------------------------------------------------------------------*/
