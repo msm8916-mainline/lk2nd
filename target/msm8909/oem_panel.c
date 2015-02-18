@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -46,6 +46,7 @@
 #include "include/panel_hx8379c_fwvga_video.h"
 
 #define DISPLAY_MAX_PANEL_DETECTION 0
+#define ILI9806E_FWVGA_VIDEO_PANEL_POST_INIT_DELAY 68
 
 enum {
 	QRD_SKUA = 0x00,
@@ -96,6 +97,9 @@ int oem_panel_on()
 	 * OEM can keep there panel specific on instructions in this
 	 * function
 	 */
+	if (panel_id == ILI9806E_FWVGA_VIDEO_PANEL)
+		mdelay(ILI9806E_FWVGA_VIDEO_PANEL_POST_INIT_DELAY);
+
 	return NO_ERROR;
 }
 
