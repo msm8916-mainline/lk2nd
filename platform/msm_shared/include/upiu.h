@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -42,6 +42,27 @@ struct upiu_basic_hdr
 	uint8_t  total_ehs_len;
 	uint8_t  device_info;
 	uint16_t data_seg_len;
+} __PACKED;
+
+
+struct upiu_basic_resp_hdr
+{
+	uint8_t  trans_type;
+	uint8_t  flags;
+	uint8_t  lun;
+	uint8_t  task_tag;
+	uint8_t  cmd_set_type;
+	uint8_t  query_task_mgmt_func;
+	uint8_t  response;
+	uint8_t  status;
+	uint8_t  total_ehs_len;
+	uint8_t  device_info;
+	uint16_t data_seg_len;
+	uint32_t residual_transfer_count;
+	uint32_t reserved[4];
+	uint16_t sense_length;
+	uint16_t sense_response_code;
+	uint32_t sense_data[4];
 } __PACKED;
 
 struct upiu_trans_mgmt_query_hdr
@@ -149,7 +170,7 @@ struct upiu_req_build_type
 	uint8_t                         idn;
 	uint8_t                         index;
 	uint8_t                         selector;
-	struct upiu_basic_hdr       *resp_ptr;
+	struct upiu_basic_resp_hdr       *resp_ptr;
 	uint64_t                        resp_len;
 	uint16_t                        resp_data_len;
 	addr_t                        resp_data_ptr;

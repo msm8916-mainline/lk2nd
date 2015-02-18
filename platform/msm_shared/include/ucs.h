@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014 The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -175,4 +175,6 @@ int ucs_do_scsi_unmap(struct ufs_dev *dev, struct scsi_unmap_req *req);
 int ucs_do_scsi_rpmb_read(struct ufs_dev *dev, uint32_t *req_buf, uint32_t blk_cnt,
                                  uint32_t *resp_buffer, uint32_t *response_length);
 
+/* This function parses the first byte of the sense data and returns the sense key */
+int parse_sense_key(uint32_t sense_data);
 #endif

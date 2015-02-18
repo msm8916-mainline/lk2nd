@@ -37,8 +37,7 @@ static int ucs_do_request_sense(struct ufs_dev *dev);
 int ucs_do_scsi_cmd(struct ufs_dev *dev, struct scsi_req_build_type *req)
 {
 	struct upiu_req_build_type req_upiu;
-	struct upiu_basic_hdr      resp_upiu;
-	int                        ret;
+	struct upiu_basic_resp_hdr      resp_upiu;
 
 	memset(&req_upiu, 0 , sizeof(struct upiu_req_build_type));
 
@@ -68,9 +67,14 @@ int ucs_do_scsi_cmd(struct ufs_dev *dev, struct scsi_req_build_type *req)
 	{
 		if (resp_upiu.status == SCSI_STATUS_CHK_COND && (*((uint8_t *)(req->cdb)) != SCSI_CMD_SENSE_REQ))
 		{
-			ret = ucs_do_request_sense(dev);
-			if (ret)
-				dprintf(CRITICAL, "SCSI request sense failed.\n");
+			dprintf(CRITICAL, "Data segment length: %x\n", BE16(resp_upiu.data_seg_len));
+			if (BE16(resp_upiu.data_seg_len))
+			{
+				dprintf(CRITICAL, "SCSI Request failed and we have sense data\n");
+				dprintf(CRITICAL, "Sense Data Length/Response Code: 0x%x/0x%x\n", BE16(resp_upiu.sense_length), BE16(resp_upiu.sense_response_code));
+				parse_sense_key(resp_upiu.sense_data[0]);
+				dprintf(CRITICAL, "Sense Buffer (HEX): 0x%x 0x%x 0x%x 0x%x\n", BE32(resp_upiu.sense_data[0]), BE32(resp_upiu.sense_data[1]), BE32(resp_upiu.sense_data[2]), BE32(resp_upiu.sense_data[3]));
+			}
 		}
 
 		dprintf(CRITICAL, "ucs_do_scsi_cmd failed status = %x\n", resp_upiu.status);
@@ -78,6 +82,57 @@ int ucs_do_scsi_cmd(struct ufs_dev *dev, struct scsi_req_build_type *req)
 	}
 
 	return UFS_SUCCESS;
+}
+
+int parse_sense_key(uint32_t sense_data)
+{
+	uint32_t key = BE32(sense_data) >> 24;
+	dprintf(CRITICAL, "Sense Key: 0x%x\n", key);
+	switch(key)
+	{
+		case 0x0:
+			dprintf(INFO, "NO SENSE: No information available to be reported\n");
+			break;
+		case 0x1:
+			dprintf(INFO, "RECOVERED ERROR: Additional sense buffer bytes indicate further details\n");
+			break;
+		case 0x2:
+			dprintf(INFO, "NOT READY: Logical Unit Not Ready and cannot be accessed at this time\n");
+			break;
+		case 0x3:
+			dprintf(INFO, "MEDIUM ERROR: Last command unsuccessful due to non-recoverable error condition\n");
+			break;
+		case 0x4:
+			dprintf(INFO, "HARDWARE ERROR: Target detected a non-recoverable hardware error\n");
+			break;
+		case 0x5:
+			dprintf(INFO, "ILLEGAL REQUEST: Illegal parameter in the command descriptor block in the command sent\n");
+			break;
+		case 0x6:
+			dprintf(INFO, "UNIT ATTENTION: Unit has been reset/unexpectedly power on/removable media has changed\n");
+			break;
+		case 0x7:
+			dprintf(INFO, "DATA PROTECT: Read/Write operation attempted on a block that is protected from this operation\n");
+			break;
+		case 0x8:
+			dprintf(INFO, "BLANK CHECK: Target encountered blank or unformatted media while reading or writing\n");
+			break;
+		case 0x9:
+			dprintf(INFO, "VENDOR SPECIFIC: Vendor specific error or exceptional conditions\n");
+			break;
+		case 0xB:
+			dprintf(INFO, "ABORTED COMMAND: Target aborted the execution of the command\n");
+			break;
+		case 0xD:
+			dprintf(INFO, "VOLUME OVERFLOW: Buffered peripheral device has reached the end of partition\n");
+			break;
+		case 0xE:
+			dprintf(INFO, "MISCOMPARE: Source data did not match the data read from the media\n");
+			break;
+		default:
+			dprintf(INFO, "INVALID sense key\n");
+	}
+	return key;
 }
 
 int ucs_do_scsi_rpmb_read(struct ufs_dev *dev, uint32_t *req_buf, uint32_t blk_cnt,
