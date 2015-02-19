@@ -455,7 +455,7 @@ void reboot_device(unsigned reboot_reason)
 	else
 		reset_type = PON_PSHOLD_HARD_RESET;
 
-	pm8x41_reset_configure(reset_type);
+	pm8994_reset_configure(reset_type);
 
 	/* Drop PS_HOLD for MSM */
 	writel(0x00, MPM2_MPM_PS_HOLD);
@@ -556,7 +556,7 @@ void shutdown_device()
 	dprintf(CRITICAL, "Going down for shutdown.\n");
 
 	/* Configure PMIC for shutdown. */
-	pm8x41_reset_configure(PON_PSHOLD_SHUTDOWN);
+	pm8994_reset_configure(PON_PSHOLD_SHUTDOWN);
 
 	/* Drop PS_HOLD for MSM */
 	writel(0x00, MPM2_MPM_PS_HOLD);
