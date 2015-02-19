@@ -288,7 +288,10 @@ void target_baseband_detect(struct board_data *board)
 	};
 
 	switch (platform) {
+	case FSM9008:
 	case FSM9010:
+	case FSM9016:
+	case FSM9055:
 		board->baseband = BASEBAND_MSM;
 		break;
 	default:
