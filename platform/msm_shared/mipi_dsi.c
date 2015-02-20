@@ -499,6 +499,12 @@ int mdss_dsi_video_mode_config(uint16_t disp_width,
 	int status = 0;
 
 #if (DISPLAY_TYPE_MDSS == 1)
+	int last_line_interleave_en = 0;
+
+	/*Check if EOF_BLLP_PWR_MODE bit is set*/
+	if(eof_bllp_pwr & 0x8)
+		last_line_interleave_en = 1;
+
 	/* disable mdp first */
 	mdp_disable();
 
@@ -558,9 +564,10 @@ int mdss_dsi_video_mode_config(uint16_t disp_width,
 	writel(0x00000100, ctl_base + MISR_VIDEO_CTRL);
 
 	if (mdp_get_revision() >= MDP_REV_41 || mdp_get_revision() == MDP_REV_305) {
-		writel(pulse_mode_hsa_he << 28 | low_pwr_stop_mode << 16 |
-				eof_bllp_pwr << 12 | traffic_mode << 8
-				| dst_format << 4 | 0x0, ctl_base + VIDEO_MODE_CTRL);
+		writel(last_line_interleave_en << 31 | pulse_mode_hsa_he << 28 |
+				low_pwr_stop_mode << 16 | eof_bllp_pwr << 12 |
+				traffic_mode << 8 | dst_format << 4 | 0x0,
+				ctl_base + VIDEO_MODE_CTRL);
 	} else {
 		writel(1 << 28 | 1 << 24 | 1 << 20 | low_pwr_stop_mode << 16 |
 				eof_bllp_pwr << 12 | traffic_mode << 8
