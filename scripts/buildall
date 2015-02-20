@@ -1,6 +1,6 @@
 #!/bin/sh
 
-PROJECTS="armemu-test sam7ex256-test osk5912-test qemu-arm-test beagle-test surf-test"
+PROJECTS="msm8226 msm8974 apq8084 msm8994 mdm9630 mdm9640 msm8610 msm8916 thulium"
 FAILED=""
 
 for p in $PROJECTS; do
