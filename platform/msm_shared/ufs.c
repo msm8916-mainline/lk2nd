@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -167,13 +167,8 @@ int ufs_erase(struct ufs_dev* dev, uint64_t start_lba, uint32_t num_blocks)
 	if(ret)
 	{
 		dprintf(CRITICAL, "UFS erase failed \n");
-		return ret;
 	}
-	ret = dme_set_fpurgeenable((struct ufs_dev *)dev);
-	if (ret)
-	{
-		dprintf(CRITICAL, "UFS purge operation failed after erase\n");
-	}
+
 	return ret;
 }
 
