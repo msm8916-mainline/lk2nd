@@ -2534,6 +2534,7 @@ struct fbimage* splash_screen_mmc()
 	struct fbimage *logo = NULL;
 	uint32_t blocksize;
 	uint32_t readsize;
+	uint32_t logosize;
 	uint32_t ptn_size;
 
 	index = partition_get_index("splash");
@@ -2550,12 +2551,12 @@ struct fbimage* splash_screen_mmc()
 
 	ptn_size = partition_get_size(index);
 	blocksize = mmc_get_device_blocksize();
-	readsize = ROUNDUP(sizeof(logo->header), blocksize);
+	logosize = ROUNDUP(sizeof(logo->header), blocksize);
 
-	logo = (struct fbimage *)memalign(CACHE_LINE, ROUNDUP(readsize, CACHE_LINE));
+	logo = (struct fbimage *)memalign(CACHE_LINE, ROUNDUP(logosize, CACHE_LINE));
 	ASSERT(logo);
 
-	if (mmc_read(ptn, (uint32_t *) logo, readsize)) {
+	if (mmc_read(ptn, (uint32_t *) logo, logosize)) {
 		dprintf(CRITICAL, "ERROR: Cannot read splash image header\n");
 		goto err;
 	}
@@ -2580,7 +2581,7 @@ struct fbimage* splash_screen_mmc()
 			goto err;
 		}
 
-		if (mmc_read(ptn + sizeof(logo->header),(uint32_t *)base, readsize)) {
+		if (mmc_read(ptn + logosize,(uint32_t *)base, readsize)) {
 			fbcon_clear();
 			dprintf(CRITICAL, "ERROR: Cannot read splash image from partition\n");
 			goto err;
