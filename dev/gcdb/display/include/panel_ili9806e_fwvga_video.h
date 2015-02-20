@@ -782,7 +782,7 @@ static struct videopanel_info ili9806e_fwvga_video_video_panel = {
 /* Lane configuration                                                        */
 /*---------------------------------------------------------------------------*/
 static struct lane_configuration ili9806e_fwvga_video_lane_config = {
-	2, 0, 1, 1, 0, 0
+	2, 0, 1, 1, 0, 0, 0
 };
 
 /*---------------------------------------------------------------------------*/

@@ -149,6 +149,7 @@ struct lane_configuration {
 	uint8_t lane1_state;
 	uint8_t lane2_state;
 	uint8_t lane3_state;
+	uint8_t force_clk_lane_hs;
 };
 
 struct panel_timing {
