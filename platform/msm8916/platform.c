@@ -183,6 +183,7 @@ int platform_is_msm8929()
 		case MSM8929:
 		case MSM8629:
 		case MSM8229:
+		case APQ8029:
 			ret = 1;
 			break;
 		default:
