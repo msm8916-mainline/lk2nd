@@ -77,6 +77,8 @@ struct __attribute__ ((packed)) ubifs_sb_node {
 
 /* Erase counter header magic number (ASCII "UBI#") */
 #define UBI_EC_HDR_MAGIC  0x55424923
+/* Volume identifier header magic number (ASCII "UBI!") */
+#define UBI_VID_HDR_MAGIC 0x55424921
 
 #define UBI_MAGIC      "UBI#"
 #define UBI_MAGIC_SIZE 0x04
@@ -129,30 +131,85 @@ struct __attribute__ ((packed)) ubi_vid_hdr {
 #define UBI_MAX_VOLUMES 128
 #define UBI_INTERNAL_VOL_START (0x7FFFFFFF - 4096)
 #define UBI_LAYOUT_VOLUME_ID     UBI_INTERNAL_VOL_START
+#define UBI_VID_DYNAMIC 1
+#define UBI_LAYOUT_VOLUME_TYPE UBI_VID_DYNAMIC
 #define UBI_FM_SB_VOLUME_ID	(UBI_INTERNAL_VOL_START + 1)
+
+/* A record in the UBI volume table. */
+struct __attribute__ ((packed)) ubi_vtbl_record {
+	uint32_t  reserved_pebs;
+	uint32_t  alignment;
+	uint32_t  data_pad;
+	uint8_t    vol_type;
+	uint8_t    upd_marker;
+	uint16_t  name_len;
+#define UBI_VOL_NAME_MAX 127
+	uint8_t    name[UBI_VOL_NAME_MAX+1];
+	uint8_t    flags;
+	uint8_t    padding[23];
+	uint32_t  crc;
+};
+#define UBI_VTBL_RECORD_SIZE sizeof(struct ubi_vtbl_record)
+#define UBI_VTBL_RECORD_SIZE_CRC (UBI_VTBL_RECORD_SIZE - sizeof(uint32_t))
+
+/* PEB status */
+enum {
+	UBI_UNKNOWN = 0,
+	UBI_BAD_PEB,
+	UBI_FREE_PEB,
+	UBI_USED_PEB,
+	UBI_EMPTY_PEB
+};
+
+/**
+ * struct peb_info - In RAM info on a PEB
+ * @ec: erase counter
+ * @status: status of this PEB: UBI_BAD_PEB/USED/FREE/EMPTY
+ * @volume: if status = UBI_USED_PEB this is the volume
+ * 		ID this PEB belongs to -1 for any other status
+ */
+struct peb_info {
+	uint64_t ec;
+	int status;
+	int volume;
+};
 
 /**
  * struct ubi_scan_info - UBI scanning information.
- * @ec: erase counters or eraseblock status for all eraseblocks
+ * @pebs_data: info on all of partition PEBs
  * @mean_ec: mean erase counter
+ * @vtbl_peb1: number of the first PEB holding the volume table
+ * 			 (relative to the beginning of the partition)
+ * @vtbl_peb1: number of the second PEB holding the volume table
+ * 			 (relative to the beginning of the partition)
  * @bad_cnt: count of bad eraseblocks
- * @good_cnt: count of non-bad eraseblocks
  * @empty_cnt: count of empty eraseblocks
+ * @free_cnt: count of free eraseblocks
+ * @used_cnt: count of used eraseblocks
+ * @fastmap_sb: PEB number holding FM superblock. If FM is not present: -1
  * @vid_hdr_offs: volume ID header offset from the found EC headers (%-1 means
  *                undefined)
  * @data_offs: data offset from the found EC headers (%-1 means undefined)
  * @image_seq: image sequence
+ * @read_image_seq: image sequence read from NAND while scanning
  */
 struct ubi_scan_info {
-	uint64_t *ec;
+	struct peb_info *pebs_data;
 	uint64_t mean_ec;
+	int vtbl_peb1;
+	int vtbl_peb2;
 	int bad_cnt;
-	int good_cnt;
 	int empty_cnt;
+	int free_cnt;
+	int used_cnt;
+	int fastmap_sb;
 	unsigned vid_hdr_offs;
 	unsigned data_offs;
 	uint32_t  image_seq;
+	uint32_t  read_image_seq;
 };
 
 int flash_ubi_img(struct ptentry *ptn, void *data, unsigned size);
+int update_ubi_vol(struct ptentry *ptn, const char* vol_name,
+				void *data, unsigned size);
 #endif

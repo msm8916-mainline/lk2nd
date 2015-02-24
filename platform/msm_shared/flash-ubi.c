@@ -118,6 +118,30 @@ int check_pattern(const void *buf, uint8_t patt, int size)
 }
 
 /**
+ * calc_data_len - calculate how much real data is stored in the buffer
+ * @page_size: min I/O of the device
+ * @buf: a buffer with the contents of the physical eraseblock
+ * @len: the buffer length
+ *
+ * This function calculates how much "real data" is stored in @buf and
+ * returns the length (in number of pages). Continuous 0xFF bytes at the end
+ * of the buffer are not considered as "real data".
+ */
+static int calc_data_len(int page_size, const void *buf, int len)
+{
+	int i;
+
+	for (i = len - 1; i >= 0; i--)
+		if (((const uint8_t *)buf)[i] != 0xFF)
+			break;
+
+	/* The resulting length must be aligned to the minimum flash I/O size */
+	len = i + 1;
+	len = (len + page_size - 1) / page_size;
+	return len;
+}
+
+/**
  * read_ec_hdr - read and check an erase counter header.
  * @peb: number of the physical erase block to read the header for
  * @ec_hdr: a &struct ubi_ec_hdr object where to store the read erase counter
@@ -209,6 +233,141 @@ out_tmp_buf:
 }
 
 /**
+ * read_vid_hdr - read and check an Volume identifier header.
+ * @peb: number of the physical erase block to read the header for
+ * @vid_hdr: a &struct ubi_vid_hdr object where to store the read header
+ * @vid_hdr_offset: offset of the VID header from the beginning of the PEB
+ * 			 (in bytes)
+ *
+ * This function reads the volume identifier header from physical
+ * eraseblock @peb and stores it in @vid_hdr. This function also checks the
+ * validity of the read header.
+ *
+ * Return codes:
+ * -1 - in case of error
+ *  0 - on success
+ *  1 - if the PEB is free (no VID hdr)
+ */
+static int read_vid_hdr(uint32_t peb, struct ubi_vid_hdr *vid_hdr,
+		int vid_hdr_offset)
+{
+	unsigned char *spare, *tmp_buf;
+	int ret = -1;
+	uint32_t crc, magic;
+	int page_size = flash_page_size();
+	int num_pages_per_blk = flash_block_size()/page_size;
+
+	spare = (unsigned char *)malloc(flash_spare_size());
+	if (!spare)
+	{
+		dprintf(CRITICAL, "read_vid_hdr: Mem allocation failed\n");
+		return ret;
+	}
+
+	tmp_buf = (unsigned char *)malloc(page_size);
+	if (!tmp_buf)
+	{
+		dprintf(CRITICAL, "read_vid_hdr: Mem allocation failed\n");
+		goto out_tmp_buf;
+	}
+
+	if (qpic_nand_block_isbad(peb * num_pages_per_blk)) {
+		dprintf(CRITICAL, "read_vid_hdr: Bad block @ %d\n", peb);
+		goto out;
+	}
+
+	if (qpic_nand_read(peb * num_pages_per_blk + vid_hdr_offset/page_size,
+			1, tmp_buf, spare)) {
+		dprintf(CRITICAL, "read_vid_hdr: Read %d failed \n", peb);
+		goto out;
+	}
+	memcpy(vid_hdr, tmp_buf, UBI_VID_HDR_SIZE);
+
+	if (check_pattern((void *)vid_hdr, 0xFF, UBI_VID_HDR_SIZE)) {
+		ret = 1;
+		goto out;
+	}
+
+	magic = BE32(vid_hdr->magic);
+	if (magic != UBI_VID_HDR_MAGIC) {
+		dprintf(CRITICAL,
+				"read_vid_hdr: Wrong magic at peb-%d Expected: %d, received %d\n",
+				peb, UBI_VID_HDR_MAGIC, BE32(vid_hdr->magic));
+		goto out;
+	}
+
+	crc = mtd_crc32(UBI_CRC32_INIT, vid_hdr, UBI_EC_HDR_SIZE_CRC);
+	if (BE32(vid_hdr->hdr_crc) != crc) {
+		dprintf(CRITICAL,
+			"read_vid_hdr: Wrong crc at peb-%d: calculated %d, received %d\n",
+			peb,crc,  BE32(vid_hdr->hdr_crc));
+		goto out;
+	}
+
+	ret = 0;
+out:
+	free(tmp_buf);
+out_tmp_buf:
+	free(spare);
+	return ret;
+}
+
+/**
+ * read_leb_data - read data section of the PEB (LEB).
+ * @peb: number of the physical erase block to read the data for
+ * @leb_data: a buffer where to store the read data at
+ * @leb_size: LEB size
+ * @data_offset: offset of the data from the beginning of the PEB
+ * 			 (in bytes)
+ *
+ * Return codes:
+ * -1 - in case of error
+ *  0 - on success
+ */
+static int read_leb_data(uint32_t peb, void *leb_data,
+		int leb_size, int data_offset)
+{
+	unsigned char *spare, *tmp_buf;
+	int ret = -1;
+	int page_size = flash_page_size();
+	int block_size = flash_block_size();
+	int num_pages_per_blk = block_size/page_size;
+
+	spare = (unsigned char *)malloc(flash_spare_size());
+	if (!spare)
+	{
+		dprintf(CRITICAL, "read_leb_data: Mem allocation failed\n");
+		return ret;
+	}
+
+	tmp_buf = (unsigned char *)malloc(leb_size);
+	if (!tmp_buf)
+	{
+		dprintf(CRITICAL, "read_leb_data: Mem allocation failed\n");
+		goto out_tmp_buf;
+	}
+
+	if (qpic_nand_block_isbad(peb * num_pages_per_blk)) {
+		dprintf(CRITICAL, "read_leb_data: Bad block @ %d\n", peb);
+		goto out;
+	}
+
+	if (qpic_nand_read(peb * num_pages_per_blk + data_offset/page_size,
+			leb_size/page_size, tmp_buf, spare)) {
+		dprintf(CRITICAL, "read_leb_data: Read %d failed \n", peb);
+		goto out;
+	}
+	memcpy(leb_data, tmp_buf, leb_size);
+
+	ret = 0;
+out:
+	free(tmp_buf);
+out_tmp_buf:
+	free(spare);
+	return ret;
+}
+
+/**
  * write_ec_header() - Write provided ec_header for given PEB
  * @peb: number of the physical erase block to write the header to
  * @new_ech: the ec_header to write
@@ -247,6 +406,97 @@ out:
 }
 
 /**
+ * write_vid_header() - Write provided vid_header for given PEB
+ * @peb: number of the physical erase block to write the header to
+ * @new_vidh: the vid_header to write
+ * @offset: vid_hdr offset in bytes from the beginning of the PEB
+ *
+ * Return codes:
+ * -1 - in case of error
+ *  0 - on success
+ */
+static int write_vid_header(uint32_t peb,
+		struct ubi_vid_hdr *new_vidh, int offset)
+{
+	unsigned page_size = flash_page_size();
+	int num_pages_per_blk = flash_block_size()/page_size;
+	unsigned char *buf;
+	int ret = 0;
+
+	buf = malloc(sizeof(uint8_t) * page_size);
+	if (!buf) {
+		dprintf(CRITICAL, "write_vid_header: Mem allocation failed\n");
+		return -1;
+	}
+
+	memset(buf, 0, page_size);
+	ASSERT(page_size > sizeof(*new_vidh));
+	memcpy(buf, new_vidh, UBI_VID_HDR_SIZE);
+	ret = qpic_nand_write(peb * num_pages_per_blk + offset/page_size,
+			1, buf, 0);
+	if (ret) {
+		dprintf(CRITICAL,
+			"write_vid_header: qpic_nand_write failed with %d\n", ret);
+		ret = -1;
+		goto out;
+	}
+
+out:
+	free(buf);
+	return ret;
+}
+
+/**
+ * write_leb_data - write data section of the PEB (LEB).
+ * @peb: number of the physical erase block to write the data for
+ * @leb_data: a data buffer to write
+ * @size: data size
+ * @data_offset: offset of the data from the beginning of the PEB
+ * 			 (in bytes)
+ *
+ * Return codes:
+ * -1 - in case of error
+ *  0 - on success
+ */
+static int write_leb_data(uint32_t peb, void *data,
+		int size, int data_offset)
+{
+	unsigned char *tmp_buf;
+	int ret = -1;
+	int num_pages;
+	int page_size = flash_page_size();
+	int block_size = flash_block_size();
+	int num_pages_per_blk = block_size/page_size;
+
+	tmp_buf = (unsigned char *)malloc(block_size - data_offset);
+	if (!tmp_buf)
+	{
+		dprintf(CRITICAL, "write_leb_data: Mem allocation failed\n");
+		return -1;
+	}
+
+	if (size < block_size - data_offset)
+		num_pages = size / page_size;
+	else
+		num_pages = calc_data_len(page_size, data,
+				block_size - data_offset);
+	memcpy(tmp_buf, data, num_pages * page_size);
+	ret = qpic_nand_write(peb * num_pages_per_blk + data_offset/page_size,
+			num_pages, tmp_buf, 0);
+	if (ret) {
+		dprintf(CRITICAL,
+			"write_vid_header: qpic_nand_write failed with %d\n", ret);
+		ret = -1;
+		goto out;
+	}
+
+	ret = 0;
+out:
+	free(tmp_buf);
+	return ret;
+}
+
+/**
  * scan_partition() - Collect the ec_headers info of a given partition
  * @ptn: partition to read the headers of
  *
@@ -257,7 +507,8 @@ static struct ubi_scan_info *scan_partition(struct ptentry *ptn)
 {
 	struct ubi_scan_info *si;
 	struct ubi_ec_hdr *ec_hdr;
-	unsigned i, curr_peb;
+	struct ubi_vid_hdr vid_hdr;
+	unsigned i;
 	unsigned long long sum = 0;
 	int page_size = flash_page_size();
 	int ret;
@@ -270,13 +521,13 @@ static struct ubi_scan_info *scan_partition(struct ptentry *ptn)
 	}
 
 	memset((void *)si, 0, sizeof(*si));
-	si->ec = malloc(ptn->length * sizeof(uint64_t));
-	if (!si->ec) {
+	si->pebs_data = malloc(ptn->length * sizeof(struct peb_info));
+	if (!si->pebs_data) {
 		dprintf(CRITICAL,"scan_partition: (%s) Memory allocation failed\n",
 				ptn->name);
-		goto out_failed_ec;
+		goto out_failed_pebs;
 	}
-	memset((void *)si->ec, 0, ptn->length * sizeof(uint64_t));
+	memset((void *)si->pebs_data, 0, ptn->length * sizeof(struct peb_info));
 
 	ec_hdr = malloc(UBI_EC_HDR_SIZE);
 	if (!ec_hdr) {
@@ -285,16 +536,18 @@ static struct ubi_scan_info *scan_partition(struct ptentry *ptn)
 		goto out_failed;
 	}
 
-	curr_peb = ptn->start;
 	si->vid_hdr_offs = 0;
 	si->image_seq = rand() & UBI_IMAGE_SEQ_BASE;
-
+	si->vtbl_peb1 = -1;
+	si->vtbl_peb2 = -1;
+	si->fastmap_sb = -1;
 	for (i = 0; i < ptn->length; i++){
-		ret = read_ec_hdr(curr_peb + i, ec_hdr);
+		ret = read_ec_hdr(ptn->start + i, ec_hdr);
 		switch (ret) {
 		case 1:
 			si->empty_cnt++;
-			si->ec[i] = UBI_MAX_ERASECOUNTER;
+			si->pebs_data[i].ec = UBI_MAX_ERASECOUNTER;
+			si->pebs_data[i].status = UBI_EMPTY_PEB;
 			break;
 		case 0:
 			if (!si->vid_hdr_offs) {
@@ -304,30 +557,68 @@ static struct ubi_scan_info *scan_partition(struct ptentry *ptn)
 					si->vid_hdr_offs % page_size ||
 					si->data_offs % page_size) {
 					si->bad_cnt++;
-					si->ec[i] = UBI_MAX_ERASECOUNTER;
+					si->pebs_data[i].ec = UBI_MAX_ERASECOUNTER;
 					si->vid_hdr_offs = 0;
 					continue;
 				}
 				if (BE32(ec_hdr->vid_hdr_offset) != si->vid_hdr_offs) {
 					si->bad_cnt++;
-					si->ec[i] = UBI_MAX_ERASECOUNTER;
+					si->pebs_data[i].ec = UBI_MAX_ERASECOUNTER;
 					continue;
 				}
 				if (BE32(ec_hdr->data_offset) != si->data_offs) {
 					si->bad_cnt++;
-					si->ec[i] = UBI_MAX_ERASECOUNTER;
+					si->pebs_data[i].ec = UBI_MAX_ERASECOUNTER;
 					continue;
 				}
 			}
-			si->good_cnt++;
-			si->ec[i] = BE64(ec_hdr->ec);
+			si->read_image_seq = BE32(ec_hdr->image_seq);
+			si->pebs_data[i].ec = BE64(ec_hdr->ec);
+			/* Now read the VID header to find if the peb is free */
+			ret = read_vid_hdr(ptn->start + i, &vid_hdr,
+					BE32(ec_hdr->vid_hdr_offset));
+			switch (ret) {
+			case 1:
+				si->pebs_data[i].status = UBI_FREE_PEB;
+				si->free_cnt++;
+				break;
+			case 0:
+				si->pebs_data[i].status = UBI_USED_PEB;
+				si->pebs_data[i].volume = BE32(vid_hdr.vol_id);
+				if (BE32(vid_hdr.vol_id) == UBI_LAYOUT_VOLUME_ID) {
+					if (si->vtbl_peb1 == -1)
+						si->vtbl_peb1 = i;
+					else if (si->vtbl_peb2 == -1)
+						si->vtbl_peb2 = i;
+					else
+						dprintf(CRITICAL,
+							"scan_partition: Found > 2 copies of vtbl");
+				}
+				if (BE32(vid_hdr.vol_id) == UBI_FM_SB_VOLUME_ID)
+					si->fastmap_sb = i;
+				si->used_cnt++;
+				break;
+			case -1:
+			default:
+				si->bad_cnt++;
+				si->pebs_data[i].ec = UBI_MAX_ERASECOUNTER;
+				si->pebs_data[i].status = UBI_BAD_PEB;
+				break;
+			}
 			break;
 		case -1:
 		default:
 			si->bad_cnt++;
-			si->ec[i] = UBI_MAX_ERASECOUNTER;
+			si->pebs_data[i].ec = UBI_MAX_ERASECOUNTER;
+			si->pebs_data[i].status = UBI_BAD_PEB;
 			break;
 		}
+	}
+
+	/* Sanity check */
+	if (si->bad_cnt + si->empty_cnt + si->free_cnt + si->used_cnt != (int)ptn->length) {
+		dprintf(CRITICAL,"scan_partition: peb count doesn't sum up \n");
+		goto out_failed;
 	}
 
 	/*
@@ -335,13 +626,14 @@ static struct ubi_scan_info *scan_partition(struct ptentry *ptn)
 	 * ec header), then set mean_ec = UBI_DEF_ERACE_COUNTER.
 	 */
 	sum = 0;
-	if (si->good_cnt && (double)(si->good_cnt / ptn->length) * 100 > 95) {
+	if ((si->free_cnt + si->used_cnt) &&
+		(double)((si->free_cnt + si->used_cnt) / ptn->length) * 100 > 95) {
 		for (i = 0; i < ptn->length; i++) {
-			if (si->ec[i] == UBI_MAX_ERASECOUNTER)
+			if (si->pebs_data[i].ec == UBI_MAX_ERASECOUNTER)
 				continue;
-			sum += si->ec[i];
+			sum += si->pebs_data[i].ec;
 		}
-		si->mean_ec = sum / si->good_cnt;
+		si->mean_ec = sum / (si->free_cnt + si->used_cnt);
 	} else {
 		si->mean_ec = UBI_DEF_ERACE_COUNTER;
 	}
@@ -349,8 +641,8 @@ static struct ubi_scan_info *scan_partition(struct ptentry *ptn)
 	return si;
 
 out_failed:
-	free(si->ec);
-out_failed_ec:
+	free(si->pebs_data);
+out_failed_pebs:
 	free(si);
 	return NULL;
 }
@@ -369,8 +661,8 @@ static void update_ec_header(struct ubi_ec_hdr *old_ech,
 {
 	uint32_t crc;
 
-	if (si->ec[index] < UBI_MAX_ERASECOUNTER)
-		old_ech->ec = BE64(si->ec[index] + 1);
+	if (si->pebs_data[index].ec < UBI_MAX_ERASECOUNTER)
+		old_ech->ec = BE64(si->pebs_data[index].ec + 1);
 	else
 		old_ech->ec = BE64(si->mean_ec);
 
@@ -386,28 +678,25 @@ static void update_ec_header(struct ubi_ec_hdr *old_ech,
 	old_ech->hdr_crc = BE32(crc);
 }
 
-/**
- * calc_data_len - calculate how much real data is stored in the buffer
- * @page_size: min I/O of the device
- * @buf: a buffer with the contents of the physical eraseblock
- * @len: the buffer length
- *
- * This function calculates how much "real data" is stored in @buf and
- * returns the length (in number of pages). Continuous 0xFF bytes at the end
- * of the buffer are not considered as "real data".
- */
-static int calc_data_len(int page_size, const void *buf, int len)
+
+static void update_vid_header(struct ubi_vid_hdr *vid_hdr,
+		const struct ubi_scan_info *si, uint32_t vol_id,
+		uint32_t lnum, uint32_t data_pad)
 {
-	int i;
+	uint32_t crc;
 
-	for (i = len - 1; i >= 0; i--)
-		if (((const uint8_t *)buf)[i] != 0xFF)
-			break;
+	vid_hdr->vol_type = UBI_VID_DYNAMIC;
+	vid_hdr->sqnum = BE64(si->image_seq);
+	vid_hdr->vol_id = BE32(vol_id);
+	vid_hdr->lnum = BE32(lnum);
+	vid_hdr->compat = 0;
+	vid_hdr->data_pad = BE32(data_pad);
 
-	/* The resulting length must be aligned to the minimum flash I/O size */
-	len = i + 1;
-	len = (len + page_size - 1) / page_size;
-	return len;
+	vid_hdr->magic = BE32(UBI_VID_HDR_MAGIC);
+	vid_hdr->version = UBI_VERSION;
+	crc = mtd_crc32(UBI_CRC32_INIT,
+			(const void *)vid_hdr, UBI_VID_HDR_SIZE_CRC);
+	vid_hdr->hdr_crc = BE32(crc);
 }
 
 /**
@@ -450,7 +739,7 @@ static int ubi_erase_peb(int peb_num, int need_erase,
 	int ret;
 
 	if (need_erase && qpic_nand_blk_erase(peb_num * num_pages_per_blk)) {
-		dprintf(INFO, "flash_ubi_img: erase of %d failed\n", peb_num);
+		dprintf(INFO, "ubi_erase_peb: erase of %d failed\n", peb_num);
 		return -1;
 	}
 	memset(&new_ech, 0xff, sizeof(new_ech));
@@ -459,10 +748,11 @@ static int ubi_erase_peb(int peb_num, int need_erase,
 	/* Write new ec_header */
 	ret = write_ec_header(peb_num, &new_ech);
 	if (ret) {
-		dprintf(CRITICAL, "flash_ubi_img: write ec_header to %d failed\n",
+		dprintf(CRITICAL, "ubi_erase_peb: write ec_header to %d failed\n",
 				peb_num);
 		return -1;
 	}
+	si->pebs_data[peb_num - ptn_start].status = UBI_FREE_PEB;
 	return 0;
 }
 
@@ -609,7 +899,224 @@ int flash_ubi_img(struct ptentry *ptn, void *data, unsigned size)
 	}
 
 out:
-	free(si->ec);
+	free(si->pebs_data);
 	free(si);
 	return ret;
 }
+
+/**
+ * find_volume() - Find given volume in a partition by it's name
+ * @si: pointer to struct ubi_scan_info
+ * @ptn_start: PEB number the partition begins at
+ * @vol_name: name of the volume to search for
+ * @vol_info: info obout the found volume
+ *
+ * This functions reads the volume table, then iterates over all its records
+ * and searches for a volume with a given name. If found, the volume table
+ * record describing this volume is returned at @vol_info. The volume
+ * id returned as a return code of the function.
+ *
+ * Returns:
+ * -1 - if the volume was not found
+ * volume in dex when found
+ */
+static int find_volume(struct ubi_scan_info *si, int ptn_start,
+		const char *vol_name, struct ubi_vtbl_record *vol_info)
+{
+	int i, vtbl_records, vtbl_peb, ret = -1;
+	int block_size = flash_block_size();
+	void *leb_data;
+	struct ubi_vtbl_record *curr_vol;
+
+	if (si->vtbl_peb1 < 0) {
+		dprintf(CRITICAL,"find_volume: vtbl not found \n");
+		return -1;
+	}
+	vtbl_peb = si->vtbl_peb1;
+
+	vtbl_records = (block_size - si->data_offs) / UBI_VTBL_RECORD_SIZE;
+	if (vtbl_records > UBI_MAX_VOLUMES)
+		vtbl_records = UBI_MAX_VOLUMES;
+
+	leb_data = malloc(block_size - si->data_offs);
+	if (!leb_data) {
+		dprintf(CRITICAL,"find_volume: Memory allocation failed\n");
+		goto out_free_leb;
+	}
+retry:
+	/* First read the volume table */
+	if (read_leb_data(vtbl_peb + ptn_start, leb_data,
+			block_size - si->data_offs, si->data_offs)) {
+		dprintf(CRITICAL,"find_volume: read_leb_data failed\n");
+		if (vtbl_peb == si->vtbl_peb1 && si->vtbl_peb2 != -1) {
+			vtbl_peb = si->vtbl_peb2;
+			goto retry;
+		}
+		goto out_free_leb;
+	}
+
+	/* Now search for the required volume ID */
+	for (i = 0; i < vtbl_records; i++) {
+		curr_vol = (struct ubi_vtbl_record *)
+				(leb_data + UBI_VTBL_RECORD_SIZE*i);
+		if (!curr_vol->vol_type)
+			break;
+		if (!strcmp((char *)curr_vol->name, vol_name)) {
+			ret = i;
+			memcpy((void*)vol_info, curr_vol, sizeof(struct ubi_vtbl_record));
+			break;
+		}
+	}
+
+out_free_leb:
+	free(leb_data);
+	return ret;
+}
+
+/**
+ * write_one_peb() - writes data to a PEB, including VID header
+ * @curr_peb - PEB to write to
+ * @ptn_start: number of first PEB of the partition
+ * @si: pointer to struct ubi_scan_info
+ * @idx: index of required PEB in si->pebs_data array
+ * @lnum: lun number this LEB belongs to
+ * @vol_id: volume ID this PEB belongs to
+ * @data: data to write
+ * @size: size of the data
+ *
+ * Assumption: EC header correctly written and PEB erased
+ *
+ * Return codes:
+ * -1 - in case of error
+ *  0 - on success
+ */
+static int write_one_peb(int curr_peb, int ptn_start,
+		struct ubi_scan_info *si,
+		int lnum, int vol_id, void* data, int size)
+{
+	int ret;
+	struct ubi_vid_hdr vidh;
+
+	memset((void *)&vidh, 0, UBI_VID_HDR_SIZE);
+	update_vid_header(&vidh, si, vol_id, lnum, 0);
+	if (write_vid_header(curr_peb + ptn_start, &vidh, si->vid_hdr_offs)) {
+		dprintf(CRITICAL,
+				"update_ubi_vol: write_vid_header for peb %d failed \n",
+				curr_peb);
+		ret = -1;
+		goto out;
+	}
+
+	/* now write the data */
+	ret = write_leb_data(curr_peb + ptn_start, data, size, si->data_offs);
+	if (ret)
+		dprintf(CRITICAL, "update_ubi_vol: writing data to peb-%d failed\n",
+				curr_peb);
+	else
+		si->pebs_data[curr_peb].status = UBI_USED_PEB;
+out:
+	return ret;
+}
+
+/**
+ * update_ubi_vol() - Write the provided (UBI) image to given volume
+ * @ptn: partition holding the required volume
+ * @data: the image to write
+ * @size: size of the image to write
+ *
+ *  Return codes:
+ * -1 - in case of error
+ *  0 - on success
+ */
+int update_ubi_vol(struct ptentry *ptn, const char* vol_name,
+				void *data, unsigned size)
+{
+	struct ubi_scan_info *si;
+	int vol_id, vol_pebs, curr_peb = 0, ret = -1;
+	unsigned block_size = flash_block_size();
+	void *img_peb;
+	struct ubi_vtbl_record curr_vol;
+	int img_pebs, lnum = 0;
+
+	si = scan_partition(ptn);
+	if (!si) {
+		dprintf(CRITICAL, "update_ubi_vol: scan_partition failed\n");
+		return -1;
+	}
+	if (si->read_image_seq)
+		si->image_seq = si->read_image_seq;
+
+	vol_id = find_volume(si, ptn->start, vol_name, &curr_vol);
+	if (vol_id == -1) {
+		dprintf(CRITICAL, "update_ubi_vol: dint find volume\n");
+		goto out;
+	}
+	if (si->fastmap_sb > -1 &&
+			ubi_erase_peb(ptn->start + si->fastmap_sb, 1, si, ptn->start)) {
+		dprintf(CRITICAL, "update_ubi_vol: fastmap invalidation failed\n");
+		goto out;
+	}
+
+	img_pebs = size / (block_size - si->data_offs);
+	if (size % (block_size - si->data_offs))
+		img_pebs++;
+
+	vol_pebs = BE32(curr_vol.reserved_pebs);
+	if (img_pebs > vol_pebs) {
+		dprintf(CRITICAL,
+			"update_ubi_vol: Provided image is too big. Requires %d PEBs, avail. only %d\n",
+				img_pebs, vol_pebs);
+		goto out;
+	}
+
+	/* First erase all volume used PEBs */
+	curr_peb = 0;
+	while (curr_peb < (int)ptn->length) {
+		if (si->pebs_data[curr_peb].status != UBI_USED_PEB ||
+				si->pebs_data[curr_peb].volume != vol_id) {
+			curr_peb++;
+			continue;
+		}
+		if (ubi_erase_peb(ptn->start + curr_peb, 1, si, ptn->start))
+			goto out;
+		curr_peb++;
+	}
+
+	/* Flash the image */
+	img_peb = data;
+	lnum = 0;
+	for (curr_peb = 0;
+			curr_peb < (int)ptn->length && size && vol_pebs;
+			curr_peb++) {
+		if (si->pebs_data[curr_peb].status != UBI_FREE_PEB &&
+			si->pebs_data[curr_peb].status != UBI_EMPTY_PEB)
+			continue;
+
+		if (write_one_peb(curr_peb, ptn->start, si,
+				lnum++, vol_id, img_peb,
+				(size < block_size - si->data_offs ? size :
+						block_size - si->data_offs))) {
+			dprintf(CRITICAL, "update_ubi_vol: write_one_peb failed\n");
+			goto out;
+		}
+		if (size < block_size - si->data_offs)
+			size = 0;
+		else
+			size -= (block_size - si->data_offs);
+		vol_pebs--;
+		img_peb += block_size - si->data_offs;
+	}
+
+	if (size) {
+		dprintf(CRITICAL,
+			"update_ubi_vol: Not enough available PEBs for writing the volume\n");
+		goto out;
+	}
+	ret = 0;
+out:
+	free(si->pebs_data);
+	free(si);
+	return ret;
+}
+
+
