@@ -338,6 +338,7 @@ int scm_protect_keystore(uint32_t * img_ptr, uint32_t  img_len);
 
 #define SCM_SVC_PWR                     0x9
 #define SCM_IO_DISABLE_PMIC_ARBITER     0x1
+#define SCM_IO_DISABLE_PMIC_ARBITER1    0x2
 
 #define SCM_SVC_MILESTONE_32_64_ID      0x1
 #define SCM_SVC_MILESTONE_CMD_ID        0xf

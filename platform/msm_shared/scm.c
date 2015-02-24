@@ -34,6 +34,8 @@
 #include <arch/ops.h>
 #include <rand.h>
 #include <image_verify.h>
+#include <dload_util.h>
+#include <platform/iomap.h>
 #include "scm.h"
 
 #pragma GCC optimize ("O0")
@@ -54,7 +56,7 @@
 
 /* SCM interface as per ARM spec present? */
 bool scm_arm_support;
-static uint32_t scm_io_write(addr_t address, uint32_t val);
+static uint32_t scm_io_write(uint32_t address, uint32_t val);
 
 static void scm_arm_support_available(uint32_t svc_id, uint32_t cmd_id)
 {
@@ -1201,25 +1203,25 @@ static bool wdog_debug_fuse_disable = false;
 void scm_check_boot_fuses()
 {
 	uint32_t ret = 0;
-	uint32_t resp[2];
+	uint32_t resp;
 	scmcall_arg scm_arg = {0};
 	scmcall_ret scm_ret = {0};
 
 	if (!scm_arm_support) {
-		ret = scm_call_atomic2(TZBSP_SVC_INFO, IS_SECURE_BOOT_ENABLED, resp, sizeof(resp));
+		ret = scm_call(TZBSP_SVC_INFO, IS_SECURE_BOOT_ENABLED, NULL, 0, &resp, sizeof(resp));
 	} else {
 		scm_arg.x0 = MAKE_SIP_SCM_CMD(TZBSP_SVC_INFO, IS_SECURE_BOOT_ENABLED);
 		ret = scm_call2(&scm_arg, &scm_ret);
-		resp[0] = scm_ret.x1;
+		resp = scm_ret.x1;
 	}
 
 	/* Parse Bit 0 and Bit 2 of the response */
 	if(!ret) {
 		/* Bit 0 - SECBOOT_ENABLE_CHECK */
-		if(resp[0] & 0x1)
+		if(resp & 0x1)
 			secure_boot_enable = true;
 		/* Bit 2 - DEBUG_DISABLE_CHECK */
-		if(resp[0] & 0x4)
+		if(resp & 0x4)
 			wdog_debug_fuse_disable = true;
 	} else
 		dprintf(CRITICAL, "scm call to check secure boot fuses failed\n");
@@ -1267,3 +1269,60 @@ static uint32_t scm_io_write(uint32_t address, uint32_t val)
 	}
 	return ret;
 }
+
+static int scm_call2_atomic(uint32_t svc, uint32_t cmd, uint32_t arg1, uint32_t arg2)
+{
+	uint32_t ret = 0;
+	scmcall_arg scm_arg = {0};
+	scmcall_ret scm_ret = {0};
+
+	if (!scm_arm_support)
+	{
+		ret = scm_call_atomic2(svc, cmd, arg1, arg2);
+	} else {
+		scm_arg.x0 = MAKE_SIP_SCM_CMD(svc, cmd);
+		scm_arg.x1 = MAKE_SCM_ARGS(0x2);
+		scm_arg.x2 = arg1;
+		scm_arg.x3 = arg2;
+		ret =  scm_call2(&scm_arg, &scm_ret);
+	}
+	return ret;
+}
+
+#if PLATFORM_USE_SCM_DLOAD
+int scm_dload_mode(int mode)
+{
+	int ret = 0;
+	uint32_t dload_type;
+
+	dprintf(SPEW, "DLOAD mode: %d\n", mode);
+	if (mode == NORMAL_DLOAD)
+		dload_type = SCM_DLOAD_MODE;
+	else if(mode == EMERGENCY_DLOAD)
+		dload_type = SCM_EDLOAD_MODE;
+	else
+		dload_type = 0;
+
+	/* Write to the Boot MISC register */
+	ret = scm_call2_atomic(SCM_SVC_BOOT, SCM_DLOAD_CMD, dload_type, 0);
+
+	if (ret) {
+		ret = scm_io_write(TCSR_BOOT_MISC_DETECT,dload_type);
+		if(ret) {
+			dprintf(CRITICAL, "Failed to write to boot misc: %d\n", ret);
+			return ret;
+		}
+	}
+
+	scm_check_boot_fuses();
+
+	/* Make WDOG_DEBUG DISABLE scm call only in non-secure boot */
+	if(!(secure_boot_enable || wdog_debug_fuse_disable)) {
+		ret = scm_call2_atomic(SCM_SVC_BOOT, WDOG_DEBUG_DISABLE, 1, 0);
+		if(ret)
+			dprintf(CRITICAL, "Failed to disable the wdog debug \n");
+	}
+
+	return ret;
+}
+#endif
