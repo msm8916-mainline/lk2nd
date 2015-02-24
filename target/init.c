@@ -59,6 +59,11 @@ __WEAK int flash_ubi_img(void)
     return 0;
 }
 
+__WEAK int update_ubi_vol(void)
+{
+    return 0;
+}
+
 __WEAK int target_is_emmc_boot(void)
 {
 #if _EMMC_BOOT

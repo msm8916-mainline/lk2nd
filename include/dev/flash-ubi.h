@@ -155,4 +155,9 @@ struct ubi_scan_info {
 };
 
 int flash_ubi_img(struct ptentry *ptn, void *data, unsigned size);
+inline int update_ubi_vol(struct ptentry *ptn, const char* vol_name,
+				void *data, unsigned size)
+{
+	return -1;
+}
 #endif
