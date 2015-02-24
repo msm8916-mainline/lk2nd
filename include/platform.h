@@ -52,6 +52,7 @@ void display_image_on_screen(void);
 unsigned board_machtype(void);
 unsigned board_platform_id(void);
 unsigned check_reboot_mode(void);
+unsigned check_hard_reboot_mode(void);
 void platform_uninit_timer(void);
 void reboot_device(unsigned);
 int set_download_mode(enum dload_mode mode);
