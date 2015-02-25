@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -167,6 +167,8 @@
 #define QPNP_WLED_STR_SIZE                     20
 #define QPNP_WLED_MIN_MSLEEP                   20
 #define QPNP_WLED_MAX_BR_LEVEL                 1638
+
+#define PWRDN_DLY2_MASK                        0x3
 
 /* output feedback mode */
 enum qpnp_wled_fdbk_op {
