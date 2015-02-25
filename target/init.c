@@ -216,3 +216,13 @@ __WEAK uint32_t target_ddr_cfg_val()
 {
 	return DDR_CONFIG_VAL;
 }
+
+/* Return Build variant */
+__WEAK bool target_build_variant_user()
+{
+#if USER_BUILD_VARIANT
+	return true;
+#else
+	return false;
+#endif
+}
