@@ -22,6 +22,7 @@ endif
 
 ifneq ($(TARGET_BUILD_VARIANT),user)
   DEVICE_STATUS := DEFAULT_UNLOCK=true
+  USER_BUILD_VARIANT=true
 endif
 
 ifeq ($(TARGET_BUILD_VARIANT),user)
