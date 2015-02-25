@@ -60,6 +60,7 @@ IMPLEMENT_ASN1_FUNCTIONS(AUTH_ATTR)
 
 	ASN1_SEQUENCE(VERIFIED_BOOT_SIG) = {
 		ASN1_SIMPLE(VERIFIED_BOOT_SIG, version, ASN1_INTEGER),
+		ASN1_SIMPLE(VERIFIED_BOOT_SIG, certificate, X509),
 		ASN1_SIMPLE(VERIFIED_BOOT_SIG, algor, X509_ALGOR),
 		ASN1_SIMPLE(VERIFIED_BOOT_SIG, auth_attr, AUTH_ATTR),
 		ASN1_SIMPLE(VERIFIED_BOOT_SIG, sig, ASN1_OCTET_STRING)
@@ -229,7 +230,6 @@ static bool verify_image_with_sig(unsigned char* img_addr, uint32_t img_size,
 				"boot_verifier: verification failure due to target name mismatch\n");
 		goto verify_image_with_sig_error;
 	}
-
 	/* Read image size from signature */
 	/* A len = 0xAABBCC (represented by 3 octets) would be stored in
 	   len->data as 0X00CCBBAA and len->length as 3(octets).
