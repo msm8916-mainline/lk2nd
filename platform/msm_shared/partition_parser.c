@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2015, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -872,10 +872,8 @@ int partition_get_index(const char *name)
 		return INVALID_PTN;
 	}
 	for (n = 0; n < partition_count; n++) {
-		if (!memcmp
-		    (name, &partition_entries[n].name, input_string_length)
-		    && input_string_length ==
-		    strlen((const char *)&partition_entries[n].name)) {
+		if ((input_string_length == strlen((const char *)&partition_entries[n].name))
+			&& !memcmp(name, &partition_entries[n].name, input_string_length)) {
 			return n;
 		}
 	}
