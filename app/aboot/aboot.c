@@ -625,7 +625,7 @@ void boot_linux(void *kernel, unsigned *tags,
 
 #if VERIFIED_BOOT
 	/* Write protect the device info */
-	if (mmc_write_protect("devinfo", 1))
+	if (target_build_variant_user() && mmc_write_protect("devinfo", 1))
 	{
 		dprintf(INFO, "Failed to write protect dev info\n");
 		ASSERT(0);
