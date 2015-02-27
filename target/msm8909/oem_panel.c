@@ -205,10 +205,14 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		panelstruct->panelresetseq
 					= &truly_wvga_cmd_reset_seq;
 		panelstruct->backlightinfo = &truly_wvga_cmd_backlight;
-		pinfo->mipi.panel_cmds
+		pinfo->mipi.panel_on_cmds
 					= truly_wvga_cmd_on_command;
-		pinfo->mipi.num_of_panel_cmds
+		pinfo->mipi.num_of_panel_on_cmds
 					= TRULY_WVGA_CMD_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+					= truly_wvga_cmd_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+					= TRULY_WVGA_CMD_OFF_COMMAND;
 		memcpy(phy_db->timing,
 				truly_wvga_cmd_timings, TIMING_SIZE);
 		break;
@@ -275,10 +279,14 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		panelstruct->panelresetseq
 					 = &hx8394d_qhd_video_panel_reset_seq;
 		panelstruct->backlightinfo = &hx8394d_qhd_video_backlight;
-		pinfo->mipi.panel_cmds
+		pinfo->mipi.panel_on_cmds
 					= hx8394d_qhd_video_on_command;
-		pinfo->mipi.num_of_panel_cmds
+		pinfo->mipi.num_of_panel_on_cmds
 					= HX8394D_QHD_VIDEO_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+					= hx8394d_qhd_video_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+					= HX8394D_QHD_VIDEO_OFF_COMMAND;
 		memcpy(phy_db->timing,
 				hx8394d_qhd_video_timings, TIMING_SIZE);
 		pinfo->mipi.signature = HX8394D_QHD_VIDEO_SIGNATURE;
