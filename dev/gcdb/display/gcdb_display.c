@@ -210,6 +210,8 @@ static int mdss_dsi_dfps_get_stored_pll_codes(struct msm_panel_info *pinfo)
 		goto splash_err;
 	}
 
+	mmc_set_lun(partition_get_lun(index));
+
 	blocksize = mmc_get_device_blocksize();
 	if (blocksize == 0) {
 		dprintf(CRITICAL, "ERROR:splash Partition invalid blocksize\n");
@@ -268,6 +270,8 @@ static int mdss_dsi_dfps_store_pll_codes(struct msm_panel_info *pinfo)
 		ret = ERROR;
 		goto store_err;
 	}
+
+	mmc_set_lun(partition_get_lun(index));
 
 	ret = mmc_write(ptn, sizeof(uint32_t), &pinfo->dfps);
 	if (ret)
