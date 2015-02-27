@@ -41,6 +41,7 @@
 #include <platform/timer.h>
 #include <err.h>
 #include <msm_panel.h>
+#include <arch/ops.h>
 
 extern void mdp_disable(void);
 extern int mipi_dsi_cmd_config(struct fbcon_config mipi_fb_cfg,
@@ -218,6 +219,7 @@ int mdss_dsi_cmds_tx(struct mipi_panel_info *mipi,
 			size = 4 - size;
 		size += cm->size;
 		memcpy((uint8_t *)off, (cm->payload), size);
+		arch_clean_invalidate_cache_range((addr_t)(off), size);
 		writel(off, ctl_base + DMA_CMD_OFFSET);
 		writel(size, ctl_base + DMA_CMD_LENGTH);
 		if (dual_dsi) {
@@ -824,6 +826,7 @@ int mipi_dsi_cmds_tx(struct mipi_dsi_cmd *cmds, int count)
 			goto mipi_cmds_error;
 
 		memcpy((void *)off, (cm->payload), cm->size);
+		arch_clean_invalidate_cache_range((addr_t)(off), size);
 		writel(off, DSI_DMA_CMD_OFFSET);
 		writel(cm->size, DSI_DMA_CMD_LENGTH);	// reg 0x48 for this build
 		dsb();
