@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -219,6 +219,7 @@ void pm8x41_set_boot_done();
 uint32_t pm8x41_v2_resin_status();
 uint32_t pm8x41_resin_status();
 void pm8x41_reset_configure(uint8_t);
+void pm8994_reset_configure(uint8_t);
 void pm8x41_v2_reset_configure(uint8_t);
 int pm8x41_ldo_set_voltage(struct pm8x41_ldo *ldo, uint32_t voltage);
 int pm8x41_ldo_control(struct pm8x41_ldo *ldo, uint8_t enable);
