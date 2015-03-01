@@ -1,4 +1,4 @@
- /* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+ /* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -408,6 +408,10 @@ static int qpnp_wled_config(struct qpnp_wled *wled)
 	temp = wled->ibb_pwrup_dly_ms;
 	reg &= QPNP_WLED_IBB_PWRUP_DLY_MASK;
 	reg |= (temp << QPNP_WLED_IBB_PWRUP_DLY_SHIFT);
+	/* Power down delay bits could already be set, clear them before
+	 * or'ing new values
+	 */
+	reg &= ~(PWRDN_DLY2_MASK);
 	reg |= wled->ibb_pwrdn_dly_ms;
 	reg |= (wled->ibb_discharge_en << 2);
 
