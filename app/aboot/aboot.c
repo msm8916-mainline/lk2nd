@@ -705,12 +705,12 @@ static void verify_signed_bootimg(uint32_t bootimg_addr, uint32_t bootimg_size)
 	if(boot_into_recovery)
 	{
 		ret = boot_verify_image((unsigned char *)bootimg_addr,
-				bootimg_size, "recovery");
+				bootimg_size, "/recovery");
 	}
 	else
 	{
 		ret = boot_verify_image((unsigned char *)bootimg_addr,
-				bootimg_size, "boot");
+				bootimg_size, "/boot");
 	}
 	boot_verify_print_state();
 #else
