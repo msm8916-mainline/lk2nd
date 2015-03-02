@@ -73,6 +73,7 @@
 #include "bootimg.h"
 #include "fastboot.h"
 #include "sparse_format.h"
+#include "meta_format.h"
 #include "mmc.h"
 #include "devinfo.h"
 #include "board.h"
@@ -2352,6 +2353,33 @@ void cmd_flash_mmc_img(const char *arg, void *data, unsigned sz)
 	return;
 }
 
+void cmd_flash_meta_img(const char *arg, void *data, unsigned sz)
+{
+	int i, images;
+	meta_header_t *meta_header;
+	img_header_entry_t *img_header_entry;
+
+	meta_header = (meta_header_t*) data;
+	img_header_entry = (img_header_entry_t*) (data+sizeof(meta_header_t));
+
+	images = meta_header->img_hdr_sz / sizeof(img_header_entry_t);
+
+	for (i=0; i<images; i++) {
+
+		if((img_header_entry[i].ptn_name == NULL) ||
+			(img_header_entry[i].start_offset == 0) ||
+			(img_header_entry[i].size == 0))
+			break;
+
+		cmd_flash_mmc_img(img_header_entry[i].ptn_name,
+					(void *) data + img_header_entry[i].start_offset,
+					img_header_entry[i].size);
+	}
+
+	fastboot_okay("");
+	return;
+}
+
 void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 {
 	unsigned int chunk;
@@ -2598,10 +2626,11 @@ void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 void cmd_flash_mmc(const char *arg, void *data, unsigned sz)
 {
 	sparse_header_t *sparse_header;
-	/* 8 Byte Magic + 2048 Byte xml + Encrypted Data */
-	unsigned int *magic_number = (unsigned int *) data;
+	meta_header_t *meta_header;
 
 #ifdef SSD_ENABLE
+	/* 8 Byte Magic + 2048 Byte xml + Encrypted Data */
+	unsigned int *magic_number = (unsigned int *) data;
 	int              ret=0;
 	uint32           major_version=0;
 	uint32           minor_version=0;
@@ -2676,10 +2705,13 @@ void cmd_flash_mmc(const char *arg, void *data, unsigned sz)
 #endif
 
 	sparse_header = (sparse_header_t *) data;
-	if (sparse_header->magic != SPARSE_HEADER_MAGIC)
-		cmd_flash_mmc_img(arg, data, sz);
-        else
+        meta_header = (meta_header_t *) data;
+        if (sparse_header->magic == SPARSE_HEADER_MAGIC)
                 cmd_flash_mmc_sparse_img(arg, data, sz);
+        else if (meta_header->magic == META_HEADER_MAGIC)
+                cmd_flash_meta_img(arg, data, sz);
+        else
+                cmd_flash_mmc_img(arg, data, sz);
 
 #if VERIFIED_BOOT
 	if((!strncmp(arg, "system", 6)) && !device.verity_mode)
