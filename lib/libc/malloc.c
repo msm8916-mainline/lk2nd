@@ -24,6 +24,7 @@
 #include <malloc.h>
 #include <string.h>
 #include <lib/heap.h>
+#include <arch/ops.h>
 
 void *malloc(size_t size)
 {
@@ -32,7 +33,11 @@ void *malloc(size_t size)
 
 void *memalign(size_t boundary, size_t size)
 {
-	return heap_alloc(size, boundary);
+	void *ptr;
+	ptr = heap_alloc(size, boundary);
+	/* Clean the cache before giving the memory */
+	arch_invalidate_cache_range((addr_t) ptr, size);
+	return ptr;
 }
 
 void *calloc(size_t count, size_t size)
