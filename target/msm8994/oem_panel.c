@@ -158,6 +158,7 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 		memcpy(phy_db->timing,
 			sharp_wqxga_dualdsi_video_timings, TIMING_SIZE);
 		pinfo->dfps.panel_dfps = sharp_wqxga_dualdsi_video_dfps;
+		pinfo->mipi.tx_eot_append = true;
 		break;
 	case JDI_QHD_DUALDSI_VIDEO_PANEL:
 		pan_type = PANEL_TYPE_DSI;
