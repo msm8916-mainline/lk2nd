@@ -1904,24 +1904,25 @@ void cmd_erase_mmc(const char *arg, void *data, unsigned sz)
 	lun = partition_get_lun(index);
 	mmc_set_lun(lun);
 
-#if MMC_SDHCI_SUPPORT
-	if (mmc_erase_card(ptn, size)) {
-		fastboot_fail("failed to erase partition\n");
-		return;
-	}
-#else
-	BUF_DMA_ALIGN(out, DEFAULT_ERASE_SIZE);
-	size = partition_get_size(index);
-	if (size > DEFAULT_ERASE_SIZE)
-		size = DEFAULT_ERASE_SIZE;
+	if (platform_boot_dev_isemmc())
+	{
+		if (mmc_erase_card(ptn, size)) {
+			fastboot_fail("failed to erase partition\n");
+			return;
+		}
+	} else {
+		BUF_DMA_ALIGN(out, DEFAULT_ERASE_SIZE);
+		size = partition_get_size(index);
+		if (size > DEFAULT_ERASE_SIZE)
+			size = DEFAULT_ERASE_SIZE;
 
-	/* Simple inefficient version of erase. Just writing
-       0 in first several blocks */
-	if (mmc_write(ptn , size, (unsigned int *)out)) {
-		fastboot_fail("failed to erase partition");
-		return;
+		/* Simple inefficient version of erase. Just writing
+	       0 in first several blocks */
+		if (mmc_write(ptn , size, (unsigned int *)out)) {
+			fastboot_fail("failed to erase partition");
+			return;
+		}
 	}
-#endif
 	fastboot_okay("");
 }
 
