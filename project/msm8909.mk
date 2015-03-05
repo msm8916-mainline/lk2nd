@@ -65,3 +65,6 @@ endif
 ifeq ($(ENABLE_BOOT_CONFIG_SUPPORT),1)
 DEFINES += BOOT_CONFIG_SUPPORT=1
 endif
+
+#SCM call before entering DLOAD mode
+DEFINES += PLATFORM_USE_SCM_DLOAD=1
