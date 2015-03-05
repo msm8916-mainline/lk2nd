@@ -290,6 +290,7 @@ int scm_protect_keystore(uint32_t * img_ptr, uint32_t  img_len);
 
 #define SCM_SVC_PWR                     0x9
 #define SCM_IO_DISABLE_PMIC_ARBITER     0x1
+#define SCM_IO_DISABLE_PMIC_ARBITER1    0x2
 
 #define SCM_SVC_MILESTONE_32_64_ID      0x1
 #define SCM_SVC_MILESTONE_CMD_ID        0xf
@@ -301,6 +302,11 @@ AP_CE_ADM_USE = 1
 
 /* Apps CE resource. */
 #define TZ_RESOURCE_CE_AP  2
+
+/* Secure IO Service IDs */
+#define SCM_IO_READ     0x1
+#define SCM_IO_WRITE    0x2
+#define SCM_SVC_IO      0x5
 
 uint8_t switch_ce_chn_cmd(enum ap_ce_channel_type channel);
 
@@ -367,5 +373,6 @@ struct scm_response {
  * Used for checking if armv8 SCM support present
  */
 void scm_init();
+uint32_t is_secure_boot_enable();
 int scm_dload_mode();
 #endif
