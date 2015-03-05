@@ -199,7 +199,7 @@ static bool devinfo_present = true;
 /* Assuming unauthorized kernel image by default */
 static int auth_kernel_img = 0;
 
-static device_info device = {DEVICE_MAGIC, 0, 0, 0, 0, 1};
+static device_info device = {DEVICE_MAGIC, 0, 0, 0, {0}, {0}, {0}, 1};
 static bool is_allow_unlock = 0;
 
 static char frp_ptns[2][8] = {"config","frp"};
@@ -2376,6 +2376,20 @@ void cmd_flash_meta_img(const char *arg, void *data, unsigned sz)
 					img_header_entry[i].size);
 	}
 
+	if (!strncmp(arg, "bootloader", strlen("bootloader")))
+	{
+		strlcpy(device.bootloader_version, TARGET(BOARD), MAX_VERSION_LEN);
+		strlcat(device.bootloader_version, "-", MAX_VERSION_LEN);
+		strlcat(device.bootloader_version, meta_header->img_version, MAX_VERSION_LEN);
+	}
+	else
+	{
+		strlcpy(device.radio_version, TARGET(BOARD), MAX_VERSION_LEN);
+		strlcat(device.radio_version, "-", MAX_VERSION_LEN);
+		strlcat(device.radio_version, meta_header->img_version, MAX_VERSION_LEN);
+	}
+
+	write_device_info(&device);
 	fastboot_okay("");
 	return;
 }
@@ -3228,6 +3242,8 @@ void aboot_fastboot_register_commands(void)
 			device.display_panel);
 	fastboot_publish("display-panel",
 			(const char *) panel_display_mode);
+	fastboot_publish("version-bootloader", (const char *) device.bootloader_version);
+	fastboot_publish("version-baseband", (const char *) device.radio_version);
 }
 
 void aboot_init(const struct app_descriptor *app)
