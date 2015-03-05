@@ -596,7 +596,9 @@ uint32_t mmc_write_protect(const char *ptn_name, int set_clr)
 	unsigned long long  ptn = 0;
 	uint64_t size;
 	int index = -1;
+#ifdef UFS_SUPPORT
 	int ret = 0;
+#endif
 
 	dev = target_mmc_device();
 	block_size = mmc_get_device_blocksize();
@@ -629,6 +631,7 @@ uint32_t mmc_write_protect(const char *ptn_name, int set_clr)
 	}
 	else
 	{
+#ifdef UFS_SUPPORT
 		/* Enable the power on WP fo all LUNs which have WP bit is enabled */
 		ret = dme_set_fpoweronwpen((struct ufs_dev*) dev);
 		if (ret < 0)
@@ -636,6 +639,7 @@ uint32_t mmc_write_protect(const char *ptn_name, int set_clr)
 			dprintf(CRITICAL, "Failure to WP UFS partition\n");
 			return 1;
 		}
+#endif
 	}
 
 	return 0;
