@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -259,4 +259,5 @@
 #define SECURITY_CONTROL_CORE_FEATURE_CONFIG0    0x0005E004
 /* EBI2 */
 #define TLMM_EBI2_EMMC_GPIO_CFG     (TLMM_BASE_ADDR + 0x00111000)
+#define TCSR_BOOT_MISC_DETECT       0x193D100
 #endif
