@@ -802,6 +802,9 @@ retry_tuning:
 	if (drv_type_changed)
 		mmc_set_drv_type(host, card, 0);
 
+	if (tuned_phase_cnt == MAX_PHASES)
+		dprintf(CRITICAL, "WARNING: All phase passed.The selected phase may not be optimal\n");
+
 	/* Find the appropriate tuned phase */
 	if (tuned_phase_cnt)
 	{
