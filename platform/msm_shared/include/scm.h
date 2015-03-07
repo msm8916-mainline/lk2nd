@@ -256,6 +256,7 @@ typedef struct
 
 #define PRNG_CMD_ID                 0x01
 #define IS_CALL_AVAIL_CMD           0x01
+#define IS_SECURE_BOOT_ENABLED      0x04
 
 /* Download Mode specific arguments to be passed to TZ */
 #define SCM_EDLOAD_MODE 0x01
@@ -348,6 +349,11 @@ AP_CE_ADM_USE = 1
 
 /* Apps CE resource. */
 #define TZ_RESOURCE_CE_AP  2
+
+/* Secure IO Service IDs */
+#define SCM_IO_READ     0x1
+#define SCM_IO_WRITE    0x2
+#define SCM_SVC_IO      0x5
 
 uint8_t switch_ce_chn_cmd(enum ap_ce_channel_type channel);
 
@@ -443,4 +449,5 @@ struct scm_response {
  * Used for checking if armv8 SCM support present
  */
 void scm_init();
+bool is_secure_boot_enable();
 #endif
