@@ -456,6 +456,10 @@ static void cmd_download(const char *arg, void *data, unsigned sz)
 	snprintf((char *)response, MAX_RSP_SIZE, "DATA%08x", len);
 	if (usb_if.usb_write(response, strlen((const char *)response)) < 0)
 		return;
+	/*
+	 * Discard the cache contents before starting the download
+	 */
+	arch_invalidate_cache_range((addr_t) download_base, sz);
 
 	r = usb_if.usb_read(download_base, len);
 	if ((r < 0) || ((unsigned) r != len)) {
