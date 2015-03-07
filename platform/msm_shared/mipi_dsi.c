@@ -414,6 +414,10 @@ int mdss_dsi_host_init(struct mipi_panel_info *mipi, uint32_t
 		tmp |= BIT(28);
 		writel(tmp, mipi->ctl_base + LANE_CTL);
 	}
+
+	if ((mipi->mode == DSI_VIDEO_MODE) && mipi->tx_eot_append)
+		writel(0x1, mipi->ctl_base + EOT_PACKET_CTRL);
+
 #endif
 
 	return 0;
