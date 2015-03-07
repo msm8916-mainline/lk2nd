@@ -446,9 +446,15 @@ unsigned check_reboot_mode(void)
 void reboot_device(unsigned reboot_reason)
 {
 	uint8_t reset_type = 0;
+	uint32_t restart_reason_addr;
+
+	if (platform_is_msm8994())
+		restart_reason_addr = RESTART_REASON_ADDR;
+	else
+		restart_reason_addr = RESTART_REASON_ADDR2;
 
 	/* Write the reboot reason */
-	writel(reboot_reason, RESTART_REASON_ADDR);
+	writel(reboot_reason, restart_reason_addr);
 
 	if(reboot_reason == FASTBOOT_MODE)
 		reset_type = PON_PSHOLD_WARM_RESET;
