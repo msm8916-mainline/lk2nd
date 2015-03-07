@@ -283,6 +283,6 @@ static struct backlight hx8394d_720p_video_backlight = {
   1, 1, 4095, 100, 1, "PMIC_8941"
 };
 
-#define HX8394D_720P_VIDEO_SIGNATURE 0xFFFF
+#define HX8394D_720P_VIDEO_SIGNATURE 0xa0087
 
 #endif /*_HX8394D_720P_VIDEO_H_*/

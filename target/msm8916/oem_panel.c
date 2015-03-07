@@ -634,6 +634,9 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 				panel_id = JDI_1080P_VIDEO_PANEL;
 				break;
 			case 1:
+				panel_id = HX8394D_720P_VIDEO_PANEL;
+				break;
+			case 2:
 				panel_id = NT35590_720P_VIDEO_PANEL;
 				break;
 			default:
