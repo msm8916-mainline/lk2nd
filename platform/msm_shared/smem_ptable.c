@@ -35,6 +35,7 @@
 #include <platform/iomap.h>
 #include <lib/ptable.h>
 
+#include "board.h"
 #include "smem.h"
 
 
@@ -276,4 +277,33 @@ uint32_t smem_get_ram_ptable_len(void)
 uint32_t smem_get_ram_ptable_version(void)
 {
 	return ptable.hdr.version;
+}
+
+uint32_t get_ddr_start()
+{
+	uint32_t i;
+	ram_partition ptn_entry;
+	uint32_t len = 0;
+
+	ASSERT(smem_ram_ptable_init_v1());
+
+	len = smem_get_ram_ptable_len();
+
+	/* Determine the Start addr of the DDR RAM */
+	for(i = 0; i < len; i++)
+	{
+		smem_get_ram_ptable_entry(&ptn_entry, i);
+		if(ptn_entry.type == SYS_MEMORY)
+		{
+			if((ptn_entry.category == SDRAM) ||
+			   (ptn_entry.category == IMEM))
+			{
+				/* Check to ensure that start address is 1MB aligned */
+				ASSERT((ptn_entry.start & (MB-1)) == 0);
+				return ptn_entry.start;
+			}
+		}
+	}
+	ASSERT("DDR Start Mem Not found\n");
+	return 0;
 }
