@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
@@ -183,6 +183,7 @@
 #define ERR_INT_MASK0               0x108
 #define RDBK_DATA0                  0x068
 
+#define LANE_CTL                    0x0A8
 #define LANE_SWAP_CTL               0x0AC
 #define TIMING_CTL                  0x0C0
 
