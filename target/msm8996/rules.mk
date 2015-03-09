@@ -38,4 +38,9 @@ DEFINES += \
 
 OBJS += \
 	$(LOCAL_DIR)/init.o \
-	$(LOCAL_DIR)/meminfo.o \
+	$(LOCAL_DIR)/meminfo.o
+
+ifeq ($(ENABLE_GLINK_SUPPORT),1)
+OBJS += \
+    $(LOCAL_DIR)/regulator.o
+endif
