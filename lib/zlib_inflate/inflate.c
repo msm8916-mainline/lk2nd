@@ -80,6 +80,8 @@
  * The history for versions after 1.2.0 are in ChangeLog in zlib distribution.
  */
 
+#define NO_GZIP
+
 #include "zutil.h"
 #include "inftrees.h"
 #include "inflate.h"
