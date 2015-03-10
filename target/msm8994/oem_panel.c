@@ -48,6 +48,7 @@
 #include "include/panel_jdi_qhd_dualdsi_cmd.h"
 #include "include/panel_jdi_4k_dualdsi_video.h"
 #include "include/panel_jdi_1080p_video.h"
+#include "include/panel_sharp_1080p_cmd.h"
 #include "include/panel_hx8379a_truly_fwvga_video.h"
 #include "include/panel_nt35597_wqxga_video.h"
 #include "include/panel_nt35597_wqxga_cmd.h"
@@ -61,6 +62,7 @@ JDI_QHD_DUALDSI_VIDEO_PANEL,
 JDI_QHD_DUALDSI_CMD_PANEL,
 JDI_4K_DUALDSI_VIDEO_PANEL,
 JDI_1080P_VIDEO_PANEL,
+SHARP_1080P_CMD_PANEL,
 HX8379A_TRULY_FWVGA_VIDEO_PANEL,
 NOVATEK_WQXGA_VIDEO_PANEL,
 NOVATEK_WQXGA_CMD_PANEL,
@@ -77,6 +79,7 @@ static struct panel_list supp_panels[] = {
 	{"jdi_qhd_dualdsi_cmd", JDI_QHD_DUALDSI_CMD_PANEL},
 	{"jdi_4k_dualdsi_video", JDI_4K_DUALDSI_VIDEO_PANEL},
 	{"jdi_1080p_video", JDI_1080P_VIDEO_PANEL},
+	{"sharp_1080p_cmd", SHARP_1080P_CMD_PANEL},
 	{"hx8379a_truly_fwvga_video", HX8379A_TRULY_FWVGA_VIDEO_PANEL},
 	{"nt35597_wqxga_video", NOVATEK_WQXGA_VIDEO_PANEL},
 	{"nt35597_wqxga_cmd", NOVATEK_WQXGA_CMD_PANEL},
@@ -278,6 +281,32 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 			= JDI_1080P_VIDEO_OFF_COMMAND;
 		memcpy(phy_db->timing,
 			jdi_1080p_video_timings, TIMING_SIZE);
+		break;
+	case SHARP_1080P_CMD_PANEL:
+		pan_type = PANEL_TYPE_DSI;
+		pinfo->lcd_reg_en = 0;
+		panelstruct->paneldata    = &sharp_1080p_cmd_panel_data;
+		panelstruct->panelres     = &sharp_1080p_cmd_panel_res;
+		panelstruct->color        = &sharp_1080p_cmd_color;
+		panelstruct->videopanel   = &sharp_1080p_cmd_video_panel;
+		panelstruct->commandpanel = &sharp_1080p_cmd_command_panel;
+		panelstruct->state        = &sharp_1080p_cmd_state;
+		panelstruct->laneconfig   = &sharp_1080p_cmd_lane_config;
+		panelstruct->paneltiminginfo
+			= &sharp_1080p_cmd_timing_info;
+		panelstruct->panelresetseq
+					 = &sharp_1080p_cmd_panel_reset_seq;
+		panelstruct->backlightinfo = &sharp_1080p_cmd_backlight;
+		pinfo->mipi.panel_on_cmds
+			= sharp_1080p_cmd_on_command;
+		pinfo->mipi.num_of_panel_on_cmds
+			= SHARP_1080P_CMD_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+			= sharp_1080p_cmd_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+			= SHARP_1080P_CMD_OFF_COMMAND;
+		memcpy(phy_db->timing,
+			sharp_1080p_cmd_timings, TIMING_SIZE);
 		break;
 	case HX8379A_TRULY_FWVGA_VIDEO_PANEL:
 		pan_type = PANEL_TYPE_DSI;
