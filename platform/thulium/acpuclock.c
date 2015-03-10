@@ -123,6 +123,20 @@ void clock_config_uart_dm(uint8_t id)
  */
 static void ce_async_reset(uint8_t instance)
 {
+	if (instance == 1)
+	{
+		/* Start the block reset for CE */
+		writel(1, GCC_CE1_BCR);
+		udelay(2);
+		/* Take CE block out of reset */
+		writel(0, GCC_CE1_BCR);
+		udelay(2);
+	}
+	else
+	{
+		dprintf(CRITICAL, "Unsupported CE instance: %u\n", instance);
+		ASSERT(0);
+	}
 }
 
 void clock_ce_enable(uint8_t instance)
