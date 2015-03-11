@@ -554,3 +554,7 @@ endif
 ifeq ($(ENABLE_RPMB_SUPPORT), 1)
 include platform/msm_shared/rpmb/rules.mk
 endif
+
+ifeq ($(ENABLE_REBOOT_MODULE), 1)
+	OBJS += $(LOCAL_DIR)/reboot.o
+endif
