@@ -744,14 +744,14 @@ glink_err_type xport_rpm_poll( xport_rpm_ctx_type *ctx_ptr )
         }
         else
         {
-          char      tmpstr[ROUNDUP64(GLINK_CH_NAME_LEN)];
+          char    tmpstr[ROUNDUP64(GLINK_CH_NAME_LEN)] = {0};
           uint32  curr = 0;
-
+          uint32* string_ptr;
+          string_ptr = (uint32 *)&tmpstr[0];
           while (curr < cmd_arg && curr < sizeof(tmpstr))
           {
             CHECK_INDEX_WRAP_AROUND(read_ind, ctx_ptr->rx_fifo_size);
-
-            *(uint32*)&tmpstr[curr] = MSGRAM_READ32(ctx_ptr, read_ind);
+            *(string_ptr++) = MSGRAM_READ32(ctx_ptr, read_ind);
             curr += sizeof(uint32);
             read_ind += sizeof(uint32);
           }
