@@ -54,3 +54,6 @@ DEFINES += USER_FORCE_RESET_SUPPORT=1
 
 #SCM call before entering DLOAD mode
 DEFINES += PLATFORM_USE_SCM_DLOAD=1
+
+#Enable the external reboot functions
+ENABLE_REBOOT_MODULE := 1
