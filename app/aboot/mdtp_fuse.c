@@ -41,6 +41,8 @@
 #define MAX_METADATA_SIZE       (0x1000)
 #define QFPROM_ADDR_SPACE_RAW   (0)
 
+char metadata_block[MAX_METADATA_SIZE] = {0};
+
 /********************************************************************************/
 
 typedef union
@@ -116,7 +118,6 @@ static int read_metadata(metadata_t *metadata)
 {
 	unsigned long long ptn = 0;
 	uint32_t actual_size;
-	char metadata_block[MAX_METADATA_SIZE];
 	int index = INVALID_PTN;
 	uint32_t block_size = mmc_get_device_blocksize();
 
@@ -128,13 +129,13 @@ static int read_metadata(metadata_t *metadata)
 		return -1;
 	}
 
-	if (sizeof(metadata_t) > MAX_METADATA_SIZE)
+	actual_size = ROUNDUP(sizeof(metadata_t), block_size);
+
+	if (actual_size > MAX_METADATA_SIZE)
 	{
-		dprintf(CRITICAL, "mdtp: read_metadata: ERROR, meta data size %d too big\n", sizeof(metadata_t));
+		dprintf(CRITICAL, "mdtp: read_metadata: ERROR, meta data size %d too big\n", actual_size);
 		return -1;
 	}
-
-	actual_size = ROUNDUP(MAX_METADATA_SIZE, block_size);
 
 	if(mmc_read(ptn, (void *)metadata_block, actual_size))
 	{
@@ -142,7 +143,7 @@ static int read_metadata(metadata_t *metadata)
 		return -1;
 	}
 
-	memcpy(metadata, metadata_block, sizeof(metadata_t));
+	memscpy((uint8_t*)metadata, sizeof(metadata_t), (uint8_t*)(&(metadata_block[0])), MAX_METADATA_SIZE);
 
 	dprintf(INFO, "mdtp: read_metadata: SUCCESS, read %d bytes\n", actual_size);
 
