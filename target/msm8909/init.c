@@ -151,8 +151,15 @@ void update_ptable_names(void)
 void target_early_init(void)
 {
 #if WITH_DEBUG_UART
-	uart_dm_init(1, 0, BLSP1_UART0_BASE);
+	/* Do not intilaise UART in case the h/w
+	* is RCM.
+	*/
+	if( board_hardware_id()!= HW_PLATFORM_RCM )
+		uart_dm_init(1, 0, BLSP1_UART0_BASE);
+	else
+		return;
 #endif
+
 }
 
 int target_is_emmc_boot(void)
