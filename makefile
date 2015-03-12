@@ -105,6 +105,10 @@ ifeq ($(VERIFIED_BOOT),1)
   endif
 endif
 
+ifeq ($(USER_BUILD_VARIANT),true)
+  DEFINES += USER_BUILD_VARIANT=1
+endif
+
 # these need to be filled out by the project/target/platform rules.mk files
 TARGET :=
 PLATFORM :=
