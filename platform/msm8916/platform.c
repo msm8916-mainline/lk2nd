@@ -52,7 +52,7 @@
 			MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
 
 /* IMEM memory - cacheable, write through */
-#define COMMON_MEMORY       (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
+#define IMEM_MEMORY       (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
                            MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
 
 static mmu_section_t mmu_section_table[] = {
@@ -60,11 +60,7 @@ static mmu_section_t mmu_section_table[] = {
 	{    MEMBASE,           MEMBASE,          (MEMSIZE / MB),   LK_MEMORY},
 	{    MSM_IOMAP_BASE,    MSM_IOMAP_BASE,   MSM_IOMAP_SIZE,   IOMAP_MEMORY},
 	{    A53_SS_BASE,       A53_SS_BASE,      A53_SS_SIZE,      IOMAP_MEMORY},
-	{    SYSTEM_IMEM_BASE,  SYSTEM_IMEM_BASE, 1,                COMMON_MEMORY},
-	{    MSM_SHARED_BASE,   MSM_SHARED_BASE,  1,                COMMON_MEMORY},
-	{    BASE_ADDR,         BASE_ADDR,        90,               COMMON_MEMORY},
-	{    SCRATCH_ADDR,      SCRATCH_ADDR,     256,              COMMON_MEMORY},
-	{    BASE_ADDR_1,       BASE_ADDR_1,     1024,              COMMON_MEMORY},
+	{    SYSTEM_IMEM_BASE,  SYSTEM_IMEM_BASE, 1,                IMEM_MEMORY},
 };
 
 static struct smem_ram_ptable ram_ptable;
@@ -120,6 +116,39 @@ void platform_init_mmu_mappings(void)
 	uint32_t i;
 	uint32_t sections;
 	uint32_t table_size = ARRAY_SIZE(mmu_section_table);
+	ram_partition ptn_entry;
+	uint32_t len = 0;
+
+	ASSERT(smem_ram_ptable_init_v1());
+
+	len = smem_get_ram_ptable_len();
+
+	/* Configure the MMU page entries for SDRAM and IMEM memory read
+	   from the smem ram table*/
+	for(i = 0; i < len; i++)
+	{
+		smem_get_ram_ptable_entry(&ptn_entry, i);
+		if(ptn_entry.type == SYS_MEMORY)
+		{
+			if((ptn_entry.category == SDRAM) ||
+			   (ptn_entry.category == IMEM))
+			{
+				/* Check to ensure that start address is 1MB aligned */
+				ASSERT((ptn_entry.start & (MB-1)) == 0);
+
+				sections = (ptn_entry.size) / MB;
+				while(sections--)
+				{
+					arm_mmu_map_section(ptn_entry.start +
+										sections * MB,
+										ptn_entry.start +
+										sections * MB,
+										(MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
+										 MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN));
+				}
+			}
+		}
+	}
 
 	/* Configure the MMU page entries for memory read from the
 	   mmu_section_table */
