@@ -978,7 +978,7 @@ mbr_partition_get_type(unsigned size, unsigned char *partition,
 {
 	unsigned int type_offset = TABLE_ENTRY_0 + OFFSET_TYPE;
 
-	if (size < type_offset) {
+	if (size < (type_offset + sizeof (*partition_type))) {
 		goto end;
 	}
 
