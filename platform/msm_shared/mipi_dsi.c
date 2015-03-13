@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -466,6 +466,14 @@ int mdss_dsi_host_init(struct mipi_dsi_panel_config *pinfo, uint32_t
 			lane_swap_dsi1 = lane_swap;
 		writel(lane_swap_dsi1, MIPI_DSI1_BASE + LANE_SWAP_CTL);
 		writel(timing_ctl, MIPI_DSI1_BASE + TIMING_CTL);
+
+		if (pinfo->force_clk_lane_hs) {
+			uint32_t tmp;
+
+			tmp = readl(MIPI_DSI1_BASE + LANE_CTL);
+			tmp |= BIT(28);
+			writel(tmp, MIPI_DSI1_BASE + LANE_CTL);
+		}
 	}
 
 	writel(0x0001, MIPI_DSI0_BASE + SOFT_RESET);
@@ -483,6 +491,14 @@ int mdss_dsi_host_init(struct mipi_dsi_panel_config *pinfo, uint32_t
 
 	writel(lane_swap, MIPI_DSI0_BASE + LANE_SWAP_CTL);
 	writel(timing_ctl, MIPI_DSI0_BASE + TIMING_CTL);
+
+	if (pinfo->force_clk_lane_hs) {
+		uint32_t tmp;
+
+		tmp = readl(MIPI_DSI0_BASE + LANE_CTL);
+		tmp |= BIT(28);
+		writel(tmp, MIPI_DSI0_BASE + LANE_CTL);
+	}
 #endif
 
 	return 0;
