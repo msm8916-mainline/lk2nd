@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -88,6 +88,11 @@ void pm8x41_wled_config(struct pm8x41_wled_data *wled_ctrl) {
 	pm8x41_wled_reg_write(LEDn_FULL_SCALE_CURRENT(3), wled_ctrl->full_current_scale);
 
 	pm8x41_wled_reg_write(PM_WLED_FDBCK_CONTROL, wled_ctrl->fdbck);
+
+	// Override default values for ISENSE and PS Threshold
+	pm8x41_wled_reg_write(PM_LAB_CURRENT_SENSE, 0x0A);
+	pm8x41_wled_reg_write(PM_LAB_PS_CTL, 0x80);
+
 	dprintf(SPEW, "WLED Configuration Success.\n");
 
 }

@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -48,6 +48,11 @@
 #define PM_WLED_OVP                  PM_WLED_CTNL_REG(0x4D)
 #define PM_WLED_CURRENT_SINK         PM_WLED_CTNL_REG(0x4F)
 #define LEDn_FULL_SCALE_CURRENT(n)   (PM_WLED_LED_CTNL_REG(n) + 0x2)
+
+#define PM_LAB_BASE                  0X1DE00
+#define PM_LAB_CNTL(n)               (PM_LAB_BASE + n)
+#define PM_LAB_CURRENT_SENSE         PM_LAB_CNTL(0X4C)
+#define PM_LAB_PS_CTL                PM_LAB_CNTL(0X50)
 
 #define PM_WLED_LED1_SINK_MASK       BIT(5)
 #define PM_WLED_LED2_SINK_MASK       BIT(6)
