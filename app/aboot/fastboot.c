@@ -2,7 +2,7 @@
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -428,9 +428,31 @@ void fastboot_okay(const char *info)
 	fastboot_ack("OKAY", info);
 }
 
+static void getvar_all()
+{
+	struct fastboot_var *var;
+	char getvar_all[64];
+
+	for (var = varlist; var; var = var->next)
+	{
+		strlcpy((char *) getvar_all, var->name, sizeof(getvar_all));
+		strlcat((char *) getvar_all, ":", sizeof(getvar_all));
+		strlcat((char *) getvar_all, var->value, sizeof(getvar_all));
+		fastboot_info(getvar_all);
+		memset((void *) getvar_all, '\0', sizeof(getvar_all));
+	}
+	fastboot_okay("");
+}
+
 static void cmd_getvar(const char *arg, void *data, unsigned sz)
 {
 	struct fastboot_var *var;
+
+	if (!strncmp("all", arg, strlen(arg)))
+	{
+		getvar_all();
+		return;
+	}
 
 	for (var = varlist; var; var = var->next) {
 		if (!strcmp(var->name, arg)) {
