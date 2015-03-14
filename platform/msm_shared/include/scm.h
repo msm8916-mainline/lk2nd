@@ -318,6 +318,10 @@ int scm_svc_version(uint32 * major, uint32 * minor);
 int scm_svc_get_secure_state(uint32_t *state_low, uint32_t *state_high);
 
 int scm_protect_keystore(uint32_t * img_ptr, uint32_t  img_len);
+int
+scm_call(uint32_t svc_id, uint32_t cmd_id, const void *cmd_buf,
+        size_t cmd_len, void *resp_buf, size_t resp_len);
+
 
 #define SCM_SVC_FUSE                0x08
 #define SCM_BLOW_SW_FUSE_ID         0x01
@@ -342,6 +346,7 @@ int scm_protect_keystore(uint32_t * img_ptr, uint32_t  img_len);
 
 #define SCM_SVC_MILESTONE_32_64_ID      0x1
 #define SCM_SVC_MILESTONE_CMD_ID        0xf
+#define SCM_SVC_TZSCHEDULER             0xFC
 
 enum ap_ce_channel_type {
 AP_CE_REGISTER_USE = 0,
@@ -451,4 +456,7 @@ struct scm_response {
  */
 void scm_init();
 bool is_secure_boot_enable();
+
+/* Is armv8 supported */
+bool is_scm_armv8_support();
 #endif

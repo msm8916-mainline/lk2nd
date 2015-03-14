@@ -498,6 +498,7 @@ ifeq ($(PLATFORM),thulium)
 			$(LOCAL_DIR)/dev_tree.o \
 			$(LOCAL_DIR)/gpio.o \
 			$(LOCAL_DIR)/scm.o \
+			$(LOCAL_DIR)/qseecom_lk.o \
 			$(LOCAL_DIR)/qmp_usb30_phy.o \
 			$(LOCAL_DIR)/qusb2_phy.o \
 			$(LOCAL_DIR)/certificate.o \

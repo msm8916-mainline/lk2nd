@@ -165,6 +165,10 @@
 #define MPM2_MPM_PS_HOLD                     0x4AB000
 #define MPM2_MPM_SLEEP_TIMETICK_COUNT_VAL    0x4A3000
 
+/* QSEECOM: Secure app region notification */
+#define APP_REGION_ADDR 0x86600000
+#define APP_REGION_SIZE 0xd00000
+
 /* DRV strength for sdcc */
 #define SDC1_HDRV_PULL_CTL           (TLMM_BASE_ADDR + 0x0012C000)
 
