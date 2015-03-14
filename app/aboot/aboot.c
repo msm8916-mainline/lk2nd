@@ -1724,7 +1724,7 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 #ifdef MDTP_SUPPORT
 	/* Go through Firmware Lock verification before continue with boot process */
 	mdtp_fwlock_verify_lock();
-	fbcon_clear();
+	display_image_on_screen();
 #endif /* MDTP_SUPPORT */
 
 #if VERIFIED_BOOT
@@ -2384,7 +2384,7 @@ void cmd_continue(const char *arg, void *data, unsigned sz)
 #ifdef MDTP_SUPPORT
 	/* Go through Firmware Lock verification before continue with boot process */
 	mdtp_fwlock_verify_lock();
-	fbcon_clear();
+	display_image_on_screen();
 #endif /* MDTP_SUPPORT */
 
 	if (target_is_emmc_boot())
@@ -2868,7 +2868,7 @@ normal_boot:
 #ifdef MDTP_SUPPORT
 			/* Go through Firmware Lock verification before continue with boot process */
 			mdtp_fwlock_verify_lock();
-			fbcon_clear();
+			display_image_on_screen();
 #endif /* MDTP_SUPPORT */
 
 			boot_linux_from_mmc();

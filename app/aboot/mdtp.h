@@ -34,8 +34,12 @@
 #define MAX_PARTITIONS 3
 #define MAX_PARTITION_NAME_LEN 100
 #define HASH_LEN 32
+#define MDTP_MIN_PIN_LEN 5
 #define MDTP_MAX_PIN_LEN 8
 #define DIP_PADDING 11
+
+#define INITIAL_DELAY_MSECONDS      5000
+#define INVALID_PIN_DELAY_MSECONDS  5000
 
 #define ROUND_TO_PAGE(x,y) (((x) + (y)) & (~(y)))
 #define MDTP_FWLOCK_BLOCK_SIZE (1024*1024*16)
@@ -104,19 +108,59 @@ typedef enum {
 	VERIFY_FAILED,
 } verify_result_t;
 
-/* Start Firmware Lock verification process */
+
+/**
+ * mdtp_fwlock_verify_lock
+ *
+ * Start Firmware Lock verification process.
+ *
+ * @return - negative value for an error, 0 for success.
+ */
 int mdtp_fwlock_verify_lock();
 
-/* Return whether the MDTP is currently enabled or disabled in HW */
+/**
+ * mdtp_fuse_get_enabled
+ *
+ * Return whether the MDTP is currently enabled or
+ * disabled in HW.
+ *
+ * @param[out] enabled: set to true if MDTP enabled,
+ * false otherwise.
+ *
+ * @return - negative value for an error, 0 for success.
+ */
 int mdtp_fuse_get_enabled(bool *enabled);
 
-/* Display the "Firmware Valid" screen */
-void show_OK_msg();
+/**
+ * get_pin_from_user
+ *
+ * Display the recovery PIN screen and set received buffer
+ * with the PIN the user has entered.
+ *
+ * @param[out] entered_pin: buffer holding the received PIN.
+ * @param[in]  pin_length:  PIN length (and also entered_pin buffer length).
+ *
+ * @return - None.
+ */
+void get_pin_from_user(char *entered_pin, uint32_t pin_length);
 
-/* Display the "Firmware Invalid" screen */
-void show_invalid_msg();
+/**
+ * display_invalid_pin_msg
+ *
+ * User has entered invalid PIN, display error message and
+ * allow the user to try again.
+ *
+ * @return - None.
+ */
+void display_invalid_pin_msg();
 
-/* Display the "Verifying Firmware" screen */
-void show_checking_msg();
+/**
+ * display_error_msg
+ *
+ * Display error message and stop boot process.
+ *
+ * @return - None.
+ */
+void display_error_msg();
 
 #endif
