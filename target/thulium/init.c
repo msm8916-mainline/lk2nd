@@ -55,6 +55,7 @@
 #include <qmp_phy.h>
 #include <sdhci_msm.h>
 #include <qusb2_phy.h>
+#include <rpmb.h>
 
 #define CE_INSTANCE             1
 #define CE_EE                   1
@@ -136,6 +137,22 @@ void target_uninit(void)
 		/* Disable HC mode before jumping to kernel */
 		sdhci_mode_disable(&dev->host);
 	}
+
+	if (is_sec_app_loaded())
+	{
+		if (unload_sec_app() < 0)
+		{
+			dprintf(CRITICAL, "Failed to unload App for rpmb\n");
+			ASSERT(0);
+		}
+	}
+
+	if (rpmb_uninit() < 0)
+	{
+		dprintf(CRITICAL, "RPMB uninit failed\n");
+		ASSERT(0);
+	}
+
 }
 
 static void set_sdc_power_ctrl()
@@ -238,6 +255,12 @@ void target_init(void)
 
 	/* Storage initialization is complete, read the partition table info */
 	mmc_read_partition_table(0);
+
+	if (rpmb_init() < 0)
+	{
+		dprintf(CRITICAL, "RPMB init failed\n");
+		ASSERT(0);
+	}
 }
 
 unsigned board_machtype(void)

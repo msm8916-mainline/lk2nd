@@ -193,4 +193,11 @@
 /* Dummy macro needed for compilation only */
 #define PLATFORM_QMP_OFFSET         0x0
 
+/* RPMB send receive buffer needs to be mapped
+ * as device memory, define the start address
+ * and size in MB
+ */
+#define RPMB_SND_RCV_BUF            0x8F200000
+#define RPMB_SND_RCV_BUF_SZ         0x1
+
 #endif

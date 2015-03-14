@@ -59,6 +59,7 @@ static mmu_section_t mmu_section_table[] = {
 	{    KERNEL_ADDR,       KERNEL_ADDR,       KERNEL_SIZE,      SCRATCH_MEMORY},
 	{    SCRATCH_ADDR,      SCRATCH_ADDR,      SCRATCH_SIZE,     SCRATCH_MEMORY},
 	{    MSM_SHARED_BASE,   MSM_SHARED_BASE,   MSM_SHARED_SIZE,  SCRATCH_MEMORY},
+	{    RPMB_SND_RCV_BUF,  RPMB_SND_RCV_BUF,  RPMB_SND_RCV_BUF_SZ,    IOMAP_MEMORY},
 };
 
 void platform_early_init(void)

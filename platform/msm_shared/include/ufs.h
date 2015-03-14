@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -124,4 +124,5 @@ uint8_t ufs_get_num_of_luns(struct ufs_dev* dev);
 uint32_t ufs_get_erase_blk_size(struct ufs_dev* dev);
 void ufs_dump_is_register(struct ufs_dev* dev);
 void ufs_dump_hc_registers(struct ufs_dev* dev);
+void ufs_rpmb_init(struct ufs_dev *dev);
 #endif

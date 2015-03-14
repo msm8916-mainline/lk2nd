@@ -89,9 +89,16 @@ static void ufs_setup_req_lists(struct ufs_dev *dev)
 	qgic_change_interrupt_cfg(UFS_IRQ, INTERRUPT_LVL_N_TO_N);
 }
 
-static void ufs_rpmb_init(struct ufs_dev *dev)
+void ufs_rpmb_init(struct ufs_dev *dev)
 {
 	int ret = 0;
+
+	/*
+	 * Perform request sense on lun to clear
+	 * attention pending, other wise all the read/write
+	 * operations would fail with check condition error
+	 */
+	ucs_do_request_sense(dev, UFS_WLUN_RPMB);
 
 	// calculate the size of rpmb partition in sectors
 	ret = dme_read_unit_desc(dev, UFS_WLUN_RPMB);

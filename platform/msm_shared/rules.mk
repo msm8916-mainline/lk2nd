@@ -534,3 +534,7 @@ endif
 ifeq ($(ENABLE_PARTIAL_GOODS_SUPPORT), 1)
 	OBJS += $(LOCAL_DIR)/partial_goods.o
 endif
+
+ifeq ($(ENABLE_RPMB_SUPPORT), 1)
+include platform/msm_shared/rpmb/rules.mk
+endif
