@@ -1204,8 +1204,8 @@ uint32_t scm_call2(scmcall_arg *arg, scmcall_ret *ret)
 	return 0;
 }
 
-static bool secure_boot_enable = false;
-static bool wdog_debug_fuse_disable = false;
+static bool secure_boot_enabled = true;
+static bool wdog_debug_fuse_disabled = true;
 
 void scm_check_boot_fuses()
 {
@@ -1226,10 +1226,10 @@ void scm_check_boot_fuses()
 	if(!ret) {
 		/* Bit 0 - SECBOOT_ENABLE_CHECK */
 		if(resp & 0x1)
-			secure_boot_enable = true;
+			secure_boot_enabled = false;
 		/* Bit 2 - DEBUG_DISABLE_CHECK */
 		if(resp & 0x4)
-			wdog_debug_fuse_disable = true;
+			wdog_debug_fuse_disabled = false;
 	} else
 		dprintf(CRITICAL, "scm call to check secure boot fuses failed\n");
 }
@@ -1237,7 +1237,7 @@ void scm_check_boot_fuses()
 bool is_secure_boot_enable()
 {
 	scm_check_boot_fuses();
-	return secure_boot_enable;
+	return secure_boot_enabled;
 }
 
 static uint32_t scm_io_read(addr_t address)
@@ -1324,7 +1324,7 @@ int scm_dload_mode(int mode)
 	scm_check_boot_fuses();
 
 	/* Make WDOG_DEBUG DISABLE scm call only in non-secure boot */
-	if(!(secure_boot_enable || wdog_debug_fuse_disable)) {
+	if(!(secure_boot_enabled || wdog_debug_fuse_disabled)) {
 		ret = scm_call2_atomic(SCM_SVC_BOOT, WDOG_DEBUG_DISABLE, 1, 0);
 		if(ret)
 			dprintf(CRITICAL, "Failed to disable the wdog debug \n");
