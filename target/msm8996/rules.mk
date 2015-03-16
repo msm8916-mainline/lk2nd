@@ -1,6 +1,7 @@
 LOCAL_DIR := $(GET_LOCAL_DIR)
 
 INCLUDES += -I$(LOCAL_DIR)/include -I$(LK_TOP_DIR)/platform/msm_shared
+INCLUDES += -I$(LK_TOP_DIR)/dev/gcdb/display -I$(LK_TOP_DIR)/dev/gcdb/display/include
 
 PLATFORM := msm8996
 
@@ -14,13 +15,16 @@ SCRATCH_SIZE := 512
 KERNEL_ADDR  := 0x80000000
 KERNEL_SIZE  := 62
 
-DEFINES += DISPLAY_SPLASH_SCREEN=0
+DEFINES += DISPLAY_SPLASH_SCREEN=1
 DEFINES += DISPLAY_TYPE_MIPI=1
 DEFINES += DISPLAY_TYPE_DSI6G=1
 
 MODULES += \
 	dev/keys \
 	dev/pmic/pm8x41 \
+	dev/qpnp_wled \
+	dev/qpnp_led \
+	dev/gcdb/display \
 	lib/ptable \
 	lib/libfdt
 
@@ -38,7 +42,9 @@ DEFINES += \
 
 OBJS += \
 	$(LOCAL_DIR)/init.o \
-	$(LOCAL_DIR)/meminfo.o
+	$(LOCAL_DIR)/meminfo.o \
+	$(LOCAL_DIR)/target_display.o \
+	$(LOCAL_DIR)/oem_panel.o \
 
 ifeq ($(ENABLE_GLINK_SUPPORT),1)
 OBJS += \
