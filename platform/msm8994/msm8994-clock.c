@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -34,6 +34,7 @@
 #include <clock_lib2.h>
 #include <platform/clock.h>
 #include <platform/iomap.h>
+#include <platform.h>
 
 
 /* Mux source select values */
@@ -253,6 +254,19 @@ static struct clk_freq_tbl ftbl_gcc_sdcc1_apps_clk[] =
 	F( 96000000,  gpll4,   6,   0,   0),
 	F(192000000,  gpll4,   2,   0,   0),
 	F(384000000,  gpll4,   1,   0,   0),
+	F_END
+};
+
+static struct clk_freq_tbl ftbl_gcc_sdcc1_apps_clk_8992[] =
+{
+	F(   144000,    cxo,  16,   3,  25),
+	F(   400000,    cxo,  12,   1,   4),
+	F( 20000000,  gpll0,  15,   1,   2),
+	F( 25000000,  gpll0,  12,   1,   2),
+	F( 50000000,  gpll0,  12,   0,   0),
+	F( 96000000,  gpll4,   6,   0,   0),
+	F(172000000,  gpll4,   2,   0,   0),
+	F(344000000,  gpll4,   1,   0,   0),
 	F_END
 };
 
@@ -825,7 +839,16 @@ static struct clk_lookup msm_8994_clocks[] =
 	CLK_LOOKUP("edp_aux_clk",          mdss_edpaux_clk.c),
 };
 
+void msm8992_sdc1_clock_override()
+{
+	sdcc1_apps_clk_src.freq_tbl = ftbl_gcc_sdcc1_apps_clk_8992;
+}
+
 void platform_clock_init(void)
 {
+	if (platform_is_msm8992())
+	{
+		msm8992_sdc1_clock_override();
+	}
 	clk_init(msm_8994_clocks, ARRAY_SIZE(msm_8994_clocks));
 }

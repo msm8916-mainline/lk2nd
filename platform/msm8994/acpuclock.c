@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -37,6 +37,7 @@
 #include <platform/timer.h>
 #include <rpm-smd.h>
 #include <regulator.h>
+#include <platform.h>
 
 #define RPM_CE_CLK_TYPE    0x6563
 #define CE2_CLK_ID         0x1
@@ -161,7 +162,10 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 	}
 	else if(freq == MMC_CLK_192MHZ)
 	{
-		ret = clk_get_set_enable(clk_name, 192000000, 1);
+		if (platform_is_msm8992())
+			ret = clk_get_set_enable(clk_name, 172000000, 1);
+		else
+			ret = clk_get_set_enable(clk_name, 192000000, 1);
 	}
 	else if(freq == MMC_CLK_200MHZ)
 	{
@@ -169,7 +173,10 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 	}
 	else if(freq == MMC_CLK_400MHZ)
 	{
-		ret = clk_get_set_enable(clk_name, 384000000, 1);
+		if (platform_is_msm8992())
+			ret = clk_get_set_enable(clk_name, 344000000, 1);
+		else
+			ret = clk_get_set_enable(clk_name, 384000000, 1);
 	}
 	else
 	{
