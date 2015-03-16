@@ -119,8 +119,6 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 {
 	int pan_type;
 
-	phy_db->is_pll_20nm = 1;
-
 	switch (panel_id) {
 	case SHARP_WQXGA_DUALDSI_VIDEO_PANEL:
 		pan_type = PANEL_TYPE_DSI;
@@ -408,6 +406,8 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 {
 	uint32_t hw_id = board_hardware_id();
 	int32_t panel_override_id;
+
+	phy_db->pll_type = DSI_PLL_TYPE_20NM;
 
 	if (panel_name) {
 		panel_override_id = panel_name_to_id(supp_panels,

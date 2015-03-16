@@ -219,10 +219,12 @@ void mdss_dsi_phy_sw_reset(uint32_t ctl_base)
 	/* start phy sw reset */
 	writel(0x0001, ctl_base + 0x012c);
 	udelay(1000);
+	dmb();
 
 	/* end phy sw reset */
 	writel(0x0000, ctl_base + 0x012c);
 	udelay(100);
+	dmb();
 }
 
 static void mdss_dsi_20nm_phy_regulator_init(struct mdss_dsi_phy_ctrl *pd,
@@ -430,7 +432,8 @@ void mdss_dsi_phy_contention_detection(
 {
         struct mdss_dsi_phy_ctrl *pd;
 
-        if (mdp_get_revision() == MDP_REV_304)
+	if ((mipi->mdss_dsi_phy_db->pll_type == DSI_PLL_TYPE_THULIUM) ||
+		(mdp_get_revision() == MDP_REV_304))
                 return;
 
         pd = (mipi->mdss_dsi_phy_db);
@@ -475,20 +478,28 @@ static int mdss_dsi_phy_20nm_init(struct mipi_panel_info *mipi,
 
 int mdss_dsi_phy_init(struct mipi_panel_info *mipi)
 {
-	int ret;
+	int ret = 0;
 
-	if (mipi->mdss_dsi_phy_db->is_pll_20nm) {
+	/* 8994 and 8992 target */
+	switch (mipi->mdss_dsi_phy_db->pll_type) {
+	case DSI_PLL_TYPE_20NM:
 		ret = mdss_dsi_phy_20nm_init(mipi, mipi->ctl_base,
 				mipi->phy_base, mipi->reg_base);
 		if (mipi->dual_dsi)
 			ret = mdss_dsi_phy_20nm_init(mipi, mipi->sctl_base,
 					mipi->sphy_base, mipi->reg_base);
-	} else {
+		break;
+	case DSI_PLL_TYPE_THULIUM:
+		dprintf(SPEW, "phy is configured with PLL driver\n");
+		break;
+	case DSI_PLL_TYPE_28NM:
+	default:
 		ret = mdss_dsi_phy_28nm_init(mipi,
 				mipi->ctl_base, mipi->phy_base);
 		if (mipi->dual_dsi)
 			ret = mdss_dsi_phy_28nm_init(mipi, mipi->sctl_base,
 					mipi->sphy_base);
+		break;
 	}
 
 	return ret;
