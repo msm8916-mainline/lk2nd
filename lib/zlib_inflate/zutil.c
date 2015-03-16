@@ -7,7 +7,8 @@
 
 #include "zutil.h"
 #ifndef Z_SOLO
-#  include "gzguts.h"
+/* Comment because LK does not contain gzguts.h */
+// #  include "gzguts.h"
 #endif
 
 #ifndef NO_DUMMY_DECL
@@ -61,7 +62,8 @@ uLong ZEXPORT zlibCompileFlags()
     case 8:     flags += 2 << 6;        break;
     default:    flags += 3 << 6;
     }
-#ifdef DEBUG
+/* replace DEBUG with ZLIB_DEBUG since the former is already used in lk */
+#ifdef ZLIB_DEBUG
     flags += 1 << 8;
 #endif
 #if defined(ASMV) || defined(ASMINF)
@@ -115,7 +117,7 @@ uLong ZEXPORT zlibCompileFlags()
     return flags;
 }
 
-#ifdef DEBUG
+#ifdef ZLIB_DEBUG
 
 #  ifndef verbose
 #    define verbose 0
