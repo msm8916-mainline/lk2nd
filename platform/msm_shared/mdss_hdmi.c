@@ -40,8 +40,63 @@
 #include <target/display.h>
 
 static struct msm_fb_panel_data panel;
-
 extern int msm_display_init(struct msm_fb_panel_data *pdata);
+
+/* Supported HDMI Audio channels */
+#define MSM_HDMI_AUDIO_CHANNEL_2		1
+#define MSM_HDMI_AUDIO_CHANNEL_MAX		8
+
+enum msm_hdmi_supported_audio_sample_rates {
+	AUDIO_SAMPLE_RATE_32KHZ,
+	AUDIO_SAMPLE_RATE_44_1KHZ,
+	AUDIO_SAMPLE_RATE_48KHZ,
+	AUDIO_SAMPLE_RATE_88_2KHZ,
+	AUDIO_SAMPLE_RATE_96KHZ,
+	AUDIO_SAMPLE_RATE_176_4KHZ,
+	AUDIO_SAMPLE_RATE_192KHZ,
+	AUDIO_SAMPLE_RATE_MAX
+};
+
+struct hdmi_msm_audio_acr {
+	uint32_t n;	/* N parameter for clock regeneration */
+	uint32_t cts;	/* CTS parameter for clock regeneration */
+};
+
+struct hdmi_msm_audio_arcs {
+	uint32_t pclk;
+	struct hdmi_msm_audio_acr lut[AUDIO_SAMPLE_RATE_MAX];
+};
+
+#define HDMI_MSM_AUDIO_ARCS(pclk, ...) { pclk, __VA_ARGS__ }
+
+/* Audio constants lookup table for hdmi_msm_audio_acr_setup */
+/* Valid Pixel-Clock rates: 25.2MHz, 27MHz, 27.03MHz, 74.25MHz, 148.5MHz */
+static struct hdmi_msm_audio_arcs hdmi_audio_acr_lut[] = {
+	/*  25.200MHz  */
+	HDMI_MSM_AUDIO_ARCS(25200, {
+		{4096, 25200}, {6272, 28000}, {6144, 25200}, {12544, 28000},
+		{12288, 25200}, {25088, 28000}, {24576, 25200} }),
+	/*  27.000MHz  */
+	HDMI_MSM_AUDIO_ARCS(27000, {
+		{4096, 27000}, {6272, 30000}, {6144, 27000}, {12544, 30000},
+		{12288, 27000}, {25088, 30000}, {24576, 27000} }),
+	/*  27.027MHz */
+	HDMI_MSM_AUDIO_ARCS(27030, {
+		{4096, 27027}, {6272, 30030}, {6144, 27027}, {12544, 30030},
+		{12288, 27027}, {25088, 30030}, {24576, 27027} }),
+	/*  74.250MHz */
+	HDMI_MSM_AUDIO_ARCS(74250, {
+		{4096, 74250}, {6272, 82500}, {6144, 74250}, {12544, 82500},
+		{12288, 74250}, {25088, 82500}, {24576, 74250} }),
+	/* 148.500MHz */
+	HDMI_MSM_AUDIO_ARCS(148500, {
+		{4096, 148500}, {6272, 165000}, {6144, 148500}, {12544, 165000},
+		{12288, 148500}, {25088, 165000}, {24576, 148500} }),
+	/* 297.000MHz */
+	HDMI_MSM_AUDIO_ARCS(297000, {
+		{3072, 222750}, {4704, 247500}, {5120, 247500}, {9408, 247500},
+		{10240, 247500}, {18816, 247500}, {20480, 247500} }),
+};
 
 /* AVI INFOFRAME DATA */
 #define NUM_MODES_AVI 20
@@ -81,6 +136,7 @@ enum {
 #define LEFT_SHIFT_WORD(x) ((x) << 16)
 #define LEFT_SHIFT_24BITS(x) ((x) << 24)
 
+#define MAX_AUDIO_DATA_BLOCK_SIZE       0x80
 #define DBC_START_OFFSET                4
 #define VIC_INDEX                       3
 #define HDMI_VIC_STR_MAX                3
@@ -213,52 +269,114 @@ static uint8_t mdss_hdmi_avi_info_db[HDMI_VFRMT_MAX][AVI_MAX_DATA_BYTES] = {
 		0x39, 0x04, 0x00, 0x00, 0x81, 0x07},
 };
 
-static void mdss_hdmi_audio_acr_setup(void)
+static void mdss_hdmi_audio_acr_setup(uint32_t sample_rate)
 {
-	int n, cts, layout, multiplier;
-	uint32_t aud_pck_ctrl_2_reg = 0, acr_pck_ctrl_reg = 0;
+	/* Read first before writing */
+	uint32_t acr_pck_ctrl_reg = readl(HDMI_ACR_PKT_CTRL);
+	struct mdss_hdmi_timing_info tinfo = {0};
+	uint32_t ret = mdss_hdmi_get_timing_info(&tinfo, mdss_hdmi_video_fmt);
+	struct hdmi_msm_audio_arcs *audio_acr = &hdmi_audio_acr_lut[0];
+	uint32_t lut_size = sizeof(hdmi_audio_acr_lut)
+		/ sizeof(*hdmi_audio_acr_lut);
+	uint32_t i, n, cts, layout, multiplier, aud_pck_ctrl_2_reg;
+	uint32_t channel_num = MSM_HDMI_AUDIO_CHANNEL_2;
 
-	/* 74.25MHz ACR settings */
-	n = 4096;
-	cts = 74250;
-	layout = 0;
-	multiplier = 1;
+	if (ret || !tinfo.supported) {
+		dprintf(CRITICAL, "%s: video format %d not supported\n",
+			__func__, mdss_hdmi_video_fmt);
+		return;
+	}
+
+	for (i = 0; i < lut_size; audio_acr = &hdmi_audio_acr_lut[++i]) {
+		if (audio_acr->pclk == tinfo.pixel_freq)
+			break;
+	}
+
+	if (i >= lut_size) {
+		dprintf(CRITICAL, "%s: pixel clk %d not supported\n", __func__,
+			tinfo.pixel_freq);
+		return;
+	}
+
+	n = audio_acr->lut[sample_rate].n;
+	cts = audio_acr->lut[sample_rate].cts;
+	layout = (MSM_HDMI_AUDIO_CHANNEL_2 == channel_num) ? 0 : 1;
+
+	if ((AUDIO_SAMPLE_RATE_192KHZ == sample_rate) ||
+		(AUDIO_SAMPLE_RATE_176_4KHZ == sample_rate)) {
+		multiplier = 4;
+		n >>= 2; /* divide N by 4 and use multiplier */
+	} else if ((AUDIO_SAMPLE_RATE_96KHZ == sample_rate) ||
+		(AUDIO_SAMPLE_RATE_88_2KHZ == sample_rate)) {
+		multiplier = 2;
+		n >>= 1; /* divide N by 2 and use multiplier */
+	} else {
+		multiplier = 1;
+	}
+
+	dprintf(SPEW, "%s: n=%u, cts=%u, layout=%u\n", __func__, n, cts,
+		layout);
 
 	/* AUDIO_PRIORITY | SOURCE */
 	acr_pck_ctrl_reg |= 0x80000100;
 
+	/* Reset multiplier bits */
+	acr_pck_ctrl_reg &= ~(7 << 16);
+
 	/* N_MULTIPLE(multiplier) */
 	acr_pck_ctrl_reg |= (multiplier & 7) << 16;
 
-	/* SELECT(3) */
-	acr_pck_ctrl_reg |= 3 << 4;
+	if ((AUDIO_SAMPLE_RATE_48KHZ == sample_rate) ||
+	(AUDIO_SAMPLE_RATE_96KHZ == sample_rate) ||
+	(AUDIO_SAMPLE_RATE_192KHZ == sample_rate)) {
+		/* SELECT(3) */
+		acr_pck_ctrl_reg |= 3 << 4;
+		/* CTS_48 */
+		cts <<= 12;
 
-	/* CTS_48 */
-	cts <<= 12;
+		/* CTS: need to determine how many fractional bits */
+		writel(cts, HDMI_ACR_48_0);
+		/* N */
+		writel(n, HDMI_ACR_48_1);
+	} else if ((AUDIO_SAMPLE_RATE_44_1KHZ == sample_rate) ||
+		(AUDIO_SAMPLE_RATE_88_2KHZ == sample_rate) ||
+		(AUDIO_SAMPLE_RATE_176_4KHZ == sample_rate)) {
+		/* SELECT(2) */
+		acr_pck_ctrl_reg |= 2 << 4;
+		/* CTS_44 */
+		cts <<= 12;
 
-	/* CTS: need to determine how many fractional bits */
-	writel(cts, HDMI_ACR_48_0);
+		/* CTS: need to determine how many fractional bits */
+		writel(cts, HDMI_ACR_44_0);
+		/* N */
+		writel(n, HDMI_ACR_44_1);
+	} else {	/* default to 32k */
+		/* SELECT(1) */
+		acr_pck_ctrl_reg |= 1 << 4;
+		/* CTS_32 */
+		cts <<= 12;
 
-	/* N */
-	/* HDMI_ACR_48_1 */
-	writel(n, HDMI_ACR_48_1);
+		/* CTS: need to determine how many fractional bits */
+		writel(cts, HDMI_ACR_32_0);
+		/* N */
+		writel(n, HDMI_ACR_32_1);
+	}
 
 	/* Payload layout depends on number of audio channels */
+	/* LAYOUT_SEL(layout) */
 	aud_pck_ctrl_2_reg = 1 | (layout << 1);
-
 	/* override | layout */
 	writel(aud_pck_ctrl_2_reg, HDMI_AUDIO_PKT_CTRL2);
 
 	/* SEND | CONT */
-	acr_pck_ctrl_reg |= 0x3;
+	acr_pck_ctrl_reg |= 0x00000003;
 
 	writel(acr_pck_ctrl_reg, HDMI_ACR_PKT_CTRL);
 }
 
-static int mdss_hdmi_audio_info_setup(void)
+static void mdss_hdmi_audio_info_setup(void)
 {
-	uint32_t channel_count = 1;	/* Default to 2 channels
-					   -> See Table 17 in CEA-D spec */
+	uint32_t channel_count = MSM_HDMI_AUDIO_CHANNEL_2;
 	uint32_t channel_allocation = 0;
 	uint32_t level_shift = 0;
 	uint32_t down_mix = 0;
@@ -267,7 +385,7 @@ static int mdss_hdmi_audio_info_setup(void)
 	uint32_t aud_pck_ctrl_2_reg;
 	uint32_t layout;
 
-	layout = 0;
+	layout = (MSM_HDMI_AUDIO_CHANNEL_2 == channel_count) ? 0 : 1;;
 	aud_pck_ctrl_2_reg = 1 | (layout << 1);
 	writel(aud_pck_ctrl_2_reg, HDMI_AUDIO_PKT_CTRL2);
 
@@ -321,8 +439,6 @@ static int mdss_hdmi_audio_info_setup(void)
 
 	/* HDMI_INFOFRAME_CTRL0[0x002C] */
 	writel(audio_info_ctrl_reg, HDMI_INFOFRAME_CTRL0);
-
-	return 0;
 }
 
 static uint8_t* hdmi_edid_find_block(uint32_t start_offset,
@@ -359,9 +475,53 @@ static uint8_t* hdmi_edid_find_block(uint32_t start_offset,
 	return NULL;
 }
 
+static bool mdss_hdmi_is_audio_freq_supported(uint32_t freq)
+{
+	uint8_t *in_buf = mdss_hdmi_edid_buf;
+	const uint8_t *adb = NULL;
+	uint32_t adb_size = 0;
+	uint8_t len = 0, count = 0;
+	uint32_t next_offset = DBC_START_OFFSET;
+	uint8_t audio_data_block[MAX_AUDIO_DATA_BLOCK_SIZE];
+
+	do {
+		adb = hdmi_edid_find_block(next_offset,
+			AUDIO_DATA_BLOCK, &len);
+
+		if ((adb_size + len) > MAX_AUDIO_DATA_BLOCK_SIZE) {
+			dprintf(INFO, "%s: invalid adb length\n", __func__);
+			break;
+		}
+
+		if (!adb)
+			break;
+
+		memcpy((audio_data_block + adb_size), adb + 1, len);
+		next_offset = (adb - in_buf) + 1 + len;
+
+		adb_size += len;
+
+	} while (adb);
+
+	count = adb_size/3;
+	adb = audio_data_block;
+
+	while (count--) {
+		uint8_t freq_lst = *(adb + 1) & 0xFF;
+
+		if (freq_lst & BIT(freq))
+			return true;
+
+		adb += 3;
+	}
+
+	return false;
+}
+
 static void mdss_hdmi_audio_playback(void)
 {
 	char *base_addr;
+	uint32_t sample_rate;
 
 	base_addr = (char *) memalign(4096, 0x1000);
 	if (base_addr == NULL) {
@@ -389,13 +549,21 @@ static void mdss_hdmi_audio_playback(void)
 	writel(0x00002030, HDMI_VBI_PKT_CTRL);
 	writel(0x00002030, HDMI_VBI_PKT_CTRL);
 
-	mdss_hdmi_audio_acr_setup();
+	if (mdss_hdmi_is_audio_freq_supported(AUDIO_SAMPLE_RATE_48KHZ))
+		sample_rate = AUDIO_SAMPLE_RATE_48KHZ;
+	else
+		sample_rate = AUDIO_SAMPLE_RATE_32KHZ;
+
+	mdss_hdmi_audio_acr_setup(sample_rate);
 	mdss_hdmi_audio_info_setup();
 
 	writel(0x00000010, HDMI_AUDIO_PKT_CTRL);
 	writel(0x00000080, HDMI_AUDIO_CFG);
 	writel(0x00000011, HDMI_AUDIO_PKT_CTRL);
 	writel(0x00000081, HDMI_AUDIO_CFG);
+
+	dprintf(SPEW, "audio sample rate %s\n",
+		sample_rate == AUDIO_SAMPLE_RATE_48KHZ ? "48KHz" : "32KHz");
 }
 
 static uint32_t mdss_hdmi_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
