@@ -395,6 +395,7 @@ static int emmc_set_recovery_msg(struct recovery_message *out)
 
 	index = partition_get_index((unsigned char *) ptn_name);
 	ptn = partition_get_offset(index);
+	mmc_set_lun(partition_get_lun(index));
 	if(ptn == 0) {
 		dprintf(CRITICAL,"partition %s doesn't exist\n",ptn_name);
 		return -1;
@@ -417,6 +418,7 @@ static int emmc_get_recovery_msg(struct recovery_message *in)
 	size = mmc_get_device_blocksize();
 	index = partition_get_index((unsigned char *) ptn_name);
 	ptn = partition_get_offset(index);
+	mmc_set_lun(partition_get_lun(index));
 	if(ptn == 0) {
 		dprintf(CRITICAL,"partition %s doesn't exist\n",ptn_name);
 		return -1;
@@ -521,6 +523,8 @@ static int read_misc(unsigned page_offset, void *buf, unsigned size)
 
 		ptn = partition_get_offset(index);
 		ptn_size = partition_get_size(index);
+
+		mmc_set_lun(partition_get_lun(index));
 
 		if (ptn_size < offset + size)
 		{
