@@ -103,7 +103,7 @@ int decompress(unsigned char *in_buf, unsigned int in_len,
 	if (in_buf[3] & 0x8) {
 		for (i = 0; i < GZIP_FILENAME_LIMIT && *stream->next_in++; i++) {
 			if (stream->avail_in == 0) {
-				dprintf(INFO, "header error");
+				dprintf(INFO, "header error\n");
 				goto gunzip_end;
 			}
 			--stream->avail_in;
@@ -111,21 +111,18 @@ int decompress(unsigned char *in_buf, unsigned int in_len,
 	}
 
 	rc = inflateInit2(stream, -MAX_WBITS);
+	if (rc != Z_OK) {
+		dprintf(INFO, "inflateInit2 failed!\n");
+		goto gunzip_end;
+	}
 
-	if (rc == Z_OK) {
-		if (stream->avail_in == 0) {
-			stream->next_in = in_buf;
-			stream->avail_in = out_buf_len;
-		}
-		rc = inflate(stream, 0);
-
-		/* Z_STREAM_END is "we unpacked it all" */
-		if (rc == Z_STREAM_END) {
-			rc = 0;
-		} else if (rc != Z_OK) {
-			dprintf(INFO, "uncompression error");
-			rc = -1;
-		}
+	rc = inflate(stream, 0);
+	/* Z_STREAM_END is "we unpacked it all" */
+	if (rc == Z_STREAM_END) {
+		rc = 0;
+	} else if (rc != Z_OK) {
+		dprintf(INFO, "uncompression error \n");
+		rc = -1;
 	}
 
 	inflateEnd(stream);
