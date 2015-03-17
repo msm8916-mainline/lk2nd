@@ -61,6 +61,8 @@
 #define OTM8019A_FWVGA_VIDEO_PANEL_ON_DELAY 50
 #define NT35590_720P_CMD_PANEL_ON_DELAY 40
 
+#define BOARD_SOC_VERSION3	0x30000
+
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
 /*---------------------------------------------------------------------------*/
@@ -577,8 +579,16 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 
 panel_init:
 	/* Set LDO mode */
-	if (platform_is_msm8939() || platform_is_msm8929() || (hw_id == HW_PLATFORM_QRD))
+	if ((platform_is_msm8939() && (board_soc_version() !=
+		BOARD_SOC_VERSION3)) || platform_is_msm8929() ||
+		(hw_id == HW_PLATFORM_QRD)) {
 		phy_db->regulator_mode = DSI_PHY_REGULATOR_LDO_MODE;
+	} else if (platform_is_msm8939() && (board_soc_version() ==
+			BOARD_SOC_VERSION3) && (hw_id != HW_PLATFORM_SURF)) {
+		phy_db->regulator_mode = DSI_PHY_REGULATOR_LDO_MODE;
+	} else {
+		phy_db->regulator_mode = DSI_PHY_REGULATOR_DCDC_MODE;
+	}
 
 	pinfo->pipe_type = MDSS_MDP_PIPE_TYPE_RGB;
 	return init_panel_data(panelstruct, pinfo, phy_db);
