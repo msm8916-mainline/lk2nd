@@ -27,44 +27,34 @@
  *
  */
 
+#ifndef __RPM_GLINK_H
+#define __RPM_GLINK_H
+
 #include <arch/defines.h>
 #include <stdint.h>
 #include <sys/types.h>
 #include <rpm-ipc.h>
-#include <rpm-glink.h>
-#include <rpm-smd.h>
-#include <string.h>
+#include <glink.h>
 
-void fill_kvp_object(kvp_data **kdata, uint32_t *data, uint32_t len)
+typedef struct
 {
-	*kdata = (kvp_data *) memalign(CACHE_LINE, ROUNDUP(len, CACHE_LINE));
-	ASSERT(*kdata);
+	uint32_t version;
+	uint32_t cmd;
+	uint32_t seqnumber;
+	uint32_t namelength;
+	char name[32];
+} rpm_ssr_req;
 
-	memcpy(*kdata, data+2, len);
-}
+typedef rpm_cmd rpm_ack_msg;
+glink_err_type rpm_glink_send_data(uint32_t *data, uint32_t len, msg_type type);
+uint32_t rpm_glink_recv_data(char *rx_buffer, uint32_t *len);
+void rpm_glink_clk_enable(uint32_t *data, uint32_t len);
+void rpm_glink_clk_disable(uint32_t *data, uint32_t len);
+void rpm_glink_init();
+void rpm_glink_uninit();
+void rpm_scalar_glink_isr(glink_handle_type port, void *unused_open_data, void *unused_pkt_priv, void *buffer, size_t size, size_t intent_used);
+void rpm_vector_glink_isr(glink_handle_type port, void *unused_open_data, void *unused_pkt_priv, void *buffer, size_t size, size_t intent_used, glink_buffer_provider_fn vprovider, glink_buffer_provider_fn pprovider);
+void rpm_glink_tx_done_isr(void);
 
-void free_kvp_object(kvp_data **kdata)
-{
-	if(*kdata)
-		free(*kdata);
-}
-
-int rpm_send_data(uint32_t *data, uint32_t len, msg_type type)
-{
-	int ret = 0;
-#ifdef GLINK_SUPPORT
-	ret = rpm_glink_send_data(data, len, type);
-#else
-	ret = rpm_smd_send_data(data, len, type);
+void rpm_glink_notify_state_isr(glink_handle_type handle, void *data, glink_channel_event_type event);
 #endif
-	return ret;
-}
-
-void rpm_clk_enable(uint32_t *data, uint32_t len)
-{
-	if(rpm_send_data(data, len, RPM_REQUEST_TYPE))
-	{
-		dprintf(CRITICAL, "Clock enable failure\n");
-		ASSERT(0);
-	}
-}
