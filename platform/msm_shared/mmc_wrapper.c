@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -615,7 +615,8 @@ uint32_t mmc_write_protect(const char *ptn_name, int set_clr)
 			return 1;
 		}
 
-		size = partition_get_size(index);
+		/* Convert the size to blocks */
+		size = partition_get_size(index) / block_size;
 
 		/*
 		 * For read only partitions the minimum size allocated on the disk is
@@ -624,6 +625,7 @@ uint32_t mmc_write_protect(const char *ptn_name, int set_clr)
 		 */
 		if (partition_read_only(index) && size < card->wp_grp_size)
 		{
+			/* Write protect api takes the size in bytes, convert size to bytes */
 			size = card->wp_grp_size * block_size;
 		}
 		/* Set the power on WP bit */
