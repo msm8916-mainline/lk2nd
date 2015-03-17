@@ -80,6 +80,46 @@ enum {
 #define LEFT_SHIFT_WORD(x) ((x) << 16)
 #define LEFT_SHIFT_24BITS(x) ((x) << 24)
 
+#define DBC_START_OFFSET                4
+#define VIC_INDEX                       3
+#define HDMI_VIC_STR_MAX                3
+
+enum edid_data_block_type {
+	RESERVED_DATA_BLOCK1 = 0,
+	AUDIO_DATA_BLOCK,
+	VIDEO_DATA_BLOCK,
+	VENDOR_SPECIFIC_DATA_BLOCK,
+	SPEAKER_ALLOCATION_DATA_BLOCK,
+	VESA_DTC_DATA_BLOCK,
+	RESERVED_DATA_BLOCK2,
+	USE_EXTENDED_TAG
+};
+
+/* video formats defined by CEA 861D */
+#define HDMI_VFRMT_UNKNOWN              0
+#define HDMI_VFRMT_640x480p60_4_3       1
+#define HDMI_VFRMT_1280x720p60_16_9     4
+#define HDMI_VFRMT_1920x1080p60_16_9    16
+#define HDMI_VFRMT_MAX                  3
+
+#define DEFAULT_RESOLUTION HDMI_VFRMT_1920x1080p60_16_9
+static uint8_t mdss_hdmi_video_fmt = HDMI_VFRMT_UNKNOWN;
+static uint8_t mdss_hdmi_pref_fmt  = HDMI_VFRMT_UNKNOWN;
+static uint8_t pt_scan_info;
+static uint8_t it_scan_info;
+static uint8_t ce_scan_info;
+
+static uint8_t mdss_hdmi_edid_buf[0x80];
+
+enum aspect_ratio {
+	HDMI_RES_AR_INVALID,
+	HDMI_RES_AR_4_3,
+	HDMI_RES_AR_5_4,
+	HDMI_RES_AR_16_9,
+	HDMI_RES_AR_16_10,
+	HDMI_RES_AR_MAX,
+};
+
 struct mdss_hdmi_timing_info {
 	uint32_t	video_format;
 	uint32_t	active_h;
@@ -98,20 +138,79 @@ struct mdss_hdmi_timing_info {
 	uint32_t	refresh_rate;
 	uint32_t	interlaced;
 	uint32_t	supported;
+	enum            aspect_ratio ar;
 };
 
-#define HDMI_VFRMT_1280x720p60_16_9	4
-#define HDMI_RESOLUTION_DATA HDMI_VFRMT_1280x720p60_16_9##_TIMING
-
-#define HDMI_VIC_STR_MAX	3
+#define HDMI_VFRMT_640x480p60_4_3_TIMING				\
+	{HDMI_VFRMT_640x480p60_4_3, 640, 16, 96, 48, true,		\
+	 480, 10, 2, 33, true, 25200, 60000, false, true, HDMI_RES_AR_4_3}
 
 #define HDMI_VFRMT_1280x720p60_16_9_TIMING				\
 	{HDMI_VFRMT_1280x720p60_16_9, 1280, 110, 40, 220, false,	\
-		720, 5, 5, 20, false, 74250, 60000, false, true}
+	 720, 5, 5, 20, false, 74250, 60000, false, true, HDMI_RES_AR_16_9}
 
-uint32_t mdss_hdmi_avi_info_db[] = {
-	0x10, 0x28, 0x00, 0x04, 0x00, 0x00, 0x00,
-	0xD1, 0x02, 0x00, 0x00, 0x01, 0x05};
+#define HDMI_VFRMT_1920x1080p60_16_9_TIMING				\
+	{HDMI_VFRMT_1920x1080p60_16_9, 1920, 88, 44, 148, false,	\
+	 1080, 4, 5, 36, false, 148500, 60000, false, true, HDMI_RES_AR_16_9}
+
+#define MSM_HDMI_MODES_GET_DETAILS(mode, MODE) do {		\
+	struct mdss_hdmi_timing_info info = MODE##_TIMING;	\
+	*mode = info;						\
+	} while (0)
+
+static inline int mdss_hdmi_get_timing_info(
+	struct mdss_hdmi_timing_info *mode, int id)
+{
+	int ret = 0;
+
+	switch (id) {
+	case HDMI_VFRMT_640x480p60_4_3:
+		MSM_HDMI_MODES_GET_DETAILS(mode, HDMI_VFRMT_640x480p60_4_3);
+		break;
+
+	case HDMI_VFRMT_1280x720p60_16_9:
+		MSM_HDMI_MODES_GET_DETAILS(mode, HDMI_VFRMT_1280x720p60_16_9);
+		break;
+
+	case HDMI_VFRMT_1920x1080p60_16_9:
+		MSM_HDMI_MODES_GET_DETAILS(mode, HDMI_VFRMT_1920x1080p60_16_9);
+		break;
+
+	default:
+		ret = ERROR;
+	}
+
+	return ret;
+}
+
+
+/*
+ * 13 Bytes of AVI infoframe data wrt each resolution
+ * Data Byte 01: 0 Y1 Y0 A0 B1 B0 S1 S0
+ * Data Byte 02: C1 C0 M1 M0 R3 R2 R1 R0
+ * Data Byte 03: ITC EC2 EC1 EC0 Q1 Q0 SC1 SC0
+ * Data Byte 04: 0 VIC6 VIC5 VIC4 VIC3 VIC2 VIC1 VIC0
+ * Data Byte 05: 0 0 0 0 PR3 PR2 PR1 PR0
+ * Data Byte 06: LSB Line No of End of Top Bar
+ * Data Byte 07: MSB Line No of End of Top Bar
+ * Data Byte 08: LSB Line No of Start of Bottom Bar
+ * Data Byte 09: MSB Line No of Start of Bottom Bar
+ * Data Byte 10: LSB Pixel Number of End of Left Bar
+ * Data Byte 11: MSB Pixel Number of End of Left Bar
+ * Data Byte 12: LSB Pixel Number of Start of Right Bar
+ * Data Byte 13: MSB Pixel Number of Start of Right Bar
+ */
+static uint8_t mdss_hdmi_avi_info_db[HDMI_VFRMT_MAX][AVI_MAX_DATA_BYTES] = {
+	/* 480p */
+	{0x10, 0x18, 0x00, 0x01, 0x00, 0x00, 0x00,
+		0xE1, 0x01, 0x00, 0x00, 0x81, 0x02},
+	/* 720p */
+	{0x10, 0x28, 0x00, 0x04, 0x00, 0x00, 0x00,
+		0xD1, 0x02, 0x00, 0x00, 0x01, 0x05},
+	/* 1080p */
+	{0x10, 0x28, 0x00, 0x10, 0x00, 0x00, 0x00,
+		0x39, 0x04, 0x00, 0x00, 0x81, 0x07},
+};
 
 static void mdss_hdmi_audio_acr_setup(void)
 {
@@ -225,6 +324,40 @@ static int mdss_hdmi_audio_info_setup(void)
 	return 0;
 }
 
+static uint8_t* hdmi_edid_find_block(uint32_t start_offset,
+		uint8_t type, uint8_t *len)
+{
+	/* the start of data block collection, start of Video Data Block */
+	uint8_t *in_buf = mdss_hdmi_edid_buf;
+	uint32_t offset = start_offset;
+	uint32_t end_dbc_offset = in_buf[2];
+
+	*len = 0;
+
+	/*
+	 * edid buffer 1, byte 2 being 4 means no non-DTD/Data block collection
+	 * present.
+	 * edid buffer 1, byte 2 being 0 means no non-DTD/DATA block collection
+	 * present and no DTD data present.
+	 */
+	if ((end_dbc_offset == 0) || (end_dbc_offset == 4))
+		return NULL;
+
+	while (offset < end_dbc_offset) {
+		uint8_t block_len = in_buf[offset] & 0x1F;
+		if ((in_buf[offset] >> 5) == type) {
+			*len = block_len;
+			dprintf(SPEW,
+				"EDID: block=%d found @ %d with length=%d\n",
+				type, offset, block_len);
+			return in_buf + offset;
+		}
+		offset += 1 + block_len;
+	}
+
+	return NULL;
+}
+
 static void mdss_hdmi_audio_playback(void)
 {
 	char *base_addr;
@@ -310,38 +443,172 @@ static void mdss_hdmi_set_mode(bool on)
 
 void mdss_hdmi_get_vic(char *buf)
 {
-	struct mdss_hdmi_timing_info tinfo = HDMI_RESOLUTION_DATA;
+	struct mdss_hdmi_timing_info tinfo = {0};
+	uint32_t ret = mdss_hdmi_get_timing_info(&tinfo, mdss_hdmi_video_fmt);
 
-	if (buf == NULL)
+	if (ret)
+		snprintf(buf, HDMI_VIC_STR_MAX, "%d", 0);
+	else
+		snprintf(buf, HDMI_VIC_STR_MAX, "%d", tinfo.video_format);
+}
+
+static int mdss_hdmi_read_edid(void)
+{
+	uint8_t ndx;
+	uint32_t reg_val;
+	uint32_t dev_addr = 0xA0;
+	uint32_t len = 0x80;
+	uint32_t offset = 0x80;
+	uint32_t time_out;
+	uint32_t retry = 5;
+
+	dev_addr &= 0xFE;
+
+again:
+	time_out = 10;
+	writel(readl(HDMI_DDC_ARBITRATION) & ~BIT(4), HDMI_DDC_ARBITRATION);
+
+	/* Enable DDC Interrupts */
+	writel(BIT(1) | BIT(2), HDMI_DDC_INT_CTRL);
+
+	/* config DDC to read CEA block */
+	writel((10 << 16) | (2 << 0), HDMI_DDC_SPEED);
+	writel(0xFF000000, HDMI_DDC_SETUP);
+	writel((1 << 16) | (19 << 0), HDMI_DDC_REF);
+	writel(BIT(31) | (dev_addr << 8), HDMI_DDC_DATA);
+	writel(offset << 8, HDMI_DDC_DATA);
+	writel((dev_addr | BIT(0)) << 8, HDMI_DDC_DATA);
+	writel(BIT(12) | BIT(16), HDMI_DDC_TRANS0);
+	writel(BIT(0) | BIT(12) | BIT(13) | (len << 16), HDMI_DDC_TRANS1);
+	writel(BIT(0) | BIT(20), HDMI_DDC_CTRL);
+
+	/* poll for 100ms for read to complete */
+	reg_val = readl(HDMI_DDC_INT_CTRL);
+	while (!(reg_val & BIT(0)) && time_out) {
+		reg_val = readl(HDMI_DDC_INT_CTRL);
+		time_out--;
+		mdelay(10);
+	}
+
+	if (!time_out) {
+		dprintf(CRITICAL, "%s: Timeout reading EDID\n", __func__);
+		if (retry--)
+			goto again;
+		else
+			return ERROR;
+	}
+
+	/* clear interrupts */
+	writel(BIT(1), HDMI_DDC_INT_CTRL);
+
+	reg_val = readl(HDMI_DDC_SW_STATUS);
+	reg_val &= BIT(12) | BIT(13) | BIT(14) | BIT(15);
+
+	/* Check if any NACK occurred */
+	if (reg_val) {
+		/* SW_STATUS_RESET */
+		writel(BIT(3), HDMI_DDC_CTRL);
+
+		/* SOFT_RESET */
+		writel(BIT(1), HDMI_DDC_CTRL);
+
+		dprintf(CRITICAL, "%s: NACK reading EDID\n", __func__);
+
+		if (retry--)
+			goto again;
+		else
+			return ERROR;
+	}
+
+	/* Write this data to DDC buffer */
+	writel(BIT(0) | (3 << 16) | BIT(31), HDMI_DDC_DATA);
+
+	/* Discard first byte */
+	readl(HDMI_DDC_DATA);
+
+	for (ndx = 0; ndx < 0x80; ndx++) {
+		reg_val = readl(HDMI_DDC_DATA);
+		mdss_hdmi_edid_buf[ndx] = (uint8_t)((reg_val & 0x0000FF00) >> 8);
+	}
+
+	dprintf(INFO, "%s: EDID read successful\n", __func__);
+
+	return NO_ERROR;
+}
+
+static void mdss_hdmi_parse_res(void)
+{
+	uint8_t len, i;
+	uint32_t video_format;
+	struct mdss_hdmi_timing_info tinfo_fmt = {0};
+
+	uint8_t *svd = hdmi_edid_find_block(DBC_START_OFFSET,
+			VIDEO_DATA_BLOCK, &len);
+
+	mdss_hdmi_video_fmt = HDMI_VFRMT_UNKNOWN;
+
+	if (!svd) {
+		mdss_hdmi_video_fmt = DEFAULT_RESOLUTION;
 		return;
+	}
 
-	snprintf(buf, (HDMI_VIC_STR_MAX <= sizeof(buf) ? HDMI_VIC_STR_MAX :
-				sizeof(buf)), "%d", tinfo.video_format);
+	++svd;
+
+	for (i = 0; i < len; ++i, ++svd) {
+		struct mdss_hdmi_timing_info tinfo = {0};
+		uint32_t ret = 0;
+
+		video_format = (*svd & 0x7F);
+
+		if (i == 0)
+			mdss_hdmi_pref_fmt = video_format;
+
+		ret = mdss_hdmi_get_timing_info(&tinfo, video_format);
+
+		if (ret || !tinfo.supported)
+			continue;
+
+		if (!tinfo_fmt.video_format) {
+			memcpy(&tinfo_fmt, &tinfo, sizeof(tinfo));
+			mdss_hdmi_video_fmt = video_format;
+			continue;
+		}
+
+		if (tinfo.active_v > tinfo_fmt.active_v) {
+			memcpy(&tinfo_fmt, &tinfo, sizeof(tinfo));
+			mdss_hdmi_video_fmt = video_format;
+		}
+	}
+
+	if (mdss_hdmi_video_fmt == HDMI_VFRMT_UNKNOWN)
+		mdss_hdmi_video_fmt = DEFAULT_RESOLUTION;
 }
 
 static void mdss_hdmi_panel_init(struct msm_panel_info *pinfo)
 {
-	struct mdss_hdmi_timing_info tinfo = HDMI_RESOLUTION_DATA;
+	struct mdss_hdmi_timing_info tinfo = {0};
+	uint32_t ret = mdss_hdmi_get_timing_info(&tinfo, mdss_hdmi_video_fmt);
 
-	if (!pinfo)
+	if (!pinfo || ret)
 		return;
 
 	pinfo->xres = tinfo.active_h;
 	pinfo->yres = tinfo.active_v;
 	pinfo->bpp  = 24;
 	pinfo->type = HDMI_PANEL;
+	pinfo->clk_rate = tinfo.pixel_freq * 1000;
 
-        pinfo->lcdc.h_back_porch  = tinfo.back_porch_h;
-        pinfo->lcdc.h_front_porch = tinfo.front_porch_h;
-        pinfo->lcdc.h_pulse_width = tinfo.pulse_width_h;
-        pinfo->lcdc.v_back_porch  = tinfo.back_porch_v;
-        pinfo->lcdc.v_front_porch = tinfo.front_porch_v;
-        pinfo->lcdc.v_pulse_width = tinfo.pulse_width_v;
+	pinfo->lcdc.h_back_porch  = tinfo.back_porch_h;
+	pinfo->lcdc.h_front_porch = tinfo.front_porch_h;
+	pinfo->lcdc.h_pulse_width = tinfo.pulse_width_h;
+	pinfo->lcdc.v_back_porch  = tinfo.back_porch_v;
+	pinfo->lcdc.v_front_porch = tinfo.front_porch_v;
+	pinfo->lcdc.v_pulse_width = tinfo.pulse_width_v;
 
-        pinfo->lcdc.hsync_skew = 0;
-        pinfo->lcdc.xres_pad   = 0;
-        pinfo->lcdc.yres_pad   = 0;
-        pinfo->lcdc.dual_pipe  = 0;
+	pinfo->lcdc.hsync_skew = 0;
+	pinfo->lcdc.xres_pad   = 0;
+	pinfo->lcdc.yres_pad   = 0;
+	pinfo->lcdc.dual_pipe  = 0;
 }
 
 void mdss_hdmi_display_init(uint32_t rev, void *base)
@@ -372,7 +639,15 @@ static int mdss_hdmi_video_setup(void)
 	uint32_t start_v   = 0;
 	uint32_t end_v     = 0;
 
-	struct mdss_hdmi_timing_info tinfo = HDMI_RESOLUTION_DATA;
+	struct mdss_hdmi_timing_info tinfo = {0};
+	uint32_t ret = mdss_hdmi_get_timing_info(&tinfo, mdss_hdmi_video_fmt);
+
+	if (ret)
+		return ERROR;
+
+	dprintf(INFO, "hdmi resolution %dx%d@p%dHz (%d)\n",
+		tinfo.active_h, tinfo.active_v, tinfo.refresh_rate/1000,
+		mdss_hdmi_video_fmt);
 
 	total_h = tinfo.active_h + tinfo.front_porch_h +
 		tinfo.back_porch_h + tinfo.pulse_width_h - 1;
@@ -422,43 +697,141 @@ static int mdss_hdmi_video_setup(void)
 	return 0;
 }
 
+static void mdss_hdmi_extract_extended_data_blocks(void)
+{
+	uint8_t len = 0;
+	uint32_t start_offset = DBC_START_OFFSET;
+	uint8_t const *etag = NULL;
+	uint8_t *in_buf = mdss_hdmi_edid_buf;
+
+	do {
+		/* A Tage code of 7 identifies extended data blocks */
+		etag = hdmi_edid_find_block(start_offset,
+			USE_EXTENDED_TAG, &len);
+
+		start_offset = etag - in_buf + len + 1;
+
+		/* The extended data block should at least be 2 bytes long */
+		if (len < 2) {
+			dprintf(SPEW, "%s: data block of len < 2 bytes\n",
+				__func__);
+			continue;
+		}
+
+		/*
+		 * The second byte of the extended data block has the
+		 * extended tag code
+		 */
+		switch (etag[1]) {
+		case 0:
+			/*
+			 * Check if the sink specifies underscan
+			 * support for:
+			 * BIT 5: preferred video format
+			 * BIT 3: IT video format
+			 * BIT 1: CE video format
+			 */
+			pt_scan_info = (etag[2] & (BIT(4) | BIT(5))) >> 4;
+			it_scan_info = (etag[2] & (BIT(3) | BIT(2))) >> 2;
+			ce_scan_info = etag[2] & (BIT(1) | BIT(0));
+
+			dprintf(INFO, "scan Info (pt|it|ce): (%d|%d|%d)\n",
+				pt_scan_info, it_scan_info, ce_scan_info);
+			break;
+		default:
+			dprintf(SPEW, "%s: Tag Code %d not supported\n",
+				__func__, etag[1]);
+			break;
+		}
+	} while (etag != NULL);
+}
+
+/*
+ * If the sink specified support for both underscan/overscan then, by default,
+ * set the underscan bit. Only checking underscan support for preferred
+ * format and cea formats.
+ */
+uint8_t mdss_hdmi_get_scan_info(void)
+{
+	uint8_t scaninfo = 0;
+	bool use_ce_scan_info = true;
+
+	mdss_hdmi_extract_extended_data_blocks();
+
+	if (mdss_hdmi_video_fmt == mdss_hdmi_pref_fmt) {
+		use_ce_scan_info = false;
+
+		switch (pt_scan_info) {
+		case 0:
+			use_ce_scan_info = true;
+			break;
+		case 3:
+			scaninfo = BIT(1);
+			break;
+		default:
+			break;
+		}
+	}
+
+	if (use_ce_scan_info) {
+		if (3 == ce_scan_info)
+			scaninfo |= BIT(1);
+	}
+
+	return scaninfo;
+}
+
 void mdss_hdmi_avi_info_frame(void)
 {
 	uint32_t sum;
 	uint32_t reg_val;
 	uint8_t checksum;
-	uint32_t i;
+	uint8_t scaninfo;
+	uint32_t i, index;
+
+	scaninfo = mdss_hdmi_get_scan_info();
 
 	sum = IFRAME_PACKET_OFFSET + AVI_IFRAME_TYPE +
 		AVI_IFRAME_VERSION + AVI_MAX_DATA_BYTES;
 
+	for (index = 0; index < HDMI_VFRMT_MAX; index++) {
+		if (mdss_hdmi_avi_info_db[index][VIC_INDEX] == mdss_hdmi_video_fmt)
+			break;
+	}
+
+	if (index == VIC_INDEX)
+		return;
+
+	mdss_hdmi_avi_info_db[index][DATA_BYTE_1] |=
+		scaninfo & (BIT(1) | BIT(0));
+
 	for (i = 0; i < AVI_MAX_DATA_BYTES; i++)
-		sum += mdss_hdmi_avi_info_db[i];
+		sum += mdss_hdmi_avi_info_db[index][i];
 
 	sum &= 0xFF;
 	sum = 256 - sum;
 	checksum = (uint8_t) sum;
 
 	reg_val = checksum |
-		LEFT_SHIFT_BYTE(mdss_hdmi_avi_info_db[DATA_BYTE_1]) |
-		LEFT_SHIFT_WORD(mdss_hdmi_avi_info_db[DATA_BYTE_2]) |
-		LEFT_SHIFT_24BITS(mdss_hdmi_avi_info_db[DATA_BYTE_3]);
+		LEFT_SHIFT_BYTE(mdss_hdmi_avi_info_db[index][DATA_BYTE_1]) |
+		LEFT_SHIFT_WORD(mdss_hdmi_avi_info_db[index][DATA_BYTE_2]) |
+		LEFT_SHIFT_24BITS(mdss_hdmi_avi_info_db[index][DATA_BYTE_3]);
 	writel(reg_val, HDMI_AVI_INFO0);
 
-	reg_val = mdss_hdmi_avi_info_db[DATA_BYTE_4] |
-		LEFT_SHIFT_BYTE(mdss_hdmi_avi_info_db[DATA_BYTE_5]) |
-		LEFT_SHIFT_WORD(mdss_hdmi_avi_info_db[DATA_BYTE_6]) |
-		LEFT_SHIFT_24BITS(mdss_hdmi_avi_info_db[DATA_BYTE_7]);
+	reg_val = mdss_hdmi_avi_info_db[index][DATA_BYTE_4] |
+		LEFT_SHIFT_BYTE(mdss_hdmi_avi_info_db[index][DATA_BYTE_5]) |
+		LEFT_SHIFT_WORD(mdss_hdmi_avi_info_db[index][DATA_BYTE_6]) |
+		LEFT_SHIFT_24BITS(mdss_hdmi_avi_info_db[index][DATA_BYTE_7]);
 	writel(reg_val, HDMI_AVI_INFO1);
 
-	reg_val = mdss_hdmi_avi_info_db[DATA_BYTE_8] |
-		LEFT_SHIFT_BYTE(mdss_hdmi_avi_info_db[DATA_BYTE_9]) |
-		LEFT_SHIFT_WORD(mdss_hdmi_avi_info_db[DATA_BYTE_10]) |
-		LEFT_SHIFT_24BITS(mdss_hdmi_avi_info_db[DATA_BYTE_11]);
+	reg_val = mdss_hdmi_avi_info_db[index][DATA_BYTE_8] |
+		LEFT_SHIFT_BYTE(mdss_hdmi_avi_info_db[index][DATA_BYTE_9]) |
+		LEFT_SHIFT_WORD(mdss_hdmi_avi_info_db[index][DATA_BYTE_10]) |
+		LEFT_SHIFT_24BITS(mdss_hdmi_avi_info_db[index][DATA_BYTE_11]);
 	writel(reg_val, HDMI_AVI_INFO2);
 
-	reg_val = mdss_hdmi_avi_info_db[DATA_BYTE_12] |
-		LEFT_SHIFT_BYTE(mdss_hdmi_avi_info_db[DATA_BYTE_13]) |
+	reg_val = mdss_hdmi_avi_info_db[index][DATA_BYTE_12] |
+		LEFT_SHIFT_BYTE(mdss_hdmi_avi_info_db[index][DATA_BYTE_13]) |
 		LEFT_SHIFT_24BITS(AVI_IFRAME_VERSION);
 	writel(reg_val, HDMI_AVI_INFO3);
 
@@ -473,6 +846,11 @@ int mdss_hdmi_init(void)
 
 	/* Enable USEC REF timer */
 	writel(0x0001001B, HDMI_USEC_REFTIMER);
+
+	mdss_hdmi_set_mode(true);
+	mdss_hdmi_read_edid();
+	mdss_hdmi_parse_res();
+	mdss_hdmi_set_mode(false);
 
 	/* Audio settings */
 	mdss_hdmi_audio_playback();
