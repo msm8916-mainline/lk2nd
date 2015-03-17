@@ -42,6 +42,7 @@
 
 
 #define MX_DRV_SUPPORTED_HS200 3
+static bool attempt_cdr_unlock;
 
 /* Known data stored in the card & read during tuning
  * process. 64 bytes for 4bit bus width & 128 bytes
@@ -720,15 +721,6 @@ uint32_t sdhci_msm_execute_tuning(struct sdhci_host *host, struct mmc_card *card
 	/* In Tuning mode */
 	host->tuning_in_progress = true;
 
-	/* Calibration for CDCLP533 needed for HS400 mode */
-	if (msm_host->tuning_done && !msm_host->calibration_done && host->timing == MMC_HS400_TIMING)
-	{
-		ret = sdhci_msm_hs400_calibration(host);
-		if (!ret)
-			msm_host->calibration_done = true;
-		goto out;
-	}
-
 	if (bus_width == DATA_BUS_WIDTH_8BIT)
 	{
 		tuning_block = tuning_block_128;
@@ -744,26 +736,34 @@ uint32_t sdhci_msm_execute_tuning(struct sdhci_host *host, struct mmc_card *card
 
 	ASSERT(tuning_data);
 
+	/* Calibration for CDCLP533 needed for HS400 mode */
+	if (msm_host->tuning_done && !msm_host->calibration_done && host->timing == MMC_HS400_TIMING)
+	{
+		ret = sdhci_msm_hs400_calibration(host);
+		if (!ret)
+			msm_host->calibration_done = true;
+		goto out;
+	}
+
 	/* Reset & Initialize the DLL block */
 	if (sdhci_msm_init_dll(host))
 	{
 			ret = 1;
-			goto free;
+			goto out;
 	}
 
 retry_tuning:
 	tuned_phase_cnt = 0;
 	phase = 0;
+	struct mmc_command cmd = {0};
 
 	while (phase < MAX_PHASES)
 	{
-		struct mmc_command cmd = {0};
-
 		/* configure dll to set phase delay */
 		if (sdhci_msm_config_dll(host, phase))
 		{
 			ret = 1;
-			goto free;
+			goto out;
 		}
 
 		cmd.cmd_index = CMD21_SEND_TUNING_BLOCK;
@@ -803,7 +803,10 @@ retry_tuning:
 		mmc_set_drv_type(host, card, 0);
 
 	if (tuned_phase_cnt == MAX_PHASES)
+	{
+		attempt_cdr_unlock = true;
 		dprintf(CRITICAL, "WARNING: All phase passed.The selected phase may not be optimal\n");
+	}
 
 	/* Find the appropriate tuned phase */
 	if (tuned_phase_cnt)
@@ -820,7 +823,7 @@ retry_tuning:
 		{
 			dprintf(CRITICAL, "Failed in selecting the tuning phase\n");
 			ret = 1;
-			goto free;
+			goto out;
 		}
 
 		phase = (uint32_t) ret;
@@ -829,7 +832,7 @@ retry_tuning:
 		DBG("\n: %s: Tuned Phase: 0x%08x\n", __func__, phase);
 
 		if (sdhci_msm_config_dll(host, phase))
-			goto free;
+			goto out;
 
 		/* Save the tuned phase */
 		host->msm_host->saved_phase = phase;
@@ -840,9 +843,30 @@ retry_tuning:
 		ret = 1;
 	}
 
-free:
-	free(tuning_data);
 out:
+	/* If all the tuning phases passed, send CMD21 after enabling
+	 * CDR to make sure right tuning phase is selected by CDR
+	 */
+	if (attempt_cdr_unlock)
+	{
+		cmd.cmd_index = CMD21_SEND_TUNING_BLOCK;
+		cmd.argument = 0x0;
+		cmd.cmd_type = SDHCI_CMD_TYPE_NORMAL;
+		cmd.resp_type = SDHCI_CMD_RESP_R1;
+		cmd.trans_mode = SDHCI_MMC_READ;
+		cmd.data_present = 0x1;
+		cmd.data.data_ptr = tuning_data;
+		cmd.data.blk_sz = size;
+		cmd.data.num_blocks = 0x1;
+
+		/* send command */
+		if (!sdhci_send_command(host, &cmd))
+		{
+			DBG("\n: %s: Sending CMD21 after CDR enable with default phases fail\n", __func__);
+		}
+	}
+
+	free(tuning_data);
 	/* Tuning done */
 	host->tuning_in_progress = false;
 	host->msm_host->tuning_done = true;
