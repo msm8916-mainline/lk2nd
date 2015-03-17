@@ -23,6 +23,7 @@ endif
 
 ifeq ($(ENABLE_SMD_SUPPORT),1)
 OBJS += \
+	$(LOCAL_DIR)/rpm-ipc.o \
 	$(LOCAL_DIR)/rpm-smd.o \
 	$(LOCAL_DIR)/smd.o
 endif
@@ -45,6 +46,7 @@ endif
 
 ifeq ($(ENABLE_GLINK_SUPPORT),1)
 OBJS += \
+		$(LOCAL_DIR)/rpm-ipc.o \
 		$(LOCAL_DIR)/glink/glink_api.o \
 		$(LOCAL_DIR)/glink/glink_core_if.o \
 		$(LOCAL_DIR)/glink/glink_rpmcore_setup.o \

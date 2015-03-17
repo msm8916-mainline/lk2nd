@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -27,16 +27,43 @@
  *
  */
 
-#ifndef __RPM_SMD_H
-#define __RPM_SMD_H
-
 #include <arch/defines.h>
 #include <stdint.h>
 #include <sys/types.h>
 #include <rpm-ipc.h>
+#include <rpm-smd.h>
+#include <string.h>
 
-int rpm_smd_send_data(uint32_t *data, uint32_t len, msg_type type);
-uint32_t rpm_smd_recv_data(uint32_t *len);
-void rpm_smd_init();
-void rpm_smd_uninit();
+void fill_kvp_object(kvp_data **kdata, uint32_t *data, uint32_t len)
+{
+	*kdata = (kvp_data *) memalign(CACHE_LINE, ROUNDUP(len, CACHE_LINE));
+	ASSERT(*kdata);
+
+	memcpy(*kdata, data+2, len);
+}
+
+void free_kvp_object(kvp_data **kdata)
+{
+	if(*kdata)
+		free(*kdata);
+}
+
+int rpm_send_data(uint32_t *data, uint32_t len, msg_type type)
+{
+	int ret = 0;
+#ifdef GLINK_SUPPORT
+	ret = rpm_glink_send_data(data, len, type);
+#else
+	ret = rpm_smd_send_data(data, len, type);
 #endif
+	return ret;
+}
+
+void rpm_clk_enable(uint32_t *data, uint32_t len)
+{
+	if(rpm_send_data(data, len, RPM_REQUEST_TYPE))
+	{
+		dprintf(CRITICAL, "Clock enable failure\n");
+		ASSERT(0);
+	}
+}

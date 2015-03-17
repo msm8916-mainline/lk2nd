@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -36,12 +36,6 @@
 #include <stdlib.h>
 #include <platform/timer.h>
 
-#define RPM_REQ_MAGIC 0x00716572
-#define RPM_CMD_MAGIC 0x00646d63
-#define REQ_MSG_LENGTH 0x14
-#define CMD_MSG_LENGTH 0x08
-#define ACK_MSG_LENGTH 0x0C
-
 static uint32_t msg_id;
 smd_channel_info_t ch;
 
@@ -55,21 +49,7 @@ void rpm_smd_uninit()
 	smd_uninit(&ch);
 }
 
-static void fill_kvp_object(kvp_data **kdata, uint32_t *data, uint32_t len)
-{
-	*kdata = (kvp_data *) memalign(CACHE_LINE, ROUNDUP(len, CACHE_LINE));
-	ASSERT(*kdata);
-
-	memcpy(*kdata, data+2, len);
-}
-
-static void free_kvp_object(kvp_data **kdata)
-{
-	if(*kdata)
-		free(*kdata);
-}
-
-int rpm_send_data(uint32_t *data, uint32_t len, msg_type type)
+int rpm_smd_send_data(uint32_t *data, uint32_t len, msg_type type)
 {
 	rpm_req req;
 	rpm_cmd cmd;
@@ -103,7 +83,7 @@ int rpm_send_data(uint32_t *data, uint32_t len, msg_type type)
 			ret = smd_write(&ch, smd_data, len_to_smd, SMD_APPS_RPM);
 
 			/* Read the response */
-			ack_msg_len = rpm_recv_data(&rlen);
+			ack_msg_len = rpm_smd_recv_data(&rlen);
 
 			smd_signal_read_complete(&ch, ack_msg_len);
 
@@ -127,7 +107,7 @@ int rpm_send_data(uint32_t *data, uint32_t len, msg_type type)
 	return ret;
 }
 
-uint32_t rpm_recv_data(uint32_t* len)
+uint32_t rpm_smd_recv_data(uint32_t* len)
 {
 	rpm_ack_msg *resp;
 	msg_type type;
@@ -171,15 +151,3 @@ uint32_t rpm_recv_data(uint32_t* len)
 
 	return ret;
 }
-
-void rpm_clk_enable(uint32_t *data, uint32_t len)
-{
-	/* Send the request to SMD */
-	rpm_send_data(data, len, RPM_REQUEST_TYPE);
-}
-
-void rpm_clk_disable(uint32_t *data, uint32_t len)
-{
-	dprintf(CRITICAL,"Clock disable\n");
-}
-
