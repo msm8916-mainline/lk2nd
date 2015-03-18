@@ -41,6 +41,9 @@
 
 static struct msm_fb_panel_data panel;
 extern int msm_display_init(struct msm_fb_panel_data *pdata);
+static bool hdmi_power_enabled;
+static bool hdmi_panel_clock_enabled;
+static bool hdmi_pll_clock_enabled;
 
 /* Supported HDMI Audio channels */
 #define MSM_HDMI_AUDIO_CHANNEL_2		1
@@ -568,29 +571,51 @@ static void mdss_hdmi_audio_playback(void)
 
 static uint32_t mdss_hdmi_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 {
-	return target_hdmi_panel_clock(enable, pinfo);
+	int ret = NO_ERROR;
+	if (hdmi_panel_clock_enabled)
+		return ret;
+
+	ret = target_hdmi_panel_clock(enable, pinfo);
+
+	hdmi_panel_clock_enabled = enable;
+
+	return ret;
 }
 
 static uint32_t  mdss_hdmi_pll_clock(uint8_t enable, struct msm_panel_info *pinfo)
 {
-	return target_hdmi_pll_clock(enable, pinfo);
+	int ret = NO_ERROR;
+
+	if (hdmi_pll_clock_enabled)
+		return ret;
+
+	ret = target_hdmi_pll_clock(enable, pinfo);
+
+	hdmi_pll_clock_enabled = enable;
+
+	return ret;
 }
 
 static int mdss_hdmi_enable_power(uint8_t enable, struct msm_panel_info *pinfo)
 {
-        int ret = NO_ERROR;
+	int ret = NO_ERROR;
+
+	if (hdmi_power_enabled)
+		return ret;
 
         ret = target_hdmi_regulator_ctrl(enable);
         if (ret) {
 		dprintf(CRITICAL, "hdmi regulator control enable failed\n");
 		goto bail_regulator_fail;
-        }
+	}
 
 	ret = target_hdmi_gpio_ctrl(enable);
 	if (ret) {
 		dprintf(CRITICAL, "hdmi gpio control enable failed\n");
 		goto bail_gpio_fail;
-        }
+	}
+
+	hdmi_power_enabled = enable;
 
 	dprintf(SPEW, "HDMI Panel power %s done\n", enable ? "on" : "off");
 
@@ -811,6 +836,44 @@ static void mdss_hdmi_panel_init(struct msm_panel_info *pinfo)
 	pinfo->lcdc.xres_pad   = 0;
 	pinfo->lcdc.yres_pad   = 0;
 	pinfo->lcdc.dual_pipe  = 0;
+}
+
+static uint8_t mdss_hdmi_cable_status(void)
+{
+	uint32_t reg_val;
+	uint8_t cable_status;
+
+	mdss_hdmi_set_mode(true);
+
+	/* Enable USEC REF timer */
+	writel(0x0001001B, HDMI_USEC_REFTIMER);
+
+	/* set timeout to 4.1ms (max) for hardware debounce */
+	reg_val = readl(HDMI_HPD_CTRL) | 0x1FFF;
+
+	/* enable HPD circuit */
+	writel(reg_val | BIT(28), HDMI_HPD_CTRL);
+
+	writel(BIT(2) | BIT(1), HDMI_HPD_INT_CTRL);
+
+	/* Toggle HPD circuit to trigger HPD sense */
+	reg_val = readl(HDMI_HPD_CTRL) | 0x1FFF;
+	writel(reg_val & ~BIT(28), HDMI_HPD_CTRL);
+	writel(reg_val & BIT(28), HDMI_HPD_CTRL);
+
+	mdelay(20);
+
+	cable_status = (readl(HDMI_HPD_INT_STATUS) & BIT(1)) >> 1;
+
+	dprintf(INFO, "hdmi cable %s\n",
+		cable_status ? "connected" : "not connected");
+
+	writel(BIT(0), HDMI_HPD_INT_CTRL);
+	writel(reg_val & ~BIT(28), HDMI_HPD_CTRL);
+
+	mdss_hdmi_set_mode(false);
+
+	return cable_status;
 }
 
 static int mdss_hdmi_update_panel_info(void)
