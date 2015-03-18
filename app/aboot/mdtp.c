@@ -47,6 +47,7 @@
 static int mdtp_tzbsp_dec_verify_DIP(DIP_t *enc_dip, DIP_t *dec_dip, uint32_t *verified);
 static int mdtp_tzbsp_enc_hash_DIP(DIP_t *dec_dip, DIP_t *enc_dip);
 
+static int is_mdtp_activated = -1;
 /********************************************************************************/
 
 /* Read the DIP from EMMC */
@@ -417,6 +418,7 @@ static int verify_all_partitions(DIP_t *dip, verify_result_t *verify_result)
 			dprintf(CRITICAL, "mdtp: verify_all_partitions: Failed partition verification\n");
 			return 0;
 		}
+		is_mdtp_activated = 1;
 
 	}
 
@@ -512,6 +514,9 @@ int mdtp_fwlock_verify_lock()
 	int ret;
 	bool enabled;
 
+	/* sets the default value of this global to be MDTP not activated */
+	is_mdtp_activated = 0;
+
 	ret = mdtp_fuse_get_enabled(&enabled);
 	if(ret)
 	{
@@ -525,6 +530,18 @@ int mdtp_fwlock_verify_lock()
 		validate_DIP_and_firmware();
 	}
 
+	return 0;
+}
+/********************************************************************************/
+
+/** Indicates whether the MDTP is currently in ACTIVATED state **/
+int mdtp_activated(bool * activated){
+	if(is_mdtp_activated < 0){
+		/* mdtp_fwlock_verify_lock was not called before, the value is not valid */
+		return is_mdtp_activated;
+	}
+
+	*activated = is_mdtp_activated;
 	return 0;
 }
 

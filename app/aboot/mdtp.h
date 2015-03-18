@@ -163,4 +163,16 @@ void display_invalid_pin_msg();
  */
 void display_error_msg();
 
+/**
+ * mdtp_activated
+ *
+ * Indicates whether the MDTP is currently in ACTIVATED state.
+ * You must call this function only after calling to mdtp_fwlock_verify_lock();
+ *
+ * @param[out] activated: MDTP is in ACTIVATED state (TRUE/FALSE).
+ *
+ * @return - negative value for an error, 0 for success.
+ */
+int mdtp_activated(bool * activated);
+
 #endif
