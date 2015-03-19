@@ -880,8 +880,7 @@ int boot_linux_from_mmc(void)
 	uint32_t dt_actual;
 	uint32_t dt_hdr_size;
 #endif
-	BUF_DMA_ALIGN(kbuf, BOOT_IMG_MAX_PAGE_SIZE);
-	struct kernel64_hdr *kptr = (void*) kbuf;
+	struct kernel64_hdr *kptr = NULL;
 
 	if (check_format_bit())
 		boot_into_recovery = 1;
@@ -942,13 +941,68 @@ int boot_linux_from_mmc(void)
 		page_mask = page_size - 1;
 	}
 
-	/* Read the next page to get kernel Image header
-	 * which lives in the second page for arm64 targets.
-	 */
+	kernel_actual  = ROUND_TO_PAGE(hdr->kernel_size,  page_mask);
+	ramdisk_actual = ROUND_TO_PAGE(hdr->ramdisk_size, page_mask);
 
-	if (mmc_read(ptn + page_size, (uint32_t *) kbuf, page_size)) {
-		dprintf(CRITICAL, "ERROR: Cannot read boot image header\n");
-                return -1;
+	image_addr = (unsigned char *)target_get_scratch_address();
+
+#if DEVICE_TREE
+	dt_actual = ROUND_TO_PAGE(hdr->dt_size, page_mask);
+	imagesize_actual = (page_size + kernel_actual + ramdisk_actual + dt_actual);
+#else
+	imagesize_actual = (page_size + kernel_actual + ramdisk_actual);
+#endif
+
+#if VERIFIED_BOOT
+	boot_verifier_init();
+#endif
+
+	if (check_aboot_addr_range_overlap((uint32_t) image_addr, imagesize_actual))
+	{
+		dprintf(CRITICAL, "Boot image buffer address overlaps with aboot addresses.\n");
+		return -1;
+	}
+
+	dprintf(INFO, "Loading boot image (%d): start\n", imagesize_actual);
+	bs_set_timestamp(BS_KERNEL_LOAD_START);
+
+	if (mmc_read(ptn + offset, (void *)image_addr, imagesize_actual))
+	{
+		dprintf(CRITICAL, "ERROR: Cannot read boot image\n");
+		return -1;
+	}
+
+	dprintf(INFO, "Loading boot image (%d): done\n", imagesize_actual);
+	bs_set_timestamp(BS_KERNEL_LOAD_DONE);
+
+	/* Authenticate Kernel */
+	dprintf(INFO, "use_signed_kernel=%d, is_unlocked=%d, is_tampered=%d.\n",
+		(int) target_use_signed_kernel(),
+		device.is_unlocked,
+		device.is_tampered);
+
+	if(target_use_signed_kernel() && (!device.is_unlocked))
+	{
+		offset = imagesize_actual;
+		if (check_aboot_addr_range_overlap((uint32_t)image_addr + offset, page_size))
+		{
+			dprintf(CRITICAL, "Signature read buffer address overlaps with aboot addresses.\n");
+			return -1;
+		}
+
+		/* Read signature */
+		if(mmc_read(ptn + offset, (void *)(image_addr + offset), page_size))
+		{
+			dprintf(CRITICAL, "ERROR: Cannot read boot image signature\n");
+			return -1;
+		}
+
+		verify_signed_bootimg((uint32_t)image_addr, imagesize_actual);
+	} else {
+		second_actual  = ROUND_TO_PAGE(hdr->second_size,  page_mask);
+		#ifdef TZ_SAVE_KERNEL_HASH
+		aboot_save_boot_hash_mmc((uint32_t) image_addr, imagesize_actual);
+		#endif /* TZ_SAVE_KERNEL_HASH */
 	}
 
 	/*
@@ -956,15 +1010,13 @@ int boot_linux_from_mmc(void)
 	 * has default values, these default values come from mkbootimg when
 	 * the boot image is flashed using fastboot flash:raw
 	 */
+	kptr = (void *)(image_addr + page_size);
 	update_ker_tags_rdisk_addr(hdr, IS_ARM64(kptr));
 
 	/* Get virtual addresses since the hdr saves physical addresses. */
 	hdr->kernel_addr = VA((addr_t)(hdr->kernel_addr));
 	hdr->ramdisk_addr = VA((addr_t)(hdr->ramdisk_addr));
 	hdr->tags_addr = VA((addr_t)(hdr->tags_addr));
-
-	kernel_actual  = ROUND_TO_PAGE(hdr->kernel_size,  page_mask);
-	ramdisk_actual = ROUND_TO_PAGE(hdr->ramdisk_size, page_mask);
 
 	/* Check if the addresses in the header are valid. */
 	if (check_aboot_addr_range_overlap(hdr->kernel_addr, kernel_actual) ||
@@ -982,212 +1034,57 @@ int boot_linux_from_mmc(void)
 	}
 #endif
 
-	/* Authenticate Kernel */
-	dprintf(INFO, "use_signed_kernel=%d, is_unlocked=%d, is_tampered=%d.\n",
-		(int) target_use_signed_kernel(),
-		device.is_unlocked,
-		device.is_tampered);
 
-#if VERIFIED_BOOT
-	boot_verifier_init();
-#endif
+	/* Move kernel, ramdisk and device tree to correct address */
+	memmove((void*) hdr->kernel_addr, (char *)(image_addr + page_size), hdr->kernel_size);
+	memmove((void*) hdr->ramdisk_addr, (char *)(image_addr + page_size + kernel_actual), hdr->ramdisk_size);
 
-	if(target_use_signed_kernel() && (!device.is_unlocked))
-	{
-		offset = 0;
+	#if DEVICE_TREE
+	if(hdr->dt_size) {
+		dt_table_offset = ((uint32_t)image_addr + page_size + kernel_actual + ramdisk_actual + second_actual);
+		table = (struct dt_table*) dt_table_offset;
 
-		image_addr = (unsigned char *)target_get_scratch_address();
+		if (dev_tree_validate(table, hdr->page_size, &dt_hdr_size) != 0) {
+			dprintf(CRITICAL, "ERROR: Cannot validate Device Tree Table \n");
+			return -1;
+		}
 
-#if DEVICE_TREE
-		dt_actual = ROUND_TO_PAGE(hdr->dt_size, page_mask);
-		imagesize_actual = (page_size + kernel_actual + ramdisk_actual + dt_actual);
+		/* Find index of device tree within device tree table */
+		if(dev_tree_get_entry_info(table, &dt_entry) != 0){
+			dprintf(CRITICAL, "ERROR: Getting device tree address failed\n");
+			return -1;
+		}
 
-		if (check_aboot_addr_range_overlap(hdr->tags_addr, dt_actual))
+		/* Validate and Read device device tree in the tags_addr */
+		if (check_aboot_addr_range_overlap(hdr->tags_addr, dt_entry.size))
 		{
 			dprintf(CRITICAL, "Device tree addresses overlap with aboot addresses.\n");
 			return -1;
 		}
-#else
-		imagesize_actual = (page_size + kernel_actual + ramdisk_actual);
 
-#endif
-
-		dprintf(INFO, "Loading boot image (%d): start\n", imagesize_actual);
-		bs_set_timestamp(BS_KERNEL_LOAD_START);
-
-		if (check_aboot_addr_range_overlap((uint32_t)image_addr, imagesize_actual))
-		{
-			dprintf(CRITICAL, "Boot image buffer address overlaps with aboot addresses.\n");
-			return -1;
-		}
-
-		/* Read image without signature */
-		if (mmc_read(ptn + offset, (void *)image_addr, imagesize_actual))
-		{
-			dprintf(CRITICAL, "ERROR: Cannot read boot image\n");
-				return -1;
-		}
-
-		dprintf(INFO, "Loading boot image (%d): done\n", imagesize_actual);
-		bs_set_timestamp(BS_KERNEL_LOAD_DONE);
-
-		offset = imagesize_actual;
-
-		if (check_aboot_addr_range_overlap((uint32_t)image_addr + offset, page_size))
-		{
-			dprintf(CRITICAL, "Signature read buffer address overlaps with aboot addresses.\n");
-			return -1;
-		}
-
-		/* Read signature */
-		if(mmc_read(ptn + offset, (void *)(image_addr + offset), page_size))
-		{
-			dprintf(CRITICAL, "ERROR: Cannot read boot image signature\n");
-			return -1;
-		}
-
-		verify_signed_bootimg((uint32_t)image_addr, imagesize_actual);
-
-		/* Move kernel, ramdisk and device tree to correct address */
-		memmove((void*) hdr->kernel_addr, (char *)(image_addr + page_size), hdr->kernel_size);
-		memmove((void*) hdr->ramdisk_addr, (char *)(image_addr + page_size + kernel_actual), hdr->ramdisk_size);
-
-		#if DEVICE_TREE
-		if(hdr->dt_size) {
-			dt_table_offset = ((uint32_t)image_addr + page_size + kernel_actual + ramdisk_actual + second_actual);
-			table = (struct dt_table*) dt_table_offset;
-
-			if (dev_tree_validate(table, hdr->page_size, &dt_hdr_size) != 0) {
-				dprintf(CRITICAL, "ERROR: Cannot validate Device Tree Table \n");
-				return -1;
-			}
-
-			/* Find index of device tree within device tree table */
-			if(dev_tree_get_entry_info(table, &dt_entry) != 0){
-				dprintf(CRITICAL, "ERROR: Device Tree Blob cannot be found\n");
-				return -1;
-			}
-
-			/* Validate and Read device device tree in the "tags_add */
-			if (check_aboot_addr_range_overlap(hdr->tags_addr, dt_entry.size))
-			{
-				dprintf(CRITICAL, "Device tree addresses overlap with aboot addresses.\n");
-				return -1;
-			}
-
-			memmove((void *)hdr->tags_addr, (char *)dt_table_offset + dt_entry.offset, dt_entry.size);
-		} else {
-			/*
-			 * If appended dev tree is found, update the atags with
-			 * memory address to the DTB appended location on RAM.
-			 * Else update with the atags address in the kernel header
-			 */
-			void *dtb;
-			dtb = dev_tree_appended((void*) hdr->kernel_addr,
-						hdr->kernel_size,
-						(void *)hdr->tags_addr);
-			if (!dtb) {
-				dprintf(CRITICAL, "ERROR: Appended Device Tree Blob not found\n");
-				return -1;
-			}
-		}
-		#endif
-	}
-	else
-	{
-		second_actual  = ROUND_TO_PAGE(hdr->second_size,  page_mask);
-
-		image_addr = (unsigned char *)target_get_scratch_address();
-#if DEVICE_TREE
-		dt_actual = ROUND_TO_PAGE(hdr->dt_size, page_mask);
-		imagesize_actual = (page_size + kernel_actual + ramdisk_actual + dt_actual);
-
-		if (check_aboot_addr_range_overlap(hdr->tags_addr, dt_actual))
+		memmove((void *)hdr->tags_addr, (char *)dt_table_offset + dt_entry.offset, dt_entry.size);
+	} else {
+		/* Validate the tags_addr */
+		if (check_aboot_addr_range_overlap(hdr->tags_addr, kernel_actual))
 		{
 			dprintf(CRITICAL, "Device tree addresses overlap with aboot addresses.\n");
 			return -1;
 		}
-#else
-		imagesize_actual = (page_size + kernel_actual + ramdisk_actual);
-
-#endif
-		if (check_aboot_addr_range_overlap((uint32_t) image_addr, imagesize_actual))
-		{
-			dprintf(CRITICAL, "Boot image buffer address overlaps with aboot addresses.\n");
+		/*
+		 * If appended dev tree is found, update the atags with
+		 * memory address to the DTB appended location on RAM.
+		 * Else update with the atags address in the kernel header
+		 */
+		void *dtb;
+		dtb = dev_tree_appended((void*) hdr->kernel_addr,
+					kernel_actual,
+					(void *)hdr->tags_addr);
+		if (!dtb) {
+			dprintf(CRITICAL, "ERROR: Appended Device Tree Blob not found\n");
 			return -1;
 		}
-
-		dprintf(INFO, "Loading boot image (%d): start\n",
-				imagesize_actual);
-		bs_set_timestamp(BS_KERNEL_LOAD_START);
-
-		offset = 0;
-
-		/* Load the entire boot image */
-		if (mmc_read(ptn + offset, (void *)image_addr, imagesize_actual)) {
-			dprintf(CRITICAL, "ERROR: Cannot read boot image\n");
-					return -1;
-		}
-
-		dprintf(INFO, "Loading boot image (%d): done\n",
-				imagesize_actual);
-		bs_set_timestamp(BS_KERNEL_LOAD_DONE);
-
-		#ifdef TZ_SAVE_KERNEL_HASH
-		aboot_save_boot_hash_mmc((uint32_t) image_addr, imagesize_actual);
-		#endif /* TZ_SAVE_KERNEL_HASH */
-
-		/* Move kernel, ramdisk and device tree to correct address */
-		memmove((void*) hdr->kernel_addr, (char *)(image_addr + page_size), hdr->kernel_size);
-		memmove((void*) hdr->ramdisk_addr, (char *)(image_addr + page_size + kernel_actual), hdr->ramdisk_size);
-
-		#if DEVICE_TREE
-		if(hdr->dt_size) {
-			dt_table_offset = ((uint32_t)image_addr + page_size + kernel_actual + ramdisk_actual + second_actual);
-			table = (struct dt_table*) dt_table_offset;
-
-			if (dev_tree_validate(table, hdr->page_size, &dt_hdr_size) != 0) {
-				dprintf(CRITICAL, "ERROR: Cannot validate Device Tree Table \n");
-				return -1;
-			}
-
-			/* Find index of device tree within device tree table */
-			if(dev_tree_get_entry_info(table, &dt_entry) != 0){
-				dprintf(CRITICAL, "ERROR: Getting device tree address failed\n");
-				return -1;
-			}
-
-			/* Validate and Read device device tree in the tags_addr */
-			if (check_aboot_addr_range_overlap(hdr->tags_addr, dt_entry.size))
-			{
-				dprintf(CRITICAL, "Device tree addresses overlap with aboot addresses.\n");
-				return -1;
-			}
-
-			memmove((void *)hdr->tags_addr, (char *)dt_table_offset + dt_entry.offset, dt_entry.size);
-		} else {
-			/* Validate the tags_addr */
-			if (check_aboot_addr_range_overlap(hdr->tags_addr, kernel_actual))
-			{
-				dprintf(CRITICAL, "Device tree addresses overlap with aboot addresses.\n");
-				return -1;
-			}
-			/*
-			 * If appended dev tree is found, update the atags with
-			 * memory address to the DTB appended location on RAM.
-			 * Else update with the atags address in the kernel header
-			 */
-			void *dtb;
-			dtb = dev_tree_appended((void*) hdr->kernel_addr,
-						kernel_actual,
-						(void *)hdr->tags_addr);
-			if (!dtb) {
-				dprintf(CRITICAL, "ERROR: Appended Device Tree Blob not found\n");
-				return -1;
-			}
-		}
-		#endif
 	}
+	#endif
 
 	if (boot_into_recovery && !device.is_unlocked && !device.is_tampered)
 		target_load_ssd_keystore();
