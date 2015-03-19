@@ -85,15 +85,28 @@ static char jdi_a216_fhd_video_on_cmd4[] = {
 	0x11, 0x00, 0x05, 0x80
 };
 
+static char jdi_a216_fhd_video_on_cmd5[] = {
+	0xB0, 0x04, 0x29, 0x80
+};
+
+static char jdi_a216_fhd_video_on_cmd6[] = {
+	0x06, 0x00, 0x29, 0xC0,
+	0xD0, 0x10, 0x93, 0xBB,
+	0x12, 0x8E, 0xFF, 0xFF
+};
+
+
 static struct mipi_dsi_cmd jdi_a216_fhd_video_on_command[] = {
 	{0x4, jdi_a216_fhd_video_on_cmd0, 0x0a},
 	{0x4, jdi_a216_fhd_video_on_cmd1, 0x0a},
 	{0x4, jdi_a216_fhd_video_on_cmd2, 0x0a},
 	{0x4, jdi_a216_fhd_video_on_cmd3, 0x28},
 	{0x4, jdi_a216_fhd_video_on_cmd4, 0xc8},
+	{0x4, jdi_a216_fhd_video_on_cmd5, 0x0a},
+	{0xc, jdi_a216_fhd_video_on_cmd6, 0x0a}
 };
 
-#define JDI_A216_FHD_VIDEO_ON_COMMAND 5
+#define JDI_A216_FHD_VIDEO_ON_COMMAND 7
 
 
 static char jdi_a216_fhd_videooff_cmd0[] = {
@@ -113,7 +126,7 @@ static struct mipi_dsi_cmd jdi_a216_fhd_video_off_command[] = {
 
 
 static struct command_state jdi_a216_fhd_video_state = {
-	0, 1
+	1, 1
 };
 
 /*---------------------------------------------------------------------------*/
