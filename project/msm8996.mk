@@ -1,8 +1,8 @@
-# top level project rules for the thulium project
+# top level project rules for the msm8996 project
 #
 LOCAL_DIR := $(GET_LOCAL_DIR)
 
-TARGET := thulium
+TARGET := msm8996
 
 MODULES += app/aboot
 

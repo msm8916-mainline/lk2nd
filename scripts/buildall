@@ -1,6 +1,6 @@
 #!/bin/sh
 
-PROJECTS="msm8226 msm8974 apq8084 msm8994 mdm9630 mdm9640 msm8610 msm8916 thulium"
+PROJECTS="msm8226 msm8974 apq8084 msm8994 mdm9630 mdm9640 msm8610 msm8916 msm8996"
 FAILED=""
 
 for p in $PROJECTS; do

@@ -20,7 +20,7 @@ MODULES += dev/fbcon
 OBJS += \
 	$(LOCAL_DIR)/platform.o \
 	$(LOCAL_DIR)/acpuclock.o \
-	$(LOCAL_DIR)/thulium-clock.o \
+	$(LOCAL_DIR)/msm8996-clock.o \
 	$(LOCAL_DIR)/gpio.o
 
 LINKER_SCRIPT += $(BUILDDIR)/system-onesegment.ld
