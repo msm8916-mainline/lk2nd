@@ -64,6 +64,8 @@
 #define NT35590_720P_CMD_PANEL_ON_DELAY 40
 #define SAMSUNG_WXGA_VIDEO_PANEL_ON_DELAY 100
 
+#define BOARD_SOC_VERSION3	0x30000
+
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
 /*---------------------------------------------------------------------------*/
@@ -711,7 +713,9 @@ panel_init:
 	 * Update all data structures after 'panel_init' label. Only panel
 	 * selection is supposed to happen before that.
 	 */
-	if (platform_is_msm8939() || platform_is_msm8929() || (hw_id == HW_PLATFORM_QRD)) {
+	if ((platform_is_msm8939() && (board_soc_version() !=
+		BOARD_SOC_VERSION3)) || platform_is_msm8929() ||
+		(hw_id == HW_PLATFORM_QRD)) {
 		phy_db->regulator_mode = DSI_PHY_REGULATOR_LDO_MODE;
 		memcpy(panel_regulator_settings,
 				ldo_regulator_settings, REGULATOR_SIZE);
