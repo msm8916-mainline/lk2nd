@@ -636,6 +636,11 @@ uint32_t mmc_write_protect(const char *ptn_name, int set_clr)
 			/* Write protect api takes the size in bytes, convert size to bytes */
 			size = card->wp_grp_size * block_size;
 		}
+		else
+		{
+			size *= block_size;
+		}
+
 		/* Set the power on WP bit */
 		return mmc_set_clr_power_on_wp_user((struct mmc_device *)dev, (ptn / block_size), size, set_clr);
 	}
