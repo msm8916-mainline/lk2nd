@@ -2,7 +2,7 @@
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2012,2015 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -154,18 +154,34 @@ void smem_add_modem_partitions(struct ptable *flash_ptable)
 
 static void smem_copy_ram_ptable(void *buf)
 {
-	struct smem_ram_ptable *table_v0;
-	struct smem_ram_ptable_v1 *table_v1;
+	struct smem_ram_ptable *table_v0 = NULL;
+	struct smem_ram_ptable_v1 *table_v1 = NULL;
+	struct smem_ram_ptable_v2 *table_v2 = NULL;
 	uint32_t pentry = 0;
 
 	ptable.hdr = *(struct smem_ram_ptable_hdr*)buf;
 
 	/* Perform member to member copy from smem_ram_ptable to wrapper struct ram_ptable */
+	if(ptable.hdr.version == SMEM_RAM_PTABLE_VERSION_2)
+	{
+		table_v2 = (struct smem_ram_ptable_v2*)buf;
+
+		memcpy(&ptable, table_v2, sizeof(ram_partition_table));
+	}
 	if(ptable.hdr.version == SMEM_RAM_PTABLE_VERSION_1)
 	{
 		table_v1 = (struct smem_ram_ptable_v1*)buf;
 
-		memcpy(&ptable, table_v1, sizeof(ram_partition_table));
+		for(pentry = 0; pentry < ((struct smem_ram_ptable_hdr*)buf)->len; pentry++)
+		{
+			ptable.parts[pentry].start          = table_v1->parts[pentry].start;
+			ptable.parts[pentry].size           = table_v1->parts[pentry].size;
+			ptable.parts[pentry].attr           = table_v1->parts[pentry].attr;
+			ptable.parts[pentry].category       = table_v1->parts[pentry].category;
+			ptable.parts[pentry].domain         = table_v1->parts[pentry].domain;
+			ptable.parts[pentry].type           = table_v1->parts[pentry].type;
+			ptable.parts[pentry].num_partitions = table_v1->parts[pentry].num_partitions;
+		}
 	}
 	else if(ptable.hdr.version == SMEM_RAM_PTABLE_VERSION_0)
 	{
@@ -214,7 +230,7 @@ int smem_ram_ptable_init(struct smem_ram_ptable *smem_ram_ptable)
 }
 
 /* RAM Partition table from SMEM */
-static uint32_t buffer[sizeof(struct smem_ram_ptable_v1)];
+static uint32_t buffer[sizeof(struct smem_ram_ptable_v2)];
 int smem_ram_ptable_init_v1()
 {
 	uint32_t i;
@@ -232,6 +248,8 @@ int smem_ram_ptable_init_v1()
 	if(ret)
 		return 0;
 
+	if(version == SMEM_RAM_PTABLE_VERSION_2)
+		smem_ram_ptable_size = sizeof(struct smem_ram_ptable_v2);
 	if(version == SMEM_RAM_PTABLE_VERSION_1)
 		smem_ram_ptable_size = sizeof(struct smem_ram_ptable_v1);
 	else if(version == SMEM_RAM_PTABLE_VERSION_0)

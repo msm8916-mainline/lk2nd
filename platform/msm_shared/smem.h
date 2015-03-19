@@ -54,6 +54,7 @@ enum smem_ram_ptable_version
 {
 	SMEM_RAM_PTABLE_VERSION_0,
 	SMEM_RAM_PTABLE_VERSION_1,
+	SMEM_RAM_PTABLE_VERSION_2,
 };
 
 struct smem_proc_comm {
@@ -550,6 +551,21 @@ struct smem_ram_ptn_v1 {
 	uint32_t reserved5;     /* Reserved for future use */
 } __attribute__ ((__packed__));
 
+struct smem_ram_ptn_v2 {
+	char name[RAM_PART_NAME_LENGTH];
+	uint64_t start;
+	uint64_t size;
+	uint32_t attr;          /* RAM Partition attribute: READ_ONLY, READWRITE etc.*/
+	uint32_t category;      /* RAM Partition category: EBI0, EBI1, IRAM, IMEM */
+	uint32_t domain;        /* RAM Partition domain: APPS, MODEM, APPS & MODEM (SHARED) etc. */
+	uint32_t type;          /* RAM Partition type: system, bootloader, appsboot, apps etc. */
+	uint32_t num_partitions;/* Number of memory partitions */
+	uint32_t hw_info;       /* hw information such as type and frequency */
+	uint64_t available_length; /* Available partition length in RAM in bytes */
+	uint64_t reserved4;
+	uint64_t reserved5;     /* Reserved for future use */
+} __attribute__ ((__packed__));
+
 struct smem_ram_ptable {
 	unsigned magic[2];
 	unsigned version;
@@ -571,6 +587,12 @@ struct smem_ram_ptable_v1 {
 	struct smem_ram_ptable_hdr hdr;
 	uint32_t reserved2;     /* Added for 8 bytes alignment of header */
 	struct smem_ram_ptn_v1 parts[RAM_NUM_PART_ENTRIES];
+} __attribute__ ((__packed__));
+
+struct smem_ram_ptable_v2 {
+	struct smem_ram_ptable_hdr hdr;
+	uint32_t reserved2;     /* Added for 8 bytes alignment of header */
+	struct smem_ram_ptn_v2 parts[RAM_NUM_PART_ENTRIES];
 } __attribute__ ((__packed__));
 
 /* Power on reason/status info */
@@ -601,8 +623,8 @@ struct smem_ptable {
 	struct smem_ptn parts[SMEM_PTABLE_MAX_PARTS];
 } __attribute__ ((__packed__));
 
-typedef struct smem_ram_ptable_v1 ram_partition_table;
-typedef struct smem_ram_ptn_v1 ram_partition;
+typedef struct smem_ram_ptable_v2 ram_partition_table;
+typedef struct smem_ram_ptn_v2 ram_partition;
 
 unsigned smem_read_alloc_entry_offset(smem_mem_type_t type, void *buf, int len, int offset);
 int smem_ram_ptable_init(struct smem_ram_ptable *smem_ram_ptable);
