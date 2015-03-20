@@ -471,6 +471,7 @@ bool target_display_panel_node(char *panel_name, char *pbuf, uint16_t buf_size)
 {
 	int prefix_string_len = strlen(DISPLAY_CMDLINE_PREFIX);
 	bool ret = true;
+	char vic_buf[HDMI_VIC_LEN] = "0";
 
 	panel_name += strspn(panel_name, " ");
 
@@ -486,6 +487,9 @@ bool target_display_panel_node(char *panel_name, char *pbuf, uint16_t buf_size)
 		strlcat(pbuf, LK_OVERRIDE_PANEL, buf_size);
 		buf_size -= LK_OVERRIDE_PANEL_LEN;
 		strlcat(pbuf, HDMI_CONTROLLER_STRING, buf_size);
+		buf_size -= strlen(HDMI_CONTROLLER_STRING);
+		mdss_hdmi_get_vic(vic_buf);
+		strlcat(pbuf, vic_buf, buf_size);
 	} else {
 		ret = gcdb_display_cmdline_arg(panel_name, pbuf, buf_size);
 	}
