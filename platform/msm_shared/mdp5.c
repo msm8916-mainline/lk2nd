@@ -951,8 +951,10 @@ int mdp_edp_config(struct msm_panel_info *pinfo, struct fbcon_config *fb)
 int mdss_hdmi_config(struct msm_panel_info *pinfo, struct fbcon_config *fb)
 {
 	uint32_t left_pipe, right_pipe;
+	dprintf(SPEW, "ENTER: %s\n", __func__);
 
-	mdss_intf_tg_setup(pinfo, MDP_INTF_3_BASE);
+	mdss_intf_tg_setup(pinfo, MDP_INTF_3_BASE + mdss_mdp_intf_offset());
+	pinfo->pipe_type = MDSS_MDP_PIPE_TYPE_RGB;
 	mdp_select_pipe_type(pinfo, &left_pipe, &right_pipe);
 
 	mdp_clk_gating_ctrl();
