@@ -565,6 +565,9 @@ static void mdss_intf_fetch_start_config(struct msm_panel_info *pinfo,
 	if (pinfo->lcdc.split_display)
 		adjust_xres /= 2;
 
+	if (pinfo->fbc.enabled && pinfo->fbc.comp_ratio)
+		adjust_xres /= pinfo->fbc.comp_ratio;
+
 	/*
 	 * Fetch should always be outside the active lines. If the fetching
 	 * is programmed within active region, hardware behavior is unknown.
