@@ -182,7 +182,10 @@ void reboot_device(unsigned reboot_reason)
 	 * This call should be based on the pmic version
 	 * when PM8019 v2 is available.
 	 */
-	pm8x41_v2_reset_configure(PON_PSHOLD_WARM_RESET);
+	if (reboot_reason)
+		pm8x41_v2_reset_configure(PON_PSHOLD_WARM_RESET);
+	else
+		pm8x41_v2_reset_configure(PON_PSHOLD_HARD_RESET);
 
 	/* Drop PS_HOLD for MSM */
 	writel(0x00, MPM2_MPM_PS_HOLD);
