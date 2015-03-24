@@ -290,7 +290,22 @@ int msm_display_init(struct msm_fb_panel_data *pdata)
 	if (pdata->clk_func)
 		ret = pdata->clk_func(1, &(panel->panel_info));
 
-	/* Only enabled for auto PLL calculation */
+	if (ret)
+		goto msm_display_init_out;
+
+	/* Read specifications from panel if available.
+	 * If further clocks should be enabled, they can be enabled
+	 * using pll_clk_func
+	 */
+	if (pdata->update_panel_info)
+		ret = pdata->update_panel_info();
+
+	if (ret)
+		goto msm_display_init_out;
+
+	/* Enabled for auto PLL calculation or to enable
+	 * additional clocks
+	 */
 	if (pdata->pll_clk_func)
 		ret = pdata->pll_clk_func(1, &(panel->panel_info));
 

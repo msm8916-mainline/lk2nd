@@ -33,6 +33,7 @@
 #include <err.h>
 #include <msm_panel.h>
 #include <mipi_dsi.h>
+#include <mdss_hdmi.h>
 #include <pm8x41.h>
 #include <pm8x41_wled.h>
 #include <qpnp_wled.h>
@@ -252,6 +253,22 @@ int target_backlight_ctrl(struct backlight *bl, uint8_t enable)
 	}
 
 	return ret;
+}
+
+int target_hdmi_pll_clock(uint8_t enable, struct msm_panel_info *pinfo)
+{
+	if (enable) {
+		hdmi_phy_reset();
+		hdmi_pll_config(pinfo->clk_rate);
+		hdmi_vco_enable();
+		hdmi_pixel_clk_enable(pinfo->clk_rate);
+	} else if(!target_cont_splash_screen()) {
+		/* Disable clocks if continuous splash off */
+		hdmi_pixel_clk_disable();
+		hdmi_vco_disable();
+	}
+
+	return NO_ERROR;
 }
 
 int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
