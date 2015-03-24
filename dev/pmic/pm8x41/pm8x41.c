@@ -353,20 +353,27 @@ uint32_t pm8x41_get_pwrkey_is_pressed()
 
 void pm8994_reset_configure(uint8_t reset_type)
 {
-	/* Slave ID 14 is global slave ID for all the pmics */
-	uint8_t slave_id = 14;
+	/* Slave ID of pm8994 and pmi8994 */
+	uint8_t slave_id[] = {0, 2};
+	uint8_t i;
 
+	/* Reset sequence
+	1. Disable the ps hold for pm8994
+	2. set reset type for both pm8994 & pmi8994
+	3. Enable ps hold for pm8994 to trigger the reset
+	*/
 	/* disable PS_HOLD_RESET */
-	pm8xxx_reg_write(slave_id, PON_PS_HOLD_RESET_CTL2, 0x0);
+	pm8xxx_reg_write(slave_id[0], PON_PS_HOLD_RESET_CTL2, 0x0);
 
 	/* Delay needed for disable to kick in. */
 	udelay(300);
 
 	/* configure reset type */
-	pm8xxx_reg_write(slave_id, PON_PS_HOLD_RESET_CTL, reset_type);
+	for (i = 0; i < ARRAY_SIZE(slave_id); i++)
+		pm8xxx_reg_write(slave_id[i], PON_PS_HOLD_RESET_CTL, reset_type);
 
 	/* enable PS_HOLD_RESET */
-	pm8xxx_reg_write(slave_id, PON_PS_HOLD_RESET_CTL2, BIT(S2_RESET_EN_BIT));
+	pm8xxx_reg_write(slave_id[0], PON_PS_HOLD_RESET_CTL2, BIT(S2_RESET_EN_BIT));
 }
 
 void pm8x41_v2_reset_configure(uint8_t reset_type)
