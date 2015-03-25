@@ -559,7 +559,7 @@ static int udc_handle_setup(void *context, uint8_t *data)
 
 						ep->number        = ept->num;
 						ep->dir           = ept->in;
-						ep->type          = EP_TYPE_BULK; /* the only one supported */
+						ep->type          = ept->type;
 						ep->max_pkt_size  = ept->maxpkt;
 						ep->burst_size    = ept->maxburst;
 						ep->zlp           = 0;             /* TODO: zlp could be made part of ept */
@@ -848,6 +848,7 @@ void udc_dwc_notify(void *context, dwc_notify_event_t event)
 
 static struct udc_endpoint *_udc_endpoint_alloc(uint8_t num,
 												uint8_t in,
+												uint8_t type,
 												uint16_t max_pkt)
 {
 	struct udc_endpoint *ept;
@@ -858,6 +859,7 @@ static struct udc_endpoint *_udc_endpoint_alloc(uint8_t num,
 
 	ept->maxpkt     = max_pkt;
 	ept->num        = num;
+	ept->type       = type;
 	ept->in         = !!in;
 	ept->maxburst   = 4;      /* no performance improvement is seen beyond burst size of 4 */
 	ept->trb_count  = 66;     /* each trb can transfer (16MB - 1). 65 for 1GB transfer + 1 for roundup/zero length pkt. */
@@ -881,8 +883,16 @@ struct udc_endpoint *usb30_udc_endpoint_alloc(unsigned type, unsigned maxpkt)
 
 	if (type == UDC_TYPE_BULK_IN) {
 		in = 1;
+		type = EP_TYPE_BULK;
 	} else if (type == UDC_TYPE_BULK_OUT) {
 		in = 0;
+		type = EP_TYPE_BULK;
+	} else if (type == UDC_TYPE_INTR_IN) {
+		in = 1;
+		type = EP_TYPE_INTERRUPT;
+	} else if (type == UDC_TYPE_INTR_OUT){
+		in = 0;
+		type = EP_TYPE_INTERRUPT;
 	} else {
 		return 0;
 	}
@@ -891,7 +901,7 @@ struct udc_endpoint *usb30_udc_endpoint_alloc(unsigned type, unsigned maxpkt)
 		uint32_t bit = in ? EPT_TX(n) : EPT_RX(n);
 		if (udc->ept_alloc_table & bit)
 			continue;
-		ept = _udc_endpoint_alloc(n, in, maxpkt);
+		ept = _udc_endpoint_alloc(n, in, type, maxpkt);
 		if (ept)
 			udc->ept_alloc_table |= bit;
 		return ept;
