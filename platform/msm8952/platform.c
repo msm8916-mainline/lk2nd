@@ -29,12 +29,16 @@
 #include <debug.h>
 #include <reg.h>
 #include <platform/iomap.h>
+#include <platform/irqs.h>
+#include <platform/clock.h>
 #include <qgic.h>
 #include <qtimer.h>
 #include <mmu.h>
 #include <arch/arm/mmu.h>
 #include <smem.h>
 #include <board.h>
+#include <boot_stats.h>
+#include <platform.h>
 
 #define MSM_IOMAP_SIZE ((MSM_IOMAP_END - MSM_IOMAP_BASE)/MB)
 #define APPS_SS_SIZE   ((APPS_SS_END - APPS_SS_BASE)/MB)
@@ -66,6 +70,7 @@ static mmu_section_t mmu_section_table[] = {
 void platform_early_init(void)
 {
 	board_init();
+	platform_clock_init();
 	qgic_init();
 	qtimer_init();
 	scm_init();

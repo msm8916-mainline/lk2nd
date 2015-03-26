@@ -38,24 +38,144 @@
 
 void hsusb_clock_init(void)
 {
+	int ret;
+	struct clk *iclk, *cclk;
 
+	ret = clk_get_set_enable("usb_iface_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set usb_iface_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("usb_core_clk", 80000000, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set usb_core_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	mdelay(20);
+
+	iclk = clk_get("usb_iface_clk");
+	cclk = clk_get("usb_core_clk");
+
+	clk_disable(iclk);
+	clk_disable(cclk);
+
+	mdelay(20);
+
+	/* Start the block reset for usb */
+	writel(1, USB_HS_BCR);
+
+	mdelay(20);
+
+	/* Take usb block out of reset */
+	writel(0, USB_HS_BCR);
+
+	mdelay(20);
+
+	ret = clk_enable(iclk);
+
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set usb_iface_clk after async ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_enable(cclk);
+
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set usb_iface_clk after async ret = %d\n", ret);
+		ASSERT(0);
+	}
 }
 
 void clock_init_mmc(uint32_t interface)
 {
+	char clk_name[64];
+	int ret;
 
+	snprintf(clk_name, sizeof(clk_name), "sdc%u_iface_clk", interface);
+
+	/* enable interface clock */
+	ret = clk_get_set_enable(clk_name, 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set sdc1_iface_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
 }
 
 /* Configure MMC clock */
 void clock_config_mmc(uint32_t interface, uint32_t freq)
 {
-	mmc_boot_mci_clk_enable();
+	int ret = 1;
+	char clk_name[64];
+
+	snprintf(clk_name, sizeof(clk_name), "sdc%u_core_clk", interface);
+
+	if(freq == MMC_CLK_400KHZ)
+	{
+		ret = clk_get_set_enable(clk_name, 400000, 1);
+	}
+	else if(freq == MMC_CLK_50MHZ)
+	{
+		ret = clk_get_set_enable(clk_name, 50000000, 1);
+	}
+	else if(freq == MMC_CLK_177MHZ)
+	{
+		ret = clk_get_set_enable(clk_name, 177770000, 1);
+	}
+	else if(freq == MMC_CLK_192MHZ)
+	{
+		ret = clk_get_set_enable(clk_name, 192000000, 1);
+	}
+	else if(freq == MMC_CLK_200MHZ)
+	{
+		ret = clk_get_set_enable(clk_name, 200000000, 1);
+	}
+	else if(freq == MMC_CLK_400MHZ)
+	{
+		ret = clk_get_set_enable(clk_name, 384000000, 1);
+	}
+	else
+	{
+		dprintf(CRITICAL, "sdc frequency (%u) is not supported\n", freq);
+		ASSERT(0);
+	}
+
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set %s ret = %d\n", clk_name, ret);
+		ASSERT(0);
+	}
 }
 
 /* Configure UART clock based on the UART block id*/
 void clock_config_uart_dm(uint8_t id)
 {
+	int ret;
+	char iclk[64];
+	char cclk[64];
 
+	snprintf(iclk, sizeof(iclk), "uart%u_iface_clk", id);
+	snprintf(cclk, sizeof(cclk), "uart%u_core_clk", id);
+
+	ret = clk_get_set_enable(iclk, 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set %s ret = %d\n", iclk, ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable(cclk, 7372800, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set %s ret = %d\n", cclk, ret);
+		ASSERT(0);
+	}
 }
 
 /* Function to asynchronously reset CE.
