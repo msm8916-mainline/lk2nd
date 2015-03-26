@@ -851,9 +851,8 @@ static uint32_t hdmi_poll_status(void)
 	return NO_ERROR;
 }
 
-uint32_t hdmi_pll_config(void)
+uint32_t hdmi_pll_config(uint32_t tmds_clk_rate)
 {
-	uint32_t tmds_clk_rate = 148500000;
 	uint32_t clk_index;
 
 	/* Find clock target for reset sequence */
