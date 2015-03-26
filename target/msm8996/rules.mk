@@ -2,7 +2,7 @@ LOCAL_DIR := $(GET_LOCAL_DIR)
 
 INCLUDES += -I$(LOCAL_DIR)/include -I$(LK_TOP_DIR)/platform/msm_shared
 
-PLATFORM := thulium
+PLATFORM := msm8996
 
 MEMBASE := 0x8F000000 # SDRAM
 MEMSIZE := 0x00200000 # 2MB

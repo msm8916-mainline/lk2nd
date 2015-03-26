@@ -499,7 +499,7 @@ DEFINES += DISPLAY_TYPE_MDSS=1
 			$(LOCAL_DIR)/mipi_dsi_autopll.o
 endif
 
-ifeq ($(PLATFORM),thulium)
+ifeq ($(PLATFORM),msm8996)
 	OBJS += $(LOCAL_DIR)/qtimer.o \
 			$(LOCAL_DIR)/qtimer_mmap.o \
 			$(LOCAL_DIR)/interrupts.o \

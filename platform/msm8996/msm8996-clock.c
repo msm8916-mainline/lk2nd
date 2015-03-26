@@ -405,7 +405,7 @@ static struct branch_clk gcc_usb_phy_cfg_ahb2phy_clk = {
 
 
 /* Clock lookup table */
-static struct clk_lookup msm_thulium_clocks[] =
+static struct clk_lookup msm_msm8996_clocks[] =
 {
 	CLK_LOOKUP("sdc1_iface_clk", gcc_sdcc1_ahb_clk.c),
 	CLK_LOOKUP("sdc1_core_clk",  gcc_sdcc1_apps_clk.c),
@@ -428,5 +428,5 @@ static struct clk_lookup msm_thulium_clocks[] =
 
 void platform_clock_init(void)
 {
-	clk_init(msm_thulium_clocks, ARRAY_SIZE(msm_thulium_clocks));
+	clk_init(msm_msm8996_clocks, ARRAY_SIZE(msm_msm8996_clocks));
 }
