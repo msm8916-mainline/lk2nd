@@ -43,7 +43,6 @@
 #include <msm_panel.h>
 #include <arch/ops.h>
 
-extern void mdp_disable(void);
 extern int mipi_dsi_cmd_config(struct fbcon_config mipi_fb_cfg,
 			       unsigned short num_of_lanes);
 extern void mdp_shutdown(void);
@@ -527,17 +526,12 @@ int mdss_dsi_video_mode_config(uint16_t disp_width,
 	if(eof_bllp_pwr & 0x8)
 		last_line_interleave_en = 1;
 
-	/* disable mdp first */
-	mdp_disable();
-
 	writel(0x00000000, ctl_base + CLK_CTRL);
 	writel(0x00000002, ctl_base + CLK_CTRL);
 	writel(0x00000006, ctl_base + CLK_CTRL);
 	writel(0x0000000e, ctl_base + CLK_CTRL);
 	writel(0x0000001e, ctl_base + CLK_CTRL);
 	writel(0x0000023f, ctl_base + CLK_CTRL);
-
-	writel(0, ctl_base + CTRL);
 
 	writel(0x03f03fe0, ctl_base + ERR_INT_MASK0);
 
