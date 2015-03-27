@@ -174,6 +174,37 @@ void target_serialno(unsigned char *buf)
 
 unsigned board_machtype(void)
 {
+	return LINUX_MACHTYPE_UNKNOWN;
+}
+
+/* Detect the target type */
+void target_detect(struct board_data *board)
+{
+	/* This is already filled as part of board.c */
+}
+
+/* Detect the modem type */
+void target_baseband_detect(struct board_data *board)
+{
+	uint32_t platform;
+
+	platform = board->platform;
+
+	switch(platform) {
+	case MSM8952:
+	case MSM8956:
+	case MSM8976:
+		board->baseband = BASEBAND_MSM;
+		break;
+	default:
+		dprintf(CRITICAL, "Platform type: %u is not supported\n",platform);
+		ASSERT(0);
+	};
+}
+
+unsigned target_baseband()
+{
+	return board_baseband();
 }
 
 unsigned check_reboot_mode(void)

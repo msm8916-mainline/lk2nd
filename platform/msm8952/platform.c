@@ -34,9 +34,38 @@
 #include <mmu.h>
 #include <arch/arm/mmu.h>
 #include <smem.h>
+#include <board.h>
+
+#define MSM_IOMAP_SIZE ((MSM_IOMAP_END - MSM_IOMAP_BASE)/MB)
+#define APPS_SS_SIZE   ((APPS_SS_END - APPS_SS_BASE)/MB)
+
+/* LK memory - cacheable, write through */
+#define LK_MEMORY         (MMU_MEMORY_TYPE_NORMAL_WRITE_BACK_ALLOCATE | \
+				MMU_MEMORY_AP_READ_WRITE)
+
+/* Peripherals - non-shared device */
+#define IOMAP_MEMORY      (MMU_MEMORY_TYPE_DEVICE_SHARED | \
+				MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
+
+/* IMEM memory - cacheable, write through */
+#define COMMON_MEMORY     (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
+				MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
+
+#define SCRATCH_MEMORY    (MMU_MEMORY_TYPE_NORMAL_WRITE_BACK_ALLOCATE | \
+				MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
+
+static mmu_section_t mmu_section_table[] = {
+/*           Physical addr,         Virtual addr,            Size (in MB),     Flags */
+	{    MEMBASE,               MEMBASE,                 (MEMSIZE / MB),   LK_MEMORY},
+	{    MSM_IOMAP_BASE,        MSM_IOMAP_BASE,          MSM_IOMAP_SIZE,   IOMAP_MEMORY},
+	{    APPS_SS_BASE,          APPS_SS_BASE,            APPS_SS_SIZE,      IOMAP_MEMORY},
+	{    MSM_SHARED_IMEM_BASE,  MSM_SHARED_IMEM_BASE,    1,                COMMON_MEMORY},
+	{    SCRATCH_ADDR,          SCRATCH_ADDR,            256,              SCRATCH_MEMORY},
+};
 
 void platform_early_init(void)
 {
+	board_init();
 	qgic_init();
 	qtimer_init();
 	scm_init();
@@ -65,5 +94,71 @@ addr_t get_bs_info_addr()
 int platform_use_identity_mmu_mappings(void)
 {
 	/* Use only the mappings specified in this file. */
-	return 1;
+	return 0;
+}
+
+/* Setup MMU mapping for this platform */
+void platform_init_mmu_mappings(void)
+{
+	uint32_t i;
+	uint32_t sections;
+	uint32_t table_size = ARRAY_SIZE(mmu_section_table);
+	uint32_t ddr_start = get_ddr_start();
+	uint32_t smem_addr = platform_get_smem_base_addr();
+
+	/*Mapping the ddr start address for loading the kernel about 90 MB*/
+	sections = 90;
+	while(sections--)
+	{
+		arm_mmu_map_section(ddr_start + sections * MB, ddr_start + sections* MB, COMMON_MEMORY);
+	}
+
+
+	/* Mapping the SMEM addr */
+	arm_mmu_map_section(smem_addr, smem_addr, COMMON_MEMORY);
+
+	/* Configure the MMU page entries for memory read from the
+	   mmu_section_table */
+	for (i = 0; i < table_size; i++)
+	{
+		sections = mmu_section_table[i].num_of_sections;
+
+		while (sections--)
+		{
+			arm_mmu_map_section(mmu_section_table[i].paddress +
+								sections * MB,
+								mmu_section_table[i].vaddress +
+								sections * MB,
+								mmu_section_table[i].flags);
+		}
+	}
+}
+
+addr_t platform_get_virt_to_phys_mapping(addr_t virt_addr)
+{
+	/* Using 1-1 mapping on this platform. */
+	return virt_addr;
+}
+
+addr_t platform_get_phys_to_virt_mapping(addr_t phys_addr)
+{
+	/* Using 1-1 mapping on this platform. */
+	return phys_addr;
+}
+
+/* DYNAMIC SMEM REGION feature enables LK to dynamically
+ * read the SMEM addr info from TCSR_TZ_WONCE register.
+ * The first word read, if indicates a MAGIC number, then
+ * Dynamic SMEM is assumed to be enabled. Read the remaining
+ * SMEM info for SMEM Size and Phy_addr from the other bytes.
+ */
+uint32_t platform_get_smem_base_addr()
+{
+	struct smem_addr_info *smem_info = NULL;
+
+	smem_info = (struct smem_addr_info *)readl(TCSR_TZ_WONCE);
+	if(smem_info && (smem_info->identifier == SMEM_TARGET_INFO_IDENTIFIER))
+		return smem_info->phy_addr;
+	else
+		return MSM_SHARED_BASE;
 }
