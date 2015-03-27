@@ -51,9 +51,6 @@
 #define ABOOT_FORCE_RAMDISK_ADDR    DDR_START + 0x2000000
 #define ABOOT_FORCE_TAGS_ADDR       DDR_START + 0x1E00000
 
-/* 3GB DDR devices consider 0x40000000 as new mem base */
-#define BASE_ADDR_1                 0x40000000
-
 #define MSM_GIC_DIST_BASE           APPS_SS_BASE
 #define MSM_GIC_CPU_BASE            (APPS_SS_BASE + 0x2000)
 #define APPS_APCS_QTMR_AC_BASE      (APPS_SS_BASE + 0x00020000)
