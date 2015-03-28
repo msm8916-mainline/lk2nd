@@ -27,6 +27,8 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #define FASTBOOT_MODE     0x77665500
+#define ALARM_BOOT        0x77665503
+#define RTC_TRG           4
 #define PON_SOFT_RB_SPARE 0x88F
 
 #if USER_FORCE_RESET_SUPPORT
@@ -37,5 +39,7 @@ uint32_t is_user_force_reset(void);
 unsigned check_reboot_mode(void);
 
 unsigned check_hard_reboot_mode(void);
+
+uint32_t check_alarm_boot(void);
 
 void reboot_device(unsigned reboot_reason);
