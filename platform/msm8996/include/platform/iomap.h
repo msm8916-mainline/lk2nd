@@ -200,4 +200,5 @@
 #define RPMB_SND_RCV_BUF            0x8F200000
 #define RPMB_SND_RCV_BUF_SZ         0x1
 
+#define TCSR_BOOT_MISC_DETECT       0x007B3000
 #endif

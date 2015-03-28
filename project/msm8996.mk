@@ -64,3 +64,6 @@ DEFINES += ENABLE_PARTIAL_GOODS_SUPPORT=1
 endif
 
 CFLAGS += -Werror
+
+#SCM call before entering DLOAD mode
+DEFINES += PLATFORM_USE_SCM_DLOAD=1
