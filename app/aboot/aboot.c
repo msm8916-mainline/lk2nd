@@ -733,18 +733,6 @@ static void verify_signed_bootimg(uint32_t bootimg_addr, uint32_t bootimg_size)
 	set_tamper_flag(device.is_tampered);
 #endif
 
-	if(device.is_tampered)
-	{
-		write_device_info_mmc(&device);
-	#ifdef TZ_TAMPER_FUSE
-		set_tamper_fuse_cmd();
-	#endif
-	#ifdef ASSERT_ON_TAMPER
-		dprintf(CRITICAL, "Device is tampered. Asserting..\n");
-		ASSERT(0);
-	#endif
-	}
-
 #if VERIFIED_BOOT
 	if(boot_verify_get_state() == RED)
 	{
@@ -762,6 +750,19 @@ static void verify_signed_bootimg(uint32_t bootimg_addr, uint32_t bootimg_size)
 		}
 	}
 #endif
+
+	if(device.is_tampered)
+	{
+		write_device_info_mmc(&device);
+	#ifdef TZ_TAMPER_FUSE
+		set_tamper_fuse_cmd();
+	#endif
+	#ifdef ASSERT_ON_TAMPER
+		dprintf(CRITICAL, "Device is tampered. Asserting..\n");
+		ASSERT(0);
+	#endif
+	}
+
 }
 
 static bool check_format_bit()
