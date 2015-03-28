@@ -189,6 +189,13 @@ uint32_t mmc_read(uint64_t data_addr, uint32_t *out, uint32_t data_len)
 	ASSERT(!(data_addr % block_size));
 	ASSERT(!(data_len % block_size));
 
+	/*
+	 * dma onto write back memory is unsafe/nonportable,
+	 * but callers to this routine normally provide
+	 * write back buffers. Invalidate cache
+	 * before read data from mmc.
+         */
+	arch_clean_invalidate_cache_range((addr_t)(out), data_len);
 
 	if (platform_boot_dev_isemmc())
 	{
