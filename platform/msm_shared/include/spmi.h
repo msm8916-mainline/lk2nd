@@ -1,4 +1,4 @@
-/* Copyright (c) 2012,2014 The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012,2014-2015 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -101,8 +101,6 @@
 #define SPMI_CMD_DEV_DESC_BLK_MASTER_READ    0x10
 #define SPMI_CMD_DEV_DESC_BLK_SLAVE_READ     0x11
 
-/* Max number of Peripherals supported by SPMI */
-#define MAX_PERIPH                           128
 #define PMIC_ARB_SPMI_HW_VERSION             (SPMI_BASE + 0xF000)
 
 enum spmi_geni_cmd_return_value{

@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012, 2014-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -34,6 +34,7 @@
 #include <platform/irqs.h>
 #include <platform/interrupts.h>
 #include <malloc.h>
+#include <platform.h>
 
 #define PMIC_ARB_V2 0x20010000
 #define CHNL_IDX(sid, pid) ((sid << 8) | pid)
@@ -44,10 +45,11 @@ static uint8_t pmic_irq_perph_id;
 static spmi_callback callback;
 static uint32_t pmic_arb_ver;
 static uint8_t *chnl_tbl;
+static uint32_t max_peripherals;
 
 static void spmi_lookup_chnl_number()
 {
-	int i;
+	uint32_t i;
 	uint8_t slave_id = 0;
 	uint8_t ppid_address = 0;
 	/* We need a max of sid (4 bits) + pid (8bits) of uint8_t's */
@@ -57,7 +59,7 @@ static void spmi_lookup_chnl_number()
 	chnl_tbl = (uint8_t *) malloc(chnl_tbl_sz);
 	ASSERT(chnl_tbl);
 
-	for(i = 0; i < MAX_PERIPH ; i++)
+	for(i = 0; i < max_peripherals; i++)
 	{
 #if SPMI_CORE_V2
 		slave_id = (readl(PMIC_ARB_REG_CHLN(i)) & 0xf0000) >> 16;
@@ -74,6 +76,7 @@ void spmi_init(uint32_t chnl_num, uint32_t owner_id)
 {
 	/* Read the version numver */
 	pmic_arb_ver = readl(PMIC_ARB_SPMI_HW_VERSION);
+	max_peripherals = platform_get_max_periph();
 
 	if (pmic_arb_ver < PMIC_ARB_V2)
 	{
