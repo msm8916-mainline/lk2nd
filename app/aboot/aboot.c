@@ -2802,11 +2802,16 @@ void aboot_init(const struct app_descriptor *app)
 
 	/* Display splash screen if enabled */
 #if DISPLAY_SPLASH_SCREEN
-	dprintf(SPEW, "Display Init: Start\n");
-	target_display_init(device.display_panel);
-	dprintf(SPEW, "Display Init: Done\n");
+#if NO_ALARM_DISPLAY
+	if (!check_alarm_boot()) {
 #endif
-
+		dprintf(SPEW, "Display Init: Start\n");
+		target_display_init(device.display_panel);
+		dprintf(SPEW, "Display Init: Done\n");
+#if NO_ALARM_DISPLAY
+	}
+#endif
+#endif
 
 	target_serialno((unsigned char *) sn_buf);
 	dprintf(SPEW,"serial number: %s\n",sn_buf);
