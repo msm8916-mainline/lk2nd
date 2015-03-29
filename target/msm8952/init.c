@@ -60,6 +60,15 @@
 #define FASTBOOT_MODE           0x77665500
 #define PON_SOFT_RB_SPARE       0x88F
 
+#define CE1_INSTANCE            1
+#define CE_EE                   1
+#define CE_FIFO_SIZE            64
+#define CE_READ_PIPE            3
+#define CE_WRITE_PIPE           2
+#define CE_READ_PIPE_LOCK_GRP   0
+#define CE_WRITE_PIPE_LOCK_GRP  0
+#define CE_ARRAY_SIZE           20
+
 struct mmc_device *dev;
 
 static uint32_t mmc_pwrctl_base[] =
@@ -213,6 +222,8 @@ void target_init(void)
 #if LONG_PRESS_POWER_ON
 	shutdown_detect();
 #endif
+	if (target_use_signed_kernel())
+		target_crypto_init_params();
 }
 
 void target_serialno(unsigned char *buf)
@@ -376,6 +387,11 @@ void target_uninit(void)
 {
 	mmc_put_card_to_sleep(dev);
 	sdhci_mode_disable(&dev->host);
+	if (crypto_initialized())
+		crypto_eng_cleanup();
+
+	if (target_is_ssd_enabled())
+		clock_ce_disable(CE1_INSTANCE);
 }
 
 void target_usb_init(void)
@@ -399,4 +415,91 @@ void target_usb_stop(void)
 {
 	/* Disable VBUS mimicing in the controller. */
 	ulpi_write(ULPI_MISC_A_VBUSVLDEXTSEL | ULPI_MISC_A_VBUSVLDEXT, ULPI_MISC_A_CLEAR);
+}
+
+/* Do any target specific intialization needed before entering fastboot mode */
+void target_fastboot_init(void)
+{
+	if (target_is_ssd_enabled()) {
+		clock_ce_enable(CE1_INSTANCE);
+		target_load_ssd_keystore();
+	}
+}
+
+void target_load_ssd_keystore(void)
+{
+	uint64_t ptn;
+	int      index;
+	uint64_t size;
+	uint32_t *buffer = NULL;
+
+	if (!target_is_ssd_enabled())
+		return;
+
+	index = partition_get_index("ssd");
+
+	ptn = partition_get_offset(index);
+	if (ptn == 0){
+		dprintf(CRITICAL, "Error: ssd partition not found\n");
+		return;
+	}
+
+	size = partition_get_size(index);
+	if (size == 0) {
+		dprintf(CRITICAL, "Error: invalid ssd partition size\n");
+		return;
+	}
+
+	buffer = memalign(CACHE_LINE, ROUNDUP(size, CACHE_LINE));
+	if (!buffer) {
+		dprintf(CRITICAL, "Error: allocating memory for ssd buffer\n");
+		return;
+	}
+
+	if (mmc_read(ptn, buffer, size)) {
+		dprintf(CRITICAL, "Error: cannot read data\n");
+		free(buffer);
+		return;
+	}
+
+	clock_ce_enable(CE1_INSTANCE);
+	scm_protect_keystore(buffer, size);
+	clock_ce_disable(CE1_INSTANCE);
+	free(buffer);
+}
+
+crypto_engine_type board_ce_type(void)
+{
+	return CRYPTO_ENGINE_TYPE_HW;
+}
+
+/* Set up params for h/w CE. */
+void target_crypto_init_params()
+{
+	struct crypto_init_params ce_params;
+
+	/* Set up base addresses and instance. */
+	ce_params.crypto_instance  = CE1_INSTANCE;
+	ce_params.crypto_base      = MSM_CE1_BASE;
+	ce_params.bam_base         = MSM_CE1_BAM_BASE;
+
+	/* Set up BAM config. */
+	ce_params.bam_ee               = CE_EE;
+	ce_params.pipes.read_pipe      = CE_READ_PIPE;
+	ce_params.pipes.write_pipe     = CE_WRITE_PIPE;
+	ce_params.pipes.read_pipe_grp  = CE_READ_PIPE_LOCK_GRP;
+	ce_params.pipes.write_pipe_grp = CE_WRITE_PIPE_LOCK_GRP;
+
+	/* Assign buffer sizes. */
+	ce_params.num_ce           = CE_ARRAY_SIZE;
+	ce_params.read_fifo_size   = CE_FIFO_SIZE;
+	ce_params.write_fifo_size  = CE_FIFO_SIZE;
+
+	/* BAM is initialized by TZ for this platform.
+	 * Do not do it again as the initialization address space
+	 * is locked.
+	 */
+	ce_params.do_bam_init      = 0;
+
+	crypto_init_params(&ce_params);
 }
