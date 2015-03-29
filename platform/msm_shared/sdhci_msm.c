@@ -337,7 +337,7 @@ static uint32_t sdhci_msm_init_dll(struct sdhci_host *host)
 	msm_set_dll_freq(host);
 
 	/* Configure the mclk freq based on the current clock rate
-	 * and fll cycle count as per hpg section 15.2.2
+	 * and fll cycle count
 	 */
 	if (host->major == 1 && host->minor >= 0x42)
 	{
