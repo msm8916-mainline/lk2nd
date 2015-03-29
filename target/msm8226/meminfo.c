@@ -78,24 +78,10 @@ target_dev_tree_mem_err:
 
 void *target_get_scratch_address(void)
 {
-	void *scratch_addr = 0;
-
-	if(target_is_cdp_qvga())
-		scratch_addr = (void *)SCRATCH_ADDR_128MAP;
-	else
-		scratch_addr = (void *)SCRATCH_ADDR_512MAP;
-
-	return scratch_addr;
+	return (void *)SCRATCH_ADDR;
 }
 
 unsigned target_get_max_flash_size(void)
 {
-	uint32_t max_flash_size = 0;
-
-	if(target_is_cdp_qvga())
-		max_flash_size = SCRATCH_SIZE_128MAP;
-	else
-		max_flash_size = SCRATCH_SIZE_512MAP;
-
-	return max_flash_size;
+	return SCRATCH_SIZE;
 }
