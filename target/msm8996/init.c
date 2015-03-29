@@ -435,3 +435,11 @@ unsigned target_pause_for_battery_charge(void)
 	else
 		return 0;
 }
+
+int set_download_mode(enum dload_mode mode)
+{
+	int ret = 0;
+	ret = scm_dload_mode(mode);
+
+	return ret;
+}
