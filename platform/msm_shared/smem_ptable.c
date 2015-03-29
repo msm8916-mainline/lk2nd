@@ -169,7 +169,7 @@ static void smem_copy_ram_ptable(void *buf)
 
 		memcpy(&ptable, table_v2, sizeof(ram_partition_table));
 	}
-	if(ptable.hdr.version == SMEM_RAM_PTABLE_VERSION_1)
+	else if(ptable.hdr.version == SMEM_RAM_PTABLE_VERSION_1)
 	{
 		table_v1 = (struct smem_ram_ptable_v1*)buf;
 
@@ -251,7 +251,7 @@ int smem_ram_ptable_init_v1()
 
 	if(version == SMEM_RAM_PTABLE_VERSION_2)
 		smem_ram_ptable_size = sizeof(struct smem_ram_ptable_v2);
-	if(version == SMEM_RAM_PTABLE_VERSION_1)
+	else if(version == SMEM_RAM_PTABLE_VERSION_1)
 		smem_ram_ptable_size = sizeof(struct smem_ram_ptable_v1);
 	else if(version == SMEM_RAM_PTABLE_VERSION_0)
 		smem_ram_ptable_size = sizeof(struct smem_ram_ptable);

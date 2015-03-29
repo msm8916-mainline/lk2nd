@@ -561,9 +561,8 @@ struct smem_ram_ptn_v2 {
 	uint32_t type;          /* RAM Partition type: system, bootloader, appsboot, apps etc. */
 	uint32_t num_partitions;/* Number of memory partitions */
 	uint32_t hw_info;       /* hw information such as type and frequency */
+	uint64_t reserved;      /* Reserved for future use */
 	uint64_t available_length; /* Available partition length in RAM in bytes */
-	uint64_t reserved4;
-	uint64_t reserved5;     /* Reserved for future use */
 } __attribute__ ((__packed__));
 
 struct smem_ram_ptable {
