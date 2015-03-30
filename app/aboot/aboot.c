@@ -1536,7 +1536,12 @@ void read_device_info_mmc(device_info *dev)
 #endif
 		info->is_verified = 0;
 		info->is_tampered = 0;
+
+#if USER_BUILD_VARIANT
+		info->charger_screen_enabled = 1;
+#else
 		info->charger_screen_enabled = 0;
+#endif
 
 		write_device_info_mmc(info);
 	}
