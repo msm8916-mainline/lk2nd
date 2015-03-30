@@ -448,14 +448,14 @@ static void mdss_intf_tg_setup(struct msm_panel_info *pinfo, uint32_t intf_base)
 	adjust_xres = pinfo->xres;
 	if (pinfo->lcdc.split_display) {
 		adjust_xres /= 2;
-		if (intf_base == MDP_INTF_1_BASE) {
+		if (intf_base == (MDP_INTF_1_BASE + mdss_mdp_intf_offset())) {
 			writel(BIT(8), MDP_REG_SPLIT_DISPLAY_LOWER_PIPE_CTL);
 			writel(BIT(8), MDP_REG_SPLIT_DISPLAY_UPPER_PIPE_CTL);
 			writel(0x1, MDP_REG_SPLIT_DISPLAY_EN);
 		}
 	}
 
-	if (pinfo->lcdc.dst_split &&  (intf_base == MDP_INTF_1_BASE)) {
+	if (pinfo->lcdc.dst_split &&  (intf_base == (MDP_INTF_1_BASE + mdss_mdp_intf_offset()))) {
 		uint32_t ppb_offset = mdss_mdp_get_ppb_offset();
 		writel(BIT(16), REG_MDP(ppb_offset + 0x4)); /* MMSS_MDP_PPB0_CNTL */
 		writel(BIT(5), REG_MDP(ppb_offset)); /* MMSS_MDP_PPB0_CONFIG */
@@ -497,7 +497,7 @@ static void mdss_intf_tg_setup(struct msm_panel_info *pinfo, uint32_t intf_base)
 	display_vend = ((vsync_period - itp.v_front_porch) * hsync_period)
 		+ itp.hsync_skew - 1;
 
-	if (intf_base == MDP_INTF_0_BASE) { /* eDP */
+	if (intf_base == (MDP_INTF_0_BASE + mdss_mdp_intf_offset())) { /* eDP */
 		display_vstart += itp.hsync_pulse_width + itp.h_back_porch;
 		display_vend -= itp.h_front_porch;
 	}
