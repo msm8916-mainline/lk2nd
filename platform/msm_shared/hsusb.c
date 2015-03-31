@@ -561,9 +561,23 @@ static void handle_setup(struct udc_endpoint *ept)
 	case SETUP(DEVICE_READ, GET_DESCRIPTOR):
 		{
 			struct udc_descriptor *desc;
+			unsigned char* data = NULL;
+			unsigned n;
 			/* usb_highspeed? */
 			for (desc = desc_list; desc; desc = desc->next) {
 				if (desc->tag == s.value) {
+					/*Check for configuration type of descriptor*/
+					if (desc->tag == (TYPE_CONFIGURATION << 8)) {
+						data = desc->data;
+						data+= 9; /* skip config desc */
+						data+= 9; /* skip interface desc */
+						/* taking the max packet size based on the USB host speed connected */
+						for (n = 0; n < 2; n++) {
+							data[4] = usb_highspeed ? 512:64;
+							data[5] = (usb_highspeed ? 512:64)>>8;
+							data += 7;
+						}
+					}
 					unsigned len = desc->len;
 					if (len > s.length)
 						len = s.length;
