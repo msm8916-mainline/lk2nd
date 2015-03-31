@@ -142,3 +142,8 @@ uint32_t platform_get_qmp_rev()
 	return readl(USB3_PHY_REVISION_ID3) << 24 | readl(USB3_PHY_REVISION_ID2) << 16 |
 		   readl(USB3_PHY_REVISION_ID1) << 8 | readl(USB3_PHY_REVISION_ID0);
 }
+
+uint32_t platform_get_max_periph()
+{
+	return 256;
+}
