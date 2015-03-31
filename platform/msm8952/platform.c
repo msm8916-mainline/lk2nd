@@ -167,3 +167,8 @@ uint32_t platform_get_smem_base_addr()
 	else
 		return MSM_SHARED_BASE;
 }
+
+uint32_t platform_get_max_periph()
+{
+	return 256;
+}
