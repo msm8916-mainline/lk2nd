@@ -111,6 +111,21 @@ static struct pll_vote_clk gpll0_clk_src =
 	},
 };
 
+static struct pll_vote_clk gpll4_clk_src =
+{
+	.en_reg       = (void *) APCS_GPLL_ENA_VOTE,
+	.en_mask      = BIT(5),
+	.status_reg   = (void *) GPLL4_MODE,
+	.status_mask  = BIT(30),
+	.parent       = &cxo_clk_src.c,
+
+	.c = {
+		.rate     = 1152000000,
+		.dbg_name = "gpll4_clk_src",
+		.ops      = &clk_ops_pll_vote,
+	},
+};
+
 /* SDCC Clocks */
 static struct clk_freq_tbl ftbl_gcc_sdcc1_apps_clk[] =
 {
@@ -121,8 +136,8 @@ static struct clk_freq_tbl ftbl_gcc_sdcc1_apps_clk[] =
 	F( 50000000,  gpll0,  16,   0,   0),
 	F(100000000,  gpll0,   8,   0,   0),
 	F(177770000,  gpll0, 4.5,   0,   0),
-	F(200000000,  gpll0,   4,   0,   0),
-	F(400000000,  gpll4,   3,   0,   0),
+	F(192000000,  gpll0,   6,   0,   0),
+	F(384000000,  gpll4,   3,   0,   0),
 	F_END
 };
 
@@ -135,7 +150,7 @@ static struct rcg_clk sdcc1_apps_clk_src =
 	.d_reg        = (uint32_t *) SDCC1_D,
 
 	.set_rate     = clock_lib2_rcg_set_rate_mnd,
-	.freq_tbl     = ftbl_gcc_sdcc1_2_apps_clk,
+	.freq_tbl     = ftbl_gcc_sdcc1_apps_clk,
 	.current_freq = &rcg_dummy_freq,
 
 	.c = {

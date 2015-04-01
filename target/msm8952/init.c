@@ -60,23 +60,82 @@
 #define FASTBOOT_MODE           0x77665500
 #define PON_SOFT_RB_SPARE       0x88F
 
-static uint32_t mmc_sdc_base[] =
+struct mmc_device *dev;
+
+static uint32_t mmc_pwrctl_base[] =
 	{ MSM_SDC1_BASE, MSM_SDC2_BASE };
 
+static uint32_t mmc_sdhci_base[] =
+	{ MSM_SDC1_SDHCI_BASE, MSM_SDC2_SDHCI_BASE };
+
+static uint32_t  mmc_sdc_pwrctl_irq[] =
+	{ SDCC1_PWRCTL_IRQ, SDCC2_PWRCTL_IRQ };
 
 void target_early_init(void)
 {
 #if WITH_DEBUG_UART
-	uart_dm_init(1, 0, BLSP1_UART1_BASE);
+	uart_dm_init(2, 0, BLSP1_UART1_BASE);
 #endif
 }
 
-void target_mmc_caps(struct mmc_host *host)
+static void set_sdc_power_ctrl()
 {
-	host->caps.ddr_mode = 0;
-	host->caps.hs200_mode = 0;
-	host->caps.bus_width = MMC_BOOT_BUS_WIDTH_8_BIT;
-	host->caps.hs_clk_rate = MMC_CLK_50MHZ;
+	/* Drive strength configs for sdc pins */
+	struct tlmm_cfgs sdc1_hdrv_cfg[] =
+	{
+		{ SDC1_CLK_HDRV_CTL_OFF,  TLMM_CUR_VAL_16MA, TLMM_HDRV_MASK, 0},
+		{ SDC1_CMD_HDRV_CTL_OFF,  TLMM_CUR_VAL_10MA, TLMM_HDRV_MASK, 0},
+		{ SDC1_DATA_HDRV_CTL_OFF, TLMM_CUR_VAL_10MA, TLMM_HDRV_MASK , 0},
+	};
+
+	/* Pull configs for sdc pins */
+	struct tlmm_cfgs sdc1_pull_cfg[] =
+	{
+		{ SDC1_CLK_PULL_CTL_OFF,  TLMM_NO_PULL, TLMM_PULL_MASK, 0},
+		{ SDC1_CMD_PULL_CTL_OFF,  TLMM_PULL_UP, TLMM_PULL_MASK, 0},
+		{ SDC1_DATA_PULL_CTL_OFF, TLMM_PULL_UP, TLMM_PULL_MASK, 0},
+	};
+
+	/* Set the drive strength & pull control values */
+	tlmm_set_hdrive_ctrl(sdc1_hdrv_cfg, ARRAY_SIZE(sdc1_hdrv_cfg));
+	tlmm_set_pull_ctrl(sdc1_pull_cfg, ARRAY_SIZE(sdc1_pull_cfg));
+}
+
+void target_sdc_init()
+{
+	struct mmc_config_data config;
+
+	/* Set drive strength & pull ctrl values */
+	set_sdc_power_ctrl();
+
+	/* Try slot 1*/
+	config.slot          = 1;
+	config.bus_width     = DATA_BUS_WIDTH_8BIT;
+	config.max_clk_rate  = MMC_CLK_177MHZ;
+	config.sdhc_base     = mmc_sdhci_base[config.slot - 1];
+	config.pwrctl_base   = mmc_pwrctl_base[config.slot - 1];
+	config.pwr_irq       = mmc_sdc_pwrctl_irq[config.slot - 1];
+	config.hs400_support = 1;
+
+	if (!(dev = mmc_init(&config))) {
+	/* Try slot 2 */
+		config.slot          = 2;
+		config.max_clk_rate  = MMC_CLK_200MHZ;
+		config.sdhc_base     = mmc_sdhci_base[config.slot - 1];
+		config.pwrctl_base   = mmc_pwrctl_base[config.slot - 1];
+		config.pwr_irq       = mmc_sdc_pwrctl_irq[config.slot - 1];
+		config.hs400_support = 0;
+
+		if (!(dev = mmc_init(&config))) {
+			dprintf(CRITICAL, "mmc init failed!");
+			ASSERT(0);
+		}
+	}
+}
+
+void *target_mmc_device()
+{
+	return (void *) dev;
 }
 
 /* Return 1 if vol_up pressed */
@@ -144,20 +203,13 @@ void target_init(void)
 
 	target_keystatus();
 
-	/* Trying Slot 1*/
-	slot = 1;
-	base_addr = mmc_sdc_base[slot - 1];
-	if (mmc_boot_main(slot, base_addr))
+	target_sdc_init();
+	if (partition_read_table())
 	{
-
-	/* Trying Slot 2 next */
-	slot = 2;
-	base_addr = mmc_sdc_base[slot - 1];
-	if (mmc_boot_main(slot, base_addr)) {
-		dprintf(CRITICAL, "mmc init failed!");
+		dprintf(CRITICAL, "Error reading the partition table info\n");
 		ASSERT(0);
-		}
 	}
+
 #if LONG_PRESS_POWER_ON
 	shutdown_detect();
 #endif
@@ -314,8 +366,37 @@ unsigned target_pause_for_battery_charge(void)
 	if (is_cold_boot &&
 			(!(pon_reason & HARD_RST)) &&
 			(!(pon_reason & KPDPWR_N)) &&
-			((pon_reason & USB_CHG) || (pon_reason & DC_CHG) || (pon_reason & CBLPWR_N)))
+			((pon_reason & USB_CHG)))
 		return 1;
 	else
 		return 0;
+}
+
+void target_uninit(void)
+{
+	mmc_put_card_to_sleep(dev);
+	sdhci_mode_disable(&dev->host);
+}
+
+void target_usb_init(void)
+{
+	uint32_t val;
+
+	/* Select and enable external configuration with USB PHY */
+	ulpi_write(ULPI_MISC_A_VBUSVLDEXTSEL | ULPI_MISC_A_VBUSVLDEXT, ULPI_MISC_A_SET);
+
+	/* Enable sess_vld */
+	val = readl(USB_GENCONFIG_2) | GEN2_SESS_VLD_CTRL_EN;
+	writel(val, USB_GENCONFIG_2);
+
+	/* Enable external vbus configuration in the LINK */
+	val = readl(USB_USBCMD);
+	val |= SESS_VLD_CTRL;
+	writel(val, USB_USBCMD);
+}
+
+void target_usb_stop(void)
+{
+	/* Disable VBUS mimicing in the controller. */
+	ulpi_write(ULPI_MISC_A_VBUSVLDEXTSEL | ULPI_MISC_A_VBUSVLDEXT, ULPI_MISC_A_CLEAR);
 }
