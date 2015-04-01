@@ -146,7 +146,6 @@ int is_gzip_package(unsigned char *buf, unsigned int len)
 	if (len < 10 || !buf || buf[0] != 0x1f ||
 		buf[1] != 0x8b || buf[2] != 0x08)
 	{
-		dprintf(INFO, "Not a gzip file\n");
 		return false;
 	}
 
