@@ -45,6 +45,7 @@
 /*---------------------------------------------------------------------------*/
 /* GCDB Panel Database                                                       */
 /*---------------------------------------------------------------------------*/
+#include "include/panel_nt35597_wqxga_dualdsi_video.h"
 #include "include/panel_sharp_wqxga_dualdsi_video.h"
 #include "include/panel_jdi_qhd_dualdsi_video.h"
 #include "include/panel_jdi_qhd_dualdsi_cmd.h"
@@ -53,6 +54,7 @@
 /* static panel selection variable                                           */
 /*---------------------------------------------------------------------------*/
 enum {
+	NT35597_WQXGA_DUALDSI_VIDEO_PANEL,
 	SHARP_WQXGA_DUALDSI_VIDEO_PANEL,
 	JDI_QHD_DUALDSI_VIDEO_PANEL,
 	JDI_QHD_DUALDSI_CMD_PANEL,
@@ -64,6 +66,7 @@ enum {
  * Any panel in this list can be selected using fastboot oem command.
  */
 static struct panel_list supp_panels[] = {
+	{"nt35597_wqxga_dualdsi_video", NT35597_WQXGA_DUALDSI_VIDEO_PANEL},
 	{"sharp_wqxga_dualdsi_video", SHARP_WQXGA_DUALDSI_VIDEO_PANEL},
 	{"jdi_qhd_dualdsi_video", JDI_QHD_DUALDSI_VIDEO_PANEL},
 	{"jdi_qhd_dualdsi_cmd", JDI_QHD_DUALDSI_CMD_PANEL},
@@ -133,6 +136,40 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 			= SHARP_WQXGA_DUALDSI_VIDEO_OFF_COMMAND;
 		memcpy(phy_db->timing,
 			sharp_wqxga_dualdsi_thulium_video_timings,
+			MAX_TIMING_CONFIG * sizeof(uint32_t));
+		pinfo->mipi.tx_eot_append = true;
+		break;
+	case NT35597_WQXGA_DUALDSI_VIDEO_PANEL:
+		pan_type = PANEL_TYPE_DSI;
+		pinfo->lcd_reg_en = 0;
+		panelstruct->paneldata    = &nt35597_wqxga_dualdsi_video_panel_data;
+		panelstruct->paneldata->panel_operating_mode = 11;
+		panelstruct->paneldata->panel_with_enable_gpio = 0;
+
+		panelstruct->panelres     = &nt35597_wqxga_dualdsi_video_panel_res;
+		panelstruct->color        = &nt35597_wqxga_dualdsi_video_color;
+		panelstruct->videopanel   = &nt35597_wqxga_dualdsi_video_video_panel;
+		panelstruct->commandpanel = &nt35597_wqxga_dualdsi_video_command_panel;
+		panelstruct->state        = &nt35597_wqxga_dualdsi_video_state;
+		panelstruct->laneconfig   = &nt35597_wqxga_dualdsi_video_lane_config;
+		panelstruct->paneltiminginfo
+			= &nt35597_wqxga_dualdsi_video_timing_info;
+		panelstruct->panelresetseq
+					 = &nt35597_wqxga_dualdsi_video_reset_seq;
+		panelstruct->backlightinfo = &nt35597_wqxga_dualdsi_video_backlight;
+
+		pinfo->labibb = &nt35597_wqxga_dualdsi_video_labibb;
+
+		pinfo->mipi.panel_on_cmds
+			= nt35597_wqxga_dualdsi_video_on_command;
+		pinfo->mipi.num_of_panel_on_cmds
+			= NT35597_WQXGA_DUALDSI_VIDEO_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+			= nt35597_wqxga_dualdsi_video_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+			= NT35597_WQXGA_DUALDSI_VIDEO_OFF_COMMAND;
+		memcpy(phy_db->timing,
+			nt35597_wqxga_dualdsi_thulium_video_timings,
 			MAX_TIMING_CONFIG * sizeof(uint32_t));
 		pinfo->mipi.tx_eot_append = true;
 		break;
