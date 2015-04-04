@@ -81,6 +81,50 @@ static struct gpio_pin bklt_gpio = {	/* lcd_bklt_reg_en */
   "pmi8994_gpios", 2, 3, 1, 0, 1
 };
 
+/* gpio name, id, strength, direction, pull, state. */
+static struct gpio_pin hdmi_cec_gpio = {        /* CEC */
+  "msmgpio", 31, 0, 2, 3, 1
+};
+
+static struct gpio_pin hdmi_ddc_clk_gpio = {   /* DDC CLK */
+  "msmgpio", 32, 0, 2, 3, 1
+};
+
+static struct gpio_pin hdmi_ddc_data_gpio = {  /* DDC DATA */
+  "msmgpio", 33, 0, 2, 3, 1
+};
+
+static struct gpio_pin hdmi_hpd_gpio = {       /* HPD, input */
+  "msmgpio", 34, 7, 0, 1, 1
+};
+
+int target_hdmi_gpio_ctrl(uint8_t enable)
+{
+	gpio_tlmm_config(hdmi_cec_gpio.pin_id, 1,	/* gpio 31, CEC */
+		hdmi_cec_gpio.pin_direction, hdmi_cec_gpio.pin_pull,
+		hdmi_cec_gpio.pin_strength, hdmi_cec_gpio.pin_state);
+
+	gpio_tlmm_config(hdmi_ddc_clk_gpio.pin_id, 1,	/* gpio 32, DDC CLK */
+		hdmi_ddc_clk_gpio.pin_direction, hdmi_ddc_clk_gpio.pin_pull,
+		hdmi_ddc_clk_gpio.pin_strength, hdmi_ddc_clk_gpio.pin_state);
+
+
+	gpio_tlmm_config(hdmi_ddc_data_gpio.pin_id, 1,	/* gpio 33, DDC DATA */
+		hdmi_ddc_data_gpio.pin_direction, hdmi_ddc_data_gpio.pin_pull,
+		hdmi_ddc_data_gpio.pin_strength, hdmi_ddc_data_gpio.pin_state);
+
+	gpio_tlmm_config(hdmi_hpd_gpio.pin_id, 1,	/* gpio 34, HPD */
+		hdmi_hpd_gpio.pin_direction, hdmi_hpd_gpio.pin_pull,
+		hdmi_hpd_gpio.pin_strength, hdmi_hpd_gpio.pin_state);
+
+	gpio_set(hdmi_cec_gpio.pin_id,      hdmi_cec_gpio.pin_direction);
+	gpio_set(hdmi_ddc_clk_gpio.pin_id,  hdmi_ddc_clk_gpio.pin_direction);
+	gpio_set(hdmi_ddc_data_gpio.pin_id, hdmi_ddc_data_gpio.pin_direction);
+	gpio_set(hdmi_hpd_gpio.pin_id,      hdmi_hpd_gpio.pin_direction);
+
+	return NO_ERROR;
+}
+
 static uint32_t dsi_pll_20nm_enable_seq(uint32_t pll_base)
 {
 	uint32_t pll_locked;
