@@ -83,7 +83,8 @@ static const uint32_t panel_physical_ctrl[] = {
 #define PWM_BL_LPG_CHAN_ID           4	/* lpg_out<3> */
 
 #define HDMI_PANEL_NAME              "hdmi"
-#define HDMI_CONTROLLER_STRING       "hdmi:0"
+#define HDMI_CONTROLLER_STRING       "hdmi:"
+#define HDMI_VIC_LEN                 5
 
 #endif
 
