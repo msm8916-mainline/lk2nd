@@ -116,3 +116,8 @@ __WEAK int target_hdmi_gpio_ctrl(bool enable)
 {
 	return 0;
 }
+
+__WEAK int target_hdmi_pll_clock(uint8_t enable, struct msm_panel_info *pinfo)
+{
+	return 0;
+}

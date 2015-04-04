@@ -101,5 +101,6 @@ uint8_t target_panel_auto_detect_enabled();
 int target_hdmi_panel_clock(uint8_t enable, struct msm_panel_info *pinfo);
 int target_hdmi_regulator_ctrl(uint8_t enable);
 int target_hdmi_gpio_ctrl(uint8_t enable);
+int target_hdmi_pll_clock(uint8_t enable, struct msm_panel_info *pinfo);
 
 
