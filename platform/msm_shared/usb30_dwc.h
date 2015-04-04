@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -379,7 +379,7 @@ typedef enum
 } dwc_notify_event_t;
 
 /* maximum number of endpoints supported. */
-#define DWC_MAX_NUM_OF_EP     4
+#define DWC_MAX_NUM_OF_EP     8
 
 /* length of setup packet */
 #define DWC_SETUP_PKT_LEN    8

@@ -1730,7 +1730,7 @@ static int dwc_request_queue(dwc_dev_t     *dev,
 
 	ep->bytes_queued = 0;
 
-	if (ep->type == EP_TYPE_CONTROL)
+	if (ep->type == EP_TYPE_CONTROL || ep->type == EP_TYPE_INTERRUPT)
 	{
 		memset(trb, 0, sizeof(dwc_trb_t));
 
