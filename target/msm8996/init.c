@@ -282,7 +282,7 @@ void target_baseband_detect(struct board_data *board)
 	platform = board->platform;
 
 	switch(platform) {
-	case MSMTHULIUM:
+	case MSM8996:
 		if (board->platform_version == 0x10000)
 			board->baseband = BASEBAND_APQ;
 		else
