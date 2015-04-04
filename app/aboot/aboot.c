@@ -2336,6 +2336,30 @@ void cmd_flash_mmc(const char *arg, void *data, unsigned sz)
 	return;
 }
 
+void cmd_updatevol(const char *vol_name, void *data, unsigned sz)
+{
+	struct ptentry *sys_ptn;
+	struct ptable *ptable;
+
+	ptable = flash_get_ptable();
+	if (ptable == NULL) {
+		fastboot_fail("partition table doesn't exist");
+		return;
+	}
+
+	sys_ptn = ptable_find(ptable, "system");
+	if (sys_ptn == NULL) {
+		fastboot_fail("system partition not found");
+		return;
+	}
+
+	sz = ROUND_TO_PAGE(sz, page_mask);
+	if (update_ubi_vol(sys_ptn, vol_name, data, sz))
+		fastboot_fail("update_ubi_vol failed");
+	else
+		fastboot_okay("");
+}
+
 void cmd_flash_nand(const char *arg, void *data, unsigned sz)
 {
 	struct ptentry *ptn;
@@ -2350,7 +2374,9 @@ void cmd_flash_nand(const char *arg, void *data, unsigned sz)
 
 	ptn = ptable_find(ptable, arg);
 	if (ptn == NULL) {
-		fastboot_fail("unknown partition name");
+		dprintf(INFO, "unknown partition name (%s). Trying updatevol\n",
+				arg);
+		cmd_updatevol(arg, data, sz);
 		return;
 	}
 
