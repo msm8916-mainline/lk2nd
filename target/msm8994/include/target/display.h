@@ -33,6 +33,7 @@
 /* HEADER files                                                              */
 /*---------------------------------------------------------------------------*/
 #include <display_resource.h>
+#include <msm_panel.h>
 
 #define TOTAL_LDO_DEFINED 3
 
@@ -97,5 +98,8 @@ int target_cont_splash_screen();
 int target_display_get_base_offset(uint32_t base);
 void target_force_cont_splash_disable(uint8_t override);
 uint8_t target_panel_auto_detect_enabled();
+int target_hdmi_panel_clock(uint8_t enable, struct msm_panel_info *pinfo);
+int target_hdmi_regulator_ctrl(uint8_t enable);
+int target_hdmi_gpio_ctrl(uint8_t enable);
 
 

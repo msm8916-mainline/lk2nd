@@ -29,12 +29,18 @@
 #include <err.h>
 #include <debug.h>
 #include <reg.h>
+#include <malloc.h>
+#include <string.h>
 #include <msm_panel.h>
 #include <platform/timer.h>
 #include <platform/clock.h>
+#include "mdp5.h"
 #include <platform/iomap.h>
+#include "mdss_hdmi.h"
 
 static struct msm_fb_panel_data panel;
+
+extern int msm_display_init(struct msm_fb_panel_data *pdata);
 
 /* AVI INFOFRAME DATA */
 #define NUM_MODES_AVI 20
@@ -221,9 +227,9 @@ static int mdss_hdmi_audio_info_setup(void)
 
 static void mdss_hdmi_audio_playback(void)
 {
-	uint32_t base_addr;
+	char *base_addr;
 
-	base_addr = memalign(4096, 0x1000);
+	base_addr = (char *) memalign(4096, 0x1000);
 	if (base_addr == NULL) {
 		dprintf(CRITICAL, "%s: Error audio buffer alloc\n", __func__);
 		return;
@@ -239,7 +245,7 @@ static void mdss_hdmi_audio_playback(void)
 	writel(0x00002000, HDMI_VBI_PKT_CTRL);
 	writel(0x00000000, HDMI_GEN_PKT_CTRL);
 	writel(0x0000096E, LPASS_LPAIF_RDDMA_CTL0);
-	writel(base_addr,  LPASS_LPAIF_RDDMA_BASE0);
+	writel((uint32_t) base_addr,  LPASS_LPAIF_RDDMA_BASE0);
 	writel(0x000005FF, LPASS_LPAIF_RDDMA_BUFF_LEN0);
 	writel(0x000005FF, LPASS_LPAIF_RDDMA_PER_LEN0);
 	writel(0x0000096F, LPASS_LPAIF_RDDMA_CTL0);
@@ -258,7 +264,7 @@ static void mdss_hdmi_audio_playback(void)
 	writel(0x00000081, HDMI_AUDIO_CFG);
 }
 
-static int mdss_hdmi_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
+static uint32_t mdss_hdmi_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 {
 	return target_hdmi_panel_clock(enable, pinfo);
 }
@@ -266,12 +272,6 @@ static int mdss_hdmi_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 static int mdss_hdmi_enable_power(uint8_t enable, struct msm_panel_info *pinfo)
 {
         int ret = NO_ERROR;
-
-        ret = target_ldo_ctrl(enable, pinfo);
-        if (ret) {
-		dprintf(CRITICAL, "LDO control enable failed\n");
-		goto bail_ldo_fail;
-        }
 
         ret = target_hdmi_regulator_ctrl(enable);
         if (ret) {
@@ -293,9 +293,6 @@ bail_gpio_fail:
 	target_hdmi_regulator_ctrl(0);
 
 bail_regulator_fail:
-	target_ldo_ctrl(0, pinfo);
-
-bail_ldo_fail:
 	return ret;
 }
 
@@ -472,11 +469,7 @@ void mdss_hdmi_avi_info_frame(void)
 
 int mdss_hdmi_init(void)
 {
-	uint32_t hotplug_control;
-
 	mdss_hdmi_set_mode(false);
-
-	hdmi_phy_init();
 
 	/* Enable USEC REF timer */
 	writel(0x0001001B, HDMI_USEC_REFTIMER);
