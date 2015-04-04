@@ -197,9 +197,9 @@ static int mdss_dsi_dfps_get_stored_pll_codes(struct msm_panel_info *pinfo)
 	struct dfps_info *dfps;
 
 	index = partition_get_index("splash");
-	if (index == 0) {
-		dprintf(CRITICAL, "ERROR: splash Partition table not found\n");
-		ret = ERROR;
+	if (index == INVALID_PTN) {
+		dprintf(INFO, "%s: splash partition table not found\n", __func__);
+		ret = NO_ERROR;
 		goto splash_err;
 	}
 
@@ -258,9 +258,9 @@ static int mdss_dsi_dfps_store_pll_codes(struct msm_panel_info *pinfo)
 	unsigned long long ptn;
 
 	index = partition_get_index("splash");
-	if (index == 0) {
-		dprintf(CRITICAL, "ERROR: splash Partition table not found\n");
-		ret = ERROR;
+	if (index == INVALID_PTN) {
+		dprintf(INFO, "%s: splash partition table not found\n", __func__);
+		ret = NO_ERROR;
 		goto store_err;
 	}
 
