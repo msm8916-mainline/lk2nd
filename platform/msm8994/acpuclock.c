@@ -519,3 +519,36 @@ void mmss_dsi_clock_disable(uint32_t flags)
 		writel(0x0, DSI_PIXEL1_CBCR);
 	}
 }
+
+void hdmi_clk_enable(void)
+{
+	int ret;
+
+	/* Configure hdmi ahb clock */
+	ret = clk_get_set_enable("hdmi_ahb_clk", 0, 1);
+	if(ret) {
+		dprintf(CRITICAL, "failed to set hdmi_ahb_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	/* Configure hdmi core clock */
+	ret = clk_get_set_enable("hdmi_core_clk", 19200000, 1);
+	if(ret) {
+		dprintf(CRITICAL, "failed to set hdmi_core_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	/* Configure hdmi pixel clock */
+	ret = clk_get_set_enable("hdmi_extp_clk", 148500000, 1);
+	if(ret) {
+		dprintf(CRITICAL, "failed to set hdmi_extp_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+}
+
+void hdmi_clk_disable(void)
+{
+	clk_disable(clk_get("hdmi_extp_clk"));
+	clk_disable(clk_get("hdmi_core_clk"));
+	clk_disable(clk_get("hdmi_ahb_clk"));
+}
