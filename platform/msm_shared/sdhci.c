@@ -887,7 +887,14 @@ uint32_t sdhci_send_command(struct sdhci_host *host, struct mmc_command *cmd)
 
 	/* Invalidate the cache only for read operations */
 	if (cmd->trans_mode == SDHCI_MMC_READ)
-		arch_invalidate_cache_range((addr_t)cmd->data.data_ptr, (cmd->data.num_blocks * SDHCI_MMC_BLK_SZ));
+	{
+		/* Read can be performed on block size < SDHCI_MMC_BLK_SZ, make sure to flush
+		 * the data only for the read size instead
+		 */
+		arch_invalidate_cache_range((addr_t)cmd->data.data_ptr, (cmd->data.blk_sz) ? \
+									(cmd->data.num_blocks * cmd->data.blk_sz) : \
+									(cmd->data.num_blocks * SDHCI_MMC_BLK_SZ));
+	}
 
 	DBG("\n %s: END: cmd:%04d, arg:0x%08x, resp:0x%08x 0x%08x 0x%08x 0x%08x\n",
 				__func__, cmd->cmd_index, cmd->argument, cmd->resp[0], cmd->resp[1], cmd->resp[2], cmd->resp[3]);
