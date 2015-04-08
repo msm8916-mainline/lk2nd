@@ -64,7 +64,7 @@ static mmu_section_t mmu_section_table[] = {
 	{    MSM_IOMAP_BASE,        MSM_IOMAP_BASE,          MSM_IOMAP_SIZE,   IOMAP_MEMORY},
 	{    APPS_SS_BASE,          APPS_SS_BASE,            APPS_SS_SIZE,      IOMAP_MEMORY},
 	{    MSM_SHARED_IMEM_BASE,  MSM_SHARED_IMEM_BASE,    1,                COMMON_MEMORY},
-	{    SCRATCH_ADDR,          SCRATCH_ADDR,            256,              SCRATCH_MEMORY},
+	{    SCRATCH_ADDR,          SCRATCH_ADDR,            512,              SCRATCH_MEMORY},
 };
 
 void platform_early_init(void)
