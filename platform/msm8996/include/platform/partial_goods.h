@@ -40,6 +40,7 @@ struct partial_goods table[] =
 	{0x4, "/cpus", {{"cpu@100", "device_type"},
                         {"cpu@101", "device_type"},
                         {"cpu@1",   "device_type"},}},
+	{0x5, "/soc",   {{"qcom,mss", "status"},}},
 	{0x10, "/soc",  {{"qcom,kgsl-3d0", "status"},}},
 	{0x11, "/soc",  {{"qcom,vidc", "status"},}},
 	{0x12, "/soc",  {{"qcom,msm-adsp-loader", "status"},}},
