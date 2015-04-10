@@ -298,6 +298,7 @@ static struct vote_clk gcc_blsp1_ahb_clk = {
 /* USB Clocks */
 static struct clk_freq_tbl ftbl_gcc_usb_hs_system_clk[] =
 {
+	F(80000000,  gpll0,   10,   0,   0),
 	F(133330000,  gpll0,    6,   0,   0),
 	F_END
 };
