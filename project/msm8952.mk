@@ -30,7 +30,7 @@ DEFINES += ABOOT_IGNORE_BOOT_HEADER_ADDRS=1
 DEFINES += BAM_V170=1
 
 #Enable the feature of long press power on
-#DEFINES += LONG_PRESS_POWER_ON=1
+DEFINES += LONG_PRESS_POWER_ON=1
 
 #Disable thumb mode
 ENABLE_THUMB := false
@@ -58,3 +58,5 @@ endif
 
 #SCM call before entering DLOAD mode
 DEFINES += PLATFORM_USE_SCM_DLOAD=1
+
+CFLAGS += -Werror
