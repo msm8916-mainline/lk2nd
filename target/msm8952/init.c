@@ -48,6 +48,7 @@
 #include <crypto5_wrapper.h>
 #include <partition_parser.h>
 #include <stdlib.h>
+#include <rpm-smd.h>
 
 #if LONG_PRESS_POWER_ON
 #include <shutdown_detect.h>
@@ -160,7 +161,7 @@ static int target_volume_up()
 	/* Get status of GPIO */
 	status = gpio_status(TLMM_VOL_UP_BTN_GPIO);
 
-	/* Active high signal. */
+	/* Active low signal. */
 	return !status;
 }
 
@@ -224,6 +225,10 @@ void target_init(void)
 #endif
 	if (target_use_signed_kernel())
 		target_crypto_init_params();
+
+#if SMD_SUPPORT
+	rpm_smd_init();
+#endif
 }
 
 void target_serialno(unsigned char *buf)
@@ -392,6 +397,10 @@ void target_uninit(void)
 
 	if (target_is_ssd_enabled())
 		clock_ce_disable(CE1_INSTANCE);
+
+#if SMD_SUPPORT
+	rpm_smd_uninit();
+#endif
 }
 
 void target_usb_init(void)

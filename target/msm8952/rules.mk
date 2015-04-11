@@ -12,10 +12,10 @@ SCRATCH_ADDR     := 0x90000000
 
 MODULES += \
 	dev/keys \
-	dev/vib \
 	lib/ptable \
 	dev/pmic/pm8x41 \
-	lib/libfdt
+	lib/libfdt \
+	dev/qpnp_wled
 
 DEFINES += \
 	MEMSIZE=$(MEMSIZE) \
@@ -27,3 +27,7 @@ DEFINES += \
 OBJS += \
 	$(LOCAL_DIR)/init.o \
 	$(LOCAL_DIR)/meminfo.o
+ifeq ($(ENABLE_SMD_SUPPORT),1)
+OBJS += \
+	$(LOCAL_DIR)/regulator.o
+endif
