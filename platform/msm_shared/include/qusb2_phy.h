@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -31,5 +31,17 @@
 #include <platform/iomap.h>
 
 void qusb2_phy_reset(void);
+
+#define QUSB2PHY_PORT_POWERDOWN     (QUSB2_PHY_BASE + 0x000000B4)
+#define QUSB2PHY_PORT_UTMI_CTRL2    (QUSB2_PHY_BASE + 0x000000C4)
+#define QUSB2PHY_PLL_TUNE           (QUSB2_PHY_BASE + 0x00000008)
+#define QUSB2PHY_PLL_USER_CTL1      (QUSB2_PHY_BASE + 0x0000000C)
+#define QUSB2PHY_PLL_USER_CTL2      (QUSB2_PHY_BASE + 0x00000010)
+#define QUSB2PHY_PORT_TUNE1         (QUSB2_PHY_BASE + 0x00000080)
+#define QUSB2PHY_PORT_TUNE2         (QUSB2_PHY_BASE + 0x00000084)
+#define QUSB2PHY_PORT_TUNE3         (QUSB2_PHY_BASE + 0x00000088)
+#define QUSB2PHY_PORT_TUNE4         (QUSB2_PHY_BASE + 0x0000008C)
+#define QUSB2PHY_PORT_TEST2         (QUSB2_PHY_BASE + 0x0000009C)
+
 
 #endif

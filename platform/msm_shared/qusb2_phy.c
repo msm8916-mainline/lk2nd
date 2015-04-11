@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -27,12 +27,18 @@
  */
 
 #include <platform/iomap.h>
+#include <qusb2_phy.h>
 #include <reg.h>
 #include <bits.h>
 #include <debug.h>
 #include <qtimer.h>
 
 __WEAK int platform_is_msm8994()
+{
+	return 0;
+}
+
+__WEAK int platform_is_msm8996()
 {
 	return 0;
 }
@@ -50,17 +56,32 @@ void qusb2_phy_reset(void)
 	/* set CLAMP_N_EN and stay with disabled USB PHY */
 	writel(0x23, QUSB2PHY_PORT_POWERDOWN);
 
-	/* Set HS impedance to 42ohms */
-	writel(0xA0, QUSB2PHY_PORT_TUNE1);
+	if (platform_is_msm8996())
+	{
+		writel(0xF8, QUSB2PHY_PORT_TUNE1);
+		writel(0x83, QUSB2PHY_PORT_TUNE2);
+		writel(0x93, QUSB2PHY_PORT_TUNE3);
+		writel(0xC0, QUSB2PHY_PORT_TUNE4);
+		writel(0x30, QUSB2PHY_PLL_TUNE);
+		writel(0x79, QUSB2PHY_PLL_USER_CTL1);
+		writel(0x21, QUSB2PHY_PLL_USER_CTL2);
+		writel(0x14, QUSB2PHY_PORT_TEST2);
+	}
+	else
+	{
+		/* Set HS impedance to 42ohms */
+		writel(0xA0, QUSB2PHY_PORT_TUNE1);
 
-	/* Set TX current to 19mA, TX SR and TX bias current to 1, 1 */
-	writel(0xA5, QUSB2PHY_PORT_TUNE2);
+		/* Set TX current to 19mA, TX SR and TX bias current to 1, 1 */
+		writel(0xA5, QUSB2PHY_PORT_TUNE2);
 
-	/* Increase autocalibration bias circuit settling time
-	 * and enable utocalibration  */
-	writel(0x81, QUSB2PHY_PORT_TUNE3);
+		/* Increase autocalibration bias circuit settling time
+		 * and enable utocalibration  */
+		writel(0x81, QUSB2PHY_PORT_TUNE3);
 
-	writel(0x85, QUSB2PHY_PORT_TUNE4);
+		writel(0x85, QUSB2PHY_PORT_TUNE4);
+	}
+
 	/* Wait for tuning params to take effect right before re-enabling power*/
 	udelay(10);
 
