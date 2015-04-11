@@ -67,4 +67,5 @@ int platform_is_msm8992();
 int boot_device_mask(int);
 uint32_t platform_detect_panel();
 uint32_t platform_get_max_periph();
+int platform_is_msm8996();
 #endif

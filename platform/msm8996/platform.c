@@ -147,3 +147,11 @@ uint32_t platform_get_max_periph()
 {
 	return 256;
 }
+
+int platform_is_msm8996()
+{
+	if (board_platform_id() == MSM8996)
+		return 1;
+	else
+		return 0;
+}
