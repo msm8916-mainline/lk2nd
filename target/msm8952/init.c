@@ -37,6 +37,7 @@
 #include <dev/keys.h>
 #include <spmi_v2.h>
 #include <pm8x41.h>
+#include <pm8x41_hw.h>
 #include <board.h>
 #include <baseband.h>
 #include <hsusb.h>
@@ -45,10 +46,14 @@
 #include <platform/gpio.h>
 #include <platform/irqs.h>
 #include <platform/clock.h>
+#include <platform/timer.h>
 #include <crypto5_wrapper.h>
 #include <partition_parser.h>
 #include <stdlib.h>
 #include <rpm-smd.h>
+#include <spmi.h>
+#include <sdhci_msm.h>
+#include <clock.h>
 
 #if LONG_PRESS_POWER_ON
 #include <shutdown_detect.h>
@@ -204,9 +209,6 @@ void shutdown_device()
 
 void target_init(void)
 {
-	uint32_t base_addr;
-	uint8_t slot;
-
 	dprintf(INFO, "target_init()\n");
 
 	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
