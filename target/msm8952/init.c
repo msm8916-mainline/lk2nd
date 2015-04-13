@@ -111,9 +111,15 @@ static void set_sdc_power_ctrl()
 		{ SDC1_DATA_PULL_CTL_OFF, TLMM_PULL_UP, TLMM_PULL_MASK, 0},
 	};
 
+	struct tlmm_cfgs sdc1_rclk_cfg[] =
+	{
+		{ SDC1_RCLK_PULL_CTL_OFF, TLMM_PULL_DOWN, TLMM_PULL_MASK, 0},
+	};
+
 	/* Set the drive strength & pull control values */
 	tlmm_set_hdrive_ctrl(sdc1_hdrv_cfg, ARRAY_SIZE(sdc1_hdrv_cfg));
 	tlmm_set_pull_ctrl(sdc1_pull_cfg, ARRAY_SIZE(sdc1_pull_cfg));
+	tlmm_set_pull_ctrl(sdc1_rclk_cfg, ARRAY_SIZE(sdc1_rclk_cfg));
 }
 
 void target_sdc_init()
