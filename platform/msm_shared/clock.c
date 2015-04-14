@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2014, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, 2014-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -157,7 +157,7 @@ struct clk *clk_get (const char * cid)
 		}
 	}
 
-	dprintf(CRITICAL, "Alert!! Requested clock \"%s\" is not supported!", cid);
+	dprintf(CRITICAL, "Alert!! Requested clock \"%s\" is not supported!\n", cid);
 	return NULL;
 }
 
