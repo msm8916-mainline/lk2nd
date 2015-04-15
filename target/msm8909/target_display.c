@@ -40,6 +40,7 @@
 #include <platform/gpio.h>
 #include <platform/iomap.h>
 #include <target/display.h>
+#include <regulator.h>
 
 #include "include/panel.h"
 #include "include/display_resource.h"
@@ -226,7 +227,7 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 {
 	if (enable)
-		regulator_enable();     /* L2, L6, and L17 */
+		regulator_enable(REG_LDO2 | REG_LDO6 | REG_LDO17);
 
 	return NO_ERROR;
 }

@@ -29,6 +29,8 @@
 
 #include <regulator.h>
 #include <rpm-ipc.h>
+#include <bits.h>
+#include <debug.h>
 
 static uint32_t ldo2[][11]=
 {
@@ -99,18 +101,32 @@ static uint32_t ldo28[][14]=
 
 };
 
-void regulator_enable()
+void regulator_enable(uint32_t enable)
 {
-	rpm_send_data(&ldo2[GENERIC_ENABLE][0], 36, RPM_REQUEST_TYPE);
+	if (enable & REG_LDO2)
+		rpm_send_data(&ldo2[GENERIC_ENABLE][0], 36, RPM_REQUEST_TYPE);
 
-	rpm_send_data(&ldo12[GENERIC_ENABLE][0], 36, RPM_REQUEST_TYPE);
+	if (enable & REG_LDO12)
+		rpm_send_data(&ldo12[GENERIC_ENABLE][0], 36, RPM_REQUEST_TYPE);
 
-	rpm_send_data(&ldo14[GENERIC_ENABLE][0], 36, RPM_REQUEST_TYPE);
+	if (enable & REG_LDO14)
+		rpm_send_data(&ldo14[GENERIC_ENABLE][0], 36, RPM_REQUEST_TYPE);
 
-	rpm_send_data(&ldo28[GENERIC_ENABLE][0], 36, RPM_REQUEST_TYPE);
+	if (enable & REG_LDO28)
+		rpm_send_data(&ldo28[GENERIC_ENABLE][0], 36, RPM_REQUEST_TYPE);
 }
 
-void regulator_disable()
+void regulator_disable(uint32_t enable)
 {
+	if (enable & REG_LDO2)
+		rpm_send_data(&ldo2[GENERIC_DISABLE][0], 36, RPM_REQUEST_TYPE);
 
+	if (enable & REG_LDO12)
+		rpm_send_data(&ldo12[GENERIC_DISABLE][0], 36, RPM_REQUEST_TYPE);
+
+	if (enable & REG_LDO14)
+		rpm_send_data(&ldo14[GENERIC_DISABLE][0], 36, RPM_REQUEST_TYPE);
+
+	if (enable & REG_LDO28)
+		rpm_send_data(&ldo28[GENERIC_DISABLE][0], 36, RPM_REQUEST_TYPE);
 }

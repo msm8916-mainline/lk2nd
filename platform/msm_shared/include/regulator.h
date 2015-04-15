@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -29,6 +29,8 @@
 
 #ifndef __REGULATOR_H
 #define __REGULATOR_H
+
+#include <stdint.h>
 
 #define GENERIC_DISABLE 0
 #define GENERIC_ENABLE  1
@@ -63,7 +65,14 @@
 #define LNBB_CLK_ID                            0x8
 #define RPM_CLK_BUFFER_PIN_CONTROL_ENABLE_NONE 0x0
 
-void regulator_enable();
-void regulator_disable();
+#define REG_LDO2	BIT(1)
+#define REG_LDO6	BIT(5)
+#define REG_LDO12	BIT(11)
+#define REG_LDO14	BIT(13)
+#define REG_LDO17	BIT(16)
+#define REG_LDO28	BIT(27)
+
+void regulator_enable(uint32_t enable);
+void regulator_disable(uint32_t enable);
 
 #endif
