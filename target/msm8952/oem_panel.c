@@ -44,6 +44,7 @@
 /*---------------------------------------------------------------------------*/
 #include "include/panel_truly_1080p_video.h"
 #include "include/panel_truly_1080p_cmd.h"
+#include "include/panel_otm1906c_1080p_cmd.h"
 
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
@@ -51,6 +52,7 @@
 enum {
 	TRULY_1080P_VIDEO_PANEL,
 	TRULY_1080P_CMD_PANEL,
+	OTM1906C_1080P_CMD_PANEL,
 	UNKNOWN_PANEL
 };
 
@@ -150,6 +152,32 @@ static int init_panel_data(struct panel_struct *panelstruct,
 			truly_1080p_cmd_timings, TIMING_SIZE);
 		pinfo->mipi.signature 	= TRULY_1080P_CMD_SIGNATURE;
 		break;
+	case OTM1906C_1080P_CMD_PANEL:
+		panelstruct->paneldata    = &otm1906c_1080p_cmd_panel_data;
+		panelstruct->paneldata->panel_with_enable_gpio = 1;
+		panelstruct->panelres     = &otm1906c_1080p_cmd_panel_res;
+		panelstruct->color        = &otm1906c_1080p_cmd_color;
+		panelstruct->videopanel   = &otm1906c_1080p_cmd_video_panel;
+		panelstruct->commandpanel = &otm1906c_1080p_cmd_command_panel;
+		panelstruct->state        = &otm1906c_1080p_cmd_state;
+		panelstruct->laneconfig   = &otm1906c_1080p_cmd_lane_config;
+		panelstruct->paneltiminginfo
+			= &otm1906c_1080p_cmd_timing_info;
+		panelstruct->panelresetseq
+					 = &otm1906c_1080p_cmd_panel_reset_seq;
+		panelstruct->backlightinfo = &otm1906c_1080p_cmd_backlight;
+		pinfo->mipi.panel_on_cmds
+			= otm1906c_1080p_cmd_on_command;
+		pinfo->mipi.num_of_panel_on_cmds
+			= OTM1906C_1080P_CMD_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+			= otm1906c_1080p_cmd_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+			= OTM1906C_1080P_CMD_OFF_COMMAND;
+		memcpy(phy_db->timing,
+			otm1906c_1080p_cmd_timings, TIMING_SIZE);
+		pinfo->mipi.signature = OTM1906C_1080P_CMD_SIGNATURE;
+		break;
 	case UNKNOWN_PANEL:
 	default:
 		memset(panelstruct, 0, sizeof(struct panel_struct));
@@ -196,6 +224,9 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 		break;
 	case HW_PLATFORM_SURF:
 		panel_id = TRULY_1080P_VIDEO_PANEL;
+		break;
+	case HW_PLATFORM_QRD:
+		panel_id = OTM1906C_1080P_CMD_PANEL;
 		break;
 	default:
 		dprintf(CRITICAL, "Display not enabled for %d HW type\n",
