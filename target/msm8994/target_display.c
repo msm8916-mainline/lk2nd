@@ -628,6 +628,8 @@ void target_display_init(const char *panel_name)
 			panel_name);
 		return;
 	} else if (!strcmp(panel_name, HDMI_PANEL_NAME)) {
+		dprintf(INFO, "%s: HDMI is primary\n", __func__);
+		mdss_hdmi_display_init(MDP_REV_50, (void *) MIPI_FB_ADDR);
 		return;
 	}
 
