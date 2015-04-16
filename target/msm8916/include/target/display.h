@@ -126,7 +126,18 @@ static const uint32_t panel_physical_ctrl[] = {
 /*---------------------------------------------------------------------------*/
 /* Other Configuration                                                       */
 /*---------------------------------------------------------------------------*/
-#define DISPLAY_CMDLINE_PREFIX " mdss_mdp.panel="
+#define DISPLAY_CMDLINE_PREFIX	" mdss_mdp.panel="
+#define ADV7533_CMDLINE_PREFIX	" adv7533_dsi2hdmi.panel="
+#define HDMI_PANEL_NAME			"hdmi"
+#define HDMI_CONTROLLER_STRING	"hdmi:0"
+#define DSI_PANEL_DT_PREFIX				"1:dsi:0:qcom,mdss_dsi_"
+#define ADV7533_DSI_HDMI_STRING	"dsi:0:qcom,mdss_dsi_adv7533_1080p"
+#define ADV7533_DSI_HDMI_720p_STRING	"dsi:0:qcom,mdss_dsi_adv7533_720p"
+#define ADV7533_I2C_HDMI_STRING			"hdmi1080p"
+#define ADV7533_I2C_HDMI_720p_STRING	"hdmi720p"
+#define ADV7533_DSI_DSI_STRING	"dsi:0:qcom,mdss_dsi_jdi_1080p_video"
+#define ADV7533_I2C_DSI_STRING	"dsi"
+#define ADV7533_MAX_STRING_LEN	73
 
 #define MIPI_FB_ADDR 0x83200000
 
