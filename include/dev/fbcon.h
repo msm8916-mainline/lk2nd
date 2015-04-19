@@ -2,7 +2,7 @@
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2013, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -35,18 +35,21 @@
 #define LOGO_IMG_OFFSET (12*1024*1024)
 #define LOGO_IMG_MAGIC "SPLASH!!"
 #define LOGO_IMG_MAGIC_SIZE sizeof(LOGO_IMG_MAGIC) - 1
+#define LOGO_IMG_HEADER_SIZE 512
 
 
-struct logo_img_header {
-    unsigned char magic[LOGO_IMG_MAGIC_SIZE]; // "SPLASH!!"
-    uint32_t width; // logo's width, little endian
-    uint32_t height; // logo's height, little endian
-    uint32_t offset;
-    unsigned char reserved[512-20];
-};
+typedef struct logo_img_header {
+	unsigned char magic[LOGO_IMG_MAGIC_SIZE]; // "SPLASH!!"
+	uint32_t width;  // logo's width, little endian
+	uint32_t height; // logo's height, little endian
+	uint32_t type;   // 0, Raw BGR data; 1, RLE24 Compressed data
+	uint32_t blocks; // block number, compressed data size / 512
+	uint32_t offset;
+	uint8_t  reserved[512-28];
+}logo_img_header;
 
 struct fbimage {
-	struct logo_img_header  header;
+	struct logo_img_header header;
 	void *image;
 };
 
@@ -71,5 +74,6 @@ void fbcon_setup(struct fbcon_config *cfg);
 void fbcon_putc(char c);
 void fbcon_clear(void);
 struct fbcon_config* fbcon_display(void);
+void fbcon_extract_to_screen(logo_img_header *header, void* address);
 
 #endif /* __DEV_FBCON_H */
