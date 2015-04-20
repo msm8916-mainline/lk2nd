@@ -55,6 +55,8 @@
 #include <sdhci_msm.h>
 #include <clock.h>
 
+#include "target/display.h"
+
 #if LONG_PRESS_POWER_ON
 #include <shutdown_detect.h>
 #endif
@@ -432,6 +434,31 @@ void target_usb_stop(void)
 {
 	/* Disable VBUS mimicing in the controller. */
 	ulpi_write(ULPI_MISC_A_VBUSVLDEXTSEL | ULPI_MISC_A_VBUSVLDEXT, ULPI_MISC_A_CLEAR);
+}
+
+static uint8_t splash_override;
+/* Returns 1 if target supports continuous splash screen. */
+int target_cont_splash_screen()
+{
+	uint8_t splash_screen = 0;
+	if (!splash_override) {
+		switch (board_hardware_id()) {
+		case HW_PLATFORM_MTP:
+		case HW_PLATFORM_SURF:
+			splash_screen = 1;
+			break;
+		default:
+			splash_screen = 0;
+			break;
+		}
+		dprintf(SPEW, "Target_cont_splash=%d\n", splash_screen);
+	}
+	return splash_screen;
+}
+
+void target_force_cont_splash_disable(uint8_t override)
+{
+        splash_override = override;
 }
 
 /* Do any target specific intialization needed before entering fastboot mode */
