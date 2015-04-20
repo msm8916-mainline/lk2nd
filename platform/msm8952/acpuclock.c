@@ -48,7 +48,7 @@ void hsusb_clock_init(void)
 		ASSERT(0);
 	}
 
-	ret = clk_get_set_enable("usb_core_clk", 80000000, 1);
+	ret = clk_get_set_enable("usb_core_clk", 133330000, 1);
 	if(ret)
 	{
 		dprintf(CRITICAL, "failed to set usb_core_clk ret = %d\n", ret);
