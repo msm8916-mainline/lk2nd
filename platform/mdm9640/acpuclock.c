@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -150,9 +150,9 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 	{
 		ret = clk_get_set_enable(clk_name, 200000000, 1);
 	}
-	else if(freq == MMC_CLK_177MHZ)
+	else if(freq == MMC_CLK_171MHZ)
 	{
-		ret = clk_get_set_enable(clk_name, 177770000, 1);
+		ret = clk_get_set_enable(clk_name, 171430000, 1);
 	}
 	else
 	{
