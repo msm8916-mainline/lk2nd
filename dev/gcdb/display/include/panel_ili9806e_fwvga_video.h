@@ -87,7 +87,7 @@ static char ili9806e_fwvga_video_on_cmd3[] = {
 
 static char ili9806e_fwvga_video_on_cmd4[] = {
 	0x02, 0x00, 0x39, 0xC0,
-	0x31, 0x02, 0xFF, 0xFF,
+	0x31, 0x00, 0xFF, 0xFF,
 };
 
 static char ili9806e_fwvga_video_on_cmd5[] = {
