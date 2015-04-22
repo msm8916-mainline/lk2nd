@@ -38,6 +38,7 @@
 #include <uic.h>
 #include <utp.h>
 #include <ucs.h>
+#include <crc32.h>
 
 int dme_send_linkstartup_req(struct ufs_dev *dev)
 {
@@ -365,8 +366,7 @@ int dme_read_string_desc(struct ufs_dev *dev, uint8_t index, struct ufs_string_d
 static uint32_t dme_parse_serial_no(struct ufs_string_desc *desc)
 {
 	uint32_t serial_no=0;
-	uint16_t *ptr;
-	int index=0,len=0;
+	int len=0;
 
 	if(desc->desc_len <= 0)
 	{
@@ -374,14 +374,9 @@ static uint32_t dme_parse_serial_no(struct ufs_string_desc *desc)
 		return -UFS_FAILURE;
 	}
 
-	ptr = (uint16_t *) desc->serial_num;
 	len = (desc->desc_len-2)/2;
 
-	for(index=0; index<len; index++)
-	{
-		serial_no += *ptr;
-		ptr++;
-	}
+	serial_no = crc32(~0L, desc->serial_num, len);
 
 	return serial_no;
 }
