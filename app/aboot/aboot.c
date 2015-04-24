@@ -1983,6 +1983,22 @@ void cmd_erase_mmc(const char *arg, void *data, unsigned sz)
 
 void cmd_erase(const char *arg, void *data, unsigned sz)
 {
+#if VERIFIED_BOOT
+	if(!device.is_unlocked && !device.is_verified)
+	{
+		fastboot_fail("device is locked. Cannot erase");
+		return;
+	}
+	if(!device.is_unlocked && device.is_verified)
+	{
+		if(!boot_verify_flash_allowed(arg))
+		{
+			fastboot_fail("cannot flash this partition in verified state");
+			return;
+		}
+	}
+#endif
+
 	if(target_is_emmc_boot())
 		cmd_erase_mmc(arg, data, sz);
 	else
