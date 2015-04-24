@@ -378,12 +378,16 @@ uint32_t is_user_force_reset(void)
 }
 #endif
 
+#define SMBCHG_USB_RT_STS 0x21310
+#define USBIN_UV_RT_STS BIT(0)
 unsigned target_pause_for_battery_charge(void)
 {
 	uint8_t pon_reason = pm8x41_get_pon_reason();
 	uint8_t is_cold_boot = pm8x41_get_is_cold_boot();
-	dprintf(INFO, "%s : pon_reason is %d cold_boot:%d\n", __func__,
-		pon_reason, is_cold_boot);
+	bool usb_present_sts = !(USBIN_UV_RT_STS &
+				pm8x41_reg_read(SMBCHG_USB_RT_STS));
+	dprintf(INFO, "%s : pon_reason is:0x%x cold_boot:%d usb_sts:%d\n", __func__,
+		pon_reason, is_cold_boot, usb_present_sts);
 	/* In case of fastboot reboot,adb reboot or if we see the power key
 	* pressed we do not want go into charger mode.
 	* fastboot reboot is warm boot with PON hard reset bit not set
@@ -392,7 +396,7 @@ unsigned target_pause_for_battery_charge(void)
 	if (is_cold_boot &&
 			(!(pon_reason & HARD_RST)) &&
 			(!(pon_reason & KPDPWR_N)) &&
-			((pon_reason & USB_CHG)))
+			usb_present_sts)
 		return 1;
 	else
 		return 0;
