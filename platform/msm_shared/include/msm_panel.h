@@ -245,6 +245,7 @@ struct mipi_panel_info {
 	char force_clk_lane_hs;
 	char lane_swap;
 	uint8_t dual_dsi;
+	uint8_t use_dsi1_pll;
 	uint8_t broadcast;
 	uint8_t mode_gpio_state;
 	uint32_t signature;
@@ -255,8 +256,8 @@ struct mipi_panel_info {
 	uint32_t sphy_base;
 	uint32_t reg_base;
 	uint32_t sreg_base;
-	uint32_t pll_0_base;
-	uint32_t pll_1_base;
+	uint32_t pll_base;
+	uint32_t spll_base;
 
 	struct dfps_pll_codes pll_codes;
 };

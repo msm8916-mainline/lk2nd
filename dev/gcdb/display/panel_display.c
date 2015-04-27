@@ -71,21 +71,32 @@ static int dsi_panel_ctl_base_setup(struct msm_panel_info *pinfo,
 		pinfo->mipi.phy_base = DSI0_PHY_BASE + base_offset;
 		pinfo->mipi.sctl_base = MIPI_DSI1_BASE + base1_offset;
 		pinfo->mipi.sphy_base = DSI1_PHY_BASE + base1_offset;
+		if (pinfo->mipi.use_dsi1_pll) {
+			dprintf(CRITICAL, "%s: Invalid combination: DSI0 controller + DSI1 PLL, using DSI0 PLL\n",
+				__func__);
+			pinfo->mipi.use_dsi1_pll = 0;
+		}
+		pinfo->mipi.pll_base = DSI0_PLL_BASE + base_offset;
+		pinfo->mipi.spll_base = DSI1_PLL_BASE + base1_offset;
 	} else if (!strcmp(panel_destination, "DISPLAY_2")) {
 		pinfo->dest = DISPLAY_2;
 		pinfo->mipi.ctl_base = MIPI_DSI1_BASE + base1_offset;
 		pinfo->mipi.phy_base = DSI1_PHY_BASE + base1_offset;
 		pinfo->mipi.sctl_base = MIPI_DSI0_BASE + base_offset;
 		pinfo->mipi.sphy_base = DSI0_PHY_BASE + base_offset;
+		if (pinfo->mipi.use_dsi1_pll) {
+			pinfo->mipi.pll_base = DSI1_PLL_BASE + base1_offset;
+			pinfo->mipi.spll_base = DSI0_PLL_BASE + base_offset;
+		} else {
+			pinfo->mipi.pll_base = DSI0_PLL_BASE + base_offset;
+			pinfo->mipi.spll_base = DSI1_PLL_BASE + base1_offset;
+		}
 	} else {
 		pinfo->dest = DISPLAY_UNKNOWN;
 		dprintf(CRITICAL, "%s: Unkown panel destination: %d\n",
 			__func__, pinfo->dest);
 		return ERROR;
 	}
-
-	pinfo->mipi.pll_0_base = DSI0_PLL_BASE + base_offset;
-	pinfo->mipi.pll_1_base = DSI1_PLL_BASE + base1_offset;
 
 	/* Both DSI0 and DSI1 use the same regulator */
 	pinfo->mipi.reg_base = DSI0_REGULATOR_BASE + base_offset;
@@ -94,8 +105,8 @@ static int dsi_panel_ctl_base_setup(struct msm_panel_info *pinfo,
 	dprintf(SPEW, "%s: panel dest=%s, ctl_base=0x%08x, phy_base=0x%08x\n",
 		__func__, panel_destination, pinfo->mipi.ctl_base,
 		pinfo->mipi.phy_base);
-	dprintf(SPEW, "pll_0_base=%08x, pll_1_base=0x%08x, reg_base=0x%08x, sreg_base=%08x\n",
-		pinfo->mipi.pll_0_base, pinfo->mipi.pll_1_base,
+	dprintf(SPEW, "pll_base=%08x, spll_base=0x%08x, reg_base=0x%08x, sreg_base=%08x\n",
+		pinfo->mipi.pll_base, pinfo->mipi.spll_base,
 		pinfo->mipi.reg_base, pinfo->mipi.sreg_base);
 	return NO_ERROR;
 }
@@ -178,6 +189,8 @@ int dsi_panel_init(struct msm_panel_info *pinfo,
 	pinfo->mipi.stream = pstruct->paneldata->dsi_stream;
 	if (pstruct->paneldata->panel_operating_mode & DUAL_DSI_FLAG)
 		pinfo->mipi.dual_dsi = 1;
+	if (pstruct->paneldata->panel_operating_mode & USE_DSI1_PLL_FLAG)
+		pinfo->mipi.use_dsi1_pll = 1;
 	pinfo->mipi.mode_gpio_state = pstruct->paneldata->mode_gpio_state;
 	pinfo->mipi.bitclock = pstruct->paneldata->panel_bitclock_freq;
 	if (pinfo->mipi.bitclock) {

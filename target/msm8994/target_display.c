@@ -421,18 +421,18 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 		goto clks_disable;
 	}
 
-	mdss_dsi_auto_pll_20nm_config(pinfo->mipi.pll_0_base,
-		pinfo->mipi.pll_1_base, pll_data);
+	mdss_dsi_auto_pll_20nm_config(pinfo->mipi.pll_base,
+		pinfo->mipi.spll_base, pll_data);
 
-	if (!dsi_pll_20nm_enable_seq(pinfo->mipi.pll_0_base)) {
+	if (!dsi_pll_20nm_enable_seq(pinfo->mipi.pll_base)) {
 		ret = ERROR;
 		dprintf(CRITICAL, "PLL failed to lock!\n");
 		goto clks_disable;
 	}
 
-	pll_codes->codes[0] = readl_relaxed(pinfo->mipi.pll_0_base +
+	pll_codes->codes[0] = readl_relaxed(pinfo->mipi.pll_base +
 		MMSS_DSI_PHY_PLL_CORE_KVCO_CODE);
-	pll_codes->codes[1] = readl_relaxed(pinfo->mipi.pll_0_base +
+	pll_codes->codes[1] = readl_relaxed(pinfo->mipi.pll_base +
 		MMSS_DSI_PHY_PLL_CORE_VCO_TUNE);
 	dprintf(SPEW, "codes %d %d\n", pll_codes->codes[0],
 		pll_codes->codes[1]);
