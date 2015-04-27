@@ -389,7 +389,7 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 {
 	uint32_t ret = NO_ERROR;
 	struct mdss_dsi_pll_config *pll_data;
-	uint32_t flags;
+	uint32_t flags, dsi_phy_pll_out;
 	struct dfps_pll_codes *pll_codes = &pinfo->mipi.pll_codes;
 
 	if (pinfo->dest == DISPLAY_2) {
@@ -437,7 +437,12 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 	dprintf(SPEW, "codes %d %d\n", pll_codes->codes[0],
 		pll_codes->codes[1]);
 
-	mmss_dsi_clock_enable(DSI0_PHY_PLL_OUT, flags,
+	if (pinfo->mipi.use_dsi1_pll)
+		dsi_phy_pll_out = DSI1_PHY_PLL_OUT;
+	else
+		dsi_phy_pll_out = DSI0_PHY_PLL_OUT;
+
+	mmss_dsi_clock_enable(dsi_phy_pll_out, flags,
 		pll_data->pclk_m,
 		pll_data->pclk_n,
 		pll_data->pclk_d);

@@ -455,18 +455,18 @@ void mmss_bus_clock_disable(void)
 	clk_disable(clk_get("mmss_mmssnoc_axi_clk"));
 }
 
-void mmss_dsi_clock_enable(uint32_t dsi_pixel0_cfg_rcgr, uint32_t flags,
+void mmss_dsi_clock_enable(uint32_t cfg_rcgr, uint32_t flags,
 			uint8_t pclk0_m, uint8_t pclk0_n, uint8_t pclk0_d)
 {
 	int ret;
 
 	if (flags & MMSS_DSI_CLKS_FLAG_DSI0) {
 		/* Enable DSI0 branch clocks */
-		writel(0x100, DSI_BYTE0_CFG_RCGR);
+		writel(cfg_rcgr, DSI_BYTE0_CFG_RCGR);
 		writel(0x1, DSI_BYTE0_CMD_RCGR);
 		writel(0x1, DSI_BYTE0_CBCR);
 
-		writel(dsi_pixel0_cfg_rcgr, DSI_PIXEL0_CFG_RCGR);
+		writel(cfg_rcgr, DSI_PIXEL0_CFG_RCGR);
 		writel(0x1, DSI_PIXEL0_CMD_RCGR);
 		writel(0x1, DSI_PIXEL0_CBCR);
 
@@ -484,11 +484,11 @@ void mmss_dsi_clock_enable(uint32_t dsi_pixel0_cfg_rcgr, uint32_t flags,
 
 	if (flags & MMSS_DSI_CLKS_FLAG_DSI1) {
 		/* Enable DSI1 branch clocks */
-		writel(0x100, DSI_BYTE1_CFG_RCGR);
+		writel(cfg_rcgr, DSI_BYTE1_CFG_RCGR);
 		writel(0x1, DSI_BYTE1_CMD_RCGR);
 		writel(0x1, DSI_BYTE1_CBCR);
 
-		writel(dsi_pixel0_cfg_rcgr, DSI_PIXEL1_CFG_RCGR);
+		writel(cfg_rcgr, DSI_PIXEL1_CFG_RCGR);
 		writel(0x1, DSI_PIXEL1_CMD_RCGR);
 		writel(0x1, DSI_PIXEL1_CBCR);
 
