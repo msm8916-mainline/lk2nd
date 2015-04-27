@@ -58,6 +58,9 @@
 #include <qusb2_phy.h>
 #include <rpmb.h>
 #include <rpm-glink.h>
+#if ENABLE_WBC
+#include <pm_app_smbchg.h>
+#endif
 
 #define CE_INSTANCE             1
 #define CE_EE                   1
@@ -146,6 +149,10 @@ void target_uninit(void)
 			ASSERT(0);
 		}
 	}
+
+#if ENABLE_WBC
+	pm_appsbl_set_dcin_suspend(1);
+#endif
 
 	/* Tear down glink channels */
 	rpm_glink_uninit();
@@ -237,6 +244,18 @@ void target_init(void)
 
 	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
 
+	/* Initialize Glink */
+	rpm_glink_init();
+
+#if ENABLE_WBC
+	/* Look for battery voltage and make sure we have enough to bootup
+	 * Otherwise initiate battery charging
+	 * Charging should happen as early as possible, any other driver
+	 * initialization before this should consider the power impact
+	 */
+	pm_appsbl_chg_check_weak_battery_status(1);
+#endif
+
 	target_keystatus();
 
 	if (target_use_signed_kernel())
@@ -266,9 +285,6 @@ void target_init(void)
 		dprintf(CRITICAL, "RPMB init failed\n");
 		ASSERT(0);
 	}
-	/* Initialize Glink */
-	rpm_glink_init();
-
 }
 
 unsigned board_machtype(void)
