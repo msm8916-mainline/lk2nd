@@ -44,10 +44,22 @@
 #define DIP_ENCRYPT 0
 #define DIP_DECRYPT 1
 
+#define MDTP_MAJOR_VERSION (0)
+#define MDTP_MINOR_VERSION (2)
+
+/** Extract major version number from complete version. */
+#define MDTP_GET_MAJOR_VERSION(version) ((version) >> 16)
+
+static int is_mdtp_activated = -1;
+
 static int mdtp_tzbsp_dec_verify_DIP(DIP_t *enc_dip, DIP_t *dec_dip, uint32_t *verified);
 static int mdtp_tzbsp_enc_hash_DIP(DIP_t *dec_dip, DIP_t *enc_dip);
 
-static int is_mdtp_activated = -1;
+uint32_t g_mdtp_version = (((MDTP_MAJOR_VERSION << 16) & 0xFFFF0000) | (MDTP_MINOR_VERSION & 0x0000FFFF));
+
+int scm_random(uint32_t * rbuf, uint32_t  r_len);
+int check_aboot_addr_range_overlap(uint32_t start, uint32_t size);
+
 /********************************************************************************/
 
 /* Read the DIP from EMMC */
@@ -102,7 +114,7 @@ static int write_DIP(DIP_t *dip)
 
 	if(mmc_write(ptn, ROUNDUP(sizeof(DIP_t), block_size), (void *)dip))
 	{
-		dprintf(CRITICAL, "mdtp: write_DIP: ERROR, cannot read DIP info\n");
+		dprintf(CRITICAL, "mdtp: write_DIP: ERROR, cannot write DIP info\n");
 		return -1;
 	}
 
@@ -136,6 +148,7 @@ static void write_deactivated_DIP()
 	memset(dec_dip, 0, sizeof(DIP_t));
 
 	dec_dip->status = DIP_STATUS_DEACTIVATED;
+	dec_dip->version = g_mdtp_version;
 
 	ret = mdtp_tzbsp_enc_hash_DIP(dec_dip, enc_dip);
 	if(ret < 0)
@@ -157,19 +170,20 @@ out:
 }
 
 /* Validate a hash calculated on entire given partition */
-static int verify_partition_single_hash(char *name, uint32_t size, DIP_hash_table_entry_t *hash_table)
+static int verify_partition_single_hash(char *name, uint64_t size, DIP_hash_table_entry_t *hash_table)
 {
-	unsigned char digest[32]={0};
+	unsigned char digest[HASH_LEN]={0};
 	unsigned long long ptn = 0;
 	int index = INVALID_PTN;
 	unsigned char *buf = (unsigned char *)target_get_scratch_address();
 	uint32_t block_size = mmc_get_device_blocksize();
-	uint32_t actual_partition_size = ROUNDUP(size, block_size);
+	uint64_t actual_partition_size = ROUNDUP(size, block_size);
 
-	dprintf(SPEW, "mdtp: verify_partition_single_hash: %s, %u\n", name, size);
+	dprintf(SPEW, "mdtp: verify_partition_single_hash: %s, %llu\n", name, size);
 
 	ASSERT(name != NULL);
 	ASSERT(hash_table != NULL);
+	ASSERT(size > 0);
 
 	index = partition_get_index(name);
 	ptn = partition_get_offset(index);
@@ -181,15 +195,15 @@ static int verify_partition_single_hash(char *name, uint32_t size, DIP_hash_tabl
 
 	if (mmc_read(ptn, (void *)buf, actual_partition_size))
 	{
-		dprintf(CRITICAL, "mdtp: verify_partition__single_hash: %s: mmc_read() fail.\n", name);
+		dprintf(CRITICAL, "mdtp: verify_partition_single_hash: %s: mmc_read() fail.\n", name);
 		return -1;
 	}
 
 	/* calculating the hash value using HW crypto */
 	target_crypto_init_params();
-	hash_find(buf, size, (unsigned char *)&digest, CRYPTO_AUTH_ALG_SHA256);
+	hash_find(buf, size, digest, CRYPTO_AUTH_ALG_SHA256);
 
-	if (memcmp(&digest[0], &(hash_table->hash[0]), HASH_LEN))
+	if (memcmp(digest, hash_table->hash, HASH_LEN))
 	{
 		dprintf(CRITICAL, "mdtp: verify_partition_single_hash: %s: Failed partition hash verification\n", name);
 
@@ -203,23 +217,27 @@ static int verify_partition_single_hash(char *name, uint32_t size, DIP_hash_tabl
 
 /* Validate a hash table calculated per block of a given partition */
 static int verify_partition_block_hash(char *name,
-								uint32_t size,
-								uint32_t total_num_blocks,
+								uint64_t size,
 								uint32_t verify_num_blocks,
 								DIP_hash_table_entry_t *hash_table,
-							    uint8_t *force_verify_block)
+								uint8_t *force_verify_block)
 {
-	unsigned char digest[32]={0};
+	unsigned char digest[HASH_LEN]={0};
 	unsigned long long ptn = 0;
 	int index = INVALID_PTN;
 	unsigned char *buf = (unsigned char *)target_get_scratch_address();
 	uint32_t bytes_to_read;
 	uint32_t block_num = 0;
+	uint32_t total_num_blocks = ((size - 1) / MDTP_FWLOCK_BLOCK_SIZE) + 1;
+	uint32_t rand_int;
+	uint32_t block_size = mmc_get_device_blocksize();
 
-	dprintf(SPEW, "mdtp: verify_partition_block_hash: %s, %u\n", name, size);
+	dprintf(SPEW, "mdtp: verify_partition_block_hash: %s, %llu\n", name, size);
 
 	ASSERT(name != NULL);
 	ASSERT(hash_table != NULL);
+	ASSERT(size > 0);
+	ASSERT(force_verify_block != NULL);
 
 	index = partition_get_index(name);
 	ptn = partition_get_offset(index);
@@ -231,13 +249,24 @@ static int verify_partition_block_hash(char *name,
 
 	/* initiating parameters for hash calculation using HW crypto */
 	target_crypto_init_params();
+	if (check_aboot_addr_range_overlap((uint32_t)buf, ROUNDUP(MDTP_FWLOCK_BLOCK_SIZE, block_size)))
+	{
+		dprintf(CRITICAL, "mdtp: verify_partition_block_hash: %s: image buffer address overlaps with aboot addresses.\n", name);
+		return -1;
+	}
 
 	while (MDTP_FWLOCK_BLOCK_SIZE * block_num < size)
 	{
 		if (*force_verify_block == 0)
 		{
+			if(scm_random((uint32_t *)&rand_int, sizeof(rand_int)))
+			{
+				dprintf(CRITICAL,"mdtp: scm_call for random failed\n");
+				return -1;
+			}
+
 			/* Skip validation of this block with probability of verify_num_blocks / total_num_blocks */
-			if ((rand() % total_num_blocks) >= verify_num_blocks)
+			if ((rand_int % total_num_blocks) >= verify_num_blocks)
 			{
 				block_num++;
 				hash_table += 1;
@@ -255,16 +284,16 @@ static int verify_partition_block_hash(char *name,
 			bytes_to_read = MDTP_FWLOCK_BLOCK_SIZE;
 		}
 
-		if (mmc_read(ptn + (MDTP_FWLOCK_BLOCK_SIZE * block_num), (void *)buf, bytes_to_read))
+		if (mmc_read(ptn + (MDTP_FWLOCK_BLOCK_SIZE * block_num), (void *)buf, ROUNDUP(bytes_to_read, block_size)))
 		{
 			dprintf(CRITICAL, "mdtp: verify_partition_block_hash: %s: mmc_read() fail.\n", name);
 			return -1;
 		}
 
 		/* calculating the hash value using HW */
-		hash_find(buf, bytes_to_read, (unsigned char *)&digest, CRYPTO_AUTH_ALG_SHA256);
+		hash_find(buf, bytes_to_read, digest, CRYPTO_AUTH_ALG_SHA256);
 
-		if (memcmp(&digest[0], &(hash_table->hash[0]), HASH_LEN))
+		if (memcmp(digest, hash_table->hash, HASH_LEN))
 		{
 			dprintf(CRITICAL, "mdtp: verify_partition_block_hash: %s: Failed partition hash[%d] verification\n", name, block_num);
 			return -1;
@@ -280,42 +309,80 @@ static int verify_partition_block_hash(char *name,
 	return 0;
 }
 
-/* Verify a given partitinon */
-static int verify_partition(char *name,
-						uint32_t size,
+/* Validate the partition parameters read from DIP */
+static int validate_partition_params(uint64_t size,
 						mdtp_fwlock_mode_t hash_mode,
-						uint32_t total_num_blocks,
-						uint32_t verify_num_blocks,
-						DIP_hash_table_entry_t *hash_table,
-						uint8_t *force_verify_block)
+						uint32_t verify_ratio)
 {
-
-	ASSERT(name != NULL);
-	ASSERT(hash_table != NULL);
-
-	if (hash_mode == MDTP_FWLOCK_MODE_SINGLE)
+	if (size == 0 || size > (uint64_t)MDTP_FWLOCK_BLOCK_SIZE * (uint64_t)MAX_BLOCKS ||
+		hash_mode >= MDTP_FWLOCK_MODE_SIZE || verify_ratio > 100)
 	{
-		return verify_partition_single_hash(name, size, hash_table);
-	} else if (hash_mode == MDTP_FWLOCK_MODE_BLOCK || hash_mode == MDTP_FWLOCK_MODE_FILES)
-	{
-		return verify_partition_block_hash(name, size, total_num_blocks, verify_num_blocks, hash_table, force_verify_block);
-	}
-	else
-	{
-		dprintf(CRITICAL, "mdtp: verify_partition: %s: Wrong DIP partition hash mode\n", name);
+		dprintf(CRITICAL, "mdtp: validate_partition_params: error, size=%llu, hash_mode=%d, verify_ratio=%d\n",
+			size, hash_mode, verify_ratio);
 		return -1;
 	}
 
 	return 0;
 }
 
+/* Verify a given partitinon */
+static int verify_partition(char *name,
+						uint64_t size,
+						mdtp_fwlock_mode_t hash_mode,
+						uint32_t verify_num_blocks,
+						DIP_hash_table_entry_t *hash_table,
+						uint8_t *force_verify_block)
+{
+	if (hash_mode == MDTP_FWLOCK_MODE_SINGLE)
+	{
+		return verify_partition_single_hash(name, size, hash_table);
+	} else if (hash_mode == MDTP_FWLOCK_MODE_BLOCK || hash_mode == MDTP_FWLOCK_MODE_FILES)
+	{
+		return verify_partition_block_hash(name, size, verify_num_blocks, hash_table, force_verify_block);
+	}
+
+	/* Illegal value of hash_mode */
+	return -1;
+}
+
+static int validate_dip(DIP_t *dip)
+{
+	uint8_t *dip_p;
+
+	ASSERT(dip != NULL);
+
+	/* Make sure DIP version is supported by current SW */
+	if (MDTP_GET_MAJOR_VERSION(dip->version) != MDTP_MAJOR_VERSION)
+	{
+		dprintf(CRITICAL, "mdtp: validate_dip: Wrong DIP version 0x%x\n", dip->version);
+		return -1;
+	}
+
+	/* Make sure that deactivated DIP content is as expected */
+	if (dip->status == DIP_STATUS_DEACTIVATED)
+	{
+		dip_p = (uint8_t*)&dip->mdtp_cfg;
+		while (dip_p < dip->hash)
+		{
+			if (*dip_p != 0)
+			{
+				dprintf(CRITICAL, "mdtp: validate_dip: error in deactivated DIP\n");
+				return -1;
+			}
+			dip_p++;
+		}
+	}
+
+	return 0;
+}
+
 /* Display the recovery UI to allow the user to enter the PIN and continue boot */
-static int display_recovery_ui(DIP_t *dip)
+static void display_recovery_ui(DIP_t *dip)
 {
 	uint32_t pin_length = 0;
 	char entered_pin[MDTP_MAX_PIN_LEN+1] = {0};
 	uint32_t i;
-	uint32_t equal_count = 0, different_count = 0;
+	char pin_mismatch = 0;
 
 	if (dip->mdtp_cfg.enable_local_pin_authentication)
 	{
@@ -326,8 +393,7 @@ static int display_recovery_ui(DIP_t *dip)
 		if (pin_length > MDTP_MAX_PIN_LEN || pin_length < MDTP_MIN_PIN_LEN)
 		{
 			dprintf(CRITICAL, "mdtp: display_recovery_ui: Error, invalid PIN length\n");
-			display_error_msg();
-			return -1;
+			display_error_msg(); /* This will never return */
 		}
 
 		// Set entered_pin to initial '0' string + null terminator
@@ -340,49 +406,44 @@ static int display_recovery_ui(DIP_t *dip)
 		// (with INVALID_PIN_DELAY_MSECONDS after each failed attempt)
 		while (1)
 		{
-		    get_pin_from_user(entered_pin, pin_length);
+			get_pin_from_user(entered_pin, pin_length);
 
-		    // Go over the entire PIN in any case, to prevent side-channel attacks
-		    for (i=0; i<pin_length; i++)
-		    {
-		        if (dip->mdtp_cfg.mdtp_pin.mdtp_pin[i] == entered_pin[i])
-		            equal_count++;
-		        else
-		            different_count++;
-		    }
+			// Go over the entire PIN in any case, to prevent side-channel attacks
+			for (i=0; i<pin_length; i++)
+			{
+				pin_mismatch |= dip->mdtp_cfg.mdtp_pin.mdtp_pin[i] ^ entered_pin[i];
+			}
 
-		    if (equal_count == pin_length)
-		    {
-		        // Valid PIN - deactivate and continue boot
-		        dprintf(SPEW, "mdtp: display_recovery_ui: valid PIN, continue boot\n");
-		        write_deactivated_DIP();
-		        return 0;
-		    }
-		    else
-		    {
-		        // Invalid PIN - display an appropriate message (which also includes a wait
-		        // for INVALID_PIN_DELAY_MSECONDS), and allow the user to try again
-		        dprintf(CRITICAL, "mdtp: display_recovery_ui: ERROR, invalid PIN\n");
-		        display_invalid_pin_msg();
+			if (0 == pin_mismatch)
+			{
+				// Valid PIN - deactivate and continue boot
+				dprintf(SPEW, "mdtp: display_recovery_ui: valid PIN, continue boot\n");
+				write_deactivated_DIP();
+				return;
+			}
+			else
+			{
+				// Invalid PIN - display an appropriate message (which also includes a wait
+				// for INVALID_PIN_DELAY_MSECONDS), and allow the user to try again
+				dprintf(CRITICAL, "mdtp: display_recovery_ui: ERROR, invalid PIN\n");
+				display_invalid_pin_msg();
 
-		        equal_count = 0;
-		        different_count = 0;
-		    }
+				pin_mismatch = 0;
+			}
 		}
 	}
 	else
 	{
 		dprintf(CRITICAL, "mdtp: display_recovery_ui: Local deactivation disabled, unable to display recovery UI\n");
-		display_error_msg();
-		return -1;
+		display_error_msg(); /* This will never return */
 	}
 }
 
 /* Verify all protected partitinons according to the DIP */
-static int verify_all_partitions(DIP_t *dip, verify_result_t *verify_result)
+static void verify_all_partitions(DIP_t *dip, verify_result_t *verify_result)
 {
 	int i;
-	int verify_failure = 0;
+	bool verify_failure = FALSE;
 	uint32_t total_num_blocks;
 
 	ASSERT(dip != NULL);
@@ -390,40 +451,53 @@ static int verify_all_partitions(DIP_t *dip, verify_result_t *verify_result)
 
 	*verify_result = VERIFY_FAILED;
 
+	if (validate_dip(dip))
+	{
+		dprintf(CRITICAL, "mdtp: verify_all_partitions: failed DIP validation\n");
+		return;
+	}
+
 	if (dip->status == DIP_STATUS_DEACTIVATED)
 	{
 		*verify_result = VERIFY_SKIPPED;
-		return 0;
+		return;
 	}
-	else if (dip->status == DIP_STATUS_ACTIVATED)
+	else
 	{
 		for(i=0; i<MAX_PARTITIONS; i++)
 		{
 			if(dip->partition_cfg[i].lock_enabled && dip->partition_cfg[i].size)
 			{
 				total_num_blocks = ((dip->partition_cfg[i].size - 1) / MDTP_FWLOCK_BLOCK_SIZE);
+				if (validate_partition_params(dip->partition_cfg[i].size,
+					dip->partition_cfg[i].hash_mode,
+					dip->partition_cfg[i].verify_ratio))
+				{
+					dprintf(CRITICAL, "mdtp: verify_all_partitions: Wrong partition parameters\n");
+					verify_failure = TRUE;
+					break;
+				}
 
-				verify_failure |= verify_partition(dip->partition_cfg[i].name,
+				verify_failure |= (verify_partition(dip->partition_cfg[i].name,
 							 dip->partition_cfg[i].size,
 							 dip->partition_cfg[i].hash_mode,
-							 total_num_blocks,
 							 (dip->partition_cfg[i].verify_ratio * total_num_blocks) / 100,
 							 dip->partition_cfg[i].hash_table,
-							 dip->partition_cfg[i].force_verify_block);
+							 dip->partition_cfg[i].force_verify_block) != 0);
 			}
 		}
 
 		if (verify_failure)
 		{
 			dprintf(CRITICAL, "mdtp: verify_all_partitions: Failed partition verification\n");
-			return 0;
+			return;
 		}
 		is_mdtp_activated = 1;
 
 	}
 
 	*verify_result = VERIFY_OK;
-	return 0;
+	return;
 }
 
 /* Verify the DIP and all protected partitions */
@@ -440,7 +514,7 @@ static void validate_DIP_and_firmware()
 	if (enc_dip == NULL)
 	{
 		dprintf(CRITICAL, "mdtp: validate_DIP_and_firmware: ERROR, cannot allocate DIP\n");
-		return;
+		display_error_msg(); /* This will never return */
 	}
 
 	dec_dip = malloc(ROUNDUP(sizeof(DIP_t), block_size));
@@ -448,7 +522,7 @@ static void validate_DIP_and_firmware()
 	{
 		dprintf(CRITICAL, "mdtp: validate_DIP_and_firmware: ERROR, cannot allocate DIP\n");
 		free(enc_dip);
-		return;
+		display_error_msg(); /* This will never return */
 	}
 
 	/* Read the DIP holding the MDTP Firmware Lock state from the DIP partition */
@@ -456,7 +530,7 @@ static void validate_DIP_and_firmware()
 	if(ret < 0)
 	{
 		dprintf(CRITICAL, "mdtp: validate_DIP_and_firmware: ERROR, cannot read DIP\n");
-		goto out;
+		display_error_msg(); /* This will never return */
 	}
 
 	/* Decrypt and verify the integrity of the DIP */
@@ -464,40 +538,35 @@ static void validate_DIP_and_firmware()
 	if(ret < 0)
 	{
 		dprintf(CRITICAL, "mdtp: validate_DIP_and_firmware: ERROR, cannot verify DIP\n");
-		display_error_msg();
-		goto out;
+		display_error_msg(); /* This will never return */
 	}
 
 	/* In case DIP integrity verification fails, notify the user and halt */
 	if(!verified)
 	{
 		dprintf(CRITICAL, "mdtp: validate_DIP_and_firmware: ERROR, corrupted DIP\n");
-		display_error_msg();
-		goto out;
+		display_error_msg(); /* This will never return */
 	}
 
 	/* Verify the integrity of the partitions which are protectedm, according to the content of the DIP */
-	ret = verify_all_partitions(dec_dip, &verify_result);
-	if(ret < 0)
-	{
-		dprintf(CRITICAL, "mdtp: validate_DIP_and_firmware: ERROR, cannot verify firmware\n");
-		goto out;
-	}
+	verify_all_partitions(dec_dip, &verify_result);
+
+	/* Clear decrypted DIP since we don't need it anymore */
+	memset(dec_dip, 0, sizeof(DIP_t));
 
 	if (verify_result == VERIFY_OK)
 	{
 		dprintf(SPEW, "mdtp: validate_DIP_and_firmware: Verify OK\n");
 	}
-	else if (verify_result  == VERIFY_FAILED)
+	else if (verify_result  == VERIFY_SKIPPED)
+	{
+		dprintf(SPEW, "mdtp: validate_DIP_and_firmware: Verify skipped\n");
+	} else /* VERIFY_FAILED */
 	{
 		dprintf(CRITICAL, "mdtp: validate_DIP_and_firmware: ERROR, corrupted firmware\n");
 		display_recovery_ui(dec_dip);
-	} else /* VERIFY_SKIPPED */
-	{
-		dprintf(SPEW, "mdtp: validate_DIP_and_firmware: Verify skipped\n");
 	}
 
-out:
 	free(enc_dip);
 	free(dec_dip);
 
@@ -509,7 +578,7 @@ out:
 /** Entry point of the MDTP Firmware Lock: If needed, verify the DIP
  *  and all protected partitions **/
 
-int mdtp_fwlock_verify_lock()
+void mdtp_fwlock_verify_lock()
 {
 	int ret;
 	bool enabled;
@@ -521,16 +590,15 @@ int mdtp_fwlock_verify_lock()
 	if(ret)
 	{
 		dprintf(CRITICAL, "mdtp: mdtp_fwlock_verify_lock: ERROR, cannot get enabled fuse\n");
-		return -1;
+		display_error_msg(); /* This will never return */
 	}
 
 	/* Continue with Firmware Lock verification only if enabled by eFuse */
 	if (enabled)
 	{
+		/* This function will handle firmware verification failure via UI */
 		validate_DIP_and_firmware();
 	}
-
-	return 0;
 }
 /********************************************************************************/
 
@@ -550,7 +618,6 @@ int mdtp_activated(bool * activated){
 /* Decrypt a given DIP and verify its integrity */
 static int mdtp_tzbsp_dec_verify_DIP(DIP_t *enc_dip, DIP_t *dec_dip, uint32_t *verified)
 {
-	unsigned char *hash_p;
 	unsigned char hash[HASH_LEN];
 	SHA256_CTX sha256_ctx;
 	int ret;
@@ -566,6 +633,7 @@ static int mdtp_tzbsp_dec_verify_DIP(DIP_t *enc_dip, DIP_t *dec_dip, uint32_t *v
 	{
 		dprintf(CRITICAL, "mdtp: mdtp_tzbsp_dec_verify_DIP: ERROR, cannot cipher DIP\n");
 		*verified = 0;
+		memset(dec_dip, 0, sizeof(DIP_t));
 		return -1;
 	}
 
@@ -573,11 +641,10 @@ static int mdtp_tzbsp_dec_verify_DIP(DIP_t *enc_dip, DIP_t *dec_dip, uint32_t *v
 	SHA256_Update(&sha256_ctx, dec_dip, sizeof(DIP_t) - HASH_LEN);
 	SHA256_Final(hash, &sha256_ctx);
 
-	hash_p = (unsigned char*)dec_dip + sizeof(DIP_t) - HASH_LEN;
-
-	if (memcmp(hash, hash_p, HASH_LEN))
+	if (memcmp(hash, dec_dip->hash, HASH_LEN))
 	{
 		*verified = 0;
+		memset(dec_dip, 0, sizeof(DIP_t));
 	}
 	else
 	{
@@ -589,18 +656,15 @@ static int mdtp_tzbsp_dec_verify_DIP(DIP_t *enc_dip, DIP_t *dec_dip, uint32_t *v
 
 static int mdtp_tzbsp_enc_hash_DIP(DIP_t *dec_dip, DIP_t *enc_dip)
 {
-	unsigned char *hash_p;
 	SHA256_CTX sha256_ctx;
 	int ret;
 
 	ASSERT(dec_dip != NULL);
 	ASSERT(enc_dip != NULL);
 
-	hash_p = (unsigned char*)dec_dip + sizeof(DIP_t) - HASH_LEN;
-
 	SHA256_Init(&sha256_ctx);
 	SHA256_Update(&sha256_ctx, dec_dip, sizeof(DIP_t) - HASH_LEN);
-	SHA256_Final(hash_p, &sha256_ctx);
+	SHA256_Final(dec_dip->hash, &sha256_ctx);
 
 	ret = mdtp_cipher_dip_cmd((uint8_t*)dec_dip, sizeof(DIP_t),
 								(uint8_t*)enc_dip, sizeof(DIP_t),

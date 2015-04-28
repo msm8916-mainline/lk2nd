@@ -36,8 +36,6 @@
 #include "mdtp.h"
 #include "scm.h"
 
-#define MAX_EFUSES              (8)
-#define EFUSE_END               (MDTP_EFUSE_START + MAX_EFUSES - 1)
 #define MAX_METADATA_SIZE       (0x1000)
 #define QFPROM_ADDR_SPACE_RAW   (0)
 
@@ -228,7 +226,7 @@ static int read_fuse(uint8_t *mask)
  * Read the Firmware Lock eFuses and return whether the Firmware
  * Lock is currently enabled or disabled in HW.
  *
- * @param[out] enabled: 0 - enable, 1 - disable.
+ * @param[out] enabled: 0 - disabled, 1 - enabled.
  *
  * @return - negative value for an error, 0 for success.
  */
@@ -237,6 +235,8 @@ int mdtp_fuse_get_enabled(bool *enabled)
 	int status;
 	mdtp_eFuses_t eFuses;
 
+	*enabled = 1;
+
 	status = read_fuse(&eFuses.mask);
 	if (status)
 	{
@@ -244,14 +244,12 @@ int mdtp_fuse_get_enabled(bool *enabled)
 		return -1;
 	}
 
-	if ((eFuses.bitwise.enable1 && !eFuses.bitwise.disable1) ||
-		(eFuses.bitwise.enable2 && !eFuses.bitwise.disable2) ||
-		(eFuses.bitwise.enable3 && !eFuses.bitwise.disable3))
+	if (!(eFuses.bitwise.enable1 && !eFuses.bitwise.disable1) &&
+		!(eFuses.bitwise.enable2 && !eFuses.bitwise.disable2) &&
+		!(eFuses.bitwise.enable3 && !eFuses.bitwise.disable3))
 	{
-		*enabled = 1;
-	}
-	else
 		*enabled = 0;
+	}
 
 	return 0;
 }

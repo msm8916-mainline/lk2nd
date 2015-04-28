@@ -29,21 +29,21 @@
 #ifndef __APP_MDTP_H
 #define __APP_MDTP_H
 
-#define TOKEN_LEN 16
-#define MAX_BLOCKS 512
-#define MAX_PARTITIONS 3
-#define MAX_PARTITION_NAME_LEN 100
-#define HASH_LEN 32
-#define MDTP_MIN_PIN_LEN 5
-#define MDTP_MAX_PIN_LEN 8
-#define DIP_PADDING 11
+#define TOKEN_LEN              (16)
+#define MAX_BLOCKS             (512)
+#define MAX_PARTITIONS         (3)
+#define MAX_PARTITION_NAME_LEN (100)
+#define HASH_LEN               (32)
+#define MDTP_MAX_PIN_LEN       (8)
+#define MDTP_MIN_PIN_LEN       (5)
+#define DIP_PADDING            (15)
 
 #define INITIAL_DELAY_MSECONDS      5000
 #define INVALID_PIN_DELAY_MSECONDS  5000
 
 #define ROUND_TO_PAGE(x,y) (((x) + (y)) & (~(y)))
-#define MDTP_FWLOCK_BLOCK_SIZE (1024*1024*16)
-#define MDTP_FWLOCK_MAX_FILES (100)
+#define MDTP_FWLOCK_BLOCK_SIZE          (1024*1024*16)
+#define MDTP_FWLOCK_MAX_FILES           (100)
 #define MDTP_FWLOCK_MAX_FILE_NAME_LEN   (100)
 
 #pragma pack(push, mdtp, 1)
@@ -66,7 +66,7 @@ typedef struct DIP_hash_table_entry {
 } DIP_hash_table_entry_t;
 
 typedef struct DIP_partition_cfg {
-	uint32_t size;                                  /* DIP size */
+	uint64_t size;                                  /* Partition size in bytes */
 	char name[MAX_PARTITION_NAME_LEN];              /* Partition name */
 	uint8_t lock_enabled;                           /* Image locked? */
 	mdtp_fwlock_mode_t hash_mode;                   /* Hash per IMAGE or BLOCK */
@@ -114,9 +114,9 @@ typedef enum {
  *
  * Start Firmware Lock verification process.
  *
- * @return - negative value for an error, 0 for success.
+ * @return - None.
  */
-int mdtp_fwlock_verify_lock();
+void mdtp_fwlock_verify_lock();
 
 /**
  * mdtp_fuse_get_enabled

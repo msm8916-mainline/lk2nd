@@ -78,7 +78,7 @@
 #define BITS_PER_BYTE                       (8)
 
 
-#define CENTER_IMAGE_ON_X_AXIS(image_width,screen_width)         ((screen_width-image_width)/2)
+#define CENTER_IMAGE_ON_X_AXIS(image_width,screen_width)         (((screen_width)-(image_width))/2)
 
 extern void mdelay(unsigned msecs);
 extern uint32_t target_volume_up();
@@ -131,8 +131,9 @@ static struct mdtp_fbimage* mdtp_read_mmc_image(uint32_t offset, uint32_t width,
 	if (fb_config)
 	{
 		uint8_t *base = logo->image;
+		unsigned bytes_per_bpp = ((fb_config->bpp) / BITS_PER_BYTE);
 
-		if (mmc_read(ptn+offset, (void*)base, ROUNDUP(width*height*3, block_size))) {
+		if (mmc_read(ptn+offset, (void*)base, ROUNDUP(width*height*bytes_per_bpp, block_size))) {
 				fbcon_clear();
 				dprintf(CRITICAL, "ERROR: mdtp image read failed\n");
 				return NULL;
@@ -180,7 +181,7 @@ static void fbcon_clear_section(uint32_t y, uint32_t section_height)
 	else
 	{
 	    dprintf(CRITICAL,"ERROR: fbcon_config struct is NULL\n");
-	    display_error_msg();
+	    display_error_msg(); /* This will never return */
 	}
 }
 
@@ -218,11 +219,15 @@ static void fbcon_putImage_in_location(struct mdtp_fbimage *fbimg, uint32_t x, u
 	if (bytes_per_bpp == 3)
 	{
 		if (fbimg->width == fb_config->width && fbimg->height == fb_config->height)
-			return;
-
-		if (fbimg->width > fb_config->width || fbimg->height > fb_config->height)
 		{
-		    dprintf(CRITICAL,"ERROR: invalid image size, larger than the screen\n");
+			dprintf(CRITICAL,"ERROR: full screen image, cannot be displayed\n");
+			return;
+		}
+
+		if (fbimg->width > fb_config->width || fbimg->height > fb_config->height ||
+				 (x > (fb_config->width - fbimg->width)) || (y > (fb_config->height - fbimg->height)))
+		{
+		    dprintf(CRITICAL,"ERROR: invalid image size, larger than the screen or exceeds its margins\n");
 		    return;
 		}
 
@@ -232,6 +237,11 @@ static void fbcon_putImage_in_location(struct mdtp_fbimage *fbimg, uint32_t x, u
 				logo_base + ((height - 1 - i) * pitch * bytes_per_bpp), width * bytes_per_bpp);
 		}
 	}
+	else
+	{
+		dprintf(CRITICAL,"ERROR: invalid bpp value\n");
+		display_error_msg(); /* This will never return */
+	}
 
 	fbcon_flush();
 
@@ -240,17 +250,6 @@ static void fbcon_putImage_in_location(struct mdtp_fbimage *fbimg, uint32_t x, u
         mipi_dsi_cmd_mode_trigger();
 #endif
 
-#else
-    if (bytes_per_bpp == 2)
-    {
-        for (i = 0; i < fbimg->width; i++)
-        {
-            memcpy (fb_config->base + ((image_base + (i * (fb_config->width))) * bytes_per_bpp),
-		   fbimg->image + (i * fbimg->height * bytes_per_bpp),
-		   fbimg->height * bytes_per_bpp);
-        }
-    }
-    fbcon_flush();
 #endif
 }
 
@@ -260,8 +259,6 @@ static void fbcon_putImage_in_location(struct mdtp_fbimage *fbimg, uint32_t x, u
 static int display_error_message()
 {
     struct mdtp_fbimage *fbimg;
-
-    fb_config = fbcon_display();
 
     if (fb_config)
 	{
@@ -300,7 +297,7 @@ static void display_image(uint32_t offset, uint32_t width, uint32_t height, uint
         if (NULL == fbimg)
         {
             dprintf(CRITICAL,"ERROR: failed to read image from mmc\n");
-            display_error_msg();
+            display_error_msg(); /* This will never return */
         }
 
         fbcon_putImage_in_location(fbimg, x, y);
@@ -308,7 +305,7 @@ static void display_image(uint32_t offset, uint32_t width, uint32_t height, uint
     else
     {
         dprintf(CRITICAL,"ERROR: fbcon_config struct is NULL\n");
-        display_error_msg();
+        display_error_msg(); /* This will never return */
     }
 }
 
@@ -442,7 +439,7 @@ static void display_initial_screen(uint32_t pin_length)
 		fbcon_clear();
 
 		if (display_error_message())
-		    display_error_msg();
+		    display_error_msg(); /* This will never return */
 		display_initial_delay();
 
 		mdelay(INITIAL_DELAY_MSECONDS);
@@ -452,12 +449,12 @@ static void display_initial_screen(uint32_t pin_length)
 		uint32_t total_pin_length = pin_length*MDTP_PIN_DIGIT_WIDTH + DIGIT_SPACE*(pin_length - 1);
 		uint32_t complete_pin_centered = (fb_config->width - total_pin_length)/2;
 
-		for (int i=0; i<(int)pin_length; i++)
+		for (uint32_t i=0; i<pin_length; i++)
 		{
 			g_pin_frames_x_location[i] = complete_pin_centered + i*(DIGIT_SPACE+MDTP_PIN_DIGIT_WIDTH);
 		}
 
-		for (int i=0; i<(int)pin_length; i++)
+		for (uint32_t i=0; i<pin_length; i++)
 		{
 			display_digit(g_pin_frames_x_location[i], g_pin_frames_y_location, 0);
 		}
@@ -469,8 +466,7 @@ static void display_initial_screen(uint32_t pin_length)
 	else
 	{
 	    dprintf(CRITICAL,"ERROR: fbcon_config struct is NULL\n");
-	    display_error_msg();
-		return;
+	    display_error_msg(); /* This will never return */
 	}
 }
 
@@ -588,15 +584,17 @@ void display_invalid_pin_msg()
  */
 void display_error_msg()
 {
-    fbcon_clear();
-	display_error_message();   // No point in checking the return value here
+	fb_config = fbcon_display();
+
+	if (fb_config)
+	{
+		fbcon_clear();
+		display_error_message();   // No point in checking the return value here
+	}
 
 	// Invalid state. Nothing to be done but contacting the OEM.
 	// Stop boot process.
 	dprintf(CRITICAL,"ERROR: blocking boot process\n");
-	while(1)
-	{
-
-	}
+	for(;;);
 }
 
