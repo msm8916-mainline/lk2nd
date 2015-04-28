@@ -53,6 +53,7 @@
 
 glink_handle_type rpm_glink_port, ssr_glink_port;
 static uint32_t msg_id;
+static event_t wait_for_init;
 static event_t wait_for_data;
 
 extern glink_err_type glink_wait_link_down(glink_handle_type handle);
@@ -261,6 +262,7 @@ void rpm_glink_notify_state_isr(glink_handle_type handle, void *data, glink_chan
 {
 	if(event == GLINK_CONNECTED)
 	{
+		event_signal(&wait_for_init, false);
 		dprintf(INFO, "Glink Connection between APPS and RPM established\n");
 		return;
 	}
@@ -319,6 +321,7 @@ void rpm_glink_init()
 {
 	glink_err_type ret;
 	glink_link_id_type link_id;
+	event_init(&wait_for_init, false, EVENT_FLAG_AUTOUNSIGNAL);
 
 	dprintf(INFO, "RPM GLink Init\n");
 	// Initialize RPM transport
@@ -336,6 +339,7 @@ void rpm_glink_init()
 		dprintf(CRITICAL, "RPM Glink Init Failure\n");
 		ASSERT(0);
 	}
+	event_wait(&wait_for_init);
 }
 
 void rpm_glink_uninit()
