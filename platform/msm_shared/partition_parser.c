@@ -30,7 +30,11 @@
 #include <string.h>
 #include "mmc.h"
 #include "partition_parser.h"
-
+#define GPT_HEADER_SIZE 92
+#define GPT_LBA 1
+#define PARTITION_ENTRY_SIZE 128
+static bool flashing_gpt = 0;
+static bool parse_secondary_gpt = 0;
 __WEAK void mmc_set_lun(uint8_t lun)
 {
 }
@@ -278,7 +282,6 @@ static unsigned int mmc_boot_read_gpt(uint32_t block_size)
 		dprintf(CRITICAL, "GPT: Could not read primary gpt from mmc\n");
 		goto end;
 	}
-
 	ret = partition_parse_gpt_header(data, &first_usable_lba,
 					 &partition_entry_size, &header_size,
 					 &max_partition_count);
@@ -667,10 +670,12 @@ static unsigned int write_gpt(uint32_t size, uint8_t *gptImage, uint32_t block_s
 	}
 	offset = (2 * partition_entry_array_size);
 	secondary_gpt_header = offset + block_size + primary_gpt_header;
+	parse_secondary_gpt = 1;
 	ret =
 	    partition_parse_gpt_header(secondary_gpt_header, &first_usable_lba,
 				       &partition_entry_size, &header_size,
 				       &max_partition_count);
+	parse_secondary_gpt = 0;
 	if (ret) {
 		dprintf(CRITICAL,
 			"GPT: Backup signature invalid cannot write GPT\n");
@@ -740,6 +745,7 @@ static unsigned int write_gpt(uint32_t size, uint8_t *gptImage, uint32_t block_s
 	/* Re-read the GPT partition table */
 	dprintf(INFO, "Re-reading the GPT Partition Table\n");
 	partition_count = 0;
+	flashing_gpt = 0;
 	mmc_read_partition_table(0);
 	partition_dump();
 	dprintf(CRITICAL, "GPT: Partition Table written\n");
@@ -773,6 +779,7 @@ unsigned int write_partition(unsigned size, unsigned char *partition)
 
 	case PARTITION_TYPE_GPT:
 		dprintf(INFO, "Writing GPT partition\n");
+		flashing_gpt = 1;
 		ret = write_gpt(size, partition, block_size);
 		dprintf(CRITICAL, "Re-Flash all the partitions\n");
 		break;
@@ -1035,20 +1042,128 @@ partition_parse_gpt_header(unsigned char *buffer,
 			   unsigned int *header_size,
 			   unsigned int *max_partition_count)
 {
+	uint32_t crc_val_org = 0;
+	uint32_t crc_val = 0;
+	uint32_t ret = 0;
+	unsigned char *new_buffer = NULL;
+	unsigned long long last_usable_lba = 0;
+	unsigned long long partition_0 = 0;
+	unsigned long long current_lba = 0;
+	uint32_t block_size = mmc_get_device_blocksize();
+	/* Get the density of the mmc device */
+	uint64_t device_density = mmc_get_device_capacity();
+
 	/* Check GPT Signature */
 	if (((uint32_t *) buffer)[0] != GPT_SIGNATURE_2 ||
 	    ((uint32_t *) buffer)[1] != GPT_SIGNATURE_1)
 		return 1;
 
 	*header_size = GET_LWORD_FROM_BYTE(&buffer[HEADER_SIZE_OFFSET]);
+	/*check for header size too small*/
+	if (*header_size < GPT_HEADER_SIZE) {
+		dprintf(CRITICAL,"GPT Header size is too small\n");
+		return 1;
+	}
+	/*check for header size too large*/
+	if (*header_size > block_size) {
+		dprintf(CRITICAL,"GPT Header size is too large\n");
+		return 1;
+	}
+
+	crc_val_org = GET_LWORD_FROM_BYTE(&buffer[HEADER_CRC_OFFSET]);
+	crc_val = 0;
+	/*Write CRC to 0 before we calculate the crc of the GPT header*/
+	PUT_LONG(&buffer[HEADER_CRC_OFFSET], crc_val);
+
+	crc_val  = calculate_crc32(buffer, *header_size);
+	if (crc_val != crc_val_org) {
+		dprintf(CRITICAL,"Header crc mismatch crc_val = %u with crc_val_org = %u\n", crc_val,crc_val_org);
+		return 1;
+	}
+	else
+		PUT_LONG(&buffer[HEADER_CRC_OFFSET], crc_val);
+
+	current_lba =
+	    GET_LLWORD_FROM_BYTE(&buffer[PRIMARY_HEADER_OFFSET]);
 	*first_usable_lba =
 	    GET_LLWORD_FROM_BYTE(&buffer[FIRST_USABLE_LBA_OFFSET]);
 	*max_partition_count =
 	    GET_LWORD_FROM_BYTE(&buffer[PARTITION_COUNT_OFFSET]);
 	*partition_entry_size =
 	    GET_LWORD_FROM_BYTE(&buffer[PENTRY_SIZE_OFFSET]);
+	last_usable_lba =
+	    GET_LLWORD_FROM_BYTE(&buffer[LAST_USABLE_LBA_OFFSET]);
 
-	return 0;
+	/*current lba and GPT lba should be same*/
+	if (!parse_secondary_gpt) {
+		if (current_lba != GPT_LBA) {
+			dprintf(CRITICAL,"GPT first usable LBA mismatch\n");
+			return 1;
+		}
+	}
+	/*check for first lba should be with in the valid range*/
+	if (*first_usable_lba > (device_density/block_size)) {
+		dprintf(CRITICAL,"Invalid first_usable_lba\n");
+		return 1;
+	}
+	/*check for last lba should be with in the valid range*/
+	if (last_usable_lba > (device_density/block_size)) {
+		dprintf(CRITICAL,"Invalid last_usable_lba\n");
+		return 1;
+	}
+	/*check for partition entry size*/
+	if (*partition_entry_size != PARTITION_ENTRY_SIZE) {
+		dprintf(CRITICAL,"Invalid parition entry size\n");
+		return 1;
+	}
+
+	if ((*max_partition_count) > (MIN_PARTITION_ARRAY_SIZE /(*partition_entry_size))) {
+		dprintf(CRITICAL, "Invalid maximum partition count\n");
+		return 1;
+	}
+
+	new_buffer = (uint8_t *)memalign(CACHE_LINE, ROUNDUP((*max_partition_count) * (*partition_entry_size), CACHE_LINE));
+
+	if (!new_buffer)
+	{
+		dprintf(CRITICAL, "Failed to Allocate memory to read partition table\n");
+		return 1;
+	}
+
+	if (flashing_gpt) {
+		if (parse_secondary_gpt) {
+			memcpy(new_buffer, buffer - MIN_PARTITION_ARRAY_SIZE, (*max_partition_count) * (*partition_entry_size));
+		}
+		else
+			memcpy(new_buffer, buffer + block_size, (*max_partition_count) * (*partition_entry_size));
+	}
+	else {
+		partition_0 = GET_LLWORD_FROM_BYTE(&buffer[PARTITION_ENTRIES_OFFSET]);
+		/*start LBA should always be 2 in primary GPT*/
+		if(partition_0 != 0x2) {
+			dprintf(CRITICAL, "Starting LBA mismatch\n");
+			goto fail;
+
+		}
+		/*read the partition entries to new_buffer*/
+		ret = mmc_read((partition_0) * (block_size), (unsigned int *)new_buffer, (*max_partition_count) * (*partition_entry_size));
+		if (ret)
+		{
+			dprintf(CRITICAL, "GPT: Could not read primary gpt from mmc\n");
+			goto fail;
+		}
+	}
+	crc_val_org = GET_LWORD_FROM_BYTE(&buffer[PARTITION_CRC_OFFSET]);
+
+	crc_val  = calculate_crc32(new_buffer,((*max_partition_count) * (*partition_entry_size)));
+	if (crc_val != crc_val_org) {
+		dprintf(CRITICAL,"Partition entires crc mismatch crc_val= %u with crc_val_org= %u\n",crc_val,crc_val_org);
+		ret = 1;
+	}
+
+fail:
+	free(new_buffer);
+	return ret;
 }
 
 bool partition_gpt_exists()
