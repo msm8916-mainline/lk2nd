@@ -586,6 +586,20 @@ bool target_display_panel_node(char *panel_name, char *pbuf, uint16_t buf_size)
 	return true;
 }
 
+void target_set_switch_gpio(int enable_dsi2HdmiBridge)
+{
+	gpio_tlmm_config(dsi2HDMI_switch_gpio.pin_id, 0,
+				dsi2HDMI_switch_gpio.pin_direction,
+				dsi2HDMI_switch_gpio.pin_pull,
+				dsi2HDMI_switch_gpio.pin_strength,
+				dsi2HDMI_switch_gpio.pin_state);
+	gpio_set_dir(enable_gpio.pin_id, 2);
+	if (enable_dsi2HdmiBridge)
+		gpio_set_dir(enable_gpio.pin_id, 0); /* DSI2HDMI Bridge */
+	else
+		gpio_set_dir(enable_gpio.pin_id, 2); /* Normal DSI operation */
+}
+
 void target_display_init(const char *panel_name)
 {
 	uint32_t panel_loop = 0;

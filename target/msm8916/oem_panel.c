@@ -34,6 +34,7 @@
 #include <board.h>
 #include <mipi_dsi.h>
 #include <target/display.h>
+#include <mipi_dsi_i2c.h>
 
 #include "include/panel.h"
 #include "panel_display.h"
@@ -56,6 +57,8 @@
 #include "include/panel_r61318_hd_video.h"
 #include "include/panel_r63417_1080p_video.h"
 #include "include/panel_jdi_a216_fhd_video.h"
+#include "include/panel_adv7533_1080p60.h"
+#include "include/panel_adv7533_720p60.h"
 
 #define DISPLAY_MAX_PANEL_DETECTION 2
 #define OTM8019A_FWVGA_VIDEO_PANEL_ON_DELAY 50
@@ -92,6 +95,8 @@ static struct panel_list supp_panels[] = {
 	{"r61318_hd_video", R61318_HD_VIDEO_PANEL},
 	{"r63417_1080p_video", R63417_1080P_VIDEO_PANEL},
 	{"jdi_a216_fhd_video", JDI_A216_FHD_VIDEO_PANEL},
+	{"adv7533_1080p_video", ADV7533_1080P_VIDEO_PANEL},
+	{"adv7533_720p_video", ADV7533_720P_VIDEO_PANEL},
 };
 
 static uint32_t panel_id;
@@ -438,6 +443,41 @@ static int init_panel_data(struct panel_struct *panelstruct,
                 memcpy(phy_db->timing,
                                 jdi_a216_fhd_video_timings, TIMING_SIZE);
                 break;
+	case ADV7533_1080P_VIDEO_PANEL:
+		panelstruct->paneldata	  = &adv7533_1080p_video_panel_data;
+		panelstruct->panelres	  = &adv7533_1080p_video_panel_res;
+		panelstruct->color		  = &adv7533_1080p_video_color;
+		panelstruct->videopanel   = &adv7533_1080p_video_video_panel;
+		panelstruct->commandpanel = &adv7533_1080p_video_command_panel;
+		panelstruct->state		  = &adv7533_1080p_video_state;
+		panelstruct->laneconfig   = &adv7533_1080p_video_lane_config;
+		panelstruct->paneltiminginfo
+					= &adv7533_1080p_video_timing_info;
+		pinfo->adv7533.dsi_tg_i2c_cmd = &adv7533_1080p_tg_i2c_command;
+		pinfo->adv7533.num_of_tg_i2c_cmds = ADV7533_1080P_TG_COMMANDS;
+		pinfo->adv7533.dsi_setup_cfg_i2c_cmd = &adv7533_1080p_common_cfg;
+		pinfo->adv7533.num_of_cfg_i2c_cmds = ADV7533_1080P_CONFIG_COMMANDS;
+		memcpy(phy_db->timing,
+					adv7533_1080p_video_timings, TIMING_SIZE);
+		break;
+
+	case ADV7533_720P_VIDEO_PANEL:
+		panelstruct->paneldata    = &adv7533_720p_video_panel_data;
+		panelstruct->panelres     = &adv7533_720p_video_panel_res;
+		panelstruct->color        = &adv7533_720p_video_color;
+		panelstruct->videopanel   = &adv7533_720p_video_video_panel;
+		panelstruct->commandpanel = &adv7533_720p_video_command_panel;
+		panelstruct->state        = &adv7533_720p_video_state;
+		panelstruct->laneconfig   = &adv7533_720p_video_lane_config;
+		panelstruct->paneltiminginfo
+					= &adv7533_720p_video_timing_info;
+		pinfo->adv7533.dsi_tg_i2c_cmd = &adv7533_720p_tg_i2c_command;
+		pinfo->adv7533.num_of_tg_i2c_cmds = ADV7533_720P_TG_COMMANDS;
+		pinfo->adv7533.dsi_setup_cfg_i2c_cmd = &adv7533_720p_common_cfg;
+		pinfo->adv7533.num_of_cfg_i2c_cmds = ADV7533_720P_CONFIG_COMMANDS;
+		memcpy(phy_db->timing,
+					adv7533_720p_video_timings, TIMING_SIZE);
+		break;
 	case UNKNOWN_PANEL:
 	default:
 		memset(panelstruct, 0, sizeof(struct panel_struct));
@@ -464,6 +504,7 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	uint32_t hw_subtype = board_hardware_subtype();
 	int32_t panel_override_id;
 	uint32_t target_id, plat_hw_ver_major;
+	uint8_t rev = 0;
 
 	if (panel_name) {
 		panel_override_id = panel_name_to_id(supp_panels,
@@ -573,6 +614,22 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 					hw_subtype);
 				return PANEL_TYPE_UNKNOWN;
 			}
+		}
+		break;
+	case HW_PLATFORM_SBC:
+		if (platform_is_apq8016()) {
+			/* Set Switch GPIO to DSI2HDMI mode */
+			target_set_switch_gpio(1);
+			/* ADV7533 DSI to HDMI Bridge Chip Connected */
+			mipi_dsi_i2c_device_init();
+			/* Read ADV Chip ID */
+			if (!mipi_dsi_i2c_read_byte(ADV7533_MAIN, 0x00, &rev)) {
+				dprintf(INFO, "ADV7533 Rev ID: 0x%x\n",rev);
+			} else {
+				dprintf(CRITICAL, "error reading Rev ID from bridge chip\n");
+				return PANEL_TYPE_UNKNOWN;
+			}
+			panel_id = ADV7533_720P_VIDEO_PANEL;
 		}
 		break;
 	default:
