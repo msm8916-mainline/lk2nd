@@ -415,7 +415,7 @@ bool gcdb_display_cmdline_arg(char *panel_name, char *pbuf, uint16_t buf_size)
 
 	dsi_id_len = strlen(dsi_id);
 	panel_node_len = strlen(panel_node);
-	if (!slave_panel_node || slave_panel_node == 0x0)
+	if (!slave_panel_node || !strcmp(slave_panel_node, ""))
 		slave_panel_node = NO_PANEL_CONFIG;
 	slave_panel_node_len = strlen(slave_panel_node);
 
