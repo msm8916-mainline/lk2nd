@@ -61,16 +61,18 @@ extern int msm_display_off();
 
 static uint32_t panel_backlight_ctrl(uint8_t enable)
 {
-	return target_backlight_ctrl(panelstruct.backlightinfo, enable);
+	uint32_t ret = NO_ERROR;
+	if (panelstruct.backlightinfo)
+		ret = target_backlight_ctrl(panelstruct.backlightinfo, enable);
+	return ret;
 }
 
 static uint32_t mdss_dsi_panel_reset(uint8_t enable)
 {
 	uint32_t ret = NO_ERROR;
-
-	ret = target_panel_reset(enable, panelstruct.panelresetseq,
-						&panel.panel_info);
-
+	if (panelstruct.panelresetseq)
+		ret = target_panel_reset(enable, panelstruct.panelresetseq,
+							&panel.panel_info);
 	return ret;
 }
 
