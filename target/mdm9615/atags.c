@@ -63,7 +63,7 @@ unsigned *target_atag_mem(unsigned *ptr)
 
 				*ptr++ = 4;
 				*ptr++ = 0x54410002;
-				*ptr++ = SIZE_23M;
+				*ptr++ = (SIZE_23M-SIZE_1M);
 				*ptr++ = ram_ptable.parts[i].start + SIZE_88M;
 
 				if(ram_ptable.parts[i].size == 0x10000000) {
