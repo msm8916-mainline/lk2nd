@@ -66,6 +66,7 @@
 #define TLMM_VOL_UP_BTN_GPIO    85
 
 #define FASTBOOT_MODE           0x77665500
+#define RECOVERY_MODE           0x77665502
 #define PON_SOFT_RB_SPARE       0x88F
 
 #define CE1_INSTANCE            1
@@ -134,7 +135,7 @@ void target_sdc_init()
 	/* Try slot 1*/
 	config.slot          = 1;
 	config.bus_width     = DATA_BUS_WIDTH_8BIT;
-	config.max_clk_rate  = MMC_CLK_177MHZ;
+	config.max_clk_rate  = MMC_CLK_192MHZ;
 	config.sdhc_base     = mmc_sdhci_base[config.slot - 1];
 	config.pwrctl_base   = mmc_pwrctl_base[config.slot - 1];
 	config.pwr_irq       = mmc_sdc_pwrctl_irq[config.slot - 1];
@@ -347,7 +348,7 @@ void reboot_device(unsigned reboot_reason)
 	/* For Reboot-bootloader and Dload cases do a warm reset
 	 * For Reboot cases do a hard reset
 	 */
-	if((reboot_reason == FASTBOOT_MODE) || (reboot_reason == DLOAD))
+	if((reboot_reason == FASTBOOT_MODE) || (reboot_reason == DLOAD) || (reboot_reason == RECOVERY_MODE))
 		reset_type = PON_PSHOLD_WARM_RESET;
 	else
 		reset_type = PON_PSHOLD_HARD_RESET;
