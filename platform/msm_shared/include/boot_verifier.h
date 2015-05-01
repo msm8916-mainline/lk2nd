@@ -59,6 +59,7 @@ DECLARE_ASN1_FUNCTIONS(AUTH_ATTR)
 typedef struct verif_boot_sig_st
 {
 	ASN1_INTEGER *version;
+	X509 *certificate;
 	X509_ALGOR *algor;
 	AUTH_ATTR *auth_attr;
 	ASN1_OCTET_STRING *sig;
