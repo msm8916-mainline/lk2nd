@@ -107,12 +107,18 @@ static uint32_t mdss_mdp_vbif_qos_remap_get_offset()
 
 	if (mdss_mdp_rev == MDSS_MDP_HW_REV_110)
 		return 0xB0020;
+	else if (MDSS_IS_MAJOR_MINOR_MATCHING(mdss_mdp_rev, MDSS_MDP_HW_REV_107))
+		return 0xB0000;
 	else
 		return 0xC8020;
 }
 
 void mdp_clk_gating_ctrl(void)
 {
+	uint32_t mdss_mdp_rev = readl(MDP_HW_REV);
+	if (MDSS_IS_MAJOR_MINOR_MATCHING(mdss_mdp_rev, MDSS_MDP_HW_REV_107))
+		return;
+
 	writel(0x40000000, MDP_CLK_CTRL0);
 	udelay(20);
 	writel(0x40000040, MDP_CLK_CTRL0);
@@ -277,8 +283,10 @@ static void mdss_source_pipe_config(struct fbcon_config *fb, struct msm_panel_in
 
 static void mdss_vbif_setup()
 {
-	int access_secure = restore_secure_cfg(SECURE_DEVICE_MDSS);
 	uint32_t mdp_hw_rev = readl(MDP_HW_REV);
+	int access_secure = false;
+	if (!MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev, MDSS_MDP_HW_REV_107))
+		access_secure = restore_secure_cfg(SECURE_DEVICE_MDSS);
 
 	if (!access_secure) {
 		dprintf(SPEW, "MDSS VBIF registers unlocked by TZ.\n");
