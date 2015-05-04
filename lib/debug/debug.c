@@ -86,17 +86,13 @@ int _dprintf(const char *fmt, ...)
 	snprintf(ts_buf, sizeof(ts_buf), "[%u] ", current_time());
 	dputs(ALWAYS, ts_buf);
 
-#if ENABLE_FBCON_LOGGING
 	dputs(ALWAYS, ts_buf);
-#endif
 	va_list ap;
 	va_start(ap, fmt);
 	err = vsnprintf(buf, sizeof(buf), fmt, ap);
 	va_end(ap);
 
-#if ENABLE_FBCON_LOGGING
 	dputs(ALWAYS, buf);
-#endif
 	return err;
 }
 
