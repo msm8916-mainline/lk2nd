@@ -36,6 +36,8 @@
 #include <platform/clock.h>
 #include <platform.h>
 
+#define MAX_LOOPS	500
+
 void hsusb_clock_init(void)
 {
 	int ret;
@@ -265,6 +267,34 @@ void mdss_bus_clocks_enable(void)
 	}
 }
 
+static void rcg_update_config(uint32_t reg)
+{
+	int i;
+
+	for (i = 0; i < MAX_LOOPS; i++) {
+		if (!(readl(reg) & BIT(0)))
+			return;
+		udelay(1);
+	}
+
+	dprintf(CRITICAL, "failed to update rcg config for reg = 0x%x\n", reg);
+	ASSERT(0);
+}
+
+static void branch_clk_halt_check(uint32_t reg)
+{
+	int i;
+
+	for (i = 0; i < MAX_LOOPS; i++) {
+		if (!(readl(reg) & BIT(31)))
+			return;
+		udelay(1);
+	}
+
+	dprintf(CRITICAL, "failed to enable branch for reg = 0x%x\n", reg);
+	ASSERT(0);
+}
+
 /* Disable all the branch clocks needed by the DSI controller */
 void gcc_dsi_clocks_disable(void)
 {
@@ -278,20 +308,32 @@ void gcc_dsi_clocks_enable(uint8_t pclk0_m, uint8_t pclk0_n, uint8_t pclk0_d)
 {
 	int ret;
 
-	/* Configure Byte clock -autopll- This will not change becasue
-	byte clock does not need any divider*/
+	/*
+	 * Configure Byte clock -autopll- This will not change becasue
+	 * byte clock does not need any divider
+	 */
+	/* Set the source for DSI0 byte RCG */
 	writel(0x100, DSI_BYTE0_CFG_RCGR);
+	/* Set the update RCG bit */
 	writel(0x1, DSI_BYTE0_CMD_RCGR);
+	rcg_update_config(DSI_BYTE0_CMD_RCGR);
+	/* Enable the branch clock */
 	writel(0x1, DSI_BYTE0_CBCR);
+	branch_clk_halt_check(DSI_BYTE0_CBCR);
 
 	/* Configure Pixel clock */
+	/* Set the source for DSI0 pixel RCG */
 	writel(0x100, DSI_PIXEL0_CFG_RCGR);
-	writel(0x1, DSI_PIXEL0_CMD_RCGR);
-	writel(0x1, DSI_PIXEL0_CBCR);
-
+	/* Set the MND for DSI0 pixel clock */
 	writel(pclk0_m, DSI_PIXEL0_M);
 	writel(pclk0_n, DSI_PIXEL0_N);
 	writel(pclk0_d, DSI_PIXEL0_D);
+	/* Set the update RCG bit */
+	writel(0x1, DSI_PIXEL0_CMD_RCGR);
+	rcg_update_config(DSI_PIXEL0_CMD_RCGR);
+	/* Enable the branch clock */
+	writel(0x1, DSI_PIXEL0_CBCR);
+	branch_clk_halt_check(DSI_PIXEL0_CBCR);
 
 	/* Configure ESC clock */
 	ret = clk_get_set_enable("mdss_esc0_clk", 0, 1);
