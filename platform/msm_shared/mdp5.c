@@ -472,6 +472,7 @@ static void mdss_intf_tg_setup(struct msm_panel_info *pinfo, uint32_t intf_base)
 	uint32_t hsync_start_x, hsync_end_x;
 	uint32_t display_hctl, hsync_ctl, display_vstart, display_vend;
 	uint32_t adjust_xres = 0;
+	uint32_t upper = 0, lower = 0;
 
 	struct lcdc_panel_info *lcdc = NULL;
 	struct intf_timing_params itp = {0};
@@ -487,8 +488,15 @@ static void mdss_intf_tg_setup(struct msm_panel_info *pinfo, uint32_t intf_base)
 	if (pinfo->lcdc.split_display) {
 		adjust_xres /= 2;
 		if (intf_base == (MDP_INTF_1_BASE + mdss_mdp_intf_offset())) {
-			writel(BIT(8), MDP_REG_SPLIT_DISPLAY_LOWER_PIPE_CTL);
-			writel(BIT(8), MDP_REG_SPLIT_DISPLAY_UPPER_PIPE_CTL);
+			if (pinfo->lcdc.pipe_swap) {
+				lower |= BIT(4);
+				upper |= BIT(8);
+			} else {
+				lower |= BIT(8);
+				upper |= BIT(4);
+			}
+			writel(lower, MDP_REG_SPLIT_DISPLAY_LOWER_PIPE_CTL);
+			writel(upper, MDP_REG_SPLIT_DISPLAY_UPPER_PIPE_CTL);
 			writel(0x1, MDP_REG_SPLIT_DISPLAY_EN);
 		}
 	}
