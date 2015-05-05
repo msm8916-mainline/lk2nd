@@ -755,6 +755,9 @@ static int mdtp_tzbsp_dec_verify_DIP(DIP_t *enc_dip, DIP_t *dec_dip, uint32_t *v
 	ASSERT(dec_dip != NULL);
 	ASSERT(verified != NULL);
 
+	arch_clean_invalidate_cache_range((addr_t)enc_dip, sizeof(DIP_t));
+	arch_invalidate_cache_range((addr_t)dec_dip, sizeof(DIP_t));
+
 	ret = mdtp_cipher_dip_cmd((uint8_t*)enc_dip, sizeof(DIP_t),
 								(uint8_t*)dec_dip, sizeof(DIP_t),
 								DIP_DECRYPT);
@@ -765,6 +768,8 @@ static int mdtp_tzbsp_dec_verify_DIP(DIP_t *enc_dip, DIP_t *dec_dip, uint32_t *v
 		memset(dec_dip, 0, sizeof(DIP_t));
 		return -1;
 	}
+
+	arch_invalidate_cache_range((addr_t)dec_dip, sizeof(DIP_t));
 
 	SHA256_Init(&sha256_ctx);
 	SHA256_Update(&sha256_ctx, dec_dip, sizeof(DIP_t) - HASH_LEN);
@@ -796,6 +801,9 @@ static int mdtp_tzbsp_enc_hash_DIP(DIP_t *dec_dip, DIP_t *enc_dip)
 	SHA256_Update(&sha256_ctx, dec_dip, sizeof(DIP_t) - HASH_LEN);
 	SHA256_Final(dec_dip->hash, &sha256_ctx);
 
+	arch_clean_invalidate_cache_range((addr_t)dec_dip, sizeof(DIP_t));
+	arch_invalidate_cache_range((addr_t)enc_dip, sizeof(DIP_t));
+
 	ret = mdtp_cipher_dip_cmd((uint8_t*)dec_dip, sizeof(DIP_t),
 								(uint8_t*)enc_dip, sizeof(DIP_t),
 								DIP_ENCRYPT);
@@ -804,6 +812,8 @@ static int mdtp_tzbsp_enc_hash_DIP(DIP_t *dec_dip, DIP_t *enc_dip)
 		dprintf(CRITICAL, "mdtp: mdtp_tzbsp_enc_hash_DIP: ERROR, cannot cipher DIP\n");
 		return -1;
 	}
+
+	arch_invalidate_cache_range((addr_t)enc_dip, sizeof(DIP_t));
 
 	return 0;
 }
