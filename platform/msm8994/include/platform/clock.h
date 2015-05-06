@@ -79,6 +79,7 @@
 #define DSI_PIXEL0_D                    REG_MM(0x2010)
 
 #define DSI0_PHY_PLL_OUT                BIT(8)
+#define DSI1_PHY_PLL_OUT                BIT(9)
 #define PIXEL_SRC_DIV_1_5               BIT(1)
 
 #define DSI_BYTE1_CMD_RCGR              REG_MM(0x2140)
@@ -122,7 +123,7 @@ void clock_ce_enable(uint8_t instance);
 void clock_ce_disable(uint8_t instance);
 void clock_usb30_init(void);
 
-void mmss_dsi_clock_enable(uint32_t dsi_pixel0_cfg_rcgr, uint32_t dual_dsi,
+void mmss_dsi_clock_enable(uint32_t cfg_rcgr, uint32_t dual_dsi,
 	uint8_t pclk0_m, uint8_t pclk0_n, uint8_t pclk0_d);
 void mmss_dsi_clock_disable(uint32_t dual_dsi);
 void mmss_bus_clock_enable(void);
