@@ -40,6 +40,7 @@
 #include <board.h>
 #include <smem.h>
 #include <baseband.h>
+#include <regulator.h>
 #include <dev/keys.h>
 #include <pm8x41.h>
 #include <crypto5_wrapper.h>
