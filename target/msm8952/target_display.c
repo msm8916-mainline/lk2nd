@@ -246,10 +246,10 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 			mdp_gdsc_ctrl(0);
 			return ret;
 		}
-		mdss_dsi_uniphy_pll_sw_reset_8952(DSI0_PLL_BASE);
-		mdss_dsi_auto_pll_config(pinfo->mipi.pll_0_base,
+		mdss_dsi_uniphy_pll_sw_reset_8952(pinfo->mipi.pll_base);
+		mdss_dsi_auto_pll_config(pinfo->mipi.pll_base,
 						pinfo->mipi.ctl_base, pll_data);
-		if (!dsi_pll_enable_seq_8952(pinfo->mipi.pll_0_base))
+		if (!dsi_pll_enable_seq_8952(pinfo->mipi.pll_base))
 			dprintf(CRITICAL, "Not able to enable the pll\n");
 		gcc_dsi_clocks_enable(pll_data->pclk_m, pll_data->pclk_n,
 				pll_data->pclk_d);

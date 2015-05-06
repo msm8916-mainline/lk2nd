@@ -281,15 +281,16 @@ static void mdss_dsi_pll_20nm_config_powerdown(uint32_t pll_base)
 }
 
 
-void mdss_dsi_auto_pll_20nm_config(uint32_t pll_base, uint32_t pll_1_base,
+void mdss_dsi_auto_pll_20nm_config(uint32_t pll_base, uint32_t spll_base,
 	struct mdss_dsi_pll_config *pd)
 {
 	/*
-	 * For 20nm PHY, DSI PLL 1 drains some current in its reset state.
-	 * Need to turn off the DSI1 PLL explicitly.
+	 * For 20nm PHY, the DSI PLL which is not powered on to drive a panel
+	 * drains some current in its reset state.
+	 * Need to turn off that PLL explicitly.
 	 */
-	mdss_dsi_pll_20nm_config_common_block_1(pll_1_base);
-	mdss_dsi_pll_20nm_config_powerdown(pll_1_base);
+	mdss_dsi_pll_20nm_config_common_block_1(spll_base);
+	mdss_dsi_pll_20nm_config_powerdown(spll_base);
 
 	mdss_dsi_pll_20nm_config_common_block_1(pll_base);
 	mdss_dsi_pll_20nm_config_common_block_2(pll_base);

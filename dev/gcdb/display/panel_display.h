@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -46,6 +46,7 @@
 #define PIPE_SWAP_FLAG 0x4
 #define SPLIT_DISPLAY_FLAG 0x8
 #define DST_SPLIT_FLAG 0x10
+#define USE_DSI1_PLL_FLAG 0x20
 
 #define MAX_PANEL_ID_LEN 64
 #include "panel.h"

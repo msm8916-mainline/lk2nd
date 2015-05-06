@@ -308,9 +308,9 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 			mdp_gdsc_ctrl(0);
 			return ret;
 		}
-		mdss_dsi_auto_pll_config(pinfo->mipi.pll_0_base,
+		mdss_dsi_auto_pll_config(pinfo->mipi.pll_base,
 				pinfo->mipi.ctl_base, pll_data);
-		dsi_pll_enable_seq(pinfo->mipi.pll_0_base);
+		dsi_pll_enable_seq(pinfo->mipi.pll_base);
 		mmss_dsi_clocks_enable(pll_data->pclk_m,
 				pll_data->pclk_n,
 				pll_data->pclk_d);
