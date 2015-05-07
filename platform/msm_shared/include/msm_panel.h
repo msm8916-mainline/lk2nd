@@ -222,6 +222,13 @@ struct edp_panel_info {
 	unsigned long max_link_clk;
 };
 
+struct dsi2HDMI_panel_info {
+	struct mipi_dsi_i2c_cmd *dsi_tg_i2c_cmd;
+	struct mipi_dsi_i2c_cmd *dsi_setup_cfg_i2c_cmd;
+	int num_of_tg_i2c_cmds;
+	int num_of_cfg_i2c_cmds;
+};
+
 enum lvds_mode {
 	LVDS_SINGLE_CHANNEL_MODE,
 	LVDS_DUAL_CHANNEL_MODE,
@@ -257,6 +264,7 @@ struct msm_panel_info {
 	struct lvds_panel_info lvds;
 	struct hdmi_panel_info hdmi;
 	struct edp_panel_info edp;
+	struct dsi2HDMI_panel_info adv7533;
 
 	int (*on) (void);
 	int (*off) (void);
@@ -281,6 +289,7 @@ struct msm_fb_panel_data {
 	int (*pll_clk_func) (int enable, struct msm_panel_info *);
 	int (*post_power_func)(int enable);
 	int (*pre_init_func)(void);
+	int (*dsi2HDMI_config) (struct msm_panel_info *);
 };
 
 #endif

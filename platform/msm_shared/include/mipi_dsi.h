@@ -208,6 +208,13 @@ struct mipi_dsi_cmd {
 	uint8_t cmds_post_tg;
 };
 
+struct mipi_dsi_i2c_cmd {
+	uint8_t i2c_addr;
+	uint8_t reg;
+	uint8_t val;
+	int sleep_in_ms;
+};
+
 struct mipi_dsi_panel_config {
 	char mode;
 	char num_of_lanes;

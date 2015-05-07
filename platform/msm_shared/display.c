@@ -277,6 +277,11 @@ int msm_display_init(struct msm_fb_panel_data *pdata)
 	if (ret)
 		goto msm_display_init_out;
 
+	if (panel->dsi2HDMI_config)
+		ret = panel->dsi2HDMI_config(&(panel->panel_info));
+	if (ret)
+		goto msm_display_init_out;
+
 	ret = msm_display_config();
 	if (ret)
 		goto msm_display_init_out;
