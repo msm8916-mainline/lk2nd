@@ -195,4 +195,7 @@
 #define RPMB_SND_RCV_BUF_SZ         0x1
 
 #define TCSR_BOOT_MISC_DETECT       0x007B3000
+
+#define MSM_MMSS_CLK_CTL_BASE       0x8C0000
+#define MMSS_MISC_AHB_CBCR          (MSM_MMSS_CLK_CTL_BASE + 0x5018)
 #endif
