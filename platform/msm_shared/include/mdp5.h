@@ -45,6 +45,13 @@
 #define REQPRIORITY_FIFO_WATERMARK0        	0x50
 #define REQPRIORITY_FIFO_WATERMARK1        	0x54
 #define REQPRIORITY_FIFO_WATERMARK2        	0x58
+#define PIPE_SW_PIXEL_EXT_C0_REQ                0x108
+#define PIPE_SW_PIXEL_EXT_C1C2_REQ              0x118
+#define PIPE_SW_PIXEL_EXT_C3_REQ                0x128
+#define PIPE_COMP0_3_PHASE_STEP_X               0x210
+#define PIPE_COMP0_3_PHASE_STEP_Y               0x214
+#define PIPE_COMP1_2_PHASE_STEP_X               0x218
+#define PIPE_COMP1_2_PHASE_STEP_Y               0x21c
 
 #define LAYER_0_OUT_SIZE                        0x04
 #define LAYER_0_OP_MODE                         0x00
@@ -80,6 +87,7 @@
 #define MDSS_MDP_HW_REV_103    MDSS_MDP_REV(1, 3, 0) /* 8084 v1.0 */
 #define MDSS_MDP_HW_REV_105    MDSS_MDP_REV(1, 5, 0) /* 8994 v1.0 */
 #define MDSS_MDP_HW_REV_106    MDSS_MDP_REV(1, 6, 0) /* 8916 v1.0 */
+#define MDSS_MDP_HW_REV_107    MDSS_MDP_REV(1, 7, 0) /* 8996 v1.0 */
 #define MDSS_MDP_HW_REV_108    MDSS_MDP_REV(1, 8, 0) /* 8939 v1.0 */
 #define MDSS_MDP_HW_REV_109    MDSS_MDP_REV(1, 9, 0) /* 8994 v2.0 */
 #define MDSS_MDP_HW_REV_110    MDSS_MDP_REV(1, 10, 0) /* 8992 v1.0 */
