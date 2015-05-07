@@ -55,6 +55,7 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo);
 int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 						struct msm_panel_info *pinfo);
 int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo);
+int target_display_dsi2hdmi_config(struct msm_panel_info *pinfo);
 
 int gcdb_display_init(const char *panel_name, uint32_t rev, void *base);
 bool gcdb_display_cmdline_arg(char *panel_name, char *pbuf, uint16_t buf_size);

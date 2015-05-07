@@ -42,6 +42,7 @@
 #include <target/display.h>
 #include <i2c_qup.h>
 #include <blsp_qup.h>
+#include <mipi_dsi_i2c.h>
 
 #include "include/panel.h"
 #include "include/display_resource.h"
@@ -295,6 +296,51 @@ static int qrd_lcd_i2c_write(uint8_t addr, uint8_t val)
 		return ret;
 	}
 	return 0;
+}
+
+static int dsi2HDMI_i2c_write_regs(struct mipi_dsi_i2c_cmd *cfg, int size)
+{
+	int ret = NO_ERROR;
+	int i;
+
+	if (!cfg)
+		return ERR_INVALID_ARGS;
+
+	for (i = 0; i < size; i++) {
+		ret = mipi_dsi_i2c_write_byte(cfg[i].i2c_addr, cfg[i].reg,
+			cfg[i].val);
+		if (ret) {
+			dprintf(CRITICAL, "mipi_dsi reg writes failed\n");
+			goto w_regs_fail;
+		}
+		if (cfg[i].sleep_in_ms) {
+			udelay(cfg[i].sleep_in_ms*1000);
+		}
+	}
+w_regs_fail:
+	return ret;
+}
+
+int target_display_dsi2hdmi_config(struct msm_panel_info *pinfo)
+{
+	int ret = NO_ERROR;
+
+	if (!pinfo)
+		return ERR_INVALID_ARGS;
+
+	/*
+	 * If dsi to HDMI bridge chip connected then
+	 * send I2c commands to the chip
+	 */
+	if (pinfo->adv7533.dsi_setup_cfg_i2c_cmd)
+		ret = dsi2HDMI_i2c_write_regs(pinfo->adv7533.dsi_setup_cfg_i2c_cmd,
+					pinfo->adv7533.num_of_cfg_i2c_cmds);
+
+	if (pinfo->adv7533.dsi_tg_i2c_cmd)
+		ret = dsi2HDMI_i2c_write_regs(pinfo->adv7533.dsi_tg_i2c_cmd,
+					pinfo->adv7533.num_of_tg_i2c_cmds);
+
+	return ret;
 }
 
 static int target_panel_reset_skuh(uint8_t enable)

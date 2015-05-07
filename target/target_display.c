@@ -110,3 +110,8 @@ __WEAK int target_hdmi_gpio_ctrl(bool enable)
 {
 	return 0;
 }
+
+__WEAK int target_display_dsi2hdmi_config(struct msm_panel_info *pinfo)
+{
+	return 0;
+}
