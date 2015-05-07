@@ -508,6 +508,7 @@ ifeq ($(PLATFORM),msm8996)
 			$(LOCAL_DIR)/interrupts.o \
 			$(LOCAL_DIR)/clock.o \
 			$(LOCAL_DIR)/clock_pll.o \
+			$(LOCAL_DIR)/clock_alpha_pll.o \
 			$(LOCAL_DIR)/clock_lib2.o \
 			$(LOCAL_DIR)/uart_dm.o \
 			$(LOCAL_DIR)/board.o \

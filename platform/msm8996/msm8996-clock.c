@@ -31,6 +31,7 @@
 #include <err.h>
 #include <clock.h>
 #include <clock_pll.h>
+#include <clock_alpha_pll.h>
 #include <clock_lib2.h>
 #include <platform/clock.h>
 #include <platform/iomap.h>
@@ -93,6 +94,12 @@ static struct clk_ops clk_ops_vote =
 {
 	.enable     = clock_lib2_vote_clk_enable,
 	.disable    = clock_lib2_vote_clk_disable,
+};
+
+static struct clk_ops clk_ops_fixed_alpha_pll =
+{
+	.enable = alpha_pll_enable,
+	.disable = alpha_pll_disable,
 };
 
 /* Clock Sources */
