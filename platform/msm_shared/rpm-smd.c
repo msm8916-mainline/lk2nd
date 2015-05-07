@@ -110,7 +110,6 @@ int rpm_smd_send_data(uint32_t *data, uint32_t len, msg_type type)
 uint32_t rpm_smd_recv_data(uint32_t* len)
 {
 	rpm_ack_msg *resp;
-	msg_type type;
 	uint32_t ret = 0;
 	/* As per the current design rpm response does not exceed 20 bytes */
 	uint32_t response[5];
@@ -121,22 +120,13 @@ uint32_t rpm_smd_recv_data(uint32_t* len)
 
 	arch_invalidate_cache_range((addr_t)resp, sizeof(rpm_gen_hdr));
 
-	if(resp->hdr.type == RPM_CMD_MAGIC)
-	{
-		type = RPM_CMD_TYPE;
-	}
-	else if(resp->hdr.type == RPM_REQ_MAGIC)
-	{
-		type = RPM_REQUEST_TYPE;
-	}
-
-	if (type == RPM_CMD_TYPE && resp->hdr.len == ACK_MSG_LENGTH)
+	if(resp->hdr.type == RPM_CMD_MAGIC && resp->hdr.len == ACK_MSG_LENGTH)
 	{
 		dprintf(SPEW, "Received SUCCESS CMD ACK\n");
 	}
-	else if (type == RPM_REQUEST_TYPE && resp->hdr.len == ACK_MSG_LENGTH)
+	else if (resp->hdr.type == RPM_REQ_MAGIC && resp->hdr.len == ACK_MSG_LENGTH)
 	{
-		dprintf(SPEW, "Received SUCCESS REQ ACK \n");
+		dprintf(SPEW, "Received SUCCESS CMD ACK\n");
 	}
 	else
 	{
