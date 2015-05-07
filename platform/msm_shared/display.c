@@ -331,6 +331,12 @@ int msm_display_init(struct msm_fb_panel_data *pdata)
 
 	fbcon_setup(&(panel->fb));
 	display_image_on_screen();
+
+	if (panel->dsi2HDMI_config)
+		ret = panel->dsi2HDMI_config(&(panel->panel_info));
+	if (ret)
+		goto msm_display_init_out;
+
 	ret = msm_display_config();
 	if (ret)
 		goto msm_display_init_out;

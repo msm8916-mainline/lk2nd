@@ -543,6 +543,11 @@ static int mdss_edp_bl_enable(uint8_t enable)
 	return ret;
 }
 
+static int mdss_dsi2HDMI_config (struct msm_panel_info *pinfo)
+{
+	return target_display_dsi2hdmi_config(pinfo);
+}
+
 int gcdb_display_init(const char *panel_name, uint32_t rev, void *base)
 {
 	int ret = NO_ERROR;
@@ -566,6 +571,7 @@ int gcdb_display_init(const char *panel_name, uint32_t rev, void *base)
 		panel.power_func = mdss_dsi_panel_power;
 		panel.pre_init_func = mdss_dsi_panel_pre_init;
 		panel.bl_func = mdss_dsi_bl_enable;
+		panel.dsi2HDMI_config = mdss_dsi2HDMI_config;
 		/*
 		 * If dfps enabled, reserve fb memory to store pll
 		 * codes and pass pll codes values to kernel.
