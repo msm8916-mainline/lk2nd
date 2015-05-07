@@ -461,6 +461,9 @@ bool gcdb_display_cmdline_arg(char *panel_name, char *pbuf, uint16_t buf_size)
 
 static void init_platform_data()
 {
+	if (dsi_video_mode_phy_db.pll_type == DSI_PLL_TYPE_THULIUM)
+		return;
+
 	memcpy(dsi_video_mode_phy_db.regulator, panel_regulator_settings,
 							REGULATOR_SIZE);
 	memcpy(dsi_video_mode_phy_db.ctrl, panel_physical_ctrl,
