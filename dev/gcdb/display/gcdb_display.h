@@ -37,7 +37,6 @@
 #include "include/display_resource.h"
 #include "panel_display.h"
 
-#define TIMING_SIZE 48
 #define REGULATOR_SIZE 28
 #define PHYSICAL_SIZE 16
 #define STRENGTH_SIZE 8
