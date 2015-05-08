@@ -55,39 +55,78 @@ static struct fbcon_config *config = NULL;
 #define FONT_WIDTH		5
 #define FONT_HEIGHT		12
 
-static uint16_t			BGCOLOR;
-static uint16_t			FGCOLOR;
+#define SCALE_FACTOR		2
+
+static uint32_t			BGCOLOR;
+static uint32_t			FGCOLOR;
 
 static struct pos		cur_pos;
 static struct pos		max_pos;
 
-static void fbcon_drawglyph(uint16_t *pixels, uint16_t paint, unsigned stride,
-			    unsigned *glyph)
+static void fbcon_drawglyph(char *pixels, uint32_t paint, unsigned stride,
+			    unsigned bpp, unsigned *glyph)
 {
-	unsigned x, y, data;
-	stride -= FONT_WIDTH;
+	unsigned x, y, i, j, k;
+	unsigned data, temp;
+	uint32_t fg_color = paint;
+	stride -= FONT_WIDTH * SCALE_FACTOR;
 
 	data = glyph[0];
-	for (y = 0; y < (FONT_HEIGHT / 2); ++y) {
-		for (x = 0; x < FONT_WIDTH; ++x) {
-			if (data & 1)
-				*pixels = paint;
-			data >>= 1;
-			pixels++;
+	for (y = 0; y < FONT_HEIGHT / 2; ++y) {
+		temp = data;
+		for (i = 0; i < SCALE_FACTOR; i++) {
+			data = temp;
+			for (x = 0; x < FONT_WIDTH; ++x) {
+				if (data & 1) {
+					for (j = 0; j < SCALE_FACTOR; j++) {
+						fg_color = paint;
+						for (k = 0; k < bpp; k++) {
+							*pixels = (unsigned char) fg_color;
+							fg_color = fg_color >> 8;
+							pixels++;
+						}
+					}
+				}
+				else
+				{
+					for (j = 0; j < SCALE_FACTOR; j++) {
+						pixels = pixels + bpp;
+					}
+				}
+				data >>= 1;
+			}
+			pixels += (stride * bpp);
 		}
-		pixels += stride;
 	}
 
 	data = glyph[1];
-	for (y = 0; y < (FONT_HEIGHT / 2); y++) {
-		for (x = 0; x < FONT_WIDTH; x++) {
-			if (data & 1)
-				*pixels = paint;
-			data >>= 1;
-			pixels++;
+	for (y = 0; y < FONT_HEIGHT / 2; ++y) {
+		temp = data;
+		for (i = 0; i < SCALE_FACTOR; i++) {
+			data = temp;
+			for (x = 0; x < FONT_WIDTH; ++x) {
+				if (data & 1) {
+					for (j = 0; j < SCALE_FACTOR; j++) {
+						fg_color = paint;
+						for (k = 0; k < bpp; k++) {
+							*pixels = (unsigned char) fg_color;
+							fg_color = fg_color >> 8;
+							pixels++;
+						}
+					}
+				}
+				else
+				{
+					for (j = 0; j < SCALE_FACTOR; j++) {
+						pixels = pixels + bpp;
+					}
+				}
+				data >>= 1;
+			}
+			pixels += (stride * bpp);
 		}
-		pixels += stride;
 	}
+
 }
 
 static void fbcon_flush(void)
@@ -128,8 +167,18 @@ static void fbcon_scroll_up(void)
 /* TODO: take stride into account */
 void fbcon_clear(void)
 {
+	unsigned long i = 0, j = 0;
+	unsigned char *pixels = config->base;
 	unsigned count = config->width * config->height;
-	memset(config->base, BGCOLOR, count * ((config->bpp) / 8));
+	uint32_t bg_color;
+	for (i = 0; i < count; i++) {
+		bg_color = BGCOLOR;
+		for (j = 0; j < (config->bpp / 8); j++) {
+			*pixels = (unsigned char) bg_color;
+			bg_color = bg_color >> 8;
+			pixels++;
+		}
+	}
 }
 
 
@@ -141,7 +190,7 @@ static void fbcon_set_colors(unsigned bg, unsigned fg)
 
 void fbcon_putc(char c)
 {
-	uint16_t *pixels;
+	char *pixels;
 
 	/* ignore anything that happens before fbcon is initialized */
 	if (!config)
@@ -149,18 +198,22 @@ void fbcon_putc(char c)
 
 	if((unsigned char)c > 127)
 		return;
+
 	if((unsigned char)c < 32) {
 		if(c == '\n')
 			goto newline;
-		else if (c == '\r')
+		else if (c == '\r') {
 			cur_pos.x = 0;
-		return;
+			return;
+		}
+		else
+			return;
 	}
 
 	pixels = config->base;
-	pixels += cur_pos.y * FONT_HEIGHT * config->width;
-	pixels += cur_pos.x * (FONT_WIDTH + 1);
-	fbcon_drawglyph(pixels, FGCOLOR, config->stride,
+	pixels += cur_pos.y * SCALE_FACTOR * ((config->bpp / 8) * FONT_HEIGHT * config->width);
+	pixels += cur_pos.x * SCALE_FACTOR * ((config->bpp / 8) * (FONT_WIDTH + 1));
+	fbcon_drawglyph(pixels, FGCOLOR, config->stride, (config->bpp / 8),
 			font5x12 + (c - 32) * 2);
 
 	cur_pos.x++;
@@ -179,8 +232,8 @@ newline:
 
 void fbcon_setup(struct fbcon_config *_config)
 {
-	uint32_t bg;
-	uint32_t fg;
+	uint32_t bg = 0;
+	uint32_t fg = 0;
 
 	ASSERT(_config);
 
@@ -205,7 +258,7 @@ void fbcon_setup(struct fbcon_config *_config)
 
 	cur_pos.x = 0;
 	cur_pos.y = 0;
-	max_pos.x = config->width / (FONT_WIDTH+1);
+	max_pos.x = config->width / ((FONT_WIDTH + 1) * SCALE_FACTOR);
 	max_pos.y = (config->height - 1) / FONT_HEIGHT;
 #if !DISPLAY_SPLASH_SCREEN
 	fbcon_clear();
