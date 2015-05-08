@@ -15,7 +15,8 @@ OBJS += \
 	$(LOCAL_DIR)/partition_parser.o \
 	$(LOCAL_DIR)/hsusb.o \
 	$(LOCAL_DIR)/boot_stats.o \
-	$(LOCAL_DIR)/qgic_common.o
+	$(LOCAL_DIR)/qgic_common.o \
+	$(LOCAL_DIR)/crc32.o
 
 ifeq ($(ENABLE_QGIC3), 1)
 OBJS += $(LOCAL_DIR)/qgic_v3.o
@@ -537,6 +538,7 @@ ifeq ($(ENABLE_UFS_SUPPORT), 1)
 endif
 
 ifeq ($(PLATFORM),msm8952)
+DEFINES += DISPLAY_TYPE_MDSS=1
 	OBJS += $(LOCAL_DIR)/qgic.o \
 			$(LOCAL_DIR)/qtimer.o \
 			$(LOCAL_DIR)/qtimer_mmap.o \
@@ -558,7 +560,12 @@ ifeq ($(PLATFORM),msm8952)
 			$(LOCAL_DIR)/image_verify.o \
 			$(LOCAL_DIR)/crypto_hash.o \
 			$(LOCAL_DIR)/crypto5_eng.o \
-			$(LOCAL_DIR)/crypto5_wrapper.o
+			$(LOCAL_DIR)/crypto5_wrapper.o \
+			$(LOCAL_DIR)/mdp5.o \
+			$(LOCAL_DIR)/display.o \
+			$(LOCAL_DIR)/mipi_dsi.o \
+			$(LOCAL_DIR)/mipi_dsi_phy.o \
+			$(LOCAL_DIR)/mipi_dsi_autopll.o
 endif
 
 ifeq ($(ENABLE_BOOT_CONFIG_SUPPORT), 1)

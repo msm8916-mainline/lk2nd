@@ -101,9 +101,9 @@ void regulator_disable(uint32_t enable)
 	if (enable & REG_LDO2)
 		rpm_send_data(&ldo2[GENERIC_DISABLE][0], 36, RPM_REQUEST_TYPE);
 
-	if (enable & REG_LDO2)
+	if (enable & REG_LDO17)
 		rpm_send_data(&ldo17[GENERIC_DISABLE][0], 36, RPM_REQUEST_TYPE);
 
-	if (enable & REG_LDO2)
+	if (enable & REG_LDO6)
 		rpm_send_data(&ldo6[GENERIC_DISABLE][0], 36, RPM_REQUEST_TYPE);
 }

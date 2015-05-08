@@ -55,6 +55,8 @@
 #include <sdhci_msm.h>
 #include <clock.h>
 
+#include "target/display.h"
+
 #if LONG_PRESS_POWER_ON
 #include <shutdown_detect.h>
 #endif
@@ -64,6 +66,7 @@
 #define TLMM_VOL_UP_BTN_GPIO    85
 
 #define FASTBOOT_MODE           0x77665500
+#define RECOVERY_MODE           0x77665502
 #define PON_SOFT_RB_SPARE       0x88F
 
 #define CE1_INSTANCE            1
@@ -132,7 +135,7 @@ void target_sdc_init()
 	/* Try slot 1*/
 	config.slot          = 1;
 	config.bus_width     = DATA_BUS_WIDTH_8BIT;
-	config.max_clk_rate  = MMC_CLK_177MHZ;
+	config.max_clk_rate  = MMC_CLK_192MHZ;
 	config.sdhc_base     = mmc_sdhci_base[config.slot - 1];
 	config.pwrctl_base   = mmc_pwrctl_base[config.slot - 1];
 	config.pwr_irq       = mmc_sdc_pwrctl_irq[config.slot - 1];
@@ -272,6 +275,11 @@ void target_baseband_detect(struct board_data *board)
 	case MSM8976:
 		board->baseband = BASEBAND_MSM;
 		break;
+	case APQ8052:
+	case APQ8056:
+	case APQ8076:
+		board->baseband = BASEBAND_APQ;
+		break;
 	default:
 		dprintf(CRITICAL, "Platform type: %u is not supported\n",platform);
 		ASSERT(0);
@@ -340,7 +348,7 @@ void reboot_device(unsigned reboot_reason)
 	/* For Reboot-bootloader and Dload cases do a warm reset
 	 * For Reboot cases do a hard reset
 	 */
-	if((reboot_reason == FASTBOOT_MODE) || (reboot_reason == DLOAD))
+	if((reboot_reason == FASTBOOT_MODE) || (reboot_reason == DLOAD) || (reboot_reason == RECOVERY_MODE))
 		reset_type = PON_PSHOLD_WARM_RESET;
 	else
 		reset_type = PON_PSHOLD_HARD_RESET;
@@ -376,12 +384,16 @@ uint32_t is_user_force_reset(void)
 }
 #endif
 
+#define SMBCHG_USB_RT_STS 0x21310
+#define USBIN_UV_RT_STS BIT(0)
 unsigned target_pause_for_battery_charge(void)
 {
 	uint8_t pon_reason = pm8x41_get_pon_reason();
 	uint8_t is_cold_boot = pm8x41_get_is_cold_boot();
-	dprintf(INFO, "%s : pon_reason is %d cold_boot:%d\n", __func__,
-		pon_reason, is_cold_boot);
+	bool usb_present_sts = !(USBIN_UV_RT_STS &
+				pm8x41_reg_read(SMBCHG_USB_RT_STS));
+	dprintf(INFO, "%s : pon_reason is:0x%x cold_boot:%d usb_sts:%d\n", __func__,
+		pon_reason, is_cold_boot, usb_present_sts);
 	/* In case of fastboot reboot,adb reboot or if we see the power key
 	* pressed we do not want go into charger mode.
 	* fastboot reboot is warm boot with PON hard reset bit not set
@@ -390,7 +402,7 @@ unsigned target_pause_for_battery_charge(void)
 	if (is_cold_boot &&
 			(!(pon_reason & HARD_RST)) &&
 			(!(pon_reason & KPDPWR_N)) &&
-			((pon_reason & USB_CHG)))
+			usb_present_sts)
 		return 1;
 	else
 		return 0;
@@ -432,6 +444,31 @@ void target_usb_stop(void)
 {
 	/* Disable VBUS mimicing in the controller. */
 	ulpi_write(ULPI_MISC_A_VBUSVLDEXTSEL | ULPI_MISC_A_VBUSVLDEXT, ULPI_MISC_A_CLEAR);
+}
+
+static uint8_t splash_override;
+/* Returns 1 if target supports continuous splash screen. */
+int target_cont_splash_screen()
+{
+	uint8_t splash_screen = 0;
+	if (!splash_override) {
+		switch (board_hardware_id()) {
+		case HW_PLATFORM_MTP:
+		case HW_PLATFORM_SURF:
+			splash_screen = 1;
+			break;
+		default:
+			splash_screen = 0;
+			break;
+		}
+		dprintf(SPEW, "Target_cont_splash=%d\n", splash_screen);
+	}
+	return splash_screen;
+}
+
+void target_force_cont_splash_disable(uint8_t override)
+{
+        splash_override = override;
 }
 
 /* Do any target specific intialization needed before entering fastboot mode */

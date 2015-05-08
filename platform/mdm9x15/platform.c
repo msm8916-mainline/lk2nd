@@ -2,7 +2,7 @@
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2011, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2011,2015 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -35,9 +35,46 @@
 #include <debug.h>
 #include <kernel/thread.h>
 #include <platform/debug.h>
+#include <arch/arm/mmu.h>
 #include <platform/iomap.h>
 #include <smem.h>
+#include <mmu.h>
 #include <qgic.h>
+
+#define MB                                  (1024*1024)
+
+#define MSM_IOMAP_SIZE                      ((MSM_IOMAP_END - MSM_IOMAP_BASE)/MB)
+
+/* LK memory - Strongly ordered, executable */
+#define LK_MEMORY                             (MMU_MEMORY_TYPE_NORMAL | \
+                                              MMU_MEMORY_AP_READ_WRITE)
+/* Scratch memory - Strongly ordered, non-executable */
+#define SCRATCH_MEMORY                        (MMU_MEMORY_TYPE_NORMAL | \
+                                              MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
+/* Peripherals - shared device */
+#define IOMAP_MEMORY                          (MMU_MEMORY_TYPE_DEVICE_SHARED | \
+                                              MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
+
+#define SCRATCH_REGION1_VIRT_START            SCRATCH_REGION1
+#define SCRATCH_REGION2_VIRT_START            (SCRATCH_REGION1_VIRT_START + \
+                                              (SCRATCH_REGION1_SIZE))
+
+
+/* Map all the accesssible memory according to the following rules:
+ * 1. Map 1MB from MSM_SHARED_BASE with 1 -1 mapping.
+ * 2. Map MEMBASE - MEMSIZE with 1 -1 mapping.
+ * 3. Map all the scratch regions immediately after Appsbl memory.
+ *     Virtual addresses start right after Appsbl Virtual address.
+ * 4. Map all the IOMAP space with 1 - 1 mapping.
+ * 5. Map all the rest of the SDRAM/ IMEM regions as 1 -1.
+ */
+mmu_section_t mmu_section_table[] = {
+/*   Physical addr,         Virtual addr,               Size (in MB),              Flags   */
+        {MSM_SHARED_BASE,       MSM_SHARED_BASE,            1,                         SCRATCH_MEMORY},
+        {MEMBASE,               MEMBASE,                    MEMSIZE / MB,              LK_MEMORY},
+        {SCRATCH_REGION1,       SCRATCH_REGION1_VIRT_START, SCRATCH_REGION1_SIZE / MB, SCRATCH_MEMORY},
+        {SCRATCH_REGION2,       SCRATCH_REGION2_VIRT_START, SCRATCH_REGION2_SIZE / MB, SCRATCH_MEMORY},
+};
 
 static uint32_t ticks_per_sec = 0;
 
@@ -70,6 +107,29 @@ void platform_uninit(void)
 	platform_uninit_timer();
 }
 
+void platform_init_mmu_mappings(void)
+{
+	struct smem_ram_ptable *ram_ptable;
+	uint32_t i;
+	uint32_t sections;
+	uint32_t table_size = ARRAY_SIZE(mmu_section_table);
+
+	/* Configure the MMU page entries for memory read from the
+           mmu_section_table */
+	for (i = 0; i < table_size; i++)
+	{
+		sections = mmu_section_table[i].num_of_sections;
+
+		while (sections--)
+		{
+			arm_mmu_map_section(mmu_section_table[i].paddress + sections * MB,
+								mmu_section_table[i].vaddress + sections * MB,
+								mmu_section_table[i].flags);
+		}
+	}
+}
+
+
 /* Initialize DGT timer */
 void platform_init_timer(void)
 {
@@ -88,4 +148,10 @@ void platform_init_timer(void)
 uint32_t platform_tick_rate(void)
 {
 	return ticks_per_sec;
+}
+
+/* Do not use default identitiy mappings. */
+int platform_use_identity_mmu_mappings(void)
+{
+	return 0;
 }

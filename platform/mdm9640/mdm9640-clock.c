@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -124,6 +124,7 @@ static struct clk_freq_tbl ftbl_gcc_sdcc1_2_apps_clk[] =
 	F( 25000000,  gpll0,  12,   1,   2),
 	F( 50000000,  gpll0,  12,   0,   0),
 	F(100000000,  gpll0,   6,   0,   0),
+	F(171430000,  gpll0,   3,   50,  0),
 	F(200000000,  gpll0,   3,   0,   0),
 	F_END
 };

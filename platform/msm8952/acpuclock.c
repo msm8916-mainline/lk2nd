@@ -48,7 +48,7 @@ void hsusb_clock_init(void)
 		ASSERT(0);
 	}
 
-	ret = clk_get_set_enable("usb_core_clk", 80000000, 1);
+	ret = clk_get_set_enable("usb_core_clk", 133330000, 1);
 	if(ret)
 	{
 		dprintf(CRITICAL, "failed to set usb_core_clk ret = %d\n", ret);
@@ -174,6 +174,129 @@ void clock_config_uart_dm(uint8_t id)
 	if(ret)
 	{
 		dprintf(CRITICAL, "failed to set %s ret = %d\n", cclk, ret);
+		ASSERT(0);
+	}
+}
+
+/* Control the MDSS GDSC */
+void mdp_gdsc_ctrl(uint8_t enable)
+{
+	uint32_t reg = 0;
+	reg = readl(MDP_GDSCR);
+	if (enable) {
+		if (!(reg & GDSC_POWER_ON_BIT)) {
+			reg &=  ~(BIT(0) | GDSC_EN_FEW_WAIT_MASK);
+			reg |= GDSC_EN_FEW_WAIT_256_MASK;
+			writel(reg, MDP_GDSCR);
+			while(!(readl(MDP_GDSCR) & (GDSC_POWER_ON_BIT)));
+		} else {
+			dprintf(SPEW, "MDP GDSC already enabled\n");
+		}
+	} else {
+		reg |= BIT(0);
+		writel(reg, MDP_GDSCR);
+		while(readl(MDP_GDSCR) & (GDSC_POWER_ON_BIT));
+	}
+}
+
+/* Enable all the MDP branch clocks */
+void mdp_clock_enable(void)
+{
+	int ret;
+
+	ret = clk_get_set_enable("mdp_ahb_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mdp_ahb_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	/* Set MDP clock to 320MHz */
+	ret = clk_get_set_enable("mdss_mdp_clk_src", 320000000, 1);
+
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mdp_clk_src ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("mdss_vsync_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mdss vsync clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("mdss_mdp_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mdp_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+}
+
+/* Disable all the MDP branch clocks */
+void mdp_clock_disable(void)
+{
+	clk_disable(clk_get("mdss_vsync_clk"));
+	clk_disable(clk_get("mdss_mdp_clk"));
+	clk_disable(clk_get("mdss_mdp_clk_src"));
+	clk_disable(clk_get("mdp_ahb_clk"));
+}
+
+/* Disable all the bus clocks needed by MDSS */
+void mdss_bus_clocks_disable(void)
+{
+	/* Disable MDSS AXI clock */
+	clk_disable(clk_get("mdss_axi_clk"));
+}
+
+/* Enable all the bus clocks needed by MDSS */
+void mdss_bus_clocks_enable(void)
+{
+	int ret;
+
+	/* Configure AXI clock */
+	ret = clk_get_set_enable("mdss_axi_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mdss_axi_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+}
+
+/* Disable all the branch clocks needed by the DSI controller */
+void gcc_dsi_clocks_disable(void)
+{
+	clk_disable(clk_get("mdss_esc0_clk"));
+	writel(0x0, DSI_PIXEL0_CBCR);
+	writel(0x0, DSI_BYTE0_CBCR);
+}
+
+/* Configure all the branch clocks needed by the DSI controller */
+void gcc_dsi_clocks_enable(uint8_t pclk0_m, uint8_t pclk0_n, uint8_t pclk0_d)
+{
+	int ret;
+
+	/* Configure Byte clock -autopll- This will not change becasue
+	byte clock does not need any divider*/
+	writel(0x100, DSI_BYTE0_CFG_RCGR);
+	writel(0x1, DSI_BYTE0_CMD_RCGR);
+	writel(0x1, DSI_BYTE0_CBCR);
+
+	/* Configure Pixel clock */
+	writel(0x100, DSI_PIXEL0_CFG_RCGR);
+	writel(0x1, DSI_PIXEL0_CMD_RCGR);
+	writel(0x1, DSI_PIXEL0_CBCR);
+
+	writel(pclk0_m, DSI_PIXEL0_M);
+	writel(pclk0_n, DSI_PIXEL0_N);
+	writel(pclk0_d, DSI_PIXEL0_D);
+
+	/* Configure ESC clock */
+	ret = clk_get_set_enable("mdss_esc0_clk", 0, 1);
+	if (ret) {
+		dprintf(CRITICAL, "failed to set esc0_clk ret = %d\n", ret);
 		ASSERT(0);
 	}
 }
