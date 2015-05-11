@@ -55,6 +55,7 @@
 #include <platform/iomap.h>
 #include <boot_device.h>
 #include <boot_verifier.h>
+#include <platform/timer.h>
 
 #if DEVICE_TREE
 #include <libfdt.h>
@@ -742,6 +743,7 @@ static void verify_signed_bootimg(uint32_t bootimg_addr, uint32_t bootimg_size)
 		{
 			dprintf(CRITICAL,
 					"Device verification failed. Rebooting into recovery.\n");
+			mdelay(1000);
 			reboot_device(RECOVERY_MODE);
 		}
 		else
