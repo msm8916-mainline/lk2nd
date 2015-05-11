@@ -175,13 +175,12 @@ char *glink_os_string_copy(char *dst, const char *src, uint32_t size);
 
   @param[in] s1     String 1
   @param[in] s2     String 2
-  @param[in] size   The maximum number of characters to compare
 
   @return
   0 if strings are identical (up to size characters), non-zero otherwise
 */
 /*==========================================================================*/
-long glink_os_string_compare( const char *s1, const char *s2, uint32_t size );
+long glink_os_string_compare( const char *s1, const char *s2 );
 
 /*===========================================================================
   FUNCTION  glink_os_copy_mem

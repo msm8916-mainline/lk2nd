@@ -33,6 +33,55 @@ INCLUDE FILES
 #include "glink.h"
 #include "glink_internal.h"
 
+glink_core_if_type glink_core_intentless_interface =
+{
+  /** Indicates that transport is now ready to start negotiation using the
+   *  v0 configuration. */
+  glink_link_up,
+  /** Receive transport version for remote-initiated version negotiation */
+  glink_rx_cmd_version,
+  /** Receive ACK to previous glink_transport_if_type::tx_cmd_version command */
+  glink_rx_cmd_version_ack,
+  /** Sets the core version used by the transport; called after completing
+   *  negotiation.*/
+  glink_set_core_version,
+  /** Receive remote channel open request; expected response is
+   *  glink_transport_if_type:: tx_cmd_ch_remote_open_ack */
+  glink_rx_cmd_ch_remote_open,
+  /** This function is invoked by the transport in response to
+   *  glink_transport_if_type:: tx_cmd_ch_open */
+  glink_rx_cmd_ch_open_ack,
+  /** This function is invoked by the transport in response to
+   *  glink_transport_if_type:: tx_cmd_ch_close */
+  glink_rx_cmd_ch_close_ack,
+  /** Remote channel close request; will result in sending
+   *  glink_transport_if_type:: tx_cmd_ch_remote_close_ack */
+  glink_rx_cmd_ch_remote_close,
+  /** Transport invokes this call on receiving remote RX intent */
+  NULL,
+  /** Get receive packet context (if successful, should be followed by call to
+      rx_put_pkt_ctx) */
+  NULL,
+  /** Receive a packet fragment (must have previously received an rx_cmd_rx_data
+      packet). */
+  glink_rx_put_pkt_ctx,
+  /** Transport invokes this call to inform GLink that remote side is
+   *   done with previous transmitted packet. */
+  NULL,
+  /** Remote side is requesting an RX intent */
+  NULL,
+  /** ACK to RX Intent Request */
+  NULL,
+  /** Received 32-bit signals value from remote side. It is passed on to
+   *  the client */
+  glink_rx_cmd_remote_sigs,
+  /** If transport was full and could not continue a transmit operation,
+   *  then it will call this function to notify the core that it is ready to
+   *  resume transmission. */
+  NULL
+};
+
+
 /*===========================================================================
 LOCAL FUNCTION DEFINITIONS
 ===========================================================================*/
@@ -104,8 +153,56 @@ static void glink_channel_receive_pkt_intentless
 }
 
 /*===========================================================================
+FUNCTION      glink_channel_submit_pkt
+===========================================================================*/
+/**
+
+  Invokes intentless transport Tx function to transmit a packet
+
+  @param[in]  open_ch_ctx   Channel context.
+  @param[in]  pctx_ctx      Packet context.
+  @param[in]  req_intent    Request intent flag
+
+  @return     Error code.
+
+  @sideeffects  None.
+*/
+/*=========================================================================*/
+static glink_err_type glink_channel_submit_pkt_intentless
+(
+  glink_channel_ctx_type *open_ch_ctx,
+  glink_core_tx_pkt_type *pctx,
+  boolean req_intent
+)
+{
+  glink_transport_if_type *if_ptr = open_ch_ctx->if_ptr;
+  glink_err_type status = if_ptr->tx(if_ptr, open_ch_ctx->lcid, pctx);
+
+  glink_os_free(pctx);
+
+  return status;
+}
+
+/*===========================================================================
 EXTERNAL FUNCTION DEFINITIONS
 ===========================================================================*/
+
+/*===========================================================================
+  FUNCTION      glink_core_get_intentless_interface
+===========================================================================*/
+/**
+
+  Provides core interface for the intentless transport.
+
+  @return     Pointer to the core intentless interface.
+
+  @sideeffects  None.
+*/
+/*=========================================================================*/
+glink_core_if_type* glink_core_get_intentless_interface(void)
+{
+  return &glink_core_intentless_interface;
+}
 
 /*===========================================================================
   FUNCTION      glink_core_setup_intentless_xport
@@ -123,9 +220,10 @@ EXTERNAL FUNCTION DEFINITIONS
 /*=========================================================================*/
 void glink_core_setup_intentless_xport(glink_transport_if_type *if_ptr)
 {
+  if_ptr->glink_core_if_ptr = glink_core_get_intentless_interface();
   if_ptr->glink_core_priv->verify_open_cfg = glink_verify_open_cfg_intentless;
   if_ptr->glink_core_priv->channel_init = (channel_init_fn)glink_core_stub_intentless;
   if_ptr->glink_core_priv->channel_cleanup = (channel_cleanup_fn)glink_core_stub_intentless;
-  if_ptr->glink_core_priv->use_rm_intent = (use_rm_intent_fn)glink_core_stub_intentless;
+  if_ptr->glink_core_priv->channel_submit_pkt = glink_channel_submit_pkt_intentless;
   if_ptr->glink_core_priv->channel_receive_pkt = glink_channel_receive_pkt_intentless;
 }

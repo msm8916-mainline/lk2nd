@@ -135,7 +135,7 @@ static void* xport_rpm_pkt_provider
   }
 
   last = ctx_ptr->rx_fifo_size - ctx_ptr->pkt_start_ind;
-
+  
   if (offset >= last)
   {
     *size = ctx_ptr->pkt_size - offset;
@@ -235,7 +235,7 @@ static uint32 xport_rpm_write_msgram
     *write_ptr++ = *buffer++;
   }
 
-  return (char*)write_ptr - &ctx_ptr->tx_fifo[0];
+  return (uint32)((char*)write_ptr - &ctx_ptr->tx_fifo[0]);
 }
 
 /*===========================================================================
@@ -271,12 +271,19 @@ static glink_err_type xport_rpm_send_cmd
 
   glink_os_cs_acquire(ctx_ptr->tx_link_lock);
 
+  /* Transport is in reset */
+  if( ctx_ptr->reset )
+  {
+    glink_os_cs_release(ctx_ptr->tx_link_lock);
+    return GLINK_STATUS_SUCCESS;
+  }
+
   write_ind = ctx_ptr->tx_desc->write_ind;
   read_ind = ctx_ptr->tx_desc->read_ind;
   avail_size = write_ind < read_ind ? read_ind - write_ind :
                ctx_ptr->tx_fifo_size - write_ind + read_ind;
 
-  if (reserve_size + sizeof(uint64_t) > avail_size)
+  if (reserve_size + sizeof(uint64) > avail_size)
   {
     glink_os_cs_release(ctx_ptr->tx_link_lock);
     return GLINK_STATUS_OUT_OF_RESOURCES;
@@ -449,7 +456,7 @@ glink_err_type xport_rpm_tx_cmd_ch_open
 
   cmd[0] = XPORT_RPM_SET_CMD_ID(XPORT_RPM_CMD_OPEN_CHANNEL);
   cmd[0] |= XPORT_RPM_SET_CHANNEL_ID(lcid);
-  cmd[1] =  strlen(name) + 1;
+  cmd[1] =  (uint32)strlen(name) + 1;
 
   return xport_rpm_send_cmd(ctx_ptr, &cmd[0], sizeof(cmd), (void*)name, cmd[1]);
 }
@@ -584,12 +591,12 @@ glink_err_type xport_rpm_tx
   cmd[0] = XPORT_RPM_SET_CMD_ID(XPORT_RPM_CMD_TX_DATA);
   cmd[0] |= XPORT_RPM_SET_CHANNEL_ID(lcid);
   cmd[1] = 0;
-  cmd[2] = pctx->size;
+  cmd[2] = (uint32)pctx->size;
   cmd[3] = 0;
 
   pctx->size_remaining = 0;
 
-  return xport_rpm_send_cmd(ctx_ptr, &cmd[0], sizeof(cmd), (void*)pctx->data, pctx->size);
+  return xport_rpm_send_cmd(ctx_ptr, &cmd[0], sizeof(cmd), (void*)pctx->data, (uint32)pctx->size);
 }
 
 /*===========================================================================
@@ -652,11 +659,11 @@ uint32 xport_rpm_negotiate_features(
 }
 
 /*===========================================================================
-FUNCTION      xport_rpm_poll
+FUNCTION      xport_rpm_isr
 ===========================================================================*/
 /**
 
-  Poll of RPM transport.
+  ISR of RPM transport.
 
   @param[in]  ctx_ptr   Pointer to transport context.
 
@@ -667,7 +674,7 @@ FUNCTION      xport_rpm_poll
   @dependencies None.
 */
 /*=========================================================================*/
-glink_err_type xport_rpm_poll( xport_rpm_ctx_type *ctx_ptr )
+glink_err_type xport_rpm_isr( xport_rpm_ctx_type *ctx_ptr )
 {
   uint32 write_ind, read_ind;
   boolean stop_processing = FALSE;
@@ -712,7 +719,7 @@ glink_err_type xport_rpm_poll( xport_rpm_ctx_type *ctx_ptr )
 
         cmd_arg = MSGRAM_READ32(ctx_ptr, read_ind);
 
-        /* no need to incerment read_ind here since it will be rounded up */
+        /* no need to increment read_ind here since it will be rounded up */
 
         ctx_ptr->xport_if.glink_core_if_ptr->rx_cmd_version(
           (glink_transport_if_type *)ctx_ptr,
@@ -744,55 +751,52 @@ glink_err_type xport_rpm_poll( xport_rpm_ctx_type *ctx_ptr )
         }
         else
         {
-          char    tmpstr[ROUNDUP64(GLINK_CH_NAME_LEN)] = {0};
-          uint32  curr = 0;
-          uint32* string_ptr;
-          string_ptr = (uint32 *)&tmpstr[0];
-          while (curr < cmd_arg && curr < sizeof(tmpstr))
+          char  temp_string[ROUNDUP64(GLINK_CH_NAME_LEN)] = {0};
+          uint32 num_copied_chars = 0;
+          uint32  *string_ptr;
+
+          string_ptr = ( uint32 * )&temp_string[0];
+          while( ( num_copied_chars < cmd_arg ) && ( num_copied_chars < sizeof( temp_string ) ) )
           {
-            CHECK_INDEX_WRAP_AROUND(read_ind, ctx_ptr->rx_fifo_size);
-            *(string_ptr++) = MSGRAM_READ32(ctx_ptr, read_ind);
-            curr += sizeof(uint32);
-            read_ind += sizeof(uint32);
+            CHECK_INDEX_WRAP_AROUND( read_ind, ctx_ptr->rx_fifo_size );
+            *( string_ptr++ ) = MSGRAM_READ32( ctx_ptr, read_ind );
+
+            num_copied_chars += sizeof( uint32 );
+            read_ind += sizeof( uint32 );
           }
 
           /* add all the unread stuff */
-          read_ind += cmd_arg - curr;
+          read_ind += cmd_arg - num_copied_chars;
 
           /* make sure the last character is NULL */
-          tmpstr[sizeof(tmpstr) - 1] = 0;
+          temp_string[ sizeof( temp_string ) - 1 ] = 0;
 
           ctx_ptr->xport_if.glink_core_if_ptr->rx_cmd_ch_remote_open(
-            (glink_transport_if_type *)ctx_ptr, cid, tmpstr, GLINK_XPORT_RPM);
+            (glink_transport_if_type *)ctx_ptr, cid, temp_string, GLINK_XPORT_RPM);
         }
 
         break;
 
       case XPORT_RPM_CMD_CLOSE_CHANNEL:
 
+        /* no need to increment read_ind here since it will be rounded up */
         ctx_ptr->xport_if.glink_core_if_ptr->rx_cmd_ch_remote_close(
-          //(glink_transport_if_type *)ctx_ptr, XPORT_RPM_GET_CHANNEL_ID(cmd));
           (glink_transport_if_type *)ctx_ptr, cid);
-
-        /* no need to increment read_ind here since it would be rounded up */
 
         break;
 
       case XPORT_RPM_CMD_OPEN_CHANNEL_ACK:
 
-        /* no need to increment read_ind here since it would be rounded up */
-
+        /* no need to increment read_ind here since it will be rounded up */
         ctx_ptr->xport_if.glink_core_if_ptr->rx_cmd_ch_open_ack(
             (glink_transport_if_type *)ctx_ptr, cid, GLINK_XPORT_RPM);
 
         break;
 
       case XPORT_RPM_CMD_CLOSE_CHANNEL_ACK:
-
+        /* no need to increment read_ind here since it will be rounded up */
         ctx_ptr->xport_if.glink_core_if_ptr->rx_cmd_ch_close_ack(
           (glink_transport_if_type *)ctx_ptr, cid);
-
-        /* no need to increment read_ind here since it would be rounded up */
 
         break;
 
@@ -843,7 +847,7 @@ glink_err_type xport_rpm_poll( xport_rpm_ctx_type *ctx_ptr )
 
         cmd_arg = MSGRAM_READ32(ctx_ptr, read_ind);
 
-        /* no need to incerement read_ind here since it will be rounded up */
+        /* no need to increment read_ind here since it will be rounded up */
 
         ctx_ptr->xport_if.glink_core_if_ptr->rx_cmd_remote_sigs(
           (glink_transport_if_type *)ctx_ptr,
@@ -851,71 +855,34 @@ glink_err_type xport_rpm_poll( xport_rpm_ctx_type *ctx_ptr )
         break;
 
       default:
-      	dprintf(CRITICAL, "%s:%d: Invalid Command: %u\n",__func__, __LINE__, cmd);
-      	ASSERT(0);
+        dprintf(CRITICAL, "%s:%d: Invalid Command: %u\n",__func__, __LINE__, cmd);
+        ASSERT(0);
         break;
     }
 
-    read_ind = ROUNDUP64(read_ind);
-
-    if (read_ind >= ctx_ptr->rx_fifo_size)
+    /* Update read index only if transport has not been reset  */
+    if( !ctx_ptr->reset )
     {
-      read_ind -= ctx_ptr->rx_fifo_size;
-    }
+      read_ind = ROUNDUP64(read_ind);
 
-    /* Update the shared read index */
-    ctx_ptr->rx_desc->read_ind = read_ind;
+      if (read_ind >= ctx_ptr->rx_fifo_size)
+      {
+        read_ind -= ctx_ptr->rx_fifo_size;
+      }
+
+      /* Update the shared read index */
+      ctx_ptr->rx_desc->read_ind = read_ind;
+    }
+    else
+    {
+      stop_processing = TRUE;
+    }
   }
 
   glink_os_cs_release(ctx_ptr->rx_link_lock);
 
   return GLINK_STATUS_SUCCESS;
 }
-
-#ifdef GLINK_RPM_PROC
-/*===========================================================================
-FUNCTION      xport_rpm_isr
-===========================================================================*/
-/**
-
-  ISR of RPM transport.
-
-  @return     Returns error code.
-
-  @sideeffects  None.
-
-  @dependencies None.
-*/
-/*=========================================================================*/
-glink_err_type xport_rpm_isr( void )
-{
-  xport_rpm_ctx_type *ctx_ptr  = xport_rpm_get_context();
-
-  return xport_rpm_poll( ctx_ptr );
-}
-#else
-/*===========================================================================
-FUNCTION      xport_rpm_isr
-===========================================================================*/
-/**
-
-  ISR of RPM transport.
-
-  @param[in]  ctx_ptr   Pointer to transport context.
-
-  @return     Returns error code.
-
-  @sideeffects  None.
-
-  @dependencies None.
-*/
-/*=========================================================================*/
-glink_err_type xport_rpm_isr( xport_rpm_ctx_type *ctx_ptr )
-{
-  return xport_rpm_poll( ctx_ptr );
-}
-#endif
-
 
 /*===========================================================================
 FUNCTION      xport_rpm_ssr
@@ -935,9 +902,15 @@ glink_err_type xport_rpm_ssr(glink_transport_if_type *if_ptr)
 {
   xport_rpm_ctx_type *ctx_ptr = (xport_rpm_ctx_type *)if_ptr;
 
+  glink_os_cs_acquire(ctx_ptr->tx_link_lock);
+  glink_os_cs_acquire(ctx_ptr->rx_link_lock);
   ctx_ptr->tx_desc->write_ind = 0;
+  ctx_ptr->tx_desc->read_ind = 0;
+  ctx_ptr->rx_desc->write_ind = 0;
   ctx_ptr->rx_desc->read_ind = 0;
   ctx_ptr->reset = TRUE;
+  glink_os_cs_release(ctx_ptr->rx_link_lock);
+  glink_os_cs_release(ctx_ptr->tx_link_lock);
 
   return GLINK_STATUS_SUCCESS;
 }
@@ -1004,6 +977,25 @@ glink_err_type xport_rpm_mask_interrupt(glink_transport_if_type *if_ptr, boolean
 }
 
 /*===========================================================================
+FUNCTION      xport_rpm_is_toc_present
+===========================================================================*/
+/**
+
+  Checks RPM MSG RAM for ToC presence.
+
+  @return     TRUE if ToC is detected, FALSE otherwise.
+
+  @sideeffects  None.
+*/
+/*=========================================================================*/
+boolean xport_rpm_is_toc_present(void)
+{
+  uint32 *msg_ram_toc = (uint32*)xport_rpm_msg_ram_toc;
+
+  return msg_ram_toc[XPORT_RPM_TOC_MAGIC_IDX] == XPORT_RPM_TOC_MAGIC;
+}
+
+/*===========================================================================
 FUNCTION      xport_rpm_init
 ===========================================================================*/
 /**
@@ -1033,8 +1025,9 @@ glink_err_type xport_rpm_init(void *arg)
     return GLINK_STATUS_SUCCESS;
   }
 
-  if (msg_ram_toc[XPORT_RPM_TOC_MAGIC_IDX] != XPORT_RPM_TOC_MAGIC)
+  if (!xport_rpm_is_toc_present())
   {
+    /* switch to err fatal once RPM side is integrated */
     dprintf(CRITICAL, "%s:%d: RPM Transport Failure: Invalid ToC cookie\n", __func__, __LINE__);
     return GLINK_STATUS_FAILURE;
   }
@@ -1076,14 +1069,12 @@ glink_err_type xport_rpm_init(void *arg)
       if (entry->fifo_id == xport_rpm_ctx[ind].pcfg->tx_fifo_id)
       {
         xport_rpm_ctx[ind].tx_desc = (xport_rpm_ind_type*)&xport_rpm_msg_ram[entry->fifo_offset];
-        xport_rpm_ctx[ind].tx_desc->write_ind = 0;
         xport_rpm_ctx[ind].tx_fifo = (char*)(xport_rpm_ctx[ind].tx_desc + 1);
         xport_rpm_ctx[ind].tx_fifo_size = entry->fifo_size;
       }
       else if (entry->fifo_id == xport_rpm_ctx[ind].pcfg->rx_fifo_id)
       {
         xport_rpm_ctx[ind].rx_desc =(xport_rpm_ind_type*)&xport_rpm_msg_ram[entry->fifo_offset];
-        xport_rpm_ctx[ind].rx_desc->read_ind = 0;
         xport_rpm_ctx[ind].rx_fifo = (char*)(xport_rpm_ctx[ind].rx_desc + 1);
         xport_rpm_ctx[ind].rx_fifo_size = entry->fifo_size;
       }
@@ -1096,9 +1087,13 @@ glink_err_type xport_rpm_init(void *arg)
       continue;
     }
 
+    /* Rx read index should be cleared last */
+    xport_rpm_ctx[ind].tx_desc->write_ind = 0;
+    xport_rpm_ctx[ind].rx_desc->read_ind = 0;
+
     /* Initialize context */
-    xport_rpm_ctx[ind].tx_link_lock = NULL;
-    xport_rpm_ctx[ind].rx_link_lock = NULL;
+    xport_rpm_ctx[ind].tx_link_lock = glink_os_cs_create();
+    xport_rpm_ctx[ind].rx_link_lock = glink_os_cs_create();
 
     /* Initialize GLink transport interface */
     xport_rpm_ctx[ind].xport_if.tx_cmd_version = &xport_rpm_tx_cmd_version;
@@ -1112,7 +1107,7 @@ glink_err_type xport_rpm_init(void *arg)
     xport_rpm_ctx[ind].xport_if.tx_cmd_set_sigs = &xport_rpm_tx_cmd_set_sigs;
     xport_rpm_ctx[ind].xport_if.ssr = &xport_rpm_ssr;
     xport_rpm_ctx[ind].xport_if.mask_rx_irq = &xport_rpm_mask_interrupt;
-    xport_rpm_ctx[ind].xport_if.poll = (poll_fn)&xport_rpm_poll;
+    xport_rpm_ctx[ind].xport_if.poll = (poll_fn)&xport_rpm_isr;
     xport_rpm_ctx[ind].xport_if.wait_link_down = &xport_rpm_wait_link_down;
 
     /* TODO: glink transport priority */
@@ -1125,6 +1120,7 @@ glink_err_type xport_rpm_init(void *arg)
     xport_rpm_cfg.version_count = 1;
     xport_rpm_cfg.max_cid = 0xFF;
     xport_rpm_cfg.max_iid = 0;
+
     if (glink_core_register_transport(&xport_rpm_ctx[ind].xport_if, &xport_rpm_cfg) !=
         GLINK_STATUS_SUCCESS)
     {
@@ -1137,7 +1133,8 @@ glink_err_type xport_rpm_init(void *arg)
                                 (os_isr_cb_fn)xport_rpm_isr,
                                 &xport_rpm_ctx[ind]) )
     {
-       /* ISR registration failed, set index to invalid. */
+       /* ISR registration failed, set index to invalid.
+        * It will never fail */
       xport_rpm_ctx[ind].pcfg = NULL;
       continue;
     }

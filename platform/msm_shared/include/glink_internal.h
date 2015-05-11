@@ -45,7 +45,6 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "glink_os_utils.h"
 #include "glink_core_if.h"
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -92,10 +91,18 @@ typedef enum {
   GLINK_EVENT_CH_SIG_SET,
   GLINK_EVENT_CH_SIG_L_GET,
   GLINK_EVENT_CH_SIG_R_GET,
+  GLINK_EVENT_CH_NO_MIGRATION,
+  GLINK_EVENT_CH_MIGRATION_IN_PROGRESS,
   GLINK_EVENT_XPORT_INTERNAL,
+  GLINK_EVENT_TRACER_PKT_FAILURE,
+  GLINK_EVENT_TXV_INVALID_BUFFER
 }glink_log_event_type;
 
 typedef struct _glink_channel_intents_type {
+
+  /* Link for a channel in Tx queue */
+  struct _glink_channel_intents_type* next;
+
   /* Critical section to protest access to intent queues */
   os_cs_type                    intent_q_cs;
 
@@ -124,81 +131,91 @@ typedef struct _glink_channel_intents_type {
   /* Read intent being gathered */
   glink_rx_intent_type          *cur_read_intent;
 
+  /* Linked list of Tx packets in the order they where submitted by
+   * the channel owner */
+  smem_list_type                tx_pkt_q;
+
 } glink_channel_intents_type;
 
 struct glink_channel_ctx {
   /* Link needed for use with list APIs.  Must be at the head of the struct */
-  smem_list_link_type           link;
+  smem_list_link_type                 link;
 
   /* Channel name */
-  char                          name[GLINK_CH_NAME_LEN];
+  char                                name[GLINK_CH_NAME_LEN];
 
   /* Local channel ID */
-  uint32                        lcid;
+  uint32                              lcid;
 
   /* Remote Channel ID */
-  uint32                        rcid;
+  uint32                              rcid;
 
-  /* Channel state */
-  glink_ch_state_type           state;
+  /* Local Channel state */
+  glink_local_state_type              local_state;
+
+  /* Remote channel state */
+  glink_remote_state_type             remote_state;
+
+  /* Critical section to protect channel states */
+  os_cs_type                          ch_state_cs;
 
   /* Channel local control signal state */
-  uint32                        local_sigs;
+  uint32                              local_sigs;
 
   /* Channel remote control signal state */
-  uint32                        remote_sigs;
+  uint32                              remote_sigs;
 
   /* Critical section to protect tx operations */
-  os_cs_type                    tx_cs;
+  os_cs_type                          tx_cs;
 
   /* channel intent collection */
-  glink_channel_intents_type    *pintents;
+  glink_channel_intents_type          *pintents;
 
   /* Interface pointer with with this channel is registered */
-  glink_transport_if_type       *if_ptr;
+  glink_transport_if_type             *if_ptr;
 
   /** Private data for client to maintain context. This data is passed back
    * to client in the notification callbacks */
-  const void                    *priv;
+  const void                          *priv;
 
   /** Data receive notification callback */
-  glink_rx_notification_cb      notify_rx;
+  glink_rx_notification_cb            notify_rx;
+
+  /** Tracer Packet data receive notification callback */
+  glink_rx_tracer_pkt_notification_cb notify_rx_tracer_pkt;
 
   /** Vector receive notification callback */
-  glink_rxv_notification_cb      notify_rxv;
+  glink_rxv_notification_cb           notify_rxv;
 
   /** Data transmit notification callback */
-  glink_tx_notification_cb      notify_tx_done;
+  glink_tx_notification_cb            notify_tx_done;
 
   /** GLink channel state notification callback */
-  glink_state_notification_cb   notify_state;
+  glink_state_notification_cb         notify_state;
 
   /** Intent request from the remote side */
-  glink_notify_rx_intent_req_cb notify_rx_intent_req;
+  glink_notify_rx_intent_req_cb       notify_rx_intent_req;
 
   /** New intent arrival from the remote side */
-  glink_notify_rx_intent_cb     notify_rx_intent;
+  glink_notify_rx_intent_cb           notify_rx_intent;
 
   /** Control signal change notification - Invoked when remote side
    *  alters its control signals */
-  glink_notify_rx_sigs_cb       notify_rx_sigs;
+  glink_notify_rx_sigs_cb             notify_rx_sigs;
 
   /** rx_intent abort notification. This callback would be invoked for
   *  every rx_intent that is queued with GLink core at the time the
   *  remote side or local side decides to close the port. Optional */
-  glink_notify_rx_abort_cb      notify_rx_abort;
+  glink_notify_rx_abort_cb            notify_rx_abort;
 
   /** tx abort notification. This callback would be invoked if client
   *   had queued a tx buffer with glink and it had not been transmitted i.e.
   *   tx_done callback has not been called for this buffer and remote side
   *   or local side closed the port. Optional */
-  glink_notify_tx_abort_cb      notify_tx_abort;
+  glink_notify_tx_abort_cb            notify_tx_abort;
 
   /* glink transport if pointer for preferred channel */
-  glink_transport_if_type       *req_if_ptr;
-
-  /* reference count for no of times channel open/close has been called */
-  uint32                        ref_count;
+  glink_transport_if_type             *req_if_ptr;
 
   /* flag to check if channel is marked for deletion
    * This is workaround to prevent channel migration algorithm from finding channel
@@ -207,10 +224,10 @@ struct glink_channel_ctx {
    * This may lead to remote side opening channel on neogitated xport from which local side
    * will get remote open again. In this case channel to be closed will be found for negotiation
    * on initial xport again and channel migration algorithm will be triggered(again)  */
-  boolean                       tag_ch_for_close;
+  boolean                             tag_ch_for_close;
 
   /* save glink open config options */
-  uint32 ch_open_options;
+  uint32                              ch_open_options;
 };
 
 
@@ -234,7 +251,6 @@ typedef struct {
   glink_link_state_notif_cb link_notifier; /* Notification callback */
   void                      *priv;         /* Notification priv ptr */
 } glink_link_notif_data_type;
-
 
 /*===========================================================================
                               GLOBAL DATA DECLARATIONS
@@ -411,27 +427,6 @@ void glink_rx_cmd_ch_remote_close
 );
 
 /*===========================================================================
-FUNCTION      glink_ch_state_local_trans
-
-DESCRIPTION   Process local state transition
-
-ARGUMENTS   *if_ptr   Pointer to interface instance; must be unique
-                      for each edge
-
-            rcid      Remote Channel ID
-
-RETURN VALUE  None.
-
-SIDE EFFECTS  None
-===========================================================================*/
-void glink_ch_state_local_trans
-(
-  glink_transport_if_type  *if_ptr,  /* Pointer to the interface instance */
-  uint32                   lcid,     /* Local channel ID */
-  glink_ch_state_type      new_state /* New local channel state */
-);
-
-/*===========================================================================
 FUNCTION      glink_rx_put_pkt_ctx
 
 DESCRIPTION   Transport invokes this call to receive a packet fragment (must
@@ -483,25 +478,6 @@ void glink_rx_cmd_remote_sigs
 );
 
 /*===========================================================================
-FUNCTION      glink_tx_resume
-
-DESCRIPTION   If transport was full and could not continue a transmit
-              operation, then it will call this function to notify the core
-              that it is ready to resume transmission.
-
-ARGUMENTS   *if_ptr    Pointer to interface instance; must be unique
-                       for each edge
-
-RETURN VALUE  None.
-
-SIDE EFFECTS  None
-===========================================================================*/
-void glink_tx_resume
-(
-  glink_transport_if_type *if_ptr /* Pointer to the interface instance */
-);
-
-/*===========================================================================
 FUNCTION      glink_set_core_version
 
 DESCRIPTION   Sets the core version used by the transport; called after
@@ -534,7 +510,7 @@ DESCRIPTION   Determine if both the local and remote channel state is fully
 
 ARGUMENTS     *cfg_ptr   - Pointer to channel context
 
-RETURN VALUE  True if fully opened, FALSE otherwise.
+RETURN VALUE  True if fully opened, false otherwise.
 
 SIDE EFFECTS  None
 ===========================================================================*/
@@ -746,41 +722,36 @@ void glinki_ch_remove_tx_pending_remote_done
 );
 
 /*===========================================================================
-FUNCTION      glinki_add_ch_to_xport
-
-DESCRIPTION   Add remote/local channel context to xport open channel queue
-
-ARGUMENTS     *if_ptr            - Pointer to xport if on which channel is to
-                                   be opened
-              *req_if_ptr        - Pointer to xport if on which channel
-			                       actually wants to open
-              *ch_ctx            - channel context
-              **allocated_ch_ctx - Pointer to channel context pointer
-              local_open         - flag to determine if channel is opened
-			                       locally or remotely
-              migration state    - flag to identify whether channel migration
-			                       negotiation is done
-                                   TRUE - negotiation is not complete
-                                   FALSE - negotiation is complete.
-								   channel is being opened on same xport as negotiated
-              prio               - negotiated xport priority
-			                       (used to send priority via remote_open_ack to
-								    remote side)
-              *tx_pkt            - Pointer to the packet context to remove
-
-RETURN VALUE  None
-
-SIDE EFFECTS  None
+  FUNCTION      glinki_add_ch_to_xport
 ===========================================================================*/
+/**
+ * Add remote/local channel context to xport open channel queue
+ *
+ * @param[in]    if_ptr            Pointer to xport if on which channel is to
+ *                                 be opened
+ * @param[in]    req_if_ptr        Pointer to xport if on which channel
+ *                                 actually wants to open
+ * @param[in]    ch_ctx            channel context
+ * @param[out]   allocated_ch_ctx  Pointer to channel context pointer
+ * @param[in]    local_open        flag to determine if channel is opened
+ *                                 locally or remotely
+ * @param[in]    prio              negotiated xport priority
+ *                                 (used to send priority via remote_open_ack to
+ *                                  remote side)
+ *
+ * @return       pointer to glink_transport_if_type struct
+ *
+ * @sideeffects  NONE
+ */
+/*=========================================================================*/
 glink_err_type glinki_add_ch_to_xport
 (
   glink_transport_if_type  *if_ptr,
   glink_transport_if_type  *req_if_ptr,
   glink_channel_ctx_type   *ch_ctx,
-  glink_channel_ctx_type   **allocated_ch_ctx,
+  glink_channel_ctx_type  **allocated_ch_ctx,
   unsigned int              local_open,
-  boolean                  migration_state,
-  glink_xport_priority     prio
+  glink_xport_priority      prio
 );
 
 void glink_mem_log
@@ -809,6 +780,20 @@ FUNCTION      glink_core_setup
 */
 /*=========================================================================*/
 void glink_core_setup(glink_transport_if_type *if_ptr);
+
+/*===========================================================================
+FUNCTION      glink_core_get_default_interface
+===========================================================================*/
+/**
+
+  Provides default core interface.
+
+  @return     Pointer to the default core interface.
+
+  @sideeffects  None.
+*/
+/*=========================================================================*/
+glink_core_if_type* glink_core_get_default_interface(void);
 
 /*===========================================================================
 FUNCTION      glink_core_setup_full_xport

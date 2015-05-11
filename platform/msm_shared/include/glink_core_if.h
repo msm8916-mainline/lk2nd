@@ -57,9 +57,6 @@ extern "C" {
 ===========================================================================*/
 typedef struct glink_core_version glink_core_version_type;
 
-struct glink_channel_ctx;
-typedef struct glink_channel_ctx glink_channel_ctx_type;
-
 /**
  * Transport status
  */
@@ -81,45 +78,48 @@ struct glink_rx_intent {
   size_t     pkt_sz;     /* Size of the packet */
   uint32     iid;        /* Intent ID */
   void       *iovec;     /* Pointer to the data buffer to be transmitted */
+  boolean    tracer_pkt;  /* Specify if this intent is for tracer packet */
   glink_buffer_provider_fn vprovider; /* Buffer provider for virtual space */
   glink_buffer_provider_fn pprovider; /* Buffer provider for physical space */
 };
-/** GLink channel states*/
-typedef enum {
-  /** GLink channel state during initialization. No resources have been
-   *  allocated for this channel as neither GLink end has actually opened
-   *  the channel */
-  GLINK_CH_STATE_CLOSED,
 
-  /** GLink channel state when the local side has opened the channel. GLink
-   *  core is waiting for the other end of the channel to open */
-  GLINK_CH_STATE_LOCAL_OPEN,
+/** Context of Tx activity for a transport */
+typedef struct glink_tx_xport_ctx_s {
+  os_event_type event;   /* Event to signal Tx thread */
+  os_cs_type tx_q_cs;    /* Lock to protect Tx queue */
+  smem_list_type tx_q;   /* Tx channel queue */
+} glink_tx_xport_ctx_type;
 
-  /** GLink channel state when it is fully open. This implies that both ends
-   *  of the GLink channel are now open. Data transfer can now take place */
-  GLINK_CH_STATE_OPEN,
+/** G-Link Local channel states */
+typedef enum
+{
+  /** Local G-Link channel is fully closed */
+  GLINK_LOCAL_CH_CLOSED,
 
-  /** GLink channel state when remote side has initiated a OPEN operation. */
-  GLINK_CH_STATE_REMOTE_OPEN,
+  /** Local G-Link channel opened channel and waiting for ACK from remote */
+  GLINK_LOCAL_CH_OPENING,
 
-  /** GLink channel state when remote side has initiated a CLOSE operation.
-   *  Data cannot be transmitted/received any further on this channel */
-  GLINK_CH_STATE_LOCAL_OPEN_REMOTE_CLOSE,
+  /** Local G-Link channel is fully opened */
+  GLINK_LOCAL_CH_OPENED,
 
-  /** GLink channel state when the local side has initiated a CLOSE. This
-   *  would be followed by a GLINK_STATE_CLOSE state transition after
-   *  the remote side has acknowledged the CLOSE request */
-   GLINK_CH_STATE_REMOTE_OPEN_LOCAL_CLOSE,
+  /** Local G-Link channel closed the channel and waiting for ACK from remote */
+  GLINK_LOCAL_CH_CLOSING
 
-  /** GLink channel state would transition to SLEEP if the underlying
-   *  transport supports low power mode and decides to go into sleep
-   *  due to inactivity for some time or any other reason. */
-  GLINK_CH_STATE_SLEEP,
+}glink_local_state_type;
 
-  /** GLink channel state would transition to AWAKE state when underlying
-   *  transport layer has powered up the hardware */
-  GLINK_CH_STATE_AWAKE
-}glink_ch_state_type;
+/** G-Link Remote channel states */
+typedef enum
+{
+  /** Remote G-Link channel is closed */
+  GLINK_REMOTE_CH_CLOSED,
+
+  /** Remote G-Link channel is opened */
+  GLINK_REMOTE_CH_OPENED,
+
+  /* Glink channel state when SSR is received from remote sub-system */
+  GLINK_REMOTE_CH_SSR_RESET
+
+}glink_remote_state_type;
 
 /** Indicates that transport is now ready to start negotiation using the
  *  v0 configuration. */
@@ -187,14 +187,6 @@ typedef void (*rx_cmd_ch_remote_close_fn)
   uint32                  rcid     /* Remote channel ID */
 );
 
-/** Process local state transition */
-typedef void (*ch_state_local_trans_fn)
-(
-  glink_transport_if_type  *if_ptr,  /* Pointer to the interface instance */
-  uint32                   lcid,     /* Local channel ID */
-  glink_ch_state_type      new_state /* New local channel state */
-);
-
 /** Transport invokes this call on receiving remote RX intent */
 typedef void (*rx_cmd_remote_rx_intent_put_fn)
 (
@@ -246,7 +238,7 @@ typedef void (*rx_cmd_rx_intent_req_ack_fn)
 (
   glink_transport_if_type *if_ptr, /* Pointer to the interface instance */
   uint32                  rcid,    /* Remote channel ID */
-  boolean                 granted  /* True if RX Intent will be queued, FALSE
+  boolean                 granted  /* True if RX Intent will be queued, false
                                       if request will not be granted. */
 );
 
@@ -292,8 +284,8 @@ typedef void(*channel_receive_pkt_fn)
   glink_rx_intent_type *intent_ptr      /* Pointer to the intent context */
 );
 
-/** Use remote intent */
-typedef glink_err_type(*use_rm_intent_fn)
+/** Channel submit pkt */
+typedef glink_err_type(*channel_submit_pkt_fn)
 (
   glink_channel_ctx_type *open_ch_ctx,  /* Pointer to the channel context */
   glink_core_tx_pkt_type *pctx,         /* Pointer to the packet context */
@@ -306,10 +298,10 @@ typedef glink_err_type(*use_rm_intent_fn)
 struct glink_core_xport_ctx
 {
   /* Transport name */
-  char                          xport[32];
+  const char                    *xport;
 
   /* Remote subsystem name */
-  char                          remote_ss[32];
+  const char                    *remote_ss;
 
   /** Keep track of version array index in use */
   const glink_core_version_type *version_array;
@@ -319,6 +311,10 @@ struct glink_core_xport_ctx
 
   /* Keeps track of the current status of the transport */
   glink_transport_status_type   status;
+
+  /* critical section to change/access xport status
+   * automically */
+  os_cs_type                    status_cs;
 
   /* Transport's capabilities */
   uint32                        xport_capabilities;
@@ -339,6 +335,9 @@ struct glink_core_xport_ctx
   /* Critical section to protect access to liid allocation */
   os_cs_type                    liid_cs;
 
+  /* Context of Tx activity for a transport */
+  glink_tx_xport_ctx_type       *tx_ctx;
+
   /* channel open config verification */
   verify_open_cfg_fn            verify_open_cfg;
 
@@ -351,8 +350,8 @@ struct glink_core_xport_ctx
   /* channel receive pkt */
   channel_receive_pkt_fn        channel_receive_pkt;
 
-  /** Use remote intent */
-  use_rm_intent_fn              use_rm_intent;
+  /* channel submit pkt */
+  channel_submit_pkt_fn         channel_submit_pkt;
 };
 
 /**
@@ -381,25 +380,17 @@ struct glink_core_if
    *  glink_transport_if_type:: tx_cmd_ch_remote_open_ack */
   rx_cmd_ch_remote_open_fn       rx_cmd_ch_remote_open;
 
-
   /** This function is invoked by the transport in response to
    *  glink_transport_if_type:: tx_cmd_ch_open */
   rx_cmd_ch_open_ack_fn          rx_cmd_ch_open_ack;
-
 
   /** This function is invoked by the transport in response to
    *  glink_transport_if_type:: tx_cmd_ch_close */
   rx_cmd_ch_close_ack_fn         rx_cmd_ch_close_ack;
 
-
   /** Remote channel close request; will result in sending
    *  glink_transport_if_type:: tx_cmd_ch_remote_close_ack */
   rx_cmd_ch_remote_close_fn      rx_cmd_ch_remote_close;
-
-
-  /** Process local state transition */
-  ch_state_local_trans_fn        ch_state_local_trans;
-
 
   /** Transport invokes this call on receiving remote RX intent */
   rx_cmd_remote_rx_intent_put_fn rx_cmd_remote_rx_intent_put;
