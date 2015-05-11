@@ -38,6 +38,7 @@
 #include <rsa.h>
 #include <string.h>
 #include <openssl/err.h>
+#include <platform.h>
 
 static KEYSTORE *oem_keystore;
 static KEYSTORE *user_keystore;
@@ -470,6 +471,8 @@ void boot_verify_print_state()
 			dprintf(INFO, "boot_verifier: Device is in YELLOW boot state.\n");
 			break;
 		case RED:
+			display_fbcon_message("Security Error:  This phone has been flashed with unauthorized software & is locked. Call your mobile operator for additional support.Please note that				repair/return for this issue may have additional cost.\n");
+
 			dprintf(INFO, "boot_verifier: Device is in RED boot state.\n");
 			break;
 	}
