@@ -44,9 +44,9 @@
 /* Panel configuration                                                       */
 /*---------------------------------------------------------------------------*/
 static struct panel_config jdi_qhd_dualdsi_cmd_panel_data = {
-	"qcom,mdss_dsi_jdi_qhd_dualmipi0_cmd", "dsi:0:", "qcom,mdss-dsi-panel",
+	"qcom,mdss_dsi_jdi_qhd_dualmipi_cmd", "dsi:0:", "qcom,mdss-dsi-panel",
 	10, 1, "DISPLAY_1", 0, 0, 60, 0, 0, 1, 0, 0, 0, 0, 0, 11, 0, 0,
-	"qcom,mdss_dsi_jdi_qhd_dualmipi1_cmd"
+	"qcom,mdss_dsi_jdi_qhd_dualmipi_cmd"
 };
 
 /*---------------------------------------------------------------------------*/
