@@ -460,22 +460,6 @@ bool gcdb_display_cmdline_arg(char *panel_name, char *pbuf, uint16_t buf_size)
 	return ret;
 }
 
-
-static void init_platform_data()
-{
-	if (dsi_video_mode_phy_db.pll_type == DSI_PLL_TYPE_THULIUM)
-		return;
-
-	memcpy(dsi_video_mode_phy_db.regulator, panel_regulator_settings,
-							REGULATOR_SIZE);
-	memcpy(dsi_video_mode_phy_db.ctrl, panel_physical_ctrl,
-							PHYSICAL_SIZE);
-	memcpy(dsi_video_mode_phy_db.strength, panel_strength_ctrl,
-							STRENGTH_SIZE);
-	memcpy(dsi_video_mode_phy_db.bistCtrl, panel_bist_ctrl, BIST_SIZE);
-	memcpy(dsi_video_mode_phy_db.laneCfg, panel_lane_config, LANE_SIZE);
-}
-
 static void mdss_edp_panel_init(struct msm_panel_info *pinfo)
 {
 	return target_edp_panel_init(pinfo);
@@ -560,7 +544,7 @@ int gcdb_display_init(const char *panel_name, uint32_t rev, void *base)
 				 &dsi_video_mode_phy_db);
 
 	if (pan_type == PANEL_TYPE_DSI) {
-		init_platform_data();
+		target_dsi_phy_config(&dsi_video_mode_phy_db);
 		if (dsi_panel_init(&(panel.panel_info), &panelstruct)) {
 			dprintf(CRITICAL, "DSI panel init failed!\n");
 			ret = ERROR;

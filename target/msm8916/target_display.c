@@ -547,6 +547,16 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 	return ret;
 }
 
+int target_dsi_phy_config(struct mdss_dsi_phy_ctrl *phy_db)
+{
+	memcpy(phy_db->regulator, panel_regulator_settings, REGULATOR_SIZE);
+	memcpy(phy_db->ctrl, panel_physical_ctrl, PHYSICAL_SIZE);
+	memcpy(phy_db->strength, panel_strength_ctrl, STRENGTH_SIZE);
+	memcpy(phy_db->bistCtrl, panel_bist_ctrl, BIST_SIZE);
+	memcpy(phy_db->laneCfg, panel_lane_config, LANE_SIZE);
+	return NO_ERROR;
+}
+
 int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 {
 	/*

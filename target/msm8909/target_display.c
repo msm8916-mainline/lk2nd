@@ -232,6 +232,16 @@ int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 	return NO_ERROR;
 }
 
+int target_dsi_phy_config(struct mdss_dsi_phy_ctrl *phy_db)
+{
+	memcpy(phy_db->regulator, panel_regulator_settings, REGULATOR_SIZE);
+	memcpy(phy_db->ctrl, panel_physical_ctrl, PHYSICAL_SIZE);
+	memcpy(phy_db->strength, panel_strength_ctrl, STRENGTH_SIZE);
+	memcpy(phy_db->bistCtrl, panel_bist_ctrl, BIST_SIZE);
+	memcpy(phy_db->laneCfg, panel_lane_config, LANE_SIZE);
+	return NO_ERROR;
+}
+
 bool target_display_panel_node(char *panel_name, char *pbuf, uint16_t buf_size)
 {
 	return gcdb_display_cmdline_arg(panel_name, pbuf, buf_size);

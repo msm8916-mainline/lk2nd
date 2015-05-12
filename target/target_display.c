@@ -78,6 +78,11 @@ __WEAK void target_edp_panel_init(struct msm_panel_info *pinfo)
 	return;
 }
 
+__WEAK int target_dsi_phy_config(struct mdss_dsi_phy_ctrl *phy_db)
+{
+	return 0;
+}
+
 __WEAK int target_edp_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 {
 	return 0;
