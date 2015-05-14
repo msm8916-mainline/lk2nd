@@ -385,7 +385,10 @@ const char * target_usb_controller()
 
 uint32_t target_override_pll()
 {
-	return 1;
+	if (board_soc_version() >= 0x20000)
+		return 0;
+	else
+		return 1;
 }
 
 crypto_engine_type board_ce_type(void)
