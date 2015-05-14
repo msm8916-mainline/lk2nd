@@ -99,6 +99,10 @@ static struct gpio_pin enable_gpio_skut2 = {
   "msmgpio", 22, 3, 1, 0, 1
 };
 
+static struct gpio_pin dsi2HDMI_switch_gpio = {
+  "msmgpio", 32, 3, 1, 0, 1
+};
+
 /*---------------------------------------------------------------------------*/
 /* Target Physical configuration                                             */
 /*---------------------------------------------------------------------------*/
@@ -179,6 +183,8 @@ enum {
 	R61318_HD_VIDEO_PANEL,
 	R63417_1080P_VIDEO_PANEL,
 	JDI_A216_FHD_VIDEO_PANEL,
+	ADV7533_1080P_VIDEO_PANEL,
+	ADV7533_720P_VIDEO_PANEL,
 	UNKNOWN_PANEL
 };
 
