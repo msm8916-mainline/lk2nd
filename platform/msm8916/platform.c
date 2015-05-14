@@ -202,6 +202,11 @@ int platform_is_msm8929()
 	return ret;
 }
 
+int platform_is_apq8016()
+{
+	return board_platform_id() == APQ8016 ? 1 : 0;
+}
+
 /* DYNAMIC SMEM REGION feature enables LK to dynamically
  * read the SMEM addr info from TCSR_TZ_WONCE register.
  * The first word read, if indicates a MAGIC number, then
