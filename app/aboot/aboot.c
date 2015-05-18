@@ -3010,6 +3010,12 @@ void aboot_init(const struct app_descriptor *app)
 normal_boot:
 	if (!boot_into_fastboot)
 	{
+#ifdef MDTP_SUPPORT
+			/* Go through Firmware Lock verification before continue with boot process */
+			mdtp_fwlock_verify_lock();
+			display_image_on_screen();
+#endif /* MDTP_SUPPORT */
+
 		if (target_is_emmc_boot())
 		{
 			if(emmc_recovery_init())
@@ -3026,12 +3032,6 @@ normal_boot:
 				#endif
 				}
 			}
-
-#ifdef MDTP_SUPPORT
-			/* Go through Firmware Lock verification before continue with boot process */
-			mdtp_fwlock_verify_lock();
-			display_image_on_screen();
-#endif /* MDTP_SUPPORT */
 
 			boot_linux_from_mmc();
 		}
