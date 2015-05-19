@@ -424,7 +424,8 @@ bool gcdb_display_cmdline_arg(char *panel_name, char *pbuf, uint16_t buf_size)
 	arg_size = prefix_string_len + dsi_id_len + panel_node_len +
 						LK_OVERRIDE_PANEL_LEN + 1;
 
-	if (!strcmp(panelstruct.paneldata->panel_destination, "DISPLAY_2"))
+	if (panelstruct.paneldata &&
+		!strcmp(panelstruct.paneldata->panel_destination, "DISPLAY_2"))
 		sctl_string = DSI_0_STRING;
 	else
 		sctl_string = DSI_1_STRING;
