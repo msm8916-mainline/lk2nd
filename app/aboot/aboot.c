@@ -1414,14 +1414,6 @@ void write_device_info_mmc(device_info *dev)
 
 	blocksize = mmc_get_device_blocksize();
 
-#if VERIFIED_BOOT
-	if(mmc_write(ptn, blocksize, (void *)info_buf))
-#else
-	if(mmc_write((ptn + size - blocksize), blocksize, (void *)info_buf))
-#endif
-
-	blocksize = mmc_get_device_blocksize();
-
 	if (devinfo_present)
 		ret = mmc_write(ptn, blocksize, (void *)info_buf);
 	else
@@ -1460,11 +1452,6 @@ void read_device_info_mmc(device_info *dev)
 
 	blocksize = mmc_get_device_blocksize();
 
-#if VERIFIED_BOOT
-	if(mmc_read(ptn, (void *)info_buf, blocksize))
-#else
-	if(mmc_read((ptn + size - blocksize), (void *)info_buf, blocksize))
-#endif
 	if (devinfo_present)
 		ret = mmc_read(ptn, (void *)info_buf, blocksize);
 	else
