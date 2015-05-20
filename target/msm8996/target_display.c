@@ -275,7 +275,7 @@ int target_backlight_ctrl(struct backlight *bl, uint8_t enable)
 
 int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 {
-	uint32_t flags;
+	uint32_t flags, dsi_phy_pll_out;
 	uint32_t ret = NO_ERROR;
 	uint32_t board_version = board_soc_version();
 
@@ -311,7 +311,13 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 		dprintf(CRITICAL, "PLL failed to lock!\n");
 		goto clks_disable;
 	}
-	mmss_dsi_clock_enable(DSI0_PHY_PLL_OUT, flags);
+
+	if (pinfo->mipi.use_dsi1_pll)
+		dsi_phy_pll_out = DSI1_PHY_PLL_OUT;
+	else
+		dsi_phy_pll_out = DSI0_PHY_PLL_OUT;
+	mmss_dsi_clock_enable(dsi_phy_pll_out, flags);
+
 	return NO_ERROR;
 
 clks_disable:
