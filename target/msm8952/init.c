@@ -455,6 +455,7 @@ int target_cont_splash_screen()
 		switch (board_hardware_id()) {
 		case HW_PLATFORM_MTP:
 		case HW_PLATFORM_SURF:
+		case HW_PLATFORM_QRD:
 			splash_screen = 1;
 			break;
 		default:
