@@ -34,9 +34,28 @@ INCLUDE FILES
 #include "glink_internal.h"
 
 
+glink_core_if_type* glink_core_get_intentless_interface(void);
+
 /*===========================================================================
 EXTERNAL FUNCTION DEFINITIONS
 ===========================================================================*/
+
+/*===========================================================================
+FUNCTION      glink_core_get_default_interface
+===========================================================================*/
+/**
+
+  Provides default core interface.
+
+  @return     Pointer to the default core interface.
+
+  @sideeffects  None.
+*/
+/*=========================================================================*/
+glink_core_if_type* glink_core_get_default_interface(void)
+{
+  return glink_core_get_intentless_interface();
+}
 
 /*===========================================================================
 FUNCTION      glink_core_setup

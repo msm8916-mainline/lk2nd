@@ -56,6 +56,7 @@ typedef struct _glink_os_thread_info_type {
   void                    *param;
 }glink_os_thread_info_type;
 
+static uint32 cs_variable = 1;
 /*===========================================================================
                     EXTERNAL FUNCTION DEFINITIONS
 ===========================================================================*/
@@ -100,6 +101,23 @@ boolean glink_os_cs_deinit( os_cs_type *cs )
 
   return TRUE;
 }
+
+/*===========================================================================
+FUNCTION      glink_os_cs_create
+===========================================================================*/
+/**
+  Create and initializesa Critical Section
+
+  @return     The critical section.
+*/
+/*=========================================================================*/
+os_cs_type *glink_os_cs_create( void )
+{
+  /* Create the new critical section */
+
+  return ( os_cs_type * )cs_variable;
+}
+
 
 /*===========================================================================
 FUNCTION      glink_os_cs_acquire
@@ -248,15 +266,14 @@ char *glink_os_string_copy( char *dst, const char *src, uint32 size )
 
   @param[in] s1     String 1
   @param[in] s2     String 2
-  @param[in] size   The maximum number of characters to compare
 
   @return
   0 if strings are identical (up to size characters), non-zero otherwise
 */
 /*==========================================================================*/
-long glink_os_string_compare( const char *s1, const char *s2, uint32 size )
+long glink_os_string_compare( const char *s1, const char *s2 )
 {
-  return strncmp( s1, s2, size );
+  return strcmp( s1, s2 );
 }
 
 /*===========================================================================

@@ -39,7 +39,7 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
                         INCLUDE FILES
 ===========================================================================*/
 #include "glink_transport_if.h"
-#include <glink.h>
+
 /*===========================================================================
                       MACRO DECLARATIONS
 ===========================================================================*/
@@ -67,10 +67,6 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define XPORT_RPM_GET_CHANNEL_ID(c)   (((c) >> 16) & 0xFFFF)
 #define XPORT_RPM_SET_CHANNEL_ID(cid) (((cid) << 16) & 0xFFFF0000)
-#define XPORT_RPM_GET_STR_LEN(c)      (((c) >> 16) & 0xFFFF)
-#define XPORT_RPM_SET_STR_LEN(c)      (((c) << 16) & 0xFFFF0000)
-#define XPORT_RPM_GET_PRIO(c)         ((c) & 0xFFFF)
-#define XPORT_RPM_SET_PRIO(c)         ((c) & 0xFFFF)
 
 #define XPORT_RPM_GET_VERSION(c) (((c) >> 16) & 0xFFFF)
 #define XPORT_RPM_SET_VERSION(v) (((v) << 16) & 0xFFFF0000)
