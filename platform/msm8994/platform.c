@@ -67,6 +67,7 @@ static mmu_section_t mmu_section_table[] = {
 	{    MSM_SHARED_BASE,   MSM_SHARED_BASE,   2,                   COMMON_MEMORY},
 	{    HLOS_MEMORY_START, HLOS_MEMORY_START, HLOS_MEMORY_SIZE,    COMMON_MEMORY},
 	{    SCRATCH_ADDR,      SCRATCH_ADDR,      (SCRATCH_SIZE / MB), SCRATCH_MEMORY},
+	{    RPMB_SND_RCV_BUF,  RPMB_SND_RCV_BUF,  RPMB_SND_RCV_BUF_SZ,    IOMAP_MEMORY},
 };
 
 void platform_early_init(void)

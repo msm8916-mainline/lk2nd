@@ -223,6 +223,18 @@
 
 #define SMEM_TARG_INFO_ADDR                  0xFE805FF0
 
+
+/* RPMB send receive buffer needs to be mapped
+ * as device memory, define the start address
+ * and size in MB
+ */
+#define RPMB_SND_RCV_BUF            0x10000000
+#define RPMB_SND_RCV_BUF_SZ         0x1
+
+/* QSEECOM: Secure app region notification */
+#define APP_REGION_ADDR 0x6500000
+#define APP_REGION_SIZE 0x500000
+
 /* MDSS */
 #define MSM_MMSS_CLK_CTL_BASE       0xFD8C0000
 #define MMSS_MISC_AHB_CBCR          (MSM_MMSS_CLK_CTL_BASE + 0x502C)
