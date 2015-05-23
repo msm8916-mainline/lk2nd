@@ -756,6 +756,22 @@ static void verify_signed_bootimg(uint32_t bootimg_addr, uint32_t bootimg_size)
 		auth_kernel_img = 1;
 	}
 
+#ifdef MDTP_SUPPORT
+	{
+		/* Verify MDTP lock.
+		 * For boot & recovery partitions, use aboot's verification result.
+		 */
+		mdtp_ext_partition_verification_t ext_partition;
+		ext_partition.partition = boot_into_recovery ? MDTP_PARTITION_RECOVERY : MDTP_PARTITION_BOOT;
+		ext_partition.integrity_state = device.is_tampered ? MDTP_PARTITION_STATE_INVALID : MDTP_PARTITION_STATE_VALID;
+		ext_partition.page_size = 0; /* Not needed since already validated */
+		ext_partition.image_addr = 0; /* Not needed since already validated */
+		ext_partition.image_size = 0; /* Not needed since already validated */
+		ext_partition.sig_avail = FALSE; /* Not needed since already validated */
+		mdtp_fwlock_verify_lock(&ext_partition);
+	}
+#endif /* MDTP_SUPPORT */
+
 #if USE_PCOM_SECBOOT
 	set_tamper_flag(device.is_tampered);
 #endif
@@ -837,7 +853,6 @@ static bool check_format_bit()
 
 void boot_verifier_init()
 {
-
 	uint32_t boot_state;
 	/* Check if device unlock */
 	if(device.is_unlocked)
@@ -1027,6 +1042,23 @@ int boot_linux_from_mmc(void)
 		#ifdef TZ_SAVE_KERNEL_HASH
 		aboot_save_boot_hash_mmc((uint32_t) image_addr, imagesize_actual);
 		#endif /* TZ_SAVE_KERNEL_HASH */
+
+#ifdef MDTP_SUPPORT
+		{
+			/* Verify MDTP lock.
+			 * For boot & recovery partitions, MDTP will use boot_verifier APIs,
+			 * since verification was skipped in aboot. The signature is not part of the loaded image.
+			 */
+			mdtp_ext_partition_verification_t ext_partition;
+			ext_partition.partition = boot_into_recovery ? MDTP_PARTITION_RECOVERY : MDTP_PARTITION_BOOT;
+			ext_partition.integrity_state = MDTP_PARTITION_STATE_UNSET;
+			ext_partition.page_size = page_size;
+			ext_partition.image_addr = (uint32)image_addr;
+			ext_partition.image_size = imagesize_actual;
+			ext_partition.sig_avail = FALSE;
+			mdtp_fwlock_verify_lock(&ext_partition);
+		}
+#endif /* MDTP_SUPPORT */
 	}
 
 	/*
@@ -1821,13 +1853,6 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	unsigned int kernel_size = 0;
 	unsigned int scratch_offset = 0;
 
-
-#ifdef MDTP_SUPPORT
-	/* Go through Firmware Lock verification before continue with boot process */
-	mdtp_fwlock_verify_lock();
-	display_image_on_screen();
-#endif /* MDTP_SUPPORT */
-
 #if VERIFIED_BOOT
 	if(!device.is_unlocked)
 	{
@@ -1878,6 +1903,24 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 		 * access signature beyond its length
 		 */
 		verify_signed_bootimg((uint32_t)data, (image_actual - sig_actual));
+
+#ifdef MDTP_SUPPORT
+	else
+	{
+		/* Verify MDTP lock before continue with boot process.
+		 * For boot & recovery partitions, MDTP will use boot_verifier APIs,
+		 * since verification was skipped in aboot. The signarue is already part of the loaded image.
+		 */
+		mdtp_ext_partition_verification_t ext_partition;
+		ext_partition.partition = boot_into_recovery ? MDTP_PARTITION_RECOVERY : MDTP_PARTITION_BOOT;
+		ext_partition.integrity_state = MDTP_PARTITION_STATE_UNSET;
+		ext_partition.page_size = page_size;
+		ext_partition.image_addr = (uint32_t)data;
+		ext_partition.image_size = image_actual - sig_actual;
+		ext_partition.sig_avail = TRUE;
+		mdtp_fwlock_verify_lock(&ext_partition);
+	}
+#endif /* MDTP_SUPPORT */
 
 	/*
 	 * Check if the kernel image is a gzip package. If yes, need to decompress it.
@@ -2609,12 +2652,6 @@ void cmd_continue(const char *arg, void *data, unsigned sz)
 	fastboot_okay("");
 	fastboot_stop();
 
-#ifdef MDTP_SUPPORT
-	/* Go through Firmware Lock verification before continue with boot process */
-	mdtp_fwlock_verify_lock();
-	display_image_on_screen();
-#endif /* MDTP_SUPPORT */
-
 	if (target_is_emmc_boot())
 	{
 		boot_linux_from_mmc();
@@ -3107,12 +3144,6 @@ void aboot_init(const struct app_descriptor *app)
 normal_boot:
 	if (!boot_into_fastboot)
 	{
-#ifdef MDTP_SUPPORT
-			/* Go through Firmware Lock verification before continue with boot process */
-			mdtp_fwlock_verify_lock();
-			display_image_on_screen();
-#endif /* MDTP_SUPPORT */
-
 		if (target_is_emmc_boot())
 		{
 			if(emmc_recovery_init())

@@ -45,6 +45,13 @@
 #define MDTP_FWLOCK_BLOCK_SIZE          (1024*1024*16)
 #define MDTP_FWLOCK_MAX_FILES           (100)
 #define MDTP_FWLOCK_MAX_FILE_NAME_LEN   (100)
+#define MDTP_SCRATCH_OFFSET 0x8000000
+
+#ifdef MDTP_SUPPORT
+#ifndef VERIFIED_BOOT
+#error MDTP feature requires VERIFIED_BOOT feature
+#endif
+#endif
 
 #pragma pack(push, mdtp, 1)
 
@@ -102,21 +109,34 @@ typedef struct DIP {
 } DIP_t;
 
 #pragma pack(pop, mdtp)
+
+typedef enum {
+	MDTP_PARTITION_BOOT = 0,
+	MDTP_PARTITION_RECOVERY,
+	MDTP_PARTITION_NUM,
+} mdtp_ext_partition_t;
+
+typedef enum {
+	MDTP_PARTITION_STATE_UNSET = 0,
+	MDTP_PARTITION_STATE_VALID,
+	MDTP_PARTITION_STATE_INVALID,
+	MDTP_PARTITION_STATE_SIZE,
+} mdtp_ext_partition_state_t;
+
+typedef struct mdtp_ext_partition {
+	mdtp_ext_partition_t partition;
+	mdtp_ext_partition_state_t integrity_state;
+	uint32_t page_size;
+	uint32_t image_addr;
+	uint32_t image_size;
+	bool sig_avail;
+} mdtp_ext_partition_verification_t;
+
 typedef enum {
 	VERIFY_SKIPPED = 0,
 	VERIFY_OK,
 	VERIFY_FAILED,
 } verify_result_t;
-
-
-/**
- * mdtp_fwlock_verify_lock
- *
- * Start Firmware Lock verification process.
- *
- * @return - None.
- */
-void mdtp_fwlock_verify_lock();
 
 /**
  * mdtp_fuse_get_enabled
@@ -174,5 +194,16 @@ void display_error_msg();
  * @return - negative value for an error, 0 for success.
  */
 int mdtp_activated(bool * activated);
+
+
+// External functions
+
+/** Entry point of the MDTP Firmware Lock.
+ *  If needed, verify the DIP and all protected partitions.
+ *  Allow passing information about partition verified using an external method
+ *  (either boot or recovery). For boot and recovery, either use aboot's
+ *  verification result, or use boot_verifier APIs to verify internally.
+ **/
+void mdtp_fwlock_verify_lock(mdtp_ext_partition_verification_t *ext_partition);
 
 #endif

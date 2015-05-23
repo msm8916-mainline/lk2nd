@@ -38,11 +38,14 @@
 #include <string.h>
 #include <rand.h>
 #include <stdlib.h>
+#include <boot_verifier.h>
+#include <image_verify.h>
 #include "scm.h"
 #include "mdtp.h"
 
-#define DIP_ENCRYPT 0
-#define DIP_DECRYPT 1
+#define DIP_ENCRYPT              (0)
+#define DIP_DECRYPT              (1)
+#define MAX_CIPHER_DIP_SCM_CALLS (3)
 
 #define MDTP_MAJOR_VERSION (0)
 #define MDTP_MINOR_VERSION (2)
@@ -50,15 +53,15 @@
 /** Extract major version number from complete version. */
 #define MDTP_GET_MAJOR_VERSION(version) ((version) >> 16)
 
-static int is_mdtp_activated = -1;
-
 static int mdtp_tzbsp_dec_verify_DIP(DIP_t *enc_dip, DIP_t *dec_dip, uint32_t *verified);
 static int mdtp_tzbsp_enc_hash_DIP(DIP_t *dec_dip, DIP_t *enc_dip);
+static void mdtp_tzbsp_disallow_cipher_DIP(void);
 
 uint32_t g_mdtp_version = (((MDTP_MAJOR_VERSION << 16) & 0xFFFF0000) | (MDTP_MINOR_VERSION & 0x0000FFFF));
+static int is_mdtp_activated = -1;
 
-int scm_random(uint32_t * rbuf, uint32_t  r_len);
 int check_aboot_addr_range_overlap(uint32_t start, uint32_t size);
+int scm_random(uint32_t * rbuf, uint32_t  r_len);
 
 /********************************************************************************/
 
@@ -175,7 +178,7 @@ static int verify_partition_single_hash(char *name, uint64_t size, DIP_hash_tabl
 	unsigned char digest[HASH_LEN]={0};
 	unsigned long long ptn = 0;
 	int index = INVALID_PTN;
-	unsigned char *buf = (unsigned char *)target_get_scratch_address();
+	unsigned char *buf = (unsigned char *)target_get_scratch_address() + MDTP_SCRATCH_OFFSET;
 	uint32_t block_size = mmc_get_device_blocksize();
 	uint64_t actual_partition_size = ROUNDUP(size, block_size);
 
@@ -225,7 +228,7 @@ static int verify_partition_block_hash(char *name,
 	unsigned char digest[HASH_LEN]={0};
 	unsigned long long ptn = 0;
 	int index = INVALID_PTN;
-	unsigned char *buf = (unsigned char *)target_get_scratch_address();
+	unsigned char *buf = (unsigned char *)target_get_scratch_address() + MDTP_SCRATCH_OFFSET;
 	uint32_t bytes_to_read;
 	uint32_t block_num = 0;
 	uint32_t total_num_blocks = ((size - 1) / MDTP_FWLOCK_BLOCK_SIZE) + 1;
@@ -377,18 +380,18 @@ static int validate_dip(DIP_t *dip)
 }
 
 /* Display the recovery UI to allow the user to enter the PIN and continue boot */
-static void display_recovery_ui(DIP_t *dip)
+static void display_recovery_ui(mdtp_cfg_t *mdtp_cfg)
 {
 	uint32_t pin_length = 0;
 	char entered_pin[MDTP_MAX_PIN_LEN+1] = {0};
 	uint32_t i;
 	char pin_mismatch = 0;
 
-	if (dip->mdtp_cfg.enable_local_pin_authentication)
+	if (mdtp_cfg->enable_local_pin_authentication)
 	{
 		dprintf(SPEW, "mdtp: display_recovery_ui: Local deactivation enabled\n");
 
-		pin_length = strlen(dip->mdtp_cfg.mdtp_pin.mdtp_pin);
+		pin_length = strlen(mdtp_cfg->mdtp_pin.mdtp_pin);
 
 		if (pin_length > MDTP_MAX_PIN_LEN || pin_length < MDTP_MIN_PIN_LEN)
 		{
@@ -411,7 +414,7 @@ static void display_recovery_ui(DIP_t *dip)
 			// Go over the entire PIN in any case, to prevent side-channel attacks
 			for (i=0; i<pin_length; i++)
 			{
-				pin_mismatch |= dip->mdtp_cfg.mdtp_pin.mdtp_pin[i] ^ entered_pin[i];
+				pin_mismatch |= mdtp_cfg->mdtp_pin.mdtp_pin[i] ^ entered_pin[i];
 			}
 
 			if (0 == pin_mismatch)
@@ -439,11 +442,110 @@ static void display_recovery_ui(DIP_t *dip)
 	}
 }
 
+/* Verify the boot or recovery partitions using boot_verifier. */
+static int verify_ext_partition(mdtp_ext_partition_verification_t *ext_partition)
+{
+	int ret = 0;
+	bool restore_to_orange = false;
+	unsigned long long ptn = 0;
+	int index = INVALID_PTN;
+
+	/* If image was already verified in aboot, return its status */
+	if (ext_partition->integrity_state == MDTP_PARTITION_STATE_INVALID)
+	{
+		dprintf(CRITICAL, "mdtp: verify_ext_partition: image %s verified externally and failed.\n",
+				ext_partition->partition == MDTP_PARTITION_BOOT ? "boot" : "recovery");
+		return -1;
+	}
+	else if (ext_partition->integrity_state == MDTP_PARTITION_STATE_VALID)
+	{
+		dprintf(CRITICAL, "mdtp: verify_ext_partition: image %s verified externally succesfully.\n",
+				ext_partition->partition == MDTP_PARTITION_BOOT ? "boot" : "recovery");
+		return 0;
+	}
+
+	/* If image was not verified in aboot, verify it ourselves using boot_verifier. */
+
+	/* 1) Initialize keystore. We don't care about return value which is Verified Boot's state machine state. */
+	boot_verify_keystore_init();
+
+	/* 2) If boot_verifier is ORANGE, it will prevent verifying an image. So
+	 *    temporarly change boot_verifier state to BOOT_INIT.
+	 */
+	if (boot_verify_get_state() == ORANGE)
+		restore_to_orange = true;
+	boot_verify_send_event(BOOT_INIT);
+
+	switch (ext_partition->partition)
+	{
+	case MDTP_PARTITION_BOOT:
+	case MDTP_PARTITION_RECOVERY:
+
+		/* 3) Signature may or may not be at the end of the image. Read the signature if needed. */
+		if (!ext_partition->sig_avail)
+		{
+			if (check_aboot_addr_range_overlap((uint32_t)(ext_partition->image_addr + ext_partition->image_size), ext_partition->page_size))
+			{
+				dprintf(CRITICAL, "ERROR: Signature read buffer address overlaps with aboot addresses.\n");
+				return -1;
+			}
+
+			index = partition_get_index(ext_partition->partition == MDTP_PARTITION_BOOT ? "boot" : "recovery");
+			ptn = partition_get_offset(index);
+			if(ptn == 0) {
+				dprintf(CRITICAL, "ERROR: partition %s not found\n",
+					ext_partition->partition == MDTP_PARTITION_BOOT ? "boot" : "recovery");
+				return -1;
+			}
+
+			if(mmc_read(ptn + ext_partition->image_size, (void *)(ext_partition->image_addr + ext_partition->image_size), ext_partition->page_size))
+			{
+				dprintf(CRITICAL, "ERROR: Cannot read %s image signature\n",
+					ext_partition->partition == MDTP_PARTITION_BOOT ? "boot" : "recovery");
+				return -1;
+			}
+		}
+
+		/* 4) Verify the image using its signature. */
+		ret = boot_verify_image((unsigned char *)ext_partition->image_addr,
+								ext_partition->image_size,
+								ext_partition->partition == MDTP_PARTITION_BOOT ? "boot" : "recovery");
+		break;
+
+	default:
+		/* Only boot and recovery are legal here */
+		dprintf(CRITICAL, "ERROR: wrong partition %d\n", ext_partition->partition);
+		return -1;
+	}
+
+	if (ret)
+	{
+		dprintf(INFO, "mdtp: verify_ext_partition: image %s verified succesfully in MDTP.\n",
+				ext_partition->partition == MDTP_PARTITION_BOOT ? "boot" : "recovery");
+	}
+	else
+	{
+		dprintf(CRITICAL, "mdtp: verify_ext_partition: image %s verification failed in MDTP.\n",
+				ext_partition->partition == MDTP_PARTITION_BOOT ? "boot" : "recovery");
+	}
+
+	/* 5) Restore the right boot_verifier state upon exit. */
+	if (restore_to_orange)
+	{
+		boot_verify_send_event(DEV_UNLOCK);
+	}
+
+	return ret ? 0 : -1;
+}
+
 /* Verify all protected partitinons according to the DIP */
-static void verify_all_partitions(DIP_t *dip, verify_result_t *verify_result)
+static void verify_all_partitions(DIP_t *dip,
+								 mdtp_ext_partition_verification_t *ext_partition,
+								 verify_result_t *verify_result)
 {
 	int i;
-	bool verify_failure = FALSE;
+	int verify_failure = 0;
+	int ext_partition_verify_failure = 0;
 	uint32_t total_num_blocks;
 
 	ASSERT(dip != NULL);
@@ -487,7 +589,9 @@ static void verify_all_partitions(DIP_t *dip, verify_result_t *verify_result)
 			}
 		}
 
-		if (verify_failure)
+		ext_partition_verify_failure = verify_ext_partition(ext_partition);
+
+		if (verify_failure || ext_partition_verify_failure)
 		{
 			dprintf(CRITICAL, "mdtp: verify_all_partitions: Failed partition verification\n");
 			return;
@@ -501,7 +605,7 @@ static void verify_all_partitions(DIP_t *dip, verify_result_t *verify_result)
 }
 
 /* Verify the DIP and all protected partitions */
-static void validate_DIP_and_firmware()
+static void validate_DIP_and_firmware(mdtp_ext_partition_verification_t *ext_partition)
 {
 	int ret;
 	DIP_t *enc_dip;
@@ -509,6 +613,7 @@ static void validate_DIP_and_firmware()
 	uint32_t verified = 0;
 	verify_result_t verify_result;
 	uint32_t block_size = mmc_get_device_blocksize();
+	mdtp_cfg_t mdtp_cfg;
 
 	enc_dip = malloc(ROUNDUP(sizeof(DIP_t), block_size));
 	if (enc_dip == NULL)
@@ -548,11 +653,14 @@ static void validate_DIP_and_firmware()
 		display_error_msg(); /* This will never return */
 	}
 
-	/* Verify the integrity of the partitions which are protectedm, according to the content of the DIP */
-	verify_all_partitions(dec_dip, &verify_result);
+	/* Verify the integrity of the partitions which are protected, according to the content of the DIP */
+	verify_all_partitions(dec_dip, ext_partition, &verify_result);
+
+	mdtp_cfg = dec_dip->mdtp_cfg;
 
 	/* Clear decrypted DIP since we don't need it anymore */
 	memset(dec_dip, 0, sizeof(DIP_t));
+
 
 	if (verify_result == VERIFY_OK)
 	{
@@ -564,8 +672,10 @@ static void validate_DIP_and_firmware()
 	} else /* VERIFY_FAILED */
 	{
 		dprintf(CRITICAL, "mdtp: validate_DIP_and_firmware: ERROR, corrupted firmware\n");
-		display_recovery_ui(dec_dip);
+		display_recovery_ui(&mdtp_cfg);
 	}
+
+	memset(&mdtp_cfg, 0, sizeof(mdtp_cfg));
 
 	free(enc_dip);
 	free(dec_dip);
@@ -575,10 +685,13 @@ static void validate_DIP_and_firmware()
 
 /********************************************************************************/
 
-/** Entry point of the MDTP Firmware Lock: If needed, verify the DIP
- *  and all protected partitions **/
-
-void mdtp_fwlock_verify_lock()
+/** Entry point of the MDTP Firmware Lock.
+ *  If needed, verify the DIP and all protected partitions.
+ *  Allow passing information about partition verified using an external method
+ *  (either boot or recovery). For boot and recovery, either use aboot's
+ *  verification result, or use boot_verifier APIs to verify internally.
+ **/
+void mdtp_fwlock_verify_lock(mdtp_ext_partition_verification_t *ext_partition)
 {
 	int ret;
 	bool enabled;
@@ -586,18 +699,34 @@ void mdtp_fwlock_verify_lock()
 	/* sets the default value of this global to be MDTP not activated */
 	is_mdtp_activated = 0;
 
-	ret = mdtp_fuse_get_enabled(&enabled);
-	if(ret)
-	{
-		dprintf(CRITICAL, "mdtp: mdtp_fwlock_verify_lock: ERROR, cannot get enabled fuse\n");
-		display_error_msg(); /* This will never return */
-	}
+	do {
+		if (ext_partition == NULL)
+		{
+			dprintf(CRITICAL, "mdtp: mdtp_fwlock_verify_lock: ERROR, external partition is NULL\n");
+			display_error_msg(); /* This will never return */
+			break;
+		}
 
-	/* Continue with Firmware Lock verification only if enabled by eFuse */
-	if (enabled)
+		ret = mdtp_fuse_get_enabled(&enabled);
+		if(ret)
+		{
+			dprintf(CRITICAL, "mdtp: mdtp_fwlock_verify_lock: ERROR, cannot get enabled fuse\n");
+			display_error_msg(); /* This will never return */
+		}
+
+		/* Continue with Firmware Lock verification only if enabled by eFuse */
+		if (enabled)
+		{
+			/* This function will handle firmware verification failure via UI */
+			validate_DIP_and_firmware(ext_partition);
+		}
+	} while (0);
+
+	/* Disallow CIPHER_DIP SCM call from this point, unless we are in recovery */
+	/* The recovery image will disallow CIPHER_DIP SCM call by itself. */
+	if (ext_partition->partition != MDTP_PARTITION_RECOVERY)
 	{
-		/* This function will handle firmware verification failure via UI */
-		validate_DIP_and_firmware();
+		mdtp_tzbsp_disallow_cipher_DIP();
 	}
 }
 /********************************************************************************/
@@ -654,6 +783,7 @@ static int mdtp_tzbsp_dec_verify_DIP(DIP_t *enc_dip, DIP_t *dec_dip, uint32_t *v
 	return 0;
 }
 
+/* Encrypt a given DIP and calculate its integrity information */
 static int mdtp_tzbsp_enc_hash_DIP(DIP_t *dec_dip, DIP_t *enc_dip)
 {
 	SHA256_CTX sha256_ctx;
@@ -676,4 +806,26 @@ static int mdtp_tzbsp_enc_hash_DIP(DIP_t *dec_dip, DIP_t *enc_dip)
 	}
 
 	return 0;
+}
+
+/* Disallow the CIPHER_DIP SCM call */
+static void mdtp_tzbsp_disallow_cipher_DIP(void)
+{
+	DIP_t *dip;
+	int i;
+
+	dip = malloc(sizeof(DIP_t));
+	if (dip == NULL)
+	{
+		dprintf(CRITICAL, "mdtp: mdtp_tzbsp_disallow_cipher_DIP: ERROR, cannot allocate DIP\n");
+		return;
+	}
+
+	/* Disallow the CIPHER_DIP SCM by calling it MAX_CIPHER_DIP_SCM_CALLS times */
+	for (i=0; i<MAX_CIPHER_DIP_SCM_CALLS; i++)
+	{
+		mdtp_tzbsp_enc_hash_DIP(dip, dip);
+	}
+
+	free(dip);
 }
