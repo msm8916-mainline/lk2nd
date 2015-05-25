@@ -893,6 +893,13 @@ int mdss_dsi_cmd_mode_config(uint16_t disp_width,
 	writel(0x14000000, ctl_base + COMMAND_MODE_DMA_CTRL);
 	writel(0x10000000, ctl_base + MISR_CMD_CTRL);
 	writel(0x1, ctl_base + EOT_PACKET_CTRL);
+
+	if (readl(MIPI_DSI0_BASE) >= DSI_HW_REV_103) {
+		uint32_t tmp;
+		tmp = readl(MIPI_DSI0_BASE + 0x01b8);
+		tmp |= BIT(16); /*enable cmd burst mode*/
+		writel(tmp, MIPI_DSI0_BASE + 0x01b8);
+	}
 #endif
 	return 0;
 }
