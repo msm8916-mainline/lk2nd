@@ -1069,17 +1069,17 @@ int boot_linux_from_mmc(void)
 	{
 		out_addr = (unsigned char *)(image_addr + imagesize_actual + page_size);
 		out_avai_len = target_get_max_flash_size() - imagesize_actual - page_size;
-		dprintf(SPEW, "decompress image start\n");
+		dprintf(INFO, "decompressing kernel image: start\n");
 		rc = decompress((unsigned char *)(image_addr + page_size),
 				hdr->kernel_size, out_addr, out_avai_len,
 				&dtb_offset, &out_len);
 		if (rc)
 		{
-			dprintf(CRITICAL, "decompress image failed!!!\n");
+			dprintf(CRITICAL, "decompressing kernel image failed!!!\n");
 			ASSERT(0);
 		}
 
-		dprintf(SPEW, "decompressed image finished.\n");
+		dprintf(INFO, "decompressing kernel image: done\n");
 		kptr = (struct kernel64_hdr *)out_addr;
 		kernel_start_addr = out_addr;
 		kernel_size = out_len;
@@ -1143,17 +1143,17 @@ int boot_linux_from_mmc(void)
 			unsigned int compressed_size = 0;
 			out_addr += out_len;
 			out_avai_len -= out_len;
-			dprintf(SPEW, "decompress dtb start\n");
+			dprintf(INFO, "decompressing dtb: start\n");
 			rc = decompress((unsigned char *)dt_table_offset + dt_entry.offset,
 					dt_entry.size, out_addr, out_avai_len,
 					&compressed_size, &dtb_size);
 			if (rc)
 			{
-				dprintf(CRITICAL, "decompress dtb failed!!!\n");
+				dprintf(CRITICAL, "decompressing dtb failed!!!\n");
 				ASSERT(0);
 			}
 
-			dprintf(SPEW, "decompressed dtb finished.\n");
+			dprintf(INFO, "decompressing dtb: done\n");
 			best_match_dt_addr = out_addr;
 		} else {
 			best_match_dt_addr = (unsigned char *)dt_table_offset + dt_entry.offset;
@@ -1801,17 +1801,17 @@ int copy_dtb(uint8_t *boot_image_start, unsigned int scratch_offset)
 		{
 			out_addr = (unsigned char *)target_get_scratch_address() + scratch_offset;
 			out_avai_len = target_get_max_flash_size() - scratch_offset;
-			dprintf(SPEW, "decompress dtb start\n");
+			dprintf(INFO, "decompressing dtb: start\n");
 			rc = decompress(best_match_dt_addr,
 					dt_entry.size, out_addr, out_avai_len,
 					&compressed_size, &dtb_size);
 			if (rc)
 			{
-				dprintf(CRITICAL, "decompress dtb failed!!!\n");
+				dprintf(CRITICAL, "decompressing dtb failed!!!\n");
 				ASSERT(0);
 			}
 
-			dprintf(SPEW, "decompressed dtb finished.\n");
+			dprintf(INFO, "decompressing dtb: done\n");
 			best_match_dt_addr = out_addr;
 		} else {
 			dtb_size = dt_entry.size;
@@ -1931,17 +1931,17 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 		out_addr = (unsigned char *)target_get_scratch_address();
 		out_addr = (unsigned char *)(out_addr + image_actual + page_size);
 		out_avai_len = target_get_max_flash_size() - image_actual - page_size;
-		dprintf(SPEW, "decompress image start\n");
+		dprintf(INFO, "decompressing kernel image: start\n");
 		ret = decompress((unsigned char *)(ptr + page_size),
 				hdr->kernel_size, out_addr, out_avai_len,
 				&dtb_offset, &out_len);
 		if (ret)
 		{
-			dprintf(CRITICAL, "decompress image failed!!!\n");
+			dprintf(CRITICAL, "decompressing image failed!!!\n");
 			ASSERT(0);
 		}
 
-		dprintf(SPEW, "decompressed image finished.\n");
+		dprintf(INFO, "decompressing kernel image: done\n");
 		kptr = (struct kernel64_hdr *)out_addr;
 		kernel_start_addr = out_addr;
 		kernel_size = out_len;
