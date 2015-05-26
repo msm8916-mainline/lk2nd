@@ -1036,6 +1036,12 @@ int boot_linux_from_mmc(void)
 #endif /* MDTP_SUPPORT */
 	}
 
+#if VERIFIED_BOOT
+	// send root of trust
+	if(!send_rot_command())
+		ASSERT(0);
+#endif
+
 	/*
 	 * Check if the kernel image is a gzip package. If yes, need to decompress it.
 	 * If not, continue booting.
