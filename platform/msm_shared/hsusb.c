@@ -46,6 +46,7 @@
 
 #define MAX_TD_XFER_SIZE  (16 * 1024)
 
+BUF_DMA_ALIGN(transfer_desc_item, ROUNDUP(sizeof(struct ept_queue_item), CACHE_LINE));
 
 /* common code - factor out into a shared file */
 
@@ -280,22 +281,19 @@ int udc_request_queue(struct udc_endpoint *ept, struct udc_request *_req)
 	struct usb_request *req = (struct usb_request *)_req;
 	unsigned phys = (unsigned)req->req.buf;
 	unsigned len = req->req.length;
-	unsigned int count = 0;
 
-	curr_item = NULL;
 	xfer = (len > MAX_TD_XFER_SIZE) ? MAX_TD_XFER_SIZE : len;
 	/*
 	 * First TD allocated during request allocation
 	 */
-	item = req->item;
-	item->info = INFO_BYTES(xfer) | INFO_ACTIVE;
-	item->page0 = phys;
-	item->page1 = (phys & 0xfffff000) + 0x1000;
-	item->page2 = (phys & 0xfffff000) + 0x2000;
-	item->page3 = (phys & 0xfffff000) + 0x3000;
-	item->page4 = (phys & 0xfffff000) + 0x4000;
+	curr_item = req->item;
+	curr_item->info = INFO_BYTES(xfer) | INFO_ACTIVE;
+	curr_item->page0 = phys;
+	curr_item->page1 = (phys & 0xfffff000) + 0x1000;
+	curr_item->page2 = (phys & 0xfffff000) + 0x2000;
+	curr_item->page3 = (phys & 0xfffff000) + 0x3000;
+	curr_item->page4 = (phys & 0xfffff000) + 0x4000;
 	phys += xfer;
-	curr_item = item;
 	len -= xfer;
 
 	/*
@@ -306,23 +304,9 @@ int udc_request_queue(struct udc_endpoint *ept, struct udc_request *_req)
 	while (len > 0) {
 		xfer = (len > MAX_TD_XFER_SIZE) ? MAX_TD_XFER_SIZE : len;
 		if (curr_item->next == TERMINATE) {
-			/*
-			 * Allocate new TD only if chain doesnot
-			 * exist already
-			 */
-			item = memalign(CACHE_LINE,
-					ROUNDUP(sizeof(struct ept_queue_item), CACHE_LINE));
-			if (!item) {
-				dprintf(ALWAYS, "allocate USB item fail ept%d\n %s queue\ntd count = %d\n",
-							ept->num,
-							ept->in ? "in" : "out",
-							count);
-				return -1;
-			} else {
-				count ++;
-				curr_item->next = PA((addr_t)item);
+				curr_item->next = PA((addr_t)transfer_desc_item);
+				item = (struct ept_queue_item *)transfer_desc_item;
 				item->next = TERMINATE;
-			}
 		} else
 			/* Since next TD in chain already exists */
 			item = (struct ept_queue_item *)VA(curr_item->next);
