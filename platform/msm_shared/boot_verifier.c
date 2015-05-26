@@ -386,6 +386,98 @@ uint32_t boot_verify_keystore_init()
 	return dev_boot_state;
 }
 
+bool send_rot_command()
+{
+	int ret = 0;
+	const unsigned char *input;
+	char *rot_input = NULL;
+	unsigned int digest[8];
+	uint32_t auth_algo = CRYPTO_AUTH_ALG_SHA256;
+	uint32_t boot_device_state = boot_verify_get_state();
+	uint32_t len = 0;
+	int app_handle = 0;
+	km_set_rot_req_t *read_req;
+	km_set_rot_rsp_t read_rsp;
+	app_handle = get_secapp_handle();
+	switch (boot_device_state)
+	{
+		case GREEN:
+			// Locked device and boot.img verified against OEM keystore.
+			// Send hash of OEM KEYSTORE + Boot device state
+			input = OEM_KEYSTORE;
+			len = read_der_message_length((unsigned char *)input) + sizeof(uint32_t);
+			if(!(rot_input = malloc(len)))
+			{
+				dprintf(CRITICAL, "Failed to allocate memory for ROT command data\n");
+				ASSERT(0);
+			}
+			snprintf(rot_input, len, "%s%ul", input, boot_device_state);
+			break;
+		case YELLOW:
+		case RED:
+			// Locked device and boot.img passed (yellow) or failed (red) verification with the certificate embedded to the boot.img.
+			// Send hash of certificate + boot device state
+			if (rsa_from_cert)
+				len = RSA_size(rsa_from_cert);
+			else
+			{
+				dprintf(CRITICAL, "RSA is null from the embedded certificate\n");
+				ASSERT(0);
+			}
+			hash_find((unsigned char *)rsa_from_cert, len, (unsigned char *) &digest, auth_algo);
+			len = sizeof(digest) + sizeof(unsigned int);
+			if(!(rot_input = malloc(len)))
+			{
+				dprintf(CRITICAL, "Failed to allocate memory for ROT command data\n");
+				ASSERT(0);
+			}
+			memcpy(rot_input, digest, sizeof(digest));
+			memcpy(rot_input + sizeof(digest), (unsigned char *) boot_device_state, sizeof(unsigned int));
+			break;
+		case ORANGE:
+			// Unlocked device and no verification done.
+			// Send the hash of boot device state
+			input = NULL;
+			len = sizeof(uint32_t);
+			if(!(rot_input = malloc(len)))
+			{
+				dprintf(CRITICAL, "Failed to allocate memory for ROT command data\n");
+				ASSERT(0);
+			}
+			snprintf(rot_input, len, "%ul", boot_device_state);
+			break;
+	}
+
+	hash_find((unsigned char *) rot_input, len, (unsigned char *)&digest, auth_algo);
+	if(!(read_req = malloc(sizeof(km_set_rot_req_t) + sizeof(digest))))
+	{
+		dprintf(CRITICAL, "Failed to allocate memory for ROT structure\n");
+		ASSERT(0);
+	}
+
+	void *cpy_ptr = (uint8_t *) read_req + sizeof(km_set_rot_req_t);
+	// set ROT stucture
+	read_req->cmd_id = KEYMASTER_SET_ROT;
+	read_req->rot_ofset = (uint32_t) sizeof(km_set_rot_req_t);
+	read_req->rot_size  = sizeof(digest);
+	// copy the digest
+	memcpy(cpy_ptr, (void *) &digest, sizeof(digest));
+	dprintf(SPEW, "Sending Root of Trust to trustzone: start\n");
+
+	ret = qseecom_send_command(app_handle, (void*) read_req, sizeof(km_set_rot_req_t) + sizeof(digest), (void*) &read_rsp, sizeof(read_rsp));
+	if (ret < 0 || read_rsp.status < 0)
+	{
+		dprintf(CRITICAL, "QSEEcom command for Sending Root of Trust returned error: %d\n", read_rsp.status);
+		free(read_req);
+		free(rot_input);
+		return false;
+	}
+	dprintf(SPEW, "Sending Root of Trust to trustzone: end\n");
+	free(read_req);
+	free(rot_input);
+	return true;
+}
+
 bool boot_verify_image(unsigned char* img_addr, uint32_t img_size, char *pname)
 {
 	bool ret = false;

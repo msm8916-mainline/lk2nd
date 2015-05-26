@@ -163,4 +163,6 @@ void boot_verify_print_state();
 bool boot_verify_validate_keystore(unsigned char * user_addr);
 /* Function to check if partition is allowed to flash in verified mode */
 bool boot_verify_flash_allowed(const char * entry);
+/* Function to send root of trust to trust zone */
+bool send_rot_command();
 #endif
