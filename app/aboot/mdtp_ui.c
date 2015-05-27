@@ -138,6 +138,7 @@ static struct mdtp_fbimage* mdtp_read_mmc_image(uint32_t offset, uint32_t width,
 				dprintf(CRITICAL, "ERROR: mdtp image read failed\n");
 				return NULL;
 		}
+
 		logo->width = width;
 		logo->height = height;
 	}
@@ -242,6 +243,9 @@ static void fbcon_putImage_in_location(struct mdtp_fbimage *fbimg, uint32_t x, u
 		dprintf(CRITICAL,"ERROR: invalid bpp value\n");
 		display_error_msg(); /* This will never return */
 	}
+
+	/* Flush the contents to memory before giving the data to dma */
+	arch_clean_invalidate_cache_range((addr_t) fb_config->base, (fb_config->height * fb_config->width * bytes_per_bpp));
 
 	fbcon_flush();
 
