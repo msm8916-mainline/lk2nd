@@ -197,6 +197,9 @@ static bool boot_verify_compare_sha256(unsigned char *image_ptr,
 	if(ret == 0)
 	{
 		auth = true;
+#ifdef TZ_SAVE_KERNEL_HASH
+		save_kernel_hash((unsigned char *) &digest, CRYPTO_AUTH_ALG_SHA256);
+#endif
 	}
 
 cleanup:
