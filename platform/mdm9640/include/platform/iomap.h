@@ -29,6 +29,10 @@
 #ifndef _PLATFORM_MDM9640_IOMAP_H_
 #define _PLATFORM_MDM9640_IOMAP_H_
 
+#include <stdint.h>
+
+uint32_t platform_boot_config();
+
 /* NAND */
 #define MSM_NAND_BASE               0x079B0000
 /* NAND BAM */
@@ -182,7 +186,9 @@
 /* Boot config */
 #define SEC_CTRL_CORE_BASE          0x00058000
 #define BOOT_CONFIG_OFFSET          0x0000602C
-#define BOOT_CONFIG_REG             (SEC_CTRL_CORE_BASE + BOOT_CONFIG_OFFSET)
+#define BOOT_CONFIG_REG_V1          (SEC_CTRL_CORE_BASE + BOOT_CONFIG_OFFSET)
+#define BOOT_CONFIG_REG_V2          0x000A602C
+#define BOOT_CONFIG_REG             platform_boot_config()
 
 /* QPIC DISPLAY */
 #define QPIC_BASE                   0x7980000
