@@ -60,6 +60,9 @@
 #include <sdhci_msm.h>
 #include <pm8x41_wled.h>
 #include <qpnp_led.h>
+#include <boot_device.h>
+#include <secapp_loader.h>
+#include <rpmb.h>
 
 #include "target/display.h"
 
@@ -159,6 +162,20 @@ void target_uninit(void)
 		clock_ce_disable(CE_INSTANCE);
 	}
 
+	if (is_sec_app_loaded())
+	{
+		if (send_milestone_call_to_tz() < 0)
+		{
+			dprintf(CRITICAL, "Failed to unload App for rpmb\n");
+			ASSERT(0);
+		}
+	}
+
+	if (rpmb_uninit() < 0)
+	{
+		dprintf(CRITICAL, "RPMB uninit failed\n");
+		ASSERT(0);
+	}
 	rpm_smd_uninit();
 }
 
@@ -310,6 +327,7 @@ void *target_mmc_device()
 
 void target_init(void)
 {
+	int ret = 0;
 	dprintf(INFO, "target_init()\n");
 
 	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
@@ -337,6 +355,40 @@ void target_init(void)
 #endif
 	/* Storage initialization is complete, read the partition table info */
 	mmc_read_partition_table(0);
+
+	/* Initialize Qseecom */
+	ret = qseecom_init();
+
+	if (ret < 0)
+	{
+		dprintf(CRITICAL, "Failed to initialize qseecom, error: %d\n", ret);
+		ASSERT(0);
+	}
+
+	/* Start Qseecom */
+	ret = qseecom_tz_init();
+
+	if (ret < 0)
+	{
+		dprintf(CRITICAL, "Failed to start qseecom, error: %d\n", ret);
+		ASSERT(0);
+	}
+
+	/*
+	 * Load the sec app for first time
+	 */
+	if (load_sec_app() < 0)
+	{
+		dprintf(CRITICAL, "Failed to load App for verified\n");
+		ASSERT(0);
+	}
+
+	if (rpmb_init() < 0)
+	{
+		dprintf(CRITICAL, "RPMB init failed\n");
+		ASSERT(0);
+	}
+
 
 	rpm_smd_init();
 
