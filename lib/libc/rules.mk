@@ -4,6 +4,7 @@ OBJS += \
 	$(LOCAL_DIR)/atoi.o \
 	$(LOCAL_DIR)/bsearch.o \
 	$(LOCAL_DIR)/ctype.o \
+	$(LOCAL_DIR)/errno.o \
 	$(LOCAL_DIR)/gcd_lcm.o \
 	$(LOCAL_DIR)/itoa.o \
 	$(LOCAL_DIR)/printf.o \
