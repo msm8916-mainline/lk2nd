@@ -189,6 +189,12 @@ static unsigned long calc_values(struct alpha_pll_clk *pll,
 	return freq_hz;
 }
 
+static unsigned long round_rate_down(struct alpha_pll_clk *pll,
+		unsigned long rate, int *l_val, uint64_t *a_val)
+{
+	return calc_values(pll, rate, l_val, a_val, false);
+}
+
 static unsigned long round_rate_up(struct alpha_pll_clk *pll,
 		unsigned long rate, int *l_val, uint64_t *a_val)
 {
@@ -261,10 +267,29 @@ static int alpha_pll_set_rate(struct clk *c, unsigned long rate)
 	return 0;
 }
 
+static void update_vco_tbl(struct alpha_pll_clk *pll)
+{
+	uint32_t i;
+	int l_val;
+	uint64_t a_val;
+	uint64_t rate;
+
+	for (i = 0 ; i < pll->vco_num; i++)
+	{
+		rate = round_rate_up(pll, pll->vco_tbl[i].min_freq, &l_val, &a_val);
+		pll->vco_tbl[i].min_freq = rate;
+
+		rate = round_rate_down(pll, pll->vco_tbl[i].max_freq, &l_val, &a_val);
+		pll->vco_tbl[i].max_freq = rate;
+	}
+}
+
 int alpha_pll_enable(struct clk *c)
 {
 	struct alpha_pll_clk *pll = to_alpha_pll_clk(c);
 	uint32_t ena;
+
+	update_vco_tbl(pll);
 
 	/* if PLL is not initialized already and is not in FSM state */
 	if (!pll->inited && !is_locked(pll))
