@@ -138,6 +138,12 @@ enum boot_state
 	RED,
 };
 
+struct verified_boot_state_name
+{
+	uint32_t boot_state;
+	char *name;
+};
+
 enum boot_verfiy_event
 {
 	BOOT_INIT,
