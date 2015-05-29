@@ -153,6 +153,19 @@ static const char *baseband_dsda2   = " androidboot.baseband=dsda2";
 static const char *baseband_sglte2  = " androidboot.baseband=sglte2";
 static const char *warmboot_cmdline = " qpnp-power-on.warm_boot=1";
 
+#if VERIFIED_BOOT
+static const char *verified_state= " androidboot.verifiedbootstate=";
+
+//indexed based on enum values, green is 0 by default
+struct verified_boot_state_name vbsn[] =
+{
+	{GREEN, "green"},
+	{ORANGE, "orange"},
+	{YELLOW,"yellow"},
+	{RED,"red" },
+};
+#endif
+
 static unsigned page_size = 0;
 static unsigned page_mask = 0;
 static char ffbm_mode_string[FFBM_MODE_BUF_SIZE];
@@ -248,6 +261,14 @@ unsigned char *update_cmdline(const char * cmdline)
 	bool gpt_exists = partition_gpt_exists();
 	int have_target_boot_params = 0;
 	char *boot_dev_buf = NULL;
+        bool is_mdtp_activated = 0;
+#if VERIFIED_BOOT
+    uint32_t boot_state = boot_verify_get_state();
+#endif
+
+#ifdef MDTP_SUPPORT
+    mdtp_activated(&is_mdtp_activated);
+#endif /* MDTP_SUPPORT */
 
 	if (cmdline && cmdline[0]) {
 		cmdline_len = strlen(cmdline);
@@ -265,6 +286,10 @@ unsigned char *update_cmdline(const char * cmdline)
 
 	cmdline_len += strlen(usb_sn_cmdline);
 	cmdline_len += strlen(sn_buf);
+
+#if VERIFIED_BOOT
+	cmdline_len += strlen(verified_state) + strlen(vbsn[boot_state].name);
+#endif
 
 	if (boot_into_recovery && gpt_exists)
 		cmdline_len += strlen(secondary_gpt_enable);
@@ -378,6 +403,15 @@ unsigned char *update_cmdline(const char * cmdline)
 #endif
 		}
 
+#if VERIFIED_BOOT
+		src = verified_state;
+		if(have_cmdline) --dst;
+		have_cmdline = 1;
+		while ((*dst++ = *src++));
+		src = vbsn[boot_state].name;
+		if(have_cmdline) --dst;
+		while ((*dst++ = *src++));
+#endif
 		src = usb_sn_cmdline;
 		if (have_cmdline) --dst;
 		have_cmdline = 1;
