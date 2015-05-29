@@ -83,6 +83,7 @@ void write_device_info_mmc(device_info *dev);
 void write_device_info_flash(device_info *dev);
 static int aboot_save_boot_hash_mmc(uint32_t image_addr, uint32_t image_size);
 extern void display_fbcon_message(char *str);
+static int aboot_frp_unlock(char *pname, void *data, unsigned sz);
 
 /* fastboot command function pointer */
 typedef void (*fastboot_cmd_fn) (const char *, void *, unsigned);
@@ -2028,6 +2029,14 @@ void cmd_erase(const char *arg, void *data, unsigned sz)
 		cmd_erase_nand(arg, data, sz);
 }
 
+static uint32_t aboot_get_secret_key()
+{
+	/* 0 is invalid secret key, update this implementation to return
+	 * device specific unique secret key
+	 */
+	return 0;
+}
+
 void cmd_flash_mmc_img(const char *arg, void *data, unsigned sz)
 {
 	unsigned long long ptn = 0;
@@ -2051,6 +2060,19 @@ void cmd_flash_mmc_img(const char *arg, void *data, unsigned sz)
 
 	if (pname)
 	{
+		if (!strncmp(pname, "frp-unlock", strlen("frp-unlock")))
+		{
+			if (!aboot_frp_unlock(pname, data, sz))
+			{
+				fastboot_info("FRP unlock successful");
+				fastboot_okay("");
+			}
+			else
+				fastboot_fail("Secret key is invalid, please update the bootloader with secret key");
+
+			return;
+		}
+
 		if (!strcmp(pname, "partition"))
 		{
 			dprintf(INFO, "Attempt to write partition image.\n");
@@ -2594,6 +2616,26 @@ void cmd_oem_unlock_go(const char *arg, void *data, unsigned sz)
 		reboot_device(RECOVERY_MODE);
 	}
 	fastboot_okay("");
+}
+
+static int aboot_frp_unlock(char *pname, void *data, unsigned sz)
+{
+	int ret = 1;
+	uint32_t secret_key;
+	char seckey_buffer[MAX_RSP_SIZE];
+
+	secret_key = aboot_get_secret_key();
+	if (secret_key)
+	{
+		snprintf((char *) seckey_buffer, MAX_RSP_SIZE, "%x", secret_key);
+		if (!memcmp((void *)data, (void *)seckey_buffer, sz))
+		{
+			is_allow_unlock = true;
+			write_allow_oem_unlock(is_allow_unlock);
+			ret = 0;
+		}
+	}
+	return ret;
 }
 
 void cmd_oem_lock(const char *arg, void *data, unsigned sz)
