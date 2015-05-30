@@ -105,10 +105,6 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 		pan_type = PANEL_TYPE_DSI;
 		pinfo->lcd_reg_en = 0;
 		panelstruct->paneldata    = &sharp_wqxga_dualdsi_video_panel_data;
-		panelstruct->paneldata->panel_node_id =
-			"qcom,mdss_dsi_sharp_wqxga_video_0";
-		panelstruct->paneldata->slave_panel_node_id =
-			"qcom,mdss_dsi_sharp_wqxga_video_1";
 		panelstruct->paneldata->panel_operating_mode = 11;
 		panelstruct->paneldata->panel_with_enable_gpio = 0;
 
@@ -176,10 +172,6 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 	case JDI_QHD_DUALDSI_VIDEO_PANEL:
 		pan_type = PANEL_TYPE_DSI;
 		pinfo->lcd_reg_en = 1;
-		panelstruct->paneldata->panel_node_id =
-			"qcom,dsi_jdi_qhd_video_0";
-		panelstruct->paneldata->slave_panel_node_id =
-			"qcom,dsi_jdi_qhd_video_1";
 		panelstruct->paneldata    = &jdi_qhd_dualdsi_video_panel_data;
 
 		panelstruct->panelres     = &jdi_qhd_dualdsi_video_panel_res;
@@ -209,10 +201,6 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 		pan_type = PANEL_TYPE_DSI;
 		pinfo->lcd_reg_en = 1;
 		panelstruct->paneldata    = &jdi_qhd_dualdsi_cmd_panel_data;
-		panelstruct->paneldata->panel_node_id =
-			"qcom,mdss_dsi_jdi_qhd_dualmipi0_cmd";
-		panelstruct->paneldata->slave_panel_node_id =
-			"qcom,mdss_dsi_jdi_qhd_dualmipi1_cmd";
 
 		panelstruct->panelres     = &jdi_qhd_dualdsi_cmd_panel_res;
 		panelstruct->color        = &jdi_qhd_dualdsi_cmd_color;
