@@ -172,3 +172,23 @@ uint32_t platform_get_max_periph()
 {
 	return 256;
 }
+
+int platform_is_msm8956()
+{
+	uint32_t platform = board_platform_id();
+	uint32_t ret = 0;
+
+	switch(platform)
+	{
+		case MSM8956:
+		case APQ8056:
+		case APQ8076:
+		case MSM8976:
+			ret = 1;
+			break;
+		default:
+			ret = 0;
+	};
+
+	return ret;
+}

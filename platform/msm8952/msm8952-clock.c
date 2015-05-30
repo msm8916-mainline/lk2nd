@@ -528,7 +528,15 @@ static struct clk_lookup msm_clocks_8952[] =
 	CLK_LOOKUP("ce1_src_clk",  ce1_clk_src.c),
 };
 
+void msm8956_clock_override()
+{
+	gpll4_clk_src.status_reg = (void *)GPLL4_STATUS;
+	gpll4_clk_src.status_mask = BIT(17);
+}
+
 void platform_clock_init(void)
 {
+	if (platform_is_msm8956())
+		msm8956_clock_override();
 	clk_init(msm_clocks_8952, ARRAY_SIZE(msm_clocks_8952));
 }

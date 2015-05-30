@@ -98,6 +98,7 @@
 #define APCS_GPLL_ENA_VOTE                 (CLK_CTL_BASE + 0x45000)
 #define APCS_CLOCK_BRANCH_ENA_VOTE         (CLK_CTL_BASE + 0x45004)
 #define GPLL4_MODE                         (CLK_CTL_BASE + 0x24000)
+#define GPLL4_STATUS                       (CLK_CTL_BASE + 0x24024)
 
 /* SDCC */
 #define SDC1_HDRV_PULL_CTL                 (TLMM_BASE_ADDR + 0x10A000)
