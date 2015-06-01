@@ -62,33 +62,125 @@ static void mdss_dsi_uniphy_pll_sw_reset_8909(uint32_t pll_base)
 	mdelay(1);
 }
 
-static uint32_t dsi_pll_enable_seq_8909(uint32_t pll_base)
+static void dsi_pll_toggle_lock_detect_8909(uint32_t pll_base)
 {
-	uint32_t pll_locked = 0;
+	writel(0x04, pll_base + 0x0064); /* LKDetect CFG2 */
+	udelay(1);
+	writel(0x05, pll_base + 0x0064); /* LKDetect CFG2 */
+	udelay(512);
+}
 
+static void dsi_pll_sw_reset_8909(uint32_t pll_base)
+{
 	writel(0x01, pll_base + 0x0068); /* PLL TEST CFG */
 	udelay(1);
 	writel(0x00, pll_base + 0x0068); /* PLL TEST CFG */
+}
+
+static uint32_t dsi_pll_enable_seq_1_8909(uint32_t pll_base)
+{
+	uint32_t rc;
+
+	dsi_pll_sw_reset_8909(pll_base);
+	/*
+	 * Add hardware recommended delays between register writes for
+	 * the updates to take effect. These delays are necessary for the
+	 * PLL to successfully lock
+	 */
+
+	writel(0x34, pll_base + 0x0070); /* CAL CFG1*/
+	writel(0x01, pll_base + 0x0020); /* GLB CFG */
+	writel(0x05, pll_base + 0x0020); /* GLB CFG */
+	writel(0x0f, pll_base + 0x0020); /* GLB CFG */
+	udelay(500);
+
+	dsi_pll_toggle_lock_detect_8909(pll_base);
+	rc = readl(pll_base + 0x00c0) & 0x01;
+
+	return rc;
+}
+
+static uint32_t dsi_pll_enable_seq_2_8909(uint32_t pll_base)
+{
+	uint32_t rc;
+
+	dsi_pll_sw_reset_8909(pll_base);
 
 	/*
 	 * Add hardware recommended delays between register writes for
 	 * the updates to take effect. These delays are necessary for the
 	 * PLL to successfully lock
 	 */
-	writel(0x34, pll_base + 0x0070); /* CAL CFG1*/
-	udelay(1);
+	writel(0x14, pll_base + 0x0070); /* CAL CFG1*/
 	writel(0x01, pll_base + 0x0020); /* GLB CFG */
-	udelay(1);
 	writel(0x05, pll_base + 0x0020); /* GLB CFG */
-	udelay(1);
+	udelay(3);
 	writel(0x0f, pll_base + 0x0020); /* GLB CFG */
-	udelay(1);
+	udelay(500);
 
-	writel(0x04, pll_base + 0x0064); /* LKDetect CFG2 */
-	udelay(1);
-	writel(0x05, pll_base + 0x0064); /* LKDetect CFG2 */
-	udelay(512);
-	pll_locked = readl(pll_base + 0x00c0) & 0x01;
+	dsi_pll_toggle_lock_detect_8909(pll_base);
+	rc = readl(pll_base + 0x00c0) & 0x01;
+
+	return rc;
+}
+
+static uint32_t dsi_pll_enable_seq_3_8909(uint32_t pll_base)
+{
+	uint32_t rc;
+
+	dsi_pll_sw_reset_8909(pll_base);
+
+	/*
+	 * Add hardware recommended delays between register writes for
+	 * the updates to take effect. These delays are necessary for the
+	 * PLL to successfully lock
+	 */
+	writel(0x04, pll_base + 0x0070); /* CAL CFG1*/
+	writel(0x01, pll_base + 0x0020); /* GLB CFG */
+	writel(0x05, pll_base + 0x0020); /* GLB CFG */
+	udelay(3);
+	writel(0x0f, pll_base + 0x0020); /* GLB CFG */
+	udelay(500);
+
+	dsi_pll_toggle_lock_detect_8909(pll_base);
+	rc = readl(pll_base + 0x00c0) & 0x01;
+
+	return rc;
+}
+
+static uint32_t dsi_pll_enable_seq_8909(uint32_t pll_base)
+{
+	uint32_t pll_locked = 0;
+	uint32_t counter = 0;
+
+	do {
+		pll_locked = dsi_pll_enable_seq_1_8909(pll_base);
+
+		dprintf(SPEW, "TSMC pll locked status is %d\n", pll_locked);
+		++counter;
+	} while (!pll_locked && (counter < 3));
+
+	if (!pll_locked) {
+		counter = 0;
+		do {
+			pll_locked = dsi_pll_enable_seq_2_8909(pll_base);
+
+			dprintf(SPEW, "GF P1 pll locked status is %d\n",
+				pll_locked);
+			++counter;
+		} while (!pll_locked && (counter < 3));
+	}
+
+	if (!pll_locked) {
+		counter = 0;
+		do {
+			pll_locked = dsi_pll_enable_seq_3_8909(pll_base);
+
+			dprintf(SPEW, "GF P2 pll locked status is %d\n",
+				pll_locked);
+			++counter;
+		} while (!pll_locked && (counter < 3));
+	}
 
 	return pll_locked;
 }
