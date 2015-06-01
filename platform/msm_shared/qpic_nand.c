@@ -48,12 +48,16 @@ static uint32_t cfg1;
 static uint32_t cfg0_raw;
 static uint32_t cfg1_raw;
 static uint32_t ecc_bch_cfg;
+static uint32_t ecc_cfg_raw;
+static uint32_t ecc_parity_bytes;
 
 struct cmd_element ce_array[100] __attribute__ ((aligned(16)));
 struct cmd_element ce_read_array[20] __attribute__ ((aligned(16)));
 
 #define QPIC_BAM_DATA_FIFO_SIZE          64
 #define QPIC_BAM_CMD_FIFO_SIZE           64
+
+#define THRESHOLD_BIT_FLIPS              4
 
 static struct bam_desc cmd_desc_fifo[QPIC_BAM_CMD_FIFO_SIZE] __attribute__ ((aligned(BAM_DESC_SIZE)));
 static struct bam_desc data_desc_fifo[QPIC_BAM_DATA_FIFO_SIZE] __attribute__ ((aligned(BAM_DESC_SIZE)));
@@ -516,6 +520,7 @@ qpic_nand_onfi_save_params(struct onfi_param_page *param_page, struct flash_info
 static void
 qpic_nand_save_config(struct flash_info *flash)
 {
+	uint32_t spare_bytes = 0;
 
 	/* Save Configurations */
 	flash->cws_per_page = flash->page_size >> NAND_CW_DIV_RIGHT_SHIFT;
@@ -564,6 +569,10 @@ qpic_nand_save_config(struct flash_info *flash)
 	 */
 	flash->bad_blk_loc = flash->page_size - flash->cw_size * (flash->cws_per_page - 1) + 1;
 
+	/* Calculate the parity and spare bytes */
+	ecc_parity_bytes = (flash->ecc_width & NAND_WITH_8_BIT_ECC) ? (flash->widebus ? 14 : 13) : (flash->widebus ? 8 : 7) ;
+	spare_bytes = flash->cw_size - (USER_DATA_BYTES_PER_CW + ecc_parity_bytes);
+
 	cfg0 |= ((flash->cws_per_page - 1) << NAND_DEV0_CFG0_CW_PER_PAGE_SHIFT) /* 4/8 cw/pg for 2/4k */
 			|(DATA_BYTES_IN_IMG_PER_CW << NAND_DEV0_CFG0_UD_SIZE_BYTES_SHIFT) /* 516 user data bytes */
 			|(5 << NAND_DEV0_CFG0_ADDR_CYCLE_SHIFT) /* 5 address cycles */
@@ -576,16 +585,16 @@ qpic_nand_save_config(struct flash_info *flash)
 			|(2 << NAND_DEV0_CFG1_WR_RD_BSY_GAP_SHIFT)		/* 8 cycle tWB/tRB */
 			|(flash->widebus << NAND_DEV0_CFG1_WIDE_BUS_SHIFT);	/* preserve wide flash flag */
 
-	cfg0_raw = ((flash->cws_per_page- 1) << NAND_DEV0_CFG0_CW_PER_PAGE_SHIFT)
+	cfg0_raw = ((flash->cws_per_page - 1) << NAND_DEV0_CFG0_CW_PER_PAGE_SHIFT)
 				|(5 << NAND_DEV0_CFG0_ADDR_CYCLE_SHIFT)
-				|(516 << NAND_DEV0_CFG0_UD_SIZE_BYTES_SHIFT) //figure out the size of cw
-				| (1 << NAND_DEV0_CFG0_DIS_STS_AFTER_WR_SHIFT);
+				|(512 << NAND_DEV0_CFG0_UD_SIZE_BYTES_SHIFT)
+				| (spare_bytes << NAND_DEV0_CFG0_SPARE_SZ_BYTES_SHIFT);
 
-    cfg1_raw = (7 <<  NAND_DEV0_CFG1_RECOVERY_CYCLES_SHIFT)
-				| (0 <<  NAND_DEV0_CFG1_CS_ACTIVE_BSY_SHIFT)
-				| (17 <<  NAND_DEV0_CFG1_BAD_BLK_BYTE_NUM_SHIFT)
+    cfg1_raw =  (2 << NAND_DEV0_CFG1_WR_RD_BSY_GAP_SHIFT)
 				| (1 << NAND_DEV0_CFG1_BAD_BLK_IN_SPARE_SHIFT)
-				| (2 << NAND_DEV0_CFG1_WR_RD_BSY_GAP_SHIFT)
+				| (21 <<  NAND_DEV0_CFG1_BAD_BLK_BYTE_NUM_SHIFT)
+				| (0 <<  NAND_DEV0_CFG1_CS_ACTIVE_BSY_SHIFT)
+				| (7 <<  NAND_DEV0_CFG1_RECOVERY_CYCLES_SHIFT)
 				| (flash->widebus << NAND_DEV0_CFG1_WIDE_BUS_SHIFT)
 				|1 ; /* to disable reed solomon ecc..this feild is now read only. */
 
@@ -593,6 +602,18 @@ qpic_nand_save_config(struct flash_info *flash)
 					| (0 << NAND_DEV0_ECC_SW_RESET_SHIFT) /* Put ECC core in op mode */
 					| (DATA_BYTES_IN_IMG_PER_CW << NAND_DEV0_ECC_NUM_DATA_BYTES)
 					| (1 << NAND_DEV0_ECC_FORCE_CLK_OPEN_SHIFT); /* Enable all clocks */
+
+	ecc_cfg_raw = (1 << NAND_DEV0_ECC_FORCE_CLK_OPEN_SHIFT)
+					| (DATA_BYTES_IN_IMG_PER_CW << NAND_DEV0_ECC_NUM_DATA_BYTES)
+					| (ecc_parity_bytes << NAND_DEV0_ECC_PARITY_SZ_BYTES_SHIFT)
+					| (0 << NAND_DEV0_ECC_SW_RESET_SHIFT)
+					| (1 << NAND_DEV0_ECC_DISABLE_SHIFT);
+
+#if DEBUG_QPIC_NAND
+	dprintf(INFO, "CFG0: 0x%08x              CFG1: 0x%08x\n", cfg0, cfg1);
+	dprintf(INFO, "CFG0_RAW: 0x%08x          CFG1_RAW: 0x%08x\n", cfg0_raw, cfg1_raw);
+	dprintf(INFO, "ECC_BCH_CFG: 0x%08x      ECC_CFG_RAW: 0x%08x\n", ecc_bch_cfg, ecc_cfg_raw);
+#endif
 }
 
 /* Onfi probe should issue the following commands to the flash device:
@@ -1381,14 +1402,209 @@ flash_set_ptable(struct ptable *new_ptable)
 	flash_ptable = new_ptable;
 }
 
+static int find_num_zeros_per_cw(uint8_t *ecc_buf, uint32_t ecc_bytes)
+{
+	uint8_t val;
+	uint32_t i;
+	int num_zeros = 0;
+
+	for (i = 0; i < ecc_bytes; i++)
+	{
+		val = ecc_buf[i];
+		while (val)
+		{
+			if ((val & 1) == 0)
+				num_zeros++;
+			if (num_zeros > THRESHOLD_BIT_FLIPS)
+				goto out;
+			val >>= 1;
+		}
+	}
+
+out:
+	return num_zeros;
+}
+
+static int qpic_nand_read_erased_page(uint32_t page)
+{
+	struct cfg_params params;
+	uint32_t ecc;
+	uint32_t flash_sts[QPIC_NAND_MAX_CWS_IN_PAGE];
+	uint32_t buffer_sts[QPIC_NAND_MAX_CWS_IN_PAGE];
+	uint32_t addr_loc_0;
+	uint32_t total_ecc_bytes = 0;
+	struct cmd_element *cmd_list_ptr = ce_array;
+	struct cmd_element *cmd_list_ptr_start = ce_array;
+	uint32_t num_cmd_desc = 0;
+	uint32_t num_data_desc = 0;
+	uint32_t i;
+	int nand_ret = NANDC_RESULT_SUCCESS;
+	uint8_t flags = 0;
+	uint32_t *cmd_list_temp = NULL;
+	uint8_t *ecc_buf = NULL;
+	uint8_t *ecc_temp = NULL;
+	int num_zeros = 0;
+#if DEBUG_QPIC_NAND
+	uint32_t *buffer_temp = NULL;
+#endif
+
+	total_ecc_bytes = (ecc_parity_bytes * flash.cws_per_page);
+	ecc_buf = memalign(16, total_ecc_bytes);
+	ASSERT(ecc_buf);
+
+	memset(ecc_buf, 0, total_ecc_bytes);
+
+	ecc_temp = ecc_buf;
+#if DEBUG_QPIC_NAND
+	buffer_temp = (uint32_t*)ecc_buf;
+#endif
+	params.addr0 = page << 16;
+	params.addr1 = (page >> 16) & 0xff;
+	params.cfg0 = cfg0_raw;
+	params.cfg1 = cfg1_raw;
+	params.cmd = NAND_CMD_PAGE_READ;
+	params.exec = 1;
+	ecc = ecc_cfg_raw;
+
+	/* Read all the Data bytes in the first 3 CWs. */
+	addr_loc_0 = NAND_RD_LOC_OFFSET(517);
+	addr_loc_0 |= NAND_RD_LOC_SIZE(ecc_parity_bytes);
+	addr_loc_0 |= NAND_RD_LOC_LAST_BIT(1);
+
+	/* Queue up the command and data descriptors for all the codewords in a page
+	 * and do a single bam transfer at the end.*/
+	for (i = 0; i < flash.cws_per_page; i++)
+	{
+		num_cmd_desc = 0;
+		num_data_desc = 0;
+		flags = 0;
+
+		if (i == 0)
+		{
+			/* Set the lock flag for the first CW */
+			flags = BAM_DESC_LOCK_FLAG;
+
+			cmd_list_ptr = qpic_nand_add_addr_n_cfg_ce(&params, cmd_list_ptr);
+
+			bam_add_cmd_element(cmd_list_ptr, NAND_DEV0_ECC_CFG,(uint32_t)ecc, CE_WRITE_TYPE);
+			cmd_list_ptr++;
+
+			bam_add_cmd_element(cmd_list_ptr, NAND_FLASH_CMD, (uint32_t)params.cmd, CE_WRITE_TYPE);
+			cmd_list_ptr++;
+
+			/* Write addr loc 0. */
+			bam_add_cmd_element(cmd_list_ptr,
+								NAND_READ_LOCATION_n(0),
+								(uint32_t)addr_loc_0,
+								CE_WRITE_TYPE);
+
+			cmd_list_ptr++;
+		}
+		else
+			cmd_list_ptr_start = cmd_list_ptr;
+
+		if (i == flash.cws_per_page - 1)
+			flags = BAM_DESC_INT_FLAG;
+
+		/* Add Data desc */
+		bam_add_one_desc(&bam,
+						 DATA_PRODUCER_PIPE_INDEX,
+						 (unsigned char *)PA((addr_t)ecc_temp),
+						 ecc_parity_bytes,
+						 flags);
+		num_data_desc++;
+		bam_sys_gen_event(&bam, DATA_PRODUCER_PIPE_INDEX, num_data_desc);
+
+		bam_add_cmd_element(cmd_list_ptr,
+							NAND_EXEC_CMD,
+							(uint32_t)params.exec,
+							CE_WRITE_TYPE);
+		cmd_list_ptr++;
+
+		/* Enqueue the desc for the above commands */
+		bam_add_one_desc(&bam,
+					 CMD_PIPE_INDEX,
+					 (unsigned char*)cmd_list_ptr_start,
+					 PA((uint32_t)cmd_list_ptr - (uint32_t)cmd_list_ptr_start),
+					 BAM_DESC_NWD_FLAG | BAM_DESC_CMD_FLAG | flags);
+		num_cmd_desc++;
+
+		bam_add_cmd_element(cmd_list_ptr, NAND_FLASH_STATUS, (uint32_t)PA((addr_t)&(flash_sts[i])), CE_READ_TYPE);
+
+		cmd_list_temp = (uint32_t *)cmd_list_ptr;
+
+		cmd_list_ptr++;
+
+		bam_add_cmd_element(cmd_list_ptr, NAND_BUFFER_STATUS, (uint32_t)PA((addr_t)&(buffer_sts[i])), CE_READ_TYPE);
+		cmd_list_ptr++;
+
+		if (i == flash.cws_per_page - 1)
+		{
+			/* Unlock flag for the last CW */
+			flags = BAM_DESC_CMD_FLAG | BAM_DESC_UNLOCK_FLAG;
+		}
+		else
+			flags = BAM_DESC_CMD_FLAG;
+
+		/* Enqueue the desc for the above command */
+		bam_add_one_desc(&bam,
+					CMD_PIPE_INDEX,
+					(unsigned char*)PA((addr_t)cmd_list_temp),
+					PA((uint32_t)cmd_list_ptr - (uint32_t)cmd_list_temp),
+					flags);
+		num_cmd_desc++;
+
+		ecc_temp += ecc_parity_bytes;
+
+		/* Notify BAM HW about the newly added descriptors */
+		bam_sys_gen_event(&bam, CMD_PIPE_INDEX, num_cmd_desc);
+	}
+
+	qpic_nand_wait_for_data(DATA_PRODUCER_PIPE_INDEX);
+
+	/* Find number of bit flips in the ecc & if there are more than "threshold" bit flips then
+	 * the page is bad otherwise the page is erased page
+	 */
+	ecc_temp = ecc_buf;
+
+	for (i = 0; i < flash.cws_per_page; i++)
+	{
+		num_zeros = find_num_zeros_per_cw(ecc_temp, ecc_parity_bytes);
+
+		if (num_zeros > THRESHOLD_BIT_FLIPS)
+		{
+			nand_ret = NANDC_RESULT_BAD_PAGE;
+			goto qpic_nand_read_page_error;
+		}
+
+		ecc_temp += ecc_parity_bytes;
+	}
+
+qpic_nand_read_page_error:
+
+#if DEBUG_QPIC_NAND
+	for(i = 0; i < 24; i += 8)
+	{
+			printf("ECC: %08x %08x %08x %08x %08x %08x %08x %08x\n",
+				buffer_temp[i], buffer_temp[i+1], buffer_temp[i+2], buffer_temp[i+3],
+				buffer_temp[i+4], buffer_temp[i+5], buffer_temp[i+6], buffer_temp[i+7]);
+	}
+	printf("ECC: %08x %08x\n", buffer_temp[24], buffer_temp[25]);
+#endif
+
+	free(ecc_buf);
+	return nand_ret;
+}
+
 /* Note: No support for raw reads. */
 static int
 qpic_nand_read_page(uint32_t page, unsigned char* buffer, unsigned char* spareaddr)
 {
 	struct cfg_params params;
 	uint32_t ecc;
-	uint32_t flash_sts[QPIC_NAND_MAX_CWS_IN_PAGE];
-	uint32_t buffer_sts[QPIC_NAND_MAX_CWS_IN_PAGE];
+	uint32_t flash_sts[QPIC_NAND_MAX_CWS_IN_PAGE] = {0};
+	uint32_t buffer_sts[QPIC_NAND_MAX_CWS_IN_PAGE] = {0};
+	uint32_t erased_cw_sts[QPIC_NAND_MAX_CWS_IN_PAGE] = {0};
 	uint32_t addr_loc_0;
 	uint32_t addr_loc_1;
 	struct cmd_element *cmd_list_ptr = ce_array;
@@ -1400,6 +1616,9 @@ qpic_nand_read_page(uint32_t page, unsigned char* buffer, unsigned char* sparead
 	int nand_ret = NANDC_RESULT_SUCCESS;
 	uint8_t flags = 0;
 	uint32_t *cmd_list_temp = NULL;
+#if DEBUG_QPIC_NAND
+    uint8_t *buffer_temp = buffer;
+#endif
 
 	/* UD bytes in last CW is 512 - cws_per_page *4.
 	 * Since each of the CW read earlier reads 4 spare bytes.
@@ -1411,7 +1630,7 @@ qpic_nand_read_page(uint32_t page, unsigned char* buffer, unsigned char* sparead
 	params.addr1 = (page >> 16) & 0xff;
 	params.cfg0 = cfg0;
 	params.cfg1 = cfg1;
-	params.cmd = NAND_CMD_PAGE_READ_ALL;
+	params.cmd = NAND_CMD_PAGE_READ_ECC;
 	params.exec = 1;
 	ecc = ecc_bch_cfg;
 
@@ -1522,6 +1741,10 @@ qpic_nand_read_page(uint32_t page, unsigned char* buffer, unsigned char* sparead
 		bam_add_cmd_element(cmd_list_ptr, NAND_BUFFER_STATUS, (uint32_t)PA((addr_t)&(buffer_sts[i])), CE_READ_TYPE);
 		cmd_list_ptr++;
 
+		/* Read erased CW status */
+		bam_add_cmd_element(cmd_list_ptr, NAND_ERASED_CW_DETECT_STATUS, (uint32_t)PA((addr_t)&erased_cw_sts[i]), CE_READ_TYPE);
+		cmd_list_ptr++;
+
 		if (i == flash.cws_per_page - 1)
 		{
 			flags = BAM_DESC_CMD_FLAG | BAM_DESC_UNLOCK_FLAG;
@@ -1545,19 +1768,57 @@ qpic_nand_read_page(uint32_t page, unsigned char* buffer, unsigned char* sparead
 
 	qpic_nand_wait_for_data(DATA_PRODUCER_PIPE_INDEX);
 
-	/* Check status */
+	/* Check flash read status & errors */
 	for (i = 0; i < flash.cws_per_page ; i ++)
 	{
-		flash_sts[i] = qpic_nand_check_status(flash_sts[i]);
-		if (flash_sts[i])
+#if DEBUG_QPIC_NAND
+		dprintf(INFO, "FLASH STATUS: 0x%08x, BUFFER STATUS: 0x%08x, ERASED CW STATUS: 0x%08x\n",
+				flash_sts[i], buffer_sts[i], erased_cw_sts[i]);
+#endif
+
+		/* If MPU or flash op erros are set, look for erased cw status.
+		 * If erased CW status is not set then look for bit flips to confirm
+		 * if the page is and erased page or a bad page
+		 */
+		if (flash_sts[i] & (NAND_FLASH_OP_ERR | NAND_FLASH_MPU_ERR))
 		{
-			nand_ret = NANDC_RESULT_BAD_PAGE;
-			dprintf(CRITICAL, "NAND page read failed. page: %x status %x\n", page, flash_sts[i]);
-			goto qpic_nand_read_page_error;
+			if ((erased_cw_sts[i] & NAND_ERASED_CW) != NAND_ERASED_CW)
+			{
+#if DEBUG_QPIC_NAND
+			dprintf(CRITICAL, "Page: 0x%08x, addr0: 0x%08x, addr1: 0x%08x\n", page, params.addr0, params.addr1);
+#endif
+			/*
+			 * Depending on the process technology used there could be bit flips on
+			 * pages on the NAND card
+			 * When any page is erased the controller fills the page with all 1's.
+			 * When we try to read from an erased page and there are bit flips the
+			 * controller would not detect the page as erased page instead throws
+			 * an uncorrectable ecc error.
+			 * The NAND data sheet for that card would specify the number of bit flips
+			 * expected per code word. If the number of bit flips is less than expected
+			 * bit flips then we should ignore the uncorrectable ECC error and consider
+			 * the page as an erased page.
+			 */
+#if DEBUG_QPIC_NAND
+				for(i = 0; i < 4096; i += 8)
+				{
+					printf("DATA: %x %x %x %x %x %x %x %x",
+									buffer_temp[i], buffer_temp[i+1], buffer_temp[i+2], buffer_temp[i+3],
+									buffer_temp[i+4], buffer_temp[i+5], buffer_temp[i+6], buffer_temp[i+7]);
+					i += 8;
+					printf("DATA: %x %x %x %x %x %x %x %x\n",
+									buffer_temp[i], buffer_temp[i+1], buffer_temp[i+2], buffer_temp[i+3],
+									buffer_temp[i+4], buffer_temp[i+5], buffer_temp[i+6], buffer_temp[i+7]);
+				}
+#endif
+				nand_ret = qpic_nand_read_erased_page(page);
+				goto qpic_nand_read_page_error;
+				}
 		}
 	}
+
 qpic_nand_read_page_error:
-return nand_ret;
+	return nand_ret;
 }
 
 /**

@@ -49,6 +49,7 @@ addr_t get_bs_info_addr(void);
 void display_init(void);
 void display_shutdown(void);
 void display_image_on_screen(void);
+void display_fbcon_message(char *str);
 
 unsigned board_machtype(void);
 unsigned board_platform_id(void);
@@ -64,6 +65,7 @@ void clock_config_cdc(uint32_t interface);
 int platform_is_msm8939();
 int platform_is_msm8909();
 int platform_is_msm8992();
+int platform_is_msm8956();
 int boot_device_mask(int);
 uint32_t platform_detect_panel();
 uint32_t platform_get_max_periph();

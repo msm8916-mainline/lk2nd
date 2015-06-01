@@ -37,7 +37,6 @@
 #include "include/display_resource.h"
 #include "panel_display.h"
 
-#define TIMING_SIZE 48
 #define REGULATOR_SIZE 28
 #define PHYSICAL_SIZE 16
 #define STRENGTH_SIZE 8
@@ -53,6 +52,8 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo);
 int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 						struct msm_panel_info *pinfo);
 int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo);
+int target_display_dsi2hdmi_config(struct msm_panel_info *pinfo);
+int target_dsi_phy_config(struct mdss_dsi_phy_ctrl *phy_db);
 
 int gcdb_display_init(const char *panel_name, uint32_t rev, void *base);
 int gcdb_display_cmdline_arg(char *panel_name, char *pbuf, uint16_t buf_size);

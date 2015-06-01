@@ -43,6 +43,8 @@
 #define CE2_CLK_ID         0x1
 #define RPM_SMD_KEY_RATE   0x007A484B
 
+#define MAX_LOOPS	500
+
 uint32_t CE2_CLK[][8]=
 {
 	{
@@ -455,24 +457,63 @@ void mmss_bus_clock_disable(void)
 	clk_disable(clk_get("mmss_mmssnoc_axi_clk"));
 }
 
-void mmss_dsi_clock_enable(uint32_t dsi_pixel0_cfg_rcgr, uint32_t flags,
+static void rcg_update_config(uint32_t reg)
+{
+	int i;
+
+	for (i = 0; i < MAX_LOOPS; i++) {
+		if (!(readl(reg) & BIT(0)))
+			return;
+		udelay(1);
+	}
+
+	dprintf(CRITICAL, "failed to update rcg config for reg = 0x%x\n", reg);
+	ASSERT(0);
+}
+
+static void branch_clk_halt_check(uint32_t reg)
+{
+	int i;
+
+	for (i = 0; i < MAX_LOOPS; i++) {
+		if (!(readl(reg) & BIT(31)))
+			return;
+		udelay(1);
+	}
+
+	dprintf(CRITICAL, "failed to enable branch for reg = 0x%x\n", reg);
+	ASSERT(0);
+}
+
+void mmss_dsi_clock_enable(uint32_t cfg_rcgr, uint32_t flags,
 			uint8_t pclk0_m, uint8_t pclk0_n, uint8_t pclk0_d)
 {
 	int ret;
 
 	if (flags & MMSS_DSI_CLKS_FLAG_DSI0) {
 		/* Enable DSI0 branch clocks */
-		writel(0x100, DSI_BYTE0_CFG_RCGR);
+
+		/* Set the source for DSI0 byte RCG */
+		writel(cfg_rcgr, DSI_BYTE0_CFG_RCGR);
+		/* Set the update RCG bit */
 		writel(0x1, DSI_BYTE0_CMD_RCGR);
+		rcg_update_config(DSI_BYTE0_CMD_RCGR);
+		/* Enable the branch clock */
 		writel(0x1, DSI_BYTE0_CBCR);
+		branch_clk_halt_check(DSI_BYTE0_CBCR);
 
-		writel(dsi_pixel0_cfg_rcgr, DSI_PIXEL0_CFG_RCGR);
-		writel(0x1, DSI_PIXEL0_CMD_RCGR);
-		writel(0x1, DSI_PIXEL0_CBCR);
-
+		/* Set the source for DSI0 pixel RCG */
+		writel(cfg_rcgr, DSI_PIXEL0_CFG_RCGR);
+		/* Set the MND for DSI0 pixel clock */
 		writel(pclk0_m, DSI_PIXEL0_M);
 		writel(pclk0_n, DSI_PIXEL0_N);
 		writel(pclk0_d, DSI_PIXEL0_D);
+		/* Set the update RCG bit */
+		writel(0x1, DSI_PIXEL0_CMD_RCGR);
+		rcg_update_config(DSI_PIXEL0_CMD_RCGR);
+		/* Enable the branch clock */
+		writel(0x1, DSI_PIXEL0_CBCR);
+		branch_clk_halt_check(DSI_PIXEL0_CBCR);
 
 		ret = clk_get_set_enable("mdss_esc0_clk", 0, 1);
 		if(ret)
@@ -484,17 +525,28 @@ void mmss_dsi_clock_enable(uint32_t dsi_pixel0_cfg_rcgr, uint32_t flags,
 
 	if (flags & MMSS_DSI_CLKS_FLAG_DSI1) {
 		/* Enable DSI1 branch clocks */
-		writel(0x100, DSI_BYTE1_CFG_RCGR);
+
+		/* Set the source for DSI1 byte RCG */
+		writel(cfg_rcgr, DSI_BYTE1_CFG_RCGR);
+		/* Set the update RCG bit */
 		writel(0x1, DSI_BYTE1_CMD_RCGR);
+		rcg_update_config(DSI_BYTE1_CMD_RCGR);
+		/* Enable the branch clock */
 		writel(0x1, DSI_BYTE1_CBCR);
+		branch_clk_halt_check(DSI_BYTE1_CBCR);
 
-		writel(dsi_pixel0_cfg_rcgr, DSI_PIXEL1_CFG_RCGR);
-		writel(0x1, DSI_PIXEL1_CMD_RCGR);
-		writel(0x1, DSI_PIXEL1_CBCR);
-
+		/* Set the source for DSI1 pixel RCG */
+		writel(cfg_rcgr, DSI_PIXEL1_CFG_RCGR);
+		/* Set the MND for DSI1 pixel clock */
 		writel(pclk0_m, DSI_PIXEL1_M);
 		writel(pclk0_n, DSI_PIXEL1_N);
 		writel(pclk0_d, DSI_PIXEL1_D);
+		/* Set the update RCG bit */
+		writel(0x1, DSI_PIXEL1_CMD_RCGR);
+		rcg_update_config(DSI_PIXEL1_CMD_RCGR);
+		/* Enable the branch clock */
+		writel(0x1, DSI_PIXEL1_CBCR);
+		branch_clk_halt_check(DSI_PIXEL1_CBCR);
 
 		ret = clk_get_set_enable("mdss_esc1_clk", 0, 1);
 		if(ret)

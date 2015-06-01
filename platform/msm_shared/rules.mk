@@ -199,7 +199,8 @@ DEFINES += DISPLAY_TYPE_MDSS=1
 		$(LOCAL_DIR)/crypto_hash.o \
 		$(LOCAL_DIR)/crypto5_eng.o \
 		$(LOCAL_DIR)/crypto5_wrapper.o \
-		$(LOCAL_DIR)/i2c_qup.o
+		$(LOCAL_DIR)/i2c_qup.o \
+		$(LOCAL_DIR)/mipi_dsi_i2c.o
 
 endif
 
@@ -503,11 +504,13 @@ DEFINES += DISPLAY_TYPE_MDSS=1
 endif
 
 ifeq ($(PLATFORM),msm8996)
+DEFINES += DISPLAY_TYPE_MDSS=1
 	OBJS += $(LOCAL_DIR)/qtimer.o \
 			$(LOCAL_DIR)/qtimer_mmap.o \
 			$(LOCAL_DIR)/interrupts.o \
 			$(LOCAL_DIR)/clock.o \
 			$(LOCAL_DIR)/clock_pll.o \
+			$(LOCAL_DIR)/clock_alpha_pll.o \
 			$(LOCAL_DIR)/clock_lib2.o \
 			$(LOCAL_DIR)/uart_dm.o \
 			$(LOCAL_DIR)/board.o \
@@ -524,7 +527,12 @@ ifeq ($(PLATFORM),msm8996)
 			$(LOCAL_DIR)/image_verify.o \
 			$(LOCAL_DIR)/crypto_hash.o \
 			$(LOCAL_DIR)/crypto5_eng.o \
-			$(LOCAL_DIR)/crypto5_wrapper.o
+			$(LOCAL_DIR)/crypto5_wrapper.o \
+			$(LOCAL_DIR)/mdp5.o \
+			$(LOCAL_DIR)/display.o \
+			$(LOCAL_DIR)/mipi_dsi.o \
+			$(LOCAL_DIR)/mipi_dsi_phy.o \
+			$(LOCAL_DIR)/mipi_dsi_autopll_thulium.o
 endif
 
 ifeq ($(ENABLE_UFS_SUPPORT), 1)

@@ -72,6 +72,7 @@
 
 #define DSI_HW_REV_103			0x10030000	/* 8994 */
 #define DSI_HW_REV_103_1		0x10030001	/* 8936/8939 */
+#define DSI_HW_REV_104			0x10040000	/* thulium */
 
 #define DTYPE_GEN_WRITE2 0x23	/* 4th Byte is 0x80 */
 #define DTYPE_GEN_LWRITE 0x29	/* 4th Byte is 0xc0 */
@@ -122,9 +123,9 @@
 
 #define MAX_REGULATOR_CONFIG            7
 #define MAX_BIST_CONFIG                 6
-#define MAX_TIMING_CONFIG               12
+#define MAX_TIMING_CONFIG               40
 #define MAX_LANE_CONFIG                 45
-#define MAX_STRENGTH_CONFIG             2
+#define MAX_STRENGTH_CONFIG             10
 #define MAX_CTRL_CONFIG                 4
 
 /**********************************************************
@@ -143,6 +144,13 @@ enum dsi_reg_mode {
 	DSI_PHY_REGULATOR_LDO_MODE,
 };
 
+enum {
+	DSI_PLL_TYPE_28NM,
+	DSI_PLL_TYPE_20NM,
+	DSI_PLL_TYPE_THULIUM,
+	DSI_PLL_TYPE_MAX,
+};
+
 struct mdss_dsi_phy_ctrl {
 	uint32_t regulator[MAX_REGULATOR_CONFIG];
 	uint32_t timing[MAX_TIMING_CONFIG];
@@ -151,7 +159,7 @@ struct mdss_dsi_phy_ctrl {
 	char bistCtrl[MAX_BIST_CONFIG];
 	char laneCfg[MAX_LANE_CONFIG];
 	enum dsi_reg_mode regulator_mode;
-	int is_pll_20nm;
+	int pll_type;
 };
 
 struct mdss_dsi_pll_config {
@@ -180,12 +188,24 @@ struct mdss_dsi_pll_config {
 	uint8_t  hr_oclk3;
 	uint8_t  lp_div_mux;
 	uint8_t  ndiv;
+
+	/* pll thulium */
+	uint32_t postdiv;
+	uint32_t n1div;
+	uint32_t n2div;
 };
 
 struct mipi_dsi_cmd {
 	uint32_t size;
 	char *payload;
 	int wait;
+};
+
+struct mipi_dsi_i2c_cmd {
+	uint8_t i2c_addr;
+	uint8_t reg;
+	uint8_t val;
+	int sleep_in_ms;
 };
 
 struct mipi_dsi_panel_config {
@@ -256,7 +276,7 @@ int mdss_dsi_cmds_rx(struct mipi_panel_info *mipi, uint32_t **rp, int rp_len,
 	int rdbk_len);
 int32_t mdss_dsi_auto_pll_config(uint32_t pll_base, uint32_t ctl_base,
 	struct mdss_dsi_pll_config *pd);
-void mdss_dsi_auto_pll_20nm_config(uint32_t pll_base, uint32_t pll_1_base,
+void mdss_dsi_auto_pll_20nm_config(uint32_t pll_base, uint32_t spll_base,
 		struct mdss_dsi_pll_config *pd);
 void mdss_dsi_pll_20nm_sw_reset_st_machine(uint32_t pll_base);
 uint32_t mdss_dsi_pll_20nm_lock_status(uint32_t pll_base);

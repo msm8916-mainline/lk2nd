@@ -65,6 +65,7 @@
 #define LNBB_CLK_ID                            0x8
 #define RPM_CLK_BUFFER_PIN_CONTROL_ENABLE_NONE 0x0
 
+#define REG_LDO1	BIT(0)
 #define REG_LDO2	BIT(1)
 #define REG_LDO6	BIT(5)
 #define REG_LDO12	BIT(11)

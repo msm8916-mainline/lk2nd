@@ -102,6 +102,9 @@ typedef enum {
                           (link_id).version = GLINK_LINK_ID_VER;
 
 /* GLink tx options */
+/* Flag for no options */
+#define GLINK_TX_NO_OPTIONS      ( 0 )
+
 /* Whether to block and request for remote rx intent in
  * case it is not available for this pkt tx */
 #define GLINK_TX_REQ_INTENT      0x00000001
@@ -110,6 +113,9 @@ typedef enum {
  * flush data into the transport in glink_tx() context, or returns error if
  * it is not able to do so */
 #define GLINK_TX_SINGLE_THREADED 0x00000002
+
+/* This option is to turn on tracer packet */
+#define GLINK_TX_TRACER_PKT      0x00000004
 
 /* ======================= glink open cfg options ==================*/
 
@@ -205,6 +211,17 @@ typedef void (*glink_rx_notification_cb)
   size_t            intent_used /* size of the intent used for this packet */
 );
 
+/** Data receive notification callback type*/
+typedef void (*glink_rx_tracer_pkt_notification_cb)
+(
+  glink_handle_type handle,     /* handle for the glink channel */
+  const void        *priv,      /* priv client data passed in glink_open */
+  const void        *pkt_priv,  /* private client data assiciated with the
+                                   rx intent that client queued earlier */
+  const void        *ptr,       /* pointer to the received buffer */
+  size_t            size        /* size of the packet */
+);
+
 /** Vector receive notification callback type*/
 typedef void (*glink_rxv_notification_cb)
 (
@@ -295,54 +312,58 @@ const void         *pkt_priv /* pkt specific private data */
  */
 typedef struct {
   /** string name for the transport to use (Optional)*/
-  const char                    *transport;
+  const char                          *transport;
 
   /** string name for the remote subsystem to which the user wants to
       connect */
-  const char                    *remote_ss;
+  const char                          *remote_ss;
 
   /** string name for the channel */
-  const char                    *name;
+  const char                          *name;
 
   /** bitfield for specifying various options */
-  unsigned                      options;
+  unsigned                            options;
 
   /** Private data for client to maintain context. This data is passed back
       to client in the notification callbacks */
-  const void                    *priv;
+  const void                          *priv;
 
   /** Data receive notification callback. Optional if notify_rxv is provided */
-  glink_rx_notification_cb      notify_rx;
+  glink_rx_notification_cb            notify_rx;
+
+  /** Tracer packet receive notification callback.
+   *  Optional if user doesn't need to use this */
+  glink_rx_tracer_pkt_notification_cb notify_rx_tracer_pkt;
 
   /** Vector receive notification callback. Optional if notify_rx is provided */
-  glink_rxv_notification_cb     notify_rxv;
+  glink_rxv_notification_cb           notify_rxv;
 
   /** Data transmit notification callback */
-  glink_tx_notification_cb      notify_tx_done;
+  glink_tx_notification_cb            notify_tx_done;
 
   /** GLink channel state notification callback */
-  glink_state_notification_cb   notify_state;
+  glink_state_notification_cb         notify_state;
 
   /** Intent request from the remote side. Optional */
-  glink_notify_rx_intent_req_cb notify_rx_intent_req;
+  glink_notify_rx_intent_req_cb       notify_rx_intent_req;
 
   /** New intent arrival from the remote side */
-  glink_notify_rx_intent_cb     notify_rx_intent;
+  glink_notify_rx_intent_cb           notify_rx_intent;
 
   /** Control signal change notification - Invoked when remote side
    *  alters its control signals. Optional */
-  glink_notify_rx_sigs_cb       notify_rx_sigs;
+  glink_notify_rx_sigs_cb             notify_rx_sigs;
 
   /** rx_intent abort notification. This callback would be invoked for
    *  every rx_intent that is queued with GLink core at the time the
    *  remote side or local side decides to close the port. Optional */
-  glink_notify_rx_abort_cb      notify_rx_abort;
+  glink_notify_rx_abort_cb            notify_rx_abort;
 
   /** tx abort notification. This callback would be invoked if client
   *   had queued a tx buffer with glink and it had not been transmitted i.e.
   *   tx_done callback has not been called for this buffer and remote side
   *   or local side closed the port. Optional */
-  glink_notify_tx_abort_cb      notify_tx_abort;
+  glink_notify_tx_abort_cb            notify_tx_abort;
 
 }glink_open_config_type;
 

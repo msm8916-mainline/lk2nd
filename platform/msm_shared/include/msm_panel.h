@@ -245,6 +245,7 @@ struct mipi_panel_info {
 	char force_clk_lane_hs;
 	char lane_swap;
 	uint8_t dual_dsi;
+	uint8_t use_dsi1_pll;
 	uint8_t broadcast;
 	uint8_t mode_gpio_state;
 	uint32_t signature;
@@ -255,8 +256,8 @@ struct mipi_panel_info {
 	uint32_t sphy_base;
 	uint32_t reg_base;
 	uint32_t sreg_base;
-	uint32_t pll_0_base;
-	uint32_t pll_1_base;
+	uint32_t pll_base;
+	uint32_t spll_base;
 
 	struct dfps_pll_codes pll_codes;
 };
@@ -264,6 +265,13 @@ struct mipi_panel_info {
 struct edp_panel_info {
 	int max_lane_count;
 	unsigned long max_link_clk;
+};
+
+struct dsi2HDMI_panel_info {
+	struct mipi_dsi_i2c_cmd *dsi_tg_i2c_cmd;
+	struct mipi_dsi_i2c_cmd *dsi_setup_cfg_i2c_cmd;
+	int num_of_tg_i2c_cmds;
+	int num_of_cfg_i2c_cmds;
 };
 
 enum lvds_mode {
@@ -314,6 +322,7 @@ struct msm_panel_info {
 	struct lvds_panel_info lvds;
 	struct hdmi_panel_info hdmi;
 	struct edp_panel_info edp;
+	struct dsi2HDMI_panel_info adv7533;
 
 	struct dfps_info dfps;
 
@@ -344,6 +353,7 @@ struct msm_fb_panel_data {
 	int (*post_power_func)(int enable);
 	int (*pre_init_func)(void);
 	int (*update_panel_info) (void);
+	int (*dsi2HDMI_config) (struct msm_panel_info *);
 };
 
 #endif

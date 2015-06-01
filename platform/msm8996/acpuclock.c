@@ -292,3 +292,262 @@ deassert_phy_clk:
 		return;
 	}
 }
+
+void mmss_gdsc_enable()
+{
+	uint32_t reg = 0;
+
+	reg = readl(MMAGIC_BIMC_GDSCR);
+	if (!(reg & GDSC_POWER_ON_BIT)) {
+		reg &=  ~(BIT(0) | GDSC_EN_FEW_WAIT_MASK);
+		reg |= GDSC_EN_FEW_WAIT_256_MASK;
+		writel(reg, MMAGIC_BIMC_GDSCR);
+		while(!(readl(MMAGIC_BIMC_GDSCR) & (GDSC_POWER_ON_BIT)));
+	} else {
+		dprintf(SPEW, "MMAGIC BIMC GDSC already enabled\n");
+	}
+
+	reg = readl(MMAGIC_MDSS_GDSCR);
+	if (!(reg & GDSC_POWER_ON_BIT)) {
+		reg &=  ~(BIT(0) | GDSC_EN_FEW_WAIT_MASK);
+		reg |= GDSC_EN_FEW_WAIT_256_MASK;
+		writel(reg, MMAGIC_MDSS_GDSCR);
+		while(!(readl(MMAGIC_MDSS_GDSCR) & (GDSC_POWER_ON_BIT)));
+	} else {
+		dprintf(SPEW, "MMAGIC MDSS GDSC already enabled\n");
+	}
+
+	reg = readl(MDSS_GDSCR);
+	if (!(reg & GDSC_POWER_ON_BIT)) {
+		reg &=  ~(BIT(0) | GDSC_EN_FEW_WAIT_MASK);
+		reg |= GDSC_EN_FEW_WAIT_256_MASK;
+		writel(reg, MDSS_GDSCR);
+		while(!(readl(MDSS_GDSCR) & (GDSC_POWER_ON_BIT)));
+	} else {
+		dprintf(SPEW, "MDSS GDSC already enabled\n");
+	}
+}
+
+void mmss_gdsc_disable()
+{
+	uint32_t reg = 0;
+
+	reg = readl(MDSS_GDSCR);
+	reg |= BIT(0);
+	writel(reg, MDSS_GDSCR);
+	while(readl(MDSS_GDSCR) & (GDSC_POWER_ON_BIT));
+
+	reg = readl(MMAGIC_MDSS_GDSCR);
+	reg |= BIT(0);
+	writel(reg, MMAGIC_MDSS_GDSCR);
+	while(readl(MMAGIC_MDSS_GDSCR) & (GDSC_POWER_ON_BIT));
+
+	reg = readl(MMAGIC_BIMC_GDSCR);
+	reg |= BIT(0);
+	writel(reg, MMAGIC_BIMC_GDSCR);
+	while(readl(MMAGIC_BIMC_GDSCR) & (GDSC_POWER_ON_BIT));
+}
+
+void video_gdsc_enable()
+{
+	uint32_t reg = 0;
+
+	reg = readl(MMAGIC_VIDEO_GDSCR);
+	if (!(reg & GDSC_POWER_ON_BIT)) {
+		reg &=  ~(BIT(0) | GDSC_EN_FEW_WAIT_MASK);
+		reg |= GDSC_EN_FEW_WAIT_256_MASK;
+		writel(reg, MMAGIC_VIDEO_GDSCR);
+		while(!(readl(MMAGIC_VIDEO_GDSCR) & (GDSC_POWER_ON_BIT)));
+	} else {
+		dprintf(SPEW, "VIDEO BIMC GDSC already enabled\n");
+	}
+
+	reg = readl(VIDEO_GDSCR);
+	if (!(reg & GDSC_POWER_ON_BIT)) {
+		reg &=  ~(BIT(0) | GDSC_EN_FEW_WAIT_MASK);
+		reg |= GDSC_EN_FEW_WAIT_256_MASK;
+		writel(reg, VIDEO_GDSCR);
+		while(!(readl(VIDEO_GDSCR) & (GDSC_POWER_ON_BIT)));
+	} else {
+		dprintf(SPEW, "VIDEO GDSC already enabled\n");
+	}
+}
+
+void video_gdsc_disable()
+{
+	uint32_t reg = 0;
+
+	reg = readl(VIDEO_GDSCR);
+	reg |= BIT(0);
+	writel(reg, VIDEO_GDSCR);
+	while(readl(VIDEO_GDSCR) & (GDSC_POWER_ON_BIT));
+
+	reg = readl(MMAGIC_VIDEO_GDSCR);
+	reg |= BIT(0);
+	writel(reg, MMAGIC_VIDEO_GDSCR);
+	while(readl(MMAGIC_VIDEO_GDSCR) & (GDSC_POWER_ON_BIT));
+}
+
+/* Configure MDP clock */
+void mdp_clock_enable(void)
+{
+	int ret;
+
+	ret = clk_get_set_enable("mmss_mmagic_ahb_clk", 19200000, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mmagic_ahb_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("smmu_mdp_ahb_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set smmu_mdp_ahb_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("mdp_ahb_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mdp_ahb_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("mdss_mdp_clk", 320000000, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mdp_clk_src ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("mdss_vsync_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mdss vsync clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+}
+
+void mdp_clock_disable()
+{
+	clk_disable(clk_get("mdss_vsync_clk"));
+	clk_disable(clk_get("mdss_mdp_clk"));
+	clk_disable(clk_get("mdp_ahb_clk"));
+	clk_disable(clk_get("smmu_mdp_ahb_clk"));
+	clk_disable(clk_get("mmss_mmagic_ahb_clk"));
+}
+
+void mmss_bus_clock_enable(void)
+{
+	int ret;
+	ret = clk_get_set_enable("mmss_mmagic_axi_clk", 320000000, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mmss_mmagic_axi_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("mmagic_bimc_axi_clk", 320000000, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mmss_s0_axi_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("mmss_s0_axi_clk", 320000000, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mmss_s0_axi_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("mmagic_mdss_axi_clk", 320000000, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mmss_mmagic_axi_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("smmu_mdp_axi_clk", 320000000, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set smmu_mdp_axi_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("mdss_axi_clk", 320000000, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mdss_axi_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+}
+
+void mmss_bus_clock_disable(void)
+{
+	clk_disable(clk_get("mdss_axi_clk"));
+	clk_disable(clk_get("smmu_mdp_axi_clk"));
+	clk_disable(clk_get("mmagic_mdss_axi_clk"));
+	clk_disable(clk_get("mmss_s0_axi_clk"));
+	clk_disable(clk_get("mmagic_bimc_axi_clk"));
+	clk_disable(clk_get("mmss_mmagic_axi_clk"));
+}
+
+void mmss_dsi_clock_enable(uint32_t cfg_rcgr, uint32_t flags)
+{
+	int ret;
+
+	if (flags & MMSS_DSI_CLKS_FLAG_DSI0) {
+		/* Enable DSI0 branch clocks */
+
+		writel(cfg_rcgr, DSI_BYTE0_CFG_RCGR);
+		writel(0x1, DSI_BYTE0_CMD_RCGR);
+		writel(0x1, DSI_BYTE0_CBCR);
+
+		writel(cfg_rcgr, DSI_PIXEL0_CFG_RCGR);
+		writel(0x1, DSI_PIXEL0_CMD_RCGR);
+		writel(0x1, DSI_PIXEL0_CBCR);
+
+		ret = clk_get_set_enable("mdss_esc0_clk", 0, 1);
+		if(ret)
+		{
+			dprintf(CRITICAL, "failed to set esc0_clk ret = %d\n", ret);
+			ASSERT(0);
+		}
+	}
+
+	if (flags & MMSS_DSI_CLKS_FLAG_DSI1) {
+		/* Enable DSI1 branch clocks */
+		writel(cfg_rcgr, DSI_BYTE1_CFG_RCGR);
+		writel(0x1, DSI_BYTE1_CMD_RCGR);
+		writel(0x1, DSI_BYTE1_CBCR);
+
+		writel(cfg_rcgr, DSI_PIXEL1_CFG_RCGR);
+		writel(0x1, DSI_PIXEL1_CMD_RCGR);
+		writel(0x1, DSI_PIXEL1_CBCR);
+
+		ret = clk_get_set_enable("mdss_esc1_clk", 0, 1);
+		if(ret)
+		{
+			dprintf(CRITICAL, "failed to set esc1_clk ret = %d\n", ret);
+			ASSERT(0);
+		}
+	}
+}
+
+void mmss_dsi_clock_disable(uint32_t flags)
+{
+	if (flags & MMSS_DSI_CLKS_FLAG_DSI0) {
+		clk_disable(clk_get("mdss_esc0_clk"));
+		writel(0x0, DSI_BYTE0_CBCR);
+		writel(0x0, DSI_PIXEL0_CBCR);
+	}
+
+	if (flags & MMSS_DSI_CLKS_FLAG_DSI1) {
+		clk_disable(clk_get("mdss_esc1_clk"));
+		writel(0x0, DSI_BYTE1_CBCR);
+		writel(0x0, DSI_PIXEL1_CBCR);
+	}
+}

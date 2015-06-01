@@ -36,12 +36,8 @@
 #include "mdtp.h"
 #include "scm.h"
 
-#define MAX_EFUSES              (8)
-#define EFUSE_END               (MDTP_EFUSE_START + MAX_EFUSES - 1)
 #define MAX_METADATA_SIZE       (0x1000)
 #define QFPROM_ADDR_SPACE_RAW   (0)
-
-char metadata_block[MAX_METADATA_SIZE] = {0};
 
 /********************************************************************************/
 
@@ -120,6 +116,7 @@ static int read_metadata(metadata_t *metadata)
 	uint32_t actual_size;
 	int index = INVALID_PTN;
 	uint32_t block_size = mmc_get_device_blocksize();
+	unsigned char *buf = (unsigned char *)target_get_scratch_address() + MDTP_SCRATCH_OFFSET;
 
 	index = partition_get_index("mdtp");
 	ptn = partition_get_offset(index);
@@ -137,13 +134,13 @@ static int read_metadata(metadata_t *metadata)
 		return -1;
 	}
 
-	if(mmc_read(ptn, (void *)metadata_block, actual_size))
+	if(mmc_read(ptn, (void *)buf, actual_size))
 	{
 		dprintf(CRITICAL, "mdtp: read_metadata: ERROR, cannot read mdtp info\n");
 		return -1;
 	}
 
-	memscpy((uint8_t*)metadata, sizeof(metadata_t), (uint8_t*)(&(metadata_block[0])), MAX_METADATA_SIZE);
+	memscpy((uint8_t*)metadata, sizeof(metadata_t), (uint8_t*)(buf), MAX_METADATA_SIZE);
 
 	dprintf(INFO, "mdtp: read_metadata: SUCCESS, read %d bytes\n", actual_size);
 
@@ -228,7 +225,7 @@ static int read_fuse(uint8_t *mask)
  * Read the Firmware Lock eFuses and return whether the Firmware
  * Lock is currently enabled or disabled in HW.
  *
- * @param[out] enabled: 0 - enable, 1 - disable.
+ * @param[out] enabled: 0 - disabled, 1 - enabled.
  *
  * @return - negative value for an error, 0 for success.
  */
@@ -237,6 +234,8 @@ int mdtp_fuse_get_enabled(bool *enabled)
 	int status;
 	mdtp_eFuses_t eFuses;
 
+	*enabled = 1;
+
 	status = read_fuse(&eFuses.mask);
 	if (status)
 	{
@@ -244,14 +243,12 @@ int mdtp_fuse_get_enabled(bool *enabled)
 		return -1;
 	}
 
-	if ((eFuses.bitwise.enable1 && !eFuses.bitwise.disable1) ||
-		(eFuses.bitwise.enable2 && !eFuses.bitwise.disable2) ||
-		(eFuses.bitwise.enable3 && !eFuses.bitwise.disable3))
+	if (!(eFuses.bitwise.enable1 && !eFuses.bitwise.disable1) &&
+		!(eFuses.bitwise.enable2 && !eFuses.bitwise.disable2) &&
+		!(eFuses.bitwise.enable3 && !eFuses.bitwise.disable3))
 	{
-		*enabled = 1;
-	}
-	else
 		*enabled = 0;
+	}
 
 	return 0;
 }

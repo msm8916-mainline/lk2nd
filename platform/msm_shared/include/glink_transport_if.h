@@ -51,8 +51,12 @@ extern "C" {
 /* GLink transport capability bit definitions */
 /* Whether transport supports signalling */
 #define GLINK_CAPABILITY_SIG_SUPPORT 0x00000001
+
 /* Intentless mode of operation */
 #define GLINK_CAPABILITY_INTENTLESS  0x00000002
+
+/* Tracer packet support */
+#define GLINK_CAPABILITY_TRACER_PKT  0x00000004
 
 /*===========================================================================
                       TYPE DECLARATIONS
@@ -70,6 +74,9 @@ typedef struct glink_core_if        glink_core_if_type;
 struct glink_rx_intent;
 typedef struct glink_rx_intent      glink_rx_intent_type;
 
+struct glink_channel_ctx;
+typedef struct glink_channel_ctx glink_channel_ctx_type;
+
 /* Priority of transports registered with glink */
 typedef enum {
   GLINK_XPORT_SMEM = 100,
@@ -81,13 +88,17 @@ typedef enum {
 } glink_xport_priority;
 
 /** Glink core -> Xport pkt type definition */
-typedef struct {
+typedef struct glink_core_tx_pkt_s {
+  struct glink_core_tx_pkt_s *next; /* pointer to the next packet in list */
+
   void       *data;      /* Pointer to the data buffer to be transmitted */
   const void *pkt_priv;  /* Per packet private data */
+  uint32     cid;        /* Local channel ID being used to transmit data */
   uint32     iid;        /* Remote intent ID being used to transmit data */
   size_t     size;       /* Size of data buffer */
   size_t     size_remaining; /* Size left to transmit */
   void       *iovec;      /* Pointer to the data buffer to be transmitted */
+  boolean    tracer_pkt;  /* specify if this intent is for tracer packet */
   glink_buffer_provider_fn vprovider; /* Buffer provider for virtual space */
   glink_buffer_provider_fn pprovider; /* Buffer provider for physical space */
 }glink_core_tx_pkt_type;
@@ -317,7 +328,7 @@ struct glink_transport_if {
    *  channel */
   tx_fn                              tx;
 
-   /** Send request to the remote to queue more rx intents */
+  /** Send request to the remote to queue more rx intents */
   tx_cmd_rx_intent_req_fn            tx_cmd_rx_intent_req;
 
   /** Send ACK to the remote side's request to queue more rx intents */

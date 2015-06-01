@@ -39,6 +39,9 @@
 
 #define MSM_IOMAP_SIZE ((MSM_IOMAP_END - MSM_IOMAP_BASE)/MB)
 
+#define HLOS_MEMORY_START 0x0
+#define HLOS_MEMORY_SIZE  0x63
+
 /* LK memory - cacheable, write through */
 #define LK_MEMORY         (MMU_MEMORY_TYPE_NORMAL_WRITE_BACK_ALLOCATE | \
                            MMU_MEMORY_AP_READ_WRITE)
@@ -48,14 +51,17 @@
                            MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
 
 /* IMEM memory - cacheable, write through */
-#define IMEM_MEMORY       (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
+#define COMMON_MEMORY       (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
                            MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
 
 static mmu_section_t mmu_section_table[] = {
-/*       Physical addr,    Virtual addr,     Size (in MB),    Flags */
-	{    MEMBASE,          MEMBASE,          (MEMSIZE / MB),   LK_MEMORY},
-	{    MSM_IOMAP_BASE,   MSM_IOMAP_BASE,   MSM_IOMAP_SIZE,  IOMAP_MEMORY},
-	{    SYSTEM_IMEM_BASE, SYSTEM_IMEM_BASE, 1,              IMEM_MEMORY},
+/*       Physical addr,     Virtual addr,      Size (in MB),        Flags */
+	{    MEMBASE,           MEMBASE,           (MEMSIZE / MB),      LK_MEMORY},
+	{    MSM_IOMAP_BASE,    MSM_IOMAP_BASE,    MSM_IOMAP_SIZE,      IOMAP_MEMORY},
+	{    SYSTEM_IMEM_BASE,  SYSTEM_IMEM_BASE,  1,                   COMMON_MEMORY},
+	{    MSM_SHARED_BASE,   MSM_SHARED_BASE,   2,                   COMMON_MEMORY},
+	{    HLOS_MEMORY_START, HLOS_MEMORY_START, HLOS_MEMORY_SIZE,    COMMON_MEMORY},
+	{    SCRATCH_ADDR,      SCRATCH_ADDR,      (SCRATCH_SIZE / MB), COMMON_MEMORY},
 };
 
 void platform_early_init(void)
@@ -95,40 +101,7 @@ void platform_init_mmu_mappings(void)
 {
 	uint32_t i;
 	uint32_t sections;
-	ram_partition ptn_entry;
 	uint32_t table_size = ARRAY_SIZE(mmu_section_table);
-	uint32_t len = 0;
-
-	ASSERT(smem_ram_ptable_init_v1());
-
-	len = smem_get_ram_ptable_len();
-
-	/* Configure the MMU page entries for SDRAM and IMEM memory read
-	   from the smem ram table*/
-	for(i = 0; i < len; i++)
-	{
-		smem_get_ram_ptable_entry(&ptn_entry, i);
-		if(ptn_entry.type == SYS_MEMORY)
-		{
-			if((ptn_entry.category == SDRAM) ||
-			   (ptn_entry.category == IMEM))
-			{
-				/* Check to ensure that start address is 1MB aligned */
-				ASSERT((ptn_entry.start & (MB-1)) == 0);
-
-				sections = (ptn_entry.size) / MB;
-				while(sections--)
-				{
-					arm_mmu_map_section(ptn_entry.start +
-										sections * MB,
-										ptn_entry.start +
-										sections * MB,
-										(MMU_MEMORY_TYPE_NORMAL_WRITE_BACK_ALLOCATE | \
-										 MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN));
-				}
-			}
-		}
-	}
 
 	/* Configure the MMU page entries for memory read from the
 	   mmu_section_table */

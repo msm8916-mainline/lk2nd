@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012,2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -57,8 +57,8 @@ struct pll_vote_clk {
 	void *const en_reg;
 	const uint32_t en_mask;
 
-	void *const status_reg;
-	const uint32_t status_mask;
+	void *status_reg;
+	uint32_t status_mask;
 
 	struct clk *parent;
 	struct clk c;

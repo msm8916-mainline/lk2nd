@@ -1139,6 +1139,7 @@ static uint32_t scm_call_a32(uint32_t x0, uint32_t x1, uint32_t x2, uint32_t x3,
 	register uint32_t r3 __asm__("r3") = x3;
 	register uint32_t r4 __asm__("r4") = x4;
 	register uint32_t r5 __asm__("r5") = x5;
+	register uint32_t r6 __asm__("r6") = 0;
 
 	do {
 		__asm__ volatile(
@@ -1152,9 +1153,10 @@ static uint32_t scm_call_a32(uint32_t x0, uint32_t x1, uint32_t x2, uint32_t x3,
 			__asmeq("%7", "r3")
 			__asmeq("%8", "r4")
 			__asmeq("%9", "r5")
+			__asmeq("%10", "r6")
 			"smc    #0  @ switch to secure world\n"
 			: "=r" (r0), "=r" (r1), "=r" (r2), "=r" (r3)
-			: "r" (r0), "r" (r1), "r" (r2), "r" (r3), "r" (r4), "r" (r5));
+			: "r" (r0), "r" (r1), "r" (r2), "r" (r3), "r" (r4), "r" (r5), "r" (r6));
 	} while(r0 == 1);
 
 	if (ret)

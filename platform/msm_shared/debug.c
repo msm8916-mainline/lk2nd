@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
- * Copyright (c) 2009-2014, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -42,6 +42,7 @@
 #if PON_VIB_SUPPORT
 #include <vibrator.h>
 #endif
+
 
 static void write_dcc(char c)
 {
@@ -95,6 +96,15 @@ static void log_putc(char c)
 		log.header.idx = 0;
 }
 #endif /* WITH_DEBUG_LOG_BUF */
+
+void display_fbcon_message(char *str)
+{
+#if ENABLE_FBCON_LOGGING
+	while(*str != 0) {
+		fbcon_putc(*str++);
+	}
+#endif
+}
 
 void _dputc(char c)
 {

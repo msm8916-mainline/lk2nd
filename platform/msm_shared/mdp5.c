@@ -56,6 +56,18 @@ int mdp_get_revision()
 	return mdp_rev;
 }
 
+static inline bool is_software_pixel_ext_config_needed()
+{
+	return MDSS_IS_MAJOR_MINOR_MATCHING(readl(MDP_HW_REV),
+		MDSS_MDP_HW_REV_107);
+}
+
+static inline bool has_fixed_size_smp()
+{
+	return MDSS_IS_MAJOR_MINOR_MATCHING(readl(MDP_HW_REV),
+		MDSS_MDP_HW_REV_107);
+}
+
 uint32_t mdss_mdp_intf_offset()
 {
 	uint32_t mdss_mdp_intf_off;
@@ -95,12 +107,18 @@ static uint32_t mdss_mdp_vbif_qos_remap_get_offset()
 
 	if (mdss_mdp_rev == MDSS_MDP_HW_REV_110)
 		return 0xB0020;
+	else if (MDSS_IS_MAJOR_MINOR_MATCHING(mdss_mdp_rev, MDSS_MDP_HW_REV_107))
+		return 0xB0000;
 	else
 		return 0xC8020;
 }
 
 void mdp_clk_gating_ctrl(void)
 {
+	uint32_t mdss_mdp_rev = readl(MDP_HW_REV);
+	if (MDSS_IS_MAJOR_MINOR_MATCHING(mdss_mdp_rev, MDSS_MDP_HW_REV_107))
+		return;
+
 	writel(0x40000000, MDP_CLK_CTRL0);
 	udelay(20);
 	writel(0x40000040, MDP_CLK_CTRL0);
@@ -181,6 +199,8 @@ static void mdss_mdp_set_flush(struct msm_panel_info *pinfo,
 		}
 	} else if ((mdss_mdp_rev == MDSS_MDP_HW_REV_105) ||
 		(mdss_mdp_rev == MDSS_MDP_HW_REV_109) ||
+		MDSS_IS_MAJOR_MINOR_MATCHING(mdss_mdp_rev,
+			MDSS_MDP_HW_REV_107) ||
 		(mdss_mdp_rev == MDSS_MDP_HW_REV_110)) {
 		if (pinfo->dest == DISPLAY_2) {
 			*ctl0_reg_val |= BIT(29);
@@ -246,13 +266,27 @@ static void mdss_source_pipe_config(struct fbcon_config *fb, struct msm_panel_in
 		flip_bits |= MDSS_MDP_OP_MODE_FLIP_LR;
 	if (pinfo->orientation & 0x2)
 		flip_bits |= MDSS_MDP_OP_MODE_FLIP_UD;
+
+	if (is_software_pixel_ext_config_needed()) {
+		flip_bits |= BIT(31);
+		writel(out_size, pipe_base + PIPE_SW_PIXEL_EXT_C0_REQ);
+		writel(out_size, pipe_base + PIPE_SW_PIXEL_EXT_C1C2_REQ);
+		writel(out_size, pipe_base + PIPE_SW_PIXEL_EXT_C3_REQ);
+		/* configure phase step 1 for all color components */
+		writel(0x200000, pipe_base + PIPE_COMP0_3_PHASE_STEP_X);
+		writel(0x200000, pipe_base + PIPE_COMP0_3_PHASE_STEP_Y);
+		writel(0x200000, pipe_base + PIPE_COMP1_2_PHASE_STEP_X);
+		writel(0x200000, pipe_base + PIPE_COMP1_2_PHASE_STEP_Y);
+	}
 	writel(flip_bits, pipe_base + PIPE_SSPP_SRC_OP_MODE);
 }
 
 static void mdss_vbif_setup()
 {
-	int access_secure = restore_secure_cfg(SECURE_DEVICE_MDSS);
 	uint32_t mdp_hw_rev = readl(MDP_HW_REV);
+	int access_secure = false;
+	if (!MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev, MDSS_MDP_HW_REV_107))
+		access_secure = restore_secure_cfg(SECURE_DEVICE_MDSS);
 
 	if (!access_secure) {
 		dprintf(SPEW, "MDSS VBIF registers unlocked by TZ.\n");
@@ -438,6 +472,7 @@ static void mdss_intf_tg_setup(struct msm_panel_info *pinfo, uint32_t intf_base)
 	uint32_t hsync_start_x, hsync_end_x;
 	uint32_t display_hctl, hsync_ctl, display_vstart, display_vend;
 	uint32_t adjust_xres = 0;
+	uint32_t upper = 0, lower = 0;
 
 	struct lcdc_panel_info *lcdc = NULL;
 	struct intf_timing_params itp = {0};
@@ -453,8 +488,15 @@ static void mdss_intf_tg_setup(struct msm_panel_info *pinfo, uint32_t intf_base)
 	if (pinfo->lcdc.split_display) {
 		adjust_xres /= 2;
 		if (intf_base == (MDP_INTF_1_BASE + mdss_mdp_intf_offset())) {
-			writel(BIT(8), MDP_REG_SPLIT_DISPLAY_LOWER_PIPE_CTL);
-			writel(BIT(8), MDP_REG_SPLIT_DISPLAY_UPPER_PIPE_CTL);
+			if (pinfo->lcdc.pipe_swap) {
+				lower |= BIT(4);
+				upper |= BIT(8);
+			} else {
+				lower |= BIT(8);
+				upper |= BIT(4);
+			}
+			writel(lower, MDP_REG_SPLIT_DISPLAY_LOWER_PIPE_CTL);
+			writel(upper, MDP_REG_SPLIT_DISPLAY_UPPER_PIPE_CTL);
 			writel(0x1, MDP_REG_SPLIT_DISPLAY_EN);
 		}
 	}
@@ -757,6 +799,8 @@ void mdss_qos_remapper_setup(void)
 		 MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev,
 			MDSS_MDP_HW_REV_109) ||
 		 MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev,
+			MDSS_MDP_HW_REV_107) ||
+		 MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev,
 			MDSS_MDP_HW_REV_110))
 		map = 0xA4;
 	else if (MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev,
@@ -788,6 +832,7 @@ void mdss_vbif_qos_remapper_setup(struct msm_panel_info *pinfo)
 		vbif_qos[3] = 2;
 	} else if (MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev, MDSS_MDP_HW_REV_105) ||
 		 MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev, MDSS_MDP_HW_REV_109) ||
+		 MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev, MDSS_MDP_HW_REV_107) ||
 		 MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev, MDSS_MDP_HW_REV_110)) {
 		vbif_qos[0] = 1;
 		vbif_qos[1] = 2;
@@ -877,7 +922,8 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 
 	mdp_select_pipe_type(pinfo, &left_pipe, &right_pipe);
 	mdss_vbif_setup();
-	mdss_smp_setup(pinfo, left_pipe, right_pipe);
+	if (!has_fixed_size_smp())
+		mdss_smp_setup(pinfo, left_pipe, right_pipe);
 
 	mdss_qos_remapper_setup();
 	mdss_vbif_qos_remapper_setup(pinfo);
@@ -1132,11 +1178,6 @@ int mdp_dma_on(struct msm_panel_info *pinfo)
 
 	writel(0x01, MDP_CTL_0_BASE + CTL_START);
 	return NO_ERROR;
-}
-
-void mdp_disable(void)
-{
-
 }
 
 int mdp_edp_on(struct msm_panel_info *pinfo)

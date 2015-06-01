@@ -169,6 +169,7 @@ static bool devinfo_present = true;
 static int auth_kernel_img = 0;
 
 static device_info device = {DEVICE_MAGIC, 0, 0, 0, 0, {0}, {0},{0}};
+static bool is_allow_unlock = 0;
 
 struct atag_ptbl_entry
 {
@@ -645,7 +646,7 @@ void boot_linux(void *kernel, unsigned *tags,
 
 #if VERIFIED_BOOT
 	/* Write protect the device info */
-	if (target_build_variant_user() && devinfo_present && mmc_write_protect("devinfo", 1))
+	if (!boot_into_recovery && target_build_variant_user() && devinfo_present && mmc_write_protect("devinfo", 1))
 	{
 		dprintf(INFO, "Failed to write protect dev info\n");
 		ASSERT(0);
@@ -755,6 +756,22 @@ static void verify_signed_bootimg(uint32_t bootimg_addr, uint32_t bootimg_size)
 		auth_kernel_img = 1;
 	}
 
+#ifdef MDTP_SUPPORT
+	{
+		/* Verify MDTP lock.
+		 * For boot & recovery partitions, use aboot's verification result.
+		 */
+		mdtp_ext_partition_verification_t ext_partition;
+		ext_partition.partition = boot_into_recovery ? MDTP_PARTITION_RECOVERY : MDTP_PARTITION_BOOT;
+		ext_partition.integrity_state = device.is_tampered ? MDTP_PARTITION_STATE_INVALID : MDTP_PARTITION_STATE_VALID;
+		ext_partition.page_size = 0; /* Not needed since already validated */
+		ext_partition.image_addr = 0; /* Not needed since already validated */
+		ext_partition.image_size = 0; /* Not needed since already validated */
+		ext_partition.sig_avail = FALSE; /* Not needed since already validated */
+		mdtp_fwlock_verify_lock(&ext_partition);
+	}
+#endif /* MDTP_SUPPORT */
+
 #if USE_PCOM_SECBOOT
 	set_tamper_flag(device.is_tampered);
 #endif
@@ -836,7 +853,6 @@ static bool check_format_bit()
 
 void boot_verifier_init()
 {
-
 	uint32_t boot_state;
 	/* Check if device unlock */
 	if(device.is_unlocked)
@@ -1026,6 +1042,23 @@ int boot_linux_from_mmc(void)
 		#ifdef TZ_SAVE_KERNEL_HASH
 		aboot_save_boot_hash_mmc((uint32_t) image_addr, imagesize_actual);
 		#endif /* TZ_SAVE_KERNEL_HASH */
+
+#ifdef MDTP_SUPPORT
+		{
+			/* Verify MDTP lock.
+			 * For boot & recovery partitions, MDTP will use boot_verifier APIs,
+			 * since verification was skipped in aboot. The signature is not part of the loaded image.
+			 */
+			mdtp_ext_partition_verification_t ext_partition;
+			ext_partition.partition = boot_into_recovery ? MDTP_PARTITION_RECOVERY : MDTP_PARTITION_BOOT;
+			ext_partition.integrity_state = MDTP_PARTITION_STATE_UNSET;
+			ext_partition.page_size = page_size;
+			ext_partition.image_addr = (uint32)image_addr;
+			ext_partition.image_size = imagesize_actual;
+			ext_partition.sig_avail = FALSE;
+			mdtp_fwlock_verify_lock(&ext_partition);
+		}
+#endif /* MDTP_SUPPORT */
 	}
 
 	/*
@@ -1036,17 +1069,17 @@ int boot_linux_from_mmc(void)
 	{
 		out_addr = (unsigned char *)(image_addr + imagesize_actual + page_size);
 		out_avai_len = target_get_max_flash_size() - imagesize_actual - page_size;
-		dprintf(SPEW, "decompress image start\n");
+		dprintf(INFO, "decompressing kernel image: start\n");
 		rc = decompress((unsigned char *)(image_addr + page_size),
 				hdr->kernel_size, out_addr, out_avai_len,
 				&dtb_offset, &out_len);
 		if (rc)
 		{
-			dprintf(CRITICAL, "decompress image failed!!!\n");
+			dprintf(CRITICAL, "decompressing kernel image failed!!!\n");
 			ASSERT(0);
 		}
 
-		dprintf(SPEW, "decompressed image finished.\n");
+		dprintf(INFO, "decompressing kernel image: done\n");
 		kptr = (struct kernel64_hdr *)out_addr;
 		kernel_start_addr = out_addr;
 		kernel_size = out_len;
@@ -1110,17 +1143,17 @@ int boot_linux_from_mmc(void)
 			unsigned int compressed_size = 0;
 			out_addr += out_len;
 			out_avai_len -= out_len;
-			dprintf(SPEW, "decompress dtb start\n");
+			dprintf(INFO, "decompressing dtb: start\n");
 			rc = decompress((unsigned char *)dt_table_offset + dt_entry.offset,
 					dt_entry.size, out_addr, out_avai_len,
 					&compressed_size, &dtb_size);
 			if (rc)
 			{
-				dprintf(CRITICAL, "decompress dtb failed!!!\n");
+				dprintf(CRITICAL, "decompressing dtb failed!!!\n");
 				ASSERT(0);
 			}
 
-			dprintf(SPEW, "decompressed dtb finished.\n");
+			dprintf(INFO, "decompressing dtb: done\n");
 			best_match_dt_addr = out_addr;
 		} else {
 			best_match_dt_addr = (unsigned char *)dt_table_offset + dt_entry.offset;
@@ -1535,6 +1568,77 @@ void write_device_info_flash(device_info *dev)
 	}
 }
 
+static int read_allow_oem_unlock(device_info *dev)
+{
+	const char *ptn_name = "frp";
+	unsigned offset;
+	int index;
+	unsigned long long ptn;
+	unsigned long long ptn_size;
+	unsigned blocksize = mmc_get_device_blocksize();
+	char buf[blocksize];
+
+	index = partition_get_index(ptn_name);
+	if (index == INVALID_PTN)
+	{
+		dprintf(CRITICAL, "No '%s' partition found\n", ptn_name);
+		return -1;
+	}
+
+	ptn = partition_get_offset(index);
+	ptn_size = partition_get_size(index);
+	offset = ptn_size - blocksize;
+
+	if (mmc_read(ptn + offset, (void *)buf, sizeof(buf)))
+	{
+		dprintf(CRITICAL, "Reading MMC failed\n");
+		return -1;
+	}
+
+	/*is_allow_unlock is a bool value stored at the LSB of last byte*/
+	is_allow_unlock = buf[blocksize-1] & 0x01;
+	return 0;
+}
+
+static int write_allow_oem_unlock(bool allow_unlock)
+{
+	const char *ptn_name = "frp";
+	unsigned offset;
+
+	int index;
+	unsigned long long ptn;
+	unsigned long long ptn_size;
+	unsigned blocksize = mmc_get_device_blocksize();
+	char buf[blocksize];
+
+	index = partition_get_index(ptn_name);
+	if (index == INVALID_PTN)
+	{
+		dprintf(CRITICAL, "No '%s' partition found\n", ptn_name);
+		return -1;
+	}
+
+	ptn = partition_get_offset(index);
+	ptn_size = partition_get_size(index);
+	offset = ptn_size - blocksize;
+
+	if (mmc_read(ptn + offset, (void *)buf, sizeof(buf)))
+	{
+		dprintf(CRITICAL, "Reading MMC failed\n");
+		return -1;
+	}
+
+	/*is_allow_unlock is a bool value stored at the LSB of last byte*/
+	buf[blocksize-1] = allow_unlock;
+	if (mmc_write(ptn + offset, blocksize, buf))
+	{
+		dprintf(CRITICAL, "Writing MMC failed\n");
+		return -1;
+	}
+
+	return 0;
+}
+
 void read_device_info_flash(device_info *dev)
 {
 	struct device_info *info = (void*) info_buf;
@@ -1581,6 +1685,8 @@ void write_device_info(device_info *dev)
 #if USE_RPMB_FOR_DEVINFO
 		if (is_secure_boot_enable())
 			write_device_info_rpmb((void*) info, mmc_get_device_blocksize());
+		else
+			write_device_info_mmc(info);
 #else
 		write_device_info_mmc(info);
 #endif
@@ -1600,6 +1706,8 @@ void read_device_info(device_info *dev)
 #if USE_RPMB_FOR_DEVINFO
 		if (is_secure_boot_enable())
 			read_device_info_rpmb((void*) info, mmc_get_device_blocksize());
+		else
+			read_device_info_mmc(info);
 #else
 		read_device_info_mmc(info);
 #endif
@@ -1693,17 +1801,17 @@ int copy_dtb(uint8_t *boot_image_start, unsigned int scratch_offset)
 		{
 			out_addr = (unsigned char *)target_get_scratch_address() + scratch_offset;
 			out_avai_len = target_get_max_flash_size() - scratch_offset;
-			dprintf(SPEW, "decompress dtb start\n");
+			dprintf(INFO, "decompressing dtb: start\n");
 			rc = decompress(best_match_dt_addr,
 					dt_entry.size, out_addr, out_avai_len,
 					&compressed_size, &dtb_size);
 			if (rc)
 			{
-				dprintf(CRITICAL, "decompress dtb failed!!!\n");
+				dprintf(CRITICAL, "decompressing dtb failed!!!\n");
 				ASSERT(0);
 			}
 
-			dprintf(SPEW, "decompressed dtb finished.\n");
+			dprintf(INFO, "decompressing dtb: done\n");
 			best_match_dt_addr = out_addr;
 		} else {
 			dtb_size = dt_entry.size;
@@ -1744,13 +1852,6 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	unsigned char *kernel_start_addr = NULL;
 	unsigned int kernel_size = 0;
 	unsigned int scratch_offset = 0;
-
-
-#ifdef MDTP_SUPPORT
-	/* Go through Firmware Lock verification before continue with boot process */
-	mdtp_fwlock_verify_lock();
-	display_image_on_screen();
-#endif /* MDTP_SUPPORT */
 
 #if VERIFIED_BOOT
 	if(!device.is_unlocked)
@@ -1803,6 +1904,24 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 		 */
 		verify_signed_bootimg((uint32_t)data, (image_actual - sig_actual));
 
+#ifdef MDTP_SUPPORT
+	else
+	{
+		/* Verify MDTP lock before continue with boot process.
+		 * For boot & recovery partitions, MDTP will use boot_verifier APIs,
+		 * since verification was skipped in aboot. The signarue is already part of the loaded image.
+		 */
+		mdtp_ext_partition_verification_t ext_partition;
+		ext_partition.partition = boot_into_recovery ? MDTP_PARTITION_RECOVERY : MDTP_PARTITION_BOOT;
+		ext_partition.integrity_state = MDTP_PARTITION_STATE_UNSET;
+		ext_partition.page_size = page_size;
+		ext_partition.image_addr = (uint32_t)data;
+		ext_partition.image_size = image_actual - sig_actual;
+		ext_partition.sig_avail = TRUE;
+		mdtp_fwlock_verify_lock(&ext_partition);
+	}
+#endif /* MDTP_SUPPORT */
+
 	/*
 	 * Check if the kernel image is a gzip package. If yes, need to decompress it.
 	 * If not, continue booting.
@@ -1812,17 +1931,17 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 		out_addr = (unsigned char *)target_get_scratch_address();
 		out_addr = (unsigned char *)(out_addr + image_actual + page_size);
 		out_avai_len = target_get_max_flash_size() - image_actual - page_size;
-		dprintf(SPEW, "decompress image start\n");
+		dprintf(INFO, "decompressing kernel image: start\n");
 		ret = decompress((unsigned char *)(ptr + page_size),
 				hdr->kernel_size, out_addr, out_avai_len,
 				&dtb_offset, &out_len);
 		if (ret)
 		{
-			dprintf(CRITICAL, "decompress image failed!!!\n");
+			dprintf(CRITICAL, "decompressing image failed!!!\n");
 			ASSERT(0);
 		}
 
-		dprintf(SPEW, "decompressed image finished.\n");
+		dprintf(INFO, "decompressing kernel image: done\n");
 		kptr = (struct kernel64_hdr *)out_addr;
 		kernel_start_addr = out_addr;
 		kernel_size = out_len;
@@ -2012,12 +2131,13 @@ void cmd_flash_mmc_img(const char *arg, void *data, unsigned sz)
 	int index = INVALID_PTN;
 	char *token = NULL;
 	char *pname = NULL;
+	char *sp;
 	uint8_t lun = 0;
 	bool lun_set = false;
 
-	token = strtok((char *)arg, ":");
+	token = strtok_r((char *)arg, ":", &sp);
 	pname = token;
-	token = strtok(NULL, ":");
+	token = strtok_r(NULL, ":", &sp);
 	if(token)
 	{
 		lun = atoi(token);
@@ -2417,7 +2537,7 @@ void cmd_flash_mmc(const char *arg, void *data, unsigned sz)
 #endif /* SSD_ENABLE */
 
 #if VERIFIED_BOOT
-	if(!device.is_unlocked && !device.is_verified)
+	if(!device.is_unlocked)
 	{
 		fastboot_fail("device is locked. Cannot flash images");
 		return;
@@ -2532,12 +2652,6 @@ void cmd_continue(const char *arg, void *data, unsigned sz)
 	fastboot_okay("");
 	fastboot_stop();
 
-#ifdef MDTP_SUPPORT
-	/* Go through Firmware Lock verification before continue with boot process */
-	mdtp_fwlock_verify_lock();
-	display_image_on_screen();
-#endif /* MDTP_SUPPORT */
-
 	if (target_is_emmc_boot())
 	{
 		boot_linux_from_mmc();
@@ -2590,12 +2704,34 @@ void cmd_oem_select_display_panel(const char *arg, void *data, unsigned size)
 
 void cmd_oem_unlock(const char *arg, void *data, unsigned sz)
 {
-	/* TODO: Wipe user data */
+	if(!is_allow_unlock) {
+		fastboot_fail("oem unlock is not allowed");
+		return;
+	}
+
+	display_fbcon_message("Oem Unlock requested");
+	fastboot_fail("Need wipe userdata. Do 'fastboot oem unlock-go'");
+}
+
+void cmd_oem_unlock_go(const char *arg, void *data, unsigned sz)
+{
 	if(!device.is_unlocked || device.is_verified)
 	{
+		if(!is_allow_unlock) {
+			fastboot_fail("oem unlock is not allowed");
+			return;
+		}
+
 		device.is_unlocked = 1;
 		device.is_verified = 0;
 		write_device_info(&device);
+
+		struct recovery_message msg;
+		snprintf(msg.recovery, sizeof(msg.recovery), "recovery\n--wipe_data");
+		write_misc(0, &msg, sizeof(msg));
+
+		fastboot_okay("");
+		reboot_device(RECOVERY_MODE);
 	}
 	fastboot_okay("");
 }
@@ -2643,146 +2779,155 @@ void cmd_preflash(const char *arg, void *data, unsigned sz)
 	fastboot_okay("");
 }
 
-struct fbimage* splash_screen_flash();
+static uint8_t logo_header[LOGO_IMG_HEADER_SIZE];
 
-int splash_screen_check_header(struct fbimage *logo)
+int splash_screen_check_header(logo_img_header *header)
 {
-	if (memcmp(logo->header.magic, LOGO_IMG_MAGIC, 8))
+	if (memcmp(header->magic, LOGO_IMG_MAGIC, 8))
 		return -1;
-	if (logo->header.width == 0 || logo->header.height == 0)
+	if (header->width == 0 || header->height == 0)
 		return -1;
 	return 0;
 }
 
-struct fbimage* splash_screen_flash()
+int splash_screen_flash()
 {
 	struct ptentry *ptn;
 	struct ptable *ptable;
+	struct logo_img_header *header;
 	struct fbcon_config *fb_display = NULL;
-	struct fbimage *logo = NULL;
-
-
-	logo = (struct fbimage *) malloc(ROUNDUP(page_size, sizeof(struct fbimage)));
-	ASSERT(logo);
 
 	ptable = flash_get_ptable();
 	if (ptable == NULL) {
-	dprintf(CRITICAL, "ERROR: Partition table not found\n");
-	goto err;
+		dprintf(CRITICAL, "ERROR: Partition table not found\n");
+		return -1;
 	}
+
 	ptn = ptable_find(ptable, "splash");
 	if (ptn == NULL) {
 		dprintf(CRITICAL, "ERROR: splash Partition not found\n");
-		goto err;
+		return -1;
 	}
-
-	if (flash_read(ptn, 0,(unsigned int *) logo, sizeof(logo->header))) {
+	if (flash_read(ptn, 0, (void *)logo_header, LOGO_IMG_HEADER_SIZE)) {
 		dprintf(CRITICAL, "ERROR: Cannot read boot image header\n");
-		goto err;
+		return -1;
 	}
 
-	if (splash_screen_check_header(logo)) {
+	header = (struct logo_img_header *)logo_header;
+	if (splash_screen_check_header(header)) {
 		dprintf(CRITICAL, "ERROR: Boot image header invalid\n");
-		goto err;
+		return -1;
 	}
 
 	fb_display = fbcon_display();
 	if (fb_display) {
-		if ((logo->header.width != fb_display->width) || (logo->header.height != fb_display->height)) {
-			dprintf(CRITICAL, "Logo config doesn't match with fb config. Fall back to default logo\n");
-			goto err;
+		if (header->type && (header->blocks != 0)) { // RLE24 compressed data
+			uint8_t *base = (uint8_t *) fb_display->base + LOGO_IMG_OFFSET;
+
+			/* if the logo is full-screen size, remove "fbcon_clear()" */
+			if ((header->width != fb_display->width)
+						|| (header->height != fb_display->height))
+					fbcon_clear();
+
+			if (flash_read(ptn + LOGO_IMG_HEADER_SIZE, 0,
+				(uint32_t *)base,
+				(header->blocks * 512))) {
+				dprintf(CRITICAL, "ERROR: Cannot read splash image from partition\n");
+				return -1;
+			}
+			fbcon_extract_to_screen(header, base);
+			return 0;
 		}
+
+		if ((header->width != fb_display->width) || (header->height != fb_display->height)) {
+			dprintf(CRITICAL, "Logo config doesn't match with fb config. Fall back default logo\n");
+			return -1;
+		}
+
 		uint8_t *base = (uint8_t *) fb_display->base;
-		if (flash_read(ptn + sizeof(logo->header), 0,
-			base,
-			((((logo->header.width * logo->header.height * fb_display->bpp/8) + 511) >> 9) << 9))) {
+		if (flash_read(ptn + LOGO_IMG_HEADER_SIZE, 0,
+			(uint32_t *)base,
+			((((header->width * header->height * fb_display->bpp/8) + 511) >> 9) << 9))) {
 			fbcon_clear();
 			dprintf(CRITICAL, "ERROR: Cannot read splash image from partition\n");
-			goto err;
+			return -1;
 		}
-		logo->image = base;
 	}
 
-	return logo;
-
-err:
-	free(logo);
-	return NULL;
+	return 0;
 }
 
-struct fbimage* splash_screen_mmc()
+int splash_screen_mmc()
 {
 	int index = INVALID_PTN;
 	unsigned long long ptn = 0;
 	struct fbcon_config *fb_display = NULL;
-	struct fbimage *logo = NULL;
-	uint32_t blocksize;
-	uint32_t readsize;
-	uint32_t logosize;
-	uint32_t ptn_size;
+	struct logo_img_header *header;
 
 	index = partition_get_index("splash");
 	if (index == 0) {
 		dprintf(CRITICAL, "ERROR: splash Partition table not found\n");
-		return NULL;
+		return -1;
 	}
 
 	ptn = partition_get_offset(index);
 	if (ptn == 0) {
 		dprintf(CRITICAL, "ERROR: splash Partition invalid\n");
-		return NULL;
+		return -1;
 	}
 
-	ptn_size = partition_get_size(index);
-	blocksize = mmc_get_device_blocksize();
-	logosize = ROUNDUP(sizeof(logo->header), blocksize);
-
-	logo = (struct fbimage *)memalign(CACHE_LINE, ROUNDUP(logosize, CACHE_LINE));
-	ASSERT(logo);
-
-	if (mmc_read(ptn, (uint32_t *) logo, logosize)) {
+	if (mmc_read(ptn, (uint32_t *)logo_header, LOGO_IMG_HEADER_SIZE)) {
 		dprintf(CRITICAL, "ERROR: Cannot read splash image header\n");
-		goto err;
+		return -1;
 	}
 
-	if (splash_screen_check_header(logo)) {
+	header = (struct logo_img_header *)logo_header;
+	if (splash_screen_check_header(header)) {
 		dprintf(CRITICAL, "ERROR: Splash image header invalid\n");
-		goto err;
+		return -1;
 	}
 
 	fb_display = fbcon_display();
 	if (fb_display) {
-		if ((logo->header.width != fb_display->width) || (logo->header.height != fb_display->height)) {
+		/* 1 RLE24 compressed data */
+		if (header->type && (header->blocks != 0)) {
+			uint8_t *base = (uint8_t *) fb_display->base + LOGO_IMG_OFFSET;
+
+			/* if the logo is full-screen size, remove "fbcon_clear()" */
+			if ((header->width != fb_display->width)
+						|| (header->height != fb_display->height))
+				fbcon_clear();
+
+			if (mmc_read(ptn + LOGO_IMG_HEADER_SIZE,
+				(uint32_t *)base,
+				(header->blocks * 512))) {
+				dprintf(CRITICAL, "ERROR: Cannot read splash image from partition\n");
+				return -1;
+			}
+			fbcon_extract_to_screen(header, base);
+			return 0;
+		}
+
+		/* 2 Raw BGR data */
+		if ((header->width != fb_display->width) || (header->height != fb_display->height)) {
 			dprintf(CRITICAL, "Logo config doesn't match with fb config. Fall back default logo\n");
-			goto err;
+			return -1;
 		}
 		uint8_t *base = (uint8_t *) fb_display->base;
-		readsize = ROUNDUP((logo->header.width * logo->header.height * fb_display->bpp/8), blocksize);
-
-		if (readsize > ptn_size)
-		{
-			dprintf(CRITICAL, "@%d:Invalid logo header readsize:%u exceeds ptn_size:%u\n", __LINE__, readsize,ptn_size);
-			goto err;
-		}
-
-		if (mmc_read(ptn + logosize,(uint32_t *)base, readsize)) {
+		if (mmc_read(ptn + LOGO_IMG_HEADER_SIZE,
+			(uint32_t *)base,
+			((((header->width * header->height * fb_display->bpp/8) + 511) >> 9) << 9))) {
 			fbcon_clear();
 			dprintf(CRITICAL, "ERROR: Cannot read splash image from partition\n");
-			goto err;
+			return -1;
 		}
 
-		logo->image = base;
 	}
 
-	return logo;
-
-err:
-	free(logo);
-	return NULL;
+	return 0;
 }
 
-
-struct fbimage* fetch_image_from_partition()
+int fetch_image_from_partition()
 {
 	if (target_is_emmc_boot()) {
 		return splash_screen_mmc();
@@ -2870,6 +3015,7 @@ void aboot_fastboot_register_commands(void)
 											{"reboot", cmd_reboot},
 											{"reboot-bootloader", cmd_reboot_bootloader},
 											{"oem unlock", cmd_oem_unlock},
+											{"oem unlock-go", cmd_oem_unlock_go},
 											{"oem lock", cmd_oem_lock},
 											{"oem verified", cmd_oem_verified},
 											{"oem device-info", cmd_oem_devinfo},
@@ -2936,6 +3082,7 @@ void aboot_init(const struct app_descriptor *app)
 	ASSERT((MEMBASE + MEMSIZE) > MEMBASE);
 
 	read_device_info(&device);
+	read_allow_oem_unlock(&device);
 
 	/* Display splash screen if enabled */
 #if DISPLAY_SPLASH_SCREEN
@@ -3022,12 +3169,6 @@ normal_boot:
 				#endif
 				}
 			}
-
-#ifdef MDTP_SUPPORT
-			/* Go through Firmware Lock verification before continue with boot process */
-			mdtp_fwlock_verify_lock();
-			display_image_on_screen();
-#endif /* MDTP_SUPPORT */
 
 			boot_linux_from_mmc();
 		}

@@ -52,6 +52,13 @@
 #define BITS_18 18
 #define BITS_16 16
 
+#define MAX_THULIUM_VCO_RATE 2600000000
+#define MIN_THULIUM_VCO_RATE 1300000000
+#define MAX_THULIUM_DIV_VAL 15
+#define MIN_THULIUM_DIV_VAL 1
+#define FIX_PIXEL_CLOCK_DIV 2
+#define FIX_N_DIV           1
+
 /*---------------------------------------------------------------------------*/
 /* Structure definition                                                      */
 /*---------------------------------------------------------------------------*/

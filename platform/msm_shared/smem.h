@@ -413,6 +413,7 @@ enum {
 	APQ8076  = 277,
 	MSM8976  = 278,
 	APQ8052  = 289,
+	APQ8096  = 291,
 };
 
 enum platform {

@@ -84,6 +84,11 @@
 #define TLMM_BASE_ADDR              0x1000000
 #define GPIO_CONFIG_ADDR(x)         (TLMM_BASE_ADDR + (x)*0x1000)
 #define GPIO_IN_OUT_ADDR(x)         (TLMM_BASE_ADDR + 0x00000004 + (x)*0x1000)
+#define GPIO_OUT_SET_ADDR(x)        (TLMM_BASE_ADDR + 0x200040 + (x/32)*0x04)
+#define GPIO_OUT_CLR_ADDR(x)        (TLMM_BASE_ADDR + 0x200020 + (x/32)*0x04)
+#define GPIO_OUT_VAL(x)             (1 << (x - (x/32)*32))
+#define GPIO_OUT_OE_SET_ADDR(x)     (TLMM_BASE_ADDR + 0x2000C0 + (x/32)*0x04)
+#define GPIO_OUT_OE_VAL(x)          (1 << (x - (x/32)*32))
 
 #define MPM2_MPM_CTRL_BASE          0x004A0000
 #define MPM2_MPM_PS_HOLD            0x004AB000
@@ -104,6 +109,10 @@
 #define GCC_BLSP1_QUP2_APPS_CBCR    (CLK_CTL_BASE + 0x3010)
 #define GCC_BLSP1_QUP2_CFG_RCGR     (CLK_CTL_BASE + 0x3018)
 #define GCC_BLSP1_QUP2_CMD_RCGR     (CLK_CTL_BASE + 0x3014)
+
+#define GCC_BLSP1_QUP4_APPS_CBCR    (CLK_CTL_BASE + 0x5020)
+#define GCC_BLSP1_QUP4_CFG_RCGR     (CLK_CTL_BASE + 0x5004)
+#define GCC_BLSP1_QUP4_CMD_RCGR     (CLK_CTL_BASE + 0x5000)
 
 /* GPLL */
 #define GPLL0_STATUS                (CLK_CTL_BASE + 0x2101C)

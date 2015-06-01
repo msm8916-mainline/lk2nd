@@ -389,7 +389,7 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 {
 	uint32_t ret = NO_ERROR;
 	struct mdss_dsi_pll_config *pll_data;
-	uint32_t flags;
+	uint32_t flags, dsi_phy_pll_out;
 	struct dfps_pll_codes *pll_codes = &pinfo->mipi.pll_codes;
 
 	if (pinfo->dest == DISPLAY_2) {
@@ -421,23 +421,28 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 		goto clks_disable;
 	}
 
-	mdss_dsi_auto_pll_20nm_config(pinfo->mipi.pll_0_base,
-		pinfo->mipi.pll_1_base, pll_data);
+	mdss_dsi_auto_pll_20nm_config(pinfo->mipi.pll_base,
+		pinfo->mipi.spll_base, pll_data);
 
-	if (!dsi_pll_20nm_enable_seq(pinfo->mipi.pll_0_base)) {
+	if (!dsi_pll_20nm_enable_seq(pinfo->mipi.pll_base)) {
 		ret = ERROR;
 		dprintf(CRITICAL, "PLL failed to lock!\n");
 		goto clks_disable;
 	}
 
-	pll_codes->codes[0] = readl_relaxed(pinfo->mipi.pll_0_base +
+	pll_codes->codes[0] = readl_relaxed(pinfo->mipi.pll_base +
 		MMSS_DSI_PHY_PLL_CORE_KVCO_CODE);
-	pll_codes->codes[1] = readl_relaxed(pinfo->mipi.pll_0_base +
+	pll_codes->codes[1] = readl_relaxed(pinfo->mipi.pll_base +
 		MMSS_DSI_PHY_PLL_CORE_VCO_TUNE);
 	dprintf(SPEW, "codes %d %d\n", pll_codes->codes[0],
 		pll_codes->codes[1]);
 
-	mmss_dsi_clock_enable(DSI0_PHY_PLL_OUT, flags,
+	if (pinfo->mipi.use_dsi1_pll)
+		dsi_phy_pll_out = DSI1_PHY_PLL_OUT;
+	else
+		dsi_phy_pll_out = DSI0_PHY_PLL_OUT;
+
+	mmss_dsi_clock_enable(dsi_phy_pll_out, flags,
 		pll_data->pclk_m,
 		pll_data->pclk_n,
 		pll_data->pclk_d);
@@ -568,6 +573,16 @@ int target_display_pre_on()
 	writel(0xCCCCC0C0, MDP_CLK_CTRL5);
 	writel(0x00CCC000, MDP_CLK_CTRL7);
 
+	return NO_ERROR;
+}
+
+int target_dsi_phy_config(struct mdss_dsi_phy_ctrl *phy_db)
+{
+	memcpy(phy_db->regulator, panel_regulator_settings, REGULATOR_SIZE);
+	memcpy(phy_db->ctrl, panel_physical_ctrl, PHYSICAL_SIZE);
+	memcpy(phy_db->strength, panel_strength_ctrl, STRENGTH_SIZE);
+	memcpy(phy_db->bistCtrl, panel_bist_ctrl, BIST_SIZE);
+	memcpy(phy_db->laneCfg, panel_lane_config, LANE_SIZE);
 	return NO_ERROR;
 }
 

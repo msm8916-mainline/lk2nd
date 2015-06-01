@@ -42,6 +42,7 @@
 #include <target/display.h>
 #include <i2c_qup.h>
 #include <blsp_qup.h>
+#include <mipi_dsi_i2c.h>
 
 #include "include/panel.h"
 #include "include/display_resource.h"
@@ -236,10 +237,10 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 			mdp_gdsc_ctrl(0);
 			return ret;
 		}
-		mdss_dsi_uniphy_pll_sw_reset_8916(DSI0_PLL_BASE);
-		mdss_dsi_auto_pll_config(pinfo->mipi.pll_0_base,
+		mdss_dsi_uniphy_pll_sw_reset_8916(pinfo->mipi.pll_base);
+		mdss_dsi_auto_pll_config(pinfo->mipi.pll_base,
 						pinfo->mipi.ctl_base, pll_data);
-		if (!dsi_pll_enable_seq_8916(pinfo->mipi.pll_0_base))
+		if (!dsi_pll_enable_seq_8916(pinfo->mipi.pll_base))
 			dprintf(CRITICAL, "Not able to enable the pll\n");
 		gcc_dsi_clocks_enable(pinfo->mipi.dual_dsi, pll_data->pclk_m,
 				pll_data->pclk_n,
@@ -296,6 +297,51 @@ static int qrd_lcd_i2c_write(uint8_t addr, uint8_t val)
 		return ret;
 	}
 	return 0;
+}
+
+static int dsi2HDMI_i2c_write_regs(struct mipi_dsi_i2c_cmd *cfg, int size)
+{
+	int ret = NO_ERROR;
+	int i;
+
+	if (!cfg)
+		return ERR_INVALID_ARGS;
+
+	for (i = 0; i < size; i++) {
+		ret = mipi_dsi_i2c_write_byte(cfg[i].i2c_addr, cfg[i].reg,
+			cfg[i].val);
+		if (ret) {
+			dprintf(CRITICAL, "mipi_dsi reg writes failed\n");
+			goto w_regs_fail;
+		}
+		if (cfg[i].sleep_in_ms) {
+			udelay(cfg[i].sleep_in_ms*1000);
+		}
+	}
+w_regs_fail:
+	return ret;
+}
+
+int target_display_dsi2hdmi_config(struct msm_panel_info *pinfo)
+{
+	int ret = NO_ERROR;
+
+	if (!pinfo)
+		return ERR_INVALID_ARGS;
+
+	/*
+	 * If dsi to HDMI bridge chip connected then
+	 * send I2c commands to the chip
+	 */
+	if (pinfo->adv7533.dsi_setup_cfg_i2c_cmd)
+		ret = dsi2HDMI_i2c_write_regs(pinfo->adv7533.dsi_setup_cfg_i2c_cmd,
+					pinfo->adv7533.num_of_cfg_i2c_cmds);
+
+	if (pinfo->adv7533.dsi_tg_i2c_cmd)
+		ret = dsi2HDMI_i2c_write_regs(pinfo->adv7533.dsi_tg_i2c_cmd,
+					pinfo->adv7533.num_of_tg_i2c_cmds);
+
+	return ret;
 }
 
 static int target_panel_reset_skuh(uint8_t enable)
@@ -501,6 +547,16 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 	return ret;
 }
 
+int target_dsi_phy_config(struct mdss_dsi_phy_ctrl *phy_db)
+{
+	memcpy(phy_db->regulator, panel_regulator_settings, REGULATOR_SIZE);
+	memcpy(phy_db->ctrl, panel_physical_ctrl, PHYSICAL_SIZE);
+	memcpy(phy_db->strength, panel_strength_ctrl, STRENGTH_SIZE);
+	memcpy(phy_db->bistCtrl, panel_bist_ctrl, BIST_SIZE);
+	memcpy(phy_db->laneCfg, panel_lane_config, LANE_SIZE);
+	return NO_ERROR;
+}
+
 int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 {
 	/*
@@ -513,6 +569,20 @@ int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 bool target_display_panel_node(char *panel_name, char *pbuf, uint16_t buf_size)
 {
 	return gcdb_display_cmdline_arg(panel_name, pbuf, buf_size);
+}
+
+void target_set_switch_gpio(int enable_dsi2HdmiBridge)
+{
+	gpio_tlmm_config(dsi2HDMI_switch_gpio.pin_id, 0,
+				dsi2HDMI_switch_gpio.pin_direction,
+				dsi2HDMI_switch_gpio.pin_pull,
+				dsi2HDMI_switch_gpio.pin_strength,
+				dsi2HDMI_switch_gpio.pin_state);
+	gpio_set_dir(enable_gpio.pin_id, 2);
+	if (enable_dsi2HdmiBridge)
+		gpio_set_dir(enable_gpio.pin_id, 0); /* DSI2HDMI Bridge */
+	else
+		gpio_set_dir(enable_gpio.pin_id, 2); /* Normal DSI operation */
 }
 
 void target_display_init(const char *panel_name)

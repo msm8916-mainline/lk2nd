@@ -132,23 +132,24 @@ GENERATED += \
 
 
 
-$(BUILDDIR)/trustzone-test-system-onesegment.ld: $(LOCAL_DIR)/trustzone-test-system-onesegment.ld
+$(BUILDDIR)/trustzone-test-system-onesegment.ld: $(LOCAL_DIR)/trustzone-test-system-onesegment.ld $(LK_TOP_DIR)/target/$(TARGET)/rules.mk .FORCE
 	@echo generating $@
 	@$(MKDIR)
 	$(NOECHO)sed "s/%MEMBASE%/$(MEMBASE)/;s/%MEMSIZE%/$(MEMSIZE)/;s/%ROMLITE_PREFLASHED_DATA%/$(ROMLITE_PREFLASHED_DATA)/" < $< > $@
 
-$(BUILDDIR)/trustzone-system-onesegment.ld: $(LOCAL_DIR)/trustzone-system-onesegment.ld
+$(BUILDDIR)/trustzone-system-onesegment.ld: $(LOCAL_DIR)/trustzone-system-onesegment.ld $(LK_TOP_DIR)/target/$(TARGET)/rules.mk .FORCE
 	@echo generating $@
 	@$(MKDIR)
 	$(NOECHO)sed "s/%MEMBASE%/$(MEMBASE)/;s/%MEMSIZE%/$(MEMSIZE)/" < $< > $@
 
-$(BUILDDIR)/system-onesegment.ld: $(LOCAL_DIR)/system-onesegment.ld
+$(BUILDDIR)/system-onesegment.ld: $(LOCAL_DIR)/system-onesegment.ld $(LK_TOP_DIR)/target/$(TARGET)/rules.mk .FORCE
 	@echo generating $@
 	@$(MKDIR)
 	$(NOECHO)sed "s/%MEMBASE%/$(MEMBASE)/;s/%MEMSIZE%/$(MEMSIZE)/" < $< > $@
 
-$(BUILDDIR)/system-twosegment.ld: $(LOCAL_DIR)/system-twosegment.ld
+$(BUILDDIR)/system-twosegment.ld: $(LOCAL_DIR)/system-twosegment.ld $(LK_TOP_DIR)/target/$(TARGET)/rules.mk .FORCE
 	@echo generating $@
 	@$(MKDIR)
 	$(NOECHO)sed "s/%ROMBASE%/$(ROMBASE)/;s/%MEMBASE%/$(MEMBASE)/;s/%MEMSIZE%/$(MEMSIZE)/" < $< > $@
 
+.FORCE:

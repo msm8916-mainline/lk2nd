@@ -53,6 +53,7 @@ size_t      strspn(char const *, char const *) __PURE;
 size_t      strcspn(const char *s, const char *) __PURE;
 char       *strstr(char const *, char const *) __PURE;
 char       *strtok(char *, char const *);
+char       *strtok_r(char *s, const char *delim, char **last);
 int         strcoll(const char *s1, const char *s2) __PURE;
 size_t      strxfrm(char *dest, const char *src, size_t n) __PURE;
 char       *strdup(const char *str) __MALLOC;

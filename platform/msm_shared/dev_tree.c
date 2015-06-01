@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -502,6 +502,11 @@ void *dev_tree_appended(void *kernel, uint32_t kernel_size, uint32_t dtb_offset,
 
 	dprintf(CRITICAL, "DTB offset is incorrect, kernel image does not have appended DTB\n");
 
+	dprintf(INFO, "Device info 0x%08x/%08x/0x%08x/%u, pmic 0x%0x/0x%x/0x%x/0x%0x\n",
+			board_platform_id(), board_soc_version(),
+			board_target_id(), board_hardware_subtype(),
+			board_pmic_target(0), board_pmic_target(1),
+			board_pmic_target(2), board_pmic_target(3));
 	return NULL;
 }
 

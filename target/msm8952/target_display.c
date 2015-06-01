@@ -246,10 +246,10 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 			mdp_gdsc_ctrl(0);
 			return ret;
 		}
-		mdss_dsi_uniphy_pll_sw_reset_8952(DSI0_PLL_BASE);
-		mdss_dsi_auto_pll_config(pinfo->mipi.pll_0_base,
+		mdss_dsi_uniphy_pll_sw_reset_8952(pinfo->mipi.pll_base);
+		mdss_dsi_auto_pll_config(pinfo->mipi.pll_base,
 						pinfo->mipi.ctl_base, pll_data);
-		if (!dsi_pll_enable_seq_8952(pinfo->mipi.pll_0_base))
+		if (!dsi_pll_enable_seq_8952(pinfo->mipi.pll_base))
 			dprintf(CRITICAL, "Not able to enable the pll\n");
 		gcc_dsi_clocks_enable(pll_data->pclk_m, pll_data->pclk_n,
 				pll_data->pclk_d);
@@ -360,6 +360,16 @@ static void wled_init(struct msm_panel_info *pinfo)
 	pm8x41_wled_config_slave_id(PMIC_WLED_SLAVE_ID);
 
 	qpnp_wled_init(&config);
+}
+
+int target_dsi_phy_config(struct mdss_dsi_phy_ctrl *phy_db)
+{
+	memcpy(phy_db->regulator, panel_regulator_settings, REGULATOR_SIZE);
+	memcpy(phy_db->ctrl, panel_physical_ctrl, PHYSICAL_SIZE);
+	memcpy(phy_db->strength, panel_strength_ctrl, STRENGTH_SIZE);
+	memcpy(phy_db->bistCtrl, panel_bist_ctrl, BIST_SIZE);
+	memcpy(phy_db->laneCfg, panel_lane_config, LANE_SIZE);
+	return NO_ERROR;
 }
 
 int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)

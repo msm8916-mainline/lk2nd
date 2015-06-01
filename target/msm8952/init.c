@@ -163,7 +163,7 @@ void *target_mmc_device()
 }
 
 /* Return 1 if vol_up pressed */
-static int target_volume_up()
+int target_volume_up()
 {
 	uint8_t status = 0;
 
@@ -455,6 +455,7 @@ int target_cont_splash_screen()
 		switch (board_hardware_id()) {
 		case HW_PLATFORM_MTP:
 		case HW_PLATFORM_SURF:
+		case HW_PLATFORM_QRD:
 			splash_screen = 1;
 			break;
 		default:

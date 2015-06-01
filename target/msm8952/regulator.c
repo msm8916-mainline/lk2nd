@@ -31,6 +31,25 @@
 #include <rpm-smd.h>
 #include <bits.h>
 #include <debug.h>
+#include <platform.h>
+
+
+static uint32_t ldo1[][11]=
+{
+	{
+		LDOA_RES_TYPE, 1,
+		KEY_SOFTWARE_ENABLE, 4, GENERIC_DISABLE,
+		KEY_MICRO_VOLT, 4, 0,
+		KEY_CURRENT, 4, 0,
+	},
+
+	{
+		LDOA_RES_TYPE, 1,
+		KEY_SOFTWARE_ENABLE, 4, GENERIC_ENABLE,
+		KEY_MICRO_VOLT, 4, 1200000,
+		KEY_CURRENT, 4, 40,
+	},
+};
 
 static uint32_t ldo2[][11]=
 {
@@ -86,8 +105,17 @@ static uint32_t ldo17[][11]=
 
 void regulator_enable(uint32_t enable)
 {
-	if (enable & REG_LDO2)
-		rpm_send_data(&ldo2[GENERIC_ENABLE][0], 36, RPM_REQUEST_TYPE);
+	if(platform_is_msm8956())
+	{
+		if (enable & REG_LDO1)
+			rpm_send_data(&ldo1[GENERIC_ENABLE][0], 36, RPM_REQUEST_TYPE);
+
+	}
+	else
+	{
+		if (enable & REG_LDO2)
+			rpm_send_data(&ldo2[GENERIC_ENABLE][0], 36, RPM_REQUEST_TYPE);
+	}
 
 	if (enable & REG_LDO17)
 		rpm_send_data(&ldo17[GENERIC_ENABLE][0], 36, RPM_REQUEST_TYPE);
@@ -98,8 +126,17 @@ void regulator_enable(uint32_t enable)
 
 void regulator_disable(uint32_t enable)
 {
-	if (enable & REG_LDO2)
-		rpm_send_data(&ldo2[GENERIC_DISABLE][0], 36, RPM_REQUEST_TYPE);
+	if(platform_is_msm8956())
+	{
+		if (enable & REG_LDO1)
+			rpm_send_data(&ldo1[GENERIC_DISABLE][0], 36, RPM_REQUEST_TYPE);
+
+	}
+	else
+	{
+		if (enable & REG_LDO2)
+			rpm_send_data(&ldo2[GENERIC_DISABLE][0], 36, RPM_REQUEST_TYPE);
+	}
 
 	if (enable & REG_LDO17)
 		rpm_send_data(&ldo17[GENERIC_DISABLE][0], 36, RPM_REQUEST_TYPE);

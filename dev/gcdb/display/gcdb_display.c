@@ -64,16 +64,18 @@ extern int msm_display_off();
 
 static uint32_t panel_backlight_ctrl(uint8_t enable)
 {
-	return target_backlight_ctrl(panelstruct.backlightinfo, enable);
+	uint32_t ret = NO_ERROR;
+	if (panelstruct.backlightinfo)
+		ret = target_backlight_ctrl(panelstruct.backlightinfo, enable);
+	return ret;
 }
 
 static uint32_t mdss_dsi_panel_reset(uint8_t enable)
 {
 	uint32_t ret = NO_ERROR;
-
-	ret = target_panel_reset(enable, panelstruct.panelresetseq,
-						&panel.panel_info);
-
+	if (panelstruct.panelresetseq)
+		ret = target_panel_reset(enable, panelstruct.panelresetseq,
+							&panel.panel_info);
 	return ret;
 }
 
@@ -415,14 +417,15 @@ bool gcdb_display_cmdline_arg(char *panel_name, char *pbuf, uint16_t buf_size)
 
 	dsi_id_len = strlen(dsi_id);
 	panel_node_len = strlen(panel_node);
-	if (!slave_panel_node || slave_panel_node == 0x0)
+	if (!slave_panel_node || !strcmp(slave_panel_node, ""))
 		slave_panel_node = NO_PANEL_CONFIG;
 	slave_panel_node_len = strlen(slave_panel_node);
 
 	arg_size = prefix_string_len + dsi_id_len + panel_node_len +
 						LK_OVERRIDE_PANEL_LEN + 1;
 
-	if (!strcmp(panelstruct.paneldata->panel_destination, "DISPLAY_2"))
+	if (panelstruct.paneldata &&
+		!strcmp(panelstruct.paneldata->panel_destination, "DISPLAY_2"))
 		sctl_string = DSI_0_STRING;
 	else
 		sctl_string = DSI_1_STRING;
@@ -456,19 +459,6 @@ bool gcdb_display_cmdline_arg(char *panel_name, char *pbuf, uint16_t buf_size)
 		strlcpy(pbuf, slave_panel_node, buf_size);
 	}
 	return ret;
-}
-
-
-static void init_platform_data()
-{
-	memcpy(dsi_video_mode_phy_db.regulator, panel_regulator_settings,
-							REGULATOR_SIZE);
-	memcpy(dsi_video_mode_phy_db.ctrl, panel_physical_ctrl,
-							PHYSICAL_SIZE);
-	memcpy(dsi_video_mode_phy_db.strength, panel_strength_ctrl,
-							STRENGTH_SIZE);
-	memcpy(dsi_video_mode_phy_db.bistCtrl, panel_bist_ctrl, BIST_SIZE);
-	memcpy(dsi_video_mode_phy_db.laneCfg, panel_lane_config, LANE_SIZE);
 }
 
 static void mdss_edp_panel_init(struct msm_panel_info *pinfo)
@@ -540,16 +530,22 @@ static int mdss_edp_bl_enable(uint8_t enable)
 	return ret;
 }
 
+static int mdss_dsi2HDMI_config (struct msm_panel_info *pinfo)
+{
+	return target_display_dsi2hdmi_config(pinfo);
+}
+
 int gcdb_display_init(const char *panel_name, uint32_t rev, void *base)
 {
 	int ret = NO_ERROR;
 	int pan_type;
 
+	dsi_video_mode_phy_db.pll_type = DSI_PLL_TYPE_28NM;
 	pan_type = oem_panel_select(panel_name, &panelstruct, &(panel.panel_info),
 				 &dsi_video_mode_phy_db);
 
 	if (pan_type == PANEL_TYPE_DSI) {
-		init_platform_data();
+		target_dsi_phy_config(&dsi_video_mode_phy_db);
 		if (dsi_panel_init(&(panel.panel_info), &panelstruct)) {
 			dprintf(CRITICAL, "DSI panel init failed!\n");
 			ret = ERROR;
@@ -562,6 +558,7 @@ int gcdb_display_init(const char *panel_name, uint32_t rev, void *base)
 		panel.power_func = mdss_dsi_panel_power;
 		panel.pre_init_func = mdss_dsi_panel_pre_init;
 		panel.bl_func = mdss_dsi_bl_enable;
+		panel.dsi2HDMI_config = mdss_dsi2HDMI_config;
 		/*
 		 * If dfps enabled, reserve fb memory to store pll
 		 * codes and pass pll codes values to kernel.

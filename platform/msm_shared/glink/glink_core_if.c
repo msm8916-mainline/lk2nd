@@ -34,28 +34,26 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "glink_os_utils.h"
 #include "glink.h"
 #include "glink_internal.h"
-#include "glink_core_if.h"
 #include "smem_list.h"
 #include "glink_channel_migration.h"
 
-
 #define FEATURE_CH_MIGRATION_FREE
 
-void glinki_scan_notif_list_and_notify
+/*===========================================================================
+                        GLOBAL FUNCTION DECLARATIONS
+==========================================================================*/
+extern void glinki_scan_notif_list_and_notify
 (
   glink_transport_if_type *if_ptr,
   glink_link_state_type state
 );
 
-/*===========================================================================
-                              GLOBAL DATA DECLARATIONS
-===========================================================================*/
 
 /*===========================================================================
                      LOCAL FUNCTION DEFINITIONS
 ===========================================================================*/
 /*===========================================================================
-FUNCTION      glink_process_negotiation_complete
+  FUNCTION      glink_process_negotiation_complete
 ===========================================================================*/
 /**
 
@@ -79,19 +77,25 @@ FUNCTION      glink_process_negotiation_complete
 /*=========================================================================*/
 static void glink_process_negotiation_complete
 (
-  glink_core_xport_ctx_type *xport_ctx,
   glink_transport_if_type   *if_ptr,
   uint32                    version,
   uint32                    features
 )
 {
+  glink_core_xport_ctx_type *xport_ctx = if_ptr->glink_core_priv;
   /* Version/Feautre can be negotiated both in ver_req and ver_ack
    * Only go through process once in case they are negotiated
    * in ver_req before receiving ver_ack */
+
+  glink_os_cs_acquire( &xport_ctx->status_cs );
+
   if( xport_ctx->status == GLINK_XPORT_LINK_UP )
   {
+    glink_os_cs_release( &xport_ctx->status_cs );
     return;
   }
+
+  glink_os_cs_release(&if_ptr->glink_core_priv->status_cs);
 
   /* setup core based on transport capabilities*/
   xport_ctx->xport_capabilities = if_ptr->set_version( if_ptr,
@@ -100,38 +104,70 @@ static void glink_process_negotiation_complete
   glink_core_setup(if_ptr);
 
   /* transport is ready to open channels */
+  glink_os_cs_acquire( &xport_ctx->status_cs );
   if_ptr->glink_core_priv->status = GLINK_XPORT_LINK_UP;
+  glink_os_cs_release(&if_ptr->glink_core_priv->status_cs);
 
   /* Scan the notification list to check is we have to let any registered
-  * clients know that link came online */
+   * clients know that link came online */
   glinki_scan_notif_list_and_notify(if_ptr, GLINK_LINK_STATE_UP);
 }
 
-static void glink_dummy_ch_migration_notification_cb
+
+/*===========================================================================
+  FUNCTION      glink_clean_channel_ctx
+===========================================================================*/
+/**
+
+  This is called when channel is fully closed
+  Clean up the context and redeem channel id if possible
+
+  @param[in]    xport_ctx    transport context
+  @param[in]    channel_ctx  channel context
+
+
+  @return        None
+  @sideeffects   None.
+  @dependencies  This function needs to be called in safe context
+                 which is critical sections locked - channel_q_cs
+*/
+/*=========================================================================*/
+static void glink_clean_channel_ctx
 (
-  glink_handle_type         handle,
-  const void               *priv,
-  glink_channel_event_type event
+  glink_core_xport_ctx_type *xport_ctx,
+  glink_channel_ctx_type    *channel_ctx
 )
 {
+  xport_ctx->channel_cleanup( channel_ctx );
+
+  if( channel_ctx->lcid == ( xport_ctx->free_lcid - 1 ) )
+  {
+    /* If channel being closed is the last opened channel
+       re-use the lcid of this channel for any new channels */
+    xport_ctx->free_lcid--;
+  }
+
+  smem_list_delete(&xport_ctx->open_list, channel_ctx);
 }
 
 /*===========================================================================
                     EXTERNAL FUNCTION DEFINITIONS
 ===========================================================================*/
 /*===========================================================================
-FUNCTION      glink_link_up
-
-DESCRIPTION   Indicates that transport is now ready to start negotiation
-              using the v0 configuration
-
-ARGUMENTS   *if_ptr   Pointer to interface instance; must be unique
-                      for each edge
-
-RETURN VALUE  None.
-
-SIDE EFFECTS  None
+  FUNCTION      glink_link_up
 ===========================================================================*/
+/**
+  Indicates that transport is now ready to start negotiation
+  using the v0 configuration
+
+  @param[in]     if_ptr    Pointer to interface instance; must be unique
+                           for each edge
+
+  @return        None
+  @sideeffects   None.
+  @dependencies  None.
+*/
+/*=========================================================================*/
 void glink_link_up
 (
   glink_transport_if_type *if_ptr
@@ -147,7 +183,9 @@ void glink_link_up
   version_array = xport_ctx->version_array;
 
   /* Update the transport state */
+  glink_os_cs_acquire(&if_ptr->glink_core_priv->status_cs);
   if_ptr->glink_core_priv->status = GLINK_XPORT_NEGOTIATING;
+  glink_os_cs_release(&if_ptr->glink_core_priv->status_cs);
 
   /* Start the negtiation */
   if_ptr->tx_cmd_version(if_ptr, version_array->version,
@@ -207,8 +245,7 @@ void glink_rx_cmd_version
       /* send version ack before allowing to open channels */
       if_ptr->tx_cmd_version_ack(if_ptr, version, features);
 
-      glink_process_negotiation_complete( xport_ctx, if_ptr,
-                                          version, features );
+      glink_process_negotiation_complete( if_ptr, version, features );
       return;
     }
     else
@@ -277,8 +314,7 @@ void glink_rx_cmd_version_ack
     }
     else
     {
-      glink_process_negotiation_complete( xport_ctx, if_ptr,
-                                          version, features );
+      glink_process_negotiation_complete( if_ptr, version, features );
     }
   }
   else
@@ -323,64 +359,22 @@ void glink_rx_cmd_ch_remote_open
   glink_xport_priority    priority
 )
 {
-  glink_channel_ctx_type *remote_ch_ctx;
-  glink_channel_ctx_type  *allocated_ch_ctx;
+  glink_channel_ctx_type     *remote_ch_ctx  = NULL;
+  glink_channel_ctx_type     *allocated_ch_ctx;
+
+  glink_xport_priority        negotiated_xport_priority;
   glink_core_xport_ctx_type  *xport_ctx;
-  glink_err_type status;
-  glink_xport_priority negotiated_prio;
-  boolean migration_state = TRUE;
+  glink_err_type              status;
 
-  ASSERT(if_ptr != NULL);
-  ASSERT(name != NULL);
-
-#ifndef FEATURE_CH_MIGRATION_FREE
-  glink_transport_if_type *present_if_ptr = NULL;
-  boolean channel_exist = FALSE;
-  glink_channel_ctx_type *present_ch_ctx = NULL;
-  /* search if channel with given name exists locally */
-  channel_exist = glinki_local_channel_exists(if_ptr, &present_if_ptr, name, &present_ch_ctx, TRUE);
-
-  /* start channel migration negotiation only if channel exists on local side
-   * for negotiation AND channel is willing to migrate */
-  if(channel_exist &&
-     (present_ch_ctx->ch_open_options & GLINK_OPT_INITIAL_XPORT))
-  {
-    /* channel exists on one of the xports for given remote ss */
-    current_prio =  present_ch_ctx->req_if_ptr->glink_priority;
-    negotiated_prio = glinki_negotiate_ch_migration(priority, current_prio);
-
-    /* if current channel is open in same xport as negotiated xport
-     * local side wont migrate. Set migration flag to FALSE */
-    if(negotiated_prio == present_if_ptr->glink_priority)
-    {
-      migration_state = FALSE;
-    }
-  }
-  else if(channel_exist)
-  {
-    /* channel exists but channel does not want to be moved to another xport.
-       channel is set in stone */
-    negotiated_prio = present_if_ptr->glink_priority;
-    migration_state = FALSE;
-  }
-  else
-  {
-    /* channel does not exist on local side as yet
-     * return negotiated prio as current xport prio on which
-     * remote open request is received */
-    negotiated_prio = if_ptr->glink_priority;
-    migration_state = FALSE;
-  }
-#else
-  negotiated_prio = if_ptr->glink_priority;
-    migration_state = FALSE;
-#endif
+  ASSERT( if_ptr != NULL );
+  ASSERT( name != NULL );
 
   xport_ctx = if_ptr->glink_core_priv;
 
   /* Allocate and initialize channel info structure */
-  remote_ch_ctx = glink_os_calloc(sizeof(glink_channel_ctx_type));
-  if(remote_ch_ctx == NULL) {
+  remote_ch_ctx = glink_os_calloc( sizeof( glink_channel_ctx_type ) );
+  if(remote_ch_ctx == NULL)
+  {
     GLINK_LOG_EVENT(GLINK_EVENT_RM_CH_OPEN, name, xport_ctx->xport,
         xport_ctx->remote_ss, GLINK_STATUS_OUT_OF_RESOURCES);
     ASSERT(0);
@@ -390,61 +384,113 @@ void glink_rx_cmd_ch_remote_open
   glink_os_string_copy(remote_ch_ctx->name, name, sizeof(remote_ch_ctx->name));
   remote_ch_ctx->rcid = rcid;
 
-  status = glinki_add_ch_to_xport(if_ptr, NULL, remote_ch_ctx,
-                                  &allocated_ch_ctx, FALSE,
-                                  migration_state, negotiated_prio);
-  ASSERT(status == GLINK_STATUS_SUCCESS);
+#ifndef FEATURE_CH_MIGRATION_FREE
+  glink_channel_ctx_type     *present_ch_ctx = NULL;
+  glink_transport_if_type    *negotiated_xport;
+  glink_channel_ctx_type     *dummy_ch_ctx;
 
-  GLINK_LOG_EVENT(GLINK_EVENT_RM_CH_OPEN, name, xport_ctx->xport,
+  /* search if channel with given name exists locally */
+
+  glink_os_cs_acquire( &xport_ctx->channel_q_cs );
+  present_ch_ctx = glinki_local_channel_exists( if_ptr, name );
+
+  if( !present_ch_ctx )
+  {
+    // channel doesn't exists yet and migration will not happen here
+    status = glinki_add_ch_to_xport( if_ptr,
+                                     if_ptr,
+                                     remote_ch_ctx,
+                                     &allocated_ch_ctx,
+                                     FALSE,
+                                     if_ptr->glink_priority );
+    ASSERT(status == GLINK_STATUS_SUCCESS);
+
+    GLINK_LOG_EVENT(GLINK_EVENT_RM_CH_OPEN, name, xport_ctx->xport,
       xport_ctx->remote_ss, GLINK_STATUS_SUCCESS);
 
-#ifndef FEATURE_CH_MIGRATION_FREE
-
-  /* We are done with channel migration negotiation at this stage
-   * Tag all channels with given name on xports other than negotiated
-   * xport for deletion */
-  glinki_tag_ch_for_deletion(if_ptr, name, negotiated_prio);
-
-    if(migration_state == TRUE)
-    {
-      glink_channel_ctx_type *new_ch_ctx;
-
-    /* create a new channel context as current channel will be migrated */
-    new_ch_ctx = (glink_channel_ctx_type *)
-                   glink_os_calloc(sizeof(glink_channel_ctx_type));
-
-    /* Fill in the channel info structure */
-    new_ch_ctx->req_if_ptr =
-             glinki_get_xport_from_prio(negotiated_prio,
-                                          if_ptr->glink_core_priv->remote_ss);
-    glink_os_string_copy(new_ch_ctx->name, present_ch_ctx->name,
-                         sizeof(present_ch_ctx->name));
-    new_ch_ctx->priv = present_ch_ctx->priv;
-    new_ch_ctx->notify_rx = present_ch_ctx->notify_rx;
-    new_ch_ctx->notify_rxv = present_ch_ctx->notify_rxv;
-    new_ch_ctx->notify_tx_done = present_ch_ctx->notify_tx_done;
-    new_ch_ctx->notify_state = present_ch_ctx->notify_state;
-    new_ch_ctx->notify_rx_intent_req = present_ch_ctx->notify_rx_intent_req;
-    new_ch_ctx->notify_rx_intent = present_ch_ctx->notify_rx_intent;
-    new_ch_ctx->notify_rx_sigs = present_ch_ctx->notify_rx_sigs;
-    new_ch_ctx->ch_open_options = present_ch_ctx->ch_open_options;
-
-//      glink_os_cs_init(&new_ch_ctx->intent_q_cs);
-
-    /* close current channel */
-    present_ch_ctx->notify_state = glink_dummy_ch_migration_notification_cb;
-    if_ptr->tx_cmd_ch_close( if_ptr, present_ch_ctx->lcid );
-
-    /* add new channel context on negotiated xport */
-    glinki_add_ch_to_xport(new_ch_ctx->req_if_ptr,
-                           new_ch_ctx->req_if_ptr,
-                           new_ch_ctx,
-                           &allocated_ch_ctx,
-                           TRUE,
-                           TRUE,
-                           new_ch_ctx->req_if_ptr->glink_priority);
+    glink_os_cs_release( &xport_ctx->channel_q_cs );
+    return;
   }
+
+  glink_os_cs_release( &xport_ctx->channel_q_cs );
+
+  present_ch_ctx->rcid = rcid;
+
+  if( present_ch_ctx->tag_ch_for_close )
+  {
+    // Migration already started.
+    GLINK_LOG_EVENT(GLINK_EVENT_CH_MIGRATION_IN_PROGRESS, name, xport_ctx->xport,
+      xport_ctx->remote_ss, GLINK_STATUS_SUCCESS);
+
+    return;
+  }
+
+  /* Negotiate the priority for migration if needed */
+  if( priority < present_ch_ctx->req_if_ptr->glink_priority )
+  {
+    negotiated_xport_priority = present_ch_ctx->req_if_ptr->glink_priority;
+  }
+  else
+  {
+    negotiated_xport_priority = priority;
+  }
+
+  negotiated_xport =  glinki_get_xport_from_prio( negotiated_xport_priority,
+                                                  xport_ctx->remote_ss );
+
+  if( if_ptr == negotiated_xport )
+  {
+    /* Current transport is best one. No need to migrate */
+
+    status = glinki_add_ch_to_xport( if_ptr,
+                                     if_ptr,
+                                     remote_ch_ctx,
+                                     &allocated_ch_ctx,
+                                     FALSE,
+                                     negotiated_xport_priority );
+
+    ASSERT(status == GLINK_STATUS_SUCCESS);
+    GLINK_LOG_EVENT( GLINK_EVENT_CH_NO_MIGRATION, name, xport_ctx->xport,
+      xport_ctx->remote_ss, GLINK_STATUS_SUCCESS);
+
+    return;
+  }
+
+  /* Need to migrate to new transport */
+  if_ptr->tx_cmd_ch_remote_open_ack( if_ptr,
+                                     rcid,
+                                     negotiated_xport_priority );
+
+  glink_create_dummy_ch_ctx( &dummy_ch_ctx, present_ch_ctx );
+  glink_close_dummy_ch_for_migration( if_ptr, dummy_ch_ctx );
+  glink_init_ch_migrate_candidate( present_ch_ctx );
+
+  status = glinki_add_ch_to_xport( negotiated_xport,
+                                   negotiated_xport,
+                                   present_ch_ctx,
+                                   &allocated_ch_ctx,
+                                   TRUE,
+                                   negotiated_xport_priority );
+
+  ASSERT( status == GLINK_STATUS_SUCCESS );
+
+  glink_os_free( remote_ch_ctx );
+
+#else
+  negotiated_xport_priority = if_ptr->glink_priority;
+
+  status = glinki_add_ch_to_xport( if_ptr,
+                                   NULL,
+                                   remote_ch_ctx,
+                                   &allocated_ch_ctx,
+                                   FALSE,
+                                   negotiated_xport_priority );
+
+  ASSERT(status == GLINK_STATUS_SUCCESS);
 #endif
+
+  GLINK_LOG_EVENT(GLINK_EVENT_RM_CH_OPEN, name, xport_ctx->xport,
+    xport_ctx->remote_ss, GLINK_STATUS_SUCCESS);
 }
 
 /*===========================================================================
@@ -467,11 +513,11 @@ SIDE EFFECTS  None
 void glink_rx_cmd_ch_open_ack
 (
   glink_transport_if_type *if_ptr,
-  uint32                  lcid,
-  glink_xport_priority    migrated_ch_prio
+  uint32                   lcid,
+  glink_xport_priority     migrated_ch_prio
 )
 {
-  glink_channel_ctx_type *open_ch_ctx;
+  glink_channel_ctx_type     *open_ch_ctx;
   glink_core_xport_ctx_type  *xport_ctx;
 
   ASSERT(if_ptr != NULL);
@@ -480,121 +526,92 @@ void glink_rx_cmd_ch_open_ack
 
   /* Move to closed state. Implies we clean up the channel from the
    * open list */
-
+  glink_os_cs_acquire(&xport_ctx->channel_q_cs);
   /* Find channel in the open_list */
   open_ch_ctx = smem_list_first(&if_ptr->glink_core_priv->open_list);
   while(open_ch_ctx != NULL)
   {
-    if(open_ch_ctx->lcid == lcid) {
+    if(open_ch_ctx->lcid == lcid)
+    {
 #ifndef FEATURE_CH_MIGRATION_FREE
-      glink_transport_if_type *present_if_ptr = NULL;
-      glink_channel_ctx_type  *present_ch_ctx = NULL;
-      boolean channel_exist;
-      /* find the channel in all xport list */
-      channel_exist = glinki_local_channel_exists(if_ptr,
-                                                  &present_if_ptr,
-                                                  open_ch_ctx->name,
-                                                  &present_ch_ctx,
-                                                  FALSE);
+      glink_transport_if_type    *negotiated_xport = NULL;
+      negotiated_xport = glinki_get_xport_from_prio( migrated_ch_prio,
+                                                     xport_ctx->remote_ss );
 
-      if(if_ptr->glink_priority == migrated_ch_prio && !channel_exist)
+      if( negotiated_xport != if_ptr &&
+          !open_ch_ctx->tag_ch_for_close &&
+          ( open_ch_ctx->ch_open_options & GLINK_OPT_INITIAL_XPORT ) )
       {
-        /* only local side has opened the channel. Remote side has not come up yet
-         * which implies negotiation did not take place on remote side */
-        /* DO NOTHING */
-      }
-      else if(if_ptr->glink_priority == migrated_ch_prio)
-      {
-        /* remote channel exists. channel migration negotiation happened
-         * on remote side and negotitated xport is same as current xport */
-        if(present_ch_ctx->ref_count == 1)
-        {
-          /* remote channel is present on different xport than negotiated one.
-           * remote side will migrate its channel to negotiated xport */
-          /* DO NOTHING */
-        }
-        else if(present_ch_ctx->ref_count == 2)
-        {
-          /* remote channel is open on same xport as current xport.
-           * change channel state to GLINK_CH_STATE_OPEN and notify client */
-          open_ch_ctx->state = GLINK_CH_STATE_OPEN;
-          open_ch_ctx->notify_state(open_ch_ctx, open_ch_ctx->priv,
-                                    GLINK_CONNECTED);
-        }
-        else
-        {
-          /* something went wrong in updating ref_count of channel */
-          ASSERT(0);
-        }
+        glink_channel_ctx_type *dummy_ch_ctx;
+        glink_err_type          status;
+
+        glink_create_dummy_ch_ctx( &dummy_ch_ctx, open_ch_ctx );
+        glink_close_dummy_ch_for_migration( if_ptr, dummy_ch_ctx );
+
+        glink_init_ch_migrate_candidate( open_ch_ctx );
+        dummy_ch_ctx = NULL;
+
+        status = glinki_add_ch_to_xport( negotiated_xport,
+                                         negotiated_xport,
+                                         open_ch_ctx,
+                                         &dummy_ch_ctx,
+                                         TRUE,
+                                         negotiated_xport->glink_priority );
+
+        ASSERT( status == GLINK_STATUS_SUCCESS );
       }
       else
       {
+        glink_os_cs_acquire( &open_ch_ctx->ch_state_cs );
 
-        /* migrated xport priority <> current xport priority */
-        /* check if remote channel is opened on negotiated xport already */
-          if(migrated_ch_prio == present_if_ptr->glink_priority &&
-             (open_ch_ctx->ch_open_options & GLINK_OPT_INITIAL_XPORT))
-          {
-            /* remote channel is already on negotiated xport. remote channel
-             * will not migrate. Local side should migrate */
-
-            glink_channel_ctx_type *new_ch_ctx =
-              (glink_channel_ctx_type *)glink_os_calloc(
-                                       sizeof(glink_channel_ctx_type));
-
-            /* Fill in the channel info structure */
-            glink_os_string_copy(new_ch_ctx->name,
-                                 open_ch_ctx->name,
-                                 sizeof(open_ch_ctx->name));
-            new_ch_ctx->priv = open_ch_ctx->priv;
-            new_ch_ctx->notify_rx = open_ch_ctx->notify_rx;
-            new_ch_ctx->notify_rxv = open_ch_ctx->notify_rxv;
-            new_ch_ctx->notify_tx_done = open_ch_ctx->notify_tx_done;
-            new_ch_ctx->notify_state = open_ch_ctx->notify_state;
-            new_ch_ctx->notify_rx_intent_req =
-                                            open_ch_ctx->notify_rx_intent_req;
-            new_ch_ctx->notify_rx_intent = open_ch_ctx->notify_rx_intent;
-            new_ch_ctx->notify_rx_sigs = open_ch_ctx->notify_rx_sigs;
-            new_ch_ctx->ch_open_options = open_ch_ctx->ch_open_options;
-
-            present_ch_ctx->notify_state = glink_dummy_ch_migration_notification_cb;
-            if_ptr->tx_cmd_ch_close( if_ptr, present_ch_ctx->lcid );
-
-            /* migrate to negotiated xport */
-            glinki_add_ch_to_xport(present_if_ptr,
-                                   present_if_ptr,
-                                   new_ch_ctx,
-                                   NULL,
-                                   TRUE,
-                                   TRUE,
-                                   present_if_ptr->glink_priority);
-          }
-          else
-          {
-            /* Either our transport is "set in stone"  OR */
-            /* remote side will migrate to negotiated xport and will call
-             * remote open on this side which will cause channel migration
-             * negotiation and this side will ultimately migrate */
-            /* DO NOTHING */
-          }
-        }
-#else
-        if(open_ch_ctx->ref_count == 2)
+        if( open_ch_ctx->local_state == GLINK_LOCAL_CH_CLOSING )
         {
-          /* remote channel is open on same xport as current xport.
-           * change channel state to GLINK_CH_STATE_OPEN and notify client */
-          open_ch_ctx->state = GLINK_CH_STATE_OPEN;
-          open_ch_ctx->notify_state(open_ch_ctx, open_ch_ctx->priv,
-                                    GLINK_CONNECTED);
+          /* Local client called glink_close
+           * before local channel is fully opened */
+          glink_os_cs_release( &open_ch_ctx->ch_state_cs );
+          glink_os_cs_release( &xport_ctx->channel_q_cs );
+          return;
         }
+
+        open_ch_ctx->local_state = GLINK_LOCAL_CH_OPENED;
+
+        if( open_ch_ctx->remote_state == GLINK_REMOTE_CH_OPENED )
+        {
+          glink_os_cs_release( &open_ch_ctx->ch_state_cs );
+          open_ch_ctx->notify_state( open_ch_ctx,
+                                     open_ch_ctx->priv,
+                                     GLINK_CONNECTED );
+        }
+        else
+        {
+          glink_os_cs_release( &open_ch_ctx->ch_state_cs );
+        }
+      }
+
+#else
+      /* This is same code as above. once core capability code is done copy
+       * issue should be resolved */
+      glink_os_cs_acquire( &open_ch_ctx->ch_state_cs );
+      open_ch_ctx->local_state = GLINK_LOCAL_CH_OPENED;
+      if( open_ch_ctx->remote_state == GLINK_REMOTE_CH_OPENED )
+      {
+        /* remote channel is open on same xport as current xport.
+         * change channel state to GLINK_CH_STATE_OPEN and notify client */
+        glink_os_cs_release( &open_ch_ctx->ch_state_cs );
+        open_ch_ctx->notify_state( open_ch_ctx,
+                                   open_ch_ctx->priv,
+                                   GLINK_CONNECTED);
+      }
 #endif
 
       GLINK_LOG_EVENT(GLINK_EVENT_CH_OPEN_ACK, open_ch_ctx->name,
           xport_ctx->xport, xport_ctx->remote_ss, lcid);
+      glink_os_cs_release(&xport_ctx->channel_q_cs);
       return;
     }
     open_ch_ctx = smem_list_next(open_ch_ctx);
   }
+  glink_os_cs_release(&xport_ctx->channel_q_cs);
   /* We are here in case we could not find the channel in the open list. */
   ASSERT(0);
 }
@@ -632,55 +649,49 @@ void glink_rx_cmd_ch_close_ack
 
   /* Find channel in the open_list */
   glink_os_cs_acquire(&xport_ctx->channel_q_cs);
-  open_ch_ctx = smem_list_first(&if_ptr->glink_core_priv->open_list);
-  while(open_ch_ctx != NULL)
+  open_ch_ctx = smem_list_first(&xport_ctx->open_list);
+  while( open_ch_ctx )
   {
-    if(open_ch_ctx->lcid == lcid) {
+    if( open_ch_ctx->lcid == lcid )
+    {
       /* Found channel */
-      open_ch_ctx->ref_count--;
+      glink_os_cs_acquire( &open_ch_ctx->ch_state_cs );
+
+
       GLINK_LOG_EVENT(GLINK_EVENT_CH_CLOSE_ACK, open_ch_ctx->name,
           xport_ctx->xport, xport_ctx->remote_ss, lcid);
 
-      /* Transition state */
-      if(open_ch_ctx->state == GLINK_CH_STATE_OPEN) {
-        /* this side initiated close procedure */
-        open_ch_ctx->state = GLINK_CH_STATE_REMOTE_OPEN_LOCAL_CLOSE;
-      } else if(open_ch_ctx->state == GLINK_CH_STATE_LOCAL_OPEN ||
-                open_ch_ctx->state == GLINK_CH_STATE_LOCAL_OPEN_REMOTE_CLOSE ||
-                open_ch_ctx->state == GLINK_CH_STATE_REMOTE_OPEN) {
-        /* Other side never opened the port, or closed from its end */
-        /* Clear everything */
-        if(open_ch_ctx->ref_count == 0)
-        {
-          xport_ctx->channel_cleanup(open_ch_ctx);
-          /* re-use channel id if it can be done */
-          if(lcid == (xport_ctx->free_lcid-1)) {
-            /* If channel being closed is the last opened channel
-               re-use the lcid of this channel for any new channels */
-            xport_ctx->free_lcid--;
-          }
-          smem_list_delete(&if_ptr->glink_core_priv->open_list, open_ch_ctx);
+      ASSERT( open_ch_ctx->local_state == GLINK_LOCAL_CH_CLOSING );
 
-          /* Notify the client */
-          open_ch_ctx->notify_state( open_ch_ctx, open_ch_ctx->priv,
-                                     GLINK_LOCAL_DISCONNECTED);
-          glink_os_free(open_ch_ctx);
-        }
-      } else {
-        /* Unsupported state */
-        ASSERT(0);
+      open_ch_ctx->local_state = GLINK_LOCAL_CH_CLOSED;
+
+      if( open_ch_ctx->remote_state == GLINK_REMOTE_CH_CLOSED ||
+          open_ch_ctx->remote_state == GLINK_REMOTE_CH_SSR_RESET )
+      {
+        glink_clean_channel_ctx( xport_ctx, open_ch_ctx );
       }
 
+      glink_os_cs_release(&open_ch_ctx->ch_state_cs);
       glink_os_cs_release(&xport_ctx->channel_q_cs);
+
+      open_ch_ctx->notify_state( open_ch_ctx,
+                                 open_ch_ctx->priv,
+                                 GLINK_LOCAL_DISCONNECTED );
+
+      if( open_ch_ctx->remote_state == GLINK_REMOTE_CH_CLOSED ||
+          open_ch_ctx->remote_state == GLINK_REMOTE_CH_SSR_RESET )
+      {
+        glink_os_free( open_ch_ctx );
+      }
+
       return;
     }
     open_ch_ctx = smem_list_next(open_ch_ctx);
   }/* end while */
 
+  glink_os_cs_release(&xport_ctx->channel_q_cs);
   /* We are here in case we could not find the channel in the open list. */
   ASSERT(0);
-
-  glink_os_cs_release(&xport_ctx->channel_q_cs);
 }
 
 /*===========================================================================
@@ -712,124 +723,53 @@ void glink_rx_cmd_ch_remote_close
   xport_ctx = if_ptr->glink_core_priv;
 
   /* Find channel in the open_list */
-  glink_os_cs_acquire(&xport_ctx->channel_q_cs);
-  open_ch_ctx = smem_list_first(&if_ptr->glink_core_priv->open_list);
+  glink_os_cs_acquire( &xport_ctx->channel_q_cs );
+
+  open_ch_ctx = smem_list_first( &if_ptr->glink_core_priv->open_list );
   while(open_ch_ctx != NULL)
   {
-    if(open_ch_ctx->rcid == rcid) {
-        GLINK_LOG_EVENT(GLINK_EVENT_CH_REMOTE_CLOSE, open_ch_ctx->name,
-            xport_ctx->xport, xport_ctx->remote_ss, rcid);
-      /* Found channel, transition it to appropriate state based
-       * on current state */
-      open_ch_ctx->ref_count--;
+    if( open_ch_ctx->rcid == rcid )
+    {
+      GLINK_LOG_EVENT( GLINK_EVENT_CH_REMOTE_CLOSE, open_ch_ctx->name,
+                       xport_ctx->xport, xport_ctx->remote_ss, rcid);
+      /* Found channel, transition to appropriate state based on current state
+       * grab lock to perform channel state related operations */
+      glink_os_cs_acquire(&open_ch_ctx->ch_state_cs);
 
-      if(open_ch_ctx->state == GLINK_CH_STATE_OPEN) {
-         open_ch_ctx->state = GLINK_CH_STATE_LOCAL_OPEN_REMOTE_CLOSE;
+      ASSERT( open_ch_ctx->remote_state == GLINK_REMOTE_CH_OPENED );
 
+      open_ch_ctx->remote_state = GLINK_REMOTE_CH_CLOSED;
+
+      if( open_ch_ctx->local_state == GLINK_LOCAL_CH_CLOSED )
+      {
+        /* Local side never opened the channel OR it opened it but closed it */
+        /* Free channel resources */
+        glink_clean_channel_ctx( xport_ctx, open_ch_ctx );
+      }
+
+      glink_os_cs_release(&open_ch_ctx->ch_state_cs);
+      glink_os_cs_release(&xport_ctx->channel_q_cs);
+
+      /* Send the remote close ACK back to the other side */
+      if_ptr->tx_cmd_ch_remote_close_ack(if_ptr, open_ch_ctx->rcid);
+
+      if( open_ch_ctx->local_state == GLINK_LOCAL_CH_CLOSED )
+      {
+        glink_os_free(open_ch_ctx);
+      }
+      else
+      {
         /* Inform the client */
         open_ch_ctx->notify_state( open_ch_ctx, open_ch_ctx->priv,
                                    GLINK_REMOTE_DISCONNECTED);
-
-        /* Send the remote close ACK back to the other side */
-        if_ptr->tx_cmd_ch_remote_close_ack(if_ptr, open_ch_ctx->rcid);
-
-        /* Free channel resources */
-        xport_ctx->channel_cleanup(open_ch_ctx);
-
-        GLINK_LOG_EVENT(GLINK_EVENT_CH_REMOTE_CLOSE, open_ch_ctx->name,
-            xport_ctx->xport, xport_ctx->remote_ss, rcid);
-        glink_os_cs_release(&xport_ctx->channel_q_cs);
-
-        return;
-      } else if (open_ch_ctx->state == GLINK_CH_STATE_REMOTE_OPEN ||
-                 open_ch_ctx->state == GLINK_CH_STATE_REMOTE_OPEN_LOCAL_CLOSE) {
-        /* Local side never opened the channel OR it opened it but closed it */
-        /* Free channel resources */
-        xport_ctx->channel_cleanup(open_ch_ctx);
-
-        /* Send the remote close ACK back to the other side */
-        if_ptr->tx_cmd_ch_remote_close_ack(if_ptr, open_ch_ctx->rcid);
-
-        if(open_ch_ctx->ref_count == 0)
-        {
-          /* re-use channel id if it can be done */
-          if (open_ch_ctx->lcid == (xport_ctx->free_lcid - 1)) {
-            /* If channel being closed is the last opened channel
-            re-use the lcid of this channel for any new channels */
-            xport_ctx->free_lcid--;
-          }
-          smem_list_delete(&if_ptr->glink_core_priv->open_list, open_ch_ctx);
-          glink_os_free(open_ch_ctx);
-        }
-
-        glink_os_cs_release(&xport_ctx->channel_q_cs);
-
-        return;
-      } else {
-        /* SHould not get this callback for a channel in any other state */
-
-        //OS_LOG_ERROR(3, "GLINK_RX_CMD_CH_REMOTE_CLOSE: received close cmd for invalid state"
-        //                "[channel ctx: 0x%x][current channel state: %d]",
-        //                open_ch_ctx, open_ch_ctx->state );
-        glink_os_cs_release(&xport_ctx->channel_q_cs);
-        if_ptr->tx_cmd_ch_remote_close_ack(if_ptr, open_ch_ctx->rcid);
-        return;
       }
+
+      return;
     }
     open_ch_ctx = smem_list_next(open_ch_ctx);
   }/* end while */
 
-  /* We are here in case we could not find the channel in the open list
-   * or OPEN state. */
-  ASSERT(0);
-
-  glink_os_cs_release(&xport_ctx->channel_q_cs);
-}
-
-/*===========================================================================
-FUNCTION      glink_ch_state_local_trans
-
-DESCRIPTION   Process local state transition
-
-ARGUMENTS   *if_ptr   Pointer to interface instance; must be unique
-                      for each edge
-
-            rcid      Remote Channel ID
-
-RETURN VALUE  None.
-
-SIDE EFFECTS  None
-===========================================================================*/
-void glink_ch_state_local_trans
-(
-  glink_transport_if_type  *if_ptr,  /* Pointer to the interface instance */
-  uint32                   lcid,     /* Local channel ID */
-  glink_ch_state_type      new_state /* New local channel state */
-)
-{
-  glink_channel_ctx_type *open_ch_ctx;
-  glink_core_xport_ctx_type  *xport_ctx;
-
-  ASSERT(if_ptr != NULL);
-
-  xport_ctx = if_ptr->glink_core_priv;
-
-  /* Find channel in the open_list */
-  open_ch_ctx = smem_list_first(&if_ptr->glink_core_priv->open_list);
-  while(open_ch_ctx != NULL)
-  {
-    if(open_ch_ctx->lcid == lcid) {
-      /* Found channel, transition it to appropriate state */
-      open_ch_ctx->state = new_state;
-    }
-    open_ch_ctx = smem_list_next(open_ch_ctx);
-    GLINK_LOG_EVENT(GLINK_EVENT_CH_STATE_TRANS, open_ch_ctx->name,
-          xport_ctx->xport, xport_ctx->remote_ss, new_state);
-    return;
-  }/* end while */
-
-  /* We are here in case we could not find the channel in the open list
-   * or OPEN state. */
+  glink_os_cs_release( &xport_ctx->channel_q_cs );
   ASSERT(0);
 }
 
@@ -920,7 +860,16 @@ void glink_rx_cmd_remote_sigs
   open_ch_ctx = smem_list_first(&if_ptr->glink_core_priv->open_list);
   while(open_ch_ctx != NULL)
   {
-    if(open_ch_ctx->rcid == rcid) {
+    if(open_ch_ctx->rcid == rcid ) {
+      glink_os_cs_acquire( &open_ch_ctx->ch_state_cs );
+      if( open_ch_ctx->local_state != GLINK_LOCAL_CH_OPENED &&
+          open_ch_ctx->remote_state != GLINK_REMOTE_CH_OPENED )
+      {
+        glink_os_cs_release( &open_ch_ctx->ch_state_cs );
+        ASSERT(0);
+        return;
+      }
+      glink_os_cs_release( &open_ch_ctx->ch_state_cs );
       /* Found channel, let client know of new remote signal state */
       prev_sigs = open_ch_ctx->remote_sigs;
       open_ch_ctx->remote_sigs = remote_sigs;
@@ -933,29 +882,6 @@ void glink_rx_cmd_remote_sigs
 
   /* We end up here if we don't find the channel */
   ASSERT(0);
-}
-
-
-/*===========================================================================
-FUNCTION      glink_tx_resume
-
-DESCRIPTION   If transport was full and could not continue a transmit
-              operation, then it will call this function to notify the core
-              that it is ready to resume transmission.
-
-ARGUMENTS   *if_ptr    Pointer to interface instance; must be unique
-                       for each edge
-
-RETURN VALUE  None.
-
-SIDE EFFECTS  None
-===========================================================================*/
-void glink_tx_resume
-(
-  glink_transport_if_type *if_ptr /* Pointer to the interface instance */
-)
-{
-  /* Not sure what to do here */
 }
 
 

@@ -44,9 +44,9 @@
 /* Panel configuration                                                       */
 /*---------------------------------------------------------------------------*/
 static struct panel_config jdi_qhd_dualdsi_cmd_panel_data = {
-	"qcom,mdss_dsi_jdi_qhd_dualmipi0_cmd", "dsi:0:", "qcom,mdss-dsi-panel",
+	"qcom,mdss_dsi_jdi_qhd_dualmipi_cmd", "dsi:0:", "qcom,mdss-dsi-panel",
 	10, 1, "DISPLAY_1", 0, 0, 60, 0, 0, 1, 0, 0, 0, 0, 0, 11, 0, 0,
-	"qcom,mdss_dsi_jdi_qhd_dualmipi1_cmd"
+	"qcom,mdss_dsi_jdi_qhd_dualmipi_cmd"
 };
 
 /*---------------------------------------------------------------------------*/
@@ -193,6 +193,14 @@ static struct lane_configuration jdi_qhd_dualdsi_cmd_lane_config = {
 /*---------------------------------------------------------------------------*/
 static const uint32_t jdi_qhd_dualdsi_cmd_timings[] = {
 	0xcd, 0x32, 0x22, 0x00, 0x60, 0x64, 0x26, 0x34, 0x29, 0x03, 0x04, 0x00
+};
+
+static const uint32_t jdi_qhd_dualdsi_thulium_cmd_timings[] = {
+	0x22, 0x1e, 0x06, 0x08, 0x04, 0x03, 0x04, 0xa0,
+	0x22, 0x1e, 0x06, 0x08, 0x04, 0x03, 0x04, 0xa0,
+	0x22, 0x1e, 0x06, 0x08, 0x04, 0x03, 0x04, 0xa0,
+	0x22, 0x1e, 0x06, 0x08, 0x04, 0x03, 0x04, 0xa0,
+	0x22, 0x2c, 0x05, 0x08, 0x04, 0x03, 0x04, 0xa0,
 };
 
 static struct panel_timing jdi_qhd_dualdsi_cmd_timing_info = {

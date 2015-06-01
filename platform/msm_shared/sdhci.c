@@ -878,6 +878,10 @@ uint32_t sdhci_send_command(struct sdhci_host *host, struct mmc_command *cmd)
 	/* Write the command register */
 	REG_WRITE16(host, SDHCI_PREP_CMD(cmd->cmd_index, flags), SDHCI_CMD_REG);
 
+#if USE_TARGET_HS200_DELAY
+	udelay(1000);
+#endif
+
 	/* Command complete sequence */
 	if (sdhci_cmd_complete(host, cmd))
 	{

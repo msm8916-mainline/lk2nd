@@ -53,6 +53,7 @@
 
 glink_handle_type rpm_glink_port, ssr_glink_port;
 static uint32_t msg_id;
+static event_t wait_for_init;
 static event_t wait_for_data;
 
 extern glink_err_type glink_wait_link_down(glink_handle_type handle);
@@ -91,7 +92,7 @@ glink_err_type rpm_glink_send_data(uint32_t *data, uint32_t len, msg_type type)
 			send_err = glink_tx(rpm_glink_port, NULL, (const void *)rpm_data, len_to_rpm, 0);
 			if (send_err)
 			{
-				dprintf(CRITICAL, "%s:%d, Glink tx error\n", __func__, __LINE__);
+				dprintf(CRITICAL, "%s:%d, Glink tx error: 0x%x\n", __func__, __LINE__, send_err);
 				free(rpm_data);
 				free_kvp_object(&req.data);
 				break;
@@ -111,7 +112,7 @@ glink_err_type rpm_glink_send_data(uint32_t *data, uint32_t len, msg_type type)
 			fill_kvp_object(&cmd.data, data, len);
 			send_err = glink_tx(rpm_glink_port, NULL, (const void *)&cmd, len_to_rpm, 0);
 			if (send_err)
-				dprintf(CRITICAL, "%s:%d, Glink tx error\n", __func__, __LINE__);
+				dprintf(CRITICAL, "%s:%d, Glink tx error: 0x%x\n", __func__, __LINE__, send_err);
 			free_kvp_object(&cmd.data);
 			break;
 		default:
@@ -261,6 +262,7 @@ void rpm_glink_notify_state_isr(glink_handle_type handle, void *data, glink_chan
 {
 	if(event == GLINK_CONNECTED)
 	{
+		event_signal(&wait_for_init, false);
 		dprintf(INFO, "Glink Connection between APPS and RPM established\n");
 		return;
 	}
@@ -319,6 +321,7 @@ void rpm_glink_init()
 {
 	glink_err_type ret;
 	glink_link_id_type link_id;
+	event_init(&wait_for_init, false, EVENT_FLAG_AUTOUNSIGNAL);
 
 	dprintf(INFO, "RPM GLink Init\n");
 	// Initialize RPM transport
@@ -333,9 +336,10 @@ void rpm_glink_init()
 	}
 	else
 	{
-		dprintf(CRITICAL, "RPM Glink Init Failure\n");
+		dprintf(CRITICAL, "RPM Glink Init Failure 0x%x\n", ret);
 		ASSERT(0);
 	}
+	event_wait(&wait_for_init);
 }
 
 void rpm_glink_uninit()
@@ -357,7 +361,7 @@ void rpm_glink_uninit()
 
 	if (ret)
 	{
-		dprintf(CRITICAL, "Glink SSR Channel: Tx for link tear down request failure\n");
+		dprintf(CRITICAL, "Glink SSR Channel: Tx for link tear down request failure with error code: 0x%x\n", ret);
 		ASSERT(0);
 	}
 

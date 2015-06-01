@@ -232,6 +232,64 @@ static void config_20nm_pll_vco_range(void)
 }
 #endif
 
+static uint32_t calculate_vco_thulium()
+{
+	uint32_t rate;
+	uint32_t mod;
+
+	pll_data.vco_min = MIN_THULIUM_VCO_RATE;
+	pll_data.vco_max = MAX_THULIUM_VCO_RATE;
+
+	if (pll_data.bit_clock < pll_data.vco_min)
+		rate = pll_data.vco_min;
+	else if (pll_data.bit_clock > pll_data.vco_max)
+		rate = pll_data.vco_max;
+	else
+		rate = pll_data.bit_clock;
+
+	pll_data.ndiv = FIX_N_DIV;
+	if (pll_data.bit_clock) {
+		pll_data.n1div = rate / pll_data.bit_clock;
+	} else {
+		dprintf(ERROR, "%s: bit clock is 0, divider calculation failed\n",
+			__func__);
+		return ERROR;
+	}
+
+	mod = rate % pll_data.bit_clock;
+	if (mod)
+		pll_data.n1div++;
+
+	if (pll_data.n1div < MIN_THULIUM_DIV_VAL ||
+		pll_data.n1div > MAX_THULIUM_DIV_VAL) {
+		dprintf(ERROR, "%s: n1div is out of ranget:%d\n",
+			__func__, pll_data.n1div);
+		return ERROR;
+	}
+
+	rate /= pll_data.n1div;
+	rate /= FIX_PIXEL_CLOCK_DIV;
+
+	pll_data.n2div = rate / pll_data.pixel_clock;
+	mod = rate % pll_data.pixel_clock;
+	if (mod)
+		pll_data.n2div++;
+
+	if (pll_data.n2div < MIN_THULIUM_DIV_VAL ||
+		pll_data.n2div > MAX_THULIUM_DIV_VAL) {
+		dprintf(ERROR, "%s: n2div is out of ranget:%d\n",
+			__func__, pll_data.n2div);
+		return ERROR;
+	}
+	pll_data.vco_clock = pll_data.bit_clock * pll_data.ndiv * pll_data.n1div;
+
+	dprintf(SPEW, "%s: vco:%u n1div:%d n2div:%d bit_clk:%u pixel_clk:%u\n",
+		__func__, pll_data.vco_clock, pll_data.n1div, pll_data.n2div,
+		pll_data.bit_clock, pll_data.pixel_clock);
+
+	return NO_ERROR;
+}
+
 static uint32_t calculate_vco_20nm(uint8_t bpp, uint8_t lanes)
 {
 	uint32_t vco, dsi_clk;
@@ -316,13 +374,19 @@ uint32_t calculate_clock_config(struct msm_panel_info *pinfo)
 
 	calculate_bitclock(pinfo);
 
-	if (pinfo->mipi.mdss_dsi_phy_db->is_pll_20nm)
+	switch (pinfo->mipi.mdss_dsi_phy_db->pll_type) {
+	case DSI_PLL_TYPE_20NM:
 		config_20nm_pll_vco_range();
-
-	if (pinfo->mipi.mdss_dsi_phy_db->is_pll_20nm)
 		ret = calculate_vco_20nm(pinfo->bpp, pinfo->mipi.num_of_lanes);
-	else
+		break;
+	case DSI_PLL_TYPE_THULIUM:
+		ret = calculate_vco_thulium(pinfo->bpp, pinfo->mipi.num_of_lanes);
+		break;
+	case DSI_PLL_TYPE_28NM:
+	default:
 		ret = calculate_vco_28nm(pinfo->bpp, pinfo->mipi.num_of_lanes);
+		break;
+	}
 
 	pinfo->mipi.dsi_pll_config = &pll_data;
 

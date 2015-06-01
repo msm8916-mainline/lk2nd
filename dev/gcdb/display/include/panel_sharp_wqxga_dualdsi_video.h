@@ -44,9 +44,9 @@
 /* Panel configuration                                                       */
 /*---------------------------------------------------------------------------*/
 static struct panel_config sharp_wqxga_dualdsi_video_panel_data = {
-	"qcom,mdss_dsi_sharp_wqxga_video_0", "dsi:0:", "qcom,mdss-dsi-panel",
+	"qcom,mdss_dsi_sharp_wqxga_video", "dsi:0:", "qcom,mdss-dsi-panel",
 	10, 0, "DISPLAY_1", 0, 0, 60, 0, 0, 1, 0, 0, 0, 0, 0, 25, 1, 0,
-	"qcom,mdss_dsi_sharp_wqxga_video_1"
+	"qcom,mdss_dsi_sharp_wqxga_video"
 };
 
 /*---------------------------------------------------------------------------*/
@@ -127,6 +127,14 @@ static struct lane_configuration sharp_wqxga_dualdsi_video_lane_config = {
 /*---------------------------------------------------------------------------*/
 static const uint32_t sharp_wqxga_dualdsi_video_timings[] = {
 	0xe2, 0x36, 0x24, 0x00, 0x66, 0x6a, 0x28, 0x38,  0x2a, 0x03, 0x04, 0x00
+};
+
+static const uint32_t sharp_wqxga_dualdsi_thulium_video_timings[] = {
+	0x23, 0x20, 0x06, 0x09, 0x05, 0x03, 0x04, 0xa0,
+	0x23, 0x20, 0x06, 0x09, 0x05, 0x03, 0x04, 0xa0,
+	0x23, 0x20, 0x06, 0x09, 0x05, 0x03, 0x04, 0xa0,
+	0x23, 0x20, 0x06, 0x09, 0x05, 0x03, 0x04, 0xa0,
+	0x23, 0x2e, 0x06, 0x08, 0x05, 0x03, 0x04, 0xa0
 };
 
 static struct panel_timing sharp_wqxga_dualdsi_video_timing_info = {
