@@ -42,7 +42,7 @@
 #define HLOS_MEMORY_START 0x0
 #define HLOS_MEMORY_SIZE  0x63
 
-/* LK memory - cacheable, write through */
+/* LK memory - cacheable, write back */
 #define LK_MEMORY         (MMU_MEMORY_TYPE_NORMAL_WRITE_BACK_ALLOCATE | \
                            MMU_MEMORY_AP_READ_WRITE)
 
@@ -54,6 +54,11 @@
 #define COMMON_MEMORY       (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
                            MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
 
+/* Scratch memory - cacheable, write back */
+#define SCRATCH_MEMORY       (MMU_MEMORY_TYPE_NORMAL_WRITE_BACK_ALLOCATE | \
+                           MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
+
+
 static mmu_section_t mmu_section_table[] = {
 /*       Physical addr,     Virtual addr,      Size (in MB),        Flags */
 	{    MEMBASE,           MEMBASE,           (MEMSIZE / MB),      LK_MEMORY},
@@ -61,7 +66,7 @@ static mmu_section_t mmu_section_table[] = {
 	{    SYSTEM_IMEM_BASE,  SYSTEM_IMEM_BASE,  1,                   COMMON_MEMORY},
 	{    MSM_SHARED_BASE,   MSM_SHARED_BASE,   2,                   COMMON_MEMORY},
 	{    HLOS_MEMORY_START, HLOS_MEMORY_START, HLOS_MEMORY_SIZE,    COMMON_MEMORY},
-	{    SCRATCH_ADDR,      SCRATCH_ADDR,      (SCRATCH_SIZE / MB), COMMON_MEMORY},
+	{    SCRATCH_ADDR,      SCRATCH_ADDR,      (SCRATCH_SIZE / MB), SCRATCH_MEMORY},
 };
 
 void platform_early_init(void)
