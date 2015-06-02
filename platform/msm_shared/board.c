@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -361,4 +361,14 @@ uint32_t board_get_ddr_subtype(void)
 uint32_t board_hlos_subtype(void)
 {
 	return board.platform_hlos_subtype;
+}
+
+void board_update_boot_dev(uint32_t boot_dev)
+{
+	/* HLOS subtype
+	 * bit no                        |31    20 | 19        16|15    13 |12      11 | 10          8 | 7     0|
+	 * board.platform_hlos_subtype = |reserved | Boot device |Reserved | Panel     | DDR detection | subtype|
+	 *                               |  bits   |             |  bits   | Detection |
+	 */
+	board.platform_hlos_subtype |= (boot_dev << 16);
 }

@@ -28,6 +28,7 @@
 #include <debug.h>
 #include <mmc.h>
 #include <ufs.h>
+#include <board.h>
 #include <platform/iomap.h>
 #include <boot_device.h>
 #include <qpic_nand.h>
@@ -37,6 +38,7 @@ static uint32_t boot_device;
 void platform_read_boot_config()
 {
 	boot_device = BOOT_DEVICE_MASK(readl(BOOT_CONFIG_REG));
+	board_update_boot_dev(boot_device);
 }
 
 uint32_t platform_get_boot_dev()
