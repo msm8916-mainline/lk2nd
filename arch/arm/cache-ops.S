@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2008 Travis Geiselbrecht
- * Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -286,7 +286,7 @@ invalidate_cache_v7:
 .Loop3_invalidate:
 	ORR 	R11, R10, R9, LSL R5 		// factor in the way number and cache number into R11 
 	ORR 	R11, R11, R7, LSL R2 		// factor in the index number
-	MCR 	p15, 0, R11, c7, c6, 2 		// invalidate by set/way 
+	MCR 	p15, 0, R11, c7, c14, 2 	// clean and invalidate by set/way
 	SUBS 	R7, R7, #1 					// decrement the way number
 	BGE 	.Loop3_invalidate 
 	SUBS 	R9, R9, #1 					// decrement the index
