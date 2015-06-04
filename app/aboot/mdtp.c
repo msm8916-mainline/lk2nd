@@ -62,6 +62,7 @@ static int is_mdtp_activated = -1;
 
 int check_aboot_addr_range_overlap(uint32_t start, uint32_t size);
 int scm_random(uint32_t * rbuf, uint32_t  r_len);
+void free_mdtp_image(void);
 
 /********************************************************************************/
 
@@ -422,7 +423,7 @@ static void display_recovery_ui(mdtp_cfg_t *mdtp_cfg)
 				// Valid PIN - deactivate and continue boot
 				dprintf(SPEW, "mdtp: display_recovery_ui: valid PIN, continue boot\n");
 				write_deactivated_DIP();
-				return;
+				goto out;
 			}
 			else
 			{
@@ -440,6 +441,9 @@ static void display_recovery_ui(mdtp_cfg_t *mdtp_cfg)
 		dprintf(CRITICAL, "mdtp: display_recovery_ui: Local deactivation disabled, unable to display recovery UI\n");
 		display_error_msg(); /* This will never return */
 	}
+
+	out:
+	free_mdtp_image();
 }
 
 /* Verify the boot or recovery partitions using boot_verifier. */
