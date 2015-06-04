@@ -75,11 +75,12 @@ mmu_section_t mmu_section_table[] = {
 
 void platform_early_init(void)
 {
+	/* Initialize board identifier data */
+	board_init();
+
 	/* Read boot config for identifying boot device */
 	platform_read_boot_config();
 
-	/* Initialize board identifier data */
-	board_init();
 
 	/* Initialize clock driver */
 	platform_clock_init();
