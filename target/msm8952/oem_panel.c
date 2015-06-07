@@ -33,6 +33,7 @@
 #include <smem.h>
 #include <msm_panel.h>
 #include <board.h>
+#include <qtimer.h>
 #include <mipi_dsi.h>
 #include <target/display.h>
 
@@ -84,7 +85,11 @@ int oem_panel_on()
 	/*
 	 *OEM can keep their panel specific on instructions in this
 	 *function
-	 */
+	*/
+	if (panel_id == OTM1906C_1080P_CMD_PANEL) {
+		/* needs extra delay to avoid unexpected artifacts */
+		mdelay(OTM1906C_1080P_CMD_PANEL_ON_DELAY);
+	}
 	return NO_ERROR;
 }
 
