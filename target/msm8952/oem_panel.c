@@ -45,6 +45,7 @@
 #include "include/panel_truly_1080p_video.h"
 #include "include/panel_truly_1080p_cmd.h"
 #include "include/panel_otm1906c_1080p_cmd.h"
+#include "include/panel_sharp_1080p_cmd.h"
 
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
@@ -53,6 +54,7 @@ enum {
 	TRULY_1080P_VIDEO_PANEL,
 	TRULY_1080P_CMD_PANEL,
 	OTM1906C_1080P_CMD_PANEL,
+	SHARP_1080P_CMD_PANEL,
 	UNKNOWN_PANEL
 };
 
@@ -67,6 +69,7 @@ uint32_t panel_regulator_settings[] = {
 static struct panel_list supp_panels[] = {
 	{"truly_1080p_video", TRULY_1080P_VIDEO_PANEL},
 	{"truly_1080p_cmd", TRULY_1080P_CMD_PANEL},
+	{"sharp_1080p_cmd", SHARP_1080P_CMD_PANEL},
 };
 
 static uint32_t panel_id;
@@ -177,6 +180,31 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		memcpy(phy_db->timing,
 			otm1906c_1080p_cmd_timings, TIMING_SIZE);
 		pinfo->mipi.signature = OTM1906C_1080P_CMD_SIGNATURE;
+		break;
+	case SHARP_1080P_CMD_PANEL:
+		panelstruct->paneldata    = &sharp_1080p_cmd_panel_data;
+		panelstruct->panelres     = &sharp_1080p_cmd_panel_res;
+		panelstruct->paneldata->panel_with_enable_gpio = 1;
+		panelstruct->color        = &sharp_1080p_cmd_color;
+		panelstruct->videopanel   = &sharp_1080p_cmd_video_panel;
+		panelstruct->commandpanel = &sharp_1080p_cmd_command_panel;
+		panelstruct->state        = &sharp_1080p_cmd_state;
+		panelstruct->laneconfig   = &sharp_1080p_cmd_lane_config;
+		panelstruct->paneltiminginfo
+					= &sharp_1080p_cmd_timing_info;
+		panelstruct->panelresetseq
+					= &sharp_1080p_cmd_panel_reset_seq;
+		panelstruct->backlightinfo = &sharp_1080p_cmd_backlight;
+		pinfo->mipi.panel_on_cmds
+					= sharp_1080p_cmd_on_command;
+		pinfo->mipi.num_of_panel_on_cmds
+					= SHARP_1080P_CMD_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+			= sharp_1080p_cmd_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+			= SHARP_1080P_CMD_OFF_COMMAND;
+		memcpy(phy_db->timing,
+				sharp_1080p_cmd_timings, TIMING_SIZE);
 		break;
 	case UNKNOWN_PANEL:
 	default:
