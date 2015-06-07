@@ -40,25 +40,30 @@
 #define MSM_IOMAP_SIZE     ((MSM_IOMAP_END - MSM_IOMAP_BASE)/MB)
 #define MSM_SHARED_SIZE    2
 
-/* LK memory - cacheable, write through */
-#define LK_MEMORY         (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
+/* LK memory - cacheable, write back */
+#define LK_MEMORY         (MMU_MEMORY_TYPE_NORMAL_WRITE_BACK_ALLOCATE | \
                            MMU_MEMORY_AP_READ_WRITE)
 
 /* Peripherals - non-shared device */
 #define IOMAP_MEMORY      (MMU_MEMORY_TYPE_DEVICE_SHARED | \
                            MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
 
-/* SCRATCH memory - cacheable, write through */
-#define SCRATCH_MEMORY       (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
+/* SCRATCH memory - cacheable, write back */
+#define SCRATCH_MEMORY       (MMU_MEMORY_TYPE_NORMAL_WRITE_BACK_ALLOCATE | \
                            MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
+
+/* COMMON memory - cacheable, write through */
+#define COMMON_MEMORY       (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
+                           MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
+
 
 static mmu_section_t mmu_section_table[] = {
 /*       Physical addr,    Virtual addr,     Size (in MB),       Flags */
 	{    MEMBASE,           MEMBASE,          (MEMSIZE / MB),    LK_MEMORY},
 	{    MSM_IOMAP_BASE,    MSM_IOMAP_BASE,    MSM_IOMAP_SIZE,   IOMAP_MEMORY},
-	{    KERNEL_ADDR,       KERNEL_ADDR,       KERNEL_SIZE,      SCRATCH_MEMORY},
+	{    KERNEL_ADDR,       KERNEL_ADDR,       KERNEL_SIZE,      COMMON_MEMORY},
 	{    SCRATCH_ADDR,      SCRATCH_ADDR,      SCRATCH_SIZE,     SCRATCH_MEMORY},
-	{    MSM_SHARED_BASE,   MSM_SHARED_BASE,   MSM_SHARED_SIZE,  SCRATCH_MEMORY},
+	{    MSM_SHARED_BASE,   MSM_SHARED_BASE,   MSM_SHARED_SIZE,  COMMON_MEMORY},
 	{    RPMB_SND_RCV_BUF,  RPMB_SND_RCV_BUF,  RPMB_SND_RCV_BUF_SZ,    IOMAP_MEMORY},
 };
 
