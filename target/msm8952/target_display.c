@@ -283,9 +283,19 @@ static int32_t mdss_dsi_pll_config(uint32_t pll_base, uint32_t ctl_base,
 
 int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 {
-	int32_t ret = 0;
+	int32_t ret = 0, flags;
 	struct mdss_dsi_pll_config *pll_data;
 	dprintf(SPEW, "target_panel_clock\n");
+
+	if (pinfo->dest == DISPLAY_2) {
+		flags = MMSS_DSI_CLKS_FLAG_DSI1;
+		if (pinfo->mipi.dual_dsi)
+			flags |= MMSS_DSI_CLKS_FLAG_DSI0;
+	} else {
+		flags = MMSS_DSI_CLKS_FLAG_DSI0;
+		if (pinfo->mipi.dual_dsi)
+			flags |= MMSS_DSI_CLKS_FLAG_DSI1;
+	}
 
 	pll_data = pinfo->mipi.dsi_pll_config;
 	pll_data->vco_delay = VCO_DELAY_USEC;
@@ -317,10 +327,10 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 				dprintf(CRITICAL, "Not able to enable second pll\n");
 		}
 
-		gcc_dsi_clocks_enable(pll_data->pclk_m, pll_data->pclk_n,
+		gcc_dsi_clocks_enable(flags, pll_data->pclk_m, pll_data->pclk_n,
 				pll_data->pclk_d);
 	} else if(!target_cont_splash_screen()) {
-		gcc_dsi_clocks_disable();
+		gcc_dsi_clocks_disable(flags);
 		mdp_clock_disable();
 		mdss_bus_clocks_disable();
 		mdp_gdsc_ctrl(enable);
