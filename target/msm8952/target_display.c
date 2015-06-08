@@ -45,6 +45,7 @@
 #include <platform/iomap.h>
 #include <target/display.h>
 #include <qtimer.h>
+#include <platform.h>
 
 #include "include/panel.h"
 #include "include/display_resource.h"
@@ -63,6 +64,10 @@ static struct gpio_pin enable_gpio = {
 
 static struct gpio_pin bkl_gpio = {
   "msmgpio", 91, 3, 1, 0, 1
+};
+
+static struct gpio_pin lcd_mode_gpio = {
+  "msmgpio", 107, 3, 1, 0, 1
 };
 
 #define VCO_DELAY_USEC 1000
@@ -268,8 +273,13 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 {
 	int ret = NO_ERROR;
 
+	if (platform_is_msm8956()) {
+		reset_gpio.pin_id = 25;
+		bkl_gpio.pin_id = 66;
+	}
+
 	if (enable) {
-		if (pinfo->mipi.use_enable_gpio) {
+		if (pinfo->mipi.use_enable_gpio && !platform_is_msm8956()) {
 			gpio_tlmm_config(enable_gpio.pin_id, 0,
 				enable_gpio.pin_direction, enable_gpio.pin_pull,
 				enable_gpio.pin_strength,
@@ -298,10 +308,23 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 				gpio_set_dir(reset_gpio.pin_id, GPIO_STATE_HIGH);
 			mdelay(resetseq->sleep[i]);
 		}
+
+		if (platform_is_msm8956()) {
+			gpio_tlmm_config(lcd_mode_gpio.pin_id, 0,
+				lcd_mode_gpio.pin_direction, lcd_mode_gpio.pin_pull,
+				lcd_mode_gpio.pin_strength, lcd_mode_gpio.pin_state);
+
+			if (pinfo->lcdc.split_display || pinfo->lcdc.dst_split)
+				gpio_set_dir(lcd_mode_gpio.pin_id, GPIO_STATE_LOW);
+			else
+				gpio_set_dir(lcd_mode_gpio.pin_id, GPIO_STATE_HIGH);
+		}
 	} else if(!target_cont_splash_screen()) {
 		gpio_set_dir(reset_gpio.pin_id, 0);
-		if (pinfo->mipi.use_enable_gpio)
+		if (pinfo->mipi.use_enable_gpio && !platform_is_msm8956())
 			gpio_set_dir(enable_gpio.pin_id, 0);
+		if (platform_is_msm8956())
+			gpio_set_dir(lcd_mode_gpio.pin_id, 0);
 	}
 
 	return ret;
@@ -374,15 +397,21 @@ int target_dsi_phy_config(struct mdss_dsi_phy_ctrl *phy_db)
 
 int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 {
+	uint32_t ldo_num = REG_LDO6 | REG_LDO17;
+
+	if (platform_is_msm8956())
+		ldo_num |= REG_LDO1;
+	else
+		ldo_num |= REG_LDO2;
 
 	if (enable) {
-		regulator_enable(REG_LDO2 | REG_LDO6 | REG_LDO17);
+		regulator_enable(ldo_num);
 		mdelay(10);
 		wled_init(pinfo);
 		qpnp_ibb_enable(true); /*5V boost*/
 		mdelay(50);
 	} else {
-		regulator_disable(REG_LDO2 | REG_LDO6 | REG_LDO17);
+		regulator_disable(ldo_num);
 	}
 
 	return NO_ERROR;
