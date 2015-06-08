@@ -92,6 +92,20 @@ static void dsi_pll_sw_reset_8952(uint32_t pll_base)
 	writel(0x01, pll_base + 0x0068); /* PLL TEST CFG */
 	udelay(1);
 	writel(0x00, pll_base + 0x0068); /* PLL TEST CFG */
+	udelay(1);
+}
+
+static uint32_t dsi_pll_lock_status_8956(uint32_t pll_base)
+{
+	uint32_t counter, status;
+
+	status = readl(pll_base + 0x00c0) & 0x01;
+	for (counter = 0; counter < 5 && !status; counter++) {
+		udelay(100);
+		status = readl(pll_base + 0x00c0) & 0x01;
+	}
+
+	return status;
 }
 
 static uint32_t gf_1_dsi_pll_enable_sequence_8952(uint32_t pll_base)
@@ -201,6 +215,33 @@ static uint32_t dsi_pll_enable_seq_8952(uint32_t pll_base)
 	return pll_locked;
 }
 
+static uint32_t dsi_pll_enable_seq_8956(uint32_t pll_base)
+{
+	/*
+	 * PLL power up sequence
+	 * Add necessary delays recommended by h/w team
+	 */
+
+	/* Lock Detect setting */
+	writel(0x0d, pll_base + 0x0064); /* LKDetect CFG2 */
+	writel(0x34, pll_base + 0x0070); /* PLL CAL_CFG1 */
+	writel(0x10, pll_base + 0x005c); /* LKDetect CFG0 */
+	writel(0x1a, pll_base + 0x0060); /* LKDetect CFG1 */
+
+	writel(0x01, pll_base + 0x0020); /* GLB CFG */
+	udelay(300);
+	writel(0x05, pll_base + 0x0020); /* GLB CFG */
+	udelay(300);
+	writel(0x0f, pll_base + 0x0020); /* GLB CFG */
+	udelay(300);
+	writel(0x07, pll_base + 0x0020); /* GLB CFG */
+	udelay(300);
+	writel(0x0f, pll_base + 0x0020); /* GLB CFG */
+	udelay(1000);
+
+	return dsi_pll_lock_status_8956(pll_base);
+}
+
 static int msm8952_wled_backlight_ctrl(uint8_t enable)
 {
 	uint8_t slave_id = PMIC_WLED_SLAVE_ID;	/* pmi */
@@ -246,10 +287,17 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 			mdp_gdsc_ctrl(0);
 			return ret;
 		}
-		mdss_dsi_uniphy_pll_sw_reset_8952(pinfo->mipi.pll_base);
+		if (!platform_is_msm8956())
+			mdss_dsi_uniphy_pll_sw_reset_8952(pinfo->mipi.pll_base);
+		else
+			dsi_pll_sw_reset_8952(pinfo->mipi.pll_base);
 		mdss_dsi_auto_pll_config(pinfo->mipi.pll_base,
 						pinfo->mipi.ctl_base, pll_data);
-		if (!dsi_pll_enable_seq_8952(pinfo->mipi.pll_base))
+		if (platform_is_msm8956())
+			ret = dsi_pll_enable_seq_8956(pinfo->mipi.pll_base);
+		else
+			ret = dsi_pll_enable_seq_8952(pinfo->mipi.pll_base);
+		if (!ret)
 			dprintf(CRITICAL, "Not able to enable the pll\n");
 		gcc_dsi_clocks_enable(pll_data->pclk_m, pll_data->pclk_n,
 				pll_data->pclk_d);
