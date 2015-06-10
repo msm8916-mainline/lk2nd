@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -27,9 +27,7 @@
  */
 
 #include <bits.h>
-#include <debug.h>
-#include <reg.h>
-#include <pm8x41.h>
+#include <pm8x41_hw.h>
 #include <pm_vib.h>
 
 #define QPNP_VIB_EN    BIT(7)
