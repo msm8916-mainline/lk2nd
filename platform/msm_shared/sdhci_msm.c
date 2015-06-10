@@ -714,6 +714,7 @@ uint32_t sdhci_msm_execute_tuning(struct sdhci_host *host, struct mmc_card *card
 	bool drv_type_changed = false;
 	int ret = 0;
 	uint32_t i;
+	uint32_t err = 0;
 	struct sdhci_msm_data *msm_host;
 
 	msm_host = host->msm_host;
@@ -756,6 +757,9 @@ retry_tuning:
 	tuned_phase_cnt = 0;
 	phase = 0;
 	struct mmc_command cmd = {0};
+	struct mmc_command sts_cmd = {0};
+	uint32_t sts_retry;
+	uint32_t sts_err;
 
 	while (phase < MAX_PHASES)
 	{
@@ -777,7 +781,30 @@ retry_tuning:
 		cmd.data.num_blocks = 0x1;
 
 		/* send command */
-		if (!sdhci_send_command(host, &cmd) && !memcmp(tuning_data, tuning_block, size))
+		err = sdhci_send_command(host, &cmd);
+		if(err)
+		{
+
+			sts_retry = 100;
+			sts_cmd.cmd_index = CMD13_SEND_STATUS;
+			sts_cmd.argument = card->rca << 16;
+			sts_cmd.cmd_type = SDHCI_CMD_TYPE_NORMAL;
+			sts_cmd.resp_type = SDHCI_CMD_RESP_R1;
+			while(sts_retry)
+			{
+				sts_err = sdhci_send_command(host, &sts_cmd);
+				DBG(" response is %d err is %d phase is %d\n",sts_cmd.resp[0],sts_err, phase);
+				if( sts_err || (MMC_CARD_STATUS(sts_cmd.resp[0]) != MMC_TRAN_STATE) )
+				{
+					udelay(10);
+					sts_retry--;
+					continue;
+				}
+				break;
+			}
+		}
+
+		if (!err && !memcmp(tuning_data, tuning_block, size))
 				tuned_phases[tuned_phase_cnt++] = phase;
 
 		phase++;
