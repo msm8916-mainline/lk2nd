@@ -19,6 +19,8 @@ MODULES += \
 	dev/keys \
 	lib/ptable \
 	dev/pmic/pm8x41 \
+	dev/qpnp_haptic \
+	dev/vib \
 	lib/libfdt \
 	dev/qpnp_wled \
 	dev/gcdb/display
