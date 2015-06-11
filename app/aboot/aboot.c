@@ -1112,7 +1112,7 @@ int boot_linux_from_mmc(void)
 
 #if VERIFIED_BOOT
 	// send root of trust
-	if(!send_rot_command())
+	if(!send_rot_command((uint32_t)device.is_unlocked))
 		ASSERT(0);
 #endif
 
