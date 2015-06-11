@@ -64,6 +64,7 @@
 #define PMIC_ARB_CHANNEL_NUM    0
 #define PMIC_ARB_OWNER_ID       0
 #define TLMM_VOL_UP_BTN_GPIO    85
+#define TLMM_VOL_UP_BTN_GPIO_8956 113
 
 #define FASTBOOT_MODE           0x77665500
 #define RECOVERY_MODE           0x77665502
@@ -167,7 +168,14 @@ int target_volume_up()
 {
 	uint8_t status = 0;
 
-	gpio_tlmm_config(TLMM_VOL_UP_BTN_GPIO, 0, GPIO_INPUT, GPIO_PULL_UP, GPIO_2MA, GPIO_ENABLE);
+	if(platform_is_msm8956())
+	{
+		gpio_tlmm_config(TLMM_VOL_UP_BTN_GPIO_8956, 0, GPIO_INPUT, GPIO_PULL_UP, GPIO_2MA, GPIO_ENABLE);
+	}
+	else
+	{
+		gpio_tlmm_config(TLMM_VOL_UP_BTN_GPIO, 0, GPIO_INPUT, GPIO_PULL_UP, GPIO_2MA, GPIO_ENABLE);
+	}
 
 	/* Wait for the gpio config to take effect - debounce time */
 	thread_sleep(10);

@@ -509,7 +509,7 @@ static int verify_ext_partition(mdtp_ext_partition_verification_t *ext_partition
 		/* 4) Verify the image using its signature. */
 		ret = boot_verify_image((unsigned char *)ext_partition->image_addr,
 								ext_partition->image_size,
-								ext_partition->partition == MDTP_PARTITION_BOOT ? "boot" : "recovery");
+								ext_partition->partition == MDTP_PARTITION_BOOT ? "/boot" : "/recovery");
 		break;
 
 	default:
