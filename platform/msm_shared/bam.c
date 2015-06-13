@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012,2015 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -38,18 +38,6 @@
 #include <pow2.h>
 
 #define HLOS_EE_INDEX          0
-
-/* Reset BAM registers and pipes */
-static void bam_reset(struct bam_instance *bam)
-{
-	/* Initiate SW reset */
-	writel(BAM_SW_RST_BIT_MASK, BAM_CTRL_REG(bam->base));
-
-	/* No delay required */
-
-	/* Disable SW reset */
-	writel(~BAM_SW_RST_BIT_MASK, BAM_CTRL_REG(bam->base));
-}
 
 /* Resets pipe registers and state machines */
 void bam_pipe_reset(struct bam_instance *bam,
@@ -151,10 +139,6 @@ void bam_enable_interrupts(struct bam_instance *bam, uint8_t pipe_num)
 /* Reset and initialize the bam module */
 void bam_init(struct bam_instance *bam)
 {
-	uint32_t val = 0;
-
-//	bam_reset(bam);
-
 	/* Check for only one pipe's direction.
 	 * The other is assumed to be the opposite system
 	 * transaction.
@@ -165,13 +149,6 @@ void bam_init(struct bam_instance *bam)
 		/* Program the threshold count */
 		writel(bam->threshold, BAM_DESC_CNT_TRSHLD_REG(bam->base));
 	}
-
-	/* Program config register for H/W bug fixes */
-	val = 0xffffffff & ~(1 << 11);
-	writel(val, BAM_CNFG_BITS(bam->base));
-
-	/* Enable the BAM */
-	writel(BAM_ENABLE_BIT_MASK, BAM_CTRL_REG(bam->base));
 }
 
 /* Funtion to setup a simple fifo structure.

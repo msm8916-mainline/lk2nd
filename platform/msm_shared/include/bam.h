@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012,2015 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -71,10 +71,6 @@
 #define BAM_DATA_READ                   0
 #define BAM_DATA_WRITE                  1
 
-#define BAM_CTRL_REG(x)                 (0x0000 + (x))
-#define BAM_SW_RST_BIT_MASK             1
-#define BAM_ENABLE_BIT_MASK             (1 << 1)
-
 #define BAM_DESC_CNT_TRSHLD_REG(x)      (0x0008 + (x))
 #define COUNT_TRESHOLD_MASK             0xFF
 #define BAM_IRQ_MASK                    (1 << 31)
@@ -93,8 +89,6 @@
 #define BAM_EE_MASK                     (7 << 0)
 #define BAM_RESET_BLK_MASK              (1 << 7)
 #define BAM_LOCK_EE_CTRL_MASK           (1 << 13)
-
-#define BAM_CNFG_BITS(x)                (0x0000007C + (x))
 
 #define P_SYS_MODE_MASK                 (1 << 5)
 /* 1: Producer mode 0: Consumer mode */
