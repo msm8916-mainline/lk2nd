@@ -264,6 +264,23 @@ int target_backlight_ctrl(struct backlight *bl, uint8_t enable)
 	return ret;
 }
 
+static int32_t mdss_dsi_pll_config(uint32_t pll_base, uint32_t ctl_base,
+		struct mdss_dsi_pll_config *pll_data)
+{
+	int32_t ret = 0;
+	if (!platform_is_msm8956())
+		mdss_dsi_uniphy_pll_sw_reset_8952(pll_base);
+	else
+		dsi_pll_sw_reset_8952(pll_base);
+	mdss_dsi_auto_pll_config(pll_base, ctl_base, pll_data);
+	if (platform_is_msm8956())
+		ret = dsi_pll_enable_seq_8956(pll_base);
+	else
+		ret = dsi_pll_enable_seq_8952(pll_base);
+
+	return ret;
+}
+
 int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 {
 	int32_t ret = 0;
@@ -287,18 +304,19 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 			mdp_gdsc_ctrl(0);
 			return ret;
 		}
-		if (!platform_is_msm8956())
-			mdss_dsi_uniphy_pll_sw_reset_8952(pinfo->mipi.pll_base);
-		else
-			dsi_pll_sw_reset_8952(pinfo->mipi.pll_base);
-		mdss_dsi_auto_pll_config(pinfo->mipi.pll_base,
-						pinfo->mipi.ctl_base, pll_data);
-		if (platform_is_msm8956())
-			ret = dsi_pll_enable_seq_8956(pinfo->mipi.pll_base);
-		else
-			ret = dsi_pll_enable_seq_8952(pinfo->mipi.pll_base);
+
+		ret = mdss_dsi_pll_config(pinfo->mipi.pll_base,
+			pinfo->mipi.ctl_base, pll_data);
 		if (!ret)
-			dprintf(CRITICAL, "Not able to enable the pll\n");
+			dprintf(CRITICAL, "Not able to enable master pll\n");
+
+		if (platform_is_msm8956() && pinfo->mipi.dual_dsi) {
+				ret = mdss_dsi_pll_config(pinfo->mipi.spll_base,
+					pinfo->mipi.sctl_base, pll_data);
+			if (!ret)
+				dprintf(CRITICAL, "Not able to enable second pll\n");
+		}
+
 		gcc_dsi_clocks_enable(pll_data->pclk_m, pll_data->pclk_n,
 				pll_data->pclk_d);
 	} else if(!target_cont_splash_screen()) {
