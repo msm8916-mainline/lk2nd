@@ -2831,25 +2831,25 @@ void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 
 		chunk_data_sz = sparse_header->blk_sz * chunk_header->chunk_sz;
 
-		/* Make sure multiplication does not overflow uint32 size */
-		if (sparse_header->blk_sz && (chunk_header->chunk_sz != chunk_data_sz / sparse_header->blk_sz))
-		{
-			fastboot_fail("Bogus size sparse and chunk header");
-			return;
-		}
-
-		/* Make sure that the chunk size calculated from sparse image does not
-		 * exceed partition size
-		 */
-		if ((uint64_t)total_blocks * (uint64_t)sparse_header->blk_sz + chunk_data_sz > size)
-		{
-			fastboot_fail("Chunk data size exceeds partition size");
-			return;
-		}
-
 		switch (chunk_header->chunk_type)
 		{
 			case CHUNK_TYPE_RAW:
+			/* Make sure multiplication does not overflow uint32 size */
+			if (sparse_header->blk_sz && (chunk_header->chunk_sz != chunk_data_sz / sparse_header->blk_sz))
+			{
+			  fastboot_fail("Bogus size sparse and chunk header");
+			  return;
+			}
+
+			/* Make sure that the chunk size calculated from sparse image does not
+			 * exceed partition size
+			 */
+			if ((uint64_t)total_blocks * (uint64_t)sparse_header->blk_sz + chunk_data_sz > size)
+			{
+			  fastboot_fail("Chunk data size exceeds partition size");
+			  return;
+			}
+
 			if(chunk_header->total_sz != (sparse_header->chunk_hdr_sz +
 											chunk_data_sz))
 			{
