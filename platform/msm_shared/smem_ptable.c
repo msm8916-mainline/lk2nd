@@ -137,13 +137,14 @@ void smem_add_modem_partitions(struct ptable *flash_ptable)
 	for (i = 0; i < smem_ptable.len; i++) {
 		char *token;
 		char *pname = NULL;
+		char *sp;
 		struct smem_ptn *p = &smem_ptable.parts[i];
 		if (p->name[0] == '\0')
 			continue;
-		token = strtok(p->name, ":");
+		token = strtok_r(p->name, ":", &sp);
 		while (token) {
 			pname = token;
-			token = strtok(NULL, ":");
+			token = strtok_r(NULL, ":", &sp);
 		}
 		if (pname) {
 			ptable_add(flash_ptable, pname, p->start,
