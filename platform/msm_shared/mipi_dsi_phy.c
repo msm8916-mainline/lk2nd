@@ -277,7 +277,8 @@ static void mdss_dsi_phy_regulator_init(struct mdss_dsi_phy_ctrl *pd,
 		/* Regulator ctrl 4 */
 		writel(pd->regulator[4], DSI0_PHY_BASE + off + (4 * 4));
 		/* LDO ctrl */
-		if (readl(MIPI_DSI0_BASE) == DSI_HW_REV_103_1) /* 8916/8939 */
+		if ((readl(MIPI_DSI0_BASE) == DSI_HW_REV_103_1) ||
+			(readl(MIPI_DSI0_BASE) == DSI_HW_REV_104_2)) /* 8916/8939/8952/8956 */
 			writel(0x05, phy_base + 0x01dc);
 		else if (readl(MIPI_DSI0_BASE) == DSI_HW_REV_103) /* 8994 */
 			writel(0x1d, phy_base + 0x01dc);
@@ -370,6 +371,8 @@ static int mdss_dsi_phy_28nm_init(struct mipi_panel_info *mipi,
 
 	pd = (mipi->mdss_dsi_phy_db);
 
+	/* PHY_CTRL_0 */
+	 writel(0x5b, phy_base + 0x0170);
 	/* Strength ctrl 0 */
 	writel(pd->strength[0], phy_base + 0x0184);
 
@@ -382,12 +385,6 @@ static int mdss_dsi_phy_28nm_init(struct mipi_panel_info *mipi,
 		off += 4;
 	}
 
-	/* MMSS_DSI_0_PHY_DSIPHY_CTRL_1 */
-	writel(0x00, phy_base + 0x0174);
-	/* MMSS_DSI_0_PHY_DSIPHY_CTRL_0 */
-	writel(0x5f, phy_base + 0x0170);
-
-	dmb();
 	/* 4 lanes + clk lane configuration */
 	/* lane config n * (0 - 4) & DataPath setup */
 	for (ln = 0; ln < 5; ln++) {
@@ -400,8 +397,9 @@ static int mdss_dsi_phy_28nm_init(struct mipi_panel_info *mipi,
 		}
 	}
 
-	/* MMSS_DSI_0_PHY_DSIPHY_CTRL_0 */
-	writel(0x5f, phy_base + 0x0170);
+	/* MMSS_DSI_0_PHY_DSIPHY_CTRL_4 */
+	writel(0x0a, phy_base + 0x0180);
+	dmb();
 
 	/* DSI_PHY_DSIPHY_GLBL_TEST_CTRL */
 	if (phy_base == DSI0_PHY_BASE ||
@@ -410,6 +408,8 @@ static int mdss_dsi_phy_28nm_init(struct mipi_panel_info *mipi,
 	else
 		writel(0x00, phy_base + 0x01d4);
 
+	/* MMSS_DSI_0_PHY_DSIPHY_CTRL_0 */
+	writel(0x5f, phy_base + 0x0170);
 	dmb();
 
 	off = 0x01b4;	/* phy BIST ctrl 0 - 5 */

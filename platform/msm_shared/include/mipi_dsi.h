@@ -71,7 +71,8 @@
 #define TIMING_DB_MODE		     0x1E8
 
 #define DSI_HW_REV_103			0x10030000	/* 8994 */
-#define DSI_HW_REV_103_1		0x10030001	/* 8936/8939 */
+#define DSI_HW_REV_103_1		0x10030001	/* 8936/8939/8952 */
+#define DSI_HW_REV_104_2		0x10040002	/* 8956 */
 #define DSI_HW_REV_104			0x10040000	/* thulium */
 
 #define DTYPE_GEN_WRITE2 0x23	/* 4th Byte is 0x80 */
