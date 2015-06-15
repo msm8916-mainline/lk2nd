@@ -167,21 +167,21 @@ void *target_mmc_device()
 int target_volume_up()
 {
 	uint8_t status = 0;
+	uint32_t vol_up_gpio;
 
 	if(platform_is_msm8956())
-	{
-		gpio_tlmm_config(TLMM_VOL_UP_BTN_GPIO_8956, 0, GPIO_INPUT, GPIO_PULL_UP, GPIO_2MA, GPIO_ENABLE);
-	}
+		vol_up_gpio = TLMM_VOL_UP_BTN_GPIO_8956;
+
 	else
-	{
-		gpio_tlmm_config(TLMM_VOL_UP_BTN_GPIO, 0, GPIO_INPUT, GPIO_PULL_UP, GPIO_2MA, GPIO_ENABLE);
-	}
+		vol_up_gpio = TLMM_VOL_UP_BTN_GPIO;
+
+	gpio_tlmm_config(vol_up_gpio, 0, GPIO_INPUT, GPIO_PULL_UP, GPIO_2MA, GPIO_ENABLE);
 
 	/* Wait for the gpio config to take effect - debounce time */
 	thread_sleep(10);
 
 	/* Get status of GPIO */
-	status = gpio_status(TLMM_VOL_UP_BTN_GPIO);
+	status = gpio_status(vol_up_gpio);
 
 	/* Active low signal. */
 	return !status;
