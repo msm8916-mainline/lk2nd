@@ -47,6 +47,7 @@
 #include <board.h>
 #include <platform/timer.h>
 #include <qmp_phy.h>
+#include <usb30_dwc_hw.h>
 
 //#define DEBUG_USB
 
@@ -90,14 +91,17 @@ static void udc_register_language_desc(udc_t *udc);
 static void udc_register_bos_desc(udc_t *udc);
 static void udc_register_device_desc_usb_20(udc_t *udc, struct udc_device *dev_info);
 static void udc_register_device_desc_usb_30(udc_t *udc, struct udc_device *dev_info);
-static void udc_register_config_desc_usb20(udc_t *udc, struct udc_gadget *gadget);
+static void udc_register_config_desc_usb20(udc_t *udc, struct udc_gadget *gadget, uint8_t type);
 static void udc_register_config_desc_usb30(udc_t *udc, struct udc_gadget *gadget);
 
-static void udc_ept_desc_fill(struct udc_endpoint *ept, uint8_t *data);
+static void udc_ept_desc_fill(struct udc_endpoint *ept, uint8_t *data, uint8_t type);
 static void udc_ept_comp_desc_fill(struct udc_endpoint *ept, uint8_t *data);
 
 static void udc_dwc_notify(void *context, dwc_notify_event_t event);
 static int udc_handle_setup(void *context, uint8_t *data);
+static bool stall_ep;
+static bool udc_other_speed_cfg;
+static bool udc_ss_capable;
 
 /* TODO: This must be the only global var in this file, for now.
  * Ideally, all APIs should be sending
@@ -341,7 +345,7 @@ int usb30_udc_register_gadget(struct udc_gadget *gadget)
 	}
 
 	/* create our configuration descriptors based on this gadget data */
-	udc_register_config_desc_usb20(udc_dev, gadget);
+	udc_register_config_desc_usb20(udc_dev, gadget, TYPE_CONFIGURATION);
 	udc_register_config_desc_usb30(udc_dev, gadget);
 
 	/* save the gadget */
@@ -434,18 +438,28 @@ static int udc_handle_setup(void *context, uint8_t *data)
 
 	switch (SETUP(s.type, s.request))
 	{
+	case SETUP(ENDPOINT_READ, GET_STATUS):
+	case SETUP(INTERFACE_READ, GET_STATUS):
 	case SETUP(DEVICE_READ, GET_STATUS):
 		{
-			DBG("\n DEVICE_READ : GET_STATUS: value = %d index = %d"
-				" length = %d", s.value, s.index, s.length);
-
 			if (s.length == 2) {
 
-				uint16_t zero = 0;
+				uint16_t status = 0;
+				if (s.type == DEVICE_READ || (s.type == ENDPOINT_READ && stall_ep == true))
+					status = 1; /* Self-powered is set for device read and Halt bit set for end point read */
+
 				len = 2;
 
+				if (udc->usb_state == UDC_CONFIGURED_STATE && udc->speed == UDC_SPEED_SS)
+				{
+					if (s.type == DEVICE_READ && dwc_device_u1_enabled(dwc))
+						status |= (1 << 2); /* Set D2 to indicate U1 is enabled */
+					if (s.type == DEVICE_READ && dwc_device_u2_enabled(dwc))
+						status |= (1 << 3); /* Set D3 to indicate U3 is enabled */
+				}
+
 				/* copy to tx buffer */
-				memcpy(udc->ctrl_tx_buf, &zero, len);
+				memcpy(udc->ctrl_tx_buf, &status, len);
 
 				/* flush buffer to main memory before queueing the request */
 				arch_clean_invalidate_cache_range((addr_t) udc->ctrl_tx_buf, len);
@@ -464,10 +478,53 @@ static int udc_handle_setup(void *context, uint8_t *data)
 		break;
 	case SETUP(DEVICE_READ, GET_DESCRIPTOR):
 		{
-			DBG("\n DEVICE_READ : GET_DESCRIPTOR: value = %d", s.value);
+			DBG("\n DEVICE_READ : GET_DESCRIPTOR: value = %x\n", s.value);
 
 			/* setup usb ep0-IN to send our device descriptor */
 			struct udc_descriptor *desc;
+			/* Device Qualifier */
+			if (((s.value >> 8) == TYPE_DEVICE_QUALIFIER) && (udc->speed != UDC_SPEED_SS))
+			{
+				struct usb_qualifier_desc qual = {0};
+				qual.bLength = sizeof(qual);
+				qual.bDescriptorType = TYPE_DEVICE_QUALIFIER;
+				qual.bcdUSB = 0x0200; /* USB2.0 version */
+				qual.bDeviceClass = udc_dev->gadget->ifc_class;
+				qual.bDeviceSubClass = udc_dev->gadget->ifc_subclass;
+				qual.bDeviceProtocol = udc_dev->gadget->ifc_protocol;
+				qual.bMaxPacketSize0 = (udc_dev->speed == UDC_SPEED_HS) ? 64 : 512;
+				qual.bNumConfigurations = 1;
+				qual.bReserved          = 0;
+
+				if (sizeof(qual) > s.length)
+					len = s.length;
+				else
+					len = sizeof(qual);
+
+				/* copy to tx buffer */
+				memcpy(udc->ctrl_tx_buf, (void *)&qual, len);
+
+				/* flush buffer to main memory before queueing the request */
+				arch_clean_invalidate_cache_range((addr_t) udc->ctrl_tx_buf, len);
+
+				dwc_transfer_request(udc->dwc,
+									 0,
+									 DWC_EP_DIRECTION_IN,
+									 udc->ctrl_tx_buf,
+									 len,
+									 NULL,
+									 NULL);
+
+				return DWC_SETUP_3_STAGE;
+			}
+			if (((s.value >> 8) == TYPE_OTHER_SPEED_CONFIG) && (udc->speed != UDC_SPEED_SS)) /* Other speed config */
+			{
+				if (!udc_other_speed_cfg)
+				{
+					udc_register_config_desc_usb20(udc, udc->gadget, TYPE_OTHER_SPEED_CONFIG);
+					udc_other_speed_cfg = true;
+				}
+			}
 
 			for (desc = udc->desc_list; desc; desc = desc->next)
 			{
@@ -540,7 +597,10 @@ static int udc_handle_setup(void *context, uint8_t *data)
 			DBG("\n DEVICE_WRITE : SET_CONFIGURATION");
 
 			/* select configuration 1 */
-			if (s.value == 1) {
+			/* Return the config if configuration value is not 0 and move the state to
+			 * configured state
+			 */
+			if (s.value) {
 				struct udc_endpoint *ept;
 				/* enable endpoints */
 				for (ept = udc->ept_list; ept; ept = ept->next) {
@@ -562,7 +622,7 @@ static int udc_handle_setup(void *context, uint8_t *data)
 						ep->type          = ept->type;
 						ep->max_pkt_size  = ept->maxpkt;
 						ep->burst_size    = ept->maxburst;
-						ep->zlp           = 0;             /* TODO: zlp could be made part of ept */
+						ep->zlp           = 0;
 						ep->trb_count     = ept->trb_count;
 						ep->trb           = ept->trb;
 
@@ -575,12 +635,14 @@ static int udc_handle_setup(void *context, uint8_t *data)
 
 				/* now that we have saved the non-control EP details, set config */
 				dwc_device_set_configuration(dwc);
+				if (udc->speed == UDC_SPEED_SS)
+					dwc_device_accept_u1u2(dwc);
 
 				/* inform client that we are configured. */
 				udc->gadget->notify(udc_dev->gadget, UDC_EVENT_ONLINE);
 
 				udc->config_selected = 1;
-
+				udc->usb_state = UDC_CONFIGURED_STATE;
 				return DWC_SETUP_2_STAGE;
 			}
 			else if (s.value == 0)
@@ -588,13 +650,9 @@ static int udc_handle_setup(void *context, uint8_t *data)
 				/* 0 == de-configure. */
 				udc->config_selected = 0;
 				DBG("\n\n CONFIG = 0 !!!!!!!!!\n\n");
+				/* If config value is '0' change the state to addressed state */
+				udc->usb_state = UDC_ADDRESSED_STATE;
 				return DWC_SETUP_2_STAGE;
-				/* TODO: do proper handling for de-config */
-			}
-			else
-			{
-				ERR("\n CONFIG = %d not supported\n", s.value);
-				ASSERT(0);
 			}
 		}
 		break;
@@ -603,26 +661,107 @@ static int udc_handle_setup(void *context, uint8_t *data)
 			DBG("\n DEVICE_WRITE : SET_ADDRESS");
 
 			dwc_device_set_addr(dwc, s.value);
+			udc->usb_state = UDC_ADDRESSED_STATE;
 			return DWC_SETUP_2_STAGE;
 		}
 		break;
 	case SETUP(INTERFACE_WRITE, SET_INTERFACE):
 		{
-			DBG("\n DEVICE_WRITE : SET_INTERFACE");
+			DBG("\n INTERFACE_WRITE : SET_INTERFACE");
 			/* if we ack this everything hangs */
 			/* per spec, STALL is valid if there is not alt func */
 			goto stall;
 		}
 		break;
+	case SETUP(INTERFACE_WRITE, SET_FEATURE):
+		{
+			DBG("\n INTERFACE_WRITE : SET_FEATURE");
+			if (s.value == FUNCTION_SUSPEND && udc->speed == UDC_SPEED_SS)
+				return DWC_SETUP_2_STAGE;
+		}
+		break;
+	case SETUP(INTERFACE_READ, GET_INTERFACE):
+		{
+			DBG("\n INTERFACE_READ : GET_INTERFACE");
+			/* per spec, STALL is valid if there is not alt func */
+			goto stall;
+		}
+		break;
+	case SETUP(ENDPOINT_WRITE, SET_FEATURE):
+		{
+			DBG("\n ENDPOINT_WRITE : SET_FEATURE");
+			if (s.value == ENDPOINT_HALT)
+			{
+				uint8_t usb_epnum;
+				uint8_t dir;
+
+				usb_epnum = (s.index & USB_EP_NUM_MASK);
+				dir = ((s.index & USB_EP_DIR_MASK) == USB_EP_DIR_IN) ? 0x1 : 0x0;
+				dwc_ep_cmd_stall(dwc, DWC_EP_PHY_NUM(usb_epnum, dir));
+				stall_ep = true;
+				return DWC_SETUP_2_STAGE;
+			}
+			else
+				goto stall;
+		}
 	case SETUP(DEVICE_WRITE, SET_FEATURE):
 		{
 			DBG("\n DEVICE_WRITE : SET_FEATURE");
+
+			if (s.value == TEST_MODE)
+			{
+				dwc->test_mode = s.index;
+
+				switch(dwc->test_mode)
+				{
+				case TEST_J:
+				case TEST_K:
+				case TEST_SE0_NAK:
+				case TEST_PACKET:
+				case TEST_FORCE_ENABLE:
+					/* Upper byte of Windex contain test mode */
+					dwc->test_mode >>= 8;
+					dwc->is_test_mode = true;
+					break;
+				default:
+					DBG("\n Unknown test mode: %x\n", dwc->test_mode);
+				}
+				return DWC_SETUP_2_STAGE;
+			}
+			if (udc->usb_state == UDC_CONFIGURED_STATE && udc->speed == UDC_SPEED_SS)
+			{
+				/* Set U1 & U2 only in configured state */
+				if (s.value == U1_ENABLE)
+				{
+					dwc_device_enable_u1(dwc, 1);
+					return DWC_SETUP_2_STAGE;
+				}
+				if (s.value == U2_ENABLE)
+				{
+					dwc_device_enable_u2(dwc, 1);
+					return DWC_SETUP_2_STAGE;
+				}
+			}
 			goto stall;
 		}
 		break;
 	case SETUP(DEVICE_WRITE, CLEAR_FEATURE):
 		{
 			DBG("\n DEVICE_WRITE : CLEAR_FEATURE");
+			/* Clear U1 & U2 only in configured state */
+			if (udc->usb_state == UDC_CONFIGURED_STATE && udc->speed == UDC_SPEED_SS)
+			{
+				if (s.value == U1_ENABLE)
+				{
+					dwc_device_enable_u1(dwc, 0);
+					return DWC_SETUP_2_STAGE;
+				}
+				if (s.value == U2_ENABLE)
+				{
+					dwc_device_enable_u2(dwc, 0);
+					return DWC_SETUP_2_STAGE;
+				}
+			}
 			goto stall;
 		}
 		break;
@@ -660,6 +799,7 @@ static int udc_handle_setup(void *context, uint8_t *data)
 			 * physical ep 31 --> logical ep 15 IN
 			 */
 			dwc_ep_cmd_clear_stall(dwc, DWC_EP_PHY_NUM(usb_epnum, dir));
+			stall_ep = false;
 
 			return DWC_SETUP_2_STAGE;
 		}
@@ -686,7 +826,12 @@ static int udc_handle_setup(void *context, uint8_t *data)
 			}
 		}
 		break;
-
+	case SETUP(DEVICE_WRITE, SET_ISOCH_DELAY):
+		{
+			DBG("\n DEVICE_WRITE: SET_ISOCH_DELAY\n");
+			return DWC_SETUP_2_STAGE;
+		}
+		break;
 	default:
 		/* some of the requests from host are not handled, add a debug
 		 * for the command not being handled, this is not fatal
@@ -764,6 +909,23 @@ int usb30_udc_request_queue(struct udc_endpoint *ept, struct udc_request *req)
 	return ret;
 }
 
+/* For HS device should have the version number as 0x0200.
+ * Update the minor version to 0x00 when we receive the connect
+ * event with HS or FS mode
+ */
+static void udc_update_usb20_desc(udc_t *udc)
+{
+	struct udc_descriptor *desc= NULL;
+	if (udc_ss_capable)
+		return;
+
+	for (desc = udc->desc_list; desc; desc = desc->next)
+	{
+		if (desc->spec == UDC_DESC_SPEC_20 && desc->data[1] == TYPE_DEVICE)
+			desc->data[2] = 0x00; /* usb spec minor rev */
+	}
+}
+
 static void udc_update_ep_desc(udc_t *udc, uint16_t max_pkt_sz_bulk)
 {
 	struct udc_descriptor *desc= NULL;
@@ -815,6 +977,8 @@ void udc_dwc_notify(void *context, dwc_notify_event_t event)
 		 */
 		max_pkt_size = 64;
 		udc_update_ep_desc(udc, max_pkt_size);
+		/* Update the spec version for FS */
+		udc_update_usb20_desc(udc);
 		break;
 	case DWC_NOTIFY_EVENT_CONNECTED_HS:
 		udc->speed = UDC_SPEED_HS;
@@ -823,6 +987,8 @@ void udc_dwc_notify(void *context, dwc_notify_event_t event)
 		 */
 		max_pkt_size = 512;
 		udc_update_ep_desc(udc, max_pkt_size);
+		/* Update the spec version for HS */
+		udc_update_usb20_desc(udc);
 		break;
 	case DWC_NOTIFY_EVENT_CONNECTED_SS:
 		udc->speed = UDC_SPEED_SS;
@@ -830,6 +996,7 @@ void udc_dwc_notify(void *context, dwc_notify_event_t event)
 		 * with SS max packet size
 		 */
 		max_pkt_size = 1024;
+		udc_ss_capable = true;
 		udc_update_ep_desc(udc, max_pkt_size);
 		break;
 	case DWC_NOTIFY_EVENT_DISCONNECTED:
@@ -912,7 +1079,7 @@ struct udc_endpoint *usb30_udc_endpoint_alloc(unsigned type, unsigned maxpkt)
 
 /* create config + interface + ep desc for 2.0 */
 static void udc_register_config_desc_usb20(udc_t *udc,
-										   struct udc_gadget *gadget)
+										   struct udc_gadget *gadget, uint8_t type)
 {
 	uint8_t  *data;
 	uint16_t  size;
@@ -928,13 +1095,13 @@ static void udc_register_config_desc_usb20(udc_t *udc,
 		   UDC_DESC_SIZE_INTERFACE +
 		   (gadget->ifc_endpoints*UDC_DESC_SIZE_ENDPOINT);
 
-	desc = udc_descriptor_alloc(TYPE_CONFIGURATION, 0, size, UDC_DESC_SPEC_20);
+	desc = udc_descriptor_alloc(type, 0, size, UDC_DESC_SPEC_20);
 
 	data = desc->data;
 
 	/* Config desc */
 	data[0] = 0x09;
-	data[1] = TYPE_CONFIGURATION;
+	data[1] = type;
 	data[2] = size;
 	data[3] = size >> 8;
 	data[4] = 0x01;     /* number of interfaces */
@@ -957,7 +1124,7 @@ static void udc_register_config_desc_usb20(udc_t *udc,
 	data += 9;
 
 	for (uint8_t n = 0; n < gadget->ifc_endpoints; n++) {
-		udc_ept_desc_fill(gadget->ept[n], data);
+		udc_ept_desc_fill(gadget->ept[n], data, type);
 		data += UDC_DESC_SIZE_ENDPOINT;
 	}
 
@@ -1013,7 +1180,7 @@ static void udc_register_config_desc_usb30(udc_t *udc,
 	for (uint8_t n = 0; n < gadget->ifc_endpoints; n++)
 	{
 		/* fill EP desc */
-		udc_ept_desc_fill(gadget->ept[n], data);
+		udc_ept_desc_fill(gadget->ept[n], data, 0);
 		data += UDC_DESC_SIZE_ENDPOINT;
 
 		/* fill EP companion desc */
@@ -1038,7 +1205,7 @@ static void udc_register_device_desc_usb_20(udc_t *udc,
 	/* data 0 and 1 is filled by descriptor alloc routine.
 	 * fill in the remaining entries.
 	 */
-	data[2] = 0x00; /* usb spec minor rev */
+	data[2] = 0x10; /* usb spec minor rev */
 	data[3] = 0x02; /* usb spec major rev */
 	data[4] = 0x00; /* class */
 	data[5] = 0x00; /* subclass */
@@ -1092,7 +1259,7 @@ static void udc_register_bos_desc(udc_t *udc)
 	struct udc_descriptor *desc;
 
 	/* create our device descriptor */
-	desc = udc_descriptor_alloc(TYPE_BOS, 0, 15, UDC_DESC_SPEC_30); /* 15 is total length of bos + other descriptors inside it */
+	desc = udc_descriptor_alloc(TYPE_BOS, 0, 0x16, UDC_DESC_SPEC_30); /* 22 is total length of bos + other descriptors inside it */
 	data = desc->data;
 
 	/* data 0 and 1 is filled by descriptor alloc routine.
@@ -1100,20 +1267,30 @@ static void udc_register_bos_desc(udc_t *udc)
 	 */
 	data[0] = 0x05;     /* BOS desc len */
 	data[1] = TYPE_BOS; /* BOS desc type */
-	data[2] = 0x0F;     /* total len of bos desc and its sub desc */
+	data[2] = 0x16;     /* total len of bos desc and its sub desc */
 	data[3] = 0x00;     /* total len of bos desc and its sub desc */
-	data[4] = 0x01;     /* num of sub desc inside bos */
+	data[4] = 0x02;     /* num of sub desc inside bos */
 
-	data[5]  = 0x0A;    /* desc len */
-	data[6]  = 0x10;    /* Device Capability desc */
-	data[7]  = 0x03;    /* 3 == SuperSpeed capable */
-	data[8]  = 0x00;    /* Attribute: latency tolerance msg: No */
-	data[9]  = 0x0F;    /* Supported Speeds (bit mask): LS, FS, HS, SS */
-	data[10] = 0x00;    /* Reserved part of supported wSupportedSpeeds */
-	data[11] = 0x01;    /* lowest supported speed with full functionality: FS */
-	data[12] = 0x00;    /* U1 device exit latency */
-	data[13] = 0x00;    /* U2 device exit latency (lsb) */
-	data[14] = 0x00;    /* U2 device exit latency (msb) */
+	/* USB2.0 extension Descriptor */
+	data[5]  = 0x07;    /* Size of USB2.0 extension desc */
+	data[6]  = 0x10;    /* Device capability desc */
+	data[7]  = 0x02;    /* USB2.0 extension descriptor */
+	data[8]  = 0x02;    /* LPM mode */
+	data[9]  = 0x00;    /* Reserved */
+	data[10] = 0x00;    /* Reserved */
+	data[11] = 0x00;    /* Reserved */
+
+	/* Super Speed device capability */
+	data[12]  = 0x0A;    /* desc len */
+	data[13]  = 0x10;    /* Device Capability desc */
+	data[14]  = 0x03;    /* 3 == SuperSpeed capable */
+	data[15]  = 0x00;    /* Attribute: latency tolerance msg: No */
+	data[16]  = 0x0F;    /* Supported Speeds (bit mask): LS, FS, HS, SS */
+	data[17] = 0x00;    /* Reserved part of supported wSupportedSpeeds */
+	data[18] = 0x01;    /* lowest supported speed with full functionality: FS */
+	data[19] = 0x00;    /* U1 device exit latency */
+	data[20] = 0x00;    /* U2 device exit latency (lsb) */
+	data[21] = 0x00;    /* U2 device exit latency (msb) */
 
 	udc_descriptor_register(udc, desc);
 }
@@ -1131,14 +1308,25 @@ static void udc_register_language_desc(udc_t *udc)
 	udc_descriptor_register(udc, desc);
 }
 
-static void udc_ept_desc_fill(struct udc_endpoint *ept, uint8_t *data)
+static void udc_ept_desc_fill(struct udc_endpoint *ept, uint8_t *data, uint8_t type)
 {
+	uint16_t max_pkt_sz = 0;
+
+	/* For other speed configuration, populate the max packet size for the other speed
+	 * mode. For eg: if currently host is operating in HS mode, return the configuration
+	 * for FS mode
+	 */
+	if (type == TYPE_OTHER_SPEED_CONFIG && udc_dev->speed != UDC_SPEED_SS)
+		max_pkt_sz = (udc_dev->speed == UDC_SPEED_FS) ? 512 : 64;
+	else
+		max_pkt_sz = ept->maxpkt;
+
 	data[0] = 7;
 	data[1] = TYPE_ENDPOINT;
 	data[2] = ept->num | (ept->in ? 0x80 : 0x00);
 	data[3] = 0x02; /* bulk -- the only kind we support */
-	data[4] = ept->maxpkt;
-	data[5] = ept->maxpkt >> 8;
+	data[4] = max_pkt_sz;
+	data[5] = max_pkt_sz >> 8;
 	data[6] = 0; /* bInterval: must be 0 for bulk. */
 }
 

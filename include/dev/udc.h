@@ -102,12 +102,15 @@ int udc_stop(void);
 #define SET_INTERFACE        11
 #define SYNCH_FRAME          12
 #define SET_SEL              48
+#define SET_ISOCH_DELAY      49
 
 #define TYPE_DEVICE          1
 #define TYPE_CONFIGURATION   2
 #define TYPE_STRING          3
 #define TYPE_INTERFACE       4
 #define TYPE_ENDPOINT        5
+#define TYPE_DEVICE_QUALIFIER          6
+#define TYPE_OTHER_SPEED_CONFIG        7
 #define TYPE_BOS             15
 #define TYPE_DEVICE_CAP      16
 #define TYPE_SS_EP_COMP      48
@@ -118,9 +121,14 @@ int udc_stop(void);
 #define INTERFACE_WRITE      0x01
 #define ENDPOINT_READ        0x82
 #define ENDPOINT_WRITE       0x02
+#define TEST_MODE            0x02
 
+#define TEST_J               0x0100
+#define TEST_K               0x0200
 #define TEST_SE0_NAK		 0x0300
 #define TEST_PACKET          0x0400
+#define TEST_FORCE_ENABLE    0x0500
+
 #define PORTSC_PTC           (0xF << 16)
 #define PORTSC_PTC_SE0_NAK	 (0x03 << 16)
 #define PORTSC_PTC_TST_PKT   (0x4 << 16)

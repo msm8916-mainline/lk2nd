@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013,2015  The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -51,4 +51,10 @@ uint8_t dwc_connectspeed(dwc_dev_t *dev);
 uint8_t dwc_device_run_status(dwc_dev_t *dev);
 void dwc_gctl_init(dwc_dev_t *dev);
 void dwc_axi_master_config(dwc_dev_t *dev);
+void dwc_device_enter_test_mode(dwc_dev_t *dev);
+void dwc_device_enable_u1(dwc_dev_t *dev, uint8_t val);
+void dwc_device_enable_u2(dwc_dev_t *dev, uint8_t val);
+void dwc_device_accept_u1u2(dwc_dev_t *dev);
+bool dwc_device_u1_enabled(dwc_dev_t *dev);
+bool dwc_device_u2_enabled(dwc_dev_t *dev);
 #endif
