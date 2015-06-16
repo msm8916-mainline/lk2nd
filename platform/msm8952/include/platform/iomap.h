@@ -149,11 +149,11 @@
 /* MDSS */
 #define MIPI_DSI_BASE               (0x1A98000)
 #define MIPI_DSI0_BASE              MIPI_DSI_BASE
-#define MIPI_DSI1_BASE              MIPI_DSI_BASE
+#define MIPI_DSI1_BASE              (0x1A96000)
 #define DSI0_PHY_BASE               (0x1A98500)
-#define DSI1_PHY_BASE               DSI0_PHY_BASE
+#define DSI1_PHY_BASE               (0x1A96400)
 #define DSI0_PLL_BASE               (0x1A98300)
-#define DSI1_PLL_BASE               DSI0_PLL_BASE
+#define DSI1_PLL_BASE               (0x1A96A00)
 #define DSI0_REGULATOR_BASE         (0x1A98780)
 #define DSI1_REGULATOR_BASE         DSI0_REGULATOR_BASE
 #define MDP_BASE                    (0x1A00000)
