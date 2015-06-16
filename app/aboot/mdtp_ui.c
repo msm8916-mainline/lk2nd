@@ -99,12 +99,32 @@ static uint32_t g_pin_frames_y_location = 0;
 
 static bool g_initial_screen_displayed = false;
 
-static struct mdtp_fbimage g_mdtp_header;
+static struct mdtp_fbimage *g_mdtp_header = NULL;
 static struct fbcon_config *fb_config = NULL;
 
 /*----------------------------------------------------------------------------
  * Local Functions
  * -------------------------------------------------------------------------*/
+
+/**
+ * Allocate mdtp image
+ */
+static void alloc_mdtp_image() {
+	if (!g_mdtp_header) {
+		g_mdtp_header = (struct mdtp_fbimage *)malloc(sizeof(struct mdtp_fbimage));
+		ASSERT(g_mdtp_header);
+	}
+}
+
+/**
+ * Free mdtp image
+ */
+void free_mdtp_image() {
+	if (g_mdtp_header) {
+		free(g_mdtp_header);
+		g_mdtp_header = NULL;
+	}
+}
 
 /**
  * Load images from EMMC
@@ -113,7 +133,7 @@ static struct mdtp_fbimage* mdtp_read_mmc_image(uint32_t offset, uint32_t width,
 {
 	int index = INVALID_PTN;
 	unsigned long long ptn = 0;
-	struct mdtp_fbimage *logo = &g_mdtp_header;
+	struct mdtp_fbimage *logo = g_mdtp_header;
 	uint32_t block_size = mmc_get_device_blocksize();
 
 	index = partition_get_index("mdtp");
@@ -433,12 +453,13 @@ static void clear_pin_message()
  */
 static void display_initial_screen(uint32_t pin_length)
 {
-    if (g_initial_screen_displayed == true)
+	if (g_initial_screen_displayed == true)
 		return;
 
-    fb_config = fbcon_display();
+	fb_config = fbcon_display();
+	alloc_mdtp_image();
 
-    if (fb_config)
+	if (fb_config)
 	{
 		fbcon_clear();
 
@@ -589,6 +610,7 @@ void display_invalid_pin_msg()
 void display_error_msg()
 {
 	fb_config = fbcon_display();
+	alloc_mdtp_image();
 
 	if (fb_config)
 	{
