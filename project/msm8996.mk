@@ -5,6 +5,7 @@ LOCAL_DIR := $(GET_LOCAL_DIR)
 TARGET := msm8996
 
 MODULES += app/aboot
+MODULES += app/mmutest
 
 ifeq ($(TARGET_BUILD_VARIANT),user)
 DEBUG := 0
