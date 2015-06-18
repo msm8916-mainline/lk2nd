@@ -78,6 +78,9 @@
 #define DSI_PIXEL1_N                    REG_MM(0x4D0C4)
 #define DSI_PIXEL1_D                    REG_MM(0x4D0C8)
 
+#define MMSS_DSI_CLKS_FLAG_DSI0         BIT(0)
+#define MMSS_DSI_CLKS_FLAG_DSI1         BIT(1)
+
 void platform_clock_init(void);
 
 void clock_init_mmc(uint32_t interface);
@@ -92,6 +95,7 @@ void mdss_bus_clocks_enable(void);
 void mdss_bus_clocks_disable(void);
 void mdp_clock_enable(void);
 void mdp_clock_disable(void);
-void gcc_dsi_clocks_enable(uint8_t pclk0_m, uint8_t pclk0_n, uint8_t pclk0_d);
-void gcc_dsi_clocks_disable(void);
+void gcc_dsi_clocks_enable(uint32_t flags, uint8_t pclk0_m,
+		uint8_t pclk0_n, uint8_t pclk0_d);
+void gcc_dsi_clocks_disable(uint32_t flags);
 #endif
