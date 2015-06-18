@@ -68,6 +68,7 @@ struct oem_panel_data  {
 	char panel[MAX_PANEL_ID_LEN];
 	bool cont_splash;
 	bool skip;
+	uint32_t sim_mode;
 };
 
 #endif /*_GCDB_DISPLAY_H_ */

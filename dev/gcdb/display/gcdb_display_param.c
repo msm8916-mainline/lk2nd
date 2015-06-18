@@ -37,7 +37,7 @@
 #include "target/display.h"
 #include "fastboot_oem_display.h"
 
-struct oem_panel_data oem_data = {{'\0'}, false, false};
+struct oem_panel_data oem_data = {{'\0'}, false, false, SIM_NONE};
 
 void panel_name_to_dt_string(struct panel_lookup_list supp_panels[],
 			  uint32_t supp_panels_size,
@@ -71,6 +71,23 @@ void panel_name_to_dt_string(struct panel_lookup_list supp_panels[],
 			panel_name);
 }
 
+void sim_override_to_cmdline(struct sim_lookup_list sim[],
+			  uint32_t sim_size, uint32_t sim_mode,
+			  char **sim_string)
+{
+	uint32_t i;
+
+	for (i = 0; i < sim_size; i++) {
+		if (sim_mode == sim[i].sim_mode) {
+			*sim_string = sim[i].override_string;
+			break;
+		}
+	}
+
+	if (i == sim_size)
+		dprintf(CRITICAL, "Sim_mode not found in lookup table\n");
+}
+
 struct oem_panel_data mdss_dsi_get_oem_data(void)
 {
 	return oem_data;
@@ -78,13 +95,22 @@ struct oem_panel_data mdss_dsi_get_oem_data(void)
 
 void set_panel_cmd_string(const char *panel_name)
 {
-	char *ch = NULL;
+	char *ch = NULL, *ch_hash = NULL, *ch_col = NULL;
 	int i;
 
 	panel_name += strspn(panel_name, " ");
 
-	/* Panel string */
-	ch = strchr((char *) panel_name, ':');
+	/* Panel string - ':' and '#' are delimiters */
+	ch_col = strchr((char *) panel_name, ':');
+	ch_hash = strchr((char *) panel_name, '#');
+
+	if (ch_col && ch_hash)
+		ch = (ch_col < ch_hash) ? ch_col : ch_hash;
+	else if (ch_col)
+		ch = ch_col;
+	else if (ch_hash)
+		ch = ch_hash;
+
 	if (ch) {
 		for (i = 0; (panel_name + i) < ch; i++)
 			oem_data.panel[i] = *(panel_name + i);
@@ -100,6 +126,16 @@ void set_panel_cmd_string(const char *panel_name)
 	/* Cont. splash status */
 	ch = strstr((char *) panel_name, ":disable");
 	oem_data.cont_splash = ch ? false : true;
+
+	/* Simulator status */
+	oem_data.sim_mode = SIM_NONE;
+	if (strstr((char *) panel_name, "#sim-hwte"))
+		oem_data.sim_mode = SIM_HWTE;
+	else if (strstr((char *) panel_name, "#sim-swte"))
+		oem_data.sim_mode = SIM_SWTE;
+	else if (strstr((char *) panel_name, "#sim"))
+		oem_data.sim_mode = SIM_MODE;
+
 }
 
 static bool mdss_dsi_set_panel_node(char *panel_name, char **dsi_id,
@@ -140,6 +176,7 @@ bool gcdb_display_cmdline_arg(char *pbuf, uint16_t buf_size)
 	char *dsi_id = NULL;
 	char *panel_node = NULL;
 	char *slave_panel_node = NULL;
+	char *sim_mode_string = NULL;
 	uint16_t dsi_id_len = 0, panel_node_len = 0, slave_panel_node_len = 0;
 	uint32_t arg_size = 0;
 	bool ret = true;
@@ -213,6 +250,19 @@ bool gcdb_display_cmdline_arg(char *pbuf, uint16_t buf_size)
 
 	arg_size += strlen(sctl_string) + slave_panel_node_len;
 
+	if (oem_data.sim_mode != SIM_NONE) {
+		sim_override_to_cmdline(lookup_sim,
+			ARRAY_SIZE(lookup_sim), oem_data.sim_mode,
+			&sim_mode_string);
+		if (sim_mode_string) {
+			arg_size += LK_SIM_OVERRIDE_LEN +
+				strlen(sim_mode_string);
+		} else {
+			dprintf(CRITICAL, "SIM string NULL but mode is not NONE\n");
+			return false;
+		}
+	}
+
 	if (buf_size < arg_size) {
 		dprintf(CRITICAL, "display command line buffer is small\n");
 		ret = false;
@@ -230,14 +280,26 @@ bool gcdb_display_cmdline_arg(char *pbuf, uint16_t buf_size)
 		buf_size -= dsi_id_len;
 
 		strlcpy(pbuf, panel_node, buf_size);
-
 		pbuf += panel_node_len;
 		buf_size -= panel_node_len;
 
 		strlcpy(pbuf, sctl_string, buf_size);
 		pbuf += strlen(sctl_string);
 		buf_size -= strlen(sctl_string);
+
 		strlcpy(pbuf, slave_panel_node, buf_size);
+		pbuf += slave_panel_node_len;
+		buf_size -= slave_panel_node_len;
+
+		if (sim_mode_string) {
+			strlcpy(pbuf, LK_SIM_OVERRIDE, buf_size);
+			pbuf += LK_SIM_OVERRIDE_LEN;
+			buf_size -= LK_SIM_OVERRIDE_LEN;
+
+			strlcpy(pbuf, sim_mode_string, buf_size);
+			pbuf += strlen(sim_mode_string);
+			buf_size -= strlen(sim_mode_string);
+		}
 	}
 	return ret;
 }

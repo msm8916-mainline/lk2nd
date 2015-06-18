@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -41,6 +41,9 @@
 
 #define LK_OVERRIDE_PANEL      "1:"
 #define LK_OVERRIDE_PANEL_LEN  2
+
+#define LK_SIM_OVERRIDE     "#override:"
+#define LK_SIM_OVERRIDE_LEN  10
 
 #define DSI_0_STRING           ":0:"
 #define DSI_0_STRING_LEN       3

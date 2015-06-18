@@ -30,15 +30,29 @@
 #ifndef _FASTBOOT_OEM_DISPLAY_H_
 #define _FASTBOOT_OEM_DISPLAY_H_
 
-/*---------------------------------------------------------------------------*/
-/* Lookup table for skip panels                                              */
-/*---------------------------------------------------------------------------*/
+#define SIM_OVERRIDE_LEN 10
+
+enum {
+    SIM_NONE,
+    SIM_MODE,
+    SIM_SWTE,
+    SIM_HWTE,
+};
 
 struct panel_lookup_list {
 	char name[MAX_PANEL_ID_LEN];
 	char panel_dt_string[MAX_PANEL_ID_LEN];
 	bool is_split_dsi;
 };
+
+struct sim_lookup_list {
+	uint32_t sim_mode;
+	char override_string[SIM_OVERRIDE_LEN];
+};
+
+/*---------------------------------------------------------------------------*/
+/* Lookup table for skip panels                                              */
+/*---------------------------------------------------------------------------*/
 
 struct panel_lookup_list lookup_skip_panels[] = {
 	{"adv7533_1080p_video", "qcom,mdss_dsi_adv7533_1080p60_video", false},
@@ -87,6 +101,12 @@ struct panel_lookup_list lookup_skip_panels[] = {
 	{"truly_1080p_video", "qcom,mdss_dsi_truly_1080p_video", false},
 	{"truly_wvga_cmd", "qcom,mdss_dsi_truly_wvga_cmd", false},
 	{"truly_wvga_video", "qcom,mdss_dsi_truly_wvga_video", false},
+};
+
+struct sim_lookup_list lookup_sim[] = {
+	{SIM_MODE, "sim"},
+	{SIM_SWTE, "sim-swte"},
+	{SIM_HWTE, "sim-hwte"},
 };
 
 #endif /*_FASTBOOT_OEM_DISPLAY_H_ */
