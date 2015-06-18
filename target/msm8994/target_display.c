@@ -589,9 +589,11 @@ int target_dsi_phy_config(struct mdss_dsi_phy_ctrl *phy_db)
 int target_display_get_base_offset(uint32_t base)
 {
 	if(platform_is_msm8992()) {
-		if (base == MIPI_DSI0_BASE)
+		if ((base == MIPI_DSI0_BASE) || (base == DSI0_PHY_BASE) ||
+		    (base == DSI0_PLL_BASE) || (base == DSI0_REGULATOR_BASE))
 			return DSI0_BASE_ADJUST;
-		else if (base == MIPI_DSI1_BASE)
+		else if ((base == MIPI_DSI1_BASE) || (base == DSI1_PHY_BASE) ||
+			(base == DSI1_PLL_BASE))
 			return DSI1_BASE_ADJUST;
 	}
 
