@@ -71,6 +71,11 @@ static struct gpio_pin bkl_gpio = {
 #define RESET_GPIO_SEQ_LEN 3
 #define PMIC_WLED_SLAVE_ID 3
 
+#define DSI0_BASE_ADJUST -0x4000
+#define DSI0_PHY_BASE_ADJUST -0x4100
+#define DSI0_PHY_PLL_BASE_ADJUST -0x3900
+#define DSI0_PHY_REGULATOR_BASE_ADJUST -0x3C00
+
 static void mdss_dsi_uniphy_pll_sw_reset_8952(uint32_t pll_base)
 {
 	writel(0x01, pll_base + 0x0068); /* PLL TEST CFG */
@@ -370,6 +375,22 @@ int target_dsi_phy_config(struct mdss_dsi_phy_ctrl *phy_db)
 	memcpy(phy_db->bistCtrl, panel_bist_ctrl, BIST_SIZE);
 	memcpy(phy_db->laneCfg, panel_lane_config, LANE_SIZE);
 	return NO_ERROR;
+}
+
+int target_display_get_base_offset(uint32_t base)
+{
+	if(platform_is_msm8956()) {
+		if (base == MIPI_DSI0_BASE)
+			return DSI0_BASE_ADJUST;
+		else if (base == DSI0_PHY_BASE)
+			return DSI0_PHY_BASE_ADJUST;
+		else if (base == DSI0_PLL_BASE)
+			return DSI0_PHY_PLL_BASE_ADJUST;
+		else if (base == DSI0_REGULATOR_BASE)
+			return DSI0_PHY_REGULATOR_BASE_ADJUST;
+	}
+
+	return 0;
 }
 
 int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
