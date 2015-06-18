@@ -67,6 +67,10 @@
 #include <dev_tree.h>
 #endif
 
+#if WDOG_SUPPORT
+#include <wdog.h>
+#endif
+
 #include "image_verify.h"
 #include "recovery.h"
 #include "bootimg.h"
@@ -667,6 +671,10 @@ void boot_linux(void *kernel, unsigned *tags,
 
 	enter_critical_section();
 
+	/* Initialise wdog to catch early kernel crashes */
+#if WDOG_SUPPORT
+	msm_wdog_init();
+#endif
 	/* do any platform specific cleanup before kernel entry */
 	platform_uninit();
 
