@@ -86,7 +86,9 @@ void arm_write_cr1_aux(uint32_t val);
 void arm_write_ttbr(uint32_t val);
 void arm_write_dacr(uint32_t val);
 void arm_invalidate_tlb(void);
-
+void arm_write_mair0(uint32_t);
+void arm_write_mair1(uint32_t);
+void arm_write_ttbcr(uint32_t);
 void dump_fault_frame(struct arm_fault_frame *frame);
 
 #if defined(__cplusplus)

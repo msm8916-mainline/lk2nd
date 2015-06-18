@@ -289,3 +289,15 @@ FUNCTION(arch_cycle_count)
 	mov		r0, #0
 #endif
 	bx		lr
+
+FUNCTION(arm_write_mair0)
+	mcr p15, 0, r0, c10, c2, 0
+	bx	lr
+
+FUNCTION(arm_write_mair1)
+	mcr p15, 0, r0, c10, c2, 1
+	bx lr
+
+FUNCTION(arm_write_ttbcr)
+	mcr p15, 0, r0, c2, c0, 2
+	bx lr
