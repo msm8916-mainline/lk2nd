@@ -1,4 +1,4 @@
-/* Copyright (c) 2011, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011, 2015 The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -30,12 +30,23 @@
 #define __MSM_SHARED_MMU_H__
 
 #include <sys/types.h>
+#include <arch/arm/mmu.h>
 
+#ifdef LPAE
+typedef struct {
+	uint64_t paddress;
+	uint64_t vaddress;
+	mapping_type type;
+	uint64_t size;
+	uint64_t flags;
+} mmu_section_t;
+#else
 typedef struct {
 	addr_t paddress;
 	addr_t vaddress;
 	uint32_t num_of_sections;
 	uint32_t flags;
 } mmu_section_t;
+#endif
 
 #endif
