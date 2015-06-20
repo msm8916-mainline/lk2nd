@@ -1723,10 +1723,7 @@ void read_device_info(device_info *dev)
 		if (memcmp(info->magic, DEVICE_MAGIC, DEVICE_MAGIC_SIZE))
 		{
 			memcpy(info->magic, DEVICE_MAGIC, DEVICE_MAGIC_SIZE);
-			if (is_secure_boot_enable())
-				info->is_unlocked = 0;
-			else
-				info->is_unlocked = 1;
+			info->is_unlocked = 0;
 			info->is_verified = 0;
 			info->is_tampered = 0;
 #if USER_BUILD_VARIANT
@@ -2111,17 +2108,20 @@ void cmd_erase_mmc(const char *arg, void *data, unsigned sz)
 void cmd_erase(const char *arg, void *data, unsigned sz)
 {
 #if VERIFIED_BOOT
-	if(!device.is_unlocked && !device.is_verified)
+	if (target_build_variant_user())
 	{
-		fastboot_fail("device is locked. Cannot erase");
-		return;
-	}
-	if(!device.is_unlocked && device.is_verified)
-	{
-		if(!boot_verify_flash_allowed(arg))
+		if(!device.is_unlocked && !device.is_verified)
 		{
-			fastboot_fail("cannot flash this partition in verified state");
+			fastboot_fail("device is locked. Cannot erase");
 			return;
+		}
+		if(!device.is_unlocked && device.is_verified)
+		{
+			if(!boot_verify_flash_allowed(arg))
+			{
+				fastboot_fail("cannot flash this partition in verified state");
+				return;
+			}
 		}
 	}
 #endif
@@ -2573,17 +2573,20 @@ void cmd_flash_mmc(const char *arg, void *data, unsigned sz)
 #endif /* SSD_ENABLE */
 
 #if VERIFIED_BOOT
-	if(!device.is_unlocked)
+	if (target_build_variant_user())
 	{
-		fastboot_fail("device is locked. Cannot flash images");
-		return;
-	}
-	if(!device.is_unlocked && device.is_verified)
-	{
-		if(!boot_verify_flash_allowed(arg))
+		if(!device.is_unlocked)
 		{
-			fastboot_fail("cannot flash this partition in verified state");
+			fastboot_fail("device is locked. Cannot flash images");
 			return;
+		}
+		if(!device.is_unlocked && device.is_verified)
+		{
+			if(!boot_verify_flash_allowed(arg))
+			{
+				fastboot_fail("cannot flash this partition in verified state");
+				return;
+			}
 		}
 	}
 #endif
