@@ -2259,10 +2259,9 @@ void cmd_flash_meta_img(const char *arg, void *data, unsigned sz)
 void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 {
 	unsigned int chunk;
-	unsigned int chunk_data_sz;
+	uint64_t chunk_data_sz;
 	uint32_t *fill_buf = NULL;
 	uint32_t fill_val;
-	uint32_t chunk_blk_cnt = 0;
 	sparse_header_t *sparse_header;
 	chunk_header_t *chunk_header;
 	uint32_t total_blocks = 0;
@@ -2350,14 +2349,12 @@ void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 			return;
 		}
 
-		chunk_data_sz = sparse_header->blk_sz * chunk_header->chunk_sz;
-
-		/* Make sure multiplication does not overflow uint32 size */
-		if (sparse_header->blk_sz && (chunk_header->chunk_sz != chunk_data_sz / sparse_header->blk_sz))
-		{
-			fastboot_fail("Bogus size sparse and chunk header");
+		if (!sparse_header->blk_sz ){
+			fastboot_fail("Invalid block size\n");
 			return;
 		}
+
+		chunk_data_sz = (uint64_t)sparse_header->blk_sz * chunk_header->chunk_sz;
 
 		/* Make sure that the chunk size calculated from sparse image does not
 		 * exceed partition size
@@ -2371,7 +2368,7 @@ void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 		switch (chunk_header->chunk_type)
 		{
 			case CHUNK_TYPE_RAW:
-			if(chunk_header->total_sz != (sparse_header->chunk_hdr_sz +
+			if((uint64_t)chunk_header->total_sz != ((uint64_t)sparse_header->chunk_hdr_sz +
 											chunk_data_sz))
 			{
 				fastboot_fail("Bogus chunk size for chunk type Raw");
@@ -2383,8 +2380,11 @@ void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 				return;
 			}
 
+			/* chunk_header->total_sz is uint32,So chunk_data_sz is now less than 2^32
+			   otherwise it will return in the line above
+			 */
 			if(mmc_write(ptn + ((uint64_t)total_blocks*sparse_header->blk_sz),
-						chunk_data_sz,
+						(uint32_t)chunk_data_sz,
 						(unsigned int*)data))
 			{
 				fastboot_fail("flash write failure");
@@ -2395,7 +2395,7 @@ void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 				return;
 			}
 			total_blocks += chunk_header->chunk_sz;
-			data += chunk_data_sz;
+			data += (uint32_t)chunk_data_sz;
 			break;
 
 			case CHUNK_TYPE_FILL:
@@ -2419,14 +2419,13 @@ void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 			}
 			fill_val = *(uint32_t *)data;
 			data = (char *) data + sizeof(uint32_t);
-			chunk_blk_cnt = chunk_data_sz / sparse_header->blk_sz;
 
 			for (i = 0; i < (sparse_header->blk_sz / sizeof(fill_val)); i++)
 			{
 				fill_buf[i] = fill_val;
 			}
 
-			for (i = 0; i < chunk_blk_cnt; i++)
+			for (i = 0; i < chunk_header->chunk_sz; i++)
 			{
 				/* Make sure that the data written to partition does not exceed partition size */
 				if ((uint64_t)total_blocks * (uint64_t)sparse_header->blk_sz + sparse_header->blk_sz > size)
@@ -2461,7 +2460,7 @@ void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 			case CHUNK_TYPE_CRC:
 			if(chunk_header->total_sz != sparse_header->chunk_hdr_sz)
 			{
-				fastboot_fail("Bogus chunk size for chunk type Dont Care");
+				fastboot_fail("Bogus chunk size for chunk type CRC");
 				return;
 			}
 			if(total_blocks > (UINT_MAX - chunk_header->chunk_sz)) {
@@ -2473,7 +2472,7 @@ void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 				fastboot_fail("integer overflow occured");
 				return;
 			}
-			data += chunk_data_sz;
+			data += (uint32_t)chunk_data_sz;
 			if (data_end < (uint32_t)data) {
 				fastboot_fail("buffer overreads occured due to invalid sparse header");
 				return;
