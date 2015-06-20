@@ -451,10 +451,11 @@ static uint8_t sdhci_cmd_complete(struct sdhci_host *host, struct mmc_command *c
 		{
 			err_status = REG_READ16(host, SDHCI_ERR_INT_STS_REG);
 			if ((err_status & SDHCI_CMD_CRC_MASK) || (err_status & SDHCI_CMD_END_BIT_MASK)
-				|| err_status & SDHCI_CMD_TIMEOUT_MASK)
+				|| (err_status & SDHCI_CMD_TIMEOUT_MASK)
+				|| (err_status & SDHCI_CMD_IDX_MASK))
 			{
 				sdhci_reset(host, (SOFT_RESET_CMD | SOFT_RESET_DATA));
-				return 0;
+				return 1;
 			}
 		}
 
@@ -523,7 +524,7 @@ static uint8_t sdhci_cmd_complete(struct sdhci_host *host, struct mmc_command *c
 				if ((err_status & SDHCI_DAT_TIMEOUT_MASK) || (err_status & SDHCI_DAT_CRC_MASK))
 				{
 					sdhci_reset(host, (SOFT_RESET_CMD | SOFT_RESET_DATA));
-					return 0;
+					return 1;
 				}
 			}
 
@@ -877,10 +878,6 @@ uint32_t sdhci_send_command(struct sdhci_host *host, struct mmc_command *cmd)
 
 	/* Write the command register */
 	REG_WRITE16(host, SDHCI_PREP_CMD(cmd->cmd_index, flags), SDHCI_CMD_REG);
-
-#if USE_TARGET_HS200_DELAY
-	udelay(1000);
-#endif
 
 	/* Command complete sequence */
 	if (sdhci_cmd_complete(host, cmd))
