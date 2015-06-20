@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -26,13 +26,11 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <debug.h>
-#include <reg.h>
 #include <stdlib.h>
 #include <kernel/timer.h>
-#include <platform/timer.h>
-#include <vibrator.h>
+#include <kernel/thread.h>
 #include <pm_vib.h>
+#include <vibrator.h>
 
 #define CHECK_VIB_TIMER_FREQUENCY    50
 
@@ -52,7 +50,7 @@ void vib_turn_off()
 }
 
 /* Function to turn off vibrator when the vib_timer is expired. */
-static enum handler_return vib_timer_func(struct timer *v_timer, void *arg)
+static enum handler_return vib_timer_func(struct timer *v_timer, time_t t, void *arg)
 {
 	timer_cancel(&vib_timer);
 	vib_turn_off();
