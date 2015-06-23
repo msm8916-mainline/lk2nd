@@ -235,6 +235,8 @@ void target_init(void)
 {
 	dprintf(INFO, "target_init()\n");
 
+	pmic_info_populate();
+
 	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
 
 	target_keystatus();

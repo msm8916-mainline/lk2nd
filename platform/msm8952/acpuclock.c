@@ -296,50 +296,93 @@ static void branch_clk_halt_check(uint32_t reg)
 }
 
 /* Disable all the branch clocks needed by the DSI controller */
-void gcc_dsi_clocks_disable(void)
+void gcc_dsi_clocks_disable(uint32_t flags)
 {
-	clk_disable(clk_get("mdss_esc0_clk"));
-	writel(0x0, DSI_PIXEL0_CBCR);
-	writel(0x0, DSI_BYTE0_CBCR);
+	if (flags & MMSS_DSI_CLKS_FLAG_DSI0) {
+		clk_disable(clk_get("mdss_esc0_clk"));
+		writel(0x0, DSI_PIXEL0_CBCR);
+		writel(0x0, DSI_BYTE0_CBCR);
+	}
+
+	if (flags & MMSS_DSI_CLKS_FLAG_DSI1) {
+		clk_disable(clk_get("mdss_esc1_clk"));
+		writel(0x0, DSI_PIXEL1_CBCR);
+		writel(0x0, DSI_BYTE1_CBCR);
+	}
 }
 
 /* Configure all the branch clocks needed by the DSI controller */
-void gcc_dsi_clocks_enable(uint8_t pclk0_m, uint8_t pclk0_n, uint8_t pclk0_d)
+void gcc_dsi_clocks_enable(uint32_t flags, uint8_t pclk0_m,
+		uint8_t pclk0_n, uint8_t pclk0_d)
 {
 	int ret;
 
-	/*
-	 * Configure Byte clock -autopll- This will not change becasue
-	 * byte clock does not need any divider
-	 */
-	/* Set the source for DSI0 byte RCG */
-	writel(0x100, DSI_BYTE0_CFG_RCGR);
-	/* Set the update RCG bit */
-	writel(0x1, DSI_BYTE0_CMD_RCGR);
-	rcg_update_config(DSI_BYTE0_CMD_RCGR);
-	/* Enable the branch clock */
-	writel(0x1, DSI_BYTE0_CBCR);
-	branch_clk_halt_check(DSI_BYTE0_CBCR);
+	if (flags & MMSS_DSI_CLKS_FLAG_DSI0) {
+		/* Enable DSI0 branch clocks */
 
-	/* Configure Pixel clock */
-	/* Set the source for DSI0 pixel RCG */
-	writel(0x100, DSI_PIXEL0_CFG_RCGR);
-	/* Set the MND for DSI0 pixel clock */
-	writel(pclk0_m, DSI_PIXEL0_M);
-	writel(pclk0_n, DSI_PIXEL0_N);
-	writel(pclk0_d, DSI_PIXEL0_D);
-	/* Set the update RCG bit */
-	writel(0x1, DSI_PIXEL0_CMD_RCGR);
-	rcg_update_config(DSI_PIXEL0_CMD_RCGR);
-	/* Enable the branch clock */
-	writel(0x1, DSI_PIXEL0_CBCR);
-	branch_clk_halt_check(DSI_PIXEL0_CBCR);
+		/* Set the source for DSI0 byte RCG */
+		writel(0x100, DSI_BYTE0_CFG_RCGR);
+		/* Set the update RCG bit */
+		writel(0x1, DSI_BYTE0_CMD_RCGR);
+		rcg_update_config(DSI_BYTE0_CMD_RCGR);
+		/* Enable the branch clock */
+		writel(0x1, DSI_BYTE0_CBCR);
+		branch_clk_halt_check(DSI_BYTE0_CBCR);
 
-	/* Configure ESC clock */
-	ret = clk_get_set_enable("mdss_esc0_clk", 0, 1);
-	if (ret) {
-		dprintf(CRITICAL, "failed to set esc0_clk ret = %d\n", ret);
-		ASSERT(0);
+		/* Configure Pixel clock */
+		/* Set the source for DSI0 pixel RCG */
+		writel(0x100, DSI_PIXEL0_CFG_RCGR);
+		/* Set the MND for DSI0 pixel clock */
+		writel(pclk0_m, DSI_PIXEL0_M);
+		writel(pclk0_n, DSI_PIXEL0_N);
+		writel(pclk0_d, DSI_PIXEL0_D);
+		/* Set the update RCG bit */
+		writel(0x1, DSI_PIXEL0_CMD_RCGR);
+		rcg_update_config(DSI_PIXEL0_CMD_RCGR);
+		/* Enable the branch clock */
+		writel(0x1, DSI_PIXEL0_CBCR);
+		branch_clk_halt_check(DSI_PIXEL0_CBCR);
+
+		/* Configure ESC clock */
+		ret = clk_get_set_enable("mdss_esc0_clk", 0, 1);
+		if (ret) {
+			dprintf(CRITICAL, "failed to set esc0_clk ret = %d\n", ret);
+			ASSERT(0);
+		}
+	}
+
+	if (flags & MMSS_DSI_CLKS_FLAG_DSI1) {
+		/* Enable DSI1 branch clocks */
+
+		/* Set the source for DSI1 byte RCG */
+		writel(0x100, DSI_BYTE1_CFG_RCGR);
+		/* Set the update RCG bit */
+		writel(0x1, DSI_BYTE1_CMD_RCGR);
+		rcg_update_config(DSI_BYTE1_CMD_RCGR);
+		/* Enable the branch clock */
+		writel(0x1, DSI_BYTE1_CBCR);
+		branch_clk_halt_check(DSI_BYTE1_CBCR);
+
+		/* Configure Pixel clock */
+		/* Set the source for DSI1 pixel RCG */
+		writel(0x100, DSI_PIXEL1_CFG_RCGR);
+		/* Set the MND for DSI1 pixel clock */
+		writel(pclk0_m, DSI_PIXEL1_M);
+		writel(pclk0_n, DSI_PIXEL1_N);
+		writel(pclk0_d, DSI_PIXEL1_D);
+		/* Set the update RCG bit */
+		writel(0x1, DSI_PIXEL1_CMD_RCGR);
+		rcg_update_config(DSI_PIXEL1_CMD_RCGR);
+		/* Enable the branch clock */
+		writel(0x1, DSI_PIXEL1_CBCR);
+		branch_clk_halt_check(DSI_PIXEL1_CBCR);
+
+		/* Configure ESC clock */
+		ret = clk_get_set_enable("mdss_esc1_clk", 0, 1);
+		if (ret) {
+			dprintf(CRITICAL, "failed to set esc1_clk ret = %d\n", ret);
+			ASSERT(0);
+		}
 	}
 }
 

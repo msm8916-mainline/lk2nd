@@ -53,6 +53,9 @@ struct board_data {
 	uint32_t baseband;
 	struct board_pmic_data pmic_info[MAX_PMIC_DEVICES];
 	uint32_t platform_hlos_subtype;
+	uint32_t num_pmics;
+	uint32_t pmic_array_offset;
+	struct board_pmic_data *pmic_info_array;
 };
 
 void board_init();
@@ -69,6 +72,7 @@ uint32_t board_get_ddr_subtype(void);
 uint32_t board_hlos_subtype(void);
 uint32_t board_pmic_target(uint8_t num_ent);
 uint32_t board_chip_serial(void);
+void pmic_info_populate();
 
 /* DDR Subtype Macros
  * Determine the DDR Size on the device and define

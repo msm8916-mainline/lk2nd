@@ -75,6 +75,7 @@ uint32_t mdss_mdp_intf_offset()
 
 	if ((mdss_mdp_rev == MDSS_MDP_HW_REV_106) ||
 		(mdss_mdp_rev == MDSS_MDP_HW_REV_108) ||
+		(mdss_mdp_rev == MDSS_MDP_HW_REV_111) ||
 		(mdss_mdp_rev == MDSS_MDP_HW_REV_112))
 		mdss_mdp_intf_off = 0x59100;
 	else if (mdss_mdp_rev >= MDSS_MDP_HW_REV_102)
@@ -91,7 +92,8 @@ static uint32_t mdss_mdp_get_ppb_offset()
 	uint32_t mdss_mdp_rev = readl(MDP_HW_REV);
 
 	/* return MMSS_MDP_PPB0_CONFIG offset from MDSS base */
-	if (mdss_mdp_rev == MDSS_MDP_HW_REV_108)
+	if ((mdss_mdp_rev == MDSS_MDP_HW_REV_108) ||
+		(mdss_mdp_rev == MDSS_MDP_HW_REV_111))
 		mdss_mdp_ppb_off = 0x1420;
 	else if (mdss_mdp_rev == MDSS_MDP_HW_REV_110)
 		mdss_mdp_ppb_off = 0x1334;
@@ -105,7 +107,8 @@ static uint32_t mdss_mdp_vbif_qos_remap_get_offset()
 {
 	uint32_t mdss_mdp_rev = readl(MDP_HW_REV);
 
-	if (mdss_mdp_rev == MDSS_MDP_HW_REV_110)
+	if ((mdss_mdp_rev == MDSS_MDP_HW_REV_110) ||
+		(mdss_mdp_rev == MDSS_MDP_HW_REV_111))
 		return 0xB0020;
 	else if (MDSS_IS_MAJOR_MINOR_MATCHING(mdss_mdp_rev, MDSS_MDP_HW_REV_107))
 		return 0xB0000;
@@ -189,6 +192,7 @@ static void mdss_mdp_set_flush(struct msm_panel_info *pinfo,
 	/* For targets from MDP v1.5, MDP INTF registers are double buffered */
 	if ((mdss_mdp_rev == MDSS_MDP_HW_REV_106) ||
 		(mdss_mdp_rev == MDSS_MDP_HW_REV_108) ||
+		(mdss_mdp_rev == MDSS_MDP_HW_REV_111) ||
 		(mdss_mdp_rev == MDSS_MDP_HW_REV_112)) {
 		if (pinfo->dest == DISPLAY_2) {
 			*ctl0_reg_val |= BIT(31);
@@ -351,11 +355,12 @@ static void mdp_select_pipe_client_id(struct msm_panel_info *pinfo,
 	if (MDSS_IS_MAJOR_MINOR_MATCHING(mdss_mdp_rev, MDSS_MDP_HW_REV_101) ||
 		MDSS_IS_MAJOR_MINOR_MATCHING(mdss_mdp_rev, MDSS_MDP_HW_REV_106) ||
 		MDSS_IS_MAJOR_MINOR_MATCHING(mdss_mdp_rev, MDSS_MDP_HW_REV_108) ||
+		MDSS_IS_MAJOR_MINOR_MATCHING(mdss_mdp_rev, MDSS_MDP_HW_REV_111) ||
 		MDSS_IS_MAJOR_MINOR_MATCHING(mdss_mdp_rev, MDSS_MDP_HW_REV_112)) {
 		switch (pinfo->pipe_type) {
 			case MDSS_MDP_PIPE_TYPE_RGB:
 				*left_sspp_client_id = 0x7; /* 7 */
-				*right_sspp_client_id = 0x11; /* 17 */
+				*right_sspp_client_id = 0x8; /* 8 */
 				break;
 			case MDSS_MDP_PIPE_TYPE_DMA:
 				*left_sspp_client_id = 0x4; /* 4 */
@@ -364,7 +369,7 @@ static void mdp_select_pipe_client_id(struct msm_panel_info *pinfo,
 			case MDSS_MDP_PIPE_TYPE_VIG:
 			default:
 				*left_sspp_client_id = 0x1; /* 1 */
-				*right_sspp_client_id = 0x4; /* 4 */
+				*right_sspp_client_id = 0x9; /* 9 */
 				break;
 		}
 	} else {
@@ -419,8 +424,9 @@ static void mdss_smp_setup(struct msm_panel_info *pinfo, uint32_t left_pipe,
 		(mdss_mdp_rev == MDSS_MDP_HW_REV_112)) {
 		/* 8Kb per SMP on 8916/8952 */
 		smp_size = 8192;
-	} else if (mdss_mdp_rev == MDSS_MDP_HW_REV_108) {
-		/* 10Kb per SMP on 8939 */
+	} else if ((mdss_mdp_rev == MDSS_MDP_HW_REV_108) ||
+		(mdss_mdp_rev == MDSS_MDP_HW_REV_111)) {
+		/* 10Kb per SMP on 8939/8956 */
 		smp_size = 10240;
 	} else if ((mdss_mdp_rev >= MDSS_MDP_HW_REV_103) &&
 		(mdss_mdp_rev < MDSS_MDP_HW_REV_200)) {
@@ -792,6 +798,8 @@ void mdss_qos_remapper_setup(void)
 		 MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev,
 			MDSS_MDP_HW_REV_108) ||
 		 MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev,
+			MDSS_MDP_HW_REV_111) ||
+		 MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev,
 			MDSS_MDP_HW_REV_112))
 		map = 0xE4;
 	else if (MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev,
@@ -825,6 +833,7 @@ void mdss_vbif_qos_remapper_setup(struct msm_panel_info *pinfo)
 
 	if (MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev, MDSS_MDP_HW_REV_106) ||
 		 MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev, MDSS_MDP_HW_REV_108) ||
+		 MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev, MDSS_MDP_HW_REV_111) ||
 		 MDSS_IS_MAJOR_MINOR_MATCHING(mdp_hw_rev, MDSS_MDP_HW_REV_112)) {
 		vbif_qos[0] = 2;
 		vbif_qos[1] = 2;

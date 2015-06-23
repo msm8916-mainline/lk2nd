@@ -99,6 +99,7 @@
 #define APCS_CLOCK_BRANCH_ENA_VOTE         (CLK_CTL_BASE + 0x45004)
 #define GPLL4_MODE                         (CLK_CTL_BASE + 0x24000)
 #define GPLL4_STATUS                       (CLK_CTL_BASE + 0x24024)
+#define GPLL6_STATUS                       (CLK_CTL_BASE + 0x3701C)
 
 /* SDCC */
 #define SDC1_HDRV_PULL_CTL                 (TLMM_BASE_ADDR + 0x10A000)
@@ -149,11 +150,11 @@
 /* MDSS */
 #define MIPI_DSI_BASE               (0x1A98000)
 #define MIPI_DSI0_BASE              MIPI_DSI_BASE
-#define MIPI_DSI1_BASE              MIPI_DSI_BASE
+#define MIPI_DSI1_BASE              (0x1A96000)
 #define DSI0_PHY_BASE               (0x1A98500)
-#define DSI1_PHY_BASE               DSI0_PHY_BASE
+#define DSI1_PHY_BASE               (0x1A96400)
 #define DSI0_PLL_BASE               (0x1A98300)
-#define DSI1_PLL_BASE               DSI0_PLL_BASE
+#define DSI1_PLL_BASE               (0x1A96A00)
 #define DSI0_REGULATOR_BASE         (0x1A98780)
 #define DSI1_REGULATOR_BASE         DSI0_REGULATOR_BASE
 #define MDP_BASE                    (0x1A00000)
@@ -283,6 +284,26 @@
 #undef MDP_INTF_1_BASE
 #endif
 #define MDP_INTF_1_BASE                         REG_MDP(0x12700)
+
+#ifdef MDP_INTF_2_BASE
+#undef MDP_INTF_2_BASE
+#endif
+#define MDP_INTF_2_BASE                         REG_MDP(0x12F00)
+
+#ifdef MDP_REG_SPLIT_DISPLAY_EN
+#undef MDP_REG_SPLIT_DISPLAY_EN
+#endif
+#define MDP_REG_SPLIT_DISPLAY_EN                REG_MDP(0x12F4)
+
+#ifdef MDP_REG_SPLIT_DISPLAY_UPPER_PIPE_CTL
+#undef MDP_REG_SPLIT_DISPLAY_UPPER_PIPE_CTL
+#endif
+#define MDP_REG_SPLIT_DISPLAY_UPPER_PIPE_CTL    REG_MDP(0x12F8)
+
+#ifdef MDP_REG_SPLIT_DISPLAY_LOWER_PIPE_CTL
+#undef MDP_REG_SPLIT_DISPLAY_LOWER_PIPE_CTL
+#endif
+#define MDP_REG_SPLIT_DISPLAY_LOWER_PIPE_CTL    REG_MDP(0x13F0)
 
 #ifdef MMSS_MDP_SMP_ALLOC_W_BASE
 #undef MMSS_MDP_SMP_ALLOC_W_BASE

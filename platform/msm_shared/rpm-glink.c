@@ -53,7 +53,8 @@
 
 glink_handle_type rpm_glink_port, ssr_glink_port;
 static uint32_t msg_id;
-static event_t wait_for_init;
+static event_t wait_for_rpm_init;
+static event_t wait_for_ssr_init;
 static event_t wait_for_data;
 
 extern glink_err_type glink_wait_link_down(glink_handle_type handle);
@@ -262,7 +263,17 @@ void rpm_glink_notify_state_isr(glink_handle_type handle, void *data, glink_chan
 {
 	if(event == GLINK_CONNECTED)
 	{
-		event_signal(&wait_for_init, false);
+		event_signal(&wait_for_rpm_init, false);
+		dprintf(INFO, "Glink Connection between APPS and RPM established\n");
+		return;
+	}
+}
+
+void rpm_glink_notify_state_ssr_isr(glink_handle_type handle, void *data, glink_channel_event_type event)
+{
+	if(event == GLINK_CONNECTED)
+	{
+		event_signal(&wait_for_ssr_init, false);
 		dprintf(INFO, "Glink Connection between APPS and RPM established\n");
 		return;
 	}
@@ -303,7 +314,7 @@ void rpm_glink_open(glink_link_info_type *link_info, void* priv)
 	glink_ssr_open_cfg.notify_rx = NULL;
 	glink_ssr_open_cfg.notify_rxv = (glink_rxv_notification_cb)rpm_vector_glink_ssr_isr;
 	glink_ssr_open_cfg.notify_tx_done = (glink_tx_notification_cb)rpm_glink_tx_done_isr;
-	glink_ssr_open_cfg.notify_state = (glink_state_notification_cb)rpm_glink_notify_state_isr;
+	glink_ssr_open_cfg.notify_state = (glink_state_notification_cb)rpm_glink_notify_state_ssr_isr;
 	glink_ssr_open_cfg.priv = NULL;
 
 	ret = glink_open(&glink_ssr_open_cfg, &ssr_glink_port);
@@ -321,7 +332,8 @@ void rpm_glink_init()
 {
 	glink_err_type ret;
 	glink_link_id_type link_id;
-	event_init(&wait_for_init, false, EVENT_FLAG_AUTOUNSIGNAL);
+	event_init(&wait_for_rpm_init, false, EVENT_FLAG_AUTOUNSIGNAL);
+	event_init(&wait_for_ssr_init, false, EVENT_FLAG_AUTOUNSIGNAL);
 
 	dprintf(INFO, "RPM GLink Init\n");
 	// Initialize RPM transport
@@ -339,7 +351,8 @@ void rpm_glink_init()
 		dprintf(CRITICAL, "RPM Glink Init Failure 0x%x\n", ret);
 		ASSERT(0);
 	}
-	event_wait(&wait_for_init);
+	event_wait(&wait_for_rpm_init);
+	event_wait(&wait_for_ssr_init);
 }
 
 void rpm_glink_uninit()

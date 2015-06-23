@@ -67,6 +67,10 @@
 #include <dev_tree.h>
 #endif
 
+#if WDOG_SUPPORT
+#include <wdog.h>
+#endif
+
 #include "image_verify.h"
 #include "recovery.h"
 #include "bootimg.h"
@@ -667,6 +671,10 @@ void boot_linux(void *kernel, unsigned *tags,
 
 	enter_critical_section();
 
+	/* Initialise wdog to catch early kernel crashes */
+#if WDOG_SUPPORT
+	msm_wdog_init();
+#endif
 	/* do any platform specific cleanup before kernel entry */
 	platform_uninit();
 
@@ -1715,10 +1723,7 @@ void read_device_info(device_info *dev)
 		if (memcmp(info->magic, DEVICE_MAGIC, DEVICE_MAGIC_SIZE))
 		{
 			memcpy(info->magic, DEVICE_MAGIC, DEVICE_MAGIC_SIZE);
-			if (is_secure_boot_enable())
-				info->is_unlocked = 0;
-			else
-				info->is_unlocked = 1;
+			info->is_unlocked = 0;
 			info->is_verified = 0;
 			info->is_tampered = 0;
 #if USER_BUILD_VARIANT
@@ -2103,17 +2108,20 @@ void cmd_erase_mmc(const char *arg, void *data, unsigned sz)
 void cmd_erase(const char *arg, void *data, unsigned sz)
 {
 #if VERIFIED_BOOT
-	if(!device.is_unlocked && !device.is_verified)
+	if (target_build_variant_user())
 	{
-		fastboot_fail("device is locked. Cannot erase");
-		return;
-	}
-	if(!device.is_unlocked && device.is_verified)
-	{
-		if(!boot_verify_flash_allowed(arg))
+		if(!device.is_unlocked && !device.is_verified)
 		{
-			fastboot_fail("cannot flash this partition in verified state");
+			fastboot_fail("device is locked. Cannot erase");
 			return;
+		}
+		if(!device.is_unlocked && device.is_verified)
+		{
+			if(!boot_verify_flash_allowed(arg))
+			{
+				fastboot_fail("cannot flash this partition in verified state");
+				return;
+			}
 		}
 	}
 #endif
@@ -2251,10 +2259,9 @@ void cmd_flash_meta_img(const char *arg, void *data, unsigned sz)
 void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 {
 	unsigned int chunk;
-	unsigned int chunk_data_sz;
+	uint64_t chunk_data_sz;
 	uint32_t *fill_buf = NULL;
 	uint32_t fill_val;
-	uint32_t chunk_blk_cnt = 0;
 	sparse_header_t *sparse_header;
 	chunk_header_t *chunk_header;
 	uint32_t total_blocks = 0;
@@ -2263,6 +2270,8 @@ void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 	int index = INVALID_PTN;
 	uint32_t i;
 	uint8_t lun = 0;
+	/*End of the sparse image address*/
+	uint32_t data_end = (uint32_t)data + sz;
 
 	index = partition_get_index(arg);
 	ptn = partition_get_offset(index);
@@ -2272,28 +2281,34 @@ void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 	}
 
 	size = partition_get_size(index);
-	if (ROUND_TO_PAGE(sz,511) > size) {
-		fastboot_fail("size too large");
-		return;
-	}
 
 	lun = partition_get_lun(index);
 	mmc_set_lun(lun);
 
+	if (sz < sizeof(sparse_header_t)) {
+		fastboot_fail("size too low");
+		return;
+	}
+
 	/* Read and skip over sparse image header */
 	sparse_header = (sparse_header_t *) data;
+
 	if (((uint64_t)sparse_header->total_blks * (uint64_t)sparse_header->blk_sz) > size) {
 		fastboot_fail("size too large");
 		return;
 	}
 
-	data += sparse_header->file_hdr_sz;
-	if(sparse_header->file_hdr_sz > sizeof(sparse_header_t))
+	data += sizeof(sparse_header_t);
+
+	if (data_end < (uint32_t)data) {
+		fastboot_fail("buffer overreads occured due to invalid sparse header");
+		return;
+	}
+
+	if(sparse_header->file_hdr_sz != sizeof(sparse_header_t))
 	{
-		/* Skip the remaining bytes in a header that is longer than
-		 * we expected.
-		 */
-		data += (sparse_header->file_hdr_sz - sizeof(sparse_header_t));
+		fastboot_fail("sparse header size mismatch");
+		return;
 	}
 
 	dprintf (SPEW, "=== Sparse Image Header ===\n");
@@ -2318,27 +2333,28 @@ void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 		chunk_header = (chunk_header_t *) data;
 		data += sizeof(chunk_header_t);
 
+		if (data_end < (uint32_t)data) {
+			fastboot_fail("buffer overreads occured due to invalid sparse header");
+			return;
+		}
+
 		dprintf (SPEW, "=== Chunk Header ===\n");
 		dprintf (SPEW, "chunk_type: 0x%x\n", chunk_header->chunk_type);
 		dprintf (SPEW, "chunk_data_sz: 0x%x\n", chunk_header->chunk_sz);
 		dprintf (SPEW, "total_size: 0x%x\n", chunk_header->total_sz);
 
-		if(sparse_header->chunk_hdr_sz > sizeof(chunk_header_t))
+		if(sparse_header->chunk_hdr_sz != sizeof(chunk_header_t))
 		{
-			/* Skip the remaining bytes in a header that is longer than
-			 * we expected.
-			 */
-			data += (sparse_header->chunk_hdr_sz - sizeof(chunk_header_t));
-		}
-
-		chunk_data_sz = sparse_header->blk_sz * chunk_header->chunk_sz;
-
-		/* Make sure multiplication does not overflow uint32 size */
-		if (sparse_header->blk_sz && (chunk_header->chunk_sz != chunk_data_sz / sparse_header->blk_sz))
-		{
-			fastboot_fail("Bogus size sparse and chunk header");
+			fastboot_fail("chunk header size mismatch");
 			return;
 		}
+
+		if (!sparse_header->blk_sz ){
+			fastboot_fail("Invalid block size\n");
+			return;
+		}
+
+		chunk_data_sz = (uint64_t)sparse_header->blk_sz * chunk_header->chunk_sz;
 
 		/* Make sure that the chunk size calculated from sparse image does not
 		 * exceed partition size
@@ -2352,15 +2368,23 @@ void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 		switch (chunk_header->chunk_type)
 		{
 			case CHUNK_TYPE_RAW:
-			if(chunk_header->total_sz != (sparse_header->chunk_hdr_sz +
+			if((uint64_t)chunk_header->total_sz != ((uint64_t)sparse_header->chunk_hdr_sz +
 											chunk_data_sz))
 			{
 				fastboot_fail("Bogus chunk size for chunk type Raw");
 				return;
 			}
 
+			if (data_end < (uint32_t)data + chunk_data_sz) {
+				fastboot_fail("buffer overreads occured due to invalid sparse header");
+				return;
+			}
+
+			/* chunk_header->total_sz is uint32,So chunk_data_sz is now less than 2^32
+			   otherwise it will return in the line above
+			 */
 			if(mmc_write(ptn + ((uint64_t)total_blocks*sparse_header->blk_sz),
-						chunk_data_sz,
+						(uint32_t)chunk_data_sz,
 						(unsigned int*)data))
 			{
 				fastboot_fail("flash write failure");
@@ -2371,7 +2395,7 @@ void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 				return;
 			}
 			total_blocks += chunk_header->chunk_sz;
-			data += chunk_data_sz;
+			data += (uint32_t)chunk_data_sz;
 			break;
 
 			case CHUNK_TYPE_FILL:
@@ -2389,16 +2413,19 @@ void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 				return;
 			}
 
+			if (data_end < (uint32_t)data + sizeof(uint32_t)) {
+				fastboot_fail("buffer overreads occured due to invalid sparse header");
+				return;
+			}
 			fill_val = *(uint32_t *)data;
 			data = (char *) data + sizeof(uint32_t);
-			chunk_blk_cnt = chunk_data_sz / sparse_header->blk_sz;
 
 			for (i = 0; i < (sparse_header->blk_sz / sizeof(fill_val)); i++)
 			{
 				fill_buf[i] = fill_val;
 			}
 
-			for (i = 0; i < chunk_blk_cnt; i++)
+			for (i = 0; i < chunk_header->chunk_sz; i++)
 			{
 				/* Make sure that the data written to partition does not exceed partition size */
 				if ((uint64_t)total_blocks * (uint64_t)sparse_header->blk_sz + sparse_header->blk_sz > size)
@@ -2433,7 +2460,7 @@ void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 			case CHUNK_TYPE_CRC:
 			if(chunk_header->total_sz != sparse_header->chunk_hdr_sz)
 			{
-				fastboot_fail("Bogus chunk size for chunk type Dont Care");
+				fastboot_fail("Bogus chunk size for chunk type CRC");
 				return;
 			}
 			if(total_blocks > (UINT_MAX - chunk_header->chunk_sz)) {
@@ -2441,7 +2468,15 @@ void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 				return;
 			}
 			total_blocks += chunk_header->chunk_sz;
-			data += chunk_data_sz;
+			if ((uint32_t)data > UINT_MAX - chunk_data_sz) {
+				fastboot_fail("integer overflow occured");
+				return;
+			}
+			data += (uint32_t)chunk_data_sz;
+			if (data_end < (uint32_t)data) {
+				fastboot_fail("buffer overreads occured due to invalid sparse header");
+				return;
+			}
 			break;
 
 			default:
@@ -2537,17 +2572,20 @@ void cmd_flash_mmc(const char *arg, void *data, unsigned sz)
 #endif /* SSD_ENABLE */
 
 #if VERIFIED_BOOT
-	if(!device.is_unlocked)
+	if (target_build_variant_user())
 	{
-		fastboot_fail("device is locked. Cannot flash images");
-		return;
-	}
-	if(!device.is_unlocked && device.is_verified)
-	{
-		if(!boot_verify_flash_allowed(arg))
+		if(!device.is_unlocked)
 		{
-			fastboot_fail("cannot flash this partition in verified state");
+			fastboot_fail("device is locked. Cannot flash images");
 			return;
+		}
+		if(!device.is_unlocked && device.is_verified)
+		{
+			if(!boot_verify_flash_allowed(arg))
+			{
+				fastboot_fail("cannot flash this partition in verified state");
+				return;
+			}
 		}
 	}
 #endif

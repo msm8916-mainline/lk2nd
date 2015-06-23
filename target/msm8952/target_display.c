@@ -45,6 +45,7 @@
 #include <platform/iomap.h>
 #include <target/display.h>
 #include <qtimer.h>
+#include <platform.h>
 
 #include "include/panel.h"
 #include "include/display_resource.h"
@@ -65,11 +66,20 @@ static struct gpio_pin bkl_gpio = {
   "msmgpio", 91, 3, 1, 0, 1
 };
 
+static struct gpio_pin lcd_mode_gpio = {
+  "msmgpio", 107, 3, 1, 0, 1
+};
+
 #define VCO_DELAY_USEC 1000
 #define GPIO_STATE_LOW 0
 #define GPIO_STATE_HIGH 2
 #define RESET_GPIO_SEQ_LEN 3
 #define PMIC_WLED_SLAVE_ID 3
+
+#define DSI0_BASE_ADJUST -0x4000
+#define DSI0_PHY_BASE_ADJUST -0x4100
+#define DSI0_PHY_PLL_BASE_ADJUST -0x3900
+#define DSI0_PHY_REGULATOR_BASE_ADJUST -0x3C00
 
 static void mdss_dsi_uniphy_pll_sw_reset_8952(uint32_t pll_base)
 {
@@ -92,6 +102,20 @@ static void dsi_pll_sw_reset_8952(uint32_t pll_base)
 	writel(0x01, pll_base + 0x0068); /* PLL TEST CFG */
 	udelay(1);
 	writel(0x00, pll_base + 0x0068); /* PLL TEST CFG */
+	udelay(1);
+}
+
+static uint32_t dsi_pll_lock_status_8956(uint32_t pll_base)
+{
+	uint32_t counter, status;
+
+	status = readl(pll_base + 0x00c0) & 0x01;
+	for (counter = 0; counter < 5 && !status; counter++) {
+		udelay(100);
+		status = readl(pll_base + 0x00c0) & 0x01;
+	}
+
+	return status;
 }
 
 static uint32_t gf_1_dsi_pll_enable_sequence_8952(uint32_t pll_base)
@@ -201,6 +225,33 @@ static uint32_t dsi_pll_enable_seq_8952(uint32_t pll_base)
 	return pll_locked;
 }
 
+static uint32_t dsi_pll_enable_seq_8956(uint32_t pll_base)
+{
+	/*
+	 * PLL power up sequence
+	 * Add necessary delays recommended by h/w team
+	 */
+
+	/* Lock Detect setting */
+	writel(0x0d, pll_base + 0x0064); /* LKDetect CFG2 */
+	writel(0x34, pll_base + 0x0070); /* PLL CAL_CFG1 */
+	writel(0x10, pll_base + 0x005c); /* LKDetect CFG0 */
+	writel(0x1a, pll_base + 0x0060); /* LKDetect CFG1 */
+
+	writel(0x01, pll_base + 0x0020); /* GLB CFG */
+	udelay(300);
+	writel(0x05, pll_base + 0x0020); /* GLB CFG */
+	udelay(300);
+	writel(0x0f, pll_base + 0x0020); /* GLB CFG */
+	udelay(300);
+	writel(0x07, pll_base + 0x0020); /* GLB CFG */
+	udelay(300);
+	writel(0x0f, pll_base + 0x0020); /* GLB CFG */
+	udelay(1000);
+
+	return dsi_pll_lock_status_8956(pll_base);
+}
+
 static int msm8952_wled_backlight_ctrl(uint8_t enable)
 {
 	uint8_t slave_id = PMIC_WLED_SLAVE_ID;	/* pmi */
@@ -223,11 +274,38 @@ int target_backlight_ctrl(struct backlight *bl, uint8_t enable)
 	return ret;
 }
 
-int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
+static int32_t mdss_dsi_pll_config(uint32_t pll_base, uint32_t ctl_base,
+		struct mdss_dsi_pll_config *pll_data)
 {
 	int32_t ret = 0;
+	if (!platform_is_msm8956())
+		mdss_dsi_uniphy_pll_sw_reset_8952(pll_base);
+	else
+		dsi_pll_sw_reset_8952(pll_base);
+	mdss_dsi_auto_pll_config(pll_base, ctl_base, pll_data);
+	if (platform_is_msm8956())
+		ret = dsi_pll_enable_seq_8956(pll_base);
+	else
+		ret = dsi_pll_enable_seq_8952(pll_base);
+
+	return ret;
+}
+
+int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
+{
+	int32_t ret = 0, flags;
 	struct mdss_dsi_pll_config *pll_data;
 	dprintf(SPEW, "target_panel_clock\n");
+
+	if (pinfo->dest == DISPLAY_2) {
+		flags = MMSS_DSI_CLKS_FLAG_DSI1;
+		if (pinfo->mipi.dual_dsi)
+			flags |= MMSS_DSI_CLKS_FLAG_DSI0;
+	} else {
+		flags = MMSS_DSI_CLKS_FLAG_DSI0;
+		if (pinfo->mipi.dual_dsi)
+			flags |= MMSS_DSI_CLKS_FLAG_DSI1;
+	}
 
 	pll_data = pinfo->mipi.dsi_pll_config;
 	pll_data->vco_delay = VCO_DELAY_USEC;
@@ -246,15 +324,23 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 			mdp_gdsc_ctrl(0);
 			return ret;
 		}
-		mdss_dsi_uniphy_pll_sw_reset_8952(pinfo->mipi.pll_base);
-		mdss_dsi_auto_pll_config(pinfo->mipi.pll_base,
-						pinfo->mipi.ctl_base, pll_data);
-		if (!dsi_pll_enable_seq_8952(pinfo->mipi.pll_base))
-			dprintf(CRITICAL, "Not able to enable the pll\n");
-		gcc_dsi_clocks_enable(pll_data->pclk_m, pll_data->pclk_n,
+
+		ret = mdss_dsi_pll_config(pinfo->mipi.pll_base,
+			pinfo->mipi.ctl_base, pll_data);
+		if (!ret)
+			dprintf(CRITICAL, "Not able to enable master pll\n");
+
+		if (platform_is_msm8956() && pinfo->mipi.dual_dsi) {
+				ret = mdss_dsi_pll_config(pinfo->mipi.spll_base,
+					pinfo->mipi.sctl_base, pll_data);
+			if (!ret)
+				dprintf(CRITICAL, "Not able to enable second pll\n");
+		}
+
+		gcc_dsi_clocks_enable(flags, pll_data->pclk_m, pll_data->pclk_n,
 				pll_data->pclk_d);
 	} else if(!target_cont_splash_screen()) {
-		gcc_dsi_clocks_disable();
+		gcc_dsi_clocks_disable(flags);
 		mdp_clock_disable();
 		mdss_bus_clocks_disable();
 		mdp_gdsc_ctrl(enable);
@@ -268,8 +354,13 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 {
 	int ret = NO_ERROR;
 
+	if (platform_is_msm8956()) {
+		reset_gpio.pin_id = 25;
+		bkl_gpio.pin_id = 66;
+	}
+
 	if (enable) {
-		if (pinfo->mipi.use_enable_gpio) {
+		if (pinfo->mipi.use_enable_gpio && !platform_is_msm8956()) {
 			gpio_tlmm_config(enable_gpio.pin_id, 0,
 				enable_gpio.pin_direction, enable_gpio.pin_pull,
 				enable_gpio.pin_strength,
@@ -298,10 +389,23 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 				gpio_set_dir(reset_gpio.pin_id, GPIO_STATE_HIGH);
 			mdelay(resetseq->sleep[i]);
 		}
+
+		if (platform_is_msm8956()) {
+			gpio_tlmm_config(lcd_mode_gpio.pin_id, 0,
+				lcd_mode_gpio.pin_direction, lcd_mode_gpio.pin_pull,
+				lcd_mode_gpio.pin_strength, lcd_mode_gpio.pin_state);
+
+			if (pinfo->lcdc.split_display || pinfo->lcdc.dst_split)
+				gpio_set_dir(lcd_mode_gpio.pin_id, GPIO_STATE_LOW);
+			else
+				gpio_set_dir(lcd_mode_gpio.pin_id, GPIO_STATE_HIGH);
+		}
 	} else if(!target_cont_splash_screen()) {
 		gpio_set_dir(reset_gpio.pin_id, 0);
-		if (pinfo->mipi.use_enable_gpio)
+		if (pinfo->mipi.use_enable_gpio && !platform_is_msm8956())
 			gpio_set_dir(enable_gpio.pin_id, 0);
+		if (platform_is_msm8956())
+			gpio_set_dir(lcd_mode_gpio.pin_id, 0);
 	}
 
 	return ret;
@@ -372,17 +476,39 @@ int target_dsi_phy_config(struct mdss_dsi_phy_ctrl *phy_db)
 	return NO_ERROR;
 }
 
+int target_display_get_base_offset(uint32_t base)
+{
+	if(platform_is_msm8956()) {
+		if (base == MIPI_DSI0_BASE)
+			return DSI0_BASE_ADJUST;
+		else if (base == DSI0_PHY_BASE)
+			return DSI0_PHY_BASE_ADJUST;
+		else if (base == DSI0_PLL_BASE)
+			return DSI0_PHY_PLL_BASE_ADJUST;
+		else if (base == DSI0_REGULATOR_BASE)
+			return DSI0_PHY_REGULATOR_BASE_ADJUST;
+	}
+
+	return 0;
+}
+
 int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 {
+	uint32_t ldo_num = REG_LDO6 | REG_LDO17;
+
+	if (platform_is_msm8956())
+		ldo_num |= REG_LDO1;
+	else
+		ldo_num |= REG_LDO2;
 
 	if (enable) {
-		regulator_enable(REG_LDO2 | REG_LDO6 | REG_LDO17);
+		regulator_enable(ldo_num);
 		mdelay(10);
 		wled_init(pinfo);
 		qpnp_ibb_enable(true); /*5V boost*/
 		mdelay(50);
 	} else {
-		regulator_disable(REG_LDO2 | REG_LDO6 | REG_LDO17);
+		regulator_disable(ldo_num);
 	}
 
 	return NO_ERROR;

@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -239,6 +239,12 @@ void smd_read(smd_channel_info_t *ch, uint32_t *len, int ch_type, uint32_t *resp
 	/* Read the indices from smem */
 	ch->port_info = smem_get_alloc_entry(SMEM_SMD_BASE_ID + ch->alloc_entry.cid,
 										 &size);
+	if(!ch->port_info)
+	{
+		dprintf(CRITICAL,"%s: unable to find index in smem\n", __func__);
+		ASSERT(0);
+	}
+
 	if(!ch->port_info->ch1.DTR_DSR)
 	{
 		dprintf(CRITICAL,"%s: DTR is off\n", __func__);
@@ -303,6 +309,11 @@ int smd_write(smd_channel_info_t *ch, void *data, uint32_t len, int ch_type)
 	/* Read the indices from smem */
 	ch->port_info = smem_get_alloc_entry(SMEM_SMD_BASE_ID + ch->alloc_entry.cid,
                                                         &size);
+	if(!ch->port_info)
+	{
+		dprintf(CRITICAL,"%s: unable to find index in smem\n", __func__);
+		ASSERT(0);
+	}
 
 	if(!is_channel_open(ch))
 	{

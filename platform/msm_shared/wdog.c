@@ -1,5 +1,5 @@
-/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
- *
+/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
+
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
@@ -9,7 +9,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of The Linux Foundation, Inc. nor the names of its
+ *   * Neither the name of The Linux Foundation. nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -26,33 +26,30 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <bits.h>
-#include <pm8x41_hw.h>
-#include <pm_vib.h>
+#include <stdlib.h>
+#include <debug.h>
+#include <platform.h>
+#include <platform/iomap.h>
+#include <reg.h>
+#include <wdog.h>
+#include <target.h>
 
-#define QPNP_VIB_EN    BIT(7)
-
-/* Turn on vibrator */
-void pm_vib_turn_on(void)
+void msm_wdog_init()
 {
-	uint8_t val;
+	uint32_t rc;
 
-	val = pm8x41_reg_read(QPNP_VIB_VTG_CTL);
-	val &= ~QPNP_VIB_VTG_SET_MASK;
-	val |= (QPNP_VIB_DEFAULT_VTG_LVL & QPNP_VIB_VTG_SET_MASK);
-	pm8x41_reg_write(QPNP_VIB_VTG_CTL, val);
+	/* Set Bite and Bark times  10s */
+	writel(0x77FD3, APPS_WDOG_BARK_VAL_REG);
+	writel(0x77FD3, APPS_WDOG_BITE_VAL_REG);
 
-	val = pm8x41_reg_read(QPNP_VIB_EN_CTL);
-	val |= QPNP_VIB_EN;
-	pm8x41_reg_write(QPNP_VIB_EN_CTL, val);
-}
+	/* Reset WDOG */
+	writel(1, APPS_WDOG_RESET_REG);
 
-/* Turn off vibrator */
-void pm_vib_turn_off(void)
-{
-	uint8_t val;
+	/* Enable WDOG */
+	writel((readl(APPS_WDOG_CTL_REG) | 0x1), APPS_WDOG_CTL_REG);
 
-	val = pm8x41_reg_read(QPNP_VIB_EN_CTL);
-	val &= ~QPNP_VIB_EN;
-	pm8x41_reg_write(QPNP_VIB_EN_CTL, val);
+	/* Set dload mode */
+	rc = set_download_mode(NORMAL_DLOAD);
+	if(rc)
+		dprintf(CRITICAL, "set_download_mode failed\n");
 }
