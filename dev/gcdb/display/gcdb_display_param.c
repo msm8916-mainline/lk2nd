@@ -37,38 +37,30 @@
 #include "target/display.h"
 #include "fastboot_oem_display.h"
 
-struct oem_panel_data oem_data = {{'\0'}, false, false, SIM_NONE};
+struct oem_panel_data oem_data = {{'\0'}, {'\0'}, false, false, SIM_NONE, "single_dsi"};
 
-void panel_name_to_dt_string(struct panel_lookup_list supp_panels[],
+static int panel_name_to_dt_string(struct panel_lookup_list supp_panels[],
 			  uint32_t supp_panels_size,
-			  const char *panel_name, char **panel_node,
-			  char **slave_panel_node, int *panel_mode)
+			  const char *panel_name, char **panel_node)
 {
 	uint32_t i;
 
 	if (!panel_name) {
 		dprintf(CRITICAL, "Invalid panel name\n");
-		return;
+		return ERR_NOT_VALID;
 	}
 
 	for (i = 0; i < supp_panels_size; i++) {
 		if (!strncmp(panel_name, supp_panels[i].name,
 			MAX_PANEL_ID_LEN)) {
 			*panel_node = supp_panels[i].panel_dt_string;
-			if (supp_panels[i].is_split_dsi) {
-				*slave_panel_node =
-					supp_panels[i].panel_dt_string;
-				*panel_mode = DUAL_DSI_FLAG;
-			} else {
-				*panel_mode = 0;
-			}
-			break;
+			return supp_panels[i].is_split_dsi;
 		}
 	}
 
-	if (i == supp_panels_size)
-		dprintf(CRITICAL, "Panel_name:%s not found in lookup table\n",
-			panel_name);
+	dprintf(CRITICAL, "Panel_name:%s not found in lookup table\n",
+		panel_name);
+	return ERR_NOT_FOUND;
 }
 
 void sim_override_to_cmdline(struct sim_lookup_list sim[],
@@ -93,30 +85,101 @@ struct oem_panel_data mdss_dsi_get_oem_data(void)
 	return oem_data;
 }
 
+static char *get_panel_token_end(const char *string)
+{
+	char *ch_hash = NULL, *ch_col = NULL;
+
+	/* ':' and '#' are delimiters in the string */
+	ch_col = strchr((char *) string, ':');
+	ch_hash = strchr((char *) string, '#');
+
+	if (ch_col && ch_hash)
+		return ((ch_col < ch_hash) ? ch_col : ch_hash);
+	else if (ch_col)
+		return ch_col;
+	else if (ch_hash)
+		return ch_hash;
+	return NULL;
+}
+
 void set_panel_cmd_string(const char *panel_name)
 {
-	char *ch = NULL, *ch_hash = NULL, *ch_col = NULL;
+	char *ch = NULL, *ch_tmp = NULL;
 	int i;
 
 	panel_name += strspn(panel_name, " ");
 
-	/* Panel string - ':' and '#' are delimiters */
-	ch_col = strchr((char *) panel_name, ':');
-	ch_hash = strchr((char *) panel_name, '#');
-
-	if (ch_col && ch_hash)
-		ch = (ch_col < ch_hash) ? ch_col : ch_hash;
-	else if (ch_col)
-		ch = ch_col;
-	else if (ch_hash)
-		ch = ch_hash;
-
+	/* Primary panel string */
+	ch = strstr((char *) panel_name, "prim:");
 	if (ch) {
-		for (i = 0; (panel_name + i) < ch; i++)
-			oem_data.panel[i] = *(panel_name + i);
+		/*
+		 * Parse the primary panel for cases where 'prim' prefix
+		 * is present in the fastboot oem command before primary
+		 * panel string.
+		 * Examples:
+		 * 1.) fastboot oem select-display-panel prim:jdi_1080p_video:sec:sharp_1080p_cmd
+		 * 2.) fastboot oem select-display-panel prim:jdi_1080p_video:skip:sec:sharp_1080p_cmd
+		 * 3.) fastboot oem select-display-panel prim:jdi_1080p_video:disable:sec:sharp_1080p_cmd
+		 * 4.) fastboot oem select-display-panel prim:jdi_1080p_video:skip#sim:sec:sharp_1080p_cmd
+		 */
+		ch += 5;
+		ch_tmp = get_panel_token_end((const char*) ch);
+		if (!ch_tmp)
+			ch_tmp = ch + strlen(ch);
+		for (i = 0; (ch + i) < ch_tmp; i++)
+			oem_data.panel[i] = *(ch + i);
 		oem_data.panel[i] = '\0';
 	} else {
-		strlcpy(oem_data.panel, panel_name, MAX_PANEL_ID_LEN);
+		/*
+		 * Check if secondary panel string is present.
+		 * The 'prim' prefix definitely needs to be present
+		 * to specify primary panel for cases where secondary panel
+		 * is also specified in fastboot oem command. Otherwise, it
+		 * becomes tough to parse the fastboot oem command for primary
+		 * panel. If 'sec' prefix is used without 'prim' prefix, it
+		 * means the default panel needs to be picked as primary panel.
+		 * Example:
+		 * fastboot oem select-display-panel sec:sharp_1080p_cmd
+		 */
+		ch = strstr((char *) panel_name, "sec:");
+		if (!ch) {
+			/*
+			 * This code will be executed for cases where the
+			 * secondary panel is not specified i.e., single/split
+			 * DSI cases.
+			 * Examples:
+			 * 1.) fastboot oem select-display-panel jdi_1080p_video
+			 * 2.) fastboot oem select-display-panel sharp_1080p_cmd:skip
+			 * 3.) fastboot oem select-display-panel sharp_1080p_cmd:disable
+			 * 4.) fastboot oem select-display-panel sim_cmd_panel#sim-swte
+			 */
+			ch = get_panel_token_end(panel_name);
+			if (ch) {
+				for (i = 0; (panel_name + i) < ch; i++)
+					oem_data.panel[i] =
+						*(panel_name + i);
+				oem_data.panel[i] = '\0';
+			} else {
+				strlcpy(oem_data.panel, panel_name,
+					MAX_PANEL_ID_LEN);
+			}
+		}
+	}
+
+	/*
+	 * Secondary panel string.
+	 * This is relatively simple. The secondary panel string gets
+	 * parsed if the 'sec' prefix is present.
+	 */
+	ch = strstr((char *) panel_name, "sec:");
+	if (ch) {
+		ch += 4;
+		ch_tmp = get_panel_token_end((const char*) ch);
+		if (!ch_tmp)
+			ch_tmp = ch + strlen(ch);
+		for (i = 0; (ch + i) < ch_tmp; i++)
+			oem_data.sec_panel[i] = *(ch + i);
+		oem_data.sec_panel[i] = '\0';
 	}
 
 	/* Skip LK configuration */
@@ -141,6 +204,8 @@ void set_panel_cmd_string(const char *panel_name)
 static bool mdss_dsi_set_panel_node(char *panel_name, char **dsi_id,
 		char **panel_node, char **slave_panel_node, int *panel_mode)
 {
+	int rc = 0;
+
 	if (!strcmp(panel_name, SIM_VIDEO_PANEL)) {
 		*dsi_id = SIM_DSI_ID;
 		*panel_node = SIM_VIDEO_PANEL_NODE;
@@ -162,12 +227,21 @@ static bool mdss_dsi_set_panel_node(char *panel_name, char **dsi_id,
 	} else if (oem_data.skip) {
 		/* For skip panel case, check the lookup table */
 		*dsi_id = SIM_DSI_ID;
-		panel_name_to_dt_string(lookup_skip_panels,
+		rc = panel_name_to_dt_string(lookup_skip_panels,
 			ARRAY_SIZE(lookup_skip_panels), panel_name,
-			panel_node, slave_panel_node, panel_mode);
+			panel_node);
+		if (rc < 0) {
+			return false;
+		} else if (rc == 1) {
+			*slave_panel_node = *panel_node;
+			*panel_mode = DUAL_DSI_FLAG;
+		} else {
+			*panel_mode = 0;
+		}
 	} else {
 		return false;
 	}
+
 	return true;
 }
 
@@ -179,8 +253,8 @@ bool gcdb_display_cmdline_arg(char *pbuf, uint16_t buf_size)
 	char *sim_mode_string = NULL;
 	uint16_t dsi_id_len = 0, panel_node_len = 0, slave_panel_node_len = 0;
 	uint32_t arg_size = 0;
-	bool ret = true;
-	bool rc;
+	bool ret = true, rc;
+	int ret_val;
 	char *default_str;
 	struct panel_struct panelstruct;
 	int panel_mode = SPLIT_DISPLAY_FLAG | DUAL_PIPE_FLAG | DST_SPLIT_FLAG;
@@ -233,13 +307,44 @@ bool gcdb_display_cmdline_arg(char *pbuf, uint16_t buf_size)
 		return false;
 	}
 
+	if (oem_data.sec_panel) {
+		if (panel_mode & (DUAL_DSI_FLAG | SPLIT_DISPLAY_FLAG |
+			DST_SPLIT_FLAG)) {
+			dprintf(CRITICAL, "Invalid config: Primary panel is"
+				"split DSI and still secondary panel passed\n");
+		} else {
+			ret_val = panel_name_to_dt_string(lookup_skip_panels,
+				ARRAY_SIZE(lookup_skip_panels), oem_data.sec_panel,
+				&slave_panel_node);
+			if (ret_val < 0) {
+				dprintf(CRITICAL, "Sec. panel not found."
+					" Continue with primary panel\n");
+			} else if (ret_val == 1) {
+				dprintf(CRITICAL, "Invalid config: Secondary panel cant"
+					"be split DSI. Continue with primary panel\n");
+				slave_panel_node = NULL;
+			}
+		}
+	}
+
+	/* Check for the DSI configuration */
+	if (slave_panel_node && (panel_mode & (DUAL_DSI_FLAG |
+		SPLIT_DISPLAY_FLAG | DST_SPLIT_FLAG)))
+		strcpy(oem_data.dsi_config, "split_dsi");
+	else if (slave_panel_node)
+		strcpy(oem_data.dsi_config, "dual_dsi");
+	else
+		strcpy(oem_data.dsi_config, "single_dsi");
+
+	arg_size = DSI_CFG_STRING_LEN + strlen(oem_data.dsi_config);
+
 	dsi_id_len = strlen(dsi_id);
 	panel_node_len = strlen(panel_node);
 	if (!slave_panel_node || !strcmp(slave_panel_node, ""))
 		slave_panel_node = NO_PANEL_CONFIG;
 	slave_panel_node_len = strlen(slave_panel_node);
 
-	arg_size = prefix_string_len + dsi_id_len + panel_node_len +
+	arg_size += prefix_string_len + dsi_id_len + panel_node_len +
 						LK_OVERRIDE_PANEL_LEN + 1;
 
 	if (panelstruct.paneldata &&
@@ -290,6 +395,14 @@ bool gcdb_display_cmdline_arg(char *pbuf, uint16_t buf_size)
 		strlcpy(pbuf, slave_panel_node, buf_size);
 		pbuf += slave_panel_node_len;
 		buf_size -= slave_panel_node_len;
+
+		strlcpy(pbuf, DSI_CFG_STRING, buf_size);
+		pbuf += DSI_CFG_STRING_LEN;
+		buf_size -= DSI_CFG_STRING_LEN;
+
+		strlcpy(pbuf, oem_data.dsi_config, buf_size);
+		pbuf += strlen(oem_data.dsi_config);
+		buf_size -= strlen(oem_data.dsi_config);
 
 		if (sim_mode_string) {
 			strlcpy(pbuf, LK_SIM_OVERRIDE, buf_size);
