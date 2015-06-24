@@ -1859,7 +1859,7 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	unsigned int scratch_offset = 0;
 
 #if VERIFIED_BOOT
-	if(!device.is_unlocked)
+	if(target_build_variant_user() && !device.is_unlocked)
 	{
 		fastboot_fail("unlock device to use this command");
 		return;
