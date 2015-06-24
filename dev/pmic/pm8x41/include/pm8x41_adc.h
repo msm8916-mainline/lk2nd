@@ -55,6 +55,7 @@ struct adc_conf {
 
 /* ADC1 Apps base */
 #define VADC_USR1_BASE                   0x3100
+#define VADC_USR2_BASE			0x23100
 
 /* ADC mode control */
 #define VADC_MODE_CTRL                   0x40
@@ -103,6 +104,7 @@ struct adc_conf {
 #define VREF_125_CHAN_ID                10
 #define GND_REF_CHAN_ID                 14
 #define VDD_VADC_CHAN_ID                15
+#define MPP_1_CHAN_ID			16
 #define MPP_8_CHAN_ID                   39
 #define VADC_BAT_CHAN_ID                49
 
@@ -158,12 +160,16 @@ struct adc_conf {
 
 
 /* MPP defines */
+#define SID_REG_BASE			0x10000
 #define MPP_REG_BASE                    0xA000
 #define MPP_REG_RANGE                   0x100
 #define MPP_MAX_NUM                     0x7
 
 #define MPP_MODE_AIN                    0x4
 #define MPP_MASTER_ENABLE               0x1
+#define MPP_AIN_ROUTE_AMUX0		0x0
+#define MPP_AIN_ROUTE_AMUX1		0x1
+#define MPP_AIN_ROUTE_AMUX2		0x2
 #define MPP_AIN_ROUTE_AMUX3             0x3
 
 /* control register base address offsets */
@@ -193,6 +199,10 @@ struct adc_conf {
 #define Q_REG_AIN_ROUTE_SHIFT           0
 #define Q_REG_AIN_ROUTE_MASK            0x7
 
+/* sid of pmic */
+#define PM8950_SID 0
+#define PMI8950_SID 2
+
 /* Function declations */
 uint32_t pm8x41_adc_channel_read(uint16_t ch_num);
 int pm8x41_iusb_max_config(uint32_t current);
@@ -205,7 +215,11 @@ int pm8x41_chgr_ctl_enable(uint8_t enable);
 uint32_t pm8x41_get_batt_voltage();
 /* API: Get Voltage based State of Charge */
 uint32_t pm8x41_get_voltage_based_soc(uint32_t cutoff_vol, uint32_t vdd_max);
-/* API: Set the MMP pin as ADC */
+/* API: Set the PM8x41 MPP pin as ADC */
 void pm8x41_enable_mpp_as_adc(uint16_t mpp_num);
+/* API: Set the PMI8950 MMP pin as ADC */
+void pmi8950_enable_mpp_as_adc(uint16_t mpp_num);
+/* API: Set the PM8950 MPP pin as ADC */
+void pm8950_enable_mpp_as_adc(uint16_t mpp_num);
 
 #endif /* _PM8X41_ADC_H_ */
