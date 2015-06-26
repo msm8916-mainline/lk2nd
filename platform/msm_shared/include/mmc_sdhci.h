@@ -89,6 +89,7 @@
 #define MMC_EXT_CSD_RST_N_FUNC                    162
 #define MMC_EXT_MMC_BUS_WIDTH                     183
 #define MMC_EXT_MMC_HS_TIMING                     185
+#define MMC_EXT_CSD_REV                           192
 #define MMC_DEVICE_TYPE                           196
 #define MMC_EXT_MMC_DRV_STRENGTH                  197
 #define MMC_EXT_HC_WP_GRP_SIZE                    221
@@ -102,6 +103,7 @@
 #define MMC_ERASE_TIMEOUT_MULT                    223
 #define MMC_HC_ERASE_GRP_SIZE                     224
 #define MMC_PARTITION_CONFIG                      179
+#define MMC_EXT_CSD_EN_RPMB_REL_WR                166 //emmc 5.1 and above
 
 /* Values for ext csd fields */
 #define MMC_HS_TIMING                             0x1

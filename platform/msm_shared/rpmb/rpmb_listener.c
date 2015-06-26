@@ -67,6 +67,8 @@ struct tz_rpmb_rw_req
 	uint32_t num_sectors;
 	uint32_t req_buff_len;
 	uint32_t req_buff_offset;
+	uint32_t version;
+	uint32_t rel_wr_count;
 }__PACKED;
 
 struct tz_rpmb_rw_resp
@@ -75,6 +77,7 @@ struct tz_rpmb_rw_resp
 	int32_t  status;
 	uint32_t res_buff_len;
 	uint32_t res_buff_offset;
+	uint32_t version;
 }__PACKED;
 
 typedef int (*ListenerCallback)(void*, uint32_t);
@@ -113,14 +116,16 @@ static void handle_rw_request(void *buf, uint32_t sz)
 		case TZ_CM_CMD_RPMB_READ:
 #if DEBUG_RPMB
 			dprintf(INFO, "Read Request received\n");
+			dprintf(INFO, "READ: RPMB_REL_RW_COUNT 0x%x\n", req_p->rel_wr_count);
 #endif
 			resp_p->status = rpmb_read(req_buf, req_p->num_sectors, resp_buf, &resp_p->res_buff_len);
 			break;
 		case TZ_CM_CMD_RPMB_WRITE:
 #if DEBUG_RPMB
 			dprintf(INFO, "Write Request received\n");
+			dprintf(INFO, "WRITE: RPMB_REL_RW_COUNT 0x%x\n", req_p->rel_wr_count);
 #endif
-			resp_p->status = rpmb_write(req_buf, req_p->num_sectors, resp_buf, &resp_p->res_buff_len);
+			resp_p->status = rpmb_write(req_buf, req_p->num_sectors, req_p->rel_wr_count, resp_buf, &resp_p->res_buff_len);
 			break;
 		default:
 			dprintf(CRITICAL, "Unsupported request command request: %u\n", req_p->cmd_id);
@@ -174,7 +179,7 @@ int rpmb_listener_start()
 
 	rpmb_listener.service_name = "RPMB system services";
 	rpmb_listener.id           =  RPMB_LSTNR_ID;
-	rpmb_listener.sb_size      = 20 * 1024;
+	rpmb_listener.sb_size      = 25 * 1024;
 	rpmb_listener.service_cmd_handler = rpmb_cmd_handler;
 
 	ret = qseecom_register_listener(&rpmb_listener);
