@@ -364,6 +364,7 @@ void pm8994_reset_configure(uint8_t reset_type)
 	*/
 	/* disable PS_HOLD_RESET */
 	pm8xxx_reg_write(slave_id[0], PON_PS_HOLD_RESET_CTL2, 0x0);
+	pm8xxx_reg_write(slave_id[1], PON_PS_HOLD_RESET_CTL2, 0x0);
 
 	/* Delay needed for disable to kick in. */
 	udelay(300);
@@ -373,7 +374,8 @@ void pm8994_reset_configure(uint8_t reset_type)
 		pm8xxx_reg_write(slave_id[i], PON_PS_HOLD_RESET_CTL, reset_type);
 
 	/* enable PS_HOLD_RESET */
-	pm8xxx_reg_write(slave_id[0], PON_PS_HOLD_RESET_CTL2, BIT(S2_RESET_EN_BIT));
+	for (i = 0; i < ARRAY_SIZE(slave_id); i++)
+		pm8xxx_reg_write(slave_id[i], PON_PS_HOLD_RESET_CTL2, BIT(S2_RESET_EN_BIT));
 }
 
 void pm8x41_v2_reset_configure(uint8_t reset_type)
