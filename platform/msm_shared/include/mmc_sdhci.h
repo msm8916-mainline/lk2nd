@@ -104,6 +104,7 @@
 #define MMC_ERASE_TIMEOUT_MULT                    223
 #define MMC_HC_ERASE_GRP_SIZE                     224
 #define MMC_PARTITION_CONFIG                      179
+#define MMC_EXT_CSD_EN_RPMB_REL_WR                166 //emmc 5.1 and above
 
 /* Values for ext csd fields */
 #define MMC_HS_TIMING                             0x1

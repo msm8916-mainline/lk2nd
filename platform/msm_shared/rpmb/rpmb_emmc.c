@@ -49,12 +49,12 @@ static struct rpmb_frame read_result_reg =
 
 int rpmb_write_emmc(struct mmc_device *dev,uint32_t *req_buf, uint32_t blk_cnt, uint32_t rel_wr_count, uint32_t *resp_buf, uint32_t *resp_len)
 {
-	uint32_t i, num_trans = 0;
+	uint32_t i, num_trans;
 	int ret = 0;
 	struct mmc_command cmd[3] = {{0},{0},{0}};
 	struct rpmb_frame *result = (struct rpmb_frame *)resp_buf;
 
-	dprintf(INFO, "rpmb write command called with blk_cnt and rel_wr_count: 0x%x 0x%x\n", blk_cnt, rel_wr_count);
+	dprintf(INFO, "rpmb write command called with blk_cnt: 0x%x\n", blk_cnt);
 	if (rel_wr_count == 0x2)
 	{
 		// if reliable write count reported by secure app is 2 then we can
@@ -66,9 +66,10 @@ int rpmb_write_emmc(struct mmc_device *dev,uint32_t *req_buf, uint32_t blk_cnt, 
 	{
 		num_trans = blk_cnt; // rel_rw_count = 1 for emmc 5.0 and below
 	}
-	else if(rel_wr_count == 0x20)
+	else
 	{
-		num_trans = blk_cnt / 32;
+		dprintf(CRITICAL, "Reliable write count > 2 is not supported\n");
+		return -1;
 	}
 
 	for (i = 0; i < num_trans; i++)
@@ -92,10 +93,10 @@ int rpmb_write_emmc(struct mmc_device *dev,uint32_t *req_buf, uint32_t blk_cnt, 
 			cmd[0].rel_write = 0;
 			cmd[0].data.num_blocks = RPMB_MIN_BLK_CNT;
 		}
-		else if(rel_wr_count == 0x2 || rel_wr_count == 0x20)
+		else if(rel_wr_count == 0x2)
 		{
 			cmd[0].rel_write = 1;
-			cmd[0].data.num_blocks = rel_wr_count;
+			cmd[0].data.num_blocks = 0x2;
 		}
 		/* CMD25 Result Register Read Request Packet */
 		cmd[1].write_flag = false;
@@ -141,7 +142,11 @@ int rpmb_write_emmc(struct mmc_device *dev,uint32_t *req_buf, uint32_t blk_cnt, 
 			dprintf(CRITICAL, "%s\n", str_err[result->result[1]]);
 			break;
 		}
-		req_buf = (uint32_t*) ((uint8_t*)req_buf + (RPMB_BLK_SIZE * rel_wr_count));
+		if (rel_wr_count == 0x1)
+			req_buf = (uint32_t*) ((uint8_t*)req_buf + (RPMB_BLK_SIZE));
+		else if(rel_wr_count == 0x2)
+			req_buf = (uint32_t*) ((uint8_t*)req_buf + (RPMB_BLK_SIZE * 0x2));
+
 	}
 	*resp_len = RPMB_MIN_BLK_CNT * RPMB_BLK_SIZE;
 
