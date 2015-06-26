@@ -70,6 +70,9 @@
 
 #define CLK_CTL_BASE                       0x1800000
 
+#define PMI_SLAVE_ID 3
+#define PMI_ADDR_BASE (PMI_SLAVE_ID << 16)
+
 #define SPMI_BASE                          0x02000000
 #define SPMI_GENI_BASE                     (SPMI_BASE + 0xA000)
 #define SPMI_PIC_BASE                      (SPMI_BASE +  0x01800000)
