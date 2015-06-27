@@ -418,4 +418,9 @@
 
 #define TCSR_TZ_WONCE               0x193D000
 #define TCSR_BOOT_MISC_DETECT       0x193D100
+
+#define APPS_WDOG_BARK_VAL_REG      0x0B017010
+#define APPS_WDOG_BITE_VAL_REG      0x0B017014
+#define APPS_WDOG_RESET_REG         0x0B017008
+#define APPS_WDOG_CTL_REG           0x0B017004
 #endif
