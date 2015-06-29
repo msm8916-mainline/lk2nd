@@ -48,6 +48,7 @@
 #include "include/panel_otm1906c_1080p_cmd.h"
 #include "include/panel_sharp_1080p_cmd.h"
 #include "include/panel_nt35597_wqxga_dualdsi_video.h"
+#include "include/panel_nt35597_wqxga_dualdsi_cmd.h"
 
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
@@ -58,6 +59,7 @@ enum {
 	OTM1906C_1080P_CMD_PANEL,
 	SHARP_1080P_CMD_PANEL,
 	NT35597_WQXGA_DUALDSI_VIDEO_PANEL,
+	NT35597_WQXGA_DUALDSI_CMD_PANEL,
 	UNKNOWN_PANEL
 };
 
@@ -74,6 +76,7 @@ static struct panel_list supp_panels[] = {
 	{"truly_1080p_cmd", TRULY_1080P_CMD_PANEL},
 	{"sharp_1080p_cmd", SHARP_1080P_CMD_PANEL},
 	{"nt35597_wqxga_dualdsi_video", NT35597_WQXGA_DUALDSI_VIDEO_PANEL},
+	{"nt35597_wqxga_dualdsi_cmd", NT35597_WQXGA_DUALDSI_CMD_PANEL},
 };
 
 static uint32_t panel_id;
@@ -247,6 +250,38 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		pinfo->mipi.num_of_panel_off_cmds
 			= NT35597_WQXGA_DUALDSI_VIDEO_OFF_COMMAND;
 		memcpy(phy_db->timing, nt35597_wqxga_dualdsi_video_timings,
+			TIMING_SIZE);
+		pinfo->mipi.tx_eot_append = true;
+		break;
+	case NT35597_WQXGA_DUALDSI_CMD_PANEL:
+		panelstruct->paneldata    = &nt35597_wqxga_dualdsi_cmd_panel_data;
+		panelstruct->paneldata->panel_operating_mode = DST_SPLIT_FLAG |
+					SPLIT_DISPLAY_FLAG | DUAL_DSI_FLAG;
+		panelstruct->paneldata->panel_with_enable_gpio = 0;
+
+		panelstruct->panelres     = &nt35597_wqxga_dualdsi_cmd_panel_res;
+		panelstruct->color        = &nt35597_wqxga_dualdsi_cmd_color;
+		panelstruct->videopanel   = &nt35597_wqxga_dualdsi_cmd_video_panel;
+		panelstruct->commandpanel = &nt35597_wqxga_dualdsi_cmd_command_panel;
+		panelstruct->state        = &nt35597_wqxga_dualdsi_cmd_state;
+		panelstruct->laneconfig   = &nt35597_wqxga_dualdsi_cmd_lane_config;
+		panelstruct->paneltiminginfo
+			= &nt35597_wqxga_dualdsi_cmd_timing_info;
+		panelstruct->panelresetseq
+					 = &nt35597_wqxga_dualdsi_cmd_reset_seq;
+		panelstruct->backlightinfo = &nt35597_wqxga_dualdsi_cmd_backlight;
+
+		pinfo->labibb = &nt35597_wqxga_dualdsi_cmd_labibb;
+
+		pinfo->mipi.panel_on_cmds
+			= nt35597_wqxga_dualdsi_cmd_on_command;
+		pinfo->mipi.num_of_panel_on_cmds
+			= NT35597_WQXGA_DUALDSI_CMD_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+			= nt35597_wqxga_dualdsi_cmd_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+			= NT35597_WQXGA_DUALDSI_CMD_OFF_COMMAND;
+		memcpy(phy_db->timing, nt35597_wqxga_dualdsi_cmd_timings,
 			TIMING_SIZE);
 		pinfo->mipi.tx_eot_append = true;
 		break;
