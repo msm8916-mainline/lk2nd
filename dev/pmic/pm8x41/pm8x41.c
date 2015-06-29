@@ -9,7 +9,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of The Linux Foundation, Inc. nor the names of its
+ *   * Neither the name of The Linux Foundation, nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -537,6 +537,18 @@ uint8_t pm8x41_get_pmic_rev()
 uint8_t pm8x41_get_pon_reason()
 {
 	return REG_READ(PON_PON_REASON1);
+}
+
+uint8_t pm8950_get_pon_reason()
+{
+	uint8_t pon_reason = 0;
+
+	pon_reason = REG_READ(SMBCHGL_USB_ICL_STS_2);
+	/* check usbin/dcin status on pmi and set the corresponding bits for pon */
+	pon_reason = (pon_reason & (USBIN_ACTIVE_PWR_SRC|DCIN_ACTIVE_PWR_SRC)) << 3 ;
+	pon_reason |= REG_READ(PON_PON_REASON1);
+
+	return pon_reason;
 }
 
 uint8_t pm8x41_get_pon_poff_reason1()
