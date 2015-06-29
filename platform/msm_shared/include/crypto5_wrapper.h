@@ -1,4 +1,4 @@
-/* Copyright (c) 2012,2014 The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012,2014-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -34,5 +34,6 @@
 void crypto_init_params(struct crypto_init_params * params);
 uint32_t crypto_get_max_auth_blk_size();
 void crypto_eng_cleanup(void);
+void crypto_unlock(void);
 
 #endif
