@@ -249,6 +249,10 @@ void clock_reset_usb_phy()
 
 	struct clk *phy_reset_clk = NULL;
 	struct clk *pipe_reset_clk = NULL;
+	struct clk *master_clk = NULL;
+
+	master_clk = clk_get("usb30_master_clk");
+	ASSERT(master_clk);
 
 	/* Look if phy com clock is present */
 	phy_reset_clk = clk_get("usb30_phy_reset");
@@ -258,12 +262,18 @@ void clock_reset_usb_phy()
 	ASSERT(pipe_reset_clk);
 
 	/* ASSERT */
+	ret = clk_reset(master_clk, CLK_RESET_ASSERT);
+	if (ret)
+	{
+		dprintf(CRITICAL, "Failed to assert usb30_master_reset clk\n");
+		return;
+	}
 	ret = clk_reset(phy_reset_clk, CLK_RESET_ASSERT);
 
 	if (ret)
 	{
 		dprintf(CRITICAL, "Failed to assert usb30_phy_reset clk\n");
-		return;
+		goto deassert_master_clk;
 	}
 
 	ret = clk_reset(pipe_reset_clk, CLK_RESET_ASSERT);
@@ -291,6 +301,15 @@ deassert_phy_clk:
 		dprintf(CRITICAL, "Failed to deassert usb30_phy_com_reset clk\n");
 		return;
 	}
+deassert_master_clk:
+
+	ret = clk_reset(master_clk, CLK_RESET_DEASSERT);
+	if (ret)
+	{
+		dprintf(CRITICAL, "Failed to deassert usb30_master clk\n");
+		return;
+	}
+
 }
 
 void mmss_gdsc_enable()
