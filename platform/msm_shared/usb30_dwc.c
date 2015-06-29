@@ -1209,6 +1209,9 @@ static void dwc_event_handler_ep_bulk_state_inactive(dwc_dev_t *dev,
 													 uint32_t *event)
 {
 	dwc_event_ep_event_id_t event_id   = DWC_EVENT_EP_EVENT_ID(*event);
+#ifdef DEBUG_USB
+	uint8_t ep_phy_num                 = DWC_EVENT_EP_EVENT_EP_NUM(*event);
+#endif
 
 	switch (event_id)
 	{
