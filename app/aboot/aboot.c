@@ -1912,10 +1912,8 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 #ifdef MDTP_SUPPORT
 	else
 	{
-		/* Verify MDTP lock before continue with boot process.
-		 * For boot & recovery partitions, MDTP will use boot_verifier APIs,
-		 * since verification was skipped in aboot. The signarue is already part of the loaded image.
-		 */
+		/* fastboot boot is not allowed when MDTP is activated */
+
 		mdtp_ext_partition_verification_t ext_partition;
 		ext_partition.partition = boot_into_recovery ? MDTP_PARTITION_RECOVERY : MDTP_PARTITION_BOOT;
 		ext_partition.integrity_state = MDTP_PARTITION_STATE_UNSET;
@@ -1924,6 +1922,13 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 		ext_partition.image_size = image_actual - sig_actual;
 		ext_partition.sig_avail = TRUE;
 		mdtp_fwlock_verify_lock(&ext_partition);
+	}
+
+	bool is_mdtp_activated = 0;
+	mdtp_activated(&is_mdtp_activated);
+	if(is_mdtp_activated){
+		dprintf(CRITICAL, "fastboot boot command is not available.\n");
+		return;
 	}
 #endif /* MDTP_SUPPORT */
 
