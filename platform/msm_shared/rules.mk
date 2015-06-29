@@ -470,6 +470,7 @@ DEFINES += DISPLAY_TYPE_MDSS=1
 			$(LOCAL_DIR)/crypto5_eng.o \
 			$(LOCAL_DIR)/crypto5_wrapper.o \
 			$(LOCAL_DIR)/qusb2_phy.o \
+			$(LOCAL_DIR)/qseecom_lk.o \
 			$(LOCAL_DIR)/mdp5.o \
 			$(LOCAL_DIR)/display.o \
 			$(LOCAL_DIR)/mipi_dsi.o \
