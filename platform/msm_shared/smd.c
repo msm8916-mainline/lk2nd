@@ -416,6 +416,15 @@ void smd_set_state(smd_channel_info_t *ch, uint32_t state, uint32_t flag)
 	smd_state_update(ch, flag);
 }
 
+static void flush_smd_channel_entries()
+{
+	int i = 0;
+	for(i = 0; i< SMEM_NUM_SMD_STREAM_CHANNELS; i++)
+	{
+		arch_invalidate_cache_range((addr_t)&smd_channel_alloc_entry[i],
+						sizeof(smd_channel_alloc_entry_t));
+	}
+}
 
 enum handler_return smd_irq_handler(void* data)
 {
@@ -423,6 +432,7 @@ enum handler_return smd_irq_handler(void* data)
 
 	if(ch->current_state == SMD_SS_CLOSED)
 	{
+		flush_smd_channel_entries();
 		free(smd_channel_alloc_entry);
 		event_signal(&smd_closed, false);
 		return INT_NO_RESCHEDULE;
