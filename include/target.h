@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008 Travis Geiselbrecht
  *
- * Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -79,6 +79,7 @@ void target_usb_init(void);
 void target_usb_stop(void);
 uint32_t target_get_hlos_subtype(void);
 void shutdown_device();
+uint32_t target_is_pwrkey_pon_reason(void);
 bool target_warm_boot(void);
 bool target_use_signed_kernel(void);
 int _emmc_recovery_init(void);

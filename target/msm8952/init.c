@@ -194,6 +194,15 @@ uint32_t target_volume_down()
 	return pm8x41_resin_status();
 }
 
+uint32_t target_is_pwrkey_pon_reason()
+{
+	uint8_t pon_reason = pm8950_get_pon_reason();
+	if (pm8x41_get_is_cold_boot() && ((pon_reason == KPDPWR_N) || (pon_reason == (KPDPWR_N|PON1))))
+		return 1;
+	else
+		return 0;
+}
+
 static void target_keystatus()
 {
 	keys_init();
