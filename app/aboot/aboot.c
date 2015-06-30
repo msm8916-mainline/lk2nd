@@ -289,8 +289,8 @@ unsigned char *update_cmdline(const char * cmdline)
 		cmdline_len += strlen(loglevel);
 	} else if (boot_reason_alarm) {
 		cmdline_len += strlen(alarmboot_cmdline);
-	} else if (device.charger_screen_enabled &&
-			target_pause_for_battery_charge()) {
+	} else if ((target_build_variant_user() || device.charger_screen_enabled)
+			&& target_pause_for_battery_charge()) {
 		pause_at_bootup = 1;
 		cmdline_len += strlen(battchg_pause);
 	}
@@ -1726,11 +1726,7 @@ void read_device_info(device_info *dev)
 			info->is_unlocked = 0;
 			info->is_verified = 0;
 			info->is_tampered = 0;
-#if USER_BUILD_VARIANT
-			info->charger_screen_enabled = 1;
-#else
 			info->charger_screen_enabled = 0;
-#endif
 			write_device_info(info);
 		}
 		memcpy(dev, info, sizeof(device_info));
