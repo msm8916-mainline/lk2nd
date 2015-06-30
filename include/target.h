@@ -60,8 +60,7 @@ bool target_is_ssd_enabled(void);
 void *target_mmc_device();
 uint32_t is_user_force_reset(void);
 
-bool target_display_panel_node(char *panel_name, char *pbuf,
-	uint16_t buf_size);
+bool target_display_panel_node(char *pbuf, uint16_t buf_size);
 void target_display_init(const char *panel_name);
 void target_display_shutdown(void);
 

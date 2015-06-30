@@ -514,32 +514,33 @@ int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 	return NO_ERROR;
 }
 
-bool target_display_panel_node(char *panel_name, char *pbuf, uint16_t buf_size)
+bool target_display_panel_node(char *pbuf, uint16_t buf_size)
 {
-	return gcdb_display_cmdline_arg(panel_name, pbuf, buf_size);
+	return gcdb_display_cmdline_arg(pbuf, buf_size);
 }
 
 void target_display_init(const char *panel_name)
 {
-	char cont_splash = '\0';
+	struct oem_panel_data oem;
 
-	set_panel_cmd_string(panel_name, &cont_splash);
-	panel_name += strspn(panel_name, " ");
+	set_panel_cmd_string(panel_name);
+	oem = mdss_dsi_get_oem_data();
 
-	if (!strcmp(panel_name, NO_PANEL_CONFIG)
-		|| !strcmp(panel_name, SIM_VIDEO_PANEL)
-		|| !strcmp(panel_name, SIM_CMD_PANEL)) {
+	if (!strcmp(oem.panel, NO_PANEL_CONFIG)
+		|| !strcmp(oem.panel, SIM_VIDEO_PANEL)
+		|| !strcmp(oem.panel, SIM_CMD_PANEL)
+		|| oem.skip) {
 		dprintf(INFO, "Selected panel: %s\nSkip panel configuration\n",
-			panel_name);
+			oem.panel);
 		return;
 	}
 
-	if (gcdb_display_init(panel_name, MDP_REV_50, (void *)MIPI_FB_ADDR)) {
+	if (gcdb_display_init(oem.panel, MDP_REV_50, (void *)MIPI_FB_ADDR)) {
 		target_force_cont_splash_disable(true);
 		msm_display_off();
 	}
 
-	if (cont_splash == '0') {
+	if (!oem.cont_splash) {
 		dprintf(INFO, "Forcing continuous splash disable\n");
 		target_force_cont_splash_disable(true);
 	}

@@ -329,138 +329,6 @@ static int mdss_dsi_bl_enable(uint8_t enable)
 	return ret;
 }
 
-static bool mdss_dsi_set_panel_node(char *panel_name, char **dsi_id,
-		char **panel_node, char **slave_panel_node, int *panel_mode)
-{
-	if (!strcmp(panel_name, SIM_VIDEO_PANEL)) {
-		*dsi_id = SIM_DSI_ID;
-		*panel_node = SIM_VIDEO_PANEL_NODE;
-		*panel_mode = 0;
-	} else if (!strcmp(panel_name, SIM_DUALDSI_VIDEO_PANEL)) {
-		*dsi_id = SIM_DSI_ID;
-		*panel_node = SIM_DUALDSI_VIDEO_PANEL_NODE;
-		*slave_panel_node = SIM_DUALDSI_VIDEO_SLAVE_PANEL_NODE;
-		*panel_mode = 1;
-	} else if (!strcmp(panel_name, SIM_CMD_PANEL)) {
-		*dsi_id = SIM_DSI_ID;
-		*panel_node = SIM_CMD_PANEL_NODE;
-		*panel_mode = 0;
-	} else if (!strcmp(panel_name, SIM_DUALDSI_CMD_PANEL)) {
-		*dsi_id = SIM_DSI_ID;
-		*panel_node = SIM_DUALDSI_CMD_PANEL_NODE;
-		*slave_panel_node = SIM_DUALDSI_CMD_SLAVE_PANEL_NODE;
-		*panel_mode = 1;
-	} else {
-		return false;
-	}
-	return true;
-}
-
-bool gcdb_display_cmdline_arg(char *panel_name, char *pbuf, uint16_t buf_size)
-{
-	char *dsi_id = NULL;
-	char *panel_node = NULL;
-	char *slave_panel_node = NULL;
-	uint16_t dsi_id_len = 0, panel_node_len = 0, slave_panel_node_len = 0;
-	uint32_t arg_size = 0;
-	bool ret = true;
-	bool rc;
-	char *default_str;
-	int panel_mode = SPLIT_DISPLAY_FLAG | DUAL_PIPE_FLAG | DST_SPLIT_FLAG;
-	int prefix_string_len = strlen(DISPLAY_CMDLINE_PREFIX);
-	char *sctl_string;
-
-	panel_name += strspn(panel_name, " ");
-
-	rc = mdss_dsi_set_panel_node(panel_name, &dsi_id, &panel_node,
-			&slave_panel_node, &panel_mode);
-	if (!rc) {
-		if (panelstruct.paneldata && target_cont_splash_screen()) {
-			dsi_id = panelstruct.paneldata->panel_controller;
-			panel_node = panelstruct.paneldata->panel_node_id;
-			panel_mode =
-				panelstruct.paneldata->panel_operating_mode &
-								panel_mode;
-			slave_panel_node =
-				panelstruct.paneldata->slave_panel_node_id;
-		} else {
-			if (target_is_edp())
-				default_str = "0:edp:";
-			else
-				default_str = "0:dsi:0:";
-
-			arg_size = prefix_string_len + strlen(default_str);
-			if (buf_size < arg_size) {
-				dprintf(CRITICAL, "display command line buffer is small\n");
-				return false;
-			}
-
-			strlcpy(pbuf, DISPLAY_CMDLINE_PREFIX, buf_size);
-			pbuf += prefix_string_len;
-			buf_size -= prefix_string_len;
-
-			strlcpy(pbuf, default_str, buf_size);
-			return true;
-		}
-	}
-
-	if (dsi_id == NULL || panel_node == NULL) {
-		dprintf(CRITICAL, "panel node or dsi ctrl not present\n");
-		return false;
-	}
-
-	if (((panel_mode & SPLIT_DISPLAY_FLAG) ||
-	     (panel_mode & DST_SPLIT_FLAG)) && slave_panel_node == NULL) {
-		dprintf(CRITICAL, "slave node not present in dual dsi case\n");
-		return false;
-	}
-
-	dsi_id_len = strlen(dsi_id);
-	panel_node_len = strlen(panel_node);
-	if (!slave_panel_node || !strcmp(slave_panel_node, ""))
-		slave_panel_node = NO_PANEL_CONFIG;
-	slave_panel_node_len = strlen(slave_panel_node);
-
-	arg_size = prefix_string_len + dsi_id_len + panel_node_len +
-						LK_OVERRIDE_PANEL_LEN + 1;
-
-	if (panelstruct.paneldata &&
-		!strcmp(panelstruct.paneldata->panel_destination, "DISPLAY_2"))
-		sctl_string = DSI_0_STRING;
-	else
-		sctl_string = DSI_1_STRING;
-
-	arg_size += strlen(sctl_string) + slave_panel_node_len;
-
-	if (buf_size < arg_size) {
-		dprintf(CRITICAL, "display command line buffer is small\n");
-		ret = false;
-	} else {
-		strlcpy(pbuf, DISPLAY_CMDLINE_PREFIX, buf_size);
-		pbuf += prefix_string_len;
-		buf_size -= prefix_string_len;
-
-		strlcpy(pbuf, LK_OVERRIDE_PANEL, buf_size);
-		pbuf += LK_OVERRIDE_PANEL_LEN;
-		buf_size -= LK_OVERRIDE_PANEL_LEN;
-
-		strlcpy(pbuf, dsi_id, buf_size);
-		pbuf += dsi_id_len;
-		buf_size -= dsi_id_len;
-
-		strlcpy(pbuf, panel_node, buf_size);
-
-		pbuf += panel_node_len;
-		buf_size -= panel_node_len;
-
-		strlcpy(pbuf, sctl_string, buf_size);
-		pbuf += strlen(sctl_string);
-		buf_size -= strlen(sctl_string);
-		strlcpy(pbuf, slave_panel_node, buf_size);
-	}
-	return ret;
-}
-
 static void mdss_edp_panel_init(struct msm_panel_info *pinfo)
 {
 	return target_edp_panel_init(pinfo);
@@ -533,6 +401,11 @@ static int mdss_edp_bl_enable(uint8_t enable)
 static int mdss_dsi2HDMI_config (struct msm_panel_info *pinfo)
 {
 	return target_display_dsi2hdmi_config(pinfo);
+}
+
+struct panel_struct mdss_dsi_get_panel_data(void)
+{
+	return panelstruct;
 }
 
 int gcdb_display_init(const char *panel_name, uint32_t rev, void *base)

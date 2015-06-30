@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -201,13 +201,13 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 
 		if (panel_override_id < 0) {
 			dprintf(CRITICAL, "Not able to search the panel:%s\n",
-					 panel_name + strspn(panel_name, " "));
+					 panel_name);
 		} else if (panel_override_id < UNKNOWN_PANEL) {
 			/* panel override using fastboot oem command */
 			panel_id = panel_override_id;
 
 			dprintf(INFO, "OEM panel override:%s\n",
-					panel_name + strspn(panel_name, " "));
+					panel_name);
 			goto panel_init;
 		}
 	}
