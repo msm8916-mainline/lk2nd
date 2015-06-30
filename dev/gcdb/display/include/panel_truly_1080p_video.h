@@ -74,11 +74,11 @@ static char truly_1080p_video_on_cmd2[] = {
 
 
 static char truly_1080p_video_on_cmd3[] = {
-0x55, 0x03, 0x15, 0x80, };
+0x55, 0x00, 0x15, 0x80, };
 
 
 static char truly_1080p_video_on_cmd4[] = {
-0x29, 0x00, 0x05, 0x80, };
+0x11, 0x00, 0x05, 0x80, };
 
 
 static char truly_1080p_video_on_cmd5[] = {
@@ -202,7 +202,7 @@ static char truly_1080p_video_on_cmd19[] = {
 
 
 static char truly_1080p_video_on_cmd20[] = {
-0x11, 0x00, 0x05, 0x80, };
+0x29, 0x00, 0x05, 0x80, };
 
 
 static struct mipi_dsi_cmd truly_1080p_video_on_command[] = {
