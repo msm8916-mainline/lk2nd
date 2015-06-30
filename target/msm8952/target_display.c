@@ -508,7 +508,11 @@ int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 		qpnp_ibb_enable(true); /*5V boost*/
 		mdelay(50);
 	} else {
-		regulator_disable(ldo_num);
+		/*
+		 * LDO1, LDO2 and LDO6 are shared with other subsystems.
+		 * Do not disable them.
+		 */
+		regulator_disable(REG_LDO17);
 	}
 
 	return NO_ERROR;
