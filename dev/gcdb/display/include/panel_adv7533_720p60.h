@@ -38,7 +38,7 @@
 /* Panel configuration                                                       */
 /*---------------------------------------------------------------------------*/
 static struct panel_config adv7533_720p_video_panel_data = {
-	"qcom,mdss_dsi_adv7533_720p60_video", "dsi:0:", "qcom,mdss-dsi-panel",
+	"qcom,mdss_dsi_adv7533_720p", "dsi:0:", "qcom,mdss-dsi-panel",
 	10, 0, "DISPLAY_1", 0, 0, 60, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 
