@@ -29,6 +29,8 @@
 #ifndef __SPMI_H
 #define __SPMI_H
 
+#include <sys/types.h>
+
 #if SPMI_CORE_V2
 #include <spmi_v2.h>
 #else
@@ -71,6 +73,10 @@
 #define SPMI_PIC_IRQ_STATUSn(n)              (SPMI_PIC_BASE + 0x600 + 0x4 * (n))
 #define SPMI_PIC_IRQ_CLEARn(n)               (SPMI_PIC_BASE + 0xA00 + 0x4 * (n))
 #endif
+
+#define SPMI_REG_OFFSET(_addr)   ((_addr) & 0xFF)
+#define SPMI_PERIPH_ID(_addr)    (((_addr) & 0xFF00) >> 8)
+#define SPMI_SLAVE_ID(_addr)     ((_addr) >> 16)
 
 #define PMIC_ARB_CMD_OPCODE_SHIFT            27
 #define PMIC_ARB_CMD_PRIORITY_SHIFT          26
@@ -143,5 +149,8 @@ unsigned int pmic_arb_write_cmd(struct pmic_arb_cmd *cmd,
 	struct pmic_arb_param *param);
 unsigned int pmic_arb_read_cmd(struct pmic_arb_cmd *cmd,
 	struct pmic_arb_param *param);
+uint8_t pmic_spmi_reg_read(uint32_t addr);
+void pmic_spmi_reg_write(uint32_t addr, uint8_t val);
+void pmic_spmi_reg_mask_write(uint32_t addr, uint8_t mask, uint8_t val);
 
 #endif
