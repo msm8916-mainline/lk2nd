@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008 Travis Geiselbrecht
  *
- * Copyright (c) 2014, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2014-2015 The Linux Foundation. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -245,6 +245,8 @@ FUNCTION(arm_write_dacr)
 
 /* void arm_invalidate_tlb(void) */
 FUNCTION(arm_invalidate_tlb)
+	dsb
+	isb
 	mov		r0, #0
 	mcr	p15, 0, r0, c8, c7, 0
 #if ARM_CPU_CORTEX_A8
