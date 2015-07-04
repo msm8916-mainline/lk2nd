@@ -35,6 +35,26 @@
 #include <platform/clock.h>
 #include <platform/iomap.h>
 #include <pm8x41.h>
+#include <rpm-smd.h>
+#include <regulator.h>
+
+#define RPM_CE_CLK_TYPE    0x6563
+#define CE1_CLK_ID         0x0
+#define RPM_SMD_KEY_RATE   0x007A484B
+
+uint32_t CE1_CLK[][8]=
+{
+	{
+		RPM_CE_CLK_TYPE, CE1_CLK_ID,
+		KEY_SOFTWARE_ENABLE, 4, GENERIC_DISABLE,
+		RPM_SMD_KEY_RATE, 4, 0,
+	},
+	{
+		RPM_CE_CLK_TYPE, CE1_CLK_ID,
+		KEY_SOFTWARE_ENABLE, 4, GENERIC_ENABLE,
+		RPM_SMD_KEY_RATE, 4, 176128, /* clk rate in KHZ */
+	},
+};
 
 void clock_init_mmc(uint32_t interface)
 {
@@ -141,10 +161,24 @@ static void ce_async_reset(uint8_t instance)
 
 void clock_ce_enable(uint8_t instance)
 {
+	if (instance == 1)
+		rpm_send_data(&CE1_CLK[GENERIC_ENABLE][0], 24, RPM_REQUEST_TYPE);
+	else
+	{
+		dprintf(CRITICAL, "Unsupported CE instance: %u\n", instance);
+		ASSERT(0);
+	}
 }
 
 void clock_ce_disable(uint8_t instance)
 {
+	if (instance == 1)
+		rpm_send_data(&CE1_CLK[GENERIC_DISABLE][0], 24, RPM_REQUEST_TYPE);
+	else
+	{
+		dprintf(CRITICAL, "Unsupported CE instance: %u\n", instance);
+		ASSERT(0);
+	}
 }
 
 void clock_config_ce(uint8_t instance)
