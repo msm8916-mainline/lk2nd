@@ -1012,7 +1012,7 @@ void scm_elexec_call(paddr_t kernel_entry, paddr_t dtb_offset)
 	uint32_t cmd_id = SCM_SVC_MILESTONE_CMD_ID;
 	void *cmd_buf;
 	size_t cmd_len;
-	static el1_system_param param;
+	static el1_system_param param __attribute__((aligned(0x1000)));
 	scmcall_arg scm_arg = {0};
 
 	param.el1_x0 = dtb_offset;
