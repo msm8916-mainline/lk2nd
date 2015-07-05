@@ -1,28 +1,30 @@
 /*
- * Copyright (c) 2014-2015 The Linux Foundation. All rights reserved.
+ * Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ * modification, are permitted provided that the following conditions are
+ * met:
  *  * Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
- *  * Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
+ *  * Redistributions in binary form must reproduce the above
+ *    copyright notice, this list of conditions and the following
+ *    disclaimer in the documentation and/or other materials provided
+ *    with the distribution.
+ *  * Neither the name of The Linux Foundation nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+
+ * THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+ * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
+ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include <stdlib.h>
@@ -39,6 +41,9 @@
 #include <string.h>
 #include <openssl/err.h>
 #include <platform.h>
+#include <qseecom_lk_api.h>
+#include <secapp_loader.h>
+#include <target.h>
 
 #define ASN1_ENCODED_SHA256_SIZE 0x33
 #define ASN1_ENCODED_SHA256_OFFSET 0x13
@@ -46,15 +51,8 @@
 static KEYSTORE *oem_keystore;
 static KEYSTORE *user_keystore;
 static uint32_t dev_boot_state = RED;
-BUF_DMA_ALIGN(keystore_buf, 4096);
 char KEYSTORE_PTN_NAME[] = "keystore";
-
-static char *VERIFIED_FLASH_ALLOWED_PTN[] = {
-	"aboot",
-	"boot",
-	"recovery",
-	"system",
-	NULL };
+RSA *rsa_from_cert = NULL;
 
 ASN1_SEQUENCE(AUTH_ATTR) ={
 	ASN1_SIMPLE(AUTH_ATTR, target, ASN1_PRINTABLESTRING),
@@ -209,6 +207,7 @@ static bool verify_image_with_sig(unsigned char* img_addr, uint32_t img_size,
 	int shift_bytes;
 	RSA *rsa = NULL;
 	bool keystore_verification = false;
+	EVP_PKEY* key = NULL;
 
 	if(!strcmp(pname, "keystore"))
 		keystore_verification = true;
@@ -247,23 +246,68 @@ static bool verify_image_with_sig(unsigned char* img_addr, uint32_t img_size,
 
 	/* append attribute to image */
 	if(!keystore_verification)
+	{
+		// verifying a non keystore partition
 		img_size += add_attribute_to_img((unsigned char*)(img_addr + img_size),
 				sig->auth_attr);
+	}
 
 	/* compare SHA256SUM of image with value in signature */
 	if(ks != NULL)
-		rsa = ks->mykeybag->mykey->key_material;
-
-	ret = boot_verify_compare_sha256(img_addr, img_size,
-			(unsigned char*)sig->sig->data, rsa);
-
-	if(!ret)
 	{
-		dprintf(CRITICAL,
-				"boot_verifier: Image verification failed.\n");
+		// use rsa from keystore
+		rsa = ks->mykeybag->mykey->key_material;
+	}
+	else
+	{
+		dprintf(CRITICAL, "%s:%d: Keystore is null\n", __func__, __LINE__);
+		ASSERT(0);
+	}
+
+	// verify boot.img with rsa from oem keystore
+	if((ret = boot_verify_compare_sha256(img_addr, img_size,
+			(unsigned char*)sig->sig->data, rsa)))
+
+	{
+		dprintf(SPEW, "Verified boot.img with oem keystore\n");
+		boot_verify_send_event(BOOTIMG_KEYSTORE_VERIFICATION_PASS);
+		goto verify_image_with_sig_done;
+	}
+	else
+	{
+		dprintf(INFO, "Verification with oem keystore failed. Use embedded certificate for verification\n");
+		// get the public key from certificate in boot.img
+		if ((key = X509_get_pubkey(sig->certificate)))
+		{
+			// convert to rsa key format
+			dprintf(INFO, "RSA KEY found from the embedded certificate\n");
+			rsa = EVP_PKEY_get1_RSA(key);
+			rsa_from_cert = rsa;
+		}
+		else
+		{
+			dprintf(CRITICAL, "Unable to extract public key from certificate\n");
+			ASSERT(0);
+		}
+	}
+
+	// verify boot.img with rsa from embedded certificate
+	if ((ret = boot_verify_compare_sha256(img_addr, img_size,
+			(unsigned char*)sig->sig->data, rsa)))
+	{
+		dprintf(SPEW, "Verified boot.img with embedded certificate in boot image\n");
+		boot_verify_send_event(BOOTIMG_EMBEDDED_CERT_VERIFICATION_PASS);
+		goto verify_image_with_sig_done;
+	}
+	else
+	{
+		dprintf(INFO, "verified for red state\n");
+		boot_verify_send_event(BOOTIMG_VERIFICATION_FAIL);
+		goto verify_image_with_sig_done;
 	}
 
 verify_image_with_sig_error:
+verify_image_with_sig_done:
 	return ret;
 }
 
@@ -322,62 +366,11 @@ static void read_oem_keystore()
 	}
 }
 
-static int read_user_keystore_ptn()
-{
-	int index = INVALID_PTN;
-	unsigned long long ptn = 0;
-
-	index = partition_get_index(KEYSTORE_PTN_NAME);
-	ptn = partition_get_offset(index);
-	if(ptn == 0) {
-		dprintf(CRITICAL, "boot_verifier: No keystore partition found\n");
-		return -1;
-	}
-
-	if (mmc_read(ptn, (unsigned int *) keystore_buf, mmc_page_size())) {
-		dprintf(CRITICAL, "boot_verifier: Cannot read user keystore\n");
-		return -1;
-	}
-	return 0;
-}
-
-static void read_user_keystore(unsigned char *user_addr)
-{
-	unsigned char *input = user_addr;
-	KEYSTORE *ks = NULL;
-	uint32_t len = read_der_message_length(input);
-	if(!len)
-	{
-		dprintf(CRITICAL, "boot_verifier: user keystore length is invalid.\n");
-		return;
-	}
-
-	ks = d2i_KEYSTORE(NULL, &input, len);
-	if(ks != NULL)
-	{
-		if(verify_keystore(user_addr, ks) == false)
-		{
-			dprintf(CRITICAL, "boot_verifier: Keystore verification failed!\n");
-			boot_verify_send_event(KEYSTORE_VERIFICATION_FAIL);
-		}
-		else
-			dprintf(CRITICAL, "boot_verifier: Keystore verification success!\n");
-		user_keystore = ks;
-	}
-	else
-	{
-		user_keystore = oem_keystore;
-	}
-}
-
 uint32_t boot_verify_keystore_init()
 {
 	/* Read OEM Keystore */
 	read_oem_keystore();
 
-	/* Read User Keystore */
-	if(!read_user_keystore_ptn())
-		read_user_keystore((unsigned char *)keystore_buf);
 	return dev_boot_state;
 }
 
@@ -397,7 +390,7 @@ bool boot_verify_image(unsigned char* img_addr, uint32_t img_size, char *pname)
 
 	if(!sig_len)
 	{
-		dprintf(CRITICAL, "boot_verifier: Error while reading singature length.\n");
+		dprintf(CRITICAL, "boot_verifier: Error while reading signature length.\n");
 		goto verify_image_error;
 	}
 
@@ -413,8 +406,6 @@ bool boot_verify_image(unsigned char* img_addr, uint32_t img_size, char *pname)
 verify_image_error:
 	if(sig != NULL)
 		VERIFIED_BOOT_SIG_free(sig);
-	if(!ret)
-		boot_verify_send_event(BOOT_VERIFICATION_FAIL);
 	return ret;
 }
 
@@ -425,11 +416,14 @@ void boot_verify_send_event(uint32_t event)
 		case BOOT_INIT:
 			dev_boot_state = GREEN;
 			break;
-		case KEYSTORE_VERIFICATION_FAIL:
+		case BOOTIMG_KEYSTORE_VERIFICATION_PASS:
+			dev_boot_state = GREEN;
+			break;
+		case BOOTIMG_EMBEDDED_CERT_VERIFICATION_PASS:
 			if(dev_boot_state == GREEN)
 				dev_boot_state = YELLOW;
 			break;
-		case BOOT_VERIFICATION_FAIL:
+		case BOOTIMG_VERIFICATION_FAIL:
 			if(dev_boot_state == GREEN || dev_boot_state == YELLOW)
 				dev_boot_state = RED;
 			break;
@@ -504,11 +498,6 @@ static bool check_list(char**list, char* entry)
 	}
 
 	return false;
-}
-
-bool boot_verify_flash_allowed(char * entry)
-{
-	return check_list(VERIFIED_FLASH_ALLOWED_PTN, entry);
 }
 
 KEYSTORE *boot_gerity_get_oem_keystore()
