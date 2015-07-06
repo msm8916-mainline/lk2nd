@@ -156,7 +156,7 @@ bool gcdb_display_cmdline_arg(char *pbuf, uint16_t buf_size)
 			&slave_panel_node, &panel_mode);
 
 	if (!rc) {
-		if (panelstruct.paneldata && target_cont_splash_screen()) {
+		if (panelstruct.paneldata) {
 			dsi_id = panelstruct.paneldata->panel_controller;
 			panel_node = panelstruct.paneldata->panel_node_id;
 			panel_mode =
