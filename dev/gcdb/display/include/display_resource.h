@@ -53,6 +53,9 @@
 #define DSI_CFG_STRING         ":cfg:"
 #define DSI_CFG_STRING_LEN	5
 
+#define DSI_PLL0_STRING         ":pll0"
+#define DSI_PLL1_STRING         ":pll1"
+
 #define NO_PANEL_CONFIG "none"
 #define SIM_VIDEO_PANEL "sim_video_panel"
 #define SIM_DUALDSI_VIDEO_PANEL "sim_dualdsi_video_panel"

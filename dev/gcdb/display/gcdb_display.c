@@ -408,6 +408,45 @@ struct panel_struct mdss_dsi_get_panel_data(void)
 	return panelstruct;
 }
 
+static void mdss_dsi_set_pll_src(void)
+{
+	struct oem_panel_data *oem_data = mdss_dsi_get_oem_data_ptr();
+
+	if (panelstruct.paneldata->panel_operating_mode & USE_DSI1_PLL_FLAG)
+		oem_data->dsi_pll_src = DSI_PLL1;
+
+	if (strcmp(oem_data->sec_panel, "")) {
+		if (oem_data->dsi_pll_src != DSI_PLL_DEFAULT) {
+			dprintf(CRITICAL, "Dual DSI config detected!"
+				"Use default PLL\n");
+			oem_data->dsi_pll_src = DSI_PLL_DEFAULT;
+		}
+	} else if (panelstruct.paneldata->slave_panel_node_id) {
+		if((dsi_video_mode_phy_db.pll_type != DSI_PLL_TYPE_THULIUM)
+			&& (oem_data->dsi_pll_src == DSI_PLL1)) {
+			dprintf(CRITICAL, "Split DSI on 28nm/20nm!"
+				"Use DSI PLL0\n");
+			oem_data->dsi_pll_src = DSI_PLL0;
+		}
+	} else {
+		if ((dsi_video_mode_phy_db.pll_type != DSI_PLL_TYPE_THULIUM)
+			&& !strcmp(panelstruct.paneldata->panel_destination,
+			"DISPLAY_1") && (oem_data->dsi_pll_src == DSI_PLL1)) {
+			dprintf(CRITICAL, "Single DSI with DSI-0 on 28nm/20nm!"
+				"Use DSI PLL0\n");
+			oem_data->dsi_pll_src = DSI_PLL0;
+		}
+	}
+
+	if (oem_data->dsi_pll_src == DSI_PLL1)
+		panelstruct.paneldata->panel_operating_mode |=
+			USE_DSI1_PLL_FLAG;
+	else
+		panelstruct.paneldata->panel_operating_mode &=
+			~USE_DSI1_PLL_FLAG;
+
+}
+
 int gcdb_display_init(const char *panel_name, uint32_t rev, void *base)
 {
 	int ret = NO_ERROR;
@@ -419,6 +458,7 @@ int gcdb_display_init(const char *panel_name, uint32_t rev, void *base)
 
 	if (pan_type == PANEL_TYPE_DSI) {
 		target_dsi_phy_config(&dsi_video_mode_phy_db);
+		mdss_dsi_set_pll_src();
 		if (dsi_panel_init(&(panel.panel_info), &panelstruct)) {
 			dprintf(CRITICAL, "DSI panel init failed!\n");
 			ret = ERROR;
