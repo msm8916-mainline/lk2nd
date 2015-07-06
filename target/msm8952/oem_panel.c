@@ -78,7 +78,7 @@ static struct panel_list supp_panels[] = {
 
 static uint32_t panel_id;
 
-#define TRULY_1080P_CMD_PANEL_ON_DELAY 40
+#define TRULY_1080P_PANEL_ON_DELAY 40
 
 int oem_panel_rotation()
 {
@@ -94,8 +94,9 @@ int oem_panel_on()
 	if (panel_id == OTM1906C_1080P_CMD_PANEL) {
 		/* needs extra delay to avoid unexpected artifacts */
 		mdelay(OTM1906C_1080P_CMD_PANEL_ON_DELAY);
-	} else if (panel_id == TRULY_1080P_CMD_PANEL) {
-		mdelay(TRULY_1080P_CMD_PANEL_ON_DELAY);
+	} else if (panel_id == TRULY_1080P_CMD_PANEL ||
+			panel_id == TRULY_1080P_VIDEO_PANEL) {
+		mdelay(TRULY_1080P_PANEL_ON_DELAY);
 	}
 
 	return NO_ERROR;
