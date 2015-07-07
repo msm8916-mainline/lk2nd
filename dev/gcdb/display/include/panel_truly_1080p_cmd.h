@@ -80,12 +80,12 @@ static char truly_1080p_cmd_on_cmd3[] = {
 
 
 static char truly_1080p_cmd_on_cmd4[] = {
-	0x55, 0x03, 0x15, 0x80,
+	0x55, 0x00, 0x15, 0x80,
 };
 
 
 static char truly_1080p_cmd_on_cmd5[] = {
-	0x29, 0x00, 0x05, 0x80,
+	0x11, 0x00, 0x05, 0x80,
 };
 
 
@@ -225,7 +225,7 @@ static char truly_1080p_cmd_on_cmd20[] = {
 
 
 static char truly_1080p_cmd_on_cmd21[] = {
-	0x11, 0x00, 0x05, 0x80,
+	0x29, 0x00, 0x05, 0x80,
 };
 
 
@@ -235,7 +235,7 @@ static struct mipi_dsi_cmd truly_1080p_cmd_on_command[] = {
 	{ 0x4 , truly_1080p_cmd_on_cmd2, 0x00},
 	{ 0x4 , truly_1080p_cmd_on_cmd3, 0x00},
 	{ 0x4 , truly_1080p_cmd_on_cmd4, 0x00},
-	{ 0x4 , truly_1080p_cmd_on_cmd5, 0x14},
+	{ 0x4 , truly_1080p_cmd_on_cmd5, 0x78},
 	{ 0x4 , truly_1080p_cmd_on_cmd6, 0x00},
 	{ 0xc , truly_1080p_cmd_on_cmd7, 0x00},
 	{ 0x8 , truly_1080p_cmd_on_cmd8, 0x00},
@@ -251,7 +251,7 @@ static struct mipi_dsi_cmd truly_1080p_cmd_on_command[] = {
 	{ 0xc , truly_1080p_cmd_on_cmd18, 0x00},
 	{ 0x24 , truly_1080p_cmd_on_cmd19, 0x00},
 	{ 0x18 , truly_1080p_cmd_on_cmd20, 0xc8},
-	{ 0x4 , truly_1080p_cmd_on_cmd21, 0x78},
+	{ 0x4 , truly_1080p_cmd_on_cmd21, 0x14},
 };
 
 #define TRULY_1080P_CMD_ON_COMMAND 22
