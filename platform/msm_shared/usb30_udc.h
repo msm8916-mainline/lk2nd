@@ -39,6 +39,22 @@
 
 typedef enum
 {
+	UDC_DEFAULT_STATE,
+	UDC_ADDRESSED_STATE,
+	UDC_CONFIGURED_STATE,
+} usb_state_t;
+
+typedef enum
+{
+	ENDPOINT_HALT = 0,
+	FUNCTION_SUSPEND = 0,
+	U1_ENABLE = 48,
+	U2_ENABLE = 49,
+	LTM_ENABLE = 50,
+} udc_feature_select_t;
+
+typedef enum
+{
 	UDC_DESC_SPEC_20 = BIT(0),
 	UDC_DESC_SPEC_30 = BIT(1),
 } udc_desc_spec_t;
@@ -69,6 +85,7 @@ typedef struct
 	uint8_t                config_selected; /* keeps track of the selected configuration */
 
 	struct udc_request    *queued_req;      /* pointer to the currently queued request. NULL indicates no request is queued. */
+	usb_state_t            usb_state;       /* USB state, default, addressed & configured */
 
 } udc_t;
 
@@ -92,6 +109,18 @@ struct udc_endpoint {
 	dwc_trb_t           *trb;       /* pointer to buffer used for TRB chain */
 	uint32_t             trb_count; /* size of TRB chain. */
 };
+
+struct usb_qualifier_desc {
+	uint8_t bLength;
+	uint8_t bDescriptorType;
+	uint16_t bcdUSB;
+	uint8_t bDeviceClass;
+	uint8_t bDeviceSubClass;
+	uint8_t bDeviceProtocol;
+	uint8_t bMaxPacketSize0;
+	uint8_t bNumConfigurations;
+	uint8_t bReserved;
+}__PACKED;
 
 struct udc_request *usb30_udc_request_alloc(void);
 struct udc_endpoint *usb30_udc_endpoint_alloc(unsigned type, unsigned maxpkt);
