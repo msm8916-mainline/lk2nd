@@ -136,8 +136,6 @@ void target_uninit(void)
 	if (platform_boot_dev_isemmc())
 	{
 		mmc_put_card_to_sleep(dev);
-		/* Disable HC mode before jumping to kernel */
-		sdhci_mode_disable(&dev->host);
 	}
 
 	if (is_sec_app_loaded())
