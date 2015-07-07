@@ -240,7 +240,8 @@ void mdss_dsi_phy_contention_detection(struct mipi_panel_info *mipi,
 				uint32_t phy_base);
 int mipi_dsi_phy_init(struct mipi_dsi_panel_config *pinfo);
 
-int mdss_dsi_video_mode_config(uint16_t disp_width,
+int mdss_dsi_video_mode_config(struct msm_panel_info *pinfo,
+	uint16_t disp_width,
 	uint16_t disp_height,
 	uint16_t img_width,
 	uint16_t img_height,
@@ -258,7 +259,8 @@ int mdss_dsi_video_mode_config(uint16_t disp_width,
 	uint8_t eof_bllp_pwr,
 	uint8_t interleav,
 	uint32_t ctl_base);
-int mdss_dsi_cmd_mode_config(uint16_t disp_width,
+int mdss_dsi_cmd_mode_config(struct msm_panel_info *pinfo,
+	uint16_t disp_width,
 	uint16_t disp_height,
 	uint16_t img_width,
 	uint16_t img_height,
@@ -284,4 +286,5 @@ uint32_t mdss_dsi_pll_20nm_lock_status(uint32_t pll_base);
 void mdss_dsi_uniphy_pll_lock_detect_setting(uint32_t pll_base);
 void mdss_dsi_uniphy_pll_sw_reset(uint32_t pll_base);
 int mdss_dsi_post_on(struct msm_fb_panel_data *panel);
+
 #endif

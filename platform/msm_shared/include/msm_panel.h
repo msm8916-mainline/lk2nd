@@ -122,6 +122,87 @@ struct lcdc_panel_info {
 	uint8_t dst_split;
 };
 
+enum {
+	COMPRESSION_NONE,
+	COMPRESSION_DSC,
+	COMPRESSION_FBC
+};
+
+#define DCS_HDR_LEN	4
+#define DSC_PPS_LEN	128
+
+struct msm_panel_info;
+
+struct dsc_desc {
+	int data_path_model;            /* multiplex + split_panel */
+	int ich_reset_value;
+	int ich_reset_override;
+	int initial_lines;
+	int slice_last_group_size;
+	int bpp;        /* target bit per pixel */
+	int bpc;        /* bit per component */
+	int line_buf_depth;
+	int config_by_manufacture_cmd;
+	int block_pred_enable;
+	int vbr_enable;
+	int enable_422;
+	int convert_rgb;
+	int input_10_bits;
+	int slice_per_pkt;
+
+	int major;
+	int minor;
+	int pps_id;
+
+	int pic_height;
+	int pic_width;
+	int slice_height;
+	int slice_width;
+	int chunk_size;
+
+	int pkt_per_line;
+	int bytes_in_slice;
+	int bytes_per_pkt;
+	int eol_byte_num;
+	int pclk_per_line;      /* width */
+
+	int initial_dec_delay;
+	int initial_xmit_delay;
+
+	int initial_scale_value;
+	int scale_decrement_interval;
+	int scale_increment_interval;
+
+	int first_line_bpg_offset;
+	int nfl_bpg_offset;
+	int slice_bpg_offset;
+
+	int initial_offset;
+	int final_offset;
+
+	int rc_model_size;      /* rate_buffer_size */
+
+	int det_thresh_flatness;
+	int max_qp_flatness;
+	int min_qp_flatness;
+	int edge_factor;
+	int quant_incr_limit0;
+	int quant_incr_limit1;
+	int tgt_offset_hi;
+	int tgt_offset_lo;
+	char *buf_thresh;
+	char *range_min_qp;
+	char *range_max_qp;
+	char *range_bpg_offset;
+	char pps_buf[DCS_HDR_LEN + DSC_PPS_LEN];
+
+	void (*parameter_calc) (struct msm_panel_info *pinfo);
+	int (*dsc2buf) (struct msm_panel_info *pinfo);
+	void (*dsi_dsc_config) (uint32_t base, int mode, struct dsc_desc *dsc);
+	void (*mdp_dsc_config) (struct msm_panel_info *pinfo);
+
+};
+
 struct fbc_panel_info {
 	uint32_t enabled;
 	uint32_t comp_ratio;
@@ -306,6 +387,7 @@ struct msm_panel_info {
 	uint32_t clk_rate;
 	uint32_t orientation;
 	uint32_t dest;
+	uint32_t compression_mode;
 	/*  Select pipe type for handoff */
 	uint32_t pipe_type;
 	char     lowpowerstop;
@@ -318,6 +400,7 @@ struct msm_panel_info {
 	struct lcd_panel_info lcd;
 	struct lcdc_panel_info lcdc;
 	struct fbc_panel_info fbc;
+	struct dsc_desc dsc;
 	struct mipi_panel_info mipi;
 	struct lvds_panel_info lvds;
 	struct hdmi_panel_info hdmi;
