@@ -90,6 +90,7 @@ extern void target_uninit(void);
 extern int get_target_boot_params(const char *cmdline, const char *part,
 				  char *buf, int buflen);
 
+void *info_buf;
 void write_device_info_mmc(device_info *dev);
 void write_device_info_flash(device_info *dev);
 static int aboot_save_boot_hash_mmc(uint32_t image_addr, uint32_t image_size);
@@ -1472,7 +1473,6 @@ continue_boot:
 	return 0;
 }
 
-BUF_DMA_ALIGN(info_buf, BOOT_IMG_MAX_PAGE_SIZE);
 void write_device_info_mmc(device_info *dev)
 {
 	unsigned long long ptn = 0;
@@ -1551,10 +1551,15 @@ void read_device_info_mmc(struct device_info *info)
 
 void write_device_info_flash(device_info *dev)
 {
-	struct device_info *info = (void *) info_buf;
+	struct device_info *info = memalign(PAGE_SIZE, ROUNDUP(BOOT_IMG_MAX_PAGE_SIZE, PAGE_SIZE));
 	struct ptentry *ptn;
 	struct ptable *ptable;
-
+	if(info == NULL)
+	{
+		dprintf(CRITICAL, "Failed to allocate memory for device info struct\n");
+		ASSERT(0);
+	}
+	info_buf = info;
 	ptable = flash_get_ptable();
 	if (ptable == NULL)
 	{
@@ -1576,6 +1581,7 @@ void write_device_info_flash(device_info *dev)
 		dprintf(CRITICAL, "ERROR: Cannot write device info\n");
 			return;
 	}
+	free(info);
 }
 
 static int read_allow_oem_unlock(device_info *dev)
@@ -1651,10 +1657,15 @@ static int write_allow_oem_unlock(bool allow_unlock)
 
 void read_device_info_flash(device_info *dev)
 {
-	struct device_info *info = (void*) info_buf;
+	struct device_info *info = memalign(PAGE_SIZE, ROUNDUP(BOOT_IMG_MAX_PAGE_SIZE, PAGE_SIZE));
 	struct ptentry *ptn;
 	struct ptable *ptable;
-
+	if(info == NULL)
+	{
+		dprintf(CRITICAL, "Failed to allocate memory for device info struct\n");
+		ASSERT(0);
+	}
+	info_buf = info;
 	ptable = flash_get_ptable();
 	if (ptable == NULL)
 	{
@@ -1683,23 +1694,31 @@ void read_device_info_flash(device_info *dev)
 		write_device_info_flash(info);
 	}
 	memcpy(dev, info, sizeof(device_info));
+	free(info);
 }
 
 void write_device_info(device_info *dev)
 {
 	if(target_is_emmc_boot())
 	{
-		struct device_info *info = (void*) info_buf;
+		struct device_info *info = memalign(PAGE_SIZE, ROUNDUP(BOOT_IMG_MAX_PAGE_SIZE, PAGE_SIZE));
+		if(info == NULL)
+		{
+			dprintf(CRITICAL, "Failed to allocate memory for device info struct\n");
+			ASSERT(0);
+		}
+		info_buf = info;
 		memcpy(info, dev, sizeof(struct device_info));
 
 #if USE_RPMB_FOR_DEVINFO
 		if (is_secure_boot_enable())
-			write_device_info_rpmb((void*) info, mmc_get_device_blocksize());
+			write_device_info_rpmb((void*) info, PAGE_SIZE);
 		else
 			write_device_info_mmc(info);
 #else
 		write_device_info_mmc(info);
 #endif
+		free(info);
 	}
 	else
 	{
@@ -1711,11 +1730,17 @@ void read_device_info(device_info *dev)
 {
 	if(target_is_emmc_boot())
 	{
-		struct device_info *info = (void*) info_buf;
+		struct device_info *info = memalign(PAGE_SIZE, ROUNDUP(BOOT_IMG_MAX_PAGE_SIZE, PAGE_SIZE));
+		if(info == NULL)
+		{
+			dprintf(CRITICAL, "Failed to allocate memory for device info struct\n");
+			ASSERT(0);
+		}
+		info_buf = info;
 
 #if USE_RPMB_FOR_DEVINFO
 		if (is_secure_boot_enable())
-			read_device_info_rpmb((void*) info, mmc_get_device_blocksize());
+			read_device_info_rpmb((void*) info, PAGE_SIZE);
 		else
 			read_device_info_mmc(info);
 #else
@@ -1736,6 +1761,7 @@ void read_device_info(device_info *dev)
 			write_device_info(info);
 		}
 		memcpy(dev, info, sizeof(device_info));
+		free(info);
 	}
 	else
 	{
