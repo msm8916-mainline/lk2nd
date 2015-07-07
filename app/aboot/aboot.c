@@ -1753,7 +1753,7 @@ void read_device_info(device_info *dev)
 			if (is_secure_boot_enable())
 				info->is_unlocked = 0;
 			else
-				info->is_verified = 1;
+				info->is_unlocked = 1;
 			info->is_tampered = 0;
 #if USER_BUILD_VARIANT
 			info->charger_screen_enabled = 1;
