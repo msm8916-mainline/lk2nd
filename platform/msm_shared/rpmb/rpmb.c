@@ -140,7 +140,9 @@ int read_device_info_rpmb(void *info, uint32_t sz)
 	read_rsp.cmd_id = CLIENT_CMD_READ_LK_DEVICE_STATE;
 
 	/* Read the device info */
+	arch_clean_invalidate_cache_range((addr_t) info, sz);
 	ret = qseecom_send_command(app_handle, (void*) &read_req, sizeof(read_req), (void*) &read_rsp, sizeof(read_rsp));
+	arch_invalidate_cache_range((addr_t) info, sz);
 
 	if (ret < 0 || read_rsp.status < 0)
 	{
@@ -165,7 +167,9 @@ int write_device_info_rpmb(void *info, uint32_t sz)
 	write_rsp.cmd_id = CLIENT_CMD_WRITE_LK_DEVICE_STATE;
 
 	/* Write the device info */
+	arch_clean_invalidate_cache_range((addr_t) info, sz);
 	ret = qseecom_send_command(app_handle, (void *)&write_req, sizeof(write_req), (void *)&write_rsp, sizeof(write_rsp));
+	arch_invalidate_cache_range((addr_t) info, sz);
 
 	if (ret < 0 || write_rsp.status < 0)
 	{
