@@ -545,7 +545,7 @@ uint8_t pm8950_get_pon_reason()
 {
 	uint8_t pon_reason = 0;
 
-	pon_reason = REG_READ(SMBCHGL_USB_ICL_STS_2);
+	pon_reason = REG_READ(SMBCHGL_USB_ICL_STS_2|PMI8950_SLAVE_ID);
 	/* check usbin/dcin status on pmi and set the corresponding bits for pon */
 	pon_reason = (pon_reason & (USBIN_ACTIVE_PWR_SRC|DCIN_ACTIVE_PWR_SRC)) << 3 ;
 	pon_reason |= REG_READ(PON_PON_REASON1);
