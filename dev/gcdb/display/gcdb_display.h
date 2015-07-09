@@ -56,22 +56,18 @@ int target_display_dsi2hdmi_config(struct msm_panel_info *pinfo);
 int target_dsi_phy_config(struct mdss_dsi_phy_ctrl *phy_db);
 
 int gcdb_display_init(const char *panel_name, uint32_t rev, void *base);
-int gcdb_display_cmdline_arg(char *panel_name, char *pbuf, uint16_t buf_size);
+int gcdb_display_cmdline_arg(char *pbuf, uint16_t buf_size);
 void gcdb_display_shutdown();
 int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	struct msm_panel_info *pinfo, struct mdss_dsi_phy_ctrl *phy_db);
+void set_panel_cmd_string(const char *panel_name);
+struct oem_panel_data mdss_dsi_get_oem_data(void);
+struct panel_struct mdss_dsi_get_panel_data(void);
 
-static inline void set_panel_cmd_string(const char *panel_name,
-	char *cont_splash)
-{
-	char *ch = NULL;
-	ch = strchr((char *) panel_name, ':');
-	if (ch) {
-		*cont_splash = *(ch + 1);
-		*ch = '\0';
-	} else {
-		*cont_splash = '\0';
-	}
-}
+struct oem_panel_data  {
+	char panel[MAX_PANEL_ID_LEN];
+	bool cont_splash;
+	bool skip;
+};
 
 #endif /*_GCDB_DISPLAY_H_ */

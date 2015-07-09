@@ -484,8 +484,6 @@ int32_t panel_name_to_id(struct panel_list supp_panels[],
 		return panel_id;
 	}
 
-	/* Remove any leading whitespaces */
-	panel_name += strspn(panel_name, " ");
 	for (i = 0; i < supp_panels_size; i++) {
 		if (!strncmp(panel_name, supp_panels[i].name,
 			MAX_PANEL_ID_LEN)) {

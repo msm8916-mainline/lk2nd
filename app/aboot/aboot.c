@@ -355,8 +355,8 @@ unsigned char *update_cmdline(const char * cmdline)
 
 	if (cmdline) {
 		if ((strstr(cmdline, DISPLAY_DEFAULT_PREFIX) == NULL) &&
-			target_display_panel_node(device.display_panel,
-			display_panel_buf, MAX_PANEL_BUF_SIZE) &&
+			target_display_panel_node(display_panel_buf,
+			MAX_PANEL_BUF_SIZE) &&
 			strlen(display_panel_buf)) {
 			cmdline_len += strlen(display_panel_buf);
 		}
