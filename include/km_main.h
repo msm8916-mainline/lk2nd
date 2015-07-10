@@ -140,4 +140,27 @@ typedef struct _km_set_milestone_rsp_t {
 	int status;
 }__attribute__ ((packed)) km_set_milestone_rsp_t;
 
+/*
+ * Structures for delete_all cmd
+ */
+/*
+  @brief
+  Data structure
+
+  @param[in]  cmd_id              Requested command
+*/
+typedef struct _key_op_delete_all_req_t {
+	uint32 cmd_id;
+}__attribute__ ((packed)) key_op_delete_all_req_t;
+
+/*
+  @brief
+  Data structure
+
+  @param[out]   status             Status of the request
+*/
+typedef struct _key_op_delete_all_rsp_t {
+	int status;
+}__attribute__ ((packed)) key_op_delete_all_rsp_t;
+
 #endif /* KM_MAIN_H */

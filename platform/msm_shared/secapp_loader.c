@@ -55,6 +55,25 @@ int get_secapp_handle()
 	return app_handle;
 }
 
+int send_delete_keys_to_tz()
+{
+	int ret = 0;
+	key_op_delete_all_req_t req = {0};
+	key_op_delete_all_rsp_t rsp = {0};
+	req.cmd_id = KEYMASTER_DELETE_ALL_KEYS;
+
+	// send delete all keys command
+	ret = qseecom_send_command(app_handle, (void *)&req, sizeof(req), (void *)&rsp, sizeof(rsp));
+
+	if (ret < 0 || rsp.status < 0)
+	{
+		dprintf(CRITICAL, "Failed to send delete keys command: Error: %x\n", rsp.status);
+		return -1;
+	}
+
+	return 0;
+}
+
 int send_milestone_call_to_tz()
 {
 	int ret = 0;

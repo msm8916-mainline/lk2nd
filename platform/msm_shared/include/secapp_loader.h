@@ -58,5 +58,6 @@ bool is_sec_app_loaded();
 int load_sec_app();
 int get_secapp_handle();
 int send_milestone_call_to_tz();
+int send_delete_keys_to_tz();
 
 #endif /* SAL_MAIN_H */
