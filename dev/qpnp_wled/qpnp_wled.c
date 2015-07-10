@@ -223,9 +223,13 @@ static int qpnp_wled_config(struct qpnp_wled *wled)
 
 	reg = pm8x41_wled_reg_read(
 			QPNP_WLED_ILIM_REG(wled->ctrl_base));
-	reg &= QPNP_WLED_ILIM_MASK;
-	reg |= (wled->ilim_ma / QPNP_WLED_ILIM_STEP_MA);
-	pm8x41_wled_reg_write(QPNP_WLED_ILIM_REG(wled->ctrl_base), reg);
+	temp = (wled->ilim_ma / QPNP_WLED_ILIM_STEP_MA);
+	if (temp != (reg & ~QPNP_WLED_ILIM_MASK)) {
+		reg &= QPNP_WLED_ILIM_MASK;
+		reg |= temp;
+		reg |= QPNP_WLED_ILIM_OVERWRITE;
+		pm8x41_wled_reg_write(QPNP_WLED_ILIM_REG(wled->ctrl_base), reg);
+	}
 
 	/* Configure the MAX BOOST DUTY register */
 	if (wled->boost_duty_ns < QPNP_WLED_BOOST_DUTY_MIN_NS)
