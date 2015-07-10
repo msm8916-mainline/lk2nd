@@ -87,6 +87,7 @@
 #include "board.h"
 #include "scm.h"
 #include "mdtp.h"
+#include "secapp_loader.h"
 
 extern  bool target_use_signed_kernel(void);
 extern void platform_uninit(void);
@@ -2191,6 +2192,11 @@ void cmd_erase_mmc(const char *arg, void *data, unsigned sz)
 			return;
 		}
 	}
+#if VERIFIED_BOOT
+	if(!(strncmp(arg, "userdata", 8)))
+		if(send_delete_keys_to_tz())
+			ASSERT(0);
+#endif
 	fastboot_okay("");
 }
 
