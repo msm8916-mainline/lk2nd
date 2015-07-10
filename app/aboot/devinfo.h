@@ -43,6 +43,7 @@ struct device_info
 	bool is_tampered;
 	bool charger_screen_enabled;
 	char display_panel[MAX_PANEL_ID_LEN];
+	bool verity_mode; // 1 = enforcing, 0 = logging
 };
 
 #endif
