@@ -126,10 +126,16 @@ struct fastboot_cmd_desc {
 #define RECOVERY_HARD_RESET_MODE   0x01
 #define FASTBOOT_HARD_RESET_MODE   0x02
 #define RTC_HARD_RESET_MODE        0x03
+#define DM_VERITY_ENFORCING_HARD_RESET_MODE 0x04
+#define DM_VERITY_LOGGING_HARD_RESET_MODE   0x05
+#define DM_VERITY_KEYSCLEAR_HARD_RESET_MODE 0x06
 
-#define RECOVERY_MODE   0x77665502
-#define FASTBOOT_MODE   0x77665500
-#define ALARM_BOOT      0x77665503
+#define RECOVERY_MODE        0x77665502
+#define FASTBOOT_MODE        0x77665500
+#define ALARM_BOOT           0x77665503
+#define DM_VERITY_LOGGING    0x77665508
+#define DM_VERITY_ENFORCING  0x77665509
+#define DM_VERITY_KEYSCLEAR  0x7766550A
 
 /* make 4096 as default size to ensure EFS,EXT4's erasing */
 #define DEFAULT_ERASE_SIZE  4096
@@ -169,9 +175,16 @@ static const char *baseband_sglte2  = " androidboot.baseband=sglte2";
 static const char *warmboot_cmdline = " qpnp-power-on.warm_boot=1";
 
 #if VERIFIED_BOOT
+static const char *verity_mode = " androidboot.veritymode=";
 static const char *verified_state= " androidboot.verifiedbootstate=";
 
 //indexed based on enum values, green is 0 by default
+
+struct verified_boot_verity_mode vbvm[] =
+{
+	{false, "logging"},
+	{true, "enforcing"},
+};
 struct verified_boot_state_name vbsn[] =
 {
 	{GREEN, "green"},
@@ -192,7 +205,7 @@ static bool devinfo_present = true;
 /* Assuming unauthorized kernel image by default */
 static int auth_kernel_img = 0;
 
-static device_info device = {DEVICE_MAGIC, 0, 0, 0, {0}, {0},{0}};
+static device_info device = {DEVICE_MAGIC, 0, 0, 0, {0}, {0},{0}, 1};
 static bool is_allow_unlock = 0;
 
 static char frp_ptns[2][8] = {"config","frp"};
@@ -304,6 +317,7 @@ unsigned char *update_cmdline(const char * cmdline)
 
 #if VERIFIED_BOOT
 	cmdline_len += strlen(verified_state) + strlen(vbsn[boot_state].name);
+	cmdline_len += strlen(verity_mode) + strlen(vbvm[device.verity_mode].name);
 #endif
 
 	if (boot_into_recovery && gpt_exists)
@@ -427,6 +441,13 @@ unsigned char *update_cmdline(const char * cmdline)
 		while ((*dst++ = *src++));
 		src = vbsn[boot_state].name;
 		if(have_cmdline) --dst;
+		while ((*dst++ = *src++));
+
+		src = verity_mode;
+		if(have_cmdline) --dst;
+		while ((*dst++ = *src++));
+		src = vbvm[device.verity_mode].name;
+		if(have_cmdline) -- dst;
 		while ((*dst++ = *src++));
 #endif
 		src = usb_sn_cmdline;
@@ -2677,6 +2698,16 @@ void cmd_flash_mmc(const char *arg, void *data, unsigned sz)
 		cmd_flash_meta_img(arg, data, sz);
 	else
 		cmd_flash_mmc_img(arg, data, sz);
+
+#if VERIFIED_BOOT
+	if((!strncmp(arg, "system", 6)) && !device.verity_mode)
+	{
+		// reset dm_verity mode to enforcing
+		device.verity_mode = 1;
+		write_device_info(&device);
+	}
+#endif
+
 	return;
 }
 
@@ -3289,6 +3320,18 @@ void aboot_init(const struct app_descriptor *app)
 	} else if(reboot_mode == ALARM_BOOT ||
 		hard_reboot_mode == RTC_HARD_RESET_MODE) {
 		boot_reason_alarm = true;
+	} else if(reboot_mode == DM_VERITY_ENFORCING ||
+		hard_reboot_mode == DM_VERITY_ENFORCING_HARD_RESET_MODE) {
+		device.verity_mode = 1;
+		write_device_info(&device);
+	} else if(reboot_mode == DM_VERITY_LOGGING ||
+		hard_reboot_mode == DM_VERITY_LOGGING_HARD_RESET_MODE) {
+		device.verity_mode = 0;
+		write_device_info(&device);
+	} else if(reboot_mode == DM_VERITY_KEYSCLEAR ||
+		hard_reboot_mode == DM_VERITY_KEYSCLEAR_HARD_RESET_MODE) {
+		if(send_delete_keys_to_tz())
+			ASSERT(0);
 	}
 
 normal_boot:

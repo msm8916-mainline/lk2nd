@@ -138,6 +138,12 @@ enum boot_state
 	RED,
 };
 
+struct verified_boot_verity_mode
+{
+	bool verity_mode_enforcing;
+	char *name;
+};
+
 struct verified_boot_state_name
 {
 	uint32_t boot_state;

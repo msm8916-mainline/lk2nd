@@ -46,6 +46,7 @@ struct device_info
 	char display_panel[MAX_PANEL_ID_LEN];
 	char bootloader_version[MAX_VERSION_LEN];
 	char radio_version[MAX_VERSION_LEN];
+	bool verity_mode; // 1 = enforcing, 0 = logging
 };
 
 #endif
