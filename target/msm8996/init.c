@@ -92,7 +92,7 @@ void target_early_init(void)
 }
 
 /* Return 1 if vol_up pressed */
-static int target_volume_up()
+int target_volume_up()
 {
 	uint8_t status = 0;
 	struct pm8x41_gpio gpio;
@@ -136,8 +136,6 @@ void target_uninit(void)
 	if (platform_boot_dev_isemmc())
 	{
 		mmc_put_card_to_sleep(dev);
-		/* Disable HC mode before jumping to kernel */
-		sdhci_mode_disable(&dev->host);
 	}
 
 	if (is_sec_app_loaded())
@@ -373,7 +371,7 @@ void reboot_device(unsigned reboot_reason)
 	else
 		reset_type = PON_PSHOLD_HARD_RESET;
 
-	pm8x41_reset_configure(reset_type);
+	pm8994_reset_configure(reset_type);
 
 	/* Drop PS_HOLD for MSM */
 	writel(0x00, MPM2_MPM_PS_HOLD);
@@ -485,4 +483,21 @@ int set_download_mode(enum dload_mode mode)
 	ret = scm_dload_mode(mode);
 
 	return ret;
+}
+
+void shutdown_device()
+{
+	dprintf(CRITICAL, "Going down for shutdown.\n");
+
+	/* Configure PMIC for shutdown. */
+	pm8994_reset_configure(PON_PSHOLD_SHUTDOWN);
+
+	/* Drop PS_HOLD for MSM */
+	writel(0x00, MPM2_MPM_PS_HOLD);
+
+	mdelay(5000);
+
+	dprintf(CRITICAL, "Shutdown failed\n");
+
+	ASSERT(0);
 }

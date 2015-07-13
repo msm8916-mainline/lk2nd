@@ -35,6 +35,26 @@
 #include <platform/clock.h>
 #include <platform/iomap.h>
 #include <pm8x41.h>
+#include <rpm-smd.h>
+#include <regulator.h>
+
+#define RPM_CE_CLK_TYPE    0x6563
+#define CE1_CLK_ID         0x0
+#define RPM_SMD_KEY_RATE   0x007A484B
+
+uint32_t CE1_CLK[][8]=
+{
+	{
+		RPM_CE_CLK_TYPE, CE1_CLK_ID,
+		KEY_SOFTWARE_ENABLE, 4, GENERIC_DISABLE,
+		RPM_SMD_KEY_RATE, 4, 0,
+	},
+	{
+		RPM_CE_CLK_TYPE, CE1_CLK_ID,
+		KEY_SOFTWARE_ENABLE, 4, GENERIC_ENABLE,
+		RPM_SMD_KEY_RATE, 4, 176128, /* clk rate in KHZ */
+	},
+};
 
 void clock_init_mmc(uint32_t interface)
 {
@@ -141,10 +161,24 @@ static void ce_async_reset(uint8_t instance)
 
 void clock_ce_enable(uint8_t instance)
 {
+	if (instance == 1)
+		rpm_send_data(&CE1_CLK[GENERIC_ENABLE][0], 24, RPM_REQUEST_TYPE);
+	else
+	{
+		dprintf(CRITICAL, "Unsupported CE instance: %u\n", instance);
+		ASSERT(0);
+	}
 }
 
 void clock_ce_disable(uint8_t instance)
 {
+	if (instance == 1)
+		rpm_send_data(&CE1_CLK[GENERIC_DISABLE][0], 24, RPM_REQUEST_TYPE);
+	else
+	{
+		dprintf(CRITICAL, "Unsupported CE instance: %u\n", instance);
+		ASSERT(0);
+	}
 }
 
 void clock_config_ce(uint8_t instance)
@@ -249,6 +283,10 @@ void clock_reset_usb_phy()
 
 	struct clk *phy_reset_clk = NULL;
 	struct clk *pipe_reset_clk = NULL;
+	struct clk *master_clk = NULL;
+
+	master_clk = clk_get("usb30_master_clk");
+	ASSERT(master_clk);
 
 	/* Look if phy com clock is present */
 	phy_reset_clk = clk_get("usb30_phy_reset");
@@ -258,12 +296,18 @@ void clock_reset_usb_phy()
 	ASSERT(pipe_reset_clk);
 
 	/* ASSERT */
+	ret = clk_reset(master_clk, CLK_RESET_ASSERT);
+	if (ret)
+	{
+		dprintf(CRITICAL, "Failed to assert usb30_master_reset clk\n");
+		return;
+	}
 	ret = clk_reset(phy_reset_clk, CLK_RESET_ASSERT);
 
 	if (ret)
 	{
 		dprintf(CRITICAL, "Failed to assert usb30_phy_reset clk\n");
-		return;
+		goto deassert_master_clk;
 	}
 
 	ret = clk_reset(pipe_reset_clk, CLK_RESET_ASSERT);
@@ -291,6 +335,15 @@ deassert_phy_clk:
 		dprintf(CRITICAL, "Failed to deassert usb30_phy_com_reset clk\n");
 		return;
 	}
+deassert_master_clk:
+
+	ret = clk_reset(master_clk, CLK_RESET_DEASSERT);
+	if (ret)
+	{
+		dprintf(CRITICAL, "Failed to deassert usb30_master clk\n");
+		return;
+	}
+
 }
 
 void mmss_gdsc_enable()

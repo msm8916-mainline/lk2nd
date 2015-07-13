@@ -1012,7 +1012,7 @@ void scm_elexec_call(paddr_t kernel_entry, paddr_t dtb_offset)
 	uint32_t cmd_id = SCM_SVC_MILESTONE_CMD_ID;
 	void *cmd_buf;
 	size_t cmd_len;
-	static el1_system_param param;
+	static el1_system_param param __attribute__((aligned(0x1000)));
 	scmcall_arg scm_arg = {0};
 
 	param.el1_x0 = dtb_offset;
@@ -1333,5 +1333,23 @@ int scm_dload_mode(int mode)
 	}
 
 	return ret;
+}
+
+bool scm_device_enter_dload()
+{
+	uint32_t ret = 0;
+
+	scmcall_arg scm_arg = {0};
+	scmcall_ret scm_ret = {0};
+
+	scm_arg.x0 = MAKE_SIP_SCM_CMD(TZ_SVC_DLOAD_MODE, SCM_DLOAD_CMD);
+	ret = scm_call2(&scm_arg, &scm_ret);
+	if (ret)
+		dprintf(CRITICAL, "SCM call to check dload mode failed: %x\n", ret);
+
+	if (!ret && (scm_io_read(TCSR_BOOT_MISC_DETECT) == SCM_DLOAD_MODE))
+		return true;
+
+	return false;
 }
 #endif

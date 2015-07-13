@@ -154,12 +154,18 @@ void qpnp_wled_enable_backlight(int enable)
 static int qpnp_wled_set_display_type(struct qpnp_wled *wled, uint16_t base_addr)
 {
 	uint8_t reg = 0;
+	int rc;
 
 	/* display type */
 	reg = pm8x41_wled_reg_read(QPNP_WLED_DISP_SEL_REG(base_addr));
 
 	reg &= QPNP_WLED_DISP_SEL_MASK;
 	reg |= (wled->disp_type_amoled << QPNP_WLED_DISP_SEL_SHIFT);
+
+	rc = qpnp_wled_sec_access(wled, base_addr);
+	if (rc)
+		return rc;
+
 	pm8x41_wled_reg_write(QPNP_WLED_DISP_SEL_REG(base_addr), reg);
 
 	return 0;

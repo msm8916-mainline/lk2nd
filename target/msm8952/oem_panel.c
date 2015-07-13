@@ -48,6 +48,7 @@
 #include "include/panel_otm1906c_1080p_cmd.h"
 #include "include/panel_sharp_1080p_cmd.h"
 #include "include/panel_nt35597_wqxga_dualdsi_video.h"
+#include "include/panel_nt35597_wqxga_dualdsi_cmd.h"
 
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
@@ -58,6 +59,7 @@ enum {
 	OTM1906C_1080P_CMD_PANEL,
 	SHARP_1080P_CMD_PANEL,
 	NT35597_WQXGA_DUALDSI_VIDEO_PANEL,
+	NT35597_WQXGA_DUALDSI_CMD_PANEL,
 	UNKNOWN_PANEL
 };
 
@@ -74,11 +76,12 @@ static struct panel_list supp_panels[] = {
 	{"truly_1080p_cmd", TRULY_1080P_CMD_PANEL},
 	{"sharp_1080p_cmd", SHARP_1080P_CMD_PANEL},
 	{"nt35597_wqxga_dualdsi_video", NT35597_WQXGA_DUALDSI_VIDEO_PANEL},
+	{"nt35597_wqxga_dualdsi_cmd", NT35597_WQXGA_DUALDSI_CMD_PANEL},
 };
 
 static uint32_t panel_id;
 
-#define TRULY_1080P_CMD_PANEL_ON_DELAY 40
+#define TRULY_1080P_PANEL_ON_DELAY 40
 
 int oem_panel_rotation()
 {
@@ -94,8 +97,9 @@ int oem_panel_on()
 	if (panel_id == OTM1906C_1080P_CMD_PANEL) {
 		/* needs extra delay to avoid unexpected artifacts */
 		mdelay(OTM1906C_1080P_CMD_PANEL_ON_DELAY);
-	} else if (panel_id == TRULY_1080P_CMD_PANEL) {
-		mdelay(TRULY_1080P_CMD_PANEL_ON_DELAY);
+	} else if (panel_id == TRULY_1080P_CMD_PANEL ||
+			panel_id == TRULY_1080P_VIDEO_PANEL) {
+		mdelay(TRULY_1080P_PANEL_ON_DELAY);
 	}
 
 	return NO_ERROR;
@@ -250,6 +254,38 @@ static int init_panel_data(struct panel_struct *panelstruct,
 			TIMING_SIZE);
 		pinfo->mipi.tx_eot_append = true;
 		break;
+	case NT35597_WQXGA_DUALDSI_CMD_PANEL:
+		panelstruct->paneldata    = &nt35597_wqxga_dualdsi_cmd_panel_data;
+		panelstruct->paneldata->panel_operating_mode = DST_SPLIT_FLAG |
+					SPLIT_DISPLAY_FLAG | DUAL_DSI_FLAG;
+		panelstruct->paneldata->panel_with_enable_gpio = 0;
+
+		panelstruct->panelres     = &nt35597_wqxga_dualdsi_cmd_panel_res;
+		panelstruct->color        = &nt35597_wqxga_dualdsi_cmd_color;
+		panelstruct->videopanel   = &nt35597_wqxga_dualdsi_cmd_video_panel;
+		panelstruct->commandpanel = &nt35597_wqxga_dualdsi_cmd_command_panel;
+		panelstruct->state        = &nt35597_wqxga_dualdsi_cmd_state;
+		panelstruct->laneconfig   = &nt35597_wqxga_dualdsi_cmd_lane_config;
+		panelstruct->paneltiminginfo
+			= &nt35597_wqxga_dualdsi_cmd_timing_info;
+		panelstruct->panelresetseq
+					 = &nt35597_wqxga_dualdsi_cmd_reset_seq;
+		panelstruct->backlightinfo = &nt35597_wqxga_dualdsi_cmd_backlight;
+
+		pinfo->labibb = &nt35597_wqxga_dualdsi_cmd_labibb;
+
+		pinfo->mipi.panel_on_cmds
+			= nt35597_wqxga_dualdsi_cmd_on_command;
+		pinfo->mipi.num_of_panel_on_cmds
+			= NT35597_WQXGA_DUALDSI_CMD_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+			= nt35597_wqxga_dualdsi_cmd_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+			= NT35597_WQXGA_DUALDSI_CMD_OFF_COMMAND;
+		memcpy(phy_db->timing, nt35597_wqxga_dualdsi_cmd_timings,
+			TIMING_SIZE);
+		pinfo->mipi.tx_eot_append = true;
+		break;
 	case UNKNOWN_PANEL:
 	default:
 		memset(panelstruct, 0, sizeof(struct panel_struct));
@@ -279,13 +315,13 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 
 		if (panel_override_id < 0) {
 			dprintf(CRITICAL, "Not able to search the panel:%s\n",
-					 panel_name + strspn(panel_name, " "));
+					 panel_name);
 		} else if (panel_override_id < UNKNOWN_PANEL) {
 			/* panel override using fastboot oem command */
 			panel_id = panel_override_id;
 
 			dprintf(INFO, "OEM panel override:%s\n",
-					panel_name + strspn(panel_name, " "));
+					panel_name);
 			goto panel_init;
 		}
 	}

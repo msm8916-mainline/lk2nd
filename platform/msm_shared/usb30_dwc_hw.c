@@ -383,6 +383,45 @@ uint8_t dwc_device_run_status(dwc_dev_t *dev)
 	return REG_READ_FIELD(dev, DCTL, RUN_STOP);
 }
 
+void dwc_device_enter_test_mode(dwc_dev_t *dev)
+{
+	REG_WRITE_FIELD(dev, DCTL, TSTCTL, dev->test_mode);
+}
+
+void dwc_device_enable_u1(dwc_dev_t *dev, uint8_t val)
+{
+	REG_WRITE_FIELD(dev, DCTL, INITU1ENA, val);
+}
+
+void dwc_device_enable_u2(dwc_dev_t *dev, uint8_t val)
+{
+	REG_WRITE_FIELD(dev, DCTL, INITU2ENA, val);
+}
+
+void dwc_device_accept_u1u2(dwc_dev_t *dev)
+{
+	REG_WRITE_FIELD(dev, DCTL, ACCEPTU1ENA, 1);
+	REG_WRITE_FIELD(dev, DCTL, ACCEPTU2ENA, 1);
+}
+
+bool dwc_device_u1_enabled(dwc_dev_t *dev)
+{
+	uint32_t val;
+
+	val = REG_READ(dev, DCTL);
+
+	return val & (1 << 10) ? true : false;
+}
+
+bool dwc_device_u2_enabled(dwc_dev_t *dev)
+{
+	uint32_t val;
+
+	val = REG_READ(dev, DCTL);
+
+	return val & (1 << 12) ? true : false;
+}
+
 /******************** Managing various events *********************************/
 /* event init:
    program event buffer address, size and reset event count to 0.

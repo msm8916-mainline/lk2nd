@@ -882,7 +882,11 @@ int udc_start(void)
 	}
 
 	/* create our device descriptor */
-	desc = udc_descriptor_alloc(TYPE_DEVICE, 0, 18);
+	if(!(desc = udc_descriptor_alloc(TYPE_DEVICE, 0, 18)))
+	{
+		dprintf(CRITICAL, "Failed to allocate device descriptor\n");
+		ASSERT(0);
+	}
 	data = desc->data;
 	data[2] = 0x00;		/* usb spec minor rev */
 	data[3] = 0x02;		/* usb spec major rev */

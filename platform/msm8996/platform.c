@@ -32,8 +32,8 @@
 #include <qgic.h>
 #include <qtimer.h>
 #include <platform/clock.h>
-#include <mmu.h>
 #include <arch/arm/mmu.h>
+#include <mmu.h>
 #include <smem.h>
 #include <board.h>
 
@@ -46,20 +46,31 @@
 
 /* Peripherals - non-shared device */
 #define IOMAP_MEMORY      (MMU_MEMORY_TYPE_DEVICE_SHARED | \
-                           MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
+                           MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN | MMU_MEMORY_PXN)
 
 /* SCRATCH memory - cacheable, write through */
 #define SCRATCH_MEMORY       (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
                            MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
 
-static mmu_section_t mmu_section_table[] = {
-/*       Physical addr,    Virtual addr,     Size (in MB),       Flags */
-	{    MEMBASE,           MEMBASE,          (MEMSIZE / MB),    LK_MEMORY},
-	{    MSM_IOMAP_BASE,    MSM_IOMAP_BASE,    MSM_IOMAP_SIZE,   IOMAP_MEMORY},
-	{    KERNEL_ADDR,       KERNEL_ADDR,       KERNEL_SIZE,      SCRATCH_MEMORY},
-	{    SCRATCH_ADDR,      SCRATCH_ADDR,      SCRATCH_SIZE,     SCRATCH_MEMORY},
-	{    MSM_SHARED_BASE,   MSM_SHARED_BASE,   MSM_SHARED_SIZE,  SCRATCH_MEMORY},
-	{    RPMB_SND_RCV_BUF,  RPMB_SND_RCV_BUF,  RPMB_SND_RCV_BUF_SZ,    IOMAP_MEMORY},
+/* COMMON memory - cacheable, write through */
+#define COMMON_MEMORY       (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
+                           MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
+
+
+static mmu_section_t default_mmu_section_table[] =
+{
+/*        Physical addr,    Virtual addr,     Mapping type ,              Size (in MB),            Flags */
+    {    0x00000000,        0x00000000,       MMU_L1_NS_SECTION_MAPPING,  1024,                IOMAP_MEMORY},
+    {    KERNEL_ADDR,       KERNEL_ADDR,      MMU_L2_NS_SECTION_MAPPING,  KERNEL_SIZE,         COMMON_MEMORY},
+    {    MEMBASE,           MEMBASE,          MMU_L2_NS_SECTION_MAPPING,  (MEMSIZE / MB),      LK_MEMORY},
+    {    SCRATCH_ADDR,      SCRATCH_ADDR,     MMU_L2_NS_SECTION_MAPPING,  SCRATCH_SIZE,        SCRATCH_MEMORY},
+    {    MSM_SHARED_BASE,   MSM_SHARED_BASE,  MMU_L2_NS_SECTION_MAPPING,  MSM_SHARED_SIZE,     COMMON_MEMORY},
+    {    RPMB_SND_RCV_BUF,  RPMB_SND_RCV_BUF, MMU_L2_NS_SECTION_MAPPING,  RPMB_SND_RCV_BUF_SZ, IOMAP_MEMORY},
+};
+
+static mmu_section_t dload_mmu_section_table[] =
+{
+    { 0x85800000, 0x85800000, MMU_L2_NS_SECTION_MAPPING, 178, COMMON_MEMORY},
 };
 
 void platform_early_init(void)
@@ -94,37 +105,30 @@ int platform_use_identity_mmu_mappings(void)
 /* Setup memory for this platform */
 void platform_init_mmu_mappings(void)
 {
-	uint32_t i;
-	uint32_t sections;
-	uint32_t table_size = ARRAY_SIZE(mmu_section_table);
+	int i;
+	int table_sz = ARRAY_SIZE(default_mmu_section_table);
 
-	/* Configure the MMU page entries for memory read from the
-	   mmu_section_table */
-	for (i = 0; i < table_size; i++)
+	for (i = 0 ; i < table_sz; i++)
+		arm_mmu_map_entry(&default_mmu_section_table[i]);
+
+	if (scm_device_enter_dload())
 	{
-		sections = mmu_section_table[i].num_of_sections;
+		/* TZ & Hyp memory can be mapped only while entering the download mode */
+		table_sz = ARRAY_SIZE(dload_mmu_section_table);
 
-		while (sections--)
-		{
-			arm_mmu_map_section(mmu_section_table[i].paddress +
-								sections * MB,
-								mmu_section_table[i].vaddress +
-								sections * MB,
-								mmu_section_table[i].flags);
-		}
+		for (i = 0 ; i < table_sz; i++)
+			arm_mmu_map_entry(&dload_mmu_section_table[i]);
 	}
 }
 
 addr_t platform_get_virt_to_phys_mapping(addr_t virt_addr)
 {
-	/* Using 1-1 mapping on this platform. */
-	return virt_addr;
+	return virtual_to_physical_mapping(virt_addr);
 }
 
 addr_t platform_get_phys_to_virt_mapping(addr_t phys_addr)
 {
-	/* Using 1-1 mapping on this platform. */
-	return phys_addr;
+	return physical_to_virtual_mapping(phys_addr);
 }
 
 uint32_t platform_get_sclk_count(void)

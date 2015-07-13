@@ -410,6 +410,8 @@ typedef struct
 	/* callback into client to process the setup msgs. */
 	void *setup_context;
 	int (*setup_handler)(void* context, uint8_t* data);
+	bool is_test_mode;
+	uint16_t test_mode;
 
 } dwc_dev_t;
 

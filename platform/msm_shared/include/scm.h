@@ -235,6 +235,7 @@ typedef struct
 #define SVC_MEMORY_PROTECTION       0x0C
 #define TZ_SVC_CRYPTO               0x0A
 #define SCM_SVC_INFO                0x06
+#define TZ_SVC_DLOAD_MODE           0x3
 
 /*Service specific command IDs */
 #define ERR_FATAL_ENABLE            0x0
@@ -461,4 +462,5 @@ bool is_secure_boot_enable();
 bool is_scm_armv8_support();
 
 int scm_dload_mode(int mode);
+int scm_device_enter_dload();
 #endif

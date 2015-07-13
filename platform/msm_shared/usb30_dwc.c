@@ -1056,6 +1056,13 @@ static void dwc_event_handler_ep_ctrl_state_status_2(dwc_dev_t *dev,
 			 * something wrong in fsm implementation.
 			 */
 			ASSERT(ep->state == EP_STATE_XFER_IN_PROG);
+			if (dev->is_test_mode)
+			{
+				/* Write DCTL register with test mode value */
+				dwc_device_enter_test_mode(dev);
+				dprintf(INFO, "Device entered test mode, please reset the device once testing is finished\n");
+				break;
+			}
 
 			ep->state = EP_STATE_INACTIVE;
 
@@ -1209,6 +1216,9 @@ static void dwc_event_handler_ep_bulk_state_inactive(dwc_dev_t *dev,
 													 uint32_t *event)
 {
 	dwc_event_ep_event_id_t event_id   = DWC_EVENT_EP_EVENT_ID(*event);
+#ifdef DEBUG_USB
+	uint8_t ep_phy_num                 = DWC_EVENT_EP_EVENT_EP_NUM(*event);
+#endif
 
 	switch (event_id)
 	{

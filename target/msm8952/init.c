@@ -61,6 +61,14 @@
 #include <shutdown_detect.h>
 #endif
 
+#if PON_VIB_SUPPORT
+#include <vibrator.h>
+#endif
+
+#if PON_VIB_SUPPORT
+#define VIBRATE_TIME    250
+#endif
+
 #define PMIC_ARB_CHANNEL_NUM    0
 #define PMIC_ARB_OWNER_ID       0
 #define TLMM_VOL_UP_BTN_GPIO    85
@@ -194,6 +202,15 @@ uint32_t target_volume_down()
 	return pm8x41_resin_status();
 }
 
+uint32_t target_is_pwrkey_pon_reason()
+{
+	uint8_t pon_reason = pm8950_get_pon_reason();
+	if (pm8x41_get_is_cold_boot() && ((pon_reason == KPDPWR_N) || (pon_reason == (KPDPWR_N|PON1))))
+		return 1;
+	else
+		return 0;
+}
+
 static void target_keystatus()
 {
 	keys_init();
@@ -242,6 +259,12 @@ void target_init(void)
 #if LONG_PRESS_POWER_ON
 	shutdown_detect();
 #endif
+
+#if PON_VIB_SUPPORT
+	/* turn on vibrator to indicate that phone is booting up to end user */
+	vib_timed_turn_on(VIBRATE_TIME);
+#endif
+
 	if (target_use_signed_kernel())
 		target_crypto_init_params();
 

@@ -6,7 +6,7 @@ INCLUDES += -I$(LK_TOP_DIR)/dev/gcdb/display -I$(LK_TOP_DIR)/dev/gcdb/display/in
 PLATFORM := msm8952
 
 MEMBASE := 0x8F600000 # SDRAM
-MEMSIZE := 0x00200000 # 2MB
+MEMSIZE := 0x00300000 # 3MB
 
 BASE_ADDR        := 0x80000000
 SCRATCH_ADDR     := 0x90000000
@@ -15,10 +15,14 @@ DEFINES += DISPLAY_SPLASH_SCREEN=1
 DEFINES += DISPLAY_TYPE_MIPI=1
 DEFINES += DISPLAY_TYPE_DSI6G=1
 
+DEFINES += PMI_CONFIGURED=1
+
 MODULES += \
 	dev/keys \
 	lib/ptable \
 	dev/pmic/pm8x41 \
+	dev/qpnp_haptic \
+	dev/vib \
 	lib/libfdt \
 	dev/qpnp_wled \
 	dev/gcdb/display

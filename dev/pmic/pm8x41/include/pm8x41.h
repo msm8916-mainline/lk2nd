@@ -9,7 +9,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of The Linux Foundation, Inc. nor the names of its
+ *   * Neither the name of The Linux Foundation, nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -225,6 +225,7 @@ int pm8x41_ldo_set_voltage(struct pm8x41_ldo *ldo, uint32_t voltage);
 int pm8x41_ldo_control(struct pm8x41_ldo *ldo, uint8_t enable);
 uint8_t pm8x41_get_pmic_rev();
 uint8_t pm8x41_get_pon_reason();
+uint8_t pm8950_get_pon_reason();
 uint8_t pm8x41_get_pon_poff_reason1();
 uint8_t pm8x41_get_pon_poff_reason2();
 uint32_t pm8x41_get_pwrkey_is_pressed();

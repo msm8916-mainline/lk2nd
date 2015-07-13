@@ -70,6 +70,9 @@
 
 #define CLK_CTL_BASE                       0x1800000
 
+#define PMI_SLAVE_ID 3
+#define PMI_ADDR_BASE (PMI_SLAVE_ID << 16)
+
 #define SPMI_BASE                          0x02000000
 #define SPMI_GENI_BASE                     (SPMI_BASE + 0xA000)
 #define SPMI_PIC_BASE                      (SPMI_BASE +  0x01800000)
@@ -418,4 +421,9 @@
 
 #define TCSR_TZ_WONCE               0x193D000
 #define TCSR_BOOT_MISC_DETECT       0x193D100
+
+#define APPS_WDOG_BARK_VAL_REG      0x0B017010
+#define APPS_WDOG_BITE_VAL_REG      0x0B017014
+#define APPS_WDOG_RESET_REG         0x0B017008
+#define APPS_WDOG_CTL_REG           0x0B017004
 #endif

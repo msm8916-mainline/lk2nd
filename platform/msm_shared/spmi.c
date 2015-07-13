@@ -389,6 +389,53 @@ void spmi_enable_periph_interrupts(uint8_t periph_id)
 
 }
 
+/* SPMI helper functions */
+uint8_t pmic_spmi_reg_read(uint32_t addr)
+{
+	uint8_t val = 0;
+	struct pmic_arb_cmd cmd;
+	struct pmic_arb_param param;
+
+	cmd.address  = SPMI_PERIPH_ID(addr);
+	cmd.offset   = SPMI_REG_OFFSET(addr);
+	cmd.slave_id = SPMI_SLAVE_ID(addr);
+	cmd.priority = 0;
+
+	param.buffer = &val;
+	param.size   = 1;
+
+	pmic_arb_read_cmd(&cmd, &param);
+
+	return val;
+}
+
+void pmic_spmi_reg_write(uint32_t addr, uint8_t val)
+{
+	struct pmic_arb_cmd cmd;
+	struct pmic_arb_param param;
+
+	cmd.address  = SPMI_PERIPH_ID(addr);
+	cmd.offset   = SPMI_REG_OFFSET(addr);
+	cmd.slave_id = SPMI_SLAVE_ID(addr);
+	cmd.priority = 0;
+
+	param.buffer = &val;
+	param.size   = 1;
+
+	pmic_arb_write_cmd(&cmd, &param);
+}
+
+void pmic_spmi_reg_mask_write(uint32_t addr, uint8_t mask, uint8_t val)
+{
+	uint8_t reg;
+
+	reg = pmic_spmi_reg_read(addr);
+
+	reg &= ~mask;
+	reg |= val & mask;
+	pmic_spmi_reg_write(addr, reg);
+}
+
 void spmi_uninit()
 {
 	mask_interrupt(EE0_KRAIT_HLOS_SPMI_PERIPH_IRQ);
