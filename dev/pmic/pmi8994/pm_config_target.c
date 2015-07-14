@@ -31,22 +31,16 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
                      INCLUDE FILES 
 
 ===========================================================================*/
-#include "pm_mpp_driver.h"
-#include "pm_lpg_driver.h"
-#include "pm_vib_driver.h"
 #include "pm_smbchg_driver.h"
 #include "pm_app_smbchg.h"
 #include "pm_smbchg_bat_if.h"
-#include "pm_fg_sram.h"
-#include "pm_resource_manager.h"
-#include "pm_pbs_info.h"
-#include "pm_pbs_driver.h"
-
+#include <sys/types.h>
 
 /* 2 slave IDs per PMIC device. */
 #define PM_MAX_SLAVE_ID          2
 
  /************************************************ DRIVER DATA *********************************/
+ #ifndef LK
 //PM8994,PMi8994,PM8004
 uint32 num_of_ldo[]        = {32, 1, 1};
 uint32 num_of_smps[]       = {12, 3, 5};
@@ -84,7 +78,7 @@ vib_specific[1] =
 {
   {1200, 2000}
 };
-
+#endif
 pm_smbchg_specific_data_type
 smbchg_specific_data[1] = {
 {
@@ -118,8 +112,7 @@ chg_range_data_type chg_range_data[1] = {
    }
 }; 
 
-
-
+#ifndef LK
 //By default, configuration of the FG params is NOT enabled. since the last parameter(EnableConfig) = 0
 //To enable configuration, set EnableConfig = 1
 FgSramAddrDataEx_type
@@ -246,4 +239,14 @@ const uint8 pm_periph_bitmap[][PM_MAX_SLAVE_ID][PM_MAX_BITMAP_ENTRIES] =
         }
     }
 };
+#endif
 
+void *pm_target_information_get_specific_info()
+{
+	return (void *) smbchg_specific_data;
+};
+
+void *pm_target_chg_range_data()
+{
+	return (void *) chg_range_data;
+}

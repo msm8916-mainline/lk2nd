@@ -29,7 +29,6 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef __PM_FG_ADC_USR_H__
 #define __PM_FG_ADC_USR_H__
 
-#include "com_dtypes.h"
 #include "pm_err_flags.h"
 #include "pm_resources_and_types.h"
 

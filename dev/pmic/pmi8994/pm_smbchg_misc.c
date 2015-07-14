@@ -33,8 +33,7 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ===========================================================================*/
 #include "pm_smbchg_misc.h"
 #include "pm_smbchg_driver.h"
-
-static inline pm_err_flag_type pm_smbchg_misc_unlock_perph_write(pm_smbchg_data_type *smbchg_ptr);
+#include "pm_resources_and_types.h"
 
 /*This API detects the type of chgarging port device is connected to*/
 pm_err_flag_type pm_smbchg_misc_chgr_port_detected(uint32 pmic_device, pm_smbchg_misc_src_detect_type *src_detected)
@@ -74,7 +73,7 @@ pm_err_flag_type pm_smbchg_misc_chgr_port_detected(uint32 pmic_device, pm_smbchg
    return err_flag;
 }
 
-
+#ifndef LK
 /*This API restarts watchdog*/
 pm_err_flag_type pm_smbchg_misc_wdog_rst(uint32 pmic_device)
 {
@@ -449,3 +448,4 @@ static inline pm_err_flag_type pm_smbchg_misc_unlock_perph_write(pm_smbchg_data_
 
    return err_flag;
 }
+#endif

@@ -33,6 +33,7 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ===========================================================================*/
 #include "pm_smbchg_chgr.h"
 #include "pm_smbchg_driver.h"
+#include <sys/types.h>
 
 static inline pm_err_flag_type pm_smbchg_chgr_unlock_perph_write(pm_smbchg_data_type *smbchg);
 
@@ -242,12 +243,12 @@ pm_err_flag_type pm_smbchg_chgr_set_pre_chg_i(uint32 device_index, uint32 pre_ch
 }
 
 /*This API configures the fast-charger current value in milliamp. Valid values are 300 to 3000 mAmp*/
-pm_err_flag_type pm_smbchg_chgr_set_fast_chg_i(uint32 device_index, uint32 fast_chag_i_ma) 
+pm_err_flag_type pm_smbchg_chgr_set_fast_chg_i(uint32 device_index, uint32 fast_chag_i_ma)
 {
    pm_err_flag_type      err_flag    = PM_ERR_FLAG__SUCCESS;
    pm_register_data_type data = 0;
 
-  
+
    pm_smbchg_data_type *smbchg_ptr  = pm_smbchg_get_data(device_index);
    if (NULL == smbchg_ptr)
    {
@@ -1088,5 +1089,3 @@ pm_err_flag_type  pm_smbchg_chgr_set_chg_polarity_low (uint32 device_index, bool
 
    return err_flag;
 }
-
-

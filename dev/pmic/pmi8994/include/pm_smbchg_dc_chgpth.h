@@ -29,7 +29,6 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef PM_SMBCHG_DC_CHGPTH_H
 #define PM_SMBCHG_DC_CHGPTH_H
 
-#include "com_dtypes.h"
 #include "pm_err_flags.h"
 #include "pm_resources_and_types.h"
 

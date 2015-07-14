@@ -32,7 +32,10 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /*===========================================================================
                         INCLUDE FILES
 ===========================================================================*/
-#include "pm_target_information.h"
+
+#include "pm_err_flags.h"
+#include "pm_resources_and_types.h"
+#include "pm_comm.h"
 
 /*===========================================================================
                         TYPE DEFINES AND ENUMS
@@ -282,10 +285,8 @@ typedef struct
 ===========================================================================*/
 
 /* driver init */
-void pm_fg_driver_init(pm_comm_info_type *comm_ptr, peripheral_info_type *peripheral_info, uint8 pmic_index);
+void pm_fg_driver_init(uint32 pmic_index);
 
-pm_fg_data_type* pm_fg_get_data(uint8 pmic_index);
-
-uint8 pm_fg_get_num_peripherals(uint8 pmic_index);
+pm_fg_data_type* pm_fg_get_data(uint32 pmic_index);
 
 #endif // __PM_FG_DRIVER_H__

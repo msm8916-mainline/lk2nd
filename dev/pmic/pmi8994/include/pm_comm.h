@@ -36,8 +36,7 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ===========================================================================*/
 
 #include "pm_resources_and_types.h"
-#include "pm_version.h" 
-#include "bare_metal_info.h"
+#include "pm_err_flags.h"
 
 /*===========================================================================
 
@@ -92,27 +91,28 @@ pm_comm_info_type* pm_comm_get_comm_info(uint32 pmic_chip_index, uint32 slave_id
 
 
 pm_err_flag_type  pm_comm_read_byte(uint32 slave_id , 
-                                         uint16 addr, 
+                                         uint32 addr,
                                          uint8* data, 
                                          uint8 priority);
 
 pm_err_flag_type  pm_comm_read_byte_mask(uint32 slave_id , 
-                                         uint16 addr, 
+                                         uint32 addr,
                                          uint8 mask,  
                                          uint8* data, 
                                          uint8 priority);
 
 pm_err_flag_type  pm_comm_write_byte(uint32 slave_id , 
-                                          uint16 addr, 
+                                          uint32 addr,
                                           uint8 data, 
                                           uint8 priority);
 
 pm_err_flag_type  pm_comm_write_byte_mask(uint32 slave_id , 
-                                               uint16 addr, 
+                                               uint32 addr,
                                                uint8 mask, 
                                                uint8 value, 
                                                uint8 priority);
 
+#ifndef LK
 pm_err_flag_type  pm_comm_write_byte_array(uint32 slave_id,
                                                 uint16 addr , 
                                                 uint32 num_bytes, 
@@ -125,7 +125,7 @@ pm_err_flag_type  pm_comm_read_byte_array ( uint32 slave_id ,
                                                 uint8* data, 
                                                 uint8 priority) ;
 pm_err_flag_type pm_comm_channel_init_internal(void);
-
+#endif
 
 #endif /* PM_COMM_H */
 

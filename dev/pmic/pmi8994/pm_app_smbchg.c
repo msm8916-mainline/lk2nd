@@ -28,39 +28,35 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*===========================================================================
 
-                     INCLUDE FILES 
+                     INCLUDE FILES
 
 ===========================================================================*/
-#include "com_dtypes.h"
 #include "pm_app_smbchg.h"
-#include "boothw_target.h"
 #include "pm_smbchg_chgr.h"
 #include "pm_smbchg_bat_if.h"
 #include "pm_app_smbchg.h"
-#include "boot_api.h"
-#include "pm_utils.h"
-#include "pm_rgb.h"
-#include "pm_target_information.h"
-#include "pm_fg_sram.h"
 #include "pm_fg_adc_usr.h"
+#include "pm_fg_driver.h"
+#include "pm_smbchg_driver.h"
 #include "pm_comm.h"
-#include "CoreVerify.h"
-#include "boot_logger.h"
-#include "boot_logger_timer.h"
 #include "pm_smbchg_dc_chgpth.h"
+#include <debug.h>
+#include <platform/timer.h>
+#include <sys/types.h>
+#include <target.h>
 
 
 /*===========================================================================
 
-                     PROTOTYPES 
+                     PROTOTYPES
 
 ===========================================================================*/
 
 
-/*=========================================================================== 
- 
+/*===========================================================================
+
                      GLOBAL TYPE DEFINITIONS
- 
+
 ===========================================================================*/
 #define  PM_REG_CONFIG_SETTLE_DELAY       175  * 1000 //175ms  ; Delay required for battery voltage de-glitch time
 #define  PM_WEAK_BATTERY_CHARGING_DELAY   500 * 1000  //500ms
@@ -69,24 +65,29 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define  PM_MAX_ADC_READY_DELAY     2000              //2s
 #define SBL_PACKED_SRAM_CONFIG_SIZE 3
 
+#define boot_log_message(...) dprintf(CRITICAL, __VA_ARGS__)
+
 static pm_smbchg_bat_if_low_bat_thresh_type pm_dbc_bootup_volt_threshold;
+static bool display_initialized;
+static bool charge_in_progress;
+char panel_name[256];
+
 pm_err_flag_type pm_smbchg_get_charger_path(uint32 device_index, pm_smbchg_usb_chgpth_pwr_pth_type* charger_path);
+pm_err_flag_type pm_appsbl_chg_config_vbat_low_threshold(uint32 device_index, pm_smbchg_specific_data_type *chg_param_ptr);
 
 /*===========================================================================
 
-                     FUNCTION IMPLEMENTATION 
+                     FUNCTION IMPLEMENTATION
 
 ===========================================================================*/
-pm_err_flag_type pm_sbl_chg_check_weak_battery_status(uint32 device_index)
+pm_err_flag_type pm_appsbl_chg_check_weak_battery_status(uint32 device_index)
 {
    pm_err_flag_type err_flag = PM_ERR_FLAG__SUCCESS;
    pm_smbchg_specific_data_type *chg_param_ptr = NULL;
    pm_smbchg_chgr_chgr_status_type vbatt_chging_status;
    boolean hot_bat_hard_lim_rt_sts  = FALSE;
    boolean cold_bat_hard_lim_rt_sts = FALSE;
-   boolean jetia_hard_limit_status  = FALSE;
    boolean vbatt_weak_status = TRUE;
-   boolean toggle_led        = FALSE;
    boolean adc_reading_ready = FALSE;
    boolean bat_present       = TRUE;
    uint32 vbat_adc = 0;
@@ -95,41 +96,42 @@ pm_err_flag_type pm_sbl_chg_check_weak_battery_status(uint32 device_index)
    pm_smbchg_misc_src_detect_type chgr_src_detected;
    boolean configure_icl_flag = FALSE;
    boolean chg_prog_message_flag = FALSE;
-   pm_smbchg_usb_chgpth_pwr_pth_type charger_path = PM_SMBCHG_USB_CHGPTH_PWR_PATH__INVALID;;
-   uint32  bootup_threshold;
-   
-   //boot_log_message("BEGIN:  PMIC SBL Weak Battery Status Check");
-   chg_param_ptr = (pm_smbchg_specific_data_type*)pm_target_information_get_specific_info(PM_PROP_SMBCHG_SPECIFIC_DATA);
-   CORE_VERIFY_PTR(chg_param_ptr);
+   pm_smbchg_usb_chgpth_pwr_pth_type charger_path = PM_SMBCHG_USB_CHGPTH_PWR_PATH__INVALID;;  uint32  bootup_threshold;
+
+   pm_smbchg_driver_init(device_index);
+   pm_fg_driver_init(device_index);
+
+   chg_param_ptr = (pm_smbchg_specific_data_type*)pm_target_information_get_specific_info();
+   ASSERT(chg_param_ptr);
    bootup_threshold = chg_param_ptr->bootup_battery_theshold_mv; 
-   
+
    if(chg_param_ptr->dbc_bootup_volt_threshold.enable_config == PM_ENABLE_CONFIG)
    {
       //Configure Vlowbatt threshold: Used by PMI on next bootup
-      err_flag  |= pm_sbl_chg_config_vbat_low_threshold(device_index, chg_param_ptr); 
+      err_flag  |= pm_appsbl_chg_config_vbat_low_threshold(device_index, chg_param_ptr); 
    }
 
    //Check Battery presence
    err_flag |= pm_smbchg_bat_if_get_bat_pres_status(device_index, &bat_present);
    if( bat_present == FALSE )
    {
-      //boot_log_message("Booting up to HLOS: Charger is Connected and NO battery");
+      dprintf(CRITICAL, "Booting up to HLOS: Charger is Connected and NO battery\n");
       return err_flag;
    }
 
 
    //Detect the typpe of charger used
-   //err_flag |= pm_smbchg_usb_chgpth_get_pwr_pth(device_index, &charger_path);
+   //err_flag |= pm_smbchg_usb_chgpth_get_pwr_pth(device_index, &
    err_flag |= pm_smbchg_get_charger_path(device_index, &charger_path);
    if (charger_path == PM_SMBCHG_USB_CHGPTH_PWR_PATH__DC_CHARGER) 
    {
+
       bootup_threshold = chg_param_ptr->wipwr_bootup_battery_theshold_mv;
    }
    else if (charger_path == PM_SMBCHG_USB_CHGPTH_PWR_PATH__USB_CHARGER)
    {
       bootup_threshold = chg_param_ptr->bootup_battery_theshold_mv;
    }
-  
 
    //Enable BMS FG Algorithm BCL
    err_flag |= pm_fg_adc_usr_enable_bcl_monitoring(device_index, TRUE);
@@ -138,7 +140,7 @@ pm_err_flag_type pm_sbl_chg_check_weak_battery_status(uint32 device_index)
        return err_flag;
    }
 
-   
+
    while( vbatt_weak_status == TRUE )  //While battery is in weak state
    {
       //Check Vbatt ADC level  
@@ -149,7 +151,7 @@ pm_err_flag_type pm_sbl_chg_check_weak_battery_status(uint32 device_index)
       {
         if(adc_reading_ready == FALSE)
         {
-              err_flag |= pm_clk_busy_wait(PM_MIN_ADC_READY_DELAY);
+           udelay(PM_MIN_ADC_READY_DELAY);
            err_flag |= pm_fg_adc_usr_get_bcl_values(device_index,&adc_reading_ready);
         }
         else
@@ -160,11 +162,11 @@ pm_err_flag_type pm_sbl_chg_check_weak_battery_status(uint32 device_index)
 
       if ( err_flag != PM_ERR_FLAG__SUCCESS )  { break;} 
 
-      if ( adc_reading_ready) 
+      if ( adc_reading_ready)
       {
          err_flag |= pm_fg_adc_usr_get_calibrated_vbat(device_index, &vbat_adc); //Read calibrated vbatt ADC
-         if ( err_flag != PM_ERR_FLAG__SUCCESS )  { break;} 
-   
+         if ( err_flag != PM_ERR_FLAG__SUCCESS )  { break;}
+
          //Check if ADC reading is within limit
          if ( vbat_adc >=  bootup_threshold)  //Compaire it with SW bootup threshold
          {
@@ -174,11 +176,11 @@ pm_err_flag_type pm_sbl_chg_check_weak_battery_status(uint32 device_index)
    }
    else
    {
-         boot_log_message("ERROR:  ADC Reading is NOT Ready");
+         boot_log_message("ERROR:  ADC Reading is NOT Ready\n");
          err_flag |= PM_ERR_FLAG__ADC_NOT_READY;
          break; 
    }
-   
+
       //Check if USB charger is SDP
       err_flag |= pm_smbchg_misc_chgr_port_detected(device_index, &chgr_src_detected);
       if (chgr_src_detected == PM_SMBCHG_MISC_SRC_DETECT_SDP) 
@@ -203,7 +205,7 @@ pm_err_flag_type pm_sbl_chg_check_weak_battery_status(uint32 device_index)
           err_flag |= pm_smbchg_chgr_enable_src(device_index, FALSE);
           err_flag |= pm_smbchg_chgr_set_chg_polarity_low(device_index, FALSE);
           err_flag |= pm_smbchg_bat_if_config_chg_cmd(device_index, PM_SMBCHG_BAT_IF_CMD__EN_BAT_CHG, TRUE);
-          err_flag |= pm_clk_busy_wait(PM_WEAK_BATTERY_CHARGING_DELAY);
+          udelay(PM_WEAK_BATTERY_CHARGING_DELAY);
       }
 
       //Check if JEITA check is enabled
@@ -216,15 +218,21 @@ pm_err_flag_type pm_sbl_chg_check_weak_battery_status(uint32 device_index)
 
          if ( ( hot_bat_hard_lim_rt_sts  == TRUE ) || (cold_bat_hard_lim_rt_sts == TRUE) )  
          {
-            jetia_hard_limit_status = TRUE; 
             continue;  // Stay in this loop as long as JEITA Hard Hot/Cold limit is exceeded
          }
       }
 
-      //Toggle Red LED and delay 500ms
-      toggle_led = (toggle_led == FALSE)?TRUE:FALSE;
-      err_flag |= pm_rgb_led_config(device_index, PM_RGB_1, PM_RGB_SEGMENT_R,  PM_RGB_VOLTAGE_SOURCE_VPH, PM_RGB_DIM_LEVEL_MID, toggle_led); 
-      err_flag |= pm_clk_busy_wait(PM_WEAK_BATTERY_CHARGING_DELAY); //500ms 
+	if (!charge_in_progress)
+      dprintf(INFO,"APPSBL Weak Battery charging: Start\n");
+
+      charge_in_progress = true;
+#if DISPLAY_SPLASH_SCREEN
+      if (!display_initialized)
+         target_display_init(panel_name);
+      display_initialized = true;
+#endif
+      /* Wait for 500 msecs before looking for vbat */
+      udelay(PM_WEAK_BATTERY_CHARGING_DELAY); //500ms
 
 
       //Check if Charging in progress
@@ -236,37 +244,32 @@ pm_err_flag_type pm_sbl_chg_check_weak_battery_status(uint32 device_index)
          if (charger_path == PM_SMBCHG_USB_CHGPTH_PWR_PATH__DC_CHARGER) 
          {
             //Delay for 3.5sec for charging to begin, and check charging status again prior to shutting down.
-            err_flag |= pm_clk_busy_wait(PM_WIPOWER_START_CHARGING_DELAY); //3500ms 
+            udelay(PM_WIPOWER_START_CHARGING_DELAY); //3500ms 
 
             err_flag |= pm_smbchg_chgr_get_chgr_sts(device_index, &vbatt_chging_status);
             if ( err_flag != PM_ERR_FLAG__SUCCESS )  { break;}
 
             if ( vbatt_chging_status.charging_type == PM_SMBCHG_CHGR_NO_CHARGING )
             {
-               boot_log_message("ERROR: Charging is NOT in progress: Shutting Down");
-               boot_hw_powerdown();
+               boot_log_message("ERROR: Charging is NOT in progress: Shutting Down\n");
+               shutdown_device();
             }
          }
          else
          {
-            boot_log_message("ERROR: Charging is NOT in progress: Shutting Down");
-            boot_hw_powerdown();
+            boot_log_message("ERROR: Charging is NOT in progress: Shutting Down\n");
+            shutdown_device();
          }
       }
       else
       {
-          //boot_log_message("SBL Charging in Progress....");
+#ifdef DEBUG_CHARGER
+          dprintf(INFO, "APPSBL Charging in Progress....\n");
+#endif
           chg_prog_message_flag = TRUE;
       }
    }//while
 
-
-   toggle_led = FALSE;
-   err_flag |= pm_rgb_led_config(device_index, PM_RGB_1, PM_RGB_SEGMENT_R,  PM_RGB_VOLTAGE_SOURCE_VPH, PM_RGB_DIM_LEVEL_MID, toggle_led);
-   if (err_flag != PM_ERR_FLAG__SUCCESS)
-   {
-      boot_log_message("ERROR: In SBL Charging ...");
-      }
 
    if (charger_path == PM_SMBCHG_USB_CHGPTH_PWR_PATH__DC_CHARGER) 
    {
@@ -275,8 +278,10 @@ pm_err_flag_type pm_sbl_chg_check_weak_battery_status(uint32 device_index)
       err_flag = pm_smbchg_usb_chgpth_set_cmd_il(device_index, PM_SMBCHG_USBCHGPTH_CMD_IL__SHDN_N_CLEAR_CMD, FALSE);
    }
    
-   //boot_log_message("Done: SBL Charging ...");
+   if (charge_in_progress)
+     dprintf(INFO, "APPSBL Weak Battery Charging: Done \n");
 
+   charge_in_progress = false;
    return err_flag; 
 }
 
@@ -293,11 +298,10 @@ pm_err_flag_type pm_smbchg_get_charger_path(uint32 device_index, pm_smbchg_usb_c
    //DC charger present, if DCIN_UV_RT_STS and DCIN_UV_RT_STS status is 0 (INT_RT_STS : 0x1410[1] and [0] == 0)
    err_flag |= pm_smbchg_dc_chgpth_irq_status(device_index, PM_SMBCHG_DC_CHGPTH_DCBIN_UV, PM_IRQ_STATUS_RT, &dcbin_uv_status);
    err_flag |= pm_smbchg_dc_chgpth_irq_status(device_index, PM_SMBCHG_DC_CHGPTH_DCBIN_OV, PM_IRQ_STATUS_RT, &dcbin_ov_status);
-   
    //USB charger present, if USBIN_UV_RT_STS and USBIN_OV_RT_STS status is 0 ( INT_RT_STS : 0x1310[1] and [0] == 0)
    err_flag |= pm_smbchg_usb_chgpth_irq_status(device_index, PM_SMBCHG_USB_CHGPTH_USBIN_UV, PM_IRQ_STATUS_RT, &usbin_uv_status);
-   err_flag |= pm_smbchg_usb_chgpth_irq_status(device_index, PM_SMBCHG_USB_CHGPTH_USBIN_OV, PM_IRQ_STATUS_RT, &usbin_ov_status);  
-   
+   err_flag |= pm_smbchg_usb_chgpth_irq_status(device_index, PM_SMBCHG_USB_CHGPTH_USBIN_OV, PM_IRQ_STATUS_RT, &usbin_ov_status);
+
    if((dcbin_uv_status == FALSE) && (dcbin_ov_status == FALSE))
    {
       *charger_path = PM_SMBCHG_USB_CHGPTH_PWR_PATH__DC_CHARGER;
@@ -316,10 +320,10 @@ pm_err_flag_type pm_smbchg_get_charger_path(uint32 device_index, pm_smbchg_usb_c
 
 
 
-pm_err_flag_type pm_sbl_chg_config_vbat_low_threshold(uint32 device_index, pm_smbchg_specific_data_type *chg_param_ptr)
+pm_err_flag_type pm_appsbl_chg_config_vbat_low_threshold(uint32 device_index, pm_smbchg_specific_data_type *chg_param_ptr)
 {
    pm_err_flag_type err_flag = PM_ERR_FLAG__SUCCESS;
-   
+
    pm_dbc_bootup_volt_threshold = chg_param_ptr->dbc_bootup_volt_threshold.vlowbatt_threshold;
 
    if (chg_param_ptr->dbc_bootup_volt_threshold.enable_config == PM_ENABLE_CONFIG)
@@ -331,13 +335,15 @@ pm_err_flag_type pm_sbl_chg_config_vbat_low_threshold(uint32 device_index, pm_sm
    }
 
       err_flag = pm_smbchg_bat_if_set_low_batt_volt_threshold(device_index, pm_dbc_bootup_volt_threshold);
-      //boot_log_message("Configure Vlowbatt threshold");
+#ifdef DEBUG_CHARGER
+      dprintf(INFO,"Configure Vlowbatt threshold");
+#endif
    }
 
-   return err_flag; 
+   return err_flag;
 }
 
-
+#ifndef LK
 pm_err_flag_type pm_sbl_config_fg_sram(uint32 device_index)
    {
   pm_err_flag_type err_flag = PM_ERR_FLAG__SUCCESS;
@@ -558,4 +564,23 @@ pm_err_flag_type pm_sbl_config_chg_parameters(uint32 device_index)
 
    return err_flag; 
 }
- 
+#endif
+
+bool pm_appsbl_charging_in_progress()
+{
+	return charge_in_progress;
+}
+
+bool pm_appsbl_display_init_done()
+{
+	return display_initialized;
+}
+
+pm_err_flag_type pm_appsbl_set_dcin_suspend(uint32_t device_index)
+{
+	pm_err_flag_type err_flag = PM_ERR_FLAG__SUCCESS;
+
+	err_flag = pm_smbchg_usb_chgpth_set_cmd_il(device_index, PM_SMBCHG_USBCHGPTH_CMD_IL__DCIN_SUSPEND, TRUE);
+
+	return err_flag;
+}

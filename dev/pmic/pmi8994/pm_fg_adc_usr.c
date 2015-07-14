@@ -28,7 +28,10 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pm_fg_adc_usr.h"
 #include "pm_fg_driver.h"
-#include "pm_resource_manager.h"
+#include "pm_smbchg_driver.h"
+#include "pm_err_flags.h"
+#include "pm_comm.h"
+#include <sys/types.h>
 
 /*===========================================================================
                         TYPE DEFINITIONS 
@@ -38,6 +41,7 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define OFFSET_LSB_NUM        12   //Offset LSB Numerator
 #define OFFSET_LSB_DENOM      10   //Offset LSB Denominator
 #define GAIN_LSB_DENOM       400  // Gain LSB is 0.32/128 = 1/400
+
 /*===========================================================================
                          FUNCTION DEFINITIONS
 ===========================================================================*/

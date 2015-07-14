@@ -35,7 +35,6 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pm_smbchg_driver.h"
 #include "pm_smbchg_usb_chgpth.h"
-#include "pm_resource_manager.h"
 
 /*unlock peripheral for secured access write*/
 static inline pm_err_flag_type pm_smbchg_usb_chgpth_unlock_perph_write(pm_smbchg_data_type *smbchg_ptr);

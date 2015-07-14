@@ -173,7 +173,7 @@ typedef struct
  *     The following function must have been called:
  *        pm_target_information_init()
  */
-pm_err_flag_type pm_sbl_chg_config_vbat_low_threshold(uint32 device_index, pm_smbchg_specific_data_type *chg_param_ptr);
+pm_err_flag_type pm_appsbl_chg_config_vbat_low_threshold(uint32 device_index, pm_smbchg_specific_data_type *chg_param_ptr);
 
 
 
@@ -194,44 +194,12 @@ pm_err_flag_type pm_sbl_chg_config_vbat_low_threshold(uint32 device_index, pm_sm
  *     The following function must have been called:
  *        pm_driver_init()
  */
-pm_err_flag_type pm_sbl_chg_check_weak_battery_status(uint32 device_index);
+pm_err_flag_type pm_appsbl_chg_check_weak_battery_status(uint32 device_index);
 
-/**
- * @name 
- *     pm_sbl_config_fg_sram
- *
- * @description
- *    This function configures fg related parameters to SRAM
- * 
- * @param 
- *     None
- * 
- * @return 
- *     pm_err_flag_type
- * 
- * @dependency
- *     The following function must have been called:
- *        pm_driver_init()
- */
-pm_err_flag_type pm_sbl_config_fg_sram(uint32 device_index);
-
-/**
- * @name 
- *     pm_sbl_config_chg_parameters
- *
- * @description
- *    This function configures charger parameters whose value is updated on configuration file
- * 
- * @param 
- *     None
- * 
- * @return 
- *     pm_err_flag_type
- * 
- * @dependency
- *     The following function must have been called:
- *        pm_driver_init()
- */
-pm_err_flag_type pm_sbl_config_chg_parameters(uint32 device_index);
+void *pm_target_information_get_specific_info();
+void *pm_target_chg_range_data();
+bool pm_appsbl_display_init_done();
+bool pm_appsbl_charging_in_progress();
+pm_err_flag_type pm_appsbl_set_dcin_suspend();
 #endif  //PM_APP_SMBCHG__H
 

@@ -34,7 +34,8 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pm_smbchg_bat_if.h"
 #include "pm_smbchg_driver.h"
-#include "pm_resource_manager.h"
+#include <debug.h>
+#include <sys/types.h>
 
 /*Find the nearest register value corresponding to input_data*/
 static void pm_smbchg_bat_if_return_reg_value(uint32 input_data, uint32 *array, uint32 array_size, pm_register_data_type *reg_value);

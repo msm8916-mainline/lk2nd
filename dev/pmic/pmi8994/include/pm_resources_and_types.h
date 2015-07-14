@@ -34,16 +34,25 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
                         HEADER FILES
 
 ===========================================================================*/
-#include "DALStdDef.h"
+#include <stdint.h>
+#include <sys/types.h>
+#include <smem.h>
 
 /*===========================================================================
 
                         TYPE DEFINITIONS 
 
 ===========================================================================*/
+typedef uint8_t pm_register_data_type;
+typedef uint16_t pm_register_address_type;
+
+
+#define  PM_MAX_NUM_PMICS  SMEM_MAX_PMIC_DEVICES
+
 /*! \enum chargers
  *  \brief This enum contains definitions of all chargers in the target
  */
+
 enum
 {
   PM_CHG_1,
