@@ -40,6 +40,7 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
                         INCLUDE FILES
 
 ===========================================================================*/
+#include <sys/types.h>
 #include <string.h>
 #include <assert.h>
 
@@ -54,13 +55,6 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ===========================================================================*/
 #define DALSYS_SYNC_OBJ_SIZE_BYTES           40
 #define DALSYS_EVENT_OBJ_SIZE_BYTES          80
-
-typedef bool boolean;
-typedef uint64_t uint64;
-typedef uint32_t uint32;
-typedef long int32;
-#define TRUE 1
-#define FALSE 0
 
 typedef struct DALSYSEventObj  DALSYSEventObj;
 
