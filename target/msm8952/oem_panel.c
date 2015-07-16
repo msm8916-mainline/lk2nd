@@ -268,6 +268,9 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		panelstruct->laneconfig   = &nt35597_wqxga_dualdsi_cmd_lane_config;
 		panelstruct->paneltiminginfo
 			= &nt35597_wqxga_dualdsi_cmd_timing_info;
+		/* Clkout timings are different for this panel on 8956 */
+		panelstruct->paneltiminginfo->tclk_post = 0x2b;
+		panelstruct->paneltiminginfo->tclk_pre = 0x28;
 		panelstruct->panelresetseq
 					 = &nt35597_wqxga_dualdsi_cmd_reset_seq;
 		panelstruct->backlightinfo = &nt35597_wqxga_dualdsi_cmd_backlight;
