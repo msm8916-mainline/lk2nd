@@ -50,6 +50,8 @@ static KEYSTORE *user_keystore;
 static uint32_t dev_boot_state = RED;
 char KEYSTORE_PTN_NAME[] = "keystore";
 RSA *rsa_from_cert = NULL;
+unsigned char fp[EVP_MAX_MD_SIZE];
+uint32_t fp_size;
 
 ASN1_SEQUENCE(AUTH_ATTR) ={
 	ASN1_SIMPLE(AUTH_ATTR, target, ASN1_PRINTABLESTRING),
@@ -478,9 +480,18 @@ bool send_rot_command()
 	return true;
 }
 
+unsigned char* get_boot_fingerprint(unsigned int* buf_size)
+{
+	*buf_size = fp_size;
+
+	return fp;
+}
+
 bool boot_verify_image(unsigned char* img_addr, uint32_t img_size, char *pname)
 {
 	bool ret = false;
+	X509 *cert = NULL;
+	const EVP_MD *fp_type = NULL;
 	VERIFIED_BOOT_SIG *sig = NULL;
 	unsigned char* sig_addr = (unsigned char*)(img_addr + img_size);
 	uint32_t sig_len = read_der_message_length(sig_addr);
@@ -503,6 +514,12 @@ bool boot_verify_image(unsigned char* img_addr, uint32_t img_size, char *pname)
 		dprintf(CRITICAL,
 				"boot_verifier: verification failure due to target name mismatch\n");
 		goto verify_image_error;
+	}
+
+	cert = sig->certificate;
+	fp_type = EVP_sha1();
+	if(!X509_digest(cert, fp_type, (unsigned char *)fp, &fp_size)) {
+		dprintf(INFO,"Fail to create certificate fingerprint.\n");
 	}
 
 	ret = verify_image_with_sig(img_addr, img_size, pname, sig, user_keystore);
