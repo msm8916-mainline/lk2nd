@@ -51,6 +51,12 @@ OBJS += \
 	$(LOCAL_DIR)/boot_verifier.o
 endif
 
+ifeq ($(ENABLE_FBCON_DISPLAY_MSG),1)
+OBJS += \
+	$(LOCAL_DIR)/menu_keys_detect.o \
+	$(LOCAL_DIR)/display_menu.o
+endif
+
 ifeq ($(PLATFORM),msm8x60)
 	OBJS += $(LOCAL_DIR)/mipi_dsi.o \
 			$(LOCAL_DIR)/i2c_qup.o \
