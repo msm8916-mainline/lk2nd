@@ -527,9 +527,4 @@
 #define QPNP_GREEN_LPG_CTRL_BASE    0xB200
 #define QPNP_RED_LPG_CTRL_BASE      0xB300
 
-#define APSS_WDOG_BASE              0x9830000
-#define APPS_WDOG_BARK_VAL_REG      (APSS_WDOG_BASE + 0x10)
-#define APPS_WDOG_BITE_VAL_REG      (APSS_WDOG_BASE + 0x14)
-#define APPS_WDOG_RESET_REG         (APSS_WDOG_BASE + 0x04)
-#define APPS_WDOG_CTL_REG           (APSS_WDOG_BASE + 0x08)
 #endif
