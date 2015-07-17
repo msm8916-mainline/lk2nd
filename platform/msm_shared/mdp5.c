@@ -219,7 +219,7 @@ static void mdss_mdp_set_flush(struct msm_panel_info *pinfo,
 static void mdss_source_pipe_config(struct fbcon_config *fb, struct msm_panel_info
 		*pinfo, uint32_t pipe_base)
 {
-	uint32_t src_size, out_size, stride;
+	uint32_t img_size, out_size, stride;
 	uint32_t fb_off = 0;
 	uint32_t flip_bits = 0;
 	uint32_t src_xy = 0, dst_xy = 0;
@@ -229,14 +229,17 @@ static void mdss_source_pipe_config(struct fbcon_config *fb, struct msm_panel_in
 	width = fb->width - pinfo->border_left - pinfo->border_right;
 
 	/* write active region size*/
-	src_size = (height << 16) + width;
-	out_size = src_size;
+	img_size = (height << 16) | width;
+	out_size = img_size;
 	if (pinfo->lcdc.dual_pipe) {
-		out_size = (height << 16) + (width / 2);
 		if ((pipe_base == MDP_VP_0_RGB_1_BASE) ||
-			(pipe_base == MDP_VP_0_DMA_1_BASE) ||
-			(pipe_base == MDP_VP_0_VIG_1_BASE))
+		    (pipe_base == MDP_VP_0_DMA_1_BASE) ||
+		    (pipe_base == MDP_VP_0_VIG_1_BASE)) {
 			fb_off = (pinfo->xres / 2);
+			out_size = (height << 16) + (pinfo->lm_split[1]);
+		} else {
+			out_size = (height << 16) + (pinfo->lm_split[0]);
+		}
 	}
 
 	stride = (fb->stride * fb->bpp/8);
@@ -253,7 +256,7 @@ static void mdss_source_pipe_config(struct fbcon_config *fb, struct msm_panel_in
 			 __func__, out_size, fb_off, src_xy, dst_xy);
 	writel((uint32_t) fb->base, pipe_base + PIPE_SSPP_SRC0_ADDR);
 	writel(stride, pipe_base + PIPE_SSPP_SRC_YSTRIDE);
-	writel(src_size, pipe_base + PIPE_SSPP_SRC_IMG_SIZE);
+	writel(img_size, pipe_base + PIPE_SSPP_SRC_IMG_SIZE);
 	writel(out_size, pipe_base + PIPE_SSPP_SRC_SIZE);
 	writel(out_size, pipe_base + PIPE_SSPP_SRC_OUT_SIZE);
 	writel(src_xy, pipe_base + PIPE_SSPP_SRC_XY);
@@ -443,7 +446,7 @@ static void mdss_smp_setup(struct msm_panel_info *pinfo, uint32_t left_pipe,
 
 	/* Each pipe driving half the screen */
 	if (pinfo->lcdc.dual_pipe)
-		xres /= 2;
+		xres = pinfo->lm_split[0];
 
 	/* bpp = bytes per pixel of input image */
 	smp_cnt = (xres * bpp * 2) + smp_size - 1;
@@ -460,6 +463,11 @@ static void mdss_smp_setup(struct msm_panel_info *pinfo, uint32_t left_pipe,
 	writel(smp_cnt * 0xc0, left_pipe + REQPRIORITY_FIFO_WATERMARK2);
 
 	if (pinfo->lcdc.dual_pipe) {
+		xres = pinfo->lm_split[1];
+
+		smp_cnt = (xres * bpp * 2) + smp_size - 1;
+		smp_cnt /= smp_size;
+
 		writel(smp_cnt * 0x40, right_pipe + REQPRIORITY_FIFO_WATERMARK0);
 		writel(smp_cnt * 0x80, right_pipe + REQPRIORITY_FIFO_WATERMARK1);
 		writel(smp_cnt * 0xc0, right_pipe + REQPRIORITY_FIFO_WATERMARK2);
@@ -479,7 +487,6 @@ static void mdss_intf_tg_setup(struct msm_panel_info *pinfo, uint32_t intf_base)
 	uint32_t display_hctl, hsync_ctl, display_vstart, display_vend;
 	uint32_t adjust_xres = 0;
 	uint32_t upper = 0, lower = 0;
-	struct dsc_desc *dsc = NULL;
 
 	struct lcdc_panel_info *lcdc = NULL;
 	struct intf_timing_params itp = {0};
@@ -493,7 +500,15 @@ static void mdss_intf_tg_setup(struct msm_panel_info *pinfo, uint32_t intf_base)
 
 	adjust_xres = pinfo->xres;
 	if (pinfo->lcdc.split_display) {
-		adjust_xres /= 2;
+		if (pinfo->lcdc.dst_split) {
+			adjust_xres /= 2;
+		} else if(pinfo->lcdc.dual_pipe) {
+			if (intf_base == (MDP_INTF_1_BASE + mdss_mdp_intf_offset()))
+				adjust_xres = pinfo->lm_split[0];
+			else
+				adjust_xres = pinfo->lm_split[1];
+		}
+
 		if (intf_base == (MDP_INTF_1_BASE + mdss_mdp_intf_offset())) {
 			if (pinfo->lcdc.pipe_swap) {
 				lower |= BIT(4);
@@ -514,20 +529,17 @@ static void mdss_intf_tg_setup(struct msm_panel_info *pinfo, uint32_t intf_base)
 		writel(BIT(5), REG_MDP(ppb_offset)); /* MMSS_MDP_PPB0_CONFIG */
 	}
 
-	if (pinfo->compression_mode == COMPRESSION_DSC) {
-		dsc = &pinfo->dsc;
-	} else if (pinfo->compression_mode == COMPRESSION_FBC) {
+	if (pinfo->compression_mode == COMPRESSION_FBC)
 		if (!pinfo->fbc.enabled || !pinfo->fbc.comp_ratio)
 			pinfo->fbc.comp_ratio = 1;
-	}
 
 	itp.xres = (adjust_xres / pinfo->fbc.comp_ratio);
 	itp.yres = pinfo->yres;
 	itp.width =((adjust_xres + pinfo->lcdc.xres_pad) / pinfo->fbc.comp_ratio);
 
-	if (dsc) {
-		itp.xres = dsc->pclk_per_line;
-		itp.width = dsc->pclk_per_line;
+	if (pinfo->compression_mode == COMPRESSION_DSC) {
+		itp.xres = pinfo->dsc.pclk_per_line;
+		itp.width = pinfo->dsc.pclk_per_line;
 	}
 
 	itp.height = pinfo->yres + pinfo->lcdc.yres_pad;
@@ -604,7 +616,6 @@ static void mdss_intf_fetch_start_config(struct msm_panel_info *pinfo,
 	uint32_t prefetch_avail, prefetch_needed;
 	uint32_t adjust_xres = 0;
 	uint32_t fetch_enable = BIT(31);
-	struct dsc_desc *dsc;
 
 	struct lcdc_panel_info *lcdc = NULL;
 
@@ -626,12 +637,19 @@ static void mdss_intf_fetch_start_config(struct msm_panel_info *pinfo,
 		return;
 
 	adjust_xres = pinfo->xres;
-	if (pinfo->lcdc.split_display)
-		adjust_xres /= 2;
+	if (pinfo->lcdc.split_display) {
+		if (pinfo->lcdc.dst_split) {
+			adjust_xres /= 2;
+		} else if(pinfo->lcdc.dual_pipe) {
+			if (intf_base == (MDP_INTF_1_BASE + mdss_mdp_intf_offset()))
+				adjust_xres = pinfo->lm_split[0];
+			else
+				adjust_xres = pinfo->lm_split[1];
+		}
+	}
 
 	if (pinfo->compression_mode == COMPRESSION_DSC) {
-		dsc = &pinfo->dsc;
-		adjust_xres = dsc->pclk_per_line;
+		adjust_xres = pinfo->dsc.pclk_per_line;
 	} else if (pinfo->compression_mode == COMPRESSION_FBC) {
 		if (pinfo->fbc.enabled && pinfo->fbc.comp_ratio)
 			adjust_xres /= pinfo->fbc.comp_ratio;
@@ -678,7 +696,7 @@ void mdss_layer_mixer_setup(struct fbcon_config *fb, struct msm_panel_info
 	width = fb->width;
 
 	if (pinfo->lcdc.dual_pipe && !pinfo->lcdc.dst_split)
-		width /= 2;
+		width = pinfo->lm_split[0];
 
 	/* write active region size*/
 	mdp_rgb_size = (height << 16) | width;
@@ -721,6 +739,9 @@ void mdss_layer_mixer_setup(struct fbcon_config *fb, struct msm_panel_info
 	writel(left_staging_level, MDP_CTL_0_BASE + CTL_LAYER_0);
 
 	if (pinfo->lcdc.dual_pipe && !pinfo->lcdc.dst_split) {
+		/* write active region size*/
+		mdp_rgb_size = (height << 16) | pinfo->lm_split[1];
+
 		writel(mdp_rgb_size, MDP_VP_0_MIXER_1_BASE + LAYER_0_OUT_SIZE);
 		writel(0x00, MDP_VP_0_MIXER_1_BASE + LAYER_0_OP_MODE);
 		writel(0x100, MDP_VP_0_MIXER_1_BASE + LAYER_0_BLEND_OP);
@@ -965,28 +986,39 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 
 	/* enable 3D mux for dual_pipe but single interface config */
 	if (pinfo->lcdc.dual_pipe && !pinfo->mipi.dual_dsi &&
-		!pinfo->lcdc.split_display)
-		reg |= BIT(19) | BIT(20);
+		!pinfo->lcdc.split_display) {
+
+		if (pinfo->num_dsc_enc != 2)
+			reg |= BIT(19) | BIT(20);
+	}
 
 	writel(reg, MDP_CTL_0_BASE + CTL_TOP);
 
-	/*If dst_split is enabled only intf 2 needs to be enabled.
-	CTL_1 path should not be set since CTL_0 itself is going
-	to split after DSPP block*/
+	if ((pinfo->compression_mode == COMPRESSION_DSC) &&
+	    pinfo->dsc.mdp_dsc_config) {
+		struct dsc_desc *dsc = &pinfo->dsc;
 
-	if (pinfo->compression_mode == COMPRESSION_DSC) {
-		struct dsc_desc *dsc = NULL;
+		if (pinfo->lcdc.dual_pipe && !pinfo->mipi.dual_dsi &&
+		    !pinfo->lcdc.split_display && (pinfo->num_dsc_enc == 2)) {
 
-		dsc = &pinfo->dsc;
-		if (dsc) {
-			if (dsc->mdp_dsc_config)
-				dsc->mdp_dsc_config(pinfo);
+			dsc->mdp_dsc_config(pinfo, MDP_PP_0_BASE,
+				MDP_DSC_0_BASE, true, true);
+			dsc->mdp_dsc_config(pinfo, MDP_PP_1_BASE,
+				MDP_DSC_1_BASE, true, true);
+		} else {
+			dsc->mdp_dsc_config(pinfo, MDP_PP_0_BASE,
+				MDP_DSC_0_BASE, false, false);
 		}
 	} else if (pinfo->compression_mode == COMPRESSION_FBC) {
 		if (pinfo->fbc.enabled)
 			mdss_fbc_cfg(pinfo);
 	}
 
+	/*
+	 * if dst_split is enabled, intf 1 & 2 needs to be enabled but
+	 * CTL_1 path should not be set since CTL_0 itself is going
+	 * to split after DSPP block and drive both intf.
+	 */
 	if (pinfo->mipi.dual_dsi) {
 		if (!pinfo->lcdc.dst_split) {
 			reg = 0x1f00 | mdss_mdp_ctl_out_sel(pinfo,0);
@@ -1134,15 +1166,31 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 
 	writel(0x213F, MDP_PANEL_FORMAT + intf_base);
 	reg = 0x21f00 | mdss_mdp_ctl_out_sel(pinfo, 1);
+
+	/* enable 3D mux for dual_pipe but single interface config */
+	if (pinfo->lcdc.dual_pipe && !pinfo->mipi.dual_dsi &&
+		!pinfo->lcdc.split_display) {
+
+		if (pinfo->num_dsc_enc != 2)
+			reg |= BIT(19) | BIT(20);
+	}
+
 	writel(reg, MDP_CTL_0_BASE + CTL_TOP);
 
-	if (pinfo->compression_mode == COMPRESSION_DSC) {
-		struct dsc_desc *dsc = NULL;
+	if ((pinfo->compression_mode == COMPRESSION_DSC) &&
+	    pinfo->dsc.mdp_dsc_config) {
+		struct dsc_desc *dsc = &pinfo->dsc;
 
-		dsc = &pinfo->dsc;
-		if (dsc) {
-			if (dsc->mdp_dsc_config)
-				dsc->mdp_dsc_config(pinfo);
+		if (pinfo->lcdc.dual_pipe && !pinfo->mipi.dual_dsi &&
+		    !pinfo->lcdc.split_display && (pinfo->num_dsc_enc == 2)) {
+
+			dsc->mdp_dsc_config(pinfo, MDP_PP_0_BASE,
+				MDP_DSC_0_BASE, true, true);
+			dsc->mdp_dsc_config(pinfo, MDP_PP_1_BASE,
+				MDP_DSC_1_BASE, true, true);
+		} else {
+			dsc->mdp_dsc_config(pinfo, MDP_PP_0_BASE,
+				MDP_DSC_0_BASE, false, false);
 		}
 	} else if (pinfo->compression_mode == COMPRESSION_FBC) {
 		if (pinfo->fbc.enabled)

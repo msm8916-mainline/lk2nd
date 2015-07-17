@@ -487,6 +487,20 @@ int gcdb_display_init(const char *panel_name, uint32_t rev, void *base)
 	pan_type = oem_panel_select(panel_name, &panelstruct, &(panel.panel_info),
 				 &dsi_video_mode_phy_db);
 
+	if ((panel.panel_info.lm_split[0] > 0) &&
+	    (panel.panel_info.lm_split[1] > 0))
+		panelstruct.paneldata->panel_operating_mode |= DUAL_PIPE_FLAG;
+
+	if (panelstruct.paneldata->panel_operating_mode & DUAL_PIPE_FLAG) {
+		if ((panel.panel_info.lm_split[0] <= 0) ||
+		    (panel.panel_info.lm_split[1] <= 0)) {
+			panel.panel_info.lm_split[0] =
+				panelstruct.panelres->panel_width / 2;
+			panel.panel_info.lm_split[1] =
+				panel.panel_info.lm_split[0];
+		}
+	}
+
 	if (pan_type == PANEL_TYPE_DSI) {
 		target_dsi_phy_config(&dsi_video_mode_phy_db);
 		mdss_dsi_check_swap_status();

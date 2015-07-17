@@ -219,7 +219,17 @@ struct dsc_parameters {
 	uint32_t block_prediction;
 	uint32_t ich_reset_override;
 	uint32_t ich_reset_value;
-	uint32_t data_path_mode;
+};
+
+struct topology_config {
+	char *config_name; /* matches with kernel cmdline */
+	/*
+	 * lm_split: -ve value means that lm_split is not used.
+	 *           If lm_split is used then DUAL_PIPE flag will be added.
+	 */
+	int lm_split[2];
+	int num_dsc_enc; /* how many encoder to use */
+	struct dsc_parameters *dsc;
 };
 
 #endif /*_PANEL_H_ */

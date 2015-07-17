@@ -38,6 +38,7 @@
 #include <mdp5.h>
 #include <target/display.h>
 
+#include "gcdb_display.h"
 #include "include/panel.h"
 #include "panel_display.h"
 
@@ -132,6 +133,7 @@ static int init_panel_data(struct panel_struct *panelstruct,
 			struct mdss_dsi_phy_ctrl *phy_db)
 {
 	int pan_type = PANEL_TYPE_DSI;
+	struct oem_panel_data *oem_data = mdss_dsi_get_oem_data_ptr();
 
 	switch (panel_id) {
 	case TRULY_1080P_VIDEO_PANEL:
@@ -359,9 +361,27 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		panelstruct->paneltiminginfo->tclk_post = 0x04;
 		panelstruct->paneltiminginfo->tclk_pre = 0x20;
 		pinfo->mipi.tx_eot_append = true;
+
+		panelstruct->paneldata->panel_operating_mode &= ~DUAL_PIPE_FLAG;
+		panelstruct->config = &nt35597_wqxga_dsc_video_config0;
+		if (oem_data) {
+			switch (oem_data->cfg_num[0]) {
+			case -1: /* default */
+			case 0:
+				panelstruct->config =
+					&nt35597_wqxga_dsc_video_config0;
+				break;
+			default:
+				dprintf(CRITICAL, "topology config%d not supported. fallback to default config0\n",
+					oem_data->cfg_num[0]);
+				panelstruct->config = &nt35597_wqxga_dsc_video_config0;
+			}
+		}
+		pinfo->lm_split[0] = panelstruct->config->lm_split[0];
+		pinfo->lm_split[1] = panelstruct->config->lm_split[1];
+		pinfo->num_dsc_enc = panelstruct->config->num_dsc_enc;
 		pinfo->compression_mode = COMPRESSION_DSC;
-		memcpy(&panelstruct->dsc_paras, &nt35597_wqxga_dsc_video_paras,
-				sizeof(struct dsc_parameters));
+
 		pinfo->dsc.parameter_calc =  mdss_dsc_parameters_calc;
 		pinfo->dsc.dsc2buf = mdss_dsc_to_buf;
 		pinfo->dsc.dsi_dsc_config = mdss_dsc_dsi_config;
@@ -398,9 +418,27 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		panelstruct->paneltiminginfo->tclk_post = 0x04;
 		panelstruct->paneltiminginfo->tclk_pre = 0x20;
 		pinfo->mipi.tx_eot_append = true;
+
+		panelstruct->paneldata->panel_operating_mode &= ~DUAL_PIPE_FLAG;
+		panelstruct->config = &nt35597_wqxga_dsc_cmd_config0;
+		if (oem_data) {
+			switch (oem_data->cfg_num[0]) {
+			case -1: /* default */
+			case 0:
+				panelstruct->config =
+					&nt35597_wqxga_dsc_cmd_config0;
+				break;
+			default:
+				dprintf(CRITICAL, "topology config%d not supported. fallback to default config0\n",
+					oem_data->cfg_num[0]);
+				panelstruct->config = &nt35597_wqxga_dsc_cmd_config0;
+			}
+		}
+		pinfo->lm_split[0] = panelstruct->config->lm_split[0];
+		pinfo->lm_split[1] = panelstruct->config->lm_split[1];
+		pinfo->num_dsc_enc = panelstruct->config->num_dsc_enc;
 		pinfo->compression_mode = COMPRESSION_DSC;
-		memcpy(&panelstruct->dsc_paras, &nt35597_wqxga_dsc_cmd_paras,
-				sizeof(struct dsc_parameters));
+
 		pinfo->dsc.parameter_calc =  mdss_dsc_parameters_calc;
 		pinfo->dsc.dsc2buf = mdss_dsc_to_buf;
 		pinfo->dsc.dsi_dsc_config = mdss_dsc_dsi_config;
@@ -444,6 +482,11 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		pan_type = PANEL_TYPE_UNKNOWN;
 		break;
 	}
+
+	dprintf(SPEW, "lm_split[0]=%d lm_split[1]=%d mode=0x%x\n",
+		pinfo->lm_split[0], pinfo->lm_split[1],
+		panelstruct->paneldata->panel_operating_mode);
+
 	return pan_type;
 }
 

@@ -332,8 +332,23 @@ static const struct dfps_panel_info nt35597_wqxga_dsc_cmd_dfps = {
 /*---------------------------------------------------------------------------*/
 /* DSC									     */
 /*---------------------------------------------------------------------------*/
-static const struct dsc_parameters nt35597_wqxga_dsc_cmd_paras = {
-	1, 0, 0, 16, 720, 8, 8, 2, 1, 0, 0, 0
+struct dsc_parameters nt35597_wqxga_dsc_cmd_params0 = {
+	1, 0, 0, 16, 720, 8, 8, 2, 1, 0, 0
+};
+
+/* 1LM + 1 DSC_ENC */
+struct topology_config nt35597_wqxga_dsc_cmd_config0 = {
+	"config0", {-1, -1}, 1, &nt35597_wqxga_dsc_cmd_params0
+};
+
+/* 2LM + 3D Mux + 1 DSC_ENC */
+struct topology_config nt35597_wqxga_dsc_cmd_config1 = {
+	"config1", {720, 720}, 1, &nt35597_wqxga_dsc_cmd_params0
+};
+
+/* 2LM + 2 DSC_ENC + DSC_MERGE */
+struct topology_config nt35597_wqxga_dsc_cmd_config2 = {
+	"config2", {720, 720}, 2, &nt35597_wqxga_dsc_cmd_params0
 };
 
 #endif

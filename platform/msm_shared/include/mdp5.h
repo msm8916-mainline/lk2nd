@@ -118,6 +118,9 @@
 #define MDP_PP_0_BASE                           REG_MDP(0x12D00)
 #define MDP_PP_1_BASE                           REG_MDP(0x12E00)
 
+#define MDP_DSC_0_BASE                          REG_MDP(0x81000)
+#define MDP_DSC_1_BASE                          REG_MDP(0x81400)
+
 #define CTL_LAYER_0                             0x00
 #define CTL_LAYER_1                             0x04
 #define CTL_TOP                                 0x14
@@ -251,6 +254,8 @@ void display_shutdown(void);
 void mdss_dsc_parameters_calc(struct msm_panel_info *pinfo);
 int mdss_dsc_to_buf(struct msm_panel_info *pinfo);
 void mdss_dsc_dsi_config(uint32_t ctl_base, int mode, struct dsc_desc *dsc);
-void mdss_dsc_mdp_config(struct msm_panel_info *pinfo);
+void mdss_dsc_mdp_config(struct msm_panel_info *pinfo,
+	unsigned int pp_base, unsigned int dsc_base,
+	bool mux, bool split_mode);
 
 #endif
