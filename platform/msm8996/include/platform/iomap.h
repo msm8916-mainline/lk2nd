@@ -161,7 +161,7 @@
 
 /* QSEECOM: Secure app region notification */
 #define APP_REGION_ADDR 0x86600000
-#define APP_REGION_SIZE 0xd00000
+#define APP_REGION_SIZE 0x2200000
 
 /* DRV strength for sdcc */
 #define SDC1_HDRV_PULL_CTL           (TLMM_BASE_ADDR + 0x0012C000)
