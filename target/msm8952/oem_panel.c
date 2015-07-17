@@ -49,6 +49,7 @@
 #include "include/panel_sharp_1080p_cmd.h"
 #include "include/panel_nt35597_wqxga_dualdsi_video.h"
 #include "include/panel_nt35597_wqxga_dualdsi_cmd.h"
+#include "include/panel_hx8399a_1080p_video.h"
 
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
@@ -60,6 +61,7 @@ enum {
 	SHARP_1080P_CMD_PANEL,
 	NT35597_WQXGA_DUALDSI_VIDEO_PANEL,
 	NT35597_WQXGA_DUALDSI_CMD_PANEL,
+	HX8399A_1080P_VIDEO_PANEL,
 	UNKNOWN_PANEL
 };
 
@@ -77,6 +79,8 @@ static struct panel_list supp_panels[] = {
 	{"sharp_1080p_cmd", SHARP_1080P_CMD_PANEL},
 	{"nt35597_wqxga_dualdsi_video", NT35597_WQXGA_DUALDSI_VIDEO_PANEL},
 	{"nt35597_wqxga_dualdsi_cmd", NT35597_WQXGA_DUALDSI_CMD_PANEL},
+	{"otm1906c_1080p_cmd", OTM1906C_1080P_CMD_PANEL},
+	{"hx8399a_1080p_video", HX8399A_1080P_VIDEO_PANEL},
 };
 
 static uint32_t panel_id;
@@ -198,6 +202,31 @@ static int init_panel_data(struct panel_struct *panelstruct,
 			otm1906c_1080p_cmd_timings, TIMING_SIZE);
 		pinfo->mipi.signature = OTM1906C_1080P_CMD_SIGNATURE;
 		break;
+	case HX8399A_1080P_VIDEO_PANEL:
+		panelstruct->paneldata    = &hx8399a_1080p_video_panel_data;
+		panelstruct->panelres     = &hx8399a_1080p_video_panel_res;
+		panelstruct->color        = &hx8399a_1080p_video_color;
+		panelstruct->videopanel   = &hx8399a_1080p_video_video_panel;
+		panelstruct->commandpanel = &hx8399a_1080p_video_command_panel;
+		panelstruct->state        = &hx8399a_1080p_video_state;
+		panelstruct->laneconfig   = &hx8399a_1080p_video_lane_config;
+		panelstruct->paneltiminginfo
+			= &hx8399a_1080p_video_timing_info;
+		panelstruct->panelresetseq
+					 = &hx8399a_1080p_video_reset_seq;
+		panelstruct->backlightinfo = &hx8399a_1080p_video_backlight;
+		pinfo->mipi.panel_on_cmds
+			= hx8399a_1080p_video_on_command;
+		pinfo->mipi.num_of_panel_on_cmds
+			= HX8399A_1080P_VIDEO_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+			= hx8399a_1080p_video_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+			= HX8399A_1080P_VIDEO_OFF_COMMAND;
+		memcpy(phy_db->timing,
+			hx8399a_1080p_video_timings, TIMING_SIZE);
+		pinfo->mipi.signature = HX8399A_1080P_VIDEO_SIGNATURE;
+		break;
 	case SHARP_1080P_CMD_PANEL:
 		panelstruct->paneldata    = &sharp_1080p_cmd_panel_data;
 		panelstruct->panelres     = &sharp_1080p_cmd_panel_res;
@@ -305,6 +334,15 @@ static int init_panel_data(struct panel_struct *panelstruct,
 	return pan_type;
 }
 
+#define DISPLAY_MAX_PANEL_DETECTION 2
+static uint32_t auto_pan_loop = 0;
+
+uint32_t oem_panel_max_auto_detect_panels()
+{
+	return target_panel_auto_detect_enabled() ?
+		DISPLAY_MAX_PANEL_DETECTION : 0;
+}
+
 int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 			struct msm_panel_info *pinfo,
 			struct mdss_dsi_phy_ctrl *phy_db)
@@ -344,6 +382,24 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 		break;
 	case HW_PLATFORM_QRD:
 		panel_id = OTM1906C_1080P_CMD_PANEL;
+
+		/* QRD EVT1 uses OTM1906C, and EVT2 uses HX8399A */
+		if (platform_is_msm8956()) {
+			switch (auto_pan_loop) {
+				case 0:
+					panel_id = HX8399A_1080P_VIDEO_PANEL;
+					break;
+				case 1:
+					panel_id = OTM1906C_1080P_CMD_PANEL;
+					break;
+				default:
+					panel_id = UNKNOWN_PANEL;
+					dprintf(CRITICAL, "Unknown panel\n");
+					return PANEL_TYPE_UNKNOWN;
+			}
+			auto_pan_loop++;
+		}
+
 		break;
 	default:
 		dprintf(CRITICAL, "Display not enabled for %d HW type\n",

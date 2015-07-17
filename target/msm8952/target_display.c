@@ -522,6 +522,8 @@ bool target_display_panel_node(char *pbuf, uint16_t buf_size)
 void target_display_init(const char *panel_name)
 {
 	struct oem_panel_data oem;
+	int32_t ret = 0;
+	uint32_t panel_loop = 0;
 
 	set_panel_cmd_string(panel_name);
 	oem = mdss_dsi_get_oem_data();
@@ -535,10 +537,16 @@ void target_display_init(const char *panel_name)
 		return;
 	}
 
-	if (gcdb_display_init(oem.panel, MDP_REV_50, (void *)MIPI_FB_ADDR)) {
-		target_force_cont_splash_disable(true);
-		msm_display_off();
-	}
+	do {
+		target_force_cont_splash_disable(false);
+		ret = gcdb_display_init(oem.panel, MDP_REV_50, (void *)MIPI_FB_ADDR);
+		if (!ret || ret == ERR_NOT_SUPPORTED) {
+			break;
+		} else {
+			target_force_cont_splash_disable(true);
+			msm_display_off();
+		}
+	} while (++panel_loop <= oem_panel_max_auto_detect_panels());
 
 	if (!oem.cont_splash) {
 		dprintf(INFO, "Forcing continuous splash disable\n");
