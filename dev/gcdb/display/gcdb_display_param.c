@@ -37,7 +37,7 @@
 #include "target/display.h"
 #include "fastboot_oem_display.h"
 
-struct oem_panel_data oem_data = {{'\0'}, {'\0'}, false, false, SIM_NONE, "single_dsi"};
+struct oem_panel_data oem_data = {{'\0'}, {'\0'}, false, false, SIM_NONE, "single_dsi", DSI_PLL_DEFAULT};
 
 static int panel_name_to_dt_string(struct panel_lookup_list supp_panels[],
 			  uint32_t supp_panels_size,
@@ -83,6 +83,11 @@ void sim_override_to_cmdline(struct sim_lookup_list sim[],
 struct oem_panel_data mdss_dsi_get_oem_data(void)
 {
 	return oem_data;
+}
+
+struct oem_panel_data *mdss_dsi_get_oem_data_ptr(void)
+{
+	return &oem_data;
 }
 
 static char *get_panel_token_end(const char *string)
@@ -190,6 +195,16 @@ void set_panel_cmd_string(const char *panel_name)
 	ch = strstr((char *) panel_name, ":disable");
 	oem_data.cont_splash = ch ? false : true;
 
+	/* DSI PLL source */
+	ch = strstr((char *) panel_name, ":pll0");
+	if (ch) {
+		oem_data.dsi_pll_src = DSI_PLL0;
+	} else {
+		ch = strstr((char *) panel_name, ":pll1");
+		if (ch)
+			oem_data.dsi_pll_src = DSI_PLL1;
+	}
+
 	/* Simulator status */
 	oem_data.sim_mode = SIM_NONE;
 	if (strstr((char *) panel_name, "#sim-hwte"))
@@ -259,7 +274,7 @@ bool gcdb_display_cmdline_arg(char *pbuf, uint16_t buf_size)
 	struct panel_struct panelstruct;
 	int panel_mode = SPLIT_DISPLAY_FLAG | DUAL_PIPE_FLAG | DST_SPLIT_FLAG;
 	int prefix_string_len = strlen(DISPLAY_CMDLINE_PREFIX);
-	char *sctl_string;
+	char *sctl_string, *pll_src_string = NULL;
 
 	panelstruct = mdss_dsi_get_panel_data();
 
@@ -355,6 +370,22 @@ bool gcdb_display_cmdline_arg(char *pbuf, uint16_t buf_size)
 
 	arg_size += strlen(sctl_string) + slave_panel_node_len;
 
+	if (oem_data.skip && !strcmp(oem_data.dsi_config, "dual_dsi") &&
+		(oem_data.dsi_pll_src != DSI_PLL_DEFAULT)) {
+		dprintf(CRITICAL, "Dual DSI config detected!"
+			" Use default PLL\n");
+		oem_data.dsi_pll_src = DSI_PLL_DEFAULT;
+	}
+
+	if (oem_data.dsi_pll_src != DSI_PLL_DEFAULT) {
+		if (oem_data.dsi_pll_src == DSI_PLL0)
+			pll_src_string = DSI_PLL0_STRING;
+		else
+			pll_src_string = DSI_PLL1_STRING;
+
+		arg_size += strlen(pll_src_string);
+	}
+
 	if (oem_data.sim_mode != SIM_NONE) {
 		sim_override_to_cmdline(lookup_sim,
 			ARRAY_SIZE(lookup_sim), oem_data.sim_mode,
@@ -403,6 +434,12 @@ bool gcdb_display_cmdline_arg(char *pbuf, uint16_t buf_size)
 		strlcpy(pbuf, oem_data.dsi_config, buf_size);
 		pbuf += strlen(oem_data.dsi_config);
 		buf_size -= strlen(oem_data.dsi_config);
+
+		if (pll_src_string) {
+			strlcpy(pbuf, pll_src_string, buf_size);
+			pbuf += strlen(pll_src_string);
+			buf_size -= strlen(pll_src_string);
+		}
 
 		if (sim_mode_string) {
 			strlcpy(pbuf, LK_SIM_OVERRIDE, buf_size);
