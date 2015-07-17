@@ -1,13 +1,9 @@
 #Android makefile to build lk bootloader as a part of Android Build
 
-ifeq ($(BOOTLOADER_GCC_VERSION),)
 ifndef 2ND_TARGET_GCC_VERSION
-CROSS_COMPILE := ../../../prebuilts/gcc/linux-x86/arm/arm-eabi-$(TARGET_GCC_VERSION)/bin/arm-eabi-
+CROSS_COMPILE := ../../../prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-$(TARGET_GCC_VERSION)/bin/arm-linux-androideabi-
 else
-CROSS_COMPILE := ../../../prebuilts/gcc/linux-x86/arm/arm-eabi-$(2ND_TARGET_GCC_VERSION)/bin/arm-eabi-
-endif
-else # BOOTLOADER_GCC_VERSION defined
-CROSS_COMPILE := ../../../prebuilts/gcc/linux-x86/arm/$(BOOTLOADER_GCC_VERSION)/bin/arm-eabi-
+CROSS_COMPILE := ../../../prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-$(2ND_TARGET_GCC_VERSION)/bin/arm-linux-androideabi-
 endif
 
 
