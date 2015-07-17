@@ -1,0 +1,45 @@
+LOCAL_DIR := $(GET_LOCAL_DIR)
+
+INCLUDES += -I$(LOCAL_DIR)/include -I$(LK_TOP_DIR)/platform/msm_shared
+
+PLATFORM := mdmfermium
+
+MEMBASE := 0x87A00000 # SDRAM
+MEMSIZE := 0x00100000 # 1MB
+
+SCRATCH_ADDR                        := 0x81200000
+SCRATCH_REGION1                     := 0x81200000
+SCRATCH_REGION1_SIZE                := 0x1800000  # 24MB
+SCRATCH_REGION2                     := 0x87F80000
+SCRATCH_REGION2_SIZE                := 0x80000    # 512KB
+
+KERNEL_REGION                       := 0x80000000
+KERNEL_REGION_SIZE                  := 0x1200000 # 18MB
+
+BASE_ADDR                           := 0x80000000
+
+DEFINES += NO_KEYPAD_DRIVER=1
+
+MODULES += \
+	dev/keys \
+	dev/vib \
+	lib/ptable \
+	dev/pmic/pm8x41 \
+	lib/libfdt
+
+DEFINES += \
+	MEMSIZE=$(MEMSIZE) \
+	MEMBASE=$(MEMBASE) \
+	BASE_ADDR=$(BASE_ADDR) \
+	SCRATCH_ADDR=$(SCRATCH_ADDR) \
+	SCRATCH_REGION1=$(SCRATCH_REGION1) \
+	SCRATCH_REGION2=$(SCRATCH_REGION2) \
+	SCRATCH_REGION1_SIZE=$(SCRATCH_REGION1_SIZE) \
+	SCRATCH_REGION2_SIZE=$(SCRATCH_REGION2_SIZE) \
+	KERNEL_REGION=$(KERNEL_REGION) \
+	KERNEL_REGION_SIZE=$(KERNEL_REGION_SIZE)
+
+OBJS += \
+	$(LOCAL_DIR)/init.o \
+	$(LOCAL_DIR)/meminfo.o \
+	$(LOCAL_DIR)/keypad.o
