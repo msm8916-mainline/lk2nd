@@ -28,6 +28,7 @@ MODULES += \
 	dev/qpnp_wled \
 	dev/qpnp_led \
 	dev/gcdb/display \
+	dev/pmic/pmi8994 \
 	lib/ptable \
 	lib/libfdt
 

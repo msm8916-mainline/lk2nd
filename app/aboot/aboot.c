@@ -63,6 +63,10 @@
 #include <rpmb.h>
 #endif
 
+#if ENABLE_WBC
+#include <pm_app_smbchg.h>
+#endif
+
 #if DEVICE_TREE
 #include <libfdt.h>
 #include <dev_tree.h>
@@ -3187,7 +3191,14 @@ void aboot_init(const struct app_descriptor *app)
 	if (!check_alarm_boot()) {
 #endif
 		dprintf(SPEW, "Display Init: Start\n");
+#if ENABLE_WBC
+		if (!pm_appsbl_display_init_done())
+			target_display_init(device.display_panel);
+		else
+			display_image_on_screen();
+#else
 		target_display_init(device.display_panel);
+#endif
 		dprintf(SPEW, "Display Init: Done\n");
 #if NO_ALARM_DISPLAY
 	}
