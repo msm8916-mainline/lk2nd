@@ -36,6 +36,9 @@
 #include <platform.h>
 #include <string.h>
 #include <arch/ops.h>
+#if ENABLE_WBC
+#include <pm_app_smbchg.h>
+#endif
 
 #include "font5x12.h"
 
@@ -339,6 +342,9 @@ void display_default_image_on_screen(void)
 	unsigned total_y;
 	unsigned bytes_per_bpp;
 	unsigned image_base;
+#if DISPLAY_TYPE_MIPI
+	char *image = NULL;
+#endif
 
 	if (!config) {
 		dprintf(CRITICAL,"NULL configuration, image cannot be displayed\n");
@@ -354,10 +360,16 @@ void display_default_image_on_screen(void)
 			(config->width)) + (total_x/2 - (SPLASH_IMAGE_WIDTH / 2)));
 
 #if DISPLAY_TYPE_MIPI
+#if ENABLE_WBC
+	image = (pm_appsbl_charging_in_progress() ? image_batt888 : imageBuffer_rgb888);
+#else
+	image = imageBuffer_rgb888;
+#endif
+
 	if (bytes_per_bpp == 3) {
 		for (i = 0; i < SPLASH_IMAGE_HEIGHT; i++) {
 			memcpy (config->base + ((image_base + (i * (config->width))) * bytes_per_bpp),
-			imageBuffer_rgb888 + (i * SPLASH_IMAGE_WIDTH * bytes_per_bpp),
+			image + (i * SPLASH_IMAGE_WIDTH * bytes_per_bpp),
 			SPLASH_IMAGE_WIDTH * bytes_per_bpp);
 		}
 	}
