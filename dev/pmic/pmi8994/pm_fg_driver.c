@@ -26,66 +26,49 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef OS_TYPE_H
-#define OS_TYPE_H
+#include "pm_fg_driver.h"
 
 /*===========================================================================
 
-                      G-Link OS Specific types/functions
+                        STATIC VARIABLES 
 
 ===========================================================================*/
+
+/* Static global variable to store the FG driver data */
+
+pm_fg_data_type        fg_data[PM_MAX_NUM_PMICS];
+fg_adc_usr_register_ds fg_adc_usr_reg[1] =
+	{   /* FG base address and offsets */
+		{0x4200, 0x0 ,0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16,\
+		0x18, 0x19, 0x1A, 0x1B, 0x46, 0x50, 0x51, 0x53, \
+		0xD0, 0x54, 0x55, 0x56,	0x57, 0x58, 0x59, 0x5A, 0x5B, \
+		0x5C, 0x5D, 0x5E, 0x60,	0x61, 0x62, 0x63, 0x64, 0x65, \
+		0x66, 0x67, 0x68, 0x69},
+	};
+/* Fill in slave id, pmic index and comm type (comm type is unused) */
+pm_comm_info_type      comm[1] = {{2, 1, 0},};
+/* We use only adc user register others are not needed */
+fg_register_ds         fg_reg[1] = { {NULL, NULL, NULL, &fg_adc_usr_reg[0]}, };
 
 /*===========================================================================
 
-                        INCLUDE FILES
+                        FUNCTION DEFINITIONS
 
 ===========================================================================*/
-#include <sys/types.h>
-#include <string.h>
-#include <assert.h>
-
-/*===========================================================================
-                        MACRO DEFINITIONS
-===========================================================================*/
-
-#define OS_LOG_INIT( ) glink_os_log_init()
-
-/*===========================================================================
-                        TYPE DEFINITIONS
-===========================================================================*/
-#define DALSYS_SYNC_OBJ_SIZE_BYTES           40
-#define DALSYS_EVENT_OBJ_SIZE_BYTES          80
-
-typedef struct DALSYSEventObj  DALSYSEventObj;
-
-struct DALSYSEventObj
+/* Initialize FG driver and data structure */
+void pm_fg_driver_init(uint32_t device_index)
 {
-  unsigned long long _bSpace[DALSYS_EVENT_OBJ_SIZE_BYTES/sizeof(unsigned long long)];
-};
+	fg_data[device_index].comm_ptr = &comm[0];
+	fg_data[device_index].fg_register = &fg_reg[0];
+	fg_data[device_index].num_of_peripherals = 0x0;
+}
 
-
-typedef struct DALSYSSyncObj  DALSYSSyncObj;
-struct DALSYSSyncObj
+pm_fg_data_type* pm_fg_get_data(uint32 pmic_index)
 {
-  unsigned long long _bSpace[DALSYS_SYNC_OBJ_SIZE_BYTES/sizeof(unsigned long long)];
-};
+  if(pmic_index <PM_MAX_NUM_PMICS) 
+  {
+      return &fg_data[pmic_index];
+  }
 
-typedef DALSYSSyncObj os_cs_type;
-
-typedef void ( *os_timer_cb_fn )( void *cb_data );
-
-typedef struct
-{
-  void * dal_event;
-  DALSYSEventObj    dal_obj_memory;
-}os_event_type;
-
-typedef void ( *os_isr_cb_fn )( void *cb_data );
-
-typedef struct os_ipc_intr_struct
-{
-  uint32_t processor;
-  uint32_t irq_out;
-} os_ipc_intr_type;
-
-#endif /* OS_TYPE_H */
+  return NULL;
+}

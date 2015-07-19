@@ -58,6 +58,23 @@ typedef int kobj_id;
 
 typedef unsigned long time_t;
 typedef unsigned long long bigtime_t;
+typedef uint8_t uint8;
+typedef uint16_t uint16;
+typedef uint32_t uint32;
+typedef uint64_t uint64;
+typedef int     boolean;
+typedef int8_t int8;
+typedef int16_t int16;
+typedef int32_t int32;
+typedef bool boolean;
+
+#ifndef TRUE
+#define TRUE true
+#endif
+#ifndef FALSE
+#define FALSE false
+#endif
+
 #define INFINITE_TIME ULONG_MAX
 
 #define ARRAY_SIZE(x) (sizeof(x)/sizeof((x)[0]))

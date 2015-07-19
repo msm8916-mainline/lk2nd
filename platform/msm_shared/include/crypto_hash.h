@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -29,12 +29,11 @@
 #ifndef __CRYPTO_HASH_H__
 #define __CRYPYO_HASH_H__
 
+#include <sys/types.h>
+
 #ifndef NULL
 #define NULL		0
 #endif
-
-#define TRUE		1
-#define FALSE		0
 
 #define SHA256_INIT_VECTOR_SIZE		8
 #define SHA1_INIT_VECTOR_SIZE		5
