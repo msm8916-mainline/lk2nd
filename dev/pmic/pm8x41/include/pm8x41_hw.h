@@ -29,6 +29,10 @@
 #ifndef _PM8x41_HW_H_
 #define _PM8x41_HW_H_
 
+#include <stdint.h>
+#include <sys/types.h>
+
+
 /* SMBB Registers */
 #define SMBB_MISC_BOOT_DONE                   0x1642
 

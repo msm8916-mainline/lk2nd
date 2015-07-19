@@ -77,6 +77,40 @@ uint8_t pm8x41_reg_read(uint32_t addr)
 	return val;
 }
 
+uint32_t spmi_reg_read(uint32_t slave_id, uint16_t addr, uint8_t *data, uint8_t priority)
+{
+	struct pmic_arb_cmd cmd;
+	struct pmic_arb_param param;
+
+	cmd.address = PERIPH_ID(addr);
+	cmd.offset = REG_OFFSET(addr);
+	cmd.slave_id = slave_id;
+
+	cmd.priority = priority;
+
+	param.buffer = data;
+	param.size   = 1;
+
+	return pmic_arb_read_cmd(&cmd, &param);
+}
+
+uint32_t spmi_reg_write(uint32_t slave_id, uint16_t addr, uint8_t *data, uint8_t priority)
+{
+	struct pmic_arb_cmd cmd;
+	struct pmic_arb_param param;
+
+	cmd.address = PERIPH_ID(addr);
+	cmd.offset = REG_OFFSET(addr);
+	cmd.slave_id = slave_id;
+
+	cmd.priority = priority;
+
+	param.buffer = data;
+	param.size   = 1;
+
+	return pmic_arb_write_cmd(&cmd, &param);
+}
+
 /* SPMI helper function which takes slave id as the i/p */
 void pm8xxx_reg_write(uint8_t slave_id, uint32_t addr, uint8_t val)
 {
