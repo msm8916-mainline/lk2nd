@@ -88,6 +88,8 @@
 #include "scm.h"
 #include "mdtp.h"
 #include "secapp_loader.h"
+#include <menu_keys_detect.h>
+#include <display_menu.h>
 
 extern  bool target_use_signed_kernel(void);
 extern void platform_uninit(void);
@@ -848,17 +850,28 @@ static void verify_signed_bootimg(uint32_t bootimg_addr, uint32_t bootimg_size)
 	switch(boot_verify_get_state())
 	{
 		case RED:
-				dprintf(CRITICAL,
-						"Your device has failed verification and may not work properly.\nWait for 5 seconds before proceeding\n");
-				mdelay(5000);
-				break;
+#if FBCON_DISPLAY_MSG
+			display_menu_thread(DISPLAY_THREAD_BOOT_STATE);
+			wait_for_users_action();
+#else
+			dprintf(CRITICAL,
+					"Your device has failed verification and may not work properly.\nWait for 5 seconds before proceeding\n");
+			mdelay(5000);
+#endif
+
+			break;
 		case YELLOW:
-				dprintf(CRITICAL,
-						"Your device has loaded a different operating system.\nWait for 5 seconds before proceeding\n");
-				mdelay(5000);
-				break;
+#if FBCON_DISPLAY_MSG
+			display_menu_thread(DISPLAY_THREAD_BOOT_STATE);
+			wait_for_users_action();
+#else
+			dprintf(CRITICAL,
+					"Your device has loaded a different operating system.\nWait for 5 seconds before proceeding\n");
+			mdelay(5000);
+#endif
+			break;
 		default:
-				break;
+			break;
 	}
 #endif
 #if !VERIFIED_BOOT
@@ -1114,9 +1127,14 @@ int boot_linux_from_mmc(void)
 #if VERIFIED_BOOT
 	if(boot_verify_get_state() == ORANGE)
 	{
+#if FBCON_DISPLAY_MSG
+		display_menu_thread(DISPLAY_THREAD_BOOT_STATE);
+		wait_for_users_action();
+#else
 		dprintf(CRITICAL,
-				"Your device has been unlocked and can't be trusted.\nWait for 5 seconds before proceeding\n");
+			"Your device has been unlocked and can't be trusted.\nWait for 5 seconds before proceeding\n");
 		mdelay(5000);
+#endif
 	}
 #endif
 
@@ -2802,6 +2820,9 @@ void cmd_continue(const char *arg, void *data, unsigned sz)
 
 	if (target_is_emmc_boot())
 	{
+#if FBCON_DISPLAY_MSG
+		keys_detect_init();
+#endif
 		boot_linux_from_mmc();
 	}
 	else
@@ -2857,8 +2878,15 @@ void cmd_oem_unlock(const char *arg, void *data, unsigned sz)
 		return;
 	}
 
-	display_fbcon_message("Oem Unlock requested");
+#if FBCON_DISPLAY_MSG
+	if(!device.is_unlocked)
+		display_menu_thread(DISPLAY_THREAD_UNLOCK);
+	else
+		fastboot_info("Device already unlocked!");
+	fastboot_okay("");
+#else
 	fastboot_fail("Need wipe userdata. Do 'fastboot oem unlock-go'");
+#endif
 }
 
 void cmd_oem_unlock_go(const char *arg, void *data, unsigned sz)
