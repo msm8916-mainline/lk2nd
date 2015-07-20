@@ -523,6 +523,8 @@ bool target_display_panel_node(char *panel_name, char *pbuf, uint16_t buf_size)
 			strlcat(pbuf, ADV7533_I2C_HDMI_STRING, buf_size);
 		else if (strstr(panel_name, "adv7533_720p"))
 			strlcat(pbuf, ADV7533_I2C_HDMI_720p_STRING, buf_size);
+		else if (strstr(panel_name, "no_display"))
+			strlcat(pbuf, panel_name, buf_size);
 		else
 			strlcat(pbuf, ADV7533_I2C_DSI_STRING, buf_size);
 
