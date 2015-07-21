@@ -325,3 +325,25 @@ uint32_t get_ddr_start()
 	ASSERT("DDR Start Mem Not found\n");
 	return 0;
 }
+
+uint64_t smem_get_ddr_size()
+{
+	uint32_t i;
+	ram_partition ptn_entry;
+	uint32_t len = 0;
+	uint64_t size = 0;
+
+	ASSERT(smem_ram_ptable_init_v1());
+
+	len = smem_get_ram_ptable_len();
+
+	/* Determine the Start addr of the DDR RAM */
+	for(i = 0; i < len; i++)
+	{
+		smem_get_ram_ptable_entry(&ptn_entry, i);
+		if(ptn_entry.type == SYS_MEMORY && ptn_entry.category == SDRAM)
+			size += ptn_entry.size;
+	}
+
+	return size;
+}
