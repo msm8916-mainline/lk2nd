@@ -266,6 +266,7 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		memcpy(phy_db->timing,
 					hx8379c_fwvga_video_timings, TIMING_SIZE);
 		pinfo->mipi.signature = HX8379C_FWVGA_VIDEO_SIGNATURE;
+		break;
 	case FL10802_FWVGA_VIDEO_PANEL:
 		panelstruct->paneldata	  = &fl10802_fwvga_video_panel_data;
 		panelstruct->panelres	  = &fl10802_fwvga_video_panel_res;
