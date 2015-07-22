@@ -68,10 +68,6 @@
 #define REGULATOR_SIZE_IN_BYTES_8996	5
 #define LANE_SIZE_IN_BYTES_8996		20
 
-#define DSC_CMD_PANEL "dsc_cmd_panel"
-#define DSC_VID_PANEL "dsc_vid_panel"
-#define DSC_CMD_PANEL_STRING "1:dsi:0:none:1:qcom,mdss_dsi_nt35597_dsc_wqxga_cmd"
-#define DSC_VID_PANEL_STRING "1:dsi:0:none:1:qcom,mdss_dsi_nt35597_dsc_wqxga_video"
 /*---------------------------------------------------------------------------*/
 /* GPIO configuration                                                        */
 /*---------------------------------------------------------------------------*/
@@ -481,26 +477,6 @@ bool target_display_panel_node(char *pbuf, uint16_t buf_size)
 		strlcat(pbuf, LK_OVERRIDE_PANEL, buf_size);
 		buf_size -= LK_OVERRIDE_PANEL_LEN;
 		strlcat(pbuf, HDMI_CONTROLLER_STRING, buf_size);
-	} else if (!strcmp(oem.panel, DSC_CMD_PANEL)) {
-		if (buf_size < (prefix_string_len +
-			strlen(DSC_CMD_PANEL_STRING))) {
-			dprintf(CRITICAL, "DSC command line argument is greater than buffer size\n");
-			return false;
-		}
-		strlcpy(pbuf, DISPLAY_CMDLINE_PREFIX, buf_size);
-		buf_size -= prefix_string_len;
-		pbuf += prefix_string_len;
-		strlcpy(pbuf, DSC_CMD_PANEL_STRING, buf_size);
-	} else if (!strcmp(oem.panel, DSC_VID_PANEL)) {
-		if (buf_size < (prefix_string_len +
-			strlen(DSC_VID_PANEL_STRING))) {
-			dprintf(CRITICAL, "DSC command line argument is greater than buffer size\n");
-			return false;
-		}
-		strlcpy(pbuf, DISPLAY_CMDLINE_PREFIX, buf_size);
-		buf_size -= prefix_string_len;
-		pbuf += prefix_string_len;
-		strlcpy(pbuf, DSC_VID_PANEL_STRING, buf_size);
 	} else {
 		ret = gcdb_display_cmdline_arg(pbuf, buf_size);
 	}
@@ -519,8 +495,6 @@ void target_display_init(const char *panel_name)
 		|| !strcmp(oem.panel, SIM_DUALDSI_VIDEO_PANEL)
 		|| !strcmp(oem.panel, SIM_CMD_PANEL)
 		|| !strcmp(oem.panel, SIM_DUALDSI_CMD_PANEL)
-		|| !strcmp(oem.panel, DSC_CMD_PANEL)
-		|| !strcmp(oem.panel, DSC_VID_PANEL)
 		|| oem.skip) {
 		dprintf(INFO, "Selected panel: %s\nSkip panel configuration\n",
 			oem.panel);
