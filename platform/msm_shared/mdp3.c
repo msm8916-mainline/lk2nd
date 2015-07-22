@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -71,10 +71,13 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 	writel(0x0, MDP_DMA_P_WATERMARK_0);
 	writel(0x0, MDP_DMA_P_WATERMARK_1);
 	writel(0x0, MDP_DMA_P_WATERMARK_2);
-	if (pinfo->xres >= 720)
+	if (pinfo->xres >= 720) {
 		writel(0xFFFF, MDP_PANIC_LUT0);
-	else
+		writel(0xFF00, MDP_ROBUST_LUT);
+	} else {
 		writel(0x00FF, MDP_PANIC_LUT0);
+		writel(0xFFF0, MDP_ROBUST_LUT);
+	}
 	writel(0x1, MDP_PANIC_ROBUST_CTRL);
 	writel(0xFF00, MDP_ROBUST_LUT);
 
