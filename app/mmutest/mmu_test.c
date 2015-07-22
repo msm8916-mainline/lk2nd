@@ -100,7 +100,7 @@ void ramdump_table_map()
 
 		for (j = 0 ; j < (ramdump_mmu_section_table[i].size * MB)/6; j++)
 		{
-			strncpy(ptr, "hello", 6);
+			strlcpy(ptr, "hello", 6);
 			ptr+=6;
 		}
 
