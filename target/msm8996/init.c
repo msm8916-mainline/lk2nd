@@ -151,7 +151,8 @@ void target_uninit(void)
 	}
 
 #if ENABLE_WBC
-	pm_appsbl_set_dcin_suspend(1);
+	if (board_hardware_id() == HW_PLATFORM_MTP)
+		pm_appsbl_set_dcin_suspend(1);
 #endif
 
 	/* Tear down glink channels */
@@ -253,7 +254,8 @@ void target_init(void)
 	 * Charging should happen as early as possible, any other driver
 	 * initialization before this should consider the power impact
 	 */
-	pm_appsbl_chg_check_weak_battery_status(1);
+	if (board_hardware_id() == HW_PLATFORM_MTP)
+		pm_appsbl_chg_check_weak_battery_status(1);
 #endif
 
 	target_keystatus();
