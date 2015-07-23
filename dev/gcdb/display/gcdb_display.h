@@ -43,6 +43,8 @@
 #define BIST_SIZE 6
 #define LANE_SIZE 45
 
+#define DSI_CFG_SIZE 15
+
 /*---------------------------------------------------------------------------*/
 /* API                                                                       */
 /*---------------------------------------------------------------------------*/
@@ -62,12 +64,23 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	struct msm_panel_info *pinfo, struct mdss_dsi_phy_ctrl *phy_db);
 void set_panel_cmd_string(const char *panel_name);
 struct oem_panel_data mdss_dsi_get_oem_data(void);
+struct oem_panel_data *mdss_dsi_get_oem_data_ptr(void);
 struct panel_struct mdss_dsi_get_panel_data(void);
 
 struct oem_panel_data  {
 	char panel[MAX_PANEL_ID_LEN];
+	char sec_panel[MAX_PANEL_ID_LEN];
 	bool cont_splash;
 	bool skip;
+	uint32_t sim_mode;
+	char dsi_config[DSI_CFG_SIZE];
+	uint32_t dsi_pll_src;
+};
+
+enum {
+    DSI_PLL_DEFAULT,
+    DSI_PLL0,
+    DSI_PLL1,
 };
 
 #endif /*_GCDB_DISPLAY_H_ */

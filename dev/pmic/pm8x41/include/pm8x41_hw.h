@@ -29,6 +29,10 @@
 #ifndef _PM8x41_HW_H_
 #define _PM8x41_HW_H_
 
+#include <stdint.h>
+#include <sys/types.h>
+
+
 /* SMBB Registers */
 #define SMBB_MISC_BOOT_DONE                   0x1642
 
@@ -93,6 +97,9 @@
 
 /* USB Peripheral registers */
 #define SMBCHGL_USB_ICL_STS_2                 0x1309
+
+/* PMI8950 slave id */
+#define PMI8950_SLAVE_ID 0x20000
 
 /* USB Peripheral register bits */
 #define USBIN_ACTIVE_PWR_SRC                  BIT(0)

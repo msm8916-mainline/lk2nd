@@ -161,7 +161,7 @@
 
 /* QSEECOM: Secure app region notification */
 #define APP_REGION_ADDR 0x86600000
-#define APP_REGION_SIZE 0xd00000
+#define APP_REGION_SIZE 0x2200000
 
 /* DRV strength for sdcc */
 #define SDC1_HDRV_PULL_CTL           (TLMM_BASE_ADDR + 0x0012C000)
@@ -532,4 +532,10 @@
 #define APPS_WDOG_BITE_VAL_REG      (APSS_WDOG_BASE + 0x14)
 #define APPS_WDOG_RESET_REG         (APSS_WDOG_BASE + 0x04)
 #define APPS_WDOG_CTL_REG           (APSS_WDOG_BASE + 0x08)
+
+#define DDR_START                    platform_get_ddr_start()
+#define ABOOT_FORCE_KERNEL_ADDR      DDR_START + 0x8000
+#define ABOOT_FORCE_RAMDISK_ADDR     DDR_START + 0x2200000
+#define ABOOT_FORCE_TAGS_ADDR        DDR_START + 0x2000000
+#define ABOOT_FORCE_KERNEL64_ADDR    DDR_START + 0x80000
 #endif

@@ -486,6 +486,7 @@ int target_cont_splash_screen()
 		switch (board_hardware_id()) {
 		case HW_PLATFORM_MTP:
 		case HW_PLATFORM_SURF:
+		case HW_PLATFORM_RCM:
 		case HW_PLATFORM_QRD:
 			splash_screen = 1;
 			break;
@@ -501,6 +502,23 @@ int target_cont_splash_screen()
 void target_force_cont_splash_disable(uint8_t override)
 {
         splash_override = override;
+}
+
+uint8_t target_panel_auto_detect_enabled()
+{
+	uint8_t ret = 0;
+
+	switch(board_hardware_id())
+	{
+		case HW_PLATFORM_QRD:
+			ret = platform_is_msm8956() ? 1 : 0;
+			break;
+		case HW_PLATFORM_SURF:
+		case HW_PLATFORM_MTP:
+		default:
+			ret = 0;
+	}
+	return ret;
 }
 
 /* Do any target specific intialization needed before entering fastboot mode */

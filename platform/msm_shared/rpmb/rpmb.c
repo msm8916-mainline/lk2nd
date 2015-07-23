@@ -50,7 +50,30 @@ int rpmb_init()
 	{
 		struct mmc_device *mmc_dev = (struct mmc_device *) dev;
 		info.size = mmc_dev->card.rpmb_size / RPMB_MIN_BLK_SZ;
-		info.rel_wr_count = mmc_dev->card.rel_wr_count;
+		if (mmc_dev->card.ext_csd[MMC_EXT_CSD_REV] < 8)
+		{
+			dprintf(SPEW, "EMMC Version < 5.1\n");
+			info.rel_wr_count = mmc_dev->card.rel_wr_count;
+		}
+		else
+		{
+			if (mmc_dev->card.ext_csd[MMC_EXT_CSD_EN_RPMB_REL_WR] == 0)
+			{
+				dprintf(SPEW, "EMMC Version >= 5.1 EN_RPMB_REL_WR = 0\n");
+				// according to emmc version 5.1 and above if EN_RPMB_REL_WR in extended
+				// csd is not set the maximum number of frames that can be reliably written
+				// to emmc would be 2
+				info.rel_wr_count = 2;
+			}
+			else
+			{
+				dprintf(SPEW, "EMMC Version >= 5.1 EN_RPMB_REL_WR = 1\n");
+				// according to emmc version 5.1 and above if EN_RPMB_REL_WR in extended
+				// csd is set the maximum number of frames that can be reliably written
+				// to emmc would be 32
+				info.rel_wr_count = 32;
+			}
+		}
 		info.dev_type  = EMMC_RPMB;
 	}
 	else
@@ -105,12 +128,12 @@ int rpmb_read(uint32_t *req, uint32_t req_len, uint32_t *resp, uint32_t *resp_le
 		return rpmb_read_ufs(dev, req, req_len, resp, resp_len);
 }
 
-int rpmb_write(uint32_t *req, uint32_t req_len, uint32_t *resp, uint32_t *resp_len)
+int rpmb_write(uint32_t *req, uint32_t req_len, uint32_t rel_wr_count, uint32_t *resp, uint32_t *resp_len)
 {
 	if (platform_boot_dev_isemmc())
-		return rpmb_write_emmc(dev, req, req_len, resp, resp_len);
+		return rpmb_write_emmc(dev, req, req_len, rel_wr_count, resp, resp_len);
 	else
-		return rpmb_write_ufs(dev, req, req_len, resp, resp_len);
+		return rpmb_write_ufs(dev, req, req_len, rel_wr_count, resp, resp_len);
 }
 
 /* This API calls into TZ app to read device_info */

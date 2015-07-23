@@ -30,11 +30,9 @@
 #ifndef _PLATFORM_MSM_SHARED_MSM_PANEL_H_
 #define _PLATFORM_MSM_SHARED_MSM_PANEL_H_
 
+#include <sys/types.h>
 #include <stdint.h>
 #include <dev/fbcon.h>
-
-#define TRUE	1
-#define FALSE	0
 
 #define DFPS_MAX_FRAME_RATE 10
 #define DFPS_PLL_CODES_SIZE 0x1000 /* One page */

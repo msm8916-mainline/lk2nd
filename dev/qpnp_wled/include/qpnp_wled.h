@@ -58,6 +58,7 @@
 #define QPNP_WLED_ILIM_MAX_MA                  1980
 #define QPNP_WLED_ILIM_STEP_MA                 280
 #define QPNP_WLED_DFLT_ILIM_MA                 980
+#define QPNP_WLED_ILIM_OVERWRITE               0x80
 #define QPNP_WLED_BOOST_DUTY_MASK              0xFC
 #define QPNP_WLED_BOOST_DUTY_STEP_NS           52
 #define QPNP_WLED_BOOST_DUTY_MIN_NS            26

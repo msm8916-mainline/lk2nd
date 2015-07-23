@@ -42,6 +42,7 @@ static struct adc_conf adc_data[] = {
 	CHAN_INIT(VADC_USR1_BASE, VADC_BAT_CHAN_ID,     VADC_MODE_NORMAL, VADC_DECIM_RATIO_VAL, HW_SET_DELAY_100US, FAST_AVG_SAMP_1, CALIB_RATIO),
 	CHAN_INIT(VADC_USR1_BASE, VADC_BAT_VOL_CHAN_ID, VADC_MODE_NORMAL, VADC_DECIM_RATIO_VAL, HW_SET_DELAY_100US, FAST_AVG_SAMP_1, CALIB_ABS),
 	CHAN_INIT(VADC_USR1_BASE, MPP_8_CHAN_ID, VADC_MODE_NORMAL, VADC_DECIM_RATIO_VAL, HW_SET_DELAY_100US, FAST_AVG_SAMP_1, CALIB_ABS),
+	CHAN_INIT(VADC_USR2_BASE, MPP_1_CHAN_ID, VADC_MODE_NORMAL, VADC_DECIM_RATIO_VAL, HW_SET_DELAY_100US, FAST_AVG_SAMP_1, CALIB_RATIO),
 };
 
 
@@ -151,7 +152,7 @@ static uint16_t adc_configure(struct adc_conf *adc)
 	return result;
 }
 
-static uint32_t vadc_calibrate(uint16_t result, uint8_t calib_type)
+static uint32_t vadc_calibrate(uint16_t result, struct adc_conf* adc)
 {
 	struct adc_conf calib;
 	uint16_t calib1;
@@ -159,11 +160,11 @@ static uint32_t vadc_calibrate(uint16_t result, uint8_t calib_type)
 	uint32_t calib_result = 0;
 	uint32_t mul;
 
-	if(calib_type == CALIB_ABS) {
+	if(adc->calib_type == CALIB_ABS) {
 		/*
 		 * Measure the calib data for 1.25 V ref
 		 */
-		calib.base = VADC_USR1_BASE;
+		calib.base = adc->base;
 		calib.chan = VREF_125_CHAN_ID;
 		calib.mode = VADC_MODE_NORMAL;
 		calib.adc_param = VADC_DECIM_RATIO_VAL;
@@ -175,7 +176,7 @@ static uint32_t vadc_calibrate(uint16_t result, uint8_t calib_type)
 		/*
 		 * Measure the calib data for 0.625 V ref
 		 */
-		calib.base = VADC_USR1_BASE;
+		calib.base = adc->base;
 		calib.chan = VREF_625_CHAN_ID;
 		calib.mode = VADC_MODE_NORMAL;
 		calib.adc_param = VADC_DECIM_RATIO_VAL;
@@ -189,11 +190,11 @@ static uint32_t vadc_calibrate(uint16_t result, uint8_t calib_type)
 		calib_result += VREF_625_MV;
 		calib_result *= OFFSET_GAIN_DNOM;
 		calib_result /= OFFSET_GAIN_NUME;
-	} else if(calib_type == CALIB_RATIO) {
+	} else if(adc->calib_type == CALIB_RATIO) {
 		/*
 		 * Measure the calib data for VDD_ADC ref
 		 */
-		calib.base = VADC_USR1_BASE;
+		calib.base = adc->base;
 		calib.chan = VDD_VADC_CHAN_ID;
 		calib.mode = VADC_MODE_NORMAL;
 		calib.adc_param = VADC_DECIM_RATIO_VAL;
@@ -205,7 +206,7 @@ static uint32_t vadc_calibrate(uint16_t result, uint8_t calib_type)
 		/*
 		 * Measure the calib data for ADC_GND
 		 */
-		calib.base = VADC_USR1_BASE;
+		calib.base = adc->base;
 		calib.chan = GND_REF_CHAN_ID;
 		calib.mode = VADC_MODE_NORMAL;
 		calib.adc_param = VADC_DECIM_RATIO_VAL;
@@ -240,7 +241,7 @@ uint32_t pm8x41_adc_channel_read(uint16_t ch_num)
 
 	result = adc_configure(adc);
 
-	calib_result = vadc_calibrate(result, adc->calib_type);
+	calib_result = vadc_calibrate(result, adc);
 
 	dprintf(SPEW, "Result: Raw %u\tCalibrated:%u\n", result, calib_result);
 
@@ -388,10 +389,12 @@ uint32_t pm8x41_get_voltage_based_soc(uint32_t cutoff_vol, uint32_t vdd_max)
 /*
  * API: pm8x41_enable_mpp_as_adc
  * Configurate the MPP pin as the ADC feature.
+ * mpp_num starts from 0.
  */
 void pm8x41_enable_mpp_as_adc(uint16_t mpp_num)
 {
 	uint32_t val;
+	uint32_t amux_offset;
 	if(mpp_num > MPP_MAX_NUM)
 	{
 		dprintf(CRITICAL, "Error: The MPP pin number is unavailable\n");
@@ -401,14 +404,83 @@ void pm8x41_enable_mpp_as_adc(uint16_t mpp_num)
 	val = (MPP_MODE_AIN << Q_REG_MODE_SEL_SHIFT) \
 			| (0x1 << Q_REG_OUT_INVERT_SHIFT) \
 			| (0x0 << Q_REG_SRC_SEL_SHIFT);
-	REG_WRITE((MPP_REG_BASE + mpp_num * MPP_REG_RANGE + Q_REG_MODE_CTL), val);
+	REG_WRITE((MPP_REG_BASE + mpp_num * MPP_REG_RANGE + Q_REG_MODE_CTL),
+									val);
 
 	/* Enable the MPP */
 	val = (MPP_MASTER_ENABLE << Q_REG_MASTER_EN_SHIFT);
 	REG_WRITE((MPP_REG_BASE + mpp_num * MPP_REG_RANGE + Q_REG_EN_CTL), val);
 
-	/* AIN route to AMUX8 */
-	val = (MPP_AIN_ROUTE_AMUX3 << Q_REG_AIN_ROUTE_SHIFT);
-	REG_WRITE((MPP_REG_BASE + mpp_num * MPP_REG_RANGE + Q_REG_AIN_CTL), val);
+	/* AIN route to related AMUX */
+	amux_offset = mpp_num % 4;
+	val = (amux_offset << Q_REG_AIN_ROUTE_SHIFT);
+	REG_WRITE((MPP_REG_BASE + mpp_num * MPP_REG_RANGE + Q_REG_AIN_CTL),
+									val);
+}
 
+/*
+ * API: pm8950_enable_mpp_as_adc
+ * Configurate the MPP pin as the ADC feature.
+ * mpp_num starts from 0.
+ */
+void pm8950_enable_mpp_as_adc(uint16_t mpp_num)
+{
+	uint32_t val;
+	uint32_t amux_offset;
+	if(mpp_num > MPP_MAX_NUM)
+	{
+		dprintf(CRITICAL, "Error: The MPP pin number is unavailable\n");
+		return;
+	}
+	/* set the MPP mode as AIN */
+	val = (MPP_MODE_AIN << Q_REG_MODE_SEL_SHIFT) \
+			| (0x1 << Q_REG_OUT_INVERT_SHIFT) \
+			| (0x0 << Q_REG_SRC_SEL_SHIFT);
+	REG_WRITE((PM8950_SID * SID_REG_BASE + MPP_REG_BASE +
+				mpp_num * MPP_REG_RANGE + Q_REG_MODE_CTL), val);
+
+	/* Enable the MPP */
+	val = (MPP_MASTER_ENABLE << Q_REG_MASTER_EN_SHIFT);
+	REG_WRITE((PM8950_SID * SID_REG_BASE + MPP_REG_BASE +
+				mpp_num * MPP_REG_RANGE + Q_REG_EN_CTL), val);
+
+	/* AIN route to related AMUX */
+	amux_offset = mpp_num % 4;
+	val = (amux_offset << Q_REG_AIN_ROUTE_SHIFT);
+	REG_WRITE((PM8950_SID * SID_REG_BASE + MPP_REG_BASE +
+				mpp_num * MPP_REG_RANGE + Q_REG_AIN_CTL), val);
+}
+
+/*
+ * API: pmi8950_enable_mpp_as_adc
+ * Configurate the MPP pin as the ADC feature.
+ * mpp_num starts from 0.
+ * only MPP1 can be used as ADC IN.
+ */
+void pmi8950_enable_mpp_as_adc(uint16_t mpp_num)
+{
+	uint32_t val;
+	uint32_t amux_offset;
+	if(mpp_num > MPP_MAX_NUM)
+	{
+		dprintf(CRITICAL, "Error: The MPP pin number is unavailable\n");
+		return;
+	}
+	/* set the MPP mode as AIN */
+	val = (MPP_MODE_AIN << Q_REG_MODE_SEL_SHIFT) \
+			| (0x1 << Q_REG_OUT_INVERT_SHIFT) \
+			| (0x0 << Q_REG_SRC_SEL_SHIFT);
+	REG_WRITE((PMI8950_SID * SID_REG_BASE + MPP_REG_BASE +
+				mpp_num * MPP_REG_RANGE + Q_REG_MODE_CTL), val);
+
+	/* Enable the MPP */
+	val = (MPP_MASTER_ENABLE << Q_REG_MASTER_EN_SHIFT);
+	REG_WRITE((PMI8950_SID * SID_REG_BASE + MPP_REG_BASE +
+				mpp_num * MPP_REG_RANGE + Q_REG_EN_CTL), val);
+
+	/* AIN route to related AMUX */
+	amux_offset = mpp_num % 4;
+	val = (amux_offset << Q_REG_AIN_ROUTE_SHIFT);
+	REG_WRITE((PMI8950_SID * SID_REG_BASE + MPP_REG_BASE +
+				mpp_num * MPP_REG_RANGE + Q_REG_AIN_CTL), val);
 }

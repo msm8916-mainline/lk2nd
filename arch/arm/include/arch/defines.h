@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008 Travis Geiselbrecht
  *
- * Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -36,6 +36,8 @@
  #define CACHE_LINE 32
 #elif defined(ARM_CPU_CORE_KRAIT) || defined(ARM_CPU_CORE_A7)
  #define CACHE_LINE 64
+#elif defined(ARM_CPU_CORE_KRYO)
+ #define CACHE_LINE 128
 #else
  #error unknown cpu
 #endif

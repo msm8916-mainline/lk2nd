@@ -36,6 +36,7 @@
 #include <mmu.h>
 #include <smem.h>
 #include <board.h>
+#include <target/display.h>
 
 #define MSM_IOMAP_SIZE     ((MSM_IOMAP_END - MSM_IOMAP_BASE)/MB)
 #define MSM_SHARED_SIZE    2
@@ -56,20 +57,29 @@
 #define COMMON_MEMORY       (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
                            MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
 
+static uint64_t ddr_start;
 
 static mmu_section_t default_mmu_section_table[] =
 {
-/*        Physical addr,    Virtual addr,     Mapping type ,              Size (in MB),            Flags */
-    {    0x00000000,        0x00000000,       MMU_L1_NS_SECTION_MAPPING,  1024,                IOMAP_MEMORY},
-    {    KERNEL_ADDR,       KERNEL_ADDR,      MMU_L2_NS_SECTION_MAPPING,  KERNEL_SIZE,         COMMON_MEMORY},
+/*       Physical addr,    Virtual addr,     Mapping type ,              Size (in MB),            Flags */
+    {    0x00000000,        0x00000000,       MMU_L2_NS_SECTION_MAPPING,  512,                IOMAP_MEMORY},
     {    MEMBASE,           MEMBASE,          MMU_L2_NS_SECTION_MAPPING,  (MEMSIZE / MB),      LK_MEMORY},
     {    SCRATCH_ADDR,      SCRATCH_ADDR,     MMU_L2_NS_SECTION_MAPPING,  SCRATCH_SIZE,        SCRATCH_MEMORY},
     {    MSM_SHARED_BASE,   MSM_SHARED_BASE,  MMU_L2_NS_SECTION_MAPPING,  MSM_SHARED_SIZE,     COMMON_MEMORY},
     {    RPMB_SND_RCV_BUF,  RPMB_SND_RCV_BUF, MMU_L2_NS_SECTION_MAPPING,  RPMB_SND_RCV_BUF_SZ, IOMAP_MEMORY},
 };
 
+static mmu_section_t default_mmu_section_table_3gb[] =
+{
+/*       Physical addr,    Virtual addr,     Mapping type ,              Size (in MB),            Flags */
+    {    0x40000000,        0x40000000,       MMU_L1_NS_SECTION_MAPPING,  1024       ,        COMMON_MEMORY},
+    {    0x80000000,        0x80000000,       MMU_L2_NS_SECTION_MAPPING,  88         ,        COMMON_MEMORY},
+};
+
+
 static mmu_section_t dload_mmu_section_table[] =
 {
+/*    Physical addr,    Virtual addr,     Mapping type ,              Size (in MB),            Flags */
     { 0x85800000, 0x85800000, MMU_L2_NS_SECTION_MAPPING, 178, COMMON_MEMORY},
 };
 
@@ -107,9 +117,42 @@ void platform_init_mmu_mappings(void)
 {
 	int i;
 	int table_sz = ARRAY_SIZE(default_mmu_section_table);
+	mmu_section_t kernel_mmu_section_table;
+	uint64_t ddr_size = smem_get_ddr_size();
 
+	if (ddr_size == MEM_4GB)
+	{
+		ddr_start = 0x80000000;
+	}
+	else if (ddr_size == MEM_3GB)
+	{
+		ddr_start = 0x20000000;
+	}
+	else
+	{
+		dprintf(CRITICAL, "Unsupported memory map\n");
+		ASSERT(0);
+	}
+
+	kernel_mmu_section_table.paddress = ddr_start;
+	kernel_mmu_section_table.vaddress = ddr_start;
+	kernel_mmu_section_table.type = MMU_L2_NS_SECTION_MAPPING;
+	kernel_mmu_section_table.size = KERNEL_SIZE;
+	kernel_mmu_section_table.flags = COMMON_MEMORY;
+
+	/* Map kernel entry */
+	arm_mmu_map_entry(&kernel_mmu_section_table);
+
+	/* Map default memory needed for lk , scratch, rpmb & iomap */
 	for (i = 0 ; i < table_sz; i++)
 		arm_mmu_map_entry(&default_mmu_section_table[i]);
+
+	/* Map the rest of the DDR for 3GB needed for ramdump */
+	if (ddr_size == MEM_3GB)
+	{
+		for (i = 0 ; i < (int)ARRAY_SIZE(default_mmu_section_table_3gb); i++)
+			arm_mmu_map_entry(&default_mmu_section_table_3gb[i]);
+	}
 
 	if (scm_device_enter_dload())
 	{
@@ -158,4 +201,9 @@ int platform_is_msm8996()
 		return 1;
 	else
 		return 0;
+}
+
+uint64_t platform_get_ddr_start()
+{
+	return ddr_start;
 }

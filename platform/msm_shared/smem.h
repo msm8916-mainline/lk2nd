@@ -428,6 +428,7 @@ enum {
 	APQ8076  = 277,
 	MSM8976  = 278,
 	APQ8052  = 289,
+	MDMFERMIUM  = 290,
 	APQ8096  = 291,
 };
 
@@ -652,4 +653,5 @@ uint32_t smem_get_ram_ptable_version(void);
 uint32_t smem_get_ram_ptable_len(void);
 void* smem_get_alloc_entry(smem_mem_type_t type, uint32_t* size);
 uint32_t get_ddr_start();
+uint64_t smem_get_ddr_size();
 #endif				/* __PLATFORM_MSM_SHARED_SMEM_H */

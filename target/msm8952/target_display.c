@@ -51,6 +51,11 @@
 #include "include/display_resource.h"
 #include "gcdb_display.h"
 
+#define DSC_CMD_PANEL "dsc_cmd_panel"
+#define DSC_VID_PANEL "dsc_vid_panel"
+#define DSC_CMD_PANEL_STRING "1:dsi:0:none:1:qcom,mdss_dsi_nt35597_dsc_wqxga_cmd"
+#define DSC_VID_PANEL_STRING "1:dsi:0:none:1:qcom,mdss_dsi_nt35597_dsc_wqxga_video"
+
 /*---------------------------------------------------------------------------*/
 /* GPIO configuration                                                        */
 /*---------------------------------------------------------------------------*/
@@ -508,7 +513,11 @@ int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 		qpnp_ibb_enable(true); /*5V boost*/
 		mdelay(50);
 	} else {
-		regulator_disable(ldo_num);
+		/*
+		 * LDO1, LDO2 and LDO6 are shared with other subsystems.
+		 * Do not disable them.
+		 */
+		regulator_disable(REG_LDO17);
 	}
 
 	return NO_ERROR;
@@ -516,12 +525,42 @@ int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 
 bool target_display_panel_node(char *pbuf, uint16_t buf_size)
 {
-	return gcdb_display_cmdline_arg(pbuf, buf_size);
+	int prefix_string_len = strlen(DISPLAY_CMDLINE_PREFIX);
+	bool ret = true;
+	struct oem_panel_data oem = mdss_dsi_get_oem_data();
+
+	if (!strcmp(oem.panel, DSC_CMD_PANEL)) {
+		if (buf_size < (prefix_string_len +
+			strlen(DSC_CMD_PANEL_STRING))) {
+			dprintf(CRITICAL, "DSC command line argument is greater than buffer size\n");
+			return false;
+		}
+		strlcpy(pbuf, DISPLAY_CMDLINE_PREFIX, buf_size);
+		buf_size -= prefix_string_len;
+		pbuf += prefix_string_len;
+		strlcpy(pbuf, DSC_CMD_PANEL_STRING, buf_size);
+	} else if (!strcmp(oem.panel, DSC_VID_PANEL)) {
+		if (buf_size < (prefix_string_len +
+			strlen(DSC_VID_PANEL_STRING))) {
+			dprintf(CRITICAL, "DSC command line argument is greater than buffer size\n");
+			return false;
+		}
+		strlcpy(pbuf, DISPLAY_CMDLINE_PREFIX, buf_size);
+		buf_size -= prefix_string_len;
+		pbuf += prefix_string_len;
+		strlcpy(pbuf, DSC_VID_PANEL_STRING, buf_size);
+	} else {
+		ret = gcdb_display_cmdline_arg(pbuf, buf_size);
+	}
+
+	return ret;
 }
 
 void target_display_init(const char *panel_name)
 {
 	struct oem_panel_data oem;
+	int32_t ret = 0;
+	uint32_t panel_loop = 0;
 
 	set_panel_cmd_string(panel_name);
 	oem = mdss_dsi_get_oem_data();
@@ -529,16 +568,24 @@ void target_display_init(const char *panel_name)
 	if (!strcmp(oem.panel, NO_PANEL_CONFIG)
 		|| !strcmp(oem.panel, SIM_VIDEO_PANEL)
 		|| !strcmp(oem.panel, SIM_CMD_PANEL)
+		|| !strcmp(oem.panel, DSC_CMD_PANEL)
+		|| !strcmp(oem.panel, DSC_VID_PANEL)
 		|| oem.skip) {
 		dprintf(INFO, "Selected panel: %s\nSkip panel configuration\n",
 			oem.panel);
 		return;
 	}
 
-	if (gcdb_display_init(oem.panel, MDP_REV_50, (void *)MIPI_FB_ADDR)) {
-		target_force_cont_splash_disable(true);
-		msm_display_off();
-	}
+	do {
+		target_force_cont_splash_disable(false);
+		ret = gcdb_display_init(oem.panel, MDP_REV_50, (void *)MIPI_FB_ADDR);
+		if (!ret || ret == ERR_NOT_SUPPORTED) {
+			break;
+		} else {
+			target_force_cont_splash_disable(true);
+			msm_display_off();
+		}
+	} while (++panel_loop <= oem_panel_max_auto_detect_panels());
 
 	if (!oem.cont_splash) {
 		dprintf(INFO, "Forcing continuous splash disable\n");

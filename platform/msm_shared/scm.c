@@ -63,15 +63,12 @@ bool is_scm_armv8_support()
 	return scm_arm_support;
 }
 
-static void scm_arm_support_available(uint32_t svc_id, uint32_t cmd_id)
+static int is_scm_call_available(uint32_t svc_id, uint32_t cmd_id)
 {
 	uint32_t ret;
 	scmcall_arg scm_arg = {0};
 	scmcall_ret scm_ret = {0};
-	/* Make a call to check if SCM call available using new interface,
-	 * if this returns 0 then scm implementation as per arm spec
-	 * otherwise use the old interface for scm calls
-	 */
+
 	scm_arg.x0 = MAKE_SIP_SCM_CMD(SCM_SVC_INFO, IS_CALL_AVAIL_CMD);
 	scm_arg.x1 = MAKE_SCM_ARGS(0x1);
 	scm_arg.x2 = MAKE_SIP_SCM_CMD(svc_id, cmd_id);
@@ -79,13 +76,31 @@ static void scm_arm_support_available(uint32_t svc_id, uint32_t cmd_id)
 	ret = scm_call2(&scm_arg, &scm_ret);
 
 	if (!ret)
-		scm_arm_support = true;
+		return scm_ret.x1;
+
+	return ret;
 }
 
+static int scm_arm_support_available(uint32_t svc_id, uint32_t cmd_id)
+{
+	uint32_t ret;
+
+	ret = is_scm_call_available(SCM_SVC_INFO, IS_CALL_AVAIL_CMD);
+
+	if (ret > 0)
+		scm_arm_support = true;
+
+	return ret;
+}
 
 void scm_init()
 {
-	scm_arm_support_available(SCM_SVC_INFO, IS_CALL_AVAIL_CMD);
+	int ret;
+
+	ret = scm_arm_support_available(SCM_SVC_INFO, IS_CALL_AVAIL_CMD);
+
+	if (ret)
+		dprintf(CRITICAL, "Failed to initialize SCM\n");
 }
 
 /**
@@ -1313,14 +1328,16 @@ int scm_dload_mode(int mode)
 		dload_type = 0;
 
 	/* Write to the Boot MISC register */
-	ret = scm_call2_atomic(SCM_SVC_BOOT, SCM_DLOAD_CMD, dload_type, 0);
+	ret = is_scm_call_available(SCM_SVC_BOOT, SCM_DLOAD_CMD);
 
-	if (ret) {
+	if (ret > 0)
+		ret = scm_call2_atomic(SCM_SVC_BOOT, SCM_DLOAD_CMD, dload_type, 0);
+	else
 		ret = scm_io_write(TCSR_BOOT_MISC_DETECT,dload_type);
-		if(ret) {
-			dprintf(CRITICAL, "Failed to write to boot misc: %d\n", ret);
-			return ret;
-		}
+
+	if(ret) {
+		dprintf(CRITICAL, "Failed to write to boot misc: %d\n", ret);
+		return ret;
 	}
 
 	scm_check_boot_fuses();

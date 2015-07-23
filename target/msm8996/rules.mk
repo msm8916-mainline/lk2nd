@@ -12,12 +12,10 @@ BASE_ADDR    := 0x0000000
 
 SCRATCH_ADDR := 0x91100000
 SCRATCH_SIZE := 750
-KERNEL_ADDR  := 0x80000000
-KERNEL_SIZE  := 88
+KERNEL_SIZE  := 512
 # LPAE supports only 32 virtual address, L1 pt size is 4
 L1_PT_SZ     := 4
-L2_PT_SZ     := 2
-
+L2_PT_SZ     := 3
 
 DEFINES += DISPLAY_SPLASH_SCREEN=1
 DEFINES += DISPLAY_TYPE_MIPI=1
@@ -29,6 +27,7 @@ MODULES += \
 	dev/qpnp_wled \
 	dev/qpnp_led \
 	dev/gcdb/display \
+	dev/pmic/pmi8994 \
 	lib/ptable \
 	lib/libfdt
 
@@ -37,7 +36,6 @@ DEFINES += \
 	MEMBASE=$(MEMBASE) \
 	BASE_ADDR=$(BASE_ADDR) \
 	TAGS_ADDR=$(TAGS_ADDR) \
-	KERNEL_ADDR=$(KERNEL_ADDR) \
 	KERNEL_SIZE=$(KERNEL_SIZE) \
 	RAMDISK_ADDR=$(RAMDISK_ADDR) \
 	SCRATCH_ADDR=$(SCRATCH_ADDR) \

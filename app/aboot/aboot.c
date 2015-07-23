@@ -63,6 +63,10 @@
 #include <rpmb.h>
 #endif
 
+#if ENABLE_WBC
+#include <pm_app_smbchg.h>
+#endif
+
 #if DEVICE_TREE
 #include <libfdt.h>
 #include <dev_tree.h>
@@ -176,6 +180,8 @@ static int auth_kernel_img = 0;
 
 static device_info device = {DEVICE_MAGIC, 0, 0, 0, 0, {0}, {0},{0}};
 static bool is_allow_unlock = 0;
+
+static char frp_ptns[2][8] = {"config","frp"};
 
 struct atag_ptbl_entry
 {
@@ -1586,7 +1592,6 @@ void write_device_info_flash(device_info *dev)
 
 static int read_allow_oem_unlock(device_info *dev)
 {
-	const char *ptn_name = "frp";
 	unsigned offset;
 	int index;
 	unsigned long long ptn;
@@ -1594,11 +1599,15 @@ static int read_allow_oem_unlock(device_info *dev)
 	unsigned blocksize = mmc_get_device_blocksize();
 	char buf[blocksize];
 
-	index = partition_get_index(ptn_name);
+	index = partition_get_index(frp_ptns[0]);
 	if (index == INVALID_PTN)
 	{
-		dprintf(CRITICAL, "No '%s' partition found\n", ptn_name);
-		return -1;
+		index = partition_get_index(frp_ptns[1]);
+		if (index == INVALID_PTN)
+		{
+			dprintf(CRITICAL, "Neither '%s' nor '%s' partition found\n", frp_ptns[0],frp_ptns[1]);
+			return -1;
+		}
 	}
 
 	ptn = partition_get_offset(index);
@@ -1618,20 +1627,22 @@ static int read_allow_oem_unlock(device_info *dev)
 
 static int write_allow_oem_unlock(bool allow_unlock)
 {
-	const char *ptn_name = "frp";
 	unsigned offset;
-
 	int index;
 	unsigned long long ptn;
 	unsigned long long ptn_size;
 	unsigned blocksize = mmc_get_device_blocksize();
 	char buf[blocksize];
 
-	index = partition_get_index(ptn_name);
+	index = partition_get_index(frp_ptns[0]);
 	if (index == INVALID_PTN)
 	{
-		dprintf(CRITICAL, "No '%s' partition found\n", ptn_name);
-		return -1;
+		index = partition_get_index(frp_ptns[1]);
+		if (index == INVALID_PTN)
+		{
+			dprintf(CRITICAL, "Neither '%s' nor '%s' partition found\n", frp_ptns[0],frp_ptns[1]);
+			return -1;
+		}
 	}
 
 	ptn = partition_get_offset(index);
@@ -1753,7 +1764,7 @@ void read_device_info(device_info *dev)
 			if (is_secure_boot_enable())
 				info->is_unlocked = 0;
 			else
-				info->is_verified = 1;
+				info->is_unlocked = 1;
 			info->is_tampered = 0;
 			info->charger_screen_enabled = 0;
 			write_device_info(info);
@@ -3180,7 +3191,14 @@ void aboot_init(const struct app_descriptor *app)
 	if (!check_alarm_boot()) {
 #endif
 		dprintf(SPEW, "Display Init: Start\n");
+#if ENABLE_WBC
+		if (!pm_appsbl_display_init_done())
+			target_display_init(device.display_panel);
+		else
+			display_image_on_screen();
+#else
 		target_display_init(device.display_panel);
+#endif
 		dprintf(SPEW, "Display Init: Done\n");
 #if NO_ALARM_DISPLAY
 	}

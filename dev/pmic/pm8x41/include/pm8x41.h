@@ -239,4 +239,6 @@ void pm8x41_lnbb_clock_ctrl(uint8_t enable);
 void pmi8994_config_mpp_slave_id(uint8_t slave_id);
 void pm_pwm_enable(bool enable);
 int pm_pwm_config(unsigned int duty_us, unsigned int period_us);
+uint32_t spmi_reg_read(uint32_t slave_id, uint16_t addr, uint8_t *data, uint8_t priority);
+uint32_t spmi_reg_write(uint32_t slave_id, uint16_t addr, uint8_t *data, uint8_t priority);
 #endif

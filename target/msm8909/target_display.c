@@ -247,7 +247,7 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 		 * Enable auto functional gating
 		 * on DSI CMD AXI fetch from DDR
 		 */
-		writel(0x3ffff, MDP_CGC_EN);
+		writel(0x3fbff, MDP_CGC_EN);
 		ret = restore_secure_cfg(SECURE_DEVICE_MDSS);
 		if (ret) {
 			dprintf(CRITICAL,

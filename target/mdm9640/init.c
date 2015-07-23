@@ -84,7 +84,7 @@ static struct ptable flash_ptable;
 #define LAST_NAND_PTN_LEN_PATTERN                     0xFFFFFFFF
 
 #define EXT4_CMDLINE  " rootwait rootfstype=ext4 root=/dev/mmcblk0p"
-#define UBI_CMDLINE " rootfstype=ubifs rootflags=bulk_read ubi.fm_autoconvert=1"
+#define UBI_CMDLINE " rootfstype=ubifs rootflags=bulk_read"
 
 struct qpic_nand_init_config config;
 
@@ -134,6 +134,8 @@ int target_is_emmc_boot(void)
 void target_init(void)
 {
 	dprintf(INFO, "target_init()\n");
+
+	pmic_info_populate();
 
 	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
 

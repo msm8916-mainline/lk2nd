@@ -152,5 +152,5 @@ unsigned int pmic_arb_read_cmd(struct pmic_arb_cmd *cmd,
 uint8_t pmic_spmi_reg_read(uint32_t addr);
 void pmic_spmi_reg_write(uint32_t addr, uint8_t val);
 void pmic_spmi_reg_mask_write(uint32_t addr, uint8_t mask, uint8_t val);
-
+bool spmi_initialized();
 #endif

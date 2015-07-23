@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -42,10 +42,19 @@
 #define LK_OVERRIDE_PANEL      "1:"
 #define LK_OVERRIDE_PANEL_LEN  2
 
+#define LK_SIM_OVERRIDE     "#override:"
+#define LK_SIM_OVERRIDE_LEN  10
+
 #define DSI_0_STRING           ":0:"
 #define DSI_0_STRING_LEN       3
 #define DSI_1_STRING           ":1:"
 #define DSI_1_STRING_LEN       3
+
+#define DSI_CFG_STRING         ":cfg:"
+#define DSI_CFG_STRING_LEN	5
+
+#define DSI_PLL0_STRING         ":pll0"
+#define DSI_PLL1_STRING         ":pll1"
 
 #define NO_PANEL_CONFIG "none"
 #define SIM_VIDEO_PANEL "sim_video_panel"

@@ -46,6 +46,7 @@ static spmi_callback callback;
 static uint32_t pmic_arb_ver;
 static uint8_t *chnl_tbl;
 static uint32_t max_peripherals;
+static bool spmi_init_done;
 
 static void spmi_lookup_chnl_number()
 {
@@ -90,6 +91,8 @@ void spmi_init(uint32_t chnl_num, uint32_t owner_id)
 	{
 		spmi_lookup_chnl_number();
 	}
+
+	spmi_init_done = true;
 }
 
 static void write_wdata_from_array(uint8_t *array,
@@ -439,4 +442,9 @@ void pmic_spmi_reg_mask_write(uint32_t addr, uint8_t mask, uint8_t val)
 void spmi_uninit()
 {
 	mask_interrupt(EE0_KRAIT_HLOS_SPMI_PERIPH_IRQ);
+}
+
+bool spmi_initialized()
+{
+	return spmi_init_done;
 }

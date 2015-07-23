@@ -102,6 +102,7 @@ struct mmc_command {
 	uint64_t cmd_timeout;   /* Command timeout in us */
 	bool write_flag;        /* Write flag, for reliable write cases */
 	struct mmc_data data;   /* Data pointer */
+	uint8_t rel_write;      /* Reliable write enable flag */
 };
 
 /*
