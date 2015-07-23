@@ -286,9 +286,6 @@ void crypto5_init(struct crypto_dev *dev)
 	uint32_t config = CRYPTO_RESET_CONFIG
 			| (dev->bam.pipe[CRYPTO_READ_PIPE_INDEX].pipe_num >> 1) << PIPE_SET_SELECT_SHIFT;
 
-	/* Configure CE clocks. */
-	clock_config_ce(dev->instance);
-
 	/* Setup BAM */
 	if (crypto_bam_init(dev) != CRYPTO_ERR_NONE)
 	{
