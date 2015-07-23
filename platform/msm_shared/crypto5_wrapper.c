@@ -28,6 +28,7 @@
 
 #include <debug.h>
 #include <crypto5_wrapper.h>
+#include <platform/clock.h>
 
 /* This file is a wrapper to the crypto5_eng.c.
  * This is required so that we maintian the backward compatibility
@@ -52,7 +53,8 @@ void crypto_unlock(void)
 
 void ce_clock_init(void)
 {
-	/* Clock init is done during crypto_init. */
+	/* Configure CE clocks. */
+	clock_config_ce(dev.instance);
 }
 
 void crypto_eng_reset(void)
