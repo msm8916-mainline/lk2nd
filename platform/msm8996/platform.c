@@ -36,7 +36,6 @@
 #include <mmu.h>
 #include <smem.h>
 #include <board.h>
-#include <target/display.h>
 
 #define MSM_IOMAP_SIZE     ((MSM_IOMAP_END - MSM_IOMAP_BASE)/MB)
 #define MSM_SHARED_SIZE    2
@@ -61,10 +60,8 @@
 static mmu_section_t default_mmu_section_table[] =
 {
 /*        Physical addr,    Virtual addr,     Mapping type ,              Size (in MB),            Flags */
-    {    0x00000000,        0x00000000,       MMU_L2_NS_SECTION_MAPPING,  512,                IOMAP_MEMORY},
-    {    KERNEL_ADDR,       KERNEL_ADDR,      MMU_L2_NS_SECTION_MAPPING,  KERNEL_SIZE,        COMMON_MEMORY},
-    {    0x40000000,        0x40000000,       MMU_L1_NS_SECTION_MAPPING,  1024       ,        COMMON_MEMORY},
-    {    0x80000000,        0x80000000,       MMU_L2_NS_SECTION_MAPPING,  88         ,        COMMON_MEMORY},
+    {    0x00000000,        0x00000000,       MMU_L1_NS_SECTION_MAPPING,  1024,                IOMAP_MEMORY},
+    {    KERNEL_ADDR,       KERNEL_ADDR,      MMU_L2_NS_SECTION_MAPPING,  KERNEL_SIZE,         COMMON_MEMORY},
     {    MEMBASE,           MEMBASE,          MMU_L2_NS_SECTION_MAPPING,  (MEMSIZE / MB),      LK_MEMORY},
     {    SCRATCH_ADDR,      SCRATCH_ADDR,     MMU_L2_NS_SECTION_MAPPING,  SCRATCH_SIZE,        SCRATCH_MEMORY},
     {    MSM_SHARED_BASE,   MSM_SHARED_BASE,  MMU_L2_NS_SECTION_MAPPING,  MSM_SHARED_SIZE,     COMMON_MEMORY},
