@@ -214,6 +214,10 @@ void set_panel_cmd_string(const char *panel_name)
 	else if (strstr((char *) panel_name, "#sim"))
 		oem_data.sim_mode = SIM_MODE;
 
+	/* disable cont splash when booting in simulator mode */
+	if (oem_data.sim_mode)
+		oem_data.cont_splash = false;
+
 }
 
 static bool mdss_dsi_set_panel_node(char *panel_name, char **dsi_id,
