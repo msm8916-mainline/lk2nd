@@ -366,7 +366,7 @@ void rpm_glink_uninit()
 	req.cmd = 0;
 	req.seqnumber = 0;
 	memset(req.name, 0, sizeof(req.name));
-	strncpy(req.name, "apss", 4);
+	strlcpy(req.name, "apss", sizeof(req.name));
 	req.namelength = strlen(req.name);
 	len_to_rpm = sizeof(rpm_ssr_req);
 	dprintf(INFO, "RPM GLINK UnInit\n");
