@@ -207,4 +207,19 @@ struct fb_compression {
 	uint32_t max_pred_err;
 };
 
+struct dsc_parameters {
+	uint32_t major;
+	uint32_t minor;
+	uint32_t pps_id;
+	uint32_t slice_height;
+	uint32_t slice_width;
+	uint32_t bpp;		/* target bpp */
+	uint32_t bpc;		/* target bpc, byte per component */
+	uint32_t slice_per_pkt;
+	uint32_t block_prediction;
+	uint32_t ich_reset_override;
+	uint32_t ich_reset_value;
+	uint32_t data_path_mode;
+};
+
 #endif /*_PANEL_H_ */

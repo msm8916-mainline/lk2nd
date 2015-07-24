@@ -65,6 +65,7 @@ struct panel_struct{
 	struct panel_reset_sequence *panelresetseq;
 	struct backlight            *backlightinfo;
 	struct fb_compression	    fbcinfo;
+	struct dsc_parameters	    dsc_paras;
 };
 
 struct panel_list {
