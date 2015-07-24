@@ -64,8 +64,8 @@ struct udc_descriptor *udc_descriptor_alloc(unsigned type, unsigned num,
 	if ((len > 255) || (len < 2) || (num > 255) || (type > 255))
 		return 0;
 
-	if (!(desc = malloc(sizeof(struct udc_descriptor) + len)))
-		return 0;
+	desc = malloc(sizeof(struct udc_descriptor) + len);
+	ASSERT(desc);
 
 	desc->next = 0;
 	desc->tag = (type << 8) | num;
