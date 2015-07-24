@@ -364,7 +364,7 @@ int dsi_video_panel_config(struct msm_panel_info *pinfo,
 			(pinfo->mipi.hbp_power_stop << 4) |
 			pinfo->mipi.hsa_power_stop;
 
-	ret = mdss_dsi_video_mode_config(final_width, final_height,
+	ret = mdss_dsi_video_mode_config(pinfo, final_width, final_height,
 			final_xres, final_yres,
 			final_hfp, final_hbp + final_hpw,
 			final_vfp, final_vbp + final_vpw,
@@ -379,7 +379,7 @@ int dsi_video_panel_config(struct msm_panel_info *pinfo,
 			pinfo->mipi.ctl_base);
 
 	if (pinfo->mipi.dual_dsi)
-		ret = mdss_dsi_video_mode_config(final_width, final_height,
+		ret = mdss_dsi_video_mode_config(pinfo, final_width, final_height,
 				final_xres, final_yres,
 				final_hfp, final_hbp + final_hpw,
 				final_vfp, final_vbp + final_vpw,
@@ -430,7 +430,7 @@ int dsi_cmd_panel_config (struct msm_panel_info *pinfo,
 	final_yres = pinfo->yres;
 	final_height = pinfo->yres + pinfo->lcdc.yres_pad;
 
-	ret = mdss_dsi_cmd_mode_config(final_width, final_height,
+	ret = mdss_dsi_cmd_mode_config(pinfo, final_width, final_height,
 			final_xres, final_yres,
 			pinfo->mipi.dst_format,
 			ystride, lane_en,
@@ -438,7 +438,7 @@ int dsi_cmd_panel_config (struct msm_panel_info *pinfo,
 			pinfo->mipi.ctl_base);
 
 	if (pinfo->mipi.dual_dsi)
-		ret = mdss_dsi_cmd_mode_config(final_width, final_height,
+		ret = mdss_dsi_cmd_mode_config(pinfo, final_width, final_height,
 				final_xres, final_yres,
 				pinfo->mipi.dst_format,
 				ystride, lane_en,

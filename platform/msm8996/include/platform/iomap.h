@@ -213,7 +213,7 @@
 #define MMSS_DSI_PHY_PLL_CORE_KVCO_CODE 0x0168
 
 #define MDP_BASE                    (0x900000)
-
+#define REG_MDP(off)                (MDP_BASE + (off))
 
 #ifdef MDP_PP_0_BASE
 #undef MDP_PP_0_BASE
@@ -225,7 +225,8 @@
 #endif
 #define MDP_PP_1_BASE               REG_MDP(0x71800)
 
-#define REG_MDP(off)                (MDP_BASE + (off))
+#define MDP_DSC_0_BASE			REG_MDP(0x81000)
+#define MDP_DSC_1_BASE			REG_MDP(0x81400)
 
 #ifdef MDP_HW_REV
 #undef MDP_HW_REV
@@ -521,6 +522,12 @@
 #define VIDEO_MODE_HSYNC            0x030
 #define VIDEO_MODE_VSYNC            0x034
 #define VIDEO_MODE_VSYNC_VPOS       0x038
+
+#define VIDEO_COMPRESSION_MODE_CTRL		0x2A0
+#define VIDEO_COMPRESSION_MODE_CTRL_2		0x2A4
+#define CMD_COMPRESSION_MODE_CTRL		0x2A8
+#define CMD_COMPRESSION_MODE_CTRL_2		0x2Ac
+#define CMD_COMPRESSION_MODE_CTRL_3		0x2B0
 
 #define QPNP_LED_CTRL_BASE          0xD000
 #define QPNP_BLUE_LPG_CTRL_BASE     0xB100

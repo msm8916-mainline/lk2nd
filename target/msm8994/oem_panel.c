@@ -251,6 +251,8 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 			= JDI_4K_DUALDSI_VIDEO_OFF_COMMAND;
 		memcpy(phy_db->timing,
 			jdi_4k_dualdsi_video_timings, TIMING_SIZE);
+
+		pinfo->compression_mode = COMPRESSION_FBC;
 		memcpy(&panelstruct->fbcinfo, &jdi_4k_dualdsi_video_fbc,
 				sizeof(struct fb_compression));
 		break;
