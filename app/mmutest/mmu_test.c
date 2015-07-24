@@ -31,33 +31,62 @@
 #include <arch/arm/mmu.h>
 #include <mmu.h>
 #include <string.h>
+#include <smem.h>
 
 /* COMMON memory - cacheable, write through */
 #define COMMON_MEMORY       (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
                            MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
 
 #define MB (1024 * 1024)
-static mmu_section_t ramdump_mmu_section_table[] =
+static mmu_section_t ramdump_mmu_section_table_4gb[] =
 {
   /*        Physical addr,    Virtual addr,     Mapping type ,              Size (in MB),            Flags */
 	{    0xC0000000,        0xC0000000,       MMU_L2_NS_SECTION_MAPPING,  512,            COMMON_MEMORY},
 	{    0x100000000,       0xC0000000,       MMU_L2_NS_SECTION_MAPPING,  1024,            COMMON_MEMORY},
+	/* This entry is 484 MB because the hyp uses last 28MB for page tables */
 	{    0x140000000,       0xC0000000,       MMU_L2_NS_SECTION_MAPPING,  484,            COMMON_MEMORY},
 };
 
-uint32_t vaddr[] = {0xc2300000, 0xcd000000, 0xde000000};
-uint64_t paddr[] = {0xc2300000, 0x10d000000, 0x15e000000};
+static mmu_section_t ramdump_mmu_section_table_3gb[] =
+{
+  /*        Physical addr,    Virtual addr,     Mapping type ,              Size (in MB),            Flags */
+	{    0x20000000,        0x20000000,       MMU_L2_NS_SECTION_MAPPING,  512,            COMMON_MEMORY},
+	{    0xC0000000,        0xC0000000,       MMU_L2_NS_SECTION_MAPPING,  484,            COMMON_MEMORY},
+};
+uint32_t vaddr_4gb[] = {0xc2300000, 0xcd000000, 0xde000000};
+uint64_t paddr_4gb[] = {0xc2300000, 0x10d000000, 0x15e000000};
+
+uint32_t vaddr_3gb[] = {0x23000000, 0xcd000000, 0xde000000};
+uint64_t paddr_3gb[] = {0x23000000, 0xcd000000, 0xde000000};
 
 void ramdump_table_map()
 {
 	uint32_t i, j;
-	uint32_t table_sz = ARRAY_SIZE(ramdump_mmu_section_table);
+	uint32_t table_sz = 0;
 	char *ptr = NULL;
 	bool pass_access = true;
 	bool pass_conversion = true;
 	uint64_t paddr_v;
 	uint32_t vaddr_v;
+	uint32_t *vaddr = NULL;
+	uint64_t *paddr = NULL;
+	mmu_section_t *ramdump_mmu_section_table = NULL;
 
+
+	if (smem_get_ddr_size() == MEM_4GB)
+	{
+		vaddr = vaddr_4gb;
+		paddr = paddr_4gb;
+		ramdump_mmu_section_table = ramdump_mmu_section_table_4gb;
+		table_sz = ARRAY_SIZE(ramdump_mmu_section_table_4gb);
+	}
+	else if (smem_get_ddr_size() == MEM_3GB)
+	{
+		vaddr = vaddr_3gb;
+		paddr = paddr_3gb;
+		ramdump_mmu_section_table = ramdump_mmu_section_table_3gb;
+		table_sz = ARRAY_SIZE(ramdump_mmu_section_table_3gb);
+	}
 	for (i = 0 ; i < table_sz; i++)
 	{
 		arm_mmu_map_entry(&ramdump_mmu_section_table[i]);
@@ -69,22 +98,22 @@ void ramdump_table_map()
 			pass_conversion = false;
 		ptr = (char *)(uintptr_t)ramdump_mmu_section_table[i].vaddress;
 
-		for (j = 0 ; j < (ramdump_mmu_section_table[i].size * MB)/5; j++)
+		for (j = 0 ; j < (ramdump_mmu_section_table[i].size * MB)/6; j++)
 		{
-			strcpy(ptr, "hello");
-			ptr+=5;
+			strlcpy(ptr, "hello", 6);
+			ptr+=6;
 		}
 
 		ptr = (char *)(uintptr_t)ramdump_mmu_section_table[i].vaddress;
 
-		for (j = 0 ; j < (ramdump_mmu_section_table[i].size * MB)/5; j++)
+		for (j = 0 ; j < (ramdump_mmu_section_table[i].size * MB)/6; j++)
 		{
 			if (memcmp((void *)ptr, "hello", 5))
 			{
 				pass_access = false;
 				break;
 			}
-			ptr+=5;
+			ptr+=6;
 		}
 		if (pass_access)
 			dprintf(CRITICAL, "LAPE TEST PASS for addr: 0x%llx\n", ramdump_mmu_section_table[i].paddress);
