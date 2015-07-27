@@ -43,6 +43,27 @@ typedef enum {
     /*
      * List the commands supportedin by the hardware.
      */
+    KEYMASTER_GET_SUPPORTED_ALGORITHMS		= (KEYMASTER_CMD_ID + 1UL),
+    KEYMASTER_GET_SUPPORTED_BLOCK_MODES		= (KEYMASTER_CMD_ID + 2UL),
+    KEYMASTER_GET_SUPPORTED_PADDING_MODES	= (KEYMASTER_CMD_ID + 3UL),
+    KEYMASTER_GET_SUPPORTED_DIGESTS			= (KEYMASTER_CMD_ID + 4UL),
+    KEYMASTER_GET_SUPPORTED_IMPORT_FORMATS	= (KEYMASTER_CMD_ID + 5UL),
+    KEYMASTER_GET_SUPPORTED_EXPORT_FORMATS	= (KEYMASTER_CMD_ID + 6UL),
+    KEYMASTER_ADD_RNG_ENTROPY				= (KEYMASTER_CMD_ID + 7UL),
+    KEYMASTER_GENERATE_KEY					= (KEYMASTER_CMD_ID + 8UL),
+    KEYMASTER_GET_KEY_CHARACTERISTICS		= (KEYMASTER_CMD_ID + 9UL),
+    KEYMASTER_RESCOPE						= (KEYMASTER_CMD_ID + 10UL),
+    KEYMASTER_IMPORT_KEY					= (KEYMASTER_CMD_ID + 11UL),
+    KEYMASTER_EXPORT_KEY					= (KEYMASTER_CMD_ID + 12UL),
+    KEYMASTER_DELETE_KEY					= (KEYMASTER_CMD_ID + 13UL),
+    KEYMASTER_DELETE_ALL_KEYS				= (KEYMASTER_CMD_ID + 14UL),
+    KEYMASTER_BEGIN							= (KEYMASTER_CMD_ID + 15UL),
+    KEYMASTER_GET_OUTPUT_SIZE				= (KEYMASTER_CMD_ID + 16UL),
+    KEYMASTER_UPDATE						= (KEYMASTER_CMD_ID + 17UL),
+    KEYMASTER_FINISH						= (KEYMASTER_CMD_ID + 18UL),
+    KEYMASTER_ABORT							= (KEYMASTER_CMD_ID + 19UL),
+
+    KEYMASTER_SET_ROT						= (KEYMASTER_UTILS_CMD_ID + 1UL),
     KEYMASTER_READ_LK_DEVICE_STATE			= (KEYMASTER_UTILS_CMD_ID + 2UL),
     KEYMASTER_WRITE_LK_DEVICE_STATE			= (KEYMASTER_UTILS_CMD_ID + 3UL),
     KEYMASTER_MILESTONE_CALL				= (KEYMASTER_UTILS_CMD_ID + 4UL),
@@ -54,6 +75,29 @@ typedef enum {
 /*
  * Utils Api struct
  */
+/**
+  @brief
+    Data structure
+
+  @param[in]   cmd_id      Requested command
+  @param[in]   rot_ofset   Offset from the top of the struct.
+  @param[in]   rot_size    Size of the ROT
+*/
+typedef struct _km_set_rot_req_t {
+	uint32 cmd_id;
+	uint32 rot_ofset;
+	uint32 rot_size;
+}__attribute__ ((packed)) km_set_rot_req_t;
+
+/**
+  @brief
+    Data structure
+
+  @param[out]   status      Status of the request
+*/
+typedef struct _km_set_rot_rsp_t {
+	int status;
+}__attribute__ ((packed)) km_set_rot_rsp_t;
 
 /**
   @brief
