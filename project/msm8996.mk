@@ -45,6 +45,14 @@ DEFINES += ENABLE_WBC=1
 #Disable thumb mode
 ENABLE_THUMB := false
 
+#enable fbcon display menu
+ENABLE_FBCON_DISPLAY_MSG := 1
+
+ifeq ($(ENABLE_FBCON_DISPLAY_MSG),1)
+DEFINES += FBCON_DISPLAY_MSG=1
+endif
+
+
 ifeq ($(ENABLE_GLINK_SUPPORT),1)
 DEFINES += GLINK_SUPPORT=1
 endif
