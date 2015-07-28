@@ -349,6 +349,7 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 {
 	uint32_t hw_id = board_hardware_id();
 	int32_t panel_override_id;
+	uint32_t target_id, plat_hw_ver_major;
 
 	if (panel_name) {
 		panel_override_id = panel_name_to_id(supp_panels,
@@ -382,7 +383,17 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 			panel_id = TRULY_1080P_VIDEO_PANEL;
 		break;
 	case HW_PLATFORM_QRD:
-		panel_id = OTM1906C_1080P_CMD_PANEL;
+		target_id = board_target_id();
+		plat_hw_ver_major = ((target_id >> 16) & 0xFF);
+
+		/*
+		 * 8952 SKUM DVT2 - HX8399A 1080p video panel
+		 * 8952 SKUM EVT1/EVT2 - OTM1906C 1080p cmd panel
+		 */
+		if (plat_hw_ver_major >= 4)
+			panel_id = HX8399A_1080P_VIDEO_PANEL;
+		else
+			panel_id = OTM1906C_1080P_CMD_PANEL;
 
 		/* QRD EVT1 uses OTM1906C, and EVT2 uses HX8399A */
 		if (platform_is_msm8956()) {
