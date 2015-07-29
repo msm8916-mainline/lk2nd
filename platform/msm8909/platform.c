@@ -34,6 +34,7 @@
 #include <mmu.h>
 #include <arch/arm/mmu.h>
 #include <smem.h>
+#include <target/display.h>
 
 #define MB (1024*1024)
 
@@ -63,6 +64,7 @@ static mmu_section_t mmu_section_table[] = {
 	{    A7_SS_BASE,        A7_SS_BASE,       A7_SS_SIZE,       IOMAP_MEMORY},
 	{    SYSTEM_IMEM_BASE,  SYSTEM_IMEM_BASE, 1,                IMEM_MEMORY},
 	{    MSM_SHARED_BASE,   MSM_SHARED_BASE,  1,                COMMON_MEMORY},
+	{    MIPI_FB_ADDR,      MIPI_FB_ADDR,     10,              COMMON_MEMORY},
 };
 
 static struct smem_ram_ptable ram_ptable;
