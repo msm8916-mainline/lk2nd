@@ -65,7 +65,7 @@ bool is_scm_armv8_support()
 
 static int is_scm_call_available(uint32_t svc_id, uint32_t cmd_id)
 {
-	uint32_t ret;
+	int ret;
 	scmcall_arg scm_arg = {0};
 	scmcall_ret scm_ret = {0};
 
@@ -83,7 +83,7 @@ static int is_scm_call_available(uint32_t svc_id, uint32_t cmd_id)
 
 static int scm_arm_support_available(uint32_t svc_id, uint32_t cmd_id)
 {
-	uint32_t ret;
+	int ret;
 
 	ret = is_scm_call_available(SCM_SVC_INFO, IS_CALL_AVAIL_CMD);
 
@@ -99,7 +99,7 @@ void scm_init()
 
 	ret = scm_arm_support_available(SCM_SVC_INFO, IS_CALL_AVAIL_CMD);
 
-	if (ret)
+	if (ret < 0)
 		dprintf(CRITICAL, "Failed to initialize SCM\n");
 }
 
