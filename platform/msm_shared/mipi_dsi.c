@@ -498,7 +498,8 @@ end:
 	return status;
 }
 
-int mdss_dsi_video_mode_config(uint16_t disp_width,
+int mdss_dsi_video_mode_config(struct msm_panel_info *pinfo,
+	uint16_t disp_width,
 	uint16_t disp_height,
 	uint16_t img_width,
 	uint16_t img_height,
@@ -521,6 +522,10 @@ int mdss_dsi_video_mode_config(uint16_t disp_width,
 
 #if (DISPLAY_TYPE_MDSS == 1)
 	int last_line_interleave_en = 0;
+	struct dsc_desc *dsc = NULL;
+
+	if (pinfo->compression_mode == COMPRESSION_DSC)
+		dsc = &pinfo->dsc;
 
 	/*Check if EOF_BLLP_PWR_MODE bit is set*/
 	if(eof_bllp_pwr & 0x8)
@@ -599,6 +604,10 @@ int mdss_dsi_video_mode_config(uint16_t disp_width,
 
 	writel(interleav << 30 | 0 << 24 | 0 << 20 | lane_en << 4
 			| 0x103, ctl_base + CTRL);
+	if (dsc) {
+		if (dsc->dsi_dsc_config)
+			dsc->dsi_dsc_config(pinfo->mipi.ctl_base, DSI_VIDEO_MODE, dsc);
+	}
 #endif
 
 	return status;
@@ -609,6 +618,8 @@ int mdss_dsi_config(struct msm_fb_panel_data *panel)
 	int ret = NO_ERROR;
 	struct msm_panel_info *pinfo;
 	struct mipi_panel_info *mipi;
+	struct dsc_desc *dsc = NULL;
+	struct mipi_dsi_cmd cmd;
 
 #if (DISPLAY_TYPE_MDSS == 1)
 	if (!panel)
@@ -616,6 +627,15 @@ int mdss_dsi_config(struct msm_fb_panel_data *panel)
 
 	pinfo = &(panel->panel_info);
 	mipi = &(pinfo->mipi);
+
+
+	if (pinfo->compression_mode == COMPRESSION_DSC) {
+		dsc = &pinfo->dsc;
+		if (dsc) {
+			if (dsc->dsc2buf)
+				dsc->dsc2buf(pinfo);
+		}
+	}
 
 	dprintf(SPEW, "ctl_base=0x%08x, phy_base=0x%08x\n", mipi->ctl_base,
 		mipi->phy_base);
@@ -649,6 +669,13 @@ int mdss_dsi_config(struct msm_fb_panel_data *panel)
 		}
 	}
 
+	if (dsc) {
+		cmd.size = DCS_HDR_LEN + DSC_PPS_LEN;
+		cmd.payload = dsc->pps_buf;
+		cmd.wait = 0x10;
+		mdss_dsi_cmds_tx(mipi, &cmd, 1, mipi->broadcast);
+	}
+
 	if (pinfo->rotate && panel->rotate)
 		pinfo->rotate();
 #endif
@@ -671,7 +698,8 @@ int mdss_dsi_post_on(struct msm_fb_panel_data *panel)
 	return ret;
 }
 
-int mdss_dsi_cmd_mode_config(uint16_t disp_width,
+int mdss_dsi_cmd_mode_config(struct msm_panel_info *pinfo,
+	uint16_t disp_width,
 	uint16_t disp_height,
 	uint16_t img_width,
 	uint16_t img_height,
@@ -682,6 +710,8 @@ int mdss_dsi_cmd_mode_config(uint16_t disp_width,
 	uint32_t ctl_base)
 {
 	uint16_t dst_fmt = 0;
+	struct dsc_desc *dsc = NULL;
+	unsigned int data;
 
 	switch (dst_format) {
 	case DSI_VIDEO_DST_FORMAT_RGB565:
@@ -717,14 +747,37 @@ int mdss_dsi_cmd_mode_config(uint16_t disp_width,
 	writel(0x02020202, ctl_base + INT_CTRL);
 
 	writel(dst_fmt, ctl_base + COMMAND_MODE_MDP_CTRL);
-	writel((img_width * ystride + 1) << 16 | 0x0039,
-	       ctl_base + COMMAND_MODE_MDP_STREAM0_CTRL);
-	writel((img_width * ystride + 1) << 16 | 0x0039,
-	       ctl_base + COMMAND_MODE_MDP_STREAM1_CTRL);
-	writel(img_height << 16 | img_width,
-	       ctl_base + COMMAND_MODE_MDP_STREAM0_TOTAL);
-	writel(img_height << 16 | img_width,
-	       ctl_base + COMMAND_MODE_MDP_STREAM1_TOTAL);
+
+	if (pinfo->compression_mode == COMPRESSION_DSC)
+		dsc = &pinfo->dsc;
+
+	if (dsc) {
+		data = dsc->bytes_per_pkt;
+		if (pinfo->mipi.insert_dcs_cmd)
+			data++;
+		data <<= 16;
+		data |= 0x039;
+		writel(data, ctl_base + COMMAND_MODE_MDP_STREAM0_CTRL);
+		writel(data, ctl_base + COMMAND_MODE_MDP_STREAM1_CTRL);
+		data = dsc->pic_height << 16;
+		data |= dsc->pclk_per_line;
+		writel(data, ctl_base + COMMAND_MODE_MDP_STREAM0_TOTAL);
+		writel(data, ctl_base + COMMAND_MODE_MDP_STREAM1_TOTAL);
+
+		if (dsc->dsi_dsc_config)
+			dsc->dsi_dsc_config(pinfo->mipi.ctl_base, DSI_VIDEO_MODE, dsc);
+	} else {
+
+		writel((img_width * ystride + 1) << 16 | 0x0039,
+		       ctl_base + COMMAND_MODE_MDP_STREAM0_CTRL);
+		writel((img_width * ystride + 1) << 16 | 0x0039,
+		       ctl_base + COMMAND_MODE_MDP_STREAM1_CTRL);
+		writel(img_height << 16 | img_width,
+		       ctl_base + COMMAND_MODE_MDP_STREAM0_TOTAL);
+		writel(img_height << 16 | img_width,
+		       ctl_base + COMMAND_MODE_MDP_STREAM1_TOTAL);
+	}
+
 	writel(0x13c2c, ctl_base + COMMAND_MODE_MDP_DCS_CMD_CTRL);
 	writel(interleav << 30 | 0 << 24 | 0 << 20 | lane_en << 4 | 0x105,
 	       ctl_base + CTRL);

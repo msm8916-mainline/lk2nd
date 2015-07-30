@@ -479,6 +479,7 @@ static void mdss_intf_tg_setup(struct msm_panel_info *pinfo, uint32_t intf_base)
 	uint32_t display_hctl, hsync_ctl, display_vstart, display_vend;
 	uint32_t adjust_xres = 0;
 	uint32_t upper = 0, lower = 0;
+	struct dsc_desc *dsc = NULL;
 
 	struct lcdc_panel_info *lcdc = NULL;
 	struct intf_timing_params itp = {0};
@@ -513,12 +514,22 @@ static void mdss_intf_tg_setup(struct msm_panel_info *pinfo, uint32_t intf_base)
 		writel(BIT(5), REG_MDP(ppb_offset)); /* MMSS_MDP_PPB0_CONFIG */
 	}
 
-	if (!pinfo->fbc.enabled || !pinfo->fbc.comp_ratio)
-		pinfo->fbc.comp_ratio = 1;
+	if (pinfo->compression_mode == COMPRESSION_DSC) {
+		dsc = &pinfo->dsc;
+	} else if (pinfo->compression_mode == COMPRESSION_FBC) {
+		if (!pinfo->fbc.enabled || !pinfo->fbc.comp_ratio)
+			pinfo->fbc.comp_ratio = 1;
+	}
 
 	itp.xres = (adjust_xres / pinfo->fbc.comp_ratio);
 	itp.yres = pinfo->yres;
 	itp.width =((adjust_xres + pinfo->lcdc.xres_pad) / pinfo->fbc.comp_ratio);
+
+	if (dsc) {
+		itp.xres = dsc->pclk_per_line;
+		itp.width = dsc->pclk_per_line;
+	}
+
 	itp.height = pinfo->yres + pinfo->lcdc.yres_pad;
 	itp.h_back_porch = pinfo->lcdc.h_back_porch;
 	itp.h_front_porch = pinfo->lcdc.h_front_porch;
@@ -593,6 +604,7 @@ static void mdss_intf_fetch_start_config(struct msm_panel_info *pinfo,
 	uint32_t prefetch_avail, prefetch_needed;
 	uint32_t adjust_xres = 0;
 	uint32_t fetch_enable = BIT(31);
+	struct dsc_desc *dsc;
 
 	struct lcdc_panel_info *lcdc = NULL;
 
@@ -617,8 +629,13 @@ static void mdss_intf_fetch_start_config(struct msm_panel_info *pinfo,
 	if (pinfo->lcdc.split_display)
 		adjust_xres /= 2;
 
-	if (pinfo->fbc.enabled && pinfo->fbc.comp_ratio)
-		adjust_xres /= pinfo->fbc.comp_ratio;
+	if (pinfo->compression_mode == COMPRESSION_DSC) {
+		dsc = &pinfo->dsc;
+		adjust_xres = dsc->pclk_per_line;
+	} else if (pinfo->compression_mode == COMPRESSION_FBC) {
+		if (pinfo->fbc.enabled && pinfo->fbc.comp_ratio)
+			adjust_xres /= pinfo->fbc.comp_ratio;
+	}
 
 	/*
 	 * Fetch should always be outside the active lines. If the fetching
@@ -956,8 +973,19 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 	/*If dst_split is enabled only intf 2 needs to be enabled.
 	CTL_1 path should not be set since CTL_0 itself is going
 	to split after DSPP block*/
-	if (pinfo->fbc.enabled)
-		mdss_fbc_cfg(pinfo);
+
+	if (pinfo->compression_mode == COMPRESSION_DSC) {
+		struct dsc_desc *dsc = NULL;
+
+		dsc = &pinfo->dsc;
+		if (dsc) {
+			if (dsc->mdp_dsc_config)
+				dsc->mdp_dsc_config(pinfo);
+		}
+	} else if (pinfo->compression_mode == COMPRESSION_FBC) {
+		if (pinfo->fbc.enabled)
+			mdss_fbc_cfg(pinfo);
+	}
 
 	if (pinfo->mipi.dual_dsi) {
 		if (!pinfo->lcdc.dst_split) {
@@ -1108,8 +1136,18 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 	reg = 0x21f00 | mdss_mdp_ctl_out_sel(pinfo, 1);
 	writel(reg, MDP_CTL_0_BASE + CTL_TOP);
 
-	if (pinfo->fbc.enabled)
-		mdss_fbc_cfg(pinfo);
+	if (pinfo->compression_mode == COMPRESSION_DSC) {
+		struct dsc_desc *dsc = NULL;
+
+		dsc = &pinfo->dsc;
+		if (dsc) {
+			if (dsc->mdp_dsc_config)
+				dsc->mdp_dsc_config(pinfo);
+		}
+	} else if (pinfo->compression_mode == COMPRESSION_FBC) {
+		if (pinfo->fbc.enabled)
+			mdss_fbc_cfg(pinfo);
+	}
 
 	if (pinfo->mipi.dual_dsi) {
 		writel(0x213F, sintf_base + MDP_PANEL_FORMAT);

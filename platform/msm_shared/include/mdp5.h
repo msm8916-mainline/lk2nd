@@ -196,6 +196,31 @@
 #define MDSS_MDP_REG_PP_FBC_BUDGET_CTL          0x038
 #define MDSS_MDP_REG_PP_FBC_LOSSY_MODE          0x03C
 
+#define MDSS_MDP_REG_DCE_SEL			REG_MDP(0x1450)
+
+#define MDSS_MDP_PP_DSC_MODE                0x0A0
+#define MDSS_MDP_PP_DCE_DATA_OUT_SWAP	0x0C8
+
+#define MDSS_MDP_DSC_COMMON_MODE		0x00
+#define MDSS_MDP_DSC_ENC			0x04
+#define MDSS_MDP_DSC_PICTURE			0x08
+#define MDSS_MDP_DSC_SLICE			0x0c
+#define MDSS_MDP_DSC_CHUNK_SIZE			0x10
+#define MDSS_MDP_DSC_DELAY			0x14
+#define MDSS_MDP_DSC_SCALE_INITIAL		0x18
+#define MDSS_MDP_DSC_SCALE_DEC_INTERVAL		0x1c
+#define MDSS_MDP_DSC_SCALE_INC_INTERVAL		0x20
+#define MDSS_MDP_DSC_FIRST_LINE_BPG_OFFSET	0x24
+#define MDSS_MDP_DSC_BPG_OFFSET			0x28
+#define MDSS_MDP_DSC_DSC_OFFSET			0x2c
+#define MDSS_MDP_DSC_FLATNESS			0x30
+#define MDSS_MDP_DSC_RC_MODEL_SIZE		0x34
+#define MDSS_MDP_DSC_RC				0x38
+#define MDSS_MDP_DSC_RC_BUF_THRESH		0x3c	/* 14 bytes */
+#define MDSS_MDP_DSC_RANGE_MIN_QP		0x74	/* 15 bytes */
+#define MDSS_MDP_DSC_RANGE_MAX_QP		0xB0	/* 15 bytes */
+#define MDSS_MDP_DSC_RANGE_BPG_OFFSET		0xEc	/* 15 bytes */
+
 void mdp_set_revision(int rev);
 int mdp_get_revision();
 int mdp_dsi_video_config(struct msm_panel_info *pinfo, struct fbcon_config *fb);
@@ -222,4 +247,10 @@ int mdss_hdmi_config(struct msm_panel_info *pinfo, struct fbcon_config *fb);
 void mdss_hdmi_get_vic(char *buf);
 int msm_display_off();
 void display_shutdown(void);
+
+void mdss_dsc_parameters_calc(struct msm_panel_info *pinfo);
+int mdss_dsc_to_buf(struct msm_panel_info *pinfo);
+void mdss_dsc_dsi_config(uint32_t ctl_base, int mode, struct dsc_desc *dsc);
+void mdss_dsc_mdp_config(struct msm_panel_info *pinfo);
+
 #endif

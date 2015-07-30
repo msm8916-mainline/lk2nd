@@ -41,12 +41,18 @@ static void calculate_bitclock(struct msm_panel_info *pinfo)
 {
 	uint32_t h_period = 0, v_period = 0;
 	uint32_t width = pinfo->xres;
+	struct dsc_desc *dsc = NULL;
 
 	if (pinfo->mipi.dual_dsi)
 		width /= 2;
 
-	if (pinfo->fbc.enabled && pinfo->fbc.comp_ratio)
-		width /= pinfo->fbc.comp_ratio;
+	if (pinfo->compression_mode == COMPRESSION_DSC) {
+		dsc = &pinfo->dsc;
+		width = dsc->pclk_per_line;
+	} else if (pinfo->compression_mode == COMPRESSION_FBC) {
+		if (pinfo->fbc.comp_ratio)
+			width /= pinfo->fbc.comp_ratio;
+	}
 
 	h_period = width + pinfo->lcdc.h_back_porch +
 		pinfo->lcdc.h_front_porch + pinfo->lcdc.h_pulse_width +

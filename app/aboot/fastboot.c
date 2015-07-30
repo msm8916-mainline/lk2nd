@@ -481,7 +481,7 @@ static void cmd_download(const char *arg, void *data, unsigned sz)
 	/*
 	 * Discard the cache contents before starting the download
 	 */
-	arch_invalidate_cache_range((addr_t) download_base, sz);
+	arch_invalidate_cache_range((addr_t) download_base, len);
 
 	r = usb_if.usb_read(download_base, len);
 	if ((r < 0) || ((unsigned) r != len)) {

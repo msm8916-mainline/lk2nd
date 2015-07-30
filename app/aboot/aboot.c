@@ -2967,6 +2967,12 @@ int splash_screen_mmc()
 	}
 
 	fb_display = fbcon_display();
+	if (!fb_display)
+	{
+		dprintf(CRITICAL, "ERROR: fb config is not allocated\n");
+		return -1;
+	}
+
 	base = (uint8_t *) fb_display->base;
 
 	if (mmc_read(ptn, (uint32_t *)(base + LOGO_IMG_OFFSET), blocksize)) {
