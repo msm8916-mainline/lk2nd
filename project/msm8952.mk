@@ -13,6 +13,8 @@ DEBUG := 1
 endif
 
 EMMC_BOOT := 1
+ENABLE_SECAPP_LOADER := 1
+ENABLE_RPMB_SUPPORT := 1
 
 ENABLE_SMD_SUPPORT := 1
 #ENABLE_PWM_SUPPORT := true
@@ -31,6 +33,7 @@ DEFINES += BAM_V170=1
 
 #Enable the feature of long press power on
 DEFINES += LONG_PRESS_POWER_ON=1
+DEFINES += USE_RPMB_FOR_DEVINFO=1
 
 #Disable thumb mode
 ENABLE_THUMB := false
