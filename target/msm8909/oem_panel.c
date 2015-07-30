@@ -37,6 +37,7 @@
 #include "include/panel.h"
 #include "panel_display.h"
 
+#include "include/panel_hx8394d_480p_video.h"
 #include "include/panel_hx8394d_720p_video.h"
 #include "include/panel_sharp_qhd_video.h"
 #include "include/panel_truly_wvga_cmd.h"
@@ -57,12 +58,19 @@ enum {
 	QRD_SKUT = 0x0A,
 };
 
+/* mtp cdp subtype for wearables */
+enum {
+	MTP_WEAR = 0x05,
+	SURF_WEAR = 0x03,
+};
+
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
 /*---------------------------------------------------------------------------*/
 static uint32_t auto_pan_loop = 0;
 
 enum {
+	HX8394D_480P_VIDEO_PANEL,
 	HX8394D_720P_VIDEO_PANEL,
 	SHARP_QHD_VIDEO_PANEL,
 	TRULY_WVGA_CMD_PANEL,
@@ -80,6 +88,7 @@ enum {
  * Any panel in this list can be selected using fastboot oem command.
  */
 static struct panel_list supp_panels[] = {
+	{"hx8394d_480p_video", HX8394D_480P_VIDEO_PANEL},
 	{"hx8394d_720p_video", HX8394D_720P_VIDEO_PANEL},
 	{"sharp_qhd_video", SHARP_QHD_VIDEO_PANEL},
 	{"truly_wvga_cmd", TRULY_WVGA_CMD_PANEL},
@@ -126,6 +135,27 @@ static int init_panel_data(struct panel_struct *panelstruct,
 	int pan_type = PANEL_TYPE_DSI;
 
 	switch (panel_id) {
+	case HX8394D_480P_VIDEO_PANEL:
+		panelstruct->paneldata	  = &hx8394d_480p_video_panel_data;
+		panelstruct->panelres	  = &hx8394d_480p_video_panel_res;
+		panelstruct->color		  = &hx8394d_480p_video_color;
+		panelstruct->videopanel   = &hx8394d_480p_video_video_panel;
+		panelstruct->commandpanel = &hx8394d_480p_video_command_panel;
+		panelstruct->state		  = &hx8394d_480p_video_state;
+		panelstruct->laneconfig   = &hx8394d_480p_video_lane_config;
+		panelstruct->paneltiminginfo
+					 = &hx8394d_480p_video_timing_info;
+		panelstruct->panelresetseq
+					 = &hx8394d_480p_video_panel_reset_seq;
+		panelstruct->backlightinfo = &hx8394d_480p_video_backlight;
+		pinfo->mipi.panel_cmds
+					= hx8394d_480p_video_on_command;
+		pinfo->mipi.num_of_panel_cmds
+					= HX8394D_480P_VIDEO_ON_COMMAND;
+		memcpy(phy_db->timing,
+				hx8394d_480p_video_timings, TIMING_SIZE);
+		pinfo->mipi.signature = HX8394D_480P_VIDEO_SIGNATURE;
+		break;
 	case HX8394D_720P_VIDEO_PANEL:
 		panelstruct->paneldata	  = &hx8394d_720p_video_panel_data;
 		panelstruct->panelres	  = &hx8394d_720p_video_panel_res;
@@ -358,7 +388,14 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	case HW_PLATFORM_SURF:
 	case HW_PLATFORM_MTP:
 	case HW_PLATFORM_RCM:
-		panel_id = HX8394D_720P_VIDEO_PANEL;
+		switch (platform_subtype) {
+			case SURF_WEAR:
+			case MTP_WEAR:
+				panel_id = HX8394D_480P_VIDEO_PANEL;
+				break;
+			default:
+				panel_id = HX8394D_720P_VIDEO_PANEL;
+		}
 		break;
 	case HW_PLATFORM_QRD:
 		switch (platform_subtype) {
