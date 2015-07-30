@@ -166,6 +166,8 @@ static int auth_kernel_img = 0;
 static device_info device = {DEVICE_MAGIC, 0, 0, 0, 0, 0};
 static bool is_allow_unlock = 0;
 
+static char frp_ptns[2][8] = {"config","frp"};
+
 struct atag_ptbl_entry
 {
 	char name[16];
@@ -1583,7 +1585,6 @@ void write_device_info_flash(device_info *dev)
 
 static int read_allow_oem_unlock(device_info *dev)
 {
-	const char *ptn_name = "frp";
 	unsigned offset;
 	int index;
 	unsigned long long ptn;
@@ -1591,11 +1592,15 @@ static int read_allow_oem_unlock(device_info *dev)
 	unsigned blocksize = mmc_get_device_blocksize();
 	char buf[blocksize];
 
-	index = partition_get_index(ptn_name);
+	index = partition_get_index(frp_ptns[0]);
 	if (index == INVALID_PTN)
 	{
-		dprintf(CRITICAL, "No '%s' partition found\n", ptn_name);
-		return -1;
+		index = partition_get_index(frp_ptns[1]);
+		if (index == INVALID_PTN)
+		{
+			dprintf(CRITICAL, "Neither '%s' nor '%s' partition found\n", frp_ptns[0],frp_ptns[1]);
+			return -1;
+		}
 	}
 
 	ptn = partition_get_offset(index);
@@ -1615,20 +1620,22 @@ static int read_allow_oem_unlock(device_info *dev)
 
 static int write_allow_oem_unlock(bool allow_unlock)
 {
-	const char *ptn_name = "frp";
 	unsigned offset;
-
 	int index;
 	unsigned long long ptn;
 	unsigned long long ptn_size;
 	unsigned blocksize = mmc_get_device_blocksize();
 	char buf[blocksize];
 
-	index = partition_get_index(ptn_name);
+	index = partition_get_index(frp_ptns[0]);
 	if (index == INVALID_PTN)
 	{
-		dprintf(CRITICAL, "No '%s' partition found\n", ptn_name);
-		return -1;
+		index = partition_get_index(frp_ptns[1]);
+		if (index == INVALID_PTN)
+		{
+			dprintf(CRITICAL, "Neither '%s' nor '%s' partition found\n", frp_ptns[0],frp_ptns[1]);
+			return -1;
+		}
 	}
 
 	ptn = partition_get_offset(index);
