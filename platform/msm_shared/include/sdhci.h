@@ -290,8 +290,8 @@ enum {
 #define SDHCI_READ_MODE                           BIT(4)
 #define SDHCI_SWITCH_CMD                          6
 #define SDHCI_CMD_TIMEOUT                         0xF
-#define SDHCI_MAX_CMD_RETRY                       10000
-#define SDHCI_MAX_TRANS_RETRY                     10000
+#define SDHCI_MAX_CMD_RETRY                       9000000
+#define SDHCI_MAX_TRANS_RETRY                     10000000
 
 #define SDHCI_PREP_CMD(c, f)                      ((((c) & 0xff) << 8) | ((f) & 0xff))
 
