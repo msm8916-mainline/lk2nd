@@ -275,6 +275,10 @@ static struct lane_configuration nt35597_wqxga_dsc_video_lane_config = {
 /*---------------------------------------------------------------------------*/
 /* Panel timing                                                              */
 /*---------------------------------------------------------------------------*/
+static const uint32_t nt35597_wqxga_dsc_video_timings[] = {
+	0xa4, 0x24, 0x18, 0x00, 0x4c, 0x50, 0x1c, 0x28, 0x1c, 0x03, 0x04, 0x00,
+};
+
 static const uint32_t nt35597_wqxga_dsc_thulium_video_timings[] = {
 	0x20, 0x1d, 0x05, 0x07, 0x03, 0x03, 0x4, 0xa0,
 	0x20, 0x1d, 0x05, 0x07, 0x03, 0x03, 0x4, 0xa0,
