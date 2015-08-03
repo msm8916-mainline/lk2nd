@@ -55,8 +55,8 @@
 #define DSC_VID_PANEL "dsc_vid_panel"
 #define DSC_VID_PANEL_ADV7533_1080P "dsc_vid_panel_adv7533_1080p"
 #define DSC_CMD_PANEL_ADV7533_1080P "dsc_cmd_panel_adv7533_1080p"
-#define DSC_CMD_PANEL_STRING "1:dsi:0:none:1:qcom,mdss_dsi_nt35597_dsc_wqxga_cmd"
-#define DSC_VID_PANEL_STRING "1:dsi:0:none:1:qcom,mdss_dsi_nt35597_dsc_wqxga_video"
+#define DSC_CMD_PANEL_STRING "1:dsi:0:none:1:qcom,mdss_dsi_nt35597_dsc_wqxga_cmd:cfg:single_dsi"
+#define DSC_VID_PANEL_STRING "1:dsi:0:none:1:qcom,mdss_dsi_nt35597_dsc_wqxga_video:cfg:single_dsi"
 #define DSC_CMD_PANEL_ADV7533_1080P_STRING "1:dsi:0:qcom,mdss_dsi_adv7533_1080p:1:qcom,mdss_dsi_nt35597_dsc_wqxga_cmd:cfg:dual_dsi"
 #define DSC_VID_PANEL_ADV7533_1080P_STRING "1:dsi:0:qcom,mdss_dsi_adv7533_1080p:1:qcom,mdss_dsi_nt35597_dsc_wqxga_video:cfg:dual_dsi"
 
