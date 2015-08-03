@@ -345,11 +345,11 @@ bool gcdb_display_cmdline_arg(char *pbuf, uint16_t buf_size)
 	/* Check for the DSI configuration */
 	if (slave_panel_node && (panel_mode & (DUAL_DSI_FLAG |
 		SPLIT_DISPLAY_FLAG | DST_SPLIT_FLAG)))
-		strcpy(oem_data.dsi_config, "split_dsi");
+		strlcpy(oem_data.dsi_config, "split_dsi", DSI_CFG_SIZE);
 	else if (slave_panel_node)
-		strcpy(oem_data.dsi_config, "dual_dsi");
+		strlcpy(oem_data.dsi_config, "dual_dsi", DSI_CFG_SIZE);
 	else
-		strcpy(oem_data.dsi_config, "single_dsi");
+		strlcpy(oem_data.dsi_config, "single_dsi", DSI_CFG_SIZE);
 
 	arg_size = DSI_CFG_STRING_LEN + strlen(oem_data.dsi_config);
 
