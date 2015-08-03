@@ -240,6 +240,7 @@ char charger_screen_enabled[MAX_RSP_SIZE];
 char sn_buf[13];
 char display_panel_buf[MAX_PANEL_BUF_SIZE];
 char panel_display_mode[MAX_RSP_SIZE];
+char get_variant[MAX_RSP_SIZE];
 
 extern int emmc_recovery_init(void);
 
@@ -3185,6 +3186,7 @@ static void publish_getvar_partition_info(struct getvar_partition_info *info, ui
 void aboot_fastboot_register_commands(void)
 {
 	int i;
+	char hw_platform_buf[MAX_RSP_SIZE];
 
 	struct fastboot_cmd_desc cmd_list[] = {
 											/* By default the enabled list is empty. */
@@ -3244,6 +3246,11 @@ void aboot_fastboot_register_commands(void)
 			(const char *) panel_display_mode);
 	fastboot_publish("version-bootloader", (const char *) device.bootloader_version);
 	fastboot_publish("version-baseband", (const char *) device.radio_version);
+	fastboot_publish("secure", is_secure_boot_enable()? "yes":"no");
+	smem_get_hw_platform_name((unsigned char *) hw_platform_buf, sizeof(hw_platform_buf));
+	snprintf(get_variant, MAX_RSP_SIZE, "%s %s", hw_platform_buf,
+		target_is_emmc_boot()? "eMMC":"UFS");
+	fastboot_publish("variant", (const char *) get_variant);
 }
 
 void aboot_init(const struct app_descriptor *app)
