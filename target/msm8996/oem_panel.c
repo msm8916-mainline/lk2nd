@@ -143,6 +143,7 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 		memcpy(phy_db->timing,
 			sharp_wqxga_dualdsi_thulium_video_timings,
 			MAX_TIMING_CONFIG * sizeof(uint32_t));
+		pinfo->dfps.panel_dfps = sharp_wqxga_dualdsi_video_dfps;
 		pinfo->mipi.tx_eot_append = true;
 		break;
 	case NT35597_WQXGA_DUALDSI_VIDEO_PANEL:
