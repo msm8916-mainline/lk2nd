@@ -209,8 +209,8 @@
 #define DSI0_REGULATOR_BASE         (0x994000)
 #define DSI1_REGULATOR_BASE         (0x996000)
 
-#define MMSS_DSI_PHY_PLL_CORE_VCO_TUNE  0x0160
-#define MMSS_DSI_PHY_PLL_CORE_KVCO_CODE 0x0168
+#define MMSS_DSI_PHY_PLL_CORE_VCO_TUNE  0x0D0
+#define MMSS_DSI_PHY_PLL_CORE_KVCO_CODE 0x0D4
 
 #define MDP_BASE                    (0x900000)
 #define REG_MDP(off)                (MDP_BASE + (off))
