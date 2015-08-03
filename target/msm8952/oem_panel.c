@@ -35,6 +35,7 @@
 #include <board.h>
 #include <qtimer.h>
 #include <mipi_dsi.h>
+#include <mdp5.h>
 #include <target/display.h>
 
 #include "include/panel.h"
@@ -50,6 +51,8 @@
 #include "include/panel_nt35597_wqxga_dualdsi_video.h"
 #include "include/panel_nt35597_wqxga_dualdsi_cmd.h"
 #include "include/panel_hx8399a_1080p_video.h"
+#include "include/panel_nt35597_wqxga_dsc_video.h"
+#include "include/panel_nt35597_wqxga_dsc_cmd.h"
 
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
@@ -62,6 +65,8 @@ enum {
 	NT35597_WQXGA_DUALDSI_VIDEO_PANEL,
 	NT35597_WQXGA_DUALDSI_CMD_PANEL,
 	HX8399A_1080P_VIDEO_PANEL,
+	NT35597_WQXGA_DSC_VIDEO_PANEL,
+	NT35597_WQXGA_DSC_CMD_PANEL,
 	UNKNOWN_PANEL
 };
 
@@ -81,6 +86,8 @@ static struct panel_list supp_panels[] = {
 	{"nt35597_wqxga_dualdsi_cmd", NT35597_WQXGA_DUALDSI_CMD_PANEL},
 	{"otm1906c_1080p_cmd", OTM1906C_1080P_CMD_PANEL},
 	{"hx8399a_1080p_video", HX8399A_1080P_VIDEO_PANEL},
+	{"nt35597_wqxga_dsc_video", NT35597_WQXGA_DSC_VIDEO_PANEL},
+	{"nt35597_wqxga_dsc_cmd", NT35597_WQXGA_DSC_CMD_PANEL},
 };
 
 static uint32_t panel_id;
@@ -317,6 +324,84 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		memcpy(phy_db->timing, nt35597_wqxga_dualdsi_cmd_timings,
 			TIMING_SIZE);
 		pinfo->mipi.tx_eot_append = true;
+		break;
+	case NT35597_WQXGA_DSC_VIDEO_PANEL:
+		panelstruct->paneldata    = &nt35597_wqxga_dsc_video_panel_data;
+		panelstruct->paneldata->panel_with_enable_gpio = 0;
+		panelstruct->paneldata->panel_operating_mode = USE_DSI1_PLL_FLAG;
+		panelstruct->panelres     = &nt35597_wqxga_dsc_video_panel_res;
+		panelstruct->color        = &nt35597_wqxga_dsc_video_color;
+		panelstruct->videopanel   = &nt35597_wqxga_dsc_video_video_panel;
+		panelstruct->commandpanel = &nt35597_wqxga_dsc_video_command_panel;
+		panelstruct->state        = &nt35597_wqxga_dsc_video_state;
+		panelstruct->laneconfig   = &nt35597_wqxga_dsc_video_lane_config;
+		panelstruct->paneltiminginfo
+					= &nt35597_wqxga_dsc_video_timing_info;
+		panelstruct->panelresetseq
+					= &nt35597_wqxga_dsc_video_reset_seq;
+		panelstruct->backlightinfo = &nt35597_wqxga_dsc_video_backlight;
+		pinfo->labibb = &nt35597_wqxga_dsc_video_labibb;
+
+		pinfo->mipi.panel_on_cmds
+			= nt35597_wqxga_dsc_video_on_command;
+		pinfo->mipi.num_of_panel_on_cmds
+			= NT35597_WQXGA_DSC_VIDEO_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+			= nt35597_wqxga_dsc_video_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+			= NT35597_WQXGA_DSC_VIDEO_OFF_COMMAND;
+		memcpy(phy_db->timing, nt35597_wqxga_dsc_video_timings,
+			TIMING_SIZE);
+		/* Clkout timings are different for this panel on 8956 */
+		panelstruct->paneltiminginfo->tclk_post = 0x04;
+		panelstruct->paneltiminginfo->tclk_pre = 0x20;
+		pinfo->mipi.tx_eot_append = true;
+		pinfo->compression_mode = COMPRESSION_DSC;
+		memcpy(&panelstruct->dsc_paras, &nt35597_wqxga_dsc_video_paras,
+				sizeof(struct dsc_parameters));
+		pinfo->dsc.parameter_calc =  mdss_dsc_parameters_calc;
+		pinfo->dsc.dsc2buf = mdss_dsc_to_buf;
+		pinfo->dsc.dsi_dsc_config = mdss_dsc_dsi_config;
+		pinfo->dsc.mdp_dsc_config = mdss_dsc_mdp_config;
+		break;
+	case NT35597_WQXGA_DSC_CMD_PANEL:
+		panelstruct->paneldata    = &nt35597_wqxga_dsc_cmd_panel_data;
+		panelstruct->paneldata->panel_with_enable_gpio = 0;
+		panelstruct->paneldata->panel_operating_mode = USE_DSI1_PLL_FLAG;
+		panelstruct->panelres     = &nt35597_wqxga_dsc_cmd_panel_res;
+		panelstruct->color        = &nt35597_wqxga_dsc_cmd_color;
+		panelstruct->videopanel   = &nt35597_wqxga_dsc_cmd_video_panel;
+		panelstruct->commandpanel = &nt35597_wqxga_dsc_cmd_command_panel;
+		panelstruct->state        = &nt35597_wqxga_dsc_cmd_state;
+		panelstruct->laneconfig   = &nt35597_wqxga_dsc_cmd_lane_config;
+		panelstruct->paneltiminginfo
+					= &nt35597_wqxga_dsc_cmd_timing_info;
+		panelstruct->panelresetseq
+					= &nt35597_wqxga_dsc_cmd_reset_seq;
+		panelstruct->backlightinfo = &nt35597_wqxga_dsc_cmd_backlight;
+		pinfo->labibb = &nt35597_wqxga_dsc_cmd_labibb;
+
+		pinfo->mipi.panel_on_cmds
+			= nt35597_wqxga_dsc_cmd_on_command;
+		pinfo->mipi.num_of_panel_on_cmds
+			= NT35597_WQXGA_DSC_CMD_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+			= nt35597_wqxga_dsc_cmd_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+			= NT35597_WQXGA_DSC_CMD_OFF_COMMAND;
+		memcpy(phy_db->timing, nt35597_wqxga_dsc_cmd_timings,
+			TIMING_SIZE);
+		/* Clkout timings are different for this panel on 8956 */
+		panelstruct->paneltiminginfo->tclk_post = 0x04;
+		panelstruct->paneltiminginfo->tclk_pre = 0x20;
+		pinfo->mipi.tx_eot_append = true;
+		pinfo->compression_mode = COMPRESSION_DSC;
+		memcpy(&panelstruct->dsc_paras, &nt35597_wqxga_dsc_cmd_paras,
+				sizeof(struct dsc_parameters));
+		pinfo->dsc.parameter_calc =  mdss_dsc_parameters_calc;
+		pinfo->dsc.dsc2buf = mdss_dsc_to_buf;
+		pinfo->dsc.dsi_dsc_config = mdss_dsc_dsi_config;
+		pinfo->dsc.mdp_dsc_config = mdss_dsc_mdp_config;
 		break;
 	case UNKNOWN_PANEL:
 	default:
