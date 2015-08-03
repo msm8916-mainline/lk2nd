@@ -56,7 +56,6 @@
 
 /* SCM interface as per ARM spec present? */
 bool scm_arm_support;
-static uint32_t scm_io_write(uint32_t address, uint32_t val);
 
 bool is_scm_armv8_support()
 {
@@ -1275,7 +1274,7 @@ static uint32_t scm_io_read(addr_t address)
 	return ret;
 }
 
-static uint32_t scm_io_write(uint32_t address, uint32_t val)
+uint32_t scm_io_write(uint32_t address, uint32_t val)
 {
 	uint32_t ret;
 	scmcall_arg scm_arg = {0};
@@ -1294,7 +1293,7 @@ static uint32_t scm_io_write(uint32_t address, uint32_t val)
 	return ret;
 }
 
-static int scm_call2_atomic(uint32_t svc, uint32_t cmd, uint32_t arg1, uint32_t arg2)
+int scm_call2_atomic(uint32_t svc, uint32_t cmd, uint32_t arg1, uint32_t arg2)
 {
 	uint32_t ret = 0;
 	scmcall_arg scm_arg = {0};
