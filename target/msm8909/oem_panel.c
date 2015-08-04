@@ -319,6 +319,7 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		memcpy(phy_db->timing,
 				fl10802_fwvga_video_timings, TIMING_SIZE);
 		pinfo->mipi.signature = FL10802_FWVGA_VIDEO_SIGNATURE;
+		pinfo->mipi.cmds_post_tg = 1;
 		break;
 	case UNKNOWN_PANEL:
 	default:
