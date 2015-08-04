@@ -124,7 +124,6 @@ static uint32_t thulium_dsi_pll_enable_seq(uint32_t phy_base, uint32_t pll_base)
 static int thulium_wled_backlight_ctrl(uint8_t enable)
 {
 	qpnp_wled_enable_backlight(enable);
-	qpnp_ibb_enable(enable);
 	return NO_ERROR;
 }
 
@@ -243,8 +242,6 @@ int target_backlight_ctrl(struct backlight *bl, uint8_t enable)
 			pm_pwm_enable(false);
 			pm8x41_enable_mpp(&mpp, MPP_DISABLE);
 		}
-		/* Need delay before power on regulators */
-		mdelay(20);
 		/* Enable WLED backlight control */
 		ret = thulium_wled_backlight_ctrl(enable);
 		break;
@@ -260,8 +257,6 @@ int target_backlight_ctrl(struct backlight *bl, uint8_t enable)
 		} else {
 			pm8x41_enable_mpp(&mpp, MPP_DISABLE);
 		}
-		/* Need delay before power on regulators */
-		mdelay(20);
 		ret = thulium_pwm_backlight_ctrl(enable);
 		break;
 	default:
@@ -421,7 +416,7 @@ int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 		mdelay(10);
 		wled_init(pinfo);
 		qpnp_ibb_enable(true);	/* +5V and -5V */
-		mdelay(50);
+		mdelay(20);
 
 		if (pinfo->lcd_reg_en)
 			lcd_reg_enable();
