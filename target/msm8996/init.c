@@ -363,42 +363,6 @@ void target_serialno(unsigned char *buf)
 	}
 }
 
-unsigned check_reboot_mode(void)
-{
-	uint32_t restart_reason = 0;
-	uint32_t restart_reason_addr;
-
-	restart_reason_addr = RESTART_REASON_ADDR;
-
-	/* Read reboot reason and scrub it */
-	restart_reason = readl(restart_reason_addr);
-	writel(0x00, restart_reason_addr);
-
-	return restart_reason;
-}
-
-void reboot_device(unsigned reboot_reason)
-{
-	uint8_t reset_type = 0;
-
-	/* Write the reboot reason */
-	writel(reboot_reason, RESTART_REASON_ADDR);
-
-	if(reboot_reason)
-		reset_type = PON_PSHOLD_WARM_RESET;
-	else
-		reset_type = PON_PSHOLD_HARD_RESET;
-
-	pm8994_reset_configure(reset_type);
-
-	/* Drop PS_HOLD for MSM */
-	writel(0x00, MPM2_MPM_PS_HOLD);
-
-	mdelay(5000);
-
-	dprintf(CRITICAL, "Rebooting failed\n");
-}
-
 int emmc_recovery_init(void)
 {
 	return _emmc_recovery_init();
@@ -503,19 +467,7 @@ int set_download_mode(enum dload_mode mode)
 	return ret;
 }
 
-void shutdown_device()
+void pmic_reset_configure(uint8_t reset_type)
 {
-	dprintf(CRITICAL, "Going down for shutdown.\n");
-
-	/* Configure PMIC for shutdown. */
-	pm8994_reset_configure(PON_PSHOLD_SHUTDOWN);
-
-	/* Drop PS_HOLD for MSM */
-	writel(0x00, MPM2_MPM_PS_HOLD);
-
-	mdelay(5000);
-
-	dprintf(CRITICAL, "Shutdown failed\n");
-
-	ASSERT(0);
+	pm8994_reset_configure(reset_type);
 }
