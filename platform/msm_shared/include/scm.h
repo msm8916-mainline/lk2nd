@@ -465,4 +465,5 @@ int scm_dload_mode(int mode);
 int scm_device_enter_dload();
 int scm_call2_atomic(uint32_t svc, uint32_t cmd, uint32_t arg1, uint32_t arg2);
 uint32_t scm_io_write(uint32_t address, uint32_t val);
+int is_scm_call_available(uint32_t svc_id, uint32_t cmd_id);
 #endif
