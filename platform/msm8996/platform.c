@@ -41,16 +41,16 @@
 #define MSM_IOMAP_SIZE     ((MSM_IOMAP_END - MSM_IOMAP_BASE)/MB)
 #define MSM_SHARED_SIZE    2
 
-/* LK memory - cacheable, write back */
-#define LK_MEMORY         (MMU_MEMORY_TYPE_NORMAL_WRITE_BACK_ALLOCATE | \
+/* LK memory - cacheable, write through */
+#define LK_MEMORY         (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
                            MMU_MEMORY_AP_READ_WRITE)
 
 /* Peripherals - non-shared device */
 #define IOMAP_MEMORY      (MMU_MEMORY_TYPE_DEVICE_SHARED | \
                            MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN | MMU_MEMORY_PXN)
 
-/* SCRATCH memory - cacheable, write back */
-#define SCRATCH_MEMORY       (MMU_MEMORY_TYPE_NORMAL_WRITE_BACK_ALLOCATE | \
+/* SCRATCH memory - cacheable, write through */
+#define SCRATCH_MEMORY       (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
                            MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
 
 /* COMMON memory - cacheable, write through */
