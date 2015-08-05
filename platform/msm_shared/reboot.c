@@ -31,22 +31,12 @@
 #include <reg.h>
 #include <target.h>
 #include <platform.h>
-#include <uart_dm.h>
-#include <mmc.h>
-#include <dev/keys.h>
-#include <spmi_v2.h>
 #include <pm8x41.h>
-#include <board.h>
-#include <baseband.h>
-#include <hsusb.h>
+#include <pm8x41_hw.h>
 #include <scm.h>
-#include <platform/gpio.h>
-#include <platform/irqs.h>
-#include <platform/clock.h>
-#include <crypto5_wrapper.h>
-#include <partition_parser.h>
 #include <stdlib.h>
 #include <reboot.h>
+#include <qtimer.h>
 
 #if USER_FORCE_RESET_SUPPORT
 /* Return 1 if it is a force resin triggered by user. */
@@ -84,9 +74,9 @@ unsigned check_hard_reboot_mode(void)
 	/* Read reboot reason and scrub it
 	 * Bit-5, bit-6 and bit-7 of SOFT_RB_SPARE for hard reset reason
 	 */
-	value = pm8x41_reg_read(PON_SOFT_RB_SPARE);
+	value = REG_READ(PON_SOFT_RB_SPARE);
 	hard_restart_reason = value >> 5;
-	pm8x41_reg_write(PON_SOFT_RB_SPARE, value & 0x1f);
+	REG_WRITE(PON_SOFT_RB_SPARE, value & 0x1f);
 
 	return hard_restart_reason;
 }
@@ -109,7 +99,10 @@ uint32_t check_alarm_boot(void)
 void reboot_device(unsigned reboot_reason)
 {
 	uint8_t reset_type = 0;
-	uint32_t ret = 0;
+	int ret = 0;
+#if USE_PON_REBOOT_REG
+	uint8_t value;
+#endif
 
 	/* Need to clear the SW_RESET_ENTRY register and
 	 * write to the BOOT_MISC_REG for known reset cases
@@ -117,21 +110,35 @@ void reboot_device(unsigned reboot_reason)
 	if(reboot_reason != DLOAD)
 		scm_dload_mode(NORMAL_MODE);
 
+#if USE_PON_REBOOT_REG
+	value = REG_READ(PON_SOFT_RB_SPARE);
+	value |= ((reboot_reason << 5) & 0xff);
+	REG_WRITE(PON_SOFT_RB_SPARE, value);
+#else
 	writel(reboot_reason, RESTART_REASON_ADDR);
-
-	/* For Reboot-bootloader and Dload cases do a warm reset
-	 * For Reboot cases do a hard reset
+#endif
+	/* For Dload cases do a warm reset
+	 * For other cases do a hard reset
 	 */
-	if((reboot_reason == FASTBOOT_MODE) || (reboot_reason == DLOAD) || (reboot_reason == RECOVERY_MODE))
+#if USE_PON_REBOOT_REG
+	if(reboot_reason == DLOAD)
+#else
+	if(reboot_reason == FASTBOOT_MODE || (reboot_reason == DLOAD) || (reboot_reason == RECOVERY_MODE))
+#endif
 		reset_type = PON_PSHOLD_WARM_RESET;
 	else
 		reset_type = PON_PSHOLD_HARD_RESET;
 
-	pm8x41_reset_configure(reset_type);
+	pmic_reset_configure(reset_type);
 
-	ret = scm_halt_pmic_arbiter();
-	if (ret)
-		dprintf(CRITICAL , "Failed to halt pmic arbiter: %d\n", ret);
+	/* Force spmi shutdown to avoid spmi lock up on some pmics */
+	ret = is_scm_call_available(SCM_SVC_PWR, SCM_IO_DISABLE_PMIC_ARBITER);
+	if ( ret > 0)
+	{
+		ret = scm_halt_pmic_arbiter();
+		if (ret)
+			dprintf(CRITICAL , "Failed to halt pmic arbiter: %d\n", ret);
+	}
 
 	/* Drop PS_HOLD for MSM */
 	writel(0x00, MPM2_MPM_PS_HOLD);
@@ -141,3 +148,19 @@ void reboot_device(unsigned reboot_reason)
 	dprintf(CRITICAL, "Rebooting failed\n");
 }
 
+void shutdown_device()
+{
+	dprintf(CRITICAL, "Going down for shutdown.\n");
+
+	/* Configure PMIC for shutdown. */
+	pmic_reset_configure(PON_PSHOLD_SHUTDOWN);
+
+	/* Drop PS_HOLD for MSM */
+	writel(0x00, MPM2_MPM_PS_HOLD);
+
+	mdelay(5000);
+
+	dprintf(CRITICAL, "Shutdown failed\n");
+
+	ASSERT(0);
+}

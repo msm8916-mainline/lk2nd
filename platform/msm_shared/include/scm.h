@@ -459,4 +459,5 @@ int scm_dload_mode();
 
 /* Is armv8 supported */
 bool is_scm_armv8_support();
+int is_scm_call_available(uint32_t svc_id, uint32_t cmd_id);
 #endif

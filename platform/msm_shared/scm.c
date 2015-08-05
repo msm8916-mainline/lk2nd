@@ -60,7 +60,7 @@ bool is_scm_armv8_support()
 	return scm_arm_support;
 }
 
-static int is_scm_call_available(uint32_t svc_id, uint32_t cmd_id)
+int is_scm_call_available(uint32_t svc_id, uint32_t cmd_id)
 {
 	uint32_t ret;
 	scmcall_arg scm_arg = {0};
