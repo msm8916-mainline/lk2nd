@@ -33,10 +33,12 @@
 #include <reg.h>
 #include <wdog.h>
 #include <target.h>
+#include <scm.h>
+#include <dload_util.h>
 
 void msm_wdog_init()
 {
-	uint32_t rc;
+	uint32_t ret;
 
 	/* Set Bite and Bark times  10s */
 	writel(0x77FD3, APPS_WDOG_BARK_VAL_REG);
@@ -48,8 +50,13 @@ void msm_wdog_init()
 	/* Enable WDOG */
 	writel((readl(APPS_WDOG_CTL_REG) | 0x1), APPS_WDOG_CTL_REG);
 
-	/* Set dload mode */
-	rc = set_download_mode(NORMAL_DLOAD);
-	if(rc)
-		dprintf(CRITICAL, "set_download_mode failed\n");
+	/* Write to the Boot MISC register to put the device in dload mode*/
+	ret = scm_call2_atomic(SCM_SVC_BOOT, SCM_DLOAD_CMD, SCM_DLOAD_MODE, 0);
+
+	if (ret) {
+		ret = scm_io_write(TCSR_BOOT_MISC_DETECT,SCM_DLOAD_MODE);
+		if(ret) {
+			dprintf(CRITICAL, "Failed to write to boot misc: %d\n", ret);
+		}
+	}
 }

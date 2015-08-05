@@ -1513,7 +1513,7 @@ void write_device_info_mmc(device_info *dev)
 	if (ret)
 	{
 		dprintf(CRITICAL, "ERROR: Cannot write device info\n");
-		return;
+		ASSERT(0);
 	}
 }
 
@@ -1550,9 +1550,8 @@ void read_device_info_mmc(struct device_info *info)
 	if (ret)
 	{
 		dprintf(CRITICAL, "ERROR: Cannot read device info\n");
-		return;
+		ASSERT(0);
 	}
-
 }
 
 void write_device_info_flash(device_info *dev)
@@ -1722,8 +1721,10 @@ void write_device_info(device_info *dev)
 		memcpy(info, dev, sizeof(struct device_info));
 
 #if USE_RPMB_FOR_DEVINFO
-		if (is_secure_boot_enable())
-			write_device_info_rpmb((void*) info, PAGE_SIZE);
+		if (is_secure_boot_enable()) {
+			if((write_device_info_rpmb((void*) info, PAGE_SIZE)) < 0)
+				ASSERT(0);
+		}
 		else
 			write_device_info_mmc(info);
 #else
@@ -1750,8 +1751,10 @@ void read_device_info(device_info *dev)
 		info_buf = info;
 
 #if USE_RPMB_FOR_DEVINFO
-		if (is_secure_boot_enable())
-			read_device_info_rpmb((void*) info, PAGE_SIZE);
+		if (is_secure_boot_enable()) {
+			if((read_device_info_rpmb((void*) info, PAGE_SIZE)) < 0)
+				ASSERT(0);
+		}
 		else
 			read_device_info_mmc(info);
 #else

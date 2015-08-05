@@ -248,16 +248,6 @@ void target_init(void)
 	/* Initialize Glink */
 	rpm_glink_init();
 
-#if ENABLE_WBC
-	/* Look for battery voltage and make sure we have enough to bootup
-	 * Otherwise initiate battery charging
-	 * Charging should happen as early as possible, any other driver
-	 * initialization before this should consider the power impact
-	 */
-	if (board_hardware_id() == HW_PLATFORM_MTP)
-		pm_appsbl_chg_check_weak_battery_status(1);
-#endif
-
 	target_keystatus();
 
 	if (target_use_signed_kernel())
@@ -281,6 +271,16 @@ void target_init(void)
 
 	/* Storage initialization is complete, read the partition table info */
 	mmc_read_partition_table(0);
+
+#if ENABLE_WBC
+	/* Look for battery voltage and make sure we have enough to bootup
+	 * Otherwise initiate battery charging
+	 * Charging should happen as early as possible, any other driver
+	 * initialization before this should consider the power impact
+	 */
+	if (board_hardware_id() == HW_PLATFORM_MTP)
+		pm_appsbl_chg_check_weak_battery_status(1);
+#endif
 
 	if (rpmb_init() < 0)
 	{
