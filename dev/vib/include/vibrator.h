@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -29,6 +29,8 @@
 #define __DEV_VIB_VIBRATOR_H
 
 #define VIB_TIMER_DEFAULT_TIMEOUT   250
+#define VIB_LRA_TYPE 0x00
+#define VIB_ERM_TYPE 0x01
 
 void vib_turn_on(void);
 void vib_turn_off(void);

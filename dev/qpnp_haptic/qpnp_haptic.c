@@ -29,6 +29,8 @@
 #include <spmi.h>
 #include <platform/iomap.h>
 #include <pm_vib.h>
+#include <target.h>
+#include <vibrator.h>
 
 #define HAPTIC_BASE (PMI_ADDR_BASE+ 0xC000)
 #define QPNP_HAP_EN_CTL_REG (HAPTIC_BASE + 0x46)
@@ -71,6 +73,7 @@
 #define QPNP_HAP_BRAKE_VMAX_MASK 0xFF
 #define QPNP_HAP_BRAKE_VMAX 0xF
 #define QPNP_HAP_ERM 0x1
+#define QPNP_HAP_LRA 0x0
 #define QPNP_HAP_PLAY_MASK 0x80
 #define QPNP_HAP_PLAY_EN 0x80
 #define QPNP_HAP_MASK 0x80
@@ -84,17 +87,23 @@
 /* Turn on vibrator */
 void pm_vib_turn_on(void)
 {
+	uint32_t vib_type = VIB_ERM_TYPE;
+	vib_type = get_vibration_type();
 	/* Configure the ACTUATOR TYPE register as ERM*/
 	pmic_spmi_reg_mask_write(QPNP_HAP_ACT_TYPE_REG,
-					QPNP_HAP_ACT_TYPE_MASK, QPNP_HAP_ERM);
+					QPNP_HAP_ACT_TYPE_MASK,
+					VIB_ERM_TYPE == vib_type ? QPNP_HAP_ERM
+					: QPNP_HAP_LRA);
 
 	/* Disable auto resonance for ERM */
 	pmic_spmi_reg_mask_write(QPNP_HAP_LRA_AUTO_RES_REG,
-					QPNP_HAP_LRA_AUTO_MASK, QPNP_HAP_LRA_AUTO_DISABLE);
+					QPNP_HAP_LRA_AUTO_MASK,
+					QPNP_HAP_LRA_AUTO_DISABLE);
 
 	/* Configure the PLAY MODE register as direct*/
 	pmic_spmi_reg_mask_write(QPNP_HAP_PLAY_MODE_REG,
-					QPNP_HAP_PLAY_MODE_MASK, QPNP_HAP_DIRECT);
+					QPNP_HAP_PLAY_MODE_MASK,
+					QPNP_HAP_DIRECT);
 
 	/* Configure the VMAX register */
 	pmic_spmi_reg_mask_write(QPNP_HAP_VMAX_REG,

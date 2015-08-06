@@ -28,6 +28,11 @@
 #include <compiler.h>
 #include <dload_util.h>
 #include <sdhci_msm.h>
+#if PON_VIB_SUPPORT
+#include <smem.h>
+#include <vibrator.h>
+#include <board.h>
+#endif
 
 #define EXPAND(NAME) #NAME
 #define TARGET(NAME) EXPAND(NAME)
@@ -220,6 +225,31 @@ __WEAK uint32_t target_ddr_cfg_val()
 {
 	return DDR_CONFIG_VAL;
 }
+
+#if PON_VIB_SUPPORT
+uint32_t get_vibration_type()
+{
+	uint32_t ret = VIB_ERM_TYPE;
+	uint32_t hw_id = board_hardware_id();
+	uint32_t platform = board_platform_id();
+	switch(hw_id){
+	case HW_PLATFORM_MTP:
+		switch(platform){
+		case MSM8952:
+			ret = VIB_ERM_TYPE;
+			break;
+		case MSM8976:
+			ret = VIB_LRA_TYPE;
+			break;
+		}
+		break;
+	case HW_PLATFORM_QRD:
+		ret = VIB_ERM_TYPE;
+		break;
+	}
+	return ret;
+}
+#endif
 
 /* Return Build variant */
 __WEAK bool target_build_variant_user()
