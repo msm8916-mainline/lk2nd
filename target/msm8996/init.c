@@ -18,7 +18,8 @@
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT
  * ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS
  * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, nit
+ * PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
  * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
@@ -56,6 +57,7 @@
 #include <qmp_phy.h>
 #include <sdhci_msm.h>
 #include <qusb2_phy.h>
+#include <secapp_loader.h>
 #include <rpmb.h>
 #include <rpm-glink.h>
 #if ENABLE_WBC
@@ -143,7 +145,7 @@ void target_uninit(void)
 
 	if (is_sec_app_loaded())
 	{
-		if (unload_sec_app() < 0)
+		if (send_milestone_call_to_tz() < 0)
 		{
 			dprintf(CRITICAL, "Failed to unload App for rpmb\n");
 			ASSERT(0);
@@ -239,6 +241,7 @@ void *target_mmc_device()
 
 void target_init(void)
 {
+	int ret = 0;
 	dprintf(INFO, "target_init()\n");
 
 	pmic_info_populate();
@@ -281,6 +284,33 @@ void target_init(void)
 	if (board_hardware_id() == HW_PLATFORM_MTP)
 		pm_appsbl_chg_check_weak_battery_status(1);
 #endif
+
+	/* Initialize Qseecom */
+	ret = qseecom_init();
+
+	if (ret < 0)
+	{
+		dprintf(CRITICAL, "Failed to initialize qseecom, error: %d\n", ret);
+		ASSERT(0);
+	}
+
+	/* Start Qseecom */
+	ret = qseecom_tz_init();
+
+	if (ret < 0)
+	{
+		dprintf(CRITICAL, "Failed to start qseecom, error: %d\n", ret);
+		ASSERT(0);
+	}
+
+	/*
+	 * Load the sec app for first time
+	 */
+	if (load_sec_app() < 0)
+	{
+		dprintf(CRITICAL, "Failed to load App for verified\n");
+		ASSERT(0);
+	}
 
 	if (rpmb_init() < 0)
 	{
