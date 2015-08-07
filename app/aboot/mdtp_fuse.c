@@ -32,12 +32,11 @@
 #include <partition_parser.h>
 #include <string.h>
 #include <stdlib.h>
-
+#include <reg.h>
 #include "mdtp.h"
 #include "scm.h"
 
 #define MAX_METADATA_SIZE       (0x1000)
-#define QFPROM_ADDR_SPACE_RAW   (0)
 
 /********************************************************************************/
 
@@ -156,21 +155,12 @@ static int read_metadata(metadata_t *metadata)
  */
 static int read_QFPROM_fuse(uint8_t *mask)
 {
-	static const uint32_t row_address = MDTP_EFUSE_ADDRESS;
-	uint32_t addr_type = QFPROM_ADDR_SPACE_RAW;
-	uint32_t row_data[2] = {0};
-	uint32_t qfprom_api_status = 0;
+	uint32_t val = 0;
 
-	/* Read the current row where the eFuse is located */
-	(void) qfprom_read_row_cmd(row_address, addr_type, row_data, &qfprom_api_status);
-	if (qfprom_api_status)
-	{
-			dprintf(CRITICAL, "mdtp: write_QFPROM_fuse: qsee_fuse_read failed. qfprom_api_status=%d", qfprom_api_status);
-			return -1;
-	}
+	val = readl(MDTP_EFUSE_ADDRESS);
 
 	/* Shift the read data to be reflected in mask */
-	*mask = (uint8_t)(row_data[0] >> MDTP_EFUSE_START);
+	*mask = (uint8_t)(val >> MDTP_EFUSE_START);
 
 	return 0;
 }
