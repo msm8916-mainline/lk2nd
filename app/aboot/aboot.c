@@ -81,6 +81,7 @@ extern int get_target_boot_params(const char *cmdline, const char *part,
 void write_device_info_mmc(device_info *dev);
 void write_device_info_flash(device_info *dev);
 static int aboot_save_boot_hash_mmc(uint32_t image_addr, uint32_t image_size);
+extern void display_fbcon_message(char *str);
 
 /* fastboot command function pointer */
 typedef void (*fastboot_cmd_fn) (const char *, void *, unsigned);
@@ -2535,7 +2536,7 @@ void cmd_oem_unlock(const char *arg, void *data, unsigned sz)
 		fastboot_fail("oem unlock is not allowed");
 		return;
 	}
-	dputs(CRITICAL,"oem unlock is been issued\n");
+	display_fbcon_message("oem unlock is been issue");
 	fastboot_fail("Need wipe userdata. Do 'fastboot oem unlock-go'");
 }
 
