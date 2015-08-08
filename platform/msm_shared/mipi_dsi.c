@@ -389,6 +389,14 @@ int mdss_dsi_host_init(struct mipi_panel_info *mipi, uint32_t
 			tmp |= BIT(28);
 			writel(tmp, mipi->sctl_base + LANE_CTL);
 		}
+
+		if ((mipi->mode == DSI_CMD_MODE) &&
+				(readl(mipi->sctl_base) >= DSI_HW_REV_103)) {
+			uint32_t tmp;
+			tmp = readl(mipi->sctl_base + 0x01b8);
+			tmp |= BIT(16); /* enable burst mode */
+			writel(tmp, mipi->sctl_base + 0x01b8);
+		}
 	}
 
 	writel(0x0001, mipi->ctl_base + SOFT_RESET);
@@ -412,6 +420,14 @@ int mdss_dsi_host_init(struct mipi_panel_info *mipi, uint32_t
 		tmp = readl(mipi->ctl_base + LANE_CTL);
 		tmp |= BIT(28);
 		writel(tmp, mipi->ctl_base + LANE_CTL);
+	}
+
+	if ((mipi->mode == DSI_CMD_MODE) &&
+			(readl(mipi->ctl_base) >= DSI_HW_REV_103)) {
+		uint32_t tmp;
+		tmp = readl(mipi->ctl_base + 0x01b8);
+		tmp |= BIT(16); /* enable burst mode */
+		writel(tmp, mipi->ctl_base + 0x01b8);
 	}
 
 	if ((mipi->mode == DSI_VIDEO_MODE) && mipi->tx_eot_append)
