@@ -165,8 +165,8 @@ void target_init(void)
 	qpic_nand_init(&config);
 
 	ptable_init(&flash_ptable);
-	//smem_ptable_init();
-	//smem_add_modem_partitions(&flash_ptable);
+	smem_ptable_init();
+	smem_add_modem_partitions(&flash_ptable);
 
 	update_ptable_names();
 	flash_set_ptable(&flash_ptable);
@@ -241,7 +241,7 @@ void target_usb_init(void)
 	uint32_t val;
 
 	/* Select and enable external configuration with USB PHY */
-	//ulpi_write(ULPI_MISC_A_VBUSVLDEXTSEL | ULPI_MISC_A_VBUSVLDEXT, ULPI_MISC_A_SET);
+	ulpi_write(ULPI_MISC_A_VBUSVLDEXTSEL | ULPI_MISC_A_VBUSVLDEXT, ULPI_MISC_A_SET);
 
 	/* Enable sess_vld */
 	val = readl(USB_GENCONFIG_2) | GEN2_SESS_VLD_CTRL_EN;
