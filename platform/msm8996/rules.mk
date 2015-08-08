@@ -4,7 +4,7 @@ ARCH    := arm
 ARM_CPU := cortex-a8
 CPU     := generic
 
-DEFINES += ARM_CPU_CORE_KRYO
+DEFINES += ARM_CPU_CORE_KRAIT
 
 MMC_SLOT         := 1
 
