@@ -92,3 +92,5 @@ endif
 
 #Enable the external reboot functions
 ENABLE_REBOOT_MODULE := 1
+#Use PON register for reboot reason
+DEFINES += USE_PON_REBOOT_REG=1
