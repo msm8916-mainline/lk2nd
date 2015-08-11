@@ -39,10 +39,50 @@
 #define UBI_MAGIC      "UBI#"
 #define UBI_MAGIC_SIZE 0x04
 
-inline int flash_ubi_img(struct ptentry *ptn, void *data, unsigned size)
-{
-	dprintf(CRITICAL, "ERROR: flash_ubi_img not yet implemented\n");
-	dprintf(CRITICAL, "falling back to flash_write\n");
-	return flash_write(ptn, 0, data, size);
-}
+#define UBI_VERSION 1
+#define UBI_MAX_ERASECOUNTER 0x7FFFFFFF
+#define UBI_IMAGE_SEQ_BASE 0x12345678
+#define UBI_DEF_ERACE_COUNTER 0
+#define UBI_CRC32_INIT 0xFFFFFFFFU
+
+/* Erase counter header fields */
+struct __attribute__ ((packed)) ubi_ec_hdr {
+	uint32_t  magic;
+	uint8_t   version;
+	uint8_t   padding1[3];
+	uint64_t  ec; /* Warning: the current limit is 31-bit anyway! */
+	uint32_t  vid_hdr_offset;
+	uint32_t  data_offset;
+	uint32_t  image_seq;
+	uint8_t   padding2[32];
+	uint32_t  hdr_crc;
+};
+
+#define UBI_EC_HDR_SIZE  sizeof(struct ubi_ec_hdr)
+#define UBI_EC_HDR_SIZE_CRC  (UBI_EC_HDR_SIZE  - sizeof(uint32_t))
+
+/**
+ * struct ubi_scan_info - UBI scanning information.
+ * @ec: erase counters or eraseblock status for all eraseblocks
+ * @mean_ec: mean erase counter
+ * @bad_cnt: count of bad eraseblocks
+ * @good_cnt: count of non-bad eraseblocks
+ * @empty_cnt: count of empty eraseblocks
+ * @vid_hdr_offs: volume ID header offset from the found EC headers (%-1 means
+ *                undefined)
+ * @data_offs: data offset from the found EC headers (%-1 means undefined)
+ * @image_seq: image sequence
+ */
+struct ubi_scan_info {
+	uint64_t *ec;
+	uint64_t mean_ec;
+	int bad_cnt;
+	int good_cnt;
+	int empty_cnt;
+	unsigned vid_hdr_offs;
+	unsigned data_offs;
+	uint32_t  image_seq;
+};
+
+int flash_ubi_img(struct ptentry *ptn, void *data, unsigned size);
 #endif
