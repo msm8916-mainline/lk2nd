@@ -441,7 +441,13 @@ static uint8_t sdhci_cmd_complete(struct sdhci_host *host, struct mmc_command *c
 
 		if (int_status  & SDHCI_INT_STS_CMD_COMPLETE)
 			break;
-		else if (int_status & SDHCI_ERR_INT_STAT_MASK && !host->tuning_in_progress)
+		/*
+		* Some controllers set the data timout first on issuing an erase & take time
+		* to set data complete interrupt. We need to wait hoping the controller would
+		* set data complete
+		*/
+		else if (int_status & SDHCI_ERR_INT_STAT_MASK && !host->tuning_in_progress &&
+				!((REG_READ16(host, SDHCI_ERR_INT_STS_REG) & SDHCI_DAT_TIMEOUT_MASK)))
 			goto err;
 
 		/*
