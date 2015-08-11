@@ -57,6 +57,10 @@
 #define COMMON_MEMORY       (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
                            MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
 
+/* downlaod mode memory - cacheable, write through */
+#define DLOAD_MEMORY       (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
+                           MMU_MEMORY_AP_READ_ONLY | MMU_MEMORY_XN)
+
 static uint64_t ddr_start;
 
 static mmu_section_t default_mmu_section_table[] =
@@ -77,10 +81,12 @@ static mmu_section_t default_mmu_section_table_3gb[] =
 };
 
 
+/* Map the ddr for download mode, this region belongs to non-hlos images and pil */
 static mmu_section_t dload_mmu_section_table[] =
 {
-/*    Physical addr,    Virtual addr,     Mapping type ,              Size (in MB),            Flags */
-    { 0x85800000, 0x85800000, MMU_L2_NS_SECTION_MAPPING, 178, COMMON_MEMORY},
+/*    Physical addr,    Virtual addr,     Mapping type ,              Size (in MB),      Flags */
+    { 0x85800000,       0x85800000,       MMU_L2_NS_SECTION_MAPPING,  8,                 DLOAD_MEMORY},
+    { 0x86200000,       0x86200000,       MMU_L2_NS_SECTION_MAPPING,  174,               DLOAD_MEMORY},
 };
 
 void platform_early_init(void)
@@ -119,14 +125,23 @@ void platform_init_mmu_mappings(void)
 	int table_sz = ARRAY_SIZE(default_mmu_section_table);
 	mmu_section_t kernel_mmu_section_table;
 	uint64_t ddr_size = smem_get_ddr_size();
+	uint32_t kernel_size = 0;
 
 	if (ddr_size == MEM_4GB)
 	{
 		ddr_start = 0x80000000;
+		/* As per the memory map when DDR is 4GB first 88 MB is hlos memory
+		 * use this for loading the kernel
+		 */
+		kernel_size = 88;
 	}
 	else if (ddr_size == MEM_3GB)
 	{
 		ddr_start = 0x20000000;
+		/* As per memory map wheh DDR is 3GB the first 512 MB is assigned to hlos
+		 * use this region for loading kernel
+		 */
+		kernel_size = 512;
 	}
 	else
 	{
@@ -137,8 +152,8 @@ void platform_init_mmu_mappings(void)
 	kernel_mmu_section_table.paddress = ddr_start;
 	kernel_mmu_section_table.vaddress = ddr_start;
 	kernel_mmu_section_table.type = MMU_L2_NS_SECTION_MAPPING;
-	kernel_mmu_section_table.size = KERNEL_SIZE;
-	kernel_mmu_section_table.flags = COMMON_MEMORY;
+	kernel_mmu_section_table.size = kernel_size;
+	kernel_mmu_section_table.flags = SCRATCH_MEMORY;
 
 	/* Map kernel entry */
 	arm_mmu_map_entry(&kernel_mmu_section_table);
