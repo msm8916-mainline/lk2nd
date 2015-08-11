@@ -761,6 +761,8 @@ int mdss_dsi_config(struct msm_fb_panel_data *panel)
 	if (!panel)
 		return ERR_INVALID_ARGS;
 
+	memset(&mipi_pinfo, 0, sizeof(mipi_pinfo));
+
 	pinfo = &(panel->panel_info);
 	mipi_pinfo.mode = pinfo->mipi.mode;
 	mipi_pinfo.num_of_lanes = pinfo->mipi.num_of_lanes;
