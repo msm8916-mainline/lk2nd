@@ -1084,7 +1084,7 @@ pm_err_flag_type  pm_smbchg_chgr_set_chg_polarity_low (uint32 device_index, bool
       pm_register_address_type chgr_cfg2 = smbchg_ptr->smbchg_register->chgr_register->base_address + smbchg_ptr->smbchg_register->chgr_register->chgr_cfg2;
 
       err_flag = pm_smbchg_chgr_unlock_perph_write(smbchg_ptr);
-      err_flag |= pm_comm_write_byte_mask(smbchg_ptr->comm_ptr->slave_id, chgr_cfg2, 0x40, chg_pol_low, 0);
+      err_flag |= pm_comm_write_byte_mask(smbchg_ptr->comm_ptr->slave_id, chgr_cfg2, 0x40, (chg_pol_low ? 0x40 : 0), 0);
    }
 
    return err_flag;
