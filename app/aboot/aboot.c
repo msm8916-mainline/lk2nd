@@ -40,6 +40,7 @@
 #include <arch/ops.h>
 
 #include <dev/flash.h>
+#include <dev/flash-ubi.h>
 #include <lib/ptable.h>
 #include <dev/keys.h>
 #include <dev/fbcon.h>
@@ -118,9 +119,7 @@ struct fastboot_cmd_desc {
 #define DEFAULT_ERASE_SIZE  4096
 #define MAX_PANEL_BUF_SIZE 128
 
-#define UBI_MAGIC      "UBI#"
 #define DISPLAY_DEFAULT_PREFIX "mdss_mdp"
-#define UBI_MAGIC_SIZE 0x04
 #define BOOT_DEV_MAX_LEN  64
 
 #define IS_ARM64(ptr) (ptr->magic_64 == KERNEL64_HDR_MAGIC) ? true : false
@@ -2481,19 +2480,21 @@ void cmd_flash_nand(const char *arg, void *data, unsigned sz)
 		|| !strcmp(ptn->name, "persist")
 		|| !strcmp(ptn->name, "recoveryfs")
 		|| !strcmp(ptn->name, "modem"))
-	{
-		if (memcmp((void *)data, UBI_MAGIC, UBI_MAGIC_SIZE))
-			extra = 1;
-		else
-			extra = 0;
-	}
+		extra = 1;
 	else
 		sz = ROUND_TO_PAGE(sz, page_mask);
 
 	dprintf(INFO, "writing %d bytes to '%s'\n", sz, ptn->name);
-	if (flash_write(ptn, extra, data, sz)) {
-		fastboot_fail("flash write failure");
-		return;
+	if (!memcmp((void *)data, UBI_MAGIC, UBI_MAGIC_SIZE)) {
+		if (flash_ubi_img(ptn, data, sz)) {
+			fastboot_fail("flash write failure");
+			return;
+		}
+	} else {
+		if (flash_write(ptn, extra, data, sz)) {
+			fastboot_fail("flash write failure");
+			return;
+		}
 	}
 	dprintf(INFO, "partition '%s' updated\n", ptn->name);
 	fastboot_okay("");
