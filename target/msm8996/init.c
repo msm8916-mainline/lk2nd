@@ -63,7 +63,7 @@
 #endif
 
 #define CE_INSTANCE             1
-#define CE_EE                   1
+#define CE_EE                   0
 #define CE_FIFO_SIZE            64
 #define CE_READ_PIPE            3
 #define CE_WRITE_PIPE           2
@@ -154,6 +154,13 @@ void target_uninit(void)
 	if (board_hardware_id() == HW_PLATFORM_MTP)
 		pm_appsbl_set_dcin_suspend(1);
 #endif
+
+
+	if (crypto_initialized())
+	{
+		crypto_eng_cleanup();
+		clock_ce_disable(CE_INSTANCE);
+	}
 
 	/* Tear down glink channels */
 	rpm_glink_uninit();
@@ -441,7 +448,7 @@ uint32_t target_override_pll()
 
 crypto_engine_type board_ce_type(void)
 {
-	return CRYPTO_ENGINE_TYPE_SW;
+	return CRYPTO_ENGINE_TYPE_HW;
 }
 
 /* Set up params for h/w CE. */
