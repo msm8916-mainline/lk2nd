@@ -390,21 +390,6 @@ unsigned board_machtype(void)
 	return LINUX_MACHTYPE_UNKNOWN;
 }
 
-/* Configure PMIC and Drop PS_HOLD for shutdown */
-void shutdown_device()
-{
-	dprintf(CRITICAL, "Going down for shutdown.\n");
-
-	/* Configure PMIC for shutdown */
-	pm8x41_reset_configure(PON_PSHOLD_SHUTDOWN);
-
-	/* Drop PS_HOLD for MSM */
-	writel(0x00, MPM2_MPM_PS_HOLD);
-
-	mdelay(5000);
-
-}
-
 /* Detect the target type */
 void target_detect(struct board_data *board)
 {
@@ -702,4 +687,9 @@ void target_crypto_init_params()
 uint32_t target_get_hlos_subtype()
 {
 	return board_hlos_subtype();
+}
+
+void pmic_reset_configure(uint8_t reset_type)
+{
+	pm8x41_reset_configure(reset_type);
 }

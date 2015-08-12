@@ -521,6 +521,7 @@ ifeq ($(PLATFORM),mdmfermium)
 			$(LOCAL_DIR)/spmi.o \
 			$(LOCAL_DIR)/bam.o \
 			$(LOCAL_DIR)/qpic_nand.o \
+			$(LOCAL_DIR)/flash-ubi.o \
 			$(LOCAL_DIR)/scm.o \
 			$(LOCAL_DIR)/dev_tree.o
 endif
@@ -616,10 +617,11 @@ ifeq ($(ENABLE_PARTIAL_GOODS_SUPPORT), 1)
 	OBJS += $(LOCAL_DIR)/partial_goods.o
 endif
 
-ifeq ($(ENABLE_RPMB_SUPPORT), 1)
-include platform/msm_shared/rpmb/rules.mk
-endif
 
 ifeq ($(ENABLE_REBOOT_MODULE), 1)
 	OBJS += $(LOCAL_DIR)/reboot.o
+endif
+
+ifeq ($(ENABLE_RPMB_SUPPORT), 1)
+include platform/msm_shared/rpmb/rules.mk
 endif

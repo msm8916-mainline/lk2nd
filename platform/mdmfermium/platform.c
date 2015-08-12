@@ -37,9 +37,11 @@
 
 void platform_early_init(void)
 {
+	board_init();
+	platform_clock_init();
 	qgic_init();
 	qtimer_init();
-//	scm_init();
+	scm_init();
 }
 
 void platform_init(void)
@@ -50,6 +52,7 @@ void platform_init(void)
 void platform_uninit(void)
 {
 	qtimer_uninit();
+	qpic_nand_uninit();
 }
 
 uint32_t platform_get_sclk_count(void)

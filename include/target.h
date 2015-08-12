@@ -86,4 +86,5 @@ void ulpi_write(unsigned val, unsigned reg);
 void target_crypto_init_params(void);
 int target_cont_splash_screen(void);
 bool target_build_variant_user();
+void pmic_reset_configure(uint8_t reset_type);
 #endif
