@@ -501,6 +501,16 @@ int gcdb_display_init(const char *panel_name, uint32_t rev, void *base)
 		}
 	}
 
+	if (panelstruct.config && panelstruct.config->use_pingpong_split)
+		panelstruct.paneldata->panel_operating_mode |= DST_SPLIT_FLAG;
+
+	if ((panelstruct.paneldata->panel_operating_mode & DUAL_PIPE_FLAG) &&
+	    (panelstruct.paneldata->panel_operating_mode & DST_SPLIT_FLAG)) {
+		dprintf(CRITICAL, "DUAL_PIPE_FLAG and DST_SPLIT_FLAG cannot be selected togather\n");
+		ret = ERROR;
+		goto error_gcdb_display_init;
+	}
+
 	if (pan_type == PANEL_TYPE_DSI) {
 		target_dsi_phy_config(&dsi_video_mode_phy_db);
 		mdss_dsi_check_swap_status();

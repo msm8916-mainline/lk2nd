@@ -230,6 +230,7 @@ struct topology_config {
 	int lm_split[2];
 	int num_dsc_enc; /* how many encoder to use */
 	struct dsc_parameters *dsc;
+	int use_pingpong_split;
 };
 
 #endif /*_PANEL_H_ */

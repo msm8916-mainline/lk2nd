@@ -93,10 +93,12 @@ static uint32_t mdss_mdp_get_ppb_offset()
 
 	/* return MMSS_MDP_PPB0_CONFIG offset from MDSS base */
 	if ((mdss_mdp_rev == MDSS_MDP_HW_REV_108) ||
-		(mdss_mdp_rev == MDSS_MDP_HW_REV_111))
+	    (mdss_mdp_rev == MDSS_MDP_HW_REV_111))
 		mdss_mdp_ppb_off = 0x1420;
 	else if (mdss_mdp_rev == MDSS_MDP_HW_REV_110)
 		mdss_mdp_ppb_off = 0x1334;
+	else if (MDSS_IS_MAJOR_MINOR_MATCHING(mdss_mdp_rev, MDSS_MDP_HW_REV_107))
+		mdss_mdp_ppb_off = 0x1330;
 	else
 		dprintf(CRITICAL,"Invalid PPB0_CONFIG offset\n");
 
@@ -523,10 +525,10 @@ static void mdss_intf_tg_setup(struct msm_panel_info *pinfo, uint32_t intf_base)
 		}
 	}
 
-	if (pinfo->lcdc.dst_split &&  (intf_base == (MDP_INTF_1_BASE + mdss_mdp_intf_offset()))) {
+	if (pinfo->lcdc.dst_split && (intf_base == (MDP_INTF_1_BASE + mdss_mdp_intf_offset()))) {
 		uint32_t ppb_offset = mdss_mdp_get_ppb_offset();
-		writel(BIT(16), REG_MDP(ppb_offset + 0x4)); /* MMSS_MDP_PPB0_CNTL */
-		writel(BIT(5), REG_MDP(ppb_offset)); /* MMSS_MDP_PPB0_CONFIG */
+		writel(BIT(5), REG_MDP(ppb_offset)); /* MMSS_MDP_PPB0_CNTL */
+		writel(BIT(16) | (0x3 << 20), REG_MDP(ppb_offset + 0x4)); /* MMSS_MDP_PPB0_CONFIG */
 	}
 
 	if (pinfo->compression_mode == COMPRESSION_FBC)
@@ -1140,8 +1142,8 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 
 	if (pinfo->lcdc.dst_split) {
 		uint32_t ppb_offset = mdss_mdp_get_ppb_offset();
-		writel(BIT(16) | BIT(20) | BIT(21), REG_MDP(ppb_offset + 0x4)); /* MMSS_MDP_PPB0_CNTL */
-		writel(BIT(5), REG_MDP(ppb_offset)); /* MMSS_MDP_PPB0_CONFIG */
+		writel(BIT(5), REG_MDP(ppb_offset)); /* MMSS_MDP_PPB0_CNTL */
+		writel(BIT(16) | (0x3 << 20), REG_MDP(ppb_offset + 0x4)); /* MMSS_MDP_PPB0_CONFIG */
 	}
 
 	mdp_clk_gating_ctrl();
