@@ -153,6 +153,32 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 			MAX_TIMING_CONFIG * sizeof(uint32_t));
 		pinfo->dfps.panel_dfps = sharp_wqxga_dualdsi_video_dfps;
 		pinfo->mipi.tx_eot_append = true;
+
+		/*
+		 * remove DUAL_PIPE_FLAG because on this target for this panel,
+		 * it will be added based on one of the selected configurations.
+		 */
+		panelstruct->paneldata->panel_operating_mode &= ~DUAL_PIPE_FLAG;
+		panelstruct->config = &sharp_wqxga_dualdsi_video_config0;
+		if (oem_data) {
+			switch (oem_data->cfg_num[0]) {
+			case -1: /* default */
+			case 0:
+				panelstruct->config =
+					&sharp_wqxga_dualdsi_video_config0;
+				break;
+			case 1:
+				panelstruct->config =
+					&sharp_wqxga_dualdsi_video_config1;
+				break;
+			default:
+				dprintf(CRITICAL, "topology config%d not supported. fallback to default config0\n",
+					oem_data->cfg_num[0]);
+				panelstruct->config = &sharp_wqxga_dualdsi_video_config0;
+			}
+		}
+		pinfo->lm_split[0] = panelstruct->config->lm_split[0];
+		pinfo->lm_split[1] = panelstruct->config->lm_split[1];
 		break;
 	case NT35597_WQXGA_DUALDSI_VIDEO_PANEL:
 		pan_type = PANEL_TYPE_DSI;
@@ -184,6 +210,32 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 			nt35597_wqxga_dualdsi_thulium_video_timings,
 			MAX_TIMING_CONFIG * sizeof(uint32_t));
 		pinfo->mipi.tx_eot_append = true;
+
+		/*
+		 * remove DUAL_PIPE_FLAG because on this target for this panel,
+		 * it will be added based on one of the selected configurations.
+		 */
+		panelstruct->paneldata->panel_operating_mode &= ~DUAL_PIPE_FLAG;
+		panelstruct->config = &nt35597_wqxga_dualdsi_video_config0;
+		if (oem_data) {
+			switch (oem_data->cfg_num[0]) {
+			case -1: /* default */
+			case 0:
+				panelstruct->config =
+					&nt35597_wqxga_dualdsi_video_config0;
+				break;
+			case 1:
+				panelstruct->config =
+					&nt35597_wqxga_dualdsi_video_config1;
+				break;
+			default:
+				dprintf(CRITICAL, "topology config%d not supported. fallback to default config0\n",
+					oem_data->cfg_num[0]);
+				panelstruct->config = &nt35597_wqxga_dualdsi_video_config0;
+			}
+		}
+		pinfo->lm_split[0] = panelstruct->config->lm_split[0];
+		pinfo->lm_split[1] = panelstruct->config->lm_split[1];
 		break;
 	case NT35597_WQXGA_DUALDSI_CMD_PANEL:
 		pan_type = PANEL_TYPE_DSI;
@@ -215,6 +267,32 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 			nt35597_wqxga_dualdsi_thulium_cmd_timings,
 			MAX_TIMING_CONFIG * sizeof(uint32_t));
 		pinfo->mipi.tx_eot_append = true;
+
+		/*
+		 * remove DUAL_PIPE_FLAG because on this target for this panel,
+		 * it will be added based on one of the selected configurations.
+		 */
+		panelstruct->paneldata->panel_operating_mode &= ~DUAL_PIPE_FLAG;
+		panelstruct->config = &nt35597_wqxga_dualdsi_cmd_config0;
+		if (oem_data) {
+			switch (oem_data->cfg_num[0]) {
+			case -1: /* default */
+			case 0:
+				panelstruct->config =
+					&nt35597_wqxga_dualdsi_cmd_config0;
+				break;
+			case 1:
+				panelstruct->config =
+					&nt35597_wqxga_dualdsi_cmd_config1;
+				break;
+			default:
+				dprintf(CRITICAL, "topology config%d not supported. fallback to default config0\n",
+					oem_data->cfg_num[0]);
+				panelstruct->config = &nt35597_wqxga_dualdsi_cmd_config0;
+			}
+		}
+		pinfo->lm_split[0] = panelstruct->config->lm_split[0];
+		pinfo->lm_split[1] = panelstruct->config->lm_split[1];
 		break;
 	case NT35597_WQXGA_DSC_VIDEO_PANEL:
 		pan_type = PANEL_TYPE_DSI;
