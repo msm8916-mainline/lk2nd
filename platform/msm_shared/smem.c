@@ -2,7 +2,7 @@
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2014, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -32,10 +32,29 @@
 #include <reg.h>
 #include <sys/types.h>
 #include <platform/iomap.h>
+#include <board.h>
 
 #include "smem.h"
 
 static struct smem *smem;
+
+const char *hw_platform[] = {
+	[HW_PLATFORM_UNKNOWN] = "Unknown",
+	[HW_PLATFORM_SURF] = "Surf",
+	[HW_PLATFORM_FFA] = "FFA",
+	[HW_PLATFORM_FLUID] = "Fluid",
+	[HW_PLATFORM_SVLTE] = "SVLTE",
+	[HW_PLATFORM_MTP_MDM] = "MDM_MTP_NO_DISPLAY",
+	[HW_PLATFORM_MTP] = "MTP",
+	[HW_PLATFORM_RCM] = "RCM",
+	[HW_PLATFORM_LIQUID] = "Liquid",
+	[HW_PLATFORM_DRAGON] = "Dragon",
+	[HW_PLATFORM_QRD] = "QRD",
+	[HW_PLATFORM_HRD] = "HRD",
+	[HW_PLATFORM_DTV] = "DTV",
+	[HW_PLATFORM_STP] = "STP",
+	[HW_PLATFORM_SBC] = "SBC",
+};
 
 /* DYNAMIC SMEM REGION feature enables LK to dynamically
  * read the SMEM addr info from TCSR register or IMEM location.
@@ -169,4 +188,21 @@ smem_read_alloc_entry_offset(smem_mem_type_t type, void *buf, int len,
 		*(dest++) = readl(src);
 
 	return 0;
+}
+
+size_t smem_get_hw_platform_name(void *buf, uint32 buf_size)
+{
+	uint32 hw_id;
+
+	if (buf == NULL) {
+		dprintf(CRITICAL, "ERROR: buf is NULL\n");
+		return 1;
+	}
+
+	hw_id = board_hardware_id();
+	if (buf_size < strlen(hw_platform[hw_id]) + 1)
+		return 1;
+
+	return snprintf(buf, strlen(hw_platform[hw_id]) + 1,
+		"%s\n", hw_platform[hw_id]);
 }
