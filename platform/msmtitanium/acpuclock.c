@@ -49,7 +49,9 @@ void clock_init_mmc(uint32_t interface)
 /* Configure MMC clock */
 void clock_config_mmc(uint32_t interface, uint32_t freq)
 {
-	mmc_boot_mci_clk_enable();
+	char clk_name[64];
+
+	snprintf(clk_name, sizeof(clk_name), "sdc%u_core_clk", interface);
 }
 
 /* Configure UART clock based on the UART block id*/
