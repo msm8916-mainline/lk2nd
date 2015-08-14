@@ -399,13 +399,19 @@ static int mdss_dsi_phy_28nm_init(struct mipi_panel_info *mipi,
 	writel(0x0a, phy_base + 0x0180);
 	dmb();
 
-	dsi0_phy_base = DSI0_PHY_BASE + target_display_get_base_offset(DSI0_PHY_BASE);
 	/* DSI_PHY_DSIPHY_GLBL_TEST_CTRL */
-	if ((phy_base == dsi0_phy_base) ||
-		(readl(mipi->ctl_base) == DSI_HW_REV_103_1))
+	if (mipi->dual_dsi) {
+		dsi0_phy_base = DSI0_PHY_BASE +
+			target_display_get_base_offset(DSI0_PHY_BASE);
+		if ((phy_base == dsi0_phy_base) ||
+			(readl(mipi->ctl_base) == DSI_HW_REV_103_1))
+			writel(0x01, phy_base + 0x01d4);
+		else
+			writel(0x00, phy_base + 0x01d4);
+	} else {
 		writel(0x01, phy_base + 0x01d4);
-	else
-		writel(0x00, phy_base + 0x01d4);
+	}
+	dmb();
 
 	/* MMSS_DSI_0_PHY_DSIPHY_CTRL_0 */
 	writel(0x5f, phy_base + 0x0170);
