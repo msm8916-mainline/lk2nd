@@ -14,7 +14,8 @@ OBJS += \
 	$(LOCAL_DIR)/jtag.o \
 	$(LOCAL_DIR)/partition_parser.o \
 	$(LOCAL_DIR)/hsusb.o \
-	$(LOCAL_DIR)/boot_stats.o
+	$(LOCAL_DIR)/boot_stats.o \
+	$(LOCAL_DIR)/crc32.o
 
 ifeq ($(ENABLE_SMD_SUPPORT),1)
 OBJS += \
