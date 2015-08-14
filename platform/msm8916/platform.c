@@ -44,18 +44,17 @@
 #define A53_SS_SIZE    ((A53_SS_END - A53_SS_BASE)/MB)
 
 /* LK memory - cacheable, write through */
-#define LK_MEMORY         (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
+#define LK_MEMORY         (MMU_MEMORY_TYPE_NORMAL_WRITE_BACK_ALLOCATE | \
 					MMU_MEMORY_AP_READ_WRITE)
 
 /* Peripherals - non-shared device */
 #define IOMAP_MEMORY      (MMU_MEMORY_TYPE_DEVICE_SHARED | \
 			MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
 
-/* IMEM memory - cacheable, write through */
-#define IMEM_MEMORY       (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
+#define COMMON_MEMORY       (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
                            MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
 
-#define COMMON_MEMORY       (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
+#define SCRATCH_MEMORY       (MMU_MEMORY_TYPE_NORMAL_WRITE_BACK_ALLOCATE | \
                            MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
 
 static mmu_section_t mmu_section_table[] = {
@@ -65,8 +64,8 @@ static mmu_section_t mmu_section_table[] = {
 	{    A53_SS_BASE,       A53_SS_BASE,      A53_SS_SIZE,      IOMAP_MEMORY},
 	{    SYSTEM_IMEM_BASE,  SYSTEM_IMEM_BASE, 1,                COMMON_MEMORY},
 	{    MSM_SHARED_BASE,   MSM_SHARED_BASE,  1,                COMMON_MEMORY},
-	{    SCRATCH_ADDR,      SCRATCH_ADDR,     256,              COMMON_MEMORY},
 	{    MIPI_FB_ADDR,      MIPI_FB_ADDR,     10,              COMMON_MEMORY},
+	{    SCRATCH_ADDR,      SCRATCH_ADDR,     256,              SCRATCH_MEMORY},
 };
 
 
