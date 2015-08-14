@@ -855,7 +855,7 @@ static void verify_signed_bootimg(uint32_t bootimg_addr, uint32_t bootimg_size)
 	{
 		case RED:
 #if FBCON_DISPLAY_MSG
-			display_menu_thread(DISPLAY_THREAD_BOOT_STATE);
+			display_bootverify_menu_thread(DISPLAY_MENU_RED);
 			wait_for_users_action();
 #else
 			dprintf(CRITICAL,
@@ -866,7 +866,7 @@ static void verify_signed_bootimg(uint32_t bootimg_addr, uint32_t bootimg_size)
 			break;
 		case YELLOW:
 #if FBCON_DISPLAY_MSG
-			display_menu_thread(DISPLAY_THREAD_BOOT_STATE);
+			display_bootverify_menu_thread(DISPLAY_MENU_YELLOW);
 			wait_for_users_action();
 #else
 			dprintf(CRITICAL,
@@ -1135,7 +1135,7 @@ int boot_linux_from_mmc(void)
 	if(boot_verify_get_state() == ORANGE)
 	{
 #if FBCON_DISPLAY_MSG
-		display_menu_thread(DISPLAY_THREAD_BOOT_STATE);
+		display_bootverify_menu_thread(DISPLAY_MENU_ORANGE);
 		wait_for_users_action();
 #else
 		dprintf(CRITICAL,
@@ -1894,17 +1894,71 @@ void set_device_root()
 	write_device_info(&device);
 }
 
-void set_oem_unlock()
+/* set device unlock value
+ * Must check FRP before call this function
+ * Need to wipe data when unlock status changed
+ * type 0: oem unlock
+ * type 1: unlock critical
+ * status 0: unlock as false
+ * status 1: lock as true
+ */
+void set_device_unlock_value(int type, bool status)
 {
-	if(!device.is_unlocked) {
+	if (type == UNLOCK)
+		device.is_unlocked = status;
+	else if (type == UNLOCK_CRITICAL)
+		device.is_unlock_critical = status;
+
+	write_device_info(&device);
+}
+
+static void set_device_unlock(int type, bool status)
+{
+	int is_unlocked = -1;
+	char response[MAX_RSP_SIZE];
+
+	/* check device unlock status if it is as expected */
+	if (type == UNLOCK)
+		is_unlocked = device.is_unlocked;
+	else if (type == UNLOCK_CRITICAL)
+		is_unlocked = device.is_unlock_critical;
+
+	if (is_unlocked == status) {
+		snprintf(response, sizeof(response), "\tDevice already : %s", (status ? "unlocked!" : "locked!"));
+		fastboot_info(response);
+		fastboot_okay("");
+		return;
+	}
+
+	/* status is true, it means to unlock device */
+	if (status) {
 		if(!is_allow_unlock) {
 			fastboot_fail("oem unlock is not allowed");
 			return;
 		}
 
-		device.is_unlocked = 1;
-		write_device_info(&device);
+#if FBCON_DISPLAY_MSG
+		display_unlock_menu_thread(type);
+		fastboot_okay("");
+		return;
+#else
+		if (type == UNLOCK) {
+			fastboot_fail("Need wipe userdata. Do 'fastboot oem unlock-go'");
+			return;
+		}
+#endif
 	}
+
+	set_device_unlock_value(type, status);
+
+	/* wipe data */
+	struct recovery_message msg;
+
+	snprintf(msg.recovery, sizeof(msg.recovery), "recovery\n--wipe_data");
+	write_misc(0, &msg, sizeof(msg));
+
+	fastboot_okay("");
+	reboot_device(RECOVERY_MODE);
 }
 
 static bool critical_flash_allowed(const char * entry)
@@ -2938,35 +2992,22 @@ void cmd_oem_select_display_panel(const char *arg, void *data, unsigned size)
 
 void cmd_oem_unlock(const char *arg, void *data, unsigned sz)
 {
-	if(!is_allow_unlock) {
-		fastboot_fail("oem unlock is not allowed");
-		return;
-	}
-
-#if FBCON_DISPLAY_MSG
-	if(!device.is_unlocked)
-		display_menu_thread(DISPLAY_THREAD_UNLOCK);
-	else
-		fastboot_info("Device already unlocked!");
-	fastboot_okay("");
-#else
-	fastboot_fail("Need wipe userdata. Do 'fastboot oem unlock-go'");
-#endif
+	set_device_unlock(UNLOCK, TRUE);
 }
 
 void cmd_oem_unlock_go(const char *arg, void *data, unsigned sz)
 {
-	if(!device.is_unlocked)
-	{
+	if(!device.is_unlocked) {
 		if(!is_allow_unlock) {
 			fastboot_fail("oem unlock is not allowed");
 			return;
 		}
 
-		device.is_unlocked = 1;
-		write_device_info(&device);
+		set_device_unlock_value(UNLOCK, TRUE);
 
+		/* wipe data */
 		struct recovery_message msg;
+
 		snprintf(msg.recovery, sizeof(msg.recovery), "recovery\n--wipe_data");
 		write_misc(0, &msg, sizeof(msg));
 
@@ -2978,18 +3019,7 @@ void cmd_oem_unlock_go(const char *arg, void *data, unsigned sz)
 
 void cmd_oem_lock(const char *arg, void *data, unsigned sz)
 {
-	struct recovery_message msg;
-	if(device.is_unlocked)
-	{
-		device.is_unlocked = 0;
-		write_device_info(&device);
-		// upon oem lock, reboot to recovery to wipe user data
-		snprintf(msg.recovery, sizeof(msg.recovery), "recovery\n--wipe_data");
-		write_misc(0, &msg, sizeof(msg));
-		fastboot_okay("");
-		reboot_device(RECOVERY_MODE);
-	}
-	fastboot_okay("");
+	set_device_unlock(UNLOCK, FALSE);
 }
 
 void cmd_oem_devinfo(const char *arg, void *data, unsigned sz)
@@ -3018,34 +3048,12 @@ void cmd_flashing_get_unlock_ability(const char *arg, void *data, unsigned sz)
 
 void cmd_flashing_lock_critical(const char *arg, void *data, unsigned sz)
 {
-	if(device.is_unlock_critical) {
-		device.is_unlock_critical = 0;
-		write_device_info(&device);
-	}
-	fastboot_okay("");
+	set_device_unlock(UNLOCK_CRITICAL, FALSE);
 }
 
 void cmd_flashing_unlock_critical(const char *arg, void *data, unsigned sz)
 {
-	if(!device.is_unlock_critical)
-	{
-		if(!is_allow_unlock) {
-			fastboot_fail("oem unlock is not allowed");
-			return;
-		}
-
-		device.is_unlock_critical = 1;
-		write_device_info(&device);
-
-		struct recovery_message msg;
-		snprintf(msg.recovery, sizeof(msg.recovery), "recovery\n--wipe_data");
-		write_misc(0, &msg, sizeof(msg));
-
-		fastboot_okay("");
-		reboot_device(RECOVERY_MODE);
-	}
-	fastboot_okay("");
-
+	set_device_unlock(UNLOCK_CRITICAL, TRUE);
 }
 
 void cmd_preflash(const char *arg, void *data, unsigned sz)
@@ -3296,6 +3304,29 @@ static void publish_getvar_partition_info(struct getvar_partition_info *info, ui
 	}
 }
 
+void get_product_name(unsigned char *buf)
+{
+	snprintf((char*)buf, MAX_RSP_SIZE, "%s",  TARGET(BOARD));
+	return;
+}
+
+void get_bootloader_version(unsigned char *buf)
+{
+	snprintf((char*)buf, MAX_RSP_SIZE, "%s",  device.bootloader_version);
+	return;
+}
+
+void get_baseband_version(unsigned char *buf)
+{
+	snprintf((char*)buf, MAX_RSP_SIZE, "%s", device.radio_version);
+	return;
+}
+
+bool is_device_locked()
+{
+	return device.is_unlocked ? false:true;
+}
+
 /* register commands and variables for fastboot */
 void aboot_fastboot_register_commands(void)
 {
@@ -3540,6 +3571,9 @@ normal_boot:
 
 	/* initialize and start fastboot */
 	fastboot_init(target_get_scratch_address(), target_get_max_flash_size());
+#if FBCON_DISPLAY_MSG
+	display_fastboot_menu_thread();
+#endif
 }
 
 uint32_t get_page_size()
