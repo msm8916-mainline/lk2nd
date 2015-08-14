@@ -37,8 +37,8 @@
 #include <smem.h>
 #include <board.h>
 #include <boot_stats.h>
-
-#define MB (1024*1024)
+#include <platform.h>
+#include <target/display.h>
 
 #define MSM_IOMAP_SIZE ((MSM_IOMAP_END - MSM_IOMAP_BASE)/MB)
 #define A53_SS_SIZE    ((A53_SS_END - A53_SS_BASE)/MB)
@@ -55,15 +55,20 @@
 #define IMEM_MEMORY       (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
                            MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
 
+#define COMMON_MEMORY       (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
+                           MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
+
 static mmu_section_t mmu_section_table[] = {
 /*           Physical addr,     Virtual addr,     Size (in MB),     Flags */
 	{    MEMBASE,           MEMBASE,          (MEMSIZE / MB),   LK_MEMORY},
 	{    MSM_IOMAP_BASE,    MSM_IOMAP_BASE,   MSM_IOMAP_SIZE,   IOMAP_MEMORY},
 	{    A53_SS_BASE,       A53_SS_BASE,      A53_SS_SIZE,      IOMAP_MEMORY},
-	{    SYSTEM_IMEM_BASE,  SYSTEM_IMEM_BASE, 1,                IMEM_MEMORY},
+	{    SYSTEM_IMEM_BASE,  SYSTEM_IMEM_BASE, 1,                COMMON_MEMORY},
+	{    MSM_SHARED_BASE,   MSM_SHARED_BASE,  1,                COMMON_MEMORY},
+	{    SCRATCH_ADDR,      SCRATCH_ADDR,     256,              COMMON_MEMORY},
+	{    MIPI_FB_ADDR,      MIPI_FB_ADDR,     10,              COMMON_MEMORY},
 };
 
-static struct smem_ram_ptable ram_ptable;
 
 int platform_is_msm8939();
 int platform_is_msm8929();
@@ -116,40 +121,14 @@ void platform_init_mmu_mappings(void)
 	uint32_t i;
 	uint32_t sections;
 	uint32_t table_size = ARRAY_SIZE(mmu_section_table);
-	ram_partition ptn_entry;
-	uint32_t len = 0;
+	uint32_t ddr_start = get_ddr_start();
 
-	ASSERT(smem_ram_ptable_init_v1());
-
-	len = smem_get_ram_ptable_len();
-
-	/* Configure the MMU page entries for SDRAM and IMEM memory read
-	   from the smem ram table*/
-	for(i = 0; i < len; i++)
+	/*Mapping the ddr start address for loading the kernel about 90 MB*/
+	sections = 90;
+	while(sections--)
 	{
-		smem_get_ram_ptable_entry(&ptn_entry, i);
-		if(ptn_entry.type == SYS_MEMORY)
-		{
-			if((ptn_entry.category == SDRAM) ||
-			   (ptn_entry.category == IMEM))
-			{
-				/* Check to ensure that start address is 1MB aligned */
-				ASSERT((ptn_entry.start & (MB-1)) == 0);
-
-				sections = (ptn_entry.size) / MB;
-				while(sections--)
-				{
-					arm_mmu_map_section(ptn_entry.start +
-										sections * MB,
-										ptn_entry.start +
-										sections * MB,
-										(MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
-										 MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN));
-				}
-			}
-		}
+		arm_mmu_map_section(ddr_start + sections * MB, ddr_start + sections* MB, COMMON_MEMORY);
 	}
-
 	/* Configure the MMU page entries for memory read from the
 	   mmu_section_table */
 	for (i = 0; i < table_size; i++)
@@ -237,31 +216,4 @@ uint32_t platform_get_smem_base_addr()
 		return smem_info->phy_addr;
 	else
 		return MSM_SHARED_BASE;
-}
-uint32_t get_ddr_start()
-{
-	uint32_t i;
-	ram_partition ptn_entry;
-	uint32_t len = 0;
-
-	ASSERT(smem_ram_ptable_init_v1());
-
-	len = smem_get_ram_ptable_len();
-
-	/* Determine the Start addr of the DDR RAM */
-	for(i = 0; i < len; i++)
-	{
-		smem_get_ram_ptable_entry(&ptn_entry, i);
-		if(ptn_entry.type == SYS_MEMORY)
-		{
-			if((ptn_entry.category == SDRAM) ||
-			   (ptn_entry.category == IMEM))
-			{
-				/* Check to ensure that start address is 1MB aligned */
-				ASSERT((ptn_entry.start & (MB-1)) == 0);
-				return ptn_entry.start;
-			}
-		}
-	}
-	ASSERT("DDR Start Mem Not found\n");
 }
