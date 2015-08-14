@@ -383,6 +383,35 @@
 #endif
 #define VBIF_VBIF_IN_WR_LIM_CONF1               REG_MDP(0xc80C4)
 
+#ifdef MDP_INTF_2_TIMING_ENGINE_EN
+#undef MDP_INTF_2_TIMING_ENGINE_EN
+#endif
+#define MDP_INTF_2_TIMING_ENGINE_EN		REG_MDP(0x12F00)
+
+#ifdef MDP_PP_0_BASE
+#undef MDP_PP_0_BASE
+#endif
+#define MDP_PP_0_BASE				REG_MDP(0x71000)
+
+#ifdef MDP_PP_1_BASE
+#undef MDP_PP_1_BASE
+#endif
+#define MDP_PP_1_BASE				REG_MDP(0x71800)
+
+#ifdef MDSS_MDP_REG_DCE_SEL
+#undef MDSS_MDP_REG_DCE_SEL
+#endif
+#define MDSS_MDP_REG_DCE_SEL			REG_MDP(0x1428)
+
+#ifdef MDSS_MDP_PP_DCE_DATA_OUT_SWAP
+#undef MDSS_MDP_PP_DCE_DATA_OUT_SWAP
+#endif
+#define MDSS_MDP_PP_DCE_DATA_OUT_SWAP		0x0CC
+
+#define MDP_DSC_0_BASE				REG_MDP(0x81000)
+#define MDP_DSC_1_BASE				REG_MDP(0x81400)
+
+
 #define SOFT_RESET                  0x118
 #define CLK_CTRL                    0x11C
 #define TRIG_CTRL                   0x084
@@ -418,6 +447,12 @@
 #define MISR_VIDEO_CTRL             0x0A4
 #define VIDEO_MODE_CTRL             0x010
 #define HS_TIMER_CTRL               0x0BC
+
+#define VIDEO_COMPRESSION_MODE_CTRL	0x2A0
+#define VIDEO_COMPRESSION_MODE_CTRL_2	0x2A4
+#define CMD_COMPRESSION_MODE_CTRL	0x2A8
+#define CMD_COMPRESSION_MODE_CTRL_2	0x2AC
+#define CMD_COMPRESSION_MODE_CTRL_3	0x2B0
 
 #define TCSR_TZ_WONCE               0x193D000
 #define TCSR_BOOT_MISC_DETECT       0x193D100

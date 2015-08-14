@@ -289,7 +289,7 @@ static struct lane_configuration nt35597_wqxga_dsc_cmd_lane_config = {
 /* Panel timing                                                              */
 /*---------------------------------------------------------------------------*/
 static const uint32_t nt35597_wqxga_dsc_cmd_timings[] = {
-	0xe2, 0x36, 0x24, 0x00, 0x66, 0x6a, 0x28, 0x38,  0x2a, 0x03, 0x04, 0x00
+	0xa4, 0x24, 0x18, 0x00, 0x4c, 0x50, 0x1c, 0x28, 0x1c, 0x03, 0x04, 0x00,
 };
 
 static const uint32_t nt35597_wqxga_dsc_thulium_cmd_timings[] = {
