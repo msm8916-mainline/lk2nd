@@ -60,5 +60,9 @@ uint32_t platform_get_smem_base_addr();
 int platform_is_msm8909();
 int boot_device_mask(int);
 uint32_t platform_detect_panel();
-void set_oem_unlock();
+void set_device_unlock_value(int type, bool status);
+void get_product_name(unsigned char *buf);
+void get_bootloader_version(unsigned char *buf);
+void get_baseband_version(unsigned char *buf);
+bool is_device_locked();
 #endif

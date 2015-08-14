@@ -43,6 +43,7 @@
 #include <platform.h>
 #include <reboot.h>
 #include <../../../app/aboot/recovery.h>
+#include <../../../app/aboot/devinfo.h>
 
 #define KEY_DETECT_FREQUENCY		50
 #define KEY_PRESS_TIMEOUT		5000
@@ -92,10 +93,16 @@ static int is_key_pressed(int keys_type)
 
 static void update_device_status(unsigned reason, int type)
 {
+        bool TRUE = true;
 	if (reason == RECOVER) {
 		if (type == DISPLAY_MENU_UNLOCK) {
-			set_oem_unlock();
+			set_device_unlock_value(UNLOCK, TRUE);
+		} else if (type == DISPLAY_MENU_UNLOCK_CRITICAL) {
+			set_device_unlock_value(UNLOCK_CRITICAL, TRUE);
+		}
 
+		if (type == DISPLAY_MENU_UNLOCK ||
+			type == DISPLAY_MENU_UNLOCK_CRITICAL) {
 			/* wipe data */
 			struct recovery_message msg;
 
@@ -217,6 +224,7 @@ static uint32_t unlock_power_key_func (struct select_msg_info* msg_info,
 /* continue booting when power key is pressed at boot-verify page1 */
 static uint32_t boot_page1_power_key_func (struct select_msg_info* msg_info,
 	uint32_t option_index){
+	msg_info->msg_power_key_pressed = true;
 	update_device_status(CONTINUE, msg_info->msg_type);
 	return option_index;
 }
@@ -236,6 +244,51 @@ static uint32_t boot_page2_power_key_func (struct select_msg_info* msg_info,
 		update_device_status(option_index, msg_info->msg_type);
 	}
 	return option_index;
+}
+
+static uint32_t fastboot_volume_up_func (struct select_msg_info* msg_info,
+	uint32_t option_index)
+{
+	if (option_index == msg_info->option_num ||
+		option_index == 0) {
+		option_index = msg_info->option_num - 1;
+	} else if (option_index > 0) {
+		option_index--;
+	}
+
+	display_fastboot_menu(msg_info, option_index);
+
+	return option_index;
+}
+
+static uint32_t fastboot_volume_down_func (struct select_msg_info* msg_info,
+	uint32_t option_index)
+{
+	option_index++;
+	if (option_index > msg_info->option_num)
+		option_index = 1;
+	if (option_index == msg_info->option_num)
+		option_index = 0;
+
+	display_fastboot_menu(msg_info, option_index);
+
+	return option_index;
+}
+
+/* update device's status via select option */
+static uint32_t fastboot_power_key_func (struct select_msg_info* msg_info,
+	uint32_t option_index)
+{
+	int device_state[] = {RESTART, FASTBOOT, RECOVER, POWEROFF};
+
+	if(option_index < sizeof(device_state)) {
+		update_device_status(device_state[option_index], msg_info->msg_type);
+	} else {
+		dprintf(CRITICAL, "ERRPR: option index is overflow!!!\n");
+		return 1;
+	}
+
+	return 0;
 }
 
 /* initialize different page's function
@@ -266,6 +319,12 @@ static struct pages_action menu_pages_action[] = {
 		menu_volume_down_func,
 		boot_page2_power_key_func,
 	},
+	[FASTBOOT_PAGE] = {
+		fastboot_volume_up_func,
+		fastboot_volume_down_func,
+		fastboot_power_key_func,
+	},
+
 };
 
 void keys_detect_init()
@@ -283,10 +342,14 @@ int select_msg_keys_detect(void *param) {
 		/* get page's index via different message type */
 		switch(msg_info->msg_type) {
 		case DISPLAY_MENU_UNLOCK:
+		case DISPLAY_MENU_UNLOCK_CRITICAL:
 			current_page_index = UNLOCK_PAGE;
 			break;
 		case DISPLAY_MENU_MORE_OPTION:
 			current_page_index = BOOT_VERIFY_PAGE2;
+			break;
+		case DISPLAY_MENU_FASTBOOT:
+			current_page_index = FASTBOOT_PAGE;
 			break;
 		default:
 			current_page_index = BOOT_VERIFY_PAGE1;

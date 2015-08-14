@@ -37,11 +37,12 @@
 #include <boot_verifier.h>
 #include <string.h>
 #include <platform.h>
+#include <smem.h>
+#include <target.h>
+#include <sys/types.h>
+#include <../../../app/aboot/devinfo.h>
 
-#define UNLOCK_OPTION_NUM		2
-#define BOOT_VERIFY_OPTION_NUM		5
-
-static char *unlock_menu_common_msg = "If you unlock the bootloader, "\
+static const char *unlock_menu_common_msg = "If you unlock the bootloader, "\
 				"you will be able to install "\
 				"custom operating system on this phone.\n\n"\
 				"A custom OS is not subject to the same testing "\
@@ -54,24 +55,42 @@ static char *unlock_menu_common_msg = "If you unlock the bootloader, "\
 				"Press the Volume Up/Down buttons to select Yes "\
 				"or No. Then press the Power button to continue.\n";
 
-static char *yellow_warning_msg = "Your device has loaded a diffrent operating "\
-				"system\n\nTo learn more, visit:\n";
+#define YELLOW_WARNING_MSG	"Your device has loaded a diffrent operating "\
+				"system\n\nTo learn more, visit:\n"
 
-static char *orange_warning_msg = "Your device has been unlocker and cann't "\
-				"be trusted\n\nTo learn more, visit:\n";
+#define ORANGE_WARNING_MSG	"Your device has been unlocker and cann't "\
+				"be trusted\n\nTo learn more, visit:\n"
 
-static char *red_warning_msg = "Your device has failed verification and may "\
-				"not work properly\n\nTo learn more, visit:\n";
+#define RED_WARNING_MSG	"Your device has failed verification and may "\
+				"not work properly\n\nTo learn more, visit:\n"
 
 static bool is_thread_start = false;
 struct select_msg_info msg_info;
 
-static char *option_menu[] = {
+#if VERIFIED_BOOT
+struct boot_verify_info {
+	int msg_type;
+	const char *warning_msg;
+};
+
+struct boot_verify_info boot_verify_info[] = {
+			[DISPLAY_MENU_RED] = {FBCON_RED_MSG, RED_WARNING_MSG},
+			[DISPLAY_MENU_YELLOW] = {FBCON_YELLOW_MSG, YELLOW_WARNING_MSG},
+			[DISPLAY_MENU_ORANGE] = {FBCON_ORANGE_MSG, ORANGE_WARNING_MSG}};
+#endif
+
+static char *verify_option_menu[] = {
 		[POWEROFF] = "Power off\n",
 		[RESTART] = "Restart\n",
 		[RECOVER] = "Recovery\n",
 		[FASTBOOT] = "Fastboot\n",
 		[BACK] = "Back to previous page\n"};
+
+static char *fastboot_option_menu[] = {
+		[0] = "START\n",
+		[1] = "Restart bootloader\n",
+		[2] = "Recovery mode\n",
+		[3] = "Power off\n"};
 
 static int big_factor = 2;
 static int common_factor = 1;
@@ -152,17 +171,17 @@ static char *str_align_right(char *str, int factor)
 	return str;
 }
 
-void display_unlock_menu(struct select_msg_info *unlock_msg_info)
+void display_unlock_menu(struct select_msg_info *unlock_msg_info, int type)
 {
 	fbcon_clear();
 	memset(unlock_msg_info, 0, sizeof(struct select_msg_info));
 	display_fbcon_menu_message("Unlock bootloader?\n",
 		FBCON_UNLOCK_TITLE_MSG, big_factor);
-	fbcon_draw_line();
+	fbcon_draw_line(FBCON_COMMON_MSG);
 
-	display_fbcon_menu_message(unlock_menu_common_msg,
+	display_fbcon_menu_message((char*)unlock_menu_common_msg,
 		FBCON_COMMON_MSG, common_factor);
-	fbcon_draw_line();
+	fbcon_draw_line(FBCON_COMMON_MSG);
 	unlock_msg_info->option_start[0] = fbcon_get_current_line();
 	display_fbcon_menu_message("Yes\n",
 		FBCON_COMMON_MSG, big_factor);
@@ -170,7 +189,7 @@ void display_unlock_menu(struct select_msg_info *unlock_msg_info)
 	display_fbcon_menu_message("Unlock bootloader(may void warranty)\n",
 		FBCON_COMMON_MSG, common_factor);
 	unlock_msg_info->option_end[0] = fbcon_get_current_line();
-	fbcon_draw_line();
+	fbcon_draw_line(FBCON_COMMON_MSG);
 	unlock_msg_info->option_start[1] = fbcon_get_current_line();
 	display_fbcon_menu_message("No\n",
 		FBCON_COMMON_MSG, big_factor);
@@ -178,16 +197,19 @@ void display_unlock_menu(struct select_msg_info *unlock_msg_info)
 	display_fbcon_menu_message("Do not unlock bootloader and restart phone\n",
 		FBCON_COMMON_MSG, common_factor);
 	unlock_msg_info->option_end[1] = fbcon_get_current_line();
-	fbcon_draw_line();
+	fbcon_draw_line(FBCON_COMMON_MSG);
 
-	unlock_msg_info->msg_type = DISPLAY_MENU_UNLOCK;
-	unlock_msg_info->option_num = UNLOCK_OPTION_NUM;
+	if (type == UNLOCK)
+		unlock_msg_info->msg_type = DISPLAY_MENU_UNLOCK;
+	else if (type == UNLOCK_CRITICAL)
+		unlock_msg_info->msg_type = DISPLAY_MENU_UNLOCK_CRITICAL;
+
+	unlock_msg_info->option_num = 2;
 }
 
+#if VERIFIED_BOOT
 void display_boot_verified_menu(struct select_msg_info *msg_info, int type)
 {
-	int msg_type = FBCON_COMMON_MSG;
-	char *warning_msg = NULL;
 	unsigned char* fp_buf = NULL;
 	char fp_str_temp[EVP_MAX_MD_SIZE] = {'\0'};
 	char fp_str[EVP_MAX_MD_SIZE*2] = {'\0'};
@@ -202,21 +224,6 @@ void display_boot_verified_menu(struct select_msg_info *msg_info, int type)
 	fbcon_clear();
 	memset(msg_info, 0, sizeof(struct select_msg_info));
 
-	switch (type) {
-	case DISPLAY_MENU_RED:
-		msg_type = FBCON_RED_MSG;
-		warning_msg = red_warning_msg;
-		break;
-        case DISPLAY_MENU_YELLOW:
-		msg_type = FBCON_YELLOW_MSG;
-		warning_msg = yellow_warning_msg;
-                break;
-	case DISPLAY_MENU_ORANGE:
-		msg_type = FBCON_ORANGE_MSG;
-		warning_msg = orange_warning_msg;
-                break;
-	}
-
 	/* Align Right */
 	str_target = str_align_right(str1, big_factor);
 	if(str_target != NULL)
@@ -230,13 +237,13 @@ void display_boot_verified_menu(struct select_msg_info *msg_info, int type)
 		FBCON_COMMON_MSG, common_factor);
 	display_fbcon_menu_message("press VOLUME keys\n\n",
 		FBCON_SUBTITLE_MSG, common_factor);
-	if(warning_msg != NULL)
-		display_fbcon_menu_message(warning_msg, FBCON_COMMON_MSG, common_factor);
+	if(boot_verify_info[type].warning_msg != NULL)
+		display_fbcon_menu_message((char*)boot_verify_info[type].warning_msg,
+			FBCON_COMMON_MSG, common_factor);
 
 	display_fbcon_menu_message("g.co/placeholder\n",
-		msg_type, common_factor);
+		boot_verify_info[type].msg_type, common_factor);
 
-#if VERIFIED_BOOT
 	if (type == DISPLAY_MENU_YELLOW) {
 		fp_buf = get_boot_fingerprint(&fp_size);
 		if (fp_buf != NULL) {
@@ -253,7 +260,6 @@ void display_boot_verified_menu(struct select_msg_info *msg_info, int type)
 		display_fbcon_menu_message("ID:", FBCON_COMMON_MSG, common_factor);
 		display_fbcon_menu_message(fp_str, FBCON_COMMON_MSG, common_factor);
 	}
-#endif
 
 	display_fbcon_menu_message("\n\nIf no key pressed:\n"\
 		"Your device will boot in 5 seconds\n\n", FBCON_COMMON_MSG, common_factor);
@@ -263,30 +269,105 @@ void display_boot_verified_menu(struct select_msg_info *msg_info, int type)
 		free(str_target);
 	}
 }
+#endif
 
 void display_boot_verified_option(struct select_msg_info *msg_info)
 {
 	int i = 0;
+	int len = 0;
 	fbcon_clear();
 	memset(msg_info, 0, sizeof(struct select_msg_info));
 
+	len = ARRAY_SIZE(verify_option_menu);
 	display_fbcon_menu_message("Options menu:\n\n",
 		FBCON_COMMON_MSG, big_factor);
 	display_fbcon_menu_message("Press volume key to select, and "\
 		"press power key to select\n\n", FBCON_COMMON_MSG, common_factor);
 
-	for (i = 0; i < BOOT_VERIFY_OPTION_NUM; i++) {
-		fbcon_draw_line();
+	for (i = 0; i < len; i++) {
+		fbcon_draw_line(FBCON_COMMON_MSG);
 		msg_info->option_start[i] = fbcon_get_current_line();
-		display_fbcon_menu_message(option_menu[i],
+		display_fbcon_menu_message(verify_option_menu[i],
 			FBCON_COMMON_MSG, common_factor);
 		msg_info->option_bg[i]= fbcon_get_current_bg();
 		msg_info->option_end[i]= fbcon_get_current_line();
 	}
 
-	fbcon_draw_line();
+	fbcon_draw_line(FBCON_COMMON_MSG);
 	msg_info->msg_type = DISPLAY_MENU_MORE_OPTION;
-	msg_info->option_num = BOOT_VERIFY_OPTION_NUM;
+	msg_info->option_num = len;
+}
+
+void display_fastboot_menu(struct select_msg_info *fastboot_msg_info,
+	int option_index)
+{
+	int len;
+	int msg_type = FBCON_COMMON_MSG;
+	char msg_buf[64];
+	char msg[128];
+
+	fbcon_clear();
+	memset(fastboot_msg_info, 0, sizeof(struct select_msg_info));
+
+	len = ARRAY_SIZE(fastboot_option_menu);
+	switch(option_index) {
+		case 0:
+			msg_type = FBCON_GREEN_MSG;
+			break;
+		case 1:
+		case 2:
+			msg_type = FBCON_RED_MSG;
+			break;
+		case 3:
+			msg_type = FBCON_COMMON_MSG;
+			break;
+	}
+	fbcon_draw_line(msg_type);
+	display_fbcon_menu_message(fastboot_option_menu[option_index],
+		msg_type, big_factor);
+	fbcon_draw_line(msg_type);
+	display_fbcon_menu_message("\n\nPress volume key to select, and "\
+		"press power key to select\n\n", FBCON_COMMON_MSG, common_factor);
+
+	display_fbcon_menu_message("FASTBOOT MODE\n", FBCON_RED_MSG, common_factor);
+
+	get_product_name((unsigned char *) msg_buf);
+	snprintf(msg, sizeof(msg), "PRODUCT_NAME - %s\n", msg_buf);
+	display_fbcon_menu_message(msg, FBCON_COMMON_MSG, common_factor);
+
+	memset(msg_buf, 0, sizeof(msg_buf));
+	smem_get_hw_platform_name((unsigned char *) msg_buf, sizeof(msg_buf));
+	snprintf(msg, sizeof(msg), "VARIANT - %s %s\n",
+		msg_buf, target_is_emmc_boot()? "eMMC":"UFS");
+	display_fbcon_menu_message(msg, FBCON_COMMON_MSG, common_factor);
+
+	memset(msg_buf, 0, sizeof(msg_buf));
+	get_bootloader_version((unsigned char *) msg_buf);
+	snprintf(msg, sizeof(msg), "BOOTLOADER VERSION - %s\n",
+		msg_buf);
+	display_fbcon_menu_message(msg, FBCON_COMMON_MSG, common_factor);
+
+	memset(msg_buf, 0, sizeof(msg_buf));
+	get_baseband_version((unsigned char *) msg_buf);
+	snprintf(msg, sizeof(msg), "BASEBAND VERSION - %s\n",
+		msg_buf);
+	display_fbcon_menu_message(msg, FBCON_COMMON_MSG, common_factor);
+
+	memset(msg_buf, 0, sizeof(msg_buf));
+	target_serialno((unsigned char *) msg_buf);
+	snprintf(msg, sizeof(msg), "SERIAL NUMBER - %s\n", msg_buf);
+	display_fbcon_menu_message(msg, FBCON_COMMON_MSG, common_factor);
+
+	snprintf(msg, sizeof(msg), "SECURE BOOT - %s\n",
+		is_secure_boot_enable()? "enabled":"disabled");
+	display_fbcon_menu_message(msg, FBCON_COMMON_MSG, common_factor);
+
+	snprintf(msg, sizeof(msg), "DEVICE STATE - %s\n",
+		is_device_locked()? "locked":"unlocked");
+	display_fbcon_menu_message(msg, FBCON_RED_MSG, common_factor);
+
+	fastboot_msg_info->msg_type = DISPLAY_MENU_FASTBOOT;
+	fastboot_msg_info->option_num = len;
 }
 
 static void display_menu_thread_start(struct select_msg_info *msg_info)
@@ -306,36 +387,40 @@ static void display_menu_thread_start(struct select_msg_info *msg_info)
 	is_thread_start = true;
 }
 
-void display_menu_thread(int type)
+void display_unlock_menu_thread(int type)
 {
-	struct select_msg_info *display_menu_msg_info;
-	display_menu_msg_info = &msg_info;
-	int menu_type = 0;
+	struct select_msg_info *unlock_menu_msg_info;
+	unlock_menu_msg_info = &msg_info;
 
 	set_message_factor();
-	if (type == DISPLAY_THREAD_UNLOCK) {
-		display_unlock_menu(display_menu_msg_info);
+	display_unlock_menu(unlock_menu_msg_info, type);
 
-		dprintf(INFO, "creating oem unlock keys detect thread\n");
-		display_menu_thread_start(display_menu_msg_info);
-	} else {
-	#if VERIFIED_BOOT
-		if (boot_verify_get_state() == ORANGE) {
-			menu_type = DISPLAY_MENU_ORANGE;
-		} else if (boot_verify_get_state() == YELLOW) {
-			menu_type = DISPLAY_MENU_YELLOW;
-		} else if (boot_verify_get_state() == RED) {
-			menu_type = DISPLAY_MENU_RED;
-		}
-		display_boot_verified_menu(display_menu_msg_info, menu_type);
-
-		dprintf(INFO, "creating device state keys detect thread\n");
-		display_menu_thread_start(display_menu_msg_info);
-
-	#else
-		dprintf(CRITICAL, "VERIFIED_BOOT is not enable!!\n");
-		return;
-	#endif
-	}
+	dprintf(INFO, "creating unlock keys detect thread\n");
+	display_menu_thread_start(unlock_menu_msg_info);
 }
 
+void display_fastboot_menu_thread()
+{
+	struct select_msg_info *fastboot_menu_msg_info;
+	fastboot_menu_msg_info = &msg_info;
+
+	set_message_factor();
+	display_fastboot_menu(fastboot_menu_msg_info, 0);
+
+	dprintf(INFO, "creating fastboot menu keys detect thread\n");
+	display_menu_thread_start(fastboot_menu_msg_info);
+}
+
+#if VERIFIED_BOOT
+void display_bootverify_menu_thread(int type)
+{
+	struct select_msg_info *bootverify_menu_msg_info;
+	bootverify_menu_msg_info = &msg_info;
+
+	set_message_factor();
+	display_boot_verified_menu(bootverify_menu_msg_info, type);
+
+	dprintf(INFO, "creating boot verify keys detect thread\n");
+	display_menu_thread_start(bootverify_menu_msg_info);
+}
+#endif
