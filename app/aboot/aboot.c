@@ -132,7 +132,7 @@ struct fastboot_cmd_desc {
 
 /* make 4096 as default size to ensure EFS,EXT4's erasing */
 #define DEFAULT_ERASE_SIZE  4096
-#define MAX_PANEL_BUF_SIZE 128
+#define MAX_PANEL_BUF_SIZE 196
 
 #define DISPLAY_DEFAULT_PREFIX "mdss_mdp"
 #define BOOT_DEV_MAX_LEN  64
