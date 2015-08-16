@@ -166,6 +166,16 @@ static const struct dfps_panel_info sharp_wqxga_dualdsi_video_dfps = {
 	1, 8, {53, 54, 55, 56, 57, 58, 59, 60}
 };
 
+/* 2LM + 2CTL */
+struct topology_config sharp_wqxga_dualdsi_video_config0 = {
+	"config0", {800, 800}, 0, NULL, false
+};
+
+/* 1LM + 1CTL + PP_SPLIT */
+struct topology_config sharp_wqxga_dualdsi_video_config1 = {
+	"config1", {-1, -1}, 0, NULL, true
+};
+
 #define SHARP_WQXGA_DUALDSI_VIDEO_SIGNATURE 0x210000
 
 #endif /*_PANEL_SHARP_WQXGA_DUALDSI_VIDEO_H_*/
