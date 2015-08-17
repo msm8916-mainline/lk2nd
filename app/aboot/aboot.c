@@ -40,6 +40,7 @@
 #include <arch/ops.h>
 
 #include <dev/flash.h>
+#include <dev/flash-ubi.h>
 #include <lib/ptable.h>
 #include <dev/keys.h>
 #include <dev/fbcon.h>
@@ -56,6 +57,7 @@
 #include <boot_device.h>
 #include <boot_verifier.h>
 #include <decompress.h>
+#include <platform/timer.h>
 
 #if DEVICE_TREE
 #include <libfdt.h>
@@ -118,9 +120,7 @@ struct fastboot_cmd_desc {
 #define DEFAULT_ERASE_SIZE  4096
 #define MAX_PANEL_BUF_SIZE 128
 
-#define UBI_MAGIC      "UBI#"
 #define DISPLAY_DEFAULT_PREFIX "mdss_mdp"
-#define UBI_MAGIC_SIZE 0x04
 #define BOOT_DEV_MAX_LEN  64
 
 #define IS_ARM64(ptr) (ptr->magic_64 == KERNEL64_HDR_MAGIC) ? true : false
@@ -165,6 +165,8 @@ static int auth_kernel_img = 0;
 
 static device_info device = {DEVICE_MAGIC, 0, 0, 0, 0, 0};
 static bool is_allow_unlock = 0;
+
+static char frp_ptns[2][8] = {"config","frp"};
 
 struct atag_ptbl_entry
 {
@@ -743,6 +745,7 @@ static void verify_signed_bootimg(uint32_t bootimg_addr, uint32_t bootimg_size)
 		{
 			dprintf(CRITICAL,
 					"Device verification failed. Rebooting into recovery.\n");
+			mdelay(1000);
 			reboot_device(RECOVERY_MODE);
 		}
 		else
@@ -1525,7 +1528,6 @@ void write_device_info_flash(device_info *dev)
 
 static int read_allow_oem_unlock(device_info *dev)
 {
-	const char *ptn_name = "frp";
 	unsigned offset;
 	int index;
 	unsigned long long ptn;
@@ -1533,11 +1535,15 @@ static int read_allow_oem_unlock(device_info *dev)
 	unsigned blocksize = mmc_get_device_blocksize();
 	char buf[blocksize];
 
-	index = partition_get_index(ptn_name);
+	index = partition_get_index(frp_ptns[0]);
 	if (index == INVALID_PTN)
 	{
-		dprintf(CRITICAL, "No '%s' partition found\n", ptn_name);
-		return -1;
+		index = partition_get_index(frp_ptns[1]);
+		if (index == INVALID_PTN)
+		{
+			dprintf(CRITICAL, "Neither '%s' nor '%s' partition found\n", frp_ptns[0],frp_ptns[1]);
+			return -1;
+		}
 	}
 
 	ptn = partition_get_offset(index);
@@ -1557,20 +1563,22 @@ static int read_allow_oem_unlock(device_info *dev)
 
 static int write_allow_oem_unlock(bool allow_unlock)
 {
-	const char *ptn_name = "frp";
 	unsigned offset;
-
 	int index;
 	unsigned long long ptn;
 	unsigned long long ptn_size;
 	unsigned blocksize = mmc_get_device_blocksize();
 	char buf[blocksize];
 
-	index = partition_get_index(ptn_name);
+	index = partition_get_index(frp_ptns[0]);
 	if (index == INVALID_PTN)
 	{
-		dprintf(CRITICAL, "No '%s' partition found\n", ptn_name);
-		return -1;
+		index = partition_get_index(frp_ptns[1]);
+		if (index == INVALID_PTN)
+		{
+			dprintf(CRITICAL, "Neither '%s' nor '%s' partition found\n", frp_ptns[0],frp_ptns[1]);
+			return -1;
+		}
 	}
 
 	ptn = partition_get_offset(index);
@@ -2005,12 +2013,13 @@ void cmd_flash_mmc_img(const char *arg, void *data, unsigned sz)
 	int index = INVALID_PTN;
 	char *token = NULL;
 	char *pname = NULL;
+	char *sp;
 	uint8_t lun = 0;
 	bool lun_set = false;
 
-	token = strtok(arg, ":");
+	token = strtok_r((char *)arg, ":", &sp);
 	pname = token;
-	token = strtok(NULL, ":");
+	token = strtok_r(NULL, ":", &sp);
 	if(token)
 	{
 		lun = atoi(token);
@@ -2449,19 +2458,21 @@ void cmd_flash_nand(const char *arg, void *data, unsigned sz)
 		|| !strcmp(ptn->name, "persist")
 		|| !strcmp(ptn->name, "recoveryfs")
 		|| !strcmp(ptn->name, "modem"))
-	{
-		if (memcmp((void *)data, UBI_MAGIC, UBI_MAGIC_SIZE))
-			extra = 1;
-		else
-			extra = 0;
-	}
+		extra = 1;
 	else
 		sz = ROUND_TO_PAGE(sz, page_mask);
 
 	dprintf(INFO, "writing %d bytes to '%s'\n", sz, ptn->name);
-	if (flash_write(ptn, extra, data, sz)) {
-		fastboot_fail("flash write failure");
-		return;
+	if (!memcmp((void *)data, UBI_MAGIC, UBI_MAGIC_SIZE)) {
+		if (flash_ubi_img(ptn, data, sz)) {
+			fastboot_fail("flash write failure");
+			return;
+		}
+	} else {
+		if (flash_write(ptn, extra, data, sz)) {
+			fastboot_fail("flash write failure");
+			return;
+		}
 	}
 	dprintf(INFO, "partition '%s' updated\n", ptn->name);
 	fastboot_okay("");

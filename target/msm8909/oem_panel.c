@@ -44,6 +44,7 @@
 #include "include/panel_ili9806e_fwvga_video.h"
 #include "include/panel_hx8394d_qhd_video.h"
 #include "include/panel_hx8379c_fwvga_video.h"
+#include "include/panel_fl10802_fwvga_video.h"
 
 #define DISPLAY_MAX_PANEL_DETECTION 0
 #define ILI9806E_FWVGA_VIDEO_PANEL_POST_INIT_DELAY 68
@@ -52,6 +53,7 @@ enum {
 	QRD_SKUA = 0x00,
 	QRD_SKUC = 0x08,
 	QRD_SKUE = 0x09,
+	QRD_SKUT = 0x0A,
 };
 
 /*---------------------------------------------------------------------------*/
@@ -67,6 +69,7 @@ enum {
 	ILI9806E_FWVGA_VIDEO_PANEL,
 	HX8394D_QHD_VIDEO_PANEL,
 	HX8379C_FWVGA_VIDEO_PANEL,
+	FL10802_FWVGA_VIDEO_PANEL,
 	UNKNOWN_PANEL
 };
 
@@ -82,6 +85,7 @@ static struct panel_list supp_panels[] = {
 	{"ili9806e_fwvga_video",ILI9806E_FWVGA_VIDEO_PANEL},
 	{"hx8394d_qhd_video", HX8394D_QHD_VIDEO_PANEL},
 	{"hx8379c_fwvga_video",HX8379C_FWVGA_VIDEO_PANEL},
+	{"fl10802_fwvga_video", FL10802_FWVGA_VIDEO_PANEL}
 };
 
 static uint32_t panel_id;
@@ -263,6 +267,28 @@ static int init_panel_data(struct panel_struct *panelstruct,
 					hx8379c_fwvga_video_timings, TIMING_SIZE);
 		pinfo->mipi.signature = HX8379C_FWVGA_VIDEO_SIGNATURE;
 		break;
+	case FL10802_FWVGA_VIDEO_PANEL:
+		panelstruct->paneldata	  = &fl10802_fwvga_video_panel_data;
+		panelstruct->panelres	  = &fl10802_fwvga_video_panel_res;
+		panelstruct->color		  = &fl10802_fwvga_video_color;
+		panelstruct->videopanel   = &fl10802_fwvga_video_video_panel;
+		panelstruct->commandpanel = &fl10802_fwvga_video_command_panel;
+		panelstruct->state		  = &fl10802_fwvga_video_state;
+		panelstruct->laneconfig   = &fl10802_fwvga_video_lane_config;
+		panelstruct->paneltiminginfo
+					 = &fl10802_fwvga_video_timing_info;
+		panelstruct->panelresetseq
+					 = &fl10802_fwvga_video_reset_seq;
+		panelstruct->backlightinfo = &fl10802_fwvga_video_backlight;
+		pinfo->mipi.panel_cmds
+					= fl10802_fwvga_video_on_command;
+		pinfo->mipi.num_of_panel_cmds
+					= FL10802_FWVGA_VIDEO_ON_COMMAND;
+		memcpy(phy_db->timing,
+				fl10802_fwvga_video_timings, TIMING_SIZE);
+		pinfo->mipi.signature = FL10802_FWVGA_VIDEO_SIGNATURE;
+		pinfo->mipi.cmds_post_tg = 1;
+		break;
 	case UNKNOWN_PANEL:
 	default:
 		memset(panelstruct, 0, sizeof(struct panel_struct));
@@ -321,6 +347,9 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 				break;
 			case QRD_SKUE:
 				panel_id = HX8379C_FWVGA_VIDEO_PANEL;
+				break;
+			case QRD_SKUT:
+				panel_id = FL10802_FWVGA_VIDEO_PANEL;
 				break;
 			default:
 				dprintf(CRITICAL, "QRD Display not enabled for %d type\n",

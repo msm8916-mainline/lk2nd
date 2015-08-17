@@ -1047,8 +1047,6 @@ partition_parse_gpt_header(unsigned char *buffer,
 	uint32_t crc_val_org = 0;
 	uint32_t crc_val = 0;
 	uint32_t ret = 0;
-	uint32_t partitions_for_block = 0;
-	uint32_t blocks_to_read = 0;
 	unsigned char *new_buffer = NULL;
 	unsigned long long last_usable_lba = 0;
 	unsigned long long partition_0 = 0;
@@ -1075,11 +1073,11 @@ partition_parse_gpt_header(unsigned char *buffer,
 	}
 
 	crc_val_org = GET_LWORD_FROM_BYTE(&buffer[HEADER_CRC_OFFSET]);
-	/*Write CRC to 0 before we calculate the crc of the GPT header*/
 	crc_val = 0;
+	/*Write CRC to 0 before we calculate the crc of the GPT header*/
 	PUT_LONG(&buffer[HEADER_CRC_OFFSET], crc_val);
 
-	crc_val  = crc32(~0L,buffer, *header_size) ^ (~0L);
+	crc_val  = calculate_crc32(buffer, *header_size);
 	if (crc_val != crc_val_org) {
 		dprintf(CRITICAL,"Header crc mismatch crc_val = %u with crc_val_org = %u\n", crc_val,crc_val_org);
 		return 1;
@@ -1126,14 +1124,7 @@ partition_parse_gpt_header(unsigned char *buffer,
 		return 1;
 	}
 
-	partitions_for_block = block_size / (*partition_entry_size);
-
-	blocks_to_read = (*max_partition_count)/ partitions_for_block;
-	if ((*max_partition_count) % partitions_for_block) {
-		blocks_to_read += 1;
-	}
-
-	new_buffer = (uint8_t *)memalign(CACHE_LINE, ROUNDUP((blocks_to_read * block_size),CACHE_LINE));
+	new_buffer = (uint8_t *)memalign(CACHE_LINE, ROUNDUP((*max_partition_count) * (*partition_entry_size), CACHE_LINE));
 
 	if (!new_buffer)
 	{
@@ -1141,7 +1132,14 @@ partition_parse_gpt_header(unsigned char *buffer,
 		return 1;
 	}
 
-	if (!flashing_gpt) {
+	if (flashing_gpt) {
+		if (parse_secondary_gpt) {
+			memcpy(new_buffer, buffer - MIN_PARTITION_ARRAY_SIZE, (*max_partition_count) * (*partition_entry_size));
+		}
+		else
+			memcpy(new_buffer, buffer + block_size, (*max_partition_count) * (*partition_entry_size));
+	}
+	else {
 		partition_0 = GET_LLWORD_FROM_BYTE(&buffer[PARTITION_ENTRIES_OFFSET]);
 		/*start LBA should always be 2 in primary GPT*/
 		if(partition_0 != 0x2) {
@@ -1150,20 +1148,21 @@ partition_parse_gpt_header(unsigned char *buffer,
 
 		}
 		/*read the partition entries to new_buffer*/
-		ret = mmc_read((partition_0) * (block_size), (unsigned int *)new_buffer, (blocks_to_read * block_size));
+		ret = mmc_read((partition_0) * (block_size), (unsigned int *)new_buffer, (*max_partition_count) * (*partition_entry_size));
 		if (ret)
 		{
 			dprintf(CRITICAL, "GPT: Could not read primary gpt from mmc\n");
 			goto fail;
 		}
-		crc_val_org = GET_LWORD_FROM_BYTE(&buffer[PARTITION_CRC_OFFSET]);
-
-		crc_val  = crc32(~0L,new_buffer, ((*max_partition_count) * (*partition_entry_size))) ^ (~0L);
-		if (crc_val != crc_val_org) {
-			dprintf(CRITICAL,"Partition entires crc mismatch crc_val= %u with crc_val_org= %u\n",crc_val,crc_val_org);
-			ret = 1;
-		}
 	}
+	crc_val_org = GET_LWORD_FROM_BYTE(&buffer[PARTITION_CRC_OFFSET]);
+
+	crc_val  = calculate_crc32(new_buffer,((*max_partition_count) * (*partition_entry_size)));
+	if (crc_val != crc_val_org) {
+		dprintf(CRITICAL,"Partition entires crc mismatch crc_val= %u with crc_val_org= %u\n",crc_val,crc_val_org);
+		ret = 1;
+	}
+
 fail:
 	free(new_buffer);
 	return ret;
