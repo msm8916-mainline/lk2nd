@@ -214,9 +214,6 @@ struct glink_channel_ctx {
   *   or local side closed the port. Optional */
   glink_notify_tx_abort_cb            notify_tx_abort;
 
-  /* glink transport if pointer for preferred channel */
-  glink_transport_if_type             *req_if_ptr;
-
   /* flag to check if channel is marked for deletion
    * This is workaround to prevent channel migration algorithm from finding channel
    * which should be closed but has not been closed yet. This case occurs when glink_close
@@ -729,8 +726,6 @@ void glinki_ch_remove_tx_pending_remote_done
  *
  * @param[in]    if_ptr            Pointer to xport if on which channel is to
  *                                 be opened
- * @param[in]    req_if_ptr        Pointer to xport if on which channel
- *                                 actually wants to open
  * @param[in]    ch_ctx            channel context
  * @param[out]   allocated_ch_ctx  Pointer to channel context pointer
  * @param[in]    local_open        flag to determine if channel is opened
@@ -747,7 +742,6 @@ void glinki_ch_remove_tx_pending_remote_done
 glink_err_type glinki_add_ch_to_xport
 (
   glink_transport_if_type  *if_ptr,
-  glink_transport_if_type  *req_if_ptr,
   glink_channel_ctx_type   *ch_ctx,
   glink_channel_ctx_type  **allocated_ch_ctx,
   unsigned int              local_open,

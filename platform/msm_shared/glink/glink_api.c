@@ -100,7 +100,6 @@ void glinki_free_intents(glink_channel_ctx_type *open_ch_ctx);
 glink_err_type glinki_add_ch_to_xport
 (
   glink_transport_if_type  *if_ptr,
-  glink_transport_if_type  *req_if_ptr,
   glink_channel_ctx_type   *ch_ctx,
   glink_channel_ctx_type  **allocated_ch_ctx,
   unsigned int              local_open,
@@ -137,7 +136,6 @@ glink_err_type glinki_add_ch_to_xport
       ch_ctx->lcid        = open_ch_ctx->lcid;
       ch_ctx->pintents    = open_ch_ctx->pintents;
       ch_ctx->if_ptr      = open_ch_ctx->if_ptr;
-      ch_ctx->req_if_ptr  = req_if_ptr;
 
       ch_ctx->remote_state = open_ch_ctx->remote_state;
       ch_ctx->local_state  = GLINK_LOCAL_CH_OPENING;
@@ -156,7 +154,7 @@ glink_err_type glinki_add_ch_to_xport
       status = if_ptr->tx_cmd_ch_open( if_ptr,
                                        ch_ctx->lcid,
                                        ch_ctx->name,
-                                       ch_ctx->req_if_ptr->glink_priority );
+                                       migrated_ch_prio );
     }
     else
     {
@@ -218,7 +216,6 @@ glink_err_type glinki_add_ch_to_xport
   {
     /* This is a local open */
     ch_ctx->local_state = GLINK_LOCAL_CH_OPENING;
-    ch_ctx->req_if_ptr  = req_if_ptr;
   }
   else
   {
@@ -241,7 +238,7 @@ glink_err_type glinki_add_ch_to_xport
   {
     status = if_ptr->tx_cmd_ch_open( if_ptr, ch_ctx->lcid,
                                      ch_ctx->name,
-                                     ch_ctx->req_if_ptr->glink_priority );
+                                     migrated_ch_prio );
   }
   else
   {
@@ -916,7 +913,7 @@ glink_err_type glink_open
 
     if (xport_ctx->status == GLINK_XPORT_LINK_UP &&
         (cfg_ptr->transport == NULL ||
-         0 == strcmp(cfg_ptr->transport, xport_ctx->xport)) &&
+         0 == glink_os_string_compare(cfg_ptr->transport, xport_ctx->xport)) && 
         xport_ctx->verify_open_cfg(ch_ctx))
     {
       glink_err_type status;
@@ -941,11 +938,10 @@ glink_err_type glink_open
       }
       /* Xport match found */
       status = glinki_add_ch_to_xport( if_ptr,
-                                       req_if_ptr,
                                        ch_ctx,
                                        &allocated_ch_ctx,
                                        TRUE,
-                                       if_ptr->glink_priority );
+                                       req_if_ptr->glink_priority );
 
       if( status == GLINK_STATUS_SUCCESS )
       {
