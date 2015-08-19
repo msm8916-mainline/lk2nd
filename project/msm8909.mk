@@ -67,3 +67,6 @@ endif
 ifeq ($(ENABLE_BOOT_CONFIG_SUPPORT),1)
 DEFINES += BOOT_CONFIG_SUPPORT=1
 endif
+
+#Enable the external reboot functions
+ENABLE_REBOOT_MODULE := 1

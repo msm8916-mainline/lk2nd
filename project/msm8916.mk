@@ -52,3 +52,6 @@ endif
 
 #enable user force reset feature
 DEFINES += USER_FORCE_RESET_SUPPORT=1
+
+#Enable the external reboot functions
+ENABLE_REBOOT_MODULE := 1
