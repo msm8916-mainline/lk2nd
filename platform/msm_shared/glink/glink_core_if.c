@@ -112,20 +112,19 @@ static void glink_process_negotiation_complete
   glinki_scan_notif_list_and_notify(if_ptr, GLINK_LINK_STATE_UP);
 }
 
-
 /*===========================================================================
   FUNCTION      glink_clean_channel_ctx
 ===========================================================================*/
 /**
 
-  This is called when channel is fully closed
-  Clean up the context and redeem channel id if possible
+  This is called when channel is fully closed.
+  Clean up the context and redeem channel id if possible.
 
   @param[in]    xport_ctx    transport context
   @param[in]    channel_ctx  channel context
 
 
-  @return        None
+  @return        None.
   @sideeffects   None.
   @dependencies  This function needs to be called in safe context
                  which is critical sections locked - channel_q_cs
@@ -137,7 +136,7 @@ static void glink_clean_channel_ctx
   glink_channel_ctx_type    *channel_ctx
 )
 {
-  xport_ctx->channel_cleanup( channel_ctx );
+  smem_list_delete(&xport_ctx->open_list, channel_ctx);
 
   if( channel_ctx->lcid == ( xport_ctx->free_lcid - 1 ) )
   {
@@ -146,7 +145,7 @@ static void glink_clean_channel_ctx
     xport_ctx->free_lcid--;
   }
 
-  smem_list_delete(&xport_ctx->open_list, channel_ctx);
+  xport_ctx->channel_cleanup(channel_ctx);
 }
 
 /*===========================================================================
@@ -517,7 +516,6 @@ void glink_rx_cmd_ch_close_ack
       /* Found channel */
       glink_os_cs_acquire( &open_ch_ctx->ch_state_cs );
 
-
       GLINK_LOG_EVENT(GLINK_EVENT_CH_CLOSE_ACK, open_ch_ctx->name,
           xport_ctx->xport, xport_ctx->remote_ss, lcid);
 
@@ -590,6 +588,8 @@ void glink_rx_cmd_ch_remote_close
   {
     if( open_ch_ctx->rcid == rcid )
     {
+      glink_remote_state_type remote_state;
+
       GLINK_LOG_EVENT( GLINK_EVENT_CH_REMOTE_CLOSE, open_ch_ctx->name,
                        xport_ctx->xport, xport_ctx->remote_ss, rcid);
       /* Found channel, transition to appropriate state based on current state
@@ -607,6 +607,8 @@ void glink_rx_cmd_ch_remote_close
         glink_clean_channel_ctx( xport_ctx, open_ch_ctx );
       }
 
+      remote_state = open_ch_ctx->remote_state;
+
       glink_os_cs_release(&open_ch_ctx->ch_state_cs);
       glink_os_cs_release(&xport_ctx->channel_q_cs);
 
@@ -615,7 +617,10 @@ void glink_rx_cmd_ch_remote_close
 
       if( open_ch_ctx->local_state == GLINK_LOCAL_CH_CLOSED )
       {
+        if (remote_state != GLINK_REMOTE_CH_CLEANUP)
+        {
         glink_os_free(open_ch_ctx);
+      }
       }
       else
       {

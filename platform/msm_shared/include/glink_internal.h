@@ -95,13 +95,20 @@ typedef enum {
   GLINK_EVENT_CH_MIGRATION_IN_PROGRESS,
   GLINK_EVENT_XPORT_INTERNAL,
   GLINK_EVENT_TRACER_PKT_FAILURE,
-  GLINK_EVENT_TXV_INVALID_BUFFER
+  GLINK_EVENT_TXV_INVALID_BUFFER,
+  GLINK_EVENT_CH_QOS_REG,
+  GLINK_EVENT_CH_QOS_CANCEL,
+  GLINK_EVENT_CH_QOS_START,
+  GLINK_EVENT_CH_QOS_STOP,
 }glink_log_event_type;
 
 typedef struct _glink_channel_intents_type {
 
   /* Link for a channel in Tx queue */
   struct _glink_channel_intents_type* next;
+
+  /* Pointer to channel context */
+  glink_channel_ctx_type        *ch_ctx;
 
   /* Critical section to protest access to intent queues */
   os_cs_type                    intent_q_cs;
@@ -137,6 +144,32 @@ typedef struct _glink_channel_intents_type {
 
 } glink_channel_intents_type;
 
+
+typedef struct _glink_channel_qos_type {
+  /* qos request count */
+  uint32                        qos_req_count;
+
+  /* qos request packet size */
+  size_t                        qos_pkt_size;
+
+  /* qos request latency */
+  uint32                        qos_latency_us;
+
+  /* qos request rate */
+  uint32                        qos_rate;
+
+  /* qos priority */
+  uint32                        qos_tokens;
+
+  /* qos transport context */
+  void                          *qos_transport_ctx;
+
+  /* qos start time for priority balancing */
+  os_timetick_type              qos_start_priority_time;
+
+} glink_channel_qos_type;
+
+
 struct glink_channel_ctx {
   /* Link needed for use with list APIs.  Must be at the head of the struct */
   smem_list_link_type                 link;
@@ -171,6 +204,15 @@ struct glink_channel_ctx {
   /* channel intent collection */
   glink_channel_intents_type          *pintents;
 
+  /* Critical section to protest access to QoS context */
+  os_cs_type                          qos_cs;
+
+  /* qos priority */
+  uint32                              qos_priority;
+
+  /* channel QoS context */
+  glink_channel_qos_type              *qosctx;
+  
   /* Interface pointer with with this channel is registered */
   glink_transport_if_type             *if_ptr;
 
@@ -576,5 +618,38 @@ FUNCTION      glink_core_setup_intentless_xport
 */
 /*=========================================================================*/
 void glink_core_setup_intentless_xport(glink_transport_if_type *if_ptr);
+
+/*===========================================================================
+  FUNCTION      glink_core_qos_get_priority
+===========================================================================*/
+/**
+
+  Calculates pinitial priority for QoS request.
+
+  @param[in]  if_ptr   The Pointer to the interface instance.
+  @param[in]  req_rate The requested rate.
+
+  @return     Priority.
+
+  @sideeffects  None.
+*/
+/*=========================================================================*/
+uint32 glink_core_qos_get_priority(glink_transport_if_type *if_ptr, uint32 req_rate);
+
+/*===========================================================================
+  FUNCTION      glink_core_qos_cancel
+===========================================================================*/
+/**
+
+  Releases QoS resources.
+
+  @param[in]  open_ch_ctx  Pointer to the channel context.
+
+  @return     None.
+
+  @sideeffects  None.
+*/
+/*=========================================================================*/
+void glink_core_qos_cancel(glink_channel_ctx_type *open_ch_ctx);
 
 #endif /* GLINK_INTERNAL_H */

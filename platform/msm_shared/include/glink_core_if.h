@@ -51,6 +51,14 @@ extern "C" {
 /*===========================================================================
                       MACRO DECLARATIONS
 ===========================================================================*/
+/* Limit of the proportion of total QoS requests */
+#define GLINK_QOS_RATE_LIMIT_COEFF (0.7)
+
+/* Number of QoS tokens given at refill */
+#define GLINK_QOS_TOKENS (10) 
+
+/* Number of QoS buckets */
+#define GLINK_QOS_BUCKETS (1)
 
 /*===========================================================================
                       TYPE DECLARATIONS
@@ -88,6 +96,7 @@ typedef struct glink_tx_xport_ctx_s {
   os_event_type event;   /* Event to signal Tx thread */
   os_cs_type tx_q_cs;    /* Lock to protect Tx queue */
   smem_list_type tx_q;   /* Tx channel queue */
+  uint32 qos_rate_sum;   /* Sum of rates of registered QoS requests */
 } glink_tx_xport_ctx_type;
 
 /** G-Link Local channel states */
@@ -117,7 +126,12 @@ typedef enum
   GLINK_REMOTE_CH_OPENED,
 
   /* Glink channel state when SSR is received from remote sub-system */
-  GLINK_REMOTE_CH_SSR_RESET
+  GLINK_REMOTE_CH_SSR_RESET,
+
+  /** G-Link channel is pending cleanup. 
+      This state is used for deferred channel cleanup in case 
+      it sits in Tx scheduler queue */
+  GLINK_REMOTE_CH_CLEANUP,
 
 }glink_remote_state_type;
 
@@ -310,6 +324,9 @@ struct glink_core_xport_ctx
 
   /* Transport's capabilities */
   uint32                        xport_capabilities;
+
+  /* Max lcid */
+  uint32                        max_lcid;
 
   /* Free lcid */
   uint32                        free_lcid;

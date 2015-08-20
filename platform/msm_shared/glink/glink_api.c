@@ -131,12 +131,18 @@ glink_err_type glinki_add_ch_to_xport
       ASSERT( open_ch_ctx->local_state == GLINK_LOCAL_CH_CLOSED );
 
       glink_os_cs_init( &ch_ctx->tx_cs );
+      glink_os_cs_init(&ch_ctx->qos_cs);
       glink_os_cs_init( &ch_ctx->ch_state_cs );
 
       ch_ctx->rcid        = open_ch_ctx->rcid;
       ch_ctx->lcid        = open_ch_ctx->lcid;
       ch_ctx->pintents    = open_ch_ctx->pintents;
       ch_ctx->if_ptr      = open_ch_ctx->if_ptr;
+
+      if (ch_ctx->pintents != NULL)
+      {
+        ch_ctx->pintents->ch_ctx = ch_ctx;
+      }
 
       ch_ctx->remote_state = open_ch_ctx->remote_state;
       ch_ctx->local_state  = GLINK_LOCAL_CH_OPENING;
@@ -161,7 +167,8 @@ glink_err_type glinki_add_ch_to_xport
     {
       /* REMOTE OPEN REQUEST */
 
-      if( open_ch_ctx->remote_state == GLINK_REMOTE_CH_SSR_RESET )
+      if( open_ch_ctx->remote_state == GLINK_REMOTE_CH_SSR_RESET ||
+          open_ch_ctx->remote_state == GLINK_REMOTE_CH_CLEANUP)
       {
         /* During SSR previous channel ctx needs to be destroyed 
         * new remote/local open request will create new context */
@@ -209,6 +216,14 @@ glink_err_type glinki_add_ch_to_xport
 
   ASSERT( open_ch_ctx == NULL );
 
+  /* check if a new channel can be added */
+  if ((uint32)smem_list_count(&if_ptr->glink_core_priv->open_list) >= xport_ctx->max_lcid)
+  {
+    glink_os_cs_release(&xport_ctx->channel_q_cs);
+    glink_os_free(ch_ctx);
+    return GLINK_STATUS_OUT_OF_RESOURCES;
+  }
+  
   /* Channel not in the list - it was not previously opened */
   ch_ctx->if_ptr = if_ptr;
   *allocated_ch_ctx = ch_ctx;
@@ -225,11 +240,33 @@ glink_err_type glinki_add_ch_to_xport
   }
 
   glink_os_cs_init(&ch_ctx->tx_cs);
+  glink_os_cs_init(&ch_ctx->qos_cs);
   glink_os_cs_init(&ch_ctx->ch_state_cs);
 
-  /* Append the channel to the transport interface's open_list */
-  ch_ctx->lcid = xport_ctx->free_lcid;
+  /* make sure next LCID is not used in currently open channels */
+  open_ch_ctx = smem_list_first(&if_ptr->glink_core_priv->open_list);
+
+  while (open_ch_ctx)
+  {
+    if (open_ch_ctx->lcid == xport_ctx->free_lcid)
+    {
   xport_ctx->free_lcid++;
+      
+      if (xport_ctx->free_lcid >= xport_ctx->max_lcid)
+      {
+        xport_ctx->free_lcid = 1;
+      }
+
+      open_ch_ctx = smem_list_first(&if_ptr->glink_core_priv->open_list);
+      continue;
+    }
+
+    open_ch_ctx = smem_list_next(open_ch_ctx);
+  }
+
+  ch_ctx->lcid = xport_ctx->free_lcid;
+
+  /* Append the channel to the transport interface's open_list */
   smem_list_append(&if_ptr->glink_core_priv->open_list, ch_ctx);
 
   /* release lock before context switch otherwise it is causing deadlock */
@@ -454,6 +491,7 @@ void glinki_scan_channels_and_notify_discon
 {
   glink_channel_ctx_type     *open_ch_ctx, *dummy_open_ch_ctx;
   glink_core_xport_ctx_type  *xport_ctx;
+  glink_remote_state_type     remote_state;
 
   ASSERT(if_ptr != NULL);
 
@@ -489,9 +527,16 @@ void glinki_scan_channels_and_notify_discon
 
       case GLINK_LOCAL_CH_CLOSED:
         /* Channel fully closed - local, remote */
+        glink_os_cs_acquire(&open_ch_ctx->ch_state_cs);
         xport_ctx->channel_cleanup(open_ch_ctx);
         smem_list_delete(&if_ptr->glink_core_priv->open_list, open_ch_ctx);
+        remote_state = open_ch_ctx->remote_state;
+        glink_os_cs_release(&open_ch_ctx->ch_state_cs);
+
+        if (remote_state != GLINK_REMOTE_CH_CLEANUP)
+        {
         glink_os_free(open_ch_ctx);
+        }
         break;
 
       default:
@@ -621,7 +666,6 @@ glink_err_type glink_core_register_transport
      if_ptr->tx_cmd_ch_close == NULL            ||
      if_ptr->tx_cmd_ch_remote_open_ack == NULL  ||
      if_ptr->tx_cmd_ch_remote_close_ack == NULL ||
-     if_ptr->tx_cmd_set_sigs  == NULL           ||
      if_ptr->ssr  == NULL)
   {
     GLINK_LOG_EVENT(GLINK_EVENT_REGISTER_XPORT, NULL, cfg->name,
@@ -658,6 +702,7 @@ glink_err_type glink_core_register_transport
     xport_ctx->xport = cfg->name;
     xport_ctx->remote_ss = cfg->remote_ss;
     xport_ctx->free_lcid = 1; /* lcid 0 is reserved for invalid channel */
+    xport_ctx->max_lcid = cfg->max_cid; /* Max channel ID supported by transport */
     xport_ctx->version_array = cfg->version;
     xport_ctx->version_indx = cfg->version_count - 1;
 
