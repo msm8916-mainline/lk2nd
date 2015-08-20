@@ -47,7 +47,7 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ===========================================================================*/
 int glink_core_status = GLINK_NOT_INITIALIZED;
 
-os_cs_type *glink_transport_q_cs;
+os_cs_type *glink_transport_q_cs[GLINK_NUM_HOSTS];
 os_cs_type *glink_mem_log_cs;
 
 glink_mem_log_entry_type glink_mem_log_arr[GLINK_MEM_LOG_SIZE];
@@ -557,21 +557,16 @@ void glink_init(void)
 
   glink_mem_log_cs = glink_os_cs_create();
 
-  glink_core_status = GLINK_INITIALIZED;
-
   /* Create/Initalize crtitical sections */
-  glink_transport_q_cs = glink_os_cs_create();
-  if(glink_transport_q_cs == NULL) {
-    return;
-  }
-
-  glink_os_cs_acquire(glink_transport_q_cs);
   for(i= 0; i < sizeof(glink_registered_transports)/sizeof(smem_list_type);
       i++)
   {
+    glink_transport_q_cs[i] = glink_os_cs_create();
+    ASSERT( glink_transport_q_cs[i] != NULL );
     smem_list_init(&glink_registered_transports[i]);
   }
-  glink_os_cs_release(glink_transport_q_cs);
+  
+  glink_core_status = GLINK_INITIALIZED;
 }
 
 /*===========================================================================
@@ -678,9 +673,9 @@ glink_err_type glink_core_register_transport
   }
 
   /* Push the transport interface into appropriate queue */
-  glink_os_cs_acquire(glink_transport_q_cs);
+  glink_os_cs_acquire( glink_transport_q_cs[remote_host] );
   smem_list_append(&glink_registered_transports[remote_host], if_ptr);
-  glink_os_cs_release(glink_transport_q_cs);
+  glink_os_cs_release( glink_transport_q_cs[remote_host] );
 
   GLINK_LOG_EVENT(GLINK_EVENT_REGISTER_XPORT, NULL, xport_ctx->xport,
       xport_ctx->remote_ss, GLINK_STATUS_SUCCESS);
@@ -803,6 +798,8 @@ glink_transport_if_type* glink_get_best_xport
   glink_xport_priority       priority  = GLINK_MIN_PRIORITY;
   glink_core_xport_ctx_type *xport_ctx = NULL;
 
+  glink_os_cs_acquire( glink_transport_q_cs[remote_host] );
+  
   best_if_ptr = if_ptr = smem_list_first(
                           &glink_registered_transports[remote_host]);
 
@@ -821,8 +818,87 @@ glink_transport_if_type* glink_get_best_xport
     if_ptr = smem_list_next(if_ptr);
   } /* end while() */
 
+  glink_os_cs_release( glink_transport_q_cs[remote_host] );
+  
   return best_if_ptr;
 }
+
+/*===========================================================================
+  FUNCTION      glinki_find_requested_xport
+===========================================================================*/
+/** 
+ * Find requested or best transport depending on client's request
+ *
+ * @param[in]    xport_name         name of transport
+ * @param[in]    remote_host        remote host ID
+ * @param[in]    open_ch_option     option client gave when called glink_open
+ * @param[out]   suggested_priority best xport priority glink suggests
+ *
+ * @return       pointer to glink_transport_if_type struct
+ *
+ * @sideeffects  NONE
+ */
+/*=========================================================================*/
+glink_transport_if_type *glinki_find_requested_xport
+(
+  const char           *xport_name,
+  uint32                remote_host,
+  uint32                open_ch_option,
+  glink_xport_priority *suggested_priority
+)
+{
+  glink_transport_if_type *if_ptr;
+  glink_transport_if_type *xport_found = NULL;
+  
+  *suggested_priority = GLINK_INVALID_PRIORITY;
+
+  if( !xport_name )
+  {
+    xport_found = glink_get_best_xport( remote_host );
+    if( xport_found )
+    {
+      *suggested_priority = xport_found->glink_priority;
+    }
+
+    return xport_found;
+  }
+  
+  glink_os_cs_acquire( glink_transport_q_cs[remote_host] );
+  
+  /* Check to see if requested transport is available */
+  for( if_ptr = smem_list_first( &glink_registered_transports[remote_host] );
+       if_ptr != NULL;
+       if_ptr = smem_list_next( if_ptr ) )
+  {
+    glink_core_xport_ctx_type *xport_ctx = if_ptr->glink_core_priv;
+    
+    if( xport_ctx->status != GLINK_XPORT_LINK_UP ||
+        ( 0 != glink_os_string_compare( xport_name, xport_ctx->xport ) ) )
+    {
+      continue;
+    }
+
+    xport_found = if_ptr;
+    
+    if( ( open_ch_option & GLINK_OPT_INITIAL_XPORT ) != 0 )
+    {
+      if_ptr = glink_get_best_xport( remote_host );
+      *suggested_priority = if_ptr->glink_priority;
+    }
+    else
+    {
+      /* Client is not willing to migrate to better transport */
+      *suggested_priority = xport_found->glink_priority;
+    }
+    
+    break;
+  }
+
+  glink_os_cs_release( glink_transport_q_cs[remote_host] );
+  
+  return xport_found; 
+}
+
 
 /**
  * Opens a logical GLink based on the specified config params
@@ -842,9 +918,12 @@ glink_err_type glink_open
   glink_handle_type      *handle
 )
 {
-  glink_transport_if_type *if_ptr, *req_if_ptr;
+  glink_transport_if_type *if_ptr;
   glink_channel_ctx_type  *ch_ctx;
   unsigned int            remote_host;
+  glink_xport_priority     suggested_priority;
+  glink_channel_ctx_type  *allocated_ch_ctx;
+  glink_err_type           status;
 
   /* Param validation */
   if(cfg_ptr == NULL)
@@ -901,47 +980,28 @@ glink_err_type glink_open
     ch_ctx->notify_rx_sigs = glink_default_notify_rx_sigs;
   }
 
-  glink_os_cs_acquire(glink_transport_q_cs);
+  if_ptr = glinki_find_requested_xport( cfg_ptr->transport, 
+                                        remote_host,
+                                        cfg_ptr->options,
+                                        &suggested_priority );
 
-  /* Check to see if requested transport is available */
-  for (if_ptr = smem_list_first(&glink_registered_transports[remote_host]);
-       if_ptr != NULL;
-       if_ptr = smem_list_next(if_ptr))
-  {
-    glink_core_xport_ctx_type *xport_ctx = if_ptr->glink_core_priv;
-    glink_channel_ctx_type    *allocated_ch_ctx;
-
-    if (xport_ctx->status == GLINK_XPORT_LINK_UP &&
-        (cfg_ptr->transport == NULL ||
-         0 == glink_os_string_compare(cfg_ptr->transport, xport_ctx->xport)) && 
-        xport_ctx->verify_open_cfg(ch_ctx))
+  if( !if_ptr )
     {
-      glink_err_type status;
-
-      if(cfg_ptr->transport == NULL)
-      {
-        /* get best available transport */
-        if_ptr = req_if_ptr = glink_get_best_xport(remote_host);
+    /* Code gets here if we are not able to find reqeusted transport */
+    GLINK_LOG_EVENT( GLINK_EVENT_CH_OPEN,
+                     cfg_ptr->name,
+                     cfg_ptr->transport,
+                     cfg_ptr->remote_ss,
+                     GLINK_STATUS_NO_TRANSPORT );
+    glink_os_free(ch_ctx);
+    return GLINK_STATUS_NO_TRANSPORT;
       }
-      else
-      {
-        if(cfg_ptr->options & GLINK_OPT_INITIAL_XPORT)
-        {
-          /* xport suggested by client is optional.
-           * get best available xport */
-          req_if_ptr = glink_get_best_xport(remote_host);
-        }
-        else
-        {
-          req_if_ptr = if_ptr;
-        }
-      }
-      /* Xport match found */
+  
       status = glinki_add_ch_to_xport( if_ptr,
                                        ch_ctx,
                                        &allocated_ch_ctx,
                                        TRUE,
-                                       req_if_ptr->glink_priority );
+                                   suggested_priority );
 
       if( status == GLINK_STATUS_SUCCESS )
       {
@@ -953,22 +1013,14 @@ glink_err_type glink_open
         *handle = NULL;
       }
 
-      glink_os_cs_release(glink_transport_q_cs);
+  GLINK_LOG_EVENT( GLINK_EVENT_CH_OPEN,
+                   cfg_ptr->name,
+                   cfg_ptr->transport,
+                   cfg_ptr->remote_ss,
+                   status );
 
-      GLINK_LOG_EVENT(GLINK_EVENT_CH_OPEN, ch_ctx->name, xport_ctx->xport,
-        xport_ctx->remote_ss, status);
       return status;
     }
-  } /* end for() */
-
-  glink_os_cs_release(glink_transport_q_cs);
-
-  /* Code gets here if we are not able to find reqeusted transport */
-  GLINK_LOG_EVENT(GLINK_EVENT_CH_OPEN, cfg_ptr->name, cfg_ptr->transport,
-      cfg_ptr->remote_ss, GLINK_STATUS_NO_TRANSPORT);
-  glink_os_free(ch_ctx);
-  return GLINK_STATUS_NO_TRANSPORT;
-}
 
 /**
  * Closes the GLink logical channel specified by the handle.

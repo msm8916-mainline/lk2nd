@@ -252,7 +252,7 @@ typedef struct {
 /*===========================================================================
                               GLOBAL DATA DECLARATIONS
 ===========================================================================*/
-extern os_cs_type *glink_transport_q_cs;
+extern os_cs_type *glink_transport_q_cs[GLINK_NUM_HOSTS];
 extern const char *glink_hosts_supported[GLINK_NUM_HOSTS];
 extern smem_list_type glink_registered_transports[];
 
