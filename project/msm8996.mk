@@ -85,3 +85,5 @@ DEFINES += PLATFORM_USE_SCM_DLOAD=1
 
 #Enable the external reboot functions
 ENABLE_REBOOT_MODULE := 1
+#fuse for Qusb tun2 config
+DEFINES += QFPROM_CORR_CALIB_ROW12_MSB=0x0007424C
