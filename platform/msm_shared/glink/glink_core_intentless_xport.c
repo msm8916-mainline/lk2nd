@@ -42,9 +42,6 @@ glink_core_if_type glink_core_intentless_interface =
   glink_rx_cmd_version,
   /** Receive ACK to previous glink_transport_if_type::tx_cmd_version command */
   glink_rx_cmd_version_ack,
-  /** Sets the core version used by the transport; called after completing
-   *  negotiation.*/
-  glink_set_core_version,
   /** Receive remote channel open request; expected response is
    *  glink_transport_if_type:: tx_cmd_ch_remote_open_ack */
   glink_rx_cmd_ch_remote_open,

@@ -35,7 +35,6 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <glink_os_utils.h>
 #include <glink_internal.h>
 #include <glink_vector.h>
-#include <glink_channel_migration.h>
 #include <smem_list.h>
 #include <smem_type.h>
 
@@ -117,10 +116,12 @@ glink_err_type glinki_add_ch_to_xport
        open_ch_ctx;
        open_ch_ctx = smem_list_next(open_ch_ctx) )
   {
-    if( 0 != glink_os_string_compare( open_ch_ctx->name, ch_ctx->name ) )
+    if( 0 != glink_os_string_compare( open_ch_ctx->name, ch_ctx->name ) ||
+        open_ch_ctx->tag_ch_for_close )
     {
       continue;
     }
+    
     /* grab lock to avoid race condition for channel state change */
     glink_os_cs_acquire(&open_ch_ctx->ch_state_cs);
 
@@ -161,7 +162,8 @@ glink_err_type glinki_add_ch_to_xport
       /* REMOTE OPEN REQUEST */
 
       if( open_ch_ctx->remote_state == GLINK_REMOTE_CH_SSR_RESET )
-      {/* During SSR previous channel ctx needs to be destroyed
+      {
+        /* During SSR previous channel ctx needs to be destroyed 
         * new remote/local open request will create new context */
         glink_os_cs_release( &open_ch_ctx->ch_state_cs );
         continue;

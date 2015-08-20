@@ -144,14 +144,6 @@ typedef void (*rx_cmd_version_ack_fn)
   uint32                  features /* Features */
 );
 
-/** Sets the core version used by the transport; called after completing
- *  negotiation.*/
-typedef void (*set_core_version_fn)
-(
-  glink_transport_if_type *if_ptr, /* Pointer to the interface instance */
-  uint32                  version  /* Version */
-);
-
 /** Receive remote channel open request; expected response is
  *  glink_transport_if_type:: tx_cmd_ch_remote_open_ack */
 typedef void (*rx_cmd_ch_remote_open_fn)
@@ -371,10 +363,6 @@ struct glink_core_if
 
   /** Receive ACK to previous glink_transport_if_type::tx_cmd_version command */
   rx_cmd_version_ack_fn          rx_cmd_version_ack;
-
-  /** Sets the core version used by the transport; called after completing
-   *  negotiation.*/
-  set_core_version_fn            set_core_version;
 
   /** Receive remote channel open request; expected response is
    *  glink_transport_if_type:: tx_cmd_ch_remote_open_ack */
