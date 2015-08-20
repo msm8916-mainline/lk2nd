@@ -750,27 +750,3 @@ void glink_rx_cmd_remote_sigs
   /* We end up here if we don't find the channel */
   ASSERT(0);
 }
-
-
-/*===========================================================================
-FUNCTION      glink_set_core_version
-
-DESCRIPTION   Sets the core version used by the transport; called after
-              completing negotiation.
-
-ARGUMENTS   *if_ptr    Pointer to interface instance; must be unique
-                       for each edge
-
-             version   Negotiated transport version
-
-RETURN VALUE  None.
-
-SIDE EFFECTS  None
-===========================================================================*/
-void glink_set_core_version
-(
-  glink_transport_if_type *if_ptr, /* Pointer to the interface instance */
-  uint32                  version  /* Version */
-)
-{
-}
