@@ -71,7 +71,6 @@
 #define BAM_DATA_READ                   0
 #define BAM_DATA_WRITE                  1
 
-#define BAM_DESC_CNT_TRSHLD_REG(x)      (0x0008 + (x))
 #define COUNT_TRESHOLD_MASK             0xFF
 #define BAM_IRQ_MASK                    (1 << 31)
 #define P_IRQ_MASK                      (1)
