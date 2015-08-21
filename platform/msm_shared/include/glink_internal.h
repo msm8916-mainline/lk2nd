@@ -100,6 +100,7 @@ typedef enum {
   GLINK_EVENT_CH_QOS_CANCEL,
   GLINK_EVENT_CH_QOS_START,
   GLINK_EVENT_CH_QOS_STOP,
+  GLINK_EVENT_INVALID_REMOTE_SS
 }glink_log_event_type;
 
 typedef struct _glink_channel_intents_type {
@@ -291,17 +292,35 @@ typedef struct {
   void                      *priv;         /* Notification priv ptr */
 } glink_link_notif_data_type;
 
+
+/* Function pointer used to iterate glink registered transports
+ * glink_client_cond_fn is used to find specifc transport client wants
+ * glink_client_ex_fn will execute client's operation on specific/all transports
+ * depends on client's choice */
+typedef boolean (*glink_client_cond_fn)
+(
+  glink_transport_if_type *if_ptr,
+  void                    *cond1,   /* First condition to compare */
+  uint32                   cond2,   /* Second condition to compare */
+  void                   **out      /* Client private return value */
+);
+
+typedef void (*glink_client_ex_fn)
+(
+  glink_transport_if_type *if_ptr,
+  void                    *param1,   /* First parameter */
+  uint32                   param2,   /* Second parameter */
+  void                   **out      /* Client private return value */
+);
+
 /*===========================================================================
                               GLOBAL DATA DECLARATIONS
 ===========================================================================*/
-extern os_cs_type *glink_transport_q_cs[GLINK_NUM_HOSTS];
 extern const char *glink_hosts_supported[GLINK_NUM_HOSTS];
-extern smem_list_type glink_registered_transports[];
 
 /*===========================================================================
                     LOCAL FUNCTION DEFINITIONS
 ===========================================================================*/
-
 /*===========================================================================
                     EXTERNAL FUNCTION DEFINITIONS
 ===========================================================================*/
@@ -620,6 +639,22 @@ FUNCTION      glink_core_setup_intentless_xport
 void glink_core_setup_intentless_xport(glink_transport_if_type *if_ptr);
 
 /*===========================================================================
+  FUNCTION      glink_core_setup_intent_xport
+===========================================================================*/
+/**
+
+  Initializes internal core functions based on the transport capabilities.
+
+  @param[in]  if_ptr   The Pointer to the interface instance.
+
+  @return     None.
+
+  @sideeffects  None.
+*/
+/*=========================================================================*/
+void glink_core_setup_intent_xport(glink_transport_if_type *if_ptr);
+
+/*===========================================================================
   FUNCTION      glink_core_qos_get_priority
 ===========================================================================*/
 /**
@@ -637,6 +672,26 @@ void glink_core_setup_intentless_xport(glink_transport_if_type *if_ptr);
 uint32 glink_core_qos_get_priority(glink_transport_if_type *if_ptr, uint32 req_rate);
 
 /*===========================================================================
+  FUNCTION      glinki_channel_fully_opened
+===========================================================================*/
+/** 
+ * Check whether this channel is fully opened or not (local & remote)
+ * This also checks transport status
+ *
+ * @param[in]  handle        glink channel handle
+ *
+ * @return     TRUE,  if channel is fully opened
+ *             FASLE, otherwise
+ *
+ * @sideeffects  NONE
+ */
+/*=========================================================================*/
+boolean glinki_channel_fully_opened
+(
+  glink_handle_type          handle
+);
+
+/*===========================================================================
   FUNCTION      glink_core_qos_cancel
 ===========================================================================*/
 /**
@@ -651,5 +706,366 @@ uint32 glink_core_qos_get_priority(glink_transport_if_type *if_ptr, uint32 req_r
 */
 /*=========================================================================*/
 void glink_core_qos_cancel(glink_channel_ctx_type *open_ch_ctx);
+
+/*===========================================================================
+  FUNCTION      glinki_register_link_notif_data
+===========================================================================*/
+/** 
+ * Register link notification data
+ *
+ * @param[in]  link_notif_data  parameter for link notif data
+ * 
+ * @return       NONE
+ * 
+ * @sideeffects  NONE
+ */
+/*=========================================================================*/
+void glinki_register_link_notif_data
+(
+  glink_link_notif_data_type *link_notif_data
+);
+
+/*===========================================================================
+  FUNCTION      glinki_deregister_link_notif_data
+===========================================================================*/
+/** 
+ * Deregister link notification data
+ *
+ * @param[in]  link_notif_data  parameter for link notif data
+ * 
+ * @return       NONE
+ * 
+ * @sideeffects  NONE
+ */
+/*=========================================================================*/
+void glinki_deregister_link_notif_data
+(
+  glink_link_notif_data_type *link_notif_data
+);
+
+/*===========================================================================
+  FUNCTION      glinki_scan_xports_and_notify
+===========================================================================*/
+/** 
+ * Scan xports and notify link up state event
+ *
+ * @param[in]  link_notif_data  parameter for link notif data
+ * 
+ * @return       NONE
+ * 
+ * @sideeffects  NONE
+ */
+/*=========================================================================*/
+void glinki_scan_xports_and_notify
+(
+  glink_link_notif_data_type *link_notif_data
+);
+
+/*===========================================================================
+  FUNCTION      glinki_scan_notif_list_and_notify
+===========================================================================*/
+/** 
+ * Scan registered link notification list and notify of xport link state change
+ *
+ * @param[in]  if_ptr  pointer to xport interface
+ * @param[in]  state   link state to notify
+ * 
+ * @return       NONE
+ * 
+ * @sideeffects  NONE
+ */
+/*=========================================================================*/
+void glinki_scan_notif_list_and_notify
+(
+  glink_transport_if_type *if_ptr,
+  glink_link_state_type state
+);
+
+/*===========================================================================
+  FUNCTION      glinki_xport_linkup
+===========================================================================*/
+/** 
+ * Check whether this transport is in linkup state or not
+ *
+ * @param[in]    if_ptr     transport interface pointer
+ * 
+ * @return       TRUE   if this xport is in link up state
+ *               FALSE  otherwise
+ * 
+ * @sideeffects  NONE
+ */
+/*=========================================================================*/
+boolean glinki_xport_linkup
+(
+  glink_transport_if_type *if_ptr
+);
+
+/*===========================================================================
+  FUNCTION      glinki_xports_for_each
+===========================================================================*/
+/** 
+ * Scan all the transports in given edge and perform client's function for each
+ * transport
+ *
+ * @param[in]    remote_ss    name of remote subsystem, NULL string not accepted
+ * @param[in]    client_ex_fn client function to perform when desired xport is 
+ *                            found
+ * @param[in]    cond1        first condition to use in client_ex_fn
+ * @param[in]    cond2        second condition to use in client_ex_fn
+ * @param[out]   out          value to return in case client wants
+ *
+ * @return       None.
+ *
+ * @sideeffects  None.
+ */
+/*=========================================================================*/
+void glinki_xports_for_each
+(
+  const char         *remote_ss,
+  glink_client_ex_fn  client_ex_fn,
+  void               *param1,
+  uint32              param2,
+  void              **out
+);
+
+/*===========================================================================
+  FUNCTION      glinki_xports_find
+===========================================================================*/
+/** 
+ * Scan all the transports in given edge and finds transport that satisfy
+ * client's condition
+ *
+ * @param[in]    remote_ss      name of remote subsystem, NULL string not accepted
+ * @param[in]    client_cond_fn client function to check if this transport is 
+ *                              what client is looking for
+ * @param[in]    cond1          first condition to use in client_ex_fn
+ * @param[in]    cond2          second condition to use in client_ex_fn
+ * @param[out]   out            value to return in case client wants
+ *
+ * @return       pointer to glink_transport_if_type struct
+ *               NULL if there isn't any xport matches client's search condition
+ *
+ * @sideeffects  None.
+ */
+/*=========================================================================*/
+glink_transport_if_type *glinki_xports_find
+(
+  const char           *remote_ss,
+  glink_client_cond_fn  client_cond_fn,
+  void                 *cond1,
+  uint32                cond2,
+  void                **out
+);
+
+/*===========================================================================
+  FUNCTION      glinki_find_ch_ctx_by_lcid
+===========================================================================*/
+/** 
+ * Find channel context by lcid
+ *
+ * @param[in]    xport_ctx  Pointer to transport private context
+ * @param[in]    lcid       local channel ID
+ *
+ * @return       pointer to glink channel context
+ *
+ * @sideeffects  This function needs to be protected by channel_q_cs
+ *               Caller is responsible grab/release mutex when calling this
+ */
+/*=========================================================================*/
+glink_channel_ctx_type *glinki_find_ch_ctx_by_lcid
+(
+  glink_core_xport_ctx_type *xport_ctx,
+  uint32                     lcid
+);
+
+/*===========================================================================
+  FUNCTION      glinki_find_ch_ctx_by_rcid
+===========================================================================*/
+/** 
+ * Find channel context by rcid
+ *
+ * @param[in]    xport_ctx  Pointer to transport private context
+ * @param[in]    rcid       remote channel ID
+ *
+ * @return       pointer to glink channel context
+ *
+ * @sideeffects  This function needs to be protected by channel_q_cs
+ *               Caller is responsible grab/release mutex when calling this
+ */
+/*=========================================================================*/
+glink_channel_ctx_type *glinki_find_ch_ctx_by_rcid
+(
+  glink_core_xport_ctx_type *xport_ctx,
+  uint32                     rcid
+);
+
+/*===========================================================================
+  FUNCTION      glinki_find_ch_ctx_by_name
+===========================================================================*/
+/** 
+ * Find channel context by channel name
+ *
+ * @param[in]    xport_ctx  Pointer to transport private context
+ * @param[in]    ch_name    channel name
+ *
+ * @return       pointer to glink channel context
+ *               NULL if channel doesn't exist
+ *
+ * @sideeffects  This function needs to be protected by channel_q_cs
+ *               Caller is responsible grab/release mutex when calling this
+ */
+/*=========================================================================*/
+glink_channel_ctx_type *glinki_find_ch_ctx_by_name
+(
+  glink_core_xport_ctx_type *xport_ctx,
+  const char                *ch_name
+);
+
+/*===========================================================================
+  FUNCTION      glinki_find_remote_host
+===========================================================================*/
+/** 
+ * return remote subsystem ID based on remote subsystem name
+ *
+ * @param[in]    remote_ss  remote subsystem name
+ *
+ * @return       remote subsystem ID
+ *
+ * @sideeffects  None.
+ */
+/*=========================================================================*/
+uint32 glinki_find_remote_host
+(
+  const char *remote_ss
+);
+
+/*===========================================================================
+  FUNCTION      glink_get_best_xport
+===========================================================================*/
+/** 
+ * This function gives best available transport for give edge
+ *
+ * @param[in]    remote_ss  Name of remote subsystem
+ * 
+ * @return       pointer to glink_transport_if_type
+ *
+ * @sideeffects  NONE
+ */
+/*=========================================================================*/
+glink_transport_if_type *glinki_find_best_xport
+(
+  const char *remote_ss
+);
+
+/*===========================================================================
+  FUNCTION      glinki_find_requested_xport
+===========================================================================*/
+/** 
+ * Find requested or best transport depending on client's request
+ *
+ * @param[in]    xport_name         name of transport
+ * @param[in]    remote_ss          remote subsystem name
+ * @param[in]    open_ch_option     option client gave when called glink_open
+ * @param[out]   suggested_priority best xport priority glink suggests
+ *
+ * @return       pointer to glink_transport_if_type struct
+ *
+ * @sideeffects  NONE
+ */
+/*=========================================================================*/
+glink_transport_if_type *glinki_find_requested_xport
+(
+  const char           *xport_name,
+  const char           *remote_ss,
+  uint32                open_ch_option,
+  glink_xport_priority *suggested_priority
+);
+
+/*===========================================================================
+  FUNCTION      glinki_find_xport_by_priority
+===========================================================================*/
+/** 
+ * This function returns glink_transport_if pointer based on transport priority
+ *
+ * @param[in]    prio        glink xport prio
+ * @param[in]    remote_ss   remote subsytem name
+ *
+ * @return       pointer to glink_transport_if_type struct
+ *
+ * @sideeffects  NONE
+ */
+/*=========================================================================*/
+glink_transport_if_type *glinki_find_xport_by_priority
+(
+  glink_xport_priority  prio,
+  const char           *remote_ss
+);
+
+/*===========================================================================
+  FUNCTION      glinki_enqueue_item
+===========================================================================*/
+/** 
+ *  Enqueue item to smem list in protected context
+ * 
+ * @param[in]    smem_list  smem list to enqueue
+ * @param[in]    item       item to enqueue
+ * @param[in]    cs         mutex to protect the list
+ *
+ * @return       None.
+ *
+ * @sideeffects  None.
+ */
+/*=========================================================================*/
+void glinki_enqueue_item
+(
+  smem_list_type *smem_list_ptr,
+  void           *item,
+  os_cs_type     *cs
+);
+
+/*===========================================================================
+  FUNCTION      glinki_dequeue_item
+===========================================================================*/
+/** 
+ *  Dequeue item from smem list in protected context
+ * 
+ * @param[in]    smem_list  smem list to dequeue from 
+ * @param[in]    item       item to dequeue
+ * @param[in]    cs         mutex to protect the list
+ *
+ * @return       None.
+ *
+ * @sideeffects  None.
+ */
+/*=========================================================================*/
+void glinki_dequeue_item
+(
+  smem_list_type *smem_list_ptr,
+  void           *item,
+  os_cs_type     *cs
+);
+
+#ifdef FEATURE_TRACER_PACKET
+/*===========================================================================
+FUNCTION      glink_tracer_packet_log_pctx_pkt
+===========================================================================*/
+/** 
+ * Log tracer packet event. Tracer packet is included in glink_core_tx_pkt
+ * and needs to use vprovider to extract it
+ * 
+ * @param[in]  pctx     pointer to glink_core_tx_pkt_type
+ * @param[in]  event_id event_id
+ * 
+ * @return         None
+ *
+ * @sideeffects    None
+ */
+/*=========================================================================*/
+void glink_tracer_packet_log_pctx_pkt
+(
+  glink_core_tx_pkt_type  *pctx,
+  uint32                   event_id
+);
+#endif
 
 #endif /* GLINK_INTERNAL_H */

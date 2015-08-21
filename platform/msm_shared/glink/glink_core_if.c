@@ -34,20 +34,12 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "glink_os_utils.h"
 #include "glink.h"
 #include "glink_internal.h"
-#include "smem_list.h"
 
 #define FEATURE_CH_MIGRATION_FREE
 
 /*===========================================================================
                         GLOBAL FUNCTION DECLARATIONS
-==========================================================================*/
-extern void glinki_scan_notif_list_and_notify
-(
-  glink_transport_if_type *if_ptr,
-  glink_link_state_type state
-);
-
-
+===========================================================================*/
 /*===========================================================================
                      LOCAL FUNCTION DEFINITIONS
 ===========================================================================*/
@@ -86,15 +78,10 @@ static void glink_process_negotiation_complete
    * Only go through process once in case they are negotiated
    * in ver_req before receiving ver_ack */
 
-  glink_os_cs_acquire( &xport_ctx->status_cs );
-
-  if( xport_ctx->status == GLINK_XPORT_LINK_UP )
+  if (glinki_xport_linkup(if_ptr))
   {
-    glink_os_cs_release( &xport_ctx->status_cs );
     return;
   }
-
-  glink_os_cs_release(&if_ptr->glink_core_priv->status_cs);
 
   /* setup core based on transport capabilities*/
   xport_ctx->xport_capabilities = if_ptr->set_version( if_ptr,
@@ -105,7 +92,7 @@ static void glink_process_negotiation_complete
   /* transport is ready to open channels */
   glink_os_cs_acquire( &xport_ctx->status_cs );
   if_ptr->glink_core_priv->status = GLINK_XPORT_LINK_UP;
-  glink_os_cs_release(&if_ptr->glink_core_priv->status_cs);
+  glink_os_cs_release(&xport_ctx->status_cs);
 
   /* Scan the notification list to check is we have to let any registered
    * clients know that link came online */
@@ -149,6 +136,35 @@ static void glink_clean_channel_ctx
 }
 
 /*===========================================================================
+  FUNCTION      glink_get_current_version
+===========================================================================*/
+/**
+
+  Get current version/feature. This is necessarily highest version.
+
+  @param[in]     xport_ctx    transport context
+  
+  @return        pointer to version/feature if available.
+                 NULL otherwise.
+  
+  @sideeffects   None.
+  @dependencies  None.
+*/
+/*=========================================================================*/
+static const glink_core_version_type *glink_get_current_version
+(
+  glink_core_xport_ctx_type *xport_ctx
+)
+{
+  const glink_core_version_type *ver
+    = &xport_ctx->version_array[xport_ctx->version_indx];
+  
+  ASSERT(ver);
+  
+  return ver;
+}
+
+/*===========================================================================
                     EXTERNAL FUNCTION DEFINITIONS
 ===========================================================================*/
 /*===========================================================================
@@ -171,14 +187,12 @@ void glink_link_up
   glink_transport_if_type *if_ptr
 )
 {
-  const glink_core_version_type *version_array;
   glink_core_xport_ctx_type *xport_ctx;
-
-  ASSERT(if_ptr != NULL);
+  const glink_core_version_type *version_array;
 
   xport_ctx = if_ptr->glink_core_priv;
 
-  version_array = xport_ctx->version_array;
+  version_array = glink_get_current_version(xport_ctx);
 
   /* Update the transport state */
   glink_os_cs_acquire(&if_ptr->glink_core_priv->status_cs);
@@ -186,12 +200,12 @@ void glink_link_up
   glink_os_cs_release(&if_ptr->glink_core_priv->status_cs);
 
   /* Start the negtiation */
-  if_ptr->tx_cmd_version(if_ptr, version_array->version,
+  if_ptr->tx_cmd_version(if_ptr,
+                         version_array->version,
       version_array->features);
 
   GLINK_LOG_EVENT(GLINK_EVENT_LINK_UP, NULL, xport_ctx->xport,
       xport_ctx->remote_ss, GLINK_STATUS_SUCCESS);
-
 }
 
 /*===========================================================================
@@ -222,40 +236,28 @@ void glink_rx_cmd_version
   uint32 negotiated_features;
   glink_core_xport_ctx_type *xport_ctx;
 
-  ASSERT(if_ptr != NULL);
-
   xport_ctx = if_ptr->glink_core_priv;
 
+  ver = glink_get_current_version(xport_ctx);
+  
   /* The version to use must be a subset of supported version and features
    * on this host and remote host */
-  ver = &xport_ctx->version_array[xport_ctx->version_indx];
-  ASSERT(ver);
-
   if (version == ver->version)
   {
     /* Call the transport's negotiation function */
     negotiated_features = ver->negotiate_features(if_ptr, ver, features);
 
+    if_ptr->tx_cmd_version_ack(if_ptr, version, negotiated_features);
+    
     /* If negotiated features match the provided features, version nogetiation
      * is complete */
     if(negotiated_features == features)
     {
-      /* send version ack before allowing to open channels */
-      if_ptr->tx_cmd_version_ack(if_ptr, version, features);
-
       glink_process_negotiation_complete( if_ptr, version, features );
-      return;
-    }
-    else
-    {
-      if_ptr->tx_cmd_version_ack(if_ptr, version, negotiated_features);
     }
   }
   else
   {
-    /* Next time use older version */
-    ver = &xport_ctx->version_array[xport_ctx->version_indx];
-
     /* Versions don't match, return ACK with the feature set that we support */
     if_ptr->tx_cmd_version_ack(if_ptr, ver->version, ver->features);
   }
@@ -289,38 +291,33 @@ void glink_rx_cmd_version_ack
   uint32 negotiated_features;
   glink_core_xport_ctx_type *xport_ctx;
 
-  ASSERT(if_ptr != NULL);
-
   xport_ctx = if_ptr->glink_core_priv;
 
   /* Check to see if version returned by remote end is supported by
    * this host. Remote side would have acked only when the version/features
    * sent by this host did not match the remote */
-
-  ver = &xport_ctx->version_array[xport_ctx->version_indx];
-  ASSERT(ver);
+  ver = glink_get_current_version(xport_ctx);
 
   if (ver->version == version)
   {
     /* Call the transport's negotiation function */
     negotiated_features = ver->negotiate_features(if_ptr, ver, features);
 
-    if(negotiated_features != features)
+    if(negotiated_features == features)
+    {
+      glink_process_negotiation_complete( if_ptr, version, features );
+    }
+    else
     {
       /* Continue negotiating */
       if_ptr->tx_cmd_version(if_ptr, version, negotiated_features);
     }
-    else
-    {
-      glink_process_negotiation_complete( if_ptr, version, features );
-    }
   }
   else
   {
-    while (ver->version > version)
+    while (ver->version > version && xport_ctx->version_indx > 0)
     {
       /* Next time use older version */
-      ASSERT(xport_ctx->version_indx > 0);
       xport_ctx->version_indx--;
       ver = &xport_ctx->version_array[xport_ctx->version_indx];
     }
@@ -356,12 +353,11 @@ void glink_rx_cmd_ch_remote_open
   glink_xport_priority    priority
 )
 {
+  (void)priority;
+  
   glink_channel_ctx_type     *remote_ch_ctx  = NULL;
   glink_channel_ctx_type     *allocated_ch_ctx;
   glink_err_type              status;
-
-  ASSERT( if_ptr != NULL );
-  ASSERT( name != NULL );
 
   /* Allocate and initialize channel info structure */
   remote_ch_ctx = glink_os_calloc( sizeof( glink_channel_ctx_type ) );
@@ -418,22 +414,20 @@ void glink_rx_cmd_ch_open_ack
   glink_xport_priority     migrated_ch_prio
 )
 {
+  (void)migrated_ch_prio;
+  
   glink_channel_ctx_type     *open_ch_ctx;
   glink_core_xport_ctx_type  *xport_ctx;
-
-  ASSERT(if_ptr != NULL);
+  glink_remote_state_type    remote_state;
 
   xport_ctx = if_ptr->glink_core_priv;
 
   /* Move to closed state. Implies we clean up the channel from the
    * open list */
   glink_os_cs_acquire(&xport_ctx->channel_q_cs);
-  /* Find channel in the open_list */
-  open_ch_ctx = smem_list_first(&if_ptr->glink_core_priv->open_list);
-  while(open_ch_ctx != NULL)
-  {
-    if(open_ch_ctx->lcid == lcid)
-    {
+  
+  open_ch_ctx = glinki_find_ch_ctx_by_lcid(xport_ctx, lcid);
+  
 			glink_os_cs_acquire( &open_ch_ctx->ch_state_cs );
 
 			if( open_ch_ctx->local_state == GLINK_LOCAL_CH_CLOSING )
@@ -447,73 +441,54 @@ void glink_rx_cmd_ch_open_ack
 
 			open_ch_ctx->local_state = GLINK_LOCAL_CH_OPENED;
 
-			if( open_ch_ctx->remote_state == GLINK_REMOTE_CH_OPENED )
+  remote_state = open_ch_ctx->remote_state;
+  glink_os_cs_release(&open_ch_ctx->ch_state_cs);
+  glink_os_cs_release(&xport_ctx->channel_q_cs);
+  
+  if (remote_state == GLINK_REMOTE_CH_OPENED)
 			{
 			/* remote channel is open on same xport as current xport.
 			 * change channel state to GLINK_CH_STATE_OPEN and notify client */
-				glink_os_cs_release( &open_ch_ctx->ch_state_cs );
-				glink_os_cs_release( &xport_ctx->channel_q_cs );
 				open_ch_ctx->notify_state( open_ch_ctx,
 																	 open_ch_ctx->priv,
 																	 GLINK_CONNECTED );
 			}
-			else
-			{
-				glink_os_cs_release( &open_ch_ctx->ch_state_cs );
-				glink_os_cs_release( &xport_ctx->channel_q_cs );
-			}
 
       GLINK_LOG_EVENT(GLINK_EVENT_CH_OPEN_ACK, open_ch_ctx->name,
           xport_ctx->xport, xport_ctx->remote_ss, lcid);
-      
-      return;
-    }
-    open_ch_ctx = smem_list_next(open_ch_ctx);
-  }
-  glink_os_cs_release(&xport_ctx->channel_q_cs);
-  /* We are here in case we could not find the channel in the open list. */
-  ASSERT(0);
 }
 
 /*===========================================================================
 FUNCTION      glink_rx_cmd_ch_close_ack
-
-DESCRIPTION   This function is invoked by the transport in response to
-              glink_transport_if_type:: tx_cmd_ch_close
-
-ARGUMENTS   *if_ptr   Pointer to interface instance; must be unique
-                      for each edge
-
-            lcid      Local Channel ID
-
-RETURN VALUE  None.
-
-SIDE EFFECTS  None
 ===========================================================================*/
+/** 
+ * This function is invoked by the transport in response to 
+ * glink_transport_if_type:: tx_cmd_ch_close
+ *
+ * @param[in]    if_ptr            Pointer to interface instance; must be unique
+ *                                 for each edge
+ * @param[in]    lcid              Local Channel ID
+ *
+ * @return       None
+ *
+ * @sideeffects  NONE
+ */
+/*=========================================================================*/
 void glink_rx_cmd_ch_close_ack
 (
-  glink_transport_if_type *if_ptr, /* Pointer to the interface instance */
-  uint32                  lcid     /* Local channel ID */
+  glink_transport_if_type *if_ptr,
+  uint32                   lcid
 )
 {
   glink_channel_ctx_type *open_ch_ctx;
   glink_core_xport_ctx_type  *xport_ctx;
 
-  ASSERT(if_ptr != NULL);
-
   xport_ctx = if_ptr->glink_core_priv;
 
-  /* Move to closed state. Implies we clean up the channel from the
-   * open list */
-
-  /* Find channel in the open_list */
   glink_os_cs_acquire(&xport_ctx->channel_q_cs);
-  open_ch_ctx = smem_list_first(&xport_ctx->open_list);
-  while( open_ch_ctx )
-  {
-    if( open_ch_ctx->lcid == lcid )
-    {
-      /* Found channel */
+  
+  open_ch_ctx = glinki_find_ch_ctx_by_lcid(xport_ctx, lcid);
+  
       glink_os_cs_acquire( &open_ch_ctx->ch_state_cs );
 
       GLINK_LOG_EVENT(GLINK_EVENT_CH_CLOSE_ACK, open_ch_ctx->name,
@@ -541,59 +516,43 @@ void glink_rx_cmd_ch_close_ack
       {
         glink_os_free( open_ch_ctx );
       }
-
-      return;
-    }
-    open_ch_ctx = smem_list_next(open_ch_ctx);
-  }/* end while */
-
-  glink_os_cs_release(&xport_ctx->channel_q_cs);
-  /* We are here in case we could not find the channel in the open list. */
-  ASSERT(0);
 }
 
 /*===========================================================================
 FUNCTION      glink_rx_cmd_ch_remote_close
-
-DESCRIPTION   Remote channel close request; will result in sending
-              glink_transport_if_type:: tx_cmd_ch_remote_close_ack
-
-ARGUMENTS   *if_ptr   Pointer to interface instance; must be unique
-                      for each edge
-
-            rcid      Remote Channel ID
-
-RETURN VALUE  None.
-
-SIDE EFFECTS  None
 ===========================================================================*/
+/** 
+ * Remote channel close request; will result in sending 
+ * glink_transport_if_type:: tx_cmd_ch_remote_close_ack
+ *
+ * @param[in]    if_ptr            Pointer to interface instance; must be unique
+ *                                 for each edge
+ * @param[in]    rcid              Remote Channel ID
+ *
+ * @return       None.
+ *
+ * @sideeffects  None.
+ */
+/*=========================================================================*/
 void glink_rx_cmd_ch_remote_close
 (
-  glink_transport_if_type *if_ptr, /* Pointer to the interface instance */
-  uint32                  rcid     /* Remote channel ID */
+  glink_transport_if_type *if_ptr,
+  uint32                   rcid
 )
 {
   glink_channel_ctx_type *open_ch_ctx;
   glink_core_xport_ctx_type  *xport_ctx;
-
-  ASSERT(if_ptr != NULL);
+  glink_remote_state_type    remote_state;
 
   xport_ctx = if_ptr->glink_core_priv;
 
-  /* Find channel in the open_list */
   glink_os_cs_acquire( &xport_ctx->channel_q_cs );
 
-  open_ch_ctx = smem_list_first( &if_ptr->glink_core_priv->open_list );
-  while(open_ch_ctx != NULL)
-  {
-    if( open_ch_ctx->rcid == rcid )
-    {
-      glink_remote_state_type remote_state;
+  open_ch_ctx = glinki_find_ch_ctx_by_rcid(xport_ctx, rcid);
 
       GLINK_LOG_EVENT( GLINK_EVENT_CH_REMOTE_CLOSE, open_ch_ctx->name,
                        xport_ctx->xport, xport_ctx->remote_ss, rcid);
-      /* Found channel, transition to appropriate state based on current state
-       * grab lock to perform channel state related operations */
+  
       glink_os_cs_acquire(&open_ch_ctx->ch_state_cs);
 
       ASSERT( open_ch_ctx->remote_state == GLINK_REMOTE_CH_OPENED );
@@ -625,71 +584,55 @@ void glink_rx_cmd_ch_remote_close
       else
       {
         /* Inform the client */
-        open_ch_ctx->notify_state( open_ch_ctx, open_ch_ctx->priv,
+    open_ch_ctx->notify_state(open_ch_ctx,
+                              open_ch_ctx->priv,
                                    GLINK_REMOTE_DISCONNECTED);
       }
-
-      return;
-    }
-    open_ch_ctx = smem_list_next(open_ch_ctx);
-  }/* end while */
-
-  glink_os_cs_release( &xport_ctx->channel_q_cs );
-  ASSERT(0);
 }
 
 /*===========================================================================
 FUNCTION      glink_rx_put_pkt_ctx
-
-DESCRIPTION   Transport invokes this call to receive a packet fragment (must
-              have previously received an rx_cmd_rx_data packet)
-
-ARGUMENTS   *if_ptr      Pointer to interface instance; must be unique
-                         for each edge
-
-            rcid         Remote Channel ID
-
-            *intent_ptr  Pointer to the intent fragment
-
-            complete     True if pkt is complete
-
-RETURN VALUE  None
-
-SIDE EFFECTS  None
 ===========================================================================*/
+/** 
+ * Transport invokes this call to receive a packet fragment (must 
+ * have previously received an rx_cmd_rx_data packet)
+ *
+ * @param[in]    if_ptr       Pointer to interface instance; must be unique
+ *                            for each edge
+ * @param[in]    rcid         Remote Channel ID
+ * @param[in]    intent_ptr   Pointer to the intent fragment
+ * @param[in]    complete     True if pkt is complete
+ *
+ * @return       None.
+ *
+ * @sideeffects  None.
+ */
+/*=========================================================================*/
 void glink_rx_put_pkt_ctx
 (
-  glink_transport_if_type *if_ptr, /* Pointer to the interface instance */
-  uint32                  rcid,    /* Remote channel ID */
-  glink_rx_intent_type    *intent_ptr, /* Fragment ptr */
-  boolean                 complete     /* True if pkt is complete */
+  glink_transport_if_type *if_ptr,
+  uint32                   rcid,
+  glink_rx_intent_type    *intent_ptr,
+  boolean                  complete
 )
 {
+  (void)complete;
   glink_channel_ctx_type *open_ch_ctx;
   glink_core_xport_ctx_type  *xport_ctx;
 
-  ASSERT(if_ptr != NULL && intent_ptr != NULL);
+  ASSERT(intent_ptr);
 
   xport_ctx = if_ptr->glink_core_priv;
 
   /* Find channel in the open_list */
-  open_ch_ctx = smem_list_first(&if_ptr->glink_core_priv->open_list);
-  while(open_ch_ctx != NULL)
-  {
-    if(open_ch_ctx->rcid == rcid) {
-      /* Found channel */
+  glink_os_cs_acquire(&xport_ctx->channel_q_cs);
+  open_ch_ctx = glinki_find_ch_ctx_by_rcid(xport_ctx, rcid);
+  glink_os_cs_release(&xport_ctx->channel_q_cs);
+  
       GLINK_LOG_EVENT(GLINK_EVENT_CH_PUT_PKT_CTX, open_ch_ctx->name,
           xport_ctx->xport, xport_ctx->remote_ss, intent_ptr->iid);
 
       xport_ctx->channel_receive_pkt(open_ch_ctx, intent_ptr);
-
-      return;
-    }
-    open_ch_ctx = smem_list_next(open_ch_ctx);
-  }/* end while */
-
-  /* We end up here if we don't find the channel */
-  ASSERT(0);
 }
 
 /*===========================================================================
@@ -716,42 +659,27 @@ void glink_rx_cmd_remote_sigs
   uint32                  remote_sigs /* Remote control signals */
 )
 {
+  glink_core_xport_ctx_type *xport_ctx;
   glink_channel_ctx_type *open_ch_ctx;
   uint32 prev_sigs;
 
-  ASSERT(if_ptr != NULL);
-
-  /* Find channel in the open_list */
-  open_ch_ctx = smem_list_first(&if_ptr->glink_core_priv->open_list);
-  while(open_ch_ctx != NULL)
-  {
-    if(open_ch_ctx->rcid == rcid ) {
-      glink_os_cs_acquire( &open_ch_ctx->ch_state_cs );
+  xport_ctx = if_ptr->glink_core_priv;
       
-      if( open_ch_ctx->tag_ch_for_close )
-      {
-        glink_os_cs_release( &open_ch_ctx->ch_state_cs );
-        return;
-      }
+  glink_os_cs_acquire(&xport_ctx->channel_q_cs);
+  open_ch_ctx = glinki_find_ch_ctx_by_rcid(xport_ctx, rcid);
+  glink_os_cs_release( &xport_ctx->channel_q_cs );
       
-      if( open_ch_ctx->local_state != GLINK_LOCAL_CH_OPENED &&
-          open_ch_ctx->remote_state != GLINK_REMOTE_CH_OPENED )
+  if (!glinki_channel_fully_opened(open_ch_ctx))
       {
-        glink_os_cs_release( &open_ch_ctx->ch_state_cs );
         ASSERT(0);
-        return;
       }
-      glink_os_cs_release( &open_ch_ctx->ch_state_cs );
+  
       /* Found channel, let client know of new remote signal state */
       prev_sigs = open_ch_ctx->remote_sigs;
       open_ch_ctx->remote_sigs = remote_sigs;
-      open_ch_ctx->notify_rx_sigs(open_ch_ctx, open_ch_ctx->priv,
-                                  prev_sigs, remote_sigs);
-      return;
-    }
-    open_ch_ctx = smem_list_next(open_ch_ctx);
+  open_ch_ctx->notify_rx_sigs(open_ch_ctx,
+                              open_ch_ctx->priv,
+                              prev_sigs,
+                              remote_sigs);
   }
 
-  /* We end up here if we don't find the channel */
-  ASSERT(0);
-}

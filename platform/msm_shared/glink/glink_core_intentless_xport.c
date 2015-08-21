@@ -172,6 +172,7 @@ static glink_err_type glink_channel_submit_pkt_intentless
   boolean req_intent
 )
 {
+  (void)req_intent;
   glink_transport_if_type *if_ptr = open_ch_ctx->if_ptr;
   glink_err_type status = if_ptr->tx(if_ptr, open_ch_ctx->lcid, pctx);
 
