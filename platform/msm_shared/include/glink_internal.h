@@ -57,10 +57,68 @@ extern "C" {
 /*===========================================================================
                            MACRO DEFINITIONS
 ===========================================================================*/
-#define GLINK_LOG_EVENT(type, ch_name, xport, remote_ss, param) \
-  glink_mem_log(__FUNCTION__, __LINE__, type, ch_name, xport, remote_ss, param);
 
+/* Macros to enable/select glink logging and stats collection
+ * GLINK_MEMORY_LOGGING     --> Enable memory based logging
+ * GLINK_OS_DEFINED_LOGGING --> Enable OS defined logging (uLog for ADSP/MPSS/SLPI)
+ * These will be selectively defined by the top level Glink Scons file
+ */
+/**** Logging macros GLINK_LOG_* ****/
+#if defined(GLINK_MEMORY_LOGGING)
 #define GLINK_MEM_LOG_SIZE 128
+
+/* Used for xport logging where channel name information is unavaliable */
+#define GLINK_LOG_EVENT_NO_FILTER(type, ch_name, xport, remote_ss, param) \
+  glink_mem_log(type, ch_name, xport, remote_ss, param);
+
+/* Filtering based on ch_ctx, If ch_ctx is not available we should be using 
+  *_NO_FILTER macro for logging */
+#define GLINK_LOG_EVENT(chnl_ctx, type, ch_name, xport, remote_ss, param)  \
+  if ((log_filter_cfg.ch_filter_status == FALSE) ||                        \
+      ((chnl_ctx) == log_filter_cfg.ch_ctx))                               \
+  {                                                                        \
+    glink_mem_log(type, ch_name, xport, remote_ss, param);                 \
+  }
+
+#define GLINK_LOG_ERROR_EVENT(type, ch_name, xport, remote_ss, param)      \
+  glink_mem_log(type, ch_name, xport, remote_ss, param);
+
+#elif defined(GLINK_OS_DEFINED_LOGGING)
+
+/* Used for xport logging where channel name information is unavaliable */
+#define GLINK_LOG_EVENT_NO_FILTER(type, ch_name, xport, remote_ss, param) \
+  OS_LOG_MSG(5, "[%x, %s, %s, %s, %x]" , type, ch_name,                   \
+             xport, remote_ss, param);
+
+/* Filtering based on ch_ctx, If ch_ctx is not available we should be using 
+  *_NO_FILTER macro for logging */
+#define GLINK_LOG_EVENT(chnl_ctx, type, ch_name, xport, remote_ss, param)  \
+  if ((log_filter_cfg.ch_filter_status == FALSE) ||                        \
+      ((chnl_ctx) == log_filter_cfg.ch_ctx))                               \
+  {                                                                        \
+    OS_LOG_MSG(5, "[%x, %s, %s, %s, %x]" , type, ch_name,                  \
+               xport, remote_ss, param);                                   \
+  }
+
+#define GLINK_LOG_ERROR_EVENT(type, ch_name, xport, remote_ss, param)	 \
+  OS_LOG_ERROR(5, "[%x, %s, %s, %s, %x]" , type, ch_name,                \
+               xport, remote_ss, param);
+#else
+#define GLINK_LOG_EVENT(lcid, type, ch_name, xport, remote_ss, param) 
+#define GLINK_LOG_ERROR_EVENT(type, ch_name, xport, remote_ss, param)
+#define GLINK_LOG_EVENT_NO_FILTER(type, ch_name, xport, remote_ss, param)
+#endif
+
+/**** Macros used for collecting channel stats ****/
+#if defined(GLINK_CHANNEL_STATS_ENABLED)
+#define GLINK_UPDATE_CHANNEL_STATS(ch_stats, var_name, size_in_bytes)               \
+  {                                                                           \
+      (ch_stats).var_name##_count++;                                          \
+      (ch_stats).var_name##_bytes += (size_in_bytes);                         \
+  }
+#else
+#define GLINK_UPDATE_CHANNEL_STATS(ch_stats, var_name, size_in_bytes)
+#endif
 
 /*===========================================================================
                            TYPE DEFINITIONS
@@ -98,8 +156,19 @@ typedef enum {
   GLINK_EVENT_CH_QOS_CANCEL,
   GLINK_EVENT_CH_QOS_START,
   GLINK_EVENT_CH_QOS_STOP,
-  GLINK_EVENT_INVALID_REMOTE_SS
+  GLINK_EVENT_INVALID_REMOTE_SS,
+  GLINK_EVENT_REGISTER_LINK_STATE_CB,
+  GLINK_EVENT_DEREGISTER_LINK_STATE_CB,
 }glink_log_event_type;
+
+/*Bit index of logging mask of differnt xport. The corresponding bit index 
+  in glink_xport_log_filter_mask will disable(0) or enable(1) logging*/
+typedef enum {
+  GLINK_XPORT_RPM_MASK_BIT,
+  GLINK_XPORT_SMEM_MASK_BIT,
+  GLINK_XPORT_SMD_MASK_BIT,
+  GLINK_XPORT_UART_MASK_BIT
+}glink_xport_logging_mask_type;
 
 typedef struct _glink_channel_intents_type {
 
@@ -168,6 +237,59 @@ typedef struct _glink_channel_qos_type {
 
 } glink_channel_qos_type;
 
+/*This structure holds all the relevant stats per channel used for debugging*/
+typedef struct _glink_channel_stats_type {
+  /* Total number of bytes sent by the client */
+  uint64 tx_request_bytes;
+
+  /* Total number of bytes sent by the client for which we got tx_done */
+  uint64 tx_done_bytes;
+
+  /* Total number of tx requests */
+  uint32 tx_request_count;
+
+  /* total number of tx_done events */
+  uint32 tx_done_count;
+  
+  /* Total number of bytes recieved by the client */
+  uint64 rx_notify_bytes;
+
+  /* Total number of bytes for which we got rx_done */
+  uint64 rx_done_bytes;
+  
+  /* Total number of rx_notify events */
+  uint32 rx_notify_count;
+  
+  /* Total number of rx_done events */
+  uint32 rx_done_count;
+
+} glink_channel_stats_type;
+
+/* Contains the configuration for logging within core and xport */
+typedef struct _glink_logging_filter_cfg {
+    
+  /* GLink channel filter status */
+  boolean ch_filter_status;
+
+  /* channel filter name */
+  char ch_name[GLINK_CH_NAME_LEN];
+  
+  /* corresponding lcid of the filter */
+  uint32 ch_lcid;
+  
+  /* corresponding rcid of the filter*/
+  uint32 ch_rcid;
+  
+  /* corresponding remote host*/
+  uint32 remote_host;
+
+  /* Corresponding channel context */
+  glink_channel_ctx_type *ch_ctx;
+
+  /* xport logging mask */
+  uint32 xport_filter_mask;
+  
+}glink_logging_filter_cfg_type;
 
 struct glink_channel_ctx {
   /* Link needed for use with list APIs.  Must be at the head of the struct */
@@ -266,12 +388,14 @@ struct glink_channel_ctx {
 
   /* save glink open config options */
   uint32                              ch_open_options;
+#if defined(GLINK_CHANNEL_STATS_ENABLED)
+  /* Structure that constains per channel stats */
+  glink_channel_stats_type             ch_stats;
+#endif
 };
 
 
 typedef struct _glink_mem_log_entry_type {
-  const char *func;
-  uint32 line;
   glink_log_event_type type;
   const char *msg;
   const char *xport;
@@ -316,6 +440,8 @@ typedef void (*glink_client_ex_fn)
 ===========================================================================*/
 extern const char *glink_hosts_supported[GLINK_NUM_HOSTS];
 
+/* Used for filtering logs*/
+extern glink_logging_filter_cfg_type log_filter_cfg;
 /*===========================================================================
                     LOCAL FUNCTION DEFINITIONS
 ===========================================================================*/
@@ -565,8 +691,6 @@ glink_err_type glinki_add_ch_to_xport
 
 void glink_mem_log
 (
-  const char *func,
-  uint32 line,
   glink_log_event_type type,
   const char *msg,
   const char *xport,
@@ -1041,6 +1165,25 @@ void glinki_dequeue_item
   smem_list_type *smem_list_ptr,
   void           *item,
   os_cs_type     *cs
+);
+
+/*===========================================================================
+  FUNCTION      glinki_update_logging_filter
+===========================================================================*/
+/** 
+ *  Update/Reset the logging filter if the name and remote host of the  
+ *  logging filter matches to that of the passed channel context
+ * 
+ * @param[in]    chnl_ctx   Channel content to match/compare
+ * @param[in]    reset      Indicate Update(FALSE) or Reset(TRUE)
+ *
+ * @return       None.
+ */
+/*=========================================================================*/
+void glinki_update_logging_filter
+(
+  glink_channel_ctx_type *chnl_ctx, 
+  boolean reset
 );
 
 #ifdef FEATURE_TRACER_PACKET

@@ -35,7 +35,6 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifdef FEATURE_TRACER_PACKET
 #include "glink_tracer.h"
 #endif
-
 /*===========================================================================
   MACRO DEFINITION
 ===========================================================================*/
@@ -44,6 +43,18 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ===========================================================================*/
 static os_cs_type glink_transport_q_cs[GLINK_NUM_HOSTS];
 
+#if defined(GLINK_OS_DEFINED_LOGGING) || defined(GLINK_MEMORY_LOGGING)
+/* glink_log_filter_status indicates if channel filtering is enabled or not */
+glink_logging_filter_cfg_type log_filter_cfg = { 
+    FALSE,      /* Filter Disabled */
+    "",         /* Filter channel name */
+    0x0,        /* Filter lcid - will be updated dynamically */
+    0x0,        /* Filter rcid - will be updated dynamically */
+    0xFFFFFFFF, /* remote host ID */
+    0x0,        /* Channel Context */
+    0xFFFFFFFF, /* All xports are enabled */
+   };
+#endif
 /* Keep a list of registered transport for each edge allowed for this host */
 static smem_list_type glink_registered_transports[GLINK_NUM_HOSTS];
 
@@ -57,7 +68,11 @@ const char* glink_hosts_supported[] = { "apss",
                                         "rpm",
                                       };
 
+#if defined(GLINK_MEMORY_LOGGING)
+static glink_mem_log_entry_type glink_mem_log_arr[GLINK_MEM_LOG_SIZE];
+static uint32 glink_mem_log_idx = 0;
 static os_cs_type glink_mem_log_cs;
+#endif
 
 static smem_list_type  glink_link_notif_list;
 static os_cs_type      glink_link_notif_list_cs;
@@ -403,15 +418,16 @@ void glink_init(void)
   uint32 i;
   boolean cs_created = FALSE;
 
+#if defined(GLINK_MEMORY_LOGGING)
+  cs_created = glink_os_cs_init(&glink_mem_log_cs);
+  ASSERT(cs_created);
+#elif defined(GLINK_OS_DEFINED_LOGGING)
   OS_LOG_INIT();
+#endif
   
   smem_list_init(&glink_link_notif_list);
   cs_created = glink_os_cs_init(&glink_link_notif_list_cs);
   ASSERT(cs_created);
-  
-  cs_created = glink_os_cs_init(&glink_mem_log_cs);
-  ASSERT(cs_created);
-
   
   /* Create/Initalize crtitical sections */
   for (i = 0; i < GLINK_NUM_HOSTS; ++i)
@@ -553,6 +569,11 @@ glink_err_type glinki_add_ch_to_xport
       xport_ctx->channel_cleanup(ch_ctx);
       glink_os_free(ch_ctx);
     }
+    else
+    {
+      //Update the Filter
+      glinki_update_logging_filter(*allocated_ch_ctx, FALSE);
+    }
 
     return status;
   }
@@ -640,6 +661,15 @@ glink_err_type glinki_add_ch_to_xport
     glink_os_free(ch_ctx);
   } /* end If - else (local_open) */
   
+  /* If the channel was added to be closed later by channel migration
+     do not update the filter */
+  if ( ( status == GLINK_STATUS_SUCCESS ) && 
+       ( (*allocated_ch_ctx)->tag_ch_for_close != TRUE ) )
+  {
+    //Update the Filter - Reset Boolean=FALSE
+    glinki_update_logging_filter( *allocated_ch_ctx, FALSE );
+  }
+  
   return status;
 }
 
@@ -716,7 +746,7 @@ glink_err_type glink_core_register_transport
       cfg->version_count == 0 ||
       cfg->max_cid == 0)
   {
-    GLINK_LOG_EVENT(GLINK_EVENT_REGISTER_XPORT, NULL, "", "", 
+    GLINK_LOG_ERROR_EVENT( GLINK_EVENT_REGISTER_XPORT, "", "", "", 
         GLINK_STATUS_INVALID_PARAM);    
     return GLINK_STATUS_INVALID_PARAM;
   }
@@ -730,8 +760,10 @@ glink_err_type glink_core_register_transport
      if_ptr->tx_cmd_ch_remote_close_ack == NULL ||
      if_ptr->ssr  == NULL)
   {
-    GLINK_LOG_EVENT(GLINK_EVENT_REGISTER_XPORT, NULL, cfg->name, 
-        cfg->remote_ss, GLINK_STATUS_INVALID_PARAM);    
+    GLINK_LOG_ERROR_EVENT( GLINK_EVENT_REGISTER_XPORT, "", 
+                           cfg->name, 
+                           cfg->remote_ss, 
+                           GLINK_STATUS_INVALID_PARAM );    
     return GLINK_STATUS_INVALID_PARAM;;
   }
 
@@ -740,9 +772,10 @@ glink_err_type glink_core_register_transport
   if(remote_host == GLINK_NUM_HOSTS )
   {
     /* Unknown transport name trying to register with GLink */
-    GLINK_LOG_EVENT(GLINK_EVENT_REGISTER_XPORT, NULL, cfg->name, 
-           cfg->remote_ss, GLINK_STATUS_INVALID_PARAM);
-    
+    GLINK_LOG_ERROR_EVENT( GLINK_EVENT_REGISTER_XPORT, "", 
+                           cfg->name, 
+                           cfg->remote_ss, 
+                           GLINK_STATUS_INVALID_PARAM );
     return GLINK_STATUS_INVALID_PARAM;
   }
 
@@ -754,8 +787,10 @@ glink_err_type glink_core_register_transport
      xport_ctx = glink_os_calloc(sizeof(glink_core_xport_ctx_type));
     if(xport_ctx == NULL)
     {
-      GLINK_LOG_EVENT(GLINK_EVENT_REGISTER_XPORT, NULL, cfg->name, 
-          cfg->remote_ss, GLINK_STATUS_OUT_OF_RESOURCES);
+      GLINK_LOG_ERROR_EVENT( GLINK_EVENT_REGISTER_XPORT, "", 
+                             cfg->name, 
+                             cfg->remote_ss, 
+                             GLINK_STATUS_OUT_OF_RESOURCES );
     
       return GLINK_STATUS_OUT_OF_RESOURCES;
     }
@@ -785,8 +820,7 @@ glink_err_type glink_core_register_transport
                       if_ptr,
                       &glink_transport_q_cs[remote_host]);
 
-  GLINK_LOG_EVENT(GLINK_EVENT_REGISTER_XPORT,
-                  NULL,
+  GLINK_LOG_EVENT_NO_FILTER( GLINK_EVENT_REGISTER_XPORT, "", 
                   xport_ctx->xport,
                   xport_ctx->remote_ss,
                   GLINK_STATUS_SUCCESS);
@@ -1395,11 +1429,10 @@ void glinki_dequeue_item
   glink_os_cs_release(cs);
 }
 
+#if defined(GLINK_MEMORY_LOGGING)
 /* ============ Internal Logging API ================ */
 void glink_mem_log
 (
-  const char *func,
-  uint32 line,
   glink_log_event_type type,
   const char *msg,
   const char *xport,
@@ -1411,7 +1444,7 @@ void glink_mem_log
   dprintf(INFO, "%s:%u, event:%d, msg:%s, xport:%s, remote_ss:%s, param:%u\n", func, line, type, msg, xport, remote_ss, param);
 #endif
 }
-
+#endif
 
 #ifdef FEATURE_TRACER_PACKET
 /*===========================================================================
@@ -1443,17 +1476,67 @@ void glink_tracer_packet_log_pctx_pkt
   
   if (tracer_pkt_size != pctx->size)
   {
-    GLINK_LOG_EVENT(GLINK_EVENT_TXV_INVALID_BUFFER,
-                    NULL, "", "", 
+    GLINK_LOG_EVENT_NO_FILTER( GLINK_EVENT_TXV_INVALID_BUFFER, "", "", "",
                     tracer_pkt_size);
   }
 
   tracer_pkt_log_result = tracer_packet_log_event(tracer_pkt_data, event_id);
   if (tracer_pkt_log_result != TRACER_PKT_STATUS_SUCCESS)
   {
-    GLINK_LOG_EVENT(GLINK_EVENT_TRACER_PKT_FAILURE,
-                    NULL, "", "", 
+    GLINK_LOG_EVENT_NO_FILTER( GLINK_EVENT_TRACER_PKT_FAILURE, "", "", "",
                     tracer_pkt_log_result);
   }
+}
+#endif
+
+/*===========================================================================
+  FUNCTION      glinki_update_logging_filter
+===========================================================================*/
+/** 
+ *  Update/Reset the logging filter if the name and remote host of the  
+ *  logging filter matches to that of the passed channel context
+ * 
+ * @param[in]    chnl_ctx   Channel content to match/compare
+ * @param[in]    reset      Indicate Update(FALSE) or Reset(TRUE)
+ *
+ * @return       None.
+ */
+/*=========================================================================*/
+#if defined(GLINK_OS_DEFINED_LOGGING) || defined(GLINK_MEMORY_LOGGING)
+void glinki_update_logging_filter
+(
+  glink_channel_ctx_type  *chnl_ctx, 
+  boolean                 reset
+)
+{
+  if ( ( log_filter_cfg.ch_filter_status == TRUE )  && 
+       ( (chnl_ctx) != NULL )   && 
+       ( glink_os_string_compare( (chnl_ctx)->name,
+                                 log_filter_cfg.ch_name) == 0 ) &&
+       ( log_filter_cfg.remote_host ==
+         glinki_find_remote_host((chnl_ctx)->if_ptr->glink_core_priv->remote_ss) ) 
+     )
+  {
+    if (reset == FALSE) /* Update the Filter */
+    {
+      log_filter_cfg.ch_ctx = (chnl_ctx);
+      log_filter_cfg.ch_lcid = (chnl_ctx)->lcid;
+      log_filter_cfg.ch_rcid = (chnl_ctx)->rcid;
+    }
+    else  /* Reset the Filter */
+    {
+      log_filter_cfg.ch_ctx = NULL;
+      log_filter_cfg.ch_lcid = 0;
+      log_filter_cfg.ch_rcid = 0;
+      log_filter_cfg.remote_host = -1;        
+    }
+  }
+}
+
+#else
+void glinki_update_logging_filter(glink_channel_ctx_type *chnl_ctx, boolean reset)
+{
+    GLINK_OS_UNREFERENCED_PARAM( chnl_ctx );
+    GLINK_OS_UNREFERENCED_PARAM( reset );
 }
 #endif

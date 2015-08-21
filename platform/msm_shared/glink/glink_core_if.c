@@ -123,6 +123,9 @@ static void glink_clean_channel_ctx
   glink_channel_ctx_type    *channel_ctx
 )
 {
+  /* If logging was enabled for this channel reset the logging filter */
+  glinki_update_logging_filter(channel_ctx, TRUE);
+  
   smem_list_delete(&xport_ctx->open_list, channel_ctx);
 
   if( channel_ctx->lcid == ( xport_ctx->free_lcid - 1 ) )
@@ -204,8 +207,10 @@ void glink_link_up
                          version_array->version,
       version_array->features);
 
-  GLINK_LOG_EVENT(GLINK_EVENT_LINK_UP, NULL, xport_ctx->xport,
-      xport_ctx->remote_ss, GLINK_STATUS_SUCCESS);
+  GLINK_LOG_EVENT_NO_FILTER( GLINK_EVENT_LINK_UP, "", 
+                             xport_ctx->xport, 
+                             xport_ctx->remote_ss, 
+                             GLINK_STATUS_SUCCESS);
 }
 
 /*===========================================================================
@@ -363,7 +368,7 @@ void glink_rx_cmd_ch_remote_open
   remote_ch_ctx = glink_os_calloc( sizeof( glink_channel_ctx_type ) );
   if(remote_ch_ctx == NULL)
   {
-    GLINK_LOG_EVENT( GLINK_EVENT_RM_CH_OPEN,
+    GLINK_LOG_ERROR_EVENT( GLINK_EVENT_RM_CH_OPEN,
                      name,
                      if_ptr->glink_core_priv->xport,
                      if_ptr->glink_core_priv->remote_ss,
@@ -383,7 +388,8 @@ void glink_rx_cmd_ch_remote_open
 
   ASSERT( GLINK_STATUS_SUCCESS == status );
 
-  GLINK_LOG_EVENT( GLINK_EVENT_RM_CH_OPEN,
+  GLINK_LOG_EVENT( allocated_ch_ctx,
+                   GLINK_EVENT_RM_CH_OPEN,
                      name,
                    if_ptr->glink_core_priv->xport,
                    if_ptr->glink_core_priv->remote_ss,
@@ -454,8 +460,12 @@ void glink_rx_cmd_ch_open_ack
 																	 GLINK_CONNECTED );
 			}
 
-      GLINK_LOG_EVENT(GLINK_EVENT_CH_OPEN_ACK, open_ch_ctx->name,
-          xport_ctx->xport, xport_ctx->remote_ss, lcid);
+  GLINK_LOG_EVENT( open_ch_ctx, 
+                   GLINK_EVENT_CH_OPEN_ACK, 
+                   open_ch_ctx->name, 
+                   xport_ctx->xport, 
+                   xport_ctx->remote_ss, 
+                   lcid );
 }
 
 /*===========================================================================
@@ -491,8 +501,12 @@ void glink_rx_cmd_ch_close_ack
   
       glink_os_cs_acquire( &open_ch_ctx->ch_state_cs );
 
-      GLINK_LOG_EVENT(GLINK_EVENT_CH_CLOSE_ACK, open_ch_ctx->name,
-          xport_ctx->xport, xport_ctx->remote_ss, lcid);
+  GLINK_LOG_EVENT( open_ch_ctx, 
+                   GLINK_EVENT_CH_CLOSE_ACK, 
+                   open_ch_ctx->name,
+                   xport_ctx->xport, 
+                   xport_ctx->remote_ss, 
+                   lcid);
 
       ASSERT( open_ch_ctx->local_state == GLINK_LOCAL_CH_CLOSING );
 
@@ -550,9 +564,12 @@ void glink_rx_cmd_ch_remote_close
 
   open_ch_ctx = glinki_find_ch_ctx_by_rcid(xport_ctx, rcid);
 
-      GLINK_LOG_EVENT( GLINK_EVENT_CH_REMOTE_CLOSE, open_ch_ctx->name,
-                       xport_ctx->xport, xport_ctx->remote_ss, rcid);
-  
+  GLINK_LOG_EVENT( open_ch_ctx, 
+                   GLINK_EVENT_CH_REMOTE_CLOSE, 
+                   open_ch_ctx->name, 
+                   xport_ctx->xport, 
+                   xport_ctx->remote_ss, 
+                   rcid );
       glink_os_cs_acquire(&open_ch_ctx->ch_state_cs);
 
       ASSERT( open_ch_ctx->remote_state == GLINK_REMOTE_CH_OPENED );
@@ -630,8 +647,12 @@ void glink_rx_put_pkt_ctx
   open_ch_ctx = glinki_find_ch_ctx_by_rcid(xport_ctx, rcid);
   glink_os_cs_release(&xport_ctx->channel_q_cs);
   
-      GLINK_LOG_EVENT(GLINK_EVENT_CH_PUT_PKT_CTX, open_ch_ctx->name,
-          xport_ctx->xport, xport_ctx->remote_ss, intent_ptr->iid);
+  GLINK_LOG_EVENT( open_ch_ctx,
+                   GLINK_EVENT_CH_PUT_PKT_CTX, 
+                   open_ch_ctx->name,
+                   xport_ctx->xport, 
+                   xport_ctx->remote_ss, 
+                   intent_ptr->iid);
 
       xport_ctx->channel_receive_pkt(open_ch_ctx, intent_ptr);
 }

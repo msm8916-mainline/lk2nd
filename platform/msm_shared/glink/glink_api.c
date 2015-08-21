@@ -101,7 +101,7 @@ glink_err_type glink_open
      cfg_ptr->name == NULL                  ||
      cfg_ptr->notify_state == NULL)
   {
-    GLINK_LOG_EVENT(GLINK_EVENT_CH_OPEN, NULL, "", "",
+    GLINK_LOG_ERROR_EVENT( GLINK_EVENT_CH_OPEN, "", "", "", 
         GLINK_STATUS_INVALID_PARAM);
     return GLINK_STATUS_INVALID_PARAM;
   }
@@ -112,17 +112,21 @@ glink_err_type glink_open
   if (remote_host == GLINK_NUM_HOSTS)
   {
     /* Unknown transport name trying to register with GLink */
-    GLINK_LOG_EVENT(GLINK_EVENT_REGISTER_XPORT, cfg_ptr->name, "",
-        cfg_ptr->remote_ss, GLINK_STATUS_INVALID_PARAM);
+    GLINK_LOG_ERROR_EVENT( GLINK_EVENT_REGISTER_XPORT, 
+                           cfg_ptr->name, "", 
+                           cfg_ptr->remote_ss, 
+                           GLINK_STATUS_INVALID_PARAM );    
 
     return GLINK_STATUS_INVALID_PARAM;
   }
 
   /* Allocate and initialize channel info structure */
   ch_ctx = glink_os_calloc(sizeof(glink_channel_ctx_type));
-  if(ch_ctx == NULL) {
-    GLINK_LOG_EVENT(GLINK_EVENT_CH_OPEN, cfg_ptr->name, "",
-        "", GLINK_STATUS_OUT_OF_RESOURCES);
+  if(ch_ctx == NULL) 
+  {
+    GLINK_LOG_ERROR_EVENT( GLINK_EVENT_CH_OPEN, 
+                           cfg_ptr->name, "", "",
+                           GLINK_STATUS_OUT_OF_RESOURCES );
     return GLINK_STATUS_OUT_OF_RESOURCES;
   }
 
@@ -154,7 +158,7 @@ glink_err_type glink_open
   if( !if_ptr )
     {
     /* Code gets here if we are not able to find reqeusted transport */
-    GLINK_LOG_EVENT( GLINK_EVENT_CH_OPEN,
+    GLINK_LOG_ERROR_EVENT( GLINK_EVENT_CH_OPEN,
                      cfg_ptr->name,
                      cfg_ptr->transport,
                      cfg_ptr->remote_ss,
@@ -173,17 +177,24 @@ glink_err_type glink_open
       {
         /* Set the handle and return */
         *handle = allocated_ch_ctx;
+    GLINK_LOG_EVENT( *handle,
+                     GLINK_EVENT_CH_OPEN,
+                     cfg_ptr->name,
+                     cfg_ptr->transport,
+                     cfg_ptr->remote_ss,
+                     status );
       }
       else
       {
         *handle = NULL;
-      }
-
-  GLINK_LOG_EVENT( GLINK_EVENT_CH_OPEN,
+    GLINK_LOG_ERROR_EVENT( GLINK_EVENT_CH_OPEN,
                    cfg_ptr->name,
                    cfg_ptr->transport,
                    cfg_ptr->remote_ss,
                    status );
+  }
+
+  
 
       return status;
     }
@@ -203,21 +214,23 @@ glink_err_type glink_close
 )
 {
   glink_err_type status;
-  glink_core_xport_ctx_type *xport_ctx = NULL;
+  glink_core_xport_ctx_type *xport_ctx; 
 
   if(handle == NULL)
   {
-    GLINK_LOG_EVENT(GLINK_EVENT_CH_CLOSE, NULL, "",
-        "", GLINK_STATUS_INVALID_PARAM);
+    GLINK_LOG_ERROR_EVENT( GLINK_EVENT_CH_CLOSE, "", "", "",
+                           GLINK_STATUS_INVALID_PARAM );
     return GLINK_STATUS_INVALID_PARAM;
   }
 
-  /* get xport context after NULL check */
-  xport_ctx = handle->if_ptr->glink_core_priv;
-  
+	/* get xport context after NULL check */
+	xport_ctx = handle->if_ptr->glink_core_priv;
+
+	ASSERT( xport_ctx != NULL );
+
   if (!glinki_xport_linkup(handle->if_ptr))
   {
-    GLINK_LOG_EVENT(GLINK_EVENT_CH_CLOSE,
+    GLINK_LOG_ERROR_EVENT( GLINK_EVENT_CH_CLOSE, 
                     handle->name,
                     xport_ctx->xport,
                     xport_ctx->remote_ss,
@@ -233,12 +246,15 @@ glink_err_type glink_close
   if (handle->local_state != GLINK_LOCAL_CH_OPENED &&
       handle->local_state != GLINK_LOCAL_CH_OPENING)
   {
-    GLINK_LOG_EVENT(GLINK_EVENT_CH_CLOSE, handle->name, xport_ctx->xport,
-      xport_ctx->remote_ss, handle->local_state);
+    GLINK_LOG_ERROR_EVENT( GLINK_EVENT_CH_CLOSE, 
+                           handle->name, 
+                           xport_ctx->xport,
+                           xport_ctx->remote_ss, 
+                           handle->local_state );
 
     glink_os_cs_release(&handle->ch_state_cs);
 
-    return GLINK_STATUS_FAILURE;
+    return GLINK_STATUS_CH_ALREADY_CLOSED;
   }
 
   handle->local_state = GLINK_LOCAL_CH_CLOSING;
@@ -259,8 +275,12 @@ glink_err_type glink_close
 
     status = handle->if_ptr->tx_cmd_ch_close(handle->if_ptr, handle->lcid);
 
-    GLINK_LOG_EVENT(GLINK_EVENT_CH_CLOSE, handle->name, xport_ctx->xport,
-        xport_ctx->remote_ss, status);
+    GLINK_LOG_EVENT( handle,
+                     GLINK_EVENT_CH_CLOSE, 
+                     handle->name, 
+                     xport_ctx->xport,
+                     xport_ctx->remote_ss, 
+                     status );
   }
 
   return status;
@@ -341,8 +361,8 @@ glink_err_type glink_txv
   if(handle == NULL || iovec == NULL || size == 0 ||
      (vprovider == NULL && pprovider == NULL))
   {
-    GLINK_LOG_EVENT(GLINK_EVENT_CH_TX, NULL, "",
-        "", GLINK_STATUS_INVALID_PARAM);
+    GLINK_LOG_ERROR_EVENT( GLINK_EVENT_CH_TX, "", "", "",
+                           GLINK_STATUS_INVALID_PARAM );
     return GLINK_STATUS_INVALID_PARAM;
   }
 
@@ -350,21 +370,23 @@ glink_err_type glink_txv
 
   if (!glinki_channel_fully_opened(handle))
   {
-    GLINK_LOG_EVENT( GLINK_EVENT_CH_TX,
+    GLINK_LOG_ERROR_EVENT( GLINK_EVENT_CH_TX, 
                      handle->name,
                      xport_ctx->xport,
                      xport_ctx->remote_ss,
-                     GLINK_STATUS_FAILURE );
-
-    return GLINK_STATUS_FAILURE;
+                           GLINK_STATUS_CH_NOT_FULLY_OPENED );
+    return GLINK_STATUS_CH_NOT_FULLY_OPENED;
   }
 
   pctx = glink_os_calloc( sizeof( glink_core_tx_pkt_type ) );
 
   if (pctx == NULL)
   {
-    GLINK_LOG_EVENT(GLINK_EVENT_CH_CLOSE, handle->name, xport_ctx->xport,
-      xport_ctx->remote_ss, GLINK_STATUS_OUT_OF_RESOURCES);
+    GLINK_LOG_ERROR_EVENT( GLINK_EVENT_CH_TX, 
+                           handle->name, 
+                           xport_ctx->xport,
+                           xport_ctx->remote_ss, 
+                           GLINK_STATUS_OUT_OF_RESOURCES );
     return GLINK_STATUS_OUT_OF_RESOURCES;
   }
 
@@ -399,8 +421,15 @@ glink_err_type glink_txv
 
   status = xport_ctx->channel_submit_pkt(handle, pctx, req_intent);
 
-  GLINK_LOG_EVENT(GLINK_EVENT_CH_TX, handle->name, xport_ctx->xport,
-      xport_ctx->remote_ss, status);
+  /*Update the channel stats*/
+  GLINK_UPDATE_CHANNEL_STATS( handle->ch_stats, tx_request, size);
+  
+  GLINK_LOG_EVENT( handle,
+                   GLINK_EVENT_CH_TX, 
+                   handle->name, 
+                   xport_ctx->xport,
+                   xport_ctx->remote_ss, 
+                   status);
 
   glink_os_cs_release(&handle->tx_cs);
   return status;
@@ -434,8 +463,8 @@ glink_err_type glink_queue_rx_intent
   /* Input validation */
   if(handle == NULL || size == 0)
   {
-    GLINK_LOG_EVENT(GLINK_EVENT_CH_Q_RX_INTENT, NULL, "",
-        "", GLINK_STATUS_INVALID_PARAM);
+    GLINK_LOG_ERROR_EVENT( GLINK_EVENT_CH_Q_RX_INTENT, "", "", "", 
+                           GLINK_STATUS_INVALID_PARAM);
     return GLINK_STATUS_INVALID_PARAM;
   }
 
@@ -444,26 +473,28 @@ glink_err_type glink_queue_rx_intent
   /* short circuit for intentless mode */
   if(xport_ctx->xport_capabilities & GLINK_CAPABILITY_INTENTLESS)
   {
-    return GLINK_STATUS_FAILURE;
+    return GLINK_STATUS_API_NOT_SUPPORTED;
   }
 
   if (!glinki_channel_fully_opened(handle))
   {
-    GLINK_LOG_EVENT( GLINK_EVENT_CH_Q_RX_INTENT,
+    GLINK_LOG_ERROR_EVENT( GLINK_EVENT_CH_Q_RX_INTENT, 
                      handle->name,
                      xport_ctx->xport,
                      xport_ctx->remote_ss,
-                     GLINK_STATUS_FAILURE );
-
-    return GLINK_STATUS_FAILURE;
+                           GLINK_STATUS_CH_NOT_FULLY_OPENED );
+    return GLINK_STATUS_CH_NOT_FULLY_OPENED;
   }
 
   /* Allocate an intent structure */
   lc_intent = glink_os_calloc(sizeof(glink_rx_intent_type));
   if(lc_intent == NULL)
   {
-    GLINK_LOG_EVENT(GLINK_EVENT_CH_Q_RX_INTENT, handle->name, xport_ctx->xport,
-        xport_ctx->remote_ss, GLINK_STATUS_OUT_OF_RESOURCES);
+    GLINK_LOG_ERROR_EVENT( GLINK_EVENT_CH_Q_RX_INTENT, 
+                           handle->name, 
+                           xport_ctx->xport,
+                           xport_ctx->remote_ss, 
+                           GLINK_STATUS_OUT_OF_RESOURCES );
     return GLINK_STATUS_OUT_OF_RESOURCES;
   }
 
@@ -472,8 +503,11 @@ glink_err_type glink_queue_rx_intent
   if(status != GLINK_STATUS_SUCCESS)
   {
     glink_os_free(lc_intent);
-    GLINK_LOG_EVENT(GLINK_EVENT_CH_Q_RX_INTENT, handle->name, xport_ctx->xport,
-        xport_ctx->remote_ss, status);
+    GLINK_LOG_ERROR_EVENT( GLINK_EVENT_CH_Q_RX_INTENT, 
+                           handle->name, 
+                           xport_ctx->xport,
+                           xport_ctx->remote_ss, 
+                           status );
     return status;
   }
 
@@ -487,8 +521,11 @@ glink_err_type glink_queue_rx_intent
     {
       handle->if_ptr->deallocate_rx_intent(handle->if_ptr, lc_intent);
       glink_os_free(lc_intent);
-      GLINK_LOG_EVENT(GLINK_EVENT_CH_Q_RX_INTENT, handle->name,
-        xport_ctx->xport, xport_ctx->remote_ss, GLINK_STATUS_OUT_OF_RESOURCES);
+      GLINK_LOG_ERROR_EVENT( GLINK_EVENT_CH_Q_RX_INTENT, 
+                             handle->name, 
+                             xport_ctx->xport, 
+                             xport_ctx->remote_ss, 
+                             GLINK_STATUS_OUT_OF_RESOURCES );
       return GLINK_STATUS_OUT_OF_RESOURCES;
     }
   }
@@ -523,8 +560,12 @@ glink_err_type glink_queue_rx_intent
   }
   glink_os_cs_release(&handle->if_ptr->glink_core_priv->liid_cs);
 
-  GLINK_LOG_EVENT(GLINK_EVENT_CH_Q_RX_INTENT, handle->name, xport_ctx->xport,
-      xport_ctx->remote_ss, status);
+  GLINK_LOG_EVENT( handle,
+                   GLINK_EVENT_CH_Q_RX_INTENT, 
+                   handle->name, 
+                   xport_ctx->xport,
+                   xport_ctx->remote_ss, 
+                   status );
   return status;
 }
 
@@ -556,26 +597,25 @@ glink_err_type glink_rx_done
   /* Input validation */
   if(handle == NULL || ptr == NULL)
   {
-    GLINK_LOG_EVENT(GLINK_EVENT_CH_RX_DONE, NULL, "",
-        "", GLINK_STATUS_INVALID_PARAM);
+    GLINK_LOG_ERROR_EVENT( GLINK_EVENT_CH_RX_DONE, "", "", "", 
+                           GLINK_STATUS_INVALID_PARAM );
     return GLINK_STATUS_INVALID_PARAM;
   }
 
   /* short circuit for intentless mode */
   if (xport_ctx->xport_capabilities & GLINK_CAPABILITY_INTENTLESS)
   {
-    return GLINK_STATUS_SUCCESS;
+    return GLINK_STATUS_API_NOT_SUPPORTED;
   }
 
   if (!glinki_channel_fully_opened(handle))
   {
-    GLINK_LOG_EVENT( GLINK_EVENT_CH_RX_DONE,
+    GLINK_LOG_ERROR_EVENT( GLINK_EVENT_CH_RX_DONE, 
                      handle->name,
                      xport_ctx->xport,
                      xport_ctx->remote_ss,
-                     GLINK_STATUS_FAILURE );
-
-    return GLINK_STATUS_FAILURE;
+			   GLINK_STATUS_CH_NOT_FULLY_OPENED );
+    return GLINK_STATUS_CH_NOT_FULLY_OPENED;
   }
 
   /* Free the intent */
@@ -597,6 +637,8 @@ glink_err_type glink_rx_done
                           &handle->pintents->intent_q_cs);
 
       iid = lc_intent->iid;
+
+      GLINK_UPDATE_CHANNEL_STATS( handle->ch_stats, rx_done, lc_intent->pkt_sz);
 
       if (reuse)
       {
@@ -627,15 +669,23 @@ glink_err_type glink_rx_done
                                            iid,
                                            reuse);
 
-      GLINK_LOG_EVENT(GLINK_EVENT_CH_RX_DONE, handle->name, xport_ctx->xport,
-          xport_ctx->remote_ss, GLINK_STATUS_SUCCESS);
+      GLINK_LOG_EVENT( handle,
+                       GLINK_EVENT_CH_RX_DONE, 
+                       handle->name, 
+                       xport_ctx->xport,
+                       xport_ctx->remote_ss, 
+                       GLINK_STATUS_SUCCESS );
+
       return GLINK_STATUS_SUCCESS;
     }
     lc_intent = smem_list_next(lc_intent);
   }
 
-  GLINK_LOG_EVENT(GLINK_EVENT_CH_RX_DONE, handle->name, xport_ctx->xport,
-      xport_ctx->remote_ss, GLINK_STATUS_INVALID_PARAM);
+  GLINK_LOG_ERROR_EVENT( GLINK_EVENT_CH_RX_DONE, 
+                         handle->name, 
+                         xport_ctx->xport,
+                         xport_ctx->remote_ss, 
+                         GLINK_STATUS_INVALID_PARAM );
   return GLINK_STATUS_INVALID_PARAM;
 }
 
@@ -658,28 +708,30 @@ glink_err_type glink_sigs_set
   uint32            sig_value
 )
 {
-  glink_core_xport_ctx_type *xport_ctx;
+  glink_core_xport_ctx_type *xport_ctx; 
   glink_err_type status;
 
   /* Input validation */
   if(handle == NULL)
   {
-    GLINK_LOG_EVENT(GLINK_EVENT_CH_SIG_SET, NULL, "",
-        "", GLINK_STATUS_INVALID_PARAM);
+    GLINK_LOG_ERROR_EVENT( GLINK_EVENT_CH_SIG_SET, "", "", "", 
+                           GLINK_STATUS_INVALID_PARAM );
     return GLINK_STATUS_INVALID_PARAM;
   }
 
-  xport_ctx = handle->if_ptr->glink_core_priv;
+	xport_ctx = handle->if_ptr->glink_core_priv;
+
+	ASSERT( xport_ctx != NULL );
 
   if (!glinki_channel_fully_opened(handle))
   {
-    GLINK_LOG_EVENT( GLINK_EVENT_CH_SIG_SET,
+    GLINK_LOG_ERROR_EVENT( GLINK_EVENT_CH_SIG_SET, 
                      handle->name,
                      xport_ctx->xport,
                      xport_ctx->remote_ss,
-                     GLINK_STATUS_FAILURE );
+                           GLINK_STATUS_CH_NOT_FULLY_OPENED );
 
-    return GLINK_STATUS_FAILURE;
+    return GLINK_STATUS_CH_NOT_FULLY_OPENED;
   }
 
   status = handle->if_ptr->tx_cmd_set_sigs(handle->if_ptr,
@@ -714,8 +766,8 @@ glink_err_type glink_sigs_local_get
   /* Input validation */
   if(handle == NULL || sig_value == NULL)
   {
-    GLINK_LOG_EVENT(GLINK_EVENT_CH_SIG_L_GET, NULL, "",
-        "", GLINK_STATUS_INVALID_PARAM);
+    GLINK_LOG_ERROR_EVENT( GLINK_EVENT_CH_SIG_L_GET, "", "", "", 
+                           GLINK_STATUS_INVALID_PARAM );
     return GLINK_STATUS_INVALID_PARAM;
   }
 
@@ -744,8 +796,8 @@ glink_err_type glink_sigs_remote_get
   /* Input validation */
   if(handle == NULL || sig_value == NULL)
   {
-    GLINK_LOG_EVENT(GLINK_EVENT_CH_SIG_R_GET, NULL, "",
-        "", GLINK_STATUS_INVALID_PARAM);
+    GLINK_LOG_ERROR_EVENT( GLINK_EVENT_CH_SIG_R_GET, "", "", "", 
+                           GLINK_STATUS_INVALID_PARAM );
     return GLINK_STATUS_INVALID_PARAM;
   }
 
@@ -874,7 +926,7 @@ glink_err_type glink_rpm_rx_poll
   if(handle->if_ptr->poll) {
     return handle->if_ptr->poll(handle->if_ptr);
   }
-  return GLINK_STATUS_FAILURE;
+  return GLINK_STATUS_API_NOT_SUPPORTED;
 }
 
 /**
@@ -906,7 +958,7 @@ glink_err_type glink_rpm_mask_rx_interrupt
   if(handle->if_ptr->mask_rx_irq) {
     return handle->if_ptr->mask_rx_irq(handle->if_ptr, mask);
   }
-  return GLINK_STATUS_FAILURE;
+  return GLINK_STATUS_API_NOT_SUPPORTED;
 }
 
 /**
