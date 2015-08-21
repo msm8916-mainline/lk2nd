@@ -31,6 +31,7 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
                         INCLUDE FILES
 ===========================================================================*/
 #include <glink.h>
+#include <glink_rpm.h>
 #include <glink_os_utils.h>
 #include <glink_internal.h>
 #include <glink_vector.h>
