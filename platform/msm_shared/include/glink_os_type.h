@@ -54,6 +54,9 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define GLINK_OS_TICK_TO_USEC(t) ((t)*10ULL/192ULL)
 #define GLINK_OS_USEC_TO_TICK(u) ((u)*192ULL/10ULL)
+
+#define GLINK_OS_UNREFERENCED_PARAM( param ) ( void )param
+
 /*===========================================================================
                         TYPE DEFINITIONS
 ===========================================================================*/

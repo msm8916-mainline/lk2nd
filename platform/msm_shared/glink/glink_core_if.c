@@ -156,9 +156,9 @@ static const glink_core_version_type *glink_get_current_version
   glink_core_xport_ctx_type *xport_ctx
 )
 {
-  const glink_core_version_type *ver
-    = &xport_ctx->version_array[xport_ctx->version_indx];
+  const glink_core_version_type *ver;
   
+  ver = &xport_ctx->version_array[xport_ctx->version_indx];
   ASSERT(ver);
   
   return ver;
@@ -353,12 +353,12 @@ void glink_rx_cmd_ch_remote_open
   glink_xport_priority    priority
 )
 {
-  (void)priority;
-  
   glink_channel_ctx_type     *remote_ch_ctx  = NULL;
   glink_channel_ctx_type     *allocated_ch_ctx;
   glink_err_type              status;
 
+  GLINK_OS_UNREFERENCED_PARAM( priority );
+  
   /* Allocate and initialize channel info structure */
   remote_ch_ctx = glink_os_calloc( sizeof( glink_channel_ctx_type ) );
   if(remote_ch_ctx == NULL)
@@ -414,12 +414,12 @@ void glink_rx_cmd_ch_open_ack
   glink_xport_priority     migrated_ch_prio
 )
 {
-  (void)migrated_ch_prio;
-  
   glink_channel_ctx_type     *open_ch_ctx;
   glink_core_xport_ctx_type  *xport_ctx;
   glink_remote_state_type    remote_state;
 
+  GLINK_OS_UNREFERENCED_PARAM( migrated_ch_prio );
+  
   xport_ctx = if_ptr->glink_core_priv;
 
   /* Move to closed state. Implies we clean up the channel from the
@@ -616,10 +616,11 @@ void glink_rx_put_pkt_ctx
   boolean                  complete
 )
 {
-  (void)complete;
   glink_channel_ctx_type *open_ch_ctx;
   glink_core_xport_ctx_type  *xport_ctx;
 
+  GLINK_OS_UNREFERENCED_PARAM( complete );
+  
   ASSERT(intent_ptr);
 
   xport_ctx = if_ptr->glink_core_priv;

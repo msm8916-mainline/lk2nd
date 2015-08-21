@@ -59,10 +59,10 @@ static void glink_default_notify_rx_sigs
   uint32             curr
 )
 {
-  (void)handle;
-  (void)priv;
-  (void)prev;
-  (void)curr;
+  GLINK_OS_UNREFERENCED_PARAM( handle );
+  GLINK_OS_UNREFERENCED_PARAM( priv );
+  GLINK_OS_UNREFERENCED_PARAM( prev );
+  GLINK_OS_UNREFERENCED_PARAM( curr );
   return;
 }
 

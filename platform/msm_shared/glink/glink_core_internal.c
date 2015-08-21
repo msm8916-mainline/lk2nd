@@ -172,8 +172,8 @@ static boolean glinki_xport_priority_comp
   void                   **out
 )
 {
-  (void)cond1;
-  (void)out;
+  GLINK_OS_UNREFERENCED_PARAM( cond1 );
+  GLINK_OS_UNREFERENCED_PARAM( out );
 
   return if_ptr->glink_priority == (glink_xport_priority)priority;
 }
@@ -203,8 +203,8 @@ static boolean glinki_client_requested_xport_check
   void                   **out
 )
 {
-  (void)cond2;
-  (void)out;
+  GLINK_OS_UNREFERENCED_PARAM( cond2 );
+  GLINK_OS_UNREFERENCED_PARAM( out );
   
   if (!glinki_xport_linkup(if_ptr))
   {
@@ -240,9 +240,10 @@ static void glinki_update_best_xport
   void                    **best_xport
 )
 {
-  (void)param2;
   glink_xport_priority *priority;
   
+  GLINK_OS_UNREFERENCED_PARAM( param2 );
+
   ASSERT(best_xport && priority_param);
   
   priority = (glink_xport_priority*)priority_param;
@@ -284,9 +285,9 @@ static void glinki_notify_xport_ssr
   void                    **out
 )
 {
-  (void)param1;
-  (void)param2;
-  (void)out;
+  GLINK_OS_UNREFERENCED_PARAM( param1 );
+  GLINK_OS_UNREFERENCED_PARAM( param2 );
+  GLINK_OS_UNREFERENCED_PARAM( out );
   /* xport is down. change the xport state */
   glink_os_cs_acquire(&if_ptr->glink_core_priv->status_cs);
   if_ptr->glink_core_priv->status = GLINK_XPORT_REGISTERED;
@@ -327,11 +328,11 @@ static void glinki_check_xport_and_notify
   void                    **out
 )
 {
-  (void)out;
-  
   glink_core_xport_ctx_type  *xport_ctx;
   glink_link_notif_data_type *link_notif_data;
   glink_link_info_type        link_info;
+  
+  GLINK_OS_UNREFERENCED_PARAM( out );
   
   ASSERT(link_notif_data_param && if_ptr->glink_core_priv);
   
