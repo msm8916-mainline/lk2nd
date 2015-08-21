@@ -212,17 +212,20 @@ glink_err_type glink_close
     return GLINK_STATUS_INVALID_PARAM;
   }
 
+  /* get xport context after NULL check */
+  xport_ctx = handle->if_ptr->glink_core_priv;
+  
   if (!glinki_xport_linkup(handle->if_ptr))
   {
-    GLINK_LOG_EVENT(GLINK_EVENT_CH_CLOSE, handle->name, xport_ctx->xport,
-      xport_ctx->remote_ss, handle->local_state);
+    GLINK_LOG_EVENT(GLINK_EVENT_CH_CLOSE,
+                    handle->name,
+                    xport_ctx->xport,
+                    xport_ctx->remote_ss,
+                    handle->local_state);
 
     return GLINK_STATUS_FAILURE;
   }
   
-  /* get xport context after NULL check */
-  xport_ctx = handle->if_ptr->glink_core_priv;
-
   /* grab lock to change/check channel state atomically */
   glink_os_cs_acquire( &handle->ch_state_cs );
 
