@@ -88,6 +88,7 @@
 #include "board.h"
 #include "scm.h"
 #include "mdtp.h"
+#include "fastboot_test.h"
 
 extern  bool target_use_signed_kernel(void);
 extern void platform_uninit(void);
@@ -168,6 +169,7 @@ static bool boot_into_ffbm;
 static char *target_boot_params = NULL;
 static bool boot_reason_alarm;
 static bool devinfo_present = true;
+bool boot_into_fastboot = false;
 
 /* Assuming unauthorized kernel image by default */
 static int auth_kernel_img = 0;
@@ -1034,7 +1036,11 @@ int boot_linux_from_mmc(void)
 		device.is_unlocked,
 		device.is_tampered);
 
-	if(target_use_signed_kernel() && (!device.is_unlocked))
+	/* Change the condition a little bit to include the test framework support.
+	 * We would never reach this point if device is in fastboot mode, even if we did
+	 * that means we are in test mode, so execute kernel authentication part for the
+	 * tests */
+	if((target_use_signed_kernel() && (!device.is_unlocked)) || boot_into_fastboot)
 	{
 		offset = imagesize_actual;
 		if (check_aboot_addr_range_overlap((uint32_t)image_addr + offset, page_size))
@@ -1051,6 +1057,9 @@ int boot_linux_from_mmc(void)
 		}
 
 		verify_signed_bootimg((uint32_t)image_addr, imagesize_actual);
+		/* The purpose of our test is done here */
+		if (boot_into_fastboot && auth_kernel_img)
+			return 0;
 	} else {
 		second_actual  = ROUND_TO_PAGE(hdr->second_size,  page_mask);
 		#ifdef TZ_SAVE_KERNEL_HASH
@@ -3174,6 +3183,9 @@ void aboot_fastboot_register_commands(void)
 											{"oem enable-charger-screen", cmd_oem_enable_charger_screen},
 											{"oem disable-charger-screen", cmd_oem_disable_charger_screen},
 											{"oem select-display-panel", cmd_oem_select_display_panel},
+#if UNITTEST_FW_SUPPORT
+											{"oem run-tests", cmd_oem_runtests},
+#endif
 #endif
 										  };
 
@@ -3215,7 +3227,6 @@ void aboot_fastboot_register_commands(void)
 void aboot_init(const struct app_descriptor *app)
 {
 	unsigned reboot_mode = 0;
-	bool boot_into_fastboot = false;
 
 	/* Setup page size information for nv storage */
 	if (target_is_emmc_boot())
