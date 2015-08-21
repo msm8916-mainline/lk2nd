@@ -232,15 +232,22 @@ static uint32_t mmc_decode_and_save_csd(struct mmc_card *card)
 	memcpy((struct mmc_csd *)&card->csd,(struct mmc_csd *)&mmc_csd,
 			sizeof(struct mmc_csd));
 
-	/* Calculate the wp grp size */
-	if (card->ext_csd[MMC_ERASE_GRP_DEF])
-		card->wp_grp_size = MMC_HC_ERASE_MULT * card->ext_csd[MMC_HC_ERASE_GRP_SIZE] / MMC_BLK_SZ;
-	else
-		card->wp_grp_size = (card->csd.wp_grp_size + 1) * (card->csd.erase_grp_size + 1) \
-					  * (card->csd.erase_grp_mult + 1);
+	if (MMC_CARD_MMC(card)) {
 
-	card->rpmb_size = RPMB_PART_MIN_SIZE * card->ext_csd[RPMB_SIZE_MULT];
-	card->rel_wr_count = card->ext_csd[REL_WR_SEC_C];
+		/* Calculate the wp grp size */
+		if (card->ext_csd[MMC_ERASE_GRP_DEF])
+			card->wp_grp_size = MMC_HC_ERASE_MULT * card->ext_csd[MMC_HC_ERASE_GRP_SIZE] / MMC_BLK_SZ;
+		else
+			card->wp_grp_size = (card->csd.wp_grp_size + 1) * (card->csd.erase_grp_size + 1) \
+						  * (card->csd.erase_grp_mult + 1);
+
+		card->rpmb_size = RPMB_PART_MIN_SIZE * card->ext_csd[RPMB_SIZE_MULT];
+		card->rel_wr_count = card->ext_csd[REL_WR_SEC_C];
+	}
+	else {
+		card->wp_grp_size = (card->csd.wp_grp_size + 1) * (card->csd.erase_grp_size + 1) \
+						* (card->csd.erase_grp_mult + 1);
+	}
 
 	dprintf(SPEW, "Decoded CSD fields:\n");
 	dprintf(SPEW, "cmmc_structure: %u\n", mmc_csd.cmmc_structure);
@@ -765,7 +772,6 @@ bool mmc_set_drv_type(struct sdhci_host *host, struct mmc_card *card, uint8_t dr
 		ret = mmc_switch_cmd(host, card, MMC_ACCESS_WRITE, MMC_EXT_MMC_HS_TIMING, value);
 	if (!ret)
 		drv_type_changed = true;
-
 	return drv_type_changed;
 }
 /*
@@ -1355,11 +1361,13 @@ static uint32_t mmc_sd_get_card_ssr(struct sdhci_host *host, struct mmc_card *ca
 	for (i = 15, j = 0; i >=0 ; i--, j++)
 		sd_status[i] = swap_endian32(sd_status[j]);
 
-	au_size = UNPACK_BITS(status, MMC_SD_AU_SIZE_BIT, MMC_SD_AU_SIZE_LEN, 32);
+	au_size = UNPACK_BITS(status, MMC_SD_AU_SIZE_BIT, MMC_SD_AU_SIZE_LEN, 4);
 	/* Card AU size in sectors */
 	card->ssr.au_size = 1 << (au_size + 4);
-	card->ssr.num_aus = UNPACK_BITS(status, MMC_SD_ERASE_SIZE_BIT, MMC_SD_ERASE_SIZE_LEN, 32);
-
+	card->ssr.num_aus = UNPACK_BITS(status, MMC_SD_ERASE_SIZE_BIT, MMC_SD_ERASE_SIZE_LEN, 16);
+	/*if num_aus is 0 then host should assign number of AU erased at a time*/
+	if (!card->ssr.num_aus)
+		card->ssr.num_aus = 0x10;
 	return 0;
 }
 
@@ -1668,18 +1676,20 @@ static uint32_t mmc_card_init(struct mmc_device *dev)
 
 	card->block_size = MMC_BLK_SZ;
 
-	/* Enable RST_n_FUNCTION */
-	if (!card->ext_csd[MMC_EXT_CSD_RST_N_FUNC])
-	{
-		mmc_return = mmc_switch_cmd(host, card, MMC_SET_BIT, MMC_EXT_CSD_RST_N_FUNC, RST_N_FUNC_ENABLE);
-
-		if (mmc_return)
+	if (MMC_CARD_MMC(card)) {
+		/* Enable RST_n_FUNCTION */
+		if (!card->ext_csd[MMC_EXT_CSD_RST_N_FUNC])
 		{
-			dprintf(CRITICAL, "Failed to enable RST_n_FUNCTION\n");
-			return mmc_return;
-		}
-	}
+			mmc_return = mmc_switch_cmd(host, card, MMC_SET_BIT, MMC_EXT_CSD_RST_N_FUNC, RST_N_FUNC_ENABLE);
 
+			if (mmc_return)
+			{
+				dprintf(CRITICAL, "Failed to enable RST_n_FUNCTION\n");
+				return mmc_return;
+			}
+		}
+
+	}
 	return mmc_return;
 }
 
@@ -2176,7 +2186,10 @@ uint32_t mmc_sdhci_erase(struct mmc_device *dev, uint32_t blk_addr, uint64_t len
 	 * As per emmc 4.5 spec section 7.4.27, calculate the erase timeout
 	 * erase_timeout = 300ms * ERASE_TIMEOUT_MULT * num_erase_grps
 	 */
-	erase_timeout = ((uint64_t)300 * 1000 * card->ext_csd[MMC_ERASE_TIMEOUT_MULT] * num_erase_grps);
+	if (MMC_CARD_MMC(card))
+		erase_timeout = ((uint64_t)300 * 1000 * card->ext_csd[MMC_ERASE_TIMEOUT_MULT] * num_erase_grps);
+	else
+		erase_timeout = ((uint64_t)300 * 1000 * num_erase_grps);
 
 	/* Send CMD38 to perform erase */
 	if (mmc_send_erase(dev, erase_timeout))
@@ -2357,15 +2370,17 @@ void mmc_put_card_to_sleep(struct mmc_device *dev)
 		dprintf(CRITICAL, "card deselect error: %s\n", __func__);
 		return;
 	}
+	if(MMC_CARD_MMC(card)){
+		/*CMD5 is reserved in SD card */
+		cmd.cmd_index = CMD5_SLEEP_AWAKE;
+		cmd.argument = (card->rca << MMC_CARD_RCA_BIT) | MMC_CARD_SLEEP;
+		cmd.cmd_type = SDHCI_CMD_TYPE_NORMAL;
+		cmd.resp_type = SDHCI_CMD_RESP_R1B;
 
-	cmd.cmd_index = CMD5_SLEEP_AWAKE;
-	cmd.argument = (card->rca << MMC_CARD_RCA_BIT) | MMC_CARD_SLEEP;
-	cmd.cmd_type = SDHCI_CMD_TYPE_NORMAL;
-	cmd.resp_type = SDHCI_CMD_RESP_R1B;
-
-	/* send command */
-	if(sdhci_send_command(&dev->host, &cmd))
-		dprintf(CRITICAL, "card sleep error: %s\n", __func__);
+		/* send command */
+		if(sdhci_send_command(&dev->host, &cmd))
+			dprintf(CRITICAL, "card sleep error: %s\n", __func__);
+	}
 }
 
 /*

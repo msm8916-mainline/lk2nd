@@ -215,7 +215,7 @@
     ({                                                    \
      uint32_t indx = (start) / (size_of);                 \
      uint32_t offset = (start) % (size_of);               \
-     uint32_t mask = (((len)<(size_of))? 1<<(len):0) - 1; \
+     unsigned long long mask = (((len)<(size_of))? 1ULL<<(len):0) - 1; \
      uint32_t unpck = array[indx] >> offset;              \
      uint32_t indx2 = ((start) + (len) - 1) / (size_of);  \
      if(indx2 > indx)                                     \
