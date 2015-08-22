@@ -34,33 +34,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "mdtp.h"
-
-// Image dimensions
-#define MDTP_ERROR_MSG_WIDTH                (1412)
-#define MDTP_ERROR_MSG_HEIGHT               (212)
-#define MDTP_MAIN_TEXT_WIDTH                (1364)
-#define MDTP_MAIN_TEXT_HEIGHT               (288)
-#define MDTP_PIN_DIGIT_WIDTH                (180)
-#define MDTP_PIN_DIGIT_HEIGHT               (180)
-#define MDTP_OK_BUTTON_WIDTH                (644)
-#define MDTP_OK_BUTTON_HEIGHT               (158)
-#define MDTP_DIGITS_INSTRUCTIONS_WIDTH      (1384)
-#define MDTP_DIGITS_INSTRUCTIONS_HEIGHT     (166)
-#define MDTP_PIN_INSTRUCTIONS_WIDTH         (920)
-#define MDTP_PIN_INSTRUCTIONS_HEIGHT        (204)
-
-// Image offsets
-#define MDTP_ERROR_MSG_OFFSET               (0x1000)
-#define MDTP_INITIAL_DELAY_OFFSET           (0xDD000)
-#define MDTP_ENTER_PIN_OFFSET               (0x1FD000)
-#define MDTP_INVALID_PIN_OFFSET             (0x31D000)
-#define MDTP_PIN_DIGIT_0_OFFSET             (0x43D000)
-#define MDTP_PIN_DIGITS_OFFSET              (0x18000)
-#define MDTP_PIN_SELECTED_DIGIT_0_OFFSET    (MDTP_PIN_DIGIT_0_OFFSET + 10*MDTP_PIN_DIGITS_OFFSET)  // (0x52D000)
-#define MDTP_OK_BUTTON_OFFSET               (0x61D000)
-#define MDTP_SELECTED_OK_BUTTON_OFFSET      (0x668000)
-#define MDTP_DIGITS_INSTRUCTIONS_OFFSET     (0x6B3000)
-#define MDTP_PIN_INSTRUCTIONS_OFFSET        (0x75C000)
+#include "mdtp_ui_defs.h"
 
 // Image releative locations
 #define ERROR_MESSAGE_RELATIVE_Y_LOCATION   (0.18)
@@ -69,8 +43,6 @@
 #define PIN_TEXT_RELATIVE_Y_LOCATION        (0.57)
 #define OK_BUTTON_RELATIVE_Y_LOCATION       (0.75)
 #define OK_TEXT_RELATIVE_Y_LOCATION         (0.82)
-
-#define DIGIT_SPACE                         (12)
 
 #define MDTP_PRESSING_DELAY_MSEC            (400)
 #define MDTP_MAX_IMAGE_SIZE                 (1183000)  //size in bytes, includes some extra bytes since we round up to block size in read
@@ -89,6 +61,8 @@ struct mdtp_fbimage {
     uint32_t height;
     uint8_t image[MDTP_MAX_IMAGE_SIZE];
 };
+
+struct mdtp_ui_defs mdtp_ui_defs_data;
 
 /*----------------------------------------------------------------------------
  * Global Variables
@@ -286,10 +260,10 @@ static int display_error_message()
 
     if (fb_config)
 	{
-        uint32_t x = CENTER_IMAGE_ON_X_AXIS(MDTP_ERROR_MSG_WIDTH,fb_config->width);
+        uint32_t x = CENTER_IMAGE_ON_X_AXIS(mdtp_ui_defs_data.error_msg_width,fb_config->width);
 		uint32_t y = ((fb_config->height)*ERROR_MESSAGE_RELATIVE_Y_LOCATION);
 
-        fbimg = mdtp_read_mmc_image(MDTP_ERROR_MSG_OFFSET, MDTP_ERROR_MSG_WIDTH, MDTP_ERROR_MSG_HEIGHT);
+        fbimg = mdtp_read_mmc_image(mdtp_ui_defs_data.error_msg_offset, mdtp_ui_defs_data.error_msg_width, mdtp_ui_defs_data.error_msg_height);
         if (NULL == fbimg)
         {
             dprintf(CRITICAL,"ERROR: failed to read error image from mmc\n");
@@ -338,10 +312,10 @@ static void display_image(uint32_t offset, uint32_t width, uint32_t height, uint
  */
 static void display_initial_delay()
 {
-    uint32_t x = CENTER_IMAGE_ON_X_AXIS(MDTP_MAIN_TEXT_WIDTH,fb_config->width);
+    uint32_t x = CENTER_IMAGE_ON_X_AXIS(mdtp_ui_defs_data.main_text_width,fb_config->width);
 	uint32_t y = (fb_config->height)*MAIN_TEXT_RELATIVE_Y_LOCATION;
 
-	display_image(MDTP_INITIAL_DELAY_OFFSET, MDTP_MAIN_TEXT_WIDTH, MDTP_MAIN_TEXT_HEIGHT, x, y);
+	display_image(mdtp_ui_defs_data.initial_delay_offset, mdtp_ui_defs_data.main_text_width, mdtp_ui_defs_data.main_text_height, x, y);
 }
 
 /**
@@ -349,10 +323,10 @@ static void display_initial_delay()
  */
 static void display_enter_pin()
 {
-    uint32_t x = CENTER_IMAGE_ON_X_AXIS(MDTP_MAIN_TEXT_WIDTH,fb_config->width);
+    uint32_t x = CENTER_IMAGE_ON_X_AXIS(mdtp_ui_defs_data.main_text_width,fb_config->width);
 	uint32_t y = (fb_config->height)*MAIN_TEXT_RELATIVE_Y_LOCATION;
 
-	display_image(MDTP_ENTER_PIN_OFFSET, MDTP_MAIN_TEXT_WIDTH, MDTP_MAIN_TEXT_HEIGHT, x, y);
+	display_image(mdtp_ui_defs_data.enter_pin_offset, mdtp_ui_defs_data.main_text_width, mdtp_ui_defs_data.main_text_height, x, y);
 }
 
 /**
@@ -360,10 +334,10 @@ static void display_enter_pin()
  */
 static void display_invalid_pin()
 {
-    uint32_t x = CENTER_IMAGE_ON_X_AXIS(MDTP_MAIN_TEXT_WIDTH,fb_config->width);
+    uint32_t x = CENTER_IMAGE_ON_X_AXIS(mdtp_ui_defs_data.main_text_width,fb_config->width);
 	uint32_t y = (fb_config->height)*MAIN_TEXT_RELATIVE_Y_LOCATION;
 
-	display_image(MDTP_INVALID_PIN_OFFSET, MDTP_MAIN_TEXT_WIDTH, MDTP_MAIN_TEXT_HEIGHT, x, y);
+	display_image(mdtp_ui_defs_data.invalid_pin_offset, mdtp_ui_defs_data.main_text_width, mdtp_ui_defs_data.main_text_height, x, y);
 }
 
 /**
@@ -371,10 +345,10 @@ static void display_invalid_pin()
  */
 static void display_digits_instructions()
 {
-    uint32_t x = CENTER_IMAGE_ON_X_AXIS(MDTP_DIGITS_INSTRUCTIONS_WIDTH,fb_config->width);
+    uint32_t x = CENTER_IMAGE_ON_X_AXIS(mdtp_ui_defs_data.digits_instructions_width,fb_config->width);
 	uint32_t y = (fb_config->height)*PIN_TEXT_RELATIVE_Y_LOCATION;
 
-	display_image(MDTP_DIGITS_INSTRUCTIONS_OFFSET, MDTP_DIGITS_INSTRUCTIONS_WIDTH, MDTP_DIGITS_INSTRUCTIONS_HEIGHT, x, y);
+	display_image(mdtp_ui_defs_data.digits_instructions_offset, mdtp_ui_defs_data.digits_instructions_width, mdtp_ui_defs_data.digits_instructions_height, x, y);
 }
 
 /**
@@ -384,7 +358,7 @@ static void clear_digits_instructions()
 {
     uint32_t y = (fb_config->height)*PIN_TEXT_RELATIVE_Y_LOCATION;
 
-    fbcon_clear_section(y, MDTP_DIGITS_INSTRUCTIONS_HEIGHT);
+    fbcon_clear_section(y, mdtp_ui_defs_data.digits_instructions_height);
 }
 
 /**
@@ -392,8 +366,8 @@ static void clear_digits_instructions()
  */
 static void display_digit(uint32_t x, uint32_t y, uint32_t digit)
 {
-    display_image(MDTP_PIN_DIGIT_0_OFFSET + digit*MDTP_PIN_DIGITS_OFFSET,
-            MDTP_PIN_DIGIT_WIDTH, MDTP_PIN_DIGIT_HEIGHT, x, y);
+    display_image(mdtp_ui_defs_data.pin_digit_0_offset + digit*mdtp_ui_defs_data.pin_digits_offset,
+            mdtp_ui_defs_data.pin_digit_width, mdtp_ui_defs_data.pin_digit_height, x, y);
 }
 
 /**
@@ -401,8 +375,8 @@ static void display_digit(uint32_t x, uint32_t y, uint32_t digit)
  */
 static void display_selected_digit(uint32_t x, uint32_t y, uint32_t digit)
 {
-    display_image(MDTP_PIN_SELECTED_DIGIT_0_OFFSET + digit*MDTP_PIN_DIGITS_OFFSET,
-			MDTP_PIN_DIGIT_WIDTH, MDTP_PIN_DIGIT_HEIGHT, x, y);
+    display_image(mdtp_ui_defs_data.pin_selected_digit_0_offset + digit*mdtp_ui_defs_data.pin_digits_offset,
+			mdtp_ui_defs_data.pin_digit_width, mdtp_ui_defs_data.pin_digit_height, x, y);
 }
 
 /**
@@ -410,10 +384,10 @@ static void display_selected_digit(uint32_t x, uint32_t y, uint32_t digit)
  */
 static void display_ok_button()
 {
-    uint32_t ok_x = CENTER_IMAGE_ON_X_AXIS(MDTP_OK_BUTTON_WIDTH,fb_config->width);
+    uint32_t ok_x = CENTER_IMAGE_ON_X_AXIS(mdtp_ui_defs_data.ok_button_width,fb_config->width);
 	uint32_t ok_y = (fb_config->height)*OK_BUTTON_RELATIVE_Y_LOCATION;
 
-	display_image(MDTP_OK_BUTTON_OFFSET, MDTP_OK_BUTTON_WIDTH, MDTP_OK_BUTTON_HEIGHT, ok_x, ok_y);
+	display_image(mdtp_ui_defs_data.ok_button_offset, mdtp_ui_defs_data.ok_button_width, mdtp_ui_defs_data.ok_button_height, ok_x, ok_y);
 }
 
 /**
@@ -421,10 +395,10 @@ static void display_ok_button()
  */
 static void display_selected_ok_button()
 {
-    uint32_t ok_x = CENTER_IMAGE_ON_X_AXIS(MDTP_OK_BUTTON_WIDTH,fb_config->width);
+    uint32_t ok_x = CENTER_IMAGE_ON_X_AXIS(mdtp_ui_defs_data.ok_button_width,fb_config->width);
 	uint32_t ok_y = (fb_config->height)*OK_BUTTON_RELATIVE_Y_LOCATION;
 
-	display_image(MDTP_SELECTED_OK_BUTTON_OFFSET, MDTP_OK_BUTTON_WIDTH, MDTP_OK_BUTTON_HEIGHT,  ok_x, ok_y);
+	display_image(mdtp_ui_defs_data.selected_ok_button_offset, mdtp_ui_defs_data.ok_button_width, mdtp_ui_defs_data.ok_button_height,  ok_x, ok_y);
 }
 
 /**
@@ -432,10 +406,10 @@ static void display_selected_ok_button()
  */
 static void display_pin_instructions()
 {
-    uint32_t x = CENTER_IMAGE_ON_X_AXIS(MDTP_PIN_INSTRUCTIONS_WIDTH,fb_config->width);
+    uint32_t x = CENTER_IMAGE_ON_X_AXIS(mdtp_ui_defs_data.pin_instructions_width,fb_config->width);
 	uint32_t y = (fb_config->height)*OK_TEXT_RELATIVE_Y_LOCATION;
 
-	display_image(MDTP_PIN_INSTRUCTIONS_OFFSET, MDTP_PIN_INSTRUCTIONS_WIDTH, MDTP_PIN_INSTRUCTIONS_HEIGHT, x, y);
+	display_image(mdtp_ui_defs_data.pin_instructions_offset, mdtp_ui_defs_data.pin_instructions_width, mdtp_ui_defs_data.pin_instructions_height, x, y);
 }
 
 /**
@@ -445,7 +419,17 @@ static void clear_pin_message()
 {
     uint32_t y = (fb_config->height)*OK_TEXT_RELATIVE_Y_LOCATION;
 
-	fbcon_clear_section(y, MDTP_PIN_INSTRUCTIONS_HEIGHT);
+	fbcon_clear_section(y, mdtp_ui_defs_data.pin_instructions_height);
+}
+
+/**
+ * Initialize data structures required for MDTP UI.
+ */
+static void init_mdtp_ui_data()
+{
+	fb_config = fbcon_display();
+	alloc_mdtp_image();
+	mdtp_ui_defs_data = mdtp_get_target_ui_defs();
 }
 
 /**
@@ -456,8 +440,7 @@ static void display_initial_screen(uint32_t pin_length)
 	if (g_initial_screen_displayed == true)
 		return;
 
-	fb_config = fbcon_display();
-	alloc_mdtp_image();
+	init_mdtp_ui_data();
 
 	if (fb_config)
 	{
@@ -471,12 +454,12 @@ static void display_initial_screen(uint32_t pin_length)
 
 		g_pin_frames_y_location = ((fb_config->height)*PIN_RELATIVE_Y_LOCATION);
 
-		uint32_t total_pin_length = pin_length*MDTP_PIN_DIGIT_WIDTH + DIGIT_SPACE*(pin_length - 1);
+		uint32_t total_pin_length = pin_length*mdtp_ui_defs_data.pin_digit_width + mdtp_ui_defs_data.digit_space*(pin_length - 1);
 		uint32_t complete_pin_centered = (fb_config->width - total_pin_length)/2;
 
 		for (uint32_t i=0; i<pin_length; i++)
 		{
-			g_pin_frames_x_location[i] = complete_pin_centered + i*(DIGIT_SPACE+MDTP_PIN_DIGIT_WIDTH);
+			g_pin_frames_x_location[i] = complete_pin_centered + i*(mdtp_ui_defs_data.digit_space+mdtp_ui_defs_data.pin_digit_width);
 		}
 
 		for (uint32_t i=0; i<pin_length; i++)
@@ -609,8 +592,7 @@ void display_invalid_pin_msg()
  */
 void display_error_msg()
 {
-	fb_config = fbcon_display();
-	alloc_mdtp_image();
+	init_mdtp_ui_data();
 
 	if (fb_config)
 	{
