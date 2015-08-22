@@ -72,4 +72,5 @@ uint32_t platform_get_max_periph();
 int platform_is_msm8996();
 uint64_t platform_get_ddr_start();
 bool platform_use_qmp_misc_settings();
+void set_oem_unlock();
 #endif

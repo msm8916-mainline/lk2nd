@@ -1874,6 +1874,19 @@ void set_device_root()
 	write_device_info(&device);
 }
 
+void set_oem_unlock()
+{
+	if(!device.is_unlocked) {
+		if(!is_allow_unlock) {
+			fastboot_fail("oem unlock is not allowed");
+			return;
+		}
+
+		device.is_unlocked = 1;
+		write_device_info(&device);
+	}
+}
+
 #if DEVICE_TREE
 int copy_dtb(uint8_t *boot_image_start, unsigned int scratch_offset)
 {
