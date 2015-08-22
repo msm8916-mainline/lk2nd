@@ -1680,7 +1680,7 @@ static int read_allow_oem_unlock(device_info *dev)
 	unsigned long long ptn;
 	unsigned long long ptn_size;
 	unsigned blocksize = mmc_get_device_blocksize();
-	char buf[blocksize];
+	STACKBUF_DMA_ALIGN(buf, blocksize);
 
 	index = partition_get_index(frp_ptns[0]);
 	if (index == INVALID_PTN)
@@ -1697,7 +1697,7 @@ static int read_allow_oem_unlock(device_info *dev)
 	ptn_size = partition_get_size(index);
 	offset = ptn_size - blocksize;
 
-	if (mmc_read(ptn + offset, (void *)buf, sizeof(buf)))
+	if (mmc_read(ptn + offset, (void *)buf, blocksize))
 	{
 		dprintf(CRITICAL, "Reading MMC failed\n");
 		return -1;
@@ -1715,7 +1715,7 @@ static int write_allow_oem_unlock(bool allow_unlock)
 	unsigned long long ptn;
 	unsigned long long ptn_size;
 	unsigned blocksize = mmc_get_device_blocksize();
-	char buf[blocksize];
+	STACKBUF_DMA_ALIGN(buf, blocksize);
 
 	index = partition_get_index(frp_ptns[0]);
 	if (index == INVALID_PTN)
@@ -1732,7 +1732,7 @@ static int write_allow_oem_unlock(bool allow_unlock)
 	ptn_size = partition_get_size(index);
 	offset = ptn_size - blocksize;
 
-	if (mmc_read(ptn + offset, (void *)buf, sizeof(buf)))
+	if (mmc_read(ptn + offset, (void *)buf, blocksize))
 	{
 		dprintf(CRITICAL, "Reading MMC failed\n");
 		return -1;
