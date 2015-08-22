@@ -23,6 +23,10 @@ OBJS += \
 	$(LOCAL_DIR)/wdog.o
 endif
 
+ifeq ($(ENABLE_SECAPP_LOADER), 1)
+OBJS += $(LOCAL_DIR)/secapp_loader.o
+endif
+
 ifeq ($(ENABLE_QGIC3), 1)
 OBJS += $(LOCAL_DIR)/qgic_v3.o
 endif
@@ -48,6 +52,12 @@ endif
 ifeq ($(VERIFIED_BOOT),1)
 OBJS += \
 	$(LOCAL_DIR)/boot_verifier.o
+endif
+
+ifeq ($(ENABLE_FBCON_DISPLAY_MSG),1)
+OBJS += \
+	$(LOCAL_DIR)/menu_keys_detect.o \
+	$(LOCAL_DIR)/display_menu.o
 endif
 
 ifeq ($(ENABLE_GLINK_SUPPORT),1)
@@ -466,6 +476,7 @@ DEFINES += DISPLAY_TYPE_MDSS=1
 			$(LOCAL_DIR)/crypto5_eng.o \
 			$(LOCAL_DIR)/crypto5_wrapper.o \
 			$(LOCAL_DIR)/qusb2_phy.o \
+			$(LOCAL_DIR)/qseecom_lk.o \
 			$(LOCAL_DIR)/mdp5.o \
 			$(LOCAL_DIR)/display.o \
 			$(LOCAL_DIR)/mipi_dsi.o \

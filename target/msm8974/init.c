@@ -115,8 +115,9 @@ uint32_t target_hw_interposer()
 }
 
 /* Return 1 if vol_up pressed */
-static int target_volume_up()
+int target_volume_up()
 {
+	static uint8_t first_time = 0;
 	uint8_t status = 0;
 	struct pm8x41_gpio gpio;
 
@@ -127,16 +128,20 @@ static int target_volume_up()
 	if (board_hardware_id() == HW_PLATFORM_SURF)
 		return 0;
 
-	/* Configure the GPIO */
-	gpio.direction = PM_GPIO_DIR_IN;
-	gpio.function  = 0;
-	gpio.pull      = PM_GPIO_PULL_UP_30;
-	gpio.vin_sel   = 2;
+	if (!first_time) {
+		/* Configure the GPIO */
+		gpio.direction = PM_GPIO_DIR_IN;
+		gpio.function  = 0;
+		gpio.pull      = PM_GPIO_PULL_UP_30;
+		gpio.vin_sel   = 2;
 
-	pm8x41_gpio_config(5, &gpio);
+		pm8x41_gpio_config(5, &gpio);
 
-	/* Wait for the pmic gpio config to take effect */
-	thread_sleep(1);
+		/* Wait for the pmic gpio config to take effect */
+		udelay(10000);
+
+		first_time = 1;
+	}
 
 	/* Get status of P_GPIO_5 */
 	pm8x41_gpio_get(5, &status);

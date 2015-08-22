@@ -42,11 +42,11 @@ struct device_info
 	unsigned char magic[DEVICE_MAGIC_SIZE];
 	bool is_unlocked;
 	bool is_tampered;
-	bool is_verified;
 	bool charger_screen_enabled;
 	char display_panel[MAX_PANEL_ID_LEN];
 	char bootloader_version[MAX_VERSION_LEN];
 	char radio_version[MAX_VERSION_LEN];
+	bool verity_mode; // 1 = enforcing, 0 = logging
 };
 
 #endif

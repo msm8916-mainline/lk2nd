@@ -32,8 +32,8 @@
 #include <boot_device.h>
 #include <debug.h>
 #include <target.h>
+#include <secapp_loader.h>
 
-static bool lksec_app_loaded;
 
 static void *dev;
 static int app_handle;
@@ -85,15 +85,6 @@ int rpmb_init()
 		info.dev_type  = UFS_RPMB;
 	}
 
-	/* Initialize Qseecom */
-	ret = qseecom_init();
-
-	if (ret < 0)
-	{
-		dprintf(CRITICAL, "Failed to initialize qseecom, error: %d\n", ret);
-		goto err;
-	}
-
 	/* Register & start the listener */
 	ret = rpmb_listener_start();
 	if (ret < 0)
@@ -101,15 +92,7 @@ int rpmb_init()
 		dprintf(CRITICAL, "Error registering the handler\n");
 		goto err;
 	}
-
-	/* Start Qseecom */
-	ret = qseecom_tz_init();
-
-	if (ret < 0)
-	{
-		dprintf(CRITICAL, "Failed to start qseecom, error: %d\n", ret);
-		goto err;
-	}
+	rpmb_get_app_handle();
 
 err:
 	return ret;
@@ -143,20 +126,7 @@ int read_device_info_rpmb(void *info, uint32_t sz)
 	struct send_cmd_req read_req = {0};
 	struct send_cmd_rsp read_rsp = {0};
 
-	/*
-	 * Load the sec app for first time
-	 */
-	if (!lksec_app_loaded)
-	{
-		if (load_sec_app() < 0)
-		{
-			dprintf(CRITICAL, "Failed to load App for rpmb\n");
-			ASSERT(0);
-		}
-		lksec_app_loaded = true;
-	}
-
-	read_req.cmd_id = CLIENT_CMD_READ_LK_DEVICE_STATE;
+	read_req.cmd_id = KEYMASTER_READ_LK_DEVICE_STATE;
 	read_req.data   = (uint32_t) info;
 	read_req.len    = sz;
 
@@ -181,7 +151,7 @@ int write_device_info_rpmb(void *info, uint32_t sz)
 	struct send_cmd_req write_req = {0};
 	struct send_cmd_rsp write_rsp = {0};
 
-	write_req.cmd_id = CLIENT_CMD_WRITE_LK_DEVICE_STATE;
+	write_req.cmd_id = KEYMASTER_WRITE_LK_DEVICE_STATE;
 	write_req.data   = (uint32_t) info;
 	write_req.len    = sz;
 
@@ -201,6 +171,7 @@ int write_device_info_rpmb(void *info, uint32_t sz)
 
 int rpmb_get_app_handle()
 {
+	app_handle = get_secapp_handle();
 	return app_handle;
 }
 
@@ -225,50 +196,4 @@ int rpmb_uninit()
 	return ret;
 }
 
-int load_sec_app()
-{
-	/* start TZ app */
-	app_handle = qseecom_start_app("lksecapp");
 
-	if (app_handle < 0)
-	{
-		dprintf(CRITICAL, "Failure to load TZ app: lksecapp, error: %d\n", app_handle);
-		return app_handle;
-	}
-
-	return 0;
-}
-
-int unload_sec_app()
-{
-	int ret = 0;
-
-	struct send_cmd_req req = {0};
-	struct send_cmd_rsp rsp = {0};
-
-	req.cmd_id = CLIENT_CMD_LK_END_MILESTONE;
-	rsp.cmd_id = CLIENT_CMD_LK_END_MILESTONE;
-
-	/* Milestone end command */
-	ret = qseecom_send_command(app_handle, (void *)&req, sizeof(req), (void *)&rsp, sizeof(rsp));
-
-	if (ret < 0 || rsp.status < 0)
-	{
-		dprintf(CRITICAL, "Failed to send milestone end command: Error: %x\n", rsp.status);
-		return ret;
-	}
-
-	if (qseecom_shutdown_app(app_handle) < 0)
-	{
-		dprintf(CRITICAL, "Failed to Shutdown sec app\n");
-		ASSERT(0);
-	}
-
-
-	return 0;
-}
-
-bool is_sec_app_loaded()
-{
-	return lksec_app_loaded;
-}
