@@ -1087,16 +1087,7 @@ int boot_linux_from_mmc(void)
 	 */
 	if (is_gzip_package((unsigned char *)(image_addr + page_size), hdr->kernel_size))
 	{
-#ifdef ABOOT_IGNORE_BOOT_HEADER_ADDRS
-		/* Set default kernel decompression output address to be ABOOT_FORCE_KERNEL64_ADDR.
-		 * Most likely gzip compressed kernel is used by arm64 kernel,
-		 * and it is using ABOOT_FORCE_KERNEL64_ADDR for kernel start address.
-		 * It can avoid an unnecessary memmove afterwords.
-		 */
-		out_addr = (unsigned char *) ABOOT_FORCE_KERNEL64_ADDR;
-#else
 		out_addr = (unsigned char *)(image_addr + imagesize_actual + page_size);
-#endif
 		out_avai_len = target_get_max_flash_size() - imagesize_actual - page_size;
 		dprintf(INFO, "decompressing kernel image: start\n");
 		rc = decompress((unsigned char *)(image_addr + page_size),
@@ -1994,17 +1985,8 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	 */
 	if (is_gzip_package((unsigned char *)(data + page_size), hdr->kernel_size))
 	{
-#ifdef ABOOT_IGNORE_BOOT_HEADER_ADDRS
-		/* Set default kernel decompression output address to be ABOOT_FORCE_KERNEL64_ADDR.
-		 * Most likely gzip compressed kernel is used by arm64 kernel,
-		 * and it is using ABOOT_FORCE_KERNEL64_ADDR for kernel start address.
-		 * It can avoid an unnecessary memmove afterwords.
-		 */
-		out_addr = (unsigned char *) ABOOT_FORCE_KERNEL64_ADDR;
-#else
 		out_addr = (unsigned char *)target_get_scratch_address();
 		out_addr = (unsigned char *)(out_addr + image_actual + page_size);
-#endif
 		out_avai_len = target_get_max_flash_size() - image_actual - page_size;
 		dprintf(INFO, "decompressing kernel image: start\n");
 		ret = decompress((unsigned char *)(ptr + page_size),
