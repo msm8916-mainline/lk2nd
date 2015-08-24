@@ -41,28 +41,6 @@
 #define RPMB_MIN_BLK_CNT            1
 #define RPMB_MIN_BLK_SZ             512
 
-enum app_commands
-{
-	CLIENT_CMD_READ_LK_DEVICE_STATE = 0,
-	CLIENT_CMD_LK_END_MILESTONE,
-	CLIENT_CMD_GET_VERSION,
-	CLIENT_CMD_WRITE_LK_DEVICE_STATE,
-};
-
-struct send_cmd_req
-{
-	uint32_t cmd_id;
-	uint32_t data;
-	uint32_t len;
-}__PACKED;
-
-struct send_cmd_rsp
-{
-	uint32_t cmd_id;
-	uint32_t data;
-	int32_t status;
-}__PACKED;
-
 enum device_type
 {
 	EMMC_RPMB = 3,
@@ -159,7 +137,4 @@ int rpmb_write(uint32_t *req_buf, uint32_t blk_cnt, uint32_t rel_wr_count, uint3
 int rpmb_read(uint32_t *req_buf, uint32_t blk_cnt, uint32_t *resp_buf, uint32_t *resp_len);
 struct rpmb_init_info *rpmb_get_init_info();
 int rpmb_get_app_handle();
-bool is_sec_app_loaded();
-int load_sec_app();
-int unload_sec_app();
 #endif

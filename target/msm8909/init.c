@@ -205,14 +205,19 @@ void *target_mmc_device()
 }
 
 /* Return 1 if vol_up pressed */
-static int target_volume_up()
+int target_volume_up()
 {
+	static uint8_t first_time = 0;
 	uint8_t status = 0;
 
-	gpio_tlmm_config(TLMM_VOL_UP_BTN_GPIO, 0, GPIO_INPUT, GPIO_PULL_UP, GPIO_2MA, GPIO_ENABLE);
+	if (!first_time) {
+		gpio_tlmm_config(TLMM_VOL_UP_BTN_GPIO, 0, GPIO_INPUT, GPIO_PULL_UP, GPIO_2MA, GPIO_ENABLE);
 
-	/* Wait for the gpio config to take effect - debounce time */
-	thread_sleep(10);
+		/* Wait for the gpio config to take effect - debounce time */
+		udelay(10000);
+
+		first_time = 1;
+	}
 
 	/* Get status of GPIO */
 	status = gpio_status(TLMM_VOL_UP_BTN_GPIO);
