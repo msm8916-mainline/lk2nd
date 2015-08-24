@@ -88,6 +88,7 @@ typedef enum
 #define MMU_MEMORY_TYPE_NORMAL_WRITE_BACK_NO_ALLOCATE  ATTR_INDEX(5)
 
 #define MMU_MEMORY_AP_READ_WRITE                       (1 << 6) /* Read/Write at any priveledge */
+#define MMU_MEMORY_AP_READ_ONLY                        (0x3 << 6) /* Read only priveledge */
 #define MMU_MEMORY_XN                                  (1ULL << 54)
 #define MMU_MEMORY_PXN                                 (1ULL << 53)
 
