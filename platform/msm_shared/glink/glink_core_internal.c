@@ -599,8 +599,6 @@ glink_err_type glinki_add_ch_to_xport
   if (local_open)
   {
     /* LOCAL OPEN REQUEST */
-    glink_os_cs_init(&ch_ctx->tx_cs);
-    glink_os_cs_init(&ch_ctx->qos_cs);
     
     ch_ctx->rcid     = open_ch_ctx->rcid;
     ch_ctx->lcid     = open_ch_ctx->lcid;
