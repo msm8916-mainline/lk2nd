@@ -614,6 +614,14 @@ void glink_rx_cmd_ch_remote_close
                    xport_ctx->remote_ss, 
                    rcid );
 
+  /* It is possible that the remote subsystem sending close might crash 
+     before we handle the close request from it */
+  if (open_ch_ctx->remote_state == GLINK_REMOTE_CH_SSR_RESET)
+  {
+    glink_os_cs_release(&xport_ctx->channel_q_cs);
+    return;
+  }
+                   
       ASSERT( open_ch_ctx->remote_state == GLINK_REMOTE_CH_OPENED );
 
       open_ch_ctx->remote_state = GLINK_REMOTE_CH_CLOSED;

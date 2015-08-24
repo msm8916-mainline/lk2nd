@@ -142,8 +142,8 @@ static void glinki_scan_channels_and_notify_discon
        glink_os_cs_release(&xport_ctx->channel_q_cs);
         break;
         
-      case GLINK_LOCAL_CH_CLOSED:
-        /* Channel fully closed - local, remote */
+      case GLINK_LOCAL_CH_CLOSED:  /* Channel fully closed - local, remote */
+      case GLINK_LOCAL_CH_INIT:    /* We had only remote open and waiting for local open */
         xport_ctx->channel_cleanup(open_ch_ctx);
         smem_list_delete(&if_ptr->glink_core_priv->open_list, open_ch_ctx);
         remote_state = open_ch_ctx->remote_state;
