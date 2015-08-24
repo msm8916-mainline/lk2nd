@@ -55,7 +55,10 @@ glink_logging_filter_cfg_type log_filter_cfg = {
     0xFFFFFFFF, /* All xports are enabled */
    };
 #endif
-/* Keep a list of registered transport for each edge allowed for this host */
+
+/* Keep a list of registered transport for each edge allowed for this host 
+ * ***IMPORTANT*** 
+ * it should be safe to traverse this list without taking locks */
 static smem_list_type glink_registered_transports[GLINK_NUM_HOSTS];
 
 /* List of supported hosts */
@@ -111,11 +114,12 @@ static void glinki_scan_channels_and_notify_discon
   /* Find channel in the open_list */
   glink_os_cs_acquire(&xport_ctx->channel_q_cs);
   open_ch_ctx = smem_list_first(&if_ptr->glink_core_priv->open_list);
+  glink_os_cs_release(&xport_ctx->channel_q_cs);
+  
   while(open_ch_ctx)
   {
-    glink_os_cs_acquire(&open_ch_ctx->ch_state_cs);
+    glink_os_cs_acquire(&xport_ctx->channel_q_cs);
     open_ch_ctx->remote_state = GLINK_REMOTE_CH_SSR_RESET;
-    glink_os_cs_release(&open_ch_ctx->ch_state_cs);
     
     dummy_open_ch_ctx = smem_list_next(open_ch_ctx);
     
@@ -123,6 +127,7 @@ static void glinki_scan_channels_and_notify_discon
     {
       case GLINK_LOCAL_CH_OPENED:
       case GLINK_LOCAL_CH_OPENING:
+        glink_os_cs_release(&xport_ctx->channel_q_cs);
         /* local channel has called open at the moment. */
         open_ch_ctx->notify_state(open_ch_ctx, 
                                   open_ch_ctx->priv, 
@@ -134,31 +139,30 @@ static void glinki_scan_channels_and_notify_discon
          * but has not received ack yet */
         if_ptr->glink_core_if_ptr->rx_cmd_ch_close_ack(if_ptr, 
                                                        open_ch_ctx->lcid);
+       glink_os_cs_release(&xport_ctx->channel_q_cs);
         break;
         
       case GLINK_LOCAL_CH_CLOSED:
         /* Channel fully closed - local, remote */
-        glink_os_cs_acquire(&open_ch_ctx->ch_state_cs);
         xport_ctx->channel_cleanup(open_ch_ctx);
         smem_list_delete(&if_ptr->glink_core_priv->open_list, open_ch_ctx);
         remote_state = open_ch_ctx->remote_state;
-        glink_os_cs_release(&open_ch_ctx->ch_state_cs);
 
         if (remote_state != GLINK_REMOTE_CH_CLEANUP)
         {
           glink_os_free(open_ch_ctx);
         }
+        glink_os_cs_release(&xport_ctx->channel_q_cs);
         break;
         
       default:
+        glink_os_cs_release(&xport_ctx->channel_q_cs);
         /* invalid local channel state */
         ASSERT(0);
     }
     
     open_ch_ctx = dummy_open_ch_ctx;
-    
   } /* end while */
-  glink_os_cs_release(&xport_ctx->channel_q_cs);
 }
 
 /*===========================================================================
@@ -526,7 +530,6 @@ glink_err_type glinki_add_ch_to_xport
 
     glink_os_cs_init(&ch_ctx->tx_cs);
     glink_os_cs_init(&ch_ctx->qos_cs);
-    glink_os_cs_init(&ch_ctx->ch_state_cs);
 
     /* make sure next LCID is not used in currently open channels */
     open_ch_ctx = smem_list_first(&if_ptr->glink_core_priv->open_list);
@@ -593,15 +596,11 @@ glink_err_type glinki_add_ch_to_xport
     return status;
   }
   
-  /* grab lock to avoid race condition for channel state change */
-  glink_os_cs_acquire(&open_ch_ctx->ch_state_cs);
-  
   if (local_open)
   {
     /* LOCAL OPEN REQUEST */
     glink_os_cs_init(&ch_ctx->tx_cs);
     glink_os_cs_init(&ch_ctx->qos_cs);
-    glink_os_cs_init(&ch_ctx->ch_state_cs);
     
     ch_ctx->rcid     = open_ch_ctx->rcid;
     ch_ctx->lcid     = open_ch_ctx->lcid;
@@ -621,7 +620,6 @@ glink_err_type glinki_add_ch_to_xport
     smem_list_delete(&xport_ctx->open_list, open_ch_ctx);
     smem_list_append(&xport_ctx->open_list, ch_ctx);
 
-    glink_os_cs_release(&open_ch_ctx->ch_state_cs);
     glink_os_cs_release(&xport_ctx->channel_q_cs);
 
     glink_os_free(open_ch_ctx);
@@ -646,7 +644,6 @@ glink_err_type glinki_add_ch_to_xport
     }
     
     /* release lock before context switch otherwise it is causing deadlock */
-    glink_os_cs_release(&open_ch_ctx->ch_state_cs);
     glink_os_cs_release(&xport_ctx->channel_q_cs);
     
     /* Send ACK to transport */
@@ -706,7 +703,7 @@ boolean glinki_channel_fully_opened
     return FALSE;
   }
   
-  glink_os_cs_acquire( &handle->ch_state_cs );
+  glink_os_cs_acquire( &handle->if_ptr->glink_core_priv->channel_q_cs );
   
   if (handle->local_state != GLINK_LOCAL_CH_OPENED ||
       handle->remote_state != GLINK_REMOTE_CH_OPENED)
@@ -714,7 +711,7 @@ boolean glinki_channel_fully_opened
     ch_fully_opened = FALSE;
   }
 
-  glink_os_cs_release( &handle->ch_state_cs );
+  glink_os_cs_release( &handle->if_ptr->glink_core_priv->channel_q_cs );
   
   return ch_fully_opened;
 }
@@ -1024,6 +1021,12 @@ boolean glinki_xport_linkup
  * @return       None.
  *
  * @sideeffects  None.
+ *
+ * This routine ASSUMES it is safe to traverse the glink_registered_transports 
+ * without a lock. This is only true if the following conditions are met
+ * 1) Only append/traverse operations are allowed on this list (No insert, delete)
+ * 2) Append should make sure at no instance of time we have an uninitialized 
+ * pointer(next) along the list
  */
 /*=========================================================================*/
 void glinki_xports_for_each
@@ -1041,7 +1044,6 @@ void glinki_xports_for_each
   
   ASSERT(remote_host < GLINK_NUM_HOSTS);
   
-  glink_os_cs_acquire(&glink_transport_q_cs[remote_host]);
   
   for(if_iter_ptr = smem_list_first(&glink_registered_transports[remote_host]);
       if_iter_ptr != NULL;
@@ -1049,8 +1051,6 @@ void glinki_xports_for_each
   {
     client_ex_fn(if_iter_ptr, param1, param2, out);
   }
-  
-  glink_os_cs_release(&glink_transport_q_cs[remote_host]);
 }
 
 /*===========================================================================
@@ -1071,6 +1071,12 @@ void glinki_xports_for_each
  *               NULL if there isn't any xport matches client's search condition
  *
  * @sideeffects  None.
+ *
+ * This routine ASSUMES it is safe to traverse the glink_registered_transports 
+ * without a lock. This is only true if the following conditions are met
+ * 1) Only append/traverse operations are allowed on this list (No insert/delete)
+ * 2) Append should make sure at no instance of time we have an uninitialized 
+ * pointer(next) along the list
  */
 /*=========================================================================*/
 glink_transport_if_type *glinki_xports_find
@@ -1088,8 +1094,6 @@ glink_transport_if_type *glinki_xports_find
   
   ASSERT(remote_host < GLINK_NUM_HOSTS);
   
-  glink_os_cs_acquire(&glink_transport_q_cs[remote_host]);
-  
   for (if_iter_ptr = smem_list_first(&glink_registered_transports[remote_host]);
        if_iter_ptr != NULL;
        if_iter_ptr = smem_list_next(if_iter_ptr))
@@ -1099,8 +1103,6 @@ glink_transport_if_type *glinki_xports_find
       break;
     }
   }
-  
-  glink_os_cs_release(&glink_transport_q_cs[remote_host]);
   
   return if_iter_ptr;
 }
@@ -1224,10 +1226,8 @@ glink_channel_ctx_type *glinki_find_ch_ctx_by_name
         open_ch_ctx != NULL;
       open_ch_ctx = smem_list_next(open_ch_ctx))
   {
-    glink_os_cs_acquire(&open_ch_ctx->ch_state_cs);
     remote_state = open_ch_ctx->remote_state;
     local_state = open_ch_ctx->local_state;
-    glink_os_cs_release(&open_ch_ctx->ch_state_cs);
     
     if ( 0 != glink_os_string_compare(open_ch_ctx->name, ch_name) ||
          remote_state == GLINK_REMOTE_CH_CLEANUP ||

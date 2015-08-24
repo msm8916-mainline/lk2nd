@@ -313,9 +313,6 @@ struct glink_channel_ctx {
   /* Remote channel state */
   glink_remote_state_type             remote_state;
 
-  /* Critical section to protect channel states */
-  os_cs_type                          ch_state_cs;
-
   /* Channel local control signal state */
   uint32                              local_sigs;
 

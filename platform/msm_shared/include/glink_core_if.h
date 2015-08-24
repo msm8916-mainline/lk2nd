@@ -342,7 +342,8 @@ struct glink_core_xport_ctx
   /* Keeps track of the open channels for this transport/edge combination */
   smem_list_type                open_list;
 
-  /* Critical section to protect access to open_list */
+  /* Critical section to protect access to open_list and channel state of all 
+     channels in that open_list */
   os_cs_type                    channel_q_cs;
 
   /* Local channel intents queued so far. This also helps determining liid

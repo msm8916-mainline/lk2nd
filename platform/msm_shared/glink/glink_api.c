@@ -229,7 +229,7 @@ glink_err_type glink_close
   ASSERT( xport_ctx != NULL );
   
   /* grab lock to change/check channel state atomically */
-  glink_os_cs_acquire( &handle->ch_state_cs );
+  glink_os_cs_acquire( &xport_ctx->channel_q_cs );
 
   /* Check to see if closed called again for same channel */
   if (handle->local_state != GLINK_LOCAL_CH_OPENED &&
@@ -241,7 +241,7 @@ glink_err_type glink_close
                            xport_ctx->remote_ss, 
                            handle->local_state );
 
-    glink_os_cs_release(&handle->ch_state_cs);
+    glink_os_cs_release(&xport_ctx->channel_q_cs);
 
     return GLINK_STATUS_CH_ALREADY_CLOSED;
   }
@@ -252,7 +252,7 @@ glink_err_type glink_close
       glinki_xport_linkup(handle->if_ptr) == FALSE)
   {
     /* SSR happened on remote-SS OR XPORT link is down. Fake close_ack from here */
-    glink_os_cs_release( &handle->ch_state_cs );
+    glink_os_cs_release( &xport_ctx->channel_q_cs);
 
     handle->if_ptr->glink_core_if_ptr->rx_cmd_ch_close_ack( handle->if_ptr,
                                                             handle->lcid );
@@ -261,7 +261,7 @@ glink_err_type glink_close
   }
   else
   {
-    glink_os_cs_release( &handle->ch_state_cs );
+    glink_os_cs_release(&xport_ctx->channel_q_cs);
 
     status = handle->if_ptr->tx_cmd_ch_close(handle->if_ptr, handle->lcid);
 

@@ -485,13 +485,10 @@ void glink_rx_cmd_ch_open_ack
   
   open_ch_ctx = glinki_find_ch_ctx_by_lcid(xport_ctx, lcid);
   
-			glink_os_cs_acquire( &open_ch_ctx->ch_state_cs );
-
 			if( open_ch_ctx->local_state == GLINK_LOCAL_CH_CLOSING )
 			{
 			/* Client called glink_close before gettng open ack. 
 			 * Ignore open ack and go for closing sequence */
-				glink_os_cs_release( &open_ch_ctx->ch_state_cs );
 				glink_os_cs_release( &xport_ctx->channel_q_cs );
 				return;
 			}
@@ -499,7 +496,6 @@ void glink_rx_cmd_ch_open_ack
 			open_ch_ctx->local_state = GLINK_LOCAL_CH_OPENED;
 
   remote_state = open_ch_ctx->remote_state;
-  glink_os_cs_release(&open_ch_ctx->ch_state_cs);
   glink_os_cs_release(&xport_ctx->channel_q_cs);
   
   if (remote_state == GLINK_REMOTE_CH_OPENED)
@@ -550,8 +546,6 @@ void glink_rx_cmd_ch_close_ack
   
   open_ch_ctx = glinki_find_ch_ctx_by_lcid(xport_ctx, lcid);
   
-      glink_os_cs_acquire( &open_ch_ctx->ch_state_cs );
-
   GLINK_LOG_EVENT( open_ch_ctx, 
                    GLINK_EVENT_CH_CLOSE_ACK, 
                    open_ch_ctx->name,
@@ -569,7 +563,6 @@ void glink_rx_cmd_ch_close_ack
         glink_clean_channel_ctx( xport_ctx, open_ch_ctx );
       }
 
-      glink_os_cs_release(&open_ch_ctx->ch_state_cs);
       glink_os_cs_release(&xport_ctx->channel_q_cs);
 
       open_ch_ctx->notify_state( open_ch_ctx,
@@ -620,7 +613,6 @@ void glink_rx_cmd_ch_remote_close
                    xport_ctx->xport, 
                    xport_ctx->remote_ss, 
                    rcid );
-      glink_os_cs_acquire(&open_ch_ctx->ch_state_cs);
 
       ASSERT( open_ch_ctx->remote_state == GLINK_REMOTE_CH_OPENED );
 
@@ -636,7 +628,6 @@ void glink_rx_cmd_ch_remote_close
 
       remote_state = open_ch_ctx->remote_state;
 
-      glink_os_cs_release(&open_ch_ctx->ch_state_cs);
       glink_os_cs_release(&xport_ctx->channel_q_cs);
 
       /* Send the remote close ACK back to the other side */
