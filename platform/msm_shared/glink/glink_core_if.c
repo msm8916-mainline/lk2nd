@@ -168,6 +168,57 @@ static const glink_core_version_type *glink_get_current_version
 }
 
 /*===========================================================================
+  FUNCTION      glink_is_local_ch_closed
+===========================================================================*/
+/**
+
+  Check if local channel is fully closed
+  
+  @param[in]     local_state local channel state
+  
+  @return        TRUE, if local channel is closed
+  
+  @sideeffects   None.
+  @dependencies  None.
+*/
+/*=========================================================================*/
+static boolean glink_is_local_ch_closed
+(
+  glink_local_state_type local_state
+)
+{
+  return local_state == GLINK_LOCAL_CH_INIT ||
+         local_state == GLINK_LOCAL_CH_CLOSED;
+}
+
+/*===========================================================================
+  FUNCTION      glink_is_remote_ch_closed
+===========================================================================*/
+/**
+
+  Check if remote channel is fully closed.
+  This doesn't chek GLINK_REMOTE_CH_CLEANUP state as channel ctx shouldn't be
+  destroyed yet
+  
+  @param[in]     ch_ctx  channel ctx
+  
+  @return        TRUE, if remote channel is closed
+  
+  @sideeffects   None.
+  @dependencies  None.
+*/
+/*=========================================================================*/
+static boolean glink_is_remote_ch_closed
+(
+    glink_remote_state_type remote_state
+)
+{
+  return remote_state == GLINK_REMOTE_CH_INIT ||
+         remote_state == GLINK_REMOTE_CH_CLOSED ||
+         remote_state == GLINK_REMOTE_CH_SSR_RESET;
+}
+
+/*===========================================================================
                     EXTERNAL FUNCTION DEFINITIONS
 ===========================================================================*/
 /*===========================================================================
@@ -386,14 +437,14 @@ void glink_rx_cmd_ch_remote_open
 																	 FALSE,
 																	 if_ptr->glink_priority );
 
-  ASSERT( GLINK_STATUS_SUCCESS == status );
-
   GLINK_LOG_EVENT( allocated_ch_ctx,
                    GLINK_EVENT_RM_CH_OPEN,
                      name,
                    if_ptr->glink_core_priv->xport,
                    if_ptr->glink_core_priv->remote_ss,
-                     GLINK_STATUS_SUCCESS );
+                   status );
+
+  ASSERT(GLINK_STATUS_SUCCESS == status);
 }
 
 /*===========================================================================
@@ -511,9 +562,9 @@ void glink_rx_cmd_ch_close_ack
       ASSERT( open_ch_ctx->local_state == GLINK_LOCAL_CH_CLOSING );
 
       open_ch_ctx->local_state = GLINK_LOCAL_CH_CLOSED;
+  open_ch_ctx->lcid        = GLINK_INVALID_CID;
 
-      if( open_ch_ctx->remote_state == GLINK_REMOTE_CH_CLOSED ||
-          open_ch_ctx->remote_state == GLINK_REMOTE_CH_SSR_RESET )
+  if ( glink_is_remote_ch_closed( open_ch_ctx->remote_state ) )
       {
         glink_clean_channel_ctx( xport_ctx, open_ch_ctx );
       }
@@ -525,8 +576,7 @@ void glink_rx_cmd_ch_close_ack
                                  open_ch_ctx->priv,
                                  GLINK_LOCAL_DISCONNECTED );
 
-      if( open_ch_ctx->remote_state == GLINK_REMOTE_CH_CLOSED ||
-          open_ch_ctx->remote_state == GLINK_REMOTE_CH_SSR_RESET )
+  if ( glink_is_remote_ch_closed( open_ch_ctx->remote_state ) )
       {
         glink_os_free( open_ch_ctx );
       }
@@ -575,8 +625,9 @@ void glink_rx_cmd_ch_remote_close
       ASSERT( open_ch_ctx->remote_state == GLINK_REMOTE_CH_OPENED );
 
       open_ch_ctx->remote_state = GLINK_REMOTE_CH_CLOSED;
+  open_ch_ctx->rcid         = GLINK_INVALID_CID;
 
-      if( open_ch_ctx->local_state == GLINK_LOCAL_CH_CLOSED )
+  if ( glink_is_local_ch_closed( open_ch_ctx->local_state ) )
       {
         /* Local side never opened the channel OR it opened it but closed it */
         /* Free channel resources */
@@ -589,10 +640,11 @@ void glink_rx_cmd_ch_remote_close
       glink_os_cs_release(&xport_ctx->channel_q_cs);
 
       /* Send the remote close ACK back to the other side */
-      if_ptr->tx_cmd_ch_remote_close_ack(if_ptr, open_ch_ctx->rcid);
+  if_ptr->tx_cmd_ch_remote_close_ack(if_ptr, rcid);
 
-      if( open_ch_ctx->local_state == GLINK_LOCAL_CH_CLOSED )
+  if ( glink_is_local_ch_closed( open_ch_ctx->local_state ) )
       {
+    /* Destroy channel context only if there isn't any pending intents */
         if (remote_state != GLINK_REMOTE_CH_CLEANUP)
         {
         glink_os_free(open_ch_ctx);

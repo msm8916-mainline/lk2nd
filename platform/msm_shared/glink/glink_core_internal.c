@@ -472,17 +472,32 @@ glink_err_type glinki_add_ch_to_xport
 {
   glink_err_type              status;
   glink_channel_ctx_type     *open_ch_ctx;
-  glink_core_xport_ctx_type  *xport_ctx = if_ptr->glink_core_priv;
+  glink_core_xport_ctx_type  *xport_ctx;
+  boolean                     valid_open_call;
 
-  if (!ch_ctx->name)
+  if ( if_ptr == NULL          ||
+       ch_ctx->name[0] == '\0' ||
+       allocated_ch_ctx == NULL )
   {
     return GLINK_STATUS_INVALID_PARAM;
   }
   
+  xport_ctx = if_ptr->glink_core_priv;
+  
   /* See if channel already exists in open_list */
   glink_os_cs_acquire(&xport_ctx->channel_q_cs);
   
-  open_ch_ctx = glinki_find_ch_ctx_by_name(xport_ctx, ch_ctx->name);
+  open_ch_ctx = glinki_find_ch_ctx_by_name(xport_ctx,
+                                           ch_ctx->name,
+                                           local_open,
+                                           &valid_open_call);
+  
+  if ( !valid_open_call )
+  {
+    glink_os_free(ch_ctx);
+    glink_os_cs_release(&xport_ctx->channel_q_cs);
+    return GLINK_STATUS_FAILURE;
+  }
   
   if (!open_ch_ctx)
   {
@@ -584,12 +599,6 @@ glink_err_type glinki_add_ch_to_xport
   if (local_open)
   {
     /* LOCAL OPEN REQUEST */
-    if (open_ch_ctx->local_state != GLINK_LOCAL_CH_CLOSED)
-    {
-      glink_os_free(ch_ctx);
-      return GLINK_STATUS_FAILURE;
-    }
-    
     glink_os_cs_init(&ch_ctx->tx_cs);
     glink_os_cs_init(&ch_ctx->qos_cs);
     glink_os_cs_init(&ch_ctx->ch_state_cs);
@@ -627,8 +636,6 @@ glink_err_type glinki_add_ch_to_xport
   else
   { 
     /* REMOTE OPEN REQUEST */
-    ASSERT(open_ch_ctx->remote_state == GLINK_REMOTE_CH_CLOSED);
-    
     open_ch_ctx->rcid = ch_ctx->rcid;
     *allocated_ch_ctx = open_ch_ctx;
     status = xport_ctx->channel_init(open_ch_ctx);
@@ -663,8 +670,7 @@ glink_err_type glinki_add_ch_to_xport
   
   /* If the channel was added to be closed later by channel migration
      do not update the filter */
-  if ( ( status == GLINK_STATUS_SUCCESS ) && 
-       ( (*allocated_ch_ctx)->tag_ch_for_close != TRUE ) )
+  if ( status == GLINK_STATUS_SUCCESS )
   {
     //Update the Filter - Reset Boolean=FALSE
     glinki_update_logging_filter( *allocated_ch_ctx, FALSE );
@@ -1177,10 +1183,15 @@ glink_channel_ctx_type *glinki_find_ch_ctx_by_rcid
   FUNCTION      glinki_find_ch_ctx_by_name
 ===========================================================================*/
 /** 
- * Find channel context by channel name
+ * Find channel context by channel name, called by local/remote open function
+ * This function will also indicate (valid_open_call) if this open call would
+ * be valid or not
  *
  * @param[in]    xport_ctx  Pointer to transport private context
  * @param[in]    ch_name    channel name
+ * @param[in]    local_open       flag to indicate this is local open call
+ * @param[out]   valid_open_call  tell whether this open call would be valid
+ *                                or not
  *
  * @return       pointer to glink channel context
  *               NULL if channel doesn't exist
@@ -1192,30 +1203,51 @@ glink_channel_ctx_type *glinki_find_ch_ctx_by_rcid
 glink_channel_ctx_type *glinki_find_ch_ctx_by_name
 (
   glink_core_xport_ctx_type *xport_ctx,
-  const char                *ch_name
+  const char                *ch_name,
+  boolean                    local_open,
+  boolean                   *valid_open_call
 )
 {
   glink_channel_ctx_type *open_ch_ctx;
+  glink_channel_ctx_type *ch_ctx_found = NULL;
+  glink_remote_state_type remote_state;
+  glink_local_state_type  local_state;
+  
+  ASSERT( valid_open_call != NULL );
+  *valid_open_call = TRUE;
   
   for(open_ch_ctx = smem_list_first(&xport_ctx->open_list);
-      open_ch_ctx;
+        open_ch_ctx != NULL;
       open_ch_ctx = smem_list_next(open_ch_ctx))
   {
     glink_os_cs_acquire(&open_ch_ctx->ch_state_cs);
+    remote_state = open_ch_ctx->remote_state;
+    local_state = open_ch_ctx->local_state;
+    glink_os_cs_release(&open_ch_ctx->ch_state_cs);
     
-    if (0 == glink_os_string_compare(open_ch_ctx->name, ch_name) &&
-        !open_ch_ctx->tag_ch_for_close &&
-        open_ch_ctx->remote_state != GLINK_REMOTE_CH_SSR_RESET &&
-        open_ch_ctx->remote_state != GLINK_REMOTE_CH_CLEANUP)
+    if ( 0 != glink_os_string_compare(open_ch_ctx->name, ch_name) ||
+         remote_state == GLINK_REMOTE_CH_CLEANUP ||
+         remote_state == GLINK_REMOTE_CH_SSR_RESET )
     {
-      glink_os_cs_release(&open_ch_ctx->ch_state_cs);
-      break;
+      continue;
     }
     
-    glink_os_cs_release(&open_ch_ctx->ch_state_cs);
+    if ( ( local_open == TRUE && local_state == GLINK_LOCAL_CH_INIT ) || 
+         ( local_open == FALSE && remote_state == GLINK_REMOTE_CH_INIT ) )
+    {
+      /* Local/Remote side already opened channel */
+      ch_ctx_found = open_ch_ctx;
+    }
+    else if ( ( local_open == TRUE && local_state != GLINK_LOCAL_CH_CLOSED ) ||
+              ( local_open == FALSE && remote_state != GLINK_REMOTE_CH_CLOSED ) )
+    {
+      /* Local/Remote side is trying to open channel without closing old one */
+      *valid_open_call = FALSE;
+      break;
+    }
   }
   
-  return open_ch_ctx;
+  return ch_ctx_found;
 }
 
 /*===========================================================================

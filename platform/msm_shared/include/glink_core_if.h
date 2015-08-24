@@ -101,6 +101,9 @@ typedef struct glink_tx_xport_ctx_s {
 /** G-Link Local channel states */
 typedef enum
 {
+  /** Initial State before entering channel state machine */
+  GLINK_LOCAL_CH_INIT,
+  
   /** Local G-Link channel is fully closed */
   GLINK_LOCAL_CH_CLOSED,
 
@@ -118,6 +121,9 @@ typedef enum
 /** G-Link Remote channel states */
 typedef enum
 {
+  /** Initial State before entering channel state machine */
+  GLINK_REMOTE_CH_INIT,
+
   /** Remote G-Link channel is closed */
   GLINK_REMOTE_CH_CLOSED,
 
@@ -130,7 +136,7 @@ typedef enum
   /** G-Link channel is pending cleanup. 
       This state is used for deferred channel cleanup in case 
       it sits in Tx scheduler queue */
-  GLINK_REMOTE_CH_CLEANUP,
+  GLINK_REMOTE_CH_CLEANUP
 
 }glink_remote_state_type;
 

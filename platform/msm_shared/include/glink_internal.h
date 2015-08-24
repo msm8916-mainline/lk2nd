@@ -53,6 +53,7 @@ extern "C" {
 #define GLINK_VERSION 0
 #define GLINK_FEATURE_FLAGS 0
 #define GLINK_NUM_HOSTS     7
+#define GLINK_INVALID_CID   0
 
 /*===========================================================================
                            MACRO DEFINITIONS
@@ -376,15 +377,6 @@ struct glink_channel_ctx {
   *   tx_done callback has not been called for this buffer and remote side
   *   or local side closed the port. Optional */
   glink_notify_tx_abort_cb            notify_tx_abort;
-
-  /* flag to check if channel is marked for deletion
-   * This is workaround to prevent channel migration algorithm from finding channel
-   * which should be closed but has not been closed yet. This case occurs when glink_close
-   * is called for closing channel on initial xport and it is being opened on other xport.
-   * This may lead to remote side opening channel on neogitated xport from which local side
-   * will get remote open again. In this case channel to be closed will be found for negotiation
-   * on initial xport again and channel migration algorithm will be triggered(again)  */
-  boolean                             tag_ch_for_close;
 
   /* save glink open config options */
   uint32                              ch_open_options;
@@ -1025,10 +1017,15 @@ glink_channel_ctx_type *glinki_find_ch_ctx_by_rcid
   FUNCTION      glinki_find_ch_ctx_by_name
 ===========================================================================*/
 /** 
- * Find channel context by channel name
+ * Find channel context by channel name, called by local/remote open function
+ * This function will also indicate (valid_open_call) if this open call would
+ * be valid or not
  *
  * @param[in]    xport_ctx  Pointer to transport private context
  * @param[in]    ch_name    channel name
+ * @param[in]    local_open       flag to indicate this is local open call
+ * @param[out]   valid_open_call  tell whether this open call would be valid
+ *                                or not
  *
  * @return       pointer to glink channel context
  *               NULL if channel doesn't exist
@@ -1040,7 +1037,9 @@ glink_channel_ctx_type *glinki_find_ch_ctx_by_rcid
 glink_channel_ctx_type *glinki_find_ch_ctx_by_name
 (
   glink_core_xport_ctx_type *xport_ctx,
-  const char                *ch_name
+  const char                *ch_name,
+  boolean                    local_open,
+  boolean                   *valid_open_call
 );
 
 /*===========================================================================
