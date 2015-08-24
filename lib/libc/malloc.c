@@ -36,7 +36,7 @@ void *memalign(size_t boundary, size_t size)
 	void *ptr;
 	ptr = heap_alloc(size, boundary);
 	/* Clean the cache before giving the memory */
-	arch_invalidate_cache_range((addr_t) ptr, size);
+	arch_clean_invalidate_cache_range((addr_t) ptr, size);
 	return ptr;
 }
 
