@@ -429,7 +429,7 @@ int ucs_scsi_send_inquiry(struct ufs_dev *dev)
 
 	/* Flush cdb to memory. */
 	dsb();
-	arch_invalidate_cache_range((addr_t) cdb_param, SCSI_CDB_PARAM_LEN);
+	arch_clean_invalidate_cache_range((addr_t) cdb_param, SCSI_CDB_PARAM_LEN);
 
 	memset(&req_upiu, 0 , sizeof(struct scsi_req_build_type));
 
@@ -479,7 +479,7 @@ int ucs_do_request_sense(struct ufs_dev *dev, uint8_t lun)
 
 	/* Flush cdb to memory. */
 	dsb();
-	arch_invalidate_cache_range((addr_t) cdb_param, SCSI_CDB_PARAM_LEN);
+	arch_clean_invalidate_cache_range((addr_t) cdb_param, SCSI_CDB_PARAM_LEN);
 
 	memset(&req_upiu, 0 , sizeof(struct scsi_req_build_type));
 

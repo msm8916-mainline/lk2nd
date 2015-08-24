@@ -291,19 +291,19 @@ utp_set_fpoweronwpen_done:
 
 int dme_set_fdeviceinit(struct ufs_dev *dev)
 {
-	STACKBUF_DMA_ALIGN(result, sizeof(uint32_t));
+	uint32_t result;
 	uint32_t try_again                        = DME_FDEVICEINIT_RETRIES;
 	struct utp_query_req_upiu_type read_query = {UPIU_QUERY_OP_READ_FLAG,
 												 UFS_IDX_fDeviceInit,
 												 0,
 												 0,
-												 (addr_t) result,
+												 (addr_t) &result,
 												 sizeof(uint32_t)};
 	struct utp_query_req_upiu_type set_query  = {UPIU_QUERY_OP_SET_FLAG,
 												 UFS_IDX_fDeviceInit,
 												 0,
 												 0,
-												 (addr_t) result,
+												 (addr_t) &result,
 												 sizeof(uint32_t)};
 
 
@@ -313,9 +313,7 @@ int dme_set_fdeviceinit(struct ufs_dev *dev)
 		return -UFS_FAILURE;
 	}
 
-	arch_invalidate_cache_range((addr_t) result, sizeof(uint32_t));
-
-	if (*result == 1)
+	if (result == 1)
 		goto utp_set_fdeviceinit_done;
 
 	do
@@ -334,7 +332,7 @@ int dme_set_fdeviceinit(struct ufs_dev *dev)
 			return -UFS_FAILURE;
 		}
 
-		if (*result == 1)
+		if (result == 1)
 			break;
 	} while (try_again);
 
@@ -383,15 +381,13 @@ static uint32_t dme_parse_serial_no(struct ufs_string_desc *desc)
 
 int dme_read_device_desc(struct ufs_dev *dev)
 {
-	STACKBUF_DMA_ALIGN(dev_desc, sizeof(struct ufs_dev_desc));
-	STACKBUF_DMA_ALIGN(desc, sizeof(struct ufs_string_desc));
-	struct ufs_dev_desc            *device_desc = (struct ufs_dev_desc *) dev_desc;
-	struct ufs_string_desc         *str_desc    = (struct ufs_string_desc *) desc;
+	struct ufs_dev_desc            device_desc;
+	struct ufs_string_desc         str_desc;
 	struct utp_query_req_upiu_type query = {UPIU_QUERY_OP_READ_DESCRIPTOR,
 											UFS_DESC_IDN_DEVICE,
 											0,
 											0,
-											(addr_t) dev_desc,
+											(addr_t) &device_desc,
 											sizeof(struct ufs_dev_desc)};
 
 	if (dme_send_query_upiu(dev, &query))
@@ -400,20 +396,14 @@ int dme_read_device_desc(struct ufs_dev *dev)
 		return -UFS_FAILURE;
 	}
 
-	/* Flush buffer. */
-	arch_invalidate_cache_range((addr_t) device_desc, sizeof(struct ufs_dev_desc));
-
 	/* Store all relevant data */
-	dev->num_lus = device_desc->num_lu;
+	dev->num_lus = device_desc.num_lu;
 
 	/* Get serial number for the device based on the string index. */
-	if (dme_read_string_desc(dev, device_desc->serial_num, (struct ufs_string_desc *) desc))
+	if (dme_read_string_desc(dev, device_desc.serial_num, (struct ufs_string_desc *) &str_desc))
 		return -UFS_FAILURE;
 
-	/* Flush buffer. */
-	arch_invalidate_cache_range((addr_t) str_desc, sizeof(struct ufs_string_desc));
-
-	dev->serial_num = dme_parse_serial_no(str_desc);
+	dev->serial_num = dme_parse_serial_no(&str_desc);
 
 	return UFS_SUCCESS;
 }
@@ -437,21 +427,19 @@ int dme_read_geo_desc(struct ufs_dev *dev)
 		return -UFS_FAILURE;
 	}
 
-	// Flush buffer.
-	arch_invalidate_cache_range((addr_t) desc, sizeof(struct ufs_geometry_desc));
 	dev->rpmb_rw_size = desc->rpmb_read_write_size;
 	return UFS_SUCCESS;
 }
 
 int dme_read_unit_desc(struct ufs_dev *dev, uint8_t index)
 {
-	STACKBUF_DMA_ALIGN(unit_desc, sizeof(struct ufs_unit_desc));
-	struct ufs_unit_desc           *desc = (struct ufs_unit_desc *) unit_desc;
+	struct ufs_unit_desc unit_desc;
+	struct ufs_unit_desc           *desc = (struct ufs_unit_desc *) &unit_desc;
 	struct utp_query_req_upiu_type query = {UPIU_QUERY_OP_READ_DESCRIPTOR,
 											UFS_DESC_IDN_UNIT,
 											index,
 											0,
-											(addr_t) unit_desc,
+											(addr_t) &unit_desc,
 											sizeof(struct ufs_unit_desc)};
 
 	if (dme_send_query_upiu(dev, &query))
@@ -459,8 +447,6 @@ int dme_read_unit_desc(struct ufs_dev *dev, uint8_t index)
 		dprintf(CRITICAL, "%s:%d DME Read Unit Descriptor request failed\n", __func__, __LINE__);
 		return -UFS_FAILURE;
 	}
-	/* Flush buffer. */
-	arch_invalidate_cache_range((addr_t) desc, sizeof(struct ufs_unit_desc));
 
 	dev->lun_cfg[index].logical_blk_cnt = BE64(desc->logical_blk_cnt);
 

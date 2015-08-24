@@ -1346,6 +1346,8 @@ int qseecom_tz_init()
 		goto err;
 	}
 	memset(buf, 0, ROUNDUP(QSEE_LOG_BUF_SIZE, PAGE_SIZE));
+	/* Make sure the buffer given to TZ is flushed */
+	arch_clean_invalidate_cache_range((addr_t) buf, QSEE_LOG_BUF_SIZE);
 	logbuf_req.qsee_cmd_id = QSEE_REGISTER_LOG_BUF_COMMAND;
 	logbuf_req.phy_addr = (uint32_t)__qseecom_uvirt_to_kphys((uint32_t) buf);
 	logbuf_req.len = QSEE_LOG_BUF_SIZE;

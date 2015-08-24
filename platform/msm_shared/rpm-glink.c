@@ -137,8 +137,6 @@ uint32_t rpm_glink_recv_data(char *rx_buffer, uint32_t* len)
 	}
 	resp = (rpm_ack_msg *)rx_buffer;
 
-	arch_invalidate_cache_range((addr_t)resp, sizeof(rpm_gen_hdr));
-
 	if(resp->hdr.type == RPM_CMD_MAGIC)
 	{
 		type = RPM_CMD_TYPE;

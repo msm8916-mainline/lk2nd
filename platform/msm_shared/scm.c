@@ -1202,7 +1202,7 @@ uint32_t scm_call2(scmcall_arg *arg, scmcall_ret *ret)
 		{
 			indir_arg[i] = arg->x5[i];
 		}
-		arch_clean_invalidate_cache_range((addr_t) indir_arg, ROUNDUP((SCM_INDIR_MAX_LEN * sizeof(uint32_t)), CACHE_LINE));
+		arch_clean_invalidate_cache_range((addr_t) indir_arg, (SCM_INDIR_MAX_LEN * sizeof(uint32_t)));
 		x5 = (addr_t) indir_arg;
 	}
 
