@@ -489,7 +489,7 @@ glink_err_type glinki_add_ch_to_xport
   
   open_ch_ctx = glinki_find_ch_ctx_by_name(xport_ctx,
                                            ch_ctx->name,
-                                           local_open,
+                                           (boolean)local_open,
                                            &valid_open_call);
   
   if ( !valid_open_call )
