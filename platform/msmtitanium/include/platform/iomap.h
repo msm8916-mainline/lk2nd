@@ -78,12 +78,21 @@
 /* CRYPTO ENGINE */
 #define  MSM_CE1_BASE                      0x073A000
 #define  MSM_CE1_BAM_BASE                  0x0704000
+#define  GCC_CRYPTO_BCR                    (CLK_CTL_BASE + 0x16000)
+#define  GCC_CRYPTO_CMD_RCGR               (CLK_CTL_BASE + 0x16004)
+#define  GCC_CRYPTO_CFG_RCGR               (CLK_CTL_BASE + 0x16008)
+#define  GCC_CRYPTO_CBCR                   (CLK_CTL_BASE + 0x1601C)
+#define  GCC_CRYPTO_AXI_CBCR               (CLK_CTL_BASE + 0x16020)
+#define  GCC_CRYPTO_AHB_CBCR               (CLK_CTL_BASE + 0x16024)
 
 
 /* GPLL */
 #define GPLL0_STATUS                       (CLK_CTL_BASE + 0x2101C)
 #define APCS_GPLL_ENA_VOTE                 (CLK_CTL_BASE + 0x45000)
 #define APCS_CLOCK_BRANCH_ENA_VOTE         (CLK_CTL_BASE + 0x45004)
+#define GPLL4_MODE                         (CLK_CTL_BASE + 0x24000)
+#define GPLL4_STATUS                       (CLK_CTL_BASE + 0x24024)
+#define GPLL6_STATUS                       (CLK_CTL_BASE + 0x3701C)
 
 /* SDCC */
 #define SDC1_HDRV_PULL_CTL                 (TLMM_BASE_ADDR + 0x10A000)
@@ -95,6 +104,25 @@
 #define SDCC1_M                            (CLK_CTL_BASE + 0x4200C) /* m */
 #define SDCC1_N                            (CLK_CTL_BASE + 0x42010) /* n */
 #define SDCC1_D                            (CLK_CTL_BASE + 0x42014) /* d */
+
+/* SDHCI */
+#define MSM_SDC1_SDHCI_BASE                (PERIPH_SS_BASE + 0x00024900)
+#define MSM_SDC2_SDHCI_BASE                (PERIPH_SS_BASE + 0x00064900)
+
+#define SDCC_MCI_HC_MODE                   (0x00000078)
+#define SDCC_HC_PWRCTL_STATUS_REG          (0x000000DC)
+#define SDCC_HC_PWRCTL_MASK_REG            (0x000000E0)
+#define SDCC_HC_PWRCTL_CLEAR_REG           (0x000000E4)
+#define SDCC_HC_PWRCTL_CTL_REG             (0x000000E8)
+
+#define SDCC2_BCR                          (CLK_CTL_BASE + 0x43000) /* block reset */
+#define SDCC2_APPS_CBCR                    (CLK_CTL_BASE + 0x43018) /* branch control */
+#define SDCC2_AHB_CBCR                     (CLK_CTL_BASE + 0x4301C)
+#define SDCC2_CMD_RCGR                     (CLK_CTL_BASE + 0x43004) /* cmd */
+#define SDCC2_CFG_RCGR                     (CLK_CTL_BASE + 0x43008) /* cfg */
+#define SDCC2_M                            (CLK_CTL_BASE + 0x4300C) /* m */
+#define SDCC2_N                            (CLK_CTL_BASE + 0x43010) /* n */
+#define SDCC2_D                            (CLK_CTL_BASE + 0x43014) /* d */
 
 /* UART */
 #define BLSP1_AHB_CBCR                     (CLK_CTL_BASE + 0x1008)

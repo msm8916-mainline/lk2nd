@@ -29,14 +29,21 @@
 #include <debug.h>
 #include <reg.h>
 #include <platform/iomap.h>
+#include <platform/irqs.h>
+#include <platform/clock.h>
 #include <qgic.h>
 #include <qtimer.h>
 #include <mmu.h>
 #include <arch/arm/mmu.h>
 #include <smem.h>
+#include <board.h>
+#include <boot_stats.h>
+#include <platform.h>
 
 void platform_early_init(void)
 {
+	board_init();
+	platform_clock_init();
 	qgic_init();
 	qtimer_init();
 	scm_init();
