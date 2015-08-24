@@ -219,17 +219,19 @@ void display_boot_verified_menu(struct select_msg_info *msg_info, int type)
 
 	/* Align Right */
 	str_target = str_align_right(str1, big_factor);
-	display_fbcon_menu_message(str_target, FBCON_TITLE_MSG, big_factor);
+	if(str_target != NULL)
+		display_fbcon_menu_message(str_target, FBCON_TITLE_MSG, big_factor);
 
 	str_target = str_align_right(str2, common_factor);
-	display_fbcon_menu_message(str_target, FBCON_TITLE_MSG, common_factor);
+	if(str_target != NULL)
+		display_fbcon_menu_message(str_target, FBCON_TITLE_MSG, common_factor);
 
 	display_fbcon_menu_message("\n< More options\n",
 		FBCON_COMMON_MSG, common_factor);
 	display_fbcon_menu_message("press VOLUME keys\n\n",
 		FBCON_SUBTITLE_MSG, common_factor);
-
-	display_fbcon_menu_message(warning_msg, FBCON_COMMON_MSG, common_factor);
+	if(warning_msg != NULL)
+		display_fbcon_menu_message(warning_msg, FBCON_COMMON_MSG, common_factor);
 
 	display_fbcon_menu_message("g.co/placeholder\n",
 		msg_type, common_factor);
