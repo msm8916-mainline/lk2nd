@@ -90,6 +90,5 @@ void *target_get_scratch_address(void)
 
 unsigned target_get_max_flash_size(void)
 {
-	/*24.5MB*/
 	return (SCRATCH_REGION1_SIZE + SCRATCH_REGION2_SIZE);
 }

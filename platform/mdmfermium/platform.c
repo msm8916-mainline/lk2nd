@@ -35,6 +35,42 @@
 #include <arch/arm/mmu.h>
 #include <smem.h>
 
+#define MB (1024 *1024)
+
+#define MSM_IOMAP_SIZE                      ((MSM_IOMAP_END - MSM_IOMAP_BASE)/MB)
+
+#define A7_SS_SIZE                          ((A7_SS_END - A7_SS_BASE)/MB)
+
+/* LK memory */
+#define LK_MEMORY                             (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
+                                                                 MMU_MEMORY_AP_READ_WRITE)
+/* Scratch memory - Strongly ordered, non-executable */
+#define SCRATCH_MEMORY                        (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
+                                                                 MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
+/* Peripherals - shared device */
+#define IOMAP_MEMORY                          (MMU_MEMORY_TYPE_DEVICE_SHARED | \
+                                                                 MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
+
+
+/* Map all the accesssible memory according to the following rules:
+ * 1. Map 1MB from MSM_SHARED_BASE with 1 -1 mapping.
+ * 2. Map MEMBASE - MEMSIZE with 1 -1 mapping.
+ * 3. Map all the scratch regions immediately after Appsbl memory.
+ *     Virtual addresses start right after Appsbl Virtual address.
+ * 4. Map all the IOMAP space with 1 - 1 mapping.
+ * 5. Map all the rest of the SDRAM/ IMEM regions as 1 -1.
+ */
+mmu_section_t mmu_section_table[] = {
+/*   Physical addr,               Virtual addr,                   Size (in MB),                   Flags   */
+	{MSM_SHARED_BASE,         MSM_SHARED_BASE,                1,                              SCRATCH_MEMORY},
+	{MEMBASE,                 MEMBASE,                        MEMSIZE / MB,                   LK_MEMORY},
+	{MSM_IOMAP_BASE,          MSM_IOMAP_BASE,                 MSM_IOMAP_SIZE,                 IOMAP_MEMORY},
+	{A7_SS_BASE,              A7_SS_BASE,                     A7_SS_SIZE,                     IOMAP_MEMORY},
+	{MSM_SHARED_IMEM_BASE,    MSM_SHARED_IMEM_BASE,           1,                              IOMAP_MEMORY},
+	{SCRATCH_REGION1,         SCRATCH_REGION1,                SCRATCH_REGION1_SIZE / MB,      SCRATCH_MEMORY},
+	{KERNEL_REGION,           KERNEL_REGION,                  KERNEL_REGION_SIZE / MB,        SCRATCH_MEMORY},
+};
+
 void platform_early_init(void)
 {
 	board_init();
@@ -65,8 +101,43 @@ addr_t get_bs_info_addr()
 	return ((addr_t)BS_INFO_ADDR);
 }
 
+addr_t platform_get_virt_to_phys_mapping(addr_t virt_addr)
+{
+	/* Fixed 1-1 mapping */
+	return virt_addr;
+}
+
+addr_t platform_get_phys_to_virt_mapping(addr_t phys_addr)
+{
+        /* Fixed 1-1 mapping */
+	return phys_addr;
+}
+
+/* Setup memory for this platform */
+void platform_init_mmu_mappings(void)
+{
+	uint32_t i;
+	uint32_t sections;
+	uint32_t table_size = ARRAY_SIZE(mmu_section_table);
+
+	/* Configure the MMU page entries for memory read from the
+           mmu_section_table */
+	for (i = 0; i < table_size; i++)
+	{
+		sections = mmu_section_table[i].num_of_sections;
+
+		while (sections--)
+		{
+			arm_mmu_map_section(mmu_section_table[i].paddress +
+								sections * MB,
+								mmu_section_table[i].vaddress +
+								sections * MB,
+								mmu_section_table[i].flags);
+		}
+	}
+}
 int platform_use_identity_mmu_mappings(void)
 {
 	/* Use only the mappings specified in this file. */
-	return 1;
+	return 0;
 }
