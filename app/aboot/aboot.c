@@ -1887,6 +1887,9 @@ int copy_dtb(uint8_t *boot_image_start, unsigned int scratch_offset)
 
 void cmd_boot(const char *arg, void *data, unsigned sz)
 {
+#ifdef MDTP_SUPPORT
+	static bool is_mdtp_activated = 0;
+#endif /* MDTP_SUPPORT */
 	unsigned kernel_actual;
 	unsigned ramdisk_actual;
 	uint32_t image_actual;
@@ -1960,18 +1963,14 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	else
 	{
 		/* fastboot boot is not allowed when MDTP is activated */
-
 		mdtp_ext_partition_verification_t ext_partition;
-		ext_partition.partition = boot_into_recovery ? MDTP_PARTITION_RECOVERY : MDTP_PARTITION_BOOT;
-		ext_partition.integrity_state = MDTP_PARTITION_STATE_UNSET;
-		ext_partition.page_size = page_size;
-		ext_partition.image_addr = (uint32_t)data;
-		ext_partition.image_size = image_actual - sig_actual;
-		ext_partition.sig_avail = TRUE;
-		mdtp_fwlock_verify_lock(&ext_partition);
+
+		if (!is_mdtp_activated) {
+			ext_partition.partition = MDTP_PARTITION_NONE;
+			mdtp_fwlock_verify_lock(&ext_partition);
+		}
 	}
 
-	bool is_mdtp_activated = 0;
 	mdtp_activated(&is_mdtp_activated);
 	if(is_mdtp_activated){
 		dprintf(CRITICAL, "fastboot boot command is not available.\n");
