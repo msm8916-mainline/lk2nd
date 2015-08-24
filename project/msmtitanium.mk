@@ -14,7 +14,7 @@ endif
 
 EMMC_BOOT := 1
 
-#ENABLE_SMD_SUPPORT := 1
+ENABLE_SMD_SUPPORT := 1
 #ENABLE_PWM_SUPPORT := true
 
 #DEFINES += WITH_DEBUG_DCC=1
@@ -35,7 +35,7 @@ DEFINES += BAM_V170=1
 #Disable thumb mode
 ENABLE_THUMB := false
 
-ENABLE_SDHCI_SUPPORT := 0
+ENABLE_SDHCI_SUPPORT := 1
 ENABLE_USB30_SUPPORT := 1
 
 ifeq ($(ENABLE_SDHCI_SUPPORT),1)
@@ -64,9 +64,9 @@ endif
 #SCM call before entering DLOAD mode
 DEFINES += PLATFORM_USE_SCM_DLOAD=1
 
-#CFLAGS += -Werror
+CFLAGS += -Werror
 
 DEFINES += USE_TARGET_HS200_DELAY=1
 
 #Enable the external reboot functions
-ENABLE_REBOOT_MODULE := 1
+#ENABLE_REBOOT_MODULE := 1
