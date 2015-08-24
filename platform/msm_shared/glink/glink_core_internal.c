@@ -806,7 +806,7 @@ glink_err_type glink_core_register_transport
     xport_ctx->free_lcid = 1; /* lcid 0 is reserved for invalid channel */
     xport_ctx->max_lcid = cfg->max_cid; /* Max channel ID supported by transport */
     xport_ctx->version_array = cfg->version;
-    xport_ctx->version_indx = cfg->version_count - 1;
+    xport_ctx->version_indx = (int32)cfg->version_count - 1;
 
     glink_os_cs_init(&xport_ctx->channel_q_cs);
     glink_os_cs_init(&xport_ctx->liid_cs);
@@ -1138,7 +1138,9 @@ glink_channel_ctx_type *glinki_find_ch_ctx_by_lcid
     }
   }
   
-  ASSERT(0);
+  /* open_ch_ctx will be NULL here. Using this instead of ASSERT(0)
+    to avoid unreachable code warning */
+  ASSERT( open_ch_ctx != NULL );
   return NULL;
 }
 
@@ -1175,7 +1177,9 @@ glink_channel_ctx_type *glinki_find_ch_ctx_by_rcid
     }
   }
   
-  ASSERT(0);
+  /* open_ch_ctx will be NULL here. Using this instead of ASSERT(0)
+    to avoid unreachable code warning */
+  ASSERT( open_ch_ctx != NULL ); 
   return NULL;
 }
 
@@ -1512,7 +1516,7 @@ void glink_tracer_packet_log_pctx_pkt
                     tracer_pkt_size);
   }
 
-  tracer_pkt_log_result = tracer_packet_log_event(tracer_pkt_data, event_id);
+  tracer_pkt_log_result = tracer_packet_log_event(tracer_pkt_data, (uint16)event_id);
   if (tracer_pkt_log_result != TRACER_PKT_STATUS_SUCCESS)
   {
     GLINK_LOG_EVENT_NO_FILTER( GLINK_EVENT_TRACER_PKT_FAILURE, "", "", "",
@@ -1560,7 +1564,7 @@ void glinki_update_logging_filter
       log_filter_cfg.ch_ctx = NULL;
       log_filter_cfg.ch_lcid = 0;
       log_filter_cfg.ch_rcid = 0;
-      log_filter_cfg.remote_host = -1;        
+      log_filter_cfg.remote_host = (uint32)-1;        
     }
   }
 }

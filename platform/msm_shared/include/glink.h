@@ -82,6 +82,8 @@ typedef enum {
   GLINK_STATUS_TX_CMD_FAILURE            = -10,
   /* For other Failures not covered above */
   GLINK_STATUS_FAILURE                   = -11,
+  /* Failures relating to GLink operation timeout */
+  GLINK_STATUS_TIMEOUT                   = -12
 }glink_err_type;
 
 /** List of possible subsystems */

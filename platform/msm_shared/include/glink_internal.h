@@ -160,6 +160,8 @@ typedef enum {
   GLINK_EVENT_INVALID_REMOTE_SS,
   GLINK_EVENT_REGISTER_LINK_STATE_CB,
   GLINK_EVENT_DEREGISTER_LINK_STATE_CB,
+  GLINK_EVENT_LB_CLIENT,
+  GLINK_EVENT_SSR
 }glink_log_event_type;
 
 /*Bit index of logging mask of differnt xport. The corresponding bit index 

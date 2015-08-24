@@ -50,8 +50,11 @@ extern "C" {
 /*===========================================================================
                       MACRO DECLARATIONS
 ===========================================================================*/
-/* Limit of the proportion of total QoS requests */
-#define GLINK_QOS_RATE_LIMIT_COEFF (0.7)
+/* Limit of the proportion of total QoS requests
+   =GLINK_QOS_RATE_LIMIT_COEFF_N / GLINK_QOS_RATE_LIMIT_COEFF_D
+ */
+#define GLINK_QOS_RATE_LIMIT_COEFF_N 7
+#define GLINK_QOS_RATE_LIMIT_COEFF_D 10
 
 /* Number of QoS tokens given at refill */
 #define GLINK_QOS_TOKENS (10) 
@@ -318,7 +321,7 @@ struct glink_core_xport_ctx
   const glink_core_version_type *version_array;
 
   /** Keep track of version array index in use */
-  uint32                        version_indx;
+  int32                         version_indx;
 
   /* Keeps track of the current status of the transport */
   glink_transport_status_type   status;
