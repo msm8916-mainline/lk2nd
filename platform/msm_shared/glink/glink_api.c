@@ -223,21 +223,10 @@ glink_err_type glink_close
     return GLINK_STATUS_INVALID_PARAM;
   }
 
-	/* get xport context after NULL check */
-	xport_ctx = handle->if_ptr->glink_core_priv;
-
-	ASSERT( xport_ctx != NULL );
-
-  if (!glinki_xport_linkup(handle->if_ptr))
-  {
-    GLINK_LOG_ERROR_EVENT( GLINK_EVENT_CH_CLOSE, 
-                    handle->name,
-                    xport_ctx->xport,
-                    xport_ctx->remote_ss,
-                    handle->local_state);
-
-    return GLINK_STATUS_FAILURE;
-  }
+  /* get xport context after NULL check */
+  xport_ctx = handle->if_ptr->glink_core_priv;  
+  
+  ASSERT( xport_ctx != NULL );
   
   /* grab lock to change/check channel state atomically */
   glink_os_cs_acquire( &handle->ch_state_cs );
@@ -259,9 +248,10 @@ glink_err_type glink_close
 
   handle->local_state = GLINK_LOCAL_CH_CLOSING;
 
-  if (handle->remote_state == GLINK_REMOTE_CH_SSR_RESET)
+  if (handle->remote_state == GLINK_REMOTE_CH_SSR_RESET ||
+      glinki_xport_linkup(handle->if_ptr) == FALSE)
   {
-    /* SSR happened on remote-SS. Fake close_ack from here */
+    /* SSR happened on remote-SS OR XPORT link is down. Fake close_ack from here */
     glink_os_cs_release( &handle->ch_state_cs );
 
     handle->if_ptr->glink_core_if_ptr->rx_cmd_ch_close_ack( handle->if_ptr,
