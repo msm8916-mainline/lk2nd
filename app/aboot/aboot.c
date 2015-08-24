@@ -1854,6 +1854,7 @@ void read_device_info(device_info *dev)
 				info->is_unlocked = 1;
 			info->is_tampered = 0;
 			info->charger_screen_enabled = 0;
+			info->verity_mode = 1; //enforcing by default
 			write_device_info(info);
 		}
 		memcpy(dev, info, sizeof(device_info));
