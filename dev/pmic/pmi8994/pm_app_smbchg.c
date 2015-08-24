@@ -203,8 +203,8 @@ pm_err_flag_type pm_appsbl_chg_check_weak_battery_status(uint32 device_index)
       {
           //Ensure that Charging is enabled
           err_flag |= pm_smbchg_chgr_enable_src(device_index, FALSE);
-          err_flag |= pm_smbchg_chgr_set_chg_polarity_low(device_index, FALSE);
-          err_flag |= pm_smbchg_bat_if_config_chg_cmd(device_index, PM_SMBCHG_BAT_IF_CMD__EN_BAT_CHG, TRUE);
+          err_flag |= pm_smbchg_chgr_set_chg_polarity_low(device_index, TRUE);
+          err_flag |= pm_smbchg_bat_if_config_chg_cmd(device_index, PM_SMBCHG_BAT_IF_CMD__EN_BAT_CHG, FALSE);
           udelay(PM_WEAK_BATTERY_CHARGING_DELAY);
       }
 
