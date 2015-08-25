@@ -493,6 +493,8 @@ void glink_rx_cmd_ch_open_ack
 				return;
 			}
 
+  ASSERT(open_ch_ctx->local_state == GLINK_LOCAL_CH_OPENING);
+  
 			open_ch_ctx->local_state = GLINK_LOCAL_CH_OPENED;
 
   remote_state = open_ch_ctx->remote_state;
