@@ -1184,6 +1184,36 @@ void glinki_update_logging_filter
   boolean reset
 );
 
+/*===========================================================================
+  FUNCTION      glinki_acquire_edge_lock
+===========================================================================*/
+/** 
+ *  Acquires the transport_q_cs lock for the specified edge
+ * 
+ * @param[in]    remote_ss  Name of the remote sub system on the edge
+ *
+ * @return       None.
+ *
+ * @sideeffects  None.
+ */
+/*=========================================================================*/
+void glinki_acquire_edge_lock(const char *ss_name);
+
+/*===========================================================================
+  FUNCTION      glinki_release_edge_lock
+===========================================================================*/
+/** 
+ *  Releases the transport_q_cs lock for the specified edge
+ * 
+ * @param[in]    remote_ss  Name of the remote sub system on the edge
+ *
+ * @return       None.
+ *
+ * @sideeffects  None.
+ */
+/*=========================================================================*/
+void glinki_release_edge_lock(const char *ss_name);
+
 #ifdef FEATURE_TRACER_PACKET
 /*===========================================================================
 FUNCTION      glink_tracer_packet_log_pctx_pkt

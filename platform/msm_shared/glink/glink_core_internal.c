@@ -1463,6 +1463,46 @@ void glinki_dequeue_item
   glink_os_cs_release(cs);
 }
 
+/*===========================================================================
+  FUNCTION      glinki_acquire_edge_lock
+===========================================================================*/
+/** 
+ *  Acquires the transport_q_cs lock for the specified edge
+ * 
+ * @param[in]    remote_ss  Name of the remote sub system on the edge
+ *
+ * @return       None.
+ *
+ * @sideeffects  None.
+ */
+/*=========================================================================*/
+void glinki_acquire_edge_lock(const char *ss_name)
+{
+    uint32 remote_host;
+    remote_host = glinki_find_remote_host(ss_name);
+    glink_os_cs_acquire(&glink_transport_q_cs[remote_host]);
+}
+
+/*===========================================================================
+  FUNCTION      glinki_release_edge_lock
+===========================================================================*/
+/** 
+ *  Releases the transport_q_cs lock for the specified edge
+ * 
+ * @param[in]    remote_ss  Name of the remote sub system on the edge
+ *
+ * @return       None.
+ *
+ * @sideeffects  None.
+ */
+/*=========================================================================*/
+void glinki_release_edge_lock(const char *ss_name)
+{
+    uint32 remote_host;
+    remote_host = glinki_find_remote_host(ss_name);
+    glink_os_cs_release(&glink_transport_q_cs[remote_host]);
+}
+
 #if defined(GLINK_MEMORY_LOGGING)
 /* ============ Internal Logging API ================ */
 void glink_mem_log
