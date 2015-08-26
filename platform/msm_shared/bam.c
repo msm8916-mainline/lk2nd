@@ -139,16 +139,7 @@ void bam_enable_interrupts(struct bam_instance *bam, uint8_t pipe_num)
 /* Reset and initialize the bam module */
 void bam_init(struct bam_instance *bam)
 {
-	/* Check for only one pipe's direction.
-	 * The other is assumed to be the opposite system
-	 * transaction.
-	 */
-	if (bam->pipe[0].trans_type == SYS2BAM ||
-		bam->pipe[0].trans_type == BAM2SYS)
-	{
-		/* Program the threshold count */
-		writel(bam->threshold, BAM_DESC_CNT_TRSHLD_REG(bam->base));
-	}
+	/* bam is initialized by TZ, so nothing needs to be done here */
 }
 
 /* Funtion to setup a simple fifo structure.
