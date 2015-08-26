@@ -222,3 +222,11 @@ uint64_t platform_get_ddr_start()
 {
 	return ddr_start;
 }
+
+bool platform_use_qmp_misc_settings()
+{
+	if (board_soc_version() < 0x30000)
+		return true;
+
+	return false;
+}

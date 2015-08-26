@@ -36,6 +36,7 @@
 #include <clock.h>
 #include <debug.h>
 #include <qtimer.h>
+#include <platform.h>
 
 #define HS_PHY_COMMON_CTRL             0xEC
 #define USE_CORECLK                    BIT(14)
@@ -64,14 +65,10 @@ struct qmp_reg qmp_settings_rev2[] =
 	{0x174, 0x30}, /* QSERDES_COM_CLK_SELECT */
 	{0x194, 0x06}, /* QSERDES_COM_CMN_CONFIG */
 	{0x19c, 0x01}, /* QSERDES_COM_SVS_MODE_CLK_SEL */
-	{0x178, 0x01}, /* QSERDES_COM_HSCLK_SEL */
+	{0x178, 0x00}, /* QSERDES_COM_HSCLK_SEL */
 	{0x70, 0x0F}, /* USB3PHY_QSERDES_COM_BG_TRIM */
 	{0x48, 0x0F}, /* USB3PHY_QSERDES_COM_PLL_IVCO */
 	{0x3C, 0x04}, /* QSERDES_COM_SYS_CLK_CTRL */
-
-	/* Res_code Settings */
-	{0xC4, 0x15}, /* USB3PHY_QSERDES_COM_RESCODE_DIV_NUM */
-	{0x1B8, 0x1F}, /* QSERDES_COM_CMN_MISC2 */
 
 	/* PLL & Loop filter settings */
 	{0xd0, 0x82}, /* QSERDES_COM_DEC_START_MODE0 */
@@ -133,6 +130,15 @@ struct qmp_reg qmp_settings_rev2[] =
 	{0x608, 0x03}, /* USB3_PHY_START_CONTROL */
 	{0x600, 0x00}, /* USB3_PHY_SW_RESET */
 };
+
+#if PLATFORM_USE_QMP_MISC
+struct qmp_reg qmp_misc_settings_rev2[] =
+{
+	{0x178, 0x01}, /* QSERDES_COM_HSCLK_SEL */
+	{0xC4, 0x15}, /* USB3PHY_QSERDES_COM_RESCODE_DIV_NUM */
+	{0x1B8, 0x1F}, /* QSERDES_COM_CMN_MISC2 */
+};
+#endif
 
 __WEAK uint32_t target_override_pll()
 {
@@ -265,6 +271,11 @@ void usb30_qmp_phy_init()
 		for (i = 0 ; i < qmp_reg_size; i++)
 			writel(qmp_settings_rev2[i].val, QMP_PHY_BASE + qmp_settings_rev2[i].off);
 
+#if PLATFORM_USE_QMP_MISC
+		if (platform_use_qmp_misc_settings())
+			for (i = 0; i < ARRAY_SIZE(qmp_misc_settings_rev2); i++)
+				writel(qmp_misc_settings_rev2[i].val, QMP_PHY_BASE + qmp_misc_settings_rev2[i].off);
+#endif
 		if (target_override_pll())
 		{
 			qmp_reg_size = sizeof(qmp_override_pll_rev2) / sizeof(struct qmp_reg);
