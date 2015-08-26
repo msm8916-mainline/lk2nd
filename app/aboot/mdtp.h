@@ -113,6 +113,7 @@ typedef struct DIP {
 typedef enum {
 	MDTP_PARTITION_BOOT = 0,
 	MDTP_PARTITION_RECOVERY,
+	MDTP_PARTITION_NONE,
 	MDTP_PARTITION_NUM,
 } mdtp_ext_partition_t;
 
