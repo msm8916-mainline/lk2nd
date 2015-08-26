@@ -34,7 +34,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "mdtp.h"
-#include "mdtp_ui_defs.h"
+#include "mdtp_defs.h"
 
 // Image releative locations
 #define ERROR_MESSAGE_RELATIVE_Y_LOCATION   (0.18)
@@ -62,8 +62,6 @@ struct mdtp_fbimage {
     uint8_t image[MDTP_MAX_IMAGE_SIZE];
 };
 
-struct mdtp_ui_defs mdtp_ui_defs_data;
-
 /*----------------------------------------------------------------------------
  * Global Variables
  * -------------------------------------------------------------------------*/
@@ -75,6 +73,8 @@ static bool g_initial_screen_displayed = false;
 
 static struct mdtp_fbimage *g_mdtp_header = NULL;
 static struct fbcon_config *fb_config = NULL;
+
+struct mdtp_ui_defs mdtp_ui_defs_data;
 
 /*----------------------------------------------------------------------------
  * Local Functions

@@ -62,4 +62,11 @@ struct mdtp_ui_defs {
     uint32_t digit_space;
 };
 
+struct mdtp_target_efuse {
+    uint32_t address;
+    uint32_t start;
+};
+
 struct mdtp_ui_defs mdtp_get_target_ui_defs();
+
+int mdtp_get_target_efuse(struct mdtp_target_efuse* target_efuse);
