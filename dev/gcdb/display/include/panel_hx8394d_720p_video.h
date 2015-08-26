@@ -47,7 +47,7 @@
 
 static struct panel_config hx8394d_720p_video_panel_data = {
   "qcom,mdss_dsi_hx8394d_720p_video", "dsi:0:", "qcom,mdss-dsi-panel",
-  10, 0, "DISPLAY_1", 0, 0, 60, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  10, 0, "DISPLAY_1", 0, 0, 60, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL
 };
 
 /*---------------------------------------------------------------------------*/
@@ -258,14 +258,6 @@ static struct lane_configuration hx8394d_720p_video_lane_config = {
 const uint32_t hx8394d_720p_video_timings[] = {
   0x79, 0x1a, 0x12, 0x00, 0x3e, 0x42, 0x16, 0x1e, 0x15, 0x03, 0x04, 0x00
 };
-
-
-
-static struct mipi_dsi_cmd hx8394d_720p_video_rotation[] = {
-
-};
-#define HX8394D_720P_VIDEO_ROTATION 0
-
 
 static struct panel_timing hx8394d_720p_video_timing_info = {
   0, 4, 0x04, 0x1b

@@ -53,6 +53,7 @@
 #include "include/panel_hx8399a_1080p_video.h"
 #include "include/panel_nt35597_wqxga_dsc_video.h"
 #include "include/panel_nt35597_wqxga_dsc_cmd.h"
+#include "include/panel_hx8394d_720p_video.h"
 
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
@@ -67,6 +68,7 @@ enum {
 	HX8399A_1080P_VIDEO_PANEL,
 	NT35597_WQXGA_DSC_VIDEO_PANEL,
 	NT35597_WQXGA_DSC_CMD_PANEL,
+	HX8394D_720P_VIDEO_PANEL,
 	UNKNOWN_PANEL
 };
 
@@ -88,6 +90,7 @@ static struct panel_list supp_panels[] = {
 	{"hx8399a_1080p_video", HX8399A_1080P_VIDEO_PANEL},
 	{"nt35597_wqxga_dsc_video", NT35597_WQXGA_DSC_VIDEO_PANEL},
 	{"nt35597_wqxga_dsc_cmd", NT35597_WQXGA_DSC_CMD_PANEL},
+	{"hx8394d_720p_video", HX8394D_720P_VIDEO_PANEL},
 };
 
 static uint32_t panel_id;
@@ -402,6 +405,31 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		pinfo->dsc.dsc2buf = mdss_dsc_to_buf;
 		pinfo->dsc.dsi_dsc_config = mdss_dsc_dsi_config;
 		pinfo->dsc.mdp_dsc_config = mdss_dsc_mdp_config;
+		break;
+	case HX8394D_720P_VIDEO_PANEL:
+		panelstruct->paneldata	  = &hx8394d_720p_video_panel_data;
+		panelstruct->panelres	  = &hx8394d_720p_video_panel_res;
+		panelstruct->color		  = &hx8394d_720p_video_color;
+		panelstruct->videopanel   = &hx8394d_720p_video_video_panel;
+		panelstruct->commandpanel = &hx8394d_720p_video_command_panel;
+		panelstruct->state		  = &hx8394d_720p_video_state;
+		panelstruct->laneconfig   = &hx8394d_720p_video_lane_config;
+		panelstruct->paneltiminginfo
+					 = &hx8394d_720p_video_timing_info;
+		panelstruct->panelresetseq
+					 = &hx8394d_720p_video_panel_reset_seq;
+		panelstruct->backlightinfo = &hx8394d_720p_video_backlight;
+		pinfo->mipi.panel_on_cmds
+					= hx8394d_720p_video_on_command;
+		pinfo->mipi.num_of_panel_on_cmds
+					= HX8394D_720P_VIDEO_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+					= hx8394d_720p_video_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+					= HX8394D_720P_VIDEO_OFF_COMMAND;
+		memcpy(phy_db->timing,
+				hx8394d_720p_video_timings, TIMING_SIZE);
+		pinfo->mipi.signature = HX8394D_720P_VIDEO_SIGNATURE;
 		break;
 	case UNKNOWN_PANEL:
 	default:
