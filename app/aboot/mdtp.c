@@ -754,7 +754,6 @@ int mdtp_activated(bool * activated){
 static int mdtp_tzbsp_dec_verify_DIP(DIP_t *enc_dip, DIP_t *dec_dip, uint32_t *verified)
 {
 	unsigned char hash[HASH_LEN];
-	unsigned char buf[HASH_LEN], digest[HASH_LEN];
 	SHA256_CTX sha256_ctx;
 	int ret;
 
@@ -764,9 +763,6 @@ static int mdtp_tzbsp_dec_verify_DIP(DIP_t *enc_dip, DIP_t *dec_dip, uint32_t *v
 
 	arch_clean_invalidate_cache_range((addr_t)enc_dip, sizeof(DIP_t));
 	arch_invalidate_cache_range((addr_t)dec_dip, sizeof(DIP_t));
-
-	/* workaround: Dummy call to hash_find prevents a boot loop when using the CE from TZ */
-	hash_find(buf, HASH_LEN, digest, CRYPTO_AUTH_ALG_SHA1);
 
 	ret = mdtp_cipher_dip_cmd((uint8_t*)enc_dip, sizeof(DIP_t),
 								(uint8_t*)dec_dip, sizeof(DIP_t),
@@ -801,7 +797,6 @@ static int mdtp_tzbsp_dec_verify_DIP(DIP_t *enc_dip, DIP_t *dec_dip, uint32_t *v
 /* Encrypt a given DIP and calculate its integrity information */
 static int mdtp_tzbsp_enc_hash_DIP(DIP_t *dec_dip, DIP_t *enc_dip)
 {
-	unsigned char buf[HASH_LEN], digest[HASH_LEN];
 	SHA256_CTX sha256_ctx;
 	int ret;
 
@@ -814,9 +809,6 @@ static int mdtp_tzbsp_enc_hash_DIP(DIP_t *dec_dip, DIP_t *enc_dip)
 
 	arch_clean_invalidate_cache_range((addr_t)dec_dip, sizeof(DIP_t));
 	arch_invalidate_cache_range((addr_t)enc_dip, sizeof(DIP_t));
-
-	/* workaround: Dummy call to hash_find prevents a boot loop when using the CE from TZ */
-	hash_find(buf, HASH_LEN, digest, CRYPTO_AUTH_ALG_SHA1);
 
 	ret = mdtp_cipher_dip_cmd((uint8_t*)dec_dip, sizeof(DIP_t),
 								(uint8_t*)enc_dip, sizeof(DIP_t),
