@@ -106,7 +106,7 @@
 #define CFG_SRC_DIV_MASK        (0x1F << CFG_SRC_DIV_OFFSET)
 
 #define CFG_SRC_SEL_OFFSET      8
-#define CFG_SRC_SEL_MASK        (0x3 << CFG_SRC_SEL_OFFSET)
+#define CFG_SRC_SEL_MASK        (0x7 << CFG_SRC_SEL_OFFSET)
 
 #define CFG_MODE_DUAL_EDGE      0x2
 
