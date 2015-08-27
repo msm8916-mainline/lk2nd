@@ -391,49 +391,70 @@ uint32_t boot_verify_keystore_init()
 bool send_rot_command(uint32_t is_unlocked)
 {
 	int ret = 0;
-	const unsigned char *input;
+	unsigned char *input = NULL;
 	char *rot_input = NULL;
 	unsigned int digest[9] = {0}, final_digest[8] = {0};
 	uint32_t auth_algo = CRYPTO_AUTH_ALG_SHA256;
 	uint32_t boot_device_state = boot_verify_get_state();
-	uint32_t len = 0;
 	int app_handle = 0;
+	uint32_t len_oem_rsa = 0, len_from_cert = 0;
 	km_set_rot_req_t *read_req;
 	km_set_rot_rsp_t read_rsp;
 	app_handle = get_secapp_handle();
+	int n = 0, e = 0;
 	switch (boot_device_state)
 	{
 		case GREEN:
 			// Locked device and boot.img verified against OEM keystore.
-			// Send hash of OEM KEYSTORE + Boot device state
-			input = OEM_KEYSTORE;
-			len = read_der_message_length((unsigned char *)input);
-			hash_find((unsigned char *)input, len, (unsigned char *) &digest, auth_algo);
+			// Send hash of key from OEM KEYSTORE + Boot device state
+			n = BN_num_bytes(oem_keystore->mykeybag->mykey->key_material->n);
+			e = BN_num_bytes(oem_keystore->mykeybag->mykey->key_material->e);
+			len_oem_rsa = n + e;
+			if(!(input = malloc(len_oem_rsa)))
+			{
+				dprintf(CRITICAL, "Failed to allocate memory for ROT structure\n");
+				ASSERT(0);
+			}
+			BN_bn2bin(oem_keystore->mykeybag->mykey->key_material->n, input);
+			BN_bn2bin(oem_keystore->mykeybag->mykey->key_material->e, input+n);
+			hash_find((unsigned char *)input, len_oem_rsa, (unsigned char *) &digest, auth_algo);
 			digest[8] = is_unlocked;
 			break;
 		case YELLOW:
 		case RED:
 			// Locked device and boot.img passed (yellow) or failed (red) verification with the certificate embedded to the boot.img.
-			// Send hash of certificate + boot device state
-			if (rsa_from_cert)
-				len = RSA_size(rsa_from_cert);
-			else
+			if (!rsa_from_cert)
 			{
 				dprintf(CRITICAL, "RSA is null from the embedded certificate\n");
 				ASSERT(0);
 			}
-			hash_find((unsigned char *)rsa_from_cert, len, (unsigned char *) &digest, auth_algo);
+			// Send hash of key from certificate in boot image + boot device state
+			n = BN_num_bytes(rsa_from_cert->n);
+			e = BN_num_bytes(rsa_from_cert->e);
+			len_from_cert = n + e;
+			if(!(input = malloc(len_from_cert)))
+			{
+				dprintf(CRITICAL, "Failed to allocate memory for ROT structure\n");
+				ASSERT(0);
+			}
+			BN_bn2bin(rsa_from_cert->n, input);
+			BN_bn2bin(rsa_from_cert->e, input+n);
+			hash_find((unsigned char *)input, len_from_cert, (unsigned char *) &digest, auth_algo);
 			digest[8] = is_unlocked;
-		break;
+			break;
 		case ORANGE:
 			// Unlocked device and no verification done.
 			// Send the hash of boot device state
 			input = NULL;
 			digest[0] = is_unlocked;
-		break;
+			break;
 	}
 
 	hash_find((unsigned char *) digest, sizeof(digest), (unsigned char *)&final_digest, auth_algo);
+	dprintf(SPEW, "Digest: ");
+	for(uint8_t i = 0; i < 8; i++)
+		dprintf(SPEW, "0x%x ", final_digest[i]);
+	dprintf(SPEW, "\n");
 	if(!(read_req = malloc(sizeof(km_set_rot_req_t) + sizeof(final_digest))))
 	{
 		dprintf(CRITICAL, "Failed to allocate memory for ROT structure\n");
@@ -453,11 +474,15 @@ bool send_rot_command(uint32_t is_unlocked)
 	if (ret < 0 || read_rsp.status < 0)
 	{
 		dprintf(CRITICAL, "QSEEcom command for Sending Root of Trust returned error: %d\n", read_rsp.status);
+		if(input)
+			free(input);
 		free(read_req);
 		free(rot_input);
 		return false;
 	}
 	dprintf(SPEW, "Sending Root of Trust to trustzone: end\n");
+	if(input)
+		free(input);
 	free(read_req);
 	free(rot_input);
 	return true;
