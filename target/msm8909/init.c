@@ -67,6 +67,9 @@
 #define VIBRATE_TIME    250
 #endif
 
+#define FASTBOOT_MODE           0x77665500
+#define RECOVERY_MODE           0x77665502
+
 #define CE1_INSTANCE            1
 #define CE_EE                   1
 #define CE_FIFO_SIZE            64
@@ -390,6 +393,17 @@ unsigned board_machtype(void)
 	return LINUX_MACHTYPE_UNKNOWN;
 }
 
+unsigned check_reboot_mode(void)
+{
+	uint32_t restart_reason = 0;
+
+	/* Read reboot reason and scrub it */
+	restart_reason = readl(RESTART_REASON_ADDR);
+	writel(0x00, RESTART_REASON_ADDR);
+
+	return restart_reason;
+}
+
 /* Configure PMIC and Drop PS_HOLD for shutdown */
 void shutdown_device()
 {
@@ -403,6 +417,42 @@ void shutdown_device()
 
 	mdelay(5000);
 
+}
+
+void reboot_device(unsigned reboot_reason)
+{
+	uint8_t reset_type = 0;
+	uint32_t ret = 0;
+
+	/* Need to clear the SW_RESET_ENTRY register and
+	* write to the BOOT_MISC_REG for known reset cases
+	*/
+	if(reboot_reason != DLOAD)
+		scm_dload_mode(NORMAL_MODE);
+
+	writel(reboot_reason, RESTART_REASON_ADDR);
+
+	/* For Reboot-bootloader and Dload cases do a warm reset
+	* For Reboot cases do a hard reset
+	*/
+	if((reboot_reason == FASTBOOT_MODE) || (reboot_reason == DLOAD) || (reboot_reason == RECOVERY_MODE))
+		reset_type = PON_PSHOLD_WARM_RESET;
+	else
+		reset_type = PON_PSHOLD_HARD_RESET;
+
+	pm8x41_reset_configure(reset_type);
+
+	ret = scm_halt_pmic_arbiter();
+
+	if (ret)
+		dprintf(CRITICAL , "Failed to halt pmic arbiter: %d\n", ret);
+
+	/* Drop PS_HOLD for MSM */
+	writel(0x00, MPM2_MPM_PS_HOLD);
+
+	mdelay(5000);
+
+	dprintf(CRITICAL, "Rebooting failed\n");
 }
 
 /* Detect the target type */
