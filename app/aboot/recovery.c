@@ -592,6 +592,10 @@ int write_misc(unsigned page_offset, void *buf, unsigned size)
 
 		if (scratch_addr != buf)
 			memcpy(scratch_addr, buf, size);
+
+		/* Set Lun for misc partition */
+		mmc_set_lun(partition_get_lun(index));
+
 		if (mmc_write(ptn + offset, aligned_size, (unsigned int *)scratch_addr))
 		{
 			dprintf(CRITICAL, "Writing MMC failed\n");
