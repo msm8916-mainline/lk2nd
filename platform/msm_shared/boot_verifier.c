@@ -388,12 +388,12 @@ uint32_t boot_verify_keystore_init()
 	return dev_boot_state;
 }
 
-bool send_rot_command()
+bool send_rot_command(uint32_t is_unlocked)
 {
 	int ret = 0;
 	const unsigned char *input;
 	char *rot_input = NULL;
-	unsigned int digest[8];
+	unsigned int digest[9] = {0}, final_digest[8] = {0};
 	uint32_t auth_algo = CRYPTO_AUTH_ALG_SHA256;
 	uint32_t boot_device_state = boot_verify_get_state();
 	uint32_t len = 0;
@@ -407,13 +407,9 @@ bool send_rot_command()
 			// Locked device and boot.img verified against OEM keystore.
 			// Send hash of OEM KEYSTORE + Boot device state
 			input = OEM_KEYSTORE;
-			len = read_der_message_length((unsigned char *)input) + sizeof(uint32_t);
-			if(!(rot_input = malloc(len)))
-			{
-				dprintf(CRITICAL, "Failed to allocate memory for ROT command data\n");
-				ASSERT(0);
-			}
-			snprintf(rot_input, len, "%s%ul", input, boot_device_state);
+			len = read_der_message_length((unsigned char *)input);
+			hash_find((unsigned char *)input, len, (unsigned char *) &digest, auth_algo);
+			digest[8] = is_unlocked;
 			break;
 		case YELLOW:
 		case RED:
@@ -427,31 +423,18 @@ bool send_rot_command()
 				ASSERT(0);
 			}
 			hash_find((unsigned char *)rsa_from_cert, len, (unsigned char *) &digest, auth_algo);
-			len = sizeof(digest) + sizeof(unsigned int);
-			if(!(rot_input = malloc(len)))
-			{
-				dprintf(CRITICAL, "Failed to allocate memory for ROT command data\n");
-				ASSERT(0);
-			}
-			memcpy(rot_input, digest, sizeof(digest));
-			memcpy(rot_input + sizeof(digest), (unsigned char *) boot_device_state, sizeof(unsigned int));
-			break;
+			digest[8] = is_unlocked;
+		break;
 		case ORANGE:
 			// Unlocked device and no verification done.
 			// Send the hash of boot device state
 			input = NULL;
-			len = sizeof(uint32_t);
-			if(!(rot_input = malloc(len)))
-			{
-				dprintf(CRITICAL, "Failed to allocate memory for ROT command data\n");
-				ASSERT(0);
-			}
-			snprintf(rot_input, len, "%ul", boot_device_state);
-			break;
+			digest[0] = is_unlocked;
+		break;
 	}
 
-	hash_find((unsigned char *) rot_input, len, (unsigned char *)&digest, auth_algo);
-	if(!(read_req = malloc(sizeof(km_set_rot_req_t) + sizeof(digest))))
+	hash_find((unsigned char *) digest, sizeof(digest), (unsigned char *)&final_digest, auth_algo);
+	if(!(read_req = malloc(sizeof(km_set_rot_req_t) + sizeof(final_digest))))
 	{
 		dprintf(CRITICAL, "Failed to allocate memory for ROT structure\n");
 		ASSERT(0);
@@ -461,12 +444,12 @@ bool send_rot_command()
 	// set ROT stucture
 	read_req->cmd_id = KEYMASTER_SET_ROT;
 	read_req->rot_ofset = (uint32_t) sizeof(km_set_rot_req_t);
-	read_req->rot_size  = sizeof(digest);
+	read_req->rot_size  = sizeof(final_digest);
 	// copy the digest
-	memcpy(cpy_ptr, (void *) &digest, sizeof(digest));
+	memcpy(cpy_ptr, (void *) &final_digest, sizeof(final_digest));
 	dprintf(SPEW, "Sending Root of Trust to trustzone: start\n");
 
-	ret = qseecom_send_command(app_handle, (void*) read_req, sizeof(km_set_rot_req_t) + sizeof(digest), (void*) &read_rsp, sizeof(read_rsp));
+	ret = qseecom_send_command(app_handle, (void*) read_req, sizeof(km_set_rot_req_t) + sizeof(final_digest), (void*) &read_rsp, sizeof(read_rsp));
 	if (ret < 0 || read_rsp.status < 0)
 	{
 		dprintf(CRITICAL, "QSEEcom command for Sending Root of Trust returned error: %d\n", read_rsp.status);
