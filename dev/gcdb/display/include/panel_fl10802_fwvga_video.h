@@ -328,7 +328,7 @@ static struct panel_reset_sequence fl10802_fwvga_video_reset_seq = {
 /* Backlight setting                                                         */
 /*---------------------------------------------------------------------------*/
 static struct backlight fl10802_fwvga_video_backlight = {
-  1, 1, 255, 100, 2, "PMIC_8941"
+  BL_DCS, 1, 255, 100, 2, "PMIC_8941"
 };
 
 #define FL10802_FWVGA_VIDEO_SIGNATURE 0xFFFF
