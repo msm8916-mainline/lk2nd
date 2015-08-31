@@ -493,7 +493,3 @@ ifeq ($(ENABLE_USB30_SUPPORT),1)
 		$(LOCAL_DIR)/usb30_udc.o \
 		$(LOCAL_DIR)/usb30_wrapper.o
 endif
-
-ifeq ($(ENABLE_REBOOT_MODULE), 1)
-	OBJS += $(LOCAL_DIR)/reboot.o
-endif
