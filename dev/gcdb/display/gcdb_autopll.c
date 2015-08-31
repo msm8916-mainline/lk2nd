@@ -42,6 +42,7 @@ static void calculate_bitclock(struct msm_panel_info *pinfo)
 	uint32_t h_period = 0, v_period = 0;
 	uint32_t width = pinfo->xres;
 	struct dsc_desc *dsc = NULL;
+	int bpp_lane;
 
 	if (pinfo->mipi.dual_dsi)
 		width /= 2;
@@ -62,19 +63,22 @@ static void calculate_bitclock(struct msm_panel_info *pinfo)
 		pinfo->lcdc.v_front_porch + pinfo->lcdc.v_pulse_width +
 		pinfo->lcdc.yres_pad;
 
+	bpp_lane = pinfo->bpp / pinfo->mipi.num_of_lanes;
+
 	/*
 	 * If a bit clock rate is not specified, calculate it based
 	 * on panel parameters
 	 */
 	if (pinfo->mipi.bitclock == 0)
 		pll_data.bit_clock = (h_period * v_period *
-				pinfo->mipi.frame_rate * pinfo->bpp) /
-				pinfo->mipi.num_of_lanes;
+				pinfo->mipi.frame_rate * bpp_lane);
 	else
 		pll_data.bit_clock = pinfo->mipi.bitclock;
 
-	pll_data.pixel_clock = (pll_data.bit_clock * pinfo->mipi.num_of_lanes) /
-				pinfo->bpp;
+	pll_data.pixel_clock = (pll_data.bit_clock / bpp_lane);
+
+	dprintf(SPEW, "%s: bit_clk=%d pix_clk=%d\n", __func__,
+			pll_data.bit_clock, pll_data.pixel_clock);
 
 	pll_data.byte_clock = pll_data.bit_clock >> 3;
 
@@ -273,6 +277,11 @@ static uint32_t calculate_vco_thulium()
 		return ERROR;
 	}
 
+	pll_data.vco_clock = pll_data.bit_clock * pll_data.ndiv *
+						pll_data.n1div;
+
+	rate = pll_data.vco_clock;
+
 	rate /= pll_data.n1div;
 	rate /= FIX_PIXEL_CLOCK_DIV;
 
@@ -287,7 +296,6 @@ static uint32_t calculate_vco_thulium()
 			__func__, pll_data.n2div);
 		return ERROR;
 	}
-	pll_data.vco_clock = pll_data.bit_clock * pll_data.ndiv * pll_data.n1div;
 
 	dprintf(SPEW, "%s: vco:%u n1div:%d n2div:%d bit_clk:%u pixel_clk:%u\n",
 		__func__, pll_data.vco_clock, pll_data.n1div, pll_data.n2div,
