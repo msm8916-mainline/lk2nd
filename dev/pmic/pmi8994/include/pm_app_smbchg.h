@@ -201,5 +201,6 @@ void *pm_target_chg_range_data();
 bool pm_appsbl_display_init_done();
 bool pm_appsbl_charging_in_progress();
 pm_err_flag_type pm_appsbl_set_dcin_suspend();
+bool pm_app_display_shutdown_in_prgs();
 #endif  //PM_APP_SMBCHG__H
 
