@@ -781,7 +781,7 @@ int mdss_dsi_cmd_mode_config(struct msm_panel_info *pinfo,
 		writel(data, ctl_base + COMMAND_MODE_MDP_STREAM1_TOTAL);
 
 		if (dsc->dsi_dsc_config)
-			dsc->dsi_dsc_config(pinfo->mipi.ctl_base, DSI_VIDEO_MODE, dsc);
+			dsc->dsi_dsc_config(pinfo->mipi.ctl_base, DSI_CMD_MODE, dsc);
 	} else {
 
 		writel((img_width * ystride + 1) << 16 | 0x0039,
