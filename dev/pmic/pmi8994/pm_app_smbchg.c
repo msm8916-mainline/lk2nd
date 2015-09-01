@@ -40,11 +40,12 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pm_smbchg_driver.h"
 #include "pm_comm.h"
 #include "pm_smbchg_dc_chgpth.h"
+#include <kernel/thread.h>
 #include <debug.h>
 #include <platform/timer.h>
 #include <sys/types.h>
 #include <target.h>
-
+#include <pm8x41.h>
 
 /*===========================================================================
 
@@ -64,16 +65,27 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define  PM_MIN_ADC_READY_DELAY             1 * 1000  //1ms
 #define  PM_MAX_ADC_READY_DELAY     2000              //2s
 #define SBL_PACKED_SRAM_CONFIG_SIZE 3
-
+#define  PM_CHARGE_DISPLAY_TIMEOUT       5 * 1000 //5 secs
 #define boot_log_message(...) dprintf(CRITICAL, __VA_ARGS__)
 
 static pm_smbchg_bat_if_low_bat_thresh_type pm_dbc_bootup_volt_threshold;
+/* Need to maintain flags to track
+ * 1. charge_in_progress: Charging progress and exit the loop once charging is completed.
+ * 2. display_initialized: Track if the display is already initialized to make sure display
+ *    thread does not reinitialize the display again.
+ * 3. display_shutdown_in_prgs: To avoid race condition between regualr display initialization and
+ *    display shutdown in display thread.
+ */
+
 static bool display_initialized;
 static bool charge_in_progress;
+static bool display_shutdown_in_prgs;
+
 char panel_name[256];
 
 pm_err_flag_type pm_smbchg_get_charger_path(uint32 device_index, pm_smbchg_usb_chgpth_pwr_pth_type* charger_path);
 pm_err_flag_type pm_appsbl_chg_config_vbat_low_threshold(uint32 device_index, pm_smbchg_specific_data_type *chg_param_ptr);
+static void display_thread_initialize();
 
 /*===========================================================================
 
@@ -173,6 +185,7 @@ pm_err_flag_type pm_appsbl_chg_check_weak_battery_status(uint32 device_index)
             vbatt_weak_status = FALSE;
             break; //bootup
          }
+		dprintf(INFO, "Vbatt Level: %u\n", vbat_adc);
    }
    else
    {
@@ -227,13 +240,10 @@ pm_err_flag_type pm_appsbl_chg_check_weak_battery_status(uint32 device_index)
 
       charge_in_progress = true;
 #if DISPLAY_SPLASH_SCREEN
-      if (!display_initialized)
-         target_display_init(panel_name);
-      display_initialized = true;
+	display_thread_initialize();
 #endif
       /* Wait for 500 msecs before looking for vbat */
       udelay(PM_WEAK_BATTERY_CHARGING_DELAY); //500ms
-
 
       //Check if Charging in progress
       err_flag |= pm_smbchg_chgr_get_chgr_sts(device_index, &vbatt_chging_status);
@@ -583,4 +593,84 @@ pm_err_flag_type pm_appsbl_set_dcin_suspend(uint32_t device_index)
 	err_flag = pm_smbchg_usb_chgpth_set_cmd_il(device_index, PM_SMBCHG_USBCHGPTH_CMD_IL__DCIN_SUSPEND, TRUE);
 
 	return err_flag;
+}
+
+static bool is_power_key_pressed()
+{
+	int count = 0;
+
+	if (pm8x41_get_pwrkey_is_pressed())
+	{
+		while(count++ < 10 && pm8x41_get_pwrkey_is_pressed())
+			thread_sleep(100);
+
+		dprintf(INFO, "Power Key Pressed\n");
+		return true;
+	}
+
+	return false;
+}
+
+bool pm_app_display_shutdown_in_prgs()
+{
+	return display_shutdown_in_prgs;
+}
+
+static int display_charger_screen()
+{
+	static bool display_init_first_time;
+
+	/* By default first time display the charger screen
+	 * Wait for 5 seconds and turn off the display
+	 * If user presses power key & charging is in progress display the charger screen
+	 */
+	do {
+		if (!display_init_first_time || (is_power_key_pressed() && charge_in_progress))
+		{
+			/* Display charger screen */
+			target_display_init(panel_name);
+			/* wait for 5 seconds to show the charger screen */
+			display_initialized = true;
+			thread_sleep(PM_CHARGE_DISPLAY_TIMEOUT);
+			/* Shutdown the display: If the charging is complete
+			 * continue boot up with display on
+			 */
+			if (charge_in_progress)
+			{
+				display_shutdown_in_prgs = true;
+				target_display_shutdown();
+				display_shutdown_in_prgs = false;
+				display_initialized = false;
+			}
+			display_init_first_time = true;
+		}
+		/* Wait for 100ms before reading the pmic interrupt status
+		 * again, reading the pmic interrupt status in a loop without delays
+		 * reports false key presses */
+		thread_sleep(100);
+	} while (charge_in_progress);
+
+	return 0;
+}
+
+/* Create a thread to monitor power key press events
+ * and turn on/off the display for battery
+ */
+static void display_thread_initialize()
+{
+	thread_t *thr = NULL;
+	static bool is_thread_start;
+
+	if (!is_thread_start)
+	{
+		thr = thread_create("display_charger_screen", &display_charger_screen, NULL, DEFAULT_PRIORITY, DEFAULT_STACK_SIZE);
+		if (!thr)
+		{
+			dprintf(CRITICAL, "Error: Could not create display charger screen thread\n");
+			return;
+		}
+		thread_resume(thr);
+
+		is_thread_start = true;
+	}
 }

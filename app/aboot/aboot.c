@@ -3199,6 +3199,8 @@ void aboot_init(const struct app_descriptor *app)
 #endif
 		dprintf(SPEW, "Display Init: Start\n");
 #if ENABLE_WBC
+		/* Wait if the display shutdown is in progress */
+		while(pm_app_display_shutdown_in_prgs());
 		if (!pm_appsbl_display_init_done())
 			target_display_init(device.display_panel);
 		else
