@@ -826,3 +826,8 @@ void target_usb_phy_mux_configure(void)
 		tcsr_hs_phy_mux_configure();
 	}
 }
+
+uint32_t target_get_pmic()
+{
+	return PMIC_IS_PM8941;
+}

@@ -522,3 +522,8 @@ void pmic_reset_configure(uint8_t reset_type)
 {
 	pm8994_reset_configure(reset_type);
 }
+
+uint32_t target_get_pmic()
+{
+	return PMIC_IS_PMI8996;
+}

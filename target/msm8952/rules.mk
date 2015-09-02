@@ -28,6 +28,7 @@ MODULES += \
 	dev/vib \
 	lib/libfdt \
 	dev/qpnp_wled \
+	dev/pmic/pmi8994 \
 	dev/gcdb/display
 
 DEFINES += \

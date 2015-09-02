@@ -21,6 +21,7 @@ MODULES += \
 	lib/ptable \
 	dev/pmic/pm8x41 \
 	lib/libfdt \
+	dev/pmic/pmi8994 \
 	dev/gcdb/display
 
 DEFINES += \

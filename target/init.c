@@ -29,13 +29,25 @@
 #include <dload_util.h>
 #include <sdhci_msm.h>
 #if PON_VIB_SUPPORT
-#include <smem.h>
 #include <vibrator.h>
 #include <board.h>
 #endif
 
+#include <smem.h>
+#include <pm8x41_adc.h>
+#include <pm8x41_hw.h>
+
+#if CHECK_BAT_VOLTAGE
+#include <pm_fg_adc_usr.h>
+#endif
+
 #define EXPAND(NAME) #NAME
 #define TARGET(NAME) EXPAND(NAME)
+
+#define BATTERY_MIN_VOLTAGE		3600000  //uv
+#define PMIC_SLAVE_ID                   0x20000
+#define BAT_IF_BAT_PRES_STATUS		0x1208
+
 /*
  * default implementations of these routines, if the target code
  * chooses not to implement.
@@ -260,3 +272,91 @@ __WEAK bool target_build_variant_user()
 	return false;
 #endif
 }
+
+__WEAK uint32_t target_get_pmic()
+{
+	return PMIC_IS_UNKNOWN;
+}
+
+/* Check battery if it's exist */
+bool target_battery_is_present()
+{
+	bool batt_is_exist;
+	uint8_t value = 0;
+	uint32_t pmic;
+
+	pmic = target_get_pmic();
+
+	switch(pmic)
+	{
+		case PMIC_IS_PM8909:
+		case PMIC_IS_PM8916:
+		case PMIC_IS_PM8941:
+			value = REG_READ(BAT_IF_BAT_PRES_STATUS);
+			break;
+		case PMIC_IS_PMI8950:
+		case PMIC_IS_PMI8994:
+		case PMIC_IS_PMI8996:
+			value = REG_READ(PMIC_SLAVE_ID|
+			BAT_IF_BAT_PRES_STATUS);
+			break;
+		default:
+			dprintf(CRITICAL, "ERROR: Couldn't get the pmic type\n");
+			break;
+	}
+
+	batt_is_exist = value >> 7;
+
+	return batt_is_exist;
+
+}
+
+#if CHECK_BAT_VOLTAGE
+/* Return battery voltage */
+uint32_t target_get_battery_voltage()
+{
+	uint32_t pmic;
+	uint32_t vbat = 0;
+
+	pmic = target_get_pmic();
+
+	switch(pmic)
+	{
+		case PMIC_IS_PM8909:
+		case PMIC_IS_PM8916:
+		case PMIC_IS_PM8941:
+			vbat = pm8x41_get_batt_voltage(); //uv
+			break;
+		case PMIC_IS_PMI8950:
+		case PMIC_IS_PMI8994:
+		case PMIC_IS_PMI8996:
+			if (!pm_fg_usr_get_vbat(1, &vbat)) {
+				vbat = vbat*1000; //uv
+			} else {
+				dprintf(CRITICAL, "ERROR: Get battery voltage failed!!!\n");
+			}
+			break;
+		default:
+			dprintf(CRITICAL, "ERROR: Couldn't get the pmic type\n");
+			break;
+	}
+
+	return vbat;
+}
+
+/* Add safeguards such as refusing to flash if minimum battery levels
+ * are not present or be bypass if the device doesn't have a battery
+ */
+bool target_battery_soc_ok()
+{
+	if (!target_battery_is_present()) {
+		dprintf(INFO, "battery is not present\n");
+		return true;
+	}
+
+	if (target_get_battery_voltage() >= BATTERY_MIN_VOLTAGE)
+		return true;
+
+	return false;
+}
+#endif

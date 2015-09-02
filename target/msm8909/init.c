@@ -49,6 +49,7 @@
 #include <gpio.h>
 #include <rpm-smd.h>
 #include <qpic_nand.h>
+#include <smem.h>
 
 #if LONG_PRESS_POWER_ON
 #include <shutdown_detect.h>
@@ -697,4 +698,9 @@ uint32_t target_get_hlos_subtype()
 void pmic_reset_configure(uint8_t reset_type)
 {
 	pm8x41_reset_configure(reset_type);
+}
+
+uint32_t target_get_pmic()
+{
+	return PMIC_IS_PM8909;
 }
