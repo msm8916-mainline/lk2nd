@@ -631,7 +631,6 @@ ifeq ($(ENABLE_PARTIAL_GOODS_SUPPORT), 1)
 	OBJS += $(LOCAL_DIR)/partial_goods.o
 endif
 
-
 ifeq ($(ENABLE_REBOOT_MODULE), 1)
 	OBJS += $(LOCAL_DIR)/reboot.o
 endif

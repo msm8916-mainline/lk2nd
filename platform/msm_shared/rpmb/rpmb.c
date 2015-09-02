@@ -76,6 +76,7 @@ int rpmb_init()
 		}
 		info.dev_type  = EMMC_RPMB;
 	}
+#ifdef UFS_SUPPORT
 	else
 	{
 		struct ufs_dev *ufs_dev = (struct ufs_dev *) dev;
@@ -84,6 +85,7 @@ int rpmb_init()
 		info.rel_wr_count = ufs_dev->rpmb_rw_size;
 		info.dev_type  = UFS_RPMB;
 	}
+#endif
 
 	/* Register & start the listener */
 	ret = rpmb_listener_start();
@@ -105,18 +107,26 @@ struct rpmb_init_info *rpmb_get_init_info()
 
 int rpmb_read(uint32_t *req, uint32_t req_len, uint32_t *resp, uint32_t *resp_len)
 {
+	int ret = 0;
 	if (platform_boot_dev_isemmc())
-		return rpmb_read_emmc(dev, req, req_len, resp, resp_len);
+		ret = rpmb_read_emmc(dev, req, req_len, resp, resp_len);
+#ifdef UFS_SUPPORT
 	else
-		return rpmb_read_ufs(dev, req, req_len, resp, resp_len);
+		ret = rpmb_read_ufs(dev, req, req_len, resp, resp_len);
+#endif
+	return ret;
 }
 
 int rpmb_write(uint32_t *req, uint32_t req_len, uint32_t rel_wr_count, uint32_t *resp, uint32_t *resp_len)
 {
+	int ret = 0;
 	if (platform_boot_dev_isemmc())
-		return rpmb_write_emmc(dev, req, req_len, rel_wr_count, resp, resp_len);
+		ret = rpmb_write_emmc(dev, req, req_len, rel_wr_count, resp, resp_len);
+#ifdef UFS_SUPPORT
 	else
-		return rpmb_write_ufs(dev, req, req_len, rel_wr_count, resp, resp_len);
+		ret = rpmb_write_ufs(dev, req, req_len, rel_wr_count, resp, resp_len);
+#endif
+	return ret;
 }
 
 /* This API calls into TZ app to read device_info */
