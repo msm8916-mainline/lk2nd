@@ -78,6 +78,9 @@
 #define QUSB2_PHY_BASE              0x7411000
 #define GCC_QUSB2_PHY_BCR           (CLK_CTL_BASE + 0x00012038)
 
+#define AHB2_PHY_BASE               0x7416000
+#define PERIPH_SS_AHB2PHY_TOP_CFG   (AHB2_PHY_BASE + 0x10)
+
 /* Clocks */
 #define CLK_CTL_BASE                0x300000
 
