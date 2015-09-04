@@ -83,4 +83,30 @@ enum {
     DSI_PLL1,
 };
 
+static inline bool is_dsi_config_split(void)
+{
+	struct panel_struct panelstruct = mdss_dsi_get_panel_data();
+
+	return panelstruct.paneldata->panel_node_id &&
+		panelstruct.paneldata->slave_panel_node_id &&
+		(panelstruct.paneldata->panel_operating_mode & (DUAL_DSI_FLAG |
+		SPLIT_DISPLAY_FLAG | DST_SPLIT_FLAG));
+}
+
+static inline bool is_dsi_config_dual(void)
+{
+	struct oem_panel_data *oem_data = mdss_dsi_get_oem_data_ptr();
+
+	return !is_dsi_config_split() && oem_data->sec_panel &&
+		strcmp(oem_data->sec_panel, "");
+}
+
+static inline bool is_dsi_config_single()
+{
+	struct panel_struct panelstruct = mdss_dsi_get_panel_data();
+
+	return panelstruct.paneldata->panel_node_id && !is_dsi_config_split()
+		&& !is_dsi_config_dual();
+}
+
 #endif /*_GCDB_DISPLAY_H_ */
