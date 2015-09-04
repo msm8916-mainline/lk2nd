@@ -66,6 +66,7 @@ int platform_is_msm8939();
 int platform_is_msm8909();
 int platform_is_msm8992();
 int platform_is_msm8956();
+uint32_t platform_is_msm8976_v_1_1();
 int boot_device_mask(int);
 uint32_t platform_detect_panel();
 uint32_t platform_get_max_periph();
