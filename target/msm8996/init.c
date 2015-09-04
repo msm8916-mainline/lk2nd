@@ -326,6 +326,7 @@ int target_cont_splash_screen()
 			case HW_PLATFORM_SURF:
 			case HW_PLATFORM_MTP:
 			case HW_PLATFORM_FLUID:
+			case HW_PLATFORM_QRD:
 				dprintf(SPEW, "Target_cont_splash=1\n");
 				splash_screen = 1;
 				break;
