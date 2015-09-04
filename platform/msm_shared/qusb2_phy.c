@@ -25,7 +25,7 @@
  * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
+#include <arch/defines.h>
 #include <platform/iomap.h>
 #include <qusb2_phy.h>
 #include <reg.h>
@@ -54,6 +54,10 @@ void qusb2_phy_reset(void)
 	writel(val, GCC_QUSB2_PHY_BCR);
 	udelay(10);
 	writel(val & ~BIT(0), GCC_QUSB2_PHY_BCR);
+
+	/* configure the abh2 phy to wait state */
+	writel(0x11, PERIPH_SS_AHB2PHY_TOP_CFG);
+	dmb();
 
 	/* set CLAMP_N_EN and stay with disabled USB PHY */
 	writel(0x23, QUSB2PHY_PORT_POWERDOWN);

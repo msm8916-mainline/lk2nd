@@ -180,6 +180,8 @@ uint32_t platform_boot_config();
 /* SS QMP (Qulacomm Multi Protocol) */
 #define QMP_PHY_BASE                0x78000
 
+#define AHB2_PHY_BASE               0x0007e000
+#define PERIPH_SS_AHB2PHY_TOP_CFG   (AHB2_PHY_BASE + 0x10)
 /* QMP register offset */
 #define PLATFORM_QMP_OFFSET         0x8
 
