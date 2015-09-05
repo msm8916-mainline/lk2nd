@@ -430,6 +430,7 @@ enum {
 	APQ8052  = 289,
 	MDMFERMIUM  = 290,
 	APQ8096  = 291,
+	MSMTHORIUM = 294,
 };
 
 enum platform {
