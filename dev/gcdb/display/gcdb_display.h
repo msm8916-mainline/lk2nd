@@ -72,6 +72,7 @@ struct oem_panel_data  {
 	char sec_panel[MAX_PANEL_ID_LEN];
 	bool cont_splash;
 	bool skip;
+	bool swap_dsi_ctrl;
 	uint32_t sim_mode;
 	char dsi_config[DSI_CFG_SIZE];
 	uint32_t dsi_pll_src;
