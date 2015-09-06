@@ -91,6 +91,7 @@ static struct lk_log log = {
 
 static void log_putc(char c)
 {
+	if(!c) return;
 	log.data[log.header.idx++] = c;
 	log.header.size_written++;
 	if (unlikely(log.header.idx >= log.header.max_size))
