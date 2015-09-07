@@ -41,13 +41,11 @@
 #include <platform/gpio.h>
 #include <platform/iomap.h>
 #include <platform.h>
+#include <reboot.h>
 #include <../../../app/aboot/recovery.h>
 
 #define KEY_DETECT_FREQUENCY		50
 #define KEY_PRESS_TIMEOUT		5000
-
-#define RECOVERY_MODE   0x77665502
-#define FASTBOOT_MODE   0x77665500
 
 static uint32_t wait_time = 0;
 static int old_device_type = -1;
@@ -92,14 +90,18 @@ static int is_key_pressed(int keys_type)
 	return 0;
 }
 
-static void update_device_status(unsigned reason)
+static void update_device_status(unsigned reason, int type)
 {
 	if (reason == RECOVER) {
-		/* wipe data */
-		struct recovery_message msg;
+		if (type == DISPLAY_MENU_UNLOCK) {
+			set_oem_unlock();
 
-		snprintf(msg.recovery, sizeof(msg.recovery), "recovery\n--wipe_data");
-		write_misc(0, &msg, sizeof(msg));
+			/* wipe data */
+			struct recovery_message msg;
+
+			snprintf(msg.recovery, sizeof(msg.recovery), "recovery\n--wipe_data");
+			write_misc(0, &msg, sizeof(msg));
+		}
 
 		reboot_device(RECOVERY_MODE);
 	} else if (reason == RESTART) {
@@ -208,14 +210,14 @@ static uint32_t unlock_power_key_func (struct select_msg_info* msg_info,
 	else if (option_index == 1)
 		device_state = RESTART;
 
-	update_device_status(device_state);
+	update_device_status(device_state, msg_info->msg_type);
 	return 0;
 }
 
 /* continue booting when power key is pressed at boot-verify page1 */
 static uint32_t boot_page1_power_key_func (struct select_msg_info* msg_info,
 	uint32_t option_index){
-	update_device_status(CONTINUE);
+	update_device_status(CONTINUE, msg_info->msg_type);
 	return option_index;
 }
 
@@ -231,7 +233,7 @@ static uint32_t boot_page2_power_key_func (struct select_msg_info* msg_info,
 			old_device_type);
 	} else {
 		msg_info->msg_power_key_pressed = true;
-		update_device_status(option_index);
+		update_device_status(option_index, msg_info->msg_type);
 	}
 	return option_index;
 }
