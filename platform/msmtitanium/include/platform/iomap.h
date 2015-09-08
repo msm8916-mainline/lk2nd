@@ -144,6 +144,17 @@
 #define MSM_USB30_BASE               0x7000000
 #define USB2_PHY_SEL                0x01937000
 
+/* RPMB send receive buffer needs to be mapped
+ * as device memory, define the start address
+ * and size in MB
+ */
+#define RPMB_SND_RCV_BUF            0x90000000
+#define RPMB_SND_RCV_BUF_SZ         0x1
+
+/* QSEECOM: Secure app region notification */
+#define APP_REGION_ADDR 0x85E00000
+#define APP_REGION_SIZE 0x500000
+
 #define TCSR_TZ_WONCE               0x193D000
 #define TCSR_BOOT_MISC_DETECT       0x193D100
 
