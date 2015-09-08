@@ -628,6 +628,7 @@ ifeq ($(PLATFORM),msmtitanium)
 			$(LOCAL_DIR)/bam.o \
 			$(LOCAL_DIR)/qpic_nand.o \
 			$(LOCAL_DIR)/scm.o \
+			$(LOCAL_DIR)/qseecom_lk.o \
 			$(LOCAL_DIR)/dev_tree.o \
 			$(LOCAL_DIR)/gpio.o
 endif
