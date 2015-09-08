@@ -76,6 +76,7 @@ struct panel_lookup_list lookup_skip_panels[] = {
 	{"jdi_fhd_video", "qcom,mdss_dsi_jdi_fhd_video", false},
 	{"jdi_qhd_dualdsi_cmd", "qcom,mdss_dsi_jdi_qhd_dualmipi_cmd", true},
 	{"jdi_qhd_dualdsi_video", "qcom,dsi_jdi_qhd_video", true},
+	{"jdi_4k_dualdsi_video_nofbc", "qcom,dsi_jdi_4k_nofbc_video", true},
 	{"nt35521_720p_video", "qcom,mdss_dsi_nt35521_720p_video", false},
 	{"nt35521_wxga_video", "qcom,mdss_dsi_nt35521_wxga_video", false},
 	{"nt35590_720p_cmd", "qcom,mdss_dsi_nt35590_720p_cmd", false},
@@ -101,6 +102,8 @@ struct panel_lookup_list lookup_skip_panels[] = {
 	{"truly_1080p_video", "qcom,mdss_dsi_truly_1080p_video", false},
 	{"truly_wvga_cmd", "qcom,mdss_dsi_truly_wvga_cmd", false},
 	{"truly_wvga_video", "qcom,mdss_dsi_truly_wvga_video", false},
+	{"adv16", "qcom,mdss_dsi_adv7533_1080p", false},
+	{"adv4", "qcom,mdss_dsi_adv7533_720p", false},
 };
 
 struct sim_lookup_list lookup_sim[] = {

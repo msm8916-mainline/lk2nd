@@ -1069,7 +1069,8 @@ int boot_linux_from_mmc(void)
 	 * 4. Sanity Check on kernel_addr and ramdisk_addr and copy data.
 	 */
 
-	dprintf(INFO, "Loading boot image (%d): start\n", imagesize_actual);
+	dprintf(INFO, "Loading (%s) image (%d): start\n",
+			(!boot_into_recovery ? "boot" : "recovery"),imagesize_actual);
 	bs_set_timestamp(BS_KERNEL_LOAD_START);
 
 	/* Read image without signature */
@@ -1079,7 +1080,9 @@ int boot_linux_from_mmc(void)
 		return -1;
 	}
 
-	dprintf(INFO, "Loading boot image (%d): done\n", imagesize_actual);
+	dprintf(INFO, "Loading (%s) image (%d): done\n",
+			(!boot_into_recovery ? "boot" : "recovery"),imagesize_actual);
+
 	bs_set_timestamp(BS_KERNEL_LOAD_DONE);
 
 	/* Authenticate Kernel */
@@ -1409,7 +1412,8 @@ int boot_linux_from_flash(void)
 		imagesize_actual = (page_size + kernel_actual + ramdisk_actual);
 #endif
 
-		dprintf(INFO, "Loading boot image (%d): start\n", imagesize_actual);
+		dprintf(INFO, "Loading (%s) image (%d): start\n",
+			(!boot_into_recovery ? "boot" : "recovery"),imagesize_actual);
 		bs_set_timestamp(BS_KERNEL_LOAD_START);
 
 		/* Read image without signature */
@@ -1419,7 +1423,8 @@ int boot_linux_from_flash(void)
 				return -1;
 		}
 
-		dprintf(INFO, "Loading boot image (%d): done\n", imagesize_actual);
+		dprintf(INFO, "Loading (%s) image (%d): done\n",
+			(!boot_into_recovery ? "boot" : "recovery"), imagesize_actual);
 		bs_set_timestamp(BS_KERNEL_LOAD_DONE);
 
 		offset = imagesize_actual;
@@ -1463,8 +1468,9 @@ int boot_linux_from_flash(void)
 		ramdisk_actual = ROUND_TO_PAGE(hdr->ramdisk_size, page_mask);
 		second_actual = ROUND_TO_PAGE(hdr->second_size, page_mask);
 
-		dprintf(INFO, "Loading boot image (%d): start\n",
-				kernel_actual + ramdisk_actual);
+		dprintf(INFO, "Loading (%s) image (%d): start\n",
+				(!boot_into_recovery ? "boot" : "recovery"), kernel_actual + ramdisk_actual);
+
 		bs_set_timestamp(BS_KERNEL_LOAD_START);
 
 		if (flash_read(ptn, offset, (void *)hdr->kernel_addr, kernel_actual)) {
@@ -1479,8 +1485,9 @@ int boot_linux_from_flash(void)
 		}
 		offset += ramdisk_actual;
 
-		dprintf(INFO, "Loading boot image (%d): done\n",
-				kernel_actual + ramdisk_actual);
+		dprintf(INFO, "Loading (%s) image (%d): done\n",
+				(!boot_into_recovery ? "boot" : "recovery"), kernel_actual + ramdisk_actual);
+
 		bs_set_timestamp(BS_KERNEL_LOAD_DONE);
 
 		if(hdr->second_size != 0) {
@@ -3270,6 +3277,8 @@ void aboot_init(const struct app_descriptor *app)
 #endif
 		dprintf(SPEW, "Display Init: Start\n");
 #if ENABLE_WBC
+		/* Wait if the display shutdown is in progress */
+		while(pm_app_display_shutdown_in_prgs());
 		if (!pm_appsbl_display_init_done())
 			target_display_init(device.display_panel);
 		else

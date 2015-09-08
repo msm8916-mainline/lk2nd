@@ -118,7 +118,7 @@ void platform_init_mmu_mappings(void)
 	sections = 90;
 	while(sections--)
 	{
-		arm_mmu_map_section(ddr_start + sections * MB, ddr_start + sections* MB, COMMON_MEMORY);
+		arm_mmu_map_section(ddr_start + sections * MB, ddr_start + sections* MB, SCRATCH_MEMORY);
 	}
 
 

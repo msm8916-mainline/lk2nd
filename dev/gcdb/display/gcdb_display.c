@@ -408,20 +408,51 @@ struct panel_struct mdss_dsi_get_panel_data(void)
 	return panelstruct;
 }
 
+static void mdss_dsi_check_swap_status(void)
+{
+	char *panel_dest, *dsi_controller;
+	struct oem_panel_data *oem_data = mdss_dsi_get_oem_data_ptr();
+
+	if (!oem_data->swap_dsi_ctrl)
+		return;
+
+	if (panelstruct.paneldata->panel_operating_mode &
+		(SPLIT_DISPLAY_FLAG | DUAL_DSI_FLAG)) {
+		dprintf(CRITICAL, "DSI swap invalid for split DSI panel!\n");
+		return;
+	}
+
+	/* Swap the panel destination and use appropriate PLL */
+	if (!strcmp(panelstruct.paneldata->panel_destination, "DISPLAY_1")) {
+		panel_dest = "DISPLAY_2";
+		dsi_controller = "dsi:1:";
+		panelstruct.paneldata->panel_operating_mode |= USE_DSI1_PLL_FLAG;
+	} else {
+		panel_dest = "DISPLAY_1";
+		dsi_controller = "dsi:0:";
+		panelstruct.paneldata->panel_operating_mode &= ~USE_DSI1_PLL_FLAG;
+	}
+	panelstruct.paneldata->panel_destination = panel_dest;
+	panelstruct.paneldata->panel_controller = dsi_controller;
+}
+
 static void mdss_dsi_set_pll_src(void)
 {
 	struct oem_panel_data *oem_data = mdss_dsi_get_oem_data_ptr();
 
-	if (panelstruct.paneldata->panel_operating_mode & USE_DSI1_PLL_FLAG)
+	/* Set PLL_SRC to PLL1 for non dual-DSI cases only */
+	if (!is_dsi_config_dual() &&
+		(panelstruct.paneldata->panel_operating_mode &
+		USE_DSI1_PLL_FLAG))
 		oem_data->dsi_pll_src = DSI_PLL1;
 
-	if (strcmp(oem_data->sec_panel, "")) {
+	if (is_dsi_config_dual()) {
 		if (oem_data->dsi_pll_src != DSI_PLL_DEFAULT) {
 			dprintf(CRITICAL, "Dual DSI config detected!"
 				"Use default PLL\n");
 			oem_data->dsi_pll_src = DSI_PLL_DEFAULT;
 		}
-	} else if (panelstruct.paneldata->slave_panel_node_id) {
+	} else if (is_dsi_config_split()) {
 		if((dsi_video_mode_phy_db.pll_type != DSI_PLL_TYPE_THULIUM)
 			&& (oem_data->dsi_pll_src == DSI_PLL1)) {
 			dprintf(CRITICAL, "Split DSI on 28nm/20nm!"
@@ -441,10 +472,9 @@ static void mdss_dsi_set_pll_src(void)
 	if (oem_data->dsi_pll_src == DSI_PLL1)
 		panelstruct.paneldata->panel_operating_mode |=
 			USE_DSI1_PLL_FLAG;
-	else
+	else if (oem_data->dsi_pll_src == DSI_PLL0)
 		panelstruct.paneldata->panel_operating_mode &=
 			~USE_DSI1_PLL_FLAG;
-
 }
 
 int gcdb_display_init(const char *panel_name, uint32_t rev, void *base)
@@ -458,6 +488,7 @@ int gcdb_display_init(const char *panel_name, uint32_t rev, void *base)
 
 	if (pan_type == PANEL_TYPE_DSI) {
 		target_dsi_phy_config(&dsi_video_mode_phy_db);
+		mdss_dsi_check_swap_status();
 		mdss_dsi_set_pll_src();
 		if (dsi_panel_init(&(panel.panel_info), &panelstruct)) {
 			dprintf(CRITICAL, "DSI panel init failed!\n");

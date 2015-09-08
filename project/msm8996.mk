@@ -98,5 +98,7 @@ DEFINES += PLATFORM_USE_SCM_DLOAD=1
 ENABLE_REBOOT_MODULE := 1
 #fuse for Qusb tun2 config
 DEFINES += QFPROM_CORR_CALIB_ROW12_MSB=0x0007424C
+#Use misc settings for qmp
+DEFINES += PLATFORM_USE_QMP_MISC=1
 #Use PON register for reboot reason
 DEFINES += USE_PON_REBOOT_REG=1

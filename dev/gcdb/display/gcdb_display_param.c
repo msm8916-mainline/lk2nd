@@ -37,7 +37,8 @@
 #include "target/display.h"
 #include "fastboot_oem_display.h"
 
-struct oem_panel_data oem_data = {{'\0'}, {'\0'}, false, false, SIM_NONE, "single_dsi", DSI_PLL_DEFAULT};
+struct oem_panel_data oem_data = {{'\0'}, {'\0'}, false, false, false, SIM_NONE,
+	"single_dsi", DSI_PLL_DEFAULT};
 
 static int panel_name_to_dt_string(struct panel_lookup_list supp_panels[],
 			  uint32_t supp_panels_size,
@@ -194,6 +195,10 @@ void set_panel_cmd_string(const char *panel_name)
 	/* Cont. splash status */
 	ch = strstr((char *) panel_name, ":disable");
 	oem_data.cont_splash = ch ? false : true;
+
+	/* Interposer card to swap DSI0 and DSI1 lanes */
+	ch = strstr((char *) panel_name, ":swap");
+	oem_data.swap_dsi_ctrl = ch ? true : false;
 
 	/* DSI PLL source */
 	ch = strstr((char *) panel_name, ":pll0");

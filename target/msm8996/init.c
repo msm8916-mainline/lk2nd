@@ -293,8 +293,16 @@ void target_init(void)
 	 * Charging should happen as early as possible, any other driver
 	 * initialization before this should consider the power impact
 	 */
-	if (board_hardware_id() == HW_PLATFORM_MTP)
-		pm_appsbl_chg_check_weak_battery_status(1);
+	switch(board_hardware_id())
+	{
+		case HW_PLATFORM_MTP:
+		case HW_PLATFORM_FLUID:
+			pm_appsbl_chg_check_weak_battery_status(1);
+			break;
+		default:
+			/* Charging not supported */
+			break;
+	};
 #endif
 
 	/* Initialize Qseecom */
@@ -347,12 +355,13 @@ static uint8_t splash_override;
 int target_cont_splash_screen()
 {
 	uint8_t splash_screen = 0;
-	if(!splash_override) {
+	if(!splash_override && !pm_appsbl_charging_in_progress()) {
 		switch(board_hardware_id())
 		{
 			case HW_PLATFORM_SURF:
 			case HW_PLATFORM_MTP:
 			case HW_PLATFORM_FLUID:
+			case HW_PLATFORM_QRD:
 				dprintf(SPEW, "Target_cont_splash=1\n");
 				splash_screen = 1;
 				break;

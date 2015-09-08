@@ -210,7 +210,7 @@ static char fl10802_fwvga_video_on_cmd16[] = {
 
 static char fl10802_fwvga_video_on_cmd17[] = {
 	0x02, 0x00, 0x39, 0xC0,
-	0x53, 0x2C, 0xFF, 0xFF,
+	0x53, 0x24, 0xFF, 0xFF,
 };
 
 static char fl10802_fwvga_video_on_cmd18[] = {
@@ -220,7 +220,7 @@ static char fl10802_fwvga_video_on_cmd18[] = {
 
 static char fl10802_fwvga_video_on_cmd19[] = {
 	0x02, 0x00, 0x39, 0xC0,
-	0x51, 0xFF, 0xFF, 0xFF,
+	0x51, 0x00, 0xFF, 0xFF,
 };
 
 static char fl10802_fwvga_video_on_cmd20[] = {
@@ -229,6 +229,11 @@ static char fl10802_fwvga_video_on_cmd20[] = {
 
 static char fl10802_fwvga_video_on_cmd21[] = {
 	0x29, 0x00, 0x05, 0x80
+};
+
+static char fl10802_fwvga_video_on_cmd22[] = {
+	0x02, 0x00, 0x39, 0xC0,
+	0x51, 0xFF, 0xFF, 0xFF,
 };
 
 static struct mipi_dsi_cmd fl10802_fwvga_video_on_command[] = {
@@ -253,10 +258,11 @@ static struct mipi_dsi_cmd fl10802_fwvga_video_on_command[] = {
 	{0x8, fl10802_fwvga_video_on_cmd18, 0x00},
 	{0x8, fl10802_fwvga_video_on_cmd19, 0x00},
 	{0x4, fl10802_fwvga_video_on_cmd20, 0x78},
-	{0x4, fl10802_fwvga_video_on_cmd21, 0x78}
+	{0x4, fl10802_fwvga_video_on_cmd21, 0x78},
+	{0x8, fl10802_fwvga_video_on_cmd22, 0x00}
 };
 
-#define FL10802_FWVGA_VIDEO_ON_COMMAND 22
+#define FL10802_FWVGA_VIDEO_ON_COMMAND 23
 
 
 static char fl10802_fwvga_videooff_cmd0[] = {
@@ -322,7 +328,7 @@ static struct panel_reset_sequence fl10802_fwvga_video_reset_seq = {
 /* Backlight setting                                                         */
 /*---------------------------------------------------------------------------*/
 static struct backlight fl10802_fwvga_video_backlight = {
-  1, 1, 255, 100, 2, "PMIC_8941"
+  BL_DCS, 1, 255, 100, 2, "PMIC_8941"
 };
 
 #define FL10802_FWVGA_VIDEO_SIGNATURE 0xFFFF

@@ -51,15 +51,6 @@
 #include "include/display_resource.h"
 #include "gcdb_display.h"
 
-#define DSC_CMD_PANEL "dsc_cmd_panel"
-#define DSC_VID_PANEL "dsc_vid_panel"
-#define DSC_VID_PANEL_ADV7533_1080P "dsc_vid_panel_adv7533_1080p"
-#define DSC_CMD_PANEL_ADV7533_1080P "dsc_cmd_panel_adv7533_1080p"
-#define DSC_CMD_PANEL_STRING "1:dsi:0:none:1:qcom,mdss_dsi_nt35597_dsc_wqxga_cmd:cfg:single_dsi"
-#define DSC_VID_PANEL_STRING "1:dsi:0:none:1:qcom,mdss_dsi_nt35597_dsc_wqxga_video:cfg:single_dsi"
-#define DSC_CMD_PANEL_ADV7533_1080P_STRING "1:dsi:0:qcom,mdss_dsi_adv7533_1080p:1:qcom,mdss_dsi_nt35597_dsc_wqxga_cmd:cfg:dual_dsi"
-#define DSC_VID_PANEL_ADV7533_1080P_STRING "1:dsi:0:qcom,mdss_dsi_adv7533_1080p:1:qcom,mdss_dsi_nt35597_dsc_wqxga_video:cfg:dual_dsi"
-
 /*---------------------------------------------------------------------------*/
 /* GPIO configuration                                                        */
 /*---------------------------------------------------------------------------*/
@@ -529,55 +520,7 @@ int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 
 bool target_display_panel_node(char *pbuf, uint16_t buf_size)
 {
-	int prefix_string_len = strlen(DISPLAY_CMDLINE_PREFIX);
-	bool ret = true;
-	struct oem_panel_data oem = mdss_dsi_get_oem_data();
-
-	if (!strcmp(oem.panel, DSC_CMD_PANEL)) {
-		if (buf_size < (prefix_string_len +
-			strlen(DSC_CMD_PANEL_STRING))) {
-			dprintf(CRITICAL, "DSC command line argument is greater than buffer size\n");
-			return false;
-		}
-		strlcpy(pbuf, DISPLAY_CMDLINE_PREFIX, buf_size);
-		buf_size -= prefix_string_len;
-		pbuf += prefix_string_len;
-		strlcpy(pbuf, DSC_CMD_PANEL_STRING, buf_size);
-	} else if (!strcmp(oem.panel, DSC_VID_PANEL)) {
-		if (buf_size < (prefix_string_len +
-			strlen(DSC_VID_PANEL_STRING))) {
-			dprintf(CRITICAL, "DSC command line argument is greater than buffer size\n");
-			return false;
-		}
-		strlcpy(pbuf, DISPLAY_CMDLINE_PREFIX, buf_size);
-		buf_size -= prefix_string_len;
-		pbuf += prefix_string_len;
-		strlcpy(pbuf, DSC_VID_PANEL_STRING, buf_size);
-	} else if (!strcmp(oem.panel, DSC_VID_PANEL_ADV7533_1080P)) {
-		if (buf_size < (prefix_string_len +
-			strlen(DSC_VID_PANEL_ADV7533_1080P_STRING))) {
-			dprintf(CRITICAL, "DSC command line argument is greater than buffer size\n");
-			return false;
-		}
-		strlcpy(pbuf, DISPLAY_CMDLINE_PREFIX, buf_size);
-		buf_size -= prefix_string_len;
-		pbuf += prefix_string_len;
-		strlcpy(pbuf, DSC_VID_PANEL_ADV7533_1080P_STRING, buf_size);
-	} else if (!strcmp(oem.panel, DSC_CMD_PANEL_ADV7533_1080P)) {
-		if (buf_size < (prefix_string_len +
-			strlen(DSC_CMD_PANEL_ADV7533_1080P_STRING))) {
-			dprintf(CRITICAL, "DSC command line argument is greater than buffer size\n");
-			return false;
-		}
-		strlcpy(pbuf, DISPLAY_CMDLINE_PREFIX, buf_size);
-		buf_size -= prefix_string_len;
-		pbuf += prefix_string_len;
-		strlcpy(pbuf, DSC_CMD_PANEL_ADV7533_1080P_STRING, buf_size);
-	} else {
-		ret = gcdb_display_cmdline_arg(pbuf, buf_size);
-	}
-
-	return ret;
+	return gcdb_display_cmdline_arg(pbuf, buf_size);
 }
 
 void target_display_init(const char *panel_name)
@@ -592,10 +535,6 @@ void target_display_init(const char *panel_name)
 	if (!strcmp(oem.panel, NO_PANEL_CONFIG)
 		|| !strcmp(oem.panel, SIM_VIDEO_PANEL)
 		|| !strcmp(oem.panel, SIM_CMD_PANEL)
-		|| !strcmp(oem.panel, DSC_CMD_PANEL)
-		|| !strcmp(oem.panel, DSC_VID_PANEL)
-		|| !strcmp(oem.panel, DSC_CMD_PANEL_ADV7533_1080P)
-		|| !strcmp(oem.panel, DSC_VID_PANEL_ADV7533_1080P)
 		|| oem.skip) {
 		dprintf(INFO, "Selected panel: %s\nSkip panel configuration\n",
 			oem.panel);
