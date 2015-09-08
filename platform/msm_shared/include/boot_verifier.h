@@ -158,4 +158,7 @@ void boot_verify_print_state();
 bool boot_verify_validate_keystore(unsigned char * user_addr);
 /* Function to check if partition is allowed to flash in verified mode */
 bool boot_verify_flash_allowed(const char * entry);
+bool boot_verify_compare_sha256(unsigned char *image_ptr,
+		unsigned int image_size, unsigned char *signature_ptr, RSA *rsa);
+KEYSTORE *boot_gerity_get_oem_keystore();
 #endif
