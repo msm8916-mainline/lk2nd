@@ -40,6 +40,9 @@
 #include <openssl/err.h>
 #include <platform.h>
 
+#define ASN1_ENCODED_SHA256_SIZE 0x33
+#define ASN1_ENCODED_SHA256_OFFSET 0x13
+
 static KEYSTORE *oem_keystore;
 static KEYSTORE *user_keystore;
 static uint32_t dev_boot_state = RED;
@@ -131,52 +134,25 @@ static uint32_t read_der_message_length(unsigned char* input)
 	return len;
 }
 
-static int verify_digest(unsigned char* input, unsigned char *digest, int hash_size)
-{
-	int ret = -1;
-	X509_SIG *sig = NULL;
-	uint32_t len = read_der_message_length(input);
-	if(!len)
-	{
-		dprintf(CRITICAL, "boot_verifier: Signature length is invalid.\n");
-		return ret;
-	}
-
-	sig = d2i_X509_SIG(NULL, &input, len);
-	if(sig == NULL)
-	{
-		dprintf(CRITICAL, "boot_verifier: Reading digest failed\n");
-		return ret;
-	}
-
-	if(sig->digest->length != SHA256_SIZE)
-	{
-		dprintf(CRITICAL, "boot_verifier: Digest length error.\n");
-		goto verify_digest_error;
-	}
-
-	if(memcmp(sig->digest->data, digest, hash_size) == 0)
-		ret = 0;
-
-verify_digest_error:
-	if(sig != NULL)
-		X509_SIG_free(sig);
-
-	return ret;
-}
-
 static int add_attribute_to_img(unsigned char *ptr, AUTH_ATTR *input)
 {
 	return i2d_AUTH_ATTR(input, &ptr);
 }
 
-static bool boot_verify_compare_sha256(unsigned char *image_ptr,
+bool boot_verify_compare_sha256(unsigned char *image_ptr,
 		unsigned int image_size, unsigned char *signature_ptr, RSA *rsa)
 {
 	int ret = -1;
 	bool auth = false;
 	unsigned char *plain_text = NULL;
-	unsigned int digest[8];
+
+	/* The magic numbers here are drawn from the PKCS#1 standard and are the ASN.1
+	 *encoding of the SHA256 object identifier that is required for a PKCS#1
+	* signature.*/
+	uint8_t digest[ASN1_ENCODED_SHA256_SIZE] = {0x30, 0x31, 0x30, 0x0d, 0x06,
+												0x09, 0x60, 0x86, 0x48, 0x01,
+												0x65, 0x03, 0x04, 0x02, 0x01,
+												0x05, 0x00, 0x04, 0x20};
 
 	plain_text = (unsigned char *)calloc(sizeof(char), SIGNATURE_SIZE);
 	if (plain_text == NULL) {
@@ -184,20 +160,35 @@ static bool boot_verify_compare_sha256(unsigned char *image_ptr,
 		goto cleanup;
 	}
 
-	/* Calculate SHA256sum */
+	/* Calculate SHA256 of image and place it into the ASN.1 structure*/
 	image_find_digest(image_ptr, image_size, CRYPTO_AUTH_ALG_SHA256,
-			(unsigned char *)&digest);
+			digest + ASN1_ENCODED_SHA256_OFFSET);
 
-	/* Find digest from the image */
+	/* Find digest from the image. This performs the PKCS#1 padding checks up to
+	 * but not including the ASN.1 OID and hash function check. The return value
+	 * is not positive for a failure or the length of the part after the padding */
 	ret = image_decrypt_signature_rsa(signature_ptr, plain_text, rsa);
 
-	dprintf(SPEW, "boot_verifier: Return of RSA_public_decrypt = %d\n",
+	/* Make sure the length returned from rsa decrypt is same as x509 signature format
+	 * otherwise the signature is invalid and we fail
+	 */
+	if (ret != ASN1_ENCODED_SHA256_SIZE)
+	{
+		dprintf(CRITICAL, "boot_verifier: Signature decrypt failed! Signature invalid = %d\n",
 			ret);
+		goto cleanup;
+	}
+	/* So plain_text contains the ASN.1 encoded hash from the signature and
+	* digest contains the value that this should be for the image that we're
+	* verifying, so compare them.*/
 
-	ret = verify_digest(plain_text, (unsigned char*)digest, SHA256_SIZE);
+	ret = memcmp(plain_text, digest, ASN1_ENCODED_SHA256_SIZE);
 	if(ret == 0)
 	{
 		auth = true;
+#ifdef TZ_SAVE_KERNEL_HASH
+		save_kernel_hash((unsigned char *) digest + ASN1_ENCODED_SHA256_OFFSET, CRYPTO_AUTH_ALG_SHA256);
+#endif
 	}
 
 cleanup:
@@ -518,4 +509,10 @@ static bool check_list(char**list, char* entry)
 bool boot_verify_flash_allowed(char * entry)
 {
 	return check_list(VERIFIED_FLASH_ALLOWED_PTN, entry);
+}
+
+KEYSTORE *boot_gerity_get_oem_keystore()
+{
+	read_oem_keystore();
+	return oem_keystore;
 }
