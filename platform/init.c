@@ -111,7 +111,7 @@ __WEAK void clock_config_cdc(uint32_t slot)
 }
 
 __WEAK int get_target_boot_params(const char *cmdline, const char *part,
-				  char *buf, int buflen)
+				  char **buf)
 {
 	return -1;
 }

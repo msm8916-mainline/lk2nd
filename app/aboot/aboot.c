@@ -93,7 +93,7 @@ extern  bool target_use_signed_kernel(void);
 extern void platform_uninit(void);
 extern void target_uninit(void);
 extern int get_target_boot_params(const char *cmdline, const char *part,
-				  char *buf, int buflen);
+				  char **buf);
 
 void *info_buf;
 void write_device_info_mmc(device_info *dev);
@@ -165,7 +165,7 @@ static unsigned page_size = 0;
 static unsigned page_mask = 0;
 static char ffbm_mode_string[FFBM_MODE_BUF_SIZE];
 static bool boot_into_ffbm;
-static char target_boot_params[64];
+static char *target_boot_params = NULL;
 static bool boot_reason_alarm;
 static bool devinfo_present = true;
 
@@ -303,8 +303,7 @@ unsigned char *update_cmdline(const char * cmdline)
 
 	if (get_target_boot_params(cmdline, boot_into_recovery ? "recoveryfs" :
 								 "system",
-				   target_boot_params,
-				   sizeof(target_boot_params)) == 0) {
+						&target_boot_params) == 0) {
 		have_target_boot_params = 1;
 		cmdline_len += strlen(target_boot_params);
 	}
@@ -517,6 +516,7 @@ unsigned char *update_cmdline(const char * cmdline)
 			if (have_cmdline) --dst;
 			src = target_boot_params;
 			while ((*dst++ = *src++));
+			free(target_boot_params);
 		}
 	}
 
