@@ -13,6 +13,7 @@ DEBUG := 1
 endif
 
 EMMC_BOOT := 1
+ENABLE_SECAPP_LOADER := 1
 
 ENABLE_SMD_SUPPORT := 1
 #ENABLE_PWM_SUPPORT := true
@@ -69,4 +70,4 @@ CFLAGS += -Werror
 DEFINES += USE_TARGET_HS200_DELAY=1
 
 #Enable the external reboot functions
-#ENABLE_REBOOT_MODULE := 1
+ENABLE_REBOOT_MODULE := 1
