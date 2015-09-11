@@ -31,6 +31,9 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pm_smbchg_driver.h"
 #include "pm_err_flags.h"
 #include "pm_comm.h"
+#include "pm_fg_adc_usr.h"
+#include "pm_fg_driver.h"
+#include <platform/timer.h>
 #include <sys/types.h>
 
 /*===========================================================================
@@ -41,6 +44,8 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define OFFSET_LSB_NUM        12   //Offset LSB Numerator
 #define OFFSET_LSB_DENOM      10   //Offset LSB Denominator
 #define GAIN_LSB_DENOM       400  // Gain LSB is 0.32/128 = 1/400
+#define  PM_MAX_ADC_READY_DELAY     2000
+#define  PM_MIN_ADC_READY_DELAY     1 * 1000  //1ms
 
 /*===========================================================================
                          FUNCTION DEFINITIONS
@@ -1266,3 +1271,35 @@ pm_err_flag_type pm_fg_adc_usr_get_calibrated_vbat(uint32 pmic_device, uint32 *c
   return errFlag;
 }
 
+pm_err_flag_type pm_fg_usr_get_vbat(uint32 pmic_device, uint32 *calibrated_vbat)
+{
+	uint16	wait_index = 0;
+	boolean adc_reading_ready = FALSE;
+
+	pm_err_flag_type err_flag = PM_ERR_FLAG__SUCCESS;
+
+	pm_fg_driver_init(pmic_device);
+
+	//Check Vbatt ADC level
+	err_flag |= pm_fg_adc_usr_get_bcl_values(pmic_device, &adc_reading_ready); //Check if Vbatt ADC is ready
+
+	//Check if Vbatt ADC is Ready
+	for (wait_index = 0; wait_index < PM_MAX_ADC_READY_DELAY; wait_index++) {
+		if(adc_reading_ready == FALSE) {
+		udelay(PM_MIN_ADC_READY_DELAY);
+		err_flag |= pm_fg_adc_usr_get_bcl_values(pmic_device, &adc_reading_ready);
+		} else {
+			break;
+		}
+	}
+
+	if ( err_flag != PM_ERR_FLAG__SUCCESS )  {
+		return err_flag;
+	}
+
+	if (adc_reading_ready) {
+		err_flag |= pm_fg_adc_usr_get_calibrated_vbat(pmic_device, calibrated_vbat); //Read calibrated vbatt ADC
+	}
+
+	return err_flag;
+}

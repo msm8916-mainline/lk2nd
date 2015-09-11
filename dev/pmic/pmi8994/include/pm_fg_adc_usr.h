@@ -545,5 +545,20 @@ pm_err_flag_type pm_fg_adc_usr_get_calibrated_ibat(uint32 pmic_device, int32 *ca
 */
 pm_err_flag_type pm_fg_adc_usr_get_calibrated_vbat(uint32 pmic_device, uint32 *calibrated_vbat);
 
-
+/**
+* @brief This function returns battery ADC Voltage after gain calibration*
+*  This function with fg driver's initialize and battery status checking
+* @details
+*  calibrated_value = raw_data * (1 + gain)
+*
+* @param[in] pmic_device_index  Primary: 0 Secondary: 1
+* @param[out]calibrated_vbat    Calibrated Battery Voltage
+*
+* @return  pm_err_flag_type
+*          PM_ERR_FLAG__FEATURE_NOT_SUPPORTED = Feature not available on this
+*          version of the PMIC.
+*          PM_ERR_FLAG__SUCCESS               = SUCCESS.
+*
+*/
+pm_err_flag_type pm_fg_usr_get_vbat(uint32 pmic_device, uint32 *calibrated_vbat);
 #endif /* __PM_FG_ADC_USR_H__ */
