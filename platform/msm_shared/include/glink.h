@@ -63,14 +63,30 @@ extern "C" {
 /** GLink status/return codes */
 typedef enum {
   GLINK_STATUS_SUCCESS = 0,
-  GLINK_STATUS_FAILURE,
-  GLINK_STATUS_INVALID_PARAM,
-  GLINK_STATUS_NOT_INIT,
-  GLINK_STATUS_OUT_OF_RESOURCES,
-  GLINK_STATUS_NO_TRANSPORT
+  GLINK_STATUS_INVALID_PARAM             = -1,
+  GLINK_STATUS_NOT_INIT                  = -2,
+  GLINK_STATUS_OUT_OF_RESOURCES          = -3,
+  /* Failure due to lack of transport */
+  GLINK_STATUS_NO_TRANSPORT              = -4 ,
+  /* TX failure when there is no remote intent queued */
+  GLINK_STATUS_NO_REMOTE_INTENT_FOUND    = -5,
+  /* Failure of a glink_* call when channel is not fully opened yet */
+  GLINK_STATUS_CH_NOT_FULLY_OPENED       = -6,
+  /* Failure due to closing the same channel twice */
+  GLINK_STATUS_CH_ALREADY_CLOSED         = -7,
+  /* Returned when intent APIs are used over an intent less xport */
+  GLINK_STATUS_API_NOT_SUPPORTED         = -8,
+  /* Failure specific to QoS algorithm/implementation */
+  GLINK_STATUS_QOS_FAILURE               = -9,
+  /* Failure due to tx_cmd* calls */
+  GLINK_STATUS_TX_CMD_FAILURE            = -10,
+  /* For other Failures not covered above */
+  GLINK_STATUS_FAILURE                   = -11,
+  /* Failures relating to GLink operation timeout */
+  GLINK_STATUS_TIMEOUT                   = -12
 }glink_err_type;
 
-/** List of possible suvsystems */
+/** List of possible subsystems */
 /**
   "apss"   Application Processor Subsystem
   "mpss"   Modem subsystem
