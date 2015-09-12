@@ -514,14 +514,14 @@ bool boot_verify_image(unsigned char* img_addr, uint32_t img_size, char *pname)
 	if(!sig_len)
 	{
 		dprintf(CRITICAL, "boot_verifier: Error while reading signature length.\n");
-		goto verify_image_error;
+		ASSERT(0);
 	}
 
 	if((sig = d2i_VERIFIED_BOOT_SIG(NULL, (const unsigned char **) &sig_addr, sig_len)) == NULL)
 	{
 		dprintf(CRITICAL,
 				"boot_verifier: verification failure due to target name mismatch\n");
-		goto verify_image_error;
+		ASSERT(0);
 	}
 
 	cert = sig->certificate;
@@ -532,7 +532,6 @@ bool boot_verify_image(unsigned char* img_addr, uint32_t img_size, char *pname)
 
 	ret = verify_image_with_sig(img_addr, img_size, pname, sig, user_keystore);
 
-verify_image_error:
 	if(sig != NULL)
 		VERIFIED_BOOT_SIG_free(sig);
 	return ret;
