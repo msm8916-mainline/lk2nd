@@ -163,7 +163,7 @@ static struct labibb_desc sharp_wqxga_dualdsi_video_labibb = {
 /* Dynamic fps supported frequencies by panel                                */
 /*---------------------------------------------------------------------------*/
 static const struct dfps_panel_info sharp_wqxga_dualdsi_video_dfps = {
-	1, 8, {53, 54, 55, 56, 57, 58, 59, 60}
+	1, 9, {48, 53, 54, 55, 56, 57, 58, 59, 60}
 };
 
 /* 2LM + 2CTL */
