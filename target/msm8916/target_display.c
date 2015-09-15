@@ -505,7 +505,39 @@ int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 
 bool target_display_panel_node(char *panel_name, char *pbuf, uint16_t buf_size)
 {
-	return gcdb_display_cmdline_arg(panel_name, pbuf, buf_size);
+	uint32_t hw_id = board_hardware_id();
+
+	dprintf(INFO, "%s:%d: hw_id=%d panel_name=\"%s\"\n", __func__, __LINE__, hw_id, panel_name);
+
+	switch (hw_id) {
+	case HW_PLATFORM_SBC:
+		while (panel_name[0] == ' ')
+			panel_name++;
+
+		if (0 == strlen(panel_name))
+			return gcdb_display_cmdline_arg(panel_name, pbuf, buf_size);
+
+		strlcpy(pbuf, ADV7533_CMDLINE_PREFIX, buf_size);
+
+		if (strstr(panel_name, "adv7533_1080p"))
+			strlcat(pbuf, ADV7533_I2C_HDMI_STRING, buf_size);
+		else if (strstr(panel_name, "adv7533_720p"))
+			strlcat(pbuf, ADV7533_I2C_HDMI_720p_STRING, buf_size);
+		else if (strstr(panel_name, "no_display"))
+			strlcat(pbuf, panel_name, buf_size);
+		else
+			strlcat(pbuf, ADV7533_I2C_DSI_STRING, buf_size);
+
+		strlcat(pbuf, DISPLAY_CMDLINE_PREFIX, buf_size);
+		strlcat(pbuf, DSI_PANEL_DT_PREFIX, buf_size);
+		strlcat(pbuf, panel_name, buf_size);
+		break;
+	case HW_PLATFORM_MTP:
+	default:
+		return gcdb_display_cmdline_arg(panel_name, pbuf, buf_size);
+	}
+
+	return true;
 }
 
 void target_display_init(const char *panel_name)

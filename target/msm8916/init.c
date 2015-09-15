@@ -428,6 +428,7 @@ int target_cont_splash_screen()
 		case HW_PLATFORM_MTP:
 		case HW_PLATFORM_SURF:
 		case HW_PLATFORM_QRD:
+		case HW_PLATFORM_SBC:
 			splash_screen = 1;
 			break;
 		default:
