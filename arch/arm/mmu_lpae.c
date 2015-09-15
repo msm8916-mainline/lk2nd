@@ -31,10 +31,12 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <compiler.h>
 #include <arch.h>
 #include <arch/arm.h>
+#include <arch/ops.h>
 #include <arch/defines.h>
 #include <arch/arm/mmu.h>
 #include <mmu.h>
 #include <platform.h>
+#include <stdlib.h>
 
 #if ARM_WITH_MMU
 
@@ -51,8 +53,8 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define L2_PT_MASK              0xFFFFE00000
 #define L2_INDEX_MASK           0x3FE00000
 
-uint64_t mmu_l1_pagetable[L1_PT_SZ] __attribute__ ((aligned(4096))); /* Max is 8 */
-uint64_t mmu_l2_pagetable[L2_PT_SZ*MMU_L2_PT_SIZE] __attribute__ ((aligned(4096))); /* Macro from target code * 512 */
+uint64_t mmu_l1_pagetable[ROUNDUP(L1_PT_SZ, CACHE_LINE)] __attribute__ ((aligned(4096))); /* Max is 8 */
+uint64_t mmu_l2_pagetable[ROUNDUP(L2_PT_SZ*MMU_L2_PT_SIZE, CACHE_LINE)] __attribute__ ((aligned(4096))); /* Macro from target code * 512 */
 uint64_t avail_l2_pt = L2_PT_SZ;
 uint64_t *empty_l2_pt = mmu_l2_pagetable;
 
@@ -101,6 +103,7 @@ static void mmu_map_l2_entry(mmu_section_t *block)
 		/* Advance pointer to next empty l2 page table */
 		empty_l2_pt += MMU_L2_PT_SIZE;
 		avail_l2_pt--;
+		arch_clean_invalidate_cache_range((addr_t) mmu_l1_pagetable, L1_PT_SZ);
 	}
 	else
 	{
@@ -134,6 +137,7 @@ static void mmu_map_l2_entry(mmu_section_t *block)
 		p_addr += SIZE_2MB;
 		arm_invalidate_tlb();
 	}
+	arch_clean_invalidate_cache_range((addr_t) mmu_l2_pagetable, (L2_PT_SZ*MMU_L2_PT_SIZE));
 }
 
 /************************************************************/
@@ -171,6 +175,7 @@ static void mmu_map_l1_entry(mmu_section_t *block)
 		address_start++;
 		arm_invalidate_tlb();
 	}
+	arch_clean_invalidate_cache_range((addr_t) mmu_l1_pagetable, L1_PT_SZ);
 }
 
 void arm_mmu_map_entry(mmu_section_t *entry)
@@ -201,8 +206,8 @@ void arm_mmu_init(void)
 	arm_write_mair0(MAIR0);
 	arm_write_mair1(MAIR1);
 
-	/* TTBCR.EAE = 1 */
-	arm_write_ttbcr(0x80000000);
+	/* TTBCR.EAE = 1 & IRGN0 [9:8], ORNG0 bits [11:10]: 01 */
+	arm_write_ttbcr(0x80000500);
 
 	/* Enable TRE */
 	arm_write_cr1(arm_read_cr1() | (1<<28));
