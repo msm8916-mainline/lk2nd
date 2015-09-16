@@ -2980,6 +2980,32 @@ void cmd_oem_disable_charger_screen(const char *arg, void *data, unsigned size)
 	fastboot_okay("");
 }
 
+void cmd_oem_off_mode_charger(const char *arg, void *data, unsigned size)
+{
+	char *p = NULL;
+	const char *delim = " \t\n\r";
+
+	if (arg) {
+		p = strtok((char *)arg, delim);
+		if (p) {
+			if (!strncmp(p, "0", 1)) {
+				device.charger_screen_enabled = 0;
+			} else if (!strncmp(p, "1", 1)) {
+				device.charger_screen_enabled = 1;
+			}
+		}
+	}
+
+	/* update charger_screen_enabled value for getvar
+	 * command
+	 */
+	snprintf(charger_screen_enabled, MAX_RSP_SIZE, "%d",
+		device.charger_screen_enabled);
+
+	write_device_info(&device);
+	fastboot_okay("");
+}
+
 void cmd_oem_select_display_panel(const char *arg, void *data, unsigned size)
 {
 	dprintf(INFO, "Selecting display panel %s\n", arg);
@@ -3359,6 +3385,7 @@ void aboot_fastboot_register_commands(void)
 						{"preflash", cmd_preflash},
 						{"oem enable-charger-screen", cmd_oem_enable_charger_screen},
 						{"oem disable-charger-screen", cmd_oem_disable_charger_screen},
+						{"oem off-mode-charge", cmd_oem_off_mode_charger},
 						{"oem select-display-panel", cmd_oem_select_display_panel},
 #endif
 						};
@@ -3390,6 +3417,7 @@ void aboot_fastboot_register_commands(void)
 			device.charger_screen_enabled);
 	fastboot_publish("charger-screen-enabled",
 			(const char *) charger_screen_enabled);
+	fastboot_publish("off-mode-charge", (const char *) charger_screen_enabled);
 	snprintf(panel_display_mode, MAX_RSP_SIZE, "%s",
 			device.display_panel);
 	fastboot_publish("display-panel",
