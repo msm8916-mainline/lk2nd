@@ -285,17 +285,17 @@ unsigned check_reboot_mode(void)
 	return restart_reason;
 }
 
-int get_target_boot_params(const char *cmdline, const char *part, char *buf,
-			   int buflen)
+int get_target_boot_params(const char *cmdline, const char *part, char **buf)
 {
 	struct ptable *ptable;
 	int system_ptn_index = -1;
+	/*allocate buflen for largest string*/
+	uint32_t buflen = strlen(" root=/dev/mtdblock") + sizeof(int) + 1; /*1 character for null termination*/
 
-	if (!cmdline || !part || !buf || buflen < 0) {
+	if (!cmdline || !part ) {
 		dprintf(CRITICAL, "WARN: Invalid input param\n");
 		return -1;
 	}
-
 	ptable = flash_get_ptable();
 	if (!ptable) {
 		dprintf(CRITICAL,
@@ -303,10 +303,16 @@ int get_target_boot_params(const char *cmdline, const char *part, char *buf,
 		return -1;
 	}
 
+	*buf = (char *)malloc(buflen);
+	if(!(*buf)) {
+		dprintf(CRITICAL,"Unable to allocate memory for boot params\n");
+		return -1;
+	}
 	system_ptn_index = ptable_get_index(ptable, part);
 	if (system_ptn_index < 0) {
 		dprintf(CRITICAL,
 			"WARN: Cannot get partition index for %s\n", part);
+		free(*buf);
 		return -1;
 	}
 
@@ -320,17 +326,17 @@ int get_target_boot_params(const char *cmdline, const char *part, char *buf,
 			(strstr(cmdline, " root="))))
 			dprintf(DEBUG, "DEBUG: cmdline has root=\n");
 		else
-			snprintf(buf, buflen, " root=/dev/mtdblock%d",
+			snprintf(*buf, buflen, " root=/dev/mtdblock%d",
 					system_ptn_index);
 	} else if (strstr(cmdline, "rootfstype=ubifs")){
 		if (((!strncmp(cmdline, "ubi.mtd=", strlen("ubi.mtd="))) ||
 			(strstr(cmdline, " ubi.mtd="))))
 			dprintf(DEBUG, "DEBUG: cmdline has ubi.mtd=\n");
 		else
-			snprintf(buf, buflen, " ubi.mtd=%d",
+			snprintf(*buf, buflen, " ubi.mtd=%d",
 				system_ptn_index);
 	}
-
+	/*in success case buf will be freed in the calling function of this*/
 	return 0;
 }
 
