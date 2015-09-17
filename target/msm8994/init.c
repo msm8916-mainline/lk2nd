@@ -647,3 +647,8 @@ int set_download_mode(enum dload_mode mode)
 
 	return 0;
 }
+
+uint32_t target_get_pmic()
+{
+	return PMIC_IS_PMI8994;
+}

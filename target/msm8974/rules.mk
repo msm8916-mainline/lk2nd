@@ -23,6 +23,7 @@ MODULES += \
 	dev/keys \
 	dev/pmic/pm8x41 \
 	dev/gcdb/display \
+	dev/pmic/pmi8994 \
     lib/ptable \
     lib/libfdt
 
