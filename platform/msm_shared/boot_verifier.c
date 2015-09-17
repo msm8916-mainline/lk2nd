@@ -47,6 +47,7 @@
 
 #define ASN1_ENCODED_SHA256_SIZE 0x33
 #define ASN1_ENCODED_SHA256_OFFSET 0x13
+#define ASN1_SIGNATURE_BUFFER_SZ   mmc_page_size()
 
 static KEYSTORE *oem_keystore;
 static KEYSTORE *user_keystore;
@@ -118,18 +119,38 @@ static uint32_t read_der_message_length(unsigned char* input)
 		len_bytes = (input[pos] & ~(0x80));
 		pos++;
 	}
+
 	while(len_bytes)
 	{
-		/* Shift len by 1 octet */
-		len = len << 8;
+		/* Shift len by 1 octet, make sure to check unsigned int overflow */
+		if (len <= (UINT_MAX >> 8))
+			len <<= 8;
+		else
+		{
+			dprintf(CRITICAL, "Error: Length exceeding max size of uintmax\n");
+			return 0;
+		}
 
 		/* Read next octet */
-		len = len | input[pos];
+		if (pos < (int) ASN1_SIGNATURE_BUFFER_SZ)
+			len = len | input[pos];
+		else
+		{
+			dprintf(CRITICAL, "Error: Pos index exceeding the input buffer size\n");
+			return 0;
+		}
+
 		pos++; len_bytes--;
 	}
 
 	/* Add number of octets representing sequence id and length  */
-	len += pos;
+	if ((UINT_MAX - pos) > len)
+		len += pos;
+	else
+	{
+		dprintf(CRITICAL, "Error: Len overflows UINT_MAX value\n");
+		return 0;
+	}
 
 	return len;
 }
@@ -347,18 +368,11 @@ static bool verify_keystore(unsigned char * ks_addr, KEYSTORE *ks)
 static void read_oem_keystore()
 {
 	KEYSTORE *ks = NULL;
-	uint32_t len = 0;
+	uint32_t len = sizeof(OEM_KEYSTORE);
 	unsigned char *input = OEM_KEYSTORE;
 
 	if(oem_keystore != NULL)
 		return;
-
-	len = read_der_message_length(input);
-	if(!len)
-	{
-		dprintf(CRITICAL, "boot_verifier: oem keystore length is invalid.\n");
-		return;
-	}
 
 	ks = d2i_KEYSTORE(NULL, &input, len);
 	if(ks != NULL)
@@ -490,7 +504,8 @@ bool boot_verify_image(unsigned char* img_addr, uint32_t img_size, char *pname)
 	const EVP_MD *fp_type = NULL;
 	VERIFIED_BOOT_SIG *sig = NULL;
 	unsigned char* sig_addr = (unsigned char*)(img_addr + img_size);
-	uint32_t sig_len = read_der_message_length(sig_addr);
+	uint32_t sig_len = 0;
+	unsigned char *signature = NULL;
 
 	if(dev_boot_state == ORANGE)
 	{
@@ -499,13 +514,26 @@ bool boot_verify_image(unsigned char* img_addr, uint32_t img_size, char *pname)
 		return false;
 	}
 
+	signature = malloc(ASN1_SIGNATURE_BUFFER_SZ);
+	ASSERT(signature);
+
+	/* Copy the signature from scratch memory to buffer */
+	memcpy(signature, sig_addr, ASN1_SIGNATURE_BUFFER_SZ);
+	sig_len = read_der_message_length(signature);
+
 	if(!sig_len)
 	{
 		dprintf(CRITICAL, "boot_verifier: Error while reading signature length.\n");
 		goto verify_image_error;
 	}
 
-	if((sig = d2i_VERIFIED_BOOT_SIG(NULL, &sig_addr, sig_len)) == NULL)
+	if (sig_len > ASN1_SIGNATURE_BUFFER_SZ)
+	{
+		dprintf(CRITICAL, "boot_verifier: Signature length exceeds size signature buffer\n");
+		goto verify_image_error;
+	}
+
+	if((sig = d2i_VERIFIED_BOOT_SIG(NULL, (const unsigned char **) &sig_addr, sig_len)) == NULL)
 	{
 		dprintf(CRITICAL,
 				"boot_verifier: verification failure due to target name mismatch\n");
@@ -521,6 +549,7 @@ bool boot_verify_image(unsigned char* img_addr, uint32_t img_size, char *pname)
 	ret = verify_image_with_sig(img_addr, img_size, pname, sig, user_keystore);
 
 verify_image_error:
+	free(signature);
 	if(sig != NULL)
 		VERIFIED_BOOT_SIG_free(sig);
 	return ret;
