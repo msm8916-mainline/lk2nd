@@ -83,6 +83,7 @@ static struct ptable flash_ptable;
 #define QPIC_NAND_MAX_DESC_LEN   0x7FFF
 
 #define LAST_NAND_PTN_LEN_PATTERN 0xFFFFFFFF
+#define UBI_CMDLINE " rootfstype=ubifs rootflags=bulk_read"
 
 struct qpic_nand_init_config config;
 
@@ -209,22 +210,34 @@ unsigned check_reboot_mode(void)
 	return restart_reason;
 }
 
-int get_target_boot_params(const char *cmdline, const char *part, char *buf,int buflen)
+int get_target_boot_params(const char *cmdline, const char *part, char **buf)
 {
 	struct ptable *ptable;
 	int system_ptn_index = -1;
+	uint32_t buflen = strlen(UBI_CMDLINE) + strlen(" root=ubi0:rootfs ubi.mtd=") + sizeof(int) + 1; /* 1 byte for null character*/
+
+	*buf = (char *)malloc(buflen);
+	if(!(*buf)) {
+		dprintf(CRITICAL,"Unable to allocate memory for boot params\n");
+		return -1;
+	}
 
 	ptable = flash_get_ptable();
 	if (!ptable) {
 		dprintf(CRITICAL,"WARN: Cannot get flash partition table\n");
+		free(*buf);
 		return -1;
 	}
 
 	system_ptn_index = ptable_get_index(ptable, part);
 	if (system_ptn_index < 0) {
 		dprintf(CRITICAL,"WARN: Cannot get partition index for %s\n", part);
+		free(*buf);
 		return -1;
 	}
+	/* Adding command line parameters according to target boot type */
+	snprintf(*buf, buflen, UBI_CMDLINE);
+
 	/*check if cmdline contains "root=" at the beginning of buffer or
 	* " root=" in the middle of buffer.
 	*/
@@ -232,7 +245,8 @@ int get_target_boot_params(const char *cmdline, const char *part, char *buf,int 
 		(strstr(cmdline, " root="))))
 		dprintf(DEBUG, "DEBUG: cmdline has root=\n");
 	else
-		snprintf(buf, buflen, " root=/dev/mtdblock%d",system_ptn_index);
+		snprintf(*buf+strlen(*buf), buflen, " root=ubi0:rootfs ubi.mtd=%d", system_ptn_index);
+		/*in success case buf will be freed in the calling function of this*/
 	return 0;
 }
 
