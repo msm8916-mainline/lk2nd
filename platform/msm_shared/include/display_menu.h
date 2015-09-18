@@ -39,6 +39,8 @@ enum display_menu_type {
 	DISPLAY_MENU_RED,
 	DISPLAY_MENU_MORE_OPTION,
 	DISPLAY_MENU_UNLOCK,
+	DISPLAY_MENU_FASTBOOT,
+	DISPLAY_MENU_UNLOCK_CRITICAL,
 };
 
 struct select_msg_info {
@@ -52,14 +54,13 @@ struct select_msg_info {
 	bool		msg_volume_key_pressed;
 };
 
-enum display_thread_type {
-	DISPLAY_THREAD_UNLOCK = 0,
-	DISPLAY_THREAD_BOOT_STATE,
-};
-
 void wait_for_users_action(void);
-void display_unlock_menu(struct select_msg_info *msg_info);
+void display_unlock_menu(struct select_msg_info *msg_info, int type);
 void display_boot_verified_menu(struct select_msg_info *msg_info, int type);
 void display_boot_verified_option(struct select_msg_info *msg_info);
-void display_menu_thread(int type);
+void display_fastboot_menu(struct select_msg_info *fastboot_msg_info,
+	int option_index);
+void display_bootverify_menu_thread(int type);
+void display_fastboot_menu_thread();
+void display_unlock_menu_thread(int type);
 #endif				/* __PLATFORM_MSM_SHARED_DISPLAY_MENU_H */

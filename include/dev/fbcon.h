@@ -48,9 +48,7 @@ enum fbcon_msg_type {
 	FBCON_YELLOW_MSG,
 	FBCON_ORANGE_MSG,
 	FBCON_RED_MSG,
-
-	/* type for line color */
-	FBCON_LINE_COLOR,
+	FBCON_GREEN_MSG,
 
 	/* and the select message's background */
 	FBCON_SELECT_MSG_BG_COLOR,
@@ -96,7 +94,7 @@ void fbcon_extract_to_screen(logo_img_header *header, void* address);
 void fbcon_putc_factor(char c, int type, unsigned scale_factor);
 void fbcon_draw_msg_background(unsigned y_start, unsigned y_end,
 	uint32_t paint, int update);
-void fbcon_draw_line(void);
+void fbcon_draw_line(uint32_t type);
 uint32_t fbcon_get_current_line(void);
 uint32_t fbcon_get_current_bg(void);
 uint32_t fbcon_get_max_x(void);
