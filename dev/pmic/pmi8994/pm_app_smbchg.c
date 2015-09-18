@@ -46,6 +46,9 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <sys/types.h>
 #include <target.h>
 #include <pm8x41.h>
+#include <bits.h>
+#include <board.h>
+#include <smem.h>
 
 /*===========================================================================
 
@@ -80,13 +83,15 @@ static pm_smbchg_bat_if_low_bat_thresh_type pm_dbc_bootup_volt_threshold;
 static bool display_initialized;
 static bool charge_in_progress;
 static bool display_shutdown_in_prgs;
+static bool pm_app_read_from_sram;
 
 char panel_name[256];
 
 pm_err_flag_type pm_smbchg_get_charger_path(uint32 device_index, pm_smbchg_usb_chgpth_pwr_pth_type* charger_path);
 pm_err_flag_type pm_appsbl_chg_config_vbat_low_threshold(uint32 device_index, pm_smbchg_specific_data_type *chg_param_ptr);
 static void display_thread_initialize();
-
+static void pm_app_ima_read_voltage(uint32_t *);
+static void pm_app_pmi8994_read_voltage(uint32_t *voltage);
 /*===========================================================================
 
                      FUNCTION IMPLEMENTATION
@@ -178,6 +183,20 @@ pm_err_flag_type pm_appsbl_chg_check_weak_battery_status(uint32 device_index)
       {
          err_flag |= pm_fg_adc_usr_get_calibrated_vbat(device_index, &vbat_adc); //Read calibrated vbatt ADC
          if ( err_flag != PM_ERR_FLAG__SUCCESS )  { break;}
+
+		/* FG_ADC hardware reports values that are off by ~120 to 200 mV, this results in boot up failures
+		 * on devices that boot up with battery close to threshold value. If the FG_ADC voltage is less than
+		 * threshold then read the voltage from a more accurate source FG SRAM to ascertain the voltage is indeed low.
+		 */
+		if (!pm_app_read_from_sram && (vbat_adc <= bootup_threshold))
+		{
+			if (board_pmic_type(PMIC_IS_PMI8996))
+				pm_app_ima_read_voltage(&vbat_adc);
+			else
+				pm_app_pmi8994_read_voltage(&vbat_adc);
+
+			pm_app_read_from_sram = true;
+		}
 
          //Check if ADC reading is within limit
          if ( vbat_adc >=  bootup_threshold)  //Compaire it with SW bootup threshold
@@ -674,3 +693,160 @@ static void display_thread_initialize()
 		is_thread_start = true;
 	}
 }
+
+static void pm_app_wait_for_iacs_ready(uint32_t sid)
+{
+	uint8_t iacs;
+	int max_retry = 100;
+
+	udelay(50);
+	pm_comm_read_byte(sid, 0x4454, &iacs, 0);
+	while ((iacs & 0x02) == 0)
+	{
+		max_retry--;
+		pm_comm_read_byte(2, 0x4454, &iacs, 0);
+		mdelay(5);
+		if (!max_retry)
+		{
+			dprintf(CRITICAL, "Error: IACS not ready, shutting down\n");
+			shutdown_device();
+		}
+	}
+}
+
+static int pm_app_check_for_ima_exception(uint32_t sid)
+{
+	uint8_t ima_err_sts;
+	uint8_t ima_exception_sts;
+
+	pm_comm_read_byte(sid, 0x445f, &ima_err_sts, 0);
+	pm_comm_read_byte(sid, 0x4455, &ima_exception_sts, 0);
+
+	if (ima_err_sts != 0 || (ima_exception_sts & 0x1) == 1)
+	{
+		uint8_t ima_hw_sts;
+		pm_comm_read_byte(sid, 0x4456, &ima_hw_sts, 0);
+		dprintf(CRITICAL, "ima_err_sts: %x\tima_exception_sts:%x\tima_hw_sts:%x\n", ima_err_sts, ima_exception_sts, ima_hw_sts);
+		return 1;
+	}
+
+	return 0;
+}
+
+static void pm_app_ima_read_voltage(uint32_t *voltage)
+{
+	uint8_t start_beat_count;
+	uint8_t end_beat_count;
+	uint8_t vbat;
+	uint64_t vbat_adc = 0;
+	uint32_t sid = 2; //sid for pmi8996
+	int max_retry = 5;
+
+retry:
+	//Request IMA access
+	pm_comm_write_byte(sid, 0x4450, 0xA0, 0);
+	// Single read configure
+	pm_comm_write_byte(sid, 0x4451, 0x00, 0);
+
+	pm_app_wait_for_iacs_ready(sid);
+
+	//configure SRAM access
+	pm_comm_write_byte(sid, 0x4461, 0xCC, 0);
+	pm_comm_write_byte(sid, 0x4462, 0x05, 0);
+
+	pm_app_wait_for_iacs_ready(sid);
+
+	pm_comm_read_byte(sid, 0x4457, &start_beat_count, 0);
+
+	//Read the voltage
+	pm_comm_read_byte(sid, 0x4467, &vbat, 0);
+	vbat_adc = vbat;
+	pm_comm_read_byte(sid, 0x4468, &vbat, 0);
+	vbat_adc |= (vbat << 8);
+	pm_comm_read_byte(sid, 0x4469, &vbat, 0);
+	vbat_adc |= (vbat << 16);
+	pm_comm_read_byte(sid, 0x446A, &vbat, 0);
+	vbat_adc |= (vbat << 24);
+
+	pm_app_wait_for_iacs_ready(sid);
+
+	//Look for any errors
+	if(pm_app_check_for_ima_exception(sid))
+		goto err;
+
+	pm_comm_read_byte(sid, 0x4457, &end_beat_count, 0);
+
+	if (start_beat_count != end_beat_count)
+	{
+		max_retry--;
+		if (!max_retry)
+			goto err;
+		goto retry;
+	}
+
+	//Release the ima access
+	pm_comm_write_byte(2, 0x4450, 0x00, 0);
+
+	//extract the byte1 & byte2 and convert to mv
+	vbat_adc = ((vbat_adc & 0x00ffff00) >> 8) * 152587;
+	*voltage = vbat_adc / 1000000;
+	return;
+
+err:
+	dprintf(CRITICAL, "Failed to Read the Voltage from IMA, shutting down\n");
+	shutdown_device();
+}
+
+static void pm_app_pmi8994_read_voltage(uint32_t *voltage)
+{
+	uint8_t val = 0;
+	uint8_t vbat;
+	uint64_t vbat_adc = 0;
+	uint32_t sid = 2; //sid for pmi8994
+	int max_retry = 100;
+
+	pm_comm_read_byte(sid, 0x4440, &val, 0);
+
+	//Request for FG access
+	if ((val & BIT(7)) != 1)
+		pm_comm_write_byte(sid, 0x4440, 0x80, 0);
+
+	pm_comm_read_byte(sid, 0x4410, &val, 0);
+	while((val & 0x1) == 0)
+	{
+		//sleep and retry again, this takes up to 1.5 seconds
+		max_retry--;
+		mdelay(100);
+		pm_comm_read_byte(sid, 0x4410, &val, 0);
+		if (!max_retry)
+		{
+		  dprintf(CRITICAL, "Error: Failed to read from Fuel Guage, Shutting down\n");
+		  shutdown_device();
+		}
+	}
+
+	//configure single read access
+	pm_comm_write_byte(sid, 0x4441, 0x00, 0);
+	//configure SRAM for voltage shadow
+	pm_comm_write_byte(sid, 0x4442, 0xCC, 0);
+	pm_comm_write_byte(sid, 0x4443, 0x05, 0);
+
+	//Read voltage from SRAM
+	pm_comm_read_byte(sid, 0x444c, &vbat, 0);
+	vbat_adc = vbat;
+	pm_comm_read_byte(sid, 0x444d, &vbat, 0);
+	vbat_adc |= (vbat << 8);
+	pm_comm_read_byte(sid, 0x444e, &vbat, 0);
+	vbat_adc |= (vbat << 16);
+	pm_comm_read_byte(sid, 0x444f, &vbat, 0);
+	vbat_adc |= (vbat << 24);
+
+	//clean up to relase sram access
+	pm_comm_write_byte(sid, 0x4440, 0x00, 0);
+	//extract byte 1 & byte 2
+	vbat_adc = ((vbat_adc & 0x00ffff00) >> 8) * 152587;
+
+	//convert the voltage to mv
+	*voltage = vbat_adc / 1000000;
+}
+
