@@ -2126,12 +2126,15 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	/* Verify the boot image
 	 * device & page_size are initialized in aboot_init
 	 */
-	if (target_use_signed_kernel() && (!device.is_unlocked))
+	if (target_use_signed_kernel() && (!device.is_unlocked)) {
 		/* Pass size excluding signature size, otherwise we would try to
 		 * access signature beyond its length
 		 */
+#if VERIFIED_BOOT
+		boot_verifier_init();
+#endif
 		verify_signed_bootimg((uint32_t)data, (image_actual - sig_actual));
-
+	}
 #ifdef MDTP_SUPPORT
 	else
 	{
