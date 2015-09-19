@@ -27,7 +27,7 @@
  *
  */
 
-#include "mdtp_ui_defs.h"
+#include "mdtp_defs.h"
 
 struct mdtp_ui_defs mdtp_ui_defs_msm8952 = {
         // Image dimensions

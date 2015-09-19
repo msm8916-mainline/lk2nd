@@ -34,6 +34,7 @@
 #include <stdlib.h>
 #include <reg.h>
 #include "mdtp.h"
+#include "mdtp_defs.h"
 #include "scm.h"
 
 #define MAX_METADATA_SIZE       (0x1000)
@@ -92,12 +93,12 @@ static int is_test_mode(void)
 	}
 	else
 	{
-		dprintf(CRITICAL, "mdtp: is_test_mode: qsee_get_secure_state returned error: %d, status.value[0]: %d", ret, status_low);
+		dprintf(CRITICAL, "mdtp: is_test_mode: qsee_get_secure_state returned error: %d, status.value[0]: %d\n", ret, status_low);
 		test_mode = 0;
     }
 
 	test_mode_set = 1;
-	dprintf(INFO, "mdtp: is_test_mode: test mode is set to %d", test_mode);
+	dprintf(INFO, "mdtp: is_test_mode: test mode is set to %d\n", test_mode);
 
 	return test_mode;
 }
@@ -155,12 +156,19 @@ static int read_metadata(metadata_t *metadata)
  */
 static int read_QFPROM_fuse(uint8_t *mask)
 {
+	struct mdtp_target_efuse target_efuse;
 	uint32_t val = 0;
 
-	val = readl(MDTP_EFUSE_ADDRESS);
+	if (mdtp_get_target_efuse(&target_efuse))
+	{
+		dprintf(CRITICAL, "mdtp: read_QFPROM_fuse: failed to get target eFuse\n");
+		return -1;
+	}
+
+	val = readl(target_efuse.address);
 
 	/* Shift the read data to be reflected in mask */
-	*mask = (uint8_t)(val >> MDTP_EFUSE_START);
+	*mask = (uint8_t)(val >> target_efuse.start);
 
 	return 0;
 }
@@ -181,7 +189,7 @@ static int read_test_fuse(uint8_t *mask)
 
 	status = read_metadata(&metadata);
 	if (status) {
-		dprintf(CRITICAL, "mdtp: read_test_fuse: Failure getting metadata");
+		dprintf(CRITICAL, "mdtp: read_test_fuse: Failure getting metadata\n");
 		return -1;
 	}
 
@@ -229,7 +237,7 @@ int mdtp_fuse_get_enabled(bool *enabled)
 	status = read_fuse(&eFuses.mask);
 	if (status)
 	{
-		dprintf(CRITICAL, "mdtp: mdtp_fuse_get_enabled: Failure in reading fuse");
+		dprintf(CRITICAL, "mdtp: mdtp_fuse_get_enabled: Failure in reading fuse\n");
 		return -1;
 	}
 

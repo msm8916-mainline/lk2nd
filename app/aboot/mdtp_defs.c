@@ -28,7 +28,7 @@
  */
 
 #include <compiler.h>
-#include "mdtp_ui_defs.h"
+#include "mdtp_defs.h"
 
 struct mdtp_ui_defs mdtp_ui_defs_default = {
         // Image dimensions
@@ -65,4 +65,11 @@ struct mdtp_ui_defs mdtp_ui_defs_default = {
 __WEAK struct mdtp_ui_defs mdtp_get_target_ui_defs()
 {
     return mdtp_ui_defs_default;
+}
+
+__WEAK int mdtp_get_target_efuse(struct mdtp_target_efuse* target_efuse)
+{
+
+    dprintf(CRITICAL, "mdtp: mdtp_get_target_efuse: ERROR, eFuse not defined for this target\n");
+    return -1;
 }
