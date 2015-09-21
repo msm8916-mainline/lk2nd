@@ -66,6 +66,10 @@
 #include <shutdown_detect.h>
 #endif
 
+#if PON_VIB_SUPPORT
+#include <vibrator.h>
+#define VIBRATE_TIME 250
+#endif
 
 #define CE_INSTANCE             1
 #define CE_EE                   0
@@ -271,12 +275,16 @@ void target_init(void)
 	rpm_glink_init();
 
 	target_keystatus();
+
 #if defined(LONG_PRESS_POWER_ON) || defined(PON_VIB_SUPPORT)
 	switch(board_hardware_id())
 	{
 		case HW_PLATFORM_QRD:
 #if LONG_PRESS_POWER_ON
 			shutdown_detect();
+#endif
+#if PON_VIB_SUPPORT
+			vib_timed_turn_on(VIBRATE_TIME);
 #endif
 			break;
 	}
