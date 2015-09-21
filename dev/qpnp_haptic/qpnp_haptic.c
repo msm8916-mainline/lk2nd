@@ -32,7 +32,7 @@
 #include <target.h>
 #include <vibrator.h>
 
-#define HAPTIC_BASE (PMI_ADDR_BASE+ 0xC000)
+#define HAPTIC_BASE (PMI_SECOND_SLAVE_ADDR_BASE+ 0xC000)
 #define QPNP_HAP_EN_CTL_REG (HAPTIC_BASE + 0x46)
 #define QPNP_HAP_EN_CTL2_REG (HAPTIC_BASE + 0x48)
 #define QPNP_HAP_ACT_TYPE_REG (HAPTIC_BASE + 0x4C)
