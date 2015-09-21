@@ -41,6 +41,9 @@ DEFINES += USE_BOOTDEV_CMDLINE=1
 DEFINES += USE_RPMB_FOR_DEVINFO=1
 DEFINES += ENABLE_WBC=1
 
+#Enable the feature of long press power on
+DEFINES += LONG_PRESS_POWER_ON=1
+
 #Disable thumb mode
 ENABLE_THUMB := false
 
