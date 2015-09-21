@@ -62,6 +62,11 @@
 #include <pm_app_smbchg.h>
 #endif
 
+#if LONG_PRESS_POWER_ON
+#include <shutdown_detect.h>
+#endif
+
+
 #define CE_INSTANCE             1
 #define CE_EE                   0
 #define CE_FIFO_SIZE            64
@@ -202,6 +207,16 @@ static void set_sdc_power_ctrl()
 	tlmm_set_pull_ctrl(sdc1_rclk_cfg, ARRAY_SIZE(sdc1_rclk_cfg));
 }
 
+uint32_t target_is_pwrkey_pon_reason()
+{
+	uint8_t pon_reason = pm8950_get_pon_reason();
+	if (pm8x41_get_is_cold_boot() && ((pon_reason == KPDPWR_N) || (pon_reason == (KPDPWR_N|PON1))))
+		return 1;
+	else
+		return 0;
+}
+
+
 void target_sdc_init()
 {
 	struct mmc_config_data config = {0};
@@ -256,6 +271,16 @@ void target_init(void)
 	rpm_glink_init();
 
 	target_keystatus();
+#if defined(LONG_PRESS_POWER_ON) || defined(PON_VIB_SUPPORT)
+	switch(board_hardware_id())
+	{
+		case HW_PLATFORM_QRD:
+#if LONG_PRESS_POWER_ON
+			shutdown_detect();
+#endif
+			break;
+	}
+#endif
 
 	if (target_use_signed_kernel())
 		target_crypto_init_params();
