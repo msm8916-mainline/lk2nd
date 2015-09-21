@@ -365,6 +365,7 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 			struct mdss_dsi_phy_ctrl *phy_db)
 {
 	uint32_t hw_id = board_hardware_id();
+	uint32_t platform_type = board_platform_id();
 	uint32_t platform_subtype = board_hardware_subtype();
 	int32_t panel_override_id;
 
@@ -391,7 +392,12 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 		switch (platform_subtype) {
 			case SURF_WEAR:
 			case MTP_WEAR:
-				panel_id = HX8394D_480P_VIDEO_PANEL;
+				if ((platform_type == MSM8909W) ||
+					(platform_type == APQ8009W))
+					panel_id = AUO_QVGA_CMD_PANEL;
+				else
+					panel_id = HX8394D_480P_VIDEO_PANEL;
+
 				break;
 			default:
 				panel_id = HX8394D_720P_VIDEO_PANEL;
