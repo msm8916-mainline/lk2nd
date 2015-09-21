@@ -32,6 +32,7 @@
 #include <pm8x41.h>
 #include <pm8x41_hw.h>
 #include <kernel/timer.h>
+#include <kernel/thread.h>
 #include <platform/timer.h>
 #include <shutdown_detect.h>
 #include <platform.h>
@@ -130,6 +131,7 @@ static void wait_for_long_pwrkey_pressed()
 			timer_cancel(&pon_timer);
 			break;
 		}
+		thread_sleep(1);
 	}
 }
 
@@ -150,7 +152,10 @@ void shutdown_detect()
 	 * Initialize pon_timer and call long_press_pwrkey_timer_func
 	 * function to check if the power key is last press long enough.
 	 */
-	if (is_pwrkey_pon_reason() && is_pwrkey_time_expired()) {
+	if (is_pwrkey_pon_reason()) {
+		if(!pm8x41_get_pwrkey_is_pressed()){
+			shutdown_device();
+		}
 		timer_initialize(&pon_timer);
 		timer_set_oneshot(&pon_timer, 0,(timer_callback)long_press_pwrkey_timer_func, NULL);
 
