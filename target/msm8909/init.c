@@ -472,15 +472,21 @@ void target_force_cont_splash_disable(uint8_t override)
         splash_override = override;
 }
 
-int get_target_boot_params(const char *cmdline, const char *part, char *buf,
-                           int buflen)
+int get_target_boot_params(const char *cmdline, const char *part, char **buf)
 {
 	struct ptable *ptable;
 	int system_ptn_index = -1;
+	uint32_t buflen;
 
 	if (!target_is_emmc_boot()) {
 		if (!cmdline || !part || !buf || buflen < 0) {
 			dprintf(CRITICAL, "WARN: Invalid input param\n");
+			return -1;
+		}
+		buflen = strlen(" root=/dev/mtdblock") + sizeof(int) + 1; /*1 character for null termination*/
+		*buf = (char *)malloc(buflen);
+		if(!(*buf)) {
+			dprintf(CRITICAL,"Unable to allocate memory for boot params\n");
 			return -1;
 		}
 
@@ -488,6 +494,7 @@ int get_target_boot_params(const char *cmdline, const char *part, char *buf,
 		if (!ptable) {
 			dprintf(CRITICAL,
 				"WARN: Cannot get flash partition table\n");
+			free(*buf);
 			return -1;
 		}
 
@@ -495,6 +502,7 @@ int get_target_boot_params(const char *cmdline, const char *part, char *buf,
 		if (system_ptn_index < 0) {
 			dprintf(CRITICAL,
 				"WARN: Cannot get partition index for %s\n", part);
+			free(*buf);
 			return -1;
 		}
 
@@ -506,8 +514,9 @@ int get_target_boot_params(const char *cmdline, const char *part, char *buf,
 			(strstr(cmdline, " root="))))
 			dprintf(DEBUG, "DEBUG: cmdline has root=\n");
 		else
-			snprintf(buf, buflen, " root=/dev/mtdblock%d",
+			snprintf(*buf, buflen, " root=/dev/mtdblock%d",
                                  system_ptn_index);
+		/*in success case buf will be freed in the calling function of this*/
 	}
 
 	return 0;

@@ -42,9 +42,6 @@ glink_core_if_type glink_core_intentless_interface =
   glink_rx_cmd_version,
   /** Receive ACK to previous glink_transport_if_type::tx_cmd_version command */
   glink_rx_cmd_version_ack,
-  /** Sets the core version used by the transport; called after completing
-   *  negotiation.*/
-  glink_set_core_version,
   /** Receive remote channel open request; expected response is
    *  glink_transport_if_type:: tx_cmd_ch_remote_open_ack */
   glink_rx_cmd_ch_remote_open,
@@ -178,6 +175,7 @@ static glink_err_type glink_channel_submit_pkt_intentless
   glink_transport_if_type *if_ptr = open_ch_ctx->if_ptr;
   glink_err_type status = if_ptr->tx(if_ptr, open_ch_ctx->lcid, pctx);
 
+  GLINK_OS_UNREFERENCED_PARAM( req_intent );
   glink_os_free(pctx);
 
   return status;

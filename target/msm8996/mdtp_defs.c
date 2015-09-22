@@ -27,10 +27,12 @@
  *
  */
 
-#include <compiler.h>
-#include "mdtp_ui_defs.h"
+#include "mdtp_defs.h"
 
-struct mdtp_ui_defs mdtp_ui_defs_default = {
+#define MDTP_EFUSE_ADDRESS_MSM8996  0x00070178  // QFPROM_CORR_ANTI_ROLLBACK_3_LSB_ADDR
+#define MDTP_EFUSE_START_MSM8996    0
+
+struct mdtp_ui_defs mdtp_ui_defs_msm8996 = {
         // Image dimensions
         1412,     // error_msg_width;
         212,      // error_msg_height;
@@ -59,10 +61,24 @@ struct mdtp_ui_defs mdtp_ui_defs_default = {
         0x75C000, // pin_instructions_offset;
 
         //Display settings
-        12        // mdtp_digit_space;
+        12        // digit_space;
 };
 
-__WEAK struct mdtp_ui_defs mdtp_get_target_ui_defs()
+struct mdtp_ui_defs mdtp_get_target_ui_defs()
 {
-    return mdtp_ui_defs_default;
+    return mdtp_ui_defs_msm8996;
+}
+
+int mdtp_get_target_efuse(struct mdtp_target_efuse* target_efuse)
+{
+    if (target_efuse == NULL)
+    {
+        dprintf(CRITICAL, "mdtp: mdtp_get_target_efuse: ERROR, target_efuse is NULL\n");
+        return -1;
+    }
+
+    target_efuse->address = MDTP_EFUSE_ADDRESS_MSM8996;
+    target_efuse->start = MDTP_EFUSE_START_MSM8996;
+
+    return 0;
 }

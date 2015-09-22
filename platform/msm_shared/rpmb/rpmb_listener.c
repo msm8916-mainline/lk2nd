@@ -97,7 +97,7 @@ static void handle_init_request(void *buf, uint32_t sz)
 
 	init_resp->cmd_id = init_req_p->cmd_id;
 	init_resp->version = RPMB_LSTNR_VERSION_2;
-	init_resp->num_sectors = rpmb_info->size / RPMB_SECTOR_SIZE;
+	init_resp->num_sectors = rpmb_info->size;
 	init_resp->rel_wr_count = rpmb_info->rel_wr_count;
 	init_resp->dev_type = rpmb_info->dev_type;
 }

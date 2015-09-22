@@ -49,8 +49,12 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define XPORT_RPM_NAME "RPM"
 
 #define XPORT_RPM_LOG(msg, remote_host, param) \
-          GLINK_LOG_EVENT(GLINK_EVENT_XPORT_INTERNAL, msg, XPORT_RPM_NAME, \
-            remote_host, (uint32)param)
+	if ((log_filter_cfg.xport_filter_mask &                                     \
+       (1 << GLINK_XPORT_RPM_MASK_BIT)) != 0 )                                \
+  {                                                                           \
+    GLINK_LOG_EVENT_NO_FILTER(GLINK_EVENT_XPORT_INTERNAL, msg, XPORT_RPM_NAME,\
+			       remote_host, (uint32)param);                               \
+  }
 
 #define MSGRAM_READ32(ctx, ind) (*(volatile uint32*)&(ctx)->rx_fifo[ind])
 #define CHECK_INDEX_WRAP_AROUND(ind, size) \
@@ -172,9 +176,9 @@ static void xport_rpm_send_event
 )
 {
   /* read out the write index to initiate a bus transaction from MSG RAM */
-  volatile uint32 write_ind = ctx_ptr->tx_desc->write_ind;
 
-  XPORT_RPM_LOG("Send event write ind", ctx_ptr->pcfg->remote_ss, write_ind);
+ 	XPORT_RPM_LOG("Send event write ind", ctx_ptr->pcfg->remote_ss, 
+                (volatile uint32)ctx_ptr->tx_desc->write_ind);
 
   // notify rpm
   dprintf(SPEW, "%s:%d: Notify RPM with IPC interrupt\n", __func__, __LINE__);

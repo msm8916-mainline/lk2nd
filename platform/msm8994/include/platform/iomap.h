@@ -94,6 +94,7 @@
 
 /* SS QMP (Qulacomm Multi Protocol) */
 #define QMP_PHY_BASE                0xF9B38000
+#define PERIPH_SS_AHB2PHY_TOP_CFG   0xF9B3E010
 
 /* Clocks */
 #define CLK_CTL_BASE                0xFC400000

@@ -234,13 +234,13 @@ unsigned check_reboot_mode(void)
 	return restart_reason;
 }
 
-int get_target_boot_params(const char *cmdline, const char *part, char *buf,
-			   int buflen)
+int get_target_boot_params(const char *cmdline, const char *part, char **buf)
 {
 	struct ptable *ptable;
 	int system_ptn_index = -1;
+	uint32_t buflen;
 
-	if (!cmdline || !part || !buf || buflen < 0) {
+	if (!cmdline || !part ) {
 		dprintf(CRITICAL, "WARN: Invalid input param\n");
 		return -1;
 	}
@@ -248,11 +248,19 @@ int get_target_boot_params(const char *cmdline, const char *part, char *buf,
 	if (!strstr(cmdline, "root=/dev/ram")) /* This check is to handle kdev boot */
 	{
 		if (!target_is_emmc_boot()) {
+
+			buflen = strlen(UBI_CMDLINE) + strlen(" root=ubi0:rootfs ubi.mtd=") + sizeof(int) + 1;
+			*buf = (char *)malloc(buflen);
+			if(!(*buf)) {
+				dprintf(CRITICAL,"Unable to allocate memory for boot params\n");
+				return -1;
+			}
 			/* Below is for NAND boot */
 			ptable = flash_get_ptable();
 			if (!ptable) {
 				dprintf(CRITICAL,
 						"WARN: Cannot get flash partition table\n");
+				free(*buf);
 				return -1;
 			}
 
@@ -260,23 +268,32 @@ int get_target_boot_params(const char *cmdline, const char *part, char *buf,
 			if (system_ptn_index < 0) {
 				dprintf(CRITICAL,
 					"WARN: Cannot get partition index for %s\n", part);
+				free(*buf);
 				return -1;
 			}
 			/* Adding command line parameters according to target boot type */
-			snprintf(buf, buflen, UBI_CMDLINE);
-			snprintf(buf+strlen(buf), buflen, " root=ubi0:rootfs ubi.mtd=%d", system_ptn_index);
+			snprintf(*buf, buflen, UBI_CMDLINE);
+			snprintf(*buf+strlen(*buf), buflen, " root=ubi0:rootfs ubi.mtd=%d", system_ptn_index);
 		}
 		else {
+			buflen = strlen("EXT4_CMDLINE") + sizeof(int) +1;
+			*buf = (char *)malloc(buflen);
+			if(!(*buf)) {
+				dprintf(CRITICAL,"Unable to allocate memory for boot params\n");
+				return -1;
+			}
 			/* Below is for emmc boot */
 			system_ptn_index = partition_get_index(part) + 1; /* Adding +1 as offsets for eMMC start at 1 and NAND at 0 */
 			if (system_ptn_index < 0) {
 				dprintf(CRITICAL,
 						"WARN: Cannot get partition index for %s\n", part);
+				free(*buf);
 				return -1;
 			}
-			snprintf(buf, buflen, EXT4_CMDLINE"%d", system_ptn_index);
+			snprintf(*buf, buflen, EXT4_CMDLINE"%d", system_ptn_index);
 		}
 	}
+	/*in success case buf will be freed in the calling function of this*/
 	return 0;
 }
 

@@ -42,8 +42,8 @@ extern "C" {
 /*===========================================================================
                         INCLUDE FILES
 ===========================================================================*/
+#include <glink.h>
 #include <smem_list.h>
-#include <glink_os_utils.h>
 
 /*===========================================================================
                       MACRO DECLARATIONS
@@ -83,7 +83,8 @@ typedef enum {
   GLINK_XPORT_RPM = 100,
   GLINK_XPORT_SMD = 200,
   GLINK_XPORT_CP_ENGINE = 300,
-  GLINK_MIN_PRIORITY = GLINK_XPORT_CP_ENGINE,
+  GLINK_XPORT_UART = 400,
+  GLINK_MIN_PRIORITY = 100000,
   GLINK_INVALID_PRIORITY
 } glink_xport_priority;
 
@@ -93,7 +94,6 @@ typedef struct glink_core_tx_pkt_s {
 
   void       *data;      /* Pointer to the data buffer to be transmitted */
   const void *pkt_priv;  /* Per packet private data */
-  uint32     cid;        /* Local channel ID being used to transmit data */
   uint32     iid;        /* Remote intent ID being used to transmit data */
   size_t     size;       /* Size of data buffer */
   size_t     size_remaining; /* Size left to transmit */
@@ -264,6 +264,76 @@ typedef boolean (*wait_link_down_fn)
   glink_transport_if_type *if_ptr   /* Pointer to the interface instance */
 );
 
+/** Provides data rate (tokens/sec) achievable by the transport for given 
+    packet size and latency. */
+typedef uint32 (*get_req_rate_fn)
+(
+  glink_transport_if_type *if_ptr,    /* Pointer to the interface instance */
+  uint32                  latency_us, /* latency in us */
+  size_t                  pkt_size    /* Size of the packet */
+);
+
+/** Allocates context structure to use by transport servicing given QoS request. */
+typedef void* (*alloc_req_ctx_fn)
+(
+  glink_transport_if_type *if_ptr,    /* Pointer to the interface instance */
+  uint32                  latency_us, /* latency in us */
+  size_t                  pkt_size    /* Size of the packet */
+);
+
+/** Frees context structure used by transport servicing given QoS request. */
+typedef void (*free_req_ctx_fn)
+(
+  glink_transport_if_type *if_ptr,    /* Pointer to the interface instance */
+  void                    *qos_ctx    /* Pointer to the transport QoS context */
+);
+
+/** Starts QoS mode. */
+typedef void (*start_req_fn)
+(
+  glink_transport_if_type *if_ptr,    /* Pointer to the interface instance */
+  void                    *qos_ctx    /* Pointer to the transport QoS context */
+);
+
+/** Stops QoS mode. */
+typedef void (*stop_req_fn)
+(
+  glink_transport_if_type *if_ptr,    /* Pointer to the interface instance */
+  void                    *qos_ctx    /* Pointer to the transport QoS context */
+);
+
+/** Provides ramp up time in microseconds. */
+typedef uint32 (*get_ramp_time_fn)
+(
+  glink_transport_if_type *if_ptr,    /* Pointer to the interface instance */
+  void                    *qos_ctx    /* Pointer to the transport QoS context */
+);
+
+
+/**
+* Data Structure for GLink Core to call into transport QoS API
+*
+* This structure is used by the GLink core to operate transport
+* This set of function pointers to to be filled in by the transport
+* abstraction layer.
+*/
+typedef struct glink_transport_qos_if_s {
+  /** Provides maximum data rate (tokens/sec) associated with transport. */
+  uint32 max_rate;
+  /** Provides data rate achievable by the transport for given request. */
+  get_req_rate_fn  get_req_rate;
+  /** Allocates context structure to use by transport servicing given QoS request. */
+  alloc_req_ctx_fn alloc_req_ctx;
+  /** Frees context structure used by transport servicing given QoS request. */
+  free_req_ctx_fn  free_req_ctx;
+  /** Starts QoS mode. */
+  start_req_fn     start_req;
+  /** Stops QoS mode. */
+  stop_req_fn      stop_req;
+  /** Provides ramp up time in microseconds. */
+  get_ramp_time_fn get_ramp_time;
+
+} glink_transport_qos_if_type;
 
 /**
  * Data Structure for GLink Core to call into transport API
@@ -359,6 +429,9 @@ struct glink_transport_if {
 
   /* glink transport priority */
   glink_xport_priority                glink_priority;
+
+  /* pointer to glink transport QoS interface */
+  glink_transport_qos_if_type        *qos_functbl;
 };
 
 #endif //GLINK_TRANSPORT_IF_H

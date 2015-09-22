@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -33,7 +33,10 @@
 #include <arch/defines.h>
 #include <debug.h>
 #include <stdlib.h>
-
+#include <string.h>
+#if VERIFIED_BOOT
+#include <boot_verifier.h>
+#endif
 /* The test assumes the image and its signature to be verified
  * are flashed in the system and userdata partitions respectively.
  * The test reads the images and validates the decrypted signature
@@ -43,20 +46,31 @@
 
 void kauth_test(const char *arg, void *data, unsigned sz)
 {
+	int ret = 0;
+#if VERIFIED_BOOT
+	int i;
+	int vboot_ret[12];
+	int vboot_expected[12] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	const char *image = "Test Input File";
+	unsigned int image_len = strlen(image);
+	KEYSTORE *ks = boot_gerity_get_oem_keystore();
+	bool test_pass = true;
+#else
 	unsigned long long ptn = 0;
 	int index = INVALID_PTN;
-	unsigned char *signature = NULL;
 	unsigned char *image = NULL;
-	int ret = 0;
-	uint32_t page_size = 0;
+	unsigned char *signature = NULL;
+	uint32_t page_size = mmc_page_size();
+#endif
+#if !VERIFIED_BOOT
 #if IMAGE_VERIF_ALGO_SHA1
 	uint32_t auth_algo = CRYPTO_AUTH_ALG_SHA1;
 #else
 	uint32_t auth_algo = CRYPTO_AUTH_ALG_SHA256;
 #endif
+#endif
 
-	page_size = mmc_page_size();
-
+#if !VERIFIED_BOOT
 	index = partition_get_index("system");
 	ptn = partition_get_offset(index);
 
@@ -75,7 +89,6 @@ void kauth_test(const char *arg, void *data, unsigned sz)
 		dprintf(CRITICAL,"mmc_read system failed\n");
 		goto err;
 	}
-
 	signature = (unsigned char*) memalign(CACHE_LINE, ROUNDUP(page_size, CACHE_LINE));
 
 	ASSERT(signature);
@@ -94,16 +107,37 @@ void kauth_test(const char *arg, void *data, unsigned sz)
 		dprintf(CRITICAL,"mmc_read signature failed\n");
 		goto err;
 	}
+#endif
 
 	dprintf(INFO, "kauth_test: Authenticating boot image (%d): start\n", IMAGE_SIZE);
 
+#if VERIFIED_BOOT
+	for (i = 0; i < 12; i++)
+	{
+		ret = boot_verify_compare_sha256((unsigned char *)image, image_len, vboot_signatures[i], ks->mykeybag->mykey->key_material);
+		vboot_ret[i] = ret;
+	}
+	for (i = 0; i < 12; i++)
+	{
+		if (vboot_ret[i] != vboot_expected[i])
+			test_pass = false;
+			ret = i;
+	}
+
+	if (test_pass)
+		dprintf(INFO, "Kauth_test: PASS for all usecases\n");
+	else
+		dprintf(INFO, "Kauth_test failed for : %s\n", vboot_signatures_str[ret]);
+#else
 	ret = image_verify(image, signature, IMAGE_SIZE, auth_algo);
+	dprintf(INFO, "kauth_test: Authenticating boot image: done return value = %d\n", ret);
+#endif
 
-        dprintf(INFO, "kauth_test: Authenticating boot image: done return value = %d\n", ret);
-
+#if !VERIFIED_BOOT
 err:
 	if(image)
 		free(image);
 	if(signature)
 		free(signature);
+#endif
 }
