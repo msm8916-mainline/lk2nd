@@ -44,7 +44,7 @@
 #define EXPAND(NAME) #NAME
 #define TARGET(NAME) EXPAND(NAME)
 
-#define BATTERY_MIN_VOLTAGE		3600000  //uv
+#define BATTERY_MIN_VOLTAGE		3200000  //uv
 #define PMIC_SLAVE_ID                   0x20000
 #define BAT_IF_BAT_PRES_STATUS		0x1208
 
