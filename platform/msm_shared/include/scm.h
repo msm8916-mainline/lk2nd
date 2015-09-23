@@ -398,7 +398,7 @@ int scm_halt_pmic_arbiter();
 int scm_call_atomic2(uint32_t svc, uint32_t cmd, uint32_t arg1, uint32_t arg2);
 
 void scm_elexec_call(paddr_t kernel_entry, paddr_t dtb_offset);
-void *get_canary();
+uintptr_t get_canary();
 /* API to configure XPU violations as fatal */
 int scm_xpu_err_fatal_init();
 

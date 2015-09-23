@@ -289,9 +289,6 @@ int ucs_scsi_send_inquiry(struct ufs_dev *dev)
 		return -UFS_FAILURE;
 	}
 
-	/* Flush buffer. */
-	arch_invalidate_cache_range((addr_t) param, SCSI_INQUIRY_LEN);
-
 	return UFS_SUCCESS;
 }
 
@@ -311,7 +308,7 @@ static int ucs_do_request_sense(struct ufs_dev *dev)
 	STACKBUF_DMA_ALIGN(cdb, sizeof(struct scsi_sense_cdb));
 	struct scsi_req_build_type req_upiu;
 	struct scsi_sense_cdb      *cdb_param;
-	uint8_t                    buf[SCSI_SENSE_BUF_LEN];
+	STACKBUF_DMA_ALIGN(buf, SCSI_SENSE_BUF_LEN);
 
 	cdb_param = cdb;
 
