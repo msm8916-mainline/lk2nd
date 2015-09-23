@@ -54,6 +54,7 @@
 #include "include/panel_jdi_qhd_dualdsi_video.h"
 #include "include/panel_jdi_qhd_dualdsi_cmd.h"
 #include "include/panel_r69007_wqxga_cmd.h"
+#include "include/panel_jdi_4k_dualdsi_video_nofbc.h"
 
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
@@ -67,6 +68,7 @@ enum {
 	JDI_QHD_DUALDSI_VIDEO_PANEL,
 	JDI_QHD_DUALDSI_CMD_PANEL,
 	R69007_WQXGA_CMD_PANEL,
+	JDI_4K_DUALDSI_VIDEO_NOFBC_PANEL,
 	UNKNOWN_PANEL
 };
 
@@ -83,6 +85,7 @@ static struct panel_list supp_panels[] = {
 	{"jdi_qhd_dualdsi_video", JDI_QHD_DUALDSI_VIDEO_PANEL},
 	{"jdi_qhd_dualdsi_cmd", JDI_QHD_DUALDSI_CMD_PANEL},
 	{"r69007_wqxga_cmd", R69007_WQXGA_CMD_PANEL},
+	{"jdi_4k_dualdsi_video_nofbc", JDI_4K_DUALDSI_VIDEO_NOFBC_PANEL},
 };
 
 static uint32_t panel_id;
@@ -375,6 +378,40 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 			r69007_wqxga_thulium_cmd_timings,
 			MAX_TIMING_CONFIG * sizeof(uint32_t));
 		break;
+	case JDI_4K_DUALDSI_VIDEO_NOFBC_PANEL:
+		pan_type = PANEL_TYPE_DSI;
+		/*
+		 * send on_cmds at HS mode by setting cmds_post_tg so that
+		 * on_cmds are sent after timing generator on
+		 */
+		pinfo->mipi.cmds_post_tg = 1;
+		panelstruct->paneldata    = &jdi_4k_dualdsi_video_nofbc_panel_data;
+
+		panelstruct->panelres     = &jdi_4k_dualdsi_video_nofbc_panel_res;
+		panelstruct->color        = &jdi_4k_dualdsi_video_nofbc_color;
+		panelstruct->videopanel   = &jdi_4k_dualdsi_video_nofbc_video_panel;
+		panelstruct->commandpanel = &jdi_4k_dualdsi_video_nofbc_command_panel;
+		panelstruct->state        = &jdi_4k_dualdsi_video_nofbc_state;
+		panelstruct->laneconfig   = &jdi_4k_dualdsi_video_nofbc_lane_config;
+		panelstruct->paneltiminginfo
+			= &jdi_4k_dualdsi_video_nofbc_timing_info;
+		panelstruct->panelresetseq
+				 = &jdi_4k_dualdsi_video_nofbc_reset_seq;
+		panelstruct->backlightinfo = &jdi_4k_dualdsi_video_nofbc_backlight;
+		pinfo->labibb = &jdi_4k_dualdsi_video_nofbc_labibb;
+
+		pinfo->mipi.panel_on_cmds
+			= jdi_4k_dualdsi_video_nofbc_on_command;
+		pinfo->mipi.num_of_panel_on_cmds
+			= JDI_4K_DUALDSI_VIDEO_NOFBC_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+			= jdi_4k_dualdsi_video_nofbc_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+			= JDI_4K_DUALDSI_VIDEO_NOFBC_OFF_COMMAND;
+		memcpy(phy_db->timing,
+			jdi_4k_dualdsi_thulium_video_nofbc_timings,
+			MAX_TIMING_CONFIG * sizeof(uint32_t));
+		break;
 	default:
 	case UNKNOWN_PANEL:
 		pan_type = PANEL_TYPE_UNKNOWN;
@@ -417,6 +454,9 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 		break;
 	case HW_PLATFORM_QRD:
 		panel_id = R69007_WQXGA_CMD_PANEL;
+		break;
+	case HW_PLATFORM_LIQUID:
+		panel_id = JDI_4K_DUALDSI_VIDEO_NOFBC_PANEL;
 		break;
 	default:
 		dprintf(CRITICAL, "Display not enabled for %d HW type\n"
