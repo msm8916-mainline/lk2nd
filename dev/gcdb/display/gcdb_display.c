@@ -166,9 +166,10 @@ static int mdss_dsi_dfps_get_pll_codes_cal(struct msm_panel_info *pinfo)
 
 		err = mdss_dsi_panel_clock(1, pinfo);
 		if (!err) {
+			dprintf(SPEW, "frame_rate=%d, vcorate=%d success!\n",
+					pinfo->mipi.frame_rate,
+					pinfo->mipi.dsi_pll_config->vco_clock);
 			pinfo->dfps.codes_dfps[i].is_valid = 1;
-			pinfo->dfps.codes_dfps[i].frame_rate =
-				pinfo->mipi.frame_rate;
 			pinfo->dfps.codes_dfps[i].frame_rate =
 				pinfo->mipi.frame_rate;
 			pinfo->dfps.codes_dfps[i].clk_rate =
@@ -201,7 +202,7 @@ static int mdss_dsi_dfps_get_stored_pll_codes(struct msm_panel_info *pinfo)
 	index = partition_get_index("splash");
 	if (index == INVALID_PTN) {
 		dprintf(INFO, "%s: splash partition table not found\n", __func__);
-		ret = NO_ERROR;
+		ret = ERROR;
 		goto splash_err;
 	}
 
@@ -262,7 +263,7 @@ static int mdss_dsi_dfps_store_pll_codes(struct msm_panel_info *pinfo)
 	index = partition_get_index("splash");
 	if (index == INVALID_PTN) {
 		dprintf(INFO, "%s: splash partition table not found\n", __func__);
-		ret = NO_ERROR;
+		ret = ERROR;
 		goto store_err;
 	}
 
@@ -510,7 +511,8 @@ int gcdb_display_init(const char *panel_name, uint32_t rev, void *base)
 		if (panel.panel_info.dfps.panel_dfps.enabled) {
 			panel.panel_info.dfps.dfps_fb_base = base;
 			base += DFPS_PLL_CODES_SIZE;
-			dprintf(SPEW, "fb_base=0x%p!\n", base);
+			dprintf(SPEW, "dfps base=0x%p,d, fb_base=0x%p!\n",
+					panel.panel_info.dfps.dfps_fb_base, base);
 		}
 
 		panel.fb.base = base;
