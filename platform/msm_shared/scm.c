@@ -1059,53 +1059,57 @@ void scm_elexec_call(paddr_t kernel_entry, paddr_t dtb_offset)
 }
 
 /* SCM Random Command */
-int scm_random(uint32_t * rbuf, uint32_t  r_len)
+int scm_random(uintptr_t * rbuf, uint32_t  r_len)
 {
 	int ret;
 	struct tz_prng_data data;
 	scmcall_arg scm_arg = {0};
+	// Memory passed to TZ should be algined to cache line
+	BUF_DMA_ALIGN(rand_buf, sizeof(uintptr_t));
 
 	if (!scm_arm_support)
 	{
-		data.out_buf     = (uint8_t*) rbuf;
+		data.out_buf     = (uint8_t*) rand_buf;
 		data.out_buf_size = r_len;
 
 		/*
 		 * random buffer must be flushed/invalidated before and after TZ call.
 		 */
-		arch_clean_invalidate_cache_range((addr_t) rbuf, r_len);
+		arch_clean_invalidate_cache_range((addr_t) rand_buf, r_len);
 
 		ret = scm_call(TZ_SVC_CRYPTO, PRNG_CMD_ID, &data, sizeof(data), NULL, 0);
 
 		/* Invalidate the updated random buffer */
-		arch_clean_invalidate_cache_range((addr_t) rbuf, r_len);
+		arch_clean_invalidate_cache_range((addr_t) rand_buf, r_len);
 	}
 	else
 	{
 		scm_arg.x0 = MAKE_SIP_SCM_CMD(TZ_SVC_CRYPTO, PRNG_CMD_ID);
 		scm_arg.x1 = MAKE_SCM_ARGS(0x2,SMC_PARAM_TYPE_BUFFER_READWRITE);
-		scm_arg.x2 = (uint32_t) rbuf;
+		scm_arg.x2 = (uint32_t) rand_buf;
 		scm_arg.x3 = r_len;
 
 		ret = scm_call2(&scm_arg, NULL);
 		if (!ret)
-			arch_clean_invalidate_cache_range((addr_t) rbuf, r_len);
+			arch_clean_invalidate_cache_range((addr_t) rand_buf, r_len);
 		else
 			dprintf(CRITICAL, "Secure canary SCM failed: %x\n", ret);
 	}
 
+	//Copy back into the return buffer
+	*rbuf = *rand_buf;
 	return ret;
 }
 
-void * get_canary()
+uintptr_t get_canary()
 {
-	void * canary;
-	if(scm_random((uint32_t *)&canary, sizeof(canary))) {
+	uintptr_t canary;
+	if(scm_random(&canary, sizeof(canary))) {
 		dprintf(CRITICAL,"scm_call for random failed !!!");
 		/*
 		* fall back to use lib rand API if scm call failed.
 		*/
-		canary =  (void *)rand();
+		canary =  rand();
 	}
 
 	return canary;
@@ -1195,14 +1199,14 @@ uint32_t scm_call2(scmcall_arg *arg, scmcall_ret *ret)
 
 	if ((arg->x1 & 0xF) > SCM_MAX_ARG_LEN - 1)
 	{
-		indir_arg = memalign(CACHE_LINE, (SCM_INDIR_MAX_LEN * sizeof(uint32_t)));
+		indir_arg = memalign(CACHE_LINE, ROUNDUP((SCM_INDIR_MAX_LEN * sizeof(uint32_t)), CACHE_LINE));
 		ASSERT(indir_arg);
 
 		for (i = 0 ; i < SCM_INDIR_MAX_LEN; i++)
 		{
 			indir_arg[i] = arg->x5[i];
 		}
-		arch_clean_invalidate_cache_range((addr_t) indir_arg, (SCM_INDIR_MAX_LEN * sizeof(uint32_t)));
+		arch_clean_invalidate_cache_range((addr_t) indir_arg, ROUNDUP((SCM_INDIR_MAX_LEN * sizeof(uint32_t)), CACHE_LINE));
 		x5 = (addr_t) indir_arg;
 	}
 
