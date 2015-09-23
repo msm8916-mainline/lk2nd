@@ -1275,10 +1275,22 @@ pm_err_flag_type pm_fg_usr_get_vbat(uint32 pmic_device, uint32 *calibrated_vbat)
 {
 	uint16	wait_index = 0;
 	boolean adc_reading_ready = FALSE;
+	boolean enable = FALSE;
 
 	pm_err_flag_type err_flag = PM_ERR_FLAG__SUCCESS;
 
 	pm_fg_driver_init(pmic_device);
+
+	err_flag |= pm_fg_adc_usr_get_bcl_monitoring_sts(pmic_device, &enable);
+	if (err_flag != PM_ERR_FLAG__SUCCESS)  {
+		return err_flag;
+	} else {
+		if (enable == FALSE) {
+			err_flag |= pm_fg_adc_usr_enable_bcl_monitoring(pmic_device, TRUE);
+			if (err_flag != PM_ERR_FLAG__SUCCESS)
+				return err_flag;
+		}
+	}
 
 	//Check Vbatt ADC level
 	err_flag |= pm_fg_adc_usr_get_bcl_values(pmic_device, &adc_reading_ready); //Check if Vbatt ADC is ready
