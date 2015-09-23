@@ -273,6 +273,7 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 	uint32_t flags, dsi_phy_pll_out;
 	uint32_t ret = NO_ERROR;
 	uint32_t board_version = board_soc_version();
+	struct dfps_pll_codes *pll_codes = &pinfo->mipi.pll_codes;
 
 	if (pinfo->dest == DISPLAY_2) {
 		flags = MMSS_DSI_CLKS_FLAG_DSI1;
@@ -306,6 +307,13 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 		dprintf(CRITICAL, "PLL failed to lock!\n");
 		goto clks_disable;
 	}
+
+	pll_codes->codes[0] = readl_relaxed(pinfo->mipi.pll_base +
+			        MMSS_DSI_PHY_PLL_CORE_KVCO_CODE);
+	pll_codes->codes[1] = readl_relaxed(pinfo->mipi.pll_base +
+			        MMSS_DSI_PHY_PLL_CORE_VCO_TUNE);
+	dprintf(SPEW, "codes %d %d\n", pll_codes->codes[0],
+			        pll_codes->codes[1]);
 
 	if (pinfo->mipi.use_dsi1_pll)
 		dsi_phy_pll_out = DSI1_PHY_PLL_OUT;
