@@ -107,7 +107,7 @@ struct qmp_reg qmp_settings_rev2[] =
 	{0x508, 0x77}, /* QSERDES_RX_RX_EQ_OFFSET_ADAPTOR_CNTRL1 */
 	{0x50c, 0x80}, /* QSERDES_RX_RX_OFFSET_ADAPTOR_CNTRL2 */
 	{0x514, 0x03}, /* QSERDES_RX_SIGDET_CNTRL */
-	{0x518, 0x1b}, /* QSERDES_RX_SIGDET_LVL */
+	{0x518, 0x18}, /* QSERDES_RX_SIGDET_LVL */
 	{0x51c, 0x16}, /* QSERDES_RX_SIGDET_DEGLITCH_CNTRL */
 
 	/* Tx settings */
@@ -135,6 +135,7 @@ struct qmp_reg qmp_settings_rev2[] =
 struct qmp_reg qmp_misc_settings_rev2[] =
 {
 	{0x178, 0x01}, /* QSERDES_COM_HSCLK_SEL */
+	{0x518, 0x1B}, /* QSERDES_RX_SIGDET_LVL */
 	{0xC4, 0x15}, /* USB3PHY_QSERDES_COM_RESCODE_DIV_NUM */
 	{0x1B8, 0x1F}, /* QSERDES_COM_CMN_MISC2 */
 };
