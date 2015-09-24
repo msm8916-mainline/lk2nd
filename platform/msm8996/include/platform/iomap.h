@@ -80,6 +80,7 @@
 
 #define AHB2_PHY_BASE               0x7416000
 #define PERIPH_SS_AHB2PHY_TOP_CFG   (AHB2_PHY_BASE + 0x10)
+#define GCC_RX2_USB2_CLKREF_EN      0x00388014
 
 /* Clocks */
 #define CLK_CTL_BASE                0x300000
