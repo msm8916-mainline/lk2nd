@@ -1945,6 +1945,11 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 		return;
 	}
 
+	// Initialize boot state before trying to verify boot.img
+#if VERIFIED_BOOT
+		boot_verifier_init();
+#endif
+
 	/* Verify the boot image
 	 * device & page_size are initialized in aboot_init
 	 */
@@ -1952,11 +1957,14 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 		/* Pass size excluding signature size, otherwise we would try to
 		 * access signature beyond its length
 		 */
-#if VERIFIED_BOOT
-		boot_verifier_init();
-#endif
 		verify_signed_bootimg((uint32_t)data, (image_actual - sig_actual));
 	}
+
+#if VERIFIED_BOOT
+	// send root of trust
+	if(!send_rot_command((uint32_t)device.is_unlocked))
+		ASSERT(0);
+#endif
 
 	/*
 	 * Check if the kernel image is a gzip package. If yes, need to decompress it.
