@@ -29,39 +29,56 @@
 
 #include "mdtp_defs.h"
 
-struct mdtp_ui_defs mdtp_ui_defs_msm8952 = {
+#define MDTP_EFUSE_ADDRESS_MSM8994  0xFC4BC1F8  // QFPROM_CORR_SPARE_REG19_LSB_ADDR
+#define MDTP_EFUSE_START_MSM8994    16
+
+struct mdtp_ui_defs mdtp_ui_defs_msm8994 = {
         // Image dimensions
-        952,      // error_msg_width;
-        143,      // error_msg_height;
-        920,      // main_text_width;
-        194,      // main_text_height;
-        120,      // pin_digit_width;
-        120,      // pin_digit_height;
-        432,      // ok_button_width;
-        106,      // ok_button_height;
-        932,      // digits_instructions_width;
-        112,      // digits_instructions_height;
-        620,      // pin_instructions_width;
-        137,      // pin_instructions_height;
+        1412,     // error_msg_width;
+        212,      // error_msg_height;
+        1364,     // main_text_width;
+        288,      // main_text_height;
+        180,      // pin_digit_width;
+        180,      // pin_digit_height;
+        644,      // ok_button_width;
+        158,      // ok_button_height;
+        1384,     // digits_instructions_width;
+        166,      // digits_instructions_height;
+        920,      // pin_instructions_width;
+        204,      // pin_instructions_height;
 
         // Image offsets
         0x1000,   // error_msg_offset;
-        0x65000,  // initial_delay_offset;
-        0xE8000,  // enter_pin_offset;
-        0x16B000, // invalid_pin_offset;
-        0x1EE000, // pin_digit_0_offset;
-        0xB000,   // pin_digits_offset;
-        0x25C000, // pin_selected_digit_0_offset;
-        0x2CA000, // ok_button_offset;
-        0x2EC000, // selected_ok_button_offset;
-        0x30E000, // digits_instructions_offset;
-        0x35B000, // pin_instructions_offset;
+        0xDD000,  // initial_delay_offset;
+        0x1FD000, // enter_pin_offset;
+        0x31D000, // invalid_pin_offset;
+        0x43D000, // pin_digit_0_offset;
+        0x18000,  // pin_digits_offset;
+        0x52D000, // pin_selected_digit_0_offset;
+        0x61D000, // ok_button_offset;
+        0x668000, // selected_ok_button_offset;
+        0x6B3000, // digits_instructions_offset;
+        0x75C000, // pin_instructions_offset;
 
         //Display settings
-        8         // digit_space;
+        12        // digit_space;
 };
 
 struct mdtp_ui_defs mdtp_get_target_ui_defs()
 {
-    return mdtp_ui_defs_msm8952;
+    return mdtp_ui_defs_msm8994;
+}
+
+int mdtp_get_target_efuse(struct mdtp_target_efuse* target_efuse)
+{
+    if (target_efuse == NULL)
+    {
+        dprintf(CRITICAL, "mdtp: mdtp_get_target_efuse: ERROR, target_efuse is NULL\n");
+        return -1;
+    }
+
+    target_efuse->address = MDTP_EFUSE_ADDRESS_MSM8994;
+    target_efuse->start = MDTP_EFUSE_START_MSM8994;
+
+    return 0;
 }

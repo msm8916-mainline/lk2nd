@@ -29,6 +29,7 @@
 #include <dload_util.h>
 #include <sdhci_msm.h>
 #if PON_VIB_SUPPORT
+#include <smem.h>
 #include <vibrator.h>
 #include <board.h>
 #endif
@@ -251,12 +252,20 @@ uint32_t get_vibration_type()
 			ret = VIB_ERM_TYPE;
 			break;
 		case MSM8976:
+		case MSM8956:
+		case APQ8056:
 			ret = VIB_LRA_TYPE;
+			break;
+		default:
+			dprintf(CRITICAL,"Unsupported platform id\n");
 			break;
 		}
 		break;
 	case HW_PLATFORM_QRD:
 		ret = VIB_ERM_TYPE;
+		break;
+	default:
+		dprintf(CRITICAL,"Unsupported platform id\n");
 		break;
 	}
 	return ret;

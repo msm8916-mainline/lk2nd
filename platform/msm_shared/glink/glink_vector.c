@@ -109,12 +109,6 @@ void* glink_iovec_vprovider
     return NULL;
   }
 
-  if (!iovec_l->vlist)
-  {
-    // create vlist and map virtual from physical addresses
-    ASSERT(0);
-  }
-
   if (!iovec_l->vlast || iovec_l->vlast->start_offset > offset)
   {
        iovec_l->vlast = iovec_l->vlist;
@@ -165,12 +159,6 @@ void* glink_iovec_pprovider
   if (iovec_l == NULL || size == NULL)
   {
     return NULL;
-  }
-
-  if (!iovec_l->plist)
-  {
-    // create plist and get physical addresses from virtual
-    ASSERT(0); // not implemented
   }
 
   if (!iovec_l->plast || iovec_l->plast->start_offset > offset)

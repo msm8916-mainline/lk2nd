@@ -42,7 +42,6 @@ extern "C" {
 /*===========================================================================
                         INCLUDE FILES
 ===========================================================================*/
-
 #include "smem_list.h"
 #include "glink.h"
 #include "glink_transport_if.h"
@@ -51,6 +50,17 @@ extern "C" {
 /*===========================================================================
                       MACRO DECLARATIONS
 ===========================================================================*/
+/* Limit of the proportion of total QoS requests
+   =GLINK_QOS_RATE_LIMIT_COEFF_N / GLINK_QOS_RATE_LIMIT_COEFF_D
+ */
+#define GLINK_QOS_RATE_LIMIT_COEFF_N 7
+#define GLINK_QOS_RATE_LIMIT_COEFF_D 10
+
+/* Number of QoS tokens given at refill */
+#define GLINK_QOS_TOKENS (10) 
+
+/* Number of QoS buckets */
+#define GLINK_QOS_BUCKETS (1)
 
 /*===========================================================================
                       TYPE DECLARATIONS
@@ -88,11 +98,15 @@ typedef struct glink_tx_xport_ctx_s {
   os_event_type event;   /* Event to signal Tx thread */
   os_cs_type tx_q_cs;    /* Lock to protect Tx queue */
   smem_list_type tx_q;   /* Tx channel queue */
+  uint32 qos_rate_sum;   /* Sum of rates of registered QoS requests */
 } glink_tx_xport_ctx_type;
 
 /** G-Link Local channel states */
 typedef enum
 {
+  /** Initial State before entering channel state machine */
+  GLINK_LOCAL_CH_INIT,
+  
   /** Local G-Link channel is fully closed */
   GLINK_LOCAL_CH_CLOSED,
 
@@ -110,6 +124,9 @@ typedef enum
 /** G-Link Remote channel states */
 typedef enum
 {
+  /** Initial State before entering channel state machine */
+  GLINK_REMOTE_CH_INIT,
+
   /** Remote G-Link channel is closed */
   GLINK_REMOTE_CH_CLOSED,
 
@@ -117,7 +134,12 @@ typedef enum
   GLINK_REMOTE_CH_OPENED,
 
   /* Glink channel state when SSR is received from remote sub-system */
-  GLINK_REMOTE_CH_SSR_RESET
+  GLINK_REMOTE_CH_SSR_RESET,
+
+  /** G-Link channel is pending cleanup. 
+      This state is used for deferred channel cleanup in case 
+      it sits in Tx scheduler queue */
+  GLINK_REMOTE_CH_CLEANUP
 
 }glink_remote_state_type;
 
@@ -142,14 +164,6 @@ typedef void (*rx_cmd_version_ack_fn)
   glink_transport_if_type *if_ptr, /* Pointer to the interface instance */
   uint32                  version, /* Version */
   uint32                  features /* Features */
-);
-
-/** Sets the core version used by the transport; called after completing
- *  negotiation.*/
-typedef void (*set_core_version_fn)
-(
-  glink_transport_if_type *if_ptr, /* Pointer to the interface instance */
-  uint32                  version  /* Version */
 );
 
 /** Receive remote channel open request; expected response is
@@ -307,7 +321,7 @@ struct glink_core_xport_ctx
   const glink_core_version_type *version_array;
 
   /** Keep track of version array index in use */
-  uint32                        version_indx;
+  int32                         version_indx;
 
   /* Keeps track of the current status of the transport */
   glink_transport_status_type   status;
@@ -319,13 +333,17 @@ struct glink_core_xport_ctx
   /* Transport's capabilities */
   uint32                        xport_capabilities;
 
+  /* Max lcid */
+  uint32                        max_lcid;
+
   /* Free lcid */
   uint32                        free_lcid;
 
   /* Keeps track of the open channels for this transport/edge combination */
   smem_list_type                open_list;
 
-  /* Critical section to protect access to open_list */
+  /* Critical section to protect access to open_list and channel state of all 
+     channels in that open_list */
   os_cs_type                    channel_q_cs;
 
   /* Local channel intents queued so far. This also helps determining liid
@@ -371,10 +389,6 @@ struct glink_core_if
 
   /** Receive ACK to previous glink_transport_if_type::tx_cmd_version command */
   rx_cmd_version_ack_fn          rx_cmd_version_ack;
-
-  /** Sets the core version used by the transport; called after completing
-   *  negotiation.*/
-  set_core_version_fn            set_core_version;
 
   /** Receive remote channel open request; expected response is
    *  glink_transport_if_type:: tx_cmd_ch_remote_open_ack */

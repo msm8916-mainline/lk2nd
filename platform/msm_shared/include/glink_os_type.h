@@ -49,6 +49,13 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ===========================================================================*/
 
 #define OS_LOG_INIT( ) glink_os_log_init()
+#define GLINK_OS_SEC_TO_USEC (1000000ULL)
+#define GLINK_OS_SEC_TO_TICK (19200000ULL)
+
+#define GLINK_OS_TICK_TO_USEC(t) ((t)*10ULL/192ULL)
+#define GLINK_OS_USEC_TO_TICK(u) ((u)*192ULL/10ULL)
+
+#define GLINK_OS_UNREFERENCED_PARAM( param ) ( void )param
 
 /*===========================================================================
                         TYPE DEFINITIONS
@@ -87,5 +94,7 @@ typedef struct os_ipc_intr_struct
   uint32_t processor;
   uint32_t irq_out;
 } os_ipc_intr_type;
+
+typedef unsigned long long os_timetick_type;
 
 #endif /* OS_TYPE_H */

@@ -16,5 +16,5 @@ OBJS += \
 	$(LOCAL_DIR)/mdtp.o \
 	$(LOCAL_DIR)/mdtp_ui.o \
 	$(LOCAL_DIR)/mdtp_fuse.o \
-	$(LOCAL_DIR)/mdtp_ui_defs.o
+	$(LOCAL_DIR)/mdtp_defs.o
 endif
