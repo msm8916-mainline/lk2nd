@@ -724,14 +724,13 @@ void boot_linux(void *kernel, unsigned *tags,
 	}
 #endif
 
-	/* Perform target specific cleanup */
-	target_uninit();
-
 	/* Turn off splash screen if enabled */
 #if DISPLAY_SPLASH_SCREEN
 	target_display_shutdown();
 #endif
 
+	/* Perform target specific cleanup */
+	target_uninit();
 
 	dprintf(INFO, "booting linux @ %p, ramdisk @ %p (%d), tags/device tree @ %p\n",
 		entry, ramdisk, ramdisk_size, (void *)tags_phys);
