@@ -837,7 +837,7 @@ int mipi_dsi_off(struct msm_panel_info *pinfo)
 	}
 
 	writel(0x1115501, pinfo->mipi.ctl_base + INT_CTRL);
-	if (pinfo->mipi.broadcast)
+	if (pinfo->mipi.dual_dsi)
 		writel(0x1115501, pinfo->mipi.sctl_base + INT_CTRL);
 
 	return NO_ERROR;
