@@ -74,8 +74,8 @@ struct upiu_trans_mgmt_query_hdr
 	uint8_t                   selector;
 	uint8_t                   resv_0[2];
 	uint16_t                  resp_len;
-	uint8_t                   resv_1[3];
-	uint8_t                   flag_value;
+	// this structure is used for several queries. resv_1 field is reserved for some and used for others
+	uint8_t                   resv_1[4];
 	uint8_t                   resv_2[4];
 }__PACKED;
 

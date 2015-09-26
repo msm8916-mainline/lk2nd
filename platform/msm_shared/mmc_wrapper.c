@@ -534,6 +534,41 @@ void mmc_device_sleep()
 }
 
 /*
+ * Function    : ufs_get_boot_lun
+ * Arg         : none
+ * Return type : current boot lun
+ */
+
+int ufs_get_boot_lun()
+{
+	int ret = 0;
+	void *dev;
+	dev = target_mmc_device();
+
+	if (!(platform_boot_dev_isemmc()))
+		ret = dme_get_bbootlunen((struct ufs_dev *)dev);
+	return ret;
+}
+
+
+/*
+ * Function    : ufs_set_boot_lun
+ * Arg         : boot lun id
+ * Return type : status
+ */
+
+int ufs_set_boot_lun(uint32_t boot_lun_id)
+{
+	int ret = 0;
+	void *dev;
+	dev = target_mmc_device();
+
+	if (!(platform_boot_dev_isemmc()))
+		ret = dme_set_bbootlunen((struct ufs_dev *)dev, boot_lun_id);
+	return ret;
+}
+
+/*
  * Function     : mmc set LUN for ufs
  * Arg          : LUN number
  * Return type  : void
