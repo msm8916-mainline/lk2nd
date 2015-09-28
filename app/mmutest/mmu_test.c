@@ -29,6 +29,7 @@
 #include <sys/types.h>
 #include <debug.h>
 #include <arch/arm/mmu.h>
+#include <arch/ops.h>
 #include <mmu.h>
 #include <string.h>
 #include <smem.h>
