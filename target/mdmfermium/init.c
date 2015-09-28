@@ -199,6 +199,13 @@ void target_baseband_detect(struct board_data *board)
 	};
 }
 
+void target_serialno(unsigned char *buf)
+{
+	uint32_t serialno;
+	serialno = board_chip_serial();
+	snprintf((char *)buf, sizeof(uint32_t)+1, "%x", serialno);
+}
+
 unsigned check_reboot_mode(void)
 {
 	uint32_t restart_reason = 0;
