@@ -25,8 +25,11 @@
  * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include <stdlib.h>
+#include <string.h>
 #include <platform.h>
 #include <rpmb.h>
+#include <km_main.h>
 #include <rpmb_listener.h>
 #include <mmc_sdhci.h>
 #include <boot_device.h>
@@ -174,6 +177,35 @@ int write_device_info_rpmb(void *info, uint32_t sz)
 		return -1;
 	}
 
+	return 0;
+}
+
+/*
+ * SWP Write function is used to send a configuration block to rpmb
+ * for enabling a secure write protect based on LBAs. This function
+ * should is enabled by the keymaster secure app and this function
+ * can only be called before we send the milestone call to keymaster.
+ */
+int swp_write(qsee_stor_secure_wp_info_t swp_cb)
+{
+	secure_write_prot_req_t *req;
+	secure_write_prot_rsp_t rsp;
+	int ret = 0;
+	uint32_t tlen = sizeof(secure_write_prot_req_t) + sizeof(swp_cb);
+	if(!(req = (secure_write_prot_req_t *) malloc(tlen)))
+		ASSERT(0);
+	void *cpy_ptr = (uint8_t *) req + sizeof(secure_write_prot_req_t);
+	req->cmd_id = KEYMASTER_SECURE_WRITE_PROTECT;
+	req->op = SWP_WRITE_CONFIG;
+	req->swp_write_data_offset = sizeof(secure_write_prot_req_t);
+	req->swp_write_data_len = sizeof(swp_cb);
+	memcpy(cpy_ptr, (void *)&swp_cb, sizeof(swp_cb));
+	ret = qseecom_send_command(get_secapp_handle(), (void *)req, tlen, (void *)&rsp, sizeof(rsp));
+	if(ret < 0 || rsp.status < 0)
+	{
+		dprintf(CRITICAL, "Setting secure write protect configuration failed\n");
+		return -1;
+	}
 	return 0;
 }
 

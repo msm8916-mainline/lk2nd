@@ -67,6 +67,7 @@ typedef enum {
     KEYMASTER_READ_LK_DEVICE_STATE			= (KEYMASTER_UTILS_CMD_ID + 2UL),
     KEYMASTER_WRITE_LK_DEVICE_STATE			= (KEYMASTER_UTILS_CMD_ID + 3UL),
     KEYMASTER_MILESTONE_CALL				= (KEYMASTER_UTILS_CMD_ID + 4UL),
+    KEYMASTER_SECURE_WRITE_PROTECT			= (KEYMASTER_UTILS_CMD_ID + 6UL),
 
     KEYMASTER_LAST_CMD_ENTRY				= (int)0xFFFFFFFFULL
 } keymaster_cmd_t;
@@ -162,5 +163,46 @@ typedef struct _key_op_delete_all_req_t {
 typedef struct _key_op_delete_all_rsp_t {
 	int status;
 }__attribute__ ((packed)) key_op_delete_all_rsp_t;
+
+typedef enum _secure_write_prot_op_t
+{
+	SWP_READ_CONFIG,
+	SWP_WRITE_CONFIG,
+	SWP_LAST_CMD_ENTRY                    = (int)0xFFFFFFFFULL
+} secure_write_prot_op_t;
+
+/*
+	@brief
+	Data structure
+
+	@param[in]   cmd_id                   Command ID of the request
+	@param[in]   op                       Secure write protect operation (enum from secure_write_prot_op_t)
+	@param[in]   swp_write_data_offset    Offset of data for SWP operation
+	@param[in]   swp_write_data_len       Length of data for SWP operation
+*/
+
+typedef struct _secure_write_prot_req_t
+{
+	uint32 cmd_id;
+	uint32 op;
+	uint32 swp_write_data_offset;
+	uint32 swp_write_data_len;
+}__attribute__((packed)) secure_write_prot_req_t;
+
+/*
+	@brief
+	Data structure
+
+	@param[out]   status                  Status of the request
+	@param[out]   swp_read_data_offset    Offset of data for SWP operation
+	@param[out]   swp_read_data_len       Length of data for SWP operation
+*/
+
+typedef struct _secure_write_prot_rsp_t
+{
+	int status;
+	uint32 swp_read_data_offset;
+	uint32 swp_read_data_len;
+}__attribute__((packed)) secure_write_prot_rsp_t;
 
 #endif /* KM_MAIN_H */
