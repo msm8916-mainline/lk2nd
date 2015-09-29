@@ -85,8 +85,7 @@ static mmu_section_t default_mmu_section_table_3gb[] =
 static mmu_section_t dload_mmu_section_table[] =
 {
 /*    Physical addr,    Virtual addr,     Mapping type ,              Size (in MB),      Flags */
-    { 0x85800000,       0x85800000,       MMU_L2_NS_SECTION_MAPPING,  8,                 DLOAD_MEMORY},
-    { 0x86200000,       0x86200000,       MMU_L2_NS_SECTION_MAPPING,  174,               DLOAD_MEMORY},
+    { 0x85800000,       0x85800000,       MMU_L2_NS_SECTION_MAPPING,  189,               DLOAD_MEMORY},
 };
 
 void platform_early_init(void)
