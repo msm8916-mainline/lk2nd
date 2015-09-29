@@ -118,7 +118,7 @@ void update_ptable_names(void)
 void target_early_init(void)
 {
 #if WITH_DEBUG_UART
-	uart_dm_init(1, 0, BLSP1_UART1_BASE);
+	uart_dm_init(1, 0, BLSP1_UART5_BASE);
 #endif
 }
 
