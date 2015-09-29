@@ -36,7 +36,6 @@
 
 
 static void *dev;
-static int app_handle;
 struct rpmb_init_info info;
 
 int rpmb_init()
@@ -94,7 +93,6 @@ int rpmb_init()
 		dprintf(CRITICAL, "Error registering the handler\n");
 		goto err;
 	}
-	rpmb_get_app_handle();
 
 err:
 	return ret;
@@ -142,7 +140,7 @@ int read_device_info_rpmb(void *info, uint32_t sz)
 
 	/* Read the device info */
 	arch_clean_invalidate_cache_range((addr_t) info, sz);
-	ret = qseecom_send_command(app_handle, (void*) &read_req, sizeof(read_req), (void*) &read_rsp, sizeof(read_rsp));
+	ret = qseecom_send_command(get_secapp_handle(), (void*) &read_req, sizeof(read_req), (void*) &read_rsp, sizeof(read_rsp));
 	arch_invalidate_cache_range((addr_t) info, sz);
 
 	if (ret < 0 || read_rsp.status < 0)
@@ -167,7 +165,7 @@ int write_device_info_rpmb(void *info, uint32_t sz)
 
 	/* Write the device info */
 	arch_clean_invalidate_cache_range((addr_t) info, sz);
-	ret = qseecom_send_command(app_handle, (void *)&write_req, sizeof(write_req), (void *)&write_rsp, sizeof(write_rsp));
+	ret = qseecom_send_command(get_secapp_handle(), (void *)&write_req, sizeof(write_req), (void *)&write_rsp, sizeof(write_rsp));
 	arch_invalidate_cache_range((addr_t) info, sz);
 
 	if (ret < 0 || write_rsp.status < 0)
@@ -177,12 +175,6 @@ int write_device_info_rpmb(void *info, uint32_t sz)
 	}
 
 	return 0;
-}
-
-int rpmb_get_app_handle()
-{
-	app_handle = get_secapp_handle();
-	return app_handle;
 }
 
 int rpmb_uninit()
