@@ -136,5 +136,4 @@ int rpmb_uninit();
 int rpmb_write(uint32_t *req_buf, uint32_t blk_cnt, uint32_t rel_wr_count, uint32_t *resp_buf, uint32_t *resp_len);
 int rpmb_read(uint32_t *req_buf, uint32_t blk_cnt, uint32_t *resp_buf, uint32_t *resp_len);
 struct rpmb_init_info *rpmb_get_init_info();
-int rpmb_get_app_handle();
 #endif
