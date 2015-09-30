@@ -400,6 +400,21 @@ uint8_t board_pmic_info(struct board_pmic_data *info, uint8_t num_ent)
 	return 0;
 }
 
+bool board_pmic_type(uint32_t type)
+{
+	uint8_t i;
+	if (format_major == 0x0 && format_minor >= 0x0B)
+	{
+		for (i = 0; i < SMEM_MAX_PMIC_DEVICES; i++)
+		{
+			if (type == (board.pmic_info_array[i].pmic_type & 0x0000ffff))
+				return true;
+		}
+	}
+
+	return false;
+}
+
 uint32_t board_pmic_target(uint8_t num_ent)
 {
 	if (format_major == 0x0 && num_ent < SMEM_MAX_PMIC_DEVICES)

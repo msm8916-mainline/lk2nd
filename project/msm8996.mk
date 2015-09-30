@@ -103,3 +103,8 @@ DEFINES += USE_PON_REBOOT_REG=1
 
 #enable battery voltage check
 DEFINES += CHECK_BAT_VOLTAGE=1
+# Enable unit test FW
+ENABLE_UNITTEST_FW=1
+ifeq ($(ENABLE_UNITTEST_FW),1)
+DEFINES += UNITTEST_FW_SUPPORT=1
+endif

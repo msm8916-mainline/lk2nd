@@ -77,12 +77,15 @@ void qusb2_phy_reset(void)
 			tune2 = (tune2 & 0x0f) | (fuse_val << 4);
 #endif
 		writel(tune2, QUSB2PHY_PORT_TUNE2);
-		writel(0x93, QUSB2PHY_PORT_TUNE3);
+		writel(0x83, QUSB2PHY_PORT_TUNE3);
 		writel(0xC0, QUSB2PHY_PORT_TUNE4);
 		writel(0x30, QUSB2PHY_PLL_TUNE);
 		writel(0x79, QUSB2PHY_PLL_USER_CTL1);
 		writel(0x21, QUSB2PHY_PLL_USER_CTL2);
 		writel(0x14, QUSB2PHY_PORT_TEST2);
+		writel(0x80, QUSB2PHY_PLL_TEST);
+		writel(0x9F, QUSB2PHY_PLL_AUTOPGM_CTL1);
+		writel(0x00, QUSB2PHY_PLL_PWR_CTL);
 	}
 	else
 	{
