@@ -103,7 +103,7 @@ struct qseecom_listener_handle {
 	uint32_t               id;
 };
 
-static struct qseecom_reg_log_buf_ireq logbuf_req;
+static struct qseecom_reg_log_buf_ireq logbuf_req = {0};
 static struct qseecom_control qseecom;
 static int __qseecom_process_incomplete_cmd(struct qseecom_command_scm_resp *resp,
           struct qseecom_client_listener_data_irsp *send_data_rsp);
@@ -434,6 +434,9 @@ static int qseecom_scm_call(uint32_t svc_id, uint32_t tz_cmd_id, void *cmd_buf,
 	struct qseecom_client_listener_data_irsp send_data_rsp = {0};
 	int ret = GENERIC_ERROR;
 	uint32_t qseos_cmd_id = 0;
+	struct tzdbg_log_t *log = NULL;
+	uint32_t QseeLogStart = 0;
+	uint32_t QseeLogNewStart = 0;
 
 	if ((!cmd_buf) || (!resp_buf))
 			return GENERIC_ERROR;
@@ -449,7 +452,22 @@ static int qseecom_scm_call(uint32_t svc_id, uint32_t tz_cmd_id, void *cmd_buf,
 			ret = scm_call(svc_id, tz_cmd_id, req, cmd_len,
 					resp_buf, resp_len);
 		} else {
+			if(logbuf_req.phy_addr)
+			{
+				log = (struct tzdbg_log_t *)logbuf_req.phy_addr;
+				arch_invalidate_cache_range((addr_t) logbuf_req.phy_addr, logbuf_req.len);
+				QseeLogStart = (uint32_t) log->log_pos.offset;
+			}
+
 			ret = qseecom_scm_call2(svc_id, tz_cmd_id, req, resp);
+			if(logbuf_req.phy_addr)
+			{
+				arch_invalidate_cache_range((addr_t) logbuf_req.phy_addr, logbuf_req.len);
+				QseeLogNewStart = (uint32_t) log->log_pos.offset;
+				_disp_log_stats((struct tzdbg_log_t *) logbuf_req.phy_addr,
+					QSEE_LOG_BUF_SIZE - sizeof(struct tzdbg_log_pos_t),
+					QseeLogStart, QseeLogNewStart);
+			}
 		}
 
 		if (ret) {
@@ -465,8 +483,7 @@ static int qseecom_scm_call(uint32_t svc_id, uint32_t tz_cmd_id, void *cmd_buf,
 		switch (resp->result) {
 			case QSEOS_RESULT_SUCCESS:
 				if(((resp->resp_type != QSEOS_APP_ID) || (resp->data <= 0)) &&
-					((qseos_cmd_id == QSEE_CLIENT_SEND_DATA_COMMAND) ||
-							(qseos_cmd_id == QSEE_LISTENER_DATA_RSP_COMMAND)))
+					(qseos_cmd_id == QSEE_CLIENT_SEND_DATA_COMMAND))
 				{
 					dprintf(CRITICAL, "ERROR: Resp type %d or Resp Data %d incorrect\n",
 							resp->resp_type, resp->data);
@@ -542,9 +559,6 @@ static int __qseecom_load_app(const char *app_name, unsigned int *app_id)
 	void *req = NULL;
 	struct qseecom_load_app_ireq load_req = {0};
 	struct qseecom_command_scm_resp resp;
-	struct tzdbg_log_t *log = NULL;
-	uint32_t QseeLogStart = 0;
-	uint32_t QseeLogNewStart = 0;
 
 	int ret = GENERIC_ERROR;
 	uint8_t lun = 0;
@@ -591,10 +605,6 @@ static int __qseecom_load_app(const char *app_name, unsigned int *app_id)
 	memscpy(&load_req.app_name, MAX_APP_NAME_SIZE, app_name, MAX_APP_NAME_SIZE);
 	req = (void *)&load_req;
 
-	log = (struct tzdbg_log_t *)logbuf_req.phy_addr;
-	arch_invalidate_cache_range((addr_t) logbuf_req.phy_addr, logbuf_req.len);
-	QseeLogStart = (uint32_t) log->log_pos.offset;
-
 	arch_clean_invalidate_cache_range((addr_t) load_req.phy_addr, load_req.img_len);
 	ret = qseecom_scm_call(SCM_SVC_TZSCHEDULER, 1, req,
 				sizeof(struct qseecom_load_lib_image_ireq),
@@ -603,11 +613,6 @@ static int __qseecom_load_app(const char *app_name, unsigned int *app_id)
 		*app_id = resp.data;
 	else
 		*app_id = 0;
-	arch_invalidate_cache_range((addr_t) logbuf_req.phy_addr, logbuf_req.len);
-	QseeLogNewStart = (uint32_t) log->log_pos.offset;
-
-	_disp_log_stats((struct tzdbg_log_t *) logbuf_req.phy_addr, QSEE_LOG_BUF_SIZE - sizeof(struct tzdbg_log_pos_t),
-			QseeLogStart, QseeLogNewStart);
 err:
 	if (buf)
 		free(buf);
@@ -932,11 +937,11 @@ int qseecom_start_app(char *app_name)
 		mutex_release(&qseecom.global_data_lock);
 		return ret;
 	}
+	mutex_release(&qseecom.global_data_lock);
 	/* Load commonlib image*/
 	if (!qseecom.cmnlib_loaded) {
 		ret = qseecom_load_commonlib_image("cmnlib");
 		if (ret) {
-			mutex_release(&qseecom.global_data_lock);
 			dprintf(CRITICAL, "%s qseecom_load_commonlib_image failed with status:%d\n",
 					__func__, ret);
 			goto err;
@@ -948,7 +953,7 @@ int qseecom_start_app(char *app_name)
 	 * call into TZ to load it, add to list and then return
 	 * handle.
 	 */
-
+	mutex_acquire(&qseecom.global_data_lock);
 	entry = __qseecom_check_app_exists(app_name);
 	if (!entry) {
 		mutex_release(&qseecom.global_data_lock);
@@ -1003,9 +1008,6 @@ int qseecom_shutdown_app(int handle)
 	int ret = GENERIC_ERROR;
 	int ref_cnt = 0;
 	struct qseecom_registered_app_list *entry = NULL;
-	struct tzdbg_log_t *log = NULL;
-	uint32_t QseeLogStart = 0;
-	uint32_t QseeLogNewStart = 0;
 
 	if (handle <= 0) {
 		dprintf(CRITICAL, "%s: Invalid Handle %d\n", __func__, handle);
@@ -1039,16 +1041,7 @@ int qseecom_shutdown_app(int handle)
 	ref_cnt = entry->ref_cnt;
 	mutex_release(&qseecom.global_data_lock);
 	if (ref_cnt == 0) {
-		log = (struct tzdbg_log_t *)logbuf_req.phy_addr;
-		arch_invalidate_cache_range((addr_t) logbuf_req.phy_addr, logbuf_req.len);
-		QseeLogStart = (uint32_t) log->log_pos.offset;
-
 		ret = qseecom_unload_app(entry->app_id);
-		arch_invalidate_cache_range((addr_t) logbuf_req.phy_addr, logbuf_req.len);
-		QseeLogNewStart = (uint32_t) log->log_pos.offset;
-
-		_disp_log_stats((struct tzdbg_log_t *) logbuf_req.phy_addr, QSEE_LOG_BUF_SIZE - sizeof(struct tzdbg_log_pos_t),
-				QseeLogStart, QseeLogNewStart);
 		if(ret) {
 			dprintf(CRITICAL, "%s: qseecom_unload_app failed with err:%d for handle:%d\n",
 					__func__, ret, handle);
@@ -1098,9 +1091,6 @@ int qseecom_send_command(int handle, void *send_buf,
 	uint32_t app_id = 0;
 	struct qseecom_registered_app_list *entry = NULL;
 	struct qseecom_send_cmd_req req = {0, 0, 0, 0};
-	struct tzdbg_log_t *log = NULL;
-	uint32_t QseeLogStart = 0;
-	uint32_t QseeLogNewStart = 0;
 
 	if (handle <= 0) {
 		dprintf(CRITICAL, "%s Handle is Invalid\n", __func__);
@@ -1137,21 +1127,13 @@ int qseecom_send_command(int handle, void *send_buf,
 	req.cmd_req_buf = send_buf;
 	req.resp_buf = resp_buf;
 
-	log = (struct tzdbg_log_t *)logbuf_req.phy_addr;
-	arch_invalidate_cache_range((addr_t) logbuf_req.phy_addr, logbuf_req.len);
-	QseeLogStart = (uint32_t) log->log_pos.offset;
-
 	ret = __qseecom_send_cmd(app_id, &req);
 	if (ret) {
 		dprintf(CRITICAL, "%s __qseecom_send_cmd failed with err:%d for handle:%d\n",
 				__func__, ret, handle);
 		goto err;
 	}
-	arch_invalidate_cache_range((addr_t) logbuf_req.phy_addr, logbuf_req.len);
-	QseeLogNewStart = (uint32_t) log->log_pos.offset;
 
-	_disp_log_stats((struct tzdbg_log_t *) logbuf_req.phy_addr, QSEE_LOG_BUF_SIZE - sizeof(struct tzdbg_log_pos_t),
-			QseeLogStart, QseeLogNewStart);
 	ret = 0;
 	dprintf(SPEW, "sending cmd_req->rsp size: %u, ptr: 0x%p\n",
 			req.resp_len, req.resp_buf);
