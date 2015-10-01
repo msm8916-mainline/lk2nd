@@ -326,6 +326,11 @@ unsigned char *update_cmdline(const char * cmdline)
 
 #if VERIFIED_BOOT
 	cmdline_len += strlen(verified_state) + strlen(vbsn[boot_state].name);
+	if ((device.verity_mode != 0 ) && (device.verity_mode != 1))
+	{
+		dprintf(CRITICAL, "Devinfo paritition possibly corrupted!!!. Please erase devinfo partition to continue booting\n");
+		ASSERT(0);
+	}
 	cmdline_len += strlen(verity_mode) + strlen(vbvm[device.verity_mode].name);
 #endif
 
@@ -451,6 +456,11 @@ unsigned char *update_cmdline(const char * cmdline)
 		if(have_cmdline) --dst;
 		while ((*dst++ = *src++));
 
+		if ((device.verity_mode != 0 ) && (device.verity_mode != 1))
+		{
+			dprintf(CRITICAL, "Devinfo paritition possibly corrupted!!!. Please erase devinfo partition to continue booting\n");
+			ASSERT(0);
+		}
 		src = verity_mode;
 		if(have_cmdline) --dst;
 		while ((*dst++ = *src++));
