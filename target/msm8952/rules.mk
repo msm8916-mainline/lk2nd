@@ -49,5 +49,5 @@ OBJS += \
 endif
 ifeq ($(ENABLE_MDTP_SUPPORT),1)
 OBJS += \
-	$(LOCAL_DIR)/mdtp_ui_defs.o
+	$(LOCAL_DIR)/mdtp_defs.o
 endif

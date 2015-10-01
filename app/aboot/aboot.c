@@ -3218,8 +3218,8 @@ int splash_screen_flash()
 			return 0;
 		}
 
-		if ((header->width != fb_display->width) || (header->height != fb_display->height)) {
-			dprintf(CRITICAL, "Logo config doesn't match with fb config. Fall back default logo\n");
+		if ((header->width > fb_display->width) || (header->height > fb_display->height)) {
+			dprintf(CRITICAL, "Logo config greater than fb config. Fall back default logo\n");
 			return -1;
 		}
 
@@ -3305,8 +3305,8 @@ int splash_screen_mmc()
 			fbcon_extract_to_screen(header, (base + LOGO_IMG_HEADER_SIZE));
 		} else { /* 2 Raw BGR data */
 
-			if ((header->width != fb_display->width) || (header->height != fb_display->height)) {
-				dprintf(CRITICAL, "Logo config doesn't match with fb config. Fall back default logo\n");
+			if ((header->width > fb_display->width) || (header->height > fb_display->height)) {
+				dprintf(CRITICAL, "Logo config greater than fb config. Fall back default logo\n");
 				return -1;
 			}
 
