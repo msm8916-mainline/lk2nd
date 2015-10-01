@@ -1952,6 +1952,17 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 		return;
 	}
 
+	/* Handle overflow if the input image size is greater than
+	 * boot image buffer can hold
+	 */
+#if VERIFIED_BOOT
+	if ((target_get_max_flash_size() - (image_actual - sig_actual)) < page_size)
+	{
+		fastboot_fail("booimage: size is greater than boot image buffer can hold");
+		return;
+	}
+#endif
+
 	/* Verify the boot image
 	 * device & page_size are initialized in aboot_init
 	 */
