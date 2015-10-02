@@ -273,8 +273,6 @@ int dsi_panel_init(struct msm_panel_info *pinfo,
 		dsc->bpp = dsc_params->bpp;
 		dsc->bpc = dsc_params->bpc;
 		dsc->slice_per_pkt = dsc_params->slice_per_pkt;
-		dsc->ich_reset_value = dsc_params->ich_reset_value;
-		dsc->ich_reset_override = dsc_params->ich_reset_override;
 		dsc->block_pred_enable = dsc_params->block_prediction;
 		dsc->enable_422 = 0;
 		dsc->convert_rgb = 1;

@@ -320,7 +320,7 @@ static const struct dfps_panel_info nt35597_wqxga_dsc_video_dfps = {
 /* DSC									     */
 /*---------------------------------------------------------------------------*/
 struct dsc_parameters nt35597_wqxga_dsc_video_params0 = {
-	1, 0, 0, 16, 720, 8, 8, 2, 1, 0, 0
+	1, 0, 0, 16, 720, 8, 8, 2, 1
 };
 
 /* 1LM + 1 DSC_ENC */

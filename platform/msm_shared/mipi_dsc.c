@@ -381,9 +381,7 @@ void mdss_dsc_mdp_config(struct msm_panel_info *pinfo,
 
 	writel(data, offset + MDSS_MDP_DSC_COMMON_MODE);
 
-	data = dsc->ich_reset_value | dsc->ich_reset_override;
-	data <<= 28;
-	data |= (dsc->initial_lines << 20);
+	data = (dsc->initial_lines << 20);
 	data |= ((dsc->slice_last_group_size - 1) << 18);
 
 	/* bpp is 6.4 format, 4 LSBs bits are for fractional part */
@@ -399,8 +397,8 @@ void mdss_dsc_mdp_config(struct msm_panel_info *pinfo,
 	data |= (dsc->convert_rgb << 1);
 	data |= dsc->input_10_bits;
 
-	dprintf(SPEW, "%s: %d %d %d %d %d %d %d %d %d %d, data=%x\n",
-		__func__, dsc->ich_reset_value, dsc->ich_reset_override,
+	dprintf(SPEW, "%s: %d %d %d %d %d %d %d %d, data=%x\n",
+		__func__,
 		dsc->initial_lines , dsc->slice_last_group_size,
 		dsc->bpp, dsc->block_pred_enable, dsc->line_buf_depth,
 		dsc->enable_422, dsc->convert_rgb, dsc->input_10_bits, data);

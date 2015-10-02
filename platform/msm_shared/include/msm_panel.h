@@ -133,8 +133,6 @@ enum {
 struct msm_panel_info;
 
 struct dsc_desc {
-	int ich_reset_value;
-	int ich_reset_override;
 	int initial_lines;
 	int slice_last_group_size;
 	int bpp;        /* target bit per pixel */

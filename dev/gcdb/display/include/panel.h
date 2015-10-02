@@ -217,8 +217,6 @@ struct dsc_parameters {
 	uint32_t bpc;		/* target bpc, byte per component */
 	uint32_t slice_per_pkt;
 	uint32_t block_prediction;
-	uint32_t ich_reset_override;
-	uint32_t ich_reset_value;
 };
 
 struct topology_config {
