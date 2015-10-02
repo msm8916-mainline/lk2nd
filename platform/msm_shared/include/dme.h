@@ -73,6 +73,7 @@ enum utp_ufs_desc_type
 #define UFS_IDX_bBootLunEn          0x00
 #define UFS_IDX_bCurrentPowerMode   0x01
 #define UFS_IDX_bActiveICCLevel     0x03
+#define UFS_IDX_bBootLunID          0x04
 #define UFS_IDX_bPurgeStatus        0x06
 #define UFS_IDX_bRefClkFreq         0x0a
 #define UFS_IDX_bConfigDescrLock    0x0b
@@ -268,4 +269,9 @@ int dme_read_device_desc(struct ufs_dev *dev);
 */
 int dme_read_geo_desc(struct ufs_dev *dev);
 
+/* function to return the boot lun currently booting from */
+int dme_get_bbootlunen(struct ufs_dev *dev);
+
+/* function to set the boot lun to either 0, 1 or 2 */
+int dme_set_bbootlunen(struct ufs_dev *dev, uint32_t val);
 #endif

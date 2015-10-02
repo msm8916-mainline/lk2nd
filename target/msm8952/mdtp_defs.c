@@ -27,7 +27,14 @@
  *
  */
 
+#include "platform.h"
 #include "mdtp_defs.h"
+
+#define MDTP_EFUSE_ADDRESS_MSM8952  0x0005C250  // QFPROM_CORR_QC_SPARE_REG_LSB_ADDR
+#define MDTP_EFUSE_START_MSM8952    0
+
+#define MDTP_EFUSE_ADDRESS_MSM8956  0x000A4408  // QFPROM_CORR_SPARE_REG18_LSB_ADDR
+#define MDTP_EFUSE_START_MSM8956    0
 
 struct mdtp_ui_defs mdtp_ui_defs_msm8952 = {
         // Image dimensions
@@ -64,4 +71,26 @@ struct mdtp_ui_defs mdtp_ui_defs_msm8952 = {
 struct mdtp_ui_defs mdtp_get_target_ui_defs()
 {
     return mdtp_ui_defs_msm8952;
+}
+
+int mdtp_get_target_efuse(struct mdtp_target_efuse* target_efuse)
+{
+    if (target_efuse == NULL)
+    {
+        dprintf(CRITICAL, "mdtp: mdtp_get_target_efuse: ERROR, target_efuse is NULL\n");
+        return -1;
+    }
+
+    if (platform_is_msm8956())
+    {
+        target_efuse->address = MDTP_EFUSE_ADDRESS_MSM8956;
+        target_efuse->start = MDTP_EFUSE_START_MSM8956;
+    }
+    else
+    {
+        target_efuse->address = MDTP_EFUSE_ADDRESS_MSM8952;
+        target_efuse->start = MDTP_EFUSE_START_MSM8952;
+    }
+
+    return 0;
 }

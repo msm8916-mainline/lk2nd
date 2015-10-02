@@ -96,7 +96,7 @@ static int dme_get_query_resp(struct ufs_dev *dev,
 	}
 	if (resp_upiu->basic_hdr.response != UPIU_QUERY_RESP_SUCCESS)
 	{
-		dprintf(CRITICAL, "%s:%d UPIU Response is not SUCCESS\n", __func__, __LINE__);
+		dprintf(CRITICAL, "%s:%d UPIU Response is not SUCCESS, response code: 0x%x\n", __func__, __LINE__, resp_upiu->basic_hdr.response);
 		return -UFS_FAILURE;
 	}
 
@@ -111,8 +111,9 @@ static int dme_get_query_resp(struct ufs_dev *dev,
 										return -UFS_FAILURE;
 									  }
 
-									  *((uint32_t *) buffer) = resp_upiu->flag_value;
+									  *((uint32_t *) buffer) = resp_upiu->resv_1[3]; //resv_1[3] contains the data for flag
 									  break;
+		case UPIU_QUERY_OP_WRITE_ATTRIBUTE:
 		case UPIU_QUERY_OP_TOGGLE_FLAG:
 		case UPIU_QUERY_OP_CLEAR_FLAG:
 		case UPIU_QUERY_OP_READ_DESCRIPTOR:
@@ -149,6 +150,9 @@ static int dme_send_query_upiu(struct ufs_dev *dev, struct utp_query_req_upiu_ty
 		req_upiu.resp_data_len = query->buf_len;
 	}
 
+	if (query->opcode == UPIU_QUERY_OP_WRITE_ATTRIBUTE)
+		req_upiu.data_buffer_addr = query->buf; // attribute is 4 byte value
+
 	ret = utp_enqueue_upiu(dev, &req_upiu);
 	if (ret)
 		goto utp_send_query_upiu_err;
@@ -159,6 +163,47 @@ static int dme_send_query_upiu(struct ufs_dev *dev, struct utp_query_req_upiu_ty
 
 utp_send_query_upiu_err:
 	return ret;
+}
+
+int dme_set_bbootlunen(struct ufs_dev *dev, uint32_t val)
+{
+	int ret = 0;
+	STACKBUF_DMA_ALIGN(value, sizeof(uint32_t));
+	memset((void *)value, 0, sizeof(uint32_t));
+	*value = val;
+	struct utp_query_req_upiu_type set_query = {UPIU_QUERY_OP_WRITE_ATTRIBUTE,
+												 UFS_IDX_bBootLunEn,
+												 0,
+												 0,
+												 (addr_t)value,
+												 sizeof(uint32_t)};
+	if ((ret = dme_send_query_upiu(dev, &set_query)))
+	{
+		arch_invalidate_cache_range((addr_t) value, sizeof(uint32_t));
+		dprintf(CRITICAL, "%s:%d DME Set Boot Lun Query failed. Value 0x%x\n", __func__, __LINE__, *value);
+		return -UFS_FAILURE;
+	}
+	return UFS_SUCCESS;
+}
+
+int dme_get_bbootlunen(struct ufs_dev *dev)
+{
+	STACKBUF_DMA_ALIGN(value, sizeof(uint32_t));
+	memset((void *)value, 0, sizeof(uint32_t));
+	int ret = 0;
+	struct utp_query_req_upiu_type set_query = {UPIU_QUERY_OP_READ_ATTRIBUTE,
+												 UFS_IDX_bBootLunEn,
+												 0,
+												 0,
+												 (addr_t)value,
+												 sizeof(uint32_t)};
+	if ((ret = dme_send_query_upiu(dev, &set_query)))
+	{
+		dprintf(CRITICAL, "%s:%d DME Set Boot Lun Query failed\n", __func__, __LINE__);
+		return -UFS_FAILURE;
+	}
+	arch_invalidate_cache_range((addr_t) value, sizeof(uint32_t));
+	return *value;
 }
 
 int dme_set_fpurgeenable(struct ufs_dev *dev)
@@ -551,6 +596,7 @@ int utp_build_query_req_upiu(struct upiu_trans_mgmt_query_hdr *req_upiu,
 											req_upiu->basic_hdr.query_task_mgmt_func = UPIU_QUERY_FUNC_STD_READ_REQ;
 											break;
 		case UPIU_QUERY_OP_TOGGLE_FLAG:
+		case UPIU_QUERY_OP_WRITE_ATTRIBUTE:
 		case UPIU_QUERY_OP_CLEAR_FLAG:
 		case UPIU_QUERY_OP_SET_FLAG:
 									 req_upiu->basic_hdr.query_task_mgmt_func = UPIU_QUERY_FUNC_STD_WRITE_REQ;
@@ -558,6 +604,13 @@ int utp_build_query_req_upiu(struct upiu_trans_mgmt_query_hdr *req_upiu,
 		default:
 				dprintf(CRITICAL, "%s:%d UPIU query opcode not supported.\n", __func__, __LINE__);
 				return -UFS_FAILURE;
+	}
+	if (upiu_data->opcode == UPIU_QUERY_OP_WRITE_ATTRIBUTE)
+	{
+		req_upiu->resv_1[0] = (*(uint32_t *)(upiu_data->data_buffer_addr) >> 24);
+		req_upiu->resv_1[1] = (*(uint32_t *)(upiu_data->data_buffer_addr) >> 16);
+		req_upiu->resv_1[2] = (*(uint32_t *)(upiu_data->data_buffer_addr) >> 8);
+		req_upiu->resv_1[3] = (*(uint32_t *)(upiu_data->data_buffer_addr) & 0xFF);
 	}
 
 	return UFS_SUCCESS;

@@ -33,6 +33,8 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "fastboot.h"
 #include "fastboot_test.h"
 #include <app/tests.h>
+#include <target.h>
+#include <boot_device.h>
 #if USE_RPMB_FOR_DEVINFO
 #include <rpmb.h>
 #endif
@@ -40,10 +42,37 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 extern void ramdump_table_map();
 extern void kauth_test();
+extern int ufs_get_boot_lun();
+extern int ufs_set_boot_lun(uint32_t bootlunid);
+extern int fastboot_init();
 
 void cmd_oem_runtests()
 {
 	dprintf(INFO, "Running LK tests ... \n");
+
+	// Test boot lun enable for UFS
+	if (!platform_boot_dev_isemmc())
+	{
+		int ret = 0;
+		uint32_t set_lun = 0x2, get_lun;
+		ret = ufs_set_boot_lun(set_lun);
+		if (ret == UFS_SUCCESS)
+		{
+			get_lun = ufs_get_boot_lun();
+			if (get_lun == set_lun)
+			{
+				dprintf(INFO, "UFS Boot LUN En TEST: [ PASS ]\n");
+				set_lun = 0x1; // default is 0x1 LUN A, revert back to 0x1
+				ret = ufs_set_boot_lun(set_lun);
+			}
+			else
+				dprintf(INFO, "UFS Boot LUN En TEST: [ FAIL ]\n");
+		}
+		else
+			dprintf(INFO, "UFS Boot LUN En TEST: [ FAIL ]\n");
+	}
+
+
 #if LPAE
 	ramdump_table_map();
 #endif
