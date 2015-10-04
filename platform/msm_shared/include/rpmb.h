@@ -97,6 +97,23 @@ struct rpmb_init_info
 	uint32_t dev_type;
 };
 
+/* Secure Write Protect Info Entry structure */
+typedef struct
+{
+	uint8_t  wp_enable;    /* UFS: WPF (Write Protect Flag), eMMC: SECURE_WP_MODE_ENABLE */
+	uint8_t  wp_type_mask; /* UFS: WPT (Write Protect Type), eMMC: SECURE_WP_MODE_CONFIG */
+	uint64_t addr;         /* UFS: LBA, eMMC: 0x1/0x2 (address of the device config register) */
+	uint32_t num_blocks;   /* UFS: Num LBA, eMMC: Set to 0 */
+} __attribute__ ((packed)) qsee_stor_secure_wp_info_entry_t;
+
+/* Secure Write Protect Info structure */
+typedef struct
+{
+	uint8_t                          lun_number;    /* UFS: LUN #, eMMC: Set to 0 */
+	uint8_t                          num_entries;   /* Number of Secure wp entries */
+	qsee_stor_secure_wp_info_entry_t wp_entries[4]; /* Max 4 entries total */
+} __attribute__ ((packed)) qsee_stor_secure_wp_info_t;
+
 /* dump a given RPMB frame */
 static inline void dump_rpmb_frame(uint8_t *frame, const char *frame_type)
 {
@@ -136,4 +153,6 @@ int rpmb_uninit();
 int rpmb_write(uint32_t *req_buf, uint32_t blk_cnt, uint32_t rel_wr_count, uint32_t *resp_buf, uint32_t *resp_len);
 int rpmb_read(uint32_t *req_buf, uint32_t blk_cnt, uint32_t *resp_buf, uint32_t *resp_len);
 struct rpmb_init_info *rpmb_get_init_info();
+/* RPMB API to set secure write protect configuration block */
+int swp_write(qsee_stor_secure_wp_info_t swp_cb);
 #endif
