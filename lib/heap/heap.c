@@ -156,11 +156,11 @@ static void heap_test(void)
 // nearby ones if possible. Returns base of whatever chunk it became in the list.
 static struct free_heap_chunk *heap_insert_free_chunk(struct free_heap_chunk *chunk)
 {
-#if DEBUGLEVEL > INFO
+#if DEBUG_HEAP
 	vaddr_t chunk_end = (vaddr_t)chunk + chunk->len;
+	dprintf(CRITICAL,"%s: chunk ptr %p, size 0x%lx, chunk_end 0x%x\n",
+				__FUNCTION__, chunk, chunk->len, chunk_end);
 #endif
-
-//	dprintf("%s: chunk ptr %p, size 0x%lx, chunk_end 0x%x\n", __FUNCTION__, chunk, chunk->len, chunk_end);
 
 	struct free_heap_chunk *next_chunk;
 	struct free_heap_chunk *last_chunk;
@@ -168,7 +168,7 @@ static struct free_heap_chunk *heap_insert_free_chunk(struct free_heap_chunk *ch
 	// walk through the list, finding the node to insert before
 	list_for_every_entry(&theheap.free_list, next_chunk, struct free_heap_chunk, node) {
 		if (chunk < next_chunk) {
-			DEBUG_ASSERT(chunk_end <= (vaddr_t)next_chunk);
+			DEBUG_ASSERT(((vaddr_t)chunk + chunk->len) <= (vaddr_t)next_chunk);
 
 			list_add_before(&next_chunk->node, &chunk->node);
 
