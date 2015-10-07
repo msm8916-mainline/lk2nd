@@ -276,10 +276,10 @@ static struct rcg_clk usb30_master_clk_src =
 	},
 };
 
-
 static struct branch_clk gcc_usb30_master_clk =
 {
 	.cbcr_reg     = (uint32_t *) GCC_USB30_MASTER_CBCR,
+	.bcr_reg      = (uint32_t *) USB_30_BCR,
 	.parent       = &usb30_master_clk_src.c,
 
 	.c = {
@@ -315,6 +315,19 @@ static struct branch_clk gcc_usb30_pipe_clk = {
 
 	.c = {
 		.dbg_name = "gcc_usb30_pipe_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
+
+static struct branch_clk gcc_usb30_pipe_clk_mdmcalifornium = {
+	.bcr_reg      = (uint32_t *) USB3_PIPE_BCR,
+	.cbcr_reg     = (uint32_t *) USB3_PIPE_CBCR,
+	.has_sibling  = 1,
+	.halt_check   = 0,
+
+	.c = {
+		.dbg_name = "usb30_pipe_clk_mdmcalifornium",
 		.ops      = &clk_ops_branch,
 	},
 };
@@ -369,6 +382,47 @@ static struct reset_clk gcc_usb2a_phy_sleep_clk = {
 	},
 };
 
+static struct clk_freq_tbl ftbl_gcc_usb30_mock_utmi_clk_src[] = {
+	F(  60000000, gpll0,   10,    0,     0),
+	F_END
+};
+
+static struct rcg_clk usb30_mock_utmi_clk_src = {
+	.cmd_reg      = (uint32_t *) USB30_MOCK_UTMI_CMD_RCGR,
+	.cfg_reg      = (uint32_t *) USB30_MOCK_UTMI_CFG_RCGR,
+	.set_rate     = clock_lib2_rcg_set_rate_hid,
+	.freq_tbl     = ftbl_gcc_usb30_mock_utmi_clk_src,
+	.current_freq = &rcg_dummy_freq,
+
+	.c = {
+		.dbg_name = "usb30_mock_utmi_clk_src",
+		.ops      = &clk_ops_rcg,
+	},
+};
+
+static struct branch_clk gcc_usb30_mock_utmi_clk = {
+	.cbcr_reg    = (uint32_t *) USB30_MOCK_UTMI_CBCR,
+	.has_sibling = 0,
+	.parent      = &usb30_mock_utmi_clk_src.c,
+
+	.c = {
+		.dbg_name = "usb30_mock_utmi_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
+static struct branch_clk gcc_usb30_sleep_clk = {
+	.cbcr_reg    = (uint32_t *) USB30_SLEEP_CBCR,
+	.has_sibling = 1,
+
+	.c = {
+		.dbg_name = "usb30_sleep_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
+
+
 static struct clk_lookup msm_clocks_9640[] =
 {
 	CLK_LOOKUP("sdc1_iface_clk", gcc_sdcc1_ahb_clk.c),
@@ -380,12 +434,15 @@ static struct clk_lookup msm_clocks_9640[] =
 	CLK_LOOKUP("usb30_iface_clk",  gcc_sys_noc_usb30_axi_clk.c),
 	CLK_LOOKUP("usb30_master_clk", gcc_usb30_master_clk.c),
 	CLK_LOOKUP("usb30_pipe_clk",   gcc_usb30_pipe_clk.c),
+	CLK_LOOKUP("usb30_pipe_clk_mdmcalifornium",   gcc_usb30_pipe_clk_mdmcalifornium.c),
 	CLK_LOOKUP("usb30_aux_clk",    gcc_usb30_aux_clk.c),
 
 	CLK_LOOKUP("usb2b_phy_sleep_clk", gcc_usb2a_phy_sleep_clk.c),
 	CLK_LOOKUP("usb30_phy_reset",     gcc_usb30_phy_reset.c),
 
+	CLK_LOOKUP("usb30_mock_utmi_clk", gcc_usb30_mock_utmi_clk.c),
 	CLK_LOOKUP("usb_phy_cfg_ahb_clk", gcc_usb_phy_cfg_ahb_clk.c),
+	CLK_LOOKUP("usb30_sleep_clk",     gcc_usb30_sleep_clk.c),
 };
 
 void platform_clock_init(void)

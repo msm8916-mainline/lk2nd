@@ -45,5 +45,9 @@ ifeq ($(ENABLE_SMD_SUPPORT),1)
 DEFINES += SMD_SUPPORT=1
 endif
 
+# Reset USB clock from target code
+DEFINES += USB_RESET_FROM_CLK=1
+
 # Turn on Werror
 CFLAGS += -Werror
+DEFINES += USE_TARGET_QMP_SETTINGS=1

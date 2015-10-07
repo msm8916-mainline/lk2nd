@@ -71,4 +71,5 @@ uint32_t platform_detect_panel();
 uint32_t platform_get_max_periph();
 int platform_is_msm8996();
 bool platform_use_qmp_misc_settings();
+bool platform_is_mdmcalifornium();
 #endif
