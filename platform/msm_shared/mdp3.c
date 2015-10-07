@@ -35,7 +35,47 @@
 #include <platform/timer.h>
 #include <platform/iomap.h>
 
+#define BIT(bit) (1 << (bit))
 static int mdp_rev;
+
+/**
+ * mdp3_get_panic_lut_cfg() - calculate panic and robust lut mask
+ * @panel_width: Panel width
+ *
+ * DMA buffer has 16 fill levels. Which needs to configured as safe
+ * and panic levels based on panel resolutions.
+ * No. of fill levels used = ((panel active width * 8) / 512).
+ * Roundoff the use fill levels if needed.
+ * half of the total fill levels used will be treated as panic levels.
+ * Roundoff panic levels if total used fill levels are odd.
+ *
+ * Sample calculation for 720p display:
+ * Fill levels used = (720 * 8) / 512 = 12.5 after round off 13.
+ * panic levels = 13 / 2 = 6.5 after roundoff 7.
+ * Panic mask = 0x3FFF  (2 bits per level)
+ * Robust mask = 0xFF80 (1 bit per level)
+ */
+unsigned long long mdp3_get_panic_lut_cfg(int panel_width)
+{
+	unsigned int fill_levels = (((panel_width * 8) / 512) + 1);
+	unsigned int panic_mask = 0;
+	unsigned int robust_mask = 0;
+	int i = 0;
+	unsigned long long panic_config = 0;
+	int panic_levels = 0;
+
+	panic_levels = fill_levels/2;
+	if (fill_levels % 2)
+		panic_levels++;
+	for (i = 0; i < panic_levels; i++) {
+		panic_mask |= (BIT((i * 2) + 1) | BIT(i * 2));
+		robust_mask |= BIT(i);
+	}
+	panic_config = (~robust_mask);
+	panic_config = panic_config << 32;
+	panic_config |= panic_mask;
+	return panic_config;
+}
 
 int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 		struct fbcon_config *fb)
@@ -46,6 +86,7 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 	struct lcdc_panel_info *lcdc = NULL;
 	int ystride = 3;
 	int mdp_rev = mdp_get_revision();
+	unsigned long long panic_config = mdp3_get_panic_lut_cfg(pinfo->xres);
 
 	if (pinfo == NULL)
 		return ERR_INVALID_ARGS;
@@ -71,16 +112,14 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 	writel(0x0, MDP_DMA_P_WATERMARK_0);
 	writel(0x0, MDP_DMA_P_WATERMARK_1);
 	writel(0x0, MDP_DMA_P_WATERMARK_2);
-	if (pinfo->xres >= 720) {
-		writel(0xFFFF, MDP_PANIC_LUT0);
-		writel(0xFF00, MDP_ROBUST_LUT);
-	} else {
-		writel(0x00FF, MDP_PANIC_LUT0);
-		writel(0xFFF0, MDP_ROBUST_LUT);
-	}
-	writel(0x1, MDP_PANIC_ROBUST_CTRL);
-	writel(0xFF00, MDP_ROBUST_LUT);
 
+	writel((panic_config & 0xFFFF), MDP_PANIC_LUT0);
+	writel(((panic_config >> 16) & 0xFFFF) , MDP_PANIC_LUT1);
+	writel(((panic_config >> 32) & 0xFFFF), MDP_ROBUST_LUT);
+	writel(0x1, MDP_PANIC_ROBUST_CTRL);
+	dprintf(INFO, "Panic Lut0 %x Lut1 %x Robest %x\n",
+		(panic_config & 0xFFFF), ((panic_config >> 16) & 0xFFFF),
+		((panic_config >> 32) & 0xFFFF));
 	// ------------- programming MDP_DMA_P_CONFIG ---------------------
 	writel(0x1800bf, MDP_DMA_P_CONFIG);	// rgb888
 
