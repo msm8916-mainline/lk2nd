@@ -32,6 +32,7 @@
 #include <bits.h>
 #include <debug.h>
 #include <qtimer.h>
+#include <platform.h>
 
 __WEAK int platform_is_msm8994()
 {
@@ -43,11 +44,18 @@ __WEAK int platform_is_msm8996()
 	return 0;
 }
 
+__WEAK int platform_is_mdmcalifornium()
+{
+	return 0;
+}
+
 void qusb2_phy_reset(void)
 {
 	uint32_t val;
 	/* Default tune value */
 	uint8_t tune2 = 0xB3;
+	int retry = 100;
+	int se_clock = 1;
 
 	/* Disable the ref clock before phy reset */
 #if GCC_RX2_USB2_CLKREF_EN
@@ -67,7 +75,7 @@ void qusb2_phy_reset(void)
 	/* set CLAMP_N_EN and stay with disabled USB PHY */
 	writel(0x23, QUSB2PHY_PORT_POWERDOWN);
 
-	if (platform_is_msm8996())
+	if (platform_is_msm8996() || platform_is_mdmcalifornium())
 	{
 		writel(0xF8, QUSB2PHY_PORT_TUNE1);
 		/* Upper nibble of tune2 register should be updated based on the fuse value.
@@ -88,7 +96,19 @@ void qusb2_phy_reset(void)
 		writel(0x79, QUSB2PHY_PLL_USER_CTL1);
 		writel(0x21, QUSB2PHY_PLL_USER_CTL2);
 		writel(0x14, QUSB2PHY_PORT_TEST2);
-		writel(0x80, QUSB2PHY_PLL_TEST);
+		/* TCSR register bit 0 indicates whether single ended clock
+		 * or differential clock configuration is enabled. Based on the
+		 * configuration set the PLL_TEST register.
+		 */
+#if TCSR_PHY_CLK_SCHEME_SEL
+		se_clock = readl(TCSR_PHY_CLK_SCHEME_SEL) & 0x1;
+#endif
+		/* By default consider differential clock configuration and if TCSR
+		 * register bit 0 is not set then use single ended setting
+		 */
+		if (se_clock)
+			writel(0x80, QUSB2PHY_PLL_TEST);
+
 		writel(0x9F, QUSB2PHY_PLL_AUTOPGM_CTL1);
 		writel(0x00, QUSB2PHY_PLL_PWR_CTL);
 	}
@@ -110,24 +130,28 @@ void qusb2_phy_reset(void)
 	/* Wait for tuning params to take effect right before re-enabling power*/
 	udelay(10);
 
-	/* Disable the PHY */
-	writel(0x23, QUSB2PHY_PORT_POWERDOWN);
 	/* Enable ULPI mode */
 	if (platform_is_msm8994())
 		writel(0x0,  QUSB2PHY_PORT_UTMI_CTRL2);
 	/* Enable PHY */
 	/* set CLAMP_N_EN and USB PHY is enabled*/
 	writel(0x22, QUSB2PHY_PORT_POWERDOWN);
-	udelay(150);
-
-	/* Check PLL status */
-	if (!(readl(QUSB2PHY_PLL_STATUS) & QUSB2PHY_PLL_LOCK))
-	{
-		dprintf(CRITICAL, "QUSB2PHY failed to lock: %d", readl(QUSB2PHY_PLL_STATUS));
-	}
+	mdelay(10);
 
 #if GCC_RX2_USB2_CLKREF_EN
 	writel((readl(GCC_RX2_USB2_CLKREF_EN) | 0x1), GCC_RX2_USB2_CLKREF_EN);
 	dmb();
 #endif
+
+	/* Check PLL status */
+	while (!(readl(QUSB2PHY_PLL_STATUS) & QUSB2PHY_PLL_LOCK))
+	{
+		retry--;
+		udelay(100);
+		if (!retry)
+		{
+			dprintf(CRITICAL, "QUSB2PHY failed to lock: %d", readl(QUSB2PHY_PLL_STATUS));
+			break;
+		}
+	}
 }

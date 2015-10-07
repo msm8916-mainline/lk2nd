@@ -32,7 +32,7 @@
 #include <clock.h>
 #include <clock_pll.h>
 #include <clock_lib2.h>
-
+#include <platform/timer.h>
 
 /*=============== CXO clock ops =============*/
 int cxo_clk_enable(struct clk *clk)
@@ -55,14 +55,32 @@ int clock_lib2_branch_clk_enable(struct clk *clk)
 {
 	int rc = 0;
 	uint32_t cbcr_val;
+	int retry = 100;
 	struct branch_clk *bclk = to_branch_clk(clk);
 
 	cbcr_val  = readl(bclk->cbcr_reg);
 	cbcr_val |= CBCR_BRANCH_ENABLE_BIT;
 	writel(cbcr_val, bclk->cbcr_reg);
 
+	/* Some clocks do not need to check the enable status, return
+	 * if the halt_check is not set
+	 */
+	if (!bclk->halt_check)
+		return rc;
+
 	/* wait until status shows it is enabled */
-	while(readl(bclk->cbcr_reg) & CBCR_BRANCH_OFF_BIT);
+	while(readl(bclk->cbcr_reg) & CBCR_BRANCH_OFF_BIT)
+	{
+		/* Add 100 ms of time out, bail out if the clock is not enable
+		 * within 100 ms */
+		if (!retry)
+		{
+			rc = 1;
+			break;
+		}
+		retry--;
+		mdelay(1);
+	}
 
 	return rc;
 }
