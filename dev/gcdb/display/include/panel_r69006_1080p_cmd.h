@@ -90,7 +90,7 @@ static char r69006_1080p_cmd_on_cmd4[] = {
 };
 
 static char r69006_1080p_cmd_on_cmd5[] = {
-	0X36, 0x90, 0x15, 0x80
+	0X36, 0x98, 0x15, 0x80
 };
 
 static char r69006_1080p_cmd_on_cmd6[] = {
@@ -212,11 +212,11 @@ static char r69006_1080p_cmd_on_cmd20[] = {
 };
 
 static char r69006_1080p_cmd_on_cmd21[] = {
-	0x29, 0x00, 0x05, 0x80
+	0x11, 0x00, 0x05, 0x80
 };
 
 static char r69006_1080p_cmd_on_cmd22[] = {
-	0x11, 0x00, 0x05, 0x80
+	0x29, 0x00, 0x05, 0x80
 };
 
 static struct mipi_dsi_cmd r69006_1080p_cmd_on_command[] = {
@@ -313,5 +313,7 @@ static struct panel_reset_sequence r69006_1080p_cmd_reset_seq = {
 static struct backlight r69006_1080p_cmd_backlight = {
 	1, 1, 4095, 100, 1, "PMIC_8941"
 };
+
+#define R69006_1080P_CMD_SIGNATURE 0xFFFF
 
 #endif /*_PANEL_R69006_1080P_CMD_H_*/
