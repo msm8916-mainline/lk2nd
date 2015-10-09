@@ -253,7 +253,12 @@ char charger_screen_enabled[MAX_RSP_SIZE];
 char sn_buf[13];
 char display_panel_buf[MAX_PANEL_BUF_SIZE];
 char panel_display_mode[MAX_RSP_SIZE];
+
+#if CHECK_BAT_VOLTAGE
 char battery_voltage[MAX_RSP_SIZE];
+char battery_soc_ok [MAX_RSP_SIZE];
+#endif
+
 char get_variant[MAX_RSP_SIZE];
 
 extern int emmc_recovery_init(void);
@@ -287,6 +292,14 @@ static void ptentry_to_tag(unsigned **ptr, struct ptentry *ptn)
 	memcpy(*ptr, &atag_ptn, sizeof(struct atag_ptbl_entry));
 	*ptr += sizeof(struct atag_ptbl_entry) / sizeof(unsigned);
 }
+
+#if CHECK_BAT_VOLTAGE
+void update_battery_status(void)
+{
+	snprintf(battery_voltage,MAX_RSP_SIZE, "%d",target_get_battery_voltage());
+	snprintf(battery_soc_ok ,MAX_RSP_SIZE, "%s",target_battery_soc_ok()? "yes":"no");
+}
+#endif
 
 unsigned char *update_cmdline(const char * cmdline)
 {
@@ -3511,10 +3524,9 @@ void aboot_fastboot_register_commands(void)
 		target_is_emmc_boot()? "eMMC":"UFS");
 	fastboot_publish("variant", (const char *) get_variant);
 #if CHECK_BAT_VOLTAGE
-	snprintf(battery_voltage, MAX_RSP_SIZE, "%d",
-		target_get_battery_voltage());
+	update_battery_status();
 	fastboot_publish("battery-voltage", (const char *) battery_voltage);
-	fastboot_publish("battery-soc-ok", target_battery_soc_ok()? "yes":"no");
+	fastboot_publish("battery-soc-ok", (const char *) battery_soc_ok);
 #endif
 }
 

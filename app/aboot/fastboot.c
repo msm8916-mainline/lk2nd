@@ -448,6 +448,10 @@ static void cmd_getvar(const char *arg, void *data, unsigned sz)
 {
 	struct fastboot_var *var;
 
+#if CHECK_BAT_VOLTAGE
+	update_battery_status();
+#endif
+
 	if (!strncmp("all", arg, strlen(arg)))
 	{
 		getvar_all();
