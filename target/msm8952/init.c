@@ -298,6 +298,12 @@ void target_init(void)
 		ASSERT(0);
 	}
 
+	if (rpmb_init() < 0)
+	{
+		dprintf(CRITICAL, "RPMB init failed\n");
+		ASSERT(0);
+	}
+
 	/*
 	 * Load the sec app for first time
 	 */
@@ -306,13 +312,6 @@ void target_init(void)
 		dprintf(CRITICAL, "Failed to load App for verified\n");
 		ASSERT(0);
 	}
-
-	if (rpmb_init() < 0)
-	{
-		dprintf(CRITICAL, "RPMB init failed\n");
-		ASSERT(0);
-	}
-
 #if SMD_SUPPORT
 	rpm_smd_init();
 #endif
