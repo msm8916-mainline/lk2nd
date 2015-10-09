@@ -850,6 +850,7 @@ static int __qseecom_send_cmd(uint32_t app_id, struct qseecom_send_cmd_req *req)
 	struct qseecom_client_send_data_ireq send_data_req;
 	struct qseecom_command_scm_resp resp;
 	void *buf = NULL;
+	void *rsp_buf_temp = NULL;
 	uint32_t size = 0;
 
 	if (req->cmd_req_buf == NULL || req->resp_buf == NULL) {
@@ -859,10 +860,19 @@ static int __qseecom_send_cmd(uint32_t app_id, struct qseecom_send_cmd_req *req)
 	}
 	dprintf(SPEW, "%s called\n", __func__);
 
-	/* Allocate for req or rsp len whichever is higher, both req and rsp point
-	 * to the same buffer
-	 */
-	size = (req->cmd_req_len > req->resp_len) ? req->cmd_req_len : req->resp_len;
+	if (req->cmd_req_len > (UINT_MAX - req->resp_len)) {
+		dprintf(CRITICAL, "%s:Integer overflow\n", __func__);
+		dprintf(CRITICAL, "req->cmd_req_len: %u\n", req->cmd_req_len);
+		dprintf(CRITICAL, "req->resp_len: %u\n", req->resp_len);
+		return GENERIC_ERROR;
+	}
+
+	if ((req->cmd_req_len + req->resp_len) > (RPMB_SND_RCV_BUF_SZ * 1024 * 1024)) {
+		dprintf(CRITICAL, "%s:Cmd + Rsp len greater than TA buf\n", __func__);
+		dprintf(CRITICAL, "req->cmd_req_len: %u\n", req->cmd_req_len);
+		dprintf(CRITICAL, "req->resp_len: %u\n", req->resp_len);
+		return GENERIC_ERROR;
+	}
 
 	/* The req rsp buffer will be xPU protected by TZ during a TZ APP call
 	 * This will still be protected during a listener call and there is a
@@ -878,8 +888,6 @@ static int __qseecom_send_cmd(uint32_t app_id, struct qseecom_send_cmd_req *req)
 		return GENERIC_ERROR;
 	}
 
-	memscpy(buf, ROUNDUP(size, PAGE_SIZE), req->cmd_req_buf, req->cmd_req_len);
-
 	send_data_req.qsee_cmd_id = QSEE_CLIENT_SEND_DATA_COMMAND;
 	send_data_req.app_id = app_id;
 
@@ -888,14 +896,20 @@ static int __qseecom_send_cmd(uint32_t app_id, struct qseecom_send_cmd_req *req)
 	 */
 	send_data_req.req_ptr = (uint32_t)__qseecom_uvirt_to_kphys((uint32_t) buf);
 	send_data_req.req_len = req->cmd_req_len;
-	send_data_req.rsp_ptr = (uint32_t)__qseecom_uvirt_to_kphys((uint32_t) buf);
+	size = ROUNDUP(req->cmd_req_len, PAGE_SIZE);
+	rsp_buf_temp = (uint8_t *)buf + size;
+	send_data_req.rsp_ptr = (uint32_t)__qseecom_uvirt_to_kphys((uint32_t)rsp_buf_temp);
 	send_data_req.rsp_len = req->resp_len;
+
+	memscpy(buf, (RPMB_SND_RCV_BUF_SZ * 1024 * 1024), req->cmd_req_buf, req->cmd_req_len);
+	memscpy(rsp_buf_temp, req->resp_len, req->resp_buf, req->resp_len);
 
 	ret = qseecom_scm_call(SCM_SVC_TZSCHEDULER, 1,
 				(void *)&send_data_req,
 				sizeof(send_data_req), (void *)&resp, sizeof(resp));
 
-	memscpy(req->resp_buf, req->resp_len, (void *)send_data_req.rsp_ptr, send_data_req.rsp_len);
+	memscpy(req->cmd_req_buf, req->cmd_req_len, (void *)buf, send_data_req.req_len);
+	memscpy(req->resp_buf, req->resp_len, (void *)rsp_buf_temp, send_data_req.rsp_len);
 	return ret;
 }
 
@@ -941,6 +955,16 @@ int qseecom_start_app(char *app_name)
 					__func__, ret);
 			goto err;
 		}
+                dprintf(DEBUG, "Loading cmnlib done\n");
+#if ENABLE_CMNLIB64_LOADING
+                ret = qseecom_load_commonlib_image("cmnlib64");
+                if (ret) {
+                        dprintf(CRITICAL, "%s qseecom_load_commonlib_image failed with status:%d\n",
+                                        __func__, ret);
+                        goto err;
+                }
+                dprintf(DEBUG, "Loading cmnlib64 done\n");
+#endif
 		qseecom.cmnlib_loaded = 1;
 	}
 	/* Check if App already exits, if exits increase ref_cnt
