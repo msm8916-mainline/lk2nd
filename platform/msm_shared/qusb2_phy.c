@@ -49,6 +49,11 @@ void qusb2_phy_reset(void)
 	/* Default tune value */
 	uint8_t tune2 = 0xB3;
 
+	/* Disable the ref clock before phy reset */
+#if GCC_RX2_USB2_CLKREF_EN
+	writel((readl(GCC_RX2_USB2_CLKREF_EN) & ~0x1), GCC_RX2_USB2_CLKREF_EN);
+	dmb();
+#endif
 	/* Block Reset */
 	val = readl(GCC_QUSB2_PHY_BCR) | BIT(0);
 	writel(val, GCC_QUSB2_PHY_BCR);
@@ -113,4 +118,16 @@ void qusb2_phy_reset(void)
 	/* Enable PHY */
 	/* set CLAMP_N_EN and USB PHY is enabled*/
 	writel(0x22, QUSB2PHY_PORT_POWERDOWN);
+	udelay(150);
+
+	/* Check PLL status */
+	if (!(readl(QUSB2PHY_PLL_STATUS) & QUSB2PHY_PLL_LOCK))
+	{
+		dprintf(CRITICAL, "QUSB2PHY failed to lock: %d", readl(QUSB2PHY_PLL_STATUS));
+	}
+
+#if GCC_RX2_USB2_CLKREF_EN
+	writel((readl(GCC_RX2_USB2_CLKREF_EN) | 0x1), GCC_RX2_USB2_CLKREF_EN);
+	dmb();
+#endif
 }

@@ -32,6 +32,8 @@
 
 void qusb2_phy_reset(void);
 
+#define QUSB2PHY_PLL_LOCK        0x20
+
 #define QUSB2PHY_PORT_POWERDOWN     (QUSB2_PHY_BASE + 0x000000B4)
 #define QUSB2PHY_PORT_UTMI_CTRL2    (QUSB2_PHY_BASE + 0x000000C4)
 #define QUSB2PHY_PLL_TEST           (QUSB2_PHY_BASE + 0x00000004)
@@ -45,6 +47,7 @@ void qusb2_phy_reset(void);
 #define QUSB2PHY_PORT_TEST2         (QUSB2_PHY_BASE + 0x0000009C)
 #define QUSB2PHY_PLL_PWR_CTL        (QUSB2_PHY_BASE + 0x00000018)
 #define QUSB2PHY_PLL_AUTOPGM_CTL1   (QUSB2_PHY_BASE + 0x0000001C)
+#define QUSB2PHY_PLL_STATUS         (QUSB2_PHY_BASE + 0x00000038)
 
 
 #endif
