@@ -68,18 +68,11 @@ static mmu_section_t default_mmu_section_table[] =
 /*       Physical addr,    Virtual addr,     Mapping type ,              Size (in MB),            Flags */
     {    0x00000000,        0x00000000,       MMU_L2_NS_SECTION_MAPPING,  512,                IOMAP_MEMORY},
     {    MEMBASE,           MEMBASE,          MMU_L2_NS_SECTION_MAPPING,  (MEMSIZE / MB),      LK_MEMORY},
+    {    KERNEL_ADDR,       KERNEL_ADDR,      MMU_L2_NS_SECTION_MAPPING,  KERNEL_SIZE,         SCRATCH_MEMORY},
     {    SCRATCH_ADDR,      SCRATCH_ADDR,     MMU_L2_NS_SECTION_MAPPING,  SCRATCH_SIZE,        SCRATCH_MEMORY},
     {    MSM_SHARED_BASE,   MSM_SHARED_BASE,  MMU_L2_NS_SECTION_MAPPING,  MSM_SHARED_SIZE,     COMMON_MEMORY},
     {    RPMB_SND_RCV_BUF,  RPMB_SND_RCV_BUF, MMU_L2_NS_SECTION_MAPPING,  RPMB_SND_RCV_BUF_SZ, IOMAP_MEMORY},
 };
-
-static mmu_section_t default_mmu_section_table_3gb[] =
-{
-/*       Physical addr,    Virtual addr,     Mapping type ,              Size (in MB),            Flags */
-    {    0x40000000,        0x40000000,       MMU_L1_NS_SECTION_MAPPING,  1024       ,        COMMON_MEMORY},
-    {    0x80000000,        0x80000000,       MMU_L2_NS_SECTION_MAPPING,  88         ,        COMMON_MEMORY},
-};
-
 
 /* Map the ddr for download mode, this region belongs to non-hlos images and pil */
 static mmu_section_t dload_mmu_section_table[] =
@@ -122,51 +115,10 @@ void platform_init_mmu_mappings(void)
 {
 	int i;
 	int table_sz = ARRAY_SIZE(default_mmu_section_table);
-	mmu_section_t kernel_mmu_section_table;
-	uint64_t ddr_size = smem_get_ddr_size();
-	uint32_t kernel_size = 0;
-
-	if (ddr_size == MEM_4GB)
-	{
-		ddr_start = 0x80000000;
-		/* As per the memory map when DDR is 4GB first 88 MB is hlos memory
-		 * use this for loading the kernel
-		 */
-		kernel_size = 88;
-	}
-	else if (ddr_size == MEM_3GB)
-	{
-		ddr_start = 0x20000000;
-		/* As per memory map wheh DDR is 3GB the first 512 MB is assigned to hlos
-		 * use this region for loading kernel
-		 */
-		kernel_size = 512;
-	}
-	else
-	{
-		dprintf(CRITICAL, "Unsupported memory map\n");
-		ASSERT(0);
-	}
-
-	kernel_mmu_section_table.paddress = ddr_start;
-	kernel_mmu_section_table.vaddress = ddr_start;
-	kernel_mmu_section_table.type = MMU_L2_NS_SECTION_MAPPING;
-	kernel_mmu_section_table.size = kernel_size;
-	kernel_mmu_section_table.flags = SCRATCH_MEMORY;
-
-	/* Map kernel entry */
-	arm_mmu_map_entry(&kernel_mmu_section_table);
 
 	/* Map default memory needed for lk , scratch, rpmb & iomap */
 	for (i = 0 ; i < table_sz; i++)
 		arm_mmu_map_entry(&default_mmu_section_table[i]);
-
-	/* Map the rest of the DDR for 3GB needed for ramdump */
-	if (ddr_size == MEM_3GB)
-	{
-		for (i = 0 ; i < (int)ARRAY_SIZE(default_mmu_section_table_3gb); i++)
-			arm_mmu_map_entry(&default_mmu_section_table_3gb[i]);
-	}
 
 	if (scm_device_enter_dload())
 	{
