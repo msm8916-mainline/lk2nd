@@ -71,12 +71,13 @@ unsigned check_hard_reboot_mode(void)
 	uint8_t hard_restart_reason = 0;
 
 	/* Read reboot reason and scrub it
-	 * Bit-5, bit-6 and bit-7 of SOFT_RB_SPARE for hard reset reason
+	 * Bit-2 to bit-7 of SOFT_RB_SPARE for hard reset reason
 	 */
 	hard_restart_reason = REG_READ(PON_SOFT_RB_SPARE);
-	REG_WRITE(PON_SOFT_RB_SPARE, hard_restart_reason & 0x1f);
+	REG_WRITE(PON_SOFT_RB_SPARE, hard_restart_reason & 0x03);
 
-	return hard_restart_reason;
+	/* Extract the bits 5 to 7 and return */
+	return hard_restart_reason & 0xFC;
 }
 
 /* Return true if it is triggered by alarm. */
