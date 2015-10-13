@@ -500,6 +500,10 @@ static void fastboot_command_loop(void)
 {
 	struct fastboot_cmd *cmd;
 	int r;
+#if CHECK_BAT_VOLTAGE
+	boolean is_first_erase_flash = false;
+#endif
+
 	dprintf(INFO,"fastboot: processing commands\n");
 
 	uint8_t *buffer = (uint8_t *)memalign(CACHE_LINE, ROUNDUP(4096, CACHE_LINE));
@@ -523,6 +527,24 @@ again:
 		buffer[r] = 0;
 		dprintf(INFO,"fastboot: %s\n", buffer);
 
+#if CHECK_BAT_VOLTAGE
+		/* check battery voltage before erase or flash image */
+		if (!strncmp((const char*) buffer, "getvar:partition-type", 21))
+			is_first_erase_flash = true;
+
+		if (is_first_erase_flash) {
+			if (!strncmp((const char*) buffer, "erase", 5) ||
+				!strncmp((const char*) buffer, "flash", 5)) {
+				if (!target_battery_soc_ok()) {
+					dprintf(INFO,"fastboot: battery voltage: %d\n",
+						target_get_battery_voltage());
+					fastboot_fail("Warning: battery's capacity is very low\n");
+					return;
+				}
+			}
+		}
+#endif
+
 		fastboot_state = STATE_COMMAND;
 
 		for (cmd = cmdlist; cmd; cmd = cmd->next) {
@@ -532,6 +554,15 @@ again:
 				    (void*) download_base, download_size);
 			if (fastboot_state == STATE_COMMAND)
 				fastboot_fail("unknown reason");
+
+#if CHECK_BAT_VOLTAGE
+			if (!strncmp((const char*) buffer, "erase", 5) ||
+				!strncmp((const char*) buffer, "flash", 5)) {
+				if (is_first_erase_flash) {
+					is_first_erase_flash = false;
+				}
+			}
+#endif
 			goto again;
 		}
 

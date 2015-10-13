@@ -2385,13 +2385,6 @@ void cmd_erase_mmc(const char *arg, void *data, unsigned sz)
 
 void cmd_erase(const char *arg, void *data, unsigned sz)
 {
-#if CHECK_BAT_VOLTAGE
-	if (!target_battery_soc_ok()) {
-		fastboot_fail("Warning: battery's capacity is very low\n");
-		return;
-	}
-#endif
-
 #if VERIFIED_BOOT
 	if (target_build_variant_user())
 	{
@@ -2991,12 +2984,6 @@ void cmd_flash_nand(const char *arg, void *data, unsigned sz)
 
 void cmd_flash(const char *arg, void *data, unsigned sz)
 {
-#if CHECK_BAT_VOLTAGE
-	if (!target_battery_soc_ok()) {
-		fastboot_fail("Warning: battery's capacity is very low\n");
-		return;
-	}
-#endif
 	if(target_is_emmc_boot())
 		cmd_flash_mmc(arg, data, sz);
 	else
