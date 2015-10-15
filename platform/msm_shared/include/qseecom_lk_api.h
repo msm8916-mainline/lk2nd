@@ -43,6 +43,26 @@
 int qseecom_init();
 
 /**
+ * Qseecom set app address regions
+ *	To be called before any calls to tz init.
+ *
+ * @return void
+ *   Success:	Not applicable
+ *   Failure:	Not applicable
+ */
+void qseecom_lk_set_app_region(uint32_t addr, uint32_t size);
+
+/**
+ * Qseecom get version.
+ *	To be called before calls to set app region.
+ *
+ * @return unsigned int
+ *   Success:	Valid version
+ *   Failure:	Garbage value
+ */
+unsigned int qseecom_get_version();
+
+/**
 * Qseecom Tz Init
 *	To be called before any calls to qsee secure apps.
 *
