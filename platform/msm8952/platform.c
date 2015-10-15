@@ -41,6 +41,7 @@
 #include <platform.h>
 #include <target/display.h>
 
+#define MSM8976_SOC_V11 0x10001
 #define MSM_IOMAP_SIZE ((MSM_IOMAP_END - MSM_IOMAP_BASE)/MB)
 #define APPS_SS_SIZE   ((APPS_SS_END - APPS_SS_BASE)/MB)
 
@@ -191,6 +192,17 @@ int platform_is_msm8956()
 		default:
 			ret = 0;
 	};
+
+	return ret;
+}
+
+uint32_t platform_is_msm8976_v_1_1()
+{
+	uint32_t soc_ver = board_soc_version();
+	uint32_t ret = 0;
+
+	if(soc_ver == MSM8976_SOC_V11)
+		ret = 1;
 
 	return ret;
 }
