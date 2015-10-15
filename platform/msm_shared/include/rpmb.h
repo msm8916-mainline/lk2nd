@@ -33,6 +33,7 @@
 #include <mmc_sdhci.h>
 #include <ufs.h>
 #include <debug.h>
+#include <qseecomi_lk.h>
 
 #define RPMB_SECTOR_SIZE            256
 #define RPMB_LSTNR_ID               0x2000
