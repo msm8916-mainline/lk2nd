@@ -1,4 +1,4 @@
-/* Copyright (c) 2014 The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -40,6 +40,7 @@ static inline void dump(const void *buff, int count)
 	printf("\n");
 }
 
+bool swp_test();
 void rpmb_run_test();
 bool rpmb_test(struct ufs_dev *dev, uint16_t address, uint16_t rpmb_num_blocks);
 void dump_rpmb_data(struct rpmb_frame *result_frame);

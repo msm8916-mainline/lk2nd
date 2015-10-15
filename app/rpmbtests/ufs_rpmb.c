@@ -86,6 +86,44 @@ void dump_rpmb_data(struct rpmb_frame *result_frame)
 	printf("\n");
 }
 
+bool swp_test()
+{
+	int ret = 0;
+	qsee_stor_secure_wp_info_t cb = {0};
+	// Write protect 4 partitions in Lun 0.
+	cb.lun_number = 0;
+	cb.num_entries = 4;
+	cb.wp_entries[0].wp_enable = 0x1;
+	cb.wp_entries[0].wp_type_mask = 0x1;
+	cb.wp_entries[0].addr = 8;
+	cb.wp_entries[0].num_blocks = 8192;
+
+	cb.wp_entries[1].wp_enable = 0x1;
+	cb.wp_entries[1].wp_type_mask = 0x1;
+	cb.wp_entries[1].addr = 74120;
+	cb.wp_entries[1].num_blocks = 32;
+
+	cb.wp_entries[2].wp_enable = 0x1;
+	cb.wp_entries[2].wp_type_mask = 0x1;
+	cb.wp_entries[2].addr = 6;
+	cb.wp_entries[2].num_blocks = 2;
+
+	cb.wp_entries[3].wp_enable = 0x1;
+	cb.wp_entries[3].wp_type_mask = 0x1;
+	cb.wp_entries[3].addr = 73736;
+	cb.wp_entries[3].num_blocks = 256;
+
+	ret = swp_write(cb);
+	if (ret)
+	{
+		dprintf(CRITICAL, "SWP Write Test Failed\n");
+		return false;
+	}
+	else
+		dprintf(CRITICAL, "SWP Write Test Passed\n");
+	return true;
+}
+
 bool rpmb_test(struct ufs_dev *dev, uint16_t address, uint16_t rpmb_num_blocks)
 {
 	struct rpmb_frame data_frame, result_frame[rpmb_num_blocks];
