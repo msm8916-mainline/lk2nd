@@ -42,11 +42,6 @@
 #include <platform/iomap.h>
 #include <platform.h>
 
-#define QSEOS_VERSION_14  0x14
-#define QSEEE_VERSION_00  0x400000
-#define QSEE_VERSION_20   0x800000
-
-
 #define QSEOS_CHECK_VERSION_CMD  0x00001803
 
 #define MAX_SCM_ARGS 10
@@ -59,6 +54,7 @@
 #define GENERIC_ERROR -1
 #define LISTENER_ALREADY_PRESENT_ERROR -2
 
+#define TZ_FVER_QSEE 10
 #define TZ_CALL 6
 enum qseecom_client_handle_type {
 	QSEECOM_CLIENT_APP = 1,
@@ -1388,6 +1384,8 @@ err:
 int qseecom_init()
 {
 	int rc = GENERIC_ERROR;
+	struct qseecom_command_scm_resp resp;
+	uint32_t ver = TZ_FVER_QSEE;
 
 	memset (&qseecom, 0, sizeof(struct qseecom_control));
 	dprintf(SPEW, "%s called\n", __func__);
@@ -1398,14 +1396,21 @@ int qseecom_init()
 	list_initialize(&(qseecom.registered_app_list_head));
 	list_initialize(&(qseecom.registered_listener_list_head));
 
-	qseecom.qseos_version = QSEOS_VERSION_14;
-	rc = 0;
+	rc = qseecom_scm_call(TZ_SVC_INFO, 3,
+						  &ver, sizeof(ver),
+						  &resp, sizeof(resp));
 
 	if (!rc) {
 		qseecom.qseecom_init_done = 1;
-		dprintf(ALWAYS, "Qseecom Init Done in Appsbl\n");
+		qseecom.qseos_version = resp.result;
+		dprintf(ALWAYS, "Qseecom Init Done in Appsbl version is 0x%x\n",resp.result);
 	}
 	return rc;
+}
+
+unsigned int qseecom_get_version()
+{
+	return qseecom.qseos_version;
 }
 
 int qseecom_exit()
