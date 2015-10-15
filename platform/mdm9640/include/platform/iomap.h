@@ -170,8 +170,15 @@ uint32_t platform_boot_config();
 #define USB3_AUX_D                  (CLK_CTL_BASE + 0x5E06C)
 #define USB3_AUX_CBCR               (CLK_CTL_BASE + 0x5E044)
 
+#define USB30_MOCK_UTMI_CBCR        (CLK_CTL_BASE + 0x5E008)
+#define USB30_SLEEP_CBCR            (CLK_CTL_BASE + 0x5E004)
+#define USB30_MOCK_UTMI_CMD_RCGR    (CLK_CTL_BASE + 0x5E020)
+#define USB30_MOCK_UTMI_CFG_RCGR    (CLK_CTL_BASE + 0x5E024)
+
 /* USB 3.0 phy */
 #define USB3_PHY_BCR                (CLK_CTL_BASE + 0x0005E034)
+
+#define USB_30_BCR                  (CLK_CTL_BASE + 0x0005E070)
 
 /* QUSB2 PHY */
 #define QUSB2_PHY_BASE              0x00079000
@@ -197,5 +204,17 @@ uint32_t platform_boot_config();
 #define APCS_ALIAS0_IPC_INTERRUPT   0xB011008
 /* eMMC Display */
 #define TLMM_EBI2_EMMC_GPIO_CFG     0x01111000
+
+/* QMP rev registers */
+#define USB3_PHY_REVISION_ID0       (QMP_PHY_BASE + 0x988)
+#define USB3_PHY_REVISION_ID1       (QMP_PHY_BASE + 0x98C)
+#define USB3_PHY_REVISION_ID2       (QMP_PHY_BASE + 0x990)
+#define USB3_PHY_REVISION_ID3       (QMP_PHY_BASE + 0x994)
+
 #define EBI2_BOOT_SELECT            0x2
+#define GCC_RX2_USB2_CLKREF_EN      0x01841030
+#define USB3_PHY_STATUS             0x78974
+/* Register for finding out if single ended or differential clock enablement */
+#define TCSR_PHY_CLK_SCHEME_SEL     0x01956044
+
 #endif

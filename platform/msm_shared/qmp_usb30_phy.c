@@ -37,6 +37,7 @@
 #include <debug.h>
 #include <qtimer.h>
 #include <platform.h>
+#include <target.h>
 
 #define HS_PHY_COMMON_CTRL             0xEC
 #define USE_CORECLK                    BIT(14)
@@ -256,12 +257,30 @@ void usb30_qmp_phy_reset(void)
 void usb30_qmp_phy_init()
 {
 	int timeout = QMP_PHY_MAX_TIMEOUT;
-	uint32_t rev_id = 0;
 	uint32_t phy_status = 0;
 	uint32_t qmp_reg_size;
 	uint32_t i;
 
-	rev_id = platform_get_qmp_rev();
+
+#if USE_TARGET_QMP_SETTINGS
+	struct qmp_reg *target_qmp_settings = NULL;
+	qmp_reg_size = target_get_qmp_regsize();
+	target_qmp_settings = target_get_qmp_settings();
+	if (qmp_reg_size && target_qmp_settings)
+	{
+		for (i = 0 ; i < qmp_reg_size; i++)
+		{
+			/* As per the hw document we need to add a delay of 1 ms after setting
+			 * QSERDES_COM_RESETSM_CNTRL2 and before setting QSERDES_COM_CMN_CONFIG */
+			if (i == 7)
+				mdelay(1);
+			writel(target_qmp_settings[i].val, QMP_PHY_BASE + target_qmp_settings[i].off);
+		}
+	goto phy_status;
+	}
+#endif
+
+	uint32_t rev_id = platform_get_qmp_rev();
 
 	/* Sequence as per HPG */
 	writel(0x01, QMP_PHY_BASE + PCIE_USB3_PHY_POWER_DOWN_CONTROL);
@@ -342,12 +361,25 @@ void usb30_qmp_phy_init()
 		writel(0x03, QMP_PHY_BASE + PCIE_USB3_PHY_START);
 	}
 
-	if (rev_id >= 0x20000000)
-		phy_status = 0x77c;
-	else
-		phy_status = 0x728;
+#if USE_TARGET_QMP_SETTINGS
+phy_status:
+#endif
 
-	while ((readl(QMP_PHY_BASE + phy_status) & PHYSTATUS))
+	/* For future targets defined USB3_PHY_STATUS in the iomap.h
+	 * Initial version of driver was written thinking phy_status register
+	 * address would not change, but the address keeps changing for every chip
+	 * so better get the address from iomap amd keep the backward compatibility
+	 */
+#if USB3_PHY_STATUS
+	phy_status = USB3_PHY_STATUS;
+#else
+	if (rev_id >= 0x20000000)
+		phy_status = QMP_PHY_BASE + 0x77c;
+	else
+		phy_status = QMP_PHY_BASE + 0x728;
+#endif
+
+	while ((readl(phy_status) & PHYSTATUS))
 	{
 		udelay(1);
 		timeout--;
