@@ -118,7 +118,8 @@ void update_ptable_names(void)
 void target_early_init(void)
 {
 #if WITH_DEBUG_UART
-	uart_dm_init(1, 0, BLSP1_UART5_BASE);
+	/*BLSP1 and UART5*/
+	uart_dm_init(5, 0, BLSP1_UART5_BASE);
 #endif
 }
 
@@ -190,7 +191,11 @@ void target_baseband_detect(struct board_data *board)
 
 	switch(platform)
 	{
-	case MDMFERMIUM:
+	case MDMFERMIUM1:
+	case MDMFERMIUM2:
+	case MDMFERMIUM3:
+	case MDMFERMIUM4:
+	case MDMFERMIUM5:
 		board->baseband = BASEBAND_MDM;
         break;
 	default:
