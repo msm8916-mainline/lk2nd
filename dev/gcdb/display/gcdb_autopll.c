@@ -242,10 +242,17 @@ static void config_20nm_pll_vco_range(void)
 }
 #endif
 
-static uint32_t calculate_vco_thulium()
+static uint32_t calculate_vco_thulium(uint8_t bpp, uint8_t lanes)
 {
 	uint32_t rate;
 	uint32_t mod;
+	int bpp_lane;
+
+	/* round up the pixel clock to get the correct n2 div */
+	bpp_lane = bpp / lanes;
+	mod = pll_data.bit_clock % bpp_lane;
+	if (mod)
+		pll_data.pixel_clock++;
 
 	pll_data.vco_min = MIN_THULIUM_VCO_RATE;
 	pll_data.vco_max = MAX_THULIUM_VCO_RATE;
