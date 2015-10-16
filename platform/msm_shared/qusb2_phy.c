@@ -96,19 +96,6 @@ void qusb2_phy_reset(void)
 		writel(0x79, QUSB2PHY_PLL_USER_CTL1);
 		writel(0x21, QUSB2PHY_PLL_USER_CTL2);
 		writel(0x14, QUSB2PHY_PORT_TEST2);
-		/* TCSR register bit 0 indicates whether single ended clock
-		 * or differential clock configuration is enabled. Based on the
-		 * configuration set the PLL_TEST register.
-		 */
-#if TCSR_PHY_CLK_SCHEME_SEL
-		se_clock = readl(TCSR_PHY_CLK_SCHEME_SEL) & 0x1;
-#endif
-		/* By default consider differential clock configuration and if TCSR
-		 * register bit 0 is not set then use single ended setting
-		 */
-		if (se_clock)
-			writel(0x80, QUSB2PHY_PLL_TEST);
-
 		writel(0x9F, QUSB2PHY_PLL_AUTOPGM_CTL1);
 		writel(0x00, QUSB2PHY_PLL_PWR_CTL);
 	}
@@ -127,31 +114,47 @@ void qusb2_phy_reset(void)
 		writel(0x85, QUSB2PHY_PORT_TUNE4);
 	}
 
-	/* Wait for tuning params to take effect right before re-enabling power*/
-	udelay(10);
-
 	/* Enable ULPI mode */
 	if (platform_is_msm8994())
 		writel(0x0,  QUSB2PHY_PORT_UTMI_CTRL2);
-	/* Enable PHY */
 	/* set CLAMP_N_EN and USB PHY is enabled*/
 	writel(0x22, QUSB2PHY_PORT_POWERDOWN);
-	mdelay(10);
+	udelay(150);
 
-#if GCC_RX2_USB2_CLKREF_EN
-	writel((readl(GCC_RX2_USB2_CLKREF_EN) | 0x1), GCC_RX2_USB2_CLKREF_EN);
-	dmb();
+	/* TCSR register bit 0 indicates whether single ended clock
+	 * or differential clock configuration is enabled. Based on the
+	 * configuration set the PLL_TEST register.
+	 */
+#if TCSR_PHY_CLK_SCHEME_SEL
+	se_clock = readl(TCSR_PHY_CLK_SCHEME_SEL) & 0x1;
 #endif
+	/* By default consider differential clock configuration and if TCSR
+	 * register bit 0 is not set then use single ended setting
+	 */
+	if (se_clock)
+	{
+		writel(0x80, QUSB2PHY_PLL_TEST);
+	}
+	else
+	{
+	/* turn the ref clock on for differential clocks */
+#if GCC_RX2_USB2_CLKREF_EN
+		writel((readl(GCC_RX2_USB2_CLKREF_EN) | 0x1), GCC_RX2_USB2_CLKREF_EN);
+		dmb();
+#endif
+	}
+	udelay(100);
 
 	/* Check PLL status */
 	while (!(readl(QUSB2PHY_PLL_STATUS) & QUSB2PHY_PLL_LOCK))
 	{
 		retry--;
-		udelay(100);
 		if (!retry)
 		{
 			dprintf(CRITICAL, "QUSB2PHY failed to lock: %d", readl(QUSB2PHY_PLL_STATUS));
 			break;
 		}
+		/* As per recommendation form hw team wait for 5 us before reading the status */
+		udelay(5);
 	}
 }
