@@ -38,7 +38,7 @@
 #include "fastboot_oem_display.h"
 
 struct oem_panel_data oem_data = {{'\0'}, {'\0'}, false, false, false, SIM_NONE,
-	"single_dsi", DSI_PLL_DEFAULT};
+	"single_dsi", DSI_PLL_DEFAULT, {-1, -1}};
 
 static int panel_name_to_dt_string(struct panel_lookup_list supp_panels[],
 			  uint32_t supp_panels_size,
@@ -186,7 +186,19 @@ void set_panel_cmd_string(const char *panel_name)
 		for (i = 0; (ch + i) < ch_tmp; i++)
 			oem_data.sec_panel[i] = *(ch + i);
 		oem_data.sec_panel[i] = '\0';
+
+		/* Topology configuration for secondary panel */
+		ch_tmp = strstr((char *) ch, ":cfg");
+		if (ch_tmp)
+			oem_data.cfg_num[1] = atoi((const char*)(ch_tmp + 4));
+	} else {
+		oem_data.sec_panel[0] = '\0';
 	}
+
+	/* Topology configuration for primary panel */
+	ch_tmp = strstr((char *) panel_name, ":cfg");
+	if (ch_tmp && (!ch || (ch && (ch_tmp < ch))))
+		oem_data.cfg_num[0] = atoi((const char*)(ch_tmp + 4));
 
 	/* Skip LK configuration */
 	ch = strstr((char *) panel_name, ":skip");
@@ -222,7 +234,6 @@ void set_panel_cmd_string(const char *panel_name)
 	/* disable cont splash when booting in simulator mode */
 	if (oem_data.sim_mode)
 		oem_data.cont_splash = false;
-
 }
 
 static bool mdss_dsi_set_panel_node(char *panel_name, char **dsi_id,
@@ -284,6 +295,8 @@ bool gcdb_display_cmdline_arg(char *pbuf, uint16_t buf_size)
 	int panel_mode = SPLIT_DISPLAY_FLAG | DUAL_PIPE_FLAG | DST_SPLIT_FLAG;
 	int prefix_string_len = strlen(DISPLAY_CMDLINE_PREFIX);
 	char *sctl_string, *pll_src_string = NULL;
+	char prim_cfg_name[10]="\0", slave_cfg_name[10]="\0"; /* config[0-99] */
+	char *display_cmd_line = pbuf;
 
 	panelstruct = mdss_dsi_get_panel_data();
 
@@ -332,7 +345,7 @@ bool gcdb_display_cmdline_arg(char *pbuf, uint16_t buf_size)
 
 	if (((panel_mode & SPLIT_DISPLAY_FLAG) ||
 	     (panel_mode & DST_SPLIT_FLAG)) && slave_panel_node == NULL) {
-		dprintf(CRITICAL, "slave node not present in dual dsi case\n");
+		dprintf(CRITICAL, "slave node not present in split-dsi case\n");
 		return false;
 	}
 
@@ -413,6 +426,40 @@ bool gcdb_display_cmdline_arg(char *pbuf, uint16_t buf_size)
 		}
 	}
 
+	dprintf(SPEW, "dsi_cfg:%s mdp_cfg[0]=%d mdp_cfg[1]=%d\n",
+		oem_data.dsi_config, oem_data.cfg_num[0], oem_data.cfg_num[1]);
+
+	if ((oem_data.cfg_num[0] >= 0) && (oem_data.cfg_num[0] < 100)) {
+		snprintf(prim_cfg_name, sizeof(prim_cfg_name),
+			":config%d", oem_data.cfg_num[0]);
+		arg_size += strlen(prim_cfg_name);
+	} else if (panelstruct.config != NULL) {
+		/*
+		 * if oem command wasn't set then take topology config
+		 * used by per target oem panel driver if available.
+		 */
+		snprintf(prim_cfg_name, sizeof(prim_cfg_name),
+			":%s", panelstruct.config->config_name);
+		arg_size += strlen(prim_cfg_name);
+	}
+
+	/* in split-dsi, primary and slave panel share same topology config */
+	if (!strcmp(oem_data.dsi_config, "split_dsi"))
+		snprintf(slave_cfg_name, sizeof(slave_cfg_name),
+			"%s", prim_cfg_name);
+
+	if (!strcmp(oem_data.dsi_config, "dual_dsi")) {
+		if ((oem_data.cfg_num[1] >= 0) && (oem_data.cfg_num[1] < 100)) {
+			snprintf(slave_cfg_name, sizeof(slave_cfg_name),
+				":config%d", oem_data.cfg_num[1]);
+			arg_size += strlen(slave_cfg_name);
+		}
+		/*
+		 * In dual-dsi, secondary or slave panels isn't supported
+		 * in bootloader so "else" case like above is not possible.
+		 */
+	}
+
 	if (buf_size < arg_size) {
 		dprintf(CRITICAL, "display command line buffer is small\n");
 		ret = false;
@@ -433,6 +480,13 @@ bool gcdb_display_cmdline_arg(char *pbuf, uint16_t buf_size)
 		pbuf += panel_node_len;
 		buf_size -= panel_node_len;
 
+		/* writeout primary topology config */
+		if (strlen(prim_cfg_name) > 0) {
+			strlcpy(pbuf, prim_cfg_name, buf_size);
+			pbuf += strlen(prim_cfg_name);
+			buf_size -= strlen(prim_cfg_name);
+		}
+
 		strlcpy(pbuf, sctl_string, buf_size);
 		pbuf += strlen(sctl_string);
 		buf_size -= strlen(sctl_string);
@@ -440,6 +494,13 @@ bool gcdb_display_cmdline_arg(char *pbuf, uint16_t buf_size)
 		strlcpy(pbuf, slave_panel_node, buf_size);
 		pbuf += slave_panel_node_len;
 		buf_size -= slave_panel_node_len;
+
+		/* writeout slave panel, split-dsi, or secondary panel, dual-dsi, topology config */
+		if (strlen(slave_cfg_name) > 0) {
+			strlcpy(pbuf, slave_cfg_name, buf_size);
+			pbuf += strlen(slave_cfg_name);
+			buf_size -= strlen(slave_cfg_name);
+		}
 
 		strlcpy(pbuf, DSI_CFG_STRING, buf_size);
 		pbuf += DSI_CFG_STRING_LEN;
@@ -464,6 +525,9 @@ bool gcdb_display_cmdline_arg(char *pbuf, uint16_t buf_size)
 			pbuf += strlen(sim_mode_string);
 			buf_size -= strlen(sim_mode_string);
 		}
+
+		dprintf(INFO, "display kernel cmdline:%s\n",
+			display_cmd_line);
 	}
 	return ret;
 }

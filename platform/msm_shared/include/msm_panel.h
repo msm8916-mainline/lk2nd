@@ -33,6 +33,7 @@
 #include <sys/types.h>
 #include <stdint.h>
 #include <dev/fbcon.h>
+#include <sys/types.h>
 
 #define DFPS_MAX_FRAME_RATE 10
 #define DFPS_PLL_CODES_SIZE 0x1000 /* One page */
@@ -132,9 +133,6 @@ enum {
 struct msm_panel_info;
 
 struct dsc_desc {
-	int data_path_model;            /* multiplex + split_panel */
-	int ich_reset_value;
-	int ich_reset_override;
 	int initial_lines;
 	int slice_last_group_size;
 	int bpp;        /* target bit per pixel */
@@ -197,8 +195,9 @@ struct dsc_desc {
 	void (*parameter_calc) (struct msm_panel_info *pinfo);
 	int (*dsc2buf) (struct msm_panel_info *pinfo);
 	void (*dsi_dsc_config) (uint32_t base, int mode, struct dsc_desc *dsc);
-	void (*mdp_dsc_config) (struct msm_panel_info *pinfo);
-
+	void (*mdp_dsc_config) (struct msm_panel_info *pinfo,
+		unsigned int pp_base, unsigned int dsc_base,
+		bool mux, bool split_mode);
 };
 
 struct fbc_panel_info {
@@ -394,6 +393,9 @@ struct msm_panel_info {
 	uint32_t border_bottom;
 	uint32_t border_left;
 	uint32_t border_right;
+
+	int lm_split[2];
+	int num_dsc_enc;
 
 	struct lcd_panel_info lcd;
 	struct lcdc_panel_info lcdc;

@@ -76,6 +76,8 @@ struct oem_panel_data  {
 	uint32_t sim_mode;
 	char dsi_config[DSI_CFG_SIZE];
 	uint32_t dsi_pll_src;
+	/* If dual-DSI, slave cfg will use 2nd index */
+	int cfg_num[2]; /* -ve number means no overide */
 };
 
 enum {

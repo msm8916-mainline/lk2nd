@@ -420,9 +420,15 @@
 #endif
 #define MDSS_MDP_PP_DCE_DATA_OUT_SWAP		0x0CC
 
-#define MDP_DSC_0_BASE				REG_MDP(0x81000)
-#define MDP_DSC_1_BASE				REG_MDP(0x81400)
+#ifdef MDP_DSC_0_BASE
+#undef MDP_DSC_0_BASE
+#endif
+#define MDP_DSC_0_BASE              REG_MDP(0x81000)
 
+#ifdef MDP_DSC_1_BASE
+#undef MDP_DSC_1_BASE
+#endif
+#define MDP_DSC_1_BASE              REG_MDP(0x81400)
 
 #define SOFT_RESET                  0x118
 #define CLK_CTRL                    0x11C

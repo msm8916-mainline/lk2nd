@@ -229,8 +229,15 @@
 #endif
 #define MDP_PP_1_BASE               REG_MDP(0x71800)
 
-#define MDP_DSC_0_BASE			REG_MDP(0x81000)
-#define MDP_DSC_1_BASE			REG_MDP(0x81400)
+#ifdef MDP_DSC_0_BASE
+#undef MDP_DSC_0_BASE
+#endif
+#define MDP_DSC_0_BASE              REG_MDP(0x81000)
+
+#ifdef MDP_DSC_1_BASE
+#undef MDP_DSC_1_BASE
+#endif
+#define MDP_DSC_1_BASE              REG_MDP(0x81400)
 
 #ifdef MDP_HW_REV
 #undef MDP_HW_REV

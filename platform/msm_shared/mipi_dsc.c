@@ -346,7 +346,9 @@ void mdss_dsc_parameters_calc(struct msm_panel_info *pinfo)
 		dsc->scale_decrement_interval);
 }
 
-void mdss_dsc_mdp_config(struct msm_panel_info *pinfo)
+void mdss_dsc_mdp_config(struct msm_panel_info *pinfo,
+	unsigned int pp_base, unsigned int dsc_base,
+	bool mux, bool split_mode)
 {
 	unsigned int data;
 	unsigned int offset, off;
@@ -359,24 +361,27 @@ void mdss_dsc_mdp_config(struct msm_panel_info *pinfo)
 	writel(0x0, MDSS_MDP_REG_DCE_SEL);
 
 	/* dsc enable */
-	writel(1, MDP_PP_0_BASE + MDSS_MDP_PP_DSC_MODE);
+	writel(1, pp_base + MDSS_MDP_PP_DSC_MODE);
 
-	data = readl(MDP_PP_0_BASE + MDSS_MDP_PP_DCE_DATA_OUT_SWAP);
+	data = readl(pp_base + MDSS_MDP_PP_DCE_DATA_OUT_SWAP);
 	data |= BIT(18);	/* endian flip */
-	writel(data, MDP_PP_0_BASE + MDSS_MDP_PP_DCE_DATA_OUT_SWAP);
+	writel(data, pp_base + MDSS_MDP_PP_DCE_DATA_OUT_SWAP);
 
-	offset = MDP_DSC_0_BASE;
+	offset = dsc_base;
 
 	data = 0;
 	dsc = &pinfo->dsc;
 	if (pinfo->type == MIPI_VIDEO_PANEL)
 		data = BIT(2);	/* video mode */
 
+	if (split_mode)
+		data |= BIT(0);
+	if (mux)
+		data |= BIT(1);
+
 	writel(data, offset + MDSS_MDP_DSC_COMMON_MODE);
 
-	data = dsc->ich_reset_value | dsc->ich_reset_override;
-	data <<= 28;
-	data |= (dsc->initial_lines << 20);
+	data = (dsc->initial_lines << 20);
 	data |= ((dsc->slice_last_group_size - 1) << 18);
 
 	/* bpp is 6.4 format, 4 LSBs bits are for fractional part */
@@ -392,8 +397,8 @@ void mdss_dsc_mdp_config(struct msm_panel_info *pinfo)
 	data |= (dsc->convert_rgb << 1);
 	data |= dsc->input_10_bits;
 
-	dprintf(SPEW, "%s: %d %d %d %d %d %d %d %d %d %d, data=%x\n",
-		__func__, dsc->ich_reset_value, dsc->ich_reset_override,
+	dprintf(SPEW, "%s: %d %d %d %d %d %d %d %d, data=%x\n",
+		__func__,
 		dsc->initial_lines , dsc->slice_last_group_size,
 		dsc->bpp, dsc->block_pred_enable, dsc->line_buf_depth,
 		dsc->enable_422, dsc->convert_rgb, dsc->input_10_bits, data);

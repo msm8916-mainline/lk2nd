@@ -53,7 +53,7 @@
 /*---------------------------------------------------------------------------*/
 /* struct definition                                                         */
 /*---------------------------------------------------------------------------*/
-struct panel_struct{
+struct panel_struct {
 	struct panel_config         *paneldata;
 	struct panel_resolution     *panelres;
 	struct color_info           *color;
@@ -65,7 +65,7 @@ struct panel_struct{
 	struct panel_reset_sequence *panelresetseq;
 	struct backlight            *backlightinfo;
 	struct fb_compression	    fbcinfo;
-	struct dsc_parameters	    dsc_paras;
+	struct topology_config	    *config;
 };
 
 struct panel_list {
