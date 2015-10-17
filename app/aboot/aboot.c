@@ -1116,11 +1116,12 @@ int boot_linux_from_mmc(void)
 	}
 
 #if VERIFIED_BOOT
+#if !VBOOT_MOTA
 	// send root of trust
 	if(!send_rot_command((uint32_t)device.is_unlocked))
 		ASSERT(0);
 #endif
-
+#endif
 	/*
 	 * Check if the kernel image is a gzip package. If yes, need to decompress it.
 	 * If not, continue booting.
@@ -2041,11 +2042,12 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	}
 
 #if VERIFIED_BOOT
+#if !VBOOT_MOTA
 	// send root of trust
 	if(!send_rot_command((uint32_t)device.is_unlocked))
 		ASSERT(0);
 #endif
-
+#endif
 	/*
 	 * Check if the kernel image is a gzip package. If yes, need to decompress it.
 	 * If not, continue booting.
@@ -2220,9 +2222,11 @@ void cmd_erase_mmc(const char *arg, void *data, unsigned sz)
 		return;
 	}
 #if VERIFIED_BOOT
+#if !VBOOT_MOTA
 	if(!(strncmp(arg, "userdata", 8)))
 		if(send_delete_keys_to_tz())
 			ASSERT(0);
+#endif
 #endif
 #endif
 	fastboot_okay("");
