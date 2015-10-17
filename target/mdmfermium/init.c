@@ -115,6 +115,21 @@ void update_ptable_names(void)
 	}
 }
 
+/* Return Non zero (i.e 0x2) if vol_down pressed */
+uint32_t target_volume_down()
+{
+	/* Volume down button tied in with PMIC RESIN. */
+	return pm8x41_resin_status();
+}
+
+static void target_keystatus()
+{
+	keys_init();
+
+	if(target_volume_down())
+		keys_post_event(KEY_VOLUMEDOWN, 1);
+}
+
 void target_early_init(void)
 {
 #if WITH_DEBUG_UART
@@ -151,6 +166,7 @@ void target_init(void)
 
 	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
 
+	target_keystatus();
 	config.pipes.read_pipe = DATA_PRODUCER_PIPE;
 	config.pipes.write_pipe = DATA_CONSUMER_PIPE;
 	config.pipes.cmd_pipe = CMD_PIPE;
