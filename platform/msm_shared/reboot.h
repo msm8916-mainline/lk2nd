@@ -29,12 +29,12 @@
 #ifndef __REBOOT_H__
 #define __REBOOT_H__
 #if USE_PON_REBOOT_REG
-#define RECOVERY_MODE     0x20
-#define FASTBOOT_MODE     0x40
-#define ALARM_BOOT        0x60
-#define DM_VERITY_LOGGING   0x80
-#define DM_VERITY_ENFORCING 0xA0
-#define DM_VERITY_KEYSCLEAR 0xC0
+#define RECOVERY_MODE     0x01
+#define FASTBOOT_MODE     0x02
+#define ALARM_BOOT        0x03
+#define DM_VERITY_LOGGING   0x04
+#define DM_VERITY_ENFORCING 0x05
+#define DM_VERITY_KEYSCLEAR 0x06
 #else
 #define FASTBOOT_MODE     0x77665500
 #define RECOVERY_MODE     0x77665502
