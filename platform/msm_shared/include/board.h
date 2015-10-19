@@ -90,5 +90,6 @@ enum subtype_ddr {
 
 uint32_t board_foundry_id(void);
 void board_update_boot_dev(uint32_t);
+void board_pmi_target_set(uint8_t num_ent,uint8_t rev);
 bool board_pmic_type(uint32_t type);
 #endif
