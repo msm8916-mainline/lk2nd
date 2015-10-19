@@ -40,6 +40,7 @@
 #define BOOT_DONE_BIT                         7
 
 #define REVID_REVISION4                       0x103
+#define REVID_REV_ID_SPARE_0                  0x160
 
 /* LPG Registers */
 #define LPG_SLAVE_ID                  	0x10000	/* slave_id == 1 */
