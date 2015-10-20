@@ -106,6 +106,7 @@ static uint32_t thulium_dsi_pll_enable_seq(uint32_t phy_base, uint32_t pll_base)
 {
 	uint32_t pll_locked;
 
+	writel(0x10, phy_base + 0x45c);
 	writel(0x01, phy_base + 0x48);
 	dmb();
 
