@@ -167,6 +167,7 @@ void target_uninit(void)
 		clock_ce_disable(CE_INSTANCE);
 	}
 
+#if VERIFIED_BOOT
 	if (is_sec_app_loaded())
 	{
 		if (send_milestone_call_to_tz() < 0)
@@ -181,6 +182,7 @@ void target_uninit(void)
 		dprintf(CRITICAL, "RPMB uninit failed\n");
 		ASSERT(0);
 	}
+#endif
 	rpm_smd_uninit();
 }
 
@@ -332,7 +334,10 @@ void *target_mmc_device()
 
 void target_init(void)
 {
+#if VERIFIED_BOOT
 	int ret = 0;
+#endif
+
 	dprintf(INFO, "target_init()\n");
 
 	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
@@ -361,6 +366,7 @@ void target_init(void)
 	/* Storage initialization is complete, read the partition table info */
 	mmc_read_partition_table(0);
 
+#if VERIFIED_BOOT
 	/* Initialize Qseecom */
 	ret = qseecom_init();
 
@@ -393,6 +399,7 @@ void target_init(void)
 		dprintf(CRITICAL, "Failed to load App for verified\n");
 		ASSERT(0);
 	}
+#endif
 
 	rpm_smd_init();
 
