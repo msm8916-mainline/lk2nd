@@ -31,6 +31,8 @@ DEFINES += DISPLAY_TYPE_DSI6G=1
 MODULES += \
 	dev/keys \
 	dev/pmic/pm8x41 \
+	dev/qpnp_haptic \
+	dev/vib \
 	dev/qpnp_wled \
 	dev/qpnp_led \
 	dev/gcdb/display \

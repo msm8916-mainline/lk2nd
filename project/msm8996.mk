@@ -48,8 +48,17 @@ DEFINES += ENABLE_WBC=1
 #Enable below flag to compile cmnlib64
 #DEFINES += ENABLE_CMNLIB64_LOADING=1
 
+ENABLE_HAP_VIB_SUPPORT := true
+
+#Enable the feature of long press power on
+DEFINES += LONG_PRESS_POWER_ON=1
+
 #Disable thumb mode
 ENABLE_THUMB := false
+
+ifeq ($(ENABLE_HAP_VIB_SUPPORT),true)
+DEFINES += PON_VIB_SUPPORT=1
+endif
 
 ifeq ($(ENABLE_GLINK_SUPPORT),1)
 DEFINES += GLINK_SUPPORT=1

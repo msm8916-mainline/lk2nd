@@ -85,6 +85,13 @@
 /* Clocks */
 #define CLK_CTL_BASE                0x300000
 
+#define PMI_SLAVE_BASE           2
+#define PMI_FIRST_SLAVE_OFFSET   0
+#define PMI_SECOND_SLAVE_OFFSET  1
+
+#define PMI_FIRST_SLAVE_ADDR_BASE   (( PMI_SLAVE_BASE + PMI_FIRST_SLAVE_OFFSET ) << 16)
+#define PMI_SECOND_SLAVE_ADDR_BASE  (( PMI_SLAVE_BASE + PMI_SECOND_SLAVE_OFFSET) << 16)
+
 /* GPLL */
 #define GPLL0_MODE                  (CLK_CTL_BASE + 0x0000)
 #define GPLL4_MODE                  (CLK_CTL_BASE + 0x77000)
