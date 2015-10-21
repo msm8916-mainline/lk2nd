@@ -33,6 +33,8 @@ extern "C" {
 void *memchr (void const *, int, size_t) __PURE;
 int   memcmp (void const *, const void *, size_t) __PURE;
 void *memcpy (void *, void const *, size_t);
+/* secure memcpy, does not copy beyong size of dest buffer*/
+size_t memscpy (void *, size_t, void const *, size_t);
 void *memmove(void *, void const *, size_t);
 void *memset (void *, int, size_t);
 

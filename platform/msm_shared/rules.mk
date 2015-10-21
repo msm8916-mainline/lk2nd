@@ -511,6 +511,13 @@ ifeq ($(ENABLE_BOOT_CONFIG_SUPPORT), 1)
 		$(LOCAL_DIR)/boot_device.o
 endif
 
+ifeq ($(ENABLE_RPMB_SUPPORT), 1)
+include platform/msm_shared/rpmb/rules.mk
+ifeq ($(ENABLE_UFS_SUPPORT), 1)
+        OBJS += $(LOCAL_DIR)/rpmb_ufs.o
+endif
+endif
+
 ifeq ($(ENABLE_USB30_SUPPORT),1)
 	OBJS += \
 		$(LOCAL_DIR)/usb30_dwc.o \
