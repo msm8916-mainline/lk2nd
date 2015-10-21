@@ -66,6 +66,7 @@ static mmu_section_t mmu_section_table[] = {
 	{    MSM_SHARED_BASE,   MSM_SHARED_BASE,  1,                COMMON_MEMORY},
 	{    MIPI_FB_ADDR,      MIPI_FB_ADDR,     10,              COMMON_MEMORY},
 	{    SCRATCH_ADDR,      SCRATCH_ADDR,     256,              SCRATCH_MEMORY},
+        {    RPMB_SND_RCV_BUF,      RPMB_SND_RCV_BUF,        RPMB_SND_RCV_BUF_SZ,    IOMAP_MEMORY},
 };
 
 
