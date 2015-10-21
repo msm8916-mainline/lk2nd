@@ -279,7 +279,7 @@ int get_target_boot_params(const char *cmdline, const char *part, char **buf)
 			ret = 0;
 		}
 		else {
-			buflen = strlen("EXT4_CMDLINE") + sizeof(int) +1;
+			buflen = strlen(EXT4_CMDLINE) + sizeof(int) +1;
 			*buf = (char *)malloc(buflen);
 			if(!(*buf)) {
 				dprintf(CRITICAL,"Unable to allocate memory for boot params\n");
