@@ -1261,7 +1261,7 @@ pm_err_flag_type pm_fg_adc_usr_get_calibrated_vbat(uint32 pmic_device, uint32 *c
 
   /* Applying gain calibration to the raw value*/
   // Twos_complement(VBAT_registerval) *39 * (1+ Twos_Complement(V_GAIN_registerval) * (.32/128))
-  *calibrated_vbat = (uint32)(((raw_vbat * (GAIN_LSB_DENOM + gain)))/GAIN_LSB_DENOM);
+  *calibrated_vbat = (uint32)((((raw_vbat + 2) * (GAIN_LSB_DENOM + gain)))/GAIN_LSB_DENOM);
 
   return errFlag;
 }
