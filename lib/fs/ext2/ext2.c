@@ -107,7 +107,7 @@ static void endian_swap_group_desc(struct ext2_group_desc *gd)
     LE16SWAP(gd->bg_used_dirs_count);
 }
 
-int ext2_mount(bdev_t *dev, fscookie *cookie)
+status_t ext2_mount(bdev_t *dev, fscookie **cookie)
 {
     int err;
 
@@ -187,7 +187,7 @@ int ext2_mount(bdev_t *dev, fscookie *cookie)
 
 //  TRACE("successfully mounted volume\n");
 
-    *cookie = ext2;
+    *cookie = (fscookie *)ext2;
 
     return 0;
 
@@ -198,7 +198,7 @@ err:
     return err;
 }
 
-int ext2_unmount(fscookie cookie)
+status_t ext2_unmount(fscookie *cookie)
 {
     // free it up
     ext2_t *ext2 = (ext2_t *)cookie;
