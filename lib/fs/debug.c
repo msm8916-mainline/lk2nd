@@ -27,6 +27,44 @@
 #include <stdlib.h>
 #include <platform.h>
 
+static void test_normalize(const char *in)
+{
+    char path[1024];
+
+    strlcpy(path, in, sizeof(path));
+    fs_normalize_path(path);
+    printf("'%s' -> '%s'\n", in, path);
+}
+
+#if 0
+    test_normalize("/");
+    test_normalize("/test");
+    test_normalize("/test/");
+    test_normalize("test/");
+    test_normalize("test");
+    test_normalize("/test//");
+    test_normalize("/test/foo");
+    test_normalize("/test/foo/");
+    test_normalize("/test/foo/bar");
+    test_normalize("/test/foo/bar//");
+    test_normalize("/test//foo/bar//");
+    test_normalize("/test//./foo/bar//");
+    test_normalize("/test//./.foo/bar//");
+    test_normalize("/test//./..foo/bar//");
+    test_normalize("/test//./../foo/bar//");
+    test_normalize("/test/../foo");
+    test_normalize("/test/bar/../foo");
+    test_normalize("../foo");
+    test_normalize("../foo/");
+    test_normalize("/../foo");
+    test_normalize("/../foo/");
+    test_normalize("/../../foo");
+    test_normalize("/bleh/../../foo");
+    test_normalize("/bleh/bar/../../foo");
+    test_normalize("/bleh/bar/../../foo/..");
+    test_normalize("/bleh/bar/../../foo/../meh");
+#endif
+
 #if defined(WITH_LIB_CONSOLE)
 
 #if DEBUGLEVEL > 1
@@ -37,9 +75,6 @@ STATIC_COMMAND("fs", "fs debug commands", &cmd_fs)
 STATIC_COMMAND_END(fs);
 
 extern int fs_mount_type(const char *path, const char *device, const char *name);
-extern int fs_create_file(const char *path, filecookie *fcookie);
-extern int fs_make_dir(const char *path);
-extern int fs_write_file(filecookie fcookie, const void *buf, off_t offset, size_t len);
 
 static int cmd_fs(int argc, const cmd_args *argv)
 {
@@ -51,7 +86,7 @@ notenoughargs:
 usage:
         printf("%s mount <path> <type> <device>\n", argv[0].str);
         printf("%s unmount <path>\n", argv[0].str);
-        printf("%s create <path>\n", argv[0].str);
+        printf("%s create <path> [size]\n", argv[0].str);
         printf("%s mkdir <path>\n", argv[0].str);
         printf("%s read <path> [<offset>] [<len>]\n", argv[0].str);
         printf("%s write <path> <string> [<offset>]\n", argv[0].str);
@@ -84,18 +119,18 @@ usage:
         }
     } else if (!strcmp(argv[1].str, "create")) {
         int err;
-        filecookie cookie;
+        filehandle *handle;
 
         if (argc < 3)
             goto notenoughargs;
 
-        err = fs_create_file(argv[2].str, &cookie);
+        err = fs_create_file(argv[2].str, &handle, (argc > 3) ? argv[3].u : 0);
         if (err < 0) {
             printf("error %d creating file\n", err);
             return err;
         }
 
-        fs_close_file(cookie);
+        fs_close_file(handle);
     } else if (!strcmp(argv[1].str, "mkdir")) {
         int err;
 
@@ -112,22 +147,22 @@ usage:
         char *buf;
         off_t off;
         size_t len;
-        filecookie cookie;
+        filehandle *handle;
         struct file_stat stat;
 
         if (argc < 3)
             goto notenoughargs;
 
-        err = fs_open_file(argv[2].str, &cookie);
+        err = fs_open_file(argv[2].str, &handle);
         if (err < 0) {
             printf("error %d opening file\n", err);
             return err;
         }
 
-        err = fs_stat_file(cookie, &stat);
+        err = fs_stat_file(handle, &stat);
         if (err < 0) {
             printf("error %d stat'ing file\n", err);
-            fs_close_file(cookie);
+            fs_close_file(handle);
             return err;
         }
 
@@ -145,37 +180,37 @@ usage:
 
         buf = malloc(len + 1);
 
-        err = fs_read_file(cookie, buf, off, len);
+        err = fs_read_file(handle, buf, off, len);
         if (err < 0) {
             printf("error %d reading file\n", err);
             free(buf);
-            fs_close_file(cookie);
+            fs_close_file(handle);
             return err;
         }
 
         buf[len] = '\0';
         printf("%s\n", buf);
         free(buf);
-        fs_close_file(cookie);
+        fs_close_file(handle);
     } else if (!strcmp(argv[1].str, "write")) {
         int err;
         off_t off;
-        filecookie cookie;
+        filehandle *handle;
         struct file_stat stat;
 
         if (argc < 3)
             goto notenoughargs;
 
-        err = fs_open_file(argv[2].str, &cookie);
+        err = fs_open_file(argv[2].str, &handle);
         if (err < 0) {
             printf("error %d opening file\n", err);
             return err;
         }
 
-        err = fs_stat_file(cookie, &stat);
+        err = fs_stat_file(handle, &stat);
         if (err < 0) {
             printf("error %d stat'ing file\n", err);
-            fs_close_file(cookie);
+            fs_close_file(handle);
             return err;
         }
 
@@ -185,32 +220,32 @@ usage:
         else
             off = argv[4].u;
 
-        err = fs_write_file(cookie, argv[3].str, off, strlen(argv[3].str));
+        err = fs_write_file(handle, argv[3].str, off, strlen(argv[3].str));
         if (err < 0) {
             printf("error %d writing file\n", err);
-            fs_close_file(cookie);
+            fs_close_file(handle);
             return err;
         }
 
-        fs_close_file(cookie);
+        fs_close_file(handle);
     } else if (!strcmp(argv[1].str, "stat")) {
         int err;
         struct file_stat stat;
-        filecookie cookie;
+        filehandle *handle;
 
         if (argc < 3)
             goto notenoughargs;
 
-        err = fs_open_file(argv[2].str, &cookie);
+        err = fs_open_file(argv[2].str, &handle);
         if (err < 0) {
             printf("error %d opening file\n", err);
             return err;
         }
 
-        err = fs_stat_file(cookie, &stat);
+        err = fs_stat_file(handle, &stat);
         if (err < 0) {
             printf("error %d statting file\n", err);
-            fs_close_file(cookie);
+            fs_close_file(handle);
             return err;
         }
 
@@ -218,7 +253,7 @@ usage:
         printf("\tis_dir: %d\n", stat.is_dir ? 1 : 0);
         printf("\tsize: %lld\n", stat.size);
 
-        fs_close_file(cookie);
+        fs_close_file(handle);
     } else {
         printf("unrecognized subcommand\n");
         goto usage;
