@@ -24,7 +24,6 @@
 #include <stdlib.h>
 #include <debug.h>
 #include <err.h>
-#include <lib/fs/ext2.h>
 #include "ext2_priv.h"
 
 #define LOCAL_TRACE 0
