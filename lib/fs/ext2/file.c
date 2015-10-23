@@ -26,7 +26,6 @@
 #include <stdlib.h>
 #include <err.h>
 #include <debug.h>
-#include <lib/fs/ext2.h>
 #include "ext2_priv.h"
 
 #define LOCAL_TRACE 0
@@ -142,4 +141,3 @@ int ext2_read_link(ext2_t *ext2, struct ext2_inode *inode, char *str, size_t len
 
 	return linklen;
 }
-

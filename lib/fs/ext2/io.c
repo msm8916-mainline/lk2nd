@@ -24,7 +24,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <debug.h>
-#include <lib/fs/ext2.h>
 #include "ext2_priv.h"
 
 #define LOCAL_TRACE 0
@@ -266,4 +265,3 @@ int ext2_read_inode(ext2_t *ext2, struct ext2_inode *inode, void *_buf, off_t of
 
 	return (err < 0) ? err : bytes_read;
 }
-
