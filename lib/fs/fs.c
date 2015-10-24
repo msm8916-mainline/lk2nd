@@ -40,9 +40,14 @@ struct fs_mount {
     const struct fs_api *api;
 };
 
-struct _filehandle {
+struct filehandle {
     filecookie *cookie;
 	struct fs_mount *mount;
+};
+
+struct dirhandle {
+    dircookie *cookie;
+    struct fs_mount *mount;
 };
 
 struct fs {
@@ -236,6 +241,35 @@ status_t fs_create_file(const char *path, filehandle **handle, uint64_t len)
 	return 0;
 }
 
+ssize_t fs_read_file(filehandle *handle, void *buf, off_t offset, size_t len)
+{
+    return handle->mount->api->read(handle->cookie, buf, offset, len);
+}
+
+ssize_t fs_write_file(filehandle *handle, const void *buf, off_t offset, size_t len)
+{
+    if (!handle->mount->api->write)
+        return ERR_NOT_SUPPORTED;
+
+    return handle->mount->api->write(handle->cookie, buf, offset, len);
+}
+
+status_t fs_close_file(filehandle *handle)
+{
+    status_t err = handle->mount->api->close(handle->cookie);
+    if (err < 0)
+        return err;
+
+    put_mount(handle->mount);
+    free(handle);
+    return 0;
+}
+
+status_t fs_stat_file(filehandle *handle, struct file_stat *stat)
+{
+    return handle->mount->api->stat(handle->cookie, stat);
+}
+
 status_t fs_make_dir(const char *path)
 {
 	char temppath[512];
@@ -254,33 +288,62 @@ status_t fs_make_dir(const char *path)
     return mount->api->mkdir(mount->cookie, newpath);
 }
 
-ssize_t fs_read_file(filehandle *handle, void *buf, off_t offset, size_t len)
+status_t fs_open_dir(const char *path, dirhandle **handle)
 {
-    return handle->mount->api->read(handle->cookie, buf, offset, len);
+    char temppath[FS_MAX_PATH_LEN];
+
+    strlcpy(temppath, path, sizeof(temppath));
+    fs_normalize_path(temppath);
+
+    LTRACEF("path %s temppath %s\n", path, temppath);
+
+    const char *newpath;
+    struct fs_mount *mount = find_mount(temppath, &newpath);
+    if (!mount)
+        return ERR_NOT_FOUND;
+
+    LTRACEF("path %s temppath %s newpath %s\n", path, temppath, newpath);
+
+    if (!mount->api->opendir) {
+        put_mount(mount);
+        return ERR_NOT_SUPPORTED;
+    }
+
+    dircookie *cookie;
+    status_t err = mount->api->opendir(mount->cookie, newpath, &cookie);
+    if (err < 0) {
+        put_mount(mount);
+        return err;
+    }
+
+    dirhandle *d = malloc(sizeof(*d));
+    d->cookie = cookie;
+    d->mount = mount;
+    *handle = d;
+
+    return 0;
 }
 
-ssize_t fs_write_file(filehandle *handle, const void *buf, off_t offset, size_t len)
+status_t fs_read_dir(dirhandle *handle, struct dirent *ent)
 {
-    if (!handle->mount->api->write)
+    if (!handle->mount->api->readdir)
 		return ERR_NOT_SUPPORTED;
 
-    return handle->mount->api->write(handle->cookie, buf, offset, len);
+    return handle->mount->api->readdir(handle->cookie, ent);
 }
 
-status_t fs_close_file(filehandle *handle)
+status_t fs_close_dir(dirhandle *handle)
 {
-    status_t err = handle->mount->api->close(handle->cookie);
+    if (!handle->mount->api->closedir)
+        return ERR_NOT_SUPPORTED;
+
+    status_t err = handle->mount->api->closedir(handle->cookie);
 	if (err < 0)
 		return err;
 
     put_mount(handle->mount);
     free(handle);
 	return 0;
-}
-
-status_t fs_stat_file(filehandle *handle, struct file_stat *stat)
-{
-    return handle->mount->api->stat(handle->cookie, stat);
 }
 
 ssize_t fs_load_file(const char *path, void *ptr, size_t maxlen)
