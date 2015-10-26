@@ -45,6 +45,13 @@ ifeq ($(ENABLE_SDHCI_SUPPORT),1)
 DEFINES += MMC_SDHCI_SUPPORT=1
 endif
 
+#enable fbcon display menu
+ENABLE_FBCON_DISPLAY_MSG := 1
+
+ifeq ($(ENABLE_FBCON_DISPLAY_MSG),1)
+DEFINES += FBCON_DISPLAY_MSG=1
+endif
+
 #enable power on vibrator feature
 ENABLE_PON_VIB_SUPPORT := true
 

@@ -211,7 +211,7 @@ void *target_mmc_device()
 }
 
 /* Return 1 if vol_up pressed */
-static int target_volume_up()
+int target_volume_up()
 {
         static uint8_t first_time = 0;
 	uint8_t status = 0;
