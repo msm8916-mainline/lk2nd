@@ -383,6 +383,8 @@ void target_init(void)
 	if (target_use_signed_kernel())
 		target_crypto_init_params();
 
+        clock_ce_enable(CE1_INSTANCE);
+
         /* Initialize Qseecom */
         ret = qseecom_init();
 
@@ -704,6 +706,8 @@ void target_uninit(void)
                 dprintf(CRITICAL, "RPMB uninit failed\n");
                 ASSERT(0);
         }
+
+        clock_ce_disable(CE1_INSTANCE);
 
 #if SMD_SUPPORT
 	rpm_smd_uninit();
