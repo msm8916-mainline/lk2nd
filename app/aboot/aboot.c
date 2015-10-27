@@ -58,6 +58,10 @@
 #include <boot_verifier.h>
 #include <decompress.h>
 #include <platform/timer.h>
+#include <sys/types.h>
+#if USE_RPMB_FOR_DEVINFO
+#include <rpmb.h>
+#endif
 
 #if DEVICE_TREE
 #include <libfdt.h>
@@ -3272,7 +3276,9 @@ void aboot_init(const struct app_descriptor *app)
 	} else if(reboot_mode == ALARM_BOOT ||
 		hard_reboot_mode == RTC_HARD_RESET_MODE) {
 		boot_reason_alarm = true;
-	} else if(reboot_mode == DM_VERITY_ENFORCING ||
+        }
+#if VERIFIED_BOOT
+          else if(reboot_mode == DM_VERITY_ENFORCING ||
 		hard_reboot_mode == DM_VERITY_ENFORCING_HARD_RESET_MODE) {
 		device.verity_mode = 1;
 		write_device_info(&device);
@@ -3285,6 +3291,7 @@ void aboot_init(const struct app_descriptor *app)
 		if(send_delete_keys_to_tz())
 			ASSERT(0);
 	}
+#endif
 
 normal_boot:
 	if (!boot_into_fastboot)
