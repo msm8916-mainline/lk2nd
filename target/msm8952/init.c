@@ -77,6 +77,7 @@
 #define PMIC_ARB_OWNER_ID       0
 #define TLMM_VOL_UP_BTN_GPIO    85
 #define TLMM_VOL_UP_BTN_GPIO_8956 113
+#define TLMM_VOL_UP_BTN_GPIO_8937 91
 
 #define FASTBOOT_MODE           0x77665500
 #define RECOVERY_MODE           0x77665502
@@ -184,7 +185,8 @@ int target_volume_up()
 
 	if(platform_is_msm8956())
 		vol_up_gpio = TLMM_VOL_UP_BTN_GPIO_8956;
-
+	else if(platform_is_msm8937())
+		vol_up_gpio = TLMM_VOL_UP_BTN_GPIO_8937;
 	else
 		vol_up_gpio = TLMM_VOL_UP_BTN_GPIO;
 
