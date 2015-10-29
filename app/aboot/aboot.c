@@ -172,6 +172,7 @@ static const char *warmboot_cmdline = " qpnp-power-on.warm_boot=1";
 #if !VBOOT_MOTA
 static const char *verity_mode = " androidboot.veritymode=";
 static const char *verified_state= " androidboot.verifiedbootstate=";
+static const char *keymaster_v1= " androidboot.keymaster=1";
 //indexed based on enum values, green is 0 by default
 
 struct verified_boot_verity_mode vbvm[] =
@@ -336,6 +337,7 @@ unsigned char *update_cmdline(const char * cmdline)
 #if !VBOOT_MOTA
 	cmdline_len += strlen(verified_state) + strlen(vbsn[boot_state].name);
 	cmdline_len += strlen(verity_mode) + strlen(vbvm[device.verity_mode].name);
+	cmdline_len += strlen(keymaster_v1);
 #endif
 #endif
 
@@ -466,6 +468,9 @@ unsigned char *update_cmdline(const char * cmdline)
 		while ((*dst++ = *src++));
 		src = vbvm[device.verity_mode].name;
 		if(have_cmdline) -- dst;
+		while ((*dst++ = *src++));
+		src = keymaster_v1;
+		if(have_cmdline) --dst;
 		while ((*dst++ = *src++));
 #endif
 #endif
