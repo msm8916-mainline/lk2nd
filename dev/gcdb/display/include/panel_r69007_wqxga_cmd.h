@@ -378,4 +378,6 @@ static struct backlight r69007_wqxga_cmd_backlight = {
 	1, 1, 4095, 100, 1, "PMIC_8941"
 };
 
+#define R69007_WQXGA_CMD_PANEL_ON_DELAY 60
+
 #endif /*_PANEL_R69007_WQXGA_CMD_H_*/
