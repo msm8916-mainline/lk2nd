@@ -1,8 +1,8 @@
-# top level project rules for the fermium project
+# top level project rules for the mdm9607 project
 #
 LOCAL_DIR := $(GET_LOCAL_DIR)
 
-TARGET := mdmfermium
+TARGET := mdm9607
 
 MODULES += app/aboot
 

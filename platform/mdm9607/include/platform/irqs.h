@@ -26,8 +26,8 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __IRQS_MDMFERMIUM_H
-#define __IRQS_MDMFERMIUM_H
+#ifndef __IRQS_MDM9607_H
+#define __IRQS_MDM9607_H
 
 /* MSM ACPU Interrupt Numbers */
 
@@ -61,4 +61,4 @@
 #define NR_IRQS                                (NR_MSM_IRQS + NR_GPIO_IRQS + \
                                                NR_BOARD_IRQS)
 
-#endif /* __IRQS_MDMFERMIUM_H */
+#endif /* __IRQS_MDM9607_H */

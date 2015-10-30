@@ -2,7 +2,7 @@ LOCAL_DIR := $(GET_LOCAL_DIR)
 
 INCLUDES += -I$(LOCAL_DIR)/include -I$(LK_TOP_DIR)/platform/msm_shared
 
-PLATFORM := mdmfermium
+PLATFORM := mdm9607
 
 MEMBASE := 0x82900000 # SDRAM
 MEMSIZE := 0x00100000 # 1MB
