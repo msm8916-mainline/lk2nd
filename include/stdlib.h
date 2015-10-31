@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008 Travis Geiselbrecht
  *
- * Copyright (c) 2013, 2014 The Linux Foundation. All rights reserved.
+ * Copyright (c) 2013, 2014-2015 The Linux Foundation. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -51,7 +51,7 @@ void qsort(void *buf, size_t num, size_t size, int (*compare) (const void *, con
 
 /* allocate a buffer on the stack aligned and padded to the cpu's cache line size */
 #define STACKBUF_DMA_ALIGN(var, size) \
-	uint8_t __##var[(size) + CACHE_LINE]; uint8_t *var = (uint8_t *)(ROUNDUP((addr_t)__##var, CACHE_LINE))
+	uint8_t __##var[(size) + CACHE_LINE] __attribute__((aligned(CACHE_LINE))); uint8_t *var = (uint8_t *)(ROUNDUP((addr_t)__##var, CACHE_LINE))
 
 /* Macro to allocate buffer in both local & global space, the STACKBUF_DMA_ALIGN cannot
  * be used for global space.
