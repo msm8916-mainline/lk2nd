@@ -478,14 +478,9 @@ static void mdss_dsi_set_pll_src(void)
 			~USE_DSI1_PLL_FLAG;
 }
 
-int gcdb_display_init(const char *panel_name, uint32_t rev, void *base)
+static int update_dsi_display_config()
 {
 	int ret = NO_ERROR;
-	int pan_type;
-
-	dsi_video_mode_phy_db.pll_type = DSI_PLL_TYPE_28NM;
-	pan_type = oem_panel_select(panel_name, &panelstruct, &(panel.panel_info),
-				 &dsi_video_mode_phy_db);
 
 	if ((panel.panel_info.lm_split[0] > 0) &&
 	    (panel.panel_info.lm_split[1] > 0))
@@ -508,10 +503,23 @@ int gcdb_display_init(const char *panel_name, uint32_t rev, void *base)
 	    (panelstruct.paneldata->panel_operating_mode & DST_SPLIT_FLAG)) {
 		dprintf(CRITICAL, "DUAL_PIPE_FLAG and DST_SPLIT_FLAG cannot be selected togather\n");
 		ret = ERROR;
-		goto error_gcdb_display_init;
 	}
 
+	return ret;
+}
+
+int gcdb_display_init(const char *panel_name, uint32_t rev, void *base)
+{
+	int ret = NO_ERROR;
+	int pan_type;
+
+	dsi_video_mode_phy_db.pll_type = DSI_PLL_TYPE_28NM;
+	pan_type = oem_panel_select(panel_name, &panelstruct, &(panel.panel_info),
+				 &dsi_video_mode_phy_db);
+
 	if (pan_type == PANEL_TYPE_DSI) {
+		if (update_dsi_display_config())
+			goto error_gcdb_display_init;
 		target_dsi_phy_config(&dsi_video_mode_phy_db);
 		mdss_dsi_check_swap_status();
 		mdss_dsi_set_pll_src();
@@ -556,7 +564,6 @@ int gcdb_display_init(const char *panel_name, uint32_t rev, void *base)
 		dprintf(CRITICAL, "Target panel init not found!\n");
 		ret = ERR_NOT_SUPPORTED;
 		goto error_gcdb_display_init;
-
 	}
 
 	panel.fb.base = base;
