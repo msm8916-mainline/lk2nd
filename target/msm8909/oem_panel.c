@@ -47,6 +47,7 @@
 #include "include/panel_hx8379c_fwvga_video.h"
 #include "include/panel_fl10802_fwvga_video.h"
 #include "include/panel_auo_qvga_cmd.h"
+#include "include/panel_auo_cx_qvga_cmd.h"
 
 #define DISPLAY_MAX_PANEL_DETECTION 0
 #define ILI9806E_FWVGA_VIDEO_PANEL_POST_INIT_DELAY 68
@@ -80,6 +81,7 @@ enum {
 	HX8379C_FWVGA_VIDEO_PANEL,
 	FL10802_FWVGA_VIDEO_PANEL,
 	AUO_QVGA_CMD_PANEL,
+	AUO_CX_QVGA_CMD_PANEL,
 	UNKNOWN_PANEL
 };
 
@@ -98,6 +100,7 @@ static struct panel_list supp_panels[] = {
 	{"hx8379c_fwvga_video",HX8379C_FWVGA_VIDEO_PANEL},
 	{"fl10802_fwvga_video", FL10802_FWVGA_VIDEO_PANEL},
 	{"auo_qvga_cmd", AUO_QVGA_CMD_PANEL},
+	{"auo_cx_qvga_cmd", AUO_CX_QVGA_CMD_PANEL},
 };
 
 static uint32_t panel_id;
@@ -342,6 +345,26 @@ static int init_panel_data(struct panel_struct *panelstruct,
 					= auo_QVGA_CMD_ON_COMMAND;
 		memcpy(phy_db->timing, auo_qvga_cmd_timings, TIMING_SIZE);
 		break;
+	case AUO_CX_QVGA_CMD_PANEL:
+		panelstruct->paneldata    = &auo_cx_qvga_cmd_panel_data;
+		panelstruct->panelres     = &auo_cx_qvga_cmd_panel_res;
+		panelstruct->color        = &auo_cx_qvga_cmd_color;
+		panelstruct->videopanel   = &auo_cx_qvga_cmd_video_panel;
+		panelstruct->commandpanel = &auo_cx_qvga_cmd_command_panel;
+		panelstruct->state        = &auo_cx_qvga_cmd_state;
+		panelstruct->laneconfig   = &auo_cx_qvga_cmd_lane_config;
+		panelstruct->paneltiminginfo
+					= &auo_cx_qvga_cmd_timing_info;
+		panelstruct->panelresetseq
+					= &auo_cx_qvga_cmd_panel_reset_seq;
+		panelstruct->backlightinfo
+					= &auo_cx_qvga_cmd_backlight;
+		pinfo->mipi.panel_cmds
+					= auo_cx_qvga_cmd_on_command;
+		pinfo->mipi.num_of_panel_cmds
+					= auo_cx_QVGA_CMD_ON_COMMAND;
+		memcpy(phy_db->timing, auo_cx_qvga_cmd_timings, TIMING_SIZE);
+		break;
 	case UNKNOWN_PANEL:
 	default:
 		memset(panelstruct, 0, sizeof(struct panel_struct));
@@ -394,7 +417,7 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 			case MTP_WEAR:
 				if ((platform_type == MSM8909W) ||
 					(platform_type == APQ8009W))
-					panel_id = AUO_QVGA_CMD_PANEL;
+					panel_id = AUO_CX_QVGA_CMD_PANEL;
 				else
 					panel_id = HX8394D_480P_VIDEO_PANEL;
 
