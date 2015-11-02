@@ -441,7 +441,8 @@ enum {
 	MDMFERMIUM  = 290,
 	APQ8096  = 291,
 	MSMTITANIUM  = 293,
-	MSMTHORIUM = 294,
+	MSM8937 = 294,
+	APQ8037 = 295,
 };
 
 enum platform {
