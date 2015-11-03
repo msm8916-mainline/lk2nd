@@ -2150,7 +2150,7 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 
 	// Initialize boot state before trying to verify boot.img
 #if VERIFIED_BOOT
-		boot_verifier_init();
+	boot_verifier_init();
 	/* Handle overflow if the input image size is greater than
 	 * boot image buffer can hold
 	 */

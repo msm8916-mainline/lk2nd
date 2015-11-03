@@ -66,6 +66,7 @@ int platform_is_msm8939();
 int platform_is_msm8909();
 int platform_is_msm8992();
 int platform_is_msm8956();
+uint32_t platform_is_msm8976_v_1_1();
 int boot_device_mask(int);
 uint32_t platform_detect_panel();
 uint32_t platform_get_max_periph();
@@ -76,4 +77,5 @@ void get_product_name(unsigned char *buf);
 void get_bootloader_version(unsigned char *buf);
 void get_baseband_version(unsigned char *buf);
 bool is_device_locked();
+bool platform_is_mdmcalifornium();
 #endif

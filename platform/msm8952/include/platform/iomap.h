@@ -70,8 +70,12 @@
 
 #define CLK_CTL_BASE                       0x1800000
 
-#define PMI_SLAVE_ID 3
-#define PMI_ADDR_BASE (PMI_SLAVE_ID << 16)
+#define PMI_SLAVE_BASE           2
+#define PMI_FIRST_SLAVE_OFFSET   0
+#define PMI_SECOND_SLAVE_OFFSET  1
+
+#define PMI_FIRST_SLAVE_ADDR_BASE   (( PMI_SLAVE_BASE + PMI_FIRST_SLAVE_OFFSET ) << 16)
+#define PMI_SECOND_SLAVE_ADDR_BASE  (( PMI_SLAVE_BASE + PMI_SECOND_SLAVE_OFFSET) << 16)
 
 #define SPMI_BASE                          0x02000000
 #define SPMI_GENI_BASE                     (SPMI_BASE + 0xA000)
@@ -98,6 +102,7 @@
 
 /* GPLL */
 #define GPLL0_STATUS                       (CLK_CTL_BASE + 0x2101C)
+#define GPLL2_STATUS                       (CLK_CTL_BASE + 0x4A01C)
 #define APCS_GPLL_ENA_VOTE                 (CLK_CTL_BASE + 0x45000)
 #define APCS_CLOCK_BRANCH_ENA_VOTE         (CLK_CTL_BASE + 0x45004)
 #define GPLL4_MODE                         (CLK_CTL_BASE + 0x24000)

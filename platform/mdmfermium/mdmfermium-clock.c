@@ -100,8 +100,8 @@ static struct pll_vote_clk gpll0_clk_src =
 {
 	.en_reg       = (void *) APCS_GPLL_ENA_VOTE,
 	.en_mask      = BIT(0),
-	.status_reg   = (void *) GPLL0_STATUS,
-	.status_mask  = BIT(17),
+	.status_reg   = (void *) GPLL0_MODE,
+	.status_mask  = BIT(30),
 	.parent       = &cxo_clk_src.c,
 
 	.c = {
@@ -112,7 +112,7 @@ static struct pll_vote_clk gpll0_clk_src =
 };
 
 /* UART Clocks */
-static struct clk_freq_tbl ftbl_gcc_blsp1_2_uart1_2_apps_clk[] =
+static struct clk_freq_tbl ftbl_gcc_blsp1_2_uart5_apps_clk[] =
 {
 	F( 3686400,  gpll0,    1,  72,  15625),
 	F( 7372800,  gpll0,    1, 144,  15625),
@@ -132,16 +132,16 @@ static struct clk_freq_tbl ftbl_gcc_blsp1_2_uart1_2_apps_clk[] =
 	F_END
 };
 
-static struct rcg_clk blsp1_uart2_apps_clk_src =
+static struct rcg_clk blsp1_uart5_apps_clk_src =
 {
-	.cmd_reg      = (uint32_t *) BLSP1_UART2_APPS_CMD_RCGR,
-	.cfg_reg      = (uint32_t *) BLSP1_UART2_APPS_CFG_RCGR,
-	.m_reg        = (uint32_t *) BLSP1_UART2_APPS_M,
-	.n_reg        = (uint32_t *) BLSP1_UART2_APPS_N,
-	.d_reg        = (uint32_t *) BLSP1_UART2_APPS_D,
+	.cmd_reg      = (uint32_t *) BLSP1_UART5_APPS_CMD_RCGR,
+	.cfg_reg      = (uint32_t *) BLSP1_UART5_APPS_CFG_RCGR,
+	.m_reg        = (uint32_t *) BLSP1_UART5_APPS_M,
+	.n_reg        = (uint32_t *) BLSP1_UART5_APPS_N,
+	.d_reg        = (uint32_t *) BLSP1_UART5_APPS_D,
 
 	.set_rate     = clock_lib2_rcg_set_rate_mnd,
-	.freq_tbl     = ftbl_gcc_blsp1_2_uart1_2_apps_clk,
+	.freq_tbl     = ftbl_gcc_blsp1_2_uart5_apps_clk,
 	.current_freq = &rcg_dummy_freq,
 
 	.c = {
@@ -150,13 +150,13 @@ static struct rcg_clk blsp1_uart2_apps_clk_src =
 	},
 };
 
-static struct branch_clk gcc_blsp1_uart2_apps_clk =
+static struct branch_clk gcc_blsp1_uart5_apps_clk =
 {
-	.cbcr_reg     = (uint32_t *) BLSP1_UART2_APPS_CBCR,
-	.parent       = &blsp1_uart2_apps_clk_src.c,
+	.cbcr_reg     = (uint32_t *) BLSP1_UART5_APPS_CBCR,
+	.parent       = &blsp1_uart5_apps_clk_src.c,
 
 	.c = {
-		.dbg_name = "gcc_blsp1_uart2_apps_clk",
+		.dbg_name = "gcc_blsp1_uart5_apps_clk",
 		.ops      = &clk_ops_branch,
 	},
 };
@@ -219,8 +219,8 @@ static struct branch_clk gcc_usb_hs_ahb_clk =
 /* Clock lookup table */
 static struct clk_lookup mdm_clocks_fermium[] =
 {
-	CLK_LOOKUP("uart2_iface_clk", gcc_blsp1_ahb_clk.c),
-	CLK_LOOKUP("uart2_core_clk",  gcc_blsp1_uart2_apps_clk.c),
+	CLK_LOOKUP("uart5_iface_clk", gcc_blsp1_ahb_clk.c),
+	CLK_LOOKUP("uart5_core_clk",  gcc_blsp1_uart5_apps_clk.c),
 
 	CLK_LOOKUP("usb_iface_clk",  gcc_usb_hs_ahb_clk.c),
 	CLK_LOOKUP("usb_core_clk",   gcc_usb_hs_system_clk.c),

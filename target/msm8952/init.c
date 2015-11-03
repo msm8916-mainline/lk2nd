@@ -430,7 +430,7 @@ void reboot_device(unsigned reboot_reason)
 	else
 		reset_type = PON_PSHOLD_HARD_RESET;
 
-	pm8x41_reset_configure(reset_type);
+	pm8994_reset_configure(reset_type);
 
 	ret = scm_halt_pmic_arbiter();
 	if (ret)

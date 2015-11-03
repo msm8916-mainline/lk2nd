@@ -24,6 +24,7 @@
  */
 #ifndef __TARGET_H
 #define __TARGET_H
+#include <qmp_phy.h>
 
 /* Target helper functions exposed to USB driver */
 typedef struct {
@@ -87,6 +88,9 @@ void target_crypto_init_params(void);
 int target_cont_splash_screen(void);
 bool target_build_variant_user();
 void pmic_reset_configure(uint8_t reset_type);
+
+struct qmp_reg *target_get_qmp_settings();
+int target_get_qmp_regsize();
 
 #if PON_VIB_SUPPORT
 uint32_t get_vibration_type();
