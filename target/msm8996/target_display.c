@@ -175,24 +175,43 @@ int target_hdmi_gpio_ctrl(uint8_t enable)
 	return NO_ERROR;
 }
 
+int target_hdmi_pll_clock(uint8_t enable, struct msm_panel_info *pinfo)
+{
+    if (enable) {
+        hdmi_phy_reset();
+        hdmi_pll_config(pinfo->clk_rate);
+        hdmi_vco_enable();
+        hdmi_pixel_clk_enable(pinfo->clk_rate);
+    } else if(!target_cont_splash_screen()) {
+        /* Disable clocks if continuous splash off */
+        hdmi_pixel_clk_disable();
+        hdmi_vco_disable();
+    }
+
+    return NO_ERROR;
+}
+
 int target_hdmi_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 {
 	dprintf(SPEW, "%s: target_panel_clock\n", __func__);
+
+	uint32_t board_version = board_soc_version();
+
+	if (board_version == 0x20000 || board_version == 0x20001)
+		video_gdsc_enable();
 
 	if (enable) {
 		mmss_gdsc_enable();
 		mmss_bus_clock_enable();
 		mdp_clock_enable();
-		hdmi_phy_reset();
-		hdmi_pll_config(pinfo->clk_rate);
-		hdmi_vco_enable();
-		hdmi_clk_enable();
+		hdmi_ahb_core_clk_enable();
 	} else if(!target_cont_splash_screen()) {
-		hdmi_clk_disable();
-		hdmi_vco_disable();
+		hdmi_core_ahb_clk_disable();
 		mdp_clock_disable();
 		mmss_bus_clock_disable();
 		mmss_gdsc_disable();
+		if (board_version == 0x20000 || board_version == 0x20001)
+			video_gdsc_disable();
 	}
 
 	return NO_ERROR;
