@@ -28,6 +28,7 @@ MODULES += \
 	lib/libfdt \
 	dev/qpnp_wled \
 	dev/pmic/pmi8994 \
+	dev/pmic/fgsram \
 	dev/gcdb/display
 
 DEFINES += \

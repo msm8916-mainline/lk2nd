@@ -29,6 +29,8 @@
 #include <reg.h>
 #include <platform/gpio.h>
 #include <platform/iomap.h>
+#include <pm8x41.h>
+#include <platform.h>
 
 /* GPIO that controls the button
  * for FASTBOOT.
@@ -43,9 +45,14 @@ int get_fastboot_key_state(void)
 {
 	int ret;
 
-	gpio_tlmm_config(FASTBOOT_KEY_GPIO_ID, 0, GPIO_INPUT, GPIO_PULL_DOWN, GPIO_2MA, GPIO_ENABLE);
+	if (platform_is_mdmcalifornium())
+		ret = pm8x41_resin_status();
+	else
+	{
+		gpio_tlmm_config(FASTBOOT_KEY_GPIO_ID, 0, GPIO_INPUT, GPIO_PULL_DOWN, GPIO_2MA, GPIO_ENABLE);
 
-	ret = gpio_get_state(FASTBOOT_KEY_GPIO_ID);
+		ret = gpio_get_state(FASTBOOT_KEY_GPIO_ID);
+	}
 
 	return ret;
 }

@@ -35,6 +35,7 @@
 #include <platform/clock.h>
 #include <platform/iomap.h>
 #include <platform/timer.h>
+#include <platform.h>
 
 void clock_config_uart_dm(uint8_t id)
 {
@@ -92,7 +93,11 @@ void clock_usb30_init(void)
 		ASSERT(0);
 	}
 
-	ret = clk_get_set_enable("usb30_pipe_clk", 19200000, 1);
+	if (platform_is_mdmcalifornium())
+		ret = clk_get_set_enable("usb30_pipe_clk_mdmcalifornium", 0, 1);
+	else
+		ret = clk_get_set_enable("usb30_pipe_clk", 19200000, 1);
+
 	if(ret)
 	{
 		dprintf(CRITICAL, "failed to set usb30_pipe_clk. ret = %d\n", ret);
@@ -103,6 +108,20 @@ void clock_usb30_init(void)
 	if(ret)
 	{
 		dprintf(CRITICAL, "failed to set usb30_aux_clk. ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("usb30_mock_utmi_clk", 60000000, true);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set usb30_mock_utmi_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("usb30_sleep_clk", 0, true);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set usb30_sleep_clk ret = %d\n", ret);
 		ASSERT(0);
 	}
 
@@ -169,12 +188,85 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 
 void clock_bumpup_pipe3_clk()
 {
-	int ret = 0;
+	int ret =0;
 
-	ret = clk_get_set_enable("usb30_pipe_clk", 125000000, 0);
+	if (platform_is_mdmcalifornium())
+		ret = clk_get_set_enable("usb30_pipe_clk", 0, true);
+	else
+		ret = clk_get_set_enable("usb30_pipe_clk", 125000000, true);
+
 	if(ret)
 	{
 		dprintf(CRITICAL, "failed to set usb30_pipe_clk. ret = %d\n", ret);
 		ASSERT(0);
 	}
+}
+
+void clock_reset_usb_phy()
+{
+	int ret;
+
+	struct clk *phy_reset_clk = NULL;
+	struct clk *pipe_reset_clk = NULL;
+	struct clk *master_clk = NULL;
+
+	master_clk = clk_get("usb30_master_clk");
+	ASSERT(master_clk);
+
+	/* Look if phy com clock is present */
+	phy_reset_clk = clk_get("usb30_phy_reset");
+	ASSERT(phy_reset_clk);
+
+	pipe_reset_clk = clk_get("usb30_pipe_clk");
+	ASSERT(pipe_reset_clk);
+
+	/* ASSERT */
+	ret = clk_reset(master_clk, CLK_RESET_ASSERT);
+	if (ret)
+	{
+		dprintf(CRITICAL, "Failed to assert usb30_master_reset clk\n");
+		return;
+	}
+	ret = clk_reset(phy_reset_clk, CLK_RESET_ASSERT);
+
+	if (ret)
+	{
+		dprintf(CRITICAL, "Failed to assert usb30_phy_reset clk\n");
+		goto deassert_master_clk;
+	}
+
+	ret = clk_reset(pipe_reset_clk, CLK_RESET_ASSERT);
+	if (ret)
+	{
+		dprintf(CRITICAL, "Failed to assert usb30_pipe_clk\n");
+		goto deassert_phy_clk;
+	}
+
+	udelay(100);
+
+	/* DEASSERT */
+	ret = clk_reset(pipe_reset_clk, CLK_RESET_DEASSERT);
+	if (ret)
+	{
+		dprintf(CRITICAL, "Failed to deassert usb_pipe_clk\n");
+		return;
+	}
+
+deassert_phy_clk:
+
+	ret = clk_reset(phy_reset_clk, CLK_RESET_DEASSERT);
+	if (ret)
+	{
+		dprintf(CRITICAL, "Failed to deassert usb30_phy_com_reset clk\n");
+		return;
+	}
+deassert_master_clk:
+
+	ret = clk_reset(master_clk, CLK_RESET_DEASSERT);
+	if (ret)
+	{
+		dprintf(CRITICAL, "Failed to deassert usb30_master clk\n");
+		return;
+	}
+
 }

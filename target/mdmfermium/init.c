@@ -115,10 +115,26 @@ void update_ptable_names(void)
 	}
 }
 
+/* Return Non zero (i.e 0x2) if vol_down pressed */
+uint32_t target_volume_down()
+{
+	/* Volume down button tied in with PMIC RESIN. */
+	return pm8x41_resin_status();
+}
+
+static void target_keystatus()
+{
+	keys_init();
+
+	if(target_volume_down())
+		keys_post_event(KEY_VOLUMEDOWN, 1);
+}
+
 void target_early_init(void)
 {
 #if WITH_DEBUG_UART
-	uart_dm_init(1, 0, BLSP1_UART1_BASE);
+	/*BLSP1 and UART5*/
+	uart_dm_init(5, 0, BLSP1_UART5_BASE);
 #endif
 }
 
@@ -150,6 +166,7 @@ void target_init(void)
 
 	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
 
+	target_keystatus();
 	config.pipes.read_pipe = DATA_PRODUCER_PIPE;
 	config.pipes.write_pipe = DATA_CONSUMER_PIPE;
 	config.pipes.cmd_pipe = CMD_PIPE;
@@ -190,13 +207,24 @@ void target_baseband_detect(struct board_data *board)
 
 	switch(platform)
 	{
-	case MDMFERMIUM:
+	case MDMFERMIUM1:
+	case MDMFERMIUM2:
+	case MDMFERMIUM3:
+	case MDMFERMIUM4:
+	case MDMFERMIUM5:
 		board->baseband = BASEBAND_MDM;
         break;
 	default:
 		dprintf(CRITICAL, "Platform type: %u is not supported\n", platform);
 		ASSERT(0);
 	};
+}
+
+void target_serialno(unsigned char *buf)
+{
+	uint32_t serialno;
+	serialno = board_chip_serial();
+	snprintf((char *)buf, sizeof(uint32_t)+1, "%x", serialno);
 }
 
 unsigned check_reboot_mode(void)
@@ -273,6 +301,7 @@ void target_uninit(void)
 
 void reboot_device(unsigned reboot_reason)
 {
+	uint8_t reset_type = 0;
 	 /* Write the reboot reason */
 	writel(reboot_reason, RESTART_REASON_ADDR);
 
@@ -281,7 +310,12 @@ void reboot_device(unsigned reboot_reason)
 	* This call should be based on the pmic version
 	* when PM8019 v2 is available.
 	*/
-	pm8x41_v2_reset_configure(PON_PSHOLD_WARM_RESET);
+	if(reboot_reason)
+		reset_type = PON_PSHOLD_WARM_RESET;
+	else
+		reset_type = PON_PSHOLD_HARD_RESET;
+
+	pm8x41_v2_reset_configure(reset_type);
 
 	/* Drop PS_HOLD for MSM */
 	writel(0x00, MPM2_MPM_PS_HOLD);

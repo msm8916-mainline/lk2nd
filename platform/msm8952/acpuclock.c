@@ -132,7 +132,12 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 	}
 	else if(freq == MMC_CLK_192MHZ)
 	{
-		ret = clk_get_set_enable(clk_name, 192000000, 1);
+		if (platform_is_msm8956() && platform_is_msm8976_v_1_1())
+
+			ret = clk_get_set_enable(clk_name, 186400000, 1);
+		else
+
+			ret = clk_get_set_enable(clk_name, 192000000, 1);
 	}
 	else if(freq == MMC_CLK_200MHZ)
 	{
@@ -140,7 +145,12 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 	}
 	else if(freq == MMC_CLK_400MHZ)
 	{
-		ret = clk_get_set_enable(clk_name, 384000000, 1);
+		if (platform_is_msm8956() && platform_is_msm8976_v_1_1())
+
+			ret = clk_get_set_enable(clk_name, 372800000, 1);
+		else
+
+			ret = clk_get_set_enable(clk_name, 384000000, 1);
 	}
 	else
 	{
@@ -312,16 +322,28 @@ void gcc_dsi_clocks_disable(uint32_t flags)
 }
 
 /* Configure all the branch clocks needed by the DSI controller */
-void gcc_dsi_clocks_enable(uint32_t flags, uint8_t pclk0_m,
+void gcc_dsi_clocks_enable(uint32_t flags, bool use_dsi1_pll, uint8_t pclk0_m,
 		uint8_t pclk0_n, uint8_t pclk0_d)
 {
 	int ret;
+	int dsi0_cfg_rcgr, dsi1_cfg_rcgr = 0;
+
+	dsi0_cfg_rcgr = BIT(8); /* DSI0 can only be sourced from PLL0 */
+
+	/*
+	 * DSI1<->PLL1 for 1.) 8956 v1.0 always 2.) Single DSI cases on DSI1
+	 * DSI1<->PLL0 for 8956 v1.1 split DSI cases
+	 */
+	if (!platform_is_msm8976_v_1_1() || use_dsi1_pll)
+		dsi1_cfg_rcgr = BIT(8);
+	else if (flags == (MMSS_DSI_CLKS_FLAG_DSI0 | MMSS_DSI_CLKS_FLAG_DSI1))
+		dsi1_cfg_rcgr = BIT(8) | BIT(9);
 
 	if (flags & MMSS_DSI_CLKS_FLAG_DSI0) {
 		/* Enable DSI0 branch clocks */
 
 		/* Set the source for DSI0 byte RCG */
-		writel(0x100, DSI_BYTE0_CFG_RCGR);
+		writel(dsi0_cfg_rcgr, DSI_BYTE0_CFG_RCGR);
 		/* Set the update RCG bit */
 		writel(0x1, DSI_BYTE0_CMD_RCGR);
 		rcg_update_config(DSI_BYTE0_CMD_RCGR);
@@ -331,7 +353,7 @@ void gcc_dsi_clocks_enable(uint32_t flags, uint8_t pclk0_m,
 
 		/* Configure Pixel clock */
 		/* Set the source for DSI0 pixel RCG */
-		writel(0x100, DSI_PIXEL0_CFG_RCGR);
+		writel(dsi0_cfg_rcgr, DSI_PIXEL0_CFG_RCGR);
 		/* Set the MND for DSI0 pixel clock */
 		writel(pclk0_m, DSI_PIXEL0_M);
 		writel(pclk0_n, DSI_PIXEL0_N);
@@ -355,7 +377,7 @@ void gcc_dsi_clocks_enable(uint32_t flags, uint8_t pclk0_m,
 		/* Enable DSI1 branch clocks */
 
 		/* Set the source for DSI1 byte RCG */
-		writel(0x100, DSI_BYTE1_CFG_RCGR);
+		writel(dsi1_cfg_rcgr, DSI_BYTE1_CFG_RCGR);
 		/* Set the update RCG bit */
 		writel(0x1, DSI_BYTE1_CMD_RCGR);
 		rcg_update_config(DSI_BYTE1_CMD_RCGR);
@@ -365,7 +387,7 @@ void gcc_dsi_clocks_enable(uint32_t flags, uint8_t pclk0_m,
 
 		/* Configure Pixel clock */
 		/* Set the source for DSI1 pixel RCG */
-		writel(0x100, DSI_PIXEL1_CFG_RCGR);
+		writel(dsi1_cfg_rcgr, DSI_PIXEL1_CFG_RCGR);
 		/* Set the MND for DSI1 pixel clock */
 		writel(pclk0_m, DSI_PIXEL1_M);
 		writel(pclk0_n, DSI_PIXEL1_N);

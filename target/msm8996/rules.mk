@@ -22,6 +22,8 @@ KERNEL_SIZE  := 88
 L1_PT_SZ     := 4
 L2_PT_SZ     := 3
 
+DEFINES += PMI_CONFIGURED=1
+
 DEFINES += DISPLAY_SPLASH_SCREEN=1
 DEFINES += DISPLAY_TYPE_MIPI=1
 DEFINES += DISPLAY_TYPE_DSI6G=1
@@ -29,6 +31,8 @@ DEFINES += DISPLAY_TYPE_DSI6G=1
 MODULES += \
 	dev/keys \
 	dev/pmic/pm8x41 \
+	dev/qpnp_haptic \
+	dev/vib \
 	dev/qpnp_wled \
 	dev/qpnp_led \
 	dev/gcdb/display \

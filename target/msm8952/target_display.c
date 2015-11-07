@@ -330,15 +330,16 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 		if (!ret)
 			dprintf(CRITICAL, "Not able to enable master pll\n");
 
-		if (platform_is_msm8956() && pinfo->mipi.dual_dsi) {
+		if (platform_is_msm8956() && pinfo->mipi.dual_dsi &&
+			!platform_is_msm8976_v_1_1()) {
 				ret = mdss_dsi_pll_config(pinfo->mipi.spll_base,
 					pinfo->mipi.sctl_base, pll_data);
 			if (!ret)
 				dprintf(CRITICAL, "Not able to enable second pll\n");
 		}
 
-		gcc_dsi_clocks_enable(flags, pll_data->pclk_m, pll_data->pclk_n,
-				pll_data->pclk_d);
+		gcc_dsi_clocks_enable(flags, pinfo->mipi.use_dsi1_pll,
+			pll_data->pclk_m, pll_data->pclk_n, pll_data->pclk_d);
 	} else if(!target_cont_splash_screen()) {
 		gcc_dsi_clocks_disable(flags);
 		mdp_clock_disable();
@@ -353,10 +354,15 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 						struct msm_panel_info *pinfo)
 {
 	int ret = NO_ERROR;
+	uint32_t hw_id = board_hardware_id();
+	uint32_t hw_subtype = board_hardware_subtype();
 
 	if (platform_is_msm8956()) {
 		reset_gpio.pin_id = 25;
 		bkl_gpio.pin_id = 66;
+	} else if ((hw_id == HW_PLATFORM_QRD) &&
+		   (hw_subtype == HW_PLATFORM_SUBTYPE_POLARIS)) {
+		enable_gpio.pin_id = 19;
 	}
 
 	if (enable) {

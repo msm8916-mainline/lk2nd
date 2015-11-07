@@ -39,6 +39,7 @@
 /* Mux source select values */
 #define cxo_source_val    0
 #define gpll0_source_val  1
+#define gpll2_source_val  4
 #define gpll4_source_val  2
 #define cxo_mm_source_val 0
 #define gpll0_mm_source_val 6
@@ -112,6 +113,21 @@ static struct pll_vote_clk gpll0_clk_src =
 	},
 };
 
+static struct pll_vote_clk gpll2_clk_src =
+{
+	.en_reg       = (void *) APCS_GPLL_ENA_VOTE,
+	.en_mask      = BIT(2),
+	.status_reg   = (void *) GPLL2_STATUS,
+	.status_mask  = BIT(17),
+	.parent       = &cxo_clk_src.c,
+
+	.c = {
+		.rate     = 932000000,
+		.dbg_name = "gpll2_clk_src",
+		.ops      = &clk_ops_pll_vote,
+	},
+};
+
 static struct pll_vote_clk gpll4_clk_src =
 {
 	.en_reg       = (void *) APCS_GPLL_ENA_VOTE,
@@ -154,6 +170,21 @@ static struct clk_freq_tbl ftbl_gcc_sdcc1_apps_clk[] =
 	F(177770000,  gpll0, 4.5,   0,   0),
 	F(192000000,  gpll4,   6,   0,   0),
 	F(384000000,  gpll4,   3,   0,   0),
+	F_END
+};
+
+/* SDCC Clocks for version 8976 v 1.1*/
+static struct clk_freq_tbl ftbl_gcc_sdcc1_apps_clk_8976_v_1_1[] =
+{
+	F(   144000,    cxo,  16,   3,  25),
+	F(   400000,    cxo,  12,   1,   4),
+	F( 20000000,  gpll0,  10,   1,   4),
+	F( 25000000,  gpll0,  16,   1,   2),
+	F( 50000000,  gpll0,  16,   0,   0),
+	F(100000000,  gpll0,   8,   0,   0),
+	F(177770000,  gpll0, 4.5,   0,   0),
+	F(186400000,  gpll2,   5,   0,   0),
+	F(372800000,  gpll2, 2.5,   0,   0),
 	F_END
 };
 
@@ -594,9 +625,18 @@ void msm8956_clock_override()
 	mdss_mdp_clk_src.freq_tbl = ftbl_mdp_clk_8956;
 }
 
+void msm8976_v_1_1_sdcc_clock_modify()
+{
+	sdcc1_apps_clk_src.freq_tbl = ftbl_gcc_sdcc1_apps_clk_8976_v_1_1;
+}
+
 void platform_clock_init(void)
 {
-	if (platform_is_msm8956())
+	if (platform_is_msm8956()) {
 		msm8956_clock_override();
+		if (platform_is_msm8976_v_1_1())
+			/*freq and GPLL change for 8976 v1.1 */
+			msm8976_v_1_1_sdcc_clock_modify();
+	}
 	clk_init(msm_clocks_8952, ARRAY_SIZE(msm_clocks_8952));
 }

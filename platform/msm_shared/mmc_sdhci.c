@@ -1379,7 +1379,9 @@ static uint32_t mmc_sd_get_card_ssr(struct sdhci_host *host, struct mmc_card *ca
 	/* Card AU size in sectors */
 	card->ssr.au_size = 1 << (au_size + 4);
 	card->ssr.num_aus = UNPACK_BITS(status, MMC_SD_ERASE_SIZE_BIT, MMC_SD_ERASE_SIZE_LEN, 32);
-
+	/*if num_aus is 0 then host should assign number of AU erased at a time*/
+	if (!card->ssr.num_aus)
+		card->ssr.num_aus = 0x10;
 	return 0;
 }
 
@@ -2384,15 +2386,17 @@ void mmc_put_card_to_sleep(struct mmc_device *dev)
 		dprintf(CRITICAL, "card deselect error: %s\n", __func__);
 		return;
 	}
+	if(MMC_CARD_MMC(card)){
+		/*CMD5 is reserved in SD card */
+		cmd.cmd_index = CMD5_SLEEP_AWAKE;
+		cmd.argument = (card->rca << MMC_CARD_RCA_BIT) | MMC_CARD_SLEEP;
+		cmd.cmd_type = SDHCI_CMD_TYPE_NORMAL;
+		cmd.resp_type = SDHCI_CMD_RESP_R1B;
 
-	cmd.cmd_index = CMD5_SLEEP_AWAKE;
-	cmd.argument = (card->rca << MMC_CARD_RCA_BIT) | MMC_CARD_SLEEP;
-	cmd.cmd_type = SDHCI_CMD_TYPE_NORMAL;
-	cmd.resp_type = SDHCI_CMD_RESP_R1B;
-
-	/* send command */
-	if(sdhci_send_command(&dev->host, &cmd))
-		dprintf(CRITICAL, "card sleep error: %s\n", __func__);
+		/* send command */
+		if(sdhci_send_command(&dev->host, &cmd))
+			dprintf(CRITICAL, "card sleep error: %s\n", __func__);
+	}
 }
 
 /*

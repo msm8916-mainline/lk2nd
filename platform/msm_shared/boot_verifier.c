@@ -533,6 +533,12 @@ bool boot_verify_image(unsigned char* img_addr, uint32_t img_size, char *pname)
 		goto verify_image_error;
 	}
 
+	if (sig_len > ASN1_SIGNATURE_BUFFER_SZ)
+	{
+		dprintf(CRITICAL, "boot_verifier: Signature length exceeds size signature buffer\n");
+		goto verify_image_error;
+	}
+
 	if((sig = d2i_VERIFIED_BOOT_SIG(NULL, (const unsigned char **) &sig_addr, sig_len)) == NULL)
 	{
 		dprintf(CRITICAL,

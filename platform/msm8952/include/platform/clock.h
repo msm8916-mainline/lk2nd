@@ -95,7 +95,7 @@ void mdss_bus_clocks_enable(void);
 void mdss_bus_clocks_disable(void);
 void mdp_clock_enable(void);
 void mdp_clock_disable(void);
-void gcc_dsi_clocks_enable(uint32_t flags, uint8_t pclk0_m,
+void gcc_dsi_clocks_enable(uint32_t flags,  bool use_dsi1_pll, uint8_t pclk0_m,
 		uint8_t pclk0_n, uint8_t pclk0_d);
 void gcc_dsi_clocks_disable(uint32_t flags);
 #endif

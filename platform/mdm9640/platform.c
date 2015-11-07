@@ -156,14 +156,45 @@ addr_t platform_get_phys_to_virt_mapping(addr_t phys_addr)
 	return phys_addr;
 }
 
+
+bool platform_is_mdmcalifornium()
+{
+	uint32_t platform_id = board_platform_id();
+	bool ret;
+
+	switch(platform_id)
+	{
+		case MDMCALIFORNIUM1:
+		case MDMCALIFORNIUM2:
+		case MDMCALIFORNIUM3:
+		case MDMCALIFORNIUM4:
+				ret = true;
+				break;
+		default:
+				ret = false;
+	};
+
+	return ret;
+}
+
 uint32_t platform_boot_config()
 {
 	uint32_t boot_config;
 
-	if (board_soc_version() >= 0x20000)
+	if (platform_is_mdmcalifornium())
+		boot_config = BOOT_CONFIG_REG_V2;
+	/* Else the platform is 9x45 */
+	else if (board_soc_version() >= 0x20000)
 		boot_config = BOOT_CONFIG_REG_V2;
 	else
 		boot_config = BOOT_CONFIG_REG_V1;
 
 	return boot_config;
 }
+
+uint32_t platform_get_qmp_rev()
+{
+	return readl(USB3_PHY_REVISION_ID3) << 24 | readl(USB3_PHY_REVISION_ID2) << 16 |
+		   readl(USB3_PHY_REVISION_ID1) << 8 | readl(USB3_PHY_REVISION_ID0);
+}
+
