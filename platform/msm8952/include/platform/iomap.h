@@ -103,6 +103,7 @@
 /* GPLL */
 #define GPLL0_STATUS                       (CLK_CTL_BASE + 0x2101C)
 #define GPLL2_STATUS                       (CLK_CTL_BASE + 0x4A01C)
+#define GPLL0_MODE                         (CLK_CTL_BASE + 0x21000)
 #define APCS_GPLL_ENA_VOTE                 (CLK_CTL_BASE + 0x45000)
 #define APCS_CLOCK_BRANCH_ENA_VOTE         (CLK_CTL_BASE + 0x45004)
 #define GPLL4_MODE                         (CLK_CTL_BASE + 0x24000)

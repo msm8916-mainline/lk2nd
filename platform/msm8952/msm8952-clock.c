@@ -630,6 +630,12 @@ void msm8976_v_1_1_sdcc_clock_modify()
 	sdcc1_apps_clk_src.freq_tbl = ftbl_gcc_sdcc1_apps_clk_8976_v_1_1;
 }
 
+void msm8937_clock_override()
+{
+	gpll0_clk_src.status_reg = (void *)GPLL0_MODE;
+	gpll0_clk_src.status_mask = BIT(30);
+}
+
 void platform_clock_init(void)
 {
 	if (platform_is_msm8956()) {
@@ -638,5 +644,9 @@ void platform_clock_init(void)
 			/*freq and GPLL change for 8976 v1.1 */
 			msm8976_v_1_1_sdcc_clock_modify();
 	}
+
+	if (platform_is_msm8937())
+		msm8937_clock_override();
+
 	clk_init(msm_clocks_8952, ARRAY_SIZE(msm_clocks_8952));
 }
