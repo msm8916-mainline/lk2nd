@@ -443,6 +443,7 @@ static void display_recovery_ui(mdtp_cfg_t *mdtp_cfg)
 	}
 
 	out:
+	display_image_on_screen();
 	free_mdtp_image();
 }
 
