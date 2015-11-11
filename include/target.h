@@ -96,6 +96,10 @@ int target_get_qmp_regsize();
 uint32_t get_vibration_type();
 #endif
 
+#if CHECK_BAT_VOLTAGE
+void update_battery_status(void);
+#endif
+
 uint32_t target_get_battery_voltage();
 bool target_battery_soc_ok();
 bool target_battery_is_present();
