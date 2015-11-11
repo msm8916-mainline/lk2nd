@@ -97,8 +97,11 @@ int oem_panel_on()
 	if (panel_id == JDI_QHD_DUALDSI_CMD_PANEL) {
 		/* needs extra delay to avoid unexpected artifacts */
 		mdelay(JDI_QHD_DUALDSI_CMD_PANEL_ON_DELAY);
-
+	} else if (panel_id == R69007_WQXGA_CMD_PANEL) {
+		/* needs extra delay to avoid unexpected artifacts */
+		mdelay(R69007_WQXGA_CMD_PANEL_ON_DELAY);
 	}
+
 	return NO_ERROR;
 }
 
