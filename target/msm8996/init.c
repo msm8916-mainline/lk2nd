@@ -330,6 +330,7 @@ void target_init(void)
 	{
 		case HW_PLATFORM_MTP:
 		case HW_PLATFORM_FLUID:
+		case HW_PLATFORM_QRD:
 			pm_appsbl_chg_check_weak_battery_status(1);
 			break;
 		default:
