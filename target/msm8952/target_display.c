@@ -360,6 +360,10 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 	if (platform_is_msm8956()) {
 		reset_gpio.pin_id = 25;
 		bkl_gpio.pin_id = 66;
+	} else if (platform_is_msm8937()) {
+		reset_gpio.pin_id = 60;
+		bkl_gpio.pin_id = 98;
+		enable_gpio.pin_id = 99;
 	} else if ((hw_id == HW_PLATFORM_QRD) &&
 		   (hw_subtype == HW_PLATFORM_SUBTYPE_POLARIS)) {
 		enable_gpio.pin_id = 19;
@@ -484,7 +488,7 @@ int target_dsi_phy_config(struct mdss_dsi_phy_ctrl *phy_db)
 
 int target_display_get_base_offset(uint32_t base)
 {
-	if(platform_is_msm8956()) {
+	if(platform_is_msm8956() || platform_is_msm8937()) {
 		if (base == MIPI_DSI0_BASE)
 			return DSI0_BASE_ADJUST;
 		else if (base == DSI0_PHY_BASE)
