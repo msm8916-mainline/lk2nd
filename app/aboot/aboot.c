@@ -727,7 +727,7 @@ void boot_linux(void *kernel, unsigned *tags,
 
 	void (*entry)(unsigned, unsigned, unsigned*) = (entry_func_ptr*)(PA((addr_t)kernel));
 	uint32_t tags_phys = PA((addr_t)tags);
-	struct kernel64_hdr *kptr = (struct kernel64_hdr*)kernel;
+	struct kernel64_hdr *kptr = ((struct kernel64_hdr*)(PA((addr_t)kernel)));
 
 	ramdisk = (void *)PA((addr_t)ramdisk);
 
