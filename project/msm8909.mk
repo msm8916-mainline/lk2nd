@@ -14,8 +14,15 @@ endif
 
 EMMC_BOOT := 1
 
+ifeq ($(VERIFIED_BOOT),1)
+ENABLE_MDTP_SUPPORT := 1
+
 ENABLE_SECAPP_LOADER := 1
 ENABLE_RPMB_SUPPORT := 1
+
+#enable fbcon display menu
+ENABLE_FBCON_DISPLAY_MSG := 1
+endif
 
 ENABLE_SMD_SUPPORT := 1
 ENABLE_PWM_SUPPORT := true
@@ -43,7 +50,10 @@ DEFINES += USE_BOOTDEV_CMDLINE=1
 #Enable the feature of long press power on
 DEFINES += LONG_PRESS_POWER_ON=1
 
+ifeq ($(ENABLE_RPMB_SUPPORT),1)
 DEFINES += USE_RPMB_FOR_DEVINFO=1
+endif
+
 DEFINES += FORCE_MIN_RPMB_CNT=1
 
 #Disable thumb mode
