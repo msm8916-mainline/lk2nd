@@ -85,10 +85,23 @@ target_dev_tree_mem_err:
 
 void *target_get_scratch_address(void)
 {
-	return ((void *)SCRATCH_ADDR);
+	uint64_t ddr_size = smem_get_ddr_size();
+	if (ddr_size == 0x8000000)
+		/*128MB DDR scratch address*/
+		return ((void *)VA((addr_t)SCRATCH_ADDR_128));
+	else
+		/*256MB DDR scratch address*/
+		return ((void *)VA((addr_t)SCRATCH_ADDR_256));
 }
-
+/*this function is to know max flashable size through fastboot*/
 unsigned target_get_max_flash_size(void)
 {
-	return (SCRATCH_REGION1_SIZE + SCRATCH_REGION2_SIZE);
+	uint64_t ddr_size = smem_get_ddr_size();
+
+	if (ddr_size == 0x8000000)
+		/*128MB DDR scratch size*/
+		return (SCRATCH_REGION1_SIZE_128 + SCRATCH_REGION2_SIZE_128);
+	else
+		/*256MB DDR scratch size*/
+		return (SCRATCH_REGION_SIZE_256);
 }
