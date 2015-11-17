@@ -55,6 +55,7 @@
 extern void mdelay(unsigned msecs);
 extern uint32_t target_volume_up();
 extern uint32_t target_volume_down();
+extern int msm_display_on();
 
 struct mdtp_fbimage {
     uint32_t width;
@@ -242,11 +243,7 @@ static void fbcon_putImage_in_location(struct mdtp_fbimage *fbimg, uint32_t x, u
 	arch_clean_invalidate_cache_range((addr_t) fb_config->base, (fb_config->height * fb_config->width * bytes_per_bpp));
 
 	fbcon_flush();
-
-#if DISPLAY_MIPI_PANEL_NOVATEK_BLUE
-	if(is_cmd_mode_enabled())
-        mipi_dsi_cmd_mode_trigger();
-#endif
+	msm_display_on();
 
 #endif
 }
