@@ -104,6 +104,7 @@ struct panel_lookup_list lookup_skip_panels[] = {
 	{"truly_wvga_video", "qcom,mdss_dsi_truly_wvga_video", false},
 	{"adv16", "qcom,mdss_dsi_adv7533_1080p", false},
 	{"adv4", "qcom,mdss_dsi_adv7533_720p", false},
+	{"nt35950_4k_dsc_cmd", "qcom,mdss_dsi_nt35950_4k_dsc_cmd", true},
 };
 
 struct sim_lookup_list lookup_sim[] = {
