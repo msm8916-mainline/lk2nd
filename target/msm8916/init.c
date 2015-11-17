@@ -198,7 +198,9 @@ void target_init(void)
         uint32_t base_addr;
 	uint8_t slot;
 #if VERIFIED_BOOT
+#if !VBOOT_MOTA
         int ret = 0;
+#endif
 #endif
 	dprintf(INFO, "target_init()\n");
 
@@ -226,6 +228,7 @@ void target_init(void)
 		target_crypto_init_params();
 
 #if VERIFIED_BOOT
+#if !VBOOT_MOTA
         clock_ce_enable(CE1_INSTANCE);
 
         /* Initialize Qseecom */
@@ -261,7 +264,7 @@ void target_init(void)
                 ASSERT(0);
         }
 #endif
-
+#endif
 }
 
 void target_serialno(unsigned char *buf)
@@ -535,6 +538,7 @@ void target_uninit(void)
 	if (target_is_ssd_enabled())
 		clock_ce_disable(CE1_INSTANCE);
 #if VERIFIED_BOOT
+#if !VBOOT_MOTA
         if (is_sec_app_loaded())
         {
                 if (send_milestone_call_to_tz() < 0)
@@ -550,6 +554,7 @@ void target_uninit(void)
                 ASSERT(0);
         }
         clock_ce_disable(CE1_INSTANCE);
+#endif
 #endif
 }
 
