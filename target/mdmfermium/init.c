@@ -224,7 +224,7 @@ void target_serialno(unsigned char *buf)
 {
 	uint32_t serialno;
 	serialno = board_chip_serial();
-	snprintf((char *)buf, sizeof(uint32_t)+1, "%x", serialno);
+	snprintf((char *)buf, 13, "%x", serialno);
 }
 
 unsigned check_reboot_mode(void)
