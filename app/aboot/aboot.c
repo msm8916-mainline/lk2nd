@@ -199,7 +199,12 @@ static bool devinfo_present = true;
 /* Assuming unauthorized kernel image by default */
 static int auth_kernel_img = 0;
 
+#if VBOOT_MOTA
+static device_info device = {DEVICE_MAGIC, 0, 0, 0, 0, {0}, {0},{0}};
+#else
 static device_info device = {DEVICE_MAGIC, 0, 0, 0, 0, {0}, {0}, {0}, 1};
+#endif
+
 static bool is_allow_unlock = 0;
 
 static char frp_ptns[2][8] = {"config","frp"};
