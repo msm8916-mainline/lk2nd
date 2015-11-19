@@ -41,7 +41,19 @@ enum unlock_type {
 	UNLOCK = 0,
 	UNLOCK_CRITICAL,
 };
-
+#if VBOOT_MOTA
+struct device_info
+{
+	unsigned char magic[DEVICE_MAGIC_SIZE];
+	bool is_unlocked;
+	bool is_tampered;
+	bool is_verified;
+	bool charger_screen_enabled;
+	char display_panel[MAX_PANEL_ID_LEN];
+	char bootloader_version[MAX_VERSION_LEN];
+	char radio_version[MAX_VERSION_LEN];
+};
+#else
 struct device_info
 {
 	unsigned char magic[DEVICE_MAGIC_SIZE];
@@ -54,5 +66,5 @@ struct device_info
 	char radio_version[MAX_VERSION_LEN];
 	bool verity_mode; // 1 = enforcing, 0 = logging
 };
-
+#endif
 #endif

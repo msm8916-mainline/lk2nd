@@ -13,8 +13,21 @@ DEBUG := 1
 endif
 
 EMMC_BOOT := 1
+
+
+ifeq ($(VERIFIED_BOOT),1)
+ENABLE_MDTP_SUPPORT := 1
+ifeq ($(ENABLE_VBOOT_MOTA_SUPPORT),1)
+DEFINES += VBOOT_MOTA=1
+else
 ENABLE_SECAPP_LOADER := 1
 ENABLE_RPMB_SUPPORT := 1
+#enable fbcon display menu
+ENABLE_FBCON_DISPLAY_MSG := 1
+endif
+endif
+
+
 
 ENABLE_SMD_SUPPORT := 1
 #ENABLE_PWM_SUPPORT := true
@@ -33,7 +46,10 @@ DEFINES += BAM_V170=1
 
 #Enable the feature of long press power on
 DEFINES += LONG_PRESS_POWER_ON=1
+
+ifeq ($(ENABLE_RPMB_SUPPORT),1)
 DEFINES += USE_RPMB_FOR_DEVINFO=1
+endif
 
 #Disable thumb mode
 ENABLE_THUMB := false
@@ -44,8 +60,7 @@ ifeq ($(ENABLE_SDHCI_SUPPORT),1)
 DEFINES += MMC_SDHCI_SUPPORT=1
 endif
 
-#enable fbcon display menu
-ENABLE_FBCON_DISPLAY_MSG := 1
+
 
 ifeq ($(ENABLE_FBCON_DISPLAY_MSG),1)
 DEFINES += FBCON_DISPLAY_MSG=1
@@ -70,7 +85,6 @@ ifeq ($(ENABLE_SMD_SUPPORT),1)
 DEFINES += SMD_SUPPORT=1
 endif
 
-ENABLE_MDTP_SUPPORT := 1
 
 ifeq ($(ENABLE_MDTP_SUPPORT),1)
 DEFINES += MDTP_SUPPORT=1
