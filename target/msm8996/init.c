@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2015 The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2016 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -586,7 +586,7 @@ unsigned target_pause_for_battery_charge(void)
 		return 0;
 }
 
-int set_download_mode(enum dload_mode mode)
+int set_download_mode(enum reboot_reason mode)
 {
 	int ret = 0;
 	ret = scm_dload_mode(mode);

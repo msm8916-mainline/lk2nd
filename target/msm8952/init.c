@@ -424,7 +424,7 @@ unsigned check_hard_reboot_mode(void)
 	return hard_restart_reason;
 }
 
-int set_download_mode(enum dload_mode mode)
+int set_download_mode(enum reboot_reason mode)
 {
 	int ret = 0;
 	ret = scm_dload_mode(mode);
@@ -444,18 +444,19 @@ void reboot_device(unsigned reboot_reason)
 	uint8_t reset_type = 0;
 	uint32_t ret = 0;
 
-	/* Need to clear the SW_RESET_ENTRY register and
-	 * write to the BOOT_MISC_REG for known reset cases
-	 */
-	if(reboot_reason != DLOAD)
-		scm_dload_mode(NORMAL_MODE);
+	/* Set cookie for dload mode */
+	if(set_download_mode(reboot_reason)) {
+		dprintf(CRITICAL, "HALT: set_download_mode not supported\n");
+		return;
+	}
 
 	writel(reboot_reason, RESTART_REASON_ADDR);
 
 	/* For Reboot-bootloader and Dload cases do a warm reset
 	 * For Reboot cases do a hard reset
 	 */
-	if((reboot_reason == FASTBOOT_MODE) || (reboot_reason == DLOAD) || (reboot_reason == RECOVERY_MODE))
+	if((reboot_reason == FASTBOOT_MODE) || (reboot_reason == NORMAL_DLOAD) ||
+		(reboot_reason == EMERGENCY_DLOAD) || (reboot_reason == RECOVERY_MODE))
 		reset_type = PON_PSHOLD_WARM_RESET;
 	else
 		reset_type = PON_PSHOLD_HARD_RESET;

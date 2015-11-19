@@ -58,7 +58,7 @@ unsigned check_hard_reboot_mode(void);
 uint32_t check_alarm_boot(void);
 void platform_uninit_timer(void);
 void reboot_device(unsigned);
-int set_download_mode(enum dload_mode mode);
+int set_download_mode(enum reboot_reason mode);
 uint32_t platform_get_smem_base_addr();
 uint32_t platform_get_sclk_count(void);
 void clock_config_cdc(uint32_t interface);

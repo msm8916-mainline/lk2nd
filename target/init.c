@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008 Travis Geiselbrecht
  *
- * Copyright (c) 2015, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -37,6 +37,7 @@
 #include <smem.h>
 #include <pm8x41_adc.h>
 #include <pm8x41_hw.h>
+#include <scm.h>
 
 #if CHECK_BAT_VOLTAGE
 #include <pm_fg_adc_usr.h>
@@ -110,9 +111,17 @@ __WEAK uint32_t is_user_force_reset(void)
 	return 0;
 }
 
-__WEAK int set_download_mode(enum dload_mode mode)
+__WEAK int set_download_mode(enum reboot_reason mode)
 {
-	return -1;
+	if(mode == NORMAL_DLOAD || mode == EMERGENCY_DLOAD) {
+#if PLATFORM_USE_SCM_DLOAD
+		return scm_dload_mode(mode);
+#else
+		return -1;
+#endif
+	}
+
+	return 0;
 }
 
 __WEAK unsigned target_pause_for_battery_charge(void)

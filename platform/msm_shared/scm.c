@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -1333,7 +1333,7 @@ int scm_call2_atomic(uint32_t svc, uint32_t cmd, uint32_t arg1, uint32_t arg2)
 }
 
 #if PLATFORM_USE_SCM_DLOAD
-int scm_dload_mode(int mode)
+int scm_dload_mode(enum reboot_reason mode)
 {
 	int ret = 0;
 	uint32_t dload_type;
