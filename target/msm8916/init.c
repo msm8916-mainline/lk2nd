@@ -310,19 +310,19 @@ unsigned check_hard_reboot_mode(void)
 /* Configure PMIC and Drop PS_HOLD for shutdown */
 void shutdown_device()
 {
-	dprintf(CRITICAL, "Going down for shutdown.\n");
+       dprintf(CRITICAL, "Going down for shutdown.\n");
 
-	/* Configure PMIC for shutdown */
-	pm8x41_reset_configure(PON_PSHOLD_SHUTDOWN);
+       /* Configure PMIC for shutdown */
+       pm8x41_reset_configure(PON_PSHOLD_SHUTDOWN);
 
-	/* Drop PS_HOLD for MSM */
-	writel(0x00, MPM2_MPM_PS_HOLD);
+       /* Drop PS_HOLD for MSM */
+       writel(0x00, MPM2_MPM_PS_HOLD);
 
-	mdelay(5000);
+       mdelay(5000);
 
-	dprintf(CRITICAL, "shutdown failed\n");
+       dprintf(CRITICAL, "shutdown failed\n");
 
-	ASSERT(0);
+       ASSERT(0);
 }
 
 void reboot_device(unsigned reboot_reason)
@@ -661,4 +661,9 @@ void target_crypto_init_params()
 uint32_t target_get_hlos_subtype()
 {
 	return board_hlos_subtype();
+}
+
+void pmic_reset_configure(uint8_t reset_type)
+{
+	pm8x41_reset_configure(reset_type);
 }
