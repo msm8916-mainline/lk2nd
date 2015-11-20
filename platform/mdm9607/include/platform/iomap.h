@@ -85,6 +85,12 @@
 /* CRYPTO ENGINE */
 #define  MSM_CE1_BASE                      0x073A000
 #define  MSM_CE1_BAM_BASE                  0x0704000
+#define  GCC_CRYPTO_BCR             (CLK_CTL_BASE + 0x16000)
+#define  GCC_CRYPTO_CMD_RCGR        (CLK_CTL_BASE + 0x16004)
+#define  GCC_CRYPTO_CFG_RCGR        (CLK_CTL_BASE + 0x16008)
+#define  GCC_CRYPTO_CBCR            (CLK_CTL_BASE + 0x1601C)
+#define  GCC_CRYPTO_AXI_CBCR        (CLK_CTL_BASE + 0x16020)
+#define  GCC_CRYPTO_AHB_CBCR        (CLK_CTL_BASE + 0x16024)
 
 
 /* GPLL */
