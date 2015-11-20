@@ -214,6 +214,12 @@
 #define MDP_INTR_STATUS             REG_MDP(0x00054)
 
 #define MDP_CGC_EN                  REG_MDP(0x100)
+#define MDP_AUTOREFRESH_CONFIG_P    REG_MDP(0x34C)
+#define MDP_AUTOREFRESH_EN          0x10000000
+/* Auto refresh fps = Panel fps / MDP_AUTOREFRESH_FRAME_NUM */
+/* Auto refresh fps = 60/10 = 6fps */
+#define MDP_AUTOREFRESH_FRAME_NUM   10
+#define MDP_SYNC_CONFIG_0           REG_MDP(0x300)
 
 #define SOFT_RESET                  0x118
 #define CLK_CTRL                    0x11C
