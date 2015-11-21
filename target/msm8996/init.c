@@ -85,6 +85,17 @@
 #define PMIC_ARB_CHANNEL_NUM    0
 #define PMIC_ARB_OWNER_ID       0
 
+enum
+{
+	FUSION_I2S_MTP = 1,
+	FUSION_SLIMBUS = 2,
+} mtp_subtype;
+
+enum
+{
+	FUSION_I2S_CDP = 2,
+} cdp_subtype;
+
 static void set_sdc_power_ctrl(void);
 static uint32_t mmc_pwrctl_base[] =
 	{ MSM_SDC1_BASE, MSM_SDC2_BASE };
@@ -417,24 +428,47 @@ void target_force_cont_splash_disable(uint8_t override)
 void target_baseband_detect(struct board_data *board)
 {
 	uint32_t platform;
+	uint32_t platform_hardware;
+	uint32_t platform_subtype;
 
 	platform = board->platform;
+	platform_hardware = board->platform_hw;
+	platform_subtype = board->platform_subtype;
 
-	switch(platform) {
-	case APQ8096:
-		board->baseband = BASEBAND_APQ;
-		break;
-	case MSM8996:
-		if (board->platform_version == 0x10000)
+	if (platform_hardware == HW_PLATFORM_SURF)
+	{
+		if (platform_subtype == FUSION_I2S_CDP)
+			board->baseband = BASEBAND_MDM;
+	}
+	else if (platform_hardware == HW_PLATFORM_MTP)
+	{
+		if (platform_subtype == FUSION_I2S_MTP ||
+			platform_subtype == FUSION_SLIMBUS)
+			board->baseband = BASEBAND_MDM;
+	}
+	/*
+	 * Special case if MDM is not set look for chip info to decide
+	 * platform subtype
+	 */
+	if (board->baseband != BASEBAND_MDM)
+	{
+		switch(platform) {
+		case APQ8096:
 			board->baseband = BASEBAND_APQ;
-		else
-			board->baseband = BASEBAND_MSM;
-		break;
-	default:
-		dprintf(CRITICAL, "Platform type: %u is not supported\n",platform);
-		ASSERT(0);
-	};
+			break;
+		case MSM8996:
+			if (board->platform_version == 0x10000)
+				board->baseband = BASEBAND_APQ;
+			else
+				board->baseband = BASEBAND_MSM;
+			break;
+		default:
+			dprintf(CRITICAL, "Platform type: %u is not supported\n",platform);
+			ASSERT(0);
+		};
+	}
 }
+
 unsigned target_baseband()
 {
 	return board_baseband();
