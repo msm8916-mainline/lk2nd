@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2013-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -36,6 +36,26 @@
 #include <platform/iomap.h>
 #include <platform/timer.h>
 #include <platform.h>
+#include <rpm-smd.h>
+#include <regulator.h>
+
+#define RPM_CE_CLK_TYPE    0x6563
+#define CE1_CLK_ID         0x0
+#define RPM_SMD_KEY_RATE   0x007A484B
+
+uint32_t CE1_CLK[][8]=
+{
+    {
+        RPM_CE_CLK_TYPE, CE1_CLK_ID,
+        KEY_SOFTWARE_ENABLE, 4, GENERIC_DISABLE,
+        RPM_SMD_KEY_RATE, 4, 0,
+    },
+    {
+        RPM_CE_CLK_TYPE, CE1_CLK_ID,
+        KEY_SOFTWARE_ENABLE, 4, GENERIC_ENABLE,
+        RPM_SMD_KEY_RATE, 4, 171430, /* clk rate in KHZ */
+    },
+};
 
 void clock_config_uart_dm(uint8_t id)
 {
@@ -269,4 +289,133 @@ deassert_master_clk:
 		return;
 	}
 
+}
+
+void clock_ce_enable(uint8_t instance)
+{
+	int ret;
+	char clk_name[64];
+
+	if (platform_is_mdmcalifornium())
+	{
+		if (instance == 1)
+			rpm_send_data(&CE1_CLK[GENERIC_ENABLE][0], 24, RPM_REQUEST_TYPE);
+		else
+		{
+			dprintf(CRITICAL, "Unsupported CE instance\n");
+			ASSERT(0);
+		}
+		return;
+	}
+
+	snprintf(clk_name, sizeof(clk_name), "ce%u_src_clk", instance);
+	ret = clk_get_set_enable(clk_name, 160000000, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set ce%u_src_clk ret = %d\n", instance, ret);
+		ASSERT(0);
+	}
+
+	snprintf(clk_name, sizeof(clk_name), "ce%u_core_clk", instance);
+	ret = clk_get_set_enable(clk_name, 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set ce%u_core_clk ret = %d\n", instance, ret);
+		ASSERT(0);
+	}
+
+	snprintf(clk_name, sizeof(clk_name), "ce%u_ahb_clk", instance);
+	ret = clk_get_set_enable(clk_name, 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set ce%u_ahb_clk ret = %d\n", instance, ret);
+		ASSERT(0);
+	}
+
+	snprintf(clk_name, sizeof(clk_name), "ce%u_axi_clk", instance);
+	ret = clk_get_set_enable(clk_name, 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set ce%u_axi_clk ret = %d\n", instance, ret);
+		ASSERT(0);
+	}
+
+	/* Wait for 48 * #pipes cycles.
+	* This is necessary as immediately after an access control reset (boot up)
+	* or a debug re-enable, the Crypto core sequentially clears its internal
+	* pipe key storage memory. If pipe key initialization writes are attempted
+	* during this time, they may be overwritten by the internal clearing logic.
+	*/
+	udelay(1);
+}
+
+void clock_ce_disable(uint8_t instance)
+{
+	struct clk *ahb_clk;
+	struct clk *cclk;
+	struct clk *axi_clk;
+	struct clk *src_clk;
+	char clk_name[64];
+
+	if (platform_is_mdmcalifornium())
+	{
+		if (instance == 1)
+		rpm_send_data(&CE1_CLK[GENERIC_DISABLE][0], 24, RPM_REQUEST_TYPE);
+		else
+		{
+			dprintf(CRITICAL, "Unsupported CE instance\n");
+			ASSERT(0);
+		}
+		return;
+	}
+
+	snprintf(clk_name, sizeof(clk_name), "ce%u_src_clk", instance);
+	src_clk = clk_get(clk_name);
+
+	snprintf(clk_name, sizeof(clk_name), "ce%u_ahb_clk", instance);
+	ahb_clk = clk_get(clk_name);
+
+	snprintf(clk_name, sizeof(clk_name), "ce%u_axi_clk", instance);
+	axi_clk = clk_get(clk_name);
+
+	snprintf(clk_name, sizeof(clk_name), "ce%u_core_clk", instance);
+	cclk    = clk_get(clk_name);
+
+	clk_disable(ahb_clk);
+	clk_disable(axi_clk);
+	clk_disable(cclk);
+	clk_disable(src_clk);
+
+	/* Some delay for the clocks to stabalize. */
+	udelay(1);
+}
+/* Function to asynchronously reset CE.
+ * Function assumes that all the CE clocks are off.
+ */
+static void ce_async_reset(uint8_t instance)
+{
+	/* Start the block reset for CE */
+	writel(1, GCC_CRYPTO_BCR);
+
+	udelay(2);
+
+	/* Take CE block out of reset */
+	writel(0, GCC_CRYPTO_BCR);
+
+	udelay(2);
+}
+
+void clock_config_ce(uint8_t instance)
+{
+	/* Need to enable the clock before disabling since the clk_disable()
+	 * has a check to default to nop when the clk_enable() is not called
+	 * on that particular clock.
+	 */
+	clock_ce_enable(instance);
+
+	clock_ce_disable(instance);
+
+	ce_async_reset(instance);
+
+	clock_ce_enable(instance);
 }

@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -55,6 +55,7 @@
 #include <uart_dm.h>
 #include <boot_device.h>
 #include <qmp_phy.h>
+#include <crypto5_wrapper.h>
 
 extern void smem_ptable_init(void);
 extern void smem_add_modem_partitions(struct ptable *flash_ptable);
@@ -86,6 +87,16 @@ static struct ptable flash_ptable;
 
 #define EXT4_CMDLINE  " rootwait rootfstype=ext4 root=/dev/mmcblk0p"
 #define UBI_CMDLINE " rootfstype=ubifs rootflags=bulk_read"
+
+#define CE1_INSTANCE            1
+#define CE_EE                   1
+#define CE_FIFO_SIZE            64
+#define CE_READ_PIPE            3
+#define CE_WRITE_PIPE           2
+#define CE_READ_PIPE_LOCK_GRP   0
+#define CE_WRITE_PIPE_LOCK_GRP  0
+#define CE_ARRAY_SIZE           20
+#define SUB_TYPE_SKUT           0x0A
 
 struct qpic_nand_init_config config;
 
@@ -139,6 +150,7 @@ void target_init(void)
 	pmic_info_populate();
 
 	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
+	rpm_smd_init();
 
 	if (platform_boot_dev_isemmc()) {
 		target_sdc_init();
@@ -172,6 +184,9 @@ void target_init(void)
 		update_ptable_names();
 		flash_set_ptable(&flash_ptable);
 	}
+
+	if (target_use_signed_kernel())
+		target_crypto_init_params();
 }
 
 /* reboot */
@@ -372,6 +387,11 @@ void target_uninit(void)
 		mmc_put_card_to_sleep(dev);
 		sdhci_mode_disable(&dev->host);
 	}
+
+	if (crypto_initialized())
+		crypto_eng_cleanup();
+
+	rpm_smd_uninit();
 }
 
 void target_usb_phy_reset(void)
@@ -524,4 +544,39 @@ int target_get_qmp_regsize()
 		return ARRAY_SIZE(qmp_settings);
 	else
 		return 0;
+}
+
+crypto_engine_type board_ce_type(void)
+{
+	return CRYPTO_ENGINE_TYPE_HW;
+}
+
+/* Set up params for h/w CE. */
+void target_crypto_init_params()
+{
+	struct crypto_init_params ce_params;
+
+	/* Set up base addresses and instance. */
+	ce_params.crypto_instance  = CE1_INSTANCE;
+	ce_params.crypto_base      = MSM_CE1_BASE;
+	ce_params.bam_base         = MSM_CE1_BAM_BASE;
+
+	/* Set up BAM config. */
+	ce_params.bam_ee               = CE_EE;
+	ce_params.pipes.read_pipe      = CE_READ_PIPE;
+	ce_params.pipes.write_pipe     = CE_WRITE_PIPE;
+	ce_params.pipes.read_pipe_grp  = CE_READ_PIPE_LOCK_GRP;
+	ce_params.pipes.write_pipe_grp = CE_WRITE_PIPE_LOCK_GRP;
+
+	/* Assign buffer sizes. */
+	ce_params.num_ce           = CE_ARRAY_SIZE;
+	ce_params.read_fifo_size   = CE_FIFO_SIZE;
+	ce_params.write_fifo_size  = CE_FIFO_SIZE;
+
+	/* BAM is initialized by TZ for this platform.
+	* Do not do it again as the initialization address space
+	* is locked.
+	*/
+	ce_params.do_bam_init      = 0;
+	crypto_init_params(&ce_params);
 }
