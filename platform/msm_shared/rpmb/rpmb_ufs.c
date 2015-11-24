@@ -94,7 +94,7 @@ int rpmb_read_ufs(struct ufs_dev *dev, uint32_t *req_buf, uint32_t blk_cnt, uint
 	cdb_out_param->opcode                = SCSI_CMD_SECPROT_OUT;
 	cdb_out_param->cdb1                  = SCSI_SEC_PROT;
 	cdb_out_param->sec_protocol_specific = BE16(SCSI_SEC_UFS_PROT_ID);
-	cdb_out_param->alloc_tlen            = BE32(bytes_to_transfer);
+	cdb_out_param->alloc_tlen            = BE32(RPMB_FRAME_SIZE);
 
 	// Flush CDB to memory
 	dsb();
