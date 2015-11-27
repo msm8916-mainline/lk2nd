@@ -58,14 +58,16 @@ int mdp_get_revision()
 
 static inline bool is_software_pixel_ext_config_needed()
 {
-	return MDSS_IS_MAJOR_MINOR_MATCHING(readl(MDP_HW_REV),
-		MDSS_MDP_HW_REV_107);
+	return (MDSS_IS_MAJOR_MINOR_MATCHING(readl(MDP_HW_REV),
+		MDSS_MDP_HW_REV_107) || MDSS_IS_MAJOR_MINOR_MATCHING(readl(MDP_HW_REV),
+		MDSS_MDP_HW_REV_114));
 }
 
 static inline bool has_fixed_size_smp()
 {
-	return MDSS_IS_MAJOR_MINOR_MATCHING(readl(MDP_HW_REV),
-		MDSS_MDP_HW_REV_107);
+	return (MDSS_IS_MAJOR_MINOR_MATCHING(readl(MDP_HW_REV),
+		MDSS_MDP_HW_REV_107) || MDSS_IS_MAJOR_MINOR_MATCHING(readl(MDP_HW_REV),
+		MDSS_MDP_HW_REV_114));
 }
 
 uint32_t mdss_mdp_intf_offset()
@@ -76,7 +78,8 @@ uint32_t mdss_mdp_intf_offset()
 	if ((mdss_mdp_rev == MDSS_MDP_HW_REV_106) ||
 		(mdss_mdp_rev == MDSS_MDP_HW_REV_108) ||
 		(mdss_mdp_rev == MDSS_MDP_HW_REV_111) ||
-		(mdss_mdp_rev == MDSS_MDP_HW_REV_112))
+		(mdss_mdp_rev == MDSS_MDP_HW_REV_112) ||
+		(mdss_mdp_rev == MDSS_MDP_HW_REV_114))
 		mdss_mdp_intf_off = 0x59100;
 	else if (mdss_mdp_rev >= MDSS_MDP_HW_REV_102)
 		mdss_mdp_intf_off = 0;
@@ -110,7 +113,8 @@ static uint32_t mdss_mdp_vbif_qos_remap_get_offset()
 	uint32_t mdss_mdp_rev = readl(MDP_HW_REV);
 
 	if ((mdss_mdp_rev == MDSS_MDP_HW_REV_110) ||
-		(mdss_mdp_rev == MDSS_MDP_HW_REV_111))
+		(mdss_mdp_rev == MDSS_MDP_HW_REV_111) ||
+		(mdss_mdp_rev == MDSS_MDP_HW_REV_114))
 		return 0xB0020;
 	else if (MDSS_IS_MAJOR_MINOR_MATCHING(mdss_mdp_rev, MDSS_MDP_HW_REV_107))
 		return 0xB0000;
@@ -207,6 +211,7 @@ static void mdss_mdp_set_flush(struct msm_panel_info *pinfo,
 		(mdss_mdp_rev == MDSS_MDP_HW_REV_109) ||
 		MDSS_IS_MAJOR_MINOR_MATCHING(mdss_mdp_rev,
 			MDSS_MDP_HW_REV_107) ||
+		(mdss_mdp_rev == MDSS_MDP_HW_REV_114) ||
 		(mdss_mdp_rev == MDSS_MDP_HW_REV_110)) {
 		if (pinfo->dest == DISPLAY_2) {
 			*ctl0_reg_val |= BIT(29);
@@ -1155,7 +1160,8 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 
 	mdp_select_pipe_type(pinfo, &left_pipe, &right_pipe);
 	mdss_vbif_setup();
-	mdss_smp_setup(pinfo, left_pipe, right_pipe);
+	if (!has_fixed_size_smp())
+		mdss_smp_setup(pinfo, left_pipe, right_pipe);
 	mdss_qos_remapper_setup();
 	mdss_vbif_qos_remapper_setup(pinfo);
 
