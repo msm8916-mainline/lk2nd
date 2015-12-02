@@ -67,4 +67,6 @@
 #define NR_IRQS                                (NR_MSM_IRQS + NR_GPIO_IRQS + \
                                                NR_BOARD_IRQS)
 
+#define BLSP_QUP_IRQ(blsp_id, qup_id)          (GIC_SPI_START + 95 + blsp_id * \
+                                               6 + qup_id)
 #endif	/* __IRQS_THULIUM_H */

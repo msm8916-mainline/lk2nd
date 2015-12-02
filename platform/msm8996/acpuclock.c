@@ -37,6 +37,8 @@
 #include <pm8x41.h>
 #include <rpm-smd.h>
 #include <regulator.h>
+#include <blsp_qup.h>
+#include <err.h>
 
 #define RPM_CE_CLK_TYPE    0x6563
 #define CE1_CLK_ID         0x0
@@ -602,5 +604,53 @@ void mmss_dsi_clock_disable(uint32_t flags)
 		clk_disable(clk_get("mdss_esc1_clk"));
 		writel(0x0, DSI_BYTE1_CBCR);
 		writel(0x0, DSI_PIXEL1_CBCR);
+	}
+}
+
+
+void clock_config_blsp_i2c(uint8_t blsp_id, uint8_t qup_id)
+{
+	uint8_t ret = 0;
+	char clk_name[64];
+
+	struct clk *qup_clk;
+
+	if((blsp_id != BLSP_ID_2) || ((qup_id != QUP_ID_1) &&
+		(qup_id != QUP_ID_3))) {
+		dprintf(CRITICAL, "Incorrect BLSP-%d or QUP-%d configuration\n",
+			blsp_id, qup_id);
+		ASSERT(0);
+	}
+
+	if (qup_id == QUP_ID_1) {
+		snprintf(clk_name, sizeof(clk_name), "blsp2_qup2_ahb_iface_clk");
+	}
+	else if (qup_id == QUP_ID_3) {
+		snprintf(clk_name, sizeof(clk_name), "blsp1_qup4_ahb_iface_clk");
+	}
+
+	ret = clk_get_set_enable(clk_name, 0 , 1);
+	if (ret) {
+		dprintf(CRITICAL, "Failed to enable %s clock\n", clk_name);
+		return;
+	}
+
+	if (qup_id == QUP_ID_1) {
+		snprintf(clk_name, sizeof(clk_name), "gcc_blsp2_qup2_i2c_apps_clk");
+	}
+	else if (qup_id == QUP_ID_3) {
+		snprintf(clk_name, sizeof(clk_name), "gcc_blsp1_qup4_i2c_apps_clk");
+	}
+
+	qup_clk = clk_get(clk_name);
+	if (!qup_clk) {
+		dprintf(CRITICAL, "Failed to get %s\n", clk_name);
+		return;
+	}
+
+	ret = clk_enable(qup_clk);
+	if (ret) {
+		dprintf(CRITICAL, "Failed to enable %s\n", clk_name);
+		return;
 	}
 }

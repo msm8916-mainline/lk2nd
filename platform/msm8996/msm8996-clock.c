@@ -237,6 +237,40 @@ static struct vote_clk gcc_blsp2_ahb_clk = {
 	},
 };
 
+static struct clk_freq_tbl ftbl_gcc_blsp1_qup2_i2c_apps_clk_src[] = {
+	F(      96000,    cxo,  10,   1,  2),
+	F(    4800000,    cxo,   4,   0,  0),
+	F(    9600000,    cxo,   2,   0,  0),
+	F(   16000000,  gpll0,  10,   1,  5),
+	F(   19200000,  gpll0,   1,   0,  0),
+	F(   25000000,  gpll0,  16,   1,  2),
+	F(   50000000,  gpll0,  16,   0,  0),
+	F_END
+};
+
+static struct rcg_clk gcc_blsp2_qup2_i2c_apps_clk_src = {
+	.cmd_reg      = (uint32_t *) GCC_BLSP2_QUP2_CMD_RCGR,
+	.cfg_reg      = (uint32_t *) GCC_BLSP2_QUP2_CFG_RCGR,
+	.set_rate     = clock_lib2_rcg_set_rate_hid,
+	.freq_tbl     = ftbl_gcc_blsp1_qup2_i2c_apps_clk_src,
+	.current_freq = &rcg_dummy_freq,
+
+	.c = {
+		.dbg_name = "gcc_blsp2_qup2_i2c_apps_clk_src",
+		.ops      = &clk_ops_rcg,
+	},
+};
+
+static struct branch_clk gcc_blsp2_qup2_i2c_apps_clk = {
+	.cbcr_reg = (uint32_t *) GCC_BLSP2_QUP2_APPS_CBCR,
+	.parent   = &gcc_blsp2_qup2_i2c_apps_clk_src.c,
+
+	.c = {
+		.dbg_name = "gcc_blsp2_qup2_i2c_apps_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
 /* SDCC Clocks */
 static struct clk_freq_tbl ftbl_gcc_sdcc1_4_apps_clk[] =
 {
@@ -731,6 +765,13 @@ static struct clk_lookup msm_msm8996_clocks[] =
 	CLK_LOOKUP("mmss_mmagic_ahb_clk",       mmss_mmagic_ahb_clk.c),
 	CLK_LOOKUP("smmu_mdp_ahb_clk",     smmu_mdp_ahb_clk.c),
 	CLK_LOOKUP("mdp_ahb_clk",          mdp_ahb_clk.c),
+
+	/* BLSP CLOCKS */
+	CLK_LOOKUP("blsp2_qup2_ahb_iface_clk", gcc_blsp2_ahb_clk.c),
+	CLK_LOOKUP("gcc_blsp2_qup2_i2c_apps_clk_src",
+		gcc_blsp2_qup2_i2c_apps_clk_src.c),
+	CLK_LOOKUP("gcc_blsp2_qup2_i2c_apps_clk",
+		gcc_blsp2_qup2_i2c_apps_clk.c),
 };
 
 void platform_clock_init(void)
