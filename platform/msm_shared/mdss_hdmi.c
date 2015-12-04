@@ -656,13 +656,14 @@ static bool mdss_hdmi_is_dvi_mode(void)
 static void mdss_hdmi_set_mode(bool on)
 {
 	uint32_t val = 0;
-
 	if (on) {
 		/* tx on */
-		val = 0x1;
+		val |= BIT(0);
+		/* hdcp legacy mode*/
+		val |= BIT(31);
 
 		if (!mdss_hdmi_is_dvi_mode())
-			val |= 0x2;
+			val |= BIT(1);
 	}
 
 	writel(val, HDMI_CTRL);
