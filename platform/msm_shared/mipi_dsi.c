@@ -833,7 +833,7 @@ int mipi_dsi_off(struct msm_panel_info *pinfo)
 	{
 		mdss_dsi_panel_shutdown(pinfo);
 		writel(0, pinfo->mipi.ctl_base + CLK_CTRL);
-		writel(0x1F1, pinfo->mipi.ctl_base + CTRL);
+		writel(0, pinfo->mipi.ctl_base + CTRL);
 	}
 
 	writel(0x1115501, pinfo->mipi.ctl_base + INT_CTRL);
