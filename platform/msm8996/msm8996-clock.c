@@ -46,7 +46,7 @@
 #define mmpll1_mm_source_val 2
 #define mmpll3_mm_source_val 3
 #define gpll0_mm_source_val 5
-#define hdmipll_mm_source_val 3
+#define hdmipll_mm_source_val 1
 
 struct clk_freq_tbl rcg_dummy_freq = F_END;
 
