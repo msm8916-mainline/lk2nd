@@ -56,6 +56,9 @@
 #include "include/panel_nt35597_wqxga_dsc_cmd.h"
 #include "include/panel_hx8394d_720p_video.h"
 #include "include/panel_byd_1200p_video.h"
+#include "include/panel_r69006_1080p_cmd.h"
+#include "include/panel_r69006_1080p_video.h"
+#include "include/panel_hx8394f_720p_video.h"
 
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
@@ -72,6 +75,9 @@ enum {
 	NT35597_WQXGA_DSC_CMD_PANEL,
 	HX8394D_720P_VIDEO_PANEL,
 	BYD_1200P_VIDEO_PANEL,
+	R69006_1080P_CMD_PANEL,
+	R69006_1080P_VIDEO_PANEL,
+	HX8394F_720P_VIDEO_PANEL,
 	UNKNOWN_PANEL
 };
 
@@ -95,6 +101,9 @@ static struct panel_list supp_panels[] = {
 	{"nt35597_wqxga_dsc_cmd", NT35597_WQXGA_DSC_CMD_PANEL},
 	{"hx8394d_720p_video", HX8394D_720P_VIDEO_PANEL},
 	{"byd_1200p_video", BYD_1200P_VIDEO_PANEL},
+	{"r69006_1080p_cmd",R69006_1080P_CMD_PANEL},
+	{"r69006_1080p_video",R69006_1080P_VIDEO_PANEL},
+	{"hx8394f_720p_video", HX8394F_720P_VIDEO_PANEL}
 };
 
 static uint32_t panel_id;
@@ -472,6 +481,81 @@ static int init_panel_data(struct panel_struct *panelstruct,
 				hx8394d_720p_video_timings, TIMING_SIZE);
 		pinfo->mipi.signature = HX8394D_720P_VIDEO_SIGNATURE;
 		break;
+	case R69006_1080P_CMD_PANEL:
+		panelstruct->paneldata    = &r69006_1080p_cmd_panel_data;
+		panelstruct->panelres     = &r69006_1080p_cmd_panel_res;
+		panelstruct->color                = &r69006_1080p_cmd_color;
+		panelstruct->videopanel   = &r69006_1080p_cmd_video_panel;
+		panelstruct->commandpanel = &r69006_1080p_cmd_command_panel;
+		panelstruct->state                = &r69006_1080p_cmd_state;
+		panelstruct->laneconfig   = &r69006_1080p_cmd_lane_config;
+		panelstruct->paneltiminginfo
+		                         = &r69006_1080p_cmd_timing_info;
+		panelstruct->panelresetseq
+		                         = &r69006_1080p_cmd_reset_seq;
+		panelstruct->backlightinfo = &r69006_1080p_cmd_backlight;
+		pinfo->mipi.panel_on_cmds
+		                        = r69006_1080p_cmd_on_command;
+		pinfo->mipi.num_of_panel_on_cmds
+		                        = R69006_1080P_CMD_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+		                        = r69006_1080p_cmd_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+		                        = R69006_1080P_CMD_OFF_COMMAND;
+		memcpy(phy_db->timing,
+		                r69006_1080p_cmd_timings, TIMING_SIZE);
+		pinfo->mipi.signature = R69006_1080P_CMD_SIGNATURE;
+		break;
+	case R69006_1080P_VIDEO_PANEL:
+		panelstruct->paneldata	  = &r69006_1080p_video_panel_data;
+		panelstruct->panelres	  = &r69006_1080p_video_panel_res;
+		panelstruct->color				  = &r69006_1080p_video_color;
+		panelstruct->videopanel   = &r69006_1080p_video_video_panel;
+		panelstruct->commandpanel = &r69006_1080p_video_command_panel;
+		panelstruct->state				  = &r69006_1080p_video_state;
+		panelstruct->laneconfig   = &r69006_1080p_video_lane_config;
+		panelstruct->paneltiminginfo
+								 = &r69006_1080p_video_timing_info;
+		panelstruct->panelresetseq
+								 = &r69006_1080p_video_reset_seq;
+		panelstruct->backlightinfo = &r69006_1080p_video_backlight;
+		pinfo->mipi.panel_on_cmds
+								= r69006_1080p_video_on_command;
+		pinfo->mipi.num_of_panel_on_cmds
+								= R69006_1080P_VIDEO_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+								= r69006_1080p_video_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+								= R69006_1080P_VIDEO_OFF_COMMAND;
+		memcpy(phy_db->timing,
+						r69006_1080p_video_timings, TIMING_SIZE);
+		pinfo->mipi.signature = R69006_1080P_VIDEO_SIGNATURE;
+		break;
+	case HX8394F_720P_VIDEO_PANEL:
+		panelstruct->paneldata	  = &hx8394f_720p_video_panel_data;
+		panelstruct->panelres	  = &hx8394f_720p_video_panel_res;
+		panelstruct->color				  = &hx8394f_720p_video_color;
+		panelstruct->videopanel   = &hx8394f_720p_video_video_panel;
+		panelstruct->commandpanel = &hx8394f_720p_video_command_panel;
+		panelstruct->state				  = &hx8394f_720p_video_state;
+		panelstruct->laneconfig   = &hx8394f_720p_video_lane_config;
+		panelstruct->paneltiminginfo
+								 = &hx8394f_720p_video_timing_info;
+		panelstruct->panelresetseq
+								 = &hx8394f_720p_video_reset_seq;
+		panelstruct->backlightinfo = &hx8394f_720p_video_backlight;
+		pinfo->mipi.panel_on_cmds
+								= hx8394f_720p_video_on_command;
+		pinfo->mipi.num_of_panel_on_cmds
+								= HX8394F_720P_VIDEO_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+								= hx8394f_720p_video_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+								= HX8394F_720P_VIDEO_OFF_COMMAND;
+		memcpy(phy_db->timing,
+						hx8394f_720p_video_timings, TIMING_SIZE);
+		pinfo->mipi.signature = HX8394F_720P_VIDEO_SIGNATURE;
+		break;
 	case BYD_1200P_VIDEO_PANEL:
 		panelstruct->paneldata    = &byd_1200p_video_panel_data;
 		panelstruct->paneldata->panel_with_enable_gpio = 1;
@@ -587,7 +671,15 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 		else
 			panel_id = OTM1906C_1080P_CMD_PANEL;
 
-		/* QRD EVT1 uses OTM1906C, and EVT2 uses HX8399A */
+		/* QRD 8937 SKU1 uses R69006, and SKU2 uses HX8399A */
+		if (platform_is_msm8937()){
+			if (plat_hw_ver_major > 16)
+				panel_id = HX8394F_720P_VIDEO_PANEL;
+			else
+				panel_id = R69006_1080P_CMD_PANEL;
+		}
+
+		/* QRD EVT1 uses OTM1906C, and EVT2 uses HX8394F */
 		if (platform_is_msm8956()) {
 			switch (auto_pan_loop) {
 				case 0:
