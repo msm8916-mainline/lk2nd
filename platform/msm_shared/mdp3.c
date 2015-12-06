@@ -163,6 +163,7 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 	int ret = 0;
 	unsigned short pack_pattern = 0x21;
 	unsigned char ystride = 3;
+        unsigned int sync_cfg;
 
 	/*Program QOS remapper settings*/
 	writel(0x1A9, MDP_DMA_P_QOS_REMAPPER);
@@ -188,6 +189,15 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 
 	writel(0x10, MDP_DSI_CMD_MODE_ID_MAP);
 	writel(0x11, MDP_DSI_CMD_MODE_TRIGGER_EN);
+	/* Enable Auto refresh */
+	sync_cfg = (pinfo->yres - 1) << 21;
+	sync_cfg |= BIT(19);
+
+       /* Vsync Clock 19.2 HMz */
+	sync_cfg |= (19200000) / (pinfo->yres * 60);
+	writel(sync_cfg, MDP_SYNC_CONFIG_0);
+	writel((MDP_AUTOREFRESH_EN | MDP_AUTOREFRESH_FRAME_NUM),
+		MDP_AUTOREFRESH_CONFIG_P);
 	mdelay(10);
 
 	return ret;
@@ -220,6 +230,9 @@ int mdp_dsi_cmd_off(void)
 		 */
 		mdelay(10);
 	}
+	/* Disable Auto refresh */
+	if (readl(MDP_AUTOREFRESH_CONFIG_P))
+		writel(0, MDP_AUTOREFRESH_CONFIG_P);
 	writel(0x00000000, MDP_INTR_ENABLE);
 	writel(0x01ffffff, MDP_INTR_CLEAR);
 	return NO_ERROR;
