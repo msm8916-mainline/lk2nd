@@ -478,7 +478,12 @@ again:
 		for (cmd = cmdlist; cmd; cmd = cmd->next) {
 			if (memcmp(buffer, cmd->prefix, cmd->prefix_len))
 				continue;
-			cmd->handle((const char*) buffer + cmd->prefix_len,
+
+			const char* arg = (const char*) buffer + cmd->prefix_len;
+			if(arg[0]==' ')
+				arg++;
+
+			cmd->handle(arg,
 				    (void*) download_base, download_size);
 			if (fastboot_state == STATE_COMMAND)
 				fastboot_fail("unknown reason");
