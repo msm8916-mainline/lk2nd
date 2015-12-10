@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2014-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -418,6 +418,18 @@ bool send_rot_command(uint32_t is_unlocked)
 			// Send hash of key from OEM KEYSTORE + Boot device state
 			n = BN_num_bytes(oem_keystore->mykeybag->mykey->key_material->n);
 			e = BN_num_bytes(oem_keystore->mykeybag->mykey->key_material->e);
+			/*this assumes a valid acceptable range for RSA, including 4096 bits of modulo n. */
+			if (n<0 || n>1024)
+			{
+				dprintf(CRITICAL, "Invalid n value from key_material\n");
+				ASSERT(0);
+			}
+			/* e can assumes 3,5,17,257,65537 as valid values, which should be 1 byte long only, we accept 2 bytes or 16 bits long */
+			if( e < 0 || e >16)
+			{
+				dprintf(CRITICAL, "Invalid e value from key_material\n");
+				ASSERT(0);
+			}
 			len_oem_rsa = n + e;
 			if(!(input = malloc(len_oem_rsa)))
 			{
@@ -440,6 +452,18 @@ bool send_rot_command(uint32_t is_unlocked)
 			// Send hash of key from certificate in boot image + boot device state
 			n = BN_num_bytes(rsa_from_cert->n);
 			e = BN_num_bytes(rsa_from_cert->e);
+			/*this assumes a valid acceptable range for RSA, including 4096 bits of modulo n. */
+			if (n<0 || n>1024)
+			{
+				dprintf(CRITICAL, "Invalid n value from rsa_from_cert\n");
+				ASSERT(0);
+			}
+			/* e can assumes 3,5,17,257,65537 as valid values, which should be 1 byte long only, we accept 2 bytes or 16 bits long */
+			if( e < 0 || e >16)
+			{
+				dprintf(CRITICAL, "Invalid e value from rsa_from_cert\n");
+				ASSERT(0);
+			}
 			len_from_cert = n + e;
 			if(!(input = malloc(len_from_cert)))
 			{
