@@ -54,8 +54,9 @@ int rpmb_init()
 		info.size = mmc_dev->card.rpmb_size / RPMB_MIN_BLK_SZ;
 		if (mmc_dev->card.ext_csd[MMC_EXT_CSD_REV] < 8)
 		{
+			//as per emmc spec rel_wr_count should be 1 for emmc version < 5.1
 			dprintf(SPEW, "EMMC Version < 5.1\n");
-			info.rel_wr_count = mmc_dev->card.rel_wr_count;
+			info.rel_wr_count = 1;
 		}
 		else
 		{
