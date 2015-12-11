@@ -127,6 +127,8 @@ int oem_panel_on()
 	} else if (panel_id == TRULY_1080P_CMD_PANEL ||
 			panel_id == TRULY_1080P_VIDEO_PANEL) {
 		mdelay(TRULY_1080P_PANEL_ON_DELAY);
+	}else if (panel_id == R69006_1080P_CMD_PANEL) {
+		mdelay(R69006_1080P_CMD_PANEL_ON_DELAY);
 	}
 
 	return NO_ERROR;
