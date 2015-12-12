@@ -282,7 +282,7 @@ static struct videopanel_info r63417_1080p_video_video_panel = {
 /* Lane configuration                                                        */
 /*---------------------------------------------------------------------------*/
 static struct lane_configuration r63417_1080p_video_lane_config = {
-	4, 0, 1, 1, 1, 1
+	4, 0, 1, 1, 1, 1, 0
 };
 
 /*---------------------------------------------------------------------------*/

@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -185,7 +185,7 @@ static struct videopanel_info jdi_qhd_dualdsi_cmd_video_panel = {
 /* Lane configuration                                                        */
 /*---------------------------------------------------------------------------*/
 static struct lane_configuration jdi_qhd_dualdsi_cmd_lane_config = {
-	4, 0, 1, 1, 1, 1
+	4, 0, 1, 1, 1, 1, 0
 };
 
 /*---------------------------------------------------------------------------*/

@@ -363,7 +363,7 @@ static struct videopanel_info auo_cx_qvga_cmd_video_panel = {
 /* Lane configuration                                                        */
 /*---------------------------------------------------------------------------*/
 static struct lane_configuration auo_cx_qvga_cmd_lane_config = {
-	1, 0, 1, 0, 0, 0
+	1, 0, 1, 0, 0, 0, 0
 };
 
 /*---------------------------------------------------------------------------*/

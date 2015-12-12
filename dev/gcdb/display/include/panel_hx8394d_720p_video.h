@@ -233,7 +233,7 @@ static struct videopanel_info hx8394d_720p_video_video_panel = {
 /*---------------------------------------------------------------------------*/
 
 static struct lane_configuration hx8394d_720p_video_lane_config = {
-  4, 0, 1, 1, 1, 1
+  4, 0, 1, 1, 1, 1, 0
 };
 
 

@@ -774,6 +774,7 @@ int mdss_dsi_config(struct msm_fb_panel_data *panel)
 	mipi_pinfo.t_clk_pre = pinfo->mipi.t_clk_pre;
 	mipi_pinfo.t_clk_post = pinfo->mipi.t_clk_post;
 	mipi_pinfo.signature = pinfo->mipi.signature;
+	mipi_pinfo.force_clk_lane_hs = pinfo->mipi.force_clk_lane_hs;
 	mipi_pinfo.cmds_post_tg = pinfo->mipi.cmds_post_tg;
 
 	mdss_dsi_phy_init(&mipi_pinfo, MIPI_DSI0_BASE, DSI0_PHY_BASE);
