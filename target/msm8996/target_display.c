@@ -47,6 +47,7 @@
 #include <platform/iomap.h>
 #include <target/display.h>
 #include <mipi_dsi_autopll_thulium.h>
+#include <mipi_dsi_i2c.h>
 
 #include "include/panel.h"
 #include "include/display_resource.h"
@@ -81,6 +82,14 @@ static struct gpio_pin lcd_reg_en = {	/* boost regulator */
 
 static struct gpio_pin bklt_gpio = {	/* lcd_bklt_reg_en */
   "pm8994_gpios", 14, 3, 1, 0, 1
+};
+
+static struct gpio_pin enable_gpio = {
+  "msmgpio", 10, 3, 1, 0, 1
+};
+
+static struct gpio_pin dsi2hdmi_switch_gpio = {
+  "msmgpio", 105, 3, 1, 0, 1
 };
 
 static uint32_t thulium_dsi_pll_lock_status(uint32_t pll_base, uint32_t off,
@@ -209,6 +218,102 @@ static void lcd_bklt_reg_enable(void)
 static void lcd_bklt_reg_disable(void)
 {
 	pm8x41_gpio_set(bklt_gpio.pin_id, 0);
+}
+
+static int dsi2HDMI_i2c_write_regs(struct msm_panel_info *pinfo,
+	struct mipi_dsi_i2c_cmd *cfg, int size)
+{
+	int ret = NO_ERROR;
+	int i;
+	uint8_t addr;
+
+	if (!cfg || size < 0) {
+		dprintf(CRITICAL, "Invalid input: register array is null\n");
+		return ERR_INVALID_ARGS;
+	}
+
+	for (i = 0; i < size; i++) {
+		switch (cfg[i].i2c_addr) {
+			case ADV7533_MAIN:
+				addr = pinfo->adv7533.i2c_main_addr;
+				break;
+			case ADV7533_CEC_DSI:
+				addr = pinfo->adv7533.i2c_cec_addr;
+				break;
+			default:
+				dprintf(CRITICAL, "Invalid I2C addr in array\n");
+				ret = ERR_INVALID_ARGS;
+				goto w_regs_fail;
+		}
+
+		ret = mipi_dsi_i2c_write_byte(addr, cfg[i].reg,
+			cfg[i].val);
+		if (ret) {
+			dprintf(CRITICAL, "mipi_dsi reg writes failed\n");
+			goto w_regs_fail;
+		}
+		if (cfg[i].sleep_in_ms) {
+			udelay(cfg[i].sleep_in_ms*1000);
+		}
+	}
+w_regs_fail:
+	return ret;
+}
+
+int target_display_dsi2hdmi_program_addr(struct msm_panel_info *pinfo)
+{
+	int ret = NO_ERROR;
+	uint8_t i2c_8bits = pinfo->adv7533.i2c_cec_addr << 1;
+	ret = mipi_dsi_i2c_write_byte(pinfo->adv7533.i2c_main_addr,
+				0xE1, i2c_8bits);
+	if (ret) {
+		dprintf(CRITICAL, "Error in programming CEC DSI addr\n");
+	} else {
+		dprintf(SPEW, "CEC address programming successful\n");
+	}
+	return ret;
+}
+
+int target_display_dsi2hdmi_config(struct msm_panel_info *pinfo)
+{
+	int ret = NO_ERROR;
+
+	if (!pinfo) {
+		dprintf(CRITICAL, "Invalid input: pinfo is null\n");
+		return ERR_INVALID_ARGS;
+	}
+
+	if (!pinfo->adv7533.program_i2c_addr) {
+		ret = target_display_dsi2hdmi_program_addr(pinfo);
+		if (ret) {
+			dprintf(CRITICAL, "Error in programming cec dsi addr\n");
+			return ret;
+		} else {
+			dprintf(SPEW, "successfully programmed cec dsi addr\n");
+			pinfo->adv7533.program_i2c_addr = 1;
+		}
+	}
+
+	/*
+	 * If dsi to HDMI bridge chip connected then
+	 * send I2c commands to the chip
+	 */
+	if (pinfo->adv7533.dsi_setup_cfg_i2c_cmd)
+		ret = dsi2HDMI_i2c_write_regs(pinfo, pinfo->adv7533.dsi_setup_cfg_i2c_cmd,
+					pinfo->adv7533.num_of_cfg_i2c_cmds);
+	if (ret) {
+		dprintf(CRITICAL, "Error in writing adv7533 setup registers\n");
+		return ret;
+	}
+
+	if (pinfo->adv7533.dsi_tg_i2c_cmd)
+		ret = dsi2HDMI_i2c_write_regs(pinfo, pinfo->adv7533.dsi_tg_i2c_cmd,
+					pinfo->adv7533.num_of_tg_i2c_cmds);
+	if (ret) {
+		dprintf(CRITICAL, "Error in writing adv7533 timing registers\n");
+	}
+
+	return ret;
 }
 
 int target_backlight_ctrl(struct backlight *bl, uint8_t enable)
@@ -492,6 +597,20 @@ bool target_display_panel_node(char *pbuf, uint16_t buf_size)
 	}
 
 	return ret;
+}
+
+void target_set_switch_gpio(int enable_dsi2hdmibridge)
+{
+	gpio_tlmm_config(dsi2hdmi_switch_gpio.pin_id, 0,
+				dsi2hdmi_switch_gpio.pin_direction,
+				dsi2hdmi_switch_gpio.pin_pull,
+				dsi2hdmi_switch_gpio.pin_strength,
+				dsi2hdmi_switch_gpio.pin_state);
+	gpio_set(enable_gpio.pin_id, GPIO_STATE_HIGH);
+	if (enable_dsi2hdmibridge)
+		gpio_set(enable_gpio.pin_id, GPIO_STATE_LOW); /* DSI2HDMI Bridge */
+	else
+		gpio_set(enable_gpio.pin_id, GPIO_STATE_HIGH); /* Normal DSI operation */
 }
 
 void target_display_init(const char *panel_name)
