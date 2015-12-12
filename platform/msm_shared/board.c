@@ -415,6 +415,26 @@ bool board_pmic_type(uint32_t type)
 	return false;
 }
 
+void board_pmi_target_set(uint8_t num_ent,uint8_t rev)
+{
+	if (format_major == 0x0 && num_ent < SMEM_MAX_PMIC_DEVICES)
+	{
+		if (format_minor < 0xB && num_ent < SMEM_V8_SMEM_MAX_PMIC_DEVICES)
+		{
+			board.pmic_info[num_ent].pmic_target &= 0xffffff00;
+			board.pmic_info[num_ent].pmic_target |= rev;
+		}
+		else
+		{
+			if (num_ent < board.num_pmics)
+			{
+				board.pmic_info_array[num_ent].pmic_target &= 0xffffff00;
+				board.pmic_info_array[num_ent].pmic_target |= rev;
+			}
+		}
+	}
+}
+
 uint32_t board_pmic_target(uint8_t num_ent)
 {
 	if (format_major == 0x0 && num_ent < SMEM_MAX_PMIC_DEVICES)
