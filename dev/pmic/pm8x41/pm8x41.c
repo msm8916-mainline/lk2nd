@@ -565,6 +565,13 @@ void pm8x41_lpg_write_sid(uint8_t sid, uint8_t chan, uint8_t off, uint8_t val)
 	REG_WRITE(lpg_base + off, val);
 }
 
+uint8_t pmi8950_get_pmi_subtype()
+{
+	uint8_t subtype;
+	spmi_reg_read((PMI8950_SLAVE_ID >> 16), REVID_REV_ID_SPARE_0, &subtype, 0);
+	return subtype;
+}
+
 uint8_t pm8x41_get_pmic_rev()
 {
 	return REG_READ(REVID_REVISION4);

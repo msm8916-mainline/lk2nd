@@ -221,6 +221,7 @@ uint32_t pm8x41_resin_status();
 void pm8x41_reset_configure(uint8_t);
 void pm8994_reset_configure(uint8_t);
 void pm8x41_v2_reset_configure(uint8_t);
+uint8_t pmi8950_get_pmi_subtype();
 int pm8x41_ldo_set_voltage(struct pm8x41_ldo *ldo, uint32_t voltage);
 int pm8x41_ldo_control(struct pm8x41_ldo *ldo, uint8_t enable);
 uint8_t pm8x41_get_pmic_rev();

@@ -259,10 +259,24 @@ void target_init(void)
 	int ret = 0;
 #endif
 #endif
-
 	dprintf(INFO, "target_init()\n");
 
 	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
+
+	if(platform_is_msm8937())
+	{
+		uint8_t pmi_rev = 0;
+		uint32_t pmi_type = 0;
+
+		pmi_type = board_pmic_target(1) & 0xffff;
+		if(pmi_type == PMIC_IS_PMI8950)
+		{
+			/* read pmic spare register for rev */
+			pmi_rev = pmi8950_get_pmi_subtype();
+			if(pmi_rev)
+				board_pmi_target_set(1,pmi_rev);
+		}
+	}
 
 	target_keystatus();
 
