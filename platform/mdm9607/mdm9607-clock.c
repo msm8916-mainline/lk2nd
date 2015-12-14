@@ -217,7 +217,7 @@ static struct branch_clk gcc_usb_hs_ahb_clk =
 };
 
 /* Clock lookup table */
-static struct clk_lookup mdm_clocks_fermium[] =
+static struct clk_lookup mdm_clocks_9607[] =
 {
 	CLK_LOOKUP("uart5_iface_clk", gcc_blsp1_ahb_clk.c),
 	CLK_LOOKUP("uart5_core_clk",  gcc_blsp1_uart5_apps_clk.c),
@@ -229,5 +229,5 @@ static struct clk_lookup mdm_clocks_fermium[] =
 
 void platform_clock_init(void)
 {
-	clk_init(mdm_clocks_fermium, ARRAY_SIZE(mdm_clocks_fermium));
+	clk_init(mdm_clocks_9607, ARRAY_SIZE(mdm_clocks_9607));
 }
