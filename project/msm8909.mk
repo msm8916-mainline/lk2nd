@@ -94,3 +94,8 @@ endif
 ENABLE_REBOOT_MODULE := 1
 #Use PON register for reboot reason
 DEFINES += USE_PON_REBOOT_REG=1
+
+#Enable fbcon display for verified boot.
+ifeq ($(ENABLE_FBCON_DISPLAY_MSG),1)
+DEFINES += FBCON_DISPLAY_MSG=1
+endif
