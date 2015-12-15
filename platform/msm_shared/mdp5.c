@@ -1370,6 +1370,21 @@ int mdss_hdmi_on(struct msm_panel_info *pinfo)
 	return NO_ERROR;
 }
 
+int mdss_hdmi_off(struct msm_panel_info *pinfo)
+{
+	if(!target_cont_splash_screen())
+	{
+		writel(0x00000000, MDP_INTF_3_TIMING_ENGINE_EN + mdss_mdp_intf_offset());
+		mdelay(60);
+		/* Underrun(Interface 0/1/2/3) VSYNC Interrupt Enable  */
+		writel(0xFF777713, MDP_INTR_CLEAR);
+	}
+
+	writel(0x00000000, MDP_INTR_EN);
+
+	return NO_ERROR;
+}
+
 int mdp_edp_off(void)
 {
 	if (!target_cont_splash_screen()) {

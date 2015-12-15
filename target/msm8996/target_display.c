@@ -776,5 +776,10 @@ void target_display_init(const char *panel_name)
 
 void target_display_shutdown(void)
 {
-	gcdb_display_shutdown();
+	struct oem_panel_data oem = mdss_dsi_get_oem_data();
+	if (!strcmp(oem.panel, HDMI_PANEL_NAME)) {
+		msm_display_off();
+	} else {
+		gcdb_display_shutdown();
+	}
 }
