@@ -1117,6 +1117,7 @@ int boot_linux_from_mmc(void)
 		#endif /* TZ_SAVE_KERNEL_HASH */
 
 #if VERIFIED_BOOT
+#if !VBOOT_MOTA
 	if(boot_verify_get_state() == ORANGE)
 	{
 #if FBCON_DISPLAY_MSG
@@ -1128,6 +1129,7 @@ int boot_linux_from_mmc(void)
 		mdelay(5000);
 #endif
 	}
+#endif /* !VBOOT_MOTA */
 #endif
 
 #ifdef MDTP_SUPPORT
