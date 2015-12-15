@@ -34,8 +34,17 @@
 
 #define CHECK_VIB_TIMER_FREQUENCY    50
 
+/*
+ * USE_VIB_THREAD is a micro that use a thread to turn off the vibrator,
+ * USE_VIB_THREAD should be define when use ldo to turn on/off vibrator.
+ * Note: define USE_VIB_THREAD will reduce the accuracy of vib time.
+ */
+#if !USE_VIB_THREAD
 static struct timer vib_timer;
-static uint32_t vib_timeout;
+#else
+static uint32_t vib_time;
+#endif
+static uint32_t vib_timeout = 1;
 
 /* Function to turn on vibrator */
 void vib_turn_on()
@@ -49,6 +58,7 @@ void vib_turn_off()
 	pm_vib_turn_off();
 }
 
+#if !USE_VIB_THREAD
 /* Function to turn off vibrator when the vib_timer is expired. */
 static enum handler_return vib_timer_func(struct timer *v_timer, time_t t, void *arg)
 {
@@ -58,6 +68,17 @@ static enum handler_return vib_timer_func(struct timer *v_timer, time_t t, void 
 
 	return INT_RESCHEDULE;
 }
+#else
+int vibrator_thread(void *arg)
+{
+	while((--vib_time)){
+		thread_sleep(CHECK_VIB_TIMER_FREQUENCY);
+	}
+	vib_turn_off();
+	vib_timeout = 1;
+	return 0;
+}
+#endif
 
 /*
  * Function to turn on vibrator.
@@ -65,10 +86,20 @@ static enum handler_return vib_timer_func(struct timer *v_timer, time_t t, void 
  */
 void vib_timed_turn_on(const uint32_t vibrate_time)
 {
+	if(!vib_timeout){
+		dprintf(CRITICAL,"vibrator already turn on\n");
+		return;
+	}
 	vib_turn_on();
-	vib_timeout=0;
+	vib_timeout = 0;
+#if !USE_VIB_THREAD
 	timer_initialize(&vib_timer);
 	timer_set_oneshot(&vib_timer, vibrate_time, vib_timer_func, NULL);
+#else
+	vib_time = (vibrate_time/CHECK_VIB_TIMER_FREQUENCY)+1;
+	thread_resume(thread_create("vibrator_thread", &vibrator_thread,
+			NULL, DEFAULT_PRIORITY, DEFAULT_STACK_SIZE));
+#endif
 }
 
 /* Wait for vibrator timer expired */
