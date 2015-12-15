@@ -2521,7 +2521,7 @@ void cmd_flash_mmc_img(const char *arg, void *data, unsigned sz)
 					fastboot_fail("unlock device to flash keystore");
 					return;
 				}
-				if(!boot_verify_validate_keystore((unsigned char *)data))
+				if(!boot_verify_validate_keystore((unsigned char *)data,sz))
 				{
 					fastboot_fail("image is not a keystore file");
 					return;
