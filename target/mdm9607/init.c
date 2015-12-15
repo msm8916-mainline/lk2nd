@@ -207,11 +207,11 @@ void target_baseband_detect(struct board_data *board)
 
 	switch(platform)
 	{
-	case MDMFERMIUM1:
-	case MDMFERMIUM2:
-	case MDMFERMIUM3:
-	case MDMFERMIUM4:
-	case MDMFERMIUM5:
+	case MDM9607:
+	case MDM8207:
+	case MDM9207:
+	case MDM9307:
+	case MDM9628:
 		board->baseband = BASEBAND_MDM;
         break;
 	default:

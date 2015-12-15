@@ -16,7 +16,7 @@ OBJS += \
        $(LOCAL_DIR)/platform.o \
        $(LOCAL_DIR)/acpuclock.o \
        $(LOCAL_DIR)/gpio.o \
-       $(LOCAL_DIR)/mdmfermium-clock.o
+       $(LOCAL_DIR)/mdm9607-clock.o
 
 LINKER_SCRIPT += $(BUILDDIR)/system-onesegment.ld
 

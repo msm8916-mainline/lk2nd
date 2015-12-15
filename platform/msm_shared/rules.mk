@@ -521,7 +521,7 @@ DEFINES += DISPLAY_TYPE_MDSS=1
 			$(LOCAL_DIR)/mipi_dsi_autopll.o
 endif
 
-ifeq ($(PLATFORM),mdmfermium)
+ifeq ($(PLATFORM),mdm9607)
 	OBJS += $(LOCAL_DIR)/qgic.o \
 			$(LOCAL_DIR)/qtimer.o \
 			$(LOCAL_DIR)/qtimer_mmap.o \
