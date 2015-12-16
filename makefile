@@ -146,7 +146,7 @@ ALLOBJS := \
 
 # add some automatic configuration defines
 DEFINES += \
-	BOARD=$(PROJECT) \
+	BOARD=$(BOARD_NAME) \
 	PROJECT_$(PROJECT)=1 \
 	TARGET_$(TARGET)=1 \
 	PLATFORM_$(PLATFORM)=1 \
