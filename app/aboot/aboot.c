@@ -119,14 +119,6 @@ struct fastboot_cmd_desc {
 
 #define MAX_TAGS_SIZE   1024
 
-#define DM_VERITY_ENFORCING_HARD_RESET_MODE 0x04
-#define DM_VERITY_LOGGING_HARD_RESET_MODE   0x05
-#define DM_VERITY_KEYSCLEAR_HARD_RESET_MODE 0x06
-
-#define DM_VERITY_LOGGING    0x77665508
-#define DM_VERITY_ENFORCING  0x77665509
-#define DM_VERITY_KEYSCLEAR  0x7766550A
-
 /* make 4096 as default size to ensure EFS,EXT4's erasing */
 #define DEFAULT_ERASE_SIZE  4096
 #define MAX_PANEL_BUF_SIZE 128
@@ -3496,16 +3488,13 @@ void aboot_init(const struct app_descriptor *app)
         }
 #if VERIFIED_BOOT
 #if !VBOOT_MOTA
-        else if(reboot_mode == DM_VERITY_ENFORCING ||
-		hard_reboot_mode == DM_VERITY_ENFORCING_HARD_RESET_MODE) {
+        else if(reboot_mode == DM_VERITY_ENFORCING) {
 		device.verity_mode = 1;
 		write_device_info(&device);
-	} else if(reboot_mode == DM_VERITY_LOGGING ||
-		hard_reboot_mode == DM_VERITY_LOGGING_HARD_RESET_MODE) {
+	} else if(reboot_mode == DM_VERITY_LOGGING) {
 		device.verity_mode = 0;
 		write_device_info(&device);
-	} else if(reboot_mode == DM_VERITY_KEYSCLEAR ||
-		hard_reboot_mode == DM_VERITY_KEYSCLEAR_HARD_RESET_MODE) {
+	} else if(reboot_mode == DM_VERITY_KEYSCLEAR) {
 		if(send_delete_keys_to_tz())
 			ASSERT(0);
 	}
