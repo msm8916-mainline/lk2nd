@@ -235,6 +235,9 @@ int dsi_panel_init(struct msm_panel_info *pinfo,
 	pinfo->mipi.wr_mem_start
 			 = pstruct->commandpanel->tevsync_rdptr_irqline;
 	pinfo->mipi.te_sel = pstruct->commandpanel->tepin_select;
+	pinfo->autorefresh_enable = pstruct->commandpanel->autorefresh_enable;
+	pinfo->autorefresh_framenum =
+			pstruct->commandpanel->autorefresh_framenumdiv;
 
 	/* Data lane configuraiton */
 	pinfo->mipi.num_of_lanes = pstruct->laneconfig->dsi_lanes;
