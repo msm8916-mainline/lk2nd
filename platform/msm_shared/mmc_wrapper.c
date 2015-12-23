@@ -291,6 +291,7 @@ static uint32_t mmc_zero_out(struct mmc_device* dev, uint32_t blk_addr, uint32_t
 	uint32_t block_size = mmc_get_device_blocksize();
 	uint32_t erase_size = (block_size * num_blks);
 	uint32_t scratch_size = target_get_max_flash_size();
+	uint32_t write_size = SDHCI_ADMA_MAX_TRANS_SZ;
 
 	dprintf(INFO, "erasing 0x%x:0x%x\n", blk_addr, num_blks);
 
@@ -305,15 +306,19 @@ static uint32_t mmc_zero_out(struct mmc_device* dev, uint32_t blk_addr, uint32_t
 		return 1;
 	}
 
-	memset((void *)out, 0, erase_size);
-
-	/* Flush the data to memory before writing to storage */
-	arch_clean_invalidate_cache_range((addr_t) out , erase_size);
-
-	if (mmc_sdhci_write(dev, out, blk_addr, num_blks))
-	{
-		dprintf(CRITICAL, "failed to erase the partition: %x\n", blk_addr);
-		return 1;
+	while (erase_size > 0) {
+		if (erase_size <= write_size)
+			write_size = erase_size;
+		memset((void *)out, 0, write_size);
+		/* Flush the data to memory before writing to storage */
+		arch_clean_invalidate_cache_range((addr_t) out , write_size);
+		if (mmc_sdhci_write(dev, out, blk_addr , write_size / block_size))
+		{
+			printf(CRITICAL, "failed to erase the partition: %x\n", blk_addr);
+			return 1;
+		}
+		erase_size -= write_size;
+		blk_addr += (write_size / block_size);
 	}
 
 	return 0;
