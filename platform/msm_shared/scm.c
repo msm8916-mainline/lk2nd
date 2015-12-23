@@ -1205,17 +1205,22 @@ uint32_t scm_call2(scmcall_arg *arg, scmcall_ret *ret)
 uint32_t is_secure_boot_enable()
 {
 	uint32_t ret = 0;
-	uint32_t resp[2];
+	uint32_t *resp = NULL;
 	scmcall_arg scm_arg = {0};
 	scmcall_ret scm_ret = {0};
 
+	resp =  memalign(CACHE_LINE,(2 *sizeof(uint32_t)));
+	ASSERT(resp);
 	if (!scm_arm_support) {
-		ret = scm_call_atomic2(TZBSP_SVC_INFO, IS_SECURE_BOOT_ENABLED, &resp, sizeof(resp));
+		ret = scm_call_atomic2(TZBSP_SVC_INFO, IS_SECURE_BOOT_ENABLED, resp, (2 * sizeof(uint32_t)));
 	} else {
 		scm_arg.x0 = MAKE_SIP_SCM_CMD(TZBSP_SVC_INFO, IS_SECURE_BOOT_ENABLED);
 		ret = scm_call2(&scm_arg, &scm_ret);
 		resp[0] = scm_ret.x1;
 	}
+
+	/* Invalidate the resp buffer */
+	arch_clean_invalidate_cache_range((addr_t) resp, ROUNDUP((2 * sizeof(uint32_t)), CACHE_LINE));
 
 	/* Parse Bit 0 and Bit 2 of the response
 	* Bit 0 - SECBOOT_ENABLE_CHECK
@@ -1226,7 +1231,7 @@ uint32_t is_secure_boot_enable()
 			ret = 1;
 	} else
 		dprintf(CRITICAL, "scm call is_secure_boot_enable failed\n");
-
+	free(resp);
 	return ret;
 }
 
