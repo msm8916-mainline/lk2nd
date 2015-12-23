@@ -1361,10 +1361,10 @@ static uint32_t mmc_sd_get_card_ssr(struct sdhci_host *host, struct mmc_card *ca
 	for (i = 15, j = 0; i >=0 ; i--, j++)
 		sd_status[i] = swap_endian32(sd_status[j]);
 
-	au_size = UNPACK_BITS(status, MMC_SD_AU_SIZE_BIT, MMC_SD_AU_SIZE_LEN, 4);
+	au_size = UNPACK_BITS(status, MMC_SD_AU_SIZE_BIT, MMC_SD_AU_SIZE_LEN, 32);
 	/* Card AU size in sectors */
 	card->ssr.au_size = 1 << (au_size + 4);
-	card->ssr.num_aus = UNPACK_BITS(status, MMC_SD_ERASE_SIZE_BIT, MMC_SD_ERASE_SIZE_LEN, 16);
+	card->ssr.num_aus = UNPACK_BITS(status, MMC_SD_ERASE_SIZE_BIT, MMC_SD_ERASE_SIZE_LEN, 32);
 	/*if num_aus is 0 then host should assign number of AU erased at a time*/
 	if (!card->ssr.num_aus)
 		card->ssr.num_aus = 0x10;
