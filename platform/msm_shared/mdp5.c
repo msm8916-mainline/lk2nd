@@ -39,6 +39,7 @@
 #include <err.h>
 #include <clock.h>
 #include <scm.h>
+#include <arch/defines.h>
 
 #define MDSS_MDP_MAX_PREFILL_FETCH	25
 
@@ -1271,6 +1272,46 @@ int mdp_dsi_cmd_off()
 	return NO_ERROR;
 }
 
+static void mdp_set_cmd_autorefresh_mode(struct msm_panel_info *pinfo)
+{
+	uint32_t total_lines = 0, vclks_line = 0, cfg = 0;
+
+	if (!pinfo || (pinfo->type != MIPI_CMD_PANEL) ||
+				!pinfo->autorefresh_enable)
+		return;
+
+	total_lines = pinfo->lcdc.v_front_porch +
+			pinfo->lcdc.v_back_porch +
+			pinfo->lcdc.v_pulse_width +
+			pinfo->border_top + pinfo->border_bottom +
+			pinfo->yres;
+	total_lines *= pinfo->mipi.frame_rate;
+
+	vclks_line = (total_lines) ? 19200000 / total_lines : 0;
+	vclks_line = vclks_line * pinfo->mipi.frame_rate * 100 / 6000;
+
+	cfg = BIT(19) | vclks_line;
+
+	/* Configure tearcheck VSYNC param */
+	writel(cfg, MDP_REG_PP_0_SYNC_CONFIG_VSYNC);
+	if (pinfo->lcdc.dst_split)
+		writel(cfg, MDP_REG_PP_SLAVE_SYNC_CONFIG_VSYNC);
+	if (pinfo->lcdc.dual_pipe)
+		writel(cfg, MDP_REG_PP_1_SYNC_CONFIG_VSYNC);
+	dsb();
+
+	/* Enable autorefresh mode */
+	writel((BIT(31) | pinfo->autorefresh_framenum),
+			MDP_REG_PP_0_AUTOREFRESH_CONFIG);
+	if (pinfo->lcdc.dst_split)
+		writel((BIT(31) | pinfo->autorefresh_framenum),
+			MDP_REG_PP_SLAVE_AUTOREFRESH_CONFIG);
+	if (pinfo->lcdc.dual_pipe)
+		writel((BIT(31) | pinfo->autorefresh_framenum),
+			MDP_REG_PP_1_AUTOREFRESH_CONFIG);
+	dsb();
+}
+
 int mdp_dma_on(struct msm_panel_info *pinfo)
 {
 	uint32_t ctl0_reg_val, ctl1_reg_val;
@@ -1279,8 +1320,11 @@ int mdp_dma_on(struct msm_panel_info *pinfo)
 	if (pinfo->lcdc.dual_pipe && !pinfo->lcdc.dst_split)
 		writel(ctl1_reg_val, MDP_CTL_1_BASE + CTL_FLUSH);
 
+        if (pinfo->autorefresh_enable)
+		mdp_set_cmd_autorefresh_mode(pinfo);
 	writel(0x01, MDP_CTL_0_BASE + CTL_START);
-	return NO_ERROR;
+
+        return NO_ERROR;
 }
 
 int mdp_edp_on(struct msm_panel_info *pinfo)
