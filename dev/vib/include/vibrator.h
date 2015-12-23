@@ -32,6 +32,18 @@
 #define VIB_LRA_TYPE 0x00
 #define VIB_ERM_TYPE 0x01
 
+/* Only copy the definitions that are required for haptic */
+#define QPNP_HAP_RATE_CFG1_1c      0x1C
+#define QPNP_HAP_RATE_CFG2_04     0x04
+#define QPNP_HAP_RATE_CFG1_41       0x41
+#define QPNP_HAP_RATE_CFG2_03       0x03
+
+struct qpnp_hap{
+    uint8_t hap_rate_cfg1;
+    uint8_t hap_rate_cfg2;
+    uint8_t vib_type;
+};
+
 void vib_turn_on(void);
 void vib_turn_off(void);
 void vib_timed_turn_on(const uint32_t);
