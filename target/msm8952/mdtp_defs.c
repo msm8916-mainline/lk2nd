@@ -36,6 +36,9 @@
 #define MDTP_EFUSE_ADDRESS_MSM8956  0x000A4408  // QFPROM_CORR_SPARE_REG18_LSB_ADDR
 #define MDTP_EFUSE_START_MSM8956    0
 
+#define MDTP_EFUSE_ADDRESS_MSM8937  0x000A43B0  // QFPROM_CORR_SPARE_REG18_ROW0_LSB_ADDR
+#define MDTP_EFUSE_START_MSM8937    0
+
 struct mdtp_ui_defs mdtp_ui_defs_msm8952 = {
         // Image dimensions
         952,      // error_msg_width;
@@ -85,6 +88,11 @@ int mdtp_get_target_efuse(struct mdtp_target_efuse* target_efuse)
     {
         target_efuse->address = MDTP_EFUSE_ADDRESS_MSM8956;
         target_efuse->start = MDTP_EFUSE_START_MSM8956;
+    }
+    else if (platform_is_msm8937())
+    {
+        target_efuse->address = MDTP_EFUSE_ADDRESS_MSM8937;
+        target_efuse->start = MDTP_EFUSE_START_MSM8937;
     }
     else
     {
