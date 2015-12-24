@@ -101,8 +101,8 @@ static struct pll_vote_clk gpll0_clk_src =
 {
 	.en_reg       = (void *) APCS_GPLL_ENA_VOTE,
 	.en_mask      = BIT(0),
-	.status_reg   = (void *) GPLL0_STATUS,
-	.status_mask  = BIT(17),
+	.status_reg   = (void *) GPLL0_MODE,
+	.status_mask  = BIT(30),
 	.parent       = &cxo_clk_src.c,
 
 	.c = {
