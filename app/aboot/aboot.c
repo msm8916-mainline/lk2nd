@@ -2130,6 +2130,14 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	// Initialize boot state before trying to verify boot.img
 #if VERIFIED_BOOT
 		boot_verifier_init();
+	/* Handle overflow if the input image size is greater than
+	 * boot image buffer can hold
+	 */
+	if ((target_get_max_flash_size() - (image_actual - sig_actual)) < page_size)
+	{
+		fastboot_fail("booimage: size is greater than boot image buffer can hold");
+		return;
+	}
 #endif
 
 	/* Verify the boot image
