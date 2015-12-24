@@ -68,6 +68,7 @@
 #include <dev_tree.h>
 #endif
 
+#include <reboot.h>
 #include "image_verify.h"
 #include "recovery.h"
 #include "bootimg.h"
@@ -118,16 +119,10 @@ struct fastboot_cmd_desc {
 
 #define MAX_TAGS_SIZE   1024
 
-#define RECOVERY_HARD_RESET_MODE   0x01
-#define FASTBOOT_HARD_RESET_MODE   0x02
-#define RTC_HARD_RESET_MODE        0x03
 #define DM_VERITY_ENFORCING_HARD_RESET_MODE 0x04
 #define DM_VERITY_LOGGING_HARD_RESET_MODE   0x05
 #define DM_VERITY_KEYSCLEAR_HARD_RESET_MODE 0x06
 
-#define RECOVERY_MODE        0x77665502
-#define FASTBOOT_MODE        0x77665500
-#define ALARM_BOOT           0x77665503
 #define DM_VERITY_LOGGING    0x77665508
 #define DM_VERITY_ENFORCING  0x77665509
 #define DM_VERITY_KEYSCLEAR  0x7766550A
@@ -3417,7 +3412,6 @@ void aboot_fastboot_register_commands(void)
 void aboot_init(const struct app_descriptor *app)
 {
 	unsigned reboot_mode = 0;
-	unsigned hard_reboot_mode = 0;
 	bool boot_into_fastboot = false;
 
 	/* Setup page size information for nv storage */
@@ -3485,16 +3479,21 @@ void aboot_init(const struct app_descriptor *app)
 		boot_into_fastboot = true;
 	#endif
 
+#if USE_PON_REBOOT_REG
+	reboot_mode = check_hard_reboot_mode();
+#else
 	reboot_mode = check_reboot_mode();
-	hard_reboot_mode = check_hard_reboot_mode();
-	if (reboot_mode == RECOVERY_MODE ||
-		hard_reboot_mode == RECOVERY_HARD_RESET_MODE) {
+#endif
+	if (reboot_mode == RECOVERY_MODE)
+	{
 		boot_into_recovery = 1;
-	} else if(reboot_mode == FASTBOOT_MODE ||
-		hard_reboot_mode == FASTBOOT_HARD_RESET_MODE) {
+	}
+	else if(reboot_mode == FASTBOOT_MODE)
+	{
 		boot_into_fastboot = true;
-	} else if(reboot_mode == ALARM_BOOT ||
-		hard_reboot_mode == RTC_HARD_RESET_MODE) {
+	}
+	else if(reboot_mode == ALARM_BOOT)
+	{
 		boot_reason_alarm = true;
         }
 #if VERIFIED_BOOT

@@ -134,3 +134,8 @@ __WEAK uint32_t platform_detect_panel()
 {
 	return 0;
 }
+
+__WEAK uint32_t check_alarm_boot()
+{
+	return 0;
+}

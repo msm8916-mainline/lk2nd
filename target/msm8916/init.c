@@ -67,9 +67,6 @@
 #define VIBRATE_TIME    250
 #endif
 
-#define FASTBOOT_MODE           0x77665500
-#define PON_SOFT_RB_SPARE       0x88F
-
 #define CE1_INSTANCE            1
 #define CE_EE                   1
 #define CE_FIFO_SIZE            64
@@ -176,23 +173,6 @@ static void target_keystatus()
 		keys_post_event(KEY_VOLUMEUP, 1);
 }
 
-#if USER_FORCE_RESET_SUPPORT
-/* Return 1 if it is a force resin triggered by user. */
-uint32_t is_user_force_reset(void)
-{
-	uint8_t poff_reason1 = pm8x41_get_pon_poff_reason1();
-	uint8_t poff_reason2 = pm8x41_get_pon_poff_reason2();
-
-	dprintf(SPEW, "poff_reason1: %d\n", poff_reason1);
-	dprintf(SPEW, "poff_reason2: %d\n", poff_reason2);
-	if (pm8x41_get_is_cold_boot() && (poff_reason1 == KPDPWR_AND_RESIN ||
-							poff_reason2 == STAGE3))
-		return 1;
-	else
-		return 0;
-}
-#endif
-
 void target_init(void)
 {
         uint32_t base_addr;
@@ -279,85 +259,6 @@ void target_serialno(unsigned char *buf)
 unsigned board_machtype(void)
 {
 	return LINUX_MACHTYPE_UNKNOWN;
-}
-
-unsigned check_reboot_mode(void)
-{
-	uint32_t restart_reason = 0;
-
-	/* Read reboot reason and scrub it */
-	restart_reason = readl(RESTART_REASON_ADDR);
-	writel(0x00, RESTART_REASON_ADDR);
-
-	return restart_reason;
-}
-
-unsigned check_hard_reboot_mode(void)
-{
-	uint8_t hard_restart_reason = 0;
-	uint8_t value = 0;
-
-	/* Read reboot reason and scrub it
-	  * Bit-5, bit-6 and bit-7 of SOFT_RB_SPARE for hard reset reason
-	  */
-	value = pm8x41_reg_read(PON_SOFT_RB_SPARE);
-	hard_restart_reason = value >> 5;
-	pm8x41_reg_write(PON_SOFT_RB_SPARE, value & 0x1f);
-
-	return hard_restart_reason;
-}
-
-/* Configure PMIC and Drop PS_HOLD for shutdown */
-void shutdown_device()
-{
-	dprintf(CRITICAL, "Going down for shutdown.\n");
-
-	/* Configure PMIC for shutdown */
-	pm8x41_reset_configure(PON_PSHOLD_SHUTDOWN);
-
-	/* Drop PS_HOLD for MSM */
-	writel(0x00, MPM2_MPM_PS_HOLD);
-
-	mdelay(5000);
-
-	dprintf(CRITICAL, "shutdown failed\n");
-
-	ASSERT(0);
-}
-
-void reboot_device(unsigned reboot_reason)
-{
-	uint8_t reset_type = 0;
-	uint32_t ret = 0;
-
-	/* Need to clear the SW_RESET_ENTRY register and
-	 * write to the BOOT_MISC_REG for known reset cases
-	 */
-	if(reboot_reason != DLOAD)
-		scm_dload_mode(NORMAL_MODE);
-
-	writel(reboot_reason, RESTART_REASON_ADDR);
-
-	/* For Reboot-bootloader and Dload cases do a warm reset
-	 * For Reboot cases do a hard reset
-	 */
-	if((reboot_reason == FASTBOOT_MODE) || (reboot_reason == DLOAD))
-		reset_type = PON_PSHOLD_WARM_RESET;
-	else
-		reset_type = PON_PSHOLD_HARD_RESET;
-
-	pm8x41_reset_configure(reset_type);
-
-	ret = scm_halt_pmic_arbiter();
-	if (ret)
-		dprintf(CRITICAL , "Failed to halt pmic arbiter: %d\n", ret);
-
-	/* Drop PS_HOLD for MSM */
-	writel(0x00, MPM2_MPM_PS_HOLD);
-
-	mdelay(5000);
-
-	dprintf(CRITICAL, "Rebooting failed\n");
 }
 
 /* Detect the target type */
@@ -661,4 +562,9 @@ void target_crypto_init_params()
 uint32_t target_get_hlos_subtype()
 {
 	return board_hlos_subtype();
+}
+
+void pmic_reset_configure(uint8_t reset_type)
+{
+	pm8x41_reset_configure(reset_type);
 }

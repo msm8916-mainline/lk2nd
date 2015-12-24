@@ -53,6 +53,7 @@ unsigned board_machtype(void);
 unsigned board_platform_id(void);
 unsigned check_reboot_mode(void);
 unsigned check_hard_reboot_mode(void);
+uint32_t check_alarm_boot(void);
 void platform_uninit_timer(void);
 void reboot_device(unsigned);
 int set_download_mode(enum dload_mode mode);
