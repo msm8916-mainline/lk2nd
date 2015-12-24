@@ -65,9 +65,7 @@
 #define QPNP_HAP_PWM_CAP_MASK 0x03
 #define QPNP_HAP_PWM_CAP_13PF 0x01
 #define QPNP_HAP_RATE_CFG1_MASK 0xFF
-#define QPNP_HAP_RATE_CFG1_7_0 0x1C
 #define QPNP_HAP_RATE_CFG2_MASK 0x0F
-#define QPNP_HAP_RATE_CFG2_11_8 0x04
 #define QPNP_HAP_EN_BRAKE_EN_MASK 0x01
 #define QPNP_HAP_EN_BRAKING_EN 0x01
 #define QPNP_HAP_BRAKE_VMAX_MASK 0xFF
@@ -87,12 +85,13 @@
 /* Turn on vibrator */
 void pm_vib_turn_on(void)
 {
-	uint32_t vib_type = VIB_ERM_TYPE;
-	vib_type = get_vibration_type();
+	struct qpnp_hap vib_config = {0};
+
+	get_vibration_type(&vib_config);
 	/* Configure the ACTUATOR TYPE register as ERM*/
 	pmic_spmi_reg_mask_write(QPNP_HAP_ACT_TYPE_REG,
 					QPNP_HAP_ACT_TYPE_MASK,
-					VIB_ERM_TYPE == vib_type ? QPNP_HAP_ERM
+					VIB_ERM_TYPE == vib_config.vib_type ? QPNP_HAP_ERM
 					: QPNP_HAP_LRA);
 
 	/* Disable auto resonance for ERM */
@@ -129,9 +128,9 @@ void pm_vib_turn_on(void)
 
 	/* Configure RATE_CFG1 and RATE_CFG2 registers for haptic rate. */
 	pmic_spmi_reg_mask_write(QPNP_HAP_RATE_CFG1_REG,
-					QPNP_HAP_RATE_CFG1_MASK, QPNP_HAP_RATE_CFG1_7_0);
+					QPNP_HAP_RATE_CFG1_MASK, vib_config.hap_rate_cfg1);
 	pmic_spmi_reg_mask_write(QPNP_HAP_RATE_CFG2_REG,
-					QPNP_HAP_RATE_CFG2_MASK, QPNP_HAP_RATE_CFG2_11_8);
+					QPNP_HAP_RATE_CFG2_MASK, vib_config.hap_rate_cfg2);
 
 	/* Configure BRAKE register, PATTERN1 & PATTERN2 as VMAX. */
 	pmic_spmi_reg_mask_write(QPNP_HAP_EN_CTL2_REG,

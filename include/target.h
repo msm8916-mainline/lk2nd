@@ -93,7 +93,7 @@ struct qmp_reg *target_get_qmp_settings();
 int target_get_qmp_regsize();
 
 #if PON_VIB_SUPPORT
-uint32_t get_vibration_type();
+void get_vibration_type();
 #endif
 
 #if CHECK_BAT_VOLTAGE

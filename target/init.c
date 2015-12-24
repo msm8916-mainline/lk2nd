@@ -240,35 +240,42 @@ __WEAK uint32_t target_ddr_cfg_val()
 }
 
 #if PON_VIB_SUPPORT
-uint32_t get_vibration_type()
+void get_vibration_type(struct qpnp_hap *config)
 {
-	uint32_t ret = VIB_ERM_TYPE;
 	uint32_t hw_id = board_hardware_id();
 	uint32_t platform = board_platform_id();
+
+	config->vib_type = VIB_ERM_TYPE;
+	config->hap_rate_cfg1 = QPNP_HAP_RATE_CFG1_1c;
+	config->hap_rate_cfg2 = QPNP_HAP_RATE_CFG2_04;
 	switch(hw_id){
 	case HW_PLATFORM_MTP:
 		switch(platform){
 		case MSM8952:
-			ret = VIB_ERM_TYPE;
+			config->vib_type = VIB_ERM_TYPE;
 			break;
 		case MSM8976:
 		case MSM8956:
 		case APQ8056:
-			ret = VIB_LRA_TYPE;
+			config->vib_type = VIB_LRA_TYPE;
 			break;
+		case MSM8937:
+		case APQ8037:
+			config->vib_type = VIB_LRA_TYPE;
+			config->hap_rate_cfg1 = QPNP_HAP_RATE_CFG1_41;
+			config->hap_rate_cfg2 = QPNP_HAP_RATE_CFG2_03;
 		default:
 			dprintf(CRITICAL,"Unsupported platform id\n");
 			break;
 		}
 		break;
 	case HW_PLATFORM_QRD:
-		ret = VIB_ERM_TYPE;
+		config->vib_type = VIB_ERM_TYPE;
 		break;
 	default:
-		dprintf(CRITICAL,"Unsupported platform id\n");
+		dprintf(CRITICAL,"Unsupported hardware id\n");
 		break;
 	}
-	return ret;
 }
 #endif
 

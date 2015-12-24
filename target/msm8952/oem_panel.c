@@ -496,6 +496,7 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		panelstruct->panelresetseq
 		                         = &r69006_1080p_cmd_reset_seq;
 		panelstruct->backlightinfo = &r69006_1080p_cmd_backlight;
+		pinfo->labibb = &r69006_1080p_cmd_labibb;
 		pinfo->mipi.panel_on_cmds
 		                        = r69006_1080p_cmd_on_command;
 		pinfo->mipi.num_of_panel_on_cmds
@@ -521,6 +522,7 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		panelstruct->panelresetseq
 								 = &r69006_1080p_video_reset_seq;
 		panelstruct->backlightinfo = &r69006_1080p_video_backlight;
+		pinfo->labibb = &r69006_1080p_video_labibb;
 		pinfo->mipi.panel_on_cmds
 								= r69006_1080p_video_on_command;
 		pinfo->mipi.num_of_panel_on_cmds
