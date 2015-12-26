@@ -67,6 +67,11 @@ DEFINES += PLATFORM_USE_SCM_DLOAD=1
 
 CFLAGS += -Werror
 
+# Reset USB clock from target code
+DEFINES += USB_RESET_FROM_CLK=1
+
+DEFINES += USE_TARGET_QMP_SETTINGS=1
+
 DEFINES += USE_TARGET_HS200_DELAY=1
 
 #Enable the external reboot functions
