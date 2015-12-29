@@ -63,6 +63,7 @@ enum {
 enum {
 	MTP_WEAR = 0x05,
 	SURF_WEAR = 0x03,
+	SWOC_WEAR = 0x09,
 };
 
 /*---------------------------------------------------------------------------*/
@@ -413,8 +414,9 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	case HW_PLATFORM_MTP:
 	case HW_PLATFORM_RCM:
 		switch (platform_subtype) {
-			case SURF_WEAR:
 			case MTP_WEAR:
+			case SURF_WEAR:
+			case SWOC_WEAR:
 				if ((platform_type == MSM8909W) ||
 					(platform_type == APQ8009W))
 					panel_id = AUO_CX_QVGA_CMD_PANEL;
