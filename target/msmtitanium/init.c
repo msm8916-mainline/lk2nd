@@ -309,6 +309,9 @@ void target_baseband_detect(struct board_data *board)
 	case MSMTITANIUM:
 		board->baseband = BASEBAND_MSM;
 		break;
+	case APQTITANIUM:
+		board->baseband = BASEBAND_APQ;
+		break;
 	default:
 		dprintf(CRITICAL, "Platform type: %u is not supported\n",platform);
 		ASSERT(0);
