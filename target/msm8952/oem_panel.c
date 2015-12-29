@@ -508,6 +508,8 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		memcpy(phy_db->timing,
 		                r69006_1080p_cmd_timings, TIMING_SIZE);
 		pinfo->mipi.signature = R69006_1080P_CMD_SIGNATURE;
+		pinfo->mipi.tx_eot_append = true;
+		pinfo->mipi.rx_eot_ignore = true;
 		break;
 	case R69006_1080P_VIDEO_PANEL:
 		panelstruct->paneldata	  = &r69006_1080p_video_panel_data;
