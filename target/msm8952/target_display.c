@@ -310,6 +310,14 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 	pll_data = pinfo->mipi.dsi_pll_config;
 	pll_data->vco_delay = VCO_DELAY_USEC;
 
+	/* SSC parameters */
+	if (platform_is_msm8937()) {
+		pll_data->ssc_en = true;
+		pll_data->is_center_spread = false;
+		pll_data->ssc_freq = 30000;
+		pll_data->ssc_ppm = 5000;
+	}
+
 	if (enable) {
 		mdp_gdsc_ctrl(enable);
 		mdss_bus_clocks_enable();
