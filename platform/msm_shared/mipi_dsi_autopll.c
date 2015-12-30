@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -81,16 +81,19 @@ void mdss_dsi_uniphy_pll_sw_reset(uint32_t pll_base)
 	udelay(1);
 }
 
-int32_t mdss_dsi_auto_pll_config(uint32_t pll_base, uint32_t ctl_base,
-				struct mdss_dsi_pll_config *pd)
+uint64_t div_round_closest_unsigned(uint64_t dividend, uint64_t divisor)
 {
-	uint32_t rem, divider;
-	uint32_t refclk_cfg = 0, frac_n_mode = 0, ref_doubler_en_b = 0;
-	uint64_t vco_clock, div_fbx;
-	uint32_t ref_clk_to_pll = 0, frac_n_value = 0;
-	uint32_t sdm_cfg0, sdm_cfg1, sdm_cfg2, sdm_cfg3;
-	uint32_t gen_vco_clk, cal_cfg10, cal_cfg11;
-	uint8_t i, rc = NO_ERROR;
+	return ((dividend + (divisor / 2)) / divisor);
+}
+
+static int32_t mdss_dsi_pll_vco_rate_calc(struct mdss_dsi_pll_config *pd,
+	struct mdss_dsi_vco_calc *vco_calc)
+{
+	uint8_t i;
+	int8_t rc = NO_ERROR;
+	uint32_t rem;
+	uint64_t frac_n_mode = 0, ref_doubler_en_b = 0;
+	uint64_t div_fb = 0, frac_n_value = 0, ref_clk_to_pll = 0;
 
 	/* Configure the Loop filter resistance */
 	for (i = 0; i < LPFR_LUT_SIZE; i++)
@@ -102,11 +105,83 @@ int32_t mdss_dsi_auto_pll_config(uint32_t pll_base, uint32_t ctl_base,
 		rc = ERROR;
 		return rc;
 	}
+	vco_calc->lpfr_lut_res = lpfr_lut[i].resistance;
 
-	mdss_dsi_phy_sw_reset(ctl_base);
+	rem = pd->vco_clock % VCO_REF_CLOCK_RATE;
+	if (rem) {
+		vco_calc->refclk_cfg = 0x1;
+		frac_n_mode = 1;
+		ref_doubler_en_b = 0;
+	} else {
+		vco_calc->refclk_cfg = 0x0;
+		frac_n_mode = 0;
+		ref_doubler_en_b = 1;
+	}
 
+	ref_clk_to_pll = (VCO_REF_CLOCK_RATE * 2 * vco_calc->refclk_cfg)
+			  + (ref_doubler_en_b * VCO_REF_CLOCK_RATE);
+	div_fb = div_s64(pd->vco_clock, ref_clk_to_pll, &rem);
+	frac_n_value = ((uint64_t) rem * (1 << 16)) / ref_clk_to_pll;
+	vco_calc->gen_vco_clk = pd->vco_clock;
+
+	if (frac_n_mode) {
+		vco_calc->sdm_cfg0 = 0x0;
+		vco_calc->sdm_cfg1 = (div_fb & 0x3f) - 1;
+		vco_calc->sdm_cfg3 = frac_n_value / 256;
+		vco_calc->sdm_cfg2 = frac_n_value % 256;
+	} else {
+		vco_calc->sdm_cfg0 = (0x1 << 5);
+		vco_calc->sdm_cfg0 |= (div_fb & 0x3f) - 1;
+		vco_calc->sdm_cfg1 = 0x0;
+		vco_calc->sdm_cfg2 = 0;
+		vco_calc->sdm_cfg3 = 0;
+	}
+
+	vco_calc->cal_cfg11 = vco_calc->gen_vco_clk / 256000000;
+	vco_calc->cal_cfg10 = (vco_calc->gen_vco_clk % 256000000) / 1000000;
+
+	return NO_ERROR;
+
+}
+
+static void mdss_dsi_ssc_param_calc(struct mdss_dsi_pll_config *pd,
+	struct mdss_dsi_vco_calc *vco_calc)
+{
+	uint64_t ppm_freq, incr, spread_freq, div_rf, frac_n_value;
+	uint32_t rem;
+
+	vco_calc->ssc.kdiv = div_round_closest_unsigned(VCO_REF_CLOCK_RATE,
+		1000000) - 1;
+	vco_calc->ssc.triang_steps = div_round_closest_unsigned(
+		VCO_REF_CLOCK_RATE, pd->ssc_freq * (vco_calc->ssc.kdiv + 1));
+	ppm_freq = (vco_calc->gen_vco_clk * pd->ssc_ppm) / 1000000;
+	incr = (ppm_freq * 65536) / (VCO_REF_CLOCK_RATE * 2 *
+		vco_calc->ssc.triang_steps);
+
+	vco_calc->ssc.triang_inc_7_0 = incr & 0xff;
+	vco_calc->ssc.triang_inc_9_8 = (incr >> 8) & 0x3;
+
+	if (!pd->is_center_spread)
+		spread_freq = vco_calc->gen_vco_clk - ppm_freq;
+	else
+		spread_freq = vco_calc->gen_vco_clk - (ppm_freq / 2);
+
+	div_rf = spread_freq / (2 * VCO_REF_CLOCK_RATE);
+	vco_calc->ssc.dc_offset = (div_rf - 1);
+
+	div_s64(spread_freq, 2 * VCO_REF_CLOCK_RATE, &rem);
+	frac_n_value = ((uint64_t) rem * 65536) / (2 * VCO_REF_CLOCK_RATE);
+
+	vco_calc->ssc.freq_seed_7_0 = frac_n_value & 0xff;
+	vco_calc->ssc.freq_seed_15_8 = (frac_n_value >> 8) & 0xff;
+
+}
+
+static void mdss_dsi_pll_vco_config(uint32_t pll_base, struct mdss_dsi_pll_config *pd,
+	struct mdss_dsi_vco_calc *vco_calc)
+{
 	/* Loop filter resistance value */
-	writel(lpfr_lut[i].resistance, pll_base + 0x002c);
+	writel(vco_calc->lpfr_lut_res, pll_base + 0x002c);
 	/* Loop filter capacitance values : c1 and c2 */
 	writel(0x70, pll_base + 0x0030);
 	writel(0x15, pll_base + 0x0034);
@@ -123,51 +198,20 @@ int32_t mdss_dsi_auto_pll_config(uint32_t pll_base, uint32_t ctl_base,
 	writel(0x66, pll_base + 0x007c); /* Cal CFG4 */
 	writel(0x05, pll_base + 0x0064); /* LKDetect CFG2 */
 
-	rem = pd->vco_clock % VCO_REF_CLOCK_RATE;
-	if (rem) {
-		refclk_cfg = 0x1;
-		frac_n_mode = 1;
-		ref_doubler_en_b = 0;
+	if (!pd->ssc_en) {
+		writel(vco_calc->sdm_cfg1 , pll_base + 0x003c); /* SDM CFG1 */
+		writel(vco_calc->sdm_cfg2 , pll_base + 0x0040); /* SDM CFG2 */
+		writel(vco_calc->sdm_cfg3 , pll_base + 0x0044); /* SDM CFG3 */
 	} else {
-		refclk_cfg = 0x0;
-		frac_n_mode = 0;
-		ref_doubler_en_b = 1;
+		writel(vco_calc->ssc.dc_offset , pll_base + 0x003c); /* SDM CFG1 */
+		writel(vco_calc->ssc.freq_seed_7_0, pll_base + 0x0040); /* SDM CFG2 */
+		writel(vco_calc->ssc.freq_seed_15_8 , pll_base + 0x0044); /* SDM CFG3 */
+		writel(vco_calc->ssc.kdiv, pll_base + 0x4c); /* SSC CFG0 */
+		writel(vco_calc->ssc.triang_inc_7_0, pll_base + 0x50); /* SSC CFG1 */
+		writel(vco_calc->ssc.triang_inc_9_8, pll_base + 0x54); /* SSC CFG2 */
+		writel(vco_calc->ssc.triang_steps, pll_base + 0x58); /* SSC CFG3 */
 	}
 
-	ref_clk_to_pll = (VCO_REF_CLOCK_RATE * 2 * refclk_cfg)
-			  + (ref_doubler_en_b * VCO_REF_CLOCK_RATE);
-
-	vco_clock = ((uint64_t) pd->vco_clock) * FRAC_DIVIDER;
-
-	div_fbx = vco_clock / ref_clk_to_pll;
-
-	rem = (uint32_t) (div_fbx % FRAC_DIVIDER);
-	rem = rem * (1 << 16);
-	frac_n_value = rem / FRAC_DIVIDER;
-
-	divider = pd->vco_clock / ref_clk_to_pll;
-	div_fbx *= ref_clk_to_pll;
-	gen_vco_clk = div_fbx / FRAC_DIVIDER;
-
-	if (frac_n_mode) {
-		sdm_cfg0 = 0x0;
-		sdm_cfg1 = (divider & 0x3f) - 1;
-		sdm_cfg3 = frac_n_value / 256;
-		sdm_cfg2 = frac_n_value % 256;
-	} else {
-		sdm_cfg0 = (0x1 << 5);
-		sdm_cfg0 |= (divider & 0x3f) - 1;
-		sdm_cfg1 = 0x0;
-		sdm_cfg2 = 0;
-		sdm_cfg3 = 0;
-	}
-
-	cal_cfg11 = gen_vco_clk / 256000000;
-	cal_cfg10 = (gen_vco_clk % 256000000) / 1000000;
-
-	writel(sdm_cfg1 , pll_base + 0x003c); /* SDM CFG1 */
-	writel(sdm_cfg2 , pll_base + 0x0040); /* SDM CFG2 */
-	writel(sdm_cfg3 , pll_base + 0x0044); /* SDM CFG3 */
 	writel(0x00, pll_base + 0x0048); /* SDM CFG4 */
 
 	if (pd->vco_delay)
@@ -175,19 +219,38 @@ int32_t mdss_dsi_auto_pll_config(uint32_t pll_base, uint32_t ctl_base,
 	else
 		udelay(10);
 
-	writel(refclk_cfg, pll_base + 0x0000); /* REFCLK CFG */
+	writel(vco_calc->refclk_cfg, pll_base + 0x0000); /* REFCLK CFG */
 	writel(0x00, pll_base + 0x0014); /* PWRGEN CFG */
 	writel(0x71, pll_base + 0x000c); /* VCOLPF CFG */
 	writel(pd->directpath, pll_base + 0x0010); /* VREG CFG */
-	writel(sdm_cfg0, pll_base + 0x0038); /* SDM CFG0 */
+	writel(vco_calc->sdm_cfg0, pll_base + 0x0038); /* SDM CFG0 */
 
 	writel(0x0a, pll_base + 0x006c); /* CAL CFG0 */
 	writel(0x30, pll_base + 0x0084); /* CAL CFG6 */
 	writel(0x00, pll_base + 0x0088); /* CAL CFG7 */
 	writel(0x60, pll_base + 0x008c); /* CAL CFG8 */
 	writel(0x00, pll_base + 0x0090); /* CAL CFG9 */
-	writel(cal_cfg10, pll_base + 0x0094); /* CAL CFG10 */
-	writel(cal_cfg11, pll_base + 0x0098); /* CAL CFG11 */
+	writel(vco_calc->cal_cfg10, pll_base + 0x0094); /* CAL CFG10 */
+	writel(vco_calc->cal_cfg11, pll_base + 0x0098); /* CAL CFG11 */
 	writel(0x20, pll_base + 0x009c); /* EFUSE CFG */
+}
+
+int32_t mdss_dsi_auto_pll_config(uint32_t pll_base, uint32_t ctl_base,
+				struct mdss_dsi_pll_config *pd)
+{
+	int rc = NO_ERROR;
+	struct mdss_dsi_vco_calc vco_calc;
+
+
+	rc = mdss_dsi_pll_vco_rate_calc(pd, &vco_calc);
+	if (rc)
+		return rc;
+
+	mdss_dsi_ssc_param_calc(pd, &vco_calc);
+
+	mdss_dsi_phy_sw_reset(ctl_base);
+
+	mdss_dsi_pll_vco_config(pll_base, pd, &vco_calc);
+
 	return rc;
 }
