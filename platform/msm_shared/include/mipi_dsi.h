@@ -163,6 +163,29 @@ struct mdss_dsi_phy_ctrl {
 	int pll_type;
 };
 
+struct ssc_params {
+	uint32_t kdiv;
+	uint64_t triang_inc_7_0;
+	uint64_t triang_inc_9_8;
+	uint64_t triang_steps;
+	uint64_t dc_offset;
+	uint64_t freq_seed_7_0;
+	uint64_t freq_seed_15_8;
+};
+
+struct mdss_dsi_vco_calc {
+	uint64_t sdm_cfg0;
+	uint64_t sdm_cfg1;
+	uint64_t sdm_cfg2;
+	uint64_t sdm_cfg3;
+	uint64_t cal_cfg10;
+	uint64_t cal_cfg11;
+	uint64_t refclk_cfg;
+	uint64_t gen_vco_clk;
+	uint32_t lpfr_lut_res;
+	struct ssc_params ssc;
+};
+
 struct mdss_dsi_pll_config {
 	uint32_t  pixel_clock;
 	uint32_t  pixel_clock_mhz;
@@ -180,6 +203,12 @@ struct mdss_dsi_pll_config {
 	uint8_t   pclk_m;
 	uint8_t   pclk_n;
 	uint8_t   pclk_d;
+
+	/* SSC related params */
+	bool      ssc_en;
+	bool      is_center_spread;
+	uint32_t  ssc_freq;
+	uint32_t  ssc_ppm;
 
 	/* pll 20nm */
 	uint32_t  dec_start;

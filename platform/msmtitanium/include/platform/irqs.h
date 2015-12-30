@@ -51,7 +51,7 @@
 #define SDCC2_PWRCTL_IRQ                       (GIC_SPI_START + 221)
 
 /* Retrofit universal macro names */
-#define INT_USB_HS                             USB1_HS_IRQ
+#define INT_USB_HS                             USB30_EE1_IRQ
 
 #define EE0_KRAIT_HLOS_SPMI_PERIPH_IRQ         (GIC_SPI_START + 190)
 

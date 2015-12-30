@@ -52,6 +52,12 @@
 #include <spmi.h>
 #include <sdhci_msm.h>
 #include <clock.h>
+#include <boot_device.h>
+#include <secapp_loader.h>
+#include <rpmb.h>
+#include <smem.h>
+#include <qmp_phy.h>
+#include <qusb2_phy.h>
 
 #if LONG_PRESS_POWER_ON
 #include <shutdown_detect.h>
@@ -62,7 +68,17 @@
 #define TLMM_VOL_UP_BTN_GPIO    85
 
 #define FASTBOOT_MODE           0x77665500
+#define RECOVERY_MODE           0x77665502
 #define PON_SOFT_RB_SPARE       0x88F
+
+#define CE1_INSTANCE            1
+#define CE_EE                   1
+#define CE_FIFO_SIZE            64
+#define CE_READ_PIPE            3
+#define CE_WRITE_PIPE           2
+#define CE_READ_PIPE_LOCK_GRP   0
+#define CE_WRITE_PIPE_LOCK_GRP  0
+#define CE_ARRAY_SIZE           20
 
 struct mmc_device *dev;
 
@@ -78,7 +94,7 @@ static uint32_t  mmc_sdc_pwrctl_irq[] =
 void target_early_init(void)
 {
 #if WITH_DEBUG_UART
-	uart_dm_init(1, 0, BLSP1_UART1_BASE);
+	uart_dm_init(2, 0, BLSP1_UART1_BASE);
 #endif
 }
 
@@ -160,7 +176,7 @@ static int target_volume_up()
 	status = gpio_status(TLMM_VOL_UP_BTN_GPIO);
 
 	/* Active high signal. */
-	return status;
+	return !status;
 }
 
 /* Return 1 if vol_down pressed */
@@ -168,6 +184,15 @@ uint32_t target_volume_down()
 {
 	/* Volume down button tied in with PMIC RESIN. */
 	return pm8x41_resin_status();
+}
+
+uint32_t target_is_pwrkey_pon_reason()
+{
+	uint8_t pon_reason = pm8950_get_pon_reason();
+	if (pm8x41_get_is_cold_boot() && ((pon_reason == KPDPWR_N) || (pon_reason == (KPDPWR_N|PON1))))
+		return 1;
+	else
+		return 0;
 }
 
 static void target_keystatus()
@@ -183,6 +208,11 @@ static void target_keystatus()
 
 void target_init(void)
 {
+#if VERIFIED_BOOT
+#if !VBOOT_MOTA
+	int ret = 0;
+#endif
+#endif
 	dprintf(INFO, "target_init()\n");
 
 	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
@@ -198,6 +228,53 @@ void target_init(void)
 
 #if LONG_PRESS_POWER_ON
 	shutdown_detect();
+#endif
+
+
+	if (target_use_signed_kernel())
+		target_crypto_init_params();
+
+#if VERIFIED_BOOT
+#if !VBOOT_MOTA
+	clock_ce_enable(CE1_INSTANCE);
+
+	/* Initialize Qseecom */
+	ret = qseecom_init();
+
+	if (ret < 0)
+	{
+		dprintf(CRITICAL, "Failed to initialize qseecom, error: %d\n", ret);
+		ASSERT(0);
+	}
+
+	/* Start Qseecom */
+	ret = qseecom_tz_init();
+
+	if (ret < 0)
+	{
+		dprintf(CRITICAL, "Failed to start qseecom, error: %d\n", ret);
+		ASSERT(0);
+	}
+
+	if (rpmb_init() < 0)
+	{
+		dprintf(CRITICAL, "RPMB init failed\n");
+		ASSERT(0);
+	}
+
+	/*
+	 * Load the sec app for first time
+	 */
+	if (load_sec_app() < 0)
+	{
+		dprintf(CRITICAL, "Failed to load App for verified\n");
+		ASSERT(0);
+	}
+#endif
+#endif
+
+#if SMD_SUPPORT
+	rpm_smd_init();
 #endif
 }
 
@@ -221,6 +298,7 @@ void target_detect(struct board_data *board)
 	/* This is already filled as part of board.c */
 }
 
+/* Detect the modem type */
 void target_baseband_detect(struct board_data *board)
 {
 	uint32_t platform;
@@ -237,6 +315,10 @@ void target_baseband_detect(struct board_data *board)
 	};
 }
 
+unsigned target_baseband()
+{
+	return board_baseband();
+}
 int set_download_mode(enum dload_mode mode)
 {
 	int ret = 0;
@@ -272,6 +354,42 @@ unsigned target_pause_for_battery_charge(void)
 		return 0;
 }
 
+void target_uninit(void)
+{
+	mmc_put_card_to_sleep(dev);
+	sdhci_mode_disable(&dev->host);
+	if (crypto_initialized())
+		crypto_eng_cleanup();
+
+	if (target_is_ssd_enabled())
+		clock_ce_disable(CE1_INSTANCE);
+
+#if VERIFIED_BOOT
+#if !VBOOT_MOTA
+	if (is_sec_app_loaded())
+	{
+		if (send_milestone_call_to_tz() < 0)
+		{
+			dprintf(CRITICAL, "Failed to unload App for rpmb\n");
+			ASSERT(0);
+		}
+	}
+
+	if (rpmb_uninit() < 0)
+	{
+		dprintf(CRITICAL, "RPMB uninit failed\n");
+		ASSERT(0);
+	}
+
+	clock_ce_disable(CE1_INSTANCE);
+#endif
+#endif
+
+#if SMD_SUPPORT
+	rpm_smd_uninit();
+#endif
+}
+
 /* UTMI MUX configuration to connect PHY to SNPS controller:
  * Configure primary HS phy mux to use UTMI interface
  * (connected to usb30 controller).
@@ -294,16 +412,26 @@ void target_usb_phy_mux_configure(void)
 	}
 }
 
+void target_usb_phy_reset()
+{
+
+        usb30_qmp_phy_reset();
+        qusb2_phy_reset();
+}
+
 /* Initialize target specific USB handlers */
 target_usb_iface_t* target_usb30_init()
 {
 	target_usb_iface_t *t_usb_iface;
 
-	t_usb_iface = calloc(1, sizeof(target_usb_iface_t));
+	t_usb_iface = (target_usb_iface_t *) calloc(1, sizeof(target_usb_iface_t));
 	ASSERT(t_usb_iface);
 
-	t_usb_iface->mux_config = target_usb_phy_mux_configure;
-	//t_usb_iface->clock_init = clock_usb30_init;
+	t_usb_iface->mux_config = NULL;
+	t_usb_iface->phy_init   = usb30_qmp_phy_init;
+	t_usb_iface->phy_reset  = target_usb_phy_reset;
+	t_usb_iface->clock_init = clock_usb30_init;
+	t_usb_iface->vbus_override = 1;
 
 	return t_usb_iface;
 }
@@ -314,14 +442,200 @@ const char * target_usb_controller()
 	return "dwc";
 }
 
+/* Do any target specific intialization needed before entering fastboot mode */
+void target_fastboot_init(void)
+{
+	if (target_is_ssd_enabled()) {
+		clock_ce_enable(CE1_INSTANCE);
+		target_load_ssd_keystore();
+	}
+}
+
+void target_load_ssd_keystore(void)
+{
+	uint64_t ptn;
+	int      index;
+	uint64_t size;
+	uint32_t *buffer = NULL;
+
+	if (!target_is_ssd_enabled())
+		return;
+
+	index = partition_get_index("ssd");
+
+	ptn = partition_get_offset(index);
+	if (ptn == 0){
+		dprintf(CRITICAL, "Error: ssd partition not found\n");
+		return;
+	}
+
+	size = partition_get_size(index);
+	if (size == 0) {
+		dprintf(CRITICAL, "Error: invalid ssd partition size\n");
+		return;
+	}
+
+	buffer = memalign(CACHE_LINE, ROUNDUP(size, CACHE_LINE));
+	if (!buffer) {
+		dprintf(CRITICAL, "Error: allocating memory for ssd buffer\n");
+		return;
+	}
+
+	if (mmc_read(ptn, buffer, size)) {
+		dprintf(CRITICAL, "Error: cannot read data\n");
+		free(buffer);
+		return;
+	}
+
+	clock_ce_enable(CE1_INSTANCE);
+	scm_protect_keystore(buffer, size);
+	clock_ce_disable(CE1_INSTANCE);
+	free(buffer);
+}
 
 crypto_engine_type board_ce_type(void)
 {
 	return CRYPTO_ENGINE_TYPE_HW;
 }
 
+/* Set up params for h/w CE. */
+void target_crypto_init_params()
+{
+	struct crypto_init_params ce_params;
+
+	/* Set up base addresses and instance. */
+	ce_params.crypto_instance  = CE1_INSTANCE;
+	ce_params.crypto_base      = MSM_CE1_BASE;
+	ce_params.bam_base         = MSM_CE1_BAM_BASE;
+
+	/* Set up BAM config. */
+	ce_params.bam_ee               = CE_EE;
+	ce_params.pipes.read_pipe      = CE_READ_PIPE;
+	ce_params.pipes.write_pipe     = CE_WRITE_PIPE;
+	ce_params.pipes.read_pipe_grp  = CE_READ_PIPE_LOCK_GRP;
+	ce_params.pipes.write_pipe_grp = CE_WRITE_PIPE_LOCK_GRP;
+
+	/* Assign buffer sizes. */
+	ce_params.num_ce           = CE_ARRAY_SIZE;
+	ce_params.read_fifo_size   = CE_FIFO_SIZE;
+	ce_params.write_fifo_size  = CE_FIFO_SIZE;
+
+	/* BAM is initialized by TZ for this platform.
+	 * Do not do it again as the initialization address space
+	 * is locked.
+	 */
+	ce_params.do_bam_init      = 0;
+
+	crypto_init_params(&ce_params);
+}
 
 void pmic_reset_configure(uint8_t reset_type)
 {
 	pm8x41_reset_configure(reset_type);
+}
+
+uint32_t target_get_pmic()
+{
+	return PMIC_IS_PMI8950;
+}
+
+struct qmp_reg qmp_settings[] =
+{
+	{0x804, 0x01}, /*USB3PHY_PCIE_USB3_PCS_POWER_DOWN_CONTROL */
+	{0xAC, 0x14}, /* QSERDES_COM_SYSCLK_EN_SEL */
+	{0x34, 0x08}, /* QSERDES_COM_BIAS_EN_CLKBUFLR_EN */
+	{0x174, 0x30}, /* QSERDES_COM_CLK_SELECT */
+	{0x3C, 0x06}, /* QSERDES_COM_SYS_CLK_CTRL */
+	{0xB4, 0x00}, /* QSERDES_COM_RESETSM_CNTRL */
+	{0xB8, 0x08}, /* QSERDES_COM_RESETSM_CNTRL2 */
+	{0x194, 0x06}, /* QSERDES_COM_CMN_CONFIG */
+	{0x19c, 0x01}, /* QSERDES_COM_SVS_MODE_CLK_SEL */
+	{0x178, 0x00}, /* QSERDES_COM_HSCLK_SEL */
+	{0xd0, 0x82}, /* QSERDES_COM_DEC_START_MODE0 */
+	{0xdc, 0x55}, /* QSERDES_COM_DIV_FRAC_START1_MODE0 */
+	{0xe0, 0x55}, /* QSERDES_COM_DIV_FRAC_START2_MODE0 */
+	{0xe4, 0x03}, /* QSERDES_COM_DIV_FRAC_START3_MODE0 */
+	{0x78, 0x0b}, /* QSERDES_COM_CP_CTRL_MODE0 */
+	{0x84, 0x16}, /* QSERDES_COM_PLL_RCTRL_MODE0 */
+	{0x90, 0x28}, /* QSERDES_COM_PLL_CCTRL_MODE0 */
+	{0x108, 0x80}, /* QSERDES_COM_INTEGLOOP_GAIN0_MODE0 */
+	{0x10C, 0x00}, /* QSERDES_COM_INTEGLOOP_GAIN1_MODE0 */
+	{0x184, 0x0A}, /* QSERDES_COM_CORECLK_DIV */
+	{0x4c, 0x15}, /* QSERDES_COM_LOCK_CMP1_MODE0 */
+	{0x50, 0x34}, /* QSERDES_COM_LOCK_CMP2_MODE0 */
+	{0x54, 0x00}, /* QSERDES_COM_LOCK_CMP3_MODE0 */
+	{0xC8, 0x00}, /* QSERDES_COM_LOCK_CMP_EN */
+	{0x18c, 0x00}, /* QSERDES_COM_CORE_CLK_EN */
+	{0xcc, 0x00}, /* QSERDES_COM_LOCK_CMP_CFG */
+	{0x128, 0x00}, /* QSERDES_COM_VCO_TUNE_MAP */
+	{0x0C, 0x0A}, /* QSERDES_COM_BG_TIMER */
+	{0x10, 0x01}, /* QSERDES_COM_SSC_EN_CENTER */
+	{0x1c, 0x31}, /* QSERDES_COM_SSC_PER1 */
+	{0x20, 0x01}, /* QSERDES_COM_SSC_PER2 */
+	{0x14, 0x00}, /* QSERDES_COM_SSC_ADJ_PER1 */
+	{0x18, 0x00}, /* QSERDES_COM_SSC_ADJ_PER2 */
+	{0x24, 0xde}, /* QSERDES_COM_SSC_STEP_SIZE1 */
+	{0x28, 0x07}, /* QSERDES_COM_SSC_STEP_SIZE2 */
+	{0x48, 0x0F}, /* USB3PHY_QSERDES_COM_PLL_IVCO */
+	{0x70, 0x0F}, /* USB3PHY_QSERDES_COM_BG_TRIM */
+	{0x100, 0x80}, /* QSERDES_COM_INTEGLOOP_INITVAL */
+
+	/* Rx Settings */
+	{0x440, 0x0b}, /* QSERDES_RX_UCDR_FASTLOCK_FO_GAIN */
+	{0x4d8, 0x02}, /* QSERDES_RX_RX_EQU_ADAPTOR_CNTRL2 */
+	{0x4dc, 0x6c}, /* QSERDES_RX_RX_EQU_ADAPTOR_CNTRL3 */
+	{0x4e0, 0xbb}, /* QSERDES_RX_RX_EQU_ADAPTOR_CNTRL4 */
+	{0x508, 0x77}, /* QSERDES_RX_RX_EQ_OFFSET_ADAPTOR_CNTRL1 */
+	{0x50c, 0x80}, /* QSERDES_RX_RX_OFFSET_ADAPTOR_CNTRL2 */
+	{0x514, 0x03}, /* QSERDES_RX_SIGDET_CNTRL */
+	{0x51c, 0x16}, /* QSERDES_RX_SIGDET_DEGLITCH_CNTRL */
+	{0x448, 0x75}, /* QSERDES_RX_UCDR_SO_SATURATION_AND_ENABLE */
+	{0x450, 0x00}, /* QSERDES_RX_UCDR_FASTLOCK_COUNT_LOW */
+	{0x454, 0x00}, /* QSERDES_RX_UCDR_FASTLOCK_COUNT_HIGH */
+	{0x40C, 0x0a}, /* QSERDES_RX_UCDR_FO_GAIN */
+	{0x41C, 0x06}, /* QSERDES_RX_UCDR_SO_GAIN */
+	{0x510, 0x00}, /*QSERDES_RX_SIGDET_ENABLES */
+
+	/* Tx settings */
+	{0x268, 0x45}, /* QSERDES_TX_HIGHZ_TRANSCEIVEREN_BIAS_DRVR_EN */
+	{0x2ac, 0x12}, /* QSERDES_TX_RCV_DETECT_LVL_2 */
+	{0x294, 0x06}, /* QSERDES_TX_LANE_MODE */
+	{0x254, 0x00}, /* QSERDES_TX_RES_CODE_LANE_OFFSET */
+
+	/* FLL settings */
+	{0x8c8, 0x83}, /* PCIE_USB3_PCS_FLL_CNTRL2 */
+	{0x8c4, 0x02}, /* PCIE_USB3_PCS_FLL_CNTRL1 */
+	{0x8cc, 0x09}, /* PCIE_USB3_PCS_FLL_CNT_VAL_L */
+	{0x8D0, 0xA2}, /* PCIE_USB3_PCS_FLL_CNT_VAL_H_TOL */
+	{0x8D4, 0x85}, /* PCIE_USB3_PCS_FLL_MAN_CODE */
+
+	/* PCS Settings */
+	{0x880, 0xD1}, /* PCIE_USB3_PCS_LOCK_DETECT_CONFIG1 */
+	{0x884, 0x1F}, /* PCIE_USB3_PCS_LOCK_DETECT_CONFIG2 */
+	{0x888, 0x47}, /* PCIE_USB3_PCS_LOCK_DETECT_CONFIG3 */
+	{0x80C, 0x9F}, /* PCIE_USB3_PCS_TXMGN_V0 */
+	{0x824, 0x17}, /* PCIE_USB3_PCS_TXDEEMPH_M6DB_V0 */
+	{0x828, 0x0F}, /* PCIE_USB3_PCS_TXDEEMPH_M3P5DB_V0 */
+	{0x8B8, 0x75}, /* PCIE_USB3_PCS_RXEQTRAINING_WAIT_TIME */
+	{0x8BC, 0x13}, /* PCIE_USB3_PCS_RXEQTRAINING_RUN_TIME */
+	{0x8B0, 0x86}, /* PCIE_USB3_PCS_LFPS_TX_ECSTART_EQTLOCK */
+	{0x8A0, 0x04}, /* PCIE_USB3_PCS_PWRUP_RESET_DLY_TIME_AUXCLK */
+	{0x88C, 0x44}, /* PCIE_USB3_PCS_TSYNC_RSYNC_TIME */
+	{0x870, 0xE7}, /* PCIE_USB3_PCS_RCVR_DTCT_DLY_P1U2_L */
+	{0x874, 0x03}, /* PCIE_USB3_PCS_RCVR_DTCT_DLY_P1U2_H */
+	{0x878, 0x40}, /* PCIE_USB3_PCS_RCVR_DTCT_DLY_U3_L */
+	{0x87c, 0x00}, /* PCIE_USB3_PCS_RCVR_DTCT_DLY_U3_H */
+	{0x9D8, 0x88}, /* PCIE_USB3_PCS_RX_SIGDET_LVL */
+	{0x808, 0x03}, /* PCIE_USB3_PCS_START_CONTROL */
+	{0x800, 0x00}, /* PCIE_USB3_PCS_SW_RESET */
+};
+
+struct qmp_reg *target_get_qmp_settings()
+{
+	return qmp_settings;
+}
+
+int target_get_qmp_regsize()
+{
+	return ARRAY_SIZE(qmp_settings);
 }

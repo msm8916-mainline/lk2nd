@@ -66,6 +66,7 @@ static mmu_section_t mmu_section_table[] = {
 	{    APPS_SS_BASE,          APPS_SS_BASE,            APPS_SS_SIZE,      IOMAP_MEMORY},
 	{    MSM_SHARED_IMEM_BASE,  MSM_SHARED_IMEM_BASE,    1,                COMMON_MEMORY},
 	{    SCRATCH_ADDR,          SCRATCH_ADDR,            512,              SCRATCH_MEMORY},
+	{    RPMB_SND_RCV_BUF,      RPMB_SND_RCV_BUF,        RPMB_SND_RCV_BUF_SZ,    IOMAP_MEMORY},
 };
 
 void platform_early_init(void)
@@ -167,4 +168,10 @@ uint32_t platform_get_smem_base_addr()
 		return smem_info->phy_addr;
 	else
 		return MSM_SHARED_BASE;
+}
+
+uint32_t platform_get_qmp_rev()
+{
+        return readl(USB3_PHY_REVISION_ID3) << 24 | readl(USB3_PHY_REVISION_ID2) << 16 |
+                   readl(USB3_PHY_REVISION_ID1) << 8 | readl(USB3_PHY_REVISION_ID0);
 }
