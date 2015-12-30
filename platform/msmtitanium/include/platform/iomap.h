@@ -93,7 +93,7 @@
 #define APCS_CLOCK_BRANCH_ENA_VOTE         (CLK_CTL_BASE + 0x45004)
 #define GPLL4_MODE                         (CLK_CTL_BASE + 0x24000)
 #define GPLL4_STATUS                       (CLK_CTL_BASE + 0x24024)
-#define GPLL6_STATUS                       (CLK_CTL_BASE + 0x3701C)
+#define GPLL6_STATUS                       (CLK_CTL_BASE + 0x37024)
 
 /* SDCC */
 #define SDC1_HDRV_PULL_CTL                 (TLMM_BASE_ADDR + 0x10A000)
@@ -127,6 +127,12 @@
 
 /* UART */
 #define BLSP1_AHB_CBCR                     (CLK_CTL_BASE + 0x1008)
+#define BLSP1_UART1_APPS_CBCR              (CLK_CTL_BASE + 0x203C)
+#define BLSP1_UART1_APPS_CMD_RCGR          (CLK_CTL_BASE + 0x2044)
+#define BLSP1_UART1_APPS_CFG_RCGR          (CLK_CTL_BASE + 0x2048)
+#define BLSP1_UART1_APPS_M                 (CLK_CTL_BASE + 0x204C)
+#define BLSP1_UART1_APPS_N                 (CLK_CTL_BASE + 0x2050)
+#define BLSP1_UART1_APPS_D                 (CLK_CTL_BASE + 0x2054)
 #define BLSP1_UART2_APPS_CBCR              (CLK_CTL_BASE + 0x302C)
 #define BLSP1_UART2_APPS_CMD_RCGR          (CLK_CTL_BASE + 0x3034)
 #define BLSP1_UART2_APPS_CFG_RCGR          (CLK_CTL_BASE + 0x3038)
@@ -140,9 +146,56 @@
 #define USB_HS_AHB_CBCR                    (CLK_CTL_BASE + 0x41008)
 #define USB_HS_SYSTEM_CMD_RCGR             (CLK_CTL_BASE + 0x41010)
 #define USB_HS_SYSTEM_CFG_RCGR             (CLK_CTL_BASE + 0x41014)
-#define MSM_USB30_QSCRATCH_BASE      0x070F8800
-#define MSM_USB30_BASE               0x7000000
-#define USB2_PHY_SEL                0x01937000
+#define GCC_QUSB2_PHY_BCR                  (CLK_CTL_BASE + 0x4103C)
+#define MSM_USB30_QSCRATCH_BASE            0x070F8800
+#define MSM_USB30_BASE                     0x7000000
+#define USB2_PHY_SEL                       0x01937000
+#define QUSB2_PHY_BASE                     0X79000
+
+/* SS QMP (Qulacomm Multi Protocol) */
+#define QMP_PHY_BASE                0x78000
+
+#define AHB2_PHY_BASE               0x0007e000
+#define PERIPH_SS_AHB2PHY_TOP_CFG   (AHB2_PHY_BASE + 0x10)
+
+ /* USB3 clocks */
+#define USB_30_BCR                  (CLK_CTL_BASE + 0x3F070)
+#define GCC_USB30_GDSCR             (CLK_CTL_BASE + 0x3F078)
+#define USB30_MASTER_CBCR           (CLK_CTL_BASE + 0x3F000)
+#define USB30_SLEEP_CBCR            (CLK_CTL_BASE + 0x3F004)
+#define USB30_MOCK_UTMI_CBCR        (CLK_CTL_BASE + 0x3F008)
+#define USB30_MASTER_CMD_RCGR       (CLK_CTL_BASE + 0x3F00C)
+#define USB30_MASTER_CFG_RCGR       (CLK_CTL_BASE + 0x3F010)
+#define USB30_MASTER_M              (CLK_CTL_BASE + 0x3F014)
+#define USB30_MASTER_N              (CLK_CTL_BASE + 0x3F018)
+#define USB30_MASTER_D              (CLK_CTL_BASE + 0x3F01C)
+#define USB30_MOCK_UTMI_CMD_RCGR    (CLK_CTL_BASE + 0x3F020)
+#define USB30_MOCK_UTMI_CFG_RCGR    (CLK_CTL_BASE + 0x3F024)
+#define PC_NOC_USB3_AXI_CBCR        (CLK_CTL_BASE + 0x3F038)
+
+#define USB3_AUX_CMD_RCGR           (CLK_CTL_BASE + 0x3F05C)
+#define USB3_AUX_CFG_RCGR     	    (CLK_CTL_BASE + 0x3F060)
+#define USB3_AUX_CBCR       	    (CLK_CTL_BASE + 0x3F044)
+#define USB3_AUX_M                  (CLK_CTL_BASE + 0x3F064)
+#define USB3_AUX_N                  (CLK_CTL_BASE + 0x3F068)
+#define USB3_AUX_D                  (CLK_CTL_BASE + 0x3F06C)
+#define USB3_PIPE_CBCR              (CLK_CTL_BASE + 0x3F040)
+#define USB3_PHY_BCR                (CLK_CTL_BASE + 0x3F034)
+#define USB3PHY_PHY_BCR        	    (CLK_CTL_BASE + 0x3F03C)
+#define USB_PHY_CFG_AHB_CBCR        (CLK_CTL_BASE + 0x3F080)
+
+/* QMP rev registers */
+#define USB3_PHY_REVISION_ID0       (QMP_PHY_BASE + 0x988)
+#define USB3_PHY_REVISION_ID1       (QMP_PHY_BASE + 0x98C)
+#define USB3_PHY_REVISION_ID2       (QMP_PHY_BASE + 0x990)
+#define USB3_PHY_REVISION_ID3       (QMP_PHY_BASE + 0x994)
+
+/* Dummy macro needed for compilation only */
+#define PLATFORM_QMP_OFFSET         0x0
+
+#define USB3_PHY_STATUS             0x78974
+/* Register for finding out if single ended or differential clock enablement */
+#define TCSR_PHY_CLK_SCHEME_SEL     0x0193F044
 
 /* RPMB send receive buffer needs to be mapped
  * as device memory, define the start address
