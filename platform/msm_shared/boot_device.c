@@ -57,7 +57,7 @@ uint32_t platform_boot_dev_isemmc()
 	/* For MDM default boot device is NAND */
 	if (boot_dev_type == BOOT_EMMC)
 #else
-	if (boot_dev_type == BOOT_EMMC || boot_dev_type == BOOT_DEFAULT)
+	if (boot_dev_type == BOOT_EMMC || boot_dev_type == BOOT_DEFAULT || boot_dev_type == BOOT_SD)
 #endif
 		boot_dev_type = 1;
 	else
@@ -82,6 +82,9 @@ void platform_boot_dev_cmdline(char *buf)
 			break;
 		case BOOT_UFS:
 			snprintf(buf, ((sizeof((struct ufs_dev *)dev)->base)*2) + 7, "%x.ufshc", ((struct ufs_dev *)dev)->base);
+			break;
+		case BOOT_SD:
+			snprintf(buf, ((sizeof((struct mmc_device *)dev)->host.base)*2) + 7,"%x.sdhci", ((struct mmc_device *)dev)->host.base);
 			break;
 #endif
 		case BOOT_EMMC:
