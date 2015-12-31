@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2016 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -58,6 +58,19 @@ static event_t wait_for_ssr_init;
 static event_t wait_for_data;
 
 extern glink_err_type glink_wait_link_down(glink_handle_type handle);
+
+static void rpmdatacpy(uint32_t * dst, uint32_t *src, uint32_t size)
+{
+	if(size%4)
+		ASSERT(0);
+	size = size/4;
+
+	while (size >0)
+	{
+		*dst++ = *src++;
+		size--;
+	}
+}
 
 glink_err_type rpm_glink_send_data(uint32_t *data, uint32_t len, msg_type type)
 {
@@ -198,7 +211,7 @@ void rpm_vector_glink_ssr_isr(glink_handle_type port, void *unused_open_data, vo
 		return_buffer = vprovider(buffer, offset, &return_size);
 		if(return_buffer)
 		{
-			memcpy(rx_buffer+offset,return_buffer, return_size);
+			rpmdatacpy((uint32_t *)(rx_buffer + offset),(uint32_t *)return_buffer, return_size);
 			offset += return_size;
 		}
 	} while(return_buffer);
@@ -241,7 +254,7 @@ void rpm_vector_glink_isr(glink_handle_type port, void *unused_open_data, void *
 		return_buffer = vprovider(buffer, offset, &return_size);
 		if(return_buffer)
 		{
-			memcpy(rx_buffer+offset,return_buffer, return_size);
+			rpmdatacpy((uint32_t *)(rx_buffer + offset),(uint32_t *)return_buffer, return_size);
 			offset += return_size;
 		}
 	} while(return_buffer);
