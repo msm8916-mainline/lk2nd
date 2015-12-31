@@ -59,6 +59,7 @@
 #include "include/panel_r69006_1080p_cmd.h"
 #include "include/panel_r69006_1080p_video.h"
 #include "include/panel_hx8394f_720p_video.h"
+#include "include/panel_truly_720p_video.h"
 
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
@@ -78,6 +79,7 @@ enum {
 	R69006_1080P_CMD_PANEL,
 	R69006_1080P_VIDEO_PANEL,
 	HX8394F_720P_VIDEO_PANEL,
+	TRULY_720P_VIDEO_PANEL,
 	UNKNOWN_PANEL
 };
 
@@ -103,7 +105,8 @@ static struct panel_list supp_panels[] = {
 	{"byd_1200p_video", BYD_1200P_VIDEO_PANEL},
 	{"r69006_1080p_cmd",R69006_1080P_CMD_PANEL},
 	{"r69006_1080p_video",R69006_1080P_VIDEO_PANEL},
-	{"hx8394f_720p_video", HX8394F_720P_VIDEO_PANEL}
+	{"hx8394f_720p_video", HX8394F_720P_VIDEO_PANEL},
+	{"truly_720p_video", TRULY_720P_VIDEO_PANEL}
 };
 
 static uint32_t panel_id;
@@ -588,6 +591,33 @@ static int init_panel_data(struct panel_struct *panelstruct,
 			byd_1200p_video_timings, TIMING_SIZE);
 		pinfo->mipi.signature 	= BYD_1200P_VIDEO_SIGNATURE;
 		phy_db->regulator_mode = DSI_PHY_REGULATOR_LDO_MODE;
+		break;
+	case TRULY_720P_VIDEO_PANEL:
+		panelstruct->paneldata    = &truly_720p_video_panel_data;
+		panelstruct->paneldata->panel_with_enable_gpio = 1;
+		panelstruct->panelres     = &truly_720p_video_panel_res;
+		panelstruct->color        = &truly_720p_video_color;
+		panelstruct->videopanel   = &truly_720p_video_video_panel;
+		panelstruct->commandpanel = &truly_720p_video_command_panel;
+		panelstruct->state        = &truly_720p_video_state;
+		panelstruct->laneconfig   = &truly_720p_video_lane_config;
+		panelstruct->paneltiminginfo
+			= &truly_720p_video_timing_info;
+		panelstruct->panelresetseq
+					 = &truly_720p_video_panel_reset_seq;
+		panelstruct->backlightinfo = &truly_720p_video_backlight;
+		pinfo->mipi.panel_on_cmds
+			= truly_720p_video_on_command;
+		pinfo->mipi.num_of_panel_on_cmds
+			= TRULY_720P_VIDEO_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+			= truly_720p_video_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+			= TRULY_720P_VIDEO_OFF_COMMAND;
+		memcpy(phy_db->timing,
+			truly_720p_video_timings, TIMING_SIZE);
+		pinfo->mipi.signature 	= TRULY_720P_VIDEO_SIGNATURE;
+		pinfo->mipi.tx_eot_append = true;
 		break;
 	case UNKNOWN_PANEL:
 	default:
