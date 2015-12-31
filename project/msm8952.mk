@@ -100,6 +100,9 @@ DEFINES += PLATFORM_USE_SCM_DLOAD=1
 
 CFLAGS += -Werror
 
+#enable user force reset feature
+DEFINES += USER_FORCE_RESET_SUPPORT=1
+
 DEFINES += USE_TARGET_HS200_DELAY=1
 
 #enable battery voltage check
