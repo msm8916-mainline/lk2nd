@@ -94,7 +94,7 @@ static uint32_t  mmc_sdc_pwrctl_irq[] =
 void target_early_init(void)
 {
 #if WITH_DEBUG_UART
-	uart_dm_init(2, 0, BLSP1_UART1_BASE);
+	uart_dm_init(1, 0, BLSP1_UART0_BASE);
 #endif
 }
 
@@ -308,6 +308,9 @@ void target_baseband_detect(struct board_data *board)
 	switch(platform) {
 	case MSMTITANIUM:
 		board->baseband = BASEBAND_MSM;
+		break;
+	case APQTITANIUM:
+		board->baseband = BASEBAND_APQ;
 		break;
 	default:
 		dprintf(CRITICAL, "Platform type: %u is not supported\n",platform);

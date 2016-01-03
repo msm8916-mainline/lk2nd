@@ -447,6 +447,7 @@ enum {
 	MSMTITANIUM  = 293,
 	MSM8937 = 294,
 	APQ8037 = 295,
+	APQTITANIUM = 304,
 };
 
 enum platform {
