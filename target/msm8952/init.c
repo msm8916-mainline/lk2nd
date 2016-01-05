@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -375,12 +375,16 @@ void target_baseband_detect(struct board_data *board)
 	case MSM8956:
 	case MSM8976:
 	case MSM8937:
+	case MSMGOLD:
+	case MSMGOLD2:
+	case MSMGOLD3:
 		board->baseband = BASEBAND_MSM;
 		break;
 	case APQ8052:
 	case APQ8056:
 	case APQ8076:
 	case APQ8037:
+	case APQGOLD:
 		board->baseband = BASEBAND_APQ;
 		break;
 	default:
