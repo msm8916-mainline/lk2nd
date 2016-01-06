@@ -225,6 +225,14 @@
 #define MDSS_MDP_DSC_RANGE_MAX_QP		0xB0	/* 15 bytes */
 #define MDSS_MDP_DSC_RANGE_BPG_OFFSET		0xEc	/* 15 bytes */
 
+/* Autorefresh related registers */
+#define MDP_REG_PP_0_SYNC_CONFIG_VSYNC		REG_MDP(0x71004)
+#define MDP_REG_PP_1_SYNC_CONFIG_VSYNC		REG_MDP(0x71804)
+#define MDP_REG_PP_SLAVE_SYNC_CONFIG_VSYNC	REG_MDP(0x73004)
+#define MDP_REG_PP_0_AUTOREFRESH_CONFIG		REG_MDP(0x71030)
+#define MDP_REG_PP_1_AUTOREFRESH_CONFIG		REG_MDP(0x71830)
+#define MDP_REG_PP_SLAVE_AUTOREFRESH_CONFIG	REG_MDP(0x73030)
+
 void mdp_set_revision(int rev);
 int mdp_get_revision();
 int mdp_dsi_video_config(struct msm_panel_info *pinfo, struct fbcon_config *fb);

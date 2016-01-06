@@ -419,6 +419,9 @@ struct msm_panel_info {
 	int (*early_config) (void *pdata);
 	int (*config) (void *pdata);
 	int (*rotate) (void);
+
+	char autorefresh_enable;
+	uint32_t autorefresh_framenum;
 };
 
 struct msm_fb_panel_data {
