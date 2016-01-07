@@ -280,7 +280,7 @@ static uint32_t fastboot_power_key_func (struct select_msg_info* msg_info,
 {
 	int device_state[] = {RESTART, FASTBOOT, RECOVER, POWEROFF};
 
-	if(option_index < sizeof(device_state)) {
+	if(option_index < (sizeof(device_state)/sizeof(device_state[0]))) {
 		update_device_status(device_state[option_index], msg_info->msg_type);
 	} else {
 		dprintf(CRITICAL, "ERRPR: option index is overflow!!!\n");
