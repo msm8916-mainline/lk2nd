@@ -39,7 +39,7 @@
 /*---------------------------------------------------------------------------*/
 static struct panel_config adv7533_720p_video_panel_data = {
 	"qcom,mdss_dsi_adv7533_720p", "dsi:0:", "qcom,mdss-dsi-panel",
-	10, 0, "DISPLAY_1", 0, 0, 60, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+	10, 0, "DISPLAY_1", 0, 0, 60, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "NONE"
 };
 
 /*---------------------------------------------------------------------------*/
@@ -83,41 +83,41 @@ static struct mipi_dsi_i2c_cmd adv7533_720p_common_cfg[] = {
 
 static struct mipi_dsi_i2c_cmd adv7533_720p_tg_i2c_command[] = {
 	/*3 Lanes*/
-	{ADV7533_CEC_DSI, 0x1C, 0x30},
+	{ADV7533_CEC_DSI, 0x1C, 0x30, 0},
 	/* hsync and vsync active low */
-	{ADV7533_MAIN, 0x17, 0x02},
+	{ADV7533_MAIN, 0x17, 0x02, 0},
 	/* Control for Pixel Clock Divider */
-	{ADV7533_CEC_DSI, 0x16, 0x24},
+	{ADV7533_CEC_DSI, 0x16, 0x24, 0},
 	/* h_width 0x672 1650*/
-	{ADV7533_CEC_DSI, 0x28, 0x67},
-	{ADV7533_CEC_DSI, 0x29, 0x20},
+	{ADV7533_CEC_DSI, 0x28, 0x67, 0},
+	{ADV7533_CEC_DSI, 0x29, 0x20, 0},
 	/* hsync_width 0x28 40*/
-	{ADV7533_CEC_DSI, 0x2A, 0x02},
-	{ADV7533_CEC_DSI, 0x2B, 0x80},
+	{ADV7533_CEC_DSI, 0x2A, 0x02, 0},
+	{ADV7533_CEC_DSI, 0x2B, 0x80, 0},
 	/* hfp 0x6E 110 */
-	{ADV7533_CEC_DSI, 0x2C, 0x06},
-	{ADV7533_CEC_DSI, 0x2D, 0xE0},
+	{ADV7533_CEC_DSI, 0x2C, 0x06, 0},
+	{ADV7533_CEC_DSI, 0x2D, 0xE0, 0},
 	/* hbp 0xDC 220 */
-	{ADV7533_CEC_DSI, 0x2E, 0x0D},
-	{ADV7533_CEC_DSI, 0x2F, 0xC0},
+	{ADV7533_CEC_DSI, 0x2E, 0x0D, 0},
+	{ADV7533_CEC_DSI, 0x2F, 0xC0, 0},
 	/* v_total 0x2EE 750*/
-	{ADV7533_CEC_DSI, 0x30, 0x2E},
-	{ADV7533_CEC_DSI, 0x31, 0xE0},
+	{ADV7533_CEC_DSI, 0x30, 0x2E, 0},
+	{ADV7533_CEC_DSI, 0x31, 0xE0, 0},
 	/* vsync_width 0x05 5*/
-	{ADV7533_CEC_DSI, 0x32, 0x00},
-	{ADV7533_CEC_DSI, 0x33, 0x50},
+	{ADV7533_CEC_DSI, 0x32, 0x00, 0},
+	{ADV7533_CEC_DSI, 0x33, 0x50, 0},
 	/* vfp 0x05 5  */
-	{ADV7533_CEC_DSI, 0x34, 0x00},
-	{ADV7533_CEC_DSI, 0x35, 0x50},
+	{ADV7533_CEC_DSI, 0x34, 0x00, 0},
+	{ADV7533_CEC_DSI, 0x35, 0x50, 0},
 	/* vbp 0x14 20 */
-	{ADV7533_CEC_DSI, 0x36, 0x01},
-	{ADV7533_CEC_DSI, 0x37, 0x40},
+	{ADV7533_CEC_DSI, 0x36, 0x01, 0},
+	{ADV7533_CEC_DSI, 0x37, 0x40, 0},
 	/* Test Pattern Disable (0x55[7] = 0) */
-	{ADV7533_CEC_DSI, 0x55, 0x00},
+	{ADV7533_CEC_DSI, 0x55, 0x00, 0},
 	/* HDMI disabled */
-	{ADV7533_CEC_DSI, 0x03, 0x09},
+	{ADV7533_CEC_DSI, 0x03, 0x09, 0},
 	/* HDMI enabled */
-	{ADV7533_CEC_DSI, 0x03, 0x89},
+	{ADV7533_CEC_DSI, 0x03, 0x89, 0},
 };
 
 #define ADV7533_720P_TG_COMMANDS 22
@@ -156,6 +156,14 @@ static const uint32_t adv7533_720p_video_timings[] = {
 
 static struct panel_timing adv7533_720p_video_timing_info = {
 	0x0, 0x04, 0x03, 0x20
+};
+
+static const uint32_t adv7533_720p_thulium_video_timings[] = {
+		0x1c, 0x19, 0x02, 0x03, 0x01, 0x03, 0x04, 0xa0,
+		0x1c, 0x19, 0x02, 0x03, 0x01, 0x03, 0x04, 0xa0,
+		0x1c, 0x19, 0x02, 0x03, 0x01, 0x03, 0x04, 0xa0,
+		0x1c, 0x19, 0x02, 0x03, 0x01, 0x03, 0x04, 0xa0,
+		0x1c, 0x08, 0x02, 0x03, 0x01, 0x03, 0x04, 0xa0,
 };
 
 #endif /*_PANEL_ADV7533_720p60_H_*/
