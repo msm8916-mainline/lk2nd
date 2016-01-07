@@ -3205,9 +3205,10 @@ void cmd_oem_off_mode_charger(const char *arg, void *data, unsigned size)
 {
 	char *p = NULL;
 	const char *delim = " \t\n\r";
+	char *sp;
 
 	if (arg) {
-		p = strtok((char *)arg, delim);
+		p = strtok_r((char *)arg, delim, &sp);
 		if (p) {
 			if (!strncmp(p, "0", 1)) {
 				device.charger_screen_enabled = 0;
