@@ -38,6 +38,7 @@
 
 #include "include/panel.h"
 #include "panel_display.h"
+#include <blsp_qup.h>
 
 /*---------------------------------------------------------------------------*/
 /* GCDB Panel Database                                                       */
@@ -758,7 +759,7 @@ panel_init:
 		/* Set Switch GPIO to DSI2HDMI mode */
 		target_set_switch_gpio(1);
 		/* ADV7533 DSI to HDMI Bridge Chip Connected */
-		mipi_dsi_i2c_device_init();
+		mipi_dsi_i2c_device_init(BLSP_ID_1, QUP_ID_3);
 		/* Read ADV Chip ID */
 		if (!mipi_dsi_i2c_read_byte(ADV7533_MAIN, 0x00, &rev)) {
 			dprintf(INFO, "ADV7533 Rev ID: 0x%x\n",rev);
