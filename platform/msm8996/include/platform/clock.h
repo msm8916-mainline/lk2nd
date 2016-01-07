@@ -123,5 +123,6 @@ void mmss_gdsc_enable();
 void mmss_gdsc_disable();
 void video_gdsc_enable();
 void video_gdsc_disable();
+void clock_config_blsp_i2c(uint8_t blsp_id, uint8_t qup_id);
 
 #endif

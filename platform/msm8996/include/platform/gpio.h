@@ -55,6 +55,9 @@
 #define GPIO_ENABLE     0
 #define GPIO_DISABLE    1
 
+#define GPIO_BLSP2_ACTIVE_1 6
+#define GPIO_BLSP2_ACTIVE_2 7
+
 void gpio_config_uart_dm(uint8_t id);
 void gpio_config_blsp_i2c(uint8_t, uint8_t);
 void gpio_set(uint32_t gpio, uint32_t dir);
