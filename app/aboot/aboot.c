@@ -773,10 +773,6 @@ void boot_linux(void *kernel, unsigned *tags,
 
 	enter_critical_section();
 
-	/* Initialise wdog to catch early kernel crashes */
-#if WDOG_SUPPORT
-	msm_wdog_init();
-#endif
 	/* do any platform specific cleanup before kernel entry */
 	platform_uninit();
 
@@ -3566,6 +3562,11 @@ void aboot_fastboot_register_commands(void)
 void aboot_init(const struct app_descriptor *app)
 {
 	unsigned reboot_mode = 0;
+
+	/* Initialise wdog to catch early lk crashes */
+#if WDOG_SUPPORT
+	msm_wdog_init();
+#endif
 
 	/* Setup page size information for nv storage */
 	if (target_is_emmc_boot())
