@@ -32,5 +32,14 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <sys/types.h>
 extern void ramdump_table_map();
 void cmd_oem_runtests();
+
+#if UNITTEST_FW_SUPPORT
+bool is_test_mode_enabled();
+#else
+bool is_test_mode_enabled()
+{
+	return false;
+}
+#endif
 extern int boot_linux_from_mmc();
 #endif

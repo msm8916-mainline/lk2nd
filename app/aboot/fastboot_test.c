@@ -45,11 +45,17 @@ extern void kauth_test();
 extern int ufs_get_boot_lun();
 extern int ufs_set_boot_lun(uint32_t bootlunid);
 extern int fastboot_init();
+static bool enable_test_mode = false;
+
+bool is_test_mode_enabled(void)
+{
+	return enable_test_mode;
+}
 
 void cmd_oem_runtests()
 {
 	dprintf(INFO, "Running LK tests ... \n");
-
+	enable_test_mode = true;
 	// Test boot lun enable for UFS
 	if (!platform_boot_dev_isemmc())
 	{
@@ -118,4 +124,5 @@ void cmd_oem_runtests()
 	printf_tests();
 
 	fastboot_okay("");
+	enable_test_mode = false;
 }

@@ -1151,7 +1151,7 @@ int boot_linux_from_mmc(void)
 	 * We would never reach this point if device is in fastboot mode, even if we did
 	 * that means we are in test mode, so execute kernel authentication part for the
 	 * tests */
-	if((target_use_signed_kernel() && (!device.is_unlocked)) || boot_into_fastboot)
+	if((target_use_signed_kernel() && (!device.is_unlocked)) || is_test_mode_enabled())
 	{
 		offset = imagesize_actual;
 		if (check_aboot_addr_range_overlap((uint32_t)image_addr + offset, page_size))
@@ -1169,7 +1169,7 @@ int boot_linux_from_mmc(void)
 
 		verify_signed_bootimg((uint32_t)image_addr, imagesize_actual);
 		/* The purpose of our test is done here */
-		if (boot_into_fastboot && auth_kernel_img)
+		if(is_test_mode_enabled() && auth_kernel_img)
 			return 0;
 	} else {
 		second_actual  = ROUND_TO_PAGE(hdr->second_size,  page_mask);
