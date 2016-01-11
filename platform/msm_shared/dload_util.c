@@ -42,9 +42,11 @@ void dload_util_write_cookie(uint32_t target_dload_mode_addr,
 {
 	if (mode == NORMAL_DLOAD)
 	{
+#if !DISABLE_DLOAD_MODE
 		writel(NORMAL_DLOAD_COOKIE_0, target_dload_mode_addr);
 		writel(NORMAL_DLOAD_COOKIE_1,
 				target_dload_mode_addr + sizeof(uint32_t));
+#endif
 	}
 	else if (mode == EMERGENCY_DLOAD)
 	{

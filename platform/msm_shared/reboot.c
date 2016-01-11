@@ -120,14 +120,19 @@ void reboot_device(unsigned reboot_reason)
 	 * For other cases do a hard reset
 	 */
 #if USE_PON_REBOOT_REG
-	if(reboot_reason == NORMAL_DLOAD || reboot_reason == EMERGENCY_DLOAD)
+	if(reboot_reason == NORMAL_DLOAD || reboot_reason == EMERGENCY_DLOAD) {
 #else
 	if(reboot_reason == FASTBOOT_MODE || reboot_reason == NORMAL_DLOAD ||
-		reboot_reason == EMERGENCY_DLOAD || reboot_reason == RECOVERY_MODE)
+		reboot_reason == EMERGENCY_DLOAD || reboot_reason == RECOVERY_MODE) {
 #endif
 		reset_type = PON_PSHOLD_WARM_RESET;
-	else
+#if DISABLE_DLOAD_MODE
+		if (reboot_reason == NORMAL_DLOAD)
+			reset_type = PON_PSHOLD_HARD_RESET;
+#endif
+	} else {
 		reset_type = PON_PSHOLD_HARD_RESET;
+	}
 
 	pmic_reset_configure(reset_type);
 
