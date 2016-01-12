@@ -185,7 +185,7 @@ int target_volume_up()
 
 	if(platform_is_msm8956())
 		vol_up_gpio = TLMM_VOL_UP_BTN_GPIO_8956;
-	else if(platform_is_msm8937())
+	else if(platform_is_msm8937() || platform_is_msmgold())
 		vol_up_gpio = TLMM_VOL_UP_BTN_GPIO_8937;
 	else
 		vol_up_gpio = TLMM_VOL_UP_BTN_GPIO;
@@ -263,7 +263,7 @@ void target_init(void)
 
 	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
 
-	if(platform_is_msm8937())
+	if(platform_is_msm8937() || platform_is_msmgold())
 	{
 		uint8_t pmi_rev = 0;
 		uint32_t pmi_type = 0;

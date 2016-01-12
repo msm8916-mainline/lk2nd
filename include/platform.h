@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008 Travis Geiselbrecht
  *
- * Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2014-2016, The Linux Foundation. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -66,6 +66,7 @@ int platform_is_msm8939();
 int platform_is_msm8909();
 int platform_is_msm8992();
 int platform_is_msm8937();
+int platform_is_msmgold();
 int platform_is_msm8956();
 uint32_t platform_is_msm8976_v_1_1();
 int boot_device_mask(int);

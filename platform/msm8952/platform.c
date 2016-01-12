@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -175,6 +175,26 @@ uint32_t platform_get_smem_base_addr()
 uint32_t platform_get_max_periph()
 {
 	return 256;
+}
+
+int platform_is_msmgold()
+{
+	uint32_t platform = board_platform_id();
+	uint32_t ret = 0;
+
+	switch(platform)
+	{
+		case MSMGOLD:
+		case MSMGOLD2:
+		case MSMGOLD3:
+		case APQGOLD:
+			ret = 1;
+			break;
+		default:
+			ret = 0;
+	};
+
+	return ret;
 }
 
 int platform_is_msm8937()
