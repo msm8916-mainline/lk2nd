@@ -67,6 +67,8 @@ int platform_is_msm8909();
 int platform_is_msm8992();
 int platform_is_msm8937();
 int platform_is_msmgold();
+uint32_t platform_get_apcs_ipc_base();
+int platform_is_msm8952();
 int platform_is_msm8956();
 uint32_t platform_is_msm8976_v_1_1();
 uint32_t platform_get_tz_app_add();

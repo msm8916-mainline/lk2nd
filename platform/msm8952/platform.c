@@ -215,6 +215,24 @@ int platform_is_msm8937()
 	return ret;
 }
 
+int platform_is_msm8952()
+{
+	uint32_t platform = board_platform_id();
+	uint32_t ret = 0;
+
+	switch(platform)
+	{
+	case MSM8952:
+	case APQ8052:
+		ret = 1;
+		break;
+	default:
+		ret = 0;
+	};
+
+	return ret;
+}
+
 int platform_is_msm8956()
 {
 	uint32_t platform = board_platform_id();
