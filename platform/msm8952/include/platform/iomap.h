@@ -56,7 +56,9 @@
 #define APPS_APCS_QTMR_AC_BASE             (APPS_SS_BASE + 0x00020000)
 #define APPS_APCS_F0_QTMR_V1_BASE          (APPS_SS_BASE + 0x00021000)
 #define QTMR_BASE                          APPS_APCS_F0_QTMR_V1_BASE
-#define APCS_ALIAS0_IPC_INTERRUPT          (APPS_SS_BASE + 0x00111008)
+#define APCS_ALIAS1_IPC_INTERRUPT_1        (APPS_SS_BASE + 0x00011008)
+#define APCS_ALIAS0_IPC_INTERRUPT_2        (APPS_SS_BASE + 0x00111008)
+#define APCS_ALIAS0_IPC_INTERRUPT          platform_get_apcs_ipc_base()
 
 #define PERIPH_SS_BASE                     0x07800000
 

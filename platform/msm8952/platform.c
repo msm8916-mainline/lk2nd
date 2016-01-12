@@ -269,6 +269,14 @@ uint32_t platform_get_tz_app_size()
 		return APP_REGION_SIZE_8952;
 }
 
+uint32_t platform_get_apcs_ipc_base()
+{
+	if(platform_is_msmgold())
+		return APCS_ALIAS1_IPC_INTERRUPT_1;
+	else
+		return APCS_ALIAS0_IPC_INTERRUPT_2;
+}
+
 uint32_t platform_is_msm8976_v_1_1()
 {
 	uint32_t soc_ver = board_soc_version();
