@@ -36,6 +36,6 @@
 int mipi_dsi_i2c_read_byte(uint8_t addr, uint8_t reg, uint8_t *buf);
 int mipi_dsi_i2c_write_byte(uint8_t addr, uint8_t reg, uint8_t val);
 int mipi_dsi_i2c_read(uint8_t addr, uint8_t reg, uint8_t *buf, uint8_t len);
-int mipi_dsi_i2c_device_init();
+int mipi_dsi_i2c_device_init(uint8_t blsp_id, uint8_t qup_id);
 
 #endif /* __MIPI_DSI_I2C_H__ */

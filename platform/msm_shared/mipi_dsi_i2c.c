@@ -87,9 +87,9 @@ int mipi_dsi_i2c_write_byte(uint8_t addr, uint8_t reg, uint8_t val)
 	return NO_ERROR;
 }
 
-int mipi_dsi_i2c_device_init()
+int mipi_dsi_i2c_device_init(uint8_t blsp_id, uint8_t qup_id)
 {
-	i2c_dev = qup_blsp_i2c_init(BLSP_ID_1, QUP_ID_3,
+	i2c_dev = qup_blsp_i2c_init(blsp_id, qup_id,
 				I2C_CLK_FREQ, I2C_SRC_CLK_FREQ);
 	if(!i2c_dev) {
 		dprintf(CRITICAL, "mipi_dsi_i2c_device_init() failed\n");

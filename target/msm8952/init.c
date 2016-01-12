@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -185,7 +185,7 @@ int target_volume_up()
 
 	if(platform_is_msm8956())
 		vol_up_gpio = TLMM_VOL_UP_BTN_GPIO_8956;
-	else if(platform_is_msm8937())
+	else if(platform_is_msm8937() || platform_is_msmgold())
 		vol_up_gpio = TLMM_VOL_UP_BTN_GPIO_8937;
 	else
 		vol_up_gpio = TLMM_VOL_UP_BTN_GPIO;
@@ -263,7 +263,7 @@ void target_init(void)
 
 	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
 
-	if(platform_is_msm8937())
+	if(platform_is_msm8937() || platform_is_msmgold())
 	{
 		uint8_t pmi_rev = 0;
 		uint32_t pmi_type = 0;
@@ -375,12 +375,16 @@ void target_baseband_detect(struct board_data *board)
 	case MSM8956:
 	case MSM8976:
 	case MSM8937:
+	case MSMGOLD:
+	case MSMGOLD2:
+	case MSMGOLD3:
 		board->baseband = BASEBAND_MSM;
 		break;
 	case APQ8052:
 	case APQ8056:
 	case APQ8076:
 	case APQ8037:
+	case APQGOLD:
 		board->baseband = BASEBAND_APQ;
 		break;
 	default:

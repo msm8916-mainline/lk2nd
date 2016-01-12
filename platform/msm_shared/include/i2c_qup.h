@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2013,2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -191,9 +191,6 @@ struct i2c_algorithm {
 #define ENOSYS      38
 #define EPROTONOSUPPORT 93
 #define ETIMEDOUT   110
-
-#define FALSE  0
-#define TRUE   1
 
 #define USEC_PER_SEC   1000000L
 

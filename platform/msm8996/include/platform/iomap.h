@@ -68,6 +68,13 @@
 
 #define BLSP2_UART1_BASE            (PERIPH_SS_BASE + 0x001B0000)
 
+/* I2C */
+#define BLSP_QUP_BASE(blsp_id, qup_id) (PERIPH_SS_BASE + ((blsp_id) - 1) * 0x100000 \
+                                       + 0xB5000 + 0x1000 * (qup_id))
+#define GCC_BLSP2_QUP2_APPS_CBCR    (CLK_CTL_BASE + 0x28008)
+#define GCC_BLSP2_QUP2_CFG_RCGR     (CLK_CTL_BASE + 0x28010)
+#define GCC_BLSP2_QUP2_CMD_RCGR     (CLK_CTL_BASE + 0x2800C)
+
 /* USB3.0 */
 #define MSM_USB30_BASE              0x6A00000
 #define MSM_USB30_QSCRATCH_BASE     0x6AF8800
