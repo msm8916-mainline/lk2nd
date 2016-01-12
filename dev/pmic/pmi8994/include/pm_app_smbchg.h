@@ -202,5 +202,6 @@ bool pm_appsbl_display_init_done();
 bool pm_appsbl_charging_in_progress();
 pm_err_flag_type pm_appsbl_set_dcin_suspend();
 bool pm_app_display_shutdown_in_prgs();
+pm_err_flag_type pm_smbchg_get_charger_path(uint32 device_index, pm_smbchg_usb_chgpth_pwr_pth_type* charger_path);
 #endif  //PM_APP_SMBCHG__H
 
