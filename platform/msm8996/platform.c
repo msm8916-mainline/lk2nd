@@ -68,7 +68,7 @@ static mmu_section_t default_mmu_section_table[] =
 /*       Physical addr,    Virtual addr,     Mapping type ,              Size (in MB),            Flags */
     {    0x00000000,        0x00000000,       MMU_L2_NS_SECTION_MAPPING,  512,                IOMAP_MEMORY},
     {    MEMBASE,           MEMBASE,          MMU_L2_NS_SECTION_MAPPING,  (MEMSIZE / MB),      LK_MEMORY},
-    {    KERNEL_ADDR,       KERNEL_ADDR,      MMU_L2_NS_SECTION_MAPPING,  KERNEL_SIZE,         SCRATCH_MEMORY},
+    {    MIPI_FB_ADDR,      MIPI_FB_ADDR,     MMU_L2_NS_SECTION_MAPPING,  40,                  LK_MEMORY},
     {    SCRATCH_ADDR,      SCRATCH_ADDR,     MMU_L2_NS_SECTION_MAPPING,  SCRATCH_SIZE,        SCRATCH_MEMORY},
     {    MSM_SHARED_BASE,   MSM_SHARED_BASE,  MMU_L2_NS_SECTION_MAPPING,  MSM_SHARED_SIZE,     COMMON_MEMORY},
     {    RPMB_SND_RCV_BUF,  RPMB_SND_RCV_BUF, MMU_L2_NS_SECTION_MAPPING,  RPMB_SND_RCV_BUF_SZ, IOMAP_MEMORY},
@@ -115,6 +115,30 @@ void platform_init_mmu_mappings(void)
 {
 	int i;
 	int table_sz = ARRAY_SIZE(default_mmu_section_table);
+	mmu_section_t kernel_mmu_section_table;
+	uint64_t ddr_size = smem_get_ddr_size();
+
+	switch(ddr_size)
+	{
+		case MEM_4GB:
+		case MEM_3GB:
+			ddr_start = 0x80000000;
+			break;
+		case MEM_6GB:
+			ddr_start = 0x40000000;
+			break;
+		default:
+			dprintf(CRITICAL, "Unsupported ddr\n");
+			ASSERT(0);
+	};
+
+	kernel_mmu_section_table.paddress = ddr_start;
+	kernel_mmu_section_table.vaddress = ddr_start;
+	kernel_mmu_section_table.type = MMU_L2_NS_SECTION_MAPPING;
+	kernel_mmu_section_table.size = 88;
+	kernel_mmu_section_table.flags = SCRATCH_MEMORY;
+
+	arm_mmu_map_entry(&kernel_mmu_section_table);
 
 	/* Map default memory needed for lk , scratch, rpmb & iomap */
 	for (i = 0 ; i < table_sz; i++)
