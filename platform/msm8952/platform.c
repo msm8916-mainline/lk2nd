@@ -235,6 +235,22 @@ int platform_is_msm8956()
 	return ret;
 }
 
+uint32_t platform_get_tz_app_add()
+{
+	if(platform_is_msm8937())
+		return APP_REGION_ADDR_8937;
+	else
+		return APP_REGION_ADDR_8952;
+}
+
+uint32_t platform_get_tz_app_size()
+{
+	if(platform_is_msm8937())
+		return APP_REGION_SIZE_8937;
+	else
+		return APP_REGION_SIZE_8952;
+}
+
 uint32_t platform_is_msm8976_v_1_1()
 {
 	uint32_t soc_ver = board_soc_version();
