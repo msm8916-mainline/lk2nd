@@ -159,9 +159,9 @@ static char *str_align_right(char *str, int factor)
 			else
 				diff = max_x/factor - strlen(str);
 			for (i = 0; i < diff; i++) {
-				strcat(str_target, " ");
+				strlcat(str_target, " ", max_x);
 			}
-			strcat(str_target, str);
+			strlcat(str_target, str, max_x);
 			return str_target;
 		} else {
 			free(str_target);
@@ -247,14 +247,14 @@ void display_boot_verified_menu(struct select_msg_info *msg_info, int type)
 	if (type == DISPLAY_MENU_YELLOW) {
 		fp_buf = get_boot_fingerprint(&fp_size);
 		if (fp_buf != NULL) {
-			strncpy(fp_str_temp, (char const *)fp_buf, fp_size);
+			strlcpy(fp_str_temp, (char const *)fp_buf, fp_size);
 			for (i = 0; i < fp_size; i++) {
 				if(i == fp_size - 1)
-					sprintf(str_temp, "%02x", fp_str_temp[i]);
+					snprintf(str_temp, sizeof(str_temp), "%02x", fp_str_temp[i]);
 				else
-					sprintf(str_temp, "%02x-", fp_str_temp[i]);
+					snprintf(str_temp, sizeof(str_temp), "%02x-", fp_str_temp[i]);
 
-				strcat(fp_str, str_temp);
+				strlcat(fp_str, str_temp, sizeof(fp_str));
 			}
 		}
 		display_fbcon_menu_message("ID:", FBCON_COMMON_MSG, common_factor);
