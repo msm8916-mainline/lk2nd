@@ -1,6 +1,7 @@
 LOCAL_DIR := $(GET_LOCAL_DIR)
 
 INCLUDES += -I$(LOCAL_DIR)/include -I$(LK_TOP_DIR)/platform/msm_shared
+INCLUDES += -I$(LK_TOP_DIR)/dev/gcdb/display -I$(LK_TOP_DIR)/dev/gcdb/display/include
 
 PLATFORM := msmtitanium
 
@@ -11,6 +12,8 @@ BASE_ADDR        := 0x80000000
 SCRATCH_ADDR     := 0xA0000000
 
 DEFINES += PMI_CONFIGURED=1
+DEFINES += DISPLAY_TYPE_MIPI=1
+DEFINES += DISPLAY_TYPE_DSI6G=1
 
 MODULES += \
 	dev/keys \
