@@ -17,6 +17,7 @@ MODULES += \
 	dev/vib \
 	lib/ptable \
 	dev/pmic/pm8x41 \
+	dev/qpnp_haptic \
 	lib/libfdt
 
 DEFINES += \

@@ -63,6 +63,11 @@
 #include <shutdown_detect.h>
 #endif
 
+#if PON_VIB_SUPPORT
+#include <vibrator.h>
+#define VIBRATE_TIME 250
+#endif
+
 #define PMIC_ARB_CHANNEL_NUM    0
 #define PMIC_ARB_OWNER_ID       0
 #define TLMM_VOL_UP_BTN_GPIO    85
@@ -228,6 +233,10 @@ void target_init(void)
 
 #if LONG_PRESS_POWER_ON
 	shutdown_detect();
+#endif
+
+#if PON_VIB_SUPPORT
+	vib_timed_turn_on(VIBRATE_TIME);
 #endif
 
 
