@@ -906,6 +906,12 @@ int udc_start(void)
 	/* create our configuration descriptor */
 	size = 9 + udc_ifc_desc_size(the_gadget);
 	desc = udc_descriptor_alloc(TYPE_CONFIGURATION, 0, size);
+	if(!desc)
+	{
+		dprintf(CRITICAL, "Failed to allocate device descriptor\n");
+		ASSERT(0);
+	}
+
 	data = desc->data;
 	data[0] = 0x09;
 	data[2] = size;

@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2016, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -44,6 +44,10 @@
 #define QPNP_WLED_SWITCH_FREQ_REG(b)           (b + 0x4C)
 #define QPNP_WLED_OVP_REG(b)                   (b + 0x4D)
 #define QPNP_WLED_ILIM_REG(b)                  (b + 0x4E)
+#define QPNP_WLED_VLOOP_COMP_RES(b)            (b + 0x55)
+#define QPNP_WLED_VLOOP_COMP_GM(b)             (b + 0x56)
+#define QPNP_WLED_PSM_CTRL(b)                  (b + 0x5B)
+#define QPNP_WLED_TEST4(b)		       (b + 0xE5)
 
 #define QPNP_WLED_EN_MASK                      0x7F
 #define QPNP_WLED_EN_SHIFT                     7
@@ -134,6 +138,9 @@
 #define QPNP_WLED_MODULE_RDY_SHIFT             7
 #define QPNP_WLED_MODULE_EN_MASK               0x7F
 #define QPNP_WLED_MODULE_EN_SHIFT              7
+#define QPNP_IBB_SWIRE_RDY_MASK               0x40
+#define QPNP_IBB_SWIRE_RDY_SHIFT              6
+#define QPNP_IBB_MODULE_EN_MASK               0x80
 #define QPNP_WLED_DISP_SEL_MASK                0x7F
 #define QPNP_WLED_DISP_SEL_SHIFT               7
 
@@ -148,6 +155,7 @@
 #define QPNP_WLED_IBB_PWRDN_DLY_MAX_MS         3
 #define IBB_LAB_VREG_STEP_SIZE                 100000
 #define QPNP_LABIBB_OUTPUT_VOLTAGE             0x41
+#define QPNP_LABIBB_PS_CTL		       0x50
 #define QPNP_LAB_OUTPUT_OVERRIDE_EN            BIT(7)
 #define QPNP_LAB_SET_VOLTAGE_MASK              (BIT(4) - 1)
 #define QPNP_IBB_SET_VOLTAGE_MASK              (BIT(6) - 1)
@@ -260,6 +268,8 @@ struct qpnp_wled {
 	uint32_t ibb_max_volt;
 	uint32_t ibb_init_volt;
 	uint32_t lab_init_volt;
+	bool lab_ibb_swire_control;
+	bool wled_avdd_control;
 };
 
 struct qpnp_wled_config_data {
@@ -273,6 +283,8 @@ struct qpnp_wled_config_data {
 	uint32_t ibb_max_volt;
 	uint32_t ibb_init_volt;
 	uint32_t lab_init_volt;
+	bool lab_ibb_swire_control;
+	bool wled_avdd_control;
 };
 /* WLED Initial Setup */
 int qpnp_wled_init(struct qpnp_wled_config_data *config);
