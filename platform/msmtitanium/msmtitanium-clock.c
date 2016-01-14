@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -476,6 +476,115 @@ static struct reset_clk gcc_usb30_phy_reset = {
 	},
 };
 
+/* Display clocks */
+static struct clk_freq_tbl ftbl_mdss_esc0_1_clk[] = {
+	F_MM(19200000,    cxo,   1,   0,   0),
+	F_END
+};
+
+static struct clk_freq_tbl ftbl_mdp_clk[] = {
+	F( 200000000,           gpll0,    4,    0,     0),
+	F( 266670000,           gpll0,    3,    0,     0),
+	F( 320000000,           gpll0,  2.5,    0,     0),
+	F( 400000000,           gpll0,    2,    0,     0),
+	F_END
+};
+
+static struct rcg_clk dsi_esc0_clk_src = {
+	.cmd_reg  = (uint32_t *) DSI_ESC0_CMD_RCGR,
+	.cfg_reg  = (uint32_t *) DSI_ESC0_CFG_RCGR,
+	.set_rate = clock_lib2_rcg_set_rate_hid,
+	.freq_tbl = ftbl_mdss_esc0_1_clk,
+
+	.c        = {
+		.dbg_name = "dsi_esc0_clk_src",
+		.ops      = &clk_ops_rcg,
+	},
+};
+
+static struct clk_freq_tbl ftbl_mdss_vsync_clk[] = {
+	F_MM(19200000,    cxo,   1,   0,   0),
+	F_END
+};
+
+static struct rcg_clk vsync_clk_src = {
+	.cmd_reg  = (uint32_t *) VSYNC_CMD_RCGR,
+	.cfg_reg  = (uint32_t *) VSYNC_CFG_RCGR,
+	.set_rate = clock_lib2_rcg_set_rate_hid,
+	.freq_tbl = ftbl_mdss_vsync_clk,
+
+	.c        = {
+		.dbg_name = "vsync_clk_src",
+		.ops      = &clk_ops_rcg,
+	},
+};
+
+static struct branch_clk mdss_esc0_clk = {
+	.cbcr_reg    = (uint32_t *) DSI_ESC0_CBCR,
+	.parent      = &dsi_esc0_clk_src.c,
+	.has_sibling = 0,
+
+	.c           = {
+		.dbg_name = "mdss_esc0_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
+static struct branch_clk mdss_axi_clk = {
+	.cbcr_reg    = (uint32_t *) MDP_AXI_CBCR,
+	.has_sibling = 1,
+
+	.c           = {
+		.dbg_name = "mdss_axi_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
+static struct branch_clk mdp_ahb_clk = {
+	.cbcr_reg    = (uint32_t *) MDP_AHB_CBCR,
+	.has_sibling = 1,
+
+	.c           = {
+		.dbg_name = "mdp_ahb_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
+static struct rcg_clk mdss_mdp_clk_src = {
+	.cmd_reg      = (uint32_t *) MDP_CMD_RCGR,
+	.cfg_reg      = (uint32_t *) MDP_CFG_RCGR,
+	.set_rate     = clock_lib2_rcg_set_rate_hid,
+	.freq_tbl     = ftbl_mdp_clk,
+	.current_freq = &rcg_dummy_freq,
+
+	.c            = {
+		.dbg_name = "mdss_mdp_clk_src",
+		.ops      = &clk_ops_rcg,
+	},
+};
+
+static struct branch_clk mdss_mdp_clk = {
+	.cbcr_reg    = (uint32_t *) MDP_CBCR,
+	.parent      = &mdss_mdp_clk_src.c,
+	.has_sibling = 0,
+
+	.c           = {
+		.dbg_name = "mdss_mdp_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
+static struct branch_clk mdss_vsync_clk = {
+	.cbcr_reg    = (uint32_t *) MDSS_VSYNC_CBCR,
+	.parent      = &vsync_clk_src.c,
+	.has_sibling = 0,
+
+	.c           = {
+		.dbg_name = "mdss_vsync_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
 static struct clk_freq_tbl ftbl_gcc_ce1_clk[] = {
 	F(160000000,  gpll0,   5,   0,   0),
 	F_END
@@ -599,6 +708,13 @@ static struct clk_lookup msm_clocks_titanium[] =
 	CLK_LOOKUP("usb30_mock_utmi_clk", gcc_usb30_mock_utmi_clk.c),
 	CLK_LOOKUP("usb_phy_cfg_ahb_clk", gcc_usb_phy_cfg_ahb_clk.c),
 	CLK_LOOKUP("usb30_sleep_clk", gcc_usb30_sleep_clk.c),
+
+	CLK_LOOKUP("mdp_ahb_clk",          mdp_ahb_clk.c),
+	CLK_LOOKUP("mdss_esc0_clk",        mdss_esc0_clk.c),
+	CLK_LOOKUP("mdss_axi_clk",         mdss_axi_clk.c),
+	CLK_LOOKUP("mdss_vsync_clk",       mdss_vsync_clk.c),
+	CLK_LOOKUP("mdss_mdp_clk_src",     mdss_mdp_clk_src.c),
+	CLK_LOOKUP("mdss_mdp_clk",         mdss_mdp_clk.c),
 
 	CLK_LOOKUP("ce1_ahb_clk",  gcc_ce1_ahb_clk.c),
 	CLK_LOOKUP("ce1_axi_clk",  gcc_ce1_axi_clk.c),
