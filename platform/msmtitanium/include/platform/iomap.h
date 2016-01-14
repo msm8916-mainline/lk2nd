@@ -211,7 +211,7 @@
 #define TCSR_TZ_WONCE               0x193D000
 #define TCSR_BOOT_MISC_DETECT       0x193D100
 
-#define DDR_START                          0x80000000
+#define DDR_START                          get_ddr_start()
 #define ABOOT_FORCE_KERNEL_ADDR            DDR_START + 0x8000
 #define ABOOT_FORCE_KERNEL64_ADDR          DDR_START + 0x80000
 #define ABOOT_FORCE_RAMDISK_ADDR           DDR_START + 0x2000000

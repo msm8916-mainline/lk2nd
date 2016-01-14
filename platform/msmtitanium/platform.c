@@ -110,7 +110,7 @@ void platform_init_mmu_mappings(void)
 	uint32_t i;
 	uint32_t sections;
 	uint32_t table_size = ARRAY_SIZE(mmu_section_table);
-	uint32_t ddr_start = get_ddr_start();
+	uint32_t ddr_start = DDR_START;
 	uint32_t smem_addr = platform_get_smem_base_addr();
 
 	/*Mapping the ddr start address for loading the kernel about 90 MB*/
