@@ -31,7 +31,7 @@ DEFINES += ABOOT_IGNORE_BOOT_HEADER_ADDRS=1
 DEFINES += BAM_V170=1
 
 #Enable the feature of long press power on
-#DEFINES += LONG_PRESS_POWER_ON=1
+DEFINES += LONG_PRESS_POWER_ON=1
 
 #Disable thumb mode
 ENABLE_THUMB := false
