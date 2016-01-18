@@ -50,6 +50,8 @@
 #define MDTP_MAJOR_VERSION (0)
 #define MDTP_MINOR_VERSION (2)
 
+#define MDTP_CORRECT_PIN_DELAY_MSEC (1000)
+
 /** Extract major version number from complete version. */
 #define MDTP_GET_MAJOR_VERSION(version) ((version) >> 16)
 
@@ -62,6 +64,7 @@ static int is_mdtp_activated = -1;
 
 int check_aboot_addr_range_overlap(uint32_t start, uint32_t size);
 int scm_random(uint32_t * rbuf, uint32_t  r_len);
+extern void mdelay(unsigned msecs);
 void free_mdtp_image(void);
 
 /********************************************************************************/
@@ -445,6 +448,7 @@ static void display_recovery_ui(mdtp_cfg_t *mdtp_cfg)
 	out:
 	display_image_on_screen();
 	free_mdtp_image();
+	mdelay(MDTP_CORRECT_PIN_DELAY_MSEC);
 }
 
 /* Verify the boot or recovery partitions using boot_verifier. */
