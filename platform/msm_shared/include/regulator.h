@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -72,6 +72,8 @@
 #define REG_LDO14	BIT(13)
 #define REG_LDO17	BIT(16)
 #define REG_LDO28	BIT(27)
+#define REG_SMPS3	BIT(7)
+#define REG_LDO3	BIT(2)
 
 void regulator_enable(uint32_t enable);
 void regulator_disable(uint32_t enable);
