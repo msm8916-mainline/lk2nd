@@ -73,6 +73,8 @@
 #define VIBRATE_TIME 250
 #endif
 
+#include <pm_smbchg_usb_chgpth.h>
+
 #define CE_INSTANCE             1
 #define CE_EE                   0
 #define CE_FIFO_SIZE            64
@@ -563,17 +565,22 @@ unsigned target_pause_for_battery_charge(void)
 {
 	uint8_t pon_reason = pm8x41_get_pon_reason();
 	uint8_t is_cold_boot = pm8x41_get_is_cold_boot();
-	dprintf(INFO, "%s : pon_reason is %d cold_boot:%d\n", __func__,
-		pon_reason, is_cold_boot);
+	pm_smbchg_usb_chgpth_pwr_pth_type charger_path = PM_SMBCHG_USB_CHGPTH_PWR_PATH__INVALID;
+	dprintf(INFO, "%s : pon_reason is %d cold_boot:%d charger path: %d\n", __func__,
+		pon_reason, is_cold_boot, charger_path);
 	/* In case of fastboot reboot,adb reboot or if we see the power key
 	* pressed we do not want go into charger mode.
 	* fastboot reboot is warm boot with PON hard reset bit not set
 	* adb reboot is a cold boot with PON hard reset bit set
 	*/
+	pm_smbchg_get_charger_path(1, &charger_path);
 	if (is_cold_boot &&
 			(!(pon_reason & HARD_RST)) &&
 			(!(pon_reason & KPDPWR_N)) &&
-			((pon_reason & PON1)))
+			((pon_reason & PON1)) &&
+			((charger_path == PM_SMBCHG_USB_CHGPTH_PWR_PATH__DC_CHARGER) ||
+			(charger_path == PM_SMBCHG_USB_CHGPTH_PWR_PATH__USB_CHARGER)))
+
 		return 1;
 	else
 		return 0;
