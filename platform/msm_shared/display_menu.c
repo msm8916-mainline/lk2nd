@@ -51,14 +51,14 @@ static const char *unlock_menu_common_msg = "If you unlock the bootloader, "\
 				"applications to stop working properly.\n\n"\
 				"To prevent unauthorized access to your personal data, "\
 				"unlocking the bootloader will also delete all personal "\
-				"data from your phone(a \"fatory data reset\").\n\n"\
+				"data from your phone(a \"factory data reset\").\n\n"\
 				"Press the Volume Up/Down buttons to select Yes "\
 				"or No. Then press the Power button to continue.\n";
 
-#define YELLOW_WARNING_MSG	"Your device has loaded a diffrent operating "\
+#define YELLOW_WARNING_MSG	"Your device has loaded a different operating "\
 				"system\n\nTo learn more, visit:\n"
 
-#define ORANGE_WARNING_MSG	"Your device has been unlocker and cann't "\
+#define ORANGE_WARNING_MSG	"Your device has been unlocked and can't "\
 				"be trusted\n\nTo learn more, visit:\n"
 
 #define RED_WARNING_MSG	"Your device has failed verification and may "\
