@@ -2,7 +2,7 @@
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2015, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -891,7 +891,7 @@ static void verify_signed_bootimg(uint32_t bootimg_addr, uint32_t bootimg_size)
 	{
 		case RED:
 #if FBCON_DISPLAY_MSG
-			display_bootverify_menu_thread(DISPLAY_MENU_RED);
+			display_bootverify_menu(DISPLAY_MENU_RED);
 			wait_for_users_action();
 #else
 			dprintf(CRITICAL,
@@ -902,7 +902,7 @@ static void verify_signed_bootimg(uint32_t bootimg_addr, uint32_t bootimg_size)
 			break;
 		case YELLOW:
 #if FBCON_DISPLAY_MSG
-			display_bootverify_menu_thread(DISPLAY_MENU_YELLOW);
+			display_bootverify_menu(DISPLAY_MENU_YELLOW);
 			wait_for_users_action();
 #else
 			dprintf(CRITICAL,
@@ -1181,7 +1181,7 @@ int boot_linux_from_mmc(void)
 	if(boot_verify_get_state() == ORANGE)
 	{
 #if FBCON_DISPLAY_MSG
-		display_bootverify_menu_thread(DISPLAY_MENU_ORANGE);
+		display_bootverify_menu(DISPLAY_MENU_ORANGE);
 		wait_for_users_action();
 #else
 		dprintf(CRITICAL,
@@ -2006,7 +2006,7 @@ static void set_device_unlock(int type, bool status)
 		}
 
 #if FBCON_DISPLAY_MSG
-		display_unlock_menu_thread(type);
+		display_unlock_menu(type);
 		fastboot_okay("");
 		return;
 #else
@@ -3729,7 +3729,7 @@ normal_boot:
 	/* initialize and start fastboot */
 	fastboot_init(target_get_scratch_address(), target_get_max_flash_size());
 #if FBCON_DISPLAY_MSG
-	display_fastboot_menu_thread();
+	display_fastboot_menu();
 #endif
 }
 
