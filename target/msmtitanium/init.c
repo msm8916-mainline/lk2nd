@@ -58,6 +58,7 @@
 #include <smem.h>
 #include <qmp_phy.h>
 #include <qusb2_phy.h>
+#include "target/display.h"
 
 #if LONG_PRESS_POWER_ON
 #include <shutdown_detect.h>
@@ -651,4 +652,30 @@ struct qmp_reg *target_get_qmp_settings()
 int target_get_qmp_regsize()
 {
 	return ARRAY_SIZE(qmp_settings);
+}
+static uint8_t splash_override;
+/* Returns 1 if target supports continuous splash screen. */
+int target_cont_splash_screen()
+{
+	uint8_t splash_screen = 0;
+	if (!splash_override) {
+		switch (board_hardware_id()) {
+		case HW_PLATFORM_MTP:
+		case HW_PLATFORM_SURF:
+		case HW_PLATFORM_RCM:
+		case HW_PLATFORM_QRD:
+			splash_screen = 1;
+			break;
+		default:
+			splash_screen = 0;
+			break;
+		}
+		dprintf(SPEW, "Target_cont_splash=%d\n", splash_screen);
+	}
+	return splash_screen;
+}
+
+void target_force_cont_splash_disable(uint8_t override)
+{
+        splash_override = override;
 }
