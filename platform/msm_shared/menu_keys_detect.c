@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are
@@ -329,6 +329,16 @@ static struct pages_action menu_pages_action[] = {
 void keys_detect_init()
 {
 	wait_time = 0;
+
+	/* Waiting for all keys are released */
+	while(1) {
+		if(!keys[VOLUME_UP].keys_pressed_func() &&
+			!keys[VOLUME_DOWN].keys_pressed_func() &&
+			!keys[POWER_KEY].keys_pressed_func()) {
+			break;
+		}
+		thread_sleep(KEY_DETECT_FREQUENCY);
+	}
 }
 
 int select_msg_keys_detect(void *param) {

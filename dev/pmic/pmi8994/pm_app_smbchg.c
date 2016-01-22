@@ -87,7 +87,6 @@ static bool pm_app_read_from_sram;
 
 char panel_name[256];
 
-pm_err_flag_type pm_smbchg_get_charger_path(uint32 device_index, pm_smbchg_usb_chgpth_pwr_pth_type* charger_path);
 pm_err_flag_type pm_appsbl_chg_config_vbat_low_threshold(uint32 device_index, pm_smbchg_specific_data_type *chg_param_ptr);
 static void display_thread_initialize();
 static void pm_app_ima_read_voltage(uint32_t *);

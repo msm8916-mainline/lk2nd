@@ -10,11 +10,14 @@ MEMSIZE := 0x00100000 # 1MB
 BASE_ADDR        := 0x80000000
 SCRATCH_ADDR     := 0x90000000
 
+DEFINES += PMI_CONFIGURED=1
+
 MODULES += \
 	dev/keys \
 	dev/vib \
 	lib/ptable \
 	dev/pmic/pm8x41 \
+	dev/qpnp_haptic \
 	lib/libfdt
 
 DEFINES += \

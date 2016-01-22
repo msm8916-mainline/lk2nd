@@ -76,6 +76,12 @@
 #define MPM2_MPM_PS_HOLD                   0x004AB000
 #define MPM2_MPM_SLEEP_TIMETICK_COUNT_VAL  0x004A3000
 
+#define PMI_SLAVE_BASE           2
+#define PMI_FIRST_SLAVE_OFFSET   0
+#define PMI_SECOND_SLAVE_OFFSET  1
+#define PMI_FIRST_SLAVE_ADDR_BASE   (( PMI_SLAVE_BASE + PMI_FIRST_SLAVE_OFFSET ) << 16)
+#define PMI_SECOND_SLAVE_ADDR_BASE  (( PMI_SLAVE_BASE + PMI_SECOND_SLAVE_OFFSET) << 16)
+
 /* CRYPTO ENGINE */
 #define  MSM_CE1_BASE                      0x073A000
 #define  MSM_CE1_BAM_BASE                  0x0704000
@@ -211,7 +217,7 @@
 #define TCSR_TZ_WONCE               0x193D000
 #define TCSR_BOOT_MISC_DETECT       0x193D100
 
-#define DDR_START                          0x80000000
+#define DDR_START                          get_ddr_start()
 #define ABOOT_FORCE_KERNEL_ADDR            DDR_START + 0x8000
 #define ABOOT_FORCE_KERNEL64_ADDR          DDR_START + 0x80000
 #define ABOOT_FORCE_RAMDISK_ADDR           DDR_START + 0x2000000

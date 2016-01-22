@@ -31,7 +31,7 @@ DEFINES += ABOOT_IGNORE_BOOT_HEADER_ADDRS=1
 DEFINES += BAM_V170=1
 
 #Enable the feature of long press power on
-#DEFINES += LONG_PRESS_POWER_ON=1
+DEFINES += LONG_PRESS_POWER_ON=1
 
 #Disable thumb mode
 ENABLE_THUMB := false
@@ -44,10 +44,14 @@ DEFINES += MMC_SDHCI_SUPPORT=1
 endif
 
 #enable power on vibrator feature
-#ENABLE_PON_VIB_SUPPORT := true
+ENABLE_HAP_VIB_SUPPORT := true
 
 ifeq ($(EMMC_BOOT),1)
 DEFINES += _EMMC_BOOT=1
+endif
+
+ifeq ($(ENABLE_HAP_VIB_SUPPORT),true)
+DEFINES += PON_VIB_SUPPORT=1
 endif
 
 ifeq ($(ENABLE_PON_VIB_SUPPORT),true)
