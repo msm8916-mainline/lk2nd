@@ -123,6 +123,7 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		memcpy(phy_db->timing,
 			truly_1080p_14nm_video_timings,
 			MAX_TIMING_CONFIG * sizeof(uint32_t));
+		pinfo->dfps.panel_dfps = truly_1080p_video_dfps;
 		pinfo->mipi.signature 	= TRULY_1080P_VIDEO_SIGNATURE;
 		break;
 	case TRULY_1080P_CMD_PANEL:
