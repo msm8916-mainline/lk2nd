@@ -433,7 +433,11 @@ enum handler_return smd_irq_handler(void* data)
 	if(ch->current_state == SMD_SS_CLOSED)
 	{
 		flush_smd_channel_entries();
-		free(smd_channel_alloc_entry);
+		if(smd_channel_alloc_entry)
+		{
+			free(smd_channel_alloc_entry);
+			smd_channel_alloc_entry = NULL;
+		}
 		event_signal(&smd_closed, false);
 		return INT_NO_RESCHEDULE;
 	}
