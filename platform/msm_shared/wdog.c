@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -35,11 +35,37 @@
 #include <target.h>
 #include <scm.h>
 #include <dload_util.h>
+#include <kernel/thread.h>
+
+#define WDOG_FEED_FREQUENCY 1000
+
+static int wdog_feed_handler(void *param) {
+	while(1) {
+		writel(1, APPS_WDOG_RESET_REG);
+		thread_sleep(WDOG_FEED_FREQUENCY);
+	}
+	return 0;
+}
+
+static void wdog_feed_func_thread(void)
+{
+	static bool is_thread_start;
+	thread_t *thr;
+
+	if (!is_thread_start) {
+		thr = thread_create("wdogfeed", wdog_feed_handler,
+			0, DEFAULT_PRIORITY, DEFAULT_STACK_SIZE);
+		if (!thr) {
+			dprintf(CRITICAL, "ERROR: create feed dog thread failed!!\n");
+			return;
+		}
+		thread_resume(thr);
+		is_thread_start = true;
+	}
+}
 
 void msm_wdog_init()
 {
-	uint32_t ret;
-
 	/* Set Bite and Bark times  10s */
 	writel(0x77FD3, APPS_WDOG_BARK_VAL_REG);
 	writel(0x77FD3, APPS_WDOG_BITE_VAL_REG);
@@ -50,13 +76,7 @@ void msm_wdog_init()
 	/* Enable WDOG */
 	writel((readl(APPS_WDOG_CTL_REG) | 0x1), APPS_WDOG_CTL_REG);
 
-	/* Write to the Boot MISC register to put the device in dload mode*/
-	ret = scm_call2_atomic(SCM_SVC_BOOT, SCM_DLOAD_CMD, SCM_DLOAD_MODE, 0);
+	wdog_feed_func_thread();
 
-	if (ret) {
-		ret = scm_io_write(TCSR_BOOT_MISC_DETECT,SCM_DLOAD_MODE);
-		if(ret) {
-			dprintf(CRITICAL, "Failed to write to boot misc: %d\n", ret);
-		}
-	}
+	set_download_mode(NORMAL_DLOAD);
 }

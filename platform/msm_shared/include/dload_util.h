@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013, 2016, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -30,16 +30,9 @@
 #define __DLOAD_UTIL_H
 
 #include <sys/types.h>
-
-#define DLOAD 1
-
-enum dload_mode {
-	NORMAL_DLOAD,
-	EMERGENCY_DLOAD,
-	NORMAL_MODE
-};
+#include <reboot.h>
 
 void dload_util_write_cookie(uint32_t target_dload_mode_addr,
-		enum dload_mode mode);
+		enum reboot_reason mode);
 
 #endif

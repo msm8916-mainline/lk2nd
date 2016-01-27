@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
- * Copyright (c) 2009-2015, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -151,16 +151,9 @@ void platform_halt(void)
 #if PON_VIB_SUPPORT
 	vib_turn_off();
 #endif
-	if (set_download_mode(NORMAL_DLOAD) == 0)
-	{
-		dprintf(CRITICAL, "HALT: reboot into dload mode...\n");
-		reboot_device(DLOAD);
-		dprintf(CRITICAL, "HALT: reboot_device failed\n");
-	}
-	else
-	{
-		dprintf(CRITICAL, "HALT: set_download_mode not supported\n");
-	}
+	dprintf(CRITICAL, "HALT: reboot into dload mode...\n");
+	reboot_device(NORMAL_DLOAD);
+
 	dprintf(CRITICAL, "HALT: spinning forever...\n");
 	for (;;) ;
 }

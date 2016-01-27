@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are
@@ -51,21 +51,21 @@ static const char *unlock_menu_common_msg = "If you unlock the bootloader, "\
 				"applications to stop working properly.\n\n"\
 				"To prevent unauthorized access to your personal data, "\
 				"unlocking the bootloader will also delete all personal "\
-				"data from your phone(a \"fatory data reset\").\n\n"\
+				"data from your phone(a \"factory data reset\").\n\n"\
 				"Press the Volume Up/Down buttons to select Yes "\
 				"or No. Then press the Power button to continue.\n";
 
-#define YELLOW_WARNING_MSG	"Your device has loaded a diffrent operating "\
+#define YELLOW_WARNING_MSG	"Your device has loaded a different operating "\
 				"system\n\nTo learn more, visit:\n"
 
-#define ORANGE_WARNING_MSG	"Your device has been unlocker and cann't "\
+#define ORANGE_WARNING_MSG	"Your device has been unlocked and can't "\
 				"be trusted\n\nTo learn more, visit:\n"
 
 #define RED_WARNING_MSG	"Your device has failed verification and may "\
 				"not work properly\n\nTo learn more, visit:\n"
 
 static bool is_thread_start = false;
-struct select_msg_info msg_info;
+static struct select_msg_info msg_info;
 
 #if VERIFIED_BOOT
 struct boot_verify_info {
@@ -100,15 +100,14 @@ void wait_for_users_action()
 	struct select_msg_info *select_msg;
 	select_msg = &msg_info;
 
-	while(1) {
-		if (select_msg->msg_timeout == true &&
-			select_msg->msg_volume_key_pressed == false)
-			break;
-		if (select_msg->msg_power_key_pressed == true)
-			break;
-
+	mutex_acquire(&select_msg->msg_lock);
+	while(!select_msg->info.is_timeout == true) {
+		mutex_release(&select_msg->msg_lock);
 		thread_sleep(10);
+		mutex_acquire(&select_msg->msg_lock);
 	}
+	mutex_release(&select_msg->msg_lock);
+
 	fbcon_clear();
 	display_image_on_screen();
 }
@@ -171,10 +170,12 @@ static char *str_align_right(char *str, int factor)
 	return str;
 }
 
-void display_unlock_menu(struct select_msg_info *unlock_msg_info, int type)
+/* msg_lock need to be holded when call this function. */
+void display_unlock_menu_renew(struct select_msg_info *unlock_msg_info, int type)
 {
 	fbcon_clear();
-	memset(unlock_msg_info, 0, sizeof(struct select_msg_info));
+	memset(&unlock_msg_info->info, 0, sizeof(struct menu_info));
+
 	display_fbcon_menu_message("Unlock bootloader?\n",
 		FBCON_UNLOCK_TITLE_MSG, big_factor);
 	fbcon_draw_line(FBCON_COMMON_MSG);
@@ -182,33 +183,37 @@ void display_unlock_menu(struct select_msg_info *unlock_msg_info, int type)
 	display_fbcon_menu_message((char*)unlock_menu_common_msg,
 		FBCON_COMMON_MSG, common_factor);
 	fbcon_draw_line(FBCON_COMMON_MSG);
-	unlock_msg_info->option_start[0] = fbcon_get_current_line();
+	unlock_msg_info->info.option_start[0] = fbcon_get_current_line();
 	display_fbcon_menu_message("Yes\n",
 		FBCON_COMMON_MSG, big_factor);
-	unlock_msg_info->option_bg[0] = fbcon_get_current_bg();
+	unlock_msg_info->info.option_bg[0] = fbcon_get_current_bg();
 	display_fbcon_menu_message("Unlock bootloader(may void warranty)\n",
 		FBCON_COMMON_MSG, common_factor);
-	unlock_msg_info->option_end[0] = fbcon_get_current_line();
+	unlock_msg_info->info.option_end[0] = fbcon_get_current_line();
 	fbcon_draw_line(FBCON_COMMON_MSG);
-	unlock_msg_info->option_start[1] = fbcon_get_current_line();
+	unlock_msg_info->info.option_start[1] = fbcon_get_current_line();
 	display_fbcon_menu_message("No\n",
 		FBCON_COMMON_MSG, big_factor);
-	unlock_msg_info->option_bg[1] = fbcon_get_current_bg();
+	unlock_msg_info->info.option_bg[1] = fbcon_get_current_bg();
 	display_fbcon_menu_message("Do not unlock bootloader and restart phone\n",
 		FBCON_COMMON_MSG, common_factor);
-	unlock_msg_info->option_end[1] = fbcon_get_current_line();
+	unlock_msg_info->info.option_end[1] = fbcon_get_current_line();
 	fbcon_draw_line(FBCON_COMMON_MSG);
 
 	if (type == UNLOCK)
-		unlock_msg_info->msg_type = DISPLAY_MENU_UNLOCK;
+		unlock_msg_info->info.msg_type = DISPLAY_MENU_UNLOCK;
 	else if (type == UNLOCK_CRITICAL)
-		unlock_msg_info->msg_type = DISPLAY_MENU_UNLOCK_CRITICAL;
+		unlock_msg_info->info.msg_type = DISPLAY_MENU_UNLOCK_CRITICAL;
 
-	unlock_msg_info->option_num = 2;
+	unlock_msg_info->info.option_num = 2;
+
+	/* Initialize the option index */
+	unlock_msg_info->info.option_index= 2;
 }
 
 #if VERIFIED_BOOT
-void display_boot_verified_menu(struct select_msg_info *msg_info, int type)
+/* msg_lock need to be holded when call this function. */
+void display_bootverify_menu_renew(struct select_msg_info *msg_info, int type)
 {
 	unsigned char* fp_buf = NULL;
 	char fp_str_temp[EVP_MAX_MD_SIZE] = {'\0'};
@@ -222,7 +227,7 @@ void display_boot_verified_menu(struct select_msg_info *msg_info, int type)
 	unsigned int i = 0;
 
 	fbcon_clear();
-	memset(msg_info, 0, sizeof(struct select_msg_info));
+	memset(&msg_info->info, 0, sizeof(struct menu_info));
 
 	/* Align Right */
 	str_target = str_align_right(str1, big_factor);
@@ -264,19 +269,24 @@ void display_boot_verified_menu(struct select_msg_info *msg_info, int type)
 	display_fbcon_menu_message("\n\nIf no key pressed:\n"\
 		"Your device will boot in 5 seconds\n\n", FBCON_COMMON_MSG, common_factor);
 
-	msg_info->msg_type = type;
+	msg_info->info.msg_type = type;
 	if(str_target) {
 		free(str_target);
 	}
+
+	/* Initialize the time out time */
+	msg_info->info.timeout_time = 5000; //5s
 }
 #endif
 
-void display_boot_verified_option(struct select_msg_info *msg_info)
+/* msg_lock need to be holded when call this function. */
+void display_bootverify_option_menu_renew(struct select_msg_info *msg_info)
 {
 	int i = 0;
 	int len = 0;
+
 	fbcon_clear();
-	memset(msg_info, 0, sizeof(struct select_msg_info));
+	memset(&msg_info->info, 0, sizeof(struct menu_info));
 
 	len = ARRAY_SIZE(verify_option_menu);
 	display_fbcon_menu_message("Options menu:\n\n",
@@ -286,28 +296,36 @@ void display_boot_verified_option(struct select_msg_info *msg_info)
 
 	for (i = 0; i < len; i++) {
 		fbcon_draw_line(FBCON_COMMON_MSG);
-		msg_info->option_start[i] = fbcon_get_current_line();
+		msg_info->info.option_start[i] = fbcon_get_current_line();
 		display_fbcon_menu_message(verify_option_menu[i],
 			FBCON_COMMON_MSG, common_factor);
-		msg_info->option_bg[i]= fbcon_get_current_bg();
-		msg_info->option_end[i]= fbcon_get_current_line();
+		msg_info->info.option_bg[i]= fbcon_get_current_bg();
+		msg_info->info.option_end[i]= fbcon_get_current_line();
 	}
 
 	fbcon_draw_line(FBCON_COMMON_MSG);
-	msg_info->msg_type = DISPLAY_MENU_MORE_OPTION;
-	msg_info->option_num = len;
+	msg_info->info.msg_type = DISPLAY_MENU_MORE_OPTION;
+	msg_info->info.option_num = len;
+
+	/* Initialize the option index */
+	msg_info->info.option_index= len;
 }
 
-void display_fastboot_menu(struct select_msg_info *fastboot_msg_info,
-	int option_index)
+/* msg_lock need to be holded when call this function. */
+void display_fastboot_menu_renew(struct select_msg_info *fastboot_msg_info)
 {
 	int len;
 	int msg_type = FBCON_COMMON_MSG;
 	char msg_buf[64];
 	char msg[128];
 
+	/* The fastboot menu is switched base on the option index
+	 * So it's need to store the index for the menu switching
+	 */
+	uint32_t option_index = fastboot_msg_info->info.option_index;
+
 	fbcon_clear();
-	memset(fastboot_msg_info, 0, sizeof(struct select_msg_info));
+	memset(&fastboot_msg_info->info, 0, sizeof(struct menu_info));
 
 	len = ARRAY_SIZE(fastboot_option_menu);
 	switch(option_index) {
@@ -366,8 +384,21 @@ void display_fastboot_menu(struct select_msg_info *fastboot_msg_info,
 		is_device_locked()? "locked":"unlocked");
 	display_fbcon_menu_message(msg, FBCON_RED_MSG, common_factor);
 
-	fastboot_msg_info->msg_type = DISPLAY_MENU_FASTBOOT;
-	fastboot_msg_info->option_num = len;
+	fastboot_msg_info->info.msg_type = DISPLAY_MENU_FASTBOOT;
+	fastboot_msg_info->info.option_num = len;
+	fastboot_msg_info->info.option_index = option_index;
+}
+
+void msg_lock_init()
+{
+	static bool is_msg_lock_init = false;
+	struct select_msg_info *msg_lock_info;
+	msg_lock_info = &msg_info;
+
+	if (!is_msg_lock_init) {
+		mutex_init(&msg_lock_info->msg_lock);
+		is_msg_lock_init = true;
+	}
 }
 
 static void display_menu_thread_start(struct select_msg_info *msg_info)
@@ -382,43 +413,77 @@ static void display_menu_thread_start(struct select_msg_info *msg_info)
 			return;
 		}
 		thread_resume(thr);
+		is_thread_start = true;
 	}
-
-	is_thread_start = true;
 }
 
-void display_unlock_menu_thread(int type)
+/* The fuction be called after device in fastboot mode,
+ * so it's no need to initialize the msg_lock again
+ */
+void display_unlock_menu(int type)
 {
 	struct select_msg_info *unlock_menu_msg_info;
 	unlock_menu_msg_info = &msg_info;
 
 	set_message_factor();
-	display_unlock_menu(unlock_menu_msg_info, type);
+
+	msg_lock_init();
+	mutex_acquire(&unlock_menu_msg_info->msg_lock);
+
+	/* Initialize the last_msg_type */
+	unlock_menu_msg_info->last_msg_type =
+		unlock_menu_msg_info->info.msg_type;
+
+	display_unlock_menu_renew(unlock_menu_msg_info, type);
+	mutex_release(&unlock_menu_msg_info->msg_lock);
 
 	dprintf(INFO, "creating unlock keys detect thread\n");
 	display_menu_thread_start(unlock_menu_msg_info);
 }
 
-void display_fastboot_menu_thread()
+void display_fastboot_menu()
 {
 	struct select_msg_info *fastboot_menu_msg_info;
 	fastboot_menu_msg_info = &msg_info;
 
 	set_message_factor();
-	display_fastboot_menu(fastboot_menu_msg_info, 0);
+
+	msg_lock_init();
+	mutex_acquire(&fastboot_menu_msg_info->msg_lock);
+
+	/* There are 4 pages for fastboot menu:
+	 * Page: Start/Fastboot/Recovery/Poweroff
+	 * The menu is switched base on the option index
+	 * Initialize the option index and last_msg_type
+	 */
+	fastboot_menu_msg_info->info.option_index = 0;
+	fastboot_menu_msg_info->last_msg_type =
+		fastboot_menu_msg_info->info.msg_type;
+
+	display_fastboot_menu_renew(fastboot_menu_msg_info);
+	mutex_release(&fastboot_menu_msg_info->msg_lock);
 
 	dprintf(INFO, "creating fastboot menu keys detect thread\n");
 	display_menu_thread_start(fastboot_menu_msg_info);
 }
 
 #if VERIFIED_BOOT
-void display_bootverify_menu_thread(int type)
+void display_bootverify_menu(int type)
 {
 	struct select_msg_info *bootverify_menu_msg_info;
 	bootverify_menu_msg_info = &msg_info;
 
 	set_message_factor();
-	display_boot_verified_menu(bootverify_menu_msg_info, type);
+
+	msg_lock_init();
+	mutex_acquire(&bootverify_menu_msg_info->msg_lock);
+
+	/* Initialize the last_msg_type */
+	bootverify_menu_msg_info->last_msg_type =
+		bootverify_menu_msg_info->info.msg_type;
+
+	display_bootverify_menu_renew(bootverify_menu_msg_info, type);
+	mutex_release(&bootverify_menu_msg_info->msg_lock);
 
 	dprintf(INFO, "creating boot verify keys detect thread\n");
 	display_menu_thread_start(bootverify_menu_msg_info);

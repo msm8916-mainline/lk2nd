@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -500,10 +500,30 @@ unsigned check_reboot_mode(void)
 	return restart_reason;
 }
 
+int set_download_mode(enum reboot_reason mode)
+{
+	if (mode == NORMAL_DLOAD || mode == EMERGENCY_DLOAD) {
+		if (platform_is_msm8994())
+			dload_util_write_cookie(mode == NORMAL_DLOAD ?
+				DLOAD_MODE_ADDR : EMERGENCY_DLOAD_MODE_ADDR, mode);
+		else
+			dload_util_write_cookie(mode == NORMAL_DLOAD ?
+				DLOAD_MODE_ADDR_V2 : EMERGENCY_DLOAD_MODE_ADDR_V2, mode);
+	}
+
+	return 0;
+}
+
 void reboot_device(unsigned reboot_reason)
 {
 	uint8_t reset_type = 0;
 	uint32_t restart_reason_addr;
+
+	/* Set cookie for dload mode */
+	if(set_download_mode(reboot_reason)) {
+		dprintf(CRITICAL, "HALT: set_download_mode not supported\n");
+		return;
+	}
 
 	if (platform_is_msm8994())
 		restart_reason_addr = RESTART_REASON_ADDR;
@@ -634,18 +654,6 @@ void shutdown_device()
 uint32_t target_ddr_cfg_val()
 {
 	return DDR_CFG_DLY_VAL;
-}
-
-int set_download_mode(enum dload_mode mode)
-{
-	if (platform_is_msm8994())
-		dload_util_write_cookie(mode == NORMAL_DLOAD ?
-			DLOAD_MODE_ADDR : EMERGENCY_DLOAD_MODE_ADDR, mode);
-	else
-		dload_util_write_cookie(mode == NORMAL_DLOAD ?
-			DLOAD_MODE_ADDR_V2 : EMERGENCY_DLOAD_MODE_ADDR_V2, mode);
-
-	return 0;
 }
 
 uint32_t target_get_pmic()

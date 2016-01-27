@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013, 2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -38,15 +38,17 @@
 #define EMERGENCY_DLOAD_COOKIE_2    0x77777777
 
 void dload_util_write_cookie(uint32_t target_dload_mode_addr,
-		enum dload_mode mode)
+		enum reboot_reason mode)
 {
 	if (mode == NORMAL_DLOAD)
 	{
+#if !DISABLE_DLOAD_MODE
 		writel(NORMAL_DLOAD_COOKIE_0, target_dload_mode_addr);
 		writel(NORMAL_DLOAD_COOKIE_1,
 				target_dload_mode_addr + sizeof(uint32_t));
+#endif
 	}
-	else
+	else if (mode == EMERGENCY_DLOAD)
 	{
 		writel(EMERGENCY_DLOAD_COOKIE_0, target_dload_mode_addr);
 		writel(EMERGENCY_DLOAD_COOKIE_1,

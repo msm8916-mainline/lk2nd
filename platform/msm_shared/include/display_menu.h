@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are
@@ -30,6 +30,7 @@
 #define __PLATFORM_MSM_SHARED_DISPLAY_MENU_H
 
 #include <openssl/evp.h>
+#include <kernel/mutex.h>
 
 #define SELECT_OPTION_MAX	5
 
@@ -43,24 +44,30 @@ enum display_menu_type {
 	DISPLAY_MENU_UNLOCK_CRITICAL,
 };
 
-struct select_msg_info {
+struct menu_info {
 	uint32_t	option_start[SELECT_OPTION_MAX];
 	uint32_t	option_end[SELECT_OPTION_MAX];
 	uint32_t	option_bg[SELECT_OPTION_MAX];
 	uint32_t	option_num;
+	uint32_t	option_index;
 	uint32_t	msg_type;
-	bool		msg_timeout;
-	bool		msg_power_key_pressed;
-	bool		msg_volume_key_pressed;
+	uint32_t	timeout_time;
+	bool		is_timeout;
+};
+
+struct select_msg_info {
+	struct menu_info	info;
+	uint32_t		last_msg_type;
+	mutex_t			msg_lock;
 };
 
 void wait_for_users_action(void);
-void display_unlock_menu(struct select_msg_info *msg_info, int type);
-void display_boot_verified_menu(struct select_msg_info *msg_info, int type);
-void display_boot_verified_option(struct select_msg_info *msg_info);
-void display_fastboot_menu(struct select_msg_info *fastboot_msg_info,
-	int option_index);
-void display_bootverify_menu_thread(int type);
-void display_fastboot_menu_thread();
-void display_unlock_menu_thread(int type);
+void display_unlock_menu_renew(struct select_msg_info *msg_info, int type);
+void display_bootverify_menu_renew(struct select_msg_info *msg_info, int type);
+void display_bootverify_option_menu_renew(struct select_msg_info *msg_info);
+void display_fastboot_menu_renew(struct select_msg_info *fastboot_msg_info);
+void display_bootverify_menu(int type);
+void display_fastboot_menu();
+void display_unlock_menu(int type);
+void msg_lock_init();
 #endif				/* __PLATFORM_MSM_SHARED_DISPLAY_MENU_H */

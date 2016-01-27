@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2016, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -28,6 +28,8 @@
 
 #ifndef __SCM_H__
 #define __SCM_H__
+
+#include <reboot.h>
 
 /* ARM SCM format support related flags */
 #define SIP_SVC_CALLS                          0x02000000
@@ -461,9 +463,10 @@ bool is_secure_boot_enable();
 /* Is armv8 supported */
 bool is_scm_armv8_support();
 
-int scm_dload_mode(int mode);
+int scm_dload_mode(enum reboot_reason mode);
 int scm_device_enter_dload();
 int scm_call2_atomic(uint32_t svc, uint32_t cmd, uint32_t arg1, uint32_t arg2);
 uint32_t scm_io_write(uint32_t address, uint32_t val);
 int is_scm_call_available(uint32_t svc_id, uint32_t cmd_id);
+int scm_disable_sdi();
 #endif

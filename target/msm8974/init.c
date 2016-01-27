@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2014, 2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -516,10 +516,25 @@ unsigned check_reboot_mode(void)
 	return restart_reason;
 }
 
+int set_download_mode(enum reboot_reason mode)
+{
+	if (mode == NORMAL_DLOAD || mode == EMERGENCY_DLOAD)
+		dload_util_write_cookie(mode == NORMAL_DLOAD ?
+			DLOAD_MODE_ADDR_V2 : EMERGENCY_DLOAD_MODE_ADDR_V2, mode);
+
+	return 0;
+}
+
 void reboot_device(unsigned reboot_reason)
 {
 	uint32_t soc_ver = 0;
 	uint8_t reset_type = 0;
+
+	/* Set cookie for dload mode */
+	if(set_download_mode(reboot_reason)) {
+		dprintf(CRITICAL, "HALT: set_download_mode not supported\n");
+		return;
+	}
 
 	soc_ver = board_soc_version();
 
@@ -546,14 +561,6 @@ void reboot_device(unsigned reboot_reason)
 	mdelay(5000);
 
 	dprintf(CRITICAL, "Rebooting failed\n");
-}
-
-int set_download_mode(enum dload_mode mode)
-{
-	dload_util_write_cookie(mode == NORMAL_DLOAD ?
-		DLOAD_MODE_ADDR_V2 : EMERGENCY_DLOAD_MODE_ADDR_V2, mode);
-
-	return 0;
 }
 
 /* Check if MSM needs VBUS mimic for USB */
