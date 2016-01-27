@@ -217,9 +217,13 @@ int target_backlight_ctrl(struct backlight *bl, uint8_t enable)
 	}
 	mdelay(20);
 
+	if (board_hardware_subtype() == HW_PLATFORM_SUBTYPE_IOE)
+		bkl_gpio.pin_id = 99;
+
 	if (enable) {
 		if (hw_id == HW_PLATFORM_SURF || (hw_id == HW_PLATFORM_MTP)) {
 			/* configure backlight gpio for CDP and MTP */
+
 			gpio_tlmm_config(bkl_gpio.pin_id, 0,
 				bkl_gpio.pin_direction, bkl_gpio.pin_pull,
 				bkl_gpio.pin_strength, bkl_gpio.pin_state);
