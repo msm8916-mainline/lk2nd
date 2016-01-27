@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -205,6 +205,93 @@ void clock_config_uart_dm(uint8_t id)
 	}
 }
 
+/* Control the MDSS GDSC */
+void mdp_gdsc_ctrl(uint8_t enable)
+{
+	uint32_t reg = 0;
+	reg = readl(MDP_GDSCR);
+	if (enable) {
+		if (!(reg & GDSC_POWER_ON_BIT)) {
+			reg &=  ~(BIT(0) | GDSC_EN_FEW_WAIT_MASK);
+			reg |= GDSC_EN_FEW_WAIT_256_MASK;
+			writel(reg, MDP_GDSCR);
+			while(!(readl(MDP_GDSCR) & (GDSC_POWER_ON_BIT)));
+		} else {
+			dprintf(SPEW, "MDP GDSC already enabled\n");
+		}
+	} else {
+		reg |= BIT(0);
+		writel(reg, MDP_GDSCR);
+		while(readl(MDP_GDSCR) & (GDSC_POWER_ON_BIT));
+	}
+}
+
+/* Enable all the MDP branch clocks */
+void mdp_clock_enable(void)
+{
+	int ret;
+
+	ret = clk_get_set_enable("mdp_ahb_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mdp_ahb_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	/* Set MDP clock to 320MHz */
+	ret = clk_get_set_enable("mdss_mdp_clk_src", 320000000, 1);
+
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mdp_clk_src ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("mdss_vsync_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mdss vsync clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("mdss_mdp_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mdp_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+}
+
+/* Disable all the MDP branch clocks */
+void mdp_clock_disable(void)
+{
+	clk_disable(clk_get("mdss_vsync_clk"));
+	clk_disable(clk_get("mdss_mdp_clk"));
+	clk_disable(clk_get("mdss_mdp_clk_src"));
+	clk_disable(clk_get("mdp_ahb_clk"));
+}
+
+/* Disable all the bus clocks needed by MDSS */
+void mdss_bus_clocks_disable(void)
+{
+	/* Disable MDSS AXI clock */
+	clk_disable(clk_get("mdss_axi_clk"));
+}
+
+/* Enable all the bus clocks needed by MDSS */
+void mdss_bus_clocks_enable(void)
+{
+	int ret;
+
+	/* Configure AXI clock */
+	ret = clk_get_set_enable("mdss_axi_clk", 0, 1);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set mdss_axi_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+}
+
 /* Function to asynchronously reset CE.
  * Function assumes that all the CE clocks are off.
  */
@@ -378,5 +465,105 @@ deassert_master_clk:
 	{
 		dprintf(CRITICAL, "Failed to deassert usb30_master clk\n");
 		return;
+	}
+}
+
+static void rcg_update_config(uint32_t reg)
+{
+	int i;
+
+	for (i = 0; i < MAX_LOOPS; i++) {
+		if (!(readl(reg) & BIT(0)))
+			return;
+		udelay(1);
+	}
+
+	dprintf(CRITICAL, "failed to update rcg config for reg = 0x%x\n", reg);
+	ASSERT(0);
+}
+
+static void branch_clk_halt_check(uint32_t reg)
+{
+	int i;
+
+	for (i = 0; i < MAX_LOOPS; i++) {
+		if (!(readl(reg) & BIT(31)))
+			return;
+		udelay(1);
+	}
+
+	dprintf(CRITICAL, "failed to enable branch for reg = 0x%x\n", reg);
+	ASSERT(0);
+}
+
+void mmss_dsi_clock_enable(uint32_t cfg_rcgr, uint32_t flags,
+		uint8_t pclk0_m, uint8_t pclk0_n, uint8_t pclk0_d)
+{
+	int ret;
+
+	if (flags & MMSS_DSI_CLKS_FLAG_DSI0) {
+		/* Enable DSI0 branch clocks */
+
+		writel(cfg_rcgr, DSI_BYTE0_CFG_RCGR);
+		writel(0x1, DSI_BYTE0_CMD_RCGR);
+		rcg_update_config(DSI_BYTE0_CMD_RCGR);
+		writel(0x1, DSI_BYTE0_CBCR);
+		branch_clk_halt_check(DSI_BYTE0_CBCR);
+
+		writel(cfg_rcgr, DSI_PIXEL0_CFG_RCGR);
+		writel(pclk0_m, DSI_PIXEL0_M);
+		writel(pclk0_n, DSI_PIXEL0_N);
+		writel(pclk0_d, DSI_PIXEL0_D);
+		writel(0x1, DSI_PIXEL0_CMD_RCGR);
+		rcg_update_config(DSI_PIXEL0_CMD_RCGR);
+		writel(0x1, DSI_PIXEL0_CBCR);
+		branch_clk_halt_check(DSI_PIXEL0_CBCR);
+
+		ret = clk_get_set_enable("mdss_esc0_clk", 0, 1);
+		if(ret)
+		{
+			dprintf(CRITICAL, "failed to set esc0_clk ret = %d\n", ret);
+			ASSERT(0);
+		}
+	}
+
+	if (flags & MMSS_DSI_CLKS_FLAG_DSI1) {
+		/* Enable DSI1 branch clocks */
+		writel(cfg_rcgr, DSI_BYTE1_CFG_RCGR);
+		writel(0x1, DSI_BYTE1_CMD_RCGR);
+		rcg_update_config(DSI_BYTE1_CMD_RCGR);
+		writel(0x1, DSI_BYTE1_CBCR);
+		branch_clk_halt_check(DSI_BYTE1_CBCR);
+
+		writel(cfg_rcgr, DSI_PIXEL1_CFG_RCGR);
+		writel(pclk0_m, DSI_PIXEL1_M);
+		writel(pclk0_n, DSI_PIXEL1_N);
+		writel(pclk0_d, DSI_PIXEL1_D);
+		writel(0x1, DSI_PIXEL1_CMD_RCGR);
+		rcg_update_config(DSI_PIXEL1_CMD_RCGR);
+		writel(0x1, DSI_PIXEL1_CBCR);
+		branch_clk_halt_check(DSI_PIXEL1_CBCR);
+
+		ret = clk_get_set_enable("mdss_esc1_clk", 0, 1);
+		if(ret)
+		{
+			dprintf(CRITICAL, "failed to set esc1_clk ret = %d\n", ret);
+			ASSERT(0);
+		}
+	}
+}
+
+void mmss_dsi_clock_disable(uint32_t flags)
+{
+	if (flags & MMSS_DSI_CLKS_FLAG_DSI0) {
+		clk_disable(clk_get("mdss_esc0_clk"));
+		writel(0x0, DSI_BYTE0_CBCR);
+		writel(0x0, DSI_PIXEL0_CBCR);
+	}
+
+	if (flags & MMSS_DSI_CLKS_FLAG_DSI1) {
+		clk_disable(clk_get("mdss_esc1_clk"));
+		writel(0x0, DSI_BYTE1_CBCR);
+		writel(0x0, DSI_PIXEL1_CBCR);
 	}
 }
