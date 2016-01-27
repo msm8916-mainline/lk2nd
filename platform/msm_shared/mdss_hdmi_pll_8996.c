@@ -782,7 +782,7 @@ int hdmi_vco_enable(void)
 	num_reads = HDMI_PLL_POLL_MAX_READS;
 	status = readl(HDMI_PHY_STATUS);
 	while (!(status & BIT(0)) && num_reads) {
-		status = readl(QSERDES_COM_C_READY_STATUS);
+		status = readl(HDMI_PHY_STATUS);
 		num_reads--;
 		udelay(HDMI_PLL_POLL_TIMEOUT_US);
 	}
