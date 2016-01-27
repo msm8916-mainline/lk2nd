@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -94,6 +94,7 @@ struct panel_lookup_list lookup_skip_panels[] = {
 	{"r63417_1080p_video", "qcom,mdss_dsi_r63417_1080p_video", false},
 	{"samsung_wxga_video", "qcom,mdss_dsi_samsung_wxga_video", false},
 	{"sharp_1080p_cmd", "qcom,mdss_dsi_sharp_1080p_cmd", false},
+	{"sharp_4k_dsc_video", "qcom,mdss_dsi_sharp_4k_dsc_video", true},
 	{"sharp_qhd_video", "qcom,mdss_dsi_sharp_qhd_video", false},
 	{"sharp_wqxga_dualdsi_video", "qcom,mdss_dsi_sharp_wqxga_video", true},
 	{"ssd2080m_720p_video", "qcom,mdss_dsi_ssd2080m_720p_video", false},
