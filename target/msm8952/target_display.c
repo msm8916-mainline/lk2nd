@@ -311,7 +311,7 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 	pll_data->vco_delay = VCO_DELAY_USEC;
 
 	/* SSC parameters */
-	if (platform_is_msm8937()) {
+	if (platform_is_msm8937() || platform_is_msmgold()) {
 		pll_data->ssc_en = true;
 		pll_data->is_center_spread = false;
 		pll_data->ssc_freq = 30000;
@@ -372,6 +372,10 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 		reset_gpio.pin_id = 60;
 		bkl_gpio.pin_id = 98;
 		enable_gpio.pin_id = 99;
+	} else if (platform_is_msmgold()) {
+		reset_gpio.pin_id = 60;
+		bkl_gpio.pin_id = 98;
+		pinfo->mipi.use_enable_gpio = 0;
 	} else if ((hw_id == HW_PLATFORM_QRD) &&
 		   (hw_subtype == HW_PLATFORM_SUBTYPE_POLARIS)) {
 		enable_gpio.pin_id = 19;
@@ -510,7 +514,8 @@ int target_dsi_phy_config(struct mdss_dsi_phy_ctrl *phy_db)
 
 int target_display_get_base_offset(uint32_t base)
 {
-	if(platform_is_msm8956() || platform_is_msm8937()) {
+	if(platform_is_msm8956() || platform_is_msm8937() ||
+			platform_is_msmgold()) {
 		if (base == MIPI_DSI0_BASE)
 			return DSI0_BASE_ADJUST;
 		else if (base == DSI0_PHY_BASE)
