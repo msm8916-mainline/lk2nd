@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -61,14 +61,16 @@ static inline bool is_software_pixel_ext_config_needed()
 {
 	return (MDSS_IS_MAJOR_MINOR_MATCHING(readl(MDP_HW_REV),
 		MDSS_MDP_HW_REV_107) || MDSS_IS_MAJOR_MINOR_MATCHING(readl(MDP_HW_REV),
-		MDSS_MDP_HW_REV_114));
+		MDSS_MDP_HW_REV_114) || MDSS_IS_MAJOR_MINOR_MATCHING(readl(MDP_HW_REV),
+		MDSS_MDP_HW_REV_116));
 }
 
 static inline bool has_fixed_size_smp()
 {
 	return (MDSS_IS_MAJOR_MINOR_MATCHING(readl(MDP_HW_REV),
 		MDSS_MDP_HW_REV_107) || MDSS_IS_MAJOR_MINOR_MATCHING(readl(MDP_HW_REV),
-		MDSS_MDP_HW_REV_114));
+		MDSS_MDP_HW_REV_114) || MDSS_IS_MAJOR_MINOR_MATCHING(readl(MDP_HW_REV),
+		MDSS_MDP_HW_REV_116));
 }
 
 uint32_t mdss_mdp_intf_offset()
@@ -80,7 +82,8 @@ uint32_t mdss_mdp_intf_offset()
 		(mdss_mdp_rev == MDSS_MDP_HW_REV_108) ||
 		(mdss_mdp_rev == MDSS_MDP_HW_REV_111) ||
 		(mdss_mdp_rev == MDSS_MDP_HW_REV_112) ||
-		(mdss_mdp_rev == MDSS_MDP_HW_REV_114))
+		(mdss_mdp_rev == MDSS_MDP_HW_REV_114) ||
+		(mdss_mdp_rev == MDSS_MDP_HW_REV_116))
 		mdss_mdp_intf_off = 0x59100;
 	else if (mdss_mdp_rev >= MDSS_MDP_HW_REV_102)
 		mdss_mdp_intf_off = 0;
@@ -115,7 +118,8 @@ static uint32_t mdss_mdp_vbif_qos_remap_get_offset()
 
 	if ((mdss_mdp_rev == MDSS_MDP_HW_REV_110) ||
 		(mdss_mdp_rev == MDSS_MDP_HW_REV_111) ||
-		(mdss_mdp_rev == MDSS_MDP_HW_REV_114))
+		(mdss_mdp_rev == MDSS_MDP_HW_REV_114) ||
+		(mdss_mdp_rev == MDSS_MDP_HW_REV_116))
 		return 0xB0020;
 	else if (MDSS_IS_MAJOR_MINOR_MATCHING(mdss_mdp_rev, MDSS_MDP_HW_REV_107))
 		return 0xB0000;
@@ -213,6 +217,7 @@ static void mdss_mdp_set_flush(struct msm_panel_info *pinfo,
 		MDSS_IS_MAJOR_MINOR_MATCHING(mdss_mdp_rev,
 			MDSS_MDP_HW_REV_107) ||
 		(mdss_mdp_rev == MDSS_MDP_HW_REV_114) ||
+		(mdss_mdp_rev == MDSS_MDP_HW_REV_116) ||
 		(mdss_mdp_rev == MDSS_MDP_HW_REV_110)) {
 		if (pinfo->dest == DISPLAY_2) {
 			*ctl0_reg_val |= BIT(29);

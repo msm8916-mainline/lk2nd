@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -282,12 +282,27 @@ const uint32_t truly_1080p_video_timings[] = {
   0xE6, 0x38, 0x26, 0x00, 0x68, 0x6e, 0x2A, 0x3c, 0x44, 0x03, 0x04, 0x00
 };
 
+static const uint32_t truly_1080p_14nm_video_timings[] = {
+	0x23, 0x1e, 0x8, 0x9, 0x5, 0x3, 0x4, 0xa0,
+	0x23, 0x1e, 0x8, 0x9, 0x5, 0x3, 0x4, 0xa0,
+	0x23, 0x1e, 0x8, 0x9, 0x5, 0x3, 0x4, 0xa0,
+	0x23, 0x1e, 0x8, 0x9, 0x5, 0x3, 0x4, 0xa0,
+	0x23, 0x1a, 0x8, 0x9, 0x5, 0x3, 0x4, 0xa0,
+};
+
 static struct panel_timing truly_1080p_video_timing_info = {
   0, 4, 0x02, 0x2d
 };
 
 static struct panel_reset_sequence truly_1080p_video_panel_reset_seq = {
 { 1, 0, 1, }, { 200, 200, 200, }, 2
+};
+
+/*---------------------------------------------------------------------------*/
+/* Dynamic fps supported frequencies by panel                                */
+/*---------------------------------------------------------------------------*/
+static const struct dfps_panel_info truly_1080p_video_dfps = {
+	1, 3, {48, 54, 60}
 };
 
 /*---------------------------------------------------------------------------*/

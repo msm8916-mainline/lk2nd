@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -34,6 +34,57 @@
 
 #define UART_DM_CLK_RX_TX_BIT_RATE 0xCC
 
+#define REG_MM(off)                     (CLK_CTL_BASE + (off))
+
+#define MDP_GDSCR                       REG_MM(0x4D078)
+#define GDSC_POWER_ON_BIT               BIT(31)
+#define GDSC_POWER_ON_STATUS_BIT        BIT(29)
+#define GDSC_EN_FEW_WAIT_MASK           (0x0F << 16)
+#define GDSC_EN_FEW_WAIT_256_MASK       BIT(19)
+
+#define VSYNC_CMD_RCGR                  REG_MM(0x4D02C)
+#define VSYNC_CFG_RCGR                  REG_MM(0x4D030)
+#define MDSS_VSYNC_CBCR                 REG_MM(0x4D090)
+
+#define MDP_CMD_RCGR                    REG_MM(0x4D014)
+#define MDP_CFG_RCGR                    REG_MM(0x4D018)
+#define MDP_CBCR                        REG_MM(0x4D088)
+#define MDP_AHB_CBCR                    REG_MM(0x4D07C)
+#define MDP_AXI_CBCR                    REG_MM(0x4D080)
+
+#define DSI_BYTE0_CMD_RCGR              REG_MM(0x4D044)
+#define DSI_BYTE0_CFG_RCGR              REG_MM(0x4D048)
+#define DSI_BYTE0_CBCR                  REG_MM(0x4D094)
+#define DSI_ESC0_CMD_RCGR               REG_MM(0x4D05C)
+#define DSI_ESC0_CFG_RCGR               REG_MM(0x4D060)
+#define DSI_ESC0_CBCR                   REG_MM(0x4D098)
+#define DSI_PIXEL0_CMD_RCGR             REG_MM(0x4D000)
+#define DSI_PIXEL0_CFG_RCGR             REG_MM(0x4D004)
+#define DSI_PIXEL0_CBCR                 REG_MM(0x4D084)
+#define DSI_PIXEL0_M                    REG_MM(0x4D008)
+#define DSI_PIXEL0_N                    REG_MM(0x4D00C)
+#define DSI_PIXEL0_D                    REG_MM(0x4D010)
+
+#define DSI0_PHY_PLL_OUT                BIT(8)
+#define DSI1_PHY_PLL_OUT                BIT(9)
+#define PIXEL_SRC_DIV_1_5               BIT(1)
+
+#define DSI_BYTE1_CMD_RCGR              REG_MM(0x4D0B0)
+#define DSI_BYTE1_CFG_RCGR              REG_MM(0x4D0B4)
+#define DSI_BYTE1_CBCR                  REG_MM(0x4D0A0)
+#define DSI_ESC1_CMD_RCGR               REG_MM(0x4D0A8)
+#define DSI_ESC1_CFG_RCGR               REG_MM(0x4D0AC)
+#define DSI_ESC1_CBCR                   REG_MM(0x4D09C)
+#define DSI_PIXEL1_CMD_RCGR             REG_MM(0x4D0B8)
+#define DSI_PIXEL1_CFG_RCGR             REG_MM(0x4D0BC)
+#define DSI_PIXEL1_CBCR                 REG_MM(0x4D0A4)
+#define DSI_PIXEL1_M                    REG_MM(0x4D0C0)
+#define DSI_PIXEL1_N                    REG_MM(0x4D0C4)
+#define DSI_PIXEL1_D                    REG_MM(0x4D0C8)
+
+#define MMSS_DSI_CLKS_FLAG_DSI0         BIT(0)
+#define MMSS_DSI_CLKS_FLAG_DSI1         BIT(1)
+
 void platform_clock_init(void);
 
 void clock_init_mmc(uint32_t interface);
@@ -43,6 +94,14 @@ void hsusb_clock_init(void);
 void clock_config_ce(uint8_t instance);
 void clock_ce_enable(uint8_t instance);
 void clock_ce_disable(uint8_t instance);
+void mdp_gdsc_ctrl(uint8_t enable);
+void mdss_bus_clocks_enable(void);
+void mdss_bus_clocks_disable(void);
+void mdp_clock_enable(void);
+void mdp_clock_disable(void);
+void mmss_dsi_clock_enable(uint32_t cfg_rcgr, uint32_t dual_dsi,
+		uint8_t pclk0_m, uint8_t pclk0_n, uint8_t pclk0_d);
+void mmss_dsi_clock_disable(uint32_t dual_dsi);
 void clock_usb30_init(void);
 void clock_reset_usb_phy();
 #endif

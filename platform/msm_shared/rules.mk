@@ -617,6 +617,7 @@ DEFINES += DISPLAY_TYPE_MDSS=1
 endif
 
 ifeq ($(PLATFORM),msmtitanium)
+DEFINES += DISPLAY_TYPE_MDSS=1
 	OBJS += $(LOCAL_DIR)/qgic.o \
 			$(LOCAL_DIR)/qtimer.o \
 			$(LOCAL_DIR)/qtimer_mmap.o \
@@ -641,7 +642,13 @@ ifeq ($(PLATFORM),msmtitanium)
 			$(LOCAL_DIR)/crypto5_eng.o \
 			$(LOCAL_DIR)/qmp_usb30_phy.o \
 			$(LOCAL_DIR)/qusb2_phy.o \
-			$(LOCAL_DIR)/crypto5_wrapper.o
+			$(LOCAL_DIR)/crypto5_wrapper.o \
+			$(LOCAL_DIR)/mdp5.o \
+			$(LOCAL_DIR)/display.o \
+			$(LOCAL_DIR)/mipi_dsi.o \
+			$(LOCAL_DIR)/mipi_dsc.o \
+			$(LOCAL_DIR)/mipi_dsi_phy.o \
+			$(LOCAL_DIR)/mipi_dsi_autopll_thulium.o
 endif
 
 ifeq ($(ENABLE_BOOT_CONFIG_SUPPORT), 1)
