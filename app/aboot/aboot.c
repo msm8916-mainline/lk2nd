@@ -447,6 +447,14 @@ unsigned char *update_cmdline(const char * cmdline)
 		cmdline_len += strlen(warmboot_cmdline);
 	}
 
+#if TARGET_CMDLINE_SUPPORT
+	char *target_cmdline_buf = malloc(TARGET_MAX_CMDLNBUF);
+	int target_cmd_line_len;
+	ASSERT(target_cmdline_buf);
+	target_cmd_line_len = target_update_cmdline(target_cmdline_buf);
+	cmdline_len += target_cmd_line_len;
+#endif
+
 	if (cmdline_len > 0) {
 		const char *src;
 		unsigned char *dst;
@@ -626,6 +634,16 @@ unsigned char *update_cmdline(const char * cmdline)
 			while ((*dst++ = *src++));
 			free(target_boot_params);
 		}
+
+#if TARGET_CMDLINE_SUPPORT
+		if (target_cmdline_buf && target_cmd_line_len)
+		{
+			if (have_cmdline) --dst;
+			src = target_cmdline_buf;
+			while((*dst++ = *src++));
+			free(target_cmdline_buf);
+		}
+#endif
 	}
 
 

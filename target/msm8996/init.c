@@ -607,3 +607,16 @@ uint32_t target_get_pmic()
 {
 	return PMIC_IS_PMI8996;
 }
+
+int target_update_cmdline(char *cmdline)
+{
+	uint32_t platform_id = board_platform_id();
+	int len = 0;
+	if (platform_id == APQ8096SG || platform_id == MSM8996SG)
+	{
+		strlcpy(cmdline, " fpsimd.fpsimd_settings=0", TARGET_MAX_CMDLNBUF);
+		len = strlen (cmdline);
+	}
+
+	return len;
+}
