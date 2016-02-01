@@ -36,6 +36,7 @@ typedef struct device_info device_info;
 #define DEVICE_MAGIC_SIZE 13
 #define MAX_PANEL_ID_LEN 64
 #define MAX_VERSION_LEN  64
+#define M_DEVICE_INFO_VER 0x2
 
 enum unlock_type {
 	UNLOCK = 0,
@@ -67,6 +68,7 @@ struct device_info
 	char bootloader_version[MAX_VERSION_LEN];
 	char radio_version[MAX_VERSION_LEN];
 	bool verity_mode; // 1 = enforcing, 0 = logging
+	unsigned int devinfo_version;
 };
 #endif
 #endif
