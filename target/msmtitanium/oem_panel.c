@@ -47,6 +47,9 @@
 /*---------------------------------------------------------------------------*/
 #include "include/panel_truly_1080p_video.h"
 #include "include/panel_truly_1080p_cmd.h"
+#include "include/panel_r69006_1080p_video.h"
+#include "include/panel_r69006_1080p_cmd.h"
+
 
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
@@ -54,6 +57,8 @@
 enum {
 	TRULY_1080P_VIDEO_PANEL,
 	TRULY_1080P_CMD_PANEL,
+	R69006_1080P_VIDEO_PANEL,
+	R69006_1080P_CMD_PANEL,
 	UNKNOWN_PANEL
 };
 
@@ -64,6 +69,8 @@ enum {
 static struct panel_list supp_panels[] = {
 	{"truly_1080p_video", TRULY_1080P_VIDEO_PANEL},
 	{"truly_1080p_cmd", TRULY_1080P_CMD_PANEL},
+	{"r69006_1080p_video", R69006_1080P_VIDEO_PANEL},
+	{"r69006_1080p_cmd", R69006_1080P_CMD_PANEL},
 };
 
 static uint32_t panel_id;
@@ -79,6 +86,9 @@ int oem_panel_on()
 	if (panel_id == TRULY_1080P_CMD_PANEL ||
 			panel_id == TRULY_1080P_VIDEO_PANEL)
 		mdelay(TRULY_1080P_PANEL_ON_DELAY);
+	else if (panel_id == R69006_1080P_CMD_PANEL) {
+		mdelay(R69006_1080P_CMD_PANEL_ON_DELAY);
+	}
 
 	return NO_ERROR;
 }
@@ -153,6 +163,62 @@ static int init_panel_data(struct panel_struct *panelstruct,
 			MAX_TIMING_CONFIG * sizeof(uint32_t));
 		pinfo->mipi.signature 	= TRULY_1080P_CMD_SIGNATURE;
 		break;
+	case R69006_1080P_VIDEO_PANEL:
+		panelstruct->paneldata    = &r69006_1080p_video_panel_data;
+		panelstruct->panelres     = &r69006_1080p_video_panel_res;
+		panelstruct->color        = &r69006_1080p_video_color;
+		panelstruct->videopanel   = &r69006_1080p_video_video_panel;
+		panelstruct->commandpanel = &r69006_1080p_video_command_panel;
+		panelstruct->state        = &r69006_1080p_video_state;
+		panelstruct->laneconfig   = &r69006_1080p_video_lane_config;
+		panelstruct->paneltiminginfo
+			= &r69006_1080p_video_timing_info;
+		panelstruct->panelresetseq
+			= &r69006_1080p_video_reset_seq;
+		panelstruct->backlightinfo = &r69006_1080p_video_backlight;
+		pinfo->labibb = &r69006_1080p_video_labibb;
+		pinfo->mipi.panel_on_cmds
+			= r69006_1080p_video_on_command;
+		pinfo->mipi.num_of_panel_on_cmds
+			= R69006_1080P_VIDEO_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+			= r69006_1080p_video_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+			= R69006_1080P_VIDEO_OFF_COMMAND;
+		memcpy(phy_db->timing,
+			r69006_1080p_14nm_video_timings,
+			MAX_TIMING_CONFIG * sizeof(uint32_t));
+		pinfo->mipi.signature = R69006_1080P_VIDEO_SIGNATURE;
+		break;
+	case R69006_1080P_CMD_PANEL:
+		panelstruct->paneldata    = &r69006_1080p_cmd_panel_data;
+		panelstruct->panelres     = &r69006_1080p_cmd_panel_res;
+		panelstruct->color        = &r69006_1080p_cmd_color;
+		panelstruct->videopanel   = &r69006_1080p_cmd_video_panel;
+		panelstruct->commandpanel = &r69006_1080p_cmd_command_panel;
+		panelstruct->state        = &r69006_1080p_cmd_state;
+		panelstruct->laneconfig   = &r69006_1080p_cmd_lane_config;
+		panelstruct->paneltiminginfo
+			= &r69006_1080p_cmd_timing_info;
+		panelstruct->panelresetseq
+			= &r69006_1080p_cmd_reset_seq;
+		panelstruct->backlightinfo = &r69006_1080p_cmd_backlight;
+		pinfo->labibb = &r69006_1080p_cmd_labibb;
+		pinfo->mipi.panel_on_cmds
+			= r69006_1080p_cmd_on_command;
+		pinfo->mipi.num_of_panel_on_cmds
+			= R69006_1080P_CMD_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+			= r69006_1080p_cmd_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+			= R69006_1080P_CMD_OFF_COMMAND;
+		memcpy(phy_db->timing,
+			r69006_1080p_14nm_cmd_timings,
+			MAX_TIMING_CONFIG * sizeof(uint32_t));
+		pinfo->mipi.signature = R69006_1080P_CMD_SIGNATURE;
+		pinfo->mipi.tx_eot_append = true;
+		pinfo->mipi.rx_eot_ignore = true;
+		break;
 	case UNKNOWN_PANEL:
 	default:
 		memset(panelstruct, 0, sizeof(struct panel_struct));
@@ -207,6 +273,9 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	case HW_PLATFORM_SURF:
 	case HW_PLATFORM_RCM:
 		panel_id = TRULY_1080P_VIDEO_PANEL;
+		break;
+	case HW_PLATFORM_QRD:
+		panel_id = R69006_1080P_CMD_PANEL;
 		break;
 	default:
 		dprintf(CRITICAL, "Display not enabled for %d HW type\n",
