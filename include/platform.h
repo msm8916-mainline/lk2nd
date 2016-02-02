@@ -69,6 +69,8 @@ int platform_is_msm8937();
 int platform_is_msmgold();
 int platform_is_msm8956();
 uint32_t platform_is_msm8976_v_1_1();
+uint32_t platform_get_tz_app_add();
+uint32_t platform_get_tz_app_size();
 int boot_device_mask(int);
 uint32_t platform_detect_panel();
 uint32_t platform_get_max_periph();
