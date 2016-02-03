@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -778,7 +778,7 @@ retry_tuning:
 		if(err)
 		{
 
-			sts_retry = 100;
+			sts_retry = 5;
 			sts_cmd.cmd_index = CMD13_SEND_STATUS;
 			sts_cmd.argument = card->rca << 16;
 			sts_cmd.cmd_type = SDHCI_CMD_TYPE_NORMAL;
