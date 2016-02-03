@@ -207,12 +207,12 @@
  * as device memory, define the start address
  * and size in MB
  */
-#define RPMB_SND_RCV_BUF            0x90000000
+#define RPMB_SND_RCV_BUF            0xA0000000
 #define RPMB_SND_RCV_BUF_SZ         0x1
 
 /* QSEECOM: Secure app region notification */
-#define APP_REGION_ADDR 0x85E00000
-#define APP_REGION_SIZE 0x500000
+#define APP_REGION_ADDR 0x85B00000
+#define APP_REGION_SIZE 0x800000
 
 /* MDSS */
 #define MIPI_DSI_BASE               (0x1A94000)

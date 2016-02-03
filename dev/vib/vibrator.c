@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -63,8 +63,10 @@ void vib_turn_off()
 static enum handler_return vib_timer_func(struct timer *v_timer, time_t t, void *arg)
 {
 	timer_cancel(&vib_timer);
-	vib_turn_off();
-	vib_timeout=1;
+	if(!vib_timeout){
+		vib_turn_off();
+		vib_timeout = 1;
+	}
 
 	return INT_RESCHEDULE;
 }
@@ -74,8 +76,10 @@ int vibrator_thread(void *arg)
 	while((--vib_time)){
 		thread_sleep(CHECK_VIB_TIMER_FREQUENCY);
 	}
-	vib_turn_off();
-	vib_timeout = 1;
+	if(!vib_timeout){
+		vib_turn_off();
+		vib_timeout = 1;
+	}
 	return 0;
 }
 #endif
@@ -109,4 +113,13 @@ void wait_vib_timeout(void)
 		/* every 50ms to check if the vibrator timer is timeout*/
 		thread_sleep(CHECK_VIB_TIMER_FREQUENCY);
 	}
+}
+
+void turn_off_vib_early(void)
+{
+	if(vib_timeout) {
+		return;
+	}
+	vib_turn_off();
+	vib_timeout = 1;
 }
