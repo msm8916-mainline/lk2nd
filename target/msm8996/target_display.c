@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -274,6 +274,8 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 	uint32_t flags, dsi_phy_pll_out;
 	uint32_t ret = NO_ERROR;
 	uint32_t board_version = board_soc_version();
+	uint32_t board_hw_id = board_hardware_id();
+	bool video_core_enable = false;
 	struct dfps_pll_codes *pll_codes = &pinfo->mipi.pll_codes;
 
 	if (pinfo->dest == DISPLAY_2) {
@@ -286,6 +288,10 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 			flags |= MMSS_DSI_CLKS_FLAG_DSI1;
 	}
 
+	/* only required for msm8996 v2 and v2.1 revision */
+	video_core_enable = (board_version == 0x20000 || board_version == 0x20001) &&
+		!(board_hw_id == MSM8996SG || board_hw_id == APQ8096SG);
+
 	if (!enable) {
 		/* stop pll */
 		writel(0x0, pinfo->mipi.phy_base + 0x48);
@@ -295,7 +301,7 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 		goto clks_disable;
 	}
 
-	if (board_version == 0x20000 || board_version == 0x20001)
+	if (video_core_enable)
 		video_gdsc_enable();
 	mmss_gdsc_enable();
 	mmss_bus_clock_enable();
@@ -328,7 +334,7 @@ clks_disable:
 	mdp_clock_disable();
 	mmss_bus_clock_disable();
 	mmss_gdsc_disable();
-	if (board_version == 0x20000 || board_version == 0x20001)
+	if (video_core_enable)
 		video_gdsc_disable();
 
 	return ret;
