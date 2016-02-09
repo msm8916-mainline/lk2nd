@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -116,10 +116,7 @@ static void mdss_mdp_pll_dec_frac_calc(struct dsi_pll_db *pdb,
 	pdb->out.plllock_cmp = (uint32_t)pll_comp_val;
 
 	pdb->out.pll_txclk_en = 1;
-	if (board_soc_version() == 0x10000)
-		pdb->out.cmn_ldo_cntrl = 0x1c;
-	else
-		pdb->out.cmn_ldo_cntrl = 0x3c;
+	pdb->out.cmn_ldo_cntrl = 0x3c;
 }
 
 static uint32_t mdss_mdp_pll_kvco_slop(uint32_t vrate)
