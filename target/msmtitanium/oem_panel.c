@@ -49,6 +49,7 @@
 #include "include/panel_truly_1080p_cmd.h"
 #include "include/panel_r69006_1080p_video.h"
 #include "include/panel_r69006_1080p_cmd.h"
+#include "include/panel_truly_wuxga_video.h"
 
 
 /*---------------------------------------------------------------------------*/
@@ -59,6 +60,7 @@ enum {
 	TRULY_1080P_CMD_PANEL,
 	R69006_1080P_VIDEO_PANEL,
 	R69006_1080P_CMD_PANEL,
+	TRULY_WUXGA_VIDEO_PANEL,
 	UNKNOWN_PANEL
 };
 
@@ -71,6 +73,7 @@ static struct panel_list supp_panels[] = {
 	{"truly_1080p_cmd", TRULY_1080P_CMD_PANEL},
 	{"r69006_1080p_video", R69006_1080P_VIDEO_PANEL},
 	{"r69006_1080p_cmd", R69006_1080P_CMD_PANEL},
+	{"truly_wuxga_video", TRULY_WUXGA_VIDEO_PANEL},
 };
 
 static uint32_t panel_id;
@@ -110,7 +113,7 @@ static int init_panel_data(struct panel_struct *panelstruct,
 	switch (panel_id) {
 	case TRULY_1080P_VIDEO_PANEL:
 		panelstruct->paneldata    = &truly_1080p_video_panel_data;
-		panelstruct->paneldata->panel_with_enable_gpio = 1;
+		panelstruct->paneldata->panel_with_enable_gpio = 0;
 		panelstruct->panelres     = &truly_1080p_video_panel_res;
 		panelstruct->color        = &truly_1080p_video_color;
 		panelstruct->videopanel   = &truly_1080p_video_video_panel;
@@ -138,7 +141,7 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		break;
 	case TRULY_1080P_CMD_PANEL:
 		panelstruct->paneldata    = &truly_1080p_cmd_panel_data;
-		panelstruct->paneldata->panel_with_enable_gpio = 1;
+		panelstruct->paneldata->panel_with_enable_gpio = 0;
 		panelstruct->panelres     = &truly_1080p_cmd_panel_res;
 		panelstruct->color        = &truly_1080p_cmd_color;
 		panelstruct->videopanel   = &truly_1080p_cmd_video_panel;
@@ -218,6 +221,32 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		pinfo->mipi.signature = R69006_1080P_CMD_SIGNATURE;
 		pinfo->mipi.tx_eot_append = true;
 		pinfo->mipi.rx_eot_ignore = true;
+		break;
+	case TRULY_WUXGA_VIDEO_PANEL:
+		panelstruct->paneldata    = &truly_wuxga_video_panel_data;
+		panelstruct->paneldata->panel_with_enable_gpio = 1;
+		panelstruct->panelres     = &truly_wuxga_video_panel_res;
+		panelstruct->color        = &truly_wuxga_video_color;
+		panelstruct->videopanel   = &truly_wuxga_video_video_panel;
+		panelstruct->commandpanel = &truly_wuxga_video_command_panel;
+		panelstruct->state        = &truly_wuxga_video_state;
+		panelstruct->laneconfig   = &truly_wuxga_video_lane_config;
+		panelstruct->paneltiminginfo
+			= &truly_wuxga_video_timing_info;
+		panelstruct->panelresetseq
+					 = &truly_wuxga_video_panel_reset_seq;
+		panelstruct->backlightinfo = &truly_wuxga_video_backlight;
+		pinfo->mipi.panel_on_cmds
+			= truly_wuxga_video_on_command;
+		pinfo->mipi.num_of_panel_on_cmds
+			= TRULY_WUXGA_VIDEO_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+			= truly_wuxga_video_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+			= TRULY_WUXGA_VIDEO_OFF_COMMAND;
+		memcpy(phy_db->timing,
+			truly_wuxga_14nm_video_timings, MAX_TIMING_CONFIG * sizeof(uint32_t));
+		pinfo->mipi.signature 	= TRULY_WUXGA_VIDEO_SIGNATURE;
 		break;
 	case UNKNOWN_PANEL:
 	default:
