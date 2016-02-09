@@ -110,7 +110,7 @@ static int init_panel_data(struct panel_struct *panelstruct,
 	switch (panel_id) {
 	case TRULY_1080P_VIDEO_PANEL:
 		panelstruct->paneldata    = &truly_1080p_video_panel_data;
-		panelstruct->paneldata->panel_with_enable_gpio = 1;
+		panelstruct->paneldata->panel_with_enable_gpio = 0;
 		panelstruct->panelres     = &truly_1080p_video_panel_res;
 		panelstruct->color        = &truly_1080p_video_color;
 		panelstruct->videopanel   = &truly_1080p_video_video_panel;
@@ -138,7 +138,7 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		break;
 	case TRULY_1080P_CMD_PANEL:
 		panelstruct->paneldata    = &truly_1080p_cmd_panel_data;
-		panelstruct->paneldata->panel_with_enable_gpio = 1;
+		panelstruct->paneldata->panel_with_enable_gpio = 0;
 		panelstruct->panelres     = &truly_1080p_cmd_panel_res;
 		panelstruct->color        = &truly_1080p_cmd_color;
 		panelstruct->videopanel   = &truly_1080p_cmd_video_panel;

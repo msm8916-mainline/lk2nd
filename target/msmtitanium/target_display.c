@@ -69,6 +69,10 @@ static struct gpio_pin bkl_gpio = {
   "msmgpio", 59, 3, 1, 0, 1
 };
 
+static struct gpio_pin enable_gpio = {
+  "msmgpio", 12, 3, 1, 0, 1
+};
+
 
 #define VCO_DELAY_USEC 1000
 #define GPIO_STATE_LOW 0
@@ -218,6 +222,15 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 
 	if (enable) {
 
+		if (pinfo->mipi.use_enable_gpio) {
+			gpio_tlmm_config(enable_gpio.pin_id, 0,
+				enable_gpio.pin_direction, enable_gpio.pin_pull,
+				enable_gpio.pin_strength,
+				enable_gpio.pin_state);
+
+			gpio_set_dir(enable_gpio.pin_id, 2);
+		}
+
 		gpio_tlmm_config(bkl_gpio.pin_id, 0,
 				bkl_gpio.pin_direction, bkl_gpio.pin_pull,
 				bkl_gpio.pin_strength, bkl_gpio.pin_state);
@@ -241,6 +254,7 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 
 	} else if(!target_cont_splash_screen()) {
 		gpio_set_dir(reset_gpio.pin_id, 0);
+		gpio_set_dir(enable_gpio.pin_id, 0);
 	}
 
 	return ret;
