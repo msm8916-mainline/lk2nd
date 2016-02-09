@@ -1,7 +1,12 @@
 LOCAL_DIR := $(GET_LOCAL_DIR)
 
 INCLUDES += -I$(LOCAL_DIR)/include -I$(LK_TOP_DIR)/platform/msm_shared
+
 INCLUDES += -I$(LK_TOP_DIR)/dev/gcdb/display -I$(LK_TOP_DIR)/dev/gcdb/display/include
+
+ifeq ($(ENABLE_MDTP_SUPPORT),1)
+INCLUDES += -I$(LK_TOP_DIR)/app/aboot
+endif
 
 PLATFORM := msmtitanium
 
@@ -32,7 +37,6 @@ DEFINES += \
 	BASE_ADDR=$(BASE_ADDR) \
 	SCRATCH_ADDR=$(SCRATCH_ADDR)
 
-
 OBJS += \
 	$(LOCAL_DIR)/init.o \
 	$(LOCAL_DIR)/meminfo.o \
@@ -41,4 +45,9 @@ OBJS += \
 ifeq ($(ENABLE_SMD_SUPPORT),1)
 OBJS += \
 	$(LOCAL_DIR)/regulator.o
+endif
+
+ifeq ($(ENABLE_MDTP_SUPPORT),1)
+OBJS += \
+	$(LOCAL_DIR)/mdtp_defs.o
 endif
