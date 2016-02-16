@@ -616,7 +616,7 @@ DEFINES += DISPLAY_TYPE_MDSS=1
 			$(LOCAL_DIR)/mipi_dsi_autopll.o
 endif
 
-ifeq ($(PLATFORM),msmtitanium)
+ifeq ($(PLATFORM),msm8953)
 DEFINES += DISPLAY_TYPE_MDSS=1
 	OBJS += $(LOCAL_DIR)/qgic.o \
 			$(LOCAL_DIR)/qtimer.o \

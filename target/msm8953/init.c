@@ -316,10 +316,10 @@ void target_baseband_detect(struct board_data *board)
 	platform = board->platform;
 
 	switch(platform) {
-	case MSMTITANIUM:
+	case MSM8953:
 		board->baseband = BASEBAND_MSM;
 		break;
-	case APQTITANIUM:
+	case APQ8053:
 		board->baseband = BASEBAND_APQ;
 		break;
 	default:

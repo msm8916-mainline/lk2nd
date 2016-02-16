@@ -26,8 +26,8 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-#ifndef _TARGET_MSMTITANIUM_DISPLAY_H
-#define _TARGET_MSMTITANIUM_DISPLAY_H
+#ifndef _TARGET_MSM8953_DISPLAY_H
+#define _TARGET_MSM8953_DISPLAY_H
 
 /*---------------------------------------------------------------------------*/
 /* HEADER files                                                              */

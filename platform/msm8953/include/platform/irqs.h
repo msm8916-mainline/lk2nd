@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -26,8 +26,8 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __IRQS_MSMTITANIUM_H
-#define __IRQS_MSMTITANIUM_H
+#ifndef __IRQS_MSM8953_H
+#define __IRQS_MSM8953_H
 
 /* MSM ACPU Interrupt Numbers */
 
@@ -63,4 +63,4 @@
                                                NR_BOARD_IRQS)
 
 #define SMD_IRQ                                (GIC_SPI_START + 168)
-#endif /* __IRQS_MSMTITANIUM_H */
+#endif /* __IRQS_MSM8953_H */
