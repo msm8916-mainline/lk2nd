@@ -816,7 +816,8 @@ int flash_ubi_img(struct ptentry *ptn, void *data, unsigned size)
 	int num_pages;
 	int ret;
 	int bad_blocks_cnt = 0;
-	int fmsb_peb = 0;
+	uint32_t fmsb_peb = UINT_MAX;
+	int is_fmsb_peb_valid = 0;
 
 	si = scan_partition(ptn);
 	if (!si) {
@@ -867,8 +868,10 @@ int flash_ubi_img(struct ptentry *ptn, void *data, unsigned size)
 		else
 			size -= block_size;
 
-		if (fastmap_present(img_peb))
+		if (fastmap_present(img_peb)) {
 			fmsb_peb = curr_peb;
+			is_fmsb_peb_valid = 1;
+		}
 		img_peb += flash_block_size();
 		curr_peb++;
 	}
@@ -891,9 +894,10 @@ int flash_ubi_img(struct ptentry *ptn, void *data, unsigned size)
 	 * we need to invalidate the flashed fastmap since it isn't accurate
 	 * anymore.
 	 */
-	if (bad_blocks_cnt && fmsb_peb) {
-		dprintf(CRITICAL, "flash_ubi_img: invalidate fmsb\n");
-		ret = ubi_erase_peb(ptn->start + 2, si, ptn->start);
+	if (bad_blocks_cnt && (is_fmsb_peb_valid == 1)) {
+		dprintf(CRITICAL, "flash_ubi_img: invalidate fmsb (fmsb_peb = %u)\n",
+			fmsb_peb);
+		ret = ubi_erase_peb(fmsb_peb, si, ptn->start);
 	}
 
 out:
