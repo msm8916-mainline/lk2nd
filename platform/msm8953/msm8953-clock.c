@@ -685,7 +685,7 @@ static struct vote_clk gcc_ce1_axi_clk = {
 };
 
 /* Clock lookup table */
-static struct clk_lookup msm_clocks_titanium[] =
+static struct clk_lookup msm_clocks_8953[] =
 {
 	CLK_LOOKUP("sdc1_iface_clk", gcc_sdcc1_ahb_clk.c),
 	CLK_LOOKUP("sdc1_core_clk",  gcc_sdcc1_apps_clk.c),
@@ -724,5 +724,5 @@ static struct clk_lookup msm_clocks_titanium[] =
 
 void platform_clock_init(void)
 {
-	clk_init(msm_clocks_titanium, ARRAY_SIZE(msm_clocks_titanium));
+	clk_init(msm_clocks_8953, ARRAY_SIZE(msm_clocks_8953));
 }

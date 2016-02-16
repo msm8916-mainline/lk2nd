@@ -8,7 +8,7 @@ ifeq ($(ENABLE_MDTP_SUPPORT),1)
 INCLUDES += -I$(LK_TOP_DIR)/app/aboot
 endif
 
-PLATFORM := msmtitanium
+PLATFORM := msm8953
 
 MEMBASE := 0x8F600000 # SDRAM
 MEMSIZE := 0x00400000 # 1MB

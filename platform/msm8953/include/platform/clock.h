@@ -26,8 +26,8 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __MSMTITANIUM_CLOCK_H
-#define __MSMTITANIUM_CLOCK_H
+#ifndef __MSM8953_CLOCK_H
+#define __MSM8953_CLOCK_H
 
 #include <clock.h>
 #include <clock_lib2.h>

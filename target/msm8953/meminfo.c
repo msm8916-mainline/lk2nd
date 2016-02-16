@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -26,47 +26,60 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <debug.h>
 #include <reg.h>
+#include <debug.h>
+#include <malloc.h>
+#include <smem.h>
+#include <stdint.h>
+#include <libfdt.h>
 #include <platform/iomap.h>
-#include <platform/gpio.h>
-#include <blsp_qup.h>
+#include <dev_tree.h>
 
-void gpio_tlmm_config(uint32_t gpio, uint8_t func,
-			uint8_t dir, uint8_t pull,
-			uint8_t drvstr, uint32_t enable)
+uint32_t target_dev_tree_mem(void *fdt, uint32_t memory_node_offset)
 {
-	uint32_t val = 0;
+	ram_partition ptn_entry;
+	unsigned int index;
+	int ret = 0;
+	uint32_t len = 0;
 
-	val |= pull;
-	val |= func << 2;
-	val |= drvstr << 6;
-	val |= enable << 9;
+	/* Make sure RAM partition table is initialized */
+	ASSERT(smem_ram_ptable_init_v1());
 
-	writel(val, (uint32_t *)GPIO_CONFIG_ADDR(gpio));
-	return;
+	len = smem_get_ram_ptable_len();
+
+	/* Calculating the size of the mem_info_ptr */
+	for (index = 0 ; index < len; index++)
+	{
+		smem_get_ram_ptable_entry(&ptn_entry, index);
+
+		if((ptn_entry.category == SDRAM) &&
+			(ptn_entry.type == SYS_MEMORY))
+		{
+
+			/* Pass along all other usable memory regions to Linux */
+			ret = dev_tree_add_mem_info(fdt,
+							memory_node_offset,
+							ptn_entry.start,
+							ptn_entry.size);
+
+			if (ret)
+			{
+				dprintf(CRITICAL, "Failed to add secondary banks memory addresses\n");
+				goto target_dev_tree_mem_err;
+			}
+		}
+	}
+target_dev_tree_mem_err:
+
+	return ret;
 }
 
-void gpio_set_dir(uint32_t gpio, uint32_t dir)
+void *target_get_scratch_address(void)
 {
-	writel(dir, (uint32_t *)GPIO_IN_OUT_ADDR(gpio));
-
-	return;
+	return ((void *)SCRATCH_ADDR);
 }
 
-uint32_t gpio_status(uint32_t gpio)
+unsigned target_get_max_flash_size(void)
 {
-	return readl(GPIO_IN_OUT_ADDR(gpio)) & GPIO_IN;
-}
-
-/* Configure gpio for blsp uart 2 */
-void gpio_config_uart_dm(uint8_t id)
-{
-	/* configure rx gpio */
-	gpio_tlmm_config(5, 2, GPIO_INPUT, GPIO_NO_PULL,
-				GPIO_8MA, GPIO_DISABLE);
-
-	/* configure tx gpio */
-	gpio_tlmm_config(4, 2, GPIO_OUTPUT, GPIO_NO_PULL,
-				GPIO_8MA, GPIO_DISABLE);
+	return (512 * 1024 * 1024);
 }

@@ -1,8 +1,8 @@
-# top level project rules for the MSMTITANIUM project
+# top level project rules for the MSM8953 project
 #
 LOCAL_DIR := $(GET_LOCAL_DIR)
 
-TARGET := msmtitanium
+TARGET := msm8953
 
 MODULES += app/aboot
 
