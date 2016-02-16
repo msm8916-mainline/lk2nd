@@ -302,7 +302,7 @@ static struct panel_reset_sequence truly_1080p_video_panel_reset_seq = {
 /* Dynamic fps supported frequencies by panel                                */
 /*---------------------------------------------------------------------------*/
 static const struct dfps_panel_info truly_1080p_video_dfps = {
-	1, 3, {48, 54, 60}
+	1, 10, {48, 49, 50, 51, 52, 54, 56, 57, 58, 60}
 };
 
 /*---------------------------------------------------------------------------*/

@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -38,9 +38,12 @@
 #include <platform.h>
 #include <target.h>
 
-/* sleep clock is 32.768 khz, 0x8000 count per second */
+/*
+ * Sleep clock is 32.768 khz, 0x8000 count per second.
+ * Set long press wait time to 500ms to benefit boot time.
+ */
 #define MPM_SLEEP_TIMETICK_COUNT    0x8000
-#define PWRKEY_LONG_PRESS_COUNT     0xC000
+#define PWRKEY_LONG_PRESS_COUNT     0x4000
 #define QPNP_DEFAULT_TIMEOUT        250
 #define PWRKEY_DETECT_FREQUENCY     50
 
