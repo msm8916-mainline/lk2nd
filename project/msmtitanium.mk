@@ -99,6 +99,9 @@ DEFINES += USE_TARGET_HS200_DELAY=1
 #Enable the external reboot functions
 ENABLE_REBOOT_MODULE := 1
 
+#Enable MDTP feature
+ENABLE_MDTP_SUPPORT := 1
+
 ifeq ($(ENABLE_MDTP_SUPPORT),1)
 DEFINES += MDTP_SUPPORT=1
 endif
