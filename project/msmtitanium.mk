@@ -89,6 +89,9 @@ DEFINES += PLATFORM_USE_SCM_DLOAD=1
 
 CFLAGS += -Werror
 
+#enable user force reset feature
+DEFINES += USER_FORCE_RESET_SUPPORT=1
+
 # Reset USB clock from target code
 DEFINES += USB_RESET_FROM_CLK=1
 
