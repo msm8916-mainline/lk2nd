@@ -32,42 +32,6 @@
 #define MDTP_EFUSE_ADDRESS_MSM8953  0x000A4418  // QFPROM_CORR_SPARE_REG18_LSB
 #define MDTP_EFUSE_START_MSM8953    0
 
-struct mdtp_ui_defs mdtp_ui_defs_msm8953 = {
-    // Image dimensions
-    952,      // error_msg_width;
-    143,      // error_msg_height;
-    920,      // main_text_width;
-    194,      // main_text_height;
-    120,      // pin_digit_width;
-    120,      // pin_digit_height;
-    432,      // ok_button_width;
-    106,      // ok_button_height;
-    932,      // digits_instructions_width;
-    112,      // digits_instructions_height;
-    620,      // pin_instructions_width;
-    137,      // pin_instructions_height;
-
-    // Image offsets
-    0x1000,   // error_msg_offset;
-    0x65000,  // initial_delay_offset;
-    0xE8000,  // enter_pin_offset;
-    0x16B000, // invalid_pin_offset;
-    0x1EE000, // pin_digit_0_offset;
-    0xB000,   // pin_digits_offset;
-    0x25C000, // pin_selected_digit_0_offset;
-    0x2CA000, // ok_button_offset;
-    0x2EC000, // selected_ok_button_offset;
-    0x30E000, // digits_instructions_offset;
-    0x35B000, // pin_instructions_offset;
-
-    //Display settings
-    8         // digit_space;
-};
-
-struct mdtp_ui_defs mdtp_get_target_ui_defs()
-{
-    return mdtp_ui_defs_msm8953;
-}
 
 int mdtp_get_target_efuse(struct mdtp_target_efuse* target_efuse)
 {
