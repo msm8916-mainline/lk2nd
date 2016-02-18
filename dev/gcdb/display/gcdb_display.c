@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -537,17 +537,15 @@ int gcdb_display_init(const char *panel_name, uint32_t rev, void *base)
 		panel.bl_func = mdss_dsi_bl_enable;
 		panel.dsi2HDMI_config = mdss_dsi2HDMI_config;
 		/*
-		 * If dfps enabled, reserve fb memory to store pll
-		 * codes and pass pll codes values to kernel.
+		 * Reserve fb memory to store pll codes and pass
+		 * pll codes values to kernel.
 		 */
-		if (panel.panel_info.dfps.panel_dfps.enabled) {
-			panel.panel_info.dfps.dfps_fb_base = base;
-			base += DFPS_PLL_CODES_SIZE;
-			dprintf(SPEW, "dfps base=0x%p,d, fb_base=0x%p!\n",
-					panel.panel_info.dfps.dfps_fb_base, base);
-		}
-
+		panel.panel_info.dfps.dfps_fb_base = base;
+		base += DFPS_PLL_CODES_SIZE;
 		panel.fb.base = base;
+		dprintf(SPEW, "dfps base=0x%p,d, fb_base=0x%p!\n",
+				panel.panel_info.dfps.dfps_fb_base, base);
+
 		panel.fb.width =  panel.panel_info.xres;
 		panel.fb.height =  panel.panel_info.yres;
 		panel.fb.stride =  panel.panel_info.xres;
