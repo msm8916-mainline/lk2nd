@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -137,6 +137,7 @@ typedef enum {
 	VERIFY_SKIPPED = 0,
 	VERIFY_OK,
 	VERIFY_FAILED,
+	VERIFY_MDTP_FAILED,
 } verify_result_t;
 
 /**
@@ -183,6 +184,15 @@ void display_invalid_pin_msg();
  * @return - None.
  */
 void display_error_msg();
+
+/**
+ * display_error_msg_mdtp
+ *
+ * Display error message in case mdtp image corrupted and stop boot process.
+ *
+ * @return - None.
+ */
+void display_error_msg_mdtp();
 
 /**
  * mdtp_activated
