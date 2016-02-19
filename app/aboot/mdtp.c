@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -42,6 +42,8 @@
 #include <image_verify.h>
 #include "scm.h"
 #include "mdtp.h"
+#include "mdtp_fs.h"
+
 
 #define DIP_ENCRYPT              (0)
 #define DIP_DECRYPT              (1)
@@ -49,6 +51,8 @@
 
 #define MDTP_MAJOR_VERSION (0)
 #define MDTP_MINOR_VERSION (2)
+
+#define MDTP_CORRECT_PIN_DELAY_MSEC (1000)
 
 /** Extract major version number from complete version. */
 #define MDTP_GET_MAJOR_VERSION(version) ((version) >> 16)
@@ -62,6 +66,7 @@ static int is_mdtp_activated = -1;
 
 int check_aboot_addr_range_overlap(uint32_t start, uint32_t size);
 int scm_random(uint32_t * rbuf, uint32_t  r_len);
+extern void mdelay(unsigned msecs);
 void free_mdtp_image(void);
 
 /********************************************************************************/
@@ -205,6 +210,12 @@ static int verify_partition_single_hash(char *name, uint64_t size, DIP_hash_tabl
 
 	/* calculating the hash value using HW crypto */
 	target_crypto_init_params();
+
+	if(strcmp(name, "mdtp") == 0){
+		buf[0] = 0; // removes first byte
+		dprintf(INFO, "mdtp: verify_partition_single_hash: removes 1st byte\n");
+	}
+
 	hash_find(buf, size, digest, CRYPTO_AUTH_ALG_SHA256);
 
 	if (memcmp(digest, hash_table->hash, HASH_LEN))
@@ -380,6 +391,11 @@ static int validate_dip(DIP_t *dip)
 	return 0;
 }
 
+/* Display the recovery UI in case mdtp image is corrupted */
+static void display_mdtp_fail_recovery_ui(){
+	display_error_msg_mdtp();
+}
+
 /* Display the recovery UI to allow the user to enter the PIN and continue boot */
 static void display_recovery_ui(mdtp_cfg_t *mdtp_cfg)
 {
@@ -445,6 +461,7 @@ static void display_recovery_ui(mdtp_cfg_t *mdtp_cfg)
 	out:
 	display_image_on_screen();
 	free_mdtp_image();
+	mdelay(MDTP_CORRECT_PIN_DELAY_MSEC);
 }
 
 /* Verify the boot or recovery partitions using boot_verifier. */
@@ -550,6 +567,7 @@ static void verify_all_partitions(DIP_t *dip,
 {
 	int i;
 	int verify_failure = 0;
+	int verify_temp_result = 0;
 	int ext_partition_verify_failure = 0;
 	uint32_t total_num_blocks;
 
@@ -575,6 +593,7 @@ static void verify_all_partitions(DIP_t *dip,
 		{
 			for(i=0; i<MAX_PARTITIONS; i++)
 			{
+				verify_temp_result = 0;
 				if(dip->partition_cfg[i].lock_enabled && dip->partition_cfg[i].size)
 				{
 					total_num_blocks = ((dip->partition_cfg[i].size - 1) / MDTP_FWLOCK_BLOCK_SIZE);
@@ -587,12 +606,18 @@ static void verify_all_partitions(DIP_t *dip,
 						break;
 					}
 
-					verify_failure |= (verify_partition(dip->partition_cfg[i].name,
+					verify_temp_result |= (verify_partition(dip->partition_cfg[i].name,
 							dip->partition_cfg[i].size,
 							dip->partition_cfg[i].hash_mode,
 							(dip->partition_cfg[i].verify_ratio * total_num_blocks) / 100,
 							dip->partition_cfg[i].hash_table,
 							dip->partition_cfg[i].force_verify_block) != 0);
+
+					if((verify_temp_result) && (strcmp("mdtp",dip->partition_cfg[i].name) == 0)){
+						*verify_result = VERIFY_MDTP_FAILED;
+					}
+
+					verify_failure |= verify_temp_result;
 				}
 			}
 
@@ -676,7 +701,13 @@ static void validate_DIP_and_firmware(mdtp_ext_partition_verification_t *ext_par
 	else if (verify_result  == VERIFY_SKIPPED)
 	{
 		dprintf(SPEW, "mdtp: validate_DIP_and_firmware: Verify skipped\n");
-	} else /* VERIFY_FAILED */
+	}
+	else if(verify_result  == VERIFY_MDTP_FAILED)
+	{
+		dprintf(CRITICAL, "mdtp: validate_DIP_and_firmware: ERROR, corrupted mdtp image\n");
+		display_mdtp_fail_recovery_ui();
+	}
+	else /* VERIFY_FAILED */
 	{
 		dprintf(CRITICAL, "mdtp: validate_DIP_and_firmware: ERROR, corrupted firmware\n");
 		display_recovery_ui(&mdtp_cfg);
@@ -689,6 +720,7 @@ static void validate_DIP_and_firmware(mdtp_ext_partition_verification_t *ext_par
 
 	return;
 }
+
 
 /********************************************************************************/
 
@@ -703,6 +735,10 @@ void mdtp_fwlock_verify_lock(mdtp_ext_partition_verification_t *ext_partition)
 	int ret;
 	bool enabled;
 
+	if(mdtp_fs_init() != 0){
+		dprintf(CRITICAL, "mdtp: mdtp_img: ERROR, image file could not be loaded\n");
+		display_error_msg_mdtp(); /* This will never return */
+	}
 	/* sets the default value of this global to be MDTP not activated */
 	is_mdtp_activated = 0;
 

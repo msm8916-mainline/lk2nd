@@ -27,17 +27,10 @@
  *
  */
 
-#include "platform.h"
 #include "mdtp_defs.h"
 
-#define MDTP_EFUSE_ADDRESS_MSM8952  0x0005C250  // QFPROM_CORR_QC_SPARE_REG_LSB_ADDR
-#define MDTP_EFUSE_START_MSM8952    0
-
-#define MDTP_EFUSE_ADDRESS_MSM8956  0x000A4408  // QFPROM_CORR_SPARE_REG18_LSB_ADDR
-#define MDTP_EFUSE_START_MSM8956    0
-
-#define MDTP_EFUSE_ADDRESS_MSM8937  0x000A43B0  // QFPROM_CORR_SPARE_REG18_ROW0_LSB_ADDR
-#define MDTP_EFUSE_START_MSM8937    0
+#define MDTP_EFUSE_ADDRESS_MSM8953  0x000A4418  // QFPROM_CORR_SPARE_REG18_LSB
+#define MDTP_EFUSE_START_MSM8953    0
 
 
 int mdtp_get_target_efuse(struct mdtp_target_efuse* target_efuse)
@@ -48,21 +41,8 @@ int mdtp_get_target_efuse(struct mdtp_target_efuse* target_efuse)
         return -1;
     }
 
-    if (platform_is_msm8956())
-    {
-        target_efuse->address = MDTP_EFUSE_ADDRESS_MSM8956;
-        target_efuse->start = MDTP_EFUSE_START_MSM8956;
-    }
-    else if (platform_is_msm8937())
-    {
-        target_efuse->address = MDTP_EFUSE_ADDRESS_MSM8937;
-        target_efuse->start = MDTP_EFUSE_START_MSM8937;
-    }
-    else
-    {
-        target_efuse->address = MDTP_EFUSE_ADDRESS_MSM8952;
-        target_efuse->start = MDTP_EFUSE_START_MSM8952;
-    }
+    target_efuse->address = MDTP_EFUSE_ADDRESS_MSM8953;
+    target_efuse->start = MDTP_EFUSE_START_MSM8953;
 
     return 0;
 }

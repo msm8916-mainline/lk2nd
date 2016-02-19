@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -28,7 +28,6 @@
 
 #include <debug.h>
 #include <target.h>
-#include <mmc.h>
 #include <partition_parser.h>
 #include <string.h>
 #include <stdlib.h>
@@ -36,6 +35,7 @@
 #include "mdtp.h"
 #include "mdtp_defs.h"
 #include "scm.h"
+#include "mdtp_fs.h"
 
 #define MAX_METADATA_SIZE       (0x1000)
 
@@ -105,45 +105,18 @@ static int is_test_mode(void)
 
 /**
  * Read the Firmware Lock Metadata from EMMC
- *
  * @param metadata - Read a metadata block holding eFuse emulation from MDTP partition.
- *
  * @return - negative value for an error, 0 for success.
  */
 static int read_metadata(metadata_t *metadata)
 {
-	unsigned long long ptn = 0;
-	uint32_t actual_size;
-	int index = INVALID_PTN;
-	uint32_t block_size = mmc_get_device_blocksize();
-	unsigned char *buf = (unsigned char *)target_get_scratch_address() + MDTP_SCRATCH_OFFSET;
-
-	index = partition_get_index("mdtp");
-	ptn = partition_get_offset(index);
-
-	if(ptn == 0)
-	{
+	int eFuse = mdtp_fs_get_param(VIRTUAL_FUSE);
+	if(eFuse == -1){ //Error initiating eFuse
+		dprintf(CRITICAL, "mdtp: eFuse reading error\n");
 		return -1;
 	}
-
-	actual_size = ROUNDUP(sizeof(metadata_t), block_size);
-
-	if (actual_size > MAX_METADATA_SIZE)
-	{
-		dprintf(CRITICAL, "mdtp: read_metadata: ERROR, meta data size %d too big\n", actual_size);
-		return -1;
-	}
-
-	if(mmc_read(ptn, (void *)buf, actual_size))
-	{
-		dprintf(CRITICAL, "mdtp: read_metadata: ERROR, cannot read mdtp info\n");
-		return -1;
-	}
-
-	memscpy((uint8_t*)metadata, sizeof(metadata_t), (uint8_t*)(buf), MAX_METADATA_SIZE);
-
-	dprintf(INFO, "mdtp: read_metadata: SUCCESS, read %d bytes\n", actual_size);
-
+	metadata->eFuses.mask = (uint8_t)eFuse;
+	dprintf(INFO, "mdtp: read_metadata: SUCCESS \n");
 	return 0;
 }
 

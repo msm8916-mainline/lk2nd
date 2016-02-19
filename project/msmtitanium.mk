@@ -89,6 +89,9 @@ DEFINES += PLATFORM_USE_SCM_DLOAD=1
 
 CFLAGS += -Werror
 
+#enable user force reset feature
+DEFINES += USER_FORCE_RESET_SUPPORT=1
+
 # Reset USB clock from target code
 DEFINES += USB_RESET_FROM_CLK=1
 
@@ -98,3 +101,10 @@ DEFINES += USE_TARGET_HS200_DELAY=1
 
 #Enable the external reboot functions
 ENABLE_REBOOT_MODULE := 1
+
+#Enable MDTP feature
+ENABLE_MDTP_SUPPORT := 1
+
+ifeq ($(ENABLE_MDTP_SUPPORT),1)
+DEFINES += MDTP_SUPPORT=1
+endif

@@ -763,6 +763,8 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 					return PANEL_TYPE_UNKNOWN;
 			}
 			auto_pan_loop++;
+		} else if (platform_is_msmgold()) {
+			panel_id = HX8394F_720P_VIDEO_PANEL;
 		}
 
 		break;
