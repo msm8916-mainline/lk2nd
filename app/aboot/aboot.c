@@ -2,7 +2,7 @@
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2015, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -191,7 +191,7 @@ static int auth_kernel_img = 0;
 #if VBOOT_MOTA
 static device_info device = {DEVICE_MAGIC, 0, 0, 0, 0, {0}, {0},{0}};
 #else
-static device_info device = {DEVICE_MAGIC, 0, 0, 0, 0, {0}, {0}, {0}, 1};
+static device_info device = {DEVICE_MAGIC, 0, 0, 0, 0, {0}, {0},{0}, 1, M_DEVICE_INFO_VER};
 #endif
 
 static bool is_allow_unlock = 0;
@@ -1859,7 +1859,6 @@ void read_device_info(device_info *dev)
 #else
 		read_device_info_mmc(info);
 #endif
-
 		if (memcmp(info->magic, DEVICE_MAGIC, DEVICE_MAGIC_SIZE))
 		{
 			memcpy(info->magic, DEVICE_MAGIC, DEVICE_MAGIC_SIZE);
@@ -1883,9 +1882,22 @@ void read_device_info(device_info *dev)
 
 #if !VBOOT_MOTA
 			info->verity_mode = 1; //enforcing by default
+			info->devinfo_version = M_DEVICE_INFO_VER;
 #endif
-			write_device_info(info);
 		}
+#if !VBOOT_MOTA
+		/* Else condition is for MOTA upgrade for updating M specific fields*/
+		else if(info->devinfo_version != M_DEVICE_INFO_VER)
+		{
+			info->devinfo_version = M_DEVICE_INFO_VER;
+			if (is_secure_boot_enable())
+				info->is_unlock_critical = 0;
+			else
+				info->is_unlock_critical = 1;
+			info->verity_mode = 1; //enforcing by default
+		}
+#endif
+		write_device_info(info);
 		memcpy(dev, info, sizeof(device_info));
 		free(info);
 	}
