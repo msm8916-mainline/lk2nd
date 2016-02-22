@@ -246,6 +246,7 @@ static int init_panel_data(struct panel_struct *panelstruct,
 			= TRULY_WUXGA_VIDEO_OFF_COMMAND;
 		memcpy(phy_db->timing,
 			truly_wuxga_14nm_video_timings, MAX_TIMING_CONFIG * sizeof(uint32_t));
+		pinfo->dfps.panel_dfps = truly_wuxga_video_dfps;
 		pinfo->mipi.signature 	= TRULY_WUXGA_VIDEO_SIGNATURE;
 		break;
 	case UNKNOWN_PANEL:
