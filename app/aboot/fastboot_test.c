@@ -35,6 +35,7 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <app/tests.h>
 #include <target.h>
 #include <boot_device.h>
+#include "mdtp.h"
 #if USE_RPMB_FOR_DEVINFO
 #include <rpmb.h>
 #endif
@@ -122,6 +123,11 @@ void cmd_oem_runtests()
 		dprintf(INFO, "Thread Test: [ FAIL ]\n");
 
 	printf_tests();
+
+#ifdef MDTP_SUPPORT
+	dprintf(INFO, "Running mdtp LK tests ... \n");
+	cmd_mdtp_runtests();
+#endif
 
 	fastboot_okay("");
 	enable_test_mode = false;

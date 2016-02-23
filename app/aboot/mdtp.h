@@ -216,4 +216,17 @@ int mdtp_activated(bool * activated);
  **/
 void mdtp_fwlock_verify_lock(mdtp_ext_partition_verification_t *ext_partition);
 
+
+//UT functions
+
+/** Entry point of the MDTP LK UT.
+ * Start UT on LK mdtp components during fastboot.
+ **/
+void cmd_mdtp_runtests();
+
+int mdtp_verify_hash_ut();
+int mdtp_validate_partition_params_ut();
+int mdtp_verify_partition_ut();
+int mdtp_verify_external_partition_ut(mdtp_ext_partition_verification_t* ext_partition);
+
 #endif
