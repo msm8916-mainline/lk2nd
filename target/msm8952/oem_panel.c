@@ -61,6 +61,7 @@
 #include "include/panel_hx8394f_720p_video.h"
 #include "include/panel_truly_720p_video.h"
 #include "include/panel_truly_wuxga_video.h"
+#include "include/panel_truly_720p_cmd.h"
 
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
@@ -82,6 +83,7 @@ enum {
 	HX8394F_720P_VIDEO_PANEL,
 	TRULY_720P_VIDEO_PANEL,
 	TRULY_WUXGA_VIDEO_PANEL,
+	TRULY_720P_CMD_PANEL,
 	UNKNOWN_PANEL
 };
 
@@ -109,7 +111,8 @@ static struct panel_list supp_panels[] = {
 	{"r69006_1080p_video",R69006_1080P_VIDEO_PANEL},
 	{"hx8394f_720p_video", HX8394F_720P_VIDEO_PANEL},
 	{"truly_720p_video", TRULY_720P_VIDEO_PANEL},
-	{"truly_wuxga_video", TRULY_WUXGA_VIDEO_PANEL}
+	{"truly_wuxga_video", TRULY_WUXGA_VIDEO_PANEL},
+	{"truly_720p_cmd", TRULY_720P_CMD_PANEL},
 };
 
 static uint32_t panel_id;
@@ -647,6 +650,33 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		memcpy(phy_db->timing,
 			truly_wuxga_video_timings, TIMING_SIZE);
 		pinfo->mipi.signature 	= TRULY_WUXGA_VIDEO_SIGNATURE;
+		break;
+	case TRULY_720P_CMD_PANEL:
+		panelstruct->paneldata    = &truly_720p_cmd_panel_data;
+		panelstruct->paneldata->panel_with_enable_gpio = 1;
+		panelstruct->panelres     = &truly_720p_cmd_panel_res;
+		panelstruct->color        = &truly_720p_cmd_color;
+		panelstruct->videopanel   = &truly_720p_cmd_video_panel;
+		panelstruct->commandpanel = &truly_720p_cmd_command_panel;
+		panelstruct->state        = &truly_720p_cmd_state;
+		panelstruct->laneconfig   = &truly_720p_cmd_lane_config;
+		panelstruct->paneltiminginfo
+			= &truly_720p_cmd_timing_info;
+		panelstruct->panelresetseq
+					 = &truly_720p_cmd_panel_reset_seq;
+		panelstruct->backlightinfo = &truly_720p_cmd_backlight;
+		pinfo->mipi.panel_on_cmds
+			= truly_720p_cmd_on_command;
+		pinfo->mipi.num_of_panel_on_cmds
+			= TRULY_720P_CMD_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+			= truly_720p_cmd_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+			= TRULY_720P_CMD_OFF_COMMAND;
+		memcpy(phy_db->timing,
+			truly_720p_cmd_timings, TIMING_SIZE);
+		pinfo->mipi.signature 	= TRULY_720P_CMD_SIGNATURE;
+		pinfo->mipi.tx_eot_append = true;
 		break;
 	case UNKNOWN_PANEL:
 	default:
