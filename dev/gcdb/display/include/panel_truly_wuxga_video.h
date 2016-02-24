@@ -139,6 +139,14 @@ static struct backlight truly_wuxga_video_backlight = {
   1, 1, 4095, 100, 1, "PMIC_8941"
 };
 
+/*---------------------------------------------------------------------------*/
+/* Dynamic fps supported frequencies by panel                                */
+/*---------------------------------------------------------------------------*/
+static const struct dfps_panel_info truly_wuxga_video_dfps = {
+        1, 10, {48, 49, 50, 51, 52, 54, 56, 57, 58, 60}
+};
+
+
 #define TRULY_WUXGA_VIDEO_SIGNATURE 0xFFFF
 
 #endif /*_TRULY_WUXGA_VIDEO_H_*/
