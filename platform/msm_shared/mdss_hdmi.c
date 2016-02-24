@@ -137,6 +137,7 @@ enum {
  */
 #define AVI_IFRAME_TYPE 0x2
 #define AVI_IFRAME_VERSION 0x2
+#define AVI_IFRAME_LINE_NUMBER 1
 #define LEFT_SHIFT_BYTE(x) ((x) << 8)
 #define LEFT_SHIFT_WORD(x) ((x) << 16)
 #define LEFT_SHIFT_24BITS(x) ((x) << 24)
@@ -163,6 +164,7 @@ enum edid_data_block_type {
 #define HDMI_VFRMT_1280x720p60_16_9     4
 #define HDMI_VFRMT_1920x1080p60_16_9    16
 #define HDMI_VFRMT_MAX                  3
+#define HDMI_VFRMT_END                  127
 
 #define DEFAULT_RESOLUTION HDMI_VFRMT_1920x1080p60_16_9
 static uint8_t mdss_hdmi_video_fmt = HDMI_VFRMT_UNKNOWN;
@@ -180,6 +182,43 @@ enum aspect_ratio {
 	HDMI_RES_AR_16_9,
 	HDMI_RES_AR_16_10,
 	HDMI_RES_AR_MAX,
+};
+
+enum hdmi_quantization_range {
+	HDMI_QUANTIZATION_DEFAULT,
+	HDMI_QUANTIZATION_LIMITED_RANGE,
+	HDMI_QUANTIZATION_FULL_RANGE
+};
+
+enum hdmi_scaling_info {
+	HDMI_SCALING_NONE,
+	HDMI_SCALING_HORZ,
+	HDMI_SCALING_VERT,
+	HDMI_SCALING_HORZ_VERT,
+};
+
+struct hdmi_avi_iframe_bar_info {
+	bool vert_binfo_present;
+	bool horz_binfo_present;
+	uint32_t end_of_top_bar;
+	uint32_t start_of_bottom_bar;
+	uint32_t end_of_left_bar;
+	uint32_t start_of_right_bar;
+};
+
+struct hdmi_avi_infoframe_config {
+	uint32_t pixel_format;
+	uint32_t scan_info;
+	bool act_fmt_info_present;
+	uint32_t colorimetry_info;
+	uint32_t ext_colorimetry_info;
+	uint32_t rgb_quantization_range;
+	uint32_t yuv_quantization_range;
+	uint32_t scaling_info;
+	bool is_it_content;
+	uint8_t content_type;
+	uint8_t pixel_rpt_factor;
+	struct hdmi_avi_iframe_bar_info bar_info;
 };
 
 struct mdss_hdmi_timing_info {
@@ -244,35 +283,6 @@ static inline int mdss_hdmi_get_timing_info(
 
 	return ret;
 }
-
-
-/*
- * 13 Bytes of AVI infoframe data wrt each resolution
- * Data Byte 01: 0 Y1 Y0 A0 B1 B0 S1 S0
- * Data Byte 02: C1 C0 M1 M0 R3 R2 R1 R0
- * Data Byte 03: ITC EC2 EC1 EC0 Q1 Q0 SC1 SC0
- * Data Byte 04: 0 VIC6 VIC5 VIC4 VIC3 VIC2 VIC1 VIC0
- * Data Byte 05: 0 0 0 0 PR3 PR2 PR1 PR0
- * Data Byte 06: LSB Line No of End of Top Bar
- * Data Byte 07: MSB Line No of End of Top Bar
- * Data Byte 08: LSB Line No of Start of Bottom Bar
- * Data Byte 09: MSB Line No of Start of Bottom Bar
- * Data Byte 10: LSB Pixel Number of End of Left Bar
- * Data Byte 11: MSB Pixel Number of End of Left Bar
- * Data Byte 12: LSB Pixel Number of Start of Right Bar
- * Data Byte 13: MSB Pixel Number of Start of Right Bar
- */
-static uint8_t mdss_hdmi_avi_info_db[HDMI_VFRMT_MAX][AVI_MAX_DATA_BYTES] = {
-	/* 480p */
-	{0x10, 0x18, 0x00, 0x01, 0x00, 0x00, 0x00,
-		0xE1, 0x01, 0x00, 0x00, 0x81, 0x02},
-	/* 720p */
-	{0x10, 0x28, 0x00, 0x04, 0x00, 0x00, 0x00,
-		0xD1, 0x02, 0x00, 0x00, 0x01, 0x05},
-	/* 1080p */
-	{0x10, 0x28, 0x00, 0x10, 0x00, 0x00, 0x00,
-		0x39, 0x04, 0x00, 0x00, 0x81, 0x07},
-};
 
 static void mdss_hdmi_audio_acr_setup(uint32_t sample_rate)
 {
@@ -1070,58 +1080,138 @@ void mdss_hdmi_avi_info_frame(void)
 	uint32_t sum;
 	uint32_t reg_val;
 	uint8_t checksum;
-	uint8_t scaninfo;
-	uint32_t i, index;
+	uint32_t i;
+	struct hdmi_avi_infoframe_config avi_info = {0};
+	struct mdss_hdmi_timing_info tinfo = {0};
+	uint8_t avi_iframe[AVI_MAX_DATA_BYTES] = {0};
 
-	scaninfo = mdss_hdmi_get_scan_info();
+	mdss_hdmi_get_timing_info(&tinfo, mdss_hdmi_video_fmt);
+
+	/* Setup AVI Infoframe content */
+	avi_info.scan_info = mdss_hdmi_get_scan_info();
+	avi_info.bar_info.end_of_top_bar = 0x0;
+	avi_info.bar_info.start_of_bottom_bar = tinfo.active_v + 1;
+	avi_info.bar_info.end_of_left_bar = 0;
+	avi_info.bar_info.start_of_right_bar = tinfo.active_h + 1;
+	avi_info.act_fmt_info_present = true;
+	avi_info.rgb_quantization_range = HDMI_QUANTIZATION_DEFAULT;
+	avi_info.yuv_quantization_range = HDMI_QUANTIZATION_DEFAULT;
+	avi_info.scaling_info = HDMI_SCALING_NONE;
+	avi_info.colorimetry_info = 0;
+	avi_info.ext_colorimetry_info = 0;
+	avi_info.pixel_rpt_factor = 0;
+
+	/*
+	 * BYTE - 1:
+	 * 	0:1 - Scan Information
+	 * 	2:3 - Bar Info
+	 * 	4   - Active Format Info present
+	 * 	5:6 - Pixel format type;
+	 * 	7   - Reserved;
+	 */
+	avi_iframe[0] = (avi_info.scan_info & 0x3) |
+		(avi_info.bar_info.vert_binfo_present ? BIT(2) : 0) |
+		(avi_info.bar_info.horz_binfo_present ? BIT(3) : 0) |
+		(avi_info.act_fmt_info_present ? BIT(4) : 0);
+
+	/*
+	 * BYTE - 2:
+	 * 	0:3 - Active format info
+	 * 	4:5 - Picture aspect ratio
+	 * 	6:7 - Colorimetry info
+	 */
+	avi_iframe[1] |= 0x08;
+	if (tinfo.ar == HDMI_RES_AR_4_3)
+		avi_iframe[1] |= (0x1 << 4);
+	else if (tinfo.ar == HDMI_RES_AR_16_9)
+		avi_iframe[1] |= (0x2 << 4);
+
+	avi_iframe[1] |= (avi_info.colorimetry_info & 0x3) << 6;
+
+	/*
+	 * BYTE - 3:
+	 *	0:1 - Scaling info
+	 *	2:3 - Quantization range
+	 *	4:6 - Extended Colorimetry
+	 *	7   - IT content
+	 */
+	avi_iframe[2] |= (avi_info.scaling_info & 0x3) |
+		((avi_info.rgb_quantization_range & 0x3) << 2) |
+		((avi_info.ext_colorimetry_info & 0x7) << 4) |
+		((avi_info.is_it_content ? 0x1 : 0x0) << 7);
+	/*
+	 * BYTE - 4:
+	 *	0:7 - VIC
+	 */
+	if (tinfo.video_format < HDMI_VFRMT_END)
+		avi_iframe[3] = tinfo.video_format;
+
+	/*
+	 * BYTE - 5:
+	 *	0:3 - Pixel Repeat factor
+	 *	4:5 - Content type
+	 *	6:7 - YCC Quantization range
+	 */
+	avi_iframe[4] = (avi_info.pixel_rpt_factor & 0xF) |
+		((avi_info.content_type & 0x3) << 4) |
+		((avi_info.yuv_quantization_range & 0x3) << 6);
+
+	/* BYTE - 6,7: End of top bar */
+	avi_iframe[5] = avi_info.bar_info.end_of_top_bar & 0xFF;
+	avi_iframe[6] = ((avi_info.bar_info.end_of_top_bar & 0xFF00) >> 8);
+
+	/* BYTE - 8,9: Start of bottom bar */
+	avi_iframe[7] = avi_info.bar_info.start_of_bottom_bar & 0xFF;
+	avi_iframe[8] = ((avi_info.bar_info.start_of_bottom_bar & 0xFF00) >> 8);
+
+	/* BYTE - 10,11: Endof of left bar */
+	avi_iframe[9] = avi_info.bar_info.end_of_left_bar & 0xFF;
+	avi_iframe[10] = ((avi_info.bar_info.end_of_left_bar & 0xFF00) >> 8);
+
+	/* BYTE - 12,13: Start of right bar */
+	avi_iframe[11] = avi_info.bar_info.start_of_right_bar & 0xFF;
+	avi_iframe[12] = ((avi_info.bar_info.start_of_right_bar & 0xFF00) >> 8);
 
 	sum = IFRAME_PACKET_OFFSET + AVI_IFRAME_TYPE +
 		AVI_IFRAME_VERSION + AVI_MAX_DATA_BYTES;
 
-	for (index = 0; index < HDMI_VFRMT_MAX; index++) {
-		if (mdss_hdmi_avi_info_db[index][VIC_INDEX] == mdss_hdmi_video_fmt)
-			break;
-	}
-
-	if (index == VIC_INDEX)
-		return;
-
-	mdss_hdmi_avi_info_db[index][DATA_BYTE_1] |=
-		scaninfo & (BIT(1) | BIT(0));
-
 	for (i = 0; i < AVI_MAX_DATA_BYTES; i++)
-		sum += mdss_hdmi_avi_info_db[index][i];
-
+		sum += avi_iframe[i];
 	sum &= 0xFF;
 	sum = 256 - sum;
 	checksum = (uint8_t) sum;
 
 	reg_val = checksum |
-		LEFT_SHIFT_BYTE(mdss_hdmi_avi_info_db[index][DATA_BYTE_1]) |
-		LEFT_SHIFT_WORD(mdss_hdmi_avi_info_db[index][DATA_BYTE_2]) |
-		LEFT_SHIFT_24BITS(mdss_hdmi_avi_info_db[index][DATA_BYTE_3]);
+		LEFT_SHIFT_BYTE(avi_iframe[DATA_BYTE_1]) |
+		LEFT_SHIFT_WORD(avi_iframe[DATA_BYTE_2]) |
+		LEFT_SHIFT_24BITS(avi_iframe[DATA_BYTE_3]);
 	writel(reg_val, HDMI_AVI_INFO0);
 
-	reg_val = mdss_hdmi_avi_info_db[index][DATA_BYTE_4] |
-		LEFT_SHIFT_BYTE(mdss_hdmi_avi_info_db[index][DATA_BYTE_5]) |
-		LEFT_SHIFT_WORD(mdss_hdmi_avi_info_db[index][DATA_BYTE_6]) |
-		LEFT_SHIFT_24BITS(mdss_hdmi_avi_info_db[index][DATA_BYTE_7]);
+	reg_val = avi_iframe[DATA_BYTE_4] |
+		LEFT_SHIFT_BYTE(avi_iframe[DATA_BYTE_5]) |
+		LEFT_SHIFT_WORD(avi_iframe[DATA_BYTE_6]) |
+		LEFT_SHIFT_24BITS(avi_iframe[DATA_BYTE_7]);
 	writel(reg_val, HDMI_AVI_INFO1);
 
-	reg_val = mdss_hdmi_avi_info_db[index][DATA_BYTE_8] |
-		LEFT_SHIFT_BYTE(mdss_hdmi_avi_info_db[index][DATA_BYTE_9]) |
-		LEFT_SHIFT_WORD(mdss_hdmi_avi_info_db[index][DATA_BYTE_10]) |
-		LEFT_SHIFT_24BITS(mdss_hdmi_avi_info_db[index][DATA_BYTE_11]);
+	reg_val = avi_iframe[DATA_BYTE_8] |
+		LEFT_SHIFT_BYTE(avi_iframe[DATA_BYTE_9]) |
+		LEFT_SHIFT_WORD(avi_iframe[DATA_BYTE_10]) |
+		LEFT_SHIFT_24BITS(avi_iframe[DATA_BYTE_11]);
 	writel(reg_val, HDMI_AVI_INFO2);
 
-	reg_val = mdss_hdmi_avi_info_db[index][DATA_BYTE_12] |
-		LEFT_SHIFT_BYTE(mdss_hdmi_avi_info_db[index][DATA_BYTE_13]) |
+	reg_val = avi_iframe[DATA_BYTE_12] |
+		LEFT_SHIFT_BYTE(avi_iframe[DATA_BYTE_13]) |
 		LEFT_SHIFT_24BITS(AVI_IFRAME_VERSION);
 	writel(reg_val, HDMI_AVI_INFO3);
 
 	/* AVI InfFrame enable (every frame) */
 	writel(readl(HDMI_INFOFRAME_CTRL0) | BIT(1) | BIT(0),
-		HDMI_INFOFRAME_CTRL0);
+			HDMI_INFOFRAME_CTRL0);
+
+	reg_val = readl(HDMI_INFOFRAME_CTRL1);
+	reg_val &= ~0x3F;
+	reg_val |= AVI_IFRAME_LINE_NUMBER;
+	writel(reg_val, HDMI_INFOFRAME_CTRL1);
 }
 
 int mdss_hdmi_init(void)
