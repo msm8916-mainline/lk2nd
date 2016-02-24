@@ -34,8 +34,7 @@
 #define MAX_PARTITIONS         (3)
 #define MAX_PARTITION_NAME_LEN (100)
 #define HASH_LEN               (32)
-#define MDTP_MAX_PIN_LEN       (8)
-#define MDTP_MIN_PIN_LEN       (5)
+#define MDTP_PIN_LEN           (8)
 #define DIP_PADDING            (15)
 
 #define INITIAL_DELAY_MSECONDS      5000
@@ -84,14 +83,14 @@ typedef struct DIP_partition_cfg {
 } DIP_partition_cfg_t;
 
 typedef struct mdtp_pin {
-	char mdtp_pin[MDTP_MAX_PIN_LEN+1];              /* A null terminated PIN. */
+	char mdtp_pin[MDTP_PIN_LEN+1];              /* A null terminated PIN. */
 } mdtp_pin_t;
 
 /** MDTP configuration. */
 typedef struct mdtp_cfg {
 	uint8_t enable_local_pin_authentication;/* Allow local authentication using a PIN. */
 	mdtp_pin_t mdtp_pin;                    /* Null terminated PIN provided by the user for local deactivation.
-                                               PIN length should be from MDTP_MIN_PIN_LEN to MDTP_MAX_PIN_LEN digits. */
+                                               PIN length should be MDTP_PIN_LEN digits. */
 } mdtp_cfg_t;
 
 typedef struct DIP {

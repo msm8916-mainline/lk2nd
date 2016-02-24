@@ -400,7 +400,7 @@ static void display_mdtp_fail_recovery_ui(){
 static void display_recovery_ui(mdtp_cfg_t *mdtp_cfg)
 {
 	uint32_t pin_length = 0;
-	char entered_pin[MDTP_MAX_PIN_LEN+1] = {0};
+	char entered_pin[MDTP_PIN_LEN+1] = {0};
 	uint32_t i;
 	char pin_mismatch = 0;
 
@@ -410,7 +410,7 @@ static void display_recovery_ui(mdtp_cfg_t *mdtp_cfg)
 
 		pin_length = strlen(mdtp_cfg->mdtp_pin.mdtp_pin);
 
-		if (pin_length > MDTP_MAX_PIN_LEN || pin_length < MDTP_MIN_PIN_LEN)
+		if (pin_length != MDTP_PIN_LEN)
 		{
 			dprintf(CRITICAL, "mdtp: display_recovery_ui: Error, invalid PIN length\n");
 			display_error_msg(); /* This will never return */
