@@ -76,7 +76,7 @@ static char truly_wuxga_video_off_cmd0[] = {
 static struct mipi_dsi_cmd truly_wuxga_video_off_command[] = {
 { 0x4 , truly_wuxga_video_off_cmd0, 0x0}
 };
-#define TRULY_WUXGA_VIDEO_OFF_COMMAND 2
+#define TRULY_WUXGA_VIDEO_OFF_COMMAND 1
 
 
 static struct command_state truly_wuxga_video_state = {
