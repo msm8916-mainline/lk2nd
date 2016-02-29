@@ -108,3 +108,6 @@ ENABLE_MDTP_SUPPORT := 1
 ifeq ($(ENABLE_MDTP_SUPPORT),1)
 DEFINES += MDTP_SUPPORT=1
 endif
+
+#enable battery voltage check
+DEFINES += CHECK_BAT_VOLTAGE=1
