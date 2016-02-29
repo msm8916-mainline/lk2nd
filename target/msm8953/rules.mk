@@ -26,6 +26,7 @@ MODULES += \
 	dev/vib \
 	lib/ptable \
 	dev/pmic/pm8x41 \
+	dev/pmic/pmi8994 \
 	dev/qpnp_haptic \
 	lib/libfdt \
 	dev/qpnp_wled \
