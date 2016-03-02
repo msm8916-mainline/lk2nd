@@ -105,7 +105,7 @@ static char r69006_1080p_cmd_on_cmd7[] = {
 	0x9A, 0x73, 0x8D, 0xAD,
 	0x63, 0xFE, 0xFF, 0xFF,
 	0xCB, 0xF8, 0x01, 0x00,
-	0xAA, 0x40, 0x00, 0xC2,
+	0xAA, 0x40, 0x02, 0xC2,
 	0x01, 0x08, 0x00, 0x01,
 };
 
@@ -263,11 +263,11 @@ static char r69006_1080p_cmd_on_cmd29[] = {
 
 
 static char r69006_1080p_cmd_on_cmd30[] = {
-	0x29, 0x00, 0x05, 0x80
+	0x11, 0x00, 0x05, 0x80
 };
 
 static char r69006_1080p_cmd_on_cmd31[] = {
-	0x11, 0x00, 0x05, 0x80
+	0x29, 0x00, 0x05, 0x80
 };
 
 
@@ -301,9 +301,9 @@ static struct mipi_dsi_cmd r69006_1080p_cmd_on_command[] = {
 	{0x8, r69006_1080p_cmd_on_cmd26, 0x00},
 	{0x8, r69006_1080p_cmd_on_cmd27, 0x00},
 	{0x8, r69006_1080p_cmd_on_cmd28, 0x00},
-	{0x8, r69006_1080p_cmd_on_cmd29, 0x14},
-	{0x4, r69006_1080p_cmd_on_cmd30, 0x14},
-	{0x4, r69006_1080p_cmd_on_cmd31, 0x78}
+	{0x8, r69006_1080p_cmd_on_cmd29, 0x00},
+	{0x4, r69006_1080p_cmd_on_cmd30, 0x78},
+	{0x4, r69006_1080p_cmd_on_cmd31, 0x14}
 };
 
 #define R69006_1080P_CMD_ON_COMMAND 32
@@ -373,7 +373,7 @@ static struct panel_timing r69006_1080p_cmd_timing_info = {
 /* Panel reset sequence                                                      */
 /*---------------------------------------------------------------------------*/
 static struct panel_reset_sequence r69006_1080p_cmd_reset_seq = {
-	{1, 0, 1, }, {20, 2, 20, }, 2
+	{1, 0, 1, }, {10, 10, 10, }, 2
 };
 
 /*---------------------------------------------------------------------------*/
