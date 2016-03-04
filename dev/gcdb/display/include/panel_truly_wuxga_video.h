@@ -76,7 +76,7 @@ static char truly_wuxga_video_off_cmd0[] = {
 static struct mipi_dsi_cmd truly_wuxga_video_off_command[] = {
 { 0x4 , truly_wuxga_video_off_cmd0, 0x0}
 };
-#define TRULY_WUXGA_VIDEO_OFF_COMMAND 2
+#define TRULY_WUXGA_VIDEO_OFF_COMMAND 1
 
 
 static struct command_state truly_wuxga_video_state = {
@@ -138,6 +138,14 @@ static struct panel_reset_sequence truly_wuxga_video_panel_reset_seq = {
 static struct backlight truly_wuxga_video_backlight = {
   1, 1, 4095, 100, 1, "PMIC_8941"
 };
+
+/*---------------------------------------------------------------------------*/
+/* Dynamic fps supported frequencies by panel                                */
+/*---------------------------------------------------------------------------*/
+static const struct dfps_panel_info truly_wuxga_video_dfps = {
+        1, 10, {48, 49, 50, 51, 52, 54, 56, 57, 58, 60}
+};
+
 
 #define TRULY_WUXGA_VIDEO_SIGNATURE 0xFFFF
 
