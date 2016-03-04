@@ -2512,8 +2512,29 @@ void cmd_flash_meta_img(const char *arg, void *data, unsigned sz)
 	int i, images;
 	meta_header_t *meta_header;
 	img_header_entry_t *img_header_entry;
+	/*End of the image address*/
+	uintptr_t data_end;
+
+	if( (UINT_MAX - sz) > (uintptr_t)data )
+		data_end  = (uintptr_t)data + sz;
+	else
+	{
+		fastboot_fail("Cannot  flash: image header corrupt");
+		return;
+	}
+
+	if( data_end < ((uintptr_t)data + sizeof(meta_header_t)))
+	{
+		fastboot_fail("Cannot  flash: image header corrupt");
+		return;
+	}
 
 	meta_header = (meta_header_t*) data;
+	if( data_end < ((uintptr_t)data + meta_header->img_hdr_sz))
+	{
+		fastboot_fail("Cannot  flash: image header corrupt");
+		return;
+	}
 	img_header_entry = (img_header_entry_t*) (data+sizeof(meta_header_t));
 
 	images = meta_header->img_hdr_sz / sizeof(img_header_entry_t);
@@ -2524,6 +2545,13 @@ void cmd_flash_meta_img(const char *arg, void *data, unsigned sz)
 			(img_header_entry[i].start_offset == 0) ||
 			(img_header_entry[i].size == 0))
 			break;
+
+		if( data_end < ((uintptr_t)data + img_header_entry[i].start_offset
+						+ img_header_entry[i].size) )
+		{
+			fastboot_fail("Cannot  flash: image size mismatch");
+			break;
+		}
 
 		cmd_flash_mmc_img(img_header_entry[i].ptn_name,
 					(void *) data + img_header_entry[i].start_offset,
