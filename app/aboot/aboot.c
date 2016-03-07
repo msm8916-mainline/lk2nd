@@ -2187,17 +2187,22 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	unsigned int kernel_size = 0;
 	unsigned int scratch_offset = 0;
 
+#if FBCON_DISPLAY_MSG
+	/* Exit keys' detection thread firstly */
+	exit_menu_keys_detection();
+#endif
+
 #if VERIFIED_BOOT
 	if(target_build_variant_user() && !device.is_unlocked)
 	{
 		fastboot_fail("unlock device to use this command");
-		return;
+		goto boot_failed;
 	}
 #endif
 
 	if (sz < sizeof(hdr)) {
 		fastboot_fail("invalid bootimage header");
-		return;
+		goto boot_failed;
 	}
 
 	hdr = (struct boot_img_hdr *)data;
@@ -2226,7 +2231,7 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	/* sz should have atleast raw boot image */
 	if (image_actual > sz) {
 		fastboot_fail("bootimage: incomplete or not signed");
-		return;
+		goto boot_failed;
 	}
 
 	// Initialize boot state before trying to verify boot.img
@@ -2238,7 +2243,7 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	if ((target_get_max_flash_size() - (image_actual - sig_actual)) < page_size)
 	{
 		fastboot_fail("booimage: size is greater than boot image buffer can hold");
-		return;
+		goto boot_failed;
 	}
 #endif
 
@@ -2266,7 +2271,7 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	mdtp_activated(&is_mdtp_activated);
 	if(is_mdtp_activated){
 		dprintf(CRITICAL, "fastboot boot command is not available.\n");
-		return;
+		goto boot_failed;
 	}
 #endif /* MDTP_SUPPORT */
 
@@ -2324,7 +2329,7 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 		check_aboot_addr_range_overlap(hdr->ramdisk_addr, ramdisk_actual))
 	{
 		dprintf(CRITICAL, "kernel/ramdisk addresses overlap with aboot addresses.\n");
-		return;
+		goto boot_failed;
 	}
 
 #if DEVICE_TREE
@@ -2337,7 +2342,7 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	if (check_aboot_addr_range_overlap(hdr->tags_addr, MAX_TAGS_SIZE))
 	{
 		dprintf(CRITICAL, "Tags addresses overlap with aboot addresses.\n");
-		return;
+		goto boot_failed;
 	}
 #endif
 
@@ -2349,7 +2354,7 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	if (check_aboot_addr_range_overlap(hdr->tags_addr, kernel_actual))
 	{
 		dprintf(CRITICAL, "Tags addresses overlap with aboot addresses.\n");
-		return;
+		goto boot_failed;
 	}
 
 	/*
@@ -2365,7 +2370,7 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 					(void *)hdr->tags_addr);
 		if (!dtb) {
 			fastboot_fail("dtb not found");
-			return;
+			goto boot_failed;
 		}
 	}
 #endif
@@ -2376,6 +2381,15 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	boot_linux((void*) hdr->kernel_addr, (void*) hdr->tags_addr,
 		   (const char*) hdr->cmdline, board_machtype(),
 		   (void*) hdr->ramdisk_addr, hdr->ramdisk_size);
+
+	/* fastboot already stop, it's no need to show fastboot menu */
+	return;
+boot_failed:
+#if FBCON_DISPLAY_MSG
+	/* revert to fastboot menu if boot failed */
+	display_fastboot_menu();
+#endif
+	return;
 }
 
 void cmd_erase_nand(const char *arg, void *data, unsigned sz)
