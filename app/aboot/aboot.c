@@ -2692,7 +2692,7 @@ void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 	uint32_t i;
 	uint8_t lun = 0;
 	/*End of the sparse image address*/
-	uint32_t data_end = (uint32_t)data + sz;
+	uintptr_t data_end = (uintptr_t)data + sz;
 
 	index = partition_get_index(arg);
 	ptn = partition_get_offset(index);
@@ -2721,7 +2721,7 @@ void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 
 	data += sizeof(sparse_header_t);
 
-	if (data_end < (uint32_t)data) {
+	if (data_end < (uintptr_t)data) {
 		fastboot_fail("buffer overreads occured due to invalid sparse header");
 		return;
 	}
@@ -2754,7 +2754,7 @@ void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 		chunk_header = (chunk_header_t *) data;
 		data += sizeof(chunk_header_t);
 
-		if (data_end < (uint32_t)data) {
+		if (data_end < (uintptr_t)data) {
 			fastboot_fail("buffer overreads occured due to invalid sparse header");
 			return;
 		}
@@ -2796,7 +2796,7 @@ void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 				return;
 			}
 
-			if (data_end < (uint32_t)data + chunk_data_sz) {
+			if (data_end < (uintptr_t)data + chunk_data_sz) {
 				fastboot_fail("buffer overreads occured due to invalid sparse header");
 				return;
 			}
@@ -2834,7 +2834,7 @@ void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 				return;
 			}
 
-			if (data_end < (uint32_t)data + sizeof(uint32_t)) {
+			if (data_end < (uintptr_t)data + sizeof(uint32_t)) {
 				fastboot_fail("buffer overreads occured due to invalid sparse header");
 				return;
 			}
@@ -2889,12 +2889,12 @@ void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 				return;
 			}
 			total_blocks += chunk_header->chunk_sz;
-			if ((uint32_t)data > UINT_MAX - chunk_data_sz) {
+			if ((uintptr_t)data > UINT_MAX - chunk_data_sz) {
 				fastboot_fail("integer overflow occured");
 				return;
 			}
 			data += (uint32_t)chunk_data_sz;
-			if (data_end < (uint32_t)data) {
+			if (data_end < (uintptr_t)data) {
 				fastboot_fail("buffer overreads occured due to invalid sparse header");
 				return;
 			}
