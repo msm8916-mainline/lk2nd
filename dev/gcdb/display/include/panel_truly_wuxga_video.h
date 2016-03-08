@@ -143,7 +143,7 @@ static struct backlight truly_wuxga_video_backlight = {
 /* Dynamic fps supported frequencies by panel                                */
 /*---------------------------------------------------------------------------*/
 static const struct dfps_panel_info truly_wuxga_video_dfps = {
-        1, 10, {48, 49, 50, 51, 52, 54, 56, 57, 58, 60}
+        1, 13, {48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60}
 };
 
 
