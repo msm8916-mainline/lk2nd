@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -859,7 +859,10 @@ uint32_t sdhci_send_command(struct sdhci_host *host, struct mmc_command *cmd)
 		if (cmd->trans_mode == SDHCI_MMC_READ)
 		{
 			trans_mode |= SDHCI_READ_MODE;
-			sdhci_msm_toggle_cdr(host, true);
+			if(cmd->cmd_index == CMD21_SEND_TUNING_BLOCK)
+				sdhci_msm_toggle_cdr(host, false);
+			else
+				sdhci_msm_toggle_cdr(host, true);
 		}
 		else
 		{
