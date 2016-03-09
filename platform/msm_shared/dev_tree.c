@@ -1269,6 +1269,12 @@ int update_device_tree(void *fdt, const char *cmdline,
 		return ret;
 	}
 
+	if (check_aboot_addr_range_overlap((uint32_t)fdt,
+				(fdt_totalsize(fdt) + DTB_PAD_SIZE))) {
+		dprintf(CRITICAL, "Error: Fdt addresses overlap with aboot addresses.\n");
+		return ret;
+	}
+
 	/* Add padding to make space for new nodes and properties. */
 	ret = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + DTB_PAD_SIZE);
 	if (ret!= 0)
