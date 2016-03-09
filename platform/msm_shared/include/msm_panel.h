@@ -35,7 +35,7 @@
 #include <dev/fbcon.h>
 #include <sys/types.h>
 
-#define DFPS_MAX_FRAME_RATE 10
+#define DFPS_MAX_FRAME_RATE 20
 #define DFPS_PLL_CODES_SIZE 0x1000 /* One page */
 
 /* panel type list */

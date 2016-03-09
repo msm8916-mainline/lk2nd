@@ -57,6 +57,14 @@
 /** Extract major version number from complete version. */
 #define MDTP_GET_MAJOR_VERSION(version) ((version) >> 16)
 
+
+/** UT defines **/
+#define BAD_PARAM_SIZE 0
+#define BAD_PARAM_VERIF_RATIO 101
+#define BAD_HASH_MODE 10
+
+/********************************************************************************/
+
 static int mdtp_tzbsp_dec_verify_DIP(DIP_t *enc_dip, DIP_t *dec_dip, uint32_t *verified);
 static int mdtp_tzbsp_enc_hash_DIP(DIP_t *dec_dip, DIP_t *enc_dip);
 static void mdtp_tzbsp_disallow_cipher_DIP(void);
@@ -400,7 +408,7 @@ static void display_mdtp_fail_recovery_ui(){
 static void display_recovery_ui(mdtp_cfg_t *mdtp_cfg)
 {
 	uint32_t pin_length = 0;
-	char entered_pin[MDTP_MAX_PIN_LEN+1] = {0};
+	char entered_pin[MDTP_PIN_LEN+1] = {0};
 	uint32_t i;
 	char pin_mismatch = 0;
 
@@ -410,7 +418,7 @@ static void display_recovery_ui(mdtp_cfg_t *mdtp_cfg)
 
 		pin_length = strlen(mdtp_cfg->mdtp_pin.mdtp_pin);
 
-		if (pin_length > MDTP_MAX_PIN_LEN || pin_length < MDTP_MIN_PIN_LEN)
+		if (pin_length != MDTP_PIN_LEN)
 		{
 			dprintf(CRITICAL, "mdtp: display_recovery_ui: Error, invalid PIN length\n");
 			display_error_msg(); /* This will never return */
@@ -882,3 +890,86 @@ static void mdtp_tzbsp_disallow_cipher_DIP(void)
 
 	free(dip);
 }
+
+/********************************************************************************/
+
+/** UT functions **/
+
+/** Hashing fuctions UT **/
+int mdtp_verify_hash_ut(){
+	unsigned char digest[HASH_LEN]={0};
+	unsigned int hash_expected_result = 0xD42B0A29;
+	char *buf = "MTDP LK UT hashing functions sanity check";
+	int size = 0;
+	DIP_hash_table_entry_t partition_hash_table;
+	uint8_t partition_force_verify_block = 0;
+
+	char ptr = buf[0];
+	while(ptr){
+		ptr = buf[++size];
+	}
+	//Bad partition name - single mode
+	if(verify_partition_single_hash("BAD_PARTITION", 1, &partition_hash_table) != -1){
+		dprintf(INFO, "verify_hash_ut: [FAIL (1)].\n");
+		return -1;
+	}
+
+	//Bad partition name - block mode
+	if(verify_partition_block_hash("BAD_PARTITION", 1, 1, &partition_hash_table, &partition_force_verify_block) != -1){
+		dprintf(INFO, "verify_hash_ut: [FAIL (2)].\n");
+		return -1;
+	}
+
+	//Hashing sanity check
+	hash_find((unsigned char*)buf, size, digest, CRYPTO_AUTH_ALG_SHA256);
+	unsigned int *hash_res = (unsigned int *)digest;
+	if (*hash_res != hash_expected_result){
+		dprintf(INFO, "verify_hash_ut: [FAIL (3)].\n");
+		return -1;
+	}
+	dprintf(INFO, "verify_hash_ut: [PASS].\n");
+	return 0;
+}
+
+/** Validate partitions params UT **/
+int mdtp_validate_partition_params_ut(){
+	int partition_size = 10;
+	//Bad size
+	if(validate_partition_params(BAD_PARAM_SIZE, MDTP_FWLOCK_MODE_SINGLE, 1) != -1){
+		dprintf(INFO, "validate_partition_params_ut: [FAIL (1)].\n");
+		return -1;
+	}
+
+	//Bad size
+	if(validate_partition_params((uint64_t)MDTP_FWLOCK_BLOCK_SIZE * (uint64_t)MAX_BLOCKS + 1,
+		MDTP_FWLOCK_MODE_SINGLE, 1) != -1){
+		dprintf(INFO, "validate_partition_params_ut: [FAIL (2)].\n");
+		return -1;
+	}
+
+	//Bad verification ratio
+	if(validate_partition_params(partition_size, MDTP_FWLOCK_MODE_SIZE, BAD_PARAM_VERIF_RATIO) != -1){
+		dprintf(INFO, "validate_partition_params_ut: [FAIL (3)].\n");
+		return -1;
+	}
+	dprintf(INFO, "MDTP LK UT: validate_partition_params_ut [ PASS ]\n");
+	return 0;
+}
+
+/** Verify partition UT **/
+int mdtp_verify_partition_ut(){
+	uint8_t partition_force_verify_block = 0;
+	DIP_hash_table_entry_t partition_hash_table;
+	int verify_num_blocks = 10,partition_size = 1;
+
+	//Unkown hashing mode
+	if(verify_partition("system", partition_size, BAD_HASH_MODE, verify_num_blocks,
+		&partition_hash_table, &partition_force_verify_block) != -1){
+		dprintf(INFO, "verify_partition_ut: Failed Test 1.\n");
+		dprintf(INFO, "MDTP LK UT: verify_partition_ut [ FAIL ]\n");
+		return -1;
+	}
+	dprintf(INFO, "MDTP LK UT: verify_partition_ut [ PASS ]\n");
+	return 0;
+}
+

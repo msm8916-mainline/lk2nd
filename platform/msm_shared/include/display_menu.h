@@ -52,7 +52,8 @@ struct menu_info {
 	uint32_t	option_index;
 	uint32_t	msg_type;
 	uint32_t	timeout_time;
-	bool		is_timeout;
+	bool		is_exit;
+	bool		rel_exit;
 };
 
 struct select_msg_info {
@@ -70,4 +71,5 @@ void display_bootverify_menu(int type);
 void display_fastboot_menu();
 void display_unlock_menu(int type);
 void msg_lock_init();
+void exit_menu_keys_detection();
 #endif				/* __PLATFORM_MSM_SHARED_DISPLAY_MENU_H */

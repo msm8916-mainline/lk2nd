@@ -388,10 +388,12 @@ void sdhci_msm_toggle_cdr(struct sdhci_host *host, bool enable)
 	if (enable)
 	{
 		core_cfg |= SDCC_DLL_CDR_EN;
+		core_cfg &= ~SDCC_DLL_CDR_EXT_EN;
 	}
 	else
 	{
 		core_cfg &= ~SDCC_DLL_CDR_EN;
+		core_cfg |= SDCC_DLL_CDR_EXT_EN;
 	}
 
 	REG_WRITE32(host, core_cfg, SDCC_DLL_CONFIG_REG);

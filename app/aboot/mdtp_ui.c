@@ -69,7 +69,7 @@ struct mdtp_fbimage {
  * Global Variables
  * -------------------------------------------------------------------------*/
 
-static uint32_t g_pin_frames_x_location[MDTP_MAX_PIN_LEN] = {0};
+static uint32_t g_pin_frames_x_location[MDTP_PIN_LEN] = {0};
 static uint32_t g_pin_frames_y_location = 0;
 
 static bool g_initial_screen_displayed = false;
