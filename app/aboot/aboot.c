@@ -1238,6 +1238,17 @@ int boot_linux_from_mmc(void)
 			return -1;
 		}
 
+		if(dt_entry.offset > (UINT_MAX - dt_entry.size)) {
+			dprintf(CRITICAL, "ERROR: Device tree contents are Invalid\n");
+			return -1;
+		}
+
+		/* Ensure we are not overshooting dt_size with the dt_entry selected */
+		if ((dt_entry.offset + dt_entry.size) > hdr->dt_size) {
+			dprintf(CRITICAL, "ERROR: Device tree contents are Invalid\n");
+			return -1;
+		}
+
 		if (is_gzip_package((unsigned char *)dt_table_offset + dt_entry.offset, dt_entry.size))
 		{
 			unsigned int compressed_size = 0;
