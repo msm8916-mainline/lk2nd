@@ -72,7 +72,7 @@ static void mdtp_tzbsp_disallow_cipher_DIP(void);
 uint32_t g_mdtp_version = (((MDTP_MAJOR_VERSION << 16) & 0xFFFF0000) | (MDTP_MINOR_VERSION & 0x0000FFFF));
 static int is_mdtp_activated = -1;
 
-int check_aboot_addr_range_overlap(uint32_t start, uint32_t size);
+extern int check_aboot_addr_range_overlap(uintptr_t start, uint32_t size);
 int scm_random(uint32_t * rbuf, uint32_t  r_len);
 extern void mdelay(unsigned msecs);
 void free_mdtp_image(void);
@@ -272,7 +272,7 @@ static int verify_partition_block_hash(char *name,
 
 	/* initiating parameters for hash calculation using HW crypto */
 	target_crypto_init_params();
-	if (check_aboot_addr_range_overlap((uint32_t)buf, ROUNDUP(MDTP_FWLOCK_BLOCK_SIZE, block_size)))
+	if (check_aboot_addr_range_overlap((uintptr_t)buf, ROUNDUP(MDTP_FWLOCK_BLOCK_SIZE, block_size)))
 	{
 		dprintf(CRITICAL, "mdtp: verify_partition_block_hash: %s: image buffer address overlaps with aboot addresses.\n", name);
 		return -1;
@@ -514,7 +514,7 @@ static int verify_ext_partition(mdtp_ext_partition_verification_t *ext_partition
 		/* 3) Signature may or may not be at the end of the image. Read the signature if needed. */
 		if (!ext_partition->sig_avail)
 		{
-			if (check_aboot_addr_range_overlap((uint32_t)(ext_partition->image_addr + ext_partition->image_size), ext_partition->page_size))
+			if (check_aboot_addr_range_overlap((uintptr_t)(ext_partition->image_addr + ext_partition->image_size), ext_partition->page_size))
 			{
 				dprintf(CRITICAL, "ERROR: Signature read buffer address overlaps with aboot addresses.\n");
 				return -1;

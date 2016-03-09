@@ -819,7 +819,7 @@ void boot_linux(void *kernel, unsigned *tags,
  * start: Start of the memory region
  * size: Size of the memory region
  */
-int check_aboot_addr_range_overlap(uint32_t start, uint32_t size)
+int check_aboot_addr_range_overlap(uintptr_t start, uint32_t size)
 {
 	/* Check for boundary conditions. */
 	if ((UINT_MAX - start) < size)
@@ -1128,7 +1128,7 @@ int boot_linux_from_mmc(void)
 	boot_verifier_init();
 #endif
 
-	if (check_aboot_addr_range_overlap((uint32_t) image_addr, imagesize_actual))
+	if (check_aboot_addr_range_overlap((uintptr_t) image_addr, imagesize_actual))
 	{
 		dprintf(CRITICAL, "Boot image buffer address overlaps with aboot addresses.\n");
 		return -1;
@@ -1179,7 +1179,7 @@ int boot_linux_from_mmc(void)
 	if((target_use_signed_kernel() && (!device.is_unlocked)) || is_test_mode_enabled())
 	{
 		offset = imagesize_actual;
-		if (check_aboot_addr_range_overlap((uint32_t)image_addr + offset, page_size))
+		if (check_aboot_addr_range_overlap((uintptr_t)image_addr + offset, page_size))
 		{
 			dprintf(CRITICAL, "Signature read buffer address overlaps with aboot addresses.\n");
 			return -1;
