@@ -96,7 +96,7 @@ IMPLEMENT_ASN1_FUNCTIONS(KEYSTORE_INNER)
 	} ASN1_SEQUENCE_END(KEYSTORE)
 IMPLEMENT_ASN1_FUNCTIONS(KEYSTORE)
 
-static uint32_t read_der_message_length(unsigned char* input, unsigned sz)
+uint32_t read_der_message_length(unsigned char* input, unsigned sz)
 {
 	uint32_t len = 0;
 	uint32_t pos = 0;

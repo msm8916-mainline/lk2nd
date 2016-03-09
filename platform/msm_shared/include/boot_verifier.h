@@ -179,4 +179,5 @@ unsigned char* get_boot_fingerprint(unsigned int* buf_size);
 bool boot_verify_compare_sha256(unsigned char *image_ptr,
 		unsigned int image_size, unsigned char *signature_ptr, RSA *rsa);
 KEYSTORE *boot_gerity_get_oem_keystore();
+uint32_t read_der_message_length(unsigned char* input, unsigned sz);
 #endif
