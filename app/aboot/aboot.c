@@ -249,6 +249,7 @@ char sn_buf[13];
 char display_panel_buf[MAX_PANEL_BUF_SIZE];
 char panel_display_mode[MAX_RSP_SIZE];
 char get_variant[MAX_RSP_SIZE];
+char battery_voltage[MAX_RSP_SIZE];
 
 extern int emmc_recovery_init(void);
 
@@ -2381,6 +2382,13 @@ void cmd_erase_mmc(const char *arg, void *data, unsigned sz)
 
 void cmd_erase(const char *arg, void *data, unsigned sz)
 {
+#if CHECK_BAT_VOLTAGE
+	if (!target_battery_soc_ok()) {
+		fastboot_fail("Warning: battery's capacity is very low\n");
+		return;
+	}
+#endif
+
 #if VERIFIED_BOOT
 	if(!device.is_unlocked)
 	{
@@ -2955,6 +2963,12 @@ void cmd_flash_nand(const char *arg, void *data, unsigned sz)
 
 void cmd_flash(const char *arg, void *data, unsigned sz)
 {
+#if CHECK_BAT_VOLTAGE
+	if (!target_battery_soc_ok()) {
+		fastboot_fail("Warning: battery's capacity is very low\n");
+		return;
+	}
+#endif
 	if(target_is_emmc_boot())
 		cmd_flash_mmc(arg, data, sz);
 	else
@@ -3446,6 +3460,12 @@ void aboot_fastboot_register_commands(void)
 	snprintf(get_variant, MAX_RSP_SIZE, "%s %s", hw_platform_buf,
 		target_is_emmc_boot()? "eMMC":"UFS");
 	fastboot_publish("variant", (const char *) get_variant);
+#if CHECK_BAT_VOLTAGE
+	snprintf(battery_voltage, MAX_RSP_SIZE, "%d",
+		target_get_battery_voltage());
+	fastboot_publish("battery-voltage", (const char *) battery_voltage);
+	fastboot_publish("battery-soc-ok", target_battery_soc_ok()? "yes":"no");
+#endif
 }
 
 void aboot_init(const struct app_descriptor *app)
