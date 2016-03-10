@@ -53,15 +53,20 @@ int mdtp_get_target_efuse(struct mdtp_target_efuse* target_efuse)
         target_efuse->address = MDTP_EFUSE_ADDRESS_MSM8956;
         target_efuse->start = MDTP_EFUSE_START_MSM8956;
     }
-    else if (platform_is_msm8937())
+    else if (platform_is_msm8952())
+    {
+        target_efuse->address = MDTP_EFUSE_ADDRESS_MSM8952;
+        target_efuse->start = MDTP_EFUSE_START_MSM8952;
+    }
+    else if (platform_is_msm8937() || platform_is_msmgold())
     {
         target_efuse->address = MDTP_EFUSE_ADDRESS_MSM8937;
         target_efuse->start = MDTP_EFUSE_START_MSM8937;
     }
     else
     {
-        target_efuse->address = MDTP_EFUSE_ADDRESS_MSM8952;
-        target_efuse->start = MDTP_EFUSE_START_MSM8952;
+        dprintf(CRITICAL, "mdtp: mdtp_get_target_efuse: ERROR, target is not supported\n");
+        return -1;
     }
 
     return 0;
