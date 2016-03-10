@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2016 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -41,16 +41,16 @@ void gpio_tlmm_config(uint32_t gpio, uint8_t func,
 	val |= pull;
 	val |= func << 2;
 	val |= drvstr << 6;
-	val |= enable << 9;
+	val |= dir << 9;
 
 	writel(val, (uint32_t *)GPIO_CONFIG_ADDR(gpio));
 	return;
 }
 
-void gpio_set_dir(uint32_t gpio, uint32_t dir)
+/*Set a value to gpio either 0 or 1*/
+void gpio_set_val(uint32_t gpio, uint32_t val)
 {
-	writel(dir, (uint32_t *)GPIO_IN_OUT_ADDR(gpio));
-
+	writel((val << 0x1), (uint32_t *)GPIO_IN_OUT_ADDR(gpio));
 	return;
 }
 
