@@ -64,6 +64,9 @@ static const char *unlock_menu_common_msg = "If you unlock the bootloader, "\
 #define RED_WARNING_MSG	"Your device has failed verification and may "\
 				"not work properly\n\nTo learn more, visit:\n"
 
+#define LOGGING_WARNING_MSG	"The dm-verity is not started in enforcing mode and may "\
+				"not work properly\n\nTo learn more, visit:\n"
+
 static bool is_thread_start = false;
 static struct select_msg_info msg_info;
 
@@ -76,7 +79,8 @@ struct boot_verify_info {
 struct boot_verify_info boot_verify_info[] = {
 			[DISPLAY_MENU_RED] = {FBCON_RED_MSG, RED_WARNING_MSG},
 			[DISPLAY_MENU_YELLOW] = {FBCON_YELLOW_MSG, YELLOW_WARNING_MSG},
-			[DISPLAY_MENU_ORANGE] = {FBCON_ORANGE_MSG, ORANGE_WARNING_MSG}};
+			[DISPLAY_MENU_ORANGE] = {FBCON_ORANGE_MSG, ORANGE_WARNING_MSG},
+			[DISPLAY_MENU_LOGGING] = {FBCON_RED_MSG, LOGGING_WARNING_MSG}};
 #endif
 
 static char *verify_option_menu[] = {
