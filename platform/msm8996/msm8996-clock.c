@@ -776,6 +776,7 @@ static struct clk_freq_tbl ftbl_mdss_extpclk_clk[] = {
 	F_MDSS(148500000, hdmipll, 1, 0, 0),
 	F_MDSS(268500000, hdmipll, 1, 0, 0),
 	F_MDSS(297000000, hdmipll, 1, 0, 0),
+	F_MDSS(594000000, hdmipll, 1, 0, 0),
 	F_END
 };
 
