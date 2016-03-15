@@ -711,6 +711,22 @@ void boot_linux(void *kernel, unsigned *tags,
 	free(final_cmdline);
 
 #if VERIFIED_BOOT
+#if !VBOOT_MOTA
+	if (device.verity_mode == 0) {
+#if FBCON_DISPLAY_MSG
+		display_bootverify_menu(DISPLAY_MENU_LOGGING);
+		wait_for_users_action();
+#else
+		dprintf(CRITICAL,
+			"The dm-verity is not started in enforcing mode.\nWait for 5 seconds before proceeding\n");
+		mdelay(5000);
+#endif
+	}
+
+#endif
+#endif
+
+#if VERIFIED_BOOT
 	/* Write protect the device info */
 	if (target_build_variant_user() && devinfo_present && mmc_write_protect("devinfo", 1))
 	{
