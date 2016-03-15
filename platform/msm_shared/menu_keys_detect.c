@@ -145,7 +145,7 @@ static void update_device_status(struct select_msg_info* msg_info, int reason)
 			display_image_on_screen();
 
 			/* Continue boot, no need to detect the keys'status */
-			msg_info->info.is_timeout = true;
+			msg_info->info.is_exit = true;
 			break;
 		case BACK:
 			display_bootverify_menu_renew(msg_info, msg_info->last_msg_type);
@@ -365,19 +365,17 @@ int select_msg_keys_detect(void *param) {
 			mutex_release(&msg_info->msg_lock);
 		}
 
-		/* Never time out if the timeout_time is 0 */
 		mutex_acquire(&msg_info->msg_lock);
+		/* Never time out if the timeout_time is 0 */
 		if(msg_info->info.timeout_time) {
-			if (msg_info->info.is_timeout) {
-				mutex_release(&msg_info->msg_lock);
-				return 0;
-			}
+			if ((current_time() - before_time) > msg_info->info.timeout_time)
+				msg_info->info.is_exit = true;
+		}
 
-			if ((current_time() - before_time) > msg_info->info.timeout_time) {
-				msg_info->info.is_timeout = true;
-				mutex_release(&msg_info->msg_lock);
-				return 0;
-			}
+		if (msg_info->info.is_exit) {
+			msg_info->info.rel_exit = true;
+			mutex_release(&msg_info->msg_lock);
+			break;
 		}
 		mutex_release(&msg_info->msg_lock);
 		thread_sleep(KEY_DETECT_FREQUENCY);

@@ -95,21 +95,42 @@ static char *fastboot_option_menu[] = {
 static int big_factor = 2;
 static int common_factor = 1;
 
-void wait_for_users_action()
+static void wait_for_exit()
 {
 	struct select_msg_info *select_msg;
 	select_msg = &msg_info;
 
 	mutex_acquire(&select_msg->msg_lock);
-	while(!select_msg->info.is_timeout == true) {
+	while(!select_msg->info.rel_exit == true) {
 		mutex_release(&select_msg->msg_lock);
 		thread_sleep(10);
 		mutex_acquire(&select_msg->msg_lock);
 	}
 	mutex_release(&select_msg->msg_lock);
 
+	is_thread_start = false;
 	fbcon_clear();
 	display_image_on_screen();
+}
+
+void wait_for_users_action()
+{
+	/* Waiting for exit menu keys detection if there is no any usr action
+	 * otherwise it will do the action base on the keys detection thread
+	 */
+	wait_for_exit();
+}
+
+void exit_menu_keys_detection()
+{
+	struct select_msg_info *select_msg;
+	select_msg = &msg_info;
+
+	mutex_acquire(&select_msg->msg_lock);
+	select_msg->info.is_exit = true;
+	mutex_release(&select_msg->msg_lock);
+
+	wait_for_exit();
 }
 
 static void set_message_factor()
