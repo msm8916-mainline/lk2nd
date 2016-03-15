@@ -99,6 +99,10 @@ static struct hdmi_msm_audio_arcs hdmi_audio_acr_lut[] = {
 	HDMI_MSM_AUDIO_ARCS(297000, {
 		{3072, 222750}, {4704, 247500}, {5120, 247500}, {9408, 247500},
 		{10240, 247500}, {18816, 247500}, {20480, 247500} }),
+	/* 594.000MHz */
+	HDMI_MSM_AUDIO_ARCS(594000, {{3072, 445500}, {9408, 990000}, {6144, 594000},
+		{18816, 990000}, {12288, 594000}, {37632, 990000},
+		{24576, 594000} } ),
 };
 
 extern int msm_display_init(struct msm_fb_panel_data *pdata);
@@ -171,7 +175,8 @@ enum edid_data_block_type {
 #define HDMI_VFRMT_3840x2160p25_64_27   104
 #define HDMI_VFRMT_3840x2160p30_64_27   105
 #define HDMI_EVFRMT_4096x2160p24_16_9   131
-#define HDMI_VFRMT_COUNT                10
+#define HDMI_VFRMT_4096x2160p60_256_135 102
+#define HDMI_VFRMT_COUNT                11
 #define HDMI_VFRMT_END                  127
 #define HDMI_VSDB_3D_EVF_DATA_OFFSET(vsd) \
 	(!((vsd)[8] & BIT(7)) ? 9 : (!((vsd)[8] & BIT(6)) ? 11 : 13))
@@ -304,6 +309,11 @@ struct mdss_hdmi_timing_info {
 	 2160, 8, 10, 72, false, 297000, 30000, false, true,		\
 		HDMI_RES_AR_64_27}
 
+#define HDMI_VFRMT_4096x2160p60_256_135_TIMING				\
+	{HDMI_VFRMT_4096x2160p60_256_135, 4096, 88, 88, 128, false,	\
+	 2160, 8, 10, 72, false, 594000, 60000, false, true,		\
+		HDMI_RES_AR_256_135}
+
 #define MSM_HDMI_MODES_GET_DETAILS(mode, MODE) do {		\
 	struct mdss_hdmi_timing_info info = MODE##_TIMING;	\
 	*mode = info;						\
@@ -353,6 +363,10 @@ static inline int mdss_hdmi_get_timing_info(
 
 	case HDMI_VFRMT_3840x2160p30_64_27:
 		MSM_HDMI_MODES_GET_DETAILS(mode, HDMI_VFRMT_3840x2160p30_64_27);
+		break;
+
+	case HDMI_VFRMT_4096x2160p60_256_135:
+		MSM_HDMI_MODES_GET_DETAILS(mode, HDMI_VFRMT_4096x2160p60_256_135);
 		break;
 
 	default:
