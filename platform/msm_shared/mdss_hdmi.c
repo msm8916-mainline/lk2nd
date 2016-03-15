@@ -965,12 +965,14 @@ static void mdss_hdmi_parse_res(void)
 				current_video_format = mdss_hdmi_video_formats[index];
 			} else if (new_timing_info.active_v ==
 					current_timing_info.active_v) {
-				if (new_timing_info.refresh_rate <
+				if (new_timing_info.refresh_rate >
 						current_timing_info.refresh_rate) {
 					current_video_format = mdss_hdmi_video_formats[index];
 				}
 			}
 		}
+
+		mdss_hdmi_get_timing_info(&current_timing_info, current_video_format);
 	}
 
 	if (mdss_hdmi_video_fmt != current_video_format)
