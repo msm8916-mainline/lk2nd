@@ -390,11 +390,13 @@ void target_display_init(const char *panel_name)
 
 	if (!strcmp(oem.panel, NO_PANEL_CONFIG)
 		|| !strcmp(oem.panel, SIM_VIDEO_PANEL)
+		|| !strcmp(oem.panel, SIM_DUALDSI_VIDEO_PANEL)
 		|| !strcmp(oem.panel, SIM_CMD_PANEL)
+		|| !strcmp(oem.panel, SIM_DUALDSI_CMD_PANEL)
 		|| oem.skip) {
 		dprintf(INFO, "Selected panel: %s\nSkip panel configuration\n",
 			oem.panel);
-		return;
+		oem.cont_splash = false;
 	}
 
 	do {
