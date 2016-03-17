@@ -1148,6 +1148,12 @@ int boot_linux_from_mmc(void)
 			(!boot_into_recovery ? "boot" : "recovery"),imagesize_actual);
 	bs_set_timestamp(BS_KERNEL_LOAD_START);
 
+	if ((target_get_max_flash_size() - page_size) < imagesize_actual)
+	{
+		dprintf(CRITICAL, "booimage  size is greater than DDR can hold\n");
+		return -1;
+	}
+
 	/* Read image without signature */
 	if (mmc_read(ptn + offset, (void *)image_addr, imagesize_actual))
 	{
