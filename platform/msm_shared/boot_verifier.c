@@ -44,6 +44,7 @@
 #include <qseecom_lk_api.h>
 #include <secapp_loader.h>
 #include <target.h>
+#include "bootimg.h"
 
 #define ASN1_ENCODED_SHA256_SIZE 0x33
 #define ASN1_ENCODED_SHA256_OFFSET 0x13
@@ -56,6 +57,9 @@ char KEYSTORE_PTN_NAME[] = "keystore";
 RSA *rsa_from_cert = NULL;
 unsigned char fp[EVP_MAX_MD_SIZE];
 uint32_t fp_size;
+#if OSVERSION_IN_BOOTIMAGE
+km_boot_state_t boot_state_info;
+#endif
 
 ASN1_SEQUENCE(AUTH_ATTR) ={
 	ASN1_SIMPLE(AUTH_ATTR, target, ASN1_PRINTABLESTRING),
@@ -397,6 +401,53 @@ uint32_t boot_verify_keystore_init()
 	return dev_boot_state;
 }
 
+#if OSVERSION_IN_BOOTIMAGE
+static void boot_verify_send_boot_state(km_boot_state_t *boot_state)
+{
+	km_get_version_req_t version_req;
+	km_get_version_rsp_t version_rsp;
+	int ret;
+	int app_handle = get_secapp_handle();
+	km_set_boot_state_req_t *bs_req = NULL;
+	km_set_boot_state_rsp_t boot_state_rsp;
+	uint8_t *boot_state_ptr;
+
+	version_req.cmd_id = KEYMASTER_GET_VERSION;
+	ret = qseecom_send_command(app_handle, (void*) &version_req, sizeof(version_req), (void*) &version_rsp, sizeof(version_rsp));
+	if (ret < 0 || version_rsp.status < 0)
+	{
+		dprintf(CRITICAL, "QSEEcom command for getting keymaster version returned error: %d\n", version_rsp.status);
+		ASSERT(0);
+	}
+
+	if (version_rsp.major_version >= 0x2)
+	{
+		bs_req = malloc(sizeof(km_set_boot_state_req_t) + sizeof(km_boot_state_t));
+		ASSERT(bs_req);
+
+		boot_state_ptr = (uint8_t *) bs_req + sizeof(km_set_boot_state_req_t);
+		/* copy the boot state data */
+		memscpy(boot_state_ptr, sizeof(km_boot_state_t), &boot_state_info, sizeof(boot_state_info));
+
+		bs_req->cmd_id = KEYMASTER_SET_BOOT_STATE;
+		bs_req->version = 0x0;
+		bs_req->boot_state_offset = sizeof(km_set_boot_state_req_t);
+		bs_req->boot_state_size = sizeof(km_boot_state_t);
+
+		ret = qseecom_send_command(app_handle, (void *)bs_req, sizeof(*bs_req) + sizeof(km_boot_state_t), (void *) &boot_state_rsp, sizeof(boot_state_rsp));
+		if (ret < 0 || boot_state_rsp.status < 0)
+		{
+			dprintf(CRITICAL, "QSEEcom command for Sending boot state returned error: %d\n", boot_state_rsp.status);
+			free(bs_req);
+			ASSERT(0);
+		}
+	}
+
+	if (bs_req)
+		free(bs_req);
+}
+#endif
+
 bool send_rot_command(uint32_t is_unlocked)
 {
 	int ret = 0;
@@ -513,6 +564,13 @@ bool send_rot_command(uint32_t is_unlocked)
 		free(rot_input);
 		return false;
 	}
+
+#if OSVERSION_IN_BOOTIMAGE
+	boot_state_info.is_unlocked = is_unlocked;
+	boot_state_info.color = boot_verify_get_state();
+	memscpy(boot_state_info.public_key, sizeof(boot_state_info.public_key), digest, 32);
+	boot_verify_send_boot_state(&boot_state_info);
+#endif
 	dprintf(SPEW, "Sending Root of Trust to trustzone: end\n");
 	if(input)
 		free(input);
@@ -537,6 +595,9 @@ bool boot_verify_image(unsigned char* img_addr, uint32_t img_size, char *pname)
 	unsigned char* sig_addr = (unsigned char*)(img_addr + img_size);
 	uint32_t sig_len = 0;
 	unsigned char *signature = NULL;
+#if OSVERSION_IN_BOOTIMAGE
+	struct boot_img_hdr *img_hdr = NULL;
+#endif
 
 	if(dev_boot_state == ORANGE)
 	{
@@ -584,6 +645,13 @@ bool boot_verify_image(unsigned char* img_addr, uint32_t img_size, char *pname)
 	}
 
 	ret = verify_image_with_sig(img_addr, img_size, pname, sig, user_keystore);
+
+#if OSVERSION_IN_BOOTIMAGE
+	/* Extract the os version and patch level */
+	img_hdr = (struct boot_img_hdr *)img_addr;
+	boot_state_info.system_version = (img_hdr->os_version & 0xFFFFF8) >> 11;
+	boot_state_info.system_security_level = (img_hdr->os_version & 0x7FF);
+#endif
 
 	if(sig != NULL)
 		VERIFIED_BOOT_SIG_free(sig);

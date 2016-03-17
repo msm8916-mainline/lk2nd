@@ -55,17 +55,20 @@ static const char *unlock_menu_common_msg = "If you unlock the bootloader, "\
 				"Press the Volume Up/Down buttons to select Yes "\
 				"or No. Then press the Power button to continue.\n";
 
-#define YELLOW_WARNING_MSG	"Your device has loaded a different operating "\
-				"system\n\nTo learn more, visit:\n"
+#define YELLOW_WARNING_MSG	"Your device has loaded a different operating system\n\n "\
+				"Visit this link on another device:\n g.co/ABH"
 
-#define ORANGE_WARNING_MSG	"Your device has been unlocked and can't "\
-				"be trusted\n\nTo learn more, visit:\n"
+#define ORANGE_WARNING_MSG	"Your device software can't be\n checked for corruption. Please lock the bootloader\n\n"\
+				"Visit this link on another device:\n g.co/ABH"
 
-#define RED_WARNING_MSG	"Your device has failed verification and may "\
-				"not work properly\n\nTo learn more, visit:\n"
+#define RED_WARNING_MSG	"Your device is corrupt. It can't be\ntrusted and will not boot\n\n" \
+				"Visit this link on another device:\n g.co/ABH"
 
 #define LOGGING_WARNING_MSG	"The dm-verity is not started in enforcing mode and may "\
 				"not work properly\n\nTo learn more, visit:\n"
+
+#define EIO_WARNING_MSG		"Your device is corrupt. It can't be\n trusted and may not work properly.\n\n"\
+				"Visit this link on another device:\n g.co/ABH"
 
 static bool is_thread_start = false;
 static struct select_msg_info msg_info;
@@ -80,7 +83,8 @@ struct boot_verify_info boot_verify_info[] = {
 			[DISPLAY_MENU_RED] = {FBCON_RED_MSG, RED_WARNING_MSG},
 			[DISPLAY_MENU_YELLOW] = {FBCON_YELLOW_MSG, YELLOW_WARNING_MSG},
 			[DISPLAY_MENU_ORANGE] = {FBCON_ORANGE_MSG, ORANGE_WARNING_MSG},
-			[DISPLAY_MENU_LOGGING] = {FBCON_RED_MSG, LOGGING_WARNING_MSG}};
+			[DISPLAY_MENU_LOGGING] = {FBCON_RED_MSG, LOGGING_WARNING_MSG},
+			[DISPLAY_MENU_EIO] = {FBCON_RED_MSG, EIO_WARNING_MSG}};
 #endif
 
 static char *verify_option_menu[] = {
