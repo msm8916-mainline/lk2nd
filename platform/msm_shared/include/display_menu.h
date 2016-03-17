@@ -43,6 +43,7 @@ enum display_menu_type {
 	DISPLAY_MENU_FASTBOOT,
 	DISPLAY_MENU_UNLOCK_CRITICAL,
 	DISPLAY_MENU_LOGGING,
+	DISPLAY_MENU_EIO,
 };
 
 struct menu_info {

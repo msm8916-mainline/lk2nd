@@ -164,7 +164,11 @@ static const char *keymaster_v1= " androidboot.keymaster=1";
 
 struct verified_boot_verity_mode vbvm[] =
 {
+#if ENABLE_VB_ATTEST
+	{false, "eio"},
+#else
 	{false, "logging"},
+#endif
 	{true, "enforcing"},
 };
 struct verified_boot_state_name vbsn[] =
@@ -176,7 +180,8 @@ struct verified_boot_state_name vbsn[] =
 };
 #endif
 #endif
-
+/*As per spec delay wait time before shutdown in Red state*/
+#define DELAY_WAIT 30000
 static unsigned page_size = 0;
 static unsigned page_mask = 0;
 static char ffbm_mode_string[FFBM_MODE_BUF_SIZE];
@@ -726,7 +731,11 @@ void boot_linux(void *kernel, unsigned *tags,
 #if !VBOOT_MOTA
 	if (device.verity_mode == 0) {
 #if FBCON_DISPLAY_MSG
+#if ENABLE_VB_ATTEST
+		display_bootverify_menu(DISPLAY_MENU_EIO);
+#else
 		display_bootverify_menu(DISPLAY_MENU_LOGGING);
+#endif
 		wait_for_users_action();
 #else
 		dprintf(CRITICAL,
@@ -857,7 +866,12 @@ static void verify_signed_bootimg(uint32_t bootimg_addr, uint32_t bootimg_size)
 		case RED:
 #if FBCON_DISPLAY_MSG
 			display_bootverify_menu(DISPLAY_MENU_RED);
+#if ENABLE_VB_ATTEST
+			mdelay(DELAY_WAIT);
+			shutdown_device();
+#else
 			wait_for_users_action();
+#endif
 #else
 			dprintf(CRITICAL,
 					"Your device has failed verification and may not work properly.\nWait for 5 seconds before proceeding\n");
@@ -3689,7 +3703,13 @@ void aboot_init(const struct app_descriptor *app)
         else if(reboot_mode == DM_VERITY_ENFORCING) {
 		device.verity_mode = 1;
 		write_device_info(&device);
-	} else if(reboot_mode == DM_VERITY_LOGGING) {
+	}
+#if ENABLE_VB_ATTEST
+	else if (reboot_mode == DM_VERITY_EIO)
+#else
+	else if (reboot_mode == DM_VERITY_LOGGING)
+#endif
+	{
 		device.verity_mode = 0;
 		write_device_info(&device);
 	} else if(reboot_mode == DM_VERITY_KEYSCLEAR) {
