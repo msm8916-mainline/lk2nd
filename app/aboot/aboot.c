@@ -2838,6 +2838,7 @@ void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 
 			if (data_end < (uintptr_t)data + sizeof(uint32_t)) {
 				fastboot_fail("buffer overreads occured due to invalid sparse header");
+				free(fill_buf);
 				return;
 			}
 			fill_val = *(uint32_t *)data;
@@ -2861,6 +2862,7 @@ void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 				if ((uint64_t)total_blocks * (uint64_t)sparse_header->blk_sz + sparse_header->blk_sz > size)
 				{
 					fastboot_fail("Chunk data size for fill type exceeds partition size");
+					free(fill_buf);
 					return;
 				}
 
