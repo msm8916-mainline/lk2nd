@@ -58,6 +58,32 @@ extern uint32_t target_dev_tree_mem(void *fdt, uint32_t memory_node_offset);
  */
 extern int check_aboot_addr_range_overlap(uint32_t start, uint32_t size);
 
+int fdt_check_header_ext(const void *fdt)
+{
+	uintptr_t fdt_start, fdt_end;
+	fdt_start = (uintptr_t)fdt;
+	if(fdt_start + fdt_totalsize(fdt) < fdt_start)
+	{
+		dprintf(CRITICAL,"Integer over in fdt header %s\t%d",__func__,__LINE__);
+		return FDT_ERR_BADOFFSET;
+	}
+	fdt_end = fdt_start + fdt_totalsize(fdt);
+
+	if (((uint64_t)fdt_start + (uint64_t)fdt_off_dt_struct(fdt) + (uint64_t)fdt_size_dt_struct(fdt)) > UINT_MAX)
+		return FDT_ERR_BADOFFSET;
+
+	if ((fdt_start + fdt_off_dt_struct(fdt) + fdt_size_dt_struct(fdt)) > fdt_end)
+		return FDT_ERR_BADOFFSET;
+
+	if (((uint64_t)fdt_start + (uint64_t)fdt_off_dt_strings(fdt) + (uint64_t)fdt_size_dt_strings(fdt)) > UINT_MAX)
+		return FDT_ERR_BADOFFSET;
+
+	if ((fdt_start + fdt_off_dt_strings(fdt) + fdt_size_dt_strings(fdt)) > fdt_end)
+		return FDT_ERR_BADOFFSET;
+
+	return 0;
+}
+
 /* Returns soc version if platform id and hardware id matches
    otherwise return 0xFFFFFFFF */
 #define INVALID_SOC_REV_ID 0XFFFFFFFF
@@ -452,6 +478,7 @@ void *dev_tree_appended(void *kernel, uint32_t kernel_size, uint32_t dtb_offset,
 		 * and operate on it separately */
 		memcpy(&dtb_hdr, dtb, sizeof(struct fdt_header));
 		if (fdt_check_header((const void *)&dtb_hdr) != 0 ||
+		    fdt_check_header_ext((const void *)&dtb_hdr) != 0 ||
 		    ((uintptr_t)dtb + (uintptr_t)fdt_totalsize((const void *)&dtb_hdr) < (uintptr_t)dtb) ||
 			((uintptr_t)dtb + (uintptr_t)fdt_totalsize((const void *)&dtb_hdr) > (uintptr_t)kernel_end))
 			break;
@@ -1255,7 +1282,7 @@ int update_device_tree(void *fdt, const char *cmdline,
 	uint32_t offset;
 
 	/* Check the device tree header */
-	ret = fdt_check_header(fdt);
+	ret = fdt_check_header(fdt) || fdt_check_header_ext(fdt);
 	if (ret)
 	{
 		dprintf(CRITICAL, "Invalid device tree header \n");
