@@ -270,10 +270,10 @@ void get_vibration_type(struct qpnp_hap *config)
 			break;
 		case MSM8937:
 		case APQ8037:
-		case MSMGOLD:
-		case MSMGOLD2:
-		case MSMGOLD3:
-		case APQGOLD:
+		case MSM8917:
+		case MSM8217:
+		case MSM8617:
+		case APQ8017:
 		case MSM8953:
 		case APQ8053:
 			config->vib_type = VIB_LRA_TYPE;

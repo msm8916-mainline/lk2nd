@@ -185,7 +185,7 @@ int target_volume_up()
 
 	if(platform_is_msm8956())
 		vol_up_gpio = TLMM_VOL_UP_BTN_GPIO_8956;
-	else if(platform_is_msm8937() || platform_is_msmgold())
+	else if(platform_is_msm8937() || platform_is_msm8917())
 		vol_up_gpio = TLMM_VOL_UP_BTN_GPIO_8937;
 	else
 		vol_up_gpio = TLMM_VOL_UP_BTN_GPIO;
@@ -263,7 +263,7 @@ void target_init(void)
 
 	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
 
-	if(platform_is_msm8937() || platform_is_msmgold())
+	if(platform_is_msm8937() || platform_is_msm8917())
 	{
 		uint8_t pmi_rev = 0;
 		uint32_t pmi_type = 0;
@@ -375,16 +375,16 @@ void target_baseband_detect(struct board_data *board)
 	case MSM8956:
 	case MSM8976:
 	case MSM8937:
-	case MSMGOLD:
-	case MSMGOLD2:
-	case MSMGOLD3:
+	case MSM8917:
+	case MSM8217:
+	case MSM8617:
 		board->baseband = BASEBAND_MSM;
 		break;
 	case APQ8052:
 	case APQ8056:
 	case APQ8076:
 	case APQ8037:
-	case APQGOLD:
+	case APQ8017:
 		board->baseband = BASEBAND_APQ;
 		break;
 	default:
