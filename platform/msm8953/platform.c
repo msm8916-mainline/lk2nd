@@ -171,6 +171,16 @@ uint32_t platform_get_smem_base_addr()
 		return MSM_SHARED_BASE;
 }
 
+int platform_is_msm8953()
+{
+	uint32_t platform = board_platform_id();
+
+	if ((platform == MSM8953) || (platform == APQ8053))
+		return 1;
+	else
+		return 0;
+}
+
 uint32_t platform_get_qmp_rev()
 {
         return readl(USB3_PHY_REVISION_ID3) << 24 | readl(USB3_PHY_REVISION_ID2) << 16 |
