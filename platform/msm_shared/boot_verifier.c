@@ -96,14 +96,14 @@ IMPLEMENT_ASN1_FUNCTIONS(KEYSTORE_INNER)
 	} ASN1_SEQUENCE_END(KEYSTORE)
 IMPLEMENT_ASN1_FUNCTIONS(KEYSTORE)
 
-static uint32_t read_der_message_length(unsigned char* input)
+static uint32_t read_der_message_length(unsigned char* input, unsigned sz)
 {
 	uint32_t len = 0;
-	int pos = 0;
+	uint32_t pos = 0;
 	uint8_t len_bytes = 1;
 
 	/* Check if input starts with Sequence id (0X30) */
-	if(input[pos] != 0x30)
+	if(sz < 3 || input[pos] != 0x30)
 		return len;
 	pos++;
 
@@ -132,7 +132,7 @@ static uint32_t read_der_message_length(unsigned char* input)
 		}
 
 		/* Read next octet */
-		if (pos < (int) ASN1_SIGNATURE_BUFFER_SZ)
+		if (pos < (uint32_t) ASN1_SIGNATURE_BUFFER_SZ && pos < sz)
 			len = len | input[pos];
 		else
 		{
@@ -550,7 +550,7 @@ bool boot_verify_image(unsigned char* img_addr, uint32_t img_size, char *pname)
 
 	/* Copy the signature from scratch memory to buffer */
 	memcpy(signature, sig_addr, ASN1_SIGNATURE_BUFFER_SZ);
-	sig_len = read_der_message_length(signature);
+	sig_len = read_der_message_length(signature, ASN1_SIGNATURE_BUFFER_SZ);
 
 	if(!sig_len)
 	{
@@ -646,12 +646,12 @@ void boot_verify_print_state()
 	}
 }
 
-bool boot_verify_validate_keystore(unsigned char * user_addr)
+bool boot_verify_validate_keystore(unsigned char * user_addr, unsigned sz)
 {
 	bool ret = false;
 	unsigned char *input = user_addr;
 	KEYSTORE *ks = NULL;
-	uint32_t len = read_der_message_length(input);
+	uint32_t len = read_der_message_length(input, sz);
 	if(!len)
 	{
 		dprintf(CRITICAL, "boot_verifier: keystore length is invalid.\n");
