@@ -175,6 +175,7 @@ enum edid_data_block_type {
 #define HDMI_VFRMT_END                  127
 #define HDMI_VSDB_3D_EVF_DATA_OFFSET(vsd) \
 	(!((vsd)[8] & BIT(7)) ? 9 : (!((vsd)[8] & BIT(6)) ? 11 : 13))
+#define MSM_MDP_MAX_PIPE_WIDTH          2560
 static uint8_t mdss_hdmi_video_formats[HDMI_VFRMT_COUNT];
 static uint8_t mdss_hdmi_mode_count;
 
@@ -1012,7 +1013,15 @@ static void mdss_hdmi_panel_init(struct msm_panel_info *pinfo)
 	pinfo->lcdc.hsync_skew = 0;
 	pinfo->lcdc.xres_pad   = 0;
 	pinfo->lcdc.yres_pad   = 0;
-	pinfo->lcdc.dual_pipe  = 0;
+
+	/* Add dual pipe configuration for resultions greater than
+	 * MSM_MDP_MAX_PIPE_WIDTH.
+	 */
+	if (pinfo->xres > MSM_MDP_MAX_PIPE_WIDTH) {
+		pinfo->lcdc.dual_pipe  = 1;
+		pinfo->lm_split[0] = pinfo->xres / 2;
+		pinfo->lm_split[1] = pinfo->xres - pinfo->lm_split[0];
+	}
 }
 
 static uint8_t mdss_hdmi_cable_status(void)
