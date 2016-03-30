@@ -405,6 +405,10 @@ int mdss_dsi_host_init(struct mipi_panel_info *mipi, uint32_t
 			tmp |= BIT(16); /* enable burst mode */
 			writel(tmp, mipi->sctl_base + 0x01b8);
 		}
+
+		writel(((mipi->rx_eot_ignore & 0x1) << 4) |
+			(mipi->tx_eot_append & 0x1),
+			mipi->sctl_base + EOT_PACKET_CTRL);
 	}
 
 	writel(0x0001, mipi->ctl_base + SOFT_RESET);
@@ -430,8 +434,8 @@ int mdss_dsi_host_init(struct mipi_panel_info *mipi, uint32_t
 		writel(tmp, mipi->ctl_base + 0x01b8);
 	}
 
-	if ((mipi->mode == DSI_VIDEO_MODE) && mipi->tx_eot_append)
-		writel(0x1, mipi->ctl_base + EOT_PACKET_CTRL);
+	writel(((mipi->rx_eot_ignore & 0x1) << 4) | (mipi->tx_eot_append & 0x1),
+		mipi->ctl_base + EOT_PACKET_CTRL);
 
 #endif
 
@@ -595,8 +599,6 @@ int mdss_dsi_video_mode_config(struct msm_panel_info *pinfo,
 	if (readl(ctl_base) >= DSI_HW_REV_103 &&
 				mdp_get_revision() != MDP_REV_305)
 		writel(0x1, ctl_base + TIMING_FLUSH);
-
-	writel(0x0, ctl_base + EOT_PACKET_CTRL);
 
 	writel(0x00000100, ctl_base + MISR_VIDEO_CTRL);
 
@@ -802,7 +804,6 @@ int mdss_dsi_cmd_mode_config(struct msm_panel_info *pinfo,
 	       ctl_base + CTRL);
 	writel(0x14000000, ctl_base + COMMAND_MODE_DMA_CTRL);
 	writel(0x10000000, ctl_base + MISR_CMD_CTRL);
-	writel(0x1, ctl_base + EOT_PACKET_CTRL);
 #endif
 	return 0;
 }
