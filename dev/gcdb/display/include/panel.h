@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -217,6 +217,7 @@ struct dsc_parameters {
 	uint32_t bpc;		/* target bpc, byte per component */
 	uint32_t slice_per_pkt;
 	uint32_t block_prediction;
+	uint32_t scr_rev;
 };
 
 struct topology_config {

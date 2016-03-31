@@ -148,6 +148,7 @@ struct dsc_desc {
 
 	int major;
 	int minor;
+	int scr_rev;
 	int pps_id;
 
 	int pic_height;
