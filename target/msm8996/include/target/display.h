@@ -92,5 +92,6 @@ int target_cont_splash_screen();
 int target_display_get_base_offset(uint32_t base);
 void target_force_cont_splash_disable(uint8_t override);
 uint8_t target_panel_auto_detect_enabled();
+void target_set_switch_gpio(int enable_dsi2hdmibridge);
 
 #endif

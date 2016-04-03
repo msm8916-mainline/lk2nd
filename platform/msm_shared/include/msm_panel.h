@@ -350,6 +350,9 @@ struct dsi2HDMI_panel_info {
 	struct mipi_dsi_i2c_cmd *dsi_setup_cfg_i2c_cmd;
 	int num_of_tg_i2c_cmds;
 	int num_of_cfg_i2c_cmds;
+	uint8_t i2c_main_addr;
+	uint8_t i2c_cec_addr;
+	bool program_i2c_addr;
 };
 
 enum lvds_mode {
@@ -407,6 +410,7 @@ struct msm_panel_info {
 	struct hdmi_panel_info hdmi;
 	struct edp_panel_info edp;
 	struct dsi2HDMI_panel_info adv7533;
+	bool has_bridge_chip;
 
 	struct dfps_info dfps;
 
