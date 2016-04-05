@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008 Travis Geiselbrecht
  *
- * Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2014-2016, The Linux Foundation. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -27,6 +27,7 @@
 #include <platform.h>
 #include <boot_stats.h>
 #include <platform/iomap.h>
+#include <image_verify.h>
 
 /*
  * default implementations of these routines, if the platform code
@@ -153,4 +154,11 @@ __WEAK uint32_t check_alarm_boot()
 __WEAK uint32_t platform_get_max_periph()
 {
 	return 128;
+}
+
+/* This function definition should not be used if VERIFIED_BOOT
+is enabled. And this is expected to be called only for MDM Targets */
+__WEAK uint32_t read_der_message_length(unsigned char* input, unsigned sz)
+{
+	return SIGNATURE_SIZE;
 }
