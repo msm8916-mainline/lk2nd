@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2016, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -654,7 +654,7 @@ int get_ffbm(char *ffbm, unsigned size)
 		retval = -1;
 		goto cleanup;
 	}
-	ffbm_page_buffer = (char*)malloc(page_size);
+	ffbm_page_buffer = (char*)memalign(CACHE_LINE, page_size);
 	if (!ffbm_page_buffer)
 	{
 		dprintf(CRITICAL, "Failed to alloc buffer for ffbm cookie\n");
