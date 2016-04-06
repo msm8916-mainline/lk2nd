@@ -150,7 +150,7 @@ int rpmb_write_emmc(struct mmc_device *dev,uint32_t *req_buf, uint32_t blk_cnt, 
 
 int rpmb_read_emmc(struct mmc_device *dev, uint32_t *req_buf, uint32_t blk_cnt, uint32_t *resp_buf, uint32_t *resp_len)
 {
-	struct mmc_command cmd[3] = {{0}, {0}, {0}};
+	struct mmc_command cmd[3] = {{0},{0},{0}};
 	int ret = 0;
 	struct rpmb_frame *result = (struct rpmb_frame *)resp_buf;
 
