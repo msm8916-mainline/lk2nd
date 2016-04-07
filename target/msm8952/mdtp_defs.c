@@ -58,7 +58,7 @@ int mdtp_get_target_efuse(struct mdtp_target_efuse* target_efuse)
         target_efuse->address = MDTP_EFUSE_ADDRESS_MSM8952;
         target_efuse->start = MDTP_EFUSE_START_MSM8952;
     }
-    else if (platform_is_msm8937() || platform_is_msmgold())
+    else if (platform_is_msm8937() || platform_is_msm8917())
     {
         target_efuse->address = MDTP_EFUSE_ADDRESS_MSM8937;
         target_efuse->start = MDTP_EFUSE_START_MSM8937;

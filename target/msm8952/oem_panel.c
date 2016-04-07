@@ -738,7 +738,7 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	case HW_PLATFORM_MTP:
 		if (platform_is_msm8956())
 			panel_id = NT35597_WQXGA_DUALDSI_VIDEO_PANEL;
-		else if (platform_is_msmgold())
+        else if (platform_is_msm8917())
 			panel_id = TRULY_720P_VIDEO_PANEL;
 		else
 			panel_id = TRULY_1080P_VIDEO_PANEL;
@@ -747,7 +747,7 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	case HW_PLATFORM_RCM:
 		if (platform_is_msm8956())
 			panel_id = NT35597_WQXGA_DUALDSI_VIDEO_PANEL;
-		else if (platform_is_msmgold())
+        else if (platform_is_msm8917())
 			panel_id = TRULY_720P_VIDEO_PANEL;
 		else
 			panel_id = TRULY_1080P_VIDEO_PANEL;
@@ -793,7 +793,7 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 					return PANEL_TYPE_UNKNOWN;
 			}
 			auto_pan_loop++;
-		} else if (platform_is_msmgold()) {
+        } else if (platform_is_msm8917()) {
 			panel_id = HX8394F_720P_VIDEO_PANEL;
 		}
 
