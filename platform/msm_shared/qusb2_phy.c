@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2016, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -49,6 +49,11 @@ __WEAK int platform_is_mdmcalifornium()
 	return 0;
 }
 
+__WEAK int platform_is_msm8953()
+{
+	return 0;
+}
+
 void qusb2_phy_reset(void)
 {
 	uint32_t val;
@@ -75,7 +80,7 @@ void qusb2_phy_reset(void)
 	/* set CLAMP_N_EN and stay with disabled USB PHY */
 	writel(0x23, QUSB2PHY_PORT_POWERDOWN);
 
-	if (platform_is_msm8996() || platform_is_mdmcalifornium())
+	if (platform_is_msm8996() || platform_is_mdmcalifornium() || platform_is_msm8953())
 	{
 		writel(0xF8, QUSB2PHY_PORT_TUNE1);
 		/* Upper nibble of tune2 register should be updated based on the fuse value.
