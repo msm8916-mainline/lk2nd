@@ -410,7 +410,7 @@ static void display_recovery_ui(mdtp_cfg_t *mdtp_cfg)
 	uint32_t pin_length = 0;
 	char entered_pin[MDTP_PIN_LEN+1] = {0};
 	uint32_t i;
-	char pin_mismatch = 0;
+	int pin_mismatch = -1;
 
 	if (mdtp_cfg->enable_local_pin_authentication)
 	{
@@ -434,12 +434,14 @@ static void display_recovery_ui(mdtp_cfg_t *mdtp_cfg)
 		// (with INVALID_PIN_DELAY_MSECONDS after each failed attempt)
 		while (1)
 		{
+			pin_mismatch = pin_length;
 			get_pin_from_user(entered_pin, pin_length);
 
 			// Go over the entire PIN in any case, to prevent side-channel attacks
 			for (i=0; i<pin_length; i++)
 			{
-				pin_mismatch |= mdtp_cfg->mdtp_pin.mdtp_pin[i] ^ entered_pin[i];
+				// If current digit match, reduce 1 from pin_mismatch
+				pin_mismatch -= (((mdtp_cfg->mdtp_pin.mdtp_pin[i] ^ entered_pin[i]) == 0) ? 1 : 0);
 			}
 
 			if (0 == pin_mismatch)
@@ -455,8 +457,6 @@ static void display_recovery_ui(mdtp_cfg_t *mdtp_cfg)
 				// for INVALID_PIN_DELAY_MSECONDS), and allow the user to try again
 				dprintf(CRITICAL, "mdtp: display_recovery_ui: ERROR, invalid PIN\n");
 				display_invalid_pin_msg();
-
-				pin_mismatch = 0;
 			}
 		}
 	}
