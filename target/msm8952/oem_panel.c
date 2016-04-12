@@ -62,6 +62,7 @@
 #include "include/panel_truly_720p_video.h"
 #include "include/panel_truly_wuxga_video.h"
 #include "include/panel_truly_720p_cmd.h"
+#include "include/panel_lead_fl10802_fwvga_video.h"
 
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
@@ -84,6 +85,7 @@ enum {
 	TRULY_720P_VIDEO_PANEL,
 	TRULY_WUXGA_VIDEO_PANEL,
 	TRULY_720P_CMD_PANEL,
+	LEAD_FL10802_FWVGA_VIDEO_PANEL,
 	UNKNOWN_PANEL
 };
 
@@ -113,6 +115,7 @@ static struct panel_list supp_panels[] = {
 	{"truly_720p_video", TRULY_720P_VIDEO_PANEL},
 	{"truly_wuxga_video", TRULY_WUXGA_VIDEO_PANEL},
 	{"truly_720p_cmd", TRULY_720P_CMD_PANEL},
+	{"lead_fl10802_fwvga_video", LEAD_FL10802_FWVGA_VIDEO_PANEL},
 };
 
 static uint32_t panel_id;
@@ -678,6 +681,33 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		pinfo->mipi.signature 	= TRULY_720P_CMD_SIGNATURE;
 		pinfo->mipi.tx_eot_append = true;
 		break;
+	case LEAD_FL10802_FWVGA_VIDEO_PANEL:
+		panelstruct->paneldata = &lead_fl10802_fwvga_video_panel_data;
+		panelstruct->panelres = &lead_fl10802_fwvga_video_panel_res;
+		panelstruct->color = &lead_fl10802_fwvga_video_color;
+		panelstruct->videopanel = &lead_fl10802_fwvga_video_video_panel;
+		panelstruct->commandpanel
+				= &lead_fl10802_fwvga_video_command_panel;
+		panelstruct->state = &lead_fl10802_fwvga_video_state;
+		panelstruct->laneconfig = &lead_fl10802_fwvga_video_lane_config;
+		panelstruct->paneltiminginfo
+				= &lead_fl10802_fwvga_video_timing_info;
+		panelstruct->panelresetseq
+				= &lead_fl10802_fwvga_video_reset_seq;
+		panelstruct->backlightinfo
+				= &lead_fl10802_fwvga_video_backlight;
+		pinfo->mipi.panel_on_cmds
+				= lead_fl10802_fwvga_video_on_command;
+		pinfo->mipi.num_of_panel_on_cmds
+				= LEAD_FL10802_FWVGA_VIDEO_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+				= lead_fl10802_fwvga_video_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+				= LEAD_FL10802_FWVGA_VIDEO_OFF_COMMAND;
+		memcpy(phy_db->timing,
+				lead_fl10802_fwvga_video_timings, TIMING_SIZE);
+		pinfo->mipi.signature = LEAD_FL10802_FWVGA_VIDEO_SIGNATURE;
+		break;
 	case UNKNOWN_PANEL:
 	default:
 		memset(panelstruct, 0, sizeof(struct panel_struct));
@@ -793,8 +823,11 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 					return PANEL_TYPE_UNKNOWN;
 			}
 			auto_pan_loop++;
-        } else if (platform_is_msm8917()) {
-			panel_id = HX8394F_720P_VIDEO_PANEL;
+		} else if (platform_is_msm8917()) {
+			if (hw_subtype == 0x0A) /* TMO target */
+				panel_id = LEAD_FL10802_FWVGA_VIDEO_PANEL;
+			else
+				panel_id = HX8394F_720P_VIDEO_PANEL;
 		}
 
 		break;
