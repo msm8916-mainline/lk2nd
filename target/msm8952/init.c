@@ -78,6 +78,7 @@
 #define TLMM_VOL_UP_BTN_GPIO    85
 #define TLMM_VOL_UP_BTN_GPIO_8956 113
 #define TLMM_VOL_UP_BTN_GPIO_8937 91
+#define TLMM_VOL_DOWN_BTN_GPIO    128
 
 #define FASTBOOT_MODE           0x77665500
 #define RECOVERY_MODE           0x77665502
@@ -91,6 +92,7 @@
 #define CE_READ_PIPE_LOCK_GRP   0
 #define CE_WRITE_PIPE_LOCK_GRP  0
 #define CE_ARRAY_SIZE           20
+#define SUB_TYPE_SKUT           0x0A
 
 struct mmc_device *dev;
 
@@ -209,8 +211,29 @@ int target_volume_up()
 /* Return 1 if vol_down pressed */
 uint32_t target_volume_down()
 {
-	/* Volume down button tied in with PMIC RESIN. */
-	return pm8x41_resin_status();
+	static  bool vol_down_key_init = false;
+
+	if ((board_hardware_id() == HW_PLATFORM_QRD) &&
+			(board_hardware_subtype() == SUB_TYPE_SKUT)) {
+		uint32_t status = 0;
+
+		if (!vol_down_key_init) {
+			gpio_tlmm_config(TLMM_VOL_DOWN_BTN_GPIO, 0, GPIO_INPUT, GPIO_PULL_UP,
+				 GPIO_2MA, GPIO_ENABLE);
+			/* Wait for the gpio config to take effect - debounce time */
+			thread_sleep(10);
+			vol_down_key_init = true;
+		}
+
+		/* Get status of GPIO */
+		status = gpio_status(TLMM_VOL_DOWN_BTN_GPIO);
+
+		/* Active low signal. */
+		return !status;
+	} else {
+		/* Volume down button tied in with PMIC RESIN. */
+		return pm8x41_resin_status();
+	}
 }
 
 uint32_t target_is_pwrkey_pon_reason()
