@@ -766,7 +766,7 @@ uint32_t sdhci_send_command(struct sdhci_host *host, struct mmc_command *cmd)
 	 * may not be aligned to cache boundary due to
 	 * certain image formats like sparse image.
 	 */
-	if (cmd->trans_mode == SDHCI_READ_MODE)
+	if (cmd->trans_mode == SDHCI_MMC_READ)
 		ASSERT(IS_CACHE_LINE_ALIGNED(cmd->data.data_ptr));
 
 	do {
