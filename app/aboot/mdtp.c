@@ -338,7 +338,7 @@ static int validate_partition_params(uint64_t size,
 						uint32_t verify_ratio)
 {
 	if (size == 0 || size > (uint64_t)MDTP_FWLOCK_BLOCK_SIZE * (uint64_t)MAX_BLOCKS ||
-		hash_mode >= MDTP_FWLOCK_MODE_SIZE || verify_ratio > 100)
+		hash_mode > MDTP_FWLOCK_MODE_FILES || verify_ratio > 100)
 	{
 		dprintf(CRITICAL, "mdtp: validate_partition_params: error, size=%llu, hash_mode=%d, verify_ratio=%d\n",
 			size, hash_mode, verify_ratio);
@@ -879,13 +879,18 @@ static void mdtp_tzbsp_disallow_cipher_DIP(void)
 	if (dip == NULL)
 	{
 		dprintf(CRITICAL, "mdtp: mdtp_tzbsp_disallow_cipher_DIP: ERROR, cannot allocate DIP\n");
-		return;
+		/* Could not allocate DIP - stop device from booting */
+		display_error_msg(); /* This will never return */
 	}
 
 	/* Disallow the CIPHER_DIP SCM by calling it MAX_CIPHER_DIP_SCM_CALLS times */
 	for (i=0; i<MAX_CIPHER_DIP_SCM_CALLS; i++)
 	{
-		mdtp_tzbsp_enc_hash_DIP(dip, dip);
+		if(mdtp_tzbsp_enc_hash_DIP(dip, dip) != 0)
+		{
+			/* Couldn't disallowd CIPHER_DIP SCM - stop device from booting */
+			display_error_msg(); /* This will never return */
+		}
 	}
 
 	free(dip);
