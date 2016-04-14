@@ -94,7 +94,8 @@ static char *fastboot_option_menu[] = {
 		[0] = "START\n",
 		[1] = "Restart bootloader\n",
 		[2] = "Recovery mode\n",
-		[3] = "Power off\n"};
+		[3] = "Power off\n",
+		[4] = "Boot to FFBM\n"};
 
 static int big_factor = 2;
 static int common_factor = 1;
@@ -362,6 +363,7 @@ void display_fastboot_menu_renew(struct select_msg_info *fastboot_msg_info)
 			msg_type = FBCON_RED_MSG;
 			break;
 		case 3:
+		case 4:
 			msg_type = FBCON_COMMON_MSG;
 			break;
 	}

@@ -37,6 +37,7 @@ enum device_select_option {
 	BACK,
 
 	CONTINUE,
+	FFBM,
 };
 
 enum keys_option {

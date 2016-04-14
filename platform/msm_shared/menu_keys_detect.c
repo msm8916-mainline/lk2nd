@@ -88,6 +88,7 @@ static uint32_t fastboot_index_action[] = {
 		[1] = FASTBOOT,
 		[2] = RECOVER,
 		[3] = POWEROFF,
+		[4] = FFBM,
 };
 
 static uint32_t unlock_index_action[] = {
@@ -111,6 +112,7 @@ static int is_key_pressed(int keys_type)
 
 static void update_device_status(struct select_msg_info* msg_info, int reason)
 {
+	char ffbm_page_buffer[FFBM_MODE_BUF_SIZE];
 	fbcon_clear();
 	switch (reason) {
 		case RECOVER:
@@ -149,6 +151,12 @@ static void update_device_status(struct select_msg_info* msg_info, int reason)
 			display_bootverify_menu_renew(msg_info, msg_info->last_msg_type);
 			before_time = current_time();
 
+			break;
+		case FFBM:
+			snprintf(ffbm_page_buffer, sizeof(ffbm_page_buffer), "ffbm-00");
+			write_misc(0, ffbm_page_buffer, sizeof(ffbm_page_buffer));
+
+			reboot_device(0);
 			break;
 	}
 }
