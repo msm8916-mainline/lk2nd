@@ -154,6 +154,11 @@ addr_t platform_get_phys_to_virt_mapping(addr_t phys_addr)
 	return phys_addr;
 }
 
+uint32_t platform_get_max_periph()
+{
+        return 256;
+}
+
 /* DYNAMIC SMEM REGION feature enables LK to dynamically
  * read the SMEM addr info from TCSR_TZ_WONCE register.
  * The first word read, if indicates a MAGIC number, then
