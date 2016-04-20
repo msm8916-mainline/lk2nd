@@ -29,19 +29,26 @@
 #ifndef MDTP_FS_H
 #define MDTP_FS_H
 
-#define MAX_IMAGES					(40)
-#define MDTP_HEADER_LEN 			(4096)
-#define META_DATA_PARTITION_LEN		(2048)
-#define MAX_PARAMS 					(512)
+#define MAX_IMAGES                      (40)
+#define MDTP_HEADER_LEN                 (4096)
+#define META_DATA_PARTITION_LEN         (2048)
+#define MAX_PARAMS                      (512)
+#define MDTP_PARAM_UNSET_VALUE          (111)
+#define SUPPORTED_METADATA_VERSION      (1)
+
 /*
-MDTP header layout:
+MDTP image layout:
+-The mdtp image file contains two layers that both include mdtp_img headers:
+	1. The first header includes the image sets metadata.
+	2. Once we decided which image set we would like to display, we read the metadata
+	   of that specific image set (contains metadata of the actual images).
 -The mdtp_img header is a fixed length of 4096 Bytes.
--The mdtp_img header is devided into 2 partitions:
+-The mdtp_img header is divided into 2 partitions:
 	1.MDTP parameters (eFuse, digit-space, etc..)
-	2.Images meta-data (offset, width, height)
+	2.Images/image sets meta-data (offset, width, height)
 -Each partition size is 2048 Bytes.
--Each parameter is 4 Bytes long, 512 params MAX.
--Each meta-data part (offset/width/height) is 4 Bytes long.
+-Each parameter is 4 Bytes long, 512 params max.
+-Each meta-data parameter (offset/width/height) is 4 Bytes long.
 */
 
 
@@ -76,7 +83,9 @@ typedef enum{ACCEPTEDIT_TEXT = 0, ALERT_MESSAGE = 1, BTN_OK_OFF = 2,
 	PIN_UNSELECTED_6 = 24, PIN_UNSELECTED_7 = 25,
 	PIN_UNSELECTED_8 = 26, PIN_UNSELECTED_9 = 27} mdtp_image_id_t;
 
-typedef enum {VIRTUAL_FUSE = 0, DIGIT_SPACE = 1} mdtp_parameter_id_t ;
+typedef enum {VIRTUAL_FUSE = 0, DIGIT_SPACE = 1, VERSION = 2, TYPE = 3, IMAGE_SETS_NUM = 4} mdtp_parameter_id_t;
+
+typedef enum {IMAGES = 1, IMAGE_SETS = 2} mdtp_metadata_type_t;
 
 /*---------------------------------------------------------
  * External Functions

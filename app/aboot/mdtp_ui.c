@@ -33,10 +33,11 @@
 #include <partition_parser.h>
 #include <stdlib.h>
 #include <string.h>
+#include <display_menu.h>
+#include <qtimer.h>
 #include "mdtp.h"
 #include "mdtp_defs.h"
 #include "mdtp_fs.h"
-#include <display_menu.h>
 
 // Image releative locations
 #define ERROR_MESSAGE_RELATIVE_Y_LOCATION   (0.18)
@@ -54,15 +55,14 @@
 
 #define CENTER_IMAGE_ON_X_AXIS(image_width,screen_width)         (((screen_width)-(image_width))/2)
 
-extern void mdelay(unsigned msecs);
 extern uint32_t target_volume_up();
 extern uint32_t target_volume_down();
 extern int msm_display_on();
 
 struct mdtp_fbimage {
-    uint32_t width;
-    uint32_t height;
-    uint8_t image[MDTP_MAX_IMAGE_SIZE];
+	uint32_t width;
+	uint32_t height;
+	uint8_t image[MDTP_MAX_IMAGE_SIZE];
 };
 
 /*----------------------------------------------------------------------------
@@ -71,6 +71,7 @@ struct mdtp_fbimage {
 
 static uint32_t g_pin_frames_x_location[MDTP_PIN_LEN] = {0};
 static uint32_t g_pin_frames_y_location = 0;
+static bool g_diplay_pin = false;
 
 static bool g_initial_screen_displayed = false;
 
@@ -130,9 +131,9 @@ static struct mdtp_fbimage* mdtp_read_mmc_image(uint32_t offset, uint32_t width,
 		unsigned bytes_per_bpp = ((fb_config->bpp) / BITS_PER_BYTE);
 
 		if (mmc_read(ptn+offset, (void*)base, ROUNDUP(width*height*bytes_per_bpp, block_size))) {
-				fbcon_clear();
-				dprintf(CRITICAL, "ERROR: mdtp image read failed\n");
-				return NULL;
+			fbcon_clear();
+			dprintf(CRITICAL, "ERROR: mdtp image read failed\n");
+			return NULL;
 		}
 
 		logo->width = width;
@@ -167,7 +168,7 @@ static void fbcon_clear_section(uint32_t y, uint32_t section_height)
 
 	if (fb_config)
 	{
-	    image_base = (y *(fb_config->width));
+		image_base = (y *(fb_config->width));
 		bytes_per_bpp = ((fb_config->bpp) / BITS_PER_BYTE);
 
 		unsigned count = fb_config->width*section_height;
@@ -177,8 +178,8 @@ static void fbcon_clear_section(uint32_t y, uint32_t section_height)
 	}
 	else
 	{
-	    dprintf(CRITICAL,"ERROR: fbcon_config struct is NULL\n");
-	    display_error_msg(); /* This will never return */
+		dprintf(CRITICAL,"ERROR: fbcon_config struct is NULL\n");
+		display_error_msg(); /* This will never return */
 	}
 }
 
@@ -189,13 +190,13 @@ static void fbcon_clear_section(uint32_t y, uint32_t section_height)
  */
 static void fbcon_putImage_in_location(struct mdtp_fbimage *fbimg, uint32_t x, uint32_t y)
 {
-    unsigned i = 0;
-    unsigned bytes_per_bpp;
-    unsigned image_base;
-    unsigned width, pitch, height;
-    unsigned char *logo_base = NULL;
+	unsigned i = 0;
+	unsigned bytes_per_bpp;
+	unsigned image_base;
+	unsigned width, pitch, height;
+	unsigned char *logo_base = NULL;
 
-    if (!fb_config) {
+	if (!fb_config) {
 		dprintf(CRITICAL,"ERROR: NULL configuration, image cannot be displayed\n");
 		return;
 	}
@@ -206,8 +207,8 @@ static void fbcon_putImage_in_location(struct mdtp_fbimage *fbimg, uint32_t x, u
 		logo_base = (unsigned char *)fbimg->image;
 	}
 	else {
-	    dprintf(CRITICAL,"ERROR: invalid image struct\n");
-	    return;
+		dprintf(CRITICAL,"ERROR: invalid image struct\n");
+		return;
 	}
 
 	bytes_per_bpp = ((fb_config->bpp) / BITS_PER_BYTE);
@@ -222,16 +223,16 @@ static void fbcon_putImage_in_location(struct mdtp_fbimage *fbimg, uint32_t x, u
 		}
 
 		if (fbimg->width > fb_config->width || fbimg->height > fb_config->height ||
-				 (x > (fb_config->width - fbimg->width)) || (y > (fb_config->height - fbimg->height)))
+				(x > (fb_config->width - fbimg->width)) || (y > (fb_config->height - fbimg->height)))
 		{
-		    dprintf(CRITICAL,"ERROR: invalid image size, larger than the screen or exceeds its margins\n");
-		    return;
+			dprintf(CRITICAL,"ERROR: invalid image size, larger than the screen or exceeds its margins\n");
+			return;
 		}
 
 		image_base = ( (y *(fb_config->width)) + x);
 		for (i = 0; i < height; i++) {
 			memcpy (fb_config->base + ((image_base + (i * (fb_config->width))) * bytes_per_bpp),
-				logo_base + ((height - 1 - i) * pitch * bytes_per_bpp), width * bytes_per_bpp);
+					logo_base + ((height - 1 - i) * pitch * bytes_per_bpp), width * bytes_per_bpp);
 		}
 	}
 	else
@@ -254,26 +255,26 @@ static void fbcon_putImage_in_location(struct mdtp_fbimage *fbimg, uint32_t x, u
  */
 static int display_error_message()
 {
-    struct mdtp_fbimage *fbimg;
+	struct mdtp_fbimage *fbimg;
 
-    if (fb_config)
+	if (fb_config)
 	{
-        uint32_t x = CENTER_IMAGE_ON_X_AXIS(get_image_width(ALERT_MESSAGE),fb_config->width);
+		uint32_t x = CENTER_IMAGE_ON_X_AXIS(get_image_width(ALERT_MESSAGE),fb_config->width);
 		uint32_t y = ((fb_config->height)*ERROR_MESSAGE_RELATIVE_Y_LOCATION);
-        fbimg = mdtp_read_mmc_image(get_image_offset(ALERT_MESSAGE),get_image_width(ALERT_MESSAGE), get_image_height(ALERT_MESSAGE));
-        if (NULL == fbimg)
-        {
-            dprintf(CRITICAL,"ERROR: failed to read error image from mmc\n");
-            return -1;
-        }
+		fbimg = mdtp_read_mmc_image(get_image_offset(ALERT_MESSAGE),get_image_width(ALERT_MESSAGE), get_image_height(ALERT_MESSAGE));
+		if (NULL == fbimg)
+		{
+			dprintf(CRITICAL,"ERROR: failed to read error image from mmc\n");
+			return -1;
+		}
 
-        fbcon_putImage_in_location(fbimg, x, y);
+		fbcon_putImage_in_location(fbimg, x, y);
 
 		return 0;
 	}
 	else
 	{
-	    dprintf(CRITICAL,"ERROR: fbcon_config struct is NULL\n");
+		dprintf(CRITICAL,"ERROR: fbcon_config struct is NULL\n");
 		return -1;
 	}
 }
@@ -284,24 +285,24 @@ static int display_error_message()
  */
 static void display_image(uint32_t offset, uint32_t width, uint32_t height, uint32_t x, uint32_t y)
 {
-    struct mdtp_fbimage *fbimg;
+	struct mdtp_fbimage *fbimg;
 
-    if (fb_config)
-    {
-        fbimg = mdtp_read_mmc_image(offset, width, height);
-        if (NULL == fbimg)
-        {
-            dprintf(CRITICAL,"ERROR: failed to read image from mmc\n");
-            display_error_msg(); /* This will never return */
-        }
+	if (fb_config)
+	{
+		fbimg = mdtp_read_mmc_image(offset, width, height);
+		if (NULL == fbimg)
+		{
+			dprintf(CRITICAL,"ERROR: failed to read image from mmc\n");
+			display_error_msg(); /* This will never return */
+		}
 
-        fbcon_putImage_in_location(fbimg, x, y);
-    }
-    else
-    {
-        dprintf(CRITICAL,"ERROR: fbcon_config struct is NULL\n");
-        display_error_msg(); /* This will never return */
-    }
+		fbcon_putImage_in_location(fbimg, x, y);
+	}
+	else
+	{
+		dprintf(CRITICAL,"ERROR: fbcon_config struct is NULL\n");
+		display_error_msg(); /* This will never return */
+	}
 }
 
 /**
@@ -329,7 +330,7 @@ static void display_enter_pin()
  */
 static void display_invalid_pin()
 {
-    uint32_t x = CENTER_IMAGE_ON_X_AXIS(get_image_width(MAINTEXT_INCORRECTPIN),fb_config->width);
+	uint32_t x = CENTER_IMAGE_ON_X_AXIS(get_image_width(MAINTEXT_INCORRECTPIN),fb_config->width);
 	uint32_t y = (fb_config->height)*MAIN_TEXT_RELATIVE_Y_LOCATION;
 
 	display_image(get_image_offset(MAINTEXT_INCORRECTPIN), get_image_width(MAINTEXT_INCORRECTPIN), get_image_height(MAINTEXT_INCORRECTPIN), x, y);
@@ -340,7 +341,7 @@ static void display_invalid_pin()
  */
 static void display_digits_instructions()
 {
-    uint32_t x = CENTER_IMAGE_ON_X_AXIS(get_image_width(PINTEXT),fb_config->width);
+	uint32_t x = CENTER_IMAGE_ON_X_AXIS(get_image_width(PINTEXT),fb_config->width);
 	uint32_t y = (fb_config->height)*PIN_TEXT_RELATIVE_Y_LOCATION;
 
 	display_image(get_image_offset(PINTEXT), get_image_width(PINTEXT), get_image_height(PINTEXT), x, y);
@@ -351,8 +352,8 @@ static void display_digits_instructions()
  */
 static void clear_digits_instructions()
 {
-    uint32_t y = (fb_config->height)*PIN_TEXT_RELATIVE_Y_LOCATION;
-    fbcon_clear_section(y, get_image_height(PINTEXT));
+	uint32_t y = (fb_config->height)*PIN_TEXT_RELATIVE_Y_LOCATION;
+	fbcon_clear_section(y, get_image_height(PINTEXT));
 }
 
 /**
@@ -360,8 +361,11 @@ static void clear_digits_instructions()
  */
 static void display_digit(uint32_t x, uint32_t y, uint32_t digit)
 {
-    display_image(get_image_offset(PIN_UNSELECTED_0 + digit),
-    get_image_width(PIN_UNSELECTED_0 + digit), get_image_height(PIN_UNSELECTED_0 + digit), x, y);
+	if (g_diplay_pin == false)
+		return;
+
+	display_image(get_image_offset(PIN_UNSELECTED_0 + digit),
+			get_image_width(PIN_UNSELECTED_0 + digit), get_image_height(PIN_UNSELECTED_0 + digit), x, y);
 }
 
 /**
@@ -369,6 +373,9 @@ static void display_digit(uint32_t x, uint32_t y, uint32_t digit)
  */
 static void display_selected_digit(uint32_t x, uint32_t y, uint32_t digit)
 {
+	if (g_diplay_pin == false)
+		return;
+
 	display_image(get_image_offset(PIN_SELECTED_0 + digit),
 			get_image_width(PIN_SELECTED_0 + digit),
 			get_image_height(PIN_SELECTED_0 + digit), x, y);
@@ -379,7 +386,7 @@ static void display_selected_digit(uint32_t x, uint32_t y, uint32_t digit)
  */
 static void display_ok_button()
 {
-    uint32_t ok_x = CENTER_IMAGE_ON_X_AXIS(get_image_width(BTN_OK_OFF),fb_config->width);
+	uint32_t ok_x = CENTER_IMAGE_ON_X_AXIS(get_image_width(BTN_OK_OFF),fb_config->width);
 	uint32_t ok_y = (fb_config->height)*OK_BUTTON_RELATIVE_Y_LOCATION;
 
 	display_image(get_image_offset(BTN_OK_OFF), get_image_width(BTN_OK_OFF),get_image_height(BTN_OK_OFF), ok_x, ok_y);
@@ -390,7 +397,7 @@ static void display_ok_button()
  */
 static void display_selected_ok_button()
 {
-    uint32_t ok_x = CENTER_IMAGE_ON_X_AXIS(get_image_width(BTN_OK_ON),fb_config->width);
+	uint32_t ok_x = CENTER_IMAGE_ON_X_AXIS(get_image_width(BTN_OK_ON),fb_config->width);
 	uint32_t ok_y = (fb_config->height)*OK_BUTTON_RELATIVE_Y_LOCATION;
 
 	display_image(get_image_offset(BTN_OK_ON), get_image_width(BTN_OK_ON), get_image_height(BTN_OK_ON),  ok_x, ok_y);
@@ -402,7 +409,7 @@ static void display_selected_ok_button()
  */
 static void display_pin_instructions()
 {
-    uint32_t x = CENTER_IMAGE_ON_X_AXIS(get_image_width(ACCEPTEDIT_TEXT),fb_config->width);
+	uint32_t x = CENTER_IMAGE_ON_X_AXIS(get_image_width(ACCEPTEDIT_TEXT),fb_config->width);
 	uint32_t y = (fb_config->height)*OK_TEXT_RELATIVE_Y_LOCATION;
 
 	display_image(get_image_offset(ACCEPTEDIT_TEXT), get_image_width(ACCEPTEDIT_TEXT), get_image_height(ACCEPTEDIT_TEXT), x, y);
@@ -413,7 +420,7 @@ static void display_pin_instructions()
  */
 static void clear_pin_message()
 {
-    uint32_t y = (fb_config->height)*OK_TEXT_RELATIVE_Y_LOCATION;
+	uint32_t y = (fb_config->height)*OK_TEXT_RELATIVE_Y_LOCATION;
 
 	fbcon_clear_section(y,get_image_height(ACCEPTEDIT_TEXT));
 }
@@ -442,7 +449,7 @@ static void display_initial_screen(uint32_t pin_length)
 		fbcon_clear();
 
 		if (display_error_message())
-		    display_error_msg(); /* This will never return */
+			display_error_msg(); /* This will never return */
 		display_initial_delay();
 
 		mdelay(INITIAL_DELAY_MSECONDS);
@@ -450,16 +457,26 @@ static void display_initial_screen(uint32_t pin_length)
 		g_pin_frames_y_location = ((fb_config->height)*PIN_RELATIVE_Y_LOCATION);
 
 		uint32_t total_pin_length = pin_length*get_image_width(PIN_UNSELECTED_0) + mdtp_fs_get_param(DIGIT_SPACE)*(pin_length - 1);
-		uint32_t complete_pin_centered = (fb_config->width - total_pin_length)/2;
 
-		for (uint32_t i=0; i<pin_length; i++)
+		if (fb_config->width > total_pin_length)
 		{
-			g_pin_frames_x_location[i] = complete_pin_centered + i*(mdtp_fs_get_param(DIGIT_SPACE) + get_image_width(PIN_UNSELECTED_0));
+			g_diplay_pin = true;
+
+			uint32_t complete_pin_centered = (fb_config->width - total_pin_length)/2;
+
+			for (uint32_t i=0; i<pin_length; i++)
+			{
+				g_pin_frames_x_location[i] = complete_pin_centered + i*(mdtp_fs_get_param(DIGIT_SPACE) + get_image_width(PIN_UNSELECTED_0));
+			}
+
+			for (uint32_t i=0; i<pin_length; i++)
+			{
+				display_digit(g_pin_frames_x_location[i], g_pin_frames_y_location, 0);
+			}
 		}
-
-		for (uint32_t i=0; i<pin_length; i++)
+		else
 		{
-			display_digit(g_pin_frames_x_location[i], g_pin_frames_y_location, 0);
+			dprintf(CRITICAL,"ERROR: screen is not wide enough, PIN digits can't be displayed\n");
 		}
 
 		display_ok_button();
@@ -468,8 +485,8 @@ static void display_initial_screen(uint32_t pin_length)
 	}
 	else
 	{
-	    dprintf(CRITICAL,"ERROR: fbcon_config struct is NULL\n");
-	    display_error_msg(); /* This will never return */
+		dprintf(CRITICAL,"ERROR: fbcon_config struct is NULL\n");
+		display_error_msg(); /* This will never return */
 	}
 }
 
@@ -574,12 +591,12 @@ void get_pin_from_user(char *entered_pin, uint32_t pin_length)
  */
 void display_invalid_pin_msg()
 {
-    clear_pin_message();
-    display_ok_button();
+	clear_pin_message();
+	display_ok_button();
 
-    display_invalid_pin();
+	display_invalid_pin();
 
-    mdelay(INVALID_PIN_DELAY_MSECONDS);
+	mdelay(INVALID_PIN_DELAY_MSECONDS);
 }
 
 /**
