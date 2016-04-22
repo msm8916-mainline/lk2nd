@@ -88,6 +88,13 @@ void cmd_oem_runtests()
 	dprintf(INFO, "Running RPMB test case, please make sure RPMB key is provisioned ...\n");
 	struct device_info *write_info = memalign(PAGE_SIZE, 4096);
 	struct device_info *read_info = memalign(PAGE_SIZE, 4096);
+
+	if((write_info == NULL)||(read_info == NULL))
+	{
+		dprintf(CRITICAL, "Failed to allocate memory for devinfo %s %d \n",__FUNCTION__,__LINE__);
+		goto err;
+	}
+
 	if((read_device_info_rpmb((void*) read_info, PAGE_SIZE)) < 0)
 		dprintf(INFO, "RPMB READ TEST : [ FAIL ]\n");
 
@@ -104,6 +111,7 @@ void cmd_oem_runtests()
 	else
 		dprintf(INFO, "RPMB READ/WRITE TEST: [ FAIL ]\n");
 
+err:
 	free(read_info);
 	free(write_info);
 #endif
