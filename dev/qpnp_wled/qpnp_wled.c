@@ -522,7 +522,7 @@ static int qpnp_wled_setup(struct qpnp_wled *wled, struct qpnp_wled_config_data 
 			wled->strings[i] = i;
 
 	wled->ibb_bias_active = false;
-	wled->lab_fast_precharge = true;
+	wled->lab_fast_precharge = false;
 	wled->ibb_pwrup_dly_ms = config->pwr_up_delay;
 	wled->ibb_pwrdn_dly_ms = config->pwr_down_delay;
 	wled->ibb_discharge_en = config->ibb_discharge_en;
