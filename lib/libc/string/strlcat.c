@@ -40,7 +40,7 @@ strlcat(char *dst, char const *src, size_t s)
 
 	dst+= j;
 
-	for(i= 0; ((i< s-1) && src[i]); i++) {
+	for(i= 0; ((i< s-j) && src[i]); i++) {
 		dst[i]= src[i];
 	}
 
