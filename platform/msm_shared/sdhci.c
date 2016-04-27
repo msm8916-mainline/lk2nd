@@ -437,9 +437,11 @@ static uint8_t sdhci_cmd_complete(struct sdhci_host *host, struct mmc_command *c
 	uint64_t max_trans_retry = (cmd->cmd_timeout ? cmd->cmd_timeout : SDHCI_MAX_TRANS_RETRY);
 
 	do {
+
 		int_status = REG_READ16(host, SDHCI_NRML_INT_STS_REG);
 
-		if (int_status  & SDHCI_INT_STS_CMD_COMPLETE)
+		if((int_status  & SDHCI_INT_STS_CMD_COMPLETE) &&
+			!(REG_READ16(host, SDHCI_ERR_INT_STS_REG) & SDHCI_CMD_TIMEOUT_MASK))
 			break;
 		/*
 		* Some controllers set the data timout first on issuing an erase & take time
