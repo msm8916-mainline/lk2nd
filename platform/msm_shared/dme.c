@@ -493,13 +493,20 @@ int dme_read_unit_desc(struct ufs_dev *dev, uint8_t index)
 		return -UFS_FAILURE;
 	}
 
-	dev->lun_cfg[index].logical_blk_cnt = BE64(desc->logical_blk_cnt);
-
-	dev->lun_cfg[index].erase_blk_size = BE32(desc->erase_blk_size);
-
 	// use only the lower 32 bits for rpmb partition size
 	if (index == UFS_WLUN_RPMB)
 		dev->rpmb_num_blocks = BE32(desc->logical_blk_cnt >> 32);
+	/*
+	 rpmb will not use blk count and blk size from lun_cfg as it has
+	 its own entries in ufs_dev structure
+	*/
+	else
+	{
+		dev->lun_cfg[index].logical_blk_cnt = BE64(desc->logical_blk_cnt);
+		dev->lun_cfg[index].erase_blk_size = BE32(desc->erase_blk_size);
+	}
+
+
 
 	return UFS_SUCCESS;
 }
