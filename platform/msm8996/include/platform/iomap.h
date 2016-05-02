@@ -626,6 +626,7 @@
 
 #define HDMI_USEC_REFTIMER      REG_HDMI(0x208)
 #define HDMI_CTRL               REG_HDMI(0x000)
+#define HDMI_VERSION            REG_HDMI(0x2E4)
 #define HDMI_HPD_INT_STATUS     REG_HDMI(0x250)
 #define HDMI_HPD_INT_CTRL       REG_HDMI(0x254)
 #define HDMI_HPD_CTRL           REG_HDMI(0x258)
