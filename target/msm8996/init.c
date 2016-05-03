@@ -616,6 +616,12 @@ int target_update_cmdline(char *cmdline)
 	{
 		strlcpy(cmdline, " fpsimd.fpsimd_settings=0", TARGET_MAX_CMDLNBUF);
 		len = strlen (cmdline);
+
+		/* App settings are not required for other than v1.0 SoC */
+		if (board_soc_version() > 0x10000) {
+			strlcpy(cmdline + len, " app_setting.use_app_setting=0", TARGET_MAX_CMDLNBUF - len);
+			len = strlen (cmdline);
+		}
 	}
 
 	return len;
