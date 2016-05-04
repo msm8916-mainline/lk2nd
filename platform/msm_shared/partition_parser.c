@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2016, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -454,10 +454,20 @@ static unsigned int write_mbr_in_blocks(uint32_t size, uint8_t *mbrImage, uint32
 static unsigned int write_mbr(uint32_t size, uint8_t *mbrImage, uint32_t block_size)
 {
 	unsigned int ret;
+	uint64_t device_density;
 
 	/* Verify that passed in block is a valid MBR */
 	ret = partition_verify_mbr_signature(size, mbrImage);
 	if (ret) {
+		goto end;
+	}
+
+	device_density = mmc_get_device_capacity();
+
+	/* Erasing the eMMC card before writing */
+	ret = mmc_erase_card(0x00000000, device_density);
+	if (ret) {
+		dprintf(CRITICAL, "Failed to erase the eMMC card\n");
 		goto end;
 	}
 
