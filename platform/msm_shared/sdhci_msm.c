@@ -780,7 +780,7 @@ retry_tuning:
 		if(err)
 		{
 
-			sts_retry = 5;
+			sts_retry = 50;
 			sts_cmd.cmd_index = CMD13_SEND_STATUS;
 			sts_cmd.argument = card->rca << 16;
 			sts_cmd.cmd_type = SDHCI_CMD_TYPE_NORMAL;
