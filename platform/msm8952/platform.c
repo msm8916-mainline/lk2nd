@@ -205,6 +205,7 @@ int platform_is_msm8937()
 	switch(platform)
 	{
 		case MSM8937:
+		case MSM8940:
 		case APQ8037:
 			ret = 1;
 			break;
