@@ -500,6 +500,11 @@ void target_usb_phy_reset()
 	qusb2_phy_reset();
 }
 
+void target_usb_phy_sec_reset()
+{
+	qusb2_phy_reset();
+}
+
 target_usb_iface_t* target_usb30_init()
 {
 	target_usb_iface_t *t_usb_iface;
@@ -507,9 +512,20 @@ target_usb_iface_t* target_usb30_init()
 	t_usb_iface = calloc(1, sizeof(target_usb_iface_t));
 	ASSERT(t_usb_iface);
 
-	t_usb_iface->phy_init   = usb30_qmp_phy_init;
-	t_usb_iface->phy_reset  = target_usb_phy_reset;
-	t_usb_iface->clock_init = clock_usb30_init;
+
+	/* for SBC we use secondary port */
+	if (board_hardware_id() == HW_PLATFORM_SBC)
+	{
+		/* secondary port have no QMP phy,use only QUSB2 phy that have only reset */
+		t_usb_iface->phy_init   = NULL;
+		t_usb_iface->phy_reset  = target_usb_phy_sec_reset;
+		t_usb_iface->clock_init = clock_usb20_init;
+	} else {
+		t_usb_iface->phy_init   = usb30_qmp_phy_init;
+		t_usb_iface->phy_reset  = target_usb_phy_reset;
+		t_usb_iface->clock_init = clock_usb30_init;
+	}
+
 	t_usb_iface->vbus_override = 1;
 
 	return t_usb_iface;
