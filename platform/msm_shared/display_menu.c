@@ -257,12 +257,16 @@ void display_bootverify_menu_renew(struct select_msg_info *msg_info, int type)
 
 	/* Align Right */
 	str_target = str_align_right(str1, big_factor);
-	if(str_target != NULL)
+	if(str_target != NULL) {
 		display_fbcon_menu_message(str_target, FBCON_TITLE_MSG, big_factor);
+		free(str_target);
+	}
 
 	str_target = str_align_right(str2, common_factor);
-	if(str_target != NULL)
+	if(str_target != NULL) {
 		display_fbcon_menu_message(str_target, FBCON_TITLE_MSG, common_factor);
+		free(str_target);
+	}
 
 	display_fbcon_menu_message("\n< More options\n",
 		FBCON_COMMON_MSG, common_factor);
@@ -296,9 +300,6 @@ void display_bootverify_menu_renew(struct select_msg_info *msg_info, int type)
 		"Your device will boot in 5 seconds\n\n", FBCON_COMMON_MSG, common_factor);
 
 	msg_info->info.msg_type = type;
-	if(str_target) {
-		free(str_target);
-	}
 
 	/* Initialize the time out time */
 	msg_info->info.timeout_time = 5000; //5s
