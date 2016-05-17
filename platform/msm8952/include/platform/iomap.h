@@ -163,7 +163,7 @@
  * as device memory, define the start address
  * and size in MB
  */
-#define RPMB_SND_RCV_BUF            0x90000000
+#define RPMB_SND_RCV_BUF            0xA0000000
 #define RPMB_SND_RCV_BUF_SZ         0x1
 
 /* QSEECOM: Secure app region notification */
