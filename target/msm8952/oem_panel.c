@@ -707,6 +707,7 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		memcpy(phy_db->timing,
 				lead_fl10802_fwvga_video_timings, TIMING_SIZE);
 		pinfo->mipi.signature = LEAD_FL10802_FWVGA_VIDEO_SIGNATURE;
+		pinfo->mipi.cmds_post_tg = 1;
 		break;
 	case UNKNOWN_PANEL:
 	default:
