@@ -48,7 +48,9 @@ enum reboot_reason {
 	DM_VERITY_ENFORCING	= 0x77665509,
 	DM_VERITY_KEYSCLEAR	= 0x7766550A,
 #endif
-	/* warm reset start from  0xF0000000 */
+	/* Don't write the reason to PON reg or SMEM
+	 * if the value is more than 0xF0000000
+	 */
 	NORMAL_DLOAD		= 0xF0000001,
 	EMERGENCY_DLOAD,
 };
