@@ -43,7 +43,7 @@
 
 typedef union
 {
-    struct {
+	struct {
 		uint8_t enable1       : 1;
 		uint8_t disable1      : 1;
 		uint8_t enable2       : 1;
@@ -79,7 +79,7 @@ static int is_test_mode(void)
 #define SHK_FUSE           0x02
 #define DEBUG_FUSE         0x04
 
-    /* Make sure we only read the test mode once */
+	/* Make sure we only read the test mode once */
 	if (test_mode_set)
 		return test_mode;
 
@@ -95,7 +95,7 @@ static int is_test_mode(void)
 	{
 		dprintf(CRITICAL, "mdtp: is_test_mode: qsee_get_secure_state returned error: %d, status.value[0]: %d\n", ret, status_low);
 		test_mode = 0;
-    }
+	}
 
 	test_mode_set = 1;
 	dprintf(INFO, "mdtp: is_test_mode: test mode is set to %d\n", test_mode);
@@ -111,7 +111,7 @@ static int is_test_mode(void)
 static int read_metadata(metadata_t *metadata)
 {
 	int eFuse = mdtp_fs_get_param(VIRTUAL_FUSE);
-	if(eFuse == -1){ //Error initiating eFuse
+	if(eFuse == MDTP_PARAM_UNSET_VALUE){      //Error initializing eFuse
 		dprintf(CRITICAL, "mdtp: eFuse reading error\n");
 		return -1;
 	}
@@ -215,8 +215,8 @@ int mdtp_fuse_get_enabled(bool *enabled)
 	}
 
 	if (!(eFuses.bitwise.enable1 && !eFuses.bitwise.disable1) &&
-		!(eFuses.bitwise.enable2 && !eFuses.bitwise.disable2) &&
-		!(eFuses.bitwise.enable3 && !eFuses.bitwise.disable3))
+			!(eFuses.bitwise.enable2 && !eFuses.bitwise.disable2) &&
+			!(eFuses.bitwise.enable3 && !eFuses.bitwise.disable3))
 	{
 		*enabled = 0;
 	}

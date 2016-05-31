@@ -40,6 +40,7 @@
 #include <stdlib.h>
 #include <boot_verifier.h>
 #include <image_verify.h>
+#include <qtimer.h>
 #include "scm.h"
 #include "mdtp.h"
 #include "mdtp_fs.h"
@@ -74,7 +75,6 @@ static int is_mdtp_activated = -1;
 
 extern int check_aboot_addr_range_overlap(uintptr_t start, uint32_t size);
 int scm_random(uint32_t * rbuf, uint32_t  r_len);
-extern void mdelay(unsigned msecs);
 void free_mdtp_image(void);
 
 /********************************************************************************/
@@ -240,10 +240,10 @@ static int verify_partition_single_hash(char *name, uint64_t size, DIP_hash_tabl
 
 /* Validate a hash table calculated per block of a given partition */
 static int verify_partition_block_hash(char *name,
-								uint64_t size,
-								uint32_t verify_num_blocks,
-								DIP_hash_table_entry_t *hash_table,
-								uint8_t *force_verify_block)
+									uint64_t size,
+									uint32_t verify_num_blocks,
+									DIP_hash_table_entry_t *hash_table,
+									uint8_t *force_verify_block)
 {
 	unsigned char digest[HASH_LEN]={0};
 	unsigned long long ptn = 0;
@@ -334,14 +334,14 @@ static int verify_partition_block_hash(char *name,
 
 /* Validate the partition parameters read from DIP */
 static int validate_partition_params(uint64_t size,
-						mdtp_fwlock_mode_t hash_mode,
-						uint32_t verify_ratio)
+									mdtp_fwlock_mode_t hash_mode,
+									uint32_t verify_ratio)
 {
 	if (size == 0 || size > (uint64_t)MDTP_FWLOCK_BLOCK_SIZE * (uint64_t)MAX_BLOCKS ||
-		hash_mode > MDTP_FWLOCK_MODE_FILES || verify_ratio > 100)
+			hash_mode > MDTP_FWLOCK_MODE_FILES || verify_ratio > 100)
 	{
 		dprintf(CRITICAL, "mdtp: validate_partition_params: error, size=%llu, hash_mode=%d, verify_ratio=%d\n",
-			size, hash_mode, verify_ratio);
+				size, hash_mode, verify_ratio);
 		return -1;
 	}
 
@@ -350,11 +350,11 @@ static int validate_partition_params(uint64_t size,
 
 /* Verify a given partitinon */
 static int verify_partition(char *name,
-						uint64_t size,
-						mdtp_fwlock_mode_t hash_mode,
-						uint32_t verify_num_blocks,
-						DIP_hash_table_entry_t *hash_table,
-						uint8_t *force_verify_block)
+							uint64_t size,
+							mdtp_fwlock_mode_t hash_mode,
+							uint32_t verify_num_blocks,
+							DIP_hash_table_entry_t *hash_table,
+							uint8_t *force_verify_block)
 {
 	if (hash_mode == MDTP_FWLOCK_MODE_SINGLE)
 	{
@@ -524,14 +524,14 @@ static int verify_ext_partition(mdtp_ext_partition_verification_t *ext_partition
 			ptn = partition_get_offset(index);
 			if(ptn == 0) {
 				dprintf(CRITICAL, "ERROR: partition %s not found\n",
-					ext_partition->partition == MDTP_PARTITION_BOOT ? "boot" : "recovery");
+						ext_partition->partition == MDTP_PARTITION_BOOT ? "boot" : "recovery");
 				return -1;
 			}
 
 			if(mmc_read(ptn + ext_partition->image_size, (void *)(ext_partition->image_addr + ext_partition->image_size), ext_partition->page_size))
 			{
 				dprintf(CRITICAL, "ERROR: Cannot read %s image signature\n",
-					ext_partition->partition == MDTP_PARTITION_BOOT ? "boot" : "recovery");
+						ext_partition->partition == MDTP_PARTITION_BOOT ? "boot" : "recovery");
 				return -1;
 			}
 		}
@@ -570,8 +570,8 @@ static int verify_ext_partition(mdtp_ext_partition_verification_t *ext_partition
 
 /* Verify all protected partitinons according to the DIP */
 static void verify_all_partitions(DIP_t *dip,
-								 mdtp_ext_partition_verification_t *ext_partition,
-								 verify_result_t *verify_result)
+								mdtp_ext_partition_verification_t *ext_partition,
+								verify_result_t *verify_result)
 {
 	int i;
 	int verify_failure = 0;
@@ -810,8 +810,8 @@ static int mdtp_tzbsp_dec_verify_DIP(DIP_t *enc_dip, DIP_t *dec_dip, uint32_t *v
 	arch_invalidate_cache_range((addr_t)dec_dip, sizeof(DIP_t));
 
 	ret = mdtp_cipher_dip_cmd((uint8_t*)enc_dip, sizeof(DIP_t),
-								(uint8_t*)dec_dip, sizeof(DIP_t),
-								DIP_DECRYPT);
+							(uint8_t*)dec_dip, sizeof(DIP_t),
+							DIP_DECRYPT);
 	if (ret)
 	{
 		dprintf(CRITICAL, "mdtp: mdtp_tzbsp_dec_verify_DIP: ERROR, cannot cipher DIP\n");
@@ -856,8 +856,8 @@ static int mdtp_tzbsp_enc_hash_DIP(DIP_t *dec_dip, DIP_t *enc_dip)
 	arch_invalidate_cache_range((addr_t)enc_dip, sizeof(DIP_t));
 
 	ret = mdtp_cipher_dip_cmd((uint8_t*)dec_dip, sizeof(DIP_t),
-								(uint8_t*)enc_dip, sizeof(DIP_t),
-								DIP_ENCRYPT);
+							(uint8_t*)enc_dip, sizeof(DIP_t),
+							DIP_ENCRYPT);
 	if (ret)
 	{
 		dprintf(CRITICAL, "mdtp: mdtp_tzbsp_enc_hash_DIP: ERROR, cannot cipher DIP\n");
@@ -886,11 +886,7 @@ static void mdtp_tzbsp_disallow_cipher_DIP(void)
 	/* Disallow the CIPHER_DIP SCM by calling it MAX_CIPHER_DIP_SCM_CALLS times */
 	for (i=0; i<MAX_CIPHER_DIP_SCM_CALLS; i++)
 	{
-		if(mdtp_tzbsp_enc_hash_DIP(dip, dip) != 0)
-		{
-			/* Couldn't disallowd CIPHER_DIP SCM - stop device from booting */
-			display_error_msg(); /* This will never return */
-		}
+		mdtp_tzbsp_enc_hash_DIP(dip, dip);
 	}
 
 	free(dip);
@@ -947,7 +943,7 @@ int mdtp_validate_partition_params_ut(){
 
 	//Bad size
 	if(validate_partition_params((uint64_t)MDTP_FWLOCK_BLOCK_SIZE * (uint64_t)MAX_BLOCKS + 1,
-		MDTP_FWLOCK_MODE_SINGLE, 1) != -1){
+			MDTP_FWLOCK_MODE_SINGLE, 1) != -1){
 		dprintf(INFO, "validate_partition_params_ut: [FAIL (2)].\n");
 		return -1;
 	}
@@ -969,7 +965,7 @@ int mdtp_verify_partition_ut(){
 
 	//Unkown hashing mode
 	if(verify_partition("system", partition_size, BAD_HASH_MODE, verify_num_blocks,
-		&partition_hash_table, &partition_force_verify_block) != -1){
+			&partition_hash_table, &partition_force_verify_block) != -1){
 		dprintf(INFO, "verify_partition_ut: Failed Test 1.\n");
 		dprintf(INFO, "MDTP LK UT: verify_partition_ut [ FAIL ]\n");
 		return -1;
