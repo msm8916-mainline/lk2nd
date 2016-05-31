@@ -75,15 +75,33 @@
 #define GCC_BLSP2_QUP2_CFG_RCGR     (CLK_CTL_BASE + 0x28010)
 #define GCC_BLSP2_QUP2_CMD_RCGR     (CLK_CTL_BASE + 0x2800C)
 
+/* USB platform specific bases*/
+unsigned int usb_ctrl_base();
+unsigned int usb_qscratch_base();
+unsigned int usb_phy_base();
+unsigned int usb_phy_bcr();
+
+#define MSM_USB30_BASE              (usb_ctrl_base())
+#define MSM_USB30_QSCRATCH_BASE     (usb_qscratch_base())
+#define QUSB2_PHY_BASE              (usb_phy_base())
+#define GCC_QUSB2_PHY_BCR           (usb_phy_bcr())
+
 /* USB3.0 */
-#define MSM_USB30_BASE              0x6A00000
-#define MSM_USB30_QSCRATCH_BASE     0x6AF8800
+#define MSM_USB30_PRIM_BASE              0x6A00000
+#define MSM_USB30_QSCRATCH_PRIM_BASE     0x6AF8800
+/* USB2.0 */
+#define MSM_USB20_SEC_BASE              0x7600000
+#define MSM_USB20_SEC_QSCRATCH_BASE     0x76F8800
 /* SS QMP (Qulacomm Multi Protocol) */
 #define QMP_PHY_BASE                0x7410000
 
-/* QUSB2 PHY */
-#define QUSB2_PHY_BASE              0x7411000
-#define GCC_QUSB2_PHY_BCR           (CLK_CTL_BASE + 0x00012038)
+/* QUSB2 PHY primary */
+#define QUSB2_PRIM_PHY_BASE              0x7411000
+#define GCC_QUSB2_PRIM_PHY_BCR           (CLK_CTL_BASE + 0x00012038)
+
+/* QUSB2 PHY secondary */
+#define QUSB2_SEC_PHY_BASE              0x7412000
+#define GCC_QUSB2_SEC_PHY_BCR           (CLK_CTL_BASE + 0x0001203C)
 
 #define AHB2_PHY_BASE               0x7416000
 #define PERIPH_SS_AHB2PHY_TOP_CFG   (AHB2_PHY_BASE + 0x10)
@@ -137,6 +155,20 @@
 #define USB30PHY_PHY_BCR            (CLK_CTL_BASE + 0x50024)
 #define USB_PHY_CFG_AHB2PHY_CBCR    (CLK_CTL_BASE + 0x6A004)
 #define GCC_AGGRE2_USB3_AXI_CBCR    (CLK_CTL_BASE + 0x83018)
+
+/* USB20 clocks */
+#define USB_20_BCR                  (CLK_CTL_BASE + 0x12000)
+#define USB20_MASTER_CBCR           (CLK_CTL_BASE + 0x12004)
+#define USB20_SLEEP_CBCR            (CLK_CTL_BASE + 0x12008)
+#define USB20_MOCK_UTMI_CBCR        (CLK_CTL_BASE + 0x1200C)
+#define USB20_MASTER_CMD_RCGR       (CLK_CTL_BASE + 0x12010)
+#define USB20_MASTER_CFG_RCGR       (CLK_CTL_BASE + 0x12014)
+#define USB20_MASTER_M              (CLK_CTL_BASE + 0x12018)
+#define USB20_MASTER_N              (CLK_CTL_BASE + 0x1201c)
+#define USB20_MASTER_D              (CLK_CTL_BASE + 0x12020)
+#define USB20_MOCK_UTMI_CMD_RCGR    (CLK_CTL_BASE + 0x12024)
+#define USB20_MOCK_UTMI_CFG_RCGR    (CLK_CTL_BASE + 0x12028)
+#define PERIPH_NOC_USB20_AHB_CBCR   (CLK_CTL_BASE + 0x06010)
 
 /* SDCC */
 #define SDCC1_BCR                   (CLK_CTL_BASE + 0x13000) /* block reset */

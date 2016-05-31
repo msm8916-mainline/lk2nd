@@ -111,6 +111,7 @@ void clock_config_ce(uint8_t instance);
 void clock_ce_enable(uint8_t instance);
 void clock_ce_disable(uint8_t instance);
 void clock_usb30_init(void);
+void clock_usb20_init(void);
 void clock_reset_usb_phy();
 
 void mmss_dsi_clock_enable(uint32_t cfg_rcgr, uint32_t dual_dsi);

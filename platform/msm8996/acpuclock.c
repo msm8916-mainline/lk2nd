@@ -208,6 +208,40 @@ void clock_usb30_gdsc_enable(void)
 	writel(reg, GCC_USB30_GDSCR);
 }
 
+/* enables usb20 clocks */
+void clock_usb20_init(void)
+{
+	int ret;
+
+	ret = clk_get_set_enable("usb20_noc_usb20_clk", 0, true);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set usb20_noc_clk. ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("usb20_master_clk", 120000000, true);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set usb20_master_clk. ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("usb20_mock_utmi_clk", 60000000, true);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set usb20_mock_utmi_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	ret = clk_get_set_enable("usb20_sleep_clk", 0, true);
+	if(ret)
+	{
+		dprintf(CRITICAL, "failed to set usb2_sleep_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+}
+
 /* enables usb30 clocks */
 void clock_usb30_init(void)
 {
