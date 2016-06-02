@@ -244,26 +244,28 @@ static void fbcon_flush(void)
 /* TODO: Take stride into account */
 static void fbcon_scroll_up(void)
 {
-	unsigned short *dst = NULL;
-	unsigned short *src = NULL;
+	uint32_t num_lines = 0;
+	uint32_t bpp = 0;
+	uint32_t off_bytes = 0;
+
+	uint8_t *dst = NULL;
+	uint8_t *src = NULL;
 	unsigned count = 0;
 
 	/* ignore anything that happens before fbcon is initialized */
 	if (!config)
 		return;
 
+	num_lines = max_pos.y-cur_pos.y;
+	bpp = (config->bpp / 8);
+	off_bytes = config->width * bpp * num_lines * FONT_HEIGHT;
+
 	dst = config->base;
-	src = dst + (config->width * FONT_HEIGHT);
-	count = config->width * (config->height - FONT_HEIGHT);
+	src = dst + off_bytes;
+	count = config->width*config->height*bpp - off_bytes;
 
-	while(count--) {
-		*dst++ = *src++;
-	}
-
-	count = config->width * FONT_HEIGHT;
-	while(count--) {
-		*dst++ = BGCOLOR;
-	}
+	memmove(dst, src, count);
+	memset(dst+count, BGCOLOR, config->width*config->height*bpp - count);
 
 	fbcon_flush();
 }
@@ -381,8 +383,8 @@ void fbcon_putc_factor(char c, int type, unsigned scale_factor)
 newline:
 	cur_pos.y += scale_factor;
 	cur_pos.x = 0;
-	if(cur_pos.y >= max_pos.y) {
-		cur_pos.y = max_pos.y - 1;
+	if((uint32_t)cur_pos.y > max_pos.y-scale_factor) {
+		cur_pos.y = max_pos.y - scale_factor;
 		fbcon_scroll_up();
 	} else
 		fbcon_flush();
