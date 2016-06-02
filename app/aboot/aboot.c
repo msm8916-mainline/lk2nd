@@ -3166,6 +3166,7 @@ void cmd_flash_nand(const char *arg, void *data, unsigned sz)
 	struct ptentry *ptn;
 	struct ptable *ptable;
 	unsigned extra = 0;
+	uint64_t partition_size = 0;
 
 	ptable = flash_get_ptable();
 	if (ptable == NULL) {
@@ -3196,6 +3197,17 @@ void cmd_flash_nand(const char *arg, void *data, unsigned sz)
 		extra = 1;
 	else
 		sz = ROUND_TO_PAGE(sz, page_mask);
+
+	partition_size = (uint64_t)ptn->length * (uint64_t)flash_num_pages_per_blk() *  (uint64_t)flash_page_size();
+	if (partition_size > UINT_MAX) {
+		fastboot_fail("Invalid partition size");
+		return;
+	}
+
+	if (sz > partition_size) {
+		fastboot_fail("Image size too large");
+		return;
+	}
 
 	dprintf(INFO, "writing %d bytes to '%s'\n", sz, ptn->name);
 	if (!memcmp((void *)data, UBI_MAGIC, UBI_MAGIC_SIZE)) {
