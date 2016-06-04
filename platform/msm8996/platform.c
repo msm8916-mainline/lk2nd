@@ -217,3 +217,10 @@ uint32_t usb_phy_bcr()
 		return	GCC_QUSB2_PRIM_PHY_BCR;
 }
 
+int usb_irq()
+{
+	if (board_hardware_id() == HW_PLATFORM_SBC)
+		return	USB20_IRQ;
+	else
+		return	USB30_IRQ;
+}
