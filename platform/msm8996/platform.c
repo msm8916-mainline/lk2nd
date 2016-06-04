@@ -181,3 +181,39 @@ bool platform_use_qmp_misc_settings()
 
 	return false;
 }
+
+
+/* USB platform specific bases*/
+uint32_t usb_ctrl_base()
+{
+	if (board_hardware_id() == HW_PLATFORM_SBC)
+		return	MSM_USB20_SEC_BASE;
+	else
+		return	MSM_USB30_PRIM_BASE;
+
+}
+
+uint32_t usb_qscratch_base()
+{
+	if (board_hardware_id() == HW_PLATFORM_SBC)
+		return	MSM_USB20_SEC_QSCRATCH_BASE;
+	else
+		return	MSM_USB30_QSCRATCH_PRIM_BASE;
+}
+
+uint32_t usb_phy_base()
+{
+	if (board_hardware_id() == HW_PLATFORM_SBC)
+		return	QUSB2_SEC_PHY_BASE;
+	else
+		return	QUSB2_PRIM_PHY_BASE;
+}
+
+uint32_t usb_phy_bcr()
+{
+	if (board_hardware_id() == HW_PLATFORM_SBC)
+		return	GCC_QUSB2_SEC_PHY_BCR;
+	else
+		return	GCC_QUSB2_PRIM_PHY_BCR;
+}
+
