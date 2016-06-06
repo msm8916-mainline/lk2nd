@@ -132,6 +132,7 @@ struct fastboot_cmd_desc {
 /* make 4096 as default size to ensure EFS,EXT4's erasing */
 #define DEFAULT_ERASE_SIZE  4096
 #define MAX_PANEL_BUF_SIZE 196
+#define FOOTER_SIZE 16384
 
 #define DISPLAY_DEFAULT_PREFIX "mdss_mdp"
 #define BOOT_DEV_MAX_LEN  64
@@ -2501,6 +2502,7 @@ void cmd_erase_mmc(const char *arg, void *data, unsigned sz)
 	unsigned long long size = 0;
 	int index = INVALID_PTN;
 	uint8_t lun = 0;
+	char *footer = NULL;
 
 #if VERIFIED_BOOT
 	if(!strcmp(arg, KEYSTORE_PTN_NAME))
@@ -2542,6 +2544,21 @@ void cmd_erase_mmc(const char *arg, void *data, unsigned sz)
 		if (mmc_write(ptn , size, (unsigned int *)out)) {
 			fastboot_fail("failed to erase partition");
 			return;
+		}
+		/*Erase FDE metadata at the userdata footer*/
+		if(!(strncmp(arg, "userdata", 8)))
+		{
+			footer = memalign(CACHE_LINE, FOOTER_SIZE);
+			memset((void *)footer, 0, FOOTER_SIZE);
+
+			size = partition_get_size(index);
+
+			if (mmc_write((ptn + size) - FOOTER_SIZE , FOOTER_SIZE, (unsigned int *)footer)) {
+				fastboot_fail("failed to erase userdata footer");
+				free(footer);
+				return;
+			}
+			free(footer);
 		}
 	}
 #if VERIFIED_BOOT
