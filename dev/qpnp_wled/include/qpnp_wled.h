@@ -47,8 +47,11 @@
 #define QPNP_WLED_VLOOP_COMP_RES(b)            (b + 0x55)
 #define QPNP_WLED_VLOOP_COMP_GM(b)             (b + 0x56)
 #define QPNP_WLED_PSM_CTRL(b)                  (b + 0x5B)
-#define QPNP_WLED_TEST4(b)		       (b + 0xE5)
+#define QPNP_WLED_TEST4(b)                     (b + 0xE5)
+#define QPNP_WLED_CTRL_SPARE_REG(b)            (b + 0xDF)
+#define QPNP_WLED_REF_7P7_TRIM_REG(b)          (b + 0xF2)
 
+#define QPNP_WLED_7P7_TRIM_MASK                0xF
 #define QPNP_WLED_EN_MASK                      0x7F
 #define QPNP_WLED_EN_SHIFT                     7
 #define QPNP_WLED_FDBK_OP_MASK                 0xF8
@@ -182,6 +185,19 @@
 #define QPNP_WLED_MAX_BR_LEVEL                 1638
 
 #define PWRDN_DLY2_MASK                        0x3
+
+#define NUM_SUPPORTED_AVDD_VOLTAGES 		   6
+
+/* Supported values  7900, 7600, 7300, 6400, 6100, 5800 */
+#if TARGET_QPNP_WLED_AVDD_DEFAULT_VOLTAGE_MV
+#define QPNP_WLED_AVDD_DEFAULT_VOLTAGE_MV	   TARGET_QPNP_WLED_AVDD_DEFAULT_VOLTAGE_MV
+#else
+#define QPNP_WLED_AVDD_DEFAULT_VOLTAGE_MV	   7600
+#endif
+
+#define QPNP_WLED_AVDD_MIN_TRIM_VALUE          0x0
+#define QPNP_WLED_AVDD_MAX_TRIM_VALUE          0xF
+#define QPNP_WLED_AVDD_SET_BIT                 BIT(4)
 
 /* output feedback mode */
 enum qpnp_wled_fdbk_op {

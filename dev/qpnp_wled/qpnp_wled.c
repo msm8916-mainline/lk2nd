@@ -34,6 +34,18 @@
 #include <pm8x41_wled.h>
 #include <qtimer.h>
 
+static int qpnp_wled_avdd_target_voltages[NUM_SUPPORTED_AVDD_VOLTAGES] = {
+	7900, 7600, 7300, 6400, 6100, 5800,
+};
+
+static uint8_t qpnp_wled_ovp_reg_settings[NUM_SUPPORTED_AVDD_VOLTAGES] = {
+	0x0, 0x0, 0x1, 0x2, 0x2, 0x3,
+};
+
+static int qpnp_wled_avdd_trim_adjustments[NUM_SUPPORTED_AVDD_VOLTAGES] = {
+	3, 0, -2, 7, 3, 3,
+};
+
 static int fls(uint16_t n)
 {
 	int i = 0;
@@ -310,6 +322,44 @@ static int qpnp_wled_config(struct qpnp_wled *wled)
 	reg &= QPNP_WLED_OVP_MASK;
 	reg |= temp;
 	pm8x41_wled_reg_write(QPNP_WLED_OVP_REG(wled->ctrl_base), reg);
+
+	if (wled->disp_type_amoled) {
+		for (i = 0; i < NUM_SUPPORTED_AVDD_VOLTAGES; i++) {
+			if (QPNP_WLED_AVDD_DEFAULT_VOLTAGE_MV == qpnp_wled_avdd_target_voltages[i])
+				break;
+		}
+		if (i == NUM_SUPPORTED_AVDD_VOLTAGES)
+		{
+			dprintf(CRITICAL, "Invalid avdd target voltage specified \n");
+			return ERR_NOT_VALID;
+		}
+		/* Update WLED_OVP register based on desired target voltage */
+		reg = qpnp_wled_ovp_reg_settings[i];
+		pm8x41_wled_reg_write(QPNP_WLED_OVP_REG(wled->ctrl_base), reg);
+		/* Update WLED_TRIM register based on desired target voltage */
+		reg = pm8x41_wled_reg_read(
+			QPNP_WLED_REF_7P7_TRIM_REG(wled->ctrl_base));
+		reg += qpnp_wled_avdd_trim_adjustments[i];
+		if ((int8_t)reg < QPNP_WLED_AVDD_MIN_TRIM_VALUE)
+			reg = QPNP_WLED_AVDD_MIN_TRIM_VALUE;
+		else if((int8_t)reg > QPNP_WLED_AVDD_MAX_TRIM_VALUE)
+			reg = QPNP_WLED_AVDD_MAX_TRIM_VALUE;
+
+		rc = qpnp_wled_sec_access(wled, wled->ctrl_base);
+		if (rc)
+			return rc;
+
+		temp = pm8x41_wled_reg_read(
+			QPNP_WLED_REF_7P7_TRIM_REG(wled->ctrl_base));
+		temp &= ~QPNP_WLED_7P7_TRIM_MASK;
+		temp |= (reg & QPNP_WLED_7P7_TRIM_MASK);
+		pm8x41_wled_reg_write(QPNP_WLED_REF_7P7_TRIM_REG(wled->ctrl_base), temp);
+		/* Write to spare to avoid reconfiguration in HLOS */
+		reg = pm8x41_wled_reg_read(
+			QPNP_WLED_CTRL_SPARE_REG(wled->ctrl_base));
+		reg |= QPNP_WLED_AVDD_SET_BIT;
+		pm8x41_wled_reg_write(QPNP_WLED_CTRL_SPARE_REG(wled->ctrl_base), reg);
+	}
 
 	/* Configure the MODULATION register */
 	if (wled->mod_freq_khz <= QPNP_WLED_MOD_FREQ_1200_KHZ) {
