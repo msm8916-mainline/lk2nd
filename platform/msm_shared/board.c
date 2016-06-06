@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -289,30 +289,26 @@ static void platform_detect()
 
 void pmic_info_populate()
 {
-	struct smem_board_info_v11 *bi_v11=NULL;
-	unsigned int board_info_len = 0;
-	unsigned ret = 0;
 	uint32_t pmic_type = 0;
+	void *smem_board_info_addr = NULL;
+	uint32_t smem_board_info_size = 0;
 
 	if (format_minor < 0xB)
 	{
 		// not needed for smem versions < 0xB
 		return;
 	}
-
-	board_info_len = sizeof(struct smem_board_info_v11) + board.num_pmics * sizeof(struct smem_pmic_info);
-	if(!(bi_v11 = malloc(board_info_len)))
+	smem_board_info_addr = smem_get_alloc_entry(SMEM_BOARD_INFO_LOCATION, &smem_board_info_size);
+	if (smem_board_info_addr == NULL)
 	{
-		dprintf(CRITICAL, "Error allocating memory for board structure\n");
+		dprintf(CRITICAL, "Error reading the smem board info address\n");
 		ASSERT(0);
 	}
-	ret = smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
-					bi_v11,
-					board_info_len);
-	if (ret)
+
+	if (smem_board_info_size < board.pmic_array_offset)
 	{
-		dprintf(CRITICAL, "Error reading from SMEM for populating pmic info\n");
-		goto free_bi_v11;
+		dprintf(CRITICAL, "Invalid SMEM board info\n");
+		ASSERT(0);
 	}
 
 	if(!(board.pmic_info_array = malloc(board.num_pmics * sizeof(struct board_pmic_data))))
@@ -320,10 +316,11 @@ void pmic_info_populate()
 		dprintf(CRITICAL, "Error allocating memory for pmic info array\n");
 		ASSERT(0);
 	}
+
 	struct board_pmic_data *info = board.pmic_info_array;
 	for (uint8_t i = 0; i < board.num_pmics; i++)
 	{
-		memcpy(info, (void *)(bi_v11) + board.pmic_array_offset + (i * sizeof(struct smem_pmic_info)), sizeof(struct smem_pmic_info));
+		memcpy(info, smem_board_info_addr + board.pmic_array_offset + (i * sizeof(struct smem_pmic_info)), sizeof(struct smem_pmic_info));
 		/*
 		 * fill in pimc_board_info with pmic type and pmic version information
 		 * bit no  		  	    |31  24|23         16|15          8|7		 0|
@@ -335,8 +332,6 @@ void pmic_info_populate()
 			   ((info->pmic_version & 0xff) << 8) | (pmic_type & 0xff);
 		info++;
 	}
-free_bi_v11:
-	free(bi_v11);
 }
 
 void board_init()
