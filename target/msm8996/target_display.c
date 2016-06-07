@@ -92,6 +92,88 @@ static struct gpio_pin dsi2hdmi_switch_gpio = {
   "msmgpio", 105, 3, 1, 0, 1
 };
 
+/* gpio name, id, strength, direction, pull, state. */
+static struct gpio_pin hdmi_cec_gpio = {        /* CEC */
+  "msmgpio", 31, 0, 2, 3, 1
+};
+
+static struct gpio_pin hdmi_ddc_clk_gpio = {   /* DDC CLK */
+  "msmgpio", 32, 0, 2, 3, 1
+};
+
+static struct gpio_pin hdmi_ddc_data_gpio = {  /* DDC DATA */
+  "msmgpio", 33, 0, 2, 3, 1
+};
+
+static struct gpio_pin hdmi_hpd_gpio = {       /* HPD, input */
+  "msmgpio", 34, 7, 0, 1, 1
+};
+
+static void target_hdmi_ldo_enable(uint8_t enable)
+{
+	if (enable)
+		regulator_enable(REG_LDO12);
+	else
+		regulator_disable(REG_LDO12);
+}
+
+static void target_hdmi_mpp4_enable(uint8_t enable)
+{
+	struct pm8x41_mpp mpp;
+
+	/* Enable MPP4 */
+	pmi8994_config_mpp_slave_id(0);
+
+        mpp.base = PM8x41_MMP4_BASE;
+	mpp.vin = MPP_VIN2;
+	mpp.mode = MPP_HIGH;;
+	if (enable) {
+		pm8x41_config_output_mpp(&mpp);
+		pm8x41_enable_mpp(&mpp, MPP_ENABLE);
+	} else {
+		pm8x41_enable_mpp(&mpp, MPP_DISABLE);
+	}
+
+	/* Need delay before power on regulators */
+	mdelay(20);
+}
+
+int target_hdmi_regulator_ctrl(uint8_t enable)
+{
+	target_hdmi_ldo_enable(enable);
+
+	target_hdmi_mpp4_enable(enable);
+
+	return 0;
+}
+
+int target_hdmi_gpio_ctrl(uint8_t enable)
+{
+	gpio_tlmm_config(hdmi_cec_gpio.pin_id, 1,	/* gpio 31, CEC */
+		hdmi_cec_gpio.pin_direction, hdmi_cec_gpio.pin_pull,
+		hdmi_cec_gpio.pin_strength, hdmi_cec_gpio.pin_state);
+
+	gpio_tlmm_config(hdmi_ddc_clk_gpio.pin_id, 1,	/* gpio 32, DDC CLK */
+		hdmi_ddc_clk_gpio.pin_direction, hdmi_ddc_clk_gpio.pin_pull,
+		hdmi_ddc_clk_gpio.pin_strength, hdmi_ddc_clk_gpio.pin_state);
+
+
+	gpio_tlmm_config(hdmi_ddc_data_gpio.pin_id, 1,	/* gpio 33, DDC DATA */
+		hdmi_ddc_data_gpio.pin_direction, hdmi_ddc_data_gpio.pin_pull,
+		hdmi_ddc_data_gpio.pin_strength, hdmi_ddc_data_gpio.pin_state);
+
+	gpio_tlmm_config(hdmi_hpd_gpio.pin_id, 1,	/* gpio 34, HPD */
+		hdmi_hpd_gpio.pin_direction, hdmi_hpd_gpio.pin_pull,
+		hdmi_hpd_gpio.pin_strength, hdmi_hpd_gpio.pin_state);
+
+	gpio_set(hdmi_cec_gpio.pin_id,      hdmi_cec_gpio.pin_direction);
+	gpio_set(hdmi_ddc_clk_gpio.pin_id,  hdmi_ddc_clk_gpio.pin_direction);
+	gpio_set(hdmi_ddc_data_gpio.pin_id, hdmi_ddc_data_gpio.pin_direction);
+	gpio_set(hdmi_hpd_gpio.pin_id,      hdmi_hpd_gpio.pin_direction);
+
+	return NO_ERROR;
+}
+
 static uint32_t thulium_dsi_pll_lock_status(uint32_t pll_base, uint32_t off,
 	uint32_t bit)
 {
@@ -579,6 +661,7 @@ bool target_display_panel_node(char *pbuf, uint16_t buf_size)
 	int prefix_string_len = strlen(DISPLAY_CMDLINE_PREFIX);
 	bool ret = true;
 	struct oem_panel_data oem = mdss_dsi_get_oem_data();
+	char vic_buf[HDMI_VIC_LEN] = "0";
 
 	if (!strcmp(oem.panel, HDMI_PANEL_NAME)) {
 		if (buf_size < (prefix_string_len + LK_OVERRIDE_PANEL_LEN +
@@ -592,6 +675,9 @@ bool target_display_panel_node(char *pbuf, uint16_t buf_size)
 		strlcat(pbuf, LK_OVERRIDE_PANEL, buf_size);
 		buf_size -= LK_OVERRIDE_PANEL_LEN;
 		strlcat(pbuf, HDMI_CONTROLLER_STRING, buf_size);
+		buf_size -= strlen(HDMI_CONTROLLER_STRING);
+		mdss_hdmi_get_vic(vic_buf);
+		strlcat(pbuf, vic_buf, buf_size);
 	} else {
 		ret = gcdb_display_cmdline_arg(pbuf, buf_size);
 	}
@@ -629,6 +715,8 @@ void target_display_init(const char *panel_name)
 			oem.panel);
 		return;
 	} else if (!strcmp(oem.panel, HDMI_PANEL_NAME)) {
+		dprintf(INFO, "%s: HDMI is primary\n", __func__);
+		mdss_hdmi_display_init(MDP_REV_50, (void *) HDMI_FB_ADDR);
 		return;
 	}
 

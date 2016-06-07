@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -687,4 +687,37 @@ void clock_config_blsp_i2c(uint8_t blsp_id, uint8_t qup_id)
 		dprintf(CRITICAL, "Failed to enable %s\n", clk_name);
 		return;
 	}
+}
+
+void hdmi_clk_enable(void)
+{
+	int ret;
+
+	/* Configure hdmi ahb clock */
+	ret = clk_get_set_enable("hdmi_ahb_clk", 0, 1);
+	if(ret) {
+		dprintf(CRITICAL, "failed to set hdmi_ahb_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	/* Configure hdmi core clock */
+	ret = clk_get_set_enable("hdmi_core_clk", 19200000, 1);
+	if(ret) {
+		dprintf(CRITICAL, "failed to set hdmi_core_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+
+	/* Configure hdmi pixel clock */
+	ret = clk_get_set_enable("hdmi_extp_clk", 148500000, 1);
+	if(ret) {
+		dprintf(CRITICAL, "failed to set hdmi_extp_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+}
+
+void hdmi_clk_disable(void)
+{
+	clk_disable(clk_get("hdmi_extp_clk"));
+	clk_disable(clk_get("hdmi_core_clk"));
+	clk_disable(clk_get("hdmi_ahb_clk"));
 }

@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -33,6 +33,7 @@
 /* HEADER files                                                              */
 /*---------------------------------------------------------------------------*/
 #include <display_resource.h>
+#include <msm_panel.h>
 
 /*---------------------------------------------------------------------------*/
 /* Target Physical configuration                                             */
@@ -67,6 +68,7 @@ static const uint32_t panel_physical_ctrl[] = { };
 #define DISPLAY_CMDLINE_PREFIX " mdss_mdp.panel="
 
 #define MIPI_FB_ADDR  0x83400000
+#define HDMI_FB_ADDR  0xB1C00000
 
 #define MIPI_HSYNC_PULSE_WIDTH       16
 #define MIPI_HSYNC_BACK_PORCH_DCLK   32
@@ -79,7 +81,8 @@ static const uint32_t panel_physical_ctrl[] = { };
 #define PWM_BL_LPG_CHAN_ID           4	/* lpg_out<3> */
 
 #define HDMI_PANEL_NAME              "hdmi"
-#define HDMI_CONTROLLER_STRING       "hdmi:0"
+#define HDMI_CONTROLLER_STRING       "hdmi:"
+#define HDMI_VIC_LEN                 5
 
 /*---------------------------------------------------------------------------*/
 /* Functions		                                                     */
@@ -93,5 +96,9 @@ int target_display_get_base_offset(uint32_t base);
 void target_force_cont_splash_disable(uint8_t override);
 uint8_t target_panel_auto_detect_enabled();
 void target_set_switch_gpio(int enable_dsi2hdmibridge);
+int target_hdmi_pll_clock(uint8_t enable, struct msm_panel_info *pinfo);
+int target_hdmi_panel_clock(uint8_t enable, struct msm_panel_info *pinfo);
+int target_hdmi_regulator_ctrl(uint8_t enable);
+int target_hdmi_gpio_ctrl(uint8_t enable);
 
 #endif

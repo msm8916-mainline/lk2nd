@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -100,6 +100,8 @@ static struct hdmi_msm_audio_arcs hdmi_audio_acr_lut[] = {
 		{3072, 222750}, {4704, 247500}, {5120, 247500}, {9408, 247500},
 		{10240, 247500}, {18816, 247500}, {20480, 247500} }),
 };
+
+extern int msm_display_init(struct msm_fb_panel_data *pdata);
 
 /* AVI INFOFRAME DATA */
 #define NUM_MODES_AVI 20
