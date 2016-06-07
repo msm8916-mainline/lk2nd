@@ -109,13 +109,16 @@ void reboot_device(unsigned reboot_reason)
 		return;
 	}
 
+	if (reboot_reason != NORMAL_DLOAD && reboot_reason != EMERGENCY_DLOAD) {
 #if USE_PON_REBOOT_REG
-	value = REG_READ(PON_SOFT_RB_SPARE);
-	value |= (reboot_reason << 2);
-	REG_WRITE(PON_SOFT_RB_SPARE, value);
+		value = REG_READ(PON_SOFT_RB_SPARE);
+		value |= (reboot_reason << 2);
+		REG_WRITE(PON_SOFT_RB_SPARE, value);
 #else
-	writel(reboot_reason, RESTART_REASON_ADDR);
+		writel(reboot_reason, RESTART_REASON_ADDR);
 #endif
+	}
+
 	/* For Dload cases do a warm reset
 	 * For other cases do a hard reset
 	 */
