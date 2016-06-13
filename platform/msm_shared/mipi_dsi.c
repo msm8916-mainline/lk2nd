@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -404,6 +404,21 @@ static int mipi_dsi_cmd_bta_sw_trigger(void)
 	return err;
 }
 
+static void mdss_dsi_force_clk_lane_hs(uint32_t dual_dsi)
+{
+	uint32_t tmp;
+
+	if (dual_dsi) {
+		tmp = readl_relaxed(MIPI_DSI1_BASE + LANE_CTL);
+		tmp |= BIT(28);
+		writel_relaxed(tmp, MIPI_DSI1_BASE + LANE_CTL);
+	}
+
+	tmp = readl_relaxed(MIPI_DSI0_BASE + LANE_CTL);
+	tmp |= BIT(28);
+	writel_relaxed(tmp, MIPI_DSI0_BASE + LANE_CTL);
+}
+
 int mdss_dsi_host_init(struct mipi_dsi_panel_config *pinfo, uint32_t
 		dual_dsi, uint32_t broadcast)
 {
@@ -469,14 +484,6 @@ int mdss_dsi_host_init(struct mipi_dsi_panel_config *pinfo, uint32_t
 			lane_swap_dsi1 = lane_swap;
 		writel(lane_swap_dsi1, MIPI_DSI1_BASE + LANE_SWAP_CTL);
 		writel(timing_ctl, MIPI_DSI1_BASE + TIMING_CTL);
-
-		if (pinfo->force_clk_lane_hs) {
-			uint32_t tmp;
-
-			tmp = readl(MIPI_DSI1_BASE + LANE_CTL);
-			tmp |= BIT(28);
-			writel(tmp, MIPI_DSI1_BASE + LANE_CTL);
-		}
 	}
 
 	writel(0x0001, MIPI_DSI0_BASE + SOFT_RESET);
@@ -495,13 +502,6 @@ int mdss_dsi_host_init(struct mipi_dsi_panel_config *pinfo, uint32_t
 	writel(lane_swap, MIPI_DSI0_BASE + LANE_SWAP_CTL);
 	writel(timing_ctl, MIPI_DSI0_BASE + TIMING_CTL);
 
-	if (pinfo->force_clk_lane_hs) {
-		uint32_t tmp;
-
-		tmp = readl(MIPI_DSI0_BASE + LANE_CTL);
-		tmp |= BIT(28);
-		writel(tmp, MIPI_DSI0_BASE + LANE_CTL);
-	}
 #endif
 
 	return 0;
@@ -797,6 +797,9 @@ int mdss_dsi_config(struct msm_fb_panel_data *panel)
 			goto error;
 		}
 	}
+
+	if (mipi_pinfo.force_clk_lane_hs)
+		mdss_dsi_force_clk_lane_hs(pinfo->mipi.dual_dsi);
 
 	if (!mipi_pinfo.cmds_post_tg) {
 		ret = mdss_dsi_panel_initialize(&mipi_pinfo, pinfo->mipi.broadcast);
