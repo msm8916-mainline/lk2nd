@@ -425,6 +425,9 @@ static int qpnp_wled_config(struct qpnp_wled *wled)
 			QPNP_WLED_LAB_FAST_PC_REG(wled->lab_base));
 	reg &= QPNP_WLED_LAB_FAST_PC_MASK;
 	reg |= (wled->lab_fast_precharge << QPNP_WLED_LAB_FAST_PC_SHIFT);
+	/* LAB max precharge  time */
+	reg &= QPNP_WLED_PRECHARGE_MASK;
+	reg |= (wled->lab_max_precharge_time);
 	pm8x41_wled_reg_write(QPNP_WLED_LAB_FAST_PC_REG(wled->lab_base), reg);
 
 	/* Configure lab display type */
@@ -523,6 +526,7 @@ static int qpnp_wled_setup(struct qpnp_wled *wled, struct qpnp_wled_config_data 
 
 	wled->ibb_bias_active = false;
 	wled->lab_fast_precharge = false;
+	wled->lab_max_precharge_time = QPNP_WLED_PRECHARGE_US500;
 	wled->ibb_pwrup_dly_ms = config->pwr_up_delay;
 	wled->ibb_pwrdn_dly_ms = config->pwr_down_delay;
 	wled->ibb_discharge_en = config->ibb_discharge_en;

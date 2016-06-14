@@ -164,6 +164,11 @@
 #define QPNP_WLED_LAB_FAST_PC_MASK             0xFB
 #define QPNP_WLED_LAB_START_DLY_US             8
 #define QPNP_WLED_LAB_FAST_PC_SHIFT            2
+#define QPNP_WLED_PRECHARGE_MASK               0xFC
+#define QPNP_WLED_PRECHARGE_US200              0x00
+#define QPNP_WLED_PRECHARGE_US300              0x01
+#define QPNP_WLED_PRECHARGE_US400              0x02
+#define QPNP_WLED_PRECHARGE_US500              0x03
 
 #define QPNP_WLED_SEC_ACCESS_REG(b)            (b + 0xD0)
 #define QPNP_WLED_SEC_UNLOCK                   0xA5
@@ -266,6 +271,7 @@ struct qpnp_wled {
 	bool disp_type_amoled;
 	bool ibb_bias_active;
 	bool lab_fast_precharge;
+	uint8_t  lab_max_precharge_time;
 	uint32_t lab_min_volt;
 	uint32_t lab_max_volt;
 	uint32_t ibb_min_volt;
