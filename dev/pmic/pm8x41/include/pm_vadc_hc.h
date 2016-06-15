@@ -48,12 +48,12 @@
 #define HC_DEC_RATIO_SHIFT				2
 
 #define HC_FAST_AVG_CTL					0x43
-#define HC_FAST_AVG_SAMPLES_MASK			0xfff
+#define HC_FAST_AVG_SAMPLES_MASK			0x7
 
 #define HC_ADC_CH_SEL_CTL				0x44
 
 #define HC_DELAY_CTL					0x45
-#define HC_DELAY_CTL_MASK				0xfff
+#define HC_DELAY_CTL_MASK				0xf
 
 #define HC_EN_CTL1					0x46
 #define HC_ADC_EN					BIT(7)
@@ -77,6 +77,15 @@ enum adc_type {
 
 struct adc_dev {
 	enum adc_type	adc_type;
+};
+
+enum adc_fast_avg_sample {
+	AVG_1_SAMPLE = 0,
+	AVG_2_SAMPLES,
+	AVG_4_SAMPLES,
+	AVG_8_SAMPLES,
+	AVG_16_SAMPLES,
+	AVG_SAMPLES_INVALID
 };
 
 enum adc_channel_prediv_type {
