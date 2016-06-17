@@ -1276,7 +1276,7 @@ int dev_tree_add_mem_info(void *fdt, uint32_t offset, uint64_t addr, uint64_t si
 
 /* Top level function that updates the device tree. */
 int update_device_tree(void *fdt, const char *cmdline,
-					   void *ramdisk, uint32_t ramdisk_size)
+					   void *ramdisk, uint32_t ramdisk_size, unsigned char* mac)
 {
 	int ret = 0;
 	uint32_t offset;
@@ -1357,6 +1357,24 @@ int update_device_tree(void *fdt, const char *cmdline,
 		{
 			dprintf(CRITICAL, "ERROR: Cannot update chosen node [linux,initrd-end]\n");
 			return ret;
+		}
+	}
+
+	/* make sure local-mac-address is set for WCN device */
+	offset = fdt_node_offset_by_compatible(fdt, -1, "qcom,wcnss-wlan");
+
+	if (mac != NULL && offset != -FDT_ERR_NOTFOUND)
+	{
+		if (fdt_getprop(fdt, offset, "local-mac-address", NULL) == NULL)
+		{
+			dprintf(INFO, "Setting mac address in DT: %x:%x:%x:%x:%x:%x\n",
+				mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+			ret = fdt_setprop(fdt, offset, "local-mac-address", mac, 6);
+			if (ret)
+			{
+				dprintf(CRITICAL, "ERROR: cannot set local-mac-address\n");
+				return ret;
+			}
 		}
 	}
 
