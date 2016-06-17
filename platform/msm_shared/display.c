@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -411,6 +411,11 @@ int msm_display_off()
 		if (ret)
 			goto msm_display_off_out;
 		break;
+	case HDMI_PANEL:
+		dprintf(INFO, "Turn off HDMI PANEL.\n");
+		ret = mdss_hdmi_off(pinfo);
+		break;
+
 #endif
 #ifdef DISPLAY_TYPE_QPIC
 	case QPIC_PANEL:

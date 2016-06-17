@@ -303,6 +303,8 @@
 #define HDMI_CLK_RATE_148_MHZ		       148500000
 #define HDMI_CLK_RATE_74_MHZ		       74250000
 #define HDMI_CLK_RATE_25_MHZ		       25200000
+#define HDMI_CLK_RATE_297_MHZ		       297000000
+#define HDMI_CLK_RATE_594_MHZ		       594000000
 
 #define SW_RESET BIT(2)
 #define SW_RESET_PLL BIT(0)
@@ -537,6 +539,102 @@ static int get_pll_settings(uint32_t tmds_clk_rate,
 		cfg->tx_l2_res_code_lane_tx = 0x0;
 		cfg->tx_l3_res_code_lane_tx = 0x0;
 		cfg->phy_mode = 0x0;
+		break;
+	case HDMI_CLK_RATE_297_MHZ:
+		cfg->tx_l0_lane_mode = 0x43;
+		cfg->tx_l2_lane_mode = 0x43;
+		cfg->tx_l0_tx_band = 0x4;
+		cfg->tx_l1_tx_band = 0x4;
+		cfg->tx_l2_tx_band = 0x4;
+		cfg->tx_l3_tx_band = 0x4;
+		cfg->com_svs_mode_clk_sel = 0x1;
+		cfg->com_hsclk_sel = 0x24;
+		cfg->com_pll_cctrl_mode0 = 0x28;
+		cfg->com_pll_rctrl_mode0 = 0x16;
+		cfg->com_cp_ctrl_mode0 = 0xb;
+		cfg->com_dec_start_mode0 = 0x74;
+		cfg->com_div_frac_start1_mode0 = 0x0;
+		cfg->com_div_frac_start2_mode0 = 0x40;
+		cfg->com_div_frac_start3_mode0 = 0x0;
+		cfg->com_integloop_gain0_mode0 = 0x80;
+		cfg->com_integloop_gain1_mode0 = 0x0;
+		cfg->com_lock_cmp_en = 0x0;
+		cfg->com_lock_cmp1_mode0 = 0xdf;
+		cfg->com_lock_cmp2_mode0 = 0x3d;
+		cfg->com_lock_cmp3_mode0 = 0x0;
+		cfg->com_core_clk_en = 0x2c;
+		cfg->com_coreclk_div = 0x5;
+		cfg->com_restrim_ctrl = 0x0;
+		cfg->com_vco_tune_ctrl = 0x0;
+		cfg->tx_l0_tx_drv_lvl = 0x25;
+		cfg->tx_l0_tx_emp_post1_lvl = 0x23;
+		cfg->tx_l1_tx_drv_lvl = 0x25;
+		cfg->tx_l1_tx_emp_post1_lvl = 0x23;
+		cfg->tx_l2_tx_drv_lvl = 0x25;
+		cfg->tx_l2_tx_emp_post1_lvl = 0x23;
+		cfg->tx_l3_tx_drv_lvl = 0x25;
+		cfg->tx_l3_tx_emp_post1_lvl = 0x23;
+		cfg->tx_l0_vmode_ctrl1 = 0x0;
+		cfg->tx_l0_vmode_ctrl2 = 0xd;
+		cfg->tx_l1_vmode_ctrl1 = 0x0;
+		cfg->tx_l1_vmode_ctrl2 = 0xd;
+		cfg->tx_l2_vmode_ctrl1 = 0x0;
+		cfg->tx_l2_vmode_ctrl2 = 0xd;
+		cfg->tx_l3_vmode_ctrl1 = 0x0;
+		cfg->tx_l3_vmode_ctrl2 = 0x0;
+		cfg->tx_l0_res_code_lane_tx = 0x0;
+		cfg->tx_l1_res_code_lane_tx = 0x0;
+		cfg->tx_l2_res_code_lane_tx = 0x0;
+		cfg->tx_l3_res_code_lane_tx = 0x0;
+		cfg->phy_mode = 0x00;
+		break;
+	case HDMI_CLK_RATE_594_MHZ:
+		cfg->tx_l0_lane_mode = 0x43;
+		cfg->tx_l2_lane_mode = 0x43;
+		cfg->tx_l0_tx_band = 0x4;
+		cfg->tx_l1_tx_band = 0x4;
+		cfg->tx_l2_tx_band = 0x4;
+		cfg->tx_l3_tx_band = 0x4;
+		cfg->com_svs_mode_clk_sel = 0x1;
+		cfg->com_hsclk_sel = 0x20;
+		cfg->com_pll_cctrl_mode0 = 0x28;
+		cfg->com_pll_rctrl_mode0 = 0x16;
+		cfg->com_cp_ctrl_mode0 = 0xb;
+		cfg->com_dec_start_mode0 = 0x9a;
+		cfg->com_div_frac_start1_mode0 = 0x0;
+		cfg->com_div_frac_start2_mode0 = 0x0;
+		cfg->com_div_frac_start3_mode0 = 0xb;
+		cfg->com_integloop_gain0_mode0 = 0x80;
+		cfg->com_integloop_gain1_mode0 = 0x0;
+		cfg->com_lock_cmp_en = 0x0;
+		cfg->com_lock_cmp1_mode0 = 0xbf;
+		cfg->com_lock_cmp2_mode0 = 0x7b;
+		cfg->com_lock_cmp3_mode0 = 0x0;
+		cfg->com_core_clk_en = 0x2c;
+		cfg->com_coreclk_div = 0x5;
+		cfg->com_restrim_ctrl = 0x0;
+		cfg->com_vco_tune_ctrl = 0x0;
+		cfg->tx_l0_tx_drv_lvl = 0x25;
+		cfg->tx_l0_tx_emp_post1_lvl = 0x23;
+		cfg->tx_l1_tx_drv_lvl = 0x25;
+		cfg->tx_l1_tx_emp_post1_lvl = 0x23;
+		cfg->tx_l2_tx_drv_lvl = 0x25;
+		cfg->tx_l2_tx_emp_post1_lvl = 0x23;
+		cfg->tx_l3_tx_drv_lvl = 0x22;
+		cfg->tx_l3_tx_emp_post1_lvl = 0x27;
+		cfg->tx_l0_vmode_ctrl1 = 0x0;
+		cfg->tx_l0_vmode_ctrl2 = 0xd;
+		cfg->tx_l1_vmode_ctrl1 = 0x0;
+		cfg->tx_l1_vmode_ctrl2 = 0xd;
+		cfg->tx_l2_vmode_ctrl1 = 0x0;
+		cfg->tx_l2_vmode_ctrl2 = 0xd;
+		cfg->tx_l3_vmode_ctrl1 = 0x0;
+		cfg->tx_l3_vmode_ctrl2 = 0x0;
+		cfg->tx_l0_res_code_lane_tx = 0x0;
+		cfg->tx_l1_res_code_lane_tx = 0x0;
+		cfg->tx_l2_res_code_lane_tx = 0x0;
+		cfg->tx_l3_res_code_lane_tx = 0x0;
+		cfg->phy_mode = 0x10;
 		break;
 	default:
 		return ERROR;
@@ -782,7 +880,7 @@ int hdmi_vco_enable(void)
 	num_reads = HDMI_PLL_POLL_MAX_READS;
 	status = readl(HDMI_PHY_STATUS);
 	while (!(status & BIT(0)) && num_reads) {
-		status = readl(QSERDES_COM_C_READY_STATUS);
+		status = readl(HDMI_PHY_STATUS);
 		num_reads--;
 		udelay(HDMI_PLL_POLL_TIMEOUT_US);
 	}

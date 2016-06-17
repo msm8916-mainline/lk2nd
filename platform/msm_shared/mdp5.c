@@ -547,9 +547,8 @@ static void mdss_intf_tg_setup(struct msm_panel_info *pinfo, uint32_t intf_base)
 		writel(BIT(16) | (0x3 << 20), REG_MDP(ppb_offset + 0x4)); /* MMSS_MDP_PPB0_CONFIG */
 	}
 
-	if (pinfo->compression_mode == COMPRESSION_FBC)
-		if (!pinfo->fbc.enabled || !pinfo->fbc.comp_ratio)
-			pinfo->fbc.comp_ratio = 1;
+	if (!pinfo->fbc.enabled || !pinfo->fbc.comp_ratio)
+		pinfo->fbc.comp_ratio = 1;
 
 	itp.xres = (adjust_xres / pinfo->fbc.comp_ratio);
 	itp.yres = pinfo->yres;
@@ -1090,10 +1089,10 @@ int mdp_edp_config(struct msm_panel_info *pinfo, struct fbcon_config *fb)
 
 int mdss_hdmi_config(struct msm_panel_info *pinfo, struct fbcon_config *fb)
 {
-	uint32_t left_pipe, right_pipe;
-	dprintf(SPEW, "ENTER: %s\n", __func__);
+	uint32_t left_pipe, right_pipe, out_size;
 
 	mdss_intf_tg_setup(pinfo, MDP_INTF_3_BASE + mdss_mdp_intf_offset());
+	mdss_intf_fetch_start_config(pinfo, MDP_INTF_3_BASE + mdss_mdp_intf_offset());
 	pinfo->pipe_type = MDSS_MDP_PIPE_TYPE_RGB;
 	mdp_select_pipe_type(pinfo, &left_pipe, &right_pipe);
 
@@ -1116,9 +1115,22 @@ int mdss_hdmi_config(struct msm_panel_info *pinfo, struct fbcon_config *fb)
 		writel(0x40, MDP_CTL_0_BASE + CTL_TOP);
 
 	writel(BIT(24) | BIT(25), MDP_DISP_INTF_SEL);
-	writel(0x1111, MDP_VIDEO_INTF_UNDERFLOW_CTL);
+	writel(0x11111, MDP_VIDEO_INTF_UNDERFLOW_CTL);
 	writel(0x01, MDP_UPPER_NEW_ROI_PRIOR_RO_START);
 	writel(0x01, MDP_LOWER_NEW_ROI_PRIOR_TO_START);
+
+	/**
+	 * Program the CDM hardware block in HDMI bypass mode, and enable
+	 * the HDMI packer.
+	 */
+	writel(0x01, CDM_HDMI_PACK_OP_MODE);
+	writel(0x00, MDP_OUT_CTL_0);
+	writel(0x00, MDP_INTF_3_INTF_CONFIG);
+	out_size = (pinfo->xres & 0xFFFF) | ((pinfo->yres & 0xFFFF) << 16);
+	writel(out_size, CDM_CDWN2_OUT_SIZE);
+	writel(0x80, CDM_CDWN2_OP_MODE);
+	writel(0x3FF0000, CDM_CDWN2_CLAMP_OUT);
+	writel(0x0, CDM_CSC_10_OP_MODE);
 
 	return 0;
 }
@@ -1354,6 +1366,21 @@ int mdss_hdmi_on(struct msm_panel_info *pinfo)
 	writel(ctl0_reg_val, MDP_CTL_0_BASE + CTL_FLUSH);
 
 	writel(0x01, MDP_INTF_3_TIMING_ENGINE_EN + mdss_mdp_intf_offset());
+
+	return NO_ERROR;
+}
+
+int mdss_hdmi_off(struct msm_panel_info *pinfo)
+{
+	if(!target_cont_splash_screen())
+	{
+		writel(0x00000000, MDP_INTF_3_TIMING_ENGINE_EN + mdss_mdp_intf_offset());
+		mdelay(60);
+		/* Underrun(Interface 0/1/2/3) VSYNC Interrupt Enable  */
+		writel(0xFF777713, MDP_INTR_CLEAR);
+	}
+
+	writel(0x00000000, MDP_INTR_EN);
 
 	return NO_ERROR;
 }
