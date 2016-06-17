@@ -1094,6 +1094,60 @@ void generate_atags(unsigned *ptr, const char *cmdline,
 	}
 }
 
+/* todo: give lk strtoul and nuke this */
+static unsigned hex2unsigned(const char *x)
+{
+    unsigned n = 0;
+
+    while(*x) {
+        switch(*x) {
+        case '0': case '1': case '2': case '3': case '4':
+        case '5': case '6': case '7': case '8': case '9':
+            n = (n << 4) | (*x - '0');
+            break;
+        case 'a': case 'b': case 'c':
+        case 'd': case 'e': case 'f':
+            n = (n << 4) | (*x - 'a' + 10);
+            break;
+        case 'A': case 'B': case 'C':
+        case 'D': case 'E': case 'F':
+            n = (n << 4) | (*x - 'A' + 10);
+            break;
+        default:
+            return n;
+        }
+        x++;
+    }
+
+    return n;
+}
+
+/* generate a unique locally administrated MAC */
+unsigned char* generate_mac_address()
+{
+	int len, i;
+	char sn[] = "00000000";
+	unsigned char * mac;
+
+	/* make sure we have exactly 8 char for serialno */
+	len = MIN(strlen(sn_buf), 8);
+	memcpy(&sn[8-len], sn_buf, len);
+
+	mac = (unsigned char*) malloc(6*sizeof(unsigned char));
+	ASSERT(mac != NULL);
+
+	/* fill in the mac with serialno, use locally adminstrated pool */
+	mac[0] = 0x02;
+	mac[1] = 00;
+	for (i = 3 ; i >= 0; i--)
+	{
+		mac[i+2] = hex2unsigned(&sn[2*i]);
+		sn[2*i]=0;
+	}
+
+	return mac;
+}
+
 typedef void entry_func_ptr(unsigned, unsigned, unsigned*);
 void boot_linux(void *kernel, unsigned *tags,
 		const char *cmdline, unsigned machtype,
@@ -1102,6 +1156,7 @@ void boot_linux(void *kernel, unsigned *tags,
 	unsigned char *final_cmdline;
 #if DEVICE_TREE
 	int ret = 0;
+	unsigned char* mac;
 #endif
 
 	void (*entry)(unsigned, unsigned, unsigned*) = (entry_func_ptr*)(PA((addr_t)kernel));
@@ -1115,8 +1170,10 @@ void boot_linux(void *kernel, unsigned *tags,
 #if DEVICE_TREE
 	dprintf(INFO, "Updating device tree: start\n");
 
+	mac = generate_mac_address();
+
 	/* Update the Device Tree */
-	ret = update_device_tree((void *)tags,(const char *)final_cmdline, ramdisk, ramdisk_size);
+	ret = update_device_tree((void *)tags,(const char *)final_cmdline, ramdisk, ramdisk_size, mac);
 	if(ret)
 	{
 		dprintf(CRITICAL, "ERROR: Updating Device Tree Failed \n");
