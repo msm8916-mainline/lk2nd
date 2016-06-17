@@ -16,3 +16,8 @@ ifeq ($(ENABLE_PWM_SUPPORT),true)
 OBJS += \
 	$(LOCAL_DIR)/pm_pwm.o
 endif
+
+ifeq ($(ENABLE_VADC_HC_SUPPORT),true)
+OBJS += \
+	$(LOCAL_DIR)/pm_vadc_hc.o
+endif
