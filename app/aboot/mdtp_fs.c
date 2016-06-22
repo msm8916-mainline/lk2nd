@@ -152,31 +152,39 @@ int mdtp_fs_init(){
 		return -1;
 	}
 
-	// Get screen configuration
-	fb_config = fbcon_display();
-
 	// Image sets are sorted by screen resolution (width, height), from low to high.
 	// We begin with the smallest image set, and check if bigger image sets also fit the screen.
 	image_params = mdtp_img.meta_data.image_params[0];
 
-	for (i=1; i<image_sets_num; i++){
+	// Get screen configuration
+	fb_config = fbcon_display();
 
-		//if both width and height still fit the screen, update image_params
-		if (mdtp_img.meta_data.image_params[i].width <= fb_config->width &&
+	if (fb_config){
+
+		for (i=1; i<image_sets_num; i++){
+
+			//if both width and height still fit the screen, update image_params
+			if (mdtp_img.meta_data.image_params[i].width <= fb_config->width &&
 				mdtp_img.meta_data.image_params[i].height <= fb_config->height)
-		{
-			image_params = mdtp_img.meta_data.image_params[i];
+			{
+				image_params = mdtp_img.meta_data.image_params[i];
+			}
+
+			// if we reached an image set in which the width is larger than
+			// the screen width, no point in checking additional image sets.
+			else if (mdtp_img.meta_data.image_params[i].width > fb_config->width)
+				break;
 		}
 
-		// if we reached an image set in which the width is larger than
-		// the screen width, no point in checking additional image sets.
-		else if (mdtp_img.meta_data.image_params[i].width > fb_config->width)
-			break;
+		dprintf(INFO, "mdtp: image set offset: 0x%x\n", image_params.offset);
+		dprintf(INFO, "mdtp: image set width: %d, screen width: %d\n", image_params.width, fb_config->width);
+		dprintf(INFO, "mdtp: image set height: %d, screen height: %d\n", image_params.height, fb_config->height);
 	}
-
-	dprintf(INFO, "mdtp: image set offset: 0x%x\n", image_params.offset);
-	dprintf(INFO, "mdtp: image set width: %d, screen width: %d\n", image_params.width, fb_config->width);
-	dprintf(INFO, "mdtp: image set height: %d, screen height: %d\n", image_params.height, fb_config->height);
+	else {
+		// Display configuration is not available.
+		// This will cause an actual error only when (and if) trying to display MDTP images.
+		dprintf(INFO,"mdtp: fbcon_config struct is NULL\n");
+	}
 
 	// Backup image sets metadata for required parameters
 	mdtp_image_sets_metadata = mdtp_img;
