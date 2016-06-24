@@ -78,6 +78,7 @@ int boot_device_mask(int);
 uint32_t platform_detect_panel();
 uint32_t platform_get_max_periph();
 int platform_is_msm8996();
+int platform_is_apq8096_mediabox();
 bool platform_use_qmp_misc_settings();
 void set_device_unlock_value(int type, bool status);
 void get_product_name(unsigned char *buf);
