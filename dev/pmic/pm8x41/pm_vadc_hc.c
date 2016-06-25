@@ -61,9 +61,11 @@ struct vadc_hc_channel_cfg {
 	enum adc_hc_channel		channel;
 	/* Hardware settling delay for the channel */
 	enum adc_usr_delay_ctl		hw_settle;
+	/* Fast average sample value for the channel */
+	enum adc_fast_avg_sample	avg_sample;
 	/*
 	 * Pre scale ratio for the channel before ADC is measured.
-	 * This is used during scaling the code to physical units by
+	 * This is used while scaling the code to physical units by
 	 * applying the respective pre-scale value.
 	 */
 	struct adc_pre_scale_ratio	pre_scale;
@@ -107,6 +109,7 @@ static struct vadc_hc_channel_cfg channel_pdata[] = {
 		HC_ABS_CAL,
 		HC_CALIB_VREF_1P25,
 		HC_HW_SETTLE_DELAY_0US,
+		AVG_1_SAMPLE,
 		{1, 1},
 		scale_default_voltage
 	},
@@ -115,6 +118,7 @@ static struct vadc_hc_channel_cfg channel_pdata[] = {
 		HC_ABS_CAL,
 		HC_VPH_PWR,
 		HC_HW_SETTLE_DELAY_0US,
+		AVG_1_SAMPLE,
 		{1, 3},
 		scale_default_voltage
 	},
@@ -201,7 +205,7 @@ static int32_t vadc_hc_check_completion(struct vadc_hc_periph_cfg *adc_cfg)
 static void vadc_hc_configure(struct vadc_hc_periph_cfg *adc_cfg,
 				struct vadc_hc_channel_cfg *ch_cfg)
 {
-	uint8_t cal = 0;
+	uint8_t cal = 0, avg_samples = 0;
 
 	/* Configure calibration select */
 	vadc_hc_reg_read(adc_cfg, HC_ADC_DIG_PARAM, &cal);
@@ -214,6 +218,12 @@ static void vadc_hc_configure(struct vadc_hc_periph_cfg *adc_cfg,
 
 	/* HW settle delay */
 	vadc_hc_reg_write(adc_cfg, HC_DELAY_CTL, ch_cfg->hw_settle);
+
+	/* Fast avg sample value */
+	vadc_hc_reg_read(adc_cfg, HC_FAST_AVG_CTL, &avg_samples);
+	avg_samples &= ~HC_FAST_AVG_SAMPLES_MASK;
+	avg_samples |= ch_cfg->avg_sample;
+	vadc_hc_reg_write(adc_cfg, HC_FAST_AVG_CTL, avg_samples);
 
 	/* Enable ADC */
 	vadc_hc_reg_write(adc_cfg, HC_EN_CTL1, HC_ADC_EN);
