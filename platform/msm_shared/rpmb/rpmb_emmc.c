@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015,2016 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -29,6 +29,7 @@
 #include <rpmb.h>
 #include <mmc_sdhci.h>
 #include <debug.h>
+#include <string.h>
 
 static const char *str_err[] =
 {
@@ -51,8 +52,10 @@ int rpmb_write_emmc(struct mmc_device *dev,uint32_t *req_buf, uint32_t blk_cnt, 
 {
 	uint32_t i, num_trans = 0;
 	int ret = 0;
-	struct mmc_command cmd[3] = {{0},{0},{0}};
+	struct mmc_command cmd[3];
 	struct rpmb_frame *result = (struct rpmb_frame *)resp_buf;
+
+	memset(cmd, 0, (size_t) sizeof(cmd));
 
 	dprintf(INFO, "rpmb write command called with blk_cnt and rel_wr_count: 0x%x 0x%x\n", blk_cnt, rel_wr_count);
 	if (rel_wr_count == 0x2)
@@ -150,9 +153,10 @@ int rpmb_write_emmc(struct mmc_device *dev,uint32_t *req_buf, uint32_t blk_cnt, 
 
 int rpmb_read_emmc(struct mmc_device *dev, uint32_t *req_buf, uint32_t blk_cnt, uint32_t *resp_buf, uint32_t *resp_len)
 {
-	struct mmc_command cmd[3] = {{0},{0},{0}};
+	struct mmc_command cmd[3] ;
 	int ret = 0;
 	struct rpmb_frame *result = (struct rpmb_frame *)resp_buf;
+	memset(cmd, 0, (size_t) sizeof(cmd));
 
 #if DEBUG_RPMB
 	dump_rpmb_frame((uint8_t *)req_buf, "request");
