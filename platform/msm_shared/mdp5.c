@@ -1017,11 +1017,18 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 
 		if (pinfo->lcdc.dual_pipe && !pinfo->mipi.dual_dsi &&
 		    !pinfo->lcdc.split_display && (pinfo->num_dsc_enc == 2)) {
-
 			dsc->mdp_dsc_config(pinfo, MDP_PP_0_BASE,
 				MDP_DSC_0_BASE, true, true);
 			dsc->mdp_dsc_config(pinfo, MDP_PP_1_BASE,
 				MDP_DSC_1_BASE, true, true);
+
+		} else if (pinfo->lcdc.dual_pipe && pinfo->mipi.dual_dsi &&
+		    pinfo->lcdc.split_display && (pinfo->num_dsc_enc == 1)) {
+			dsc->mdp_dsc_config(pinfo, MDP_PP_0_BASE,
+				MDP_DSC_0_BASE, false, false);
+			dsc->mdp_dsc_config(pinfo, MDP_PP_1_BASE,
+				MDP_DSC_1_BASE, false, false);
+
 		} else {
 			dsc->mdp_dsc_config(pinfo, MDP_PP_0_BASE,
 				MDP_DSC_0_BASE, false, false);

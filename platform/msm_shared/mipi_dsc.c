@@ -224,7 +224,10 @@ void mdss_dsc_parameters_calc(struct msm_panel_info *pinfo)
 	}
 	dsc->range_bpg_offset = dsc_rc_range_bpg_offset;
 
-	dsc->pic_width = pinfo->xres;
+	if (pinfo->mipi.dual_dsi)
+		dsc->pic_width = pinfo->xres / 2;
+	else
+		dsc->pic_width = pinfo->xres;
 	dsc->pic_height = pinfo->yres;
 
 	bpp = dsc->bpp;
