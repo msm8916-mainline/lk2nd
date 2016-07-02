@@ -133,6 +133,22 @@ static uint32_t mdss_mdp_pll_kvco_slop(uint32_t vrate)
 	return slop;
 }
 
+static inline uint32_t mdss_mdp_pll_calc_kvco_code(uint32_t vco_clk_rate)
+{
+	uint32_t kvco_code;
+
+	if ((vco_clk_rate >= 2300000000ULL) &&
+	    (vco_clk_rate <= 2600000000ULL))
+		kvco_code = 0x2f;
+	else if ((vco_clk_rate >= 1800000000ULL) &&
+		 (vco_clk_rate < 2300000000ULL))
+		kvco_code = 0x2c;
+	else
+		kvco_code = 0x28;
+
+	return kvco_code;
+}
+
 static void mdss_mdp_pll_calc_vco_count(struct dsi_pll_db *pdb,
 	uint32_t vco_clk_rate, uint32_t fref)
 {
@@ -166,7 +182,7 @@ static void mdss_mdp_pll_calc_vco_count(struct dsi_pll_db *pdb,
 	pdb->out.pll_resetsm_cntrl = 48;
 	pdb->out.pll_resetsm_cntrl2 = pdb->in.bandgap_timer << 3;
 	pdb->out.pll_resetsm_cntrl5 = pdb->in.pll_wakeup_timer;
-	pdb->out.pll_kvco_code = 0;
+	pdb->out.pll_kvco_code = mdss_mdp_pll_calc_kvco_code(vco_clk_rate);
 }
 
 static void mdss_mdp_pll_assert_and_div_cfg(uint32_t phy_base,
@@ -290,6 +306,9 @@ static void mdss_mdp_pll_freq_config(uint32_t phy_base, struct dsi_pll_db *pdb)
 	data = (pdb->out.pll_kvco_count >> 8);
 	data &= 0x03;
 	writel(data, phy_base + DSIPHY_PLL_KVCO_COUNT2);
+
+	data = pdb->out.pll_kvco_code;
+	writel(data, phy_base + DSIPHY_PLL_KVCO_CODE);
 
 	/*
 	 * tx_band = pll_postdiv
