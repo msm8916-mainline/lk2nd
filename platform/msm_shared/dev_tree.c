@@ -2118,12 +2118,33 @@ int update_device_tree(void *fdt, const char *cmdline,
 	{
 		if (fdt_getprop(fdt, offset, "local-mac-address", NULL) == NULL)
 		{
-			dprintf(INFO, "Setting mac address in DT: %x:%x:%x:%x:%x:%x\n",
+			dprintf(INFO, "Setting WLAN mac address in DT: %02X:%02X:%02X:%02X:%02X:%02X\n",
 				mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 			ret = fdt_setprop(fdt, offset, "local-mac-address", mac, 6);
 			if (ret)
 			{
-				dprintf(CRITICAL, "ERROR: cannot set local-mac-address\n");
+				dprintf(CRITICAL, "ERROR: cannot set local-mac-address for \"qcom,wcnss-wlan\"\n");
+				return ret;
+			}
+		}
+	}
+
+	/* make sure local-mac-address is set for WCN BT device */
+	offset = fdt_node_offset_by_compatible(fdt, -1, "qcom,wcnss-bt");
+
+	if (offset != -FDT_ERR_NOTFOUND)
+	{
+		if (fdt_getprop(fdt, offset, "local-mac-address", NULL) == NULL)
+		{
+			/* The BT MAC address is same as WLAN MAC address but with last bit flipped */
+			mac[5] = (mac[5] & 0xFE) | ((mac[5] ^ 0x1) & 0x1);
+
+			dprintf(INFO, "Setting BT mac address in DT: %02X:%02X:%02X:%02X:%02X:%02X\n",
+				mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+			ret = fdt_setprop(fdt, offset, "local-mac-address", mac, 6);
+			if (ret)
+			{
+				dprintf(CRITICAL, "ERROR: cannot set local-mac-address for \"qcom,wcnss-bt\"\n");
 				return ret;
 			}
 		}
