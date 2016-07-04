@@ -60,7 +60,7 @@ int rpmb_init()
 		}
 		else
 		{
-			if (mmc_dev->card.ext_csd[MMC_EXT_CSD_EN_RPMB_REL_WR] == 0)
+			if ( (mmc_dev->card.ext_csd[MMC_EXT_CSD_EN_RPMB_REL_WR] & BIT(4)) == 0)
 			{
 				dprintf(SPEW, "EMMC Version >= 5.1 EN_RPMB_REL_WR = 0\n");
 				// according to emmc version 5.1 and above if EN_RPMB_REL_WR in extended
