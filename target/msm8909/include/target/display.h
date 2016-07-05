@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -50,11 +50,11 @@ static struct gpio_pin bkl_gpio = {
 };
 
 static struct gpio_pin enp_gpio = {
-  "msmgpio", 97, 3, 1, 0, 1
+  "msmgpio", 11, 3, 1, 0, 1
 };
 
 static struct gpio_pin enn_gpio = {
-  "msmgpio", 32, 3, 1, 0, 1
+  "msmgpio", 10, 3, 1, 0, 1
 };
 
 static struct gpio_pin te_gpio = {
