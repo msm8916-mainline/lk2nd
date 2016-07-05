@@ -433,13 +433,14 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 	return ret;
 }
 
-static void wled_init(struct msm_panel_info *pinfo)
+static int wled_init(struct msm_panel_info *pinfo)
 {
 	struct qpnp_wled_config_data config = {0};
 	struct labibb_desc *labibb;
 	int display_type = 0;
 	bool swire_control = 0;
 	bool wled_avdd_control = 0;
+	int rc = NO_ERROR;
 
 	labibb = pinfo->labibb;
 
@@ -499,7 +500,9 @@ static void wled_init(struct msm_panel_info *pinfo)
 	/* QPNP WLED init for display backlight */
 	pm8x41_wled_config_slave_id(PMIC_WLED_SLAVE_ID);
 
-	qpnp_wled_init(&config);
+	rc = qpnp_wled_init(&config);
+
+	return rc;
 }
 
 int target_dsi_phy_config(struct mdss_dsi_phy_ctrl *phy_db)
@@ -531,6 +534,7 @@ int target_display_get_base_offset(uint32_t base)
 
 int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 {
+	int rc = 0;
 	uint32_t ldo_num = REG_LDO6 | REG_LDO17;
 
 	if (platform_is_msm8956())
@@ -541,8 +545,16 @@ int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 	if (enable) {
 		regulator_enable(ldo_num);
 		mdelay(10);
-		wled_init(pinfo);
-		qpnp_ibb_enable(true); /*5V boost*/
+		rc = wled_init(pinfo);
+		if (rc) {
+			dprintf(CRITICAL, "%s: wled init failed\n", __func__);
+			return rc;
+		}
+		rc = qpnp_ibb_enable(true); /*5V boost*/
+		if (rc) {
+			dprintf(CRITICAL, "%s: qpnp_ibb failed\n", __func__);
+			return rc;
+		}
 		mdelay(50);
 	} else {
 		/*
