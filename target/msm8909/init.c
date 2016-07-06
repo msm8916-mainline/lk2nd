@@ -67,6 +67,7 @@
 #if PON_VIB_SUPPORT
 #define VIBRATE_TIME    250
 #endif
+#define HW_SUBTYPE_APQ_NOWGR 0xA
 
 #define CE1_INSTANCE            1
 #define CE_EE                   1
@@ -425,7 +426,11 @@ void target_baseband_detect(struct board_data *board)
 		break;
 
 	case APQ8009:
-		board->baseband = BASEBAND_APQ;
+		if ((board->platform_hw == HW_PLATFORM_MTP) &&
+				(board->platform_subtype == HW_SUBTYPE_APQ_NOWGR))
+			board->baseband = BASEBAND_APQ_NOWGR;
+		else
+			board->baseband = BASEBAND_APQ;
 		break;
 
 	default:

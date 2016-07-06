@@ -176,6 +176,7 @@ static const char *baseband_dsda    = " androidboot.baseband=dsda";
 static const char *baseband_dsda2   = " androidboot.baseband=dsda2";
 static const char *baseband_sglte2  = " androidboot.baseband=sglte2";
 static const char *warmboot_cmdline = " qpnp-power-on.warm_boot=1";
+static const char *baseband_apq_nowgr   = " androidboot.baseband=baseband_apq_nowgr";
 
 #if VERIFIED_BOOT
 #if !VBOOT_MOTA
@@ -442,6 +443,9 @@ unsigned char *update_cmdline(const char * cmdline)
 		case BASEBAND_DSDA2:
 			cmdline_len += strlen(baseband_dsda2);
 			break;
+		case BASEBAND_APQ_NOWGR:
+			cmdline_len += strlen(baseband_apq_nowgr);
+			break;
 	}
 
 	if (cmdline) {
@@ -628,6 +632,11 @@ unsigned char *update_cmdline(const char * cmdline)
 
 			case BASEBAND_DSDA2:
 				src = baseband_dsda2;
+				if (have_cmdline) --dst;
+				while ((*dst++ = *src++));
+				break;
+			case BASEBAND_APQ_NOWGR:
+				src = baseband_apq_nowgr;
 				if (have_cmdline) --dst;
 				while ((*dst++ = *src++));
 				break;
@@ -3836,7 +3845,6 @@ void aboot_init(const struct app_descriptor *app)
 		page_size = flash_page_size();
 		page_mask = page_size - 1;
 	}
-
 	ASSERT((MEMBASE + MEMSIZE) > MEMBASE);
 
 	read_device_info(&device);
