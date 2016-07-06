@@ -44,12 +44,14 @@
 
 #define VCO_REF_CLK_RATE 19200000
 
+#define CEIL(x, y)              (((x) + ((y)-1)) / (y))
+
 static void mdss_mdp_pll_input_init(struct dsi_pll_db *pdb)
 {
 	pdb->in.fref = 19200000;	/* 19.2 Mhz*/
 	pdb->in.fdata = 0;		/* bit clock rate */
 	pdb->in.dsiclk_sel = 1;		/* 1, reg: 0x0014 */
-	pdb->in.ssc_en = 0;		/* 1, reg: 0x0494, bit 0 */
+	pdb->in.ssc_en = 1;		/* 1, reg: 0x0494, bit 0 */
 	pdb->in.ldo_en = 0;		/* 0,  reg: 0x004c, bit 0 */
 
 	/* fixed  input */
@@ -117,6 +119,39 @@ static void mdss_mdp_pll_dec_frac_calc(struct dsi_pll_db *pdb,
 
 	pdb->out.pll_txclk_en = 1;
 	pdb->out.cmn_ldo_cntrl = 0x3c;
+}
+
+static void mdss_mdp_pll_ssc_calc(struct dsi_pll_db *pdb,
+	uint32_t vco_clk_rate, uint32_t fref)
+{
+	uint32_t period, ssc_period;
+	uint32_t ref, rem;
+	uint64_t step_size;
+
+	ssc_period = pdb->in.ssc_freq / 500;
+	period = (unsigned long)fref / 1000;
+	ssc_period  = CEIL(period, ssc_period);
+	ssc_period -= 1;
+	pdb->out.ssc_per = ssc_period;
+
+	step_size = vco_clk_rate;
+	ref = fref;
+
+	ref /= 1000;
+	step_size /= ref;
+	step_size <<= 20;
+	step_size /= 1000;
+	step_size *= pdb->in.ssc_spread;
+	step_size /= 1000;
+	step_size *= (pdb->in.ssc_adj_per + 1);
+
+	rem = 0;
+	rem = step_size % (ssc_period + 1);
+	if (rem)
+		step_size++;
+
+	step_size &= 0x0ffff;   /* take lower 16 bits */
+	pdb->out.ssc_step_size = step_size;
 }
 
 static uint32_t mdss_mdp_pll_kvco_slop(uint32_t vrate)
@@ -330,6 +365,37 @@ static void mdss_mdp_pll_freq_config(uint32_t phy_base, struct dsi_pll_db *pdb)
 	dmb();	/* make sure register committed */
 }
 
+static void mdss_mdp_pll_ssc_config(uint32_t phy_base, struct dsi_pll_db *pdb)
+{
+	uint32_t data;
+
+	data = pdb->in.ssc_adj_per;
+	data &= 0x0ff;
+	writel(data, phy_base + DSIPHY_PLL_SSC_ADJ_PER1);
+	data = (pdb->in.ssc_adj_per >> 8);
+	data &= 0x03;
+	writel(data, phy_base + DSIPHY_PLL_SSC_ADJ_PER2);
+
+	data = pdb->out.ssc_per;
+	data &= 0x0ff;
+	writel(data, phy_base + DSIPHY_PLL_SSC_PER1);
+	data = (pdb->out.ssc_per >> 8);
+	data &= 0x0ff;
+	writel(data, phy_base + DSIPHY_PLL_SSC_PER2);
+
+	data = pdb->out.ssc_step_size;
+	data &= 0x0ff;
+	writel(data, phy_base + DSIPHY_PLL_SSC_STEP_SIZE1);
+	data = (pdb->out.ssc_step_size >> 8);
+	data &= 0x0ff;
+	writel(data, phy_base + DSIPHY_PLL_SSC_STEP_SIZE2);
+
+	data = (pdb->in.ssc_center_spread & 0x01);
+	data <<= 1;
+	data |= 0x01; /* enable */
+	writel(data, phy_base + DSIPHY_PLL_SSC_EN_CENTER);
+}
+
 static int mdss_dsi_phy_14nm_init(struct msm_panel_info *pinfo,
 	uint32_t phy_base)
 {
@@ -436,6 +502,9 @@ void mdss_dsi_auto_pll_thulium_config(struct msm_panel_info *pinfo)
 	pdb.out.pll_n2div = pll_data->n2div;
 
 	mdss_mdp_pll_dec_frac_calc(&pdb, pll_data->vco_clock, VCO_REF_CLK_RATE);
+	if (pdb.in.ssc_en)
+		mdss_mdp_pll_ssc_calc(&pdb, pll_data->vco_clock,
+			VCO_REF_CLK_RATE);
 	mdss_mdp_pll_calc_vco_count(&pdb, pll_data->vco_clock, VCO_REF_CLK_RATE);
 
 	/* de-assert pll and start */
@@ -447,9 +516,13 @@ void mdss_dsi_auto_pll_thulium_config(struct msm_panel_info *pinfo)
 	/* configure frequence */
 	mdss_mdp_pll_nonfreq_config(phy_base, &pdb);
 	mdss_mdp_pll_freq_config(phy_base, &pdb);
+	if (pdb.in.ssc_en)
+		mdss_mdp_pll_ssc_config(phy_base, &pdb);
 
 	if (pinfo->lcdc.split_display) {
 		mdss_mdp_pll_nonfreq_config(phy_1_base, &pdb);
 		mdss_mdp_pll_freq_config(phy_1_base, &pdb);
+		if (pdb.in.ssc_en)
+			mdss_mdp_pll_ssc_config(phy_1_base, &pdb);
 	}
 }
