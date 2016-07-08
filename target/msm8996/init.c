@@ -668,3 +668,59 @@ int target_update_cmdline(char *cmdline)
 
 	return len;
 }
+
+#if _APPEND_CMDLINE
+int get_target_boot_params(const char *cmdline, const char *part, char **buf)
+{
+	int system_ptn_index = -1;
+	unsigned int lun = 0;
+	char lun_char_base = 'a', lun_char_limit = 'h';
+
+	/*allocate buflen for largest possible string*/
+	uint32_t buflen = strlen(" root=/dev/mmcblock0p") + sizeof(int) + 1; /*1 character for null termination*/
+
+	if (!cmdline || !part ) {
+		dprintf(CRITICAL, "WARN: Invalid input param\n");
+		return -1;
+	}
+
+	system_ptn_index = partition_get_index(part);
+	if (system_ptn_index == -1)
+	{
+		dprintf(CRITICAL,"Unable to find partition %s\n",part);
+		return -1;
+	}
+
+	*buf = (char *)malloc(buflen);
+	if(!(*buf)) {
+		dprintf(CRITICAL,"Unable to allocate memory for boot params\n");
+		return -1;
+	}
+
+	/*
+	 * check if cmdline contains "root="/"" at the beginning of buffer or
+	 * " root="/"ubi.mtd" in the middle of buffer.
+	 */
+	if ((strncmp(cmdline," root=",strlen(" root=")) == 0) ||
+		strstr(cmdline, " root="))
+		dprintf(DEBUG, "DEBUG: cmdline has root=\n");
+	else
+	{
+		if (platform_boot_dev_isemmc()) {
+			snprintf(*buf, buflen, " root=/dev/mmcblock0p%d",
+					system_ptn_index + 1);
+		} else {
+			lun = partition_get_lun(system_ptn_index);
+			if ((lun_char_base + lun) > lun_char_limit) {
+				dprintf(CRITICAL, "lun value exceeds limit\n");
+				return -1;
+			}
+			snprintf(*buf, buflen, " root=/dev/sd%c%d",
+					lun_char_base + lun,
+					partition_get_index_in_lun(part, lun));
+		}
+	}
+	/*in success case buf will be freed in the calling function of this*/
+	return 0;
+}
+#endif

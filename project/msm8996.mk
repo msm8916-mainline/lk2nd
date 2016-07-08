@@ -109,6 +109,10 @@ ifeq ($(ENABLE_LPAE_SUPPORT),1)
 DEFINES += LPAE=1
 endif
 
+ifeq ($(APPEND_CMDLINE),1)
+DEFINES += _APPEND_CMDLINE=1
+endif
+
 CFLAGS += -Werror
 
 #enable user force reset feature
