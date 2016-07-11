@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -167,6 +167,13 @@ int platform_is_msm8996()
 		return 1;
 	else
 		return 0;
+}
+
+int platform_is_apq8096_mediabox()
+{
+		return ((board_platform_id() == APQ8096) &&
+		(board_hardware_id() == HW_PLATFORM_DRAGON) &&
+		(board_hardware_subtype() == HW_PLATFORM_SUBTYPE_SVLTE1));
 }
 
 uint64_t platform_get_ddr_start()

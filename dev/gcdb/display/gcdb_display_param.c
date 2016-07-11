@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -290,7 +290,7 @@ bool gcdb_display_cmdline_arg(char *pbuf, uint16_t buf_size)
 	uint32_t arg_size = 0;
 	bool ret = true, rc;
 	int ret_val;
-	char *default_str;
+	const char *default_str;
 	struct panel_struct panelstruct;
 	int panel_mode = SPLIT_DISPLAY_FLAG | DUAL_PIPE_FLAG | DST_SPLIT_FLAG;
 	int prefix_string_len = strlen(DISPLAY_CMDLINE_PREFIX);
@@ -318,11 +318,7 @@ bool gcdb_display_cmdline_arg(char *pbuf, uint16_t buf_size)
 			panel_node = NO_PANEL_CONFIG;
 			panel_mode = 0;
 		} else {
-			if (target_is_edp())
-				default_str = "0:edp:";
-			else
-				default_str = "0:dsi:0:";
-
+			default_str = "0";
 			arg_size = prefix_string_len + strlen(default_str);
 			if (buf_size < arg_size) {
 				dprintf(CRITICAL, "display command line buffer is small\n");
