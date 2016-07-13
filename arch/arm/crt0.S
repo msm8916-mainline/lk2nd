@@ -39,6 +39,8 @@ _start:
 	b	arm_fiq
 
 reset:
+	adr r7, lk_boot_args
+	stmia r7!, {r0-r3}
 
 #ifdef ENABLE_TRUSTZONE
 	/*Add reference to TZ symbol so linker includes it in final image */
@@ -118,6 +120,12 @@ reset:
 warm_boot_tag:
 	.word 0
 #endif
+.global lk_boot_args
+lk_boot_args:
+	.word 0
+	.word 0
+	.word 0
+	.word 0
 
 .Lstack_setup:
 	/* set up the stack for irq, fiq, abort, undefined, system/user, and lastly supervisor mode */
