@@ -27,6 +27,10 @@
 extern "C" {
 #endif
 
+#include <stdint.h>
+
+extern uint32_t lk_boot_args[4];
+
 void arch_early_init(void);
 void arch_init(void);
 
