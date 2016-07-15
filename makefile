@@ -105,6 +105,14 @@ ifeq ($(VERIFIED_BOOT),1)
   endif
 endif
 
+ifeq ($(OSVERSION_IN_BOOTIMAGE),1)
+ DEFINES += OSVERSION_IN_BOOTIMAGE=1
+endif
+
+ifeq ($(ENABLE_VB_ATTEST),1)
+ DEFINES += ENABLE_VB_ATTEST=1
+endif
+
 ifeq ($(USER_BUILD_VARIANT),true)
   DEFINES += USER_BUILD_VARIANT=1
 endif
