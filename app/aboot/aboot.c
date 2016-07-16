@@ -2141,7 +2141,7 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	unsigned ramdisk_actual;
 	uint32_t image_actual;
 	uint32_t dt_actual = 0;
-	uint32_t sig_actual = SIGNATURE_SIZE;
+	uint32_t sig_actual = 0;
 	struct boot_img_hdr *hdr = NULL;
 	struct kernel64_hdr *kptr = NULL;
 	char *ptr = ((char*) data);
@@ -2189,8 +2189,12 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	image_actual = ADD_OF(image_actual, ramdisk_actual);
 	image_actual = ADD_OF(image_actual, dt_actual);
 
-	if (target_use_signed_kernel() && (!device.is_unlocked))
+	if (target_use_signed_kernel() && (!device.is_unlocked)) {
+		/* Calculate the signature length from boot image */
+		sig_actual = read_der_message_length(
+				(unsigned char*)(data + image_actual),sz);
 		image_actual = ADD_OF(image_actual, sig_actual);
+	}
 
 	/* sz should have atleast raw boot image */
 	if (image_actual > sz) {
