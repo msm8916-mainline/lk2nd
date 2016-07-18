@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -48,6 +48,7 @@
 #include "include/panel_fl10802_fwvga_video.h"
 #include "include/panel_auo_qvga_cmd.h"
 #include "include/panel_auo_cx_qvga_cmd.h"
+#include "include/panel_hx8394f_720p_video.h"
 
 #define DISPLAY_MAX_PANEL_DETECTION 0
 #define ILI9806E_FWVGA_VIDEO_PANEL_POST_INIT_DELAY 68
@@ -83,6 +84,7 @@ enum {
 	FL10802_FWVGA_VIDEO_PANEL,
 	AUO_QVGA_CMD_PANEL,
 	AUO_CX_QVGA_CMD_PANEL,
+	HX8394F_720P_VIDEO_PANEL,
 	UNKNOWN_PANEL
 };
 
@@ -102,6 +104,7 @@ static struct panel_list supp_panels[] = {
 	{"fl10802_fwvga_video", FL10802_FWVGA_VIDEO_PANEL},
 	{"auo_qvga_cmd", AUO_QVGA_CMD_PANEL},
 	{"auo_cx_qvga_cmd", AUO_CX_QVGA_CMD_PANEL},
+	{"hx8394f_720p_video", HX8394F_720P_VIDEO_PANEL},
 };
 
 static uint32_t panel_id;
@@ -366,6 +369,27 @@ static int init_panel_data(struct panel_struct *panelstruct,
 					= auo_cx_QVGA_CMD_ON_COMMAND;
 		memcpy(phy_db->timing, auo_cx_qvga_cmd_timings, TIMING_SIZE);
 		break;
+	case HX8394F_720P_VIDEO_PANEL:
+		panelstruct->paneldata    = &hx8394f_720p_video_panel_data;
+		panelstruct->panelres     = &hx8394f_720p_video_panel_res;
+		panelstruct->color        = &hx8394f_720p_video_color;
+		panelstruct->videopanel   = &hx8394f_720p_video_video_panel;
+		panelstruct->commandpanel = &hx8394f_720p_video_command_panel;
+		panelstruct->state        = &hx8394f_720p_video_state;
+		panelstruct->laneconfig   = &hx8394f_720p_video_lane_config;
+		panelstruct->paneltiminginfo
+					= &hx8394f_720p_video_timing_info;
+		panelstruct->panelresetseq
+					= &hx8394f_720p_video_reset_seq;
+		panelstruct->backlightinfo = &hx8394f_720p_video_backlight;
+		pinfo->mipi.panel_cmds
+					= hx8394f_720p_video_on_command;
+		pinfo->mipi.num_of_panel_cmds
+					= HX8394F_720P_VIDEO_ON_COMMAND;
+		memcpy(phy_db->timing,
+					hx8394f_720p_video_timings, TIMING_SIZE);
+		pinfo->mipi.signature = HX8394F_720P_VIDEO_SIGNATURE;
+		break;
 	case UNKNOWN_PANEL:
 	default:
 		memset(panelstruct, 0, sizeof(struct panel_struct));
@@ -392,6 +416,7 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	uint32_t platform_type = board_platform_id();
 	uint32_t platform_subtype = board_hardware_subtype();
 	int32_t panel_override_id;
+	uint32_t target_id = 0, plat_hw_ver_major = 0;
 
 	if (panel_name) {
 		panel_override_id = panel_name_to_id(supp_panels,
@@ -431,7 +456,12 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	case HW_PLATFORM_QRD:
 		switch (platform_subtype) {
 			case QRD_SKUA:
-				panel_id = HX8379A_FWVGA_SKUA_VIDEO_PANEL;
+				target_id = board_target_id();
+				plat_hw_ver_major = ((target_id >> 16) & 0xFF);
+				if (plat_hw_ver_major == 6)
+					panel_id = HX8394F_720P_VIDEO_PANEL;
+				else
+					panel_id = HX8379A_FWVGA_SKUA_VIDEO_PANEL;
 				break;
 			case QRD_SKUC:
 				panel_id = ILI9806E_FWVGA_VIDEO_PANEL;

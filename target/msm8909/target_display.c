@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -281,14 +281,45 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 	return 0;
 }
 
+static int target_panel_reset_skuq(uint8_t enable)
+{
+	if (enable) {
+		gpio_tlmm_config(enp_gpio.pin_id, 0,
+			enp_gpio.pin_direction, enp_gpio.pin_pull,
+			enp_gpio.pin_strength,
+			enp_gpio.pin_state);
+		gpio_set(enp_gpio.pin_id, 2);
+
+		gpio_tlmm_config(enn_gpio.pin_id, 0,
+			enn_gpio.pin_direction, enn_gpio.pin_pull,
+			enn_gpio.pin_strength,
+			enn_gpio.pin_state);
+		gpio_set(enn_gpio.pin_id, 2);
+	} else {
+		gpio_set(enp_gpio.pin_id, 0); /* ENP */
+		gpio_set(enn_gpio.pin_id, 0); /* ENN */
+	}
+	return 0;
+}
+
 int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 						struct msm_panel_info *pinfo)
 {
 	int ret = NO_ERROR;
 	uint32_t hw_id = board_hardware_id();
 	uint32_t hw_subtype = board_hardware_subtype();
+	uint32_t target_id = 0, plat_hw_ver_major = 0;
 
 	if (enable) {
+		if ((hw_id == HW_PLATFORM_QRD) && (hw_subtype == 0)) {
+			target_id = board_target_id();
+			plat_hw_ver_major = ((target_id >> 16) & 0xFF);
+			if (plat_hw_ver_major == 6) {
+				/* for SKUQ */
+				target_panel_reset_skuq(enable);
+			}
+		}
+
 		if (pinfo->mipi.use_enable_gpio) {
 			gpio_tlmm_config(enable_gpio.pin_id, 0,
 				enable_gpio.pin_direction, enable_gpio.pin_pull,
@@ -316,6 +347,15 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 		gpio_set(reset_gpio.pin_id, 0);
 		if (pinfo->mipi.use_enable_gpio)
 			gpio_set(enable_gpio.pin_id, 0);
+
+		if ((hw_id == HW_PLATFORM_QRD) && (hw_subtype == 0)) {
+			target_id = board_target_id();
+			plat_hw_ver_major = ((target_id >> 16) & 0xFF);
+			if (plat_hw_ver_major == 6) {
+				/* for SKUQ */
+				target_panel_reset_skuq(enable);
+			}
+		}
 	}
 
 	return ret;
