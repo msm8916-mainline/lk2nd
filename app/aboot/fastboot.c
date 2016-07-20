@@ -594,7 +594,12 @@ again:
 		fastboot_state = STATE_COMMAND;
 
 		for (cmd = cmdlist; cmd; cmd = cmd->next) {
+			size_t cmdlen = strlen((char*)buffer);
+
 			if (memcmp(buffer, cmd->prefix, cmd->prefix_len))
+				continue;
+
+			if (cmdlen>cmd->prefix_len && buffer[cmd->prefix_len]!=' ' && buffer[cmd->prefix_len-1]!=':')
 				continue;
 
 			const char* arg = (const char*) buffer + cmd->prefix_len;
