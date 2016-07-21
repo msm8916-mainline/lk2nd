@@ -899,6 +899,26 @@ int partition_get_index(const char *name)
 	return INVALID_PTN;
 }
 
+/*
+ * Find relative index of partition in lun
+ */
+int partition_get_index_in_lun(const char *name, unsigned int lun)
+{
+	unsigned int input_string_length = strlen(name);
+	unsigned int n, relative_index = 0;
+	for (n = 0; n < partition_count; n++) {
+		if (lun == partition_entries[n].lun)
+		{
+			relative_index++;
+			if ((input_string_length == strlen((const char *)&partition_entries[n].name))
+				&& !memcmp(name, &partition_entries[n].name, input_string_length)) {
+				return relative_index;
+			}
+		}
+	}
+	return INVALID_PTN;
+}
+
 /* Get size of the partition */
 unsigned long long partition_get_size(int index)
 {
