@@ -251,6 +251,7 @@ static void power_key_func(struct select_msg_info* msg_info)
 		case DISPLAY_MENU_ORANGE:
 		case DISPLAY_MENU_RED:
 		case DISPLAY_MENU_LOGGING:
+		case DISPLAY_MENU_EIO:
 			reason = CONTINUE;
 			break;
 		case DISPLAY_MENU_MORE_OPTION:
@@ -316,6 +317,11 @@ static struct pages_action menu_pages_action[] = {
 		power_key_func,
 	},
 	[DISPLAY_MENU_LOGGING] = {
+		boot_warning_volume_keys_func,
+		boot_warning_volume_keys_func,
+		power_key_func,
+	},
+	[DISPLAY_MENU_EIO] = {
 		boot_warning_volume_keys_func,
 		boot_warning_volume_keys_func,
 		power_key_func,
