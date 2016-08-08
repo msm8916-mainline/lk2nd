@@ -52,7 +52,9 @@ int rpmb_init()
 	{
 		struct mmc_device *mmc_dev = (struct mmc_device *) dev;
 		info.size = mmc_dev->card.rpmb_size / RPMB_MIN_BLK_SZ;
-		if (mmc_dev->card.ext_csd[MMC_EXT_CSD_REV] < 8)
+
+		if ((mmc_dev->card.ext_csd !=NULL) &&
+			(mmc_dev->card.ext_csd[MMC_EXT_CSD_REV] < 8))
 		{
 			//as per emmc spec rel_wr_count should be 1 for emmc version < 5.1
 			dprintf(SPEW, "EMMC Version < 5.1\n");
@@ -60,7 +62,8 @@ int rpmb_init()
 		}
 		else
 		{
-			if ( (mmc_dev->card.ext_csd[MMC_EXT_CSD_EN_RPMB_REL_WR] & BIT(4)) == 0)
+			if ((mmc_dev->card.ext_csd !=NULL) &&
+				((mmc_dev->card.ext_csd[MMC_EXT_CSD_EN_RPMB_REL_WR] & BIT(4)) == 0))
 			{
 				dprintf(SPEW, "EMMC Version >= 5.1 EN_RPMB_REL_WR = 0\n");
 				// according to emmc version 5.1 and above if EN_RPMB_REL_WR in extended
