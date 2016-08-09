@@ -801,12 +801,17 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 		else
 			panel_id = OTM1906C_1080P_CMD_PANEL;
 
-		/* QRD 8937 SKU1 uses R69006, and SKU2 uses HX8399A */
 		if (platform_is_msm8937()){
-			if (plat_hw_ver_major > 16)
+			if (hw_subtype == 0x80) {
+				/* 8940 SKU7 uses HX8394F */
 				panel_id = HX8394F_720P_VIDEO_PANEL;
-			else
-				panel_id = R69006_1080P_CMD_PANEL;
+			} else {
+				/* 8937 SKU1 uses R69006, SKU2 uses HX8394F */
+				if (plat_hw_ver_major > 16)
+					panel_id = HX8394F_720P_VIDEO_PANEL;
+				else
+					panel_id = R69006_1080P_CMD_PANEL;
+			}
 		}
 
 		/* QRD EVT1 uses OTM1906C, and EVT2 uses HX8394F */
