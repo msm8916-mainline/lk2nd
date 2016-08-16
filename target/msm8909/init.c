@@ -483,6 +483,12 @@ int get_target_boot_params(const char *cmdline, const char *part, char **buf)
 	struct ptable *ptable;
 	int system_ptn_index = -1;
 	int le_based = -1;
+	uint32_t buflen = 0;
+
+	if (!cmdline || !part ) {
+		dprintf(CRITICAL, "WARN: Invalid input param\n");
+		return -1;
+	}
 
 	/*LE partition.xml will have recoveryfs partition*/
 	if (target_is_emmc_boot())
@@ -509,7 +515,6 @@ int get_target_boot_params(const char *cmdline, const char *part, char **buf)
 		if (system_ptn_index < 0) {
 			dprintf(CRITICAL,
 				"WARN: Cannot get partition index for %s\n", part);
-			free(*buf);
 			return -1;
 		}
 		/*
@@ -523,13 +528,40 @@ int get_target_boot_params(const char *cmdline, const char *part, char **buf)
 		/*in success case buf will be freed in the calling function of this*/
 		{
 			if (!target_is_emmc_boot())
+			{
+				/* Extra character is for Null termination */
+				buflen = strlen(" root=/dev/mtdblock") + sizeof(int) +1;
+
+				/* In success case, this memory is freed in calling function */
+				*buf = (char *)malloc(buflen);
+				if(!(*buf)) {
+					dprintf(CRITICAL,"Unable to allocate memory for boot params \n");
+					return -1;
+				}
+
 				snprintf(buf, buflen, " root=/dev/mtdblock%d",system_ptn_index);
+			}
 			else
+			{
+				/* Extra character is for Null termination */
+				buflen = strlen(" root=/dev/mmcblk0p") + sizeof(int) + 1;
+
+				/* In success case, this memory is freed in calling function */
+				*buf = (char *)malloc(buflen);
+				if(!(*buf)) {
+					dprintf(CRITICAL,"Unable to allocate memory for boot params \n");
+					return -1;
+				}
+
 				/*For Emmc case increase the ptn_index by 1*/
 				snprintf(buf, buflen, " root=/dev/mmcblk0p%d",system_ptn_index + 1);
+			}
 		}
+
+		/*Return for LE based Targets.*/
+		return 0;
 	}
-	return 0;
+	return -1;
 }
 
 unsigned target_baseband()
