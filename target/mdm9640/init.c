@@ -189,21 +189,49 @@ void target_init(void)
 		target_crypto_init_params();
 }
 
-/* reboot */
+static int scm_clear_boot_partition_select()
+{
+	int ret = 0;
+
+	ret = scm_call_atomic2(SCM_SVC_BOOT, WDOG_DEBUG_DISABLE, 1, 0);
+	if (ret)
+		dprintf(CRITICAL, "Failed to disable the wdog debug \n");
+
+	return ret;
+}
+
+/* Trigger reboot */
 void reboot_device(unsigned reboot_reason)
 {
+	uint8_t reset_type = 0;
+
+	if (platform_is_mdmcalifornium())
+	{
+		/* Clear the boot partition select cookie to indicate
+		 * its a normal reset and avoid going to download mode */
+		scm_clear_boot_partition_select();
+	}
+
 	/* Write the reboot reason */
 	writel(reboot_reason, RESTART_REASON_ADDR);
 
-	/* Configure PMIC for warm reset */
-	/* PM 8019 v1 aligns with PM8941 v2.
-	 * This call should be based on the pmic version
-	 * when PM8019 v2 is available.
-	 */
-	if (reboot_reason)
-		pm8x41_v2_reset_configure(PON_PSHOLD_WARM_RESET);
+	if(reboot_reason)
+		reset_type = PON_PSHOLD_WARM_RESET;
 	else
-		pm8x41_v2_reset_configure(PON_PSHOLD_HARD_RESET);
+		reset_type = PON_PSHOLD_HARD_RESET;
+
+	if (platform_is_mdmcalifornium())
+	{
+		/* PMD9655 is the PMIC used for MDMcalifornium */
+		pm8x41_reset_configure(reset_type);
+	} else {
+		/* Configure PMIC for warm reset */
+		/* PM 8019 v1 aligns with PM8941 v2.
+		 * This call should be based on the pmic version
+		 * when PM8019 v2 is available.
+		 */
+		pm8x41_v2_reset_configure(reset_type);
+	}
 
 	/* Drop PS_HOLD for MSM */
 	writel(0x00, MPM2_MPM_PS_HOLD);
