@@ -3344,17 +3344,19 @@ int splash_screen_mmc()
 	}
 
 	fb_display = fbcon_display();
-	base = (uint8_t *) fb_display->base;
+	if (fb_display) {
+		base = (uint8_t *) fb_display->base;
 
-	if (mmc_read(ptn, (uint32_t *)(base + LOGO_IMG_OFFSET), blocksize)) {
-		dprintf(CRITICAL, "ERROR: Cannot read splash image header\n");
-		return -1;
-	}
+		if (mmc_read(ptn, (uint32_t *)(base + LOGO_IMG_OFFSET), blocksize)) {
+			dprintf(CRITICAL, "ERROR: Cannot read splash image header\n");
+			return -1;
+		}
 
-	header = (struct logo_img_header *)(base + LOGO_IMG_OFFSET);
-	if (splash_screen_check_header(header)) {
-		dprintf(CRITICAL, "ERROR: Splash image header invalid\n");
-		return -1;
+		header = (struct logo_img_header *)(base + LOGO_IMG_OFFSET);
+		if (splash_screen_check_header(header)) {
+			dprintf(CRITICAL, "ERROR: Splash image header invalid\n");
+			return -1;
+		}
 	}
 
 	if (fb_display) {
