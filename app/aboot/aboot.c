@@ -1540,16 +1540,26 @@ int boot_linux_from_flash(void)
 				kernel_actual + ramdisk_actual);
 		bs_set_timestamp(BS_KERNEL_LOAD_START);
 
+		if (UINT_MAX - offset < kernel_actual)
+		{
+			dprintf(CRITICAL, "ERROR: Integer overflow in boot image header %s\t%d\n",__func__,__LINE__);
+			return -1;
+		}
 		if (flash_read(ptn, offset, (void *)hdr->kernel_addr, kernel_actual)) {
 			dprintf(CRITICAL, "ERROR: Cannot read kernel image\n");
 			return -1;
 		}
 		offset += kernel_actual;
-
+		if (UINT_MAX - offset < ramdisk_actual)
+		{
+			dprintf(CRITICAL, "ERROR: Integer overflow in boot image header %s\t%d\n",__func__,__LINE__);
+			return -1;
+		}
 		if (flash_read(ptn, offset, (void *)hdr->ramdisk_addr, ramdisk_actual)) {
 			dprintf(CRITICAL, "ERROR: Cannot read ramdisk image\n");
 			return -1;
 		}
+
 		offset += ramdisk_actual;
 
 		dprintf(INFO, "Loading boot image (%d): done\n",
@@ -1557,6 +1567,11 @@ int boot_linux_from_flash(void)
 		bs_set_timestamp(BS_KERNEL_LOAD_DONE);
 
 		if(hdr->second_size != 0) {
+			if (UINT_MAX - offset < second_actual)
+			{
+				dprintf(CRITICAL, "ERROR: Integer overflow in boot image header %s\t%d\n",__func__,__LINE__);
+				return -1;
+			}
 			offset += second_actual;
 			/* Second image loading not implemented. */
 			ASSERT(0);
