@@ -87,7 +87,12 @@ int rpmb_init()
 	{
 		struct ufs_dev *ufs_dev = (struct ufs_dev *) dev;
 		ufs_rpmb_init(ufs_dev);
-		info.size = ufs_dev->rpmb_num_blocks;
+	/*
+	 * According to JEDE UFS spec, qLogicalBlockCount in RPMB Unit Descriptor
+	 * is a multiple of 256. But TZ expects the number of sectors reported
+	 * with sector size in 512 bytes hence report accordingly.
+	 */
+		info.size = ufs_dev->rpmb_num_blocks / 2;
 		info.rel_wr_count = ufs_dev->rpmb_rw_size;
 		info.dev_type  = UFS_RPMB;
 	}
