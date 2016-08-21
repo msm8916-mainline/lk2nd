@@ -42,9 +42,16 @@ static int dpc_thread_routine(void *arg);
 
 void dpc_init(void)
 {
+	thread_t *thr;
+
 	event_init(&dpc_event, false, 0);
 
-	thread_resume(thread_create("dpc", &dpc_thread_routine, NULL, DPC_PRIORITY, DEFAULT_STACK_SIZE));
+	thr = thread_create("dpc", &dpc_thread_routine, NULL, DPC_PRIORITY, DEFAULT_STACK_SIZE);
+	if (!thr)
+	{
+		panic("failed to create dpc thread\n");
+	}
+	thread_resume(thr);
 }
 
 status_t dpc_queue(dpc_callback cb, void *arg, uint flags)
