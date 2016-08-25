@@ -2829,6 +2829,13 @@ void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 				fill_buf[i] = fill_val;
 			}
 
+			if(total_blocks > (UINT_MAX - chunk_header->chunk_sz))
+			{
+				fastboot_fail("bogus size for chunk FILL type");
+				free(fill_buf);
+				return;
+			}
+
 			for (i = 0; i < chunk_blk_cnt; i++)
 			{
 				/* Make sure that the data written to partition does not exceed partition size */
