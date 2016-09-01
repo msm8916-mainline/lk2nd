@@ -240,8 +240,9 @@ static int mdss_dsi_dfps_get_stored_pll_codes(struct msm_panel_info *pinfo)
 	dprintf(SPEW, "enable=%d cnt=%d\n", dfps->panel_dfps.enabled,
 		dfps->panel_dfps.frame_rate_cnt);
 
-	if (!dfps->panel_dfps.enabled || dfps->panel_dfps.frame_rate_cnt >
-		DFPS_MAX_FRAME_RATE) {
+	if (!dfps->panel_dfps.enabled || (dfps->panel_dfps.frame_rate_cnt >
+		DFPS_MAX_FRAME_RATE) || (dfps->dfps_fb_base !=
+		pinfo->dfps.dfps_fb_base)) {
 		ret = ERROR;
 		free(dfps);
 		goto splash_err;
