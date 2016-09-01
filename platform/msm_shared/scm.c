@@ -1250,28 +1250,33 @@ static bool wdog_debug_fuse_disabled = true;
 void scm_check_boot_fuses()
 {
 	uint32_t ret = 0;
-	uint32_t resp;
+	uint32_t *resp = NULL;
 	scmcall_arg scm_arg = {0};
 	scmcall_ret scm_ret = {0};
 
+	resp = memalign(CACHE_LINE, (2 * sizeof(uint32_t)));
+	ASSERT(resp);
 	if (!is_scm_armv8_support()) {
-		ret = scm_call(TZBSP_SVC_INFO, IS_SECURE_BOOT_ENABLED, NULL, 0, &resp, sizeof(resp));
+		ret = scm_call_atomic2(TZBSP_SVC_INFO, IS_SECURE_BOOT_ENABLED, (uint32_t)resp, 2 * sizeof(uint32_t));
+		arch_clean_invalidate_cache_range((addr_t)resp, ROUNDUP((2*sizeof(uint32_t)), CACHE_LINE));
 	} else {
 		scm_arg.x0 = MAKE_SIP_SCM_CMD(TZBSP_SVC_INFO, IS_SECURE_BOOT_ENABLED);
 		ret = scm_call2(&scm_arg, &scm_ret);
-		resp = scm_ret.x1;
+		resp[0] = scm_ret.x1;
 	}
+
 
 	/* Parse Bit 0 and Bit 2 of the response */
 	if(!ret) {
 		/* Bit 0 - SECBOOT_ENABLE_CHECK */
-		if(resp & 0x1)
+		if(resp[0] & 0x1)
 			secure_boot_enabled = false;
 		/* Bit 2 - DEBUG_DISABLE_CHECK */
-		if(resp & 0x4)
+		if(resp[0] & 0x4)
 			wdog_debug_fuse_disabled = false;
 	} else
 		dprintf(CRITICAL, "scm call to check secure boot fuses failed\n");
+	free(resp);
 }
 
 bool is_secure_boot_enable()
