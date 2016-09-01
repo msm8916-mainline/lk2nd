@@ -522,8 +522,10 @@ int get_target_boot_params(const char *cmdline, const char *part, char **buf)
 		* " root=" in the middle of buffer.
 		*/
 		if (((!strncmp(cmdline, "root=", strlen("root="))) ||
-			(strstr(cmdline, " root="))))
+			(strstr(cmdline, " root=")))) {
 			dprintf(DEBUG, "DEBUG: cmdline has root=\n");
+			return -1;
+		}
 		else
 		/*in success case buf will be freed in the calling function of this*/
 		{
@@ -539,7 +541,7 @@ int get_target_boot_params(const char *cmdline, const char *part, char **buf)
 					return -1;
 				}
 
-				snprintf(buf, buflen, " root=/dev/mtdblock%d",system_ptn_index);
+				snprintf(*buf, buflen, " root=/dev/mtdblock%d",system_ptn_index);
 			}
 			else
 			{
@@ -554,7 +556,7 @@ int get_target_boot_params(const char *cmdline, const char *part, char **buf)
 				}
 
 				/*For Emmc case increase the ptn_index by 1*/
-				snprintf(buf, buflen, " root=/dev/mmcblk0p%d",system_ptn_index + 1);
+				snprintf(*buf, buflen, " root=/dev/mmcblk0p%d",system_ptn_index + 1);
 			}
 		}
 
