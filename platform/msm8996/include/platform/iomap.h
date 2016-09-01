@@ -215,6 +215,7 @@ unsigned int usb_phy_bcr();
 
 /* DRV strength for sdcc */
 #define SDC1_HDRV_PULL_CTL           (TLMM_BASE_ADDR + 0x0012C000)
+#define SDC2_HDRV_PULL_CTL           (TLMM_BASE_ADDR + 0x0012D000)
 
 /* SDHCI - power control registers */
 #define SDCC_MCI_HC_MODE            (0x00000078)
