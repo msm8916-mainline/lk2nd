@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -97,8 +97,7 @@ int32_t mdss_dsi_auto_pll_config(uint32_t pll_base, uint32_t ctl_base,
 		if (pd->vco_clock <= lpfr_lut[i].vco_rate)
 			break;
 	if (i == LPFR_LUT_SIZE) {
-		dprintf(INFO, "unable to get loop filter resistance. vco=%d\n"
-						, lpfr_lut[i].vco_rate);
+		dprintf(INFO, "unable to get loop filter resistance. vco is invalid\n");
 		rc = ERROR;
 		return rc;
 	}
