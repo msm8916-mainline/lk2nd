@@ -44,6 +44,11 @@ __WEAK int platform_is_msm8996()
 	return 0;
 }
 
+__WEAK int platform_is_msm8996sg()
+{
+	return 0;
+}
+
 __WEAK int platform_is_mdmcalifornium()
 {
 	return 0;
@@ -82,7 +87,11 @@ void qusb2_phy_reset(void)
 
 	if (platform_is_msm8996() || platform_is_mdmcalifornium() || platform_is_msm8953())
 	{
-		writel(0xF8, QUSB2PHY_PORT_TUNE1);
+		if(platform_is_msm8996sg())
+			writel(0xD0, QUSB2PHY_PORT_TUNE1);
+		else
+			writel(0xF8, QUSB2PHY_PORT_TUNE1);
+
 		/* Upper nibble of tune2 register should be updated based on the fuse value.
 		 * Read the bits 21..24 from fuse and update the upper nibble with this value
 		 */
@@ -97,6 +106,8 @@ void qusb2_phy_reset(void)
 		writel(tune2, QUSB2PHY_PORT_TUNE2);
 		writel(0x83, QUSB2PHY_PORT_TUNE3);
 		writel(0xC0, QUSB2PHY_PORT_TUNE4);
+		if(platform_is_msm8996sg())
+			writel(0x02, QUSB2PHY_PORT_TUNE5);
 		writel(0x30, QUSB2PHY_PLL_TUNE);
 		writel(0x79, QUSB2PHY_PLL_USER_CTL1);
 		writel(0x21, QUSB2PHY_PLL_USER_CTL2);
