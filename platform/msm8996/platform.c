@@ -169,6 +169,14 @@ int platform_is_msm8996()
 		return 0;
 }
 
+int platform_is_msm8996sg()
+{
+	if (board_platform_id() == MSM8996SG)
+		return 1;
+	else
+		return 0;
+}
+
 int platform_is_apq8096_mediabox()
 {
 		return ((board_platform_id() == APQ8096) &&
@@ -183,7 +191,7 @@ uint64_t platform_get_ddr_start()
 
 bool platform_use_qmp_misc_settings()
 {
-	if (board_soc_version() < 0x30000)
+	if ((board_soc_version() < 0x30000) && (board_platform_id() != MSM8996SG))
 		return true;
 
 	return false;
