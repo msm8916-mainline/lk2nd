@@ -93,6 +93,8 @@
 #define CE_WRITE_PIPE_LOCK_GRP  0
 #define CE_ARRAY_SIZE           20
 #define SUB_TYPE_SKUT           0x0A
+#define SMBCHG_USB_RT_STS 0x21310
+#define USBIN_UV_RT_STS BIT(0)
 
 struct mmc_device *dev;
 
@@ -239,7 +241,11 @@ uint32_t target_volume_down()
 uint32_t target_is_pwrkey_pon_reason()
 {
 	uint8_t pon_reason = pm8950_get_pon_reason();
+	bool usb_present_sts = !(USBIN_UV_RT_STS &
+				pm8x41_reg_read(SMBCHG_USB_RT_STS));
 	if (pm8x41_get_is_cold_boot() && ((pon_reason == KPDPWR_N) || (pon_reason == (KPDPWR_N|PON1))))
+		return 1;
+	else if ((pon_reason == PON1) && (!usb_present_sts))
 		return 1;
 	else
 		return 0;
@@ -516,8 +522,6 @@ uint32_t is_user_force_reset(void)
 }
 #endif
 
-#define SMBCHG_USB_RT_STS 0x21310
-#define USBIN_UV_RT_STS BIT(0)
 unsigned target_pause_for_battery_charge(void)
 {
 	uint8_t pon_reason = pm8x41_get_pon_reason();
