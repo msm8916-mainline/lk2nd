@@ -1596,11 +1596,16 @@ int boot_linux_from_flash(void)
 	}
 
 #ifndef DEVICE_TREE
-		if (check_aboot_addr_range_overlap(hdr->tags_addr, MAX_TAGS_SIZE))
-		{
-			dprintf(CRITICAL, "Tags addresses overlap with aboot addresses.\n");
-			return -1;
-		}
+	if (check_aboot_addr_range_overlap(hdr->tags_addr, MAX_TAGS_SIZE))
+	{
+		dprintf(CRITICAL, "Tags addresses overlap with aboot addresses.\n");
+		return -1;
+	}
+#else
+
+#ifndef OSVERSION_IN_BOOTIMAGE
+	dt_size = hdr->dt_size;
+#endif
 #endif
 
 	/* Authenticate Kernel */
@@ -1610,9 +1615,6 @@ int boot_linux_from_flash(void)
 		offset = 0;
 
 #if DEVICE_TREE
-#ifndef OSVERSION_IN_BOOTIMAGE
-		dt_size = hdr->dt_size;
-#endif
 		dt_actual = ROUND_TO_PAGE(dt_size, page_mask);
 		if (UINT_MAX < ((uint64_t)kernel_actual + (uint64_t)ramdisk_actual+ (uint64_t)dt_actual + page_size)) {
 			dprintf(CRITICAL, "Integer overflow detected in bootimage header fields\n");
