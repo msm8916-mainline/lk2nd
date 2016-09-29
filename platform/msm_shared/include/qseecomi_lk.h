@@ -51,7 +51,8 @@
 
 enum qseecom_command_scm_resp_type {
 	QSEOS_APP_ID = 0xEE01,
-	QSEOS_LISTENER_ID
+	QSEOS_LISTENER_ID,
+	QSEE_RESERVED = INT_MAX /* Required to make enum 4 bytes */
 };
 
 typedef enum
