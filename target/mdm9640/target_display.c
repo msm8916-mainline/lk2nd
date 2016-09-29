@@ -63,7 +63,6 @@ void target_display_init(const char *panel_name)
 	panel.fb.format = FB_FORMAT_RGB565;
 	panel.fb.base = (void *) QPIC_FB_ADDR;
 
-	rpm_smd_init();
 	ret = msm_display_init(&panel);
 	if (ret)
 		dprintf(CRITICAL, "%s: ERROR: Display init failed\n", __func__);
@@ -72,5 +71,4 @@ void target_display_init(const char *panel_name)
 void target_display_shutdown(void)
 {
 	msm_display_off();
-	rpm_smd_uninit();
 }
