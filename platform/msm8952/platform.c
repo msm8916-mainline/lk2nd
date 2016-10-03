@@ -185,6 +185,7 @@ int platform_is_msm8917()
 	switch(platform)
 	{
 		case MSM8917:
+		case MSM8920:
 		case MSM8217:
 		case MSM8617:
 		case APQ8017:
