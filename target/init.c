@@ -272,6 +272,7 @@ void get_vibration_type(struct qpnp_hap *config)
 		case MSM8940:
 		case APQ8037:
 		case MSM8917:
+		case MSM8920:
 		case MSM8217:
 		case MSM8617:
 		case APQ8017:
