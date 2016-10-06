@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -177,11 +177,28 @@ bool platform_is_mdmcalifornium()
 	return ret;
 }
 
+bool platform_is_sdxhedgehog()
+{
+	uint32_t platform_id = board_platform_id();
+	bool ret;
+
+	switch(platform_id)
+	{
+		case SDXHEDGEHOG:
+				ret = true;
+				break;
+		default:
+				ret = false;
+	};
+
+	return ret;
+}
+
 uint32_t platform_boot_config()
 {
 	uint32_t boot_config;
 
-	if (platform_is_mdmcalifornium())
+	if (platform_is_mdmcalifornium() || platform_is_sdxhedgehog())
 		boot_config = BOOT_CONFIG_REG_V2;
 	/* Else the platform is 9x45 */
 	else if (board_soc_version() >= 0x20000)

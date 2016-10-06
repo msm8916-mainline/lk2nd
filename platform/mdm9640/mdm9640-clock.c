@@ -147,6 +147,46 @@ static struct rcg_clk sdcc1_apps_clk_src =
 	},
 };
 
+static struct clk_freq_tbl ftbl_gcc_sdcc1_2_apps_clk_sdxhedgehog[] =
+{
+	F(    144000,    cxo,   16,    3,    25),
+	F(    400000,    cxo,   12,    1,     4),
+	F(  20000000, gpll0,   15,    1,     2),
+	F(  25000000, gpll0,   12,    1,     2),
+	F(  50000000, gpll0,   12,    0,     0),
+	F( 100000000, gpll0,    6,    0,     0),
+	F_END
+};
+
+static struct rcg_clk sdcc1_apps_clk_src_sdxhedgehog =
+{
+	.cmd_reg      = (uint32_t *) SDCC1_CMD_RCGR,
+	.cfg_reg      = (uint32_t *) SDCC1_CFG_RCGR,
+	.m_reg        = (uint32_t *) SDCC1_M,
+	.n_reg        = (uint32_t *) SDCC1_N,
+	.d_reg        = (uint32_t *) SDCC1_D,
+
+	.set_rate     = clock_lib2_rcg_set_rate_mnd,
+	.freq_tbl     = ftbl_gcc_sdcc1_2_apps_clk_sdxhedgehog,
+	.current_freq = &rcg_dummy_freq,
+
+	.c = {
+		.dbg_name = "sdc1_clk",
+		.ops      = &clk_ops_rcg_mnd,
+	},
+};
+
+static struct branch_clk gcc_sdcc1_apps_clk_sdxhedgehog =
+{
+	.cbcr_reg     = (uint32_t *) SDCC1_APPS_CBCR,
+	.parent       = &sdcc1_apps_clk_src_sdxhedgehog.c,
+
+	.c = {
+		.dbg_name = "gcc_sdcc1_apps_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
 static struct branch_clk gcc_sdcc1_apps_clk =
 {
 	.cbcr_reg     = (uint32_t *) SDCC1_APPS_CBCR,
@@ -276,6 +316,34 @@ static struct rcg_clk usb30_master_clk_src =
 	},
 };
 
+static struct clk_freq_tbl ftbl_gcc_usb30_master_clk_sdxhedgehog[] =
+{
+	F(30000000, gpll0, 10, 0, 0),
+	F(60000000, gpll0, 5, 0, 0),
+	F(120000000, gpll0, 5, 0, 0),
+	F(171430000, gpll0, 3.5, 0, 0),
+	F(200000000, gpll0, 3, 0, 0),
+	F_END
+};
+
+static struct rcg_clk usb30_master_clk_src_sdxhedgehog =
+{
+	.cmd_reg      = (uint32_t *) GCC_USB30_MASTER_CMD_RCGR,
+	.cfg_reg      = (uint32_t *) GCC_USB30_MASTER_CFG_RCGR,
+	.m_reg        = (uint32_t *) GCC_USB30_MASTER_M,
+	.n_reg        = (uint32_t *) GCC_USB30_MASTER_N,
+	.d_reg        = (uint32_t *) GCC_USB30_MASTER_D,
+
+	.set_rate     = clock_lib2_rcg_set_rate_mnd,
+	.freq_tbl     = ftbl_gcc_usb30_master_clk_sdxhedgehog,
+	.current_freq = &rcg_dummy_freq,
+
+	.c = {
+		.dbg_name = "usb30_master_clk_src_sdxhedgehog",
+		.ops      = &clk_ops_rcg,
+	},
+};
+
 static struct branch_clk gcc_usb30_master_clk =
 {
 	.cbcr_reg     = (uint32_t *) GCC_USB30_MASTER_CBCR,
@@ -284,6 +352,18 @@ static struct branch_clk gcc_usb30_master_clk =
 
 	.c = {
 		.dbg_name = "gcc_usb30_master_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
+static struct branch_clk gcc_usb30_master_clk_sdxhedgehog =
+{
+	.cbcr_reg     = (uint32_t *) GCC_USB30_MASTER_CBCR,
+	.bcr_reg      = (uint32_t *) USB_30_BCR,
+	.parent       = &usb30_master_clk_src_sdxhedgehog.c,
+
+	.c = {
+		.dbg_name = "gcc_usb30_master_clk_sdxhedgehog",
 		.ops      = &clk_ops_branch,
 	},
 };
@@ -315,6 +395,18 @@ static struct branch_clk gcc_usb30_pipe_clk = {
 
 	.c = {
 		.dbg_name = "gcc_usb30_pipe_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
+static struct branch_clk gcc_usb30_pipe_clk_sdxhedgehog = {
+	.bcr_reg      = (uint32_t *) USB3_PIPE_BCR,
+	.cbcr_reg     = (uint32_t *) USB3_PIPE_CBCR,
+	.has_sibling  = 1,
+	.halt_check   = 0,
+
+	.c = {
+		.dbg_name = "usb30_pipe_clk_sdxhedgehog",
 		.ops      = &clk_ops_branch,
 	},
 };
@@ -451,6 +543,24 @@ static struct rcg_clk usb30_mock_utmi_clk_src = {
 	},
 };
 
+static struct clk_freq_tbl ftbl_gcc_usb30_mock_utmi_clk_src_sdxhedgehog[] = {
+	F(  19200000, cxo,   1,    0,     0),
+	F_END
+};
+
+static struct rcg_clk usb30_mock_utmi_clk_src_sdxhedgehog = {
+	.cmd_reg      = (uint32_t *) USB30_MOCK_UTMI_CMD_RCGR,
+	.cfg_reg      = (uint32_t *) USB30_MOCK_UTMI_CFG_RCGR,
+	.set_rate     = clock_lib2_rcg_set_rate_hid,
+	.freq_tbl     = ftbl_gcc_usb30_mock_utmi_clk_src_sdxhedgehog,
+	.current_freq = &rcg_dummy_freq,
+
+	.c = {
+		.dbg_name = "usb30_mock_utmi_clk_src_sdxhedgehog",
+		.ops      = &clk_ops_rcg,
+	},
+};
+
 static struct branch_clk gcc_usb30_mock_utmi_clk = {
 	.cbcr_reg    = (uint32_t *) USB30_MOCK_UTMI_CBCR,
 	.has_sibling = 0,
@@ -458,6 +568,17 @@ static struct branch_clk gcc_usb30_mock_utmi_clk = {
 
 	.c = {
 		.dbg_name = "usb30_mock_utmi_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
+static struct branch_clk gcc_usb30_mock_utmi_clk_sdxhedgehog = {
+	.cbcr_reg    = (uint32_t *) USB30_MOCK_UTMI_CBCR,
+	.has_sibling = 0,
+	.parent      = &usb30_mock_utmi_clk_src_sdxhedgehog.c,
+
+	.c = {
+		.dbg_name = "usb30_mock_utmi_clk_sdxhedgehog",
 		.ops      = &clk_ops_branch,
 	},
 };
@@ -478,20 +599,24 @@ static struct clk_lookup msm_clocks_9640[] =
 {
 	CLK_LOOKUP("sdc1_iface_clk", gcc_sdcc1_ahb_clk.c),
 	CLK_LOOKUP("sdc1_core_clk",  gcc_sdcc1_apps_clk.c),
+	CLK_LOOKUP("sdc1_core_clk_sdxhedgehog",  gcc_sdcc1_apps_clk_sdxhedgehog.c),
 
 	CLK_LOOKUP("uart3_iface_clk", gcc_blsp1_ahb_clk.c),
 	CLK_LOOKUP("uart3_core_clk",  gcc_blsp1_uart3_apps_clk.c),
 
 	CLK_LOOKUP("usb30_iface_clk",  gcc_sys_noc_usb30_axi_clk.c),
 	CLK_LOOKUP("usb30_master_clk", gcc_usb30_master_clk.c),
+	CLK_LOOKUP("usb30_master_clk_sdxhedgehog", gcc_usb30_master_clk_sdxhedgehog.c),
 	CLK_LOOKUP("usb30_pipe_clk",   gcc_usb30_pipe_clk.c),
 	CLK_LOOKUP("usb30_pipe_clk_mdmcalifornium",   gcc_usb30_pipe_clk_mdmcalifornium.c),
+	CLK_LOOKUP("usb30_pipe_clk_sdxhedgehog",   gcc_usb30_pipe_clk_sdxhedgehog.c),
 	CLK_LOOKUP("usb30_aux_clk",    gcc_usb30_aux_clk.c),
 
 	CLK_LOOKUP("usb2b_phy_sleep_clk", gcc_usb2a_phy_sleep_clk.c),
 	CLK_LOOKUP("usb30_phy_reset",     gcc_usb30_phy_reset.c),
 
 	CLK_LOOKUP("usb30_mock_utmi_clk", gcc_usb30_mock_utmi_clk.c),
+	CLK_LOOKUP("usb30_mock_utmi_clk_sdxhedgehog", gcc_usb30_mock_utmi_clk_sdxhedgehog.c),
 	CLK_LOOKUP("usb_phy_cfg_ahb_clk", gcc_usb_phy_cfg_ahb_clk.c),
 	CLK_LOOKUP("usb30_sleep_clk",     gcc_usb30_sleep_clk.c),
 	CLK_LOOKUP("ce1_ahb_clk",  gcc_ce1_ahb_clk.c),

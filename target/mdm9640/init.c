@@ -427,8 +427,8 @@ void target_usb_phy_reset(void)
 	/* Reset sequence for californium is different from 9x40, use the reset sequence
 	 * from clock driver
 	 */
-	if (platform_is_mdmcalifornium())
-		clock_reset_usb_phy();
+	if (platform_is_mdmcalifornium() || platform_is_sdxhedgehog())
+		clock_reset_usb_phy(); // This is the reset function for USB3
 	else
 		usb30_qmp_phy_reset();
 
@@ -443,7 +443,10 @@ target_usb_iface_t* target_usb30_init()
 	ASSERT(t_usb_iface);
 
 	t_usb_iface->mux_config = NULL;
-	t_usb_iface->phy_init   = usb30_qmp_phy_init;
+	if (platform_is_sdxhedgehog())
+		t_usb_iface->phy_init   = NULL;
+	else
+		t_usb_iface->phy_init   = usb30_qmp_phy_init;
 	t_usb_iface->phy_reset  = target_usb_phy_reset;
 	t_usb_iface->clock_init = clock_usb30_init;
 	t_usb_iface->vbus_override = 1;
@@ -453,7 +456,7 @@ target_usb_iface_t* target_usb30_init()
 
 uint32_t target_override_pll()
 {
-	if (platform_is_mdmcalifornium())
+	if (platform_is_mdmcalifornium() || platform_is_sdxhedgehog())
 		return 0;
 	else
 		return 1;
@@ -560,7 +563,7 @@ struct qmp_reg qmp_settings[] =
 
 struct qmp_reg *target_get_qmp_settings()
 {
-	if (platform_is_mdmcalifornium())
+	if (platform_is_mdmcalifornium() || platform_is_sdxhedgehog())
 		return qmp_settings;
 	else
 		return NULL;
@@ -568,7 +571,7 @@ struct qmp_reg *target_get_qmp_settings()
 
 int target_get_qmp_regsize()
 {
-	if (platform_is_mdmcalifornium())
+	if (platform_is_mdmcalifornium() || platform_is_sdxhedgehog())
 		return ARRAY_SIZE(qmp_settings);
 	else
 		return 0;
