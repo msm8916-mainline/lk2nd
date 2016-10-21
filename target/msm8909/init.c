@@ -427,7 +427,8 @@ void target_baseband_detect(struct board_data *board)
 
 	case APQ8009:
 		if ((board->platform_hw == HW_PLATFORM_MTP) &&
-				(board->platform_subtype == HW_SUBTYPE_APQ_NOWGR))
+			((board->platform_subtype == HW_SUBTYPE_APQ_NOWGR) ||
+			 (board->platform_subtype == HW_PLATFORM_SUBTYPE_SWOC_NOWGR_CIRC)))
 			board->baseband = BASEBAND_APQ_NOWGR;
 		else
 			board->baseband = BASEBAND_APQ;
