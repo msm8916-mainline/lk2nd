@@ -35,6 +35,8 @@
 #include <string.h>
 #include <display_menu.h>
 #include <qtimer.h>
+#include <pm8x41.h>
+#include <platform.h>
 #include "mdtp.h"
 #include "mdtp_defs.h"
 #include "mdtp_fs.h"
@@ -51,6 +53,7 @@
 #define MDTP_MAX_IMAGE_SIZE                 (1183000)  //size in bytes, includes some extra bytes since we round up to block size in read
 #define RGB888_BLACK                        (0x000000)
 #define BITS_PER_BYTE                       (8)
+#define POWER_KEY_LONG_PRESS                (4000) // 4 seconds in milliseconds
 
 
 #define CENTER_IMAGE_ON_X_AXIS(image_width,screen_width)         (((screen_width)-(image_width))/2)
@@ -498,6 +501,7 @@ static void display_initial_screen(uint32_t pin_length)
 static void display_get_pin_interface(char *entered_pin, uint32_t pin_length)
 {
 	uint32_t previous_position = 0, current_position = 0;
+	time_t pwrkey_press_timer = 0;
 
 	display_initial_screen(pin_length);
 	display_enter_pin();
@@ -512,6 +516,27 @@ static void display_get_pin_interface(char *entered_pin, uint32_t pin_length)
 
 	while (1)
 	{
+		// Check if the power key is being pressed
+		if(pm8x41_get_pwrkey_is_pressed())
+		{
+			// Check if it is the first power key press event
+			if (pwrkey_press_timer == 0)
+			{
+				// Init reference time to first power key press event detected
+				pwrkey_press_timer = current_time();
+			}
+			// If the power key is being pressed long enough, shutdown the device
+			if ((current_time() - pwrkey_press_timer) >= POWER_KEY_LONG_PRESS){
+				dprintf(INFO, "Power key pressed - shutting down\n");
+				shutdown_device();
+			}
+		}
+		else
+		{
+			// Power key isn't being pressed, reset power key press reference time
+			pwrkey_press_timer = 0;
+		}
+
 		if (target_volume_up())
 		{
 			// current position is the OK button
