@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -186,7 +186,7 @@ static void crypto_add_cmd_desc(struct crypto_dev *dev, uint8_t flags)
 
 	ret = bam_add_one_desc(&dev->bam,
 						   CRYPTO_WRITE_PIPE_INDEX,
-						   (unsigned char*)start,
+						   (unsigned char*)PA((addr_t)start),
 						   ce_size,
 						   BAM_DESC_CMD_FLAG | flags);
 
@@ -487,13 +487,12 @@ uint32_t crypto5_send_data(struct crypto_dev *dev,
 	if(buffer)
 	{
 		arch_clean_invalidate_cache_range((addr_t) buffer, total_bytes_to_write);
-
-		bam_status = ADD_WRITE_DESC(&dev->bam, buffer, total_bytes_to_write, wr_flags);
+		bam_status = ADD_WRITE_DESC(&dev->bam, (unsigned char*)PA((addr_t)buffer), total_bytes_to_write, wr_flags);
 	}
 	else
 	{
 		arch_clean_invalidate_cache_range((addr_t) data_ptr, total_bytes_to_write);
-		bam_status = ADD_WRITE_DESC(&dev->bam, data_ptr, total_bytes_to_write, wr_flags);
+		bam_status = ADD_WRITE_DESC(&dev->bam, (unsigned char*)PA((addr_t)data_ptr), total_bytes_to_write, wr_flags);
 	}
 
 	if (bam_status)

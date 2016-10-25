@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
- * Copyright (c) 2009-2015, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2016, The Linux Foundation. All rights reserved.
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -141,7 +141,7 @@ qpic_nand_erased_status_reset(struct cmd_element *cmd_list_ptr, uint8_t flags)
 	/* Enqueue the desc for the above command */
 	bam_add_one_desc(&bam,
 					 CMD_PIPE_INDEX,
-					 (unsigned char*)cmd_list_ptr,
+					 (unsigned char*)PA((addr_t)cmd_list_ptr),
 					 BAM_CE_SIZE,
 					 BAM_DESC_CMD_FLAG | BAM_DESC_INT_FLAG | flags);
 
@@ -158,7 +158,7 @@ qpic_nand_erased_status_reset(struct cmd_element *cmd_list_ptr, uint8_t flags)
 	/* Enqueue the desc for the above command */
 	bam_add_one_desc(&bam,
 					 CMD_PIPE_INDEX,
-					 (unsigned char*)cmd_list_ptr,
+					 (unsigned char*)PA((addr_t)cmd_list_ptr),
 					 BAM_CE_SIZE,
 					 BAM_DESC_CMD_FLAG | BAM_DESC_INT_FLAG);
 
@@ -225,7 +225,7 @@ qpic_nand_fetch_id(struct flash_info *flash)
 	/* Prepare the cmd desc for the above commands */
 	bam_add_one_desc(&bam,
 					 CMD_PIPE_INDEX,
-					 (unsigned char*)cmd_list_ptr_start,
+					 (unsigned char*)PA((addr_t)cmd_list_ptr_start),
 					 PA((uint32_t)cmd_list_ptr - (uint32_t)cmd_list_ptr_start),
 					 BAM_DESC_LOCK_FLAG | BAM_DESC_INT_FLAG |
 					 BAM_DESC_NWD_FLAG | BAM_DESC_CMD_FLAG);
@@ -428,7 +428,7 @@ onfi_probe_cmd_exec(struct onfi_probe_params *params,
 	/* Enqueue the desc for the above commands */
 	bam_add_one_desc(&bam,
 					 CMD_PIPE_INDEX,
-					 (unsigned char*)cmd_list_ptr_start,
+					 (unsigned char*)PA((addr_t)cmd_list_ptr_start),
 					 PA((addr_t)(uint32_t)cmd_list_ptr - (uint32_t)cmd_list_ptr_start),
 					 desc_flags);
 
@@ -479,7 +479,7 @@ qpic_nand_onfi_probe_cleanup(uint32_t vld, uint32_t dev_cmd1)
 	/* Enqueue the desc for the above commands */
 	bam_add_one_desc(&bam,
 					 CMD_PIPE_INDEX,
-					 (unsigned char*)cmd_list_ptr_start,
+					 (unsigned char*)PA((addr_t)cmd_list_ptr_start),
 					 PA((uint32_t)cmd_list_ptr - (uint32_t)cmd_list_ptr_start),
 					 BAM_DESC_UNLOCK_FLAG | BAM_DESC_CMD_FLAG| BAM_DESC_INT_FLAG);
 
@@ -825,7 +825,7 @@ qpic_nand_block_isbad_exec(struct cfg_params *params,
 	/* Enqueue the desc for the above commands */
 	bam_add_one_desc(&bam,
 					 CMD_PIPE_INDEX,
-					 (unsigned char*)cmd_list_ptr_start,
+					 (unsigned char*)PA((addr_t)cmd_list_ptr_start),
 					 PA((uint32_t)cmd_list_ptr - (uint32_t)cmd_list_ptr_start),
 					 desc_flags);
 
@@ -963,7 +963,7 @@ nand_result_t qpic_nand_blk_erase(uint32_t page)
 	/* Enqueue the desc for the above commands */
 	bam_add_one_desc(&bam,
 					 CMD_PIPE_INDEX,
-					 (unsigned char*)cmd_list_ptr_start,
+					 (unsigned char*)PA((addr_t)cmd_list_ptr_start),
 					 PA((uint32_t)cmd_list_ptr - (uint32_t)cmd_list_ptr_start),
 					 BAM_DESC_NWD_FLAG | BAM_DESC_CMD_FLAG | BAM_DESC_INT_FLAG | BAM_DESC_LOCK_FLAG);
 
@@ -987,7 +987,7 @@ nand_result_t qpic_nand_blk_erase(uint32_t page)
 	/* Enqueue the desc for the NAND_FLASH_STATUS read command */
 	bam_add_one_desc(&bam,
 					 CMD_PIPE_INDEX,
-					 (unsigned char*)cmd_list_read_ptr_start,
+					 (unsigned char*)PA((addr_t)cmd_list_read_ptr_start),
 					 PA((uint32_t)cmd_list_read_ptr - (uint32_t)cmd_list_read_ptr_start),
 					 BAM_DESC_CMD_FLAG) ;
 
@@ -996,7 +996,7 @@ nand_result_t qpic_nand_blk_erase(uint32_t page)
 	/* Enqueue the desc for NAND_FLASH_STATUS and NAND_READ_STATUS write commands */
 	bam_add_one_desc(&bam,
 					 CMD_PIPE_INDEX,
-					 (unsigned char*)cmd_list_ptr_start,
+					 (unsigned char*)PA((addr_t)cmd_list_ptr_start),
 					 PA((uint32_t)cmd_list_ptr - (uint32_t)cmd_list_ptr_start),
 					 BAM_DESC_INT_FLAG | BAM_DESC_CMD_FLAG) ;
 	num_desc = 2;
@@ -1057,7 +1057,7 @@ qpic_nand_add_wr_page_cws_cmd_desc(struct cfg_params *cfg,
 	/* Enqueue the desc for the above commands */
 	bam_add_one_desc(&bam,
 					 CMD_PIPE_INDEX,
-					 (unsigned char*)cmd_list_ptr_start,
+					 (unsigned char*)PA((addr_t)cmd_list_ptr_start),
 					 PA((uint32_t)cmd_list_ptr - (uint32_t)cmd_list_ptr_start),
 					 BAM_DESC_CMD_FLAG | BAM_DESC_LOCK_FLAG);
 
@@ -1075,7 +1075,7 @@ qpic_nand_add_wr_page_cws_cmd_desc(struct cfg_params *cfg,
 		/* Enqueue the desc for the above commands */
 		bam_add_one_desc(&bam,
 						 CMD_PIPE_INDEX,
-						 (unsigned char*)cmd_list_ptr_start,
+						 (unsigned char*)PA((addr_t)cmd_list_ptr_start),
 						 PA((uint32_t)cmd_list_ptr - (uint32_t)cmd_list_ptr_start),
 						 BAM_DESC_NWD_FLAG | BAM_DESC_CMD_FLAG);
 
@@ -1087,7 +1087,7 @@ qpic_nand_add_wr_page_cws_cmd_desc(struct cfg_params *cfg,
 		/* Enqueue the desc for the NAND_FLASH_STATUS read command */
 		bam_add_one_desc(&bam,
 						 CMD_PIPE_INDEX,
-						 (unsigned char*)cmd_list_read_ptr_start,
+						 (unsigned char*)PA((addr_t)cmd_list_read_ptr_start),
 						 PA((uint32_t)cmd_list_read_ptr - (uint32_t)cmd_list_read_ptr_start),
 						 BAM_DESC_CMD_FLAG);
 
@@ -1100,7 +1100,7 @@ qpic_nand_add_wr_page_cws_cmd_desc(struct cfg_params *cfg,
 		/* Enqueue the desc for NAND_FLASH_STATUS and NAND_READ_STATUS write commands */
 		bam_add_one_desc(&bam,
 						 CMD_PIPE_INDEX,
-						 (unsigned char*)cmd_list_ptr_start,
+						 (unsigned char*)PA((addr_t)cmd_list_ptr_start),
 						 PA((uint32_t)cmd_list_ptr - (uint32_t)cmd_list_ptr_start),
 						 int_flag | BAM_DESC_CMD_FLAG);
 		num_desc += 2;
@@ -1532,7 +1532,7 @@ static int qpic_nand_read_erased_page(uint32_t page)
 		/* Enqueue the desc for the above commands */
 		bam_add_one_desc(&bam,
 					 CMD_PIPE_INDEX,
-					 (unsigned char*)cmd_list_ptr_start,
+					 (unsigned char*)PA((addr_t)cmd_list_ptr_start),
 					 PA((uint32_t)cmd_list_ptr - (uint32_t)cmd_list_ptr_start),
 					 BAM_DESC_NWD_FLAG | BAM_DESC_CMD_FLAG | flags);
 		num_cmd_desc++;
@@ -1735,7 +1735,7 @@ qpic_nand_read_page(uint32_t page, unsigned char* buffer, unsigned char* sparead
 		/* Enqueue the desc for the above commands */
 		bam_add_one_desc(&bam,
 					 CMD_PIPE_INDEX,
-					 (unsigned char*)cmd_list_ptr_start,
+					 (unsigned char*)PA((addr_t)cmd_list_ptr_start),
 					 PA((uint32_t)cmd_list_ptr - (uint32_t)cmd_list_ptr_start),
 					 BAM_DESC_NWD_FLAG | BAM_DESC_CMD_FLAG);
 		num_cmd_desc++;
