@@ -1117,7 +1117,7 @@ int scm_random(uintptr_t * rbuf, uint32_t  r_len)
 	}
 
 	//Copy back into the return buffer
-	*rbuf = *rand_buf;
+	memscpy(rbuf, r_len, rand_buf, sizeof(rand_buf));
 	return ret;
 }
 
