@@ -106,7 +106,10 @@ void clock_usb30_init(void)
 
 	clock_usb30_gdsc_enable();
 
-	ret = clk_get_set_enable("usb30_master_clk", 125000000, 1);
+	if (platform_is_sdxhedgehog())
+		ret = clk_get_set_enable("usb30_master_clk_sdxhedgehog", 200000000, 1);
+	else
+		ret = clk_get_set_enable("usb30_master_clk", 125000000, 1);
 	if(ret)
 	{
 		dprintf(CRITICAL, "failed to set usb30_master_clk. ret = %d\n", ret);
@@ -115,6 +118,8 @@ void clock_usb30_init(void)
 
 	if (platform_is_mdmcalifornium())
 		ret = clk_get_set_enable("usb30_pipe_clk_mdmcalifornium", 0, 1);
+	else if (platform_is_sdxhedgehog())
+		ret = clk_get_set_enable("usb30_pipe_clk_sdxhedgehog", 0, 1);
 	else
 		ret = clk_get_set_enable("usb30_pipe_clk", 19200000, 1);
 
@@ -131,7 +136,10 @@ void clock_usb30_init(void)
 		ASSERT(0);
 	}
 
-	ret = clk_get_set_enable("usb30_mock_utmi_clk", 60000000, true);
+	if (platform_is_sdxhedgehog())
+		ret = clk_get_set_enable("usb30_mock_utmi_clk_sdxhedgehog", 19200000, 1);
+	else
+		ret = clk_get_set_enable("usb30_mock_utmi_clk", 60000000, true);
 	if(ret)
 	{
 		dprintf(CRITICAL, "failed to set usb30_mock_utmi_clk ret = %d\n", ret);
@@ -175,7 +183,10 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 	int ret = 0;
 	char clk_name[64];
 
-	snprintf(clk_name, sizeof(clk_name), "sdc%u_core_clk", interface);
+	if(platform_is_sdxhedgehog())
+		snprintf(clk_name, sizeof(clk_name), "sdc%u_core_clk_sdxhedgehog", interface);
+	else
+		snprintf(clk_name, sizeof(clk_name), "sdc%u_core_clk", interface);
 
 	if(freq == MMC_CLK_400KHZ)
 	{
@@ -222,6 +233,9 @@ void clock_bumpup_pipe3_clk()
 	}
 }
 
+/*
+ * This is the clock reset function for USB3
+ */
 void clock_reset_usb_phy()
 {
 	int ret;
@@ -237,8 +251,14 @@ void clock_reset_usb_phy()
 	phy_reset_clk = clk_get("usb30_phy_reset");
 	ASSERT(phy_reset_clk);
 
-	pipe_reset_clk = clk_get("usb30_pipe_clk");
-	ASSERT(pipe_reset_clk);
+	if(platform_is_sdxhedgehog()){
+		pipe_reset_clk = clk_get("usb30_pipe_clk_sdxhedgehog");
+		ASSERT(pipe_reset_clk);
+	}
+	else{
+		pipe_reset_clk = clk_get("usb30_pipe_clk");
+		ASSERT(pipe_reset_clk);
+	}
 
 	/* ASSERT */
 	ret = clk_reset(master_clk, CLK_RESET_ASSERT);

@@ -459,6 +459,7 @@ enum {
 	MSM8996AU = 310,
 	APQ8096AU = 311,
 	APQ8096SG = 312,
+	SDXHEDGEHOG = 314
 };
 
 enum platform {
