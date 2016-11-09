@@ -120,6 +120,7 @@ void platform_init_mmu_mappings(void)
 
 	switch(ddr_size)
 	{
+		case MEM_8GB:
 		case MEM_4GB:
 		case MEM_3GB:
 			ddr_start = 0x80000000;

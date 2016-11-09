@@ -1,4 +1,4 @@
-/* Copyright (c) 2011, 2015 The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011, 2015,2016 The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -32,6 +32,7 @@
 #include <sys/types.h>
 #include <arch/arm/mmu.h>
 
+#define MEM_8GB      0x200000000
 #define MEM_6GB      0x180000000
 #define MEM_4GB      0x100000000
 #define MEM_3GB      0xC0000000
