@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -60,6 +60,8 @@
 #include "include/panel_adv7533_1080p60.h"
 #include "include/panel_adv7533_720p60.h"
 #include "include/panel_hx8379a_truly_fwvga_video.h"
+#include "include/panel_truly_1080p_video.h"
+#include "include/panel_truly_1080p_cmd.h"
 
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
@@ -77,6 +79,8 @@ enum {
 	ADV7533_1080P_VIDEO_PANEL,
 	ADV7533_720P_VIDEO_PANEL,
 	TRULY_FWVGA_VIDEO_PANEL,
+	TRULY_1080P_VIDEO_PANEL,
+	TRULY_1080P_CMD_PANEL,
 	UNKNOWN_PANEL
 };
 
@@ -97,12 +101,15 @@ static struct panel_list supp_panels[] = {
 	{"adv7533_1080p_video", ADV7533_1080P_VIDEO_PANEL},
 	{"adv7533_720p_video", ADV7533_720P_VIDEO_PANEL},
 	{"truly_fwvga_video", TRULY_FWVGA_VIDEO_PANEL},
+	{"truly_1080p_video", TRULY_1080P_VIDEO_PANEL},
+	{"truly_1080p_cmd", TRULY_1080P_CMD_PANEL},
 };
 
 #define TARGET_ADV7533_MAIN_INST_0    (0x3D)
 #define TARGET_ADV7533_CEC_DSI_INST_0 (0x3E)
 
 static uint32_t panel_id;
+#define TRULY_1080P_PANEL_ON_DELAY 40
 
 int oem_panel_rotation()
 {
@@ -117,6 +124,9 @@ int oem_panel_on()
 	} else if (panel_id == R69007_WQXGA_CMD_PANEL) {
 		/* needs extra delay to avoid unexpected artifacts */
 		mdelay(R69007_WQXGA_CMD_PANEL_ON_DELAY);
+	} else if (panel_id == TRULY_1080P_CMD_PANEL ||
+			panel_id == TRULY_1080P_VIDEO_PANEL) {
+		mdelay(TRULY_1080P_PANEL_ON_DELAY);
 	}
 
 	return NO_ERROR;
@@ -135,6 +145,63 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 	struct oem_panel_data *oem_data = mdss_dsi_get_oem_data_ptr();
 
 	switch (panel_id) {
+	case TRULY_1080P_VIDEO_PANEL:
+		pan_type = PANEL_TYPE_DSI;
+		panelstruct->paneldata    = &truly_1080p_video_panel_data;
+		panelstruct->paneldata->panel_with_enable_gpio = 0;
+		panelstruct->panelres     = &truly_1080p_video_panel_res;
+		panelstruct->color        = &truly_1080p_video_color;
+		panelstruct->videopanel   = &truly_1080p_video_video_panel;
+		panelstruct->commandpanel = &truly_1080p_video_command_panel;
+		panelstruct->state        = &truly_1080p_video_state;
+		panelstruct->laneconfig   = &truly_1080p_video_lane_config;
+		panelstruct->paneltiminginfo
+			= &truly_1080p_video_timing_info;
+		panelstruct->panelresetseq
+					 = &truly_1080p_video_panel_reset_seq;
+		panelstruct->backlightinfo = &truly_1080p_video_backlight;
+		pinfo->mipi.panel_on_cmds
+			= truly_1080p_video_on_command;
+		pinfo->mipi.num_of_panel_on_cmds
+			= TRULY_1080P_VIDEO_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+			= truly_1080p_video_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+			= TRULY_1080P_VIDEO_OFF_COMMAND;
+		memcpy(phy_db->timing,
+			truly_1080p_14nm_video_timings,
+			MAX_TIMING_CONFIG * sizeof(uint32_t));
+		pinfo->dfps.panel_dfps = truly_1080p_video_dfps;
+		pinfo->mipi.signature 	= TRULY_1080P_VIDEO_SIGNATURE;
+		break;
+	case TRULY_1080P_CMD_PANEL:
+		pan_type = PANEL_TYPE_DSI;
+		panelstruct->paneldata    = &truly_1080p_cmd_panel_data;
+		panelstruct->paneldata->panel_with_enable_gpio = 0;
+		panelstruct->panelres     = &truly_1080p_cmd_panel_res;
+		panelstruct->color        = &truly_1080p_cmd_color;
+		panelstruct->videopanel   = &truly_1080p_cmd_video_panel;
+		panelstruct->commandpanel = &truly_1080p_cmd_command_panel;
+		panelstruct->state        = &truly_1080p_cmd_state;
+		panelstruct->laneconfig   = &truly_1080p_cmd_lane_config;
+		panelstruct->paneltiminginfo
+			= &truly_1080p_cmd_timing_info;
+		panelstruct->panelresetseq
+					 = &truly_1080p_cmd_panel_reset_seq;
+		panelstruct->backlightinfo = &truly_1080p_cmd_backlight;
+		pinfo->mipi.panel_on_cmds
+			= truly_1080p_cmd_on_command;
+		pinfo->mipi.num_of_panel_on_cmds
+			= TRULY_1080P_CMD_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+			= truly_1080p_cmd_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+			= TRULY_1080P_CMD_OFF_COMMAND;
+		memcpy(phy_db->timing,
+			truly_1080p_14nm_cmd_timings,
+			MAX_TIMING_CONFIG * sizeof(uint32_t));
+		pinfo->mipi.signature 	= TRULY_1080P_CMD_SIGNATURE;
+		break;
 	case SHARP_WQXGA_DUALDSI_VIDEO_PANEL:
 		pan_type = PANEL_TYPE_DSI;
 		pinfo->lcd_reg_en = 0;
