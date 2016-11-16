@@ -1295,7 +1295,7 @@ int boot_linux_from_mmc(void)
 	}
 
 #if VERIFIED_BOOT
-	if(boot_verify_get_state() == ORANGE)
+	if((boot_verify_get_state() == ORANGE) && (!boot_into_ffbm))
 	{
 #if FBCON_DISPLAY_MSG
 		display_bootverify_menu(DISPLAY_MENU_ORANGE);
