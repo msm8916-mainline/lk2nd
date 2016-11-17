@@ -1,4 +1,4 @@
-/* Copyright (c) 2012,2015 The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012,2016 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -280,7 +280,7 @@ static struct bam_desc* fifo_getnext(struct bam_desc_fifo *fifo,
 
 /* Function to add BAM descriptors for a given fifo.
  * bam : BAM instance to be used.
- * data_ptr : Memory address for data transfer.
+ * data_ptr : Physical memory address for data transfer.
  * data_len : Length of the data_ptr.
  * flags : Flags to be set on the last desc added.
  *
