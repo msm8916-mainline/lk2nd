@@ -50,6 +50,7 @@ const char *hw_platform[] = {
 	[HW_PLATFORM_LIQUID] = "Liquid",
 	[HW_PLATFORM_DRAGON] = "Dragon",
 	[HW_PLATFORM_QRD] = "QRD",
+	[HW_PLATFORM_IPC] = "IPC",
 	[HW_PLATFORM_HRD] = "HRD",
 	[HW_PLATFORM_DTV] = "DTV",
 	[HW_PLATFORM_STP] = "STP",
