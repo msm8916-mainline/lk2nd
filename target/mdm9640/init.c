@@ -205,7 +205,7 @@ void reboot_device(unsigned reboot_reason)
 {
 	uint8_t reset_type = 0;
 
-	if (platform_is_mdmcalifornium())
+	if (platform_is_mdmcalifornium() || platform_is_sdxhedgehog())
 	{
 		/* Clear the boot partition select cookie to indicate
 		 * its a normal reset and avoid going to download mode */
@@ -220,7 +220,7 @@ void reboot_device(unsigned reboot_reason)
 	else
 		reset_type = PON_PSHOLD_HARD_RESET;
 
-	if (platform_is_mdmcalifornium())
+	if (platform_is_mdmcalifornium() || platform_is_sdxhedgehog())
 	{
 		/* PMD9655 is the PMIC used for MDMcalifornium */
 		pm8x41_reset_configure(reset_type);
