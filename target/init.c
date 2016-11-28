@@ -242,6 +242,11 @@ __WEAK void target_crypto_init_params()
 {
 }
 
+__WEAK bool target_is_pmi_enabled(void)
+{
+	return 1;
+}
+
 /* Default CFG delay value */
 __WEAK uint32_t target_ddr_cfg_val()
 {
@@ -358,8 +363,11 @@ bool target_battery_is_present()
 		case PMIC_IS_PMI8950:
 		case PMIC_IS_PMI8994:
 		case PMIC_IS_PMI8996:
-			value = REG_READ(PMIC_SLAVE_ID|
-			BAT_IF_BAT_PRES_STATUS);
+			if(target_is_pmi_enabled())
+			{
+				value = REG_READ(PMIC_SLAVE_ID|
+						BAT_IF_BAT_PRES_STATUS);
+			}
 			break;
 		default:
 			dprintf(CRITICAL, "ERROR: Couldn't get the pmic type\n");
@@ -391,10 +399,13 @@ uint32_t target_get_battery_voltage()
 		case PMIC_IS_PMI8950:
 		case PMIC_IS_PMI8994:
 		case PMIC_IS_PMI8996:
-			if (!pm_fg_usr_get_vbat(1, &vbat)) {
-				vbat = vbat*1000; //uv
-			} else {
-				dprintf(CRITICAL, "ERROR: Get battery voltage failed!!!\n");
+			if(target_is_pmi_enabled())
+			{
+				if (!pm_fg_usr_get_vbat(1, &vbat)) {
+					vbat = vbat*1000; //uv
+				} else {
+					dprintf(CRITICAL, "ERROR: Get battery voltage failed!!!\n");
+				}
 			}
 			break;
 		default:

@@ -33,6 +33,7 @@
 #include <qpnp_wled.h>
 #include <pm8x41_wled.h>
 #include <qtimer.h>
+#include <target.h>
 
 static int qpnp_wled_avdd_target_voltages[NUM_SUPPORTED_AVDD_VOLTAGES] = {
 	7900, 7600, 7300, 6400, 6100, 5800,
@@ -597,6 +598,9 @@ int qpnp_wled_init(struct qpnp_wled_config_data *config)
 {
 	int rc;
 	struct qpnp_wled *wled;
+
+	if(!target_is_pmi_enabled())
+		return ERR_NOT_FOUND;
 
 	wled = malloc(sizeof(struct qpnp_wled));
 	if (!wled)
