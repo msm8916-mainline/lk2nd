@@ -55,6 +55,15 @@
                                    SCM_MASK_IRQS | \
                                    ((n) & 0xf))
 
+#define SECBOOT_FUSE_BIT                  0
+#define SECBOOT_FUSE_SHK_BIT              1
+#define SECBOOT_FUSE_DEBUG_DISABLED_BIT   2
+#define SECBOOT_FUSE_ANTI_ROLLBACK_BIT    3
+#define SECBOOT_FUSE_FEC_ENABLED_BIT      4
+#define SECBOOT_FUSE_RPMB_ENABLED_BIT     5
+#define SECBOOT_FUSE_DEBUG_RE_ENABLED_BIT 6
+#define CHECK_BIT(var, pos) ((var) & (1 << (pos)))
+
 /* SCM interface as per ARM spec present? */
 bool scm_arm_support;
 static bool scm_initialized;
@@ -1244,7 +1253,7 @@ uint32_t scm_call2(scmcall_arg *arg, scmcall_ret *ret)
 	return 0;
 }
 
-static bool secure_boot_enabled = true;
+static bool secure_boot_enabled = false;
 static bool wdog_debug_fuse_disabled = true;
 
 void scm_check_boot_fuses()
@@ -1265,14 +1274,16 @@ void scm_check_boot_fuses()
 		resp[0] = scm_ret.x1;
 	}
 
-
-	/* Parse Bit 0 and Bit 2 of the response */
-	if(!ret) {
-		/* Bit 0 - SECBOOT_ENABLE_CHECK */
-		if(resp[0] & 0x1)
-			secure_boot_enabled = false;
+	if (!ret) {
+		/* Check for secure device: Bit#0 = 0, Bit#1 = 0 Bit#2 = 0 , Bit#5 = 0 , Bit#6 = 1 */
+        	if (!CHECK_BIT(resp[0], SECBOOT_FUSE_BIT) && !CHECK_BIT(resp[0], SECBOOT_FUSE_SHK_BIT) &&
+        		!CHECK_BIT(resp[0], SECBOOT_FUSE_DEBUG_DISABLED_BIT) &&
+        		!CHECK_BIT(resp[0], SECBOOT_FUSE_RPMB_ENABLED_BIT) &&
+        		CHECK_BIT(resp[0], SECBOOT_FUSE_DEBUG_RE_ENABLED_BIT)) {
+        		secure_boot_enabled = true;
+        	}
 		/* Bit 2 - DEBUG_DISABLE_CHECK */
-		if(resp[0] & 0x4)
+		if (CHECK_BIT(resp[0], SECBOOT_FUSE_DEBUG_DISABLED_BIT))
 			wdog_debug_fuse_disabled = false;
 	} else
 		dprintf(CRITICAL, "scm call to check secure boot fuses failed\n");
