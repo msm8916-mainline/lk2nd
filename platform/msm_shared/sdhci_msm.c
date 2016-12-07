@@ -812,11 +812,9 @@ retry_tuning:
 		/* Change the driver type & rerun tuning */
 		while(++drv_type <= MX_DRV_SUPPORTED_HS200)
 		{
-			drv_type_changed = mmc_set_drv_type(host, card, drv_type);
-			if (drv_type_changed)
-			{
+			if (mmc_set_drv_type(host, card, drv_type))
 				goto retry_tuning;
-			}
+			drv_type_changed = true;
 		}
 	}
 
