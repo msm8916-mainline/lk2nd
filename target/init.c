@@ -248,6 +248,33 @@ __WEAK uint32_t target_ddr_cfg_val()
 	return DDR_CONFIG_VAL;
 }
 
+/* Default CFG register value */
+uint32_t target_ddr_cfg_reg()
+{
+	uint32_t platform = board_platform_id();
+	uint32_t ret = SDCC_HC_REG_DDR_CONFIG;
+
+	switch(platform)
+	{
+		case MSM8937:
+		case MSM8940:
+		case APQ8037:
+		case MSM8917:
+		case MSM8920:
+		case MSM8217:
+		case MSM8617:
+		case APQ8017:
+		case MSM8953:
+		case APQ8053:
+		/* SDCC HC DDR CONFIG has shifted by 4 bytes for these platform */
+			ret += 4;
+			break;
+		default:
+			break;
+	}
+	return ret;
+}
+
 #if PON_VIB_SUPPORT
 void get_vibration_type(struct qpnp_hap *config)
 {
