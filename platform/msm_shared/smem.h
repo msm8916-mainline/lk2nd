@@ -2,7 +2,7 @@
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2019, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2020, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -467,6 +467,7 @@ enum {
 	APQ8009W = 301,
 	SDM450 = 338,
 	MDM9206 = 322,
+	MSM8905  = 331,
 	SDA450 = 351,
 	SDM632 = 349,
 	SDA632 = 350,
