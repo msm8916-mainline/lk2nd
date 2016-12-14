@@ -1032,6 +1032,7 @@ static bool check_format_bit()
 		return ret;
 	}
 	buf = (char *) memalign(CACHE_LINE, ROUNDUP(page_size, CACHE_LINE));
+	mmc_set_lun(partition_get_lun(index));
 	ASSERT(buf);
 	if (mmc_read(offset, (uint32_t *)buf, page_size))
 	{
@@ -1968,6 +1969,9 @@ static int read_allow_oem_unlock(device_info *dev)
 	ptn_size = partition_get_size(index);
 	offset = ptn_size - blocksize;
 
+	/* Set Lun for partition */
+	mmc_set_lun(partition_get_lun(index));
+
 	if (mmc_read(ptn + offset, (void *)buf, blocksize))
 	{
 		dprintf(CRITICAL, "Reading MMC failed\n");
@@ -2002,6 +2006,7 @@ static int write_allow_oem_unlock(bool allow_unlock)
 	ptn = partition_get_offset(index);
 	ptn_size = partition_get_size(index);
 	offset = ptn_size - blocksize;
+	mmc_set_lun(partition_get_lun(index));
 
 	if (mmc_read(ptn + offset, (void *)buf, blocksize))
 	{

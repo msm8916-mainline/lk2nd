@@ -73,6 +73,7 @@ void kauth_test(const char *arg, void *data, unsigned sz)
 #if !VERIFIED_BOOT
 	index = partition_get_index("system");
 	ptn = partition_get_offset(index);
+	mmc_set_lun(partition_get_lun(index));
 
 	if(!ptn)
 	{
