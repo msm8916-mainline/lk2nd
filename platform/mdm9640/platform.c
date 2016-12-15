@@ -214,3 +214,10 @@ uint32_t platform_get_qmp_rev()
 		   readl(USB3_PHY_REVISION_ID1) << 8 | readl(USB3_PHY_REVISION_ID0);
 }
 
+bool platform_is_glink_enabled()
+{
+	if (platform_is_sdxhedgehog())
+		return 1;
+	else
+		return 0;
+}

@@ -56,6 +56,7 @@
 #include <boot_device.h>
 #include <qmp_phy.h>
 #include <crypto5_wrapper.h>
+#include <rpm-glink.h>
 
 extern void smem_ptable_init(void);
 extern void smem_add_modem_partitions(struct ptable *flash_ptable);
@@ -151,7 +152,14 @@ void target_init(void)
 
 	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
 	if(!platform_is_sdxhedgehog())
+	{
 		rpm_smd_init();
+	}
+	else
+	{
+		/* Initialize Glink */
+		rpm_glink_init();
+	}
 
 	if (platform_boot_dev_isemmc()) {
 		target_sdc_init();
@@ -421,7 +429,14 @@ void target_uninit(void)
 		crypto_eng_cleanup();
 
 	if(!platform_is_sdxhedgehog())
+	{
 		rpm_smd_uninit();
+	}
+	else
+	{
+		/* Tear down glink channels */
+		rpm_glink_uninit();
+	}
 }
 
 void target_usb_phy_reset(void)
