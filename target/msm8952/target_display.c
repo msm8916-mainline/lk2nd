@@ -1,4 +1,4 @@
-/* Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2017, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -50,6 +50,13 @@
 #include "include/panel.h"
 #include "include/display_resource.h"
 #include "gcdb_display.h"
+
+#define TRULY_720P_VID_PANEL "truly_720p_video"
+#define TRULY_720P_CMD_PANEL "truly_720p_cmd"
+
+#define HDMI_ADV_PANEL_STRING "1:dsi:0:qcom,mdss_dsi_adv7533_1080p:1:none:cfg:single_dsi"
+#define TRULY_VID_PANEL_STRING "1:dsi:0:qcom,mdss_dsi_truly_720p_video:1:none:cfg:single_dsi"
+#define TRULY_CMD_PANEL_STRING "1:dsi:0:qcom,mdss_dsi_truly_720p_cmd:1:none:cfg:single_dsi"
 
 /*---------------------------------------------------------------------------*/
 /* GPIO configuration                                                        */
@@ -569,7 +576,55 @@ int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 
 bool target_display_panel_node(char *pbuf, uint16_t buf_size)
 {
-	return gcdb_display_cmdline_arg(pbuf, buf_size);
+	int prefix_string_len = strlen(DISPLAY_CMDLINE_PREFIX);
+	bool ret = true;
+	struct oem_panel_data oem = mdss_dsi_get_oem_data();
+	uint32_t platform_subtype = board_hardware_subtype();
+
+	/* default to hdmi for apq iot */
+	if ((HW_PLATFORM_SUBTYPE_SNAP == platform_subtype) ||
+		(HW_PLATFORM_SUBTYPE_SNAP_NOPMI == platform_subtype)) {
+		if (!strcmp(oem.panel, "")) {
+			if (buf_size < (prefix_string_len +
+				strlen(HDMI_ADV_PANEL_STRING))) {
+				dprintf(CRITICAL, "HDMI command line argument \
+					is greater than buffer size\n");
+				return false;
+			}
+			strlcpy(pbuf, DISPLAY_CMDLINE_PREFIX, buf_size);
+			buf_size -= prefix_string_len;
+			pbuf += prefix_string_len;
+			strlcpy(pbuf, HDMI_ADV_PANEL_STRING, buf_size);
+		} else if (!strcmp(oem.panel, TRULY_720P_VID_PANEL)) {
+			if (buf_size < (prefix_string_len +
+				strlen(TRULY_VID_PANEL_STRING))) {
+				dprintf(CRITICAL, "TRULY VIDEO command line \
+					argument is greater than \
+					buffer size\n");
+				return false;
+			}
+			strlcpy(pbuf, DISPLAY_CMDLINE_PREFIX, buf_size);
+			buf_size -= prefix_string_len;
+			pbuf += prefix_string_len;
+			strlcpy(pbuf, TRULY_VID_PANEL_STRING, buf_size);
+		} else if (!strcmp(oem.panel, TRULY_720P_CMD_PANEL)) {
+			if (buf_size < (prefix_string_len +
+				strlen(TRULY_CMD_PANEL_STRING))) {
+				dprintf(CRITICAL, "TRULY CMD command line argument \
+					argument is greater than \
+					buffer size\n");
+				return false;
+			}
+			strlcpy(pbuf, DISPLAY_CMDLINE_PREFIX, buf_size);
+			buf_size -= prefix_string_len;
+			pbuf += prefix_string_len;
+			strlcpy(pbuf, TRULY_CMD_PANEL_STRING, buf_size);
+		}
+	} else {
+		ret = gcdb_display_cmdline_arg(pbuf, buf_size);
+	}
+
+	return ret;
 }
 
 void target_display_init(const char *panel_name)
@@ -577,6 +632,7 @@ void target_display_init(const char *panel_name)
 	struct oem_panel_data oem;
 	int32_t ret = 0;
 	uint32_t panel_loop = 0;
+	uint32_t platform_subtype = board_hardware_subtype();
 
 	set_panel_cmd_string(panel_name);
 	oem = mdss_dsi_get_oem_data();
@@ -587,6 +643,13 @@ void target_display_init(const char *panel_name)
 		|| oem.skip) {
 		dprintf(INFO, "Selected panel: %s\nSkip panel configuration\n",
 			oem.panel);
+		return;
+	}
+
+	if ((HW_PLATFORM_SUBTYPE_SNAP == platform_subtype) ||
+		(HW_PLATFORM_SUBTYPE_SNAP_NOPMI == platform_subtype)) {
+		dprintf(INFO, "%s: Platform subtype %d\n",
+			__func__, platform_subtype);
 		return;
 	}
 
