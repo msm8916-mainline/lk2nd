@@ -76,10 +76,16 @@ target_dev_tree_mem_err:
 
 void *target_get_scratch_address(void)
 {
-	return ((void *)SCRATCH_ADDR);
+	if(smem_get_ddr_size() > 0x20000000)
+		return ((void *)SCRATCH_ADDR);
+	else
+		return ((void *)SCRATCH_ADDR_512);
 }
 
 unsigned target_get_max_flash_size(void)
 {
-	return (511 * 1024 * 1024);
+	if(smem_get_ddr_size() > 0x20000000)
+		return (SCRATCH_SIZE * 1024 * 1024);
+	else
+		return (SCRATCH_SIZE_512 * 1024 * 1024);
 }

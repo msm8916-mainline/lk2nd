@@ -66,9 +66,20 @@ static mmu_section_t mmu_section_table[] = {
 	{    MSM_IOMAP_BASE,        MSM_IOMAP_BASE,          MSM_IOMAP_SIZE,         IOMAP_MEMORY},
 	{    APPS_SS_BASE,          APPS_SS_BASE,            APPS_SS_SIZE,           IOMAP_MEMORY},
 	{    MSM_SHARED_IMEM_BASE,  MSM_SHARED_IMEM_BASE,    1,                      COMMON_MEMORY},
-	{    SCRATCH_ADDR,          SCRATCH_ADDR,            511,                    SCRATCH_MEMORY},
+	{    SCRATCH_ADDR,          SCRATCH_ADDR,            SCRATCH_SIZE,           SCRATCH_MEMORY},
 	{    MIPI_FB_ADDR,          MIPI_FB_ADDR,            20,                     COMMON_MEMORY},
 	{    RPMB_SND_RCV_BUF,      RPMB_SND_RCV_BUF,        RPMB_SND_RCV_BUF_SZ,    IOMAP_MEMORY},
+};
+
+static mmu_section_t mmu_section_table_512[] = {
+/*           Physical addr,         Virtual addr,            Size (in MB),     Flags */
+	{    MEMBASE,               MEMBASE,                 (MEMSIZE / MB),         LK_MEMORY},
+	{    MSM_IOMAP_BASE,        MSM_IOMAP_BASE,          MSM_IOMAP_SIZE,         IOMAP_MEMORY},
+	{    APPS_SS_BASE,          APPS_SS_BASE,            APPS_SS_SIZE,           IOMAP_MEMORY},
+	{    MSM_SHARED_IMEM_BASE,  MSM_SHARED_IMEM_BASE,    1,                      COMMON_MEMORY},
+	{    SCRATCH_ADDR_512,      SCRATCH_ADDR_512,        SCRATCH_SIZE_512,       SCRATCH_MEMORY},
+	{    MIPI_FB_ADDR,          MIPI_FB_ADDR,            20,                     COMMON_MEMORY},
+	{    RPMB_SND_RCV_BUF_512,  RPMB_SND_RCV_BUF_512,    RPMB_SND_RCV_BUF_SZ,    IOMAP_MEMORY},
 };
 
 void platform_early_init(void)
@@ -111,9 +122,10 @@ void platform_init_mmu_mappings(void)
 {
 	uint32_t i;
 	uint32_t sections;
-	uint32_t table_size = ARRAY_SIZE(mmu_section_table);
+	uint32_t table_size;
 	uint32_t ddr_start = get_ddr_start();
 	uint32_t smem_addr = platform_get_smem_base_addr();
+	mmu_section_t *table_addr;
 
 	/*Mapping the ddr start address for loading the kernel about 90 MB*/
 	sections = 90;
@@ -128,19 +140,32 @@ void platform_init_mmu_mappings(void)
 
 	/* Configure the MMU page entries for memory read from the
 	   mmu_section_table */
+	if(smem_get_ddr_size() > 0x20000000)
+	{
+		table_addr = mmu_section_table;
+		table_size = ARRAY_SIZE(mmu_section_table);
+	}
+	else
+	{
+		table_addr = mmu_section_table_512;
+		table_size = ARRAY_SIZE(mmu_section_table_512);
+	}
+
 	for (i = 0; i < table_size; i++)
 	{
-		sections = mmu_section_table[i].num_of_sections;
+		sections = table_addr->num_of_sections;
 
 		while (sections--)
 		{
-			arm_mmu_map_section(mmu_section_table[i].paddress +
+			arm_mmu_map_section(table_addr->paddress +
 								sections * MB,
-								mmu_section_table[i].vaddress +
+								table_addr->vaddress +
 								sections * MB,
-								mmu_section_table[i].flags);
+								table_addr->flags);
 		}
+		table_addr++;
 	}
+
 }
 
 addr_t platform_get_virt_to_phys_mapping(addr_t virt_addr)
