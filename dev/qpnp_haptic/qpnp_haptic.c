@@ -87,6 +87,9 @@ void pm_vib_turn_on(void)
 {
 	struct qpnp_hap vib_config = {0};
 
+	if(!target_is_pmi_enabled())
+		return;
+
 	get_vibration_type(&vib_config);
 	/* Configure the ACTUATOR TYPE register as ERM*/
 	pmic_spmi_reg_mask_write(QPNP_HAP_ACT_TYPE_REG,
@@ -149,6 +152,9 @@ void pm_vib_turn_on(void)
 /* Turn off vibrator */
 void pm_vib_turn_off(void)
 {
+	if(!target_is_pmi_enabled())
+		return;
+
 	/* Disable control register */
 	pmic_spmi_reg_mask_write(QPNP_HAP_EN_CTL_REG,
 					QPNP_HAP_PLAY_MASK, QPNP_HAP_PLAY_DIS);

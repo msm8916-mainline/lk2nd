@@ -292,20 +292,24 @@ void target_init(void)
 
 	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
 
-	if(platform_is_msm8937() || platform_is_msm8917())
+	if(target_is_pmi_enabled())
 	{
-		uint8_t pmi_rev = 0;
-		uint32_t pmi_type = 0;
-
-		pmi_type = board_pmic_target(1) & 0xffff;
-		if(pmi_type == PMIC_IS_PMI8950)
+		if(platform_is_msm8937() || platform_is_msm8917())
 		{
-			/* read pmic spare register for rev */
-			pmi_rev = pmi8950_get_pmi_subtype();
-			if(pmi_rev)
-				board_pmi_target_set(1,pmi_rev);
+			uint8_t pmi_rev = 0;
+			uint32_t pmi_type = 0;
+
+			pmi_type = board_pmic_target(1) & 0xffff;
+			if(pmi_type == PMIC_IS_PMI8950)
+			{
+				/* read pmic spare register for rev */
+				pmi_rev = pmi8950_get_pmi_subtype();
+				if(pmi_rev)
+					board_pmi_target_set(1,pmi_rev);
+			}
 		}
 	}
+
 
 	target_keystatus();
 
@@ -317,12 +321,14 @@ void target_init(void)
 	}
 
 #if LONG_PRESS_POWER_ON
-	shutdown_detect();
+	if(target_is_pmi_enabled())
+		shutdown_detect();
 #endif
 
 #if PON_VIB_SUPPORT
 	/* turn on vibrator to indicate that phone is booting up to end user */
-	vib_timed_turn_on(VIBRATE_TIME);
+	if(target_is_pmi_enabled())
+		vib_timed_turn_on(VIBRATE_TIME);
 #endif
 
 	if (target_use_signed_kernel())
@@ -492,7 +498,11 @@ void reboot_device(unsigned reboot_reason)
 	else
 		reset_type = PON_PSHOLD_HARD_RESET;
 
-	pm8994_reset_configure(reset_type);
+	if(target_is_pmi_enabled())
+		pm8994_reset_configure(reset_type);
+	else
+		pm8x41_reset_configure(reset_type);
+
 
 	ret = scm_halt_pmic_arbiter();
 	if (ret)
@@ -527,8 +537,12 @@ unsigned target_pause_for_battery_charge(void)
 {
 	uint8_t pon_reason = pm8x41_get_pon_reason();
 	uint8_t is_cold_boot = pm8x41_get_is_cold_boot();
-	bool usb_present_sts = !(USBIN_UV_RT_STS &
-				pm8x41_reg_read(SMBCHG_USB_RT_STS));
+	bool usb_present_sts = 1;	/* don't care by default */
+
+	if(target_is_pmi_enabled())
+		usb_present_sts = (!(USBIN_UV_RT_STS &
+						 pm8x41_reg_read(SMBCHG_USB_RT_STS)));
+
 	dprintf(INFO, "%s : pon_reason is:0x%x cold_boot:%d usb_sts:%d\n", __func__,
 		pon_reason, is_cold_boot, usb_present_sts);
 	/* In case of fastboot reboot,adb reboot or if we see the power key
@@ -548,7 +562,8 @@ unsigned target_pause_for_battery_charge(void)
 void target_uninit(void)
 {
 #if PON_VIB_SUPPORT
-	turn_off_vib_early();
+	if(target_is_pmi_enabled())
+		turn_off_vib_early();
 #endif
 	mmc_put_card_to_sleep(dev);
 	sdhci_mode_disable(&dev->host);
@@ -739,6 +754,15 @@ void target_crypto_init_params()
 	ce_params.do_bam_init      = 0;
 
 	crypto_init_params(&ce_params);
+}
+
+bool target_is_pmi_enabled(void)
+{
+	if(platform_is_msm8917() &&
+	   (board_hardware_subtype() ==	HW_PLATFORM_SUBTYPE_SNAP_NOPMI))
+		return 0;
+	else
+		return 1;
 }
 
 uint32_t target_get_pmic()
