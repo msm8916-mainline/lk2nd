@@ -681,4 +681,10 @@ unsigned int usb_phy_bcr();
 #define LPASS_LPAIF_RDDMA_BUFF_LEN0  0x0910D008
 #define LPASS_LPAIF_RDDMA_PER_LEN0   0x0910D010
 #define LPASS_LPAIF_DEBUG_CTL        0x0910000C
+
+#define DDR_START                    platform_get_ddr_start()
+#define ABOOT_FORCE_KERNEL_ADDR      (DDR_START + 0x8000)
+#define ABOOT_FORCE_RAMDISK_ADDR     (DDR_START + 0x2200000)
+#define ABOOT_FORCE_TAGS_ADDR        (DDR_START + 0x2000000)
+#define ABOOT_FORCE_KERNEL64_ADDR    (DDR_START + 0x80000)
 #endif

@@ -32,6 +32,7 @@
 #include <sys/types.h>
 #include <arch/arm/mmu.h>
 
+#define MEM_6GB      0x180000000
 #define MEM_4GB      0x100000000
 #define MEM_3GB      0xC0000000
 
