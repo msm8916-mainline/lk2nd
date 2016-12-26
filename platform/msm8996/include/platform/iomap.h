@@ -242,7 +242,7 @@ unsigned int usb_phy_bcr();
  * as device memory, define the start address
  * and size in MB
  */
-#define RPMB_SND_RCV_BUF            0x91C00000
+#define RPMB_SND_RCV_BUF            0x92100000
 #define RPMB_SND_RCV_BUF_SZ         0x2
 
 #define TCSR_BOOT_MISC_DETECT       0x007B3000
