@@ -103,6 +103,10 @@ ifeq ($(ENABLE_WDOG_SUPPORT),1)
 DEFINES += WDOG_SUPPORT=1
 endif
 
+ifeq ($(APPEND_CMDLINE),1)
+DEFINES += _APPEND_CMDLINE=1
+endif
+
 #SCM call before entering DLOAD mode
 DEFINES += PLATFORM_USE_SCM_DLOAD=1
 

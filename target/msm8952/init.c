@@ -84,6 +84,8 @@
 #define RECOVERY_MODE           0x77665502
 #define PON_SOFT_RB_SPARE       0x88F
 
+#define EXT4_CMDLINE  " rootfstype=ext4 root=/dev/mmcblk0p"
+
 #define CE1_INSTANCE            1
 #define CE_EE                   1
 #define CE_FIFO_SIZE            64
@@ -764,6 +766,44 @@ bool target_is_pmi_enabled(void)
 	else
 		return 1;
 }
+
+#if _APPEND_CMDLINE
+int get_target_boot_params(const char *cmdline, const char *part, char **buf)
+{
+	int system_ptn_index = -1;
+	uint32_t buflen;
+	int ret = -1;
+
+	if (!cmdline || !part ) {
+		dprintf(CRITICAL, "WARN: Invalid input param\n");
+		return -1;
+	}
+
+	if (!strstr(cmdline, "root=/dev/ram")) /* This check is to handle kdev boot */
+	{
+		if (target_is_emmc_boot()) {
+			buflen = strlen(EXT4_CMDLINE) + sizeof(int) +1;
+			*buf = (char *)malloc(buflen);
+			if(!(*buf)) {
+				dprintf(CRITICAL,"Unable to allocate memory for boot params\n");
+				return -1;
+			}
+			/* Below is for emmc boot */
+			system_ptn_index = partition_get_index(part) + 1; /* Adding +1 as offsets for eMMC start at 1 and NAND at 0 */
+			if (system_ptn_index < 0) {
+				dprintf(CRITICAL,
+						"WARN: Cannot get partition index for %s\n", part);
+				free(*buf);
+				return -1;
+			}
+			snprintf(*buf, buflen, EXT4_CMDLINE"%d", system_ptn_index);
+			ret = 0;
+		}
+	}
+	/*in success case buf will be freed in the calling function of this*/
+	return ret;
+}
+#endif
 
 uint32_t target_get_pmic()
 {
