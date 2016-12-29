@@ -162,3 +162,14 @@ __WEAK uint32_t read_der_message_length(unsigned char* input, unsigned sz)
 {
 	return SIGNATURE_SIZE;
 }
+
+/* Check if glink is supported or not */
+__WEAK bool platform_is_glink_enabled()
+{
+#if GLINK_SUPPORT
+	return 1;
+#else
+	return 0;
+#endif
+}
+
