@@ -341,6 +341,7 @@ static bool verify_image_with_sig(unsigned char* img_addr, uint32_t img_size,
 	}
 
 verify_image_with_sig_error:
+	boot_verify_send_event(BOOTIMG_VERIFICATION_FAIL);
 verify_image_with_sig_done:
 	return ret;
 }
