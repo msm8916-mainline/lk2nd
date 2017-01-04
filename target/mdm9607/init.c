@@ -257,6 +257,11 @@ int get_target_boot_params(const char *cmdline, const char *part, char **buf)
 	int system_ptn_index = -1;
 	uint32_t buflen = strlen(UBI_CMDLINE) + strlen(" root=ubi0:rootfs ubi.mtd=") + sizeof(int) + 1; /* 1 byte for null character*/
 
+	if (!cmdline || !part ) {
+	        dprintf(CRITICAL, "WARN: Invalid input param\n");
+	        return -1;
+	}
+
 	*buf = (char *)malloc(buflen);
 	if(!(*buf)) {
 		dprintf(CRITICAL,"Unable to allocate memory for boot params\n");
