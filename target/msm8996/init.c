@@ -44,6 +44,7 @@
 #include <regulator.h>
 #include <dev/keys.h>
 #include <pm8x41.h>
+#include <pm8x41_hw.h>
 #include <crypto5_wrapper.h>
 #include <clock.h>
 #include <partition_parser.h>
@@ -86,6 +87,13 @@
 
 #define PMIC_ARB_CHANNEL_NUM    0
 #define PMIC_ARB_OWNER_ID       0
+
+#define SMBCHG_USB_RT_STS 0x21310
+#define SMBCHG_DC_RT_STS 0x21410
+#define USBIN_UV_RT_STS BIT(0)
+#define USBIN_OV_RT_STS BIT(1)
+#define DCIN_UV_RT_STS  BIT(0)
+#define DCIN_OV_RT_STS  BIT(1)
 
 enum
 {
@@ -255,8 +263,18 @@ static void set_sdc_power_ctrl()
 uint32_t target_is_pwrkey_pon_reason()
 {
 	uint8_t pon_reason = pm8950_get_pon_reason();
+
 	if (pm8x41_get_is_cold_boot() && ((pon_reason == KPDPWR_N) || (pon_reason == (KPDPWR_N|PON1))))
 		return 1;
+	else if (pon_reason == PON1)
+	{
+		/* DC charger is present or USB charger is present */
+		if (((USBIN_UV_RT_STS | USBIN_OV_RT_STS) & pm8x41_reg_read(SMBCHG_USB_RT_STS)) == 0 ||
+			((DCIN_UV_RT_STS | DCIN_OV_RT_STS) & pm8x41_reg_read(SMBCHG_DC_RT_STS)) == 0)
+			return 0;
+		else
+			return 1;
+	}
 	else
 		return 0;
 }
