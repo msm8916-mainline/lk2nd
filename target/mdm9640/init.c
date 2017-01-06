@@ -150,7 +150,8 @@ void target_init(void)
 	pmic_info_populate();
 
 	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
-	rpm_smd_init();
+	if(!platform_is_sdxhedgehog())
+		rpm_smd_init();
 
 	if (platform_boot_dev_isemmc()) {
 		target_sdc_init();
@@ -419,7 +420,8 @@ void target_uninit(void)
 	if (crypto_initialized())
 		crypto_eng_cleanup();
 
-	rpm_smd_uninit();
+	if(!platform_is_sdxhedgehog())
+		rpm_smd_uninit();
 }
 
 void target_usb_phy_reset(void)
