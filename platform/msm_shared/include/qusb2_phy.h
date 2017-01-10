@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2017, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -53,6 +53,7 @@ void qusb2_phy_reset(void);
 
 /* QUSB2 PHY SDXHEDGEHOG */
 #define QUSB2PHY_PLL_ANALOG_CONTROLS_TWO_SDXHEDGEHOG		(QUSB2_PHY_BASE + 0x4)
+#define QUSB2PHY_PLL_DIGITAL_TIMERS_TWO_SDXHEDGEHOG		(QUSB2_PHY_BASE + 0xb4)
 #define QUSB2PHY_PLL_CLOCK_INVERTERS_SDXHEDGEHOG			(QUSB2_PHY_BASE + 0x18c)
 #define QUSB2PHY_PLL_CMODE_SDXHEDGEHOG						(QUSB2_PHY_BASE + 0x02c)
 #define QUSB2PHY_PLL_LOCK_DELAY_SDXHEDGEHOG					(QUSB2_PHY_BASE + 0x90)
