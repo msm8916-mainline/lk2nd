@@ -62,7 +62,6 @@ endif
 
 ifeq ($(ENABLE_GLINK_SUPPORT),1)
 OBJS += \
-		$(LOCAL_DIR)/rpm-ipc.o \
 		$(LOCAL_DIR)/glink/glink_api.o \
 		$(LOCAL_DIR)/glink/glink_core_if.o \
 		$(LOCAL_DIR)/glink/glink_core_internal.o \
@@ -74,6 +73,11 @@ OBJS += \
 		$(LOCAL_DIR)/glink/xport_rpm_config.o \
 		$(LOCAL_DIR)/smem_list.o \
 		$(LOCAL_DIR)/rpm-glink.o
+endif
+
+ifneq ($(ENABLE_SMD_SUPPORT),1)
+OBJS += \
+	$(LOCAL_DIR)/rpm-ipc.o
 endif
 
 ifeq ($(PLATFORM),msm8x60)

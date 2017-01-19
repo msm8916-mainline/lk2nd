@@ -88,4 +88,5 @@ bool is_device_locked();
 bool platform_is_mdmcalifornium();
 bool platform_is_sdxhedgehog();
 uint64_t platform_get_ddr_start();
+bool platform_is_glink_enabled();
 #endif

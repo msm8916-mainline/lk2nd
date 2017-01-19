@@ -30,10 +30,21 @@
 #include <arch/defines.h>
 #include <stdint.h>
 #include <sys/types.h>
+#include <platform.h>
 #include <rpm-ipc.h>
 #include <rpm-glink.h>
 #include <rpm-smd.h>
 #include <string.h>
+
+__WEAK glink_err_type rpm_glink_send_data(uint32_t *data, uint32_t len, msg_type type)
+{
+	return GLINK_STATUS_API_NOT_SUPPORTED;
+}
+
+__WEAK int rpm_smd_send_data(uint32_t *data, uint32_t len, msg_type type)
+{
+	return -1;
+}
 
 void fill_kvp_object(kvp_data **kdata, uint32_t *data, uint32_t len)
 {
@@ -52,11 +63,13 @@ void free_kvp_object(kvp_data **kdata)
 int rpm_send_data(uint32_t *data, uint32_t len, msg_type type)
 {
 	int ret = 0;
-#ifdef GLINK_SUPPORT
-	ret = rpm_glink_send_data(data, len, type);
-#else
-	ret = rpm_smd_send_data(data, len, type);
-#endif
+
+	/* Runtime select to call glink or smd */
+	if (platform_is_glink_enabled())
+		ret = rpm_glink_send_data(data, len, type);
+	else
+		ret = rpm_smd_send_data(data, len, type);
+
 	return ret;
 }
 
