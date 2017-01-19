@@ -219,4 +219,11 @@ uint32_t platform_boot_config();
 /* Register for finding out if single ended or differential clock enablement */
 #define TCSR_PHY_CLK_SCHEME_SEL     0x01956044
 
+/* RPM MSG RAM */
+#define RPM_SS_MSG_RAM_START_ADDRESS_BASE_PHYS 0x00060000
+#define RPM_SS_MSG_RAM_START_ADDRESS_BASE      RPM_SS_MSG_RAM_START_ADDRESS_BASE_PHYS
+#define RPM_SS_MSG_RAM_START_ADDRESS_BASE_SIZE 0x00006000
+/* notify RPM via IPC interrupt*/
+#define APCS_HLOS_IPC_INTERRUPT_0 APCS_ALIAS0_IPC_INTERRUPT
+
 #endif

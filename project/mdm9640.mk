@@ -50,6 +50,11 @@ ifeq ($(ENABLE_SMD_SUPPORT),1)
 DEFINES += SMD_SUPPORT=1
 endif
 
+ENABLE_GLINK_SUPPORT := 1
+ifeq ($(ENABLE_GLINK_SUPPORT),1)
+DEFINES += GLINK_SUPPORT=1
+endif
+
 # Reset USB clock from target code
 DEFINES += USB_RESET_FROM_CLK=1
 
