@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2016, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2017, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -438,6 +438,33 @@ void target_uninit(void)
 		rpm_glink_uninit();
 	}
 }
+void target_mux_configure(void)
+{
+	uint32_t val;
+	//USB30_GENERAL_CFG_PIPE_UTMI_CLK_DIS
+	val = readl(USB30_GENERAL_CFG_PIPE);
+	val = val | 0x100;
+	writel(val, USB30_GENERAL_CFG_PIPE);
+	udelay(100);
+
+	//USB30_GENERAL_CFG_PIPE_UTMI_CLK_SEL
+	val = readl(USB30_GENERAL_CFG_PIPE);
+	val = val | 0x1;
+	writel(val, USB30_GENERAL_CFG_PIPE);
+	udelay(100);
+
+	//USB30_GENERAL_CFG_PIPE3_PHYSTATUS_SW
+	val = readl(USB30_GENERAL_CFG_PIPE);
+	val = val | 0x8;
+	writel(val, USB30_GENERAL_CFG_PIPE);
+	udelay(100);
+
+	//USB30_GENERAL_CFG_PIPE_UTMI_CLK_ENABLE
+	val = readl(USB30_GENERAL_CFG_PIPE);
+	val = val & 0xfffffeff;
+	writel(val, USB30_GENERAL_CFG_PIPE);
+	udelay(100);
+}
 
 void target_usb_phy_reset(void)
 {
@@ -460,8 +487,10 @@ target_usb_iface_t* target_usb30_init()
 	ASSERT(t_usb_iface);
 
 	t_usb_iface->mux_config = NULL;
-	if (platform_is_sdxhedgehog())
+	if (platform_is_sdxhedgehog()){
+		t_usb_iface->mux_config = target_mux_configure;
 		t_usb_iface->phy_init   = NULL;
+	}
 	else
 		t_usb_iface->phy_init   = usb30_qmp_phy_init;
 	t_usb_iface->phy_reset  = target_usb_phy_reset;
