@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2016, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2017, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -89,8 +89,18 @@ void qusb2_phy_reset(void)
 	dmb();
 
 	/* set CLAMP_N_EN and stay with disabled USB PHY */
-	writel(0x23, QUSB2PHY_PORT_POWERDOWN);
+	if(platform_is_sdxhedgehog())
+		writel(0x23, QUSB2PHY_PWR_CTRL1_SDXHEDGEHOG);
+	else
+		writel(0x23, QUSB2PHY_PORT_POWERDOWN);
 
+	/* TCSR register bit 0 indicates whether single ended clock
+	 * or differential clock configuration is enabled. Based on the
+	 * configuration set the PLL_TEST register.
+	 */
+#if TCSR_PHY_CLK_SCHEME_SEL
+	se_clock = readl(TCSR_PHY_CLK_SCHEME_SEL) & 0x1;
+#endif
 	if (platform_is_msm8996() || platform_is_mdmcalifornium() || platform_is_msm8953())
 	{
 		if(platform_is_msm8996sg())
@@ -123,10 +133,16 @@ void qusb2_phy_reset(void)
 	}
 	else if (platform_is_sdxhedgehog())
 	{
-		writel(0x13, QUSB2PHY_PLL_ANALOG_CONTROLS_TWO_SDXHEDGEHOG);
+		/* HPG init sequence 0x13 for CML and 0x03 for CMOS */
+		if (se_clock)
+			writel(0x03, QUSB2PHY_PLL_ANALOG_CONTROLS_TWO_SDXHEDGEHOG);
+		else
+			writel(0x13, QUSB2PHY_PLL_ANALOG_CONTROLS_TWO_SDXHEDGEHOG);
+
 		writel(0x7C, QUSB2PHY_PLL_CLOCK_INVERTERS_SDXHEDGEHOG);
 		writel(0x80, QUSB2PHY_PLL_CMODE_SDXHEDGEHOG);
 		writel(0x0a, QUSB2PHY_PLL_LOCK_DELAY_SDXHEDGEHOG);
+		writel(0x19, QUSB2PHY_PLL_DIGITAL_TIMERS_TWO_SDXHEDGEHOG);
 		writel(0xa5, QUSB2PHY_TUNE1_SDXHEDGEHOG);
 		writel(0x09, QUSB2PHY_TUNE2_SDXHEDGEHOG);
 		writel(0x00, QUSB2PHY_IMP_CTRL1_SDXHEDGEHOG);
@@ -161,19 +177,15 @@ void qusb2_phy_reset(void)
 		writel(0x22, QUSB2PHY_PORT_POWERDOWN);
 		udelay(150);
 	}
-	/* TCSR register bit 0 indicates whether single ended clock
-	 * or differential clock configuration is enabled. Based on the
-	 * configuration set the PLL_TEST register.
-	 */
-#if TCSR_PHY_CLK_SCHEME_SEL
-	se_clock = readl(TCSR_PHY_CLK_SCHEME_SEL) & 0x1;
-#endif
+
 	/* By default consider differential clock configuration and if TCSR
 	 * register bit 0 is not set then use single ended setting
 	 */
 	if (se_clock)
 	{
-		writel(0x80, QUSB2PHY_PLL_TEST);
+		/* PLL TEST is not valid for sdxhedgehog */
+		if(!platform_is_sdxhedgehog())
+			writel(0x80, QUSB2PHY_PLL_TEST);
 	}
 	else
 	{
