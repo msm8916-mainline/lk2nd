@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2016, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2017, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -166,18 +166,25 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 	unsigned short pack_pattern = 0x21;
 	unsigned char ystride = 3;
         unsigned int sync_cfg;
+	unsigned long long panic_config = 0;
+
+	if (pinfo == NULL)
+		return ERR_INVALID_ARGS;
 
 	/*Program QOS remapper settings*/
 	writel(0x1A9, MDP_DMA_P_QOS_REMAPPER);
 	writel(0x0, MDP_DMA_P_WATERMARK_0);
 	writel(0x0, MDP_DMA_P_WATERMARK_1);
 	writel(0x0, MDP_DMA_P_WATERMARK_2);
-	if (pinfo->xres >= 720)
-		writel(0xFFFF, MDP_PANIC_LUT0);
-	else
-		writel(0x00FF, MDP_PANIC_LUT0);
+
+	panic_config = mdp3_get_panic_lut_cfg(pinfo->xres);
+	writel((panic_config & 0xFFFF), MDP_PANIC_LUT0);
+	writel(((panic_config >> 16) & 0xFFFF) , MDP_PANIC_LUT1);
+	writel(((panic_config >> 32) & 0xFFFF), MDP_ROBUST_LUT);
 	writel(0x1, MDP_PANIC_ROBUST_CTRL);
-	writel(0xFF00, MDP_ROBUST_LUT);
+	dprintf(INFO, "Panic Lut0 %x Lut1 %x Robest %x\n",
+		(panic_config & 0xFFFF), ((panic_config >> 16) & 0xFFFF),
+		((panic_config >> 32) & 0xFFFF));
 
 	writel(0x03ffffff, MDP_INTR_ENABLE);
 
