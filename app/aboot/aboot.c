@@ -1701,6 +1701,17 @@ int boot_linux_from_flash(void)
 				return -1;
 			}
 
+			if(dt_entry.offset > (UINT_MAX - dt_entry.size)) {
+				dprintf(CRITICAL, "ERROR: Device tree contents are Invalid\n");
+				return -1;
+			}
+
+			/* Ensure we are not overshooting dt_size with the dt_entry selected */
+			if ((dt_entry.offset + dt_entry.size) > dt_size) {
+				dprintf(CRITICAL, "ERROR: Device tree contents are Invalid\n");
+				return -1;
+			}
+
 			best_match_dt_addr = (unsigned char *)table + dt_entry.offset;
 			dtb_size = dt_entry.size;
 			memmove((void *)hdr->tags_addr, (char *)best_match_dt_addr, dtb_size);
