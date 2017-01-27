@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2016, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2017, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -812,9 +812,12 @@ retry_tuning:
 		/* Change the driver type & rerun tuning */
 		while(++drv_type <= MX_DRV_SUPPORTED_HS200)
 		{
+			/* Marking driver type changed if we try to change it */
+			if(!drv_type_changed)
+				drv_type_changed = true;
+
 			if (mmc_set_drv_type(host, card, drv_type))
 				goto retry_tuning;
-			drv_type_changed = true;
 		}
 	}
 
