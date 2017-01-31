@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2016, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2017, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -1093,6 +1093,13 @@ int scm_random(uintptr_t * rbuf, uint32_t  r_len)
 	scmcall_arg scm_arg = {0};
 	// Memory passed to TZ should be algined to cache line
 	BUF_DMA_ALIGN(rand_buf, sizeof(uintptr_t));
+
+	// r_len must be less than or equal to sizeof(rand_buf) to avoid memory corruption.
+	if (r_len > sizeof(rand_buf))
+	{
+		dprintf(CRITICAL, "r_len is larger than sizeof(randbuf).");
+		return -1;
+	}
 
 	if (!is_scm_armv8_support())
 	{
