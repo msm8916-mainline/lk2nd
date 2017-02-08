@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015,2017, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -121,7 +121,7 @@
 #define RST_N_FUNC_ENABLE                         BIT(0)
 
 /* RPMB Related */
-#define RPMB_PART_MIN_SIZE                        (128 * 2014)
+#define RPMB_PART_MIN_SIZE                        (128 * 1024)
 #define RPMB_SIZE_MULT                            168
 #define REL_WR_SEC_C                              222
 #define PARTITION_ACCESS_MASK                     0x7
