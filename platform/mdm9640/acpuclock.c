@@ -116,8 +116,8 @@ void clock_usb30_init(void)
 		ASSERT(0);
 	}
 
-	if (platform_is_mdmcalifornium())
-		ret = clk_get_set_enable("usb30_pipe_clk_mdmcalifornium", 0, 1);
+	if (platform_is_mdm9650())
+		ret = clk_get_set_enable("usb30_pipe_clk_mdm9650", 0, 1);
 	else if (platform_is_sdxhedgehog())
 		ret = clk_get_set_enable("usb30_pipe_clk_sdxhedgehog", 0, 1);
 	else
@@ -221,7 +221,7 @@ void clock_bumpup_pipe3_clk()
 {
 	int ret =0;
 
-	if (platform_is_mdmcalifornium())
+	if (platform_is_mdm9650())
 		ret = clk_get_set_enable("usb30_pipe_clk", 0, true);
 	else
 		ret = clk_get_set_enable("usb30_pipe_clk", 125000000, true);
@@ -316,7 +316,7 @@ void clock_ce_enable(uint8_t instance)
 	int ret;
 	char clk_name[64];
 
-	if (platform_is_mdmcalifornium())
+	if (platform_is_mdm9650())
 	{
 		if (instance == 1)
 			rpm_send_data(&CE1_CLK[GENERIC_ENABLE][0], 24, RPM_REQUEST_TYPE);
@@ -377,7 +377,7 @@ void clock_ce_disable(uint8_t instance)
 	struct clk *src_clk;
 	char clk_name[64];
 
-	if (platform_is_mdmcalifornium())
+	if (platform_is_mdm9650())
 	{
 		if (instance == 1)
 		rpm_send_data(&CE1_CLK[GENERIC_DISABLE][0], 24, RPM_REQUEST_TYPE);

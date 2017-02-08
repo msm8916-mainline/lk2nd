@@ -85,7 +85,7 @@ void get_product_name(unsigned char *buf);
 void get_bootloader_version(unsigned char *buf);
 void get_baseband_version(unsigned char *buf);
 bool is_device_locked();
-bool platform_is_mdmcalifornium();
+bool platform_is_mdm9650();
 bool platform_is_sdxhedgehog();
 uint64_t platform_get_ddr_start();
 bool platform_is_glink_enabled();

@@ -214,7 +214,7 @@ void reboot_device(unsigned reboot_reason)
 {
 	uint8_t reset_type = 0;
 
-	if (platform_is_mdmcalifornium() || platform_is_sdxhedgehog())
+	if (platform_is_mdm9650() || platform_is_sdxhedgehog())
 	{
 		/* Clear the boot partition select cookie to indicate
 		 * its a normal reset and avoid going to download mode */
@@ -229,9 +229,9 @@ void reboot_device(unsigned reboot_reason)
 	else
 		reset_type = PON_PSHOLD_HARD_RESET;
 
-	if (platform_is_mdmcalifornium() || platform_is_sdxhedgehog())
+	if (platform_is_mdm9650() || platform_is_sdxhedgehog())
 	{
-		/* PMD9655 is the PMIC used for MDMcalifornium */
+		/* PMD9655 is the PMIC used for MDM9650 */
 		pm8x41_reset_configure(reset_type);
 	} else {
 		/* Configure PMIC for warm reset */
@@ -468,10 +468,10 @@ void target_mux_configure(void)
 
 void target_usb_phy_reset(void)
 {
-	/* Reset sequence for californium is different from 9x40, use the reset sequence
+	/* Reset sequence for 9650 is different from 9x40, use the reset sequence
 	 * from clock driver
 	 */
-	if (platform_is_mdmcalifornium() || platform_is_sdxhedgehog())
+	if (platform_is_mdm9650() || platform_is_sdxhedgehog())
 		clock_reset_usb_phy(); // This is the reset function for USB3
 	else
 		usb30_qmp_phy_reset();
@@ -502,7 +502,7 @@ target_usb_iface_t* target_usb30_init()
 
 uint32_t target_override_pll()
 {
-	if (platform_is_mdmcalifornium() || platform_is_sdxhedgehog())
+	if (platform_is_mdm9650() || platform_is_sdxhedgehog())
 		return 0;
 	else
 		return 1;
@@ -513,7 +513,7 @@ uint32_t target_get_hlos_subtype()
 	return board_hlos_subtype();
 }
 
-/* QMP settings are different from californium when compared to v2.0/v1.0 hardware.
+/* QMP settings are different from 9650 when compared to v2.0/v1.0 hardware.
  * Use the QMP settings from target code to keep the common driver clean
  */
 struct qmp_reg qmp_settings[] =
@@ -609,7 +609,7 @@ struct qmp_reg qmp_settings[] =
 
 struct qmp_reg *target_get_qmp_settings()
 {
-	if (platform_is_mdmcalifornium() || platform_is_sdxhedgehog())
+	if (platform_is_mdm9650() || platform_is_sdxhedgehog())
 		return qmp_settings;
 	else
 		return NULL;
@@ -617,7 +617,7 @@ struct qmp_reg *target_get_qmp_settings()
 
 int target_get_qmp_regsize()
 {
-	if (platform_is_mdmcalifornium() || platform_is_sdxhedgehog())
+	if (platform_is_mdm9650() || platform_is_sdxhedgehog())
 		return ARRAY_SIZE(qmp_settings);
 	else
 		return 0;

@@ -412,14 +412,14 @@ static struct branch_clk gcc_usb30_pipe_clk_sdxhedgehog = {
 };
 
 
-static struct branch_clk gcc_usb30_pipe_clk_mdmcalifornium = {
+static struct branch_clk gcc_usb30_pipe_clk_mdm9650 = {
 	.bcr_reg      = (uint32_t *) USB3_PIPE_BCR,
 	.cbcr_reg     = (uint32_t *) USB3_PIPE_CBCR,
 	.has_sibling  = 1,
 	.halt_check   = 0,
 
 	.c = {
-		.dbg_name = "usb30_pipe_clk_mdmcalifornium",
+		.dbg_name = "usb30_pipe_clk_mdm9650",
 		.ops      = &clk_ops_branch,
 	},
 };
@@ -608,7 +608,7 @@ static struct clk_lookup msm_clocks_9640[] =
 	CLK_LOOKUP("usb30_master_clk", gcc_usb30_master_clk.c),
 	CLK_LOOKUP("usb30_master_clk_sdxhedgehog", gcc_usb30_master_clk_sdxhedgehog.c),
 	CLK_LOOKUP("usb30_pipe_clk",   gcc_usb30_pipe_clk.c),
-	CLK_LOOKUP("usb30_pipe_clk_mdmcalifornium",   gcc_usb30_pipe_clk_mdmcalifornium.c),
+	CLK_LOOKUP("usb30_pipe_clk_mdm9650",   gcc_usb30_pipe_clk_mdm9650.c),
 	CLK_LOOKUP("usb30_pipe_clk_sdxhedgehog",   gcc_usb30_pipe_clk_sdxhedgehog.c),
 	CLK_LOOKUP("usb30_aux_clk",    gcc_usb30_aux_clk.c),
 

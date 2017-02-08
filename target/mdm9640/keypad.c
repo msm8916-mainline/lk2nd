@@ -45,7 +45,7 @@ int get_fastboot_key_state(void)
 {
 	int ret;
 
-	if (platform_is_mdmcalifornium() || platform_is_sdxhedgehog())
+	if (platform_is_mdm9650() || platform_is_sdxhedgehog())
 		ret = pm8x41_resin_status();
 	else
 	{

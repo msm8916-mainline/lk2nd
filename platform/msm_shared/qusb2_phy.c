@@ -49,7 +49,7 @@ __WEAK int platform_is_msm8996sg()
 	return 0;
 }
 
-__WEAK int platform_is_mdmcalifornium()
+__WEAK int platform_is_mdm9650()
 {
 	return 0;
 }
@@ -101,7 +101,7 @@ void qusb2_phy_reset(void)
 #if TCSR_PHY_CLK_SCHEME_SEL
 	se_clock = readl(TCSR_PHY_CLK_SCHEME_SEL) & 0x1;
 #endif
-	if (platform_is_msm8996() || platform_is_mdmcalifornium() || platform_is_msm8953())
+	if (platform_is_msm8996() || platform_is_mdm9650() || platform_is_msm8953())
 	{
 		if(platform_is_msm8996sg())
 			writel(0xD0, QUSB2PHY_PORT_TUNE1);
