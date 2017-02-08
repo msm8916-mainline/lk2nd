@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015,2017, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -66,10 +66,16 @@ int rpmb_init()
 				((mmc_dev->card.ext_csd[MMC_EXT_CSD_EN_RPMB_REL_WR] & BIT(4)) == 0))
 			{
 				dprintf(SPEW, "EMMC Version >= 5.1 EN_RPMB_REL_WR = 0\n");
-				// according to emmc version 5.1 and above if EN_RPMB_REL_WR in extended
-				// csd is not set the maximum number of frames that can be reliably written
-				// to emmc would be 2
-				info.rel_wr_count = 2;
+		       /*
+        		* Some eMMC vendors violate eMMC 5.0 spec and set
+        		* REL_WR_SEC_C register to 0x10 to indicate the
+        		* ability of RPMB throughput improvement thus lead
+        		* to failure when TZ module write data to RPMB
+        		* partition. So check bit[4] of EXT_CSD[166] and
+        		* if it is not set then change value of REL_WR_SEC_C
+        		* to 0x1 directly ignoring value of EXT_CSD[222].
+        		*/
+				info.rel_wr_count = 1;
 			}
 			else
 			{
