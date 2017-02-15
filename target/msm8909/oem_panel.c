@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, 2017, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -45,6 +45,9 @@
 #include "include/panel_hx8379c_fwvga_video.h"
 #include "include/panel_hx8394d_qhd_video.h"
 #include "include/panel_fl10802_fwvga_video.h"
+#include "include/panel_auo_qvga_cmd.h"
+#include "include/panel_auo_cx_qvga_cmd.h"
+#include "include/panel_auo_400p_cmd.h"
 
 #define DISPLAY_MAX_PANEL_DETECTION 0
 #define ILI9806E_FWVGA_VIDEO_PANEL_POST_INIT_DELAY 68
@@ -70,6 +73,9 @@ enum {
 	HX8379C_FWVGA_VIDEO_PANEL,
 	HX8394D_QHD_VIDEO_PANEL,
 	FL10802_FWVGA_VIDEO_PANEL,
+	AUO_QVGA_CMD_PANEL,
+	AUO_CX_QVGA_CMD_PANEL,
+	AUO_400P_CMD_PANEL,
 	UNKNOWN_PANEL
 };
 
@@ -85,7 +91,10 @@ static struct panel_list supp_panels[] = {
 	{"ili9806e_fwvga_video",ILI9806E_FWVGA_VIDEO_PANEL},
 	{"hx8379c_fwvga_video",HX8379C_FWVGA_VIDEO_PANEL},
 	{"hx8394d_qhd_video", HX8394D_QHD_VIDEO_PANEL},
-	{"fl10802_fwvga_video", FL10802_FWVGA_VIDEO_PANEL}
+	{"fl10802_fwvga_video", FL10802_FWVGA_VIDEO_PANEL},
+	{"auo_qvga_cmd", AUO_QVGA_CMD_PANEL},
+	{"auo_cx_qvga_cmd", AUO_CX_QVGA_CMD_PANEL},
+	{"auo_400p_cmd", AUO_400P_CMD_PANEL},
 };
 
 static uint32_t panel_id;
@@ -320,6 +329,78 @@ static int init_panel_data(struct panel_struct *panelstruct,
 				fl10802_fwvga_video_timings, TIMING_SIZE);
 		pinfo->mipi.signature = FL10802_FWVGA_VIDEO_SIGNATURE;
 		pinfo->mipi.cmds_post_tg = 1;
+		break;
+	case AUO_QVGA_CMD_PANEL:
+		panelstruct->paneldata    = &auo_qvga_cmd_panel_data;
+		panelstruct->panelres     = &auo_qvga_cmd_panel_res;
+		panelstruct->color        = &auo_qvga_cmd_color;
+		panelstruct->videopanel   = &auo_qvga_cmd_video_panel;
+		panelstruct->commandpanel = &auo_qvga_cmd_command_panel;
+		panelstruct->state        = &auo_qvga_cmd_state;
+		panelstruct->laneconfig   = &auo_qvga_cmd_lane_config;
+		panelstruct->paneltiminginfo
+					= &auo_qvga_cmd_timing_info;
+		panelstruct->panelresetseq
+					= &auo_qvga_cmd_panel_reset_seq;
+		panelstruct->backlightinfo
+					= &auo_qvga_cmd_backlight;
+		pinfo->mipi.panel_on_cmds
+					= auo_qvga_cmd_on_command;
+		pinfo->mipi.num_of_panel_on_cmds
+					= auo_QVGA_CMD_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+					= auo_qvga_cmd_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+					= auo_QVGA_CMD_OFF_COMMAND;
+		memcpy(phy_db->timing, auo_qvga_cmd_timings, TIMING_SIZE);
+		break;
+	case AUO_CX_QVGA_CMD_PANEL:
+		panelstruct->paneldata    = &auo_cx_qvga_cmd_panel_data;
+		panelstruct->panelres     = &auo_cx_qvga_cmd_panel_res;
+		panelstruct->color        = &auo_cx_qvga_cmd_color;
+		panelstruct->videopanel   = &auo_cx_qvga_cmd_video_panel;
+		panelstruct->commandpanel = &auo_cx_qvga_cmd_command_panel;
+		panelstruct->state        = &auo_cx_qvga_cmd_state;
+		panelstruct->laneconfig   = &auo_cx_qvga_cmd_lane_config;
+		panelstruct->paneltiminginfo
+					= &auo_cx_qvga_cmd_timing_info;
+		panelstruct->panelresetseq
+					= &auo_cx_qvga_cmd_panel_reset_seq;
+		panelstruct->backlightinfo
+					= &auo_cx_qvga_cmd_backlight;
+		pinfo->mipi.panel_on_cmds
+					= auo_cx_qvga_cmd_on_command;
+		pinfo->mipi.num_of_panel_on_cmds
+					= auo_cx_QVGA_CMD_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+					= auo_cx_qvga_cmd_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+					= auo_cx_QVGA_CMD_OFF_COMMAND;
+		memcpy(phy_db->timing, auo_cx_qvga_cmd_timings, TIMING_SIZE);
+		break;
+	case AUO_400P_CMD_PANEL:
+		panelstruct->paneldata    = &auo_400p_cmd_panel_data;
+		panelstruct->panelres     = &auo_400p_cmd_panel_res;
+		panelstruct->color        = &auo_400p_cmd_color;
+		panelstruct->videopanel   = &auo_400p_cmd_video_panel;
+		panelstruct->commandpanel = &auo_400p_cmd_command_panel;
+		panelstruct->state        = &auo_400p_cmd_state;
+		panelstruct->laneconfig   = &auo_400p_cmd_lane_config;
+		panelstruct->paneltiminginfo
+					= &auo_400p_cmd_timing_info;
+		panelstruct->panelresetseq
+					= &auo_400p_cmd_panel_reset_seq;
+		panelstruct->backlightinfo
+					= &auo_400p_cmd_backlight;
+		pinfo->mipi.panel_on_cmds
+					= auo_400p_cmd_on_command;
+		pinfo->mipi.num_of_panel_on_cmds
+					= auo_400P_CMD_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+					= auo_400p_cmd_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+					= auo_400P_CMD_OFF_COMMAND;
+		memcpy(phy_db->timing, auo_400p_cmd_timings, TIMING_SIZE);
 		break;
 	case UNKNOWN_PANEL:
 	default:
