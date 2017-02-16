@@ -163,7 +163,12 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 	int ret = 0;
 	unsigned short pack_pattern = 0x21;
 	unsigned char ystride = 3;
+	unsigned int sync_cfg;
 	unsigned long long panic_config = 0;
+	const uint32_t vsync_hz = 19200000; /* Vsync Clock 19.2 HMz */
+	/* Auto refresh fps = Panel fps / frame num */
+	/* Auto refresh frame num = 60/10 = 6fps */
+	const uint32_t autorefresh_framenum = 10;
 
 	if (pinfo == NULL)
 		return ERR_INVALID_ARGS;
@@ -186,7 +191,8 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 	writel(0x03ffffff, MDP_INTR_ENABLE);
 
 	// ------------- programming MDP_DMA_P_CONFIG ---------------------
-	writel(pack_pattern << 8 | 0x3f | (0 << 25)| (1 << 19) | (1 << 7) , MDP_DMA_P_CONFIG);  // rgb888
+	writel(pack_pattern << 8 | 0x3f | (0 << 25)| (1 << 19) | (1 << 7) ,
+		MDP_DMA_P_CONFIG);  /* rgb888 */
 	writel(0x00000000, MDP_DMA_P_OUT_XY);
 	writel(pinfo->yres << 16 | pinfo->xres, MDP_DMA_P_SIZE);
 	writel((uint32_t)fb->base, MDP_DMA_P_BUF_ADDR);
@@ -195,6 +201,14 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 
 	writel(0x10, MDP_DSI_CMD_MODE_ID_MAP);
 	writel(0x11, MDP_DSI_CMD_MODE_TRIGGER_EN);
+	/* Enable Auto refresh */
+	sync_cfg = (pinfo->yres - 1) << 21;
+	sync_cfg |= BIT(19);
+
+	sync_cfg |= vsync_hz / (pinfo->yres * 60);
+	writel(sync_cfg, MDP_SYNC_CONFIG_0);
+	writel((BIT(28) | autorefresh_framenum),
+		MDP_AUTOREFRESH_CONFIG_P);
 	mdelay(10);
 
 	return ret;
@@ -227,6 +241,9 @@ int mdp_dsi_cmd_off(void)
 		 */
 		mdelay(10);
 	}
+	/* Disable Auto refresh */
+	if (readl(MDP_AUTOREFRESH_CONFIG_P))
+		writel(0, MDP_AUTOREFRESH_CONFIG_P);
 	writel(0x00000000, MDP_INTR_ENABLE);
 	writel(0x01ffffff, MDP_INTR_CLEAR);
 	return NO_ERROR;

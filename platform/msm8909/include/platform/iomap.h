@@ -249,6 +249,8 @@
 #define MDP_INTR_STATUS             REG_MDP(0x00054)
 
 #define MDP_CGC_EN                  REG_MDP(0x100)
+#define MDP_AUTOREFRESH_CONFIG_P    REG_MDP(0x34C)
+#define MDP_SYNC_CONFIG_0           REG_MDP(0x300)
 
 #define SOFT_RESET                  0x118
 #define CLK_CTRL                    0x11C
