@@ -236,6 +236,8 @@ static int qpnp_wled_config(struct qpnp_wled *wled)
 			0x81);
 		pm8x41_wled_reg_write(QPNP_WLED_PSM_CTRL(wled->ctrl_base),
 			0x83);
+		pm8x41_wled_reg_write(QPNP_WLED_PSM_EN(wled->ctrl_base),
+			0x80);
 
 		rc = qpnp_wled_sec_access(wled, wled->ctrl_base);
 		if (rc)
