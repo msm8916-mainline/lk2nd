@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, 2017, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -334,9 +334,33 @@ int target_dsi_phy_config(struct mdss_dsi_phy_ctrl *phy_db)
 	return NO_ERROR;
 }
 
+static bool target_splash_disable(void)
+{
+	uint32_t hw_id = board_hardware_id();
+	uint32_t platform_subtype = board_hardware_subtype();
+	uint32_t platform = board_platform_id();
+
+	if ((APQ8009 == platform) &&
+		(((HW_PLATFORM_MTP == hw_id) &&
+		  (HW_PLATFORM_SUBTYPE_DSDA2 == platform_subtype)) ||
+		 ((HW_PLATFORM_RCM == hw_id) &&
+		 ((HW_PLATFORM_SUBTYPE_SNAP == platform_subtype)||
+		  (HW_PLATFORM_SUBTYPE_SNAP_NOPMI == platform_subtype))))) {
+		dprintf(INFO, "Splash disabled\n");
+		return true;
+	} else {
+		return false;
+	}
+}
+
 bool target_display_panel_node(char *pbuf, uint16_t buf_size)
 {
-	return gcdb_display_cmdline_arg(pbuf, buf_size);
+	int ret = true;
+
+	if (!target_splash_disable())
+		ret = gcdb_display_cmdline_arg(pbuf, buf_size);
+
+	return ret;
 }
 
 void target_display_init(const char *panel_name)
@@ -356,6 +380,9 @@ void target_display_init(const char *panel_name)
 				oem.panel);
 		return;
 	}
+
+	if (target_splash_disable())
+		return;
 
 	do {
 		target_force_cont_splash_disable(false);
