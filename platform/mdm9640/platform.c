@@ -163,10 +163,10 @@ bool platform_is_mdm9650()
 
 	switch(platform_id)
 	{
-		case MDMCALIFORNIUM1:
-		case MDMCALIFORNIUM2:
-		case MDMCALIFORNIUM3:
-		case MDMCALIFORNIUM4:
+		case MDM9650:
+		case MDM9655:
+		case MDM9250:
+		case MDM9255:
 				ret = true;
 				break;
 		default:
