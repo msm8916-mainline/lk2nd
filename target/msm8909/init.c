@@ -102,6 +102,7 @@ static struct ptable flash_ptable;
 #define QPIC_NAND_MAX_DESC_LEN                        0x7FFF
 
 #define LAST_NAND_PTN_LEN_PATTERN                     0xFFFFFFFF
+#define UBI_CMDLINE " rootfstype=ubifs rootflags=bulk_read"
 
 struct qpic_nand_init_config config;
 
@@ -532,8 +533,7 @@ int get_target_boot_params(const char *cmdline, const char *part, char **buf)
 		{
 			if (!target_is_emmc_boot())
 			{
-				/* Extra character is for Null termination */
-				buflen = strlen(" root=/dev/mtdblock") + sizeof(int) +1;
+				buflen = strlen(UBI_CMDLINE) + strlen(" root=ubi0:rootfs ubi.mtd=") + sizeof(int) + 1; /* 1 byte for null character*/
 
 				/* In success case, this memory is freed in calling function */
 				*buf = (char *)malloc(buflen);
@@ -542,7 +542,9 @@ int get_target_boot_params(const char *cmdline, const char *part, char **buf)
 					return -1;
 				}
 
-				snprintf(*buf, buflen, " root=/dev/mtdblock%d",system_ptn_index);
+				/* Adding command line parameters according to target boot type */
+				snprintf(*buf, buflen, UBI_CMDLINE);
+				snprintf(*buf+strlen(*buf), buflen, " root=ubi0:rootfs ubi.mtd=%d", system_ptn_index);
 			}
 			else
 			{
