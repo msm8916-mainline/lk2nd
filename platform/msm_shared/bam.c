@@ -415,6 +415,7 @@ int bam_add_one_desc(struct bam_instance *bam,
 	desc->size     = (uint16_t)len;
 	desc->reserved = 0;
 
+	arch_clean_invalidate_cache_range((addr_t) data_ptr, len);
 	arch_clean_invalidate_cache_range((addr_t) desc, BAM_DESC_SIZE);
 
 	/* Update the FIFO to point to the head */

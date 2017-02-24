@@ -6,7 +6,13 @@ else
 APPSBOOTOUT_DIR  := $(BOOTLOADER_OUT)/../..
 endif
 
-APPSBOOTHEADER: emmc_appsboot.mbn
+ifeq ($(EMMC_BOOT), 1)
+ABOOTMBN := emmc_appsboot.mbn
+else
+ABOOTMBN := appsboot.mbn
+endif
 
-emmc_appsboot.mbn: $(OUTELF_STRIP)
-	$(hide) cp -f $(OUTELF_STRIP) $(APPSBOOTOUT_DIR)/emmc_appsboot.mbn
+APPSBOOTHEADER: $(ABOOTMBN)
+
+$(ABOOTMBN): $(OUTELF_STRIP)
+	$(hide) cp -f $(OUTELF_STRIP) $(APPSBOOTOUT_DIR)/$(ABOOTMBN)
