@@ -582,8 +582,8 @@ bool target_display_panel_node(char *pbuf, uint16_t buf_size)
 	uint32_t platform_subtype = board_hardware_subtype();
 
 	/* default to hdmi for apq iot */
-	if ((HW_PLATFORM_SUBTYPE_SNAP == platform_subtype) ||
-		(HW_PLATFORM_SUBTYPE_SNAP_NOPMI == platform_subtype)) {
+	if ((HW_PLATFORM_SUBTYPE_SAP == platform_subtype) ||
+		(HW_PLATFORM_SUBTYPE_SAP_NOPMI == platform_subtype)) {
 		if (!strcmp(oem.panel, "")) {
 			if (buf_size < (prefix_string_len +
 				strlen(HDMI_ADV_PANEL_STRING))) {
@@ -646,8 +646,8 @@ void target_display_init(const char *panel_name)
 		return;
 	}
 
-	if ((HW_PLATFORM_SUBTYPE_SNAP == platform_subtype) ||
-		(HW_PLATFORM_SUBTYPE_SNAP_NOPMI == platform_subtype)) {
+	if ((HW_PLATFORM_SUBTYPE_SAP == platform_subtype) ||
+		(HW_PLATFORM_SUBTYPE_SAP_NOPMI == platform_subtype)) {
 		dprintf(INFO, "%s: Platform subtype %d\n",
 			__func__, platform_subtype);
 		return;

@@ -761,7 +761,7 @@ void target_crypto_init_params()
 bool target_is_pmi_enabled(void)
 {
 	if(platform_is_msm8917() &&
-	   (board_hardware_subtype() ==	HW_PLATFORM_SUBTYPE_SNAP_NOPMI))
+	   (board_hardware_subtype() ==	HW_PLATFORM_SUBTYPE_SAP_NOPMI))
 		return 0;
 	else
 		return 1;

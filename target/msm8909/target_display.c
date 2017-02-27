@@ -344,8 +344,8 @@ static bool target_splash_disable(void)
 		(((HW_PLATFORM_MTP == hw_id) &&
 		  (HW_PLATFORM_SUBTYPE_DSDA2 == platform_subtype)) ||
 		 ((HW_PLATFORM_RCM == hw_id) &&
-		 ((HW_PLATFORM_SUBTYPE_SNAP == platform_subtype)||
-		  (HW_PLATFORM_SUBTYPE_SNAP_NOPMI == platform_subtype))))) {
+		 ((HW_PLATFORM_SUBTYPE_SAP == platform_subtype)||
+		  (HW_PLATFORM_SUBTYPE_SAP_NOPMI == platform_subtype))))) {
 		dprintf(INFO, "Splash disabled\n");
 		return true;
 	} else {
