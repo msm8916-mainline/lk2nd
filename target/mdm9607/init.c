@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015,2017, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -223,6 +223,7 @@ void target_baseband_detect(struct board_data *board)
 	case MDM9607:
 	case MDM8207:
 	case MDM9207:
+	case MDM9206:
 	case MDM9307:
 	case MDM9628:
 		board->baseband = BASEBAND_MDM;

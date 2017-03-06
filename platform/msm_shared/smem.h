@@ -462,7 +462,8 @@ enum {
 	SDXHEDGEHOG1 = 314,
 	SDXHEDGEHOG2 = 333,
 	MSM8909W = 300,
-	APQ8009W = 301
+	APQ8009W = 301,
+	MDM9206 = 322
 };
 
 enum platform {
