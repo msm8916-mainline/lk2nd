@@ -105,6 +105,7 @@ void write_device_info_mmc(device_info *dev);
 void write_device_info_flash(device_info *dev);
 static int aboot_save_boot_hash_mmc(uint32_t image_addr, uint32_t image_size);
 static int aboot_frp_unlock(char *pname, void *data, unsigned sz);
+bool pwr_key_is_pressed = false;
 
 /* fastboot command function pointer */
 typedef void (*fastboot_cmd_fn) (const char *, void *, unsigned);
@@ -818,6 +819,9 @@ void boot_linux(void *kernel, unsigned *tags,
 #if FBCON_DISPLAY_MSG
 #if ENABLE_VB_ATTEST
 		display_bootverify_menu(DISPLAY_MENU_EIO);
+		wait_for_users_action();
+		if(!pwr_key_is_pressed)
+			shutdown_device();
 #else
 		display_bootverify_menu(DISPLAY_MENU_LOGGING);
 #endif

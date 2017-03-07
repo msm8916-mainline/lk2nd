@@ -1,4 +1,4 @@
-/* Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2017, The Linux Foundation. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are
@@ -69,6 +69,9 @@ static const char *unlock_menu_common_msg = "If you unlock the bootloader, "\
 
 #define EIO_WARNING_MSG		"Your device is corrupt. It can't be\n trusted and may not work properly.\n\n"\
 				"Visit this link on another device:\n g.co/ABH"
+
+#define DELAY_5SEC 5000
+#define DELAY_30SEC 30000
 
 static bool is_thread_start = false;
 static struct select_msg_info msg_info;
@@ -252,9 +255,12 @@ void display_bootverify_menu_renew(struct select_msg_info *msg_info, int type)
 
 	char str1[]= "Start >";
 	char str2[] = "Continue boot";
+	char *str3 = NULL;
+
 	char *str_target = NULL;
 	uint32 fp_size = 0;
 	unsigned int i = 0;
+	uint32_t timeout = DELAY_5SEC;
 
 	fbcon_clear();
 	memset(&msg_info->info, 0, sizeof(struct menu_info));
@@ -300,13 +306,22 @@ void display_bootverify_menu_renew(struct select_msg_info *msg_info, int type)
 		display_fbcon_menu_message(fp_str, FBCON_COMMON_MSG, common_factor);
 	}
 
-	display_fbcon_menu_message("\n\nIf no key pressed:\n"\
-		"Your device will boot in 5 seconds\n\n", FBCON_COMMON_MSG, common_factor);
+	str3 = "\n\nIf no key pressed:\n"\
+		"Your device will boot in 5  seconds\n\n";
+#if ENABLE_VB_ATTEST
+	if(type == DISPLAY_MENU_EIO)
+	{
+		str3 ="\n\nIf power key is not pressed:\n"\
+			"Your device will poweroff in 30 seconds\n\n";
+		timeout = DELAY_30SEC;
+	}
+#endif
+	display_fbcon_menu_message(str3, FBCON_COMMON_MSG, common_factor);
 
 	msg_info->info.msg_type = type;
 
 	/* Initialize the time out time */
-	msg_info->info.timeout_time = 5000; //5s
+	msg_info->info.timeout_time = timeout; //5s
 }
 #endif
 
