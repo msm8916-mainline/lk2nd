@@ -50,6 +50,7 @@
 
 static time_t before_time;
 
+extern bool pwr_key_is_pressed;
 extern int target_volume_up();
 extern uint32_t target_volume_down();
 extern void reboot_device(unsigned reboot_reason);
@@ -245,7 +246,10 @@ static void power_key_func(struct select_msg_info* msg_info)
 		case DISPLAY_MENU_ORANGE:
 		case DISPLAY_MENU_RED:
 		case DISPLAY_MENU_LOGGING:
+			reason = CONTINUE;
+			break;
 		case DISPLAY_MENU_EIO:
+			pwr_key_is_pressed = true;
 			reason = CONTINUE;
 			break;
 		case DISPLAY_MENU_MORE_OPTION:
