@@ -89,4 +89,5 @@ bool platform_is_mdm9650();
 bool platform_is_sdxhedgehog();
 uint64_t platform_get_ddr_start();
 bool platform_is_glink_enabled();
+bool platform_is_mdm9206();
 #endif

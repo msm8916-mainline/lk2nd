@@ -291,3 +291,20 @@ int platform_use_identity_mmu_mappings(void)
 	/* Use only the mappings specified in this file. */
 	return 0;
 }
+
+bool platform_is_mdm9206()
+{
+	uint32_t platform_id = board_platform_id();
+	bool ret;
+
+	switch(platform_id)
+	{
+		case MDM9206:
+			ret = true;
+			break;
+		default:
+			ret = false;
+	}
+
+	return ret;
+}
