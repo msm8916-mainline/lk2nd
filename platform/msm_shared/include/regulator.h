@@ -74,6 +74,7 @@
 #define REG_LDO28	BIT(27)
 #define REG_SMPS3	BIT(7)
 #define REG_LDO3	BIT(2)
+#define REG_LDO4	BIT(4)
 
 void regulator_enable(uint32_t enable);
 void regulator_disable(uint32_t enable);

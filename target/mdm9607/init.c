@@ -49,6 +49,7 @@
 #include <crypto5_wrapper.h>
 #include <partition_parser.h>
 #include <stdlib.h>
+#include <regulator.h>
 
 #if LONG_PRESS_POWER_ON
 #include <shutdown_detect.h>
@@ -176,6 +177,9 @@ void target_init(void)
 
 	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
 
+#if SMD_SUPPORT
+	rpm_smd_init();
+#endif
 	target_keystatus();
 	config.pipes.read_pipe = DATA_PRODUCER_PIPE;
 	config.pipes.write_pipe = DATA_CONSUMER_PIPE;
@@ -318,6 +322,11 @@ void target_uninit(void)
 {
 	if (crypto_initialized())
 		crypto_eng_cleanup();
+#if SMD_SUPPORT
+	rpm_smd_uninit();
+#endif
+	if(platform_is_mdm9206())
+		regulator_disable(REG_LDO4);
 }
 
 void reboot_device(unsigned reboot_reason)
@@ -380,4 +389,13 @@ void target_crypto_init_params()
 	*/
 	ce_params.do_bam_init      = 0;
 	crypto_init_params(&ce_params);
+}
+
+void target_fastboot_init()
+{
+	/* Enable LDO4 for processing fastboot commands.*/
+	if(platform_is_mdm9206()){
+		regulator_enable(REG_LDO4);
+		dprintf(SPEW, "Enable LDO4\n");
+	}
 }
