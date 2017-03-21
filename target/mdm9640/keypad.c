@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, 2016, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, 2016, 2017 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -45,7 +45,7 @@ int get_fastboot_key_state(void)
 {
 	int ret;
 
-	if (platform_is_mdm9650() || platform_is_sdxhedgehog())
+	if (platform_is_mdm9650() || platform_is_sdx20())
 		ret = pm8x41_resin_status();
 	else
 	{

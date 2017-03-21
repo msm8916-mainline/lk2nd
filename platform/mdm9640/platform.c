@@ -176,15 +176,15 @@ bool platform_is_mdm9650()
 	return ret;
 }
 
-bool platform_is_sdxhedgehog()
+bool platform_is_sdx20()
 {
 	uint32_t platform_id = board_platform_id();
 	bool ret;
 
 	switch(platform_id)
 	{
-		case SDXHEDGEHOG1:
-		case SDXHEDGEHOG2:
+		case SDX201:
+		case SDX202:
 				ret = true;
 				break;
 		default:
@@ -198,7 +198,7 @@ uint32_t platform_boot_config()
 {
 	uint32_t boot_config;
 
-	if (platform_is_mdm9650() || platform_is_sdxhedgehog())
+	if (platform_is_mdm9650() || platform_is_sdx20())
 		boot_config = BOOT_CONFIG_REG_V2;
 	/* Else the platform is 9x45 */
 	else if (board_soc_version() >= 0x20000)
@@ -217,7 +217,7 @@ uint32_t platform_get_qmp_rev()
 
 bool platform_is_glink_enabled()
 {
-	if (platform_is_sdxhedgehog())
+	if (platform_is_sdx20())
 		return 1;
 	else
 		return 0;
