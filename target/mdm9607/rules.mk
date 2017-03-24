@@ -10,7 +10,7 @@ MEMSIZE := 0x00100000 # 1MB
 SCRATCH_ADDR                            := 0 # keeping for successful compilation
 SCRATCH_ADDR_128                        := 0x86000000
 SCRATCH_REGION1_128                     := 0x86000000
-SCRATCH_REGION1_SIZE_128                := 0x01c00000  # 28MB
+SCRATCH_REGION1_SIZE_128                := 0x01a00000  # 26MB
 SCRATCH_REGION2_128                     := 0x80000000
 SCRATCH_REGION2_SIZE_128                := 0x02900000   # 41M
 
