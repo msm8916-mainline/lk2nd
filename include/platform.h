@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008 Travis Geiselbrecht
  *
- * Copyright (c) 2014-2016, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2014-2017, The Linux Foundation. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -86,7 +86,7 @@ void get_bootloader_version(unsigned char *buf);
 void get_baseband_version(unsigned char *buf);
 bool is_device_locked();
 bool platform_is_mdm9650();
-bool platform_is_sdxhedgehog();
+bool platform_is_sdx20();
 uint64_t platform_get_ddr_start();
 bool platform_is_glink_enabled();
 bool platform_is_mdm9206();

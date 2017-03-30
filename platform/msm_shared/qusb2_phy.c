@@ -59,7 +59,7 @@ __WEAK int platform_is_msm8953()
 	return 0;
 }
 
-__WEAK int platform_is_sdxhedgehog()
+__WEAK int platform_is_sdx20()
 {
 	return 0;
 }
@@ -89,8 +89,8 @@ void qusb2_phy_reset(void)
 	dmb();
 
 	/* set CLAMP_N_EN and stay with disabled USB PHY */
-	if(platform_is_sdxhedgehog())
-		writel(0x23, QUSB2PHY_PWR_CTRL1_SDXHEDGEHOG);
+	if(platform_is_sdx20())
+		writel(0x23, QUSB2PHY_PWR_CTRL1_SDX20);
 	else
 		writel(0x23, QUSB2PHY_PORT_POWERDOWN);
 
@@ -131,22 +131,22 @@ void qusb2_phy_reset(void)
 		writel(0x9F, QUSB2PHY_PLL_AUTOPGM_CTL1);
 		writel(0x00, QUSB2PHY_PLL_PWR_CTL);
 	}
-	else if (platform_is_sdxhedgehog())
+	else if (platform_is_sdx20())
 	{
 		/* HPG init sequence 0x13 for CML and 0x03 for CMOS */
 		if (se_clock)
-			writel(0x03, QUSB2PHY_PLL_ANALOG_CONTROLS_TWO_SDXHEDGEHOG);
+			writel(0x03, QUSB2PHY_PLL_ANALOG_CONTROLS_TWO_SDX20);
 		else
-			writel(0x13, QUSB2PHY_PLL_ANALOG_CONTROLS_TWO_SDXHEDGEHOG);
+			writel(0x13, QUSB2PHY_PLL_ANALOG_CONTROLS_TWO_SDX20);
 
-		writel(0x7C, QUSB2PHY_PLL_CLOCK_INVERTERS_SDXHEDGEHOG);
-		writel(0x80, QUSB2PHY_PLL_CMODE_SDXHEDGEHOG);
-		writel(0x0a, QUSB2PHY_PLL_LOCK_DELAY_SDXHEDGEHOG);
-		writel(0x19, QUSB2PHY_PLL_DIGITAL_TIMERS_TWO_SDXHEDGEHOG);
-		writel(0xa5, QUSB2PHY_TUNE1_SDXHEDGEHOG);
-		writel(0x09, QUSB2PHY_TUNE2_SDXHEDGEHOG);
-		writel(0x00, QUSB2PHY_IMP_CTRL1_SDXHEDGEHOG);
-		writel(0x22, QUSB2PHY_PWR_CTRL1_SDXHEDGEHOG);
+		writel(0x7C, QUSB2PHY_PLL_CLOCK_INVERTERS_SDX20);
+		writel(0x80, QUSB2PHY_PLL_CMODE_SDX20);
+		writel(0x0a, QUSB2PHY_PLL_LOCK_DELAY_SDX20);
+		writel(0x19, QUSB2PHY_PLL_DIGITAL_TIMERS_TWO_SDX20);
+		writel(0xa5, QUSB2PHY_TUNE1_SDX20);
+		writel(0x09, QUSB2PHY_TUNE2_SDX20);
+		writel(0x00, QUSB2PHY_IMP_CTRL1_SDX20);
+		writel(0x22, QUSB2PHY_PWR_CTRL1_SDX20);
 	}
 	else
 	{
@@ -168,9 +168,9 @@ void qusb2_phy_reset(void)
 		writel(0x0,  QUSB2PHY_PORT_UTMI_CTRL2);
 
 	/* set CLAMP_N_EN and USB PHY is enabled*/
-	if (platform_is_sdxhedgehog()){
-		writel(0x22, QUSB2PHY_PWR_CTRL1_SDXHEDGEHOG);
-		writel(0x04, QUSB2PHY_DEBUG_CTRL2_SDXHEDGEHOG);
+	if (platform_is_sdx20()){
+		writel(0x22, QUSB2PHY_PWR_CTRL1_SDX20);
+		writel(0x04, QUSB2PHY_DEBUG_CTRL2_SDX20);
 		udelay(88);
 	}
 	else{
@@ -183,8 +183,8 @@ void qusb2_phy_reset(void)
 	 */
 	if (se_clock)
 	{
-		/* PLL TEST is not valid for sdxhedgehog */
-		if(!platform_is_sdxhedgehog())
+		/* PLL TEST is not valid for sdx20 */
+		if(!platform_is_sdx20())
 			writel(0x80, QUSB2PHY_PLL_TEST);
 	}
 	else
@@ -198,8 +198,8 @@ void qusb2_phy_reset(void)
 	udelay(100);
 
 	/* Check PLL status */
-	if (platform_is_sdxhedgehog()){
-		status_reg = QUSB2PHY_DEBUG_STAT5_SDXHEDGEHOG;
+	if (platform_is_sdx20()){
+		status_reg = QUSB2PHY_DEBUG_STAT5_SDX20;
 	}
 	else{
 		status_reg = QUSB2PHY_PLL_STATUS;
