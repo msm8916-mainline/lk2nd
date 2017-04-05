@@ -4,9 +4,7 @@ INCLUDES += -I$(LOCAL_DIR)/include -I$(LK_TOP_DIR)/platform/msm_shared
 
 INCLUDES += -I$(LK_TOP_DIR)/dev/gcdb/display -I$(LK_TOP_DIR)/dev/gcdb/display/include
 
-ifeq ($(ENABLE_MDTP_SUPPORT),1)
 INCLUDES += -I$(LK_TOP_DIR)/app/aboot
-endif
 
 PLATFORM := msm8953
 
@@ -17,7 +15,10 @@ BASE_ADDR        := 0x80000000
 SCRATCH_ADDR     := 0xA0100000
 
 DEFINES += PMI_CONFIGURED=1
+ifeq ($(ENABLE_DISPLAY),1)
+DEFINES += ENABLE_DISPLAY=1
 DEFINES += DISPLAY_SPLASH_SCREEN=1
+endif
 DEFINES += DISPLAY_TYPE_MIPI=1
 DEFINES += DISPLAY_TYPE_DSI6G=1
 

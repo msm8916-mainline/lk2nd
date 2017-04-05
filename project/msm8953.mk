@@ -20,8 +20,10 @@ DEFINES += VBOOT_MOTA=1
 else
 ENABLE_SECAPP_LOADER := 1
 ENABLE_RPMB_SUPPORT := 1
+ifneq (,$(findstring DISPLAY_SPLASH_SCREEN,$(DEFINES)))
 #enable fbcon display menu
 ENABLE_FBCON_DISPLAY_MSG := 1
+endif
 endif
 endif
 
@@ -107,8 +109,10 @@ DEFINES += USE_TARGET_HS200_DELAY=1
 ENABLE_REBOOT_MODULE := 1
 
 ifeq ($(VERIFIED_BOOT),1)
+ifneq (,$(findstring DISPLAY_SPLASH_SCREEN,$(DEFINES)))
 #Enable MDTP feature
 ENABLE_MDTP_SUPPORT := 1
+endif
 endif
 
 ifeq ($(ENABLE_MDTP_SUPPORT),1)
