@@ -195,6 +195,10 @@ static char gc9305_qvga_cmd_on_cmd31[] = {
 	0x2c,
 };
 
+static char gc9305_qvga_cmd_on_cmd32[] = {
+	0x2c,
+};
+
 static struct mdss_spi_cmd gc9305_qvga_cmd_on_command[] = {
 	{0x01, gc9305_qvga_cmd_on_cmd0, 0x00, 0},
 	{0x01, gc9305_qvga_cmd_on_cmd1, 0x00, 0},
@@ -227,10 +231,11 @@ static struct mdss_spi_cmd gc9305_qvga_cmd_on_command[] = {
 	{0x07, gc9305_qvga_cmd_on_cmd28, 0x00, 0},
 	{0x01, gc9305_qvga_cmd_on_cmd29, 0x78, 1},
 	{0x01, gc9305_qvga_cmd_on_cmd30, 0x32, 1},
-	{0x01, gc9305_qvga_cmd_on_cmd31, 0x00, 0}
+	{0x01, gc9305_qvga_cmd_on_cmd31, 0x00, 0},
+	{0x01, gc9305_qvga_cmd_on_cmd32, 0x00, 1}
 };
 
-#define GC9305_QVGA_CMD_ON_COMMAND 32
+#define GC9305_QVGA_CMD_ON_COMMAND 33
 
 
 static char gc9305_qvga_cmdoff_cmd0[] = {
