@@ -397,13 +397,16 @@ void target_sdc_init()
 
 	config.slot = 1;
 	config.bus_width = DATA_BUS_WIDTH_8BIT;
-	config.max_clk_rate = MMC_CLK_171MHZ;
 	config.sdhc_base    = MSM_SDC1_SDHCI_BASE;
 	config.pwrctl_base  = MSM_SDC1_BASE;
 	config.pwr_irq      = SDCC1_PWRCTL_IRQ;
 	config.hs400_support = 0;
 	config.hs200_support = 0;
 	config.use_io_switch = 1;
+	if (platform_is_sdx20())
+		config.max_clk_rate = MMC_CLK_200MHZ;
+	else
+		config.max_clk_rate = MMC_CLK_171MHZ;
 
 	if (!(dev = mmc_init(&config))) {
 		dprintf(CRITICAL, "mmc init failed!");
