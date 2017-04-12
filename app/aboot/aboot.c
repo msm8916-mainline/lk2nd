@@ -107,6 +107,8 @@ static int aboot_save_boot_hash_mmc(uint32_t image_addr, uint32_t image_size);
 static int aboot_frp_unlock(char *pname, void *data, unsigned sz);
 bool pwr_key_is_pressed = false;
 
+static bool is_systemd_present=false;
+
 /* fastboot command function pointer */
 typedef void (*fastboot_cmd_fn) (const char *, void *, unsigned);
 
@@ -159,6 +161,8 @@ static const char *emmc_cmdline = " androidboot.emmc=true";
 #endif
 static const char *usb_sn_cmdline = " androidboot.serialno=";
 static const char *androidboot_mode = " androidboot.mode=";
+
+static const char *systemd_ffbm_mode = " systemd.unit=ffbm.target";
 static const char *alarmboot_cmdline = " androidboot.alarmboot=true";
 static const char *loglevel         = " quiet";
 static const char *battchg_pause = " androidboot.mode=charger";
@@ -338,6 +342,11 @@ unsigned char *update_cmdline(const char * cmdline)
 	int have_target_boot_params = 0;
 	char *boot_dev_buf = NULL;
     bool is_mdtp_activated = 0;
+
+#if USE_LE_SYSTEMD
+	is_systemd_present=true;
+#endif
+
 #if VERIFIED_BOOT
 #if !VBOOT_MOTA
     uint32_t boot_state = boot_verify_get_state();
@@ -386,6 +395,10 @@ unsigned char *update_cmdline(const char * cmdline)
 
 	if (boot_into_ffbm) {
 		cmdline_len += strlen(androidboot_mode);
+
+		if(is_systemd_present)
+			cmdline_len += strlen(systemd_ffbm_mode);
+
 		cmdline_len += strlen(ffbm_mode_string);
 		/* reduce kernel console messages to speed-up boot */
 		cmdline_len += strlen(loglevel);
@@ -564,6 +577,13 @@ unsigned char *update_cmdline(const char * cmdline)
 			src = ffbm_mode_string;
 			if (have_cmdline) --dst;
 			while ((*dst++ = *src++));
+
+			if(is_systemd_present) {
+				src = systemd_ffbm_mode;
+				if (have_cmdline) --dst;
+				while ((*dst++ = *src++));
+			}
+
 			src = loglevel;
 			if (have_cmdline) --dst;
 			while ((*dst++ = *src++));
