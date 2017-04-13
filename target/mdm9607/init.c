@@ -322,11 +322,13 @@ void target_uninit(void)
 {
 	if (crypto_initialized())
 		crypto_eng_cleanup();
+
+	if(platform_is_mdm9206())
+		regulator_disable(REG_LDO4);
+
 #if SMD_SUPPORT
 	rpm_smd_uninit();
 #endif
-	if(platform_is_mdm9206())
-		regulator_disable(REG_LDO4);
 }
 
 void reboot_device(unsigned reboot_reason)
