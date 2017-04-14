@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2015, 2017-2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, 2017-2018, 2020, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -50,6 +50,7 @@
 #include "include/panel_auo_400p_cmd.h"
 #include "include/panel_auo_390p_cmd.h"
 #include "include/panel_st7789v2_qvga_spi_cmd.h"
+#include "include/panel_gc9305_qvga_spi_cmd.h"
 
 #define DISPLAY_MAX_PANEL_DETECTION 0
 #define ILI9806E_FWVGA_VIDEO_PANEL_POST_INIT_DELAY 68
@@ -80,6 +81,7 @@ enum {
 	AUO_400P_CMD_PANEL,
 	AUO_390P_CMD_PANEL,
 	ST7789v2_QVGA_SPI_CMD_PANEL,
+	GC9305_QVGA_SPI_CMD_PANEL,
 	UNKNOWN_PANEL
 };
 
@@ -101,6 +103,7 @@ static struct panel_list supp_panels[] = {
 	{"auo_400p_cmd", AUO_400P_CMD_PANEL},
 	{"auo_390p_cmd", AUO_390P_CMD_PANEL},
 	{"ST7789V2_qvga_cmd", ST7789v2_QVGA_SPI_CMD_PANEL},
+	{"gc9305_qvga_cmd", GC9305_QVGA_SPI_CMD_PANEL},
 };
 
 static uint32_t panel_id;
@@ -446,6 +449,19 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		pinfo->spi.signature_len	= st7789v2_signature_len;
 		pan_type = PANEL_TYPE_SPI;
 		break;
+	case GC9305_QVGA_SPI_CMD_PANEL:
+		panelstruct->paneldata    = &gc9305_qvga_cmd_panel_data;
+		panelstruct->panelres     = &gc9305_qvga_cmd_panel_res;
+		panelstruct->color        = &gc9305_qvga_cmd_color;
+		panelstruct->panelresetseq
+					= &gc9305_qvga_cmd_reset_seq;
+		panelstruct->backlightinfo = &gc9305_qvga_cmd_backlight;
+		pinfo->spi.panel_cmds
+					= gc9305_qvga_cmd_on_command;
+		pinfo->spi.num_of_panel_cmds
+					= GC9305_QVGA_CMD_ON_COMMAND;
+		pan_type = PANEL_TYPE_SPI;
+		break;
 	case UNKNOWN_PANEL:
 	default:
 		memset(panelstruct, 0, sizeof(struct panel_struct));
@@ -525,7 +541,10 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	case HW_PLATFORM_QRD:
 		switch (platform_subtype) {
 			case QRD_SKUA:
-				panel_id = HX8379A_FWVGA_SKUA_VIDEO_PANEL;
+				if (MSM8905 == board_platform_id())
+					panel_id = GC9305_QVGA_SPI_CMD_PANEL;
+				else
+					panel_id = HX8379A_FWVGA_SKUA_VIDEO_PANEL;
 				break;
 			case QRD_SKUC:
 				panel_id = ILI9806E_FWVGA_VIDEO_PANEL;
