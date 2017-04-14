@@ -509,6 +509,17 @@ uint8_t target_panel_auto_detect_enabled()
 	return ret;
 }
 
+uint8_t target_is_spi()
+{
+	uint32_t platform = board_platform_id();
+	uint32_t hw_id = board_hardware_id();
+
+	if ((MSM8905 == platform) && (HW_PLATFORM_QRD == hw_id))
+		return 1;
+	return 0;
+
+}
+
 static uint8_t splash_override;
 /* Returns 1 if target supports continuous splash screen. */
 int target_cont_splash_screen()
