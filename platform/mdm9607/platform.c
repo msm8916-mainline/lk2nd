@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015,2020 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -53,6 +53,8 @@
 #define SCRATCH_REGION1_VIRT_START_128            0x88000000
 #define SCRATCH_REGION2_VIRT_START_128            (SCRATCH_REGION1_VIRT_START_128 + SCRATCH_REGION1_SIZE_128)
 
+#define SCRATCH_REGION2_VIRT_START_256 (SCRATCH_REGION_256 + SCRATCH_REGION_SIZE_256)
+
 static void ddr_based_mmu_mappings(mmu_section_t *table, uint32_t table_size);
 static uint64_t ddr_size;
 static void board_ddr_detect();
@@ -80,8 +82,9 @@ mmu_section_t mmu_section_table_128[] = {
 };
 
 mmu_section_t mmu_section_table_256[] = {
-	{SCRATCH_REGION_256,         SCRATCH_REGION_256,          SCRATCH_REGION_SIZE_256/ MB,      SCRATCH_MEMORY},
-	{KERNEL_REGION,              KERNEL_REGION,               KERNEL_REGION_SIZE/ MB,           SCRATCH_MEMORY},
+	{SCRATCH_REGION_256,  SCRATCH_REGION_256,             SCRATCH_REGION_SIZE_256/ MB,  SCRATCH_MEMORY},
+	{SCRATCH_REGION2_256, SCRATCH_REGION2_VIRT_START_256, SCRATCH_REGION2_SIZE_256/ MB, SCRATCH_MEMORY},
+	{KERNEL_REGION,       KERNEL_REGION,                  KERNEL_REGION_SIZE/ MB,       SCRATCH_MEMORY},
 };
 
 static void board_ddr_detect()
