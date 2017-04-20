@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2017, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -126,82 +126,6 @@ int set_recovery_message(const struct recovery_message *in)
 		dprintf(CRITICAL, "ERROR: flash write fail!\n");
 		return -1;
 	}
-	return 0;
-}
-
-int read_update_header_for_bootloader(struct update_header *header)
-{
-	struct ptentry *ptn;
-	struct ptable *ptable;
-	unsigned offset = 0;
-	unsigned pagesize = flash_page_size();
-
-	ptable = flash_get_ptable();
-	if (ptable == NULL) {
-		dprintf(CRITICAL, "ERROR: Partition table not found\n");
-		return -1;
-	}
-	ptn = ptable_find(ptable, "cache");
-
-	if (ptn == NULL) {
-		dprintf(CRITICAL, "ERROR: No cache partition found\n");
-		return -1;
-	}
-	if (flash_read(ptn, offset, buf, pagesize)) {
-		dprintf(CRITICAL, "ERROR: Cannot read recovery_header\n");
-		return -1;
-	}
-	memcpy(header, buf, sizeof(*header));
-
-	if (strncmp((char *) header->MAGIC, UPDATE_MAGIC, UPDATE_MAGIC_SIZE))
-	{
-		return -1;
-	}
-	return 0;
-}
-
-int update_firmware_image (struct update_header *header, char *name)
-{
-	struct ptentry *ptn;
-	struct ptable *ptable;
-	unsigned offset = 0;
-	unsigned pagesize = flash_page_size();
-	unsigned pagemask = pagesize -1;
-	unsigned n = 0;
-	void *scratch_addr = target_get_scratch_address();
-
-	ptable = flash_get_ptable();
-	if (ptable == NULL) {
-		dprintf(CRITICAL, "ERROR: Partition table not found\n");
-		return -1;
-	}
-
-	ptn = ptable_find(ptable, "cache");
-	if (ptn == NULL) {
-		dprintf(CRITICAL, "ERROR: No cache partition found\n");
-		return -1;
-	}
-
-	offset += header->image_offset;
-	n = (header->image_length + pagemask) & (~pagemask);
-
-	if (flash_read(ptn, offset, scratch_addr, n)) {
-		dprintf(CRITICAL, "ERROR: Cannot read radio image\n");
-		return -1;
-	}
-
-	ptn = ptable_find(ptable, name);
-	if (ptn == NULL) {
-		dprintf(CRITICAL, "ERROR: No %s partition found\n", name);
-		return -1;
-	}
-
-	if (flash_write(ptn, 0, scratch_addr, n)) {
-		dprintf(CRITICAL, "ERROR: flash write fail!\n");
-		return -1;
-	}
-
-	dprintf(INFO, "Partition writen successfully!");
 	return 0;
 }
 
@@ -352,17 +276,6 @@ int recovery_init (void)
 		return 0; // Boot in normal mode
 	}
 
-#ifdef OLD_FOTA_UPGRADE
-	if (read_update_header_for_bootloader(&header)) {
-		strlcpy(msg.status, "invalid-update", sizeof(msg.status));
-		goto SEND_RECOVERY_MSG;
-	}
-
-	if (update_firmware_image (&header, partition_name)) {
-		strlcpy(msg.status, "failed-update", sizeof(msg.status));
-		goto SEND_RECOVERY_MSG;
-	}
-#else
 	if (set_ssd_radio_update(partition_name)) {
 		/* If writing to FOTA partition fails */
 		strlcpy(msg.command, "", sizeof(msg.command));
@@ -375,7 +288,6 @@ int recovery_init (void)
 		strlcpy(msg.status, "RADIO", sizeof(msg.status));
 		goto SEND_RECOVERY_MSG;
 	}
-#endif
 	strlcpy(msg.status, "OKAY", sizeof(msg.status));
 
 SEND_RECOVERY_MSG:
