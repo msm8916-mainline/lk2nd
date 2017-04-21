@@ -121,6 +121,12 @@ ifeq ($(USER_BUILD_VARIANT),true)
   DEFINES += USER_BUILD_VARIANT=1
 endif
 
+ifeq ($(USE_LE_SYSTEMD),true)
+  DEFINES += USE_LE_SYSTEMD=1
+else
+  DEFINES += USE_LE_SYSTEMD=0
+endif
+
 # these need to be filled out by the project/target/platform rules.mk files
 TARGET :=
 PLATFORM :=
