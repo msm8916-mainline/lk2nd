@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014, 2017 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -81,5 +81,5 @@ void *target_get_scratch_address(void)
 
 unsigned target_get_max_flash_size(void)
 {
-	return (256 * 1024 * 1024);
+	return (250 * 1024 * 1024);
 }

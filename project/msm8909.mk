@@ -14,6 +14,16 @@ endif
 
 EMMC_BOOT := 1
 
+ifeq ($(VERIFIED_BOOT),1)
+ENABLE_SECAPP_LOADER := 1
+ENABLE_RPMB_SUPPORT := 1
+
+ifneq (,$(findstring DISPLAY_SPLASH_SCREEN,$(DEFINES)))
+#enable fbcon display menu
+ENABLE_FBCON_DISPLAY_MSG := 1
+endif
+endif
+
 ENABLE_SMD_SUPPORT := 1
 ENABLE_PWM_SUPPORT := true
 ENABLE_BOOT_CONFIG_SUPPORT := 1
@@ -34,10 +44,14 @@ DEFINES += ABOOT_FORCE_TAGS_ADDR=0x81E00000
 DEFINES += ABOOT_FORCE_KERNEL64_ADDR=0x00080000
 
 DEFINES += BAM_V170=1
-DEFINES += ENABLE_FBCON_LOGGING=1
+#DEFINES += ENABLE_FBCON_LOGGING=1
 
 #Enable the feature of long press power on
 DEFINES += LONG_PRESS_POWER_ON=1
+
+ifeq ($(ENABLE_RPMB_SUPPORT),1)
+DEFINES += USE_RPMB_FOR_DEVINFO=1
+endif
 
 #Disable thumb mode
 ENABLE_THUMB := false
@@ -75,6 +89,11 @@ DEFINES += NO_SCM_V8_SUPPORT=1
 ENABLE_REBOOT_MODULE := 1
 #Use PON register for reboot reason
 DEFINES += USE_PON_REBOOT_REG=1
+
+#Enable fbcon display for verified boot.
+ifeq ($(ENABLE_FBCON_DISPLAY_MSG),1)
+DEFINES += FBCON_DISPLAY_MSG=1
+endif
 
 #enable battery voltage check
 DEFINES += CHECK_BAT_VOLTAGE=1

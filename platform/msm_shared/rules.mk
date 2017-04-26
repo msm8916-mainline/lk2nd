@@ -1,7 +1,7 @@
 LOCAL_DIR := $(GET_LOCAL_DIR)
 
 INCLUDES += \
-			-I$(LOCAL_DIR)/include -I$(LK_TOP_DIR)/dev/panel/msm
+			-I$(LOCAL_DIR)/include -I$(LK_TOP_DIR)/dev/panel/msm -I$(LK_TOP_DIR)/app/aboot
 
 DEFINES += $(TARGET_XRES)
 DEFINES += $(TARGET_YRES)
@@ -523,6 +523,7 @@ DEFINES += DISPLAY_TYPE_MDSS=1
 			$(LOCAL_DIR)/certificate.o \
 			$(LOCAL_DIR)/image_verify.o \
 			$(LOCAL_DIR)/i2c_qup.o \
+			$(LOCAL_DIR)/qseecom_lk.o \
 			$(LOCAL_DIR)/mdp3.o \
 			$(LOCAL_DIR)/display.o \
 			$(LOCAL_DIR)/mipi_dsi.o \

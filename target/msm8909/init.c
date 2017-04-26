@@ -50,6 +50,8 @@
 #include <rpm-smd.h>
 #include <qpic_nand.h>
 #include <smem.h>
+#include <secapp_loader.h>
+#include <rpmb.h>
 
 #if LONG_PRESS_POWER_ON
 #include <shutdown_detect.h>
@@ -119,6 +121,19 @@ static uint32_t  mmc_sdc_pwrctl_irq[] =
 
 static void set_sdc_power_ctrl(void);
 static void set_ebi2_config(void);
+
+#if VERIFIED_BOOT
+/**
+* Check if keymaster partition is present to test
+* if we have VB on this target.
+**/
+static bool target_is_vb_enabled()
+{
+	if (partition_get_index("keymaster") == INVALID_PTN)
+		return false;
+	return true;
+}
+#endif
 
 void update_ptable_names(void)
 {
@@ -322,7 +337,9 @@ void target_init(void)
 {
 	uint32_t base_addr;
 	uint8_t slot;
-
+#if VERIFIED_BOOT
+	int ret = 0;
+#endif
 	dprintf(INFO, "target_init()\n");
 
 	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
@@ -373,11 +390,51 @@ void target_init(void)
 #if PON_VIB_SUPPORT
 
 	/* turn on vibrator to indicate that phone is booting up to end user */
-		vib_timed_turn_on(VIBRATE_TIME);
+	vib_timed_turn_on(VIBRATE_TIME);
 #endif
 
 	if (target_use_signed_kernel())
 		target_crypto_init_params();
+
+#if VERIFIED_BOOT
+	if (target_is_vb_enabled())
+	{
+		clock_ce_enable(CE1_INSTANCE);
+
+		/* Initialize Qseecom */
+		ret = qseecom_init();
+
+		if (ret < 0)
+		{
+			dprintf(CRITICAL, "Failed to initialize qseecom, error: %d\n", ret);
+			ASSERT(0);
+		}
+
+		/* Start Qseecom */
+		ret = qseecom_tz_init();
+
+		if (ret < 0)
+		{
+			dprintf(CRITICAL, "Failed to start qseecom, error: %d\n", ret);
+			ASSERT(0);
+		}
+
+		if (rpmb_init() < 0)
+		{
+			dprintf(CRITICAL, "RPMB init failed\n");
+			ASSERT(0);
+		}
+
+		/*
+		 * Load the sec app for first time
+		*/
+		if (load_sec_app() < 0)
+		{
+			dprintf(CRITICAL, "Failed to load App for verified\n");
+			ASSERT(0);
+		}
+	}
+#endif
 
 #if SMD_SUPPORT
 	rpm_smd_init();
@@ -643,6 +700,28 @@ void target_uninit(void)
 
 	if (target_is_ssd_enabled())
 		clock_ce_disable(CE1_INSTANCE);
+
+#if VERIFIED_BOOT
+	if(target_is_vb_enabled())
+	{
+		if (is_sec_app_loaded())
+		{
+			if (send_milestone_call_to_tz() < 0)
+			{
+				dprintf(CRITICAL, "Failed to unload App for rpmb\n");
+				ASSERT(0);
+			}
+		}
+
+		if (rpmb_uninit() < 0)
+		{
+			dprintf(CRITICAL, "RPMB uninit failed\n");
+			ASSERT(0);
+		}
+
+		clock_ce_disable(CE1_INSTANCE);
+	}
+#endif
 
 #if SMD_SUPPORT
 	rpm_smd_uninit();

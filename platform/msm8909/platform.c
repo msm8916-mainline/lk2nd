@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, 2017, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -65,6 +65,7 @@ static mmu_section_t mmu_section_table[] = {
 	{    SYSTEM_IMEM_BASE,  SYSTEM_IMEM_BASE, 1,                IMEM_MEMORY},
 	{    MSM_SHARED_BASE,   MSM_SHARED_BASE,  1,                COMMON_MEMORY},
 	{    MIPI_FB_ADDR,      MIPI_FB_ADDR,     10,              COMMON_MEMORY},
+	{    RPMB_SND_RCV_BUF,  RPMB_SND_RCV_BUF, RPMB_SND_RCV_BUF_SZ,    IOMAP_MEMORY},
 };
 
 static struct smem_ram_ptable ram_ptable;
