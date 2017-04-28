@@ -67,7 +67,9 @@ endif
 ifeq ($(APPEND_CMDLINE),1)
   CFLAGS += -D_APPEND_CMDLINE=1
 endif
-
+ifeq ($(ENABLE_HARD_FPU),1)
+  CFLAGS += -mfloat-abi=hard -mfpu=neon
+endif
 # setup toolchain prefix
 TOOLCHAIN_PREFIX ?= arm-eabi-
 CFLAGS += -fstack-protector-all
