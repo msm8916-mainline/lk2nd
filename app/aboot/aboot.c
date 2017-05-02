@@ -2,7 +2,7 @@
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2016, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2017, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -2690,7 +2690,14 @@ void cmd_flash_meta_img(const char *arg, void *data, unsigned sz)
 			(img_header_entry[i].start_offset == 0) ||
 			(img_header_entry[i].size == 0))
 			break;
-
+		if ((UINT_MAX - img_header_entry[i].start_offset) < (uintptr_t)data) {
+			fastboot_fail("Integer overflow detected in start_offset of img");
+			break;
+		}
+		else if ((UINT_MAX - (img_header_entry[i].start_offset + (uintptr_t)data)) < img_header_entry[i].size) {
+			fastboot_fail("Integer overflow detected in size of img");
+			break;
+		}
 		if( data_end < ((uintptr_t)data + img_header_entry[i].start_offset
 						+ img_header_entry[i].size) )
 		{
