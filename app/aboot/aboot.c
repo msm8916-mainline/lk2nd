@@ -2263,7 +2263,7 @@ static void set_device_unlock(int type, bool status)
 
 	/* wipe data */
 	struct recovery_message msg;
-
+	memset(&msg, 0, sizeof(msg));
 	snprintf(msg.recovery, sizeof(msg.recovery), "recovery\n--wipe_data");
 	write_misc(0, &msg, sizeof(msg));
 
@@ -3508,7 +3508,7 @@ void cmd_oem_unlock_go(const char *arg, void *data, unsigned sz)
 
 		/* wipe data */
 		struct recovery_message msg;
-
+	        memset(&msg, 0, sizeof(msg));
 		snprintf(msg.recovery, sizeof(msg.recovery), "recovery\n--wipe_data");
 		write_misc(0, &msg, sizeof(msg));
 
