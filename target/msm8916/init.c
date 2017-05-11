@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2016, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2017, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -61,6 +61,7 @@
 #define PMIC_ARB_CHANNEL_NUM    0
 #define PMIC_ARB_OWNER_ID       0
 #define TLMM_VOL_UP_BTN_GPIO    107
+#define TLMM_SBC_USR_LED1_GPIO  21
 
 #if PON_VIB_SUPPORT
 #define VIBRATE_TIME    250
@@ -201,6 +202,13 @@ void target_init(void)
 
 	if (target_use_signed_kernel())
 		target_crypto_init_params();
+
+	/*
+	 * Turn on Boot LED
+	 */
+	if (board_hardware_id() == HW_PLATFORM_SBC)
+		gpio_tlmm_config(TLMM_SBC_USR_LED1_GPIO, 0, GPIO_OUTPUT,
+			GPIO_PULL_UP, GPIO_2MA, GPIO_ENABLE);
 }
 
 void target_serialno(unsigned char *buf)
