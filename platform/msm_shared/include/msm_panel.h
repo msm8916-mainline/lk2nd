@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2016, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2017, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -247,6 +247,7 @@ struct dfps_info {
 	struct dfps_panel_info panel_dfps;
 	struct dfps_codes_info codes_dfps[DFPS_MAX_FRAME_RATE];
 	void *dfps_fb_base;
+	uint32_t chip_serial;
 };
 
 /* intf timing settings */

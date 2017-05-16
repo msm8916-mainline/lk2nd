@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2016, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2017, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -240,9 +240,13 @@ static int mdss_dsi_dfps_get_stored_pll_codes(struct msm_panel_info *pinfo)
 	dprintf(SPEW, "enable=%d cnt=%d\n", dfps->panel_dfps.enabled,
 		dfps->panel_dfps.frame_rate_cnt);
 
-	if (!dfps->panel_dfps.enabled || (dfps->panel_dfps.frame_rate_cnt >
-		DFPS_MAX_FRAME_RATE) || (dfps->dfps_fb_base !=
-		pinfo->dfps.dfps_fb_base)) {
+	dprintf(CRITICAL, "chip serial splash =%d\n", dfps->chip_serial);
+	dprintf(CRITICAL, "chip serial pinfo =%d\n", pinfo->dfps.chip_serial);
+
+	if (!dfps->panel_dfps.enabled ||
+		(dfps->panel_dfps.frame_rate_cnt > DFPS_MAX_FRAME_RATE) ||
+		(dfps->dfps_fb_base != pinfo->dfps.dfps_fb_base) ||
+		(pinfo->dfps.chip_serial != dfps->chip_serial)) {
 		ret = ERROR;
 		free(dfps);
 		goto splash_err;
@@ -295,11 +299,14 @@ static int mdss_dsi_mipi_dfps_config(struct msm_panel_info *pinfo)
 	if (!pinfo->dfps.panel_dfps.enabled)
 		goto dfps_done;
 
+	pinfo->dfps.chip_serial = board_chip_serial();
+
 	if (!mdss_dsi_dfps_get_stored_pll_codes(pinfo)) {
-		dprintf(SPEW, "Found stored PLL codes!\n");
+		dprintf(CRITICAL, "Found stored PLL codes!\n");
 		goto dfps_cal_done;
 	}
 
+	dprintf(CRITICAL, "Calculate PLL codes!\n");
 	ret = mdss_dsi_dfps_get_pll_codes_cal(pinfo);
 	if (ret) {
 		dprintf(CRITICAL, "Cannot cal pll codes!\n");
