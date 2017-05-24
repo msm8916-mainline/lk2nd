@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, 2017, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -69,6 +69,9 @@
 #define SIM_CMD_PANEL_NODE "qcom,mdss_dsi_sim_cmd"
 #define SIM_DUALDSI_CMD_PANEL_NODE "qcom,mdss_dsi_dual_sim_cmd"
 #define SIM_DUALDSI_CMD_SLAVE_PANEL_NODE "qcom,mdss_dsi_dual_sim_cmd"
+
+#define DISABLE_PANEL_CONFIG "disable"
+#define DISABLE_PANEL_STRING "1:dsi:0:none:1:none:cfg:none"
 
 /*---------------------------------------------------------------------------*/
 /* Structure definition                                                      */

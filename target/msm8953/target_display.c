@@ -1,4 +1,4 @@
-/* Copyright (c) 2016, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2016-2017, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -388,8 +388,23 @@ bool target_display_panel_node(char *pbuf, uint16_t buf_size)
 	struct oem_panel_data oem = mdss_dsi_get_oem_data();
 	uint32_t platform_subtype = board_hardware_subtype();
 
-	/* default to hdmi for apq iot */
-	if ((platform_subtype == HW_PLATFORM_SUBTYPE_IOT)) {
+	/*
+	 * if disable config is passed irrespective of
+	 * platform type, disable DSI controllers
+	 */
+	if (!strcmp(oem.panel, DISABLE_PANEL_CONFIG)) {
+		if (buf_size < (prefix_string_len +
+			strlen(DISABLE_PANEL_STRING))) {
+			dprintf(CRITICAL, "Disable command line argument \
+				is greater than buffer size\n");
+			return false;
+		}
+		strlcpy(pbuf, DISPLAY_CMDLINE_PREFIX, buf_size);
+		buf_size -= prefix_string_len;
+		pbuf += prefix_string_len;
+		strlcpy(pbuf, DISABLE_PANEL_STRING, buf_size);
+	} else if (platform_subtype == HW_PLATFORM_SUBTYPE_IOT) {
+		/* default to hdmi for apq iot */
 		if (!strcmp(oem.panel, "")) {
 			if (buf_size < (prefix_string_len +
 				strlen(HDMI_ADV_PANEL_STRING))) {
@@ -454,7 +469,9 @@ void target_display_init(const char *panel_name)
 		oem.cont_splash = false;
 	}
 
-	if ((platform_subtype == HW_PLATFORM_SUBTYPE_IOT)) {
+	/* skip splash screen completely not just cont splash */
+	if ((platform_subtype == HW_PLATFORM_SUBTYPE_IOT)
+		|| !strcmp(oem.panel, DISABLE_PANEL_CONFIG)) {
 		dprintf(INFO, "%s: Platform subtype %d\n",
 			__func__, platform_subtype);
 		return;
