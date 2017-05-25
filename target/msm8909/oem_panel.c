@@ -59,6 +59,9 @@ enum {
 	QRD_SKUT = 0x0A,
 };
 
+enum {
+	BG_WTP = 0x0F,
+};
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
 /*---------------------------------------------------------------------------*/
@@ -452,7 +455,14 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	case HW_PLATFORM_SURF:
 	case HW_PLATFORM_MTP:
 	case HW_PLATFORM_RCM:
-		panel_id = HX8394D_720P_VIDEO_PANEL;
+		switch (platform_subtype) {
+		case BG_WTP:
+			panel_id = AUO_CX_QVGA_CMD_PANEL;
+			break;
+		default:
+			panel_id = HX8394D_720P_VIDEO_PANEL;
+			break;
+		}
 		break;
 	case HW_PLATFORM_QRD:
 		switch (platform_subtype) {
