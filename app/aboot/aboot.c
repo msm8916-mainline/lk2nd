@@ -3692,6 +3692,17 @@ int splash_screen_flash()
 		}
 
 		uint8_t *base = (uint8_t *) fb_display->base;
+		uint32_t fb_size = ROUNDUP(fb_display->width *
+					fb_display->height *
+					(fb_display->bpp / 8), 4096);
+		uint32_t splash_size = ((((header->width * header->height *
+					fb_display->bpp/8) + 511) >> 9) << 9);
+
+		if (splash_size > fb_size) {
+			dprintf(CRITICAL, "ERROR: Splash image size invalid\n");
+			return -1;
+		}
+
 		if (flash_read(ptn + LOGO_IMG_HEADER_SIZE, 0,
 			(uint32_t *)base,
 			((((header->width * header->height * fb_display->bpp/8) + 511) >> 9) << 9))) {
@@ -3764,6 +3775,15 @@ int splash_screen_mmc()
 			if ((header->width != fb_display->width)
 						|| (header->height != fb_display->height))
 				fbcon_clear();
+
+			uint32_t fb_size = ROUNDUP(fb_display->width *
+					fb_display->height *
+					(fb_display->bpp / 8), 4096);
+
+			if (readsize > fb_size) {
+				dprintf(CRITICAL, "ERROR: Splash image size invalid\n");
+				return -1;
+			}
 
 			if (mmc_read(ptn + blocksize, (uint32_t *)(base + blocksize), readsize)) {
 				dprintf(CRITICAL, "ERROR: Cannot read splash image from partition\n");
