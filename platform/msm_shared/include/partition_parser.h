@@ -37,6 +37,11 @@
 #define PARTITION_TYPE_GPT         1
 #define PARTITION_TYPE_GPT_BACKUP  2
 
+#define GPT_HEADER_SIZE 92
+#define GPT_HEADER_BLOCKS 1
+#define GPT_LBA 1
+#define PARTITION_ENTRY_SIZE 128
+
 /* GPT Signature should be 0x5452415020494645 */
 #define GPT_SIGNATURE_1 0x54524150
 #define GPT_SIGNATURE_2 0x20494645
@@ -74,6 +79,22 @@
 #define UNIQUE_PARTITION_GUID_SIZE 16
 #define NUM_PARTITIONS             128
 #define PART_ATT_READONLY_OFFSET   60
+
+#define MAX_PRIORITY 4
+#define MAX_RETRY_COUNT 0x7
+
+#define PART_ATT_PRIORITY_BIT      48
+#define PART_ATT_ACTIVE_BIT        50
+#define PART_ATT_MAX_RETRY_CNT_BIT 51
+#define PART_ATT_SUCCESS_BIT       54
+#define PART_ATT_UNBOOTABLE_BIT    55
+
+#define PART_ATT_PRIORITY_VAL ((uint64_t)(MAX_PRIORITY-1) << PART_ATT_PRIORITY_BIT)
+#define PART_ATT_ACTIVE_VAL ((uint64_t)0x1 << PART_ATT_ACTIVE_BIT)
+#define PART_ATT_MAX_RETRY_COUNT_VAL ((uint64_t)MAX_RETRY_COUNT << PART_ATT_MAX_RETRY_CNT_BIT)
+#define PART_ATT_SUCCESSFUL_VAL ((uint64_t)0x1 << PART_ATT_SUCCESS_BIT)
+#define PART_ATT_UNBOOTABLE_VAL ((uint64_t)0x1 << PART_ATT_UNBOOTABLE_BIT)
+
 
 /* Some useful define used to access the MBR/EBR table */
 #define BLOCK_SIZE                0x200
@@ -183,4 +204,11 @@ struct partition_info partition_get_info(const char *name);
 void partition_dump(void);
 /* Read only attribute for partition */
 int partition_read_only(int index);
+
+/* Get Partition Count */
+unsigned partition_get_partition_count();
+
+/* Read Partition entried list pointer */
+struct partition_entry* partition_get_partition_entries();
+
 #endif
