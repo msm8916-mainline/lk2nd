@@ -31,9 +31,8 @@
 #include <crc32.h>
 #include "mmc.h"
 #include "partition_parser.h"
-#define GPT_HEADER_SIZE 92
-#define GPT_LBA 1
-#define PARTITION_ENTRY_SIZE 128
+#include "ab_partition_parser.h"
+
 static bool flashing_gpt = 0;
 static bool parse_secondary_gpt = 0;
 __WEAK void mmc_set_lun(uint8_t lun)
@@ -85,6 +84,16 @@ struct partition_entry *partition_entries;
 static unsigned gpt_partitions_exist = 0;
 static unsigned partition_count;
 
+unsigned partition_get_partition_count()
+{
+	return partition_count;
+}
+
+struct partition_entry* partition_get_partition_entries()
+{
+	return partition_entries;
+}
+
 unsigned int partition_read_table()
 {
 	unsigned int ret;
@@ -114,6 +123,11 @@ unsigned int partition_read_table()
 			return 1;
 		}
 	}
+
+	/* Scan of multislot support */
+	/* TODO: Move this to mmc_boot_read_gpt() */
+	partition_scan_for_multislot();
+
 	return 0;
 }
 
@@ -885,15 +899,49 @@ int partition_get_index(const char *name)
 {
 	unsigned int input_string_length = strlen(name);
 	unsigned n;
+	int curr_slot = INVALID;
+	const char *suffix_curr_actv_slot = NULL;
+	char *curr_suffix = NULL;
 
 	if( partition_count >= NUM_PARTITIONS)
 	{
 		return INVALID_PTN;
 	}
-	for (n = 0; n < partition_count; n++) {
-		if ((input_string_length == strlen((const char *)&partition_entries[n].name))
-			&& !memcmp(name, &partition_entries[n].name, input_string_length)) {
-			return n;
+
+	/*	We iterate through the parition entries list,
+		to find the partition with active slot suffix.
+	*/
+	for (n = 0; n < partition_count; n++)
+	{
+		if (!strncmp((const char*)name, (const char *)partition_entries[n].name,
+					input_string_length))
+		{
+			curr_suffix = (char *)(partition_entries[n].name+input_string_length);
+
+			/* if partition_entries.name is NULL terminated return the index */
+			if (*curr_suffix == '\0')
+				return n;
+
+			if (partition_multislot_is_supported())
+			{
+				curr_slot = partition_find_active_slot();
+
+				/* If suffix string matches with current active slot suffix return index */
+				if (curr_slot != INVALID)
+				{
+					suffix_curr_actv_slot = SUFFIX_SLOT(curr_slot);
+					if (!strncmp((const char *)curr_suffix, suffix_curr_actv_slot,
+							strlen(suffix_curr_actv_slot)))
+						return n;
+					else
+						continue;
+				}
+				else
+				{
+					/* No valid active slot */
+					return INVALID_PTN;
+				}
+			}
 		}
 	}
 	return INVALID_PTN;
@@ -906,13 +954,43 @@ int partition_get_index_in_lun(const char *name, unsigned int lun)
 {
 	unsigned int input_string_length = strlen(name);
 	unsigned int n, relative_index = 0;
-	for (n = 0; n < partition_count; n++) {
+	int curr_slot = INVALID;
+	const char *suffix_curr_actv_slot = NULL;
+	char *curr_suffix = NULL;
+	for (n = 0; n < partition_count; n++)
+	{
 		if (lun == partition_entries[n].lun)
 		{
 			relative_index++;
-			if ((input_string_length == strlen((const char *)&partition_entries[n].name))
-				&& !memcmp(name, &partition_entries[n].name, input_string_length)) {
-				return relative_index;
+			if (!strncmp((const char*)name, (const char *)partition_entries[n].name,
+					input_string_length))
+			{
+				curr_suffix = (char *)(partition_entries[n].name+input_string_length);
+
+				/* if partition_entries.name is NULL terminated return relative index */
+				if (*curr_suffix == '\0')
+					return relative_index;
+
+				if (partition_multislot_is_supported())
+				{
+					curr_slot = partition_find_active_slot();
+
+					/* If suffix string matches with current active slot suffix return index */
+					if (curr_slot != INVALID)
+					{
+						suffix_curr_actv_slot = SUFFIX_SLOT(curr_slot);
+						if (!strncmp((const char *)curr_suffix, suffix_curr_actv_slot,
+							strlen(suffix_curr_actv_slot)))
+							return relative_index;
+						else
+							continue;
+					}
+					else
+					{
+						/* No valid active slot */
+						return INVALID_PTN;
+					}
+				}
 			}
 		}
 	}
