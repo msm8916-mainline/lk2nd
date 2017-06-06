@@ -3168,7 +3168,8 @@ void cmd_flash_nand(const char *arg, void *data, unsigned sz)
 	}
 
 	dprintf(INFO, "writing %d bytes to '%s'\n", sz, ptn->name);
-	if ((sz > UBI_MAGIC_SIZE) && (!memcmp((void *)data, UBI_MAGIC, UBI_MAGIC_SIZE))) {
+	if ((sz > UBI_EC_HDR_SIZE) &&
+		(!memcmp((void *)data, UBI_MAGIC, UBI_MAGIC_SIZE))) {
 		if (flash_ubi_img(ptn, data, sz)) {
 			fastboot_fail("flash write failure");
 			return;
