@@ -125,7 +125,7 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 
 	writel(0x00000000, MDP_DMA_P_OUT_XY);
 	writel(pinfo->yres << 16 | pinfo->xres, MDP_DMA_P_SIZE);
-	writel(MIPI_FB_ADDR, MDP_DMA_P_BUF_ADDR);
+	writel((uint32_t)fb->base, MDP_DMA_P_BUF_ADDR);
 	writel(pinfo->xres * ystride, MDP_DMA_P_BUF_Y_STRIDE);
 	writel(hsync_period << 16 | lcdc->h_pulse_width, \
 			MDP_DSI_VIDEO_HSYNC_CTL);
@@ -189,7 +189,7 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 	writel(pack_pattern << 8 | 0x3f | (0 << 25)| (1 << 19) | (1 << 7) , MDP_DMA_P_CONFIG);  // rgb888
 	writel(0x00000000, MDP_DMA_P_OUT_XY);
 	writel(pinfo->yres << 16 | pinfo->xres, MDP_DMA_P_SIZE);
-	writel(MIPI_FB_ADDR, MDP_DMA_P_BUF_ADDR);
+	writel((uint32_t)fb->base, MDP_DMA_P_BUF_ADDR);
 
 	writel(pinfo->xres * ystride, MDP_DMA_P_BUF_Y_STRIDE);
 
