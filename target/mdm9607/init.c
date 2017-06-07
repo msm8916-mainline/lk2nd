@@ -66,6 +66,7 @@ static struct ptable flash_ptable;
 /* PMIC config data */
 #define PMIC_ARB_CHANNEL_NUM    0
 #define PMIC_ARB_OWNER_ID       0
+#define PMIC_MAJOR_V1 1
 
 /* NANDc BAM pipe numbers */
 #define DATA_CONSUMER_PIPE      0
@@ -334,6 +335,8 @@ void target_uninit(void)
 void reboot_device(unsigned reboot_reason)
 {
 	uint8_t reset_type = 0;
+	struct board_pmic_data pmic_info;
+
 	 /* Write the reboot reason */
 	writel(reboot_reason, RESTART_REASON_ADDR);
 
@@ -347,7 +350,18 @@ void reboot_device(unsigned reboot_reason)
 	else
 		reset_type = PON_PSHOLD_HARD_RESET;
 
-	pm8x41_v2_reset_configure(reset_type);
+	if (board_pmic_info(&pmic_info, SMEM_V7_SMEM_MAX_PMIC_DEVICES))
+	{
+		/* make decision based on pmic major version */
+		switch (pmic_info.pmic_version >>16)
+		{
+			case PMIC_MAJOR_V1:
+				pm8x41_v2_reset_configure(reset_type);
+				break;
+			default:
+				pm8x41_reset_configure(reset_type);
+		}
+	}
 
 	/* Drop PS_HOLD for MSM */
 	writel(0x00, MPM2_MPM_PS_HOLD);
