@@ -3350,6 +3350,11 @@ void flash_init(void)
 		bbtbl[i] = -1;
 }
 
+unsigned flash_num_pages_per_blk(void)
+{
+	return num_pages_per_blk;
+}
+
 struct ptable *flash_get_ptable(void)
 {
 	return flash_ptable;
