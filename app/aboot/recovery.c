@@ -133,10 +133,8 @@ static int set_ssd_radio_update (char *name)
 {
 	struct ptentry *ptn;
 	struct ptable *ptable;
-	unsigned int ssd_cookie[2] = {0x53534443, 0x4F4F4B49};
+	unsigned int *ssd_cookie;
 	unsigned pagesize = flash_page_size();
-	unsigned pagemask = pagesize -1;
-	unsigned n = 0;
 
 	ptable = flash_get_ptable();
 	if (ptable == NULL) {
@@ -144,21 +142,32 @@ static int set_ssd_radio_update (char *name)
 		return -1;
 	}
 
-	n = (sizeof(ssd_cookie) + pagemask) & (~pagemask);
+	ssd_cookie = malloc(pagesize);
+	if (!ssd_cookie){
+		dprintf(CRITICAL, "ERROR: Memory allocation failure\n");
+		return -1;
+	}
+	memset(ssd_cookie, 0, pagesize);
+	ssd_cookie[0] = 0x53534443;
+	ssd_cookie[1] = 0x4F4F4B49;
 
 	ptn = ptable_find(ptable, name);
 	if (ptn == NULL) {
 		dprintf(CRITICAL, "ERROR: No %s partition found\n", name);
-		return -1;
+		goto out;
 	}
 
-	if (flash_write(ptn, 0, ssd_cookie, n)) {
+	if (flash_write(ptn, 0, ssd_cookie, pagesize)) {
 		dprintf(CRITICAL, "ERROR: flash write fail!\n");
-		return -1;
+		goto out;
 	}
 
+	free(ssd_cookie);
 	dprintf(INFO, "FOTA partition written successfully!");
 	return 0;
+out:
+	free(ssd_cookie);
+	return -1;
 }
 
 int get_boot_info_apps (char type, unsigned int *status)
