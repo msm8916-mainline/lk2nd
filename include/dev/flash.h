@@ -84,5 +84,7 @@ unsigned flash_block_size(void);
 unsigned flash_spare_size(void);
 int flash_ecc_bch_enabled(void);
 
+unsigned flash_num_pages_per_blk(void);
+
 
 #endif /* __DEV_FLASH_H */
