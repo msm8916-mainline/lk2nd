@@ -302,23 +302,39 @@ static int emmc_set_recovery_msg(struct recovery_message *out)
 {
 	char *ptn_name = "misc";
 	unsigned long long ptn = 0;
-	unsigned int size = ROUND_TO_PAGE(sizeof(*out),511);
-	unsigned char data[size];
+	unsigned blocksize = mmc_get_device_blocksize();
+	unsigned int size = ROUND_TO_PAGE(sizeof(*out), (unsigned)blocksize - 1);
+	unsigned char *data = NULL;
+	int ret = 0;
 	int index = INVALID_PTN;
+
+	data = malloc(size);
+	if(!data)
+	{
+		dprintf(CRITICAL,"memory allocation error \n");
+		ret = -1;
+		goto out;
+	}
 
 	index = partition_get_index((const char *) ptn_name);
 	ptn = partition_get_offset(index);
 	mmc_set_lun(partition_get_lun(index));
 	if(ptn == 0) {
 		dprintf(CRITICAL,"partition %s doesn't exist\n",ptn_name);
-		return -1;
+		ret = -1;
+		goto out;
 	}
+	memset(data, 0, size);
 	memcpy(data, out, sizeof(*out));
 	if (mmc_write(ptn , size, (unsigned int*)data)) {
 		dprintf(CRITICAL,"mmc write failure %s %d\n",ptn_name, sizeof(*out));
-		return -1;
+		ret = -1;
+		goto out;
 	}
-	return 0;
+out:
+	if (data)
+		free(data);
+	return ret;
 }
 
 static int emmc_get_recovery_msg(struct recovery_message *in)
