@@ -86,12 +86,11 @@
 #define QUP_CONFIG_NO_OUTPUT		BIT(6)
 #define QUP_CONFIG_N				0x001f
 
-/* QUP_MX_OUTPUT_CNT only supports
+/* MAX_QUP_MX_TRANSFER_COUNT only supports
  * 0:15 bits as Number of writes of
  * size N to the mini-core per RUN state.
  * And make the count be multiple of max bytes per word.
  */
-#define MAX_QUP_MX_OUTPUT_COUNT 0xFFF8
 #define MAX_QUP_MX_TRANSFER_COUNT 0xFFF8
 
 /* QUP Registers */

@@ -77,6 +77,12 @@ static void qup_print_status(struct qup_spi_dev *dev)
 	dprintf(SPEW, "QUP_MX_OUTPUT_CNT_CURRENT is :0x%x\n", val);
 	val = readl(dev->qup_base + QUP_MX_OUTPUT_CNT);
 	dprintf(SPEW, "QUP_MX_OUTPUT_CNT is :0x%x\n", val);
+	val = readl(dev->qup_base + QUP_MX_INPUT_CNT_CURRENT);
+	dprintf(SPEW, "QUP_MX_INPUT_CNT_CURRENT is :0x%x\n", val);
+	val = readl(dev->qup_base + QUP_MX_INPUT_CNT);
+	dprintf(SPEW, "QUP_MX_INPUT_CNT is :0x%x\n", val);
+	val = readl(dev->qup_base + QUP_MX_READ_CNT);
+	dprintf(SPEW, "QUP_MX_READ_CNT is :0x%x\n", val);
 	val = readl(dev->qup_base + QUP_OPERATIONAL);
 	dprintf(SPEW, "QUP_OPERATIONAL is :0x%x\n", val);
 	val = readl(dev->qup_base + QUP_OUTPUT_FIFO_WORD_CNT);
@@ -176,11 +182,12 @@ static inline void qup_register_init(struct qup_spi_dev *dev)
 static inline void spi_register_init(struct qup_spi_dev *dev)
 {
 	/* Set SPI mini core to QUP config */
-	writel(QUP_CONFIG_SPI_MODE | QUP_CONFIG_NO_INPUT, dev->qup_base + QUP_CONFIG);
+	writel(QUP_CONFIG_SPI_MODE, dev->qup_base + QUP_CONFIG);
 
 	/* Initialize SPI mini core registers */
 	writel(0, dev->qup_base + SPI_CONFIG);
-	writel(SPI_IO_C_NO_TRI_STATE | SPI_IO_C_CS_SELECT_CS0 | SPI_IO_C_CLK_IDLE_HIGH,
+	writel(SPI_IO_C_NO_TRI_STATE | SPI_IO_C_CS_SELECT_CS0 | SPI_IO_C_CLK_IDLE_HIGH |
+		SPI_IO_C_FORCE_CS | SPI_IO_C_MX_CS_MODE,
 		dev->qup_base + SPI_IO_CONTROL);
 	writel(SPI_ERROR_CLK_OVER_RUN | SPI_ERROR_CLK_UNDER_RUN, dev->qup_base + SPI_ERROR_FLAGS_EN);
 	writel(0, dev->qup_base + SPI_DEASSERT_WAIT);
@@ -191,7 +198,7 @@ static inline void spi_register_init(struct qup_spi_dev *dev)
 static void spi_qup_io_config_block(struct qup_spi_dev *dev, int len)
 {
 	unsigned int config, iomode, mode;
-	unsigned int bits_per_word;
+	unsigned int bits_per_word, max_len;
 
 	qup_register_init(dev);
 	spi_register_init(dev);
@@ -207,10 +214,20 @@ static void spi_qup_io_config_block(struct qup_spi_dev *dev, int len)
 		dev->bytes_per_word = DEFAULT_BYTES_PER_WORD;
 
 	bits_per_word = dev->bytes_per_word * 8 - 1;
+	max_len = len / dev->bytes_per_word > 0 ? len / dev->bytes_per_word : 1;
 
-	writel(len / dev->bytes_per_word, dev->qup_base + QUP_MX_OUTPUT_CNT);
-	writel(0, dev->qup_base + QUP_MX_INPUT_CNT);
-	writel(0, dev->qup_base + QUP_MX_READ_CNT);
+	if (dev->xfer->tx_buf == NULL || dev->xfer->len == 0)
+		writel(0, dev->qup_base + QUP_MX_OUTPUT_CNT);
+	else
+		writel(max_len, dev->qup_base + QUP_MX_OUTPUT_CNT);
+
+	if (dev->xfer->rx_buf == NULL || dev->xfer->len == 0) {
+		writel(0, dev->qup_base + QUP_MX_INPUT_CNT);
+		writel(0, dev->qup_base + QUP_MX_READ_CNT);
+	} else {
+		writel(max_len, dev->qup_base + QUP_MX_INPUT_CNT);
+		writel(max_len, dev->qup_base + QUP_MX_READ_CNT);
+	}
 	writel(0, dev->qup_base + QUP_MX_WRITE_CNT);
 
 	mode = QUP_IO_MODES_BLOCK;
@@ -229,7 +246,10 @@ static void spi_qup_io_config_block(struct qup_spi_dev *dev, int len)
 	writel(iomode, dev->qup_base + QUP_IO_MODES);
 
 	config = readl_relaxed(dev->qup_base + QUP_CONFIG);
-	config |= QUP_CONFIG_NO_INPUT;
+	if (dev->xfer->tx_buf == NULL || dev->xfer->len == 0)
+		config |= QUP_CONFIG_NO_OUTPUT;
+	if (dev->xfer->rx_buf == NULL || dev->xfer->len == 0)
+		config |= QUP_CONFIG_NO_INPUT;
 	config |= QUP_CONFIG_SPI_MODE;
 	config |= bits_per_word;
 	writel(config, dev->qup_base + QUP_CONFIG);
@@ -272,48 +292,102 @@ static void spi_qup_fifo_write(struct qup_spi_dev *dev, struct spi_transfer *xfe
 	}
 }
 
-int _spi_qup_transfer(struct qup_spi_dev *dev, struct spi_transfer *xfer)
+static void spi_qup_fifo_read(struct qup_spi_dev *dev, struct spi_transfer *xfer)
+{
+	unsigned char *rx_buf = xfer->rx_buf;
+	unsigned int word, state, data;
+	unsigned int idx, shift;
+
+	while (dev->rx_bytes < xfer->len) {
+		/* Wait for core to receive a block of MISO data before attempting
+		* to retrieve it. This prevents looping up and outputting another
+		* MOSI block if the input svc flag is not set yet. In that case,
+		* MISO data is lost.
+		*/
+		state = readl_relaxed(dev->qup_base + QUP_OPERATIONAL);
+		if (!(state & QUP_OP_IN_SERVICE_FLAG))
+			continue;
+
+		/* Input another data block if one is available */
+		state = readl_relaxed(dev->qup_base + QUP_OPERATIONAL);
+		if (state & QUP_OP_IN_SERVICE_FLAG) {
+			state &= ~QUP_OP_IN_SERVICE_FLAG;
+			writel(state, dev->qup_base + QUP_OPERATIONAL);
+
+			while (dev->rx_bytes < xfer->len) {
+				if (!(state & QUP_OP_IN_FIFO_NOT_EMPTY))
+					return;
+
+				word = readl_relaxed(dev->qup_base + QUP_INPUT_FIFO_BASE);
+				for (idx = 0; idx < dev->bytes_per_word; idx++, dev->rx_bytes++) {
+					/*
+					* The data format depends on bytes per SPI word:
+					*  4 bytes: 0x12345678
+					*  2 bytes: 0x00001234
+					*  1 byte : 0x00000012
+					*/
+					shift = BITS_PER_BYTE;
+					shift *= (dev->bytes_per_word - idx - 1);
+					rx_buf[dev->rx_bytes] = word >> shift;
+				}
+			}
+		}
+	}
+}
+
+static int _spi_qup_transfer(struct qup_spi_dev *dev, struct spi_transfer *xfer)
 {
 	int ret = -EIO;
 	int retries = 0xFF;
 	unsigned val;
+	unsigned int register_cnt;
+	unsigned int register_cnt_cur;
 
 	dev->xfer     = xfer;
 	dev->tx_bytes = 0;
+	dev->rx_bytes = 0;
+
+	if (xfer->tx_buf && xfer->len != 0) {
+		register_cnt = dev->qup_base + QUP_MX_OUTPUT_CNT;
+		register_cnt_cur = dev->qup_base + QUP_MX_OUTPUT_CNT_CURRENT;
+	} else if (xfer->rx_buf && xfer->len != 0) {
+		register_cnt = dev->qup_base + QUP_MX_INPUT_CNT;
+		register_cnt_cur = dev->qup_base + QUP_MX_INPUT_CNT_CURRENT;
+	} else {
+		return ret;
+	}
 
 	spi_qup_io_config_block(dev, xfer->len);
-
 	ret = qup_set_state(dev, QUP_RUN_STATE);
 	if (ret) {
-		dprintf(CRITICAL, "%s: cannot set first RUN state\n", __func__);
+		dprintf(CRITICAL, "%s: cannot set RUN state\n", __func__);
 		goto exit;
 	}
 
-	while((readl(dev->qup_base + QUP_MX_OUTPUT_CNT)
-		!= readl(dev->qup_base + QUP_MX_OUTPUT_CNT_CURRENT))
-		&& retries--);
+	while((readl(register_cnt) != readl(register_cnt_cur)) && retries--);
+	if (xfer->tx_buf) {
+		while(readl(register_cnt_cur)) {
+			val = readl(dev->qup_base + QUP_OPERATIONAL);
+			val &= ~QUP_OP_OUT_SERVICE_FLAG;
+			writel(val, dev->qup_base + QUP_OPERATIONAL);
 
-	while(readl(dev->qup_base + QUP_MX_OUTPUT_CNT_CURRENT) ) {
-		val = readl(dev->qup_base + QUP_OPERATIONAL);
-		val &= ~QUP_OP_OUT_SERVICE_FLAG;
-		writel(val, dev->qup_base + QUP_OPERATIONAL);
+			ret = qup_set_state(dev, QUP_PAUSE_STATE);
+			if (ret) {
+				dprintf(CRITICAL, "%s: cannot set PAUSE state\n", __func__);
+				goto exit;
+			}
 
-		ret = qup_set_state(dev, QUP_PAUSE_STATE);
-		if (ret) {
-			dprintf(CRITICAL, "%s: cannot set PAUSE state\n", __func__);
-			goto exit;
+			spi_qup_fifo_write(dev, xfer);
+
+			ret = qup_set_state(dev, QUP_RUN_STATE);
+			if (ret) {
+				dprintf(CRITICAL, "%s: cannot set RUN state\n", __func__);
+				goto exit;
+			}
 		}
-
-		spi_qup_fifo_write(dev, xfer);
-
-		ret = qup_set_state(dev, QUP_RUN_STATE);
-		if (ret) {
-			dprintf(CRITICAL, "%s: cannot set RUN state\n", __func__);
-			goto exit;
-		}
+	} else if (xfer->rx_buf) {
+		spi_qup_fifo_read(dev, xfer);
 	}
-	dprintf(SPEW, "dev->tx_bytes:0x%x, xfer->len:0x%x\n",
-		dev->tx_bytes, xfer->len);
 
 exit:
 	qup_set_state(dev, QUP_RESET_STATE);
@@ -321,41 +395,97 @@ exit:
 	return ret;
 }
 
+static int spi_qup_transfer(struct qup_spi_dev *dev, struct spi_transfer *xfer)
+{
+	unsigned int cur = 0;
+	unsigned int data_size = 0;
+	void *mTmpbuff = NULL;
+	int ret = -EIO;
+
+	if (!xfer || !dev)
+		return ret;
+
+	mTmpbuff = xfer->rx_buf > 0 ? xfer->rx_buf : xfer->tx_buf;
+	if (!mTmpbuff || !xfer->len)
+		return ret;
+
+	if (xfer->speed_hz != dev->max_speed_hz)
+		clock_config_blsp_spi(dev->blsp_id, dev->qup_id, xfer->speed_hz);
+
+	data_size = xfer->len;
+	while(data_size > MAX_QUP_MX_TRANSFER_COUNT + cur) {
+		xfer->len = MAX_QUP_MX_TRANSFER_COUNT;
+		if (xfer->tx_buf)
+			xfer->tx_buf = mTmpbuff + cur;
+		else if (xfer->rx_buf)
+			xfer->rx_buf = mTmpbuff + cur;
+
+		ret = _spi_qup_transfer(dev, xfer);
+		if (ret)
+			return ret;
+
+		cur += MAX_QUP_MX_TRANSFER_COUNT;
+	}
+
+	xfer->len = data_size - cur;
+	if (xfer->tx_buf)
+		xfer->tx_buf = mTmpbuff + cur;
+	else if (xfer->rx_buf)
+		xfer->rx_buf = mTmpbuff + cur;
+	ret = _spi_qup_transfer(dev, xfer);
+
+	return ret;
+}
+
 /**
- * @brief Transfer data_size bytes data from tx_buf via spi
+ * @brief write data_size bytes data from tx_buf via spi
  * @param dev		SPI config structure initialized from qup_blsp_spi_init
  * @param tx_buf	output buffer pointer
  * @param data_size	Should be multiple of max bytes per word
  */
-int spi_qup_transfer(struct qup_spi_dev *dev, const unsigned char * tx_buf, unsigned int data_size)
+int spi_qup_write(struct qup_spi_dev *dev, const unsigned char *tx_buf, unsigned int data_size)
 {
-	unsigned int cur = 0;
-	struct spi_transfer s_xfer;
 	int ret = -EIO;
 
-	if(!tx_buf)
-		return ret;
+	struct spi_transfer s_xfer = {
+		.tx_buf = tx_buf,
+		.rx_buf = NULL,
+		.len = data_size,
+		.speed_hz = MAX_SPEED_HZ,
+	};
 
-	while(data_size > MAX_QUP_MX_OUTPUT_COUNT + cur) {
-		s_xfer.len = MAX_QUP_MX_OUTPUT_COUNT;
-		s_xfer.tx_buf = tx_buf + cur;
-
-		ret = _spi_qup_transfer(dev, &s_xfer);
-		if (ret)
-			goto exit;
-
-		cur += MAX_QUP_MX_OUTPUT_COUNT;
-	}
-
-	s_xfer.len = data_size - cur;
-	s_xfer.tx_buf = tx_buf + cur;
-	ret = _spi_qup_transfer(dev, &s_xfer);
+	ret = spi_qup_transfer(dev, &s_xfer);
 	if (ret)
-			goto exit;
-	return ret;
+		dprintf(CRITICAL, "%s: write error!\n", __func__);
 
-exit:
-	dprintf(CRITICAL, "%s: transfer error!\n", __func__);
+	dprintf(SPEW, "dev->tx_bytes:0x%x, s_xfer->len:0x%x\n",
+		dev->tx_bytes, s_xfer.len);
+	return ret;
+}
+
+/**
+ * @brief read data_size bytes data from rx_buf via spi
+ * @param dev		SPI config structure initialized from qup_blsp_spi_init
+ * @param rx_buf	             input buffer pointer
+ * @param data_size	Should be multiple of max bytes per word
+ */
+int spi_qup_read(struct qup_spi_dev *dev, unsigned char *rx_buf, unsigned int data_size)
+{
+	int ret = -EIO;
+
+	struct spi_transfer s_xfer = {
+		.tx_buf = NULL,
+		.rx_buf = rx_buf,
+		.len = data_size,
+		.speed_hz = MAX_READ_SPEED_HZ,
+	};
+
+	ret = spi_qup_transfer(dev, &s_xfer);
+	if (ret)
+		dprintf(CRITICAL, "%s: read error!\n", __func__);
+
+	dprintf(SPEW, "dev->rx_bytes:0x%x, s_xfer->len:0x%x\n",
+		dev->rx_bytes, s_xfer.len);
 	return ret;
 }
 
@@ -426,13 +556,17 @@ struct qup_spi_dev *qup_blsp_spi_init(uint8_t blsp_id, uint8_t qup_id)
 	dev = memset(dev, 0, sizeof(struct qup_spi_dev));
 
 	/* Platform uses BLSP */
+	dev->blsp_id = blsp_id;
+	dev->qup_id = qup_id;
 	dev->qup_irq = BLSP_QUP_IRQ(blsp_id, qup_id);
 	dev->qup_base = BLSP_QUP_BASE(blsp_id, qup_id);
 
 	/* Initialize the GPIO for BLSP spi */
 	gpio_config_blsp_spi(blsp_id, qup_id);
 
-	clock_config_blsp_spi(blsp_id, qup_id);
+	/* Set the highest clk frequency by default for good performance. */
+	dev->max_speed_hz = MAX_SPEED_HZ;
+	clock_config_blsp_spi(blsp_id, qup_id, dev->max_speed_hz);
 
 	qup_spi_sec_init(dev);
 

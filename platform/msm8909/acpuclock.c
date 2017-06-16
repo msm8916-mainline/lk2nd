@@ -476,7 +476,7 @@ void clock_config_blsp_i2c(uint8_t blsp_id, uint8_t qup_id)
 }
 
 /* Configure spi clock */
-void clock_config_blsp_spi(uint8_t blsp_id, uint8_t qup_id)
+void clock_config_blsp_spi(uint8_t blsp_id, uint8_t qup_id, unsigned long rate)
 {
 	uint8_t ret = 0;
 	char clk_name[64];
@@ -500,8 +500,7 @@ void clock_config_blsp_spi(uint8_t blsp_id, uint8_t qup_id)
 
 	snprintf(clk_name, sizeof(clk_name), "gcc_blsp1_qup%u_spi_apps_clk", qup_id);
 
-	/* Set the highest clk frequency by default for good performance. */
-	ret = clk_get_set_enable(clk_name, 50000000, 1);
+	ret = clk_get_set_enable(clk_name, rate, 1);
 
 	if (ret) {
 		dprintf(CRITICAL, "%s: Failed to enable %s\n", __func__, clk_name);
