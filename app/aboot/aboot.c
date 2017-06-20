@@ -495,8 +495,8 @@ unsigned char *update_cmdline(const char * cmdline)
 		cmdline_len += (strlen(androidboot_slot_suffix)+
 					strlen(SUFFIX_SLOT(current_active_slot)));
 
-		sprintf(sys_path_cmdline, sys_path_cmdline,
-					(partition_get_index("system")+1));
+		snprintf(sys_path_cmdline, sizeof(*sys_path_cmdline),
+				sys_path_cmdline, (partition_get_index("system")+1));
 		cmdline_len += strlen(sys_path_cmdline);
 
 		if (!boot_into_recovery)
@@ -4020,6 +4020,7 @@ void publish_getvar_multislot_vars()
 	static char has_slot_reply[NUM_PARTITIONS][MAX_RSP_SIZE];
 	const char *tmp;
 	char tmpbuff[MAX_GET_VAR_NAME_SIZE];
+	signed active_slt;
 
 	if (!published)
 	{
@@ -4029,18 +4030,23 @@ void publish_getvar_multislot_vars()
 		for(i=0; i<count; i++)
 		{
 			memset(tmpbuff, 0, MAX_GET_VAR_NAME_SIZE);
-			sprintf(tmpbuff, "has-slot:%s", has_slot_pname[i]);
-			strcpy(has_slot_pname[i], tmpbuff);
+			snprintf(tmpbuff, MAX_GET_VAR_NAME_SIZE,"has-slot:%s",
+								has_slot_pname[i]);
+			strlcpy(has_slot_pname[i], tmpbuff, MAX_GET_VAR_NAME_SIZE);
 			fastboot_publish(has_slot_pname[i], has_slot_reply[i]);
 		}
 
 		for (i=0; i<AB_SUPPORTED_SLOTS; i++)
 		{
 			tmp = SUFFIX_SLOT(i);
-			sprintf(slot_info[i].slot_is_unbootable, "slot-unbootable:%s", tmp);
-			sprintf(slot_info[i].slot_is_active, "slot-active:%s", tmp);
-			sprintf(slot_info[i].slot_is_succesful, "slot-success:%s", tmp);
-			sprintf(slot_info[i].slot_retry_count, "slot-retry-count:%s", tmp);
+			snprintf(slot_info[i].slot_is_unbootable, sizeof(slot_info[i].slot_is_unbootable),
+										"slot-unbootable:%s", tmp);
+			snprintf(slot_info[i].slot_is_active, sizeof(slot_info[i].slot_is_active),
+										"slot-active:%s", tmp);
+			snprintf(slot_info[i].slot_is_succesful, sizeof(slot_info[i].slot_is_succesful),
+										"slot-success:%s", tmp);
+			snprintf(slot_info[i].slot_retry_count, sizeof(slot_info[i].slot_retry_count),
+										"slot-retry-count:%s", tmp);
 			fastboot_publish(slot_info[i].slot_is_unbootable,
 							slot_info[i].slot_is_unbootable_rsp);
 			fastboot_publish(slot_info[i].slot_is_active,
@@ -4056,8 +4062,13 @@ void publish_getvar_multislot_vars()
 		published = true;
 	}
 
-	sprintf(active_slot_suffix, "%s",
-			SUFFIX_SLOT(partition_find_active_slot()));
+	active_slt = partition_find_active_slot();
+	if (active_slt != INVALID)
+		snprintf(active_slot_suffix, sizeof(active_slot_suffix), "%s",
+			SUFFIX_SLOT(active_slt));
+	else
+		strlcpy(active_slot_suffix, "INVALID", sizeof(active_slot_suffix));
+
 	/* Update partition meta information */
 	partition_fill_slot_meta(slot_info);
 	return;
