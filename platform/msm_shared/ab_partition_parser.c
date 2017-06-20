@@ -506,14 +506,14 @@ int partition_fill_partition_meta(char has_slot_pname[][MAX_GET_VAR_NAME_SIZE],
 				/* 2. put the partition name in array */
 				tmp = pname_size-strlen(suffix_str);
 				strlcpy(has_slot_pname[count], pname, tmp+1);
-				strcpy(has_slot_reply[count], " Yes");
+				strlcpy(has_slot_reply[count], " Yes", MAX_RSP_SIZE);
 				count++;
 			}
 		}
 		else
 		{
-			strcpy(has_slot_pname[count], pname);
-			strcpy(has_slot_reply[count], " No");
+			strlcpy(has_slot_pname[count], pname, MAX_GET_VAR_NAME_SIZE);
+			strlcpy(has_slot_reply[count], " No", MAX_RSP_SIZE);
 			count++;
 		}
 
@@ -545,15 +545,18 @@ void partition_fill_slot_meta(struct ab_slot_info *slot_info)
 	for(i=0; i<AB_SUPPORTED_SLOTS; i++)
 	{
 		current_slot_index = boot_slot_index[i];
-		strcpy(slot_info[i].slot_is_unbootable_rsp,
-				slot_is_bootable(ptn_entries, current_slot_index)?"No":"Yes");
-		strcpy(slot_info[i].slot_is_active_rsp,
-				slot_is_active(ptn_entries, current_slot_index)?"Yes":"No");
-		strcpy(slot_info[i].slot_is_succesful_rsp,
-				slot_is_sucessful(ptn_entries, current_slot_index)?"Yes":"No");
+		strlcpy(slot_info[i].slot_is_unbootable_rsp,
+				slot_is_bootable(ptn_entries, current_slot_index)?"No":"Yes",
+				MAX_RSP_SIZE);
+		strlcpy(slot_info[i].slot_is_active_rsp,
+				slot_is_active(ptn_entries, current_slot_index)?"Yes":"No",
+				MAX_RSP_SIZE);
+		strlcpy(slot_info[i].slot_is_succesful_rsp,
+				slot_is_sucessful(ptn_entries, current_slot_index)?"Yes":"No",
+				MAX_RSP_SIZE);
 		itoa(slot_retry_count(ptn_entries, current_slot_index),
 				(unsigned char *)buff, 2, 10);
-		strcpy(slot_info[i].slot_retry_count_rsp, buff);
+		strlcpy(slot_info[i].slot_retry_count_rsp, buff, MAX_RSP_SIZE);
 	}
 }
 
@@ -579,6 +582,12 @@ update_gpt(uint64_t gpt_start_addr,
 		(PARTITION_ENTRY_SIZE*NUM_PARTITIONS + GPT_HEADER_BLOCKS*block_size);
 
 	buffer = memalign(CACHE_LINE, ROUNDUP(max_gpt_size_bytes, CACHE_LINE));
+	if (!buffer)
+	{
+		dprintf(CRITICAL, "update_gpt: Failed at memory allocation\n");
+		goto out;
+	}
+
 	ret = mmc_read(gpt_start_addr, (uint32_t *)buffer,
 				max_gpt_size_bytes);
 	if (ret)
@@ -629,7 +638,8 @@ update_gpt(uint64_t gpt_start_addr,
 		goto out;
 	}
 out:
-	free(buffer);
+	if (buffer)
+		free(buffer);
 	return ret;
 }
 
