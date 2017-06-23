@@ -1,4 +1,4 @@
-/* Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2017, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -147,7 +147,7 @@ int mdtp_fs_init(){
 	}
 
 	image_sets_num = mdtp_fs_get_param(IMAGE_SETS_NUM);
-	if (image_sets_num < 1) {
+	if ( (image_sets_num < 1) || (image_sets_num >= MAX_IMAGES) ) {
 		dprintf(CRITICAL, "ERROR: invalid number of image sets: %d\n", image_sets_num);
 		return -1;
 	}
