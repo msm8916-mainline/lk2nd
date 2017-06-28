@@ -817,6 +817,7 @@ int flash_ubi_img(struct ptentry *ptn, void *data, unsigned size)
 	int ret;
 	int bad_blocks_cnt = 0;
 	int fmsb_peb = 0;
+	unsigned peb_valid_sz= 0;
 
 	si = scan_partition(ptn);
 	if (!si) {
@@ -844,14 +845,30 @@ int flash_ubi_img(struct ptentry *ptn, void *data, unsigned size)
 			curr_peb++;
 			continue;
 		}
-		remove_F_flag(img_peb);
-		/* Update the ec_header in the image */
-		old_ech = (struct ubi_ec_hdr *)img_peb;
-		update_ec_header(old_ech, si, curr_peb - ptn->start, false);
+
 		if (size < block_size)
 			num_pages = size / page_size;
 		else
 			num_pages = calc_data_len(page_size, img_peb, block_size);
+
+		/* Total size of valid data in peb */
+		peb_valid_sz = num_pages * page_size;
+
+		/*
+		* Check for oob access if any in img_peb.
+		*/
+		if (memcmp(img_peb, UBI_MAGIC, UBI_MAGIC_SIZE) ||
+			BE32(((struct ubi_ec_hdr *)img_peb)->vid_hdr_offset) > peb_valid_sz ||
+			BE32(((struct ubi_ec_hdr *)img_peb)->data_offset) > peb_valid_sz)
+		{
+			dprintf(CRITICAL, "flash_ubi_img: invalid image peb found\n");
+			return -1;
+		}
+
+		remove_F_flag(img_peb);
+		/* Update the ec_header in the image */
+		old_ech = (struct ubi_ec_hdr *)img_peb;
+		update_ec_header(old_ech, si, curr_peb - ptn->start, false);
 		/* Write one block from image */
 		ret = qpic_nand_write(curr_peb * num_pages_per_blk,
 				num_pages, img_peb, 0);
