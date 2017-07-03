@@ -141,6 +141,7 @@ typedef enum
 	PMIC_IS_PMI8950   = 17,
 	PMIC_IS_PMI8994   = 10,
 	PMIC_IS_PMI8996   = 19,
+	PMIC_IS_PM660     = 27,
 } pm_model_type_bfly;
 
 struct smem_board_info_v3 {
