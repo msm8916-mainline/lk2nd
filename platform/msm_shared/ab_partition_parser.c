@@ -37,6 +37,7 @@
 /* Slot suffix */
 const char *suffix_slot[] = {"_a",
 		"_b"};
+const char *suffix_delimiter = "_";
 
 /* local global variables */
 static signed active_slot = INVALID;		/* to store current active slot */
