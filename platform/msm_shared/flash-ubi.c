@@ -855,6 +855,12 @@ int flash_ubi_img(struct ptentry *ptn, void *data, unsigned size)
 		/* Total size of valid data in peb */
 		peb_valid_sz = num_pages * page_size;
 
+		if (size < UBI_MAGIC_SIZE)
+		{
+			dprintf(CRITICAL, "flash_ubi_img: invalid size provided.\n");
+			return -1;
+		}
+
 		/*
 		* Check for oob access if any in img_peb.
 		*/
