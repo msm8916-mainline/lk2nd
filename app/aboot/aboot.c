@@ -3546,7 +3546,7 @@ void cmd_reboot(const char *arg, void *data, unsigned sz)
 
 void cmd_set_active(const char *arg, void *data, unsigned sz)
 {
-	char *p = NULL;
+	char *p, *sp = NULL;
 	unsigned i,current_active_slot;
 	const char *current_slot_suffix;
 
@@ -3558,13 +3558,16 @@ void cmd_set_active(const char *arg, void *data, unsigned sz)
 
 	if (arg)
 	{
-		p = (char *)arg;
-		if (p)
+		p = strtok_r((char *)arg, ":", &sp);
+		if (*p)
 		{
 			current_active_slot = partition_find_active_slot();
 
 			/* Check if trying to make curent slot active */
 			current_slot_suffix = SUFFIX_SLOT(current_active_slot);
+			current_slot_suffix = strtok_r((char *)current_slot_suffix,
+							(char *)suffix_delimiter, &sp);
+
 			if (!strncmp(p, current_slot_suffix, sizeof(current_slot_suffix)))
 			{
 				fastboot_okay("Slot already set active");
@@ -3575,6 +3578,8 @@ void cmd_set_active(const char *arg, void *data, unsigned sz)
 				for (i = 0; i < AB_SUPPORTED_SLOTS; i++)
 				{
 					current_slot_suffix = SUFFIX_SLOT(i);
+					current_slot_suffix = strtok_r((char *)current_slot_suffix,
+									(char *)suffix_delimiter, &sp);
 					if (!strncmp(p, current_slot_suffix, sizeof(current_slot_suffix)))
 					{
 						partition_switch_slots(current_active_slot, i);
@@ -4132,7 +4137,7 @@ void aboot_fastboot_register_commands(void)
 						{"oem disable-charger-screen", cmd_oem_disable_charger_screen},
 						{"oem off-mode-charge", cmd_oem_off_mode_charger},
 						{"oem select-display-panel", cmd_oem_select_display_panel},
-						{"oem set_active",cmd_set_active},
+						{"set_active",cmd_set_active},
 #if UNITTEST_FW_SUPPORT
 						{"oem run-tests", cmd_oem_runtests},
 #endif

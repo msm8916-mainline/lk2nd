@@ -29,6 +29,7 @@
 #include <fastboot.h>
 
 extern const char *suffix_slot[];
+extern const char *suffix_delimiter;
 
 #define SUFFIX_SLOT(part_slot) suffix_slot[(part_slot)]
 
