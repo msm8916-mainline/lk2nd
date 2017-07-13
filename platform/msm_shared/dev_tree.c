@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2015,2017 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -39,6 +39,11 @@
 #include <kernel/thread.h>
 #include <target.h>
 #include <partial_goods.h>
+#include <boot_device.h>
+#include <platform.h>
+
+#define BOOT_DEV_MAX_LEN        64
+#define NODE_PROPERTY_MAX_LEN   64
 
 struct dt_entry_v1
 {
@@ -49,12 +54,29 @@ struct dt_entry_v1
 	uint32_t size;
 };
 
+#if ENABLE_BOOTDEVICE_MOUNT
+/* Look up table for fstab node */
+struct fstab_node
+{
+        const char *parent_node;
+        const char *node_prop;
+        const char *device_path_id;
+};
+
+static struct fstab_node fstab_table =
+{
+	"/firmware/android/fstab", "dev", "/soc/"
+};
+#endif
+
 static struct dt_mem_node_info mem_node;
 static int platform_dt_absolute_match(struct dt_entry *cur_dt_entry, struct dt_entry_node *dt_list);
 static struct dt_entry *platform_dt_match_best(struct dt_entry_node *dt_list);
 static int update_dtb_entry_node(struct dt_entry_node *dt_list, uint32_t dtb_info);
 extern int target_is_emmc_boot(void);
 extern uint32_t target_dev_tree_mem(void *fdt, uint32_t memory_node_offset);
+static int update_fstab_node(void *fdt);
+
 /* TODO: This function needs to be moved to target layer to check violations
  * against all the other regions as well.
  */
@@ -1366,6 +1388,15 @@ int update_device_tree(void *fdt, const char *cmdline,
 		}
 	}
 
+#if ENABLE_BOOTDEVICE_MOUNT
+	/* Update fstab node */
+	dprintf(SPEW, "Start of fstab node update:%zu ms\n", platform_get_sclk_count());
+	if (update_fstab_node(fdt) != 0) {
+		dprintf(CRITICAL, "ERROR: Cannot update fstab node\n");
+		return ret;
+	}
+	dprintf(SPEW, "End of fstab node update:%zu ms\n", platform_get_sclk_count());
+#endif
 	fdt_pack(fdt);
 
 #if ENABLE_PARTIAL_GOODS_SUPPORT
@@ -1374,3 +1405,101 @@ int update_device_tree(void *fdt, const char *cmdline,
 
 	return ret;
 }
+
+#if ENABLE_BOOTDEVICE_MOUNT
+/*Update device tree for fstab node */
+static int update_fstab_node(void *fdt)
+{
+	int ret = 0;
+	int str_len = 0;
+	int parent_offset = 0;
+	int subnode_offset = 0;
+	int prop_length = 0;
+	int prefix_string_len = 0;
+	char *node_name = NULL;
+	char *boot_dev_buf = NULL;
+	char *new_str = NULL;
+	char *prefix_str = NULL;
+	char *suffix_str = NULL;
+	const struct fdt_property *prop = NULL;
+
+	/* Find the parent node */
+	parent_offset = fdt_path_offset(fdt, fstab_table.parent_node);
+	if (parent_offset < 0) {
+		dprintf(CRITICAL, "Failed to get parent node: fstab error: %d\n", parent_offset);
+		return -1;
+	}
+	dprintf(SPEW, "Node: %s found.\n", fdt_get_name(fdt, parent_offset, NULL));
+
+	/* Get boot device type */
+	boot_dev_buf = (char *) malloc(sizeof(char) * BOOT_DEV_MAX_LEN);
+	if (!boot_dev_buf) {
+		dprintf(CRITICAL, "Failed to allocate memory for boot device\n");
+		return -1;
+	}
+
+	new_str = (char *) malloc(sizeof(char) * NODE_PROPERTY_MAX_LEN);
+	if (!new_str) {
+		dprintf(CRITICAL, "Failed to allocate memory for node property string\n");
+		return -1;
+	}
+
+
+	platform_boot_dev_cmdline(boot_dev_buf);
+
+	/* Get properties of all sub nodes */
+	for (subnode_offset = fdt_first_subnode(fdt, parent_offset); subnode_offset >= 0; subnode_offset = fdt_next_subnode(fdt, subnode_offset)) {
+		prop = fdt_get_property(fdt, subnode_offset, fstab_table.node_prop, &prop_length);
+		node_name = (char *)(uintptr_t)fdt_get_name(fdt, subnode_offset, NULL);
+		if (!prop) {
+			dprintf(CRITICAL, "Property:%s is not found for sub node:%s\n", fstab_table.node_prop, node_name);
+		} else {
+			dprintf(CRITICAL, "Property:%s found for sub node:%s\tproperty:%s\n", fstab_table.node_prop, node_name, prop->data);
+			/* Pointer to fdt 'dev' property string that needs to update based on the 'androidboot.bootdevice' */
+			memset(new_str, 0, NODE_PROPERTY_MAX_LEN);
+			prefix_str = (char *)prop->data;
+			if (strlen(prefix_str) > NODE_PROPERTY_MAX_LEN) {
+				dprintf(CRITICAL, "Property string length is greater than node property max length\n");
+				continue;
+			}
+			suffix_str = strstr(prefix_str, fstab_table.device_path_id);
+			if (!suffix_str) {
+				dprintf(CRITICAL, "Property is not proper to update\n");
+				continue;
+			}
+			suffix_str += strlen(fstab_table.device_path_id);
+			prefix_string_len = strlen(prefix_str) - (strlen(suffix_str) - 1);
+			suffix_str = strstr((suffix_str + 1), "/");
+			str_len = strlcpy(new_str, prefix_str, prefix_string_len);
+			if (!str_len) {
+				dprintf(CRITICAL, "Property length is not proper to update\n");
+				continue;
+			}
+			str_len = strlcat(new_str, boot_dev_buf, strlen(prefix_str));
+			if (!str_len) {
+				dprintf(CRITICAL, "Property length is not proper to update\n");
+				continue;
+			}
+			str_len = strlcat(new_str, suffix_str, strlen(prefix_str));
+			if (!str_len) {
+				dprintf(CRITICAL, "Property length  is not proper to update\n");
+				continue;
+			}
+			/* Update the new property in the memory */
+			memscpy(prefix_str, strlen(prefix_str), new_str, strlen(new_str) + 1);
+			/* Update the property with new value */
+			ret = fdt_setprop(fdt, subnode_offset, fstab_table.node_prop, (const void *)prefix_str, strlen(prefix_str) + 1);
+			if(ret) {
+				dprintf(CRITICAL, "Failed to update the node with new property\n");
+				continue;
+			}
+			dprintf(CRITICAL, "Updated %s with new property %s\n", node_name, prop->data);
+		}
+	}
+	if (boot_dev_buf)
+	        free(boot_dev_buf);
+	if (new_str)
+		free(new_str);
+        return ret;
+}
+#endif
