@@ -142,3 +142,8 @@ DEFINES += WDOG_SUPPORT=1
 endif
 # Target specific command line
 DEFINES += TARGET_CMDLINE_SUPPORT=1
+
+#Enable early mount support for mmc/ufs
+ifeq ($(ENABLE_BOOTDEVICE_MOUNT),1)
+DEFINES += ENABLE_BOOTDEVICE_MOUNT=1
+endif
