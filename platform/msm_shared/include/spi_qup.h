@@ -106,6 +106,7 @@ struct qup_spi_dev {
 	unsigned int bytes_per_word;
 	unsigned int bit_shift_en;
 	unsigned int unpack_en;
+	unsigned int force_cs_dis;
 	struct spi_transfer *xfer;
 	unsigned int max_speed_hz;
 	uint8_t blsp_id;

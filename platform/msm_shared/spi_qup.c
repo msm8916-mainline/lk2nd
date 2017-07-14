@@ -181,14 +181,19 @@ static inline void qup_register_init(struct qup_spi_dev *dev)
 
 static inline void spi_register_init(struct qup_spi_dev *dev)
 {
+	unsigned int io_config;
+
 	/* Set SPI mini core to QUP config */
 	writel(QUP_CONFIG_SPI_MODE, dev->qup_base + QUP_CONFIG);
 
 	/* Initialize SPI mini core registers */
 	writel(0, dev->qup_base + SPI_CONFIG);
-	writel(SPI_IO_C_NO_TRI_STATE | SPI_IO_C_CS_SELECT_CS0 | SPI_IO_C_CLK_IDLE_HIGH |
-		SPI_IO_C_FORCE_CS | SPI_IO_C_MX_CS_MODE,
-		dev->qup_base + SPI_IO_CONTROL);
+
+	io_config = SPI_IO_C_NO_TRI_STATE | SPI_IO_C_CS_SELECT_CS0 | SPI_IO_C_CLK_IDLE_HIGH;
+	/* Set cs always is low to spi io config */
+	if (!dev->force_cs_dis)
+		io_config |= SPI_IO_C_FORCE_CS | SPI_IO_C_MX_CS_MODE;
+	writel(io_config, dev->qup_base + SPI_IO_CONTROL);
 	writel(SPI_ERROR_CLK_OVER_RUN | SPI_ERROR_CLK_UNDER_RUN, dev->qup_base + SPI_ERROR_FLAGS_EN);
 	writel(0, dev->qup_base + SPI_DEASSERT_WAIT);
 
