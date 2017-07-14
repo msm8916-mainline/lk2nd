@@ -1797,6 +1797,13 @@ int boot_linux_from_flash(void)
 				return -1;
 			}
 
+			/* Its Error if, dt_hdr_size (table->num_entries * dt_entry size + Dev_Tree Header)
+			goes beyound hdr->dt_size*/
+			if (dt_hdr_size > ROUND_TO_PAGE(dt_size, hdr->page_size)) {
+				dprintf(CRITICAL, "ERROR: Invalid Device Tree size \n");
+				return -1;
+			}
+
 			/* Find index of device tree within device tree table */
 			if(dev_tree_get_entry_info(table, &dt_entry) != 0){
 				dprintf(CRITICAL, "ERROR: Getting device tree address failed\n");
