@@ -1,4 +1,4 @@
-/* Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2017, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -132,8 +132,13 @@ static struct mdtp_fbimage* mdtp_read_mmc_image(uint32_t offset, uint32_t width,
 	{
 		uint8_t *base = logo->image;
 		unsigned bytes_per_bpp = ((fb_config->bpp) / BITS_PER_BYTE);
+		unsigned int data_len = ROUNDUP(width*height*bytes_per_bpp, block_size);
+		if (data_len > MDTP_MAX_IMAGE_SIZE) {
+			dprintf(CRITICAL, "ERROR: incorrect mdtp image size\n");
+			return NULL;
+		}
 
-		if (mmc_read(ptn+offset, (void*)base, ROUNDUP(width*height*bytes_per_bpp, block_size))) {
+		if (mmc_read(ptn+offset, (void*)base, data_len)) {
 			fbcon_clear();
 			dprintf(CRITICAL, "ERROR: mdtp image read failed\n");
 			return NULL;
