@@ -3581,7 +3581,7 @@ void cmd_set_active(const char *arg, void *data, unsigned sz)
 	if (arg)
 	{
 		p = strtok_r((char *)arg, ":", &sp);
-		if (*p)
+		if (p)
 		{
 			current_active_slot = partition_find_active_slot();
 
@@ -3590,7 +3590,8 @@ void cmd_set_active(const char *arg, void *data, unsigned sz)
 			current_slot_suffix = strtok_r((char *)current_slot_suffix,
 							(char *)suffix_delimiter, &sp);
 
-			if (!strncmp(p, current_slot_suffix, sizeof(current_slot_suffix)))
+			if (current_slot_suffix &&
+				!strncmp(p, current_slot_suffix, strlen(current_slot_suffix)))
 			{
 				fastboot_okay("Slot already set active");
 				return;
@@ -3602,7 +3603,8 @@ void cmd_set_active(const char *arg, void *data, unsigned sz)
 					current_slot_suffix = SUFFIX_SLOT(i);
 					current_slot_suffix = strtok_r((char *)current_slot_suffix,
 									(char *)suffix_delimiter, &sp);
-					if (!strncmp(p, current_slot_suffix, sizeof(current_slot_suffix)))
+					if (current_slot_suffix &&
+						!strncmp(p, current_slot_suffix, strlen(current_slot_suffix)))
 					{
 						partition_switch_slots(current_active_slot, i);
 						publish_getvar_multislot_vars();
