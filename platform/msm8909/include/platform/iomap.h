@@ -79,6 +79,9 @@
 
 #define CLK_CTL_BASE                0x1800000
 
+#define PMI_SECOND_SLAVE_OFFSET 0x1
+#define PMI_SECOND_SLAVE_ADDR_BASE (PMI_SECOND_SLAVE_OFFSET << 16)
+
 #define SPMI_BASE                   0x02000000
 #define SPMI_GENI_BASE              (SPMI_BASE + 0xA000)
 #define SPMI_PIC_BASE               (SPMI_BASE +  0x01800000)

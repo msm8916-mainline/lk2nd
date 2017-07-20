@@ -22,6 +22,7 @@ MODULES += \
 	lib/ptable \
 	dev/gcdb/display \
 	dev/pmic/pm8x41 \
+	dev/qpnp_haptic \
 	dev/pmic/pmi8994 \
 	lib/libfdt
 
