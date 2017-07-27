@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2015,2017 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -551,6 +551,7 @@ static int __qseecom_load_app(const char *app_name, unsigned int *app_id)
 	int index = INVALID_PTN;
 	unsigned long long ptn = 0;
 	unsigned long long size = 0;
+	unsigned long long rounded_size = 0;
 	void *buf = NULL;
 	void *req = NULL;
 	struct qseecom_load_app_ireq load_req = {0};
@@ -568,8 +569,13 @@ static int __qseecom_load_app(const char *app_name, unsigned int *app_id)
 	mmc_set_lun(lun);
 
 	size = partition_get_size(index);
-
-	buf = memalign(PAGE_SIZE, ROUNDUP(size, PAGE_SIZE));
+	if ((ULLONG_MAX - PAGE_SIZE + 1) < size) {
+		dprintf(CRITICAL, "Integer overflow detected in rounding up the partition size!");
+		ret = GENERIC_ERROR;
+		goto err;
+	}
+	rounded_size = ROUNDUP(size, PAGE_SIZE);
+	buf = memalign(PAGE_SIZE, rounded_size);
 	if (!buf) {
 		dprintf(CRITICAL, "%s: Aloc failed for %s image\n",
 				__func__, app_name);
@@ -620,6 +626,7 @@ static int qseecom_load_commonlib_image(char * app_name)
 	int index = INVALID_PTN;
 	unsigned long long ptn = 0;
 	unsigned long long size = 0;
+	unsigned long long rounded_size = 0;
 	void *buf = NULL;
 	void *req = NULL;
 	struct qseecom_load_app_ireq load_req = {0};
@@ -633,8 +640,13 @@ static int qseecom_load_commonlib_image(char * app_name)
 	mmc_set_lun(lun);
 
 	size = partition_get_size(index);
-
-	buf = memalign(PAGE_SIZE, ROUNDUP(size, PAGE_SIZE));
+	if ((ULLONG_MAX - PAGE_SIZE + 1) < size) {
+		dprintf(CRITICAL, "Integer overflow detected in rounding up the partition size!");
+		ret = GENERIC_ERROR;
+		goto err;
+	}
+	rounded_size = ROUNDUP(size, PAGE_SIZE);
+	buf = memalign(PAGE_SIZE, rounded_size);
 	if (!buf) {
 		dprintf(CRITICAL, "%s: Aloc failed for %s image\n",
 				__func__, app_name);
