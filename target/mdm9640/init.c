@@ -143,6 +143,24 @@ int target_is_emmc_boot(void)
 	return platform_boot_dev_isemmc();
 }
 
+#if ENABLE_EARLY_ETHERNET
+void toggle_neutrino(void)
+{
+	struct pm8x41_gpio gpio = {
+	.direction = PM_GPIO_DIR_OUT,
+	.function = PM_GPIO_FUNC_HIGH,
+	.vin_sel = 1,   /* VIN_1 */
+	.output_buffer = PM_GPIO_OUT_CMOS,
+	.out_strength = PM_GPIO_OUT_DRIVE_LOW,
+	};
+
+	pm8x41_gpio_config(4, &gpio);
+	pm8x41_gpio_set(4, 1);
+	mdelay(10);
+	pm8x41_gpio_set(4, 0);
+}
+#endif
+
 /* init */
 void target_init(void)
 {
@@ -161,6 +179,10 @@ void target_init(void)
 		rpm_glink_init();
 	}
 
+#if ENABLE_EARLY_ETHERNET
+	/*enable pmic gpio 4*/
+	toggle_neutrino();
+#endif
 	if (platform_boot_dev_isemmc()) {
 		target_sdc_init();
 		if (partition_read_table()) {

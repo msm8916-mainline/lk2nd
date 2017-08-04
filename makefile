@@ -70,6 +70,11 @@ endif
 ifeq ($(ENABLE_HARD_FPU),1)
   CFLAGS += -mfloat-abi=hard -mfpu=neon
 endif
+
+ifeq ($(ENABLE_EARLY_ETHERNET),1)
+  CFLAGS += -DENABLE_EARLY_ETHERNET=1
+endif
+
 # setup toolchain prefix
 TOOLCHAIN_PREFIX ?= arm-eabi-
 CFLAGS += -fstack-protector-all
