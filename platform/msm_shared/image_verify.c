@@ -29,10 +29,17 @@
 #include <certificate.h>
 #include <crypto_hash.h>
 #include <string.h>
+#include <platform.h>
 #include <openssl/err.h>
 #include "image_verify.h"
 #include "scm.h"
 
+#include <LEOEMCertificate.h>
+
+const char hash_identifier[] = {
+	0x30, 0x31, 0x30, 0x0D, 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03,
+	0x04, 0x02, 0x01, 0x05, 0x00, 0x04, 0x20
+};
 
 /*
  * Returns -1 if decryption failed otherwise size of plain_text in bytes
@@ -66,8 +73,17 @@ image_decrypt_signature(unsigned char *signature_ptr, unsigned char *plain_text)
 	 */
 	int ret = -1;
 	X509 *x509_certificate = NULL;
-	const unsigned char *cert_ptr = (const unsigned char *)certBuffer;
-	unsigned int cert_size = sizeof(certBuffer);
+	const unsigned char *cert_ptr = NULL;
+	unsigned int cert_size = 0;
+
+	if (is_vb_le_enabled()) {
+		cert_ptr = (const unsigned char *)LE_OEM_CERTIFICATE;
+		cert_size = sizeof(LE_OEM_CERTIFICATE);
+	} else {
+		cert_ptr = (const unsigned char *)certBuffer;
+		cert_size = sizeof(certBuffer);
+	}
+
 	EVP_PKEY *pub_key = NULL;
 	RSA *rsa_key = NULL;
 
@@ -166,23 +182,43 @@ image_verify(unsigned char *image_ptr,
 	 * we avoid a potential vulnerability due to trailing data placed at the end of digest.
 	 */
 	ret = image_decrypt_signature(signature_ptr, plain_text);
-	if (ret != hash_size) {
-		dprintf(CRITICAL, "ERROR: Image Invalid! signature check failed! ret %d\n", ret);
-		goto cleanup;
+	if (is_vb_le_enabled()) {
+		int sha256_pkcs1_hash_identifier_len = sizeof(hash_identifier);
+		if (ret != (hash_size + sha256_pkcs1_hash_identifier_len)) {
+			dprintf(CRITICAL, "ERROR: VB: Image Invalid! signature check failed! ret %d\n", ret);
+			goto cleanup;
+		}
+		/*
+		 * Compare the expected hash with the calculated hash.
+		 */
+		if (memcmp(plain_text, hash_identifier, sha256_pkcs1_hash_identifier_len) != 0) {
+			dprintf(CRITICAL,
+				"ERROR: VB: Hash identifier is wrong!\n");
+			goto cleanup;
+		}
+		if (memcmp(plain_text + sha256_pkcs1_hash_identifier_len, digest, hash_size) != 0) {
+			dprintf(CRITICAL,
+				"ERROR: VB: Image Invalid! Please use another image!\n");
+			goto cleanup;
+		}
+	} else {
+		if (ret != hash_size) {
+			dprintf(CRITICAL, "ERROR: Image Invalid! signature check failed! ret %d\n", ret);
+			goto cleanup;
+		}
+		/*
+		 * Compare the expected hash with the calculated hash.
+		 */
+		if (memcmp(plain_text, digest, hash_size) != 0) {
+			dprintf(CRITICAL,
+				"ERROR: Image Invalid! Please use another image!\n");
+			ret = -1;
+			goto cleanup;
+		}
 	}
 
-	/*
-	 * Compare the expected hash with the calculated hash.
-	 */
-	if (memcmp(plain_text, digest, hash_size) != 0) {
-		dprintf(CRITICAL,
-			"ERROR: Image Invalid! Please use another image!\n");
-		ret = -1;
-		goto cleanup;
-	} else {
-		/* Authorized image */
-		auth = 1;
-	}
+	/* Authorized image */
+	auth = 1;
 
 	/* Cleanup after complete usage of openssl - cached data and objects */
  cleanup:
