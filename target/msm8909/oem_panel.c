@@ -48,6 +48,7 @@
 #include "include/panel_auo_qvga_cmd.h"
 #include "include/panel_auo_cx_qvga_cmd.h"
 #include "include/panel_auo_400p_cmd.h"
+#include "include/panel_auo_390p_cmd.h"
 
 #define DISPLAY_MAX_PANEL_DETECTION 0
 #define ILI9806E_FWVGA_VIDEO_PANEL_POST_INIT_DELAY 68
@@ -79,6 +80,7 @@ enum {
 	AUO_QVGA_CMD_PANEL,
 	AUO_CX_QVGA_CMD_PANEL,
 	AUO_400P_CMD_PANEL,
+	AUO_390P_CMD_PANEL,
 	UNKNOWN_PANEL
 };
 
@@ -98,6 +100,7 @@ static struct panel_list supp_panels[] = {
 	{"auo_qvga_cmd", AUO_QVGA_CMD_PANEL},
 	{"auo_cx_qvga_cmd", AUO_CX_QVGA_CMD_PANEL},
 	{"auo_400p_cmd", AUO_400P_CMD_PANEL},
+	{"auo_390p_cmd", AUO_390P_CMD_PANEL},
 };
 
 static uint32_t panel_id;
@@ -405,6 +408,30 @@ static int init_panel_data(struct panel_struct *panelstruct,
 					= auo_400P_CMD_OFF_COMMAND;
 		memcpy(phy_db->timing, auo_400p_cmd_timings, TIMING_SIZE);
 		break;
+	case AUO_390P_CMD_PANEL:
+		panelstruct->paneldata    = &auo_390p_cmd_panel_data;
+		panelstruct->panelres     = &auo_390p_cmd_panel_res;
+		panelstruct->color        = &auo_390p_cmd_color;
+		panelstruct->videopanel   = &auo_390p_cmd_video_panel;
+		panelstruct->commandpanel = &auo_390p_cmd_command_panel;
+		panelstruct->state        = &auo_390p_cmd_state;
+		panelstruct->laneconfig   = &auo_390p_cmd_lane_config;
+		panelstruct->paneltiminginfo
+					= &auo_390p_cmd_timing_info;
+		panelstruct->panelresetseq
+					= &auo_390p_cmd_panel_reset_seq;
+		panelstruct->backlightinfo
+					= &auo_390p_cmd_backlight;
+		pinfo->mipi.panel_on_cmds
+					= auo_390p_cmd_on_command;
+		pinfo->mipi.num_of_panel_on_cmds
+					= AUO_390P_CMD_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+					= auo_390p_cmd_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+					= AUO_390P_CMD_OFF_COMMAND;
+		memcpy(phy_db->timing, auo_390p_cmd_timings, TIMING_SIZE);
+		break;
 	case UNKNOWN_PANEL:
 	default:
 		memset(panelstruct, 0, sizeof(struct panel_struct));
@@ -457,7 +484,7 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	case HW_PLATFORM_RCM:
 		switch (platform_subtype) {
 		case BG_WTP:
-			panel_id = AUO_CX_QVGA_CMD_PANEL;
+			panel_id = AUO_390P_CMD_PANEL;
 			break;
 		default:
 			panel_id = HX8394D_720P_VIDEO_PANEL;

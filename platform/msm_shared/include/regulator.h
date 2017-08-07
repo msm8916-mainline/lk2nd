@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2016, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2017, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -67,10 +67,13 @@
 
 #define REG_LDO1	BIT(0)
 #define REG_LDO2	BIT(1)
+#define REG_LDO5	BIT(4)
 #define REG_LDO6	BIT(5)
+#define REG_LDO11	BIT(10)
 #define REG_LDO12	BIT(11)
 #define REG_LDO14	BIT(13)
 #define REG_LDO17	BIT(16)
+#define REG_LDO18	BIT(17)
 #define REG_LDO28	BIT(27)
 #define REG_SMPS3	BIT(7)
 #define REG_LDO3	BIT(2)
