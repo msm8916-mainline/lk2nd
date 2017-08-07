@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, 2017, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -49,6 +49,24 @@ static uint32_t ldo2[][11]=
 	},
 };
 
+static uint32_t ldo5[][11]=
+{
+	{
+		LDOA_RES_TYPE, 5,
+		KEY_SOFTWARE_ENABLE, 4, GENERIC_DISABLE,
+		KEY_MICRO_VOLT, 4, 0,
+		KEY_CURRENT, 4, 0,
+	},
+
+	{
+		LDOA_RES_TYPE, 5,
+		KEY_SOFTWARE_ENABLE, 4, GENERIC_ENABLE,
+		KEY_MICRO_VOLT, 4, 1200000,
+		KEY_CURRENT, 4, 86,
+	},
+};
+
+
 static uint32_t ldo6[][11]=
 {
 	{
@@ -60,6 +78,42 @@ static uint32_t ldo6[][11]=
 
 	{
 		LDOA_RES_TYPE, 6,
+		KEY_SOFTWARE_ENABLE, 4, GENERIC_ENABLE,
+		KEY_MICRO_VOLT, 4, 1800000,
+		KEY_CURRENT, 4, 150,
+	},
+};
+
+
+static uint32_t ldo11[][11]=
+{
+	{
+		LDOA_RES_TYPE, 11,
+		KEY_SOFTWARE_ENABLE, 4, GENERIC_DISABLE,
+		KEY_MICRO_VOLT, 4, 0,
+		KEY_CURRENT, 4, 0,
+	},
+
+	{
+		LDOA_RES_TYPE, 11,
+		KEY_SOFTWARE_ENABLE, 4, GENERIC_ENABLE,
+		KEY_MICRO_VOLT, 4, 1800000,
+		KEY_CURRENT, 4, 150,
+	},
+};
+
+
+static uint32_t ldo12[][11]=
+{
+	{
+		LDOA_RES_TYPE, 12,
+		KEY_SOFTWARE_ENABLE, 4, GENERIC_DISABLE,
+		KEY_MICRO_VOLT, 4, 0,
+		KEY_CURRENT, 4, 0,
+	},
+
+	{
+		LDOA_RES_TYPE, 12,
 		KEY_SOFTWARE_ENABLE, 4, GENERIC_ENABLE,
 		KEY_MICRO_VOLT, 4, 1800000,
 		KEY_CURRENT, 4, 150,
@@ -84,6 +138,24 @@ static uint32_t ldo17[][11]=
 	},
 };
 
+static uint32_t ldo18[][11]=
+{
+	{
+		LDOA_RES_TYPE, 18,
+		KEY_SOFTWARE_ENABLE, 4, GENERIC_DISABLE,
+		KEY_MICRO_VOLT, 4, 0,
+		KEY_CURRENT, 4, 0,
+	},
+
+	{
+		LDOA_RES_TYPE, 18,
+		KEY_SOFTWARE_ENABLE, 4, GENERIC_ENABLE,
+		KEY_MICRO_VOLT, 4, 3000000,
+		KEY_CURRENT, 4, 5,
+	},
+};
+
+
 void regulator_enable(uint32_t enable)
 {
 	if (enable & REG_LDO2)
@@ -95,6 +167,17 @@ void regulator_enable(uint32_t enable)
 	if (enable & REG_LDO6)
 		rpm_send_data(&ldo6[GENERIC_ENABLE][0], 36, RPM_REQUEST_TYPE);
 
+	if (enable & REG_LDO5)
+		rpm_send_data(&ldo5[GENERIC_ENABLE][0], 36, RPM_REQUEST_TYPE);
+
+	if (enable & REG_LDO11)
+		rpm_send_data(&ldo11[GENERIC_ENABLE][0], 36, RPM_REQUEST_TYPE);
+
+	if (enable & REG_LDO12)
+		rpm_send_data(&ldo12[GENERIC_ENABLE][0], 36, RPM_REQUEST_TYPE);
+
+	if (enable & REG_LDO18)
+		rpm_send_data(&ldo18[GENERIC_ENABLE][0], 36, RPM_REQUEST_TYPE);
 
 
 }

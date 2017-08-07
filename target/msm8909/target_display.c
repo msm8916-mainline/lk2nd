@@ -54,6 +54,13 @@
 #define PWM_PERIOD_US 27
 #define PM8916_VER 0x20000
 
+/*---------------------------------------------------------------------------*/
+/* GPIO configuration                                                        */
+/*---------------------------------------------------------------------------*/
+static struct gpio_pin bob_gpio = {
+  "pm8941_gpios", 12, 2, 1, 0, 1
+};
+
 static void mdss_dsi_uniphy_pll_sw_reset_8909(uint32_t pll_base)
 {
 	writel(0x01, pll_base + 0x0068); /* PLL TEST CFG */
@@ -187,38 +194,44 @@ static uint32_t dsi_pll_enable_seq_8909(uint32_t pll_base)
 
 int target_backlight_ctrl(struct backlight *bl, uint8_t enable)
 {
-	struct pm8x41_mpp mpp;
 	uint32_t hw_id = board_hardware_id();
-	struct board_pmic_data pmic_info;
-	int rc;
+	uint32_t platform = board_platform_id();
+	uint32_t platform_subtype = board_hardware_subtype();
 
 	if (bl->bl_interface_type == BL_DCS)
 		return 0;
 
-	board_pmic_info(&pmic_info, 1);
-	if (pmic_info.pmic_version == PM8916_VER)
-		mpp.base = PM8x41_MMP4_BASE;
-	else
-		mpp.base = PM8x41_MMP2_BASE;
+	if (!((HW_PLATFORM_SUBTYPE_8909_PM660 == platform_subtype) &&
+		(MSM8909W == platform) &&
+		(HW_PLATFORM_MTP == hw_id))) {
+		struct pm8x41_mpp mpp;
+		struct board_pmic_data pmic_info;
+		int rc;
 
-	mpp.vin = MPP_VIN0;
-	if (enable) {
-		pm_pwm_enable(false);
-		rc = pm_pwm_config(PWM_DUTY_US, PWM_PERIOD_US);
-		if (rc < 0)
-			mpp.mode = MPP_HIGH;
-		else {
-			mpp.mode = MPP_DTEST1;
-			pm_pwm_enable(true);
+		board_pmic_info(&pmic_info, 1);
+		if (pmic_info.pmic_version == PM8916_VER)
+			mpp.base = PM8x41_MMP4_BASE;
+		else
+			mpp.base = PM8x41_MMP2_BASE;
+
+		mpp.vin = MPP_VIN0;
+		if (enable) {
+			pm_pwm_enable(false);
+			rc = pm_pwm_config(PWM_DUTY_US, PWM_PERIOD_US);
+			if (rc < 0)
+				mpp.mode = MPP_HIGH;
+			else {
+				mpp.mode = MPP_DTEST1;
+				pm_pwm_enable(true);
+			}
+			pm8x41_config_output_mpp(&mpp);
+			pm8x41_enable_mpp(&mpp, MPP_ENABLE);
+		} else {
+			pm_pwm_enable(false);
+			pm8x41_enable_mpp(&mpp, MPP_DISABLE);
 		}
-		pm8x41_config_output_mpp(&mpp);
-		pm8x41_enable_mpp(&mpp, MPP_ENABLE);
-	} else {
-		pm_pwm_enable(false);
-		pm8x41_enable_mpp(&mpp, MPP_DISABLE);
+		mdelay(20);
 	}
-	mdelay(20);
-
 	if (enable) {
 		gpio_tlmm_config(bkl_gpio.pin_id, 0,
 			bkl_gpio.pin_direction, bkl_gpio.pin_pull,
@@ -280,8 +293,25 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 						struct msm_panel_info *pinfo)
 {
 	int ret = NO_ERROR;
+	uint32_t bob_pmic_gpio = bob_gpio.pin_id;
 	uint32_t hw_id = board_hardware_id();
 	uint32_t hw_subtype = board_hardware_subtype();
+	uint32_t platform = board_platform_id();
+
+	if ((HW_PLATFORM_SUBTYPE_8909_PM660 == hw_subtype) &&
+		(MSM8909W == platform) &&
+		(HW_PLATFORM_MTP == hw_id)) {
+		struct pm8x41_gpio bobgpio_param = {
+			.direction = PM_GPIO_DIR_OUT,
+			.vin_sel = 0,
+			.out_strength = PM_GPIO_OUT_DRIVE_MED,
+			.function = PM_GPIO_FUNC_HIGH,
+			.pull = PM_GPIO_PULLDOWN_10,
+			.inv_int_pol = PM_GPIO_INVERT,
+		};
+
+		pm8x41_gpio_config(bob_pmic_gpio, &bobgpio_param);
+	}
 
 	if (enable) {
 		if (pinfo->mipi.use_enable_gpio) {
@@ -318,8 +348,18 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 
 int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 {
-	if (enable)
-		regulator_enable(REG_LDO2 | REG_LDO6 | REG_LDO17);
+	uint32_t hw_id = board_hardware_id();
+	uint32_t hw_subtype = board_hardware_subtype();
+	uint32_t platform = board_platform_id();
+
+	if (enable) {
+		if ((HW_PLATFORM_SUBTYPE_8909_PM660 == hw_subtype) &&
+			(MSM8909W == platform) &&
+			(HW_PLATFORM_MTP == hw_id))
+			regulator_enable(REG_LDO12 | REG_LDO5 | REG_LDO11 | REG_LDO18);
+		else
+			regulator_enable(REG_LDO2 | REG_LDO6 | REG_LDO17);
+	}
 
 	return NO_ERROR;
 }
