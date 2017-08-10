@@ -90,4 +90,5 @@ bool platform_is_sdx20();
 uint64_t platform_get_ddr_start();
 bool platform_is_glink_enabled();
 bool platform_is_mdm9206();
+int is_vb_le_enabled();
 #endif
