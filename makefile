@@ -116,6 +116,13 @@ ifeq ($(VERIFIED_BOOT),1)
   endif
 endif
 
+ifeq ($(VERIFIED_BOOT_LE),1)
+  DEFINES += VERIFIED_BOOT_LE=1
+  ifeq ($(DEFAULT_UNLOCK),true)
+    DEFINES += DEFAULT_UNLOCK=1
+  endif
+endif
+
 ifeq ($(OSVERSION_IN_BOOTIMAGE),1)
  DEFINES += OSVERSION_IN_BOOTIMAGE=1
 endif
