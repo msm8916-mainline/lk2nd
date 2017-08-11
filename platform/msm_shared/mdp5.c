@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -142,12 +142,17 @@ static void mdss_source_pipe_config(struct fbcon_config *fb, struct msm_panel_in
 	uint32_t src_size, out_size, stride;
 	uint32_t fb_off = 0;
 	uint32_t flip_bits = 0;
+	uint32_t src_xy = 0, dst_xy = 0;
+	uint32_t height, width;
+
+	height = fb->height - pinfo->border_top - pinfo->border_bottom;
+	width = fb->width - pinfo->border_left - pinfo->border_right;
 
 	/* write active region size*/
-	src_size = (fb->height << 16) + fb->width;
+	src_size = (height << 16) + width;
 	out_size = src_size;
 	if (pinfo->lcdc.dual_pipe) {
-		out_size = (fb->height << 16) + (fb->width / 2);
+		out_size = (height << 16) + (width / 2);
 		if ((pipe_base == MDP_VP_0_RGB_1_BASE) ||
 			(pipe_base == MDP_VP_0_DMA_1_BASE) ||
 			(pipe_base == MDP_VP_0_VIG_1_BASE))
@@ -156,13 +161,24 @@ static void mdss_source_pipe_config(struct fbcon_config *fb, struct msm_panel_in
 
 	stride = (fb->stride * fb->bpp/8);
 
+	if (fb_off == 0) {	/* left */
+		dst_xy = (pinfo->border_top << 16) | pinfo->border_left;
+		src_xy = dst_xy;
+	} else {	/* right */
+		dst_xy = (pinfo->border_top << 16);
+		src_xy = (pinfo->border_top << 16) | fb_off;
+	}
+
+	dprintf(SPEW,"%s: src=%x fb_off=%x src_xy=%x dst_xy=%x\n",
+			 __func__, out_size, fb_off, src_xy, dst_xy);
+
 	writel(fb->base, pipe_base + PIPE_SSPP_SRC0_ADDR);
 	writel(stride, pipe_base + PIPE_SSPP_SRC_YSTRIDE);
 	writel(src_size, pipe_base + PIPE_SSPP_SRC_IMG_SIZE);
 	writel(out_size, pipe_base + PIPE_SSPP_SRC_SIZE);
 	writel(out_size, pipe_base + PIPE_SSPP_SRC_OUT_SIZE);
-	writel(fb_off, pipe_base + PIPE_SSPP_SRC_XY);
-	writel(0x00, pipe_base + PIPE_SSPP_OUT_XY);
+	writel(src_xy, pipe_base + PIPE_SSPP_SRC_XY);
+	writel(dst_xy, pipe_base + PIPE_SSPP_OUT_XY);
 
 	/* Tight Packing 3bpp 0-Alpha 8-bit R B G */
 	writel(0x0002243F, pipe_base + PIPE_SSPP_SRC_FORMAT);

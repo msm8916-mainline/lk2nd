@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -208,6 +208,10 @@
 #define MDP_DSI_VIDEO_DISPLAY_HCTL       REG_MDP(0xF0010)
 #define MDP_DSI_VIDEO_DISPLAY_V_START    REG_MDP(0xF0014)
 #define MDP_DSI_VIDEO_DISPLAY_V_END      REG_MDP(0xF0018)
+#define MDP_DSI_VIDEO_ACTIVE_HCTL        REG_MDP(0xF001C)
+#define MDP_DSI_VIDEO_ACTIVE_V_START     REG_MDP(0xF0020)
+#define MDP_DSI_VIDEO_ACTIVE_V_END       REG_MDP(0xF0024)
+
 #define MDP_DSI_VIDEO_BORDER_CLR         REG_MDP(0xF0028)
 #define MDP_DSI_VIDEO_HSYNC_SKEW         REG_MDP(0xF0030)
 #define MDP_DSI_VIDEO_CTL_POLARITY       REG_MDP(0xF0038)

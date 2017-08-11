@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -63,10 +63,22 @@ int dsi_panel_init(struct msm_panel_info *pinfo,
 	pinfo->lcdc.v_front_porch = pstruct->panelres->vfront_porch;
 	pinfo->lcdc.v_pulse_width = pstruct->panelres->vpulse_width;
 	pinfo->lcdc.hsync_skew = pstruct->panelres->hsync_skew;
-	pinfo->lcdc.xres_pad = pstruct->panelres->hleft_border +
-				pstruct->panelres->hright_border;
-	pinfo->lcdc.yres_pad = pstruct->panelres->vtop_border +
-				 pstruct->panelres->vbottom_border;
+
+	pinfo->border_top = pstruct->panelres->vtop_border;
+	pinfo->border_bottom = pstruct->panelres->vbottom_border;
+	pinfo->border_left = pstruct->panelres->hleft_border;
+	pinfo->border_right = pstruct->panelres->hright_border;
+
+	pinfo->lcdc.border_top = pinfo->border_top;
+	pinfo->lcdc.border_bottom = pinfo->border_bottom;
+	pinfo->lcdc.border_left = pinfo->border_left;
+	pinfo->lcdc.border_right = pinfo->border_right;
+	dprintf(SPEW, "%s: left=%d right=%d top=%d bottom=%d\n", __func__,
+			pinfo->border_left, pinfo->border_right,
+			pinfo->border_top, pinfo->border_bottom);
+
+	pinfo->xres += (pinfo->border_left + pinfo->border_right);
+	pinfo->yres += (pinfo->border_top + pinfo->border_bottom);
 
 	if (pstruct->paneldata->panel_operating_mode & DUAL_PIPE_FLAG)
 		pinfo->lcdc.dual_pipe = 1;
