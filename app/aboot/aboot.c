@@ -1417,6 +1417,8 @@ int boot_linux_from_mmc(void)
 
 #if VERIFIED_BOOT
 #if !VBOOT_MOTA
+	/* set boot and system versions. */
+	set_os_version((unsigned char *)image_addr);
 	// send root of trust
 	if(!send_rot_command((uint32_t)device.is_unlocked))
 		ASSERT(0);
@@ -2603,6 +2605,8 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 
 #if VERIFIED_BOOT
 #if !VBOOT_MOTA
+	/* set boot and system versions. */
+	set_os_version((unsigned char *)data);
 	// send root of trust
 	if(!send_rot_command((uint32_t)device.is_unlocked))
 		ASSERT(0);
