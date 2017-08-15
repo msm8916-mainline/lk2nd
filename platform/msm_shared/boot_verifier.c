@@ -421,7 +421,7 @@ static void boot_verify_send_boot_state(km_boot_state_t *boot_state)
 		ASSERT(0);
 	}
 
-	if (version_rsp.major_version >= 0x2)
+	if (version_rsp.major_version > 0x2)
 	{
 		bs_req = malloc(sizeof(km_set_boot_state_req_t) + sizeof(km_boot_state_t));
 		ASSERT(bs_req);
@@ -596,9 +596,6 @@ bool boot_verify_image(unsigned char* img_addr, uint32_t img_size, char *pname)
 	unsigned char* sig_addr = (unsigned char*)(img_addr + img_size);
 	uint32_t sig_len = 0;
 	unsigned char *signature = NULL;
-#if OSVERSION_IN_BOOTIMAGE
-	struct boot_img_hdr *img_hdr = NULL;
-#endif
 
 	if(dev_boot_state == ORANGE)
 	{
@@ -646,13 +643,6 @@ bool boot_verify_image(unsigned char* img_addr, uint32_t img_size, char *pname)
 	}
 
 	ret = verify_image_with_sig(img_addr, img_size, pname, sig, user_keystore);
-
-#if OSVERSION_IN_BOOTIMAGE
-	/* Extract the os version and patch level */
-	img_hdr = (struct boot_img_hdr *)img_addr;
-	boot_state_info.system_version = (img_hdr->os_version & 0xFFFFF8) >> 11;
-	boot_state_info.system_security_level = (img_hdr->os_version & 0x7FF);
-#endif
 
 	if(sig != NULL)
 		VERIFIED_BOOT_SIG_free(sig);
@@ -756,3 +746,24 @@ KEYSTORE *boot_gerity_get_oem_keystore()
 	read_oem_keystore();
 	return oem_keystore;
 }
+
+#if OSVERSION_IN_BOOTIMAGE
+void set_os_version(unsigned char* img_addr)
+{
+	struct boot_img_hdr *img_hdr = NULL;
+
+	/* Extract the os version and patch level */
+	if (img_addr) {
+		img_hdr = (struct boot_img_hdr *)img_addr;
+		boot_state_info.system_version = (img_hdr->os_version & 0xFFFFF800) >> 11;
+		boot_state_info.system_security_level = (img_hdr->os_version & 0x7FF);
+	} else {
+		dprintf(CRITICAL, "Image address should not be NULL\n");
+	}
+}
+#else
+void set_os_version(unsigned char* img_addr)
+{
+	return;
+}
+#endif
