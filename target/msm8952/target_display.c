@@ -643,7 +643,7 @@ void target_display_init(const char *panel_name)
 		|| oem.skip) {
 		dprintf(INFO, "Selected panel: %s\nSkip panel configuration\n",
 			oem.panel);
-		return;
+		oem.cont_splash = false;
 	}
 
 	if ((HW_PLATFORM_SUBTYPE_SAP == platform_subtype) ||
