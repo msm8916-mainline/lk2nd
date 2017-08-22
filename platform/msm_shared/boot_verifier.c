@@ -711,7 +711,7 @@ bool boot_verify_validate_keystore(unsigned char * user_addr, unsigned sz)
 	unsigned char *input = user_addr;
 	KEYSTORE *ks = NULL;
 	uint32_t len = read_der_message_length(input, sz);
-	if(!len)
+	if((!len) || (sz < len))
 	{
 		dprintf(CRITICAL, "boot_verifier: keystore length is invalid.\n");
 		return ret;
