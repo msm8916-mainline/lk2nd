@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2016, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2017, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -62,9 +62,10 @@ enum {
 
 /* mtp cdp subtype for wearables */
 enum {
-	MTP_WEAR = 0x05,
+	MTP_WEAR_REV0 = 0x05,
 	SURF_WEAR = 0x03,
 	SWOC_WEAR = 0x09,
+	MTP_WEAR_REV1 = 0x11,
 };
 
 /*---------------------------------------------------------------------------*/
@@ -439,7 +440,8 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	case HW_PLATFORM_MTP:
 	case HW_PLATFORM_RCM:
 		switch (platform_subtype) {
-			case MTP_WEAR:
+			case MTP_WEAR_REV0:
+			case MTP_WEAR_REV1:
 			case SURF_WEAR:
 			case SWOC_WEAR:
 				if ((platform_type == MSM8909W) ||
