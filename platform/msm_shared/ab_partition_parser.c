@@ -45,9 +45,9 @@ const char *suffix_slot[] = {"_a",
 const char *suffix_delimiter = "_";
 
 /* local global variables */
-static signed active_slot = INVALID;		/* to store current active slot */
-static bool attributes_updated = false;		/* to store if we need to update partition table */
-static bool multislot_support = false;		/* to store if multislot support is present */
+static signed active_slot;		/* to store current active slot */
+static bool attributes_updated;		/* to store if we need to update partition table */
+static bool multislot_support;		/* to store if multislot support is present */
 
 static int boot_slot_index[AB_SUPPORTED_SLOTS];	/* store index for boot parition */
 
@@ -116,7 +116,10 @@ bool partition_scan_for_multislot()
 	struct partition_entry *partition_entries =
 				partition_get_partition_entries();
 
+	/* Intialize all slot specific variables */
 	multislot_support = false;
+	active_slot = INVALID;
+	attributes_updated = false;
 
 	if (partition_count > NUM_PARTITIONS)
 	{
@@ -435,6 +438,47 @@ swap_guid(int old_slot,	int new_slot)
 }
 
 /*
+Function: To set active bit of all partitions of actve slot.
+	also, unset active bits of all other slot
+*/
+static void
+mark_all_partitions_active(signed slot)
+{
+	int i,j;
+	char *pname = NULL;
+	char *suffix_str = NULL;
+	struct partition_entry *partition_entries =
+				partition_get_partition_entries();
+	int partition_count = partition_get_partition_count();
+
+	for (i=0; i<partition_count; i++)
+	{
+		pname = (char *)partition_entries[i].name;
+ #ifdef AB_DEBUG
+	dprintf(INFO, "Transversing partition %s\n", pname);
+ #endif
+		/* 1. Find partition, if it is A/B enabled. */
+		for ( j = 0; j<AB_SUPPORTED_SLOTS; j++)
+		{
+			suffix_str = strstr(pname, SUFFIX_SLOT(j));
+			if (suffix_str)
+				break;
+		}
+
+		if (suffix_str)
+		{
+			if (!strcmp(suffix_str, SUFFIX_SLOT(slot)))
+				/* 2a. Mark matching partition as active. */
+				partition_entries[i].attribute_flag |= PART_ATT_ACTIVE_VAL;
+			else
+				/* 2b. Unset active bit for all other partitions. */
+				partition_entries[i].attribute_flag &= ~PART_ATT_ACTIVE_VAL;
+		}
+	}
+	attributes_updated = true;
+}
+
+/*
 	Function: Mark the slot to be active and also conditionally
 	update the slot parameters if there is a change.
 */
@@ -448,7 +492,6 @@ void partition_mark_active_slot(signed slot)
 		case INVALID:
 			if (slot != SLOT_A)
 				swap_guid(SLOT_A, slot);
-			goto out;
 		default:
 			if (slot == INVALID)
 				swap_guid(active_slot, SLOT_A);
@@ -457,8 +500,12 @@ void partition_mark_active_slot(signed slot)
 	}
 	active_slot = slot;
 out:
+	/* Set Active bit for all partitions of active slot */
+	mark_all_partitions_active(slot);
+
 	if (attributes_updated)
 		attributes_update();
+
 	return;
 }
 
