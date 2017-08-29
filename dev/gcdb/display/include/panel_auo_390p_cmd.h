@@ -118,28 +118,23 @@ static char auo_390p_cmd_on_cmd9[] = {
 
 
 static char auo_390p_cmd_on_cmd10[] = {
-	0x36, 0xc0, 0x015, 0x80,
-};
-
-
-static char auo_390p_cmd_on_cmd11[] = {
 	0x11, 0x00, 0x05, 0x80,
 };
 
 
-static char auo_390p_cmd_on_cmd12[] = {
+static char auo_390p_cmd_on_cmd11[] = {
 	0x29, 0x00, 0x05, 0x80,
 };
 
 
-static char auo_390p_cmd_on_cmd13[] = {
+static char auo_390p_cmd_on_cmd12[] = {
 	0x06, 0x00, 0x39, 0xC0,
 	0xf0, 0x55, 0xaa, 0x52,
 	0x08, 0x01, 0xff, 0xff,
 };
 
 
-static char auo_390p_cmd_on_cmd14[] = {
+static char auo_390p_cmd_on_cmd13[] = {
 	0x07, 0x00, 0x39, 0xC0,
 	0xff, 0x00, 0x55, 0xaa,
 	0x52, 0x08, 0x01, 0xff,
@@ -159,12 +154,11 @@ static struct mipi_dsi_cmd auo_390p_cmd_on_command[] = {
 	{ 0x4 , auo_390p_cmd_on_cmd9, 0x00},
 	{ 0x4 , auo_390p_cmd_on_cmd10, 0x00},
 	{ 0x4 , auo_390p_cmd_on_cmd11, 0x00},
-	{ 0x4 , auo_390p_cmd_on_cmd12, 0x00},
+	{ 0xc , auo_390p_cmd_on_cmd12, 0x00},
 	{ 0xc , auo_390p_cmd_on_cmd13, 0x00},
-	{ 0xc , auo_390p_cmd_on_cmd14, 0x00},
 };
 
-#define AUO_390P_CMD_ON_COMMAND 15
+#define AUO_390P_CMD_ON_COMMAND 14
 
 
 static char auo_390p_cmd_off_cmd0[] = {
