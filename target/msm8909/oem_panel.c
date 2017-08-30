@@ -443,7 +443,7 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		panelstruct->panelresetseq	= &st7789v2_qvga_cmd_reset_seq;
 		panelstruct->backlightinfo	= &st7789v2_qvga_cmd_backlight;
 		pinfo->spi.panel_cmds		= st7789v2_qvga_cmd_on_command;
-		pinfo->spi.num_of_panel_cmds= ST7789v2_QVGA_CMD_ON_COMMAND;
+		pinfo->spi.num_of_panel_cmds    = ST7789v2_QVGA_CMD_ON_COMMAND;
 		pinfo->spi.signature_addr	= &st7789v2_signature_addr;
 		pinfo->spi.signature		= st7789v2_signature;
 		pinfo->spi.signature_len	= st7789v2_signature_len;
@@ -498,6 +498,8 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	uint32_t platform_type = board_platform_id();
 	uint32_t platform_subtype = board_hardware_subtype();
 	int32_t panel_override_id;
+	uint32_t target_id = board_target_id();
+	uint32_t plat_hw_ver_major = ((target_id >> 16) & 0xFF);;
 
 	if (panel_name) {
 		panel_override_id = panel_name_to_id(supp_panels,
@@ -548,12 +550,12 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 		switch (platform_subtype) {
 			case QRD_SKUA:
 				if (MSM8905 == board_platform_id()) {
-					switch (auto_pan_loop) {
-						case 0:
-						default:
-							panel_id = GC9305_QVGA_SPI_CMD_PANEL;
-							break;
-					}
+					if (plat_hw_ver_major > 0x10 && plat_hw_ver_major < 0x13) {
+						/* QRD8905 Nand SKU */
+						panel_id = ST7789v2_QVGA_SPI_CMD_PANEL;
+					} else
+						panel_id = GC9305_QVGA_SPI_CMD_PANEL;
+
 					auto_pan_loop++;
 				}
 				else
