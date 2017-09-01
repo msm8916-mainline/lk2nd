@@ -52,7 +52,7 @@
 #include "include/panel_st7789v2_qvga_spi_cmd.h"
 #include "include/panel_gc9305_qvga_spi_cmd.h"
 
-#define DISPLAY_MAX_PANEL_DETECTION 0
+#define DISPLAY_MAX_PANEL_DETECTION 2
 #define ILI9806E_FWVGA_VIDEO_PANEL_POST_INIT_DELAY 68
 
 enum {
@@ -550,12 +550,21 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 		switch (platform_subtype) {
 			case QRD_SKUA:
 				if (MSM8905 == board_platform_id()) {
-					if (plat_hw_ver_major > 0x10 && plat_hw_ver_major < 0x13) {
+					if (target_panel_auto_detect_enabled()) {
 						/* QRD8905 Nand SKU */
-						panel_id = ST7789v2_QVGA_SPI_CMD_PANEL;
+						switch (auto_pan_loop) {
+							case 0:
+								panel_id = ST7789v2_QVGA_SPI_CMD_PANEL;
+								break;
+							case 1:
+								panel_id = GC9305_QVGA_SPI_CMD_PANEL;
+								break;
+							default:
+								panel_id = ST7789v2_QVGA_SPI_CMD_PANEL;
+								break;
+						}
 					} else
 						panel_id = GC9305_QVGA_SPI_CMD_PANEL;
-
 					auto_pan_loop++;
 				}
 				else
