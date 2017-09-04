@@ -500,6 +500,25 @@ static int ufdt_local_fixup_node(struct ufdt_node *target_node,
   return 0;
 }
 
+static int ufdt_overlay_root_node(struct ufdt *tree,
+                                  struct ufdt *overlay_tree,
+                                  struct ufdt_node_pool *pool) {
+  struct ufdt_node *target_node = ufdt_get_node_by_path(tree, "/");
+  struct ufdt_node *overlay_node = ufdt_get_node_by_path(overlay_tree, "/");
+  struct ufdt_node **it_prop;
+  struct ufdt_node *target_prop;
+
+  if (!target_node)
+    return 0;
+
+  for_each_prop(it_prop, overlay_node) {
+    target_prop = ufdt_node_get_property_by_name(target_node, ufdt_node_name(*it_prop));
+    if (target_prop && ufdt_overlay_node(target_prop, *it_prop, pool) < 0)
+      return -1;
+  }
+  return 0;
+}
+
 /*
  * Handle __local_fixups__ node in overlay DTB
  * The __local_fixups__ format we expect is
@@ -573,6 +592,11 @@ static int ufdt_overlay_apply(struct ufdt *main_tree, struct ufdt *overlay_tree,
   if (overlay_length < sizeof(struct fdt_header)) {
     dto_error("Overlay_length %zu smaller than header size %zu\n",
               overlay_length, sizeof(struct fdt_header));
+    return -1;
+  }
+
+  if (ufdt_overlay_root_node(main_tree, overlay_tree, pool) < 0) {
+    dto_error("failed to overlay root node\n");
     return -1;
   }
 
