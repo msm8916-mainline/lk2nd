@@ -43,6 +43,11 @@
 #include <pm_fg_adc_usr.h>
 #endif
 
+#if VERIFIED_BOOT
+#include <partition_parser.h>
+#include <ab_partition_parser.h>
+#endif
+
 #define EXPAND(NAME) #NAME
 #define TARGET(NAME) EXPAND(NAME)
 
@@ -50,6 +55,9 @@
 #define PMIC_SLAVE_ID                   0x20000
 #define BAT_IF_BAT_PRES_STATUS		0x1208
 
+#if VERIFIED_BOOT
+static int vb_version = INVALID;
+#endif
 /*
  * default implementations of these routines, if the target code
  * chooses not to implement.
@@ -280,6 +288,24 @@ uint32_t target_ddr_cfg_reg()
 	}
 	return ret;
 }
+
+#if VERIFIED_BOOT
+int target_get_vb_version()
+{
+	if (vb_version == INVALID)
+	{
+		/* check vb version on first time. */
+		/* Incase of keymaster present, its VB2.0 */
+		if (partition_get_index("keymaster") != INVALID_PTN)
+			vb_version = VB_V2;
+		else
+		/* Incase keymaster is not present,
+		we use keystore for verification. */
+			vb_version = VB_V1;
+	}
+	return vb_version;
+}
+#endif
 
 #if VERIFIED_BOOT_LE
 int verified_boot_le = 1;
