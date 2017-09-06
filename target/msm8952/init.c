@@ -285,11 +285,6 @@ void shutdown_device()
 
 void target_init(void)
 {
-#if VERIFIED_BOOT
-#if !VBOOT_MOTA
-	int ret = 0;
-#endif
-#endif
 	dprintf(INFO, "target_init()\n");
 
 	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
@@ -337,42 +332,39 @@ void target_init(void)
 		target_crypto_init_params();
 
 #if VERIFIED_BOOT
-#if !VBOOT_MOTA
-	clock_ce_enable(CE1_INSTANCE);
-
-	/* Initialize Qseecom */
-	ret = qseecom_init();
-
-	if (ret < 0)
+	if (VB_V2 == target_get_vb_version())
 	{
-		dprintf(CRITICAL, "Failed to initialize qseecom, error: %d\n", ret);
-		ASSERT(0);
-	}
+		clock_ce_enable(CE1_INSTANCE);
 
-	/* Start Qseecom */
-	ret = qseecom_tz_init();
+		/* Initialize Qseecom */
+		if (qseecom_init() < 0)
+		{
+			dprintf(CRITICAL, "Failed to initialize qseecom\n");
+			ASSERT(0);
+		}
 
-	if (ret < 0)
-	{
-		dprintf(CRITICAL, "Failed to start qseecom, error: %d\n", ret);
-		ASSERT(0);
-	}
+		/* Start Qseecom */
+		if (qseecom_tz_init() < 0)
+		{
+			dprintf(CRITICAL, "Failed to start qseecom\n");
+			ASSERT(0);
+		}
 
-	if (rpmb_init() < 0)
-	{
-		dprintf(CRITICAL, "RPMB init failed\n");
-		ASSERT(0);
-	}
+		if (rpmb_init() < 0)
+		{
+			dprintf(CRITICAL, "RPMB init failed\n");
+			ASSERT(0);
+		}
 
-	/*
-	 * Load the sec app for first time
-	 */
-	if (load_sec_app() < 0)
-	{
-		dprintf(CRITICAL, "Failed to load App for verified\n");
-		ASSERT(0);
+		/*
+		 * Load the sec app for first time
+	 	*/
+		if (load_sec_app() < 0)
+		{
+			dprintf(CRITICAL, "Failed to load App for verified\n");
+			ASSERT(0);
+		}
 	}
-#endif
 #endif
 
 #if SMD_SUPPORT
@@ -579,24 +571,25 @@ void target_uninit(void)
 		clock_ce_disable(CE1_INSTANCE);
 
 #if VERIFIED_BOOT
-#if !VBOOT_MOTA
-	if (is_sec_app_loaded())
+	if (VB_V2 == target_get_vb_version())
 	{
-		if (send_milestone_call_to_tz() < 0)
+		if (is_sec_app_loaded())
 		{
-			dprintf(CRITICAL, "Failed to unload App for rpmb\n");
+			if (send_milestone_call_to_tz() < 0)
+			{
+				dprintf(CRITICAL, "Failed to unload App for rpmb\n");
+				ASSERT(0);
+			}
+		}
+
+		if (rpmb_uninit() < 0)
+		{
+			dprintf(CRITICAL, "RPMB uninit failed\n");
 			ASSERT(0);
 		}
-	}
 
-	if (rpmb_uninit() < 0)
-	{
-		dprintf(CRITICAL, "RPMB uninit failed\n");
-		ASSERT(0);
+		clock_ce_disable(CE1_INSTANCE);
 	}
-
-	clock_ce_disable(CE1_INSTANCE);
-#endif
 #endif
 
 #if SMD_SUPPORT
