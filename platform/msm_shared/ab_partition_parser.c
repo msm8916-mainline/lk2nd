@@ -642,6 +642,19 @@ update_gpt(uint64_t gpt_start_addr,
 		    GET_LWORD_FROM_BYTE(&gpt_hdr_ptr[PARTITION_COUNT_OFFSET]);
 	partition_entry_size =
 		    GET_LWORD_FROM_BYTE(&gpt_hdr_ptr[PENTRY_SIZE_OFFSET]);
+
+	/* Check for partition entry size */
+	if (partition_entry_size != PARTITION_ENTRY_SIZE) {
+		dprintf(CRITICAL,"Invalid parition entry size\n");
+		goto out;
+	}
+
+	/* Check for maximum partition size */
+	if ((max_partition_count) > (MIN_PARTITION_ARRAY_SIZE /(partition_entry_size))) {
+		dprintf(CRITICAL, "Invalid maximum partition count\n");
+		goto out;
+	}
+
 	crc_val  = crc32(~0L, gpt_entries_ptr, ((max_partition_count) *
 				(partition_entry_size))) ^ (~0L);
 	PUT_LONG(&gpt_hdr_ptr[PARTITION_CRC_OFFSET], crc_val);
