@@ -122,19 +122,6 @@ static uint32_t  mmc_sdc_pwrctl_irq[] =
 static void set_sdc_power_ctrl(void);
 static void set_ebi2_config(void);
 
-#if VERIFIED_BOOT
-/**
-* Check if keymaster partition is present to test
-* if we have VB on this target.
-**/
-static bool target_is_vb_enabled()
-{
-	if (partition_get_index("keymaster") == INVALID_PTN)
-		return false;
-	return true;
-}
-#endif
-
 void update_ptable_names(void)
 {
 	uint32_t ptn_index;
@@ -397,7 +384,7 @@ void target_init(void)
 		target_crypto_init_params();
 
 #if VERIFIED_BOOT
-	if (target_is_vb_enabled())
+	if (VB_V2 == target_get_vb_version())
 	{
 		clock_ce_enable(CE1_INSTANCE);
 
@@ -702,7 +689,7 @@ void target_uninit(void)
 		clock_ce_disable(CE1_INSTANCE);
 
 #if VERIFIED_BOOT
-	if(target_is_vb_enabled())
+	if(VB_V2 == target_get_vb_version())
 	{
 		if (is_sec_app_loaded())
 		{
