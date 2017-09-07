@@ -449,7 +449,7 @@ void *dev_tree_appended(void *kernel, uint32_t kernel_size, uint32_t dtb_offset,
 	struct dt_entry_node *dt_entry_queue = NULL;
 	struct dt_entry_node *dt_node_tmp1 = NULL;
 	struct dt_entry_node *dt_node_tmp2 = NULL;
-
+	unsigned dtb_count = 0;
 
 	/* Initialize the dtb entry node*/
 	dt_entry_queue = (struct dt_entry_node *)
@@ -493,6 +493,19 @@ void *dev_tree_appended(void *kernel, uint32_t kernel_size, uint32_t dtb_offset,
 
 		/* goto the next device tree if any */
 		dtb += dtb_size;
+		dtb_count++;
+	}
+
+	if (list_is_empty(&dt_entry_queue->node) && (dtb_count == 1)) {
+		/* Special case: If we only have one DTB appended which has not
+		 * been skales-generated, consider this DTB as the one which is
+		 * expected to be used regardless ok LK compatibility check.
+		 * Force it as the bestmatch.
+		 */
+		dprintf(INFO, "Only one appended non-skales DTB, select it.\n");
+
+		bestmatch_tag = kernel + app_dtb_offset;
+		bestmatch_tag_size = dtb - (kernel + app_dtb_offset);
 	}
 
 	best_match_dt_entry = platform_dt_match_best(dt_entry_queue);
