@@ -1378,11 +1378,40 @@ int update_device_tree(void *fdt, const char *cmdline,
 		}
 	}
 
-	/* make sure local-mac-address is set for WCN BT device */
+	/* make sure local-bd-address (and legacy local-mac-address) is set for WCN BT device */
 	offset = fdt_node_offset_by_compatible(fdt, -1, "qcom,wcnss-bt");
 
 	if (offset != -FDT_ERR_NOTFOUND)
 	{
+		if (fdt_getprop(fdt, offset, "local-bd-address", NULL) == NULL)
+		{
+			unsigned char bdaddr[6];
+			unsigned int i;
+
+			/* local-bd-addr is expected with least significant bytes
+			 * first (little endian format), reverse mac address.
+			 */
+			for (i = 0; i < sizeof(bdaddr); i++)
+				bdaddr[i] = mac[sizeof(bdaddr) - 1 - i];
+
+			/* The BD address is same as WLAN MAC address but with
+			 * least significant bit flipped.
+			 */
+			bdaddr[0] ^= 0x01;
+
+			dprintf(INFO, "Setting Bluetooth BD address in DT:"
+				" %02X:%02X:%02X:%02X:%02X:%02X\n",
+				bdaddr[5], bdaddr[4], bdaddr[3],
+				bdaddr[2], bdaddr[1], bdaddr[0]);
+
+			ret = fdt_setprop(fdt, offset, "local-bd-address", bdaddr, 6);
+			if (ret) {
+				dprintf(CRITICAL, "ERROR: cannot set local-bd-address for \"qcom,wcnss-bt\"\n");
+				return ret;
+			}
+		}
+
+		/* Legacy (deprecated) local-mac-address */
 		if (fdt_getprop(fdt, offset, "local-mac-address", NULL) == NULL)
 		{
 			/* The BT MAC address is same as WLAN MAC address but with last bit flipped */
