@@ -27,6 +27,14 @@
 #include <qmp_phy.h>
 
 #define TARGET_MAX_CMDLNBUF 64
+
+/* Enum for target VB version detection */
+enum
+{
+	VB_V1 = 1,
+	VB_V2 = 2,
+};
+
 /* Target helper functions exposed to USB driver */
 typedef struct {
 	void (*mux_config) ();
@@ -109,4 +117,5 @@ bool target_battery_soc_ok();
 bool target_battery_is_present();
 uint32_t target_get_pmic();
 int target_update_cmdline(char *cmdline);
+int target_get_vb_version();
 #endif
