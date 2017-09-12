@@ -15,15 +15,11 @@ endif
 EMMC_BOOT := 1
 
 ifeq ($(VERIFIED_BOOT),1)
-ifeq ($(ENABLE_VBOOT_MOTA_SUPPORT),1)
-DEFINES += VBOOT_MOTA=1
-else
 ENABLE_SECAPP_LOADER := 1
 ENABLE_RPMB_SUPPORT := 1
 ifneq (,$(findstring DISPLAY_SPLASH_SCREEN,$(DEFINES)))
 #enable fbcon display menu
 ENABLE_FBCON_DISPLAY_MSG := 1
-endif
 endif
 endif
 
