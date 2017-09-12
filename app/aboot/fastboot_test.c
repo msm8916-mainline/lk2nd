@@ -36,6 +36,7 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <target.h>
 #include <boot_device.h>
 #include "mdtp.h"
+#include <ufs.h>
 #if USE_RPMB_FOR_DEVINFO
 #include <rpmb.h>
 #endif
