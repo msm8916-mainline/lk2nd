@@ -202,7 +202,7 @@ int target_backlight_ctrl(struct backlight *bl, uint8_t enable)
 		return 0;
 
 	if (!((HW_PLATFORM_SUBTYPE_8909_PM660 == platform_subtype) &&
-		(MSM8909W == platform) &&
+		((MSM8909W == platform) || (APQ8009W == platform)) &&
 		(HW_PLATFORM_MTP == hw_id))) {
 		struct pm8x41_mpp mpp;
 		struct board_pmic_data pmic_info;
@@ -299,7 +299,7 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 	uint32_t platform = board_platform_id();
 
 	if ((HW_PLATFORM_SUBTYPE_8909_PM660 == hw_subtype) &&
-		(MSM8909W == platform) &&
+		((MSM8909W == platform) || (APQ8009W == platform)) &&
 		(HW_PLATFORM_MTP == hw_id)) {
 		struct pm8x41_gpio bobgpio_param = {
 			.direction = PM_GPIO_DIR_OUT,
@@ -354,7 +354,7 @@ int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 
 	if (enable) {
 		if ((HW_PLATFORM_SUBTYPE_8909_PM660 == hw_subtype) &&
-			(MSM8909W == platform) &&
+			((MSM8909W == platform) || (APQ8009W == platform)) &&
 			(HW_PLATFORM_MTP == hw_id))
 			regulator_enable(REG_LDO12 | REG_LDO5 | REG_LDO11 | REG_LDO18);
 		else
