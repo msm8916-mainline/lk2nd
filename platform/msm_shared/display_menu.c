@@ -56,19 +56,21 @@ static const char *unlock_menu_common_msg = "If you unlock the bootloader, "\
 				"or No. Then press the Power button to continue.\n";
 
 #define YELLOW_WARNING_MSG	"Your device has loaded a different operating system\n\n "\
-				"Visit this link on another device:\n g.co/ABH"
+				"Visit this link on another device:\n"
 
 #define ORANGE_WARNING_MSG	"Your device software can't be\n checked for corruption. Please lock the bootloader\n\n"\
-				"Visit this link on another device:\n g.co/ABH"
+				"Visit this link on another device:\n"
 
 #define RED_WARNING_MSG	"Your device is corrupt. It can't be\ntrusted and will not boot\n\n" \
-				"Visit this link on another device:\n g.co/ABH"
+				"Visit this link on another device:\n"
 
 #define LOGGING_WARNING_MSG	"The dm-verity is not started in enforcing mode and may "\
 				"not work properly\n\nTo learn more, visit:\n"
 
 #define EIO_WARNING_MSG		"Your device is corrupt. It can't be\n trusted and may not work properly.\n\n"\
-				"Visit this link on another device:\n g.co/ABH"
+				"Visit this link on another device:\n"
+
+#define URL_MSG "g.co/ABH\n"
 
 #define DELAY_5SEC 5000
 #define DELAY_30SEC 30000
@@ -80,14 +82,15 @@ static struct select_msg_info msg_info;
 struct boot_verify_info {
 	int msg_type;
 	const char *warning_msg;
+	const char *url_msg;
 };
 
 struct boot_verify_info boot_verify_info[] = {
-			[DISPLAY_MENU_RED] = {FBCON_RED_MSG, RED_WARNING_MSG},
-			[DISPLAY_MENU_YELLOW] = {FBCON_YELLOW_MSG, YELLOW_WARNING_MSG},
-			[DISPLAY_MENU_ORANGE] = {FBCON_ORANGE_MSG, ORANGE_WARNING_MSG},
-			[DISPLAY_MENU_LOGGING] = {FBCON_RED_MSG, LOGGING_WARNING_MSG},
-			[DISPLAY_MENU_EIO] = {FBCON_RED_MSG, EIO_WARNING_MSG}};
+			[DISPLAY_MENU_RED] = {FBCON_RED_MSG, RED_WARNING_MSG, URL_MSG},
+			[DISPLAY_MENU_YELLOW] = {FBCON_YELLOW_MSG, YELLOW_WARNING_MSG, URL_MSG},
+			[DISPLAY_MENU_ORANGE] = {FBCON_ORANGE_MSG, ORANGE_WARNING_MSG, URL_MSG},
+			[DISPLAY_MENU_LOGGING] = {FBCON_RED_MSG, LOGGING_WARNING_MSG, NULL},
+			[DISPLAY_MENU_EIO] = {FBCON_RED_MSG, EIO_WARNING_MSG, URL_MSG}};
 #endif
 
 static char *verify_option_menu[] = {
@@ -286,8 +289,9 @@ void display_bootverify_menu_renew(struct select_msg_info *msg_info, int type)
 		display_fbcon_menu_message((char*)boot_verify_info[type].warning_msg,
 			FBCON_COMMON_MSG, common_factor);
 
-	display_fbcon_menu_message("g.co/placeholder\n",
-		boot_verify_info[type].msg_type, common_factor);
+	if(boot_verify_info[type].url_msg != NULL)
+		display_fbcon_menu_message((char*)boot_verify_info[type].url_msg,
+			boot_verify_info[type].msg_type, common_factor);
 
 	if (type == DISPLAY_MENU_YELLOW) {
 		fp_buf = get_boot_fingerprint(&fp_size);
