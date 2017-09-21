@@ -54,6 +54,11 @@
 #define BATTERY_MIN_VOLTAGE		3200000  //uv
 #define PMIC_SLAVE_ID                   0x20000
 #define BAT_IF_BAT_PRES_STATUS		0x1208
+#define BAT_IF_INT_RT_STS		0x1210
+#define BATT_INFO_VBATT_LSB		0x41A0
+#define BATT_INFO_VBATT_MSB		0x41A1
+#define BATT_VOLTAGE_NUMR		122070
+#define BATT_VOLTAGE_DENR		1000
 
 #if VERIFIED_BOOT
 static int vb_version = INVALID;
@@ -417,6 +422,15 @@ bool target_battery_is_present()
 						BAT_IF_BAT_PRES_STATUS);
 			}
 			break;
+		case PMIC_IS_PM660:
+			value = REG_READ(BAT_IF_INT_RT_STS);
+			/* If BAT_TERMINAL_MISSING_RT_STS BIT(5) or BAT_THERM_OR_ID_MISSING_RT_STS BIT(4)
+			   are set, battery is not present. */
+			if (value & (BIT(5) | BIT(4)))
+				return false;
+			else
+				return true;
+			break;
 		default:
 			dprintf(CRITICAL, "ERROR: Couldn't get the pmic type\n");
 			break;
@@ -434,6 +448,8 @@ uint32_t target_get_battery_voltage()
 {
 	uint32_t pmic;
 	uint32_t vbat = 0;
+	uint8_t buff[2];
+	uint16_t temp;
 
 	pmic = target_get_pmic();
 
@@ -455,6 +471,13 @@ uint32_t target_get_battery_voltage()
 					dprintf(CRITICAL, "ERROR: Get battery voltage failed!!!\n");
 				}
 			}
+			break;
+		case PMIC_IS_PM660:
+			buff[0] = REG_READ(BATT_INFO_VBATT_LSB);
+			buff[1] = REG_READ(BATT_INFO_VBATT_MSB);
+			temp = buff[1] << 8 | buff[0];
+			/* {MSB,LSB} to decode the voltage level, refer register description. */
+			vbat = (((uint32_t)temp)*BATT_VOLTAGE_NUMR/BATT_VOLTAGE_DENR);
 			break;
 		default:
 			dprintf(CRITICAL, "ERROR: Couldn't get the pmic type\n");
