@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, 2017, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -330,8 +330,8 @@ void target_load_ssd_keystore(void)
 	}
 
 	size = partition_get_size(index);
-	if (size == 0) {
-		dprintf(CRITICAL, "Error: invalid ssd partition size\n");
+	if ((size == 0) || ((ULLONG_MAX - CACHE_LINE + 1) < size)) {
+		dprintf(CRITICAL, "Error: invalid ssd partition size %d\n",size);
 		return;
 	}
 
