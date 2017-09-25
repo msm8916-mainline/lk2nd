@@ -239,9 +239,12 @@ int partition_find_active_slot()
 	unsigned boot_priority;
 	struct partition_entry *partition_entries = partition_get_partition_entries();
 
+#ifdef AB_DEBUG
+	dprintf(INFO, "partition_find_active_slot() called\n");
+#endif
 	/* Return current active slot if already found */
 	if (active_slot != INVALID)
-		return active_slot;
+		goto out;
 
 	for (boot_priority = MAX_PRIORITY;
 			boot_priority > 0; boot_priority--)
@@ -277,7 +280,8 @@ int partition_find_active_slot()
 #ifdef AB_DEBUG
 	dprintf(INFO, "Slot (%s) is Valid High Priority Slot\n", SUFFIX_SLOT(i));
 #endif
-					return i;
+					active_slot = i;
+					goto out;
 				}
 			}
 		}
@@ -293,13 +297,20 @@ int partition_find_active_slot()
 							PART_ATT_MAX_RETRY_COUNT_VAL) &
 							(~PART_ATT_SUCCESSFUL_VAL &
 							~PART_ATT_UNBOOTABLE_VAL));
+
+			active_slot = SLOT_A;
+			/* This is required to mark all bits as active,
+			for fresh boot post fresh flash */
+			partition_mark_active_slot(active_slot);
+
 			if (!attributes_updated)
 				attributes_updated = true;
-			return SLOT_A;
+
+			goto out;
 		}
 	}
-	/* If no valid slot */
-	return INVALID;
+out:
+	return active_slot;
 }
 
 static int
@@ -384,6 +395,11 @@ void guid_update(struct partition_entry *partition_entries,
 {
 	unsigned char tmp_guid[PARTITION_TYPE_GUID_SIZE];
 
+#ifdef AB_DEBUG
+	dprintf(INFO, "Swapping GUID (%s) --> (%s) \n",
+			partition_entries[old_index].name,
+			partition_entries[new_index].name);
+#endif
 	memcpy(tmp_guid, partition_entries[old_index].type_guid,
 				PARTITION_TYPE_GUID_SIZE);
 	memcpy(partition_entries[old_index].type_guid,
@@ -487,22 +503,19 @@ void partition_mark_active_slot(signed slot)
 	if (active_slot == slot)
 		goto out;
 
-	switch (active_slot)
+	if(slot != INVALID)
 	{
-		case INVALID:
-			if (slot != SLOT_A)
-				swap_guid(SLOT_A, slot);
-		default:
-			if (slot == INVALID)
-				swap_guid(active_slot, SLOT_A);
-			else
-				swap_guid(active_slot, slot);
+		dprintf(INFO, "Marking (%s) as active\n", SUFFIX_SLOT(slot));
+
+		/* 1. Swap GUID's to new slot */
+		swap_guid(active_slot, slot);
+
+		/* 2. Set Active bit for all partitions of active slot */
+		mark_all_partitions_active(slot);
 	}
+
 	active_slot = slot;
 out:
-	/* Set Active bit for all partitions of active slot */
-	mark_all_partitions_active(slot);
-
 	if (attributes_updated)
 		attributes_update();
 
