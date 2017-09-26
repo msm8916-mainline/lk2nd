@@ -540,7 +540,7 @@ again:
 					dprintf(INFO,"fastboot: battery voltage: %d\n",
 						target_get_battery_voltage());
 					fastboot_fail("Warning: battery's capacity is very low\n");
-					return;
+					continue;
 				}
 			}
 		}
