@@ -1192,6 +1192,7 @@ int boot_linux_from_mmc(void)
 	unsigned int kernel_size = 0;
 	unsigned int patched_kernel_hdr_size = 0;
 	int rc;
+	char *ptn_name = NULL;
 #if DEVICE_TREE
 	struct dt_table *table;
 	struct dt_entry dt_entry;
@@ -1223,22 +1224,22 @@ int boot_linux_from_mmc(void)
 		hdr = uhdr;
 		goto unified_boot;
 	}
-	if (!boot_into_recovery) {
-		index = partition_get_index("boot");
-		ptn = partition_get_offset(index);
-		if(ptn == 0) {
-			dprintf(CRITICAL, "ERROR: No boot partition found\n");
-                    return -1;
-		}
+
+	/* For a/b recovery image code is on boot partition.
+	   If we support multislot, always use boot partition. */
+	if (boot_into_recovery &&
+		(!partition_multislot_is_supported()))
+			ptn_name = "recovery";
+	else
+			ptn_name = "boot";
+
+	index = partition_get_index(ptn_name);
+	ptn = partition_get_offset(index);
+	if(ptn == 0) {
+		dprintf(CRITICAL, "ERROR: No %s partition found\n", ptn_name);
+		return -1;
 	}
-	else {
-		index = partition_get_index("recovery");
-		ptn = partition_get_offset(index);
-		if(ptn == 0) {
-			dprintf(CRITICAL, "ERROR: No recovery partition found\n");
-                    return -1;
-		}
-	}
+
 	/* Set Lun for boot & recovery partitions */
 	mmc_set_lun(partition_get_lun(index));
 
