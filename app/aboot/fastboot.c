@@ -37,6 +37,7 @@
 #include <kernel/event.h>
 #include <dev/udc.h>
 #include "fastboot.h"
+#include <err.h>
 
 #ifdef USB30_SUPPORT
 #include <usb30_udc.h>
@@ -166,6 +167,8 @@ int txn_status;
 static void *download_base;
 static unsigned download_max;
 static unsigned download_size;
+static void *upload_base_addr;
+static unsigned upload_size;
 
 #define STATE_OFFLINE	0
 #define STATE_COMMAND	1
@@ -497,6 +500,48 @@ static void cmd_download(const char *arg, void *data, unsigned sz)
 	fastboot_okay("");
 }
 
+int fboot_set_upload(void *buf, uint32_t buf_size)
+{
+	/* sanity checks*/
+	if((buf == NULL)||(buf_size > download_max))
+	{
+		return ERR_INVALID_ARGS;
+	}
+	upload_base_addr = buf;
+	upload_size = buf_size;
+	return NO_ERROR;
+}
+
+static void cmd_upload(const char *arg, void *data, unsigned sz)
+{
+	STACKBUF_DMA_ALIGN(response, MAX_RSP_SIZE);
+	unsigned len = upload_size;
+	int r;
+
+	if ((upload_base_addr == NULL)||(upload_size == 0)) {
+		fastboot_fail("invalid data");
+		goto cleanup;
+	}
+	snprintf((char *)response, MAX_RSP_SIZE, "DATA%08x", len);
+	if (usb_if.usb_write(response, strlen((const char *)response)) < 0)
+		goto cleanup;
+	/*
+	 * Discard the cache contents before starting the download
+	 */
+	arch_invalidate_cache_range((addr_t) upload_base_addr, len);
+
+	r = usb_if.usb_write(upload_base_addr, len);
+	if ((r < 0) || ((unsigned) r != len)) {
+		fastboot_state = STATE_ERROR;
+		goto cleanup;
+	}
+	fastboot_okay("");
+cleanup:
+	upload_base_addr = NULL;
+	upload_size = 0;
+	return;
+}
+
 static void fastboot_command_loop(void)
 {
 	struct fastboot_cmd *cmd;
@@ -672,6 +717,7 @@ int fastboot_init(void *base, unsigned size)
 
 	fastboot_register("getvar:", cmd_getvar);
 	fastboot_register("download:", cmd_download);
+	fastboot_register("upload", cmd_upload);
 	fastboot_publish("version", "0.5");
 
 	thr = thread_create("fastboot", fastboot_handler, 0, DEFAULT_PRIORITY, 4096);
