@@ -105,7 +105,7 @@ void vib_timed_turn_on(const uint32_t vibrate_time)
 	timer_set_oneshot(&vib_timer, vibrate_time, vib_timer_func, NULL);
 #else
 	vib_time = (vibrate_time/CHECK_VIB_TIMER_FREQUENCY)+1;
-	thread_create("vibrator_thread", &vibrator_thread,
+	thr = thread_create("vibrator_thread", &vibrator_thread,
 			NULL, DEFAULT_PRIORITY, DEFAULT_STACK_SIZE);
 	if (!thr)
 	{
