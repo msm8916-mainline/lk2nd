@@ -53,7 +53,7 @@ static int boot_slot_index[AB_SUPPORTED_SLOTS];	/* store index for boot parition
 
 /* local functions. */
 static void attributes_update();
-
+static void mark_all_partitions_active(signed slot);
 /*
 	Function: To read slot attribute of
 		of the partition_entry
@@ -299,13 +299,10 @@ int partition_find_active_slot()
 							~PART_ATT_UNBOOTABLE_VAL));
 
 			active_slot = SLOT_A;
+
 			/* This is required to mark all bits as active,
 			for fresh boot post fresh flash */
-			partition_mark_active_slot(active_slot);
-
-			if (!attributes_updated)
-				attributes_updated = true;
-
+			mark_all_partitions_active(active_slot);
 			goto out;
 		}
 	}
@@ -470,9 +467,9 @@ mark_all_partitions_active(signed slot)
 	for (i=0; i<partition_count; i++)
 	{
 		pname = (char *)partition_entries[i].name;
- #ifdef AB_DEBUG
+#ifdef AB_DEBUG
 	dprintf(INFO, "Transversing partition %s\n", pname);
- #endif
+#endif
 		/* 1. Find partition, if it is A/B enabled. */
 		for ( j = 0; j<AB_SUPPORTED_SLOTS; j++)
 		{
