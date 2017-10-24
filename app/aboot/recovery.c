@@ -520,6 +520,11 @@ int write_misc(unsigned page_offset, void *buf, unsigned size)
 			return -1;
 		}
 
+		/* This will ensure, we zeored out any extra bytes
+		   we will push to emmc, to prevent information leak */
+		if (aligned_size > size)
+			memset((scratch_addr + size), 0, (aligned_size-size));
+
 		if (scratch_addr != buf)
 			memcpy(scratch_addr, buf, size);
 		if (mmc_write(ptn + offset, aligned_size, (unsigned int *)scratch_addr))
@@ -557,8 +562,14 @@ int write_misc(unsigned page_offset, void *buf, unsigned size)
 			return -1;
 		}
 
+		/* This will ensure, we zeored out any extra bytes
+		   we will push, to prevent information leak */
+		if (aligned_size > size)
+			memset((scratch_addr + size), 0, (aligned_size-size));
+
 		if (scratch_addr != buf)
 			memcpy(scratch_addr, buf, size);
+
 		if (flash_write(ptn, offset, scratch_addr, aligned_size)) {
 			dprintf(CRITICAL, "Writing flash failed\n");
 			return -1;
