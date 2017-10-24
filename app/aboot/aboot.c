@@ -2069,6 +2069,7 @@ void write_device_info_flash(device_info *dev)
 			return;
 	}
 
+	memset(info, 0, BOOT_IMG_MAX_PAGE_SIZE);
 	memcpy(info, dev, sizeof(device_info));
 
 	if (flash_write(ptn, 0, (void *)info_buf, page_size))
