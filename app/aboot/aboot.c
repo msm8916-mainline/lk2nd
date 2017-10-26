@@ -363,7 +363,7 @@ unsigned char *update_cmdline(const char * cmdline)
 #endif
 
 #if VERIFIED_BOOT
-	if (VB_V2 == target_get_vb_version())
+	if (VB_M <= target_get_vb_version())
 	{
     		boot_state = boot_verify_get_state();
 	}
@@ -391,7 +391,7 @@ unsigned char *update_cmdline(const char * cmdline)
 	cmdline_len += strlen(sn_buf);
 
 #if VERIFIED_BOOT
-	if (VB_V2 == target_get_vb_version())
+	if (VB_M <= target_get_vb_version())
 	{
 		cmdline_len += strlen(verified_state) + strlen(vbsn[boot_state].name);
 		if ((device.verity_mode != 0 ) && (device.verity_mode != 1))
@@ -562,7 +562,7 @@ unsigned char *update_cmdline(const char * cmdline)
 		}
 
 #if VERIFIED_BOOT
-		if (VB_V2 == target_get_vb_version())
+		if (VB_M <= target_get_vb_version())
 		{
 			src = verified_state;
 			if(have_cmdline) --dst;
@@ -905,7 +905,7 @@ void boot_linux(void *kernel, unsigned *tags,
 	free(final_cmdline);
 
 #if VERIFIED_BOOT
-	if (VB_V2 == target_get_vb_version())
+	if (VB_M <= target_get_vb_version())
 	{
 		if (device.verity_mode == 0) {
 #if FBCON_DISPLAY_MSG
@@ -1447,7 +1447,7 @@ int boot_linux_from_mmc(void)
 #endif
 
 #if VERIFIED_BOOT
-	if (VB_V2 == target_get_vb_version())
+	if (VB_M <= target_get_vb_version())
 	{
 		/* set boot and system versions. */
 		set_os_version((unsigned char *)image_addr);
@@ -2256,7 +2256,7 @@ void write_device_info(device_info *dev)
 		memcpy(info, dev, sizeof(struct device_info));
 
 #if USE_RPMB_FOR_DEVINFO
-		if (VB_V2 == target_get_vb_version() &&
+		if (VB_M <= target_get_vb_version() &&
 			is_secure_boot_enable()) {
 				if((write_device_info_rpmb((void*) info, PAGE_SIZE)) < 0)
 					ASSERT(0);
@@ -2287,7 +2287,7 @@ void read_device_info(device_info *dev)
 		info_buf = info;
 
 #if USE_RPMB_FOR_DEVINFO
-		if (VB_V2 == target_get_vb_version() &&
+		if (VB_M <= target_get_vb_version() &&
 			is_secure_boot_enable()) {
 				if((read_device_info_rpmb((void*) info, PAGE_SIZE)) < 0)
 					ASSERT(0);
@@ -2304,20 +2304,20 @@ void read_device_info(device_info *dev)
 			if (is_secure_boot_enable()) {
 				info->is_unlocked = 0;
 #if VERIFIED_BOOT
-				if (VB_V2 == target_get_vb_version())
+				if (VB_M <= target_get_vb_version())
 					info->is_unlock_critical = 0;
 #endif
 			} else {
 				info->is_unlocked = 1;
 #if VERIFIED_BOOT
-				if (VB_V2 == target_get_vb_version())
+				if (VB_M <= target_get_vb_version())
 					info->is_unlock_critical = 1;
 #endif
 			}
 			info->is_tampered = 0;
 			info->charger_screen_enabled = 0;
 #if VERIFIED_BOOT
-			if (VB_V2 == target_get_vb_version())
+			if (VB_M <= target_get_vb_version())
 				info->verity_mode = 1; //enforcing by default
 #endif
 			write_device_info(info);
@@ -2358,7 +2358,7 @@ void set_device_unlock_value(int type, bool status)
 	if (type == UNLOCK)
 		device.is_unlocked = status;
 #if VERIFIED_BOOT
-	else if (VB_V2 == target_get_vb_version() &&
+	else if (VB_M <= target_get_vb_version() &&
 			type == UNLOCK_CRITICAL)
 			device.is_unlock_critical = status;
 #endif
@@ -2374,7 +2374,7 @@ static void set_device_unlock(int type, bool status)
 	if (type == UNLOCK)
 		is_unlocked = device.is_unlocked;
 #if VERIFIED_BOOT
-	if(VB_V2 == target_get_vb_version() &&
+	if(VB_M <= target_get_vb_version() &&
 		type == UNLOCK_CRITICAL)
 	{
 			is_unlocked = device.is_unlock_critical;
@@ -2661,7 +2661,7 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 #endif /* MDTP_SUPPORT */
 
 #if VERIFIED_BOOT
-	if (VB_V2 == target_get_vb_version())
+	if (VB_M <= target_get_vb_version())
 	{
 		/* set boot and system versions. */
 		set_os_version((unsigned char *)data);
@@ -2875,7 +2875,7 @@ void cmd_erase_mmc(const char *arg, void *data, unsigned sz)
 		}
 	}
 #if VERIFIED_BOOT
-	if (VB_V2 == target_get_vb_version() &&
+	if (VB_M <= target_get_vb_version() &&
 		!(strncmp(arg, "userdata", 8)) &&
 		send_delete_keys_to_tz())
 			ASSERT(0);
@@ -3050,7 +3050,7 @@ void cmd_flash_meta_img(const char *arg, void *data, unsigned sz)
 			return;
 		}
 
-		if (VB_V2 == target_get_vb_version() &&
+		if (VB_M <= target_get_vb_version() &&
 			!device.is_unlock_critical) 
 		{
 			fastboot_fail("Device is critical locked, Meta image flashing is not allowed");
@@ -3462,7 +3462,7 @@ void cmd_flash_mmc(const char *arg, void *data, unsigned sz)
 		 * common partition will allow to be flashed
 		 * critical partition will not allow to flash image.
 		 */
-		if (VB_V2 == target_get_vb_version() &&
+		if (VB_M <= target_get_vb_version() &&
 			!device.is_unlock_critical &&
 			critical_flash_allowed(arg)) {
 				fastboot_fail("Critical partition flashing is not allowed");
@@ -3481,7 +3481,7 @@ void cmd_flash_mmc(const char *arg, void *data, unsigned sz)
 		cmd_flash_mmc_img(arg, data, sz);
 
 #if VERIFIED_BOOT
-	if (VB_V2 == target_get_vb_version() &&
+	if (VB_M <= target_get_vb_version() &&
 		(!strncmp(arg, "system", 6)) &&
 		!device.verity_mode)
 		// reset dm_verity mode to enforcing
@@ -3827,7 +3827,7 @@ void cmd_oem_devinfo(const char *arg, void *data, unsigned sz)
 	snprintf(response, sizeof(response), "\tDevice unlocked: %s", (device.is_unlocked ? "true" : "false"));
 	fastboot_info(response);
 #if VERIFIED_BOOT
-	if (VB_V2 == target_get_vb_version())
+	if (VB_M <= target_get_vb_version())
 	{
 		snprintf(response, sizeof(response), "\tDevice critical unlocked: %s",
 					(device.is_unlock_critical ? "true" : "false"));
@@ -4480,7 +4480,7 @@ void aboot_init(const struct app_descriptor *app)
 		boot_reason_alarm = true;
 	}
 #if VERIFIED_BOOT
-	else if (VB_V2 == target_get_vb_version())
+	else if (VB_M <= target_get_vb_version())
 	{
 		if (reboot_mode == DM_VERITY_ENFORCING)
 		{
