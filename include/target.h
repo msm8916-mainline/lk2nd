@@ -28,6 +28,10 @@
 
 #define TARGET_MAX_CMDLNBUF 64
 
+/* Temp Macro */
+#define VB_V1 VB_L
+#define VB_V2 VB_M
+
 /* Enum for target VB version detection */
 enum
 {
