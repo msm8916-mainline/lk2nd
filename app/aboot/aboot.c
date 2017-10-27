@@ -259,7 +259,7 @@ struct atag_ptbl_entry
  * for fastboot
  */
 struct getvar_partition_info {
-	const char part_name[MAX_GPT_NAME_SIZE]; /* Partition name */
+	char part_name[MAX_GPT_NAME_SIZE]; /* Partition name */
 	char getvar_size[MAX_GET_VAR_NAME_SIZE]; /* fastboot get var name for size */
 	char getvar_type[MAX_GET_VAR_NAME_SIZE]; /* fastboot get var name for type */
 	char size_response[MAX_RSP_SIZE];        /* fastboot response for size */
@@ -267,10 +267,10 @@ struct getvar_partition_info {
 };
 
 /*
- * Right now, we are publishing the info for only
- * three partitions
+ * Update the part_type_known for known paritions types.
  */
-struct getvar_partition_info part_info[] =
+struct getvar_partition_info part_info[NUM_PARTITIONS];
+struct getvar_partition_info part_type_known[] =
 {
 	{ "system"  , "partition-size:", "partition-type:", "", "ext4" },
 	{ "userdata", "partition-size:", "partition-type:", "", "ext4" },
@@ -282,6 +282,13 @@ char charger_screen_enabled[MAX_RSP_SIZE];
 char sn_buf[13];
 char display_panel_buf[MAX_PANEL_BUF_SIZE];
 char panel_display_mode[MAX_RSP_SIZE];
+#if PRODUCT_IOT
+char block_size_string[MAX_RSP_SIZE];
+
+/* For IOT we are using custom version */
+#define PRODUCT_IOT_VERSION "IOT001"
+char bootloader_version_string[MAX_RSP_SIZE];
+#endif
 
 #if CHECK_BAT_VOLTAGE
 char battery_voltage[MAX_RSP_SIZE];
@@ -4058,9 +4065,28 @@ static void get_partition_size(const char *arg, char *response)
  */
 static void publish_getvar_partition_info(struct getvar_partition_info *info, uint8_t num_parts)
 {
-	uint8_t i;
+	uint8_t i,n;
+	struct partition_entry *ptn_entry =
+				partition_get_partition_entries();
 
 	for (i = 0; i < num_parts; i++) {
+		strlcat(info[i].part_name, (char const *)ptn_entry[i].name, MAX_RSP_SIZE);
+		strlcat(info[i].getvar_size, "partition-size:", MAX_GET_VAR_NAME_SIZE);
+		strlcat(info[i].getvar_type, "partition-type:", MAX_GET_VAR_NAME_SIZE);
+
+		/* Mark partiton type for known paritions only */
+		for (n=0; n < ARRAY_SIZE(part_type_known); n++)
+		{
+			if (!strncmp(part_type_known[n].part_name, info[i].part_name,
+					strlen(part_type_known[n].part_name)))
+			{
+				strlcat(info[i].type_response,
+						part_type_known[n].type_response,
+						MAX_RSP_SIZE);
+				break;
+			}
+		}
+
 		get_partition_size(info[i].part_name, info[i].size_response);
 
 		if (strlcat(info[i].getvar_size, info[i].part_name, MAX_GET_VAR_NAME_SIZE) >= MAX_GET_VAR_NAME_SIZE)
@@ -4110,6 +4136,7 @@ void publish_getvar_multislot_vars()
 		for (i=0; i<AB_SUPPORTED_SLOTS; i++)
 		{
 			tmp = SUFFIX_SLOT(i);
+			tmp++; // to remove "_" from slot_suffix.
 			snprintf(slot_info[i].slot_is_unbootable, sizeof(slot_info[i].slot_is_unbootable),
 										"slot-unbootable:%s", tmp);
 			snprintf(slot_info[i].slot_is_active, sizeof(slot_info[i].slot_is_active),
@@ -4135,8 +4162,11 @@ void publish_getvar_multislot_vars()
 
 	active_slt = partition_find_active_slot();
 	if (active_slt != INVALID)
-		snprintf(active_slot_suffix, sizeof(active_slot_suffix), "%s",
-			SUFFIX_SLOT(active_slt));
+	{
+		tmp = SUFFIX_SLOT(active_slt);
+		tmp++; // to remove "_" from slot_suffix.
+		snprintf(active_slot_suffix, sizeof(active_slot_suffix), "%s", tmp);
+	}
 	else
 		strlcpy(active_slot_suffix, "INVALID", sizeof(active_slot_suffix));
 
@@ -4150,6 +4180,19 @@ void get_product_name(unsigned char *buf)
 	snprintf((char*)buf, MAX_RSP_SIZE, "%s",  TARGET(BOARD));
 	return;
 }
+
+#if PRODUCT_IOT
+void get_bootloader_version_iot(unsigned char *buf)
+{
+	if (buf != NULL)
+	{
+		strlcpy(buf, TARGET(BOARD), MAX_VERSION_LEN);
+		strlcat(buf, "-", MAX_VERSION_LEN);
+		strlcat(buf, PRODUCT_IOT_VERSION, MAX_VERSION_LEN);
+	}
+	return;
+}
+#endif
 
 void get_bootloader_version(unsigned char *buf)
 {
@@ -4225,7 +4268,7 @@ void aboot_fastboot_register_commands(void)
 	 * devices.
 	 */
 	if (target_is_emmc_boot())
-		publish_getvar_partition_info(part_info, ARRAY_SIZE(part_info));
+		publish_getvar_partition_info(part_info, partition_get_partition_count());
 
 	if (partition_multislot_is_supported())
 		publish_getvar_multislot_vars();
@@ -4244,9 +4287,23 @@ void aboot_fastboot_register_commands(void)
 			device.display_panel);
 	fastboot_publish("display-panel",
 			(const char *) panel_display_mode);
+#if PRODUCT_IOT
+	get_bootloader_version_iot(&bootloader_version_string);
+	fastboot_publish("version-bootloader", (const char *) bootloader_version_string);
+
+	/* Version baseband is n/a for apq iot devices */
+	fastboot_publish("version-baseband", "N/A");
+
+	/* IOT targets support only mmc target */
+	snprintf(block_size_string, MAX_RSP_SIZE, "0x%x", mmc_get_device_blocksize());
+	fastboot_publish("erase-block-size", (const char *) block_size_string);
+	fastboot_publish("logical-block-size", (const char *) block_size_string);
+#else
 	fastboot_publish("version-bootloader", (const char *) device.bootloader_version);
 	fastboot_publish("version-baseband", (const char *) device.radio_version);
+#endif
 	fastboot_publish("secure", is_secure_boot_enable()? "yes":"no");
+	fastboot_publish("unlocked", device.is_unlocked ? "yes":"no");
 	smem_get_hw_platform_name((unsigned char *) hw_platform_buf, sizeof(hw_platform_buf));
 	snprintf(get_variant, MAX_RSP_SIZE, "%s %s", hw_platform_buf,
 		target_is_emmc_boot()? "eMMC":"UFS");
