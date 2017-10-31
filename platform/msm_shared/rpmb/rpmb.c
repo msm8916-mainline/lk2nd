@@ -86,6 +86,16 @@ int rpmb_init()
 				info.rel_wr_count = 32;
 			}
 		}
+
+		/*
+		 *  tz changes required for supporting
+		 *  multiple frames are not present
+		 *  force the number of frames to be minimum
+		 *  i.e. one for tz 3.0 and earlier.
+		 */
+		if( qseecom_get_version() < QSEE_VERSION_40 )
+			info.rel_wr_count = 1;
+
 		info.dev_type  = EMMC_RPMB;
 	}
 #ifdef UFS_SUPPORT
