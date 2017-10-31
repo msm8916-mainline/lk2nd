@@ -4443,11 +4443,18 @@ retry_boot:
 				case ERR_INVALID_PAGE_SIZE:
 				case ERR_DT_PARSE:
 				case ERR_ABOOT_ADDR_OVERLAP:
+				case ERR_INVALID_BOOT_MAGIC:
 					if(partition_multislot_is_supported())
+					{
+						/*
+						 * Deactivate current slot, as it failed to
+						 * boot, and retry next slot.
+						 */
+						partition_deactivate_slot(boot_slot);
 						goto retry_boot;
+					}
 					else
 						break;
-				case ERR_INVALID_BOOT_MAGIC:
 				default:
 					break;
 				/* going to fastboot menu */

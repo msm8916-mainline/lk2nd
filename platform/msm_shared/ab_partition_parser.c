@@ -102,6 +102,48 @@ inline bool slot_is_bootable(struct partition_entry *partition_entries,
 		return true;
 }
 
+void
+partition_deactivate_slot(int slot)
+{
+	struct partition_entry *partition_entries =
+			partition_get_partition_entries();
+	int slt_index = boot_slot_index[slot];
+
+	/* Set Unbootable bit */
+	SET_BIT(partition_entries[slt_index].attribute_flag, PART_ATT_UNBOOTABLE_BIT);
+
+	/* Clear Sucess bit and Active bits */
+	CLR_BIT(partition_entries[slt_index].attribute_flag, PART_ATT_SUCCESS_BIT);
+	CLR_BIT(partition_entries[slt_index].attribute_flag, PART_ATT_ACTIVE_BIT);
+
+	/* Clear Max retry count and priority value */
+	partition_entries[slt_index].attribute_flag &= (~PART_ATT_PRIORITY_VAL &
+							~PART_ATT_MAX_RETRY_COUNT_VAL);
+
+	return;
+}
+
+void
+partition_activate_slot(int slot)
+{
+	struct partition_entry *partition_entries =
+			partition_get_partition_entries();
+	int slt_index = boot_slot_index[slot];
+
+	/* CLR Unbootable bit and Sucess bit*/
+	CLR_BIT(partition_entries[slt_index].attribute_flag, PART_ATT_UNBOOTABLE_BIT);
+	CLR_BIT(partition_entries[slt_index].attribute_flag, PART_ATT_SUCCESS_BIT);
+
+	/* Set Active bits */
+	SET_BIT(partition_entries[slt_index].attribute_flag, PART_ATT_ACTIVE_BIT);
+
+	/* Set Max retry count and priority value */
+	partition_entries[slt_index].attribute_flag |= (PART_ATT_PRIORITY_VAL |
+							PART_ATT_MAX_RETRY_COUNT_VAL);
+
+	return;
+}
+
 /*
 	Function scan boot partition to find SLOT_A/SLOT_B suffix.
 	If found than make multislot_boot flag true and
@@ -291,12 +333,7 @@ int partition_find_active_slot()
 		if (count == AB_SUPPORTED_SLOTS)
 		{
 			/* Update the priority of the boot slot */
-			partition_entries[boot_slot_index[SLOT_A]].attribute_flag |=
-							((PART_ATT_PRIORITY_VAL |
-							PART_ATT_ACTIVE_VAL |
-							PART_ATT_MAX_RETRY_COUNT_VAL) &
-							(~PART_ATT_SUCCESSFUL_VAL &
-							~PART_ATT_UNBOOTABLE_VAL));
+			partition_activate_slot(SLOT_A);
 
 			active_slot = SLOT_A;
 
@@ -353,14 +390,10 @@ int partition_find_boot_slot()
 #endif
 	if (!boot_retry_count)
 	{
-		/* Mark slot invalide and unbootable */
-		partition_entries[slt_index].attribute_flag |=
-					(PART_ATT_UNBOOTABLE_VAL &
-					~PART_ATT_ACTIVE_VAL &
-					~PART_ATT_PRIORITY_VAL);
+		/* Mark slot invalid and unbootable */
+		partition_deactivate_slot(boot_slot);
 
 		partition_switch_slots(boot_slot, next_active_bootable_slot(partition_entries));
-
 		reboot_device(0);
 	}
 	else

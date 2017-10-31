@@ -32,6 +32,8 @@ extern const char *suffix_slot[];
 extern const char *suffix_delimiter;
 
 #define SUFFIX_SLOT(part_slot) suffix_slot[(part_slot)]
+#define SET_BIT(p,n) ((p) |= ((uint64_t)0x1 << (n)))
+#define CLR_BIT(p,n) ((p) &= (~(((uint64_t)0x1) << (n))))
 
 enum
 {
@@ -61,6 +63,8 @@ void partition_mark_active_slot();	/* Marking slot active */
 void partition_reset_attributes();	/* Resetting slot attr. */
 void partition_fill_slot_meta();	/* Fill slot meta infomation */
 void partition_switch_slots();		/* Switching slots */
+void partition_deactivate_slot(int slot); /* Mark slot unbootable and reset other attributes*/
+void partition_activate_slot(int slot);	 /* Mark slot bootable and set other attributes*/
 int partition_find_boot_slot();		/* Find bootable partition */
 int partition_find_active_slot();	/* Find current active partition*/
 int partition_fill_partition_meta();	/* Fill partition slot info meta*/
