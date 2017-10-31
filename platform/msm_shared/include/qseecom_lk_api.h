@@ -43,6 +43,16 @@
 int qseecom_init();
 
 /**
+ * Qseecom get version.
+ *	To be called before calls to set app region.
+ *
+ * @return unsigned int
+ *   Success:	Valid version
+ *   Failure:	Garbage value
+ */
+unsigned int qseecom_get_version();
+
+/**
 * Qseecom Tz Init
 *	To be called before any calls to qsee secure apps.
 *
