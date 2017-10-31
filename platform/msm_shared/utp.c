@@ -216,7 +216,7 @@ utp_get_desc_slot_addr_err:
 
 int utp_poll_utrd_complete(struct ufs_dev *dev)
 {
-	int ret;
+	int ret = ERROR;
 	struct ufs_req_irq_type irq;
 	uint32_t val, base, retry = 0;
 	base = dev->base;
@@ -264,11 +264,12 @@ static int utp_enqueue_utrd(struct ufs_dev *dev, struct utp_utrd_req_build_type 
 	int                           ret;
 	struct utp_trans_req_desc     *desc;
 	event_t                       utrd_evt;
-	struct ufs_req_node           req;
+	struct ufs_req_node           *req;
 	uint32_t                      door_bell_bit_val;
 	struct utp_bitmap_access_type bitmap_req;
 
 	ret = UFS_SUCCESS;
+	req = (struct ufs_req_node *)malloc(sizeof(struct ufs_req_node));
 
 	event_init(&utrd_evt, false, EVENT_FLAG_AUTOUNSIGNAL);
 
@@ -288,11 +289,11 @@ static int utp_enqueue_utrd(struct ufs_dev *dev, struct utp_utrd_req_build_type 
 
 	utp_enqueue_utrd_fill_desc(desc, utrd_req);
 
-	req.door_bell_bit = door_bell_bit_val;
-	req.event         = &utrd_evt;
+	req->door_bell_bit = door_bell_bit_val;
+	req->event         = &utrd_evt;
 
 	/* Enqueue the req in the device utrd list. */
-	list_add_head(&(dev->utrd_data.list_head.list_node), &(req.list_node));
+	list_add_head(&(dev->utrd_data.list_head.list_node), &(req->list_node));
 
 	dsb();
 
@@ -315,7 +316,7 @@ static int utp_enqueue_utrd(struct ufs_dev *dev, struct utp_utrd_req_build_type 
 	{
 		/* Transaction not completed even after timeout ms. */
 		dprintf(CRITICAL, "%s:%d Transaction timeout after polling %d times\n",__func__, __LINE__, UTP_MAX_COMMAND_RETRY);
-		ret = utp_utrd_process_timeout_req(dev, utrd_req, &req);
+		ret = utp_utrd_process_timeout_req(dev, utrd_req, req);
 		goto utp_enqueue_utrd_err;
 	}
 	else
@@ -338,7 +339,7 @@ static int utp_enqueue_utrd(struct ufs_dev *dev, struct utp_utrd_req_build_type 
 
 	/* Signal slot as free. */
 	bitmap_req.bitmap        = &dev->utrd_data.bitmap;
-	bitmap_req.door_bell_bit = req.door_bell_bit;
+	bitmap_req.door_bell_bit = req->door_bell_bit;
 	bitmap_req.mutx          = &(dev->utrd_data.bitmap_mutex);
 
 	ret = utp_remove_from_bitmap(&bitmap_req);

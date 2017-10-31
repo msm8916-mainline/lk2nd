@@ -41,7 +41,7 @@
 
 static int uic_check_hci_ucrdy(struct ufs_dev *dev)
 {
-	uint32_t ret;
+	uint32_t ret = 0;
 
 	/* Check if the HCS.UCRDY is set to ‘1’. */
 	if (ufs_reg_target_val_timeout_loop(UFS_HCS(dev->base), UFS_HCS_UCRDY, HCI_UIC_TIMEOUT))
