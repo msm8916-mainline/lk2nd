@@ -68,7 +68,7 @@ static mmu_section_t mmu_section_table[] = {
 	{    MSM_SHARED_IMEM_BASE,  MSM_SHARED_IMEM_BASE,    1,                      COMMON_MEMORY},
 	{    SCRATCH_ADDR,          SCRATCH_ADDR,            SCRATCH_SIZE,           SCRATCH_MEMORY},
 	{    MIPI_FB_ADDR,          MIPI_FB_ADDR,            20,                     COMMON_MEMORY},
-	{    RPMB_SND_RCV_BUF,      RPMB_SND_RCV_BUF,        RPMB_SND_RCV_BUF_SZ,    IOMAP_MEMORY},
+	{    RPMB_SND_RCV_BUF_STRT, RPMB_SND_RCV_BUF_STRT,   RPMB_SND_RCV_BUF_SZ,    IOMAP_MEMORY},
 };
 
 static mmu_section_t mmu_section_table_512[] = {
@@ -313,4 +313,12 @@ uint32_t platform_is_msm8976_v_1_1()
 		ret = 1;
 
 	return ret;
+}
+
+void *get_rpmb_snd_rcv_buff()
+{
+	if(smem_get_ddr_size() > 0x20000000)
+		return (void *)RPMB_SND_RCV_BUF_STRT;
+	else
+		return (void *)RPMB_SND_RCV_BUF_512;
 }
