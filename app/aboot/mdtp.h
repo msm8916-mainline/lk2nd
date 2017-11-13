@@ -40,7 +40,6 @@
 #define INITIAL_DELAY_MSECONDS      5000
 #define INVALID_PIN_DELAY_MSECONDS  5000
 
-#define ROUND_TO_PAGE(x,y) (((x) + (y)) & (~(y)))
 #define MDTP_FWLOCK_BLOCK_SIZE          (1024*1024*16)
 #define MDTP_FWLOCK_MAX_FILES           (100)
 #define MDTP_FWLOCK_MAX_FILE_NAME_LEN   (100)
