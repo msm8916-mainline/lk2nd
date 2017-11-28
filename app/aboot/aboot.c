@@ -841,8 +841,6 @@ int check_ddr_addr_range_bound(uintptr_t start, uint32_t size)
 		return 0;
 }
 
-#define ROUND_TO_PAGE(x,y) (((x) + (y)) & (~(y)))
-
 BUF_DMA_ALIGN(buf, BOOT_IMG_MAX_PAGE_SIZE); //Equal to max-supported pagesize
 #if DEVICE_TREE
 BUF_DMA_ALIGN(dt_buf, BOOT_IMG_MAX_PAGE_SIZE);

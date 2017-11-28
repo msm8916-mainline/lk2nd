@@ -34,6 +34,7 @@
 #include <arch/ops.h>
 #include <arch/defines.h>
 #include <malloc.h>
+#include <stdlib.h>
 
 #include <dev/flash.h>
 #include <lib/ptable.h>
@@ -49,7 +50,6 @@
 
 #define BOOT_FLAGS	1
 #define UPDATE_STATUS	2
-#define ROUND_TO_PAGE(x,y) (((x) + (y)) & (~(y)))
 
 static const int MISC_PAGES = 3;			// number of pages to save
 static const int MISC_COMMAND_PAGE = 1;		// bootloader command is this page
