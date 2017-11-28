@@ -33,7 +33,6 @@
 #define SPLASH_IMAGE_WIDTH     113
 #define SPLASH_IMAGE_HEIGHT    124
 
-#if (!DISPLAY_TYPE_MIPI)
 /* This image is (SPLASH_IMAGE_WIDTH x SPLASH_IMAGE_WIDTH) raw image */
 static char imageBuffer[] = {
 
@@ -3543,7 +3542,6 @@ static char imageBuffer[] = {
 
 };
 
-#else
 /* This image is 228x113 raw Image resembling QuIC logo*/
 
 static char imageBuffer_rgb888[] = {
@@ -8803,6 +8801,5 @@ static char imageBuffer_rgb888[] = {
 	0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00,
 };
-#endif
 
 #endif
