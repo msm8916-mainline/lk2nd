@@ -47,7 +47,7 @@ int itoa(int num, unsigned char* str, int len, int base);
 #define ROUNDDOWN(a, b) ((a) & ~((b)-1))
 
 /* Macro returns UINT_MAX in case of overflow */
-#define ROUND_TO_PAGE(x,y) (ROUNDUP((x),(y)+1) < (x))?UINT_MAX:ROUNDUP((x),(y)+1)
+#define ROUND_TO_PAGE(x,y) ((ROUNDUP((x),((y)+1)) < (x))?UINT_MAX:ROUNDUP((x),((y)+1)))
 
 /* allocate a buffer on the stack aligned and padded to the cpu's cache line size */
 #define STACKBUF_DMA_ALIGN(var, size) \
