@@ -69,6 +69,8 @@
 
 /* PON Peripheral registers */
 #define PON_PON_REASON1                       0x808
+#define PM660_PON_REASON1                     0x8C0
+#define PM660_PON_WARMBOOT_STATUS1            0x8C2
 #define PON_WARMBOOT_STATUS1                  0x80A
 #define PON_WARMBOOT_STATUS2                  0x80B
 #define PON_POFF_REASON1                      0x80C

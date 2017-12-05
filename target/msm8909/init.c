@@ -644,15 +644,28 @@ void target_usb_init(void)
 
 unsigned target_pause_for_battery_charge(void)
 {
-	uint8_t pon_reason = pm8x41_get_pon_reason();
-	uint8_t is_cold_boot = pm8x41_get_is_cold_boot();
-	dprintf(INFO, "%s : pon_reason is %d cold_boot:%d\n", __func__,
-		pon_reason, is_cold_boot);
+	uint32_t pmic = target_get_pmic();
+	uint8_t pon_reason = 0;
+	uint8_t is_cold_boot = 0;
+
 	/* In case of fastboot reboot,adb reboot or if we see the power key
 	* pressed we do not want go into charger mode.
 	* fastboot reboot is warm boot with PON hard reset bit not set
 	* adb reboot is a cold boot with PON hard reset bit set
 	*/
+	if (pmic == PMIC_IS_PM660)
+	{
+		pon_reason = pm660_get_pon_reason();
+		is_cold_boot = pm660_get_is_cold_boot();
+	}
+	else
+	{
+		pon_reason = pm8x41_get_pon_reason();
+		is_cold_boot = pm8x41_get_is_cold_boot();
+	}
+	dprintf(INFO, "%s : pon_reason is %d cold_boot:%d\n", __func__,
+		pon_reason, is_cold_boot);
+
 	if (is_cold_boot &&
 			(!(pon_reason & HARD_RST)) &&
 			(!(pon_reason & KPDPWR_N)) &&

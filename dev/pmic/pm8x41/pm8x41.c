@@ -581,6 +581,11 @@ uint8_t pm8x41_get_pmic_rev()
 	return REG_READ(REVID_REVISION4);
 }
 
+uint8_t pm660_get_pon_reason()
+{
+	return REG_READ(PM660_PON_REASON1);
+}
+
 uint8_t pm8x41_get_pon_reason()
 {
 	return REG_READ(PON_PON_REASON1);
@@ -629,6 +634,15 @@ void pm8x41_config_output_mpp(struct pm8x41_mpp *mpp)
 	REG_WRITE(((mpp->base + MPP_DIG_VIN_CTL) + (mpp_slave_id << 16)), mpp->vin);
 
 	REG_WRITE(((mpp->base + MPP_MODE_CTL) + (mpp_slave_id << 16)), mpp->mode | (MPP_DIGITAL_OUTPUT << MPP_MODE_CTL_MODE_SHIFT));
+}
+
+uint8_t pm660_get_is_cold_boot()
+{
+	if (REG_READ(PM660_PON_WARMBOOT_STATUS1)) {
+		dprintf(INFO,"%s: Warm boot\n", __func__);
+		return 0;
+	}
+	return 1;
 }
 
 uint8_t pm8x41_get_is_cold_boot()
