@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2015, 2017, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, 2017-2018, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -130,6 +130,27 @@
 #define GCC_BLSP1_QUP6_APPS_CBCR    (CLK_CTL_BASE + 0x7020)
 #define GCC_BLSP1_QUP6_CFG_RCGR     (CLK_CTL_BASE + 0x7004)
 #define GCC_BLSP1_QUP6_CMD_RCGR     (CLK_CTL_BASE + 0x7000)
+
+#define GCC_BLSP1_QUP3_SPI_APPS_CBCR        (CLK_CTL_BASE + 0x401C)
+#define GCC_BLSP1_QUP3_SPI_APPS_CMD_RCGR    (CLK_CTL_BASE + 0x4024)
+#define GCC_BLSP1_QUP3_SPI_CFG_RCGR         (CLK_CTL_BASE + 0x4028)
+#define GCC_BLSP1_QUP3_SPI_APPS_M           (CLK_CTL_BASE + 0x402C)
+#define GCC_BLSP1_QUP3_SPI_APPS_N           (CLK_CTL_BASE + 0x4030)
+#define GCC_BLSP1_QUP3_SPI_APPS_D           (CLK_CTL_BASE + 0x4034)
+
+#define GCC_BLSP1_QUP4_SPI_APPS_CBCR        (CLK_CTL_BASE + 0x501C)
+#define GCC_BLSP1_QUP4_SPI_APPS_CMD_RCGR    (CLK_CTL_BASE + 0x5024)
+#define GCC_BLSP1_QUP4_SPI_CFG_RCGR         (CLK_CTL_BASE + 0x5028)
+#define GCC_BLSP1_QUP4_SPI_APPS_M           (CLK_CTL_BASE + 0x502C)
+#define GCC_BLSP1_QUP4_SPI_APPS_N           (CLK_CTL_BASE + 0x5030)
+#define GCC_BLSP1_QUP4_SPI_APPS_D           (CLK_CTL_BASE + 0x5034)
+
+#define GCC_BLSP1_QUP5_SPI_APPS_CBCR        (CLK_CTL_BASE + 0x601C)
+#define GCC_BLSP1_QUP5_SPI_APPS_CMD_RCGR    (CLK_CTL_BASE + 0x6024)
+#define GCC_BLSP1_QUP5_SPI_CFG_RCGR         (CLK_CTL_BASE + 0x6028)
+#define GCC_BLSP1_QUP5_SPI_APPS_M           (CLK_CTL_BASE + 0x602C)
+#define GCC_BLSP1_QUP5_SPI_APPS_N           (CLK_CTL_BASE + 0x6030)
+#define GCC_BLSP1_QUP5_SPI_APPS_D           (CLK_CTL_BASE + 0x6034)
 
 /* GPLL */
 #define GPLL0_STATUS                (CLK_CTL_BASE + 0x21024)

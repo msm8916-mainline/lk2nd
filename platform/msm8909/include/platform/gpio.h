@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014, 2017-2018, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -61,4 +61,5 @@
 #define GPIO_OUT        BIT(1)
 
 void gpio_config_uart_dm(uint8_t id);
+void gpio_config_blsp_spi(uint8_t blsp_id, uint8_t qup_id);
 #endif
