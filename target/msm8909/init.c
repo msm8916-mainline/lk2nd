@@ -826,7 +826,8 @@ void pmic_reset_configure(uint8_t reset_type)
 
 uint32_t target_get_pmic()
 {
-	if (board_hardware_subtype() == HW_PLATFORM_SUBTYPE_8909_PM660)
+	if ((board_hardware_subtype() == HW_PLATFORM_SUBTYPE_8909_PM660) ||
+		(board_hardware_subtype() == HW_PLATFORM_SUBTYPE_8909_PM660_V1))
 		return PMIC_IS_PM660;
 	else
 		return PMIC_IS_PM8909;

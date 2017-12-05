@@ -62,6 +62,7 @@ enum {
 
 enum {
 	BG_WTP = 0x0F,
+	WTP_V1 = 0x12,
 };
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
@@ -484,6 +485,7 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	case HW_PLATFORM_RCM:
 		switch (platform_subtype) {
 		case BG_WTP:
+		case WTP_V1:
 			panel_id = AUO_390P_CMD_PANEL;
 			break;
 		default:
