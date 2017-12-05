@@ -60,6 +60,7 @@
 static struct gpio_pin bob_gpio = {
   "pm8941_gpios", 12, 2, 1, 0, 1
 };
+static bool display_efuse = false;
 
 static void mdss_dsi_uniphy_pll_sw_reset_8909(uint32_t pll_base)
 {
@@ -393,12 +394,52 @@ static bool target_splash_disable(void)
 	}
 }
 
+bool is_display_disabled(void)
+{
+	return display_efuse;
+}
+
+bool display_efuse_check(void)
+{
+	int i;
+	uint32_t efuse = 0;
+	uint32_t board_id = board_platform_id();
+
+	for (i = 0; i < ARRAY_SIZE(efuse_data);i++)
+		if (board_id == efuse_data[i].board_id) {
+			efuse = readl((efuse_data[i].start_address + efuse_data[i].offset));
+			display_efuse = (efuse & (efuse_data[i].mask)) >> (efuse_data[i].shift);
+	}
+
+	dprintf(INFO,"Efuse register: display disable flag = %d\n",display_efuse);
+	return display_efuse;
+}
+
+void efuse_display_enable(char *pbuf, uint16_t buf_size)
+{
+	char *default_str;
+	int prefix_display_len = strlen(pbuf);
+	if (display_efuse)
+		default_str = ";display_disabled:1";
+	pbuf += prefix_display_len;
+	buf_size -= prefix_display_len;
+	strlcpy(pbuf, default_str, buf_size);
+}
+
 bool target_display_panel_node(char *pbuf, uint16_t buf_size)
 {
 	int ret = true;
 
 	if (!target_splash_disable())
 		ret = gcdb_display_cmdline_arg(pbuf, buf_size);
+
+	if (display_efuse_check()){
+                if (target_splash_disable()){
+                        strlcpy(pbuf, DISPLAY_CMDLINE_PREFIX, buf_size);
+                        efuse_display_enable(pbuf, buf_size);
+                } else
+                        efuse_display_enable(pbuf, buf_size);
+        }
 
 	return ret;
 }
@@ -408,6 +449,9 @@ void target_display_init(const char *panel_name)
 	uint32_t panel_loop = 0;
 	uint32_t ret = 0;
 	struct oem_panel_data oem;
+
+	if (display_efuse_check())
+		return;
 
 	set_panel_cmd_string(panel_name);
 	oem = mdss_dsi_get_oem_data();
