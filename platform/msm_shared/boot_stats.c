@@ -55,6 +55,16 @@ void bs_set_timestamp(enum bs_entry bs_id)
 				writel(clk_count - kernel_load_start,
 					bs_imem + (sizeof(uint32_t) * BS_KERNEL_LOAD_TIME));
 			}
+			return;
+		}
+		if(bs_id == BS_DTB_OVERLAY_START){
+			clk_count = platform_get_sclk_count();
+			dprintf(INFO, "DTBO Overlay count start: %u\n", clk_count);
+			return;
+		}
+		if(bs_id == BS_DTB_OVERLAY_END){
+			clk_count = platform_get_sclk_count();
+			dprintf(INFO, "DTBO Overlay count done: %u\n", clk_count);
 		}
 		else{
 			clk_count = platform_get_sclk_count();

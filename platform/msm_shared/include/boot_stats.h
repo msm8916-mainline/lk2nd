@@ -41,6 +41,8 @@ enum bs_entry {
 	BS_KERNEL_LOAD_TIME,
 	BS_KERNEL_LOAD_START,
 	BS_KERNEL_LOAD_DONE,
+	BS_DTB_OVERLAY_START,
+	BS_DTB_OVERLAY_END,
 	BS_MAX,
 };
 void bs_set_timestamp(enum bs_entry bs_id);
