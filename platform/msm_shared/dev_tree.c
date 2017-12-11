@@ -41,6 +41,7 @@
 #include <partial_goods.h>
 #include <boot_device.h>
 #include <platform.h>
+#include <scm.h>
 
 #define BOOT_DEV_MAX_LEN        64
 #define NODE_PROPERTY_MAX_LEN   64
@@ -1308,6 +1309,9 @@ int update_device_tree(void *fdt, const char *cmdline,
 {
 	int ret = 0;
 	uint32_t offset;
+#if ENABLE_KASLRSEED_SUPPORT
+	uintptr_t kaslrseed;
+#endif
 
 	/* Check the device tree header */
 	ret = fdt_check_header(fdt) || fdt_check_header_ext(fdt);
@@ -1367,6 +1371,19 @@ int update_device_tree(void *fdt, const char *cmdline,
 			return ret;
 		}
 	}
+
+#if ENABLE_KASLRSEED_SUPPORT
+	if (!scm_random(&kaslrseed, sizeof(kaslrseed))) {
+		/* Adding Kaslr Seed to the chosen node */
+		ret = fdt_appendprop_u64 (fdt, offset, (const char *)"kaslr-seed", (uint64_t)kaslrseed);
+		if (ret)
+			dprintf(CRITICAL, "ERROR: Cannot update chosen node [kaslr-seed] - 0x%x\n", ret);
+		else
+			dprintf(CRITICAL, "kaslr-Seed is added to chosen node\n");
+	} else {
+		dprintf(CRITICAL, "ERROR: Cannot generate Kaslr Seed\n");
+	}
+#endif
 
 	if (ramdisk_size) {
 		/* Adding the initrd-start to the chosen node */

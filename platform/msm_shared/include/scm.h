@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2016, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2017, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -402,6 +402,7 @@ int scm_call_atomic2(uint32_t svc, uint32_t cmd, uint32_t arg1, uint32_t arg2);
 int restore_secure_cfg(uint32_t id);
 
 void scm_elexec_call(paddr_t kernel_entry, paddr_t dtb_offset);
+int scm_random(uintptr_t * rbuf, uint32_t  r_len);
 uintptr_t get_canary();
 /* API to configure XPU violations as fatal */
 int scm_xpu_err_fatal_init();
