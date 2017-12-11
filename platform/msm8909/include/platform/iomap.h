@@ -293,6 +293,9 @@
 #define BOOT_CONFIG_OFFSET          0x0000602C
 #define BOOT_CONFIG_REG             (SEC_CTRL_CORE_BASE + BOOT_CONFIG_OFFSET)
 
+/* For Reading efuse entries to check whether mdp needs to be disabled or not */
+#define EFUSE_OFFSET		    0x00000044
+
 #define SECURITY_CONTROL_CORE_FEATURE_CONFIG0    0x0005E004
 /* EBI2 */
 #define TLMM_EBI2_EMMC_GPIO_CFG     (TLMM_BASE_ADDR + 0x00111000)

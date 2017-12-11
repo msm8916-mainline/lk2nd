@@ -397,6 +397,10 @@ __WEAK uint32_t target_get_pmic()
 	return PMIC_IS_UNKNOWN;
 }
 
+__WEAK bool is_display_disabled()
+{
+	return false;
+}
 /* Check battery if it's exist */
 bool target_battery_is_present()
 {

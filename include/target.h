@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008 Travis Geiselbrecht
  *
- * Copyright (c) 2013-2016, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2013-2017, The Linux Foundation. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -98,6 +98,7 @@ void target_crypto_init_params(void);
 int target_cont_splash_screen(void);
 bool target_build_variant_user();
 void pmic_reset_configure(uint8_t reset_type);
+bool is_display_disabled(void);
 
 struct qmp_reg *target_get_qmp_settings();
 int target_get_qmp_regsize();
