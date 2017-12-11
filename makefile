@@ -141,6 +141,13 @@ else
   DEFINES += USE_LE_SYSTEMD=0
 endif
 
+#Enable kaslr seed support
+ifeq ($(ENABLE_KASLRSEED),1)
+  DEFINES += ENABLE_KASLRSEED_SUPPORT=1
+else
+  DEFINES += ENABLE_KASLRSEED_SUPPORT=0
+endif
+
 # these need to be filled out by the project/target/platform rules.mk files
 TARGET :=
 PLATFORM :=
