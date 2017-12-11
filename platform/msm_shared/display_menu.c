@@ -130,6 +130,8 @@ static void wait_for_exit()
 
 void wait_for_users_action()
 {
+	if (is_display_disabled())
+		return;
 	/* Waiting for exit menu keys detection if there is no any usr action
 	 * otherwise it will do the action base on the keys detection thread
 	 */
@@ -140,6 +142,9 @@ void exit_menu_keys_detection()
 {
 	struct select_msg_info *select_msg;
 	select_msg = &msg_info;
+
+	if (is_display_disabled())
+		return;
 
 	mutex_acquire(&select_msg->msg_lock);
 	select_msg->info.is_exit = true;
@@ -476,6 +481,9 @@ void display_unlock_menu(int type)
 	struct select_msg_info *unlock_menu_msg_info;
 	unlock_menu_msg_info = &msg_info;
 
+	if (is_display_disabled())
+		return;
+
 	set_message_factor();
 
 	msg_lock_init();
@@ -496,6 +504,9 @@ void display_fastboot_menu()
 {
 	struct select_msg_info *fastboot_menu_msg_info;
 	fastboot_menu_msg_info = &msg_info;
+
+	if (is_display_disabled())
+		return;
 
 	set_message_factor();
 
@@ -523,6 +534,9 @@ void display_bootverify_menu(int type)
 {
 	struct select_msg_info *bootverify_menu_msg_info;
 	bootverify_menu_msg_info = &msg_info;
+
+	if (is_display_disabled())
+		return;
 
 	set_message_factor();
 

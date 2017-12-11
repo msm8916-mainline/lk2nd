@@ -1,4 +1,4 @@
-/* Copyright (c) 2011, 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011, 2014, 2017, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -29,10 +29,35 @@
 
 #include <dev/fbcon.h>
 #include <msm_panel.h>
+#include <platform/iomap.h>
+#include <smem.h>
 
 //TODO: Make a global PASS / FAIL define
 #define PASS                        0
 #define FAIL                        1
+
+#define EFUSE_ENTRY(addr,off,s, m, sh,id) \
+{\
+	.start_address =addr,\
+	.offset = off, \
+	.size   = s,\
+	.mask   = m,\
+	.shift  = sh,\
+	.board_id = id \
+}
+
+struct mdp_efuse_data {
+	uint32_t start_address;
+	uint32_t offset;
+	uint32_t size;
+	uint32_t mask;
+	uint32_t shift;
+	uint32_t board_id;
+};
+
+static struct mdp_efuse_data efuse_data[]= {
+        EFUSE_ENTRY(SEC_CTRL_CORE_BASE, EFUSE_OFFSET, 4, 0x20000000, 0x1D, APQ8009),
+};
 
 int mdp_setup_dma_p_video_mode(unsigned short disp_width,
 			       unsigned short disp_height,
@@ -58,3 +83,5 @@ int mdp_get_revision();
 int mdp_edp_config(struct msm_panel_info *pinfo, struct fbcon_config *fb);
 int mdp_edp_on(struct msm_panel_info *pinfo);
 int mdp_edp_off(void);
+bool display_efuse_check(void);
+void efuse_display_enable(char *pbuf, uint16_t buf_size);
