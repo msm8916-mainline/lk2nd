@@ -159,10 +159,14 @@ void target_early_init(void)
 	/* Do not intilaise UART in case the h/w
 	* is RCM.
 	*/
-	if( board_hardware_id()!= HW_PLATFORM_RCM )
-		uart_dm_init(1, 0, BLSP1_UART0_BASE);
-	else
+	uint32_t platform_subtype = board_hardware_subtype();
+
+	if( board_hardware_id() == HW_PLATFORM_RCM )
 		return;
+	else if ( platform_subtype == HW_PLATFORM_SUBTYPE_8909_PM660_V1)
+		uart_dm_init(2, 0, BLSP1_UART1_BASE);
+	else
+		uart_dm_init(1, 0, BLSP1_UART0_BASE);
 #endif
 
 }
