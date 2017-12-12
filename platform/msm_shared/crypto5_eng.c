@@ -361,16 +361,18 @@ void crypto5_set_ctx(struct crypto_dev *dev,
 	crypto_SHA1_ctx *sha1_ctx = (crypto_SHA1_ctx *) ctx_ptr;
 	uint32_t i = 0;
 	uint32_t iv_len = 0;
-	uint32_t *auth_iv = sha1_ctx->auth_iv;
+	uint32_t *auth_iv = NULL;
 	uint32_t seg_cfg_val;
 
 	if(auth_alg == CRYPTO_AUTH_ALG_SHA1)
 	{
 		iv_len = SHA1_INIT_VECTOR_SIZE;
+		auth_iv = sha1_ctx->auth_iv;
 	}
 	else if(auth_alg == CRYPTO_AUTH_ALG_SHA256)
 	{
 		iv_len = SHA256_INIT_VECTOR_SIZE;
+		auth_iv = sha256_ctx->auth_iv;
 	}
 
 	seg_cfg_val = crypto5_get_sha_cfg(ctx_ptr, auth_alg);
