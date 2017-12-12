@@ -356,10 +356,12 @@ void target_baseband_detect(struct board_data *board)
 	switch(platform) {
 	case MSM8953:
 	case SDM450:
+	case SDM632:
 		board->baseband = BASEBAND_MSM;
 		break;
 	case APQ8053:
 	case SDA450:
+	case SDA632:
 		board->baseband = BASEBAND_APQ;
 		break;
 	default:

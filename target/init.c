@@ -286,6 +286,8 @@ uint32_t target_ddr_cfg_reg()
 		case APQ8053:
 		case SDM450:
 		case SDA450:
+		case SDM632:
+		case SDA632:
 		/* SDCC HC DDR CONFIG has shifted by 4 bytes for these platform */
 			ret += 4;
 			break;
@@ -364,6 +366,8 @@ void get_vibration_type(struct qpnp_hap *config)
 		case APQ8053:
 		case SDM450:
 		case SDA450:
+		case SDM632:
+		case SDA632:
 			config->vib_type = VIB_LRA_TYPE;
 			config->hap_rate_cfg1 = QPNP_HAP_RATE_CFG1_41;
 			config->hap_rate_cfg2 = QPNP_HAP_RATE_CFG2_03;
