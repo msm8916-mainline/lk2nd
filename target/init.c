@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008 Travis Geiselbrecht
  *
- * Copyright (c) 2015-2017, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2015-2018, The Linux Foundation. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -481,7 +481,7 @@ uint32_t target_get_battery_voltage()
 			buff[1] = REG_READ(BATT_INFO_VBATT_MSB);
 			temp = buff[1] << 8 | buff[0];
 			/* {MSB,LSB} to decode the voltage level, refer register description. */
-			vbat = (((uint32_t)temp)*BATT_VOLTAGE_NUMR/BATT_VOLTAGE_DENR);
+			vbat = (((uint64_t)temp)*BATT_VOLTAGE_NUMR/BATT_VOLTAGE_DENR);
 			break;
 		default:
 			dprintf(CRITICAL, "ERROR: Couldn't get the pmic type\n");
