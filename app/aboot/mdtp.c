@@ -1,4 +1,4 @@
-/* Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2017, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -74,7 +74,6 @@ uint32_t g_mdtp_version = (((MDTP_MAJOR_VERSION << 16) & 0xFFFF0000) | (MDTP_MIN
 static int is_mdtp_activated = -1;
 
 extern int check_aboot_addr_range_overlap(uintptr_t start, uint32_t size);
-int scm_random(uint32_t * rbuf, uint32_t  r_len);
 void free_mdtp_image(void);
 
 /********************************************************************************/
@@ -282,7 +281,7 @@ static int verify_partition_block_hash(char *name,
 	{
 		if (*force_verify_block == 0)
 		{
-			if(scm_random((uint32_t *)&rand_int, sizeof(rand_int)))
+			if(scm_random((uintptr_t *)&rand_int, sizeof(rand_int)))
 			{
 				dprintf(CRITICAL,"mdtp: scm_call for random failed\n");
 				return -1;
