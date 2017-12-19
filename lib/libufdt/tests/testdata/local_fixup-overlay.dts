@@ -1,0 +1,8 @@
+/dts-v1/;
+/plugin/;
+
+&a {
+  c: c{
+    d{ interrupt_parent = <&c>; };
+  };
+};
