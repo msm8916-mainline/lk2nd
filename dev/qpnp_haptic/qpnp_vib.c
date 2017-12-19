@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, 2017-2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2018, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -9,7 +9,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of The Linux Foundation, Inc. nor the names of its
+ *   * Neither the name of The Linux Foundation nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -25,20 +25,22 @@
  * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef __DEV_PMIC_VIB_VIBRATOR_H
-#define __DEV_PMIC_VIB_VIBRATOR_H
 
-#define QPNP_VIB_EN_CTL             0x1c046
-#define QPNP_VIB_VTG_CTL            0x1c041
-#define QPNP_VIB_VTG_SET_MASK       0x1F
-#define QPNP_VIB_DEFAULT_VTG_LVL    22
+#include <pm_vib.h>
+#include <board.h>
 
-void pm_vib_turn_on(void);
-void pm_vib_turn_off(void);
+void pm_vib_turn_on()
+{
+	if ((board_pmic_target(1) & 0xffff) == PMIC_IS_PMI632)
+		pm_vib_ldo_turn_on();
+	else
+		pm_haptic_vib_turn_on();
+}
 
-void pm_vib_ldo_turn_on(void);
-void pm_vib_ldo_turn_off(void);
-
-void pm_haptic_vib_turn_on(void);
-void pm_haptic_vib_turn_off(void);
-#endif/* __DEV_PMIC_VIB_VIBRATOR_H */
+void pm_vib_turn_off()
+{
+	if ((board_pmic_target(1) & 0xffff) == PMIC_IS_PMI632)
+		pm_vib_ldo_turn_off();
+	else
+		pm_haptic_vib_turn_off();
+}
