@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2015,2017 The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2015,2017-2018 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -37,14 +37,39 @@
 #include <board.h>
 #include <list.h>
 #include <kernel/thread.h>
+#include <kernel/event.h>
 #include <target.h>
 #include <partial_goods.h>
 #include <boot_device.h>
 #include <platform.h>
 #include <scm.h>
+#include <partition_parser.h>
+#include <libufdt_sysdeps.h>
+#include <ufdt_overlay.h>
 
 #define BOOT_DEV_MAX_LEN        64
 #define NODE_PROPERTY_MAX_LEN   64
+#define ADD_OF(a, b) (UINT_MAX - b > a) ? (a + b) : UINT_MAX
+#define ADDR_ALIGNMENT 16
+/** 512KB stack **/
+#define DTBO_STACK_SIZE (524288)
+#define MAX_DTBO_SZ 2097152
+
+static bool  dtbo_needed = true;
+static void *board_dtb = NULL;
+static void *soc_dtb = NULL;
+static void *soc_dtb_hdr = NULL;
+static void *final_dtb_hdr = NULL;
+static event_t dtbo_event;
+
+typedef enum dtbo_error
+{
+	DTBO_ERROR = 0,
+	DTBO_NOT_SUPPORTED = 1,
+	DTBO_SUCCESS = 2
+}dtbo_error;
+
+dtbo_error ret = DTBO_SUCCESS;
 
 struct dt_entry_v1
 {
@@ -132,6 +157,512 @@ static struct dt_entry_node *dt_entry_list_init(void)
 
 	memset(dt_node_member->dt_entry_m ,0 ,sizeof(struct dt_entry));
 	return dt_node_member;
+}
+
+/*
+ * Function to validate dtbo image.
+ * return: TRUE or FALSE.
+ */
+dtbo_error load_validate_dtbo_image(void **dtbo_buf)
+{
+	uint64_t dtbo_total_size = 0;
+	void *dtbo_image_buf = NULL;
+	unsigned int dtbo_image_buf_size;
+	unsigned int dtbo_partition_size;
+	unsigned long long ptn, ptn_size, boot_img_sz;
+	int index = INVALID_PTN;
+	int page_size = mmc_page_size();
+	struct dtbo_table_hdr *dtbo_table_header = NULL;
+	dtbo_error ret = DTBO_SUCCESS;
+
+	/* Immediately return if dtbo is not supported */
+	index = partition_get_index("dtbo");
+	if (index == INVALID_PTN)
+	{
+		ret = DTBO_NOT_SUPPORTED;
+		goto out;
+	}
+
+	ptn = partition_get_offset(index);
+	if(!ptn)
+	{
+		dprintf(CRITICAL, "ERROR: dtbo parition failed to get offset. \n");
+		ret = DTBO_ERROR;
+		goto out;
+	}
+
+	ptn_size = partition_get_size(index);
+	if (ptn_size > DTBO_IMG_BUF)
+	{
+		dprintf(CRITICAL, "ERROR: dtbo parition size is greater than supported.\n");
+		ret = DTBO_ERROR;
+		goto out;
+	}
+
+/*
+	Read dtbo image into scratch region after kernel image.
+	dtbo_image_buf_size = total_scratch_region_size - boot_img_sz
+*/
+	boot_img_sz = partition_get_size(partition_get_index("boot"));
+	if (!boot_img_sz)
+	{
+		dprintf(CRITICAL, "ERROR: Unable to get boot partition size\n");
+		ret = DTBO_NOT_SUPPORTED;
+		goto out;
+	}
+
+	dtbo_image_buf_size = target_get_max_flash_size() - boot_img_sz;
+	dtbo_partition_size = ptn_size + ADDR_ALIGNMENT;
+	dtbo_partition_size = ROUND_TO_PAGE(dtbo_partition_size, (page_size - 1)); /* Maximum dtbo size possible */
+	if (dtbo_partition_size == UINT_MAX ||
+		dtbo_image_buf_size < dtbo_partition_size)
+	{
+		dprintf(CRITICAL, "ERROR: Invalid DTBO partition size\n");
+		ret = DTBO_NOT_SUPPORTED;
+		goto out;
+	}
+
+	mmc_set_lun(partition_get_lun(index));
+	dtbo_image_buf = target_get_scratch_address() + boot_img_sz; /* read dtbo after boot.img */
+	dtbo_image_buf = (void *)ROUND_TO_PAGE((addr_t)dtbo_image_buf, (ADDR_ALIGNMENT-1) );
+	if(dtbo_image_buf == (void *)UINT_MAX)
+	{
+		dprintf(CRITICAL, "ERROR: Invalid DTBO image buf addr\n");
+		ret = DTBO_NOT_SUPPORTED;
+		goto out;
+	}
+
+	/* Read dtbo partition with header */
+	if (mmc_read(ptn, (uint32_t *)(dtbo_image_buf), dtbo_partition_size))
+	{
+		dprintf(CRITICAL, "ERROR: dtbo partition mmc read failure \n");
+		ret = DTBO_ERROR;
+		goto out;
+	}
+
+	/* validate the dtbo image, before reading complete image */
+	dtbo_table_header = (struct dtbo_table_hdr *)dtbo_image_buf;
+
+	/*Check for dtbo magic*/
+	if (fdt32_to_cpu(dtbo_table_header->magic) != DTBO_TABLE_MAGIC)
+	{
+		dprintf(CRITICAL, "dtbo header magic mismatch %x, with %x\n",
+			fdt32_to_cpu(dtbo_table_header->magic), DTBO_TABLE_MAGIC);
+		ret = DTBO_ERROR;
+		goto out;
+	}
+
+	/*Check for dtbo image table size*/
+	if (fdt32_to_cpu(dtbo_table_header->hdr_size) != sizeof(struct dtbo_table_hdr))
+	{
+		dprintf(CRITICAL, "dtbo table header size got corrupted\n");
+		ret = DTBO_ERROR;
+		goto out;
+	}
+
+	/*Check for dt entry size of dtbo image*/
+	if (fdt32_to_cpu(dtbo_table_header->dt_entry_size) != sizeof(struct dtbo_table_entry))
+	{
+		dprintf(CRITICAL, "dtbo table dt entry size got corrupted\n");
+		ret = DTBO_ERROR;
+		goto out;
+	}
+
+	/*Total size of dtbo */
+	dtbo_total_size = fdt32_to_cpu(dtbo_table_header->total_size);
+	if (dtbo_total_size > dtbo_partition_size || dtbo_total_size == 0)
+	{
+		dprintf(CRITICAL, "dtbo table total size exceeded the dtbo buffer allocated\n");
+		ret = DTBO_ERROR;
+		goto out;
+	}
+
+	/* Total size of dtbo entries */
+	dtbo_total_size = fdt32_to_cpu(dtbo_table_header->dt_entry_count) *
+				fdt32_to_cpu(dtbo_table_header->dt_entry_size);
+	if (dtbo_total_size > dtbo_partition_size || dtbo_total_size == 0)
+	{
+		dprintf(CRITICAL, "dtbo table total size exceeded the dtbo buffer allocated\n");
+		ret = DTBO_ERROR;
+		goto out;
+	}
+
+	/* Offset should be less than image size */
+	if (fdt32_to_cpu(dtbo_table_header->dt_entry_offset) > dtbo_partition_size)
+	{
+		dprintf(CRITICAL, "dtbo offset exceeds the dtbo buffer allocated\n");
+		ret = DTBO_ERROR;
+		goto out;
+	}
+
+	/* Offset + total size is less than image size */
+	if (dtbo_total_size + fdt32_to_cpu(dtbo_table_header->dt_entry_offset) > dtbo_partition_size)
+	{
+		dprintf(CRITICAL, "dtbo size exceeded the dtbo buffer allocated\n");
+		ret = DTBO_ERROR;
+	}
+
+out:
+	*dtbo_buf = dtbo_image_buf;
+	return ret;
+}
+
+static bool check_all_bits_set(uint32_t matchdt_value)
+{
+	return (matchdt_value & ALL_BITS_SET) == (ALL_BITS_SET);
+}
+
+/* Dt selection table for quick reference
+  | SNO | Dt Property   | CDT Property    | Exact | Best | Default |
+  |-----+---------------+-----------------+-------+------+---------+
+  |     | qcom, msm-id  |                 |       |      |         |
+  |     |               | PlatformId      | Y     | N    | N       |
+  |     |               | SocRev          | N     | Y    | N       |
+  |     |               | FoundryId       | Y     | N    | 0       |
+  |     | qcom,board-id |                 |       |      |         |
+  |     |               | VariantId       | Y     | N    | N       |
+  |     |               | VariantMajor    | N     | Y    | N       |
+  |     |               | VariantMinor    | N     | Y    | N       |
+  |     |               | PlatformSubtype | Y     | N    | 0       |
+  |     | qcom,pmic-id  |                 |       |      |         |
+  |     |               | PmicModelId     | Y     | N    | 0       |
+  |     |               | PmicMetalRev    | N     | Y    | N       |
+  |     |               | PmicLayerRev    | N     | Y    | N       |
+  |     |               | PmicVariantRev  | N     | Y    | N       |
+*/
+
+static void dtb_read_find_match(dt_info *current_dtb_info, dt_info *best_dtb_info, uint32_t exact_match)
+{
+	int board_id_len;
+	int platform_id_len = 0;
+	int pmic_id_len;
+	int root_offset = 0;
+	void *dtb = current_dtb_info->dtb;
+	uint32_t idx;
+	const char *platform_prop = NULL;
+	const char *board_prop = NULL;
+	const char *pmic_prop = NULL;
+
+	current_dtb_info->dt_match_val = 0;
+	root_offset = fdt_path_offset(dtb, "/");
+	if (root_offset < 0) {
+		dprintf(CRITICAL, "ERROR: Unable to locate root node\n");
+		return;
+	}
+
+	/* Get the msm-id prop from DTB and find best match */
+	platform_prop = (const char *)fdt_getprop(dtb, root_offset, "qcom,msm-id", &platform_id_len);
+	if (platform_prop && (platform_id_len > 0) && (!(platform_id_len % PLAT_ID_SIZE))) {
+		/*Compare msm-id of the dtb vs board*/
+		current_dtb_info->dt_platform_id = fdt32_to_cpu(((struct plat_id *)platform_prop)->platform_id);
+		dprintf(SPEW, "Board SOC ID = %x | DT SOC ID = %x\n", (board_platform_id() & SOC_MASK),
+								(current_dtb_info->dt_platform_id & SOC_MASK));
+		if ((board_platform_id() & SOC_MASK) == (current_dtb_info->dt_platform_id & SOC_MASK)) {
+			current_dtb_info->dt_match_val |= BIT(SOC_MATCH);
+		} else {
+			dprintf(SPEW, "qcom,msm-id does not match\n");
+			 /* If soc doesn't match, don't select dtb */
+			current_dtb_info->dt_match_val = BIT(NONE_MATCH);
+			goto cleanup;
+		}
+		/*Compare soc rev of the dtb vs board*/
+		current_dtb_info->dt_soc_rev = fdt32_to_cpu(((struct plat_id *)platform_prop)->soc_rev);
+		dprintf(SPEW, "Board SOC Rev = %x | DT SOC Rev =%x\n",  board_soc_version(),
+									current_dtb_info->dt_soc_rev);
+		if (current_dtb_info->dt_soc_rev ==  board_soc_version()) {
+			current_dtb_info->dt_match_val |= BIT(VERSION_EXACT_MATCH);
+		} else if (current_dtb_info->dt_soc_rev <  board_soc_version()) {
+			current_dtb_info->dt_match_val |= BIT(VERSION_BEST_MATCH);
+		} else if (current_dtb_info->dt_soc_rev) {
+			dprintf(SPEW, "SOC version does not match\n");
+		}
+		/*Compare Foundry Id of the dtb vs Board*/
+		current_dtb_info->dt_foundry_id = fdt32_to_cpu(((struct plat_id *)platform_prop)->platform_id) & FOUNDRY_ID_MASK;
+		dprintf (SPEW, "Board Foundry id = %x | DT Foundry id = %x\n", (board_foundry_id() << PLATFORM_FOUNDRY_SHIFT), current_dtb_info->dt_foundry_id);
+		if (current_dtb_info->dt_foundry_id == (board_foundry_id() << PLATFORM_FOUNDRY_SHIFT)) {
+			current_dtb_info->dt_match_val |= BIT (FOUNDRYID_EXACT_MATCH);
+		} else if (current_dtb_info->dt_foundry_id == 0 ){
+			current_dtb_info->dt_match_val |= BIT (FOUNDRYID_DEFAULT_MATCH);
+		} else {
+			dprintf(SPEW, "soc foundry does not match\n");
+			/* If soc doesn't match, don't select dtb */
+			current_dtb_info->dt_match_val = BIT(NONE_MATCH);
+			goto cleanup;
+		}
+	} else {
+		dprintf(SPEW, "qcom,msm-id does not exist (or) is (%d) not a multiple of (%d)\n", platform_id_len, PLAT_ID_SIZE);
+	}
+
+	/* Get the properties like variant id, subtype from DTB and compare the DTB vs Board */
+	board_prop = (const char *)fdt_getprop(dtb, root_offset, "qcom,board-id", &board_id_len);
+	if (board_prop && (board_id_len > 0) && (!(board_id_len % BOARD_ID_SIZE))) {
+		current_dtb_info->dt_variant_id = fdt32_to_cpu(((struct board_id *)board_prop)->variant_id);
+		current_dtb_info->dt_platform_subtype = fdt32_to_cpu(((struct board_id *)board_prop)->platform_subtype);
+		if (current_dtb_info->dt_platform_subtype == 0)
+			current_dtb_info->dt_platform_subtype = fdt32_to_cpu(((struct board_id *)board_prop)->variant_id) >> PLATFORM_SUBTYPE_SHIFT_ID;
+
+		dprintf(SPEW, "Board variant id = %x | DT variant id = %x\n",board_hardware_id(), current_dtb_info->dt_variant_id);
+
+		current_dtb_info->dt_variant_major = current_dtb_info->dt_variant_id & VARIANT_MAJOR_MASK;
+		current_dtb_info->dt_variant_minor = current_dtb_info->dt_variant_id & VARIANT_MINOR_MASK;
+		current_dtb_info->dt_variant_id = current_dtb_info->dt_variant_id & VARIANT_MASK;
+
+		if (current_dtb_info->dt_variant_id == board_hardware_id()) {
+			current_dtb_info->dt_match_val |= BIT(VARIANT_MATCH);
+		} else if (current_dtb_info->dt_variant_id) {
+			dprintf(SPEW, "qcom,board-id doesnot match\n");
+			/* If board variant doesn't match, don't select dtb */
+			current_dtb_info->dt_match_val = BIT(NONE_MATCH);
+			goto cleanup;
+		}
+
+		if (current_dtb_info->dt_variant_major == (board_target_id() & VARIANT_MAJOR_MASK)) {
+			current_dtb_info->dt_match_val |= BIT(VARIANT_MAJOR_EXACT_MATCH);
+		} else if (current_dtb_info->dt_variant_major < (board_target_id() & VARIANT_MAJOR_MASK)) {
+			current_dtb_info->dt_match_val |= BIT(VARIANT_MAJOR_BEST_MATCH);
+		} else if (current_dtb_info->dt_variant_major) {
+			dprintf(SPEW, "qcom,board-id major version doesnot match\n");
+		}
+
+		if (current_dtb_info->dt_variant_minor == (board_target_id() & VARIANT_MINOR_MASK)) {
+			current_dtb_info->dt_match_val |= BIT(VARIANT_MINOR_EXACT_MATCH);
+		} else if (current_dtb_info->dt_variant_minor < (board_target_id() & VARIANT_MINOR_MASK)) {
+			current_dtb_info->dt_match_val |= BIT(VARIANT_MINOR_BEST_MATCH);
+		} else if (current_dtb_info->dt_variant_minor) {
+			dprintf(SPEW, "qcom,board-id minor version doesnot match\n");
+		}
+
+		dprintf(SPEW, "Board platform subtype = %x | DT platform subtype = %x\n",
+					board_hardware_subtype(), current_dtb_info->dt_platform_subtype);
+		if (current_dtb_info->dt_platform_subtype == board_hardware_subtype()) {
+			current_dtb_info->dt_match_val |= BIT(SUBTYPE_EXACT_MATCH);
+		} else if (current_dtb_info->dt_platform_subtype == 0) {
+			current_dtb_info->dt_match_val |= BIT(SUBTYPE_DEFAULT_MATCH);
+		} else if (current_dtb_info->dt_platform_subtype) {
+			dprintf(SPEW, "subtype id doesnot match\n");
+			/* If board platform doesn't match, don't select dtb */
+			current_dtb_info->dt_match_val = BIT(NONE_MATCH);
+			goto cleanup;
+		}
+	} else {
+		dprintf(SPEW, "qcom,board-id does not exist (or)(%d) is not a multiple of (%d)\n",
+									board_id_len, BOARD_ID_SIZE);
+	}
+
+	/* Get the pmic property from DTB then compare the DTB vs Board */
+	pmic_prop = (const char *)fdt_getprop(dtb, root_offset, "qcom,pmic-id", &pmic_id_len);
+	if (pmic_prop && (pmic_id_len > 0) && (!(pmic_id_len % sizeof(struct pmic_id))))
+	{
+		pmic_info curr_pmic_info;
+		pmic_info best_pmic_info;
+		unsigned int pmic_entry_indx;
+		unsigned int pmic_entries_count;
+
+		/* Find all pmic entries count */
+		pmic_entries_count = pmic_id_len/sizeof(struct pmic_id);
+
+		memset(&best_pmic_info, 0, sizeof(pmic_info));
+		for (pmic_entry_indx = 0; pmic_entry_indx < pmic_entries_count; pmic_entry_indx++)
+		{
+			memset(&curr_pmic_info, 0, sizeof(pmic_info));
+
+			/* Read all pmic info */
+			/* Compare with board pmic */
+			for (idx = 0; idx < MAX_PMIC_IDX; idx++)
+			{
+				curr_pmic_info.dt_pmic_model[idx] =
+					fdt32_to_cpu (((struct pmic_id *)pmic_prop)->pmic_version[idx]);
+				dprintf(SPEW, "pmic_data[%u]:%x\n", idx, curr_pmic_info.dt_pmic_model[idx]);
+				curr_pmic_info.dt_pmic_rev[idx] =
+					curr_pmic_info.dt_pmic_model[idx] & PMIC_REV_MASK;
+				curr_pmic_info.dt_pmic_model[idx] =
+					curr_pmic_info.dt_pmic_model[idx] & PMIC_MODEL_MASK;
+
+				/* Compare with board pmic information & Update bit mask */
+				if (curr_pmic_info.dt_pmic_model[idx] == (board_pmic_target(idx) & PMIC_MODEL_MASK))
+					curr_pmic_info.dt_match_val |= BIT (PMIC_MATCH_EXACT_MODEL_IDX0 + idx * PMIC_SHIFT_IDX);
+				else if (curr_pmic_info.dt_pmic_model[idx] == 0)
+					curr_pmic_info.dt_match_val |= BIT (PMIC_MATCH_DEFAULT_MODEL_IDX0 + idx * PMIC_SHIFT_IDX);
+				else
+				{
+					curr_pmic_info.dt_match_val |= BIT (NONE_MATCH);
+					dprintf(SPEW, "PMIC Model doesn't match\n");
+					break; /* go to next pmic entry */
+				}
+
+				if (curr_pmic_info.dt_pmic_rev[idx] == (board_pmic_target(idx) & PMIC_REV_MASK))
+					curr_pmic_info.dt_match_val |= BIT(PMIC_MATCH_EXACT_REV_IDX0 + idx * PMIC_SHIFT_IDX);
+				else if (curr_pmic_info.dt_pmic_rev[idx] < (board_pmic_target(idx) & PMIC_REV_MASK))
+					curr_pmic_info.dt_match_val |= BIT(PMIC_MATCH_BEST_REV_IDX0 + idx * PMIC_SHIFT_IDX);
+				else
+					dprintf(SPEW, "PMIC revision doesn't match\n");
+					break; /* go to next pmic entry */
+			}
+
+			dprintf(SPEW, "Bestpmicinfo.dtmatchval : %x | cur_pmic_info.dtmatchval: %x\n",
+				best_pmic_info.dt_match_val, curr_pmic_info.dt_match_val);
+
+			/* Update best pmic info, if required */
+			if(best_pmic_info.dt_match_val < curr_pmic_info.dt_match_val)
+				memscpy(&best_pmic_info, sizeof(pmic_info), &curr_pmic_info, sizeof(pmic_info));
+			else if (best_pmic_info.dt_match_val == curr_pmic_info.dt_match_val)
+			{
+				if (best_pmic_info.dt_pmic_rev[PMIC_IDX0] < curr_pmic_info.dt_pmic_rev[PMIC_IDX0])
+					memscpy(&best_pmic_info, sizeof(pmic_info), &curr_pmic_info, sizeof(pmic_info));
+				else if (best_pmic_info.dt_pmic_rev[PMIC_IDX1] < curr_pmic_info.dt_pmic_rev[PMIC_IDX1])
+					memscpy(&best_pmic_info, sizeof(pmic_info), &curr_pmic_info, sizeof(pmic_info));
+				else if (best_pmic_info.dt_pmic_rev[PMIC_IDX2] < curr_pmic_info.dt_pmic_rev[PMIC_IDX2])
+					memscpy(&best_pmic_info, sizeof(pmic_info), &curr_pmic_info, sizeof(pmic_info));
+				else if (best_pmic_info.dt_pmic_rev[PMIC_IDX3] < curr_pmic_info.dt_pmic_rev[PMIC_IDX3])
+					memscpy(&best_pmic_info, sizeof(pmic_info), &curr_pmic_info, sizeof(pmic_info));
+			}
+
+			/* Increment to next pmic entry */
+			pmic_prop += sizeof (struct pmic_id);
+		}
+
+		dprintf(SPEW, "Best pmic info 0x%0x/0x%x/0x%x/0x%0x for current dt\n",
+					best_pmic_info.dt_pmic_model[PMIC_IDX0],
+					best_pmic_info.dt_pmic_model[PMIC_IDX1],
+					best_pmic_info.dt_pmic_model[PMIC_IDX2],
+					best_pmic_info.dt_pmic_model[PMIC_IDX3]);
+
+		current_dtb_info->dt_match_val |= best_pmic_info.dt_match_val;
+		current_dtb_info->dt_pmic_rev[PMIC_IDX0] = best_pmic_info.dt_pmic_rev[PMIC_IDX0];
+		current_dtb_info->dt_pmic_model[PMIC_IDX0] = best_pmic_info.dt_pmic_model[PMIC_IDX0];
+		current_dtb_info->dt_pmic_rev[PMIC_IDX1] = best_pmic_info.dt_pmic_rev[PMIC_IDX1];
+		current_dtb_info->dt_pmic_model[PMIC_IDX1] = best_pmic_info.dt_pmic_model[PMIC_IDX1];
+		current_dtb_info->dt_pmic_rev[PMIC_IDX2] = best_pmic_info.dt_pmic_rev[PMIC_IDX2];
+		current_dtb_info->dt_pmic_model[PMIC_IDX2] = best_pmic_info.dt_pmic_model[PMIC_IDX2];
+		current_dtb_info->dt_pmic_rev[PMIC_IDX3] = best_pmic_info.dt_pmic_rev[PMIC_IDX3];
+		current_dtb_info->dt_pmic_model[PMIC_IDX3] = best_pmic_info.dt_pmic_model[PMIC_IDX3];
+	}
+	else
+	{
+		dprintf(SPEW, "qcom,pmic-id does not exit (or) is (%d) not a multiple of (%d)\n",
+										pmic_id_len, PMIC_ID_SIZE);
+	}
+
+cleanup:
+	if (current_dtb_info->dt_match_val & BIT(exact_match)) {
+		if (best_dtb_info->dt_match_val < current_dtb_info->dt_match_val)
+			memscpy(best_dtb_info, sizeof(dt_info), current_dtb_info, sizeof(dt_info));
+		else if (best_dtb_info->dt_match_val == current_dtb_info->dt_match_val) {
+			if (best_dtb_info->dt_soc_rev < current_dtb_info->dt_soc_rev)
+				memscpy(best_dtb_info, sizeof(dt_info), current_dtb_info, sizeof(dt_info));
+			else if (best_dtb_info->dt_variant_major < current_dtb_info->dt_variant_major)
+				memscpy(best_dtb_info, sizeof(dt_info), current_dtb_info, sizeof(dt_info));
+			else if (best_dtb_info->dt_variant_minor < current_dtb_info->dt_variant_minor)
+				memscpy(best_dtb_info, sizeof(dt_info), current_dtb_info, sizeof(dt_info));
+			else if (best_dtb_info->dt_pmic_rev[0] < current_dtb_info->dt_pmic_rev[0])
+				memscpy(best_dtb_info, sizeof(dt_info), current_dtb_info, sizeof(dt_info));
+			else if (best_dtb_info->dt_pmic_rev[1] < current_dtb_info->dt_pmic_rev[1])
+				memscpy(best_dtb_info, sizeof(dt_info), current_dtb_info, sizeof(dt_info));
+			else if (best_dtb_info->dt_pmic_rev[2] < current_dtb_info->dt_pmic_rev[2])
+				memscpy(best_dtb_info, sizeof(dt_info), current_dtb_info, sizeof(dt_info));
+			else if (best_dtb_info->dt_pmic_rev[3] < current_dtb_info->dt_pmic_rev[3])
+				memscpy(best_dtb_info, sizeof(dt_info), current_dtb_info, sizeof(dt_info));
+		}
+	}
+}
+
+void *get_soc_dtb(void *kernel, uint32_t kernel_size, uint32_t dtb_offset)
+{
+	uintptr_t kernel_end_offset = (uintptr_t)kernel + kernel_size;
+	void *dtb = NULL;
+	struct fdt_header dtb_header;
+	uint32_t dtb_size = 0;
+	dt_info cur_dtb_info = {0};
+	dt_info best_dtb_info = {0};
+
+	if (!dtb_offset){
+		dprintf(CRITICAL, "DTB offset is NULL\n");
+		return NULL;
+	}
+	if (((uintptr_t)kernel + (uintptr_t)dtb_offset) < (uintptr_t)kernel) {
+		return NULL;
+	}
+	dtb = kernel + dtb_offset;
+	while (((uintptr_t)dtb + sizeof(struct fdt_header)) < (uintptr_t)kernel_end_offset) {
+		/* the DTB could be unaligned, so extract the header,
+		 * and operate on it separately */
+		memscpy(&dtb_header, sizeof(struct fdt_header), dtb, sizeof(struct fdt_header));
+		dtb_size = fdt_totalsize((const void *)&dtb_header);
+		if (fdt_check_header((const void *)&dtb_header) != 0 ||
+		fdt_check_header_ext((void *)&dtb_header) != 0 ||
+		((uintptr_t)dtb + dtb_size < (uintptr_t)dtb) ||
+		((uintptr_t)dtb + dtb_size > (uintptr_t)kernel_end_offset))
+		break;
+
+		cur_dtb_info.dtb = dtb;
+		dtb_read_find_match(&cur_dtb_info, &best_dtb_info, SOC_MATCH);
+		if (cur_dtb_info.dt_match_val) {
+			if (cur_dtb_info.dt_match_val & BIT(SOC_MATCH)) {
+				if (check_all_bits_set(cur_dtb_info.dt_match_val)) {
+					dprintf(CRITICAL, "Exact DTB match found. dtbo search is not required\n");
+					dtbo_needed = false;
+				}
+			}
+		}
+		dprintf(SPEW, "Best Match DTB VAL = %x\n", best_dtb_info.dt_match_val);
+		dtb += dtb_size;
+	}
+	if (!best_dtb_info.dtb) {
+		dprintf(CRITICAL, "No match found for soc dtb type\n");
+		return NULL;
+	}
+	return best_dtb_info.dtb;
+}
+
+void *get_board_dtb(void *dtbo_image_buf)
+{
+	struct dtbo_table_hdr *dtbo_table_header = dtbo_image_buf;
+	struct dtbo_table_entry *dtb_table_entry = NULL;
+	uint32_t dtbo_count = 0;
+	void *board_dtb = NULL;
+	uint32_t dtbo_table_entries_count = 0;
+	uint32_t first_dtbo_table_entry_offset = 0;
+	struct fdt_header dtb_header;
+	uint32_t dtb_size = 0;
+	dt_info cur_dtb_info = {0};
+	dt_info best_dtb_info = {0};
+
+	if (!dtbo_image_buf) {
+		dprintf(CRITICAL, "dtbo image buffer is NULL\n");
+		return NULL;
+	}
+
+	first_dtbo_table_entry_offset = fdt32_to_cpu(dtbo_table_header->dt_entry_offset);
+	if ((uintptr_t)dtbo_image_buf > ((uintptr_t)dtbo_image_buf + (uintptr_t)first_dtbo_table_entry_offset))
+	{
+		dprintf(CRITICAL, "dtbo table entry offset is invalid\n");
+		return NULL;
+	}
+	dtb_table_entry = (struct dtbo_table_entry *)(dtbo_image_buf + first_dtbo_table_entry_offset);
+	dtbo_table_entries_count = fdt32_to_cpu(dtbo_table_header->dt_entry_count);
+	for (dtbo_count = 0; dtbo_count < dtbo_table_entries_count; dtbo_count++) {
+		board_dtb = dtbo_image_buf + fdt32_to_cpu(dtb_table_entry->dt_offset);
+		/* The DTB could be unaligned, so extract the header,
+                 * and operate on it separately */
+		memscpy(&dtb_header, sizeof(struct fdt_header), board_dtb, sizeof(struct fdt_header));
+		dtb_size = fdt_totalsize((const void *)&dtb_header);
+		if (fdt_check_header((const void *)&dtb_header) != 0 ||
+			fdt_check_header_ext((void *)&dtb_header) != 0 ||
+			((uintptr_t)board_dtb + dtb_size < (uintptr_t)board_dtb)) {
+			dprintf(CRITICAL, "No valid board dtb found\n");
+	                break;
+		}
+		dprintf(SPEW, "Valid board dtb is found\n");
+		cur_dtb_info.dtb = board_dtb;
+		dtb_read_find_match(&cur_dtb_info, &best_dtb_info, VARIANT_MATCH);
+		dprintf(SPEW, "dtbo count = %u local_board_dt_match =%x\n",dtbo_count, cur_dtb_info.dt_match_val);
+		dtb_table_entry++;
+	}
+	if (!best_dtb_info.dtb) {
+		dprintf(CRITICAL, "Unable to find the board dtb\n");
+		return NULL;
+	}
+	return best_dtb_info.dtb;
 }
 
 static void insert_dt_entry_in_queue(struct dt_entry_node *dt_list, struct dt_entry_node *dt_node_member)
@@ -452,6 +983,109 @@ static int dev_tree_compatible(void *dtb, uint32_t dtb_size, struct dt_entry_nod
 	return true;
 }
 
+/* function to handle the overlay in independent thread */
+static int dtb_overlay_handler(void *args)
+{
+	dprintf(SPEW, "thread %s() started\n", __func__);
+
+	soc_dtb_hdr = ufdt_install_blob(soc_dtb, fdt_totalsize(soc_dtb));
+	if(!soc_dtb_hdr)
+	{
+		dprintf(CRITICAL, "ERROR: Install Blob failed\n");
+		ret = DTBO_ERROR;
+		goto out;
+	}
+	final_dtb_hdr = ufdt_apply_overlay(soc_dtb_hdr, fdt_totalsize(soc_dtb_hdr),board_dtb,
+							fdt_totalsize(board_dtb));
+	if (!final_dtb_hdr)
+	{
+		dprintf(CRITICAL, "ERROR: UFDT apply overlay failed\n");
+		ret = DTBO_ERROR;
+		goto out;
+	}
+out:
+	/* This flag can only be updated here, hence it is not protected */
+	event_signal(&dtbo_event, true);
+	thread_exit(0);
+	return 0;
+}
+
+/*
+ * Function to check and form new dtb with Overlay support.
+*/
+dtbo_error dev_tree_appended_with_dtbo(void *kernel, uint32_t kernel_size,
+					uint32_t dtb_offset, void *tags)
+{
+	void *dtbo_image_buf = NULL;
+
+	ret = load_validate_dtbo_image(&dtbo_image_buf);
+	if (ret == DTBO_SUCCESS)
+	{
+		final_dtb_hdr = soc_dtb = get_soc_dtb(kernel,
+						kernel_size, dtb_offset);
+		if(!soc_dtb)
+		{
+			ret = DTBO_ERROR;
+			goto out;
+		}
+
+		if (dtbo_needed)
+		{
+			board_dtb = get_board_dtb(dtbo_image_buf);
+			if(!board_dtb)
+			{
+				ret = DTBO_ERROR;
+				goto out;
+			}
+
+			if((ADD_OF((fdt_totalsize(soc_dtb)), (fdt_totalsize(board_dtb)))) > MAX_DTBO_SZ)
+			{
+				dprintf(CRITICAL, "ERROR: dtb greater than max supported.\n");
+				ret = DTBO_ERROR;
+				goto out;
+			}
+
+			/*
+			spawn a seperate thread for dtbo overlay with indpendent,
+			stack to avoid issues with stack corruption seen during flattening,
+			of dtb in overlay functionality
+			*/
+			{
+				thread_t *thr = NULL;
+				event_init(&dtbo_event, 0, EVENT_FLAG_AUTOUNSIGNAL);
+				thr = thread_create("dtb_overlay", dtb_overlay_handler, 0,
+							DEFAULT_PRIORITY, DTBO_STACK_SIZE);
+				if (!thr)
+				{
+					dprintf(CRITICAL, "ERROR: Failed to create DTBO thread.\n");
+					ret = DTBO_ERROR;
+					goto out;
+				}
+				thread_resume(thr);
+
+				/* block current thread, untill woken up by dtb_overlay_handler. */
+				event_wait(&dtbo_event);
+
+				/* ret is updated by dtb overlay thread, in case of error */
+				if(ret == DTBO_ERROR)
+				{
+					goto out;
+				}
+			} /* dtbo_overlay_handler exited */
+
+		}
+		memscpy(tags, fdt_totalsize(final_dtb_hdr), final_dtb_hdr,
+						fdt_totalsize(final_dtb_hdr));
+		dprintf(CRITICAL, "DTB overlay is successful\n");
+	}
+	else
+	{
+		dprintf(CRITICAL, "ERROR: DTBO read is not valid\n DTB Overlay failed.\n");
+		ret = DTBO_NOT_SUPPORTED;
+	}
+out:
+	return ret;
+}
 /*
  * Will relocate the DTB to the tags addr if the device tree is found and return
  * its address
@@ -474,6 +1108,14 @@ void *dev_tree_appended(void *kernel, uint32_t kernel_size, uint32_t dtb_offset,
 	struct dt_entry_node *dt_entry_queue = NULL;
 	struct dt_entry_node *dt_node_tmp1 = NULL;
 	struct dt_entry_node *dt_node_tmp2 = NULL;
+	dtbo_error ret = DTBO_NOT_SUPPORTED;
+
+	/* Check for dtbo support */
+	ret = dev_tree_appended_with_dtbo(kernel, kernel_size, dtb_offset, tags);
+	if (ret == DTBO_SUCCESS)
+		return tags;
+	else if (ret == DTBO_ERROR)
+		return NULL;
 
 	/* Initialize the dtb entry node*/
 	dt_entry_queue = (struct dt_entry_node *)
