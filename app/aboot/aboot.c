@@ -842,9 +842,6 @@ int check_ddr_addr_range_bound(uintptr_t start, uint32_t size)
 }
 
 BUF_DMA_ALIGN(buf, BOOT_IMG_MAX_PAGE_SIZE); //Equal to max-supported pagesize
-#if DEVICE_TREE
-BUF_DMA_ALIGN(dt_buf, BOOT_IMG_MAX_PAGE_SIZE);
-#endif
 
 static void verify_signed_bootimg(uint32_t bootimg_addr, uint32_t bootimg_size)
 {
@@ -1452,6 +1449,7 @@ int boot_linux_from_flash(void)
 	        }
 	}
 
+	/* Read boot.img header from flash */
 	if (flash_read(ptn, offset, buf, page_size)) {
 		dprintf(CRITICAL, "ERROR: Cannot read boot image header\n");
 		return -1;
@@ -1533,36 +1531,41 @@ int boot_linux_from_flash(void)
 	}
 #endif
 
+	/* Read full boot.img from flash */
+	dprintf(INFO, "Loading (%s) image (%d): start\n",
+		(!boot_into_recovery ? "boot" : "recovery"),imagesize_actual);
+	bs_set_timestamp(BS_KERNEL_LOAD_START);
+
+	if (UINT_MAX - page_size < imagesize_actual)
+	{
+		dprintf(CRITICAL,"Integer overflow detected in bootimage header fields %u %s\n", __LINE__,__func__);
+		return -1;
+	}
+
+	/*Check the availability of RAM before reading boot image + max signature length from flash*/
+	if (target_get_max_flash_size() < (imagesize_actual + page_size))
+	{
+		dprintf(CRITICAL, "bootimage  size is greater than DDR can hold\n");
+		return -1;
+	}
+
+	offset = page_size;
+	/* Read image without signature and header */
+	if (flash_read(ptn, offset, (void *)(image_addr + offset), imagesize_actual - page_size))
+	{
+		dprintf(CRITICAL, "ERROR: Cannot read boot image\n");
+			return -1;
+	}
+
+	dprintf(INFO, "Loading (%s) image (%d): done\n",
+		(!boot_into_recovery ? "boot" : "recovery"), imagesize_actual);
+	bs_set_timestamp(BS_KERNEL_LOAD_DONE);
+
 	/* Authenticate Kernel */
 	if(target_use_signed_kernel() && (!device.is_unlocked))
 	{
-		dprintf(INFO, "Loading boot image (%d): start\n", imagesize_actual);
-		bs_set_timestamp(BS_KERNEL_LOAD_START);
-
-		if (UINT_MAX - page_size < imagesize_actual)
-		{
-			dprintf(CRITICAL,"Integer overflow detected in bootimage header fields %u %s\n", __LINE__,__func__);
-			return -1;
-		}
-
-		/*Check the availability of RAM before reading boot image + max signature length from flash*/
-		if (target_get_max_flash_size() < (imagesize_actual + page_size))
-		{
-			dprintf(CRITICAL, "bootimage  size is greater than DDR can hold\n");
-			return -1;
-		}
-		offset = page_size;
-		/* Read image without signature and header*/
-		if (flash_read(ptn, offset, (void *)(image_addr + offset), imagesize_actual - page_size))
-		{
-			dprintf(CRITICAL, "ERROR: Cannot read boot image\n");
-				return -1;
-		}
-
-		dprintf(INFO, "Loading boot image (%d): done\n", imagesize_actual);
-		bs_set_timestamp(BS_KERNEL_LOAD_DONE);
-
 		offset = imagesize_actual;
+
 		/* Read signature */
 		if (flash_read(ptn, offset, (void *)(image_addr + offset), page_size))
 		{
@@ -1570,50 +1573,75 @@ int boot_linux_from_flash(void)
 			return -1;
 		}
 
-		verify_signed_bootimg(image_addr, imagesize_actual);
-
-		/* Move kernel and ramdisk to correct address */
-		memmove((void*) hdr->kernel_addr, (char*) (image_addr + page_size), hdr->kernel_size);
-		memmove((void*) hdr->ramdisk_addr, (char*) (image_addr + page_size + kernel_actual), hdr->ramdisk_size);
-#if DEVICE_TREE
-		if(dt_size != 0) {
-
-			dt_table_offset = ((uint32_t)image_addr + page_size + kernel_actual + ramdisk_actual + second_actual);
-			table = (struct dt_table*) dt_table_offset;
-			if (dev_tree_validate(table, hdr->page_size, &dt_hdr_size) != 0){
-				dprintf(CRITICAL, "ERROR: Cannot validate Device Tree Table \n");
-				return -1;
-			}
-			/* Find index of device tree within device tree table */
-			if(dev_tree_get_entry_info(table, &dt_entry) != 0){
-				dprintf(CRITICAL, "ERROR: Getting device tree address failed\n");
-				return -1;
-			}
-
-			/* Validate and Read device device tree in the "tags_add */
-			if (check_aboot_addr_range_overlap(hdr->tags_addr, dt_entry.size) ||
-				check_ddr_addr_range_bound(hdr->tags_addr, dt_entry.size)){
-				dprintf(CRITICAL, "Device tree addresses are not valid.\n");
-				return -1;
-			}
-
-			if(dt_entry.offset > (UINT_MAX - dt_entry.size)) {
-				dprintf(CRITICAL, "ERROR: Device tree contents are Invalid\n");
-				return -1;
-			}
-
-			/* Ensure we are not overshooting dt_size with the dt_entry selected */
-			if ((dt_entry.offset + dt_entry.size) > dt_size) {
-				dprintf(CRITICAL, "ERROR: Device tree contents are Invalid\n");
-				return -1;
-			}
-
-			best_match_dt_addr = (unsigned char *)table + dt_entry.offset;
-			dtb_size = dt_entry.size;
-			memmove((void *)hdr->tags_addr, (char *)best_match_dt_addr, dtb_size);
+		verify_signed_bootimg((uint32_t)image_addr, imagesize_actual);
+	}
+	offset = page_size;
+	if(hdr->second_size != 0) {
+		if (UINT_MAX - offset < second_actual)
+		{
+			dprintf(CRITICAL, "ERROR: Integer overflow in boot image header %s\t%d\n",__func__,__LINE__);
+			return -1;
 		}
-#endif
+		offset += second_actual;
+		/* Second image loading not implemented. */
+		ASSERT(0);
+	}
 
+	/* Move kernel and ramdisk to correct address */
+	memmove((void*) hdr->kernel_addr, (char*) (image_addr + page_size), hdr->kernel_size);
+	memmove((void*) hdr->ramdisk_addr, (char*) (image_addr + page_size + kernel_actual), hdr->ramdisk_size);
+
+#if DEVICE_TREE
+	if(dt_size != 0) {
+
+		dt_table_offset = ((uint32_t)image_addr + page_size + kernel_actual + ramdisk_actual + second_actual);
+
+		table = (struct dt_table*) dt_table_offset;
+
+		if (dev_tree_validate(table, hdr->page_size, &dt_hdr_size) != 0) {
+			dprintf(CRITICAL, "ERROR: Cannot validate Device Tree Table \n");
+			return -1;
+		}
+
+		/* Its Error if, dt_hdr_size (table->num_entries * dt_entry size + Dev_Tree Header)
+		goes beyound hdr->dt_size*/
+		if (dt_hdr_size > ROUND_TO_PAGE(dt_size,hdr->page_size)) {
+			dprintf(CRITICAL, "ERROR: Invalid Device Tree size \n");
+			return -1;
+		}
+
+		/* Find index of device tree within device tree table */
+		if(dev_tree_get_entry_info(table, &dt_entry) != 0){
+			dprintf(CRITICAL, "ERROR: Getting device tree address failed\n");
+			return -1;
+		}
+
+		/* Validate and Read device device tree in the "tags_add */
+		if (check_aboot_addr_range_overlap(hdr->tags_addr, dt_entry.size) ||
+			check_ddr_addr_range_bound(hdr->tags_addr, dt_entry.size))
+		{
+			dprintf(CRITICAL, "Device tree addresses are not valid.\n");
+			return -1;
+		}
+
+		if(dt_entry.offset > (UINT_MAX - dt_entry.size)) {
+			dprintf(CRITICAL, "ERROR: Device tree contents are Invalid\n");
+			return -1;
+		}
+
+		/* Ensure we are not overshooting dt_size with the dt_entry selected */
+		if ((dt_entry.offset + dt_entry.size) > dt_size) {
+			dprintf(CRITICAL, "ERROR: Device tree contents are Invalid\n");
+			return -1;
+		}
+
+		best_match_dt_addr = (unsigned char *)table + dt_entry.offset;
+		dtb_size = dt_entry.size;
+		memmove((void *)hdr->tags_addr, (char *)best_match_dt_addr, dtb_size);
+	}
+#endif
+	if(target_use_signed_kernel() && (!device.is_unlocked))
+	{
 		/* Make sure everything from scratch address is read before next step!*/
 		if(device.is_tampered)
 		{
@@ -1623,119 +1651,7 @@ int boot_linux_from_flash(void)
 		set_tamper_flag(device.is_tampered);
 #endif
 	}
-	else
-	{
-		dprintf(INFO, "Loading boot image (%d): start\n",
-				kernel_actual + ramdisk_actual);
-		bs_set_timestamp(BS_KERNEL_LOAD_START);
 
-		offset = page_size;
-		if (UINT_MAX - offset < kernel_actual)
-		{
-			dprintf(CRITICAL, "ERROR: Integer overflow in boot image header %s\t%d\n",__func__,__LINE__);
-			return -1;
-		}
-		if (flash_read(ptn, offset, (void *)hdr->kernel_addr, kernel_actual)) {
-			dprintf(CRITICAL, "ERROR: Cannot read kernel image\n");
-			return -1;
-		}
-		offset += kernel_actual;
-		if (UINT_MAX - offset < ramdisk_actual)
-		{
-			dprintf(CRITICAL, "ERROR: Integer overflow in boot image header %s\t%d\n",__func__,__LINE__);
-			return -1;
-		}
-		if (flash_read(ptn, offset, (void *)hdr->ramdisk_addr, ramdisk_actual)) {
-			dprintf(CRITICAL, "ERROR: Cannot read ramdisk image\n");
-			return -1;
-		}
-
-		offset += ramdisk_actual;
-
-		dprintf(INFO, "Loading boot image (%d): done\n",
-				kernel_actual + ramdisk_actual);
-		bs_set_timestamp(BS_KERNEL_LOAD_DONE);
-
-		if(hdr->second_size != 0) {
-			if (UINT_MAX - offset < second_actual)
-			{
-				dprintf(CRITICAL, "ERROR: Integer overflow in boot image header %s\t%d\n",__func__,__LINE__);
-				return -1;
-			}
-			offset += second_actual;
-			/* Second image loading not implemented. */
-			ASSERT(0);
-		}
-
-#if DEVICE_TREE
-		if(dt_size != 0) {
-
-			/* Read the device tree table into buffer */
-			if(flash_read(ptn, offset, (void *) dt_buf, page_size)) {
-				dprintf(CRITICAL, "ERROR: Cannot read the Device Tree Table\n");
-				return -1;
-			}
-
-			table = (struct dt_table*) dt_buf;
-
-			if (dev_tree_validate(table, hdr->page_size, &dt_hdr_size) != 0) {
-				dprintf(CRITICAL, "ERROR: Cannot validate Device Tree Table \n");
-				return -1;
-			}
-
-			/* Its Error if, dt_hdr_size (table->num_entries * dt_entry size + Dev_Tree Header)
-			goes beyound hdr->dt_size*/
-			if (dt_hdr_size > ROUND_TO_PAGE(dt_size,hdr->page_size)) {
-				dprintf(CRITICAL, "ERROR: Invalid Device Tree size \n");
-				return -1;
-			}
-
-			table = (void *) target_get_scratch_address();
-			/*Check the availability of RAM before reading boot image + max signature length from flash*/
-			if (target_get_max_flash_size() < dt_actual)
-			{
-				dprintf(CRITICAL, "ERROR: dt_image size is greater than DDR can hold\n");
-				return -1;
-			}
-
-			/* Read the entire device tree table into buffer */
-			if(flash_read(ptn, offset, (void *)table, dt_actual)) {
-				dprintf(CRITICAL, "ERROR: Cannot read the Device Tree Table\n");
-				return -1;
-			}
-
-			/* Find index of device tree within device tree table */
-			if(dev_tree_get_entry_info(table, &dt_entry) != 0){
-				dprintf(CRITICAL, "ERROR: Getting device tree address failed\n");
-				return -1;
-			}
-
-			/* Validate and Read device device tree in the "tags_add */
-			if (check_aboot_addr_range_overlap(hdr->tags_addr, dt_entry.size) ||
-				check_ddr_addr_range_bound(hdr->tags_addr, dt_entry.size))
-			{
-				dprintf(CRITICAL, "Device tree addresses are not valid.\n");
-				return -1;
-			}
-
-			if(dt_entry.offset > (UINT_MAX - dt_entry.size)) {
-				dprintf(CRITICAL, "ERROR: Device tree contents are Invalid\n");
-				return -1;
-			}
-
-			/* Ensure we are not overshooting dt_size with the dt_entry selected */
-			if ((dt_entry.offset + dt_entry.size) > dt_size) {
-				dprintf(CRITICAL, "ERROR: Device tree contents are Invalid\n");
-				return -1;
-			}
-
-			best_match_dt_addr = (unsigned char *)table + dt_entry.offset;
-			dtb_size = dt_entry.size;
-			memmove((void *)hdr->tags_addr, (char *)best_match_dt_addr, dtb_size);
-		}
-#endif
-
-	}
 continue_boot:
 
 	/* TODO: create/pass atags to kernel */
