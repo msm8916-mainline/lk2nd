@@ -92,8 +92,8 @@ typedef struct thread {
 #define DEFAULT_PRIORITY (NUM_PRIORITIES / 2)
 #define HIGH_PRIORITY ((NUM_PRIORITIES / 4) * 3)
 
-/* stack size */
-#define DEFAULT_STACK_SIZE 8192
+/* stack size  - 12kb per thread (12 * 1024) */
+#define DEFAULT_STACK_SIZE 12288
 
 /* functions */
 void thread_init_early(void);
