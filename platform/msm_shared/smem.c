@@ -2,7 +2,7 @@
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2014-2015, 2017, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -201,6 +201,9 @@ size_t smem_get_hw_platform_name(void *buf, uint32 buf_size)
 	}
 
 	hw_id = board_hardware_id();
+	if (hw_id >= ARRAY_SIZE(hw_platform) || hw_platform[hw_id] == '\0')
+		return 1;
+
 	if (buf_size < strlen(hw_platform[hw_id]) + 1)
 		return 1;
 
