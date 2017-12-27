@@ -299,14 +299,13 @@ int target_get_vb_version()
 {
 	if (vb_version == INVALID)
 	{
-		/* check vb version on first time. */
-		/* Incase of keymaster present, its VB2.0 */
+		/* Incase of keymaster present,verified boot for M version */
 		if (partition_get_index("keymaster") != INVALID_PTN)
-			vb_version = VB_V2;
+			vb_version = VB_M;
 		else
 		/* Incase keymaster is not present,
 		we use keystore for verification. */
-			vb_version = VB_V1;
+			vb_version = VB_L;
 	}
 	return vb_version;
 }

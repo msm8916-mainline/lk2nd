@@ -31,8 +31,8 @@
 /* Enum for target VB version detection */
 enum
 {
-	VB_V1 = 1,
-	VB_V2 = 2,
+	VB_L = 1,
+	VB_M = 2,
 };
 
 /* Target helper functions exposed to USB driver */

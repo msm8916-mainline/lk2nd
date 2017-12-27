@@ -1,4 +1,4 @@
-/* Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2017, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -332,7 +332,7 @@ void target_init(void)
 		target_crypto_init_params();
 
 #if VERIFIED_BOOT
-	if (VB_V2 == target_get_vb_version())
+	if (VB_M <= target_get_vb_version())
 	{
 		clock_ce_enable(CE1_INSTANCE);
 
@@ -571,7 +571,7 @@ void target_uninit(void)
 		clock_ce_disable(CE1_INSTANCE);
 
 #if VERIFIED_BOOT
-	if (VB_V2 == target_get_vb_version())
+	if (VB_M <= target_get_vb_version())
 	{
 		if (is_sec_app_loaded())
 		{

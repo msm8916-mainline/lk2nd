@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2016 The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2017 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -180,7 +180,7 @@ void target_uninit(void)
 	}
 
 #if VERIFIED_BOOT
-	if (target_get_vb_version() == VB_V2 &&
+	if (target_get_vb_version() >= VB_M &&
 		is_sec_app_loaded())
 	{
 		if (send_milestone_call_to_tz() < 0)
@@ -207,7 +207,7 @@ void target_uninit(void)
 	rpm_glink_uninit();
 
 #if VERIFIED_BOOT
-	if (target_get_vb_version() == VB_V2)
+	if (target_get_vb_version() >= VB_M)
 	{
 		if (rpmb_uninit() < 0)
 		{
@@ -405,7 +405,7 @@ void target_init(void)
 #endif
 
 #if VERIFIED_BOOT
-	if (VB_V2 == target_get_vb_version())
+	if (VB_M <= target_get_vb_version())
 	{
 		/* Initialize Qseecom */
 		if (qseecom_init() < 0)
