@@ -180,10 +180,17 @@ int platform_is_msm8953()
 {
 	uint32_t platform = board_platform_id();
 
-	if ((platform == MSM8953) || (platform == APQ8053) || (platform == SDM450))
-		return 1;
-	else
-		return 0;
+	switch (platform)
+	{
+		case MSM8953:
+		case APQ8053:
+		case SDM450:
+		case SDA450:
+			return 1;
+			break;
+		default:
+			return 0;
+	}
 }
 
 uint32_t platform_get_qmp_rev()
