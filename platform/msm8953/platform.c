@@ -186,6 +186,8 @@ int platform_is_msm8953()
 		case APQ8053:
 		case SDM450:
 		case SDA450:
+		case SDM632:
+		case SDA632:
 			return 1;
 			break;
 		default:
