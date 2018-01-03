@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2015, 2017, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2015, 2017-2018, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -387,6 +387,40 @@ uint32_t pm8x41_get_pwrkey_is_pressed()
 		return 1;
 	else
 		return 0;
+}
+
+void pmi632_reset_configure(uint8_t reset_type)
+{
+	/* Slave ID of pm8953 and pmi632 */
+	uint8_t slave_id[] = {0, 2};
+	uint8_t i;
+
+	/* Reset sequence
+	1. Disable the ps hold for pm8953 and pmi632
+	2. set reset type for both pm8953 & pmi632
+	3. Enable ps hold for pm8953 to trigger the reset
+	*/
+	/* disable PS_HOLD_RESET */
+	pm8xxx_reg_write(slave_id[0], PON_PS_HOLD_RESET_CTL2, 0x0);
+	pm8xxx_reg_write(slave_id[1], PON_PS_HOLD_RESET_CTL2, 0x0);
+
+	/* Delay needed for disable to kick in. */
+	udelay(300);
+
+	/* configure reset type */
+	for (i = 0; i < ARRAY_SIZE(slave_id); i++)
+		pm8xxx_reg_write(slave_id[i], PON_PS_HOLD_RESET_CTL, reset_type);
+
+	if (reset_type == PON_PSHOLD_WARM_RESET)
+	{
+		/* enable PS_HOLD_RESET */
+		for (i = 0; i < ARRAY_SIZE(slave_id); i++)
+			pm8xxx_reg_write(slave_id[i], PON_PS_HOLD_RESET_CTL2, BIT(S2_RESET_EN_BIT));
+	}
+	else
+	{
+			pm8xxx_reg_write(slave_id[0], PON_PS_HOLD_RESET_CTL2, BIT(S2_RESET_EN_BIT));
+	}
 }
 
 void pm8994_reset_configure(uint8_t reset_type)

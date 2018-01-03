@@ -627,11 +627,6 @@ void target_crypto_init_params()
 	crypto_init_params(&ce_params);
 }
 
-void pmic_reset_configure(uint8_t reset_type)
-{
-	pm8994_reset_configure(reset_type);
-}
-
 uint32_t target_get_pmic()
 {
 	if (target_is_pmi_enabled()) {
@@ -644,6 +639,17 @@ uint32_t target_get_pmic()
 	else {
 		return PMIC_IS_UNKNOWN;
 	}
+}
+
+void pmic_reset_configure(uint8_t reset_type)
+{
+	uint32_t pmi_type;
+
+	pmi_type = target_get_pmic();
+	if (pmi_type == PMIC_IS_PMI632)
+		pmi632_reset_configure(reset_type);
+	else
+		pm8994_reset_configure(reset_type);
 }
 
 struct qmp_reg qmp_settings[] =
