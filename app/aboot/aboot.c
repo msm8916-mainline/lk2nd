@@ -2,7 +2,7 @@
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2017, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2018, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -2803,6 +2803,92 @@ void cmd_erase(const char *arg, void *data, unsigned sz)
 		cmd_erase_nand(arg, data, sz);
 }
 
+/* Get the size from partiton name */
+static void get_partition_size(const char *arg, char *response)
+{
+	uint64_t ptn = 0;
+	uint64_t size;
+	int index = INVALID_PTN;
+
+	index = partition_get_index(arg);
+
+	if (index == INVALID_PTN)
+	{
+		dprintf(CRITICAL, "Invalid partition index\n");
+		return;
+	}
+
+	ptn = partition_get_offset(index);
+
+	if(!ptn)
+	{
+		dprintf(CRITICAL, "Invalid partition name %s\n", arg);
+		return;
+	}
+
+	size = partition_get_size(index);
+
+	snprintf(response, MAX_RSP_SIZE, "\t 0x%llx", size);
+	return;
+}
+
+/*
+ * Publish the partition type & size info
+ * fastboot getvar will publish the required information.
+ * fastboot getvar partition_size:<partition_name>: partition size in hex
+ * fastboot getvar partition_type:<partition_name>: partition type (ext/fat)
+ */
+static void publish_getvar_partition_info(struct getvar_partition_info *info, uint8_t num_parts)
+{
+	uint8_t i,n;
+	static bool published = false;
+	struct partition_entry *ptn_entry =
+				partition_get_partition_entries();
+	memset(info, 0, sizeof(struct getvar_partition_info)* num_parts);
+
+	for (i = 0; i < num_parts; i++) {
+		strlcat(info[i].part_name, (const char *)ptn_entry[i].name, MAX_RSP_SIZE);
+		strlcat(info[i].getvar_size, "partition-size:", MAX_GET_VAR_NAME_SIZE);
+		strlcat(info[i].getvar_type, "partition-type:", MAX_GET_VAR_NAME_SIZE);
+
+		/* Mark partiton type for known paritions only */
+		for (n=0; n < ARRAY_SIZE(part_type_known); n++)
+		{
+			if (!strncmp(part_type_known[n].part_name, info[i].part_name,
+					strlen(part_type_known[n].part_name)))
+			{
+				strlcat(info[i].type_response,
+						part_type_known[n].type_response,
+						MAX_RSP_SIZE);
+				break;
+			}
+		}
+
+		get_partition_size(info[i].part_name, info[i].size_response);
+
+		if (strlcat(info[i].getvar_size, info[i].part_name, MAX_GET_VAR_NAME_SIZE) >= MAX_GET_VAR_NAME_SIZE)
+		{
+			dprintf(CRITICAL, "partition size name truncated\n");
+			return;
+		}
+		if (strlcat(info[i].getvar_type, info[i].part_name, MAX_GET_VAR_NAME_SIZE) >= MAX_GET_VAR_NAME_SIZE)
+		{
+			dprintf(CRITICAL, "partition type name truncated\n");
+			return;
+		}
+
+		if (!published)
+		{
+			/* publish partition size & type info */
+			fastboot_publish((const char *) info[i].getvar_size, (const char *) info[i].size_response);
+			fastboot_publish((const char *) info[i].getvar_type, (const char *) info[i].type_response);
+		}
+	}
+	if (!published)
+		published = true;
+}
+
+
 void cmd_flash_mmc_img(const char *arg, void *data, unsigned sz)
 {
 	unsigned long long ptn = 0;
@@ -2847,6 +2933,8 @@ void cmd_flash_mmc_img(const char *arg, void *data, unsigned sz)
 				fastboot_fail("failed to write partition");
 				return;
 			}
+			/* Re-publish partition table */
+			publish_getvar_partition_info(part_info, partition_get_partition_count());
 
 			/* Rescan partition table to ensure we have multislot support*/
 			if (partition_scan_for_multislot())
@@ -3966,84 +4054,6 @@ int fetch_image_from_partition()
 		return splash_screen_mmc();
 	} else {
 		return splash_screen_flash();
-	}
-}
-
-/* Get the size from partiton name */
-static void get_partition_size(const char *arg, char *response)
-{
-	uint64_t ptn = 0;
-	uint64_t size;
-	int index = INVALID_PTN;
-
-	index = partition_get_index(arg);
-
-	if (index == INVALID_PTN)
-	{
-		dprintf(CRITICAL, "Invalid partition index\n");
-		return;
-	}
-
-	ptn = partition_get_offset(index);
-
-	if(!ptn)
-	{
-		dprintf(CRITICAL, "Invalid partition name %s\n", arg);
-		return;
-	}
-
-	size = partition_get_size(index);
-
-	snprintf(response, MAX_RSP_SIZE, "\t 0x%llx", size);
-	return;
-}
-
-/*
- * Publish the partition type & size info
- * fastboot getvar will publish the required information.
- * fastboot getvar partition_size:<partition_name>: partition size in hex
- * fastboot getvar partition_type:<partition_name>: partition type (ext/fat)
- */
-static void publish_getvar_partition_info(struct getvar_partition_info *info, uint8_t num_parts)
-{
-	uint8_t i,n;
-	struct partition_entry *ptn_entry =
-				partition_get_partition_entries();
-
-	for (i = 0; i < num_parts; i++) {
-		strlcat(info[i].part_name, (char const *)ptn_entry[i].name, MAX_RSP_SIZE);
-		strlcat(info[i].getvar_size, "partition-size:", MAX_GET_VAR_NAME_SIZE);
-		strlcat(info[i].getvar_type, "partition-type:", MAX_GET_VAR_NAME_SIZE);
-
-		/* Mark partiton type for known paritions only */
-		for (n=0; n < ARRAY_SIZE(part_type_known); n++)
-		{
-			if (!strncmp(part_type_known[n].part_name, info[i].part_name,
-					strlen(part_type_known[n].part_name)))
-			{
-				strlcat(info[i].type_response,
-						part_type_known[n].type_response,
-						MAX_RSP_SIZE);
-				break;
-			}
-		}
-
-		get_partition_size(info[i].part_name, info[i].size_response);
-
-		if (strlcat(info[i].getvar_size, info[i].part_name, MAX_GET_VAR_NAME_SIZE) >= MAX_GET_VAR_NAME_SIZE)
-		{
-			dprintf(CRITICAL, "partition size name truncated\n");
-			return;
-		}
-		if (strlcat(info[i].getvar_type, info[i].part_name, MAX_GET_VAR_NAME_SIZE) >= MAX_GET_VAR_NAME_SIZE)
-		{
-			dprintf(CRITICAL, "partition type name truncated\n");
-			return;
-		}
-
-		/* publish partition size & type info */
-		fastboot_publish((const char *) info[i].getvar_size, (const char *) info[i].size_response);
-		fastboot_publish((const char *) info[i].getvar_type, (const char *) info[i].type_response);
 	}
 }
 
