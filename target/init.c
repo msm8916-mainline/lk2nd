@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008 Travis Geiselbrecht
  *
- * Copyright (c) 2015-2017, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2015-2018, The Linux Foundation. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -57,7 +57,10 @@
 #define BAT_IF_INT_RT_STS		0x1210
 #define BATT_INFO_VBATT_LSB		0x41A0
 #define BATT_INFO_VBATT_MSB		0x41A1
+#define ADC_V_DATA_LSB			0x248C0
+#define ADC_V_DATA_MSB			0x248C1
 #define BATT_VOLTAGE_NUMR		122070
+#define QGAUGE_VOLTAGE_NUMR		194637
 #define BATT_VOLTAGE_DENR		1000
 
 #if VERIFIED_BOOT
@@ -432,6 +435,7 @@ bool target_battery_is_present()
 			}
 			break;
 		case PMIC_IS_PM660:
+		case PMIC_IS_PMI632:
 			value = REG_READ(BAT_IF_INT_RT_STS);
 			/* If BAT_TERMINAL_MISSING_RT_STS BIT(5) or BAT_THERM_OR_ID_MISSING_RT_STS BIT(4)
 			   are set, battery is not present. */
@@ -487,6 +491,13 @@ uint32_t target_get_battery_voltage()
 			temp = buff[1] << 8 | buff[0];
 			/* {MSB,LSB} to decode the voltage level, refer register description. */
 			vbat = (((uint32_t)temp)*BATT_VOLTAGE_NUMR/BATT_VOLTAGE_DENR);
+			break;
+		case PMIC_IS_PMI632:
+			buff[0] = REG_READ(ADC_V_DATA_LSB);
+			buff[1] = REG_READ(ADC_V_DATA_MSB);
+			temp = buff[1] << 8 | buff[0];
+			/* {MSB,LSB} to decode the voltage level, refer register description. */
+			vbat = (((uint64_t)temp)*QGAUGE_VOLTAGE_NUMR/BATT_VOLTAGE_DENR);
 			break;
 		default:
 			dprintf(CRITICAL, "ERROR: Couldn't get the pmic type\n");

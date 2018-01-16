@@ -2,7 +2,7 @@
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2017, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2018, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -142,6 +142,7 @@ typedef enum
 	PMIC_IS_PMI8994   = 10,
 	PMIC_IS_PMI8996   = 19,
 	PMIC_IS_PM660     = 27,
+	PMIC_IS_PMI632    = 37,
 } pm_model_type_bfly;
 
 struct smem_board_info_v3 {
