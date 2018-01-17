@@ -490,7 +490,7 @@ uint32_t target_get_battery_voltage()
 			buff[1] = REG_READ(BATT_INFO_VBATT_MSB);
 			temp = buff[1] << 8 | buff[0];
 			/* {MSB,LSB} to decode the voltage level, refer register description. */
-			vbat = (((uint32_t)temp)*BATT_VOLTAGE_NUMR/BATT_VOLTAGE_DENR);
+			vbat = (((uint64_t)temp)*BATT_VOLTAGE_NUMR/BATT_VOLTAGE_DENR);
 			break;
 		case PMIC_IS_PMI632:
 			buff[0] = REG_READ(ADC_V_DATA_LSB);
