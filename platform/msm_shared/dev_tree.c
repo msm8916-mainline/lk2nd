@@ -46,6 +46,7 @@
 #include <partition_parser.h>
 #include <libufdt_sysdeps.h>
 #include <ufdt_overlay.h>
+#include <boot_stats.h>
 
 #define BOOT_DEV_MAX_LEN        64
 #define NODE_PROPERTY_MAX_LEN   64
@@ -1018,6 +1019,7 @@ dtbo_error dev_tree_appended_with_dtbo(void *kernel, uint32_t kernel_size,
 {
 	void *dtbo_image_buf = NULL;
 
+	bs_set_timestamp(BS_DTB_OVERLAY_START);
 	ret = load_validate_dtbo_image(&dtbo_image_buf);
 	if (ret == DTBO_SUCCESS)
 	{
@@ -1084,6 +1086,7 @@ dtbo_error dev_tree_appended_with_dtbo(void *kernel, uint32_t kernel_size,
 		ret = DTBO_NOT_SUPPORTED;
 	}
 out:
+	bs_set_timestamp(BS_DTB_OVERLAY_END);
 	return ret;
 }
 /*
