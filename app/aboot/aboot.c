@@ -1915,9 +1915,9 @@ void write_device_info_mmc(device_info *dev)
 	unsigned long long ptn = 0;
 	unsigned long long size;
 	int index = INVALID_PTN;
-	uint32_t blocksize;
 	uint8_t lun = 0;
 	uint32_t ret = 0;
+	uint32_t device_info_sz = 0;
 
 	if (devinfo_present)
 		index = partition_get_index("devinfo");
@@ -1935,12 +1935,18 @@ void write_device_info_mmc(device_info *dev)
 
 	size = partition_get_size(index);
 
-	blocksize = mmc_get_device_blocksize();
+	device_info_sz = ROUND_TO_PAGE(sizeof(struct device_info),
+							mmc_blocksize_mask);
+	if (device_info_sz == UINT_MAX)
+	{
+		dprintf(CRITICAL, "ERROR: Incorrect blocksize of card\n");
+		return;
+	}
 
 	if (devinfo_present)
-		ret = mmc_write(ptn, blocksize, (void *)info_buf);
+		ret = mmc_write(ptn, device_info_sz, (void *)info_buf);
 	else
-		ret = mmc_write((ptn + size - blocksize), blocksize, (void *)info_buf);
+		ret = mmc_write((ptn + size - device_info_sz), device_info_sz, (void *)info_buf);
 	if (ret)
 	{
 		dprintf(CRITICAL, "ERROR: Cannot write device info\n");
@@ -1953,8 +1959,8 @@ void read_device_info_mmc(struct device_info *info)
 	unsigned long long ptn = 0;
 	unsigned long long size;
 	int index = INVALID_PTN;
-	uint32_t blocksize;
 	uint32_t ret  = 0;
+	uint32_t device_info_sz = 0;
 
 	if ((index = partition_get_index("devinfo")) < 0)
 	{
@@ -1972,12 +1978,18 @@ void read_device_info_mmc(struct device_info *info)
 
 	size = partition_get_size(index);
 
-	blocksize = mmc_get_device_blocksize();
+	device_info_sz = ROUND_TO_PAGE(sizeof(struct device_info),
+							mmc_blocksize_mask);
+	if (device_info_sz == UINT_MAX)
+	{
+		dprintf(CRITICAL, "ERROR: Incorrect blocksize of card\n");
+		return;
+	}
 
 	if (devinfo_present)
-		ret = mmc_read(ptn, (void *)info_buf, blocksize);
+		ret = mmc_read(ptn, (void *)info_buf, device_info_sz);
 	else
-		ret = mmc_read((ptn + size - blocksize), (void *)info_buf, blocksize);
+		ret = mmc_read((ptn + size - device_info_sz), (void *)info_buf, device_info_sz);
 	if (ret)
 	{
 		dprintf(CRITICAL, "ERROR: Cannot read device info\n");
