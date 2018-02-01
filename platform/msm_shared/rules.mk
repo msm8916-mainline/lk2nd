@@ -504,7 +504,8 @@ DEFINES += DISPLAY_TYPE_MDSS=1
 			$(LOCAL_DIR)/display.o \
 			$(LOCAL_DIR)/mipi_dsi.o \
 			$(LOCAL_DIR)/mipi_dsi_phy.o \
-			$(LOCAL_DIR)/mipi_dsi_autopll.o
+			$(LOCAL_DIR)/mipi_dsi_autopll.o \
+			$(LOCAL_DIR)/mdss_spi.o
 endif
 
 
