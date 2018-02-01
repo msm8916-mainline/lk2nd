@@ -230,6 +230,15 @@ int target_backlight_ctrl(struct backlight *bl, uint8_t enable)
 				bkl_gpio.pin_strength, bkl_gpio.pin_state);
 				gpio_set(bkl_gpio.pin_id, 2);
 		}
+
+		if (HW_PLATFORM_SUBTYPE_8909_PM660_V1 == platform_subtype) {
+			gpio_tlmm_config(spi_bkl_gpio.pin_id, 0,
+				spi_bkl_gpio.pin_direction,
+				spi_bkl_gpio.pin_pull,
+				spi_bkl_gpio.pin_strength,
+				spi_bkl_gpio.pin_state);
+			gpio_set(spi_bkl_gpio.pin_id, 2);
+		}
 	}
 
 	return 0;
