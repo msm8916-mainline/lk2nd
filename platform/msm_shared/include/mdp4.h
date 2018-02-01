@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2016, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2016, 2018 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -124,4 +124,8 @@ int mdss_hdmi_init(void);
 int mdss_hdmi_on(struct msm_panel_info *pinfo);
 int mdss_hdmi_off(struct msm_panel_info *pinfo);
 int mdss_hdmi_config(struct msm_panel_info *pinfo, struct fbcon_config *fb);
+
+int mdss_spi_init(void);
+int mdss_spi_panel_init(struct msm_panel_info *pinfo);
+int mdss_spi_on(struct msm_panel_info *pinfo, struct fbcon_config *fb);
 #endif

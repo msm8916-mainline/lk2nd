@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2015,2018 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -128,6 +128,21 @@ __WEAK int target_hdmi_pll_clock(uint8_t enable, struct msm_panel_info *pinfo)
 }
 
 __WEAK int target_display_dsi2hdmi_config(struct msm_panel_info *pinfo)
+{
+	return 0;
+}
+
+__WEAK int mdss_spi_init(void)
+{
+	return 0;
+}
+
+__WEAK int mdss_spi_panel_init(struct msm_panel_info *pinfo)
+{
+	return 0;
+}
+
+__WEAK int mdss_spi_on(struct msm_panel_info *pinfo, struct fbcon_config *fb)
 {
 	return 0;
 }
