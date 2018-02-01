@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2017-2018, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -358,14 +358,13 @@ next_active_bootable_slot(struct partition_entry *ptn_entry)
 			return i;
 	}
 
-	/* NO Bootable slot */
-	panic("ERROR: Unable to find any bootable slot");
-	return 0;
+	dprintf(CRITICAL, "ERROR: Unable to find any bootable slot");
+	return INVALID;
 }
 
 int partition_find_boot_slot()
 {
-	int boot_slot;
+	int boot_slot, next_slot;
 	int slt_index;
 	uint64_t boot_retry_count;
 	struct partition_entry *partition_entries = partition_get_partition_entries();
@@ -393,8 +392,16 @@ int partition_find_boot_slot()
 		/* Mark slot invalid and unbootable */
 		partition_deactivate_slot(boot_slot);
 
-		partition_switch_slots(boot_slot, next_active_bootable_slot(partition_entries));
-		reboot_device(0);
+		next_slot = next_active_bootable_slot(partition_entries);
+		if (next_slot != INVALID)
+		{
+			partition_switch_slots(boot_slot, next_slot);
+			reboot_device(0);
+		}
+		else
+		{
+			boot_slot = INVALID;
+		}
 	}
 	else
 	{
