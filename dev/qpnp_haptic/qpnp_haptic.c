@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015, 2017-2018, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -83,7 +83,7 @@
 #define QPNP_HAP_LRA_AUTO_MASK 0x70
 
 /* Turn on vibrator */
-void pm_vib_turn_on(void)
+void pm_haptic_vib_turn_on(void)
 {
 	struct qpnp_hap vib_config = {0};
 
@@ -150,7 +150,7 @@ void pm_vib_turn_on(void)
 }
 
 /* Turn off vibrator */
-void pm_vib_turn_off(void)
+void pm_haptic_vib_turn_off(void)
 {
 	if(!target_is_pmi_enabled())
 		return;
