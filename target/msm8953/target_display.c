@@ -55,13 +55,6 @@
 #include "include/display_resource.h"
 #include "gcdb_display.h"
 
-#define TRULY_1080P_VID_PANEL "truly_1080p_video"
-#define TRULY_1080P_CMD_PANEL "truly_1080p_cmd"
-
-#define HDMI_ADV_PANEL_STRING "1:dsi:0:none:1:qcom,mdss_dsi_adv7533_1080p:cfg:single_dsi"
-#define TRULY_VID_PANEL_STRING "1:dsi:0:qcom,mdss_dsi_truly_1080p_video:1:none:cfg:single_dsi"
-#define TRULY_CMD_PANEL_STRING "1:dsi:0:qcom,mdss_dsi_truly_1080p_cmd:1:none:cfg:single_dsi"
-
 #define MAX_POLL_READS 15
 #define POLL_TIMEOUT_US 1000
 #define STRENGTH_SIZE_IN_BYTES	10
@@ -399,7 +392,6 @@ bool target_display_panel_node(char *pbuf, uint16_t buf_size)
 	int prefix_string_len = strlen(DISPLAY_CMDLINE_PREFIX);
 	bool ret = true;
 	struct oem_panel_data oem = mdss_dsi_get_oem_data();
-	uint32_t platform_subtype = board_hardware_subtype();
 
 	/*
 	 * if disable config is passed irrespective of
@@ -416,44 +408,6 @@ bool target_display_panel_node(char *pbuf, uint16_t buf_size)
 		buf_size -= prefix_string_len;
 		pbuf += prefix_string_len;
 		strlcpy(pbuf, DISABLE_PANEL_STRING, buf_size);
-	} else if (platform_subtype == HW_PLATFORM_SUBTYPE_IOT) {
-		/* default to hdmi for apq iot */
-		if (!strcmp(oem.panel, "")) {
-			if (buf_size < (prefix_string_len +
-				strlen(HDMI_ADV_PANEL_STRING))) {
-				dprintf(CRITICAL, "HDMI command line argument \
-					is greater than buffer size\n");
-				return false;
-			}
-			strlcpy(pbuf, DISPLAY_CMDLINE_PREFIX, buf_size);
-			buf_size -= prefix_string_len;
-			pbuf += prefix_string_len;
-			strlcpy(pbuf, HDMI_ADV_PANEL_STRING, buf_size);
-		} else if (!strcmp(oem.panel, TRULY_1080P_VID_PANEL)) {
-			if (buf_size < (prefix_string_len +
-				strlen(TRULY_VID_PANEL_STRING))) {
-				dprintf(CRITICAL, "TRULY VIDEO command line \
-					argument is greater than \
-					buffer size\n");
-				return false;
-			}
-			strlcpy(pbuf, DISPLAY_CMDLINE_PREFIX, buf_size);
-			buf_size -= prefix_string_len;
-			pbuf += prefix_string_len;
-			strlcpy(pbuf, TRULY_VID_PANEL_STRING, buf_size);
-		} else if (!strcmp(oem.panel, TRULY_1080P_CMD_PANEL)) {
-			if (buf_size < (prefix_string_len +
-				strlen(TRULY_CMD_PANEL_STRING))) {
-				dprintf(CRITICAL, "TRULY CMD command line argument \
-					argument is greater than \
-					buffer size\n");
-				return false;
-			}
-			strlcpy(pbuf, DISPLAY_CMDLINE_PREFIX, buf_size);
-			buf_size -= prefix_string_len;
-			pbuf += prefix_string_len;
-			strlcpy(pbuf, TRULY_CMD_PANEL_STRING, buf_size);
-		}
 	} else {
 		ret = gcdb_display_cmdline_arg(pbuf, buf_size);
 	}
@@ -466,7 +420,6 @@ void target_display_init(const char *panel_name)
 	struct oem_panel_data oem;
 	int32_t ret = 0;
 	uint32_t panel_loop = 0;
-	uint32_t platform_subtype = board_hardware_subtype();
 
 	set_panel_cmd_string(panel_name);
 	oem = mdss_dsi_get_oem_data();
@@ -483,10 +436,9 @@ void target_display_init(const char *panel_name)
 	}
 
 	/* skip splash screen completely not just cont splash */
-	if ((platform_subtype == HW_PLATFORM_SUBTYPE_IOT)
-		|| !strcmp(oem.panel, DISABLE_PANEL_CONFIG)) {
-		dprintf(INFO, "%s: Platform subtype %d\n",
-			__func__, platform_subtype);
+	if (!strcmp(oem.panel, DISABLE_PANEL_CONFIG)) {
+		dprintf(INFO, "%s: disable splash screen \n",
+			__func__);
 		return;
 	}
 
