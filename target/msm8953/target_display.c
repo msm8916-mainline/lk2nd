@@ -60,6 +60,8 @@
 #define STRENGTH_SIZE_IN_BYTES	10
 #define REGULATOR_SIZE_IN_BYTES	5
 #define LANE_SIZE_IN_BYTES		20
+#define PWM_DUTY_US 13
+#define PWM_PERIOD_US 27
 /*---------------------------------------------------------------------------*/
 /* GPIO configuration                                                        */
 /*---------------------------------------------------------------------------*/
@@ -127,11 +129,24 @@ static int wled_backlight_ctrl(uint8_t enable)
 	pm8x41_wled_config_slave_id(slave_id);
 	if (target_get_pmic() == PMIC_IS_PMI632) {
 		qpnp_lcdb_enable(enable);
-	}
-	else {
+	} else {
 		qpnp_wled_enable_backlight(enable);
 		qpnp_ibb_enable(enable);
 	}
+
+	return NO_ERROR;
+}
+
+static int pwm_backlight_ctrl(uint8_t enable)
+{
+	if(enable) {
+		pm_pwm_enable(false);
+		pm_pwm_config(PWM_DUTY_US, PWM_PERIOD_US);
+		pm_pwm_enable(true);
+	} else {
+		pm_pwm_enable(false);
+	}
+
 	return NO_ERROR;
 }
 
@@ -142,8 +157,11 @@ int target_backlight_ctrl(struct backlight *bl, uint8_t enable)
 	if (bl->bl_interface_type == BL_DCS)
 		return ret;
 
-	ret = wled_backlight_ctrl(enable);
-
+	if(target_get_pmic() == PMIC_IS_PMI632) {
+		ret = pwm_backlight_ctrl(enable);
+	} else {
+		ret = wled_backlight_ctrl(enable);
+	}
 	return ret;
 }
 
