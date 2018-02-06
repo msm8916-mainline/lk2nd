@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014,2018, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -76,4 +76,5 @@ void mdp_clock_init(void);
 void mdp_clock_enable(void);
 void mdp_clock_disable(void);
 void mdp_gdsc_ctrl(uint8_t enable);
+void clock_config_blsp_spi(uint8_t blsp_id, uint8_t qup_id);
 #endif

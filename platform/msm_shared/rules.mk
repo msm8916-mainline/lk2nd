@@ -524,7 +524,8 @@ DEFINES += DISPLAY_TYPE_MDSS=1
 			$(LOCAL_DIR)/certificate.o \
 			$(LOCAL_DIR)/image_verify.o \
 			$(LOCAL_DIR)/i2c_qup.o \
-			$(LOCAL_DIR)/qseecom_lk.o \
+			$(LOCAL_DIR)/spi_qup.o \
+            $(LOCAL_DIR)/qseecom_lk.o \
 			$(LOCAL_DIR)/mdp3.o \
 			$(LOCAL_DIR)/display.o \
 			$(LOCAL_DIR)/mipi_dsi.o \
