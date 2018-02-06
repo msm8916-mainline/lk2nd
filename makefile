@@ -141,6 +141,12 @@ else
   DEFINES += USE_LE_SYSTEMD=0
 endif
 
+ifeq ($(MOUNT_EMMC_LE),true)
+  DEFINES += MOUNT_EMMC_LE=1
+else
+  DEFINES += MOUNT_EMMC_LE=0
+endif
+
 #Enable kaslr seed support
 ifeq ($(ENABLE_KASLRSEED),1)
   DEFINES += ENABLE_KASLRSEED_SUPPORT=1
