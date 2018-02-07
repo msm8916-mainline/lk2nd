@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2015,2017 The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2015,2017-2018 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -47,7 +47,7 @@
 #define MAX_SCM_ARGS 10
 #define N_EXT_SCM_ARGS 7
 #define FIRST_EXT_ARG_IDX 3
-
+#define MAX_TA_PARTITION_SIZE 0x00100000
 #define N_REGISTER_ARGS (MAX_SCM_ARGS - N_EXT_SCM_ARGS + 1)
 
 #define QSEE_LOG_BUF_SIZE (4096)
@@ -551,7 +551,7 @@ static int __qseecom_load_app(const char *app_name, unsigned int *app_id)
 	int index = INVALID_PTN;
 	unsigned long long ptn = 0;
 	unsigned long long size = 0;
-	unsigned long long rounded_size = 0;
+	unsigned long rounded_size = 0;
 	void *buf = NULL;
 	void *req = NULL;
 	struct qseecom_load_app_ireq load_req = {0};
@@ -569,8 +569,8 @@ static int __qseecom_load_app(const char *app_name, unsigned int *app_id)
 	mmc_set_lun(lun);
 
 	size = partition_get_size(index);
-	if ((ULLONG_MAX - PAGE_SIZE + 1) < size) {
-		dprintf(CRITICAL, "Integer overflow detected in rounding up the partition size!");
+	if (MAX_TA_PARTITION_SIZE < size) {
+		dprintf(CRITICAL, "Invalid TA partition size!");
 		ret = GENERIC_ERROR;
 		goto err;
 	}
@@ -626,7 +626,7 @@ static int qseecom_load_commonlib_image(char * app_name)
 	int index = INVALID_PTN;
 	unsigned long long ptn = 0;
 	unsigned long long size = 0;
-	unsigned long long rounded_size = 0;
+	unsigned  long rounded_size = 0;
 	void *buf = NULL;
 	void *req = NULL;
 	struct qseecom_load_app_ireq load_req = {0};
@@ -640,8 +640,8 @@ static int qseecom_load_commonlib_image(char * app_name)
 	mmc_set_lun(lun);
 
 	size = partition_get_size(index);
-	if ((ULLONG_MAX - PAGE_SIZE + 1) < size) {
-		dprintf(CRITICAL, "Integer overflow detected in rounding up the partition size!");
+	if (MAX_TA_PARTITION_SIZE < size) {
+		dprintf(CRITICAL, "Invalid cmnlib partition size!");
 		ret = GENERIC_ERROR;
 		goto err;
 	}
