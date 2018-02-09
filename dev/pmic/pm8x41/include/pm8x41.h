@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2015, 2017, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2015, 2017-2018, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -223,6 +223,7 @@ uint32_t pm8x41_v2_resin_status();
 uint32_t pm8x41_resin_status();
 void pm8x41_reset_configure(uint8_t);
 void pm8994_reset_configure(uint8_t);
+void pmi632_reset_configure(uint8_t);
 void pm8x41_v2_reset_configure(uint8_t);
 uint8_t pmi8950_get_pmi_subtype();
 int pm8x41_ldo_set_voltage(struct pm8x41_ldo *ldo, uint32_t voltage);
