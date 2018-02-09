@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2017, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2018 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -486,6 +486,53 @@ static void mdss_dsi_set_pll_src(void)
 			~USE_DSI1_PLL_FLAG;
 }
 
+static int mdss_spi_bl_enable(uint8_t enable)
+{
+	int ret = NO_ERROR;
+
+	ret = panel_backlight_ctrl(enable);
+	if (ret)
+		dprintf(CRITICAL, "Backlight %s failed\n", enable ? "enable" : "disable");
+	return ret;
+}
+
+static int mdss_spi_panel_power(uint8_t enable, struct msm_panel_info *pinfo)
+{
+	int ret = NO_ERROR;
+
+	if (enable) {
+		ret = target_ldo_ctrl(enable, pinfo);
+		if (ret) {
+			dprintf(CRITICAL, "LDO control enable failed\n");
+			return ret;
+		}
+
+		/*Panel Reset*/
+		ret = target_panel_reset(enable,panelstruct.panelresetseq, &panel.panel_info);
+		if (ret) {
+			dprintf(CRITICAL, "panel reset failed\n");
+			return ret;
+		}
+		dprintf(INFO, "Panel power on done\n");
+	} else {
+		/*Disable panel and ldo*/
+		ret = target_panel_reset(enable, panelstruct.panelresetseq, &panel.panel_info);
+		if (ret) {
+			dprintf(CRITICAL, "panel reset disable failed \n");
+			return ret;
+		}
+
+		ret = target_ldo_ctrl(enable, pinfo);
+		if (ret) {
+			dprintf(CRITICAL, "panel reset disable failed \n");
+			return ret;
+		}
+		dprintf(INFO, "Panel power off done\n");
+	}
+
+	return ret;
+}
+
 static int update_dsi_display_config()
 {
 	int ret = NO_ERROR;
@@ -566,6 +613,18 @@ int gcdb_display_init(const char *panel_name, uint32_t rev, void *base)
                 panel.power_func = mdss_edp_panel_power;
 		panel.bl_func = mdss_edp_bl_enable;
                 panel.fb.format = FB_FORMAT_RGB888;
+	} else if (pan_type == PANEL_TYPE_SPI) {
+		panel.panel_info.xres = panelstruct.panelres->panel_width;
+		panel.panel_info.yres = panelstruct.panelres->panel_height;
+		panel.panel_info.bpp = panelstruct.color->color_format;
+		panel.power_func = mdss_spi_panel_power;
+		panel.bl_func = mdss_spi_bl_enable;
+		panel.fb.base = base;
+		panel.fb.width = panel.panel_info.xres;
+		panel.fb.height = panel.panel_info.yres;
+		panel.fb.bpp = panel.panel_info.bpp;
+		panel.fb.format = FB_FORMAT_RGB565;
+		panel.panel_info.type = SPI_PANEL;
 	} else {
 		dprintf(CRITICAL, "Target panel init not found!\n");
 		ret = ERR_NOT_SUPPORTED;

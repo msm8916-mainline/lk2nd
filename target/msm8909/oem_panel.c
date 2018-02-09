@@ -49,6 +49,7 @@
 #include "include/panel_auo_cx_qvga_cmd.h"
 #include "include/panel_auo_400p_cmd.h"
 #include "include/panel_auo_390p_cmd.h"
+#include "include/panel_st7789v2_qvga_spi_cmd.h"
 
 #define DISPLAY_MAX_PANEL_DETECTION 0
 #define ILI9806E_FWVGA_VIDEO_PANEL_POST_INIT_DELAY 68
@@ -78,6 +79,7 @@ enum {
 	AUO_CX_QVGA_CMD_PANEL,
 	AUO_400P_CMD_PANEL,
 	AUO_390P_CMD_PANEL,
+	ST7789v2_QVGA_SPI_CMD_PANEL,
 	UNKNOWN_PANEL
 };
 
@@ -98,6 +100,7 @@ static struct panel_list supp_panels[] = {
 	{"auo_cx_qvga_cmd", AUO_CX_QVGA_CMD_PANEL},
 	{"auo_400p_cmd", AUO_400P_CMD_PANEL},
 	{"auo_390p_cmd", AUO_390P_CMD_PANEL},
+	{"ST7789V2_qvga_cmd", ST7789v2_QVGA_SPI_CMD_PANEL},
 };
 
 static uint32_t panel_id;
@@ -428,6 +431,19 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		pinfo->mipi.num_of_panel_off_cmds
 					= AUO_390P_CMD_OFF_COMMAND;
 		memcpy(phy_db->timing, auo_390p_cmd_timings, TIMING_SIZE);
+		break;
+	case ST7789v2_QVGA_SPI_CMD_PANEL:
+		panelstruct->paneldata		= &st7789v2_qvga_cmd_panel_data;
+		panelstruct->panelres		= &st7789v2_qvga_cmd_panel_res;
+		panelstruct->color			= &st7789v2_qvga_cmd_color;
+		panelstruct->panelresetseq	= &st7789v2_qvga_cmd_reset_seq;
+		panelstruct->backlightinfo	= &st7789v2_qvga_cmd_backlight;
+		pinfo->spi.panel_cmds		= st7789v2_qvga_cmd_on_command;
+		pinfo->spi.num_of_panel_cmds= ST7789v2_QVGA_CMD_ON_COMMAND;
+		pinfo->spi.signature_addr	= &st7789v2_signature_addr;
+		pinfo->spi.signature		= st7789v2_signature;
+		pinfo->spi.signature_len	= st7789v2_signature_len;
+		pan_type = PANEL_TYPE_SPI;
 		break;
 	case UNKNOWN_PANEL:
 	default:
