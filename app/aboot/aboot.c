@@ -272,9 +272,10 @@ struct getvar_partition_info {
 struct getvar_partition_info part_info[NUM_PARTITIONS];
 struct getvar_partition_info part_type_known[] =
 {
-	{ "system"  , "partition-size:", "partition-type:", "", "ext4" },
-	{ "userdata", "partition-size:", "partition-type:", "", "ext4" },
-	{ "cache"   , "partition-size:", "partition-type:", "", "ext4" },
+	{ "system"     , "partition-size:", "partition-type:", "", "ext4" },
+	{ "userdata"   , "partition-size:", "partition-type:", "", "ext4" },
+	{ "cache"      , "partition-size:", "partition-type:", "", "ext4" },
+	{ "recoveryfs" , "partition-size:", "partition-type:", "", "ext4" },
 };
 
 char max_download_size[MAX_RSP_SIZE];
