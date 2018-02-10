@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2016, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2016, 2018 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -125,6 +125,15 @@ int msm_display_config()
 		if (ret)
 			goto msm_display_config_out;
 		break;
+	case SPI_PANEL:
+		dprintf(INFO, "Config SPI PANEL.\n");
+		ret = mdss_spi_init();
+		if (ret)
+			goto msm_display_config_out;
+		ret = mdss_spi_panel_init(pinfo);
+		if (ret)
+			goto msm_display_config_out;
+		break;
 	case HDMI_PANEL:
 		dprintf(INFO, "Config HDMI PANEL.\n");
 		ret = mdss_hdmi_config(pinfo, &(panel->fb));
@@ -240,6 +249,12 @@ int msm_display_on()
 	case EDP_PANEL:
 		dprintf(INFO, "Turn on EDP PANEL.\n");
 		ret = mdp_edp_on(pinfo);
+		if (ret)
+			goto msm_display_on_out;
+		break;
+	case SPI_PANEL:
+		dprintf(INFO, "Turn on SPI_PANEL.\n");
+		ret = mdss_spi_on(pinfo, &(panel->fb));
 		if (ret)
 			goto msm_display_on_out;
 		break;

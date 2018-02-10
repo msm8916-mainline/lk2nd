@@ -31,6 +31,9 @@
 
 #include <stdint.h>
 
+#define MAX_READ_SPEED_HZ 9600000
+#define MAX_SPEED_HZ 50000000
+
 /* QUP_IO_MODES fields */
 #define QUP_IO_MODES_OUTPUT_BIT_SHIFT_EN  0x00010000
 #define QUP_IO_MODES_PACK_EN              0x00008000
@@ -89,6 +92,7 @@
  * And make the count be multiple of max bytes per word.
  */
 #define MAX_QUP_MX_OUTPUT_COUNT 0xFFF8
+#define MAX_QUP_MX_TRANSFER_COUNT 0xFFF8
 
 /* QUP Registers */
 enum {
@@ -104,6 +108,7 @@ enum {
 	QUP_HW_VERSION = 0x30,
 	QUP_MX_READ_CNT = 0x208,
 	QUP_MX_INPUT_CNT = 0x200,
+	QUP_MX_INPUT_CNT_CURRENT = 0x204,
 	QUP_MX_OUTPUT_CNT = 0x100,
 	QUP_MX_OUTPUT_CNT_CURRENT = 0x104,
 	QUP_OUTPUT_DEBUG = 0x108,
