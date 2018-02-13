@@ -1,4 +1,4 @@
-/* Copyright (c) 2015-2017, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2018, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -36,6 +36,7 @@
 #include <pm8x41.h>
 #include <pm8x41_wled.h>
 #include <qpnp_wled.h>
+#include <qpnp_lcdb.h>
 #include <board.h>
 #include <mdp5.h>
 #include <scm.h>
@@ -46,6 +47,7 @@
 #include <target/display.h>
 #include <qtimer.h>
 #include <platform.h>
+#include <target.h>
 
 #include "include/panel.h"
 #include "include/display_resource.h"
@@ -264,8 +266,13 @@ static int msm8952_wled_backlight_ctrl(uint8_t enable)
 	uint8_t slave_id = PMIC_WLED_SLAVE_ID;	/* pmi */
 
 	pm8x41_wled_config_slave_id(slave_id);
-	qpnp_wled_enable_backlight(enable);
-	qpnp_ibb_enable(enable);
+	if (target_get_pmic() == PMIC_IS_PMI632) {
+		qpnp_lcdb_enable(enable);
+	}
+	else {
+		qpnp_wled_enable_backlight(enable);
+		qpnp_ibb_enable(enable);
+	}
 	return NO_ERROR;
 }
 
@@ -507,7 +514,10 @@ static int wled_init(struct msm_panel_info *pinfo)
 	/* QPNP WLED init for display backlight */
 	pm8x41_wled_config_slave_id(PMIC_WLED_SLAVE_ID);
 
-	rc = qpnp_wled_init(&config);
+	if (target_get_pmic() == PMIC_IS_PMI632)
+		rc = qpnp_lcdb_init(&config);
+	else
+		rc = qpnp_wled_init(&config);
 
 	return rc;
 }
@@ -557,9 +567,12 @@ int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 			dprintf(CRITICAL, "%s: wled init failed\n", __func__);
 			return rc;
 		}
-		rc = qpnp_ibb_enable(true); /*5V boost*/
+		if (target_get_pmic() == PMIC_IS_PMI632)
+			rc = qpnp_lcdb_enable(true);
+		else
+			rc = qpnp_ibb_enable(true); /*5V boost*/
 		if (rc) {
-			dprintf(CRITICAL, "%s: qpnp_ibb failed\n", __func__);
+			dprintf(CRITICAL, "%s: qpnp_ibb/lcdb failed\n", __func__);
 			return rc;
 		}
 		mdelay(50);
