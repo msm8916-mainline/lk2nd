@@ -637,6 +637,18 @@ uint8_t pm8950_get_pon_reason()
 	return pon_reason;
 }
 
+uint8_t pmi632_get_pon_reason()
+{
+	uint8_t pon_reason = 0;
+
+	pon_reason = REG_READ(SCHG_USB_INT_RT_STS|PMI8950_SLAVE_ID);
+	/* Check USBIN status on PMI and set the corresponding bits for pon */
+	pon_reason = (pon_reason & USBIN_PLUGIN_RT_STS);
+	pon_reason |= REG_READ(PON_PON_REASON1);
+
+	return pon_reason;
+}
+
 uint8_t pm8x41_get_pon_poff_reason1()
 {
 	return REG_READ(PON_POFF_REASON1);
