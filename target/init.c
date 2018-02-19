@@ -435,8 +435,16 @@ bool target_battery_is_present()
 			}
 			break;
 		case PMIC_IS_PM660:
-		case PMIC_IS_PMI632:
 			value = REG_READ(BAT_IF_INT_RT_STS);
+			/* If BAT_TERMINAL_MISSING_RT_STS BIT(5) or BAT_THERM_OR_ID_MISSING_RT_STS BIT(4)
+			   are set, battery is not present. */
+			if (value & (BIT(5) | BIT(4)))
+				return false;
+			else
+				return true;
+			break;
+		case PMIC_IS_PMI632:
+			value = REG_READ(PMIC_SLAVE_ID|BAT_IF_INT_RT_STS);
 			/* If BAT_TERMINAL_MISSING_RT_STS BIT(5) or BAT_THERM_OR_ID_MISSING_RT_STS BIT(4)
 			   are set, battery is not present. */
 			if (value & (BIT(5) | BIT(4)))
