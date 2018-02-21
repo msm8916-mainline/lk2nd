@@ -239,26 +239,22 @@ uint32_t target_is_pwrkey_pon_reason()
 {
 	uint32_t pmic = target_get_pmic();
 	uint8_t pon_reason = 0;
-	uint8_t is_cold_boot = 0;
 	bool usb_present_sts = 1;
 
 	if (pmic == PMIC_IS_PMI632)
 	{
-		pon_reason = pm660_get_pon_reason();
-		is_cold_boot = pm660_get_is_cold_boot();
+		pon_reason = pmi632_get_pon_reason();
 		usb_present_sts = !(USBIN_UV_RT_STS_PMI632 &
 				pm8x41_reg_read(SMBCHG_USB_RT_STS));
 	}
 	else
 	{
 		pon_reason = pm8950_get_pon_reason();
-		is_cold_boot = pm8x41_get_is_cold_boot();
-		if (target_is_pmi_enabled())
-			usb_present_sts = !(USBIN_UV_RT_STS &
+		usb_present_sts = !(USBIN_UV_RT_STS &
 				pm8x41_reg_read(SMBCHG_USB_RT_STS));
 	}
 
-	if (is_cold_boot && ((pon_reason == KPDPWR_N) ||
+	if (pm8x41_get_is_cold_boot() && ((pon_reason == KPDPWR_N) ||
 				(pon_reason == (KPDPWR_N|PON1))))
 		return 1;
 	else if ((pon_reason == PON1) && (!usb_present_sts))
@@ -415,22 +411,16 @@ int emmc_recovery_init(void)
 unsigned target_pause_for_battery_charge(void)
 {
 	uint32_t pmic = target_get_pmic();
-	uint8_t pon_reason = 0;
-	uint8_t is_cold_boot = 0;
+	uint8_t pon_reason = pm8x41_get_pon_reason();
+	uint8_t is_cold_boot = pm8x41_get_is_cold_boot();
 	bool usb_present_sts = 1;
 
-	if (pmic == PMIC_IS_PMI632)
+	if (target_is_pmi_enabled())
 	{
-		pon_reason = pm660_get_pon_reason();
-		is_cold_boot = pm660_get_is_cold_boot();
-		usb_present_sts = !(USBIN_UV_RT_STS_PMI632 &
+		if (pmic == PMIC_IS_PMI632)
+			usb_present_sts = !(USBIN_UV_RT_STS_PMI632 &
 				pm8x41_reg_read(SMBCHG_USB_RT_STS));
-	}
-	else
-	{
-		pon_reason = pm8x41_get_pon_reason();
-		is_cold_boot = pm8x41_get_is_cold_boot();
-		if (target_is_pmi_enabled())
+		else
 			usb_present_sts = !(USBIN_UV_RT_STS &
 				pm8x41_reg_read(SMBCHG_USB_RT_STS));
 	}
