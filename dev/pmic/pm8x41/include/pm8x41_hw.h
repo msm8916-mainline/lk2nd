@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2015, 2017, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2015, 2017-2018, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -108,6 +108,10 @@
 /* USB Peripheral register bits */
 #define USBIN_ACTIVE_PWR_SRC                  BIT(0)
 #define DCIN_ACTIVE_PWR_SRC                   BIT(1)
+
+/* USB Status registers */
+#define SCHG_USB_INT_RT_STS		      0x1310
+#define USBIN_PLUGIN_RT_STS		      BIT(4)
 
 /* MPP registers */
 #define MPP_DIG_VIN_CTL                       0x41
