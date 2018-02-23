@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2017, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2018, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -439,8 +439,8 @@ int decrypt_scm(uint32_t ** img_ptr, uint32_t * img_len_ptr)
 static int ssd_image_is_encrypted(uint32_t ** img_ptr, uint32_t * img_len_ptr, uint32 * ctx_id)
 {
 	int              ret     = 0;
-	ssd_parse_md_req parse_req;
-	ssd_parse_md_rsp parse_rsp;
+	ssd_parse_md_req parse_req = {0};
+	ssd_parse_md_rsp parse_rsp = {0};
 	int              prev_len = 0;
 	scmcall_arg scm_arg = {0};
 	scmcall_ret scm_ret = {0};
