@@ -186,7 +186,14 @@ static const char *baseband_apq_nowgr   = " androidboot.baseband=baseband_apq_no
 static const char *androidboot_slot_suffix = " androidboot.slot_suffix=";
 static const char *skip_ramfs = " skip_initramfs";
 static const char *sys_path_cmdline = " rootwait ro init=/init";
+
+#if VERITY_LE
+static const char *verity_dev = " root=/dev/dm-0";
+static const char *verity_system_part = " dm=\"system";
+static const char *verity_params = " none ro,0 1 android-verity /dev/mmcblk0p";
+#else
 static const char *sys_path = "  root=/dev/mmcblk0p";
+#endif
 
 #if VERIFIED_BOOT
 static const char *verity_mode = " androidboot.veritymode=";
@@ -353,7 +360,13 @@ unsigned char *update_cmdline(const char * cmdline)
 	int system_ptn_index = -1;
 	unsigned int lun = 0;
 	char lun_char_base = 'a';
-	int syspath_buflen = strlen(sys_path) + sizeof(int) + 1; /*allocate buflen for largest possible string*/
+#if VERITY_LE
+	int syspath_buflen = strlen(verity_dev)
+				+ strlen(verity_system_part) + (sizeof(char) * 2) + 2
+				+ strlen(verity_params) + sizeof(int) + 2;
+#else
+        int syspath_buflen = strlen(sys_path) + sizeof(int) + 2; /*allocate buflen for largest possible string*/
+#endif
 	char syspath_buf[syspath_buflen];
 #if VERIFIED_BOOT
 	uint32_t boot_state = RED;
@@ -511,8 +524,27 @@ unsigned char *update_cmdline(const char * cmdline)
 		system_ptn_index = partition_get_index("system");
 		if (platform_boot_dev_isemmc())
 		{
-			snprintf(syspath_buf, syspath_buflen, " root=/dev/mmcblk0p%d",
-				system_ptn_index + 1);
+#if VERITY_LE
+			/*
+			  Condition 4: Verity and A/B both enabled
+			  Eventual command line looks like:
+			  ... androidboot.slot_suffix=<slot_suffix>  ... rootfstype=ext4 ...
+			  ... root=/dev/dm-0  dm="system_<slot_suffix>  none ro,0 1 android-verity /dev/mmcblk0p<NN>"
+			*/
+			snprintf(syspath_buf, syspath_buflen, " %s %s%s %s%d\"",
+				verity_dev,
+				verity_system_part, suffix_slot[current_active_slot],
+				verity_params, system_ptn_index + 1);
+#else
+			/*
+			  Condition 5: A/B enabled, but verity disabled
+			  Eventual command line looks like:
+			  ... androidboot.slot_suffix=<slot_suffix>  ... rootfstype=ext4 ...
+			  ... root=/dev/mmcblk0p<NN> ...
+			*/
+			snprintf(syspath_buf, syspath_buflen, " %s%d",
+					sys_path, system_ptn_index + 1);
+#endif
 		}
 		else
 		{
