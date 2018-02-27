@@ -59,6 +59,8 @@
 #include <qmp_phy.h>
 #include <qusb2_phy.h>
 #include "target/display.h"
+#include "recovery.h"
+#include <ab_partition_parser.h>
 
 #if LONG_PRESS_POWER_ON
 #include <shutdown_detect.h>
@@ -76,7 +78,15 @@
 #define FASTBOOT_MODE           0x77665500
 #define RECOVERY_MODE           0x77665502
 #define PON_SOFT_RB_SPARE       0x88F
-#define EXT4_CMDLINE  " rootfstype=ext4 root=/dev/mmcblk0p"
+
+#if VERITY_LE
+#define ROOTDEV_CMDLINE    " root=/dev/dm-0 dm=\"system none ro,0 1 android-verity /dev/mmcblk0p"
+#else
+#define ROOTDEV_CMDLINE    " root=/dev/mmcblk0p"
+#endif
+
+#define RECOVERY_ROOTDEV_CMDLINE  " root=/dev/mmcblk0p"
+#define ROOTDEV_FSTYPE_CMDLINE   (" rootfstype=ext4 ")
 
 #define CE1_INSTANCE            1
 #define CE_EE                   1
@@ -110,6 +120,25 @@ void target_early_init(void)
 }
 
 #if _APPEND_CMDLINE
+/*
+   get_target_boot_params: appends bootparam as per following conditions:
+
+      1. Always appends "rootfstype=ext4", if it is emmc boot path.
+
+      2. Appends more bootparams only if multi-slot is not supported
+         2.1 If booting into recovery:
+             rootfstype=ext4 root=/dev/mmcblk0p<NN>
+             where: root=/dev/mmcblk0p<NN> is block device to "recoveryfs" partition
+
+         2.2 If booting into normal boot path:
+             2.2.1 If verity is enabled:
+                   root=/dev/dm-0 dm=\"system none ro,0 1 android-verity /dev/mmcblk0p<NN>
+                   where: root=/dev/mmcblk0p<NN> is block device to "system" partition
+
+             2.2.2 If verity is not enabled
+                   rootfstype=ext4 root=/dev/mmcblk0p<NN>
+                   where: root=/dev/mmcblk0p<NN> is block device to "system" partition
+*/
 int get_target_boot_params(const char *cmdline, const char *part, char **buf)
 {
 	int system_ptn_index = -1;
@@ -124,7 +153,39 @@ int get_target_boot_params(const char *cmdline, const char *part, char **buf)
 	if (!strstr(cmdline, "root=/dev/ram")) /* This check is to handle kdev boot */
 	{
 		if (target_is_emmc_boot()) {
-			buflen = strlen(EXT4_CMDLINE) + sizeof(int) +1;
+			/*
+			  Calculate length for "rootfstype=ext4"
+			  The "rootfstype=ext4" is appended to kernel commandline in all conditions
+			  The conditions are subsequently documented.
+			*/
+			buflen = sizeof(ROOTDEV_FSTYPE_CMDLINE);
+
+			/*
+			  Append other bootparams to command line
+			  only if multi-slot is not supported.
+			*/
+			if(!partition_multislot_is_supported()) {
+				/*
+				   When booting into recovery append
+				   block device number for "recoveryfs"
+				   Eventual command line looks like:
+				   ...rootfstype=ext4 root=/dev/mmcblk0p<NN>...
+				*/
+				if(boot_into_recovery == true) {
+					buflen += strlen(RECOVERY_ROOTDEV_CMDLINE) + sizeof(int) + 1;
+				} else {
+					/*
+					   When booting normally append command line
+					   with verity bootparam only if VERITY_LE is
+					   defined. The command line is as follows:
+					   ...root=/dev/dm-0 dm=\"system none ro,0 1 android-verity /dev/mmcblk0p<NN>...
+					   OR
+					   ...root=/dev/mmcblk0p<NN>...
+					*/
+					buflen += strlen(ROOTDEV_CMDLINE) + sizeof(int) + 1;
+				}
+			}
+
 			*buf = (char *)malloc(buflen);
 			if(!(*buf)) {
 				dprintf(CRITICAL,"Unable to allocate memory for boot params\n");
@@ -134,11 +195,21 @@ int get_target_boot_params(const char *cmdline, const char *part, char **buf)
 			system_ptn_index = partition_get_index(part) + 1; /* Adding +1 as offsets for eMMC start at 1 and NAND at 0 */
 			if (system_ptn_index < 0) {
 				dprintf(CRITICAL,
-						"WARN: Cannot get partition index for %s\n", part);
+					"WARN: Cannot get partition index for %s\n", part);
 				free(*buf);
 				return -1;
 			}
-			snprintf(*buf, buflen, EXT4_CMDLINE"%d", system_ptn_index);
+
+			if(!partition_multislot_is_supported()) {
+				if(boot_into_recovery == true) {
+					snprintf(*buf, buflen, "%s %s%d", ROOTDEV_FSTYPE_CMDLINE,
+						 RECOVERY_ROOTDEV_CMDLINE, system_ptn_index);
+				} else {
+					snprintf(*buf, buflen, "%s %s%d", ROOTDEV_FSTYPE_CMDLINE,
+						 ROOTDEV_CMDLINE, system_ptn_index);
+				}
+			}
+
 			ret = 0;
 		}
 	}
