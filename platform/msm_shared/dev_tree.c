@@ -495,9 +495,10 @@ static void dtb_read_find_match(dt_info *current_dtb_info, dt_info *best_dtb_inf
 					curr_pmic_info.dt_match_val |= BIT(PMIC_MATCH_EXACT_REV_IDX0 + idx * PMIC_SHIFT_IDX);
 				else if (curr_pmic_info.dt_pmic_rev[idx] < (board_pmic_target(idx) & PMIC_REV_MASK))
 					curr_pmic_info.dt_match_val |= BIT(PMIC_MATCH_BEST_REV_IDX0 + idx * PMIC_SHIFT_IDX);
-				else
+				else {
 					dprintf(SPEW, "PMIC revision doesn't match\n");
 					break; /* go to next pmic entry */
+				}
 			}
 
 			dprintf(SPEW, "Bestpmicinfo.dtmatchval : %x | cur_pmic_info.dtmatchval: %x\n",
