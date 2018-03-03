@@ -1957,6 +1957,10 @@ int update_device_tree(void *fdt, const char *cmdline,
 #if ENABLE_KASLRSEED_SUPPORT
 	uintptr_t kaslrseed;
 #endif
+	uint32_t cmdline_len = 0;
+
+	if (cmdline)
+		cmdline_len = strlen(cmdline);
 
 	/* Check the device tree header */
 	ret = fdt_check_header(fdt) || fdt_check_header_ext(fdt);
@@ -1967,13 +1971,13 @@ int update_device_tree(void *fdt, const char *cmdline,
 	}
 
 	if (check_aboot_addr_range_overlap((uint32_t)fdt,
-				(fdt_totalsize(fdt) + DTB_PAD_SIZE + strlen(cmdline)))) {
+				(fdt_totalsize(fdt) + DTB_PAD_SIZE + cmdline_len))) {
 		dprintf(CRITICAL, "Error: Fdt addresses overlap with aboot addresses.\n");
 		return ret;
 	}
 
 	/* Add padding to make space for new nodes and properties. */
-	ret = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + DTB_PAD_SIZE + strlen(cmdline));
+	ret = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + DTB_PAD_SIZE + cmdline_len);
 	if (ret!= 0)
 	{
 		dprintf(CRITICAL, "Failed to move/resize dtb buffer: %d\n", ret);
