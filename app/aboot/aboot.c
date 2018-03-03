@@ -891,6 +891,9 @@ void generate_atags(unsigned *ptr, const char *cmdline,
 	 * Atags size filled till + cmdline size + 1 unsigned for 4-byte boundary + 4 unsigned
 	 * for atag identifier in atag_cmdline and atag_end should be with in MAX_TAGS_SIZE bytes
 	 */
+	if (!cmdline)
+		return;
+
 	if (((ptr - orig_ptr) + strlen(cmdline) + 5 * sizeof(unsigned)) <  MAX_TAGS_SIZE) {
 		ptr = atag_cmdline(ptr, cmdline);
 		ptr = atag_end(ptr);
@@ -935,7 +938,8 @@ void boot_linux(void *kernel, unsigned *tags,
 	generate_atags(tags, final_cmdline, ramdisk, ramdisk_size);
 #endif
 
-	free(final_cmdline);
+	if (final_cmdline)
+		free(final_cmdline);
 
 #if VERIFIED_BOOT
 	if (VB_M <= target_get_vb_version())
