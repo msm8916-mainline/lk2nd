@@ -28,6 +28,15 @@ ENABLE_FBCON_DISPLAY_MSG := 1
 endif
 endif
 
+ifeq ($(VERIFIED_BOOT_2),1)
+  ENABLE_SECAPP_LOADER := 1
+  ENABLE_RPMB_SUPPORT := 1
+ifneq (,$(findstring DISPLAY_SPLASH_SCREEN,$(DEFINES)))
+#enable fbcon display menu
+  ENABLE_FBCON_DISPLAY_MSG := 1
+endif
+endif
+
 ENABLE_SMD_SUPPORT := 1
 ENABLE_PWM_SUPPORT := true
 
