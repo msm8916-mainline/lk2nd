@@ -1,4 +1,4 @@
-/* Copyright (c) 2015-2017, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2018, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -97,6 +97,7 @@
 #define SUB_TYPE_SKUT           0x0A
 #define SMBCHG_USB_RT_STS 0x21310
 #define USBIN_UV_RT_STS BIT(0)
+#define USBIN_UV_RT_STS_PMI632 BIT(2)
 
 struct mmc_device *dev;
 
@@ -242,9 +243,23 @@ uint32_t target_volume_down()
 
 uint32_t target_is_pwrkey_pon_reason()
 {
-	uint8_t pon_reason = pm8950_get_pon_reason();
-	bool usb_present_sts = !(USBIN_UV_RT_STS &
+	uint32_t pmic = target_get_pmic();
+	uint8_t pon_reason = 0;
+	bool usb_present_sts = 0;
+
+	if (pmic == PMIC_IS_PMI632)
+	{
+		pon_reason = pmi632_get_pon_reason();
+		usb_present_sts = !(USBIN_UV_RT_STS_PMI632 &
 				pm8x41_reg_read(SMBCHG_USB_RT_STS));
+	}
+	else
+	{
+		pon_reason = pm8950_get_pon_reason();
+		usb_present_sts = !(USBIN_UV_RT_STS &
+			pm8x41_reg_read(SMBCHG_USB_RT_STS));
+	}
+
 	if (pm8x41_get_is_cold_boot() && ((pon_reason == KPDPWR_N) || (pon_reason == (KPDPWR_N|PON1))))
 		return 1;
 	else if ((pon_reason == PON1) && (!usb_present_sts))
@@ -270,7 +285,10 @@ void shutdown_device()
 	dprintf(CRITICAL, "Going down for shutdown.\n");
 
 	/* Configure PMIC for shutdown */
-	pm8x41_reset_configure(PON_PSHOLD_SHUTDOWN);
+	if (target_get_pmic() == PMIC_IS_PMI632)
+		pmi632_reset_configure(PON_PSHOLD_SHUTDOWN);
+	else
+		pm8x41_reset_configure(PON_PSHOLD_SHUTDOWN);
 
 	/* Drop PS_HOLD for MSM */
 	writel(0x00, MPM2_MPM_PS_HOLD);
@@ -492,11 +510,17 @@ void reboot_device(unsigned reboot_reason)
 	else
 		reset_type = PON_PSHOLD_HARD_RESET;
 
-	if(target_is_pmi_enabled())
-		pm8994_reset_configure(reset_type);
+	if (target_get_pmic() == PMIC_IS_PMI632)
+	{
+		pmi632_reset_configure(reset_type);
+	}
 	else
-		pm8x41_reset_configure(reset_type);
-
+	{
+		if(target_is_pmi_enabled())
+			pm8994_reset_configure(reset_type);
+		else
+			pm8x41_reset_configure(reset_type);
+	}
 
 	ret = scm_halt_pmic_arbiter();
 	if (ret)
@@ -529,13 +553,20 @@ uint32_t is_user_force_reset(void)
 
 unsigned target_pause_for_battery_charge(void)
 {
+	uint32_t pmic = target_get_pmic();
 	uint8_t pon_reason = pm8x41_get_pon_reason();
 	uint8_t is_cold_boot = pm8x41_get_is_cold_boot();
 	bool usb_present_sts = 1;	/* don't care by default */
 
-	if(target_is_pmi_enabled())
-		usb_present_sts = (!(USBIN_UV_RT_STS &
-						 pm8x41_reg_read(SMBCHG_USB_RT_STS)));
+	if (target_is_pmi_enabled())
+	{
+		if (pmic == PMIC_IS_PMI632)
+			usb_present_sts = !(USBIN_UV_RT_STS_PMI632 &
+				pm8x41_reg_read(SMBCHG_USB_RT_STS));
+		else
+			usb_present_sts = (!(USBIN_UV_RT_STS &
+				pm8x41_reg_read(SMBCHG_USB_RT_STS)));
+	}
 
 	dprintf(INFO, "%s : pon_reason is:0x%x cold_boot:%d usb_sts:%d\n", __func__,
 		pon_reason, is_cold_boot, usb_present_sts);
@@ -800,5 +831,14 @@ int get_target_boot_params(const char *cmdline, const char *part, char **buf)
 
 uint32_t target_get_pmic()
 {
-	return PMIC_IS_PMI8950;
+	if (target_is_pmi_enabled()) {
+		uint32_t pmi_type = board_pmic_target(1) & 0xffff;
+		if (pmi_type == PMIC_IS_PMI632)
+			return PMIC_IS_PMI632;
+		else
+			return PMIC_IS_PMI8950;
+	}
+	else {
+		return PMIC_IS_UNKNOWN;
+	}
 }
