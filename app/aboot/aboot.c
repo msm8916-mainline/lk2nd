@@ -136,7 +136,7 @@ struct fastboot_cmd_desc {
 #endif
 
 #define MAX_TAGS_SIZE   1024
-
+#define PLL_CODES_OFFSET 4096
 /* make 4096 as default size to ensure EFS,EXT4's erasing */
 #define DEFAULT_ERASE_SIZE  4096
 #define MAX_PANEL_BUF_SIZE 196
@@ -4351,7 +4351,7 @@ int splash_screen_mmc()
 
 	base = (uint8_t *) fb_display->base;
 
-	if (mmc_read(ptn, (uint32_t *)(base + LOGO_IMG_OFFSET), blocksize)) {
+	if (mmc_read(ptn + PLL_CODES_OFFSET, (uint32_t *)(base + LOGO_IMG_OFFSET), blocksize)) {
 		dprintf(CRITICAL, "ERROR: Cannot read splash image header\n");
 		return -1;
 	}
@@ -4383,7 +4383,7 @@ int splash_screen_mmc()
 				return -1;
 			}
 
-			if (mmc_read(ptn + blocksize, (uint32_t *)(base + blocksize), readsize)) {
+			if (mmc_read(ptn + PLL_CODES_OFFSET + blocksize, (uint32_t *)(base + blocksize), readsize)) {
 				dprintf(CRITICAL, "ERROR: Cannot read splash image from partition\n");
 				return -1;
 			}
@@ -4400,13 +4400,13 @@ int splash_screen_mmc()
 			readsize =  ROUNDUP((realsize + LOGO_IMG_HEADER_SIZE), blocksize) - blocksize;
 
 			if (blocksize == LOGO_IMG_HEADER_SIZE) { /* read the content directly */
-				if (mmc_read((ptn + LOGO_IMG_HEADER_SIZE), (uint32_t *)base, readsize)) {
+				if (mmc_read((ptn + PLL_CODES_OFFSET + LOGO_IMG_HEADER_SIZE), (uint32_t *)base, readsize)) {
 					fbcon_clear();
 					dprintf(CRITICAL, "ERROR: Cannot read splash image from partition\n");
 					return -1;
 				}
 			} else {
-				if (mmc_read(ptn + blocksize ,
+				if (mmc_read(ptn + PLL_CODES_OFFSET + blocksize ,
 						(uint32_t *)(base + LOGO_IMG_OFFSET + blocksize), readsize)) {
 					dprintf(CRITICAL, "ERROR: Cannot read splash image from partition\n");
 					return -1;
