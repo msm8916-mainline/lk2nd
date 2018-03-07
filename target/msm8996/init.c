@@ -675,7 +675,33 @@ int set_download_mode(enum reboot_reason mode)
 
 void pmic_reset_configure(uint8_t reset_type)
 {
-	pm8994_reset_configure(reset_type);
+	uint8_t sec_pmic_reset_type = reset_type;
+
+	/* use shutdown for non-core pmic's on hard_reset */
+	if (reset_type == PON_PSHOLD_HARD_RESET)
+		sec_pmic_reset_type = PON_PSHOLD_SHUTDOWN;
+
+	/* Confiure primary pmic PM8996 */
+	pm8996_reset_configure(0, reset_type);
+
+	/* Confiure secondary pmic PMI8996 */
+	pm8996_reset_configure(2, sec_pmic_reset_type);
+
+	/* Check if third pmic PM8004 present */
+	if ((board_pmic_target(2) & 0xff) == 0xC)
+	{
+		/* Confiure PM8004 */
+		pm8996_reset_configure(4, reset_type);
+
+		/* Check if fourth pmic PMK8001 present */
+		if ((board_pmic_target(3) & 0xff) == 0x12)
+			pm8996_reset_configure(6, sec_pmic_reset_type);
+	}
+	else if ((board_pmic_target(2) & 0xff) == 0x12)
+	{
+		/* check and configure if third pmic is PMK8001 */
+		pm8996_reset_configure(6, sec_pmic_reset_type);
+	}
 }
 
 uint32_t target_get_pmic()
