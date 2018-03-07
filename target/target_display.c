@@ -146,3 +146,8 @@ __WEAK int mdss_spi_on(struct msm_panel_info *pinfo, struct fbcon_config *fb)
 {
 	return 0;
 }
+
+__WEAK int mdss_spi_cmd_post_on(struct msm_panel_info *pinfo)
+{
+	return 0;
+}
