@@ -450,6 +450,25 @@ void pm8994_reset_configure(uint8_t reset_type)
 		pm8xxx_reg_write(slave_id[i], PON_PS_HOLD_RESET_CTL2, BIT(S2_RESET_EN_BIT));
 }
 
+void pm8996_reset_configure(uint8_t slave_id, uint8_t reset_type)
+{
+	/* Reset sequence
+	1. Disable the ps hold
+	2. set reset type
+	3. Enable ps hold to trigger the reset
+	*/
+	/* disable PS_HOLD_RESET */
+	pm8xxx_reg_write(slave_id, PON_PS_HOLD_RESET_CTL2, 0x0);
+
+	/* Delay needed for disable to kick in. */
+	udelay(300);
+
+	/* configure reset type */
+	pm8xxx_reg_write(slave_id, PON_PS_HOLD_RESET_CTL, reset_type);
+	/* enable PS_HOLD_RESET */
+	pm8xxx_reg_write(slave_id, PON_PS_HOLD_RESET_CTL2, BIT(S2_RESET_EN_BIT));
+}
+
 void pm8x41_v2_reset_configure(uint8_t reset_type)
 {
 	uint8_t val;

@@ -223,6 +223,7 @@ uint32_t pm8x41_v2_resin_status();
 uint32_t pm8x41_resin_status();
 void pm8x41_reset_configure(uint8_t);
 void pm8994_reset_configure(uint8_t);
+void pm8996_reset_configure(uint8_t, uint8_t);
 void pmi632_reset_configure(uint8_t);
 void pm8x41_v2_reset_configure(uint8_t);
 uint8_t pmi8950_get_pmi_subtype();
