@@ -157,13 +157,14 @@ static struct mdss_spi_cmd st7789v2_qvga_cmd_on_command[] = {
 	{0x0F, st7789v2_qvga_cmd_on_cmd12, 0x00, 0},
 	{0x0F, st7789v2_qvga_cmd_on_cmd13, 0x00, 0},
 	{0x01, st7789v2_qvga_cmd_on_cmd14, 0x00, 0},
-	{0x01, st7789v2_qvga_cmd_on_cmd15, 0x78, 0},
-	{0x05, st7789v2_qvga_cmd_on_cmd16, 0x00, 0},
-	{0x05, st7789v2_qvga_cmd_on_cmd17, 0x00, 0},
 	{0x01, st7789v2_qvga_cmd_on_cmd18, 0x00, 0},
+	{0x01, st7789v2_qvga_cmd_on_cmd15, 0x78, 1},
+	{0x05, st7789v2_qvga_cmd_on_cmd16, 0x00, 1},
+	{0x05, st7789v2_qvga_cmd_on_cmd17, 0x00, 1},
+	{0x01, st7789v2_qvga_cmd_on_cmd18, 0x00, 1},
 };
 
-#define ST7789v2_QVGA_CMD_ON_COMMAND 19
+#define ST7789v2_QVGA_CMD_ON_COMMAND 20
 
 
 static char st7789v2_qvga_cmdoff_cmd0[] = {
