@@ -171,3 +171,32 @@ int mdss_spi_on(struct msm_panel_info *pinfo, struct fbcon_config *fb)
 
 	return ret;
 }
+
+int mdss_spi_cmd_post_on(struct msm_panel_info *pinfo)
+{
+	int cmd_count = 0;
+	char *payload;
+
+	if (!dev) {
+		dprintf(CRITICAL, "SPI has not been initialized\n");
+		return -ENODEV;
+	}
+
+	while (cmd_count < pinfo->spi.num_of_panel_cmds) {
+		if (pinfo->spi.panel_cmds[cmd_count].cmds_post_tg){
+			payload = pinfo->spi.panel_cmds[cmd_count].payload;
+			mdss_spi_write_cmd(payload);
+			if (pinfo->spi.panel_cmds[cmd_count].size > 1)
+				mdss_spi_write_data(payload + 1,
+					pinfo->spi.panel_cmds[cmd_count].size
+						- 1);
+
+			if (pinfo->spi.panel_cmds[cmd_count].wait)
+				mdelay(pinfo->spi.panel_cmds[cmd_count].wait);
+		}
+
+		cmd_count ++;
+	}
+
+	return SUCCESS;
+}
