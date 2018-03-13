@@ -276,6 +276,7 @@ struct getvar_partition_info {
 /*
  * Update the part_type_known for known paritions types.
  */
+#define RAW_STR "raw"
 struct getvar_partition_info part_info[NUM_PARTITIONS];
 struct getvar_partition_info part_type_known[] =
 {
@@ -2881,6 +2882,33 @@ static void get_partition_size(const char *arg, char *response)
 	return;
 }
 
+/* Function to get partition type */
+static void get_partition_type(const char *arg, char *response)
+{
+	uint n = 0;
+
+	if (arg == NULL ||
+		response == NULL)
+	{
+		dprintf(CRITICAL, "Invalid input parameter\n");
+		return;
+	}
+
+	/* By default copy raw to response */
+	strncpy(response, RAW_STR, strlen(RAW_STR));
+
+	/* Mark partiton type for known paritions only */
+	for (n=0; n < ARRAY_SIZE(part_type_known); n++)
+	{
+		if (!strncmp(part_type_known[n].part_name, arg, strlen(arg)))
+		{
+			strncpy(response, part_type_known[n].type_response, MAX_RSP_SIZE);
+			break;
+		}
+	}
+	return;
+}
+
 /*
  * Publish the partition type & size info
  * fastboot getvar will publish the required information.
@@ -2889,7 +2917,7 @@ static void get_partition_size(const char *arg, char *response)
  */
 static void publish_getvar_partition_info(struct getvar_partition_info *info, uint8_t num_parts)
 {
-	uint8_t i,n;
+	uint8_t i;
 	static bool published = false;
 	struct partition_entry *ptn_entry =
 				partition_get_partition_entries();
@@ -2900,21 +2928,8 @@ static void publish_getvar_partition_info(struct getvar_partition_info *info, ui
 		strlcat(info[i].getvar_size, "partition-size:", MAX_GET_VAR_NAME_SIZE);
 		strlcat(info[i].getvar_type, "partition-type:", MAX_GET_VAR_NAME_SIZE);
 
-		/* Mark partiton type for known paritions only */
-		for (n=0; n < ARRAY_SIZE(part_type_known); n++)
-		{
-			if (!strncmp(part_type_known[n].part_name, info[i].part_name,
-					strlen(part_type_known[n].part_name)))
-			{
-				strlcat(info[i].type_response,
-						part_type_known[n].type_response,
-						MAX_RSP_SIZE);
-				break;
-			}
-		}
-
+		get_partition_type(info[i].part_name, info[i].type_response);
 		get_partition_size(info[i].part_name, info[i].size_response);
-
 		if (strlcat(info[i].getvar_size, info[i].part_name, MAX_GET_VAR_NAME_SIZE) >= MAX_GET_VAR_NAME_SIZE)
 		{
 			dprintf(CRITICAL, "partition size name truncated\n");
