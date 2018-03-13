@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2017, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2018, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -80,6 +80,9 @@
 #define CE_WRITE_PIPE_LOCK_GRP  0
 #define CE_ARRAY_SIZE           20
 #define SUB_TYPE_SKUT           0x0A
+
+/* Fastboot switch GPIO for Intrinsic board. */
+#define USB_SW_GPIO_INTRINSIC_SOM 3
 
 extern void smem_ptable_init(void);
 extern void smem_add_modem_partitions(struct ptable *flash_ptable);
@@ -735,6 +738,9 @@ void target_uninit(void)
 /* Do any target specific intialization needed before entering fastboot mode */
 void target_fastboot_init(void)
 {
+	uint32_t hw_id = board_hardware_id();
+	uint32_t platform_subtype = board_hardware_subtype();
+
 	/* Set the BOOT_DONE flag in PM8916 */
 	pm8x41_set_boot_done();
 
@@ -742,6 +748,26 @@ void target_fastboot_init(void)
 		clock_ce_enable(CE1_INSTANCE);
 		target_load_ssd_keystore();
 	}
+
+	if ((HW_PLATFORM_MTP == hw_id) &&
+		(HW_PLATFORM_SUBTYPE_INTRINSIC_SOM == platform_subtype))
+	{
+		dprintf(SPEW, "Enabling PMIC GPIO for USB detection\n");
+
+		struct pm8x41_gpio usbgpio_param = {
+			.direction = PM_GPIO_DIR_OUT,
+			.vin_sel = 0,
+			.out_strength = PM_GPIO_OUT_DRIVE_MED,
+			.function = PM_GPIO_FUNC_HIGH,
+			.pull = PM_GPIO_PULLDOWN_10,
+			.inv_int_pol = PM_GPIO_INVERT,
+		};
+
+		pm8x41_gpio_config(USB_SW_GPIO_INTRINSIC_SOM, &usbgpio_param);
+		pm8x41_gpio_set(USB_SW_GPIO_INTRINSIC_SOM, 0);
+	}
+
+	return;
 }
 
 int set_download_mode(enum reboot_reason mode)
