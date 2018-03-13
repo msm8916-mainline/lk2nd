@@ -78,7 +78,7 @@ static const char *unlock_menu_common_msg = "If you unlock the bootloader, "\
 static bool is_thread_start = false;
 static struct select_msg_info msg_info;
 
-#if VERIFIED_BOOT
+#if VERIFIED_BOOT || VERIFIED_BOOT_2
 struct boot_verify_info {
 	int msg_type;
 	const char *warning_msg;
@@ -248,7 +248,7 @@ void display_unlock_menu_renew(struct select_msg_info *unlock_msg_info, int type
 	unlock_msg_info->info.option_index= 2;
 }
 
-#if VERIFIED_BOOT
+#if VERIFIED_BOOT || VERIFIED_BOOT_2
 /* msg_lock need to be holded when call this function. */
 void display_bootverify_menu_renew(struct select_msg_info *msg_info, int type)
 {
@@ -525,7 +525,7 @@ void display_fastboot_menu()
 	display_menu_thread_start(fastboot_menu_msg_info);
 }
 
-#if VERIFIED_BOOT
+#if VERIFIED_BOOT || VERIFIED_BOOT_2
 void display_bootverify_menu(int type)
 {
 	struct select_msg_info *bootverify_menu_msg_info;

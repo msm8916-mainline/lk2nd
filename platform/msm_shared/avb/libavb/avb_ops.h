@@ -63,6 +63,13 @@ typedef enum {
 struct AvbOps;
 typedef struct AvbOps AvbOps;
 
+typedef struct {
+        uint32_t  Data1;
+        uint16_t  Data2;
+        uint16_t  Data3;
+        uint8_t   Data4[8];
+} EFI_GUID;
+
 /* Forward-declaration of operations in libavb_ab. */
 struct AvbABOps;
 

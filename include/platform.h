@@ -92,4 +92,7 @@ bool platform_is_glink_enabled();
 bool platform_is_mdm9206();
 int is_vb_le_enabled();
 void* get_rpmb_snd_rcv_buff();
+int LoadImage(char *Pname, void **ImgBuf, uint32_t *ImgSzActual);
+void boot_verifier_init();
+uint32_t get_page_size();
 #endif

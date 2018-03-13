@@ -55,10 +55,40 @@ enum boot_device
 };
 #endif
 
+#define MAX_NUMBER_OF_LOADED_IMAGES 32
+#ifndef MAX_GPT_NAME_SIZE
+#define MAX_GPT_NAME_SIZE 72
+#endif
+
+typedef struct {
+	char *name;
+	void *image_buffer;
+	uint32_t imgsize;
+} imagedata;
+
+typedef struct bootinfo {
+	int multi_slot_boot;
+	bool bootinto_recovery;
+	bool bootreason_alarm;
+	char pname[MAX_GPT_NAME_SIZE];
+	char bootable_slot[MAX_GPT_NAME_SIZE];
+	imagedata images[MAX_NUMBER_OF_LOADED_IMAGES];
+	uint32_t num_loaded_images;
+	uint32_t boot_state;
+	char *vbcmdline;
+	uint32_t vbcmdline_len;
+	uint32_t vbcmdline_filled_len;
+	void *vb_data;
+} bootinfo;
+
+int getimage(const bootinfo *Info, void **image_buffer, uint32_t *imgsize,
+                    char *imgname);
+
 void platform_read_boot_config();
 uint32_t platform_get_boot_dev();
 uint32_t platform_boot_dev_isemmc();
 void platform_boot_dev_cmdline(char *buf);
+int get_boot_image_info(void **image_buffer, uint32_t *imgsize,char *imgname);
 
 void *target_mmc_device();
 #endif

@@ -698,3 +698,8 @@ endif
 ifeq ($(ENABLE_RPMB_SUPPORT), 1)
 include platform/msm_shared/rpmb/rules.mk
 endif
+
+ifeq ($(VERIFIED_BOOT_2), 1)
+OBJS += platform/msm_shared/boot_verifier.o
+endif
+include platform/msm_shared/avb/rules.mk

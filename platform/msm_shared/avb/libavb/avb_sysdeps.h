@@ -41,6 +41,7 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 #include <verifiedboot.h>
+#include <crypto_hash.h>
 
 /* If you don't have gcc or clang, these attribute macros may need to
  * be adjusted.
