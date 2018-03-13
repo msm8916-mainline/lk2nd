@@ -27,11 +27,18 @@
  *
  */
 #include <fastboot.h>
+#include <err.h>
 
 extern const char *suffix_slot[];
 extern const char *suffix_delimiter;
 
 #define SUFFIX_SLOT(part_slot) suffix_slot[(part_slot)]
+#define MAX_SLOT_SUFFIX_SZ      3
+#define BOOT_DEV_NAME_SIZE_MAX 10
+
+typedef struct {
+	char Suffix[MAX_SLOT_SUFFIX_SZ];
+}Slot;
 #define SET_BIT(p,n) ((p) |= ((uint64_t)0x1 << (n)))
 #define CLR_BIT(p,n) ((p) &= (~(((uint64_t)0x1) << (n))))
 
