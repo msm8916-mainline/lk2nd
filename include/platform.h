@@ -100,4 +100,6 @@ int write_rollback_index(uint32_t loc, uint64_t roll_back_index);
 int get_userkey(uint8_t **user_key, uint32_t *user_key_size);
 int erase_userkey();
 int store_userkey(uint8_t *user_key, uint32_t user_key_size);
+bool is_device_locked_critical();
+bool is_verity_enforcing();
 #endif

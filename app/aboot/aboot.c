@@ -4524,9 +4524,19 @@ void get_baseband_version(unsigned char *buf)
 	return;
 }
 
+bool is_device_locked_critical()
+{
+        return device.is_unlock_critical ? false:true;
+}
+
 bool is_device_locked()
 {
 	return device.is_unlocked ? false:true;
+}
+
+bool is_verity_enforcing()
+{
+        return device.verity_mode ? true:false;
 }
 
 /* register commands and variables for fastboot */
