@@ -33,6 +33,7 @@ enum
 {
 	VB_L = 1,
 	VB_M = 2,
+	VB_AVB2 = 4,
 };
 
 /* Target helper functions exposed to USB driver */

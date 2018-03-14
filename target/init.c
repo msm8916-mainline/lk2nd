@@ -43,8 +43,8 @@
 #include <pm_fg_adc_usr.h>
 #endif
 
-#if VERIFIED_BOOT
 #include <partition_parser.h>
+#if VERIFIED_BOOT || VERIFIED_BOOT_2
 #include <ab_partition_parser.h>
 #endif
 
@@ -62,10 +62,9 @@
 #define BATT_VOLTAGE_NUMR		122070
 #define QGAUGE_VOLTAGE_NUMR		194637
 #define BATT_VOLTAGE_DENR		1000
-
-#if VERIFIED_BOOT
+#define INVALID  -1
 static int vb_version = INVALID;
-#endif
+
 /*
  * default implementations of these routines, if the target code
  * chooses not to implement.
@@ -300,7 +299,6 @@ uint32_t target_ddr_cfg_reg()
 	return ret;
 }
 
-#if VERIFIED_BOOT
 int target_get_vb_version()
 {
 	if (vb_version == INVALID)
@@ -315,7 +313,6 @@ int target_get_vb_version()
 	}
 	return vb_version;
 }
-#endif
 
 #if VERIFIED_BOOT_LE
 int verified_boot_le = 1;
