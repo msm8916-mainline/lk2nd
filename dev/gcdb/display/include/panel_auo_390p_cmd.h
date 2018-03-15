@@ -1,4 +1,4 @@
-/* Copyright (c) 2017, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2017-2018, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -140,6 +140,21 @@ static char auo_390p_cmd_on_cmd13[] = {
 	0x52, 0x08, 0x01, 0xff,
 };
 
+static char auo_390p_cmd_on_cmd14[] = {
+	0xfe, 0x01, 0x15, 0x80,
+};
+
+static char auo_390p_cmd_on_cmd15[] = {
+	0x04, 0x00, 0x15, 0x80,
+};
+
+static char auo_390p_cmd_on_cmd16[] = {
+	0xfe, 0x00, 0x15, 0x80,
+};
+
+static char auo_390p_cmd_on_cmd17[] = {
+	0x3a, 0x77, 0x15, 0x80,
+};
 
 static struct mipi_dsi_cmd auo_390p_cmd_on_command[] = {
 	{ 0x4 , auo_390p_cmd_on_cmd0, 0x00},
@@ -156,9 +171,13 @@ static struct mipi_dsi_cmd auo_390p_cmd_on_command[] = {
 	{ 0x4 , auo_390p_cmd_on_cmd11, 0x00},
 	{ 0xc , auo_390p_cmd_on_cmd12, 0x00},
 	{ 0xc , auo_390p_cmd_on_cmd13, 0x00},
+	{ 0x4 , auo_390p_cmd_on_cmd14, 0x00},
+	{ 0x4 , auo_390p_cmd_on_cmd15, 0x00},
+	{ 0x4 , auo_390p_cmd_on_cmd16, 0x00},
+	{ 0x4 , auo_390p_cmd_on_cmd17, 0x00},
 };
 
-#define AUO_390P_CMD_ON_COMMAND 14
+#define AUO_390P_CMD_ON_COMMAND 18
 
 
 static char auo_390p_cmd_off_cmd0[] = {
