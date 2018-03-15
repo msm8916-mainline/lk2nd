@@ -2368,6 +2368,47 @@ int write_rollback_index(uint32_t loc, uint64_t roll_back_index)
         return 0;
 }
 
+int store_userkey(uint8_t *user_key, uint32_t user_key_size)
+{
+        if (!devinfo_present) {
+                dprintf(CRITICAL, "DeviceInfo not initalized \n");
+                return -EINVAL;
+        }
+
+        if (user_key_size > ARRAY_SIZE(device.user_public_key)) {
+                dprintf(CRITICAL, "StoreUserKey, UserKeySize too large!\n");
+                return -ENODEV;
+        }
+
+        memcpy(device.user_public_key, user_key, user_key_size);
+        device.user_public_key_length = user_key_size;
+        write_device_info(&device);
+        return 0;
+}
+
+int erase_userkey()
+{
+        if (!devinfo_present) {
+                dprintf(CRITICAL, "DeviceInfo not initalized \n");
+                return -EINVAL;
+        }
+        memset(device.user_public_key, 0, ARRAY_SIZE(device.user_public_key));
+        device.user_public_key_length = 0;
+        write_device_info(&device);
+        return 0;
+}
+
+int get_userkey(uint8_t **user_key, uint32_t *user_key_size)
+{
+        if (!devinfo_present) {
+                dprintf(CRITICAL, "DeviceInfo not initalized \n");
+                return -EINVAL;
+        }
+        *user_key = device.user_public_key;
+        *user_key_size = device.user_public_key_length;
+        return 0;
+}
+
 void read_device_info(device_info *dev)
 {
 	if(target_is_emmc_boot())
