@@ -2335,6 +2335,39 @@ void write_device_info(device_info *dev)
 	}
 }
 
+int read_rollback_index(uint32_t loc, uint64_t *roll_back_index)
+{
+        if (!devinfo_present) {
+                dprintf(CRITICAL, "DeviceInfo not initalized \n");
+                return -EINVAL;
+        }
+        if (loc >= ARRAY_SIZE(device.rollback_index)) {
+                dprintf(CRITICAL, "%s() Loc out of range index: %d, array len: %d\n",
+                                __func__, loc, ARRAY_SIZE(device.rollback_index));
+                ASSERT(0);
+        }
+
+        *roll_back_index = device.rollback_index[loc];
+        return 0;
+}
+
+int write_rollback_index(uint32_t loc, uint64_t roll_back_index)
+{
+        if (!devinfo_present) {
+                dprintf(CRITICAL, "DeviceInfo not initalized \n");
+                return -EINVAL;
+        }
+        if (loc >= ARRAY_SIZE(device.rollback_index)) {
+                dprintf(CRITICAL, "%s() Loc out of range index: %d, array len: %d\n",
+                                __func__, loc, ARRAY_SIZE(device.rollback_index));
+                ASSERT(0);
+        }
+
+        device.rollback_index[loc] = roll_back_index;
+        write_device_info(&device);
+        return 0;
+}
+
 void read_device_info(device_info *dev)
 {
 	if(target_is_emmc_boot())

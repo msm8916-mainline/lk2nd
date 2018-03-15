@@ -95,4 +95,6 @@ void* get_rpmb_snd_rcv_buff();
 int LoadImage(char *Pname, void **ImgBuf, uint32_t *ImgSzActual);
 void boot_verifier_init();
 uint32_t get_page_size();
+int read_rollback_index(uint32_t loc, uint64_t *roll_back_index);
+int write_rollback_index(uint32_t loc, uint64_t roll_back_index);
 #endif
