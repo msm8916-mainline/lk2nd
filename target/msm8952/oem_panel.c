@@ -814,6 +814,14 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 			}
 		}
 
+		if (platform_is_sdm439()) {
+			panel_id = HX8399C_FHD_PLUSE_VIDEO_PANEL;
+		}
+
+		if (platform_is_sdm429()) {
+			panel_id = HX8399C_HD_PLUS_VIDEO_PANEL;
+		}
+
 		/* QRD EVT1 uses OTM1906C, and EVT2 uses HX8394F */
 		if (platform_is_msm8956()) {
 			switch (auto_pan_loop) {
