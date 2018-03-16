@@ -459,7 +459,7 @@ bool send_rot_command(uint32_t is_unlocked)
 	uint32_t boot_device_state = boot_verify_get_state();
 	int app_handle = 0;
 	uint32_t len_oem_rsa = 0, len_from_cert = 0;
-	km_set_rot_req_t *read_req;
+	km_set_rot_req_t *read_req = NULL;
 	km_set_rot_rsp_t read_rsp;
 	app_handle = get_secapp_handle();
 	int n = 0, e = 0;
@@ -587,7 +587,8 @@ unsigned char* get_boot_fingerprint(unsigned int* buf_size)
 	return fp;
 }
 
-bool boot_verify_image(unsigned char* img_addr, uint32_t img_size, char *pname)
+bool boot_verify_image(unsigned char* img_addr, uint32_t img_size, char *pname,
+			uint32_t *bootstate)
 {
 	bool ret = false;
 	X509 *cert = NULL;
@@ -646,6 +647,10 @@ bool boot_verify_image(unsigned char* img_addr, uint32_t img_size, char *pname)
 
 	if(sig != NULL)
 		VERIFIED_BOOT_SIG_free(sig);
+	*bootstate = dev_boot_state;
+	if(bootstate == NULL)
+		goto verify_image_error;
+
 verify_image_error:
 	free(signature);
 	return ret;

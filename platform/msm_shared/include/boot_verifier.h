@@ -136,6 +136,7 @@ enum boot_state
 	ORANGE,
 	YELLOW,
 	RED,
+	BOOT_STATE_MAX = (uint32_t)0xFFFFFFFF,
 };
 
 struct verified_boot_verity_mode
@@ -164,7 +165,7 @@ extern char KEYSTORE_PTN_NAME[];
 /* Function to initialize keystore */
 uint32_t boot_verify_keystore_init();
 /* Function to verify boot/recovery image */
-bool boot_verify_image(unsigned char* img_addr, uint32_t img_size, char *pname);
+bool boot_verify_image(unsigned char* img_addr, uint32_t img_size, char *pname, uint32_t *bs);
 /* Function to send event to boot state machine */
 void boot_verify_send_event(uint32_t event);
 /* Read current boot state */
