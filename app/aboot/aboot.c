@@ -1130,15 +1130,18 @@ static void verify_signed_bootimg(uint32_t bootimg_addr, uint32_t bootimg_size)
 	dprintf(INFO, "Authenticating boot image (%d): start\n", bootimg_size);
 
 #if VERIFIED_BOOT
-	char *ptn_name = NULL;
-	if (boot_into_recovery &&
+	uint32_t bootstate;
+	if(boot_into_recovery &&
 		(!partition_multislot_is_supported()))
-		ptn_name = "/recovery";
+	{
+		ret = boot_verify_image((unsigned char *)bootimg_addr,
+				bootimg_size, "/recovery", &bootstate);
+	}
 	else
-		ptn_name = "/boot";
-
-	ret = boot_verify_image((unsigned char *)bootimg_addr,
-				bootimg_size, ptn_name);
+	{
+		ret = boot_verify_image((unsigned char *)bootimg_addr,
+				bootimg_size, "/boot", &bootstate);
+	}
 	boot_verify_print_state();
 #else
 	ret = image_verify((unsigned char *)bootimg_addr,

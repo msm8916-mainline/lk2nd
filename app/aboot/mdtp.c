@@ -478,6 +478,7 @@ static int verify_ext_partition(mdtp_ext_partition_verification_t *ext_partition
 	bool restore_to_orange = false;
 	unsigned long long ptn = 0;
 	int index = INVALID_PTN;
+	uint32_t bootstate;
 
 	/* If image was already verified in aboot, return its status */
 	if (ext_partition->integrity_state == MDTP_PARTITION_STATE_INVALID)
@@ -538,7 +539,8 @@ static int verify_ext_partition(mdtp_ext_partition_verification_t *ext_partition
 		/* 4) Verify the image using its signature. */
 		ret = boot_verify_image((unsigned char *)ext_partition->image_addr,
 								ext_partition->image_size,
-								ext_partition->partition == MDTP_PARTITION_BOOT ? "/boot" : "/recovery");
+								ext_partition->partition == MDTP_PARTITION_BOOT ? "/boot" : "/recovery",
+								&bootstate);
 		break;
 
 	default:
