@@ -49,6 +49,7 @@
 #include <mmc.h>
 #include <partition_parser.h>
 #include <ab_partition_parser.h>
+#include <verifiedboot.h>
 #include <platform.h>
 #include <crypto_hash.h>
 #include <malloc.h>
@@ -112,6 +113,7 @@ static bool is_systemd_present=false;
 static void publish_getvar_multislot_vars();
 /* fastboot command function pointer */
 typedef void (*fastboot_cmd_fn) (const char *, void *, unsigned);
+bool get_perm_attr_status();
 
 struct fastboot_cmd_desc {
 	char * name;
@@ -169,8 +171,9 @@ static const char *loglevel         = " quiet";
 static const char *battchg_pause = " androidboot.mode=charger";
 static const char *auth_kernel = " androidboot.authorized_kernel=true";
 static const char *secondary_gpt_enable = " gpt";
+#ifdef MDTP_SUPPORT
 static const char *mdtp_activated_flag = " mdtp";
-
+#endif
 static const char *baseband_apq     = " androidboot.baseband=apq";
 static const char *baseband_msm     = " androidboot.baseband=msm";
 static const char *baseband_csfb    = " androidboot.baseband=csfb";
@@ -231,10 +234,12 @@ static bool boot_reason_alarm;
 static bool devinfo_present = true;
 bool boot_into_fastboot = false;
 static uint32_t dt_size = 0;
-
+static char *vbcmdline;
+static bootinfo info = {0};
 /* Assuming unauthorized kernel image by default */
 static int auth_kernel_img = 0;
-static device_info device = {DEVICE_MAGIC, 0, 0, 0, 0, {0}, {0},{0}, 1};
+static device_info device = {DEVICE_MAGIC,0,0,0,0,{0},{0},{0},1,{0},0,{0}};
+
 static bool is_allow_unlock = 0;
 
 static char frp_ptns[2][8] = {"config","frp"};
@@ -371,7 +376,9 @@ unsigned char *update_cmdline(const char * cmdline)
 	bool gpt_exists = partition_gpt_exists();
 	int have_target_boot_params = 0;
 	char *boot_dev_buf = NULL;
+#ifdef MDTP_SUPPORT
     	bool is_mdtp_activated = 0;
+#endif
 	int current_active_slot = INVALID;
 	int system_ptn_index = -1;
 	unsigned int lun = 0;
@@ -434,12 +441,20 @@ unsigned char *update_cmdline(const char * cmdline)
 	}
 #endif
 
+
+	if (vbcmdline != NULL) {
+		dprintf(DEBUG, "UpdateCmdLine vbcmdline present len %d\n",
+						strlen(vbcmdline));
+		cmdline_len += strlen(vbcmdline);
+	}
+
 	if (boot_into_recovery && gpt_exists)
 		cmdline_len += strlen(secondary_gpt_enable);
 
+#ifdef MDTP_SUPPORT
 	if(is_mdtp_activated)
 		cmdline_len += strlen(mdtp_activated_flag);
-
+#endif
 	if (boot_into_ffbm) {
 		cmdline_len += strlen(androidboot_mode);
 
@@ -571,7 +586,9 @@ unsigned char *update_cmdline(const char * cmdline)
 		}
 
 		cmdline_len += strlen(sys_path_cmdline);
+#ifndef VERIFIED_BOOT_2
 		cmdline_len += strlen(syspath_buf);
+#endif
 		if (!boot_into_recovery)
 			cmdline_len += strlen(skip_ramfs);
 	}
@@ -637,6 +654,13 @@ unsigned char *update_cmdline(const char * cmdline)
 			while ((*dst++ = *src++));
 		}
 #endif
+
+		if (vbcmdline != NULL) {
+			src = vbcmdline;
+			if (have_cmdline) --dst;
+			while ((*dst++ = *src++));
+		}
+
 		src = usb_sn_cmdline;
 		if (have_cmdline) --dst;
 		have_cmdline = 1;
@@ -656,13 +680,13 @@ unsigned char *update_cmdline(const char * cmdline)
 			if (have_cmdline) --dst;
 			while ((*dst++ = *src++));
 		}
-
+#ifdef MDTP_SUPPORT
 		if (is_mdtp_activated) {
 			src = mdtp_activated_flag;
 			if (have_cmdline) --dst;
 			while ((*dst++ = *src++));
 		}
-
+#endif
 		if (boot_into_ffbm) {
 			src = androidboot_mode;
 			if (have_cmdline) --dst;
@@ -797,9 +821,11 @@ unsigned char *update_cmdline(const char * cmdline)
 				--dst;
 				while ((*dst++ = *src++));
 
+#ifndef VERIFIED_BOOT_2
 				src = syspath_buf;
 				--dst;
 				while ((*dst++ = *src++));
+#endif
 		}
 
 #if TARGET_CMDLINE_SUPPORT
@@ -954,11 +980,8 @@ void boot_linux(void *kernel, unsigned *tags,
 	generate_atags(tags, final_cmdline, ramdisk, ramdisk_size);
 #endif
 
-	if (final_cmdline)
-		free(final_cmdline);
-
 #if VERIFIED_BOOT
-	if (VB_M <= target_get_vb_version())
+	if (VB_M == target_get_vb_version())
 	{
 		if (device.verity_mode == 0) {
 #if FBCON_DISPLAY_MSG
@@ -996,6 +1019,9 @@ void boot_linux(void *kernel, unsigned *tags,
 
 	/* Perform target specific cleanup */
 	target_uninit();
+	free_verified_boot_resource(&info);
+	if (final_cmdline)
+		free(final_cmdline);
 
 	dprintf(INFO, "booting linux @ %p, ramdisk @ %p (%d), tags/device tree @ %p\n",
 		entry, ramdisk, ramdisk_size, (void *)tags_phys);
@@ -1065,6 +1091,26 @@ int check_ddr_addr_range_bound(uintptr_t start, uint32_t size)
 }
 
 BUF_DMA_ALIGN(buf, BOOT_IMG_MAX_PAGE_SIZE); //Equal to max-supported pagesize
+
+int getimage(const bootinfo *info, void **image_buffer, uint32_t *imgsize,
+                    char *imgname)
+{
+	if (info == NULL || image_buffer == NULL || imgsize == NULL ||
+	    imgname == NULL) {
+		dprintf(CRITICAL, "getimage: invalid parameters\n");
+		return -1;
+	}
+
+	for (uint32_t loadedindex = 0; loadedindex < info->num_loaded_images; loadedindex++) {
+		if (!strncmp(info->images[loadedindex].name, imgname,
+		                  strlen(imgname))) {
+			*image_buffer = info->images[loadedindex].image_buffer;
+			*imgsize = info->images[loadedindex].imgsize;
+			return 0;
+		}
+	}
+	return -1;
+}
 
 static void verify_signed_bootimg(uint32_t bootimg_addr, uint32_t bootimg_size)
 {
@@ -1177,6 +1223,22 @@ static void verify_signed_bootimg(uint32_t bootimg_addr, uint32_t bootimg_size)
 #endif
 }
 
+int get_boot_image_info(void **image_buffer, uint32_t *imgsize,char *imgname)
+{
+    if (image_buffer == NULL || imgsize == NULL || imgname == NULL) {
+        dprintf(CRITICAL, "get_boot_image_info: invalid parameters\n");
+        return -1;
+    }
+
+    if (!strncmp(info.images[0].name, imgname,
+                strlen(imgname))) {
+        *image_buffer = info.images[0].image_buffer;
+        *imgsize = info.images[0].imgsize;
+        return 0;
+    }
+    return -1;
+}
+
 static bool check_format_bit()
 {
 	bool ret = false;
@@ -1270,6 +1332,9 @@ int boot_linux_from_mmc(void)
 	unsigned int kernel_size = 0;
 	unsigned int patched_kernel_hdr_size = 0;
 	int rc;
+#if VERIFIED_BOOT_2
+	int status;
+#endif
 	char *ptn_name = NULL;
 #if DEVICE_TREE
 	struct dt_table *table;
@@ -1432,7 +1497,35 @@ int boot_linux_from_mmc(void)
 		(int) target_use_signed_kernel(),
 		device.is_unlocked,
 		device.is_tampered);
+#if VERIFIED_BOOT_2
+	offset = imagesize_actual;
+	if (check_aboot_addr_range_overlap((uintptr_t)image_addr + offset, page_size))
+	{
+		dprintf(CRITICAL, "Signature read buffer address overlaps with aboot addresses.\n");
+		return -1;
+	}
 
+	/* Read signature */
+	if(mmc_read(ptn + offset, (void *)(image_addr + offset), page_size))
+	{
+		dprintf(CRITICAL, "ERROR: Cannot read boot image signature\n");
+		return -1;
+	}
+
+	memset(&info, 0, sizeof(bootinfo));
+	info.images[0].image_buffer = image_addr;
+	info.images[0].imgsize = imagesize_actual;
+	info.images[0].name = "boot";
+	info.num_loaded_images = 0;
+	info.multi_slot_boot = partition_multislot_is_supported();
+	info.bootreason_alarm = boot_reason_alarm;
+	info.bootinto_recovery = boot_into_recovery;
+	status = load_image_and_auth(&info);
+	if(status)
+		return -1;
+
+	vbcmdline = info.vbcmdline;
+#else
 	/* Change the condition a little bit to include the test framework support.
 	 * We would never reach this point if device is in fastboot mode, even if we did
 	 * that means we are in test mode, so execute kernel authentication part for the
@@ -1480,6 +1573,7 @@ int boot_linux_from_mmc(void)
 		}
 #endif /* MDTP_SUPPORT */
 	}
+#endif
 
 #if VERIFIED_BOOT
 	if((boot_verify_get_state() == ORANGE) && (!boot_into_ffbm))
@@ -1496,7 +1590,7 @@ int boot_linux_from_mmc(void)
 #endif
 
 #if VERIFIED_BOOT
-	if (VB_M <= target_get_vb_version())
+	if (VB_M == target_get_vb_version())
 	{
 		/* set boot and system versions. */
 		set_os_version((unsigned char *)image_addr);
@@ -1707,11 +1801,11 @@ int boot_linux_from_flash(void)
 	unsigned second_actual = 0;
 
 #if DEVICE_TREE
-	struct dt_table *table;
+	struct dt_table *table = NULL;
 	struct dt_entry dt_entry;
 	unsigned dt_table_offset;
 	uint32_t dt_actual;
-	uint32_t dt_hdr_size;
+	uint32_t dt_hdr_size = 0;
 	unsigned int dtb_size = 0;
 	unsigned char *best_match_dt_addr = NULL;
 #endif
@@ -1886,7 +1980,6 @@ int boot_linux_from_flash(void)
 		/* Second image loading not implemented. */
 		ASSERT(0);
 	}
-
 	/* Move kernel and ramdisk to correct address */
 	memmove((void*) hdr->kernel_addr, (char*) (image_addr + page_size), hdr->kernel_size);
 	memmove((void*) hdr->ramdisk_addr, (char*) (image_addr + page_size + kernel_actual), hdr->ramdisk_size);
@@ -1951,7 +2044,6 @@ int boot_linux_from_flash(void)
 		set_tamper_flag(device.is_tampered);
 #endif
 	}
-
 continue_boot:
 
 	/* TODO: create/pass atags to kernel */
@@ -2269,20 +2361,20 @@ void read_device_info(device_info *dev)
 			memcpy(info->magic, DEVICE_MAGIC, DEVICE_MAGIC_SIZE);
 			if (is_secure_boot_enable()) {
 				info->is_unlocked = 0;
-#if VERIFIED_BOOT
+#if VERIFIED_BOOT || VERIFIED_BOOT_2
 				if (VB_M <= target_get_vb_version())
 					info->is_unlock_critical = 0;
 #endif
 			} else {
 				info->is_unlocked = 1;
-#if VERIFIED_BOOT
+#if VERIFIED_BOOT || VERIFIED_BOOT_2
 				if (VB_M <= target_get_vb_version())
 					info->is_unlock_critical = 1;
 #endif
 			}
 			info->is_tampered = 0;
 			info->charger_screen_enabled = 0;
-#if VERIFIED_BOOT
+#if VERIFIED_BOOT || VERIFIED_BOOT_2
 			if (VB_M <= target_get_vb_version())
 				info->verity_mode = 1; //enforcing by default
 #endif
@@ -2323,7 +2415,7 @@ void set_device_unlock_value(int type, bool status)
 {
 	if (type == UNLOCK)
 		device.is_unlocked = status;
-#if VERIFIED_BOOT
+#if VERIFIED_BOOT || VERIFIED_BOOT_2
 	else if (VB_M <= target_get_vb_version() &&
 			type == UNLOCK_CRITICAL)
 			device.is_unlock_critical = status;
@@ -2339,7 +2431,7 @@ static void set_device_unlock(int type, bool status)
 	/* check device unlock status if it is as expected */
 	if (type == UNLOCK)
 		is_unlocked = device.is_unlocked;
-#if VERIFIED_BOOT
+#if VERIFIED_BOOT || VERIFIED_BOOT_2
 	if(VB_M <= target_get_vb_version() &&
 		type == UNLOCK_CRITICAL)
 	{
@@ -2402,9 +2494,9 @@ int copy_dtb(uint8_t *boot_image_start, unsigned int scratch_offset)
 {
 	uint32 dt_image_offset = 0;
 	uint32_t n;
-	struct dt_table *table;
+	struct dt_table *table = NULL;
 	struct dt_entry dt_entry;
-	uint32_t dt_hdr_size;
+	uint32_t dt_hdr_size = 0;
 	unsigned int compressed_size = 0;
 	unsigned int dtb_size = 0;
 	unsigned int out_avai_len = 0;
@@ -2495,16 +2587,11 @@ int copy_dtb(uint8_t *boot_image_start, unsigned int scratch_offset)
 
 void cmd_boot(const char *arg, void *data, unsigned sz)
 {
-#ifdef MDTP_SUPPORT
-	static bool is_mdtp_activated = 0;
-#endif /* MDTP_SUPPORT */
 	unsigned kernel_actual;
 	unsigned ramdisk_actual;
 	unsigned second_actual;
 	uint32_t image_actual;
 	uint32_t dt_actual = 0;
-	uint32_t sig_actual = 0;
-	uint32_t sig_size = 0;
 	struct boot_img_hdr *hdr = NULL;
 	struct kernel64_hdr *kptr = NULL;
 	char *ptr = ((char*) data);
@@ -2517,13 +2604,20 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	unsigned char *kernel_start_addr = NULL;
 	unsigned int kernel_size = 0;
 	unsigned int scratch_offset = 0;
+#if !VERIFIED_BOOT_2
+	uint32_t sig_actual = 0;
+	uint32_t sig_size = 0;
+#ifdef MDTP_SUPPORT
+        static bool is_mdtp_activated = 0;
+#endif /* MDTP_SUPPORT */
+#endif
 
 #if FBCON_DISPLAY_MSG
 	/* Exit keys' detection thread firstly */
 	exit_menu_keys_detection();
 #endif
 
-#if VERIFIED_BOOT
+#if VERIFIED_BOOT || VERIFIED_BOOT_2
 	if(target_build_variant_user() && !device.is_unlocked)
 	{
 		fastboot_fail("unlock device to use this command");
@@ -2566,15 +2660,27 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 		fastboot_fail("bootimage header fields are invalid");
 		goto boot_failed;
 	}
+#if VERIFIED_BOOT_2
+	memset(&info, 0, sizeof(bootinfo));
+	info.images[0].image_buffer = data;
+	info.images[0].imgsize = image_actual;
+	info.images[0].name = "boot";
+	info.num_loaded_images = 1;
+	info.multi_slot_boot = partition_multislot_is_supported();
+	if (load_image_and_auth(&info))
+		goto boot_failed;
+	vbcmdline = info.vbcmdline;
+#else
 	sig_size = sz - image_actual;
 
 	if (target_use_signed_kernel() && (!device.is_unlocked)) {
+		unsigned chk;
 		/* Calculate the signature length from boot image */
 		sig_actual = read_der_message_length(
 				(unsigned char*)(data + image_actual), sig_size);
-		image_actual = ADD_OF(image_actual, sig_actual);
+		chk = ADD_OF(image_actual, sig_actual);
 
-		if (image_actual > sz) {
+		if (chk > sz) {
 			fastboot_fail("bootimage header fields are invalid");
 			goto boot_failed;
 		}
@@ -2587,7 +2693,7 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	/* Handle overflow if the input image size is greater than
 	 * boot image buffer can hold
 	 */
-	if ((target_get_max_flash_size() - (image_actual - sig_actual)) < page_size)
+	if ((target_get_max_flash_size() - page_size) < image_actual)
 	{
 		fastboot_fail("booimage: size is greater than boot image buffer can hold");
 		goto boot_failed;
@@ -2600,7 +2706,7 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 		/* Pass size excluding signature size, otherwise we would try to
 		 * access signature beyond its length
 		 */
-		verify_signed_bootimg((uint32_t)data, (image_actual - sig_actual));
+		verify_signed_bootimg((uint32_t)data, image_actual);
 	}
 #ifdef MDTP_SUPPORT
 	else
@@ -2625,9 +2731,10 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 		goto boot_failed;
 	}
 #endif /* MDTP_SUPPORT */
+#endif /* VERIFIED_BOOT_2 else */
 
 #if VERIFIED_BOOT
-	if (VB_M <= target_get_vb_version())
+	if (VB_M == target_get_vb_version())
 	{
 		/* set boot and system versions. */
 		set_os_version((unsigned char *)data);
@@ -2767,6 +2874,16 @@ void cmd_erase_nand(const char *arg, void *data, unsigned sz)
 		return;
 	}
 
+	if (!strncmp(arg, "avb_custom_key", strlen("avb_custom_key"))) {
+		dprintf(INFO, "erasing avb_custom_key\n");
+		if (erase_userkey()) {
+			fastboot_fail("Erasing avb_custom_key failed");
+		} else {
+			fastboot_okay("");
+		}
+		return;
+	}
+
 	if (flash_erase(ptn)) {
 		fastboot_fail("failed to erase partition");
 		return;
@@ -2806,6 +2923,15 @@ void cmd_erase_mmc(const char *arg, void *data, unsigned sz)
 	lun = partition_get_lun(index);
 	mmc_set_lun(lun);
 
+	if (!strncmp(arg, "avb_custom_key", strlen("avb_custom_key"))) {
+		dprintf(INFO, "erasing avb_custom_key\n");
+		if (erase_userkey()) {
+			fastboot_fail("Erasing avb_custom_key failed");
+		} else {
+			fastboot_okay("");
+		}
+		return;
+	}
 	if (platform_boot_dev_isemmc())
 	{
 		if (mmc_erase_card(ptn, size)) {
@@ -2840,7 +2966,7 @@ void cmd_erase_mmc(const char *arg, void *data, unsigned sz)
 			free(footer);
 		}
 	}
-#if VERIFIED_BOOT
+#if VERIFIED_BOOT || VERIFIED_BOOT_2
 	if (VB_M <= target_get_vb_version() &&
 		!(strncmp(arg, "userdata", 8)) &&
 		send_delete_keys_to_tz())
@@ -2851,7 +2977,7 @@ void cmd_erase_mmc(const char *arg, void *data, unsigned sz)
 
 void cmd_erase(const char *arg, void *data, unsigned sz)
 {
-#if VERIFIED_BOOT
+#if VERIFIED_BOOT || VERIFIED_BOOT_2
 	if (target_build_variant_user())
 	{
 		if(!device.is_unlocked)
@@ -3177,7 +3303,7 @@ void cmd_flash_meta_img(const char *arg, void *data, unsigned sz)
 	 * which with "any" name other than bootloader. Because it maybe
 	 * a meta package of all partitions.
 	 */
-#if VERIFIED_BOOT
+#if VERIFIED_BOOT || VERIFIED_BOOT_2
 	if (target_build_variant_user()) {
 		if (!device.is_unlocked) {
 			fastboot_fail("Device is locked, meta image flashing is not allowed");
@@ -3580,7 +3706,7 @@ void cmd_flash_mmc(const char *arg, void *data, unsigned sz)
 	}
 #endif /* SSD_ENABLE */
 
-#if VERIFIED_BOOT
+#if VERIFIED_BOOT || VERIFIED_BOOT_2
 	if (target_build_variant_user())
 	{
 		/* if device is locked:
@@ -3604,6 +3730,15 @@ void cmd_flash_mmc(const char *arg, void *data, unsigned sz)
 		}
 	}
 #endif
+	if (!strncmp(arg, "avb_custom_key", strlen("avb_custom_key"))) {
+		dprintf(INFO, "flashing avb_custom_key\n");
+		if (store_userkey(data, sz)) {
+			fastboot_fail("Flashing avb_custom_key failed");
+		} else {
+			fastboot_okay("");
+		}
+		return;
+	}
 
 	sparse_header = (sparse_header_t *) data;
 	meta_header = (meta_header_t *) data;
@@ -3675,6 +3810,16 @@ void cmd_flash_nand(const char *arg, void *data, unsigned sz)
 		dprintf(INFO, "unknown partition name (%s). Trying updatevol\n",
 				arg);
 		cmd_updatevol(arg, data, sz);
+		return;
+	}
+
+	if (!strncmp(arg, "avb_custom_key", strlen("avb_custom_key"))) {
+		dprintf(INFO, "flashing avb_custom_key\n");
+		if (store_userkey(data, sz)) {
+			fastboot_fail("Flashing avb_custom_key failed");
+		} else {
+			fastboot_okay("");
+		}
 		return;
 	}
 
@@ -3960,7 +4105,7 @@ void cmd_oem_devinfo(const char *arg, void *data, unsigned sz)
 	fastboot_info(response);
 	snprintf(response, sizeof(response), "\tDevice unlocked: %s", (device.is_unlocked ? "true" : "false"));
 	fastboot_info(response);
-#if VERIFIED_BOOT
+#if VERIFIED_BOOT || VERIFIED_BOOT_2
 	if (VB_M <= target_get_vb_version())
 	{
 		snprintf(response, sizeof(response), "\tDevice critical unlocked: %s",
