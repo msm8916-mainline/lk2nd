@@ -37,6 +37,8 @@
 #include <dload_util.h>
 #include <platform/iomap.h>
 #include <board.h>
+#include <qseecomi_lk.h>
+#include <qseecom_lk_api.h>
 #include "scm.h"
 
 #pragma GCC optimize ("O0")
@@ -1282,12 +1284,15 @@ void scm_check_boot_fuses()
 	}
 
 	if (!ret) {
-		/* Check for secure device: Bit#0 = 0, Bit#1 = 0 Bit#2 = 0 , Bit#5 = 0 , Bit#6 = 1 */
+		/* Check for secure device: Bit#0 = 0, Bit#1 = 0 Bit#2 = 0 , Bit#5 = 0 */
+		/* Check Bit#6 = 1 only for TZ.BF.4.0 */
         	if (!CHECK_BIT(resp[0], SECBOOT_FUSE_BIT) && !CHECK_BIT(resp[0], SECBOOT_FUSE_SHK_BIT) &&
         		!CHECK_BIT(resp[0], SECBOOT_FUSE_DEBUG_DISABLED_BIT) &&
-        		!CHECK_BIT(resp[0], SECBOOT_FUSE_RPMB_ENABLED_BIT) &&
-        		CHECK_BIT(resp[0], SECBOOT_FUSE_DEBUG_RE_ENABLED_BIT)) {
-        		secure_boot_enabled = true;
+                        !CHECK_BIT(resp[0], SECBOOT_FUSE_RPMB_ENABLED_BIT)) {
+                        if ((qseecom_get_version() < QSEE_VERSION_40))
+	                        secure_boot_enabled = true;
+                        else if (CHECK_BIT(resp[0], SECBOOT_FUSE_DEBUG_RE_ENABLED_BIT))
+	                        secure_boot_enabled = true;
         	}
 		/* Bit 2 - DEBUG_DISABLE_CHECK */
 		if (CHECK_BIT(resp[0], SECBOOT_FUSE_DEBUG_DISABLED_BIT))
