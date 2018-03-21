@@ -109,5 +109,10 @@ ifeq ($(ENABLE_FBCON_DISPLAY_MSG),1)
 DEFINES += FBCON_DISPLAY_MSG=1
 endif
 
+#Increase TZ apps region to 2 MB due to KM 3.0 support
+ifeq ($(QSEECOM_SECAPP_REGION_2MB),1)
+ DEFINES += QSEECOM_SECAPP_REGION_2MB=1
+endif
+
 #enable battery voltage check
 DEFINES += CHECK_BAT_VOLTAGE=1
