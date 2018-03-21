@@ -277,6 +277,21 @@ struct getvar_partition_info {
  * Update the part_type_known for known paritions types.
  */
 #define RAW_STR "raw"
+#define EXT_STR "ext4"
+#define F2FS_STR "f2fs"
+
+#define FS_SUPERBLOCK_OFFSET    0x400
+#define EXT_MAGIC    0xEF53
+#define EXT_MAGIC_OFFSET_SB   0x38
+#define F2FS_MAGIC   0xF2F52010  // F2FS Magic Number
+#define F2FS_MAGIC_OFFSET_SB 0x0
+
+typedef enum fs_signature_type {
+	EXT_FS_SIGNATURE = 1,
+	EXT_F2FS_SIGNATURE = 2,
+	NO_FS = -1
+} fs_signature_type;
+
 struct getvar_partition_info part_info[NUM_PARTITIONS];
 struct getvar_partition_info part_type_known[] =
 {
@@ -2882,10 +2897,65 @@ static void get_partition_size(const char *arg, char *response)
 	return;
 }
 
+/* Function to check partition type of a partition*/
+static fs_signature_type
+check_partition_fs_signature(const char *arg)
+{
+	fs_signature_type ret = NO_FS;
+	int index;
+	unsigned long long ptn;
+	char *sb_buffer = malloc(mmc_blocksize);
+	if (!sb_buffer)
+	{
+		dprintf(CRITICAL, "ERROR: Failed to allocate buffer for superblock\n");
+		goto out;
+	}
+
+	/* Read super block */
+	if ((index = partition_get_index(arg)) < 0)
+	{
+		dprintf(CRITICAL, "ERROR: %s() doesn't exsit\n", arg);
+		goto out;
+	}
+	ptn = partition_get_offset(index);
+	mmc_set_lun(partition_get_lun(index));
+	if(mmc_read(ptn + FS_SUPERBLOCK_OFFSET,
+				(void *)sb_buffer, mmc_blocksize))
+	{
+		dprintf(CRITICAL, "ERROR: Failed to read Superblock\n");
+		goto out;
+	}
+
+	if (*((uint16 *)(&sb_buffer[EXT_MAGIC_OFFSET_SB]))
+									== (uint16)EXT_MAGIC)
+	{
+		dprintf(SPEW, "%s() Found EXT FS\n", arg);
+		ret = EXT_FS_SIGNATURE;
+	}
+	else if (*((uint32 *)(&sb_buffer[F2FS_MAGIC_OFFSET_SB]))
+										== F2FS_MAGIC)
+	{
+		dprintf(SPEW, "%s() Found F2FS FS\n", arg);
+		ret = EXT_F2FS_SIGNATURE;
+	}
+	else
+	{
+		dprintf(SPEW, "%s() Reverting to default 0x%x\n",
+				arg, *((uint16 *)(&sb_buffer[EXT_MAGIC_OFFSET_SB])));
+		ret = NO_FS;
+	}
+
+out:
+	if(sb_buffer)
+		free(sb_buffer);
+	return ret;
+}
+
 /* Function to get partition type */
 static void get_partition_type(const char *arg, char *response)
 {
 	uint n = 0;
+	fs_signature_type fs_signature;
 
 	if (arg == NULL ||
 		response == NULL)
@@ -2902,8 +2972,19 @@ static void get_partition_type(const char *arg, char *response)
 	{
 		if (!strncmp(part_type_known[n].part_name, arg, strlen(arg)))
 		{
-			strncpy(response, part_type_known[n].type_response, MAX_RSP_SIZE);
-			break;
+			/* Check partition for FS signature */
+			fs_signature = check_partition_fs_signature(arg);
+			switch (fs_signature)
+			{
+				case EXT_FS_SIGNATURE:
+					strncpy(response, EXT_STR, strlen(EXT_STR));
+					break;
+				case EXT_F2FS_SIGNATURE:
+					strncpy(response, F2FS_STR, strlen(F2FS_STR));
+					break;
+				case NO_FS:
+					strncpy(response, part_type_known[n].type_response, MAX_RSP_SIZE);
+			}
 		}
 	}
 	return;
