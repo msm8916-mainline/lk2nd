@@ -593,10 +593,11 @@ bool target_display_panel_node(char *pbuf, uint16_t buf_size)
 	bool ret = true;
 	struct oem_panel_data oem = mdss_dsi_get_oem_data();
 	uint32_t platform_subtype = board_hardware_subtype();
+	uint32_t platform = board_platform_id();
 
 	/* default to hdmi for apq iot */
-	if ((HW_PLATFORM_SUBTYPE_SAP == platform_subtype) ||
-		(HW_PLATFORM_SUBTYPE_SAP_NOPMI == platform_subtype)) {
+	if ((APQ8017 == platform) && ((HW_PLATFORM_SUBTYPE_SAP == platform_subtype) ||
+		(HW_PLATFORM_SUBTYPE_SAP_NOPMI == platform_subtype))) {
 		if (!strcmp(oem.panel, "")) {
 			if (buf_size < (prefix_string_len +
 				strlen(HDMI_ADV_PANEL_STRING))) {
@@ -646,6 +647,7 @@ void target_display_init(const char *panel_name)
 	int32_t ret = 0;
 	uint32_t panel_loop = 0;
 	uint32_t platform_subtype = board_hardware_subtype();
+	uint32_t platform = board_platform_id();
 
 	set_panel_cmd_string(panel_name);
 	oem = mdss_dsi_get_oem_data();
@@ -659,8 +661,8 @@ void target_display_init(const char *panel_name)
 		oem.cont_splash = false;
 	}
 
-	if ((HW_PLATFORM_SUBTYPE_SAP == platform_subtype) ||
-		(HW_PLATFORM_SUBTYPE_SAP_NOPMI == platform_subtype)) {
+	if ((APQ8017 == platform) && ((HW_PLATFORM_SUBTYPE_SAP == platform_subtype) ||
+		(HW_PLATFORM_SUBTYPE_SAP_NOPMI == platform_subtype))) {
 		dprintf(INFO, "%s: Platform subtype %d\n",
 			__func__, platform_subtype);
 		return;
