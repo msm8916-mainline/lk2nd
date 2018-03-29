@@ -19,9 +19,10 @@ DEFINES += ENABLE_DISPLAY=1
 DEFINES += DISPLAY_SPLASH_SCREEN=1
 endif
 
-ifeq ($(VERIFIED_BOOT),1)
 ENABLE_SECAPP_LOADER := 1
 ENABLE_RPMB_SUPPORT := 1
+
+ifeq ($(VERIFIED_BOOT),1)
 ifneq (,$(findstring DISPLAY_SPLASH_SCREEN,$(DEFINES)))
 #enable fbcon display menu
 ENABLE_FBCON_DISPLAY_MSG := 1
@@ -29,8 +30,6 @@ endif
 endif
 
 ifeq ($(VERIFIED_BOOT_2),1)
-  ENABLE_SECAPP_LOADER := 1
-  ENABLE_RPMB_SUPPORT := 1
 ifneq (,$(findstring DISPLAY_SPLASH_SCREEN,$(DEFINES)))
 #enable fbcon display menu
   ENABLE_FBCON_DISPLAY_MSG := 1
