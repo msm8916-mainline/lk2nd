@@ -188,7 +188,11 @@ static const char *warmboot_cmdline = " qpnp-power-on.warm_boot=1";
 static const char *baseband_apq_nowgr   = " androidboot.baseband=baseband_apq_nowgr";
 static const char *androidboot_slot_suffix = " androidboot.slot_suffix=";
 static const char *skip_ramfs = " skip_initramfs";
+#ifdef INIT_BIN_LE
+static const char *sys_path_cmdline = " rootwait ro init="INIT_BIN_LE;
+#else
 static const char *sys_path_cmdline = " rootwait ro init=/init";
+#endif
 
 #if VERITY_LE
 static const char *verity_dev = " root=/dev/dm-0";
