@@ -1,4 +1,4 @@
-/* Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2016, 2018, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -650,7 +650,8 @@ void platform_clock_init(void)
 			msm8976_v_1_1_sdcc_clock_modify();
 	}
 
-	if (platform_is_msm8937() || platform_is_msm8917())
+	if (platform_is_msm8937() || platform_is_msm8917() ||
+		platform_is_sdm429() || platform_is_sdm439())
 		msm8937_clock_override();
 
 	clk_init(msm_clocks_8952, ARRAY_SIZE(msm_clocks_8952));
