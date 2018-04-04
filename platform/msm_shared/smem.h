@@ -469,7 +469,9 @@ enum {
 	MDM9206 = 322,
 	SDA450 = 351,
 	SDM632 = 349,
-	SDA632 = 350
+	SDA632 = 350,
+	SDM429 = 354,
+	SDM439 = 353
 };
 
 enum platform {
