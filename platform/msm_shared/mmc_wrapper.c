@@ -675,6 +675,7 @@ uint32_t mmc_write_protect(const char *ptn_name, int set_clr)
 		 */
 		if (partition_read_only(index) && size < card->wp_grp_size)
 		{
+			dprintf(CRITICAL, "WARNING: Size of partition is less than 1 Write Protect GRP size\n");
 			/* Write protect api takes the size in bytes, convert size to bytes */
 			size = card->wp_grp_size * block_size;
 		}
