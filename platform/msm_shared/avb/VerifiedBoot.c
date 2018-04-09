@@ -651,13 +651,13 @@ static EFI_STATUS DisplayVerifiedBootScreen(bootinfo *Info)
 			if (ffbm_mode_string[0] != '\0' && !target_build_variant_user()) {
 				dprintf(DEBUG, "Device will boot into FFBM mode\n");
 			} else {
-				//display_bootverify_menu(DISPLAY_MENU_ORANGE);
-				//if (Status == EFI_SUCCESS) {
-				//	wait_for_users_action();
-				//} else {
+				display_bootverify_menu(DISPLAY_MENU_ORANGE);
+				if (Status == EFI_SUCCESS) {
+					wait_for_users_action();
+				} else {
 					dprintf(INFO, "Device is unlocked, Skipping boot verification\n");
 					udelay(5000000);
-				//}
+				}
 			}
 			break;
 		default:
