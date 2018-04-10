@@ -1813,6 +1813,7 @@ int boot_linux_from_flash(void)
 	unsigned dt_table_offset;
 	uint32_t dt_actual;
 	uint32_t dt_hdr_size = 0;
+	uint32_t dtb_offset = 0;
 	unsigned int dtb_size = 0;
 	unsigned char *best_match_dt_addr = NULL;
 #endif
@@ -2038,7 +2039,27 @@ int boot_linux_from_flash(void)
 		best_match_dt_addr = (unsigned char *)table + dt_entry.offset;
 		dtb_size = dt_entry.size;
 		memmove((void *)hdr->tags_addr, (char *)best_match_dt_addr, dtb_size);
-	}
+
+	} else {
+		/* Validate the tags_addr */
+		if (check_aboot_addr_range_overlap(hdr->tags_addr, kernel_actual) ||
+	        check_ddr_addr_range_bound(hdr->tags_addr, kernel_actual))
+		{
+			dprintf(CRITICAL, "Device tree addresses are not valid.\n");
+			return -1;
+		}
+		/*
+		 * If appended dev tree is found, update the atags with
+		 * memory address to the DTB appended location on RAM.
+		 * Else update with the atags address in the kernel header
+		 */
+		void *dtb = NULL;
+		dtb = dev_tree_appended((void*)(image_addr + page_size ),hdr->kernel_size, dtb_offset, (void *)hdr->tags_addr);
+		if (!dtb) {
+			dprintf(CRITICAL, "ERROR: Appended Device Tree Blob not found\n");
+			return -1;
+		}
+         }
 #endif
 	if(target_use_signed_kernel() && (!device.is_unlocked))
 	{
