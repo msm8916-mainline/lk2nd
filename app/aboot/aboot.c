@@ -3172,7 +3172,7 @@ static void get_partition_type(const char *arg, char *response)
 	}
 
 	/* By default copy raw to response */
-	strncpy(response, RAW_STR, strlen(RAW_STR));
+	strlcpy(response, RAW_STR, MAX_RSP_SIZE);
 
 	/* Mark partiton type for known paritions only */
 	for (n=0; n < ARRAY_SIZE(part_type_known); n++)
@@ -3184,13 +3184,13 @@ static void get_partition_type(const char *arg, char *response)
 			switch (fs_signature)
 			{
 				case EXT_FS_SIGNATURE:
-					strncpy(response, EXT_STR, strlen(EXT_STR));
+					strlcpy(response, EXT_STR, MAX_RSP_SIZE);
 					break;
 				case EXT_F2FS_SIGNATURE:
-					strncpy(response, F2FS_STR, strlen(F2FS_STR));
+					strlcpy(response, F2FS_STR, MAX_RSP_SIZE);
 					break;
 				case NO_FS:
-					strncpy(response, part_type_known[n].type_response, MAX_RSP_SIZE);
+					strlcpy(response, part_type_known[n].type_response, MAX_RSP_SIZE);
 			}
 		}
 	}
