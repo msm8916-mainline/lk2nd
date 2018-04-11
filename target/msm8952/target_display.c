@@ -53,6 +53,9 @@
 #include "include/display_resource.h"
 #include "gcdb_display.h"
 
+#define PWM_DUTY_US 13
+#define PWM_PERIOD_US 27
+
 #define TRULY_720P_VID_PANEL "truly_720p_video"
 #define TRULY_720P_CMD_PANEL "truly_720p_cmd"
 
@@ -276,6 +279,19 @@ static int msm8952_wled_backlight_ctrl(uint8_t enable)
 	return NO_ERROR;
 }
 
+static int pwm_backlight_ctrl(uint8_t enable)
+{
+	if (enable) {
+		pm_pwm_enable(false);
+		pm_pwm_config(PWM_DUTY_US, PWM_PERIOD_US);
+		pm_pwm_enable(true);
+	} else {
+		pm_pwm_enable(false);
+	}
+
+	return NO_ERROR;
+}
+
 int target_backlight_ctrl(struct backlight *bl, uint8_t enable)
 {
 	uint32_t ret = NO_ERROR;
@@ -283,8 +299,12 @@ int target_backlight_ctrl(struct backlight *bl, uint8_t enable)
 	if (bl->bl_interface_type == BL_DCS)
 		return ret;
 
-	ret = msm8952_wled_backlight_ctrl(enable);
-
+	if ((target_get_pmic() == PMIC_IS_PMI632) &&
+		(bl->bl_interface_type == BL_PWM)) {
+		ret = pwm_backlight_ctrl(enable);
+	} else {
+		ret = msm8952_wled_backlight_ctrl(enable);
+	}
 	return ret;
 }
 
