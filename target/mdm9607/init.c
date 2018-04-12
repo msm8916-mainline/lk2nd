@@ -97,6 +97,11 @@ static struct ptable flash_ptable;
 #define CE_ARRAY_SIZE           20
 #define SUB_TYPE_SKUT           0x0A
 
+__WEAK unsigned int qseecom_get_version()
+{
+        return 0;
+}
+
 struct qpic_nand_init_config config;
 
 void update_ptable_names(void)
