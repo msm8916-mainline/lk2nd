@@ -647,9 +647,10 @@ bool boot_verify_image(unsigned char* img_addr, uint32_t img_size, char *pname,
 
 	if(sig != NULL)
 		VERIFIED_BOOT_SIG_free(sig);
-	*bootstate = dev_boot_state;
+
 	if(bootstate == NULL)
 		goto verify_image_error;
+	*bootstate = dev_boot_state;
 
 verify_image_error:
 	free(signature);
