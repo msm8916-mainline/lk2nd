@@ -1,4 +1,4 @@
-/* Copyright (c) 2015-2017, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2018, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -45,9 +45,17 @@
 #define APPS_SS_SIZE   ((APPS_SS_END - APPS_SS_BASE)/MB)
 
 /* LK memory - cacheable, write through */
+#ifdef SECURE_CODE_MEM
+#define LK_MEMORY         (MMU_MEMORY_TYPE_NORMAL_WRITE_BACK_ALLOCATE | \
+				MMU_MEMORY_AP_READ_ONLY |\
+				MMU_MEMORY_APX_READ_ONLY)
+
+#define LK_MEMORY_RW      (MMU_MEMORY_TYPE_NORMAL_WRITE_BACK_ALLOCATE | \
+				MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
+#else
 #define LK_MEMORY         (MMU_MEMORY_TYPE_NORMAL_WRITE_BACK_ALLOCATE | \
 				MMU_MEMORY_AP_READ_WRITE)
-
+#endif
 /* Peripherals - non-shared device */
 #define IOMAP_MEMORY      (MMU_MEMORY_TYPE_DEVICE_SHARED | \
 				MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
@@ -61,7 +69,12 @@
 
 static mmu_section_t mmu_section_table[] = {
 /*           Physical addr,         Virtual addr,            Size (in MB),     Flags */
+#ifdef SECURE_CODE_MEM
+	{    MEMBASE,               MEMBASE,                 1,                  LK_MEMORY},
+	{    MEMRWOFF,              MEMRWOFF,                (MEMSIZE / MB) - 1, LK_MEMORY_RW},
+#else
 	{    MEMBASE,               MEMBASE,                 (MEMSIZE / MB),   LK_MEMORY},
+#endif
 	{    MSM_IOMAP_BASE,        MSM_IOMAP_BASE,          MSM_IOMAP_SIZE,   IOMAP_MEMORY},
 	{    APPS_SS_BASE,          APPS_SS_BASE,            APPS_SS_SIZE,      IOMAP_MEMORY},
 	{    MSM_SHARED_IMEM_BASE,  MSM_SHARED_IMEM_BASE,    1,                COMMON_MEMORY},
