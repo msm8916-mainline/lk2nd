@@ -150,7 +150,7 @@ $(BUILDDIR)/trustzone-system-onesegment.ld: $(LOCAL_DIR)/trustzone-system-oneseg
 $(BUILDDIR)/system-onesegment.ld: $(LOCAL_DIR)/system-onesegment.ld $(LK_TOP_DIR)/target/$(TARGET)/rules.mk .FORCE
 	@echo generating $@
 	@$(MKDIR)
-	$(NOECHO)sed "s/%MEMBASE%/$(MEMBASE)/;s/%MEMSIZE%/$(MEMSIZE)/" < $< > $@
+	$(NOECHO)sed "s/%MEMBASE%/$(MEMBASE)/;s/%MEMSIZE%/$(MEMSIZE)/;s/%MEMRWOFF%/$(MEMRWOFF)/" < $< > $@
 
 $(BUILDDIR)/system-twosegment.ld: $(LOCAL_DIR)/system-twosegment.ld $(LK_TOP_DIR)/target/$(TARGET)/rules.mk .FORCE
 	@echo generating $@
