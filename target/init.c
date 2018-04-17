@@ -43,8 +43,8 @@
 #include <pm_fg_adc_usr.h>
 #endif
 
-#include <partition_parser.h>
 #if VERIFIED_BOOT || VERIFIED_BOOT_2
+#include <partition_parser.h>
 #include <ab_partition_parser.h>
 #endif
 
@@ -300,7 +300,7 @@ uint32_t target_ddr_cfg_reg()
 	}
 	return ret;
 }
-
+#if VERIFIED_BOOT || VERIFIED_BOOT_2
 int target_get_vb_version()
 {
 	if (vb_version == INVALID)
@@ -315,6 +315,12 @@ int target_get_vb_version()
 	}
 	return vb_version;
 }
+#else
+int target_get_vb_version()
+{
+	return vb_version;
+}
+#endif
 
 #if VERIFIED_BOOT_LE
 int verified_boot_le = 1;
