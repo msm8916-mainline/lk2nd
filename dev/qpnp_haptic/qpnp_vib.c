@@ -31,7 +31,7 @@
 
 void pm_vib_turn_on()
 {
-	if ((board_pmic_target(1) & 0xffff) == PMIC_IS_PMI632)
+	if ((board_pmic_target(1) & PMIC_TYPE_MASK) == PMIC_IS_PMI632)
 		pm_vib_ldo_turn_on();
 	else
 		pm_haptic_vib_turn_on();
@@ -39,7 +39,7 @@ void pm_vib_turn_on()
 
 void pm_vib_turn_off()
 {
-	if ((board_pmic_target(1) & 0xffff) == PMIC_IS_PMI632)
+	if ((board_pmic_target(1) & PMIC_TYPE_MASK) == PMIC_IS_PMI632)
 		pm_vib_ldo_turn_off();
 	else
 		pm_haptic_vib_turn_off();
