@@ -75,6 +75,9 @@
 #define PMIC_ARB_OWNER_ID       0
 #define TLMM_VOL_UP_BTN_GPIO    85
 
+#define PRI_PMIC_SLAVE_ID	0
+#define SEC_PMIC_SLAVE_ID	2
+
 #define FASTBOOT_MODE           0x77665500
 #define RECOVERY_MODE           0x77665502
 #define PON_SOFT_RB_SPARE       0x88F
@@ -705,12 +708,21 @@ uint32_t target_get_pmic()
 void pmic_reset_configure(uint8_t reset_type)
 {
 	uint32_t pmi_type;
+	uint8_t sec_reset_type = reset_type;
 
 	pmi_type = target_get_pmic();
 	if (pmi_type == PMIC_IS_PMI632)
+	{
 		pmi632_reset_configure(reset_type);
+	}
 	else
-		pm8994_reset_configure(reset_type);
+	{
+		if (reset_type == PON_PSHOLD_HARD_RESET)
+			sec_reset_type = PON_PSHOLD_SHUTDOWN;
+
+		pm8996_reset_configure(PRI_PMIC_SLAVE_ID, reset_type);
+		pm8996_reset_configure(SEC_PMIC_SLAVE_ID, sec_reset_type);
+	}
 }
 
 struct qmp_reg qmp_settings[] =
