@@ -294,7 +294,7 @@ void target_init(void)
 			uint8_t pmi_rev = 0;
 			uint32_t pmi_type = 0;
 
-			pmi_type = board_pmic_target(1) & 0xffff;
+			pmi_type = board_pmic_target(1) & PMIC_TYPE_MASK;
 			if(pmi_type == PMIC_IS_PMI8950)
 			{
 				/* read pmic spare register for rev */
@@ -725,7 +725,7 @@ int get_target_boot_params(const char *cmdline, const char *part, char **buf)
 uint32_t target_get_pmic()
 {
 	if (target_is_pmi_enabled()) {
-		uint32_t pmi_type = board_pmic_target(1) & 0xffff;
+		uint32_t pmi_type = board_pmic_target(1) & PMIC_TYPE_MASK;
 		if (pmi_type == PMIC_IS_PMI632)
 			return PMIC_IS_PMI632;
 		else

@@ -36,6 +36,8 @@
 #define BOARD_SOC_VERSION2     0x20000
 #define MAX_PMIC_DEVICES       SMEM_MAX_PMIC_DEVICES
 
+#define PMIC_TYPE_MASK 0xff
+
 struct board_pmic_data {
 	uint32_t pmic_type;
 	uint32_t pmic_version;

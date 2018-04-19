@@ -694,7 +694,7 @@ void target_crypto_init_params()
 uint32_t target_get_pmic()
 {
 	if (target_is_pmi_enabled()) {
-		uint32_t pmi_type = board_pmic_target(1) & 0xffff;
+		uint32_t pmi_type = board_pmic_target(1) & PMIC_TYPE_MASK;
 		if (pmi_type == PMIC_IS_PMI632)
 			return PMIC_IS_PMI632;
 		else
