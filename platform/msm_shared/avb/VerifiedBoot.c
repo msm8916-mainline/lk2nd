@@ -115,7 +115,7 @@ static int GetCurrentSlotSuffix(Slot *CurrentSlot)
 	if (!partition_multislot_is_supported())
 		return ERR_INVALID_ARGS;
 
-	strncpy(CurrentSlot->Suffix,
+	strlcpy(CurrentSlot->Suffix,
 			SUFFIX_SLOT(partition_find_active_slot()),
 			MAX_SLOT_SUFFIX_SZ);
 	return 0;
@@ -137,7 +137,7 @@ static int GetActiveSlot(Slot *ActiveSlot)
 	int idx = partition_find_active_slot();
 	if (idx != INVALID)
 	{
-		strncpy(ActiveSlot->Suffix,
+		strlcpy(ActiveSlot->Suffix,
 			SUFFIX_SLOT(partition_find_active_slot()),
 			MAX_SLOT_SUFFIX_SZ);
 		return 0;
@@ -205,8 +205,8 @@ uint32_t GetSystemPath(char **SysPath)
 		return 0;
 	}
 
-	strncpy(PartitionName, "system", strlen("system") + 1);
-	strncat(PartitionName, CurSlot.Suffix, MAX_GPT_NAME_SIZE - 1);
+	strlcpy(PartitionName, "system", strlen("system") + 1);
+	strlcat(PartitionName, CurSlot.Suffix, MAX_GPT_NAME_SIZE - 1);
 
 	Index = partition_get_index(PartitionName);
 	if (Index == INVALID_PTN || Index >= NUM_PARTITIONS) {
@@ -304,7 +304,7 @@ static EFI_STATUS LoadImageNoAuth(bootinfo *Info)
 	}
 	Info->num_loaded_images = 1;
 	Info->images[0].name = malloc(strlen(Info->pname) + 1);
-	strncpy(Info->images[0].name, Info->pname, strlen(Info->pname)); //FIXME
+	strlcpy(Info->images[0].name, Info->pname, strlen(Info->pname)); //FIXME
 	return Status;
 }
 
@@ -325,13 +325,13 @@ static EFI_STATUS load_image_and_authVB1(bootinfo *Info)
 	DevInfo_vb.is_unlocked = !is_device_locked();
 	DevInfo_vb.is_unlock_critical = !is_device_locked_critical();
 
-	strncpy(StrPname, "/", strlen("/"));
-	strncpy(Pname, Info->pname, strlen(Info->pname));
+	strlcpy(StrPname, "/", strlen("/"));
+	strlcpy(Pname, Info->pname, strlen(Info->pname));
 	if (Info->multi_slot_boot) {
-		strncat(StrPname, Pname,
+		strlcat(StrPname, Pname,
 	              strlen(Pname) - (MAX_SLOT_SUFFIX_SZ - 1));
 	} else {
-		strncat(StrPname, Pname, strlen(Pname));
+		strlcat(StrPname, Pname, strlen(Pname));
 	}
 
 	Status = boot_verify_image((UINT8 *)Info->images[0].image_buffer,
@@ -433,7 +433,7 @@ static EFI_STATUS load_image_and_authVB2(bootinfo *Info)
 		goto out;
 	}
 	if(Info->multi_slot_boot) {
-	strncpy(Pname, Info->pname, strlen(Info->pname));
+	strlcpy(Pname, Info->pname, strlen(Info->pname));
 	if ((MAX_SLOT_SUFFIX_SZ + 1) > strlen(Pname)) {
 		dprintf(CRITICAL, "ERROR: Can not determine slot suffix\n");
 		Status = EFI_INVALID_PARAMETER;
@@ -681,10 +681,10 @@ EFI_STATUS load_image_and_auth(bootinfo *Info)
 	if (!Info->multi_slot_boot) {
 		if (Info->bootinto_recovery) {
 			dprintf(INFO, "Booting Into Recovery Mode\n");
-			strncpy(Info->pname, "recovery", strlen("recovery"));
+			strlcpy(Info->pname, "recovery", strlen("recovery"));
 		} else {
 			dprintf(INFO, "Booting Into Mission Mode\n");
-			strncpy(Info->pname, "boot", strlen("boot"));
+			strlcpy(Info->pname, "boot", strlen("boot"));
 		}
 	} else {
 		Slot CurrentSlot = {{0}};
@@ -694,8 +694,8 @@ EFI_STATUS load_image_and_auth(bootinfo *Info)
 			dprintf(CRITICAL, "No bootable slot\n");
 			return EFI_LOAD_ERROR;
 		}
-		strncpy(Info->pname, "boot", strlen("boot"));
-		strncat(Info->pname, CurrentSlot.Suffix, strlen(CurrentSlot.Suffix));
+		strlcpy(Info->pname, "boot", strlen("boot"));
+		strlcat(Info->pname, CurrentSlot.Suffix, strlen(CurrentSlot.Suffix));
 	}
 
 	dprintf(DEBUG, "MultiSlot %s, partition name %s\n",
