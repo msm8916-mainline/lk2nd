@@ -344,7 +344,7 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 		break;
 	case HW_PLATFORM_QRD:
 		panel_id = R69006_1080P_CMD_PANEL;
-		if (platform_subtype == 0x01)
+		if (platform_subtype == 0x01 || platform_subtype == 0x03)
 			panel_id = HX8399C_FHD_PLUSE_VIDEO_PANEL;
 		break;
 	default:
