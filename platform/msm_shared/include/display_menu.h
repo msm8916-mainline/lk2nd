@@ -1,4 +1,4 @@
-/* Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2016, 2018, The Linux Foundation. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are
@@ -44,6 +44,8 @@ enum display_menu_type {
 	DISPLAY_MENU_UNLOCK_CRITICAL,
 	DISPLAY_MENU_LOGGING,
 	DISPLAY_MENU_EIO,
+	DISPLAY_MENU_LOCK,
+	DISPLAY_MENU_LOCK_CRITICAL,
 };
 
 struct menu_info {
@@ -64,14 +66,24 @@ struct select_msg_info {
 	mutex_t			msg_lock;
 };
 
+struct unlock_option_msg {
+	const char *ignore_msg;
+	const char *comfirm_msg;
+};
+
+struct unlock_info{
+	int unlock_type;
+	boolean unlock_value;
+ };
+
 void wait_for_users_action(void);
-void display_unlock_menu_renew(struct select_msg_info *msg_info, int type);
+void reset_device_unlock_status (int type);
 void display_bootverify_menu_renew(struct select_msg_info *msg_info, int type);
 void display_bootverify_option_menu_renew(struct select_msg_info *msg_info);
 void display_fastboot_menu_renew(struct select_msg_info *fastboot_msg_info);
 void display_bootverify_menu(int type);
 void display_fastboot_menu();
-void display_unlock_menu(int type);
+void display_unlock_menu(int type, bool status);
 void msg_lock_init();
 void exit_menu_keys_detection();
 #endif				/* __PLATFORM_MSM_SHARED_DISPLAY_MENU_H */
