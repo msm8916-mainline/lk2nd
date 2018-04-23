@@ -2548,23 +2548,21 @@ static void set_device_unlock(int type, bool status)
 	}
 
 	/* status is true, it means to unlock device */
-	if (status) {
-		if(!is_allow_unlock) {
-			fastboot_fail("oem unlock is not allowed");
-			return;
-		}
+	if (status && !is_allow_unlock) {
+		fastboot_fail("oem unlock is not allowed");
+		return;
+	}
 
 #if FBCON_DISPLAY_MSG
-		display_unlock_menu(type);
-		fastboot_okay("");
-		return;
+	display_unlock_menu(type, status);
+	fastboot_okay("");
+	return;
 #else
-		if (type == UNLOCK) {
-			fastboot_fail("Need wipe userdata. Do 'fastboot oem unlock-go'");
-			return;
-		}
-#endif
+	if (status && type == UNLOCK) {
+		fastboot_fail("Need wipe userdata. Do 'fastboot oem unlock-go'");
+		return;
 	}
+#endif
 
 	set_device_unlock_value(type, status);
 
