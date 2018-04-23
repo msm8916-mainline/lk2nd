@@ -37,6 +37,23 @@
 #define LOGO_IMG_MAGIC_SIZE sizeof(LOGO_IMG_MAGIC) - 1
 #define LOGO_IMG_HEADER_SIZE 512
 
+/* 45 characters per line for portrait orientation
+ * "720 (W) 1280(H)" -- 720 /(8*2) = 45
+ * "1080(W) 1920(H)" -- 1080/(8*3) = 45
+ * "1440(W) 2560(H)" -- 1440/(8*4) = 45
+ * "2160(W) 3840(H)" -- 2160/(8*6) = 45
+ */
+#define CHAR_NUM_PERROW_POR 45
+
+/* 80 characters per line for horizontal orientation
+ * "480 (H) 640 (W)" -- 640 /(8*1) = 80
+ * "720 (H) 1280(W)" -- 1280/(8*2) = 80
+ * "1080(H) 1920(W)" -- 1920/(8*3) = 80
+ * "1440(H) 2560(W)" -- 2560/(8*4) = 80
+ * "2160(H) 3840(W)" -- 3840/(8*6) = 80
+ */
+#define CHAR_NUM_PERROW_HOR 80
+
 enum fbcon_msg_type {
 	/* type for menu */
 	FBCON_COMMON_MSG = 0,
@@ -98,4 +115,6 @@ void fbcon_draw_line(uint32_t type);
 uint32_t fbcon_get_current_line(void);
 uint32_t fbcon_get_current_bg(void);
 uint32_t fbcon_get_max_x(void);
+uint32_t fbcon_get_width(void);
+uint32_t fbcon_get_height(void);
 #endif /* __DEV_FBCON_H */
