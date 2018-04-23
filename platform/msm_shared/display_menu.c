@@ -156,8 +156,13 @@ void exit_menu_keys_detection()
 static void set_message_factor()
 {
 	uint32_t tmp_factor = 0;
-	uint32_t max_x_count = 40;
-	uint32_t max_x = fbcon_get_max_x();
+	uint32_t max_x_count = 0;
+	uint32_t max_x = 0;
+
+	if (fbcon_get_width() < fbcon_get_height())
+		max_x_count = CHAR_NUM_PERROW_POR;
+	else
+		max_x_count = CHAR_NUM_PERROW_HOR;
 
 	max_x = fbcon_get_max_x();
 	tmp_factor = max_x/max_x_count;
