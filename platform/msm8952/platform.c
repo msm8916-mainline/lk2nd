@@ -268,6 +268,7 @@ int platform_is_sdm429()
 	switch(platform)
 	{
 	case SDM429:
+	case SDA429:
 		ret = 1;
 		break;
 	default:
@@ -285,6 +286,7 @@ int platform_is_sdm439()
 	switch(platform)
 	{
 	case SDM439:
+	case SDA439:
 		ret = 1;
 		break;
 	default:
