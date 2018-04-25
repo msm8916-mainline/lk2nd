@@ -181,7 +181,17 @@ AvbVBMetaVerifyResult avb_vbmeta_image_verify(
     case AVB_ALGORITHM_TYPE_SHA256_RSA8192:
       total_len = sizeof(AvbVBMetaImageHeader) + h.auxiliary_data_block_size;
       tbuf = avb_malloc_(total_len);
+      if(tbuf == NULL)
+      {
+           avb_error("Failed to allocate memory.\n");
+           goto out;
+      }
       computed_hash = avb_malloc_(AVB_SHA256_DIGEST_SIZE);
+      if(computed_hash == NULL)
+      {
+           avb_error("Failed to allocate memory.\n");
+           goto out;
+      }
       avb_memcpy(tbuf, header_block, sizeof(AvbVBMetaImageHeader));
       avb_memcpy(tbuf + sizeof(AvbVBMetaImageHeader), auxiliary_block, h.auxiliary_data_block_size);
       hash_find(tbuf, total_len, computed_hash, CRYPTO_AUTH_ALG_SHA256);
@@ -192,6 +202,11 @@ AvbVBMetaVerifyResult avb_vbmeta_image_verify(
     case AVB_ALGORITHM_TYPE_SHA512_RSA4096:
     case AVB_ALGORITHM_TYPE_SHA512_RSA8192:
       computed_hash = avb_malloc(AVB_SHA512_DIGEST_SIZE);
+      if(computed_hash == NULL)
+      {
+           avb_error("Failed to allocate memory.\n");
+           goto out;
+      }
       avb_sha512_init(&sha512_ctx);
       avb_sha512_update(
           &sha512_ctx, header_block, sizeof(AvbVBMetaImageHeader));

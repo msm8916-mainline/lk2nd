@@ -190,6 +190,12 @@ static AvbSlotVerifyResult load_and_verify_hash_partition(
     uint32_t complete_len = hash_desc.salt_len + hash_desc.image_size;
     uint8_t *complete_buf = (uint8_t *)target_get_scratch_address()+0x08000000;
     digest = avb_malloc(AVB_SHA256_DIGEST_SIZE);
+    if(digest == NULL)
+    {
+        avb_errorv(part_name, ": Failed to allocate memory\n", NULL);
+        ret = AVB_SLOT_VERIFY_RESULT_ERROR_IO;
+        goto out;
+    }
     avb_memcpy(complete_buf, desc_salt, hash_desc.salt_len);
     avb_memcpy(complete_buf + hash_desc.salt_len, image_buf, hash_desc.image_size);
     hash_find(complete_buf, complete_len, digest, CRYPTO_AUTH_ALG_SHA256);
@@ -198,6 +204,12 @@ static AvbSlotVerifyResult load_and_verify_hash_partition(
     AvbSHA512Ctx sha512_ctx;
     uint8_t *dig;
     digest = avb_malloc(AVB_SHA512_DIGEST_SIZE);
+    if(digest == NULL)
+    {
+        avb_errorv(part_name, ": Failed to allocate memory\n", NULL);
+        ret = AVB_SLOT_VERIFY_RESULT_ERROR_IO;
+        goto out;
+    }
     avb_sha512_init(&sha512_ctx);
     avb_sha512_update(&sha512_ctx, desc_salt, hash_desc.salt_len);
     avb_sha512_update(&sha512_ctx, image_buf, hash_desc.image_size);
@@ -1133,6 +1145,12 @@ static AvbSlotVerifyResult append_options(
       uint8_t* tbuf = NULL;
 
       digest = avb_malloc(AVB_SHA256_DIGEST_SIZE);
+      if(digest == NULL)
+      {
+        avb_error("Failed to allocate memory\n");
+        ret = AVB_SLOT_VERIFY_RESULT_ERROR_IO;
+        goto out;
+      }
       for (n = 0; n < slot_data->num_vbmeta_images; n++) {
         total_size += slot_data->vbmeta_images[n].vbmeta_size;
       }

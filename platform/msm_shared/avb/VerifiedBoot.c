@@ -110,17 +110,6 @@ BOOLEAN VerifiedBootEnabled()
 	return (GetAVBVersion() > NO_AVB);
 }
 
-static int GetCurrentSlotSuffix(Slot *CurrentSlot)
-{
-	if (!partition_multislot_is_supported())
-		return ERR_INVALID_ARGS;
-
-	strlcpy(CurrentSlot->Suffix,
-			SUFFIX_SLOT(partition_find_active_slot()),
-			MAX_SLOT_SUFFIX_SZ);
-	return 0;
-}
-
 static int check_img_header(void *ImageHdrBuffer, uint32_t ImageHdrSize, uint32_t *imgsizeActual)
 {
     /* These checks are already done before calling auth remove from here */
@@ -128,50 +117,6 @@ static int check_img_header(void *ImageHdrBuffer, uint32_t ImageHdrSize, uint32_
 	boot_verifier_init();
 #endif
 	return 0;
-}
-
-static int GetActiveSlot(Slot *ActiveSlot)
-{
-	if (!partition_multislot_is_supported())
-		return ERR_INVALID_ARGS;
-	int idx = partition_find_active_slot();
-	if (idx != INVALID)
-	{
-		strlcpy(ActiveSlot->Suffix,
-			SUFFIX_SLOT(partition_find_active_slot()),
-			MAX_SLOT_SUFFIX_SZ);
-		return 0;
-	}
-	return ERR_NOT_FOUND;
-}
-
-static int FindBootableSlot(Slot *BootableSlot)
-{
-   int Status = 0;
-
-   if (BootableSlot == NULL) {
-       dprintf(CRITICAL,"FindBootableSlot: input parameter invalid\n");
-       return -ERR_INVALID_ARGS;
-   }
-
-   Status = GetActiveSlot(BootableSlot);
-   if (Status != 0) {
-       /* clear bootable slot */
-       BootableSlot->Suffix[0] = '\0';
-   }
-   return Status;
-}
-
-bool IsSuffixEmpty(Slot *CheckSlot)
-{
-	if (CheckSlot == NULL) {
-		return TRUE;
-	}
-
-	if (strlen((char *)CheckSlot->Suffix) == 0) {
-		return TRUE;
-	}
-	return FALSE;
 }
 
 static int HandleActiveSlotUnbootable()
@@ -193,11 +138,9 @@ uint32_t GetSystemPath(char **SysPath)
 	INT32 Index;
 	UINT32 Lun;
 	CHAR8 PartitionName[MAX_GPT_NAME_SIZE];
-	Slot CurSlot;
 	CHAR8 LunCharMapping[] = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'};
-
-	if (GetCurrentSlotSuffix(&CurSlot))
-		return 0;
+	const char *current_slot_suffix;
+	int current_active_slot;
 
 	*SysPath = malloc(sizeof(char) * MAX_PATH_SIZE);
 	if (!*SysPath) {
@@ -206,7 +149,13 @@ uint32_t GetSystemPath(char **SysPath)
 	}
 
 	strlcpy(PartitionName, "system", strlen("system") + 1);
-	strlcat(PartitionName, CurSlot.Suffix, MAX_GPT_NAME_SIZE - 1);
+	current_active_slot = partition_find_active_slot();
+	if (partition_multislot_is_supported()) {
+		if (current_active_slot == INVALID)
+			return 0;
+		current_slot_suffix = SUFFIX_SLOT(current_active_slot);
+		strncat(PartitionName, current_slot_suffix, MAX_GPT_NAME_SIZE - 1);
+	}
 
 	Index = partition_get_index(PartitionName);
 	if (Index == INVALID_PTN || Index >= NUM_PARTITIONS) {
@@ -487,6 +436,11 @@ static EFI_STATUS load_image_and_authVB2(bootinfo *Info)
 		Info->boot_state = RED;
 		goto out;
 	}
+	if (SlotData == NULL) {
+		Status = EFI_LOAD_ERROR;
+		Info->boot_state = RED;
+		goto out;
+	}
 
 	for (UINTN ReqIndex = 0; ReqIndex < NumRequestedPartition; ReqIndex++) {
 		dprintf(DEBUG, "Requested Partition: %s\n",
@@ -672,6 +626,8 @@ EFI_STATUS load_image_and_auth(bootinfo *Info)
 	BOOLEAN MdtpActive = FALSE;
 	UINT32 AVBVersion = NO_AVB;
 	mdtp_ext_partition_verification_t ext_partition;
+	const char *current_slot_suffix;
+	int current_active_slot;
 
 	if (Info == NULL) {
 		dprintf(CRITICAL, "Invalid parameter Info\n");
@@ -687,15 +643,16 @@ EFI_STATUS load_image_and_auth(bootinfo *Info)
 			strlcpy(Info->pname, "boot", strlen("boot"));
 		}
 	} else {
-		Slot CurrentSlot = {{0}};
-
-		GUARD(FindBootableSlot(&CurrentSlot));
-		if (IsSuffixEmpty(&CurrentSlot)) {
-			dprintf(CRITICAL, "No bootable slot\n");
-			return EFI_LOAD_ERROR;
-		}
 		strlcpy(Info->pname, "boot", strlen("boot"));
-		strlcat(Info->pname, CurrentSlot.Suffix, strlen(CurrentSlot.Suffix));
+		current_active_slot = partition_find_active_slot();
+		if (current_active_slot != INVALID ) {
+			current_slot_suffix = SUFFIX_SLOT(current_active_slot);
+			if (strlen(current_slot_suffix) == 0) {
+				dprintf(CRITICAL, "No bootable slot\n");
+				return EFI_LOAD_ERROR;
+			}
+			strlcat(Info->pname, current_slot_suffix, strlen(current_slot_suffix));
+		}
 	}
 
 	dprintf(DEBUG, "MultiSlot %s, partition name %s\n",
