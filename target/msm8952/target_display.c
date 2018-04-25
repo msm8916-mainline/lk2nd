@@ -582,20 +582,22 @@ int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 	if (enable) {
 		regulator_enable(ldo_num);
 		mdelay(10);
-		rc = wled_init(pinfo);
-		if (rc) {
-			dprintf(CRITICAL, "%s: wled init failed\n", __func__);
-			return rc;
+		if(!pinfo->disable_wled_labibb) {
+			rc = wled_init(pinfo);
+			if (rc) {
+				dprintf(CRITICAL, "%s: wled init failed\n", __func__);
+				return rc;
+			}
+			if (target_get_pmic() == PMIC_IS_PMI632)
+				rc = qpnp_lcdb_enable(true);
+			else
+				rc = qpnp_ibb_enable(true); /*5V boost*/
+			if (rc) {
+				dprintf(CRITICAL, "%s: qpnp_ibb/lcdb failed\n", __func__);
+				return rc;
+			}
+			mdelay(50);
 		}
-		if (target_get_pmic() == PMIC_IS_PMI632)
-			rc = qpnp_lcdb_enable(true);
-		else
-			rc = qpnp_ibb_enable(true); /*5V boost*/
-		if (rc) {
-			dprintf(CRITICAL, "%s: qpnp_ibb/lcdb failed\n", __func__);
-			return rc;
-		}
-		mdelay(50);
 	} else {
 		/*
 		 * LDO1, LDO2 and LDO6 are shared with other subsystems.

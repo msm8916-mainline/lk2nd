@@ -1,4 +1,4 @@
-/* Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2016, 2018 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -573,6 +573,7 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		memcpy(phy_db->timing,
 						hx8394f_720p_video_timings, TIMING_SIZE);
 		pinfo->mipi.signature = HX8394F_720P_VIDEO_SIGNATURE;
+		pinfo->disable_wled_labibb = true;
 		break;
 	case BYD_1200P_VIDEO_PANEL:
 		panelstruct->paneldata    = &byd_1200p_video_panel_data;

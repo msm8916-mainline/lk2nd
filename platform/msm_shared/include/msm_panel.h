@@ -430,6 +430,7 @@ struct msm_panel_info {
 	struct spi_panel_info spi;
 	struct dsi2HDMI_panel_info adv7533;
 	bool has_bridge_chip;
+	bool disable_wled_labibb;
 
 	struct dfps_info dfps;
 
