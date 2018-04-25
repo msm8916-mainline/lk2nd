@@ -145,8 +145,6 @@ static void update_device_status(struct select_msg_info* msg_info, int reason)
 			reboot_device(FASTBOOT_MODE);
 			break;
 		case CONTINUE:
-			display_image_on_screen();
-
 			/* Continue boot, no need to detect the keys'status */
 			msg_info->info.is_exit = true;
 			break;
