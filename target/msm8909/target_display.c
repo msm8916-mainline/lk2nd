@@ -325,6 +325,7 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 		};
 
 		pm8x41_gpio_config(bob_pmic_gpio, &bobgpio_param);
+		enable_gpio.pin_id = 59;
 	}
 
 	if (enable) {
