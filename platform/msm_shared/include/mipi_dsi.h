@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2015, 2018, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -149,6 +149,7 @@ enum {
 	DSI_PLL_TYPE_28NM,
 	DSI_PLL_TYPE_20NM,
 	DSI_PLL_TYPE_THULIUM,
+	DSI_PLL_TYPE_12NM,
 	DSI_PLL_TYPE_MAX,
 };
 
@@ -223,6 +224,11 @@ struct mdss_dsi_pll_config {
 	uint32_t postdiv;
 	uint32_t n1div;
 	uint32_t n2div;
+
+	/* pll 12nm */
+	uint32_t p_div_mux;
+	uint32_t gp_div_mux;
+	uint32_t divhf;
 };
 
 struct mipi_dsi_cmd {

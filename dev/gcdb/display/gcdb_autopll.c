@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, 2018, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -389,6 +389,65 @@ static uint32_t calculate_vco_20nm(uint8_t bpp, uint8_t lanes)
 	return NO_ERROR;
 }
 
+static uint32_t calculate_p_div_mux(uint32_t hr_bitclk)
+{
+	uint32_t hr_bitclk_mhz = (hr_bitclk / 1000000);
+
+	if (hr_bitclk_mhz >= 1000 && hr_bitclk_mhz <= 1250)
+		return 0x0;
+	else if (hr_bitclk_mhz >= 500 && hr_bitclk_mhz < 1000)
+		return 0x1;
+	else if (hr_bitclk_mhz >= 250 && hr_bitclk_mhz < 500)
+		return 0x2;
+	else if (hr_bitclk_mhz >= 125 && hr_bitclk_mhz < 250)
+		return 0x3;
+	else if (hr_bitclk_mhz >= 63 && hr_bitclk_mhz < 125)
+		return 0x4;
+	else
+		return 0x5;
+}
+
+static void calculate_divhf(uint32_t hr_bitclk, uint8_t bpp,
+	uint8_t lanes)
+{
+	int m = 1;
+	int n = 1;
+	uint32_t dsi_clk = 0;
+
+	if (bpp == BITS_18) {
+		if (lanes == 2) {
+			m = 2;
+			n = 9;
+		} else if (lanes == 4) {
+			m = 4;
+			n = 9;
+		}
+	} else if (bpp == BITS_16) {
+		if (lanes == 3) {
+			m = 3;
+			n = 8;
+		}
+	}
+
+	dsi_clk = (pll_data.pixel_clock * n) / m;
+	pll_data.divhf = ((pll_data.halfbit_clock / dsi_clk) - 1);
+
+	pll_data.pclk_m = m;	/* M */
+	pll_data.pclk_n = ~(n - m);	/* ~(N-M) */
+	pll_data.pclk_d = ~n;	/* ~N  */
+}
+
+static uint32_t calculate_vco_12nm(uint8_t bpp, uint8_t lanes)
+{
+	pll_data.vco_min = MIN_12NM_VCO_RATE;
+	pll_data.vco_max = MAX_12NM_VCO_RATE;
+	pll_data.p_div_mux = calculate_p_div_mux(pll_data.halfbit_clock);
+	pll_data.gp_div_mux = pll_data.p_div_mux;
+	pll_data.vco_clock = pll_data.halfbit_clock * (1 << pll_data.p_div_mux);
+	calculate_divhf(pll_data.halfbit_clock, bpp, lanes);
+	return NO_ERROR;
+}
+
 uint32_t calculate_clock_config(struct msm_panel_info *pinfo)
 {
 	uint32_t ret = NO_ERROR;
@@ -402,6 +461,9 @@ uint32_t calculate_clock_config(struct msm_panel_info *pinfo)
 		break;
 	case DSI_PLL_TYPE_THULIUM:
 		ret = calculate_vco_thulium(pinfo->bpp, pinfo->mipi.num_of_lanes);
+		break;
+	case DSI_PLL_TYPE_12NM:
+		ret = calculate_vco_12nm(pinfo->bpp, pinfo->mipi.num_of_lanes);
 		break;
 	case DSI_PLL_TYPE_28NM:
 	default:
