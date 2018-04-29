@@ -1,4 +1,4 @@
-/* Copyright (c) 2015-2017, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2018, The Linux Foundation. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are
@@ -94,8 +94,8 @@ static uint32_t fastboot_index_action[] = {
 };
 
 static uint32_t unlock_index_action[] = {
-		[0] = RECOVER,
-		[1] = RESTART,
+		[0] = RESTART,
+		[1] = RECOVER,
 };
 
 static int is_key_pressed(int keys_type)
@@ -118,21 +118,7 @@ static void update_device_status(struct select_msg_info* msg_info, int reason)
 	fbcon_clear();
 	switch (reason) {
 		case RECOVER:
-			if (msg_info->info.msg_type == DISPLAY_MENU_UNLOCK) {
-				set_device_unlock_value(UNLOCK, TRUE);
-			} else if (msg_info->info.msg_type == DISPLAY_MENU_UNLOCK_CRITICAL) {
-				set_device_unlock_value(UNLOCK_CRITICAL, TRUE);
-			}
-
-			if (msg_info->info.msg_type == DISPLAY_MENU_UNLOCK ||
-				msg_info->info.msg_type == DISPLAY_MENU_UNLOCK_CRITICAL) {
-				/* wipe data */
-				struct recovery_message msg;
-
-				memset(&msg, 0, sizeof(msg));
-				snprintf(msg.recovery, sizeof(msg.recovery), "recovery\n--wipe_data");
-				write_misc(0, &msg, sizeof(msg));
-			}
+			reset_device_unlock_status(msg_info->info.msg_type);
 			reboot_device(RECOVERY_MODE);
 			break;
 		case RESTART:
@@ -265,6 +251,8 @@ static void power_key_func(struct select_msg_info* msg_info)
 			break;
 		case DISPLAY_MENU_UNLOCK:
 		case DISPLAY_MENU_UNLOCK_CRITICAL:
+		case DISPLAY_MENU_LOCK:
+		case DISPLAY_MENU_LOCK_CRITICAL:
 			if(msg_info->info.option_index < ARRAY_SIZE(unlock_index_action))
 				reason = unlock_index_action[msg_info->info.option_index];
 			break;
@@ -302,6 +290,16 @@ static struct pages_action menu_pages_action[] = {
 		power_key_func,
 	},
 	[DISPLAY_MENU_UNLOCK_CRITICAL] = {
+		menu_volume_up_func,
+		menu_volume_down_func,
+		power_key_func,
+	},
+	[DISPLAY_MENU_LOCK] = {
+		menu_volume_up_func,
+		menu_volume_down_func,
+		power_key_func,
+	},
+	[DISPLAY_MENU_LOCK_CRITICAL] = {
 		menu_volume_up_func,
 		menu_volume_down_func,
 		power_key_func,
