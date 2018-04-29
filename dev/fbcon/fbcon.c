@@ -88,7 +88,7 @@ static struct pos		max_pos;
 static struct fb_color		*fb_color_formats;
 static struct fb_color		fb_color_formats_555[] = {
 					[FBCON_COMMON_MSG] = {RGB565_WHITE, RGB565_BLACK},
-					[FBCON_UNLOCK_TITLE_MSG] = {RGB565_CYAN, RGB565_BLACK},
+					[FBCON_UNLOCK_TITLE_MSG] = {RGB565_RED, RGB565_BLACK},
 					[FBCON_TITLE_MSG] = {RGB565_WHITE, RGB565_BLACK},
 					[FBCON_SUBTITLE_MSG] = {RGB565_SILVER, RGB565_BLACK},
 					[FBCON_YELLOW_MSG] = {RGB565_YELLOW, RGB565_BLACK},
@@ -99,7 +99,7 @@ static struct fb_color		fb_color_formats_555[] = {
 
 static struct fb_color		fb_color_formats_888[] = {
 					[FBCON_COMMON_MSG] = {RGB888_WHITE, RGB888_BLACK},
-					[FBCON_UNLOCK_TITLE_MSG] = {RGB888_CYAN, RGB888_BLACK},
+					[FBCON_UNLOCK_TITLE_MSG] = {RGB888_RED, RGB888_BLACK},
 					[FBCON_TITLE_MSG] = {RGB888_WHITE, RGB888_BLACK},
 					[FBCON_SUBTITLE_MSG] = {RGB888_SILVER, RGB888_BLACK},
 					[FBCON_YELLOW_MSG] = {RGB888_YELLOW, RGB888_BLACK},
@@ -401,6 +401,22 @@ uint32_t fbcon_get_current_line(void)
 uint32_t fbcon_get_max_x(void)
 {
 	return max_pos.x;
+}
+
+uint32_t fbcon_get_width(void)
+{
+	if (config)
+		return config->width;
+	else
+		return 0;
+}
+
+uint32_t fbcon_get_height(void)
+{
+	if (config)
+		return config->height;
+	else
+		return 0;
 }
 
 uint32_t fbcon_get_current_bg(void)
