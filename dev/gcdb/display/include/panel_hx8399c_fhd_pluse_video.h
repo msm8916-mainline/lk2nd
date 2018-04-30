@@ -295,6 +295,10 @@ static const uint32_t hx8399c_fhd_pluse_video_timings[] = {
 	0x24, 0x1C, 0x34, 0x00, 0x58, 0x4d, 0x36, 0x3f, 0x53, 0x03, 0x04, 0x00
 };
 
+static const uint32_t hx8399c_fhd_pluse_video_12nm_timings[] = {
+	0x18, 0x0A, 0x10, 0x06, 0x03, 0x08, 0x06, 0x0E
+};
+
 static const uint32_t hx8399c_fhd_pluse_14nm_video_timings[] = {
 	0x24, 0x1f, 0x08, 0x09, 0x05, 0x03, 0x04, 0xa0,
 	0x24, 0x1f, 0x08, 0x09, 0x05, 0x03, 0x04, 0xa0,
@@ -321,7 +325,7 @@ static struct panel_reset_sequence hx8399c_fhd_pluse_video_panel_reset_seq = {
 /* Backlight setting                                                         */
 /*---------------------------------------------------------------------------*/
 static struct backlight hx8399c_fhd_pluse_video_backlight = {
-	1, 1, 4095, 100, 1, "PMIC_8941"
+	0, 1, 4095, 100, 1, "PMIC_8941"
 };
 
 #define HX8399C_FHD_PLUSE_VIDEO_SIGNATURE 0xA0000

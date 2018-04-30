@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, 2018, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -39,6 +39,7 @@
 #define BPP_24 24
 
 #define TIMING_SIZE 48
+#define TIMING_SIZE_12NM 32
 #define REGULATOR_SIZE 28
 
 #define DUAL_DSI_FLAG 0x1

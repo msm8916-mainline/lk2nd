@@ -63,6 +63,7 @@
 #include "include/panel_truly_wuxga_video.h"
 #include "include/panel_truly_720p_cmd.h"
 #include "include/panel_lead_fl10802_fwvga_video.h"
+#include "include/panel_hx8399c_fhd_pluse_video.h"
 
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
@@ -86,6 +87,7 @@ enum {
 	TRULY_WUXGA_VIDEO_PANEL,
 	TRULY_720P_CMD_PANEL,
 	LEAD_FL10802_FWVGA_VIDEO_PANEL,
+	HX8399C_FHD_PLUSE_VIDEO_PANEL,
 	UNKNOWN_PANEL
 };
 
@@ -116,6 +118,7 @@ static struct panel_list supp_panels[] = {
 	{"truly_wuxga_video", TRULY_WUXGA_VIDEO_PANEL},
 	{"truly_720p_cmd", TRULY_720P_CMD_PANEL},
 	{"lead_fl10802_fwvga_video", LEAD_FL10802_FWVGA_VIDEO_PANEL},
+	{"hx8399c_fhd_pluse_video", HX8399C_FHD_PLUSE_VIDEO_PANEL},
 };
 
 static uint32_t panel_id;
@@ -710,6 +713,40 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		pinfo->mipi.signature = LEAD_FL10802_FWVGA_VIDEO_SIGNATURE;
 		pinfo->mipi.cmds_post_tg = 1;
 		break;
+	case HX8399C_FHD_PLUSE_VIDEO_PANEL:
+		panelstruct->paneldata    = &hx8399c_fhd_pluse_video_panel_data;
+		panelstruct->panelres     = &hx8399c_fhd_pluse_video_panel_res;
+		panelstruct->color        = &hx8399c_fhd_pluse_video_color;
+		panelstruct->videopanel   =
+				&hx8399c_fhd_pluse_video_video_panel;
+		panelstruct->commandpanel =
+				&hx8399c_fhd_pluse_video_command_panel;
+		panelstruct->state        = &hx8399c_fhd_pluse_video_state;
+		panelstruct->laneconfig   =
+				&hx8399c_fhd_pluse_video_lane_config;
+		panelstruct->paneltiminginfo
+				= &hx8399c_fhd_pluse_video_timing_info;
+		panelstruct->panelresetseq
+				= &hx8399c_fhd_pluse_video_panel_reset_seq;
+		panelstruct->backlightinfo = &hx8399c_fhd_pluse_video_backlight;
+		pinfo->labibb = &hx8399c_fhd_pluse_video_labibb;
+		pinfo->mipi.panel_on_cmds
+				= hx8399c_fhd_pluse_video_on_command;
+		pinfo->mipi.num_of_panel_on_cmds
+				= HX8399C_FHD_PLUSE_VIDEO_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+				= hx8399c_fhd_pluse_video_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+				= HX8399C_FHD_PLUSE_VIDEO_OFF_COMMAND;
+		if (phy_db->pll_type == DSI_PLL_TYPE_12NM)
+			memcpy(phy_db->timing,
+				hx8399c_fhd_pluse_video_12nm_timings,
+				TIMING_SIZE_12NM);
+		else
+			memcpy(phy_db->timing, hx8399c_fhd_pluse_video_timings,
+				TIMING_SIZE);
+		pinfo->mipi.signature    = HX8399C_FHD_PLUSE_VIDEO_SIGNATURE;
+		break;
 	case UNKNOWN_PANEL:
 	default:
 		memset(panelstruct, 0, sizeof(struct panel_struct));
@@ -770,8 +807,10 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	case HW_PLATFORM_MTP:
 		if (platform_is_msm8956())
 			panel_id = NT35597_WQXGA_DUALDSI_VIDEO_PANEL;
-        else if (platform_is_msm8917())
+		else if (platform_is_msm8917())
 			panel_id = TRULY_720P_VIDEO_PANEL;
+		else if (platform_is_sdm439())
+			panel_id = HX8399C_FHD_PLUSE_VIDEO_PANEL;
 		else
 			panel_id = TRULY_1080P_VIDEO_PANEL;
 		break;
@@ -779,8 +818,10 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	case HW_PLATFORM_RCM:
 		if (platform_is_msm8956())
 			panel_id = NT35597_WQXGA_DUALDSI_VIDEO_PANEL;
-        else if (platform_is_msm8917())
+		else if (platform_is_msm8917())
 			panel_id = TRULY_720P_VIDEO_PANEL;
+		else if (platform_is_sdm439())
+			panel_id = HX8399C_FHD_PLUSE_VIDEO_PANEL;
 		else
 			panel_id = TRULY_1080P_VIDEO_PANEL;
 		break;
