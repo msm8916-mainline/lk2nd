@@ -111,7 +111,8 @@ struct panel_lookup_list lookup_skip_panels[] = {
 	{"sharp_120hz_1080p_cmd", "qcom,mdss_dual_sharp_1080p_120hz_cmd",
 		true},
 	{"mirrorlake1_hdplus_video", "qcom,mdss_dsi_icn9706_720_1440p_video", false},
-	{"hx8399c_truly_video", "qcom,mdss_dsi_hx8399c_truly_video", false},
+	{"hx8399c_fhd_plus_video", "qcom,mdss_dsi_hx8399c_truly_video", false},
+	{"hx8399c_hd_plus_video", "qcom,mdss_dsi_hx8399c_hd_video", false},
 };
 
 struct sim_lookup_list lookup_sim[] = {
