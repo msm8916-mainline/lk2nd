@@ -444,6 +444,7 @@ struct msm_panel_info {
 	int (*early_config) (void *pdata);
 	int (*config) (void *pdata);
 	int (*rotate) (void);
+	void (*lane_config)(struct msm_panel_info *pinfo);
 
 	char autorefresh_enable;
 	uint32_t autorefresh_framenum;
