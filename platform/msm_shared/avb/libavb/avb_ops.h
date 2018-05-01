@@ -230,6 +230,7 @@ struct AvbOps {
 
 typedef struct {
     BOOLEAN IsUserKey;
+    BOOLEAN IsMultiSlot;
     UINTN PublicKeyLen;
     CHAR8 PublicKey[MAX_USER_KEY_SIZE];
 } AvbOpsUserData;

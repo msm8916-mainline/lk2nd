@@ -421,12 +421,29 @@ AvbIOResult
 AvbWriteRollbackIndex(AvbOps *Ops, size_t RollbackIndexLocation, uint64_t RollbackIndex)
 {
 	EFI_STATUS Status = EFI_SUCCESS;
+	BOOLEAN UpdateRollbackIndex = FALSE;
+	AvbOpsUserData *UserData = NULL;
 
 	dprintf(DEBUG,
 	       "WriteRollbackIndex Location %zu, RollbackIndex %llu\n",
 	       RollbackIndexLocation, RollbackIndex);
-	/* Update rollback if the current slot is successful */
-	if (IsCurrentSlotSuccessful()) {
+
+	UserData = (AvbOpsUserData *)Ops->user_data;
+	if(UserData->IsMultiSlot) {
+		/* Update rollback if the current slot is successful */
+		if (IsCurrentSlotSuccessful()) {
+			UpdateRollbackIndex = TRUE;
+		} else {
+			UpdateRollbackIndex = FALSE;
+			dprintf(DEBUG, "Not updating rollback index as current "
+					"slot is unbootable\n");
+		}
+	} else {
+		/* When Multislot is disabled, always update*/
+		UpdateRollbackIndex = TRUE;
+	}
+
+	if(UpdateRollbackIndex == TRUE) {
 		dprintf(INFO,
 		       "Updating rollback index %llu, for location %zu\n",
 		       RollbackIndex, RollbackIndexLocation);
@@ -435,9 +452,6 @@ AvbWriteRollbackIndex(AvbOps *Ops, size_t RollbackIndexLocation, uint64_t Rollba
 			dprintf(CRITICAL, "ReadRollbackIndex failed! %d\n", Status);
 			return AVB_IO_RESULT_ERROR_IO;
 		}
-	} else {
-		dprintf(INFO, "Not updating rollback index as current "
-		                   "slot is not successful\n");
 	}
 	return AVB_IO_RESULT_OK;
 }

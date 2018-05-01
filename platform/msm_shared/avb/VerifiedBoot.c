@@ -381,6 +381,8 @@ static EFI_STATUS load_image_and_authVB2(bootinfo *Info)
 		Status = EFI_OUT_OF_RESOURCES;
 		goto out;
 	}
+	UserData->IsMultiSlot = Info->multi_slot_boot;
+
 	if(Info->multi_slot_boot) {
 	strlcpy(Pname, Info->pname, strlen(Info->pname));
 	if ((MAX_SLOT_SUFFIX_SZ + 1) > strlen(Pname)) {
