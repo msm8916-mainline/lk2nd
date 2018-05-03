@@ -356,6 +356,11 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 		pll_data->is_center_spread = false;
 		pll_data->ssc_freq = 30000;
 		pll_data->ssc_ppm = 5000;
+	} else if (platform_is_sdm439() || platform_is_sdm429()) {
+		pll_data->ssc_en = true;
+		pll_data->is_center_spread = false;
+		pll_data->ssc_freq = 31500;
+		pll_data->ssc_ppm = 5000;
 	}
 
 	if (enable) {

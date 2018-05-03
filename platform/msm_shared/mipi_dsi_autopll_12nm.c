@@ -84,6 +84,20 @@
 #define DSIPHY_PLL_LOOP_DIV_RATIO_1			0x2e8
 #define DSIPHY_SLEWRATE_DDL_CYC_FRQ_ADJ_1		0x328
 #define DSIPHY_SSC0					0x394
+#define DSIPHY_SSC1					0x398
+#define DSIPHY_SSC2					0x39c
+#define DSIPHY_SSC3					0x3a0
+#define DSIPHY_SSC4					0x3a4
+#define DSIPHY_SSC5					0x3a8
+#define DSIPHY_SSC6					0x3ac
+#define DSIPHY_SSC10					0x360
+#define DSIPHY_SSC11					0x364
+#define DSIPHY_SSC12					0x368
+#define DSIPHY_SSC13					0x36c
+#define DSIPHY_SSC14					0x370
+#define DSIPHY_SSC15					0x374
+#define DSIPHY_SSC7					0x3b0
+#define DSIPHY_SSC8					0x3b4
 #define DSIPHY_SSC9					0x3b8
 #define DSIPHY_STAT0					0x3e0
 #define DSIPHY_CTRL0					0x3e8
@@ -107,6 +121,14 @@ struct dsi_pll_param {
 	uint32_t post_div_mux;
 	uint32_t pixel_divhf;
 	uint32_t fsm_ovr_ctrl;
+
+	/* SSC parameters */
+	uint32_t mpll_ssc_peak_i;
+	uint32_t mpll_stepsize_i;
+	uint32_t mpll_mint_i;
+	uint32_t mpll_frac_den;
+	uint32_t mpll_frac_quot_i;
+	uint32_t mpll_frac_rem;
 };
 
 static uint32_t __mdss_dsi_get_hsfreqrange(uint64_t target_freq)
@@ -345,8 +367,141 @@ static void mdss_dsi_pll_12nm_calc_reg(struct dsi_pll_param *param)
 	param->gmp_cntrl = 0x1;
 }
 
-static void pll_db_commit_12nm(struct dsi_pll_param *param,
+static uint32_t __mdss_dsi_get_multi_intX100(uint64_t vco_rate, uint32_t *rem)
+{
+	uint32_t reminder = 0;
+	uint64_t temp = 0;
+	const uint32_t quarterX100 = 25;
+
+	temp = vco_rate / VCO_REF_CLOCK_RATE;
+	temp *= 100;
+	reminder = vco_rate % VCO_REF_CLOCK_RATE;
+
+	/*
+	 * Multiplication integer needs to be floored in steps of 0.25
+	 * Hence multi_intX100 needs to be rounded off in steps of 25
+	 */
+	if (reminder < (VCO_REF_CLOCK_RATE / 4)) {
+		*rem = reminder;
+		return temp;
+	} else if (reminder >= (VCO_REF_CLOCK_RATE / 4) &&
+		reminder < (VCO_REF_CLOCK_RATE / 2)) {
+		*rem = (reminder - (VCO_REF_CLOCK_RATE / 4));
+		return (temp + quarterX100);
+	} else if (reminder >= (VCO_REF_CLOCK_RATE / 2) &&
+		reminder < ((3 * VCO_REF_CLOCK_RATE) / 4)) {
+		*rem = (reminder - (VCO_REF_CLOCK_RATE / 2));
+		return (temp + (quarterX100 * 2));
+	}
+
+	*rem = (reminder - ((3 * VCO_REF_CLOCK_RATE) / 4));
+	return (temp + (quarterX100 * 3));
+}
+
+static uint32_t __calc_gcd(uint32_t num1, uint32_t num2)
+{
+	if (num2 != 0)
+		return __calc_gcd(num2, (num1 % num2));
+	else
+		return num1;
+}
+
+static void mdss_dsi_pll_12nm_calc_ssc(struct mdss_dsi_pll_config *pd,
+	struct dsi_pll_param *param)
+{
+	uint64_t multi_intX100 = 0, temp = 0;
+	uint32_t temp_rem1 = 0, temp_rem2 = 0;
+	const uint64_t power_2_17 = 131072, power_2_10 = 1024;
+
+	multi_intX100 = __mdss_dsi_get_multi_intX100(param->vco_freq,
+		&temp_rem1);
+
+	/* Calculation for mpll_ssc_peak_i */
+	temp = (multi_intX100 * pd->ssc_ppm * power_2_17);
+	temp = (temp / 100); /* 100 div for multi_intX100 */
+	param->mpll_ssc_peak_i =
+		(uint32_t) (temp / 1000000); /*10^6 for SSC PPM */
+
+	/* Calculation for mpll_stepsize_i */
+	param->mpll_stepsize_i = (uint32_t) ((param->mpll_ssc_peak_i *
+		pd->ssc_freq * power_2_10) / VCO_REF_CLOCK_RATE);
+
+	/* Calculation for mpll_mint_i */
+	param->mpll_mint_i = (uint32_t) (((multi_intX100 * 4) / 100) - 32);
+
+	/* Calculation for mpll_frac_den */
+	param->mpll_frac_den = (uint32_t) (VCO_REF_CLOCK_RATE /
+		__calc_gcd(param->vco_freq, VCO_REF_CLOCK_RATE));
+
+	/* Calculation for mpll_frac_quot_i */
+	temp = (temp_rem1 * power_2_17);
+	param->mpll_frac_quot_i = (uint32_t) (temp / VCO_REF_CLOCK_RATE);
+	temp_rem2 = temp % VCO_REF_CLOCK_RATE;
+
+	/* Calculation for mpll_frac_rem */
+	param->mpll_frac_rem = (uint32_t) (((uint64_t) temp_rem2 *
+		param->mpll_frac_den) / VCO_REF_CLOCK_RATE);
+
+	dprintf(SPEW, "mpll_ssc_peak_i=%d mpll_stepsize_i=%d mpll_mint_i=%d\n",
+		param->mpll_ssc_peak_i, param->mpll_stepsize_i,
+		param->mpll_mint_i);
+	dprintf(SPEW, "mpll_frac_den=%d mpll_frac_quot_i=%d mpll_frac_rem=%d\n",
+		param->mpll_frac_den, param->mpll_frac_quot_i,
+		param->mpll_frac_rem);
+}
+
+static void pll_db_commit_12nm_ssc(struct dsi_pll_param *param,
 					uint32_t phy_base)
+{
+	uint32_t data = 0;
+
+	writel_relaxed(0x27, phy_base + DSIPHY_SSC0);
+
+	data = (param->mpll_mint_i & 0xff);
+	writel_relaxed(data, phy_base + DSIPHY_SSC7);
+
+	data = ((param->mpll_mint_i & 0xff00) >> 8);
+	writel_relaxed(data, phy_base + DSIPHY_SSC8);
+
+	data = (param->mpll_ssc_peak_i & 0xff);
+	writel_relaxed(data, phy_base + DSIPHY_SSC1);
+
+	data = ((param->mpll_ssc_peak_i & 0xff00) >> 8);
+	writel_relaxed(data, phy_base + DSIPHY_SSC2);
+
+	data = ((param->mpll_ssc_peak_i & 0xf0000) >> 16);
+	writel_relaxed(data, phy_base + DSIPHY_SSC3);
+
+	data = (param->mpll_stepsize_i & 0xff);
+	writel_relaxed(data, phy_base + DSIPHY_SSC4);
+
+	data = ((param->mpll_stepsize_i & 0xff00) >> 8);
+	writel_relaxed(data, phy_base + DSIPHY_SSC5);
+
+	data = ((param->mpll_stepsize_i & 0x1f0000) >> 16);
+	writel_relaxed(data, phy_base + DSIPHY_SSC6);
+
+	data = (param->mpll_frac_quot_i & 0xff);
+	writel_relaxed(data, phy_base + DSIPHY_SSC10);
+
+	data = ((param->mpll_frac_quot_i & 0xff00) >> 8);
+	writel_relaxed(data, phy_base + DSIPHY_SSC11);
+
+	data = (param->mpll_frac_rem & 0xff);
+	writel_relaxed(data, phy_base + DSIPHY_SSC12);
+
+	data = ((param->mpll_frac_rem & 0xff00) >> 8);
+	writel_relaxed(data, phy_base + DSIPHY_SSC13);
+
+	data = (param->mpll_frac_den & 0xff);
+	writel_relaxed(data, phy_base + DSIPHY_SSC14);
+
+	data = ((param->mpll_frac_den & 0xff00) >> 8);
+	writel_relaxed(data, phy_base + DSIPHY_SSC15);
+}
+
+static void pll_db_commit_12nm(struct dsi_pll_param *param,
+	uint32_t phy_base, bool ssc_en)
 {
 	uint32_t data = 0;
 
@@ -402,6 +557,10 @@ static void pll_db_commit_12nm(struct dsi_pll_param *param,
 	writel_relaxed(0x03, phy_base + DSIPHY_PLL_UNLOCK_FILTER);
 	writel_relaxed(0x0c, phy_base + DSIPHY_PLL_PRO_DLY_RELOCK);
 	writel_relaxed(0x02, phy_base + DSIPHY_PLL_LOCK_DET_MODE_SEL);
+
+	if (ssc_en)
+		pll_db_commit_12nm_ssc(param, phy_base);
+
 	dmb(); /* make sure register committed */
 }
 
@@ -472,7 +631,9 @@ void mdss_dsi_auto_pll_12nm_config(struct msm_panel_info *pinfo)
 		mdss_dsi_phy_12nm_init(pinfo, sphy_base);
 
 	mdss_dsi_pll_12nm_calc_reg(&param);
-	pll_db_commit_12nm(&param, phy_base);
+	if (pd->ssc_en)
+		mdss_dsi_pll_12nm_calc_ssc(pd, &param);
+	pll_db_commit_12nm(&param, phy_base, pd->ssc_en);
 }
 
 static uint32_t is_pll_locked_12nm(uint32_t phy_base)
@@ -507,6 +668,7 @@ static void mdss_dsi_12nm_phy_hstx_drv_enable(uint32_t phy_base)
 
 bool mdss_dsi_auto_pll_12nm_enable(struct msm_panel_info *pinfo)
 {
+	struct mdss_dsi_pll_config *pd = pinfo->mipi.dsi_pll_config;
 	uint32_t phy_base = pinfo->mipi.phy_base;
 	uint32_t sphy_base = pinfo->mipi.sphy_base;
 
@@ -525,7 +687,10 @@ bool mdss_dsi_auto_pll_12nm_enable(struct msm_panel_info *pinfo)
 	dprintf(SPEW, "DSI PLL Locked!\n");
 
 	/* Enable DSI PLL output to DSI controller */
-	writel_relaxed(0x40, phy_base + DSIPHY_SSC0);
+	if (pd->ssc_en)
+		writel_relaxed(0x67, phy_base + DSIPHY_SSC0);
+	else
+		writel_relaxed(0x40, phy_base + DSIPHY_SSC0);
 
 	mdss_dsi_12nm_phy_hstx_drv_enable(phy_base);
 	if (pinfo->mipi.dual_dsi)
