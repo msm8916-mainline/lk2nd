@@ -9,7 +9,11 @@ MODULES += app/aboot
 ifeq ($(TARGET_BUILD_VARIANT),user)
 DEBUG := 0
 else
+ifeq ($(DISABLE_LOGGING_BL),1)
+DEBUG := 0
+else
 DEBUG := 1
+endif
 endif
 
 EMMC_BOOT := 1

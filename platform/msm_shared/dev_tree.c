@@ -1079,11 +1079,11 @@ dtbo_error dev_tree_appended_with_dtbo(void *kernel, uint32_t kernel_size,
 		}
 		memscpy(tags, fdt_totalsize(final_dtb_hdr), final_dtb_hdr,
 						fdt_totalsize(final_dtb_hdr));
-		dprintf(CRITICAL, "DTB overlay is successful\n");
+		dprintf(INFO, "DTB overlay is successful\n");
 	}
 	else
 	{
-		dprintf(CRITICAL, "ERROR: DTBO read is not valid\n DTB Overlay failed.\n");
+		dprintf(INFO, "ERROR: DTBO read is not valid\n DTB Overlay failed.\n");
 		ret = DTBO_NOT_SUPPORTED;
 	}
 out:

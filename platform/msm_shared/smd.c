@@ -455,7 +455,7 @@ enum handler_return smd_irq_handler(void* data)
 	{
 		smd_set_state(ch, SMD_SS_CLOSED, 1);
 		smd_notify_rpm();
-		dprintf(CRITICAL,"Channel alloc freed\n");
+		dprintf(SPEW,"Channel alloc freed\n");
 	}
 
 	return INT_NO_RESCHEDULE;
