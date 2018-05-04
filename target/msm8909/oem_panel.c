@@ -511,6 +511,7 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 				(platform_type == APQ8009W))
 				panel_id = AUO_400P_CMD_PANEL;
 			break;
+		case HW_PLATFORM_SUBTYPE_MTP_WEAR:
 		case HW_PLATFORM_SUBTYPE_SWOC_WEAR:
 			if ((platform_type == MSM8909W) ||
 				(platform_type == APQ8009W))
