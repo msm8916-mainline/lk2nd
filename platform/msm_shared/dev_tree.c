@@ -1114,8 +1114,13 @@ void *dev_tree_appended(void *kernel, uint32_t kernel_size, uint32_t dtb_offset,
 	struct dt_entry_node *dt_node_tmp2 = NULL;
 	dtbo_error ret = DTBO_NOT_SUPPORTED;
 
+	if (dtb_offset)
+		app_dtb_offset = dtb_offset;
+	else
+		memcpy((void*) &app_dtb_offset, (void*) (kernel + DTB_OFFSET), sizeof(uint32_t));
+
 	/* Check for dtbo support */
-	ret = dev_tree_appended_with_dtbo(kernel, kernel_size, dtb_offset, tags);
+	ret = dev_tree_appended_with_dtbo(kernel, kernel_size, app_dtb_offset, tags);
 	if (ret == DTBO_SUCCESS)
 		return tags;
 	else if (ret == DTBO_ERROR)
@@ -1130,11 +1135,6 @@ void *dev_tree_appended(void *kernel, uint32_t kernel_size, uint32_t dtb_offset,
 		return NULL;
 	}
 	list_initialize(&dt_entry_queue->node);
-
-	if (dtb_offset)
-		app_dtb_offset = dtb_offset;
-	else
-		memcpy((void*) &app_dtb_offset, (void*) (kernel + DTB_OFFSET), sizeof(uint32_t));
 
 	if (((uintptr_t)kernel + (uintptr_t)app_dtb_offset) < (uintptr_t)kernel) {
 		return NULL;
