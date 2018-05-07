@@ -65,6 +65,8 @@
 #include "include/panel_lead_fl10802_fwvga_video.h"
 #include "include/panel_hx8399c_fhd_pluse_video.h"
 #include "include/panel_hx8399c_hd_plus_video.h"
+#include "include/panel_nt35695b_truly_fhd_video.h"
+#include "include/panel_nt35695b_truly_fhd_cmd.h"
 
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
@@ -90,6 +92,8 @@ enum {
 	LEAD_FL10802_FWVGA_VIDEO_PANEL,
 	HX8399C_FHD_PLUSE_VIDEO_PANEL,
 	HX8399C_HD_PLUS_VIDEO_PANEL,
+	NT35695B_TRULY_FHD_VIDEO_PANEL,
+	NT35695B_TRULY_FHD_CMD_PANEL,
 	UNKNOWN_PANEL
 };
 
@@ -122,6 +126,8 @@ static struct panel_list supp_panels[] = {
 	{"lead_fl10802_fwvga_video", LEAD_FL10802_FWVGA_VIDEO_PANEL},
 	{"hx8399c_fhd_plus_video", HX8399C_FHD_PLUSE_VIDEO_PANEL},
 	{"hx8399c_hd_plus_video", HX8399C_HD_PLUS_VIDEO_PANEL},
+	{"nt35695b_truly_fhd_video", NT35695B_TRULY_FHD_VIDEO_PANEL},
+	{"nt35695b_truly_fhd_cmd", NT35695B_TRULY_FHD_CMD_PANEL},
 };
 
 static uint32_t panel_id;
@@ -783,6 +789,76 @@ static int init_panel_data(struct panel_struct *panelstruct,
 			memcpy(phy_db->timing, hx8399c_hd_plus_video_timings,
 				TIMING_SIZE);
 		pinfo->mipi.signature    = HX8399C_HD_PLUS_VIDEO_SIGNATURE;
+		pinfo->mipi.tx_eot_append = true;
+		break;
+	case NT35695B_TRULY_FHD_VIDEO_PANEL:
+		panelstruct->paneldata    = &nt35695b_truly_fhd_video_panel_data;
+		panelstruct->panelres     = &nt35695b_truly_fhd_video_panel_res;
+		panelstruct->color        = &nt35695b_truly_fhd_video_color;
+		panelstruct->videopanel   =
+				&nt35695b_truly_fhd_video_video_panel;
+		panelstruct->commandpanel =
+				&nt35695b_truly_fhd_video_command_panel;
+		panelstruct->state        = &nt35695b_truly_fhd_video_state;
+		panelstruct->laneconfig   =
+				&nt35695b_truly_fhd_video_lane_config;
+		panelstruct->paneltiminginfo
+				= &nt35695b_truly_fhd_video_timing_info;
+		panelstruct->panelresetseq
+				= &nt35695b_truly_fhd_video_panel_reset_seq;
+		panelstruct->backlightinfo = &nt35695b_truly_fhd_video_backlight;
+		pinfo->labibb = &nt35695b_truly_fhd_video_labibb;
+		pinfo->mipi.panel_on_cmds
+				= nt35695b_truly_fhd_video_on_command;
+		pinfo->mipi.num_of_panel_on_cmds
+				= NT35695B_TRULY_FHD_VIDEO_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+				= nt35695b_truly_fhd_video_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+				= NT35695B_TRULY_FHD_VIDEO_OFF_COMMAND;
+		if (phy_db->pll_type == DSI_PLL_TYPE_12NM)
+			memcpy(phy_db->timing,
+				nt35695b_truly_fhd_video_12nm_timings,
+				TIMING_SIZE_12NM);
+		else
+			memcpy(phy_db->timing, nt35695b_truly_fhd_video_timings,
+				TIMING_SIZE);
+		pinfo->mipi.signature    = NT35695B_TRULY_FHD_VIDEO_SIGNATURE;
+		pinfo->mipi.tx_eot_append = true;
+		break;
+	case NT35695B_TRULY_FHD_CMD_PANEL:
+		panelstruct->paneldata    = &nt35695b_truly_fhd_cmd_panel_data;
+		panelstruct->panelres     = &nt35695b_truly_fhd_cmd_panel_res;
+		panelstruct->color        = &nt35695b_truly_fhd_cmd_color;
+		panelstruct->videopanel   =
+				&nt35695b_truly_fhd_cmd_video_panel;
+		panelstruct->commandpanel =
+				&nt35695b_truly_fhd_cmd_command_panel;
+		panelstruct->state        = &nt35695b_truly_fhd_cmd_state;
+		panelstruct->laneconfig   =
+				&nt35695b_truly_fhd_cmd_lane_config;
+		panelstruct->paneltiminginfo
+				= &nt35695b_truly_fhd_cmd_timing_info;
+		panelstruct->panelresetseq
+				= &nt35695b_truly_fhd_cmd_panel_reset_seq;
+		panelstruct->backlightinfo = &nt35695b_truly_fhd_cmd_backlight;
+		pinfo->labibb = &nt35695b_truly_fhd_cmd_labibb;
+		pinfo->mipi.panel_on_cmds
+				= nt35695b_truly_fhd_cmd_on_command;
+		pinfo->mipi.num_of_panel_on_cmds
+				= NT35695B_TRULY_FHD_CMD_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+				= nt35695b_truly_fhd_cmd_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+				= NT35695B_TRULY_FHD_CMD_OFF_COMMAND;
+		if (phy_db->pll_type == DSI_PLL_TYPE_12NM)
+			memcpy(phy_db->timing,
+				nt35695b_truly_fhd_cmd_12nm_timings,
+				TIMING_SIZE_12NM);
+		else
+			memcpy(phy_db->timing, nt35695b_truly_fhd_cmd_timings,
+				TIMING_SIZE);
+		pinfo->mipi.signature    = NT35695B_TRULY_FHD_CMD_SIGNATURE;
 		pinfo->mipi.tx_eot_append = true;
 		break;
 	case UNKNOWN_PANEL:

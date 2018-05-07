@@ -113,6 +113,8 @@ struct panel_lookup_list lookup_skip_panels[] = {
 	{"mirrorlake1_hdplus_video", "qcom,mdss_dsi_icn9706_720_1440p_video", false},
 	{"hx8399c_fhd_plus_video", "qcom,mdss_dsi_hx8399c_truly_video", false},
 	{"hx8399c_hd_plus_video", "qcom,mdss_dsi_hx8399c_hd_video", false},
+	{"nt35695b_truly_fhd_video", "qcom,mdss_dsi_nt35695b_truly_fhd_video", false},
+	{"nt35695b_truly_fhd_cmd", "qcom,mdss_dsi_nt35695b_truly_fhd_cmd", false},
 };
 
 struct sim_lookup_list lookup_sim[] = {
