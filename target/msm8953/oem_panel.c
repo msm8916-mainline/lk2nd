@@ -1,4 +1,4 @@
-/* Copyright (c) 2016,2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2016,2018-2019, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -371,13 +371,13 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	switch (hw_id) {
 	case HW_PLATFORM_MTP:
 		panel_id = TRULY_1080P_VIDEO_PANEL;
-		if (platform_subtype == 0x03)
+		if (platform_subtype == 0x03 || platform_subtype == 0x04)
 			panel_id = HX8399C_FHD_PLUSE_VIDEO_PANEL;
 		break;
 	case HW_PLATFORM_SURF:
 	case HW_PLATFORM_RCM:
 		panel_id = TRULY_1080P_VIDEO_PANEL;
-		if (platform_subtype == 0x02)
+		if (platform_subtype == 0x02 || platform_subtype == 0x03)
 			 panel_id = HX8399C_FHD_PLUSE_VIDEO_PANEL;
 		break;
 	case HW_PLATFORM_QRD:
