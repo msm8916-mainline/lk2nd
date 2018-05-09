@@ -158,6 +158,12 @@ else
   DEFINES += ENABLE_KASLRSEED_SUPPORT=0
 endif
 
+ifeq ($(TARGET_USE_SYSTEM_AS_ROOT_IMAGE),1)
+  DEFINES += TARGET_USE_SYSTEM_AS_ROOT_IMAGE=1
+else
+  DEFINES += TARGET_USE_SYSTEM_AS_ROOT_IMAGE=0
+endif
+
 # these need to be filled out by the project/target/platform rules.mk files
 TARGET :=
 PLATFORM :=
