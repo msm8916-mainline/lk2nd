@@ -188,6 +188,11 @@ static const char *warmboot_cmdline = " qpnp-power-on.warm_boot=1";
 static const char *baseband_apq_nowgr   = " androidboot.baseband=baseband_apq_nowgr";
 static const char *androidboot_slot_suffix = " androidboot.slot_suffix=";
 static const char *skip_ramfs = " skip_initramfs";
+
+#if HIBERNATION_SUPPORT
+static const char *resume = " resume=/dev/mmcblk0p";
+#endif
+
 #ifdef INIT_BIN_LE
 static const char *sys_path_cmdline = " rootwait ro init="INIT_BIN_LE;
 #else
@@ -395,6 +400,12 @@ unsigned char *update_cmdline(const char * cmdline)
         int syspath_buflen = strlen(sys_path) + sizeof(int) + 2; /*allocate buflen for largest possible string*/
 #endif
 	char syspath_buf[syspath_buflen];
+#if HIBERNATION_SUPPORT
+	int resume_buflen = strlen(resume) + sizeof(int) + 2;
+	char resume_buf[resume_buflen];
+	int swap_ptn_index = INVALID_PTN;
+#endif
+
 #if VERIFIED_BOOT
 	uint32_t boot_state = RED;
 #endif
@@ -596,6 +607,24 @@ unsigned char *update_cmdline(const char * cmdline)
 		if (!boot_into_recovery)
 			cmdline_len += strlen(skip_ramfs);
 	}
+
+#if HIBERNATION_SUPPORT
+	if (platform_boot_dev_isemmc())
+	{
+		swap_ptn_index = partition_get_index("swap");
+		if (swap_ptn_index != INVALID_PTN)
+		{
+			snprintf(resume_buf, resume_buflen,
+				" %s%d", resume,
+				(swap_ptn_index + 1));
+			cmdline_len += strlen(resume_buf);
+		}
+		else
+		{
+			dprintf(INFO, "WARNING: swap partition not found\n");
+		}
+	}
+#endif
 
 #if TARGET_CMDLINE_SUPPORT
 	char *target_cmdline_buf = malloc(TARGET_MAX_CMDLNBUF);
@@ -831,6 +860,15 @@ unsigned char *update_cmdline(const char * cmdline)
 				while ((*dst++ = *src++));
 #endif
 		}
+
+#if HIBERNATION_SUPPORT
+		if (swap_ptn_index != INVALID_PTN)
+		{
+			src = resume_buf;
+			--dst;
+			while ((*dst++ = *src++));
+		}
+#endif
 
 #if TARGET_CMDLINE_SUPPORT
 		if (target_cmdline_buf && target_cmd_line_len)
