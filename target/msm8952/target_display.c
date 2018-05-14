@@ -367,6 +367,8 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 			return ret;
 		}
 
+		gcc_dsi_lp_clock_enable(flags);
+
 		ret = mdss_dsi_pll_config(pinfo->mipi.pll_base,
 			pinfo->mipi.ctl_base, pll_data);
 		if (!ret)
@@ -380,7 +382,7 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 				dprintf(CRITICAL, "Not able to enable second pll\n");
 		}
 
-		gcc_dsi_clocks_enable(flags, pinfo->mipi.use_dsi1_pll,
+		gcc_dsi_hs_clocks_enable(flags, pinfo->mipi.use_dsi1_pll,
 			pll_data->pclk_m, pll_data->pclk_n, pll_data->pclk_d);
 	} else if(!target_cont_splash_screen()) {
 		gcc_dsi_clocks_disable(flags);

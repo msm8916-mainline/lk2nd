@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015, 2018, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -95,7 +95,8 @@ void mdss_bus_clocks_enable(void);
 void mdss_bus_clocks_disable(void);
 void mdp_clock_enable(void);
 void mdp_clock_disable(void);
-void gcc_dsi_clocks_enable(uint32_t flags,  bool use_dsi1_pll, uint8_t pclk0_m,
+void gcc_dsi_hs_clocks_enable(uint32_t flags,  bool use_dsi1_pll, uint8_t pclk0_m,
 		uint8_t pclk0_n, uint8_t pclk0_d);
+void gcc_dsi_lp_clock_enable(uint32_t flags);
 void gcc_dsi_clocks_disable(uint32_t flags);
 #endif

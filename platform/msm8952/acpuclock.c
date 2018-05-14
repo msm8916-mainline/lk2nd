@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015, 2018, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -321,11 +321,35 @@ void gcc_dsi_clocks_disable(uint32_t flags)
 	}
 }
 
+void gcc_dsi_lp_clock_enable(uint32_t flags)
+{
+	int ret = 0;
+
+	if (flags & MMSS_DSI_CLKS_FLAG_DSI0) {
+		/* Configure ESC clock */
+		ret = clk_get_set_enable("mdss_esc0_clk", 0, 1);
+		if (ret) {
+			dprintf(CRITICAL, "failed to set esc0_clk ret = %d\n",
+				ret);
+			ASSERT(0);
+		}
+	}
+
+	if (flags & MMSS_DSI_CLKS_FLAG_DSI1) {
+		/* Configure ESC clock */
+		ret = clk_get_set_enable("mdss_esc1_clk", 0, 1);
+		if (ret) {
+			dprintf(CRITICAL, "failed to set esc1_clk ret = %d\n",
+				ret);
+			ASSERT(0);
+		}
+	}
+}
+
 /* Configure all the branch clocks needed by the DSI controller */
-void gcc_dsi_clocks_enable(uint32_t flags, bool use_dsi1_pll, uint8_t pclk0_m,
+void gcc_dsi_hs_clocks_enable(uint32_t flags, bool use_dsi1_pll, uint8_t pclk0_m,
 		uint8_t pclk0_n, uint8_t pclk0_d)
 {
-	int ret;
 	int dsi0_cfg_rcgr, dsi1_cfg_rcgr = 0;
 
 	dsi0_cfg_rcgr = BIT(8); /* DSI0 can only be sourced from PLL0 */
@@ -364,13 +388,6 @@ void gcc_dsi_clocks_enable(uint32_t flags, bool use_dsi1_pll, uint8_t pclk0_m,
 		/* Enable the branch clock */
 		writel(0x1, DSI_PIXEL0_CBCR);
 		branch_clk_halt_check(DSI_PIXEL0_CBCR);
-
-		/* Configure ESC clock */
-		ret = clk_get_set_enable("mdss_esc0_clk", 0, 1);
-		if (ret) {
-			dprintf(CRITICAL, "failed to set esc0_clk ret = %d\n", ret);
-			ASSERT(0);
-		}
 	}
 
 	if (flags & MMSS_DSI_CLKS_FLAG_DSI1) {
@@ -398,13 +415,6 @@ void gcc_dsi_clocks_enable(uint32_t flags, bool use_dsi1_pll, uint8_t pclk0_m,
 		/* Enable the branch clock */
 		writel(0x1, DSI_PIXEL1_CBCR);
 		branch_clk_halt_check(DSI_PIXEL1_CBCR);
-
-		/* Configure ESC clock */
-		ret = clk_get_set_enable("mdss_esc1_clk", 0, 1);
-		if (ret) {
-			dprintf(CRITICAL, "failed to set esc1_clk ret = %d\n", ret);
-			ASSERT(0);
-		}
 	}
 }
 
