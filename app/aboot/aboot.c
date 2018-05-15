@@ -3130,7 +3130,7 @@ check_partition_fs_signature(const char *arg)
 	fs_signature_type ret = NO_FS;
 	int index;
 	unsigned long long ptn;
-	char *sb_buffer = malloc(mmc_blocksize);
+	char *sb_buffer = memalign(CACHE_LINE, mmc_blocksize);
 	if (!sb_buffer)
 	{
 		dprintf(CRITICAL, "ERROR: Failed to allocate buffer for superblock\n");

@@ -1,4 +1,4 @@
-/* Copyright (c) 2015-2017, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2018, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -656,14 +656,14 @@ static void validate_DIP_and_firmware(mdtp_ext_partition_verification_t *ext_par
 	uint32_t block_size = mmc_get_device_blocksize();
 	mdtp_cfg_t mdtp_cfg;
 
-	enc_dip = malloc(ROUNDUP(sizeof(DIP_t), block_size));
+	enc_dip = memalign(CACHE_LINE, ROUNDUP(sizeof(DIP_t), block_size));
 	if (enc_dip == NULL)
 	{
 		dprintf(CRITICAL, "mdtp: validate_DIP_and_firmware: ERROR, cannot allocate DIP\n");
 		display_error_msg(); /* This will never return */
 	}
 
-	dec_dip = malloc(ROUNDUP(sizeof(DIP_t), block_size));
+	dec_dip = memalign(CACHE_LINE, ROUNDUP(sizeof(DIP_t), block_size));
 	if (dec_dip == NULL)
 	{
 		dprintf(CRITICAL, "mdtp: validate_DIP_and_firmware: ERROR, cannot allocate DIP\n");
