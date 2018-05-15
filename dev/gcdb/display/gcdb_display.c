@@ -569,6 +569,7 @@ int gcdb_display_init(const char *panel_name, uint32_t rev, void *base)
 	int pan_type;
 
 	dsi_video_mode_phy_db.pll_type = DSI_PLL_TYPE_28NM;
+	panel.panel_info.disable_wled_labibb = false;
 	pan_type = oem_panel_select(panel_name, &panelstruct, &(panel.panel_info),
 				 &dsi_video_mode_phy_db);
 
