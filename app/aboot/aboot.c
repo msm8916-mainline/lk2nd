@@ -3015,6 +3015,16 @@ void cmd_erase_mmc(const char *arg, void *data, unsigned sz)
 	ptn = partition_get_offset(index);
 	size = partition_get_size(index);
 
+	if (!strncmp(arg, "avb_custom_key", strlen("avb_custom_key"))) {
+                dprintf(INFO, "erasing avb_custom_key\n");
+                if (erase_userkey()) {
+                        fastboot_fail("Erasing avb_custom_key failed");
+                } else {
+                        fastboot_okay("");
+                }
+                return;
+        }
+
 	if(ptn == 0) {
 		fastboot_fail("Partition table doesn't exist\n");
 		return;
@@ -3023,15 +3033,6 @@ void cmd_erase_mmc(const char *arg, void *data, unsigned sz)
 	lun = partition_get_lun(index);
 	mmc_set_lun(lun);
 
-	if (!strncmp(arg, "avb_custom_key", strlen("avb_custom_key"))) {
-		dprintf(INFO, "erasing avb_custom_key\n");
-		if (erase_userkey()) {
-			fastboot_fail("Erasing avb_custom_key failed");
-		} else {
-			fastboot_okay("");
-		}
-		return;
-	}
 	if (platform_boot_dev_isemmc())
 	{
 		if (mmc_erase_card(ptn, size)) {
