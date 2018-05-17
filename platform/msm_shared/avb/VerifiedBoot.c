@@ -154,7 +154,7 @@ uint32_t GetSystemPath(char **SysPath)
 		if (current_active_slot == INVALID)
 			return 0;
 		current_slot_suffix = SUFFIX_SLOT(current_active_slot);
-		strncat(PartitionName, current_slot_suffix, MAX_GPT_NAME_SIZE - 1);
+		strlcat(PartitionName, current_slot_suffix, MAX_GPT_NAME_SIZE - 1);
 	}
 
 	Index = partition_get_index(PartitionName);
