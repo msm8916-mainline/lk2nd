@@ -55,6 +55,7 @@ const char *hw_platform[] = {
 	[HW_PLATFORM_DTV] = "DTV",
 	[HW_PLATFORM_STP] = "STP",
 	[HW_PLATFORM_SBC] = "SBC",
+	[HW_PLATFORM_ATP] = "ATP",
 };
 
 /* DYNAMIC SMEM REGION feature enables LK to dynamically
