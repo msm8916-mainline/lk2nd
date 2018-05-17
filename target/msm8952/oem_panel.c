@@ -849,12 +849,19 @@ panel_init:
 	 * Update all data structures after 'panel_init' label. Only panel
 	 * selection is supposed to happen before that.
 	 */
+	if (platform_is_sdm439() || platform_is_sdm429()) {
+		phy_db->pll_type = DSI_PLL_TYPE_12NM;
+		pinfo->lane_config = mdss_dsi_lane_config;
+		goto end;
+	}
+
 	if (platform_is_msm8956())
 		memcpy(panel_regulator_settings,
 			dcdc_regulator_settings_hpm, REGULATOR_SIZE);
 	else
 		memcpy(panel_regulator_settings,
 			dcdc_regulator_settings_lpm, REGULATOR_SIZE);
+end:
 	pinfo->pipe_type = MDSS_MDP_PIPE_TYPE_RGB;
 	return init_panel_data(panelstruct, pinfo, phy_db);
 }
