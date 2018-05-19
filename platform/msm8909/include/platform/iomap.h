@@ -211,14 +211,12 @@
 #define RPMB_SND_RCV_BUF_SZ         0x1
 
 /* QSEECOM: Secure app region notification */
-#if QSEECOM_SECAPP_REGION_2MB
-  #define APP_REGION_ADDR 0x87a00000
-  #define APP_REGION_SIZE 0x200000
-#else
-  #define APP_REGION_ADDR 0x87b00000
-  #define APP_REGION_SIZE 0x100000
-#endif
-
+#define APP_REGION_ADDR platform_get_tz_app_add()
+#define APP_REGION_SIZE platform_get_tz_app_size()
+#define APP_REGION_ADDR_TZ_LEGACY_APP 0x87A00000
+#define APP_REGION_ADDR_TZ_V4_APP     0x87900000
+#define APP_REGION_SIZE_TZ_LEGACY_APP 0x200000
+#define APP_REGION_SIZE_TZ_V4_APP     0x300000
 
 /* MDSS */
 #define MIPI_DSI_BASE               (0x1AC8000)

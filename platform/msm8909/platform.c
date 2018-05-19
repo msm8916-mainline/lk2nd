@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2015, 2017, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, 2017-2018 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -211,6 +211,22 @@ int platform_is_msm8909()
 	};
 
 	return ret;
+}
+
+uint32_t platform_get_tz_app_add()
+{
+	if(!is_scm_armv8_support())
+		return APP_REGION_ADDR_TZ_LEGACY_APP;
+	else
+		return APP_REGION_ADDR_TZ_V4_APP;
+}
+
+uint32_t platform_get_tz_app_size()
+{
+	if(!is_scm_armv8_support())
+		return APP_REGION_SIZE_TZ_LEGACY_APP;
+	else
+		return APP_REGION_SIZE_TZ_V4_APP;
 }
 
 int boot_device_mask(int val)
