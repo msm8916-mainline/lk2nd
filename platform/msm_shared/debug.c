@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
- * Copyright (c) 2009-2016, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2016, 2018, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -38,6 +38,7 @@
 #include <dev/uart.h>
 #include <platform/timer.h>
 #include <platform.h>
+#include <arch/ops.h>
 
 #if PON_VIB_SUPPORT
 #include <vibrator.h>
@@ -152,6 +153,7 @@ void platform_halt(void)
 	vib_turn_off();
 #endif
 	dprintf(CRITICAL, "HALT: reboot into dload mode...\n");
+	arch_clean_cache_range(MEMBASE, MEMSIZE);
 	reboot_device(NORMAL_DLOAD);
 
 	dprintf(CRITICAL, "HALT: spinning forever...\n");
