@@ -268,6 +268,16 @@ __WEAK uint32_t target_ddr_cfg_val()
 	return DDR_CONFIG_VAL;
 }
 
+/* Target uses system as root */
+bool target_uses_system_as_root(void)
+{
+#if TARGET_USE_SYSTEM_AS_ROOT_IMAGE
+	if (target_get_vb_version() >= VB_M)
+		return true;
+#endif
+		return false;
+}
+
 /* Default CFG register value */
 uint32_t target_ddr_cfg_reg()
 {
