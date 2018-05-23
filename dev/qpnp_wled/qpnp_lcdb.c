@@ -154,7 +154,7 @@ static int qpnp_lcdb_config(struct qpnp_lcdb *lcdb)
 	reg |= (lcdb->lcdb_pwrup_dly_ms << LCDB_PWRUP_DLY_SHIFT);
 
 	/* Set power down delay */
-	reg &= QPNP_LCDB_PWRDN_DLY_MASK;
+	reg &= ~(QPNP_LCDB_PWRDN_DLY_MASK);
 	reg |= (lcdb->lcdb_pwrdn_dly_ms);
 
 	pmic_spmi_reg_write(lcdb->lcdb_base + QPNP_LCDB_PWRUP_PWRDN_CTL_REG,
