@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, 2018, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -118,7 +118,6 @@ uint32_t rpm_smd_recv_data(uint32_t* len)
 
 	resp = (rpm_ack_msg *)response;
 
-	arch_invalidate_cache_range((addr_t)resp, sizeof(rpm_gen_hdr));
 
 	if(resp->hdr.type == RPM_CMD_MAGIC && resp->hdr.len == ACK_MSG_LENGTH)
 	{
