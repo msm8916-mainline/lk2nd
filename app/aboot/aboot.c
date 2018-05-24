@@ -320,6 +320,7 @@ char charger_screen_enabled[MAX_RSP_SIZE];
 char sn_buf[13];
 char display_panel_buf[MAX_PANEL_BUF_SIZE];
 char panel_display_mode[MAX_RSP_SIZE];
+char soc_version_str[MAX_RSP_SIZE];
 #if PRODUCT_IOT
 char block_size_string[MAX_RSP_SIZE];
 
@@ -4668,6 +4669,10 @@ void aboot_fastboot_register_commands(void)
 	fastboot_publish("product",  TARGET(BOARD));
 	fastboot_publish("kernel",   "lk");
 	fastboot_publish("serialno", sn_buf);
+
+	/*publish hw-revision major(upper 16 bits) and minor(lower 16 bits)*/
+	snprintf(soc_version_str, MAX_RSP_SIZE, "%x", board_soc_version());
+	fastboot_publish("hw-revision", soc_version_str);
 
 	/*
 	 * partition info is supported only for emmc partitions
