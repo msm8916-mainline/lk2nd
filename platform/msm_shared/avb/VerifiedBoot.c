@@ -148,7 +148,7 @@ uint32_t GetSystemPath(char **SysPath)
 		return 0;
 	}
 
-	strlcpy(PartitionName, "system", strlen("system") + 1);
+	strlcpy(PartitionName, "system", MAX_GPT_NAME_SIZE);
 	current_active_slot = partition_find_active_slot();
 	if (partition_multislot_is_supported()) {
 		if (current_active_slot == INVALID)
@@ -275,12 +275,11 @@ static EFI_STATUS load_image_and_authVB1(bootinfo *Info)
 	DevInfo_vb.is_unlock_critical = !is_device_locked_critical();
 
 	strlcpy(StrPname, "/", strlen("/"));
-	strlcpy(Pname, Info->pname, strlen(Info->pname));
+	strlcpy(Pname, Info->pname, MAX_GPT_NAME_SIZE);
 	if (Info->multi_slot_boot) {
-		strlcat(StrPname, Pname,
-	              strlen(Pname) - (MAX_SLOT_SUFFIX_SZ - 1));
+		strlcat(StrPname, Pname, MAX_GPT_NAME_SIZE);
 	} else {
-		strlcat(StrPname, Pname, strlen(Pname));
+		strlcat(StrPname, Pname, MAX_GPT_NAME_SIZE);
 	}
 
 	Status = boot_verify_image((UINT8 *)Info->images[0].image_buffer,
@@ -384,7 +383,7 @@ static EFI_STATUS load_image_and_authVB2(bootinfo *Info)
 	UserData->IsMultiSlot = Info->multi_slot_boot;
 
 	if(Info->multi_slot_boot) {
-	strlcpy(Pname, Info->pname, strlen(Info->pname));
+		strlcpy(Pname, Info->pname, MAX_GPT_NAME_SIZE);
 	if ((MAX_SLOT_SUFFIX_SZ + 1) > strlen(Pname)) {
 		dprintf(CRITICAL, "ERROR: Can not determine slot suffix\n");
 		Status = EFI_INVALID_PARAMETER;
@@ -451,11 +450,9 @@ static EFI_STATUS load_image_and_authVB2(bootinfo *Info)
 		     loadedindex < SlotData->num_loaded_partitions; loadedindex++) {
 			dprintf(DEBUG, "Loaded Partition: %s\n",
 			       SlotData->loaded_partitions[loadedindex].partition_name);
-			if (!strncmp((const char *)
-			            RequestedPartition[ReqIndex],
-			            SlotData->loaded_partitions[loadedindex].partition_name,
-			            strlen(SlotData->loaded_partitions[loadedindex]
-			                                .partition_name))) {
+			if (!strncmp(((const char *)RequestedPartition[ReqIndex]),
+			            SlotData->loaded_partitions[loadedindex].partition_name,MAX_GPT_NAME_SIZE))
+			  {
 				if (Info->num_loaded_images >= ARRAY_SIZE(Info->images)) {
 					dprintf(CRITICAL, "NumLoadedPartition"
 					                    "(%d) too large "
@@ -572,7 +569,7 @@ static EFI_STATUS DisplayVerifiedBootScreen(bootinfo *Info)
 		return EFI_SUCCESS;
 	}
 
-	if (!strncmp(Info->pname, "boot", strlen("boot"))) {
+	if (!strncmp(Info->pname, "boot", MAX_GPT_NAME_SIZE)) {
 		Status = get_ffbm(ffbm_mode_string, FFBM_MODE_BUF_SIZE);
 		if (Status != EFI_SUCCESS) {
 			dprintf(DEBUG,
@@ -639,13 +636,13 @@ EFI_STATUS load_image_and_auth(bootinfo *Info)
 	if (!Info->multi_slot_boot) {
 		if (Info->bootinto_recovery) {
 			dprintf(INFO, "Booting Into Recovery Mode\n");
-			strlcpy(Info->pname, "recovery", strlen("recovery"));
+			strlcpy(Info->pname, "recovery", MAX_GPT_NAME_SIZE);
 		} else {
 			dprintf(INFO, "Booting Into Mission Mode\n");
-			strlcpy(Info->pname, "boot", strlen("boot"));
+			strlcpy(Info->pname, "boot", MAX_GPT_NAME_SIZE);
 		}
 	} else {
-		strlcpy(Info->pname, "boot", strlen("boot"));
+		strlcpy(Info->pname, "boot", MAX_GPT_NAME_SIZE);
 		current_active_slot = partition_find_active_slot();
 		if (current_active_slot != INVALID ) {
 			current_slot_suffix = SUFFIX_SLOT(current_active_slot);
@@ -653,7 +650,7 @@ EFI_STATUS load_image_and_auth(bootinfo *Info)
 				dprintf(CRITICAL, "No bootable slot\n");
 				return EFI_LOAD_ERROR;
 			}
-			strlcat(Info->pname, current_slot_suffix, strlen(current_slot_suffix));
+			strlcat(Info->pname, current_slot_suffix, MAX_GPT_NAME_SIZE);
 		}
 	}
 
