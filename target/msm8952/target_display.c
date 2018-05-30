@@ -570,6 +570,11 @@ static int wled_init(struct msm_panel_info *pinfo)
 		}
 	}
 
+	if (target_get_pmic() == PMIC_IS_PMI632) {
+		config.pwr_up_delay = 1;
+		config.pwr_down_delay =  0;
+	}
+
 	dprintf(SPEW, "%s: %d %d %d %d %d %d %d %d %d %d\n", __func__,
 		config.display_type,
 		config.lab_min_volt, config.lab_max_volt,
