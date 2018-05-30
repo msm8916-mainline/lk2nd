@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2017, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2018, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -83,6 +83,8 @@ unsigned int vfat_count = 0;
 struct partition_entry *partition_entries;
 static unsigned gpt_partitions_exist = 0;
 static unsigned partition_count;
+/* this is a pointer to ptn_entries_buffer */
+static unsigned char *new_buffer = NULL;
 
 unsigned partition_get_partition_count()
 {
@@ -273,9 +275,9 @@ static unsigned int mmc_boot_read_gpt(uint32_t block_size)
 	unsigned int n = 0;	/* Counter for UTF-16 -> 8 conversion */
 	unsigned char UTF16_name[MAX_GPT_NAME_SIZE];
 	/* LBA of first partition -- 1 Block after Protected MBR + 1 for PT */
-	unsigned long long partition_0;
 	uint64_t device_density;
 	uint8_t *data = NULL;
+	uint8_t *data_org_ptr = NULL;
 	uint32_t part_entry_cnt = block_size / ENTRY_SIZE;
 
 	/* Get the density of the mmc device */
@@ -289,6 +291,7 @@ static unsigned int mmc_boot_read_gpt(uint32_t block_size)
 		ret = -1;
 		goto end;
 	}
+	data_org_ptr = data;
 
 	/* Print out the GPT first */
 	ret = mmc_read(block_size, (unsigned int *)data, block_size);
@@ -330,19 +333,11 @@ static unsigned int mmc_boot_read_gpt(uint32_t block_size)
 		}
 		parse_secondary_gpt = 0;
 	}
-	partition_0 = GET_LLWORD_FROM_BYTE(&data[PARTITION_ENTRIES_OFFSET]);
 	/* Read GPT Entries */
 	for (i = 0; i < (ROUNDUP(max_partition_count, part_entry_cnt)) / part_entry_cnt; i++) {
 		ASSERT(partition_count < NUM_PARTITIONS);
-		ret = mmc_read((partition_0 * block_size) + (i * block_size),
-						(uint32_t *) data, block_size);
-
-		if (ret) {
-			dprintf(CRITICAL,
-				"GPT: mmc read card failed reading partition entries.\n");
-			goto end;
-		}
-
+		
+		data = (new_buffer + (i * block_size));
 		for (j = 0; j < part_entry_cnt; j++) {
 			memcpy(&(partition_entries[partition_count].type_guid),
 			       &data[(j * partition_entry_size)],
@@ -394,8 +389,10 @@ static unsigned int mmc_boot_read_gpt(uint32_t block_size)
 		}
 	}
 end:
-	if (data)
-		free(data);
+	if (data_org_ptr)
+		free(data_org_ptr);
+	if (new_buffer)
+		free(new_buffer);
 
 	return ret;
 }
@@ -1157,7 +1154,6 @@ partition_parse_gpt_header(unsigned char *buffer,
 	uint32_t ret = 0;
 	uint32_t partitions_for_block = 0;
 	uint32_t blocks_to_read = 0;
-	unsigned char *new_buffer = NULL;
 	unsigned long long last_usable_lba = 0;
 	unsigned long long partition_0 = 0;
 	unsigned long long current_lba = 0;
@@ -1272,6 +1268,7 @@ partition_parse_gpt_header(unsigned char *buffer,
 			dprintf(CRITICAL,"Partition entires crc mismatch crc_val= %u with crc_val_org= %u\n",crc_val,crc_val_org);
 			ret = 1;
 		}
+		return ret;
 	}
 fail:
 	free(new_buffer);
