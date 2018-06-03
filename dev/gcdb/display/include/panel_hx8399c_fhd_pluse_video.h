@@ -311,7 +311,7 @@ static struct panel_timing hx8399c_fhd_pluse_video_timing_info = {
 };
 
 static struct labibb_desc hx8399c_fhd_pluse_video_labibb = {
-	0, 1, 5700000, 5700000, 5700000, 5700000, 3, 3, 1, 0
+	0, 0, 5700000, 5700000, 5700000, 5700000, 3, 3, 1, 0
 };
 
 /*---------------------------------------------------------------------------*/
