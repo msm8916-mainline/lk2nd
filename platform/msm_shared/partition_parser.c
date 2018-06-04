@@ -1158,6 +1158,8 @@ partition_parse_gpt_header(unsigned char *buffer,
 	unsigned long long partition_0 = 0;
 	unsigned long long current_lba = 0;
 	uint32_t block_size = mmc_get_device_blocksize();
+	uint32_t blocks_for_entries =
+			(NUM_PARTITIONS * PARTITION_ENTRY_SIZE)/ block_size;
 	/* Get the density of the mmc device */
 	uint64_t device_density = mmc_get_device_capacity();
 
@@ -1257,11 +1259,24 @@ partition_parse_gpt_header(unsigned char *buffer,
 	if (!flashing_gpt) {
 		partition_0 = GET_LLWORD_FROM_BYTE(&buffer[PARTITION_ENTRIES_OFFSET]);
 		/*start LBA should always be 2 in primary GPT*/
-		if(partition_0 != 0x2 && !parse_secondary_gpt) {
-			dprintf(CRITICAL, "Starting LBA mismatch\n");
-			ret = 1;
-			goto fail;
-
+		if (!parse_secondary_gpt)
+		{
+			if (partition_0 != 0x2)
+			{
+				dprintf(CRITICAL, "PrimaryGPT starting LBA mismatch\n");
+				ret = 1;
+				goto fail;
+			}
+		}
+		else
+		{
+			if (partition_0 != ((device_density/block_size) -
+						(blocks_for_entries + GPT_HEADER_BLOCKS)))
+			{
+				dprintf(CRITICAL, "BackupGPT starting LBA mismatch\n");
+				ret = 1;
+				goto fail;
+			}
 		}
 		/*read the partition entries to new_buffer*/
 		ret = mmc_read((partition_0) * (block_size), (unsigned int *)new_buffer, (blocks_to_read * block_size));
