@@ -1205,10 +1205,19 @@ partition_parse_gpt_header(unsigned char *buffer,
 	/*current lba and GPT lba should be same*/
 	if (!parse_secondary_gpt) {
 		if (current_lba != GPT_LBA) {
-			dprintf(CRITICAL,"GPT first usable LBA mismatch\n");
+			dprintf(CRITICAL,"Primary GPT first usable LBA mismatch\n");
 			return 1;
 		}
 	}
+	else
+	{
+		if (current_lba != ((device_density/block_size) - 1))
+		{
+			dprintf(CRITICAL,"Secondary GPT first usable LBA mismatch\n");
+			return 1;
+		}
+	}
+
 	/*check for first lba should be with in the valid range*/
 	if (*first_usable_lba > (device_density/block_size)) {
 		dprintf(CRITICAL,"Invalid first_usable_lba\n");
