@@ -1277,7 +1277,7 @@ static void verify_signed_bootimg(uint32_t bootimg_addr, uint32_t bootimg_size)
 	{
 		write_device_info_mmc(&device);
 	#ifdef TZ_TAMPER_FUSE
-		set_tamper_fuse_cmd();
+		set_tamper_fuse_cmd(HLOS_IMG_TAMPER_FUSE);
 	#endif
 	#ifdef ASSERT_ON_TAMPER
 		dprintf(CRITICAL, "Device is tampered. Asserting..\n");
@@ -4889,7 +4889,7 @@ normal_boot:
 				if((device.is_unlocked) || (device.is_tampered))
 				{
 				#ifdef TZ_TAMPER_FUSE
-					set_tamper_fuse_cmd();
+					set_tamper_fuse_cmd(HLOS_IMG_TAMPER_FUSE);
 				#endif
 				#if USE_PCOM_SECBOOT
 					set_tamper_flag(device.is_tampered);

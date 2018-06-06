@@ -80,7 +80,7 @@ int send_milestone_call_to_tz()
 
 	km_set_milestone_req_t req = {0};
 	km_set_milestone_rsp_t rsp = {0};
-
+	uint32_t version=0;
 	req.cmd_id = KEYMASTER_MILESTONE_CALL;
 
 	/* Milestone end command */
@@ -91,7 +91,19 @@ int send_milestone_call_to_tz()
 		dprintf(CRITICAL, "Failed to send milestone end command: Error: %x\n", rsp.status);
 		return -1;
 	}
-
+	version = qseecom_get_version();
+	if(allow_set_fuse(version)) {
+		dprintf(CRITICAL, "HLOS_BL_MILESTONE_FUSE ");
+               ret = set_tamper_fuse_cmd(HLOS_BL_MILESTONE_FUSE);
+               if (ret) {
+                       dprintf(CRITICAL, "QCOM_VB_Send_Milestone: set_tamper_fuse_cmd (HLOS_BL_MILESTONE_FUSE) fails!\n");
+		}
+	} else {
+               dprintf(CRITICAL, "QCOM_VB_Send_Milestone: TZ didn't support this feature! Version: major = %d, minor = %d, patch = %d\n",
+			(version >> 22) & 0x3FF, (version >> 12) & 0x3FF, version & 0x3FF);
+               return ret;
+	}
+	dprintf(CRITICAL, "Success ");
 	return 0;
 }
 

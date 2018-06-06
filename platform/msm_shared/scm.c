@@ -723,7 +723,7 @@ int scm_protect_keystore(uint32_t * img_ptr, uint32_t  img_len)
 	return ret;
 }
 
-void set_tamper_fuse_cmd()
+uint32_t set_tamper_fuse_cmd(uint32_t fuse_id)
 {
 	uint32_t svc_id;
 	uint32_t cmd_id;
@@ -732,8 +732,8 @@ void set_tamper_fuse_cmd()
 	void *resp_buf = NULL;
 	size_t resp_len = 0;
 	scmcall_arg scm_arg = {0};
+	int ret;
 
-	uint32_t fuse_id = HLOS_IMG_TAMPER_FUSE;
 	cmd_buf = (void *)&fuse_id;
 	cmd_len = sizeof(fuse_id);
 
@@ -746,19 +746,18 @@ void set_tamper_fuse_cmd()
 		svc_id = SCM_SVC_FUSE;
 		cmd_id = SCM_BLOW_SW_FUSE_ID;
 
-		scm_call(svc_id, cmd_id, cmd_buf, cmd_len, resp_buf, resp_len);
+		ret=scm_call(svc_id, cmd_id, cmd_buf, cmd_len, resp_buf, resp_len);
 	}
 	else
 	{
 		scm_arg.x0 = MAKE_SIP_SCM_CMD(SCM_SVC_FUSE, SCM_BLOW_SW_FUSE_ID);
-		scm_arg.x1 = MAKE_SCM_ARGS(0x2,SMC_PARAM_TYPE_BUFFER_READWRITE,SMC_PARAM_TYPE_VALUE);
-		scm_arg.x2  = (uint32_t) cmd_buf;
+		scm_arg.x1 = MAKE_SCM_ARGS(0x1,SMC_PARAM_TYPE_VALUE);
+		scm_arg.x2  = fuse_id;
 		scm_arg.x3 = cmd_len;
-
-		scm_call2(&scm_arg, NULL);
-
+		ret=scm_call2(&scm_arg, NULL);
 	}
 
+	return ret;
 }
 
 uint8_t get_tamper_fuse_cmd()
@@ -1443,3 +1442,14 @@ bool scm_device_enter_dload()
 	return false;
 }
 #endif
+bool allow_set_fuse(uint32_t version)
+{
+  /*if((major > 4) || (major == 4 && minor > 0))*/
+  if((((version >> 22) & 0x3FF) > 4)
+        || (((version >> 22) & 0x3FF) == 4 && ((version >> 12) & 0x3FF) > 0))
+  {
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+}
