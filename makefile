@@ -205,7 +205,6 @@ ALLOBJS := \
 
 # add some automatic configuration defines
 DEFINES += \
-	BOARD=$(BOARD_NAME) \
 	PROJECT_$(PROJECT)=1 \
 	TARGET_$(TARGET)=1 \
 	PLATFORM_$(PLATFORM)=1 \
@@ -256,6 +255,7 @@ $(CONFIGHEADER): configheader
 	@rm -f $(CONFIGHEADER).tmp; \
 	echo \#ifndef __CONFIG_H > $(CONFIGHEADER).tmp; \
 	echo \#define __CONFIG_H >> $(CONFIGHEADER).tmp; \
+	echo \#define BOARD $(BOARD_NAME) >> $(CONFIGHEADER).tmp; \
 	for d in `echo $(DEFINES) | tr [:lower:] [:upper:]`; do \
 		echo "#define $$d" | sed "s/=/\ /g;s/-/_/g;s/\//_/g" >> $(CONFIGHEADER).tmp; \
 	done; \
