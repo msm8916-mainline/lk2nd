@@ -594,6 +594,7 @@ patch_gpt(uint8_t *gptImage, uint64_t density, uint32_t array_size,
 	int total_part = 0;
 	unsigned int last_part_offset;
 	unsigned int crc_value;
+	unsigned ptn_entries_blocks = (NUM_PARTITIONS * ENTRY_SIZE)/block_size;
 
 	/* Get size of MMC */
 	card_size_sec = (density) / block_size;
@@ -607,7 +608,8 @@ patch_gpt(uint8_t *gptImage, uint64_t density, uint32_t array_size,
 	PUT_LONG_LONG(primary_gpt_header + BACKUP_HEADER_OFFSET,
 		      ((long long)(card_size_sec - 1)));
 	PUT_LONG_LONG(primary_gpt_header + LAST_USABLE_LBA_OFFSET,
-		      ((long long)(card_size_sec - 34)));
+		      ((long long)(card_size_sec -
+					(ptn_entries_blocks + GPT_HEADER_BLOCKS + 1))));
 
 	/* Patching backup GPT */
 	offset = (2 * array_size);
@@ -615,9 +617,11 @@ patch_gpt(uint8_t *gptImage, uint64_t density, uint32_t array_size,
 	PUT_LONG_LONG(secondary_gpt_header + PRIMARY_HEADER_OFFSET,
 		      ((long long)(card_size_sec - 1)));
 	PUT_LONG_LONG(secondary_gpt_header + LAST_USABLE_LBA_OFFSET,
-		      ((long long)(card_size_sec - 34)));
+		      ((long long)(card_size_sec -
+					(ptn_entries_blocks + GPT_HEADER_BLOCKS + 1))));
 	PUT_LONG_LONG(secondary_gpt_header + PARTITION_ENTRIES_OFFSET,
-		      ((long long)(card_size_sec - 33)));
+		      ((long long)(card_size_sec -
+					(ptn_entries_blocks + GPT_HEADER_BLOCKS))));
 
 	/* Find last partition */
 	while (*(primary_gpt_header + block_size + total_part * ENTRY_SIZE) !=
@@ -629,9 +633,11 @@ patch_gpt(uint8_t *gptImage, uint64_t density, uint32_t array_size,
 	last_part_offset =
 	    (total_part - 1) * ENTRY_SIZE + PARTITION_ENTRY_LAST_LBA;
 	PUT_LONG_LONG(primary_gpt_header + block_size + last_part_offset,
-		      (long long)(card_size_sec - 34));
+		      (long long)(card_size_sec -
+					(ptn_entries_blocks + GPT_HEADER_BLOCKS + 1)));
 	PUT_LONG_LONG(primary_gpt_header + block_size + last_part_offset +
-		      array_size, (long long)(card_size_sec - 34));
+		      array_size, (long long)(card_size_sec -
+				(ptn_entries_blocks + GPT_HEADER_BLOCKS + 1)));
 
 	/* Updating CRC of the Partition entry array in both headers */
 	partition_entry_array_start = (unsigned int)primary_gpt_header + block_size;
