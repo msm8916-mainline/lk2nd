@@ -176,7 +176,13 @@ static int init_panel_data(struct panel_struct *panelstruct,
 	switch (panel_id) {
 	case TRULY_1080P_VIDEO_PANEL:
 		panelstruct->paneldata    = &truly_1080p_video_panel_data;
-		panelstruct->paneldata->panel_with_enable_gpio = 1;
+		panelstruct->backlightinfo = &truly_1080p_video_backlight;
+		if (platform_is_sdm439() || platform_is_sdm429()) {
+			panelstruct->paneldata->panel_with_enable_gpio = 0;
+			panelstruct->backlightinfo->bl_interface_type = 0;
+		} else {
+			panelstruct->paneldata->panel_with_enable_gpio = 1;
+		}
 		panelstruct->panelres     = &truly_1080p_video_panel_res;
 		panelstruct->color        = &truly_1080p_video_color;
 		panelstruct->videopanel   = &truly_1080p_video_video_panel;
@@ -187,7 +193,7 @@ static int init_panel_data(struct panel_struct *panelstruct,
 			= &truly_1080p_video_timing_info;
 		panelstruct->panelresetseq
 					 = &truly_1080p_video_panel_reset_seq;
-		panelstruct->backlightinfo = &truly_1080p_video_backlight;
+		pinfo->labibb = &truly_1080p_video_labibb;
 		pinfo->mipi.panel_on_cmds
 			= truly_1080p_video_on_command;
 		pinfo->mipi.num_of_panel_on_cmds
@@ -196,13 +202,24 @@ static int init_panel_data(struct panel_struct *panelstruct,
 			= truly_1080p_video_off_command;
 		pinfo->mipi.num_of_panel_off_cmds
 			= TRULY_1080P_VIDEO_OFF_COMMAND;
-		memcpy(phy_db->timing,
-			truly_1080p_video_timings, TIMING_SIZE);
+		if (phy_db->pll_type == DSI_PLL_TYPE_12NM)
+			memcpy(phy_db->timing,
+				truly_1080p_video_12nm_timings,
+				TIMING_SIZE_12NM);
+		else
+			memcpy(phy_db->timing,
+				truly_1080p_video_timings, TIMING_SIZE);
 		pinfo->mipi.signature 	= TRULY_1080P_VIDEO_SIGNATURE;
 		break;
 	case TRULY_1080P_CMD_PANEL:
 		panelstruct->paneldata    = &truly_1080p_cmd_panel_data;
-		panelstruct->paneldata->panel_with_enable_gpio = 1;
+		panelstruct->backlightinfo = &truly_1080p_cmd_backlight;
+		if (platform_is_sdm439() || platform_is_sdm429()) {
+			panelstruct->paneldata->panel_with_enable_gpio = 0;
+			panelstruct->backlightinfo->bl_interface_type = 0;
+		} else {
+			panelstruct->paneldata->panel_with_enable_gpio = 1;
+		}
 		panelstruct->panelres     = &truly_1080p_cmd_panel_res;
 		panelstruct->color        = &truly_1080p_cmd_color;
 		panelstruct->videopanel   = &truly_1080p_cmd_video_panel;
@@ -213,7 +230,7 @@ static int init_panel_data(struct panel_struct *panelstruct,
 			= &truly_1080p_cmd_timing_info;
 		panelstruct->panelresetseq
 					 = &truly_1080p_cmd_panel_reset_seq;
-		panelstruct->backlightinfo = &truly_1080p_cmd_backlight;
+		pinfo->labibb = &truly_1080p_cmd_labibb;
 		pinfo->mipi.panel_on_cmds
 			= truly_1080p_cmd_on_command;
 		pinfo->mipi.num_of_panel_on_cmds
@@ -222,8 +239,13 @@ static int init_panel_data(struct panel_struct *panelstruct,
 			= truly_1080p_cmd_off_command;
 		pinfo->mipi.num_of_panel_off_cmds
 			= TRULY_1080P_CMD_OFF_COMMAND;
-		memcpy(phy_db->timing,
-			truly_1080p_cmd_timings, TIMING_SIZE);
+		if (phy_db->pll_type == DSI_PLL_TYPE_12NM)
+			memcpy(phy_db->timing,
+				truly_1080p_cmd_12nm_timings,
+				TIMING_SIZE_12NM);
+		else
+			memcpy(phy_db->timing,
+				truly_1080p_cmd_timings, TIMING_SIZE);
 		pinfo->mipi.signature 	= TRULY_1080P_CMD_SIGNATURE;
 		break;
 	case OTM1906C_1080P_CMD_PANEL:
