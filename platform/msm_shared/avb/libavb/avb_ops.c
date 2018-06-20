@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2017-2018 The Android Open Source Project
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -186,7 +186,7 @@ AvbIOResult AvbReadFromPartition(AvbOps *Ops, const char *Partition, int64_t Rea
 	ptn = partition_get_offset(index);
 
 	if (ReadOffset < 0) {
-		if ((-ReadOffset) > ptn) {
+		if ((-ReadOffset) > (int64_t)ptn) {
 			dprintf(CRITICAL,
 			       "Negative Offset outside range.\n");
 			Result = AVB_IO_RESULT_ERROR_RANGE_OUTSIDE_PARTITION;
@@ -211,7 +211,7 @@ AvbIOResult AvbReadFromPartition(AvbOps *Ops, const char *Partition, int64_t Rea
 	}
 
 	dprintf(CRITICAL,
-	       "read from %s, 0x%x bytes at Offset 0x%x, partition size %lu\n",
+	       "read from %s, 0x%x bytes at Offset 0x%x, partition size %llu\n",
 	       Partition, NumBytes, Offset, ptn);
 
 	/* |NumBytes| and or |Offset| can be unaligned to block size/page size.
@@ -243,14 +243,14 @@ AvbIOResult AvbReadFromPartition(AvbOps *Ops, const char *Partition, int64_t Rea
 		}
 
 		dprintf(DEBUG,
-		       "StartBlock 0x%x, ReadOffset 0x%x, read_size 0x%lx\n",
+		       "StartBlock 0x%x, ReadOffset 0x%x, read_size 0x%llx\n",
 		       StartBlock, StartPageReadOffset, StartPageReadSize);
 		if (StartPageReadSize <= 0 || StartPageReadOffset >= PageSize ||
 		    StartPageReadSize > PageSize - StartPageReadOffset ||
 		    StartPageReadSize > NumBytes) {
 			dprintf(CRITICAL,
 			       "StartBlock 0x%x, ReadOffset 0x%x, read_size "
-			       "0x%lx outside range.\n",
+			       "0x%llx outside range.\n",
 			       StartBlock, StartPageReadOffset, StartPageReadSize);
 			Result = AVB_IO_RESULT_ERROR_RANGE_OUTSIDE_PARTITION;
 			goto out;
@@ -276,14 +276,14 @@ AvbIOResult AvbReadFromPartition(AvbOps *Ops, const char *Partition, int64_t Rea
 		UINTN LastPageReadSize = (Offset + NumBytes) - ReadOffset2;
 
 		dprintf(DEBUG,
-		       "LastBlock 0x%x, ReadOffset 0x%x, read_size 0x%lx\n",
+		       "LastBlock 0x%x, ReadOffset 0x%x, read_size 0x%llx\n",
 		       LastBlock, LastPageReadOffset, LastPageReadSize);
 
 		if (LastPageReadSize <= 0 || LastPageReadSize >= PageSize ||
 		    LastPageReadSize > (NumBytes - *OutNumRead)) {
 			dprintf(CRITICAL,
 			       "LastBlock 0x%x, ReadOffset 0x%x, read_size "
-			       "0x%lx outside range.\n",
+			       "0x%llx outside range.\n",
 			       LastBlock, LastPageReadOffset, LastPageReadSize);
 			Result = AVB_IO_RESULT_ERROR_RANGE_OUTSIDE_PARTITION;
 			goto out;
@@ -309,14 +309,14 @@ AvbIOResult AvbReadFromPartition(AvbOps *Ops, const char *Partition, int64_t Rea
 		    (NumBytes - StartPageReadSize) < FillPageReadSize) {
 			dprintf(CRITICAL,
 			       "FullBlock 0x%x, ReadOffset 0x%x, read_size "
-			       "0x%lx outside range.\n",
+			       "0x%llx outside range.\n",
 			       FullBlock, 0, FillPageReadSize);
 			Result = AVB_IO_RESULT_ERROR_RANGE_OUTSIDE_PARTITION;
 			goto out;
 		}
 			dprintf(SPEW,
 			       "FullBlock 0x%x, ReadOffset 0x%x, read_size "
-			       "0x%lx outside range. StartPageReadSize %#lx PageSize %d ptn %#lx Buffer %p\n",
+			       "0x%llx outside range. StartPageReadSize %#llx PageSize %d ptn %#llx Buffer %p\n",
 			       FullBlock, 0, FillPageReadSize, StartPageReadSize, PageSize, ptn, Buffer);
 		Status = mmc_read(ptn + FullBlock * PageSize, Buffer + StartPageReadSize,
 					FillPageReadSize);

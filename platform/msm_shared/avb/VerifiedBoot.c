@@ -476,7 +476,7 @@ static EFI_STATUS load_image_and_authVB2(bootinfo *Info)
 	}
 
 	if (Info->num_loaded_images < NumRequestedPartition) {
-		dprintf(CRITICAL, "ERROR: AvbSlotVerify slot data: num of loaded partitions %d, requested %lu\n",Info->num_loaded_images, NumRequestedPartition);
+		dprintf(CRITICAL, "ERROR: AvbSlotVerify slot data: num of loaded partitions %d, requested %llu\n",Info->num_loaded_images, NumRequestedPartition);
 		Status = EFI_LOAD_ERROR;
 		goto out;
 	}
