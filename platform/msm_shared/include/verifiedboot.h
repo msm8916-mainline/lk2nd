@@ -105,7 +105,7 @@ typedef uint64_t  UINT64;
 typedef int16_t   INT16;
 typedef int32_t   INT32;
 typedef int64_t   INT64;
-typedef uintptr_t UINTN;
+typedef uint64_t  UINTN;
 
 typedef enum {
 	VB_UNDEFINED_HASH	= 0,
