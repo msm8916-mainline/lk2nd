@@ -254,6 +254,12 @@ static int init_panel_data(struct panel_struct *panelstruct,
 	case HX8399C_FHD_PLUSE_VIDEO_PANEL:
 		panelstruct->paneldata    = &hx8399c_fhd_pluse_video_panel_data;
 		panelstruct->panelres     = &hx8399c_fhd_pluse_video_panel_res;
+		panelstruct->panelres->hfront_porch = 52;
+		panelstruct->panelres->hback_porch = 48;
+		panelstruct->panelres->hpulse_width = 8;
+		panelstruct->panelres->vfront_porch = 8;
+		panelstruct->panelres->vback_porch = 8;
+		panelstruct->panelres->vpulse_width = 4;
 		panelstruct->color        = &hx8399c_fhd_pluse_video_color;
 		panelstruct->videopanel   =
 				&hx8399c_fhd_pluse_video_video_panel;
