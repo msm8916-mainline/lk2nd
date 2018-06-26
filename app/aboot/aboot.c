@@ -321,8 +321,8 @@ char sn_buf[13];
 char display_panel_buf[MAX_PANEL_BUF_SIZE];
 char panel_display_mode[MAX_RSP_SIZE];
 char soc_version_str[MAX_RSP_SIZE];
-#if PRODUCT_IOT
 char block_size_string[MAX_RSP_SIZE];
+#if PRODUCT_IOT
 
 /* For IOT we are using custom version */
 #define PRODUCT_IOT_VERSION "IOT001"
@@ -4700,17 +4700,24 @@ void aboot_fastboot_register_commands(void)
 			device.display_panel);
 	fastboot_publish("display-panel",
 			(const char *) panel_display_mode);
+
+        if (target_is_emmc_boot())
+        {
+		mmc_blocksize = mmc_get_device_blocksize();
+        }
+        else
+        {
+		mmc_blocksize = flash_block_size();
+        }
+	snprintf(block_size_string, MAX_RSP_SIZE, "0x%x", mmc_blocksize);
+	fastboot_publish("erase-block-size", (const char *) block_size_string);
+	fastboot_publish("logical-block-size", (const char *) block_size_string);
 #if PRODUCT_IOT
 	get_bootloader_version_iot(&bootloader_version_string);
 	fastboot_publish("version-bootloader", (const char *) bootloader_version_string);
 
 	/* Version baseband is n/a for apq iot devices */
 	fastboot_publish("version-baseband", "N/A");
-
-	/* IOT targets support only mmc target */
-	snprintf(block_size_string, MAX_RSP_SIZE, "0x%x", mmc_get_device_blocksize());
-	fastboot_publish("erase-block-size", (const char *) block_size_string);
-	fastboot_publish("logical-block-size", (const char *) block_size_string);
 #else
 	fastboot_publish("version-bootloader", (const char *) device.bootloader_version);
 	fastboot_publish("version-baseband", (const char *) device.radio_version);
