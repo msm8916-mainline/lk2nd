@@ -586,12 +586,12 @@ bool send_rot_command(uint32_t is_unlocked)
 			}
 			ret = set_tamper_fuse_cmd(HLOS_TAMPER_NOTIFY_FUSE);
 			if (ret) {
-				dprintf(CRITICAL, "QCOM_VB_SendROT: set_tamper_fuse_cmd (TZ_HLOS_TAMPER_NOTIFY_FUSE) fails!\n");
+				dprintf(CRITICAL, "send_rot_command: set_tamper_fuse_cmd (TZ_HLOS_TAMPER_NOTIFY_FUSE) fails!\n");
 				ret = false;
 				goto err;
 			}
 		} else {
-			dprintf(CRITICAL, "QCOM_VB_SendROT: TZ didn't support this feature! Version: major = %d, minor = %d, patch = %d\n", (version >> 22) & 0x3FF, (version >> 12) & 0x3FF, version & 0x3FF);
+			dprintf(CRITICAL, "send_rot_command: TZ didn't support this feature! Version: major = %d, minor = %d, patch = %d\n", (version >> 22) & 0x3FF, (version >> 12) & 0x3FF, version & 0x3FF);
 		ret = false;
 		goto err;
 		}
