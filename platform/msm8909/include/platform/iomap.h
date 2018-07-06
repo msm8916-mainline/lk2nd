@@ -210,6 +210,13 @@
 #define RPMB_SND_RCV_BUF            0x90000000
 #define RPMB_SND_RCV_BUF_SZ         0x1
 
+#define APP_REGION_ADDR platform_get_tz_app_add()		
+#define APP_REGION_SIZE platform_get_tz_app_size()		
+#define APP_REGION_ADDR_TZ_LEGACY_APP 0x87A00000		
+#define APP_REGION_ADDR_TZ_V4_APP     0x87900000		
+#define APP_REGION_SIZE_TZ_LEGACY_APP 0x200000		
+#define APP_REGION_SIZE_TZ_V4_APP     0x300000
+
 /* QSEECOM: Secure app region notification */
 #if QSEECOM_SECAPP_REGION_3MB
   #define APP_REGION_ADDR 0x87900000
