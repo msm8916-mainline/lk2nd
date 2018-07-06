@@ -332,7 +332,21 @@ scm_call(uint32_t svc_id, uint32_t cmd_id, const void *cmd_buf,
 #define SCM_QFPROM_READ_ROW_ID      0x05
 
 #define HLOS_IMG_TAMPER_FUSE        0
-
+#define WINSECAPP_LOADED_FUSE       1 /**< Used by the WinSec application to	                                        prevent reloading. */
+#define UEFISECAPP_LOADED_FUSE      2 /**< Used by UefiSecApp to prevent
+ 	                                        reloading. */
+#define OEM_FUSE_1                  3 /**< Reserved fuse bit for OEMs. */
+#define OEM_FUSE_2                  4 /**< Reserved fuse bit for OEMs. */
+#define OEM_FUSE_3                  5 /**< Reserved fuse bit for OEMs. */
+#define OEM_FUSE_4                  6 /**< Reserved fuse bit for OEMs. */
+#define OEM_FUSE_5                  7 /**< Reserved fuse bit for OEMs. */
+#define OEM_FUSE_6                  8 /**< Reserved fuse bit for OEMs. */
+#define OEM_FUSE_7                  9 /**< Reserved fuse bit for OEMs. */
+#define OEM_FUSE_8                  10 /**< Reserved fuse bit for OEMs. */
+#define HLOS_BL_MILESTONE_FUSE      11 /**< Used to notify the bootloader milestone call.*/
+#define HLOS_TAMPER_NOTIFY_FUSE     12 /**< Used to notify TZ that HLOS has been tampered.*/
+#define NUM_SW_FUSES                13  /**< Number of supported software fuses.
+ 	                                       @newpage */
 
 #define SCM_SVC_CE_CHN_SWITCH_ID    0x04
 #define SCM_CE_CHN_SWITCH_ID        0x02
@@ -382,7 +396,7 @@ uint8_t switch_ce_chn_cmd(enum ap_ce_channel_type channel);
 int mdtp_cipher_dip_cmd(uint8_t *in_buf, uint32_t in_buf_size, uint8_t *out_buf,
                           uint32_t out_buf_size, uint32_t direction);
 
-void set_tamper_fuse_cmd();
+uint32_t set_tamper_fuse_cmd(uint32_t fuse_id);
 
 /**
  * Reads the row data of the specified QFPROM row address.
@@ -470,4 +484,5 @@ int scm_call2_atomic(uint32_t svc, uint32_t cmd, uint32_t arg1, uint32_t arg2);
 uint32_t scm_io_write(uint32_t address, uint32_t val);
 int is_scm_call_available(uint32_t svc_id, uint32_t cmd_id);
 int scm_disable_sdi();
+bool allow_set_fuse(uint32_t version);
 #endif

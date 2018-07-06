@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2015, 2018, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -438,6 +438,7 @@ void mdss_dsi_phy_contention_detection(
         struct mdss_dsi_phy_ctrl *pd;
 
 	if ((mipi->mdss_dsi_phy_db->pll_type == DSI_PLL_TYPE_THULIUM) ||
+		(mipi->mdss_dsi_phy_db->pll_type == DSI_PLL_TYPE_12NM) ||
 		(mdp_get_revision() == MDP_REV_304))
                 return;
 
@@ -495,6 +496,7 @@ int mdss_dsi_phy_init(struct mipi_panel_info *mipi)
 					mipi->sphy_base, mipi->reg_base);
 		break;
 	case DSI_PLL_TYPE_THULIUM:
+	case DSI_PLL_TYPE_12NM:
 		dprintf(SPEW, "phy is configured with PLL driver\n");
 		break;
 	case DSI_PLL_TYPE_28NM:

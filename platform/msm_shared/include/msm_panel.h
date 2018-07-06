@@ -430,6 +430,7 @@ struct msm_panel_info {
 	struct spi_panel_info spi;
 	struct dsi2HDMI_panel_info adv7533;
 	bool has_bridge_chip;
+	bool disable_wled_labibb;
 
 	struct dfps_info dfps;
 
@@ -443,6 +444,7 @@ struct msm_panel_info {
 	int (*early_config) (void *pdata);
 	int (*config) (void *pdata);
 	int (*rotate) (void);
+	void (*lane_config)(struct msm_panel_info *pinfo);
 
 	char autorefresh_enable;
 	uint32_t autorefresh_framenum;

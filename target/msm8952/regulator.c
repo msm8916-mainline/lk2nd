@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015, 2018, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -68,6 +68,22 @@ static uint32_t ldo2[][11]=
 	},
 };
 
+static uint32_t ldo5[][11] = {
+	{
+		LDOA_RES_TYPE, 5,
+		KEY_SOFTWARE_ENABLE, 4, GENERIC_DISABLE,
+		KEY_MICRO_VOLT, 4, 0,
+		KEY_CURRENT, 4, 0,
+	},
+
+	{
+		LDOA_RES_TYPE, 5,
+		KEY_SOFTWARE_ENABLE, 4, GENERIC_ENABLE,
+		KEY_MICRO_VOLT, 4, 1800000,
+		KEY_CURRENT, 4, 150,
+	},
+};
+
 static uint32_t ldo6[][11]=
 {
 	{
@@ -105,14 +121,15 @@ static uint32_t ldo17[][11]=
 
 void regulator_enable(uint32_t enable)
 {
-	if(platform_is_msm8956())
-	{
+	if (platform_is_msm8956()) {
 		if (enable & REG_LDO1)
 			rpm_send_data(&ldo1[GENERIC_ENABLE][0], 36, RPM_REQUEST_TYPE);
 
-	}
-	else
-	{
+	} else if (platform_is_sdm439() || platform_is_sdm429()) {
+		if (enable & REG_LDO5)
+			rpm_send_data(&ldo5[GENERIC_ENABLE][0],
+				36, RPM_REQUEST_TYPE);
+	} else {
 		if (enable & REG_LDO2)
 			rpm_send_data(&ldo2[GENERIC_ENABLE][0], 36, RPM_REQUEST_TYPE);
 	}
@@ -126,14 +143,15 @@ void regulator_enable(uint32_t enable)
 
 void regulator_disable(uint32_t enable)
 {
-	if(platform_is_msm8956())
-	{
+	if (platform_is_msm8956()) {
 		if (enable & REG_LDO1)
 			rpm_send_data(&ldo1[GENERIC_DISABLE][0], 36, RPM_REQUEST_TYPE);
 
-	}
-	else
-	{
+	} else if (platform_is_sdm439() || platform_is_sdm429()) {
+		if (enable & REG_LDO5)
+			rpm_send_data(&ldo5[GENERIC_DISABLE][0],
+				36, RPM_REQUEST_TYPE);
+	} else {
 		if (enable & REG_LDO2)
 			rpm_send_data(&ldo2[GENERIC_DISABLE][0], 36, RPM_REQUEST_TYPE);
 	}

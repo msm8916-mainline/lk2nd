@@ -100,7 +100,7 @@ int target_cont_splash_screen(void);
 bool target_build_variant_user();
 void pmic_reset_configure(uint8_t reset_type);
 bool is_display_disabled(void);
-
+bool target_uses_system_as_root(void);
 struct qmp_reg *target_get_qmp_settings();
 int target_get_qmp_regsize();
 uint32_t target_ddr_cfg_reg();

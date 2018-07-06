@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, 2018, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -587,7 +587,7 @@ uint8_t dwc_event_check_trb_status(dwc_dev_t *dev,
 	ASSERT(num_of_trb);
 
 	/* invalidate trb data before reading */
-	arch_invalidate_cache_range((addr_t) trb, sizeof(dwc_trb_t)*num_of_trb);
+	arch_invalidate_cache_range((addr_t) trb, ROUNDUP(sizeof(dwc_trb_t)*num_of_trb, CACHE_LINE));
 
 	while (num_of_trb)
 	{
@@ -716,7 +716,7 @@ static void dwc_event_handler_ep_ctrl_state_setup(dwc_dev_t *dev,
 				uint8_t *data = dev->setup_pkt; /* setup pkt data */
 
 				/* invalidate any cached setup data before reading */
-				arch_invalidate_cache_range((addr_t) data, DWC_SETUP_PKT_LEN);
+				arch_invalidate_cache_range((addr_t) data, ROUNDUP(DWC_SETUP_PKT_LEN, CACHE_LINE));
 
 				/* call setup handler */
 				ret = dev->setup_handler(dev->setup_context, data);
@@ -1899,7 +1899,7 @@ static int dwc_request_queue(dwc_dev_t     *dev,
 
 	/* flush the trb data to main memory */
 	arch_clean_invalidate_cache_range((addr_t) ep->trb,
-									  sizeof(dwc_trb_t)*ep->trb_queued);
+									  ROUNDUP(sizeof(dwc_trb_t)*ep->trb_queued, CACHE_LINE));
 
 	DBG("\n Starting new xfer on ep_phy_num = %d TRB_QUEUED = %d \n",
 		ep_phy_num, ep->trb_queued);

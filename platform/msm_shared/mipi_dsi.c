@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2016, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2016, 2018, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -396,7 +396,9 @@ int mdss_dsi_host_init(struct mipi_panel_info *mipi, uint32_t
 		else
 			lane_swap_dsi1 = lane_swap;
 		writel(lane_swap_dsi1, mipi->sctl_base + LANE_SWAP_CTL);
-		writel(timing_ctl, mipi->sctl_base + TIMING_CTL);
+		if (mipi->mdss_dsi_phy_db->pll_type != DSI_PLL_TYPE_12NM)
+			writel_relaxed(timing_ctl,
+				mipi->sctl_base + TIMING_CTL);
 
 		if ((mipi->mode == DSI_CMD_MODE) &&
 				(readl(mipi->sctl_base) >= DSI_HW_REV_103)) {
@@ -424,7 +426,8 @@ int mdss_dsi_host_init(struct mipi_panel_info *mipi, uint32_t
 	       mipi->ctl_base + COMMAND_MODE_DMA_CTRL);
 
 	writel(lane_swap, mipi->ctl_base + LANE_SWAP_CTL);
-	writel(timing_ctl, mipi->ctl_base + TIMING_CTL);
+	if (mipi->mdss_dsi_phy_db->pll_type != DSI_PLL_TYPE_12NM)
+		writel_relaxed(timing_ctl, mipi->ctl_base + TIMING_CTL);
 
 	if ((mipi->mode == DSI_CMD_MODE) &&
 			(readl(mipi->ctl_base) >= DSI_HW_REV_103)) {
@@ -1085,4 +1088,24 @@ int mipi_config(struct msm_fb_panel_data *panel)
 		pinfo->rotate();
 #endif
 	return ret;
+}
+
+void mdss_dsi_lane_config(struct msm_panel_info *pinfo)
+{
+	uint8_t lane_enable = 0;
+
+	if (pinfo->mipi.data_lane0)
+		lane_enable |= (1 << 0);
+	if (pinfo->mipi.data_lane1)
+		lane_enable |= (1 << 1);
+	if (pinfo->mipi.data_lane2)
+		lane_enable |= (1 << 2);
+	if (pinfo->mipi.data_lane3)
+		lane_enable |= (1 << 3);
+
+	writel_relaxed((0 << 30 | 0 << 24 | 0 << 20 |
+		lane_enable << 4 | 0x105), pinfo->mipi.ctl_base + CTRL);
+	if (pinfo->mipi.dual_dsi)
+		writel_relaxed((0 << 30 | 0 << 24 | 0 << 20 | lane_enable << 4 |
+			0x105), pinfo->mipi.sctl_base + CTRL);
 }

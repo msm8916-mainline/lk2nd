@@ -188,6 +188,11 @@ static const char *warmboot_cmdline = " qpnp-power-on.warm_boot=1";
 static const char *baseband_apq_nowgr   = " androidboot.baseband=baseband_apq_nowgr";
 static const char *androidboot_slot_suffix = " androidboot.slot_suffix=";
 static const char *skip_ramfs = " skip_initramfs";
+
+#if HIBERNATION_SUPPORT
+static const char *resume = " resume=/dev/mmcblk0p";
+#endif
+
 #ifdef INIT_BIN_LE
 static const char *sys_path_cmdline = " rootwait ro init="INIT_BIN_LE;
 #else
@@ -199,7 +204,7 @@ static const char *verity_dev = " root=/dev/dm-0";
 static const char *verity_system_part = " dm=\"system";
 static const char *verity_params = " none ro,0 1 android-verity /dev/mmcblk0p";
 #else
-static const char *sys_path = "  root=/dev/mmcblk0p";
+static const char *sys_path = " root=/dev/mmcblk0p";
 #endif
 
 #if VERIFIED_BOOT
@@ -315,8 +320,9 @@ char charger_screen_enabled[MAX_RSP_SIZE];
 char sn_buf[13];
 char display_panel_buf[MAX_PANEL_BUF_SIZE];
 char panel_display_mode[MAX_RSP_SIZE];
-#if PRODUCT_IOT
+char soc_version_str[MAX_RSP_SIZE];
 char block_size_string[MAX_RSP_SIZE];
+#if PRODUCT_IOT
 
 /* For IOT we are using custom version */
 #define PRODUCT_IOT_VERSION "IOT001"
@@ -395,6 +401,12 @@ unsigned char *update_cmdline(const char * cmdline)
         int syspath_buflen = strlen(sys_path) + sizeof(int) + 2; /*allocate buflen for largest possible string*/
 #endif
 	char syspath_buf[syspath_buflen];
+#if HIBERNATION_SUPPORT
+	int resume_buflen = strlen(resume) + sizeof(int) + 2;
+	char resume_buf[resume_buflen];
+	int swap_ptn_index = INVALID_PTN;
+#endif
+
 #if VERIFIED_BOOT
 	uint32_t boot_state = RED;
 #endif
@@ -550,7 +562,8 @@ unsigned char *update_cmdline(const char * cmdline)
 		cmdline_len += strlen(warmboot_cmdline);
 	}
 
-	if (partition_multislot_is_supported())
+	if (target_uses_system_as_root() ||
+		partition_multislot_is_supported())
 	{
 		current_active_slot = partition_find_active_slot();
 		cmdline_len += (strlen(androidboot_slot_suffix)+
@@ -589,13 +602,36 @@ unsigned char *update_cmdline(const char * cmdline)
 					partition_get_index_in_lun("system", lun));
 		}
 
-		cmdline_len += strlen(sys_path_cmdline);
 #ifndef VERIFIED_BOOT_2
 		cmdline_len += strlen(syspath_buf);
 #endif
+	}
+
+	if (target_uses_system_as_root() ||
+		partition_multislot_is_supported())
+	{
+		cmdline_len += strlen(sys_path_cmdline);
 		if (!boot_into_recovery)
 			cmdline_len += strlen(skip_ramfs);
 	}
+
+#if HIBERNATION_SUPPORT
+	if (platform_boot_dev_isemmc())
+	{
+		swap_ptn_index = partition_get_index("swap");
+		if (swap_ptn_index != INVALID_PTN)
+		{
+			snprintf(resume_buf, resume_buflen,
+				" %s%d", resume,
+				(swap_ptn_index + 1));
+			cmdline_len += strlen(resume_buf);
+		}
+		else
+		{
+			dprintf(INFO, "WARNING: swap partition not found\n");
+		}
+	}
+#endif
 
 #if TARGET_CMDLINE_SUPPORT
 	char *target_cmdline_buf = malloc(TARGET_MAX_CMDLNBUF);
@@ -813,24 +849,45 @@ unsigned char *update_cmdline(const char * cmdline)
 				--dst;
 				src = SUFFIX_SLOT(current_active_slot);
 				while ((*dst++ = *src++));
+		}
 
-				if (!boot_into_recovery)
-				{
-					src = skip_ramfs;
-					--dst;
-					while ((*dst++ = *src++));
-				}
 
-				src = sys_path_cmdline;
+		/*
+		 * System-As-Root behaviour, system.img should contain both
+		 * system content and ramdisk content, and should be mounted at
+		 * root(a/b).
+		 * Apending skip_ramfs for non a/b builds which use, system as root.
+		 */
+		if ((target_uses_system_as_root() ||
+			partition_multislot_is_supported()) &&
+			have_cmdline)
+		{
+			if (!boot_into_recovery)
+			{
+				src = skip_ramfs;
 				--dst;
 				while ((*dst++ = *src++));
+			}
+
+			src = sys_path_cmdline;
+			--dst;
+			while ((*dst++ = *src++));
 
 #ifndef VERIFIED_BOOT_2
-				src = syspath_buf;
-				--dst;
-				while ((*dst++ = *src++));
+			src = syspath_buf;
+			--dst;
+			while ((*dst++ = *src++));
 #endif
 		}
+
+#if HIBERNATION_SUPPORT
+		if (swap_ptn_index != INVALID_PTN)
+		{
+			src = resume_buf;
+			--dst;
+			while ((*dst++ = *src++));
+		}
+#endif
 
 #if TARGET_CMDLINE_SUPPORT
 		if (target_cmdline_buf && target_cmd_line_len)
@@ -1220,7 +1277,7 @@ static void verify_signed_bootimg(uint32_t bootimg_addr, uint32_t bootimg_size)
 	{
 		write_device_info_mmc(&device);
 	#ifdef TZ_TAMPER_FUSE
-		set_tamper_fuse_cmd();
+		set_tamper_fuse_cmd(HLOS_IMG_TAMPER_FUSE);
 	#endif
 	#ifdef ASSERT_ON_TAMPER
 		dprintf(CRITICAL, "Device is tampered. Asserting..\n");
@@ -3015,6 +3072,16 @@ void cmd_erase_mmc(const char *arg, void *data, unsigned sz)
 	ptn = partition_get_offset(index);
 	size = partition_get_size(index);
 
+	if (!strncmp(arg, "avb_custom_key", strlen("avb_custom_key"))) {
+                dprintf(INFO, "erasing avb_custom_key\n");
+                if (erase_userkey()) {
+                        fastboot_fail("Erasing avb_custom_key failed");
+                } else {
+                        fastboot_okay("");
+                }
+                return;
+        }
+
 	if(ptn == 0) {
 		fastboot_fail("Partition table doesn't exist\n");
 		return;
@@ -3023,15 +3090,6 @@ void cmd_erase_mmc(const char *arg, void *data, unsigned sz)
 	lun = partition_get_lun(index);
 	mmc_set_lun(lun);
 
-	if (!strncmp(arg, "avb_custom_key", strlen("avb_custom_key"))) {
-		dprintf(INFO, "erasing avb_custom_key\n");
-		if (erase_userkey()) {
-			fastboot_fail("Erasing avb_custom_key failed");
-		} else {
-			fastboot_okay("");
-		}
-		return;
-	}
 	if (platform_boot_dev_isemmc())
 	{
 		if (mmc_erase_card(ptn, size)) {
@@ -3130,7 +3188,7 @@ check_partition_fs_signature(const char *arg)
 	fs_signature_type ret = NO_FS;
 	int index;
 	unsigned long long ptn;
-	char *sb_buffer = malloc(mmc_blocksize);
+	char *sb_buffer = memalign(CACHE_LINE, mmc_blocksize);
 	if (!sb_buffer)
 	{
 		dprintf(CRITICAL, "ERROR: Failed to allocate buffer for superblock\n");
@@ -4612,6 +4670,10 @@ void aboot_fastboot_register_commands(void)
 	fastboot_publish("kernel",   "lk");
 	fastboot_publish("serialno", sn_buf);
 
+	/*publish hw-revision major(upper 16 bits) and minor(lower 16 bits)*/
+	snprintf(soc_version_str, MAX_RSP_SIZE, "%x", board_soc_version());
+	fastboot_publish("hw-revision", soc_version_str);
+
 	/*
 	 * partition info is supported only for emmc partitions
 	 * Calling this for NAND prints some error messages which
@@ -4638,17 +4700,24 @@ void aboot_fastboot_register_commands(void)
 			device.display_panel);
 	fastboot_publish("display-panel",
 			(const char *) panel_display_mode);
+
+        if (target_is_emmc_boot())
+        {
+		mmc_blocksize = mmc_get_device_blocksize();
+        }
+        else
+        {
+		mmc_blocksize = flash_block_size();
+        }
+	snprintf(block_size_string, MAX_RSP_SIZE, "0x%x", mmc_blocksize);
+	fastboot_publish("erase-block-size", (const char *) block_size_string);
+	fastboot_publish("logical-block-size", (const char *) block_size_string);
 #if PRODUCT_IOT
 	get_bootloader_version_iot(&bootloader_version_string);
 	fastboot_publish("version-bootloader", (const char *) bootloader_version_string);
 
 	/* Version baseband is n/a for apq iot devices */
 	fastboot_publish("version-baseband", "N/A");
-
-	/* IOT targets support only mmc target */
-	snprintf(block_size_string, MAX_RSP_SIZE, "0x%x", mmc_get_device_blocksize());
-	fastboot_publish("erase-block-size", (const char *) block_size_string);
-	fastboot_publish("logical-block-size", (const char *) block_size_string);
 #else
 	fastboot_publish("version-bootloader", (const char *) device.bootloader_version);
 	fastboot_publish("version-baseband", (const char *) device.radio_version);
@@ -4827,7 +4896,7 @@ normal_boot:
 				if((device.is_unlocked) || (device.is_tampered))
 				{
 				#ifdef TZ_TAMPER_FUSE
-					set_tamper_fuse_cmd();
+					set_tamper_fuse_cmd(HLOS_IMG_TAMPER_FUSE);
 				#endif
 				#if USE_PCOM_SECBOOT
 					set_tamper_flag(device.is_tampered);

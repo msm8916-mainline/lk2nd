@@ -41,7 +41,7 @@
 /* 1.5uA + 30uA boost */
 #define PM_GPIO_PULL_UP_1_5_30  3
 #define PM_GPIO_PULLDOWN_10     4
-#define PM_GPIO_PULL_RESV_2     5
+#define PM_GPIO_NO_PULL         5
 
 
 #define PM_GPIO_OUT_CMOS        0x00

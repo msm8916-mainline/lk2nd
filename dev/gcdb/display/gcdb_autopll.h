@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, 2018, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -58,6 +58,9 @@
 #define MIN_THULIUM_DIV_VAL 1
 #define FIX_PIXEL_CLOCK_DIV 2
 #define FIX_N_DIV           1
+
+#define MIN_12NM_VCO_RATE 1000000000
+#define MAX_12NM_VCO_RATE 2000000000
 
 /*---------------------------------------------------------------------------*/
 /* Structure definition                                                      */

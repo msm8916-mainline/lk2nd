@@ -82,6 +82,10 @@ static struct gpio_pin lcd_mode_gpio = {
   "msmgpio", 107, 3, 1, 0, 1
 };
 
+static struct gpio_pin bkl_en_gpio = {
+"pm8953", 4, 3, 1, 0, 1
+};
+
 #define VCO_DELAY_USEC 1000
 #define GPIO_STATE_LOW 0
 #define GPIO_STATE_HIGH 2
@@ -91,7 +95,9 @@ static struct gpio_pin lcd_mode_gpio = {
 #define DSI0_BASE_ADJUST -0x4000
 #define DSI0_PHY_BASE_ADJUST -0x4100
 #define DSI0_PHY_PLL_BASE_ADJUST -0x3900
+#define DSI0_12NM_PHY_PLL_BASE_ADJUST -0x3F00
 #define DSI0_PHY_REGULATOR_BASE_ADJUST -0x3C00
+#define DSI1_12NM_PHY_PLL_BASE_ADJUST -0x600
 
 static void mdss_dsi_uniphy_pll_sw_reset_8952(uint32_t pll_base)
 {
@@ -350,6 +356,11 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 		pll_data->is_center_spread = false;
 		pll_data->ssc_freq = 30000;
 		pll_data->ssc_ppm = 5000;
+	} else if (platform_is_sdm439() || platform_is_sdm429()) {
+		pll_data->ssc_en = true;
+		pll_data->is_center_spread = false;
+		pll_data->ssc_freq = 31500;
+		pll_data->ssc_ppm = 5000;
 	}
 
 	if (enable) {
@@ -367,10 +378,27 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 			return ret;
 		}
 
-		ret = mdss_dsi_pll_config(pinfo->mipi.pll_base,
-			pinfo->mipi.ctl_base, pll_data);
-		if (!ret)
-			dprintf(CRITICAL, "Not able to enable master pll\n");
+		gcc_dsi_lp_clock_enable(flags);
+
+		if (platform_is_sdm439() || platform_is_sdm429()) {
+			mdss_dsi_auto_pll_12nm_config(pinfo);
+
+			/*
+			 * enable clock/data lane in DSI controller
+			 * before enabling DSI PLL for 12nm PHY
+			 */
+			if (pinfo->lane_config)
+				pinfo->lane_config(pinfo);
+
+			ret = mdss_dsi_auto_pll_12nm_enable(pinfo);
+			if (!ret)
+				dprintf(CRITICAL, "unable to ON 12nm PLL\n");
+		} else {
+			ret = mdss_dsi_pll_config(pinfo->mipi.pll_base,
+				pinfo->mipi.ctl_base, pll_data);
+			if (!ret)
+				dprintf(CRITICAL, "unable to ON master pll\n");
+		}
 
 		if (platform_is_msm8956() && pinfo->mipi.dual_dsi &&
 			!platform_is_msm8976_v_1_1()) {
@@ -380,7 +408,7 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 				dprintf(CRITICAL, "Not able to enable second pll\n");
 		}
 
-		gcc_dsi_clocks_enable(flags, pinfo->mipi.use_dsi1_pll,
+		gcc_dsi_hs_clocks_enable(flags, pinfo->mipi.use_dsi1_pll,
 			pll_data->pclk_m, pll_data->pclk_n, pll_data->pclk_d);
 	} else if(!target_cont_splash_screen()) {
 		gcc_dsi_clocks_disable(flags);
@@ -410,6 +438,8 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 		reset_gpio.pin_id = 60;
 		bkl_gpio.pin_id = 98;
 		pinfo->mipi.use_enable_gpio = 0;
+	} else if (platform_is_sdm439() || platform_is_sdm429()) {
+		reset_gpio.pin_id = 60;
 	} else if ((hw_id == HW_PLATFORM_QRD) &&
 		   (hw_subtype == HW_PLATFORM_SUBTYPE_POLARIS)) {
 		enable_gpio.pin_id = 19;
@@ -425,11 +455,28 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 			gpio_set_dir(enable_gpio.pin_id, 2);
 		}
 
-		gpio_tlmm_config(bkl_gpio.pin_id, 0,
+		if (platform_is_sdm439() || platform_is_sdm429()) {
+			/* enable PM GPIO-4 for backlight enable */
+			struct pm8x41_gpio gpio_param = {
+			.direction = PM_GPIO_DIR_OUT,
+			.function = PM_GPIO_FUNC_HIGH,
+			.vin_sel = 0,   /* VIN_0 */
+			.pull = PM_GPIO_NO_PULL,
+			.output_buffer = PM_GPIO_OUT_CMOS,
+			.out_strength = PM_GPIO_OUT_DRIVE_HIGH,
+			};
+
+			dprintf(SPEW, "%s: gpio=%d enable=%d\n", __func__,
+				bkl_en_gpio.pin_id, enable);
+
+			pm8x41_gpio_config(bkl_en_gpio.pin_id, &gpio_param);
+		} else {
+			gpio_tlmm_config(bkl_gpio.pin_id, 0,
 				bkl_gpio.pin_direction, bkl_gpio.pin_pull,
 				bkl_gpio.pin_strength, bkl_gpio.pin_state);
 
-		gpio_set_dir(bkl_gpio.pin_id, 2);
+			gpio_set_dir(bkl_gpio.pin_id, 2);
+		}
 
 		gpio_tlmm_config(reset_gpio.pin_id, 0,
 				reset_gpio.pin_direction, reset_gpio.pin_pull,
@@ -523,6 +570,11 @@ static int wled_init(struct msm_panel_info *pinfo)
 		}
 	}
 
+	if (target_get_pmic() == PMIC_IS_PMI632) {
+		config.pwr_up_delay = 1;
+		config.pwr_down_delay =  0;
+	}
+
 	dprintf(SPEW, "%s: %d %d %d %d %d %d %d %d %d %d\n", __func__,
 		config.display_type,
 		config.lab_min_volt, config.lab_max_volt,
@@ -554,7 +606,16 @@ int target_dsi_phy_config(struct mdss_dsi_phy_ctrl *phy_db)
 
 int target_display_get_base_offset(uint32_t base)
 {
-	if(platform_is_msm8956() || platform_is_msm8937() ||
+	if (platform_is_sdm439() || platform_is_sdm429()) {
+		if (base == MIPI_DSI0_BASE)
+			return DSI0_BASE_ADJUST;
+		else if (base == DSI0_PHY_BASE)
+			return DSI0_PHY_BASE_ADJUST;
+		else if (base == DSI0_PLL_BASE)
+			return DSI0_12NM_PHY_PLL_BASE_ADJUST;
+		else if (base == DSI1_PLL_BASE)
+			return DSI1_12NM_PHY_PLL_BASE_ADJUST;
+	} else if (platform_is_msm8956() || platform_is_msm8937() ||
 			platform_is_msm8917()) {
 		if (base == MIPI_DSI0_BASE)
 			return DSI0_BASE_ADJUST;
@@ -576,29 +637,33 @@ int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 
 	if (platform_is_msm8956())
 		ldo_num |= REG_LDO1;
+	else if (platform_is_sdm439() || platform_is_sdm429())
+		ldo_num |= REG_LDO5; /* LDO23 is enable by default */
 	else
 		ldo_num |= REG_LDO2;
 
 	if (enable) {
 		regulator_enable(ldo_num);
 		mdelay(10);
-		rc = wled_init(pinfo);
-		if (rc) {
-			dprintf(CRITICAL, "%s: wled init failed\n", __func__);
-			return rc;
+		if(!pinfo->disable_wled_labibb) {
+			rc = wled_init(pinfo);
+			if (rc) {
+				dprintf(CRITICAL, "%s: wled init failed\n", __func__);
+				return rc;
+			}
+			if (target_get_pmic() == PMIC_IS_PMI632)
+				rc = qpnp_lcdb_enable(true);
+			else
+				rc = qpnp_ibb_enable(true); /*5V boost*/
+			if (rc) {
+				dprintf(CRITICAL, "%s: qpnp_ibb/lcdb failed\n", __func__);
+				return rc;
+			}
+			mdelay(50);
 		}
-		if (target_get_pmic() == PMIC_IS_PMI632)
-			rc = qpnp_lcdb_enable(true);
-		else
-			rc = qpnp_ibb_enable(true); /*5V boost*/
-		if (rc) {
-			dprintf(CRITICAL, "%s: qpnp_ibb/lcdb failed\n", __func__);
-			return rc;
-		}
-		mdelay(50);
 	} else {
 		/*
-		 * LDO1, LDO2 and LDO6 are shared with other subsystems.
+		 * LDO1, LDO2, LDO5 and LDO6 are shared with other subsystems.
 		 * Do not disable them.
 		 */
 		regulator_disable(REG_LDO17);

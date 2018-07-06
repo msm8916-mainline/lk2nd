@@ -108,7 +108,11 @@ ifeq ($(ENABLE_FBCON_DISPLAY_MSG),1)
 DEFINES += FBCON_DISPLAY_MSG=1
 endif
 
-#Increase TZ apps region to 2 MB due to KM 3.0 support
+#TZ apps region address based on version
+ifeq ($(TARGET_USE_QSEECOM_V4),1)
+ DEFINES += QSEECOM_SECAPP_REGION_3MB=1
+endif
+
 ifeq ($(QSEECOM_SECAPP_REGION_2MB),1)
  DEFINES += QSEECOM_SECAPP_REGION_2MB=1
 endif

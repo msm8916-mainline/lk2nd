@@ -131,6 +131,10 @@ ifeq ($(OSVERSION_IN_BOOTIMAGE),1)
  DEFINES += OSVERSION_IN_BOOTIMAGE=1
 endif
 
+ifeq ($(HIBERNATION_SUPPORT),1)
+DEFINES += HIBERNATION_SUPPORT=1
+endif
+
 ifeq ($(ENABLE_VB_ATTEST),1)
  DEFINES += ENABLE_VB_ATTEST=1
 endif
@@ -156,6 +160,12 @@ ifeq ($(ENABLE_KASLRSEED),1)
   DEFINES += ENABLE_KASLRSEED_SUPPORT=1
 else
   DEFINES += ENABLE_KASLRSEED_SUPPORT=0
+endif
+
+ifeq ($(TARGET_USE_SYSTEM_AS_ROOT_IMAGE),1)
+  DEFINES += TARGET_USE_SYSTEM_AS_ROOT_IMAGE=1
+else
+  DEFINES += TARGET_USE_SYSTEM_AS_ROOT_IMAGE=0
 endif
 
 # these need to be filled out by the project/target/platform rules.mk files
@@ -195,7 +205,6 @@ ALLOBJS := \
 
 # add some automatic configuration defines
 DEFINES += \
-	BOARD=$(BOARD_NAME) \
 	PROJECT_$(PROJECT)=1 \
 	TARGET_$(TARGET)=1 \
 	PLATFORM_$(PLATFORM)=1 \
@@ -246,6 +255,7 @@ $(CONFIGHEADER): configheader
 	@rm -f $(CONFIGHEADER).tmp; \
 	echo \#ifndef __CONFIG_H > $(CONFIGHEADER).tmp; \
 	echo \#define __CONFIG_H >> $(CONFIGHEADER).tmp; \
+	echo \#define BOARD $(BOARD_NAME) >> $(CONFIGHEADER).tmp; \
 	for d in `echo $(DEFINES) | tr [:lower:] [:upper:]`; do \
 		echo "#define $$d" | sed "s/=/\ /g;s/-/_/g;s/\//_/g" >> $(CONFIGHEADER).tmp; \
 	done; \

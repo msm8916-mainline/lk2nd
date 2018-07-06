@@ -1,4 +1,4 @@
-/* Copyright (c) 2013,2015 The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013, 2015, 2018 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -490,11 +490,9 @@ uint16_t dwc_event_get_next(dwc_dev_t *dev, uint32_t *event)
 	/* get event buffer for this device */
 	buf = dev->event_buf.buf;
 
-	/* invalidate cached event buf data */
-	arch_invalidate_cache_range((addr_t) (buf + dev->event_buf.index), 4);
-
+	arch_invalidate_cache_range((addr_t)buf, dev->event_buf.buf_size);
 	/* read next event */
-	*event = buf[dev->event_buf.index];
+	*event = readl(buf + dev->event_buf.index);
 	event_size += 4;
 	dwc_event_update_index(&dev->event_buf.index, dev->event_buf.max_index);
 
@@ -511,17 +509,11 @@ uint16_t dwc_event_get_next(dwc_dev_t *dev, uint32_t *event)
 	if( DWC_EVENT_IS_DEVICE_EVENT(*event) &
 		(DWC_EVENT_DEVICE_EVENT_ID(*event) == DWC_EVENT_DEVICE_EVENT_ID_VENDOR_DEVICE_TEST_LMP))
 	{
-		/* invalidate cached event buf data */
-		arch_invalidate_cache_range((addr_t) (buf + dev->event_buf.index), 4);
-
-		*(event + 1) = buf[dev->event_buf.index];
+		*(event + 1) = readl(buf + dev->event_buf.index);
 		event_size += 4;
 		dwc_event_update_index(&dev->event_buf.index, dev->event_buf.buf_size);
 
-		/* invalidate cached event buf data */
-		arch_invalidate_cache_range((addr_t) (buf + dev->event_buf.index), 4);
-
-		*(event + 1) = buf[dev->event_buf.index];
+		*(event + 1) = readl(buf + dev->event_buf.index);
 		event_size += 4;
 		dwc_event_update_index(&dev->event_buf.index, dev->event_buf.buf_size);
 	}
