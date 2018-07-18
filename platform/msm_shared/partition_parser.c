@@ -589,6 +589,8 @@ patch_gpt(uint8_t *gptImage, uint64_t density, uint32_t array_size,
 	unsigned int partition_entry_array_start;
 	unsigned char *primary_gpt_header;
 	unsigned char *secondary_gpt_header;
+	//define as 64 bit unsigned int
+	unsigned long long *last_partition_entry;
 	unsigned int offset;
 	unsigned long long card_size_sec;
 	int total_part = 0;
@@ -624,9 +626,14 @@ patch_gpt(uint8_t *gptImage, uint64_t density, uint32_t array_size,
 					(ptn_entries_blocks + GPT_HEADER_BLOCKS))));
 
 	/* Find last partition */
-	while (*(primary_gpt_header + block_size + total_part * ENTRY_SIZE) !=
-	       0) {
+	last_partition_entry = (unsigned long long *)
+		(primary_gpt_header + block_size + total_part * ENTRY_SIZE);
+	//need check 128 bit for GUID
+	while (*last_partition_entry != 0 ||
+		*(last_partition_entry + 1) != 0 ) {
 		total_part++;
+		last_partition_entry = (unsigned long long *)
+			(primary_gpt_header + block_size + total_part * ENTRY_SIZE);
 	}
 
 	/* Patching last partition */
