@@ -347,6 +347,7 @@ int is_vb_le_enabled(void)
 	switch(platform)
 	{
 		case APQ8053:
+		case APQ8009:
 			return verified_boot_le;
 		default:
 			break;
