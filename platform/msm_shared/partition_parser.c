@@ -279,6 +279,8 @@ static unsigned int mmc_boot_read_gpt(uint32_t block_size)
 	uint8_t *data = NULL;
 	uint8_t *data_org_ptr = NULL;
 	uint32_t part_entry_cnt = block_size / ENTRY_SIZE;
+	uint32_t blocks_for_entries =
+			(NUM_PARTITIONS * PARTITION_ENTRY_SIZE)/block_size;
 
 	/* Get the density of the mmc device */
 
@@ -363,13 +365,28 @@ static unsigned int mmc_boot_read_gpt(uint32_t block_size)
 			    GET_LLWORD_FROM_BYTE(&data
 						 [(j * partition_entry_size) +
 						  LAST_LBA_OFFSET]);
+
+			/* If partition entry LBA is not valid, skip this entry
+				and parse next entry */
+			if (partition_entries[partition_count].first_lba < first_usable_lba
+				|| partition_entries[partition_count].last_lba >
+						(device_density/block_size -
+						(blocks_for_entries + GPT_HEADER_BLOCKS + 1))
+				|| partition_entries[partition_count].first_lba >
+					partition_entries[partition_count].last_lba)
+			{
+				dprintf(CRITICAL, "Partition entry(%d), lba not valid\n", j);
+				partition_count++;
+				continue;
+			}
+
 			partition_entries[partition_count].size =
 			    partition_entries[partition_count].last_lba -
 			    partition_entries[partition_count].first_lba + 1;
 			partition_entries[partition_count].attribute_flag =
 			    GET_LLWORD_FROM_BYTE(&data
 						 [(j * partition_entry_size) +
-						  ATTRIBUTE_FLAG_OFFSET]);
+				 		  ATTRIBUTE_FLAG_OFFSET]);
 
 			memset(&UTF16_name, 0x00, MAX_GPT_NAME_SIZE);
 			memcpy(UTF16_name, &data[(j * partition_entry_size) +
