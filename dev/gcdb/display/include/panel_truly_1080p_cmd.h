@@ -1,4 +1,4 @@
-/* Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2016, 2018 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -321,6 +321,14 @@ static const uint32_t truly_1080p_14nm_cmd_timings[] = {
 	0x23, 0x1e, 0x7, 0x8, 0x5, 0x3, 0x4, 0xa0,
 	0x23, 0x1e, 0x7, 0x8, 0x5, 0x3, 0x4, 0xa0,
 	0x23, 0x18, 0x7, 0x8, 0x5, 0x3, 0x4, 0xa0,
+};
+
+static const uint32_t truly_1080p_cmd_12nm_timings[] = {
+  0x17, 0x0A, 0x0F, 0x06, 0x02, 0x08, 0x06, 0x0E
+};
+
+struct labibb_desc truly_1080p_cmd_labibb = {
+  0, 0, 5700000, 5700000, 5700000, 5700000, 3, 3, 1, 0
 };
 
 static struct panel_reset_sequence truly_1080p_cmd_panel_reset_seq = {
