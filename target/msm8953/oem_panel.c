@@ -51,6 +51,7 @@
 #include "include/panel_r69006_1080p_cmd.h"
 #include "include/panel_truly_wuxga_video.h"
 #include "include/panel_hx8399c_fhd_pluse_video.h"
+#include "include/panel_hx8399c_hd_plus_video.h"
 
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
@@ -62,6 +63,7 @@ enum {
 	R69006_1080P_CMD_PANEL,
 	TRULY_WUXGA_VIDEO_PANEL,
 	HX8399C_FHD_PLUSE_VIDEO_PANEL,
+	HX8399C_HD_PLUS_VIDEO_PANEL,
 	UNKNOWN_PANEL
 };
 
@@ -76,6 +78,7 @@ static struct panel_list supp_panels[] = {
 	{"r69006_1080p_cmd", R69006_1080P_CMD_PANEL},
 	{"truly_wuxga_video", TRULY_WUXGA_VIDEO_PANEL},
 	{"hx8399c_fhd_pluse_video", HX8399C_FHD_PLUSE_VIDEO_PANEL},
+	{"hx8399c_hd_plus_video", HX8399C_HD_PLUS_VIDEO_PANEL},
 };
 
 static uint32_t panel_id;
@@ -285,6 +288,35 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		memcpy(phy_db->timing,
 			hx8399c_fhd_pluse_14nm_video_timings, MAX_TIMING_CONFIG * sizeof(uint32_t));
 		pinfo->mipi.signature    = HX8399C_FHD_PLUSE_VIDEO_SIGNATURE;
+		break;
+	case HX8399C_HD_PLUS_VIDEO_PANEL:
+		panelstruct->paneldata    = &hx8399c_hd_plus_video_panel_data;
+		panelstruct->panelres     = &hx8399c_hd_plus_video_panel_res;
+		panelstruct->color        = &hx8399c_hd_plus_video_color;
+		panelstruct->videopanel   =
+				&hx8399c_hd_plus_video_video_panel;
+		panelstruct->commandpanel =
+				&hx8399c_hd_plus_video_command_panel;
+		panelstruct->state        = &hx8399c_hd_plus_video_state;
+		panelstruct->laneconfig   =
+				&hx8399c_hd_plus_video_lane_config;
+		panelstruct->paneltiminginfo
+				= &hx8399c_hd_plus_video_timing_info;
+		panelstruct->panelresetseq
+				= &hx8399c_hd_plus_video_panel_reset_seq;
+		panelstruct->backlightinfo = &hx8399c_hd_plus_video_backlight;
+		pinfo->labibb = &hx8399c_hd_plus_video_labibb;
+		pinfo->mipi.panel_on_cmds
+				= hx8399c_hd_plus_video_on_command;
+		pinfo->mipi.num_of_panel_on_cmds
+				= HX8399C_HD_PLUS_VIDEO_ON_COMMAND;
+		pinfo->mipi.panel_off_cmds
+				= hx8399c_hd_plus_video_off_command;
+		pinfo->mipi.num_of_panel_off_cmds
+				= HX8399C_HD_PLUS_VIDEO_OFF_COMMAND;
+		memcpy(phy_db->timing,
+			hx8399c_hd_plus_14nm_video_timings, MAX_TIMING_CONFIG * sizeof(uint32_t));
+		pinfo->mipi.signature    = HX8399C_HD_PLUS_VIDEO_SIGNATURE;
 		break;
 	case UNKNOWN_PANEL:
 	default:
