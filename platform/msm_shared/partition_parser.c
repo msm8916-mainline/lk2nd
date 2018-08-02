@@ -1243,7 +1243,11 @@ partition_parse_gpt_header(unsigned char *buffer,
 	}
 	else
 	{
-		if (current_lba != ((device_density/block_size) - 1))
+		/*
+		  Check only in case of reading, skip for flashing as this is patched
+		  in patch_gpt() later in flow.
+		*/
+		if (!flashing_gpt && (current_lba != ((device_density/block_size) - 1)))
 		{
 			dprintf(CRITICAL,"Secondary GPT first usable LBA mismatch\n");
 			return 1;
