@@ -1,4 +1,4 @@
-/* Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2016, 2018 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -282,6 +282,10 @@ const uint32_t truly_1080p_video_timings[] = {
   0xE6, 0x38, 0x26, 0x00, 0x68, 0x6e, 0x2A, 0x3c, 0x44, 0x03, 0x04, 0x00
 };
 
+static const uint32_t truly_1080p_video_12nm_timings[] = {
+  0x17, 0x0A, 0x0F, 0x06, 0x02, 0x08, 0x06, 0x0E
+};
+
 static const uint32_t truly_1080p_14nm_video_timings[] = {
 	0x23, 0x1e, 0x8, 0x9, 0x5, 0x3, 0x4, 0xa0,
 	0x23, 0x1e, 0x8, 0x9, 0x5, 0x3, 0x4, 0xa0,
@@ -292,6 +296,10 @@ static const uint32_t truly_1080p_14nm_video_timings[] = {
 
 static struct panel_timing truly_1080p_video_timing_info = {
   0, 4, 0x02, 0x2d
+};
+
+struct labibb_desc truly_1080p_video_labibb = {
+  0, 0, 5700000, 5700000, 5700000, 5700000, 3, 3, 1, 0
 };
 
 static struct panel_reset_sequence truly_1080p_video_panel_reset_seq = {

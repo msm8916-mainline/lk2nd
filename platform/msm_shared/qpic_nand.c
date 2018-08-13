@@ -885,6 +885,10 @@ nand_result_t qpic_nand_block_isbad(unsigned page)
 		 * Bad block value is stored in the first page of the block.
 		 */
 		/* Read the first page in the block. */
+		/* Ensure we always read first page of block */
+		if (page & flash.num_pages_per_blk_mask)
+			page = page - (page & flash.num_pages_per_blk_mask);
+
 		cwperpage = flash.cws_per_page;
 
 		/* Read page cmd */

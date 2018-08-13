@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2017, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2018, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -83,6 +83,8 @@ unsigned int vfat_count = 0;
 struct partition_entry *partition_entries;
 static unsigned gpt_partitions_exist = 0;
 static unsigned partition_count;
+/* this is a pointer to ptn_entries_buffer */
+static unsigned char *new_buffer = NULL;
 
 unsigned partition_get_partition_count()
 {
@@ -273,10 +275,12 @@ static unsigned int mmc_boot_read_gpt(uint32_t block_size)
 	unsigned int n = 0;	/* Counter for UTF-16 -> 8 conversion */
 	unsigned char UTF16_name[MAX_GPT_NAME_SIZE];
 	/* LBA of first partition -- 1 Block after Protected MBR + 1 for PT */
-	unsigned long long partition_0;
 	uint64_t device_density;
 	uint8_t *data = NULL;
+	uint8_t *data_org_ptr = NULL;
 	uint32_t part_entry_cnt = block_size / ENTRY_SIZE;
+	uint32_t blocks_for_entries =
+			(NUM_PARTITIONS * PARTITION_ENTRY_SIZE)/block_size;
 
 	/* Get the density of the mmc device */
 
@@ -289,6 +293,7 @@ static unsigned int mmc_boot_read_gpt(uint32_t block_size)
 		ret = -1;
 		goto end;
 	}
+	data_org_ptr = data;
 
 	/* Print out the GPT first */
 	ret = mmc_read(block_size, (unsigned int *)data, block_size);
@@ -330,19 +335,11 @@ static unsigned int mmc_boot_read_gpt(uint32_t block_size)
 		}
 		parse_secondary_gpt = 0;
 	}
-	partition_0 = GET_LLWORD_FROM_BYTE(&data[PARTITION_ENTRIES_OFFSET]);
 	/* Read GPT Entries */
 	for (i = 0; i < (ROUNDUP(max_partition_count, part_entry_cnt)) / part_entry_cnt; i++) {
 		ASSERT(partition_count < NUM_PARTITIONS);
-		ret = mmc_read((partition_0 * block_size) + (i * block_size),
-						(uint32_t *) data, block_size);
-
-		if (ret) {
-			dprintf(CRITICAL,
-				"GPT: mmc read card failed reading partition entries.\n");
-			goto end;
-		}
-
+		
+		data = (new_buffer + (i * block_size));
 		for (j = 0; j < part_entry_cnt; j++) {
 			memcpy(&(partition_entries[partition_count].type_guid),
 			       &data[(j * partition_entry_size)],
@@ -368,13 +365,28 @@ static unsigned int mmc_boot_read_gpt(uint32_t block_size)
 			    GET_LLWORD_FROM_BYTE(&data
 						 [(j * partition_entry_size) +
 						  LAST_LBA_OFFSET]);
+
+			/* If partition entry LBA is not valid, skip this entry
+				and parse next entry */
+			if (partition_entries[partition_count].first_lba < first_usable_lba
+				|| partition_entries[partition_count].last_lba >
+						(device_density/block_size -
+						(blocks_for_entries + GPT_HEADER_BLOCKS + 1))
+				|| partition_entries[partition_count].first_lba >
+					partition_entries[partition_count].last_lba)
+			{
+				dprintf(CRITICAL, "Partition entry(%d), lba not valid\n", j);
+				partition_count++;
+				continue;
+			}
+
 			partition_entries[partition_count].size =
 			    partition_entries[partition_count].last_lba -
 			    partition_entries[partition_count].first_lba + 1;
 			partition_entries[partition_count].attribute_flag =
 			    GET_LLWORD_FROM_BYTE(&data
 						 [(j * partition_entry_size) +
-						  ATTRIBUTE_FLAG_OFFSET]);
+				 		  ATTRIBUTE_FLAG_OFFSET]);
 
 			memset(&UTF16_name, 0x00, MAX_GPT_NAME_SIZE);
 			memcpy(UTF16_name, &data[(j * partition_entry_size) +
@@ -394,8 +406,10 @@ static unsigned int mmc_boot_read_gpt(uint32_t block_size)
 		}
 	}
 end:
-	if (data)
-		free(data);
+	if (data_org_ptr)
+		free(data_org_ptr);
+	if (new_buffer)
+		free(new_buffer);
 
 	return ret;
 }
@@ -589,6 +603,8 @@ patch_gpt(uint8_t *gptImage, uint64_t density, uint32_t array_size,
 	unsigned int partition_entry_array_start;
 	unsigned char *primary_gpt_header;
 	unsigned char *secondary_gpt_header;
+	//define as 64 bit unsigned int
+	unsigned long long *last_partition_entry;
 	unsigned int offset;
 	unsigned long long card_size_sec;
 	int total_part = 0;
@@ -624,9 +640,14 @@ patch_gpt(uint8_t *gptImage, uint64_t density, uint32_t array_size,
 					(ptn_entries_blocks + GPT_HEADER_BLOCKS))));
 
 	/* Find last partition */
-	while (*(primary_gpt_header + block_size + total_part * ENTRY_SIZE) !=
-	       0) {
+	last_partition_entry = (unsigned long long *)
+		(primary_gpt_header + block_size + total_part * ENTRY_SIZE);
+	//need check 128 bit for GUID
+	while (*last_partition_entry != 0 ||
+		*(last_partition_entry + 1) != 0 ) {
 		total_part++;
+		last_partition_entry = (unsigned long long *)
+			(primary_gpt_header + block_size + total_part * ENTRY_SIZE);
 	}
 
 	/* Patching last partition */
@@ -1163,11 +1184,12 @@ partition_parse_gpt_header(unsigned char *buffer,
 	uint32_t ret = 0;
 	uint32_t partitions_for_block = 0;
 	uint32_t blocks_to_read = 0;
-	unsigned char *new_buffer = NULL;
 	unsigned long long last_usable_lba = 0;
 	unsigned long long partition_0 = 0;
 	unsigned long long current_lba = 0;
 	uint32_t block_size = mmc_get_device_blocksize();
+	uint32_t blocks_for_entries =
+			(NUM_PARTITIONS * PARTITION_ENTRY_SIZE)/ block_size;
 	/* Get the density of the mmc device */
 	uint64_t device_density = mmc_get_device_capacity();
 
@@ -1215,10 +1237,23 @@ partition_parse_gpt_header(unsigned char *buffer,
 	/*current lba and GPT lba should be same*/
 	if (!parse_secondary_gpt) {
 		if (current_lba != GPT_LBA) {
-			dprintf(CRITICAL,"GPT first usable LBA mismatch\n");
+			dprintf(CRITICAL,"Primary GPT first usable LBA mismatch\n");
 			return 1;
 		}
 	}
+	else
+	{
+		/*
+		  Check only in case of reading, skip for flashing as this is patched
+		  in patch_gpt() later in flow.
+		*/
+		if (!flashing_gpt && (current_lba != ((device_density/block_size) - 1)))
+		{
+			dprintf(CRITICAL,"Secondary GPT first usable LBA mismatch\n");
+			return 1;
+		}
+	}
+
 	/*check for first lba should be with in the valid range*/
 	if (*first_usable_lba > (device_density/block_size)) {
 		dprintf(CRITICAL,"Invalid first_usable_lba\n");
@@ -1258,11 +1293,24 @@ partition_parse_gpt_header(unsigned char *buffer,
 	if (!flashing_gpt) {
 		partition_0 = GET_LLWORD_FROM_BYTE(&buffer[PARTITION_ENTRIES_OFFSET]);
 		/*start LBA should always be 2 in primary GPT*/
-		if(partition_0 != 0x2 && !parse_secondary_gpt) {
-			dprintf(CRITICAL, "Starting LBA mismatch\n");
-			ret = 1;
-			goto fail;
-
+		if (!parse_secondary_gpt)
+		{
+			if (partition_0 != 0x2)
+			{
+				dprintf(CRITICAL, "PrimaryGPT starting LBA mismatch\n");
+				ret = 1;
+				goto fail;
+			}
+		}
+		else
+		{
+			if (partition_0 != ((device_density/block_size) -
+						(blocks_for_entries + GPT_HEADER_BLOCKS)))
+			{
+				dprintf(CRITICAL, "BackupGPT starting LBA mismatch\n");
+				ret = 1;
+				goto fail;
+			}
 		}
 		/*read the partition entries to new_buffer*/
 		ret = mmc_read((partition_0) * (block_size), (unsigned int *)new_buffer, (blocks_to_read * block_size));
@@ -1278,6 +1326,7 @@ partition_parse_gpt_header(unsigned char *buffer,
 			dprintf(CRITICAL,"Partition entires crc mismatch crc_val= %u with crc_val_org= %u\n",crc_val,crc_val_org);
 			ret = 1;
 		}
+		return ret;
 	}
 fail:
 	free(new_buffer);
