@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2015, 2017, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2015, 2017-2018, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -152,6 +152,7 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 	writel(0x00ABCDEF, MDP_DSI_VIDEO_BORDER_CLR);
 	writel(0x00000000, MDP_DSI_VIDEO_HSYNC_SKEW);
 	writel(0x00000000, MDP_DSI_VIDEO_CTL_POLARITY);
+	writel(0x70000000, MDP_DSI_VIDEO_TEST_CTL);
 	// end of cmd mdp
 
 	return 0;
