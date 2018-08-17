@@ -483,7 +483,7 @@ unsigned char *update_cmdline(const char * cmdline)
 	} else if (boot_reason_alarm) {
 		cmdline_len += strlen(alarmboot_cmdline);
 	} else if ((target_build_variant_user() || device.charger_screen_enabled)
-			&& target_pause_for_battery_charge()) {
+			&& target_pause_for_battery_charge() && !boot_into_recovery) {
 		pause_at_bootup = 1;
 		cmdline_len += strlen(battchg_pause);
 	}
