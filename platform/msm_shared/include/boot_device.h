@@ -81,6 +81,14 @@ typedef struct bootinfo {
 	void *vb_data;
 } bootinfo;
 
+typedef enum {
+	IMG_BOOT = 0,
+	IMG_DTBO,
+	IMG_VBMETA,
+	IMG_RECOVERY,
+	IMG_MAX
+} img_type;
+
 int getimage(const bootinfo *Info, void **image_buffer, uint32_t *imgsize,
                     char *imgname);
 
