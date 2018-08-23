@@ -211,6 +211,13 @@ DEFINES += \
 	ARCH_$(ARCH)=1 \
 	$(addsuffix =1,$(addprefix WITH_,$(ALLMODULES)))
 
+# Add MEMRWOFF as . for targets this is not declared.
+# . will be replaced as string in linker file.
+ifeq ($(MEMRWOFF),)
+MEMRWOFF:= .
+DEFINES += MEMRWOFF=$(MEMRWOFF)
+endif
+
 # debug build?
 ifneq ($(DEBUG),)
 DEFINES += \
