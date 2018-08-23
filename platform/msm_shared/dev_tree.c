@@ -109,6 +109,12 @@ static int update_fstab_node(void *fdt);
  */
 extern int check_aboot_addr_range_overlap(uintptr_t start, uint32_t size);
 
+static int dtbo_idx = INVALID_PTN;
+int get_dtbo_idx (void)
+{
+   return dtbo_idx;
+}
+
 int fdt_check_header_ext(const void *fdt)
 {
 	uintptr_t fdt_start, fdt_end;
@@ -332,7 +338,7 @@ static bool check_all_bits_set(uint32_t matchdt_value)
   |     |               | PmicVariantRev  | N     | Y    | N       |
 */
 
-static void dtb_read_find_match(dt_info *current_dtb_info, dt_info *best_dtb_info, uint32_t exact_match)
+static boolean dtb_read_find_match(dt_info *current_dtb_info, dt_info *best_dtb_info, uint32_t exact_match)
 {
 	int board_id_len;
 	int platform_id_len = 0;
@@ -343,12 +349,13 @@ static void dtb_read_find_match(dt_info *current_dtb_info, dt_info *best_dtb_inf
 	const char *platform_prop = NULL;
 	const char *board_prop = NULL;
 	const char *pmic_prop = NULL;
+	boolean find_best_match = false;
 
 	current_dtb_info->dt_match_val = 0;
 	root_offset = fdt_path_offset(dtb, "/");
 	if (root_offset < 0) {
 		dprintf(CRITICAL, "ERROR: Unable to locate root node\n");
-		return;
+		return false;
 	}
 
 	/* Get the msm-id prop from DTB and find best match */
@@ -547,9 +554,11 @@ static void dtb_read_find_match(dt_info *current_dtb_info, dt_info *best_dtb_inf
 
 cleanup:
 	if (current_dtb_info->dt_match_val & BIT(exact_match)) {
-		if (best_dtb_info->dt_match_val < current_dtb_info->dt_match_val)
+		if (best_dtb_info->dt_match_val < current_dtb_info->dt_match_val) {
 			memscpy(best_dtb_info, sizeof(dt_info), current_dtb_info, sizeof(dt_info));
-		else if (best_dtb_info->dt_match_val == current_dtb_info->dt_match_val) {
+			find_best_match = true;
+		} else if (best_dtb_info->dt_match_val == current_dtb_info->dt_match_val) {
+			find_best_match = true;
 			if (best_dtb_info->dt_soc_rev < current_dtb_info->dt_soc_rev)
 				memscpy(best_dtb_info, sizeof(dt_info), current_dtb_info, sizeof(dt_info));
 			else if (best_dtb_info->dt_variant_major < current_dtb_info->dt_variant_major)
@@ -564,8 +573,12 @@ cleanup:
 				memscpy(best_dtb_info, sizeof(dt_info), current_dtb_info, sizeof(dt_info));
 			else if (best_dtb_info->dt_pmic_rev[3] < current_dtb_info->dt_pmic_rev[3])
 				memscpy(best_dtb_info, sizeof(dt_info), current_dtb_info, sizeof(dt_info));
+			else
+				find_best_match = false;
 		}
 	}
+
+	return find_best_match;
 }
 
 void *get_soc_dtb(void *kernel, uint32_t kernel_size, uint32_t dtb_offset)
@@ -628,6 +641,7 @@ void *get_board_dtb(void *dtbo_image_buf)
 	uint32_t dtb_size = 0;
 	dt_info cur_dtb_info = {0};
 	dt_info best_dtb_info = {0};
+	boolean find_best_dtb = false;
 
 	if (!dtbo_image_buf) {
 		dprintf(CRITICAL, "dtbo image buffer is NULL\n");
@@ -656,9 +670,13 @@ void *get_board_dtb(void *dtbo_image_buf)
 		}
 		dprintf(SPEW, "Valid board dtb is found\n");
 		cur_dtb_info.dtb = board_dtb;
-		dtb_read_find_match(&cur_dtb_info, &best_dtb_info, VARIANT_MATCH);
+		find_best_dtb = dtb_read_find_match(&cur_dtb_info, &best_dtb_info, VARIANT_MATCH);
 		dprintf(SPEW, "dtbo count = %u local_board_dt_match =%x\n",dtbo_count, cur_dtb_info.dt_match_val);
 		dtb_table_entry++;
+
+		if (find_best_dtb) {
+			dtbo_idx = dtbo_count;
+		}
 	}
 	if (!best_dtb_info.dtb) {
 		dprintf(CRITICAL, "Unable to find the board dtb\n");
