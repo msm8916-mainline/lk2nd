@@ -71,7 +71,7 @@ void avb_printv(const char* message, ...) {
 }
 
 void* avb_malloc_(size_t size) {
-  return malloc(size);
+  return memalign(CACHE_LINE, ROUNDUP(size, CACHE_LINE));
 }
 
 void avb_free(void* ptr) {
