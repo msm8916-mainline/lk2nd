@@ -3188,7 +3188,10 @@ check_partition_fs_signature(const char *arg)
 	fs_signature_type ret = NO_FS;
 	int index;
 	unsigned long long ptn;
-	char *sb_buffer = memalign(CACHE_LINE, mmc_blocksize);
+	char *buffer = memalign(CACHE_LINE, mmc_blocksize);
+	uint32_t sb_blk_offset = 0;
+	char *sb_buffer = buffer;
+
 	if (!sb_buffer)
 	{
 		dprintf(CRITICAL, "ERROR: Failed to allocate buffer for superblock\n");
@@ -3203,21 +3206,24 @@ check_partition_fs_signature(const char *arg)
 	}
 	ptn = partition_get_offset(index);
 	mmc_set_lun(partition_get_lun(index));
-	if(mmc_read(ptn + FS_SUPERBLOCK_OFFSET,
+	sb_blk_offset = (FS_SUPERBLOCK_OFFSET/mmc_blocksize);
+
+	if(mmc_read(ptn + (sb_blk_offset * mmc_blocksize),
 				(void *)sb_buffer, mmc_blocksize))
 	{
 		dprintf(CRITICAL, "ERROR: Failed to read Superblock\n");
 		goto out;
 	}
 
-	if (*((uint16 *)(&sb_buffer[EXT_MAGIC_OFFSET_SB]))
-									== (uint16)EXT_MAGIC)
+	if (sb_blk_offset == 0)
+		sb_buffer += FS_SUPERBLOCK_OFFSET;
+
+	if (*((uint16 *)(&sb_buffer[EXT_MAGIC_OFFSET_SB])) == (uint16)EXT_MAGIC)
 	{
 		dprintf(SPEW, "%s() Found EXT FS\n", arg);
 		ret = EXT_FS_SIGNATURE;
 	}
-	else if (*((uint32 *)(&sb_buffer[F2FS_MAGIC_OFFSET_SB]))
-										== F2FS_MAGIC)
+	else if (*((uint32 *)(&sb_buffer[F2FS_MAGIC_OFFSET_SB])) == F2FS_MAGIC)
 	{
 		dprintf(SPEW, "%s() Found F2FS FS\n", arg);
 		ret = EXT_F2FS_SIGNATURE;
@@ -3230,8 +3236,8 @@ check_partition_fs_signature(const char *arg)
 	}
 
 out:
-	if(sb_buffer)
-		free(sb_buffer);
+	if(buffer)
+		free(buffer);
 	return ret;
 }
 
