@@ -39,6 +39,9 @@ ifneq (,$(findstring DISPLAY_SPLASH_SCREEN,$(DEFINES)))
 endif
 endif
 
+#Enable below flag to compile cmnlib64
+DEFINES += ENABLE_CMNLIB64_LOADING=1
+
 ENABLE_SMD_SUPPORT := 1
 ENABLE_PWM_SUPPORT := true
 
