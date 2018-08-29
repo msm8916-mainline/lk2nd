@@ -485,6 +485,15 @@ bool target_battery_is_present()
 
 }
 
+bool is_target_support_dtbo(void)
+{
+#if TARGET_DTBO_NOT_SUPPORTED
+  return false;
+#else
+  return true;
+#endif
+}
+
 #if CHECK_BAT_VOLTAGE
 /* Return battery voltage */
 uint32_t target_get_battery_voltage()
