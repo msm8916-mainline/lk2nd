@@ -60,6 +60,7 @@
 #define FOUNDRY_ID_MASK           (0x00ff0000)
 #define MAX_SUPPORTED_DTBO_IMG_BUF (8388608)  /* 8MB   8 * 1024 * 1024 */
 #define DTBO_IMG_BUF               (10485760) /* 10MB 10 * 1024 * 1024 */
+#define MAX_SUPPORTED_VBMETA_IMG_BUF (65536)  /* 64 KB 64 * 1024 */
 /*
  * For DTB V1: The DTB entries would be of the format
  * qcom,msm-id = <msm8974, CDP, rev_1>; (3 * sizeof(uint32_t))
