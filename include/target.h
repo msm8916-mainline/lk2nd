@@ -28,6 +28,9 @@
 
 #define TARGET_MAX_CMDLNBUF 64
 
+/* Serial Number Length. */
+#define SERIAL_NUMBER_LEN   13
+
 /* Enum for target VB version detection */
 enum
 {

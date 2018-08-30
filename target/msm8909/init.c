@@ -438,10 +438,13 @@ void target_init(void)
 void target_serialno(unsigned char *buf)
 {
 	uint32_t serialno;
-	if (target_is_emmc_boot()) {
+	if (target_is_emmc_boot())
 		serialno = mmc_get_psn();
-		snprintf((char *)buf, 13, "%x", serialno);
-	}
+	else
+		serialno = board_chip_serial();
+
+	snprintf((char *)buf, SERIAL_NUMBER_LEN, "%x", serialno);
+
 }
 
 unsigned board_machtype(void)
