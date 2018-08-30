@@ -370,6 +370,50 @@ static void ptentry_to_tag(unsigned **ptr, struct ptentry *ptn)
 	memcpy(*ptr, &atag_ptn, sizeof(struct atag_ptbl_entry));
 	*ptr += sizeof(struct atag_ptbl_entry) / sizeof(unsigned);
 }
+#ifdef VERIFIED_BOOT_2
+void load_vbmeta_image(void **vbmeta_image_buf, uint32_t *vbmeta_image_sz)
+{
+	int index = 0;
+	char *vbm_img_buf = NULL;
+	unsigned long long ptn = 0;
+	unsigned long long ptn_size = 0;
+
+	/* Immediately return if dtbo is not supported */
+	index = partition_get_index("vbmeta");
+	ptn = partition_get_offset(index);
+	if(!ptn)
+	{
+		dprintf(CRITICAL, "ERROR: vbmeta partition not found.\n");
+		return;
+	}
+
+	ptn_size = partition_get_size(index);
+	if (ptn_size > MAX_SUPPORTED_VBMETA_IMG_BUF)
+	{
+		dprintf(CRITICAL, "ERROR: vbmeta parition size is greater than supported.\n");
+		return;
+	}
+
+	vbm_img_buf = (char *)memalign(CACHE_LINE, ROUNDUP((uint32_t)ptn_size, CACHE_LINE));
+	if (!vbm_img_buf)
+	{
+		dprintf(CRITICAL, "ERROR: vbmeta unable to locate buffer\n");
+		return;
+	}
+
+	mmc_set_lun(partition_get_lun(index));
+	if (mmc_read(ptn, (uint32_t *)vbm_img_buf, (uint32_t)ptn_size))
+	{
+		dprintf(CRITICAL, "ERROR: vbmeta read failure\n");
+		free(vbm_img_buf);
+		return;
+	}
+
+	*vbmeta_image_buf = vbm_img_buf;
+	*vbmeta_image_sz = (uint32_t)ptn_size;
+	return;
+}
+#endif
 
 #if CHECK_BAT_VOLTAGE
 void update_battery_status(void)
@@ -1409,6 +1453,8 @@ int boot_linux_from_mmc(void)
 	int status;
 	void *dtbo_image_buf = NULL;
 	uint32_t dtbo_image_sz = 0;
+	void *vbmeta_image_buf = NULL;
+	uint32_t vbmeta_image_sz = 0;
 #endif
 	char *ptn_name = NULL;
 #if DEVICE_TREE
@@ -1590,6 +1636,9 @@ int boot_linux_from_mmc(void)
 	/* load and validate dtbo partition */
 	load_validate_dtbo_image(&dtbo_image_buf, &dtbo_image_sz);
 
+	/* load vbmeta partition */
+	load_vbmeta_image(&vbmeta_image_buf, &vbmeta_image_sz);
+
 	memset(&info, 0, sizeof(bootinfo));
 
 	/* Pass loaded boot image passed */
@@ -1606,6 +1655,14 @@ int boot_linux_from_mmc(void)
 		++info.num_loaded_images;
 	}
 
+	/* Pass loaded vbmeta image */
+	if (vbmeta_image_buf != NULL) {
+		info.images[IMG_VBMETA].image_buffer = vbmeta_image_buf;
+		info.images[IMG_VBMETA].imgsize = vbmeta_image_sz;
+		info.images[IMG_VBMETA].name = "vbmeta";
+		++info.num_loaded_images;
+	}
+
 	info.multi_slot_boot = partition_multislot_is_supported();
 	info.bootreason_alarm = boot_reason_alarm;
 	info.bootinto_recovery = boot_into_recovery;
@@ -1614,6 +1671,10 @@ int boot_linux_from_mmc(void)
 		return -1;
 
 	vbcmdline = info.vbcmdline;
+
+	/* Free the buffer allocated to vbmeta post verification */
+	free(vbmeta_image_buf);
+	--info.num_loaded_images;
 #else
 	/* Change the condition a little bit to include the test framework support.
 	 * We would never reach this point if device is in fastboot mode, even if we did
