@@ -78,6 +78,7 @@ typedef struct bootinfo {
 	char *vbcmdline;
 	uint32_t vbcmdline_len;
 	uint32_t vbcmdline_filled_len;
+	uint32_t header_version;
 	void *vb_data;
 } bootinfo;
 
