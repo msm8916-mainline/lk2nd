@@ -63,13 +63,6 @@ static void *soc_dtb_hdr = NULL;
 static void *final_dtb_hdr = NULL;
 static event_t dtbo_event;
 
-typedef enum dtbo_error
-{
-	DTBO_ERROR = 0,
-	DTBO_NOT_SUPPORTED = 1,
-	DTBO_SUCCESS = 2
-}dtbo_error;
-
 dtbo_error ret = DTBO_SUCCESS;
 
 struct dt_entry_v1
@@ -170,17 +163,23 @@ static struct dt_entry_node *dt_entry_list_init(void)
  * Function to validate dtbo image.
  * return: TRUE or FALSE.
  */
-dtbo_error load_validate_dtbo_image(void **dtbo_buf)
+dtbo_error load_validate_dtbo_image(void **dtbo_buf, uint32_t *dtbo_image_sz)
 {
 	uint64_t dtbo_total_size = 0;
-	void *dtbo_image_buf = NULL;
+	static void *dtbo_image_buf = NULL;
 	unsigned int dtbo_image_buf_size;
 	unsigned int dtbo_partition_size;
-	unsigned long long ptn, ptn_size, boot_img_sz;
+	unsigned long long ptn, boot_img_sz;
 	int index = INVALID_PTN;
 	int page_size = mmc_page_size();
 	struct dtbo_table_hdr *dtbo_table_header = NULL;
 	dtbo_error ret = DTBO_SUCCESS;
+	static bool dtbo_loaded = false;
+	static unsigned long long ptn_size = 0;
+
+	/* If dtbo loaded skip loading */
+	if (dtbo_loaded)
+		goto out;
 
 	/* Immediately return if dtbo is not supported */
 	index = partition_get_index("dtbo");
@@ -199,7 +198,7 @@ dtbo_error load_validate_dtbo_image(void **dtbo_buf)
 	}
 
 	ptn_size = partition_get_size(index);
-	if (ptn_size > DTBO_IMG_BUF)
+	if (ptn_size > MAX_SUPPORTED_DTBO_IMG_BUF)
 	{
 		dprintf(CRITICAL, "ERROR: dtbo parition size is greater than supported.\n");
 		ret = DTBO_ERROR;
@@ -230,8 +229,11 @@ dtbo_error load_validate_dtbo_image(void **dtbo_buf)
 	}
 
 	mmc_set_lun(partition_get_lun(index));
-	dtbo_image_buf = target_get_scratch_address() + boot_img_sz; /* read dtbo after boot.img */
-	dtbo_image_buf = (void *)ROUND_TO_PAGE((addr_t)dtbo_image_buf, (ADDR_ALIGNMENT-1) );
+	/* read dtbo at last 10MB of scratch */
+	dtbo_image_buf = target_get_scratch_address() +
+				(target_get_max_flash_size() - DTBO_IMG_BUF);
+	dtbo_image_buf =
+		(void *)ROUND_TO_PAGE((addr_t)dtbo_image_buf, (ADDR_ALIGNMENT-1) );
 	if(dtbo_image_buf == (void *)UINT_MAX)
 	{
 		dprintf(CRITICAL, "ERROR: Invalid DTBO image buf addr\n");
@@ -310,7 +312,17 @@ dtbo_error load_validate_dtbo_image(void **dtbo_buf)
 	}
 
 out:
-	*dtbo_buf = dtbo_image_buf;
+	if (ret == DTBO_SUCCESS)
+	{
+		*dtbo_buf = dtbo_image_buf;
+		*dtbo_image_sz = (uint32_t)ptn_size;
+		dtbo_loaded = true;
+	}
+	else
+	{
+		*dtbo_buf = NULL;
+		*dtbo_image_sz = 0;
+	}
 	return ret;
 }
 
@@ -1037,9 +1049,10 @@ dtbo_error dev_tree_appended_with_dtbo(void *kernel, uint32_t kernel_size,
 					uint32_t dtb_offset, void *tags)
 {
 	void *dtbo_image_buf = NULL;
+	uint32_t dtbo_image_sz = 0;
 
 	bs_set_timestamp(BS_DTB_OVERLAY_START);
-	ret = load_validate_dtbo_image(&dtbo_image_buf);
+	ret = load_validate_dtbo_image(&dtbo_image_buf, &dtbo_image_sz);
 	if (ret == DTBO_SUCCESS)
 	{
 		final_dtb_hdr = soc_dtb = get_soc_dtb(kernel,

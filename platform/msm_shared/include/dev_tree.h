@@ -58,7 +58,8 @@
 #define PMIC_SHIFT_IDX            (2)
 #define PLATFORM_SUBTYPE_SHIFT_ID (0x18)
 #define FOUNDRY_ID_MASK           (0x00ff0000)
-#define DTBO_IMG_BUF             (8388608) /* 8MB 8 * 1024 * 1024 */
+#define MAX_SUPPORTED_DTBO_IMG_BUF (8388608)  /* 8MB   8 * 1024 * 1024 */
+#define DTBO_IMG_BUF               (10485760) /* 10MB 10 * 1024 * 1024 */
 /*
  * For DTB V1: The DTB entries would be of the format
  * qcom,msm-id = <msm8974, CDP, rev_1>; (3 * sizeof(uint32_t))
@@ -239,6 +240,14 @@ struct dtbo_table_entry {
 	uint32_t custom[DTBO_CUSTOM_MAX];    //optional, must zero if unused
 };
 
+typedef enum dtbo_error
+{
+	DTBO_ERROR = 0,
+	DTBO_NOT_SUPPORTED = 1,
+	DTBO_SUCCESS = 2
+}dtbo_error;
+
+dtbo_error load_validate_dtbo_image(void **dtbo_img, uint32_t *dtbo_img_size);
 int dev_tree_validate(struct dt_table *table, unsigned int page_size, uint32_t *dt_hdr_size);
 int dev_tree_get_entry_info(struct dt_table *table, struct dt_entry *dt_entry_info);
 int update_device_tree(void *fdt, const char *, void *, unsigned);
