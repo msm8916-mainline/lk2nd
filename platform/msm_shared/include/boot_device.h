@@ -89,9 +89,7 @@ typedef enum {
 	IMG_MAX
 } img_type;
 
-int getimage(const bootinfo *Info, void **image_buffer, uint32_t *imgsize,
-                    char *imgname);
-
+int getimage(void **image_buffer, uint32_t *imgsize, const char *imgname);
 void platform_read_boot_config();
 uint32_t platform_get_boot_dev();
 uint32_t platform_boot_dev_isemmc();

@@ -176,12 +176,12 @@ AvbIOResult AvbReadFromPartition(AvbOps *Ops, const char *Partition, int64_t Rea
 	}
 	*OutNumRead = 0;
 
-	if (!strncmp(Partition,"boot",strlen("boot"))) {
-		/* API returns previously loaded Boot Image buffer address and size */
-		get_boot_image_info(Buffer, OutNumRead, "boot");
+	if (!getimage(Buffer, OutNumRead, Partition)) {
+		/* API returns previously loaded Images buffer address and size */
+		dprintf(SPEW, "DEBUG: %s already loadded \n", Partition);
 		return AVB_IO_RESULT_OK;
 	}
-
+	dprintf(SPEW, "%s Loading image\n", Partition);
 	index = partition_get_index(Partition);
 	ptn = partition_get_offset(index);
 
