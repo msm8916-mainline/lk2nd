@@ -512,7 +512,7 @@ static EFI_STATUS load_image_and_authVB2(bootinfo *Info)
 	Info->vb_data = (VOID *)VBData;
 
 	ImageHdrSize = get_page_size();
-	GUARD_OUT(getimage(Info, &image_buffer, &imgsize,(!Info->multi_slot_boot && Info->bootinto_recovery) ? "recovery" : "boot") );
+	GUARD_OUT(getimage(&image_buffer, &imgsize,(!Info->multi_slot_boot && Info->bootinto_recovery) ? "recovery" : "boot") );
 
 	Status = check_img_header(image_buffer, ImageHdrSize, &imgsizeActual);
 	if (Status != EFI_SUCCESS) {
