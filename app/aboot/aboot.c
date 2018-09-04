@@ -248,6 +248,9 @@ bool boot_into_fastboot = false;
 static uint32_t dt_size = 0;
 static char *vbcmdline;
 static bootinfo info = {0};
+static void *recovery_dtbo_buf = NULL;
+static uint32_t recovery_dtbo_size = 0;
+
 /* Assuming unauthorized kernel image by default */
 static int auth_kernel_img = 0;
 static device_info device = {DEVICE_MAGIC,0,0,0,0,{0},{0},{0},1,{0},0,{0}};
@@ -345,7 +348,7 @@ extern int emmc_recovery_init(void);
 extern int fastboot_trigger(void);
 #endif
 
-static void update_ker_tags_rdisk_addr(struct boot_img_hdr *hdr, bool is_arm64)
+static void update_ker_tags_rdisk_addr(boot_img_hdr *hdr, bool is_arm64)
 {
 	/* overwrite the destination of specified for the project */
 #ifdef ABOOT_IGNORE_BOOT_HEADER_ADDRS
@@ -1425,10 +1428,18 @@ void boot_verifier_init()
 	}
 }
 
+/* Function to return recovery appended dtbo buffer info */
+void get_recovery_dtbo_info(uint32_t *dtbo_size, void **dtbo_buf)
+{
+	*dtbo_size = recovery_dtbo_size;
+	*dtbo_buf = recovery_dtbo_buf;
+	return;
+}
+
 int boot_linux_from_mmc(void)
 {
-	struct boot_img_hdr *hdr = (void*) buf;
-	struct boot_img_hdr *uhdr;
+	boot_img_hdr *hdr = (void*) buf;
+	boot_img_hdr *uhdr;
 	unsigned offset = 0;
 	int rcode;
 	unsigned long long ptn = 0;
@@ -1448,6 +1459,7 @@ int boot_linux_from_mmc(void)
 	unsigned char *kernel_start_addr = NULL;
 	unsigned int kernel_size = 0;
 	unsigned int patched_kernel_hdr_size = 0;
+	uint64_t image_size = 0;
 	int rc;
 #if VERIFIED_BOOT_2
 	int status;
@@ -1482,7 +1494,7 @@ int boot_linux_from_mmc(void)
 			boot_into_ffbm = true;
 	} else
 		boot_into_ffbm = false;
-	uhdr = (struct boot_img_hdr *)EMMC_BOOT_IMG_HEADER_ADDR;
+	uhdr = (boot_img_hdr *)EMMC_BOOT_IMG_HEADER_ADDR;
 	if (!memcmp(uhdr->magic, BOOT_MAGIC, BOOT_MAGIC_SIZE)) {
 		dprintf(INFO, "Unified boot method!\n");
 		hdr = uhdr;
@@ -1499,7 +1511,8 @@ int boot_linux_from_mmc(void)
 
 	index = partition_get_index(ptn_name);
 	ptn = partition_get_offset(index);
-	if(ptn == 0) {
+	image_size = partition_get_size(index);
+	if(ptn == 0 || image_size == 0) {
 		dprintf(CRITICAL, "ERROR: No %s partition found\n", ptn_name);
 		return -1;
 	}
@@ -1541,6 +1554,8 @@ int boot_linux_from_mmc(void)
 #ifndef OSVERSION_IN_BOOTIMAGE
 	dt_size = hdr->dt_size;
 #endif
+	dprintf(INFO, "BootImage Header: %d\n", hdr->header_version);
+
 	dt_actual = ROUND_TO_PAGE(dt_size, page_mask);
 	if (UINT_MAX < ((uint64_t)kernel_actual + (uint64_t)ramdisk_actual+ (uint64_t)second_actual + (uint64_t)dt_actual + page_size)) {
 		dprintf(CRITICAL, "Integer overflow detected in bootimage header fields at %u in %s\n",__LINE__,__FILE__);
@@ -1553,6 +1568,63 @@ int boot_linux_from_mmc(void)
 		return -1;
 	}
 	imagesize_actual = (page_size + kernel_actual + ramdisk_actual + second_actual);
+#endif
+
+#ifdef OSVERSION_IN_BOOTIMAGE
+	/* If header version is ONE and booting into recovery,
+		dtbo is appended with recovery image.
+		Doing following:
+			* Validating the recovery offset and size.
+			* Extracting recovery dtbo to be used as dtbo.
+	*/
+	if (boot_into_recovery &&
+		hdr->header_version == BOOT_HEADER_VERSION_ONE)
+	{
+		struct boot_img_hdr_v1 *hdr1 =
+			(struct boot_img_hdr_v1 *) (image_addr + sizeof(boot_img_hdr));
+
+		if ((hdr1->header_size !=
+				sizeof(struct boot_img_hdr_v1) + sizeof(boot_img_hdr)))
+		{
+			dprintf(CRITICAL, "Invalid boot image header: %d\n", hdr1->header_size);
+			return -1;
+		}
+
+		if (UINT_MAX < (hdr1->recovery_dtbo_offset + hdr1->recovery_dtbo_size)) {
+			dprintf(CRITICAL,
+				"Integer overflow detected in recovery image header fields at %u in %s\n",__LINE__,__FILE__);
+			return -1;
+		}
+
+		if (hdr1->recovery_dtbo_size > MAX_SUPPORTED_DTBO_IMG_BUF) {
+			dprintf(CRITICAL, "Recovery Dtbo Size too big %x, Allowed size %x\n", hdr1->recovery_dtbo_size,
+				MAX_SUPPORTED_DTBO_IMG_BUF);
+			return -1;
+		}
+
+		if (UINT_MAX < ((uint64_t)imagesize_actual + recovery_dtbo_size))
+		{
+			dprintf(CRITICAL, "Integer overflow detected in recoveryimage header fields at %u in %s\n",__LINE__,__FILE__);
+			return -1;
+		}
+
+		if (hdr1->recovery_dtbo_offset + recovery_dtbo_size > image_size)
+		{
+			dprintf(CRITICAL, "Invalid recovery dtbo: Recovery Dtbo Offset=0x%llx,"
+				" Recovery Dtbo Size=0x%x, Image Size=0x%llx\n",
+				hdr1->recovery_dtbo_offset, recovery_dtbo_size, image_size);
+			return -1;
+		}
+
+		recovery_dtbo_buf = (void *)(hdr1->recovery_dtbo_offset + image_addr);
+		recovery_dtbo_size = hdr1->recovery_dtbo_size;
+		imagesize_actual += recovery_dtbo_size;
+
+		dprintf(SPEW, "Header version: %d\n", hdr->header_version);
+		dprintf(SPEW, "Recovery Dtbo Size 0x%x\n", recovery_dtbo_size);
+		dprintf(SPEW, "Recovery Dtbo Offset 0x%llx\n", hdr1->recovery_dtbo_offset);
+
+	}
 #endif
 
 #if VERIFIED_BOOT
@@ -1663,6 +1735,7 @@ int boot_linux_from_mmc(void)
 		++info.num_loaded_images;
 	}
 
+	info.header_version = hdr->header_version;
 	info.multi_slot_boot = partition_multislot_is_supported();
 	info.bootreason_alarm = boot_reason_alarm;
 	info.bootinto_recovery = boot_into_recovery;
@@ -1943,7 +2016,7 @@ unified_boot:
 
 int boot_linux_from_flash(void)
 {
-	struct boot_img_hdr *hdr = (void*) buf;
+	boot_img_hdr *hdr = (void*) buf;
 	struct ptentry *ptn;
 	struct ptable *ptable;
 	unsigned offset = 0;
@@ -1966,7 +2039,7 @@ int boot_linux_from_flash(void)
 #endif
 
 	if (target_is_emmc_boot()) {
-		hdr = (struct boot_img_hdr *)EMMC_BOOT_IMG_HEADER_ADDR;
+		hdr = (boot_img_hdr *)EMMC_BOOT_IMG_HEADER_ADDR;
 		if (memcmp(hdr->magic, BOOT_MAGIC, BOOT_MAGIC_SIZE)) {
 			dprintf(CRITICAL, "ERROR: Invalid boot image header\n");
 			return -1;
@@ -2751,7 +2824,7 @@ int copy_dtb(uint8_t *boot_image_start, unsigned int scratch_offset)
 	unsigned char *best_match_dt_addr = NULL;
 	int rc;
 
-	struct boot_img_hdr *hdr = (struct boot_img_hdr *) (boot_image_start);
+	boot_img_hdr *hdr = (boot_img_hdr *) (boot_image_start);
 
 #ifndef OSVERSION_IN_BOOTIMAGE
 	dt_size = hdr->dt_size;
@@ -2839,7 +2912,7 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	unsigned second_actual;
 	uint32_t image_actual;
 	uint32_t dt_actual = 0;
-	struct boot_img_hdr *hdr = NULL;
+	boot_img_hdr *hdr = NULL;
 	struct kernel64_hdr *kptr = NULL;
 	char *ptr = ((char*) data);
 	int ret = 0;
@@ -2877,7 +2950,7 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 		goto boot_failed;
 	}
 
-	hdr = (struct boot_img_hdr *)data;
+	hdr = (boot_img_hdr *)data;
 
 	/* ensure commandline is terminated */
 	hdr->cmdline[BOOT_ARGS_SIZE-1] = 0;
