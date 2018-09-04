@@ -1175,20 +1175,20 @@ int check_ddr_addr_range_bound(uintptr_t start, uint32_t size)
 
 BUF_DMA_ALIGN(buf, BOOT_IMG_MAX_PAGE_SIZE); //Equal to max-supported pagesize
 
-int getimage(const bootinfo *info, void **image_buffer, uint32_t *imgsize,
-                    char *imgname)
+int getimage(void **image_buffer, uint32_t *imgsize,
+                    const char *imgname)
 {
-	if (info == NULL || image_buffer == NULL || imgsize == NULL ||
+	uint32_t loadedindex;
+	if (image_buffer == NULL || imgsize == NULL ||
 	    imgname == NULL) {
 		dprintf(CRITICAL, "getimage: invalid parameters\n");
 		return -1;
 	}
-
-	for (uint32_t loadedindex = 0; loadedindex < info->num_loaded_images; loadedindex++) {
-		if (!strncmp(info->images[loadedindex].name, imgname,
+	for (loadedindex = 0; loadedindex < info.num_loaded_images; loadedindex++) {
+		if (!strncmp(info.images[loadedindex].name, imgname,
 		                  strlen(imgname))) {
-			*image_buffer = info->images[loadedindex].image_buffer;
-			*imgsize = info->images[loadedindex].imgsize;
+			*image_buffer = info.images[loadedindex].image_buffer;
+			*imgsize = info.images[loadedindex].imgsize;
 			return 0;
 		}
 	}
@@ -1307,22 +1307,6 @@ static void verify_signed_bootimg(uint32_t bootimg_addr, uint32_t bootimg_size)
 	#endif
 	}
 #endif
-}
-
-int get_boot_image_info(void **image_buffer, uint32_t *imgsize,char *imgname)
-{
-    if (image_buffer == NULL || imgsize == NULL || imgname == NULL) {
-        dprintf(CRITICAL, "get_boot_image_info: invalid parameters\n");
-        return -1;
-    }
-
-    if (!strncmp(info.images[0].name, imgname,
-                strlen(imgname))) {
-        *image_buffer = info.images[0].image_buffer;
-        *imgsize = info.images[0].imgsize;
-        return 0;
-    }
-    return -1;
 }
 
 static bool check_format_bit()
