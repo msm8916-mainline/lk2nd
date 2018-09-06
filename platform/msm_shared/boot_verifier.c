@@ -421,7 +421,7 @@ static void boot_verify_send_boot_state(km_boot_state_t *boot_state)
 		ASSERT(0);
 	}
 
-	if (version_rsp.major_version > 0x2)
+	if (version_rsp.major_version >= 0x2)
 	{
 		bs_req = malloc(sizeof(km_set_boot_state_req_t) + sizeof(km_boot_state_t));
 		ASSERT(bs_req);
