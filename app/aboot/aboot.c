@@ -1189,6 +1189,9 @@ int getimage(void **image_buffer, uint32_t *imgsize,
 		                  strlen(imgname))) {
 			*image_buffer = info.images[loadedindex].image_buffer;
 			*imgsize = info.images[loadedindex].imgsize;
+			dprintf(SPEW, "getimage(): Loaded image [%s|%d]\n",
+						info.images[loadedindex].name,
+						info.images[loadedindex].imgsize);
 			return 0;
 		}
 	}
@@ -1404,6 +1407,8 @@ int boot_linux_from_mmc(void)
 	int rc;
 #if VERIFIED_BOOT_2
 	int status;
+	void *dtbo_image_buf = NULL;
+	uint32_t dtbo_image_sz = 0;
 #endif
 	char *ptn_name = NULL;
 #if DEVICE_TREE
@@ -1582,11 +1587,25 @@ int boot_linux_from_mmc(void)
 		return -1;
 	}
 
+	/* load and validate dtbo partition */
+	load_validate_dtbo_image(&dtbo_image_buf, &dtbo_image_sz);
+
 	memset(&info, 0, sizeof(bootinfo));
-	info.images[0].image_buffer = image_addr;
-	info.images[0].imgsize = imagesize_actual;
-	info.images[0].name = "boot";
-	info.num_loaded_images = 0;
+
+	/* Pass loaded boot image passed */
+	info.images[IMG_BOOT].image_buffer = image_addr;
+	info.images[IMG_BOOT].imgsize = imagesize_actual;
+	info.images[IMG_BOOT].name = ptn_name;
+	++info.num_loaded_images;
+
+	/* Pass loaded dtbo image */
+	if (dtbo_image_buf != NULL) {
+		info.images[IMG_DTBO].image_buffer = dtbo_image_buf;
+		info.images[IMG_DTBO].imgsize = dtbo_image_sz;
+		info.images[IMG_DTBO].name = "dtbo";
+		++info.num_loaded_images;
+	}
+
 	info.multi_slot_boot = partition_multislot_is_supported();
 	info.bootreason_alarm = boot_reason_alarm;
 	info.bootinto_recovery = boot_into_recovery;
@@ -1677,6 +1696,10 @@ int boot_linux_from_mmc(void)
 	{
 		out_addr = (unsigned char *)(image_addr + imagesize_actual + page_size);
 		out_avai_len = target_get_max_flash_size() - imagesize_actual - page_size;
+#if VERIFIED_BOOT_2
+		if (dtbo_image_sz)
+			out_avai_len -= DTBO_IMG_BUF;
+#endif
 		dprintf(INFO, "decompressing kernel image: start\n");
 		rc = decompress((unsigned char *)(image_addr + page_size),
 				hdr->kernel_size, out_addr, out_avai_len,
