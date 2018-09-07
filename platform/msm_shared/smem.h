@@ -473,7 +473,8 @@ enum {
 	SDM429 = 354,
 	SDM439 = 353,
 	SDA429 = 364,
-	SDA439 = 363
+	SDA439 = 363,
+	QM215 = 386
 };
 
 enum platform {
