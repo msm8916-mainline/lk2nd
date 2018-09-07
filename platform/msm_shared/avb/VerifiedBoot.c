@@ -46,6 +46,7 @@
 #define INTERMEDIATE_DIGEST_LENGTH	64
 #define MAX_PART_NAME_SIZE		10
 #define MAX_NUM_REQ_PARTITION	8
+#define BOOT_HEADER_VERSION_ZERO	0
 
 char *avb_verify_partition_name[] = {
 	"boot",
@@ -372,6 +373,7 @@ static EFI_STATUS load_image_and_authVB2(bootinfo *Info)
 	CHAR8 *RequestedPartitionAll[MAX_NUM_REQ_PARTITION] = {NULL};
 	const CHAR8 **RequestedPartition = NULL;
 	UINTN NumRequestedPartition = 0;
+	UINT32 HeaderVersion = 0;
 	UINT32 ImageHdrSize = 0;
 	UINT32 imgsizeActual = 0;
 	VOID *image_buffer = NULL;
@@ -382,6 +384,7 @@ static EFI_STATUS load_image_and_authVB2(bootinfo *Info)
 	AvbHashtreeErrorMode VerityFlags = AVB_HASHTREE_ERROR_MODE_RESTART_AND_INVALIDATE;
 	device_info DevInfo_vb;
 
+	HeaderVersion = Info->header_version;
 	Info->boot_state = RED;
 	GUARD(VBCommonInit(Info));
 
@@ -416,15 +419,19 @@ static EFI_STATUS load_image_and_authVB2(bootinfo *Info)
 	if(!Info->multi_slot_boot && Info->bootinto_recovery) {
 		AddRequestedPartition(RequestedPartitionAll, IMG_RECOVERY);
 		NumRequestedPartition += 1;
+		/* Add dtbo validation if target supports dtbo image generation and
+		dtbo is not included in recovery i.e. HEADER VERSION is 0 */
+		if (is_target_support_dtbo() && HeaderVersion == BOOT_HEADER_VERSION_ZERO) {
+			AddRequestedPartition(RequestedPartitionAll, IMG_DTBO);
+			NumRequestedPartition += 1;
+		}
 	} else {
 		AddRequestedPartition(RequestedPartitionAll, IMG_BOOT);
 		NumRequestedPartition += 1;
-	}
-
-	/* Remove dtbo validation if target does not support dtbo image generation*/
-	if (is_target_support_dtbo()) {
-		AddRequestedPartition(RequestedPartitionAll, IMG_DTBO);
-		NumRequestedPartition += 1;
+		if (is_target_support_dtbo()) {
+			AddRequestedPartition(RequestedPartitionAll, IMG_DTBO);
+			NumRequestedPartition += 1;
+		}
 	}
 
 	RequestedPartition = (const CHAR8 **)RequestedPartitionAll;
