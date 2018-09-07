@@ -782,11 +782,11 @@ KEYSTORE *boot_gerity_get_oem_keystore()
 #if OSVERSION_IN_BOOTIMAGE
 void set_os_version(unsigned char* img_addr)
 {
-	struct boot_img_hdr *img_hdr = NULL;
+	boot_img_hdr *img_hdr = NULL;
 
 	/* Extract the os version and patch level */
 	if (img_addr) {
-		img_hdr = (struct boot_img_hdr *)img_addr;
+		img_hdr = (boot_img_hdr *)img_addr;
 		boot_state_info.system_version = (img_hdr->os_version & 0xFFFFF800) >> 11;
 		boot_state_info.system_security_level = (img_hdr->os_version & 0x7FF);
 	} else {
