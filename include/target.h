@@ -105,6 +105,7 @@ struct qmp_reg *target_get_qmp_settings();
 int target_get_qmp_regsize();
 uint32_t target_ddr_cfg_reg();
 
+bool is_target_support_dtbo(void);
 bool target_is_pmi_enabled(void);
 #if PON_VIB_SUPPORT
 void get_vibration_type();

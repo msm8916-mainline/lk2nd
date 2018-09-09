@@ -127,6 +127,10 @@ ifeq ($(VERIFIED_BOOT_2),1)
   DEFINES += _SIGNED_KERNEL=1
 endif
 
+ifeq ($(TARGET_DTBO_NOT_SUPPORTED),1)
+  DEFINES += TARGET_DTBO_NOT_SUPPORTED=1
+endif
+
 ifeq ($(OSVERSION_IN_BOOTIMAGE),1)
  DEFINES += OSVERSION_IN_BOOTIMAGE=1
 endif
@@ -210,6 +214,13 @@ DEFINES += \
 	PLATFORM_$(PLATFORM)=1 \
 	ARCH_$(ARCH)=1 \
 	$(addsuffix =1,$(addprefix WITH_,$(ALLMODULES)))
+
+# Add MEMRWOFF as . for targets this is not declared.
+# . will be replaced as string in linker file.
+ifeq ($(MEMRWOFF),)
+MEMRWOFF:= .
+DEFINES += MEMRWOFF=$(MEMRWOFF)
+endif
 
 # debug build?
 ifneq ($(DEBUG),)

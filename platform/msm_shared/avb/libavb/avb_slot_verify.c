@@ -158,19 +158,16 @@ static AvbSlotVerifyResult load_and_verify_hash_partition(
     }
   }
 
-  image_buf = (uint8_t *)target_get_scratch_address()+0x02000000;
+  if (!strncmp(part_name, "boot", strlen("boot"))) {
+      image_size = hash_desc.image_size;
+  }
+
+  io_ret = ops->read_from_partition(
+            ops, part_name, 0 /* offset */, image_size, &image_buf, &part_num_read);
+
   if (image_buf == NULL) {
     ret = AVB_SLOT_VERIFY_RESULT_ERROR_OOM;
     goto out;
-  }
-
-  if (!strncmp(part_name, "boot", strlen("boot"))) {
-      image_size = hash_desc.image_size;
-      io_ret = ops->read_from_partition(
-              ops, part_name, 0 /* offset */, image_size, &image_buf, &part_num_read);
-  }  else {
-      io_ret = ops->read_from_partition(
-              ops, part_name, 0 /* offset */, image_size, image_buf, &part_num_read);
   }
   if (io_ret == AVB_IO_RESULT_ERROR_OOM) {
     ret = AVB_SLOT_VERIFY_RESULT_ERROR_OOM;
@@ -180,7 +177,7 @@ static AvbSlotVerifyResult load_and_verify_hash_partition(
     ret = AVB_SLOT_VERIFY_RESULT_ERROR_IO;
     goto out;
   }
-  if (part_num_read != image_size) {
+  if (part_num_read < image_size) {
     avb_errorv(part_name, ": Read fewer than requested bytes.\n", NULL);
     ret = AVB_SLOT_VERIFY_RESULT_ERROR_IO;
     goto out;
@@ -470,18 +467,17 @@ static AvbSlotVerifyResult load_and_verify_vbmeta(
     vbmeta_size = footer.vbmeta_size;
   }
 
-  vbmeta_buf = (uint8_t *)target_get_scratch_address() + 0x06000000;
+  io_ret = ops->read_from_partition(ops,
+                                    full_partition_name,
+                                    vbmeta_offset,
+                                    vbmeta_size,
+                                    &vbmeta_buf,
+                                    &vbmeta_num_read);
   if (vbmeta_buf == NULL) {
     ret = AVB_SLOT_VERIFY_RESULT_ERROR_OOM;
     goto out;
   }
 
-  io_ret = ops->read_from_partition(ops,
-                                    full_partition_name,
-                                    vbmeta_offset,
-                                    vbmeta_size,
-                                    vbmeta_buf,
-                                    &vbmeta_num_read);
   if (io_ret == AVB_IO_RESULT_ERROR_OOM) {
     ret = AVB_SLOT_VERIFY_RESULT_ERROR_OOM;
     goto out;

@@ -37,6 +37,9 @@ SECTIONS
 	.init : { *(.init) } =0x9090
 	.plt : { *(.plt) }
 
+
+	/* Use read/write memory offset for everything except code section */
+	. = %MEMRWOFF% ;
 	.rodata : { 
 		*(.rodata .rodata.* .gnu.linkonce.r.*)
 		. = ALIGN(4);

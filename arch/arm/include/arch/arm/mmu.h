@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008 Travis Geiselbrecht
  *
- * Copyright (c) 2015, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2015,2018 The Linux Foundation. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -49,6 +49,7 @@ void arm_mmu_init(void);
 #define MMU_MEMORY_AP_NO_ACCESS     (0x0 << 10)
 #define MMU_MEMORY_AP_READ_ONLY     (0x7 << 10)
 #define MMU_MEMORY_AP_READ_WRITE    (0x3 << 10)
+#define MMU_MEMORY_APX_READ_ONLY    (0x1 << 15)
 
 #define MMU_MEMORY_XN               (0x1 << 4)
 #else /* LPAE */

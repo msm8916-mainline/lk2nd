@@ -78,12 +78,19 @@ typedef struct bootinfo {
 	char *vbcmdline;
 	uint32_t vbcmdline_len;
 	uint32_t vbcmdline_filled_len;
+	uint32_t header_version;
 	void *vb_data;
 } bootinfo;
 
-int getimage(const bootinfo *Info, void **image_buffer, uint32_t *imgsize,
-                    char *imgname);
+typedef enum {
+	IMG_BOOT = 0,
+	IMG_DTBO,
+	IMG_VBMETA,
+	IMG_RECOVERY,
+	IMG_MAX
+} img_type;
 
+int getimage(void **image_buffer, uint32_t *imgsize, const char *imgname);
 void platform_read_boot_config();
 uint32_t platform_get_boot_dev();
 uint32_t platform_boot_dev_isemmc();

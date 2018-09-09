@@ -63,13 +63,6 @@ static void *soc_dtb_hdr = NULL;
 static void *final_dtb_hdr = NULL;
 static event_t dtbo_event;
 
-typedef enum dtbo_error
-{
-	DTBO_ERROR = 0,
-	DTBO_NOT_SUPPORTED = 1,
-	DTBO_SUCCESS = 2
-}dtbo_error;
-
 dtbo_error ret = DTBO_SUCCESS;
 
 struct dt_entry_v1
@@ -108,6 +101,12 @@ static int update_fstab_node(void *fdt);
  * against all the other regions as well.
  */
 extern int check_aboot_addr_range_overlap(uintptr_t start, uint32_t size);
+
+static int dtbo_idx = INVALID_PTN;
+int get_dtbo_idx (void)
+{
+   return dtbo_idx;
+}
 
 int fdt_check_header_ext(const void *fdt)
 {
@@ -164,81 +163,103 @@ static struct dt_entry_node *dt_entry_list_init(void)
  * Function to validate dtbo image.
  * return: TRUE or FALSE.
  */
-dtbo_error load_validate_dtbo_image(void **dtbo_buf)
+dtbo_error load_validate_dtbo_image(void **dtbo_buf, uint32_t *dtbo_image_sz)
 {
 	uint64_t dtbo_total_size = 0;
-	void *dtbo_image_buf = NULL;
+	static void *dtbo_image_buf = NULL;
 	unsigned int dtbo_image_buf_size;
 	unsigned int dtbo_partition_size;
-	unsigned long long ptn, ptn_size, boot_img_sz;
+	unsigned long long ptn, boot_img_sz;
 	int index = INVALID_PTN;
 	int page_size = mmc_page_size();
 	struct dtbo_table_hdr *dtbo_table_header = NULL;
 	dtbo_error ret = DTBO_SUCCESS;
+	static bool dtbo_loaded = false;
+	static unsigned long long ptn_size = 0;
+	uint32_t recovery_dtbo_size = 0;
+	void *recovery_appended_dtbo = NULL;
 
-	/* Immediately return if dtbo is not supported */
-	index = partition_get_index("dtbo");
-	if (index == INVALID_PTN)
-	{
-		ret = DTBO_NOT_SUPPORTED;
+	/* If dtbo loaded skip loading */
+	if (dtbo_loaded)
 		goto out;
-	}
 
-	ptn = partition_get_offset(index);
-	if(!ptn)
-	{
-		dprintf(CRITICAL, "ERROR: dtbo parition failed to get offset. \n");
-		ret = DTBO_ERROR;
-		goto out;
-	}
+	get_recovery_dtbo_info(&recovery_dtbo_size, &recovery_appended_dtbo);
 
-	ptn_size = partition_get_size(index);
-	if (ptn_size > DTBO_IMG_BUF)
-	{
-		dprintf(CRITICAL, "ERROR: dtbo parition size is greater than supported.\n");
-		ret = DTBO_ERROR;
-		goto out;
-	}
+	/* Intialize dtbo for recovery header v1 */
+	if (recovery_dtbo_size && recovery_appended_dtbo) {
+		dtbo_image_buf = recovery_appended_dtbo;
+		dtbo_partition_size = recovery_dtbo_size;
+		ptn_size = recovery_dtbo_size;
+	} else {
+		index = partition_get_index("dtbo");
 
-/*
-	Read dtbo image into scratch region after kernel image.
-	dtbo_image_buf_size = total_scratch_region_size - boot_img_sz
-*/
-	boot_img_sz = partition_get_size(partition_get_index("boot"));
-	if (!boot_img_sz)
-	{
-		dprintf(CRITICAL, "ERROR: Unable to get boot partition size\n");
-		ret = DTBO_NOT_SUPPORTED;
-		goto out;
-	}
 
-	dtbo_image_buf_size = target_get_max_flash_size() - boot_img_sz;
-	dtbo_partition_size = ptn_size + ADDR_ALIGNMENT;
-	dtbo_partition_size = ROUND_TO_PAGE(dtbo_partition_size, (page_size - 1)); /* Maximum dtbo size possible */
-	if (dtbo_partition_size == UINT_MAX ||
-		dtbo_image_buf_size < dtbo_partition_size)
-	{
-		dprintf(CRITICAL, "ERROR: Invalid DTBO partition size\n");
-		ret = DTBO_NOT_SUPPORTED;
-		goto out;
-	}
+		/* Immediately return if dtbo is not supported */
+		if (index == INVALID_PTN)
+		{
+			ret = DTBO_NOT_SUPPORTED;
+			goto out;
+		}
 
-	mmc_set_lun(partition_get_lun(index));
-	dtbo_image_buf = target_get_scratch_address() + boot_img_sz; /* read dtbo after boot.img */
-	dtbo_image_buf = (void *)ROUND_TO_PAGE((addr_t)dtbo_image_buf, (ADDR_ALIGNMENT-1) );
-	if(dtbo_image_buf == (void *)UINT_MAX)
-	{
-		dprintf(CRITICAL, "ERROR: Invalid DTBO image buf addr\n");
-		ret = DTBO_NOT_SUPPORTED;
-		goto out;
-	}
+		ptn = partition_get_offset(index);
+		if(!ptn)
+		{
+			dprintf(CRITICAL, "ERROR: dtbo parition failed to get offset. \n");
+			ret = DTBO_ERROR;
+			goto out;
+		}
 
-	/* Read dtbo partition with header */
-	if (mmc_read(ptn, (uint32_t *)(dtbo_image_buf), dtbo_partition_size))
-	{
-		dprintf(CRITICAL, "ERROR: dtbo partition mmc read failure \n");
-		ret = DTBO_ERROR;
-		goto out;
+		ptn_size = partition_get_size(index);
+		if (ptn_size > MAX_SUPPORTED_DTBO_IMG_BUF)
+		{
+			dprintf(CRITICAL, "ERROR: dtbo parition size is greater than supported.\n");
+			ret = DTBO_ERROR;
+			goto out;
+		}
+
+		/*
+		Read dtbo image into scratch region after kernel image.
+		dtbo_image_buf_size = total_scratch_region_size - boot_img_sz
+		*/
+		boot_img_sz = partition_get_size(partition_get_index("boot"));
+		if (!boot_img_sz)
+		{
+			dprintf(CRITICAL, "ERROR: Unable to get boot partition size\n");
+			ret = DTBO_NOT_SUPPORTED;
+			goto out;
+		}
+
+		dtbo_image_buf_size = target_get_max_flash_size() - boot_img_sz;
+		dtbo_partition_size = ptn_size + ADDR_ALIGNMENT;
+		dtbo_partition_size = ROUND_TO_PAGE(dtbo_partition_size, (page_size - 1)); /* Maximum dtbo size possible */
+		if (dtbo_partition_size == UINT_MAX ||
+			dtbo_image_buf_size < dtbo_partition_size)
+		{
+			dprintf(CRITICAL, "ERROR: Invalid DTBO partition size\n");
+			ret = DTBO_NOT_SUPPORTED;
+			goto out;
+		}
+
+		mmc_set_lun(partition_get_lun(index));
+		/* read dtbo at last 10MB of scratch */
+		dtbo_image_buf = target_get_scratch_address() +
+					(target_get_max_flash_size() - DTBO_IMG_BUF);
+		dtbo_image_buf =
+			(void *)ROUND_TO_PAGE((addr_t)dtbo_image_buf, (ADDR_ALIGNMENT-1) );
+		if(dtbo_image_buf == (void *)UINT_MAX)
+		{
+			dprintf(CRITICAL, "ERROR: Invalid DTBO image buf addr\n");
+			ret = DTBO_NOT_SUPPORTED;
+			goto out;
+		}
+
+		/* Read dtbo partition with header */
+		if (mmc_read(ptn, (uint32_t *)(dtbo_image_buf), dtbo_partition_size))
+		{
+			dprintf(CRITICAL, "ERROR: dtbo partition mmc read failure \n");
+			ret = DTBO_ERROR;
+			goto out;
+		}
 	}
 
 	/* validate the dtbo image, before reading complete image */
@@ -304,7 +325,17 @@ dtbo_error load_validate_dtbo_image(void **dtbo_buf)
 	}
 
 out:
-	*dtbo_buf = dtbo_image_buf;
+	if (ret == DTBO_SUCCESS)
+	{
+		*dtbo_buf = dtbo_image_buf;
+		*dtbo_image_sz = (uint32_t)ptn_size;
+		dtbo_loaded = true;
+	}
+	else
+	{
+		*dtbo_buf = NULL;
+		*dtbo_image_sz = 0;
+	}
 	return ret;
 }
 
@@ -332,7 +363,7 @@ static bool check_all_bits_set(uint32_t matchdt_value)
   |     |               | PmicVariantRev  | N     | Y    | N       |
 */
 
-static void dtb_read_find_match(dt_info *current_dtb_info, dt_info *best_dtb_info, uint32_t exact_match)
+static boolean dtb_read_find_match(dt_info *current_dtb_info, dt_info *best_dtb_info, uint32_t exact_match)
 {
 	int board_id_len;
 	int platform_id_len = 0;
@@ -343,12 +374,13 @@ static void dtb_read_find_match(dt_info *current_dtb_info, dt_info *best_dtb_inf
 	const char *platform_prop = NULL;
 	const char *board_prop = NULL;
 	const char *pmic_prop = NULL;
+	boolean find_best_match = false;
 
 	current_dtb_info->dt_match_val = 0;
 	root_offset = fdt_path_offset(dtb, "/");
 	if (root_offset < 0) {
 		dprintf(CRITICAL, "ERROR: Unable to locate root node\n");
-		return;
+		return false;
 	}
 
 	/* Get the msm-id prop from DTB and find best match */
@@ -547,9 +579,11 @@ static void dtb_read_find_match(dt_info *current_dtb_info, dt_info *best_dtb_inf
 
 cleanup:
 	if (current_dtb_info->dt_match_val & BIT(exact_match)) {
-		if (best_dtb_info->dt_match_val < current_dtb_info->dt_match_val)
+		if (best_dtb_info->dt_match_val < current_dtb_info->dt_match_val) {
 			memscpy(best_dtb_info, sizeof(dt_info), current_dtb_info, sizeof(dt_info));
-		else if (best_dtb_info->dt_match_val == current_dtb_info->dt_match_val) {
+			find_best_match = true;
+		} else if (best_dtb_info->dt_match_val == current_dtb_info->dt_match_val) {
+			find_best_match = true;
 			if (best_dtb_info->dt_soc_rev < current_dtb_info->dt_soc_rev)
 				memscpy(best_dtb_info, sizeof(dt_info), current_dtb_info, sizeof(dt_info));
 			else if (best_dtb_info->dt_variant_major < current_dtb_info->dt_variant_major)
@@ -564,8 +598,12 @@ cleanup:
 				memscpy(best_dtb_info, sizeof(dt_info), current_dtb_info, sizeof(dt_info));
 			else if (best_dtb_info->dt_pmic_rev[3] < current_dtb_info->dt_pmic_rev[3])
 				memscpy(best_dtb_info, sizeof(dt_info), current_dtb_info, sizeof(dt_info));
+			else
+				find_best_match = false;
 		}
 	}
+
+	return find_best_match;
 }
 
 void *get_soc_dtb(void *kernel, uint32_t kernel_size, uint32_t dtb_offset)
@@ -628,6 +666,7 @@ void *get_board_dtb(void *dtbo_image_buf)
 	uint32_t dtb_size = 0;
 	dt_info cur_dtb_info = {0};
 	dt_info best_dtb_info = {0};
+	boolean find_best_dtb = false;
 
 	if (!dtbo_image_buf) {
 		dprintf(CRITICAL, "dtbo image buffer is NULL\n");
@@ -656,9 +695,13 @@ void *get_board_dtb(void *dtbo_image_buf)
 		}
 		dprintf(SPEW, "Valid board dtb is found\n");
 		cur_dtb_info.dtb = board_dtb;
-		dtb_read_find_match(&cur_dtb_info, &best_dtb_info, VARIANT_MATCH);
+		find_best_dtb = dtb_read_find_match(&cur_dtb_info, &best_dtb_info, VARIANT_MATCH);
 		dprintf(SPEW, "dtbo count = %u local_board_dt_match =%x\n",dtbo_count, cur_dtb_info.dt_match_val);
 		dtb_table_entry++;
+
+		if (find_best_dtb) {
+			dtbo_idx = dtbo_count;
+		}
 	}
 	if (!best_dtb_info.dtb) {
 		dprintf(CRITICAL, "Unable to find the board dtb\n");
@@ -1019,9 +1062,10 @@ dtbo_error dev_tree_appended_with_dtbo(void *kernel, uint32_t kernel_size,
 					uint32_t dtb_offset, void *tags)
 {
 	void *dtbo_image_buf = NULL;
+	uint32_t dtbo_image_sz = 0;
 
 	bs_set_timestamp(BS_DTB_OVERLAY_START);
-	ret = load_validate_dtbo_image(&dtbo_image_buf);
+	ret = load_validate_dtbo_image(&dtbo_image_buf, &dtbo_image_sz);
 	if (ret == DTBO_SUCCESS)
 	{
 		final_dtb_hdr = soc_dtb = get_soc_dtb(kernel,
