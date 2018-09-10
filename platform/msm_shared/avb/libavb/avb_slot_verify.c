@@ -185,17 +185,16 @@ static AvbSlotVerifyResult load_and_verify_hash_partition(
 
   if (avb_strcmp((const char*)hash_desc.hash_algorithm, "sha256") == 0) {
     uint32_t complete_len = hash_desc.salt_len + hash_desc.image_size;
-    uint8_t *complete_buf = (uint8_t *)target_get_scratch_address()+0x08000000;
     digest = avb_malloc(AVB_SHA256_DIGEST_SIZE);
-    if(digest == NULL)
+    if(digest == NULL || hash_desc.salt_len > SALT_BUFF_OFFSET )
     {
         avb_errorv(part_name, ": Failed to allocate memory\n", NULL);
         ret = AVB_SLOT_VERIFY_RESULT_ERROR_IO;
         goto out;
     }
-    avb_memcpy(complete_buf, desc_salt, hash_desc.salt_len);
-    avb_memcpy(complete_buf + hash_desc.salt_len, image_buf, hash_desc.image_size);
-    hash_find(complete_buf, complete_len, digest, CRYPTO_AUTH_ALG_SHA256);
+    image_buf = ADD_SALT_BUFF_OFFSET(image_buf) - hash_desc.salt_len;
+    avb_memcpy(image_buf, desc_salt, hash_desc.salt_len);
+    hash_find(image_buf, complete_len, digest, CRYPTO_AUTH_ALG_SHA256);
     digest_len = AVB_SHA256_DIGEST_SIZE;
   } else if (avb_strcmp((const char*)hash_desc.hash_algorithm, "sha512") == 0) {
     AvbSHA512Ctx sha512_ctx;
