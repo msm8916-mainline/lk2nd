@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015,2018 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -767,16 +767,14 @@ static uint32_t mmc_switch_cmd(struct sdhci_host *host, struct mmc_card *card,
 
 bool mmc_set_drv_type(struct sdhci_host *host, struct mmc_card *card, uint8_t drv_type)
 {
-	uint32_t ret = 0;
 	bool drv_type_changed = false;
 
 	uint32_t value = ((drv_type << 4) | MMC_HS200_TIMING);
 
 	if (MMC_CARD_MMC(card)) {
 		if (card->ext_csd[MMC_EXT_MMC_DRV_STRENGTH] & (1 << drv_type)){
-			ret = mmc_switch_cmd(host, card, MMC_ACCESS_WRITE, MMC_EXT_MMC_HS_TIMING, value);
-			if (!ret)
-				drv_type_changed = true;
+			mmc_switch_cmd(host, card, MMC_ACCESS_WRITE, MMC_EXT_MMC_HS_TIMING, value);
+			drv_type_changed = true;
 		}
 	}
 	return drv_type_changed;
