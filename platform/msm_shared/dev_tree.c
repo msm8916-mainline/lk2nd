@@ -47,6 +47,7 @@
 #include <libufdt_sysdeps.h>
 #include <ufdt_overlay.h>
 #include <boot_stats.h>
+#include <verifiedboot.h>
 
 #define BOOT_DEV_MAX_LEN        64
 #define NODE_PROPERTY_MAX_LEN   64
@@ -245,7 +246,7 @@ dtbo_error load_validate_dtbo_image(void **dtbo_buf, uint32_t *dtbo_image_sz)
 		dtbo_image_buf = target_get_scratch_address() +
 					(target_get_max_flash_size() - DTBO_IMG_BUF);
 		dtbo_image_buf =
-			(void *)ROUND_TO_PAGE((addr_t)dtbo_image_buf, (ADDR_ALIGNMENT-1) );
+			(void *)ROUND_TO_PAGE((addr_t)dtbo_image_buf, (ADDR_ALIGNMENT-1));
 		if(dtbo_image_buf == (void *)UINT_MAX)
 		{
 			dprintf(CRITICAL, "ERROR: Invalid DTBO image buf addr\n");
@@ -253,6 +254,8 @@ dtbo_error load_validate_dtbo_image(void **dtbo_buf, uint32_t *dtbo_image_sz)
 			goto out;
 		}
 
+		/* Add offset for salt buffer for verification */
+		dtbo_image_buf += SALT_BUFF_OFFSET;
 		/* Read dtbo partition with header */
 		if (mmc_read(ptn, (uint32_t *)(dtbo_image_buf), dtbo_partition_size))
 		{
