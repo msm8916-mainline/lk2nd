@@ -214,6 +214,7 @@ int platform_is_msm8917()
 		case MSM8217:
 		case MSM8617:
 		case APQ8017:
+		case QM215:
 			ret = 1;
 			break;
 		default:
