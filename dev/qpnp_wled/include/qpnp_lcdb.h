@@ -47,7 +47,9 @@
 #define QPNP_LCDB_MODULE_RDY_MASK		0x80
 
 #define LCDB_LDO_INIT_VOLTAGE_UV		4000000
+#define LCDB_LDO_MAX_VOLTAGE_UV			6000000
 #define LCDB_NCP_INIT_VOLTAGE_UV		4000000
+#define LCDB_NCP_MAX_VOLTAGE_UV			6000000
 #define LCDB_BOOST_INIT_VOLTAGE_UV		4700000
 #define LDO_VREG_STEP_SIZE_UV			50000
 #define NCP_VREG_STEP_SIZE_UV			50000
@@ -59,6 +61,9 @@
 
 #define LCDB_ENABLE_SHIFT			7
 #define LCDB_PWRUP_DLY_SHIFT			2
+#define LCDB_STEP_UV				500000
+
+#define min(a, b) (a) < (b) ? a : b
 
 struct qpnp_lcdb {
 	uint32_t lcdb_base;
