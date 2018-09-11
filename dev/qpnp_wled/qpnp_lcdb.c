@@ -39,34 +39,22 @@
 
 struct qpnp_lcdb *lcdb;
 
-int qpnp_lcdb_enable(bool state)
-{
-	if (!lcdb) {
-		dprintf(CRITICAL, "%s: lcdb is not initialized yet\n", __func__);
-		return ERROR;
-	}
-
-	pmic_spmi_reg_mask_write(lcdb->lcdb_base + QPNP_LCDB_ENABLE_CTL_REG,
-		QPNP_LCDB_ENABLE_CTL_MASK, (state << LCDB_ENABLE_SHIFT));
-
-	return 0;
-}
-
-static int qpnp_lcdb_set_voltage(struct qpnp_lcdb *lcdb)
+static int qpnp_lcdb_set_voltage(struct qpnp_lcdb *lcdb, uint32_t ldo_v,
+								uint32_t ncp_v)
 {
 	int rc = -1;
 	uint32_t new_uV, boost_ref_volt;
 	uint8_t val;
 
-	/* Set LDO Voltage */
-	if (lcdb->ldo_min_volt < lcdb->ldo_init_volt) {
+	/* Set LDO voltage */
+	if (ldo_v < lcdb->ldo_init_volt) {
 		dprintf(CRITICAL, "qpnp_ldo_set_voltage failed, min_uV %d is "
 			"less than the minimum supported voltage %d\n",
-			lcdb->ldo_min_volt, lcdb->ldo_init_volt);
+			ldo_v, lcdb->ldo_init_volt);
 		return rc;
 	}
 
-	val = ((lcdb->ldo_min_volt - lcdb->ldo_init_volt) +
+	val = ((ldo_v - lcdb->ldo_init_volt) +
 		LDO_VREG_STEP_SIZE_UV - 1) / LDO_VREG_STEP_SIZE_UV;
 	new_uV = val * LDO_VREG_STEP_SIZE_UV + lcdb->ldo_init_volt;
 	if (new_uV > lcdb->ldo_max_volt) {
@@ -88,14 +76,14 @@ static int qpnp_lcdb_set_voltage(struct qpnp_lcdb *lcdb)
 	udelay(2);
 
 	/* Set NCP voltage */
-	if (lcdb->ncp_min_volt < lcdb->ncp_init_volt) {
+	if (ncp_v < lcdb->ncp_init_volt) {
 		dprintf(CRITICAL, "qpnp_ncp_set_voltage failed, min_uV %d is "
 			"less than the minimum supported voltage %d\n",
-			lcdb->ncp_min_volt, lcdb->ncp_init_volt);
+			ncp_v, lcdb->ncp_init_volt);
 		return rc;
 	}
 
-	val = ((lcdb->ncp_min_volt - lcdb->ncp_init_volt) +
+	val = ((ncp_v - lcdb->ncp_init_volt) +
 			NCP_VREG_STEP_SIZE_UV - 1) / NCP_VREG_STEP_SIZE_UV;
 	new_uV = val * NCP_VREG_STEP_SIZE_UV + lcdb->ncp_init_volt;
 	if (new_uV > lcdb->ncp_max_volt) {
@@ -134,12 +122,32 @@ static int qpnp_lcdb_set_voltage(struct qpnp_lcdb *lcdb)
 	return 0;
 }
 
-static int qpnp_lcdb_config(struct qpnp_lcdb *lcdb)
+static int qpnp_lcdb_step_voltage(struct qpnp_lcdb *lcdb,
+					uint32_t step_start_uv)
 {
 	int rc = 0;
+	uint32_t target_ldo_v, target_ncp_v, i;
+
+	for (i = step_start_uv; i <= LCDB_LDO_MAX_VOLTAGE_UV;
+						i += LCDB_STEP_UV) {
+		target_ldo_v = min(lcdb->ldo_min_volt, i);
+		target_ncp_v = min(lcdb->ncp_min_volt, i);
+		rc = qpnp_lcdb_set_voltage(lcdb, target_ldo_v, target_ncp_v);
+
+		if (lcdb->ldo_min_volt <= i && lcdb->ncp_min_volt <= i)
+			break;
+
+		/* 1ms wait */
+		mdelay(1);
+	}
+
+	return rc;
+}
+
+static int qpnp_lcdb_config(struct qpnp_lcdb *lcdb)
+{
 	uint8_t reg = 0;
 
-	/* TODO: Set power up & down delay register */
 	if (lcdb->lcdb_pwrup_dly_ms > QPNP_LCDB_PWRUP_DLY_MAX_MS)
 		lcdb->lcdb_pwrup_dly_ms = QPNP_LCDB_PWRUP_DLY_MAX_MS;
 
@@ -164,10 +172,7 @@ static int qpnp_lcdb_config(struct qpnp_lcdb *lcdb)
 	pmic_spmi_reg_mask_write(lcdb->lcdb_base + QPNP_LCDB_MODULE_RDY_REG,
 		QPNP_LCDB_MODULE_RDY_MASK, LCDB_MODULE_RDY);
 
-	/* Set regulator voltage */
-	rc = qpnp_lcdb_set_voltage(lcdb);
-
-	return rc;
+	return 0;
 }
 
 static int qpnp_lcdb_setup(struct qpnp_lcdb *lcdb,
@@ -185,6 +190,49 @@ static int qpnp_lcdb_setup(struct qpnp_lcdb *lcdb,
 	lcdb->bst_init_volt = LCDB_BOOST_INIT_VOLTAGE_UV;
 
 	return 0;
+}
+
+int qpnp_lcdb_enable(bool state)
+{
+	int rc = 0;
+	uint32_t target_ldo_v, target_ncp_v;
+
+	if (!lcdb) {
+		dprintf(CRITICAL, "%s: lcdb is not initialized yet\n", __func__);
+		return ERROR;
+	}
+
+	if (state) {
+		/*
+		 * Set LDO/NCP voltage step wise (in steps of 500mV) as a part
+		 * of SW WA to prevent loss in accuracy in ADC measurement of
+		 * VBATT voltage.
+		 * Set minimum of spec voltage or 4.5V.
+		 */
+		target_ldo_v = min(lcdb->ldo_min_volt, (lcdb->ldo_init_volt +
+					LCDB_STEP_UV));
+		target_ncp_v = min(lcdb->ncp_min_volt, (lcdb->ncp_init_volt +
+					LCDB_STEP_UV));
+		rc = qpnp_lcdb_set_voltage(lcdb, target_ldo_v, target_ncp_v);
+
+		/* Enable LCDB */
+		pmic_spmi_reg_mask_write(lcdb->lcdb_base + QPNP_LCDB_ENABLE_CTL_REG,
+			QPNP_LCDB_ENABLE_CTL_MASK, (state << LCDB_ENABLE_SHIFT));
+
+		/* Initial delay of 10ms */
+		mdelay(10);
+
+		/* Start voltage stepping from 5V onwards */
+		if (lcdb->ldo_min_volt > (lcdb->ldo_init_volt + LCDB_STEP_UV) ||
+			lcdb->ncp_min_volt > (lcdb->ncp_init_volt + LCDB_STEP_UV))
+			rc = qpnp_lcdb_step_voltage(lcdb, target_ldo_v +
+								LCDB_STEP_UV);
+	} else {
+		pmic_spmi_reg_mask_write(lcdb->lcdb_base + QPNP_LCDB_ENABLE_CTL_REG,
+			QPNP_LCDB_ENABLE_CTL_MASK, (state << LCDB_ENABLE_SHIFT));
+	}
+
+	return rc;
 }
 
 int qpnp_lcdb_init(struct qpnp_wled_config_data *config)
