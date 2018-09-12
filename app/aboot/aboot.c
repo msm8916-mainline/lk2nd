@@ -1553,8 +1553,9 @@ int boot_linux_from_mmc(void)
 #if DEVICE_TREE
 #ifndef OSVERSION_IN_BOOTIMAGE
 	dt_size = hdr->dt_size;
-#endif
+#else
 	dprintf(INFO, "BootImage Header: %d\n", hdr->header_version);
+#endif
 
 	dt_actual = ROUND_TO_PAGE(dt_size, page_mask);
 	if (UINT_MAX < ((uint64_t)kernel_actual + (uint64_t)ramdisk_actual+ (uint64_t)second_actual + (uint64_t)dt_actual + page_size)) {
