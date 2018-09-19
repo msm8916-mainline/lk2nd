@@ -716,6 +716,11 @@ static AvbSlotVerifyResult load_and_verify_vbmeta(
    */
   descriptors =
       avb_descriptor_get_all(vbmeta_buf, vbmeta_num_read, &num_descriptors);
+  if (descriptors == NULL) {
+    ret = AVB_SLOT_VERIFY_RESULT_ERROR_INVALID_METADATA;
+    goto out;
+  }
+
   for (n = 0; n < num_descriptors; n++) {
     AvbDescriptor desc;
 
