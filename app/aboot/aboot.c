@@ -1989,6 +1989,9 @@ int boot_linux_from_mmc(void)
 		 * If appended dev tree is found, update the atags with
 		 * memory address to the DTB appended location on RAM.
 		 * Else update with the atags address in the kernel header
+		 *
+		 * Make sure everything from scratch address is read before next step!
+		 * In case of dtbo, this API is going to read dtbo on scratch.
 		 */
 		void *dtb;
 		dtb = dev_tree_appended(
@@ -2273,6 +2276,9 @@ int boot_linux_from_flash(void)
 		 * If appended dev tree is found, update the atags with
 		 * memory address to the DTB appended location on RAM.
 		 * Else update with the atags address in the kernel header
+		 *
+		 * Make sure everything from scratch address is read before next step!
+		 * In case of dtbo, this API is going to read dtbo on scratch.
 		 */
 		void *dtb = NULL;
 		dtb = dev_tree_appended((void*)(image_addr + page_size ),hdr->kernel_size, dtb_offset, (void *)hdr->tags_addr);
