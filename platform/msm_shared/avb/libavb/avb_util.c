@@ -299,9 +299,8 @@ char* avb_replace(const char* str, const char* search, const char* replace) {
       char* new_str;
       num_new = ret_len + num_before + replace_len + 1;
       new_str = avb_malloc(num_new);
-      if (ret == NULL) {
+      if (new_str == NULL)
         goto out;
-      }
       avb_memcpy(new_str, ret, ret_len);
       avb_memcpy(new_str + ret_len, str, num_before);
       avb_memcpy(new_str + ret_len + num_before, replace, replace_len);
@@ -324,9 +323,8 @@ char* avb_replace(const char* str, const char* search, const char* replace) {
     size_t num_remaining = avb_strlen(str_after_last_replace);
     size_t num_new = ret_len + num_remaining + 1;
     char* new_str = avb_malloc(num_new);
-    if (ret == NULL) {
+    if (new_str == NULL)
       goto out;
-    }
     avb_memcpy(new_str, ret, ret_len);
     avb_memcpy(new_str + ret_len, str_after_last_replace, num_remaining);
     new_str[num_new - 1] = '\0';
