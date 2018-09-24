@@ -1583,7 +1583,9 @@ int boot_linux_from_mmc(void)
 	{
 		struct boot_img_hdr_v1 *hdr1 =
 			(struct boot_img_hdr_v1 *) (image_addr + sizeof(boot_img_hdr));
+		unsigned int recovery_dtbo_actual = 0;
 
+		recovery_dtbo_actual = ROUND_TO_PAGE(hdr1->recovery_dtbo_size, page_mask);
 		if ((hdr1->header_size !=
 				sizeof(struct boot_img_hdr_v1) + sizeof(boot_img_hdr)))
 		{
@@ -1591,25 +1593,26 @@ int boot_linux_from_mmc(void)
 			return -1;
 		}
 
-		if (UINT_MAX < (hdr1->recovery_dtbo_offset + hdr1->recovery_dtbo_size)) {
-			dprintf(CRITICAL,
-				"Integer overflow detected in recovery image header fields at %u in %s\n",__LINE__,__FILE__);
-			return -1;
-		}
-
-		if (hdr1->recovery_dtbo_size > MAX_SUPPORTED_DTBO_IMG_BUF) {
-			dprintf(CRITICAL, "Recovery Dtbo Size too big %x, Allowed size %x\n", hdr1->recovery_dtbo_size,
+		if (recovery_dtbo_actual > MAX_SUPPORTED_DTBO_IMG_BUF)
+		{
+			dprintf(CRITICAL, "Recovery Dtbo Size too big %x, Allowed size %x\n", recovery_dtbo_actual,
 				MAX_SUPPORTED_DTBO_IMG_BUF);
 			return -1;
 		}
 
-		if (UINT_MAX < ((uint64_t)imagesize_actual + recovery_dtbo_size))
+		if (UINT_MAX < ((uint64_t)imagesize_actual + recovery_dtbo_actual))
 		{
 			dprintf(CRITICAL, "Integer overflow detected in recoveryimage header fields at %u in %s\n",__LINE__,__FILE__);
 			return -1;
 		}
 
-		if (hdr1->recovery_dtbo_offset + recovery_dtbo_size > image_size)
+		if (UINT_MAX < (hdr1->recovery_dtbo_offset + recovery_dtbo_actual)) {
+			dprintf(CRITICAL,
+				"Integer overflow detected in recovery image header fields at %u in %s\n",__LINE__,__FILE__);
+			return -1;
+		}
+
+		if (hdr1->recovery_dtbo_offset + recovery_dtbo_actual > image_size)
 		{
 			dprintf(CRITICAL, "Invalid recovery dtbo: Recovery Dtbo Offset=0x%llx,"
 				" Recovery Dtbo Size=0x%x, Image Size=0x%llx\n",
@@ -1618,7 +1621,7 @@ int boot_linux_from_mmc(void)
 		}
 
 		recovery_dtbo_buf = (void *)(hdr1->recovery_dtbo_offset + image_addr);
-		recovery_dtbo_size = hdr1->recovery_dtbo_size;
+		recovery_dtbo_size = recovery_dtbo_actual;
 		imagesize_actual += recovery_dtbo_size;
 
 		dprintf(SPEW, "Header version: %d\n", hdr->header_version);
