@@ -369,7 +369,7 @@ static AvbSlotVerifyResult load_and_verify_vbmeta(
   char full_partition_name[PART_NAME_MAX_SIZE];
   AvbSlotVerifyResult ret;
   AvbIOResult io_ret;
-  size_t vbmeta_offset;
+  UINTN vbmeta_offset;
   size_t vbmeta_size;
   uint8_t* vbmeta_buf = NULL;
   size_t vbmeta_num_read;
@@ -461,17 +461,30 @@ static AvbSlotVerifyResult load_and_verify_vbmeta(
       ret = AVB_SLOT_VERIFY_RESULT_ERROR_INVALID_METADATA;
       goto out;
     }
-
     vbmeta_offset = footer.vbmeta_offset;
     vbmeta_size = footer.vbmeta_size;
   }
 
-  io_ret = ops->read_from_partition(ops,
+  if (avb_strcmp(full_partition_name, "vbmeta") == 0) {
+    io_ret = ops->read_from_partition(ops,
                                     full_partition_name,
                                     vbmeta_offset,
                                     vbmeta_size,
                                     &vbmeta_buf,
                                     &vbmeta_num_read);
+  } else { // for chain partitions
+    vbmeta_buf = avb_malloc(vbmeta_size);
+    if (vbmeta_buf == NULL) {
+        ret = AVB_SLOT_VERIFY_RESULT_ERROR_OOM;
+        goto out;
+    }
+    io_ret = ops->read_from_partition(ops,
+                                    full_partition_name,
+                                    vbmeta_offset,
+                                    vbmeta_size,
+                                    vbmeta_buf,
+                                    &vbmeta_num_read);
+  }
   if (vbmeta_buf == NULL) {
     ret = AVB_SLOT_VERIFY_RESULT_ERROR_OOM;
     goto out;
