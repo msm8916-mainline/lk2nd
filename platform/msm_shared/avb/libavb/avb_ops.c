@@ -160,8 +160,9 @@ AvbIOResult AvbReadFromPartition(AvbOps *Ops, const char *Partition, int64_t Rea
 	AvbIOResult Result = AVB_IO_RESULT_OK;
 	EFI_STATUS Status = EFI_SUCCESS;
 	VOID *Page = NULL;
-	UINT32 Offset = 0;
+	UINTN Offset = 0;
 	UINTN ptn = 0;
+	UINTN part_size = 0;
 	UINT32 PageSize = 0;
 	UINT32 StartBlock = 0;
 	UINT32 LastBlock = 0;
@@ -178,46 +179,46 @@ AvbIOResult AvbReadFromPartition(AvbOps *Ops, const char *Partition, int64_t Rea
 
 	if (!getimage(Buffer, OutNumRead, Partition)) {
 		/* API returns previously loaded Images buffer address and size */
-		dprintf(SPEW, "DEBUG: %s already loadded \n", Partition);
+                dprintf(SPEW, "DEBUG: %s already loaded \n", Partition);
 		return AVB_IO_RESULT_OK;
 	}
-	dprintf(SPEW, "%s Loading image\n", Partition);
+	dprintf(SPEW, "Loading image %s\n", Partition);
 	index = partition_get_index(Partition);
 	ptn = partition_get_offset(index);
+	part_size = partition_get_size(index);
 
 	if (ReadOffset < 0) {
-		if ((-ReadOffset) > (int64_t)ptn) {
+		if ((-ReadOffset) > (int64_t)part_size) {
 			dprintf(CRITICAL,
 			       "Negative Offset outside range.\n");
 			Result = AVB_IO_RESULT_ERROR_RANGE_OUTSIDE_PARTITION;
 			goto out;
 		}
-		Offset = ptn - (-ReadOffset);
+		Offset = part_size - (-ReadOffset);
 		dprintf(DEBUG,
-		       "negative Offset (%lld) converted to (%u) \n", ReadOffset, Offset);
+		       "negative Offset (%lld) converted to (0x%llx) \n", ReadOffset, Offset);
 	} else {
 		// check int64_t to UINT32 converstion?
 		Offset = ReadOffset;
 	}
 
-	if (Offset > ptn) {
+	if (Offset > part_size) {
 		dprintf(CRITICAL, "Offset outside range.\n");
 		Result = AVB_IO_RESULT_ERROR_RANGE_OUTSIDE_PARTITION;
 		goto out;
 	}
 
-	if (NumBytes > ptn - Offset) {
-		NumBytes = ptn - Offset;
+	if (NumBytes > part_size - Offset) {
+		NumBytes = part_size - Offset;
 	}
 
 	dprintf(CRITICAL,
-	       "read from %s, 0x%x bytes at Offset 0x%x, partition size %llu\n",
+	       "read from %s, 0x%x bytes at Offset 0x%llx, partition size %llu\n",
 	       Partition, NumBytes, Offset, ptn);
 
-	/* |NumBytes| and or |Offset| can be unaligned to block size/page size.
+	/* |NumBytes| and or |Offset| can be unaligned to block size.
 	 */
-	//PageSize = mmc_get_device_blocksize();
-	PageSize = get_page_size();
+	PageSize = mmc_get_device_blocksize();
 	Page = avb_malloc(PageSize);
 	if (Page == NULL) {
 		dprintf(CRITICAL, "Allocate for partial read failed!");
@@ -256,7 +257,7 @@ AvbIOResult AvbReadFromPartition(AvbOps *Ops, const char *Partition, int64_t Rea
 			goto out;
 		}
 
-		Status = mmc_read(ptn, Page, PageSize);
+		Status = mmc_read(ptn + (StartBlock * PageSize), Page, PageSize);
 		if (Status == EFI_SUCCESS) {
 			avb_memcpy(Buffer, Page + StartPageReadOffset, StartPageReadSize);
 			*OutNumRead += StartPageReadSize;
