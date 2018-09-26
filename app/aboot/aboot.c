@@ -1110,8 +1110,8 @@ void boot_linux(void *kernel, unsigned *tags,
 	generate_atags(tags, final_cmdline, ramdisk, ramdisk_size);
 #endif
 
-#if VERIFIED_BOOT
-	if (VB_M == target_get_vb_version())
+#if VERIFIED_BOOT || VERIFIED_BOOT_2
+	if (VB_M <= target_get_vb_version())
 	{
 		if (device.verity_mode == 0) {
 #if FBCON_DISPLAY_MSG
@@ -5043,7 +5043,7 @@ void aboot_init(const struct app_descriptor *app)
 	{
 		boot_reason_alarm = true;
 	}
-#if VERIFIED_BOOT
+#if VERIFIED_BOOT || VERIFIED_BOOT_2
 	else if (VB_M <= target_get_vb_version())
 	{
 		if (reboot_mode == DM_VERITY_ENFORCING)
