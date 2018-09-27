@@ -1545,6 +1545,10 @@ int boot_linux_from_mmc(void)
 	second_actual  = ROUND_TO_PAGE(hdr->second_size, page_mask);
 
 	image_addr = (unsigned char *)target_get_scratch_address();
+#if VERIFIED_BOOT_2
+	/* Create hole in start of image for VB salt to copy */
+	image_addr += SALT_BUFF_OFFSET;
+#endif
 	memcpy(image_addr, (void *)buf, page_size);
 
 	/* ensure commandline is terminated */
@@ -1718,14 +1722,15 @@ int boot_linux_from_mmc(void)
 	memset(&info, 0, sizeof(bootinfo));
 
 	/* Pass loaded boot image passed */
-	info.images[IMG_BOOT].image_buffer = image_addr;
+	info.images[IMG_BOOT].image_buffer = SUB_SALT_BUFF_OFFSET(image_addr);
 	info.images[IMG_BOOT].imgsize = imagesize_actual;
 	info.images[IMG_BOOT].name = ptn_name;
 	++info.num_loaded_images;
 
 	/* Pass loaded dtbo image */
 	if (dtbo_image_buf != NULL) {
-		info.images[IMG_DTBO].image_buffer = dtbo_image_buf;
+		info.images[IMG_DTBO].image_buffer =
+					SUB_SALT_BUFF_OFFSET(dtbo_image_buf);
 		info.images[IMG_DTBO].imgsize = dtbo_image_sz;
 		info.images[IMG_DTBO].name = "dtbo";
 		++info.num_loaded_images;
