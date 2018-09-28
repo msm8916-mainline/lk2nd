@@ -872,9 +872,17 @@ void pmic_reset_configure(uint8_t reset_type)
 
 uint32_t target_get_pmic()
 {
-	if ((board_hardware_subtype() == HW_PLATFORM_SUBTYPE_8909_PM660) ||
-		(board_hardware_subtype() == HW_PLATFORM_SUBTYPE_8909_PM660_V1) ||
-		(board_hardware_subtype() == HW_PLATFORM_SUBTYPE_8909_COMPAL_ALPHA))
+	uint32_t hw_id = board_hardware_id();
+	uint32_t platform = board_platform_id();
+	uint32_t platform_subtype = board_hardware_subtype();
+
+	if ((MSM8909 == platform) &&
+		(HW_PLATFORM_MTP == hw_id) &&
+		(HW_PLATFORM_SUBTYPE_8909_PM8916 == platform_subtype))
+		return PMIC_IS_PM8916;
+	else if ((platform_subtype == HW_PLATFORM_SUBTYPE_8909_PM660) ||
+		(platform_subtype == HW_PLATFORM_SUBTYPE_8909_PM660_V1) ||
+		(platform_subtype == HW_PLATFORM_SUBTYPE_8909_COMPAL_ALPHA))
 		return PMIC_IS_PM660;
 	else
 		return PMIC_IS_PM8909;
