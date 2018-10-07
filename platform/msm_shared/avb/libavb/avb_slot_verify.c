@@ -195,6 +195,7 @@ static AvbSlotVerifyResult load_and_verify_hash_partition(
     image_buf = ADD_SALT_BUFF_OFFSET(image_buf) - hash_desc.salt_len;
     avb_memcpy(image_buf, desc_salt, hash_desc.salt_len);
     hash_find(image_buf, complete_len, digest, CRYPTO_AUTH_ALG_SHA256);
+    image_buf = SUB_SALT_BUFF_OFFSET(image_buf) +  hash_desc.salt_len;
     digest_len = AVB_SHA256_DIGEST_SIZE;
   } else if (avb_strcmp((const char*)hash_desc.hash_algorithm, "sha512") == 0) {
     AvbSHA512Ctx sha512_ctx;
