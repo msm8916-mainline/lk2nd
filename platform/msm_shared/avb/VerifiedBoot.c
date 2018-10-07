@@ -548,7 +548,7 @@ static EFI_STATUS load_image_and_authVB2(bootinfo *Info)
 	GUARD_OUT(AppendVBCommonCmdLine(Info));
 	GUARD_OUT(Appendvbcmdline(Info, SlotData->cmdline));
 	DevInfo_vb.is_unlocked = !is_device_locked();
-	set_os_version((unsigned char *)Info->images[0].image_buffer);
+	set_os_version(ADD_SALT_BUFF_OFFSET(Info->images[0].image_buffer));
 	if(!send_rot_command((uint32_t)DevInfo_vb.is_unlocked))
 		return EFI_LOAD_ERROR;
 	dprintf(INFO, "VB2: Authenticate complete! boot state is: %s\n",
