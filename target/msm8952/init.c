@@ -407,6 +407,7 @@ void target_baseband_detect(struct board_data *board)
 	case MSM8617:
 	case SDM429:
 	case SDM439:
+	case QM215:
 		board->baseband = BASEBAND_MSM;
 		break;
 	case APQ8052:
