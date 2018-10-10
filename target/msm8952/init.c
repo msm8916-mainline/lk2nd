@@ -723,14 +723,19 @@ int get_target_boot_params(const char *cmdline, const char *part, char **buf)
 
 uint32_t target_get_pmic()
 {
+	uint32_t pmi_type = 0;
+
 	if (target_is_pmi_enabled()) {
-		uint32_t pmi_type = board_pmic_target(1) & PMIC_TYPE_MASK;
+		pmi_type = board_pmic_target(1) & PMIC_TYPE_MASK;
 		if (pmi_type == PMIC_IS_PMI632)
 			return PMIC_IS_PMI632;
 		else
 			return PMIC_IS_PMI8950;
-	}
-	else {
+	} else {
+		if (platform_is_qm215()) {
+			pmi_type = board_pmic_target(0) & PMIC_TYPE_MASK;
+			return pmi_type;
+		}
 		return PMIC_IS_UNKNOWN;
 	}
 }
