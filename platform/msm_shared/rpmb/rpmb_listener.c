@@ -108,7 +108,7 @@ static void handle_rw_request(void *buf, uint32_t sz)
 	struct tz_rpmb_rw_req *req_p = (struct tz_rpmb_rw_req *)buf;
 	struct tz_rpmb_rw_resp *resp_p = NULL;
 	uint32_t *req_buf = buf + req_p->req_buff_offset;
-	uint32_t *resp_buf = buf + ROUNDUP(sizeof(struct tz_rpmb_rw_resp), CACHE_LINE);
+	uint32_t *resp_buf = buf + sizeof(struct tz_rpmb_rw_resp);
 
 	resp_p = (struct tz_rpmb_rw_resp *) buf;
 
@@ -133,7 +133,7 @@ static void handle_rw_request(void *buf, uint32_t sz)
 			ASSERT(0);
 	};
 
-	resp_p->res_buff_offset = ROUNDUP(sizeof(struct tz_rpmb_rw_resp), CACHE_LINE);
+	resp_p->res_buff_offset = sizeof(struct tz_rpmb_rw_resp);
 	resp_p->cmd_id = req_p->cmd_id;
 }
 
