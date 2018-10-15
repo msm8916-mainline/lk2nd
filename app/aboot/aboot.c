@@ -1755,8 +1755,10 @@ int boot_linux_from_mmc(void)
 	vbcmdline = info.vbcmdline;
 
 	/* Free the buffer allocated to vbmeta post verification */
-	free(vbmeta_image_buf);
-	--info.num_loaded_images;
+	if (vbmeta_image_buf != NULL) {
+		free(vbmeta_image_buf);
+		--info.num_loaded_images;
+	}
 #else
 	/* Change the condition a little bit to include the test framework support.
 	 * We would never reach this point if device is in fastboot mode, even if we did
@@ -2939,6 +2941,12 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	unsigned char *kernel_start_addr = NULL;
 	unsigned int kernel_size = 0;
 	unsigned int scratch_offset = 0;
+#if VERIFIED_BOOT_2
+	void *dtbo_image_buf = NULL;
+	uint32_t dtbo_image_sz = 0;
+	void *vbmeta_image_buf = NULL;
+	uint32_t vbmeta_image_sz = 0;
+#endif
 #if !VERIFIED_BOOT_2
 	uint32_t sig_actual = 0;
 	uint32_t sig_size = 0;
@@ -2995,16 +3003,48 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 		fastboot_fail("bootimage header fields are invalid");
 		goto boot_failed;
 	}
+
 #if VERIFIED_BOOT_2
+
+	/* load and validate dtbo partition */
+	load_validate_dtbo_image(&dtbo_image_buf, &dtbo_image_sz);
+
+	/* load vbmeta partition */
+	load_vbmeta_image(&vbmeta_image_buf, &vbmeta_image_sz);
+
 	memset(&info, 0, sizeof(bootinfo));
-	info.images[0].image_buffer = data;
-	info.images[0].imgsize = image_actual;
-	info.images[0].name = "boot";
-	info.num_loaded_images = 1;
+
+	info.images[IMG_BOOT].image_buffer = SUB_SALT_BUFF_OFFSET(data);
+	info.images[IMG_BOOT].imgsize = image_actual;
+	info.images[IMG_BOOT].name = "boot";
+	++info.num_loaded_images;
+
+	/* Pass loaded dtbo image */
+	if (dtbo_image_buf != NULL) {
+		info.images[IMG_DTBO].image_buffer = SUB_SALT_BUFF_OFFSET(dtbo_image_buf);
+		info.images[IMG_DTBO].imgsize = dtbo_image_sz;
+		info.images[IMG_DTBO].name = "dtbo";
+		++info.num_loaded_images;
+	}
+
+	/* Pass loaded vbmeta image */
+	if (vbmeta_image_buf != NULL) {
+		info.images[IMG_VBMETA].image_buffer = vbmeta_image_buf;
+		info.images[IMG_VBMETA].imgsize = vbmeta_image_sz;
+		info.images[IMG_VBMETA].name = "vbmeta";
+		++info.num_loaded_images;
+	}
+
 	info.multi_slot_boot = partition_multislot_is_supported();
 	if (load_image_and_auth(&info))
 		goto boot_failed;
 	vbcmdline = info.vbcmdline;
+
+	/* Free the buffer allocated to vbmeta post verification */
+	if (vbmeta_image_buf != NULL) {
+		free(vbmeta_image_buf);
+		--info.num_loaded_images;
+	}
 #else
 	sig_size = sz - image_actual;
 
@@ -3087,6 +3127,10 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 		out_addr = (unsigned char *)target_get_scratch_address();
 		out_addr = (unsigned char *)(out_addr + image_actual + page_size);
 		out_avai_len = target_get_max_flash_size() - image_actual - page_size;
+#if VERIFIED_BOOT_2
+		if (dtbo_image_sz)
+			out_avai_len -= DTBO_IMG_BUF;
+#endif
 		dprintf(INFO, "decompressing kernel image: start\n");
 		ret = decompress((unsigned char *)(ptr + page_size),
 				hdr->kernel_size, out_addr, out_avai_len,
