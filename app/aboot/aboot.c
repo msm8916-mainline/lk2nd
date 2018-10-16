@@ -5144,7 +5144,13 @@ fastboot:
 	partition_dump();
 
 	/* initialize and start fastboot */
+#if !VERIFIED_BOOT_2
 	fastboot_init(target_get_scratch_address(), target_get_max_flash_size());
+#else
+	/* Add salt buffer offset at start of image address to copy VB salt */
+	fastboot_init(ADD_SALT_BUFF_OFFSET(target_get_scratch_address()),
+		SUB_SALT_BUFF_OFFSET(target_get_max_flash_size()));
+#endif
 #if FBCON_DISPLAY_MSG
 	display_fastboot_menu();
 #endif
