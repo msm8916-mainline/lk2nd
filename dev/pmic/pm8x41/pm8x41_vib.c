@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, 2018, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -30,29 +30,14 @@
 #include <pm8x41_hw.h>
 #include <pm_vib.h>
 
-#define QPNP_VIB_EN    BIT(7)
-
 /* Turn on vibrator */
 void pm_vib_turn_on(void)
 {
-	uint8_t val;
-
-	val = pm8x41_reg_read(QPNP_VIB_VTG_CTL);
-	val &= ~QPNP_VIB_VTG_SET_MASK;
-	val |= (QPNP_VIB_DEFAULT_VTG_LVL & QPNP_VIB_VTG_SET_MASK);
-	pm8x41_reg_write(QPNP_VIB_VTG_CTL, val);
-
-	val = pm8x41_reg_read(QPNP_VIB_EN_CTL);
-	val |= QPNP_VIB_EN;
-	pm8x41_reg_write(QPNP_VIB_EN_CTL, val);
+	pm8x41_vib_turn_on();
 }
 
 /* Turn off vibrator */
 void pm_vib_turn_off(void)
 {
-	uint8_t val;
-
-	val = pm8x41_reg_read(QPNP_VIB_EN_CTL);
-	val &= ~QPNP_VIB_EN;
-	pm8x41_reg_write(QPNP_VIB_EN_CTL, val);
+	pm8x41_vib_turn_off();
 }
