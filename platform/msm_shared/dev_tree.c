@@ -2003,7 +2003,7 @@ int update_device_tree(void *fdt, const char *cmdline,
 	int ret = 0;
 	uint32_t offset;
 #if ENABLE_KASLRSEED_SUPPORT
-	uintptr_t kaslrseed;
+	uint64_t kaslrseed;
 #endif
 	uint32_t cmdline_len = 0;
 
@@ -2070,7 +2070,7 @@ int update_device_tree(void *fdt, const char *cmdline,
 	}
 
 #if ENABLE_KASLRSEED_SUPPORT
-	if (!scm_random(&kaslrseed, sizeof(kaslrseed))) {
+	if (!scm_random((uintptr_t *)&kaslrseed, sizeof(kaslrseed))) {
 		/* Adding Kaslr Seed to the chosen node */
 		ret = fdt_appendprop_u64 (fdt, offset, (const char *)"kaslr-seed", (uint64_t)kaslrseed);
 		if (ret)
