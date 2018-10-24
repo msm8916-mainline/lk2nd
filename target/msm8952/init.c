@@ -193,7 +193,8 @@ int target_volume_up()
 	if(platform_is_msm8956())
 		vol_up_gpio = TLMM_VOL_UP_BTN_GPIO_8956;
 	else if(platform_is_msm8937() || platform_is_msm8917() ||
-		    platform_is_sdm429() || platform_is_sdm439())
+		    platform_is_sdm429() || platform_is_sdm439() ||
+		    platform_is_qm215())
 		vol_up_gpio = TLMM_VOL_UP_BTN_GPIO_8937;
 	else
 		vol_up_gpio = TLMM_VOL_UP_BTN_GPIO;
@@ -676,8 +677,8 @@ void target_crypto_init_params()
 
 bool target_is_pmi_enabled(void)
 {
-	if(platform_is_msm8917() &&
-	   (board_hardware_subtype() ==	HW_PLATFORM_SUBTYPE_SAP_NOPMI))
+	if(platform_is_qm215() || (platform_is_msm8917() &&
+	   (board_hardware_subtype() == HW_PLATFORM_SUBTYPE_SAP_NOPMI)))
 		return 0;
 	else
 		return 1;
