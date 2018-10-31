@@ -273,12 +273,15 @@ static uint32_t dsi_pll_enable_seq_8956(uint32_t pll_base)
 static int msm8952_wled_backlight_ctrl(uint8_t enable)
 {
 	uint8_t slave_id = PMIC_WLED_SLAVE_ID;	/* pmi */
+	uint32_t pmic_type = target_get_pmic();
+
+	if(pmic_type == PMIC_IS_PM8916)
+		return NO_ERROR;
 
 	pm8x41_wled_config_slave_id(slave_id);
-	if (target_get_pmic() == PMIC_IS_PMI632) {
+	if (pmic_type == PMIC_IS_PMI632) {
 		qpnp_lcdb_enable(enable);
-	}
-	else {
+	} else {
 		qpnp_wled_enable_backlight(enable);
 		qpnp_ibb_enable(enable);
 	}
@@ -301,12 +304,15 @@ static int pwm_backlight_ctrl(uint8_t enable)
 int target_backlight_ctrl(struct backlight *bl, uint8_t enable)
 {
 	uint32_t ret = NO_ERROR;
+	uint32_t pmic_type = target_get_pmic();
 
 	if (bl->bl_interface_type == BL_DCS)
 		return ret;
 
-	if ((target_get_pmic() == PMIC_IS_PMI632) &&
+	if ((pmic_type == PMIC_IS_PMI632) &&
 		(bl->bl_interface_type == BL_PWM)) {
+		ret = pwm_backlight_ctrl(enable);
+	} else if (pmic_type == PMIC_IS_PM8916) {
 		ret = pwm_backlight_ctrl(enable);
 	} else {
 		ret = msm8952_wled_backlight_ctrl(enable);
@@ -351,7 +357,7 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 	pll_data->vco_delay = VCO_DELAY_USEC;
 
 	/* SSC parameters */
-	if (platform_is_msm8937() || platform_is_msm8917()) {
+	if (platform_is_msm8937() || platform_is_msm8917() || platform_is_qm215()) {
 		pll_data->ssc_en = true;
 		pll_data->is_center_spread = false;
 		pll_data->ssc_freq = 30000;
@@ -438,6 +444,12 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 		reset_gpio.pin_id = 60;
 		bkl_gpio.pin_id = 98;
 		pinfo->mipi.use_enable_gpio = 0;
+	} else if (platform_is_qm215()) {
+		dprintf(CRITICAL,"vproddut: coming here \n");
+		reset_gpio.pin_id = 60;
+		bkl_gpio.pin_id = 93;
+		enable_gpio.pin_id = 94;
+		pinfo->mipi.use_enable_gpio = 1;
 	} else if (platform_is_sdm439() || platform_is_sdm429()) {
 		reset_gpio.pin_id = 60;
 	} else if ((hw_id == HW_PLATFORM_QRD) &&
@@ -522,7 +534,10 @@ static int wled_init(struct msm_panel_info *pinfo)
 	bool swire_control = 0;
 	bool wled_avdd_control = 0;
 	int rc = NO_ERROR;
+	uint32_t pmic_type = target_get_pmic();
 
+	if(pmic_type == PMIC_IS_PM8916)
+		return NO_ERROR;
 	labibb = pinfo->labibb;
 
 	if (labibb)
@@ -570,7 +585,7 @@ static int wled_init(struct msm_panel_info *pinfo)
 		}
 	}
 
-	if (target_get_pmic() == PMIC_IS_PMI632) {
+	if (pmic_type == PMIC_IS_PMI632) {
 		config.pwr_up_delay = 1;
 		config.pwr_down_delay =  0;
 	}
@@ -586,7 +601,7 @@ static int wled_init(struct msm_panel_info *pinfo)
 	/* QPNP WLED init for display backlight */
 	pm8x41_wled_config_slave_id(PMIC_WLED_SLAVE_ID);
 
-	if (target_get_pmic() == PMIC_IS_PMI632)
+	if (pmic_type == PMIC_IS_PMI632)
 		rc = qpnp_lcdb_init(&config);
 	else
 		rc = qpnp_wled_init(&config);
@@ -616,7 +631,7 @@ int target_display_get_base_offset(uint32_t base)
 		else if (base == DSI1_PLL_BASE)
 			return DSI1_12NM_PHY_PLL_BASE_ADJUST;
 	} else if (platform_is_msm8956() || platform_is_msm8937() ||
-			platform_is_msm8917()) {
+			platform_is_msm8917() || platform_is_qm215()) {
 		if (base == MIPI_DSI0_BASE)
 			return DSI0_BASE_ADJUST;
 		else if (base == DSI0_PHY_BASE)
@@ -634,6 +649,7 @@ int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 {
 	int rc = 0;
 	uint32_t ldo_num = REG_LDO6 | REG_LDO17;
+	uint32_t pmic_type = target_get_pmic();
 
 	if (platform_is_msm8956())
 		ldo_num |= REG_LDO1;
@@ -651,9 +667,9 @@ int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 				dprintf(CRITICAL, "%s: wled init failed\n", __func__);
 				return rc;
 			}
-			if (target_get_pmic() == PMIC_IS_PMI632)
+			if (pmic_type == PMIC_IS_PMI632)
 				rc = qpnp_lcdb_enable(true);
-			else
+			else if(pmic_type != PMIC_IS_PM8916)
 				rc = qpnp_ibb_enable(true); /*5V boost*/
 			if (rc) {
 				dprintf(CRITICAL, "%s: qpnp_ibb/lcdb failed\n", __func__);
