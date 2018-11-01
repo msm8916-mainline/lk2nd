@@ -327,7 +327,7 @@ void target_init(void)
 
 #if PON_VIB_SUPPORT
 	/* turn on vibrator to indicate that phone is booting up to end user */
-	if(target_is_pmi_enabled())
+	if(target_is_pmi_enabled() || platform_is_qm215())
 		vib_timed_turn_on(VIBRATE_TIME);
 #endif
 
