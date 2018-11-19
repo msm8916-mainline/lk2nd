@@ -1635,6 +1635,12 @@ int boot_linux_from_mmc(void)
 	}
 #endif
 
+	/* Validate the boot/recovery image size is within the bounds of partition size */
+	if (imagesize_actual > image_size) {
+		dprintf(CRITICAL, "Image size is greater than partition size.\n");
+		return -1;
+	}
+
 #if VERIFIED_BOOT
 	boot_verifier_init();
 #endif
