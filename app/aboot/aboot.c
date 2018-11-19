@@ -4571,7 +4571,11 @@ int splash_screen_flash()
 
 	fb_display = fbcon_display();
 	if (fb_display) {
-		if (header->type && (header->blocks != 0)) { // RLE24 compressed data
+		if (header->type && (header->blocks != 0) &&
+				(UINT_MAX >= header->blocks * 512) &&
+				((header->blocks * 512) <=  (fb_display->width *
+				fb_display->height * (fb_display->bpp / 8)))) {
+					/* RLE24 compressed data */
 			uint8_t *base = (uint8_t *) fb_display->base + LOGO_IMG_OFFSET;
 
 			/* if the logo is full-screen size, remove "fbcon_clear()" */
@@ -4668,7 +4672,11 @@ int splash_screen_mmc()
 	}
 
 	if (fb_display) {
-		if (header->type && (header->blocks != 0)) { /* 1 RLE24 compressed data */
+		if (header->type && (header->blocks != 0) &&
+			(UINT_MAX >= header->blocks * 512 + LOGO_IMG_HEADER_SIZE) &&
+			((header->blocks * 512) <=  (fb_display->width *
+			fb_display->height * (fb_display->bpp / 8)))) {
+			/* 1 RLE24 compressed data */
 			base += LOGO_IMG_OFFSET;
 
 			realsize =  header->blocks * 512;
