@@ -55,6 +55,10 @@ typedef enum {
 
 #define EFIERR(_a)		(-1 * (_a))
 
+#define SALT_BUFF_OFFSET (1024)
+#define ADD_SALT_BUFF_OFFSET(addr) (SALT_BUFF_OFFSET + (addr))
+#define SUB_SALT_BUFF_OFFSET(addr) ((addr) - SALT_BUFF_OFFSET)
+
 #define EFI_SUCCESS               0
 #define EFI_LOAD_ERROR            EFIERR (1)
 #define EFI_INVALID_PARAMETER     EFIERR (2)

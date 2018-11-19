@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2016, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2016, 2018, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -31,6 +31,10 @@
 #include <kernel/thread.h>
 #include <pm_vib.h>
 #include <vibrator.h>
+#include <pm8x41.h>
+#include <platform.h>
+#include <smem.h>
+#include <target.h>
 
 #define CHECK_VIB_TIMER_FREQUENCY    50
 
@@ -49,13 +53,23 @@ static uint32_t vib_timeout = 1;
 /* Function to turn on vibrator */
 void vib_turn_on()
 {
-	pm_vib_turn_on();
+	uint32_t pmic = target_get_pmic();
+
+	if (pmic == PMIC_IS_PM8916)
+		pm8x41_vib_turn_on();
+	else
+		pm_vib_turn_on();
 }
 
 /* Function to turn off vibrator */
 void vib_turn_off()
 {
-	pm_vib_turn_off();
+	uint32_t pmic = target_get_pmic();
+
+	if (pmic == PMIC_IS_PM8916)
+		pm8x41_vib_turn_off();
+	else
+		pm_vib_turn_off();
 }
 
 #if !USE_VIB_THREAD

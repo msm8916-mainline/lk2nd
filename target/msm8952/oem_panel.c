@@ -968,6 +968,11 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 			panel_id = TRULY_1080P_VIDEO_PANEL;
 		break;
 	case HW_PLATFORM_QRD:
+		if (platform_is_qm215()) {
+			panel_id = HX8399C_HD_PLUS_VIDEO_PANEL;
+			break;
+		}
+
 		if (hw_subtype == HW_PLATFORM_SUBTYPE_POLARIS) {
 			panel_id = BYD_1200P_VIDEO_PANEL;
 			break;
