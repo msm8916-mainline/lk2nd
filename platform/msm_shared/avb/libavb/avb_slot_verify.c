@@ -305,14 +305,8 @@ static AvbSlotVerifyResult load_requested_partitions(
     }
     avb_debugv(part_name, ": Loading entire partition.\n", NULL);
 
-    image_buf = avb_malloc(image_size);
-    if (image_buf == NULL) {
-      ret = AVB_SLOT_VERIFY_RESULT_ERROR_OOM;
-      goto out;
-    }
-
     io_ret = ops->read_from_partition(
-        ops, part_name, 0 /* offset */, image_size, image_buf, &part_num_read);
+        ops, part_name, 0 /* offset */, image_size, &image_buf, &part_num_read);
     if (io_ret == AVB_IO_RESULT_ERROR_OOM) {
       ret = AVB_SLOT_VERIFY_RESULT_ERROR_OOM;
       goto out;
