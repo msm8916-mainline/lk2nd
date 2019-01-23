@@ -163,7 +163,7 @@ static AvbSlotVerifyResult load_and_verify_hash_partition(
   }
 
   io_ret = ops->read_from_partition(
-            ops, part_name, 0 /* offset */, image_size, &image_buf, &part_num_read);
+            ops, found, 0 /* offset */, image_size, &image_buf, &part_num_read);
 
   if (image_buf == NULL) {
     ret = AVB_SLOT_VERIFY_RESULT_ERROR_OOM;
@@ -421,6 +421,16 @@ static AvbSlotVerifyResult load_and_verify_vbmeta(
   if (is_vbmeta_partition) {
     vbmeta_offset = 0;
     vbmeta_size = VBMETA_MAX_SIZE;
+    io_ret = ops->read_from_partition(ops,
+                                    partition_name,
+                                    vbmeta_offset,
+                                    vbmeta_size,
+                                    &vbmeta_buf,
+                                    &vbmeta_num_read);
+    if (vbmeta_buf == NULL) {
+      ret = AVB_SLOT_VERIFY_RESULT_ERROR_OOM;
+      goto out;
+    }
   } else {
     uint8_t footer_buf[AVB_FOOTER_SIZE];
     size_t footer_num_read;
@@ -458,17 +468,7 @@ static AvbSlotVerifyResult load_and_verify_vbmeta(
     }
     vbmeta_offset = footer.vbmeta_offset;
     vbmeta_size = footer.vbmeta_size;
-  }
-
-  if (avb_strcmp(full_partition_name, "vbmeta") == 0) {
-    io_ret = ops->read_from_partition(ops,
-                                    full_partition_name,
-                                    vbmeta_offset,
-                                    vbmeta_size,
-                                    &vbmeta_buf,
-                                    &vbmeta_num_read);
-  } else { // for chain partitions
-    vbmeta_buf = avb_malloc(vbmeta_size);
+    vbmeta_buf = avb_malloc(vbmeta_size); // for chain partitions
     if (vbmeta_buf == NULL) {
         ret = AVB_SLOT_VERIFY_RESULT_ERROR_OOM;
         goto out;
@@ -479,10 +479,6 @@ static AvbSlotVerifyResult load_and_verify_vbmeta(
                                     vbmeta_size,
                                     &vbmeta_buf,
                                     &vbmeta_num_read);
-  }
-  if (vbmeta_buf == NULL) {
-    ret = AVB_SLOT_VERIFY_RESULT_ERROR_OOM;
-    goto out;
   }
 
   if (io_ret == AVB_IO_RESULT_ERROR_OOM) {

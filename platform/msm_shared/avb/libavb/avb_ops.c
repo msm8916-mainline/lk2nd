@@ -160,14 +160,14 @@ AvbIOResult AvbReadFromPartition(AvbOps *Ops, const char *Partition, int64_t Rea
 	AvbIOResult Result = AVB_IO_RESULT_OK;
 	EFI_STATUS Status = EFI_SUCCESS;
 	VOID *Page = NULL;
-	UINTN Offset = 0;
-	UINTN ptn = 0;
-	UINTN part_size = 0;
+	UINT64 Offset = 0;
+	UINT64 ptn = 0;
+	UINT64 part_size = 0;
 	UINT32 PageSize = 0;
-	UINT32 StartBlock = 0;
-	UINT32 LastBlock = 0;
-	UINT32 FullBlock = 0;
-	UINTN StartPageReadSize = 0;
+	UINT64 StartBlock = 0;
+	UINT64 LastBlock = 0;
+	UINT64 FullBlock = 0;
+	UINT64 StartPageReadSize = 0;
 	int index = INVALID_PTN;
 
 	if (Partition == NULL || Buffer == NULL || OutNumRead == NULL || NumBytes <= 0) {
@@ -233,7 +233,7 @@ AvbIOResult AvbReadFromPartition(AvbOps *Ops, const char *Partition, int64_t Rea
 
 	if (Offset % PageSize != 0) {
 		/* Offset not aligned to PageSize*/
-		UINT32 StartPageReadOffset = Offset - (StartBlock * PageSize);
+		UINT64 StartPageReadOffset = Offset - (StartBlock * PageSize);
 
 		if (StartBlock == LastBlock) {
 			/* Offset & Offset + NumBytes are in same block */
@@ -244,14 +244,14 @@ AvbIOResult AvbReadFromPartition(AvbOps *Ops, const char *Partition, int64_t Rea
 		}
 
 		dprintf(DEBUG,
-		       "StartBlock 0x%x, ReadOffset 0x%x, read_size 0x%llx\n",
-		       StartBlock, StartPageReadOffset, StartPageReadSize);
+		   "StartBlock 0x%llx, ReadOffset 0x%llx, read_size 0x%llx\n",
+		    StartBlock, StartPageReadOffset, StartPageReadSize);
 		if (StartPageReadSize <= 0 || StartPageReadOffset >= PageSize ||
 		    StartPageReadSize > PageSize - StartPageReadOffset ||
 		    StartPageReadSize > NumBytes) {
 			dprintf(CRITICAL,
-			       "StartBlock 0x%x, ReadOffset 0x%x, read_size "
-			       "0x%llx outside range.\n",
+			       "StartBlock 0x%llx, ReadOffset 0x%llx,"
+				"read_size 0x%llx outside range.\n",
 			       StartBlock, StartPageReadOffset, StartPageReadSize);
 			Result = AVB_IO_RESULT_ERROR_RANGE_OUTSIDE_PARTITION;
 			goto out;
@@ -272,18 +272,18 @@ AvbIOResult AvbReadFromPartition(AvbOps *Ops, const char *Partition, int64_t Rea
 		/* NumBytes + Offset not aligned to PageSize*/
 		/* Offset for last block is always zero, start at Page boundary
 		 */
-		UINT32 LastPageReadOffset = 0;
-		UINTN ReadOffset2 = (LastBlock * PageSize);
-		UINTN LastPageReadSize = (Offset + NumBytes) - ReadOffset2;
+		UINT64 LastPageReadOffset = 0;
+		UINT64 ReadOffset2 = (LastBlock * PageSize);
+		UINT64 LastPageReadSize = (Offset + NumBytes) - ReadOffset2;
 
 		dprintf(DEBUG,
-		       "LastBlock 0x%x, ReadOffset 0x%x, read_size 0x%llx\n",
+		      "LastBlock 0x%llx, ReadOffset 0x%llx, read_size 0x%llx\n",
 		       LastBlock, LastPageReadOffset, LastPageReadSize);
 
 		if (LastPageReadSize <= 0 || LastPageReadSize >= PageSize ||
 		    LastPageReadSize > (NumBytes - *OutNumRead)) {
 			dprintf(CRITICAL,
-			       "LastBlock 0x%x, ReadOffset 0x%x, read_size "
+			       "LastBlock 0x%llx, ReadOffset 0x%llx, read_size "
 			       "0x%llx outside range.\n",
 			       LastBlock, LastPageReadOffset, LastPageReadSize);
 			Result = AVB_IO_RESULT_ERROR_RANGE_OUTSIDE_PARTITION;
@@ -304,19 +304,19 @@ AvbIOResult AvbReadFromPartition(AvbOps *Ops, const char *Partition, int64_t Rea
 
 	if (*OutNumRead < NumBytes) {
 		/* full block reads */
-		UINTN FillPageReadSize = NumBytes - *OutNumRead;
+		UINT64 FillPageReadSize = NumBytes - *OutNumRead;
 
 		if ((FillPageReadSize % PageSize) != 0 ||
 		    (NumBytes - StartPageReadSize) < FillPageReadSize) {
 			dprintf(CRITICAL,
-			       "FullBlock 0x%x, ReadOffset 0x%x, read_size "
+			       "FullBlock 0x%llx, ReadOffset 0x%x, read_size "
 			       "0x%llx outside range.\n",
 			       FullBlock, 0, FillPageReadSize);
 			Result = AVB_IO_RESULT_ERROR_RANGE_OUTSIDE_PARTITION;
 			goto out;
 		}
 			dprintf(SPEW,
-			       "FullBlock 0x%x, ReadOffset 0x%x, read_size "
+			       "FullBlock 0x%llx, ReadOffset 0x%x, read_size "
 			       "0x%llx outside range. StartPageReadSize %#llx PageSize %d ptn %#llx Buffer %p\n",
 			       FullBlock, 0, FillPageReadSize, StartPageReadSize, PageSize, ptn, Buffer);
 		Status = mmc_read(ptn + FullBlock * PageSize, Buffer + StartPageReadSize,
