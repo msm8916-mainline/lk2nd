@@ -210,7 +210,6 @@ void target_uninit(void)
 	/* Tear down glink channels */
 	rpm_glink_uninit();
 
-#if VERIFIED_BOOT
 	if (target_get_vb_version() >= VB_M)
 	{
 		if (rpmb_uninit() < 0)
@@ -219,8 +218,6 @@ void target_uninit(void)
 			ASSERT(0);
 		}
 	}
-#endif
-
 }
 
 static void set_sdc_power_ctrl()
