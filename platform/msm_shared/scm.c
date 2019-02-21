@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2018,2019 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -39,6 +39,7 @@
 #include <board.h>
 #include <qseecomi_lk.h>
 #include <qseecom_lk_api.h>
+#include <boot_device.h>
 #include "scm.h"
 
 #pragma GCC optimize ("O0")
@@ -1268,6 +1269,7 @@ void scm_check_boot_fuses()
 	uint32_t *resp = NULL;
 	scmcall_arg scm_arg = {0};
 	scmcall_ret scm_ret = {0};
+	bool secure_value = false;
 
 	resp = memalign(CACHE_LINE, (2 * sizeof(uint32_t)));
 	ASSERT(resp);
@@ -1283,14 +1285,21 @@ void scm_check_boot_fuses()
 	if (!ret) {
 		/* Check for secure device: Bit#0 = 0, Bit#1 = 0 Bit#2 = 0 , Bit#5 = 0 */
 		/* Check Bit#6 = 1 only for TZ.BF.4.0 */
-        	if (!CHECK_BIT(resp[0], SECBOOT_FUSE_BIT) && !CHECK_BIT(resp[0], SECBOOT_FUSE_SHK_BIT) &&
-        		!CHECK_BIT(resp[0], SECBOOT_FUSE_DEBUG_DISABLED_BIT) &&
-                        !CHECK_BIT(resp[0], SECBOOT_FUSE_RPMB_ENABLED_BIT)) {
-                        if ((qseecom_get_version() < QSEE_VERSION_40))
-	                        secure_boot_enabled = true;
-                        else if (CHECK_BIT(resp[0], SECBOOT_FUSE_DEBUG_RE_ENABLED_BIT))
-	                        secure_boot_enabled = true;
-        	}
+		secure_value = !CHECK_BIT(resp[0], SECBOOT_FUSE_BIT) &&
+				!CHECK_BIT(resp[0], SECBOOT_FUSE_SHK_BIT) &&
+				!CHECK_BIT(resp[0], SECBOOT_FUSE_DEBUG_DISABLED_BIT);
+
+		/* For nand based devices, skip to check the rpmb enabled bit*/
+		if (!platform_boot_dev_is_nand())
+                        secure_value = secure_value && !CHECK_BIT(resp[0], SECBOOT_FUSE_RPMB_ENABLED_BIT);
+
+		if (secure_value) {
+			if ((qseecom_get_version() < QSEE_VERSION_40))
+				 secure_boot_enabled = true;
+			else if (CHECK_BIT(resp[0], SECBOOT_FUSE_DEBUG_RE_ENABLED_BIT))
+				secure_boot_enabled = true;
+		}
+
 		/* Bit 2 - DEBUG_DISABLE_CHECK */
 		if (CHECK_BIT(resp[0], SECBOOT_FUSE_DEBUG_DISABLED_BIT))
 			wdog_debug_fuse_disabled = false;
