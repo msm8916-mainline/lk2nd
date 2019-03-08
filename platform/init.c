@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008 Travis Geiselbrecht
  *
- * Copyright (c) 2014-2016, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2014-2016,2019 The Linux Foundation. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -125,6 +125,11 @@ __WEAK uint32_t platform_get_smem_base_addr()
 __WEAK uint32_t platform_boot_dev_isemmc()
 {
         return 1;
+}
+
+__WEAK uint32_t platform_boot_dev_is_nand()
+{
+        return 0;
 }
 
 __WEAK uint32_t platform_get_boot_dev()
