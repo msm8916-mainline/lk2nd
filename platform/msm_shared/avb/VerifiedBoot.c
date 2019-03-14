@@ -435,11 +435,6 @@ static EFI_STATUS load_image_and_authVB2(bootinfo *Info)
 	}
 
 	RequestedPartition = (const CHAR8 **)RequestedPartitionAll;
-	if (Info->num_loaded_images) {
-		/* fastboot boot option, skip Index 0, boot image already loaded */
-		RequestedPartition = (const CHAR8 **)&RequestedPartitionAll[1];
-		NumRequestedPartition--;
-	}
 
 	VerityFlags = VerityEnforcing ?
 				AVB_HASHTREE_ERROR_MODE_RESTART :
