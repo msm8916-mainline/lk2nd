@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2016, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2016,2019 The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -66,6 +66,35 @@ uint32_t platform_boot_dev_isemmc()
 		boot_dev_type = 0;
 
 	return boot_dev_type;
+}
+
+/*
+ * Return 1 if boot from NAND else 0
+ * For MDM : If the device is not Emmc,
+ *           By default : It is treated as NAND
+ * For non-MDM (MSM) : If the device is neither EMMC nor UFS
+ *           It will be treated as NAND.
+ * BOOT_DEFAULT in case of Non-MDM targets is EMMC.
+ */
+uint32_t platform_boot_dev_is_nand()
+{
+        uint32_t val = 0;
+
+        val = platform_get_boot_dev();
+        switch(val)
+        {
+#if USE_MDM_BOOT_CFG
+                case BOOT_EMMC:
+                        return 0;
+#else
+                case BOOT_DEFAULT:
+                case BOOT_EMMC:
+                case BOOT_UFS:
+                        return 0;
+#endif
+                default:
+                        return 1;
+        };
 }
 
 void platform_boot_dev_cmdline(char *buf)

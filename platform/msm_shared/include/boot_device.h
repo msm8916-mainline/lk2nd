@@ -94,6 +94,7 @@ int getimage(void **image_buffer, uint32_t *imgsize, const char *imgname);
 void platform_read_boot_config();
 uint32_t platform_get_boot_dev();
 uint32_t platform_boot_dev_isemmc();
+uint32_t platform_boot_dev_is_nand();
 void platform_boot_dev_cmdline(char *buf);
 int get_boot_image_info(void **image_buffer, uint32_t *imgsize,char *imgname);
 
