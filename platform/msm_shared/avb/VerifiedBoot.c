@@ -39,6 +39,7 @@
 #include "verifiedboot.h"
 #include <err.h>
 #include <target.h>
+#include <libavb/avb_sha.h>
 
 #ifndef DTB_PAD_SIZE
 #define DTB_PAD_SIZE            2048
@@ -358,6 +359,18 @@ VOID AddRequestedPartition(CHAR8 **requestedpartititon, UINT32 index)
 	}
 }
 
+static VOID ComputeVbMetaDigest (AvbSlotVerifyData* SlotData, CHAR8* Digest) {
+	size_t Index;
+	AvbSHA256Ctx Ctx;
+	avb_sha256_init (&Ctx);
+	for (Index = 0; Index < SlotData->num_vbmeta_images; Index++) {
+		avb_sha256_update (&Ctx,
+			SlotData->vbmeta_images[Index].vbmeta_data,
+			SlotData->vbmeta_images[Index].vbmeta_size);
+	}
+	avb_memcpy (Digest, avb_sha256_final(&Ctx), AVB_SHA256_DIGEST_SIZE);
+}
+
 static EFI_STATUS load_image_and_authVB2(bootinfo *Info)
 {
 	EFI_STATUS Status = EFI_SUCCESS;
@@ -383,6 +396,7 @@ static EFI_STATUS load_image_and_authVB2(bootinfo *Info)
            AVB_SLOT_VERIFY_FLAGS_NONE;
 	AvbHashtreeErrorMode VerityFlags = AVB_HASHTREE_ERROR_MODE_RESTART_AND_INVALIDATE;
 	device_info DevInfo_vb;
+	CHAR8 Digest[AVB_SHA256_DIGEST_SIZE] = {0};
 
 	HeaderVersion = Info->header_version;
 	Info->boot_state = RED;
@@ -551,6 +565,9 @@ static EFI_STATUS load_image_and_authVB2(bootinfo *Info)
 	set_os_version(ADD_SALT_BUFF_OFFSET(Info->images[0].image_buffer));
 	if(!send_rot_command((uint32_t)DevInfo_vb.is_unlocked))
 		return EFI_LOAD_ERROR;
+
+	ComputeVbMetaDigest(SlotData, (CHAR8 *)&Digest);
+	GUARD_OUT(set_verified_boot_hash((const CHAR8 *)&Digest, sizeof(Digest)));
 	dprintf(INFO, "VB2: Authenticate complete! boot state is: %s\n",
 	       VbSn[Info->boot_state].name);
 

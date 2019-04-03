@@ -799,3 +799,29 @@ void set_os_version(unsigned char* img_addr)
 	return;
 }
 #endif
+
+int set_verified_boot_hash (const char *vbh, size_t vbh_size)
+{
+	int ret = 0;
+	km_set_vbh_req_t vbh_req = {0};
+	km_set_vbh_rsp_t vbh_rsp = {0};
+	int app_handle = get_secapp_handle();
+
+	if (!vbh || vbh_size != sizeof (vbh_req.vbh)) {
+		dprintf(CRITICAL, "Vbh input params invalid\n");
+		ASSERT(0);
+	}
+	vbh_req.cmd_id = KEYMASTER_SET_VBH;
+	memscpy (vbh_req.vbh, sizeof(vbh_req.vbh), vbh, vbh_size);
+	ret = qseecom_send_command (app_handle, (void *)&vbh_req, sizeof (vbh_req), (void *)&vbh_rsp, sizeof (vbh_rsp));
+
+	if (ret != 0 || vbh_rsp.status != 0) {
+		dprintf(CRITICAL, "QSEEcom command for setting vbh returned error: %d\n",vbh_rsp.status);
+		if (ret == 0 && vbh_rsp.status == KM_ERROR_INVALID_TAG) {
+			dprintf(INFO, "VBH not supported in keymaster, continue boot\n");
+			return ret;
+		}
+		ASSERT(0);
+	}
+	return ret;
+}
