@@ -71,9 +71,14 @@ typedef enum {
     KEYMASTER_WRITE_LK_DEVICE_STATE			= (KEYMASTER_UTILS_CMD_ID + 3UL),
     KEYMASTER_MILESTONE_CALL				= (KEYMASTER_UTILS_CMD_ID + 4UL),
     KEYMASTER_SECURE_WRITE_PROTECT			= (KEYMASTER_UTILS_CMD_ID + 6UL),
+    KEYMASTER_SET_VBH					= (KEYMASTER_UTILS_CMD_ID + 17UL),
 
     KEYMASTER_LAST_CMD_ENTRY				= (int)0xFFFFFFFFULL
 } keymaster_cmd_t;
+
+typedef enum {
+	KM_ERROR_INVALID_TAG = -40,
+} keymaster_error_t;
 
 
 /*
@@ -262,5 +267,16 @@ typedef struct _km_set_boot_state_rsp_t
 {
 	int status;
 }__attribute__((packed)) km_set_boot_state_rsp_t;
+
+typedef struct
+{
+	uint32_t cmd_id;
+	char vbh[32];
+} __attribute__ ((packed)) km_set_vbh_req_t;
+
+typedef struct
+{
+	int status;
+} __attribute__ ((packed)) km_set_vbh_rsp_t;
 
 #endif /* KM_MAIN_H */
