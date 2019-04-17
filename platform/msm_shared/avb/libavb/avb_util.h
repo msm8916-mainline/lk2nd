@@ -37,6 +37,7 @@ extern "C" {
 
 #define AVB_STRINGIFY(x) #x
 #define AVB_TO_STRING(x) AVB_STRINGIFY(x)
+#define AVB_ENABLE_DEBUG 1
 
 #ifdef AVB_ENABLE_DEBUG
 /* Aborts the program if |expr| is false.
