@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, 2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015, 2018-2019, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -418,22 +418,6 @@ void gcc_dsi_hs_clocks_enable(uint32_t flags, bool use_dsi1_pll, uint8_t pclk0_m
 	}
 }
 
-/* Function to asynchronously reset CE.
- * Function assumes that all the CE clocks are off.
- */
-static void ce_async_reset(uint8_t instance)
-{
-	/* Start the block reset for CE */
-	writel(1, GCC_CRYPTO_BCR);
-
-	udelay(2);
-
-	/* Take CE block out of reset */
-	writel(0, GCC_CRYPTO_BCR);
-
-	udelay(2);
-}
-
 void clock_ce_enable(uint8_t instance)
 {
 	int ret;
@@ -520,8 +504,6 @@ void clock_config_ce(uint8_t instance)
 	clock_ce_enable(instance);
 
 	clock_ce_disable(instance);
-
-	ce_async_reset(instance);
 
 	clock_ce_enable(instance);
 }
