@@ -232,6 +232,8 @@ static AvbSlotVerifyResult load_and_verify_hash_partition(
                NULL);
     ret = AVB_SLOT_VERIFY_RESULT_ERROR_VERIFICATION;
     goto out;
+  } else {
+    avb_debugv(part_name, ": success: Image verification completed.\n", NULL);
   }
 
   ret = AVB_SLOT_VERIFY_RESULT_OK;
