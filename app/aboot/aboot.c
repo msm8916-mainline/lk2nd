@@ -2,7 +2,7 @@
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2018, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2019, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -4387,6 +4387,40 @@ void cmd_set_active(const char *arg, void *data, unsigned sz)
 	return;
 }
 
+#if DYNAMIC_PARTITION_SUPPORT
+void cmd_reboot_fastboot(const char *arg, void *data, unsigned sz)
+{
+	dprintf(INFO, "rebooting the device - userspace fastboot\n");
+	if (send_recovery_cmd(RECOVERY_BOOT_FASTBOOT_CMD)) {
+		dprintf(CRITICAL, "ERROR: Failed to update recovery commands\n");
+		fastboot_fail("Failed to update recovery command");
+		return;
+	}
+	fastboot_okay("");
+	reboot_device(REBOOT_MODE_UNKNOWN);
+
+	//shouldn't come here.
+	dprintf(CRITICAL, "ERROR: Failed to reboot device\n");
+	return;
+}
+
+void cmd_reboot_recovery(const char *arg, void *data, unsigned sz)
+{
+	dprintf(INFO, "rebooting the device - recovery\n");
+	if (send_recovery_cmd(RECOVERY_BOOT_RECOVERY_CMD)) {
+		dprintf(CRITICAL, "ERROR: Failed to update recovery commands\n");
+		fastboot_fail("Failed to update recovery command");
+		return;
+	}
+	fastboot_okay("");
+	reboot_device(REBOOT_MODE_UNKNOWN);
+
+	//shouldn't come here.
+	dprintf(CRITICAL, "ERROR: Failed to reboot device\n");
+	return;
+}
+#endif
+
 void cmd_reboot_bootloader(const char *arg, void *data, unsigned sz)
 {
 	dprintf(INFO, "rebooting the device\n");
@@ -4910,6 +4944,10 @@ void aboot_fastboot_register_commands(void)
 						{"oem off-mode-charge", cmd_oem_off_mode_charger},
 						{"oem select-display-panel", cmd_oem_select_display_panel},
 						{"set_active",cmd_set_active},
+#if DYNAMIC_PARTITION_SUPPORT
+						{"reboot-fastboot",cmd_reboot_fastboot},
+						{"reboot-recovery",cmd_reboot_recovery},
+#endif
 #if UNITTEST_FW_SUPPORT
 						{"oem run-tests", cmd_oem_runtests},
 #endif
@@ -4988,6 +5026,8 @@ void aboot_fastboot_register_commands(void)
 	fastboot_publish("battery-voltage", (const char *) battery_voltage);
 	fastboot_publish("battery-soc-ok", (const char *) battery_soc_ok);
 #endif
+        if (target_dynamic_partition_supported())
+		fastboot_publish("is-userspace", "no");
 }
 
 void aboot_init(const struct app_descriptor *app)

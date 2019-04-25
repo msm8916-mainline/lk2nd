@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2017, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2017,2019 The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -241,7 +241,7 @@ int recovery_init (void)
 			sizeof(msg.command), msg.command);
 	}
 
-	if (!strcmp("boot-recovery",msg.command))
+	if (!strcmp(RECOVERY_BOOT_RECOVERY_CMD, msg.command))
 	{
 		if(!strcmp("RADIO",msg.status))
 		{
@@ -264,6 +264,12 @@ int recovery_init (void)
 			return 0;
 		}
 		boot_into_recovery = 1;		// Boot in recovery mode
+		return 0;
+	}
+
+	if (target_dynamic_partition_supported() &&
+		!strcmp(RECOVERY_BOOT_FASTBOOT_CMD, msg.command)) {
+		boot_into_recovery = 1;		// Boot in userspace fastboot mode
 		return 0;
 	}
 
@@ -369,6 +375,28 @@ static int emmc_get_recovery_msg(struct recovery_message *in)
 	return 0;
 }
 
+/* Generic funcition to write misc commands. */
+int send_recovery_cmd(const char *command)
+{
+	struct recovery_message msg;
+	int status = 0;
+	memset(&msg, 0, sizeof(msg));
+
+	/* Populate command to msg */
+	snprintf(msg.command,
+		 sizeof(msg.command),
+		 command);
+
+	dprintf(INFO,"Recovery command: %s\n", msg.command);
+	if (target_is_emmc_boot())
+		/* Update emmc partition */
+		status = emmc_set_recovery_msg(&msg);
+	else
+		status = set_recovery_message(&msg);
+
+	return status;
+}
+
 int _emmc_recovery_init(void)
 {
 	int update_status = 0;
@@ -394,7 +422,12 @@ int _emmc_recovery_init(void)
 			sizeof(msg->command), msg->command);
 	}
 
-	if (!strcmp(msg->command, "boot-recovery")) {
+	if (!strcmp(msg->command, RECOVERY_BOOT_RECOVERY_CMD)) {
+		boot_into_recovery = 1;
+	}
+
+	if (target_dynamic_partition_supported() &&
+		!strcmp(msg->command, RECOVERY_BOOT_FASTBOOT_CMD)) {
 		boot_into_recovery = 1;
 	}
 

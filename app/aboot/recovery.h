@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2017, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2017,2019 The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -37,6 +37,9 @@
 #define BOOTSELECT_VERSION   0x00010001
 #define BOOTSELECT_FORMAT    (1 << 31)
 #define BOOTSELECT_FACTORY   (1 << 30)
+
+#define RECOVERY_BOOT_RECOVERY_CMD "boot-recovery"
+#define RECOVERY_BOOT_FASTBOOT_CMD "boot-fastboot"
 
 /* bootselect partition format structure */
 struct boot_selection_info {
@@ -78,7 +81,7 @@ int write_misc(unsigned page_offset, void *buf, unsigned size);
 
 int get_recovery_message(struct recovery_message *out);
 int set_recovery_message(const struct recovery_message *in);
-
+int send_recovery_cmd(const char *command);
 int recovery_init (void);
 /* This function will look for the ffbm cookie in the misc partition.
  * Upon finding a valid cookie it will return 1 and place the cookie
