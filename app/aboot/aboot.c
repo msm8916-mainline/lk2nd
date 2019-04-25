@@ -1504,7 +1504,8 @@ int boot_linux_from_mmc(void)
 	/* For a/b recovery image code is on boot partition.
 	   If we support multislot, always use boot partition. */
 	if (boot_into_recovery &&
-		(!partition_multislot_is_supported()))
+		((!partition_multislot_is_supported()) ||
+		(target_dynamic_partition_supported())))
 			ptn_name = "recovery";
 	else
 			ptn_name = "boot";
