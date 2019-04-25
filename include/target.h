@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008 Travis Geiselbrecht
  *
- * Copyright (c) 2013-2017, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2013-2017,2019 The Linux Foundation. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -104,6 +104,7 @@ bool target_build_variant_user();
 void pmic_reset_configure(uint8_t reset_type);
 bool is_display_disabled(void);
 bool target_uses_system_as_root(void);
+bool target_dynamic_partition_supported(void);
 struct qmp_reg *target_get_qmp_settings();
 int target_get_qmp_regsize();
 uint32_t target_ddr_cfg_reg();

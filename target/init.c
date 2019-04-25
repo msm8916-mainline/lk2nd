@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008 Travis Geiselbrecht
  *
- * Copyright (c) 2015-2018, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2015-2019, The Linux Foundation. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -276,6 +276,16 @@ bool target_uses_system_as_root(void)
 		return true;
 #endif
 		return false;
+}
+
+/* Check dynamic partition support is enabled for target */
+bool target_dynamic_partition_supported(void)
+{
+#if DYNAMIC_PARTITION_SUPPORT
+	return true;
+#else
+	return false;
+#endif
 }
 
 /* Default CFG register value */
