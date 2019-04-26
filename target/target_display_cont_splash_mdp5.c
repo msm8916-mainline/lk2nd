@@ -57,6 +57,13 @@ static int mdss_read_config(struct fbcon_config *fb)
 		return -1;
 	}
 
+	// Add MMU mappings if necessary
+	fb->base = (void*) platform_map_fb((addr_t) fb->base, size);
+	if (!fb->base) {
+		dprintf(CRITICAL, "Failed to map continuous splash memory region\n");
+		return -1;
+	}
+
 	return 0;
 }
 

@@ -123,6 +123,8 @@ void arm_mmu_map_entry(mmu_section_t *entry);
 #endif
 
 void arm_mmu_map_section(addr_t paddr, addr_t vaddr, uint flags);
+void arm_mmu_flush(void);
+
 uint64_t virtual_to_physical_mapping(uint32_t vaddr);
 uint32_t physical_to_virtual_mapping(uint64_t paddr);
 

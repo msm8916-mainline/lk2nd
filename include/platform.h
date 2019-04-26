@@ -42,6 +42,7 @@ void platform_init(void);
 /* called by the arch init code to get the platform to set up any mmu mappings it may need */
 int platform_use_identity_mmu_mappings(void);
 void platform_init_mmu_mappings(void);
+addr_t platform_map_fb(addr_t phys_addr, uint32_t size);
 addr_t platform_get_virt_to_phys_mapping(addr_t virt_addr);
 addr_t platform_get_phys_to_virt_mapping(addr_t phys_addr);
 addr_t get_bs_info_addr(void);

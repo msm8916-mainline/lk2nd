@@ -42,6 +42,11 @@ __WEAK void platform_init_mmu_mappings(void)
 {
 }
 
+__WEAK addr_t platform_map_fb(addr_t phys_addr, uint32_t size)
+{
+	return phys_addr;
+}
+
 __WEAK addr_t platform_get_virt_to_phys_mapping(addr_t virt_addr)
 {
 	ASSERT(platform_use_identity_mmu_mappings());
