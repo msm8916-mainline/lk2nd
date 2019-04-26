@@ -161,6 +161,7 @@ int read_device_info_rpmb(void *info, uint32_t sz)
 
 int write_device_info_rpmb(void *info, uint32_t sz)
 {
+#ifndef SAFE_MODE
 	int ret = 0;
 
 	struct send_cmd_req write_req = {0};
@@ -182,6 +183,10 @@ int write_device_info_rpmb(void *info, uint32_t sz)
 	}
 
 	return 0;
+#else
+	dprintf(CRITICAL, "Ignoring attempt to write device info\n");
+	return -1;
+#endif
 }
 
 int rpmb_uninit()
