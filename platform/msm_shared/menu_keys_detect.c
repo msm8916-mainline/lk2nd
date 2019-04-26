@@ -150,7 +150,9 @@ static void update_device_status(struct select_msg_info* msg_info, int reason)
 			msg_info->info.is_exit = true;
 			break;
 		case BACK:
+#if VERIFIED_BOOT
 			display_bootverify_menu_renew(msg_info, msg_info->last_msg_type);
+#endif
 			before_time = current_time();
 
 			break;
