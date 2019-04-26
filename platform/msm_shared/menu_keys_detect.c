@@ -135,7 +135,9 @@ static void update_device_status(struct select_msg_info* msg_info, int reason)
 			msg_info->info.is_exit = true;
 			break;
 		case BACK:
+#if VERIFIED_BOOT || VERIFIED_BOOT_2
 			display_bootverify_menu_renew(msg_info, msg_info->last_msg_type);
+#endif
 			before_time = current_time();
 
 			break;
@@ -243,7 +245,9 @@ static void power_key_func(struct select_msg_info* msg_info)
 			   * Update the warning message and recalculate the timeout
 			   */
 			  before_time = current_time();
+#if VERIFIED_BOOT || VERIFIED_BOOT_2
 			  display_bootverify_menu_update (msg_info);
+#endif
 			  isreflash = TRUE;
 			} else {
 			  reason = CONTINUE;
