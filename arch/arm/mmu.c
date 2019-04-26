@@ -93,6 +93,13 @@ void arm_mmu_init(void)
 	arm_write_cr1(arm_read_cr1() | 0x1);
 }
 
+void arm_mmu_flush(void)
+{
+	arch_clean_cache_range((vaddr_t) &tt, sizeof(tt));
+	dsb();
+	isb();
+}
+
 void arch_disable_mmu(void)
 {
 	/* Ensure all memory access are complete

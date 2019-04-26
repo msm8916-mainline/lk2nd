@@ -146,6 +146,20 @@ void platform_init_mmu_mappings(void)
 	}
 }
 
+addr_t platform_map_fb(addr_t phys_addr, uint32_t size)
+{
+	if (phys_addr != MIPI_FB_ADDR) {
+		addr_t end = phys_addr + size;
+		addr_t addr;
+		for (addr = phys_addr; addr < end; addr += MB) {
+			arm_mmu_map_section(addr, addr, COMMON_MEMORY);
+		}
+		arm_mmu_flush();
+	}
+
+	return phys_addr;
+}
+
 addr_t platform_get_virt_to_phys_mapping(addr_t virt_addr)
 {
 	/* Using 1-1 mapping on this platform. */
