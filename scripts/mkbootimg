@@ -1,0 +1,143 @@
+#! /usr/bin/env python
+#
+#  Copyright (c) 2013, The Linux Foundation. All rights reserved.
+#
+#  Redistribution and use in source and binary forms, with or without
+#  modification, are permitted provided that the following conditions are
+#  met:
+#      * Redistributions of source code must retain the above copyright
+#        notice, this list of conditions and the following disclaimer.
+#      * Redistributions in binary form must reproduce the above
+#        copyright notice, this list of conditions and the following
+#        disclaimer in the documentation and/or other materials provided
+#        with the distribution.
+#      * Neither the name of The Linux Foundation nor the names of its
+#        contributors may be used to endorse or promote products derived
+#        from this software without specific prior written permission.
+#
+#  THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED
+#  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+#  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT
+#  ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS
+#  BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+#  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+#  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+#  BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+#  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+#  OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
+#  IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# Drop in replacement for android's mkbootimg plus some more additions
+#
+
+from struct import pack
+import os
+from optparse import OptionParser
+
+def write_padding(f, pagesize):
+	count = pagesize - (f.tell() % pagesize)
+	# Write padding as long as we aren't already aligned to a page
+	if count != pagesize:
+		output.write(b'\x00' * count)
+
+if __name__ == "__main__":
+	usage = ("""%prog [options]""")
+	parser = OptionParser(usage=usage)
+	# Standard options
+	parser.add_option("--kernel", dest="kernel", metavar="FILE",
+			  help="Input kernel image")
+	parser.add_option("--ramdisk", dest="ramdisk", metavar="FILE",
+			  help="Input ramdisk image")
+	parser.add_option("--base", type="int", dest="base",
+			  help="Start address of kernel image")
+	parser.add_option("--output", dest="output", metavar="FILE",
+			  help="Write output to FILE")
+	parser.add_option("--cmdline", dest="cmdline",
+			  help="Kernel command line")
+	parser.add_option("--pagesize", type="int", dest="pagesize",
+			  default=2048,
+			  help="NAND pagesize [default: %default]")
+	parser.add_option("--board", dest="board", default="",
+			  help="Board identifier")
+	# New options
+	parser.add_option("--ramdisk_base", type="int", dest="ramdisk_base",
+			  default=-1, help="Start address of ramdisk image")
+	parser.add_option("--dt", dest="devicetree", metavar="FILE",
+			  help="Input device tree image")
+
+	(options, args) = parser.parse_args()
+
+	if options.kernel is None:
+		parser.error("Must specify --kernel")
+	if options.ramdisk is None:
+		parser.error("Must specify --ramdisk")
+	if options.output is None:
+		parser.error("Must specify --output")
+	if options.base is None:
+		parser.error("Must specify --base")
+	if options.cmdline is None:
+		parser.error("Must specify --cmdline")
+	if len(options.board) > 16:
+		parser.error("--boards argument must be <= 16 characters")
+
+	try:
+		kernel = open(options.kernel, 'rb')
+	except IOError:
+		exit("Can't open %s" % options.kernel)
+	try:
+		ramdisk = open(options.ramdisk, 'rb')
+	except IOError:
+		exit("Can't open %s" % options.ramdisk)
+	try:
+		output = open(options.output, 'wb')
+	except IOError:
+		exit("Can't open %s" % options.output)
+	if options.devicetree:
+		try:
+			devicetree = open(options.devicetree, 'rb')
+		except IOError:
+			exit("Can't open %s" % options.devicetree)
+
+	pagesize = options.pagesize
+	tags = options.base + 0x100
+	ramdisk_base = options.ramdisk_base if options.ramdisk_base != -1 else options.base + 0x2000000
+
+	kernel_size = os.fstat(kernel.fileno()).st_size
+	dtb_size = 0
+	if options.devicetree:
+		magic = devicetree.read(4)
+		devicetree.seek(0)
+		if magic == b'\xd0\x0d\xfe\xed': # 0xd00dfeed
+			append_dtb = True
+			kernel_size += os.fstat(devicetree.fileno()).st_size
+		elif magic == b'QCDT':
+			append_dtb = False
+			dtb_size = os.fstat(devicetree.fileno()).st_size
+		else:
+			exit("dtb: %s is of unknown format" % options.devicetree)
+
+	hdr_format = "<8sIIIIIIII2I16s512s8I"
+	output.write(pack(hdr_format,
+			  b"ANDROID!",
+			  kernel_size,
+			  options.base + 0x8000,
+			  os.fstat(ramdisk.fileno()).st_size,
+			  ramdisk_base,
+			  0, 0,
+			  tags,
+			  options.pagesize,
+			  dtb_size, 0,
+			  options.board.encode(),
+			  options.cmdline.encode(),
+			  123456, 123456, 123456, 123456, 123456, 123456,
+			  0, 0))
+	write_padding(output, pagesize)
+	output.write(kernel.read())
+	if options.devicetree and append_dtb:
+		output.write(devicetree.read())
+	write_padding(output, pagesize)
+	output.write(ramdisk.read())
+	write_padding(output, pagesize)
+	if options.devicetree and not append_dtb:
+		output.write(devicetree.read())
+	write_padding(output, pagesize)
