@@ -32,7 +32,7 @@
 #include <smem.h>
 #include <baseband.h>
 
-static struct board_data board = {UNKNOWN,
+struct board_data board = {UNKNOWN,
 	0,
 	0,
 	HW_PLATFORM_UNKNOWN,
