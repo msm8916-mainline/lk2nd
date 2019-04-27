@@ -2217,3 +2217,31 @@ static int update_fstab_node(void *fdt)
         return ret;
 }
 #endif
+
+int dev_tree_check_header(const void *fdt)
+{
+	return fdt_check_header(fdt) || fdt_check_header_ext(fdt);
+}
+
+const char *dev_tree_get_boot_args(const void *fdt)
+{
+	int offset, len;
+	const char *prop;
+	char *bootargs = NULL;
+
+	offset = fdt_path_offset(fdt, "/chosen");
+	if (offset < 0) {
+		dprintf(INFO, "Could not find chosen node in device tree: %d\n", offset);
+		return NULL;
+	}
+
+	prop = fdt_getprop(fdt, offset, "bootargs", &len);
+	if (prop && len > 0) {
+		bootargs = (char*) malloc(sizeof(char) * len);
+		ASSERT(bootargs);
+		strlcpy(bootargs, prop, len);
+	} else {
+		dprintf(INFO, "Boot arguments do not exist in device tree\n");
+	}
+	return bootargs;
+}

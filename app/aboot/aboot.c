@@ -341,6 +341,7 @@ char battery_soc_ok [MAX_RSP_SIZE];
 #endif
 
 char get_variant[MAX_RSP_SIZE];
+static const char *bootargs;
 
 extern int emmc_recovery_init(void);
 
@@ -426,7 +427,7 @@ void update_battery_status(void)
 }
 #endif
 
-unsigned char *update_cmdline(const char * cmdline)
+static unsigned char *update_cmdline0(const char * cmdline)
 {
 	int cmdline_len = 0;
 	int have_cmdline = 0;
@@ -978,6 +979,23 @@ unsigned char *update_cmdline(const char * cmdline)
 	else
 		dprintf(INFO, "cmdline is NULL\n");
 	return cmdline_final;
+}
+
+static char *concat_args(const char *a, const char *b)
+{
+	int lenA = strlen(a), lenB = strlen(b);
+	char *r = malloc(lenA + lenB);
+	memcpy(r, a, lenA);
+	r[lenA] = ' ';
+	memcpy(r + lenA + 1, b, lenB);
+	return r;
+}
+
+unsigned char *update_cmdline(const char* cmdline)
+{
+	if (bootargs)
+		return cmdline ? concat_args(cmdline, bootargs) : strdup(bootargs);
+	return update_cmdline0(cmdline);
 }
 
 unsigned *atag_core(unsigned *ptr)
@@ -5009,6 +5027,23 @@ void aboot_fastboot_register_commands(void)
 #endif
 }
 
+static void aboot_parse_fdt(void)
+{
+	void *fdt = (void*) lk_boot_args[2];
+	if (!fdt)
+		return;
+
+	if (dev_tree_check_header(fdt)) {
+		dprintf(INFO, "Invalid device tree provided by primary bootloader\n");
+		return;
+	}
+
+	bootargs = dev_tree_get_boot_args(fdt);
+	if (bootargs) {
+		dprintf(INFO, "Command line from primary bootloader: %s\n", bootargs);
+	}
+}
+
 void aboot_init(const struct app_descriptor *app)
 {
 	unsigned reboot_mode = 0;
@@ -5037,6 +5072,7 @@ void aboot_init(const struct app_descriptor *app)
 
 	read_device_info(&device);
 	read_allow_oem_unlock(&device);
+	aboot_parse_fdt();
 
 	/* Detect multi-slot support */
 	if (partition_multislot_is_supported())
