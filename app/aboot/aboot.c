@@ -5027,6 +5027,29 @@ void aboot_fastboot_register_commands(void)
 #endif
 }
 
+static const char *strpresuf(const char *str, const char *pre) {
+	int len = strlen(pre);
+	return strncmp(pre, str, len) == 0 ? str + len : NULL;
+}
+
+static void parse_boot_args(void)
+{
+	char *saveptr;
+	char *args = strdup(bootargs);
+
+	char *arg = strtok_r(args, " ", &saveptr);
+	while (arg) {
+		char *val;
+		if ((val = strpresuf(arg, "androidboot.bootloader="))) {
+			strlcpy(device.bootloader_version, val, sizeof(device.bootloader_version));
+		}
+
+		arg = strtok_r(NULL, " ", &saveptr);
+	}
+
+	free(args);
+}
+
 static void aboot_parse_fdt(void)
 {
 	void *fdt = (void*) lk_boot_args[2];
@@ -5041,6 +5064,7 @@ static void aboot_parse_fdt(void)
 	bootargs = dev_tree_get_boot_args(fdt);
 	if (bootargs) {
 		dprintf(INFO, "Command line from primary bootloader: %s\n", bootargs);
+		parse_boot_args();
 	}
 }
 
