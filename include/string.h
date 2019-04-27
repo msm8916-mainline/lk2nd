@@ -57,7 +57,7 @@ char       *strtok_r(char *s, const char *delim, char **last);
 int         strcoll(const char *s1, const char *s2) __PURE;
 size_t      strxfrm(char *dest, const char *src, size_t n) __PURE;
 char       *strdup(const char *str) __MALLOC;
-void        strrev(unsigned char *str) __PURE;
+void        strrev(unsigned char *str);
 
 #ifdef __cplusplus
 } /* extern "C" */
