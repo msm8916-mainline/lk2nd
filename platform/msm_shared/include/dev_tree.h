@@ -259,4 +259,5 @@ int get_dtbo_idx (void);
 
 int dev_tree_check_header(const void *fdt);
 const char *dev_tree_get_boot_args(const void *fdt);
+int dev_tree_get_board_id(const void *fdt, struct board_id *board_id);
 #endif
