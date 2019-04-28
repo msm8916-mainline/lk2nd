@@ -7,7 +7,7 @@ rm -rf "build-$TARGET"
 make -j6 TOOLCHAIN_PREFIX=arm-none-eabi- "$TARGET"
 
 cd "build-$TARGET"
-../../skales/mkbootimg \
+../scripts/mkbootimg \
     --kernel=lk.bin \
     --ramdisk=/dev/null \
     --dt=../../dt.img \
