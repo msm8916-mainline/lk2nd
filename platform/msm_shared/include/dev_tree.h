@@ -44,7 +44,7 @@
 #define DTB_MAGIC               0xedfe0dd0
 #define DTB_OFFSET              0x2C
 
-#define DTB_PAD_SIZE            1024
+#define DTB_PAD_SIZE            2048
 
 /*
  * For DTB V1: The DTB entries would be of the format
