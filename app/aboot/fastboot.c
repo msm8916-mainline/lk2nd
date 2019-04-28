@@ -404,6 +404,27 @@ void fastboot_okay(const char *info)
 	fastboot_ack("OKAY", info);
 }
 
+void fastboot_send_string_multiline(const void* _data, size_t size) {
+	uint32_t i;
+	char buf[MAX_RSP_SIZE];
+	size_t pos = 0;
+	const char* data = _data;
+
+	if(size==0)
+		size=strlen(data);
+
+	for(i=0; i<size; i++) {
+		char c = data[i];
+		buf[pos++] = c;
+
+		if(pos==sizeof(buf)-1-4 || i==size-1 || c=='\n' || c=='\r') {
+			buf[pos] = 0;
+			fastboot_info(buf);
+			pos = 0;
+		}
+	}
+}
+
 static void cmd_getvar(const char *arg, void *data, unsigned sz)
 {
 	struct fastboot_var *var;
@@ -438,6 +459,13 @@ static void cmd_help(const char *arg, void *data, unsigned sz)
 
 	fastboot_okay("");
 }
+#if WITH_DEBUG_LOG_BUF
+void cmd_oem_lk_log(const char *arg, void *data, unsigned sz)
+{
+	fastboot_send_string_multiline(lk_log_getbuf(), lk_log_getsize());
+	fastboot_okay("");
+}
+#endif
 
 static void cmd_download(const char *arg, void *data, unsigned sz)
 {
@@ -611,6 +639,9 @@ int fastboot_init(void *base, unsigned size)
 		goto fail_udc_register;
 
 	fastboot_register("oem help", cmd_help);
+	#if WITH_DEBUG_LOG_BUF
+	fastboot_register("oem lk_log", cmd_oem_lk_log);
+	#endif
 	fastboot_register("getvar:", cmd_getvar);
 	fastboot_register("download:", cmd_download);
 	fastboot_publish("version", "0.5");

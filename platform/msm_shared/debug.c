@@ -94,6 +94,13 @@ static void log_putc(char c)
 	if (unlikely(log.header.idx >= log.header.max_size))
 		log.header.idx = 0;
 }
+
+char* lk_log_getbuf(void) {
+    return log.data;
+}
+unsigned lk_log_getsize(void) {
+    return log.header.size_written;
+}
 #endif /* WITH_DEBUG_LOG_BUF */
 
 void display_fbcon_message(char *str)
