@@ -608,7 +608,7 @@ static unsigned char *update_cmdline0(const char * cmdline)
 static char *concat_args(const char *a, const char *b)
 {
 	int lenA = strlen(a), lenB = strlen(b);
-	char *r = malloc(lenA + lenB);
+	char *r = malloc(lenA + lenB + 2);
 	memcpy(r, a, lenA);
 	r[lenA] = ' ';
 	memcpy(r + lenA + 1, b, lenB);
