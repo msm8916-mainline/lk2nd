@@ -850,6 +850,7 @@ unsigned int write_partition(unsigned size, unsigned char *partition)
 		goto end;
 	}
 
+#ifndef SAFE_MODE
 	block_size = mmc_get_device_blocksize();
 	ret = partition_get_type(size, partition, &partition_type);
 	if (ret)
@@ -873,6 +874,9 @@ unsigned int write_partition(unsigned size, unsigned char *partition)
 		ret = 1;
 		goto end;
 	}
+#else
+	dprintf(CRITICAL, "Ignoring attempt to write partition table\n");
+#endif
 
  end:
 	return ret;
