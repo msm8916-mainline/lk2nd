@@ -18,6 +18,7 @@ const void *lk2nd_device2nd_init(void)
 		lk2nd_device2nd_parse_cmdline();
 	}
 
+	lk2nd_device2nd_partition_split();
 	return dtb;
 }
 

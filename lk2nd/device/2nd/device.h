@@ -6,5 +6,6 @@
 
 const void *lk2nd_device2nd_parse_tags(void);
 void lk2nd_device2nd_parse_cmdline(void);
+void lk2nd_device2nd_partition_split(void);
 
 #endif /* LK2ND_DEVICE_2ND_DEVICE_H */
