@@ -7,6 +7,14 @@ OBJS += \
 	$(LOCAL_DIR)/match.o \
 	$(LOCAL_DIR)/parse-cmdline.o \
 	$(LOCAL_DIR)/parse-tags.o \
+	$(LOCAL_DIR)/partition.o \
+
+ifneq ($(LK2ND_PARTITION_SIZE),)
+DEFINES += \
+	LK2ND_PARTITION_BASE="$(LK2ND_PARTITION_BASE)" \
+	LK2ND_PARTITION_NAME="$(LK2ND_PARTITION_NAME)" \
+	LK2ND_PARTITION_SIZE=($(LK2ND_PARTITION_SIZE))
+endif
 
 include $(if $(BUILD_GPL),$(LOCAL_DIR)/gpl/rules.mk)
 
