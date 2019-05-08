@@ -138,13 +138,6 @@ static AvbSlotVerifyResult load_and_verify_hash_partition(
    */
   image_size = hash_desc.image_size;
   if (allow_verification_error) {
-    if (ops->get_size_of_partition == NULL) {
-      avb_errorv(part_name,
-                 ": The get_size_of_partition() operation is "
-                 "not implemented so we may not load the entire partition. "
-                 "Please implement.",
-                 NULL);
-    } else {
       io_ret = ops->get_size_of_partition(ops, part_name, &image_size);
       if (io_ret == AVB_IO_RESULT_ERROR_OOM) {
         ret = AVB_SLOT_VERIFY_RESULT_ERROR_OOM;
@@ -155,7 +148,6 @@ static AvbSlotVerifyResult load_and_verify_hash_partition(
         goto out;
       }
       avb_debugv(part_name, ": Loading entire partition.\n", NULL);
-    }
   }
 
   if (!strncmp(part_name, "boot", strlen("boot"))) {
@@ -271,12 +263,6 @@ static AvbSlotVerifyResult load_requested_partitions(
   AvbSlotVerifyResult ret;
   uint8_t* image_buf = NULL;
   size_t n;
-
-  if (ops->get_size_of_partition == NULL) {
-    avb_error("get_size_of_partition() not implemented.\n");
-    ret = AVB_SLOT_VERIFY_RESULT_ERROR_INVALID_ARGUMENT;
-    goto out;
-  }
 
   for (n = 0; requested_partitions[n] != NULL; n++) {
     char part_name[PART_NAME_MAX_SIZE];
@@ -399,7 +385,7 @@ static AvbSlotVerifyResult load_and_verify_vbmeta(
     goto out;
   }
 
-  /* Construct full partition name. */
+  /* Construct full partition name e.g. system_a. */
   if (!avb_str_concat(full_partition_name,
                       sizeof full_partition_name,
                       partition_name,
@@ -411,18 +397,17 @@ static AvbSlotVerifyResult load_and_verify_vbmeta(
     goto out;
   }
 
-  avb_debugv("Loading vbmeta struct from partition '",
-             full_partition_name,
-             "'.\n",
-             NULL);
-
-  /* If we're loading from the main vbmeta partition, the vbmeta
-   * struct is in the beginning. Otherwise we have to locate it via a
-   * footer.
+  /* If we're loading from the main vbmeta partition, the vbmeta struct is in
+   * the beginning. Otherwise we may have to locate it via a footer... if no
+   * footer is found, we look in the beginning to support e.g. vbmeta_<org>
+   * partitions holding data for e.g. super partitions (b/80195851 for
+   * rationale).
    */
+
+
+  vbmeta_offset = 0;
+  vbmeta_size = VBMETA_MAX_SIZE;
   if (is_vbmeta_partition) {
-    vbmeta_offset = 0;
-    vbmeta_size = VBMETA_MAX_SIZE;
     io_ret = ops->read_from_partition(ops,
                                     partition_name,
                                     vbmeta_offset,
@@ -456,20 +441,18 @@ static AvbSlotVerifyResult load_and_verify_vbmeta(
 
     if (!avb_footer_validate_and_byteswap((const AvbFooter*)footer_buf,
                                           &footer)) {
-      avb_errorv(full_partition_name, ": Error validating footer.\n", NULL);
-      ret = AVB_SLOT_VERIFY_RESULT_ERROR_INVALID_METADATA;
-      goto out;
+      avb_errorv(full_partition_name, ": No footer detected.\n", NULL);
+    } else {
+      /* Basic footer sanity check since the data is untrusted. */
+      if (footer.vbmeta_size > VBMETA_MAX_SIZE) {
+        avb_errorv(
+            full_partition_name, ": Invalid vbmeta size in footer.\n", NULL);
+      } else {
+        vbmeta_offset = footer.vbmeta_offset;
+        vbmeta_size = footer.vbmeta_size;
+      }
     }
 
-    /* Basic footer sanity check since the data is untrusted. */
-    if (footer.vbmeta_size > VBMETA_MAX_SIZE) {
-      avb_errorv(
-          full_partition_name, ": Invalid vbmeta size in footer.\n", NULL);
-      ret = AVB_SLOT_VERIFY_RESULT_ERROR_INVALID_METADATA;
-      goto out;
-    }
-    vbmeta_offset = footer.vbmeta_offset;
-    vbmeta_size = footer.vbmeta_size;
     vbmeta_buf = avb_malloc(vbmeta_size); // for chain partitions
     if (vbmeta_buf == NULL) {
         ret = AVB_SLOT_VERIFY_RESULT_ERROR_OOM;
@@ -1299,13 +1282,10 @@ AvbSlotVerifyResult avb_slot_verify(AvbOps* ops,
   bool allow_verification_error =
       (flags & AVB_SLOT_VERIFY_FLAGS_ALLOW_VERIFICATION_ERROR);
 
-  /* Fail early if we're missing the AvbOps needed for slot verification.
-   *
-   * For now, handle get_size_of_partition() not being implemented. In
-   * a later release we may change that.
-   */
+  /* Fail early if we're missing the AvbOps needed for slot verification.*/
   avb_assert(ops->read_is_device_unlocked != NULL);
   avb_assert(ops->read_from_partition != NULL);
+  avb_assert(ops->get_size_of_partition != NULL);
   avb_assert(ops->validate_vbmeta_public_key != NULL);
   avb_assert(ops->read_rollback_index != NULL);
   avb_assert(ops->get_unique_guid_for_partition != NULL);
