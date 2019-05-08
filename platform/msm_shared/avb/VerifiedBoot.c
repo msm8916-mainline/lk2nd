@@ -430,7 +430,8 @@ static EFI_STATUS load_image_and_authVB2(bootinfo *Info)
 		 SlotSuffix = "\0";
 	}
 
-	if(!Info->multi_slot_boot && Info->bootinto_recovery) {
+	if((!Info->multi_slot_boot || target_dynamic_partition_supported())
+			&& Info->bootinto_recovery) {
 		AddRequestedPartition(RequestedPartitionAll, IMG_RECOVERY);
 		NumRequestedPartition += 1;
 		/* Add dtbo validation if target supports dtbo image generation and
@@ -538,7 +539,7 @@ static EFI_STATUS load_image_and_authVB2(bootinfo *Info)
 	Info->vb_data = (VOID *)VBData;
 
 	ImageHdrSize = get_page_size();
-	GUARD_OUT(getimage(&image_buffer, &imgsize,(!Info->multi_slot_boot && Info->bootinto_recovery) ? "recovery" : "boot") );
+	GUARD_OUT(getimage(&image_buffer, &imgsize,((!Info->multi_slot_boot || target_dynamic_partition_supported()) && Info->bootinto_recovery) ? "recovery" : "boot") );
 
 	Status = check_img_header(image_buffer, ImageHdrSize, &imgsizeActual);
 	if (Status != EFI_SUCCESS) {
