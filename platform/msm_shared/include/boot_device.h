@@ -1,4 +1,4 @@
-/* Copyright (c) 2014,2016 The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014,2016,2019 The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -59,6 +59,7 @@ enum boot_device
 #ifndef MAX_GPT_NAME_SIZE
 #define MAX_GPT_NAME_SIZE 72
 #endif
+#define BOOT_DEV_MAX_LEN        64
 
 typedef struct {
 	char *name;

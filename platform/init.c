@@ -28,6 +28,9 @@
 #include <boot_stats.h>
 #include <platform/iomap.h>
 #include <image_verify.h>
+#include <target.h>
+#include <boot_device.h>
+#include <mmc_wrapper.h>
 
 /*
  * default implementations of these routines, if the platform code
@@ -147,7 +150,7 @@ __WEAK uint32_t platform_detect_panel()
 	return 0;
 }
 
-__WEAK uint32_t use_hsonly_mode()
+__WEAK bool use_hsonly_mode()
 {
 	return 0;
 }
@@ -178,3 +181,24 @@ __WEAK bool platform_is_glink_enabled()
 #endif
 }
 
+/* function to update boot device base, for emmc targets. */
+__WEAK void platform_boot_dev_cmdline(char *buf)
+{
+	struct mmc_device *dev = NULL;
+	uint32_t boot_dev_str_sz = 0;
+
+	if (!buf) {
+		dprintf(CRITICAL,"ERROR: Invalid args- Failed to populate boot device");
+		return;
+	}
+
+	dev = (struct mmc_device *)target_mmc_device();
+	boot_dev_str_sz = ((sizeof(dev->host.base))*2) + 7;
+	if (boot_dev_str_sz > sizeof(char) * BOOT_DEV_MAX_LEN) {
+		dprintf(CRITICAL,"ERROR: Invalid buf sz - Failed to populate boot device");
+		return;
+	}
+
+	snprintf(buf, boot_dev_str_sz, "%x.sdhci", dev->host.base);
+	return;
+}

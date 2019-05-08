@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2015,2017-2018 The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2015,2017-2019 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -49,7 +49,6 @@
 #include <boot_stats.h>
 #include <verifiedboot.h>
 
-#define BOOT_DEV_MAX_LEN        64
 #define NODE_PROPERTY_MAX_LEN   64
 #define ADD_OF(a, b) (UINT_MAX - b > a) ? (a + b) : UINT_MAX
 #define ADDR_ALIGNMENT 16
