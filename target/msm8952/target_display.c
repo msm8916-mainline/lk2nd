@@ -275,7 +275,7 @@ static int msm8952_wled_backlight_ctrl(uint8_t enable)
 	uint8_t slave_id = PMIC_WLED_SLAVE_ID;	/* pmi */
 	uint32_t pmic_type = target_get_pmic();
 
-	if(pmic_type == PMIC_IS_PM8916)
+	if(pmic_type == PMIC_IS_PM8916 || pmic_type == PMIC_IS_PM660)
 		return NO_ERROR;
 
 	pm8x41_wled_config_slave_id(slave_id);
@@ -312,7 +312,7 @@ int target_backlight_ctrl(struct backlight *bl, uint8_t enable)
 	if ((pmic_type == PMIC_IS_PMI632) &&
 		(bl->bl_interface_type == BL_PWM)) {
 		ret = pwm_backlight_ctrl(enable);
-	} else if (pmic_type == PMIC_IS_PM8916) {
+	} else if (pmic_type == PMIC_IS_PM8916 || pmic_type == PMIC_IS_PM660) {
 		ret = pwm_backlight_ctrl(enable);
 	} else {
 		ret = msm8952_wled_backlight_ctrl(enable);
@@ -536,7 +536,7 @@ static int wled_init(struct msm_panel_info *pinfo)
 	int rc = NO_ERROR;
 	uint32_t pmic_type = target_get_pmic();
 
-	if(pmic_type == PMIC_IS_PM8916)
+	if(pmic_type == PMIC_IS_PM8916 || pmic_type == PMIC_IS_PM660)
 		return NO_ERROR;
 	labibb = pinfo->labibb;
 
@@ -669,7 +669,7 @@ int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 			}
 			if (pmic_type == PMIC_IS_PMI632)
 				rc = qpnp_lcdb_enable(true);
-			else if(pmic_type != PMIC_IS_PM8916)
+			else if(pmic_type != PMIC_IS_PM8916 && pmic_type != PMIC_IS_PM660)
 				rc = qpnp_ibb_enable(true); /*5V boost*/
 			if (rc) {
 				dprintf(CRITICAL, "%s: qpnp_ibb/lcdb failed\n", __func__);

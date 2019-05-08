@@ -246,27 +246,32 @@ uint32_t target_volume_down()
 uint32_t target_is_pwrkey_pon_reason()
 {
 	uint32_t pmic = target_get_pmic();
-	uint8_t pon_reason = 0;
-	bool usb_present_sts = 0;
+	uint8_t pon_reason;
+	uint8_t is_cold_boot;
+	bool usb_present_sts;
 
-	if (pmic == PMIC_IS_PMI632)
-	{
+	if (pmic == PMIC_IS_PMI632) {
 		pon_reason = pmi632_get_pon_reason();
+		is_cold_boot = pm8x41_get_is_cold_boot();
 		usb_present_sts = !(USBIN_UV_RT_STS_PMI632 &
 				pm8x41_reg_read(SMBCHG_USB_RT_STS));
-	}
-	else if (pmic == PMIC_IS_PM8916) {
+	} else if (pmic == PMIC_IS_PM8916) {
 		pon_reason = pm8x41_get_pon_reason();
+		is_cold_boot = pm8x41_get_is_cold_boot();
 		usb_present_sts = (pon_reason & USB_CHG);
-	}
-	else
-	{
+	} else if (pmic == PMIC_IS_PM660) {
+		pon_reason = pm660_get_pon_reason();
+		is_cold_boot = pm660_get_is_cold_boot();
+		usb_present_sts = USBIN_PLUGIN_RT_STS &
+				pm8x41_reg_read(SCHG_USB_INT_RT_STS);
+	} else {
 		pon_reason = pm8950_get_pon_reason();
+		is_cold_boot = pm8x41_get_is_cold_boot();
 		usb_present_sts = !(USBIN_UV_RT_STS &
 			pm8x41_reg_read(SMBCHG_USB_RT_STS));
 	}
 
-	if (pm8x41_get_is_cold_boot() && ((pon_reason == KPDPWR_N) || (pon_reason == (KPDPWR_N|PON1))))
+	if (is_cold_boot && ((pon_reason == KPDPWR_N) || (pon_reason == (KPDPWR_N|PON1))))
 		return 1;
 	else if ((pon_reason == PON1) && (!usb_present_sts))
 		return 1;
@@ -453,18 +458,31 @@ int emmc_recovery_init(void)
 unsigned target_pause_for_battery_charge(void)
 {
 	uint32_t pmic = target_get_pmic();
-	uint8_t pon_reason = pm8x41_get_pon_reason();
-	uint8_t is_cold_boot = pm8x41_get_is_cold_boot();
+	uint8_t pon_reason;
+	uint8_t is_cold_boot;
 	bool usb_present_sts = 1;	/* don't care by default */
+
+	if (pmic == PMIC_IS_PM660) {
+		pon_reason = pm660_get_pon_reason();
+		is_cold_boot = pm660_get_is_cold_boot();
+	}
+	else {
+		pon_reason = pm8x41_get_pon_reason();
+		is_cold_boot = pm8x41_get_is_cold_boot();
+	}
 
 	if (target_is_pmi_enabled())
 	{
-		if (pmic == PMIC_IS_PMI632)
+		if (pmic == PMIC_IS_PMI632) {
 			usb_present_sts = !(USBIN_UV_RT_STS_PMI632 &
 				pm8x41_reg_read(SMBCHG_USB_RT_STS));
-		else
+		} else if (pmic == PMIC_IS_PM660) {
+			usb_present_sts = USBIN_PLUGIN_RT_STS &
+				pm8x41_reg_read(SCHG_USB_INT_RT_STS);
+		} else {
 			usb_present_sts = (!(USBIN_UV_RT_STS &
 				pm8x41_reg_read(SMBCHG_USB_RT_STS)));
+		}
 	}
 	else {
 		if (pmic == PMIC_IS_PM8916) {
@@ -739,6 +757,8 @@ uint32_t target_get_pmic()
 		pmi_type = board_pmic_target(1) & PMIC_TYPE_MASK;
 		if (pmi_type == PMIC_IS_PMI632)
 			return PMIC_IS_PMI632;
+		else if (pmi_type == PMIC_IS_PM660)
+			return PMIC_IS_PM660;
 		else
 			return PMIC_IS_PMI8950;
 	} else {
@@ -757,6 +777,8 @@ void pmic_reset_configure(uint8_t reset_type)
 	pmi_type = target_get_pmic();
 	if (pmi_type == PMIC_IS_PMI632) {
 		pmi632_reset_configure(reset_type);
+	} else if (pmi_type == PMIC_IS_PM660) {
+		pm8x41_reset_configure(reset_type);
 	} else {
 		if(target_is_pmi_enabled()) {
 			pm8994_reset_configure(reset_type);
