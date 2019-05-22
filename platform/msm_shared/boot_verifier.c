@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2014-2016, 2019 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -779,6 +779,25 @@ KEYSTORE *boot_gerity_get_oem_keystore()
 	return oem_keystore;
 }
 
+void set_os_version_with_date(unsigned char* img_addr, uint32_t system_security_level)
+{
+	boot_img_hdr *img_hdr = NULL;
+	bool supported;
+	int ret = get_date_support (&supported);
+
+	/* Extract the os version and patch level */
+	if (img_addr) {
+		img_hdr = (boot_img_hdr *)img_addr;
+		boot_state_info.system_version = (img_hdr->os_version & 0xFFFFF800) >> 11;
+		if(!ret && supported && system_security_level)
+			boot_state_info.system_security_level = system_security_level;
+		else
+			boot_state_info.system_security_level = (img_hdr->os_version & 0x7FF);
+	} else {
+		dprintf(CRITICAL, "Image address should not be NULL\n");
+	}
+}
+
 #if OSVERSION_IN_BOOTIMAGE
 void set_os_version(unsigned char* img_addr)
 {
@@ -824,4 +843,27 @@ int set_verified_boot_hash (const char *vbh, size_t vbh_size)
 		ASSERT(0);
 	}
 	return ret;
+}
+
+int get_date_support (bool *supported)
+{
+	int status = 0;
+	km_get_date_support_req date_support_req = {0};
+	km_get_date_support_rsp date_support_rsp = {0};
+	int app_handle = get_secapp_handle();
+
+	date_support_req.cmd_id = KEYMASTER_GET_DATE_SUPPORT;
+	status = qseecom_send_command (app_handle, (void *)&date_support_req, sizeof (date_support_req), (void *)&date_support_rsp, sizeof (date_support_rsp));
+	if (status != 0 || date_support_rsp.status != 0 ) {
+		dprintf(CRITICAL, "QSEEcom command to get date support returned error, status: %d\n",date_support_rsp.status);
+
+		if (status == 0 && date_support_rsp.status == KM_ERROR_INVALID_TAG) {
+			dprintf(INFO, "Date in patch level NOT supported in keymaster\n");
+		}
+		*supported = false;
+		return status;
+	}
+
+	*supported = true;
+	return status;
 }
