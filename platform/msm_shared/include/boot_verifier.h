@@ -178,6 +178,7 @@ bool boot_verify_validate_keystore(unsigned char * user_addr, unsigned sz);
 bool send_rot_command(uint32_t is_unlocked);
 /* function to set the os version and patch level. */
 void set_os_version(unsigned char* img_addr);
+void set_os_version_with_date(unsigned char* img_addr, uint32_t system_security_level);
 unsigned char* get_boot_fingerprint(unsigned int* buf_size);
 bool boot_verify_compare_sha256(unsigned char *image_ptr,
 		unsigned int image_size, unsigned char *signature_ptr, RSA *rsa);
@@ -185,4 +186,7 @@ KEYSTORE *boot_gerity_get_oem_keystore();
 uint32_t read_der_message_length(unsigned char* input, unsigned sz);
 /* Function to set verified boot hash in keymaster */
 int set_verified_boot_hash (const char *vbh, size_t vbh_size);
+/* Function to check date support in keymaster */
+int get_date_support (bool *supported);
+
 #endif
