@@ -85,6 +85,7 @@ enum PM8X41_VERSIONS
 /*Target power off reasons*/
 #define KPDPWR_AND_RESIN        32
 #define STAGE3                  128
+#define PM660_STAGE3		32
 
 struct pm8x41_gpio {
 	int direction;
@@ -234,6 +235,8 @@ uint8_t pm8x41_get_pon_reason();
 uint8_t pm660_get_pon_reason();
 uint8_t pm8950_get_pon_reason();
 uint8_t pmi632_get_pon_reason();
+uint8_t pm660_get_pon_poff_reason1();
+uint8_t pm660_get_pon_poff_reason2();
 uint8_t pm8x41_get_pon_poff_reason1();
 uint8_t pm8x41_get_pon_poff_reason2();
 uint32_t pm8x41_get_pwrkey_is_pressed();
