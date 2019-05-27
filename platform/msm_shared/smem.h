@@ -2,7 +2,7 @@
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2018, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2019, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -474,7 +474,8 @@ enum {
 	SDM439 = 353,
 	SDA429 = 364,
 	SDA439 = 363,
-	QM215 = 386
+	QM215 = 386,
+	SDM429W = 416,
 };
 
 enum platform {
