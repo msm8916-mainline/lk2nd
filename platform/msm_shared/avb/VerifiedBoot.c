@@ -484,6 +484,7 @@ static EFI_STATUS load_image_and_authVB2(bootinfo *Info)
 		     loadedindex < SlotData->num_loaded_partitions; loadedindex++) {
 			dprintf(DEBUG, "Loaded Partition: %s\n",
 			       SlotData->loaded_partitions[loadedindex].partition_name);
+			UINTN PartIndex = Info->num_loaded_images;
 			if (!strncmp(((const char *)RequestedPartition[ReqIndex]),
 			            SlotData->loaded_partitions[loadedindex].partition_name,MAX_GPT_NAME_SIZE))
 			  {
@@ -497,13 +498,22 @@ static EFI_STATUS load_image_and_authVB2(bootinfo *Info)
 					Info->boot_state = RED;
 					goto out;
 				}
-				Info->images[Info->num_loaded_images].name =
-				        SlotData->loaded_partitions[loadedindex].partition_name;
-				Info->images[Info->num_loaded_images].image_buffer =
-				        SlotData->loaded_partitions[loadedindex].data;
-				Info->images[Info->num_loaded_images].imgsize =
-				        SlotData->loaded_partitions[loadedindex].data_size;
-				Info->num_loaded_images++;
+
+				if (!strncmp("boot", SlotData->loaded_partitions[loadedindex].partition_name, strlen("boot")))
+						PartIndex = IMG_BOOT;
+				else if (!strncmp("dtbo", SlotData->loaded_partitions[loadedindex].partition_name, strlen("dtbo")))
+						PartIndex = IMG_DTBO;
+				else if (!strncmp("recovery", SlotData->loaded_partitions[loadedindex].partition_name,
+					strlen("recovery")))
+						PartIndex = IMG_RECOVERY;
+				else
+						Info->num_loaded_images++;
+				Info->images[PartIndex].name =
+					SlotData->loaded_partitions[loadedindex].partition_name;
+				Info->images[PartIndex].image_buffer =
+					SlotData->loaded_partitions[loadedindex].data;
+				Info->images[PartIndex].imgsize =
+					SlotData->loaded_partitions[loadedindex].data_size;
 				break;
 			}
 		}

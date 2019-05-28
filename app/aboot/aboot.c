@@ -1645,6 +1645,12 @@ int boot_linux_from_mmc(void)
 	boot_verifier_init();
 #endif
 
+#if VERIFIED_BOOT_2
+	/* read full partition if device is unlocked */
+	if (device.is_unlocked)
+		imagesize_actual = image_size;
+#endif
+
 	if (check_aboot_addr_range_overlap((uintptr_t) image_addr, imagesize_actual))
 	{
 		dprintf(CRITICAL, "Boot image buffer address overlaps with aboot addresses.\n");
@@ -1705,18 +1711,22 @@ int boot_linux_from_mmc(void)
 		device.is_unlocked,
 		device.is_tampered);
 #if VERIFIED_BOOT_2
-	offset = imagesize_actual;
-	if (check_aboot_addr_range_overlap((uintptr_t)image_addr + offset, page_size))
+	/* if device is unlocked skip reading signature, as full partition is read */
+	if (!device.is_unlocked)
 	{
-		dprintf(CRITICAL, "Signature read buffer address overlaps with aboot addresses.\n");
-		return -1;
-	}
+		offset = imagesize_actual;
+		if (check_aboot_addr_range_overlap((uintptr_t)image_addr + offset, page_size))
+		{
+			dprintf(CRITICAL, "Signature read buffer address overlaps with aboot addresses.\n");
+			return -1;
+		}
 
-	/* Read signature */
-	if(mmc_read(ptn + offset, (void *)(image_addr + offset), page_size))
-	{
-		dprintf(CRITICAL, "ERROR: Cannot read boot image signature\n");
-		return -1;
+		/* Read signature */
+		if(mmc_read(ptn + offset, (void *)(image_addr + offset), page_size))
+		{
+			dprintf(CRITICAL, "ERROR: Cannot read boot image signature\n");
+			return -1;
+		}
 	}
 
 	/* load and validate dtbo partition */
@@ -3011,6 +3021,9 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	}
 
 #if VERIFIED_BOOT_2
+	/* Pass size of boot partition, as imgsize, to avoid
+	read fewer bytes error */
+	image_actual = partition_get_size(partition_get_index("boot"));
 
 	/* load and validate dtbo partition */
 	load_validate_dtbo_image(&dtbo_image_buf, &dtbo_image_sz);

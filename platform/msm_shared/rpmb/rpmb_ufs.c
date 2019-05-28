@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015,2019 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -104,7 +104,7 @@ int rpmb_read_ufs(struct ufs_dev *dev, uint32_t *req_buf, uint32_t blk_cnt, uint
 
 	req_upiu.cdb              = (addr_t) cdb_out_param;
 	req_upiu.data_buffer_addr = (addr_t) req_buf;
-	req_upiu.data_len         = bytes_to_transfer;
+	req_upiu.data_len         = RPMB_FRAME_SIZE;
 	req_upiu.flags            = UPIU_FLAGS_WRITE;
 	req_upiu.lun              = UFS_WLUN_RPMB;
 	req_upiu.dd               = UTRD_TARGET_TO_SYSTEM;
