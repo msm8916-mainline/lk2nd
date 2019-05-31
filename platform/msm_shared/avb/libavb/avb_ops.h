@@ -221,6 +221,9 @@ struct AvbOps {
    * (NUL-terminated UTF-8 string). Returns the value in
    * |out_size_num_bytes|.
    *
+   * If the partition doesn't exist the AVB_IO_RESULT_ERROR_NO_SUCH_PARTITION
+   * error code should be returned.
+   *
    * Returns AVB_IO_RESULT_OK on success, otherwise an error code.
    */
   AvbIOResult (*get_size_of_partition)(AvbOps* ops,
