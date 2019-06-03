@@ -671,6 +671,16 @@ uint8_t pmi632_get_pon_reason()
 	return pon_reason;
 }
 
+uint8_t pm660_get_pon_poff_reason1()
+{
+	return REG_READ(PM660_PON_POFF_REASON1);
+}
+
+uint8_t pm660_get_pon_poff_reason2()
+{
+	return REG_READ(PM660_PON_POFF_REASON2);
+}
+
 uint8_t pm8x41_get_pon_poff_reason1()
 {
 	return REG_READ(PON_POFF_REASON1);

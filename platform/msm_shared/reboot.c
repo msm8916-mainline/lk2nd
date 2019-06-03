@@ -37,18 +37,33 @@
 #include <stdlib.h>
 #include <reboot.h>
 #include <qtimer.h>
+#include <smem.h>
 
 #if USER_FORCE_RESET_SUPPORT
 /* Return 1 if it is a force resin triggered by user. */
 uint32_t is_user_force_reset(void)
 {
-	uint8_t poff_reason1 = pm8x41_get_pon_poff_reason1();
-	uint8_t poff_reason2 = pm8x41_get_pon_poff_reason2();
+	uint8_t poff_reason1;
+	uint8_t poff_reason2;
+	uint8_t is_cold_boot;
+	uint32_t pmic = target_get_pmic();
+	bool s3_reset;
+
+	if (pmic == PMIC_IS_PM660) {
+		poff_reason1 = pm660_get_pon_poff_reason1();
+		poff_reason2 = pm660_get_pon_poff_reason2();
+		is_cold_boot = pm660_get_is_cold_boot();
+		s3_reset = (poff_reason2 == PM660_STAGE3);
+	} else {
+		poff_reason1 = pm8x41_get_pon_poff_reason1();
+		poff_reason2 = pm8x41_get_pon_poff_reason2();
+		is_cold_boot = pm8x41_get_is_cold_boot();
+		s3_reset = (poff_reason2 == STAGE3);
+	}
 
 	dprintf(SPEW, "poff_reason1: %d\n", poff_reason1);
 	dprintf(SPEW, "poff_reason2: %d\n", poff_reason2);
-	if (pm8x41_get_is_cold_boot() && (poff_reason1 == KPDPWR_AND_RESIN ||
-							poff_reason2 == STAGE3))
+	if (is_cold_boot && (poff_reason1 == KPDPWR_AND_RESIN || s3_reset))
 		return 1;
 	else
 		return 0;

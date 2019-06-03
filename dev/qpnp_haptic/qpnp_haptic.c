@@ -31,23 +31,24 @@
 #include <pm_vib.h>
 #include <target.h>
 #include <vibrator.h>
+#include <smem.h>
 
-#define HAPTIC_BASE (PMI_SECOND_SLAVE_ADDR_BASE+ 0xC000)
-#define QPNP_HAP_EN_CTL_REG (HAPTIC_BASE + 0x46)
-#define QPNP_HAP_EN_CTL2_REG (HAPTIC_BASE + 0x48)
-#define QPNP_HAP_ACT_TYPE_REG (HAPTIC_BASE + 0x4C)
-#define QPNP_HAP_WAV_SHAPE_REG (HAPTIC_BASE + 0x4D)
-#define QPNP_HAP_PLAY_MODE_REG (HAPTIC_BASE + 0x4E)
-#define QPNP_HAP_LRA_AUTO_RES_REG (HAPTIC_BASE + 0x4F)
-#define QPNP_HAP_VMAX_REG (HAPTIC_BASE + 0x51)
-#define QPNP_HAP_ILIM_REG (HAPTIC_BASE + 0x52)
-#define QPNP_HAP_SC_DEB_REG (HAPTIC_BASE + 0x53)
-#define QPNP_HAP_RATE_CFG1_REG (HAPTIC_BASE + 0x54)
-#define QPNP_HAP_RATE_CFG2_REG (HAPTIC_BASE + 0x55)
-#define QPNP_HAP_INT_PWM_REG (HAPTIC_BASE + 0x56)
-#define QPNP_HAP_PWM_CAP_REG (HAPTIC_BASE + 0x58)
-#define QPNP_HAP_BRAKE_REG (HAPTIC_BASE + 0x5C)
-#define QPNP_HAP_PLAY_REG (HAPTIC_BASE + 0x70)
+#define HAPTIC_BASE(s_id) (s_id ? (PMI_SECOND_SLAVE_ADDR_BASE + 0xC000):((PMI_SECOND_SLAVE_OFFSET << 16) + 0xC000))
+#define QPNP_HAP_EN_CTL_REG(s_id) (HAPTIC_BASE(s_id) + 0x46)
+#define QPNP_HAP_EN_CTL2_REG(s_id) (HAPTIC_BASE(s_id) + 0x48)
+#define QPNP_HAP_ACT_TYPE_REG(s_id) (HAPTIC_BASE(s_id) + 0x4C)
+#define QPNP_HAP_WAV_SHAPE_REG(s_id) (HAPTIC_BASE(s_id) + 0x4D)
+#define QPNP_HAP_PLAY_MODE_REG(s_id) (HAPTIC_BASE(s_id) + 0x4E)
+#define QPNP_HAP_LRA_AUTO_RES_REG(s_id) (HAPTIC_BASE(s_id) + 0x4F)
+#define QPNP_HAP_VMAX_REG(s_id) (HAPTIC_BASE(s_id) + 0x51)
+#define QPNP_HAP_ILIM_REG(s_id) (HAPTIC_BASE(s_id) + 0x52)
+#define QPNP_HAP_SC_DEB_REG(s_id) (HAPTIC_BASE(s_id) + 0x53)
+#define QPNP_HAP_RATE_CFG1_REG(s_id) (HAPTIC_BASE(s_id) + 0x54)
+#define QPNP_HAP_RATE_CFG2_REG(s_id) (HAPTIC_BASE(s_id) + 0x55)
+#define QPNP_HAP_INT_PWM_REG(s_id) (HAPTIC_BASE(s_id) + 0x56)
+#define QPNP_HAP_PWM_CAP_REG(s_id) (HAPTIC_BASE(s_id) + 0x58)
+#define QPNP_HAP_BRAKE_REG(s_id) (HAPTIC_BASE(s_id) + 0x5C)
+#define QPNP_HAP_PLAY_REG(s_id) (HAPTIC_BASE(s_id) + 0x70)
 
 #define QPNP_HAP_ACT_TYPE_MASK 0x01
 #define QPNP_HAP_PLAY_MODE_MASK 0x3F
@@ -86,79 +87,90 @@
 void pm_haptic_vib_turn_on(void)
 {
 	struct qpnp_hap vib_config = {0};
+	uint32_t pmic = target_get_pmic();
+	uint32_t slave_id = 1;
 
-	if(!target_is_pmi_enabled())
+	if(!target_is_pmi_enabled() && (pmic != PMIC_IS_PM660))
 		return;
+
+	if (pmic == PMIC_IS_PM660)
+		slave_id = 0;
 
 	get_vibration_type(&vib_config);
 	/* Configure the ACTUATOR TYPE register as ERM*/
-	pmic_spmi_reg_mask_write(QPNP_HAP_ACT_TYPE_REG,
+	pmic_spmi_reg_mask_write(QPNP_HAP_ACT_TYPE_REG(slave_id),
 					QPNP_HAP_ACT_TYPE_MASK,
 					VIB_ERM_TYPE == vib_config.vib_type ? QPNP_HAP_ERM
 					: QPNP_HAP_LRA);
 
 	/* Disable auto resonance for ERM */
-	pmic_spmi_reg_mask_write(QPNP_HAP_LRA_AUTO_RES_REG,
+	pmic_spmi_reg_mask_write(QPNP_HAP_LRA_AUTO_RES_REG(slave_id),
 					QPNP_HAP_LRA_AUTO_MASK,
 					QPNP_HAP_LRA_AUTO_DISABLE);
 
 	/* Configure the PLAY MODE register as direct*/
-	pmic_spmi_reg_mask_write(QPNP_HAP_PLAY_MODE_REG,
+	pmic_spmi_reg_mask_write(QPNP_HAP_PLAY_MODE_REG(slave_id),
 					QPNP_HAP_PLAY_MODE_MASK,
 					QPNP_HAP_DIRECT);
 
 	/* Configure the VMAX register */
-	pmic_spmi_reg_mask_write(QPNP_HAP_VMAX_REG,
+	pmic_spmi_reg_mask_write(QPNP_HAP_VMAX_REG(slave_id),
 					QPNP_HAP_VMAX_MASK, QPNP_HAP_VMAX);
 
 	/* Sets current limit to 800mA*/
-	pmic_spmi_reg_mask_write(QPNP_HAP_ILIM_REG,
+	pmic_spmi_reg_mask_write(QPNP_HAP_ILIM_REG(slave_id),
 					QPNP_HAP_ILIM_MASK, QPNP_HAP_ILIM);
 
 	/* Configure the short circuit debounce register as DEB_8CLK*/
-	pmic_spmi_reg_mask_write(QPNP_HAP_SC_DEB_REG,
+	pmic_spmi_reg_mask_write(QPNP_HAP_SC_DEB_REG(slave_id),
 					QPNP_HAP_SC_DEB_MASK, QPNP_HAP_SC_DEB_8CLK);
 
 	/* Configure the INTERNAL_PWM register as 505KHZ and 13PF*/
-	pmic_spmi_reg_mask_write(QPNP_HAP_INT_PWM_REG,
+	pmic_spmi_reg_mask_write(QPNP_HAP_INT_PWM_REG(slave_id),
 					QPNP_HAP_INT_PWM_MASK, QPNP_HAP_INT_PWM_505KHZ);
-	pmic_spmi_reg_mask_write(QPNP_HAP_PWM_CAP_REG,
+	pmic_spmi_reg_mask_write(QPNP_HAP_PWM_CAP_REG(slave_id),
 					QPNP_HAP_PWM_CAP_MASK, QPNP_HAP_PWM_CAP_13PF);
 
 	/* Configure the WAVE SHAPE register as SQUARE*/
-	pmic_spmi_reg_mask_write(QPNP_HAP_WAV_SHAPE_REG,
+	pmic_spmi_reg_mask_write(QPNP_HAP_WAV_SHAPE_REG(slave_id),
 					QPNP_HAP_WAV_SHAPE_MASK, QPNP_HAP_WAV_SHAPE_SQUARE);
 
 	/* Configure RATE_CFG1 and RATE_CFG2 registers for haptic rate. */
-	pmic_spmi_reg_mask_write(QPNP_HAP_RATE_CFG1_REG,
+	pmic_spmi_reg_mask_write(QPNP_HAP_RATE_CFG1_REG(slave_id),
 					QPNP_HAP_RATE_CFG1_MASK, vib_config.hap_rate_cfg1);
-	pmic_spmi_reg_mask_write(QPNP_HAP_RATE_CFG2_REG,
+	pmic_spmi_reg_mask_write(QPNP_HAP_RATE_CFG2_REG(slave_id),
 					QPNP_HAP_RATE_CFG2_MASK, vib_config.hap_rate_cfg2);
 
 	/* Configure BRAKE register, PATTERN1 & PATTERN2 as VMAX. */
-	pmic_spmi_reg_mask_write(QPNP_HAP_EN_CTL2_REG,
+	pmic_spmi_reg_mask_write(QPNP_HAP_EN_CTL2_REG(slave_id),
 					QPNP_HAP_EN_BRAKE_EN_MASK, QPNP_HAP_EN_BRAKING_EN);
-	pmic_spmi_reg_mask_write(QPNP_HAP_BRAKE_REG,
+	pmic_spmi_reg_mask_write(QPNP_HAP_BRAKE_REG(slave_id),
 					QPNP_HAP_BRAKE_VMAX_MASK, QPNP_HAP_BRAKE_VMAX);
 
 	/* Enable control register */
-	pmic_spmi_reg_mask_write(QPNP_HAP_EN_CTL_REG,
+	pmic_spmi_reg_mask_write(QPNP_HAP_EN_CTL_REG(slave_id),
 					QPNP_HAP_PLAY_MASK, QPNP_HAP_PLAY_EN);
 
 	/* Enable play register */
-	pmic_spmi_reg_mask_write(QPNP_HAP_PLAY_REG, QPNP_HAP_MASK, QPNP_HAP_EN);
+	pmic_spmi_reg_mask_write(QPNP_HAP_PLAY_REG(slave_id), QPNP_HAP_MASK, QPNP_HAP_EN);
 }
 
 /* Turn off vibrator */
 void pm_haptic_vib_turn_off(void)
 {
-	if(!target_is_pmi_enabled())
+	uint32_t pmic = target_get_pmic();
+	uint32_t slave_id = 1;
+
+	if(!target_is_pmi_enabled() && (pmic != PMIC_IS_PM660))
 		return;
 
+	if (pmic == PMIC_IS_PM660)
+		slave_id = 0;
+
 	/* Disable control register */
-	pmic_spmi_reg_mask_write(QPNP_HAP_EN_CTL_REG,
+	pmic_spmi_reg_mask_write(QPNP_HAP_EN_CTL_REG(slave_id),
 					QPNP_HAP_PLAY_MASK, QPNP_HAP_PLAY_DIS);
 
 	/* Disable play register */
-	pmic_spmi_reg_mask_write(QPNP_HAP_PLAY_REG, QPNP_HAP_MASK, QPNP_HAP_DIS);
+	pmic_spmi_reg_mask_write(QPNP_HAP_PLAY_REG(slave_id), QPNP_HAP_MASK, QPNP_HAP_DIS);
 }
