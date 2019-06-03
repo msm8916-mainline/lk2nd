@@ -332,7 +332,7 @@ void target_init(void)
 
 #if PON_VIB_SUPPORT
 	/* turn on vibrator to indicate that phone is booting up to end user */
-	if(target_is_pmi_enabled() || platform_is_qm215())
+	if(target_is_pmi_enabled() || platform_is_qm215() || platform_is_sdm429w())
 		vib_timed_turn_on(VIBRATE_TIME);
 #endif
 
@@ -476,9 +476,6 @@ unsigned target_pause_for_battery_charge(void)
 		if (pmic == PMIC_IS_PMI632) {
 			usb_present_sts = !(USBIN_UV_RT_STS_PMI632 &
 				pm8x41_reg_read(SMBCHG_USB_RT_STS));
-		} else if (pmic == PMIC_IS_PM660) {
-			usb_present_sts = USBIN_PLUGIN_RT_STS &
-				pm8x41_reg_read(SCHG_USB_INT_RT_STS);
 		} else {
 			usb_present_sts = (!(USBIN_UV_RT_STS &
 				pm8x41_reg_read(SMBCHG_USB_RT_STS)));
@@ -487,6 +484,9 @@ unsigned target_pause_for_battery_charge(void)
 	else {
 		if (pmic == PMIC_IS_PM8916) {
 			usb_present_sts = (pon_reason & USB_CHG);
+		} else if (pmic == PMIC_IS_PM660) {
+			usb_present_sts = USBIN_PLUGIN_RT_STS &
+				pm8x41_reg_read(SCHG_USB_INT_RT_STS);
 		}
 	}
 
@@ -509,7 +509,7 @@ unsigned target_pause_for_battery_charge(void)
 void target_uninit(void)
 {
 #if PON_VIB_SUPPORT
-	if(target_is_pmi_enabled())
+	if(target_is_pmi_enabled() || platform_is_sdm429w())
 		turn_off_vib_early();
 #endif
 	mmc_put_card_to_sleep(dev);
@@ -704,8 +704,8 @@ void target_crypto_init_params()
 
 bool target_is_pmi_enabled(void)
 {
-	if(platform_is_qm215() || (platform_is_msm8917() &&
-	   (board_hardware_subtype() == HW_PLATFORM_SUBTYPE_SAP_NOPMI)))
+	if (platform_is_qm215() || (platform_is_sdm429w()) || (platform_is_msm8917()
+		&& (board_hardware_subtype() == HW_PLATFORM_SUBTYPE_SAP_NOPMI)))
 		return 0;
 	else
 		return 1;
@@ -757,12 +757,10 @@ uint32_t target_get_pmic()
 		pmi_type = board_pmic_target(1) & PMIC_TYPE_MASK;
 		if (pmi_type == PMIC_IS_PMI632)
 			return PMIC_IS_PMI632;
-		else if (pmi_type == PMIC_IS_PM660)
-			return PMIC_IS_PM660;
 		else
 			return PMIC_IS_PMI8950;
 	} else {
-		if (platform_is_qm215()) {
+		if (platform_is_qm215() || platform_is_sdm429w()) {
 			pmi_type = board_pmic_target(0) & PMIC_TYPE_MASK;
 			return pmi_type;
 		}
