@@ -38,7 +38,7 @@
 /*---------------------------------------------------------------------------*/
 static struct panel_config edo_rm67162_qvga_cmd_panel_data = {
 	"qcom,mdss_dsi_edo_rm67162_qvga_cmd", "dsi:0:", "qcom,mdss-dsi-panel",
-	10, 1, "DISPLAY_1", 0, 0, 60, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+	10, 1, "DISPLAY_1", 0, 0, 60, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL
 };
 
 /*---------------------------------------------------------------------------*/
@@ -90,7 +90,7 @@ static char edo_rm67162_qvga_cmd_on_cmd5[] = {
 
 static char edo_rm67162_qvga_cmd_on_cmd6[] = {
 	0x02, 0x00, 0x29, 0xC0,
-	0x51, 0x00, 0xFF, 0xFF,
+	0x51, 0xFF, 0xFF, 0xFF,
 };
 
 static char edo_rm67162_qvga_cmd_on_cmd7[] = {
@@ -172,7 +172,7 @@ static struct videopanel_info edo_rm67162_qvga_cmd_video_panel = {
 /* Lane configuration                                                        */
 /*---------------------------------------------------------------------------*/
 static struct lane_configuration edo_rm67162_qvga_cmd_lane_config = {
-	1, 0, 1, 0, 0, 0
+	1, 0, 1, 0, 0, 0, 0
 };
 
 /*---------------------------------------------------------------------------*/
@@ -183,7 +183,7 @@ static const uint32_t edo_rm67162_qvga_cmd_12nm_timings[] = {
 };
 
 static struct panel_timing edo_rm67162_qvga_cmd_timing_info = {
-	0, 4, 0x20, 0x2c
+	0, 4, 0x09, 0x2c
 };
 
 /*---------------------------------------------------------------------------*/
@@ -197,7 +197,7 @@ static struct panel_reset_sequence edo_rm67162_qvga_cmd_reset_seq = {
 /* Backlight setting                                                         */
 /*---------------------------------------------------------------------------*/
 static struct backlight edo_rm67162_qvga_cmd_backlight = {
-	1, 1, 4095, 100, 1, "PMIC_8941"
+	2, 1, 255, 100, 2, "BL_CTL_DCS"
 };
 
 #endif /*_PANEL_EDO_RM67162_QVGA_CMD_H_*/
