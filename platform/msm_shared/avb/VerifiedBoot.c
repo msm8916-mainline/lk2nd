@@ -1,4 +1,4 @@
-/* Copyright (c) 2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2018-2019, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -48,6 +48,7 @@
 #define MAX_PART_NAME_SIZE		10
 #define MAX_NUM_REQ_PARTITION	8
 #define BOOT_HEADER_VERSION_ZERO	0
+#define MAX_PROPERTY_SIZE        10
 
 char *avb_verify_partition_name[] = {
 	"boot",
@@ -359,6 +360,43 @@ VOID AddRequestedPartition(CHAR8 **requestedpartititon, UINT32 index)
 	}
 }
 
+static UINT32 ParseBootSecurityLevel (const CHAR8 *BootSecurityLevel,
+                                      size_t BootSecurityLevelStrSize)
+{
+	UINT32 PatchLevelDate = 0;
+	UINT32 PatchLevelMonth = 0;
+	UINT32 PatchLevelYear = 0;
+	UINT32 SeparatorCount = 0;
+	UINT32 Count = 0;
+
+	/*Parse the value of security patch as per YYYY-MM-DD format*/
+	while (Count < BootSecurityLevelStrSize) {
+		if (BootSecurityLevel[Count] == '-') {
+			SeparatorCount++;
+		}
+		else if (SeparatorCount == 2) {
+			PatchLevelDate *= 10;
+			PatchLevelDate += (BootSecurityLevel[Count] - '0');
+		}
+		else if (SeparatorCount == 1) {
+			PatchLevelMonth *= 10;
+			PatchLevelMonth += (BootSecurityLevel[Count] - '0');
+		}
+		else if (SeparatorCount == 0) {
+			PatchLevelYear *= 10;
+			PatchLevelYear += (BootSecurityLevel[Count] - '0');
+		}
+		else {
+			return -1;
+		}
+		Count++;
+	}
+
+	PatchLevelDate = PatchLevelDate << 11;
+	PatchLevelYear = (PatchLevelYear - 2000) << 4;
+	return (PatchLevelDate | PatchLevelYear | PatchLevelMonth);
+}
+
 static VOID ComputeVbMetaDigest (AvbSlotVerifyData* SlotData, CHAR8* Digest) {
 	size_t Index;
 	AvbSHA256Ctx Ctx;
@@ -397,6 +435,9 @@ static EFI_STATUS load_image_and_authVB2(bootinfo *Info)
 	AvbHashtreeErrorMode VerityFlags = AVB_HASHTREE_ERROR_MODE_RESTART_AND_INVALIDATE;
 	device_info DevInfo_vb;
 	CHAR8 Digest[AVB_SHA256_DIGEST_SIZE] = {0};
+	const CHAR8 *BootSecurityLevelStr = NULL;
+	size_t BootSecurityLevelStrSize = 0;
+	INT32 BootSecurityLevel = 0;
 
 	HeaderVersion = Info->header_version;
 	Info->boot_state = RED;
@@ -568,7 +609,28 @@ static EFI_STATUS load_image_and_authVB2(bootinfo *Info)
 	GUARD_OUT(AppendVBCommonCmdLine(Info));
 	GUARD_OUT(Appendvbcmdline(Info, SlotData->cmdline));
 	DevInfo_vb.is_unlocked = !is_device_locked();
-	set_os_version(ADD_SALT_BUFF_OFFSET(Info->images[0].image_buffer));
+
+	/* Send date value in security patch only when KM TA supports it and the
+	*  property is available in vbmeta data, send the old value in other cases
+	*/
+	BootSecurityLevelStr = avb_property_lookup (
+						SlotData->vbmeta_images[0].vbmeta_data,
+						SlotData->vbmeta_images[0].vbmeta_size,
+						"com.android.build.boot.security_patch",
+						0, &BootSecurityLevelStrSize);
+
+	if (BootSecurityLevelStr != NULL &&
+		BootSecurityLevelStrSize == MAX_PROPERTY_SIZE) {
+		BootSecurityLevel = ParseBootSecurityLevel (BootSecurityLevelStr,
+								BootSecurityLevelStrSize);
+		if (BootSecurityLevel < 0) {
+			dprintf (CRITICAL, "System security patch level format invalid\n");
+			Status = EFI_INVALID_PARAMETER;
+			goto out;
+		}
+	}
+
+	set_os_version_with_date(ADD_SALT_BUFF_OFFSET(Info->images[0].image_buffer), BootSecurityLevel);
 	if(!send_rot_command((uint32_t)DevInfo_vb.is_unlocked))
 		return EFI_LOAD_ERROR;
 
