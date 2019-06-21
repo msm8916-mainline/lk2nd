@@ -1,4 +1,4 @@
-/* Copyright (c) 2015-2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2019, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -452,6 +452,12 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 		pinfo->mipi.use_enable_gpio = 1;
 	} else if (platform_is_sdm439() || platform_is_sdm429()) {
 		reset_gpio.pin_id = 60;
+		if (platform_is_sdm429() && hw_subtype
+			== HW_PLATFORM_SUBTYPE_429W_PM660) {
+			reset_gpio.pin_id = 60;
+			pinfo->mipi.use_enable_gpio = 1;
+			enable_gpio.pin_id = 69;
+		}
 	} else if ((hw_id == HW_PLATFORM_QRD) &&
 		   (hw_subtype == HW_PLATFORM_SUBTYPE_POLARIS)) {
 		enable_gpio.pin_id = 19;
@@ -650,6 +656,7 @@ int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 	int rc = 0;
 	uint32_t ldo_num = REG_LDO6 | REG_LDO17;
 	uint32_t pmic_type = target_get_pmic();
+	uint32_t hw_subtype = board_hardware_subtype();
 
 	if (platform_is_msm8956())
 		ldo_num |= REG_LDO1;
@@ -657,6 +664,10 @@ int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 		ldo_num |= REG_LDO5; /* LDO23 is enable by default */
 	else
 		ldo_num |= REG_LDO2;
+
+	if (platform_is_sdm429() && hw_subtype
+		== HW_PLATFORM_SUBTYPE_429W_PM660)
+		ldo_num |= REG_LDO13 | REG_LDO15;
 
 	if (enable) {
 		regulator_enable(ldo_num);
@@ -683,6 +694,10 @@ int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 		 * Do not disable them.
 		 */
 		regulator_disable(REG_LDO17);
+
+		if (platform_is_sdm429() && hw_subtype
+			== HW_PLATFORM_SUBTYPE_429W_PM660)
+			regulator_disable(REG_LDO13 | REG_LDO15);
 	}
 
 	return NO_ERROR;
