@@ -13,4 +13,4 @@ cd "build-$TARGET"
     --dt=../../dt.img \
     --base=0x80000000 \
     --output=boot.img \
-    --cmdline="lk2"
+    --cmdline="lk2nd"
