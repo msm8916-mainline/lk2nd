@@ -617,7 +617,7 @@ static char *concat_args(const char *a, const char *b)
 
 unsigned char *update_cmdline(const char* cmdline)
 {
-	if (bootargs)
+	if (bootargs && strstr(cmdline, "androidboot.hardware=qcom"))
 		return cmdline ? concat_args(cmdline, bootargs) : strdup(bootargs);
 	return update_cmdline0(cmdline);
 }
