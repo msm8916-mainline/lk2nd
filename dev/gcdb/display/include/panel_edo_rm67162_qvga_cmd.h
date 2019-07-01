@@ -179,7 +179,7 @@ static struct lane_configuration edo_rm67162_qvga_cmd_lane_config = {
 /* Panel timing                                                              */
 /*---------------------------------------------------------------------------*/
 static const uint32_t edo_rm67162_qvga_cmd_12nm_timings[] = {
-	0x06, 0x05, 0x01, 0x01, 0x00, 0x03, 0x01, 0x03
+	0x06, 0x05, 0x01, 0x0A, 0x00, 0x03, 0x01, 0x0F
 };
 
 static struct panel_timing edo_rm67162_qvga_cmd_timing_info = {
