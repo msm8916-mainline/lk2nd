@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2017-2019, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -236,7 +236,7 @@ void partition_reset_attributes(unsigned index)
 /*
 	Function: Switch active partitions.
 */
-void partition_switch_slots(int old_slot, int new_slot)
+void partition_switch_slots(int old_slot, int new_slot, boolean reset_success_bit)
 {
 #ifdef AB_DEBUG
 	dprintf(INFO, "Switching slots %s to %s\n",
@@ -255,9 +255,15 @@ void partition_switch_slots(int old_slot, int new_slot)
 						((PART_ATT_PRIORITY_VAL |
 						PART_ATT_ACTIVE_VAL |
 						PART_ATT_MAX_RETRY_COUNT_VAL));
+
 	partition_entries[new_slot_index].attribute_flag &=
-						(~PART_ATT_SUCCESSFUL_VAL
-						& ~PART_ATT_UNBOOTABLE_VAL);
+						(~PART_ATT_UNBOOTABLE_VAL);
+	if (reset_success_bit &&
+		(partition_entries[new_slot_index].attribute_flag &
+						PART_ATT_SUCCESSFUL_VAL)) {
+		partition_entries[new_slot_index].attribute_flag &=
+						(~PART_ATT_SUCCESSFUL_VAL);
+	}
 
 	if (!attributes_updated)
 		attributes_updated = true;
@@ -395,7 +401,7 @@ int partition_find_boot_slot()
 		next_slot = next_active_bootable_slot(partition_entries);
 		if (next_slot != INVALID)
 		{
-			partition_switch_slots(boot_slot, next_slot);
+			partition_switch_slots(boot_slot, next_slot, false);
 			reboot_device(0);
 		}
 		else
