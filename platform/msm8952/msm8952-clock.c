@@ -651,7 +651,7 @@ void platform_clock_init(void)
 	}
 
 	if (platform_is_msm8937() || platform_is_msm8917() ||
-		platform_is_sdm429() || platform_is_sdm439() ||
+		platform_is_sdm429() || platform_is_sdm429w() || platform_is_sdm439() ||
 		platform_is_qm215())
 		msm8937_clock_override();
 

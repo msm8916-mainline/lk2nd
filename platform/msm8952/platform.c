@@ -353,7 +353,7 @@ int platform_is_msm8956()
 uint32_t platform_get_tz_app_add()
 {
 	if(platform_is_msm8937() || platform_is_msm8917() ||
-		platform_is_sdm429() || platform_is_sdm439() ||
+		platform_is_sdm429() || platform_is_sdm429w() || platform_is_sdm439() ||
 		platform_is_qm215())
 		return APP_REGION_ADDR_8937;
 	else
@@ -363,7 +363,7 @@ uint32_t platform_get_tz_app_add()
 uint32_t platform_get_tz_app_size()
 {
 	if(platform_is_msm8937() || platform_is_msm8917() ||
-		platform_is_sdm429() || platform_is_sdm439() ||
+		platform_is_sdm429() || platform_is_sdm429w() || platform_is_sdm439() ||
 		platform_is_qm215())
 		return APP_REGION_SIZE_8937;
 	else
@@ -372,7 +372,7 @@ uint32_t platform_get_tz_app_size()
 
 uint32_t platform_get_apcs_ipc_base()
 {
-	if(platform_is_msm8917() || platform_is_sdm429() || platform_is_qm215())
+	if(platform_is_msm8917() || platform_is_sdm429() ||  platform_is_sdm429w() || platform_is_qm215())
 		return APCS_ALIAS1_IPC_INTERRUPT_1;
 	else
 		return APCS_ALIAS0_IPC_INTERRUPT_2;
