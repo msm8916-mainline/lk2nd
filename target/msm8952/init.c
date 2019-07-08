@@ -112,7 +112,7 @@ static uint32_t  mmc_sdc_pwrctl_irq[] =
 
 static int sdm429_pm660_target()
 {
-	if (platform_is_sdm429() && (board_hardware_subtype()
+	if ((platform_is_sdm429() || platform_is_sdm429w()) && (board_hardware_subtype()
 			== HW_PLATFORM_SUBTYPE_429W_PM660))
 		return 1;
 	else
@@ -202,7 +202,7 @@ int target_volume_up()
 	if(platform_is_msm8956())
 		vol_up_gpio = TLMM_VOL_UP_BTN_GPIO_8956;
 	else if(platform_is_msm8937() || platform_is_msm8917() ||
-		    platform_is_sdm429() || platform_is_sdm439() ||
+		    platform_is_sdm429() || platform_is_sdm429w() || platform_is_sdm439() ||
 		    platform_is_qm215())
 		vol_up_gpio = TLMM_VOL_UP_BTN_GPIO_8937;
 	else
@@ -308,7 +308,7 @@ void target_init(void)
 	if(target_is_pmi_enabled())
 	{
 		if(platform_is_msm8937() || platform_is_msm8917() ||
-		   platform_is_sdm429() || platform_is_sdm439())
+		   platform_is_sdm429() || platform_is_sdm429w() || platform_is_sdm439())
 		{
 			uint8_t pmi_rev = 0;
 			uint32_t pmi_type = 0;
@@ -427,6 +427,7 @@ void target_baseband_detect(struct board_data *board)
 	case MSM8617:
 	case SDM429:
 	case SDM439:
+	case SDM429W:
 	case QM215:
 		board->baseband = BASEBAND_MSM;
 		break;
