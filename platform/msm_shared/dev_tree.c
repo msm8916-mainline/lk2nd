@@ -113,6 +113,12 @@ int get_dtbo_idx (void)
    return dtbo_idx;
 }
 
+static int dtb_idx = INVALID_PTN;
+int get_dtb_idx (void)
+{
+   return dtb_idx;
+}
+
 int fdt_check_header_ext(const void *fdt)
 {
 	uintptr_t fdt_start, fdt_end;
@@ -621,6 +627,8 @@ void *get_soc_dtb(void *kernel, uint32_t kernel_size, uint32_t dtb_offset)
 	uint32_t dtb_size = 0;
 	dt_info cur_dtb_info = {0};
 	dt_info best_dtb_info = {0};
+	uint32_t dtb_cnt = 0;
+	boolean find_best_dtb = false;
 
 	if (!dtb_offset){
 		dprintf(CRITICAL, "DTB offset is NULL\n");
@@ -642,7 +650,7 @@ void *get_soc_dtb(void *kernel, uint32_t kernel_size, uint32_t dtb_offset)
 		break;
 
 		cur_dtb_info.dtb = dtb;
-		dtb_read_find_match(&cur_dtb_info, &best_dtb_info, SOC_MATCH);
+		find_best_dtb = dtb_read_find_match(&cur_dtb_info, &best_dtb_info, SOC_MATCH);
 		if (cur_dtb_info.dt_match_val) {
 			if (cur_dtb_info.dt_match_val & BIT(SOC_MATCH)) {
 				if (check_all_bits_set(cur_dtb_info.dt_match_val)) {
@@ -651,8 +659,15 @@ void *get_soc_dtb(void *kernel, uint32_t kernel_size, uint32_t dtb_offset)
 				}
 			}
 		}
-		dprintf(SPEW, "Best Match DTB VAL = %x\n", best_dtb_info.dt_match_val);
+
+		dprintf(SPEW, "dtb count = %u local_soc_dt_match val = %x\n", dtb_cnt, best_dtb_info.dt_match_val);
 		dtb += dtb_size;
+
+		if (find_best_dtb) {
+			dtb_idx = dtb_cnt;
+		}
+		dtb_cnt++;
+
 	}
 	if (!best_dtb_info.dtb) {
 		dprintf(CRITICAL, "No match found for soc dtb type\n");
@@ -755,6 +770,7 @@ static int dev_tree_compatible(void *dtb, uint32_t dtb_size, struct dt_entry_nod
 	uint32_t msm_data_count;
 	uint32_t board_data_count;
 	uint32_t pmic_data_count;
+	uint32_t dtb_count = 0;;
 
 	root_offset = fdt_path_offset(dtb, "/");
 	if (root_offset < 0)
@@ -962,9 +978,11 @@ static int dev_tree_compatible(void *dtb, uint32_t dtb_size, struct dt_entry_nod
 		i = 0;
 		k = 0;
 		n = 0;
+		dtb_count++;
 		for (i = 0; i < msm_data_count; i++) {
 			for (j = 0; j < board_data_count; j++) {
-				if (dtb_ver == DEV_TREE_VERSION_V3 && pmic_prop) {
+				dt_entry_array[k].idx = dtb_count;
+				if (dtb_ver == DEV_TREE_VERSION_V3 && pmic_prop){
 					for (n = 0; n < pmic_data_count; n++) {
 						dt_entry_array[k].platform_id = platform_data[i].platform_id;
 						dt_entry_array[k].soc_rev = platform_data[i].soc_rev;
@@ -1145,9 +1163,9 @@ out:
  * Will relocate the DTB to the tags addr if the device tree is found and return
  * its address
  *
- * Arguments:    kernel - Start address of the kernel loaded in RAM
+ * Arguments:    kernel - Start address of the kernel/bootimage loaded in RAM
  *               tags - Start address of the tags loaded in RAM
- *               kernel_size - Size of the kernel in bytes
+ *               kernel_size - Size of the kernel/bootimage size in bytes
  *
  * Return Value: DTB address : If appended device tree is found
  *               'NULL'         : Otherwise
@@ -1216,12 +1234,14 @@ void *dev_tree_appended(void *kernel, uint32_t kernel_size, uint32_t dtb_offset,
 	if (best_match_dt_entry){
 		bestmatch_tag = (void *)best_match_dt_entry->offset;
 		bestmatch_tag_size = best_match_dt_entry->size;
-		dprintf(INFO, "Best match DTB tags %u/%08x/0x%08x/%x/%x/%x/%x/%x/%x/%x\n",
-			best_match_dt_entry->platform_id, best_match_dt_entry->variant_id,
-			best_match_dt_entry->board_hw_subtype, best_match_dt_entry->soc_rev,
-			best_match_dt_entry->pmic_rev[0], best_match_dt_entry->pmic_rev[1],
-			best_match_dt_entry->pmic_rev[2], best_match_dt_entry->pmic_rev[3],
-			best_match_dt_entry->offset, best_match_dt_entry->size);
+		dtb_idx = best_match_dt_entry->idx;
+		dprintf(INFO, "Best match DTB tags %u/%u/%08x/0x%08x/%x/%x/%x/%x/%x/%x/%x\n",
+			best_match_dt_entry->idx, best_match_dt_entry->platform_id,
+			best_match_dt_entry->variant_id, best_match_dt_entry->board_hw_subtype,
+			best_match_dt_entry->soc_rev, best_match_dt_entry->pmic_rev[0],
+			best_match_dt_entry->pmic_rev[1], best_match_dt_entry->pmic_rev[2],
+			best_match_dt_entry->pmic_rev[3], best_match_dt_entry->offset,
+			best_match_dt_entry->size);
 		dprintf(INFO, "Using pmic info 0x%0x/0x%x/0x%x/0x%0x for device 0x%0x/0x%x/0x%x/0x%0x\n",
 			best_match_dt_entry->pmic_rev[0], best_match_dt_entry->pmic_rev[1],
 			best_match_dt_entry->pmic_rev[2], best_match_dt_entry->pmic_rev[3],
