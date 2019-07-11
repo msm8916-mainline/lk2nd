@@ -447,6 +447,22 @@ static void getvar_all()
 	fastboot_okay("");
 }
 
+void fastboot_stage(const void *data, unsigned sz)
+{
+	arch_invalidate_cache_range((addr_t) download_base, download_size);
+	download_size = 0;
+
+	if (sz > download_max) {
+		fastboot_fail("data too large");
+		return;
+	}
+
+	memcpy(download_base, data, sz);
+	download_size = sz;
+
+	fastboot_okay("");
+}
+
 static void cmd_getvar(const char *arg, void *data, unsigned sz)
 {
 	struct fastboot_var *var;
@@ -522,46 +538,26 @@ static void cmd_download(const char *arg, void *data, unsigned sz)
 	fastboot_okay("");
 }
 
-int fboot_set_upload(void *buf, uint32_t buf_size)
-{
-	/* sanity checks*/
-	if((buf == NULL)||(buf_size > download_max))
-	{
-		return ERR_INVALID_ARGS;
-	}
-	upload_base_addr = buf;
-	upload_size = buf_size;
-	return NO_ERROR;
-}
-
 static void cmd_upload(const char *arg, void *data, unsigned sz)
 {
 	STACKBUF_DMA_ALIGN(response, MAX_RSP_SIZE);
-	unsigned len = upload_size;
 	int r;
 
-	if ((upload_base_addr == NULL)||(upload_size == 0)) {
-		fastboot_fail("invalid data");
-		goto cleanup;
+	if (!sz) {
+		fastboot_fail("no data staged");
+		return;
 	}
-	snprintf((char *)response, MAX_RSP_SIZE, "DATA%08x", len);
-	if (usb_if.usb_write(response, strlen((const char *)response)) < 0)
-		goto cleanup;
-	/*
-	 * Discard the cache contents before starting the download
-	 */
-	arch_invalidate_cache_range((addr_t) upload_base_addr, len);
 
-	r = usb_if.usb_write(upload_base_addr, len);
-	if ((r < 0) || ((unsigned) r != len)) {
+	snprintf(response, MAX_RSP_SIZE, "DATA%08x", sz);
+	if (usb_if.usb_write(response, strlen(response)) < 0)
+		return;
+
+	r = usb_if.usb_write(data, sz);
+	if ((r < 0) || ((unsigned) r != sz)) {
 		fastboot_state = STATE_ERROR;
-		goto cleanup;
+		return;
 	}
 	fastboot_okay("");
-cleanup:
-	upload_base_addr = NULL;
-	upload_size = 0;
-	return;
 }
 
 static void fastboot_command_loop(void)
