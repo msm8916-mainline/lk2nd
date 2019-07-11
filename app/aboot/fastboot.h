@@ -54,6 +54,7 @@ void fastboot_publish(const char *name, const char *value);
 void fastboot_okay(const char *result);
 void fastboot_fail(const char *reason);
 void fastboot_info(const char *reason);
+void fastboot_stage(const void *data, unsigned sz);
 
 
 #endif

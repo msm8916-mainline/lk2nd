@@ -404,6 +404,22 @@ void fastboot_okay(const char *info)
 	fastboot_ack("OKAY", info);
 }
 
+void fastboot_stage(const void *data, unsigned sz)
+{
+	arch_invalidate_cache_range((addr_t) download_base, download_size);
+	download_size = 0;
+
+	if (sz > download_max) {
+		fastboot_fail("data too large");
+		return;
+	}
+
+	memcpy(download_base, data, sz);
+	download_size = sz;
+
+	fastboot_okay("");
+}
+
 static void cmd_getvar(const char *arg, void *data, unsigned sz)
 {
 	struct fastboot_var *var;
@@ -465,6 +481,28 @@ static void cmd_download(const char *arg, void *data, unsigned sz)
 		return;
 	}
 	download_size = len;
+	fastboot_okay("");
+}
+
+static void cmd_upload(const char *arg, void *data, unsigned sz)
+{
+	STACKBUF_DMA_ALIGN(response, MAX_RSP_SIZE);
+	int r;
+
+	if (!sz) {
+		fastboot_fail("no data staged");
+		return;
+	}
+
+	snprintf(response, MAX_RSP_SIZE, "DATA%08x", sz);
+	if (usb_if.usb_write(response, strlen(response)) < 0)
+		return;
+
+	r = usb_if.usb_write(data, sz);
+	if ((r < 0) || ((unsigned) r != sz)) {
+		fastboot_state = STATE_ERROR;
+		return;
+	}
 	fastboot_okay("");
 }
 
@@ -625,6 +663,7 @@ int fastboot_init(void *base, unsigned size)
 	fastboot_register("oem help", cmd_help);
 	fastboot_register("getvar:", cmd_getvar);
 	fastboot_register("download:", cmd_download);
+	fastboot_register("upload", cmd_upload);
 	fastboot_publish("version", "0.5");
 
 	thr = thread_create("fastboot", fastboot_handler, 0, DEFAULT_PRIORITY, 4096);
