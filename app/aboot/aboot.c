@@ -4056,6 +4056,7 @@ normal_boot:
 
 	/* register aboot specific fastboot commands */
 	aboot_fastboot_register_commands();
+	fastboot_lk2nd_register_commands();
 
 	/* dump partition table for debug info */
 	partition_dump();
