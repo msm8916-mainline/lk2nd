@@ -4401,7 +4401,7 @@ void cmd_set_active(const char *arg, void *data, unsigned sz)
 					if (current_slot_suffix &&
 						!strncmp(p, current_slot_suffix, strlen(current_slot_suffix)))
 					{
-						partition_switch_slots(current_active_slot, i);
+						partition_switch_slots(current_active_slot, i, true);
 						publish_getvar_multislot_vars();
 						fastboot_okay("");
 						return;
