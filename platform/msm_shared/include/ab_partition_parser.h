@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2017, 2019, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -69,7 +69,7 @@ bool partition_scan_for_multislot();	/* Calling to scan part. table. */
 void partition_mark_active_slot();	/* Marking slot active */
 void partition_reset_attributes();	/* Resetting slot attr. */
 void partition_fill_slot_meta();	/* Fill slot meta infomation */
-void partition_switch_slots();		/* Switching slots */
+void partition_switch_slots(int old_slot, int new_slot, boolean reset_success_bit); /* Switching slots */
 void partition_deactivate_slot(int slot); /* Mark slot unbootable and reset other attributes*/
 void partition_activate_slot(int slot);	 /* Mark slot bootable and set other attributes*/
 int partition_find_boot_slot();		/* Find bootable partition */
