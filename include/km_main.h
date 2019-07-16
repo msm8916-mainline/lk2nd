@@ -72,6 +72,7 @@ typedef enum {
     KEYMASTER_MILESTONE_CALL				= (KEYMASTER_UTILS_CMD_ID + 4UL),
     KEYMASTER_SECURE_WRITE_PROTECT			= (KEYMASTER_UTILS_CMD_ID + 6UL),
     KEYMASTER_SET_VBH					= (KEYMASTER_UTILS_CMD_ID + 17UL),
+    KEYMASTER_GET_DATE_SUPPORT				= (KEYMASTER_UTILS_CMD_ID + 21UL),
 
     KEYMASTER_LAST_CMD_ENTRY				= (int)0xFFFFFFFFULL
 } keymaster_cmd_t;
@@ -278,5 +279,13 @@ typedef struct
 {
 	int status;
 } __attribute__ ((packed)) km_set_vbh_rsp_t;
+
+typedef struct {
+	uint32_t cmd_id;
+} __attribute__ ((packed)) km_get_date_support_req;
+
+typedef struct {
+	int32_t status;
+} __attribute__ ((packed)) km_get_date_support_rsp;
 
 #endif /* KM_MAIN_H */

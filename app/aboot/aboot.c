@@ -4942,8 +4942,14 @@ void aboot_fastboot_register_commands(void)
 		publish_getvar_multislot_vars();
 
 	/* Max download size supported */
+#if !VERIFIED_BOOT_2
 	snprintf(max_download_size, MAX_RSP_SIZE, "\t0x%x",
 			target_get_max_flash_size());
+#else
+	snprintf(max_download_size, MAX_RSP_SIZE, "\t0x%x",
+			SUB_SALT_BUFF_OFFSET(target_get_max_flash_size()));
+#endif
+
 	fastboot_publish("max-download-size", (const char *) max_download_size);
 	/* Is the charger screen check enabled */
 	snprintf(charger_screen_enabled, MAX_RSP_SIZE, "%d",
