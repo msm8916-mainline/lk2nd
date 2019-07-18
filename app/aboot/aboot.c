@@ -1154,7 +1154,7 @@ void boot_linux(void *kernel, unsigned *tags,
 	generate_atags(tags, final_cmdline, ramdisk, ramdisk_size);
 #endif
 
-#if VERIFIED_BOOT || VERIFIED_BOOT_2
+#if VERIFIED_BOOT
 	if (VB_M <= target_get_vb_version())
 	{
 		if (device.verity_mode == 0) {
