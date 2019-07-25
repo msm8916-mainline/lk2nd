@@ -195,3 +195,66 @@ int ext2_lookup(ext2_t *ext2, const char *_path, inodenum_t *inum)
     return ext2_walk(ext2, path, &ext2->root_inode, inum, 1);
 }
 
+// © 2019 Mis012 - SPDX-License-Identifier: GPL-3.0
+// from here till the end of file
+
+status_t ext2_open_directory(fscookie *cookie, const char *path, dircookie **dircookie) {
+	off_t entry_len = 0;
+	ext2_dir_t *dir = malloc(sizeof(ext2_dir_t));
+	memset(dir, 0, sizeof(ext2_dir_t));
+	if (!dir) {
+		dprintf(INFO, "ext2_list_directory: failed to malloc (dir)\n");
+		return -1;
+	}
+	int ret;
+
+	ret = ext2_open_file(cookie, path, (filecookie **)&dir->file);
+	if (ret < 0) {
+		free(dir);
+		return ret;
+	}
+
+	if (!S_ISDIR(dir->file->inode.i_mode)) {
+		dprintf(INFO, "ext2_list_directory: not a directory\n");
+		free(dir);
+		return ERR_NOT_DIR;
+	}
+
+	entry_len = ext2_file_len(dir->file->ext2, &dir->file->inode);
+
+	dir->offset = 0;
+	dir->length = entry_len;
+
+	*dircookie = dir;
+
+	return 0;
+}
+
+status_t ext2_read_directory(dircookie *dircookie, struct dirent *ent) {
+	struct ext2_dir_entry_2 direntry;
+	int ret;
+
+	ext2_dir_t *dir = (ext2_dir_t *)dircookie;
+
+	if (dir->offset >= dir->length)
+		return ERR_NOT_FOUND;
+
+	ret = ext2_read_inode(dir->file->ext2, &dir->file->inode, &direntry, dir->offset, sizeof(struct ext2_dir_entry_2));
+	if (ret < 0)
+		return ret;
+
+	memcpy(ent->name, direntry.name, direntry.name_len);
+	ent->name[direntry.name_len] = '\0';
+
+	dir->offset += direntry.rec_len;
+
+	return 0;
+}
+
+status_t ext2_close_directory(dircookie *dircookie) {
+	ext2_dir_t *dir = (ext2_dir_t *)dircookie;
+
+	ext2_close_file(dir->file);
+	free(dir);
+	return 0;
+}
