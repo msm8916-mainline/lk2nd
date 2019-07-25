@@ -2,7 +2,7 @@
  * Copyright (C) 2008 The Android Open Source Project
  * All rights reserved.
  *
- * Copyright (c) 2014,2016 The Linux Foundation. All rights reserved.
+ * Copyright (c) 2014,2016,2019 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -139,6 +139,50 @@ struct boot_img_hdr_v1 {
  * m = (ramdisk_size + page_size - 1) / page_size
  * o = (second_size + page_size - 1) / page_size
  * p = (recovery_dtbo_size + page_size - 1) / page_size
+ *
+ * 0. all entities are page_size aligned in flash
+ * 1. kernel and ramdisk are required (size != 0)
+ * 2. recovery_dtbo is required for recovery.img
+ *    in non-A/B devices(recovery_dtbo_size != 0)
+ * 3. second is optional (second_size == 0 -> no second)
+ * 4. load each element (kernel, ramdisk, second, recovery_dtbo) at
+ *    the specified physical address (kernel_addr, etc)
+ * 5. prepare tags at tag_addr.  kernel_args[] is
+ *    appended to the kernel commandline in the tags.
+ * 6. r0 = 0, r1 = MACHINE_TYPE, r2 = tags_addr
+ * 7. if second_size != 0: jump to second_addr
+ *    else: jump to kernel_addr
+ */
+
+#define BOOT_IMAGE_HEADER_V2_OFFSET sizeof (struct boot_img_hdr_v1)
+#define BOOT_HEADER_VERSION_TWO 2
+
+struct boot_img_hdr_v2 {
+    uint32_t dtb_size; /* size in bytes for DTB image */
+    uint64_t dtb_addr; /* physical load address for DTB image */
+} __attribute__((packed));
+
+/* When the boot image header has a version of BOOT_HEADER_VERSION_TWO,
+ * the structure of the boot image is as follows:
+ *
+ * +-----------------+
+ * | boot header     | 1 page
+ * +-----------------+
+ * | kernel          | n pages
+ * +-----------------+
+ * | ramdisk         | m pages
+ * +-----------------+
+ * | second stage    | o pages
+ * +-----------------+
+ * | recovery dtbo   | p pages
+ * +-----------------+
+ * | dtb.img         | q pages
+ * +-----------------+
+ * n = (kernel_size + page_size - 1) / page_size
+ * m = (ramdisk_size + page_size - 1) / page_size
+ * o = (second_size + page_size - 1) / page_size
+ * p = (recovery_dtbo_size + page_size - 1) / page_size
+ * q = (dtb_size + page_size - 1) / page_size
  *
  * 0. all entities are page_size aligned in flash
  * 1. kernel and ramdisk are required (size != 0)
