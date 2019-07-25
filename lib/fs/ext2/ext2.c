@@ -266,7 +266,7 @@ static const struct fs_api ext2_api = {
     .close = ext2_close_file,
 };
 
-static void ext2_init(uint level)
+void ext2_init(void)
 {
     fs_register_type("ext2", &ext2_api);
 }
