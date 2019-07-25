@@ -264,6 +264,9 @@ static const struct fs_api ext2_api = {
     .stat = ext2_stat_file,
     .read = ext2_read_file,
     .close = ext2_close_file,
+    .opendir = ext2_open_directory,
+    .readdir = ext2_read_directory,
+    .closedir = ext2_close_directory
 };
 
 void ext2_init(void)

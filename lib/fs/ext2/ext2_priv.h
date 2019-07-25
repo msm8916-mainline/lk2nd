@@ -56,6 +56,12 @@ typedef struct {
     struct ext2_inode inode;
 } ext2_file_t;
 
+typedef struct {
+	ext2_file_t *file;
+	off_t offset;
+	off_t length;
+} ext2_dir_t;
+
 /* internal routines */
 int ext2_load_inode(ext2_t *ext2, inodenum_t num, struct ext2_inode *inode);
 int ext2_lookup(ext2_t *ext2, const char *path, inodenum_t *inum); // path to inode
@@ -72,10 +78,15 @@ int ext2_read_link(ext2_t *ext2, struct ext2_inode *inode, char *str, size_t len
 /* fs api */
 status_t ext2_mount(bdev_t *dev, fscookie **cookie);
 status_t ext2_unmount(fscookie *cookie);
+
 status_t ext2_open_file(fscookie *cookie, const char *path, filecookie **fcookie);
 ssize_t ext2_read_file(filecookie *fcookie, void *buf, off_t offset, size_t len);
 status_t ext2_close_file(filecookie *fcookie);
 status_t ext2_stat_file(filecookie *fcookie, struct file_stat *);
+
+status_t ext2_open_directory(fscookie *cookie, const char *path, dircookie **dircookie);
+status_t ext2_read_directory(dircookie *dircookie, struct dirent *ent);
+status_t ext2_close_directory(dircookie *dircookie);
 
 /* mode stuff */
 #define S_IFMT      0170000
