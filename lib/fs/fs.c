@@ -59,6 +59,13 @@ struct fs {
 static struct list_node mounts = LIST_INITIAL_VALUE(mounts);
 static struct list_node fses = LIST_INITIAL_VALUE(fses);
 
+/* qualcomm runs fs_init() manually, so we use it to init filesystem submodules */
+void ext2_init(void);
+
+void fs_init(void) {
+	ext2_init();
+}
+
 static struct fs *find_fs(const char *name)
 {
     struct fs *fs;
