@@ -57,6 +57,7 @@
 #include <err.h>
 #include <ab_partition_parser.h>
 #include <partition_parser.h>
+#define MAX_FOOTER_SIZE 4096
 
 struct partition_entry *PtnEntries;
 
@@ -177,7 +178,7 @@ AvbIOResult AvbReadFromPartition(AvbOps *Ops, const char *Partition, int64_t Rea
 	}
 	*OutNumRead = 0;
 
-	if (!getimage(Buffer, OutNumRead, Partition)) {
+	if (NumBytes > MAX_FOOTER_SIZE && !getimage(Buffer, OutNumRead, Partition)) {
 		/* API returns previously loaded Images buffer address and size */
                 dprintf(SPEW, "DEBUG: %s already loaded \n", Partition);
 		return AVB_IO_RESULT_OK;
