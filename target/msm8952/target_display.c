@@ -63,6 +63,8 @@
 #define TRULY_VID_PANEL_STRING "1:dsi:0:qcom,mdss_dsi_truly_720p_video:1:none:cfg:single_dsi"
 #define TRULY_CMD_PANEL_STRING "1:dsi:0:qcom,mdss_dsi_truly_720p_cmd:1:none:cfg:single_dsi"
 
+#define VARIANT_MAJOR_MASK        (0x00ff0000)
+
 /*---------------------------------------------------------------------------*/
 /* GPIO configuration                                                        */
 /*---------------------------------------------------------------------------*/
@@ -483,6 +485,13 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 			.output_buffer = PM_GPIO_OUT_CMOS,
 			.out_strength = PM_GPIO_OUT_DRIVE_HIGH,
 			};
+
+			if (((board_target_id() & VARIANT_MAJOR_MASK)) &&
+				platform_is_sdm429w()) {
+				/* enable PM660 GPIO-12 for backlight enable */
+				bkl_en_gpio.pin_id = 12;
+				gpio_param.inv_int_pol = PM_GPIO_INVERT;
+			}
 
 			dprintf(SPEW, "%s: gpio=%d enable=%d\n", __func__,
 				bkl_en_gpio.pin_id, enable);
