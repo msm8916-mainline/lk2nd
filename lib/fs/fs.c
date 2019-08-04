@@ -326,6 +326,7 @@ status_t fs_open_dir(const char *path, dirhandle **handle)
     dirhandle *d = malloc(sizeof(*d));
     d->cookie = cookie;
     d->mount = mount;
+    mount->refs++;
     *handle = d;
 
     return 0;
