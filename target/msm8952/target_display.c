@@ -675,8 +675,10 @@ int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 		ldo_num |= REG_LDO2;
 
 	if ((platform_is_sdm429() || platform_is_sdm429w()) && hw_subtype
-		== HW_PLATFORM_SUBTYPE_429W_PM660)
-		ldo_num |= REG_LDO13 | REG_LDO15;
+		== HW_PLATFORM_SUBTYPE_429W_PM660) {
+			ldo_num &= ~(REG_LDO17 | REG_LDO5);
+			ldo_num |= REG_LDO13 | REG_LDO15;
+		}
 
 	if (enable) {
 		regulator_enable(ldo_num);
