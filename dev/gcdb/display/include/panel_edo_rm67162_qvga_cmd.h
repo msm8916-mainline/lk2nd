@@ -158,7 +158,7 @@ static struct command_state edo_rm67162_qvga_cmd_state = {
 /* Command mode panel information                                            */
 /*---------------------------------------------------------------------------*/
 static struct commandpanel_info edo_rm67162_qvga_cmd_command_panel = {
-	1, 1, 1, 0, 0, 0x2c, 0, 0, 0, 1, 0, 0
+	1, 1, 1, 1, 2, 0x2c, 0, 0, 0, 1, 0, 0
 };
 
 /*---------------------------------------------------------------------------*/
