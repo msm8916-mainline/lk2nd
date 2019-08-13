@@ -112,8 +112,7 @@ static uint32_t  mmc_sdc_pwrctl_irq[] =
 
 static int sdm429_pm660_target()
 {
-	if ((platform_is_sdm429() || platform_is_sdm429w()) && (board_hardware_subtype()
-			== HW_PLATFORM_SUBTYPE_429W_PM660))
+	if ((platform_is_sdm429() && (board_hardware_subtype() == HW_PLATFORM_SUBTYPE_429W_PM660)) || platform_is_sdm429w())
 		return 1;
 	else
 		return 0;
