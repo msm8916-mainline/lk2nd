@@ -187,8 +187,7 @@ void regulator_enable(uint32_t enable)
 			rpm_send_data(&ldo2[GENERIC_ENABLE][0], 36, RPM_REQUEST_TYPE);
 	}
 
-	if ((platform_is_sdm429() || platform_is_sdm429w()) && hw_subtype
-			== HW_PLATFORM_SUBTYPE_429W_PM660) {
+	if ((platform_is_sdm429() && (board_hardware_subtype() == HW_PLATFORM_SUBTYPE_429W_PM660)) || platform_is_sdm429w()) {
 		if (enable & REG_LDO13)
 			rpm_send_data(&ldo13_pm660[GENERIC_ENABLE][0],
 				36, RPM_REQUEST_TYPE);

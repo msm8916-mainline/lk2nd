@@ -1076,13 +1076,11 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 		}
 
 		if (platform_is_sdm429() || platform_is_sdm429w()) {
-			if (hw_subtype == HW_PLATFORM_SUBTYPE_429W_PM660) {
-				/* Spyro target */
-				if (plat_hw_ver_major == 1) /* WDP 2700 */
-					panel_id = RM69090_QVGA_CMD_PANEL;
-				else /* WTP 2700 DVT */
-					panel_id = RM67162_QVGA_CMD_PANEL;
-			} else
+			if (hw_subtype == HW_PLATFORM_SUBTYPE_429W_PM660) /* WTP 2700 DVT */
+			  panel_id = RM67162_QVGA_CMD_PANEL;
+			else if (hw_subtype == HW_PLATFORM_SUBTYPE_429W_PM660_WDP) /* WDP 2700 */
+			  panel_id = RM69090_QVGA_CMD_PANEL;
+      else
 				panel_id = HX8399C_HD_PLUS_VIDEO_PANEL;
 		}
 

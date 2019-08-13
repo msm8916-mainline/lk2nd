@@ -454,11 +454,16 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 		pinfo->mipi.use_enable_gpio = 1;
 	} else if (platform_is_sdm439() || platform_is_sdm429() || platform_is_sdm429w()) {
 		reset_gpio.pin_id = 60;
-		if ((platform_is_sdm429() || platform_is_sdm429w()) && hw_subtype
-			== HW_PLATFORM_SUBTYPE_429W_PM660) {
-			reset_gpio.pin_id = 60;
-			pinfo->mipi.use_enable_gpio = 1;
-			enable_gpio.pin_id = 69;
+		if ((platform_is_sdm429() && (board_hardware_subtype() == HW_PLATFORM_SUBTYPE_429W_PM660)) || platform_is_sdm429w()) {
+      if (board_hardware_subtype() == HW_PLATFORM_SUBTYPE_429W_PM660_WDP) {
+        reset_gpio.pin_id = 60;
+        pinfo->mipi.use_enable_gpio = 0;
+      }
+      else {
+        reset_gpio.pin_id = 60;
+			  pinfo->mipi.use_enable_gpio = 1;
+			  enable_gpio.pin_id = 69;
+      }
 		}
 	} else if ((hw_id == HW_PLATFORM_QRD) &&
 		   (hw_subtype == HW_PLATFORM_SUBTYPE_POLARIS)) {
@@ -674,8 +679,7 @@ int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 	else
 		ldo_num |= REG_LDO2;
 
-	if ((platform_is_sdm429() || platform_is_sdm429w()) && hw_subtype
-		== HW_PLATFORM_SUBTYPE_429W_PM660) {
+	if ((platform_is_sdm429() && (board_hardware_subtype() == HW_PLATFORM_SUBTYPE_429W_PM660)) || platform_is_sdm429w()) {
 			ldo_num &= ~(REG_LDO17 | REG_LDO5);
 			ldo_num |= REG_LDO13 | REG_LDO15;
 		}
