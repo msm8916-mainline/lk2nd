@@ -2094,12 +2094,14 @@ int boot_linux_from_mmc(void)
 		void *dtb;
 		image_buf = (void*)(image_addr + page_size + patched_kernel_hdr_size);
 
+#ifdef OSVERSION_IN_BOOTIMAGE
 		if ( hdr->header_version == BOOT_HEADER_VERSION_TWO) {
 
 			image_buf = (void*)(image_addr);
 			dtb_offset = dtb_image_offset;
 			dtb_image_size = imagesize_actual;
 		}
+#endif
 
 		dtb = dev_tree_appended(image_buf, dtb_image_size, dtb_offset,
 				(void *)hdr->tags_addr);
