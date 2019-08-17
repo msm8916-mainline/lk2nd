@@ -1,3 +1,6 @@
+Little Kernel (LK) was originally created by Travis Geiselbrecht
+and published under the MIT License:
+
 /*
  * Copyright (c) 2008-2010 Travis Geiselbrecht
  *
@@ -20,3 +23,10 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+
+This fork of LK has been enhanced with code licensed under the
+GNU GENERAL PUBLIC LICENSE (Version 2, June 1991), see COPYING for details.
+All affected code files have been marked appropriately.
+
+As such, the final linked version of this fork can only be re-distributed under
+the terms and conditions of the GPLv2 (and no newer version).
