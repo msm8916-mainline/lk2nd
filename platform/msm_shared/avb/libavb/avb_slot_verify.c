@@ -367,7 +367,7 @@ static AvbSlotVerifyResult load_and_verify_vbmeta(
   size_t num_descriptors;
   size_t n;
   bool is_main_vbmeta;
-  bool is_vbmeta_partition;
+  bool look_for_vbmeta_footer;
   AvbVBMetaData* vbmeta_image_data = NULL;
 
   ret = AVB_SLOT_VERIFY_RESULT_OK;
@@ -379,7 +379,14 @@ static AvbSlotVerifyResult load_and_verify_vbmeta(
    * vbmeta struct.
    */
   is_main_vbmeta = (rollback_index_location == 0);
-  is_vbmeta_partition = (avb_strcmp(partition_name, "vbmeta") == 0);
+
+  /* Don't use footers for vbmeta partitions ('vbmeta' or
+   * 'vbmeta_<partition_name>').
+   */
+  look_for_vbmeta_footer = true;
+  if (avb_strncmp(partition_name, "vbmeta", avb_strlen("vbmeta")) == 0) {
+    look_for_vbmeta_footer = false;
+  }
 
   if (!avb_validate_utf8((const uint8_t*)partition_name, partition_name_len)) {
     avb_error("Partition name is not valid UTF-8.\n");
@@ -409,7 +416,7 @@ static AvbSlotVerifyResult load_and_verify_vbmeta(
 
   vbmeta_offset = 0;
   vbmeta_size = VBMETA_MAX_SIZE;
-  if (is_vbmeta_partition) {
+  if (is_main_vbmeta) {
     io_ret = ops->read_from_partition(ops,
                                     partition_name,
                                     vbmeta_offset,
@@ -421,40 +428,40 @@ static AvbSlotVerifyResult load_and_verify_vbmeta(
       goto out;
     }
   } else {
-    uint8_t footer_buf[AVB_FOOTER_SIZE];
-    size_t footer_num_read;
-    AvbFooter footer;
+    if (look_for_vbmeta_footer) {
+      uint8_t footer_buf[AVB_FOOTER_SIZE];
+      size_t footer_num_read;
+      AvbFooter footer;
+      io_ret = ops->read_from_partition(ops,
+                                        partition_name,
+                                        -AVB_FOOTER_SIZE,
+                                        AVB_FOOTER_SIZE,
+                                        footer_buf,
+                                        &footer_num_read);
+      if (io_ret == AVB_IO_RESULT_ERROR_OOM) {
+        ret = AVB_SLOT_VERIFY_RESULT_ERROR_OOM;
+        goto out;
+      } else if (io_ret != AVB_IO_RESULT_OK) {
+        avb_errorv(full_partition_name, ": Error loading footer.\n", NULL);
+        ret = AVB_SLOT_VERIFY_RESULT_ERROR_IO;
+        goto out;
+      }
+      avb_assert(footer_num_read == AVB_FOOTER_SIZE);
 
-    io_ret = ops->read_from_partition(ops,
-                                      partition_name,
-                                      -AVB_FOOTER_SIZE,
-                                      AVB_FOOTER_SIZE,
-                                      footer_buf,
-                                      &footer_num_read);
-    if (io_ret == AVB_IO_RESULT_ERROR_OOM) {
-      ret = AVB_SLOT_VERIFY_RESULT_ERROR_OOM;
-      goto out;
-    } else if (io_ret != AVB_IO_RESULT_OK) {
-      avb_errorv(full_partition_name, ": Error loading footer.\n", NULL);
-      ret = AVB_SLOT_VERIFY_RESULT_ERROR_IO;
-      goto out;
-    }
-    avb_assert(footer_num_read == AVB_FOOTER_SIZE);
-
-    if (!avb_footer_validate_and_byteswap((const AvbFooter*)footer_buf,
-                                          &footer)) {
-      avb_errorv(full_partition_name, ": No footer detected.\n", NULL);
-    } else {
-      /* Basic footer sanity check since the data is untrusted. */
-      if (footer.vbmeta_size > VBMETA_MAX_SIZE) {
-        avb_errorv(
-            full_partition_name, ": Invalid vbmeta size in footer.\n", NULL);
+      if (!avb_footer_validate_and_byteswap((const AvbFooter*)footer_buf,
+                                            &footer)) {
+        avb_errorv(full_partition_name, ": No footer detected.\n", NULL);
       } else {
-        vbmeta_offset = footer.vbmeta_offset;
-        vbmeta_size = footer.vbmeta_size;
+        /* Basic footer sanity check since the data is untrusted. */
+        if (footer.vbmeta_size > VBMETA_MAX_SIZE) {
+          avb_errorv(
+              full_partition_name, ": Invalid vbmeta size in footer.\n", NULL);
+        } else {
+          vbmeta_offset = footer.vbmeta_offset;
+          vbmeta_size = footer.vbmeta_size;
+        }
       }
     }
-
     vbmeta_buf = avb_malloc(vbmeta_size); // for chain partitions
     if (vbmeta_buf == NULL) {
         ret = AVB_SLOT_VERIFY_RESULT_ERROR_OOM;
@@ -476,7 +483,7 @@ static AvbSlotVerifyResult load_and_verify_vbmeta(
      * go try to get it from the boot partition instead.
      */
     if (is_main_vbmeta && io_ret == AVB_IO_RESULT_ERROR_NO_SUCH_PARTITION &&
-        is_vbmeta_partition) {
+        !look_for_vbmeta_footer) {
       avb_debugv(full_partition_name,
                  ": No such partition. Trying 'boot' instead.\n",
                  NULL);
