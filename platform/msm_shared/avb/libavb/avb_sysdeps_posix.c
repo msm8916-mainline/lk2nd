@@ -46,6 +46,10 @@ int avb_strcmp(const char* s1, const char* s2) {
   return strcmp(s1, s2);
 }
 
+int avb_strncmp(const char* s1, const char* s2, size_t n) {
+  return strncmp(s1, s2, n);
+}
+
 size_t avb_strlen(const char* str) {
   return strlen(str);
 }
