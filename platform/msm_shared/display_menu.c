@@ -41,6 +41,7 @@
 #include <target.h>
 #include <sys/types.h>
 #include <../../../app/aboot/devinfo.h>
+#include <../../../app/aboot/lk2nd-device.h>
 
 static const char *unlock_menu_common_msg = "If you unlock the bootloader, "\
 				"you will be able to install "\
@@ -396,6 +397,11 @@ void display_fastboot_menu_renew(struct select_msg_info *fastboot_msg_info)
 	get_product_name((unsigned char *) msg_buf);
 	snprintf(msg, sizeof(msg), "PRODUCT_NAME - %s\n", msg_buf);
 	display_fbcon_menu_message(msg, FBCON_COMMON_MSG, common_factor);
+
+	if (lk2nd_dev.model) {
+		snprintf(msg, sizeof(msg), "MODEL - %s\n", lk2nd_dev.model);
+		display_fbcon_menu_message(msg, FBCON_COMMON_MSG, common_factor);
+	}
 
 	memset(msg_buf, 0, sizeof(msg_buf));
 	smem_get_hw_platform_name((unsigned char *) msg_buf, sizeof(msg_buf));
