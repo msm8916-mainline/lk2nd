@@ -10,6 +10,7 @@ OBJS += \
 	$(LOCAL_DIR)/aboot.o \
 	$(LOCAL_DIR)/fastboot.o \
 	$(LOCAL_DIR)/fastboot-lk2nd.o \
+	$(LOCAL_DIR)/lk2nd-device.o \
 	$(LOCAL_DIR)/recovery.o
 
 ifeq ($(ENABLE_UNITTEST_FW), 1)

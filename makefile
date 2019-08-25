@@ -38,6 +38,8 @@ BUILDDIR := $(BOOTLOADER_OUT)/build-$(PROJECT)
 OUTBIN := $(BUILDDIR)/lk.bin
 OUTELF := $(BUILDDIR)/lk
 OUTELF_STRIP := $(BUILDDIR)/lk_s.elf
+OUTBOOTIMG := $(BUILDDIR)/boot.img
+OUTDTIMG := $(BUILDDIR)/dt.img
 
 CONFIGHEADER := $(BUILDDIR)/config.h
 
@@ -94,6 +96,7 @@ all:: $(OUTBIN) $(OUTELF).lst $(OUTELF).debug.lst $(OUTELF).sym $(OUTELF).size $
 # which is bootobjs, kobjs, objs
 BOOTOBJS :=	
 OBJS :=
+DTBS :=
 
 # a linker script needs to be declared in one of the project/target/platform files
 LINKER_SCRIPT := 			
@@ -200,6 +203,7 @@ include target/rules.mk
 include kernel/rules.mk
 include dev/rules.mk
 include app/rules.mk
+include dts/rules.mk
 
 # recursively include any modules in the MODULE variable, leaving a trail of included
 # modules in the ALLMODULES list
@@ -234,6 +238,7 @@ DEFINES += \
 endif
 
 ALLOBJS := $(addprefix $(BUILDDIR)/,$(ALLOBJS))
+DTBS := $(addprefix $(BUILDDIR)/,$(DTBS))
 
 DEPS := $(ALLOBJS:%o=%d)
 
@@ -257,7 +262,7 @@ NOECHO ?= @
 include make/build.mk
 
 clean: $(EXTRA_CLEANDEPS)
-	rm -f $(ALLOBJS) $(DEPS) $(GENERATED) $(OUTBIN) $(OUTELF) $(OUTELF).lst $(OUTELF_STRIP)
+	rm -f $(ALLOBJS) $(DTBS) $(DEPS) $(GENERATED) $(OUTBIN) $(OUTELF) $(OUTELF).lst $(OUTELF_STRIP)
 
 install: all
 	scp $(OUTBIN) 192.168.0.4:/tftproot

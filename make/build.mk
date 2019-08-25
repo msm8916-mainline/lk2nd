@@ -43,5 +43,22 @@ $(OUTELF_STRIP): $(OUTELF)
 	@echo generating stripped elf: $@
 	$(NOECHO)$(STRIP) -S $< -o $@
 
-include arch/$(ARCH)/compile.mk
+$(BUILDDIR)/%.dtb: %.dts
+	@$(MKDIR)
+	@echo compiling $<
+	$(NOECHO)dtc -O dtb -o $@ $<
 
+$(OUTDTIMG): $(DTBS)
+	$(NOECHO)scripts/dtbTool -o $@ $(BUILDDIR)/dts
+
+$(OUTBOOTIMG): $(OUTBIN) $(OUTDTIMG)
+	$(NOECHO)scripts/mkbootimg \
+		--kernel=$(OUTBIN) \
+		--ramdisk=/dev/null \
+		--dt=$(OUTDTIMG) \
+		--base=$(ANDROID_BOOT_BASE) \
+		--output=$@ \
+		--cmdline="$(ANDROID_BOOT_CMDLINE)"
+
+
+include arch/$(ARCH)/compile.mk
