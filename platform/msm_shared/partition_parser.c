@@ -100,18 +100,18 @@ void partition_split_boot(uint32_t block_size)
 	boot = &partition_entries[index];
 
 	if (boot->size < lk_size) {
-		dprintf(CRITICAL, "Boot partition has not enough space for secondary lk\n");
+		dprintf(CRITICAL, "Boot partition has not enough space for lk2nd\n");
 		return;
 	}
 
 	if (partition_count < NUM_PARTITIONS) {
 		struct partition_entry *lk = &partition_entries[partition_count++];
 		memcpy(lk, boot, sizeof(*lk));
-		strcpy(lk->name, "lk");
+		strcpy(lk->name, "lk2nd");
 		lk->last_lba = lk->first_lba + lk_size - 1;
 		lk->size = lk_size;
 	} else {
-		dprintf(INFO, "Too many partitions to add virtual 'lk' partition\n");
+		dprintf(INFO, "Too many partitions to add virtual 'lk2nd' partition\n");
 	}
 
 	boot->first_lba += lk_size;
