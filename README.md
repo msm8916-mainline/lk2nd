@@ -23,6 +23,16 @@ and then loaded by lk2nd.
   - Fastboot: `fastboot flash boot boot.img`
   - Samsung: `heimdall flash --BOOT boot.img`
 
+## Usage
+lk2nd provides the standard Android fastboot protocol for flashing/booting Android boot images.
+
+`fastboot flash lk2nd lk2nd.img` can be used to update lk2nd directory from its
+fastboot interface.
+
+**Note:** `fastboot flash boot boot.img` will flash the actual boot image with 1 MB offset
+into the boot partition. This is done to avoid replacing lk2nd (since it is also booted from
+the boot partition).
+
 ## Building
 ```
 $ make TOOLCHAIN-PREFIX=arm-none-eabi- msm8916_secondary
