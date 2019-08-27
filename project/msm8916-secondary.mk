@@ -2,6 +2,8 @@
 #
 LOCAL_DIR := $(GET_LOCAL_DIR)
 
+OUTBOOTIMG := $(BUILDDIR)/lk2nd.img
+
 # Enable fastboot display menu
 ENABLE_FBCON_DISPLAY_MSG := 1
 
