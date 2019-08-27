@@ -21,10 +21,10 @@ and then loaded by lk2nd.
 - Wileyfox Swift
 
 ## Installation
-1. Download `boot.img` (available in [Releases](https://github.com/msm8916-mainline/lk2nd/releases))
-2. Flash `boot.img` using the stock flashing procedure:
-  - Fastboot: `fastboot flash boot boot.img`
-  - Samsung: `heimdall flash --BOOT boot.img`
+1. Download `lk2nd.img` (available in [Releases](https://github.com/msm8916-mainline/lk2nd/releases))
+2. Flash `lk2nd.img` using the stock flashing procedure:
+  - Fastboot: `fastboot flash boot lk2nd.img`
+  - Samsung: `heimdall flash --BOOT lk2nd.img`
 
 ## Usage
 lk2nd provides the standard Android fastboot protocol for flashing/booting Android boot images.
@@ -57,6 +57,7 @@ $ make TOOLCHAIN-PREFIX=arm-none-eabi- msm8916_secondary
   - Arch Linux: `dtc`
 
 Replace `TOOLCHAIN_PREFIX` with the path to your tool chain.
+`lk2nd.img` is built and placed into `build-msm8916-secondary/lk2nd.img`.
 
 ## Porting
 ### To other MSM8916 devices
