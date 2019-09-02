@@ -59,34 +59,46 @@ static struct color_info truly_rm69090_qvga_cmd_color = {
 /* Panel on/off command information                                          */
 /*---------------------------------------------------------------------------*/
 static char truly_rm69090_qvga_cmd_on_cmd0[] = {
-	0xFE, 0x00, 0x15, 0x80
+	0xFE, 0x01, 0x15, 0x80
 };
 
 static char truly_rm69090_qvga_cmd_on_cmd1[] = {
-	0x35, 0x00, 0x15, 0x80
+	0x6A, 0x03, 0x15, 0x80
 };
 
 static char truly_rm69090_qvga_cmd_on_cmd2[] = {
-	0x51, 0x80, 0x15, 0x80
+	0xFE, 0x00, 0x15, 0x80
 };
 
 static char truly_rm69090_qvga_cmd_on_cmd3[] = {
+	0x35, 0x00, 0x15, 0x80
+};
+
+static char truly_rm69090_qvga_cmd_on_cmd4[] = {
+	0x53, 0x20, 0x15, 0x80
+};
+
+static char truly_rm69090_qvga_cmd_on_cmd5[] = {
+	0x51, 0x80, 0x15, 0x80
+};
+
+static char truly_rm69090_qvga_cmd_on_cmd6[] = {
 	0x05, 0x00, 0x39, 0xC0,
 	0x2A, 0x00, 0x10, 0x01,
 	0x7F, 0xFF, 0xFF, 0xFF,
 };
 
-static char truly_rm69090_qvga_cmd_on_cmd4[] = {
+static char truly_rm69090_qvga_cmd_on_cmd7[] = {
 	0x05, 0x00, 0x39, 0xC0,
 	0x2B, 0x00, 0x00, 0x01,
 	0xBF, 0xFF, 0xFF, 0xFF,
 };
 
-static char truly_rm69090_qvga_cmd_on_cmd5[] = {
+static char truly_rm69090_qvga_cmd_on_cmd8[] = {
 	0x11, 0x00, 0x05, 0x80
 };
 
-static char truly_rm69090_qvga_cmd_on_cmd6[] = {
+static char truly_rm69090_qvga_cmd_on_cmd9[] = {
 	0x29, 0x00, 0x05, 0x80
 };
 
@@ -94,13 +106,16 @@ static struct mipi_dsi_cmd truly_rm69090_qvga_cmd_on_command[] = {
 	{0x4, truly_rm69090_qvga_cmd_on_cmd0, 0x00},
 	{0x4, truly_rm69090_qvga_cmd_on_cmd1, 0x00},
 	{0x4, truly_rm69090_qvga_cmd_on_cmd2, 0x00},
-	{0xc, truly_rm69090_qvga_cmd_on_cmd3, 0x00},
-	{0xc, truly_rm69090_qvga_cmd_on_cmd4, 0x00},
-	{0x4, truly_rm69090_qvga_cmd_on_cmd5, 0x78},
-	{0x4, truly_rm69090_qvga_cmd_on_cmd6, 0x40}
+	{0x4, truly_rm69090_qvga_cmd_on_cmd3, 0x00},
+	{0x4, truly_rm69090_qvga_cmd_on_cmd4, 0x00},
+	{0x4, truly_rm69090_qvga_cmd_on_cmd5, 0x00},
+	{0xc, truly_rm69090_qvga_cmd_on_cmd6, 0x00},
+	{0xc, truly_rm69090_qvga_cmd_on_cmd7, 0x00},
+	{0x4, truly_rm69090_qvga_cmd_on_cmd8, 0x78},
+	{0x4, truly_rm69090_qvga_cmd_on_cmd9, 0x40}
 };
 
-#define TRULY_RM69090_QVGA_CMD_ON_COMMAND 7
+#define TRULY_RM69090_QVGA_CMD_ON_COMMAND 10
 
 
 static char truly_rm69090_qvga_cmdoff_cmd0[] = {
