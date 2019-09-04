@@ -1691,8 +1691,9 @@ int boot_linux_from_mmc(void)
 			BOOT_IMAGE_HEADER_V2_OFFSET);
 		unsigned int recovery_dtbo_actual = 0;
 
-		imagesize_actual += ROUND_TO_PAGE(hdr1->recovery_dtbo_size,
-					page_mask);
+		recovery_dtbo_actual =
+			ROUND_TO_PAGE(hdr1->recovery_dtbo_size, page_mask);
+		imagesize_actual += recovery_dtbo_actual;
 
 		imagesize_actual += ROUND_TO_PAGE(hdr2->dtb_size, page_mask);
 
