@@ -1,4 +1,4 @@
-/* Copyright (c) 2015-2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2019, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -428,6 +428,7 @@ void target_baseband_detect(struct board_data *board)
 	case SDM439:
 	case SDM429W:
 	case QM215:
+	case QCM2150:
 		board->baseband = BASEBAND_MSM;
 		break;
 	case APQ8052:
