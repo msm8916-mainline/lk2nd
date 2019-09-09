@@ -231,6 +231,7 @@ int platform_is_qm215()
 	switch(platform)
 	{
 		case QM215:
+		case QCM2150:
 			ret = 1;
 			break;
 		default:
