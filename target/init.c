@@ -315,6 +315,7 @@ uint32_t target_ddr_cfg_reg()
 		case SDA429:
 		case SDA439:
 		case QM215:
+		case QCM2150:
 		/* SDCC HC DDR CONFIG has shifted by 4 bytes for these platform */
 			ret += 4;
 			break;
@@ -405,6 +406,7 @@ void get_vibration_type(struct qpnp_hap *config)
 		case SDA429:
 		case SDA439:
 		case QM215:
+		case QCM2150:
 		case SDM429W:
 			config->vib_type = VIB_LRA_TYPE;
 			config->hap_rate_cfg1 = QPNP_HAP_RATE_CFG1_41;
