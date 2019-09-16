@@ -2,7 +2,7 @@
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2015, 2018 The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2015, 2018, 2019 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -336,7 +336,33 @@ void fbcon_clear(void)
 	cur_pos.y = 0;
 }
 
-void fbcon_putc_factor(char c, int type, unsigned scale_factor)
+void fbcon_clear_msg(unsigned y_start, unsigned y_end)
+{
+	unsigned i, j;
+	uint32_t bg_color;
+	char *pixels;
+	unsigned count;
+
+	/* ignore anything that happens before fbcon is initialized */
+	if (!config)
+		return;
+
+	count = config->width * (FONT_HEIGHT * (y_end - y_start) - 1);
+	pixels = config->base;
+	pixels += y_start * ((config->bpp / 8) * FONT_HEIGHT * config->width);
+
+	fbcon_set_colors(FBCON_COMMON_MSG);
+	for (i = 0; i < count; i++) {
+		bg_color = BGCOLOR;
+		for (j = 0; j < (config->bpp / 8); j++) {
+			*pixels = (unsigned char) bg_color;
+			bg_color = bg_color >> 8;
+			pixels++;
+		}
+	}
+}
+
+void fbcon_putc_factor(char c, int type, unsigned scale_factor, int y_start)
 {
 	char *pixels;
 
@@ -366,6 +392,11 @@ void fbcon_putc_factor(char c, int type, unsigned scale_factor)
 	fbcon_set_colors(type);
 
 	pixels = config->base;
+	/* if y_start is null, it will start from current y loaction */
+	if (y_start) {
+		cur_pos.x = 0;
+		cur_pos.y = y_start;
+	}
 	pixels += cur_pos.y * ((config->bpp / 8) * FONT_HEIGHT * config->width);
 	pixels += cur_pos.x * scale_factor * ((config->bpp / 8) * (FONT_WIDTH + 1));
 
@@ -388,9 +419,9 @@ newline:
 		fbcon_flush();
 }
 
-void fbcon_putc(char c)
+void fbcon_putc(char c, int y_start)
 {
-	fbcon_putc_factor(c, FBCON_COMMON_MSG, SCALE_FACTOR);
+	fbcon_putc_factor(c, FBCON_COMMON_MSG, SCALE_FACTOR, y_start);
 }
 
 uint32_t fbcon_get_current_line(void)
