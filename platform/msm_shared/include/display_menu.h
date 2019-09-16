@@ -1,4 +1,4 @@
-/* Copyright (c) 2015-2016, 2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2016, 2018, 2019, The Linux Foundation. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are
@@ -80,6 +80,7 @@ void wait_for_users_action(void);
 void reset_device_unlock_status (int type);
 void display_bootverify_menu_renew(struct select_msg_info *msg_info, int type);
 void display_bootverify_option_menu_renew(struct select_msg_info *msg_info);
+void display_bootverify_menu_update (struct select_msg_info *msg_info);
 void display_fastboot_menu_renew(struct select_msg_info *fastboot_msg_info);
 void display_bootverify_menu(int type);
 void display_fastboot_menu();

@@ -233,11 +233,22 @@ static void boot_warning_volume_keys_func (struct select_msg_info* msg_info)
 static void power_key_func(struct select_msg_info* msg_info)
 {
 	int reason = -1;
+	static boolean isreflash;
 
 	switch (msg_info->info.msg_type) {
 		case DISPLAY_MENU_YELLOW:
 		case DISPLAY_MENU_ORANGE:
-		case DISPLAY_MENU_RED:
+			if (!isreflash) {
+			  /* If the power key is pressed for the first time:
+			   * Update the warning message and recalculate the timeout
+			   */
+			  before_time = current_time();
+			  display_bootverify_menu_update (msg_info);
+			  isreflash = TRUE;
+			} else {
+			  reason = CONTINUE;
+			}
+			break;
 		case DISPLAY_MENU_LOGGING:
 			reason = CONTINUE;
 			break;
@@ -305,18 +316,18 @@ static struct pages_action menu_pages_action[] = {
 		power_key_func,
 	},
 	[DISPLAY_MENU_YELLOW] = {
-		boot_warning_volume_keys_func,
-		boot_warning_volume_keys_func,
+		NULL,
+		NULL,
 		power_key_func,
 	},
 	[DISPLAY_MENU_ORANGE] = {
-		boot_warning_volume_keys_func,
-		boot_warning_volume_keys_func,
+		NULL,
+		NULL,
 		power_key_func,
 	},
 	[DISPLAY_MENU_RED] = {
-		boot_warning_volume_keys_func,
-		boot_warning_volume_keys_func,
+		NULL,
+		NULL,
 		power_key_func,
 	},
 	[DISPLAY_MENU_LOGGING] = {
@@ -325,8 +336,8 @@ static struct pages_action menu_pages_action[] = {
 		power_key_func,
 	},
 	[DISPLAY_MENU_EIO] = {
-		boot_warning_volume_keys_func,
-		boot_warning_volume_keys_func,
+		NULL,
+		NULL,
 		power_key_func,
 	},
 	[DISPLAY_MENU_MORE_OPTION] = {
