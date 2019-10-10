@@ -47,7 +47,7 @@ Other fastboot commands work normally.
 
 ## Building
 ```
-$ make TOOLCHAIN-PREFIX=arm-none-eabi- msm8916_secondary
+$ make TOOLCHAIN_PREFIX=arm-none-eabi- msm8916-secondary
 ```
 
 **Requirements:**
