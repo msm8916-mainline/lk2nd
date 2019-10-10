@@ -1096,6 +1096,7 @@ partition_parse_gpt_header(unsigned char *buffer,
 	unsigned long long partition_0 = 0;
 	unsigned long long current_lba = 0;
 	uint32_t block_size = mmc_get_device_blocksize();
+	uint32_t total_entry_block_size;
 	/* Get the density of the mmc device */
 	uint64_t device_density = mmc_get_device_capacity();
 
@@ -1168,7 +1169,8 @@ partition_parse_gpt_header(unsigned char *buffer,
 		return 1;
 	}
 
-	new_buffer = (uint8_t *)memalign(CACHE_LINE, ROUNDUP((*max_partition_count) * (*partition_entry_size), CACHE_LINE));
+	total_entry_block_size = ROUNDUP((*max_partition_count) * (*partition_entry_size), block_size);
+	new_buffer = (uint8_t *)memalign(CACHE_LINE, ROUNDUP(total_entry_block_size, CACHE_LINE));
 
 	if (!new_buffer)
 	{
@@ -1192,7 +1194,7 @@ partition_parse_gpt_header(unsigned char *buffer,
 
 		}
 		/*read the partition entries to new_buffer*/
-		ret = mmc_read((partition_0) * (block_size), (unsigned int *)new_buffer, (*max_partition_count) * (*partition_entry_size));
+		ret = mmc_read((partition_0) * (block_size), (unsigned int *)new_buffer, total_entry_block_size);
 		if (ret)
 		{
 			dprintf(CRITICAL, "GPT: Could not read primary gpt from mmc\n");
