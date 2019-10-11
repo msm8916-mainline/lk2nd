@@ -50,6 +50,7 @@
 #include <partition_parser.h>
 #include <stdlib.h>
 #include <smem.h>
+#include <lk2nd-device.h>
 
 #if LONG_PRESS_POWER_ON
 #include <shutdown_detect.h>
@@ -92,7 +93,11 @@ static uint32_t  mmc_sdc_pwrctl_irq[] =
 void target_early_init(void)
 {
 #if WITH_DEBUG_UART
-	uart_dm_init(2, 0, BLSP1_UART1_BASE);
+	int uart = lk2nd_fdt_parse_early_uart();
+	if (uart == 1)
+		uart_dm_init(1, 0, BLSP1_UART0_BASE);
+	else
+		uart_dm_init(2, 0, BLSP1_UART1_BASE);
 #endif
 }
 
