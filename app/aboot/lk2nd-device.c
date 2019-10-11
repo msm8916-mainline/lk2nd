@@ -84,7 +84,8 @@ static bool lk2nd_device_match(const void *fdt, int offset)
 	val = fdt_getprop(fdt, offset, "lk2nd,match-bootloader", &len);
 	if (val && len > 0) {
 		if (!lk2nd_dev.bootloader) {
-			dprintf(CRITICAL, "Unknown bootloader, cannot match\n");
+			if (lk2nd_dev.cmdline)
+				dprintf(CRITICAL, "Unknown bootloader, cannot match\n");
 			return false;
 		}
 
@@ -127,6 +128,27 @@ void lk2nd_parse_device_node(const void *fdt)
 		dprintf(INFO, "Device model: %s\n", lk2nd_dev.model);
 	else
 		dprintf(CRITICAL, "Device node is missing 'model' property\n");
+}
+
+
+int lk2nd_fdt_parse_early_uart(void)
+{
+	int offset, len;
+	const uint32_t *val;
+
+	void *fdt = (void*) lk_boot_args[2];
+	if (!fdt || dev_tree_check_header(fdt))
+		return -1; // Will be reported later again. Hopefully.
+
+	offset = lk2nd_find_device_offset(fdt);
+	if (offset < 0)
+		return -1;
+
+	/* TODO: Change this to use chosen node */
+	val = fdt_getprop(fdt, offset, "lk2nd,uart", &len);
+	if (len > 0)
+		return fdt32_to_cpu(*val);
+	return -1;
 }
 
 void lk2nd_fdt_parse(void)
