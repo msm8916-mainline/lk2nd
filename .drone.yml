@@ -7,11 +7,10 @@ platform:
 
 steps:
   - name: build
-    image: alpine:edge
+    image: debian:buster
     commands:
       - nproc && grep Mem /proc/meminfo && df -hT .
-      - echo http://dl-cdn.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories
-      - apk add gcc-arm-none-eabi dtc dtc-dev make python2
+      - apt-get update -qq && apt-get install -yqq gcc-arm-none-eabi device-tree-compiler libfdt-dev make python > /dev/null
       - make -j$(nproc) TOOLCHAIN_PREFIX=arm-none-eabi- msm8916-secondary
 
 trigger:
