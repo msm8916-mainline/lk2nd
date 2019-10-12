@@ -23,4 +23,11 @@
 		compatible = "samsung,a5u-eur", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "A500FU*";
 	};
+	
+	j5xnlte-eur {
+		model = "Samsung Galaxy J5 2016 LTE (EUR)";
+		compatible = "samsung,j5xnlte-eur", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "J510FN*";
+	};
+	
 };
