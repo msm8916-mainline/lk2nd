@@ -86,7 +86,6 @@ int _dprintf(const char *fmt, ...)
 	snprintf(ts_buf, sizeof(ts_buf), "[%u] ", current_time());
 	dputs(ALWAYS, ts_buf);
 
-	dputs(ALWAYS, ts_buf);
 	va_list ap;
 	va_start(ap, fmt);
 	err = vsnprintf(buf, sizeof(buf), fmt, ap);
