@@ -169,7 +169,10 @@ void lk2nd_fdt_parse(void)
 
 	lk2nd_dev.cmdline = dev_tree_get_boot_args(fdt);
 	if (lk2nd_dev.cmdline) {
-		dprintf(INFO, "Command line from primary bootloader: %s\n", lk2nd_dev.cmdline);
+		dprintf(INFO, "Command line from primary bootloader: ");
+		dputs(INFO, lk2nd_dev.cmdline);
+		dputc(INFO, '\n');
+
 		parse_boot_args();
 	}
 
