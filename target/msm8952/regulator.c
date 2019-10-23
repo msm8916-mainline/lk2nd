@@ -178,7 +178,7 @@ void regulator_enable(uint32_t enable)
 		if (enable & REG_LDO1)
 			rpm_send_data(&ldo1[GENERIC_ENABLE][0], 36, RPM_REQUEST_TYPE);
 
-	} else if (platform_is_sdm439() || platform_is_sdm429() || platform_is_sdm429w()) {
+	} else if (platform_is_sdm439() || platform_is_sdm429() || platform_is_sdm429w() || platform_is_sda429w()) {
 		if (enable & REG_LDO5)
 			rpm_send_data(&ldo5[GENERIC_ENABLE][0],
 				36, RPM_REQUEST_TYPE);
@@ -187,7 +187,7 @@ void regulator_enable(uint32_t enable)
 			rpm_send_data(&ldo2[GENERIC_ENABLE][0], 36, RPM_REQUEST_TYPE);
 	}
 
-	if ((platform_is_sdm429() && (board_hardware_subtype() == HW_PLATFORM_SUBTYPE_429W_PM660)) || platform_is_sdm429w()) {
+	if ((platform_is_sdm429() && (board_hardware_subtype() == HW_PLATFORM_SUBTYPE_429W_PM660)) || platform_is_sdm429w() || platform_is_sda429w()) {
 		if (enable & REG_LDO13)
 			rpm_send_data(&ldo13_pm660[GENERIC_ENABLE][0],
 				36, RPM_REQUEST_TYPE);
@@ -200,7 +200,7 @@ void regulator_enable(uint32_t enable)
 		rpm_send_data(&ldo17[GENERIC_ENABLE][0], 36, RPM_REQUEST_TYPE);
 
 	if (enable & REG_LDO6) {
-		if ((platform_is_sdm429() || platform_is_sdm429w()) && hw_subtype
+		if ((platform_is_sdm429() || platform_is_sdm429w() || platform_is_sda429w()) && hw_subtype
 				== HW_PLATFORM_SUBTYPE_429W_PM660)
 			rpm_send_data(&ldo6_pm660[GENERIC_ENABLE][0], 36, RPM_REQUEST_TYPE);
 		else
@@ -214,7 +214,7 @@ void regulator_disable(uint32_t enable)
 		if (enable & REG_LDO1)
 			rpm_send_data(&ldo1[GENERIC_DISABLE][0], 36, RPM_REQUEST_TYPE);
 
-	} else if (platform_is_sdm439() || platform_is_sdm429() || platform_is_sdm429w()) {
+	} else if (platform_is_sdm439() || platform_is_sdm429() || platform_is_sdm429w() || platform_is_sda429w()) {
 		if (enable & REG_LDO5)
 			rpm_send_data(&ldo5[GENERIC_DISABLE][0],
 				36, RPM_REQUEST_TYPE);
