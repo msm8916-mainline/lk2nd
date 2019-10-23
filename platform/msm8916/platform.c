@@ -130,8 +130,11 @@ void platform_init_mmu_mappings(void)
 	uint32_t table_size = ARRAY_SIZE(mmu_section_table);
 	uint32_t ddr_start = get_ddr_start();
 
-	/*Mapping the ddr start address for loading the kernel about 90 MB*/
-	sections = 90;
+	/*
+	 * Mapping the ddr start address for loading the kernel about 96 MB,
+	 * The ddr_start is at 0x80000000 and tz starts at 0x86000000 .
+	 */
+	sections = 96;
 	while(sections--)
 	{
 		arm_mmu_map_section(ddr_start + sections * MB, ddr_start + sections* MB, COMMON_MEMORY);
