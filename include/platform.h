@@ -75,6 +75,7 @@ int platform_is_msm8956();
 int platform_is_sdm429();
 int platform_is_sdm439();
 int platform_is_sdm429w();
+int platform_is_sda429w();
 uint32_t platform_is_msm8976_v_1_1();
 uint32_t platform_get_tz_app_add();
 uint32_t platform_get_tz_app_size();
