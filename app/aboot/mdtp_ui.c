@@ -1,4 +1,4 @@
-/* Copyright (c) 2015-2017, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2017, 2019 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -658,11 +658,11 @@ void display_error_msg_mdtp()
 	char* str2 = "\nError - mdtp image is corrupted\n";
 	fbcon_clear();
 	while(*str != 0) {
-		fbcon_putc_factor(*str++, FBCON_COMMON_MSG, big_factor);
+		fbcon_putc_factor(*str++, FBCON_COMMON_MSG, big_factor, 0);
 	}
 	fbcon_draw_line(FBCON_COMMON_MSG);
 	while(*str2 != 0) {
-		fbcon_putc_factor(*str2++, FBCON_COMMON_MSG, big_factor);
+		fbcon_putc_factor(*str2++, FBCON_COMMON_MSG, big_factor, 0);
 	}
 	fbcon_draw_line(FBCON_COMMON_MSG);
 
