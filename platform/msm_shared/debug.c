@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
- * Copyright (c) 2009-2016, 2018, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2016, 2018-2019, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -102,7 +102,7 @@ void display_fbcon_message(char *str)
 {
 #if ENABLE_FBCON_LOGGING
 	while(*str != 0) {
-		fbcon_putc(*str++);
+		fbcon_putc(*str++, 0);
 	}
 #endif
 }
@@ -122,7 +122,7 @@ void _dputc(char c)
 	uart_putc(0, c);
 #endif
 #if WITH_DEBUG_FBCON && WITH_DEV_FBCON
-	fbcon_putc(c);
+	fbcon_putc(c, 0);
 #endif
 #if WITH_DEBUG_JTAG
 	jtag_dputc(c);
