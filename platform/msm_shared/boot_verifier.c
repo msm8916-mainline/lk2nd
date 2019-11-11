@@ -34,7 +34,9 @@
 #include <image_verify.h>
 #include <mmc.h>
 #include <oem_keystore.h>
+#if VERIFIED_BOOT_2
 #include <avb/OEMPublicKey.h>
+#endif
 #include <openssl/asn1t.h>
 #include <openssl/x509.h>
 #include <partition_parser.h>
