@@ -69,6 +69,10 @@
 #include <vibrator.h>
 #endif
 
+#if WEAK_BATT_CHRG_SUPPORT
+#include <qpnp-smb2.h>
+#endif
+
 #if PON_VIB_SUPPORT
 #define VIBRATE_TIME    250
 #endif
@@ -343,6 +347,12 @@ void target_init(void)
 	if(target_is_pmi_enabled() || platform_is_qm215()
 			|| platform_is_sdm429w() || platform_is_sda429w() || sdm429_pm660_target())
 		vib_timed_turn_on(VIBRATE_TIME);
+#endif
+
+#if WEAK_BATT_CHRG_SUPPORT
+	if(sdm429_pm660_target())
+		/* Start Weak Battery Charging */
+		weak_battery_charging();
 #endif
 
 	if (target_use_signed_kernel())
