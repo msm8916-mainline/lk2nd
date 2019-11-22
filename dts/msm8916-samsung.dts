@@ -7,7 +7,7 @@
 / {
 	// This is used by the bootloader to find the correct DTB
 	qcom,msm-id = <206 0>;
-	qcom,board-id = <0xCE08FF01 1>;
+	qcom,board-id = <0xCE08FF01 1>, <0xCE08FF01 3>;
 
 	// Unfortunately, Samsung uses the same qcom,board-id for all its
 	// MSM8916 devices. Therefore, it will always pick this shared device
@@ -22,5 +22,16 @@
 		model = "Samsung Galaxy A5U (EUR)";
 		compatible = "samsung,a5u-eur", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "A500FU*";
+	};
+
+	serranovelte {
+		model = "Samsung Galaxy S4 Mini Value Edition";
+		compatible = "samsung,serranovelte", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "I9195I*";
+
+		samsung,muic-reset {
+			i2c-gpios = <105 106>;
+			i2c-address = <0x14>;
+		};
 	};
 };
