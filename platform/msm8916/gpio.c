@@ -116,3 +116,36 @@ void gpio_config_blsp_i2c(uint8_t blsp_id, uint8_t qup_id)
 		ASSERT(0);
 	}
 }
+
+int gpio_config(unsigned nr, unsigned flags)
+{
+	uint32_t val = 0;
+	switch (flags) {
+	case GPIO_INPUT:
+		val &= ~BIT(9);
+		break;
+	case GPIO_OUTPUT:
+		val |= BIT(9);
+		break;
+	default:
+		dprintf(CRITICAL, "Flags not implemented: %d\n", flags);
+		return -1;
+	}
+	writel(val, GPIO_CONFIG_ADDR(nr));
+	return 0;
+}
+
+int gpio_get(unsigned nr)
+{
+	return readl(GPIO_IN_OUT_ADDR(nr)) & GPIO_IN;
+}
+
+void gpio_set(unsigned nr, unsigned on)
+{
+	uint32_t val;
+	if (on)
+		val = GPIO_OUT;
+	else
+		val = 0;
+	writel(val, GPIO_IN_OUT_ADDR(nr));
+}
