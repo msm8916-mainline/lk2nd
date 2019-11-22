@@ -6,7 +6,7 @@
 #include <libfdt.h>
 #include <lk2nd/hw/gpio_i2c.h>
 
-status_t gpiol_i2c_get(const void *dtb, int node, gpio_i2c_info_t *i, uint8_t *addr)
+status_t gpio_i2c_get(const void *dtb, int node, gpio_i2c_info_t *i, uint8_t *addr)
 {
 	status_t ret;
 

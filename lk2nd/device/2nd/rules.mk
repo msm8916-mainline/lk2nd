@@ -1,6 +1,10 @@
 # SPDX-License-Identifier: BSD-3-Clause
 LOCAL_DIR := $(GET_LOCAL_DIR)
-MODULES += lib/libfdt
+
+MODULES += \
+	lib/libfdt \
+	lk2nd/hw/gpio \
+	lk2nd/hw/i2c \
 
 OBJS += \
 	$(LOCAL_DIR)/device.o \
@@ -8,6 +12,7 @@ OBJS += \
 	$(LOCAL_DIR)/parse-cmdline.o \
 	$(LOCAL_DIR)/parse-tags.o \
 	$(LOCAL_DIR)/partition.o \
+	$(LOCAL_DIR)/samsung-muic-reset.o \
 
 ifneq ($(LK2ND_PARTITION_SIZE),)
 DEFINES += \
