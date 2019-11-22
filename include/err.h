@@ -51,6 +51,7 @@
 #define ERR_RECURSE_TOO_DEEP -23
 #define ERR_NOT_SUPPORTED -24
 #define ERR_TOO_BIG -25
+#define ERR_I2C_NACK -35
 #define EIO 5      /* I/O error */
 #define ENOMEM 12  /* Out of memory */
 #define EACCES 13  /* Permission denied */
