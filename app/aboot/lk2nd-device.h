@@ -16,4 +16,6 @@ extern struct lk2nd_device lk2nd_dev;
 void lk2nd_fdt_parse(void);
 int lk2nd_fdt_parse_early_uart(void);
 
+void lk2nd_samsung_muic_reset(const void *fdt, int offset);
+
 #endif

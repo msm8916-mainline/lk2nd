@@ -123,6 +123,8 @@ void lk2nd_parse_device_node(const void *fdt)
 		return;
 	}
 
+	lk2nd_samsung_muic_reset(fdt, offset);
+
 	lk2nd_dev.model = fdt_copyprop_str(fdt, offset, "model");
 	if (lk2nd_dev.model)
 		dprintf(INFO, "Device model: %s\n", lk2nd_dev.model);
