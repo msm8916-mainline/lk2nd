@@ -31,6 +31,7 @@
 #include <dev/gpio.h>
 #include <dev/gpio_i2c.h>
 #include <kernel/mutex.h>
+#include <platform/timer.h>
 
 #if (!(defined(GPIO_I2C_BUS_COUNT)) || (GPIO_I2C_BUS_COUNT <= 0))
 #error ERROR: Must define GPIO_I2C_BUS_COUNT
@@ -51,31 +52,31 @@ static gpio_i2c_state_t gpio_i2c_states[GPIO_I2C_BUS_COUNT];
 static inline void send_start(const gpio_i2c_info_t* i)
 {
     gpio_config(i->sda, GPIO_OUTPUT);
-    spin_cycles(i->qcd);
+    udelay(i->qcd);
     gpio_config(i->scl, GPIO_OUTPUT);
-    spin_cycles(i->hcd);
+    udelay(i->hcd);
 }
 
 static inline void send_stop(const gpio_i2c_info_t* i)
 {
     gpio_config(i->sda, GPIO_OUTPUT);
     gpio_config(i->scl, GPIO_INPUT);
-    spin_cycles(i->qcd);
+    udelay(i->qcd);
     gpio_config(i->sda, GPIO_INPUT);
 }
 
 static inline void send_restart(const gpio_i2c_info_t* i)
 {
     gpio_config(i->scl, GPIO_INPUT);
-    spin_cycles(i->qcd);
+    udelay(i->qcd);
     send_start(i);
 }
 
 static inline void send_nack(const gpio_i2c_info_t* i)
 {
-    spin_cycles(i->hcd);
+    udelay(i->hcd);
     gpio_config(i->scl, GPIO_INPUT);
-    spin_cycles(i->hcd);
+    udelay(i->hcd);
     gpio_config(i->scl, GPIO_OUTPUT);
     gpio_config(i->sda, GPIO_INPUT);
 }
@@ -102,19 +103,19 @@ static inline bool send_byte(const gpio_i2c_info_t* i, uint32_t b)
          * here in order to hit that timing, they are welcome to add a spin
          * right here.
          */
-        spin_cycles(i->hcd);
+        udelay(i->hcd);
         gpio_config(i->scl, GPIO_INPUT);
-        spin_cycles(i->hcd);
+        udelay(i->hcd);
         gpio_config(i->scl, GPIO_OUTPUT);
     }
 
     gpio_config(i->sda, GPIO_INPUT);
-    spin_cycles(i->hcd);
+    udelay(i->hcd);
     gpio_config(i->scl, GPIO_INPUT);
-    spin_cycles(i->hcd);
+    udelay(i->hcd);
     ret = (0 == gpio_get(i->sda));
     gpio_config(i->scl, GPIO_OUTPUT);
-    spin_cycles(i->hcd);
+    udelay(i->hcd);
 
     return ret;
 }
@@ -125,16 +126,16 @@ static inline void recv_byte(const gpio_i2c_info_t* i, uint8_t* b)
 
     for (size_t j = 0; j < 7; ++j) {
         gpio_config(i->scl, GPIO_INPUT);
-        spin_cycles(i->hcd);
+        udelay(i->hcd);
         if (gpio_get(i->sda))
             tmp |= 1;
         tmp <<= 1;
         gpio_config(i->scl, GPIO_OUTPUT);
-        spin_cycles(i->hcd);
+        udelay(i->hcd);
     }
 
     gpio_config(i->scl, GPIO_INPUT);
-    spin_cycles(i->hcd);
+    udelay(i->hcd);
     if (gpio_get(i->sda))
         tmp |= 1;
     gpio_config(i->scl, GPIO_OUTPUT);
@@ -276,12 +277,3 @@ status_t gpio_i2c_read_reg_bytes(int bus, uint8_t address, uint8_t reg, uint8_t*
 
     return gpio_i2c_rx_common(s, address, &reg, buf, cnt);
 }
-
-void i2c_init_early(void) __WEAK_ALIAS("gpio_i2c_init_early");
-void i2c_init(void) __WEAK_ALIAS("gpio_i2c_init");
-status_t i2c_transmit(int, uint8_t, const void*, size_t) __WEAK_ALIAS("gpio_i2c_transmit");
-status_t i2c_receive(int, uint8_t, void*, size_t) __WEAK_ALIAS("gpio_i2c_receive");
-status_t i2c_write_reg_bytes(int, uint8_t, uint8_t,
-                             const uint8_t*, size_t) __WEAK_ALIAS("gpio_i2c_write_reg_bytes");
-status_t i2c_read_reg_bytes(int, uint8_t, uint8_t,
-                            uint8_t*, size_t) __WEAK_ALIAS("gpio_i2c_read_reg_bytes");

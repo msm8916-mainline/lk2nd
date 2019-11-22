@@ -1,11 +1,7 @@
 LOCAL_DIR := $(GET_LOCAL_DIR)
 
-MODULE := $(LOCAL_DIR)
+OBJS += \
+	$(LOCAL_DIR)/gpio_i2c.o
 
-MODULE_SRCS := \
-	$(LOCAL_DIR)/gpio_i2c.c
-
-MODULE_DEFINES += \
+DEFINES += \
 	GPIO_I2C_BUS_COUNT=$(GPIO_I2C_BUS_COUNT)
-
-include make/module.mk
