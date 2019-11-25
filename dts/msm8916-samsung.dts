@@ -34,4 +34,15 @@
 			i2c-address = <0x14>;
 		};
 	};
+
+	j5nlte {
+	       model = "Samsung J5N LTE (EUR)";
+	       compatible = "qcom,msm8916-mtp", "qcom,msm8916", "qcom,mtp", "qcom,msm8916", "lk2nd,device";
+	       lk2nd,match-bootloader = "J500FN*";
+
+	       samsung,muic-reset {
+	       			  i2c-gpios = <105 106>;
+				  i2c-address = <0x25>;
+	       };
+	};
 };
