@@ -7,7 +7,7 @@
 / {
 	// This is used by the bootloader to find the correct DTB
 	qcom,msm-id = <247 0>;
-	qcom,board-id = <0xF708FF01 1>;
+	qcom,board-id = <0xF708FF01 7>;
 
 	// Unfortunately, Samsung uses the same qcom,board-id for all its
 	// APQ8016 devices. Therefore, it will always pick this shared device
