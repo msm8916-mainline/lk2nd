@@ -1,0 +1,27 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+/include/ "msm8916.dtsi"
+
+/ {
+	// This is used by the bootloader to find the correct DTB
+	qcom,msm-id = <206 0>;
+	qcom,board-id = <0xCE08FF01 1>;
+
+	// Unfortunately, Samsung uses the same qcom,board-id for all its
+	// MSM8916 devices (except for device revisions).
+	// Therefore, it will always pick this shared device tree and
+	// we need to do more manual work to differentiate the devices.
+	a3u-eur {
+		model = "Samsung Galaxy A3U (EUR)";
+		compatible = "samsung,a3u-eur", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "A300FU*";
+	};
+
+	a5u-eur {
+		model = "Samsung Galaxy A5U (EUR)";
+		compatible = "samsung,a5u-eur", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "A500FU*";
+	};
+};
