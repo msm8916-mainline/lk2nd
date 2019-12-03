@@ -59,6 +59,7 @@ $(OUTBOOTIMG): $(OUTBIN) $(OUTDTIMG)
 		--base=$(ANDROID_BOOT_BASE) \
 		--output=$@ \
 		--cmdline="$(ANDROID_BOOT_CMDLINE)"
+	$(NOECHO)echo -n SEANDROIDENFORCE >> $@
 
 
 include arch/$(ARCH)/compile.mk
