@@ -2812,7 +2812,12 @@ void read_device_info(device_info *dev)
 			info->charger_screen_enabled = 0;
 #if VERIFIED_BOOT || VERIFIED_BOOT_2
 			if (VB_M <= target_get_vb_version())
+			{
 				info->verity_mode = 1; //enforcing by default
+				info->user_public_key_length = 0;
+				memset(info->rollback_index, 0, sizeof(info->rollback_index));
+				memset(info->user_public_key, 0, sizeof(info->user_public_key));
+			}
 #endif
 			write_device_info(info);
 		}
