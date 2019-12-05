@@ -450,7 +450,7 @@ static void boot_verify_send_boot_state(km_boot_state_t *boot_state)
 }
 #endif
 
-#if VERIFIED_BOOT_2
+#if VERIFIED_BOOT_2 && !VB1_KEY_USED
 bool send_rot_command(uint32_t is_unlocked)
 {
 	int ret = 0;
