@@ -67,7 +67,7 @@
 #endif
 
 #if ENABLE_WBC
-#include <pm_app_smbchg.h>
+#include <pm_smbchg_common.h>
 #endif
 
 #if DEVICE_TREE

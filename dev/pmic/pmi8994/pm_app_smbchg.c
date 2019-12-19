@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015, 2019, The Linux Foundation. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
@@ -39,6 +39,7 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pm_fg_driver.h"
 #include "pm_smbchg_driver.h"
 #include "pm_comm.h"
+#include "pm_smbchg_common.h"
 #include "pm_smbchg_dc_chgpth.h"
 #include <kernel/thread.h>
 #include <debug.h>
@@ -72,17 +73,7 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define boot_log_message(...) dprintf(CRITICAL, __VA_ARGS__)
 
 static pm_smbchg_bat_if_low_bat_thresh_type pm_dbc_bootup_volt_threshold;
-/* Need to maintain flags to track
- * 1. charge_in_progress: Charging progress and exit the loop once charging is completed.
- * 2. display_initialized: Track if the display is already initialized to make sure display
- *    thread does not reinitialize the display again.
- * 3. display_shutdown_in_prgs: To avoid race condition between regualr display initialization and
- *    display shutdown in display thread.
- */
 
-static bool display_initialized;
-static bool charge_in_progress;
-static bool display_shutdown_in_prgs;
 static bool pm_app_read_from_sram;
 
 char panel_name[256];
@@ -594,16 +585,6 @@ pm_err_flag_type pm_sbl_config_chg_parameters(uint32 device_index)
 }
 #endif
 
-bool pm_appsbl_charging_in_progress()
-{
-	return charge_in_progress;
-}
-
-bool pm_appsbl_display_init_done()
-{
-	return display_initialized;
-}
-
 pm_err_flag_type pm_appsbl_set_dcin_suspend(uint32_t device_index)
 {
 	pm_err_flag_type err_flag = PM_ERR_FLAG__SUCCESS;
@@ -627,11 +608,6 @@ static bool is_power_key_pressed()
 	}
 
 	return false;
-}
-
-bool pm_app_display_shutdown_in_prgs()
-{
-	return display_shutdown_in_prgs;
 }
 
 static int display_charger_screen()

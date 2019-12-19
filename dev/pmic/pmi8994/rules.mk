@@ -13,4 +13,5 @@ OBJS += \
 	$(LOCAL_DIR)/pm_fg_driver.o \
 	$(LOCAL_DIR)/pm_smbchg_chgr.o \
 	$(LOCAL_DIR)/pm_smbchg_driver.o \
-	$(LOCAL_DIR)/pm_smbchg_usb_chgpth.o
+	$(LOCAL_DIR)/pm_smbchg_usb_chgpth.o \
+	$(LOCAL_DIR)/pm_smbchg_common.o

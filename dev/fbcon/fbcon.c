@@ -37,7 +37,7 @@
 #include <string.h>
 #include <arch/ops.h>
 #if ENABLE_WBC
-#include <pm_app_smbchg.h>
+#include <pm_smbchg_common.h>
 #endif
 
 #include "font5x12.h"

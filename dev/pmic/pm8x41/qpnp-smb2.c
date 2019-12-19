@@ -30,6 +30,7 @@
 #include <debug.h>
 #include <pm8x41.h>
 #include <pm8x41_hw.h>
+#include <pm_smbchg_common.h>
 #include <qpnp-smb2.h>
 #include <qpnp-fg-gen3.h>
 #include <qtimer.h>
@@ -43,6 +44,8 @@
 
 #define BATT_STATUS_MASK	0x07
 #define DISABLE_CHARGE	0x07
+
+char panel_name[256];
 
 static bool is_battery_present(void)
 {
@@ -122,6 +125,12 @@ void weak_battery_charging(void)
 			shutdown_device();
 		}
 
+		if (!display_initialized) {
+			charge_in_progress = true;
+			target_display_init(panel_name);
+			display_initialized = true;
+		}
+
 		current_vbat = fg_gen3_get_battery_voltage();
 		batt_curr = fg_gen3_get_battery_current();
 		dprintf(INFO, "Battery Charging: current=%d mA voltage=%d mV\n",
@@ -129,5 +138,6 @@ void weak_battery_charging(void)
 		mdelay(1000);
 	}
 
+	charge_in_progress = false;
 	dprintf(INFO,"Battery Charging is completed Booting to HLOS\n");
 }

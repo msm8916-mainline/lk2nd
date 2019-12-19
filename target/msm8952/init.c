@@ -69,7 +69,7 @@
 #include <vibrator.h>
 #endif
 
-#if WEAK_BATT_CHRG_SUPPORT
+#if ENABLE_WBC
 #include <qpnp-smb2.h>
 #endif
 
@@ -349,12 +349,6 @@ void target_init(void)
 		vib_timed_turn_on(VIBRATE_TIME);
 #endif
 
-#if WEAK_BATT_CHRG_SUPPORT
-	if(sdm429_pm660_target())
-		/* Start Weak Battery Charging */
-		weak_battery_charging();
-#endif
-
 	if (target_use_signed_kernel())
 		target_crypto_init_params();
 
@@ -395,6 +389,15 @@ void target_init(void)
 #if SMD_SUPPORT
 	rpm_smd_init();
 #endif
+
+#if ENABLE_WBC
+	if(sdm429_pm660_target())
+	{
+		/* Start Weak Battery Charging */
+		weak_battery_charging();
+	}
+#endif
+
 }
 
 void target_serialno(unsigned char *buf)
@@ -808,4 +811,3 @@ void pmic_reset_configure(uint8_t reset_type)
 		}
 	}
 }
-
