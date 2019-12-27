@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008 Travis Geiselbrecht
  *
- * Copyright (c) 2014-2016,2019 The Linux Foundation. All rights reserved.
+ * Copyright (c) 2014-2016,2019-2020 The Linux Foundation. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -180,6 +180,10 @@ __WEAK bool platform_is_glink_enabled()
 	return 0;
 #endif
 }
+__WEAK void *target_mmc_device()
+{
+	return NULL;
+}
 
 /* function to update boot device base, for emmc targets. */
 __WEAK void platform_boot_dev_cmdline(char *buf)
@@ -193,6 +197,11 @@ __WEAK void platform_boot_dev_cmdline(char *buf)
 	}
 
 	dev = (struct mmc_device *)target_mmc_device();
+	if (!dev) {
+		dprintf(CRITICAL,"ERROR: Invalid mmc device");
+		return;
+	}
+
 	boot_dev_str_sz = ((sizeof(dev->host.base))*2) + 7;
 	if (boot_dev_str_sz > sizeof(char) * BOOT_DEV_MAX_LEN) {
 		dprintf(CRITICAL,"ERROR: Invalid buf sz - Failed to populate boot device");
