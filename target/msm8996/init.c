@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2018 The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2018, 2020 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -63,6 +63,7 @@
 #include <rpm-glink.h>
 #if ENABLE_WBC
 #include <pm_app_smbchg.h>
+#include <pm_smbchg_common.h>
 #endif
 
 #if LONG_PRESS_POWER_ON
