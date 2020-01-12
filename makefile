@@ -39,6 +39,7 @@ OUTBIN := $(BUILDDIR)/lk.bin
 OUTELF := $(BUILDDIR)/lk
 OUTELF_STRIP := $(BUILDDIR)/lk_s.elf
 OUTBOOTIMG := $(BUILDDIR)/boot.img
+OUTZIMAGEDTB := $(BUILDDIR)/zImage+dtb
 OUTDTIMG := $(BUILDDIR)/dt.img
 
 CONFIGHEADER := $(BUILDDIR)/config.h

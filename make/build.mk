@@ -6,6 +6,11 @@ $(OUTBIN): $(OUTELF)
 	$(NOECHO)$(SIZE) $<
 	$(NOCOPY)$(OBJCOPY) -O binary $< $@
 
+$(OUTZIMAGEDTB): $(OUTBIN) $(DTBS)
+	@echo generating zImage+dtb: $@
+	$(NOECHO)gzip -c $(OUTBIN) > $@
+	$(NOECHO)cat $(DTBS) >> $@
+
 ifeq ($(ENABLE_TRUSTZONE), 1)
 $(OUTELF): $(ALLOBJS) $(LINKER_SCRIPT) $(OUTPUT_TZ_BIN)
 	@echo linking $@
@@ -51,6 +56,16 @@ $(BUILDDIR)/%.dtb: %.dts
 $(OUTDTIMG): $(DTBS)
 	$(NOECHO)scripts/dtbTool -o $@ $(BUILDDIR)/dts
 
+ifeq ($(TARGET_USES_APPENDED_DTBS),1)
+$(OUTBOOTIMG): $(OUTBIN) $(OUTZIMAGEDTB)
+	$(NOECHO)scripts/mkbootimg \
+		--kernel=$(OUTZIMAGEDTB) \
+		--ramdisk=/dev/null \
+		--base=$(ANDROID_BOOT_BASE) \
+		--output=$@ \
+		--cmdline="$(ANDROID_BOOT_CMDLINE)"
+	$(NOECHO)echo -n SEANDROIDENFORCE >> $@
+else
 $(OUTBOOTIMG): $(OUTBIN) $(OUTDTIMG)
 	$(NOECHO)scripts/mkbootimg \
 		--kernel=$(OUTBIN) \
@@ -60,6 +75,7 @@ $(OUTBOOTIMG): $(OUTBIN) $(OUTDTIMG)
 		--output=$@ \
 		--cmdline="$(ANDROID_BOOT_CMDLINE)"
 	$(NOECHO)echo -n SEANDROIDENFORCE >> $@
+endif
 
 
 include arch/$(ARCH)/compile.mk
