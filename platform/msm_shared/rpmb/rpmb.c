@@ -145,6 +145,10 @@ int rpmb_read(uint32_t *req, uint32_t req_len, uint32_t *resp, uint32_t *resp_le
 
 int rpmb_write(uint32_t *req, uint32_t req_len, uint32_t rel_wr_count, uint32_t *resp, uint32_t *resp_len)
 {
+#ifdef SAFE_MODE
+	dprintf(CRITICAL, "Tried to write rpmb\n");
+	return -1;
+#else
 	int ret = 0;
 	if (platform_boot_dev_isemmc())
 		ret = rpmb_write_emmc(dev, req, req_len, rel_wr_count, resp, resp_len);
@@ -153,6 +157,7 @@ int rpmb_write(uint32_t *req, uint32_t req_len, uint32_t rel_wr_count, uint32_t 
 		ret = rpmb_write_ufs(dev, req, req_len, rel_wr_count, resp, resp_len);
 #endif
 	return ret;
+#endif
 }
 
 /* This API calls into TZ app to read device_info */

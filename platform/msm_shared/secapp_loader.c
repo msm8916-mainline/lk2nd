@@ -57,6 +57,10 @@ int get_secapp_handle()
 
 int send_delete_keys_to_tz()
 {
+#ifdef SAFE_MODE
+	dprintf(CRITICAL, "Tried to delete keys\n");
+	return 0;
+#else
 	int ret = 0;
 	key_op_delete_all_req_t req = {0};
 	key_op_delete_all_rsp_t rsp = {0};
@@ -72,6 +76,7 @@ int send_delete_keys_to_tz()
 	}
 
 	return 0;
+#endif
 }
 
 int send_milestone_call_to_tz()

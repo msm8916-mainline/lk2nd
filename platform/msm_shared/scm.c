@@ -725,6 +725,10 @@ int scm_protect_keystore(uint32_t * img_ptr, uint32_t  img_len)
 
 uint32_t set_tamper_fuse_cmd(uint32_t fuse_id)
 {
+#ifdef SAFE_MODE
+	dprintf(INFO,"Tried to set tamper fuse");
+	return 0;
+#else
 	uint32_t svc_id;
 	uint32_t cmd_id;
 	void *cmd_buf;
@@ -758,6 +762,7 @@ uint32_t set_tamper_fuse_cmd(uint32_t fuse_id)
 	}
 
 	return ret;
+#endif
 }
 
 uint8_t get_tamper_fuse_cmd()
