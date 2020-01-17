@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015,2020 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -103,5 +103,5 @@ unsigned target_get_max_flash_size(void)
 		return (SCRATCH_REGION1_SIZE_128 + SCRATCH_REGION2_SIZE_128);
 	else
 		/*256MB DDR scratch size*/
-		return (SCRATCH_REGION_SIZE_256);
+		return (SCRATCH_REGION_SIZE_256 + SCRATCH_REGION2_SIZE_256);
 }
