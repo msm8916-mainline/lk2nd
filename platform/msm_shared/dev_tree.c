@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2015,2017-2019 The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2015,2017-2020 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -1293,7 +1293,7 @@ int dev_tree_validate(struct dt_table *table, unsigned int page_size, uint32_t *
 	} else if (table->version == DEV_TREE_VERSION_V2) {
 		dt_entry_size = sizeof(struct dt_entry_v2);
 	} else if (table->version == DEV_TREE_VERSION_V3) {
-		dt_entry_size = sizeof(struct dt_entry);
+		dt_entry_size = DEV_TREE_DT_ENTRY_SIZE_V3;
 	} else {
 		dprintf(CRITICAL, "ERROR: Unsupported version (%d) in DT table \n",
 				table->version);
@@ -1766,7 +1766,7 @@ int dev_tree_get_entry_info(struct dt_table *table, struct dt_entry *dt_entry_in
 			if (cur_dt_entry->board_hw_subtype == 0)
 				cur_dt_entry->board_hw_subtype = (cur_dt_entry->variant_id >> 0x18);
 
-			table_ptr += sizeof(struct dt_entry);
+			table_ptr += DEV_TREE_DT_ENTRY_SIZE_V3;
 			break;
 		default:
 			dprintf(CRITICAL, "ERROR: Unsupported version (%d) in DT table \n",

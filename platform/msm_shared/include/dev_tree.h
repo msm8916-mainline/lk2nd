@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2014,2017-2019 The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2014,2017-2020 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -41,6 +41,7 @@
 #define DEV_TREE_VERSION_V3     3
 
 #define DEV_TREE_HEADER_SIZE    12
+#define DEV_TREE_DT_ENTRY_SIZE_V3 40
 
 #define DTB_MAGIC               0xedfe0dd0
 #define DTB_OFFSET              0x2C
