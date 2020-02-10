@@ -1,0 +1,19 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+/include/ "msm8916.dtsi"
+
+/ {
+	compatible = "qcom,msm8916-mtp", "qcom,msm8916";
+
+	// There are devices that identify themselves as qcom,msm8916-mtp,
+	// even when they are really not (at least physically).
+	// Therefore we need other things we can match on (e.g. the cmdline).
+
+	marshall-london {
+		model = "Marshall London";
+		compatible = "marshall,london", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-cmdline = "* hw.id=500";
+	};
+};
