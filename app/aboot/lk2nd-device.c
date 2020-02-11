@@ -165,6 +165,7 @@ void lk2nd_fdt_parse(void)
 		return;
 	}
 
+	lk2nd_dev.fdt = fdt;
 	if (dev_tree_get_board_id(fdt, &board_id) == 0) {
 		update_board_id(&board_id);
 	}
