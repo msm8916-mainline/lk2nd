@@ -6,6 +6,7 @@
 #include <dev_tree.h>
 
 struct lk2nd_device {
+	void *fdt;
 	const char *cmdline;
 	const char *bootloader;
 	const char *model;
