@@ -11,3 +11,15 @@ OBJS += \
 	$(LOCAL_DIR)/screenshot.o \
 	$(LOCAL_DIR)/screenshot-neon.o
 endif
+
+ifeq ($(LK2ND_PROJECT), lk2nd)
+OBJS += \
+	$(LOCAL_DIR)/dtb.o
+endif
+
+ifeq ($(LK2ND_PROJECT), lk1st)
+ifneq ($(LK2ND_BUNDLE_DTB),)
+OBJS += \
+	$(LOCAL_DIR)/dtb.o
+endif
+endif

@@ -7,6 +7,7 @@ commands for debugging and development.
 > Not all fastboot commands may be enabled on a given build of lk2nd.
 > Use `fastboot oem help` to find which commands are available.
 
+- `oem dtb` - Stage dtb.
 - `oem hash` - Hash staged data using hardware crypto.
 - `oem log` - Stage lk log.
 - `oem reboot-edl` - Reboot into EDL mode.
