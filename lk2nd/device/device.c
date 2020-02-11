@@ -155,6 +155,7 @@ static void lk2nd_device_init(void)
 		return;
 	}
 
+	lk2nd_dev.dtb = dtb;
 	parse_dtb(dtb);
 }
 LK2ND_INIT(lk2nd_device_init);

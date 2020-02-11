@@ -16,6 +16,8 @@ struct lk2nd_panel {
 };
 
 struct lk2nd_device {
+	const void *dtb;
+
 	const char *compatible;
 	const char *model;
 	const char *battery;
