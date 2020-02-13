@@ -8,6 +8,8 @@ OBJS += \
 	$(LOCAL_DIR)/parse-cmdline.o \
 	$(LOCAL_DIR)/parse-tags.o \
 
+include $(if $(BUILD_GPL),$(LOCAL_DIR)/gpl/rules.mk)
+
 ifneq ($(OUTBOOTIMG),)
 # Appended DTBs
 OUTBINDTB := $(OUTBIN)
