@@ -90,10 +90,6 @@ static void parse_boot_args(void)
 			parse_arg(aboot, "radio=", &lk2nd_dev.radio);
 		}
 
-		if (!strcmp(arg, "lk2dm")) {
-			lk2nd_dev.dev_mode = true;
-		}
-
 		arg = strtok_r(NULL, " ", &saveptr);
 	}
 
@@ -209,6 +205,7 @@ static void lk2nd_parse_device_node(const void *fdt)
 	}
 
 	lk2nd_samsung_muic_reset(fdt, offset);
+	lk2nd_motorola_smem_write_unit_info(fdt, offset);
 
 	lk2nd_dev.model = fdt_copyprop_str(fdt, offset, "model");
 	if (lk2nd_dev.model)
