@@ -3,6 +3,7 @@
 /dts-v1/;
 
 /include/ "msm8916.dtsi"
+/include/ "motorola-carrier-channel-ids.dtsi"
 
 / {
 	qcom,msm-id = <206 0>;
@@ -12,4 +13,5 @@
 	compatible = "motorola,harpia", "qcom,msm8916", "lk2nd,device";
 
 	lk2nd,uart = <1>;
+	lk2nd,motorola-unitinfo = <1>;
 };

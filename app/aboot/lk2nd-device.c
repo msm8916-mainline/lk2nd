@@ -54,6 +54,18 @@ static void parse_boot_args(void)
 		if ((val = strpresuf(arg, "androidboot.bootloader="))) {
 			lk2nd_dev.bootloader = strdup(val);
 		}
+		if ((val = strpresuf(arg, "androidboot.serialno="))) {
+			lk2nd_dev.serialno = strdup(val);
+		}
+		if ((val = strpresuf(arg, "androidboot.carrier="))) {
+			lk2nd_dev.carrier = strdup(val);
+		}
+		if ((val = strpresuf(arg, "androidboot.device="))) {
+			lk2nd_dev.device = strdup(val);
+		}
+		if ((val = strpresuf(arg, "androidboot.radio="))) {
+			lk2nd_dev.radio = strdup(val);
+		}
 
 		arg = strtok_r(NULL, " ", &saveptr);
 	}
@@ -124,6 +136,7 @@ void lk2nd_parse_device_node(const void *fdt)
 	}
 
 	lk2nd_samsung_muic_reset(fdt, offset);
+	lk2nd_motorola_smem_write_unit_info(fdt, offset);
 
 	lk2nd_dev.model = fdt_copyprop_str(fdt, offset, "model");
 	if (lk2nd_dev.model)
