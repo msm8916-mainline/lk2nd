@@ -7,13 +7,14 @@
 
 struct lk2nd_device {
 	void *fdt;
+	const char *model;
 	const char *cmdline;
+
+	const char *device;
 	const char *bootloader;
 	const char *serialno;
 	const char *carrier;
-	const char *device;
 	const char *radio;
-	const char *model;
 };
 
 extern struct lk2nd_device lk2nd_dev;

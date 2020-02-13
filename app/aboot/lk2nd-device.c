@@ -43,6 +43,13 @@ static const char *strpresuf(const char *str, const char *pre)
 	return strncmp(pre, str, len) == 0 ? str + len : NULL;
 }
 
+static inline void parse_arg(const char *str, const char *pre, char **out)
+{
+	const char *val = strpresuf(str, pre);
+	if (val)
+		*out = strdup(val);
+}
+
 static void parse_boot_args(void)
 {
 	char *saveptr;
@@ -50,21 +57,13 @@ static void parse_boot_args(void)
 
 	char *arg = strtok_r(args, " ", &saveptr);
 	while (arg) {
-		const char *val;
-		if ((val = strpresuf(arg, "androidboot.bootloader="))) {
-			lk2nd_dev.bootloader = strdup(val);
-		}
-		if ((val = strpresuf(arg, "androidboot.serialno="))) {
-			lk2nd_dev.serialno = strdup(val);
-		}
-		if ((val = strpresuf(arg, "androidboot.carrier="))) {
-			lk2nd_dev.carrier = strdup(val);
-		}
-		if ((val = strpresuf(arg, "androidboot.device="))) {
-			lk2nd_dev.device = strdup(val);
-		}
-		if ((val = strpresuf(arg, "androidboot.radio="))) {
-			lk2nd_dev.radio = strdup(val);
+		const char *aboot = strpresuf(arg, "androidboot.");
+		if (aboot) {
+			parse_arg(aboot, "device=", &lk2nd_dev.device);
+			parse_arg(aboot, "bootloader=", &lk2nd_dev.bootloader);
+			parse_arg(aboot, "serialno=", &lk2nd_dev.serialno);
+			parse_arg(aboot, "carrier=", &lk2nd_dev.carrier);
+			parse_arg(aboot, "radio=", &lk2nd_dev.radio);
 		}
 
 		arg = strtok_r(NULL, " ", &saveptr);
