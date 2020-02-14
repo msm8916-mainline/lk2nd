@@ -1,0 +1,17 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+/include/ "msm8916.dtsi"
+
+/ {
+	// This is used by the bootloader to find the correct DTB
+	qcom,msm-id = <206 0>;
+	qcom,board-id = <0xCE08FF01 8>;
+
+	a5lte {
+		model = "Samsung Galaxy A5 (SM-A500F)";
+		compatible = "samsung,a5lte", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "A500F*";
+	};
+};
