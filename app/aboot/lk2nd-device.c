@@ -43,7 +43,7 @@ static const char *strpresuf(const char *str, const char *pre)
 	return strncmp(pre, str, len) == 0 ? str + len : NULL;
 }
 
-static inline void parse_arg(const char *str, const char *pre, char **out)
+static inline void parse_arg(const char *str, const char *pre, const char **out)
 {
 	const char *val = strpresuf(str, pre);
 	if (val)
