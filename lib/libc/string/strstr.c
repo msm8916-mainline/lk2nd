@@ -30,9 +30,14 @@
 char *
 strstr(char const *s1, char const *s2)
 {
-	int l1, l2;
+	return strstrn(s1, s2, strlen(s2));
+}
 
-	l2 = strlen(s2);
+char *
+strstrn(char const *s1, char const *s2, size_t l2)
+{
+	size_t l1;
+
 	if (!l2)
 		return (char *)s1;
 	l1 = strlen(s1);
