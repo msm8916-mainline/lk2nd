@@ -76,6 +76,7 @@ size_t strlcpy(char *, char const *, size_t);
 int    strncasecmp(char const *, char const *, size_t)  __PURE;
 int    strnicmp(char const *, char const *, size_t) __PURE;
 size_t strnlen(char const *s, size_t count) __PURE;
+char  *strstrn(char const *s1, char const *s2, size_t l2) __PURE;
 
 #ifdef __cplusplus
 }
