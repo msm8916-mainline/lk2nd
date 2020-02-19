@@ -87,6 +87,32 @@ static const char *fdt_copyprop_str(const void *fdt, int offset, const char *pro
 	return result;
 }
 
+static bool match_string(const char *s, const char *match, size_t len)
+{
+	len = strnlen(match, len);
+
+	if (len > 0) {
+		if (match[len-1] == '*') {
+			if (len > 1 && match[0] == '*')
+				// *contains*
+				return !!strstrl(s, match + 1, len - 2);
+
+			// prefix* (starts with)
+			len -= 2; // Don't match null terminator and '*'
+		} else if (match[0] == '*') {
+			// *suffix (ends with)
+			size_t slen = strlen(s);
+			if (slen < --len)
+				return false;
+
+			++match; // Skip '*'
+			s += slen - len; // Move to end of string
+		}
+	}
+
+	return strncmp(s, match, len + 1) == 0;
+}
+
 static bool lk2nd_device_match(const void *fdt, int offset)
 {
 	int len;
@@ -100,15 +126,18 @@ static bool lk2nd_device_match(const void *fdt, int offset)
 			return false;
 		}
 
-		if (len > 1 && val[len-2] == '*')
-			len -= 2; // Match prefix only
-		if (strncmp(lk2nd_dev.bootloader, val, len) == 0)
-			return true;
-
-		return false;
+		return match_string(lk2nd_dev.bootloader, val, len);
 	}
 
-	return true; // No bootloader property
+	val = fdt_getprop(fdt, offset, "lk2nd,match-cmdline", &len);
+	if (val && len > 0) {
+		if (!lk2nd_dev.cmdline)
+			return false;
+
+		return match_string(lk2nd_dev.cmdline, val, len);
+	}
+
+	return true; // No match property
 }
 
 static int lk2nd_find_device_offset(const void *fdt)
