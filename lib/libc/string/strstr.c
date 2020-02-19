@@ -1,4 +1,4 @@
-/* 
+/*
 ** Copyright 2001, Travis Geiselbrecht. All rights reserved.
 ** Distributed under the terms of the NewOS License.
 */
@@ -30,9 +30,14 @@
 char *
 strstr(char const *s1, char const *s2)
 {
-	int l1, l2;
+	return strstrl(s1, s2, strlen(s2));
+}
 
-	l2 = strlen(s2);
+char *
+strstrl(char const *s1, char const *s2, size_t l2)
+{
+	int l1;
+
 	if (!l2)
 		return (char *)s1;
 	l1 = strlen(s1);
