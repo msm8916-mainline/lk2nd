@@ -1,0 +1,37 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+/include/ "msm8953.dtsi"
+
+/ {
+	// This is used by the bootloader to find the correct DTB 
+	qcom,msm-id = <293 0x0>;
+	qcom,board-id= <0x0b 0>;
+
+	model = "Xiaomi Redmi Note 4X Snapdragon (mido)";
+	compatible = "xiaomi,mido", "qcom,msm8953", "lk2nd,device";
+
+	// Bootloader won't continue if it can't delete some nodes from below
+	soc {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges = <0x0 0x0 0x0 0xffffffff>;
+
+		qcom,memshare {
+			qcom,client_4 {
+				qcom,peripheral-size = <0x6000000>;
+			};
+		};
+	};
+
+	reserved-memory {
+		pstore_reserve_mem: pstore_reserve_mem_region@0 {
+			linux,reserve-contiguous-region;
+			linux,reserve-region;
+			linux,remove-completely;
+			reg = <0x0 0x9ff00000 0x0 0x00100000>;
+			label = "pstore_reserve_mem";
+		};
+	};
+};
