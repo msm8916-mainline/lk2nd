@@ -891,6 +891,7 @@ KEYSTORE *boot_gerity_get_oem_keystore()
 	return oem_keystore;
 }
 
+#if OSVERSION_IN_BOOTIMAGE
 void set_os_version_with_date(unsigned char* img_addr, uint32_t system_security_level)
 {
 	boot_img_hdr *img_hdr = NULL;
@@ -910,7 +911,6 @@ void set_os_version_with_date(unsigned char* img_addr, uint32_t system_security_
 	}
 }
 
-#if OSVERSION_IN_BOOTIMAGE
 void set_os_version(unsigned char* img_addr)
 {
 	boot_img_hdr *img_hdr = NULL;
@@ -926,6 +926,11 @@ void set_os_version(unsigned char* img_addr)
 }
 #else
 void set_os_version(unsigned char* img_addr)
+{
+	return;
+}
+
+void set_os_version_with_date(unsigned char* img_addr, uint32_t system_security_level)
 {
 	return;
 }
