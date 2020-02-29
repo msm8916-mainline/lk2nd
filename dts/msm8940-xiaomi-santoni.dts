@@ -1,0 +1,23 @@
+// SPDX-License-Identifier: GPL-2.0-only
+// Copyright (C) 2020 - Dreemurrs Embedded Labs
+
+/dts-v1/;
+
+/include/ "msm8952.dtsi"
+
+/ {
+	// This is used by the bootloader to find the correct DTB 
+	qcom,msm-id = <313 0x0>;
+	qcom,board-id = <0x1000b 1>, <0x2000b 1>;
+
+	model = "Xiaomi Redmi 4X (santoni)";
+	compatible = "xiaomi,santoni", "qcom,msm8940", "lk2nd,device";
+
+	// Bootloader won't continue if it can't delete some nodes from below
+	soc {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges = <0x0 0x0 0x0 0xffffffff>;
+
+	};
+};
