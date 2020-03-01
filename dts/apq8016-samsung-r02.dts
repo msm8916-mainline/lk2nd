@@ -1,0 +1,20 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+/include/ "msm8916.dtsi"
+
+/ {
+	// This is used by the bootloader to find the correct DTB
+	qcom,msm-id = <247 0>;
+	qcom,board-id = <0xF708FF01 2>;
+
+	// Unfortunately, Samsung uses the same qcom,board-id for all its
+	// APQ8016 devices. Therefore, it will always pick this shared device
+	// tree and we need to do more manual work to differentiate the devices.
+	matissevewifi {
+		model = "Samsung Galaxy Tab 4 10.1 (2015) T533";
+		compatible = "samsung,matissevewifi", "qcom,apq8016", "lk2nd,device";
+		lk2nd,match-bootloader = "T533*";
+	};
+};
