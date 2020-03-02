@@ -13,7 +13,7 @@
 	// APQ8016 devices. Therefore, it will always pick this shared device
 	// tree and we need to do more manual work to differentiate the devices.
 	gt510wifi {
-		model = "Samsung SM-T550";
+		model = "Samsung Galaxy Tab A 9.7 WiFi (2015) (SM-T550)";
 		compatible = "samsung,gt510wifi", "qcom,apq8016", "lk2nd,device";
 		lk2nd,match-bootloader = "T550*";
 	};
