@@ -112,7 +112,7 @@ int pmi_fg_sram_read(uint32_t addr, uint32_t *data,int sid, uint8_t offset, uint
 	pm_comm_read_byte(sid, FG_MEMIF_MEM_INTF_RD_DATA2, &value, 0);
 	*data |= value << 16;
 	pm_comm_read_byte(sid, FG_MEMIF_MEM_INTF_RD_DATA3, &value, 0);
-	*data = value << 24;
+	*data |= value << 24;
 
 	/* poll to check there was no error */
 	err = fg_check_addr_mask(sid, FG_MEMIF_IMA_OPERATION_STS, IACS_RDY, 1);
