@@ -22,8 +22,10 @@ and then loaded by lk2nd.
 - Samsung Galaxy A5 (2015) - SM-A500F, SM-A500FU
 - Samsung Galaxy J5 (2016) - SM-J510FN
 - Samsung Galaxy S4 Mini Value Edition - GT-I9195I
+- Samsung Galaxy Tab 4 10.1 (2015) - SM-T533
 - Samsung Galaxy Tab A 8.0 LTE (2015) - SM-T357W
 - Samsung Galaxy Tab A 9.7 WiFi (2015) - SM-T550
+- Vodafone Smart prime 6
 - Wileyfox Swift
 
 ## Installation
