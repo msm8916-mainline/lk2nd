@@ -21,6 +21,7 @@ MODULES += dev/fbcon
 OBJS += \
        $(LOCAL_DIR)/platform.o \
        $(LOCAL_DIR)/acpuclock.o \
+       $(LOCAL_DIR)/efuse.o \
        $(LOCAL_DIR)/msm8916-clock.o \
        $(LOCAL_DIR)/gpio.o
 

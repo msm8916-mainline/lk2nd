@@ -1,9 +1,24 @@
 #include <string.h>
 #include <debug.h>
+#include <platform/efuse.h>
 #include <pm8x41_regulator.h>
 #include <libfdt.h>
 #include <lk2nd-device.h>
 #include "fastboot.h"
+
+static void cmd_oem_dump_speedbin(const char *arg, void *data, unsigned sz)
+{
+	char response[MAX_RSP_SIZE];
+	int bin, version;
+
+	efuse_read_speed_bin(&bin, &version);
+
+	snprintf(response, sizeof(response),
+		 "Speed bin: %d, PVS version: %d (qcom,speed%d-bin-v%d)",
+		 bin, version, bin, version);
+	fastboot_info(response);
+	fastboot_okay("");
+}
 
 static void cmd_oem_dump_regulators(const char *arg, void *data, unsigned sz)
 {
@@ -36,6 +51,7 @@ static void cmd_oem_cmdline(const char *arg, void *data, unsigned sz)
 }
 
 void fastboot_lk2nd_register_commands(void) {
+	fastboot_register("oem dump-speedbin", cmd_oem_dump_speedbin);
 	fastboot_register("oem dump-regulators", cmd_oem_dump_regulators);
 #if WITH_DEBUG_LOG_BUF
 	fastboot_register("oem lk_log", cmd_oem_lk_log);
