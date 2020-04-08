@@ -40,6 +40,9 @@ struct lk2nd_device {
 	const char *carrier;
 	const char *radio;
 
+	void *pstore;
+	unsigned int pstore_size;
+
 	const char *battery;
 	const struct smb1360 *smb1360;
 	const struct smb1360_battery *smb1360_battery;

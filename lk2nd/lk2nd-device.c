@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 #include <arch/arm.h>
+#include <arch/arm/mmu.h>
 #include <board.h>
 #include <debug.h>
 #include <libfdt.h>
+#include <mmu.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -275,8 +277,25 @@ static struct lk2nd_keymap* lk2nd_parse_keys(const void *fdt, int offset)
 	return map;
 }
 
+void lk2nd_pstore_map(uint32_t phys, uint32_t size)
+{
+	lk2nd_dev.pstore = (void *) phys;
+	lk2nd_dev.pstore_size = size;
+
+	for ( ; phys < phys + size; phys += 0x100000 ) {
+		arm_mmu_map_section(phys, phys, 0
+					| MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH
+					| MMU_MEMORY_AP_READ_WRITE
+					| MMU_MEMORY_XN);
+	}
+
+	arm_mmu_flush();
+}
+
 static void lk2nd_parse_device_node(const void *fdt)
 {
+	const uint32_t *pstore = NULL;
+	int len;
 	int offset = lk2nd_find_device_offset(fdt);
 	if (offset < 0) {
 		dprintf(CRITICAL, "Failed to find matching lk2nd,device node: %d\n", offset);
@@ -311,6 +330,12 @@ static void lk2nd_parse_device_node(const void *fdt)
 #if TARGET_MSM8916
 	smb1360_detect_battery(fdt, offset);
 #endif
+
+	pstore = fdt_getprop(fdt, offset, "lk2nd,pstore", &len);
+	if (pstore && len == 2 * sizeof(*pstore)) {
+		lk2nd_pstore_map(fdt32_to_cpu(pstore[0]),
+				fdt32_to_cpu(pstore[1]));
+	}
 }
 
 int lk2nd_fdt_parse_early_uart(void)
@@ -355,6 +380,13 @@ static void lk2nd_fdt_parse(void)
 	}
 
 	lk2nd_parse_device_node(fdt);
+}
+
+void lk2nd_clear_pstore()
+{
+	if (lk2nd_dev.pstore) {
+		memset(lk2nd_dev.pstore, '\n', lk2nd_dev.pstore_size);
+	}
 }
 
 void lk2nd_init(void)
