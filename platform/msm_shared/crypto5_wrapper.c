@@ -36,6 +36,45 @@
  */
 static struct crypto_dev dev;
 
+#ifdef DISABLE_CRYPTO
+bool crypto_initialized() { return false; }
+
+void crypto_init_params(struct crypto_init_params * params) { }
+
+void crypto_eng_cleanup(void) { }
+
+void crypto_unlock(void) { }
+
+void ce_clock_init(void) { }
+
+void crypto_eng_reset(void) { }
+
+void crypto_eng_init(void) { }
+
+void crypto_set_sha_ctx(void *ctx_ptr,
+						unsigned int bytes_to_write,
+						crypto_auth_alg_type auth_alg,
+						bool first,
+						bool last)
+{
+	ASSERT(0);
+}
+
+void crypto_send_data(void *ctx_ptr,
+					  unsigned char *data_ptr,
+					  unsigned int buff_size,
+					  unsigned int bytes_to_write,
+					  unsigned int *ret_status) { }
+
+void crypto_get_digest(unsigned char *digest_ptr,
+					   unsigned int *ret_status,
+					   crypto_auth_alg_type auth_alg,
+					   bool last) { }
+
+void crypto_get_ctx(void *ctx_ptr) { }
+
+uint32_t crypto_get_max_auth_blk_size() { return 0; }
+#else
 void crypto_init_params(struct crypto_init_params * params)
 {
 	crypto5_init_params(&dev, params);
@@ -117,3 +156,4 @@ uint32_t crypto_get_max_auth_blk_size()
 {
 	return crypto5_get_max_auth_blk_size(&dev);
 }
+#endif

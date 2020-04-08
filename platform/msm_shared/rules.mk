@@ -675,6 +675,15 @@ DEFINES += DISPLAY_TYPE_MDSS=1
 			$(LOCAL_DIR)/mipi_dsi_autopll_thulium.o
 endif
 
+ifeq ($(DISABLE_CRYPTO),1)
+	OBJS := $(filter-out \
+		$(LOCAL_DIR)/certificate.o \
+		$(LOCAL_DIR)/image_verify.o \
+		$(LOCAL_DIR)/crypto_hash.o \
+		$(LOCAL_DIR)/crypto5_eng.o, \
+		$(OBJS))
+endif
+
 ifeq ($(ENABLE_BOOT_CONFIG_SUPPORT), 1)
 	OBJS += \
 		$(LOCAL_DIR)/boot_device.o

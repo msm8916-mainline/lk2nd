@@ -1324,6 +1324,7 @@ int getimage(void **image_buffer, uint32_t *imgsize,
 
 static void verify_signed_bootimg(uint32_t bootimg_addr, uint32_t bootimg_size)
 {
+#ifndef DISABLE_CRYPTO
 	int ret;
 
 #if !VERIFIED_BOOT
@@ -1433,6 +1434,7 @@ static void verify_signed_bootimg(uint32_t bootimg_addr, uint32_t bootimg_size)
 		ASSERT(0);
 	#endif
 	}
+#endif
 #endif
 }
 

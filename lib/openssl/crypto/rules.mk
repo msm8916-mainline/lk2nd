@@ -16,6 +16,8 @@ INCLUDES += \
 			-I$(LOCAL_DIR)/../include/openssl \
 			-I$(LOCAL_DIR)/../../openssl
 
+ifneq ($(DISABLE_CRYPTO),1)
+
 OBJS +=  $(LOCAL_DIR)/bn/asm/armv4-mont.o
 
 OBJS += \
@@ -318,6 +320,8 @@ OBJS += \
 	$(LOCAL_DIR)/x509v3/v3_utl.o \
 	$(LOCAL_DIR)/sha/asm/sha1-armv4-large.o \
 	$(LOCAL_DIR)/sha/asm/sha256-armv4.o
+
+endif
 
 include $(LOCAL_PATH)/android-config.mk
 
