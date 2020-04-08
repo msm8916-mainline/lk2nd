@@ -13,6 +13,7 @@
 		model = "Samsung Galaxy A6+ HW.Rev.4";
 		compatible = "samsung,a6plte-eur", "qcom,msm8953", "lk2nd,device";
 		lk2nd,match-bootloader = "A605*";
+		lk2nd,pstore = <0x86100000 0x100000>;
 	};
 
 	// Bootloader won't continue if it can't delete some nodes from below
