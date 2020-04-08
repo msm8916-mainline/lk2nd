@@ -15,6 +15,9 @@ struct lk2nd_device {
 	const char *serialno;
 	const char *carrier;
 	const char *radio;
+
+	void *pstore;
+	unsigned int pstore_size;
 };
 
 extern struct lk2nd_device lk2nd_dev;

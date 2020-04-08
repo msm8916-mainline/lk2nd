@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
+#include <mmu.h>
+#include <arch/arm/mmu.h>
 #include <arch/arm.h>
 #include <board.h>
 #include <debug.h>
@@ -155,8 +157,25 @@ static int lk2nd_find_device_offset(const void *fdt)
 	return offset;
 }
 
+void lk2nd_pstore_map(uint32_t phys, uint32_t size)
+{
+	lk2nd_dev.pstore = (void *) phys;
+	lk2nd_dev.pstore_size = size;
+
+	for ( ; phys < ((uint32_t) lk2nd_dev.pstore) + size; phys += 0x100000 ) {
+		arm_mmu_map_section(phys, phys, 0
+					| MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH
+					| MMU_MEMORY_AP_READ_WRITE
+					| MMU_MEMORY_XN);
+	}
+
+	arm_mmu_flush();
+}
+
 void lk2nd_parse_device_node(const void *fdt)
 {
+	const uint32_t *pstore = NULL;
+	int len;
 	int offset = lk2nd_find_device_offset(fdt);
 	if (offset < 0) {
 		dprintf(CRITICAL, "Failed to find matching lk2nd,device node: %d\n", offset);
@@ -170,6 +189,12 @@ void lk2nd_parse_device_node(const void *fdt)
 		dprintf(INFO, "Device model: %s\n", lk2nd_dev.model);
 	else
 		dprintf(CRITICAL, "Device node is missing 'model' property\n");
+
+	pstore = fdt_getprop(fdt, offset, "lk2nd,pstore", &len);
+	if (pstore && len == 2 * sizeof(*pstore)) {
+		lk2nd_pstore_map(fdt32_to_cpu(pstore[0]),
+				fdt32_to_cpu(pstore[1]));
+	}
 }
 
 
@@ -220,4 +245,11 @@ void lk2nd_fdt_parse(void)
 	}
 
 	lk2nd_parse_device_node(fdt);
+}
+
+void lk2nd_clear_pstore()
+{
+	if (lk2nd_dev.pstore) {
+		memset(lk2nd_dev.pstore, '\n', lk2nd_dev.pstore_size);
+	}
 }
