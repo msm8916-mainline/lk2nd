@@ -109,7 +109,7 @@ static struct fb_color		fb_color_formats_888[] = {
 					[FBCON_SELECT_MSG_BG_COLOR] = {RGB888_WHITE, RGB888_BLUE}};
 
 
-static void fbcon_flush(void);
+void fbcon_flush(void);
 
 static void fbcon_drawglyph(char *pixels, uint32_t paint, unsigned stride,
 			    unsigned bpp, unsigned *glyph, unsigned scale_factor)
@@ -221,7 +221,7 @@ void fbcon_draw_msg_background(unsigned y_start, unsigned y_end,
 	fbcon_flush();
 }
 
-static void fbcon_flush(void)
+void fbcon_flush(void)
 {
 	unsigned total_x, total_y;
 	unsigned bytes_per_bpp;

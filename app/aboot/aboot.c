@@ -5182,8 +5182,9 @@ void aboot_init(const struct app_descriptor *app)
 	{
 		if (keys_get_state(KEY_HOME) || keys_get_state(KEY_VOLUMEUP))
 			boot_into_recovery = 1;
-		if (!boot_into_recovery &&
-			(keys_get_state(KEY_BACK) || keys_get_state(KEY_VOLUMEDOWN)))
+		if ((!boot_into_recovery &&
+			(keys_get_state(KEY_BACK) || keys_get_state(KEY_VOLUMEDOWN))) !=
+				lk2nd_dev.dev_mode)
 			boot_into_fastboot = true;
 	}
 	#if NO_KEYPAD_DRIVER

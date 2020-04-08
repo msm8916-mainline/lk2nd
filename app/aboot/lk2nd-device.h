@@ -18,6 +18,7 @@ struct lk2nd_device {
 
 	void *pstore;
 	unsigned int pstore_size;
+	bool dev_mode;
 };
 
 extern struct lk2nd_device lk2nd_dev;

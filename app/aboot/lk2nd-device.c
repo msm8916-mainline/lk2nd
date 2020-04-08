@@ -68,6 +68,10 @@ static void parse_boot_args(void)
 			parse_arg(aboot, "radio=", &lk2nd_dev.radio);
 		}
 
+		if (!strcmp(arg, "lk2dm")) {
+			lk2nd_dev.dev_mode = true;
+		}
+
 		arg = strtok_r(NULL, " ", &saveptr);
 	}
 
