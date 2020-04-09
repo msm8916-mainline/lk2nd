@@ -15,6 +15,7 @@ and then loaded by lk2nd.
 ## Supported SoCs
 - MSM8916
 - MSM8953 (SDM450,SDM625)
+- MSM8952 (MSM8940)
 
 ### Supported devices
 - Motorola Moto G4 Play (harpia)
@@ -25,7 +26,8 @@ and then loaded by lk2nd.
 - Samsung Galaxy Tab A 8.0 LTE (2015) - SM-T357W
 - Samsung Galaxy Tab A 9.7 WiFi (2015) - SM-T550
 - Wileyfox Swift
-- Samsung Galaxy A6+ (2018) HW.Rev.4
+- Samsung Galaxy A6+ (2018) - SM-A605FN
+- Xiaomi Redmi 4X - santoni
 - Xiaomi Redmi Note 4X Snapdragon - mido
 
 ## Installation
@@ -68,7 +70,7 @@ Replace `TOOLCHAIN_PREFIX` with the path to your tool chain.
 `lk2nd.img` is built and placed into `build-<SoC>-secondary/lk2nd.img`.
 
 ## Porting
-### To other MSM8916 devices
+### To other devices with supported Socs
 - Add a simple device tree to `dts/`. You just need `model` and the
   `qcom,msm-id`/`qcom,board-id` from downstream.
 
@@ -80,4 +82,4 @@ Replace `TOOLCHAIN_PREFIX` with the path to your tool chain.
 (TODO: Document this properly)
 
 ## Contact
-Ping `minecrell`/`Mis012` on [`#postmarketos-mainline`](https://wiki.postmarketos.org/wiki/Matrix_and_IRC).
+Ping `minecrell`/`Mis012`/`Junak` on [`#postmarketos-mainline`](https://wiki.postmarketos.org/wiki/Matrix_and_IRC).
