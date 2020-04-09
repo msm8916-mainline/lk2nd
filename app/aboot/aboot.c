@@ -616,7 +616,8 @@ static char *concat_args(const char *a, const char *b)
 
 unsigned char *update_cmdline(const char* cmdline)
 {
-	if (lk2nd_dev.cmdline && strstr(cmdline, "androidboot.hardware=qcom"))
+	/* Only take cmdline from original bootloader if downstream or lk2nd */
+	if (lk2nd_dev.cmdline && (strstr(cmdline, "androidboot.hardware=qcom") || strstr(cmdline, "lk2nd")))
 		return cmdline ? concat_args(cmdline, lk2nd_dev.cmdline) : strdup(lk2nd_dev.cmdline);
 	return update_cmdline0(cmdline);
 }
