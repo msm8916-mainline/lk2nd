@@ -1,0 +1,22 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+/include/ "msm8916.dtsi"
+
+/ {
+	compatible = "qcom,msm8916-v1-qrd/9-v1", "qcom,msm8916";
+
+	wileyfox-crackling {
+		model = "Wileyfox Swift";
+		compatible = "wileyfox,crackling", "longcheer,l8150",
+			     "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "crackling-*";
+	};
+
+	bq-paella {
+		model = "BQ Aquaris X5";
+		compatible = "bq,paella", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "paella-*";
+	};
+};
