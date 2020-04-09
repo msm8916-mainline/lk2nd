@@ -13,6 +13,28 @@
 struct lk2nd_device lk2nd_dev = {0};
 extern struct board_data board;
 
+static void dump_board()
+{
+	unsigned i;
+
+	dprintf(INFO, "Board: platform: %u, foundry: %#x, platform_version: %#x, "
+		      "platform_hw: %#x, platform_subtype: %#x, target: %#x, "
+		      "baseband: %#x, platform_hlos_subtype: %#x\n",
+		board.platform, board.foundry_id, board.platform_version,
+		board.platform_hw, board.platform_subtype, board.target,
+		board.baseband, board.platform_hlos_subtype);
+
+	for (i = 0; i < MAX_PMIC_DEVICES; ++i) {
+		if (board.pmic_info[i].pmic_type == PMIC_IS_INVALID)
+			continue;
+
+		dprintf(INFO, "pmic_info[%u]: type: %#x, version: %#x, target: %#x\n",
+			i, board.pmic_info[i].pmic_type,
+			board.pmic_info[i].pmic_version,
+			board.pmic_info[i].pmic_target);
+	}
+}
+
 static void update_board_id(struct board_id *board_id)
 {
 	uint32_t hw_id = board_id->variant_id & 0xff;
@@ -176,7 +198,7 @@ void lk2nd_pstore_map(uint32_t phys, uint32_t size)
 	arm_mmu_flush();
 }
 
-void lk2nd_parse_device_node(const void *fdt)
+static void lk2nd_parse_device_node(const void *fdt)
 {
 	const uint32_t *pstore = NULL;
 	int len;
@@ -222,7 +244,7 @@ int lk2nd_fdt_parse_early_uart(void)
 	return -1;
 }
 
-void lk2nd_fdt_parse(void)
+static void lk2nd_fdt_parse(void)
 {
 	struct board_id board_id;
 	void *fdt = (void*) lk_boot_args[2];
@@ -256,4 +278,10 @@ void lk2nd_clear_pstore()
 	if (lk2nd_dev.pstore) {
 		memset(lk2nd_dev.pstore, '\n', lk2nd_dev.pstore_size);
 	}
+}
+
+void lk2nd_init(void)
+{
+	dump_board();
+	lk2nd_fdt_parse();
 }
