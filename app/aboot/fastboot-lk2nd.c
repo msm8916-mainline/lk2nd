@@ -4,6 +4,7 @@
 #include <lk2nd-device.h>
 #include "fastboot.h"
 
+#if TARGET_MSM8916
 static void cmd_oem_dump_regulators(const char *arg, void *data, unsigned sz)
 {
 	char response[MAX_RSP_SIZE];
@@ -16,6 +17,7 @@ static void cmd_oem_dump_regulators(const char *arg, void *data, unsigned sz)
 	}
 	fastboot_okay("");
 }
+#endif
 
 #if WITH_DEBUG_LOG_BUF
 static void cmd_oem_lk_log(const char *arg, void *data, unsigned sz)
@@ -30,7 +32,9 @@ static void cmd_oem_cmdline(const char *arg, void *data, unsigned sz)
 }
 
 void fastboot_lk2nd_register_commands(void) {
+#if TARGET_MSM8916
 	fastboot_register("oem dump-regulators", cmd_oem_dump_regulators);
+#endif
 #if WITH_DEBUG_LOG_BUF
 	fastboot_register("oem lk_log", cmd_oem_lk_log);
 #endif

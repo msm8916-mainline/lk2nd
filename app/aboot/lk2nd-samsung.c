@@ -20,6 +20,7 @@
 /* TODO: Make this configurable? */
 #define MUIC_RESET_REG	0x1B
 
+#if TARGET_MSM8916
 static void i2c_gpio_muic_reset(int sda, int scl, uint8_t i2c_addr)
 {
 	uint8_t val = 1;
@@ -42,9 +43,11 @@ static void i2c_gpio_muic_reset(int sda, int scl, uint8_t i2c_addr)
 	mdelay(250);
 	dprintf(INFO, "muic-reset: Successful, earlier UART log may be lost!\n");
 }
+#endif
 
 void lk2nd_samsung_muic_reset(const void *fdt, int offset)
 {
+#if TARGET_MSM8916
 	const uint32_t *i2c_gpios;
 	const uint32_t *i2c_addr;
 	int len;
@@ -67,4 +70,5 @@ void lk2nd_samsung_muic_reset(const void *fdt, int offset)
 
 	i2c_gpio_muic_reset(fdt32_to_cpu(i2c_gpios[0]), fdt32_to_cpu(i2c_gpios[1]),
 			    fdt32_to_cpu(*i2c_addr));
+#endif
 }

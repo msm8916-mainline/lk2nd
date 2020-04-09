@@ -5,3 +5,7 @@ DTBS += \
 	$(LOCAL_DIR)/msm8916-longcheer-l8150.dtb \
 	$(LOCAL_DIR)/msm8916-samsung.dtb
 endif
+ifeq ($(PROJECT), msm8953-secondary)
+DTBS += \
+	$(LOCAL_DIR)/sdm450-samsung-r04.dtb
+endif

@@ -14,6 +14,7 @@ and then loaded by lk2nd.
 
 ## Supported SoCs
 - MSM8916
+- MSM8953 (SDM450,SDM625)
 
 ### Supported devices
 - Motorola Moto G4 Play (harpia)
@@ -24,9 +25,10 @@ and then loaded by lk2nd.
 - Samsung Galaxy Tab A 8.0 LTE (2015) - SM-T357W
 - Samsung Galaxy Tab A 9.7 WiFi (2015) - SM-T550
 - Wileyfox Swift
+- Samsung Galaxy A6+ (2018) HW.Rev.4
 
 ## Installation
-1. Download `lk2nd.img` (available in [Releases](https://github.com/msm8916-mainline/lk2nd/releases))
+1. Download `lk2nd.img` (available in [Releases](https://github.com/msm8916-mainline/lk2nd/releases)(MSM8916))
 2. Flash `lk2nd.img` using the stock flashing procedure:
   - Fastboot: `fastboot flash boot lk2nd.img`
   - Samsung: `heimdall flash --BOOT lk2nd.img`
@@ -52,7 +54,7 @@ Other fastboot commands work normally.
 
 ## Building
 ```
-$ make TOOLCHAIN_PREFIX=arm-none-eabi- msm8916-secondary
+$ make TOOLCHAIN_PREFIX=arm-none-eabi- <SoC>-secondary
 ```
 
 **Requirements:**
@@ -62,7 +64,7 @@ $ make TOOLCHAIN_PREFIX=arm-none-eabi- msm8916-secondary
   - Arch Linux: `dtc`
 
 Replace `TOOLCHAIN_PREFIX` with the path to your tool chain.
-`lk2nd.img` is built and placed into `build-msm8916-secondary/lk2nd.img`.
+`lk2nd.img` is built and placed into `build-<SoC>-secondary/lk2nd.img`.
 
 ## Porting
 ### To other MSM8916 devices
@@ -72,6 +74,7 @@ Replace `TOOLCHAIN_PREFIX` with the path to your tool chain.
 ### To other SoCs
 - Cherry-pick changes
 - Make some changes
+- Add secondary project config
 
 (TODO: Document this properly)
 
