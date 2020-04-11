@@ -35,6 +35,7 @@
 #define MAX_GET_VAR_NAME_SIZE   256
 
 void fastboot_lk2nd_register_commands(void);
+void fastboot_lk2nd_register_commands_msm8916(void);
 
 int fastboot_init(void *xfer_buffer, unsigned max);
 void fastboot_stop(void);

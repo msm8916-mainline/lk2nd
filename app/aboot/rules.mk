@@ -18,3 +18,7 @@ OBJS += \
 # lk2nd-samsung.c
 GPIO_I2C_BUS_COUNT := 1
 MODULES += dev/gpio_i2c
+
+ifeq ($(TARGET), msm8916)
+OBJS += $(LOCAL_DIR)/fastboot-lk2nd-msm8916.o
+endif
