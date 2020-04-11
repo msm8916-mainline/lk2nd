@@ -1,5 +1,5 @@
 # lk2nd
-lk2nd is a bootloader for Qualcomm MSM devices (at the moment only MSM8916),
+lk2nd is a bootloader for Qualcomm MSM devices (at the moment only MSM8916 and MSM8939),
 based on the [CodeAurora Little Kernel fork](https://source.codeaurora.org/quic/la/kernel/lk/).
 It provides an Android Fastboot interface on devices where the stock bootloader
 does not provide Fastboot (e.g. Samsung).
@@ -14,8 +14,10 @@ and then loaded by lk2nd.
 
 ## Supported SoCs
 - MSM8916
+- MSM8939
 
 ### Supported devices
+- Alcatel OneTouch Idol 3 (5.5) - 6045*
 - Marshall London
 - Motorola Moto G4 Play (harpia)
 - Samsung Galaxy A3 (2015) - SM-A300FU

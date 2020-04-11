@@ -1,0 +1,17 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+/include/ "msm8916.dtsi"
+
+/ {
+	compatible = "qcom,msm8939-mtp", "qcom,msm8939";
+	qcom,msm-id = <239 0>;
+	qcom,board-id = <8 0>;
+
+	alcatel-idol3 {
+		model = "Alcatel OneTouch Idol 3 (5.5)";
+		compatible = "alcatel,idol3", "qcom,msm8939", "lk2nd,device";
+		lk2nd,match-cmdline = "* mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_r63315_1080p_video:1:none";
+	};
+};
