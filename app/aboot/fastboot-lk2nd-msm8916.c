@@ -6,30 +6,20 @@
 #define EFUSE1	0x0005c004
 #define EFUSE	0x0005c00c
 
-static void efuse_read_speed_bin(int *bin, int *version) {
-	uint32_t pte_efuse = readl(EFUSE1);
-
-	*version = (pte_efuse >> 18) & 0x3;
-	if (!*version) {
-		*bin = (pte_efuse >> 23) & 0x3;
-		if (*bin)
-			return;
-	}
-
-	pte_efuse = readl(EFUSE);
-	*bin = (pte_efuse >> 2) & 0x7;
-}
-
 static void cmd_oem_dump_speedbin(const char *arg, void *data, unsigned sz)
 {
 	char response[MAX_RSP_SIZE];
-	int bin, version;
+	uint32_t efuse1 = readl(EFUSE1);
+	uint32_t efuse = readl(EFUSE);
+	int bin, bin2, version;
 
-	efuse_read_speed_bin(&bin, &version);
+	bin = (efuse >> 2) & 0x7;
+	version = (efuse1 >> 18) & 0x3;
+	bin2 = (efuse1 >> 23) & 0x3;
 
 	snprintf(response, sizeof(response),
-		 "Speed bin: %d, PVS version: %d (qcom,speed%d-bin-v%d)",
-		 bin, version, bin, version);
+		 "Speed bin: %d (%d), PVS version: %d (qcom,speed%d-bin-v%d)",
+		 bin, bin2, version, bin, version);
 	fastboot_info(response);
 	fastboot_okay("");
 }
