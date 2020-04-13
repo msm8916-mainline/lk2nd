@@ -176,6 +176,69 @@ here yet.
 ### To other devices with a supported SoC
 - Add a simple device tree to `dts/`. You just need `model` and the
   `qcom,msm-id`/`qcom,board-id` from downstream.
+- Add an entry for the resulting dtb file in dts/rules.mk
+  make/build.mk automatically collects all *.dts in dts
+
+For example, Motorola Harpia:
+
+Start with a downstream kernel for the device: https://github.com/LineageOS/android_kernel_motorola_msm8916
+Look in this directory:  arch/arm/boot/dts/qcom/
+Look through all dts files which have your device name in them, such as:
+https://github.com/LineageOS/android_kernel_motorola_msm8916/blob/lineage-17.1/arch/arm/boot/dts/qcom/msm8916-harpia-p0.dts
+
+Note down any `qcom,board-id = <something>;` lines.
+
+In separate files we find:
+
+```
+qcom,board-id = <0x4D 0x8000>;
+qcom,board-id = <0x4D 0x80A0>;
+qcom,board-id = <0x4D 0x8100>;
+qcom,board-id = <0x4D 0x81A0>;
+qcom,board-id = <0x4D 0x81AD>;
+qcom,board-id = <0x4D 0x81B0>, <0x4E 0x81B0>;
+```
+
+If more than one qcom,board-id is needed, add most of the common details in a dtsi file and then create separate dts files for each qcom,board-id. e.g. dts/msm8916/msm8916-motorola-harpia.dtsi and dts/msm8916/msm8916-motorola-harpia-p1b-4d.dts and dts/msm8916/msm8916-motorola-harpia-p1b-4e.dts.
+
+```
+// SPDX-License-Identifier: GPL-2.0-only
+#include "msm8916-motorola.dtsi"
+
+/ {
+	model = "Motorola Moto G4 Play (harpia)";
+	compatible = "motorola,harpia", "qcom,msm8916", "lk2nd,device";
+
+	panel {
+		compatible = "motorola,harpia-panel";
+
+		qcom,mdss_dsi_mot_boe_499_720p_video_v1 {
+			compatible = "motorola,harpia-panel-boe";
+		};
+		qcom,mdss_dsi_mot_tianma_499_720p_video_v2 {
+			compatible = "motorola,harpia-panel-tianma";
+		};
+	};
+};
+```
+
+```
+// SPDX-License-Identifier: GPL-2.0-only
+#include "msm8916-motorola-harpia.dtsi"
+
+/ {
+	qcom,board-id = <0x4D 0x81B0>;
+};
+```
+
+```
+// SPDX-License-Identifier: GPL-2.0-only
+#include "msm8916-motorola-harpia.dtsi"
+
+/ {
+	qcom,board-id = <0x4E 0x81B0>;
+};
+```
 
 ### To other SoCs
 Qualcomm maintains separate branches for various groups of SoCs. The branches can
