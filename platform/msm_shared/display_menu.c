@@ -408,6 +408,13 @@ void display_fastboot_menu_renew(struct select_msg_info *fastboot_msg_info)
 		display_fbcon_menu_message(msg, FBCON_COMMON_MSG, common_factor);
 	}
 
+	if (lk2nd_dev.board_id.variant_id) {
+		snprintf(msg, sizeof(msg), "BOARD_ID - <%#x %d>\n",
+			 lk2nd_dev.board_id.variant_id,
+			 lk2nd_dev.board_id.platform_subtype);
+		display_fbcon_menu_message(msg, FBCON_COMMON_MSG, common_factor);
+	}
+
 	memset(msg_buf, 0, sizeof(msg_buf));
 	smem_get_hw_platform_name((unsigned char *) msg_buf, sizeof(msg_buf));
 	snprintf(msg, sizeof(msg), "VARIANT - %s %s\n",

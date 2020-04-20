@@ -218,7 +218,6 @@ int lk2nd_fdt_parse_early_uart(void)
 
 static void lk2nd_fdt_parse(void)
 {
-	struct board_id board_id;
 	void *fdt = (void*) lk_boot_args[2];
 	if (!fdt)
 		return;
@@ -229,8 +228,8 @@ static void lk2nd_fdt_parse(void)
 	}
 
 	lk2nd_dev.fdt = fdt;
-	if (dev_tree_get_board_id(fdt, &board_id) == 0) {
-		update_board_id(&board_id);
+	if (dev_tree_get_board_id(fdt, &lk2nd_dev.board_id) == 0) {
+		update_board_id(&lk2nd_dev.board_id);
 	}
 
 	lk2nd_dev.cmdline = dev_tree_get_boot_args(fdt);
