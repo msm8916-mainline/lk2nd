@@ -10,7 +10,7 @@
 	qcom,board-id = <0xCE08FF01 5>;
 
 	j5nlte-eur {
-		model = "Samsung J5N EUR PROJECT Rev05";
+		model = "Samsung Galaxy J5 2015 (SM-J500FN)";
 		compatible = "samsung,j5nlte-eur", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "J500FN*";
 		
