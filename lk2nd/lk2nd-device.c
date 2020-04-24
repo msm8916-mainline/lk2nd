@@ -282,7 +282,7 @@ void lk2nd_pstore_map(uint32_t phys, uint32_t size)
 	lk2nd_dev.pstore = (void *) phys;
 	lk2nd_dev.pstore_size = size;
 
-	for ( ; phys < phys + size; phys += 0x100000 ) {
+	for ( ; phys < ((uint32_t) lk2nd_dev.pstore) + size; phys += 0x100000 ) {
 		arm_mmu_map_section(phys, phys, 0
 					| MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH
 					| MMU_MEMORY_AP_READ_WRITE
