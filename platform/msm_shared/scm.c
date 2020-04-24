@@ -40,6 +40,7 @@
 #include <qseecomi_lk.h>
 #include <qseecom_lk_api.h>
 #include "scm.h"
+#include <target.h>
 
 #pragma GCC optimize ("O0")
 
@@ -1065,6 +1066,7 @@ void scm_elexec_call(paddr_t kernel_entry, paddr_t dtb_offset)
 
 	/* Response Buffer = Null as no response expected */
 	dprintf(INFO, "Jumping to kernel via monitor\n");
+	pmic_reset_configure(0x1);
 
 	if (!is_scm_armv8_support())
 	{
