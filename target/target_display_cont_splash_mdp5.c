@@ -28,12 +28,6 @@ static struct msm_panel_info dummy_panel = {
 extern int check_aboot_addr_range_overlap(uintptr_t start, uint32_t size);
 extern int check_ddr_addr_range_bound(uintptr_t start, uint32_t size);
 
-static void mdp5_cmd_mode_flush(void)
-{
-	mdp_dma_on(&dummy_panel);
-	dsb();
-	mdelay(20);
-}
 
 static int mdp5_read_config(struct fbcon_config *fb)
 {
@@ -65,9 +59,6 @@ static int mdp5_read_config(struct fbcon_config *fb)
 	fb->width = fb->stride;
 	fb->height = out_size >> 16;
 
-	if (cmd_mode)
-		fb->update_start = mdp5_cmd_mode_flush;
-
 	// Validate parameters
 	if (fb->stride == 0 || fb->width == 0 || fb->height == 0) {
 		dprintf(CRITICAL, "Invalid parameters for continuous splash\n");
@@ -81,6 +72,14 @@ static int mdp5_read_config(struct fbcon_config *fb)
 		dprintf(CRITICAL, "Invalid memory region for continuous splash"
 			" (overlap or out of bounds)\n");
 		return -1;
+	}
+
+	if (cmd_mode) {
+		dummy_panel.autorefresh_enable = 1;
+		dummy_panel.autorefresh_framenum = 1;
+		dummy_panel.type = MIPI_CMD_PANEL;
+		mdp_dma_on(&dummy_panel);
+		dsb();
 	}
 
 	// Add MMU mappings if necessary
