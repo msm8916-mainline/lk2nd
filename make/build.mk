@@ -56,26 +56,14 @@ $(BUILDDIR)/%.dtb: %.dts
 $(OUTDTIMG): $(DTBS)
 	$(NOECHO)scripts/dtbTool -o $@ $(BUILDDIR)/dts
 
-ifeq ($(TARGET_USES_APPENDED_DTBS),1)
-$(OUTBOOTIMG): $(OUTBIN) $(OUTZIMAGEDTB)
+$(OUTBOOTIMG): $(OUTBIN) $(OUTZIMAGEDTB) $(OUTDTIMG)
 	$(NOECHO)scripts/mkbootimg \
 		--kernel=$(OUTZIMAGEDTB) \
-		--ramdisk=/dev/null \
-		--base=$(ANDROID_BOOT_BASE) \
-		--output=$@ \
-		--cmdline="$(ANDROID_BOOT_CMDLINE)"
-	$(NOECHO)echo -n SEANDROIDENFORCE >> $@
-else
-$(OUTBOOTIMG): $(OUTBIN) $(OUTDTIMG)
-	$(NOECHO)scripts/mkbootimg \
-		--kernel=$(OUTBIN) \
 		--ramdisk=/dev/null \
 		--dt=$(OUTDTIMG) \
 		--base=$(ANDROID_BOOT_BASE) \
 		--output=$@ \
 		--cmdline="$(ANDROID_BOOT_CMDLINE)"
 	$(NOECHO)echo -n SEANDROIDENFORCE >> $@
-endif
-
 
 include arch/$(ARCH)/compile.mk
