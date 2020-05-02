@@ -80,6 +80,8 @@ void _panic(void *caller, const char *fmt, ...)
 	_dvprintf(fmt, ap);
 	va_end(ap);
 
+	mdelay(5000);
+
 	halt();
 }
 
