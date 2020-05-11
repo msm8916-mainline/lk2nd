@@ -39,4 +39,14 @@
 			i2c-address = <0x25>;
 		};
 	};
+
+	j5lte-eur {
+		model = "Samsung Galaxy J5 LTE (EUR)";
+		compatible = "samsung,j5lte-eur", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "J500F*";
+		samsung,muic-reset {
+			i2c-gpios = <105 106>;
+			i2c-address = <0x25>;
+		};
+	};
 };
