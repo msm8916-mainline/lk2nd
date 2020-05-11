@@ -19,4 +19,14 @@
 			i2c-address = <0x25>;
 		};
 	};
+
+	j3lte-chnctc {
+		model = "Samsung Galaxy J3 2016 (SM-J3109)";
+		compatible = "samsung,j3lte-chnctc", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "J3109*";
+		samsung,muic-reset {
+			i2c-gpios = <0 1>;
+			i2c-address = <0x25>;
+		};
+	};
 };
