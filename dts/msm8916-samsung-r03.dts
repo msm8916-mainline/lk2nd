@@ -19,4 +19,14 @@
 			i2c-address = <0x14>;
 		};
 	};
+
+	j3xprolte-chnopen {
+		model = "Samsung Galaxy J3 Pro (SM-J3110)";
+		compatible = "samsung,j3xprolte-chnopen", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "J3110*";
+		samsung,muic-reset {
+			i2c-gpios = <0 1>;
+			i2c-address = <0x25>;
+		};
+	};
 };
