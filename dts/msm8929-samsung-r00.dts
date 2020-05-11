@@ -1,0 +1,24 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+/include/ "msm8916.dtsi"
+
+/ {
+	// This is used by the bootloader to find the correct DTB
+        qcom,msm-id =   <268 0>,
+                        <269 0>,
+                        <270 0>,
+                        <271 0>;
+	qcom,board-id = <0x0C01FF01 0>;
+
+	j7-spr {
+		model = "Samsung Galaxy J7 2015 (SM-J700P)";
+		compatible = "samsung,j7-spr", "qcom,msm8929", "lk2nd,device";
+		lk2nd,match-bootloader = "J700P*";
+		samsung,muic-reset {
+			i2c-gpios = <31 32>;
+			i2c-address = <0x25>;
+		};
+	};
+};
