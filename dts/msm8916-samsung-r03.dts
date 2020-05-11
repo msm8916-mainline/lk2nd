@@ -29,4 +29,15 @@
 			i2c-address = <0x25>;
 		};
 	};
+
+	j3xprolte-chnctc {
+		model = "Samsung Galaxy J3 Pro (SM-J3119)";
+		compatible = "samsung,j3xprolte-chnctc", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "J3119*";
+
+		samsung,muic-reset {
+			i2c-gpios = <0 1>;
+			i2c-address = <0x25>;
+		};
+	};
 };
