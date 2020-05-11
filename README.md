@@ -23,6 +23,7 @@ and then loaded by lk2nd.
 - Motorola Moto G4 Play (harpia)
 - Samsung Galaxy A3 (2015) - SM-A300FU
 - Samsung Galaxy A5 (2015) - SM-A500F, SM-A500FU
+- Samsung Galaxy J3 (2016) - SM-J3109
 - Samsung Galaxy J5 (2015) - SM-J500FN
 - Samsung Galaxy J5 (2016) - SM-J510FN
 - Samsung Galaxy J7 (2015) - SM-J7008, SM-J700P
