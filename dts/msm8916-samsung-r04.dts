@@ -19,4 +19,15 @@
 			i2c-address = <0x25>;
 		};
 	};
+
+	j5x3g-mea {
+		model = "Samsung Galaxy J5 2016 3G (MEA)";
+		compatible = "samsung,j5x3g-mea", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "J510H*";
+
+		samsung,muic-reset {
+			i2c-gpios = <105 106>;
+			i2c-address = <0x25>;
+		};
+	};
 };

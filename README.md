@@ -31,6 +31,7 @@ and then loaded by lk2nd.
 - Samsung Galaxy J5 (2015) - SM-J500H
 - Samsung Galaxy J5 (2016) - SM-J5108
 - Samsung Galaxy J5 (2016) - SM-J510FN
+- Samsung Galaxy J5 (2016) - SM-J510H
 - Samsung Galaxy J7 (2015) - SM-J7008
 - Samsung Galaxy J7 (2015) - SM-J700P
 - Samsung Galaxy S4 Mini Value Edition - GT-I9195I
