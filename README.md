@@ -27,6 +27,7 @@ and then loaded by lk2nd.
 - Samsung Galaxy J3 Pro (2016) - SM-J3119
 - Samsung Galaxy J5 (2015) - SM-J5008
 - Samsung Galaxy J5 (2015) - SM-J500FN
+- Samsung Galaxy J5 (2015) - SM-J500H
 - Samsung Galaxy J5 (2016) - SM-J5108
 - Samsung Galaxy J5 (2016) - SM-J510FN
 - Samsung Galaxy J7 (2015) - SM-J7008
