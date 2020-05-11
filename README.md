@@ -14,6 +14,7 @@ and then loaded by lk2nd.
 
 ## Supported SoCs
 - MSM8916
+- MSM8929
 - MSM8939
 
 ### Supported devices
