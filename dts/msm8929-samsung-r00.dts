@@ -6,10 +6,7 @@
 
 / {
 	// This is used by the bootloader to find the correct DTB
-        qcom,msm-id =   <268 0>,
-                        <269 0>,
-                        <270 0>,
-                        <271 0>;
+	qcom,msm-id = <268 0>;
 	qcom,board-id = <0x0C01FF01 0>;
 
 	j7-spr {
