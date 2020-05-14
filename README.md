@@ -24,18 +24,10 @@ and then loaded by lk2nd.
 - Samsung Galaxy A3 (2015) - SM-A300FU
 - Samsung Galaxy A5 (2015) - SM-A500F, SM-A500FU
 - Samsung Galaxy J3 (2015) - SM-J3109
-- Samsung Galaxy J3 Pro (2016) - SM-J3110
-- Samsung Galaxy J3 Pro (2016) - SM-J3119
-- Samsung Galaxy J5 (2015) - SM-J5008
-- Samsung Galaxy J5 (2015) - SM-J500F
-- Samsung Galaxy J5 (2015) - SM-J500FN
-- Samsung Galaxy J5 (2015) - SM-J500H
-- Samsung Galaxy J5 (2016) - SM-J5108
-- Samsung Galaxy J5 (2016) - SM-J510F
-- Samsung Galaxy J5 (2016) - SM-J510FN
-- Samsung Galaxy J5 (2016) - SM-J510H
-- Samsung Galaxy J7 (2015) - SM-J7008
-- Samsung Galaxy J7 (2015) - SM-J700P
+- Samsung Galaxy J3 Pro (2016) - SM-J3110, SM-J3119
+- Samsung Galaxy J5 (2015) - SM-J5008, SM-J500F, SM-J500FN, SM-J500H
+- Samsung Galaxy J5 (2016) - SM-J5108, SM-J510F, SM-J510FN, SM-J510H
+- Samsung Galaxy J7 (2015) - SM-J7008, SM-J700P
 - Samsung Galaxy S4 Mini Value Edition - GT-I9195I
 - Samsung Galaxy Tab 4 10.1 (2015) - SM-T533
 - Samsung Galaxy Tab A 8.0 LTE (2015) - SM-T357W
