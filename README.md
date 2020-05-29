@@ -23,6 +23,7 @@ and then loaded by lk2nd.
 - Samsung Galaxy A3 (2015) - SM-A300FU
 - Samsung Galaxy A5 (2015) - SM-A500F, SM-A500FU
 - Samsung Galaxy J5 (2015) - SM-J500FN
+- Samsung Galaxy J5 (2015) - SM-J500H
 - Samsung Galaxy J5 (2016) - SM-J510FN
 - Samsung Galaxy S4 Mini Value Edition - GT-I9195I
 - Samsung Galaxy Tab 4 10.1 (2015) - SM-T533
