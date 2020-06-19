@@ -72,6 +72,8 @@ endif
 #Disable thumb mode
 ENABLE_THUMB := false
 
+ENABLE_PARTIAL_GOODS_SUPPORT := 1
+
 ENABLE_SDHCI_SUPPORT := 1
 
 ifeq ($(ENABLE_SDHCI_SUPPORT),1)
@@ -87,6 +89,10 @@ endif
 
 ifeq ($(EMMC_BOOT),1)
 DEFINES += _EMMC_BOOT=1
+endif
+
+ifeq ($(ENABLE_PARTIAL_GOODS_SUPPORT),1)
+DEFINES += ENABLE_PARTIAL_GOODS_SUPPORT=1
 endif
 
 ifeq ($(ENABLE_PON_VIB_SUPPORT),true)
