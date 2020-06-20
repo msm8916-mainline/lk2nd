@@ -1,0 +1,22 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+/include/ "msm8916.dtsi"
+
+/ {
+	// This is used by the bootloader to find the correct DTB
+	qcom,msm-id = <206 0>;
+	qcom,board-id = <0xCE08FF01 2>;
+
+	gprimeltecan {
+		model = "Samsung Galaxy Grand Prime (CAN)";
+		compatible = "samsung,gprimeltecan", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "G530W*";
+		
+		samsung,muic-reset {
+			i2c-gpios = <2 3>;
+			i2c-address = <0x25>;
+		};
+	};
+};
