@@ -52,6 +52,8 @@ endif
 
 INCLUDES := -I$(BUILDDIR) -Iinclude
 CFLAGS := -O2 -g -fno-builtin -finline -W -Wall -Wno-multichar -Wno-unused-parameter -Wno-unused-function $(LKLE_CFLAGS) -include $(CONFIGHEADER)
+# -fcommon is needed to build using GCC 10
+CFLAGS += -fcommon
 #CFLAGS += -Werror
 
 ifeq ($(SIGNED_KERNEL),1)
