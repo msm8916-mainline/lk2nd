@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, 2020 The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -30,6 +30,19 @@
 #include <libfdt.h>
 #include <reg.h>
 #include <debug.h>
+#include <board.h>
+#include <smem.h>
+
+#ifdef QFPROM_RAW_PART_ADDR
+/* Look up table for partial goods */
+struct partial_goods table[] =
+{
+	{0x0, "/cpus", {{"cpu@2", "device_type"},
+			{"cpu@3","device_type"},}},
+	{0x1, "/cpus", {{"cpu@2", "device_type"},
+			{"cpu@3","device_type"},}},
+};
+#endif
 
 void update_partial_goods_dtb_nodes(void *fdt)
 {
@@ -39,21 +52,28 @@ void update_partial_goods_dtb_nodes(void *fdt)
 	int subnode_offset = 0;
 	int ret = 0;
 	int prop_len = 0;
-	uint32_t reg = readl(QFPROM_PTE_PART_ADDR);
+	int reg = -1;
 	uint32_t prop_type = 0;
 	struct subnode_list *subnode_lst = NULL;
 	const struct fdt_property *prop = NULL;
 	const char *replace_str = NULL;
 
+#ifdef QFPROM_PTE_PART_ADDR
 	/*
-	 * The PTE register bits 23 to 27 have the partial goods
-	 * info, extract the partial goods value before using
-	 */
+	* The PTE register bits 23 to 27 have the partial goods
+	* info, extract the partial goods value before using
+	*/
+	reg = readl(QFPROM_PTE_PART_ADDR);
 	reg = (reg & 0x0f800000) >> 23;
+#else
+	reg = platform_partial_goods_val ();
+#endif
 
 	/* If none of the DTB needs update */
-	if (!reg)
+	if (reg < 0) {
+		dprintf(SPEW, "Partial goods not support!!!\n");
 		return;
+	}
 
 	ret = fdt_open_into(fdt, fdt, fdt_totalsize(fdt));
 	if (ret != 0)
@@ -64,7 +84,7 @@ void update_partial_goods_dtb_nodes(void *fdt)
 
 	for (i = 0; i < tbl_sz; i++)
 	{
-		if (reg == table[i].val)
+		if ((uint32_t)reg == table[i].val)
 		{
 			/* Find the Parent node */
 			ret = fdt_path_offset(fdt, table[i].parent_node);
