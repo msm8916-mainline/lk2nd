@@ -40,6 +40,7 @@ OUTELF := $(BUILDDIR)/lk
 OUTELF_STRIP := $(BUILDDIR)/lk_s.elf
 OUTBOOTIMG := $(BUILDDIR)/boot.img
 OUTDTIMG := $(BUILDDIR)/dt.img
+OUTODINTAR := $(BUILDDIR)/odin.tar
 
 CONFIGHEADER := $(BUILDDIR)/config.h
 

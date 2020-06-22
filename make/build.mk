@@ -61,5 +61,11 @@ $(OUTBOOTIMG): $(OUTBIN) $(OUTDTIMG)
 		--cmdline="$(ANDROID_BOOT_CMDLINE)"
 	$(NOECHO)echo -n SEANDROIDENFORCE >> $@
 
+$(OUTODINTAR): $(OUTBOOTIMG)
+	$(NOECHO)tar \
+		-cf $@ --sort=name --mtime="@0" \
+		--owner=0 --group=0 --numeric-owner \
+		--transform="flags=r;s|$(OUTBOOTIMG)|boot.img|" \
+		$(OUTBOOTIMG)
 
 include arch/$(ARCH)/compile.mk
