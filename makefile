@@ -52,7 +52,9 @@ ifeq ($(ENABLE_TRUSTZONE),1)
 endif
 
 INCLUDES := -I$(BUILDDIR) -Iinclude
-CFLAGS := -fcommon -O2 -g -fno-builtin -finline -Wno-multichar -Wno-unused-parameter -Wno-unused-function -include $(CONFIGHEADER)
+CFLAGS := -O2 -g -fno-builtin -finline -Wno-multichar -Wno-unused-parameter -Wno-unused-function -include $(CONFIGHEADER)
+# -fcommon is needed to build this using GCC 10
+CFLAGS += -fcommon
 #CFLAGS += -Werror
 ifeq ($(EMMC_BOOT),1)
   CFLAGS += -D_EMMC_BOOT=1
