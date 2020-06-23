@@ -1434,9 +1434,10 @@ static int find_num_zeros_per_cw(uint8_t *ecc_buf, uint32_t ecc_bytes)
 	for (i = 0; i < ecc_bytes; i++)
 	{
 		val = ecc_buf[i];
+		val = ~val;
 		while (val)
 		{
-			if ((val & 1) == 0)
+			if ((val & 1) == 1)
 				num_zeros++;
 			if (num_zeros > THRESHOLD_BIT_FLIPS)
 				goto out;
