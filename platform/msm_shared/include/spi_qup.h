@@ -64,7 +64,7 @@
 #define SPI_IO_C_CS0_ACTIVE_HIGH	BIT(4)
 #define SPI_IO_C_CS_SELECT_CS0		00 << 2
 #define SPI_IO_C_CLK_IDLE_HIGH		BIT(10)
-#define SPI_IO_C_FORCE_CS              BIT(11)
+#define SPI_IO_C_FORCE_CS		BIT(11)
 
 /* SPI_CONFIG fields */
 #define SPI_CONFIG_HS_MODE			BIT(10)
@@ -84,10 +84,10 @@
 #define ETIMEDOUT   110
 
 struct spi_transfer {
-	const unsigned char	*tx_buf;
-	int	len;
-	unsigned char *rx_buf;
-	unsigned int speed_hz;
+	const unsigned char *tx_buf;
+	unsigned char       *rx_buf;
+	int                 len;
+	unsigned int        speed_hz;
 };
 
 /**
@@ -106,6 +106,7 @@ struct qup_spi_dev {
 	unsigned int bytes_per_word;
 	unsigned int bit_shift_en;
 	unsigned int unpack_en;
+	unsigned int force_cs_dis;
 	struct spi_transfer *xfer;
 	unsigned int max_speed_hz;
 	uint8_t blsp_id;
@@ -115,6 +116,6 @@ struct qup_spi_dev {
 /* Function Definitions */
 struct qup_spi_dev *qup_blsp_spi_init(uint8_t blsp_id, uint8_t qup_id);
 int qup_spi_deinit(struct qup_spi_dev *dev);
-int spi_qup_transfer(struct qup_spi_dev *dev, const unsigned char * tx_buf, unsigned int data_size);
-
+int spi_qup_write(struct qup_spi_dev *dev, const unsigned char * tx_buf, unsigned int data_size);
+int spi_qup_read(struct qup_spi_dev *dev, unsigned char *rx_buf, unsigned int data_size);
 #endif				/* __SPI_QUP__ */

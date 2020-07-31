@@ -31,12 +31,62 @@
 #include <blsp_qup.h>
 #include <stdlib.h>
 
+#define spi_panel_dc_gpio 110
+
+static int spidev_write_cmd(struct qup_spi_dev *dev, char cmd)
+{
+	int ret = 0;
+	char buf[4] = {0};
+
+	if (!dev) {
+		dprintf(CRITICAL, "SPI has not been initialized\n");
+		return -ENODEV;
+	}
+
+	dev->bytes_per_word = 1;
+	dev->bit_shift_en = 1;
+	buf[0] = cmd;
+
+	gpio_set(spi_panel_dc_gpio, 0);
+	ret = spi_qup_write(dev, buf, 1);
+	gpio_set(spi_panel_dc_gpio, 2);
+	if (ret)
+		dprintf(CRITICAL, "Send SPI command to panel failed\n");
+
+	return ret;
+}
+
+static int spidev_read_cmd(struct qup_spi_dev *dev, unsigned char *buf,
+	unsigned int bytes_per_word, unsigned int len)
+{
+	int i, ret = 0;
+	unsigned int max_speed_hz;
+
+	if (!dev) {
+		dprintf(CRITICAL, "SPI has not been initialized\n");
+		return -ENODEV;
+	}
+
+	dev->bytes_per_word = bytes_per_word;
+	dev->bit_shift_en = 1;
+
+	gpio_set(spi_panel_dc_gpio, 0);
+	ret = spi_qup_read(dev, buf, len);
+	gpio_set(spi_panel_dc_gpio, 2);
+
+	for(i = 0; i < bytes_per_word * len; i++)
+		dprintf(SPEW, "-----Read: 0x%x-----\n", buf[i]);
+
+	return ret;
+}
+
 void spi_test()
 {
 	unsigned char *tx_buf1;
 	unsigned int data_size = 240*320*2;
 	struct qup_spi_dev *spi_dev;
 	int i,j,k;
+	char rx_buf[8] = {0};
 
 	dprintf(CRITICAL, "-----start %s----\n", __func__);
 
@@ -58,8 +108,11 @@ void spi_test()
 		return;
 	}
 
-	spi_qup_transfer(spi_dev, tx_buf1, data_size);
+	spi_qup_write(spi_dev, tx_buf1, data_size);
 
+	spidev_write_cmd(spi_dev, 0x09);
+	spidev_read_cmd(spi_dev, rx_buf, 1, 4);
 	free(tx_buf1);
-	dprintf(CRITICAL, "-----end %s----\n", __func__);
+	dprintf(SPEW, "-----end %s----\n", __func__);
+
 }

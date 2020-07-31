@@ -76,5 +76,5 @@ void mdp_clock_init(void);
 void mdp_clock_enable(void);
 void mdp_clock_disable(void);
 void mdp_gdsc_ctrl(uint8_t enable);
-void clock_config_blsp_spi(uint8_t blsp_id, uint8_t qup_id);
+void clock_config_blsp_spi(uint8_t blsp_id, uint8_t qup_id, unsigned long rate);
 #endif
