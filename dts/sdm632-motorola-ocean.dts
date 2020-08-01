@@ -1,0 +1,18 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+/include/ "msm8953.dtsi"
+
+/ {
+	// This is used by the bootloader to find the correct DTB
+	qcom,msm-id = <0x15d 0x00>;
+	qcom,board-id = <0x141 0xc100>;
+	qcom,msm-name = "SDM632";
+	qcom,pmic-id = <0x10016 0x25 0x00 0x00>;
+
+	model = "Motorola Moto G7 Power";
+	compatible = "motorola,ocean", "qcom,msm8953", "lk2nd,device";
+
+	lk2nd,pstore = <0xef000000 0xbf800>;
+};
