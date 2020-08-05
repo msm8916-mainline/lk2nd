@@ -8,6 +8,12 @@
 
 /* I think I deleted most if not all the unnecesary ones, but I may be wrong. */
 
+/* The real model of the phone is "Motorola Moto G7 Power (moto), but the bootloader prefers to have the model name of the Snapdragon 632 instead. */
+
+/* Below you'll see a ton of empty trees. This is because the bootloader doesn't like it when they don't exist, so we have no option but to add them. */
+
+/* I think I deleted most if not all the unnecesary ones, but I may be wrong. */
+
 / {
 	model = "Qualcomm Technologies, Inc. SDM632 + PMI632 MTP S3";
 	compatible = "qcom,sdm632", "qcom,msm8953", "lk2nd,device";
