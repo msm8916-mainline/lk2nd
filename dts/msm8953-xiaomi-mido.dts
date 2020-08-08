@@ -11,6 +11,7 @@
 
 	model = "Xiaomi Redmi Note 4X Snapdragon (mido)";
 	compatible = "xiaomi,mido", "qcom,msm8953", "lk2nd,device";
+	lk2nd,pstore = <0x9ff00000 0x00100000>;
 
 	// Bootloader won't continue if it can't delete some nodes from below
 	soc {
