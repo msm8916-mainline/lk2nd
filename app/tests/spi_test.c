@@ -1,4 +1,4 @@
-/* Copyright (c) 2017-2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2017-2018, 2020 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -30,13 +30,14 @@
 #include <spi_qup.h>
 #include <blsp_qup.h>
 #include <stdlib.h>
+#include <platform/gpio.h>
 
 #define spi_panel_dc_gpio 110
 
 static int spidev_write_cmd(struct qup_spi_dev *dev, char cmd)
 {
 	int ret = 0;
-	char buf[4] = {0};
+	unsigned char buf[4] = {0};
 
 	if (!dev) {
 		dprintf(CRITICAL, "SPI has not been initialized\n");
@@ -59,8 +60,8 @@ static int spidev_write_cmd(struct qup_spi_dev *dev, char cmd)
 static int spidev_read_cmd(struct qup_spi_dev *dev, unsigned char *buf,
 	unsigned int bytes_per_word, unsigned int len)
 {
-	int i, ret = 0;
-	unsigned int max_speed_hz;
+	unsigned int i;
+	int ret = 0;
 
 	if (!dev) {
 		dprintf(CRITICAL, "SPI has not been initialized\n");
@@ -86,7 +87,7 @@ void spi_test()
 	unsigned int data_size = 240*320*2;
 	struct qup_spi_dev *spi_dev;
 	int i,j,k;
-	char rx_buf[8] = {0};
+	unsigned char rx_buf[8] = {0};
 
 	dprintf(CRITICAL, "-----start %s----\n", __func__);
 
