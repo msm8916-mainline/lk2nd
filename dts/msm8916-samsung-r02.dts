@@ -9,6 +9,18 @@
 	qcom,msm-id = <206 0>;
 	qcom,board-id = <0xCE08FF01 2>;
 
+	/*
+	 * A5U is actually rev01 but for some reason the bootloader
+	 * picks the rev02 device tree...
+	 */
+	a5u-eur {
+		model = "Samsung Galaxy A5U (EUR)";
+		compatible = "samsung,a5u-eur", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "A500FU*";
+
+		qcom,board-id = <0xCE08FF01 1>;
+	};
+
 	gprimeltecan {
 		model = "Samsung Galaxy Grand Prime (CAN)";
 		compatible = "samsung,gprimeltecan", "qcom,msm8916", "lk2nd,device";
