@@ -18,5 +18,6 @@ DTBS += \
 	$(LOCAL_DIR)/msm8916-samsung-r08.dtb \
 	$(LOCAL_DIR)/msm8929-samsung-r00.dtb \
 	$(LOCAL_DIR)/msm8929-samsung-r04.dtb \
+	$(LOCAL_DIR)/msm8939-asus-z00t.dtb \
 	$(LOCAL_DIR)/msm8939-mtp.dtb
 endif

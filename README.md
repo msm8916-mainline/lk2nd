@@ -20,6 +20,7 @@ and then loaded by lk2nd.
 
 ### Supported devices
 - Alcatel OneTouch Idol 3 (5.5) - 6045*
+- Asus Zenfone 2 Laser (1080p) - Z00T
 - Marshall London
 - Motorola Moto G4 Play (harpia)
 - Samsung Galaxy A3 (2015) - SM-A300FU
