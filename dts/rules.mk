@@ -5,7 +5,8 @@ DTBS += \
 	$(LOCAL_DIR)/apq8016-samsung-r02.dtb \
 	$(LOCAL_DIR)/apq8016-samsung-r07.dtb \
 	$(LOCAL_DIR)/msm8216-samsung-r05.dtb \
-	$(LOCAL_DIR)/msm8916-motorola-harpia.dtb \
+	$(LOCAL_DIR)/msm8916-motorola-harpia-p1b-4d.dtb \
+	$(LOCAL_DIR)/msm8916-motorola-harpia-p1b-4e.dtb \
 	$(LOCAL_DIR)/msm8916-motorola-surnia.dtb \
 	$(LOCAL_DIR)/msm8916-mtp.dtb \
 	$(LOCAL_DIR)/msm8916-qrd9-v1.dtb \

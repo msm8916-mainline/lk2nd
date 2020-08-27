@@ -7,7 +7,6 @@
 
 / {
 	qcom,msm-id = <206 0>;
-	qcom,board-id = <0x4E 0x81B0>;
 
 	model = "Motorola Moto G4 Play (harpia)";
 	compatible = "motorola,harpia", "qcom,msm8916", "lk2nd,device";
