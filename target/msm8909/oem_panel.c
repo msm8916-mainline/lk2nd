@@ -460,6 +460,12 @@ static int init_panel_data(struct panel_struct *panelstruct,
 					= gc9305_qvga_cmd_on_command;
 		pinfo->spi.num_of_panel_cmds
 					= GC9305_QVGA_CMD_ON_COMMAND;
+		pinfo->spi.signature_addr
+					= &gc9305_signature_addr;
+		pinfo->spi.signature
+					= gc9305_signature;
+		pinfo->spi.signature_len
+					= gc9305_signature_len;
 		pan_type = PANEL_TYPE_SPI;
 		break;
 	case UNKNOWN_PANEL:
@@ -541,8 +547,15 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	case HW_PLATFORM_QRD:
 		switch (platform_subtype) {
 			case QRD_SKUA:
-				if (MSM8905 == board_platform_id())
-					panel_id = GC9305_QVGA_SPI_CMD_PANEL;
+				if (MSM8905 == board_platform_id()) {
+					switch (auto_pan_loop) {
+						case 0:
+						default:
+							panel_id = GC9305_QVGA_SPI_CMD_PANEL;
+							break;
+					}
+					auto_pan_loop++;
+				}
 				else
 					panel_id = HX8379A_FWVGA_SKUA_VIDEO_PANEL;
 				break;
