@@ -36,6 +36,7 @@
 #include <malloc.h>
 #include <qpic.h>
 #include <target.h>
+#include "mdss_spi.h"
 #ifdef DISPLAY_TYPE_MDSS
 #include <target/display.h>
 #endif
@@ -130,6 +131,11 @@ int msm_display_config()
 		ret = mdss_spi_init();
 		if (ret)
 			goto msm_display_config_out;
+		if (target_panel_auto_detect_enabled()) {
+			ret = spi_check_panel_id(pinfo);
+			if (ret)
+				goto msm_display_config_out;
+		}
 		ret = mdss_spi_panel_init(pinfo);
 		if (ret)
 			goto msm_display_config_out;
