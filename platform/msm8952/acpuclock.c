@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, 2018-2019, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015, 2018-2020, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -35,6 +35,7 @@
 #include <clock.h>
 #include <platform/clock.h>
 #include <platform.h>
+#include <blsp_qup.h>
 
 #define MAX_LOOPS	500
 
@@ -506,4 +507,40 @@ void clock_config_ce(uint8_t instance)
 	clock_ce_disable(instance);
 
 	clock_ce_enable(instance);
+}
+
+/* Configure spi clock */
+void clock_config_blsp_spi(uint8_t blsp_id, uint8_t qup_id, unsigned long rate)
+{
+	uint8_t ret = 0;
+	char clk_name[64];
+
+	qup_id = qup_id + 1;
+
+	if ((blsp_id != BLSP_ID_1)) {
+		dprintf(CRITICAL, "Incorrect BLSP-%d configuration\n", blsp_id);
+		ASSERT(0);
+	}
+
+	snprintf(clk_name, sizeof(clk_name), "blsp1_ahb_iface_clk");
+
+	ret = clk_get_set_enable(clk_name, 0, 1);
+
+	if (ret) {
+		dprintf(CRITICAL, "%s: Failed to enable %s clock\n",
+							__func__, clk_name);
+		return;
+	}
+
+	snprintf(clk_name, sizeof(clk_name), "gcc_blsp1_qup%u_spi_apps_clk",
+						qup_id);
+
+	/* Set the highest clk frequency by default for good performance. */
+	ret = clk_get_set_enable(clk_name, rate, 1);
+
+	if (ret) {
+		dprintf(CRITICAL, "%s: Failed to enable %s\n",
+						__func__, clk_name);
+		return;
+	}
 }

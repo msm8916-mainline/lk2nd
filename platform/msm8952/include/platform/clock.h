@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, 2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015, 2018, 2020, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -99,4 +99,5 @@ void gcc_dsi_hs_clocks_enable(uint32_t flags,  bool use_dsi1_pll, uint8_t pclk0_
 		uint8_t pclk0_n, uint8_t pclk0_d);
 void gcc_dsi_lp_clock_enable(uint32_t flags);
 void gcc_dsi_clocks_disable(uint32_t flags);
+void clock_config_blsp_spi(uint8_t blsp_id, uint8_t qup_id, unsigned long rate);
 #endif

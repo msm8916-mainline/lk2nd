@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015, 2020, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -48,7 +48,7 @@
 #define USB1_HS_IRQ                            (GIC_SPI_START + 134)
 #define SDCC1_PWRCTL_IRQ                       (GIC_SPI_START + 138)
 #define SDCC2_PWRCTL_IRQ                       (GIC_SPI_START + 221)
-
+#define BLSP_QUP_IRQ(blsp_id, qup_id)          (GIC_SPI_START + 95 + qup_id)
 /* Retrofit universal macro names */
 #define INT_USB_HS                             USB1_HS_IRQ
 
