@@ -683,6 +683,8 @@ int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 			ldo_num &= ~(REG_LDO17 | REG_LDO5);
 			ldo_num |= REG_LDO13 | REG_LDO15;
 		}
+	if (platform_is_qm215() && (pinfo->type == SPI_PANEL))
+		ldo_num |= REG_LDO17;
 
 	if (enable) {
 		regulator_enable(ldo_num);

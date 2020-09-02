@@ -1,4 +1,4 @@
-/* Copyright (c) 2015-2016, 2018-2019 The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2016, 2018-2020 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -69,6 +69,7 @@
 #include "include/panel_truly_rm69090_qvga_cmd.h"
 #include "include/panel_nt35695b_truly_fhd_video.h"
 #include "include/panel_nt35695b_truly_fhd_cmd.h"
+#include "include/panel_st7789v2_320p_spi_cmd.h"
 
 /*---------------------------------------------------------------------------*/
 /* static panel selection variable                                           */
@@ -98,6 +99,7 @@ enum {
 	NT35695B_TRULY_FHD_CMD_PANEL,
 	RM67162_QVGA_CMD_PANEL,
 	RM69090_QVGA_CMD_PANEL,
+	ST7789v2_320P_SPI_CMD_PANEL,
 	UNKNOWN_PANEL
 };
 
@@ -134,6 +136,7 @@ static struct panel_list supp_panels[] = {
 	{"nt35695b_truly_fhd_cmd", NT35695B_TRULY_FHD_CMD_PANEL},
 	{"rm67162_qvga_cmd", RM67162_QVGA_CMD_PANEL},
 	{"rm69090_qvga_cmd", RM69090_QVGA_CMD_PANEL},
+	{"st7789v2_320p_cmd", ST7789v2_320P_SPI_CMD_PANEL},
 };
 
 static uint32_t panel_id;
@@ -952,6 +955,18 @@ static int init_panel_data(struct panel_struct *panelstruct,
 				TIMING_SIZE);
 		pinfo->mipi.signature    = NT35695B_TRULY_FHD_CMD_SIGNATURE;
 		pinfo->mipi.tx_eot_append = true;
+		break;
+	case ST7789v2_320P_SPI_CMD_PANEL:
+		panelstruct->paneldata          = &st7789v2_320p_cmd_panel_data;
+		panelstruct->panelres           = &st7789v2_320p_cmd_panel_res;
+		panelstruct->color              = &st7789v2_320p_cmd_color;
+		panelstruct->panelresetseq      = &st7789v2_320p_cmd_reset_seq;
+		panelstruct->backlightinfo      = &st7789v2_320p_cmd_backlight;
+		pinfo->spi.panel_cmds           = st7789v2_320p_cmd_on_command;
+		pinfo->spi.num_of_panel_cmds    = ST7789v2_320p_CMD_ON_COMMAND;
+		pinfo->spi.signature_addr       = &st7789v2_signature_addr;
+		pinfo->spi.signature            = st7789v2_signature;
+		pan_type = PANEL_TYPE_SPI;
 		break;
 	case UNKNOWN_PANEL:
 	default:
