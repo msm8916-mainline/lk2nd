@@ -1,4 +1,4 @@
-/* Copyright (c) 2017-2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2017-2018, 2020, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -300,7 +300,7 @@ static void spi_qup_fifo_write(struct qup_spi_dev *dev, struct spi_transfer *xfe
 static void spi_qup_fifo_read(struct qup_spi_dev *dev, struct spi_transfer *xfer)
 {
 	unsigned char *rx_buf = xfer->rx_buf;
-	unsigned int word, state, data;
+	unsigned int word, state;
 	unsigned int idx, shift;
 
 	while (dev->rx_bytes < xfer->len) {
@@ -410,7 +410,7 @@ static int spi_qup_transfer(struct qup_spi_dev *dev, struct spi_transfer *xfer)
 	if (!xfer || !dev)
 		return ret;
 
-	mTmpbuff = xfer->rx_buf > 0 ? xfer->rx_buf : xfer->tx_buf;
+	mTmpbuff = xfer->rx_buf ? (unsigned char *) xfer->rx_buf : (unsigned char *) xfer->tx_buf;
 	if (!mTmpbuff || !xfer->len)
 		return ret;
 

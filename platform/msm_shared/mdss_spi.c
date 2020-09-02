@@ -1,4 +1,4 @@
-/* Copyright (c) 2017-2018 The Linux Foundation. All rights reserved.
+/* Copyright (c) 2017-2018, 2020,  The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -31,13 +31,23 @@
 #include <msm_panel.h>
 #include <target/display.h>
 #include <platform/gpio.h>
+#include <dev/gpio.h>
+#include <platform/timer.h>
 
 #define SUCCESS		0
 #define FAIL		1
 
 static struct qup_spi_dev *dev = NULL;
 
-static int mdss_spi_write_cmd(const char *buf)
+#if QM215_MDSS_SPI
+static struct gpio_pin spi_dc_gpio = {
+  "msmgpio", 64, 3, 1, 0, 1
+};
+
+#define SPI_BLSP_ID                  1
+#define SPI_QUP_ID                   2
+#endif
+static int mdss_spi_write_cmd(const unsigned char *buf)
 {
 	int ret = 0;
 
@@ -58,7 +68,7 @@ static int mdss_spi_write_cmd(const char *buf)
 	return ret;
 }
 
-static int mdss_spi_write_data(const char *buf, size_t len)
+static int mdss_spi_write_data(const unsigned char *buf, size_t len)
 {
 	int ret = 0;
 
@@ -78,7 +88,7 @@ static int mdss_spi_write_data(const char *buf, size_t len)
 	return ret;
 }
 
-static int mdss_spi_write_frame(const char *buf, size_t len)
+static int mdss_spi_write_frame(const unsigned char *buf, size_t len)
 {
 	int ret = 0;
 
@@ -102,14 +112,14 @@ static void spi_read_panel_data(unsigned char *buf,  int len)
 	int ret = 0;
 
 	if (!dev) {
-		 dprintf(CRITICAL, "SPI has not been initialized\n");
-		 return -ENODEV;
+		dprintf(CRITICAL, "SPI has not been initialized\n");
+		return;
 	}
 	dev->bytes_per_word = 1;
 	dev->bit_shift_en = 1;
 
 	gpio_set(spi_dc_gpio.pin_id, 0);
-	ret = spi_qup_transfer(dev, buf, len);
+	ret = spi_qup_read(dev, buf, len);
 	gpio_set(spi_dc_gpio.pin_id, 2);
 
 	if (ret)
@@ -137,7 +147,6 @@ int mdss_spi_init(void)
 int mdss_spi_panel_init(struct msm_panel_info *pinfo)
 {
 	int cmd_count = 0;
-	int ret = 0;
 
 	while (cmd_count < pinfo->spi.num_of_panel_cmds) {
 		if (pinfo->spi.panel_cmds[cmd_count].cmds_post_tg){
@@ -145,10 +154,10 @@ int mdss_spi_panel_init(struct msm_panel_info *pinfo)
 			continue;
 		}
 
-		mdss_spi_write_cmd(pinfo->spi.panel_cmds[cmd_count].payload);
+		mdss_spi_write_cmd((unsigned char *) pinfo->spi.panel_cmds[cmd_count].payload);
 		if (pinfo->spi.panel_cmds[cmd_count].size > 1)
 			mdss_spi_write_data(
-				pinfo->spi.panel_cmds[cmd_count].payload + 1,
+				(unsigned char *) pinfo->spi.panel_cmds[cmd_count].payload + 1,
 				pinfo->spi.panel_cmds[cmd_count].size - 1);
 
 		if (pinfo->spi.panel_cmds[cmd_count].wait)
@@ -185,9 +194,9 @@ int mdss_spi_cmd_post_on(struct msm_panel_info *pinfo)
 	while (cmd_count < pinfo->spi.num_of_panel_cmds) {
 		if (pinfo->spi.panel_cmds[cmd_count].cmds_post_tg){
 			payload = pinfo->spi.panel_cmds[cmd_count].payload;
-			mdss_spi_write_cmd(payload);
+			mdss_spi_write_cmd((unsigned char *) payload);
 			if (pinfo->spi.panel_cmds[cmd_count].size > 1)
-				mdss_spi_write_data(payload + 1,
+				mdss_spi_write_data((unsigned char *) payload + 1,
 					pinfo->spi.panel_cmds[cmd_count].size
 						- 1);
 
