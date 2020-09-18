@@ -1,0 +1,16 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+/include/ "msm8916.dtsi"
+
+/ {
+	qcom,msm-id = <239 0>;
+	qcom,board-id = <0x1000b 5>;
+
+	lenovo-pb1770m {
+		model = "Lenovo PHAB Plus";
+		compatible = "lenovo,pb1770m", "qcom,msm8939", "lk2nd,device";
+		lk2nd,match-cmdline = "* mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_nt35532_1080p_skuk_video:1:none";
+	};
+};
