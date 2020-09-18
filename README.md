@@ -35,6 +35,7 @@ and then loaded by lk2nd.
 - Samsung Galaxy Tab A 9.7 WiFi (2015) - SM-T550
 - Vodafone Smart prime 6
 - Wileyfox Swift
+- Lenovo PHAB Plus - PB1-770M, PB1-770N
 
 ## Installation
 1. Download `lk2nd.img` (available in [Releases](https://github.com/msm8916-mainline/lk2nd/releases))
