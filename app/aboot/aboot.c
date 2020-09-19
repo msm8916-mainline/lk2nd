@@ -991,13 +991,13 @@ static char *concat_args(const char *a, const char *b)
 	return r;
 }
 
-const char *update_cmdline(const char* cmdline)
+unsigned char *update_cmdline(const char* cmdline)
 {
 	/* Only take cmdline from original bootloader if downstream or lk2nd */
 	if (cmdline && lk2nd_dev.cmdline &&
 	    (strstr(cmdline, "androidboot.hardware=qcom") || strstr(cmdline, "lk2nd")))
 		return concat_args(cmdline, lk2nd_dev.cmdline);
-	return cmdline;
+	return strdup(cmdline);
 }
 
 unsigned *atag_core(unsigned *ptr)
