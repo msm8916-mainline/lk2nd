@@ -75,6 +75,12 @@ int platform_is_msm8929();
 
 void platform_early_init(void)
 {
+	/* Reset and disable watchdog if necessary */
+	if (readl(MSM_WATCHDOG_EN)) {
+		writel(1, MSM_WATCHDOG_RST);
+		writel(0, MSM_WATCHDOG_EN);
+	}
+
 	board_init();
 	platform_clock_init();
 	qgic_init();
