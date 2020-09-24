@@ -2,7 +2,7 @@
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2019, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2020, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -3811,7 +3811,7 @@ void cmd_flash_meta_img(const char *arg, void *data, unsigned sz)
 #endif
 
 	meta_header = (meta_header_t*) data;
-	if( data_end < ((uintptr_t)data + meta_header->img_hdr_sz))
+	if( data_end < ((uintptr_t)data + sizeof(meta_header_t)  + meta_header->img_hdr_sz))
 	{
 		fastboot_fail("Cannot  flash: image header corrupt");
 		return;
