@@ -1,0 +1,17 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+/include/ "msm8916.dtsi"
+
+/ {
+	compatible = "qcom,msm8939-mtp", "qcom,msm8939";
+	qcom,msm-id = <239 0>;
+	qcom,board-id = <21 0>;
+
+	asus-z00t {
+		model = "Asus Zenfone 2 Laser (1080p)";
+		compatible = "asus,z00t", "qcom,msm8939", "lk2nd,device";
+		lk2nd,match-cmdline = "*LASER*";
+	};
+};
