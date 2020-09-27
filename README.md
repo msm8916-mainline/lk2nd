@@ -36,6 +36,7 @@ and then loaded by lk2nd.
 - Samsung Galaxy Tab A 9.7 WiFi (2015) - SM-T550
 - Vodafone Smart prime 6
 - Wileyfox Swift
+- Xiaomi Redmi 2 - wt86047, wt88047
 
 ## Installation
 1. Download `lk2nd.img` (available in [Releases](https://github.com/msm8916-mainline/lk2nd/releases))
