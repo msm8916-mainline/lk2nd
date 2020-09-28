@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2018, 2021, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -722,6 +722,11 @@ static unsigned int write_gpt(uint32_t size, uint8_t *gptImage, uint32_t block_s
 		partition_entry_array_size = MIN_PARTITION_ARRAY_SIZE;
 	}
 	offset = (2 * partition_entry_array_size);
+	if (size < (offset + (block_size*3))) {
+		dprintf(CRITICAL, "Gpt Image size is invalid!!\n");
+		ret = 1;
+		goto end;
+	}
 	secondary_gpt_header = offset + block_size + primary_gpt_header;
 	parse_secondary_gpt = 1;
 	ret =
@@ -802,7 +807,7 @@ static unsigned int write_gpt(uint32_t size, uint8_t *gptImage, uint32_t block_s
 	mmc_read_partition_table(0);
 	partition_dump();
 	dprintf(CRITICAL, "GPT: Partition Table written\n");
-	memset(primary_gpt_header, 0x00, size);
+	memset(gptImage, 0x00, size);
 
  end:
 	return ret;
@@ -820,6 +825,14 @@ unsigned int write_partition(unsigned size, unsigned char *partition)
 	}
 
 	block_size = mmc_get_device_blocksize();
+	/* size is from target_get_max_flash_size and it will check at
+	* cmd_download if it is size > download_max it will fail early
+	* and will not cause any oob
+	*/
+	if (block_size*2 >= size) {
+		dprintf(CRITICAL, "Gpt Image size is invalid!\n");
+		goto end;
+	}
 	ret = partition_get_type(size, partition, &partition_type);
 	if (ret)
 		goto end;
