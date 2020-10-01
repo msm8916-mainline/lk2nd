@@ -14,4 +14,9 @@
 		compatible = "alcatel,idol3", "qcom,msm8939", "lk2nd,device";
 		lk2nd,match-cmdline = "* mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_r63315_1080p_video:1:none";
 	};
+
+	xiaomi-ferrari {
+		model = "Xiaomi Mi 4i";
+		compatible = "xiaomi,ferrari", "qcom,msm8939", "lk2nd,device";
+	};
 };
