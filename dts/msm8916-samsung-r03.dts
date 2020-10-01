@@ -50,4 +50,15 @@
 			i2c-address = <0x25>;
 		};
 	};
+
+	on7lte-chn {
+		model = "Samsung Galaxy On7 2015 (SM-G6000)";
+		compatible = "samsung,on7lte-chn", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "G6000*";
+
+		samsung,muic-reset {
+			i2c-gpios = <105 106>;
+			i2c-address = <0x25>;
+		};
+	};
 };
