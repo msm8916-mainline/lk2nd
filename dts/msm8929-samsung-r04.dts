@@ -18,4 +18,19 @@
 			i2c-address = <0x25>;
 		};
 	};
+
+	on7lte-chn {
+		model = "Samsung Galaxy On7 2015 (SM-G6000)";
+		compatible = "samsung,on7lte-chn", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "G6000*";
+
+		// The stock Samsung bootloader seems to pick <0x0C01FF01 4> as the board id as opposed to <0xCE08FF01 3>
+		// This line should fix that
+		qcom,board-id = <0xCE08FF01 3>;
+
+		samsung,muic-reset {
+			i2c-gpios = <105 106>;
+			i2c-address = <0x25>;
+		};
+	};
 };
