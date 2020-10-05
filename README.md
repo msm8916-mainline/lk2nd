@@ -39,6 +39,7 @@ and then loaded by lk2nd.
 - Samsung Galaxy Tab A 9.7 WiFi (2015) - SM-T550
 - Vodafone Smart prime 6
 - Wileyfox Swift
+- Xiaomi Mi 4i
 - Xiaomi Redmi 2 (wt86047, wt88047)
 
 ## Installation
