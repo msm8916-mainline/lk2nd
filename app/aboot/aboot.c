@@ -4812,7 +4812,7 @@ int splash_screen_mmc()
 
 	if (fb_display) {
 		if (header->type && (header->blocks != 0) &&
-			(UINT_MAX >= header->blocks * 512 + LOGO_IMG_HEADER_SIZE) &&
+			(((UINT_MAX - LOGO_IMG_HEADER_SIZE) / 512) >= header->blocks) &&
 			((header->blocks * 512) <=  (fb_display->width *
 			fb_display->height * (fb_display->bpp / 8)))) {
 			/* 1 RLE24 compressed data */
