@@ -13,10 +13,12 @@ The real Android boot image is placed into the boot partition with 1 MB offset,
 and then loaded by lk2nd.
 
 ## Supported SoCs
-- MSM8216
-- MSM8916
-- MSM8929
-- MSM8939
+- `msm8916-secondary`: MSM8216, MSM8916, MSM8929, MSM8939
+- `msm8974-secondary`: MSM8974
+- `msm8226-secondary`: MSM8226, MSM8926
+
+See [Chipsets](https://github.com/efidroid/projectmanagement/wiki/%5BReference%5D-Chipsets)
+page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 
 ### Supported devices
 - Alcatel OneTouch Idol 3 (5.5) - 6045*
@@ -71,8 +73,11 @@ the boot partition).
 Other fastboot commands work normally.
 
 ## Building
+Check [Supported SoCs](#supported-socs) for the make target you should use below.
+(It depends on the SoC of your device.)
+
 ```
-$ make TOOLCHAIN_PREFIX=arm-none-eabi- msm8916-secondary
+$ make TOOLCHAIN_PREFIX=arm-none-eabi- msmXXXX-secondary
 ```
 
 **Requirements:**
@@ -90,10 +95,27 @@ Replace `TOOLCHAIN_PREFIX` with the path to your tool chain.
   `qcom,msm-id`/`qcom,board-id` from downstream.
 
 ### To other SoCs
-- Cherry-pick changes
-- Make some changes
+Qualcomm maintains separate branches for various groups of SoCs. The branches can
+be seen on the [Chipsets](https://github.com/efidroid/projectmanagement/wiki/%5BReference%5D-Chipsets)
+page on the EFIDroid wiki. This version of lk2nd is based on the LA.BR branch for
+MSM8916. There is a [fork for MSM8953 based on the LA.UM branch](https://github.com/msm8953-mainline/lk2nd).
 
-(TODO: Document this properly)
+The bootloader will work best when you use the correct branch for your device.
+Older platforms are usually kept around by Qualcomm but barely tested and may
+not work, or not even compile.
+
+However, if make files for your SoC are present in this version or the MSM8953 fork
+you can try to enable it and see if it works well enough for you. Otherwise you
+would need to go through the Git history and pick the relevant commits to another
+branch from https://source.codeaurora.org/quic/la/kernel/lk/.
+
+To enable support for a SoC that is already present in this repository:
+
+1. Create a new `project/<target>-secondary.mk` which looks like the others.
+2. Try to compile it and fix all the compile errors.
+3. Try to run it and hope that it works.
+
+Good luck!
 
 ## Contact
 Ping `minecrell`/`Mis012` on [`#postmarketos-mainline`](https://wiki.postmarketos.org/wiki/Matrix_and_IRC).
