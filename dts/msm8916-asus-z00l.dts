@@ -1,0 +1,12 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+/include/ "msm8916.dtsi"
+
+/ {
+	qcom,msm-id = <206 0>;
+	qcom,board-id = <21 0>;
+	model = "Asus Zenfone Laser 2 (720p)";
+	compatible = "asus,z00l", "qcom,msm8916", "lk2nd,device";
+};

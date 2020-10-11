@@ -22,6 +22,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 
 ### Supported devices
 - Alcatel OneTouch Idol 3 (5.5) - 6045*
+- Asus Zenfone 2 Laser (720p) - Z00L
 - Asus Zenfone 2 Laser (1080p) - Z00T
 - BQ Aquaris X5 (paella, picmt)
 - Lenovo PHAB Plus - PB1-770M, PB1-770N
