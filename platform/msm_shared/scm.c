@@ -1331,7 +1331,11 @@ int scm_dload_mode(int mode)
 	if (ret > 0)
 		ret = scm_call2_atomic(SCM_SVC_BOOT, SCM_DLOAD_CMD, dload_type, 0);
 	else
+#ifdef TCSR_BOOT_MISC_DETECT
 		ret = scm_io_write(TCSR_BOOT_MISC_DETECT,dload_type);
+#else
+		ret = 1;
+#endif
 
 	if(ret) {
 		dprintf(CRITICAL, "Failed to write to boot misc: %d\n", ret);
