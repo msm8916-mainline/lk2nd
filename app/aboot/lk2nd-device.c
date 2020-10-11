@@ -186,7 +186,9 @@ static void lk2nd_parse_device_node(const void *fdt)
 		return;
 	}
 
+#ifdef GPIO_I2C_BUS_COUNT
 	lk2nd_samsung_muic_reset(fdt, offset);
+#endif
 	lk2nd_motorola_smem_write_unit_info(fdt, offset);
 
 	lk2nd_dev.model = fdt_copyprop_str(fdt, offset, "model");

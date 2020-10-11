@@ -12,12 +12,12 @@ OBJS += \
 	$(LOCAL_DIR)/fastboot-lk2nd.o \
 	$(LOCAL_DIR)/lk2nd-device.o \
 	$(LOCAL_DIR)/lk2nd-motorola.o \
-	$(LOCAL_DIR)/lk2nd-samsung.o \
 	$(LOCAL_DIR)/recovery.o
 
-# lk2nd-samsung.c
-GPIO_I2C_BUS_COUNT := 1
+ifneq ($(GPIO_I2C_BUS_COUNT),)
 MODULES += dev/gpio_i2c
+OBJS += $(LOCAL_DIR)/lk2nd-samsung.o
+endif
 
 ifeq ($(TARGET), msm8916)
 OBJS += $(LOCAL_DIR)/fastboot-lk2nd-msm8916.o
