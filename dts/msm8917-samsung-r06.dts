@@ -1,0 +1,63 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+/include/ "msm8952.dtsi"
+
+/ {
+	// This is used by the bootloader to find the correct DTB
+	qcom,msm-id = <303 0>;
+	qcom,board-id = <8 6>;
+
+	a6plte-generic {
+		model = "Samsung J6PRIMELTE SWA OPEN PROJECT Rev06";
+		compatible = "samsung,j6primelte", "qcom,msm8917", "lk2nd,device";
+		lk2nd,match-bootloader = "J610*";
+		lk2nd,pstore = <0x86100000 0x100000>;
+	};
+
+	// Bootloader won't continue if it can't delete some nodes from below
+	soc {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges = <0x0 0x0 0x0 0xffffffff>;
+
+		qcom,memshare {
+			qcom,client_4 {
+				qcom,peripheral-size = <0x6000000>;
+			};
+		};
+	};
+
+	reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+
+		sec_debug_region@0 {
+			compatible = "removed-dma-pool";
+			no-map;
+			reg = <0x0 0x85000000 0x0 0x800000>;
+		};
+
+		sec_debug_low_region@0 {
+			compatible = "removed-dma-pool";
+			no-map;
+			reg = <0x0 0x85000000 0x0 0x400000>;
+		};
+
+		lk_region@0 {
+			linux,reserve-contiguous-region;
+			linux,reserve-region;
+			linux,remove-completely;
+			no-map;
+			reg = <0x0 0x8f600000 0x0 0x300000>;
+			label = "lk_mem";
+		};
+
+		modem_shared_mem_region@0x93000000 {
+			reg = <0x0 0x93000000 0x0 0x6000000>;
+		};
+
+	};
+};
