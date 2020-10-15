@@ -73,6 +73,29 @@ static inline void parse_arg(const char *str, const char *pre, const char **out)
 		*out = strdup(val);
 }
 
+static const char *parse_panel(const char *panel)
+{
+	const char *panel_name;
+	char *end;
+
+	if (!panel)
+		return NULL;
+
+	/*
+	 * Clean up a bit when arg looks like 1:dsi:0:<panel-name>:...
+	 * It could look different, but I don't know how to handle that yet.
+	 */
+	panel_name = strpresuf(panel, "1:dsi:0:");
+	if (!panel_name) /* Some other format */
+		return panel;
+
+	/* Cut off other garbage at the end of the string (e.g. :1:none) */
+	end = strchr(panel_name, ':');
+	if (end)
+		*end = 0;
+	return panel_name;
+}
+
 static void parse_boot_args(void)
 {
 	char *saveptr;
@@ -81,12 +104,16 @@ static void parse_boot_args(void)
 	char *arg = strtok_r(args, " ", &saveptr);
 	while (arg) {
 		const char *aboot = strpresuf(arg, "androidboot.");
+
 		if (aboot) {
 			parse_arg(aboot, "device=", &lk2nd_dev.device);
 			parse_arg(aboot, "bootloader=", &lk2nd_dev.bootloader);
 			parse_arg(aboot, "serialno=", &lk2nd_dev.serialno);
 			parse_arg(aboot, "carrier=", &lk2nd_dev.carrier);
 			parse_arg(aboot, "radio=", &lk2nd_dev.radio);
+		} else {
+			parse_arg(arg, "mdss_mdp.panel=", &lk2nd_dev.panel);
+			lk2nd_dev.panel = parse_panel(lk2nd_dev.panel);
 		}
 
 		arg = strtok_r(NULL, " ", &saveptr);
