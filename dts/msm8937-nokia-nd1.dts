@@ -1,0 +1,23 @@
+// SPDX-License-Identifier: GPL-2.0-only
+// Copyright (C) 2020 - Dreemurrs Embedded Labs
+
+/dts-v1/;
+
+/include/ "msm8952.dtsi"
+
+/ {
+	// This is used by the bootloader to find the correct DTB 
+	qcom,msm-id = <294 8192>;
+	qcom,board-id = <148 0>;
+
+	model = "MSM8937-PMI8950 - FIH D1 DVT";
+	compatible = "nokia,nd1", "qcom,msm8937", "lk2nd,device";
+
+	// Bootloader won't continue if it can't delete some nodes from below
+	soc {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges = <0x0 0x0 0x0 0xffffffff>;
+
+	};
+};
