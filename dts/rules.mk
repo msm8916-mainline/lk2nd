@@ -27,3 +27,8 @@ DTBS += \
 	$(LOCAL_DIR)/msm8939-mtp.dtb \
 	$(LOCAL_DIR)/msm8939-qrd-skuk.dtb
 endif
+
+ifeq ($(PROJECT), msm8994-secondary)
+DTBS += \
+	$(LOCAL_DIR)/msm8994-sony-xperia-sumire.dtb
+endif

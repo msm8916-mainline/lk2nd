@@ -1,5 +1,5 @@
 # lk2nd
-lk2nd is a bootloader for Qualcomm MSM devices (at the moment only MSM8916 and MSM8939),
+lk2nd is a bootloader for Qualcomm MSM devices (see Supported SoCs below),
 based on the [CodeAurora Little Kernel fork](https://source.codeaurora.org/quic/la/kernel/lk/).
 It provides an Android Fastboot interface on devices where the stock bootloader
 does not provide Fastboot (e.g. Samsung).
@@ -16,6 +16,7 @@ and then loaded by lk2nd.
 - `msm8916-secondary`: MSM8216, MSM8916, MSM8929, MSM8939
 - `msm8974-secondary`: MSM8974
 - `msm8226-secondary`: MSM8226, MSM8926
+- `msm8994-secondary`: MSM8992, MSM8994
 
 See [Chipsets](https://github.com/efidroid/projectmanagement/wiki/%5BReference%5D-Chipsets)
 page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
@@ -43,6 +44,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Samsung Galaxy Tab 4 10.1 (2015) - SM-T533
 - Samsung Galaxy Tab A 8.0 LTE (2015) - SM-T357W
 - Samsung Galaxy Tab A 9.7 WiFi (2015) - SM-T550
+- Sony Xperia Z5 - sumire (BE CAREFUL! SONY 8994 DEVICES MIGHT SUFFER PERMANENT EMMC DAMAGE!)
 - Vodafone Smart prime 6
 - Wileyfox Swift
 - Xiaomi Mi 4i
