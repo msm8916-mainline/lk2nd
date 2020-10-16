@@ -6,11 +6,6 @@ LOCAL_DIR := $(GET_LOCAL_DIR)
 include $(LOCAL_DIR)/msm8994.mk
 include $(LOCAL_DIR)/lk2nd.mk
 
-# BE CAREFUL! SONY KITAKAMI DEVICES MIGHT SUFFER
-# PERMANENT EMMC DAMAGE
-EMMC_BOOT := 0
-DEFINES += _EMMC_BOOT=0
-
 # Feel free to enable that and fix compile errors
 # if your 8992/4 device has UFS for some reason
 ENABLE_UFS_SUPPORT   := 0

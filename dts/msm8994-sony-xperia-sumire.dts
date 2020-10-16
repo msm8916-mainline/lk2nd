@@ -8,6 +8,8 @@
 	qcom,msm-id = <0xcf 0x20000>;
 	qcom,pmic-id = <0x10009 0x1000a 0x00 0x00>;
 	qcom,board-id = <0x08 0x00>;
+	/* Sony likes to use eMMCs that destroy themselves! */
+	lk2nd,broken-emmc;
 
 	soc {
 		#address-cells = <0x01>;
