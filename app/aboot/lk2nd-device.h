@@ -24,6 +24,7 @@ extern struct lk2nd_device lk2nd_dev;
 
 void lk2nd_init(void);
 int lk2nd_fdt_parse_early_uart(void);
+bool lk2nd_fdt_is_broken_emmc(void);
 
 void lk2nd_samsung_muic_reset(const void *fdt, int offset);
 void lk2nd_motorola_smem_write_unit_info(const void *fdt, int offset);

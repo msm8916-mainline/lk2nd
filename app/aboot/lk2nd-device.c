@@ -228,17 +228,20 @@ static void lk2nd_parse_device_node(const void *fdt)
 		update_board_id(&lk2nd_dev.board_id);
 }
 
+static int lk2nd_fdt_early_device_offset(void *fdt)
+{
+	if (!fdt || dev_tree_check_header(fdt))
+		return -1; // Will be reported later again. Hopefully.
+	return lk2nd_find_device_offset(fdt);
+}
 
 int lk2nd_fdt_parse_early_uart(void)
 {
+	void *fdt = (void*) lk_boot_args[2];
 	int offset, len;
 	const uint32_t *val;
 
-	void *fdt = (void*) lk_boot_args[2];
-	if (!fdt || dev_tree_check_header(fdt))
-		return -1; // Will be reported later again. Hopefully.
-
-	offset = lk2nd_find_device_offset(fdt);
+	offset = lk2nd_fdt_early_device_offset(fdt);
 	if (offset < 0)
 		return -1;
 
@@ -247,6 +250,20 @@ int lk2nd_fdt_parse_early_uart(void)
 	if (len > 0)
 		return fdt32_to_cpu(*val);
 	return -1;
+}
+
+bool lk2nd_fdt_is_broken_emmc(void)
+{
+	void *fdt = (void*) lk_boot_args[2];
+	int offset, len;
+
+	offset = lk2nd_fdt_early_device_offset(fdt);
+	if (offset < 0)
+		/* Only Sony uses broken eMMCs! */
+		return false;
+
+	fdt_getprop(fdt, offset, "lk2nd,broken-emmc", &len);
+	return len >= 0;
 }
 
 static void lk2nd_fdt_parse(void)

@@ -60,6 +60,7 @@
 #include <sdhci_msm.h>
 #include <pm8x41_wled.h>
 #include <qpnp_wled.h>
+#include <lk2nd-device.h>
 
 #define CE_INSTANCE             2
 #define CE_EE                   1
@@ -318,7 +319,9 @@ void target_init(void)
 
 	if (platform_boot_dev_isemmc())
 	{
-		target_sdc_init();
+		/* Sony likes to use eMMCs that destroy themselves! */
+		if (!lk2nd_fdt_is_broken_emmc())
+			target_sdc_init();
 	}
 	else
 	{
