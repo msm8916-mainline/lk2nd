@@ -87,12 +87,17 @@ static const char *parse_panel(const char *panel)
 	 */
 	panel_name = strpresuf(panel, "1:dsi:0:");
 	if (!panel_name) /* Some other format */
-		return panel;
+		return NULL;
 
 	/* Cut off other garbage at the end of the string (e.g. :1:none) */
 	end = strchr(panel_name, ':');
 	if (end)
 		*end = 0;
+
+	/* If this isn't the main panel we don't really know how to deal with this */
+	if (strcmp(panel_name, "none") == 0)
+		return NULL;
+
 	return panel_name;
 }
 
