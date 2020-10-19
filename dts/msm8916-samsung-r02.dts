@@ -27,7 +27,7 @@
 		lk2nd,match-bootloader = "G530W*";
 
 		samsung,muic-reset {
-			i2c-gpios = <2 3>;
+			i2c-gpio-pins = <2 3>;
 			i2c-address = <0x25>;
 		};
 	};

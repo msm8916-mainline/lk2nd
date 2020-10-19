@@ -15,7 +15,7 @@
 		lk2nd,match-bootloader = "J500H*";
 
 		samsung,muic-reset {
-			i2c-gpios = <105 106>;
+			i2c-gpio-pins = <105 106>;
 			i2c-address = <0x25>;
 		};
 	};

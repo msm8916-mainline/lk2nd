@@ -15,7 +15,7 @@
 		lk2nd,match-bootloader = "J500FN*";
 		
 		samsung,muic-reset {
-			i2c-gpios = <105 106>;
+			i2c-gpio-pins = <105 106>;
 			i2c-address = <0x25>;
 		};
 	};
@@ -25,7 +25,7 @@
 		compatible = "samsung,j3lte-chnctc", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "J3109*";
 		samsung,muic-reset {
-			i2c-gpios = <0 1>;
+			i2c-gpio-pins = <0 1>;
 			i2c-address = <0x25>;
 		};
 	};
@@ -35,7 +35,7 @@
 		compatible = "samsung,j5lte-eur", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "J500F*";
 		samsung,muic-reset {
-			i2c-gpios = <105 106>;
+			i2c-gpio-pins = <105 106>;
 			i2c-address = <0x25>;
 		};
 	};

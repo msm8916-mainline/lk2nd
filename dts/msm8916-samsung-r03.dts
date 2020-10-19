@@ -15,7 +15,7 @@
 		lk2nd,match-bootloader = "I9195I*";
 
 		samsung,muic-reset {
-			i2c-gpios = <105 106>;
+			i2c-gpio-pins = <105 106>;
 			i2c-address = <0x14>;
 		};
 	};
@@ -25,7 +25,7 @@
 		compatible = "samsung,j3xprolte-chnopen", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "J3110*";
 		samsung,muic-reset {
-			i2c-gpios = <0 1>;
+			i2c-gpio-pins = <0 1>;
 			i2c-address = <0x25>;
 		};
 	};
@@ -36,7 +36,7 @@
 		lk2nd,match-bootloader = "J3119*";
 
 		samsung,muic-reset {
-			i2c-gpios = <0 1>;
+			i2c-gpio-pins = <0 1>;
 			i2c-address = <0x25>;
 		};
 	};
@@ -46,7 +46,7 @@
 		compatible = "samsung,j5xlte-chn", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "J5108*";
 		samsung,muic-reset {
-			i2c-gpios = <105 106>;
+			i2c-gpio-pins = <105 106>;
 			i2c-address = <0x25>;
 		};
 	};
@@ -57,7 +57,7 @@
 		lk2nd,match-bootloader = "G6000*";
 
 		samsung,muic-reset {
-			i2c-gpios = <105 106>;
+			i2c-gpio-pins = <105 106>;
 			i2c-address = <0x25>;
 		};
 	};

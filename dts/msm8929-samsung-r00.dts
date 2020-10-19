@@ -14,7 +14,7 @@
 		compatible = "samsung,j7-spr", "qcom,msm8929", "lk2nd,device";
 		lk2nd,match-bootloader = "J700P*";
 		samsung,muic-reset {
-			i2c-gpios = <31 32>;
+			i2c-gpio-pins = <31 32>;
 			i2c-address = <0x25>;
 		};
 	};

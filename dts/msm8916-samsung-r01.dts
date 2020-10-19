@@ -30,7 +30,7 @@
 		compatible = "samsung,j5lte-chn", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "J5008*";
 		samsung,muic-reset {
-			i2c-gpios = <105 106>;
+			i2c-gpio-pins = <105 106>;
 			i2c-address = <0x25>;
 		};
 	};

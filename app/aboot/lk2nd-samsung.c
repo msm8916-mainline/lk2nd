@@ -54,7 +54,7 @@ void lk2nd_samsung_muic_reset(const void *fdt, int offset)
 	if (offset < 0)
 		return;
 
-	i2c_gpios = fdt_getprop(fdt, offset, "i2c-gpios", &len);
+	i2c_gpios = fdt_getprop(fdt, offset, "i2c-gpio-pins", &len);
 	if (len != 2 * sizeof(*i2c_gpios)) {
 		dprintf(CRITICAL, "muic-reset: Invalid 'i2c-gpios' (len %d\n)", len);
 		return;
