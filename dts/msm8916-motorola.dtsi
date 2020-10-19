@@ -1,0 +1,13 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+/include/ "skeleton.dtsi"
+/include/ "motorola-carrier-channel-ids.dtsi"
+
+/ {
+	qcom,msm-id = <206 0>;
+
+	lk2nd,uart = <1>;
+	lk2nd,motorola-unitinfo = <1>;
+};
