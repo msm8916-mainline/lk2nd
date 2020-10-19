@@ -87,6 +87,16 @@ static unsigned partition_count;
 /* this is a pointer to ptn_entries_buffer */
 static unsigned char *new_buffer = NULL;
 
+unsigned partition_get_partition_count()
+{
+	return partition_count;
+}
+
+struct partition_entry* partition_get_partition_entries()
+{
+	return partition_entries;
+}
+
 void partition_split_boot(uint32_t block_size)
 {
 	struct partition_entry *boot;

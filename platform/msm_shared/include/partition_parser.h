@@ -182,4 +182,11 @@ struct partition_info partition_get_info(const char *name);
 void partition_dump(void);
 /* Read only attribute for partition */
 int partition_read_only(int index);
+
+/* Get Partition Count */
+unsigned partition_get_partition_count();
+
+/* Read Partition entried list pointer */
+struct partition_entry* partition_get_partition_entries();
+
 #endif
