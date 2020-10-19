@@ -432,8 +432,8 @@ void display_fastboot_menu_renew(struct select_msg_info *fastboot_msg_info)
 		msg_buf);
 	display_fbcon_menu_message(msg, FBCON_COMMON_MSG, common_factor);
 
-	if (lk2nd_dev.panel) {
-		snprintf(msg, sizeof(msg), "PANEL - %s\n", lk2nd_dev.panel);
+	if (lk2nd_dev.panel.name) {
+		snprintf(msg, sizeof(msg), "PANEL - %s\n", lk2nd_dev.panel.name);
 		display_fbcon_menu_message(msg, FBCON_COMMON_MSG, common_factor);
 	}
 
