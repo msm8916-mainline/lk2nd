@@ -9,4 +9,15 @@
 	qcom,board-id = <21 0>;
 	model = "Asus Zenfone Laser 2 (720p)";
 	compatible = "asus,z00l", "qcom,msm8916", "lk2nd,device";
+
+	panel {
+		compatible = "asus,z00l-panel";
+
+		qcom,mdss_dsi_otm1284a_720p_video {
+			compatible = "asus,z00l-otm1284a";
+		};
+		qcom,mdss_dsi_cpt5p5_otm1284a_720p_video {
+			compatible = "asus,z00l-cpt5p5-otm1284a";
+		};
+	};
 };

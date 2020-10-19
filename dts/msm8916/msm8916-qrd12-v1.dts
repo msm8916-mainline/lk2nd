@@ -10,6 +10,33 @@
 	wingtech-wt88047 {
 		compatible = "wingtech,wt88047", "qcom,msm8916", "lk2nd,device";
 		model = "Xiaomi Redmi 2 (Wingtech WT88047)";
-		lk2nd,match-cmdline = "* mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_r61308_720p_video:1:none *";
+		lk2nd,match-panel;
+
+		panel {
+			compatible = "wingtech,wt88047-panel";
+
+			qcom,mdss_dsi_r69431_720p_video {
+				compatible = "wingtech,sharp-r69431";
+			};
+			qcom,mdss_dsi_nt35521_720p_video {
+				compatible = "wingtech,auo-nt35521";
+			};
+			qcom,mdss_dsi_nt35521s_720p_video {
+				compatible = "wingtech,boe-nt35521s";
+			};
+			qcom,mdss_dsi_nt35521_ofilm_720p_video {
+				compatible = "wingtech,ofilm-nt35521";
+			};
+			/* qcom,mdss_dsi_otm1285a_720p_video is not supported */
+			qcom,mdss_dsi_r61308_720p_video {
+				compatible = "wingtech,auo-r61308";
+			};
+			qcom,mdss_dsi_otm1285a_otp_720p_video {
+				compatible = "wingtech,ebbg-otm1285a";
+			};
+			qcom,mdss_dsi_r61308_s88047a1_720p_video {
+				compatible = "wingtech,auo-r61308";
+			};
+		};
 	};
 };

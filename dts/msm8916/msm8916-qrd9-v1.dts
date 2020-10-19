@@ -12,17 +12,68 @@
 		compatible = "wileyfox,crackling", "longcheer,l8150",
 			     "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "crackling-*";
+
+		panel {
+			compatible = "longcheer,l8150-panel";
+
+			/* TODO: qcom,mdss_dsi_truly_otm1288a_720p_video */
+			qcom,mdss_dsi_dijing_ILI9881C_720p_video {
+				compatible = "longcheer,dijing-ili9881c";
+			};
+			qcom,mdss_dsi_booyi_OTM1287_720p_video {
+				compatible = "longcheer,booyi-otm1287";
+			};
+		};
 	};
 
 	bq-paella {
 		model = "BQ Aquaris X5";
-		compatible = "bq,paella", "qcom,msm8916", "lk2nd,device";
+		compatible = "bq,paella", "longcheer,l8910",
+			     "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "paella-*";
+
+		panel {
+			compatible = "longcheer,l8910-panel";
+
+			qcom,mdss_dsi_truly_otm1288a_720p_video {
+				compatible = "longcheer,truly-otm1288a";
+			};
+			qcom,mdss_dsi_truly_otm1288a_720p_cmd {
+				compatible = "longcheer,truly-otm1288a";
+			};
+			qcom,mdss_dsi_yushun_NT35520_720p_cmd {
+				compatible = "longcheer,yushun-nt35520";
+			};
+			qcom,mdss_dsi_truly_HX8394_720p_video {
+				compatible = "longcheer,truly-hx8394";
+			};
+			qcom,mdss_dsi_yushun_NT35521S_720p_video {
+				compatible = "longcheer,yushun-nt35521s";
+			};
+		};
 	};
 
 	lenovo-a6010 {
 		model = "Lenovo A6010";
-		compatible = "lenovo,a6010", "qcom,msm8916", "lk2nd,device";
-		lk2nd,match-cmdline = "* mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_ili9881_720p_video:1:none";
+		compatible = "lenovo,a6010", "wingtech,wt86528",
+			     "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-panel;
+
+		panel {
+			compatible = "wingtech,wt86528-panel";
+
+			qcom,mdss_dsi_innolux_720p_video {
+				compatible = "wingtech,innolux-otm1283a";
+			};
+			qcom,mdss_dsi_hx8394d_720p_video {
+				compatible = "wingtech,tianma-hx8394d";
+			};
+			qcom,mdss_dsi_ili9881_720p_video {
+				compatible = "wingtech,yassy-ili9881";
+			};
+			qcom,mdss_dsi_ili9881_qimei_720p_video {
+				compatible = "wingtech,qimei-ili9881";
+			};
+		};
 	};
 };

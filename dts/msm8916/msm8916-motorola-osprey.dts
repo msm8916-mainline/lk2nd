@@ -6,4 +6,18 @@
 
 	model = "Motorola Moto G 2015 (osprey)";
 	compatible = "motorola,osprey", "qcom,msm8916", "lk2nd,device";
+
+	panel {
+		compatible = "motorola,osprey-panel";
+
+		qcom,mdss_dsi_mot_inx_500_720p_video_v0 {
+			compatible = "motorola,osprey-panel-inx";
+		};
+		qcom,mdss_dsi_mot_tdi_500_720p_video_v0 {
+			compatible = "motorola,osprey-panel-tdi";
+		};
+		qcom,mdss_dsi_mot_boe_500_720p_video_v0 {
+			compatible = "motorola,osprey-panel-boe";
+		};
+	};
 };

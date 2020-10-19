@@ -6,4 +6,15 @@
 
 	model = "Motorola Moto E 2015 LTE (surnia)";
 	compatible = "motorola,surnia", "qcom,msm8916", "lk2nd,device";
+
+	panel {
+		compatible = "motorola,surnia-panel";
+
+		qcom,mdss_dsi_mot_boe_450_qhd_video_v3 {
+			compatible = "motorola,surnia-panel-boe";
+		};
+		qcom,mdss_dsi_mot_inx_450_qhd_video_v1 {
+			compatible = "motorola,surnia-panel-inx";
+		};
+	};
 };
