@@ -46,10 +46,10 @@ $(OUTELF_STRIP): $(OUTELF)
 $(BUILDDIR)/%.dtb: %.dts
 	@$(MKDIR)
 	@echo compiling $<
-	$(NOECHO)dtc -O dtb -o $@ $<
+	$(NOECHO)dtc -O dtb -i dts -o $@ $<
 
 $(OUTDTIMG): $(DTBS)
-	$(NOECHO)scripts/dtbTool -o $@ $(BUILDDIR)/dts
+	$(NOECHO)scripts/dtbTool -o $@ $(BUILDDIR)/dts/$(TARGET)
 
 $(OUTBOOTIMG): $(OUTBIN) $(OUTDTIMG)
 	$(NOECHO)scripts/mkbootimg \
