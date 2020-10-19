@@ -5,6 +5,7 @@ MODULES += lib/libfdt
 LK2ND_DEVICE_OBJ := $(LOCAL_DIR)/device.o
 OBJS += \
 	$(LK2ND_DEVICE_OBJ) \
+	$(LOCAL_DIR)/panel.o \
 
 ifneq ($(LK2ND_COMPATIBLE),)
 DEFINES += LK2ND_COMPATIBLE="$(LK2ND_COMPATIBLE)"
