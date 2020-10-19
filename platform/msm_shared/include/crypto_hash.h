@@ -131,5 +131,9 @@ static crypto_result_type crypto_sha1(unsigned char *buff_ptr,
 				      unsigned int buff_size,
 				      unsigned char *digest_ptr);
 
+#if VERIFIED_BOOT
 bool crypto_initialized(void);
+#else
+static inline bool crypto_initialized(void) { return 0; }
+#endif
 #endif

@@ -535,3 +535,17 @@ ifeq ($(ENABLE_UFS_SUPPORT), 1)
         OBJS += $(LOCAL_DIR)/rpmb_ufs.o
 endif
 endif
+
+ifneq ($(VERIFIED_BOOT),1)
+# Why do we need stupid keystore stuff with verified boot disabled?
+DEFINES := $(filter-out SSD_ENABLE TZ_SAVE_KERNEL_HASH, $(DEFINES))
+
+# Meh. Who needs crypto? I have nothing to hide!!!!
+unneeded_objs := \
+	$(LOCAL_DIR)/certificate.o \
+	$(LOCAL_DIR)/image_verify.o \
+	$(LOCAL_DIR)/crypto_hash.o \
+	$(LOCAL_DIR)/crypto5_eng.o \
+	$(LOCAL_DIR)/crypto5_wrapper.o
+OBJS := $(filter-out $(unneeded_objs), $(OBJS))
+endif

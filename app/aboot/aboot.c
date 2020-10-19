@@ -51,7 +51,9 @@
 #include <crypto_hash.h>
 #include <malloc.h>
 #include <boot_stats.h>
+#if VERIFIED_BOOT
 #include <sha.h>
+#endif
 #include <platform/iomap.h>
 #include <boot_device.h>
 #include <boot_verifier.h>
@@ -1055,6 +1057,7 @@ static bool check_format_bit()
 	return ret;
 }
 
+#if VERIFIED_BOOT
 void boot_verifier_init()
 {
 
@@ -1080,6 +1083,7 @@ void boot_verifier_init()
 		dprintf(CRITICAL, "Keystore verification failed! Continuing anyways...\n");
 	}
 }
+#endif
 
 int boot_linux_from_mmc(void)
 {

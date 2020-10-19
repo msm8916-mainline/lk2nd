@@ -29,7 +29,9 @@
 #ifndef __PLATFORM_MSM_SHARED_DISPLAY_MENU_H
 #define __PLATFORM_MSM_SHARED_DISPLAY_MENU_H
 
+#if VERIFIED_BOOT
 #include <openssl/evp.h>
+#endif
 #include <kernel/mutex.h>
 
 #define SELECT_OPTION_MAX	5

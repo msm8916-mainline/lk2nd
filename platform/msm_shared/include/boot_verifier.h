@@ -27,7 +27,7 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __BOOT_VERIFIER_H
+#if !defined(__BOOT_VERIFIER_H) && VERIFIED_BOOT
 #define __BOOT_VERIFIER_H
 
 #include <asn1.h>
