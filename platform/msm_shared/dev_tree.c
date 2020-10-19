@@ -37,6 +37,7 @@
 #include <board.h>
 #include <list.h>
 #include <kernel/thread.h>
+#include <lk2nd-device.h>
 
 struct dt_entry_v1
 {
@@ -1441,6 +1442,7 @@ int update_device_tree(void *fdt, const char *cmdline,
 		}
 	}
 
+	lk2nd_update_device_tree(fdt, cmdline);
 	fdt_pack(fdt);
 
 	return ret;
