@@ -4,4 +4,15 @@
 / {
 	model = "Motorola Moto G4 Play (harpia)";
 	compatible = "motorola,harpia", "qcom,msm8916", "lk2nd,device";
+
+	panel {
+		compatible = "motorola,harpia-panel";
+
+		qcom,mdss_dsi_mot_boe_499_720p_video_v1 {
+			compatible = "motorola,harpia-panel-boe";
+		};
+		qcom,mdss_dsi_mot_tianma_499_720p_video_v2 {
+			compatible = "motorola,harpia-panel-tianma";
+		};
+	};
 };
