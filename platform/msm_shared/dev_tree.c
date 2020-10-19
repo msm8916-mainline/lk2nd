@@ -51,6 +51,8 @@
 
 #define BOOT_DEV_MAX_LEN        64
 #define NODE_PROPERTY_MAX_LEN   64
+#include <lk2nd-device.h>
+
 #define ADD_OF(a, b) (UINT_MAX - b > a) ? (a + b) : UINT_MAX
 #define ADDR_ALIGNMENT 16
 /** 512KB stack **/
@@ -2185,6 +2187,7 @@ int update_device_tree(void *fdt, const char *cmdline,
 		}
 	}
 
+	lk2nd_update_device_tree(fdt, cmdline);
 	fdt_pack(fdt);
 
 #if ENABLE_PARTIAL_GOODS_SUPPORT

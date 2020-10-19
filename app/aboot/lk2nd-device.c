@@ -74,6 +74,34 @@ static inline void parse_arg(const char *str, const char *pre, const char **out)
 		*out = strdup(val);
 }
 
+static const char *parse_panel(const char *panel)
+{
+	const char *panel_name;
+	char *end;
+
+	if (!panel)
+		return NULL;
+
+	/*
+	 * Clean up a bit when arg looks like 1:dsi:0:<panel-name>:...
+	 * It could look different, but I don't know how to handle that yet.
+	 */
+	panel_name = strpresuf(panel, "1:dsi:0:");
+	if (!panel_name) /* Some other format */
+		return NULL;
+
+	/* Cut off other garbage at the end of the string (e.g. :1:none) */
+	end = strchr(panel_name, ':');
+	if (end)
+		*end = 0;
+
+	/* If this isn't the main panel we don't really know how to deal with this */
+	if (strcmp(panel_name, "none") == 0)
+		return NULL;
+
+	return panel_name;
+}
+
 static void parse_boot_args(void)
 {
 	char *saveptr;
@@ -88,12 +116,15 @@ static void parse_boot_args(void)
 			parse_arg(aboot, "serialno=", &lk2nd_dev.serialno);
 			parse_arg(aboot, "carrier=", &lk2nd_dev.carrier);
 			parse_arg(aboot, "radio=", &lk2nd_dev.radio);
+		} else {
+			parse_arg(arg, "mdss_mdp.panel=", &lk2nd_dev.panel.name);
 		}
 
 		arg = strtok_r(NULL, " ", &saveptr);
 	}
 
 	free(args);
+	lk2nd_dev.panel.name = parse_panel(lk2nd_dev.panel.name);
 }
 
 static const char *fdt_copyprop_str(const void *fdt, int offset, const char *prop)
@@ -104,7 +135,7 @@ static const char *fdt_copyprop_str(const void *fdt, int offset, const char *pro
 
 	val = fdt_getprop(fdt, offset, prop, &len);
 	if (val && len > 0) {
-		result = (char*) malloc(sizeof(char) * len);
+		result = malloc(len);
 		ASSERT(result);
 		strlcpy(result, val, len);
 	}
@@ -205,6 +236,52 @@ void lk2nd_panic_hook()
 	memcpy(lk2nd_dev.pstore, buf, MIN(size, lk2nd_dev.pstore_size));
 }
 
+static const char *fdt_getprop_str(const void *fdt, int offset, const char *prop, int *len)
+{
+	const char *val;
+
+	val = fdt_getprop(fdt, offset, prop, len);
+	if (!val || *len < 1)
+		return NULL;
+	*len = strnlen(val, *len);
+	return val;
+}
+
+static void lk2nd_parse_panels(const void *fdt, int offset)
+{
+	struct lk2nd_panel *panel = &lk2nd_dev.panel;
+	const char *old, *new;
+	int old_len, new_len;
+
+	offset = fdt_subnode_offset(fdt, offset, "panel");
+	if (offset < 0)
+		return;
+
+	old = fdt_getprop_str(fdt, offset, "compatible", &old_len);
+	if (!old || old_len < 1)
+		return;
+
+	offset = fdt_subnode_offset(fdt, offset, panel->name);
+	if (offset < 0) {
+		dprintf(CRITICAL, "Unsupported panel: %s\n", panel->name);
+		return;
+	}
+
+	new = fdt_getprop_str(fdt, offset, "compatible", &new_len);
+	if (!new || new_len < 1)
+		return;
+
+	/* Include space required for null-terminators */
+	panel->compatible_size = ++new_len + ++old_len;
+
+	panel->compatible = malloc(panel->compatible_size);
+	ASSERT(panel->compatible);
+	panel->old_compatible = panel->compatible + new_len;
+
+	strlcpy((char*) panel->compatible, new, new_len);
+	strlcpy((char*) panel->old_compatible, old, old_len);
+}
+
 static void lk2nd_parse_device_node(const void *fdt)
 {
 	const uint32_t *pstore = NULL;
@@ -229,6 +306,9 @@ static void lk2nd_parse_device_node(const void *fdt)
 		lk2nd_pstore_map(fdt32_to_cpu(pstore[0]),
 				fdt32_to_cpu(pstore[1]));
 	}
+
+	if (lk2nd_dev.panel.name)
+		lk2nd_parse_panels(fdt, offset);
 }
 
 
@@ -292,4 +372,32 @@ void lk2nd_init(void)
 {
 	dump_board();
 	lk2nd_fdt_parse();
+}
+
+static void lk2nd_update_panel_compatible(void *fdt)
+{
+	struct lk2nd_panel *panel = &lk2nd_dev.panel;
+	int offset, ret;
+
+	/* Try to find panel node */
+	offset = fdt_node_offset_by_compatible(fdt, -1, panel->old_compatible);
+	if (offset < 0) {
+		dprintf(CRITICAL, "Failed to find panel node with compatible: %s\n",
+			panel->old_compatible);
+		return;
+	}
+
+	ret = fdt_setprop(fdt, offset, "compatible", panel->compatible, panel->compatible_size);
+	if (ret)
+		dprintf(CRITICAL, "Failed to update panel compatible: %d\n", ret);
+}
+
+void lk2nd_update_device_tree(void *fdt, const char *cmdline)
+{
+	/* Don't touch lk2nd/downstream dtb */
+	if (strstr(cmdline, "lk2nd"))
+		return;
+
+	if (lk2nd_dev.panel.compatible)
+		lk2nd_update_panel_compatible(fdt);
 }

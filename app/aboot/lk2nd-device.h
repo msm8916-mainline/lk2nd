@@ -5,6 +5,13 @@
 
 #include <dev_tree.h>
 
+struct lk2nd_panel {
+	const char *name;
+	const char *old_compatible;
+	const char *compatible;
+	int compatible_size;
+};
+
 struct lk2nd_device {
 	void *fdt;
 	const char *model;
@@ -19,6 +26,8 @@ struct lk2nd_device {
 	void *pstore;
 	unsigned int pstore_size;
 	bool dev_mode;
+
+	struct lk2nd_panel panel;
 };
 
 extern struct lk2nd_device lk2nd_dev;
@@ -28,5 +37,7 @@ int lk2nd_fdt_parse_early_uart(void);
 
 void lk2nd_samsung_muic_reset(const void *fdt, int offset);
 void lk2nd_motorola_smem_write_unit_info(const void *fdt, int offset);
+
+void lk2nd_update_device_tree(void *fdt, const char *cmdline);
 
 #endif
