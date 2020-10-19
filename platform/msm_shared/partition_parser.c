@@ -97,11 +97,12 @@ struct partition_entry* partition_get_partition_entries()
 	return partition_entries;
 }
 
+#ifdef LK2ND_SIZE
 void partition_split_boot(uint32_t block_size)
 {
 	struct partition_entry *boot;
 	int index = partition_get_index("boot");
-	unsigned long long lk_size = (1 * 1024 * 1024) / block_size;
+	unsigned long long lk_size = LK2ND_SIZE / block_size;
 
 	if (index == INVALID_PTN) {
 		dprintf(CRITICAL, "Boot partition not found\n");
@@ -127,6 +128,7 @@ void partition_split_boot(uint32_t block_size)
 	boot->first_lba += lk_size;
 	boot->size -= lk_size;
 }
+#endif
 
 unsigned int partition_read_table()
 {
@@ -158,7 +160,9 @@ unsigned int partition_read_table()
 		}
 	}
 
+#ifdef LK2ND_SIZE
 	partition_split_boot(block_size);
+#endif
 	return 0;
 }
 
