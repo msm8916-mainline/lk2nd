@@ -9,7 +9,7 @@ a proper WiFi/BT MAC address in the device tree.
 
 lk2nd does not replace the stock bootloader. It is packaged into an Android
 boot image and then loaded by the stock bootloader as a "secondary" bootloader.
-The real Android boot image is placed into the boot partition with 1 MB offset,
+The real Android boot image is placed into the boot partition with 512 KiB offset,
 and then loaded by lk2nd.
 
 ## Supported SoCs
@@ -67,7 +67,7 @@ should be enough to make the stock bootloader ignore the keys.
 `fastboot flash lk2nd lk2nd.img` can be used to update lk2nd directory from its
 fastboot interface.
 
-**Note:** `fastboot flash boot boot.img` will flash the actual boot image with 1 MB offset
+**Note:** `fastboot flash boot boot.img` will flash the actual boot image with 512 KiB offset
 into the boot partition. This is done to avoid replacing lk2nd (since it is also booted from
 the boot partition).
 
