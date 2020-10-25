@@ -168,6 +168,17 @@ static bool match_string(const char *s, const char *match, size_t len)
 	return strncmp(s, match, len + 1) == 0;
 }
 
+static bool match_panel(const void *fdt, int offset, const char *panel_name)
+{
+	offset = fdt_subnode_offset(fdt, offset, "panel");
+	if (offset < 0) {
+		dprintf(CRITICAL, "No panels defined, cannot match\n");
+		return false;
+	}
+
+	return fdt_subnode_offset(fdt, offset, panel_name) >= 0;
+}
+
 static bool lk2nd_device_match(const void *fdt, int offset)
 {
 	int len;
@@ -188,8 +199,14 @@ static bool lk2nd_device_match(const void *fdt, int offset)
 	if (val && len > 0) {
 		if (!lk2nd_dev.cmdline)
 			return false;
-
 		return match_string(lk2nd_dev.cmdline, val, len);
+	}
+
+	fdt_getprop(fdt, offset, "lk2nd,match-panel", &len);
+	if (len >= 0) {
+		if (!lk2nd_dev.panel.name)
+			return false;
+		return match_panel(fdt, offset, lk2nd_dev.panel.name);
 	}
 
 	return true; // No match property
