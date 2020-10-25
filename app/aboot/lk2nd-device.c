@@ -174,12 +174,8 @@ static bool lk2nd_device_match(const void *fdt, int offset)
 
 	val = fdt_getprop(fdt, offset, "lk2nd,match-bootloader", &len);
 	if (val && len > 0) {
-		if (!lk2nd_dev.bootloader) {
-			if (lk2nd_dev.cmdline)
-				dprintf(CRITICAL, "Unknown bootloader, cannot match\n");
+		if (!lk2nd_dev.bootloader)
 			return false;
-		}
-
 		return match_string(lk2nd_dev.bootloader, val, len);
 	}
 
