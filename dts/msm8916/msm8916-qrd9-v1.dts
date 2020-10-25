@@ -19,4 +19,10 @@
 		compatible = "bq,paella", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "paella-*";
 	};
+
+	lenovo-a6010 {
+		model = "Lenovo A6010";
+		compatible = "lenovo,a6010", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-cmdline = "* mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_ili9881_720p_video:1:none";
+	};
 };
