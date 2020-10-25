@@ -5,7 +5,11 @@
 /include/ "skeleton.dtsi"
 
 / {
-	/* FIXME: Need to split this up if there are more devices with same board-id */
-	compatible = "qcom,msm8916-v1-qrd/12-v1", "qcom,msm8916", "lk2nd,device";
-	model = "Wingtech WT88047";
+	compatible = "qcom,msm8916-v1-qrd/12-v1", "qcom,msm8916";
+
+	wingtech-wt88047 {
+		compatible = "wingtech,wt88047", "qcom,msm8916", "lk2nd,device";
+		model = "Xiaomi Redmi 2 (Wingtech WT88047)";
+		lk2nd,match-cmdline = "* mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_r61308_720p_video:1:none *";
+	};
 };
