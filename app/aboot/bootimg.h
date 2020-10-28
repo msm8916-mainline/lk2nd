@@ -112,8 +112,8 @@ struct kernel64_hdr
     uint32_t insn;
     uint32_t res1;
     uint64_t text_offset;
-    uint64_t res2;
-    uint64_t res3;
+    uint64_t image_size;
+    uint64_t flags;
     uint64_t res4;
     uint64_t res5;
     uint64_t res6;
