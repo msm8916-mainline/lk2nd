@@ -349,16 +349,97 @@ extern int emmc_recovery_init(void);
 extern int fastboot_trigger(void);
 #endif
 
-static void update_ker_tags_rdisk_addr(boot_img_hdr *hdr, bool is_arm64)
+#if VERIFIED_BOOT
+static bool is_cmd_fastboot_allowed(const char *arg, int cmd)
+{
+	if (target_build_variant_user()) {
+		switch (cmd) {
+		case CMD_FLASH:
+			/* if device is locked:
+			 * common partition will not allow to be flashed
+			 * critical partition will allow to flash image.
+			 */
+			if (!device.is_unlocked &&
+				!critical_flash_allowed(arg)) {
+				fastboot_fail("Partition flashing is not allowed");
+				return false;
+			}
+
+			/* if device critical is locked:
+			 * common partition will allow to be flashed
+			 * critical partition will not allow to flash image.
+			 */
+			if (VB_V2 == target_get_vb_version() &&
+				!device.is_unlock_critical &&
+				critical_flash_allowed(arg)) {
+				fastboot_fail("Critical partition flashing is not allowed");
+				return false;
+			}
+			break;
+		case CMD_META:
+			if (!device.is_unlocked) {
+				fastboot_fail("Device is locked, meta image flashing is not allowed");
+				return false;
+			}
+
+			if (VB_V2 == target_get_vb_version() &&
+				!device.is_unlock_critical)
+			{
+				fastboot_fail("Device is critical locked, Meta image flashing is not allowed");
+				return false;
+			}
+			break;
+		case CMD_ERASE:
+		case CMD_BOOT:
+			if (!device.is_unlocked)
+				return false;
+			default:
+				break;
+		}
+	}
+
+	return true;
+}
+#else
+static bool is_cmd_fastboot_allowed(const char *arg, int cmd)
+{
+	if (is_vb_le_enabled()) {
+		if (!device.is_unlocked) {
+			fastboot_fail("device is in locked state, this command is not allowed");
+			return false;
+		}
+	}
+
+	return true;
+}
+#endif
+
+static void update_ker_tags_rdisk_addr(boot_img_hdr *hdr, struct kernel64_hdr *kptr)
 {
 	/* overwrite the destination of specified for the project */
 #ifdef ABOOT_IGNORE_BOOT_HEADER_ADDRS
-	if (is_arm64)
+	if (kptr && IS_ARM64(kptr))
 		hdr->kernel_addr = ABOOT_FORCE_KERNEL64_ADDR;
 	else
 		hdr->kernel_addr = ABOOT_FORCE_KERNEL_ADDR;
 	hdr->ramdisk_addr = ABOOT_FORCE_RAMDISK_ADDR;
 	hdr->tags_addr = ABOOT_FORCE_TAGS_ADDR;
+
+	/*
+	 * ARM64 kernels specify the expected text offset in kptr->text_offset.
+	 * However, this is not reliable until Linux 3.17.
+	 * Check if image_size != 0 to detect newer kernels and use their
+	 * expected offset in that case to avoid:
+	 *
+	 * [Firmware Bug]: Kernel image misaligned at boot, please fix your bootloader!
+	 *
+	 * See Linux commit a2c1d73b94ed49f5fac12e95052d7b140783f800.
+	 */
+	if (kptr && IS_ARM64(kptr) && kptr->image_size) {
+		/* text_offset bytes from a 2MB aligned base address */
+		hdr->kernel_addr &= ~0x1fffff;
+		hdr->kernel_addr += kptr->text_offset;
+	}
 #endif
 }
 
@@ -1988,7 +2069,7 @@ int boot_linux_from_mmc(void)
 	 * has default values, these default values come from mkbootimg when
 	 * the boot image is flashed using fastboot flash:raw
 	 */
-	update_ker_tags_rdisk_addr(hdr, IS_ARM64(kptr));
+	update_ker_tags_rdisk_addr(hdr, kptr);
 
 	/* Get virtual addresses since the hdr saves physical addresses. */
 	hdr->kernel_addr = VA((addr_t)(hdr->kernel_addr));
@@ -2206,7 +2287,7 @@ int boot_linux_from_flash(void)
 	 * has default values, these default values come from mkbootimg when
 	 * the boot image is flashed using fastboot flash:raw
 	 */
-	update_ker_tags_rdisk_addr(hdr, false);
+	update_ker_tags_rdisk_addr(hdr, NULL);
 
 	/* Get virtual addresses since the hdr saves physical addresses. */
 	hdr->kernel_addr = VA((addr_t)(hdr->kernel_addr));
@@ -3273,7 +3354,7 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	 * has default values, these default values come from mkbootimg when
 	 * the boot image is flashed using fastboot flash:raw
 	 */
-	update_ker_tags_rdisk_addr(hdr, IS_ARM64(kptr));
+	update_ker_tags_rdisk_addr(hdr, kptr);
 
 	/* Get virtual addresses since the hdr saves physical addresses. */
 	hdr->kernel_addr = VA(hdr->kernel_addr);
