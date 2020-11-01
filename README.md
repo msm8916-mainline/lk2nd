@@ -21,6 +21,7 @@ See [Chipsets](https://github.com/efidroid/projectmanagement/wiki/%5BReference%5
 page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 
 ### Supported devices
+- Alcatel OneTouch Idol 3 (4.7) - 6039*
 - Alcatel OneTouch Idol 3 (5.5) - 6045*
 - Asus Zenfone 2 Laser (720p) - Z00L
 - Asus Zenfone 2 Laser (1080p) - Z00T
