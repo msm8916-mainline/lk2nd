@@ -638,7 +638,7 @@ unsigned char *update_cmdline(const char* cmdline)
 	if (cmdline && lk2nd_dev.cmdline &&
 	    (strstr(cmdline, "androidboot.hardware=qcom") || strstr(cmdline, "lk2nd")))
 		return concat_args(cmdline, lk2nd_dev.cmdline);
-	return update_cmdline0(cmdline);
+	return strdup(cmdline);
 }
 
 unsigned *atag_core(unsigned *ptr)
