@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008 Travis Geiselbrecht
  *
- * Copyright (c) 2015-2019, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2015-2020, The Linux Foundation. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -271,6 +271,11 @@ __WEAK bool target_is_pmi_enabled(void)
 __WEAK uint32_t target_ddr_cfg_val()
 {
 	return DDR_CONFIG_VAL;
+}
+
+__WEAK unsigned int qseecom_get_version()
+{
+	return 0;
 }
 
 /* Target uses system as root */

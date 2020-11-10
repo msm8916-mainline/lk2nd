@@ -1,4 +1,4 @@
-/* Copyright (c) 2015,2017, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015,2017, 2020, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -96,11 +96,6 @@ static struct ptable flash_ptable;
 #define CE_WRITE_PIPE_LOCK_GRP  0
 #define CE_ARRAY_SIZE           20
 #define SUB_TYPE_SKUT           0x0A
-
-__WEAK unsigned int qseecom_get_version()
-{
-        return 0;
-}
 
 struct qpic_nand_init_config config;
 
