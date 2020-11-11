@@ -2,7 +2,7 @@
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2015, 2018, 2019 The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2015, 2018-2020 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -562,9 +562,7 @@ void display_default_image_on_screen(void)
 	unsigned total_y;
 	unsigned bytes_per_bpp;
 	unsigned image_base;
-#if DISPLAY_TYPE_MIPI
 	char *image = NULL;
-#endif
 
 	if (!config) {
 		dprintf(CRITICAL,"NULL configuration, image cannot be displayed\n");
