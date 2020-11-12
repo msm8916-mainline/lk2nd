@@ -35,6 +35,7 @@
 #include <platform/iomap.h>
 #include <platform/timer.h>
 #include <bits.h>
+#include <app/aboot/bootimg.h>
 
 #if MMC_BOOT_ADM
 #include "adm.h"
@@ -161,7 +162,7 @@ unsigned int SWAP_ENDIAN(unsigned int val)
 
 uint32_t mmc_page_size()
 {
-	return BOARD_KERNEL_PAGESIZE;
+	return kernel_hdr_page_size();
 }
 
 void mmc_mclk_reg_wr_delay()
