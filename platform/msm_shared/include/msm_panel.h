@@ -105,7 +105,7 @@ struct spi_panel_info {
 	struct mdss_spi_cmd *panel_cmds;
 	uint8_t *signature_addr;
 	uint8_t *signature;
-	uint8_t *signature_len;
+	uint8_t signature_len;
 };
 
 struct hdmi_panel_info {
