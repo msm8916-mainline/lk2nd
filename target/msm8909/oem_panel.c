@@ -52,7 +52,7 @@
 #include "include/panel_st7789v2_qvga_spi_cmd.h"
 #include "include/panel_gc9305_qvga_spi_cmd.h"
 
-#define DISPLAY_MAX_PANEL_DETECTION 0
+#define DISPLAY_MAX_PANEL_DETECTION 2
 #define ILI9806E_FWVGA_VIDEO_PANEL_POST_INIT_DELAY 68
 
 enum {
@@ -443,7 +443,7 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		panelstruct->panelresetseq	= &st7789v2_qvga_cmd_reset_seq;
 		panelstruct->backlightinfo	= &st7789v2_qvga_cmd_backlight;
 		pinfo->spi.panel_cmds		= st7789v2_qvga_cmd_on_command;
-		pinfo->spi.num_of_panel_cmds= ST7789v2_QVGA_CMD_ON_COMMAND;
+		pinfo->spi.num_of_panel_cmds    = ST7789v2_QVGA_CMD_ON_COMMAND;
 		pinfo->spi.signature_addr	= &st7789v2_signature_addr;
 		pinfo->spi.signature		= st7789v2_signature;
 		pinfo->spi.signature_len	= st7789v2_signature_len;
@@ -460,6 +460,12 @@ static int init_panel_data(struct panel_struct *panelstruct,
 					= gc9305_qvga_cmd_on_command;
 		pinfo->spi.num_of_panel_cmds
 					= GC9305_QVGA_CMD_ON_COMMAND;
+		pinfo->spi.signature_addr
+					= &gc9305_signature_addr;
+		pinfo->spi.signature
+					= gc9305_signature;
+		pinfo->spi.signature_len
+					= gc9305_signature_len;
 		pan_type = PANEL_TYPE_SPI;
 		break;
 	case UNKNOWN_PANEL:
@@ -492,6 +498,8 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	uint32_t platform_type = board_platform_id();
 	uint32_t platform_subtype = board_hardware_subtype();
 	int32_t panel_override_id;
+	uint32_t target_id = board_target_id();
+	uint32_t plat_hw_ver_major = ((target_id >> 16) & 0xFF);;
 
 	if (panel_name) {
 		panel_override_id = panel_name_to_id(supp_panels,
@@ -541,8 +549,24 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	case HW_PLATFORM_QRD:
 		switch (platform_subtype) {
 			case QRD_SKUA:
-				if (MSM8905 == board_platform_id())
-					panel_id = GC9305_QVGA_SPI_CMD_PANEL;
+				if (MSM8905 == board_platform_id()) {
+					if (target_panel_auto_detect_enabled()) {
+						/* QRD8905 Nand SKU */
+						switch (auto_pan_loop) {
+							case 0:
+								panel_id = ST7789v2_QVGA_SPI_CMD_PANEL;
+								break;
+							case 1:
+								panel_id = GC9305_QVGA_SPI_CMD_PANEL;
+								break;
+							default:
+								panel_id = ST7789v2_QVGA_SPI_CMD_PANEL;
+								break;
+						}
+					} else
+						panel_id = GC9305_QVGA_SPI_CMD_PANEL;
+					auto_pan_loop++;
+				}
 				else
 					panel_id = HX8379A_FWVGA_SKUA_VIDEO_PANEL;
 				break;

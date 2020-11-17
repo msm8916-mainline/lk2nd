@@ -66,7 +66,7 @@ static struct gpio_pin dc_gpio = {
 };
 
 static struct gpio_pin spi_dc_gpio = {
-        "msmgpio", 59, 3, 1, 0, 1
+        "msmgpio", 110, 3, 1, 0, 1
 };
 
 static struct gpio_pin te_gpio = {
@@ -121,6 +121,6 @@ static const uint32_t panel_physical_ctrl[] = {
 #define MIPI_VSYNC_FRONT_PORCH_LINES 9
 
 #define SPI_BLSP_ID                  1
-#define SPI_QUP_ID                   3
+#define SPI_QUP_ID                   4
 
 #endif

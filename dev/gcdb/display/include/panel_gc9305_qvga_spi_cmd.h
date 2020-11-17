@@ -267,6 +267,11 @@ static struct backlight gc9305_qvga_cmd_backlight = {
 	1, 1, 4095, 100, 1, "PMIC_8941"
 };
 
-#define GC9305_QVGA_CMD_SIGNATURE 0xFFFF
+static uint8_t gc9305_signature_addr = 0x04;
 
+static uint8_t gc9305_signature_len = 3;
+
+static uint8_t gc9305_signature[] = {
+	0x00, 0x93, 0x05
+};
 #endif /* PANEL_GC9305_QVGA_SPI_CMD_H */
