@@ -23,4 +23,10 @@
 		// FIXME: There are multiple possible panels, might need to add more
 		lk2nd,match-cmdline = "* mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_hx8394a_hd_tdt_video:1:none";
 	};
+
+	asus-z010d {
+		model = "Asus Zenfone Max ZC550KL";
+		compatible = "asus,z010d", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-cmdline = "* mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_r69339_720p_video:1:none";
+	};
 };
