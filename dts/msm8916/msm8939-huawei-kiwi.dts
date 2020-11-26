@@ -1,0 +1,13 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+/include/ "skeleton.dtsi"
+
+/ {
+	qcom,msm-id = <239 0>;
+	qcom,board-id = <8065 4>;
+
+	model = "Huawei Honor 5X (L21)";
+	compatible = "huawei,kiwi", "qcom,msm8939", "lk2nd,device";
+};

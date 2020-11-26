@@ -25,5 +25,6 @@ DTBS += \
 	$(LOCAL_DIR)/msm8929-samsung-r00.dtb \
 	$(LOCAL_DIR)/msm8929-samsung-r04.dtb \
 	$(LOCAL_DIR)/msm8939-asus-z00t.dtb \
+	$(LOCAL_DIR)/msm8939-huawei-kiwi.dtb \
 	$(LOCAL_DIR)/msm8939-mtp.dtb \
 	$(LOCAL_DIR)/msm8939-qrd-skuk.dtb
