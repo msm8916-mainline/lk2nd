@@ -240,7 +240,14 @@ struct verified_boot_state_name vbsn[] =
 #endif
 /*As per spec delay wait time before shutdown in Red state*/
 #define DELAY_WAIT 30000
-static unsigned page_size = 0;
+static unsigned page_size = BOARD_KERNEL_PAGESIZE;
+
+uint32_t kernel_hdr_page_size()
+{
+	return page_size;
+}
+
+
 static unsigned page_mask = 0;
 static unsigned mmc_blocksize = 0;
 static unsigned mmc_blocksize_mask = 0;

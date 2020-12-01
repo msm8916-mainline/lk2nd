@@ -206,6 +206,7 @@ boot_img_hdr *mkbootimg(void *kernel, unsigned kernel_size,
 
 void bootimg_set_cmdline(boot_img_hdr *hdr, const char *cmdline);                
 
+uint32_t kernel_hdr_page_size();
 #define KERNEL64_HDR_MAGIC 0x644D5241 /* ARM64 */
 
 struct kernel64_hdr
