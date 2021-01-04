@@ -1,0 +1,32 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+/include/ "skeleton.dtsi"
+
+/ {
+	compatible = "qcom,msm8916-v1-qrd/8-v1", "qcom,msm8916";
+
+	lenovo-a6000 {
+		model = "Lenovo A6000 (Wingtech WT86518)";
+		compatible = "wingtech,wt86518", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-panel;
+
+		panel {
+			compatible = "wingtech,wt86518-panel";
+
+			qcom,mdss_dsi_innolux_720p_video {
+				compatible = "wingtech,innolux-otm1283a";
+			};
+			qcom,mdss_dsi_hx8394d_720p_video {
+				compatible = "wingtech,tianma-hx8394d";
+			};
+			qcom,mdss_dsi_ili9881_720p_video {
+				compatible = "wingtech,yassy-ili9881";
+			};
+			qcom,mdss_dsi_ili9881_qimei_720p_video {
+				compatible = "wingtech,qimei-ili9881";
+			};
+		};
+	};
+};
