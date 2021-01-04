@@ -26,6 +26,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Asus Zenfone 2 Laser (720p) - Z00L
 - Asus Zenfone 2 Laser (1080p) - Z00T
 - BQ Aquaris X5 (paella, picmt)
+- Lenovo A6000
 - Lenovo A6010
 - Lenovo PHAB Plus - PB1-770M, PB1-770N
 - LG K10 (m216) - K420 (see notes in `dts/msm8916-lg.dts` for now)
