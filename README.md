@@ -26,14 +26,15 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Asus Zenfone 2 Laser (720p) - Z00L
 - Asus Zenfone 2 Laser (1080p) - Z00T
 - Asus Zenfone Max ZC550KL (2016) - Z010D
-- BQ Aquaris X5 (paella, picmt)
+- BQ Aquaris X5 - paella, picmt
 - Lenovo A6000
 - Lenovo A6010
 - Lenovo PHAB Plus - PB1-770M, PB1-770N
 - LG K10 (m216) - K420 (see notes in `dts/msm8916-lg.dts` for now)
 - Marshall London
-- Motorola Moto E (2015, surnia)
-- Motorola Moto G4 Play (harpia)
+- Motorola Moto E (2015) - surnia
+- Motorola Moto G (2015) - osprey
+- Motorola Moto G4 Play - harpia
 - Samsung Galaxy A3 (2015) - SM-A300FU
 - Samsung Galaxy A5 (2015) - SM-A500F, SM-A500FU
 - Samsung Galaxy Grand Prime - SM-G530W
@@ -48,9 +49,9 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Samsung Galaxy Tab A 8.0 LTE (2015) - SM-T357W
 - Samsung Galaxy Tab A 9.7 WiFi (2015) - SM-T550
 - Vodafone Smart prime 6
-- Wileyfox Swift
+- Wileyfox Swift - crackling
 - Xiaomi Mi 4i
-- Xiaomi Redmi 2 (wt86047, wt88047)
+- Xiaomi Redmi 2 - wt86047, wt88047
 
 ## Installation
 1. Download `lk2nd.img` (available in [Releases](https://github.com/msm8916-mainline/lk2nd/releases))
