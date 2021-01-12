@@ -638,6 +638,8 @@ unsigned char *update_cmdline(const char* cmdline)
 	if (cmdline && lk2nd_dev.cmdline &&
 	    (strstr(cmdline, "androidboot.hardware=qcom") || strstr(cmdline, "lk2nd")))
 		return concat_args(cmdline, lk2nd_dev.cmdline);
+	if (strcmp(lk2nd_dev.boot_mode, "charger") == 0)
+		return concat_args(cmdline, "androidboot.mode=charger");
 	return strdup(cmdline);
 }
 

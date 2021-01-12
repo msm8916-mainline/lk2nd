@@ -115,6 +115,7 @@ static void parse_boot_args(void)
 			parse_arg(aboot, "serialno=", &lk2nd_dev.serialno);
 			parse_arg(aboot, "carrier=", &lk2nd_dev.carrier);
 			parse_arg(aboot, "radio=", &lk2nd_dev.radio);
+			parse_arg(aboot, "mode=", &lk2nd_dev.boot_mode);
 		} else {
 			parse_arg(arg, "mdss_mdp.panel=", &lk2nd_dev.panel.name);
 		}

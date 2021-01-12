@@ -24,6 +24,7 @@ struct lk2nd_device {
 	const char *serialno;
 	const char *carrier;
 	const char *radio;
+	const char *boot_mode;
 
 	struct lk2nd_panel panel;
 };
