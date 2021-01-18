@@ -54,23 +54,6 @@
 	lenovo-a6010 {
 		model = "Lenovo A6010 (Wingtech WT86528)";
 		compatible = "wingtech,wt86528", "qcom,msm8916", "lk2nd,device";
-		lk2nd,match-panel;
-
-		panel {
-			compatible = "wingtech,wt865x8-panel";
-
-			qcom,mdss_dsi_innolux_720p_video {
-				compatible = "wingtech,innolux-otm1283a";
-			};
-			qcom,mdss_dsi_hx8394d_720p_video {
-				compatible = "wingtech,tianma-hx8394d";
-			};
-			qcom,mdss_dsi_ili9881_720p_video {
-				compatible = "wingtech,yassy-ili9881";
-			};
-			qcom,mdss_dsi_ili9881_qimei_720p_video {
-				compatible = "wingtech,qimei-ili9881";
-			};
-		};
+		/include/ "msm8916-wingtech-wt865x8.dtsi"
 	};
 };
