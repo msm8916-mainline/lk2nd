@@ -57,7 +57,7 @@
 		lk2nd,match-panel;
 
 		panel {
-			compatible = "wingtech,wt86528-panel";
+			compatible = "wingtech,wt865x8-panel";
 
 			qcom,mdss_dsi_innolux_720p_video {
 				compatible = "wingtech,innolux-otm1283a";
