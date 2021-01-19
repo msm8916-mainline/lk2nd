@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2017, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2017, 2021 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -220,59 +220,6 @@ void target_init(void)
 		target_crypto_init_params();
 }
 
-static int scm_clear_boot_partition_select()
-{
-	int ret = 0;
-
-	ret = scm_call_atomic2(SCM_SVC_BOOT, WDOG_DEBUG_DISABLE, 1, 0);
-	if (ret)
-		dprintf(CRITICAL, "Failed to disable the wdog debug \n");
-
-	return ret;
-}
-
-/* Trigger reboot */
-void reboot_device(unsigned reboot_reason)
-{
-	uint8_t reset_type = 0;
-
-	if (platform_is_mdm9650() || platform_is_sdx20())
-	{
-		/* Clear the boot partition select cookie to indicate
-		 * its a normal reset and avoid going to download mode */
-		scm_clear_boot_partition_select();
-	}
-
-	/* Write the reboot reason */
-	writel(reboot_reason, RESTART_REASON_ADDR);
-
-	if(reboot_reason)
-		reset_type = PON_PSHOLD_WARM_RESET;
-	else
-		reset_type = PON_PSHOLD_HARD_RESET;
-
-	if (platform_is_mdm9650() || platform_is_sdx20())
-	{
-		/* PMD9655 is the PMIC used for MDM9650 */
-		pm8x41_reset_configure(reset_type);
-	} else {
-		/* Configure PMIC for warm reset */
-		/* PM 8019 v1 aligns with PM8941 v2.
-		 * This call should be based on the pmic version
-		 * when PM8019 v2 is available.
-		 */
-		pm8x41_v2_reset_configure(reset_type);
-	}
-
-	/* Drop PS_HOLD for MSM */
-	writel(0x00, MPM2_MPM_PS_HOLD);
-
-	mdelay(5000);
-
-	dprintf(CRITICAL, "Rebooting failed\n");
-	return;
-}
-
 /* Identify the current target */
 void target_detect(struct board_data *board)
 {
@@ -295,18 +242,6 @@ void target_serialno(unsigned char *buf)
 	uint32_t serialno;
 	serialno = board_chip_serial();
 	snprintf((char *)buf, 13, "%x", serialno);
-}
-
-unsigned check_reboot_mode(void)
-{
-	unsigned restart_reason = 0;
-
-	/* Read reboot reason and scrub it */
-	restart_reason = readl(RESTART_REASON_ADDR);
-
-	writel(0x00, RESTART_REASON_ADDR);
-
-	return restart_reason;
 }
 
 int get_target_boot_params(const char *cmdline, const char *part, char **buf)
@@ -798,4 +733,19 @@ void target_crypto_init_params()
 	*/
 	ce_params.do_bam_init      = 0;
 	crypto_init_params(&ce_params);
+}
+
+void pmic_reset_configure(uint8_t reset_type) {
+	if (platform_is_mdm9650() || platform_is_sdx20())
+	{
+		/* PMD9655 is the PMIC used for MDM9650 */
+		pm8x41_reset_configure(reset_type);
+	} else {
+		/* Configure PMIC for warm reset */
+		/* PM 8019 v1 aligns with PM8941 v2.
+		 * This call should be based on the pmic version
+		 * when PM8019 v2 is available.
+		 */
+		pm8x41_v2_reset_configure(reset_type);
+	}
 }
