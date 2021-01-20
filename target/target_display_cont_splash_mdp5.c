@@ -74,7 +74,8 @@ static int mdp5_read_config(struct fbcon_config *fb)
 		return -1;
 	}
 
-	if (cmd_mode) {
+	if (cmd_mode && !(BIT(31) & readl(MDP_REG_PP_0_AUTOREFRESH_CONFIG)))
+	{
 		dummy_panel.autorefresh_enable = 1;
 		dummy_panel.autorefresh_framenum = 1;
 		dummy_panel.type = MIPI_CMD_PANEL;
