@@ -220,6 +220,16 @@ void target_init(void)
 		target_crypto_init_params();
 }
 
+int set_download_mode(enum reboot_reason mode)
+{
+	int ret = 0;
+	ret = scm_dload_mode(mode);
+
+	pm8x41_clear_pmic_watchdog();
+
+	return ret;
+}
+
 /* Identify the current target */
 void target_detect(struct board_data *board)
 {

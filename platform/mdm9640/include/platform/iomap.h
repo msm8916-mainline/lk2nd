@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2016, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2016, 2021 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -226,4 +226,5 @@ uint32_t platform_boot_config();
 /* notify RPM via IPC interrupt*/
 #define APCS_HLOS_IPC_INTERRUPT_0 APCS_ALIAS0_IPC_INTERRUPT
 
+#define TCSR_BOOT_MISC_DETECT       0x193D100
 #endif
