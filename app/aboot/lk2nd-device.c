@@ -194,6 +194,17 @@ void lk2nd_pstore_map(uint32_t phys, uint32_t size)
 	arm_mmu_flush();
 }
 
+void lk2nd_panic_hook()
+{
+	char *buf = lk_log_getbuf();
+	unsigned int size = lk_log_getsize();
+
+	if (!lk2nd_dev.pstore)
+		return;
+
+	memcpy(lk2nd_dev.pstore, buf, MIN(size, lk2nd_dev.pstore_size));
+}
+
 static void lk2nd_parse_device_node(const void *fdt)
 {
 	const uint32_t *pstore = NULL;

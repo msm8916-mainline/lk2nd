@@ -69,6 +69,8 @@ void dump_frame(void *frame)
 	exit_critical_section(); // disable ints
 }
 
+void lk2nd_panic_hook(void);
+
 void _panic(void *caller, const char *fmt, ...)
 {
 	dprintf(ALWAYS, "panic (frame %p): \n", __GET_FRAME());
@@ -79,6 +81,8 @@ void _panic(void *caller, const char *fmt, ...)
 	va_start(ap, fmt);
 	_dvprintf(fmt, ap);
 	va_end(ap);
+
+	lk2nd_panic_hook();
 
 	mdelay(5000);
 
