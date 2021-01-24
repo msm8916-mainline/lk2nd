@@ -230,7 +230,7 @@ static int dev_tree_compatible(void *dtb, uint32_t dtb_size, struct dt_entry_nod
 			cur_dt_entry->size = dtb_size;
 
 			dprintf(SPEW, "Found an appended flattened device tree (%s - %u %u 0x%x)\n",
-				*model ? model : "unknown",
+				model ? model : "unknown",
 				cur_dt_entry->platform_id, cur_dt_entry->variant_id, cur_dt_entry->soc_rev);
 
 			if (platform_dt_absolute_match(cur_dt_entry, dtb_list)) {
@@ -390,7 +390,7 @@ static int dev_tree_compatible(void *dtb, uint32_t dtb_size, struct dt_entry_nod
 
 		for (i=0 ;i < num_entries; i++) {
 			dprintf(SPEW, "Found an appended flattened device tree (%s - %u %u %u 0x%x)\n",
-				*model ? model : "unknown",
+				model ? model : "unknown",
 				dt_entry_array[i].platform_id, dt_entry_array[i].variant_id, dt_entry_array[i].board_hw_subtype, dt_entry_array[i].soc_rev);
 
 			if (platform_dt_absolute_match(&(dt_entry_array[i]), dtb_list)) {
