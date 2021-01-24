@@ -39,6 +39,10 @@ static void update_board_id(struct board_id *board_id)
 	uint32_t hw_subtype = board_id->platform_subtype & 0xff;
 	uint32_t target_id = board_id->variant_id & 0xffff00;
 
+	/* Some Huawei devices seem to use hw_id > 0xff, match entire variant */
+	if (board_hardware_id() > 0xff)
+		hw_id = board_id->variant_id;
+
 	/* See platform_dt_absolute_match() for the checks made here */
 	if (board_hardware_id() != hw_id) {
 		dprintf(INFO, "Updating board hardware id: 0x%x -> 0x%x\n",
