@@ -330,7 +330,7 @@ static void lk2nd_fdt_parse(void)
 	if (dev_tree_get_board_id(fdt, 0, &lk2nd_dev.board_id) == 0)
 		update_board_id(&lk2nd_dev.board_id);
 	else
-		dprintf(INFO, "No valid qcom,board-id in device tree\n");
+		dprintf(INFO, "No valid (or multiple) qcom,board-id in device tree\n");
 
 	lk2nd_dev.cmdline = dev_tree_get_boot_args(fdt);
 	if (lk2nd_dev.cmdline) {

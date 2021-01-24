@@ -1490,7 +1490,7 @@ int dev_tree_get_board_id(const void *fdt, int offset, struct board_id *board_id
 	}
 
 	board_prop = (const struct board_id*) fdt_getprop(fdt, offset, "qcom,board-id", &len);
-	if (!board_prop || len < BOARD_ID_SIZE)
+	if (!board_prop || len != BOARD_ID_SIZE)
 		return 1;
 
 	board_id->variant_id = fdt32_to_cpu(board_prop->variant_id);
