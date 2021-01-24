@@ -1434,6 +1434,10 @@ static int platform_dt_absolute_match(struct dt_entry *cur_dt_entry, struct dt_e
 	/* Determine the bits 10:8 to check the DT with the DDR Size */
 	cur_dt_hlos_ddr = (cur_dt_entry->board_hw_subtype & 0x700);
 
+	/* Some Huawei devices seem to use hw_id > 0xff, match entire variant */
+	if (board_hardware_id() > 0xff)
+		cur_dt_hw_platform = cur_dt_entry->variant_id;
+
 	/* 1. must match the msm_id, platform_hw_id, platform_subtype and DDR size
 	*  soc, board major/minor, pmic major/minor must less than board info
 	*  2. find the matched DTB then return 1
