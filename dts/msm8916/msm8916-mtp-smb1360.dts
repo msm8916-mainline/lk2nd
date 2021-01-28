@@ -12,6 +12,23 @@
 	alcatel-idol347 {
 		model = "Alcatel OneTouch Idol 3 (4.7)";
 		compatible = "alcatel,idol347", "qcom,msm8916", "lk2nd,device";
-		lk2nd,match-cmdline= "* mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_hx8394d_auo_720p_video:1:none";
+		lk2nd,match-panel;
+
+		panel {
+			compatible = "alcatel,idol347-panel";
+
+			qcom,mdss_dsi_hx8394d_auo_720p_video {
+				compatible = "alcatel,auo-hx8394d";
+			};
+			qcom,mdss_dsi_hx8394f_auo_720p_video {
+				compatible = "alcatel,auo-hx8394f";
+			};
+			qcom,mdss_dsi_nt35521s_lg_720p_video {
+				compatible = "alcatel,lg-nt35521s";
+			};
+			qcom,mdss_dsi_otm1284a_lg_720p_video {
+				compatible = "alcatel,lg-otm1284a";
+			};
+		};
 	};
 };
