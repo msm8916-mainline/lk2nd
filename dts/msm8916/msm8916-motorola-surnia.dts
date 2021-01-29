@@ -17,4 +17,17 @@
 			compatible = "motorola,surnia-panel-inx";
 		};
 	};
+
+	/*
+	 * This is not used by lk2nd, for some reason the Motorola bootloader
+	 * wants to update some properties in here. Meh.
+	 */
+	soc {
+		qcom,mdss_dsi_mot_boe_450_qhd_video_v3 {
+			compatible = "qcom,mdss-dsi-panel";
+		};
+		qcom,mdss_dsi_mot_inx_450_qhd_video_v1 {
+			compatible = "qcom,mdss-dsi-panel";
+		};
+	};
 };
