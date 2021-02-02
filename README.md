@@ -75,7 +75,7 @@ Press `Volume Up` while booting to boot into Recovery mode.
 pressing the volume keys. Usually, waiting until the screen turns on and/or the device vibrates
 should be enough to make the stock bootloader ignore the keys.
 
-`fastboot flash lk2nd lk2nd.img` can be used to update lk2nd directory from its
+`fastboot flash lk2nd lk2nd.img` can be used to update lk2nd directly from its
 fastboot interface.
 
 **Note:** `fastboot flash boot boot.img` will flash the actual boot image with 512 KiB offset
@@ -83,6 +83,12 @@ into the boot partition. This is done to avoid replacing lk2nd (since it is also
 the boot partition).
 
 Other fastboot commands work normally.
+
+### Troubleshooting
+If the device shows up via fastboot you can get a log file from lk2nd using
+`fastboot oem lk_log && fastboot get_staged <output-file>`, where `<output-file>`
+is either some text file to write to (e.g. `output.txt`) or `/dev/stdout` to
+write the log to standard output.
 
 ## Building
 Check [Supported SoCs](#supported-socs) for the make target you should use below.
