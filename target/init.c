@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008 Travis Geiselbrecht
  *
- * Copyright (c) 2015-2020, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2015-2021, The Linux Foundation. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -297,6 +297,18 @@ bool target_dynamic_partition_supported(void)
 	return false;
 #endif
 }
+
+#if VIRTUAL_AB_OTA
+bool target_virtual_ab_supported(void)
+{
+	return true;
+}
+#else
+bool target_virtual_ab_supported(void)
+{
+	return false;
+}
+#endif
 
 /* Default CFG register value */
 uint32_t target_ddr_cfg_reg()

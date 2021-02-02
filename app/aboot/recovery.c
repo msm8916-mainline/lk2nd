@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2017,2019 The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2017,2019,2021 The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -615,6 +615,44 @@ int write_misc(unsigned page_offset, void *buf, unsigned size)
 	}
 
 	return 0;
+}
+
+static MiscVirtualABMessage *VirtualAbMsg = NULL;
+
+VirtualAbMergeStatus GetSnapshotMergeStatus (void)
+{
+	VirtualAbMergeStatus MergeStatus = NONE_MERGE_STATUS;
+	uint32_t pagesize = get_page_size();
+
+	if (target_is_emmc_boot())
+	{
+	    if (VirtualAbMsg == NULL) {
+	        if(read_misc(MISC_VIRTUALAB_OFFSET, (void *)&VirtualAbMsg,
+					pagesize))
+		{
+			dprintf(CRITICAL,"Error reading virtualab msg from misc partition\n");
+			return MergeStatus;
+		}
+
+		if (VirtualAbMsg->Magic != MISC_VIRTUAL_AB_MAGIC_HEADER ||
+			VirtualAbMsg->Version != MISC_VIRTUAL_AB_MESSAGE_VERSION) {
+
+			dprintf(CRITICAL,"Error read virtualab msg version:%u magic:%u not valid\n",
+					VirtualAbMsg->Version,VirtualAbMsg->Magic);
+
+			free(VirtualAbMsg);
+			VirtualAbMsg = NULL;
+		}
+		else
+		{
+			dprintf(CRITICAL,"read virtualab MergeStatus:%x\n", VirtualAbMsg->MergeStatus);
+		}
+	    }
+
+	    if (VirtualAbMsg)
+	        MergeStatus = VirtualAbMsg->MergeStatus;
+	}
+	return MergeStatus;
 }
 
 int get_ffbm(char *ffbm, unsigned size)

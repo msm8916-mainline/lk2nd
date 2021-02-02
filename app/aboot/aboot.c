@@ -2,7 +2,7 @@
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2020, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2021, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -285,6 +285,13 @@ static const char *critical_flash_allowed_ptn[] = {
 	"devinfo",
 	"partition"};
 
+static const char *VabSnapshotMergeStatus[] = {
+	"none",
+	"unknown",
+	"snapshotted",
+	"merging",
+	"cancelled"};
+
 struct atag_ptbl_entry
 {
 	char name[16];
@@ -340,6 +347,7 @@ char display_panel_buf[MAX_PANEL_BUF_SIZE];
 char panel_display_mode[MAX_RSP_SIZE];
 char soc_version_str[MAX_RSP_SIZE];
 char block_size_string[MAX_RSP_SIZE];
+static char SnapshotMergeState[MAX_RSP_SIZE];
 #if PRODUCT_IOT
 
 /* For IOT we are using custom version */
@@ -5013,6 +5021,7 @@ void aboot_fastboot_register_commands(void)
 {
 	int i;
 	char hw_platform_buf[MAX_RSP_SIZE];
+	VirtualAbMergeStatus SnapshotMergeStatus;
 
 	struct fastboot_cmd_desc cmd_list[] = {
 						/* By default the enabled list is empty. */
@@ -5133,6 +5142,27 @@ void aboot_fastboot_register_commands(void)
 #endif
         if (target_dynamic_partition_supported())
 		fastboot_publish("is-userspace", "no");
+
+	if (target_virtual_ab_supported()) {
+		SnapshotMergeStatus = GetSnapshotMergeStatus ();
+
+		switch (SnapshotMergeStatus) {
+			case SNAPSHOTTED:
+				SnapshotMergeStatus = SNAPSHOTTED;
+				break;
+			case MERGING:
+				SnapshotMergeStatus = MERGING;
+				break;
+			default:
+				SnapshotMergeStatus = NONE_MERGE_STATUS;
+				break;
+		}
+
+		snprintf(SnapshotMergeState,
+				strlen(VabSnapshotMergeStatus[SnapshotMergeStatus]) + 1,
+				"%s", VabSnapshotMergeStatus[SnapshotMergeStatus]);
+		fastboot_publish("snapshot-update-state", SnapshotMergeState);
+	}
 }
 
 void aboot_init(const struct app_descriptor *app)
