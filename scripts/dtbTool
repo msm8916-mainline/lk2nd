@@ -143,7 +143,7 @@ boot_device_ids_mdm = { 'emmc_sdc1' : 3 }
 panel_ids = { 'hd' : 0, '720p' : 1, 'qHD' : 2, 'fWVGA' : 3 }
 
 try:
-	libfdt = ctypes.CDLL('libfdt.so')
+	libfdt = ctypes.CDLL('libfdt.so.1')
 except OSError:
 	sys.exit("libfdt is missing, please install it")
 
