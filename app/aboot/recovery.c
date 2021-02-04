@@ -544,8 +544,11 @@ int write_misc(unsigned page_offset, void *buf, unsigned size)
 
 		ptn = partition_get_offset(index);
 		ptn_size = partition_get_size(index);
-
+#if VIRTUAL_AB_OTA
+		offset = page_offset;
+#else
 		offset = page_offset * BLOCK_SIZE;
+#endif
 		aligned_size = ROUND_TO_PAGE(size, (unsigned)BLOCK_SIZE - 1);
 		if (ptn_size < offset + aligned_size)
 		{
@@ -618,6 +621,25 @@ int write_misc(unsigned page_offset, void *buf, unsigned size)
 }
 
 static MiscVirtualABMessage *VirtualAbMsg = NULL;
+
+int SetSnapshotMergeStatus (VirtualAbMergeStatus MergeStatus)
+{
+	int Status = 1;
+	VirtualAbMergeStatus OldMergeStatus;
+
+	if (target_is_emmc_boot())
+	{
+		OldMergeStatus = VirtualAbMsg->MergeStatus;
+		VirtualAbMsg->MergeStatus = MergeStatus;
+
+		Status = write_misc(MISC_VIRTUALAB_OFFSET, &VirtualAbMsg, sizeof(VirtualAbMsg));
+		if (Status != 0) {
+			dprintf(CRITICAL, "Write the VirtualAbMsg failed\n");
+			VirtualAbMsg->MergeStatus = OldMergeStatus;
+		}
+	}
+	return Status;
+}
 
 VirtualAbMergeStatus GetSnapshotMergeStatus (void)
 {
