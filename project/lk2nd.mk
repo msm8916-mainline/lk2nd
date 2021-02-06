@@ -32,3 +32,6 @@ endif
 ifeq ($(EMMC_BOOT),1)
 DEFINES += _EMMC_BOOT=1
 endif
+
+# Stop trying to read battery voltage, probably doesn't work on most devices...
+DEFINES := $(filter-out CHECK_BAT_VOLTAGE=1, $(DEFINES))
