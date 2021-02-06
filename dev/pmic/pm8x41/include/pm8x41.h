@@ -213,6 +213,7 @@ int pm8x41_gpio_get(uint8_t gpio, uint8_t *status);
 int pm8x41_gpio_get_sid(uint8_t sid, uint8_t gpio, uint8_t *status);
 int pm8x41_gpio_set(uint8_t gpio, uint8_t value);
 int pm8x41_gpio_set_sid(uint8_t sid, uint8_t gpio, uint8_t value);
+int pm8x41_gpio_direction(uint8_t gpio, uint8_t dir, uint8_t value);
 int pm8x41_gpio_config(uint8_t gpio, struct pm8x41_gpio *config);
 int pm8x41_gpio_config_sid(uint8_t sid, uint8_t gpio, struct pm8x41_gpio *config);
 void pm8x41_set_boot_done();
