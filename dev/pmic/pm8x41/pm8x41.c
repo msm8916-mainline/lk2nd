@@ -127,6 +127,13 @@ int pm8x41_gpio_config(uint8_t gpio, struct pm8x41_gpio *config)
 	return 0;
 }
 
+int pm8x41_gpio_direction(uint8_t gpio, uint8_t dir, uint8_t value)
+{
+	uint32_t gpio_base = GPIO_N_PERIPHERAL_BASE(gpio);
+
+	REG_WRITE(gpio_base + GPIO_MODE_CTL, value | (dir << 4));
+}
+
 /* Reads the status of requested gpio */
 int pm8x41_gpio_get(uint8_t gpio, uint8_t *status)
 {
