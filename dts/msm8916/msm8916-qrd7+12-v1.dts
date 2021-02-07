@@ -5,7 +5,8 @@
 /include/ "skeleton.dtsi"
 
 / {
-	compatible = "qcom,msm8916-v1-qrd/12-v1", "qcom,msm8916";
+	/* The device is usually qrd/7, but the stock bootloader selects qrd/12 */
+	compatible = "qcom,msm8916-v1-qrd/7-v1", "qcom,msm8916-v1-qrd/12-v1", "qcom,msm8916";
 
 	wingtech-wt88047 {
 		compatible = "wingtech,wt88047", "qcom,msm8916", "lk2nd,device";
