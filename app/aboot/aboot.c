@@ -2016,6 +2016,9 @@ void read_device_info_flash(device_info *dev)
 	free(info);
 }
 
+#if DISABLE_DEVINFO
+extern void write_device_info(device_info *dev);
+#else
 void write_device_info(device_info *dev)
 {
 	if(target_is_emmc_boot())
@@ -2044,9 +2047,11 @@ void write_device_info(device_info *dev)
 		write_device_info_flash(dev);
 	}
 }
+#endif
 
 void read_device_info(device_info *dev)
 {
+#if !DISABLE_DEVINFO
 	if(target_is_emmc_boot())
 	{
 		struct device_info *info = memalign(PAGE_SIZE, ROUNDUP(BOOT_IMG_MAX_PAGE_SIZE, PAGE_SIZE));
@@ -2111,6 +2116,9 @@ void read_device_info(device_info *dev)
 	{
 		read_device_info_flash(dev);
 	}
+#elif DEFAULT_UNLOCK
+	dev->is_unlocked = 1;
+#endif
 
 #if WITH_LK2ND
 	if (lk2nd_dev.bootloader)
@@ -2733,6 +2741,9 @@ void cmd_flash_mmc_img(const char *arg, void *data, unsigned sz)
 
 void cmd_flash_meta_img(const char *arg, void *data, unsigned sz)
 {
+#if DISABLE_DEVINFO
+	fastboot_fail("Cannot flash meta image with disabled devinfo");
+#else
 	int i, images;
 	meta_header_t *meta_header;
 	img_header_entry_t *img_header_entry;
@@ -2805,6 +2816,7 @@ void cmd_flash_meta_img(const char *arg, void *data, unsigned sz)
 	write_device_info(&device);
 	fastboot_okay("");
 	return;
+#endif
 }
 
 void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
@@ -3826,12 +3838,14 @@ void aboot_fastboot_register_commands(void)
 						{"flashing unlock_critical", cmd_flashing_unlock_critical},
 						{"flashing get_unlock_ability", cmd_flashing_get_unlock_ability},
 #endif
+#if !DISABLE_DEVINFO
 						{"oem device-info", cmd_oem_devinfo},
 						{"preflash", cmd_preflash},
 						{"oem enable-charger-screen", cmd_oem_enable_charger_screen},
 						{"oem disable-charger-screen", cmd_oem_disable_charger_screen},
 						{"oem off-mode-charge", cmd_oem_off_mode_charger},
 						{"oem select-display-panel", cmd_oem_select_display_panel},
+#endif
 #endif
 						};
 
