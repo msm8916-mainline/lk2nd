@@ -99,6 +99,7 @@ extern void display_fbcon_message(char *str);
 static int aboot_frp_unlock(char *pname, void *data, unsigned sz);
 static inline uint64_t validate_partition_size();
 bool pwr_key_is_pressed = false;
+unsigned boot_into_recovery = 0;
 unsigned bytes_to_round_page = 0;
 unsigned rounded_size = 0;
 
@@ -1139,6 +1140,7 @@ int boot_linux_from_mmc(void)
 	if (check_format_bit())
 		boot_into_recovery = 1;
 
+#if RECOVERY_MESSAGES
 	if (!boot_into_recovery) {
 		memset(ffbm_mode_string, '\0', sizeof(ffbm_mode_string));
 		rcode = get_ffbm(ffbm_mode_string, sizeof(ffbm_mode_string));
@@ -1149,6 +1151,7 @@ int boot_linux_from_mmc(void)
 		} else
 			boot_into_ffbm = true;
 	} else
+#endif
 		boot_into_ffbm = false;
 	uhdr = (struct boot_img_hdr *)EMMC_BOOT_IMG_HEADER_ADDR;
 	if (!memcmp(uhdr->magic, BOOT_MAGIC, BOOT_MAGIC_SIZE)) {
@@ -3997,8 +4000,10 @@ normal_boot:
 	{
 		if (target_is_emmc_boot())
 		{
+#if RECOVERY_MESSAGES
 			if(emmc_recovery_init())
 				dprintf(ALWAYS,"error in emmc_recovery_init\n");
+#endif
 			if(target_use_signed_kernel())
 			{
 				if((device.is_unlocked) || (device.is_tampered))
@@ -4015,7 +4020,9 @@ normal_boot:
 		}
 		else
 		{
+#if RECOVERY_MESSAGES
 			recovery_init();
+#endif
 	#if USE_PCOM_SECBOOT
 		if((device.is_unlocked) || (device.is_tampered))
 			set_tamper_flag(device.is_tampered);

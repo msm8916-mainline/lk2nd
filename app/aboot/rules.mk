@@ -8,8 +8,12 @@ MODULES += lib/zlib_inflate
 
 OBJS += \
 	$(LOCAL_DIR)/aboot.o \
-	$(LOCAL_DIR)/fastboot.o \
-	$(LOCAL_DIR)/recovery.o
+	$(LOCAL_DIR)/fastboot.o
+
+ifneq ($(DISABLE_RECOVERY_MESSAGES),1)
+DEFINES += RECOVERY_MESSAGES=1
+OBJS += $(LOCAL_DIR)/recovery.o
+endif
 
 ifneq ($(filter lk2nd,$(ALLMODULES)),)
 OBJS += $(LOCAL_DIR)/fastboot-lk2nd.o
