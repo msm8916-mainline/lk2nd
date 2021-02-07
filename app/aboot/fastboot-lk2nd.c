@@ -1,7 +1,7 @@
 #include <string.h>
 #include <debug.h>
 #include <libfdt.h>
-#include <lk2nd-device.h>
+#include <lk2nd.h>
 #include "fastboot.h"
 
 #if WITH_DEBUG_LOG_BUF

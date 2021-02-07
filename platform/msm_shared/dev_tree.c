@@ -37,7 +37,7 @@
 #include <board.h>
 #include <list.h>
 #include <kernel/thread.h>
-#include <lk2nd-device.h>
+#include <lk2nd.h>
 
 struct dt_entry_v1
 {

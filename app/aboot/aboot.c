@@ -67,7 +67,7 @@
 #if DEVICE_TREE
 #include <libfdt.h>
 #include <dev_tree.h>
-#include <lk2nd-device.h>
+#include <lk2nd.h>
 #endif
 
 #include <reboot.h>

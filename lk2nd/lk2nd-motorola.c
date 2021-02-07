@@ -3,12 +3,13 @@
 #include <debug.h>
 #include <libfdt.h>
 #include <malloc.h>
-#include <string.h>
+#include <smem.h>
 #include <stdlib.h>
+#include <string.h>
 
-#include "lk2nd-device.h"
+#include <lk2nd.h>
 #include "lk2nd-motorola.h"
-#include "smem.h"
+
 
 #define SMEM_ID_VENDOR0          0x86
 #define SMEM_KERNEL_RESERVE      SMEM_ID_VENDOR0

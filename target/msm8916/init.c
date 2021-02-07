@@ -52,7 +52,7 @@
 #include <secapp_loader.h>
 #include <rpmb.h>
 #include <smem.h>
-#include <lk2nd-device.h>
+#include <lk2nd.h>
 
 #if LONG_PRESS_POWER_ON
 #include <shutdown_detect.h>

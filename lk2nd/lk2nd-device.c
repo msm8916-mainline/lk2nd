@@ -3,10 +3,11 @@
 #include <arch/arm.h>
 #include <board.h>
 #include <debug.h>
+#include <libfdt.h>
 #include <stdlib.h>
 #include <string.h>
-#include <libfdt.h>
-#include "lk2nd-device.h"
+
+#include <lk2nd.h>
 
 struct lk2nd_device lk2nd_dev = {0};
 extern struct board_data board;
