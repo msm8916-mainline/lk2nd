@@ -2666,6 +2666,7 @@ void cmd_flash_mmc_img(const char *arg, void *data, unsigned sz)
 		}
 #endif
 
+#if !WITH_LK2ND
 		if (!strcmp(pname, "partition"))
 		{
 			dprintf(INFO, "Attempt to write partition image.\n");
@@ -2675,6 +2676,7 @@ void cmd_flash_mmc_img(const char *arg, void *data, unsigned sz)
 			}
 		}
 		else
+#endif
 		{
 #if VERIFIED_BOOT
 			if(!strcmp(pname, KEYSTORE_PTN_NAME))
