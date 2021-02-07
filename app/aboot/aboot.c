@@ -313,7 +313,26 @@ static void ptentry_to_tag(unsigned **ptr, struct ptentry *ptn)
 	*ptr += sizeof(struct atag_ptbl_entry) / sizeof(unsigned);
 }
 
-static unsigned char *update_cmdline0(const char * cmdline)
+#if WITH_LK2ND
+static char *concat_args(const char *a, const char *b)
+{
+	int lenA = strlen(a), lenB = strlen(b);
+	char *r = malloc(lenA + lenB + 2);
+	memcpy(r, a, lenA);
+	r[lenA] = ' ';
+	memcpy(r + lenA + 1, b, lenB + 1);
+	return r;
+}
+unsigned char *update_cmdline(const char* cmdline)
+{
+	/* Only take cmdline from original bootloader if downstream or lk2nd */
+	if (cmdline && lk2nd_dev.cmdline &&
+	    (strstr(cmdline, "androidboot.hardware=qcom") || strstr(cmdline, "lk2nd")))
+		return concat_args(cmdline, lk2nd_dev.cmdline);
+	return strdup(cmdline);
+}
+#else
+unsigned char *update_cmdline(const char * cmdline)
 {
 	int cmdline_len = 0;
 	int have_cmdline = 0;
@@ -621,25 +640,7 @@ static unsigned char *update_cmdline0(const char * cmdline)
 	dprintf(INFO, "cmdline: %s\n", cmdline_final ? cmdline_final : "");
 	return cmdline_final;
 }
-
-static char *concat_args(const char *a, const char *b)
-{
-	int lenA = strlen(a), lenB = strlen(b);
-	char *r = malloc(lenA + lenB + 2);
-	memcpy(r, a, lenA);
-	r[lenA] = ' ';
-	memcpy(r + lenA + 1, b, lenB + 1);
-	return r;
-}
-
-unsigned char *update_cmdline(const char* cmdline)
-{
-	/* Only take cmdline from original bootloader if downstream or lk2nd */
-	if (cmdline && lk2nd_dev.cmdline &&
-	    (strstr(cmdline, "androidboot.hardware=qcom") || strstr(cmdline, "lk2nd")))
-		return concat_args(cmdline, lk2nd_dev.cmdline);
-	return strdup(cmdline);
-}
+#endif
 
 unsigned *atag_core(unsigned *ptr)
 {
@@ -2121,9 +2122,10 @@ void read_device_info(device_info *dev)
 		read_device_info_flash(dev);
 	}
 
-	if (lk2nd_dev.bootloader) {
+#if WITH_LK2ND
+	if (lk2nd_dev.bootloader)
 		strcpy(dev->bootloader_version, lk2nd_dev.bootloader);
-	}
+#endif
 }
 
 void reset_device_info()
@@ -3906,7 +3908,9 @@ void aboot_init(const struct app_descriptor *app)
 
 	ASSERT((MEMBASE + MEMSIZE) > MEMBASE);
 
+#if WITH_LK2ND
 	lk2nd_init();
+#endif
 	read_device_info(&device);
 	read_allow_oem_unlock(&device);
 
@@ -4027,7 +4031,9 @@ normal_boot:
 
 	/* register aboot specific fastboot commands */
 	aboot_fastboot_register_commands();
+#if WITH_LK2ND
 	fastboot_lk2nd_register_commands();
+#endif
 
 	/* dump partition table for debug info */
 	partition_dump();

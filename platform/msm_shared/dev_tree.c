@@ -1446,7 +1446,9 @@ int update_device_tree(void *fdt, const char *cmdline,
 		}
 	}
 
+#if WITH_LK2ND
 	lk2nd_update_device_tree(fdt, cmdline);
+#endif
 	fdt_pack(fdt);
 
 	return ret;

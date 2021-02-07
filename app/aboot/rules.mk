@@ -9,14 +9,10 @@ MODULES += lib/zlib_inflate
 OBJS += \
 	$(LOCAL_DIR)/aboot.o \
 	$(LOCAL_DIR)/fastboot.o \
-	$(LOCAL_DIR)/fastboot-lk2nd.o \
-	$(LOCAL_DIR)/lk2nd-device.o \
-	$(LOCAL_DIR)/lk2nd-motorola.o \
 	$(LOCAL_DIR)/recovery.o
 
-ifneq ($(GPIO_I2C_BUS_COUNT),)
-MODULES += dev/gpio_i2c
-OBJS += $(LOCAL_DIR)/lk2nd-samsung.o
+ifneq ($(filter lk2nd,$(ALLMODULES)),)
+OBJS += $(LOCAL_DIR)/fastboot-lk2nd.o
 endif
 
 ifeq ($(TARGET), msm8916)

@@ -1,3 +1,8 @@
+MODULES += lk2nd
+
+# Reserve 512 KiB in boot partition for lk2nd (should be plenty)
+DEFINES += LK2ND_SIZE=512*1024
+
 # Use maximum verbosity
 DEBUG := 2
 DEFINES += LK_LOG_BUF_SIZE=16384
@@ -6,9 +11,6 @@ DEFINES += LK_LOG_BUF_SIZE=16384
 DEFINES += SAFE_MODE=1
 # Display as unlocked by default
 DEFINES += DEFAULT_UNLOCK=1
-
-# Reserve 512 KiB in boot partition for lk2nd (should be plenty)
-DEFINES += LK2ND_SIZE=512*1024
 
 # Use continuous splash from primary bootloader for display
 DISPLAY_USE_CONTINUOUS_SPLASH := 1

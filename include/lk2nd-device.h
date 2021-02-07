@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 
-#ifndef __LK2ND_DEVICE_H
+#if !defined(__LK2ND_DEVICE_H) && WITH_LK2ND
 #define __LK2ND_DEVICE_H
 
 #include <dev_tree.h>

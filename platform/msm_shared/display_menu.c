@@ -402,6 +402,7 @@ void display_fastboot_menu_renew(struct select_msg_info *fastboot_msg_info)
 	snprintf(msg, sizeof(msg), "PRODUCT_NAME - %s\n", msg_buf);
 	display_fbcon_menu_message(msg, FBCON_COMMON_MSG, common_factor);
 
+#if WITH_LK2ND
 	if (lk2nd_dev.model) {
 		snprintf(msg, sizeof(msg), "MODEL - %s\n", lk2nd_dev.model);
 		display_fbcon_menu_message(msg, FBCON_COMMON_MSG, common_factor);
@@ -413,6 +414,7 @@ void display_fastboot_menu_renew(struct select_msg_info *fastboot_msg_info)
 			 lk2nd_dev.board_id.platform_subtype);
 		display_fbcon_menu_message(msg, FBCON_COMMON_MSG, common_factor);
 	}
+#endif
 
 	memset(msg_buf, 0, sizeof(msg_buf));
 	smem_get_hw_platform_name((unsigned char *) msg_buf, sizeof(msg_buf));
@@ -426,16 +428,18 @@ void display_fastboot_menu_renew(struct select_msg_info *fastboot_msg_info)
 		msg_buf);
 	display_fbcon_menu_message(msg, FBCON_COMMON_MSG, common_factor);
 
+#if !WITH_LK2ND
 	memset(msg_buf, 0, sizeof(msg_buf));
 	get_baseband_version((unsigned char *) msg_buf);
 	snprintf(msg, sizeof(msg), "BASEBAND VERSION - %s\n",
 		msg_buf);
 	display_fbcon_menu_message(msg, FBCON_COMMON_MSG, common_factor);
-
+#else
 	if (lk2nd_dev.panel.name) {
 		snprintf(msg, sizeof(msg), "PANEL - %s\n", lk2nd_dev.panel.name);
 		display_fbcon_menu_message(msg, FBCON_COMMON_MSG, common_factor);
 	}
+#endif
 
 	memset(msg_buf, 0, sizeof(msg_buf));
 	target_serialno((unsigned char *) msg_buf);
@@ -446,9 +450,11 @@ void display_fastboot_menu_renew(struct select_msg_info *fastboot_msg_info)
 		is_secure_boot_enable()? "enabled":"disabled");
 	display_fbcon_menu_message(msg, FBCON_COMMON_MSG, common_factor);
 
+#if !WITH_LK2ND
 	snprintf(msg, sizeof(msg), "DEVICE STATE - %s\n",
 		is_device_locked()? "locked":"unlocked");
 	display_fbcon_menu_message(msg, FBCON_RED_MSG, common_factor);
+#endif
 
 	fastboot_msg_info->info.msg_type = DISPLAY_MENU_FASTBOOT;
 	fastboot_msg_info->info.option_num = len;
