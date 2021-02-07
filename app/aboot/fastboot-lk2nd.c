@@ -31,8 +31,4 @@ void fastboot_lk2nd_register_commands(void) {
 
 	if (lk2nd_dev.cmdline)
 		fastboot_register("oem cmdline", cmd_oem_cmdline);
-
-#if TARGET_MSM8916
-	fastboot_lk2nd_register_commands_msm8916();
-#endif
 }

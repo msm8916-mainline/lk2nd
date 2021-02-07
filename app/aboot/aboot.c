@@ -3887,6 +3887,10 @@ void aboot_fastboot_register_commands(void)
 #endif
 }
 
+__WEAK void target_fastboot_register_commands(void)
+{
+}
+
 void aboot_init(const struct app_descriptor *app)
 {
 	unsigned reboot_mode = 0;
@@ -4031,6 +4035,7 @@ normal_boot:
 
 	/* register aboot specific fastboot commands */
 	aboot_fastboot_register_commands();
+	target_fastboot_register_commands();
 #if WITH_LK2ND
 	fastboot_lk2nd_register_commands();
 #endif

@@ -50,7 +50,7 @@ static void cmd_oem_dump_regulators(const char *arg, void *data, unsigned sz)
 	fastboot_okay("");
 }
 
-void fastboot_lk2nd_register_commands_msm8916(void) {
+void target_fastboot_register_commands(void) {
 	fastboot_register("oem dump-speedbin", cmd_oem_dump_speedbin);
 	fastboot_register("oem dump-regulators", cmd_oem_dump_regulators);
 }

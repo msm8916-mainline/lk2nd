@@ -15,6 +15,6 @@ ifneq ($(filter lk2nd,$(ALLMODULES)),)
 OBJS += $(LOCAL_DIR)/fastboot-lk2nd.o
 endif
 
-ifeq ($(TARGET), msm8916)
-OBJS += $(LOCAL_DIR)/fastboot-lk2nd-msm8916.o
+ifneq ($(wildcard $(LOCAL_DIR)/fastboot-$(TARGET).c),)
+OBJS += $(LOCAL_DIR)/fastboot-$(TARGET).o
 endif
