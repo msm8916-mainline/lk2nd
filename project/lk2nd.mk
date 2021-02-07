@@ -7,10 +7,9 @@ DEFINES += LK2ND_SIZE=512*1024
 DEBUG := 2
 DEFINES += LK_LOG_BUF_SIZE=16384
 
-# Avoid writing device info
-DEFINES += SAFE_MODE=1
-# Display as unlocked by default
-DEFINES += DEFAULT_UNLOCK=1
+# Disable various stupid stuff that we don't really want or need
+DEFINES += DEFAULT_UNLOCK=1 DISABLE_LOCK=1 DISABLE_DEVINFO=1
+DISABLE_RECOVERY_MESSAGES := 1
 
 # Use continuous splash from primary bootloader for display
 DISPLAY_USE_CONTINUOUS_SPLASH := 1
