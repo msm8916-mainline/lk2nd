@@ -1,15 +1,7 @@
-#include <string.h>
-#include <debug.h>
 #include <libfdt.h>
 #include <lk2nd.h>
+#include <string.h>
 #include "fastboot.h"
-
-#if WITH_DEBUG_LOG_BUF
-static void cmd_oem_lk_log(const char *arg, void *data, unsigned sz)
-{
-	fastboot_stage(lk_log_getbuf(), lk_log_getsize());
-}
-#endif
 
 static void cmd_oem_dtb(const char *arg, void *data, unsigned sz)
 {
@@ -22,10 +14,6 @@ static void cmd_oem_cmdline(const char *arg, void *data, unsigned sz)
 }
 
 void fastboot_lk2nd_register_commands(void) {
-#if WITH_DEBUG_LOG_BUF
-	fastboot_register("oem lk_log", cmd_oem_lk_log);
-#endif
-
 	if (lk2nd_dev.fdt)
 		fastboot_register("oem dtb", cmd_oem_dtb);
 
