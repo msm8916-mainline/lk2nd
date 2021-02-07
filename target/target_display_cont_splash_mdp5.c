@@ -123,8 +123,6 @@ static int mdp5_read_config(struct fbcon_config *fb)
 
 void target_display_init(const char *panel_name)
 {
-	dprintf(SPEW, "Panel: %s\n", panel_name);
-
 	if (mdp5_read_config(&fb))
 		return;
 
