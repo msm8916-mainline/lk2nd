@@ -118,6 +118,7 @@ static void update_device_status(struct select_msg_info* msg_info, int reason)
 
 	switch (reason) {
 		case RECOVER:
+#if VERIFIED_BOOT
 			if (msg_info->info.msg_type == DISPLAY_MENU_UNLOCK) {
 				set_device_unlock_value(UNLOCK, TRUE);
 			} else if (msg_info->info.msg_type == DISPLAY_MENU_UNLOCK_CRITICAL) {
@@ -132,6 +133,7 @@ static void update_device_status(struct select_msg_info* msg_info, int reason)
 				snprintf(msg.recovery, sizeof(msg.recovery), "recovery\n--wipe_data");
 				write_misc(0, &msg, sizeof(msg));
 			}
+#endif
 			reboot_device(RECOVERY_MODE);
 			break;
 		case RESTART:
