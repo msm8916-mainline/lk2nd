@@ -8,3 +8,7 @@ ifneq ($(GPIO_I2C_BUS_COUNT),)
 MODULES += lk2nd/regmap
 OBJS += $(LOCAL_DIR)/lk2nd-samsung.o
 endif
+
+ifeq ($(TARGET),msm8916)
+MODULES += lk2nd/smb1360
+endif

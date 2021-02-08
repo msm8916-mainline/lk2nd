@@ -8,6 +8,7 @@
 #include <string.h>
 
 #include <lk2nd.h>
+#include "smb1360/smb1360.h"
 
 struct lk2nd_device lk2nd_dev = {0};
 extern struct board_data board;
@@ -305,6 +306,10 @@ static void lk2nd_parse_device_node(const void *fdt)
 
 	if (lk2nd_dev.panel.name)
 		lk2nd_parse_panels(fdt, offset);
+
+#if TARGET_MSM8916
+	smb1360_detect_battery(fdt, offset);
+#endif
 }
 
 
@@ -389,4 +394,8 @@ void lk2nd_update_device_tree(void *fdt, const char *cmdline)
 
 	if (lk2nd_dev.panel.compatible)
 		lk2nd_update_panel_compatible(fdt);
+
+#if TARGET_MSM8916
+	smb1360_update_device_tree(fdt);
+#endif
 }
