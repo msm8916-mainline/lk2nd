@@ -8,3 +8,8 @@ ifneq ($(GPIO_I2C_BUS_COUNT),)
 MODULES += dev/gpio_i2c
 OBJS += $(LOCAL_DIR)/lk2nd-samsung.o
 endif
+
+ifeq ($(TARGET),msm8916)
+OBJS += \
+	$(LOCAL_DIR)/smb1360.o
+endif

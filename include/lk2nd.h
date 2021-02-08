@@ -5,6 +5,8 @@
 
 #include <dev_tree.h>
 
+struct smb1360_battery;
+
 struct lk2nd_panel {
 	const char *name;
 	const char *old_compatible;
@@ -24,6 +26,9 @@ struct lk2nd_device {
 	const char *serialno;
 	const char *carrier;
 	const char *radio;
+
+	const char *battery;
+	const struct smb1360_battery *smb1360_battery;
 
 	struct lk2nd_panel panel;
 };
