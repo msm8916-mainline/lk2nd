@@ -74,6 +74,7 @@ struct adc_conf {
 #define VADC_HW_SETTLE_TIME              0x51
 #define VADC_HW_SET_TIME_SEL             7
 #define HW_SET_DELAY_100US               0x1
+#define HW_SET_DELAY_2MS                 0xB
 
 /* Request VADC conversion */
 #define VADC_CONV_REQ                    0x52
