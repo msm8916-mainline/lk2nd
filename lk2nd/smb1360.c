@@ -10,6 +10,7 @@ struct smb1360_battery_detector {
 };
 
 static const struct smb1360_battery_detector detectors[] = {
+	{ "wingtech,smb1360-wt88047", smb1360_wt88047_detect_battery },
 };
 
 static const struct smb1360_battery_detector *smb1360_match_detector(const void *fdt, int offset)
@@ -58,6 +59,20 @@ void smb1360_detect_battery(const void *fdt, int offset)
 	lk2nd_dev.smb1360_battery = battery;
 }
 
+static int smb1360_update_u32(void *fdt, int offset, const char *name, uint32_t val)
+{
+	int ret;
+
+	/* Only update if we have a new value */
+	if (!val)
+		return 0;
+
+	ret = fdt_setprop_u32(fdt, offset, name, val);
+	if (ret < 0)
+		dprintf(CRITICAL, "Failed to set smb1360 %s to %#x: %d\n", name, val, ret);
+	return ret;
+}
+
 void smb1360_update_device_tree(void *fdt)
 {
 	const struct smb1360_battery *battery = lk2nd_dev.smb1360_battery;
@@ -73,7 +88,12 @@ void smb1360_update_device_tree(void *fdt)
 		return;
 	}
 
-	/* TODO: Update some properties here */
+	if (smb1360_update_u32(fdt, offset, "qcom,fg-batt-capacity-mah", battery->capacity_mah))
+		return;
+	if (smb1360_update_u32(fdt, offset, "qcom,fg-cc-soc-coeff", battery->cc_soc_coeff))
+		return;
+	if (smb1360_update_u32(fdt, offset, "qcom,thermistor-c1-coeff", battery->therm_coeff))
+		return;
 
 	/* Finally, enable smb1360 */
 	ret = fdt_setprop_string(fdt, offset, "status", "okay");

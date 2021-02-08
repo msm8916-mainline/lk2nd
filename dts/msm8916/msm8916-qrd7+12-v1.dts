@@ -39,5 +39,9 @@
 				compatible = "wingtech,auo-r61308";
 			};
 		};
+
+		smb1360 {
+			compatible = "wingtech,smb1360-wt88047", "qcom,smb1360";
+		};
 	};
 };
