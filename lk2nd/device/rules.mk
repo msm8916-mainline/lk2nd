@@ -11,4 +11,6 @@ ifneq ($(LK2ND_COMPATIBLE),)
 DEFINES += LK2ND_COMPATIBLE="$(LK2ND_COMPATIBLE)"
 endif
 
-include $(LOCAL_DIR)/dts/rules.mk
+include \
+	$(if $(filter msm8916, $(TARGET)), $(LOCAL_DIR)/smb1360/rules.mk) \
+	$(LOCAL_DIR)/dts/rules.mk \
