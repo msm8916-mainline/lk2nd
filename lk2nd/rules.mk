@@ -12,5 +12,6 @@ endif
 ifeq ($(TARGET),msm8916)
 OBJS += \
 	$(LOCAL_DIR)/smb1360.o \
+	$(LOCAL_DIR)/smb1360-qcom.o \
 	$(LOCAL_DIR)/smb1360-wt88047.o
 endif
