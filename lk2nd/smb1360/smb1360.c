@@ -11,6 +11,7 @@ struct smb1360_battery_detector {
 
 static const struct smb1360_battery_detector detectors[] = {
 	{ "wingtech,smb1360-wt88047", smb1360_wt88047_detect_battery },
+	{ "qcom,smb1360", smb1360_qcom_detect_battery }
 };
 
 static const struct smb1360_battery_detector *smb1360_match_detector(const void *fdt, int offset)
@@ -86,6 +87,15 @@ void smb1360_update_device_tree(void *fdt)
 	if (offset < 0) {
 		dprintf(CRITICAL, "Failed to find qcom,smb1360 node\n");
 		return;
+	}
+
+	if (battery->profile) {
+		/* qcom,battery-profile = <0> (A), qcom,battery-profile = <1> (B) */
+		ret = fdt_setprop_u32(fdt, offset, "qcom,battery-profile", battery->profile - 1);
+		if (ret < 0) {
+			dprintf(CRITICAL, "Failed to set smb1360 qcom,battery-profile: %d\n", ret);
+			return;
+		}
 	}
 
 	if (smb1360_update_u32(fdt, offset, "qcom,fg-batt-capacity-mah", battery->capacity_mah))

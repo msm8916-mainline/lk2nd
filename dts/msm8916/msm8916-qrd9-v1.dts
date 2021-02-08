@@ -49,6 +49,16 @@
 				compatible = "longcheer,yushun-nt35521s";
 			};
 		};
+
+		smb1360 {
+			compatible = "qcom,smb1360";
+
+			qcom,batt-profile-select;
+			qcom,batt-id-vref-uv = <1800000>;
+			qcom,batt-id-rpullup-kohm = <100>;
+			qcom,profile-a-rid-kohm = <100>;
+			qcom,profile-b-rid-kohm = <200>;
+		};
 	};
 
 	lenovo-a6010 {
