@@ -181,6 +181,8 @@ static void lk2nd_device_fastboot_register(void)
 		fastboot_publish("lk2nd:compatible", lk2nd_dev.compatible);
 	if (lk2nd_dev.model)
 		fastboot_publish("lk2nd:model", lk2nd_dev.model);
+	if (lk2nd_dev.battery)
+		fastboot_publish("lk2nd:battery", lk2nd_dev.battery);
 	if (lk2nd_dev.panel.name)
 		fastboot_publish("lk2nd:panel", lk2nd_dev.panel.name);
 }
