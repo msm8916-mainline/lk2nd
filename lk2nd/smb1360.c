@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include <blsp_qup.h>
 #include <debug.h>
+#include <i2c_qup.h>
 #include <libfdt.h>
 #include <lk2nd.h>
+#include <dev/gpio_i2c.h>
 #include "smb1360.h"
 
 struct smb1360_battery_detector {
@@ -35,6 +38,44 @@ static const struct smb1360_battery_detector *smb1360_match_detector(const void 
 	return NULL;
 }
 
+#define SMB1360_I2C_ADDR		0x14
+#define REVISION_CTRL_REG		0x4F
+#define DEVICE_REV_MASK			0x0F
+
+#define PER_TO_FAST_REG			0x12
+#define PER_TO_FAST_MASK		0xE0
+
+static int smb1360_read(struct qup_i2c_dev *dev, uint8_t reg, uint8_t *val)
+{
+	int ret;
+	struct i2c_msg msg[] = {
+		{SMB1360_I2C_ADDR, I2C_M_WR, sizeof(reg), &reg},
+		{SMB1360_I2C_ADDR, I2C_M_RD, sizeof(*val), val}
+	};
+
+	ret = qup_i2c_xfer(dev, msg, ARRAY_SIZE(msg));
+	if(ret != sizeof(*val)) {
+		dprintf(CRITICAL, "Failed to read reg %#x from smb1360: %d\n", reg, ret);
+		return -EIO;
+	}
+
+	return 0;
+}
+
+static void smb1360_do_stuff(void)
+{
+	struct qup_i2c_dev *dev = qup_blsp_i2c_init(BLSP_ID_1, QUP_ID_3, 100000, 19200000);
+	uint8_t val;
+	int ret;
+
+	/* Try to read revision number */
+	ret = smb1360_read(dev, REVISION_CTRL_REG, &val);
+	if (ret)
+		return;
+
+	dprintf(INFO, "REVISION_CTRL_REG: %#x\n", val);
+}
+
 void smb1360_detect_battery(const void *fdt, int offset)
 {
 	const struct smb1360_battery_detector *detector;
@@ -58,6 +99,8 @@ void smb1360_detect_battery(const void *fdt, int offset)
 	dprintf(INFO, "Detected smb1360 battery: %s\n", battery->name);
 	lk2nd_dev.battery = battery->name;
 	lk2nd_dev.smb1360_battery = battery;
+
+	smb1360_do_stuff();
 }
 
 static int smb1360_update_u32(void *fdt, int offset, const char *name, uint32_t val)
