@@ -42,6 +42,7 @@
 
 		smb1360 {
 			compatible = "wingtech,smb1360-wt88047", "qcom,smb1360";
+			i2c-gpio-pins = <14 15>;
 		};
 	};
 };
