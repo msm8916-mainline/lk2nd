@@ -27,6 +27,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Asus Zenfone 2 Laser (1080p) - Z00T
 - Asus Zenfone Max ZC550KL (2016) - Z010D
 - BQ Aquaris X5 - paella, picmt
+- DragonBoard 410c - apq8016-sbc
 - Huawei Honor 5X - kiwi
 - Lenovo A6000
 - Lenovo A6010
