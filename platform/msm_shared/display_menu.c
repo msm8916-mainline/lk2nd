@@ -518,6 +518,9 @@ void display_fastboot_menu()
 	struct select_msg_info *fastboot_menu_msg_info;
 	fastboot_menu_msg_info = &msg_info;
 
+	if (!fbcon_display())
+		return;
+
 	set_message_factor();
 
 	msg_lock_init();
