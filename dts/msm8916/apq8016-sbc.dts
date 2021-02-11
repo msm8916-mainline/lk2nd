@@ -1,0 +1,10 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+/include/ "skeleton.dtsi"
+
+/ {
+	model = "DragonBoard 410c (APQ8016 SBC)";
+	compatible = "qcom,apq8016-sbc", "qcom,apq8016", "lk2nd,device";
+};
