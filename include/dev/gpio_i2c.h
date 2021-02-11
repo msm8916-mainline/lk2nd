@@ -28,8 +28,8 @@
 #include <dev/i2c.h>
 
 typedef struct gpio_i2c_info {
-    const int sda;
-    const int scl;
+    int sda;
+    int scl;
     uint32_t  hcd;  /* 1/2 I2C clock delay in microseconds */
     uint32_t  qcd;  /* 1/4 I2C clock delay in microseconds */
 } gpio_i2c_info_t;
