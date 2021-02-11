@@ -8,6 +8,7 @@
 #include <dev/fbcon.h>
 #include <mdp5.h>
 #include <platform.h>
+#include <platform/clock.h>
 #include <platform/iomap.h>
 #include <platform/timer.h>
 
@@ -68,7 +69,7 @@ static int mdp5_read_config(struct fbcon_config *fb)
 			break;
 	}
 	if (pipe == pipe_end) {
-		dprintf(CRITICAL, "Continuous splash does not appear to be enabled\n");
+		dprintf(CRITICAL, "No continuous splash: cannot find active pipe\n");
 		return -1;
 	}
 
@@ -123,6 +124,18 @@ static int mdp5_read_config(struct fbcon_config *fb)
 
 void target_display_init(const char *panel_name)
 {
+	/*
+	 * Reading MDP registers will fail if necessary clocks/power domains
+	 * are not enabled. Check if the MDP power domain (GDSC) is enabled
+	 * to try to avoid crashing if the clocks are disabled.
+	 */
+	uint32_t val = readl(MDP_GDSCR);
+
+	if (!(val & GDSC_POWER_ON_BIT)) {
+		dprintf(CRITICAL, "No continuous splash: MDP GDSC is not enabled\n");
+		return;
+	}
+
 	if (mdp5_read_config(&fb))
 		return;
 
