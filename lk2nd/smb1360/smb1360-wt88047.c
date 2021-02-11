@@ -10,6 +10,7 @@
 #include <pm8x41_hw.h>
 #include <platform/timer.h>
 #include "smb1360.h"
+#include "smb1360-i2c.h"
 
 /* BQ2022A. */
 #define	ROM_COMMAND		(0xcc)
@@ -275,6 +276,24 @@ static const struct smb1360_battery wt88047_batteries[] = {
 	},
 };
 
+static bool smb1360_wt88047_check_rsense_10mohm(const void *fdt, int offset)
+{
+	const struct smb1360 *smb = smb1360_setup_i2c(fdt, offset);
+	status_t ret;
+	uint8_t val;
+
+	if (!smb)
+		return false;
+
+	ret = regmap_read(smb->regmap, PRE_TO_FAST_REG, &val);
+	if (ret || !(val >> PRE_TO_FAST_SHIFT)) {
+		dprintf(CRITICAL, "PRE_TO_FAST not set for qcom,rsense-10mohm: ret %d val %#x\n", ret, val);
+		return false;
+	}
+
+	return true;
+}
+
 const struct smb1360_battery *smb1360_wt88047_detect_battery(const void *fdt, int offset)
 {
 	int delay_time, bat_module_id;
@@ -298,6 +317,19 @@ const struct smb1360_battery *smb1360_wt88047_detect_battery(const void *fdt, in
 
 	/* Failed to detect battery? */
 	if (bat_module_id == 0xff)
+		return NULL;
+
+	/*
+	 * For some reason, smb1360-charger-fg-wt88047.c sets rsense-10mohm
+	 * if PRE_TO_FAST_REG has some value (i.e. the threshold for switching
+	 * from pre to fast charging is set). This does not really make sense.
+	 *
+	 * Perhaps this was only used to detect some early prototypes.
+	 * The mainline device tree always sets qcom,rsense-10mohm but we verify
+	 * the PRE_TO_FAST_REG here for safety reasons. If it's not set correctly,
+	 * pretend that we failed to detect the battery so smb1360 is not enabled.
+	 */
+	if (!smb1360_wt88047_check_rsense_10mohm(fdt, offset))
 		return NULL;
 
 	return &wt88047_batteries[bat_module_id];
