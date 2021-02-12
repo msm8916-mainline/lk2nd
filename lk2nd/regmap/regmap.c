@@ -1,7 +1,7 @@
 #include <debug.h>
 #include "regmap.h"
 
-#define regmap_debug(x...)	if (0) dprintf(SPEW, x)
+#define regmap_debug(x...)	if (1) dprintf(SPEW, x)
 
 status_t regmap_raw_read(const struct regmap *map, uint8_t reg, void *val, size_t count)
 {

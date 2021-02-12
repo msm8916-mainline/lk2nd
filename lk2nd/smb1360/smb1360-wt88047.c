@@ -22,7 +22,7 @@
 
 #define bq2022a_bat_id		3	/* PM8916 GPIO3 */
 
-#define pr_debug(...)	if (0) dprintf(SPEW, __VA_ARGS__)
+#define pr_debug(...)	if (1) dprintf(SPEW, __VA_ARGS__)
 #define pr_err(...)	dprintf(CRITICAL, __VA_ARGS__)
 
 static void gpio_direction_input(uint8_t gpio)
