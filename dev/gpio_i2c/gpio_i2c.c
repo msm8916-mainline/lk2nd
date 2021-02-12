@@ -78,6 +78,7 @@ static inline void send_nack(const gpio_i2c_info_t* i)
     spin_cycles(i->hcd);
     gpio_config(i->scl, GPIO_OUTPUT);
     gpio_config(i->sda, GPIO_INPUT);
+    spin_cycles(i->hcd);
 }
 
 static inline void send_ack(const gpio_i2c_info_t* i)
