@@ -5,6 +5,6 @@ OBJS += \
 	$(LOCAL_DIR)/lk2nd-motorola.o
 
 ifneq ($(GPIO_I2C_BUS_COUNT),)
-MODULES += dev/gpio_i2c
+MODULES += lk2nd/regmap
 OBJS += $(LOCAL_DIR)/lk2nd-samsung.o
 endif
