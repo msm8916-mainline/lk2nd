@@ -79,6 +79,7 @@ static inline void send_nack(const gpio_i2c_info_t* i)
     udelay(i->hcd);
     gpio_config(i->scl, GPIO_OUTPUT);
     gpio_config(i->sda, GPIO_INPUT);
+    udelay(i->hcd);
 }
 
 static inline void send_ack(const gpio_i2c_info_t* i)
