@@ -1,0 +1,16 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+/include/ "skeleton.dtsi"
+
+/ {
+	// This is used by the bootloader to find the correct DTB
+	qcom,msm-id = <0xC208FF01 14 0x10000>;
+
+	klte {
+		model = "Samsung Galaxy S5 (SM-G900F)";
+		compatible = "samsung,klte", "qcom,msm8974", "lk2nd,device";
+		lk2nd,match-bootloader = "G900F*";
+	};
+};
