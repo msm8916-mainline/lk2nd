@@ -1,0 +1,14 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+/include/ "skeleton.dtsi"
+
+/ {
+	qcom,msm-id = <206 0>;
+	qcom,board-id = <8065 4>;
+
+	model = "Huawei Mediapad T1 A21L";
+	compatible = "huawei,hwt1a21l", "qcom,msm8916", "lk2nd,device";
+};
+
