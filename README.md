@@ -47,6 +47,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Samsung Galaxy J7 (2015) - SM-J7008, SM-J700P
 - Samsung Galaxy On7 (2015) - SM-G6000
 - Samsung Galaxy S4 Mini Value Edition - GT-I9195I
+- Samsung Galaxy S5 - SM-G900F
 - Samsung Galaxy Tab 4 10.1 (2015) - SM-T533
 - Samsung Galaxy Tab A 8.0 LTE (2015) - SM-T357W
 - Samsung Galaxy Tab A 9.7 WiFi (2015) - SM-T550
@@ -109,7 +110,7 @@ Replace `TOOLCHAIN_PREFIX` with the path to your tool chain.
 `lk2nd.img` is built and placed into `build-msm8916-secondary/lk2nd.img`.
 
 ## Porting
-### To other MSM8916 devices
+### To other MSM8916/8974 devices
 - Add a simple device tree to `dts/`. You just need `model` and the
   `qcom,msm-id`/`qcom,board-id` from downstream.
 
