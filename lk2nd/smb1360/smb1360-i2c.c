@@ -48,8 +48,7 @@ status_t smb1360_enable_fg_access(const struct smb1360 *smb)
 	uint8_t val;
 	int try;
 
-	ret = regmap_update_bits(smb->regmap, CMD_I2C_REG,
-				 FG_ACCESS_ENABLED_BIT, FG_ACCESS_ENABLED_BIT);
+	ret = regmap_set_bits(smb->regmap, CMD_I2C_REG, FG_ACCESS_ENABLED_BIT);
 	if (ret)
 		return ret;
 
@@ -72,5 +71,5 @@ err:
 
 void smb1360_disable_fg_access(const struct smb1360 *smb)
 {
-	regmap_update_bits(smb->regmap, CMD_I2C_REG, FG_ACCESS_ENABLED_BIT, 0);
+	regmap_clear_bits(smb->regmap, CMD_I2C_REG, FG_ACCESS_ENABLED_BIT);
 }
