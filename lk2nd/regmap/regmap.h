@@ -25,4 +25,14 @@ static inline status_t regmap_write(const struct regmap *map, uint8_t reg, uint8
 
 status_t regmap_update_bits(const struct regmap *map, uint8_t reg, uint8_t mask, uint8_t val);
 
+static inline status_t regmap_set_bits(const struct regmap *map, uint8_t reg, uint8_t bits)
+{
+	return regmap_update_bits(map, reg, bits, bits);
+}
+
+static inline status_t regmap_clear_bits(const struct regmap *map, uint8_t reg, uint8_t bits)
+{
+	return regmap_update_bits(map, reg, bits, 0);
+}
+
 #endif
