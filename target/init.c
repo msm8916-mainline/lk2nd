@@ -370,6 +370,7 @@ int is_vb_le_enabled(void)
 	{
 		case APQ8053:
 		case APQ8009:
+		case SDX12:
 			return verified_boot_le;
 		default:
 			break;
