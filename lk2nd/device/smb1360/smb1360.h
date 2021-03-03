@@ -18,4 +18,8 @@ struct smb1360_battery {
 
 int smb1360_battery_detected(const struct smb1360_battery *battery);
 
+bool smb1360_check_profile(const void *dtb, int node, const char *prop_name,
+			   uint32_t connected_rid);
+uint32_t smb1360_connected_rid(const void *dtb, int node);
+
 #endif /* LK2ND_DEVICE_SMB1360_H */
