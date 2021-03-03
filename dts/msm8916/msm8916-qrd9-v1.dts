@@ -52,6 +52,7 @@
 
 		smb1360 {
 			compatible = "qcom,smb1360";
+			i2c-gpio-pins = <14 15>;
 
 			qcom,batt-profile-select;
 			qcom,batt-id-vref-uv = <1800000>;
