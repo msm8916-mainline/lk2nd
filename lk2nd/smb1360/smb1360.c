@@ -6,7 +6,8 @@
 
 struct smb1360_battery_detector {
 	const char *compatible;
-	const struct smb1360_battery *(*detect)(const void *fdt, int offset);
+	const struct smb1360_battery *(*detect)(const struct smb1360 *smb,
+						const void *fdt, int offset);
 };
 
 static const struct smb1360_battery_detector detectors[] = {
@@ -35,6 +36,8 @@ static const struct smb1360_battery_detector *smb1360_match_detector(const void 
 	return NULL;
 }
 
+extern const struct smb1360 *smb1360_setup_i2c(const void *fdt, int offset);
+
 void smb1360_detect_battery(const void *fdt, int offset)
 {
 	const struct smb1360_battery_detector *detector;
@@ -44,11 +47,13 @@ void smb1360_detect_battery(const void *fdt, int offset)
 	if (offset < 0)
 		return;
 
+	lk2nd_dev.smb1360 = smb1360_setup_i2c(fdt, offset);
+
 	detector = smb1360_match_detector(fdt, offset);
 	if (!detector)
 		return;
 
-	battery = detector->detect(fdt, offset);
+	battery = detector->detect(lk2nd_dev.smb1360, fdt, offset);
 	if (!battery) {
 		dprintf(CRITICAL, "Failed to detect smb1360 battery\n");
 		lk2nd_dev.battery = "ERROR";

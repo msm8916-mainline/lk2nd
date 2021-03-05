@@ -79,7 +79,8 @@ static uint32_t smb1360_parse_batt_id(const void *fdt, int offset)
 	return connected_rid;
 }
 
-const struct smb1360_battery *smb1360_qcom_detect_battery(const void *fdt, int offset)
+const struct smb1360_battery *smb1360_qcom_detect_battery(const struct smb1360 *smb,
+							  const void *fdt, int offset)
 {
 	int len;
 	uint32_t connected_rid;

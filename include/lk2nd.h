@@ -5,6 +5,7 @@
 
 #include <dev_tree.h>
 
+struct smb1360;
 struct smb1360_battery;
 
 struct lk2nd_panel {
@@ -28,6 +29,7 @@ struct lk2nd_device {
 	const char *radio;
 
 	const char *battery;
+	const struct smb1360 *smb1360;
 	const struct smb1360_battery *smb1360_battery;
 
 	struct lk2nd_panel panel;

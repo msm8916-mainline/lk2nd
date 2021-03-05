@@ -276,9 +276,8 @@ static const struct smb1360_battery wt88047_batteries[] = {
 	},
 };
 
-static bool smb1360_wt88047_check_rsense_10mohm(const void *fdt, int offset)
+static bool smb1360_wt88047_check_rsense_10mohm(const struct smb1360 *smb)
 {
-	const struct smb1360 *smb = smb1360_setup_i2c(fdt, offset);
 	status_t ret;
 	uint8_t val;
 
@@ -294,7 +293,8 @@ static bool smb1360_wt88047_check_rsense_10mohm(const void *fdt, int offset)
 	return true;
 }
 
-const struct smb1360_battery *smb1360_wt88047_detect_battery(const void *fdt, int offset)
+const struct smb1360_battery *smb1360_wt88047_detect_battery(const struct smb1360 *smb,
+							     const void *fdt, int offset)
 {
 	int delay_time, bat_module_id;
 	struct pm8x41_gpio config = {
@@ -329,7 +329,7 @@ const struct smb1360_battery *smb1360_wt88047_detect_battery(const void *fdt, in
 	 * the PRE_TO_FAST_REG here for safety reasons. If it's not set correctly,
 	 * pretend that we failed to detect the battery so smb1360 is not enabled.
 	 */
-	if (!smb1360_wt88047_check_rsense_10mohm(fdt, offset))
+	if (!smb1360_wt88047_check_rsense_10mohm(smb))
 		return NULL;
 
 	return &wt88047_batteries[bat_module_id];

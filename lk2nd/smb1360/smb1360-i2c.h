@@ -36,8 +36,6 @@ struct smb1360 {
 	const struct regmap *fg_regmap;
 };
 
-const struct smb1360 *smb1360_setup_i2c(const void *fdt, int offset);
-
 status_t smb1360_enable_fg_access(const struct smb1360 *smb);
 void smb1360_disable_fg_access(const struct smb1360 *smb);
 
