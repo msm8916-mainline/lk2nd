@@ -22,10 +22,15 @@
 
 /* Command Registers */
 #define CMD_I2C_REG			0x40
+#define RELOAD_BIT			BIT(7)
 #define ALLOW_VOLATILE_BIT		BIT(6)
 #define FG_ACCESS_ENABLED_BIT		BIT(5)
 #define FG_RESET_BIT			BIT(4)
 #define CYCLE_STRETCH_CLEAR_BIT		BIT(3)
+
+/* Status Registers */
+#define STATUS_4_REG			0x4C
+#define CYCLE_STRETCH_ACTIVE_BIT	BIT(5)
 
 /* IRQ Status Registers */
 #define IRQ_I_REG			0x58
@@ -38,5 +43,8 @@ struct smb1360 {
 
 status_t smb1360_enable_fg_access(const struct smb1360 *smb);
 void smb1360_disable_fg_access(const struct smb1360 *smb);
+status_t smb1360_check_cycle_stretch(const struct smb1360 *smb);
+status_t smb1360_reload(const struct smb1360 *smb);
+status_t smb1360_fg_reset(const struct smb1360 *smb);
 
 #endif

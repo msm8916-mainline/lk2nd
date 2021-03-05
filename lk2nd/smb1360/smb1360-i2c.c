@@ -73,3 +73,84 @@ void smb1360_disable_fg_access(const struct smb1360 *smb)
 {
 	regmap_clear_bits(smb->regmap, CMD_I2C_REG, FG_ACCESS_ENABLED_BIT);
 }
+
+status_t smb1360_check_cycle_stretch(const struct smb1360 *smb)
+{
+	uint8_t val;
+	status_t ret = regmap_read(smb->regmap, STATUS_4_REG, &val);
+
+	if (ret)
+		return ret;
+
+	if (!(val & CYCLE_STRETCH_ACTIVE_BIT))
+		return 0;
+
+	return regmap_set_bits(smb->regmap, CMD_I2C_REG, CYCLE_STRETCH_CLEAR_BIT);
+}
+
+status_t smb1360_reload(const struct smb1360 *smb)
+{
+	return regmap_set_bits(smb->regmap, CMD_I2C_REG, RELOAD_BIT);
+}
+
+/*
+ * FIXME: This resets some FG registers but not all of them properly.
+ * All in all I'm not sure if this has really positive effects only.
+ */
+
+#define OTP_BACKUP_START		0xE0
+#define OTP_BACKUP_MAP_REG		0xF0
+
+static status_t smb1360_otp_backup_reset(const struct smb1360 *smb)
+{
+	uint8_t backup_empty[16] = {0};
+	uint16_t map_empty = 0;
+	status_t ret;
+
+	/* Clear OTP backup map */
+	ret = regmap_raw_write(smb->fg_regmap, OTP_BACKUP_MAP_REG,
+			       &map_empty, sizeof(map_empty));
+	if (ret)
+		return ret;
+
+	/* Clear OTP backup */
+	ret = regmap_raw_write(smb->fg_regmap, OTP_BACKUP_START,
+			       backup_empty, sizeof(backup_empty));
+	if (ret)
+		return ret;
+
+	return 0;
+}
+
+status_t smb1360_fg_reset(const struct smb1360 *smb)
+{
+
+	status_t ret;
+
+	ret = smb1360_enable_fg_access(smb);
+	if (ret)
+		return ret;
+
+	ret = smb1360_otp_backup_reset(smb);
+	if (ret)
+		goto out;
+
+	/* delay for the FG access to settle */
+	mdelay(1500);
+
+	ret = regmap_set_bits(smb->regmap, CMD_I2C_REG, FG_RESET_BIT);
+	if (ret)
+		goto out;
+
+	/* delay for FG reset */
+	mdelay(1500);
+
+	ret = regmap_clear_bits(smb->regmap, CMD_I2C_REG, FG_RESET_BIT);
+	if (ret)
+		goto out;
+
+out:
+	smb1360_disable_fg_access(smb);
+	smb1360_check_cycle_stretch(smb);
+	return ret;
+}
