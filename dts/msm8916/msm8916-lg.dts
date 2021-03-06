@@ -9,13 +9,6 @@
 	qcom,msm-id = <206 0>;
 	qcom,board-id = <100 0>;
 
-	/*
-	 * FIXME: This device is really weird. For some reason it crashes
-	 * whenever the fastboot display menu is compiled into lk2nd. Wtf?
-	 * For now, to compile a usable lk2nd image, comment out
-	 * the following line in project/lk2nd.mk:
-	 * #ENABLE_FBCON_DISPLAY_MSG := 1
-	 */
 	m216 {
 		model = "LG K10 (K420n)";
 		compatible = "lg,m216", "qcom,msm8916", "lk2nd,device";
