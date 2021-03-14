@@ -205,6 +205,9 @@ status_t ext2_open_directory(fscookie *cookie, const char *path, dircookie **dco
 	}
 	int ret;
 
+	if (path[0] == 0)
+		path = "/.";
+
 	ret = ext2_open_file(cookie, path, (filecookie **)&dir->file);
 	if (ret < 0) {
 		free(dir);
