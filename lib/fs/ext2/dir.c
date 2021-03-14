@@ -208,7 +208,7 @@ status_t ext2_open_directory(fscookie *cookie, const char *path, dircookie **dir
 	}
 	int ret;
 
-	ret = ext2_open_file(cookie, path, (filecookie **)&dir->file);
+	ret = ext2_open_file(cookie, (path[0] == 0 ? "/." : path), (filecookie **)&dir->file); // fails if path=""
 	if (ret < 0) {
 		free(dir);
 		return ret;
