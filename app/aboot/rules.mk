@@ -6,9 +6,16 @@ DEFINES += ASSERT_ON_TAMPER=1
 
 MODULES += lib/zlib_inflate
 
+# fs_boot modules:
+MODULES += \
+	lib/fs \
+	lib/bio \
+	lib/partition
+
 OBJS += \
 	$(LOCAL_DIR)/aboot.o \
-	$(LOCAL_DIR)/fastboot.o
+	$(LOCAL_DIR)/fastboot.o \
+	$(LOCAL_DIR)/fs_boot.o
 
 ifneq ($(DISABLE_RECOVERY_MESSAGES),1)
 DEFINES += RECOVERY_MESSAGES=1

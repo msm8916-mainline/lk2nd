@@ -161,6 +161,7 @@ static event_t txn_done;
 static struct udc_endpoint *in, *out;
 static struct udc_request *req;
 int txn_status;
+static bool udc_started = false;
 
 static void *download_base;
 static unsigned download_max;
@@ -383,8 +384,10 @@ void fastboot_info(const char *reason)
 {
 	STACKBUF_DMA_ALIGN(response, MAX_RSP_SIZE);
 
-	if (fastboot_state != STATE_COMMAND)
+	if (fastboot_state != STATE_COMMAND) {
+		dprintf(INFO, "%s\n", reason);
 		return;
+	}
 
 	if (reason == 0)
 		return;
@@ -396,6 +399,11 @@ void fastboot_info(const char *reason)
 
 void fastboot_fail(const char *reason)
 {
+	if (fastboot_state != STATE_COMMAND) {
+		dprintf(CRITICAL, "%s\n", reason);
+		return;
+	}
+
 	fastboot_ack("FAIL", reason);
 }
 
@@ -673,6 +681,7 @@ int fastboot_init(void *base, unsigned size)
 	thread_resume(thr);
 
 	usb_if.udc_start();
+	udc_started = true;
 
 	return 0;
 
@@ -688,5 +697,9 @@ fail_alloc_in:
 
 void fastboot_stop(void)
 {
+	if (!udc_started)
+		return;
+
 	usb_if.udc_stop();
+	udc_started = false;
 }
