@@ -160,6 +160,9 @@ unsigned int partition_read_table()
 		ASSERT(partition_entries);
 	}
 
+	partition_count = 0;
+	gpt_partitions_exist = 0;
+
 	/* Read MBR of the card */
 	ret = mmc_boot_read_mbr(block_size);
 	if (ret) {
