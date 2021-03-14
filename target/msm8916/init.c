@@ -83,6 +83,8 @@
 static void set_sdc_power_ctrl(uint8_t slot);
 
 struct mmc_device *dev;
+struct mmc_device *emmc_dev;
+struct mmc_device *sdcard_dev;
 
 static uint32_t mmc_pwrctl_base[] =
 	{ MSM_SDC1_BASE, MSM_SDC2_BASE };
@@ -111,37 +113,53 @@ void target_early_init(void)
 void target_sdc_init()
 {
 	struct mmc_config_data config;
-
-
-	config.bus_width = DATA_BUS_WIDTH_4BIT;
-	config.max_clk_rate = MMC_CLK_177MHZ;
+	struct mmc_config_data sd_config;
 
 	/* Try slot 1*/
-	config.slot         = MMC_SLOT;
+	config.bus_width    = DATA_BUS_WIDTH_8BIT;
+	config.slot         = 1;
+	config.max_clk_rate = MMC_CLK_177MHZ;
 	config.sdhc_base    = mmc_sdhci_base[config.slot - 1];
 	config.pwrctl_base  = mmc_pwrctl_base[config.slot - 1];
 	config.pwr_irq      = mmc_sdc_pwrctl_irq[config.slot - 1];
 	config.hs400_support = 0;
-	dprintf(CRITICAL, "initialising mmc_slot =%u\n",MMC_SLOT);
+	dprintf(SPEW, "initialising mmc_slot =%u\n", 1);
 
 	/* Set drive strength & pull ctrl values */
 	set_sdc_power_ctrl(config.slot);
 
-	if (!(dev = mmc_init(&config))) {
-	/* Try slot 2 */
-		config.slot         = 2;
-		config.max_clk_rate = MMC_CLK_200MHZ;
-		config.sdhc_base    = mmc_sdhci_base[config.slot - 1];
-		config.pwrctl_base  = mmc_pwrctl_base[config.slot - 1];
-		config.pwr_irq      = mmc_sdc_pwrctl_irq[config.slot - 1];
+	dev = mmc_init(&config);
+	emmc_dev = dev;
 
-		/* Set drive strength & pull ctrl values */
-		set_sdc_power_ctrl(config.slot);
+	if (!emmc_dev) {
+		dprintf(CRITICAL, "FAILED TO INIT EMMC mmc_slot = %u \n",1);
+	}
 
-		if (!(dev = mmc_init(&config))) {
-			dprintf(CRITICAL, "mmc init failed!");
-			ASSERT(0);
-		}
+	dprintf(SPEW, "initialising mmc_slot =%u\n", 2);
+
+	sd_config.bus_width    = DATA_BUS_WIDTH_4BIT;
+	sd_config.slot         = 2;
+	sd_config.max_clk_rate = MMC_CLK_200MHZ;
+	sd_config.sdhc_base    = mmc_sdhci_base[sd_config.slot - 1];
+	sd_config.pwrctl_base  = mmc_pwrctl_base[sd_config.slot - 1];
+	sd_config.pwr_irq      = mmc_sdc_pwrctl_irq[sd_config.slot - 1];
+	sd_config.hs400_support = 0;
+
+	/* Set drive strength & pull ctrl values */
+	set_sdc_power_ctrl(sd_config.slot);
+
+	sdcard_dev = mmc_init(&sd_config);
+
+	if (!sdcard_dev) {
+		dprintf(CRITICAL, "sdcard init failed!");
+	} else if (!dev) {
+		/* emmc failed but we still have sdcard */
+		dev = sdcard_dev;
+	}
+
+	if (!sdcard_dev && !emmc_dev) {
+		dprintf(CRITICAL, "BOTH SLOTS FAILED!");
+		ASSERT(0);
 	}
 }
 
@@ -494,8 +512,15 @@ void target_uninit(void)
 	wait_vib_timeout();
 #endif
 
-	mmc_put_card_to_sleep(dev);
-	sdhci_mode_disable(&dev->host);
+	if (emmc_dev) {
+		mmc_put_card_to_sleep(emmc_dev);
+		sdhci_mode_disable(&emmc_dev->host);
+	}
+
+	if (sdcard_dev) {
+		mmc_put_card_to_sleep(sdcard_dev);
+		sdhci_mode_disable(&sdcard_dev->host);
+	}
 
 	if (crypto_initialized())
 		crypto_eng_cleanup();
