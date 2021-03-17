@@ -40,6 +40,8 @@ int atomic_add(volatile int *ptr, int val);
 int atomic_and(volatile int *ptr, int val);
 int atomic_or(volatile int *ptr, int val);
 
+void rgb888_swap(const void *in, void *out, uint32_t npixels8);
+
 #endif // !ASSEMBLY
 #define ICACHE 1
 #define DCACHE 2
