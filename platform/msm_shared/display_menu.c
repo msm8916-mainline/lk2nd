@@ -451,6 +451,14 @@ void display_fastboot_menu_renew(struct select_msg_info *fastboot_msg_info)
 	snprintf(msg, sizeof(msg), "SERIAL NUMBER - %s\n", msg_buf);
 	display_fbcon_menu_message(msg, FBCON_COMMON_MSG, common_factor);
 
+#if TARGET_MSM8916
+	res = is_scm_armv8_support();
+	snprintf(msg, sizeof(msg), "\nARM64 - %s\n",
+		 res ? "supported" : "unsupported");
+	display_fbcon_menu_message(msg, res ? FBCON_GREEN_MSG : FBCON_RED_MSG,
+				   common_factor);
+#endif
+
 	res = is_secure_boot_enable();
 	snprintf(msg, sizeof(msg), "SECURE BOOT - %s\n",
 		res ? "enabled":"disabled");
