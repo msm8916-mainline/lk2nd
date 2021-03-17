@@ -281,3 +281,8 @@ FUNCTION(arch_cycle_count)
 	mov		r0, #0
 #endif
 	bx		lr
+
+/* uint32_t smc_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg3); */
+FUNCTION(smc_call)
+	smc		#0
+	bx		lr

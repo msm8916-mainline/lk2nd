@@ -21,7 +21,11 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #ifndef __ARCH_ARM_OPS_H
-#define __ARHC_ARM_OPS_H
+#define __ARCH_ARM_OPS_H
+
+#ifndef ASSEMBLY
+uint32_t smc_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg3);
+#endif
 
 #if 0
 #include <compiler.h>

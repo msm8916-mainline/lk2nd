@@ -41,6 +41,9 @@
 #include <sys/types.h>
 #include <../../../app/aboot/devinfo.h>
 #include <lk2nd.h>
+#if TARGET_MSM8916
+#include "psci.h"
+#endif
 
 static const char *unlock_menu_common_msg = "If you unlock the bootloader, "\
 				"you will be able to install "\
@@ -457,6 +460,15 @@ void display_fastboot_menu_renew(struct select_msg_info *fastboot_msg_info)
 		 res ? "supported" : "unsupported");
 	display_fbcon_menu_message(msg, res ? FBCON_GREEN_MSG : FBCON_RED_MSG,
 				   common_factor);
+
+	if (res && (res = smc_call(PSCI_0_2_FN_PSCI_VERSION, 0, 0, 0)) != PSCI_RET_NOT_SUPPORTED) {
+		snprintf(msg, sizeof(msg), "PSCI - v%d.%d detected\n",
+			 PSCI_VERSION_MAJOR(res), PSCI_VERSION_MINOR(res));
+		display_fbcon_menu_message(msg, FBCON_GREEN_MSG, common_factor);
+	} else {
+		display_fbcon_menu_message("PSCI - unsupported\n",
+					   FBCON_YELLOW_MSG, common_factor);
+	}
 #endif
 
 	res = is_secure_boot_enable();
