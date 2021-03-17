@@ -367,6 +367,7 @@ void display_fastboot_menu_renew(struct select_msg_info *fastboot_msg_info)
 	int msg_type = FBCON_COMMON_MSG;
 	char msg_buf[64];
 	char msg[128];
+	uint32_t res;
 
 	/* The fastboot menu is switched base on the option index
 	 * So it's need to store the index for the menu switching
@@ -450,9 +451,11 @@ void display_fastboot_menu_renew(struct select_msg_info *fastboot_msg_info)
 	snprintf(msg, sizeof(msg), "SERIAL NUMBER - %s\n", msg_buf);
 	display_fbcon_menu_message(msg, FBCON_COMMON_MSG, common_factor);
 
+	res = is_secure_boot_enable();
 	snprintf(msg, sizeof(msg), "SECURE BOOT - %s\n",
-		is_secure_boot_enable()? "enabled":"disabled");
-	display_fbcon_menu_message(msg, FBCON_COMMON_MSG, common_factor);
+		res ? "enabled":"disabled");
+	display_fbcon_menu_message(msg, res ? FBCON_YELLOW_MSG : FBCON_GREEN_MSG,
+				   common_factor);
 
 #if !WITH_LK2ND
 	snprintf(msg, sizeof(msg), "DEVICE STATE - %s\n",
