@@ -14,7 +14,10 @@ struct smb1360_battery {
 	uint16_t capacity_mah;
 	uint16_t cc_soc_coeff;
 	uint16_t therm_coeff;
+	const uint8_t *rslow_config;
 };
+
+#define SMB1360_RSLOW_CONFIG_SIZE	4
 
 int smb1360_battery_detected(const struct smb1360_battery *battery);
 
