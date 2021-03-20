@@ -30,5 +30,10 @@
 				compatible = "alcatel,lg-otm1284a";
 			};
 		};
+
+		smb1360 {
+			compatible = "alcatel,smb1360-idol347", "qcom,smb1360";
+			i2c-gpio-pins = <6 7>;
+		};
 	};
 };

@@ -23,6 +23,8 @@ struct smb1360_battery {
 void smb1360_detect_battery(const void *fdt, int offset);
 void smb1360_update_device_tree(void *fdt);
 
+const struct smb1360_battery *smb1360_idol347_detect_battery(const struct smb1360 *smb,
+							     const void *fdt, int offset);
 const struct smb1360_battery *smb1360_wt88047_detect_battery(const struct smb1360 *smb,
 							     const void *fdt, int offset);
 const struct smb1360_battery *smb1360_qcom_detect_battery(const struct smb1360 *smb,
