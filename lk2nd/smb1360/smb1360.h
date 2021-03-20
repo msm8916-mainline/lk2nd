@@ -17,6 +17,7 @@ struct smb1360_battery {
 	uint16_t capacity_mah;
 	uint16_t cc_soc_coeff;
 	uint16_t therm_coeff;
+	uint8_t *rslow_config;
 };
 
 void smb1360_detect_battery(const void *fdt, int offset);

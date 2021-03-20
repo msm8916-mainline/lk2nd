@@ -103,6 +103,14 @@ void smb1360_update_device_tree(void *fdt)
 		}
 	}
 
+	if (battery->rslow_config) {
+		ret = fdt_setprop(fdt, offset, "qcom,otp-rslow-config", battery->rslow_config, 4);
+		if (ret < 0) {
+			dprintf(CRITICAL, "Failed to set smb1360 qcom,otp-rslow-config: %d\n", ret);
+			return;
+		}
+	}
+
 	if (smb1360_update_u32(fdt, offset, "qcom,fg-batt-capacity-mah", battery->capacity_mah))
 		return;
 	if (smb1360_update_u32(fdt, offset, "qcom,fg-cc-soc-coeff", battery->cc_soc_coeff))
