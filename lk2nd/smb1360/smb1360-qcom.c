@@ -16,6 +16,12 @@ static const struct smb1360_battery batteryB = {
 	.profile = SMB1360_BATTERY_PROFILE_B,
 };
 
+static unsigned int abs(int n) {
+	if (n >= 0)
+		return n;
+	return -n;
+}
+
 static const struct smb1360_battery *smb1360_check_batt_profile(const void *fdt, int offset,
 								uint32_t connected_rid)
 {
@@ -35,9 +41,9 @@ static const struct smb1360_battery *smb1360_check_batt_profile(const void *fdt,
 
 	rid10 = connected_rid / 10;
 
-	if ((profile_rid_a - connected_rid) < rid10) {
+	if (abs(profile_rid_a - connected_rid) < rid10) {
 		return &batteryA;
-	} else if ((profile_rid_b - connected_rid) < rid10) {
+	} else if (abs(profile_rid_b - connected_rid) < rid10) {
 		return &batteryB;
 	} else {
 		dprintf(CRITICAL, "smb1360: connected_rid: %d does not match profile A (%d) or profile B (%d)\n",
