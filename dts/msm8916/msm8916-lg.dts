@@ -9,6 +9,12 @@
 	qcom,msm-id = <206 0>;
 	qcom,board-id = <100 0>;
 
+	c50 {
+		model = "LG Leon LTE";
+		compatible = "lg,c50", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-cmdline = "* model.name=LG-H34*";
+	};
+
 	m216 {
 		model = "LG K10 (K420n)";
 		compatible = "lg,m216", "qcom,msm8916", "lk2nd,device";

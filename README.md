@@ -33,6 +33,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Lenovo A6010
 - Lenovo PHAB Plus - PB1-770M, PB1-770N
 - LG K10 (m216) - K420
+- LG Leon LTE (c50) - H340, H342, H343, H345, MS345, etc
 - Marshall London
 - Motorola Moto E (2015) - surnia
 - Motorola Moto G (2015) - osprey
