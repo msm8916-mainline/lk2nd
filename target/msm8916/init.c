@@ -150,7 +150,7 @@ int target_volume_up()
 	uint8_t status = 0;
 
         if (!first_time) {
-            gpio_tlmm_config(TLMM_VOL_UP_BTN_GPIO, 0, GPIO_INPUT, GPIO_PULL_UP, GPIO_2MA, GPIO_ENABLE);
+            gpio_tlmm_config(108, 0, GPIO_INPUT, GPIO_PULL_UP, GPIO_2MA, GPIO_ENABLE);
 
 	    /* Wait for the gpio config to take effect - debounce time */
 	    udelay(10000);
@@ -159,17 +159,32 @@ int target_volume_up()
         }
 
 	/* Get status of GPIO */
-	status = gpio_status(TLMM_VOL_UP_BTN_GPIO);
+	status = gpio_status(108);
 
 	/* Active low signal. */
 	return !status;
 }
 
 /* Return 1 if vol_down pressed */
-uint32_t target_volume_down()
+int target_volume_down()
 {
-	/* Volume down button tied in with PMIC RESIN. */
-	return pm8x41_resin_status();
+    static uint8_t first_time = 0;
+	uint8_t status = 0;
+
+        if (!first_time) {
+            gpio_tlmm_config(107, 0, GPIO_INPUT, GPIO_PULL_UP, GPIO_2MA, GPIO_ENABLE);
+
+	    /* Wait for the gpio config to take effect - debounce time */
+	    udelay(10000);
+
+            first_time = 1;
+        }
+
+	/* Get status of GPIO */
+	status = gpio_status(107);
+
+	/* Active low signal. */
+	return !status;
 }
 
 static void target_keystatus()
