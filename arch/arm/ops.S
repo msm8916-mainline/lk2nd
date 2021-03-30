@@ -282,11 +282,6 @@ FUNCTION(arch_cycle_count)
 #endif
 	bx		lr
 
-/* uint32_t smc_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg3); */
-FUNCTION(smc_call)
-	smc		#0
-	bx		lr
-
 /* void rgb888_swap(const void *in, void *out, uint32_t npixels8) */
 /* https://developer.arm.com/documentation/den0018/a/NEON-Code-Examples-with-Intrinsics/Swapping-color-channels */
 FUNCTION(rgb888_swap)
