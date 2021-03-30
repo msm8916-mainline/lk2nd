@@ -363,6 +363,50 @@ void display_bootverify_option_menu_renew(struct select_msg_info *msg_info)
 	msg_info->info.option_index= len;
 }
 
+static void display_fastboot_menu_print_fw_info(char *msg, size_t msg_size)
+{
+#if TARGET_MSM8916
+	bool armv8 = is_scm_armv8_support();
+	scmcall_arg arg = {0};
+	uint32_t psci_version = PSCI_RET_NOT_SUPPORTED;
+	bool hvc_el2 = false;
+
+	snprintf(msg, msg_size, "\nARM64 - %s\n",
+		 armv8 ? "available" : "unavailable");
+	display_fbcon_menu_message(msg, armv8 ? FBCON_GREEN_MSG : FBCON_RED_MSG,
+				   common_factor);
+
+	if (armv8) {
+		/* Check PSCI version */
+		arg.x0 = PSCI_0_2_FN_PSCI_VERSION;
+		psci_version = scm_call2(&arg, NULL);
+
+		/*
+		 * If hypervisor responds to HVC call with -5 it means that the
+		 * command was forwarded to TZ and therefore EL2 is possible.
+		 * Qualcomm's original firmware usually responds with -2.
+		 */
+		arg.x0 = MAKE_SIP_SCM_CMD(SCM_SVC_MILESTONE_32_64_ID, SCM_SVC_MILESTONE_CMD_ID);
+		arg.hvc = true;
+		hvc_el2 = scm_call2(&arg, NULL) == -5;
+	}
+
+	snprintf(msg, msg_size, "EL2 - %s\n",
+		 hvc_el2 ? "available" : "unavailable");
+	display_fbcon_menu_message(msg, hvc_el2 ? FBCON_GREEN_MSG : FBCON_COMMON_MSG,
+				   common_factor);
+
+	if (psci_version != PSCI_RET_NOT_SUPPORTED) {
+		snprintf(msg, msg_size, "PSCI - v%d.%d detected\n",
+			 PSCI_VERSION_MAJOR(psci_version), PSCI_VERSION_MINOR(psci_version));
+		display_fbcon_menu_message(msg, FBCON_GREEN_MSG, common_factor);
+	} else {
+		display_fbcon_menu_message("PSCI - unavailable\n",
+					   FBCON_YELLOW_MSG, common_factor);
+	}
+#endif
+}
+
 /* msg_lock need to be holded when call this function. */
 void display_fastboot_menu_renew(struct select_msg_info *fastboot_msg_info)
 {
@@ -454,22 +498,7 @@ void display_fastboot_menu_renew(struct select_msg_info *fastboot_msg_info)
 	snprintf(msg, sizeof(msg), "SERIAL NUMBER - %s\n", msg_buf);
 	display_fbcon_menu_message(msg, FBCON_COMMON_MSG, common_factor);
 
-#if TARGET_MSM8916
-	res = is_scm_armv8_support();
-	snprintf(msg, sizeof(msg), "\nARM64 - %s\n",
-		 res ? "supported" : "unsupported");
-	display_fbcon_menu_message(msg, res ? FBCON_GREEN_MSG : FBCON_RED_MSG,
-				   common_factor);
-
-	if (res && (res = smc_call(PSCI_0_2_FN_PSCI_VERSION, 0, 0, 0)) != PSCI_RET_NOT_SUPPORTED) {
-		snprintf(msg, sizeof(msg), "PSCI - v%d.%d detected\n",
-			 PSCI_VERSION_MAJOR(res), PSCI_VERSION_MINOR(res));
-		display_fbcon_menu_message(msg, FBCON_GREEN_MSG, common_factor);
-	} else {
-		display_fbcon_menu_message("PSCI - unsupported\n",
-					   FBCON_YELLOW_MSG, common_factor);
-	}
-#endif
+	display_fastboot_menu_print_fw_info(msg, sizeof(msg));
 
 	res = is_secure_boot_enable();
 	snprintf(msg, sizeof(msg), "SECURE BOOT - %s\n",
