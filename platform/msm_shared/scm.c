@@ -1049,6 +1049,12 @@ void scm_elexec_call(paddr_t kernel_entry, paddr_t dtb_offset)
 		scm_arg.x2 = (void *)&param;
 		scm_arg.x3 = sizeof(el1_system_param);
 
+		/* First try a hypervisor call to jump to EL2 if supported */
+		scm_arg.hvc = true;
+		scm_call2(&scm_arg, NULL);
+
+		dprintf(INFO, "Falling back to SCM call\n");
+		scm_arg.hvc = false;
 		scm_call2(&scm_arg, NULL);
 	}
 
@@ -1186,6 +1192,43 @@ static uint32_t scm_call_a32(uint32_t x0, uint32_t x1, uint32_t x2, uint32_t x3,
 	return r0;
 }
 
+static uint32_t hvc_call_a32(uint32_t x0, uint32_t x1, uint32_t x2, uint32_t x3, uint32_t x4, uint32_t x5, scmcall_ret *ret)
+{
+	register uint32_t r0 __asm__("r0") = x0;
+	register uint32_t r1 __asm__("r1") = x1;
+	register uint32_t r2 __asm__("r2") = x2;
+	register uint32_t r3 __asm__("r3") = x3;
+	register uint32_t r4 __asm__("r4") = x4;
+	register uint32_t r5 __asm__("r5") = x5;
+
+	do {
+		__asm__ volatile(
+			__asmeq("%0", "r0")
+			__asmeq("%1", "r1")
+			__asmeq("%2", "r2")
+			__asmeq("%3", "r3")
+			__asmeq("%4", "r0")
+			__asmeq("%5", "r1")
+			__asmeq("%6", "r2")
+			__asmeq("%7", "r3")
+			__asmeq("%8", "r4")
+			__asmeq("%9", "r5")
+			".cpu   cortex-a7\n"
+			"hvc    #0  @ switch to hypervisor\n"
+			: "=r" (r0), "=r" (r1), "=r" (r2), "=r" (r3)
+			: "r" (r0), "r" (r1), "r" (r2), "r" (r3), "r" (r4), "r" (r5));
+	} while(r0 == 1);
+
+	if (ret)
+	{
+		ret->x1 = r1;
+		ret->x2 = r2;
+		ret->x3 = r3;
+	}
+
+	return r0;
+}
+
 uint32_t scm_call2(scmcall_arg *arg, scmcall_ret *ret)
 {
 	uint32_t *indir_arg = NULL;
@@ -1209,11 +1252,14 @@ uint32_t scm_call2(scmcall_arg *arg, scmcall_ret *ret)
 		x5 = (addr_t) indir_arg;
 	}
 
-	rc = scm_call_a32(arg->x0, arg->x1, arg->x2, arg->x3, arg->x4, x5, ret);
+	if (arg->hvc)
+		rc = hvc_call_a32(arg->x0, arg->x1, arg->x2, arg->x3, arg->x4, x5, ret);
+	else
+		rc = scm_call_a32(arg->x0, arg->x1, arg->x2, arg->x3, arg->x4, x5, ret);
 
 	if (rc)
 	{
-		dprintf(CRITICAL, "SCM call: 0x%x failed with :%x\n", arg->x0, rc);
+		dprintf(CRITICAL, "%s call: 0x%x failed with :%x\n", arg->hvc ? "HVC" : "SCM", arg->x0, rc);
 		return rc;
 	}
 

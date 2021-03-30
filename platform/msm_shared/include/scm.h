@@ -214,6 +214,7 @@ typedef struct {
 	uint32_t x4; /* Param3 */
 	uint32_t x5[10]; /* Indirect parameter list */
 	uint32_t atomic; /* To indicate if its standard or fast call */
+	uint32_t hvc; /* Make a hypervisor call instead */
 } scmcall_arg;
 
 /* Return value for the SCM call:
