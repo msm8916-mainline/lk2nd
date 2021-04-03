@@ -98,35 +98,42 @@ struct partition_entry* partition_get_partition_entries()
 }
 
 #ifdef LK2ND_SIZE
-void partition_split_boot(uint32_t block_size)
+static void partition_split(uint32_t block_size, const char *base_name,
+			    const char *name, uint32_t num_blocks)
 {
-	struct partition_entry *boot;
-	int index = partition_get_index("boot");
-	unsigned long long lk_size = LK2ND_SIZE / block_size;
+	struct partition_entry *base, *split;
+	int index = partition_get_index(base_name);
 
 	if (index == INVALID_PTN) {
-		dprintf(CRITICAL, "Boot partition not found\n");
+		dprintf(CRITICAL, "%s partition not found\n", base_name);
 		return;
 	}
-	boot = &partition_entries[index];
+	base = &partition_entries[index];
 
-	if (boot->size < lk_size) {
-		dprintf(CRITICAL, "Boot partition has not enough space for lk2nd\n");
+	if (base->size < num_blocks) {
+		dprintf(CRITICAL, "%s partition has not enough space for %s\n",
+			base_name, name);
 		return;
 	}
 
 	if (partition_count < NUM_PARTITIONS) {
-		struct partition_entry *lk = &partition_entries[partition_count++];
-		memcpy(lk, boot, sizeof(*lk));
-		strcpy(lk->name, "lk2nd");
-		lk->last_lba = lk->first_lba + lk_size - 1;
-		lk->size = lk_size;
+		split = &partition_entries[partition_count++];
+		memcpy(split, base, sizeof(*split));
+		strcpy(split->name, name);
+		split->last_lba = split->first_lba + num_blocks - 1;
+		split->size = num_blocks;
 	} else {
-		dprintf(INFO, "Too many partitions to add virtual 'lk2nd' partition\n");
+		dprintf(CRITICAL, "Too many partitions to add virtual '%s' partition\n",
+			name);
 	}
 
-	boot->first_lba += lk_size;
-	boot->size -= lk_size;
+	base->first_lba += num_blocks;
+	base->size -= num_blocks;
+}
+
+static void partition_split_boot(uint32_t block_size)
+{
+	partition_split(block_size, "boot", "lk2nd", LK2ND_SIZE / block_size);
 }
 #endif
 
