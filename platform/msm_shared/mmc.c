@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2014, 2021 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -35,7 +35,7 @@
 #include <platform/iomap.h>
 #include <platform/timer.h>
 #include <bits.h>
-#include <app/aboot/bootimg.h>
+#include <../../../app/aboot/bootimg.h>
 
 #if MMC_BOOT_ADM
 #include "adm.h"
