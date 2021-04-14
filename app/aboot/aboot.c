@@ -2,7 +2,7 @@
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2020, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2021, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -4683,11 +4683,7 @@ int splash_screen_check_header(logo_img_header *header)
 		return -1;
 	if (header->width == 0 || header->height == 0)
 		return -1;
-	if ((UINT_MAX/512 >= header->blocks) && (header->blocks != 0)){
-		if (header->blocks*512 < header->width * header->height)
-			return -1;
-	}
-	else {
+	if (((header->blocks == 0) || (header->blocks > UINT_MAX/512))) {
 		return -1;
 	}
 	return 0;
@@ -4756,6 +4752,11 @@ int splash_screen_flash()
 					(fb_display->bpp / 8), 4096);
 		uint32_t splash_size = ((((header->width * header->height *
 					fb_display->bpp/8) + 511) >> 9) << 9);
+
+		if ((header->height * header->width * (fb_display->bpp/8)) > (header->blocks * 512)) {
+			dprintf(CRITICAL, "ERROR: Splash image size invalid\n");
+			return -1;
+		}
 
 		if (splash_size > fb_size) {
 			dprintf(CRITICAL, "ERROR: Splash image size invalid\n");
@@ -4863,6 +4864,10 @@ int splash_screen_mmc()
 
 			realsize =  header->width * header->height * fb_display->bpp / 8;
 			readsize =  ROUNDUP((realsize + LOGO_IMG_HEADER_SIZE), blocksize) - blocksize;
+			if (realsize > (header->blocks * 512)) {
+				dprintf(CRITICAL, "Logo Size error\n");
+				return -1;
+			}
 
 			if (blocksize == LOGO_IMG_HEADER_SIZE) { /* read the content directly */
 				if (mmc_read((ptn + PLL_CODES_OFFSET + LOGO_IMG_HEADER_SIZE), (uint32_t *)base, readsize)) {
