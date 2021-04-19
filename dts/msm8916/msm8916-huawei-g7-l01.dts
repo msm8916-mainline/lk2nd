@@ -1,0 +1,13 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+/include/ "skeleton.dtsi"
+
+/ {
+	qcom,msm-id = <206 0>;
+	qcom,board-id = <8039 4>;
+
+	model = "Huawei Ascend G7-L01";
+	compatible = "huawei,g7-l01", "qcom,msm8916", "lk2nd,device";
+};
