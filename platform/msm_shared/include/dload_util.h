@@ -32,7 +32,11 @@
 #include <sys/types.h>
 #include <platform/iomap.h>
 
+#if USE_PON_REBOOT_REG
+#define DLOAD (1 << 31)
+#else
 #define DLOAD 1
+#endif
 
 enum dload_mode {
 	NORMAL_DLOAD,
