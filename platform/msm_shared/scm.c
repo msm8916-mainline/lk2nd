@@ -1372,9 +1372,7 @@ int scm_dload_mode(int mode)
 		dload_type = 0;
 
 	/* Write to the Boot MISC register */
-	ret = is_scm_call_available(SCM_SVC_BOOT, SCM_DLOAD_CMD);
-
-	if (ret > 0)
+	if (!scm_arm_support || is_scm_call_available(SCM_SVC_BOOT, SCM_DLOAD_CMD) > 0)
 		ret = scm_call2_atomic(SCM_SVC_BOOT, SCM_DLOAD_CMD, dload_type, 0);
 	else
 #ifdef TCSR_BOOT_MISC_DETECT
