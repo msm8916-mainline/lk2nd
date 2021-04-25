@@ -1393,7 +1393,7 @@ int scm_disable_sdi()
 #if PLATFORM_USE_SCM_DLOAD
 int scm_dload_mode(enum reboot_reason mode)
 {
-	int ret = 0;
+	int ret = 1;
 	uint32_t dload_type;
 
 	dprintf(SPEW, "DLOAD mode: %d\n", mode);
@@ -1408,11 +1408,9 @@ int scm_dload_mode(enum reboot_reason mode)
 		dload_type = 0;
 
 	/* Write to the Boot MISC register */
-	ret = is_scm_call_available(SCM_SVC_BOOT, SCM_DLOAD_CMD);
-
-	if (ret > 0)
+	if (!is_scm_armv8_support() || is_scm_call_available(SCM_SVC_BOOT, SCM_DLOAD_CMD) > 0)
 		ret = scm_call2_atomic(SCM_SVC_BOOT, SCM_DLOAD_CMD, dload_type, 0);
-	else
+	if (ret)
 		ret = scm_io_write(TCSR_BOOT_MISC_DETECT,dload_type);
 
 	if(ret) {
