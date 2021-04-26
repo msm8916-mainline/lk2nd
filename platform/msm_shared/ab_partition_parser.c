@@ -360,7 +360,8 @@ next_active_bootable_slot(struct partition_entry *ptn_entry)
 	for (i = 0; i < AB_SUPPORTED_SLOTS; i++)
 	{
 		slt_index = boot_slot_index[i];
-		if (slot_is_bootable(ptn_entry, slt_index))
+		if (slot_is_bootable(ptn_entry, slt_index) &&
+					slot_is_sucessful(ptn_entry, slt_index))
 			return i;
 	}
 
