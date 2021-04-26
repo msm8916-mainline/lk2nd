@@ -2,6 +2,7 @@
 /* Copyright (c) 2019-2022, Stephan Gerhold <stephan@gerhold.net> */
 
 #include <debug.h>
+#include <dev_tree.h>
 #include <fastboot.h>
 #include <lk2nd/device.h>
 #include <string.h>
@@ -108,6 +109,13 @@ static void parse_dtb(const void *dtb)
 
 	dprintf(INFO, "Detected device: %s (compatible: %s)\n",
 		lk2nd_dev.model, lk2nd_dev.compatible);
+
+#if DEVICE_TREE
+	if (!dev_tree_override_match(dtb, node))
+		/* Try again on root node */
+		dev_tree_override_match(dtb, 0);
+#endif
+
 	device_init(dtb, node);
 }
 
