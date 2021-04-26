@@ -18,6 +18,7 @@
 		compatible = "samsung,a5u-eur", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "A500FU*";
 
+		qcom,msm-id = <206 0>;
 		qcom,board-id = <0xCE08FF01 1>;
 	};
 
