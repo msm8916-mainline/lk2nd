@@ -17,7 +17,7 @@ struct lk2nd_panel {
 
 struct lk2nd_device {
 	void *fdt;
-	struct board_id board_id;
+	struct dt_entry dt_entry;
 
 	const char *model;
 	const char *cmdline;

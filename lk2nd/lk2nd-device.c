@@ -35,45 +35,6 @@ static void dump_board()
 	}
 }
 
-static void update_board_id(struct board_id *board_id)
-{
-	uint32_t hw_id = board_id->variant_id & 0xff;
-	uint32_t hw_subtype = board_id->platform_subtype & 0xff;
-	uint32_t hlos_subtype = board_id->platform_subtype & 0x700;
-	uint32_t target_id = board_id->variant_id & 0xffff00;
-
-	/* Some Huawei devices seem to use hw_id > 0xff, match entire variant */
-	if (board_hardware_id() > 0xff)
-		hw_id = board_id->variant_id;
-
-	/* See platform_dt_absolute_match() for the checks made here */
-	if (board_hardware_id() != hw_id) {
-		dprintf(INFO, "Updating board hardware id: 0x%x -> 0x%x\n",
-			board_hardware_id(), hw_id);
-		board.platform_hw = hw_id;
-	}
-
-	if (board_hardware_subtype() != hw_subtype) {
-		dprintf(INFO, "Updating board hardware subtype: 0x%x -> 0x%x\n",
-			board_hardware_subtype(), hw_subtype);
-		board.platform_subtype = hw_subtype;
-	}
-
-	if ((board_hlos_subtype() & 0x700) != hlos_subtype) {
-		hlos_subtype |= board_hlos_subtype() & ~0x700;
-		dprintf(INFO, "Updating board hlos subtype: 0x%x -> 0x%x\n",
-			board_hlos_subtype(), hlos_subtype);
-		board.platform_hlos_subtype = hlos_subtype;
-	}
-
-	if (!(target_id <= (board_target_id() & 0xffff00))) {
-		target_id |= board_target_id() & ~0xffff00;
-		dprintf(INFO, "Updating board target id: 0x%x -> 0x%x\n",
-			board_target_id(), target_id);
-		board.target = target_id;
-	}
-}
-
 static const char *strpresuf(const char *str, const char *pre)
 {
 	int len = strlen(pre);
@@ -301,8 +262,10 @@ static void lk2nd_parse_device_node(const void *fdt)
 	else
 		dprintf(CRITICAL, "Device node is missing 'model' property\n");
 
-	if (dev_tree_get_board_id(fdt, offset, &lk2nd_dev.board_id) == 0)
-		update_board_id(&lk2nd_dev.board_id);
+	/* Check if the bootloader selected a weird DTB and we need to override */
+	if (!dev_tree_get_dt_entry(fdt, offset, &lk2nd_dev.dt_entry) && offset)
+		/* Try again on root node */
+		dev_tree_get_dt_entry(fdt, 0, &lk2nd_dev.dt_entry);
 
 	if (lk2nd_dev.panel.name)
 		lk2nd_parse_panels(fdt, offset);
@@ -345,11 +308,6 @@ static void lk2nd_fdt_parse(void)
 	}
 
 	lk2nd_dev.fdt = fdt;
-	if (dev_tree_get_board_id(fdt, 0, &lk2nd_dev.board_id) == 0)
-		update_board_id(&lk2nd_dev.board_id);
-	else
-		dprintf(INFO, "No valid (or multiple) qcom,board-id in device tree\n");
-
 	lk2nd_dev.cmdline = dev_tree_get_boot_args(fdt);
 	if (lk2nd_dev.cmdline) {
 		dprintf(INFO, "Command line from primary bootloader: ");

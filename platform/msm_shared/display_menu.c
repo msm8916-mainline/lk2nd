@@ -455,13 +455,6 @@ void display_fastboot_menu_renew(struct select_msg_info *fastboot_msg_info)
 		snprintf(msg, sizeof(msg), "MODEL - %s\n", lk2nd_dev.model);
 		display_fbcon_menu_message(msg, FBCON_COMMON_MSG, common_factor);
 	}
-
-	if (lk2nd_dev.board_id.variant_id) {
-		snprintf(msg, sizeof(msg), "BOARD_ID - <%#x %d>\n",
-			 lk2nd_dev.board_id.variant_id,
-			 lk2nd_dev.board_id.platform_subtype);
-		display_fbcon_menu_message(msg, FBCON_COMMON_MSG, common_factor);
-	}
 #endif
 
 	memset(msg_buf, 0, sizeof(msg_buf));
@@ -497,6 +490,18 @@ void display_fastboot_menu_renew(struct select_msg_info *fastboot_msg_info)
 	target_serialno((unsigned char *) msg_buf);
 	snprintf(msg, sizeof(msg), "SERIAL NUMBER - %s\n", msg_buf);
 	display_fbcon_menu_message(msg, FBCON_COMMON_MSG, common_factor);
+
+#if WITH_LK2ND
+	if (lk2nd_dev.dt_entry.size) {
+		snprintf(msg, sizeof(msg), "DTB - <%u %#x %u %#x>\n",
+			 lk2nd_dev.dt_entry.platform_id,
+			 lk2nd_dev.dt_entry.variant_id,
+			 lk2nd_dev.dt_entry.soc_rev,
+			 lk2nd_dev.dt_entry.board_hw_subtype);
+		display_fbcon_menu_message(msg, lk2nd_dev.dt_entry.offset ? FBCON_YELLOW_MSG : FBCON_COMMON_MSG,
+					   common_factor);
+	}
+#endif
 
 	display_fastboot_menu_print_fw_info(msg, sizeof(msg));
 

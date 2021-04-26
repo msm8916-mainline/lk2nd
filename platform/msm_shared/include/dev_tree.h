@@ -146,5 +146,5 @@ void *dev_tree_appended(void *kernel, uint32_t kernel_size, uint32_t dtb_offset,
 
 int dev_tree_check_header(const void *fdt);
 const char *dev_tree_get_boot_args(const void *fdt);
-int dev_tree_get_board_id(const void *fdt, int offset, struct board_id *board_id);
+int dev_tree_get_dt_entry(const void *fdt, int offset, struct dt_entry *dt_entry);
 #endif
