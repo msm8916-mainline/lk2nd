@@ -260,6 +260,7 @@ int dev_tree_get_entry_info(struct dt_table *table, struct dt_entry *dt_entry_in
 int update_device_tree(void *fdt, const char *, enum boot_type, void *, unsigned);
 int dev_tree_add_mem_info(void *fdt, uint32_t offset, uint64_t size, uint64_t addr);
 void *dev_tree_appended(void *kernel, uint32_t kernel_size, uint32_t dtb_offset, void *tags);
+struct dt_entry *dev_tree_override_match(const void *fdt, int offset);
 int get_dtbo_idx (void);
 int get_dtb_idx (void);
 #endif
