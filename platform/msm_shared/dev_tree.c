@@ -108,6 +108,10 @@ static int update_fstab_node(void *fdt);
  */
 extern int check_aboot_addr_range_overlap(uintptr_t start, uint32_t size);
 
+#if WITH_LK2ND_DEVICE
+static struct dt_entry lk2nd_dt_override;
+#endif
+
 static int dtbo_idx = INVALID_PTN;
 int get_dtbo_idx (void)
 {
@@ -794,10 +798,9 @@ static void dt_entry_list_delete(struct dt_entry_node *dt_node_member)
 	}
 }
 
-static int dev_tree_compatible(void *dtb, void *real_dtb, uint32_t dtb_size,
-			       struct dt_entry_node *dtb_list)
+static int dev_tree_compatible(const void *dtb, const void *real_dtb, uint32_t dtb_size,
+			       int root_offset, struct dt_entry_node *dtb_list)
 {
-	int root_offset;
 	const void *prop = NULL;
 	const char *plat_prop = NULL;
 	const char *board_prop = NULL;
@@ -821,7 +824,8 @@ static int dev_tree_compatible(void *dtb, void *real_dtb, uint32_t dtb_size,
 	uint32_t pmic_data_count;
 	uint32_t dtb_count = 0;;
 
-	root_offset = fdt_path_offset(dtb, "/");
+	if (!root_offset)
+		root_offset = fdt_path_offset(dtb, "/");
 	if (root_offset < 0)
 		return false;
 
@@ -867,6 +871,9 @@ if (DEBUGLEVEL >= SPEW) {
 	/* Get the msm-id prop from DTB */
 	plat_prop = (const char *)fdt_getprop(dtb, root_offset, "qcom,msm-id", &len_plat_id);
 	if (!plat_prop || len_plat_id <= 0) {
+#if WITH_LK2ND_DEVICE
+		if (!dtb_list->dt_entry_m) /* Do not log for lk2nd device DTB */
+#endif
 		dprintf(INFO, "qcom,msm-id entry not found\n");
 		return false;
 	} else if (len_plat_id % min_plat_id_len) {
@@ -882,6 +889,14 @@ if (DEBUGLEVEL >= SPEW) {
 	 * z: SOC rev
 	 */
 	if (dtb_ver == DEV_TREE_VERSION_V1) {
+#if WITH_LK2ND_DEVICE
+		/* Cannot override with more than one entry */
+		if (dtb_list->dt_entry_m && len_plat_id != DT_ENTRY_V1_SIZE) {
+			if (model)
+				free(model);
+			return false;
+		}
+#endif
 		cur_dt_entry = (struct dt_entry *)
 				malloc(sizeof(struct dt_entry));
 
@@ -943,6 +958,15 @@ if (DEBUGLEVEL >= SPEW) {
 		msm_data_count = (len_plat_id / PLAT_ID_SIZE);
 		/* If dtb version is v2.0, the pmic_data_count will be <= 0 */
 		pmic_data_count = (len_pmic_id / PMIC_ID_SIZE);
+
+#if WITH_LK2ND_DEVICE
+		/* Cannot override with more than one entry */
+		if (dtb_list->dt_entry_m && (board_data_count > 1 || msm_data_count > 1 || pmic_data_count > 1)) {
+			if (model)
+				free(model);
+			return false;
+		}
+#endif
 
 		/* If we are using dtb v3.0, then we have split board, msm & pmic data in the DTB
 		*  If we are using dtb v2.0, then we have split board & msmdata in the DTB
@@ -1285,6 +1309,7 @@ void *dev_tree_appended(void *kernel, uint32_t kernel_size, uint32_t dtb_offset,
 		return NULL;
 	}
 	list_initialize(&dt_entry_queue->node);
+	dt_entry_queue->dt_entry_m = NULL;
 
 	if (((uintptr_t)kernel + (uintptr_t)app_dtb_offset) < (uintptr_t)kernel) {
 		return NULL;
@@ -1316,7 +1341,7 @@ void *dev_tree_appended(void *kernel, uint32_t kernel_size, uint32_t dtb_offset,
 			dtb_aligned = tags;
 		}
 
-		dev_tree_compatible(dtb_aligned, dtb, dtb_size, dt_entry_queue);
+		dev_tree_compatible(dtb_aligned, dtb, dtb_size, 0, dt_entry_queue);
 
 		/* goto the next device tree if any */
 		dtb += dtb_size;
@@ -1441,21 +1466,46 @@ static int platform_dt_absolute_match(struct dt_entry *cur_dt_entry, struct dt_e
 	if (board_hardware_id() > 0xff)
 		cur_dt_hw_platform = cur_dt_entry->variant_id;
 
+#if WITH_LK2ND_DEVICE
+	if (dt_list && dt_list->dt_entry_m) {
+		memcpy(dt_list->dt_entry_m, cur_dt_entry, sizeof(struct dt_entry));
+		return 1;
+	}
+	if (dt_list && lk2nd_dt_override.offset) {
+		/*
+		 * If the bootloader selected an unexpected DTB, we match
+		 * platform_id/variant_id/board_hw_subtype exactly, because we
+		 * don't know which DTB the stock bootloader would have selected.
+		 */
+		if (lk2nd_dt_override.platform_id != cur_dt_entry->platform_id ||
+		    lk2nd_dt_override.variant_id != cur_dt_entry->variant_id ||
+		    lk2nd_dt_override.board_hw_subtype != cur_dt_entry->board_hw_subtype)
+			return 0;
+	} else
+#endif
+
 	/* 1. must match the msm_id, platform_hw_id, platform_subtype and DDR size
 	*  soc, board major/minor, pmic major/minor must less than board info
 	*  2. find the matched DTB then return 1
 	*  3. otherwise return 0
 	*/
-	if((cur_dt_msm_id == (board_platform_id() & 0x0000ffff)) &&
+	if(!((cur_dt_msm_id == (board_platform_id() & 0x0000ffff)) &&
 		(cur_dt_hw_platform == board_hardware_id()) &&
 		(cur_dt_hw_subtype == board_hardware_subtype()) &&
 		(cur_dt_hlos_ddr == (target_get_hlos_subtype() & 0x700)) &&
+		((cur_dt_entry->variant_id & 0x00ffff00) <= (board_target_id() & 0x00ffff00))))
+		return 0;
+	if (
 		(cur_dt_entry->soc_rev <= board_soc_version()) &&
-		((cur_dt_entry->variant_id & 0x00ffff00) <= (board_target_id() & 0x00ffff00)) &&
 		((cur_dt_entry->pmic_rev[0] & 0x00ffff00) <= (board_pmic_target(0) & 0x00ffff00)) &&
 		((cur_dt_entry->pmic_rev[1] & 0x00ffff00) <= (board_pmic_target(1) & 0x00ffff00)) &&
 		((cur_dt_entry->pmic_rev[2] & 0x00ffff00) <= (board_pmic_target(2) & 0x00ffff00)) &&
 		((cur_dt_entry->pmic_rev[3] & 0x00ffff00) <= (board_pmic_target(3) & 0x00ffff00))) {
+
+#if WITH_LK2ND_DEVICE
+		if (!dt_list)
+			return 1;
+#endif
 
 		dt_node_tmp = dt_entry_list_init();
 		memcpy((char*)dt_node_tmp->dt_entry_m,(char*)cur_dt_entry, sizeof(struct dt_entry));
@@ -1484,6 +1534,11 @@ static int platform_dt_absolute_compat_match(struct dt_entry_node *dt_list, uint
 	uint32_t best_pmic_model[4] = {0, 0, 0, 0};
 	uint32_t delete_current_dt = 0;
 	uint32_t i;
+
+#if WITH_LK2ND_DEVICE
+	if (lk2nd_dt_override.offset && dtb_info != DTB_PMIC_MODEL)
+		return 1;
+#endif
 
 	/* start to select the exact entry
 	* default to exact match 0, if find current DTB entry info is the same as board info,
@@ -1602,6 +1657,11 @@ static int update_dtb_entry_node(struct dt_entry_node *dt_list, uint32_t dtb_inf
 	uint32_t current_info = 0;
 	uint32_t board_info = 0;
 	uint32_t best_info = 0;
+
+#if WITH_LK2ND_DEVICE
+	if (lk2nd_dt_override.offset && dtb_info == DTB_MAJOR_MINOR)
+		return 1;
+#endif
 
 	/* start to select the best entry*/
 	list_for_every_entry(&dt_list->node, dt_node_tmp1, dt_node, node) {
@@ -1813,6 +1873,7 @@ int dev_tree_get_entry_info(struct dt_table *table, struct dt_entry *dt_entry_in
 	}
 
 	list_initialize(&dt_entry_queue->node);
+	dt_entry_queue->dt_entry_m = NULL;
 	dprintf(INFO, "DTB Total entry: %d, DTB version: %d\n", table->num_entries, table->version);
 	for(i = 0; found == 0 && i < table->num_entries; i++)
 	{
@@ -2406,5 +2467,24 @@ static int update_fstab_node(void *fdt)
 	if (new_str)
 		free(new_str);
         return ret;
+}
+#endif
+
+#if WITH_LK2ND_DEVICE
+struct dt_entry *dev_tree_override_match(const void *fdt, int offset)
+{
+	struct dt_entry_node node = {
+		.node = LIST_INITIAL_VALUE(node.node),
+		.dt_entry_m = &lk2nd_dt_override,
+	};
+
+	if (!dev_tree_compatible(fdt, fdt, fdt_totalsize(fdt), offset, &node))
+		return NULL;
+
+	if (platform_dt_absolute_match(node.dt_entry_m, NULL))
+		node.dt_entry_m->offset = 0; /* No need to override */
+	else
+		dprintf(INFO, "Unexpected DTB selected by bootloader, need to override\n");
+	return &lk2nd_dt_override;
 }
 #endif
