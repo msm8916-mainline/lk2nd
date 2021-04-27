@@ -454,6 +454,9 @@ void display_fastboot_menu_renew(struct select_msg_info *fastboot_msg_info)
 	if (lk2nd_dev.model) {
 		snprintf(msg, sizeof(msg), "MODEL - %s\n", lk2nd_dev.model);
 		display_fbcon_menu_message(msg, FBCON_COMMON_MSG, common_factor);
+	} else {
+		display_fbcon_menu_message("MODEL - Unknown (FIXME!)\n",
+					   FBCON_RED_MSG, common_factor);
 	}
 #endif
 
