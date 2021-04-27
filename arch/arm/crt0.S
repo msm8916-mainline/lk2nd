@@ -39,6 +39,17 @@ _start:
 	b	arm_fiq
 
 reset:
+	b	1f
+	/* Some magic used by 32-bit Linux */
+	.word	0x016f2818
+	/*
+	 * Technically supposed to be the start address but Linux has it 0
+	 * and most bootloader expect it to be like that.
+	 * (Especially for the end address after it which is used as a size...)
+	 */
+	.word	0
+	.word	(__data_end - _start)
+1:
 	adr r7, lk_boot_args
 	stmia r7!, {r0-r3}
 
