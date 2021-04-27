@@ -43,6 +43,7 @@
 #include <baseband.h>
 #include <dev/keys.h>
 #include <pm8x41.h>
+#include <pm8x41_regulator.h>
 #include <crypto5_wrapper.h>
 #include <hsusb.h>
 #include <scm.h>
@@ -590,4 +591,48 @@ static void set_sdc_power_ctrl()
 void *target_mmc_device()
 {
 	return (void *) dev;
+}
+
+static struct spmi_regulator pm8226_regulators[] = {
+	{"s1", 0x11400},
+	{"s2", 0x11700},
+	{"s3", 0x11a00},
+	{"s4", 0x11d00},
+	{"s5", 0x12000},
+	{"l1", 0x14000},
+	{"l2", 0x14100},
+	{"l3", 0x14200},
+	{"l4", 0x14300},
+	{"l5", 0x14400},
+	{"l6", 0x14500},
+	{"l7", 0x14600},
+	{"l8", 0x14700},
+	{"l9", 0x14800},
+	{"l10", 0x14900},
+	{"l11", 0x14a00},
+	{"l12", 0x14b00},
+	{"l13", 0x14c00},
+	{"l14", 0x14d00},
+	{"l15", 0x14e00},
+	{"l16", 0x14f00},
+	{"l17", 0x15000},
+	{"l18", 0x15100},
+	{"l19", 0x15200},
+	{"l20", 0x15300},
+	{"l21", 0x15400},
+	{"l22", 0x15500},
+	{"l23", 0x15600},
+	{"l24", 0x15700},
+	{"l25", 0x15800},
+	{"l26", 0x15900},
+	{"l27", 0x15a00},
+	{"l28", 0x15b00},
+	{"lvs1", 0x18000},
+	{ }
+};
+
+struct spmi_regulator* target_get_regulators()
+{
+	regulators_init(pm8226_regulators);
+	return pm8226_regulators;
 }
