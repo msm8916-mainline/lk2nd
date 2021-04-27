@@ -36,9 +36,11 @@ endif
 LK_TOP_DIR:= .
 BUILDDIR := $(BOOTLOADER_OUT)/build-$(PROJECT)
 OUTBIN := $(BUILDDIR)/lk.bin
+OUTBINDTB := $(BUILDDIR)/lk.bin-dtb
 OUTELF := $(BUILDDIR)/lk
 OUTELF_STRIP := $(BUILDDIR)/lk_s.elf
 OUTBOOTIMG := $(BUILDDIR)/boot.img
+OUTBOOTIMGADTB = $(OUTBOOTIMG:.img=-appended-dtb.img)
 OUTDTIMG := $(BUILDDIR)/dt.img
 OUTODINTAR := $(BUILDDIR)/odin.tar
 

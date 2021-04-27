@@ -6,6 +6,10 @@ $(OUTBIN): $(OUTELF)
 	$(NOECHO)$(SIZE) $<
 	$(NOCOPY)$(OBJCOPY) -O binary $< $@
 
+$(OUTBINDTB): $(OUTBIN) $(DTBS)
+	@echo generating image with appended dtb: $@
+	$(NOECHO)cat $^ > $@
+
 ifeq ($(ENABLE_TRUSTZONE), 1)
 $(OUTELF): $(ALLOBJS) $(LINKER_SCRIPT) $(OUTPUT_TZ_BIN)
 	@echo linking $@
@@ -51,15 +55,22 @@ $(BUILDDIR)/%.dtb: %.dts
 $(OUTDTIMG): $(DTBS)
 	$(NOECHO)scripts/dtbTool -o $@ $(BUILDDIR)/dts/$(TARGET)
 
-$(OUTBOOTIMG): $(OUTBIN) $(OUTDTIMG)
+define mkbootimg
 	$(NOECHO)scripts/mkbootimg \
-		--kernel=$(OUTBIN) \
+		--kernel=$< \
 		--ramdisk=/dev/null \
-		--dt=$(OUTDTIMG) \
 		--base=$(ANDROID_BOOT_BASE) \
 		--output=$@ \
-		--cmdline="$(ANDROID_BOOT_CMDLINE)"
+		--cmdline="$(ANDROID_BOOT_CMDLINE)" \
+		$(1)
 	$(NOECHO)echo -n SEANDROIDENFORCE >> $@
+endef
+
+$(OUTBOOTIMG): $(OUTBIN) $(OUTDTIMG)
+	$(call mkbootimg,--dt=$(OUTDTIMG))
+
+$(OUTBOOTIMGADTB): $(OUTBINDTB)
+	$(call mkbootimg)
 
 $(OUTODINTAR): $(OUTBOOTIMG)
 	$(NOECHO)tar \
