@@ -1,6 +1,5 @@
 #include <reg.h>
 #include <stdio.h>
-#include <pm8x41_regulator.h>
 #include "fastboot.h"
 
 #define EFUSE1	0x0005c004
@@ -37,20 +36,6 @@ static void cmd_oem_dump_speedbin(const char *arg, void *data, unsigned sz)
 	fastboot_okay("");
 }
 
-static void cmd_oem_dump_regulators(const char *arg, void *data, unsigned sz)
-{
-	char response[MAX_RSP_SIZE];
-	struct spmi_regulator *vreg;
-	for (vreg = target_get_regulators(); vreg->name; ++vreg) {
-		snprintf(response, sizeof(response), "%s: enabled: %d, voltage: %d mV (%s)",
-			 vreg->name, regulator_is_enabled(vreg),
-			 regulator_get_voltage(vreg), regulator_get_range_name(vreg));
-		fastboot_info(response);
-	}
-	fastboot_okay("");
-}
-
 void target_fastboot_register_commands(void) {
 	fastboot_register("oem dump-speedbin", cmd_oem_dump_speedbin);
-	fastboot_register("oem dump-regulators", cmd_oem_dump_regulators);
 }

@@ -828,6 +828,11 @@ void regulators_init(struct spmi_regulator *vregs)
 	}
 }
 
+__WEAK struct spmi_regulator* target_get_regulators()
+{
+	return NULL;
+}
+
 bool regulator_is_enabled(struct spmi_regulator *vreg)
 {
 	return vreg->mapping && vreg->mapping->ops->is_enabled
