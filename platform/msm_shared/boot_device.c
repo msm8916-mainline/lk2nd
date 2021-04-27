@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2016,2019 The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2016, 2019, 2021, The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -97,7 +97,7 @@ uint32_t platform_boot_dev_is_nand()
         };
 }
 
-void platform_boot_dev_cmdline(char *buf)
+void platform_boot_dev_cmdline(char *buf, uint32_t buf_size)
 {
 	uint32_t val = 0;
 	void *dev = target_mmc_device();
@@ -106,16 +106,14 @@ void platform_boot_dev_cmdline(char *buf)
 	switch(val)
 	{
 #if !USE_MDM_BOOT_CFG
-		case BOOT_DEFAULT:
-			snprintf(buf, ((sizeof((struct mmc_device *)dev)->host.base)*2) + 7,"%x.sdhci", ((struct mmc_device *)dev)->host.base);
-			break;
 		case BOOT_UFS:
 		case BOOT_SD_ELSE_UFS:
-			snprintf(buf, ((sizeof((struct ufs_dev *)dev)->base)*2) + 7, "%x.ufshc", ((struct ufs_dev *)dev)->base);
+			snprintf(buf, buf_size, "%x.ufshc", ((struct ufs_dev *)dev)->base);
 			break;
+		case BOOT_DEFAULT:
 #endif
 		case BOOT_EMMC:
-			snprintf(buf, ((sizeof((struct mmc_device *)dev)->host.base)*2) + 7,"%x.sdhci", ((struct mmc_device *)dev)->host.base);
+			snprintf(buf, buf_size, "%x.sdhci", ((struct mmc_device *)dev)->host.base);
 			break;
 		default:
 			dprintf(CRITICAL,"ERROR: Unexpected boot_device val=%x",val);

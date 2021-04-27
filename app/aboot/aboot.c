@@ -2,7 +2,7 @@
  * Copyright (c) 2009, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2020, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2021, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -502,7 +502,7 @@ unsigned char *update_cmdline(const char * cmdline)
 		if (!boot_dev_buf) {
 			dprintf(CRITICAL, "ERROR: Failed to allocate boot_dev_buf\n");
 		} else {
-			platform_boot_dev_cmdline(boot_dev_buf);
+			platform_boot_dev_cmdline(boot_dev_buf, sizeof(char) * BOOT_DEV_MAX_LEN);
 #if USE_BOOTDEV_CMDLINE
 			cmdline_len += strlen(boot_dev_buf);
 #endif
