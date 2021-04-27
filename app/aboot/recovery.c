@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2017,2019 The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2017,2019,2021 The Linux Foundation. All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -544,8 +544,11 @@ int write_misc(unsigned page_offset, void *buf, unsigned size)
 
 		ptn = partition_get_offset(index);
 		ptn_size = partition_get_size(index);
-
+#if VIRTUAL_AB_OTA
+		offset = page_offset;
+#else
 		offset = page_offset * BLOCK_SIZE;
+#endif
 		aligned_size = ROUND_TO_PAGE(size, (unsigned)BLOCK_SIZE - 1);
 		if (ptn_size < offset + aligned_size)
 		{
@@ -615,6 +618,63 @@ int write_misc(unsigned page_offset, void *buf, unsigned size)
 	}
 
 	return 0;
+}
+
+static MiscVirtualABMessage *VirtualAbMsg = NULL;
+
+int SetSnapshotMergeStatus (VirtualAbMergeStatus MergeStatus)
+{
+	int Status = 1;
+	VirtualAbMergeStatus OldMergeStatus;
+
+	if (target_is_emmc_boot())
+	{
+		OldMergeStatus = VirtualAbMsg->MergeStatus;
+		VirtualAbMsg->MergeStatus = MergeStatus;
+
+		Status = write_misc(MISC_VIRTUALAB_OFFSET, &VirtualAbMsg, sizeof(VirtualAbMsg));
+		if (Status != 0) {
+			dprintf(CRITICAL, "Write the VirtualAbMsg failed\n");
+			VirtualAbMsg->MergeStatus = OldMergeStatus;
+		}
+	}
+	return Status;
+}
+
+VirtualAbMergeStatus GetSnapshotMergeStatus (void)
+{
+	VirtualAbMergeStatus MergeStatus = NONE_MERGE_STATUS;
+	uint32_t pagesize = get_page_size();
+
+	if (target_is_emmc_boot())
+	{
+	    if (VirtualAbMsg == NULL) {
+	        if(read_misc(MISC_VIRTUALAB_OFFSET, (void *)&VirtualAbMsg,
+					pagesize))
+		{
+			dprintf(CRITICAL,"Error reading virtualab msg from misc partition\n");
+			return MergeStatus;
+		}
+
+		if (VirtualAbMsg->Magic != MISC_VIRTUAL_AB_MAGIC_HEADER ||
+			VirtualAbMsg->Version != MISC_VIRTUAL_AB_MESSAGE_VERSION) {
+
+			dprintf(CRITICAL,"Error read virtualab msg version:%u magic:%u not valid\n",
+					VirtualAbMsg->Version,VirtualAbMsg->Magic);
+
+			free(VirtualAbMsg);
+			VirtualAbMsg = NULL;
+		}
+		else
+		{
+			dprintf(CRITICAL,"read virtualab MergeStatus:%x\n", VirtualAbMsg->MergeStatus);
+		}
+	    }
+
+	    if (VirtualAbMsg)
+	        MergeStatus = VirtualAbMsg->MergeStatus;
+	}
+	return MergeStatus;
 }
 
 int get_ffbm(char *ffbm, unsigned size)
