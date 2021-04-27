@@ -1173,6 +1173,13 @@ static AvbSlotVerifyResult append_options(
         total_size += slot_data->vbmeta_images[n].vbmeta_size;
       }
       tbuf = avb_malloc(total_size);
+      if(tbuf == NULL)
+      {
+        avb_error("Failed to allocate memory for tbuf\n");
+        ret = AVB_SLOT_VERIFY_RESULT_ERROR_IO;
+        avb_free(digest);
+        goto out;
+      }
 
       for (n = 0; n < slot_data->num_vbmeta_images; n++) {
         avb_memcpy(tbuf + prev_sz, slot_data->vbmeta_images[n].vbmeta_data,
