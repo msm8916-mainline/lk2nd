@@ -42,9 +42,9 @@ static void cmd_oem_dump_regulators(const char *arg, void *data, unsigned sz)
 	char response[MAX_RSP_SIZE];
 	struct spmi_regulator *vreg;
 	for (vreg = target_get_regulators(); vreg->name; ++vreg) {
-		snprintf(response, sizeof(response), "%s: enabled: %d, voltage: %d mV",
+		snprintf(response, sizeof(response), "%s: enabled: %d, voltage: %d mV (%s)",
 			 vreg->name, regulator_is_enabled(vreg),
-			 regulator_get_voltage(vreg));
+			 regulator_get_voltage(vreg), regulator_get_range_name(vreg));
 		fastboot_info(response);
 	}
 	fastboot_okay("");

@@ -9,6 +9,7 @@ struct spmi_regulator {
 
 bool regulator_is_enabled(struct spmi_regulator *vreg);
 int regulator_get_voltage(struct spmi_regulator *vreg);
+const char *regulator_get_range_name(struct spmi_regulator *vreg);
 
 void regulators_init(struct spmi_regulator *vregs);
 struct spmi_regulator* target_get_regulators();

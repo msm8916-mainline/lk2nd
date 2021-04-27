@@ -178,6 +178,7 @@ struct spmi_voltage_range {
  * so that range[i].set_point_max_uV < range[i+1].set_point_min_uV.
  */
 struct spmi_voltage_set_points {
+	const char				*rname;
 	struct spmi_voltage_range		*range;
 	int					count;
 	unsigned				n_voltages;
@@ -230,6 +231,7 @@ struct spmi_regulator_mapping {
 
 #define DEFINE_SPMI_SET_POINTS(name) \
 struct spmi_voltage_set_points name##_set_points = { \
+	.rname	= #name, \
 	.range	= name##_ranges, \
 	.count	= ARRAY_SIZE(name##_ranges), \
 }
@@ -844,4 +846,11 @@ int regulator_get_voltage(struct spmi_regulator *vreg) {
 		return sel;
 
 	return vreg->mapping->ops->list_voltage(vreg, sel);
+}
+
+const char *regulator_get_range_name(struct spmi_regulator *vreg)
+{
+	if (!vreg->mapping)
+		return NULL;
+	return vreg->mapping->set_points->rname;
 }
