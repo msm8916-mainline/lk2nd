@@ -505,13 +505,6 @@ static void cmd_upload(const char *arg, void *data, unsigned sz)
 	fastboot_okay("");
 }
 
-#if WITH_DEBUG_LOG_BUF
-static void cmd_oem_lk_log(const char *arg, void *data, unsigned sz)
-{
-	fastboot_stage(lk_log_getbuf(), lk_log_getsize());
-}
-#endif
-
 static void fastboot_command_loop(void)
 {
 	struct fastboot_cmd *cmd;
@@ -671,10 +664,6 @@ int fastboot_init(void *base, unsigned size)
 	fastboot_register("download:", cmd_download);
 	fastboot_register("upload", cmd_upload);
 	fastboot_publish("version", "0.5");
-
-#if WITH_DEBUG_LOG_BUF
-	fastboot_register("oem lk_log", cmd_oem_lk_log);
-#endif
 
 	thr = thread_create("fastboot", fastboot_handler, 0, DEFAULT_PRIORITY, 4096);
 	if (!thr)

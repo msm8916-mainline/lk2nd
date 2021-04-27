@@ -15,6 +15,8 @@ DEFINES += RECOVERY_MESSAGES=1
 OBJS += $(LOCAL_DIR)/recovery.o
 endif
 
+OBJS += $(LOCAL_DIR)/fastboot-extra.o
+
 ifneq ($(filter lk2nd,$(ALLMODULES)),)
 OBJS += $(LOCAL_DIR)/fastboot-lk2nd.o
 endif

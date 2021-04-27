@@ -3349,17 +3349,6 @@ void cmd_reboot_bootloader(const char *arg, void *data, unsigned sz)
 	reboot_device(FASTBOOT_MODE);
 }
 
-static void cmd_oem_reboot_edl(const char *arg, void *data, unsigned sz)
-{
-	if (set_download_mode(EMERGENCY_DLOAD)) {
-		fastboot_fail("Failed to set emergency download mode");
-		return;
-	}
-
-	fastboot_okay("");
-	reboot_device(DLOAD);
-}
-
 void cmd_oem_enable_charger_screen(const char *arg, void *data, unsigned size)
 {
 	dprintf(INFO, "Enabling charger screen check\n");
@@ -3718,40 +3707,6 @@ int fetch_image_from_partition()
 	}
 }
 
-static void cmd_oem_screenshot(const char *arg, void *data, unsigned sz)
-{
-	struct fbcon_config *fb = fbcon_display();
-	unsigned hdr;
-
-	if (!fb) {
-		fastboot_fail("display not initialized");
-		return;
-	}
-
-	if (fb->format != FB_FORMAT_RGB888 || fb->bpp != 24) {
-		fastboot_fail("unsupported fb format\n");
-		return;
-	}
-
-	sz = fb->width * fb->height;
-	if (sz % sizeof(uint64_t) != 0) {
-		fastboot_fail("unsupported display resolution\n");
-		return;
-	}
-
-	/* PPM image header, see http://netpbm.sourceforge.net/doc/ppm.html */
-	hdr = sprintf(data, "P6\n\n%7u %7u\n255\n", fb->width, fb->height);
-	ASSERT(hdr % sizeof(uint64_t) == 0);
-
-	sz = fb->width * fb->height;
-
-	/* PPM expects RGB but this seems to be BGR, so do some fancy swapping! */
-	//memcpy(data + hdr, fb->base, sz * 3);
-	rgb888_swap(fb->base, data + hdr, sz / sizeof(uint64_t));
-
-	fastboot_stage(data, hdr + sz*3);
-}
-
 /* Get the size from partiton name */
 static void get_partition_size(const char *arg, char *response)
 {
@@ -3873,7 +3828,6 @@ void aboot_fastboot_register_commands(void)
 						{"continue", cmd_continue},
 						{"reboot", cmd_reboot},
 						{"reboot-bootloader", cmd_reboot_bootloader},
-						{"oem reboot-edl", cmd_oem_reboot_edl},
 #if !DISABLE_LOCK
 						{"oem unlock", cmd_oem_unlock},
 						{"oem unlock-go", cmd_oem_unlock_go},
@@ -3892,9 +3846,6 @@ void aboot_fastboot_register_commands(void)
 						{"oem off-mode-charge", cmd_oem_off_mode_charger},
 						{"oem select-display-panel", cmd_oem_select_display_panel},
 #endif
-#endif
-#if DISPLAY_SPLASH_SCREEN
-						{"oem screenshot", cmd_oem_screenshot},
 #endif
 						};
 
@@ -4100,6 +4051,7 @@ normal_boot:
 
 	/* register aboot specific fastboot commands */
 	aboot_fastboot_register_commands();
+	fastboot_extra_register_commands();
 	target_fastboot_register_commands();
 #if WITH_LK2ND
 	fastboot_lk2nd_register_commands();
