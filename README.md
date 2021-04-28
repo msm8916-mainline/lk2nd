@@ -92,6 +92,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Xiaomi Redmi 2 - wt86047, wt88047
 
 ### lk2nd-msm8974
+- Fairphone 2 - FP2
 - LG G3 - D855
 - LG Google Nexus 5 - hammerhead D820, D821
 - Samsung Galaxy S5 - SM-G900F
