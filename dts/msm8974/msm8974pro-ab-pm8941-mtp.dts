@@ -1,0 +1,42 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton.dtsi>
+#include <lk2nd.h>
+
+/ {
+	// There are devices that identify themselves as msm8974pro-ab-pm8941-mtp,
+	// even when they are really not (at least physically).
+	// Therefore we need other things we can match on (e.g. the cmdline).
+	compatible = "qcom,msm8974-mtp", "qcom,msm8974";
+	qcom,msm-id = <208 0x10000>,
+		      <209 0x10000>,
+		      <211 0x10000>,
+		      <212 0x10000>,
+		      <214 0x10000>,
+		      <215 0x10000>,
+		      <217 0x10000>,
+		      <218 0x10000>;
+	qcom,board-id = <8 0>;
+
+	fairphone-fp2 {
+		model = "Fairphone 2";
+		compatible = "fairphone,fp2", "qcom,msm8974", "lk2nd,device";
+
+		lk2nd,keys =
+			<KEY_VOLUMEDOWN PM_GPIO(2) (PM_GPIO_PULL_UP_30 | GPIO_ACTIVE_LOW)>;
+		lk2nd,match-panel;
+
+		panel {
+			compatible = "fairphone,fp2-panel";
+
+			qcom,mdss_dsi_otm1902b_1080p_cmd {
+				compatible = "fairphone,fp2-panel-otm1902b";
+			};
+			qcom,mdss_dsi_s6d6fa1_1080p_video {
+				compatible = "fairphone,fp2-panel-s6d6fa1";
+			};
+		};
+	};
+};
