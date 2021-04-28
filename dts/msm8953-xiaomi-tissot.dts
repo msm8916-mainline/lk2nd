@@ -1,0 +1,15 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+/include/ "msm8953.dtsi"
+
+/ {
+	// This is used by the bootloader to find the correct DTB 
+	qcom,msm-id = <0x125 0x00>;
+	qcom,board-id= <0x1000b 0x00>;
+
+	model = "Xiaomi Mi A1 (tissot)";
+	compatible = "xiaomi,tissot", "qcom,msm8953", "lk2nd,device";
+	lk2nd,pstore = <0x9ff00000 0x100000>;
+};

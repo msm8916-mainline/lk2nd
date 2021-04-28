@@ -29,6 +29,7 @@ This branch specifically is made only for SDM632 devices. If you have another So
 - Xiaomi Redmi Note 5 / 5 Plus Snapdragon - vince
 - Motorola Moto G7 Power - ocean
 - Xiaomi Mi A2 Lite - daisy
+- Xiaomi Mi A1 - tissot
 
 ## Installation
 1. Download `lk2nd.img` (as of now there's no build available so you'll need to build it yourself.)
