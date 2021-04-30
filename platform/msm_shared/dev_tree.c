@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2015,2017-2020 The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2015,2017-2021 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -2187,7 +2187,7 @@ static int update_fstab_node(void *fdt)
 			return -1;
 		}
 
-		platform_boot_dev_cmdline(boot_dev_buf);
+		platform_boot_dev_cmdline(boot_dev_buf, sizeof(char) * BOOT_DEV_MAX_LEN);
 	}
 
 	/* Get properties of all sub nodes */
