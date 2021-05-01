@@ -446,6 +446,11 @@ void display_fastboot_menu_renew(struct select_msg_info *fastboot_msg_info)
 
 	display_fbcon_menu_message("FASTBOOT MODE\n", FBCON_RED_MSG, common_factor);
 
+#ifdef LK2ND_VERSION
+	snprintf(msg, sizeof(msg), "lk2nd - %s\n", LK2ND_VERSION);
+	display_fbcon_menu_message(msg, FBCON_SUBTITLE_MSG, common_factor);
+#endif
+
 	get_product_name((unsigned char *) msg_buf);
 	snprintf(msg, sizeof(msg), "PRODUCT_NAME - %s\n", msg_buf);
 	display_fbcon_menu_message(msg, FBCON_COMMON_MSG, common_factor);

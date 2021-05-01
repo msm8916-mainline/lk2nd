@@ -27,6 +27,22 @@ ifeq ($(PROJECT),)
 $(error No project specified.  Use "make projectname" or put "PROJECT := projectname" in local.mk)
 endif
 
+# Generate version tag
+LK2ND_TAG_COMMIT := $(shell git rev-list --abbrev-commit --tags --max-count=1)
+LK2ND_TAG := $(shell git describe --abbrev=0 --tags ${LK2ND_TAG_COMMIT} 2>/dev/null || true)
+LK2ND_COMMIT := $(shell git rev-parse --short HEAD)
+LK2ND_DATE := $(shell git log -1 --format=%cd --date=format:"%Y%m%d")
+LK2ND_VERSION := $(LK2ND_TAG:v%=%)
+ifneq ($(LK2ND_COMMIT), $(LK2ND_TAG_COMMIT))
+	LK2ND_VERSION := $(LK2ND_VERSION)-next-$(LK2ND_COMMIT)-$(LK2ND_DATE)
+endif
+ifeq ($(LK2ND_VERSION),)
+	LK2ND_VERSION := $(LK2ND_COMMIT)-$(LK2ND_DATA)
+endif
+ifneq ($(shell git status --porcelain),)
+	LK2ND_VERSION := $(LK2ND_VERSION)-dirty
+endif
+
 DEBUG ?= 0
 
 ifndef $(BOOTLOADER_OUT)
@@ -70,6 +86,8 @@ endif
 ifeq ($(TARGET_BUILD_VARIANT),user)
   CFLAGS += -DDISABLE_FASTBOOT_CMDS=1
 endif
+
+CFLAGS += -DLK2ND_VERSION=\"$(LK2ND_VERSION)\"
 
 # setup toolchain prefix
 TOOLCHAIN_PREFIX ?= arm-eabi-
