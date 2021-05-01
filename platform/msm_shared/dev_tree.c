@@ -256,10 +256,10 @@ static int dev_tree_compatible(void *dtb, uint32_t dtb_size, int root_offset, st
 					board_platform_id(),
 					board_hardware_id(),
 					board_soc_version());
-				plat_prop += DT_ENTRY_V1_SIZE;
-				len_plat_id -= DT_ENTRY_V1_SIZE;
-				continue;
 			}
+
+			plat_prop += DT_ENTRY_V1_SIZE;
+			len_plat_id -= DT_ENTRY_V1_SIZE;
 		}
 		free(cur_dt_entry);
 
