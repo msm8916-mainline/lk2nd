@@ -3922,9 +3922,6 @@ void aboot_init(const struct app_descriptor *app)
 
 	ASSERT((MEMBASE + MEMSIZE) > MEMBASE);
 
-#if WITH_LK2ND
-	lk2nd_init();
-#endif
 	read_device_info(&device);
 #if !DISABLE_LOCK
 	read_allow_oem_unlock(&device);

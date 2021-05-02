@@ -39,6 +39,12 @@ static unsigned long key_bitmap[BITMAP_NUM_WORDS(MAX_KEYS)];
 void keys_init(void)
 {
 	memset(key_bitmap, 0, sizeof(key_bitmap));
+
+#if WITH_LK2ND
+	/* Oh, you found me */
+	dprintf(SPEW, "initializing lk2nd\n");
+	lk2nd_init();
+#endif
 }
 
 void keys_post_event(uint16_t code, int16_t value)
