@@ -24,6 +24,24 @@
 			};
 		};
 	};
+	
+	google-seed {
+		model = "Android One Gen 2 SEED (Longcheer L8150)";
+		compatible = "longcheer,l8150", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "SEED-*";
+
+		panel {
+			compatible = "longcheer,l8150-panel";
+
+			/* TODO: qcom,mdss_dsi_truly_otm1288a_720p_video */
+			qcom,mdss_dsi_dijing_ILI9881C_720p_video {
+				compatible = "longcheer,dijing-ili9881c";
+			};
+			qcom,mdss_dsi_booyi_OTM1287_720p_video {
+				compatible = "longcheer,booyi-otm1287";
+			};
+		};
+	};
 
 	bq-paella {
 		model = "BQ Aquaris X5 (Longcheer L8910)";
