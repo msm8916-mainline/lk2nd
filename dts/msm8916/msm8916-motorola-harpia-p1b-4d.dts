@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
-/include/ "msm8916-motorola-harpia.dtsi"
+#include "msm8916-motorola-harpia.dtsi"
 
 / {
 	qcom,board-id = <0x4D 0x81B0>;

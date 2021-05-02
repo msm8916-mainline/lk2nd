@@ -2,7 +2,7 @@
 
 /dts-v1/;
 
-/include/ "skeleton.dtsi"
+#include <skeleton.dtsi>
 
 / {
 	/* The device is usually qrd/7, but the stock bootloader selects qrd/12 */

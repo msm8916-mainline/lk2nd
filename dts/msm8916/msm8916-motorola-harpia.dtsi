@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
-/include/ "msm8916-motorola.dtsi"
+#include "msm8916-motorola.dtsi"
 
 / {
 	model = "Motorola Moto G4 Play (harpia)";

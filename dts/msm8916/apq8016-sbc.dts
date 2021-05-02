@@ -2,7 +2,7 @@
 
 /dts-v1/;
 
-/include/ "skeleton.dtsi"
+#include <skeleton.dtsi>
 
 / {
 	model = "DragonBoard 410c (APQ8016 SBC)";

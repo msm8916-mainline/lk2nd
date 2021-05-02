@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
-/include/ "msm8916-motorola.dtsi"
+#include "msm8916-motorola.dtsi"
 
 / {
 	qcom,board-id = <0x4a 0x82b0>;

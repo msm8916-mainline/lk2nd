@@ -2,8 +2,8 @@
 
 /dts-v1/;
 
-/include/ "skeleton.dtsi"
-/include/ "motorola-carrier-channel-ids.dtsi"
+#include <skeleton.dtsi>
+#include "motorola-carrier-channel-ids.dtsi"
 
 / {
 	qcom,msm-id = <206 0>;

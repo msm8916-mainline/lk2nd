@@ -2,7 +2,7 @@
 
 /dts-v1/;
 
-/include/ "skeleton.dtsi"
+#include <skeleton.dtsi>
 
 / {
 	compatible = "qcom,msm8916-v1-qrd/8-v1", "qcom,msm8916";
@@ -10,6 +10,6 @@
 	lenovo-a6000 {
 		model = "Lenovo A6000 (Wingtech WT86518)";
 		compatible = "wingtech,wt86518", "qcom,msm8916", "lk2nd,device";
-		/include/ "msm8916-wingtech-wt865x8.dtsi"
+		#include "msm8916-wingtech-wt865x8.dtsi"
 	};
 };

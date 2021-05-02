@@ -2,7 +2,7 @@
 
 /dts-v1/;
 
-/include/ "skeleton.dtsi"
+#include <skeleton.dtsi>
 
 / {
 	qcom,msm-id = <239 0>;
