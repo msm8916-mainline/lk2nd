@@ -50,7 +50,8 @@ $(OUTELF_STRIP): $(OUTELF)
 $(BUILDDIR)/%.dtb: %.dts
 	@$(MKDIR)
 	@echo compiling $<
-	$(NOECHO)dtc -O dtb -i dts -o $@ $<
+	$(NOECHO)cpp -nostdinc -I dts -undef -x assembler-with-cpp $< $@.prep
+	$(NOECHO)dtc -O dtb -i dts -o $@ $@.prep
 
 $(OUTDTIMG): $(DTBS)
 	$(NOECHO)scripts/dtbTool -o $@ $(BUILDDIR)/dts/$(TARGET)
