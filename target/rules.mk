@@ -4,6 +4,10 @@ OBJS += \
 	$(LOCAL_DIR)/init.o \
 	$(LOCAL_DIR)/target_display.o
 
+ifeq ($(LK2ND_KEYMAP),1)
+	OBJS += $(LOCAL_DIR)/target_keys_lk2nd.o
+endif
+
 ifeq ($(DISPLAY_USE_CONTINUOUS_SPLASH),1)
 # Filter out original display implementation
 OBJS := $(filter-out target/$(TARGET)/target_display.o target/$(TARGET)/oem_panel.o, $(OBJS))

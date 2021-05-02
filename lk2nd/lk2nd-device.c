@@ -243,6 +243,38 @@ static void lk2nd_parse_panels(const void *fdt, int offset)
 	strlcpy((char*) panel->old_compatible, old, old_len);
 }
 
+static struct lk2nd_keymap* lk2nd_parse_keys(const void *fdt, int offset)
+{
+	int len;
+	const uint32_t *val;
+	struct lk2nd_keymap *map = NULL;
+
+#define KEY_SIZE (3 * sizeof(uint32_t))
+	int i = 0;
+	val = fdt_getprop(fdt, offset, "lk2nd,keys", &len);
+	if (len > 0 && len % KEY_SIZE == 0) {
+		len /= KEY_SIZE;
+		/* last element indicates end of the array with key=0 */
+		map = calloc(len + 1, sizeof(struct lk2nd_keymap));
+		for (int i = 0; i < len; i++) {
+			map[i].key    = fdt32_to_cpu(val[i*3]);
+			map[i].gpio   = fdt32_to_cpu(val[i*3 + 1]) & 0xFFFF;
+			map[i].type   = fdt32_to_cpu(val[i*3 + 1]) >> 16;
+			map[i].pull   = fdt32_to_cpu(val[i*3 + 2]) & 0xFF;
+			map[i].active = fdt32_to_cpu(val[i*3 + 2]) >> 8;
+		}
+	}
+
+	dprintf(INFO, "Device keymap:\n");
+	while (map && map[i].key) {
+		dprintf(INFO, "key=0x%X, gpio=%x, type=%d, pull=%d, active=%d\n", 
+			map[i].key, map[i].gpio, map[i].type, map[i].pull, map[i].active);
+		i++;
+	}
+
+	return map;
+}
+
 static void lk2nd_parse_device_node(const void *fdt)
 {
 	int offset = lk2nd_find_device_offset(fdt);
@@ -270,11 +302,12 @@ static void lk2nd_parse_device_node(const void *fdt)
 	if (lk2nd_dev.panel.name)
 		lk2nd_parse_panels(fdt, offset);
 
+	lk2nd_dev.keymap = lk2nd_parse_keys(fdt, offset);
+
 #if TARGET_MSM8916
 	smb1360_detect_battery(fdt, offset);
 #endif
 }
-
 
 int lk2nd_fdt_parse_early_uart(void)
 {

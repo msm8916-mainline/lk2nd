@@ -15,6 +15,18 @@ struct lk2nd_panel {
 	int compatible_size;
 };
 
+struct lk2nd_keymap {
+	uint32_t key;
+	uint32_t gpio;
+	enum {
+		KEY_GPIO = 0,
+		KEY_PM_GPIO = 1,
+		KEY_RESIN = 2,
+	} type;
+	uint8_t pull;
+	uint8_t active;
+};
+
 struct lk2nd_device {
 	void *fdt;
 	struct dt_entry dt_entry;
@@ -33,6 +45,7 @@ struct lk2nd_device {
 	const struct smb1360_battery *smb1360_battery;
 
 	struct lk2nd_panel panel;
+	struct lk2nd_keymap *keymap;
 };
 
 extern struct lk2nd_device lk2nd_dev;
