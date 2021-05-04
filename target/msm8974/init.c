@@ -109,8 +109,12 @@ uint32_t target_hw_interposer()
 	return board_hardware_subtype() == HW_PLATFORM_8994_INTERPOSER ? 1 : 0;
 }
 
+#if WITH_LK2ND
+int target_volume_up_old()
+#else
 /* Return 1 if vol_up pressed */
 int target_volume_up()
+#endif
 {
 	uint8_t status = 0;
 	struct pm8x41_gpio gpio;
@@ -139,8 +143,12 @@ int target_volume_up()
 	return !status; /* active low */
 }
 
+#if WITH_LK2ND
+uint32_t target_volume_down_old()
+#else
 /* Return 1 if vol_down pressed */
 uint32_t target_volume_down()
+#endif
 {
 	/* Volume down button is tied in with RESIN on MSM8974. */
 	if (platform_is_8974() && (pmic_ver == PM8X41_VERSION_V2))
@@ -149,6 +157,9 @@ uint32_t target_volume_down()
 		return pm8x41_resin_status();
 }
 
+#if WITH_LK2ND
+extern void target_keystatus();
+#else
 static void target_keystatus()
 {
 	keys_init();
@@ -159,6 +170,7 @@ static void target_keystatus()
 	if(target_volume_up())
 		keys_post_event(KEY_VOLUMEUP, 1);
 }
+#endif
 
 /* Set up params for h/w CE. */
 void target_crypto_init_params()
