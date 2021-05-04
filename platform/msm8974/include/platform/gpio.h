@@ -55,6 +55,14 @@
 #define GPIO_ENABLE     0
 #define GPIO_DISABLE    1
 
+inline uint32_t gpio_status(uint32_t gpio) { return 0; };
+void gpio_tlmm_config(uint32_t gpio,
+		uint8_t func,
+		uint8_t dir,
+		uint8_t pull,
+		uint8_t drvstr,
+		uint32_t enable);
+
 void gpio_config_uart_dm(uint8_t id);
 void gpio_config_blsp_i2c(uint8_t, uint8_t);
 #endif
