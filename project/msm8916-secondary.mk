@@ -8,5 +8,7 @@ include $(LOCAL_DIR)/lk2nd.mk
 # Remove this to get rid of some compile errors regarding gpio_i2c.
 GPIO_I2C_BUS_COUNT := 1
 
+LK2ND_KEYMAP := 1
+
 APPSBOOTHEADER: $(OUTBOOTIMG) $(OUTODINTAR)
 ANDROID_BOOT_BASE := 0x80000000

@@ -143,8 +143,12 @@ void *target_mmc_device()
 	return (void *) dev;
 }
 
+#if WITH_LK2ND
+int target_volume_up_old()
+#else
 /* Return 1 if vol_up pressed */
 int target_volume_up()
+#endif
 {
         static uint8_t first_time = 0;
 	uint8_t status = 0;
@@ -165,13 +169,20 @@ int target_volume_up()
 	return !status;
 }
 
+#if WITH_LK2ND
+uint32_t target_volume_down_old()
+#else
 /* Return 1 if vol_down pressed */
 uint32_t target_volume_down()
+#endif
 {
 	/* Volume down button tied in with PMIC RESIN. */
 	return pm8x41_resin_status();
 }
 
+#if WITH_LK2ND
+extern void target_keystatus();
+#else
 static void target_keystatus()
 {
 	keys_init();
@@ -182,6 +193,7 @@ static void target_keystatus()
 	if(target_volume_up())
 		keys_post_event(KEY_VOLUMEUP, 1);
 }
+#endif
 
 void target_init(void)
 {
