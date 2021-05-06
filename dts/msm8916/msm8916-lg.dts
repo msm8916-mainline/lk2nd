@@ -24,5 +24,9 @@
 		model = "LG K10 (K420n)";
 		compatible = "lg,m216", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-cmdline = "* model.name=LG-K420n *";
+
+		lk2nd,keys =
+			<KEY_VOLUMEDOWN 108 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>,
+			<KEY_VOLUMEUP   107 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
 	};
 };
