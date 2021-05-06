@@ -3,6 +3,7 @@
 /dts-v1/;
 
 #include <skeleton.dtsi>
+#include <lk2nd.h>
 
 / {
 	// This is used by the bootloader to find the correct DTB
@@ -13,6 +14,10 @@
 		model = "LG Leon LTE";
 		compatible = "lg,c50", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-cmdline = "* model.name=LG-H34*";
+
+		lk2nd,keys =
+			<KEY_VOLUMEDOWN 107 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>,
+			<KEY_VOLUMEUP   108 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
 	};
 
 	m216 {
