@@ -74,7 +74,7 @@ bool IsCurrentSlotSuccessful()
 	   return FALSE;
 	}
    partition_fill_slot_meta(slot_info);
-   if(!strncmp(slot_info[slot_idx].slot_is_succesful_rsp,"yes",strlen("yes")))
+   if(strncmp(slot_info[slot_idx].slot_is_succesful_rsp,"yes",strlen("yes")))
        return TRUE;
 
    return FALSE;
