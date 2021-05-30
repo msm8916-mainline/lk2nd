@@ -2,7 +2,9 @@
 #include <debug.h>
 #include <dev/fbcon.h>
 #include <platform.h>
+#include <platform/iomap.h>
 #include <pm8x41_regulator.h>
+#include <reg.h>
 #include "fastboot.h"
 
 #if WITH_DEBUG_LOG_BUF
@@ -76,6 +78,20 @@ static void cmd_oem_dump_regulators(const char *arg, void *data, unsigned sz)
 	fastboot_okay("");
 }
 
+#ifdef APCS_BANKED_SAW2_VERSION
+static void cmd_oem_saw2_version(const char *arg, void *data, unsigned sz)
+{
+	char response[MAX_RSP_SIZE];
+	uint32_t val = readl(APCS_BANKED_SAW2_VERSION);
+
+	snprintf(response, sizeof(response),
+		 "SAW2 version: v%d.%d",
+		 (val >> 28) & 0xF, (val >> 16) & 0xFFF);
+	fastboot_info(response);
+	fastboot_okay("");
+}
+#endif
+
 void fastboot_extra_register_commands(void) {
 #if WITH_DEBUG_LOG_BUF
 	fastboot_register("oem lk_log", cmd_oem_lk_log);
@@ -86,4 +102,8 @@ void fastboot_extra_register_commands(void) {
 
 	fastboot_register("oem reboot-edl", cmd_oem_reboot_edl);
 	fastboot_register("oem dump-regulators", cmd_oem_dump_regulators);
+
+#ifdef APCS_BANKED_SAW2_VERSION
+	fastboot_register("oem saw2-version", cmd_oem_saw2_version);
+#endif
 }
