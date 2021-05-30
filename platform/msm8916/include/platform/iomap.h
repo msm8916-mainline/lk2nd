@@ -61,7 +61,6 @@
 #define QTMR_BASE                   APPS_APCS_F0_QTMR_V1_BASE
 
 #define APCS_BANKED_SAW2_BASE       (APPS_SS_BASE + 0x9000)
-#define APCS_BANKED_SAW2_VERSION    (APCS_BANKED_SAW2_BASE + 0xfd0)
 
 #define PERIPH_SS_BASE              0x07800000
 

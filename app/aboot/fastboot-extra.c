@@ -78,16 +78,30 @@ static void cmd_oem_dump_regulators(const char *arg, void *data, unsigned sz)
 	fastboot_okay("");
 }
 
-#ifdef APCS_BANKED_SAW2_VERSION
-static void cmd_oem_saw2_version(const char *arg, void *data, unsigned sz)
+#ifdef APCS_BANKED_SAW2_BASE
+#define APCS_BANKED_SAW2_CFG		(APCS_BANKED_SAW2_BASE + 0x08)
+#define APCS_BANKED_SAW2_SPM_CTL	(APCS_BANKED_SAW2_BASE + 0x30)
+#define APCS_BANKED_SAW2_DLY		(APCS_BANKED_SAW2_BASE + 0x34)
+#define APCS_BANKED_SAW2_VERSION	(APCS_BANKED_SAW2_BASE + 0xfd0)
+
+static void cmd_oem_dump_saw2(const char *arg, void *data, unsigned sz)
 {
 	char response[MAX_RSP_SIZE];
-	uint32_t val = readl(APCS_BANKED_SAW2_VERSION);
+	uint32_t val, cfg, spm_ctl, dly;
 
+	val = readl(APCS_BANKED_SAW2_VERSION);
 	snprintf(response, sizeof(response),
 		 "SAW2 version: v%d.%d",
 		 (val >> 28) & 0xF, (val >> 16) & 0xFFF);
 	fastboot_info(response);
+
+	cfg = readl(APCS_BANKED_SAW2_CFG);
+	spm_ctl = readl(APCS_BANKED_SAW2_SPM_CTL);
+	dly = readl(APCS_BANKED_SAW2_DLY);
+	snprintf(response, sizeof(response),
+		 "cfg: %#x, spm-ctl: %#x, dly: %#x", cfg, spm_ctl, dly);
+	fastboot_info(response);
+
 	fastboot_okay("");
 }
 #endif
@@ -103,7 +117,7 @@ void fastboot_extra_register_commands(void) {
 	fastboot_register("oem reboot-edl", cmd_oem_reboot_edl);
 	fastboot_register("oem dump-regulators", cmd_oem_dump_regulators);
 
-#ifdef APCS_BANKED_SAW2_VERSION
-	fastboot_register("oem saw2-version", cmd_oem_saw2_version);
+#ifdef APCS_BANKED_SAW2_BASE
+	fastboot_register("oem dump-saw2", cmd_oem_dump_saw2);
 #endif
 }
