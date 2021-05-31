@@ -92,9 +92,31 @@ void platform_early_init(void)
 	scm_init();
 }
 
+static void muxdiv_configure(unsigned int base_addr, unsigned src, unsigned div)
+{
+	int timeout = 500;
+	void *base = (void*) base_addr;
+
+	writel(((src & 7) << 8) | (div & 0x1f), base + 4);
+	dmb();
+
+	/* Set update bit */
+	writel(readl_relaxed(base) | BIT(0), base);
+	dmb();
+
+	while (timeout-- && readl_relaxed(base) & BIT(0))
+		udelay(1);
+
+	/* Enable the branch */
+	writel(readl_relaxed(base + 8) | BIT(0), base + 8);
+	dmb();
+}
+
 void platform_init(void)
 {
 	dprintf(INFO, "platform_init()\n");
+	muxdiv_configure(0xb111050, 4, 1); // 800Mhz
+	muxdiv_configure(0xb011050, 4, 1); // 800Mhz
 }
 
 void platform_uninit(void)
