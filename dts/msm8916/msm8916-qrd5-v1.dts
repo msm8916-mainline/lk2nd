@@ -1,0 +1,15 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include "skeleton.dtsi"
+
+/ {
+	compatible = "qcom,msm8916-v1-qrd/5-v1", "qcom,msm8916";
+
+	lyf-ls5010 {
+		model = "LYF Wind 1 (lyf-ls5010)";
+		compatible = "lyf,ls5010", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-cmdline = "* mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_hx8394_d_hd_video_truly:1:none";
+	};
+};
