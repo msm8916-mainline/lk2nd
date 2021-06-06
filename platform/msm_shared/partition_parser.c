@@ -99,7 +99,7 @@ struct partition_entry* partition_get_partition_entries()
 
 #ifdef LK2ND_SIZE
 static void partition_split(uint32_t block_size, const char *base_name,
-			    const char *name, uint32_t num_blocks)
+			    const char *name, uint32_t num_blocks, bool end)
 {
 	struct partition_entry *base, *split;
 	int index = partition_get_index(base_name);
@@ -120,20 +120,27 @@ static void partition_split(uint32_t block_size, const char *base_name,
 		split = &partition_entries[partition_count++];
 		memcpy(split, base, sizeof(*split));
 		strcpy(split->name, name);
-		split->last_lba = split->first_lba + num_blocks - 1;
+		if (end)
+			split->first_lba = split->last_lba - num_blocks + 1;
+		else
+			split->last_lba = split->first_lba + num_blocks - 1;
 		split->size = num_blocks;
 	} else {
 		dprintf(CRITICAL, "Too many partitions to add virtual '%s' partition\n",
 			name);
 	}
 
-	base->first_lba += num_blocks;
+	if (end)
+		base->last_lba -= num_blocks;
+	else
+		base->first_lba += num_blocks;
 	base->size -= num_blocks;
 }
 
 static void partition_split_boot(uint32_t block_size)
 {
-	partition_split(block_size, "boot", "lk2nd", LK2ND_SIZE / block_size);
+	partition_split(block_size, "boot", "lk2nd", LK2ND_SIZE / block_size, false);
+	partition_split(block_size, "lk2nd", "qhypstub", 4096 / block_size, true);
 }
 #endif
 
