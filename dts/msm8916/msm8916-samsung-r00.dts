@@ -3,29 +3,16 @@
 /dts-v1/;
 
 #include <skeleton.dtsi>
+#include <lk2nd.h>
 
 / {
 	// This is used by the bootloader to find the correct DTB
 	qcom,msm-id = <206 0>;
-	qcom,board-id = <0xCE08FF01 4>;
-
-	j5xlte-eur {
-		model = "Samsung Galaxy J5 2016 LTE (EUR)";
-		compatible = "samsung,j5xlte-eur", "qcom,msm8916", "lk2nd,device";
-		lk2nd,match-bootloader = "J510F*";
-
-		samsung,muic-reset {
-			i2c-gpio-pins = <105 106>;
-			i2c-address = <0x25>;
-		};
-	};
+	qcom,board-id = <0xCE08FF01 0>;
 
 	gt58lte-aus {
 		model = "Samsung Galaxy Tab A 8.0 2015 (SM-T355Y)";
 		compatible = "samsung,gt58lte-aus", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "T355Y*";
-
-		qcom,msm-id = <206 0>;
-		qcom,board-id = <0xCE08FF01 0>;
 	};
 };
