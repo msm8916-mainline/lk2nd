@@ -19,6 +19,7 @@ DTBS += \
 	$(LOCAL_DIR)/msm8916-qrd7+12-v1.dtb \
 	$(LOCAL_DIR)/msm8916-qrd8-v1.dtb \
 	$(LOCAL_DIR)/msm8916-qrd9-v1.dtb \
+	$(LOCAL_DIR)/msm8916-samsung-r00.dtb \
 	$(LOCAL_DIR)/msm8916-samsung-r01.dtb \
 	$(LOCAL_DIR)/msm8916-samsung-r02.dtb \
 	$(LOCAL_DIR)/msm8916-samsung-r03.dtb \

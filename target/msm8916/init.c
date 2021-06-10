@@ -93,6 +93,8 @@ static uint32_t mmc_sdhci_base[] =
 static uint32_t  mmc_sdc_pwrctl_irq[] =
         { SDCC1_PWRCTL_IRQ, SDCC2_PWRCTL_IRQ };
 
+extern void target_try_load_qhypstub();
+
 void target_early_init(void)
 {
 #if WITH_DEBUG_UART
@@ -216,6 +218,10 @@ void target_init(void)
 		dprintf(CRITICAL, "Error reading the partition table info\n");
 		ASSERT(0);
 	}
+
+#if WITH_LK2ND
+	target_try_load_qhypstub();
+#endif
 
 #if LONG_PRESS_POWER_ON
 	shutdown_detect();

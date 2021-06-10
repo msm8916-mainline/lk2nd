@@ -99,7 +99,7 @@ if __name__ == "__main__":
 			exit("Can't open %s" % options.devicetree)
 
 	pagesize = options.pagesize
-	tags = options.base + 0x100
+	tags = options.base + 0x1e00000
 	ramdisk_base = options.ramdisk_base if options.ramdisk_base != -1 else options.base + 0x2000000
 
 	kernel_size = os.fstat(kernel.fileno()).st_size
