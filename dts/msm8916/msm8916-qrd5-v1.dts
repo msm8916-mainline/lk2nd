@@ -10,6 +10,23 @@
 	lyf-ls5010 {
 		model = "LYF Wind 1 (lyf-ls5010)";
 		compatible = "lyf,ls5010", "qcom,msm8916", "lk2nd,device";
-		lk2nd,match-cmdline = "* mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_hx8394_d_hd_video_truly:1:none";
+		lk2nd,match-panel;
+
+		panel {
+			compatible = "lyf,ls5010-panel";
+
+			qcom,mdss_dsi_hx8394_d_hd_video_truly {
+				compatible = "lyf,truly-hx8394";
+			};
+			qcom,mdss_dsi_hx8394_d_hd_video_holitech {
+				compatible = "lyf,holitech-hx8394";
+			};
+			qcom,mdss_dsi_hx8394_f_hd_video_bitland {
+				compatible = "lyf,bitland-hx8394";
+			};
+			qcom,mdss_dsi_kd050m7_hd_video_kd {
+				compatible = "lyf,kd-kd050m7";
+			};
+		};
 	};
 };
