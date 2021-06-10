@@ -36,6 +36,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Lenovo PHAB Plus - PB1-770M, PB1-770N
 - LG K10 (m216) - K420
 - LG Leon LTE (c50) - H340, H342, H343, H345, MS345, etc
+- LYF Wind 1 - ls5010
 - Marshall London
 - Motorola Moto E (2015) - surnia
 - Motorola Moto G (2015) - osprey
@@ -56,7 +57,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Samsung Galaxy Tab A 9.7 WiFi (2015) - SM-T550
 - Vodafone Smart prime 6
 - Wileyfox Swift - crackling
-- Xiaomi Mi 4i
+- Xiaomi Mi 4i - ferrari
 - Xiaomi Redmi 2 - wt86047, wt88047
 
 ## Installation
