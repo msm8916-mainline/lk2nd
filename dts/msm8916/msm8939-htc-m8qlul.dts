@@ -1,0 +1,19 @@
+/dts-v1/;
+
+/*
+ * To build for htc-m8qlul, comment out all dtbs and add
+ * $(LOCAL_DIR)/msm8939-htc-m8qlul.dtb to rules.mk in this directory.
+ * m8qlul does not work with all dtbs enabled; the bootloader gets upset and
+ * goes into the phone's fastboot.
+ */
+
+#include <skeleton.dtsi>
+
+/ {
+	model = "HTC One M8s";
+	compatible = "htc,m8qlul", "qcom,msm8939", "lk2nd,device";
+	qcom,msm-id = <382 0x10000>;
+	htc,project-id = <382 0x10000>;
+	htc,hw-id = <0 0>, <1 0>, <2 0>, <128 0>;
+	qcom,board-id = <1 0>;
+};

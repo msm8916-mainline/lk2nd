@@ -28,6 +28,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Asus Zenfone Max ZC550KL (2016) - Z010D
 - BQ Aquaris X5 - paella, picmt
 - DragonBoard 410c - apq8016-sbc
+- HTC One M8s - m8qlul (quirky - see comment in `dts/msm8916/msm8939-htc-m8qlul.dts`)
 - Huawei Ascend G7 - G7-L01
 - Huawei Honor 5X - kiwi
 - Lenovo A6000
