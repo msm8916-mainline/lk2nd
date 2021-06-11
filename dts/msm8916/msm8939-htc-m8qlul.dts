@@ -10,6 +10,7 @@
  */
 
 #include <skeleton.dtsi>
+#include <lk2nd.h>
 
 / {
 	model = "HTC One M8s";
@@ -18,4 +19,8 @@
 	htc,project-id = <382 0x10000>;
 	htc,hw-id = <0 0>, <1 0>, <2 0>, <128 0>;
 	qcom,board-id = <1 0>;
+
+	lk2nd,keys =
+		<KEY_VOLUMEDOWN	108 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>,
+		<KEY_VOLUMEUP	107 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
 };
