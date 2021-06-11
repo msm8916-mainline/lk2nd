@@ -393,7 +393,7 @@ static void display_fastboot_menu_print_fw_info(char *msg, size_t msg_size)
 
 	snprintf(msg, msg_size, "EL2 - %s\n",
 		 hvc_el2 ? "available" : "unavailable");
-	display_fbcon_menu_message(msg, hvc_el2 ? FBCON_GREEN_MSG : FBCON_COMMON_MSG,
+	display_fbcon_menu_message(msg, hvc_el2 ? FBCON_GREEN_MSG : FBCON_YELLOW_MSG,
 				   common_factor);
 
 	if (psci_version != PSCI_RET_NOT_SUPPORTED) {
