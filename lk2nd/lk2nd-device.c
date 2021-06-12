@@ -280,6 +280,9 @@ static void lk2nd_parse_device_node(const void *fdt)
 	int offset = lk2nd_find_device_offset(fdt);
 	if (offset < 0) {
 		dprintf(CRITICAL, "Failed to find matching lk2nd,device node: %d\n", offset);
+
+		/* Still try to parse which DTB was selected so we can display it */
+		dev_tree_get_dt_entry(fdt, 0, &lk2nd_dev.dt_entry);
 		return;
 	}
 
