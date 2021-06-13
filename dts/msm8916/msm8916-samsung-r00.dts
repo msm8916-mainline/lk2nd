@@ -15,4 +15,19 @@
 		compatible = "samsung,gt58lte-aus", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "T355Y*";
 	};
+
+	coreprimelte {
+		// In the downstream dts it is called Samsung ROSSA PROJECT Rev00
+		model = "Samsung Galaxy Core Prime LTE (SM-G360F)";
+		compatible = "samsung,coreprimelte", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "G360F*";
+
+		qcom,msm-id = <206 0>;
+		qcom,board-id = <0xCE08FF01 1>;
+
+		samsung,muic-reset {
+			i2c-gpio-pins = <2 3>;
+			i2c-address = <0x14>;
+		};
+	};
 };
