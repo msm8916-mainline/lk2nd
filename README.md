@@ -34,6 +34,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Lenovo A6000
 - Lenovo A6010
 - Lenovo PHAB Plus - PB1-770M, PB1-770N
+- LG G3 - D855
 - LG K10 (m216) - K420
 - LG Leon LTE (c50) - H340, H342, H343, H345, MS345, etc
 - LYF Wind 1 - ls5010
