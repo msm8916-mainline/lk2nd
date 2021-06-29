@@ -13,14 +13,15 @@ The real Android boot image is placed into the boot partition with 512 KiB offse
 and then loaded by lk2nd.
 
 ## Supported SoCs
-- `msm8916-secondary`: MSM8216, MSM8916, MSM8929, MSM8939
+- `msm8916-secondary`: APQ8016, MSM8216, MSM8916, MSM8929, MSM8939
 - `msm8974-secondary`: MSM8974
-- `msm8226-secondary`: MSM8226, MSM8926
+- `msm8226-secondary`: APQ8026, MSM8226, MSM8926
 
 See [Chipsets](https://github.com/efidroid/projectmanagement/wiki/%5BReference%5D-Chipsets)
 page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 
 ### Supported devices
+#### msm8916-secondary
 - Alcatel OneTouch Idol 3 (4.7) - 6039*
 - Alcatel OneTouch Idol 3 (5.5) - 6045*
 - Asus Zenfone 2 Laser (720p) - Z00L
@@ -34,7 +35,6 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Lenovo A6000
 - Lenovo A6010
 - Lenovo PHAB Plus - PB1-770M, PB1-770N
-- LG G3 - D855
 - LG K10 (m216) - K420
 - LG Leon LTE (c50) - H340, H342, H343, H345, MS345, etc
 - LYF Wind 1 - ls5010
@@ -53,7 +53,6 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Samsung Galaxy J7 (2015) - SM-J7008, SM-J700P
 - Samsung Galaxy On7 (2015) - SM-G6000
 - Samsung Galaxy S4 Mini Value Edition - GT-I9195I
-- Samsung Galaxy S5 - SM-G900F
 - Samsung Galaxy Tab 4 10.1 (2015) - SM-T533
 - Samsung Galaxy Tab A 8.0 LTE (2015) - SM-T357W
 - Samsung Galaxy Tab A 9.7 WiFi (2015) - SM-T550
@@ -61,6 +60,13 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Wileyfox Swift - crackling
 - Xiaomi Mi 4i - ferrari
 - Xiaomi Redmi 2 - wt86047, wt88047
+
+#### msm8974-secondary
+- LG G3 - D855
+- Samsung Galaxy S5 - SM-G900F
+
+#### msm8226-secondary
+- LG G Watch R - lenok
 
 ## Installation
 1. Download `lk2nd.img` (available in [Releases](https://github.com/msm8916-mainline/lk2nd/releases))
