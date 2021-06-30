@@ -16,6 +16,11 @@
 #define HYP_NEW_VECT    0x86400800
 #define HYP_PATCH_ADDR  (HYP_OLD_VECT + 0x600)
 
+/* System Control Register (EL2) */
+#define SCTLR_EL2_I	BIT(12)	/* Instruction cache enable */
+#define SCTLR_EL2_C	BIT(2)	/* Global enable for data and unifies caches */
+#define SCTLR_EL2_M	BIT(0)	/* Global enable for the EL2 MMU */
+
 static int scm_zero_dword(uint32_t target)
 {
 	/* https://www.blackhat.com/docs/us-17/wednesday/us-17-Bazhaniuk-BluePill-For-Your-Phone.pdf */
@@ -58,13 +63,14 @@ static int hyp_map_mem(uint32_t target, uint32_t len)
 	return scm_call2(&scm_arg, NULL);
 }
 
-static int hyp_call(uint32_t x0)
+static int hyp_call(uint32_t x0, uint32_t x1)
 {
 	int tmp;
 	scmcall_ret ret = {0};
 	scmcall_arg scm_arg = {
 		.hvc = true,
 		.x0 = x0,
+		.x1 = x1,
 	};
 
 	tmp = scm_call2(&scm_arg, &ret);
@@ -87,9 +93,9 @@ uint8_t hyp_init_patch[] =
 {
 	/* Load new vector address from x0 call argument */
 	0x00, 0xc0, 0x1c, 0xd5, /* msr vbar_el2, x0 */
-	/* Disable EL2 MMU */
+	/* Disable EL2 MMU and caches */
 	0x00, 0x10, 0x3c, 0xd5, /* mrs x0, sctlr_el2 */
-	0x00, 0x78, 0x7f, 0x92, /* and x0, x0, #0xFFFFFFFE */
+	0x00, 0x00, 0x01, 0x8a, /* and x0, x0, x1 */
 	0x00, 0x10, 0x1c, 0xd5, /* msr sctlr_el2, x0 */
 	/* return 0 */
 	0x00, 0x00, 0xe0, 0xd2, /* mov x0, #0x0 */
@@ -152,11 +158,11 @@ static void hyp_replace(void *payload, int payload_size)
 	/* Overwrite hyp with qhypstub */
 	memcpy((void*)HYP_BASE, payload, payload_size);
 	/* Load init shell code into the old interrupt vector */
-	memcpy((void*)HYP_PATCH_ADDR, hyp_init_patch, 24);
+	memcpy((void*)HYP_PATCH_ADDR, hyp_init_patch, sizeof(hyp_init_patch));
 	iciallu();
 
 	/* Run init code to prepare qhypstub */
-	tmp = hyp_call(HYP_NEW_VECT);
+	tmp = hyp_call(HYP_NEW_VECT, ~(SCTLR_EL2_I | SCTLR_EL2_C | SCTLR_EL2_M));
 	dprintf(CRITICAL, "hvc: ret=0x%x (%d)\n", tmp, (int)tmp);
 	if (tmp == 0) {
 		dprintf(INFO, "qhypstub is now running. YAY! :)\n");
