@@ -450,7 +450,7 @@ void reboot_device(unsigned reboot_reason)
 	/* Write the reboot reason */
 	writel(reboot_reason, RESTART_REASON_ADDR);
 
-	if(reboot_reason == FASTBOOT_MODE)
+	if(reboot_reason == FASTBOOT_MODE || reboot_reason == DLOAD)
 		reset_type = PON_PSHOLD_WARM_RESET;
 	else
 		reset_type = PON_PSHOLD_HARD_RESET;
@@ -577,4 +577,16 @@ void target_fastboot_init(void)
 uint32_t target_ddr_cfg_val()
 {
 	return DDR_CFG_DLY_VAL;
+}
+
+int set_download_mode(enum dload_mode mode)
+{
+	if (platform_is_msm8994())
+		dload_util_write_cookie(mode == NORMAL_DLOAD ?
+			DLOAD_MODE_ADDR : EMERGENCY_DLOAD_MODE_ADDR, mode);
+	else
+		dload_util_write_cookie(mode == NORMAL_DLOAD ?
+			DLOAD_MODE_ADDR_V2 : EMERGENCY_DLOAD_MODE_ADDR_V2, mode);
+
+	return 0;
 }
