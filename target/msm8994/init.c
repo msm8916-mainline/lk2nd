@@ -61,6 +61,10 @@
 #include <pm8x41_wled.h>
 #include <qpnp_wled.h>
 
+#if LONG_PRESS_POWER_ON
+#include <shutdown_detect.h>
+#endif
+
 #define CE_INSTANCE             2
 #define CE_EE                   1
 #define CE_FIFO_SIZE            64
@@ -93,6 +97,8 @@ struct ufs_dev ufs_device;
 
 extern void ulpi_write(unsigned val, unsigned reg);
 extern int platform_is_msm8994();
+
+extern void target_try_load_qhypstub();
 
 void target_early_init(void)
 {
@@ -269,7 +275,7 @@ void target_sdc_init()
 	config.sdhc_base = mmc_sdhci_base[config.slot - 1];
 	config.pwrctl_base = mmc_pwrctl_base[config.slot - 1];
 	config.pwr_irq     = mmc_sdc_pwrctl_irq[config.slot - 1];
-	config.hs400_support = 1;
+	config.hs400_support = 0;
 
 	/* Set drive strength & pull ctrl values */
 	set_sdc_power_ctrl(config.slot);
@@ -310,10 +316,6 @@ void target_init(void)
 
 	target_keystatus();
 
-
-	if (target_use_signed_kernel())
-		target_crypto_init_params();
-
 	platform_read_boot_config();
 
 	if (platform_boot_dev_isemmc())
@@ -332,6 +334,17 @@ void target_init(void)
 		dprintf(CRITICAL, "Error reading the partition table info\n");
 		ASSERT(0);
 	}
+
+#if WITH_LK2ND
+        target_try_load_qhypstub();
+#endif
+
+#if LONG_PRESS_POWER_ON
+	shutdown_detect();
+#endif
+
+	if (target_use_signed_kernel())
+		target_crypto_init_params();
 
 	rpm_smd_init();
 
