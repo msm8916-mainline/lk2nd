@@ -5263,7 +5263,6 @@ retry_boot:
 			if (partition_multislot_is_supported())
 			{
 				boot_slot = partition_find_boot_slot();
-				partition_mark_active_slot(boot_slot);
 				if (boot_slot == INVALID)
 					goto fastboot;
 			}
