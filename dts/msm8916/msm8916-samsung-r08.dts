@@ -23,4 +23,20 @@
 
 		lk2nd,keys = <KEY_HOME 109 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
 	};
+
+	/*
+	 * Before building for G5108Q, please comment out all dtbs except
+	 *  "$(LOCAL_DIR)/msm8916-samsung-r08.dtb" at './rules.mk'.
+	 * g5108q doesn't work with multi-dtbs; only goes into "Download mode".
+	 */
+	g5108q {
+		model = "Samsung Galaxy Core Max (SM-G5108Q)";
+		compatible = "samsung,g5108q", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "G5108Q*";
+
+		samsung,muic-reset {
+			i2c-gpio-pins = <2 3>;
+			i2c-address = <0x14>;
+		};
+	};
 };
