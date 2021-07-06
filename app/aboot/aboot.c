@@ -4006,6 +4006,11 @@ void aboot_init(const struct app_descriptor *app)
 #endif
 #endif
 
+#if LK2ND_FORCE_FASTBOOT
+	boot_into_fastboot = true;
+	dprintf(INFO, "Fastboot mode was forced with compile-time flag.\n");
+#endif
+
 normal_boot:
 	if (!boot_into_fastboot)
 	{
