@@ -3,6 +3,7 @@
 /dts-v1/;
 
 #include <skeleton.dtsi>
+#include <lk2nd.h>
 
 / {
 	// This is used by the bootloader to find the correct DTB
@@ -17,6 +18,14 @@
 		model = "Samsung Galaxy A3U (EUR)";
 		compatible = "samsung,a3u-eur", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "A300FU*";
+	};
+
+	a3 {
+		model = "Samsung Galaxy A3";
+		compatible = "samsung,a3u-eur", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "A300F*";
+
+		lk2nd,keys = <KEY_HOME 109 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
 	};
 
 	a5u-eur {
