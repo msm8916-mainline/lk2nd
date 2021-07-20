@@ -33,6 +33,7 @@ static int fsboot_fs_load_img(char *dev_name, void* target, size_t sz)
 
 	char image_path[128] = "/mnt/";
 	int ret = -1;
+	bool path_valid = false;
 
 	if (fs_mount("/mnt", "ext2", dev_name) < 0)
 		return -1;
@@ -46,16 +47,22 @@ static int fsboot_fs_load_img(char *dev_name, void* target, size_t sz)
 	while (fs_read_dir(dirh, &dirent) >= 0) {
 		if (!target) {
 			dprintf(SPEW, "| /%s/%s\n", dev_name, dirent.name);
-		} else if (strncmp(dirent.name, "boot.img", 7) == 0) {
+		} else if (!path_valid && strncmp(dirent.name, "boot.img", 7) == 0) {
 			strcpy(&image_path[strlen("/mnt/")], dirent.name);
 			dprintf(INFO, "Found boot image: %s : %s\n", dev_name, image_path);
+			path_valid = true;
+		} else if (strncmp(dirent.name, "lk2nd_skip", 10) == 0) {
+			dprintf(INFO, "Partition skipped: %s\n", dev_name);
 			fs_close_dir(dirh);
-
-			ret = fs_load_file(image_path, target, sz);
 			goto out;
 		}
 	}
 	fs_close_dir(dirh);
+
+	if (target && path_valid) {
+		ret = fs_load_file(image_path, target, sz);
+	}
+
 out:
 	fs_unmount("/mnt");
 	return ret;
