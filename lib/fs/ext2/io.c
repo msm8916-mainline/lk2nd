@@ -230,10 +230,11 @@ ssize_t ext2_read_inode(ext2_t *ext2, struct ext2_inode *inode, void *_buf, off_
         /* calculate the block and read it */
         blocknum_t phys_block = file_block_to_fs_block(ext2, inode, file_block);
         blocknum_t count_cont_blks = 1;
+        blocknum_t max_blocks = len / EXT2_BLOCK_SIZE(ext2->sb);
         if (phys_block == 0) {
             memset(buf, 0, EXT2_BLOCK_SIZE(ext2->sb));
         } else {
-            while (file_block_to_fs_block(ext2, inode, file_block + count_cont_blks) == phys_block + count_cont_blks) {
+            while (count_cont_blks < max_blocks && file_block_to_fs_block(ext2, inode, file_block + count_cont_blks) == phys_block + count_cont_blks) {
                 count_cont_blks++;
             }
             bio_read(ext2->dev, buf, EXT2_BLOCK_SIZE(ext2->sb) * phys_block, EXT2_BLOCK_SIZE(ext2->sb) * count_cont_blks);
