@@ -104,6 +104,20 @@ static void cmd_oem_dump_regulators(const char *arg, void *data, unsigned sz)
 	fastboot_okay("");
 }
 
+#ifdef BOOT_ROM_BASE
+static void cmd_oem_dump_boot_rom(const char *arg, void *data, unsigned sz)
+{
+	fastboot_info("NOTE: Device will reboot without special firmware!");
+
+	for (uint32_t *buf = data, *m = (uint32_t*)BOOT_ROM_BASE;
+	     m < (uint32_t*)BOOT_ROM_END; ++buf, ++m)
+		*buf = *m;
+
+	fastboot_stage(data, BOOT_ROM_END - BOOT_ROM_BASE);
+	fastboot_okay("");
+}
+#endif
+
 #ifdef APCS_BANKED_SAW2_BASE
 #define APCS_BANKED_SAW2_CFG		(APCS_BANKED_SAW2_BASE + 0x08)
 #define APCS_BANKED_SAW2_SPM_CTL	(APCS_BANKED_SAW2_BASE + 0x30)
@@ -144,6 +158,10 @@ void fastboot_extra_register_commands(void) {
 
 	fastboot_register("oem reboot-edl", cmd_oem_reboot_edl);
 	fastboot_register("oem dump-regulators", cmd_oem_dump_regulators);
+
+#ifdef BOOT_ROM_BASE
+	fastboot_register("oem dump-boot-rom", cmd_oem_dump_boot_rom);
+#endif
 
 #ifdef APCS_BANKED_SAW2_BASE
 	fastboot_register("oem dump-saw2", cmd_oem_dump_saw2);

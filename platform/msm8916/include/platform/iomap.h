@@ -279,4 +279,7 @@
 
 #define TCSR_TZ_WONCE               0x193D000
 #define TCSR_BOOT_MISC_DETECT	    0x193D100
+
+#define BOOT_ROM_BASE               0x00100000
+#define BOOT_ROM_END                0x00124000  /* Crashes when reading more */
 #endif
