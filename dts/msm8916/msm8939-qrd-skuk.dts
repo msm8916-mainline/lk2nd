@@ -8,6 +8,12 @@
 	qcom,msm-id = <239 0>;
 	qcom,board-id = <0x1000b 5>;
 
+	bq-piccolo {
+		model = "BQ Aquaris M5";
+		compatible = "bq,piccolo", "qcom,msm8939", "lk2nd,device";
+		lk2nd,match-cmdline = "* mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_truly_nt35695_1080p_cmd:1:none";
+	};
+
 	lenovo-pb1770m {
 		model = "Lenovo PHAB Plus";
 		compatible = "lenovo,pb1770m", "qcom,msm8939", "lk2nd,device";

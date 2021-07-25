@@ -27,6 +27,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Asus Zenfone 2 Laser (720p) - Z00L
 - Asus Zenfone 2 Laser (1080p) - Z00T
 - Asus Zenfone Max ZC550KL (2016) - Z010D
+- BQ Aquaris M5 - piccolo (use `lk2nd-msm8916-appended-dtb.img`)
 - BQ Aquaris X5 - paella, picmt
 - DragonBoard 410c - apq8016-sbc
 - HTC One M8s - m8qlul (quirky - see comment in `dts/msm8916/msm8939-htc-m8qlul.dts`)
