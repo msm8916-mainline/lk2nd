@@ -1,6 +1,7 @@
 #include <arch/ops.h>
 #include <debug.h>
 #include <dev/fbcon.h>
+#include <malloc.h>
 #include <mmc.h>
 #include <partition_parser.h>
 #include <platform.h>
@@ -119,28 +120,83 @@ static void cmd_oem_dump_boot_rom(const char *arg, void *data, unsigned sz)
 #endif
 
 #ifdef APCS_BANKED_SAW2_BASE
-#define APCS_BANKED_SAW2_CFG		(APCS_BANKED_SAW2_BASE + 0x08)
-#define APCS_BANKED_SAW2_SPM_CTL	(APCS_BANKED_SAW2_BASE + 0x30)
-#define APCS_BANKED_SAW2_DLY		(APCS_BANKED_SAW2_BASE + 0x34)
-#define APCS_BANKED_SAW2_VERSION	(APCS_BANKED_SAW2_BASE + 0xfd0)
+#define SAW2_ID			0x04
+#define SAW2_CFG		0x08
+#define SAW2_SPM_CTL		0x30
+#define SAW2_DLY		0x34
+#define SAW2_SPM_PMIC_DATA	0x40
+#define SAW2_VERSION		0xfd0
+
+/* Only valid for v3.0 */
+#define SAW2_VERSION_3_0	0x30000000
+#define SAW2_SPM_SLP_SEQ_ENTRY	0x400
+
+static void dump_saw2(const char *name, uintptr_t base)
+{
+	char response[MAX_RSP_SIZE];
+	uint32_t version, id, num, i;
+
+	version = readl(base + SAW2_VERSION);
+	snprintf(response, sizeof(response),
+		 "SAW2 %s (%#x) version: v%d.%d (%#x)", name, base,
+		 (version >> 28) & 0xF, (version >> 16) & 0xFFF, version);
+	fastboot_info(response);
+
+	id = readl(base + SAW2_ID);
+	snprintf(response, sizeof(response),
+		 "id: %#x, cfg: %#x, spm-ctl: %#x, dly: %#x", id,
+		 readl(base + SAW2_CFG),
+		 readl(base + SAW2_SPM_CTL),
+		 readl(base + SAW2_DLY));
+	fastboot_info(response);
+
+	num = (id >> 4) & 0b111; // NUM_PMIC_DATA
+	if (num) {
+		snprintf(response, sizeof(response), "PMIC DATA(%d):", num);
+		fastboot_info(response);
+
+		for (i = 0; i < num; ++i) {
+			snprintf(response, sizeof(response), "\t%#x",
+				 readl(base + SAW2_SPM_PMIC_DATA + (i * sizeof(uint32_t))));
+			fastboot_info(response);
+		}
+	}
+
+	// TODO: Dump more for other SAW2 versions as well
+	if (version != SAW2_VERSION_3_0)
+		return;
+
+	num = (id >> 24) & 0xff; // NUM_SPM_ENTRY
+	if (num) {
+		uint32_t lines = ((num * sizeof(uint32_t)) + 8 - 1) / 8;
+		uint8_t *buf = calloc(lines, 8);
+		uint32_t *buf32 = (uint32_t*)buf;
+
+		snprintf(response, sizeof(response), "SPM_ENTRY(%d):", num);
+		fastboot_info(response);
+
+		for (i = 0; i < num; ++i)
+			buf32[i] = readl(base + SAW2_SPM_SLP_SEQ_ENTRY + (i * sizeof(uint32_t)));
+		for (i = 0; i < lines; ++i) {
+			snprintf(response, sizeof(response),
+				 "\t%#02x %#02x %#02x %#02x %#02x %#02x %#02x %#02x",
+				 buf[0], buf[1], buf[2], buf[3],
+				 buf[4], buf[5], buf[6], buf[7]);
+			fastboot_info(response);
+			buf += 8;
+		}
+		free(buf32);
+	}
+}
+
 
 static void cmd_oem_dump_saw2(const char *arg, void *data, unsigned sz)
 {
-	char response[MAX_RSP_SIZE];
-	uint32_t val, cfg, spm_ctl, dly;
+	dump_saw2("CPU", APCS_BANKED_SAW2_BASE);
 
-	val = readl(APCS_BANKED_SAW2_VERSION);
-	snprintf(response, sizeof(response),
-		 "SAW2 version: v%d.%d",
-		 (val >> 28) & 0xF, (val >> 16) & 0xFFF);
-	fastboot_info(response);
-
-	cfg = readl(APCS_BANKED_SAW2_CFG);
-	spm_ctl = readl(APCS_BANKED_SAW2_SPM_CTL);
-	dly = readl(APCS_BANKED_SAW2_DLY);
-	snprintf(response, sizeof(response),
-		 "cfg: %#x, spm-ctl: %#x, dly: %#x", cfg, spm_ctl, dly);
-	fastboot_info(response);
+#ifdef APCS_L2_SAW2_BASE
+	dump_saw2("L2", APCS_L2_SAW2_BASE);
+#endif
 
 	fastboot_okay("");
 }
