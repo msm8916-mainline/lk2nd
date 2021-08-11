@@ -388,7 +388,7 @@ static void display_fastboot_menu_print_fw_info(char *msg, size_t msg_size)
 		 */
 		arg.x0 = MAKE_SIP_SCM_CMD(SCM_SVC_MILESTONE_32_64_ID, SCM_SVC_MILESTONE_CMD_ID);
 		arg.hvc = true;
-		hvc_el2 = scm_call2(&arg, NULL) == -5;
+		hvc_el2 = scm_call2(&arg, NULL) != -2;
 	}
 
 	snprintf(msg, msg_size, "EL2 - %s\n",
