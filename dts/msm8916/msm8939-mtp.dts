@@ -16,21 +16,18 @@
 	};
 
 	xiaomi-ferrari {
-		/* Included becuase log said qcom,msm-id entry not found and this made it recognize the device tree correctly */
-		qcom,msm-id = <239 0>;
-		qcom,board-id = <8 0>;
-		
 		model = "Xiaomi Mi 4i";
 		compatible = "xiaomi,ferrari", "qcom,msm8939", "lk2nd,device";
+		lk2nd,match-panel;
 
 		panel {
 
 			qcom,mdss_dsi_sharp_rsp61322_1080p_video {
-				compatible = "sharp,rsp61322";
+				compatible = "xiaomi,sharp-rsp61322";
 			};
 
 			qcom,mdss_dsi_jdi_nt35595_1080p_video {
-				compatible = "jdi,nt35595";
+				compatible = "xiaomi,jdi-nt35595";
 			};
 		};
 	};
