@@ -21,7 +21,6 @@
 		lk2nd,match-panel;
 
 		panel {
-
 			qcom,mdss_dsi_sharp_rsp61322_1080p_video {
 				compatible = "xiaomi,sharp-rsp61322";
 			};
