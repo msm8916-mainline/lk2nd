@@ -489,8 +489,15 @@ void display_fastboot_menu_renew(struct select_msg_info *fastboot_msg_info)
 		display_fbcon_menu_message(msg, FBCON_COMMON_MSG, common_factor);
 	}
 	if (lk2nd_dev.battery) {
+		unsigned int type = FBCON_COMMON_MSG;
+
+		if (strncmp(lk2nd_dev.battery, "ERROR", strlen("ERROR")) == 0)
+			type = FBCON_RED_MSG;
+		else if (strncmp(lk2nd_dev.battery, "WARNING", strlen("WARNING")) == 0)
+			type = FBCON_YELLOW_MSG;
+
 		snprintf(msg, sizeof(msg), "BATTERY - %s\n", lk2nd_dev.battery);
-		display_fbcon_menu_message(msg, FBCON_COMMON_MSG, common_factor);
+		display_fbcon_menu_message(msg, type, common_factor);
 	}
 #endif
 
