@@ -18,6 +18,16 @@
 	xiaomi-ferrari {
 		model = "Xiaomi Mi 4i";
 		compatible = "xiaomi,ferrari", "qcom,msm8939", "lk2nd,device";
-		lk2nd,match-cmdline = "* mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_sharp_rsp61322_1080p_video:1:none";
+		lk2nd,match-panel;
+
+		panel {
+			qcom,mdss_dsi_sharp_rsp61322_1080p_video {
+				compatible = "xiaomi,sharp-rsp61322";
+			};
+
+			qcom,mdss_dsi_jdi_nt35595_1080p_video {
+				compatible = "xiaomi,jdi-nt35595";
+			};
+		};
 	};
 };
