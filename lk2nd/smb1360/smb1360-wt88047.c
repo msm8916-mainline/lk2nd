@@ -187,10 +187,10 @@ static int bq2022a_read_bat_id(int delay_time, int pimc_pin)
 	if (((0 < bat_module_id) && (bat_module_id < 11)) || (bat_module_id == 17))
 		pr_debug("get correct ID!!\n");
 	else {
-		/*if (is_battery_feedback) {
-			bat_module_id = 0;
+		if (is_battery_feedback) {
+			bat_module_id = 13; // 0; Use special ID for fallback
 			pr_debug("use common ID!!\n");
-		} else*/ {
+		} else {
 			bat_module_id = 0xff;
 			pr_debug("get wrong ID!!\n");
 			//return -ENODEV;
@@ -264,6 +264,17 @@ static const struct smb1360_battery wt88047_batteries[] = {
 	},
 	[10] = {
 		.name = "10 Sunwoda (2200)",
+		.capacity_mah = 2200,
+		.cc_soc_coeff = 0x8373,
+		.therm_coeff = 0x85D2,
+	},
+	[13] = {
+		/*
+		 * Note: This one does not exist in the Xiaomi source code.
+		 * It is used to make the fallback to 0 Common more obvious,
+		 * which seems to be used for fake replacement batteries.
+		 */
+		.name = "WARNING: Fake battery? Using 0 Common (2200 mAh)",
 		.capacity_mah = 2200,
 		.cc_soc_coeff = 0x8373,
 		.therm_coeff = 0x85D2,
