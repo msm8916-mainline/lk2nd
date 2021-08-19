@@ -43,8 +43,8 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Motorola Moto E (2015) - surnia
 - Motorola Moto G (2015) - osprey
 - Motorola Moto G4 Play - harpia
-- Samsung Galaxy A3 (2015) - SM-A300FU
-- Samsung Galaxy A5 (2015) - SM-A500F, SM-A500FU
+- Samsung Galaxy A3 (2015) - SM-A300F, SM-A300FU
+- Samsung Galaxy A5 (2015) - SM-A500F, SM-A500FU, SM-A500YZ
 - Samsung Galaxy Core Max - SM-G5108Q (quirky - see comment in `dts/msm8916/msm8916-samsung-r08.dts`)
 - Samsung Galaxy Core Prime LTE - SM-G360F
 - Samsung Galaxy Grand Prime - SM-G530W
