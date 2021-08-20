@@ -1,0 +1,20 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+/*
+ * To get a working build for huawei-y635-l01, comment out
+ * $(LOCAL_DIR)/msm8916-mtp.dtb in rules.mk in this directory.
+ * y635-l01 does not work with msm8916-mtp.dtb enabled; the bootloader
+ * gets upset and goes into the phone's fastboot.
+ */
+
+#include <skeleton.dtsi>
+
+/ {
+        qcom,msm-id = <206 0>;
+        qcom,board-id = <8003 4>;
+
+        model = "Huawei Y635-L01";
+        compatible = "huawei,y635-l01", "qcom,msm8916", "lk2nd,device";
+};

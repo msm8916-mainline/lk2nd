@@ -33,6 +33,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - HTC One M8s - m8qlul (quirky - see comment in `dts/msm8916/msm8939-htc-m8qlul.dts`)
 - Huawei Ascend G7 - G7-L01
 - Huawei Honor 5X - kiwi
+- Huawei Y635 - Y635-L01 (quirky - see comment in `dts/msm8916/msm8916-huawei-y635-l01.dts`)
 - Lenovo A6000
 - Lenovo A6010
 - Lenovo PHAB Plus - PB1-770M, PB1-770N
