@@ -55,6 +55,7 @@ int lk2nd_fdt_parse_early_uart(void);
 
 void lk2nd_samsung_muic_reset(const void *fdt, int offset);
 void lk2nd_motorola_smem_write_unit_info(const void *fdt, int offset);
+void lk2nd_smd_rpm_hack_opening(const void *fdt, int offset);
 
 void lk2nd_update_device_tree(void *fdt, const char *cmdline);
 

@@ -21,6 +21,7 @@
 		model = "Samsung Galaxy A5 (SM-A500YZ)";
 		compatible = "samsung,a5u-eur", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "A500YZ*";
+		lk2nd,smd-rpm-hack-opening;
 	};
 
 	gt510lte {

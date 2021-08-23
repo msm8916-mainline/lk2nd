@@ -267,7 +267,7 @@ static struct lk2nd_keymap* lk2nd_parse_keys(const void *fdt, int offset)
 
 	dprintf(INFO, "Device keymap:\n");
 	while (map && map[i].key) {
-		dprintf(INFO, "key=0x%X, gpio=%x, type=%d, pull=%d, active=%d\n", 
+		dprintf(INFO, "key=0x%X, gpio=%x, type=%d, pull=%d, active=%d\n",
 			map[i].key, map[i].gpio, map[i].type, map[i].pull, map[i].active);
 		i++;
 	}
@@ -290,6 +290,7 @@ static void lk2nd_parse_device_node(const void *fdt)
 	lk2nd_samsung_muic_reset(fdt, offset);
 #endif
 	lk2nd_motorola_smem_write_unit_info(fdt, offset);
+	lk2nd_smd_rpm_hack_opening(fdt, offset);
 
 	lk2nd_dev.model = fdt_copyprop_str(fdt, offset, "model");
 	if (lk2nd_dev.model)
