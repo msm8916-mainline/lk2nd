@@ -20,8 +20,18 @@
 	alto5-vdf {
 		model = "Vodafone Smart prime 6";
 		compatible = "alcatel,alto5-vdf", "qcom,msm8916", "lk2nd,device";
-		// FIXME: There are multiple possible panels, might need to add more
-		lk2nd,match-cmdline = "* mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_hx8394a_hd_tdt_video:1:none";
+		lk2nd,match-panel;
+
+		panel {
+			compatible = "alcatel,alto5-vdf-panel";
+
+			qcom,mdss_dsi_hx8394a_hd_tdt_video {
+				compatible = "alcatel,hx8394a-tdt";
+			};
+			qcom,mdss_dsi_hx8394a_hd_truly_video {
+				compatible = "alcatel,hx8394a-truly";
+			};
+		};
 	};
 
 	asus-z010d {
