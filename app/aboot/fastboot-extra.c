@@ -8,6 +8,8 @@
 #include <platform/iomap.h>
 #include <pm8x41_regulator.h>
 #include <reg.h>
+#include <smd.h>
+#include <smem.h>
 #include <target.h>
 #include "fastboot.h"
 
@@ -102,6 +104,53 @@ static void cmd_oem_dump_regulators(const char *arg, void *data, unsigned sz)
 			 regulator_get_voltage(vreg), regulator_get_range_name(vreg));
 		fastboot_info(response);
 	}
+	fastboot_okay("");
+}
+
+static void cmd_oem_dump_smd_rpm(const char *arg, void *data, unsigned sz)
+{
+	smd_channel_alloc_entry_t *entries;
+	char response[MAX_RSP_SIZE];
+	uint32_t size = 0;
+	int ret, i;
+
+	entries = smem_get_alloc_entry(SMEM_CHANNEL_ALLOC_TBL, &size);
+	if (size != SMD_CHANNEL_ALLOC_MAX) {
+		fastboot_fail("Failed to find smem channel alloc tbl");
+		return;
+	}
+
+	for (i = 0; i < SMEM_NUM_SMD_STREAM_CHANNELS; i++) {
+		smd_port_ctrl_info *info;
+
+		if (!entries[i].name[0])
+			continue;
+
+		snprintf(response, sizeof(response),
+			 "ch%d: %s, cid: %#x, flags: %#x, ref: %u",
+			 i, entries[i].name, entries[i].cid, entries[i].ctype,
+			 entries[i].ref_count);
+		fastboot_info(response);
+
+		/* Device hangs when reading other channel info */
+		if ((entries[i].ctype & 0xff) != SMD_APPS_RPM)
+			continue;
+
+		size = 0;
+		info = smem_get_alloc_entry(SMEM_SMD_BASE_ID + entries[i].cid,
+					    &size);
+		if (size != sizeof(*info)) {
+			fastboot_info("Failed to find channel info");
+			continue;
+		}
+
+		snprintf(response, sizeof(response),
+			 "ch%d: tx state: %u, tx fstate: %u, rx state: %u, rx fstate: %u",
+			 i, info->ch0.stream_state, info->ch0.state_updated,
+			 info->ch1.stream_state, info->ch1.state_updated);
+		fastboot_info(response);
+	}
+
 	fastboot_okay("");
 }
 
@@ -214,6 +263,7 @@ void fastboot_extra_register_commands(void) {
 
 	fastboot_register("oem reboot-edl", cmd_oem_reboot_edl);
 	fastboot_register("oem dump-regulators", cmd_oem_dump_regulators);
+	fastboot_register("oem dump-smd-rpm", cmd_oem_dump_smd_rpm);
 
 #ifdef BOOT_ROM_BASE
 	fastboot_register("oem dump-boot-rom", cmd_oem_dump_boot_rom);
