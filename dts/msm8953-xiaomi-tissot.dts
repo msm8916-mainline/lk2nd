@@ -11,6 +11,7 @@
 
 	model = "Xiaomi Mi A1 (tissot)";
 	compatible = "xiaomi,tissot", "qcom,msm8953", "lk2nd,device";
+	lk2nd,match-bootloader = "*TISSOT*";
 	lk2nd,pstore = <0x9ff00000 0x100000>;
 
 	panel {
