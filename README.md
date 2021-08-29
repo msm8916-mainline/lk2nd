@@ -16,6 +16,7 @@ This branch specifically is made only for SDM632 devices. If you have another So
 
 ### Supported devices
 - Motorola Moto G7 Power - ocean
+- Xiaomi Mi A2 Lite - daisy
 
 ## Installation
 1. Download `lk2nd.img` (as of now there's no build available so you'll need to build it yourself.)
