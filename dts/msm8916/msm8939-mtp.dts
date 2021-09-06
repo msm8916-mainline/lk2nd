@@ -12,7 +12,21 @@
 	alcatel-idol3 {
 		model = "Alcatel OneTouch Idol 3 (5.5)";
 		compatible = "alcatel,idol3", "qcom,msm8939", "lk2nd,device";
-		lk2nd,match-cmdline = "* mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_r63315_1080p_video:1:none";
+		lk2nd,match-panel;
+
+		panel {
+			compatible = "alcatel,idol3-panel";
+
+			qcom,mdss_dsi_nt35596_1080p_video {
+				compatible = "alcatel,idol3-panel-nt35596";
+			};
+			qcom,mdss_dsi_nt35596_1080p_video_v03 {
+				compatible = "alcatel,idol3-panel-nt35596-v03";
+			};
+			qcom,mdss_dsi_r63315_1080p_video {
+				compatible = "alcatel,idol3-panel-r63315";
+			};
+		};
 	};
 
 	xiaomi-ferrari {
