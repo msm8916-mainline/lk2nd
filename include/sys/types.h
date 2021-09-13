@@ -23,12 +23,7 @@
 #ifndef __SYS_TYPES_H
 #define __SYS_TYPES_H
 
-#ifndef __cplusplus
-#define false 0
-#define true 1
-typedef int bool;
-#endif
-
+#include <stdbool.h>
 #include <stddef.h>
 #include <limits.h>
 #include <stdint.h>
