@@ -198,6 +198,9 @@ static int dev_tree_compatible(void *dtb, void *real_dtb, uint32_t dtb_size,
 	} else if (len_plat_id % min_plat_id_len) {
 		dprintf(INFO, "qcom,msm-id in device tree is (%d) not a multiple of (%d)\n",
 			len_plat_id, min_plat_id_len);
+		if (dtb_ver == DEV_TREE_VERSION_V1 && len_plat_id == DT_ENTRY_LGE8974_SIZE)
+			min_plat_id_len = DT_ENTRY_LGE8974_SIZE;
+		else
 		return false;
 	}
 
@@ -209,7 +212,7 @@ static int dev_tree_compatible(void *dtb, void *real_dtb, uint32_t dtb_size,
 	 */
 	if (dtb_ver == DEV_TREE_VERSION_V1) {
 #if WITH_LK2ND
-		if (dtb_list->dt_entry_m && len_plat_id != DT_ENTRY_V1_SIZE) {
+		if (dtb_list->dt_entry_m && len_plat_id != min_plat_id_len) {
 			free(model);
 			return false;
 		}
@@ -236,6 +239,9 @@ static int dev_tree_compatible(void *dtb, void *real_dtb, uint32_t dtb_size,
 			cur_dt_entry->offset = (uint32_t)real_dtb;
 			cur_dt_entry->size = dtb_size;
 
+			if (min_plat_id_len == DT_ENTRY_LGE8974_SIZE)
+				cur_dt_entry->board_hw_subtype = fdt32_to_cpu(((const struct dt_entry_v1 *)plat_prop)->offset);
+
 			dprintf(SPEW, "Found an appended flattened device tree (%s - %u %u 0x%x)\n",
 				model ? model : "unknown",
 				cur_dt_entry->platform_id, cur_dt_entry->variant_id, cur_dt_entry->soc_rev);
@@ -259,8 +265,8 @@ static int dev_tree_compatible(void *dtb, void *real_dtb, uint32_t dtb_size,
 					board_soc_version());
 			}
 
-			plat_prop += DT_ENTRY_V1_SIZE;
-			len_plat_id -= DT_ENTRY_V1_SIZE;
+			plat_prop += min_plat_id_len;
+			len_plat_id -= min_plat_id_len;
 		}
 		free(cur_dt_entry);
 
