@@ -139,6 +139,11 @@ void smp_spin_table_setup(void *fdt)
 		return;
 	}
 
+	if (fdt_subnode_offset(fdt, offset, "cpu-map") >= 0) {
+		dprintf(CRITICAL, "Multiple CPU clusters are not supported yet\n");
+		return;
+	}
+
 	memcpy((void*)SMP_SPIN_TABLE_BASE, smp_spin_table_code, sizeof(smp_spin_table_code));
 
 	ret = qcom_set_boot_addr(SMP_SPIN_TABLE_BASE);
