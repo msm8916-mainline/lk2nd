@@ -381,7 +381,7 @@ static void lk2nd_update_panel_compatible(void *fdt)
 		dprintf(CRITICAL, "Failed to update panel compatible: %d\n", ret);
 }
 
-void lk2nd_update_device_tree(void *fdt, const char *cmdline)
+void lk2nd_update_device_tree(void *fdt, const char *cmdline, bool arm64)
 {
 	/* Don't touch lk2nd/downstream dtb */
 	if (strstr(cmdline, "lk2nd"))
@@ -394,6 +394,7 @@ void lk2nd_update_device_tree(void *fdt, const char *cmdline)
 	smb1360_update_device_tree(fdt);
 #endif
 #ifdef SMP_SPIN_TABLE_BASE
-	smp_spin_table_setup(fdt);
+	if (arm64)
+		smp_spin_table_setup(fdt);
 #endif
 }
