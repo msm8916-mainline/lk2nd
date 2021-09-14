@@ -5,8 +5,9 @@
 #include <string.h>
 #include <partition_parser.h>
 
-#define QHYPSTUB_SIZE   4096
-#define QHYPSTUB_MAGIC  0x6275747370796871 // "qhypstub"
+#define QHYPSTUB_SIZE           4096
+#define QHYPSTUB_MAGIC          0x6275747370796871 // "qhypstub"
+#define QHYPSTUB_STATE_AARCH64  2
 
 #define HYP_BASE        0x86400000
 #define HYP_SIZE        0x100000
@@ -171,8 +172,7 @@ static void hyp_replace(void *payload, int payload_size)
 
 void target_try_load_qhypstub()
 {
-	void *qhypstub_payload = NULL;
-	qhypstub_payload = malloc(QHYPSTUB_SIZE);
+	uint64_t *qhypstub_payload = malloc(QHYPSTUB_SIZE);
 	unsigned long long ptn = 0;
 	int index = INVALID_PTN;
 	bool magic_found = false;
@@ -184,13 +184,14 @@ void target_try_load_qhypstub()
 		return;
 	}
 
-	if (mmc_read(ptn, (unsigned int *) qhypstub_payload, QHYPSTUB_SIZE)) {
+	if (mmc_read(ptn, (unsigned int *)qhypstub_payload, QHYPSTUB_SIZE)) {
 		dprintf(CRITICAL, "WARNING: Cannot read qhypstub image\n");
 		return;
 	}
 
-	for (int i = 0; i < QHYPSTUB_SIZE / 8; ++i) {
-		if (((uint64_t*)qhypstub_payload)[i] == QHYPSTUB_MAGIC) {
+	for (int i = 0; i < QHYPSTUB_SIZE / sizeof(uint64_t); ++i) {
+		if (qhypstub_payload[i] == QHYPSTUB_MAGIC) {
+			qhypstub_payload[i+1] = QHYPSTUB_STATE_AARCH64;
 			magic_found = true;
 			break;
 		}
