@@ -393,4 +393,7 @@ void lk2nd_update_device_tree(void *fdt, const char *cmdline)
 #if TARGET_MSM8916
 	smb1360_update_device_tree(fdt);
 #endif
+#ifdef SMP_SPIN_TABLE_BASE
+	smp_spin_table_setup(fdt);
+#endif
 }

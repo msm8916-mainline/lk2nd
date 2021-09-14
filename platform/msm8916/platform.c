@@ -68,6 +68,9 @@ static mmu_section_t mmu_section_table[] = {
 	{    SCRATCH_ADDR,      SCRATCH_ADDR,     256,              SCRATCH_MEMORY},
         {    RPMB_SND_RCV_BUF,      RPMB_SND_RCV_BUF,        RPMB_SND_RCV_BUF_SZ,    IOMAP_MEMORY},
 	{    0x86400000,      0x86400000,     1,              COMMON_MEMORY},
+#ifdef SMP_SPIN_TABLE_BASE
+	{    SMP_SPIN_TABLE_BASE, SMP_SPIN_TABLE_BASE, 1,     COMMON_MEMORY},
+#endif
 };
 
 
