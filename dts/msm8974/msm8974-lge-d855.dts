@@ -9,11 +9,13 @@
 	// This is used by the bootloader to find the correct DTB
 	qcom,msm-id = <194 118 0x10001>;
 
-	model = "LG G3 (D855)";
-	compatible = "lge,d855", "qcom,msm8974", "lk2nd,device";
-	lk2nd,match-cmdline = "*LG-D855*";
+    d855 {
+		model = "LG G3 (D855)";
+		compatible = "lge,d855", "qcom,msm8974", "lk2nd,device";
+		lk2nd,match-cmdline = "*LG-D855*";
 
-	lk2nd,keys =
-		<KEY_VOLUMEUP   PM_GPIO(2) PM_GPIO_PULL_UP_1_5>,
-		<KEY_VOLUMEDOWN PM_GPIO(3) PM_GPIO_PULL_UP_1_5>;
+		lk2nd,keys =
+			<KEY_VOLUMEUP   PM_GPIO(2) PM_GPIO_PULL_UP_1_5>,
+			<KEY_VOLUMEDOWN PM_GPIO(3) PM_GPIO_PULL_UP_1_5>;
+    };
 };
