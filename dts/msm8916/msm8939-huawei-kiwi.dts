@@ -17,5 +17,6 @@
 	model = "Huawei Honor 5X";
 	compatible = "huawei,kiwi", "qcom,msm8939", "lk2nd,device";
 
+	// fix modem not connecting to cellular network
 	huawei,modem_id = <0xFFB40105 0x0>;
 };
