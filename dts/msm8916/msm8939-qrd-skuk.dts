@@ -12,6 +12,17 @@
 		model = "BQ Aquaris M5";
 		compatible = "bq,piccolo", "qcom,msm8939", "lk2nd,device";
 		lk2nd,match-cmdline = "* mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_truly_nt35695_1080p_cmd:1:none";
+
+		smb1360 {
+			compatible = "qcom,smb1360";
+			i2c-gpio-pins = <14 15>;
+
+			qcom,batt-profile-select;
+			qcom,batt-id-vref-uv = <1800000>;
+			qcom,batt-id-rpullup-kohm = <100>;
+			qcom,profile-a-rid-kohm = <50>;
+			qcom,profile-b-rid-kohm = <200>;
+		};
 	};
 
 	lenovo-pb1770m {
