@@ -5,6 +5,7 @@ DTBS += \
 	$(LOCAL_DIR)/apq8016-samsung-r07.dtb \
 	$(LOCAL_DIR)/apq8016-sbc.dtb \
 	$(LOCAL_DIR)/msm8216-samsung-r05.dtb \
+	$(LOCAL_DIR)/msm8216-samsung-r08.dtb \
 	$(LOCAL_DIR)/msm8916-asus-z00l.dtb \
 	$(LOCAL_DIR)/msm8916-huawei-g7-l01.dtb \
 	$(LOCAL_DIR)/msm8916-huawei-hwt1a21l.dtb \

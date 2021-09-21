@@ -1,0 +1,18 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton.dtsi>
+
+/ {
+	// This is used by the bootloader to find the correct DTB
+	qcom,msm-id = <248 0>;
+	qcom,board-id = <0xF808FF01 8>;
+
+	a53g {
+		model = "Samsung Galaxy A5 (SM-A500H)";
+		compatible = "samsung,a53g", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "A500H*";
+		lk2nd,smd-rpm-hack-opening;
+	};
+};
