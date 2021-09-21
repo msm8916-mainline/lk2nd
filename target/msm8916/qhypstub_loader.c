@@ -5,8 +5,12 @@
 #include <string.h>
 #include <partition_parser.h>
 
-#define QHYPSTUB_SIZE   4096
-#define QHYPSTUB_MAGIC  0x6275747370796871 // "qhypstub"
+#define QHYPSTUB_SIZE           4096
+#define QHYPSTUB_MAGIC          0x6275747370796871 // "qhypstub"
+
+#define QHYPSTUB_STATE_CALL     0x86004242
+#define QHYPSTUB_STATE_AARCH32  1
+#define QHYPSTUB_STATE_AARCH64  2
 
 #define HYP_BASE        0x86400000
 #define HYP_SIZE        0x100000
@@ -74,8 +78,8 @@ static int hyp_call(uint32_t x0, uint32_t x1)
 	};
 
 	tmp = scm_call2(&scm_arg, &ret);
-	dprintf(SPEW, "hyp_info: x1=0x%X (%d) x2=0x%X (%d) x3=0x%X (%d)\n",
-		ret.x1, ret.x1, ret.x2, ret.x2, ret.x3, ret.x3);
+	dprintf(SPEW, "hyp_call: ret=%d, x1=0x%X (%d) x2=0x%X (%d) x3=0x%X (%d)\n",
+		tmp, ret.x1, ret.x1, ret.x2, ret.x2, ret.x3, ret.x3);
 	return tmp;
 }
 
@@ -89,7 +93,12 @@ static int hyp_test()
 	return scm_call2(&scm_arg, NULL);
 }
 
-uint8_t hyp_init_patch[] =
+void qhypstub_set_state_aarch64(void)
+{
+	hyp_call(QHYPSTUB_STATE_CALL, QHYPSTUB_STATE_AARCH64);
+}
+
+static uint8_t hyp_init_patch[] =
 {
 	/* Load new vector address from x0 call argument */
 	0x00, 0xc0, 0x1c, 0xd5, /* msr vbar_el2, x0 */
@@ -162,17 +171,16 @@ static void hyp_replace(void *payload, int payload_size)
 	iciallu();
 
 	/* Run init code to prepare qhypstub */
-	tmp = hyp_call(HYP_NEW_VECT, ~(SCTLR_EL2_I | SCTLR_EL2_C | SCTLR_EL2_M));
-	dprintf(CRITICAL, "hvc: ret=0x%x (%d)\n", tmp, (int)tmp);
-	if (tmp == 0) {
+	hyp_call(HYP_NEW_VECT, ~(SCTLR_EL2_I | SCTLR_EL2_C | SCTLR_EL2_M));
+
+	/* Configure state to aarch32 by default, as if qhypstub was booted directly */
+	if (hyp_call(QHYPSTUB_STATE_CALL, QHYPSTUB_STATE_AARCH32) == 0)
 		dprintf(INFO, "qhypstub is now running. YAY! :)\n");
-	}
 }
 
 void target_try_load_qhypstub()
 {
-	void *qhypstub_payload = NULL;
-	qhypstub_payload = malloc(QHYPSTUB_SIZE);
+	uint64_t *qhypstub_payload = malloc(QHYPSTUB_SIZE);
 	unsigned long long ptn = 0;
 	int index = INVALID_PTN;
 	bool magic_found = false;
@@ -184,13 +192,13 @@ void target_try_load_qhypstub()
 		return;
 	}
 
-	if (mmc_read(ptn, (unsigned int *) qhypstub_payload, QHYPSTUB_SIZE)) {
+	if (mmc_read(ptn, (unsigned int *)qhypstub_payload, QHYPSTUB_SIZE)) {
 		dprintf(CRITICAL, "WARNING: Cannot read qhypstub image\n");
 		return;
 	}
 
-	for (int i = 0; i < QHYPSTUB_SIZE / 8; ++i) {
-		if (((uint64_t*)qhypstub_payload)[i] == QHYPSTUB_MAGIC) {
+	for (int i = 0; i < QHYPSTUB_SIZE / sizeof(uint64_t); ++i) {
+		if (qhypstub_payload[i] == QHYPSTUB_MAGIC) {
 			magic_found = true;
 			break;
 		}

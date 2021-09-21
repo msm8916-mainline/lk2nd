@@ -486,7 +486,7 @@ void *dev_tree_appended(void *kernel, uint32_t kernel_size, uint32_t dtb_offset,
 	}
 	dtb = kernel + app_dtb_offset;
 	while (((uintptr_t)dtb + sizeof(struct fdt_header)) < (uintptr_t)kernel_end) {
-		struct fdt_header dtb_hdr;
+		struct fdt_header dtb_hdr __attribute__ ((aligned(8)));
 		uint32_t dtb_size;
 
 		/* the DTB could be unaligned, so extract the header,
@@ -1343,7 +1343,8 @@ int dev_tree_add_mem_info(void *fdt, uint32_t offset, uint64_t addr, uint64_t si
 
 /* Top level function that updates the device tree. */
 int update_device_tree(void *fdt, const char *cmdline,
-					   void *ramdisk, uint32_t ramdisk_size, unsigned char* mac)
+					   void *ramdisk, uint32_t ramdisk_size, unsigned char* mac,
+		       bool arm64)
 {
 	int ret = 0;
 	uint32_t offset;
@@ -1496,7 +1497,7 @@ int update_device_tree(void *fdt, const char *cmdline,
 	}
 
 #if WITH_LK2ND
-	lk2nd_update_device_tree(fdt, cmdline);
+	lk2nd_update_device_tree(fdt, cmdline, arm64);
 #endif
 	fdt_pack(fdt);
 

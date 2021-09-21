@@ -817,7 +817,7 @@ void boot_linux(void *kernel, unsigned *tags,
 	mac = generate_mac_address();
 
 	/* Update the Device Tree */
-	ret = update_device_tree((void *)tags, final_cmdline, ramdisk, ramdisk_size, mac);
+	ret = update_device_tree((void *)tags, final_cmdline, ramdisk, ramdisk_size, mac, IS_ARM64(kptr));
 	if(ret)
 	{
 		dprintf(CRITICAL, "ERROR: Updating Device Tree Failed \n");

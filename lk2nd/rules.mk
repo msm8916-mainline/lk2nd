@@ -13,3 +13,8 @@ endif
 ifeq ($(TARGET),msm8916)
 MODULES += lk2nd/smb1360
 endif
+
+ifneq ($(SMP_SPIN_TABLE_BASE),)
+MODULES += lk2nd/smp
+DEFINES += SMP_SPIN_TABLE_BASE=$(SMP_SPIN_TABLE_BASE)
+endif

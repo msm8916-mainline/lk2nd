@@ -42,7 +42,7 @@
 #include <../../../app/aboot/devinfo.h>
 #include <lk2nd.h>
 #if TARGET_MSM8916
-#include "psci.h"
+#include <psci.h>
 #endif
 
 static const char *unlock_menu_common_msg = "If you unlock the bootloader, "\
