@@ -115,6 +115,14 @@ static void smp_spin_table_setup_idle_states(void *fdt, int node)
 	}
 }
 
+/*
+ * If the other CPU cores are booted in aarch64 state before the main CPU
+ * switches to aarch64, qhypstub has no way to detect that and will boot them
+ * in EL1 instead of EL2 (assuming it was bypassed for the state switch).
+ * To avoid that, force execution state to aarch64.
+ */
+extern void qhypstub_set_state_aarch64(void);
+
 void smp_spin_table_setup(void *fdt)
 {
 	scmcall_arg arg = {PSCI_0_2_FN_PSCI_VERSION};
@@ -151,6 +159,10 @@ void smp_spin_table_setup(void *fdt)
 		dprintf(CRITICAL, "Failed to set CPU boot address: %d\n", ret);
 		return;
 	}
+
+#if TARGET_MSM8916
+	qhypstub_set_state_aarch64();
+#endif
 
 	fdt_for_each_subnode(node, fdt, offset) {
 		const char *name;
