@@ -153,4 +153,4 @@ To enable support for a SoC that is already present in this repository:
 Good luck!
 
 ## Contact
-Ping `minecrell`/`Mis012` on [`#postmarketos-mainline`](https://wiki.postmarketos.org/wiki/Matrix_and_IRC).
+Ask on [`#postmarketos-mainline`](https://wiki.postmarketos.org/wiki/Matrix_and_IRC) (Matrix or IRC).
