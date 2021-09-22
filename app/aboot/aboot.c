@@ -1390,10 +1390,6 @@ int boot_linux_from_mmc(void)
 	}
 #endif
 
-	/* Move kernel, ramdisk and device tree to correct address */
-	memmove((void*) hdr->kernel_addr, kernel_start_addr, kernel_size);
-	memmove((void*) hdr->ramdisk_addr, (char *)(image_addr + page_size + kernel_actual), hdr->ramdisk_size);
-
 	#if DEVICE_TREE
 	if(dt_size) {
 		dt_table_offset = ((uint32_t)image_addr + page_size + kernel_actual + ramdisk_actual + second_actual);
@@ -1482,6 +1478,10 @@ int boot_linux_from_mmc(void)
 		}
 	}
 	#endif
+
+	/* Move kernel, ramdisk and device tree to correct address */
+	memmove((void*) hdr->kernel_addr, kernel_start_addr, kernel_size);
+	memmove((void*) hdr->ramdisk_addr, (char *)(image_addr + page_size + kernel_actual), hdr->ramdisk_size);
 
 	if (boot_into_recovery && !device.is_unlocked && !device.is_tampered)
 		target_load_ssd_keystore();
@@ -2497,10 +2497,6 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	}
 #endif
 
-	/* Load ramdisk & kernel */
-	memmove((void*) hdr->ramdisk_addr, ptr + page_size + kernel_actual, hdr->ramdisk_size);
-	memmove((void*) hdr->kernel_addr, (char*) (kernel_start_addr), kernel_size);
-
 #if DEVICE_TREE
 	if (check_aboot_addr_range_overlap(hdr->tags_addr, kernel_actual) ||
 		check_ddr_addr_range_bound(hdr->tags_addr, kernel_actual))
@@ -2526,6 +2522,10 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 		}
 	}
 #endif
+
+	/* Load ramdisk & kernel */
+	memmove((void*) hdr->ramdisk_addr, ptr + page_size + kernel_actual, hdr->ramdisk_size);
+	memmove((void*) hdr->kernel_addr, (char*) (kernel_start_addr), kernel_size);
 
 	fastboot_okay("");
 	fastboot_stop();
