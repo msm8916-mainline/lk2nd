@@ -9,6 +9,12 @@
 	qcom,msm-id = <206 0>;
 	qcom,board-id = <0xCE08FF01 6>;
 
+	e7000 {
+		model = "Samsung Galaxy E7 (SM-E7000)";
+		compatible = "samsung,e7000", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "E7000*";
+	};
+
 	gt58ltebmc {
 		model = "Samsung Galaxy Tab A 8.0 (CAN)";
 		compatible = "samsung,gt58ltebmc", "qcom,msm8916", "lk2nd,device";
