@@ -6,7 +6,7 @@
 
 / {
 	// This is used by the bootloader to find the correct DTB
-	compatible = "lge,lenok", "qcom,apq8026", "lk2nd,device";
+	compatible = "lg,lenok", "qcom,apq8026", "lk2nd,device";
 	qcom,msm-id = <199 0x20000>;
 	qcom,board-id = <132 0x0a>;
 
