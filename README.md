@@ -70,6 +70,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Samsung Galaxy S5 - SM-G900F
 
 #### msm8226-secondary
+- ASUS ZenWatch 2 - sparrow
 - LG G Watch R - lenok
 
 ## Installation
