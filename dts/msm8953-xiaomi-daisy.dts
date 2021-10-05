@@ -11,6 +11,17 @@
 
 	model = "Xiaomi Mi A2 Lite";
 	compatible = "xiaomi,daisy", "qcom,msm8953", "lk2nd,device";
+	lk2nd,match-bootloader = "*DAISY*";
+
+	panel {
+		compatible = "xiaomi,daisy-panel";
+		qcom,mdss_dsi_ili7807_fhd_video {
+			compatible = "mdss,ili7807-fhd";
+		};
+		qcom,mdss_dsi_hx8399c_fhdplus_video {
+			compatible = "himax,hx8399c-fhdplus";
+		};
+	};
 
 	// Bootloader won't continue if it can't delete some nodes from below
 	soc {
