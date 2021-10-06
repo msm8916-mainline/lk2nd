@@ -1,0 +1,35 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton.dtsi>
+#include <lk2nd.h>
+
+/ {
+	// This is used by the bootloader to find the correct DTB
+	qcom,msm-id = <0x7e 0x96 0x20002 0x2b>;
+
+	hammerhead-d820 {
+		model = "LG Google Nexus 5 D820";
+		compatible = "lge,hammerhead", "qcom,msm8974", "lk2nd,device";
+		lk2nd,match-cmdline = "* androidboot.hardware.sku=D820 *";
+
+		lk2nd,keys =
+			<KEY_VOLUMEUP   PM_GPIO(2) PM_GPIO_PULL_UP_1_5>,
+			<KEY_VOLUMEDOWN PM_GPIO(3) PM_GPIO_PULL_UP_1_5>;
+	};
+
+	hammerhead-d821 {
+		// Currently unable to use a dedicated device tree because it won't
+		// load D821 after D820 loaded.
+		qcom,msm-id = <0x7e 0x96 0x20002 0x0b>;
+
+		model = "LG Google Nexus 5 D821";
+		compatible = "lge,hammerhead", "qcom,msm8974", "lk2nd,device";
+		lk2nd,match-cmdline = "* androidboot.hardware.sku=D821 *";
+
+		lk2nd,keys =
+			<KEY_VOLUMEUP   PM_GPIO(2) PM_GPIO_PULL_UP_1_5>,
+			<KEY_VOLUMEDOWN PM_GPIO(3) PM_GPIO_PULL_UP_1_5>;
+	};
+};

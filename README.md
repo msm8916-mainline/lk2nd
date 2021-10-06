@@ -67,6 +67,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 
 #### msm8974-secondary
 - LG G3 - D855
+- LG Google Nexus 5 - hammerhead D820, D821
 - Samsung Galaxy S5 - SM-G900F
 
 #### msm8226-secondary
