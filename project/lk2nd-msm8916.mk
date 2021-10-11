@@ -1,7 +1,7 @@
 LOCAL_DIR := $(GET_LOCAL_DIR)
 
 include $(LOCAL_DIR)/msm8916.mk
-include $(LOCAL_DIR)/lk2nd.mk
+include $(LOCAL_DIR)/lk2nd-common.mk
 
 # NOTE! Typically you don't need this when porting lk2nd to other platforms.
 # Right now this is only used in workarounds for some MSM8916 Samsung devices.

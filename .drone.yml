@@ -88,3 +88,18 @@ steps:
 
 trigger:
   event: [push, pull_request, tag]
+---
+kind: pipeline
+name: lk1st-msm8916
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: build
+    image: debian:buster
+    commands: [./.drone.sh lk1st-msm8916]
+
+trigger:
+  event: [push, pull_request, tag]
