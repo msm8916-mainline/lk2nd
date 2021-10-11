@@ -13,15 +13,15 @@ The real Android boot image is placed into the boot partition with 512 KiB offse
 and then loaded by lk2nd.
 
 ## Supported SoCs
-- `msm8916-secondary`: APQ8016, MSM8216, MSM8916, MSM8929, MSM8939
-- `msm8974-secondary`: MSM8974
-- `msm8226-secondary`: APQ8026, MSM8226, MSM8926
+- `lk2nd-msm8916`: APQ8016, MSM8216, MSM8916, MSM8929, MSM8939
+- `lk2nd-msm8974`: MSM8974
+- `lk2nd-msm8226`: APQ8026, MSM8226, MSM8926
 
 See [Chipsets](https://github.com/efidroid/projectmanagement/wiki/%5BReference%5D-Chipsets)
 page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 
 ### Supported devices
-#### msm8916-secondary
+#### lk2nd-msm8916
 - Alcatel OneTouch Idol 3 (4.7) - 6039*
 - Alcatel OneTouch Idol 3 (5.5) - 6045*
 - Asus Zenfone 2 Laser (720p) - Z00L
@@ -65,12 +65,12 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Xiaomi Mi 4i - ferrari
 - Xiaomi Redmi 2 - wt86047, wt88047
 
-#### msm8974-secondary
+#### lk2nd-msm8974
 - LG G3 - D855
 - LG Google Nexus 5 - hammerhead D820, D821
 - Samsung Galaxy S5 - SM-G900F
 
-#### msm8226-secondary
+#### lk2nd-msm8226
 - ASUS ZenWatch 2 - sparrow
 - LG G Watch R - lenok
 
@@ -115,7 +115,7 @@ Check [Supported SoCs](#supported-socs) for the make target you should use below
 (It depends on the SoC of your device.)
 
 ```
-$ make TOOLCHAIN_PREFIX=arm-none-eabi- msmXXXX-secondary
+$ make TOOLCHAIN_PREFIX=arm-none-eabi- lk2nd-msmXXXX
 ```
 
 **Requirements:**
@@ -149,7 +149,7 @@ branch from https://source.codeaurora.org/quic/la/kernel/lk/.
 
 To enable support for a SoC that is already present in this repository:
 
-1. Create a new `project/<target>-secondary.mk` which looks like the others.
+1. Create a new `project/lk2nd-<target>.mk` which looks like the others.
 2. Try to compile it and fix all the compile errors.
 3. Try to run it and hope that it works.
 

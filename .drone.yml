@@ -1,6 +1,6 @@
 ---
 kind: pipeline
-name: msm8916-secondary
+name: lk2nd-msm8916
 
 platform:
   os: linux
@@ -9,13 +9,13 @@ platform:
 steps:
   - name: build
     image: debian:buster
-    commands: [./.drone.sh msm8916-secondary]
+    commands: [./.drone.sh lk2nd-msm8916]
 
 trigger:
   event: [push, pull_request, tag]
 ---
 kind: pipeline
-name: msm8974-secondary
+name: lk2nd-msm8974
 
 platform:
   os: linux
@@ -24,13 +24,13 @@ platform:
 steps:
   - name: build
     image: debian:buster
-    commands: [./.drone.sh msm8974-secondary]
+    commands: [./.drone.sh lk2nd-msm8974]
 
 trigger:
   event: [push, pull_request, tag]
 ---
 kind: pipeline
-name: msm8226-secondary
+name: lk2nd-msm8226
 
 platform:
   os: linux
@@ -39,7 +39,7 @@ platform:
 steps:
   - name: build
     image: debian:buster
-    commands: [./.drone.sh msm8226-secondary]
+    commands: [./.drone.sh lk2nd-msm8226]
 
 trigger:
   event: [push, pull_request, tag]
