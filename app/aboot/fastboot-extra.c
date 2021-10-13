@@ -251,6 +251,28 @@ static void cmd_oem_dump_saw2(const char *arg, void *data, unsigned sz)
 }
 #endif
 
+#ifdef RPM_DATA_RAM
+static void cmd_oem_dump_rpm_data_ram(const char *arg, void *data, unsigned sz)
+{
+	char response[MAX_RSP_SIZE];
+
+	snprintf(response, sizeof(response), "rpm-rail-stats offset: %#x",
+		 readl(RPM_DATA_RAM + 0x0c));
+	fastboot_info(response);
+	snprintf(response, sizeof(response), "rpm-sleep-stats offset: %#x",
+		 readl(RPM_DATA_RAM + 0x14));
+	fastboot_info(response);
+	snprintf(response, sizeof(response), "rpm-log offset: %#x",
+		 readl(RPM_DATA_RAM + 0x18));
+	fastboot_info(response);
+	snprintf(response, sizeof(response), "rpm free heap space: %d bytes",
+		 readl(RPM_DATA_RAM + 0x1c));
+	fastboot_info(response);
+
+	fastboot_okay("");
+}
+#endif
+
 void fastboot_extra_register_commands(void) {
 	fastboot_register("oem dump", cmd_oem_dump_partition);
 
@@ -268,8 +290,10 @@ void fastboot_extra_register_commands(void) {
 #ifdef BOOT_ROM_BASE
 	fastboot_register("oem dump-boot-rom", cmd_oem_dump_boot_rom);
 #endif
-
 #ifdef APCS_BANKED_SAW2_BASE
 	fastboot_register("oem dump-saw2", cmd_oem_dump_saw2);
+#endif
+#ifdef RPM_DATA_RAM
+	fastboot_register("oem dump-rpm-data-ram", cmd_oem_dump_rpm_data_ram);
 #endif
 }

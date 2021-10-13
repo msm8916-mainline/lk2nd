@@ -283,4 +283,6 @@
 
 #define BOOT_ROM_BASE               0x00100000
 #define BOOT_ROM_END                0x00124000  /* Crashes when reading more */
+
+#define RPM_DATA_RAM                0x00290000
 #endif
