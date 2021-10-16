@@ -59,7 +59,7 @@ static struct panel_resolution r69431_720p_video_panel_res = {
 /* Panel color information                                                   */
 /*---------------------------------------------------------------------------*/
 static struct color_info r69431_720p_video_color = {
-	18, 2, 0xff, 0, 0, 0
+	24, 2, 0xff, 0, 0, 0
 };
 
 /*---------------------------------------------------------------------------*/
