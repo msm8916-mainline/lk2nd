@@ -56,6 +56,7 @@
 #include "include/panel_r61318_hd_video.h"
 #include "include/panel_r63417_1080p_video.h"
 #include "include/panel_jdi_a216_fhd_video.h"
+#include "include/panel_r69431_720p_video.h"
 
 #define DISPLAY_MAX_PANEL_DETECTION 2
 #define OTM8019A_FWVGA_VIDEO_PANEL_ON_DELAY 50
@@ -92,6 +93,7 @@ static struct panel_list supp_panels[] = {
 	{"r61318_hd_video", R61318_HD_VIDEO_PANEL},
 	{"r63417_1080p_video", R63417_1080P_VIDEO_PANEL},
 	{"jdi_a216_fhd_video", JDI_A216_FHD_VIDEO_PANEL},
+	{"r69431_720p_video", R69431_720P_VIDEO_PANEL},
 };
 
 static uint32_t panel_id;
@@ -133,6 +135,27 @@ static int init_panel_data(struct panel_struct *panelstruct,
 	int pan_type = PANEL_TYPE_DSI;
 
 	switch (panel_id) {
+	case R69431_720P_VIDEO_PANEL:
+		panelstruct->paneldata    = & r69431_720p_video_panel_data;
+		panelstruct->panelres     = & r69431_720p_video_panel_res;
+		panelstruct->color        = & r69431_720p_video_color;
+		panelstruct->videopanel   = & r69431_720p_video_video_panel;
+		panelstruct->commandpanel = & r69431_720p_video_command_panel;
+		panelstruct->state        = & r69431_720p_video_state;
+		panelstruct->laneconfig   = & r69431_720p_video_lane_config;
+		panelstruct->paneltiminginfo
+					= & r69431_720p_video_timing_info;
+		panelstruct->panelresetseq
+					= & r69431_720p_video_reset_seq;
+		panelstruct->backlightinfo = & r69431_720p_video_backlight;
+		pinfo->mipi.panel_cmds
+					= r69431_720p_video_on_command;
+		pinfo->mipi.num_of_panel_cmds
+					= R69431_720P_VIDEO_ON_COMMAND;
+		memcpy(phy_db->timing,
+				 r69431_720p_video_timings, TIMING_SIZE);
+		pinfo->mipi.signature 	= R69431_720P_VIDEO_SIGNATURE;
+		break;
 	case JDI_1080P_VIDEO_PANEL:
 		panelstruct->paneldata    = &jdi_1080p_video_panel_data;
 		panelstruct->paneldata->panel_with_enable_gpio = 1;
