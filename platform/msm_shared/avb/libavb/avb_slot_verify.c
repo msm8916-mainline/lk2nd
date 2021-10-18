@@ -1158,14 +1158,6 @@ static AvbSlotVerifyResult append_options(
   bool is_device_unlocked;
   AvbIOResult io_ret;
 
-  /* Add androidboot.vbmeta.device option. */
-  if (!cmdline_append_option(slot_data,
-                             "androidboot.vbmeta.device",
-                             "PARTUUID=$(ANDROID_VBMETA_PARTUUID)")) {
-    ret = AVB_SLOT_VERIFY_RESULT_ERROR_OOM;
-    goto out;
-  }
-
   /* Add androidboot.vbmeta.device option... except if not using a vbmeta
    * partition since it doesn't make sense in that case.
    */
