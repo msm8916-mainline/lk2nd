@@ -34,6 +34,16 @@
 		lk2nd,match-bootloader = "A500FU*";
 	};
 
+	j3lte-zt {
+		model = "Samsung Galaxy J3 2016 (SM-J320YZ)";
+		compatible = "samsung,j3lte-zt", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "J320YZ*";
+		samsung,muic-reset {
+			i2c-gpio-pins = <0 1>;
+			i2c-address = <0x25>;
+		};
+	};
+
 	j5lte-chn {
 		model = "Samsung Galaxy J5 2015 (SM-J5008)";
 		compatible = "samsung,j5lte-chn", "qcom,msm8916", "lk2nd,device";
