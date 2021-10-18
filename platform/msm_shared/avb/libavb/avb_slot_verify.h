@@ -99,10 +99,21 @@ typedef enum {
  * contents loaded from |requested_partition| will be the contents of
  * the entire partition instead of just the size specified in the hash
  * descriptor.
+ *
+ * If the AVB_SLOT_VERIFY_FLAGS_NO_VBMETA_PARTITION flag is set then
+ * data won't be loaded from the "vbmeta" partition and the
+ * |validate_vbmeta_public_key| operation is never called. Instead, the
+ * vbmeta structs in |requested_partitions| are loaded and processed and the
+ * |validate_public_key_for_partition| operation is called for each of these
+ * vbmeta structs. This flag is useful when booting into recovery on a device
+ * not using A/B - see section "Booting into recovery" in README.md for
+ * more information.
  */
 typedef enum {
   AVB_SLOT_VERIFY_FLAGS_NONE = 0,
-  AVB_SLOT_VERIFY_FLAGS_ALLOW_VERIFICATION_ERROR = (1 << 0)
+  AVB_SLOT_VERIFY_FLAGS_ALLOW_VERIFICATION_ERROR = (1 << 0),
+  AVB_SLOT_VERIFY_FLAGS_RESTART_CAUSED_BY_HASHTREE_CORRUPTION = (1 << 1),
+  AVB_SLOT_VERIFY_FLAGS_NO_VBMETA_PARTITION = (1 << 2),
 } AvbSlotVerifyFlags;
 
 /* Get a textual representation of |result|. */
@@ -218,7 +229,9 @@ typedef struct {
  *   PARTUUID=$(ANDROID_VBMETA_PARTUUID) before substitution so it
  *   will end up pointing to the vbmeta partition for the verified
  *   slot. If there is no vbmeta partition it will point to the boot
- *   partition of the verified slot.
+ *   partition of the verified slot. If the flag
+ *   AVB_SLOT_VERIFY_FLAGS_NO_VBMETA_PARTITION is used, this is not
+ *   set.
  *
  *   androidboot.vbmeta.avb_version: This is set to the decimal value
  *   of AVB_VERSION_MAJOR followed by a dot followed by the decimal
