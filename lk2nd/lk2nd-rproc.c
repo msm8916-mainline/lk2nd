@@ -4,52 +4,52 @@
 #include <lk2nd.h>
 #include <libfdt.h>
 
-static int lk2nd_find_rmem(const void *fdt, int node, int rmem)
+static void lk2nd_delete_rmem(void *fdt, int rmem, int node)
 {
 	const uint32_t *phandle;
 	uint32_t handle;
 	int len;
 
+	if (node < 0)
+		return;
+
 	phandle = fdt_getprop(fdt, node, "memory-region", &len);
 	if (len < 0)
-		return len;
+		return;
 	if (len != sizeof(uint32_t))
-		return -FDT_ERR_BADVALUE;
+		return;
 
 	handle = fdt32_to_cpu(*phandle);
 	fdt_for_each_subnode(node, fdt, rmem) {
-		if (fdt_get_phandle(fdt, node) == handle)
-			return node;
+		if (fdt_get_phandle(fdt, node) == handle) {
+			/* NOP node to effectively delete it */
+			fdt_nop_node(fdt, node);
+			return;
+		}
 	}
-	return node;
 }
 
 static void lk2nd_disable_rproc(void *fdt, const char *name, int rproc, int rmem,
 				enum rproc_mode mode)
 {
-	int mem_region = lk2nd_find_rmem(fdt, rproc, rmem);
-
-	if (mem_region < 0) {
-		int mpss;
-
-		/* Modem perhaps? Look for subnode */
-		mpss = fdt_subnode_offset(fdt, rproc, "mpss");
-		if (mpss < 0)
-			return;
-
-		mem_region = lk2nd_find_rmem(fdt, mpss, rmem);
-		/* TODO: Also disable mba memory (atm used for spin table) */
-	} else if (mode != RPROC_MODE_NONE) {
-		/* Keep everything but modem as-is */
+	int ret = fdt_subnode_offset(fdt, rproc, "mpss");
+	if (ret < 0 && mode == RPROC_MODE_NO_MODEM)
+		/* Only disable modem with RPROC_MODE_NO_MODEM */
 		return;
-	}
 
 	dprintf(INFO, "lk2nd-rproc: disabling %s\n", name);
 
 	/* Disable both remote proc and reserved memory */
-	fdt_setprop_string(fdt, rproc, "status", "disabled");
-	if (mem_region >= 0)
-		fdt_nop_node(fdt, mem_region);
+	ret = fdt_setprop_string(fdt, rproc, "status", "disabled");
+	if (ret) {
+		dprintf(CRITICAL, "lk2nd-rproc: failed to disable %s: %d\n", name, ret);
+		return;
+	}
+
+	/* Delete reserved memory regions as well */
+	lk2nd_delete_rmem(fdt, rmem, rproc);
+	lk2nd_delete_rmem(fdt, rmem, fdt_subnode_offset(fdt, rproc, "mpss"));
+	lk2nd_delete_rmem(fdt, rmem, fdt_subnode_offset(fdt, rproc, "mba"));
 }
 
 static bool fdt_node_is_available(const void *fdt, int node)
