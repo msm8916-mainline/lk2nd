@@ -32,6 +32,12 @@ void putc(char c)
 	return _dputc(c);
 }
 
+int putchar(int c)
+{
+	_dputc(c);
+	return c;
+}
+
 int puts(const char *str)
 {
 	return _dputs(str);

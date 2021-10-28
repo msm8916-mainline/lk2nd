@@ -71,7 +71,7 @@ ifeq ($(ENABLE_TRUSTZONE),1)
 endif
 
 INCLUDES := -I$(BUILDDIR) -Iinclude
-CFLAGS := -O2 -g -fno-builtin -finline -Wno-multichar -Wno-unused-parameter -Wno-unused-function -include $(CONFIGHEADER)
+CFLAGS := -O2 -g -finline -Wno-multichar -Wno-unused-parameter -Wno-unused-function -include $(CONFIGHEADER)
 # -fcommon is needed to build this using GCC 10
 CFLAGS += -fcommon
 #CFLAGS += -Werror
