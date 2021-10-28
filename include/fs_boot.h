@@ -2,6 +2,7 @@
 
 #ifndef _FS_BOOT_H_
 #define _FS_BOOT_H_
+#include <stddef.h>
 
 enum fs_boot_dev {
 	FS_BOOT_DEV_NONE,
