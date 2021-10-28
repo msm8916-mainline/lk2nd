@@ -88,9 +88,9 @@ static void smp_spin_table_setup_idle_states(void *fdt, int node)
 {
 	int ret, state_node;
 
-	ret = fdt_delprop(fdt, node, "entry-method");
+	ret = fdt_nop_property(fdt, node, "entry-method");
 	if (ret)
-		dprintf(CRITICAL, "Failed to delete idle-states entry-method: %d\n", ret);
+		dprintf(CRITICAL, "Failed to NOP idle-states entry-method: %d\n", ret);
 
 	fdt_for_each_subnode(state_node, fdt, node) {
 		const char *name;
