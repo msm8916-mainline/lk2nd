@@ -13,5 +13,5 @@ LK2ND_KEYMAP := 1
 APPSBOOTHEADER: $(OUTBOOTIMG) $(OUTBOOTIMGADTB) $(OUTODINTAR)
 ANDROID_BOOT_BASE := 0x80000000
 
-# Memory usually reserved for MBA image, should be fine for early SMP bring-up
-SMP_SPIN_TABLE_BASE := 0x8ea00000
+# Memory usually reserved for RMTFS, should be fine for early SMP bring-up
+SMP_SPIN_TABLE_BASE := 0x86700000
