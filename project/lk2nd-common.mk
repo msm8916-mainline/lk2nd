@@ -1,5 +1,5 @@
 # FIXME: Move to lk2nd-1st-common.mk
-MODULES += lk2nd
+MODULES += lk2nd lib/grove
 
 # Reserve 512 KiB in boot partition for lk2nd (should be plenty)
 DEFINES += LK2ND_SIZE=512*1024

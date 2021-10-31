@@ -39,6 +39,10 @@
 #include <kernel/thread.h>
 #include <lk2nd.h>
 
+#if WITH_LK2ND
+#include <grove.h>
+#endif
+
 struct dt_entry_v1
 {
 	uint32_t platform_id;
@@ -471,6 +475,8 @@ void *dev_tree_appended(void *kernel, uint32_t kernel_size, uint32_t dtb_offset,
 	struct dt_entry_node *dt_node_tmp1 = NULL;
 	struct dt_entry_node *dt_node_tmp2 = NULL;
 	unsigned dtb_count = 0;
+	int ret = 0;
+
 
 	/* Initialize the dtb entry node*/
 	dt_entry_queue = (struct dt_entry_node *)
@@ -561,7 +567,26 @@ void *dev_tree_appended(void *kernel, uint32_t kernel_size, uint32_t dtb_offset,
 	}
 
 	if(bestmatch_tag) {
-		memcpy(tags, bestmatch_tag, bestmatch_tag_size);
+#if WITH_LK2ND
+		/* If the DTB is a container, unpack it.
+		 * Container must be aligned to use libfdt. Move it after tags with some offset.
+		 * Most trees < 64k so 128k should be enough.
+		 */
+#define GROVE_DTB_OFFSET 1024*128
+		memcpy(tags + GROVE_DTB_OFFSET, bestmatch_tag, bestmatch_tag_size);
+		ret = grove_extract(tags + GROVE_DTB_OFFSET, tags, GROVE_DTB_OFFSET, lk2nd_dev.compatible);
+		if (ret > 0) {
+			dprintf(INFO, "Appears to be Multi-DTB container. %d\n", bestmatch_tag_size);
+			dprintf(INFO, "Label: %s\n", grove_get_label(tags + GROVE_DTB_OFFSET));
+		}
+		else if (ret < 0) {
+			dprintf(CRITICAL, "Error unpacking Multi-DTB container: %d\n", ret);
+			return NULL;
+		}
+		else
+#endif
+			memcpy(tags, bestmatch_tag, bestmatch_tag_size);
+
 		/* clear out the old DTB magic so kernel doesn't find it */
 		*((uint32_t *)(kernel + app_dtb_offset)) = 0;
 		return tags;
