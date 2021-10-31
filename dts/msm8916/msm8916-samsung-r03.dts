@@ -11,7 +11,7 @@
 
 	serranovelte {
 		model = "Samsung Galaxy S4 Mini Value Edition";
-		compatible = "samsung,serranovelte", "qcom,msm8916", "lk2nd,device";
+		compatible = "samsung,serranove", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "I9195I*";
 
 		samsung,muic-reset {
@@ -43,7 +43,7 @@
 
 	j5xlte-chn {
 		model = "Samsung Galaxy J5 2016 (SM-J5108)";
-		compatible = "samsung,j5xlte-chn", "qcom,msm8916", "lk2nd,device";
+		compatible = "samsung,j5x", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "J5108*";
 		samsung,muic-reset {
 			i2c-gpio-pins = <105 106>;

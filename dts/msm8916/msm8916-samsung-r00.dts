@@ -12,7 +12,7 @@
 
 	gt58lte-aus {
 		model = "Samsung Galaxy Tab A 8.0 2015 (SM-T355Y)";
-		compatible = "samsung,gt58lte-aus", "qcom,msm8916", "lk2nd,device";
+		compatible = "samsung,gt58", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "T355Y*";
 	};
 

@@ -11,7 +11,7 @@
 
 	j53g-eur {
 		model = "Samsung Galaxy J5 2015 (SM-J500H)";
-		compatible = "samsung,j53g-eur", "qcom,msm8916", "lk2nd,device";
+		compatible = "samsung,j5", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "J500H*";
 
 		samsung,muic-reset {

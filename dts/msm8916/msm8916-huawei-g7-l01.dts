@@ -9,5 +9,5 @@
 	qcom,board-id = <8039 4>;
 
 	model = "Huawei Ascend G7-L01";
-	compatible = "huawei,g7-l01", "qcom,msm8916", "lk2nd,device";
+	compatible = "huawei,g7", "qcom,msm8916", "lk2nd,device";
 };

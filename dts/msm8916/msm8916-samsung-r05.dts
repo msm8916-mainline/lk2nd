@@ -11,7 +11,7 @@
 
 	j5nlte-eur {
 		model = "Samsung Galaxy J5 2015 (SM-J500FN)";
-		compatible = "samsung,j5nlte-eur", "qcom,msm8916", "lk2nd,device";
+		compatible = "samsung,j5", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "J500FN*";
 		
 		samsung,muic-reset {
@@ -32,7 +32,7 @@
 
 	j5lte-eur {
 		model = "Samsung Galaxy J5 2015 (SM-J500F)";
-		compatible = "samsung,j5lte-eur", "qcom,msm8916", "lk2nd,device";
+		compatible = "samsung,j5", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "J500F*";
 		samsung,muic-reset {
 			i2c-gpio-pins = <105 106>;

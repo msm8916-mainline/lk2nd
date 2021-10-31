@@ -11,7 +11,7 @@
 
 	a53g {
 		model = "Samsung Galaxy A5 (SM-A500H)";
-		compatible = "samsung,a53g", "qcom,msm8916", "lk2nd,device";
+		compatible = "samsung,a5u-eur", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "A500H*";
 		lk2nd,smd-rpm-hack-opening;
 	};

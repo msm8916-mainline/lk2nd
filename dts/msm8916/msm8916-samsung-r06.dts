@@ -17,7 +17,7 @@
 
 	gt58ltebmc {
 		model = "Samsung Galaxy Tab A 8.0 (CAN)";
-		compatible = "samsung,gt58ltebmc", "qcom,msm8916", "lk2nd,device";
+		compatible = "samsung,gt58", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "T357W*";
 	};
 };
