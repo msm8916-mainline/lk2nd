@@ -298,6 +298,8 @@ static void lk2nd_parse_device_node(const void *fdt)
 	else
 		dprintf(CRITICAL, "Device node is missing 'model' property\n");
 
+	lk2nd_dev.compatible = fdt_copyprop_str(fdt, offset, "compatible");
+
 	/* Check if the bootloader selected a weird DTB and we need to override */
 	if (!dev_tree_get_dt_entry(fdt, offset, &lk2nd_dev.dt_entry) && offset)
 		/* Try again on root node */
