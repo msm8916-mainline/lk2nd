@@ -3,6 +3,7 @@
 /dts-v1/;
 
 #include <skeleton.dtsi>
+#include <lk2nd.h>
 
 / {
 	// This is used by the bootloader to find the correct DTB
@@ -27,5 +28,16 @@
 
 		qcom,msm-id = <206 0>;
 		qcom,board-id = <0xCE08FF01 0>;
+	};
+
+	gt58lte {
+		model = "Samsung Galaxy Tab A 8.0 2015 (SM-T355)";
+		compatible = "samsung,gt58", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "T355X*";
+
+		qcom,msm-id = <206 0>;
+		qcom,board-id = <0xCE08FF01 1>;
+
+		lk2nd,keys = <KEY_HOME 109 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
 	};
 };

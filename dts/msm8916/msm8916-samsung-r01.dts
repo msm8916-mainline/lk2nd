@@ -34,6 +34,14 @@
 		lk2nd,match-bootloader = "A500FU*";
 	};
 
+	gt58lte {
+		model = "Samsung Galaxy Tab A 8.0 2015 (SM-T355)";
+		compatible = "samsung,gt58", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "T355X*";
+
+		lk2nd,keys = <KEY_HOME 109 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+	};
+
 	j3lte-zt {
 		model = "Samsung Galaxy J3 2016 (SM-J320YZ)";
 		compatible = "samsung,j3lte-zt", "qcom,msm8916", "lk2nd,device";
