@@ -1,0 +1,14 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton.dtsi>
+
+/ {
+	// This is used by the bootloader to find the correct DTB
+	compatible = "huawei,sturgeon", "qcom,apq8026", "lk2nd,device";
+	qcom,msm-id = <199 0x20000>;
+	qcom,board-id = <8 4>;
+
+	model = "Huawei Watch";
+};
