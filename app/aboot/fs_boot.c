@@ -9,6 +9,8 @@
 
 #include "fs_boot.h"
 
+struct fs_boot_data fs_boot_data;
+
 static const char *bootable_parts[] = {
 	"system",
 	"cache",
@@ -23,6 +25,34 @@ static bool fsboot_bootable_part(char *label)
 			return true;
 
 	return false;
+}
+
+static enum rproc_mode fsboot_load_rproc_mode(const char *path)
+{
+	char mode[9] = {0};
+	char *lf;
+	int ret;
+
+	ret = fs_load_file(path, mode, sizeof(mode) - 1);
+	if (ret < 0) {
+		dprintf(INFO, "Failed to load rproc mode: %d\n", ret);
+		return RPROC_MODE_UNKNOWN;
+	}
+
+	/* Trim new line from string */
+	lf = strchr(mode, '\n');
+	if (lf)
+		*lf = 0;
+
+	if (strcmp(mode, "all") == 0)
+		return RPROC_MODE_ALL;
+	if (strcmp(mode, "no-modem") == 0)
+		return RPROC_MODE_NO_MODEM;
+	if (strcmp(mode, "none") == 0)
+		return RPROC_MODE_NONE;
+
+	dprintf(CRITICAL, "Unknown rproc mode: %s\n", mode);
+	return RPROC_MODE_UNKNOWN;
 }
 
 /* Only iterate through files if target is NULL */
@@ -45,9 +75,9 @@ static int fsboot_fs_load_img(char *dev_name, void* target, size_t sz)
 	}
 
 	while (fs_read_dir(dirh, &dirent) >= 0) {
-		if (!target) {
+		if (!target)
 			dprintf(SPEW, "| /%s/%s\n", dev_name, dirent.name);
-		} else if (!path_valid && strncmp(dirent.name, "boot.img", 7) == 0) {
+		if (!path_valid && strncmp(dirent.name, "boot.img", 7) == 0) {
 			strcpy(&image_path[strlen("/mnt/")], dirent.name);
 			dprintf(INFO, "Found boot image: %s : %s\n", dev_name, image_path);
 			path_valid = true;
@@ -59,8 +89,12 @@ static int fsboot_fs_load_img(char *dev_name, void* target, size_t sz)
 	}
 	fs_close_dir(dirh);
 
-	if (target && path_valid) {
+	if (target && path_valid)
 		ret = fs_load_file(image_path, target, sz);
+
+	if (ret >= 0 && path_valid && !fs_boot_data.dev) {
+		fs_boot_data.rproc_mode = fsboot_load_rproc_mode("/mnt/lk2nd_rproc_mode");
+		dprintf(INFO, "Boot partition rproc mode: %d\n", fs_boot_data.rproc_mode);
 	}
 
 out:
@@ -92,7 +126,7 @@ static int fsboot_find_and_boot(int bdev_id, void* target, size_t sz)
 	sprintf(dev_name, "hd%dp%d", bdev_id, i);
 	while (dev = bio_open(dev_name)) {
 		/* Only probe useful partitions if looking at emmc */
-		if (bdev_id == 1 && !fsboot_bootable_part(dev->label)) {
+		if (bdev_id == FS_BOOT_DEV_EMMC && !fsboot_bootable_part(dev->label)) {
 			bio_close(dev);
 			i++;
 			sprintf(dev_name, "hd%dp%d", bdev_id, i);
@@ -103,11 +137,13 @@ static int fsboot_find_and_boot(int bdev_id, void* target, size_t sz)
 		bio_close(dev);
 
 		ret = fsboot_fs_load_img(dev_name, target, sz);
+		if (ret >= 0)
+			fs_boot_data.dev = bdev_id;
 		if (target && ret >= 0)
 			return ret;
 
 		/* Only check subpartitions on emmc */
-		if (ret < 0 && bdev_id == 1) {
+		if (ret < 0 && bdev_id == FS_BOOT_DEV_EMMC) {
 			j = 0;
 			sprintf(dev_name, "hd%dp%dp%d", bdev_id, i, j);
 			while (dev = bio_open(dev_name)) {
@@ -115,6 +151,8 @@ static int fsboot_find_and_boot(int bdev_id, void* target, size_t sz)
 					dprintf(SPEW, "%.8s:  %.10s (%6llu MiB): \n",dev->name, dev->label, dev->size / (1024 * 1024));
 				bio_close(dev);
 				ret = fsboot_fs_load_img(dev_name, target, sz);
+				if (ret >= 0)
+					fs_boot_data.dev = bdev_id;
 				if (target && ret >= 0)
 					return ret;
 
@@ -132,19 +170,19 @@ static int fsboot_find_and_boot(int bdev_id, void* target, size_t sz)
 void fsboot_test(void)
 {
 	dprintf(SPEW, "fs-boot: Scanned devices:\n");
-	fsboot_find_and_boot(2, NULL, 0); // sdcard
-	fsboot_find_and_boot(1, NULL, 0); // emmc
+	fsboot_find_and_boot(FS_BOOT_DEV_SDCARD, NULL, 0);
+	fsboot_find_and_boot(FS_BOOT_DEV_EMMC, NULL, 0);
 }
 
 int fsboot_boot_first(void* target, size_t sz)
 {
 	int ret = -1;
 
-	ret = fsboot_find_and_boot(2, target, sz); // sdcard
+	ret = fsboot_find_and_boot(FS_BOOT_DEV_SDCARD, target, sz);
 	if (ret > 0)
 		return ret;
 
-	ret = fsboot_find_and_boot(1, target, sz); // emmc
+	ret = fsboot_find_and_boot(FS_BOOT_DEV_EMMC, target, sz);
 	if (ret > 0)
 		return ret;
 
