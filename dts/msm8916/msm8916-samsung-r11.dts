@@ -1,0 +1,28 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton.dtsi>
+#include <lk2nd.h>
+
+/ {
+	// This is used by the bootloader to find the correct DTB
+	qcom,msm-id = <206 0>;
+	qcom,board-id = <0xCE08FF01 11>;
+
+	/*
+	 * Before building for G530Y, please comment out all dtbs except
+	 *  "$(LOCAL_DIR)/msm8916-samsung-r11.dtb" at './rules.mk'.
+	 * gprimeltezt doesn't work with multi-dtbs; only goes into "Download mode".
+	 */
+	gprimeltezt {
+		model = "Samsung Galaxy Grand Prime (SM-G530Y)";
+		compatible = "samsung,gprimeltezt", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "G530Y*";
+
+		samsung,muic-reset {
+			i2c-gpio-pins = <2 3>;
+			i2c-address = <0x25>;
+		};
+	};
+};

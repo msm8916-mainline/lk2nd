@@ -49,7 +49,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Samsung Galaxy Core Max - SM-G5108Q (quirky - see comment in `dts/msm8916/msm8916-samsung-r08.dts`)
 - Samsung Galaxy Core Prime LTE - SM-G360F
 - Samsung Galaxy E7 - SM-E7000
-- Samsung Galaxy Grand Prime - SM-G530W
+- Samsung Galaxy Grand Prime - SM-G530W, SM-G530Y (quirky - see comment in `dts/msm8916/msm8916-samsung-r11.dts`)
 - Samsung Galaxy J3 (2016) - SM-J3109, SM-J320YZ
 - Samsung Galaxy J3 Pro - SM-J3110, SM-J3119
 - Samsung Galaxy J5 (2015) - SM-J5008, SM-J500F, SM-J500FN, SM-J500H
