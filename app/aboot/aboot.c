@@ -2126,6 +2126,9 @@ void read_device_info(device_info *dev)
 	if (lk2nd_dev.bootloader)
 		strlcpy(dev->bootloader_version, lk2nd_dev.bootloader,
 			sizeof(dev->bootloader_version));
+	if (lk2nd_dev.radio)
+		strlcpy(dev->radio_version, lk2nd_dev.radio,
+			sizeof(dev->radio_version));
 #endif
 }
 
