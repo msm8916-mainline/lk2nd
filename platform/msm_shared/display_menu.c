@@ -488,6 +488,11 @@ void display_fastboot_menu_renew(struct select_msg_info *fastboot_msg_info)
 	}
 
 #if WITH_LK2ND
+	if (lk2nd_dev.carrier) {
+		snprintf(msg, sizeof(msg), "CARRIER - %s\n", lk2nd_dev.carrier);
+		display_fbcon_menu_message(msg, FBCON_COMMON_MSG, common_factor);
+	}
+
 	if (lk2nd_dev.panel.name) {
 		snprintf(msg, sizeof(msg), "PANEL - %s\n", lk2nd_dev.panel.name);
 		display_fbcon_menu_message(msg, FBCON_COMMON_MSG, common_factor);
