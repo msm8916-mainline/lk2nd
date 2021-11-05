@@ -2124,7 +2124,8 @@ void read_device_info(device_info *dev)
 
 #if WITH_LK2ND
 	if (lk2nd_dev.bootloader)
-		strcpy(dev->bootloader_version, lk2nd_dev.bootloader);
+		strlcpy(dev->bootloader_version, lk2nd_dev.bootloader,
+			sizeof(dev->bootloader_version));
 #endif
 }
 
