@@ -2,6 +2,7 @@ LOCAL_DIR := $(GET_LOCAL_DIR)
 
 DTBS += \
 	$(LOCAL_DIR)/apq8016-samsung-r02.dtb \
+	$(LOCAL_DIR)/apq8016-samsung-r05.dtb \
 	$(LOCAL_DIR)/apq8016-samsung-r07.dtb \
 	$(LOCAL_DIR)/apq8016-sbc.dtb \
 	$(LOCAL_DIR)/msm8216-samsung-r05.dtb \
