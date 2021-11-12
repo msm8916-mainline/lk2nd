@@ -58,8 +58,8 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Samsung Galaxy On7 (2015) - SM-G6000
 - Samsung Galaxy S4 Mini Value Edition - GT-I9195I
 - Samsung Galaxy Tab 4 10.1 (2015) - SM-T533
-- Samsung Galaxy Tab A 8.0 LTE (2015) - SM-T355Y, SM-T357W
-- Samsung Galaxy Tab A 9.7 WiFi (2015) - SM-T550
+- Samsung Galaxy Tab A 8.0 (2015) - SM-T355, SM-T355Y, SM-T357W
+- Samsung Galaxy Tab A 9.7 (2015) - SM-T550, SM-T555
 - Samsung Galaxy Tab E 9.6 WiFi (2015) - SM-T560NU
 - Vodafone Smart prime 6
 - Wileyfox Swift - crackling
@@ -73,6 +73,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 
 #### lk2nd-msm8226
 - ASUS ZenWatch 2 - sparrow
+- Huawei Watch - sturgeon
 - LG G Watch R - lenok
 
 ## Installation
