@@ -40,4 +40,18 @@
 
 		lk2nd,keys = <KEY_HOME 109 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
 	};
+
+	j5lte-chn {
+		model = "Samsung Galaxy J5 2015 (SM-J5008)";
+		compatible = "samsung,j5lte-chn", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "J5008*";
+
+		qcom,msm-id = <206 0>;
+		qcom,board-id = <0xCE08FF01 1>;
+
+		samsung,muic-reset {
+			i2c-gpio-pins = <105 106>;
+			i2c-address = <0x25>;
+		};
+	};
 };
