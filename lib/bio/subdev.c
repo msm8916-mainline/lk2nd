@@ -34,21 +34,21 @@ typedef struct {
 	bdev_t *parent;
 
 	// we're this many blocks into it
-	bnum_t offset;
+	off_t offset;
 } subdev_t;
 
 static ssize_t subdev_read(struct bdev *_dev, void *buf, off_t offset, size_t len)
 {
 	subdev_t *subdev = (subdev_t *)_dev;
 
-	return bio_read(subdev->parent, buf, offset + subdev->offset * subdev->dev.block_size, len);
+	return bio_read(subdev->parent, buf, (off_t)offset + (off_t)subdev->offset * (off_t)subdev->dev.block_size, len);
 }
 
 static ssize_t subdev_read_block(struct bdev *_dev, void *buf, bnum_t block, uint count)
 {
 	subdev_t *subdev = (subdev_t *)_dev;
 
-	return bio_read_block(subdev->parent, buf, block + subdev->offset, count);
+	return bio_read_block(subdev->parent, buf, (off_t)block + subdev->offset, count);
 }
 
 static ssize_t subdev_write(struct bdev *_dev, const void *buf, off_t offset, size_t len)
