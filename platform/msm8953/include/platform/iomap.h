@@ -122,6 +122,7 @@
 #define SDCC_HC_PWRCTL_CLEAR_REG           (0x000000E4)
 #define SDCC_HC_PWRCTL_CTL_REG             (0x000000E8)
 
+#define SDC2_HDRV_PULL_CTL                 (TLMM_BASE_ADDR + 0x109000)
 #define SDCC2_BCR                          (CLK_CTL_BASE + 0x43000) /* block reset */
 #define SDCC2_APPS_CBCR                    (CLK_CTL_BASE + 0x43018) /* branch control */
 #define SDCC2_AHB_CBCR                     (CLK_CTL_BASE + 0x4301C)
