@@ -22,7 +22,8 @@ DTBS += \
 endif
 ifeq ($(PROJECT), msm8917-secondary)
 DTBS += \
-	$(LOCAL_DIR)/msm8917-samsung-r06.dtb
+	$(LOCAL_DIR)/msm8917-samsung-r06.dtb \
+	$(LOCAL_DIR)/msm8917-lenovo-tbx304.dtb
 endif
 ifeq ($(PROJECT), msm8937-secondary)
 DTBS += \
