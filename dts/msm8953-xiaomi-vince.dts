@@ -9,7 +9,18 @@
 	qcom,msm-id = <293 0x0>;
 	qcom,board-id= <0x1000b 0x8>;
 
-	model = "Xiaomi Redmi Note 5 / 5 Plus Snapdragon (vince)";
+	model = "Xiaomi Redmi Note 5/5+ (vince)";
 	compatible = "xiaomi,vince", "qcom,msm8953", "lk2nd,device";
+	lk2nd,match-bootloader = "*DAISY1.0*";
 	lk2nd,pstore = <0x9ff00000 0x100000>;
+
+	panel {
+		compatible = "xiaomi,vince-panel";
+		qcom,mdss_dsi_td4310_fhdplus_video_e7 {
+			compatible = "mdss,td4310-fhdplus-e7";
+		};
+		qcom,mdss_dsi_nt36672_tianma_fhdplus_video_e7 {
+			compatible = "mdss,nt36672-tianma-fhdplus-e7";
+		};
+	};
 };
