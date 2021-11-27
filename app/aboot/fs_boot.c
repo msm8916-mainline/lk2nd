@@ -11,6 +11,8 @@
 
 static const char *bootable_parts[] = {
 	"system",
+	"system_a",
+	"system_b",
 	"cache",
 	"userdata",
 };
