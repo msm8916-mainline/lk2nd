@@ -3152,11 +3152,6 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 #endif /* MDTP_SUPPORT */
 #endif
 
-#if FBCON_DISPLAY_MSG
-	/* Exit keys' detection thread firstly */
-	exit_menu_keys_detection();
-#endif
-
 #if VERIFIED_BOOT || VERIFIED_BOOT_2
 	if(target_build_variant_user() && !device.is_unlocked)
 	{
@@ -3427,12 +3422,7 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 		   (void*) hdr->ramdisk_addr, hdr->ramdisk_size);
 
 	/* fastboot already stop, it's no need to show fastboot menu */
-	return;
 boot_failed:
-#if FBCON_DISPLAY_MSG
-	/* revert to fastboot menu if boot failed */
-	display_fastboot_menu();
-#endif
 	return;
 }
 
