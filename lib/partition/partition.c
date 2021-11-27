@@ -250,7 +250,8 @@ int partition_publish(const char *device, off_t offset)
 
 				/* Some linux distros make use of subpartitions.
 				 * Scan some devices recursively to publish them. */
-				if (strcmp(name, "system") == 0 || strcmp(name, "userdata") == 0)
+				if (strcmp(name, "system") == 0 || strcmp(name, "system_a") ||
+				    strcmp(name, "system_b") || strcmp(name, "userdata") == 0)
 					partition_publish(subdevice, 0);
 
 				count++;
