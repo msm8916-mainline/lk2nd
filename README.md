@@ -9,9 +9,9 @@ boot image and then loaded by the stock bootloader as a "secondary" bootloader.
 The real Android boot image is placed into the boot partition with 1 MB offset,
 and then loaded by lk2nd.
 
-This branch specifically is made only for SDM632 devices. If you have another SoC it is advised you use another branch.
-
 ## Supported SoCs
+- MSM8952 (MSM8940)
+- MSM8953 (SDM450,SDM625,SDM626)
 - SDM632
 
 ### Supported devices
