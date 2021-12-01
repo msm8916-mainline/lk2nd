@@ -72,6 +72,7 @@ void partition_fill_slot_meta();	/* Fill slot meta infomation */
 void partition_switch_slots();		/* Switching slots */
 void partition_deactivate_slot(int slot); /* Mark slot unbootable and reset other attributes*/
 void partition_activate_slot(int slot);	 /* Mark slot bootable and set other attributes*/
+void partition_reset_retry_count(int slot);	/* Reset retry count of slot */
 int partition_find_boot_slot();		/* Find bootable partition */
 int partition_find_active_slot();	/* Find current active partition*/
 int partition_fill_partition_meta();	/* Fill partition slot info meta*/

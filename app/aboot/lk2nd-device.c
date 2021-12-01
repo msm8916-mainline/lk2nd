@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 #include <mmu.h>
+#include <ab_partition_parser.h>
 #include <arch/arm/mmu.h>
 #include <arch/arm.h>
 #include <board.h>
@@ -116,6 +117,7 @@ static void parse_boot_args(void)
 			parse_arg(aboot, "serialno=", &lk2nd_dev.serialno);
 			parse_arg(aboot, "carrier=", &lk2nd_dev.carrier);
 			parse_arg(aboot, "radio=", &lk2nd_dev.radio);
+			parse_arg(aboot, "slot_suffix=", &lk2nd_dev.slot_suffix);
 		} else {
 			parse_arg(arg, "mdss_mdp.panel=", &lk2nd_dev.panel.name);
 		}
@@ -385,10 +387,27 @@ void lk2nd_clear_pstore()
 	}
 }
 
+static void lk2nd_handle_multislot(void)
+{
+	if (!partition_multislot_is_supported())
+		return;
+
+	if (strcmp(lk2nd_dev.slot_suffix, "_a") == 0) {
+		dprintf(INFO, "Marking Slot A as successful.\n");
+		partition_reset_retry_count(SLOT_A);
+	} else if (strcmp(lk2nd_dev.slot_suffix, "_b") == 0) {
+		dprintf(INFO, "Marking Slot B as successful.\n");
+		partition_reset_retry_count(SLOT_B);
+	} else {
+		dprintf(CRITICAL, "ERROR: Couldn't determine slot suffix of %s\n", lk2nd_dev.slot_suffix);
+	}
+}
+
 void lk2nd_init(void)
 {
 	dump_board();
 	lk2nd_fdt_parse();
+	lk2nd_handle_multislot();
 }
 
 static void lk2nd_update_panel_compatible(void *fdt)
