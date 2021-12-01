@@ -1,0 +1,14 @@
+/dts-v1/;
+
+/ {
+	model = "Fairphone 3";
+	compatible = "fairphone,fp3", "qcom,sdm632", "lk2nd,device";
+	qcom,msm-id = <0x15d 0x00>;
+	qcom,pmic-id = <0x10016 0x25 0x00 0x00>;
+	qcom,board-id = <8 3>;
+
+	// Empty nodes so the bootloader is happy
+	__symbols__ {};
+	chosen {};
+	memory {};
+};
