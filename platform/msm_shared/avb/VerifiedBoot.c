@@ -473,6 +473,8 @@ static EFI_STATUS load_image_and_authVB2(bootinfo *Info)
 
 	if((!Info->multi_slot_boot || target_dynamic_partition_supported())
 			&& Info->bootinto_recovery) {
+    if(!Info->multi_slot_boot)
+        VerifyFlags = VerifyFlags | AVB_SLOT_VERIFY_FLAGS_NO_VBMETA_PARTITION;
 		AddRequestedPartition(RequestedPartitionAll, IMG_RECOVERY);
 		NumRequestedPartition += 1;
 		/* Add dtbo validation if target supports dtbo image generation and

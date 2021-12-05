@@ -402,6 +402,65 @@ AvbValidateVbmetaPublicKey(AvbOps *Ops, const uint8_t *PublicKeyData,
 	return AVB_IO_RESULT_OK;
 }
 
+AvbIOResult
+AvbValidatePartitionPublicKey(AvbOps *Ops, const char* Partition,
+                           const uint8_t *PublicKeyData, size_t PublicKeyLength,
+                           const uint8_t *PublicKeyMetadata, size_t PublicKeyMetadataLength,
+                           bool *OutIsTrusted, uint32_t* OutRollbackIndexLocation)
+{
+	UINT8 *UserKeyBuffer = NULL;
+	UINT32 UserKeyLength = 0;
+	EFI_STATUS Status = EFI_SUCCESS;
+	AvbOpsUserData *UserData = NULL;
+
+	dprintf(DEBUG, "ValidatePartitionPublicKey PublicKeyLength %d, "
+	                      "PublicKeyMetadataLength %d\n",
+		   PublicKeyLength, PublicKeyMetadataLength);
+
+	if (OutIsTrusted == NULL || PublicKeyData == NULL) {
+		dprintf(ERROR, "Invalid parameters\n");
+		return AVB_IO_RESULT_ERROR_IO;
+	}
+
+	Status = get_userkey(&UserKeyBuffer, &UserKeyLength);
+	if (Status != EFI_SUCCESS) {
+		dprintf(ERROR, "get_userkey failed!, %d\n", Status);
+		return AVB_IO_RESULT_ERROR_IO;
+	}
+
+	UserData = (AvbOpsUserData *)Ops->user_data;
+	UserData->IsUserKey = FALSE;
+
+	if (PublicKeyLength == UserKeyLength &&
+			memcmp (PublicKeyData, UserKeyBuffer, PublicKeyLength) == 0) {
+		*OutIsTrusted = true;
+		UserData->IsUserKey = TRUE;
+	} else if (PublicKeyLength == ARRAY_SIZE(OEMPublicKey) &&
+			   memcmp(PublicKeyData, OEMPublicKey, PublicKeyLength) == 0) {
+		*OutIsTrusted = true;
+	} else {
+		*OutIsTrusted = false;
+		memset (UserData->PublicKey, ARRAY_SIZE (UserData->PublicKey), 0);
+		UserData->PublicKeyLen = 0;
+	}
+
+	if (*OutIsTrusted == true) {
+		if (PublicKeyLength > ARRAY_SIZE (UserData->PublicKey)) {
+			dprintf(ERROR, "ValidatePartitionPublicKey: "
+				"public key length too large %d\n",
+			PublicKeyLength);
+			return AVB_IO_RESULT_ERROR_OOM;
+        }
+        memcpy (UserData->PublicKey, PublicKeyData, PublicKeyLength);
+        UserData->PublicKeyLen = PublicKeyLength;
+    }
+
+	*OutRollbackIndexLocation = 1; // Recovery rollback index
+	dprintf(DEBUG,
+		   "ValidatePartitionPublicKey OutIsTrusted %d, UserKey %d\n",
+		   *OutIsTrusted, UserData->IsUserKey);
+    return AVB_IO_RESULT_OK;
+}
 
 AvbIOResult AvbReadRollbackIndex(AvbOps *Ops, size_t RollbackIndexLocation,
                                  uint64_t *OutRollbackIndex)
@@ -570,6 +629,7 @@ AvbOps *AvbOpsNew(VOID *UserData)
 	Ops->read_from_partition = AvbReadFromPartition;
 	Ops->write_to_partition = AvbWriteToPartition;
 	Ops->validate_vbmeta_public_key = AvbValidateVbmetaPublicKey;
+	Ops->validate_public_key_for_partition = AvbValidatePartitionPublicKey;
 	Ops->read_rollback_index = AvbReadRollbackIndex;
 	Ops->write_rollback_index = AvbWriteRollbackIndex;
 	Ops->read_is_device_unlocked = AvbReadIsDeviceUnlocked;
