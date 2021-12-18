@@ -1,0 +1,19 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton.dtsi>
+#include <lk2nd.h>
+
+/ {
+	// This is used by the bootloader to find the correct DTB
+	qcom,msm-id = <239 0>;
+	qcom,board-id = <0xEF08FF1 1>;
+
+	a7ltezt {
+		model = "Samsung Galaxy A7 (SM-A700YD)";
+		compatible = "samsung,a7ltezt", "qcom,msm8939", "lk2nd,device";
+		lk2nd,match-bootloader = "A700YD*";
+		lk2nd,smd-rpm-hack-opening;
+	};
+};
