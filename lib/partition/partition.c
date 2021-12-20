@@ -164,6 +164,7 @@ int partition_publish(const char *device, off_t offset)
 
 		if(!gpt_partitions_exist) break;
 		dprintf(INFO, "found GPT\n");
+		dev->is_gpt = true;
 
 		err = bio_read(dev, buf, offset + dev->block_size, dev->block_size);
 		if (err < 0)
