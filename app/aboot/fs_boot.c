@@ -15,6 +15,7 @@ static const char *bootable_parts[] = {
 	"system",
 	"cache",
 	"userdata",
+	"rootfs",
 };
 
 static bool fsboot_bootable_part(char *label)
@@ -107,10 +108,8 @@ static int fsboot_find_and_boot(int bdev_id, void* target, size_t sz)
 	int i = 0, j = 0, ret = 0;
 	char dev_name[128];
 	bdev_t *dev = NULL;
+	bool is_gpt = false;
 
-	/* HACK: There is no hd1p0 for some reason */
-	if (bdev_id == 1)
-		i = 1;
 
 	sprintf(dev_name, "hd%d", bdev_id);
 	dev = bio_open(dev_name);
@@ -118,6 +117,12 @@ static int fsboot_find_and_boot(int bdev_id, void* target, size_t sz)
 		dprintf(CRITICAL, "fs-boot: Can't open %s\n", dev_name);
 		return -1;
 	}
+
+	/* HACK: There is no hd1p0 on GPT devices for some reason */
+	is_gpt = dev->is_gpt;
+	if (is_gpt)
+		i = 1;
+
 	bio_close(dev);
 
 	if (!target)
@@ -142,8 +147,12 @@ static int fsboot_find_and_boot(int bdev_id, void* target, size_t sz)
 		if (target && ret >= 0)
 			return ret;
 
-		/* Only check subpartitions on emmc */
-		if (ret < 0 && bdev_id == FS_BOOT_DEV_EMMC) {
+		/*
+		 * Only check subpartitions on GPT partitions,
+		 * we expect MBR to always be "flat" but GPT with full bootloader chain
+		 * may appear on any mmc (e.g. db410c with sdcard boot mode)
+		 */
+		if (ret < 0 && is_gpt) {
 			j = 0;
 			sprintf(dev_name, "hd%dp%dp%d", bdev_id, i, j);
 			while (dev = bio_open(dev_name)) {
