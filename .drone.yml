@@ -103,3 +103,18 @@ steps:
 
 trigger:
   event: [push, pull_request, tag]
+---
+kind: pipeline
+name: lk1st-msm8916-db410c
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: build
+    image: debian:buster
+    commands: [./.drone.sh lk1st-msm8916 FORCE_SDCARD=1 LK1ST_PANEL=ADV7533_1080P_VIDEO_PANEL]
+
+trigger:
+  event: [push, pull_request, tag]
