@@ -1,3 +1,5 @@
+MODULES += lk2nd
+
 # Use maximum verbosity
 DEBUG := 2
 DEFINES += LK_LOG_BUF_SIZE=16384

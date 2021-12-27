@@ -13,3 +13,4 @@ else
 endif
 
 include $(LOCAL_DIR)/lk2nd-1st-common.mk
+include $(LOCAL_DIR)/lk2nd-msm8916-common.mk
