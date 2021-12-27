@@ -115,6 +115,7 @@ void target_sdc_init()
 	struct mmc_config_data config;
 	struct mmc_config_data sd_config;
 
+#ifndef FORCE_SDCARD
 	/* Try slot 1*/
 	config.bus_width    = DATA_BUS_WIDTH_8BIT;
 	config.slot         = 1;
@@ -134,6 +135,7 @@ void target_sdc_init()
 	if (!emmc_dev) {
 		dprintf(CRITICAL, "FAILED TO INIT EMMC mmc_slot = %u \n",1);
 	}
+#endif
 
 	dprintf(SPEW, "initialising mmc_slot =%u\n", 2);
 
