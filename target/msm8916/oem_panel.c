@@ -523,6 +523,9 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 		}
 	}
 
+#ifdef LK1ST_PANEL
+	panel_id = LK1ST_PANEL;
+#else
 	switch (hw_id) {
 	case HW_PLATFORM_MTP:
 		if (platform_is_msm8939() &&
@@ -625,6 +628,7 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 			hw_id);
 		return PANEL_TYPE_UNKNOWN;
 	}
+#endif
 
 panel_init:
 	if (platform_is_apq8016() && (hw_id == HW_PLATFORM_SBC)) {
