@@ -1,0 +1,12 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton.dtsi>
+
+/ {
+	qcom,msm-id = <206 0>;
+	qcom,board-id = <0x1000b 4>;
+	model = "ARK Benefit A3 (peach)";
+	compatible = "ark,peach", "qcom,msm8916", "lk2nd,device";
+};
