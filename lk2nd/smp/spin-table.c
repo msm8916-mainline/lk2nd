@@ -138,14 +138,20 @@ void smp_spin_table_setup(void *fdt)
 	}
 
 	offset = fdt_path_offset(fdt, "/psci");
-	if (offset < 0) {
-		dprintf(CRITICAL, "Cannot find /psci node: %d\n", offset);
-		return;
-	}
+	if (offset >= 0) {
+		if (!fdt_node_is_available(fdt, offset)) {
+			dprintf(INFO, "/psci node is already disabled in device tree\n");
+			return; // Kernel works without PSCI?
+		}
 
-	ret = fdt_setprop_string(fdt, offset, "status", "disabled");
-	if (ret)
-		dprintf(CRITICAL, "Failed to set psci to status = \"disabled\": %d\n", ret);
+		ret = fdt_setprop_string(fdt, offset, "status", "disabled");
+		if (ret)
+			dprintf(CRITICAL, "Failed to set psci to status = \"disabled\": %d\n", ret);
+	} else {
+		dprintf(INFO, "Cannot find /psci node: %d\n", offset);
+		// Perhaps SoC does not use PSCI at all, so /psci is missing
+		// (e.g. MSM8939 has no known public PSCI firmware)
+	}
 
 	offset = fdt_path_offset(fdt, "/cpus");
 	if (offset < 0) {

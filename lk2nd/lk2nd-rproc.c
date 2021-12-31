@@ -52,18 +52,6 @@ static void lk2nd_disable_rproc(void *fdt, const char *name, int rproc, int rmem
 	lk2nd_delete_rmem(fdt, rmem, fdt_subnode_offset(fdt, rproc, "mba"));
 }
 
-static bool fdt_node_is_available(const void *fdt, int node)
-{
-	const char *prop;
-	int len;
-
-	prop = fdt_getprop(fdt, node, "status", &len);
-	if (len == -FDT_ERR_NOTFOUND)
-		return true;
-
-	return len == sizeof("okay") && memcmp(prop, "okay", sizeof("okay")) == 0;
-}
-
 /* From qcom,q6afe.h */
 #define PRIMARY_MI2S_RX		16
 #define PRIMARY_MI2S_TX		17
