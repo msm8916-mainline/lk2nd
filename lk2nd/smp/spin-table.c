@@ -137,6 +137,16 @@ void smp_spin_table_setup(void *fdt)
 		return;
 	}
 
+	offset = fdt_path_offset(fdt, "/psci");
+	if (offset < 0) {
+		dprintf(CRITICAL, "Cannot find /psci node: %d\n", offset);
+		return;
+	}
+
+	ret = fdt_setprop_string(fdt, offset, "status", "disabled");
+	if (ret)
+		dprintf(CRITICAL, "Failed to set psci to status = \"disabled\": %d\n", ret);
+
 	offset = fdt_path_offset(fdt, "/cpus");
 	if (offset < 0) {
 		dprintf(CRITICAL, "Cannot find /cpus node: %d\n", offset);
@@ -177,14 +187,4 @@ void smp_spin_table_setup(void *fdt)
 		dprintf(CRITICAL, "Failed to read /cpus subnodes: %d\n", node);
 		return;
 	}
-
-	offset = fdt_path_offset(fdt, "/psci");
-	if (offset < 0) {
-		dprintf(CRITICAL, "Cannot find /psci node: %d\n", offset);
-		return;
-	}
-
-	ret = fdt_setprop_string(fdt, offset, "status", "disabled");
-	if (ret)
-		dprintf(CRITICAL, "Failed to set psci to status = \"disabled\": %d\n", ret);
 }
