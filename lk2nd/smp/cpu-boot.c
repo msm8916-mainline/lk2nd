@@ -23,6 +23,8 @@
 #define APC_PWR_GATE_CTL_GHDS_EN	BIT(0)
 #define APC_PWR_GATE_CTL_GHDS_CNT(cnt)	((cnt) << 24)
 
+#define QCOM_SCM_BOOT_SET_ADDR		0x01
+#define QCOM_SCM_BOOT_FLAG_COLD_ALL	(0 | BIT(0) | BIT(3) | BIT(5))
 #define QCOM_SCM_BOOT_SET_ADDR_MC	0x11
 #define QCOM_SCM_BOOT_MC_FLAG_AARCH64	BIT(0)
 #define QCOM_SCM_BOOT_MC_FLAG_COLDBOOT	BIT(1)
@@ -45,7 +47,13 @@ int qcom_set_boot_addr(uint32_t addr, bool arm64)
 		~0UL, ~0UL, ~0UL, ~0UL, /* All CPUs */
 		aarch64 | QCOM_SCM_BOOT_MC_FLAG_COLDBOOT,
 	};
-	return scm_call2(&arg, NULL);
+
+	if (is_scm_armv8_support())
+		return scm_call2(&arg, NULL);
+
+	dprintf(INFO, "Falling back to legacy QCOM_SCM_BOOT_SET_ADDR call\n");
+	return scm_call_atomic2(SCM_SVC_BOOT, QCOM_SCM_BOOT_SET_ADDR,
+				QCOM_SCM_BOOT_FLAG_COLD_ALL, addr);
 }
 
 void qcom_power_up_arm_cortex(uint32_t mpidr, uint32_t base)

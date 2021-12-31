@@ -128,19 +128,19 @@ extern void qhypstub_set_state_aarch64(void);
 
 void smp_spin_table_setup(void *fdt, bool arm64)
 {
-	scmcall_arg arg = {PSCI_0_2_FN_PSCI_VERSION};
-	uint32_t psci_version;
 	int offset, node, ret;
 
-	if (!is_scm_armv8_support()) {
-		dprintf(INFO, "ARM64 not available, cannot use SMP spin table\n");
-		return;
-	}
+	if (is_scm_armv8_support()) {
+		scmcall_arg arg = {PSCI_0_2_FN_PSCI_VERSION};
+		uint32_t psci_version = scm_call2(&arg, NULL);
 
-	psci_version = scm_call2(&arg, NULL);
-	if (psci_version != PSCI_RET_NOT_SUPPORTED) {
-		dprintf(INFO, "PSCI v%d.%d detected, no need for SMP spin table\n",
-			PSCI_VERSION_MAJOR(psci_version), PSCI_VERSION_MINOR(psci_version));
+		if (psci_version != PSCI_RET_NOT_SUPPORTED) {
+			dprintf(INFO, "PSCI v%d.%d detected, no need for SMP spin table\n",
+				PSCI_VERSION_MAJOR(psci_version), PSCI_VERSION_MINOR(psci_version));
+			return;
+		}
+	} else if (arm64) {
+		dprintf(CRITICAL, "Cannot boot ARM64 with 32-bit TZ :(\n");
 		return;
 	}
 
