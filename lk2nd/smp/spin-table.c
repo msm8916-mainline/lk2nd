@@ -7,11 +7,18 @@
 
 #include "cpu-boot.h"
 
-static uint8_t smp_spin_table_code[] = {
+static uint8_t smp_spin_table_a64[] = {
 	0x5f, 0x20, 0x03, 0xd5,	/* wfe */
 	0xfe, 0x7f, 0x00, 0x58,	/* ldr	lr, 0x1000 */
 	0xde, 0xff, 0xff, 0xb4,	/* cbz	lr, 0 */
 	0xc0, 0x03, 0x1f, 0xd6,	/* br	lr */
+};
+static uint8_t smp_spin_table_a32[] = {
+	0x02, 0xf0, 0x20, 0xe3,	/* wfe */
+	0xf4, 0xef, 0x9f, 0xe5,	/* ldr	lr, [pc, #4084] */
+	0x00, 0x00, 0x5e, 0xe3,	/* cmp	lr, #0 */
+	0xfb, 0xff, 0xff, 0x0a,	/* beq	0 */
+	0x1e, 0xff, 0x2f, 0xe1,	/* bx	lr */
 };
 #define SMP_SPIN_TABLE_RELEASE_ADDR	(SMP_SPIN_TABLE_BASE + 0x1000)
 
@@ -119,7 +126,7 @@ static void smp_spin_table_setup_idle_states(void *fdt, int node)
  */
 extern void qhypstub_set_state_aarch64(void);
 
-void smp_spin_table_setup(void *fdt)
+void smp_spin_table_setup(void *fdt, bool arm64)
 {
 	scmcall_arg arg = {PSCI_0_2_FN_PSCI_VERSION};
 	uint32_t psci_version;
@@ -164,17 +171,22 @@ void smp_spin_table_setup(void *fdt)
 		return;
 	}
 
-	memcpy((void*)SMP_SPIN_TABLE_BASE, smp_spin_table_code, sizeof(smp_spin_table_code));
+	if (arm64)
+		memcpy((void*)SMP_SPIN_TABLE_BASE, smp_spin_table_a64, sizeof(smp_spin_table_a64));
+	else
+		memcpy((void*)SMP_SPIN_TABLE_BASE, smp_spin_table_a32, sizeof(smp_spin_table_a32));
+
 	*((uint64_t*)SMP_SPIN_TABLE_RELEASE_ADDR) = 0;
 
-	ret = qcom_set_boot_addr(SMP_SPIN_TABLE_BASE);
+	ret = qcom_set_boot_addr(SMP_SPIN_TABLE_BASE, arm64);
 	if (ret) {
 		dprintf(CRITICAL, "Failed to set CPU boot address: %d\n", ret);
 		return;
 	}
 
 #if TARGET_MSM8916
-	qhypstub_set_state_aarch64();
+	if (arm64)
+		qhypstub_set_state_aarch64();
 #endif
 
 	fdt_for_each_subnode(node, fdt, offset) {

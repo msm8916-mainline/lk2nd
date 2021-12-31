@@ -59,7 +59,7 @@ void lk2nd_smd_rpm_hack_opening(const void *fdt, int offset);
 
 void lk2nd_update_device_tree(void *fdt, const char *cmdline, bool arm64);
 void lk2nd_rproc_update_dev_tree(void *fdt);
-void smp_spin_table_setup(void *fdt);
+void smp_spin_table_setup(void *fdt, bool arm64);
 
 bool fdt_node_is_available(const void *fdt, int node);
 

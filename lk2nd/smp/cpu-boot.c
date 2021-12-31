@@ -35,14 +35,15 @@ static inline uint32_t read_mpidr(void)
 	return res & 0x00ffffff;
 }
 
-int qcom_set_boot_addr(uint32_t addr)
+int qcom_set_boot_addr(uint32_t addr, bool arm64)
 {
+	uint32_t aarch64 = arm64 ? QCOM_SCM_BOOT_MC_FLAG_AARCH64 : 0;
 	scmcall_arg arg = {
 		MAKE_SIP_SCM_CMD(SCM_SVC_BOOT, QCOM_SCM_BOOT_SET_ADDR_MC),
 		MAKE_SCM_ARGS(6),
 		addr,
 		~0UL, ~0UL, ~0UL, ~0UL, /* All CPUs */
-		QCOM_SCM_BOOT_MC_FLAG_AARCH64 | QCOM_SCM_BOOT_MC_FLAG_COLDBOOT,
+		aarch64 | QCOM_SCM_BOOT_MC_FLAG_COLDBOOT,
 	};
 	return scm_call2(&arg, NULL);
 }
