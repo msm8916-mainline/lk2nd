@@ -7,6 +7,11 @@
 
 #include "cpu-boot.h"
 
+struct smp_spin_table {
+	uint8_t code[4096];
+	uint64_t release_addr;
+};
+
 static uint8_t smp_spin_table_a64[] = {
 	0x5f, 0x20, 0x03, 0xd5,	/* wfe */
 	0xfe, 0x7f, 0x00, 0x58,	/* ldr	lr, 0x1000 */
@@ -20,7 +25,6 @@ static uint8_t smp_spin_table_a32[] = {
 	0xfb, 0xff, 0xff, 0x0a,	/* beq	0 */
 	0x1e, 0xff, 0x2f, 0xe1,	/* bx	lr */
 };
-#define SMP_SPIN_TABLE_RELEASE_ADDR	(SMP_SPIN_TABLE_BASE + 0x1000)
 
 static int fdt_lookup_phandle(void *fdt, int node, const char *prop_name)
 {
@@ -36,7 +40,8 @@ static int fdt_lookup_phandle(void *fdt, int node, const char *prop_name)
 	return fdt_node_offset_by_phandle(fdt, fdt32_to_cpu(*phandle));
 }
 
-static void smp_spin_table_setup_cpu(void *fdt, int cpu_node)
+static void smp_spin_table_setup_cpu(struct smp_spin_table *table,
+				     void *fdt, int cpu_node)
 {
 	const uint32_t *val;
 	int node, len, ret;
@@ -50,7 +55,8 @@ static void smp_spin_table_setup_cpu(void *fdt, int cpu_node)
 	cpu = fdt32_to_cpu(*val);
 	dprintf(INFO, "Booting CPU%x\n", cpu);
 
-	ret = fdt_setprop_u64(fdt, cpu_node, "cpu-release-addr", SMP_SPIN_TABLE_RELEASE_ADDR);
+	ret = fdt_setprop_u64(fdt, cpu_node, "cpu-release-addr",
+			      (uintptr_t)&table->release_addr);
 	if (ret) {
 		dprintf(CRITICAL, "Failed to set cpu-release-addr: %d\n", ret);
 		return;
@@ -126,7 +132,7 @@ static void smp_spin_table_setup_idle_states(void *fdt, int node)
  */
 extern void qhypstub_set_state_aarch64(void);
 
-void smp_spin_table_setup(void *fdt, bool arm64)
+void smp_spin_table_setup(struct smp_spin_table *table, void *fdt, bool arm64)
 {
 	int offset, node, ret;
 
@@ -172,13 +178,13 @@ void smp_spin_table_setup(void *fdt, bool arm64)
 	}
 
 	if (arm64)
-		memcpy((void*)SMP_SPIN_TABLE_BASE, smp_spin_table_a64, sizeof(smp_spin_table_a64));
+		memcpy(table->code, smp_spin_table_a64, sizeof(smp_spin_table_a64));
 	else
-		memcpy((void*)SMP_SPIN_TABLE_BASE, smp_spin_table_a32, sizeof(smp_spin_table_a32));
+		memcpy(table->code, smp_spin_table_a32, sizeof(smp_spin_table_a32));
 
-	*((uint64_t*)SMP_SPIN_TABLE_RELEASE_ADDR) = 0;
+	table->release_addr = 0;
 
-	ret = qcom_set_boot_addr(SMP_SPIN_TABLE_BASE, arm64);
+	ret = qcom_set_boot_addr((uint32_t)table, arm64);
 	if (ret) {
 		dprintf(CRITICAL, "Failed to set CPU boot address: %d\n", ret);
 		return;
@@ -197,7 +203,7 @@ void smp_spin_table_setup(void *fdt, bool arm64)
 		if (len < strlen("cpu@") || name[len])
 			continue;
 		if (strncmp(name, "cpu@", strlen("cpu@")) == 0)
-			smp_spin_table_setup_cpu(fdt, node);
+			smp_spin_table_setup_cpu(table, fdt, node);
 		if (strcmp(name, "idle-states") == 0)
 			smp_spin_table_setup_idle_states(fdt, node);
 	}
