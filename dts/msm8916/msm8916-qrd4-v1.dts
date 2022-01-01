@@ -1,0 +1,25 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton.dtsi>
+
+/ {
+	compatible = "qcom,msm8916-v1-qrd/4-v1", "qcom,msm8916";
+
+	ark-peach {
+		model = "ARK Benefit A3 (peach)";
+		compatible = "ark,peach", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-panel;
+
+		panel {
+			compatible = "ark,peach-panel";
+			qcom,mdss_dsi_nt35521_720p_dj_video {
+				compatible = "ark,peach-nt35521-dj";
+			};
+			qcom,mdss_dsi_otm1287a_720p_video {
+				compatible = "ark,peach-otm1287a";
+			};
+        };
+    };
+};
