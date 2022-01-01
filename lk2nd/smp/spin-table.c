@@ -9,15 +9,11 @@
 
 static uint8_t smp_spin_table_code[] = {
 	0x5f, 0x20, 0x03, 0xd5,	/* wfe */
-	0x7e, 0x00, 0x00, 0x58,	/* ldr	lr, 16 */
+	0xfe, 0x7f, 0x00, 0x58,	/* ldr	lr, 0x1000 */
 	0xde, 0xff, 0xff, 0xb4,	/* cbz	lr, 0 */
-	0xc0, 0x03, 0x5f, 0xd6,	/* ret */
-	0x00, 0x00, 0x00, 0x00,	/* Release address */
-	0x00, 0x00, 0x00, 0x00,	/* (0 by default) */
+	0xc0, 0x03, 0x1f, 0xd6,	/* br	lr */
 };
-#define SMP_SPIN_TABLE_RELEASE_ADDR	(SMP_SPIN_TABLE_BASE + \
-					 sizeof(smp_spin_table_code) - \
-					 sizeof(uint64_t))
+#define SMP_SPIN_TABLE_RELEASE_ADDR	(SMP_SPIN_TABLE_BASE + 0x1000)
 
 static int fdt_lookup_phandle(void *fdt, int node, const char *prop_name)
 {
@@ -153,6 +149,7 @@ void smp_spin_table_setup(void *fdt)
 	}
 
 	memcpy((void*)SMP_SPIN_TABLE_BASE, smp_spin_table_code, sizeof(smp_spin_table_code));
+	*((uint64_t*)SMP_SPIN_TABLE_RELEASE_ADDR) = 0;
 
 	ret = qcom_set_boot_addr(SMP_SPIN_TABLE_BASE);
 	if (ret) {
