@@ -10,8 +10,81 @@
 #include <reg.h>
 #include <smd.h>
 #include <smem.h>
+#include <stdlib.h>
 #include <target.h>
 #include "fastboot.h"
+
+static bool parse_write_args(const char *arg, uint32_t *addr, uint32_t *value)
+{
+	char *saveptr;
+	char *args = strdup(arg);
+	char *addr_str = strtok_r(args, " ", &saveptr);
+	char *value_str = strtok_r(NULL, " ", &saveptr);
+
+	if (!addr_str || !value_str) {
+		free(args);
+		return false;
+	}
+
+	*addr = atoi(addr_str);
+	*value = atoi(value_str);
+	free(args);
+	return true;
+}
+
+static void cmd_oem_readl(const char *arg, void *data, unsigned sz)
+{
+	char response[MAX_RSP_SIZE];
+	uint32_t addr = 0;
+
+	addr = atoi(arg);
+	snprintf(response, sizeof(response), "0x%08x\n", readl(addr));
+	fastboot_info(response);
+
+	fastboot_okay("");
+}
+
+static void cmd_oem_writel(const char *arg, void *data, unsigned sz)
+{
+	char response[MAX_RSP_SIZE];
+	uint32_t addr = 0, value = 0;
+
+	if (!parse_write_args(arg, &addr, &value)) {
+		fastboot_fail("");
+		return;
+	}
+
+	writel(value, addr);
+
+	fastboot_okay("");
+}
+
+static void cmd_oem_readb(const char *arg, void *data, unsigned sz)
+{
+	char response[MAX_RSP_SIZE];
+	uint32_t addr = 0;
+
+	addr = atoi(arg);
+	snprintf(response, sizeof(response), "0x%02x\n", readb(addr));
+	fastboot_info(response);
+
+	fastboot_okay("");
+}
+
+static void cmd_oem_writeb(const char *arg, void *data, unsigned sz)
+{
+	char response[MAX_RSP_SIZE];
+	uint32_t addr = 0, value = 0;
+
+	if (!parse_write_args(arg, &addr, &value) || value > 0xff) {
+		fastboot_fail("");
+		return;
+	}
+
+	writeb(value, addr);
+
+	fastboot_okay("");
+}
 
 static void cmd_oem_dump_partition(const char *arg, void *data, unsigned sz)
 {
@@ -274,6 +347,11 @@ static void cmd_oem_dump_rpm_data_ram(const char *arg, void *data, unsigned sz)
 #endif
 
 void fastboot_extra_register_commands(void) {
+	fastboot_register("oem readl", cmd_oem_readl);
+	fastboot_register("oem writel", cmd_oem_writel);
+	fastboot_register("oem readb", cmd_oem_readb);
+	fastboot_register("oem writeb", cmd_oem_writeb);
+
 	fastboot_register("oem dump", cmd_oem_dump_partition);
 
 #if WITH_DEBUG_LOG_BUF
