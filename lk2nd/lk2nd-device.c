@@ -396,7 +396,6 @@ void lk2nd_update_device_tree(void *fdt, const char *cmdline, bool arm64)
 	lk2nd_rproc_update_dev_tree(fdt);
 
 #ifdef SMP_SPIN_TABLE_BASE
-	if (arm64)
-		smp_spin_table_setup(fdt);
+	smp_spin_table_setup((struct smp_spin_table*)SMP_SPIN_TABLE_BASE, fdt, arm64);
 #endif
 }

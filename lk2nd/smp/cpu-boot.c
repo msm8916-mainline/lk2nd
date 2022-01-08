@@ -23,6 +23,8 @@
 #define APC_PWR_GATE_CTL_GHDS_EN	BIT(0)
 #define APC_PWR_GATE_CTL_GHDS_CNT(cnt)	((cnt) << 24)
 
+#define QCOM_SCM_BOOT_SET_ADDR		0x01
+#define QCOM_SCM_BOOT_FLAG_COLD_ALL	(0 | BIT(0) | BIT(3) | BIT(5))
 #define QCOM_SCM_BOOT_SET_ADDR_MC	0x11
 #define QCOM_SCM_BOOT_MC_FLAG_AARCH64	BIT(0)
 #define QCOM_SCM_BOOT_MC_FLAG_COLDBOOT	BIT(1)
@@ -35,16 +37,23 @@ static inline uint32_t read_mpidr(void)
 	return res & 0x00ffffff;
 }
 
-int qcom_set_boot_addr(uint32_t addr)
+int qcom_set_boot_addr(uint32_t addr, bool arm64)
 {
+	uint32_t aarch64 = arm64 ? QCOM_SCM_BOOT_MC_FLAG_AARCH64 : 0;
 	scmcall_arg arg = {
 		MAKE_SIP_SCM_CMD(SCM_SVC_BOOT, QCOM_SCM_BOOT_SET_ADDR_MC),
 		MAKE_SCM_ARGS(6),
 		addr,
 		~0UL, ~0UL, ~0UL, ~0UL, /* All CPUs */
-		QCOM_SCM_BOOT_MC_FLAG_AARCH64 | QCOM_SCM_BOOT_MC_FLAG_COLDBOOT,
+		aarch64 | QCOM_SCM_BOOT_MC_FLAG_COLDBOOT,
 	};
-	return scm_call2(&arg, NULL);
+
+	if (is_scm_armv8_support())
+		return scm_call2(&arg, NULL);
+
+	dprintf(INFO, "Falling back to legacy QCOM_SCM_BOOT_SET_ADDR call\n");
+	return scm_call_atomic2(SCM_SVC_BOOT, QCOM_SCM_BOOT_SET_ADDR,
+				QCOM_SCM_BOOT_FLAG_COLD_ALL, addr);
 }
 
 void qcom_power_up_arm_cortex(uint32_t mpidr, uint32_t base)
