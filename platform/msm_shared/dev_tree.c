@@ -1413,6 +1413,13 @@ int update_device_tree(void *fdt, const char *cmdline,
 	offset = ret;
 	if (cmdline)
 	{
+		int len;
+		char *oldargs = fdt_getprop_w(fdt, offset, "bootargs", &len);
+
+		/* Replace old null terminator so the strings are concatenated */
+		if (oldargs && len >= 1 && oldargs[len-1] == '\0')
+			oldargs[len-1] = ' ';
+
 		/* Adding the cmdline to the chosen node */
 		ret = fdt_appendprop_string(fdt, offset, (const char*)"bootargs", (const void*)cmdline);
 		if (ret)
