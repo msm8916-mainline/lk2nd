@@ -14,6 +14,36 @@
 #include <target.h>
 #include "fastboot.h"
 
+uint32_t oem_go_addr = 0;
+
+static void cmd_oem_set_oem_go_address(const char *arg, void *data, unsigned sz)
+{
+	oem_go_addr = atoi(arg);
+	fastboot_okay("");
+}
+
+static void cmd_oem_go(const char *arg, void *data, unsigned sz)
+{
+	/* A shortcut as an optional parameter to set boot address */
+	if (strlen(arg)) {
+		oem_go_addr = atoi(arg);
+	}
+
+	fastboot_okay("");
+
+	target_uninit();
+	enter_critical_section();
+	platform_uninit();
+	arch_disable_cache(UCACHE);
+#if ARM_WITH_MMU
+	arch_disable_mmu();
+#endif
+
+	(*(void(*)(void))oem_go_addr)();
+
+	ASSERT(0);
+}
+
 static bool parse_write_args(const char *arg, uint32_t *addr, uint32_t *value)
 {
 	char *saveptr;
@@ -347,6 +377,9 @@ static void cmd_oem_dump_rpm_data_ram(const char *arg, void *data, unsigned sz)
 #endif
 
 void fastboot_extra_register_commands(void) {
+	fastboot_register("oem set-go-address", cmd_oem_set_oem_go_address);
+	fastboot_register("oem go", cmd_oem_go);
+
 	fastboot_register("oem readl", cmd_oem_readl);
 	fastboot_register("oem writel", cmd_oem_writel);
 	fastboot_register("oem readb", cmd_oem_readb);
