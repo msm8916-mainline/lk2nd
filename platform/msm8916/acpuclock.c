@@ -440,18 +440,8 @@ void clock_config_blsp_i2c(uint8_t blsp_id, uint8_t qup_id)
 
 	struct clk *qup_clk;
 
-	if((blsp_id != BLSP_ID_1) || ((qup_id != QUP_ID_1) && (qup_id != QUP_ID_3))) {
-		dprintf(CRITICAL, "Incorrect BLSP-%d or QUP-%d configuration\n", blsp_id, qup_id);
-		ASSERT(0);
-	}
-
-	if (qup_id == QUP_ID_1) {
-		snprintf(clk_name, sizeof(clk_name), "blsp1_qup2_ahb_iface_clk");
-	}
-	else if (qup_id == QUP_ID_3) {
-		snprintf(clk_name, sizeof(clk_name), "blsp1_qup4_ahb_iface_clk");
-	}
-
+	snprintf(clk_name, sizeof(clk_name), "blsp%d_qup%d_ahb_iface_clk",
+		 blsp_id, qup_id + 1); // QUP ID starts at 0 for some reason
 	ret = clk_get_set_enable(clk_name, 0 , 1);
 
 	if (ret) {
@@ -459,13 +449,8 @@ void clock_config_blsp_i2c(uint8_t blsp_id, uint8_t qup_id)
 		return;
 	}
 
-	if (qup_id == QUP_ID_1) {
-		snprintf(clk_name, sizeof(clk_name), "gcc_blsp1_qup2_i2c_apps_clk");
-	}
-	else if (qup_id == QUP_ID_3) {
-		snprintf(clk_name, sizeof(clk_name), "gcc_blsp1_qup4_i2c_apps_clk");
-	}
-
+	snprintf(clk_name, sizeof(clk_name), "gcc_blsp%d_qup%d_i2c_apps_clk",
+		 blsp_id, qup_id + 1); // QUP ID starts at 0 for some reason
 	qup_clk = clk_get(clk_name);
 
 	if (!qup_clk) {
