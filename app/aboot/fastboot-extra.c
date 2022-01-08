@@ -1,6 +1,7 @@
 #include <arch/ops.h>
 #include <debug.h>
 #include <dev/fbcon.h>
+#include <lib/elf.h>
 #include <malloc.h>
 #include <mmc.h>
 #include <partition_parser.h>
@@ -15,6 +16,70 @@
 #include "fastboot.h"
 
 uint32_t oem_go_addr = 0;
+
+enum {
+	TYPE_FLATBIN,
+	TYPE_ELF,
+	TYPE_NONE,
+} load_file_type = TYPE_NONE;
+
+static void cmd_oem_load_staged_image(const char *arg, void *data, unsigned sz)
+{
+	elf_handle_t elf;
+	status_t elf_st;
+
+	if (load_file_type == TYPE_FLATBIN) {
+		dprintf(INFO, "Loading binary to 0x%08x\n", oem_go_addr);
+		memcpy(oem_go_addr, data, sz);
+		fastboot_okay("");
+		return;
+	} else if (load_file_type == TYPE_ELF) {
+		dprintf(INFO, "Attempt to load an ELF image.\n");
+		elf_st = elf_open_handle_memory(&elf, data, sz);
+		if (elf_st < 0) {
+			dprintf(CRITICAL, "unable to open elf handle\n");
+			goto elf_open_fail;
+		}
+		elf_st = elf_load(&elf);
+		if (elf_st < 0) {
+			dprintf(CRITICAL, "elf processing failed, status : %d\n", elf_st);
+		}
+		else {
+			dprintf(INFO, "elf looks good\n");
+		}
+		elf_close_handle(&elf);
+
+elf_open_fail:
+		if (elf_st < 0) {
+			fastboot_fail("ELF load fail");
+			return;
+		}
+		else {
+			oem_go_addr = elf.entry;
+			fastboot_info("ELF load success");
+			fastboot_okay("");
+			return;
+		}
+	}
+
+	fastboot_fail("Image type not set, use 'oem set-load-type'");
+}
+
+static void cmd_oem_set_load_type(const char *arg, void *data, unsigned sz)
+{
+	char response[MAX_RSP_SIZE];
+
+	if (!strcmp(arg, "binary")) {
+		load_file_type = TYPE_FLATBIN;
+	} else if (!strcmp(arg, "elf")) {
+		load_file_type = TYPE_ELF;
+	} else {
+		fastboot_fail("");
+		return;
+	}
+
+	fastboot_okay("");
+}
 
 static void cmd_oem_set_oem_go_address(const char *arg, void *data, unsigned sz)
 {
@@ -377,6 +442,9 @@ static void cmd_oem_dump_rpm_data_ram(const char *arg, void *data, unsigned sz)
 #endif
 
 void fastboot_extra_register_commands(void) {
+	fastboot_register("oem load-staged-image", cmd_oem_load_staged_image);
+	fastboot_register("oem set-load-type", cmd_oem_set_load_type);
+
 	fastboot_register("oem set-go-address", cmd_oem_set_oem_go_address);
 	fastboot_register("oem go", cmd_oem_go);
 
