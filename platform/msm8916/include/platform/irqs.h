@@ -52,6 +52,8 @@ int qtmr_irq();
 #define USB1_HS_BAM_IRQ                        (GIC_SPI_START + 135)
 #define USB1_HS_IRQ                            (GIC_SPI_START + 134)
 
+#define SMD_IRQ                                (GIC_SPI_START + 168)
+
 /* Retrofit universal macro names */
 #define INT_USB_HS                             USB1_HS_IRQ
 
