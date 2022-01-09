@@ -1,16 +1,39 @@
 # lk2nd
-lk2nd is a bootloader for Qualcomm MSM devices (at the moment only MSM8916 and MSM8939),
-based on the [CodeAurora Little Kernel fork](https://source.codeaurora.org/quic/la/kernel/lk/).
-It provides an Android Fastboot interface on devices where the stock bootloader
-does not provide Fastboot (e.g. Samsung).
+lk2nd is a custom bootloader for many different devices based on Qualcomm
+system-on-chips (SoCs), including smartphones, tablets, smartwatches and a few
+single board computers (SBCs). It simplifies booting standard operating systems
+by providing:
 
-On MSM8916 it is also used for some quirks for mainline devices, e.g. to set
-a proper WiFi/BT MAC address in the device tree.
+  - **A unified boot and flashing interface** (Android Fastboot), independent of
+    device-specific modifications made to the boot chain (e.g. the proprietary
+    flashing interface on Samsung devices)
+  - **Automatic device and hardware detection** (e.g. display panels, batteries, ...)
+  - **Additional bootloader features** (e.g. file system boot, booting from SD card)
+  - **Additional firmware features** (e.g. booting secondary CPU cores if the firmware
+    lacks [PSCI] support)
+  - **Workarounds for various device-specific issues** (e.g. USB on some Samsung
+    devices, modem on Motorola smartphones, ...)
+  - **Various debugging commands** that allow better understanding of the hardware
+    for research and development purposes
 
-lk2nd does not replace the stock bootloader. It is packaged into an Android
-boot image and then loaded by the stock bootloader as a "secondary" bootloader.
-The real Android boot image is placed into the boot partition with 512 KiB offset,
-and then loaded by lk2nd.
+There are two different configurations:
+
+  - **lk2nd:** "secondary" bootloader intended for devices where existing
+    firmware cannot be replaced easily (most smartphones and tablets). In this
+    configuration, lk2nd does **not** replace the stock bootloader. Instead, it
+    is packed into an Android boot image, which is then loaded by the stock
+    bootloader just like the original Android image.
+    The real operating system can be placed in the boot partition with 512 KiB
+    offset or stored in a ext2 file system. It does not have to be Android or
+    even Linux, any kind of kernel can be packed into an Android boot image.
+
+  - **lk1st:** primary bootloader intended for single-board computers (SBCs)
+    and expert users. In this case, it is the "first" bootloader responsible for
+    loading the main operating system.
+
+This repository is a fork of the [original open-source bootloader from Qualcomm](
+https://source.codeaurora.org/quic/la/kernel/lk/) (tag `LA.BR.1.2.9.1-02310-8x16.0`),
+which is a heavily modified version of the [Little Kernel Embedded Operating System].
 
 ## Supported SoCs
 - `lk2nd-msm8916`: APQ8016, MSM8216, MSM8916, MSM8929, MSM8939
@@ -20,8 +43,8 @@ and then loaded by lk2nd.
 See [Chipsets](https://github.com/efidroid/projectmanagement/wiki/%5BReference%5D-Chipsets)
 page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 
-### Supported devices
-#### lk2nd-msm8916
+## Supported devices
+### lk2nd-msm8916
 - Alcatel OneTouch Idol 3 (4.7) - 6039*
 - Alcatel OneTouch Idol 3 (5.5) - 6045*
 - ARK Benefit A3 - peach
@@ -68,21 +91,21 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Xiaomi Mi 4i - ferrari
 - Xiaomi Redmi 2 - wt86047, wt88047
 
-#### lk2nd-msm8974
+### lk2nd-msm8974
 - LG G3 - D855
 - LG Google Nexus 5 - hammerhead D820, D821
 - Samsung Galaxy S5 - SM-G900F
 
-#### lk2nd-msm8226
+### lk2nd-msm8226
 - ASUS ZenWatch 2 - sparrow
 - Huawei Watch - sturgeon
 - LG G Watch R - lenok
 
 ## Installation
 1. Download `lk2nd.img` (available in [Releases](https://github.com/msm8916-mainline/lk2nd/releases))
-2. Flash `lk2nd.img` using the stock flashing procedure:
-  - Fastboot: `fastboot flash boot lk2nd.img`
-  - Samsung: `heimdall flash --BOOT lk2nd.img`
+2. Flash `lk2nd.img` using the stock flashing interface:
+    - Fastboot: `fastboot flash boot lk2nd.img`
+    - Samsung: `heimdall flash --BOOT lk2nd.img`
 
 If you get `fastboot: error: Couldn't parse partition size '0x'` try one of the following workarounds:
 
@@ -129,10 +152,13 @@ $ make TOOLCHAIN_PREFIX=arm-none-eabi- lk2nd-msmXXXX
   - Arch Linux: `dtc`
 
 Replace `TOOLCHAIN_PREFIX` with the path to your tool chain.
-`lk2nd.img` is built and placed into `build-msm8916-secondary/lk2nd.img`.
+`lk2nd.img` is built and placed into `build-lk2nd-msmXXXX/lk2nd.img`.
+
+**Note:** Unlike lk2nd, lk1st is still experimental and therefore not described
+here yet.
 
 ## Porting
-### To other MSM8916/8974 devices
+### To other devices with a supported SoC
 - Add a simple device tree to `dts/`. You just need `model` and the
   `qcom,msm-id`/`qcom,board-id` from downstream.
 
@@ -161,3 +187,6 @@ Good luck!
 
 ## Contact
 Ask on [`#postmarketos-mainline`](https://wiki.postmarketos.org/wiki/Matrix_and_IRC) (Matrix or IRC).
+
+[PSCI]: https://developer.arm.com/architectures/system-architectures/software-standards/psci
+[Little Kernel Embedded Operating System]: https://github.com/littlekernel/lk
