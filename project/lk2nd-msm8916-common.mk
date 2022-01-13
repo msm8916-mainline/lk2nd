@@ -3,7 +3,5 @@
 # Remove this to get rid of some compile errors regarding gpio_i2c.
 GPIO_I2C_BUS_COUNT := 1
 
-LK2ND_KEYMAP := 1
-
 # Memory usually reserved for RMTFS, should be fine for early SMP bring-up
 SMP_SPIN_TABLE_BASE := 0x86700000
