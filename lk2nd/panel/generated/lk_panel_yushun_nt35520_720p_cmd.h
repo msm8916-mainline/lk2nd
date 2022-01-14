@@ -14,7 +14,7 @@ static struct panel_config yushun_nt35520_720p_cmd_panel_data = {
 	.panel_node_id = "qcom,mdss_dsi_yushun_NT35520_720p_cmd",
 	.panel_controller = "dsi:0",
 	.panel_compatible = "qcom,mdss-dsi-panel",
-	.panel_type = 1,
+	.panel_type = 0, /* Changed to video mode */
 	.panel_destination = "DISPLAY_1",
 	/* .panel_orientation not supported yet */
 	.panel_framerate = 60,
@@ -63,7 +63,7 @@ static char yushun_nt35520_720p_cmd_on_cmd_5[] = {
 	0x02, 0x00, 0x29, 0x40, 0xf3, 0x00, 0xff, 0xff
 };
 static char yushun_nt35520_720p_cmd_on_cmd_6[] = {
-	0x03, 0x00, 0x29, 0x40, 0xb1, 0x68, 0x21, 0xff
+	0x03, 0x00, 0x29, 0x40, 0xb1, 0x68 | 1 << 4, 0x21, 0xff /* video mode */
 };
 static char yushun_nt35520_720p_cmd_on_cmd_7[] = {
 	0x06, 0x00, 0x29, 0x40, 0xbd, 0x02, 0x67, 0x20,
