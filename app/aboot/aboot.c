@@ -316,26 +316,7 @@ static void ptentry_to_tag(unsigned **ptr, struct ptentry *ptn)
 	*ptr += sizeof(struct atag_ptbl_entry) / sizeof(unsigned);
 }
 
-#if WITH_LK2ND
-static char *concat_args(const char *a, const char *b)
-{
-	int lenA = strlen(a), lenB = strlen(b);
-	char *r = malloc(lenA + lenB + 2);
-	memcpy(r, a, lenA);
-	r[lenA] = ' ';
-	memcpy(r + lenA + 1, b, lenB + 1);
-	return r;
-}
-unsigned char *update_cmdline(const char* cmdline)
-{
-	/* Only take cmdline from original bootloader if downstream or lk2nd */
-	if (cmdline && lk2nd_dev.cmdline &&
-	    (strstr(cmdline, "androidboot.hardware=qcom") || strstr(cmdline, "lk2nd")))
-		return concat_args(cmdline, lk2nd_dev.cmdline);
-	return strdup(cmdline);
-}
-#else
-unsigned char *update_cmdline(const char * cmdline)
+static unsigned char *update_cmdline0(const char * cmdline)
 {
 	int cmdline_len = 0;
 	int have_cmdline = 0;
@@ -643,7 +624,28 @@ unsigned char *update_cmdline(const char * cmdline)
 	dprintf(INFO, "cmdline: %s\n", cmdline_final ? cmdline_final : "");
 	return cmdline_final;
 }
+static char *concat_args(const char *a, const char *b)
+{
+	int lenA = strlen(a), lenB = strlen(b);
+	char *r = malloc(lenA + lenB + 2);
+	memcpy(r, a, lenA);
+	r[lenA] = ' ';
+	memcpy(r + lenA + 1, b, lenB + 1);
+	return r;
+}
+unsigned char *update_cmdline(const char *cmdline)
+{
+#if WITH_LK2ND
+	/* Only add to cmdline if downstream or lk2nd */
+	if (!strstr(cmdline, "androidboot.hardware=qcom") && !strstr(cmdline, "lk2nd"))
+		return strdup(cmdline);
+
+	/* Use cmdline from original bootloader if available */
+	if (lk2nd_dev.cmdline)
+		return concat_args(cmdline, lk2nd_dev.cmdline);
 #endif
+	return update_cmdline0(cmdline);
+}
 
 unsigned *atag_core(unsigned *ptr)
 {
