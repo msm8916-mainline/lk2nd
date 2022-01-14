@@ -3708,11 +3708,16 @@ int splash_screen_mmc()
 
 int fetch_image_from_partition()
 {
+#if WITH_LK2ND
+	/* Never show splash from stock partition */
+	return -1;
+#else
 	if (target_is_emmc_boot()) {
 		return splash_screen_mmc();
 	} else {
 		return splash_screen_flash();
 	}
+#endif
 }
 
 /* Get the size from partiton name */
