@@ -1,14 +1,14 @@
 # SPDX-License-Identifier: BSD-3-Clause
 LOCAL_DIR := $(GET_LOCAL_DIR)
 
-# Filter out original panel implementation
-OBJS := $(filter-out target/$(TARGET)/oem_panel.o, $(OBJS))
-
 OBJS += \
 	$(LOCAL_DIR)/simplefb.o
 
 ifeq ($(LK2ND_DISPLAY), cont-splash)
 include $(LOCAL_DIR)/cont-splash/rules.mk
+else ifneq ($(LK2ND_DISPLAY),)
+DEFINES += LK2ND_DISPLAY=$(LK2ND_DISPLAY)
+include $(LOCAL_DIR)/panel/rules.mk
 else
-$(error Display '$(LK2ND_DISPLAY)' is not supported yet)
+$(error Please specify the display with LK2ND_DISPLAY option)
 endif
