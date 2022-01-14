@@ -81,6 +81,8 @@ static void parse_boot_args(void)
 	char *saveptr;
 	char *args = strdup(lk2nd_dev.cmdline);
 	char *arg = strtok_r(args, " ", &saveptr);
+	const char *panel_name = NULL;
+
 	while (arg) {
 		const char *aboot = strpresuf(arg, "androidboot.");
 
@@ -91,14 +93,15 @@ static void parse_boot_args(void)
 			parse_arg(aboot, "carrier=", &lk2nd_dev.carrier);
 			parse_arg(aboot, "radio=", &lk2nd_dev.radio);
 		} else {
-			parse_arg(arg, "mdss_mdp.panel=", &lk2nd_dev.panel.name);
+			parse_arg(arg, "mdss_mdp.panel=", &panel_name);
 		}
 
 		arg = strtok_r(NULL, " ", &saveptr);
 	}
 	free(args);
 
-	lk2nd_dev.panel.name = parse_panel(lk2nd_dev.panel.name);
+	if (!lk2nd_dev.panel.name)
+		lk2nd_dev.panel.name = parse_panel(panel_name);
 }
 
 static const char *fdt_copyprop_str(const void *fdt, int offset, const char *prop)
