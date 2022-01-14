@@ -207,11 +207,9 @@ uint32_t target_volume_down()
 	return pm8x41_resin_status();
 }
 
-#if WITH_LK2ND
-extern void target_keystatus();
-#else
 static void target_keystatus()
 {
+#if !WITH_LK2ND
 	keys_init();
 
 	if(target_volume_down())
@@ -219,8 +217,8 @@ static void target_keystatus()
 
 	if(target_volume_up())
 		keys_post_event(KEY_VOLUMEUP, 1);
-}
 #endif
+}
 
 void target_init(void)
 {

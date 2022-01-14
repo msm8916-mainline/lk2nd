@@ -359,8 +359,11 @@ static void lk2nd_fdt_parse(void)
 
 void lk2nd_init(void)
 {
+	dprintf(INFO, "### Ohai, this is lk2nd (or lk1st?) ###\n");
+
 	dump_board();
 	lk2nd_fdt_parse();
+	lk2nd_target_keystatus();
 }
 
 static void lk2nd_update_panel_compatible(void *fdt)
