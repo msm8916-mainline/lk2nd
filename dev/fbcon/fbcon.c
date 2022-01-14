@@ -610,7 +610,7 @@ void display_default_image_on_screen(void)
 
 void display_image_on_screen(void)
 {
-#if DISPLAY_TYPE_MIPI
+#if DISPLAY_TYPE_MIPI && !DISABLE_SPLASH_PARTITION
 	int fetch_image_from_partition();
 
 	if (fetch_image_from_partition() < 0) {
