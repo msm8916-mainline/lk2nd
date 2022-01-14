@@ -410,7 +410,7 @@ static void lk2nd_update_panel_compatible(void *fdt)
 void lk2nd_update_device_tree(void *fdt, const char *cmdline, bool arm64)
 {
 	/* Don't touch lk2nd/downstream dtb */
-	if (strstr(cmdline, "lk2nd"))
+	if (strstr(cmdline, "androidboot.hardware=qcom") || strstr(cmdline, "lk2nd"))
 		return;
 
 	if (lk2nd_dev.panel.compatible)
