@@ -28,6 +28,10 @@ $(BUILDDIR)/$(LOCAL_DIR)/lk2nd-device.o: $(BUILDDIR)/$(LK1ST_DTB_PATH)
 CFLAGS += -DLK1ST_DTB=\"$(LK1ST_DTB_PATH)\"
 endif
 
+ifneq ($(LK1ST_COMPATIBLE),)
+CFLAGS += -DLK1ST_COMPATIBLE=\"$(LK1ST_COMPATIBLE)\"
+endif
+
 ifneq ($(LK1ST_PANEL),)
 # Filter out original panel implementation
 OBJS := $(filter-out target/$(TARGET)/oem_panel.o, $(OBJS))

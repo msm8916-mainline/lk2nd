@@ -153,10 +153,17 @@ static bool match_panel(const void *fdt, int offset, const char *panel_name)
 	return fdt_subnode_offset(fdt, offset, panel_name) >= 0;
 }
 
+#ifndef LK1ST_COMPATIBLE
+#define LK1ST_COMPATIBLE	NULL
+#endif
+
 static bool lk2nd_device_match(const void *fdt, int offset)
 {
 	int len;
 	const char *val;
+
+	if (LK1ST_COMPATIBLE)
+		return fdt_node_check_compatible(fdt, offset, LK1ST_COMPATIBLE) == 0;
 
 	val = fdt_getprop(fdt, offset, "lk2nd,match-bootloader", &len);
 	if (val && len > 0) {
