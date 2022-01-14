@@ -14,10 +14,8 @@ DISABLE_RECOVERY_MESSAGES := 1
 # Enable fastboot display menu
 ENABLE_FBCON_DISPLAY_MSG := 1
 
-ifneq ($(LK1ST_PANEL),)
-    DEFINES += LK1ST_PANEL=$(LK1ST_PANEL)
-else ifeq ($(DISPLAY_USE_CONTINUOUS_SPLASH),)
-    $(info NOTE: Display support is disabled without LK1ST_PANEL)
+ifeq ($(DISPLAY_USE_CONTINUOUS_SPLASH)$(LK1ST_PANEL),)
+    $(info NOTE: Display support is disabled without panel/display selection)
     DEFINES := $(filter-out DISPLAY_SPLASH_SCREEN=1, $(DEFINES))
     ENABLE_FBCON_DISPLAY_MSG := 0
 endif

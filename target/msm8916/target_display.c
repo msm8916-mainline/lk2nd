@@ -497,6 +497,7 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 			gpio_set_dir(enable_gpio.pin_id, 2);
 		}
 
+#ifndef WITH_LK2ND_PANEL
 		if (platform_is_msm8939() || platform_is_msm8929()) {
 			if ((hw_id == HW_PLATFORM_QRD) &&
 				 (hw_subtype == HW_PLATFORM_SUBTYPE_SKUK))
@@ -522,6 +523,7 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 				bkl_gpio.pin_strength, bkl_gpio.pin_state);
 			gpio_set_dir(bkl_gpio.pin_id, 2);
 		}
+#endif
 
 		gpio_tlmm_config(reset_gpio.pin_id, 0,
 				reset_gpio.pin_direction, reset_gpio.pin_pull,
@@ -542,6 +544,7 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 		if (pinfo->mipi.use_enable_gpio)
 			gpio_set_dir(enable_gpio.pin_id, 0);
 
+#ifndef WITH_LK2ND_PANEL
 		if (platform_is_msm8939() || platform_is_msm8929()) {
 			if ((hw_id == HW_PLATFORM_QRD) &&
 				 (hw_subtype == HW_PLATFORM_SUBTYPE_SKUK))
@@ -551,11 +554,13 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 				 (hw_subtype == HW_PLATFORM_SUBTYPE_SKUH))
 				target_panel_reset_skuh(enable);
 		}
+#endif
 	}
 
 	return ret;
 }
 
+#ifndef WITH_LK2ND_PANEL
 int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 {
 	/*
@@ -564,6 +569,7 @@ int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 	 */
 	return NO_ERROR;
 }
+#endif
 
 bool target_display_panel_node(char *panel_name, char *pbuf, uint16_t buf_size)
 {

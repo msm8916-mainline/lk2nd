@@ -22,7 +22,12 @@ MODULES += lk2nd/smp
 DEFINES += SMP_SPIN_TABLE_BASE=$(SMP_SPIN_TABLE_BASE)
 endif
 
-ifeq ($(DISPLAY_USE_CONTINUOUS_SPLASH),1)
+ifneq ($(LK1ST_PANEL),)
+# Filter out original panel implementation
+OBJS := $(filter-out target/$(TARGET)/oem_panel.o, $(OBJS))
+MODULES += lk2nd/panel
+CFLAGS += -DLK1ST_PANEL=$(LK1ST_PANEL)
+else ifeq ($(DISPLAY_USE_CONTINUOUS_SPLASH),1)
 # Filter out original display implementation
 OBJS := $(filter-out target/$(TARGET)/target_display.o target/$(TARGET)/oem_panel.o, $(OBJS))
 ifneq ($(filter $(DEFINES),DISPLAY_TYPE_MDSS=1),)
