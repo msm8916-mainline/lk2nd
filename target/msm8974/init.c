@@ -650,6 +650,9 @@ int target_cont_splash_screen()
 {
 	uint8_t splash_screen = 0;
 	if(!splash_override) {
+#if WITH_LK2ND
+		splash_screen = 1;
+#else
 		switch(board_hardware_id())
 		{
 			case HW_PLATFORM_SURF:
@@ -664,6 +667,7 @@ int target_cont_splash_screen()
 				dprintf(SPEW, "Target_cont_splash=0\n");
 				splash_screen = 0;
 		}
+#endif
 	}
 	return splash_screen;
 }

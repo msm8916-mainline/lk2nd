@@ -459,6 +459,9 @@ int target_cont_splash_screen()
 {
 	uint8_t splash_screen = 0;
 	if (!splash_override) {
+#if WITH_LK2ND
+		splash_screen = 1;
+#else
 		switch (board_hardware_id()) {
 		case HW_PLATFORM_MTP:
 		case HW_PLATFORM_SURF:
@@ -471,6 +474,7 @@ int target_cont_splash_screen()
 			break;
 		}
 		dprintf(SPEW, "Target_cont_splash=%d\n", splash_screen);
+#endif
 	}
 	return splash_screen;
 }
