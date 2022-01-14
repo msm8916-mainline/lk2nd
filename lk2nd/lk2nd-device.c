@@ -313,12 +313,25 @@ static void lk2nd_parse_device_node(const void *fdt)
 #endif
 }
 
+#ifdef LK1ST_DTB
+INCFILE(lk1st_dtb, lk1st_dtb_size, LK1ST_DTB);
+#endif
+
+static void *lk2nd_get_fdt(void)
+{
+#ifdef LK1ST_DTB
+	return lk1st_dtb;
+#else
+	return (void*) lk_boot_args[2];
+#endif
+}
+
 int lk2nd_fdt_parse_early_uart(void)
 {
 	int offset, len;
 	const uint32_t *val;
+	void *fdt = lk2nd_get_fdt();
 
-	void *fdt = (void*) lk_boot_args[2];
 	if (!fdt || dev_tree_check_header(fdt))
 		return -1; // Will be reported later again. Hopefully.
 
@@ -335,7 +348,7 @@ int lk2nd_fdt_parse_early_uart(void)
 
 static void lk2nd_fdt_parse(void)
 {
-	void *fdt = (void*) lk_boot_args[2];
+	void *fdt = lk2nd_get_fdt();
 	if (!fdt)
 		return;
 

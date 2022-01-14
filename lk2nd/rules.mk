@@ -22,6 +22,12 @@ MODULES += lk2nd/smp
 DEFINES += SMP_SPIN_TABLE_BASE=$(SMP_SPIN_TABLE_BASE)
 endif
 
+ifneq ($(LK1ST_DTB),)
+LK1ST_DTB_PATH := dts/$(TARGET)/$(LK1ST_DTB).dtb
+$(BUILDDIR)/$(LOCAL_DIR)/lk2nd-device.o: $(BUILDDIR)/$(LK1ST_DTB_PATH)
+CFLAGS += -DLK1ST_DTB=\"$(LK1ST_DTB_PATH)\"
+endif
+
 ifneq ($(LK1ST_PANEL),)
 # Filter out original panel implementation
 OBJS := $(filter-out target/$(TARGET)/oem_panel.o, $(OBJS))
