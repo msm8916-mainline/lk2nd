@@ -422,6 +422,9 @@ static char boe_otm8019a_5p0_fwvga_video_on_cmd_112[] = {
 static char boe_otm8019a_5p0_fwvga_video_on_cmd_113[] = {
 	0x29, 0x00, 0x05, 0x80
 };
+static char boe_otm8019a_5p0_fwvga_video_on_cmd_114[] = {
+	0x51, 0xfa, 0x15, 0x80	/* Set brightness to maximum 250 */
+};
 
 static struct mipi_dsi_cmd boe_otm8019a_5p0_fwvga_video_on_command[] = {
 	{ sizeof(boe_otm8019a_5p0_fwvga_video_on_cmd_0), boe_otm8019a_5p0_fwvga_video_on_cmd_0, 0 },
@@ -538,6 +541,7 @@ static struct mipi_dsi_cmd boe_otm8019a_5p0_fwvga_video_on_command[] = {
 	{ sizeof(boe_otm8019a_5p0_fwvga_video_on_cmd_111), boe_otm8019a_5p0_fwvga_video_on_cmd_111, 0 },
 	{ sizeof(boe_otm8019a_5p0_fwvga_video_on_cmd_112), boe_otm8019a_5p0_fwvga_video_on_cmd_112, 120 },
 	{ sizeof(boe_otm8019a_5p0_fwvga_video_on_cmd_113), boe_otm8019a_5p0_fwvga_video_on_cmd_113, 20 },
+	{ sizeof(boe_otm8019a_5p0_fwvga_video_on_cmd_114), boe_otm8019a_5p0_fwvga_video_on_cmd_114, 0 },
 };
 
 static char boe_otm8019a_5p0_fwvga_video_off_cmd_0[] = {
