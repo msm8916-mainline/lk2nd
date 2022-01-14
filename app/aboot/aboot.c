@@ -5535,10 +5535,6 @@ void aboot_init(const struct app_descriptor *app)
 		}
 	}
 
-#if WITH_LK2ND
-	lk2nd_init();
-#endif
-
 	/* Display splash screen if enabled */
 #if DISPLAY_SPLASH_SCREEN
 #if NO_ALARM_DISPLAY
@@ -5571,6 +5567,10 @@ void aboot_init(const struct app_descriptor *app)
 	dprintf(SPEW,"serial number: %s\n",sn_buf);
 
 	memset(display_panel_buf, '\0', MAX_PANEL_BUF_SIZE);
+
+#if WITH_LK2ND
+	lk2nd_init();
+#endif
 
 	/*
 	 * Check power off reason if user force reset,
