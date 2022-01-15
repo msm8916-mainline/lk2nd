@@ -17,4 +17,18 @@
 
 	model = "Huawei Y635-L01";
 	compatible = "huawei,y635-l01", "qcom,msm8916", "lk2nd,device";
+
+	panel {
+		compatible = "huawei,y635-panel";
+
+		qcom,mdss_dsi_boe_otm8019a_5p0_fwvga_video {
+			compatible = "huawei,boe-otm8019a";
+		};
+		qcom,mdss_dsi_cmi_ili9806e_5p0_fwvga_video {
+			compatible = "huawei,cmi-ili9806e";
+		};
+		qcom,mdss_dsi_tianma_otm8019a_5p0_fwvga_video {
+			compatible = "huawei,tianma-otm8019a";
+		};
+	};
 };
