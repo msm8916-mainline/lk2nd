@@ -12,9 +12,9 @@
 #include <skeleton.dtsi>
 
 / {
-        qcom,msm-id = <206 0>;
-        qcom,board-id = <8003 4>;
+	qcom,msm-id = <206 0>;
+	qcom,board-id = <8003 4>;
 
-        model = "Huawei Y635-L01";
-        compatible = "huawei,y635-l01", "qcom,msm8916", "lk2nd,device";
+	model = "Huawei Y635-L01";
+	compatible = "huawei,y635-l01", "qcom,msm8916", "lk2nd,device";
 };
