@@ -39,4 +39,14 @@
 			i2c-address = <0x25>;
 		};
 	};
+	
+	j5lte-latam {
+		model = "Samsung Galaxy J5 2015 (SM-J500M)";
+		compatible = "samsung,j5lte-latam", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "J500M*";
+		samsung,muic-reset {
+			i2c-gpio-pins = <105 106>;
+			i2c-address = <0x25>;
+		};
+	};
 };
