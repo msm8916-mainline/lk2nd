@@ -6,6 +6,8 @@
 #include <target.h>
 
 #include <dev/fbcon.h>
+#include <kernel/event.h>
+#include <kernel/thread.h>
 #include <mdp5.h>
 #include <platform.h>
 #include <platform/clock.h>
@@ -49,11 +51,42 @@ static const struct pipe pipes[] = {
 extern int check_aboot_addr_range_overlap(uintptr_t start, uint32_t size);
 extern int check_ddr_addr_range_bound(uintptr_t start, uint32_t size);
 
-static void mdp5_cmd_mode_flush(void)
+static event_t refresh_event;
+
+static int mdp5_cmd_refresh_loop(void *data)
 {
-	writel(1, MDP_CTL_BASE + CTL_START);
-	dsb();
-	mdelay(20); /* Limit to 50 Hz to prevent overlapping display updates */
+	while (true) {
+		event_wait(&refresh_event);
+		event_unsignal(&refresh_event);
+
+		writel(1, MDP_CTL_BASE + CTL_START);
+		/* Limit to 50 Hz to prevent overlapping display updates */
+		thread_sleep(20);
+	}
+
+	return 0;
+}
+
+static void mdp5_cmd_signal_refresh(void)
+{
+	event_signal(&refresh_event, false);
+}
+
+static void mdp5_cmd_start_refresh(struct fbcon_config *fb)
+{
+	thread_t *thr;
+
+	event_init(&refresh_event, false, 0);
+
+	thr = thread_create("display-refresh", &mdp5_cmd_refresh_loop,
+			    NULL, HIGH_PRIORITY, DEFAULT_STACK_SIZE);
+	if (!thr) {
+		dprintf(CRITICAL, "Failed to create display-refresh thread\n");
+		return;
+	}
+
+	thread_resume(thr);
+	fb->update_start = mdp5_cmd_signal_refresh;
 }
 
 static int mdp5_read_config(struct fbcon_config *fb)
@@ -92,7 +125,7 @@ static int mdp5_read_config(struct fbcon_config *fb)
 	fb->height = out_size >> 16;
 
 	if (cmd_mode)
-		fb->update_start = mdp5_cmd_mode_flush;
+		mdp5_cmd_start_refresh(fb);
 
 	// Validate parameters
 	if (fb->stride == 0 || fb->width == 0 || fb->height == 0) {
