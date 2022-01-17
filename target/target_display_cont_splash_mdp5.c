@@ -45,16 +45,15 @@ static const struct pipe pipes[] = {
 		.type = MDSS_MDP_PIPE_TYPE_DMA,
 	},
 };
-static struct msm_panel_info dummy_panel = {};
 
 extern int check_aboot_addr_range_overlap(uintptr_t start, uint32_t size);
 extern int check_ddr_addr_range_bound(uintptr_t start, uint32_t size);
 
 static void mdp5_cmd_mode_flush(void)
 {
-	mdp_dma_on(&dummy_panel);
+	writel(1, MDP_CTL_BASE + CTL_START);
 	dsb();
-	mdelay(20);
+	mdelay(20); /* Limit to 50 Hz to prevent overlapping display updates */
 }
 
 static int mdp5_read_config(struct fbcon_config *fb)
@@ -92,10 +91,8 @@ static int mdp5_read_config(struct fbcon_config *fb)
 	fb->width = fb->stride;
 	fb->height = out_size >> 16;
 
-	if (cmd_mode) {
-		dummy_panel.pipe_type = pipe->type;
+	if (cmd_mode)
 		fb->update_start = mdp5_cmd_mode_flush;
-	}
 
 	// Validate parameters
 	if (fb->stride == 0 || fb->width == 0 || fb->height == 0) {
