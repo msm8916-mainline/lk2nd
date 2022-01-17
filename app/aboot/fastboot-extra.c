@@ -2,10 +2,12 @@
 #include <debug.h>
 #include <dev/fbcon.h>
 #include <malloc.h>
+#include <mdp5.h>
 #include <mmc.h>
 #include <partition_parser.h>
 #include <platform.h>
 #include <platform/iomap.h>
+#include <platform/timer.h>
 #include <pm8x41_regulator.h>
 #include <reg.h>
 #include <smd.h>
@@ -148,6 +150,48 @@ static void cmd_oem_screenshot(const char *arg, void *data, unsigned sz)
 	rgb888_swap(fb->base, data + hdr, sz / sizeof(uint64_t));
 
 	fastboot_stage(data, hdr + sz*3);
+}
+
+#define MDP_PP_SYNC_CONFIG_VSYNC	0x004
+#define MDP_PP_AUTOREFRESH_CONFIG	0x030
+
+static void mdp5_enable_auto_refresh(struct fbcon_config *fb)
+{
+	uint32_t vsync_count = 19200000 / (fb->height * 60); /* 60 fps */
+	uint32_t mdss_mdp_rev = readl(MDP_HW_REV);
+	uint32_t pp0_base;
+
+	if (mdss_mdp_rev >= MDSS_MDP_HW_REV_105)
+		pp0_base = REG_MDP(0x71000);
+	else if (mdss_mdp_rev >= MDSS_MDP_HW_REV_102)
+		pp0_base = REG_MDP(0x12D00);
+	else
+		pp0_base = REG_MDP(0x21B00);
+
+	fb->update_start = NULL;
+	thread_sleep(42);
+
+	writel(vsync_count | BIT(19), pp0_base + MDP_PP_SYNC_CONFIG_VSYNC);
+	writel(BIT(31) | 1, pp0_base + MDP_PP_AUTOREFRESH_CONFIG);
+	writel(1, MDP_CTL_0_BASE + CTL_START);
+}
+
+static void cmd_oem_display_auto_refresh(const char *arg, void *data, unsigned sz)
+{
+	struct fbcon_config *fb = fbcon_display();
+
+	if (!fb) {
+		fastboot_fail("display not initialized");
+		return;
+	}
+
+	if (!fb->update_start) {
+		fastboot_fail("display auto-refresh seems already enabled?");
+		return;
+	}
+
+	mdp5_enable_auto_refresh(fb);
+	fastboot_okay("");
 }
 
 static void cmd_oem_reboot_edl(const char *arg, void *data, unsigned sz)
@@ -359,6 +403,7 @@ void fastboot_extra_register_commands(void) {
 #endif
 #if DISPLAY_SPLASH_SCREEN
 	fastboot_register("oem screenshot", cmd_oem_screenshot);
+	fastboot_register("oem display-auto-refresh", cmd_oem_display_auto_refresh);
 #endif
 
 	fastboot_register("oem reboot-edl", cmd_oem_reboot_edl);
