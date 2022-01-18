@@ -11,4 +11,3 @@
 	model = "Huawei Mediapad T1 A21L";
 	compatible = "huawei,hwt1a21l", "qcom,msm8916", "lk2nd,device";
 };
-

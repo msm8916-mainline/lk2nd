@@ -20,6 +20,6 @@
 			qcom,mdss_dsi_otm1287a_720p_video {
 				compatible = "ark,peach-otm1287a";
 			};
-        };
-    };
+		};
+	};
 };

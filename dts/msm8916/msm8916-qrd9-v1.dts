@@ -24,7 +24,7 @@
 			};
 		};
 	};
-	
+
 	google-seed {
 		model = "Android One Gen 2 SEED (Longcheer L8150)";
 		compatible = "longcheer,l8150", "qcom,msm8916", "lk2nd,device";
