@@ -8,3 +8,6 @@ DEFINES += WITH_DEBUG_LOG_BUF=1
 
 APPSBOOTHEADER: $(OUTBOOTIMG) $(OUTODINTAR)
 ANDROID_BOOT_BASE := 0x00000000
+
+# Memory usually reserved for RMTFS, should be fine for early SMP bring-up
+SMP_SPIN_TABLE_BASE := 0x0fd80000

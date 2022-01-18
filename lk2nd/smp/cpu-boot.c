@@ -100,3 +100,72 @@ void qcom_power_up_arm_cortex(uint32_t mpidr, uint32_t base)
 	/* Give CPU some time to boot */
 	udelay(100);
 }
+
+/*
+ * The MSM8974 CPU boot sequence is adapted from the Linux kernel:
+ * https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/arch/arm/mach-qcom/platsmp.c
+ *  Copyright (C) 2002 ARM Ltd.
+ *  All Rights Reserved
+ *  Copyright (c) 2010, Code Aurora Forum. All rights reserved.
+ *  Copyright (c) 2014 The Linux Foundation. All rights reserved.
+ */
+#define APC_PWR_GATE_CTL_LDO_PWR_DWN	(0x3f << 16)
+#define APC_PWR_GATE_CTL_LDO_BYP	(0x3f << 8)
+#define APC_PWR_GATE_CTL_BHS_SEG	(0x3f << 1)
+
+#define APCS_SAW2_2_VCTL		0x1c
+
+void qcom_power_up_kpssv2(uint32_t mpidr, uint32_t reg, uint32_t l2_saw_base)
+{
+	uint32_t reg_val;
+
+	if (mpidr == read_mpidr()) {
+		dprintf(INFO, "Skipping boot of current CPU (%d)\n", mpidr);
+		return;
+	}
+
+	/* Turn on the BHS, turn off LDO Bypass and power down LDO */
+	reg_val = APC_PWR_GATE_CTL_GHDS_EN | APC_PWR_GATE_CTL_GHDS_CNT(64) |
+		  APC_PWR_GATE_CTL_LDO_PWR_DWN;
+	writel(reg_val, reg + APC_PWR_GATE_CTL);
+	dsb();
+	/* wait for the BHS to settle */
+	udelay(1);
+
+	/* Turn on BHS segments */
+	reg_val |= APC_PWR_GATE_CTL_BHS_SEG;
+	writel(reg_val, reg + APC_PWR_GATE_CTL);
+	dsb();
+	/* wait for the BHS to settle */
+	udelay(1);
+
+	/* Finally turn on the bypass so that BHS supplies power */
+	reg_val |= APC_PWR_GATE_CTL_LDO_BYP;
+	writel(reg_val, reg + APC_PWR_GATE_CTL);
+
+	/* enable max phases */
+	writel(0x10003, l2_saw_base + APCS_SAW2_2_VCTL);
+	dsb();
+	udelay(50);
+
+	reg_val = CPU_PWR_CTL_COREPOR_RST | CPU_PWR_CTL_CLAMP;
+	writel(reg_val, reg + CPU_PWR_CTL);
+	dsb();
+	udelay(2);
+
+	reg_val &= ~CPU_PWR_CTL_CLAMP;
+	writel(reg_val, reg + CPU_PWR_CTL);
+	dsb();
+	udelay(2);
+
+	reg_val &= ~CPU_PWR_CTL_COREPOR_RST;
+	writel(reg_val, reg + CPU_PWR_CTL);
+	dsb();
+
+	reg_val |= CPU_PWR_CTL_CORE_PWRD_UP;
+	writel(reg_val, reg + CPU_PWR_CTL);
+	dsb();
+
+	/* Give CPU some time to boot */
+	udelay(100);
+}

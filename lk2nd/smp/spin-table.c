@@ -45,7 +45,7 @@ static void smp_spin_table_setup_cpu(struct smp_spin_table *table,
 {
 	const uint32_t *val;
 	int node, len, ret;
-	uint32_t cpu;
+	uint32_t cpu, base;
 
 	val = fdt_getprop(fdt, cpu_node, "reg", &len);
 	if (len != sizeof(*val)) {
@@ -81,8 +81,32 @@ static void smp_spin_table_setup_cpu(struct smp_spin_table *table,
 		dprintf(CRITICAL, "Cannot read reg property of qcom,acc node: %d\n", len);
 		return;
 	}
+	base = fdt32_to_cpu(*val);
 
-	qcom_power_up_arm_cortex(cpu, fdt32_to_cpu(*val));
+#if TARGET_MSM8916 || TARGET_MSM8226
+	qcom_power_up_arm_cortex(cpu, base);
+#elif TARGET_MSM8974
+	node = lkfdt_lookup_phandle(fdt, cpu_node, "next-level-cache");
+	if (node < 0) {
+		dprintf(CRITICAL, "Cannot find next-level-cache: %d\n", node);
+		return;
+	}
+
+	node = lkfdt_lookup_phandle(fdt, node, "qcom,saw");
+	if (node < 0) {
+		dprintf(CRITICAL, "Cannot find L2 SAW node: %d\n", node);
+		return;
+	}
+
+	val = fdt_getprop(fdt, node, "reg", &len);
+	if (len < sizeof(*val)) {
+		dprintf(CRITICAL, "Cannot read reg property of L2 qcom,saw node: %d\n", len);
+		return;
+	}
+	qcom_power_up_kpssv2(cpu, base, fdt32_to_cpu(*val));
+#else
+#error Unsupported target for CPU spin-table!
+#endif
 
 	/* Enable the SAW/SPM node for CPU idle functionality */
 	node = lkfdt_lookup_phandle(fdt, cpu_node, "qcom,saw");
