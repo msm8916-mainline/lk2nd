@@ -226,18 +226,23 @@ static void cmd_oem_dump_cpuid(const char *arg, void *data, unsigned sz)
 {
 	fastboot_info_cpuid_ext(ID_PFR0, "c1, 0");
 	fastboot_info_cpuid_ext(ID_PFR1, "c1, 1");
+	fastboot_info_cpuid_ext(ID_PFR2, "c3, 4");
 	fastboot_info_cpuid_ext(ID_DFR0, "c1, 2");
+	fastboot_info_cpuid_ext(ID_DFR1, "c3, 5");
 	fastboot_info_cpuid_ext(ID_AFR0, "c1, 3");
 	fastboot_info_cpuid_ext(ID_MMFR0, "c1, 4");
 	fastboot_info_cpuid_ext(ID_MMFR1, "c1, 5");
 	fastboot_info_cpuid_ext(ID_MMFR2, "c1, 6");
 	fastboot_info_cpuid_ext(ID_MMFR3, "c1, 7");
+	fastboot_info_cpuid_ext(ID_MMFR4, "c2, 6");
+	fastboot_info_cpuid_ext(ID_MMFR5, "c3, 6");
 	fastboot_info_cpuid_ext(ID_ISAR0, "c2, 0");
 	fastboot_info_cpuid_ext(ID_ISAR1, "c2, 1");
 	fastboot_info_cpuid_ext(ID_ISAR2, "c2, 2");
 	fastboot_info_cpuid_ext(ID_ISAR3, "c2, 3");
 	fastboot_info_cpuid_ext(ID_ISAR4, "c2, 4");
 	fastboot_info_cpuid_ext(ID_ISAR5, "c2, 5");
+	fastboot_info_cpuid_ext(ID_ISAR6, "c2, 7");
 	fastboot_okay("");
 }
 
