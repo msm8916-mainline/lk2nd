@@ -2,4 +2,5 @@
 LOCAL_DIR := $(GET_LOCAL_DIR)
 
 OBJS += \
+	$(LOCAL_DIR)/cpuid.o \
 	$(LOCAL_DIR)/register.o \
