@@ -205,6 +205,42 @@ static void cmd_oem_reboot_edl(const char *arg, void *data, unsigned sz)
 	reboot_device(DLOAD);
 }
 
+/* Taken from Linux kernel: arch/arm/include/asm/cputype.h */
+#define read_cpuid_ext(ext_reg)						\
+	({								\
+		unsigned int __val;					\
+		__asm__("mrc	p15, 0, %0, c0, " ext_reg		\
+		    : "=r" (__val));					\
+		__val;							\
+	})
+
+#define fastboot_info_cpuid_ext(name, ext_reg)				\
+	{								\
+		char response[MAX_RSP_SIZE];				\
+		snprintf(response, sizeof(response), #name " = %#x",	\
+			 read_cpuid_ext(ext_reg));			\
+		fastboot_info(response);				\
+	}
+
+static void cmd_oem_dump_cpuid(const char *arg, void *data, unsigned sz)
+{
+	fastboot_info_cpuid_ext(ID_PFR0, "c1, 0");
+	fastboot_info_cpuid_ext(ID_PFR1, "c1, 1");
+	fastboot_info_cpuid_ext(ID_DFR0, "c1, 2");
+	fastboot_info_cpuid_ext(ID_AFR0, "c1, 3");
+	fastboot_info_cpuid_ext(ID_MMFR0, "c1, 4");
+	fastboot_info_cpuid_ext(ID_MMFR1, "c1, 5");
+	fastboot_info_cpuid_ext(ID_MMFR2, "c1, 6");
+	fastboot_info_cpuid_ext(ID_MMFR3, "c1, 7");
+	fastboot_info_cpuid_ext(ID_ISAR0, "c2, 0");
+	fastboot_info_cpuid_ext(ID_ISAR1, "c2, 1");
+	fastboot_info_cpuid_ext(ID_ISAR2, "c2, 2");
+	fastboot_info_cpuid_ext(ID_ISAR3, "c2, 3");
+	fastboot_info_cpuid_ext(ID_ISAR4, "c2, 4");
+	fastboot_info_cpuid_ext(ID_ISAR5, "c2, 5");
+	fastboot_okay("");
+}
+
 static void cmd_oem_dump_regulators(const char *arg, void *data, unsigned sz)
 {
 	char response[MAX_RSP_SIZE];
@@ -407,6 +443,7 @@ void fastboot_extra_register_commands(void) {
 #endif
 
 	fastboot_register("oem reboot-edl", cmd_oem_reboot_edl);
+	fastboot_register("oem dump-cpuid", cmd_oem_dump_cpuid);
 	fastboot_register("oem dump-regulators", cmd_oem_dump_regulators);
 	fastboot_register("oem dump-smd-rpm", cmd_oem_dump_smd_rpm);
 
