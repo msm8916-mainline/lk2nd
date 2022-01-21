@@ -35,6 +35,7 @@ struct lk2nd_device {
 	const char *cmdline;
 
 	const char *device;
+	const char *compatible;
 	const char *bootloader;
 	const char *serialno;
 	const char *carrier;

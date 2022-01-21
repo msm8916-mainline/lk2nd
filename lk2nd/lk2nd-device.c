@@ -84,14 +84,17 @@ static void parse_boot_args(void)
 	const char *panel_name = NULL;
 
 	while (arg) {
-		const char *aboot = strpresuf(arg, "androidboot.");
+		const char *suffix;
 
-		if (aboot) {
-			parse_arg(aboot, "device=", &lk2nd_dev.device);
-			parse_arg(aboot, "bootloader=", &lk2nd_dev.bootloader);
-			parse_arg(aboot, "serialno=", &lk2nd_dev.serialno);
-			parse_arg(aboot, "carrier=", &lk2nd_dev.carrier);
-			parse_arg(aboot, "radio=", &lk2nd_dev.radio);
+		if (suffix = strpresuf(arg, "androidboot.")) {
+			parse_arg(suffix, "device=", &lk2nd_dev.device);
+			parse_arg(suffix, "bootloader=", &lk2nd_dev.bootloader);
+			parse_arg(suffix, "serialno=", &lk2nd_dev.serialno);
+			parse_arg(suffix, "carrier=", &lk2nd_dev.carrier);
+			parse_arg(suffix, "radio=", &lk2nd_dev.radio);
+		} else if (suffix = strpresuf(arg, "lk2nd.")) {
+			parse_arg(suffix, "compatible=", &lk2nd_dev.compatible);
+			parse_arg(suffix, "panel=", &lk2nd_dev.panel.name);
 		} else {
 			parse_arg(arg, "mdss_mdp.panel=", &panel_name);
 		}
@@ -156,17 +159,13 @@ static bool match_panel(const void *fdt, int offset, const char *panel_name)
 	return fdt_subnode_offset(fdt, offset, panel_name) >= 0;
 }
 
-#ifndef LK1ST_COMPATIBLE
-#define LK1ST_COMPATIBLE	NULL
-#endif
-
 static bool lk2nd_device_match(const void *fdt, int offset)
 {
 	int len;
 	const char *val;
 
-	if (LK1ST_COMPATIBLE)
-		return fdt_node_check_compatible(fdt, offset, LK1ST_COMPATIBLE) == 0;
+	if (lk2nd_dev.compatible)
+		return fdt_node_check_compatible(fdt, offset, lk2nd_dev.compatible) == 0;
 
 	val = fdt_getprop(fdt, offset, "lk2nd,match-bootloader", &len);
 	if (val && len > 0) {
@@ -383,6 +382,10 @@ static void lk2nd_fdt_parse(void)
 void lk2nd_init(void)
 {
 	dprintf(INFO, "### Ohai, this is lk2nd (or lk1st?) ###\n");
+
+#ifdef LK1ST_COMPATIBLE
+	lk2nd_dev.compatible = LK1ST_COMPATIBLE;
+#endif
 
 	dump_board();
 	lk2nd_fdt_parse();
