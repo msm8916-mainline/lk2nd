@@ -30,5 +30,6 @@
 #define GPIO_ACTIVE_HIGH (1 << 8)
 
 #define LK2ND_KEY_RESIN (2 << 16) 0
+#define LK2ND_KEY_PWR (3 << 16) 0
 
 #endif

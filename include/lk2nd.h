@@ -22,6 +22,7 @@ struct lk2nd_keymap {
 		KEY_GPIO = 0,
 		KEY_PM_GPIO = 1,
 		KEY_RESIN = 2,
+		KEY_PWR = 3,
 	} type;
 	uint8_t pull;
 	uint8_t active;
