@@ -3,6 +3,7 @@
 /dts-v1/;
 
 #include <skeleton.dtsi>
+#include <lk2nd.h>
 
 / {
 	// This is used by the bootloader to find the correct DTB
@@ -11,4 +12,6 @@
 	qcom,board-id = <8 4>;
 
 	model = "Huawei Watch";
+
+	lk2nd,keys = <KEY_HOME LK2ND_KEY_PWR>;
 };
