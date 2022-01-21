@@ -107,6 +107,41 @@ static void parse_boot_args(void)
 		lk2nd_dev.panel.name = parse_panel(panel_name);
 }
 
+static char *strcpy_check_end(char *dst, const char *end, const char *src)
+{
+	for (; *src && dst < end; src++, dst++)
+		*dst = *src;
+	return dst;
+}
+
+#define LK1ST_MAX_CMDLINE_SIZE	256
+
+char *genlk1st2lk2ndcmdline(void)
+{
+	char *cmdline = malloc(LK1ST_MAX_CMDLINE_SIZE);
+	char *dst = cmdline;
+	char *end = cmdline + LK1ST_MAX_CMDLINE_SIZE - 1; /* null terminator */
+
+	ASSERT(cmdline);
+
+	if (lk2nd_dev.compatible) {
+		dst = strcpy_check_end(dst, end, "lk2nd.compatible=");
+		dst = strcpy_check_end(dst, end, lk2nd_dev.compatible);
+		*dst++ = ' ';
+	}
+	if (lk2nd_dev.panel.name) {
+		dst = strcpy_check_end(dst, end, "lk2nd.panel=");
+		dst = strcpy_check_end(dst, end, lk2nd_dev.panel.name);
+		*dst++ = ' ';
+	}
+
+	/* Replace last space with null terminator */
+	if (dst > cmdline)
+		*--dst = '\0';
+
+	return cmdline;
+}
+
 static const char *fdt_copyprop_str(const void *fdt, int offset, const char *prop)
 {
 	int len;
