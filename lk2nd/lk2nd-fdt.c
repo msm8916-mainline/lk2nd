@@ -3,7 +3,7 @@
 #include <lk2nd.h>
 #include <libfdt.h>
 
-bool fdt_node_is_available(const void *fdt, int node)
+bool lkfdt_node_is_available(const void *fdt, int node)
 {
 	const char *prop;
 	int len;

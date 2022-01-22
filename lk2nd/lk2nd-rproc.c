@@ -137,7 +137,7 @@ static void lk2nd_audio_reroute_to_lpass(void *fdt, int sound, uint32_t lpass)
 			to_nop = -FDT_ERR_NOTFOUND;
 		}
 
-		if (!fdt_node_is_available(fdt, node))
+		if (!lkfdt_node_is_available(fdt, node))
 			continue; /* meh */
 
 		dai = fdt_subnode_offset(fdt, node, "codec");
@@ -182,11 +182,11 @@ static void lk2nd_audio_enable_lpass(void *fdt, int lpass, int sound)
 		return;
 	}
 
-	if (!fdt_node_is_available(fdt, sound)) {
+	if (!lkfdt_node_is_available(fdt, sound)) {
 		dprintf(INFO, "lk2nd-rproc: Sound is not enabled in fdt\n");
 		return;
 	}
-	if (fdt_node_is_available(fdt, lpass)) {
+	if (lkfdt_node_is_available(fdt, lpass)) {
 		dprintf(INFO, "lk2nd-rproc: LPASS already enabled in fdt\n");
 		return;
 	}

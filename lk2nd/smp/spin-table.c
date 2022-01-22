@@ -26,7 +26,7 @@ static uint8_t smp_spin_table_a32[] = {
 	0x1e, 0xff, 0x2f, 0xe1,	/* bx	lr */
 };
 
-static int fdt_lookup_phandle(void *fdt, int node, const char *prop_name)
+static int lkfdt_lookup_phandle(void *fdt, int node, const char *prop_name)
 {
 	const uint32_t *phandle;
 	int len;
@@ -68,7 +68,7 @@ static void smp_spin_table_setup_cpu(struct smp_spin_table *table,
 		return;
 	}
 
-	node = fdt_lookup_phandle(fdt, cpu_node, "qcom,acc");
+	node = lkfdt_lookup_phandle(fdt, cpu_node, "qcom,acc");
 	if (node < 0) {
 		dprintf(CRITICAL, "Cannot find qcom,acc node: %d\n", node);
 		return;
@@ -82,7 +82,7 @@ static void smp_spin_table_setup_cpu(struct smp_spin_table *table,
 
 	qcom_power_up_arm_cortex(cpu, fdt32_to_cpu(*val));
 
-	node = fdt_lookup_phandle(fdt, cpu_node, "qcom,saw");
+	node = lkfdt_lookup_phandle(fdt, cpu_node, "qcom,saw");
 	if (node < 0) {
 		dprintf(CRITICAL, "Cannot find qcom,saw node: %d\n", node);
 		return;
@@ -152,7 +152,7 @@ void smp_spin_table_setup(struct smp_spin_table *table, void *fdt, bool arm64)
 
 	offset = fdt_path_offset(fdt, "/psci");
 	if (offset >= 0) {
-		if (!fdt_node_is_available(fdt, offset)) {
+		if (!lkfdt_node_is_available(fdt, offset)) {
 			dprintf(INFO, "/psci node is already disabled in device tree\n");
 			return; // Kernel works without PSCI?
 		}

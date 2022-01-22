@@ -142,7 +142,7 @@ char *genlk1st2lk2ndcmdline(void)
 	return cmdline;
 }
 
-static const char *fdt_copyprop_str(const void *fdt, int offset, const char *prop)
+static const char *lkfdt_copyprop_str(const void *fdt, int offset, const char *prop)
 {
 	int len;
 	const char *val;
@@ -241,7 +241,7 @@ static int lk2nd_find_device_offset(const void *fdt)
 	return offset;
 }
 
-static const char *fdt_getprop_str(const void *fdt, int offset, const char *prop, int *len)
+static const char *lkfdt_getprop_str(const void *fdt, int offset, const char *prop, int *len)
 {
 	const char *val;
 
@@ -262,7 +262,7 @@ static void lk2nd_parse_panels(const void *fdt, int offset)
 	if (offset < 0)
 		return;
 
-	old = fdt_getprop_str(fdt, offset, "compatible", &old_len);
+	old = lkfdt_getprop_str(fdt, offset, "compatible", &old_len);
 	if (!old || old_len < 1)
 		return;
 
@@ -272,7 +272,7 @@ static void lk2nd_parse_panels(const void *fdt, int offset)
 		return;
 	}
 
-	new = fdt_getprop_str(fdt, offset, "compatible", &new_len);
+	new = lkfdt_getprop_str(fdt, offset, "compatible", &new_len);
 	if (!new || new_len < 1)
 		return;
 
@@ -336,7 +336,7 @@ static void lk2nd_parse_device_node(const void *fdt)
 	lk2nd_motorola_smem_write_unit_info(fdt, offset);
 	lk2nd_smd_rpm_hack_opening(fdt, offset);
 
-	lk2nd_dev.model = fdt_copyprop_str(fdt, offset, "model");
+	lk2nd_dev.model = lkfdt_copyprop_str(fdt, offset, "model");
 	if (lk2nd_dev.model)
 		dprintf(INFO, "Device model: %s\n", lk2nd_dev.model);
 	else

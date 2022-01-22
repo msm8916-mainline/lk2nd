@@ -15,7 +15,7 @@
 #define SMEM_KERNEL_RESERVE      SMEM_ID_VENDOR0
 #define SMEM_KERNEL_RESERVE_SIZE 1024
 
-static void fdt_getprop_u32(const void *fdt, int offset, const char *name, uint32_t *val) {
+static void lkfdt_getprop_u32(const void *fdt, int offset, const char *name, uint32_t *val) {
 	int len;
 	const uint32_t *prop = fdt_getprop(fdt, offset, name, &len);
 	if (len == sizeof(*val))
@@ -56,10 +56,10 @@ void lk2nd_motorola_smem_write_unit_info(const void *fdt, int offset)
 		strlcpy(unit_info->radio_str, lk2nd_dev.radio, RADIO_MAX_LEN);
 	}
 
-	fdt_getprop_u32(fdt, chosen_offset, "linux,hwrev", &unit_info->system_rev);
-	fdt_getprop_u32(fdt, chosen_offset, "linux,seriallow", &unit_info->system_serial_low);
-	fdt_getprop_u32(fdt, chosen_offset, "linux,serialhigh", &unit_info->system_serial_high);
-	fdt_getprop_u32(fdt, chosen_offset, "mmi,powerup_reason", &unit_info->powerup_reason);
+	lkfdt_getprop_u32(fdt, chosen_offset, "linux,hwrev", &unit_info->system_rev);
+	lkfdt_getprop_u32(fdt, chosen_offset, "linux,seriallow", &unit_info->system_serial_low);
+	lkfdt_getprop_u32(fdt, chosen_offset, "linux,serialhigh", &unit_info->system_serial_high);
+	lkfdt_getprop_u32(fdt, chosen_offset, "mmi,powerup_reason", &unit_info->powerup_reason);
 
 	baseband = fdt_getprop(fdt, chosen_offset, "mmi,baseband", &len);
 	if (len >= 0)
