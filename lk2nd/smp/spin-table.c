@@ -178,11 +178,6 @@ void smp_spin_table_setup(struct smp_spin_table *table, void *fdt,
 		return;
 	}
 
-	if (fdt_subnode_offset(fdt, offset, "cpu-map") >= 0) {
-		dprintf(CRITICAL, "Multiple CPU clusters are not supported yet\n");
-		return;
-	}
-
 	/*
 	 * Look for any CPU node and see if "psci" (or "spin-table" directly)
 	 * is requested as "enable-method". At this point we already know that
