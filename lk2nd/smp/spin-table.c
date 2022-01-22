@@ -141,7 +141,8 @@ static void smp_spin_table_setup_idle_states(void *fdt, int node)
  */
 extern void qhypstub_set_state_aarch64(void);
 
-void smp_spin_table_setup(struct smp_spin_table *table, void *fdt, bool arm64)
+void smp_spin_table_setup(struct smp_spin_table *table, void *fdt,
+			  bool arm64, bool force)
 {
 	int offset, node, ret;
 
@@ -152,7 +153,12 @@ void smp_spin_table_setup(struct smp_spin_table *table, void *fdt, bool arm64)
 		if (psci_version != PSCI_RET_NOT_SUPPORTED) {
 			dprintf(INFO, "PSCI v%d.%d detected, no need for SMP spin table\n",
 				PSCI_VERSION_MAJOR(psci_version), PSCI_VERSION_MINOR(psci_version));
-			return;
+			if (!force)
+				return;
+
+			dprintf(CRITICAL,
+				"WARNING: Using spin-table when PSCI is supported bypasses "
+				"the TZ firmware and might cause strange issues!\n");
 		}
 	} else if (arm64) {
 		dprintf(CRITICAL, "Cannot boot ARM64 with 32-bit TZ :(\n");
@@ -190,7 +196,7 @@ void smp_spin_table_setup(struct smp_spin_table *table, void *fdt, bool arm64)
 		return;
 	}
 
-	if (lkfdt_prop_strcmp(fdt, node, "enable-method", "psci") &&
+	if (!force && lkfdt_prop_strcmp(fdt, node, "enable-method", "psci") &&
 	    lkfdt_prop_strcmp(fdt, node, "enable-method", "spin-table")) {
 		dprintf(INFO, "Custom CPU enable-method detected, no need for SMP spin table\n");
 		return;

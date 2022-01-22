@@ -66,7 +66,7 @@ void lk2nd_update_device_tree(void *fdt, const char *cmdline, bool arm64);
 void lk2nd_rproc_update_dev_tree(void *fdt);
 
 struct smp_spin_table;
-void smp_spin_table_setup(struct smp_spin_table *table, void *fdt, bool arm64);
+void smp_spin_table_setup(struct smp_spin_table *table, void *fdt, bool arm64, bool force);
 
 int lkfdt_prop_strcmp(const void *fdt, int node, const char *prop, const char *cmp);
 bool lkfdt_node_is_available(const void *fdt, int node);
