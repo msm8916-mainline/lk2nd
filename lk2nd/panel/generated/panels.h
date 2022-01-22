@@ -5,6 +5,7 @@
 
 #include "lk_panel_boe_otm8019a_5p0_fwvga_video.h"
 #include "lk_panel_r61308_720p_video.h"
+#include "lk_panel_r69431_720p_video.h"
 #include "lk_panel_yushun_nt35520_720p_cmd.h"
 
 #endif /* _LK2ND_GENERATED_PANELS_H_ */
