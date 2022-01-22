@@ -160,19 +160,10 @@ void smp_spin_table_setup(struct smp_spin_table *table, void *fdt, bool arm64)
 	}
 
 	offset = fdt_path_offset(fdt, "/psci");
-	if (offset >= 0) {
-		if (!lkfdt_node_is_available(fdt, offset)) {
-			dprintf(INFO, "/psci node is already disabled in device tree\n");
-			return; // Kernel works without PSCI?
-		}
-
+	if (offset >= 0 && lkfdt_node_is_available(fdt, offset)) {
 		ret = fdt_setprop_string(fdt, offset, "status", "disabled");
 		if (ret)
 			dprintf(CRITICAL, "Failed to set psci to status = \"disabled\": %d\n", ret);
-	} else {
-		dprintf(INFO, "Cannot find /psci node: %d\n", offset);
-		// Perhaps SoC does not use PSCI at all, so /psci is missing
-		// (e.g. MSM8939 has no known public PSCI firmware)
 	}
 
 	offset = fdt_path_offset(fdt, "/cpus");
@@ -183,6 +174,25 @@ void smp_spin_table_setup(struct smp_spin_table *table, void *fdt, bool arm64)
 
 	if (fdt_subnode_offset(fdt, offset, "cpu-map") >= 0) {
 		dprintf(CRITICAL, "Multiple CPU clusters are not supported yet\n");
+		return;
+	}
+
+	/*
+	 * Look for any CPU node and see if "psci" (or "spin-table" directly)
+	 * is requested as "enable-method". At this point we already know that
+	 * PSCI is unsupported so we replace it with "spin-table" if necessary.
+	 *
+	 * NOTE: This assumes that all CPUs have the same enable-method!
+	 */
+	node = fdt_subnode_offset(fdt, offset, "cpu");
+	if (node < 0) {
+		dprintf(CRITICAL, "Cannot find any CPU node: %d\n", ret);
+		return;
+	}
+
+	if (lkfdt_prop_strcmp(fdt, node, "enable-method", "psci") &&
+	    lkfdt_prop_strcmp(fdt, node, "enable-method", "spin-table")) {
+		dprintf(INFO, "Custom CPU enable-method detected, no need for SMP spin table\n");
 		return;
 	}
 
