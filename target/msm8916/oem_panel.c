@@ -523,9 +523,6 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 		}
 	}
 
-#ifdef LK1ST_PANEL
-	panel_id = LK1ST_PANEL;
-#else
 	switch (hw_id) {
 	case HW_PLATFORM_MTP:
 		if (platform_is_msm8939() &&
@@ -628,23 +625,8 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 			hw_id);
 		return PANEL_TYPE_UNKNOWN;
 	}
-#endif
 
 panel_init:
-	if (platform_is_apq8016() && (hw_id == HW_PLATFORM_SBC)) {
-		/* Set Switch GPIO to DSI2HDMI mode */
-		target_set_switch_gpio(1);
-		/* ADV7533 DSI to HDMI Bridge Chip Connected */
-		mipi_dsi_i2c_device_init();
-		/* Read ADV Chip ID */
-		if (!mipi_dsi_i2c_read_byte(ADV7533_MAIN, 0x00, &rev)) {
-			dprintf(INFO, "ADV7533 Rev ID: 0x%x\n",rev);
-		} else {
-			dprintf(CRITICAL, "error reading Rev ID from bridge chip\n");
-			return PANEL_TYPE_UNKNOWN;
-		}
-	}
-
 	/*
 	 * Update all data structures after 'panel_init' label. Only panel
 	 * selection is supposed to happen before that.

@@ -184,11 +184,9 @@ uint32_t target_volume_down()
 	return pm8x41_resin_status();
 }
 
-#if WITH_LK2ND
-extern void target_keystatus();
-#else
 static void target_keystatus()
 {
+#if !WITH_LK2ND
 	keys_init();
 
 	if(target_volume_down())
@@ -196,8 +194,8 @@ static void target_keystatus()
 
 	if(target_volume_up())
 		keys_post_event(KEY_VOLUMEUP, 1);
-}
 #endif
+}
 
 /* Set up params for h/w CRYPTO_ENGINE. */
 void target_crypto_init_params()
@@ -516,6 +514,9 @@ int target_cont_splash_screen()
 {
         uint8_t splash_screen = 0;
         if(!splash_override) {
+#if WITH_LK2ND
+                splash_screen = 1;
+#else
                 switch(board_hardware_id())
                 {
                         case HW_PLATFORM_MTP:
@@ -528,6 +529,7 @@ int target_cont_splash_screen()
                                 dprintf(SPEW, "Target_cont_splash=0\n");
                                 splash_screen = 0;
                 }
+#endif
         }
         return splash_screen;
 }

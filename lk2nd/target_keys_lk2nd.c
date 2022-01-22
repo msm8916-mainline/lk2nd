@@ -94,7 +94,7 @@ int target_volume_down() {
 	return target_key_pressed(KEY_VOLUMEDOWN);
 }
 
-void target_keystatus()
+void lk2nd_target_keystatus()
 {
 	keys_init();
 	target_init_keys();
@@ -108,5 +108,3 @@ void target_keystatus()
 	if (target_key_pressed(KEY_HOME))
 		keys_post_event(KEY_HOME, 1);
 }
-
-

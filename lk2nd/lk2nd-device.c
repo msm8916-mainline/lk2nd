@@ -81,24 +81,65 @@ static void parse_boot_args(void)
 	char *saveptr;
 	char *args = strdup(lk2nd_dev.cmdline);
 	char *arg = strtok_r(args, " ", &saveptr);
-	while (arg) {
-		const char *aboot = strpresuf(arg, "androidboot.");
+	const char *panel_name = NULL;
 
-		if (aboot) {
-			parse_arg(aboot, "device=", &lk2nd_dev.device);
-			parse_arg(aboot, "bootloader=", &lk2nd_dev.bootloader);
-			parse_arg(aboot, "serialno=", &lk2nd_dev.serialno);
-			parse_arg(aboot, "carrier=", &lk2nd_dev.carrier);
-			parse_arg(aboot, "radio=", &lk2nd_dev.radio);
+	while (arg) {
+		const char *suffix;
+
+		if (suffix = strpresuf(arg, "androidboot.")) {
+			parse_arg(suffix, "device=", &lk2nd_dev.device);
+			parse_arg(suffix, "bootloader=", &lk2nd_dev.bootloader);
+			parse_arg(suffix, "serialno=", &lk2nd_dev.serialno);
+			parse_arg(suffix, "carrier=", &lk2nd_dev.carrier);
+			parse_arg(suffix, "radio=", &lk2nd_dev.radio);
+		} else if (suffix = strpresuf(arg, "lk2nd.")) {
+			parse_arg(suffix, "compatible=", &lk2nd_dev.compatible);
+			parse_arg(suffix, "panel=", &lk2nd_dev.panel.name);
 		} else {
-			parse_arg(arg, "mdss_mdp.panel=", &lk2nd_dev.panel.name);
+			parse_arg(arg, "mdss_mdp.panel=", &panel_name);
 		}
 
 		arg = strtok_r(NULL, " ", &saveptr);
 	}
 	free(args);
 
-	lk2nd_dev.panel.name = parse_panel(lk2nd_dev.panel.name);
+	if (!lk2nd_dev.panel.name)
+		lk2nd_dev.panel.name = parse_panel(panel_name);
+}
+
+static char *strcpy_check_end(char *dst, const char *end, const char *src)
+{
+	for (; *src && dst < end; src++, dst++)
+		*dst = *src;
+	return dst;
+}
+
+#define LK1ST_MAX_CMDLINE_SIZE	256
+
+char *genlk1st2lk2ndcmdline(void)
+{
+	char *cmdline = malloc(LK1ST_MAX_CMDLINE_SIZE);
+	char *dst = cmdline;
+	char *end = cmdline + LK1ST_MAX_CMDLINE_SIZE - 1; /* null terminator */
+
+	ASSERT(cmdline);
+
+	if (lk2nd_dev.compatible) {
+		dst = strcpy_check_end(dst, end, "lk2nd.compatible=");
+		dst = strcpy_check_end(dst, end, lk2nd_dev.compatible);
+		*dst++ = ' ';
+	}
+	if (lk2nd_dev.panel.name) {
+		dst = strcpy_check_end(dst, end, "lk2nd.panel=");
+		dst = strcpy_check_end(dst, end, lk2nd_dev.panel.name);
+		*dst++ = ' ';
+	}
+
+	/* Replace last space with null terminator */
+	if (dst > cmdline)
+		*--dst = '\0';
+
+	return cmdline;
 }
 
 static const char *fdt_copyprop_str(const void *fdt, int offset, const char *prop)
@@ -157,6 +198,9 @@ static bool lk2nd_device_match(const void *fdt, int offset)
 {
 	int len;
 	const char *val;
+
+	if (lk2nd_dev.compatible)
+		return fdt_node_check_compatible(fdt, offset, lk2nd_dev.compatible) == 0;
 
 	val = fdt_getprop(fdt, offset, "lk2nd,match-bootloader", &len);
 	if (val && len > 0) {
@@ -313,12 +357,25 @@ static void lk2nd_parse_device_node(const void *fdt)
 #endif
 }
 
+#ifdef LK1ST_DTB
+INCFILE(lk1st_dtb, lk1st_dtb_size, LK1ST_DTB);
+#endif
+
+static void *lk2nd_get_fdt(void)
+{
+#ifdef LK1ST_DTB
+	return lk1st_dtb;
+#else
+	return (void*) lk_boot_args[2];
+#endif
+}
+
 int lk2nd_fdt_parse_early_uart(void)
 {
 	int offset, len;
 	const uint32_t *val;
+	void *fdt = lk2nd_get_fdt();
 
-	void *fdt = (void*) lk_boot_args[2];
 	if (!fdt || dev_tree_check_header(fdt))
 		return -1; // Will be reported later again. Hopefully.
 
@@ -335,7 +392,7 @@ int lk2nd_fdt_parse_early_uart(void)
 
 static void lk2nd_fdt_parse(void)
 {
-	void *fdt = (void*) lk_boot_args[2];
+	void *fdt = lk2nd_get_fdt();
 	if (!fdt)
 		return;
 
@@ -359,8 +416,15 @@ static void lk2nd_fdt_parse(void)
 
 void lk2nd_init(void)
 {
+	dprintf(INFO, "### Ohai, this is lk2nd (or lk1st?) ###\n");
+
+#ifdef LK1ST_COMPATIBLE
+	lk2nd_dev.compatible = LK1ST_COMPATIBLE;
+#endif
+
 	dump_board();
 	lk2nd_fdt_parse();
+	lk2nd_target_keystatus();
 }
 
 static void lk2nd_update_panel_compatible(void *fdt)
@@ -384,7 +448,7 @@ static void lk2nd_update_panel_compatible(void *fdt)
 void lk2nd_update_device_tree(void *fdt, const char *cmdline, bool arm64)
 {
 	/* Don't touch lk2nd/downstream dtb */
-	if (strstr(cmdline, "lk2nd"))
+	if (strstr(cmdline, "androidboot.hardware=qcom") || strstr(cmdline, "lk2nd"))
 		return;
 
 	if (lk2nd_dev.panel.compatible)

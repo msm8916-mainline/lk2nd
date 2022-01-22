@@ -1,11 +1,10 @@
 LOCAL_DIR := $(GET_LOCAL_DIR)
 
+include $(LOCAL_DIR)/lk2nd-defines.mk
 include $(LOCAL_DIR)/msm8974.mk
-include $(LOCAL_DIR)/lk2nd-common.mk
+include $(LOCAL_DIR)/lk2nd-base.mk
 
 DEFINES += WITH_DEBUG_LOG_BUF=1
-
-LK2ND_KEYMAP := 1
 
 APPSBOOTHEADER: $(OUTBOOTIMG) $(OUTODINTAR)
 ANDROID_BOOT_BASE := 0x00000000

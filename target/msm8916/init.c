@@ -207,11 +207,9 @@ uint32_t target_volume_down()
 	return pm8x41_resin_status();
 }
 
-#if WITH_LK2ND
-extern void target_keystatus();
-#else
 static void target_keystatus()
 {
+#if !WITH_LK2ND
 	keys_init();
 
 	if(target_volume_down())
@@ -219,8 +217,8 @@ static void target_keystatus()
 
 	if(target_volume_up())
 		keys_post_event(KEY_VOLUMEUP, 1);
-}
 #endif
+}
 
 void target_init(void)
 {
@@ -459,6 +457,9 @@ int target_cont_splash_screen()
 {
 	uint8_t splash_screen = 0;
 	if (!splash_override) {
+#if WITH_LK2ND
+		splash_screen = 1;
+#else
 		switch (board_hardware_id()) {
 		case HW_PLATFORM_MTP:
 		case HW_PLATFORM_SURF:
@@ -471,6 +472,7 @@ int target_cont_splash_screen()
 			break;
 		}
 		dprintf(SPEW, "Target_cont_splash=%d\n", splash_screen);
+#endif
 	}
 	return splash_screen;
 }
