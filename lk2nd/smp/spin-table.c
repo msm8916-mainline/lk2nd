@@ -55,6 +55,7 @@ static void smp_spin_table_setup_cpu(struct smp_spin_table *table,
 	cpu = fdt32_to_cpu(*val);
 	dprintf(INFO, "Booting CPU%x\n", cpu);
 
+	/* Adjust device tree with properties needed for spin-table */
 	ret = fdt_setprop_u64(fdt, cpu_node, "cpu-release-addr",
 			      (uintptr_t)&table->release_addr);
 	if (ret) {
@@ -68,6 +69,7 @@ static void smp_spin_table_setup_cpu(struct smp_spin_table *table,
 		return;
 	}
 
+	/* Power up the CPU core using registers in the ACC node */
 	node = lkfdt_lookup_phandle(fdt, cpu_node, "qcom,acc");
 	if (node < 0) {
 		dprintf(CRITICAL, "Cannot find qcom,acc node: %d\n", node);
@@ -82,20 +84,27 @@ static void smp_spin_table_setup_cpu(struct smp_spin_table *table,
 
 	qcom_power_up_arm_cortex(cpu, fdt32_to_cpu(*val));
 
+	/* Enable the SAW/SPM node for CPU idle functionality */
 	node = lkfdt_lookup_phandle(fdt, cpu_node, "qcom,saw");
 	if (node < 0) {
 		dprintf(CRITICAL, "Cannot find qcom,saw node: %d\n", node);
 		return;
 	}
 
-	ret = fdt_setprop_string(fdt, node, "status", "okay");
-	if (ret)
-		dprintf(CRITICAL, "Failed to enable SAW/SPM node: %d\n", ret);
+	if (!lkfdt_node_is_available(fdt, node)) {
+		ret = fdt_setprop_string(fdt, node, "status", "okay");
+		if (ret)
+			dprintf(CRITICAL, "Failed to enable SAW/SPM node: %d\n", ret);
+	}
 }
 
 static void smp_spin_table_setup_idle_states(void *fdt, int node)
 {
 	int ret, state_node;
+
+	/* Keep device tree as-is if entry-method is not "psci" */
+	if (lkfdt_prop_strcmp(fdt, node, "entry-method", "psci"))
+		return;
 
 	ret = fdt_nop_property(fdt, node, "entry-method");
 	if (ret)
