@@ -636,10 +636,10 @@ static char *concat_args(const char *a, const char *b)
 unsigned char *update_cmdline(const char *cmdline)
 {
 #if WITH_LK2ND
-	bool lk2nd = strstr(cmdline, "lk2nd");
+	bool lk2nd = lk2nd_cmdline_scan(cmdline, "lk2nd");
 
 	/* Only add to cmdline if downstream or lk2nd */
-	if (!strstr(cmdline, "androidboot.hardware=qcom") && !lk2nd)
+	if (!lk2nd_cmdline_scan(cmdline, "androidboot.hardware=qcom") && !lk2nd)
 		return strdup(cmdline);
 
 	/* Use cmdline from original bootloader if available */

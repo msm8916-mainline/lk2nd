@@ -445,10 +445,61 @@ static void lk2nd_update_panel_compatible(void *fdt)
 		dprintf(CRITICAL, "Failed to update panel compatible: %d\n", ret);
 }
 
+bool lk2nd_cmdline_scan(const char *cmdline, const char *arg)
+{
+	const char *argp;
+
+	while (true) {
+		/* Skip spaces */
+		for (; *cmdline == ' '; cmdline++);
+
+		/* Compare argument */
+		for (argp = arg; *argp && *argp == *cmdline; argp++, cmdline++);
+		if (*argp == '\0' && (*cmdline == '\0' || *cmdline == ' '))
+			return true;
+
+		/* Skip non-spaces (the rest of the "wrong argument") */
+		for (; *cmdline != ' '; cmdline++)
+			if (*cmdline == '\0')
+				return false;
+	}
+}
+
+/*
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+
+static void test_scan(const char *cmdline, const char *arg) {
+	printf("lk2nd_cmdline_scan(\"%s\", \"%s\") = %d\n",
+	       cmdline, arg, lk2nd_cmdline_scan(cmdline, arg));
+}
+
+int main(int argc, char *argv[]) {
+	test_scan("lk2nd", "lk2nd");
+	test_scan(" lk2nd", "lk2nd");
+	test_scan("lk2nd ", "lk2nd");
+	test_scan("    lk2nd     ", "lk2nd");
+
+	test_scan("lk2nd lk2nd.spin-table=force", "lk2nd");
+	test_scan("lk2nd.spin-table=force lk2nd", "lk2nd");
+
+	test_scan("lk2nd.spin-table=force", "lk2nd");
+	test_scan("this.is.lk2nd", "lk2nd");
+	test_scan("this.is.lk2nd ", "lk2nd");
+
+	test_scan("lk1st", "lk2nd");
+	test_scan(" lk1st lk2nd ", "lk2nd");
+
+	return 0;
+}
+*/
+
 void lk2nd_update_device_tree(void *fdt, const char *cmdline, bool arm64)
 {
 	/* Don't touch lk2nd/downstream dtb */
-	if (strstr(cmdline, "androidboot.hardware=qcom") || strstr(cmdline, "lk2nd"))
+	if (lk2nd_cmdline_scan(cmdline, "androidboot.hardware=qcom") ||
+	    lk2nd_cmdline_scan(cmdline, "lk2nd"))
 		return;
 
 	if (lk2nd_dev.panel.compatible)

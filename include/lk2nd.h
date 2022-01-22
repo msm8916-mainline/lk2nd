@@ -56,6 +56,7 @@ void lk2nd_init(void);
 int lk2nd_fdt_parse_early_uart(void);
 void lk2nd_target_keystatus();
 char *genlk1st2lk2ndcmdline(void);
+bool lk2nd_cmdline_scan(const char *cmdline, const char *arg);
 
 void lk2nd_samsung_muic_reset(const void *fdt, int offset);
 void lk2nd_motorola_smem_write_unit_info(const void *fdt, int offset);
