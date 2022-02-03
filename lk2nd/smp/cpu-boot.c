@@ -23,6 +23,48 @@
 #define APC_PWR_GATE_CTL_GHDS_EN	BIT(0)
 #define APC_PWR_GATE_CTL_GHDS_CNT(cnt)	((cnt) << 24)
 
+/*
+ * Each CPU within a cluster has a clock controller.
+ * There is just once L2 cache controller per cluster. We can take the base
+ * address of a given CPU clock controller and using a combination of mask
+ * and offset find the base address of the L2 cache controller.
+ *
+ * APCS_GLB_BASE takes the base of given CPU clock controller and offsets
+ * back the single APCS_GLB register which is the base for the L2
+ * cache controller in the cluster.
+ *
+ */
+#define APCS_GLB_MASK			0xfff00000
+#define APCS_GLB_OFFSET			0x00011000
+#define APCS_GLB_BASE(base)		(((base) & APCS_GLB_MASK) + \
+					APCS_GLB_OFFSET)
+
+#define APCS_PWR_CTL_OVERRIDE			0xc
+#define APCS_PWR_CTL_OVR_PRESETDBG		BIT(22)
+
+#define APCS_L2_PWR_CTL				0x14
+#define APCS_L2_PWR_CTL_PMIC_APC_ON		BIT(28)
+#define APCS_L2_PWR_CTL_L2_HS_CNT(cnt)		((cnt) << 16)
+#define APCS_L2_PWR_CTL_L2_ARRAY_HS_CLAMP	BIT(15)
+#define APCS_L2_PWR_CTL_SCU_ARRAY_HS_CLAMP	BIT(14)
+#define APCS_L2_PWR_CTL_L2_RET_SLP		BIT(13)
+#define APCS_L2_PWR_CTL_SYS_RESET		BIT(12)
+#define APCS_L2_PWR_CTL_L2_SLEEP_STATE		BIT(11)
+#define APCS_L2_PWR_CTL_L2_HS_RST		BIT(10)
+#define APCS_L2_PWR_CTL_L2_HS_EN		BIT(9)
+#define APCS_L2_PWR_CTL_L2_HS_CLAMP		BIT(8)
+#define APCS_L2_PWR_CTL_L2_RST_DIS		BIT(2)
+#define APCS_L2_PWR_CTL_SCU_ARRAY_HS		BIT(1)
+#define APCS_L2_PWR_CTL_L2_ARRAY_HS		BIT(0)
+
+#define APCS_L2_PWR_STATUS		0x18
+#define APCS_L2_PWR_STATUS_L2_HS_STS	BIT(9)
+
+#define APCS_L2_CORE_CBCR		0x58
+#define APCS_L2_CORE_CBCR_CLK_OFF	BIT(31)
+#define APCS_L2_CORE_CBCR_HW_CTL	BIT(1)
+#define APCS_L2_CORE_CBCR_CLK_ENABLE	BIT(0)
+
 #define QCOM_SCM_BOOT_SET_ADDR		0x01
 #define QCOM_SCM_BOOT_FLAG_COLD_ALL	(0 | BIT(0) | BIT(3) | BIT(5))
 #define QCOM_SCM_BOOT_SET_ADDR_MC	0x11
@@ -56,6 +98,70 @@ int qcom_set_boot_addr(uint32_t addr, bool arm64)
 				QCOM_SCM_BOOT_FLAG_COLD_ALL, addr);
 }
 
+void qcom_power_up_l2_cache(uint32_t mpidr, uint32_t base)
+{
+	uint32_t val;
+
+	/* Skip if cluster L2 is already powered on */
+	val = readl(base + APCS_L2_PWR_STATUS);
+	if (val & APCS_L2_PWR_STATUS_L2_HS_STS) {
+		dprintf(INFO, "CPU (%d) L2 cache already powered-up\n", mpidr);
+		return;
+	}
+
+	/* Close L2/SCU Logic GDHS and power up the cache */
+	val = APCS_L2_PWR_CTL_L2_HS_CNT(16) |
+	      APCS_L2_PWR_CTL_L2_ARRAY_HS_CLAMP |
+	      APCS_L2_PWR_CTL_SCU_ARRAY_HS_CLAMP | APCS_L2_PWR_CTL_SYS_RESET |
+	      APCS_L2_PWR_CTL_L2_HS_RST | APCS_L2_PWR_CTL_L2_HS_EN |
+	      APCS_L2_PWR_CTL_L2_HS_CLAMP;
+
+	writel(val, base + APCS_L2_PWR_CTL);
+
+	/* Assert PRESETDBGn */
+	writel(APCS_PWR_CTL_OVR_PRESETDBG, base + APCS_PWR_CTL_OVERRIDE);
+	dsb();
+	udelay(2);
+
+	/* De-assert L2/SCU memory Clamp */
+	val &= ~(APCS_L2_PWR_CTL_L2_ARRAY_HS_CLAMP |
+		 APCS_L2_PWR_CTL_SCU_ARRAY_HS_CLAMP);
+	writel(val, base + APCS_L2_PWR_CTL);
+
+	/* Wakeup L2/SCU RAMs by deasserting sleep signals */
+	val |= (APCS_L2_PWR_CTL_SCU_ARRAY_HS | APCS_L2_PWR_CTL_L2_ARRAY_HS);
+	writel(val, base + APCS_L2_PWR_CTL);
+	dsb();
+	udelay(2);
+
+	/* Enable clocks via SW_CLK_EN */
+	writel(APCS_L2_CORE_CBCR_CLK_ENABLE, base + APCS_L2_CORE_CBCR);
+
+	/* De-assert L2/SCU logic clamp */
+	val &= ~APCS_L2_PWR_CTL_L2_HS_CLAMP;
+	writel(val, base + APCS_L2_PWR_CTL);
+	dsb();
+	udelay(2);
+
+	/* De-assert PRESSETDBg */
+	writel(0x0, base + APCS_PWR_CTL_OVERRIDE);
+
+	/* De-assert L2/SCU Logic reset */
+	val &= ~(APCS_L2_PWR_CTL_SYS_RESET | APCS_L2_PWR_CTL_L2_HS_RST);
+	writel(val, base + APCS_L2_PWR_CTL);
+	dsb();
+	udelay(54);
+
+	/* Turn on the PMIC_APC */
+	val |= APCS_L2_PWR_CTL_PMIC_APC_ON;
+	writel(val, base + APCS_L2_PWR_CTL);
+
+	/* Set H/W clock control for the cpu CBC block */
+	writel(APCS_L2_CORE_CBCR_HW_CTL | APCS_L2_CORE_CBCR_CLK_ENABLE,
+	       base + APCS_L2_CORE_CBCR);
+	dsb();
+}
+
 void qcom_power_up_arm_cortex(uint32_t mpidr, uint32_t base)
 {
 	uint32_t pwr_ctl;
@@ -64,6 +170,8 @@ void qcom_power_up_arm_cortex(uint32_t mpidr, uint32_t base)
 		dprintf(INFO, "Skipping boot of current CPU (%d)\n", mpidr);
 		return;
 	}
+
+	qcom_power_up_l2_cache(mpidr, APCS_GLB_BASE(base));
 
 	pwr_ctl = CPU_PWR_CTL_CLAMP | CPU_PWR_CTL_CORE_MEM_CLAMP |
 		  CPU_PWR_CTL_CORE_RST | CPU_PWR_CTL_COREPOR_RST;
