@@ -12,12 +12,12 @@
 
 	/*
 	 * Before building for G530Y, please comment out all dtbs except
-	 *  "$(LOCAL_DIR)/msm8916-samsung-r11.dtb" at './rules.mk'.
-	 * gprimeltezt doesn't work with multi-dtbs; only goes into "Download mode".
+	 * "$(LOCAL_DIR)/msm8916-samsung-r11.dtb" at './rules.mk'.
+	 * fortunaltezt doesn't work with multi-dtbs; only goes into "Download mode".
 	 */
-	gprimeltezt {
+	fortunaltezt {
 		model = "Samsung Galaxy Grand Prime (SM-G530Y)";
-		compatible = "samsung,gprimeltezt", "qcom,msm8916", "lk2nd,device";
+		compatible = "samsung,fortunaltezt", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "G530Y*";
 
 		samsung,muic-reset {
