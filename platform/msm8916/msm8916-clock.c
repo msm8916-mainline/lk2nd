@@ -684,6 +684,41 @@ static struct clk_lookup msm_clocks_8916[] =
 	CLK_LOOKUP("gcc_blsp1_qup5_i2c_apps_clk", gcc_blsp1_qup5_i2c_apps_clk.c),
 };
 
+#define APCS_ALIAS0_CMD_RCGR_BASE		0xb111050
+#define APCS_ALIAS0_CMD_RCGR_REG		0x0
+#define APCS_ALIAS0_CMD_RCGR_UPDATE		BIT(0)
+#define APCS_ALIAS0_CFG_REG			0x4
+#define APCS_ALIAS0_CFG_RCGR_SRC_SEL_CLK3	BIT(10)
+#define APCS_ALIAS0_CFG_RCGR_SRC_DIV_2		(BIT(1) | BIT(0))
+
+static void msm8939_clock_c0_init(void)
+{
+	uint32_t base;
+	int regval;
+	int count;
+
+	base = APCS_ALIAS0_CMD_RCGR_BASE;
+
+	/* Source GPLL0 and 1/2 the rate of GPLL0 0x0403 */
+	regval = APCS_ALIAS0_CFG_RCGR_SRC_SEL_CLK3 |
+		 APCS_ALIAS0_CFG_RCGR_SRC_DIV_2;
+	writel(regval, base + APCS_ALIAS0_CFG_REG);
+	regval = readl(base + APCS_ALIAS0_CFG_REG);
+
+	/* update bit */
+	regval = readl(base + APCS_ALIAS0_CMD_RCGR_REG);
+	regval |= APCS_ALIAS0_CMD_RCGR_UPDATE;
+	writel(regval, base + APCS_ALIAS0_CMD_RCGR_REG);
+
+	/* Wait for update to take effect */
+	for (count = 500; count > 0; count--) {
+		regval = readl(base + APCS_ALIAS0_CMD_RCGR_REG);
+		if (!regval & APCS_ALIAS0_CMD_RCGR_UPDATE)
+			break;
+		udelay(1);
+	}
+}
+
 void msm8939_clock_override()
 {
 	mdss_mdp_clk_src.freq_tbl = ftbl_mdss_mdp_clk_src;
@@ -691,7 +726,9 @@ void msm8939_clock_override()
 
 void platform_clock_init(void)
 {
-	if (platform_is_msm8939() || platform_is_msm8929())
+	if (platform_is_msm8939() || platform_is_msm8929()) {
 		msm8939_clock_override();
+		msm8939_clock_c0_init();
+	}
 	clk_init(msm_clocks_8916, ARRAY_SIZE(msm_clocks_8916));
 }
