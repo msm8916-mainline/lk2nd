@@ -16,4 +16,24 @@
 
 	model = "Huawei Honor 5X";
 	compatible = "huawei,kiwi", "qcom,msm8939", "lk2nd,device";
+
+	panel {
+		compatible = "huawei,kiwi-panel";
+
+		qcom,mdss_dsi_auo_otm1901a_5p5_1080pxa_video {
+			compatible = "huawei,kiwi-auo-otm1901a";
+		};
+		qcom,mdss_dsi_boe_otm1901a_5p5_1080pxa_video {
+			compatible = "huawei,kiwi-boe-otm1901a";
+		};
+		qcom,mdss_dsi_cmi_nt35532_5p5_1080pxa_video {
+			compatible = "huawei,kiwi-cmi-nt35532";
+		};
+		qcom,mdss_dsi_tianma_nt35596_5p5_1080pxa_video {
+			compatible = "huawei,kiwi-tianma-nt35596";
+		};
+		qcom,mdss_dsi_truly_hx8399a_5p5_1080pxa_video {
+			compatible = "huawei,kiwi-truly-hx8399a";
+		};
+	};
 };
