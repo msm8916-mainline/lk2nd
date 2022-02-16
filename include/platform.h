@@ -62,6 +62,8 @@ int set_download_mode(enum reboot_reason mode);
 uint32_t platform_get_smem_base_addr();
 uint32_t platform_get_sclk_count(void);
 void clock_config_cdc(uint32_t interface);
+int platform_is_apq8016();
+int platform_is_msm8929();
 int platform_is_msm8939();
 int platform_is_msm8909();
 int platform_is_msm8992();

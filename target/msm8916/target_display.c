@@ -37,8 +37,10 @@
 #include <board.h>
 #include <mdp5.h>
 #include <scm.h>
+#include <platform/clock.h>
 #include <platform/gpio.h>
 #include <platform/iomap.h>
+#include <platform/timer.h>
 #include <target/display.h>
 #include <i2c_qup.h>
 #include <blsp_qup.h>
@@ -54,6 +56,67 @@
 #define RESET_GPIO_SEQ_LEN 3
 #define PWM_DUTY_US 13
 #define PWM_PERIOD_US 27
+
+/*---------------------------------------------------------------------------*/
+/* GPIO configuration                                                        */
+/*---------------------------------------------------------------------------*/
+static struct gpio_pin reset_gpio = {
+  "msmgpio", 25, 3, 1, 0, 1
+};
+
+static struct gpio_pin ts_reset_gpio = {
+  "msmgpio", 12, 3, 1, 0, 1
+};
+
+static struct gpio_pin enable_gpio = {
+  "msmgpio", 97, 3, 1, 0, 1
+};
+
+static struct gpio_pin bkl_gpio = {
+  "msmgpio", 98, 3, 1, 0, 1
+};
+
+/*Use GPIO 75 for incell panel setup*/
+static struct gpio_pin enable_gpio_1 = {
+  "msmgpio", 75, 3, 1, 0, 1
+};
+
+static struct gpio_pin enp_gpio = {
+  "msmgpio", 97, 3, 1, 0, 1
+};
+
+static struct gpio_pin enn_gpio = {
+  "msmgpio", 32, 3, 1, 0, 1
+};
+
+/*Use GPIO 77 for incell panel setup*/
+static struct gpio_pin enn_gpio_1 = {
+  "msmgpio", 77, 3, 1, 0, 1
+};
+
+static struct gpio_pin bkl_gpio_skuk = {
+  "msmgpio", 1, 3, 1, 0, 1
+};
+
+static struct gpio_pin enp_gpio_skuk = {
+  "msmgpio", 97, 3, 1, 0, 1
+};
+
+static struct gpio_pin enn_gpio_skuk = {
+  "msmgpio", 98, 3, 1, 0, 1
+};
+
+static struct gpio_pin enable_gpio_skut1 = {
+  "msmgpio", 8, 3, 1, 0, 1
+};
+
+static struct gpio_pin enable_gpio_skut2 = {
+  "msmgpio", 22, 3, 1, 0, 1
+};
+
+static struct gpio_pin dsi2HDMI_switch_gpio = {
+  "msmgpio", 32, 3, 1, 0, 1
+};
 
 static void mdss_dsi_uniphy_pll_sw_reset_8916(uint32_t pll_base)
 {
@@ -262,24 +325,6 @@ int target_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 #define QRD_LCD_CONTROL_ADDRESS		0xFF
 
 static struct qup_i2c_dev  *i2c_dev;
-static int qrd_lcd_i2c_read(uint8_t addr)
-{
-	int ret = 0;
-	/* Create a i2c_msg buffer, that is used to put the controller into read
-	   mode and then to read some data. */
-	struct i2c_msg msg_buf[] = {
-		{QRD_LCD_I2C_ADDRESS, I2C_M_WR, 1, &addr},
-		{QRD_LCD_I2C_ADDRESS, I2C_M_RD, 1, &ret}
-	};
-
-	ret = qup_i2c_xfer(i2c_dev, msg_buf, 2);
-	if(ret < 0) {
-		dprintf(CRITICAL, "qup_i2c_xfer error %d\n", ret);
-		return ret;
-	}
-	return 0;
-}
-
 static int qrd_lcd_i2c_write(uint8_t addr, uint8_t val)
 {
 	int ret = 0;
@@ -422,7 +467,7 @@ static int target_panel_reset_skuk(uint8_t enable)
 	return 0;
 }
 
-int target_panel_reset_incell(uint8_t enable)
+void target_panel_reset_incell(uint8_t enable)
 {
 	/*Enable the gpios in 75->97->77 order for incell panel*/
 	if (enable) {
@@ -448,7 +493,7 @@ int target_panel_reset_incell(uint8_t enable)
 	}
 }
 
-int target_panel_reset_jdi_a216(uint8_t enable)
+void target_panel_reset_jdi_a216(uint8_t enable)
 {
 	if (enable) {
 		gpio_tlmm_config(ts_reset_gpio.pin_id, 0,
@@ -588,7 +633,7 @@ void target_set_switch_gpio(int enable_dsi2HdmiBridge)
 void target_display_init(const char *panel_name)
 {
 	uint32_t panel_loop = 0;
-	uint32_t ret = 0;
+	int ret = 0;
 	struct oem_panel_data oem;
 
 	set_panel_cmd_string(panel_name);
@@ -605,7 +650,7 @@ void target_display_init(const char *panel_name)
 
 	do {
 		target_force_cont_splash_disable(false);
-		ret = gcdb_display_init(oem.panel, MDP_REV_50, MIPI_FB_ADDR);
+		ret = gcdb_display_init(oem.panel, MDP_REV_50, (void *)MIPI_FB_ADDR);
 		if (!ret || ret == ERR_NOT_SUPPORTED) {
 			break;
 		} else {
