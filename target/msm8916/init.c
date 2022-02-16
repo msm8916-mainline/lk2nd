@@ -35,6 +35,7 @@
 #include <mmc.h>
 #include <platform/gpio.h>
 #include <dev/keys.h>
+#include <spmi.h>
 #include <spmi_v2.h>
 #include <pm8x41.h>
 #include <board.h>
@@ -45,10 +46,12 @@
 #include <platform/gpio.h>
 #include <platform/irqs.h>
 #include <platform/clock.h>
+#include <platform/timer.h>
 #include <crypto5_wrapper.h>
 #include <partition_parser.h>
 #include <stdlib.h>
 #include <smem.h>
+#include <sdhci_msm.h>
 
 #if LONG_PRESS_POWER_ON
 #include <shutdown_detect.h>
@@ -175,9 +178,6 @@ static void target_keystatus()
 
 void target_init(void)
 {
-	uint32_t base_addr;
-	uint8_t slot;
-
 	dprintf(INFO, "target_init()\n");
 
 	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
@@ -319,7 +319,6 @@ void target_usb_init(void)
 uint8_t target_panel_auto_detect_enabled()
 {
 	uint8_t ret = 0;
-	uint32_t hw_subtype = board_hardware_subtype();
 
 	switch(board_hardware_id()) {
 	case HW_PLATFORM_SURF:

@@ -35,6 +35,7 @@
 #include <mipi_dsi.h>
 #include <target/display.h>
 #include <mipi_dsi_i2c.h>
+#include <platform/timer.h>
 
 #include "include/panel.h"
 #include "panel_display.h"
@@ -570,9 +571,9 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		panelstruct->laneconfig   = &adv7533_1080p_video_lane_config;
 		panelstruct->paneltiminginfo
 					= &adv7533_1080p_video_timing_info;
-		pinfo->adv7533.dsi_tg_i2c_cmd = &adv7533_1080p_tg_i2c_command;
+		pinfo->adv7533.dsi_tg_i2c_cmd = adv7533_1080p_tg_i2c_command;
 		pinfo->adv7533.num_of_tg_i2c_cmds = ADV7533_1080P_TG_COMMANDS;
-		pinfo->adv7533.dsi_setup_cfg_i2c_cmd = &adv7533_1080p_common_cfg;
+		pinfo->adv7533.dsi_setup_cfg_i2c_cmd = adv7533_1080p_common_cfg;
 		pinfo->adv7533.num_of_cfg_i2c_cmds = ADV7533_1080P_CONFIG_COMMANDS;
 		memcpy(phy_db->timing,
 					adv7533_1080p_video_timings, TIMING_SIZE);
@@ -588,9 +589,9 @@ static int init_panel_data(struct panel_struct *panelstruct,
 		panelstruct->laneconfig   = &adv7533_720p_video_lane_config;
 		panelstruct->paneltiminginfo
 					= &adv7533_720p_video_timing_info;
-		pinfo->adv7533.dsi_tg_i2c_cmd = &adv7533_720p_tg_i2c_command;
+		pinfo->adv7533.dsi_tg_i2c_cmd = adv7533_720p_tg_i2c_command;
 		pinfo->adv7533.num_of_tg_i2c_cmds = ADV7533_720P_TG_COMMANDS;
-		pinfo->adv7533.dsi_setup_cfg_i2c_cmd = &adv7533_720p_common_cfg;
+		pinfo->adv7533.dsi_setup_cfg_i2c_cmd = adv7533_720p_common_cfg;
 		pinfo->adv7533.num_of_cfg_i2c_cmds = ADV7533_720P_CONFIG_COMMANDS;
 		memcpy(phy_db->timing,
 					adv7533_720p_video_timings, TIMING_SIZE);
