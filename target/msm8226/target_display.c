@@ -37,8 +37,10 @@
 #include <board.h>
 #include <mdp5.h>
 #include <scm.h>
+#include <platform/clock.h>
 #include <platform/gpio.h>
 #include <platform/iomap.h>
+#include <platform/timer.h>
 #include <target/display.h>
 
 #include "include/panel.h"
@@ -46,6 +48,32 @@
 #include "gcdb_display.h"
 
 #define HFPLL_LDO_ID 8
+
+/*---------------------------------------------------------------------------*/
+/* GPIO configuration                                                        */
+/*---------------------------------------------------------------------------*/
+static struct gpio_pin reset_gpio = {
+  "msmgpio", 25, 3, 1, 0, 1
+};
+
+static struct gpio_pin enable_gpio = {
+  "msmgpio", 109, 3, 1, 0, 1
+};
+
+static struct gpio_pin pwm_gpio = {
+  0, 0, 0, 0, 0, 0
+};
+
+/*---------------------------------------------------------------------------*/
+/* LDO configuration                                                         */
+/*---------------------------------------------------------------------------*/
+static struct ldo_entry ldo_entry_array[] = {
+  { "vdd", 15, 0, 2800000, 100000, 100, 0, 20, 0, 20},
+{ "vddio", 8, 0, 1800000, 100000, 100, 0, 30, 0, 30},
+{ "vdda", 4, 1, 1200000, 100000, 100, 0, 20, 0, 30},
+};
+
+#define TOTAL_LDO_DEFINED 3
 
 static struct pm8x41_wled_data wled_ctrl = {
 	.mod_scheme      = 0x00,
@@ -370,9 +398,6 @@ int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 			0x100 * ldo_entry_array[ldocounter].ldo_id),
 			ldo_entry_array[ldocounter].ldo_type);
 
-		dprintf(SPEW, "Setting %s\n",
-				ldo_entry_array[ldocounter].ldo_id);
-
 		/* Set voltage during power on */
 		if (enable) {
 			pm8x41_ldo_set_voltage(&ldo_entry,
@@ -408,7 +433,7 @@ bool target_display_panel_node(char *pbuf, uint16_t buf_size)
 void target_display_init(const char *panel_name)
 {
         uint32_t panel_loop = 0;
-        uint32_t ret = 0;
+        int ret = 0;
 	uint32_t fb_addr = MIPI_FB_ADDR;
 	struct oem_panel_data oem;
 
@@ -429,7 +454,7 @@ void target_display_init(const char *panel_name)
 
 	do {
 		target_force_cont_splash_disable(false);
-		ret = gcdb_display_init(oem.panel, MDP_REV_50, fb_addr);
+		ret = gcdb_display_init(oem.panel, MDP_REV_50, (void*)fb_addr);
 		if (!ret || ret == ERR_NOT_SUPPORTED) {
 			break;
 		} else {

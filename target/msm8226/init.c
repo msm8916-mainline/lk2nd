@@ -37,6 +37,7 @@
 #include <mmc_sdhci.h>
 #include <platform/clock.h>
 #include <platform/gpio.h>
+#include <platform/timer.h>
 #include <spmi.h>
 #include <board.h>
 #include <smem.h>
@@ -48,6 +49,7 @@
 #include <scm.h>
 #include <stdlib.h>
 #include <partition_parser.h>
+#include <sdhci_msm.h>
 
 #if LONG_PRESS_POWER_ON
 #include <shutdown_detect.h>
@@ -577,17 +579,17 @@ static void set_sdc_power_ctrl()
 	/* Drive strength configs for sdc pins */
 	struct tlmm_cfgs sdc1_hdrv_cfg[] =
 	{
-		{ SDC1_CLK_HDRV_CTL_OFF,  TLMM_CUR_VAL_16MA, TLMM_HDRV_MASK },
-		{ SDC1_CMD_HDRV_CTL_OFF,  TLMM_CUR_VAL_10MA, TLMM_HDRV_MASK },
-		{ SDC1_DATA_HDRV_CTL_OFF, TLMM_CUR_VAL_6MA, TLMM_HDRV_MASK },
+		{ SDC1_CLK_HDRV_CTL_OFF,  TLMM_CUR_VAL_16MA, TLMM_HDRV_MASK, 0 },
+		{ SDC1_CMD_HDRV_CTL_OFF,  TLMM_CUR_VAL_10MA, TLMM_HDRV_MASK, 0 },
+		{ SDC1_DATA_HDRV_CTL_OFF, TLMM_CUR_VAL_6MA,  TLMM_HDRV_MASK, 0 },
 	};
 
 	/* Pull configs for sdc pins */
 	struct tlmm_cfgs sdc1_pull_cfg[] =
 	{
-		{ SDC1_CLK_PULL_CTL_OFF,  TLMM_NO_PULL, TLMM_PULL_MASK },
-		{ SDC1_CMD_PULL_CTL_OFF,  TLMM_PULL_UP, TLMM_PULL_MASK },
-		{ SDC1_DATA_PULL_CTL_OFF, TLMM_PULL_UP, TLMM_PULL_MASK },
+		{ SDC1_CLK_PULL_CTL_OFF,  TLMM_NO_PULL, TLMM_PULL_MASK, 0 },
+		{ SDC1_CMD_PULL_CTL_OFF,  TLMM_PULL_UP, TLMM_PULL_MASK, 0 },
+		{ SDC1_DATA_PULL_CTL_OFF, TLMM_PULL_UP, TLMM_PULL_MASK, 0 },
 	};
 
 	/* Set the drive strength & pull control values */
