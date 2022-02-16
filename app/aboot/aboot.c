@@ -1520,7 +1520,9 @@ int boot_linux_from_mmc(void)
 
 	unsigned int dtb_size = 0;
 	unsigned dtb_image_size = 0;
+#ifdef OSVERSION_IN_BOOTIMAGE
 	uint32_t dtb_image_offset = 0;
+#endif
 	unsigned int out_len = 0;
 	unsigned int out_avai_len = 0;
 	unsigned char *out_addr = NULL;
