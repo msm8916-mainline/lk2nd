@@ -35,36 +35,6 @@
 #include <display_resource.h>
 
 /*---------------------------------------------------------------------------*/
-/* GPIO configuration                                                        */
-/*---------------------------------------------------------------------------*/
-static struct gpio_pin reset_gpio = {
-  "msmgpio", 25, 3, 1, 0, 1
-};
-
-static struct gpio_pin enable_gpio = {
-  "msmgpio", 109, 3, 1, 0, 1
-};
-
-static struct gpio_pin te_gpio = {
-  0, 0, 0, 0, 0, 0
-};
-
-static struct gpio_pin pwm_gpio = {
-  0, 0, 0, 0, 0, 0
-};
-
-/*---------------------------------------------------------------------------*/
-/* LDO configuration                                                         */
-/*---------------------------------------------------------------------------*/
-static struct ldo_entry ldo_entry_array[] = {
-  { "vdd", 15, 0, 2800000, 100000, 100, 0, 20, 0, 20},
-{ "vddio", 8, 0, 1800000, 100000, 100, 0, 30, 0, 30},
-{ "vdda", 4, 1, 1200000, 100000, 100, 0, 20, 0, 30},
-};
-
-#define TOTAL_LDO_DEFINED 3
-
-/*---------------------------------------------------------------------------*/
 /* Target Physical configuration                                             */
 /*---------------------------------------------------------------------------*/
 
@@ -120,5 +90,18 @@ enum target_subtype {
 	HW_PLATFORM_SUBTYPE_QVGA = 4,
 	HW_PLATFORM_SUBTYPE_SKUG = 5,
 };
+
+/*---------------------------------------------------------------------------*/
+/* Functions		                                                     */
+/*---------------------------------------------------------------------------*/
+int target_display_pre_on();
+int target_display_pre_off();
+int target_display_post_on();
+int target_display_post_off();
+int target_cont_splash_screen();
+int target_display_get_base_offset(uint32_t base);
+void target_force_cont_splash_disable(uint8_t override);
+uint8_t target_panel_auto_detect_enabled();
+uint32_t oem_panel_max_auto_detect_panels();
 
 #endif
