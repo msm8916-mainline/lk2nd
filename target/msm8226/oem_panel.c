@@ -34,6 +34,7 @@
 #include <board.h>
 #include <mipi_dsi.h>
 #include <target/display.h>
+#include <platform/timer.h>
 
 #include "include/panel.h"
 #include "panel_display.h"
