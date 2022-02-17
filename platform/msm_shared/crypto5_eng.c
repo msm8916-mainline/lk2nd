@@ -132,11 +132,12 @@ static uint32_t crypto_write_reg(struct bam_instance *bam_core,
 								 uint8_t flags)
 {
 	uint32_t ret = 0;
-	struct cmd_element cmd_list_ptr;
 
 #ifdef CRYPTO_REG_ACCESS
 	writel(val, reg_addr);
 #else
+	struct cmd_element cmd_list_ptr;
+
 	ret = (uint32_t)bam_add_cmd_element(&cmd_list_ptr, reg_addr, val, CE_WRITE_TYPE);
 
 	arch_clean_invalidate_cache_range((addr_t)&cmd_list_ptr, sizeof(struct cmd_element));
@@ -157,9 +158,9 @@ static uint32_t crypto_write_reg(struct bam_instance *bam_core,
 	}
 
 	crypto_wait_for_cmd_exec(bam_core, 1, CRYPTO_WRITE_PIPE_INDEX);
-#endif
 
 crypto_read_reg_err:
+#endif
 	return ret;
 }
 
