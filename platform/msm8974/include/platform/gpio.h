@@ -57,4 +57,8 @@
 
 void gpio_config_uart_dm(uint8_t id);
 void gpio_config_blsp_i2c(uint8_t, uint8_t);
+
+void gpio_set(uint32_t gpio, uint32_t dir);
+void gpio_tlmm_config(uint32_t gpio, uint8_t func, uint8_t dir,
+		      uint8_t pull, uint8_t drvstr, uint32_t enable);
 #endif

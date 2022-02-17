@@ -32,6 +32,7 @@
 #include <clock.h>
 #include <clock_pll.h>
 #include <clock_lib2.h>
+#include <platform.h>
 #include <platform/clock.h>
 #include <platform/iomap.h>
 
@@ -204,7 +205,7 @@ static struct branch_clk gcc_sdcc1_ahb_clk =
 
 static struct branch_clk gcc_sdcc1_cdccal_sleep_clk =
 {
-	.cbcr_reg = SDCC1_CDCCAL_SLEEP_CBCR,
+	.cbcr_reg = (uint32_t *) SDCC1_CDCCAL_SLEEP_CBCR,
 	.has_sibling = 1,
 
 	.c = {
@@ -215,7 +216,7 @@ static struct branch_clk gcc_sdcc1_cdccal_sleep_clk =
 
 static struct branch_clk gcc_sdcc1_cdccal_ff_clk =
 {
-	.cbcr_reg = SDCC1_CDCCAL_FF_CBCR,
+	.cbcr_reg = (uint32_t *) SDCC1_CDCCAL_FF_CBCR,
 	.has_sibling = 1,
 
 	.c = {
@@ -486,7 +487,7 @@ static struct vote_clk gcc_ce1_axi_clk = {
 
 
 struct branch_clk gcc_blsp2_qup5_i2c_apps_clk = {
-	.cbcr_reg = BLSP2_QUP5_I2C_APPS_CBCR,
+	.cbcr_reg = (uint32_t *) BLSP2_QUP5_I2C_APPS_CBCR,
 	.parent   = &cxo_clk_src.c,
 
 	.c = {
@@ -661,7 +662,7 @@ static struct branch_clk mdss_mdp_clk = {
 };
 
 static struct branch_clk mdss_mdp_lut_clk = {
-	.cbcr_reg    = MDP_LUT_CBCR,
+	.cbcr_reg    = (uint32_t *) MDP_LUT_CBCR,
 	.parent      = &mdss_mdp_clk_src.c,
 	.has_sibling = 1,
 
@@ -672,7 +673,7 @@ static struct branch_clk mdss_mdp_lut_clk = {
 };
 
 static struct branch_clk mdss_vsync_clk = {
-	.cbcr_reg    = MDSS_VSYNC_CBCR,
+	.cbcr_reg    = (uint32_t *) MDSS_VSYNC_CBCR,
 	.parent      = &vsync_clk_src.c,
 	.has_sibling = 0,
 
@@ -699,7 +700,7 @@ static struct rcg_clk edpaux_clk_src = {
 };
 
 static struct branch_clk mdss_edpaux_clk = {
-	.cbcr_reg    = MDSS_EDPAUX_CBCR,
+	.cbcr_reg    = (uint32_t *) MDSS_EDPAUX_CBCR,
 	.parent      = &edpaux_clk_src.c,
 	.has_sibling = 0,
 

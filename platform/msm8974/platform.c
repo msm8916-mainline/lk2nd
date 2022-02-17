@@ -38,8 +38,6 @@
 #include <board.h>
 #include <boot_stats.h>
 
-#define MB (1024*1024)
-
 #define MSM_IOMAP_SIZE ((MSM_IOMAP_END - MSM_IOMAP_BASE)/MB)
 
 /* LK memory - cacheable, write through */
