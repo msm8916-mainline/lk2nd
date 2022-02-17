@@ -1,0 +1,161 @@
+---
+kind: pipeline
+name: apq8084
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: build (gcc4)
+    image: alpine:3.15
+    # FIXME: Enable -Werror when compile warnings are fixed
+    commands: [.ci/build.sh apq8084]
+
+trigger:
+  event: [push, pull_request, tag]
+
+---
+kind: pipeline
+name: mdm9607
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: build (gcc4, -Werror)
+    image: alpine:3.15
+    commands: [.ci/build.sh mdm9607 LKLE_CFLAGS=-Werror]
+
+trigger:
+  event: [push, pull_request, tag]
+
+---
+kind: pipeline
+name: msm8226
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: build (gcc4, -Werror)
+    image: alpine:3.15
+    commands: [.ci/build.sh msm8226 LKLE_CFLAGS=-Werror]
+
+trigger:
+  event: [push, pull_request, tag]
+
+---
+kind: pipeline
+name: msm8909
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: build (gcc4)
+    image: alpine:3.15
+    # FIXME: Enable -Werror when compile warnings are fixed
+    commands: [.ci/build.sh msm8909]
+
+trigger:
+  event: [push, pull_request, tag]
+
+---
+kind: pipeline
+name: msm8916
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: build (gcc4, -Werror)
+    image: alpine:3.15
+    commands: [.ci/build.sh msm8916 LKLE_CFLAGS=-Werror]
+
+trigger:
+  event: [push, pull_request, tag]
+
+---
+kind: pipeline
+name: msm8952
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: build (gcc4, -Werror)
+    image: alpine:3.15
+    commands: [.ci/build.sh msm8952 LKLE_CFLAGS=-Werror]
+
+trigger:
+  event: [push, pull_request, tag]
+
+---
+kind: pipeline
+name: msm8953
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: build (gcc4, -Werror)
+    image: alpine:3.15
+    commands: [.ci/build.sh msm8953 LKLE_CFLAGS=-Werror]
+
+trigger:
+  event: [push, pull_request, tag]
+
+---
+kind: pipeline
+name: msm8974
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: build (gcc4, -Werror)
+    image: alpine:3.15
+    commands: [.ci/build.sh msm8974 LKLE_CFLAGS=-Werror]
+
+trigger:
+  event: [push, pull_request, tag]
+
+---
+kind: pipeline
+name: msm8994
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: build (gcc4, -Werror)
+    image: alpine:3.15
+    commands: [.ci/build.sh msm8994 LKLE_CFLAGS=-Werror]
+
+trigger:
+  event: [push, pull_request, tag]
+
+---
+kind: pipeline
+name: msm8996
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: build (gcc4, -Werror)
+    image: alpine:3.15
+    commands: [.ci/build.sh msm8996 LKLE_CFLAGS=-Werror]
+
+trigger:
+  event: [push, pull_request, tag]
