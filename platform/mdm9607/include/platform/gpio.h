@@ -61,6 +61,7 @@
 #define GPIO_OUT        BIT(1)
 
 void gpio_config_uart_dm(uint8_t id);
+uint32_t gpio_get_state(uint32_t gpio);
 uint32_t gpio_status(uint32_t gpio);
 void gpio_set_val(uint32_t gpio, uint32_t val);
 void gpio_tlmm_config(uint32_t gpio,
