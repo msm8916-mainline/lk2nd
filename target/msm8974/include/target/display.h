@@ -85,9 +85,18 @@ static const uint32_t panel_physical_ctrl[] = {
 #define HDMI_PANEL_NAME              "hdmi"
 #define HDMI_CONTROLLER_STRING       "hdmi:0"
 
+/*---------------------------------------------------------------------------*/
+/* Functions		                                                     */
+/*---------------------------------------------------------------------------*/
+int target_display_pre_on();
+int target_display_pre_off();
+int target_display_post_on();
+int target_display_post_off();
 int target_cont_splash_screen();
 uint8_t target_panel_auto_detect_enabled();
 uint32_t target_hw_interposer();
+int target_display_get_base_offset(uint32_t base);
 void target_force_cont_splash_disable(uint8_t override);
 uint32_t oem_panel_max_auto_detect_panels();
+
 #endif
