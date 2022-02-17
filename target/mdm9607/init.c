@@ -27,6 +27,7 @@
  */
 
 #include <debug.h>
+#include <ctype.h>
 #include <platform/iomap.h>
 #include <reg.h>
 #include <target.h>
@@ -36,6 +37,7 @@
 #include <lib/ptable.h>
 #include <qpic_nand.h>
 #include <dev/keys.h>
+#include <spmi.h>
 #include <spmi_v2.h>
 #include <pm8x41.h>
 #include <board.h>
@@ -46,10 +48,12 @@
 #include <platform/gpio.h>
 #include <platform/irqs.h>
 #include <platform/clock.h>
+#include <platform/timer.h>
 #include <crypto5_wrapper.h>
 #include <partition_parser.h>
 #include <stdlib.h>
 #include <regulator.h>
+#include <rpm-smd.h>
 
 #if LONG_PRESS_POWER_ON
 #include <shutdown_detect.h>
@@ -103,7 +107,6 @@ void update_ptable_names(void)
 {
 	uint32_t ptn_index;
 	struct ptentry *ptentry_ptr = flash_ptable.parts;
-	struct ptentry *boot_ptn;
 	unsigned i;
 	uint32_t len;
 
@@ -171,9 +174,6 @@ void shutdown_device()
 
 void target_init(void)
 {
-	uint32_t base_addr;
-	uint8_t slot;
-
 	dprintf(INFO, "target_init()\n");
 
 	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
@@ -216,6 +216,7 @@ void target_detect(struct board_data *board)
 
 unsigned board_machtype(void)
 {
+	return LINUX_MACHTYPE_UNKNOWN;
 }
 
 /* Identify the baseband being used */

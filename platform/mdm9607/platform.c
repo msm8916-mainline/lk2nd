@@ -28,14 +28,15 @@
 
 #include <debug.h>
 #include <reg.h>
+#include <board.h>
+#include <platform/clock.h>
 #include <platform/iomap.h>
 #include <qgic.h>
+#include <qpic_nand.h>
 #include <qtimer.h>
 #include <mmu.h>
 #include <arch/arm/mmu.h>
 #include <smem.h>
-
-#define MB (1024 *1024)
 
 #define MSM_IOMAP_SIZE                      ((MSM_IOMAP_END - MSM_IOMAP_BASE)/MB)
 
