@@ -186,6 +186,7 @@ void target_uninit(void)
 		mmc_put_card_to_sleep(dev);
 	}
 
+#if VERIFIED_BOOT || VERIFIED_BOOT_2
 	if (target_get_vb_version() >= VB_M &&
 		is_sec_app_loaded())
 	{
@@ -195,6 +196,7 @@ void target_uninit(void)
 			ASSERT(0);
 		}
 	}
+#endif
 
 #if ENABLE_WBC
 	if (board_hardware_id() == HW_PLATFORM_MTP)
@@ -211,6 +213,7 @@ void target_uninit(void)
 	/* Tear down glink channels */
 	rpm_glink_uninit();
 
+#if VERIFIED_BOOT || VERIFIED_BOOT_2
 	if (target_get_vb_version() >= VB_M)
 	{
 		if (rpmb_uninit() < 0)
@@ -219,6 +222,7 @@ void target_uninit(void)
 			ASSERT(0);
 		}
 	}
+#endif
 }
 
 static void set_sdc_power_ctrl()
@@ -406,6 +410,7 @@ void target_init(void)
 	};
 #endif
 
+#if VERIFIED_BOOT || VERIFIED_BOOT_2
 	if (VB_M <= target_get_vb_version())
 	{
 		/* Initialize Qseecom */
@@ -437,6 +442,7 @@ void target_init(void)
 			ASSERT(0);
 		}
 	}
+#endif
 }
 
 unsigned board_machtype(void)
