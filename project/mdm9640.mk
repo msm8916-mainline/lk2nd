@@ -58,8 +58,6 @@ endif
 # Reset USB clock from target code
 DEFINES += USB_RESET_FROM_CLK=1
 
-# Turn on Werror
-CFLAGS += -Werror
 DEFINES += USE_TARGET_QMP_SETTINGS=1
 
 #SCM call before entering DLOAD mode

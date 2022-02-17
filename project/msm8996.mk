@@ -114,8 +114,6 @@ ifeq ($(APPEND_CMDLINE),1)
 DEFINES += _APPEND_CMDLINE=1
 endif
 
-CFLAGS += -Werror
-
 #enable user force reset feature
 DEFINES += USER_FORCE_RESET_SUPPORT=1
 

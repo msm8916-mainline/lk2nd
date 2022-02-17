@@ -82,8 +82,5 @@ ifeq ($(ENABLE_MDTP_SUPPORT),1)
 DEFINES += MDTP_SUPPORT=1
 endif
 
-# Turn on Werror
-CFLAGS += -Werror
-
 #enable battery voltage check
 DEFINES += CHECK_BAT_VOLTAGE=1

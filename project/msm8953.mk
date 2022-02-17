@@ -112,8 +112,6 @@ endif
 #SCM call before entering DLOAD mode
 DEFINES += PLATFORM_USE_SCM_DLOAD=1
 
-CFLAGS += -Werror
-
 #enable user force reset feature
 DEFINES += USER_FORCE_RESET_SUPPORT=1
 
