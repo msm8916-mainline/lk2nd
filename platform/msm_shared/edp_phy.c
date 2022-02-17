@@ -26,6 +26,7 @@
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
+#include <arch/defines.h>
 #include "edp.h"
 
 /* EDP phy configuration settings */
@@ -225,7 +226,7 @@ int mdss_edp_phy_pll_ready(void)
         }
 
         if(cnt == 0) {
-                dprintf("%s: PLL NOT ready\n", __func__);
+                dprintf(CRITICAL, "%s: PLL NOT ready\n", __func__);
                 return 0;
         }
         else
