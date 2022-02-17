@@ -44,6 +44,8 @@
 /*---------------------------------------------------------------------------*/
 /* GCDB Panel Database                                                       */
 /*---------------------------------------------------------------------------*/
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 #include "include/panel_jdi_1080p_video.h"
 #include "include/panel_nt35590_720p_video.h"
 #include "include/panel_nt35590_720p_cmd.h"
@@ -63,6 +65,7 @@
 #include "include/panel_jdi_a216_fhd_video.h"
 #include "include/panel_adv7533_1080p60.h"
 #include "include/panel_adv7533_720p60.h"
+#pragma GCC diagnostic pop
 
 #define DISPLAY_MAX_PANEL_DETECTION 2
 #define OTM8019A_FWVGA_VIDEO_PANEL_ON_DELAY 50

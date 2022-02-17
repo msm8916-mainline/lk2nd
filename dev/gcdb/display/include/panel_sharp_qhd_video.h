@@ -157,7 +157,7 @@ const uint32_t sharp_qhd_video_timings[] = {
 
 
 
-static struct mipi_dsi_cmd sharp_qhd_video_rotation[] = {
+static struct mipi_dsi_cmd sharp_qhd_video_rotation[] __UNUSED = {
 
 };
 #define SHARP_QHD_VIDEO_ROTATION 0

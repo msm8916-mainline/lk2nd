@@ -1456,7 +1456,7 @@ const uint32_t nt35521_720p_video_timings[] = {
 
 
 
-static struct mipi_dsi_cmd nt35521_720p_video_rotation[] = {
+static struct mipi_dsi_cmd nt35521_720p_video_rotation[] __UNUSED = {
 
 };
 #define NT35521_720P_VIDEO_ROTATION 0

@@ -322,7 +322,7 @@ const uint32_t toshiba_720p_video_timings[] = {
 
 
 
-static struct mipi_dsi_cmd toshiba_720p_video_rotation[] = {
+static struct mipi_dsi_cmd toshiba_720p_video_rotation[] __UNUSED = {
 
 };
 #define TOSHIBA_720P_VIDEO_ROTATION 0

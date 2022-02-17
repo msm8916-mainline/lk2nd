@@ -2913,7 +2913,7 @@ const uint32_t nt35590_720p_cmd_timings[] = {
 
 
 
-static struct mipi_dsi_cmd nt35590_720p_cmd_rotation[] = {
+static struct mipi_dsi_cmd nt35590_720p_cmd_rotation[] __UNUSED = {
 
 };
 #define NT35590_720P_CMD_ROTATION 0
