@@ -1,0 +1,305 @@
+---
+kind: pipeline
+type: docker
+name: apq8084
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: default (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh apq8084]
+
+  - name: signed kernel (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh apq8084 USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
+
+---
+kind: pipeline
+type: docker
+name: mdm9607
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: default (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh mdm9607]
+
+  - name: signed kernel (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh mdm9607 USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
+
+---
+kind: pipeline
+type: docker
+name: mdm9640
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: default (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh mdm9640]
+
+  - name: signed kernel (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh mdm9640 USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
+
+---
+kind: pipeline
+type: docker
+name: msm8226
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: default (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8226]
+
+  - name: signed kernel (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8226 USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
+
+---
+kind: pipeline
+type: docker
+name: msm8610
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: default (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8610]
+
+  - name: signed kernel (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8610 USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
+
+---
+kind: pipeline
+type: docker
+name: msm8660
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: default (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8660 EMMC_BOOT=1 ENABLE_DISPLAY=0]
+
+  - name: signed kernel (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8660 EMMC_BOOT=1 ENABLE_DISPLAY=0
+               USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
+
+---
+kind: pipeline
+type: docker
+name: msm8909
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: default (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8909]
+
+  - name: signed kernel (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8909 USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
+
+  - name: verified boot 1 (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8909 USER_BUILD_VARIANT=true VERIFIED_BOOT=1]
+
+  - name: verified boot 2 (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8909 USER_BUILD_VARIANT=true VERIFIED_BOOT_2=1
+               OSVERSION_IN_BOOTIMAGE=1 ENABLE_VB_ATTEST=1
+               TARGET_USE_SYSTEM_AS_ROOT_IMAGE=1]
+
+---
+kind: pipeline
+type: docker
+name: msm8916
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: default (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8916]
+
+  - name: signed kernel (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8916 USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
+
+---
+kind: pipeline
+type: docker
+name: msm8952
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: default (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8952]
+
+  - name: signed kernel (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8952 USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
+
+  - name: verified boot 1 (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8952 USER_BUILD_VARIANT=true VERIFIED_BOOT=1]
+
+  - name: verified boot 2 (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8952 USER_BUILD_VARIANT=true VERIFIED_BOOT_2=1
+               OSVERSION_IN_BOOTIMAGE=1 ENABLE_VB_ATTEST=1 VB1_KEY_USED=1
+               TARGET_USE_SYSTEM_AS_ROOT_IMAGE=1 ENABLE_KASLRSEED=1]
+
+---
+kind: pipeline
+type: docker
+name: msm8953
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: default (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8953]
+
+  - name: signed kernel (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8953 USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
+
+  - name: verified boot 1 (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8953 USER_BUILD_VARIANT=true VERIFIED_BOOT=1]
+
+  - name: verified boot 2 (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8953 USER_BUILD_VARIANT=true VERIFIED_BOOT_2=1
+               OSVERSION_IN_BOOTIMAGE=1 ENABLE_VB_ATTEST=1 VB1_KEY_USED=1
+               TARGET_USE_SYSTEM_AS_ROOT_IMAGE=1 ENABLE_KASLRSEED=1]
+
+  - name: dynamic partitions (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8953 USER_BUILD_VARIANT=true VERIFIED_BOOT_2=1
+               DYNAMIC_PARTITION_SUPPORT=1 VIRTUAL_AB_OTA=1
+               OSVERSION_IN_BOOTIMAGE=1 ENABLE_VB_ATTEST=1
+               ENABLE_KASLRSEED=1]
+
+---
+kind: pipeline
+type: docker
+name: msm8960
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: default (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8960 EMMC_BOOT=1 ENABLE_DISPLAY=0]
+
+  - name: signed kernel (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8960 EMMC_BOOT=1 ENABLE_DISPLAY=0
+               USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
+
+---
+kind: pipeline
+type: docker
+name: msm8974
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: default (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8974]
+
+  - name: signed kernel (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8974 USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
+
+---
+kind: pipeline
+type: docker
+name: msm8994
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: default (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8994]
+
+  - name: signed kernel (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8994 USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
+
+  - name: verified boot 1 (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8994 USER_BUILD_VARIANT=true VERIFIED_BOOT=1]
+
+---
+kind: pipeline
+type: docker
+name: msm8996
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: default (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8996]
+
+  - name: signed kernel (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8996 USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
+
+  - name: verified boot 1 (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8996 USER_BUILD_VARIANT=true VERIFIED_BOOT=1]
+
+  - name: verified boot 2 (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8996 USER_BUILD_VARIANT=true VERIFIED_BOOT_2=1
+               OSVERSION_IN_BOOTIMAGE=1 ENABLE_VB_ATTEST=1 VB1_KEY_USED=1
+               TARGET_USE_SYSTEM_AS_ROOT_IMAGE=1 ENABLE_KASLRSEED=1
+               ENABLE_BOOTDEVICE_MOUNT=1]
