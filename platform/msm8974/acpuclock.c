@@ -30,6 +30,7 @@
 #include <assert.h>
 #include <debug.h>
 #include <reg.h>
+#include <platform.h>
 #include <platform/timer.h>
 #include <platform/iomap.h>
 #include <mmc.h>
@@ -115,7 +116,6 @@ void clock_init_mmc(uint32_t interface)
 void clock_config_mmc(uint32_t interface, uint32_t freq)
 {
 	int ret;
-	uint32_t reg;
 	char clk_name[64];
 
 	snprintf(clk_name, 64, "sdc%u_core_clk", interface);
@@ -157,6 +157,7 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 	{
 		dprintf(CRITICAL, "sdc frequency (%u) is not supported\n", freq);
 		ASSERT(0);
+		return;
 	}
 
 
