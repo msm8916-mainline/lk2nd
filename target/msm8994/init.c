@@ -539,7 +539,8 @@ void reboot_device(unsigned reboot_reason)
 	/* Write the reboot reason */
 	writel(reboot_reason, restart_reason_addr);
 
-	if(reboot_reason == FASTBOOT_MODE || reboot_reason == DLOAD)
+	if(reboot_reason == FASTBOOT_MODE  || reboot_reason == NORMAL_DLOAD ||
+	   reboot_reason == EMERGENCY_DLOAD)
 		reset_type = PON_PSHOLD_WARM_RESET;
 	else
 		reset_type = PON_PSHOLD_HARD_RESET;
