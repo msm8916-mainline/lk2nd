@@ -34,12 +34,6 @@ struct edp_aux_ctrl edpctrl;
 int edp_hpd_done = 0;
 int edp_video_ready = 0;
 
-/*
- * edid
- */
-static char edid_hdr[8] = {0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00};
-
-
 int edp_edid_buf_error(char *buf, int len)
 {
 	char *bp;
@@ -353,7 +347,7 @@ start:
 
 	rlen = edp_aux_read_buf(ep, 0x50, 128, 1);
 
-	dprintf(SPEW, "%s: rlen=%d\n", rlen, __func__);
+	dprintf(SPEW, "%s: rlen=%d\n", __func__, rlen);
 
 	if (rlen < 0)
 		goto start;
@@ -417,7 +411,7 @@ void edp_cap2pinfo(struct msm_panel_info *pinfo)
 	pinfo->edp.max_lane_count = cap->max_lane_count;
 	pinfo->edp.max_link_clk = cap->max_link_rate;
 
-	dprintf(SPEW, "%s: clk=%d lane=%d\n", __func__,
+	dprintf(SPEW, "%s: clk=%d lane=%ld\n", __func__,
 	pinfo->edp.max_lane_count, pinfo->edp.max_link_clk);
 }
 

@@ -296,4 +296,9 @@ int edp_aux_read_buf(struct edp_aux_ctrl *ep, int addr,
 				int len, int i2c);
 char *edp_buf_init(struct edp_buf *eb, char *buf, int size);
 
+void edp_isr_poll(void);
+void edp_aux_enable(void);
+void edp_phy_vm_pe_init(void);
+void edp_panel_init(struct msm_panel_info *pinfo);
+
 #endif /* EDP_H */
