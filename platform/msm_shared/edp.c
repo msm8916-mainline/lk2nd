@@ -66,7 +66,7 @@ static void edp_config_ctrl(void)
 
 	data |= 0x03;   /* sycn clock & static Mvid */
 
-	dprintf(SPEW, "%s: data=%x\n", __func__, data);
+	dprintf(SPEW, "%s: data=%lx\n", __func__, data);
 
 	edp_write(EDP_BASE + 0xc, data); /* EDP_CONFIGURATION_CTRL */
 }
@@ -102,7 +102,7 @@ void edp_clock_synchrous(void)
 
 	data |= color;
 
-	dprintf(SPEW, "%s: data=%x\n", __func__, data);
+	dprintf(SPEW, "%s: data=%lx\n", __func__, data);
 
 	/* EDP_MISC1_MISC0 */
 	edp_write(EDP_BASE + 0x2c, data);
