@@ -82,6 +82,13 @@
 #define MPM2_MPM_PS_HOLD                   0x004AB000
 #define MPM2_MPM_SLEEP_TIMETICK_COUNT_VAL  0x004A3000
 
+/* SDHCI */
+#define SDCC_MCI_HC_MODE            (0x00000078)
+#define SDCC_HC_PWRCTL_STATUS_REG   (0x000000DC)
+#define SDCC_HC_PWRCTL_MASK_REG     (0x000000E0)
+#define SDCC_HC_PWRCTL_CLEAR_REG    (0x000000E4)
+#define SDCC_HC_PWRCTL_CTL_REG      (0x000000E8)
+
 /* CRYPTO ENGINE */
 #define  MSM_CE1_BASE                      0x073A000
 #define  MSM_CE1_BAM_BASE                  0x0704000
