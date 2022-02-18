@@ -1,4 +1,7 @@
 # This make file is included for both lk1st and lk2nd.
+
+ENABLE_DISPLAY := 1
+
 include $(LOCAL_DIR)/$(TARGET).mk
 
 LK2ND := 1
