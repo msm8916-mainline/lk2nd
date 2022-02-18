@@ -116,6 +116,10 @@ uint32_t mmc_write(uint64_t data_addr, uint32_t data_len, void *in)
 	void *dev;
 
 	dev = target_mmc_device();
+	if (!dev) {
+		dprintf(CRITICAL, "mmc_write() without target_mmc_device()\n");
+		return 0;
+	}
 
 	block_size = mmc_get_device_blocksize();
 
@@ -184,6 +188,10 @@ uint32_t mmc_read(uint64_t data_addr, uint32_t *out, uint32_t data_len)
 	uint8_t *sptr = (uint8_t *)out;
 
 	dev = target_mmc_device();
+	if (!dev) {
+		dprintf(CRITICAL, "mmc_read() without target_mmc_device()\n");
+		return 0;
+	}
 	block_size = mmc_get_device_blocksize();
 
 	ASSERT(!(data_addr % block_size));
@@ -247,6 +255,11 @@ uint32_t mmc_read(uint64_t data_addr, uint32_t *out, uint32_t data_len)
 uint32_t mmc_get_eraseunit_size()
 {
 	uint32_t erase_unit_sz = 0;
+
+	if (!target_mmc_device()) {
+		dprintf(CRITICAL, "mmc_get_eraseunit_size() without target_mmc_device()\n");
+		return 0;
+	}
 
 	if (platform_boot_dev_isemmc()) {
 		struct mmc_device *dev;
@@ -345,6 +358,10 @@ uint32_t mmc_erase_card(uint64_t addr, uint64_t len)
 	block_size = mmc_get_device_blocksize();
 
 	dev = target_mmc_device();
+	if (!dev) {
+		dprintf(CRITICAL, "mmc_erase_card() without target_mmc_device()\n");
+		return 0;
+	}
 
 	ASSERT(!(addr % block_size));
 	ASSERT(!(len % block_size));
@@ -429,6 +446,11 @@ uint32_t mmc_erase_card(uint64_t addr, uint64_t len)
  */
 uint32_t mmc_get_psn(void)
 {
+	if (!target_mmc_device()) {
+		dprintf(CRITICAL, "mmc_get_psn() without target_mmc_device()\n");
+		return 0;
+	}
+
 	if (platform_boot_dev_isemmc())
 	{
 		struct mmc_card *card;
@@ -455,6 +477,11 @@ uint32_t mmc_get_psn(void)
  */
 uint64_t mmc_get_device_capacity()
 {
+	if (!target_mmc_device()) {
+		dprintf(CRITICAL, "mmc_get_device_capacity() without target_mmc_device()\n");
+		return 0;
+	}
+
 	if (platform_boot_dev_isemmc())
 	{
 		struct mmc_card *card;
@@ -481,6 +508,11 @@ uint64_t mmc_get_device_capacity()
  */
 uint32_t mmc_get_device_blocksize()
 {
+	if (!target_mmc_device()) {
+		dprintf(CRITICAL, "mmc_get_device_blocksize() without target_mmc_device()\n");
+		return 512;
+	}
+
 	if (platform_boot_dev_isemmc())
 	{
 		struct mmc_card *card;
@@ -531,6 +563,10 @@ void mmc_device_sleep()
 {
 	void *dev;
 	dev = target_mmc_device();
+	if (!dev) {
+		dprintf(CRITICAL, "mmc_device_sleep() without target_mmc_device()\n");
+		return;
+	}
 
 	if (platform_boot_dev_isemmc())
 	{
@@ -582,6 +618,10 @@ void mmc_set_lun(uint8_t lun)
 {
 	void *dev;
 	dev = target_mmc_device();
+	if (!dev) {
+		dprintf(CRITICAL, "mmc_set_lun() without target_mmc_device()\n");
+		return;
+	}
 
 	if (!platform_boot_dev_isemmc())
 	{
@@ -600,6 +640,10 @@ uint8_t mmc_get_lun(void)
 	uint8_t lun=0;
 
 	dev = target_mmc_device();
+	if (!dev) {
+		dprintf(CRITICAL, "mmc_read_partition_table() without target_mmc_device()\n");
+		return 0;
+	}
 
 	if (!platform_boot_dev_isemmc())
 	{
@@ -616,6 +660,10 @@ void mmc_read_partition_table(uint8_t arg)
 	uint8_t max_luns;
 
 	dev = target_mmc_device();
+	if (!dev) {
+		dprintf(CRITICAL, "mmc_read_partition_table() without target_mmc_device()\n");
+		return;
+	}
 
 	if(!platform_boot_dev_isemmc())
 	{
@@ -656,6 +704,11 @@ uint32_t mmc_write_protect(const char *ptn_name, int set_clr)
 #endif
 
 	dev = target_mmc_device();
+	if (!dev) {
+		dprintf(CRITICAL, "mmc_write_protect() without target_mmc_device()\n");
+		return -1;
+	}
+
 	block_size = mmc_get_device_blocksize();
 
 	if (platform_boot_dev_isemmc())
