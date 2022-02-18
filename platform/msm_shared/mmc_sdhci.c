@@ -1488,6 +1488,22 @@ uint32_t mmc_sd_set_hs(struct sdhci_host *host, struct mmc_card *card)
 	return 0;
 }
 
+static const char *mmc_card_type_str(struct mmc_card *card)
+{
+	switch (card->type) {
+	case MMC_TYPE_STD_SD:
+	case MMC_TYPE_SDHC:
+		return "SD";
+	case MMC_TYPE_SDIO:
+		return "SDIO";
+	case MMC_TYPE_MMCHC:
+	case MMC_TYPE_STD_MMC:
+		return "MMC";
+	default:
+		return "UNKNOWN";
+	}
+}
+
 /*
  * Function: mmc_init_card
  * Arg     : mmc device structure
@@ -1587,6 +1603,11 @@ static uint32_t mmc_card_init(struct mmc_device *dev)
 		return mmc_return;
 	}
 
+	dprintf(INFO, "%s card: %s (%d.%d, %02d %04d), manufacturer: %x, OEM: %x, "
+		"capacity: %llu bytes\n", mmc_card_type_str(card),
+		card->cid.pnm, card->cid.prv >> 4, card->cid.prv & 0xF,
+		card->cid.month, card->cid.year, card->cid.mid, card->cid.oid,
+		card->capacity);
 
 	if (MMC_CARD_MMC(card))
 	{
