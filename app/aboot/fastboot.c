@@ -545,8 +545,8 @@ static void cmd_upload(const char *arg, void *data, unsigned sz)
 		return;
 	}
 
-	snprintf(response, MAX_RSP_SIZE, "DATA%08x", sz);
-	if (usb_if.usb_write(response, strlen(response)) < 0)
+	snprintf((char *)response, MAX_RSP_SIZE, "DATA%08x", sz);
+	if (usb_if.usb_write(response, strlen((const char *)response)) < 0)
 		return;
 
 	r = usb_if.usb_write(data, sz);

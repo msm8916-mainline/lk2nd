@@ -120,6 +120,11 @@ static int write_DIP(DIP_t *dip)
 
 	ASSERT(dip != NULL);
 
+#if WITH_LK2ND
+	if (true)
+		return -1;
+#endif
+
 	index = partition_get_index("dip");
 	ptn = partition_get_offset(index);
 

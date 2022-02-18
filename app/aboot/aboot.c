@@ -2450,6 +2450,11 @@ void write_device_info_mmc(device_info *dev)
 	uint32_t ret = 0;
 	uint32_t device_info_sz = 0;
 
+#if WITH_LK2ND
+	if (true)
+		return;
+#endif
+
 	if (devinfo_present)
 		index = partition_get_index("devinfo");
 	else
@@ -2611,6 +2616,11 @@ static int write_allow_oem_unlock(bool allow_unlock)
 	unsigned blocksize = mmc_get_device_blocksize();
 	STACKBUF_DMA_ALIGN(buf, blocksize);
 
+#if WITH_LK2ND
+	if (true)
+		return -1;
+#endif
+
 	index = partition_get_index(frp_ptns[0]);
 	if (index == INVALID_PTN)
 	{
@@ -2688,6 +2698,11 @@ void read_device_info_flash(device_info *dev)
 
 void write_device_info(device_info *dev)
 {
+#if WITH_LK2ND
+	if (true)
+		return;
+#endif
+
 	if(target_is_emmc_boot())
 	{
 		struct device_info *info = memalign(PAGE_SIZE, ROUNDUP(BOOT_IMG_MAX_PAGE_SIZE, PAGE_SIZE));
@@ -5448,6 +5463,9 @@ void aboot_init(const struct app_descriptor *app)
 				ASSERT(0);
 		}
 	}
+#endif
+#if WITH_LK2ND
+	boot_into_fastboot = true;
 #endif
 
 normal_boot:

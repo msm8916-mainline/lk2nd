@@ -187,6 +187,11 @@ int write_device_info_rpmb(void *info, uint32_t sz)
 	struct send_cmd_req write_req = {0};
 	struct send_cmd_rsp write_rsp = {0};
 
+#if WITH_LK2ND
+	if (true)
+		return;
+#endif
+
 	write_req.cmd_id = KEYMASTER_WRITE_LK_DEVICE_STATE;
 	write_req.data   = (uint32_t) info;
 	write_req.len    = sz;

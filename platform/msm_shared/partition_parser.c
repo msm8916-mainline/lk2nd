@@ -338,7 +338,7 @@ static unsigned int mmc_boot_read_gpt(uint32_t block_size)
 	/* Read GPT Entries */
 	for (i = 0; i < (ROUNDUP(max_partition_count, part_entry_cnt)) / part_entry_cnt; i++) {
 		ASSERT(partition_count < NUM_PARTITIONS);
-		
+
 		data = (new_buffer + (i * block_size));
 		for (j = 0; j < part_entry_cnt; j++) {
 			memcpy(&(partition_entries[partition_count].type_guid),
@@ -1102,7 +1102,7 @@ void partition_dump()
 {
 	unsigned i = 0;
 	for (i = 0; i < partition_count; i++) {
-		dprintf(SPEW,
+		dprintf(INFO,
 			"ptn[%d]:Name[%s] Size[%llu] Type[%u] First[%llu] Last[%llu]\n",
 			i, partition_entries[i].name, partition_entries[i].size,
 			partition_entries[i].dtype,

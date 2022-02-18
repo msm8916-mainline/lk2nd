@@ -321,10 +321,10 @@ static void display_unlock_menu_renew(struct select_msg_info *unlock_msg_info,
 	unlock_msg_info->info.option_index= 2;
 }
 
-#if VERIFIED_BOOT || VERIFIED_BOOT_2
 /* msg_lock need to be holded when call this function. */
 void display_bootverify_menu_renew(struct select_msg_info *msg_info, int type)
 {
+#if VERIFIED_BOOT || VERIFIED_BOOT_2
 	unsigned char* fp_buf = NULL;
 	char fp_str_temp[EVP_MAX_MD_SIZE] = {'\0'};
 	char fp_str[EVP_MAX_MD_SIZE*2] = {'\0'};
@@ -394,6 +394,7 @@ void display_bootverify_menu_renew(struct select_msg_info *msg_info, int type)
 
 	/* Initialize the time out time */
 	msg_info->info.timeout_time = timeout;
+#endif
 }
 
 void display_bootverify_menu_update (struct select_msg_info *msg_info)
@@ -405,8 +406,6 @@ void display_bootverify_menu_update (struct select_msg_info *msg_info)
 	display_fbcon_menu_message(CONTINUE_BOOT_MSG, FBCON_COMMON_MSG, common_factor, location);
 	msg_info->info.timeout_time = DELAY_30SEC;
 }
-
-#endif
 
 /* msg_lock need to be holded when call this function. */
 void display_bootverify_option_menu_renew(struct select_msg_info *msg_info)
