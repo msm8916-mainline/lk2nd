@@ -2571,6 +2571,9 @@ void write_device_info_flash(device_info *dev)
 
 static int read_allow_oem_unlock(device_info *dev)
 {
+	if (!target_is_emmc_boot())
+		return -1;
+
 	unsigned offset;
 	int index;
 	unsigned long long ptn;
@@ -2609,6 +2612,9 @@ static int read_allow_oem_unlock(device_info *dev)
 
 static int write_allow_oem_unlock(bool allow_unlock)
 {
+	if (!target_is_emmc_boot())
+		return -1;
+
 	unsigned offset;
 	int index;
 	unsigned long long ptn;
