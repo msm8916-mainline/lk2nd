@@ -2258,6 +2258,22 @@ mmc_boot_set_sd_hs(struct mmc_host *host, struct mmc_card *card)
 	return MMC_BOOT_E_SUCCESS;
 }
 
+static const char *mmc_card_type_str(struct mmc_card *card)
+{
+	switch (card->type) {
+	case MMC_BOOT_TYPE_STD_SD:
+	case MMC_BOOT_TYPE_SDHC:
+		return "SD";
+	case MMC_BOOT_TYPE_SDIO:
+		return "SDIO";
+	case MMC_BOOT_TYPE_MMCHC:
+	case MMC_BOOT_TYPE_STD_MMC:
+		return "MMC";
+	default:
+		return "UNKNOWN";
+	}
+}
+
 /*
  * Performs initialization and identification of all the MMC cards connected
  * to the host.
@@ -2291,6 +2307,12 @@ mmc_boot_init_and_identify_cards(struct mmc_host *host,
 	if (mmc_return != MMC_BOOT_E_SUCCESS) {
 		return mmc_return;
 	}
+
+	dprintf(INFO, "%s card: %s (%d.%d, %02d %04d), manufacturer: %x, OEM: %x, "
+		"capacity: %llu bytes\n", mmc_card_type_str(card),
+		card->cid.pnm, card->cid.prv >> 4, card->cid.prv & 0xF,
+		card->cid.month, card->cid.year, card->cid.mid, card->cid.oid,
+		card->capacity);
 
 	if (card->type == MMC_BOOT_TYPE_SDHC
 	    || card->type == MMC_BOOT_TYPE_STD_SD) {
