@@ -5464,9 +5464,7 @@ void aboot_init(const struct app_descriptor *app)
 		}
 	}
 #endif
-#if WITH_LK2ND
 	boot_into_fastboot = true;
-#endif
 
 normal_boot:
 	if (!boot_into_fastboot)
