@@ -34,3 +34,8 @@ endif
 
 # Stop trying to read battery voltage, probably doesn't work on most devices...
 DEFINES := $(filter-out CHECK_BAT_VOLTAGE=1, $(DEFINES))
+
+# The primary bootloader will implement LONG_PRESS_POWER_ON if needed.
+# If we do it again in lk2nd we might accidentally shutdown the device because
+# the user needs to keep the power key pressed for *really* long.
+DEFINES := $(filter-out LONG_PRESS_POWER_ON=1, $(DEFINES))
