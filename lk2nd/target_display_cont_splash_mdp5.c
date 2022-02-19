@@ -1,3 +1,4 @@
+#include <arch/arm/mmu.h>
 #include <arch/defines.h>
 #include <bits.h>
 #include <debug.h>
@@ -13,6 +14,7 @@
 #include <platform/iomap.h>
 #include <platform/timer.h>
 #include <target.h>
+#include <target/display.h>
 
 /* Assume ctl 0 is used */
 #define MDP_CTL_BASE			MDP_CTL_0_BASE
@@ -89,6 +91,18 @@ static void mdp5_cmd_start_refresh(struct fbcon_config *fb)
 	fb->update_start = mdp5_cmd_signal_refresh;
 }
 
+static void mmu_map_fb(addr_t addr, uint32_t size)
+{
+	addr_t end = addr + size;
+
+	dprintf(INFO, "Mapping framebuffer region at %lx, size %u\n", addr, size);
+
+	for (; addr < end; addr += MB)
+		arm_mmu_map_section(addr, addr, MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH |
+						MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN);
+	arm_mmu_flush();
+}
+
 static int mdp5_read_config(struct fbcon_config *fb)
 {
 	const struct pipe *pipe = pipes, *pipe_end = pipe + ARRAY_SIZE(pipes);
@@ -142,14 +156,8 @@ static int mdp5_read_config(struct fbcon_config *fb)
 		return -1;
 	}
 
-#if 0
-	// Add MMU mappings if necessary
-	fb->base = (void*) platform_map_fb((addr_t) fb->base, size);
-	if (!fb->base) {
-		dprintf(CRITICAL, "Failed to map continuous splash memory region\n");
-		return -1;
-	}
-#endif
+	if ((addr_t)fb->base != MIPI_FB_ADDR)
+		mmu_map_fb((addr_t)fb->base, size);
 
 	return 0;
 }
