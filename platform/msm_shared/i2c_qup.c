@@ -783,5 +783,6 @@ int qup_i2c_deinit(struct qup_i2c_dev *dev)
 	mask_interrupt(dev->qup_irq);
 	/* Free the memory used for dev */
 	free(dev);
+	dev_addr = NULL;
 	return 0;
 }
