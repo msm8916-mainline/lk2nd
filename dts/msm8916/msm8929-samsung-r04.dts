@@ -36,6 +36,19 @@
 		};
 	};
 
+	fortuna3g {
+		model = "Samsung Galaxy Grand Prime 3G (SM-G530H)";
+		compatible = "samsung,fortuna3g", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "G530H*";
+
+		// The stock Samsung bootloader seems to pick <0x0C01FF01 4> as the board id as opposed to <0xCE08FF01 7>
+		// This line should fix that
+		qcom,msm-id = <248 0>;
+		qcom,board-id = <0xF808FF01 7>;
+
+		#include "msm8916-samsung-gprime.dtsi"
+	};
+
 	a3 {
 		model = "Samsung Galaxy A3";
 		compatible = "samsung,a3u-eur", "qcom,msm8916", "lk2nd,device";
