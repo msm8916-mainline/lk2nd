@@ -262,7 +262,8 @@ int get_target_boot_params(const char *cmdline, const char *part, char **buf)
 {
 	struct ptable *ptable;
 	int system_ptn_index = -1;
-	uint32_t buflen = strlen(UBI_CMDLINE) + strlen(" root=ubi0:rootfs ubi.mtd=") + sizeof(int) + 1; /* 1 byte for null character*/
+	int modem_ptn_index = -1;
+	uint32_t buflen = strlen(UBI_CMDLINE) + strlen(" root=ubi0:rootfs ubi.mtd=") + sizeof(int) + (9 * sizeof(char)) + sizeof(int) + 1; /* 1 byte for null character*/
 
 	if (!cmdline || !part ) {
 	        dprintf(CRITICAL, "WARN: Invalid input param\n");
@@ -288,6 +289,13 @@ int get_target_boot_params(const char *cmdline, const char *part, char **buf)
 		free(*buf);
 		return -1;
 	}
+
+	modem_ptn_index = ptable_get_index(ptable, "modem");
+	if (modem_ptn_index < 0) {
+		dprintf(CRITICAL,"WARN: Cannot get partition index for %s\n", part);
+		free(*buf);
+		return -1;
+	}
 	/* Adding command line parameters according to target boot type */
 	snprintf(*buf, buflen, UBI_CMDLINE);
 
@@ -298,7 +306,7 @@ int get_target_boot_params(const char *cmdline, const char *part, char **buf)
 		(strstr(cmdline, " root="))))
 		dprintf(DEBUG, "DEBUG: cmdline has root=\n");
 	else
-		snprintf(*buf+strlen(*buf), buflen, " root=ubi0:rootfs ubi.mtd=%d", system_ptn_index);
+		snprintf(*buf+strlen(*buf), buflen, " root=ubi0:rootfs ubi.mtd=%d ubi.mtd=%d", system_ptn_index, modem_ptn_index);
 		/*in success case buf will be freed in the calling function of this*/
 	return 0;
 }
