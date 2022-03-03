@@ -60,7 +60,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Huawei Y635 - Y635-L01 (quirky - see comment in `dts/msm8916/msm8916-huawei-y635-l01.dts`)
 - Lenovo A6000
 - Lenovo A6010
-- Lenovo PHAB Plus - PB1-770M, PB1-770N
+- Lenovo PHAB Plus - PB1-770M, PB1-770N, PB1-770P
 - LG K10 (m216) - K420
 - LG Leon LTE (c50) - H340, H342, H343, H345, MS345, etc
 - LYF Wind 1 - ls5010
@@ -90,6 +90,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Wileyfox Swift - crackling
 - Xiaomi Mi 4i - ferrari
 - Xiaomi Redmi 2 - wt86047, wt88047
+- Yamada EveryPad III (rebrand of Lenovo PHAB Plus)
 
 ### lk2nd-msm8974
 - Fairphone 2 - FP2
