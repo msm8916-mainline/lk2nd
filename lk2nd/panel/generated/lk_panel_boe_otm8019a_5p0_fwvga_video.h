@@ -12,7 +12,7 @@
 
 static struct panel_config boe_otm8019a_5p0_fwvga_video_panel_data = {
 	.panel_node_id = "qcom,mdss_dsi_boe_otm8019a_5p0_fwvga_video",
-	.panel_controller = "dsi:0",
+	.panel_controller = "dsi:0:",
 	.panel_compatible = "qcom,mdss-dsi-panel",
 	.panel_type = 0,
 	.panel_destination = "DISPLAY_1",

@@ -12,7 +12,7 @@
 
 static struct panel_config yushun_nt35520_720p_cmd_panel_data = {
 	.panel_node_id = "qcom,mdss_dsi_yushun_NT35520_720p_cmd",
-	.panel_controller = "dsi:0",
+	.panel_controller = "dsi:0:",
 	.panel_compatible = "qcom,mdss-dsi-panel",
 	.panel_type = 0, /* Changed to video mode */
 	.panel_destination = "DISPLAY_1",

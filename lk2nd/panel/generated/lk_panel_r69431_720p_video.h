@@ -12,7 +12,7 @@
 
 static struct panel_config r69431_720p_video_panel_data = {
 	.panel_node_id = "qcom,mdss_dsi_r69431_720p_video",
-	.panel_controller = "dsi:0",
+	.panel_controller = "dsi:0:",
 	.panel_compatible = "qcom,mdss-dsi-panel",
 	.panel_type = 0,
 	.panel_destination = "DISPLAY_1",
