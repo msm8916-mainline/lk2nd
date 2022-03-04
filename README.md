@@ -36,6 +36,7 @@ https://source.codeaurora.org/quic/la/kernel/lk/) (tag `LA.BR.1.2.9.1-02310-8x16
 which is a heavily modified version of the [Little Kernel Embedded Operating System].
 
 ## Supported SoCs
+- `lk2nd-msm8909`: MSM8909
 - `lk2nd-msm8916`: APQ8016, MSM8216, MSM8916, MSM8929, MSM8939
 - `lk2nd-msm8974`: MSM8974
 - `lk2nd-msm8226`: APQ8026, MSM8226, MSM8926
@@ -44,6 +45,8 @@ See [Chipsets](https://github.com/efidroid/projectmanagement/wiki/%5BReference%5
 page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 
 ## Supported devices
+### lk2nd-msm8909
+
 ### lk2nd-msm8916
 - Acer Iconia Talk S A1-724 (quirky - see comment in `dts/msm8916/msm8916-mtp-smb1360.dts`)
 - Alcatel OneTouch Idol 3 (4.7) - 6039*
