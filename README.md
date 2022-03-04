@@ -36,6 +36,7 @@ https://source.codeaurora.org/quic/la/kernel/lk/) (tag `LA.BR.1.2.9.1-02310-8x16
 which is a heavily modified version of the [Little Kernel Embedded Operating System].
 
 ## Supported SoCs
+- `lk2nd-msm8909`: APQ8009, MSM8909
 - `lk2nd-msm8916`: APQ8016, MSM8216, MSM8916, MSM8929, MSM8939
 - `lk2nd-msm8974`: MSM8974
 - `lk2nd-msm8226`: APQ8026, MSM8226, MSM8926
@@ -44,6 +45,10 @@ See [Chipsets](https://github.com/efidroid/projectmanagement/wiki/%5BReference%5
 page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 
 ## Supported devices
+### lk2nd-msm8909
+- Mobvoi TicWatch Pro - catfish
+- Qihoo W701
+
 ### lk2nd-msm8916
 - Alcatel OneTouch Idol 3 (4.7) - 6039*
 - Alcatel OneTouch Idol 3 (5.5) - 6045*
