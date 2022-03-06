@@ -159,7 +159,7 @@ static void set_message_factor()
 		max_x_count = CHAR_NUM_PERROW_HOR;
 
 	max_x = fbcon_get_max_x();
-	tmp_factor = max_x/max_x_count;
+	tmp_factor = (max_x+max_x_count/2)/max_x_count;
 
 	if(tmp_factor <= 1) {
 		big_factor = 2;
