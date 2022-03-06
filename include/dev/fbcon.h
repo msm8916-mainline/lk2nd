@@ -37,22 +37,23 @@
 #define LOGO_IMG_MAGIC_SIZE sizeof(LOGO_IMG_MAGIC) - 1
 #define LOGO_IMG_HEADER_SIZE 512
 
-/* 45 characters per line for portrait orientation
- * "720 (W) 1280(H)" -- 720 /(8*2) = 45
- * "1080(W) 1920(H)" -- 1080/(8*3) = 45
- * "1440(W) 2560(H)" -- 1440/(8*4) = 45
- * "2160(W) 3840(H)" -- 2160/(8*6) = 45
+/* 60 characters per line for portrait orientation
+ * "560 (W) 960 (H)" -- 560 /6/60 = 1.5 = ~2
+ * "720 (W) 1280(H)" -- 720 /6/60 = 2
+ * "1080(W) 1920(H)" -- 1080/6/60 = 3
+ * "1440(W) 2560(H)" -- 1440/6/60 = 4
+ * "2160(W) 3840(H)" -- 2160/6/60 = 6
  */
-#define CHAR_NUM_PERROW_POR 45
+#define CHAR_NUM_PERROW_POR 60
 
-/* 80 characters per line for horizontal orientation
- * "480 (H) 640 (W)" -- 640 /(8*1) = 80
- * "720 (H) 1280(W)" -- 1280/(8*2) = 80
- * "1080(H) 1920(W)" -- 1920/(8*3) = 80
- * "1440(H) 2560(W)" -- 2560/(8*4) = 80
- * "2160(H) 3840(W)" -- 3840/(8*6) = 80
+/* 106 characters per line for horizontal orientation
+ * "480 (H) 640 (W)" -- 640 /6/106 = ~1
+ * "720 (H) 1280(W)" -- 1280/6/106 = ~2
+ * "1080(H) 1920(W)" -- 1920/6/106 = ~3
+ * "1440(H) 2560(W)" -- 2560/6/106 = ~4
+ * "2160(H) 3840(W)" -- 3840/6/106 = ~6
  */
-#define CHAR_NUM_PERROW_HOR 80
+#define CHAR_NUM_PERROW_HOR 106
 
 enum fbcon_msg_type {
 	/* type for menu */
