@@ -1,0 +1,64 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+/include/ "msm8953.dtsi"
+
+/ {
+	// This is used by the bootloader to find the correct DTB
+	qcom,msm-id = <293 0x0>;
+	qcom,board-id = <0x1000b 0>;
+
+	tissot {
+		model = "Xiaomi Mi A1 (tissot)";
+		compatible = "xiaomi,tissot", "qcom,msm8953", "lk2nd,device";
+		lk2nd,match-bootloader = "*TISSOT*";
+		lk2nd,pstore = <0x9ff00000 0x100000>;
+		
+		panel {
+			compatible = "xiaomi,tissot-panel";
+
+			qcom,mdss_dsi_ili7807_fhd_video {
+				compatible = "mdss,ili7807-fhd";
+			};
+			qcom,mdss_dsi_otm1911_fhd_video {
+				compatible = "mdss,otm1911-fhd";
+			};
+			qcom,mdss_dsi_ft8716_fhd_video {
+				compatible = "mdss,ft8716-fhd";
+			};
+		};
+	};
+	
+	mido {
+		model = "Xiaomi Redmi Note 4X Snapdragon (mido)";
+		compatible = "xiaomi,mido", "qcom,msm8953", "lk2nd,device";
+		lk2nd,pstore = <0x9ff00000 0x100000>;
+		
+		panel {
+		
+			compatible = "xiaomi,mido-panel";
+
+			qcom,mdss_dsi_ili9885_boe_fhd_video {
+				compatible = "xiaomi,boe-ili9885";
+			};
+
+			qcom,mdss_dsi_nt35532_fhd_video {
+				compatible = "xiaomi,nt35532";
+			};
+
+			qcom,mdss_dsi_nt35596_tianma_fhd_video {
+				compatible = "xiaomi,tianma-nt35596";
+			};
+
+			qcom,mdss_dsi_otm1911_fhd_video {
+				compatible = "xiaomi,otm1911";
+			};
+
+			qcom,mdss_dsi_r63350_ebbg_fhd_video {
+				compatible = "xiaomi,ebbg-r63350";
+			};
+		};
+	};
+
+};
