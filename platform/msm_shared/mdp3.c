@@ -117,7 +117,7 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 	writel(((panic_config >> 16) & 0xFFFF) , MDP_PANIC_LUT1);
 	writel(((panic_config >> 32) & 0xFFFF), MDP_ROBUST_LUT);
 	writel(0x1, MDP_PANIC_ROBUST_CTRL);
-	dprintf(INFO, "Panic Lut0 %x Lut1 %x Robest %x\n",
+	dprintf(INFO, "Panic Lut0 %llx Lut1 %llx Robest %llx\n",
 		(panic_config & 0xFFFF), ((panic_config >> 16) & 0xFFFF),
 		((panic_config >> 32) & 0xFFFF));
 	// ------------- programming MDP_DMA_P_CONFIG ---------------------
@@ -135,7 +135,7 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 	if (mdp_rev == MDP_REV_304 || mdp_rev == MDP_REV_305) {
 		writel((pinfo->xres + lcdc->h_back_porch + \
 			lcdc->h_pulse_width - 1) << 16 | \
-			lcdc->h_back_porch + lcdc->h_pulse_width, \
+			(lcdc->h_back_porch + lcdc->h_pulse_width), \
 			MDP_DSI_VIDEO_DISPLAY_HCTL);
 		writel((lcdc->v_back_porch + lcdc->v_pulse_width) \
 			* hsync_period, MDP_DSI_VIDEO_DISPLAY_V_START);
@@ -185,7 +185,7 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 	writel(((panic_config >> 16) & 0xFFFF) , MDP_PANIC_LUT1);
 	writel(((panic_config >> 32) & 0xFFFF), MDP_ROBUST_LUT);
 	writel(0x1, MDP_PANIC_ROBUST_CTRL);
-	dprintf(INFO, "Panic Lut0 %x Lut1 %x Robest %x\n",
+	dprintf(INFO, "Panic Lut0 %llx Lut1 %llx Robest %llx\n",
 		(panic_config & 0xFFFF), ((panic_config >> 16) & 0xFFFF),
 		((panic_config >> 32) & 0xFFFF));
 
@@ -214,6 +214,8 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 
 	return ret;
 }
+
+int mdp_dma_off();
 
 void mdp_disable(void)
 {

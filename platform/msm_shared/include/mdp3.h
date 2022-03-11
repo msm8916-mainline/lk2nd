@@ -55,7 +55,7 @@ struct mdp_efuse_data {
 	uint32_t board_id;
 };
 
-static struct mdp_efuse_data efuse_data[]= {
+static struct mdp_efuse_data efuse_data[] __UNUSED = {
         EFUSE_ENTRY(SEC_CTRL_CORE_BASE, EFUSE_OFFSET, 4, 0x20000000, 0x1D, APQ8009),
 };
 
