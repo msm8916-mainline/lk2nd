@@ -32,15 +32,18 @@
 #include <err.h>
 #include <msm_panel.h>
 #include <mipi_dsi.h>
+#include <mdss_hdmi.h>
 #include <pm8x41.h>
 #include <pm8x41_wled.h>
 #include <board.h>
 #include <mdp5.h>
+#include <edp.h>
 #include <scm.h>
 #include <endian.h>
 #include <platform/gpio.h>
 #include <platform/clock.h>
 #include <platform/iomap.h>
+#include <platform/timer.h>
 #include <target/display.h>
 #include "include/panel.h"
 #include "include/display_resource.h"
@@ -51,6 +54,73 @@
 #define GPIO_STATE_LOW 0
 #define GPIO_STATE_HIGH 2
 #define RESET_GPIO_SEQ_LEN 3
+
+/*---------------------------------------------------------------------------*/
+/* GPIO configuration                                                        */
+/*---------------------------------------------------------------------------*/
+static struct gpio_pin reset_gpio = {
+  "msmgpio", 96, 3, 1, 0, 1
+};
+
+static struct gpio_pin enable_gpio = {
+  "msmgpio", 137, 3, 1, 0, 1
+};
+
+static struct gpio_pin bkl_gpio = {
+  "msmgpio", 86, 3, 1, 0, 1
+};
+
+static struct gpio_pin pwm_gpio = {
+  "pm8084", 7, 3, 1, 0, 1
+};
+
+static struct gpio_pin edp_lvl_en_gpio = {
+  "msmgpio", 91, 3, 1, 0, 1
+};
+
+static struct gpio_pin edp_hpd_gpio = {	/* input */
+  "msmgpio", 103, 3, 0, 0, 1
+};
+
+/* gpio name, id, strength, direction, pull, state. */
+static struct gpio_pin hdmi_cec_gpio = {        /* CEC */
+  "msmgpio", 31, 0, 2, 3, 1
+};
+
+static struct gpio_pin hdmi_ddc_clk_gpio = {   /* DDC CLK */
+  "msmgpio", 32, 0, 2, 3, 1
+};
+
+static struct gpio_pin hdmi_ddc_data_gpio = {  /* DDC DATA */
+  "msmgpio", 33, 0, 2, 3, 1
+};
+
+static struct gpio_pin hdmi_hpd_gpio = {       /* HPD, input */
+  "msmgpio", 34, 7, 0, 1, 1
+};
+
+static struct gpio_pin hdmi_mux_lpm_gpio = {       /* MUX LPM */
+  "msmgpio", 27, 0, 2, 0, 0
+};
+
+static struct gpio_pin hdmi_mux_en_gpio = {       /* MUX EN */
+  "msmgpio", 83, 3, 2, 3, 1
+};
+
+static struct gpio_pin hdmi_mux_sel_gpio = {       /* MUX SEL */
+  "msmgpio", 85, 0, 0, 1, 1
+};
+
+/*---------------------------------------------------------------------------*/
+/* LDO configuration                                                         */
+/*---------------------------------------------------------------------------*/
+static struct ldo_entry ldo_entry_array[] = {
+  { "vdd", 22, 0, 3000000, 100000, 100, 0, 20, 0, 0},
+  { "vddio", 12, 0, 1800000, 100000, 100, 0, 20, 0, 0},
+  { "vdda", 2, 1, 1200000, 100000, 100, 0, 0, 0, 0},
+};
+
+#define TOTAL_LDO_DEFINED 3
 
 static struct backlight edp_bklt = {
 	0, 1, 4095, 100, 1, "PMIC_8941"
@@ -244,9 +314,6 @@ int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 			0x100 * ldo_entry_array[ldocounter].ldo_id),
 			ldo_entry_array[ldocounter].ldo_type);
 
-		dprintf(SPEW, "Setting %s\n",
-				ldo_entry_array[ldocounter].ldo_id);
-
 		/* Set voltage during power on */
 		if (enable) {
 			pm8x41_ldo_set_voltage(&ldo_entry,
@@ -363,7 +430,7 @@ static void target_hdmi_vreg_enable(bool enable)
 	}
 }
 
-int target_hdmi_regulator_ctrl(bool enable)
+int target_hdmi_regulator_ctrl(uint8_t enable)
 {
 	target_hdmi_mvs_enable(enable);
 	target_hdmi_vreg_enable(enable);
@@ -371,7 +438,7 @@ int target_hdmi_regulator_ctrl(bool enable)
 	return 0;
 }
 
-int target_hdmi_gpio_ctrl(bool enable)
+int target_hdmi_gpio_ctrl(uint8_t enable)
 {
 	gpio_tlmm_config(hdmi_cec_gpio.pin_id, 1,	/* gpio 31, CEC */
 		hdmi_cec_gpio.pin_direction, hdmi_cec_gpio.pin_pull,
@@ -532,11 +599,11 @@ void target_display_init(const char *panel_name)
 		return;
 	} else if (!strcmp(oem.panel, HDMI_PANEL_NAME)) {
 		dprintf(INFO, "%s: HDMI is primary\n", __func__);
-		mdss_hdmi_display_init(MDP_REV_50, HDMI_FB_ADDR);
+		mdss_hdmi_display_init(MDP_REV_50, (void *)HDMI_FB_ADDR);
 		return;
 	}
 
-	ret = gcdb_display_init(oem.panel, MDP_REV_50, MIPI_FB_ADDR);
+	ret = gcdb_display_init(oem.panel, MDP_REV_50, (void *)MIPI_FB_ADDR);
 	if (ret) {
 		target_force_cont_splash_disable(true);
 		msm_display_off();
