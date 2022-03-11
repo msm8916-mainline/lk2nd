@@ -46,6 +46,7 @@
 #include <hsusb.h>
 #include <clock.h>
 #include <partition_parser.h>
+#include <sdhci_msm.h>
 #include <scm.h>
 #include <platform/clock.h>
 #include <platform/gpio.h>
@@ -59,8 +60,6 @@
 
 #define RECOVERY_MODE           0x77665502
 #define FASTBOOT_MODE           0x77665500
-
-#define BOOT_DEVICE_MASK(val)   ((val & 0x3E) >>1)
 
 #define SSD_CE_INSTANCE         1
 
@@ -217,18 +216,18 @@ static void set_sdc_power_ctrl()
 	/* Drive strength configs for sdc pins */
 	struct tlmm_cfgs sdc1_hdrv_cfg[] =
 	{
-		{ SDC1_CLK_HDRV_CTL_OFF,  TLMM_CUR_VAL_16MA, TLMM_HDRV_MASK },
-		{ SDC1_CMD_HDRV_CTL_OFF,  TLMM_CUR_VAL_10MA, TLMM_HDRV_MASK },
-		{ SDC1_DATA_HDRV_CTL_OFF, TLMM_CUR_VAL_10MA, TLMM_HDRV_MASK },
+		{ SDC1_CLK_HDRV_CTL_OFF,  TLMM_CUR_VAL_16MA, TLMM_HDRV_MASK, 0 },
+		{ SDC1_CMD_HDRV_CTL_OFF,  TLMM_CUR_VAL_10MA, TLMM_HDRV_MASK, 0 },
+		{ SDC1_DATA_HDRV_CTL_OFF, TLMM_CUR_VAL_10MA, TLMM_HDRV_MASK, 0 },
 	};
 
 	/* Pull configs for sdc pins */
 	struct tlmm_cfgs sdc1_pull_cfg[] =
 	{
-		{ SDC1_CLK_PULL_CTL_OFF,  TLMM_NO_PULL, TLMM_PULL_MASK },
-		{ SDC1_CMD_PULL_CTL_OFF,  TLMM_PULL_UP, TLMM_PULL_MASK },
-		{ SDC1_DATA_PULL_CTL_OFF, TLMM_PULL_UP, TLMM_PULL_MASK },
-		{ SDC1_RCLK_PULL_CTL_OFF, TLMM_PULL_DOWN, TLMM_PULL_MASK },
+		{ SDC1_CLK_PULL_CTL_OFF,  TLMM_NO_PULL, TLMM_PULL_MASK, 0 },
+		{ SDC1_CMD_PULL_CTL_OFF,  TLMM_PULL_UP, TLMM_PULL_MASK, 0 },
+		{ SDC1_DATA_PULL_CTL_OFF, TLMM_PULL_UP, TLMM_PULL_MASK, 0 },
+		{ SDC1_RCLK_PULL_CTL_OFF, TLMM_PULL_DOWN, TLMM_PULL_MASK, 0 },
 	};
 
 	/* Set the drive strength & pull control values */
@@ -331,7 +330,7 @@ void target_load_ssd_keystore(void)
 
 	size = partition_get_size(index);
 	if ((size == 0) || ((ULLONG_MAX - CACHE_LINE + 1) < size)) {
-		dprintf(CRITICAL, "Error: invalid ssd partition size %d\n",size);
+		dprintf(CRITICAL, "Error: invalid ssd partition size %lld\n",size);
 		return;
 	}
 
@@ -523,11 +522,7 @@ void target_force_cont_splash_disable(uint8_t override)
 /* Detect the modem type */
 void target_baseband_detect(struct board_data *board)
 {
-	uint32_t platform;
-	uint32_t platform_subtype;
 	uint32_t platform_hardware;
-
-	platform = board->platform;
 
 	platform_hardware = board->platform_hw;
 
