@@ -27,6 +27,7 @@
  */
 
 #include <debug.h>
+#include <ctype.h>
 #include <platform/iomap.h>
 #include <reg.h>
 #include <target.h>
@@ -34,6 +35,7 @@
 #include <uart_dm.h>
 #include <mmc.h>
 #include <dev/keys.h>
+#include <spmi.h>
 #include <spmi_v2.h>
 #include <pm8x41.h>
 #include <board.h>
@@ -43,6 +45,7 @@
 #include <platform/gpio.h>
 #include <platform/irqs.h>
 #include <platform/clock.h>
+#include <platform/timer.h>
 #include <crypto5_wrapper.h>
 #include <partition_parser.h>
 #include <stdlib.h>
@@ -52,6 +55,8 @@
 #include <smem.h>
 #include <secapp_loader.h>
 #include <rpmb.h>
+#include <boot_device.h>
+#include <sdhci_msm.h>
 
 #if LONG_PRESS_POWER_ON
 #include <shutdown_detect.h>
@@ -129,7 +134,6 @@ void update_ptable_names(void)
 {
 	uint32_t ptn_index;
 	struct ptentry *ptentry_ptr = flash_ptable.parts;
-	struct ptentry *boot_ptn;
 	unsigned i;
 	uint32_t len;
 
@@ -329,8 +333,6 @@ static void set_ebi2_config()
 }
 void target_init(void)
 {
-	uint32_t base_addr;
-	uint8_t slot;
 #if VERIFIED_BOOT || VERIFIED_BOOT_2
 	int ret = 0;
 #endif

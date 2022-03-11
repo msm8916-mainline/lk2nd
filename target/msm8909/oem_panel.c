@@ -33,6 +33,7 @@
 #include <msm_panel.h>
 #include <board.h>
 #include <mipi_dsi.h>
+#include <platform/timer.h>
 #include <target/display.h>
 #include "include/panel.h"
 #include "panel_display.h"
@@ -498,8 +499,6 @@ int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	uint32_t platform_type = board_platform_id();
 	uint32_t platform_subtype = board_hardware_subtype();
 	int32_t panel_override_id;
-	uint32_t target_id = board_target_id();
-	uint32_t plat_hw_ver_major = ((target_id >> 16) & 0xFF);;
 
 	if (panel_name) {
 		panel_override_id = panel_name_to_id(supp_panels,

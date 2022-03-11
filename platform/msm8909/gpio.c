@@ -31,6 +31,7 @@
 #include <platform/iomap.h>
 #include <platform/gpio.h>
 #include <blsp_qup.h>
+#include <board.h>
 #include <smem.h>
 
 void gpio_tlmm_config(uint32_t gpio, uint8_t func,
