@@ -55,10 +55,9 @@ platform:
   arch: amd64
 
 steps:
-  - name: build (gcc4)
+  - name: build (gcc4, -Werror)
     image: alpine:3.15
-    # FIXME: Enable -Werror when compile warnings are fixed
-    commands: [./.drone.sh msm8909]
+    commands: [./.drone.sh msm8909 LKLE_CFLAGS=-Werror]
 
 trigger:
   event: [push, pull_request, tag]
