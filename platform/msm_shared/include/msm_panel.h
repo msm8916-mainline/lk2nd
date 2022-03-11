@@ -468,4 +468,6 @@ struct msm_fb_panel_data {
 	int (*dsi2HDMI_config) (struct msm_panel_info *);
 };
 
+int msm_display_off();
+
 #endif
