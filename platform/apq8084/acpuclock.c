@@ -34,6 +34,7 @@
 #include <pm8x41.h>
 #include <platform/clock.h>
 #include <platform/iomap.h>
+#include <platform/timer.h>
 
 void hsusb_clock_init(void)
 {
@@ -116,7 +117,6 @@ void clock_init_mmc(uint32_t interface)
 void clock_config_mmc(uint32_t interface, uint32_t freq)
 {
 	int ret;
-	uint32_t reg;
 	char clk_name[64];
 
 	snprintf(clk_name, 64, "sdc%u_core_clk", interface);
@@ -153,6 +153,7 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 	{
 		dprintf(CRITICAL, "sdc frequency (%u) is not supported\n", freq);
 		ASSERT(0);
+		return;
 	}
 
 
@@ -643,4 +644,3 @@ void edp_clk_disable(void)
 	clk_disable(clk_get("edp_link_clk"));
 	clk_disable(clk_get("edp_aux_clk"));
 }
-

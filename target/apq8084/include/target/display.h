@@ -35,73 +35,6 @@
 #include <display_resource.h>
 
 /*---------------------------------------------------------------------------*/
-/* GPIO configuration                                                        */
-/*---------------------------------------------------------------------------*/
-static struct gpio_pin reset_gpio = {
-  "msmgpio", 96, 3, 1, 0, 1
-};
-
-static struct gpio_pin enable_gpio = {
-  "msmgpio", 137, 3, 1, 0, 1
-};
-
-static struct gpio_pin bkl_gpio = {
-  "msmgpio", 86, 3, 1, 0, 1
-};
-
-static struct gpio_pin pwm_gpio = {
-  "pm8084", 7, 3, 1, 0, 1
-};
-
-static struct gpio_pin edp_lvl_en_gpio = {
-  "msmgpio", 91, 3, 1, 0, 1
-};
-
-static struct gpio_pin edp_hpd_gpio = {	/* input */
-  "msmgpio", 103, 3, 0, 0, 1
-};
-
-/* gpio name, id, strength, direction, pull, state. */
-static struct gpio_pin hdmi_cec_gpio = {        /* CEC */
-  "msmgpio", 31, 0, 2, 3, 1
-};
-
-static struct gpio_pin hdmi_ddc_clk_gpio = {   /* DDC CLK */
-  "msmgpio", 32, 0, 2, 3, 1
-};
-
-static struct gpio_pin hdmi_ddc_data_gpio = {  /* DDC DATA */
-  "msmgpio", 33, 0, 2, 3, 1
-};
-
-static struct gpio_pin hdmi_hpd_gpio = {       /* HPD, input */
-  "msmgpio", 34, 7, 0, 1, 1
-};
-
-static struct gpio_pin hdmi_mux_lpm_gpio = {       /* MUX LPM */
-  "msmgpio", 27, 0, 2, 0, 0
-};
-
-static struct gpio_pin hdmi_mux_en_gpio = {       /* MUX EN */
-  "msmgpio", 83, 3, 2, 3, 1
-};
-
-static struct gpio_pin hdmi_mux_sel_gpio = {       /* MUX SEL */
-  "msmgpio", 85, 0, 0, 1, 1
-};
-
-/*---------------------------------------------------------------------------*/
-/* LDO configuration                                                         */
-/*---------------------------------------------------------------------------*/
-static struct ldo_entry ldo_entry_array[] = {
-  { "vdd", 22, 0, 3000000, 100000, 100, 0, 20, 0, 0},
-  { "vddio", 12, 0, 1800000, 100000, 100, 0, 20, 0, 0},
-  { "vdda", 2, 1, 1200000, 100000, 100, 0, 0, 0, 0},
-};
-
-#define TOTAL_LDO_DEFINED 3
-
-/*---------------------------------------------------------------------------*/
 /* Target Physical configuration                                             */
 /*---------------------------------------------------------------------------*/
 
@@ -149,5 +82,21 @@ static const uint32_t panel_physical_ctrl[] = {
 
 #define HDMI_PANEL_NAME              "hdmi"
 #define HDMI_CONTROLLER_STRING       "hdmi:0"
+
+/*---------------------------------------------------------------------------*/
+/* Functions		                                                     */
+/*---------------------------------------------------------------------------*/
+int target_display_pre_on();
+int target_display_pre_off();
+int target_display_post_on();
+int target_display_post_off();
+int target_cont_splash_screen();
+int target_display_get_base_offset(uint32_t base);
+void target_force_cont_splash_disable(uint8_t override);
+uint8_t target_panel_auto_detect_enabled();
+int target_hdmi_pll_clock(uint8_t enable, struct msm_panel_info *pinfo);
+int target_hdmi_panel_clock(uint8_t enable, struct msm_panel_info *pinfo);
+int target_hdmi_regulator_ctrl(uint8_t enable);
+int target_hdmi_gpio_ctrl(uint8_t enable);
 
 #endif

@@ -136,7 +136,6 @@
 #define SDCC1_M                     (CLK_CTL_BASE + 0x4D8) /* m */
 #define SDCC1_N                     (CLK_CTL_BASE + 0x4DC) /* n */
 #define SDCC1_D                     (CLK_CTL_BASE + 0x4E0) /* d */
-#define SDCC1_CDCCAL_SLEEP_CBCR     (CLK_CTL_BASE + 0x4E4)
 
 /* USB 3.0 clocks */
 #define SYS_NOC_USB3_AXI_CBCR       (CLK_CTL_BASE + 0x0108)
@@ -356,5 +355,4 @@
 #define HDMI_AVI_INFO1          REG_HDMI(0x070)
 #define HDMI_AVI_INFO2          REG_HDMI(0x074)
 #define HDMI_AVI_INFO3          REG_HDMI(0x078)
-#define HDMI_INFOFRAME_CTRL0    REG_HDMI(0x02C)
 #endif

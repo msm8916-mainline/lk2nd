@@ -179,7 +179,7 @@ static struct branch_clk gcc_blsp2_uart2_apps_clk =
 	},
 };
 
-static struct vote_clk gcc_blsp1_ahb_clk = {
+static struct vote_clk gcc_blsp1_ahb_clk __UNUSED = {
 	.cbcr_reg     = (uint32_t *) BLSP1_AHB_CBCR,
 	.vote_reg     = (uint32_t *) APCS_CLOCK_BRANCH_ENA_VOTE,
 	.en_mask      = BIT(17),
@@ -670,7 +670,7 @@ static struct branch_clk mdss_mdp_clk = {
 };
 
 static struct branch_clk mdss_mdp_lut_clk = {
-	.cbcr_reg    = MDP_LUT_CBCR,
+	.cbcr_reg    = (uint32_t *) MDP_LUT_CBCR,
 	.parent      = &mdss_mdp_clk_src.c,
 	.has_sibling = 1,
 
@@ -681,7 +681,7 @@ static struct branch_clk mdss_mdp_lut_clk = {
 };
 
 static struct branch_clk mdss_vsync_clk = {
-	.cbcr_reg    = MDSS_VSYNC_CBCR,
+	.cbcr_reg    = (uint32_t *) MDSS_VSYNC_CBCR,
 	.parent      = &vsync_clk_src.c,
 	.has_sibling = 0,
 
@@ -692,7 +692,7 @@ static struct branch_clk mdss_vsync_clk = {
 };
 
 static struct branch_clk mdss_hdmi_ahb_clk = {
-	.cbcr_reg = MDSS_HDMI_AHB_CBCR,
+	.cbcr_reg = (uint32_t *) MDSS_HDMI_AHB_CBCR,
 	.has_sibling = 1,
 	.c = {
 		.dbg_name = "mdss_hdmi_ahb_clk",
@@ -706,8 +706,8 @@ static struct clk_freq_tbl ftbl_mdss_hdmi_clk[] = {
 };
 
 static struct rcg_clk hdmi_clk_src = {
-        .cmd_reg = HDMI_CMD_RCGR,
-	.cfg_reg = HDMI_CFG_RCGR,
+        .cmd_reg = (uint32_t *) HDMI_CMD_RCGR,
+	.cfg_reg = (uint32_t *) HDMI_CFG_RCGR,
         .set_rate = clock_lib2_rcg_set_rate_hid,
         .freq_tbl = ftbl_mdss_hdmi_clk,
         .current_freq = &rcg_dummy_freq,
@@ -718,7 +718,7 @@ static struct rcg_clk hdmi_clk_src = {
 };
 
 static struct branch_clk mdss_hdmi_clk = {
-	.cbcr_reg = MDSS_HDMI_CBCR,
+	.cbcr_reg = (uint32_t *) MDSS_HDMI_CBCR,
 	.has_sibling = 0,
 	.parent = &hdmi_clk_src.c,
 	.c = {
@@ -733,8 +733,8 @@ static struct clk_freq_tbl ftbl_mdss_extpclk_clk[] = {
 };
 
 static struct rcg_clk extpclk_clk_src = {
-	.cmd_reg = EXTPCLK_CMD_RCGR,
-	.cfg_reg = EXTPCLK_CFG_RCGR,
+	.cmd_reg = (uint32_t *) EXTPCLK_CMD_RCGR,
+	.cfg_reg = (uint32_t *) EXTPCLK_CFG_RCGR,
 	.set_rate = clock_lib2_rcg_set_rate_hid,
 	.freq_tbl = ftbl_mdss_extpclk_clk,
 	.current_freq = &rcg_dummy_freq,
@@ -745,7 +745,7 @@ static struct rcg_clk extpclk_clk_src = {
 };
 
 static struct branch_clk mdss_extpclk_clk = {
-	.cbcr_reg = MDSS_EXTPCLK_CBCR,
+	.cbcr_reg = (uint32_t *) MDSS_EXTPCLK_CBCR,
 	.has_sibling = 0,
 	.parent = &extpclk_clk_src.c,
 	.c = {
@@ -771,7 +771,7 @@ static struct rcg_clk edpaux_clk_src = {
 };
 
 static struct branch_clk mdss_edpaux_clk = {
-	.cbcr_reg    = MDSS_EDPAUX_CBCR,
+	.cbcr_reg    = (uint32_t *) MDSS_EDPAUX_CBCR,
 	.parent      = &edpaux_clk_src.c,
 	.has_sibling = 0,
 
@@ -836,7 +836,7 @@ static struct branch_clk mdss_edppixel_clk = {
 };
 
 static struct branch_clk gcc_sdcc1_cdccal_ff_clk = {
-	.cbcr_reg    = SDCC1_CDCCAL_FF_CBCR,
+	.cbcr_reg    = (uint32_t *) SDCC1_CDCCAL_FF_CBCR,
 	.has_sibling = 1,
 
     .c = {
@@ -846,7 +846,7 @@ static struct branch_clk gcc_sdcc1_cdccal_ff_clk = {
 };
 
 static struct branch_clk gcc_sdcc1_cdccal_sleep_clk = {
-	.cbcr_reg    = SDCC1_CDCCAL_SLEEP_CBCR,
+	.cbcr_reg    = (uint32_t *) SDCC1_CDCCAL_SLEEP_CBCR,
 	.has_sibling = 1,
 
     .c = {
