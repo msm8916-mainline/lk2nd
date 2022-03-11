@@ -37,8 +37,10 @@
 #include <board.h>
 #include <mdp3.h>
 #include <scm.h>
+#include <platform/clock.h>
 #include <platform/gpio.h>
 #include <platform/iomap.h>
+#include <platform/timer.h>
 #include <target/display.h>
 #include <regulator.h>
 
@@ -57,6 +59,22 @@
 /*---------------------------------------------------------------------------*/
 /* GPIO configuration                                                        */
 /*---------------------------------------------------------------------------*/
+static struct gpio_pin reset_gpio = {
+  "msmgpio", 25, 3, 1, 0, 1
+};
+
+static struct gpio_pin enable_gpio = {
+  "msmgpio", 97, 3, 1, 0, 1
+};
+
+static struct gpio_pin bkl_gpio = {
+  "msmgpio", 37, 3, 1, 0, 1
+};
+
+static struct gpio_pin spi_bkl_gpio = {
+	"msmgpio", 60, 3, 1, 0, 1
+};
+
 static struct gpio_pin bob_gpio = {
   "pm8941_gpios", 12, 2, 1, 0, 1
 };
@@ -423,7 +441,7 @@ bool is_display_disabled(void)
 
 bool display_efuse_check(void)
 {
-	int i;
+	unsigned int i;
 	uint32_t efuse = 0;
 	uint32_t board_id = board_platform_id();
 
@@ -469,7 +487,7 @@ bool target_display_panel_node(char *pbuf, uint16_t buf_size)
 void target_display_init(const char *panel_name)
 {
 	uint32_t panel_loop = 0;
-	uint32_t ret = 0;
+	int ret = 0;
 	struct oem_panel_data oem;
 
 	if (display_efuse_check())
@@ -492,7 +510,7 @@ void target_display_init(const char *panel_name)
 
 	do {
 		target_force_cont_splash_disable(false);
-		ret = gcdb_display_init(oem.panel, MDP_REV_305, MIPI_FB_ADDR);
+		ret = gcdb_display_init(oem.panel, MDP_REV_305, (void *)MIPI_FB_ADDR);
 		if (!ret || ret == ERR_NOT_SUPPORTED) {
 			break;
 		} else {

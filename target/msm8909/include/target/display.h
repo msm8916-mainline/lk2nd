@@ -37,44 +37,8 @@
 /*---------------------------------------------------------------------------*/
 /* GPIO configuration                                                        */
 /*---------------------------------------------------------------------------*/
-static struct gpio_pin reset_gpio = {
-  "msmgpio", 25, 3, 1, 0, 1
-};
-
-static struct gpio_pin enable_gpio = {
-  "msmgpio", 97, 3, 1, 0, 1
-};
-
-static struct gpio_pin bkl_gpio = {
-  "msmgpio", 37, 3, 1, 0, 1
-};
-
-static struct gpio_pin spi_bkl_gpio = {
-	"msmgpio", 60, 3, 1, 0, 1
-};
-
-static struct gpio_pin enp_gpio = {
-  "msmgpio", 97, 3, 1, 0, 1
-};
-
-static struct gpio_pin enn_gpio = {
-  "msmgpio", 32, 3, 1, 0, 1
-};
-
-static struct gpio_pin dc_gpio = {
-	"msmgpio", 52, 3, 1, 0, 1
-};
-
-static struct gpio_pin spi_dc_gpio = {
+static struct gpio_pin spi_dc_gpio __UNUSED = {
         "msmgpio", 110, 3, 1, 0, 1
-};
-
-static struct gpio_pin te_gpio = {
-  0, 0, 0, 0, 0, 0
-};
-
-static struct gpio_pin pwm_gpio = {
-  0, 0, 0, 0, 0, 0
 };
 
 /*---------------------------------------------------------------------------*/
@@ -122,5 +86,18 @@ static const uint32_t panel_physical_ctrl[] = {
 
 #define SPI_BLSP_ID                  1
 #define SPI_QUP_ID                   4
+
+/*---------------------------------------------------------------------------*/
+/* Functions		                                                     */
+/*---------------------------------------------------------------------------*/
+int target_display_pre_on();
+int target_display_pre_off();
+int target_display_post_on();
+int target_display_post_off();
+int target_cont_splash_screen();
+int target_display_get_base_offset(uint32_t base);
+void target_force_cont_splash_disable(uint8_t override);
+uint8_t target_panel_auto_detect_enabled();
+uint32_t oem_panel_max_auto_detect_panels();
 
 #endif

@@ -28,16 +28,17 @@
 
 #include <debug.h>
 #include <reg.h>
+#include <platform/clock.h>
 #include <platform/iomap.h>
 #include <qgic.h>
+#include <qpic_nand.h>
 #include <qtimer.h>
 #include <mmu.h>
 #include <arch/arm/mmu.h>
 #include <smem.h>
 #include <target/display.h>
 #include <platform/partial_goods.h>
-
-#define MB (1024*1024)
+#include <boot_device.h>
 
 #define MSM_IOMAP_SIZE ((MSM_IOMAP_END - MSM_IOMAP_BASE)/MB)
 #define A7_SS_SIZE    ((A7_SS_END - A7_SS_BASE)/MB)
@@ -68,8 +69,6 @@ static mmu_section_t mmu_section_table[] = {
 	{    MIPI_FB_ADDR,      MIPI_FB_ADDR,     10,              COMMON_MEMORY},
 	{    RPMB_SND_RCV_BUF,  RPMB_SND_RCV_BUF, RPMB_SND_RCV_BUF_SZ,    IOMAP_MEMORY},
 };
-
-static struct smem_ram_ptable ram_ptable;
 
 void platform_early_init(void)
 {
