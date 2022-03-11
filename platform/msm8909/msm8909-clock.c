@@ -434,7 +434,7 @@ static struct rcg_clk gcc_blsp1_qup1_i2c_apps_clk_src =
 };
 
 static struct branch_clk gcc_blsp1_qup1_i2c_apps_clk = {
-	.cbcr_reg = GCC_BLSP1_QUP1_APPS_CBCR,
+	.cbcr_reg = (uint32_t *) GCC_BLSP1_QUP1_APPS_CBCR,
 	.parent   = &gcc_blsp1_qup1_i2c_apps_clk_src.c,
 
 	.c = {
@@ -459,7 +459,7 @@ static struct rcg_clk gcc_blsp1_qup2_i2c_apps_clk_src =
 };
 
 static struct branch_clk gcc_blsp1_qup2_i2c_apps_clk = {
-	.cbcr_reg = GCC_BLSP1_QUP2_APPS_CBCR,
+	.cbcr_reg = (uint32_t *) GCC_BLSP1_QUP2_APPS_CBCR,
 	.parent   = &gcc_blsp1_qup2_i2c_apps_clk_src.c,
 
 	.c = {
@@ -483,7 +483,7 @@ static struct rcg_clk gcc_blsp1_qup3_i2c_apps_clk_src =
 };
 
 static struct branch_clk gcc_blsp1_qup3_i2c_apps_clk = {
-	.cbcr_reg = GCC_BLSP1_QUP3_APPS_CBCR,
+	.cbcr_reg = (uint32_t *) GCC_BLSP1_QUP3_APPS_CBCR,
 	.parent   = &gcc_blsp1_qup3_i2c_apps_clk_src.c,
 
 	.c = {
@@ -507,7 +507,7 @@ static struct rcg_clk gcc_blsp1_qup4_i2c_apps_clk_src =
 };
 
 static struct branch_clk gcc_blsp1_qup4_i2c_apps_clk = {
-	.cbcr_reg = GCC_BLSP1_QUP4_APPS_CBCR,
+	.cbcr_reg = (uint32_t *) GCC_BLSP1_QUP4_APPS_CBCR,
 	.parent   = &gcc_blsp1_qup4_i2c_apps_clk_src.c,
 
 	.c = {
@@ -531,7 +531,7 @@ static struct rcg_clk gcc_blsp1_qup5_i2c_apps_clk_src =
 };
 
 static struct branch_clk gcc_blsp1_qup5_i2c_apps_clk = {
-	.cbcr_reg = GCC_BLSP1_QUP5_APPS_CBCR,
+	.cbcr_reg = (uint32_t *) GCC_BLSP1_QUP5_APPS_CBCR,
 	.parent   = &gcc_blsp1_qup5_i2c_apps_clk_src.c,
 
 	.c = {
@@ -555,7 +555,7 @@ static struct rcg_clk gcc_blsp1_qup6_i2c_apps_clk_src =
 };
 
 static struct branch_clk gcc_blsp1_qup6_i2c_apps_clk = {
-	.cbcr_reg = GCC_BLSP1_QUP6_APPS_CBCR,
+	.cbcr_reg = (uint32_t *) GCC_BLSP1_QUP6_APPS_CBCR,
 	.parent   = &gcc_blsp1_qup6_i2c_apps_clk_src.c,
 
 	.c = {
@@ -594,7 +594,7 @@ static struct rcg_clk gcc_blsp1_qup3_spi_apps_clk_src =
 };
 
 static struct branch_clk gcc_blsp1_qup3_spi_apps_clk = {
-	.cbcr_reg = GCC_BLSP1_QUP3_SPI_APPS_CBCR,
+	.cbcr_reg = (uint32_t *) GCC_BLSP1_QUP3_SPI_APPS_CBCR,
 	.parent   = &gcc_blsp1_qup3_spi_apps_clk_src.c,
 
 	.c = {
@@ -621,7 +621,7 @@ static struct rcg_clk gcc_blsp1_qup4_spi_apps_clk_src =
 };
 
 static struct branch_clk gcc_blsp1_qup4_spi_apps_clk = {
-	.cbcr_reg = GCC_BLSP1_QUP4_SPI_APPS_CBCR,
+	.cbcr_reg = (uint32_t *) GCC_BLSP1_QUP4_SPI_APPS_CBCR,
 	.parent   = &gcc_blsp1_qup4_spi_apps_clk_src.c,
 
 	.c = {
@@ -648,7 +648,7 @@ static struct rcg_clk gcc_blsp1_qup5_spi_apps_clk_src =
 };
 
 static struct branch_clk gcc_blsp1_qup5_spi_apps_clk = {
-	.cbcr_reg = GCC_BLSP1_QUP5_SPI_APPS_CBCR,
+	.cbcr_reg = (uint32_t *) GCC_BLSP1_QUP5_SPI_APPS_CBCR,
 	.parent   = &gcc_blsp1_qup5_spi_apps_clk_src.c,
 
 	.c = {
@@ -760,7 +760,7 @@ static struct branch_clk mdss_mdp_clk = {
 };
 
 static struct branch_clk mdss_vsync_clk = {
-	.cbcr_reg    = MDSS_VSYNC_CBCR,
+	.cbcr_reg    = (uint32_t *) MDSS_VSYNC_CBCR,
 	.parent      = &vsync_clk_src.c,
 	.has_sibling = 0,
 

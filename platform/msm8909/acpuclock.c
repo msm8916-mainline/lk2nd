@@ -139,6 +139,7 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 	{
 		dprintf(CRITICAL, "sdc frequency (%u) is not supported\n", freq);
 		ASSERT(0);
+		return;
 	}
 
 	if(ret)
@@ -481,7 +482,6 @@ void clock_config_blsp_spi(uint8_t blsp_id, uint8_t qup_id, unsigned long rate)
 	uint8_t ret = 0;
 	char clk_name[64];
 
-	struct clk *qup_clk;
 	qup_id = qup_id + 1;
 
 	if((blsp_id != BLSP_ID_1)) {
