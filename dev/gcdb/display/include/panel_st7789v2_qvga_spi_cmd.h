@@ -175,7 +175,7 @@ static char st7789v2_qvga_cmdoff_cmd1[] = {
 	0x10,
 };
 
-static struct mipi_dsi_cmd st7789v2_qvga_cmd_off_command[] = {
+static struct mipi_dsi_cmd st7789v2_qvga_cmd_off_command[] __UNUSED = {
 	{0x1, st7789v2_qvga_cmdoff_cmd0, 0x20},
 	{0x1, st7789v2_qvga_cmdoff_cmd1, 0x20}
 };

@@ -257,7 +257,7 @@ const uint32_t hx8394d_qhd_video_timings[] = {
 	0x79, 0x1a, 0x12, 0x00, 0x3e, 0x42, 0x16, 0x1e, 0x15, 0x03, 0x04, 0x00
 };
 
-static struct mipi_dsi_cmd hx8394d_qhd_video_rotation[] = {
+static struct mipi_dsi_cmd hx8394d_qhd_video_rotation[] __UNUSED = {
 
 };
 #define HX8394D_QHD_VIDEO_ROTATION 0

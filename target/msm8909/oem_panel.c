@@ -38,6 +38,8 @@
 #include "include/panel.h"
 #include "panel_display.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 #include "include/panel_hx8394d_720p_video.h"
 #include "include/panel_hx8379a_fwvga_skua_video.h"
 #include "include/panel_sharp_qhd_video.h"
@@ -52,6 +54,7 @@
 #include "include/panel_auo_390p_cmd.h"
 #include "include/panel_st7789v2_qvga_spi_cmd.h"
 #include "include/panel_gc9305_qvga_spi_cmd.h"
+#pragma GCC diagnostic pop
 
 #define DISPLAY_MAX_PANEL_DETECTION 2
 #define ILI9806E_FWVGA_VIDEO_PANEL_POST_INIT_DELAY 68
