@@ -32,6 +32,7 @@
 #include <dev/fbcon.h>
 #include <msm_panel.h>
 
+#if MDP4
 //TODO: Make a global PASS / FAIL define
 #define PASS                        0
 #define FAIL                        1
@@ -77,6 +78,7 @@
 
 #define MDP_TEST_MODE_CLK                     REG_MDP(0xF0000)
 #define MDP_INTR_STATUS                       REG_MDP(0x00054)
+#endif
 
 void mdp_setup_dma_p_video_config(unsigned short pack_pattern,
 				unsigned short img_width,

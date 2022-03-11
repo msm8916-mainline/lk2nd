@@ -35,7 +35,6 @@
 #include <string.h>
 #include <debug.h>
 #include <target/display.h>
-#include <mdp5.h>
 #include <platform/iomap.h>
 #include <platform/clock.h>
 #include <platform/timer.h>
@@ -45,6 +44,7 @@
 
 extern int mipi_dsi_cmd_config(struct fbcon_config mipi_fb_cfg,
 			       unsigned short num_of_lanes);
+extern int mdp_get_revision();
 extern void mdp_shutdown(void);
 extern void mdp_start_dma(void);
 
