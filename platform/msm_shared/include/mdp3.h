@@ -55,9 +55,11 @@ struct mdp_efuse_data {
 	uint32_t board_id;
 };
 
+#ifdef SEC_CTRL_CORE_BASE
 static struct mdp_efuse_data efuse_data[] __UNUSED = {
         EFUSE_ENTRY(SEC_CTRL_CORE_BASE, EFUSE_OFFSET, 4, 0x20000000, 0x1D, APQ8009),
 };
+#endif
 
 int mdp_setup_dma_p_video_mode(unsigned short disp_width,
 			       unsigned short disp_height,

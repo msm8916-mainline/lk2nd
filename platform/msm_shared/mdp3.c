@@ -86,7 +86,9 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 	struct lcdc_panel_info *lcdc = NULL;
 	int ystride = 3;
 	int mdp_rev = mdp_get_revision();
+#ifdef MDP_PANIC_ROBUST_CTRL
 	unsigned long long panic_config = mdp3_get_panic_lut_cfg(pinfo->xres);
+#endif
 
 	if (pinfo == NULL)
 		return ERR_INVALID_ARGS;
@@ -107,12 +109,15 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 	}
 	vsync_period = vsync_period_intmd * hsync_period;
 
+#ifdef MDP_DMA_P_QOS_REMAPPER
 	/* Program QOS remapper settings */
 	writel(0x1A9, MDP_DMA_P_QOS_REMAPPER);
 	writel(0x0, MDP_DMA_P_WATERMARK_0);
 	writel(0x0, MDP_DMA_P_WATERMARK_1);
 	writel(0x0, MDP_DMA_P_WATERMARK_2);
+#endif
 
+#ifdef MDP_PANIC_ROBUST_CTRL
 	writel((panic_config & 0xFFFF), MDP_PANIC_LUT0);
 	writel(((panic_config >> 16) & 0xFFFF) , MDP_PANIC_LUT1);
 	writel(((panic_config >> 32) & 0xFFFF), MDP_ROBUST_LUT);
@@ -120,6 +125,7 @@ int mdp_dsi_video_config(struct msm_panel_info *pinfo,
 	dprintf(INFO, "Panic Lut0 %llx Lut1 %llx Robest %llx\n",
 		(panic_config & 0xFFFF), ((panic_config >> 16) & 0xFFFF),
 		((panic_config >> 32) & 0xFFFF));
+#endif
 	// ------------- programming MDP_DMA_P_CONFIG ---------------------
 	writel(0x1800bf, MDP_DMA_P_CONFIG);	// rgb888
 
@@ -165,7 +171,9 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 	unsigned short pack_pattern = 0x21;
 	unsigned char ystride = 3;
 	unsigned int sync_cfg;
+#ifdef MDP_PANIC_ROBUST_CTRL
 	unsigned long long panic_config = 0;
+#endif
 	const uint32_t vsync_hz = 19200000; /* Vsync Clock 19.2 HMz */
 	/* Auto refresh fps = Panel fps / frame num */
 	/* Auto refresh frame num = 60/10 = 6fps */
@@ -174,12 +182,15 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 	if (pinfo == NULL)
 		return ERR_INVALID_ARGS;
 
+#ifdef MDP_DMA_P_QOS_REMAPPER
 	/* Program QOS remapper settings */
 	writel(0x1A9, MDP_DMA_P_QOS_REMAPPER);
 	writel(0x0, MDP_DMA_P_WATERMARK_0);
 	writel(0x0, MDP_DMA_P_WATERMARK_1);
 	writel(0x0, MDP_DMA_P_WATERMARK_2);
+#endif
 
+#ifdef MDP_PANIC_ROBUST_CTRL
 	panic_config = mdp3_get_panic_lut_cfg(pinfo->xres);
 	writel((panic_config & 0xFFFF), MDP_PANIC_LUT0);
 	writel(((panic_config >> 16) & 0xFFFF) , MDP_PANIC_LUT1);
@@ -188,6 +199,7 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 	dprintf(INFO, "Panic Lut0 %llx Lut1 %llx Robest %llx\n",
 		(panic_config & 0xFFFF), ((panic_config >> 16) & 0xFFFF),
 		((panic_config >> 32) & 0xFFFF));
+#endif
 
 	writel(0x03ffffff, MDP_INTR_ENABLE);
 

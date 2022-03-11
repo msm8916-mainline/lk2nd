@@ -104,6 +104,8 @@
 #define DSI1_PHY_BASE               MIPI_DSI_BASE
 #define DSI0_PLL_BASE               MIPI_DSI_BASE
 #define DSI1_PLL_BASE               MIPI_DSI_BASE
+#define DSI0_REGULATOR_BASE         MIPI_DSI_BASE
+#define DSI1_REGULATOR_BASE         MIPI_DSI_BASE
 #define REG_DSI(off)                (MIPI_DSI_BASE + (off))
 
 #define DSIPHY_REGULATOR_BASE       0x500
@@ -168,6 +170,9 @@
 
 #define MDP_TEST_MODE_CLK           REG_MDP(0xF0000)
 #define MDP_INTR_STATUS             REG_MDP(0x00054)
+
+#define MDP_AUTOREFRESH_CONFIG_P    REG_MDP(0x34C)
+#define MDP_SYNC_CONFIG_0           REG_MDP(0x300)
 
 #define SOFT_RESET                  0x114
 #define CLK_CTRL                    0x118
