@@ -392,7 +392,7 @@ static struct branch_clk mmss_s0_axi_clk = {
 };
 
 static struct branch_clk mdp_vsync_clk = {
-	.cbcr_reg    = MDP_VSYNC_CBCR,
+	.cbcr_reg    = (uint32_t *) MDP_VSYNC_CBCR,
 	.parent      = &vsync_clk_src.c,
 	.c           = {
 		.dbg_name = "mdp_vsync_clk",
@@ -401,7 +401,7 @@ static struct branch_clk mdp_vsync_clk = {
 };
 
 static struct branch_clk mdp_lcdc_clk = {
-	.cbcr_reg    = MDP_LCDC_CBCR,
+	.cbcr_reg    = (uint32_t *) MDP_LCDC_CBCR,
 	.parent      = &axi_clk_src.c,
 	.c           = {
 		.dbg_name = "mdp_lcdc_clk",
@@ -410,7 +410,7 @@ static struct branch_clk mdp_lcdc_clk = {
 };
 
 static struct branch_clk dsi_clk = {
-	.cbcr_reg = DSI_CBCR,
+	.cbcr_reg = (uint32_t *) DSI_CBCR,
 	.c = {
 		.dbg_name = "dsi_clk",
 		.ops = &clk_ops_branch,
@@ -418,7 +418,7 @@ static struct branch_clk dsi_clk = {
 };
 
 static struct branch_clk dsi_ahb_clk = {
-	.cbcr_reg = DSI_AHB_CBCR,
+	.cbcr_reg = (uint32_t *) DSI_AHB_CBCR,
 	.has_sibling = 1,
 	.c = {
 		.dbg_name = "dsi_ahb_clk",
@@ -427,7 +427,7 @@ static struct branch_clk dsi_ahb_clk = {
 };
 
 static struct branch_clk dsi_byte_clk = {
-	.cbcr_reg = DSI_BYTE_CBCR,
+	.cbcr_reg = (uint32_t *) DSI_BYTE_CBCR,
 	.c = {
 		.dbg_name = "dsi_byte_clk",
 		.ops = &clk_ops_branch,
@@ -435,7 +435,7 @@ static struct branch_clk dsi_byte_clk = {
 };
 
 static struct branch_clk dsi_esc_clk = {
-	.cbcr_reg = DSI_ESC_CBCR,
+	.cbcr_reg = (uint32_t *) DSI_ESC_CBCR,
 	.c = {
 		.dbg_name = "dsi_esc_clk",
 		.ops = &clk_ops_branch,
@@ -443,7 +443,7 @@ static struct branch_clk dsi_esc_clk = {
 };
 
 static struct branch_clk dsi_pclk_clk = {
-	.cbcr_reg = DSI_PCLK_CBCR,
+	.cbcr_reg = (uint32_t *) DSI_PCLK_CBCR,
 	.c = {
 		.dbg_name = "dsi_pclk_clk",
 		.ops = &clk_ops_branch,
