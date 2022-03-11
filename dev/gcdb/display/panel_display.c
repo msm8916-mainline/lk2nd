@@ -33,7 +33,6 @@
 #include <stdint.h>
 #include <msm_panel.h>
 #include <mipi_dsi.h>
-#include <mdp5.h>
 #include <sys/types.h>
 #include <platform/iomap.h>
 #include <err.h>
