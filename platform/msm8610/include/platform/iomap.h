@@ -186,6 +186,10 @@
 #define COMMAND_MODE_MDP_STREAM1_CTRL   0x05C
 #define COMMAND_MODE_MDP_STREAM1_TOTAL  0x060
 #define ERR_INT_MASK0               0x108
+
+#ifdef RDBK_DATA0
+#undef RDBK_DATA0
+#endif
 #define RDBK_DATA0                  0x068
 
 #define LANE_CTL                    0x0A8
