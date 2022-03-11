@@ -7,10 +7,9 @@ platform:
   arch: amd64
 
 steps:
-  - name: build (gcc4)
+  - name: build (gcc4, -Werror)
     image: alpine:3.15
-    # FIXME: Enable -Werror when compile warnings are fixed
-    commands: [.ci/build.sh apq8084]
+    commands: [./.drone.sh apq8084 LKLE_CFLAGS=-Werror]
 
 trigger:
   event: [push, pull_request, tag]
@@ -26,7 +25,7 @@ platform:
 steps:
   - name: build (gcc4, -Werror)
     image: alpine:3.15
-    commands: [.ci/build.sh mdm9607 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh mdm9607 LKLE_CFLAGS=-Werror]
 
 trigger:
   event: [push, pull_request, tag]
@@ -42,7 +41,7 @@ platform:
 steps:
   - name: build (gcc4, -Werror)
     image: alpine:3.15
-    commands: [.ci/build.sh msm8226 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh msm8226 LKLE_CFLAGS=-Werror]
 
 trigger:
   event: [push, pull_request, tag]
@@ -59,7 +58,7 @@ steps:
   - name: build (gcc4)
     image: alpine:3.15
     # FIXME: Enable -Werror when compile warnings are fixed
-    commands: [.ci/build.sh msm8909]
+    commands: [./.drone.sh msm8909]
 
 trigger:
   event: [push, pull_request, tag]
@@ -75,7 +74,7 @@ platform:
 steps:
   - name: build (gcc4, -Werror)
     image: alpine:3.15
-    commands: [.ci/build.sh msm8916 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh msm8916 LKLE_CFLAGS=-Werror]
 
 trigger:
   event: [push, pull_request, tag]
@@ -91,7 +90,7 @@ platform:
 steps:
   - name: build (gcc4, -Werror)
     image: alpine:3.15
-    commands: [.ci/build.sh msm8952 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh msm8952 LKLE_CFLAGS=-Werror]
 
 trigger:
   event: [push, pull_request, tag]
@@ -107,7 +106,7 @@ platform:
 steps:
   - name: build (gcc4, -Werror)
     image: alpine:3.15
-    commands: [.ci/build.sh msm8953 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh msm8953 LKLE_CFLAGS=-Werror]
 
 trigger:
   event: [push, pull_request, tag]
@@ -123,7 +122,7 @@ platform:
 steps:
   - name: build (gcc4, -Werror)
     image: alpine:3.15
-    commands: [.ci/build.sh msm8974 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh msm8974 LKLE_CFLAGS=-Werror]
 
 trigger:
   event: [push, pull_request, tag]
@@ -139,7 +138,7 @@ platform:
 steps:
   - name: build (gcc4, -Werror)
     image: alpine:3.15
-    commands: [.ci/build.sh msm8994 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh msm8994 LKLE_CFLAGS=-Werror]
 
 trigger:
   event: [push, pull_request, tag]
@@ -155,7 +154,7 @@ platform:
 steps:
   - name: build (gcc4, -Werror)
     image: alpine:3.15
-    commands: [.ci/build.sh msm8996 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh msm8996 LKLE_CFLAGS=-Werror]
 
 trigger:
   event: [push, pull_request, tag]
