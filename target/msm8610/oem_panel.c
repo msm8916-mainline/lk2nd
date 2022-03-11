@@ -42,12 +42,15 @@
 /*---------------------------------------------------------------------------*/
 /* GCDB Panel Database                                                       */
 /*---------------------------------------------------------------------------*/
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 #include "include/panel_truly_wvga_cmd.h"
 #include "include/panel_truly_wvga_video.h"
 #include "include/panel_hx8379a_wvga_video.h"
 #include "include/panel_hx8389b_qhd_video.h"
 #include "include/panel_otm8018b_fwvga_video.h"
 #include "include/panel_nt35590_720p_video.h"
+#pragma GCC diagnostic pop
 
 /* Number of dectectable panels */
 #define DISPLAY_MAX_PANEL_DETECTION 2
