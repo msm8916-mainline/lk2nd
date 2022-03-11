@@ -29,7 +29,6 @@
 #include <debug.h>
 #include <reg.h>
 #include <mipi_dsi.h>
-#include <mdp5.h>
 #include <platform/timer.h>
 #include <platform/iomap.h>
 #include <target/display.h>
@@ -62,6 +61,8 @@
 /* 4 data lanes and 1 clock lanes */
 #define TOTAL_LANE_COUNT                          5
 #define CONFIG_REG_FOR_EACH_LANE                  9
+
+extern int mdp_get_revision();
 
 static void mipi_dsi_calibration(uint32_t ctl_base)
 {
