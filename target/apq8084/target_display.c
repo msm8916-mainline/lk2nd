@@ -322,7 +322,7 @@ int target_hdmi_panel_clock(uint8_t enable, struct msm_panel_info *pinfo)
 		}
 
 		hdmi_phy_reset();
-		hdmi_pll_config();
+		hdmi_pll_config(pinfo->clk_rate);
 		hdmi_vco_enable();
 		hdmi_clk_enable();
 	} else if(!target_cont_splash_screen()) {
