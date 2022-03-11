@@ -213,7 +213,7 @@ int hdmi_vco_enable(void)
         return NO_ERROR;
 }
 
-uint32_t hdmi_pll_config(void)
+int hdmi_pll_config(uint32_t tmds_clk_rate)
 {
 	writel(0x81, HDMI_PHY_BASE + HDMI_PHY_GLB_CFG);
 	writel(0x01, HDMI_PLL_BASE + HDMI_UNI_PLL_GLB_CFG);
@@ -256,5 +256,6 @@ uint32_t hdmi_pll_config(void)
 	writel(0x02, HDMI_PHY_BASE + HDMI_PHY_TXCAL_CFG2);
 	writel(0x05, HDMI_PHY_BASE + HDMI_PHY_TXCAL_CFG3);
 	udelay(200);
-}
 
+	return NO_ERROR;
+}
