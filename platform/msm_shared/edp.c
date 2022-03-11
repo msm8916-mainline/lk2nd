@@ -27,8 +27,8 @@
  * SUCH DAMAGE.
  */
 
-#include "edp.h"
 #include "mdp5.h"
+#include "edp.h"
 
 #define RGB_COMPONENTS		3
 #define MAX_NUMBER_EDP_LANES	4
