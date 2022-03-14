@@ -16,6 +16,8 @@ static const char *bootable_parts[] = {
 	"cache",
 	"userdata",
 	"rootfs",
+	"MainOS",
+	"Data",
 };
 
 static bool fsboot_bootable_part(char *label)

@@ -253,7 +253,9 @@ int partition_publish(const char *device, off_t offset)
 				 * Scan some devices recursively to publish them. */
 				if (strcmp(name, "system") == 0
 				    || strcmp(name, "userdata") == 0
-				    || strcmp(name, "rootfs") == 0)
+				    || strcmp(name, "rootfs") == 0
+				    || strcmp(name, "MainOS") == 0
+				    || strcmp(name, "Data") == 0)
 					partition_publish(subdevice, 0);
 
 				count++;
