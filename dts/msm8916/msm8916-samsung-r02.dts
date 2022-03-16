@@ -3,6 +3,7 @@
 /dts-v1/;
 
 #include <skeleton.dtsi>
+#include <lk2nd.h>
 
 / {
 	// This is used by the bootloader to find the correct DTB
@@ -26,10 +27,6 @@
 		model = "Samsung Galaxy Grand Prime (CAN)";
 		compatible = "samsung,gprimeltecan", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "G530W*";
-
-		samsung,muic-reset {
-			i2c-gpio-pins = <2 3>;
-			i2c-address = <0x25>;
-		};
+		#include "msm8916-samsung-gprime.dtsi"
 	};
 };
