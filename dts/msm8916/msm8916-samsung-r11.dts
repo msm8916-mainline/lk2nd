@@ -19,10 +19,6 @@
 		model = "Samsung Galaxy Grand Prime (SM-G530Y)";
 		compatible = "samsung,fortunaltezt", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "G530Y*";
-
-		samsung,muic-reset {
-			i2c-gpio-pins = <2 3>;
-			i2c-address = <0x25>;
-		};
+		#include "msm8916-samsung-gprime.dtsi"
 	};
 };
