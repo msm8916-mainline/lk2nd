@@ -37,7 +37,7 @@
 	 */
 
 	heatqlte {
-		model = "Samsung Galaxy Ace 4";
+		model = "Samsung Galaxy Ace 4 (SM-G357FZ)";
 		compatible = "samsung,heatqlte", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "G357FZ*";
 		samsung,muic-reset {
