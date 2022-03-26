@@ -103,6 +103,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - ASUS ZenWatch 2 - sparrow
 - Huawei Watch - sturgeon
 - LG G Watch R - lenok
+- Samsung Galaxy Grand 2 - SM-G7102
 
 ## Installation
 1. Download `lk2nd.img` (available in [Releases](https://github.com/msm8916-mainline/lk2nd/releases))
