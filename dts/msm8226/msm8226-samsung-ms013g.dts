@@ -7,12 +7,7 @@
 
 / {
 	// This is used by the bootloader to find the correct DTB
-	qcom,msm-id =  <0x9E00FF01 7 0x20000>,
-		       <0x9108FF01 7 0x20000>,
-	      	       <0x9E08FF01 7 0x20000>,
-	               <0x9F08FF01 7 0x20000>,
-	               <0xC608FF01 7 0x20000>,
-	               <0xC708FF01 7 0x20000>;
+	qcom,msm-id = <0x9E08FF01 7 0x20000>;
 	
 	ms013g {
 		model = "Samsung Galaxy Grand 2";
