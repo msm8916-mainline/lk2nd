@@ -1,0 +1,24 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+/dts-v1/;
+
+#include <skeleton.dtsi>
+#include <lk2nd.h>
+
+/ {
+	// This is used by the bootloader to find the correct DTB
+	qcom,msm-id =  <0x9E00FF01 7 0x20000>,
+		       <0x9108FF01 7 0x20000>,
+	      	       <0x9E08FF01 7 0x20000>,
+	               <0x9F08FF01 7 0x20000>,
+	               <0xC608FF01 7 0x20000>,
+	               <0xC708FF01 7 0x20000>;
+	
+	ms013g {
+		model = "Samsung Galaxy Grand 2";
+		compatible = "samsung,ms013g", "qcom,msm8226", "lk2nd,device";
+		lk2nd,keys =
+			<KEY_VOLUMEDOWN 107 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>,
+			<KEY_VOLUMEUP   106 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+	};   
+};
