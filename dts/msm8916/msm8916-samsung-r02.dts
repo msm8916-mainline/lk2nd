@@ -30,6 +30,13 @@
 		#include "msm8916-samsung-gprime.dtsi"
 	};
 
+	gprimeltexx {
+		model = "Samsung Galaxy Grand Prime (SM-G530FZ)";
+		compatible = "samsung,gprimeltexx", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "G530FZ*";
+		#include "msm8916-samsung-gprime.dtsi"
+	};
+
 	/*
 	 * Before building for G357FZ, please comment out all dtbs except
 	 * "$(LOCAL_DIR)/msm8916-samsung-r02.dtb" at './rules.mk'.

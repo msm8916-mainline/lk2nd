@@ -3,6 +3,7 @@
 /dts-v1/;
 
 #include <skeleton.dtsi>
+#include <lk2nd.h>
 
 / {
 	// This is used by the bootloader to find the correct DTB
@@ -39,6 +40,15 @@
 			i2c-gpio-pins = <0 1>;
 			i2c-address = <0x25>;
 		};
+	};
+
+	gprimeltexx {
+		model = "Samsung Galaxy Grand Prime (SM-G530FZ)";
+		compatible = "samsung,gprimeltexx", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "G530FZ*";
+		qcom,msm-id = <206 0>;
+		qcom,board-id = <0xCE08FF01 2>;
+		#include "msm8916-samsung-gprime.dtsi"
 	};
 
 	j5xlte-chn {
