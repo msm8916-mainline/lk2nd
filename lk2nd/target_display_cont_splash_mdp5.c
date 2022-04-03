@@ -16,6 +16,10 @@
 #include <target.h>
 #include <target/display.h>
 
+#if !defined(MDP_GDSCR) && defined(MDSS_GDSCR)
+#define MDP_GDSCR MDSS_GDSCR
+#endif
+
 /* Assume ctl 0 is used */
 #define MDP_CTL_BASE			MDP_CTL_0_BASE
 
@@ -91,16 +95,22 @@ static void mdp5_cmd_start_refresh(struct fbcon_config *fb)
 	fb->update_start = mdp5_cmd_signal_refresh;
 }
 
-static void mmu_map_fb(addr_t addr, uint32_t size)
+static bool mmu_map_fb(addr_t addr, uint32_t size)
 {
 	addr_t end = addr + size;
 
 	dprintf(INFO, "Mapping framebuffer region at %lx, size %u\n", addr, size);
 
+#if !LPAE
 	for (; addr < end; addr += MB)
 		arm_mmu_map_section(addr, addr, MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH |
 						MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN);
 	arm_mmu_flush();
+	return true;
+#else
+	dprintf(CRITICAL, "Cannot map memory with LPAE right now :(\n");
+	return false;
+#endif
 }
 
 static int mdp5_read_config(struct fbcon_config *fb)
@@ -157,7 +167,8 @@ static int mdp5_read_config(struct fbcon_config *fb)
 	}
 
 	if ((addr_t)fb->base != MIPI_FB_ADDR)
-		mmu_map_fb((addr_t)fb->base, size);
+		if (!mmu_map_fb((addr_t)fb->base, size))
+			return -1;
 
 	return 0;
 }
