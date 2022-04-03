@@ -52,7 +52,6 @@ void arm_mmu_init(void);
 #define MMU_MEMORY_APX_READ_ONLY    (0x1 << 15)
 
 #define MMU_MEMORY_XN               (0x1 << 4)
-#define MMU_MEMORY_PXN              (0x1 << 0)
 #else /* LPAE */
 
 typedef enum
