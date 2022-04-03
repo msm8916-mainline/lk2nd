@@ -63,6 +63,7 @@
 
 static uint64_t ddr_start;
 
+#if LPAE
 static mmu_section_t default_mmu_section_table[] =
 {
 /*       Physical addr,    Virtual addr,     Mapping type ,              Size (in MB),            Flags */
@@ -80,6 +81,24 @@ static mmu_section_t dload_mmu_section_table[] =
 /*    Physical addr,    Virtual addr,     Mapping type ,              Size (in MB),      Flags */
     { 0x85800000,       0x85800000,       MMU_L2_NS_SECTION_MAPPING,  189,               DLOAD_MEMORY},
 };
+#else
+static mmu_section_t default_mmu_section_table[] = {
+/*       Physical addr,     Virtual addr,      Size (in MB),        Flags */
+    {    MSM_IOMAP_BASE,    MSM_IOMAP_BASE,    MSM_IOMAP_SIZE,      IOMAP_MEMORY},
+    {    MEMBASE,           MEMBASE,           (MEMSIZE / MB),      LK_MEMORY},
+    {    MIPI_FB_ADDR,      MIPI_FB_ADDR,      40,                  LK_MEMORY},
+    {    SCRATCH_ADDR,      SCRATCH_ADDR,      SCRATCH_SIZE,        SCRATCH_MEMORY},
+    {    MSM_SHARED_BASE,   MSM_SHARED_BASE,   MSM_SHARED_SIZE,     COMMON_MEMORY},
+    {    RPMB_SND_RCV_BUF,  RPMB_SND_RCV_BUF,  RPMB_SND_RCV_BUF_SZ, IOMAP_MEMORY},
+};
+
+/* Map the ddr for download mode, this region belongs to non-hlos images and pil */
+static mmu_section_t dload_mmu_section_table[] =
+{
+/*       Physical addr,     Virtual addr,      Size (in MB),        Flags */
+    {    0x85800000,        0x85800000,        189,                 DLOAD_MEMORY},
+};
+#endif
 
 void platform_early_init(void)
 {
@@ -115,7 +134,11 @@ void platform_init_mmu_mappings(void)
 {
 	int i;
 	int table_sz = ARRAY_SIZE(default_mmu_section_table);
+#if LPAE
 	mmu_section_t kernel_mmu_section_table;
+#else
+	uint32_t sections;
+#endif
 	uint64_t ddr_size = smem_get_ddr_size();
 
 	switch(ddr_size)
@@ -133,6 +156,7 @@ void platform_init_mmu_mappings(void)
 			ASSERT(0);
 	};
 
+#if LPAE
 	kernel_mmu_section_table.paddress = ddr_start;
 	kernel_mmu_section_table.vaddress = ddr_start;
 	kernel_mmu_section_table.type = MMU_L2_NS_SECTION_MAPPING;
@@ -153,16 +177,72 @@ void platform_init_mmu_mappings(void)
 		for (i = 0 ; i < table_sz; i++)
 			arm_mmu_map_entry(&dload_mmu_section_table[i]);
 	}
+#else
+	/* Mapping the ddr start address for loading the kernel about 90 MB */
+	sections = 88;
+	while(sections--)
+	{
+		arm_mmu_map_section(ddr_start + sections * MB, ddr_start + sections* MB, SCRATCH_MEMORY);
+	}
+
+	/* Configure the MMU page entries for memory read from the
+	   mmu_section_table */
+	for (i = 0; i < table_sz; i++)
+	{
+		sections = default_mmu_section_table[i].num_of_sections;
+
+		while (sections--)
+		{
+			arm_mmu_map_section(default_mmu_section_table[i].paddress +
+								sections * MB,
+								default_mmu_section_table[i].vaddress +
+								sections * MB,
+								default_mmu_section_table[i].flags);
+		}
+	}
+
+	if (scm_device_enter_dload())
+	{
+		/* TZ & Hyp memory can be mapped only while entering the download mode */
+		table_sz = ARRAY_SIZE(dload_mmu_section_table);
+
+		/* Configure the MMU page entries for memory read from the
+		   mmu_section_table */
+		for (i = 0; i < table_sz; i++)
+		{
+			sections = dload_mmu_section_table[i].num_of_sections;
+
+			while (sections--)
+			{
+				arm_mmu_map_section(dload_mmu_section_table[i].paddress +
+									sections * MB,
+									dload_mmu_section_table[i].vaddress +
+									sections * MB,
+									dload_mmu_section_table[i].flags);
+			}
+		}
+	}
+#endif
 }
 
 addr_t platform_get_virt_to_phys_mapping(addr_t virt_addr)
 {
+#if LPAE
 	return virtual_to_physical_mapping(virt_addr);
+#else
+	/* Using 1-1 mapping on this platform. */
+	return virt_addr;
+#endif
 }
 
 addr_t platform_get_phys_to_virt_mapping(addr_t phys_addr)
 {
+#if LPAE
 	return physical_to_virtual_mapping(phys_addr);
+#else
+	/* Using 1-1 mapping on this platform. */
+	return phys_addr;
+#endif
 }
 
 uint32_t platform_get_sclk_count(void)
