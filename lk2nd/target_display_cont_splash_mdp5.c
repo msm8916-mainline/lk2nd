@@ -166,9 +166,11 @@ static int mdp5_read_config(struct fbcon_config *fb)
 		return -1;
 	}
 
+#if !LPAE
 	if ((addr_t)fb->base != MIPI_FB_ADDR)
 		if (!mmu_map_fb((addr_t)fb->base, size))
 			return -1;
+#endif
 
 	return 0;
 }
