@@ -97,20 +97,13 @@ static void mdp5_cmd_start_refresh(struct fbcon_config *fb)
 
 static bool mmu_map_fb(addr_t addr, uint32_t size)
 {
-	addr_t end = addr + size;
-
 	dprintf(INFO, "Mapping framebuffer region at %lx, size %u\n", addr, size);
 
-#if !LPAE
-	for (; addr < end; addr += MB)
-		arm_mmu_map_section(addr, addr, MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH |
-						MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN);
+	arm_mmu_map_region(addr, addr, size,
+			   MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH |
+			   MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN);
 	arm_mmu_flush();
 	return true;
-#else
-	dprintf(CRITICAL, "Cannot map memory with LPAE right now :(\n");
-	return false;
-#endif
 }
 
 static int mdp5_read_config(struct fbcon_config *fb)
@@ -166,11 +159,7 @@ static int mdp5_read_config(struct fbcon_config *fb)
 		return -1;
 	}
 
-#if !LPAE
-	if ((addr_t)fb->base != MIPI_FB_ADDR)
-		if (!mmu_map_fb((addr_t)fb->base, size))
-			return -1;
-#endif
+	mmu_map_fb((addr_t)fb->base, size);
 
 	return 0;
 }
