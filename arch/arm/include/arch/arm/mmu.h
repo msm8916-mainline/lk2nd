@@ -52,6 +52,8 @@ void arm_mmu_init(void);
 #define MMU_MEMORY_APX_READ_ONLY    (0x1 << 15)
 
 #define MMU_MEMORY_XN               (0x1 << 4)
+
+void arm_mmu_map_region(addr_t paddr, addr_t vaddr, uint size, uint flags);
 #else /* LPAE */
 
 typedef enum
@@ -114,6 +116,7 @@ typedef enum
 #define MAIR1                  0xbbaaccff
 #include <mmu.h>
 void arm_mmu_map_entry(mmu_section_t *entry);
+void arm_mmu_map_region(addr_t paddr, addr_t vaddr, uint size, uint64_t flags);
 #endif /* LPAE */
 
 #else
@@ -123,6 +126,7 @@ void arm_mmu_map_entry(mmu_section_t *entry);
 #endif
 
 void arm_mmu_map_section(addr_t paddr, addr_t vaddr, uint flags);
+void arm_mmu_flush(void);
 uint64_t virtual_to_physical_mapping(uint32_t vaddr);
 uint32_t physical_to_virtual_mapping(uint64_t paddr);
 

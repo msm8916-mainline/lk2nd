@@ -216,6 +216,24 @@ void arm_mmu_init(void)
 	arm_write_cr1(arm_read_cr1() | 0x1);
 }
 
+void arm_mmu_map_region(addr_t paddr, addr_t vaddr, uint size, uint64_t flags)
+{
+	/* Need to round size to the next 2MB and also count in mapping offset */
+	uint mb = ((paddr & (SIZE_2MB-1)) + size + SIZE_2MB - 1) / SIZE_2MB * 2;
+	mmu_section_t section = { paddr, vaddr, MMU_L2_NS_SECTION_MAPPING, mb, flags };
+
+	/* Need same offset since mappings always start at the 2MB boundary */
+	ASSERT((paddr & (SIZE_2MB-1)) == (vaddr & (SIZE_2MB-1)));
+	arm_mmu_map_entry(&section);
+}
+
+void arm_mmu_flush(void)
+{
+	/* Cache is already flushed in arm_mmu_map_entry() */
+	dsb();
+	isb();
+}
+
 void arch_disable_mmu(void)
 {
 	/* Ensure all memory access are complete
