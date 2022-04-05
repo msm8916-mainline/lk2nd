@@ -1,0 +1,61 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton.dtsi>
+#include <lk2nd.h>
+
+/ {
+	qcom,msm-id = <200 0>;
+	qcom,board-id = <8 0>;
+
+	/* All the Nokia devices are expected to use lk1st, which passes the 
+	compatible to lk2nd, so no need for extra device matching. 
+	These nodes are listed in no particular order. */
+	nokia-tesla {
+		model = "Nokia Lumia 830";
+		compatible = "nokia,tesla", "qcom,msm8926", "lk2nd,device";
+
+		lk2nd,smd-rpm-hack-opening;
+		// 107 is actually KEY_CAMERA_SHOT but lk2nd doesn't support that
+		lk2nd,keys =
+			<KEY_VOLUMEUP   106 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>,
+			<KEY_HOME   107 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+	};
+
+	nokia-dempsey {
+		model = "Microsoft Lumia 640";
+		compatible = "nokia,dempsey", "qcom,msm8926", "lk2nd,device";
+
+		lk2nd,smd-rpm-hack-opening;
+		lk2nd,keys =
+			<KEY_VOLUMEUP   106 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+	};
+
+	nokia-moneypenny {
+		model = "Nokia Lumia 630";
+		compatible = "nokia,moneypenny", "qcom,msm8926", "lk2nd,device";
+
+		lk2nd,smd-rpm-hack-opening;
+		lk2nd,keys =
+			<KEY_VOLUMEUP   106 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+	};
+
+	nokia-superman {
+		model = "Nokia Lumia 730";
+		compatible = "nokia,superman", "qcom,msm8926", "lk2nd,device";
+
+		lk2nd,smd-rpm-hack-opening;
+		lk2nd,keys =
+			<KEY_VOLUMEUP   106 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+	};
+
+	nokia-makepeace {
+		model = "Microsoft Lumia 640 XL";
+		compatible = "nokia,makepeace", "qcom,msm8926", "lk2nd,device";
+
+		lk2nd,smd-rpm-hack-opening;
+		lk2nd,keys =
+			<KEY_VOLUMEUP   106 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+	};
+};
