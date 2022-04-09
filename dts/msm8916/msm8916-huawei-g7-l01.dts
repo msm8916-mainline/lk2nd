@@ -10,4 +10,18 @@
 
 	model = "Huawei Ascend G7-L01";
 	compatible = "huawei,g7-l01", "qcom,msm8916", "lk2nd,device";
+
+	panel {
+		compatible = "huawei,g7-panel";
+
+		qcom,mdss_dsi_boe_nt35521_5p5_720p_video {
+			compatible = "huawei,boe-nt35521";
+		};
+		qcom,mdss_dsi_cmi_nt35521_5p5_720p_video {
+			compatible = "huawei,cmi-nt35521";
+		};
+		qcom,mdss_dsi_tianma_nt35521_5p5_720p_video {
+			compatible = "huawei,tianma-nt35521";
+		};
+	};
 };
