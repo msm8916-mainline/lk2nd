@@ -629,6 +629,9 @@ static char tianma_nt35521_5p5_720p_video_on_cmd_172[] = {
 static char tianma_nt35521_5p5_720p_video_on_cmd_173[] = {
 	0x29, 0x00, 0x05, 0x80
 };
+static char tianma_nt35521_5p5_720p_video_on_cmd_174[] = {
+	0x51, 0xfa, 0x15, 0x80	/* Set brightness to maximum 250 */
+};
 
 static struct mipi_dsi_cmd tianma_nt35521_5p5_720p_video_on_command[] = {
 	{ sizeof(tianma_nt35521_5p5_720p_video_on_cmd_0), tianma_nt35521_5p5_720p_video_on_cmd_0, 0 },
@@ -805,6 +808,7 @@ static struct mipi_dsi_cmd tianma_nt35521_5p5_720p_video_on_command[] = {
 	{ sizeof(tianma_nt35521_5p5_720p_video_on_cmd_171), tianma_nt35521_5p5_720p_video_on_cmd_171, 0 },
 	{ sizeof(tianma_nt35521_5p5_720p_video_on_cmd_172), tianma_nt35521_5p5_720p_video_on_cmd_172, 120 },
 	{ sizeof(tianma_nt35521_5p5_720p_video_on_cmd_173), tianma_nt35521_5p5_720p_video_on_cmd_173, 20 },
+	{ sizeof(tianma_nt35521_5p5_720p_video_on_cmd_174), tianma_nt35521_5p5_720p_video_on_cmd_174, 0 },
 };
 
 static char tianma_nt35521_5p5_720p_video_off_cmd_0[] = {
