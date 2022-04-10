@@ -189,7 +189,7 @@ int write_device_info_rpmb(void *info, uint32_t sz)
 
 #if WITH_LK2ND
 	if (true)
-		return;
+		return 0;
 #endif
 
 	write_req.cmd_id = KEYMASTER_WRITE_LK_DEVICE_STATE;
@@ -259,5 +259,3 @@ int rpmb_uninit()
 
 	return ret;
 }
-
-
