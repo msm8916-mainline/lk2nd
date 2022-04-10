@@ -3577,6 +3577,11 @@ unsigned flash_page_size(void)
 	return flash_pagesize;
 }
 
+unsigned flash_block_size(void)
+{
+	return flash_info.block_size;
+}
+
 void enable_interleave_mode(int status)
 {
 	interleaved_mode = status;
