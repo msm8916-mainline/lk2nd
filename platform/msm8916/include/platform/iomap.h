@@ -230,6 +230,16 @@
 #endif
 #define MDP_VP_0_MIXER_1_BASE                   REG_MDP(0x46000)
 
+#ifdef MDP_PP_0_BASE
+#undef MDP_PP_0_BASE
+#endif
+#define MDP_PP_0_BASE				REG_MDP(0x71000)
+
+#ifdef MDP_PP_1_BASE
+#undef MDP_PP_1_BASE
+#endif /* Note: Does not actually exist but just for completeness */
+#define MDP_PP_1_BASE				REG_MDP(0x71800)
+
 #ifdef MDP_DISP_INTF_SEL
 #undef MDP_DISP_INTF_SEL
 #endif
