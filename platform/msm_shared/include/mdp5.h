@@ -120,6 +120,7 @@
 
 #define MDP_PP_0_BASE                           REG_MDP(0x12D00)
 #define MDP_PP_1_BASE                           REG_MDP(0x12E00)
+#define MDP_PP_SLAVE_BASE                       REG_MDP(0x73000)
 
 #define MDP_DSC_0_BASE                          REG_MDP(0x81000)
 #define MDP_DSC_1_BASE                          REG_MDP(0x81400)
@@ -198,6 +199,8 @@
 #define VBIF_VBIF_ABIT_SHORT_CONF               REG_MDP(0x24074)
 #define VBIF_VBIF_GATE_OFF_WRREQ_EN             REG_MDP(0x240A8)
 
+#define MDSS_MDP_REG_PP_SYNC_CONFIG_VSYNC       0x004
+#define MDSS_MDP_REG_PP_AUTOREFRESH_CONFIG      0x030
 #define MDSS_MDP_REG_PP_FBC_MODE                0x034
 #define MDSS_MDP_REG_PP_FBC_BUDGET_CTL          0x038
 #define MDSS_MDP_REG_PP_FBC_LOSSY_MODE          0x03C
@@ -226,14 +229,6 @@
 #define MDSS_MDP_DSC_RANGE_MIN_QP		0x74	/* 15 bytes */
 #define MDSS_MDP_DSC_RANGE_MAX_QP		0xB0	/* 15 bytes */
 #define MDSS_MDP_DSC_RANGE_BPG_OFFSET		0xEc	/* 15 bytes */
-
-/* Autorefresh related registers */
-#define MDP_REG_PP_0_SYNC_CONFIG_VSYNC		REG_MDP(0x71004)
-#define MDP_REG_PP_1_SYNC_CONFIG_VSYNC		REG_MDP(0x71804)
-#define MDP_REG_PP_SLAVE_SYNC_CONFIG_VSYNC	REG_MDP(0x73004)
-#define MDP_REG_PP_0_AUTOREFRESH_CONFIG		REG_MDP(0x71030)
-#define MDP_REG_PP_1_AUTOREFRESH_CONFIG		REG_MDP(0x71830)
-#define MDP_REG_PP_SLAVE_AUTOREFRESH_CONFIG	REG_MDP(0x73030)
 
 /* Registers for programming the CDM hardware in bypass mode. */
 #define CDM_HDMI_PACK_OP_MODE 		REG_MDP(0x7A400)
