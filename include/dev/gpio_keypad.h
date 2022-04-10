@@ -153,5 +153,6 @@ struct qwerty_keypad_info {
 };
 
 void ssbi_keypad_init (struct qwerty_keypad_info *);
+uint8_t ssbi_gpio_keypad_scan(unsigned int key);
 
 #endif /* __DEV_GPIO_KEYPAD_H */

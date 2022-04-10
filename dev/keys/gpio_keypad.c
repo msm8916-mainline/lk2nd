@@ -487,6 +487,21 @@ void ssbi_gpio_keypad_init(struct qwerty_keypad_info  *qwerty_kp)
 	event_wait(&qwerty_keypad->full_scan);
 }
 
+uint8_t ssbi_gpio_keypad_scan(unsigned int key)
+{
+	struct qwerty_keypad_info *keypad = qwerty_keypad->keypad_info;
+	uint8_t key_status, i;
+
+	for (i = 0; i < keypad->mapsize; i++) {
+		if (keypad->keymap[i] != key)
+			continue;
+
+		keypad->key_gpio_get(keypad->gpiomap[i], &key_status);
+		return key_status;
+	}
+	return 0;
+}
+
 void pmic_write(unsigned address, unsigned data)
 {
   write_func wr_function = &i2c_ssbi_write_bytes;
