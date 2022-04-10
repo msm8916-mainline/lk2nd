@@ -35,11 +35,11 @@
 #endif
 
 #include <smem.h>
-#include <pm8x41_adc.h>
-#include <pm8x41_hw.h>
 #include <scm.h>
 
 #if CHECK_BAT_VOLTAGE
+#include <pm8x41_adc.h>
+#include <pm8x41_hw.h>
 #include <pm_fg_adc_usr.h>
 #endif
 
@@ -469,6 +469,8 @@ __WEAK bool is_display_disabled()
 {
 	return false;
 }
+
+#if CHECK_BAT_VOLTAGE
 /* Check battery if it's exist */
 bool target_battery_is_present()
 {
@@ -522,6 +524,7 @@ bool target_battery_is_present()
 	return batt_is_exist;
 
 }
+#endif
 
 bool is_target_support_dtbo(void)
 {
