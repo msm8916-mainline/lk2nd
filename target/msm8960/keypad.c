@@ -156,6 +156,16 @@ void apq8064_keypad_init(void)
 		ssbi_gpio_keypad_init(&apq8064_pm8921_qwerty_keypad);
 }
 
+int target_volume_up(void)
+{
+	return ssbi_gpio_keypad_scan(KEY_VOLUMEUP);
+}
+
+uint32_t target_volume_down(void)
+{
+	return ssbi_gpio_keypad_scan(KEY_VOLUMEDOWN);
+}
+
 /* Configure keypad_drv through pwm or DBUS inputs or manually */
 int led_kp_set( int current,
 	enum kp_backlight_mode mode,
