@@ -54,10 +54,10 @@ static bool mdp_read_config(struct fbcon_config *fb)
 	}
 
 	config = readl(MDP_DMA_P_CONFIG);
-	format = BITS_SHIFT(config, 26, 25);
 	size = readl(MDP_DMA_P_SIZE);
 	stride = readl(MDP_DMA_P_BUF_Y_STRIDE);
 	out_xy = readl(MDP_DMA_P_OUT_XY);
+	format = BITS_SHIFT(config, 26, 25);
 #if MDP3
 	intf_sel = BITS_SHIFT(config, 20, 19); /* OUT_SEL */
 	cmd_mode = intf_sel == 0x1; /* == DSI_CMD? */
@@ -65,14 +65,13 @@ static bool mdp_read_config(struct fbcon_config *fb)
 	intf_sel = BITS_SHIFT(readl(MDP_DISP_INTF_SEL), 1, 0); /* PRIM_INTF_SEL */
 	cmd_mode = intf_sel == 0x2; /* == DSI Command Mode? */
 #endif
-
 #ifdef MDP_AUTOREFRESH_CONFIG_P
 	/* Crashes on MDP4/msm8960, mdp vsync clock is not on? */
 	auto_refresh = !!(readl(MDP_AUTOREFRESH_CONFIG_P) & BIT(28));
 #endif
 
 	dprintf(INFO, "MDP3/4 continuous splash detected: base: %p, stride: %d, "
-		"size: %dx%d, out: (%d,%d), config: %#x (format: %d), intf: %d "
+		"size: %dx%d, out: (%d,%d), config: %#x (format: %#x), intf: %d "
 		"(cmd mode: %d, auto refresh: %d)\n",
 		fb->base, stride,
 		MDP_X(size), MDP_Y(size), MDP_X(out_xy), MDP_Y(out_xy),
@@ -83,23 +82,23 @@ static bool mdp_read_config(struct fbcon_config *fb)
 	fb->height = MDP_Y(size);
 
 	switch (format) {
-	case 0:
+	case 0x0: /* RGB888 */
 		fb->stride = stride / 3;
 		fb->bpp = 3 * 8;
 		fb->format = FB_FORMAT_RGB888;
 		break;
-	case 1:
+	case 0x1: /* RGB565 */
 		fb->stride = stride / 2;
 		fb->bpp = 2 * 8;
 		fb->format = FB_FORMAT_RGB565;
 		break;
-	case 2:
+	case 0x2: /* xRGB888 */
 		fb->stride = stride / 4;
 		fb->bpp = 4 * 8;
 		fb->format = FB_FORMAT_RGB888;
 		break;
 	default:
-		dprintf(CRITICAL, "Unsupported MDP3/4 format: %d\n", format);
+		dprintf(CRITICAL, "Unsupported MDP3/4 format: %#x\n", format);
 		return false;
 	}
 
@@ -191,7 +190,7 @@ static bool mdp_read_config(struct fbcon_config *fb)
 	fb->stride = stride / bpp;
 	fb->bpp = bpp * 8;
 
-	/* Assume the color order is right, LK does not support others... */
+	/* Assume the color order is correct, LK does not support others... */
 	if (bpp == 2)
 		fb->format = FB_FORMAT_RGB565;
 	else
