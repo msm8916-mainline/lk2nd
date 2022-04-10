@@ -189,6 +189,16 @@
 #define MDP_VP_0_MIXER_0_BASE        REG_MDP(0x3200)
 #define MDP_VP_0_MIXER_1_BASE        REG_MDP(0x3600)
 
+#ifdef MDP_PP_0_BASE
+#undef MDP_PP_0_BASE
+#endif
+#define MDP_PP_0_BASE                REG_MDP(0x21B00)
+
+#ifdef MDP_PP_1_BASE
+#undef MDP_PP_1_BASE
+#endif /* Note: Does not actually exist but just for completeness */
+#define MDP_PP_1_BASE                REG_MDP(0x21C00)
+
 #define SOFT_RESET                  0x118
 #define CLK_CTRL                    0x11C
 #define TRIG_CTRL                   0x084
