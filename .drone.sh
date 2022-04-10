@@ -5,6 +5,7 @@ set -eux
 
 nproc && grep Mem /proc/meminfo && df -hT .
 apk add build-base dtc dtc-dev gcc-arm-none-eabi git python3 tar
+git clean -dxf
 
 # Workaround problem with faccessat2() on Drone CI
 wget https://gist.githubusercontent.com/TravMurav/36c83efbc188115aa9b0fc7f4afba63e/raw/faccessat.c
