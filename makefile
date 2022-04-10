@@ -217,6 +217,8 @@ ALLOBJS := \
 	$(BOOTOBJS) \
 	$(OBJS)
 
+BOARD_NAME ?= $(PROJECT)
+
 # add some automatic configuration defines
 DEFINES += \
 	PROJECT_$(PROJECT)=1 \
