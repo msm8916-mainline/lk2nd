@@ -1322,22 +1322,22 @@ static void mdp_set_cmd_autorefresh_mode(struct msm_panel_info *pinfo)
 	cfg = BIT(19) | vclks_line;
 
 	/* Configure tearcheck VSYNC param */
-	writel(cfg, MDP_REG_PP_0_SYNC_CONFIG_VSYNC);
+	writel(cfg, MDP_PP_0_BASE + MDSS_MDP_REG_PP_SYNC_CONFIG_VSYNC);
 	if (pinfo->lcdc.dst_split)
-		writel(cfg, MDP_REG_PP_SLAVE_SYNC_CONFIG_VSYNC);
+		writel(cfg, MDP_PP_SLAVE_BASE + MDSS_MDP_REG_PP_SYNC_CONFIG_VSYNC);
 	if (pinfo->lcdc.dual_pipe)
-		writel(cfg, MDP_REG_PP_1_SYNC_CONFIG_VSYNC);
+		writel(cfg, MDP_PP_1_BASE + MDSS_MDP_REG_PP_SYNC_CONFIG_VSYNC);
 	dsb();
 
 	/* Enable autorefresh mode */
 	writel((BIT(31) | pinfo->autorefresh_framenum),
-			MDP_REG_PP_0_AUTOREFRESH_CONFIG);
+			MDP_PP_0_BASE + MDSS_MDP_REG_PP_AUTOREFRESH_CONFIG);
 	if (pinfo->lcdc.dst_split)
 		writel((BIT(31) | pinfo->autorefresh_framenum),
-			MDP_REG_PP_SLAVE_AUTOREFRESH_CONFIG);
+			MDP_PP_SLAVE_BASE + MDSS_MDP_REG_PP_AUTOREFRESH_CONFIG);
 	if (pinfo->lcdc.dual_pipe)
 		writel((BIT(31) | pinfo->autorefresh_framenum),
-			MDP_REG_PP_1_AUTOREFRESH_CONFIG);
+			MDP_PP_1_BASE + MDSS_MDP_REG_PP_AUTOREFRESH_CONFIG);
 	dsb();
 }
 
