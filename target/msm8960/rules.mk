@@ -25,7 +25,7 @@ MODULES += \
 	dev/pmic/pm8921 \
 	dev/ssbi \
 	lib/ptable \
-	dev/panel/msm \
+	# dev/panel/msm \ FIXME
 
 DEFINES += \
 	MEMSIZE=$(MEMSIZE) \
