@@ -224,6 +224,13 @@ int pm8921_pwrkey_status(uint8_t *is_pwrkey_pressed)
 	return ret;
 }
 
+uint32_t pm8x41_get_pwrkey_is_pressed(void)
+{
+	uint8_t is_pwrkey_pressed = 0;
+	pm8921_pwrkey_status(&is_pwrkey_pressed);
+	return is_pwrkey_pressed;
+}
+
 int pm8921_ldo_set_voltage(uint32_t ldo_id, uint32_t voltage)
 {
 	uint8_t mult;
