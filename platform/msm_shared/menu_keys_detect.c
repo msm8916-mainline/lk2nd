@@ -29,8 +29,6 @@
 #include <debug.h>
 #include <reg.h>
 #include <stdlib.h>
-#include <pm8x41.h>
-#include <pm8x41_hw.h>
 #include <kernel/timer.h>
 #include <platform/timer.h>
 #include <kernel/thread.h>
@@ -56,6 +54,7 @@ extern int target_volume_up(void);
 extern uint32_t target_volume_down(void);
 extern void reboot_device(unsigned reboot_reason);
 extern void shutdown_device(void);
+extern uint32_t pm8x41_get_pwrkey_is_pressed(void);
 
 typedef uint32_t (*keys_detect_func)(void);
 typedef void (*keys_action_func)(struct select_msg_info* msg_info);
