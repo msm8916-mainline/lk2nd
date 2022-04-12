@@ -31,6 +31,7 @@
 #include <sys/types.h>
 #include <err.h>
 #include <dev/pm8921.h>
+#include <dev/pm8921_pwm.h>
 #include <platform/timer.h>
 #include "pm8921_hw.h"
 
@@ -766,4 +767,5 @@ int pm8921_configure_wled(void)
 	pm8921_masked_write(WLED_MOD_CTRL_REG, 0xFF, 0x7f);
 	pm8921_masked_write(WLED_SYNC_REG, WLED_SYNC_MASK,	WLED_SYNC_VAL);
 	pm8921_masked_write(WLED_SYNC_REG, WLED_SYNC_MASK,	WLED_SYNC_RESET_VAL);
+	return 0;
 }

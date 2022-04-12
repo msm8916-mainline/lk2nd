@@ -32,11 +32,11 @@
 #include <dev/pm8921_pwm.h>
 
 
-static char *clks[NUM_CLOCKS] = {
+static char *clks[NUM_CLOCKS] __UNUSED = {
 	"1K", "32768", "19.2M"
 };
 
-static unsigned pre_div[NUM_PRE_DIVIDE] = {
+static unsigned pre_div[NUM_PRE_DIVIDE] __UNUSED = {
 	PRE_DIVIDE_0, PRE_DIVIDE_1, PRE_DIVIDE_2, PRE_DIVIDE_3
 };
 
@@ -60,11 +60,11 @@ static unsigned int pt_t[NUM_PRE_DIVIDE][NUM_CLOCKS] = {
 	},
 };
 
-static uint16_t duty_msec[PM_PWM_1KHZ_COUNT_MAX + 1] = {
+static uint16_t duty_msec[PM_PWM_1KHZ_COUNT_MAX + 1] __UNUSED = {
 	0, 1, 2, 3, 4, 6, 8, 16, 18, 24, 32, 36, 64, 128, 256, 512
 };
 
-static uint16_t pause_count[PM_PWM_PAUSE_COUNT_MAX + 1] = {
+static uint16_t pause_count[PM_PWM_PAUSE_COUNT_MAX + 1] __UNUSED = {
 	1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
 	23, 28, 31, 42, 47, 56, 63, 83, 94, 111, 125, 167, 188, 222, 250, 333,
 	375, 500, 667, 750, 800, 900, 1000, 1100,
@@ -80,8 +80,8 @@ static void pm8921_pwm_calc_period(uint32_t period_us,
 {
 	int n, m, clk, div;
 	int best_m, best_div, best_clk;
-	int last_err, cur_err, better_err, better_m;
-	uint32_t tmp_p, last_p, min_err, period_n;
+	int last_err, cur_err, better_err, better_m, min_err;
+	uint32_t tmp_p, last_p, period_n;
 
 	/* PWM Period / N : handle underflow or overflow */
 	if (period_us < (PM_PWM_PERIOD_MAX / NSEC_PER_USEC))
@@ -252,7 +252,7 @@ int pm8921_pwm_config(uint8_t pwm_id,
 	pm8921_pwm_calc_period(period_us, &pwm_conf);
 
 	/* Figure out pwm_value with overflow handling */
-	if (period_us > (1 << pwm_conf.pwm_size))
+	if (period_us > (1U << pwm_conf.pwm_size))
 	{
 		tmp = period_us;
 		tmp >>= pwm_conf.pwm_size;
