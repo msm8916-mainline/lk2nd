@@ -67,7 +67,7 @@ static struct fixed_clk pxo_clk = {
 	},
 };
 
-static struct fixed_clk cxo_clk = {
+static struct fixed_clk cxo_clk __UNUSED = {
 	.rate = 19200000,
 	.c = {
 		.dbg_name = "cxo_clk",
@@ -824,7 +824,7 @@ static uint32_t run_measurement(unsigned ticks)
 
 /* Perform a hardware rate measurement for a given clock.
    FOR DEBUG USE ONLY: Measurements take ~15 ms! */
-static unsigned long measure_clk_get_rate(struct clk *c)
+static unsigned measure_clk_get_rate(struct clk *c)
 {
 	uint32_t pdm_reg_backup, ringosc_reg_backup;
 	uint64_t raw_count_short, raw_count_full;
@@ -881,7 +881,7 @@ static int measure_clk_set_parent(struct clk *clk, struct clk *parent)
 	return ERR_INVALID_ARGS;
 }
 
-static unsigned long measure_clk_get_rate(struct clk *clk)
+static unsigned measure_clk_get_rate(struct clk *clk)
 {
 	return 0;
 }
@@ -994,4 +994,3 @@ void msm_clocks_init()
 	clk_ops_pll.enable = sr_pll_clk_enable;
 	clk_init(msm_clocks_8960, msm_num_clocks_8960);
 }
-

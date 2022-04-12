@@ -53,6 +53,7 @@
 extern void dmb(void);
 extern void msm8960_keypad_init(void);
 extern void msm8930_keypad_init(void);
+extern void apq8064_keypad_init(void);
 extern void panel_backlight_on(void);
 
 static unsigned mmc_sdc_base[] =
@@ -427,6 +428,7 @@ void target_detect(struct board_data *board)
 		dprintf(CRITICAL, "platform (%d) is not identified.\n",
 			platform);
 		ASSERT(0);
+		return;
 	}
 	board->target = target_id;
 }
