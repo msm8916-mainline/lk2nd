@@ -594,8 +594,6 @@ struct mmc_host {
 #define MMC_BOOT_MCI_HFIFO_COUNT      ( MMC_BOOT_MCI_FIFO_DEPTH / 2 )
 #define MMC_BOOT_MCI_FIFO_SIZE        ( MMC_BOOT_MCI_FIFO_DEPTH * 4 )
 
-#define MAX_PARTITIONS 64
-
 #define MMC_BOOT_CHECK_PATTERN        0xAA	/* 10101010b */
 
 #define MMC_CLK_400KHZ                400000
@@ -618,9 +616,14 @@ struct mmc_host {
 #define CORE_SW_RST_START                          0x7
 #define CORE_SW_RST_WIDTH                          0x1
 
+uint32_t mmc_get_device_blocksize();
+uint32_t mmc_page_size();
+uint8_t mmc_get_lun(void);
+void mmc_set_lun(uint8_t lun);
+
 unsigned int mmc_boot_main(unsigned char slot, unsigned int base);
 unsigned int mmc_write(unsigned long long data_addr,
-		       unsigned int data_len, unsigned int *in);
+		       unsigned int data_len, void *in);
 
 unsigned int mmc_read(unsigned long long data_addr, unsigned int *out,
 		      unsigned int data_len);
@@ -636,5 +639,7 @@ uint8_t card_supports_ddr_mode();
 uint8_t card_supports_hs200_mode();
 uint64_t mmc_get_device_capacity();
 void mmc_put_card_to_sleep(void);
+
+void target_mmc_caps(struct mmc_host *host);
 #endif
 #endif
