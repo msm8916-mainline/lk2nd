@@ -32,6 +32,7 @@
 #include <reg.h>
 #include "mmc.h"
 #include <partition_parser.h>
+#include <platform/clock.h>
 #include <platform/iomap.h>
 #include <platform/timer.h>
 #include <bits.h>
@@ -91,7 +92,10 @@ uint32_t mmc_page_size();
 #endif
 
 
+#undef ROUND_TO_PAGE
 #define ROUND_TO_PAGE(x,y) (((x) + (y)) & (~(y)))
+
+#define mmc_sizeof (sizeof(unsigned int) * 8)
 
 /* data access time unit in ns */
 static const unsigned int taac_unit[] =
@@ -244,7 +248,6 @@ mmc_boot_set_write_timeout(struct mmc_host *host,
 static unsigned int
 mmc_boot_decode_and_save_csd(struct mmc_card *card, unsigned int *raw_csd)
 {
-	unsigned int mmc_sizeof = 0;
 	unsigned int mmc_unit = 0;
 	unsigned int mmc_value = 0;
 	unsigned int mmc_temp = 0;
@@ -254,8 +257,6 @@ mmc_boot_decode_and_save_csd(struct mmc_card *card, unsigned int *raw_csd)
 	if ((card == NULL) || (raw_csd == NULL)) {
 		return MMC_BOOT_E_INVAL;
 	}
-
-	mmc_sizeof = sizeof(unsigned int) * 8;
 
 	mmc_csd.cmmc_structure = UNPACK_BITS(raw_csd, 126, 2, mmc_sizeof);
 
@@ -466,14 +467,11 @@ static unsigned int
 mmc_boot_decode_and_save_cid(struct mmc_card *card, unsigned int *raw_cid)
 {
 	struct mmc_cid mmc_cid;
-	unsigned int mmc_sizeof = 0;
 	int i = 0;
 
 	if ((card == NULL) || (raw_cid == NULL)) {
 		return MMC_BOOT_E_INVAL;
 	}
-
-	mmc_sizeof = sizeof(unsigned int) * 8;
 
 	if ((card->type == MMC_BOOT_TYPE_SDHC)
 	    || (card->type == MMC_BOOT_TYPE_STD_SD)) {
@@ -1900,7 +1898,6 @@ mmc_boot_read_from_card(struct mmc_host *host,
  */
 unsigned int mmc_boot_init(struct mmc_host *host)
 {
-	unsigned int mmc_ret = MMC_BOOT_E_SUCCESS;
 	unsigned int mmc_pwr = 0;
 
 	host->ocr = MMC_BOOT_OCR_27_36 | MMC_BOOT_OCR_SEC_MODE;
@@ -2272,7 +2269,6 @@ mmc_boot_init_and_identify_cards(struct mmc_host *host,
 {
 	unsigned int mmc_return = MMC_BOOT_E_SUCCESS;
 	unsigned int status;
-	uint8_t mmc_bus_width = 0;
 
 	/* Basic check */
 	if (host == NULL) {
@@ -2442,7 +2438,7 @@ unsigned int mmc_boot_main(unsigned char slot, unsigned int base)
  * MMC write function
  */
 unsigned int
-mmc_write(unsigned long long data_addr, unsigned int data_len, unsigned int *in)
+mmc_write(unsigned long long data_addr, unsigned int data_len, void *in)
 {
 	int val = 0;
 	unsigned int write_size = ((unsigned)(0xFFFFFF / 512)) * 512;
@@ -2743,12 +2739,6 @@ mmc_wp(unsigned int sector, unsigned int size, unsigned char set_clear_wp)
 		return MMC_BOOT_E_FAILURE;
 }
 
-void mmc_wp_test(void)
-{
-	unsigned int mmc_ret = 0;
-	mmc_ret = mmc_wp(0xE06000, 0x5000, 1);
-}
-
 unsigned mmc_get_psn(void)
 {
 	return mmc_card.cid.psn;
@@ -2883,7 +2873,7 @@ mmc_boot_fifo_write(unsigned int *mmc_ptr, unsigned int data_len)
 			sz = ((count >> 2) >  MMC_BOOT_MCI_HFIFO_COUNT) \
 				 ? MMC_BOOT_MCI_HFIFO_COUNT : (count >> 2);
 
-			for (int i = 0; i < sz; i++) {
+			for (unsigned int i = 0; i < sz; i++) {
 				writel(*mmc_ptr, MMC_BOOT_MCI_FIFO);
 				mmc_ptr++;
 				/* increase mmc_count by word size */
@@ -3017,7 +3007,7 @@ static unsigned int mmc_boot_send_erase(struct mmc_card *card)
 	/* Checking for write protect */
 	if (cmd.resp[0] & MMC_BOOT_R1_WP_ERASE_SKIP) {
 		dprintf(CRITICAL, "Write protect enabled for sector \n");
-		return;
+		return MMC_BOOT_E_FAILURE;
 	}
 
 	/* Checking if the erase operation for the card is compelete */
