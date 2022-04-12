@@ -62,6 +62,7 @@ int set_download_mode(enum reboot_reason mode);
 uint32_t platform_get_smem_base_addr();
 uint32_t platform_get_sclk_count(void);
 void clock_config_cdc(uint32_t interface);
+uint8_t platform_pmic_type(uint32_t pmic_type);
 int platform_is_8974();
 int platform_is_8974Pro();
 int platform_is_8974ac();

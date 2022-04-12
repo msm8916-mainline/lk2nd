@@ -336,6 +336,11 @@ struct pll_rate {
 #define DSI_MD_VAL            0x000003FB
 #define DSI_CC_VAL            0x00000080
 
+void clock_config_uart_dm(uint8_t id);
+void clock_config_i2c(uint8_t id, uint32_t freq);
+void clock_init_mmc(uint32_t interface);
+void clock_config_mmc(uint32_t interface, uint32_t freq);
+
 void config_mmss_clk(uint32_t ns,
              uint32_t md,
              uint32_t cc,

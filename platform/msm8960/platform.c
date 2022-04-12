@@ -50,9 +50,6 @@ extern void mipi_dsi_shutdown(void);
 extern void msm_clocks_init(void);
 
 static uint32_t ticks_per_sec = 0;
-static uint8_t display_enabled = 0;
-
-#define MB (1024*1024)
 
 #define MSM_IOMAP_SIZE ((MSM_IOMAP_END - MSM_IOMAP_BASE)/MB)
 
@@ -155,7 +152,7 @@ uint8_t platform_pmic_type(uint32_t pmic_type)
 	uint8_t num_ent = 0;
 	struct board_pmic_data pmic_info[SMEM_V7_SMEM_MAX_PMIC_DEVICES];
 
-	num_ent = board_pmic_info(&pmic_info, SMEM_V7_SMEM_MAX_PMIC_DEVICES);
+	num_ent = board_pmic_info(pmic_info, SMEM_V7_SMEM_MAX_PMIC_DEVICES);
 
 	for(i = 0; i < num_ent; i++) {
 		if (pmic_info[i].pmic_type == pmic_type) {
