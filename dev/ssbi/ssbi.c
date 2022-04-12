@@ -197,14 +197,12 @@ int pa1_ssbi2_write_bytes(unsigned char  *buffer, unsigned short length,
     unsigned short len = length;
     unsigned short addr = slave_addr;
     unsigned temp = 0x00;
-    unsigned char written_data1 = 0x00;
     unsigned long timeout = SSBI_TIMEOUT_US;
     //unsigned char written_data2 = 0x00;
 
     while(len)
     {
         temp = 0x00;
-        written_data1 = 0x00;
         val = (addr << PA1_SSBI2_REG_ADDR_SHIFT) |
 	  (PA1_SSBI2_CMD_WRITE << PA1_SSBI2_CMD_RDWRN_SHIFT) |
  (*buf & 0xFF);
@@ -256,13 +254,11 @@ int pa2_ssbi2_write_bytes(unsigned char  *buffer, unsigned short length,
     unsigned short len = length;
     unsigned short addr = slave_addr;
     unsigned temp = 0x00;
-    unsigned char written_data1 = 0x00;
     unsigned long timeout = SSBI_TIMEOUT_US;
 
     while(len)
     {
         temp = 0x00;
-        written_data1 = 0x00;
         val = (addr << PA2_SSBI2_REG_ADDR_SHIFT) |
             (PA2_SSBI2_CMD_WRITE << PA2_SSBI2_CMD_RDWRN_SHIFT) |
             (*buf & 0xFF);
