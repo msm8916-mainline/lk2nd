@@ -30,6 +30,7 @@
 #include <reg.h>
 #include <platform/iomap.h>
 #include <platform/clock.h>
+#include <platform/timer.h>
 #include <uart_dm.h>
 #include <gsbi.h>
 #include <mmc.h>
@@ -211,7 +212,6 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 {
 	char sdc_clk[64];
 	unsigned rate;
-	uint32_t reg = 0;
 
 	snprintf(sdc_clk, 64, "sdc%u_clk", interface);
 
@@ -232,7 +232,7 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 		break;
 	default:
 		ASSERT(0);
-
+		return;
 	};
 
 	clk_get_set_enable(sdc_clk, rate, 1);
