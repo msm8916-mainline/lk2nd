@@ -98,6 +98,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - LG G3 - D855
 - LG Google Nexus 5 - hammerhead D820, D821
 - Samsung Galaxy S5 - SM-G900F
+- Samsung Galaxy S5 China Unicom (Duos) - SM-G9006V/W
 
 ### lk2nd-msm8226
 - ASUS ZenWatch 2 - sparrow
