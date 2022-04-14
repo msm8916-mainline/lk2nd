@@ -1,0 +1,16 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton.dtsi>
+
+/ {
+	// This is used by the bootloader to find the correct DTB
+	qcom,msm-id = <0xC208FF01 10 0x10000>;
+
+	kltechn {
+		model = "Samsung Galaxy S5 China Unicom (Duos) (SM-G9006V/W)";
+		compatible = "samsung,klte", "qcom,msm8974", "lk2nd,device";
+		lk2nd,match-bootloader = "G9006*";
+	};
+};
