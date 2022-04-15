@@ -678,6 +678,7 @@ DEFINES += DISPLAY_TYPE_MDSS=1
 endif
 
 ifeq ($(ENABLE_BOOT_CONFIG_SUPPORT), 1)
+	DEFINES += BOOT_CONFIG_SUPPORT=1
 	OBJS += \
 		$(LOCAL_DIR)/boot_device.o
 endif
