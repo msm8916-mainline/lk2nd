@@ -634,7 +634,7 @@ unsigned char *update_cmdline(const char * cmdline)
 			break;
 	}
 
-#if ENABLE_DISPLAY
+#if DISPLAY_SPLASH_SCREEN
 	if (cmdline) {
 		if ((strstr(cmdline, DISPLAY_DEFAULT_PREFIX) == NULL) &&
 			target_display_panel_node(display_panel_buf,
