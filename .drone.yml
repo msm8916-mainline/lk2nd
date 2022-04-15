@@ -7,13 +7,17 @@ platform:
   arch: amd64
 
 steps:
-  - name: build (gcc4, -Werror)
+  - name: lk2nd (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh lk2nd-apq8084 LKLE_CFLAGS=-Werror]
+
+  - name: default (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh apq8084 LKLE_CFLAGS=-Werror]
 
-  - name: lk2nd (gcc4, -Werror)
+  - name: SIGNED_KERNEL (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh lk2nd-apq8084 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh apq8084 LKLE_CFLAGS=-Werror SIGNED_KERNEL=1 ]
 
 trigger:
   event: [push, pull_request, tag]
@@ -27,9 +31,13 @@ platform:
   arch: amd64
 
 steps:
-  - name: build (gcc4, -Werror)
+  - name: default (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh mdm9607 LKLE_CFLAGS=-Werror]
+
+  - name: SIGNED_KERNEL (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh mdm9607 LKLE_CFLAGS=-Werror SIGNED_KERNEL=1]
 
 trigger:
   event: [push, pull_request, tag]
@@ -43,13 +51,17 @@ platform:
   arch: amd64
 
 steps:
-  - name: build (gcc4, -Werror)
+  - name: lk2nd (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh lk2nd-msm8226 LKLE_CFLAGS=-Werror]
+
+  - name: default (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8226 LKLE_CFLAGS=-Werror]
 
-  - name: lk2nd (gcc4, -Werror)
+  - name: SIGNED_KERNEL (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh lk2nd-msm8226 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh msm8226 LKLE_CFLAGS=-Werror SIGNED_KERNEL=1]
 
 trigger:
   event: [push, pull_request, tag]
@@ -63,13 +75,17 @@ platform:
   arch: amd64
 
 steps:
-  - name: build (gcc4, -Werror)
+  - name: lk2nd (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh lk2nd-msm8610 LKLE_CFLAGS=-Werror]
+
+  - name: default (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8610 LKLE_CFLAGS=-Werror]
 
-  - name: lk2nd (gcc4, -Werror)
+  - name: SIGNED_KERNEL (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh lk2nd-msm8610 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh msm8610 LKLE_CFLAGS=-Werror SIGNED_KERNEL=1]
 
 trigger:
   event: [push, pull_request, tag]
@@ -83,13 +99,17 @@ platform:
   arch: amd64
 
 steps:
-  - name: build (gcc4, -Werror)
+  - name: lk2nd (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh lk2nd-msm8909 LKLE_CFLAGS=-Werror]
+
+  - name: default (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8909 LKLE_CFLAGS=-Werror]
 
-  - name: lk2nd (gcc4, -Werror)
+  - name: SIGNED_KERNEL (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh lk2nd-msm8909 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh msm8909 LKLE_CFLAGS=-Werror SIGNED_KERNEL=1]
 
 trigger:
   event: [push, pull_request, tag]
@@ -103,13 +123,17 @@ platform:
   arch: amd64
 
 steps:
-  - name: build (gcc4, -Werror)
+  - name: lk2nd (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh lk2nd-msm8916 LKLE_CFLAGS=-Werror]
+
+  - name: default (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8916 LKLE_CFLAGS=-Werror]
 
-  - name: lk2nd (gcc4, -Werror)
+  - name: SIGNED_KERNEL (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh lk2nd-msm8916 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh msm8916 LKLE_CFLAGS=-Werror SIGNED_KERNEL=1]
 
 trigger:
   event: [push, pull_request, tag]
@@ -123,13 +147,17 @@ platform:
   arch: amd64
 
 steps:
-  - name: build (gcc4, -Werror)
+  - name: lk2nd (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh lk2nd-msm8952 LKLE_CFLAGS=-Werror]
+
+  - name: default (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8952 LKLE_CFLAGS=-Werror]
 
-  - name: lk2nd (gcc4, -Werror)
+  - name: SIGNED_KERNEL (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh lk2nd-msm8952 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh msm8952 LKLE_CFLAGS=-Werror SIGNED_KERNEL=1]
 
 trigger:
   event: [push, pull_request, tag]
@@ -143,13 +171,17 @@ platform:
   arch: amd64
 
 steps:
-  - name: build (gcc4, -Werror)
+  - name: lk2nd (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh lk2nd-msm8953 LKLE_CFLAGS=-Werror]
+
+  - name: default (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8953 LKLE_CFLAGS=-Werror]
 
-  - name: lk2nd (gcc4, -Werror)
+  - name: SIGNED_KERNEL (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh lk2nd-msm8953 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh msm8953 LKLE_CFLAGS=-Werror SIGNED_KERNEL=1]
 
 trigger:
   event: [push, pull_request, tag]
@@ -163,13 +195,17 @@ platform:
   arch: amd64
 
 steps:
-  - name: build (gcc4, -Werror)
+  - name: lk2nd (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh lk2nd-msm8974 LKLE_CFLAGS=-Werror]
+
+  - name: default (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8974 LKLE_CFLAGS=-Werror]
 
-  - name: lk2nd (gcc4, -Werror)
+  - name: SIGNED_KERNEL (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh lk2nd-msm8974 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh msm8974 LKLE_CFLAGS=-Werror SIGNED_KERNEL=1]
 
 trigger:
   event: [push, pull_request, tag]
@@ -183,13 +219,17 @@ platform:
   arch: amd64
 
 steps:
-  - name: build (gcc4, -Werror)
+  - name: lk2nd (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh lk2nd-msm8994 LKLE_CFLAGS=-Werror]
+
+  - name: default (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8994 LKLE_CFLAGS=-Werror]
 
-  - name: lk2nd (gcc4, -Werror)
+  - name: SIGNED_KERNEL (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh lk2nd-msm8994 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh msm8994 LKLE_CFLAGS=-Werror SIGNED_KERNEL=1]
 
 trigger:
   event: [push, pull_request, tag]
@@ -203,13 +243,17 @@ platform:
   arch: amd64
 
 steps:
-  - name: build (gcc4, -Werror)
+  - name: lk2nd (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh lk2nd-msm8996 LKLE_CFLAGS=-Werror]
+
+  - name: default (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8996 LKLE_CFLAGS=-Werror]
 
-  - name: lk2nd (gcc4, -Werror)
+  - name: SIGNED_KERNEL (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh lk2nd-msm8996 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh msm8996 LKLE_CFLAGS=-Werror SIGNED_KERNEL=1]
 
 trigger:
   event: [push, pull_request, tag]
