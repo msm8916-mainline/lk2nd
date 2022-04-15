@@ -70,7 +70,6 @@ unsigned target_baseband(void);
 void target_serialno(unsigned char *buf);
 void target_fastboot_init(void);
 void target_load_ssd_keystore(void);
-bool target_is_ssd_enabled(void);
 void *target_mmc_device();
 uint32_t is_user_force_reset(void);
 
@@ -95,22 +94,15 @@ uint32_t target_get_hlos_subtype(void);
 void shutdown_device();
 uint32_t target_is_pwrkey_pon_reason(void);
 bool target_warm_boot(void);
-bool target_use_signed_kernel(void);
 int _emmc_recovery_init(void);
 void ulpi_write(unsigned val, unsigned reg);
 void target_crypto_init_params(void);
 int target_cont_splash_screen(void);
-bool target_build_variant_user();
 void pmic_reset_configure(uint8_t reset_type);
 bool is_display_disabled(void);
-bool target_uses_system_as_root(void);
-bool target_dynamic_partition_supported(void);
-bool target_virtual_ab_supported(void);
 struct qmp_reg *target_get_qmp_settings();
 int target_get_qmp_regsize();
 uint32_t target_ddr_cfg_reg();
-
-bool is_target_support_dtbo(void);
 bool target_is_pmi_enabled(void);
 #if PON_VIB_SUPPORT
 void get_vibration_type();
@@ -125,5 +117,73 @@ bool target_battery_soc_ok();
 bool target_battery_is_present();
 uint32_t target_get_pmic();
 int target_update_cmdline(char *cmdline);
+
+static inline bool target_is_ssd_enabled(void)
+{
+#ifdef SSD_ENABLE
+	return 1;
+#else
+	return 0;
+#endif
+}
+
+static inline bool target_use_signed_kernel(void)
+{
+#if _SIGNED_KERNEL
+	return 1;
+#else
+	return 0;
+#endif
+}
+
+static inline bool target_build_variant_user()
+{
+#if USER_BUILD_VARIANT
+	return true;
+#else
+	return false;
+#endif
+}
+
+static inline bool is_target_support_dtbo(void)
+{
+#if TARGET_DTBO_NOT_SUPPORTED
+	return false;
+#else
+	return true;
+#endif
+}
+
+#if VERIFIED_BOOT || VERIFIED_BOOT_2
 int target_get_vb_version();
+#else
+static inline int target_get_vb_version() { return -1; }
+#endif
+
+static inline bool target_uses_system_as_root(void)
+{
+#if TARGET_USE_SYSTEM_AS_ROOT_IMAGE
+	if (target_get_vb_version() >= VB_M)
+		return true;
+#endif
+	return false;
+}
+
+static inline bool target_dynamic_partition_supported(void)
+{
+#if DYNAMIC_PARTITION_SUPPORT
+	return true;
+#else
+	return false;
+#endif
+}
+
+static inline bool target_virtual_ab_supported(void)
+{
+#if VIRTUAL_AB_OTA
+	return true;
+#else
+	return false;
+#endif
+}
 #endif

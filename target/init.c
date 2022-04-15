@@ -65,7 +65,6 @@
 #define QGAUGE_VOLTAGE_NUMR		194637
 #define BATT_VOLTAGE_DENR		1000
 #define INVALID  -1
-static int vb_version = INVALID;
 
 /*
  * default implementations of these routines, if the target code
@@ -165,24 +164,6 @@ __WEAK int emmc_recovery_init(void)
 	return 0;
 }
 
-__WEAK bool target_use_signed_kernel(void)
-{
-#if _SIGNED_KERNEL
-	return 1;
-#else
-	return 0;
-#endif
-}
-
-__WEAK bool target_is_ssd_enabled(void)
-{
-#ifdef SSD_ENABLE
-	return 1;
-#else
-	return 0;
-#endif
-}
-
 __WEAK void target_load_ssd_keystore(void)
 {
 }
@@ -280,38 +261,6 @@ __WEAK unsigned int qseecom_get_version()
 	return 0;
 }
 
-/* Target uses system as root */
-bool target_uses_system_as_root(void)
-{
-#if TARGET_USE_SYSTEM_AS_ROOT_IMAGE
-	if (target_get_vb_version() >= VB_M)
-		return true;
-#endif
-		return false;
-}
-
-/* Check dynamic partition support is enabled for target */
-bool target_dynamic_partition_supported(void)
-{
-#if DYNAMIC_PARTITION_SUPPORT
-	return true;
-#else
-	return false;
-#endif
-}
-
-#if VIRTUAL_AB_OTA
-bool target_virtual_ab_supported(void)
-{
-	return true;
-}
-#else
-bool target_virtual_ab_supported(void)
-{
-	return false;
-}
-#endif
-
 /* Default CFG register value */
 uint32_t target_ddr_cfg_reg()
 {
@@ -351,6 +300,8 @@ uint32_t target_ddr_cfg_reg()
 #if VERIFIED_BOOT || VERIFIED_BOOT_2
 int target_get_vb_version()
 {
+	static int vb_version = INVALID;
+
 	if (vb_version == INVALID)
 	{
 		/* Incase of keymaster present,verified boot for M version */
@@ -363,19 +314,9 @@ int target_get_vb_version()
 	}
 	return vb_version;
 }
-#else
-int target_get_vb_version()
-{
-	return vb_version;
-}
 #endif
 
 #if VERIFIED_BOOT_LE
-int verified_boot_le = 1;
-#else
-int verified_boot_le = 0;
-#endif
-
 int is_vb_le_enabled(void)
 {
 	uint32_t platform = board_platform_id();
@@ -385,12 +326,13 @@ int is_vb_le_enabled(void)
 		case APQ8053:
 		case APQ8009:
 		case SDX12:
-			return verified_boot_le;
+			return 1;
 		default:
 			break;
 	}
 	return 0;
 }
+#endif
 
 #if PON_VIB_SUPPORT
 void get_vibration_type(struct qpnp_hap *config)
@@ -451,16 +393,6 @@ void get_vibration_type(struct qpnp_hap *config)
 	}
 }
 #endif
-
-/* Return Build variant */
-__WEAK bool target_build_variant_user()
-{
-#if USER_BUILD_VARIANT
-	return true;
-#else
-	return false;
-#endif
-}
 
 __WEAK uint32_t target_get_pmic()
 {
@@ -527,15 +459,6 @@ bool target_battery_is_present()
 
 }
 #endif
-
-bool is_target_support_dtbo(void)
-{
-#if TARGET_DTBO_NOT_SUPPORTED
-  return false;
-#else
-  return true;
-#endif
-}
 
 #if CHECK_BAT_VOLTAGE
 /* Return battery voltage */

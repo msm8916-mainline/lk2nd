@@ -101,7 +101,11 @@ bool platform_is_sdx20();
 uint64_t platform_get_ddr_start();
 bool platform_is_glink_enabled();
 bool platform_is_mdm9206();
+#if VERIFIED_BOOT_LE
 int is_vb_le_enabled();
+#else
+static inline int is_vb_le_enabled() { return 0; }
+#endif
 void* get_rpmb_snd_rcv_buff();
 int LoadImage(char *Pname, void **ImgBuf, uint32_t *ImgSzActual);
 void boot_verifier_init();
