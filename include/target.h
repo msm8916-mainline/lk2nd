@@ -61,7 +61,18 @@ void *target_get_scratch_address(void);
 unsigned target_get_max_flash_size(void);
 
 /* if target is using eMMC bootup */
+#if BOOT_CONFIG_SUPPORT && !UFS_SUPPORT
 int target_is_emmc_boot(void);
+#else
+static inline int target_is_emmc_boot(void)
+{
+#if _EMMC_BOOT
+    return 1;
+#else
+    return 0;
+#endif
+}
+#endif
 
 unsigned* target_atag_mem(unsigned* ptr);
 void target_battery_charging_enable(unsigned enable, unsigned disconnect);
