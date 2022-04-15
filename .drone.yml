@@ -125,7 +125,8 @@ steps:
     image: alpine:3.15
     commands: [./.drone.sh msm8909 LKLE_CFLAGS=-Werror
                USER_BUILD_VARIANT=true VERIFIED_BOOT_2=1
-               OSVERSION_IN_BOOTIMAGE=1 ENABLE_VB_ATTEST=1]
+               OSVERSION_IN_BOOTIMAGE=1 ENABLE_VB_ATTEST=1
+               TARGET_USE_SYSTEM_AS_ROOT_IMAGE=1]
 
 trigger:
   event: [push, pull_request, tag]
@@ -186,7 +187,8 @@ steps:
     image: alpine:3.15
     commands: [./.drone.sh msm8952 LKLE_CFLAGS=-Werror
                USER_BUILD_VARIANT=true VERIFIED_BOOT_2=1
-               OSVERSION_IN_BOOTIMAGE=1 ENABLE_VB_ATTEST=1]
+               OSVERSION_IN_BOOTIMAGE=1 ENABLE_VB_ATTEST=1
+               TARGET_USE_SYSTEM_AS_ROOT_IMAGE=1]
 
 trigger:
   event: [push, pull_request, tag]
@@ -222,7 +224,16 @@ steps:
     image: alpine:3.15
     commands: [./.drone.sh msm8953 LKLE_CFLAGS=-Werror
                USER_BUILD_VARIANT=true VERIFIED_BOOT_2=1
-               OSVERSION_IN_BOOTIMAGE=1 ENABLE_VB_ATTEST=1]
+               OSVERSION_IN_BOOTIMAGE=1 ENABLE_VB_ATTEST=1
+               TARGET_USE_SYSTEM_AS_ROOT_IMAGE=1]
+
+  - name: DYNAMIC_PARTITION (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8953 LKLE_CFLAGS=-Werror
+               DYNAMIC_PARTITION_SUPPORT=1 VIRTUAL_AB_OTA=1
+               USER_BUILD_VARIANT=true VERIFIED_BOOT_2=1
+               OSVERSION_IN_BOOTIMAGE=1 ENABLE_VB_ATTEST=1
+               ENABLE_KASLRSEED=1]
 
 trigger:
   event: [push, pull_request, tag]
@@ -313,7 +324,8 @@ steps:
     image: alpine:3.15
     commands: [./.drone.sh msm8996 LKLE_CFLAGS=-Werror
                USER_BUILD_VARIANT=true VERIFIED_BOOT_2=1
-               OSVERSION_IN_BOOTIMAGE=1 ENABLE_VB_ATTEST=1]
+               OSVERSION_IN_BOOTIMAGE=1 ENABLE_VB_ATTEST=1
+               TARGET_USE_SYSTEM_AS_ROOT_IMAGE=1 ENABLE_BOOTDEVICE_MOUNT=1]
 
 trigger:
   event: [push, pull_request, tag]
