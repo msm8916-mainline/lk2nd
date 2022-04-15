@@ -55,9 +55,6 @@ CFLAGS := -O2 -g -fno-builtin -finline -W -Wall -Wno-multichar -Wno-unused-param
 # -fcommon is needed to build this using GCC 10
 CFLAGS += -fcommon
 #CFLAGS += -Werror
-ifeq ($(EMMC_BOOT),1)
-  CFLAGS += -D_EMMC_BOOT=1
-endif
 
 ifeq ($(SIGNED_KERNEL),1)
   CFLAGS += -D_SIGNED_KERNEL=1
@@ -239,6 +236,10 @@ endif
 ifneq ($(DEBUG),)
 DEFINES += \
 	DEBUG=$(DEBUG)
+endif
+
+ifeq ($(EMMC_BOOT),1)
+  CFLAGS += -D_EMMC_BOOT=1
 endif
 
 ALLOBJS := $(addprefix $(BUILDDIR)/,$(ALLOBJS))
