@@ -40,7 +40,9 @@
 #if CHECK_BAT_VOLTAGE
 #include <pm8x41_adc.h>
 #include <pm8x41_hw.h>
+#if WITH_DEV_PMIC_PMI8994
 #include <pm_fg_adc_usr.h>
+#endif
 #endif
 
 #if VERIFIED_BOOT || VERIFIED_BOOT_2
@@ -467,6 +469,7 @@ uint32_t target_get_battery_voltage()
 		case PMIC_IS_PM8941:
 			vbat = pm8x41_get_batt_voltage(); //uv
 			break;
+#if WITH_DEV_PMIC_PMI8994
 		case PMIC_IS_PMI8950:
 		case PMIC_IS_PMI8994:
 		case PMIC_IS_PMI8996:
@@ -479,6 +482,7 @@ uint32_t target_get_battery_voltage()
 				}
 			}
 			break;
+#endif
 		case PMIC_IS_PM660:
 			buff[0] = REG_READ(BATT_INFO_VBATT_LSB);
 			buff[1] = REG_READ(BATT_INFO_VBATT_MSB);
