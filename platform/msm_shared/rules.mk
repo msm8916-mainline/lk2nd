@@ -144,7 +144,6 @@ DEFINES += DISPLAY_TYPE_MDSS=1
 			$(LOCAL_DIR)/mipi_dsi_autopll.o \
 			$(LOCAL_DIR)/spmi.o \
 			$(LOCAL_DIR)/bam.o \
-			$(LOCAL_DIR)/qpic_nand.o \
 			$(LOCAL_DIR)/dev_tree.o \
 			$(LOCAL_DIR)/certificate.o \
 			$(LOCAL_DIR)/image_verify.o \
@@ -179,7 +178,6 @@ DEFINES += DISPLAY_TYPE_MDSS=1
 			$(LOCAL_DIR)/mipi_dsi_autopll.o \
 			$(LOCAL_DIR)/spmi.o \
 			$(LOCAL_DIR)/bam.o \
-			$(LOCAL_DIR)/qpic_nand.o \
             $(LOCAL_DIR)/certificate.o \
             $(LOCAL_DIR)/image_verify.o \
             $(LOCAL_DIR)/crypto_hash.o \
@@ -205,7 +203,6 @@ DEFINES += DISPLAY_TYPE_MDSS=1
 		$(LOCAL_DIR)/spmi.o \
 		$(LOCAL_DIR)/bam.o \
 		$(LOCAL_DIR)/scm.o \
-		$(LOCAL_DIR)/qpic_nand.o \
 		$(LOCAL_DIR)/dload_util.o \
 		$(LOCAL_DIR)/gpio.o \
 		$(LOCAL_DIR)/dev_tree.o \
@@ -243,7 +240,6 @@ DEFINES += DISPLAY_TYPE_MDSS=1
             $(LOCAL_DIR)/mdp3.o \
             $(LOCAL_DIR)/spmi.o \
             $(LOCAL_DIR)/bam.o \
-            $(LOCAL_DIR)/qpic_nand.o \
             $(LOCAL_DIR)/dev_tree.o \
             $(LOCAL_DIR)/scm.o \
             $(LOCAL_DIR)/gpio.o \
@@ -276,7 +272,6 @@ DEFINES += DISPLAY_TYPE_MDSS=1
             $(LOCAL_DIR)/hdmi_pll_28nm.o \
             $(LOCAL_DIR)/spmi.o \
             $(LOCAL_DIR)/bam.o \
-            $(LOCAL_DIR)/qpic_nand.o \
             $(LOCAL_DIR)/dev_tree.o \
             $(LOCAL_DIR)/gpio.o \
             $(LOCAL_DIR)/scm.o \
@@ -425,7 +420,6 @@ ifeq ($(PLATFORM),fsm9900)
 			$(LOCAL_DIR)/scm.o \
 			$(LOCAL_DIR)/spmi.o \
 			$(LOCAL_DIR)/bam.o \
-			$(LOCAL_DIR)/qpic_nand.o \
 			$(LOCAL_DIR)/dev_tree.o \
 			$(LOCAL_DIR)/certificate.o \
 			$(LOCAL_DIR)/image_verify.o \
@@ -450,7 +444,6 @@ ifeq ($(PLATFORM),fsm9010)
 			$(LOCAL_DIR)/scm.o \
 			$(LOCAL_DIR)/spmi.o \
 			$(LOCAL_DIR)/bam.o \
-			$(LOCAL_DIR)/qpic_nand.o \
 			$(LOCAL_DIR)/dev_tree.o \
 			$(LOCAL_DIR)/certificate.o \
 			$(LOCAL_DIR)/image_verify.o \
@@ -476,7 +469,6 @@ DEFINES += DISPLAY_TYPE_MDSS=1
 			$(LOCAL_DIR)/board.o \
 			$(LOCAL_DIR)/spmi.o \
 			$(LOCAL_DIR)/bam.o \
-			$(LOCAL_DIR)/qpic_nand.o \
 			$(LOCAL_DIR)/dev_tree.o \
 			$(LOCAL_DIR)/gpio.o \
 			$(LOCAL_DIR)/scm.o \
@@ -571,7 +563,6 @@ DEFINES += DISPLAY_TYPE_MDSS=1
 			$(LOCAL_DIR)/board.o \
 			$(LOCAL_DIR)/spmi.o \
 			$(LOCAL_DIR)/bam.o \
-			$(LOCAL_DIR)/qpic_nand.o \
 			$(LOCAL_DIR)/dev_tree.o \
 			$(LOCAL_DIR)/gpio.o \
 			$(LOCAL_DIR)/scm.o \
@@ -619,7 +610,6 @@ DEFINES += DISPLAY_TYPE_MDSS=1
 			$(LOCAL_DIR)/board.o \
 			$(LOCAL_DIR)/spmi.o \
 			$(LOCAL_DIR)/bam.o \
-			$(LOCAL_DIR)/qpic_nand.o \
 			$(LOCAL_DIR)/scm.o \
 			$(LOCAL_DIR)/qseecom_lk.o \
 			$(LOCAL_DIR)/dev_tree.o \
@@ -655,7 +645,6 @@ DEFINES += DISPLAY_TYPE_MDSS=1
 			$(LOCAL_DIR)/board.o \
 			$(LOCAL_DIR)/spmi.o \
 			$(LOCAL_DIR)/bam.o \
-			$(LOCAL_DIR)/qpic_nand.o \
 			$(LOCAL_DIR)/scm.o \
 			$(LOCAL_DIR)/qseecom_lk.o \
 			$(LOCAL_DIR)/dev_tree.o \
