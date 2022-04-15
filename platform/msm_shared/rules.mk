@@ -740,5 +740,5 @@ endif
 
 ifeq ($(VERIFIED_BOOT_2), 1)
 OBJS += platform/msm_shared/boot_verifier.o
-endif
 include platform/msm_shared/avb/rules.mk
+endif

@@ -1220,7 +1220,9 @@ void boot_linux(void *kernel, unsigned *tags,
 
 	/* Perform target specific cleanup */
 	target_uninit();
+#if VERIFIED_BOOT_2
 	free_verified_boot_resource(&info);
+#endif
 	if (final_cmdline)
 		free(final_cmdline);
 
