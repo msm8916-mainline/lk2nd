@@ -43,6 +43,7 @@ CONFIGHEADER := $(BUILDDIR)/config.h
 
 #Initialize the command-line flag ENABLE_TRUSTZONE. Value for flag passed in at command-line will take precedence
 ENABLE_TRUSTZONE := 0
+ENABLE_DISPLAY   ?= 1
 
 ifeq ($(ENABLE_TRUSTZONE),1)
 	INPUT_TZ_BIN := tzbsp/tzbsp.bin
