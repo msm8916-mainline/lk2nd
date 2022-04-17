@@ -54,7 +54,6 @@
 #include <crypto_hash.h>
 #include <malloc.h>
 #include <boot_stats.h>
-#include <sha.h>
 #include <platform/iomap.h>
 #include <boot_device.h>
 #include <boot_verifier.h>

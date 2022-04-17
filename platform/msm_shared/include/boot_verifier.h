@@ -30,6 +30,7 @@
 #ifndef __BOOT_VERIFIER_H
 #define __BOOT_VERIFIER_H
 
+#if WITH_LIB_OPENSSL
 #include <asn1.h>
 #include <rsa.h>
 
@@ -129,6 +130,10 @@ typedef struct keystore_st
 DECLARE_STACK_OF(KEYSTORE)
 DECLARE_ASN1_SET_OF(KEYSTORE)
 DECLARE_ASN1_FUNCTIONS(KEYSTORE)
+#else /* !WITH_LIB_OPENSSL */
+typedef struct rsa_st RSA;
+typedef struct keystore_st KEYSTORE;
+#endif
 
 enum boot_state
 {

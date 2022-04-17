@@ -27,7 +27,9 @@
  */
 
 #include <string.h>
+#if WITH_LIB_OPENSSL
 #include <sha.h>
+#endif
 #include <debug.h>
 #include <sys/types.h>
 #include "crypto_hash.h"
@@ -52,18 +54,24 @@ hash_find(unsigned char *addr, unsigned int size, unsigned char *digest,
 	crypto_engine_type platform_ce_type = board_ce_type();
 
 	if (auth_alg == CRYPTO_AUTH_ALG_SHA1) {
+#if WITH_LIB_OPENSSL
 		if(platform_ce_type == CRYPTO_ENGINE_TYPE_SW)
 			/* Hardware CE is not present , use software hashing */
 			digest = SHA1(addr, size, digest);
-		else if (platform_ce_type == CRYPTO_ENGINE_TYPE_HW)
+		else
+#endif
+		if (platform_ce_type == CRYPTO_ENGINE_TYPE_HW)
 			ret_val = crypto_sha1(addr, size, digest);
 		else
 			ret_val = CRYPTO_SHA_ERR_FAIL;
 	} else if (auth_alg == CRYPTO_AUTH_ALG_SHA256) {
+#if WITH_LIB_OPENSSL
 		if(platform_ce_type == CRYPTO_ENGINE_TYPE_SW)
 			/* Hardware CE is not present , use software hashing */
 			digest = SHA256(addr, size, digest);
-		else if (platform_ce_type == CRYPTO_ENGINE_TYPE_HW)
+		else
+#endif
+		if (platform_ce_type == CRYPTO_ENGINE_TYPE_HW)
 			ret_val = crypto_sha256(addr, size, digest);
 		else
 		ret_val = CRYPTO_SHA_ERR_FAIL;

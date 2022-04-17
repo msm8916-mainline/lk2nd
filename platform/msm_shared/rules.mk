@@ -700,6 +700,18 @@ ifeq ($(ENABLE_REBOOT_MODULE), 1)
 	OBJS += $(LOCAL_DIR)/reboot.o
 endif
 
+CRYPTO_SW_BACKEND ?= openssl
+ifeq ($(CRYPTO_SW_BACKEND), openssl)
+MODULES += lib/openssl
+else ifeq ($(CRYPTO_SW_BACKEND), none)
+ifneq ($(SIGNED_KERNEL)$(VERIFIED_BOOT)$(VERIFIED_BOOT_2),)
+$(error Crypto software backend is required for secure boot)
+endif
+OBJS := $(filter-out $(LOCAL_DIR)/image_verify.o, $(OBJS))
+else
+$(error Unknown crypto software backend: $(CRYPTO_SW_BACKEND))
+endif
+
 ifneq ($(filter MDP4=1, $(DEFINES)),)
 ifeq ($(ENABLE_DISPLAY), 0)
 MODULES := $(filter-out dev/panel/msm, $(MODULES))
