@@ -27,10 +27,11 @@
 #ifndef __IMAGE_VERIFY_H
 #define __IMAGE_VERIFY_H
 
-#include <x509.h>
+typedef struct rsa_st RSA;
 
 #define SHA1_SIZE      16
 #define SHA256_SIZE    32
+#define SHA256_DIGEST_LENGTH 32
 /* For keys of length 2048 bits */
 #define SIGNATURE_SIZE 256
 

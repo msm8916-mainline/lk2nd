@@ -29,7 +29,9 @@
 #include <debug.h>
 #include <reg.h>
 #include <stdlib.h>
+#if VERIFIED_BOOT || VERIFIED_BOOT_2
 #include <openssl/evp.h>
+#endif
 #include <dev/fbcon.h>
 #include <kernel/thread.h>
 #include <display_menu.h>
