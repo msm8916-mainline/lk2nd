@@ -1,5 +1,13 @@
 LOCAL_DIR := $(GET_LOCAL_DIR)
 
+ifneq ($(SIGNED_KERNEL)$(VERIFIED_BOOT)$(VERIFIED_BOOT_2),)
+$(error The lk2nd module provides development/debugging helpers and is therefore \
+        currently not designed to be used together with secure boot. Let us know \
+	if you are interested in this use case)
+endif
+# Fitler out more TZ-specific defines that might not work with some firmware
+DEFINES := $(filter-out SSD_ENABLE TZ_SAVE_KERNEL_HASH TZ_TAMPER_FUSE, $(DEFINES))
+
 ifneq ($(LK1ST_PANEL),)
 # Filter out original panel implementation
 OBJS := $(filter-out target/$(TARGET)/oem_panel.o, $(OBJS))
