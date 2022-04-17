@@ -240,6 +240,22 @@ trigger:
 
 ---
 kind: pipeline
+name: msm8960
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: lk2nd (gcc4)
+    image: alpine:3.15
+    commands: [./.drone.sh lk2nd-msm8960 LKLE_CFLAGS=-Werror]
+
+trigger:
+  event: [push, pull_request, tag]
+
+---
+kind: pipeline
 name: msm8974
 
 platform:

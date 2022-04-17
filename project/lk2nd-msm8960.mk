@@ -1,0 +1,10 @@
+LOCAL_DIR := $(GET_LOCAL_DIR)
+
+EMMC_BOOT ?= 1
+
+TARGET := msm8960
+DISPLAY_USE_CONTINUOUS_SPLASH := 1
+include $(LOCAL_DIR)/lk2nd-base.mk
+
+MODULES += lib/libfdt
+DEFINES += DEVICE_TREE=1

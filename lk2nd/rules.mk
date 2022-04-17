@@ -24,3 +24,23 @@ DEFINES += \
 OBJS += $(LOCAL_DIR)/target_display_cont_splash.o
 endif
 endif
+
+ifeq ($(PROJECT),lk2nd-msm8960)
+# Filter out code that does not compile properly anymore because its too old.
+# All of this is display setup which is not needed for lk2nd.
+# Also compile the device tree code since the atags are ancient...
+OBJS := $(filter-out \
+	dev/pmic/pm8921/pm8921_pwm.o \
+	platform/msm_shared/display.o \
+	platform/msm_shared/hdmi.o \
+	platform/msm_shared/lvds.o \
+	platform/msm_shared/mdp_lcdc.o \
+	platform/msm_shared/mdp4.o \
+	platform/msm_shared/mipi_dsi_phy.o \
+	platform/msm_shared/mipi_dsi.o \
+	platform/msm8960/hdmi_core.o \
+	target/msm8960/atags.o \
+	, $(OBJS)) \
+	platform/msm_shared/dev_tree.o \
+	target/msm8916/meminfo.o
+endif
