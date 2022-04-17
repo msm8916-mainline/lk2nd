@@ -70,6 +70,7 @@ SECTIONS
 	.got : { *(.got.plt) *(.got) }
 	.dynamic : { *(.dynamic) }
 
+	. = ALIGN(4);
 	__data_end = .;
 
 	/* unintialized data (in same segment as writable data) */
