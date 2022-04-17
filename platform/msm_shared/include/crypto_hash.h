@@ -130,7 +130,12 @@ static crypto_result_type crypto_sha1(unsigned char *buff_ptr,
 				      unsigned int buff_size,
 				      unsigned char *digest_ptr);
 
+#if WITH_LIB_OPENSSL
 bool crypto_initialized(void);
+#else
+static inline bool crypto_initialized(void) { return false; }
+#endif
+
 void
 hash_find(unsigned char *addr, unsigned int size, unsigned char *digest,
           unsigned char auth_alg);

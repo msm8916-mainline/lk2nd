@@ -699,6 +699,30 @@ ifeq ($(ENABLE_REBOOT_MODULE), 1)
 	OBJS += $(LOCAL_DIR)/reboot.o
 endif
 
+CRYPTO_BACKEND ?= openssl
+ifeq ($(CRYPTO_BACKEND), openssl)
+MODULES += lib/openssl
+else ifeq ($(CRYPTO_BACKEND), none)
+ifneq ($(SIGNED_KERNEL)$(VERIFIED_BOOT)$(VERIFIED_BOOT_2),)
+$(error Crypto backend is required for secure boot)
+endif
+ifneq ($(filter TZ_SAVE_KERNEL_HASH, $(DEFINES)),)
+$(info NOTE: Disabling TZ_SAVE_KERNEL_HASH because of CRYPTO_BACKEND=none)
+DEFINES := $(filter-out TZ_SAVE_KERNEL_HASH, $(DEFINES))
+endif
+OBJS := $(filter-out \
+		$(LOCAL_DIR)/certificate.o \
+		$(LOCAL_DIR)/crypto_hash.o \
+		$(LOCAL_DIR)/crypto4_eng.o \
+		$(LOCAL_DIR)/crypto5_eng.o \
+		$(LOCAL_DIR)/crypto5_wrapper.o \
+		$(LOCAL_DIR)/image_verify.o \
+		$(LOCAL_DIR)/qseecom_lk.o \
+		, $(OBJS))
+else
+$(error Unknown crypto backend: $(CRYPTO_BACKEND))
+endif
+
 ifeq ($(ENABLE_RPMB_SUPPORT), 1)
 include platform/msm_shared/rpmb/rules.mk
 endif
