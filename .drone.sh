@@ -8,9 +8,9 @@ apk add build-base dtc dtc-dev gcc-arm-none-eabi git python3 tar
 git clean -dxf
 
 # Workaround problem with faccessat2() on Drone CI
-wget https://gist.githubusercontent.com/TravMurav/36c83efbc188115aa9b0fc7f4afba63e/raw/faccessat.c
-gcc -shared -o faccessat.so faccessat.c
-export LD_PRELOAD="$PWD"/faccessat.so
+wget https://gist.githubusercontent.com/TravMurav/36c83efbc188115aa9b0fc7f4afba63e/raw/faccessat.c -P /opt
+gcc -O2 -shared -o /opt/faccessat.so /opt/faccessat.c
+export LD_PRELOAD=/opt/faccessat.so
 
 wget https://gitlab.com/postmarketOS/pmbootstrap/raw/master/pmb/data/keys/build.postmarketos.org.rsa.pub -P /etc/apk/keys
 echo https://mirror.postmarketos.org/postmarketos/v21.12 >> /etc/apk/repositories
