@@ -200,6 +200,14 @@ static void smem_copy_ram_ptable(void *buf)
 			ptable.parts[pentry].num_partitions = table_v0->parts[pentry].num_partitions;
 		}
 
+		/* Make sure lowest SDRAM address comes first, for get_ddr_start() */
+		if (ptable.parts[0].type == SYS_MEMORY && ptable.parts[0].category == SDRAM &&
+		    ptable.parts[1].type == SYS_MEMORY && ptable.parts[1].category == SDRAM &&
+		    ptable.parts[0].start > ptable.parts[1].start) {
+			ram_partition tmp = ptable.parts[0];
+			ptable.parts[0] = ptable.parts[1];
+			ptable.parts[1] = tmp;
+		}
 	}
 	else
 	{
