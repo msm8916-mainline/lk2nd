@@ -241,6 +241,10 @@ int smem_ram_ptable_init_v1()
 	uint32_t smem_ram_ptable_size = 0;
 	struct smem_ram_ptable_hdr *ram_ptable_hdr;
 
+	/* Already initialized? */
+	if (ptable.hdr.magic[0])
+		return 1;
+
 	/* Check smem ram partition table version and decide on length of ram_ptable */
 	ret = smem_read_alloc_entry_offset(SMEM_USABLE_RAM_PARTITION_TABLE,
 						&version,
