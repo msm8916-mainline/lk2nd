@@ -688,7 +688,7 @@ ifeq ($(ENABLE_REBOOT_MODULE), 1)
 	OBJS += $(LOCAL_DIR)/reboot.o
 endif
 
-ifneq ($(DISABLE_CRYPTO), 1)
+ifneq ($(CRYPTO_DISABLED), 1)
 MODULES += lib/openssl
 else
 ifneq ($(SIGNED_KERNEL)$(VERIFIED_BOOT)$(VERIFIED_BOOT_2),)

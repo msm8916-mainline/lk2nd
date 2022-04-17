@@ -20,6 +20,10 @@ steps:
     image: alpine:3.15
     commands: [./.drone.sh apq8084 LKLE_CFLAGS=-Werror]
 
+  - name: crypto disabled (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh apq8084 CRYPTO_DISABLED=1]
+
   - name: signed kernel (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh apq8084 LKLE_CFLAGS=-Werror
@@ -38,6 +42,10 @@ steps:
   - name: default (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh mdm9607 LKLE_CFLAGS=-Werror]
+
+  - name: crypto disabled (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh mdm9607 CRYPTO_DISABLED=1]
 
   - name: signed kernel (gcc4)
     image: alpine:3.15
@@ -66,6 +74,10 @@ steps:
     image: alpine:3.15
     commands: [./.drone.sh msm8226 LKLE_CFLAGS=-Werror]
 
+  - name: crypto disabled (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8226 CRYPTO_DISABLED=1]
+
   - name: signed kernel (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8226 LKLE_CFLAGS=-Werror
@@ -93,6 +105,10 @@ steps:
     image: alpine:3.15
     commands: [./.drone.sh msm8610 LKLE_CFLAGS=-Werror]
 
+  - name: crypto disabled (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8610 CRYPTO_DISABLED=1]
+
   - name: signed kernel (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8610 LKLE_CFLAGS=-Werror
@@ -119,6 +135,10 @@ steps:
   - name: default (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8909 LKLE_CFLAGS=-Werror]
+
+  - name: crypto disabled (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8909 CRYPTO_DISABLED=1]
 
   - name: signed kernel (gcc4)
     image: alpine:3.15
@@ -159,6 +179,10 @@ steps:
     image: alpine:3.15
     commands: [./.drone.sh msm8916 LKLE_CFLAGS=-Werror]
 
+  - name: crypto disabled (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8916 CRYPTO_DISABLED=1]
+
   - name: signed kernel (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8916 LKLE_CFLAGS=-Werror
@@ -185,6 +209,10 @@ steps:
   - name: default (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8952 LKLE_CFLAGS=-Werror]
+
+  - name: crypto disabled (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8952 CRYPTO_DISABLED=1]
 
   - name: signed kernel (gcc4)
     image: alpine:3.15
@@ -224,6 +252,10 @@ steps:
   - name: default (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8953 LKLE_CFLAGS=-Werror]
+
+  - name: crypto disabled (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8953 CRYPTO_DISABLED=1]
 
   - name: signed kernel (gcc4)
     image: alpine:3.15
@@ -290,6 +322,10 @@ steps:
     image: alpine:3.15
     commands: [./.drone.sh msm8974 LKLE_CFLAGS=-Werror]
 
+  - name: crypto disabled (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8974 CRYPTO_DISABLED=1]
+
   - name: signed kernel (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8974 LKLE_CFLAGS=-Werror
@@ -316,6 +352,10 @@ steps:
   - name: default (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8994 LKLE_CFLAGS=-Werror]
+
+  - name: crypto disabled (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8994 CRYPTO_DISABLED=1]
 
   - name: signed kernel (gcc4)
     image: alpine:3.15
@@ -348,6 +388,10 @@ steps:
   - name: default (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8996 LKLE_CFLAGS=-Werror]
+
+  - name: crypto disabled (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8996 CRYPTO_DISABLED=1]
 
   - name: signed kernel (gcc4)
     image: alpine:3.15
