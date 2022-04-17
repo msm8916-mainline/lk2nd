@@ -1,5 +1,6 @@
 ---
 kind: pipeline
+type: docker
 name: apq8084
 
 platform:
@@ -7,6 +8,10 @@ platform:
   arch: amd64
 
 steps:
+  - name: lk2nd (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh lk2nd-apq8084]
+
   - name: lk2nd (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh lk2nd-apq8084 LKLE_CFLAGS=-Werror]
@@ -20,11 +25,9 @@ steps:
     commands: [./.drone.sh apq8084 LKLE_CFLAGS=-Werror
                USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
 
-trigger:
-  event: [push, pull_request, tag]
-
 ---
 kind: pipeline
+type: docker
 name: mdm9607
 
 platform:
@@ -41,11 +44,9 @@ steps:
     commands: [./.drone.sh mdm9607 LKLE_CFLAGS=-Werror
                USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
 
-trigger:
-  event: [push, pull_request, tag]
-
 ---
 kind: pipeline
+type: docker
 name: msm8226
 
 platform:
@@ -53,6 +54,10 @@ platform:
   arch: amd64
 
 steps:
+  - name: lk2nd (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh lk2nd-msm8226]
+
   - name: lk2nd (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh lk2nd-msm8226 LKLE_CFLAGS=-Werror]
@@ -66,11 +71,9 @@ steps:
     commands: [./.drone.sh msm8226 LKLE_CFLAGS=-Werror
                USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
 
-trigger:
-  event: [push, pull_request, tag]
-
 ---
 kind: pipeline
+type: docker
 name: msm8610
 
 platform:
@@ -78,6 +81,10 @@ platform:
   arch: amd64
 
 steps:
+  - name: lk2nd (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh lk2nd-msm8610]
+
   - name: lk2nd (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh lk2nd-msm8610 LKLE_CFLAGS=-Werror]
@@ -91,11 +98,9 @@ steps:
     commands: [./.drone.sh msm8610 LKLE_CFLAGS=-Werror
                USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
 
-trigger:
-  event: [push, pull_request, tag]
-
 ---
 kind: pipeline
+type: docker
 name: msm8909
 
 platform:
@@ -103,6 +108,10 @@ platform:
   arch: amd64
 
 steps:
+  - name: lk2nd (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh lk2nd-msm8909]
+
   - name: lk2nd (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh lk2nd-msm8909 LKLE_CFLAGS=-Werror]
@@ -128,11 +137,9 @@ steps:
                OSVERSION_IN_BOOTIMAGE=1 ENABLE_VB_ATTEST=1
                TARGET_USE_SYSTEM_AS_ROOT_IMAGE=1]
 
-trigger:
-  event: [push, pull_request, tag]
-
 ---
 kind: pipeline
+type: docker
 name: msm8916
 
 platform:
@@ -140,6 +147,10 @@ platform:
   arch: amd64
 
 steps:
+  - name: lk2nd (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh lk2nd-msm8916]
+
   - name: lk2nd (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh lk2nd-msm8916 LKLE_CFLAGS=-Werror]
@@ -153,11 +164,9 @@ steps:
     commands: [./.drone.sh msm8916 LKLE_CFLAGS=-Werror
                USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
 
-trigger:
-  event: [push, pull_request, tag]
-
 ---
 kind: pipeline
+type: docker
 name: msm8952
 
 platform:
@@ -165,6 +174,10 @@ platform:
   arch: amd64
 
 steps:
+  - name: lk2nd (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh lk2nd-msm8952]
+
   - name: lk2nd (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh lk2nd-msm8952 LKLE_CFLAGS=-Werror]
@@ -190,11 +203,9 @@ steps:
                OSVERSION_IN_BOOTIMAGE=1 ENABLE_VB_ATTEST=1 VB1_KEY_USED=1
                TARGET_USE_SYSTEM_AS_ROOT_IMAGE=1 ENABLE_KASLRSEED=1]
 
-trigger:
-  event: [push, pull_request, tag]
-
 ---
 kind: pipeline
+type: docker
 name: msm8953
 
 platform:
@@ -202,6 +213,10 @@ platform:
   arch: amd64
 
 steps:
+  - name: lk2nd (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh lk2nd-msm8953]
+
   - name: lk2nd (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh lk2nd-msm8953 LKLE_CFLAGS=-Werror]
@@ -235,11 +250,9 @@ steps:
                OSVERSION_IN_BOOTIMAGE=1 ENABLE_VB_ATTEST=1
                ENABLE_KASLRSEED=1]
 
-trigger:
-  event: [push, pull_request, tag]
-
 ---
 kind: pipeline
+type: docker
 name: msm8960
 
 platform:
@@ -247,15 +260,17 @@ platform:
   arch: amd64
 
 steps:
+  - name: lk2nd (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh lk2nd-msm8960]
+
   - name: lk2nd (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh lk2nd-msm8960 LKLE_CFLAGS=-Werror]
 
-trigger:
-  event: [push, pull_request, tag]
-
 ---
 kind: pipeline
+type: docker
 name: msm8974
 
 platform:
@@ -263,6 +278,10 @@ platform:
   arch: amd64
 
 steps:
+  - name: lk2nd (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh lk2nd-msm8974]
+
   - name: lk2nd (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh lk2nd-msm8974 LKLE_CFLAGS=-Werror]
@@ -276,11 +295,9 @@ steps:
     commands: [./.drone.sh msm8974 LKLE_CFLAGS=-Werror
                USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
 
-trigger:
-  event: [push, pull_request, tag]
-
 ---
 kind: pipeline
+type: docker
 name: msm8994
 
 platform:
@@ -288,6 +305,10 @@ platform:
   arch: amd64
 
 steps:
+  - name: lk2nd (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh lk2nd-msm8994]
+
   - name: lk2nd (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh lk2nd-msm8994 LKLE_CFLAGS=-Werror]
@@ -306,11 +327,9 @@ steps:
     commands: [./.drone.sh msm8994 LKLE_CFLAGS=-Werror
                USER_BUILD_VARIANT=true VERIFIED_BOOT=1]
 
-trigger:
-  event: [push, pull_request, tag]
-
 ---
 kind: pipeline
+type: docker
 name: msm8996
 
 platform:
@@ -318,6 +337,10 @@ platform:
   arch: amd64
 
 steps:
+  - name: lk2nd (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh lk2nd-msm8996]
+
   - name: lk2nd (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh lk2nd-msm8996 LKLE_CFLAGS=-Werror]
@@ -343,6 +366,3 @@ steps:
                OSVERSION_IN_BOOTIMAGE=1 ENABLE_VB_ATTEST=1 VB1_KEY_USED=1
                TARGET_USE_SYSTEM_AS_ROOT_IMAGE=1 ENABLE_KASLRSEED=1
                ENABLE_BOOTDEVICE_MOUNT=1]
-
-trigger:
-  event: [push, pull_request, tag]
