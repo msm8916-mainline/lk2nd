@@ -478,7 +478,6 @@ void (*CRYPTO_THREADID_get_callback(void))(CRYPTO_THREADID *)
 
 void CRYPTO_THREADID_current(CRYPTO_THREADID *id)
 	{
-	  unsigned char errno;
 	if (threadid_callback)
 		{
 		threadid_callback(id);

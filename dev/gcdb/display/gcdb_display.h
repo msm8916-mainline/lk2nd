@@ -58,7 +58,7 @@ int target_display_dsi2hdmi_config(struct msm_panel_info *pinfo);
 int target_dsi_phy_config(struct mdss_dsi_phy_ctrl *phy_db);
 
 int gcdb_display_init(const char *panel_name, uint32_t rev, void *base);
-int gcdb_display_cmdline_arg(char *pbuf, uint16_t buf_size);
+bool gcdb_display_cmdline_arg(char *pbuf, uint16_t buf_size);
 void gcdb_display_shutdown();
 int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	struct msm_panel_info *pinfo, struct mdss_dsi_phy_ctrl *phy_db);
