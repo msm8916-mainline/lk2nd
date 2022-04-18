@@ -38,8 +38,6 @@
 #define KEYMASTER_CMD_ID  0x100UL
 #define KEYMASTER_UTILS_CMD_ID  0x200UL
 
-#define UINT32_MAX  (0xffffffff)
-
 typedef enum {
     /*
      * List the commands supportedin by the hardware.
