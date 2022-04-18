@@ -1,14 +1,10 @@
-#include <malloc.h>
-#include <stdlib.h>
-
 #include "libufdt_sysdeps.h"
-#define LK_DTBO_ERROR -1
 
-#if INCLUDE_PLATFORM_HDRS
 #include <debug.h>
 #include <stdio.h>
-//#include <stdlib.h>
+#include <stdlib.h>
 #include <sys/types.h>
+
 int dto_print(const char *fmt, ...) {
   int err;
 
@@ -19,11 +15,7 @@ int dto_print(const char *fmt, ...) {
 
   return err;
 }
-#endif
 
-int dto_print(const char *fmt, ...) {
-  return LK_DTBO_ERROR;
-}
 /* Codes from
  * https://android.googlesource.com/platform/bionic.git/+/eclair-release/libc/stdlib/qsort.c
  * Start
@@ -188,17 +180,9 @@ void dto_qsort(void *base, size_t nmemb, size_t size,
  * bootloader source with the names conforming to POSIX.
  */
 
-void *dto_malloc(size_t size) {
-	return malloc(size);
-}
+void *dto_malloc(size_t size) { return malloc(size); }
 
-void dto_free(void *ptr) {
-	return free(ptr);
-}
-
-char *dto_strdup(const char *s) {
-	return strdup(s);
-}
+void dto_free(void *ptr) { free(ptr); }
 
 char *dto_strchr(const char *s, int c) { return strchr(s, c); }
 
@@ -207,6 +191,10 @@ unsigned long int dto_strtoul(const char *nptr, char **endptr, int base) {
 }
 
 size_t dto_strlen(const char *s) { return strlen(s); }
+
+int dto_memcmp(const void *lhs, const void *rhs, size_t n) {
+  return memcmp(lhs, rhs, n);
+}
 
 void *dto_memcpy(void *dest, const void *src, size_t n) {
   return memcpy(dest, src, n);
