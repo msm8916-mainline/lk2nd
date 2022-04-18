@@ -22,6 +22,7 @@
 /* Define DEBUG_DISABLE_POOL to use dto_malloc and dto_free directly */
 /* #define DEBUG_DISABLE_POOL */
 
+#undef MAX
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
 #define UFDT_NODE_POOL_ENTRIES_PER_BLOCK 1024
