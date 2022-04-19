@@ -49,4 +49,14 @@
 			i2c-address = <0x25>;
 		};
 	};
+
+	j5ltezt {
+		model = "Samsung Galaxy J5 2015 (SM-J5007)";
+		compatible = "samsung,j5ltezt", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "J5007*";
+		samsung,muic-reset {
+			i2c-gpio-pins = <105 106>;
+			i2c-address = <0x25>;
+		};
+	};
 };
