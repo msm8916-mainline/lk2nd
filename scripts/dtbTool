@@ -142,9 +142,18 @@ boot_device_ids = { 'emmc_sdc1' : 2, 'ufs' : 4 }
 boot_device_ids_mdm = { 'emmc_sdc1' : 3 }
 panel_ids = { 'hd' : 0, '720p' : 1, 'qHD' : 2, 'fWVGA' : 3 }
 
-try:
-	libfdt = ctypes.CDLL('libfdt.so')
-except OSError:
+# Load libfdt using a number of possible filenames used by distributions
+libfdt_fnames = ['libfdt.so', 'libfdt.so.1']
+libfdt = None
+
+for fname in libfdt_fnames:
+    try:
+        libfdt = ctypes.CDLL(fname)
+        break
+    except OSError:
+        continue
+
+if not libfdt:
 	sys.exit("libfdt is missing, please install it")
 
 prototype = ctypes.CFUNCTYPE(ctypes.c_char_p, ctypes.c_void_p, ctypes.c_char_p)
