@@ -153,19 +153,23 @@
             ((uint32_t)*(x+2) << 16) | \
             ((uint32_t)*(x+3) << 24))
 
-#define PUT_LONG(x, y)   *(x) = y & 0xff;     \
+#define PUT_LONG(x, y)   do { \
+    *(x) = y & 0xff;     \
     *(x+1) = (y >> 8) & 0xff;     \
     *(x+2) = (y >> 16) & 0xff;    \
-    *(x+3) = (y >> 24) & 0xff;
+    *(x+3) = (y >> 24) & 0xff;    \
+} while (0)
 
-#define PUT_LONG_LONG(x,y)    *(x) =(y) & 0xff; \
+#define PUT_LONG_LONG(x,y)    do { \
+     *(x) =(y) & 0xff; \
      *((x)+1) = (((y) >> 8) & 0xff);    \
      *((x)+2) = (((y) >> 16) & 0xff);   \
      *((x)+3) = (((y) >> 24) & 0xff);   \
      *((x)+4) = (((y) >> 32) & 0xff);   \
      *((x)+5) = (((y) >> 40) & 0xff);   \
      *((x)+6) = (((y) >> 48) & 0xff);   \
-     *((x)+7) = (((y) >> 56) & 0xff);
+     *((x)+7) = (((y) >> 56) & 0xff);   \
+} while (0)
 
 /* Unified mbr and gpt entry types */
 struct partition_entry {

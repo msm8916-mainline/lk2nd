@@ -390,6 +390,7 @@ pm_err_flag_type pm_smbchg_bat_if_get_min_sys_volt(uint32 device_index, uint32 *
             break;
         case 0x01:
             *min_sys_millivolt = 354;
+            break;
         default:
             *min_sys_millivolt = 360;
         }

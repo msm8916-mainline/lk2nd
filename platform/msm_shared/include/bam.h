@@ -241,7 +241,7 @@ struct cmd_element {
 	uint32_t reg_data;
 	uint32_t reg_mask;
 	uint32_t reserve;
-} __PACKED;
+};
 
 void bam_init(struct bam_instance *bam);
 void bam_sys_pipe_init(struct bam_instance *bam,
