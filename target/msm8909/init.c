@@ -517,6 +517,7 @@ uint8_t target_panel_auto_detect_enabled()
 		default:
 			break;
 		}
+		break;
 	default:
 		ret = 0;
 		break;
