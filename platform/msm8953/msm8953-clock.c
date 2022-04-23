@@ -436,7 +436,7 @@ static struct branch_clk gcc_usb30_pipe_clk = {
 };
 
 static struct clk_freq_tbl ftbl_gcc_usb30_aux_clk[] = {
-	F(   19200000,         cxo,    0,    0,    0),
+	F(   19200000,         cxo,    1,    0,    0),
 	F_END
 };
 
@@ -624,7 +624,7 @@ static struct reset_clk gcc_usb2a_phy_sleep_clk = {
 };
 
 static struct clk_freq_tbl ftbl_gcc_usb30_mock_utmi_clk_src[] = {
-	F(  19200000, cxo,   0,    0,     0),
+	F(  19200000, cxo,   1,    0,     0),
 	F(  60000000, gpll6,   6,    1,     3),
 	F_END
 };
