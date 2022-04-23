@@ -133,8 +133,10 @@ enum
 #define PM_PWRKEY_BLOCK_ID		6
 #define PM_PWRKEY_PRESS_BIT		(1 << 3)
 
-typedef int (*pm8921_read_func)(uint8_t *data, uint32_t length, uint32_t addr);
-typedef int (*pm8921_write_func)(uint8_t *data, uint32_t length, uint32_t addr);
+typedef int (*pm8921_read_func)(unsigned char  *buffer, unsigned short length,
+				unsigned short slave_addr);
+typedef int (*pm8921_write_func)(unsigned char  *buffer, unsigned short length,
+				 unsigned short slave_addr);
 
 typedef struct
 {
