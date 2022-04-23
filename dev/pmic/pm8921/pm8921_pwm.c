@@ -238,7 +238,7 @@ int pm8921_pwm_config(uint8_t pwm_id,
 	uint32_t period_us,
 	pm8921_dev_t *dev)
 {
-	struct pm8921_pwm_config pwm_conf;
+	struct pm8921_pwm_config pwm_conf = {0};
 	uint32_t max_pwm_value, tmp;
 	int rc = -1;
 
