@@ -783,7 +783,7 @@ static void pm_app_pmi8994_read_voltage(uint32_t *voltage)
 	pm_comm_read_byte(sid, 0x4440, &val, 0);
 
 	//Request for FG access
-	if ((val & BIT(7)) != 1)
+	if (!(val & BIT(7)))
 		pm_comm_write_byte(sid, 0x4440, 0x80, 0);
 
 	pm_comm_read_byte(sid, 0x4410, &val, 0);
