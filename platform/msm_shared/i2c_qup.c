@@ -146,13 +146,13 @@ static inline void qup_print_status(struct qup_i2c_dev *dev)
 }
 #endif
 
-static irqreturn_t qup_i2c_interrupt(void)
+static enum handler_return qup_i2c_interrupt(void *arg)
 {
 	struct qup_i2c_dev *dev = dev_addr;
 	if (!dev) {
 		dprintf(CRITICAL,
 			"dev_addr is NULL, that means i2c_qup_init failed...\n");
-		return IRQ_FAIL;
+		return INT_NO_RESCHEDULE;
 	}
 	unsigned status = readl(dev->qup_base + QUP_I2C_STATUS);
 	unsigned status1 = readl(dev->qup_base + QUP_ERROR_FLAGS);
@@ -160,7 +160,7 @@ static irqreturn_t qup_i2c_interrupt(void)
 	int err = 0;
 
 	if (!dev->msg)
-		return IRQ_HANDLED;
+		return INT_NO_RESCHEDULE;
 
 	if (status & I2C_STATUS_ERROR_MASK) {
 		dprintf(CRITICAL, "QUP: I2C status flags :0x%x \n", status);
@@ -190,12 +190,12 @@ static irqreturn_t qup_i2c_interrupt(void)
 			writel(QUP_IN_SVC_FLAG,
 			       dev->qup_base + QUP_OPERATIONAL);
 		else
-			return IRQ_HANDLED;
+			return INT_NO_RESCHEDULE;
 	}
 
  intr_done:
 	dev->err = err;
-	return IRQ_HANDLED;
+	return INT_NO_RESCHEDULE;
 }
 
 static int qup_i2c_poll_writeready(struct qup_i2c_dev *dev)
@@ -696,7 +696,7 @@ void qup_i2c_sec_init(struct qup_i2c_dev *dev, uint32_t clk_freq,
 	dev->clk_ctl = 0;
 
 	/* Register the GSBIn QUP IRQ */
-	register_int_handler(dev->qup_irq, (int_handler) qup_i2c_interrupt, 0);
+	register_int_handler(dev->qup_irq, qup_i2c_interrupt, 0);
 
 	/* Then disable it */
 	mask_interrupt(dev->qup_irq);

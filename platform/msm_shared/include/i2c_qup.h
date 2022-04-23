@@ -120,21 +120,6 @@ struct device {
 	void (*release) (struct device * dev);
 };
 
-/**
- * enum irqreturn
- * @IRQ_NONE        interrupt was not from this device
- * @IRQ_HANDLED     interrupt was handled by this device
- * @IRQ_WAKE_THREAD handler requests to wake the handler thread
- */
-enum irqreturn {
-	IRQ_NONE,
-	IRQ_HANDLED,
-	IRQ_WAKE_THREAD,
-	IRQ_FAIL,
-};
-
-typedef enum irqreturn irqreturn_t;
-
 #define I2C_SMBUS_BLOCK_MAX 32
 union i2c_smbus_data {
 	unsigned char byte;
