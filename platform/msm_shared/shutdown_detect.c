@@ -93,7 +93,7 @@ static uint32_t is_pwrkey_pon_reason()
  * (PWRKEY_LONG_PRESS_COUNT/MPM_SLEEP_TIMETICK_COUNT) seconds.
  */
 static enum handler_return long_press_pwrkey_timer_func(struct timer *p_timer,
-	void *arg)
+	time_t now, void *arg)
 {
 	uint32_t sclk_count = platform_get_sclk_count();
 
@@ -112,7 +112,7 @@ static enum handler_return long_press_pwrkey_timer_func(struct timer *p_timer,
 			 * for software to be safely detect if there is a key release action.
 			 */
 			timer_set_oneshot(p_timer, PWRKEY_DETECT_FREQUENCY,
-				(timer_callback)long_press_pwrkey_timer_func, NULL);
+				long_press_pwrkey_timer_func, NULL);
 		} else {
 			shutdown_device();
 		}
@@ -160,7 +160,7 @@ void shutdown_detect()
 			shutdown_device();
 		}
 		timer_initialize(&pon_timer);
-		timer_set_oneshot(&pon_timer, 0,(timer_callback)long_press_pwrkey_timer_func, NULL);
+		timer_set_oneshot(&pon_timer, 0, long_press_pwrkey_timer_func, NULL);
 
 		/*
 		 * Wait until long press power key timeout
