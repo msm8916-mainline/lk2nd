@@ -806,7 +806,7 @@ const char * target_usb_controller()
 			/* exceptions based on hardware id */
 			if (board_hardware_id() != HW_PLATFORM_DRAGON && !target_hw_interposer())
 				return "dwc";
-		/* fall through to default "ci" for anything that did'nt select "dwc" */
+			/* fall through */
 		default:
 			return "ci";
 	}
