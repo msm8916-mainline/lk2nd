@@ -334,6 +334,7 @@ static bool init_panel_data(struct panel_struct *panelstruct,
 		pinfo->mipi.broadcast = 0;
 		memcpy(phy_db->timing,
 					hx8379a_truly_fwvga_video_timings, TIMING_SIZE);
+		break;
 	case NOVATEK_WQXGA_VIDEO_PANEL:
 		dprintf(ALWAYS, " Novatek 35597 panel selected\n");
 		pan_type = PANEL_TYPE_DSI;
