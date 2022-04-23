@@ -135,7 +135,8 @@ typedef struct dt_info
 	uint32_t dt_pmic_model[MAX_PMIC_IDX];
 	uint32_t dt_pmic_rev[MAX_PMIC_IDX];
 	uint32_t dt_match_val;
-	void *dtb;
+	void *dtb, *aligned_dtb;
+	uint32_t dtb_size;
 }dt_info;
 
 typedef struct pmic_info

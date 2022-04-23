@@ -382,7 +382,7 @@ static boolean dtb_read_find_match(dt_info *current_dtb_info, dt_info *best_dtb_
 	int platform_id_len = 0;
 	int pmic_id_len;
 	int root_offset = 0;
-	void *dtb = current_dtb_info->dtb;
+	void *dtb = current_dtb_info->aligned_dtb;
 	uint32_t idx;
 	const char *platform_prop = NULL;
 	const char *board_prop = NULL;
@@ -619,7 +619,7 @@ cleanup:
 	return find_best_match;
 }
 
-void *get_soc_dtb(void *kernel, uint32_t kernel_size, uint32_t dtb_offset)
+void *get_soc_dtb(void *kernel, void *tags, uint32_t kernel_size, uint32_t dtb_offset)
 {
 	uintptr_t kernel_end_offset = (uintptr_t)kernel + kernel_size;
 	void *dtb = NULL;
@@ -650,6 +650,21 @@ void *get_soc_dtb(void *kernel, uint32_t kernel_size, uint32_t dtb_offset)
 		break;
 
 		cur_dtb_info.dtb = dtb;
+		cur_dtb_info.aligned_dtb = dtb;
+		cur_dtb_info.dtb_size = dtb_size;
+
+		/* Need to copy DTB if not aligned properly :/ */
+		if ((uintptr_t)dtb & 7) {
+			if (dtb_size > MAX_DTBO_SZ) {
+				dprintf(CRITICAL, "SoC DTB too large: %d\n", dtb_size);
+				return NULL;
+			}
+			if (best_dtb_info.aligned_dtb == tags)
+				best_dtb_info.aligned_dtb = NULL;
+			memcpy(tags, dtb, dtb_size);
+			cur_dtb_info.aligned_dtb = tags;
+		}
+
 		find_best_dtb = dtb_read_find_match(&cur_dtb_info, &best_dtb_info, SOC_MATCH);
 		if (cur_dtb_info.dt_match_val) {
 			if (cur_dtb_info.dt_match_val & BIT(SOC_MATCH)) {
@@ -673,10 +688,16 @@ void *get_soc_dtb(void *kernel, uint32_t kernel_size, uint32_t dtb_offset)
 		dprintf(CRITICAL, "No match found for soc dtb type\n");
 		return NULL;
 	}
-	return best_dtb_info.dtb;
+	/* Need to copy DTB if not aligned properly :/ */
+	dtb = best_dtb_info.aligned_dtb;
+	if (!dtb) {
+		memcpy(tags, best_dtb_info.dtb, best_dtb_info.dtb_size);
+		dtb = tags;
+	}
+	return dtb;
 }
 
-void *get_board_dtb(void *dtbo_image_buf)
+void *get_board_dtb(void *dtbo_image_buf, uint32_t dtbo_image_sz)
 {
 	struct dtbo_table_hdr *dtbo_table_header = dtbo_image_buf;
 	struct dtbo_table_entry *dtb_table_entry = NULL;
@@ -689,11 +710,16 @@ void *get_board_dtb(void *dtbo_image_buf)
 	dt_info cur_dtb_info = {0};
 	dt_info best_dtb_info = {0};
 	boolean find_best_dtb = false;
+	void *tmp; uint32_t max_tmp_size;
 
 	if (!dtbo_image_buf) {
 		dprintf(CRITICAL, "dtbo image buffer is NULL\n");
 		return NULL;
 	}
+
+	/* Temporary copy DTB after DTBO for alignment */
+	tmp = (void*)ROUND_TO_PAGE((addr_t)dtbo_image_buf + dtbo_image_sz, (ADDR_ALIGNMENT-1));
+	max_tmp_size = target_get_scratch_address() + target_get_max_flash_size() - tmp;
 
 	first_dtbo_table_entry_offset = fdt32_to_cpu(dtbo_table_header->dt_entry_offset);
 	if ((uintptr_t)dtbo_image_buf > ((uintptr_t)dtbo_image_buf + (uintptr_t)first_dtbo_table_entry_offset))
@@ -717,6 +743,21 @@ void *get_board_dtb(void *dtbo_image_buf)
 		}
 		dprintf(SPEW, "Valid board dtb is found\n");
 		cur_dtb_info.dtb = board_dtb;
+		cur_dtb_info.aligned_dtb = board_dtb;
+		cur_dtb_info.dtb_size = dtb_size;
+
+		/* Need to copy DTB if not aligned properly :/ */
+		if ((uintptr_t)board_dtb & 7) {
+			if (dtb_size > max_tmp_size) {
+				dprintf(CRITICAL, "Board DTB too large: %d\n", dtb_size);
+				return NULL;
+			}
+			if (best_dtb_info.aligned_dtb == tmp)
+				best_dtb_info.aligned_dtb = NULL;
+			memcpy(tmp, board_dtb, dtb_size);
+			cur_dtb_info.aligned_dtb = tmp;
+		}
+
 		find_best_dtb = dtb_read_find_match(&cur_dtb_info, &best_dtb_info, VARIANT_MATCH);
 		dprintf(SPEW, "dtbo count = %u local_board_dt_match =%x\n",dtbo_count, cur_dtb_info.dt_match_val);
 		dtb_table_entry++;
@@ -729,7 +770,13 @@ void *get_board_dtb(void *dtbo_image_buf)
 		dprintf(CRITICAL, "Unable to find the board dtb\n");
 		return NULL;
 	}
-	return best_dtb_info.dtb;
+	/* Need to copy DTB if not aligned properly :/ */
+	board_dtb = best_dtb_info.aligned_dtb;
+	if (!board_dtb) {
+		memcpy(tmp, best_dtb_info.dtb, best_dtb_info.dtb_size);
+		board_dtb = tmp;
+	}
+	return board_dtb;
 }
 
 static void insert_dt_entry_in_queue(struct dt_entry_node *dt_list, struct dt_entry_node *dt_node_member)
@@ -1097,7 +1144,7 @@ dtbo_error dev_tree_appended_with_dtbo(void *kernel, uint32_t kernel_size,
 	ret = load_validate_dtbo_image(&dtbo_image_buf, &dtbo_image_sz);
 	if (ret == DTBO_SUCCESS)
 	{
-		final_dtb_hdr = soc_dtb = get_soc_dtb(kernel,
+		final_dtb_hdr = soc_dtb = get_soc_dtb(kernel, tags,
 						kernel_size, dtb_offset);
 		if(!soc_dtb)
 		{
@@ -1107,7 +1154,7 @@ dtbo_error dev_tree_appended_with_dtbo(void *kernel, uint32_t kernel_size,
 
 		if (dtbo_needed)
 		{
-			board_dtb = get_board_dtb(dtbo_image_buf);
+			board_dtb = get_board_dtb(dtbo_image_buf, dtbo_image_sz);
 			if(!board_dtb)
 			{
 				ret = DTBO_ERROR;
