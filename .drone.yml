@@ -14,11 +14,11 @@ steps:
 
   - name: lk2nd (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh lk2nd-apq8084 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh lk2nd-apq8084]
 
   - name: default (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh apq8084 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh apq8084]
 
   - name: crypto disabled (gcc10)
     image: alpine:3.15
@@ -26,8 +26,10 @@ steps:
 
   - name: signed kernel (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh apq8084 LKLE_CFLAGS=-Werror
-               USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
+    commands: [./.drone.sh apq8084 USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
+
+environment:
+  LKLE_CFLAGS: -Werror
 
 ---
 kind: pipeline
@@ -41,7 +43,7 @@ platform:
 steps:
   - name: default (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh mdm9607 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh mdm9607]
 
   - name: crypto disabled (gcc10)
     image: alpine:3.15
@@ -49,8 +51,10 @@ steps:
 
   - name: signed kernel (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh mdm9607 LKLE_CFLAGS=-Werror
-               USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
+    commands: [./.drone.sh mdm9607 USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
+
+environment:
+  LKLE_CFLAGS: -Werror
 
 ---
 kind: pipeline
@@ -68,11 +72,11 @@ steps:
 
   - name: lk2nd (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh lk2nd-msm8226 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh lk2nd-msm8226]
 
   - name: default (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh msm8226 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh msm8226]
 
   - name: crypto disabled (gcc10)
     image: alpine:3.15
@@ -80,8 +84,10 @@ steps:
 
   - name: signed kernel (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh msm8226 LKLE_CFLAGS=-Werror
-               USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
+    commands: [./.drone.sh msm8226 USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
+
+environment:
+  LKLE_CFLAGS: -Werror
 
 ---
 kind: pipeline
@@ -99,11 +105,11 @@ steps:
 
   - name: lk2nd (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh lk2nd-msm8610 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh lk2nd-msm8610]
 
   - name: default (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh msm8610 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh msm8610]
 
   - name: crypto disabled (gcc10)
     image: alpine:3.15
@@ -111,8 +117,10 @@ steps:
 
   - name: signed kernel (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh msm8610 LKLE_CFLAGS=-Werror
-               USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
+    commands: [./.drone.sh msm8610 USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
+
+environment:
+  LKLE_CFLAGS: -Werror
 
 ---
 kind: pipeline
@@ -130,11 +138,11 @@ steps:
 
   - name: lk2nd (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh lk2nd-msm8909 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh lk2nd-msm8909]
 
   - name: default (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh msm8909 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh msm8909]
 
   - name: crypto disabled (gcc10)
     image: alpine:3.15
@@ -142,20 +150,20 @@ steps:
 
   - name: signed kernel (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh msm8909 LKLE_CFLAGS=-Werror
-               USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
+    commands: [./.drone.sh msm8909 USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
 
   - name: verified boot 1 (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh msm8909 LKLE_CFLAGS=-Werror
-               USER_BUILD_VARIANT=true VERIFIED_BOOT=1]
+    commands: [./.drone.sh msm8909 USER_BUILD_VARIANT=true VERIFIED_BOOT=1]
 
   - name: verified boot 2 (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh msm8909 LKLE_CFLAGS=-Werror
-               USER_BUILD_VARIANT=true VERIFIED_BOOT_2=1
+    commands: [./.drone.sh msm8909 USER_BUILD_VARIANT=true VERIFIED_BOOT_2=1
                OSVERSION_IN_BOOTIMAGE=1 ENABLE_VB_ATTEST=1
                TARGET_USE_SYSTEM_AS_ROOT_IMAGE=1]
+
+environment:
+  LKLE_CFLAGS: -Werror
 
 ---
 kind: pipeline
@@ -173,11 +181,11 @@ steps:
 
   - name: lk2nd (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh lk2nd-msm8916 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh lk2nd-msm8916]
 
   - name: default (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh msm8916 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh msm8916]
 
   - name: crypto disabled (gcc10)
     image: alpine:3.15
@@ -185,8 +193,10 @@ steps:
 
   - name: signed kernel (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh msm8916 LKLE_CFLAGS=-Werror
-               USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
+    commands: [./.drone.sh msm8916 USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
+
+environment:
+  LKLE_CFLAGS: -Werror
 
 ---
 kind: pipeline
@@ -204,11 +214,11 @@ steps:
 
   - name: lk2nd (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh lk2nd-msm8952 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh lk2nd-msm8952]
 
   - name: default (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh msm8952 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh msm8952]
 
   - name: crypto disabled (gcc10)
     image: alpine:3.15
@@ -216,20 +226,20 @@ steps:
 
   - name: signed kernel (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh msm8952 LKLE_CFLAGS=-Werror
-               USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
+    commands: [./.drone.sh msm8952 USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
 
   - name: verified boot 1 (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh msm8952 LKLE_CFLAGS=-Werror
-               USER_BUILD_VARIANT=true VERIFIED_BOOT=1]
+    commands: [./.drone.sh msm8952 USER_BUILD_VARIANT=true VERIFIED_BOOT=1]
 
   - name: verified boot 2 (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh msm8952 LKLE_CFLAGS=-Werror
-               USER_BUILD_VARIANT=true VERIFIED_BOOT_2=1
+    commands: [./.drone.sh msm8952 USER_BUILD_VARIANT=true VERIFIED_BOOT_2=1
                OSVERSION_IN_BOOTIMAGE=1 ENABLE_VB_ATTEST=1 VB1_KEY_USED=1
                TARGET_USE_SYSTEM_AS_ROOT_IMAGE=1 ENABLE_KASLRSEED=1]
+
+environment:
+  LKLE_CFLAGS: -Werror
 
 ---
 kind: pipeline
@@ -247,11 +257,11 @@ steps:
 
   - name: lk2nd (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh lk2nd-msm8953 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh lk2nd-msm8953]
 
   - name: default (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh msm8953 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh msm8953]
 
   - name: crypto disabled (gcc10)
     image: alpine:3.15
@@ -259,28 +269,27 @@ steps:
 
   - name: signed kernel (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh msm8953 LKLE_CFLAGS=-Werror
-               USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
+    commands: [./.drone.sh msm8953 USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
 
   - name: verified boot 1 (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh msm8953 LKLE_CFLAGS=-Werror
-               USER_BUILD_VARIANT=true VERIFIED_BOOT=1]
+    commands: [./.drone.sh msm8953 USER_BUILD_VARIANT=true VERIFIED_BOOT=1]
 
   - name: verified boot 2 (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh msm8953 LKLE_CFLAGS=-Werror
-               USER_BUILD_VARIANT=true VERIFIED_BOOT_2=1
+    commands: [./.drone.sh msm8953 USER_BUILD_VARIANT=true VERIFIED_BOOT_2=1
                OSVERSION_IN_BOOTIMAGE=1 ENABLE_VB_ATTEST=1 VB1_KEY_USED=1
                TARGET_USE_SYSTEM_AS_ROOT_IMAGE=1 ENABLE_KASLRSEED=1]
 
   - name: dynamic partitions (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh msm8953 LKLE_CFLAGS=-Werror
+    commands: [./.drone.sh msm8953 USER_BUILD_VARIANT=true VERIFIED_BOOT_2=1
                DYNAMIC_PARTITION_SUPPORT=1 VIRTUAL_AB_OTA=1
-               USER_BUILD_VARIANT=true VERIFIED_BOOT_2=1
                OSVERSION_IN_BOOTIMAGE=1 ENABLE_VB_ATTEST=1
                ENABLE_KASLRSEED=1]
+
+environment:
+  LKLE_CFLAGS: -Werror
 
 ---
 kind: pipeline
@@ -298,7 +307,10 @@ steps:
 
   - name: lk2nd (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh lk2nd-msm8960 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh lk2nd-msm8960]
+
+environment:
+  LKLE_CFLAGS: -Werror
 
 ---
 kind: pipeline
@@ -316,11 +328,11 @@ steps:
 
   - name: lk2nd (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh lk2nd-msm8974 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh lk2nd-msm8974]
 
   - name: default (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh msm8974 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh msm8974]
 
   - name: crypto disabled (gcc10)
     image: alpine:3.15
@@ -328,8 +340,10 @@ steps:
 
   - name: signed kernel (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh msm8974 LKLE_CFLAGS=-Werror
-               USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
+    commands: [./.drone.sh msm8974 USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
+
+environment:
+  LKLE_CFLAGS: -Werror
 
 ---
 kind: pipeline
@@ -347,11 +361,11 @@ steps:
 
   - name: lk2nd (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh lk2nd-msm8994 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh lk2nd-msm8994]
 
   - name: default (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh msm8994 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh msm8994]
 
   - name: crypto disabled (gcc10)
     image: alpine:3.15
@@ -359,13 +373,14 @@ steps:
 
   - name: signed kernel (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh msm8994 LKLE_CFLAGS=-Werror
-               USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
+    commands: [./.drone.sh msm8994 USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
 
   - name: verified boot 1 (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh msm8994 LKLE_CFLAGS=-Werror
-               USER_BUILD_VARIANT=true VERIFIED_BOOT=1]
+    commands: [./.drone.sh msm8994 USER_BUILD_VARIANT=true VERIFIED_BOOT=1]
+
+environment:
+  LKLE_CFLAGS: -Werror
 
 ---
 kind: pipeline
@@ -383,11 +398,11 @@ steps:
 
   - name: lk2nd (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh lk2nd-msm8996 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh lk2nd-msm8996]
 
   - name: default (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh msm8996 LKLE_CFLAGS=-Werror]
+    commands: [./.drone.sh msm8996]
 
   - name: crypto disabled (gcc10)
     image: alpine:3.15
@@ -395,18 +410,18 @@ steps:
 
   - name: signed kernel (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh msm8996 LKLE_CFLAGS=-Werror
-               USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
+    commands: [./.drone.sh msm8996 USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
 
   - name: verified boot 1 (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh msm8996 LKLE_CFLAGS=-Werror
-               USER_BUILD_VARIANT=true VERIFIED_BOOT=1]
+    commands: [./.drone.sh msm8996 USER_BUILD_VARIANT=true VERIFIED_BOOT=1]
 
   - name: verified boot 2 (gcc4)
     image: alpine:3.15
-    commands: [./.drone.sh msm8996 LKLE_CFLAGS=-Werror
-               USER_BUILD_VARIANT=true VERIFIED_BOOT_2=1
+    commands: [./.drone.sh msm8996 USER_BUILD_VARIANT=true VERIFIED_BOOT_2=1
                OSVERSION_IN_BOOTIMAGE=1 ENABLE_VB_ATTEST=1 VB1_KEY_USED=1
                TARGET_USE_SYSTEM_AS_ROOT_IMAGE=1 ENABLE_KASLRSEED=1
                ENABLE_BOOTDEVICE_MOUNT=1]
+
+environment:
+  LKLE_CFLAGS: -Werror
