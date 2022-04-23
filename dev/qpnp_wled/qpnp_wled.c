@@ -51,7 +51,7 @@ static int fls(uint16_t n)
 {
 	int i = 0;
 	for (; n; n >>= 1, i++);
-	  return i;
+	return i;
 }
 
 static struct qpnp_wled *gwled;
