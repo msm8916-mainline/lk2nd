@@ -256,6 +256,9 @@
 
 #define MN_MODE_DUAL_EDGE 0x2
 
+#undef BVAL
+#define BVAL(msb, lsb, val)	(((uint32_t)(val) << lsb) & BM(msb, lsb))
+
 /* MD Registers */
 #define MD4(m_lsb, m, n_lsb, n) \
     (BVAL((m_lsb+3), m_lsb, m) | BVAL((n_lsb+3), n_lsb, ~(n)))
