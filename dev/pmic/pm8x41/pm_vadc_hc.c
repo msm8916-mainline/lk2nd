@@ -32,7 +32,7 @@
 #include <pm_vadc_hc.h>
 #include <pm8x41_hw.h>
 
-static const struct adc_pre_scale_ratio vadc_hc_scale[] = {
+static const struct adc_pre_scale_ratio vadc_hc_scale[] __UNUSED = {
 	[SCALE_DIV1]	= {1,	1},
 	[SCALE_DIV3]	= {1,	3},
 	[SCALE_DIV4]	= {1,	4},
