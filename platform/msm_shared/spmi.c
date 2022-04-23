@@ -41,8 +41,6 @@
 
 static uint32_t pmic_arb_chnl_num;
 static uint32_t pmic_arb_owner_id;
-static uint8_t pmic_irq_perph_id;
-static spmi_callback callback;
 static uint32_t pmic_arb_ver;
 static uint8_t *chnl_tbl;
 static uint32_t max_peripherals;
@@ -323,73 +321,6 @@ unsigned int pmic_arb_read_cmd(struct pmic_arb_cmd *cmd,
 	}
 
 	return 0;
-}
-
-
-/* Funtion to determine if the peripheral that caused the interrupt
- * is of interest.
- * Also handles callback function and interrupt clearing if the
- * correct interrupt is fired.
- * periph_acc_irq: SPMI_PIC_OWNERm_ACC_STATUSn register id.
- * status: Bits of the periph_acc_irq.
- * return 1 if the peripheral is of interest,
- * 0 otherwise.
- */
-int spmi_acc_irq(uint32_t periph_acc_irq, uint32_t status)
-{
-	uint8_t reg_id;
-	uint8_t offset;
-
-	/* Narrow down the correct register for the peripheral*/
-	reg_id = pmic_irq_perph_id / 32;
-	if (periph_acc_irq * 8 != reg_id)
-		return 0;
-
-	/* Narrow down the correct interrupt within the register */
-	offset = pmic_irq_perph_id & 31;
-	if ((status & offset))
-	{
-		/* Clear the interrupt */
-		writel(offset ^ status, SPMI_PIC_IRQ_CLEARn(reg_id));
-
-		/* Confirm that the interrupt has been cleared */
-		while(readl(SPMI_PIC_IRQ_STATUSn(reg_id)) & offset);
-
-		/* Call the callback */
-		callback();
-		return 1;
-	}
-	else
-		return 0;
-}
-
-void spmi_irq()
-{
-	int i;
-	uint32_t status;
-
-	/* Go through the Peripheral list to figure out the periperal
-	 * that caused the interrupt
-	 */
-	for (i = 0; i < 8; i++)
-	{
-		status = readl(SPMI_PIC_OWNERm_ACC_STATUSn(pmic_arb_owner_id, i));
-		if (status)
-			if (!spmi_acc_irq(i, status))
-				/* Not the correct interrupt, continue to wait */
-				return;
-	}
-	mask_interrupt(EE0_KRAIT_HLOS_SPMI_PERIPH_IRQ);
-}
-
-/* Enable interrupts on a particular peripheral: periph_id */
-void spmi_enable_periph_interrupts(uint8_t periph_id)
-{
-	pmic_irq_perph_id = periph_id;
-
-	register_int_handler(EE0_KRAIT_HLOS_SPMI_PERIPH_IRQ ,(int_handler)spmi_irq, 0);
-	unmask_interrupt(EE0_KRAIT_HLOS_SPMI_PERIPH_IRQ);
-
 }
 
 /* SPMI helper functions */
