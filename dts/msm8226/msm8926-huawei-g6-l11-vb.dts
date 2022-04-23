@@ -1,0 +1,12 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton.dtsi>
+
+/ {
+	model = "Huawei Ascend G6-L11 vb";
+	compatible = "huawei,g6-l11-vb", "qcom,msm8926", "lk2nd,device";
+
+	qcom,msm-id = <0xc8 0x1f51 0x00>;
+};
