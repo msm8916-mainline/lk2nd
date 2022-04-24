@@ -4154,7 +4154,7 @@ void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
 			total_blocks += chunk_header->chunk_sz;
 			break;
 
-			case CHUNK_TYPE_CRC:
+			case CHUNK_TYPE_CRC32:
 			if(chunk_header->total_sz != sparse_header->chunk_hdr_sz)
 			{
 				fastboot_fail("Bogus chunk size for chunk type CRC");
