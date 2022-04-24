@@ -1289,9 +1289,11 @@ void scm_check_boot_fuses(void)
 				!CHECK_BIT(resp[0], SECBOOT_FUSE_SHK_BIT) &&
 				!CHECK_BIT(resp[0], SECBOOT_FUSE_DEBUG_DISABLED_BIT);
 
+#if USE_RPMB_FOR_DEVINFO
 		/* For nand based devices, skip to check the rpmb enabled bit*/
 		if (!platform_boot_dev_is_nand())
                         secure_value = secure_value && !CHECK_BIT(resp[0], SECBOOT_FUSE_RPMB_ENABLED_BIT);
+#endif
 
 		if (secure_value) {
 			if ((qseecom_get_version() < QSEE_VERSION_40))
