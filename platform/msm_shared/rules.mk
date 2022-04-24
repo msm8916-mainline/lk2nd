@@ -10,14 +10,18 @@ OBJS += \
 	$(LOCAL_DIR)/debug.o \
 	$(LOCAL_DIR)/smem.o \
 	$(LOCAL_DIR)/smem_ptable.o \
-	$(LOCAL_DIR)/jtag_hook.o \
-	$(LOCAL_DIR)/jtag.o \
 	$(LOCAL_DIR)/partition_parser.o \
 	$(LOCAL_DIR)/ab_partition_parser.o \
 	$(LOCAL_DIR)/hsusb.o \
 	$(LOCAL_DIR)/boot_stats.o \
 	$(LOCAL_DIR)/qgic_common.o \
 	$(LOCAL_DIR)/crc32.o
+
+ifneq ($(filter $(DEFINES), WITH_DEBUG_JTAG=1),)
+OBJS += \
+	$(LOCAL_DIR)/jtag_hook.o \
+	$(LOCAL_DIR)/jtag.o
+endif
 
 ifeq ($(ENABLE_WDOG_SUPPORT),1)
 OBJS += \
