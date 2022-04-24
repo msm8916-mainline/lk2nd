@@ -670,7 +670,7 @@ struct fdt_header *ufdt_apply_overlay(struct fdt_header *main_fdt_header,
 
   out_fdt_size = fdt_totalsize(main_fdt_header) + overlay_size;
   /* It's actually more than enough */
-  struct fdt_header *out_fdt_header = dto_malloc(out_fdt_size);
+  struct fdt_header *out_fdt_header = memalign(sizeof(uint64_t), out_fdt_size);
 
   if (out_fdt_header == NULL) {
     dto_error("failed to allocate memory for DTB blob with overlays\n");
