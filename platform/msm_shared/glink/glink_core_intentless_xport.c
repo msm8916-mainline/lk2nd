@@ -96,9 +96,12 @@ LOCAL FUNCTION DEFINITIONS
 */
 /*=========================================================================*/
 
-static glink_err_type glink_core_stub_intentless(void)
+static glink_err_type glink_init_stub_intentless(glink_channel_ctx_type *open_ch_ctx)
 {
   return GLINK_STATUS_SUCCESS;
+}
+static void glink_cleanup_stub_intentless(glink_channel_ctx_type *open_ch_ctx)
+{
 }
 
 /*===========================================================================
@@ -220,8 +223,8 @@ void glink_core_setup_intentless_xport(glink_transport_if_type *if_ptr)
 {
   if_ptr->glink_core_if_ptr = glink_core_get_intentless_interface();
   if_ptr->glink_core_priv->verify_open_cfg = glink_verify_open_cfg_intentless;
-  if_ptr->glink_core_priv->channel_init = (channel_init_fn)glink_core_stub_intentless;
-  if_ptr->glink_core_priv->channel_cleanup = (channel_cleanup_fn)glink_core_stub_intentless;
+  if_ptr->glink_core_priv->channel_init = glink_init_stub_intentless;
+  if_ptr->glink_core_priv->channel_cleanup = glink_cleanup_stub_intentless;
   if_ptr->glink_core_priv->channel_submit_pkt = glink_channel_submit_pkt_intentless;
   if_ptr->glink_core_priv->channel_receive_pkt = glink_channel_receive_pkt_intentless;
 }

@@ -87,7 +87,7 @@ typedef struct
   DALSYSEventObj    dal_obj_memory;
 }os_event_type;
 
-typedef void ( *os_isr_cb_fn )( void *cb_data );
+typedef enum handler_return ( *os_isr_cb_fn )( void *cb_data );
 
 typedef struct os_ipc_intr_struct
 {
