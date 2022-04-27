@@ -692,6 +692,16 @@ ifeq ($(ENABLE_REBOOT_MODULE), 1)
 	OBJS += $(LOCAL_DIR)/reboot.o
 endif
 
+DTBO_BACKEND ?= libufdt
+ifeq ($(DTBO_BACKEND), libufdt)
+MODULES += lib/libufdt
+else ifeq ($(DTBO_BACKEND), libfdt)
+else ifeq ($(DTBO_BACKEND), none)
+DEFINES += DTBO_DISABLED=1
+else
+$(error Unknown DTBO backend: $(DTBO_BACKEND))
+endif
+
 CRYPTO_BACKEND ?= openssl
 ifeq ($(CRYPTO_BACKEND), openssl)
 MODULES += lib/openssl

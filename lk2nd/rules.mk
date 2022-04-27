@@ -1,5 +1,10 @@
 LOCAL_DIR := $(GET_LOCAL_DIR)
 
+ifeq ($(DTBO_BACKEND),libufdt)
+$(warning WARNING: Apache-2.0 license of libufdt is not compatible with \
+	  GPL-2.0-only of the lk2nd module!)
+endif
+
 ifneq ($(SIGNED_KERNEL)$(VERIFIED_BOOT)$(VERIFIED_BOOT_2),)
 $(error The lk2nd module provides development/debugging helpers and is therefore \
         currently not designed to be used together with secure boot. Let us know \
