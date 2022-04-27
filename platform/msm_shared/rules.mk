@@ -692,11 +692,12 @@ ifeq ($(ENABLE_REBOOT_MODULE), 1)
 	OBJS += $(LOCAL_DIR)/reboot.o
 endif
 
-ifneq ($(CRYPTO_DISABLED), 1)
+CRYPTO_BACKEND ?= openssl
+ifeq ($(CRYPTO_BACKEND), openssl)
 MODULES += lib/openssl
-else
+else ifeq ($(CRYPTO_BACKEND), none)
 ifneq ($(SIGNED_KERNEL)$(VERIFIED_BOOT)$(VERIFIED_BOOT_2),)
-$(error Crypto is required for secure boot)
+$(error Crypto backend is required for secure boot)
 endif
 DEFINES := $(filter-out TZ_SAVE_KERNEL_HASH, $(DEFINES))
 OBJS := $(filter-out \
@@ -708,6 +709,8 @@ OBJS := $(filter-out \
 		$(LOCAL_DIR)/image_verify.o \
 		$(LOCAL_DIR)/qseecom_lk.o \
 		, $(OBJS))
+else
+$(error Unknown crypto backend: $(CRYPTO_BACKEND))
 endif
 
 ifeq ($(ENABLE_RPMB_SUPPORT), 1)
