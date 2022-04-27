@@ -44,8 +44,10 @@
 #include <platform.h>
 #include <scm.h>
 #include <partition_parser.h>
+#if WITH_LIB_LIBUFDT
 #include <libufdt_sysdeps.h>
 #include <ufdt_overlay.h>
+#endif
 #include <boot_stats.h>
 #include <verifiedboot.h>
 
@@ -59,7 +61,6 @@
 static bool  dtbo_needed = true;
 static void *board_dtb = NULL;
 static void *soc_dtb = NULL;
-static void *soc_dtb_hdr = NULL;
 static void *final_dtb_hdr = NULL;
 static event_t dtbo_event;
 
@@ -1106,6 +1107,9 @@ static int dtb_overlay_handler(void *args)
 {
 	dprintf(SPEW, "thread %s() started\n", __func__);
 
+#if WITH_LIB_LIBUFDT
+	void *soc_dtb_hdr;
+
 	soc_dtb_hdr = ufdt_install_blob(soc_dtb, fdt_totalsize(soc_dtb));
 	if(!soc_dtb_hdr)
 	{
@@ -1121,6 +1125,24 @@ static int dtb_overlay_handler(void *args)
 		ret = DTBO_ERROR;
 		goto out;
 	}
+#else /* !WITH_LIB_LIBUFDT */
+	int val;
+
+	val = fdt_open_into(soc_dtb, final_dtb_hdr, MAX_DTBO_SZ);
+	if (val) {
+		dprintf(CRITICAL, "ERROR: fdt_open_into failed: %d\n", val);
+		ret = DTBO_ERROR;
+		goto out;
+	}
+
+	val = fdt_overlay_apply(final_dtb_hdr, board_dtb);
+	if (val) {
+		dprintf(CRITICAL, "ERROR: FDT overlay apply failed: %d\n", val);
+		ret = DTBO_ERROR;
+		goto out;
+	}
+#endif
+
 out:
 	/* This flag can only be updated here, hence it is not protected */
 	event_signal(&dtbo_event, true);
@@ -1173,6 +1195,7 @@ dtbo_error dev_tree_appended_with_dtbo(void *kernel, uint32_t kernel_size,
 			stack to avoid issues with stack corruption seen during flattening,
 			of dtb in overlay functionality
 			*/
+			final_dtb_hdr = tags;
 			{
 				thread_t *thr = NULL;
 				event_init(&dtbo_event, 0, EVENT_FLAG_AUTOUNSIGNAL);
@@ -1197,7 +1220,8 @@ dtbo_error dev_tree_appended_with_dtbo(void *kernel, uint32_t kernel_size,
 			} /* dtbo_overlay_handler exited */
 
 		}
-		memscpy(tags, fdt_totalsize(final_dtb_hdr), final_dtb_hdr,
+		if (final_dtb_hdr != tags)
+			memscpy(tags, fdt_totalsize(final_dtb_hdr), final_dtb_hdr,
 						fdt_totalsize(final_dtb_hdr));
 		dprintf(INFO, "DTB overlay is successful\n");
 	}
@@ -1241,7 +1265,9 @@ void *dev_tree_appended(void *kernel, uint32_t kernel_size, uint32_t dtb_offset,
 		memcpy((void*) &app_dtb_offset, (void*) (kernel + DTB_OFFSET), sizeof(uint32_t));
 
 	/* Check for dtbo support */
+#if !DTBO_DISABLED
 	ret = dev_tree_appended_with_dtbo(kernel, kernel_size, app_dtb_offset, tags);
+#endif
 	if (ret == DTBO_SUCCESS)
 		return tags;
 	else if (ret == DTBO_ERROR)
