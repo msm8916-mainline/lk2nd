@@ -689,6 +689,18 @@ ifeq ($(ENABLE_REBOOT_MODULE), 1)
 	OBJS += $(LOCAL_DIR)/reboot.o
 endif
 
+# Default to libufdt for DTBOs if device tree is enabled
+DTBO_BACKEND ?= $(if $(filter $(DEFINES), DEVICE_TREE=1),libufdt,none)
+ifeq ($(DTBO_BACKEND), libufdt)
+MODULES += lib/libufdt
+else ifeq ($(DTBO_BACKEND), libfdt)
+MODULES += lib/libfdt
+else ifeq ($(DTBO_BACKEND), none)
+DEFINES += DTBO_DISABLED=1
+else
+$(error Unknown DTBO backend: $(DTBO_BACKEND))
+endif
+
 CRYPTO_SW_BACKEND ?= openssl
 ifeq ($(CRYPTO_SW_BACKEND), openssl)
 MODULES += lib/openssl
