@@ -16,6 +16,9 @@ steps:
     image: alpine:3.15
     commands: [./.drone.sh apq8084 USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
 
+environment:
+  LKLE_CFLAGS: -Werror
+
 ---
 kind: pipeline
 type: docker
@@ -33,6 +36,9 @@ steps:
   - name: signed kernel (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh mdm9607 USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
+
+environment:
+  LKLE_CFLAGS: -Werror
 
 ---
 kind: pipeline
@@ -52,6 +58,9 @@ steps:
     image: alpine:3.15
     commands: [./.drone.sh mdm9640 USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
 
+environment:
+  LKLE_CFLAGS: -Werror
+
 ---
 kind: pipeline
 type: docker
@@ -69,6 +78,9 @@ steps:
   - name: signed kernel (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8226 USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
+
+environment:
+  LKLE_CFLAGS: -Werror
 
 ---
 kind: pipeline
@@ -88,6 +100,9 @@ steps:
     image: alpine:3.15
     commands: [./.drone.sh msm8610 USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
 
+environment:
+  LKLE_CFLAGS: -Werror
+
 ---
 kind: pipeline
 type: docker
@@ -106,6 +121,9 @@ steps:
     image: alpine:3.15
     commands: [./.drone.sh msm8660 EMMC_BOOT=1 ENABLE_DISPLAY=0
                USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
+
+environment:
+  LKLE_CFLAGS: -Werror
 
 ---
 kind: pipeline
@@ -135,6 +153,9 @@ steps:
                OSVERSION_IN_BOOTIMAGE=1 ENABLE_VB_ATTEST=1
                TARGET_USE_SYSTEM_AS_ROOT_IMAGE=1]
 
+environment:
+  LKLE_CFLAGS: -Werror
+
 ---
 kind: pipeline
 type: docker
@@ -152,6 +173,9 @@ steps:
   - name: signed kernel (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8916 USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
+
+environment:
+  LKLE_CFLAGS: -Werror
 
 ---
 kind: pipeline
@@ -180,6 +204,9 @@ steps:
     commands: [./.drone.sh msm8952 USER_BUILD_VARIANT=true VERIFIED_BOOT_2=1
                OSVERSION_IN_BOOTIMAGE=1 ENABLE_VB_ATTEST=1 VB1_KEY_USED=1
                TARGET_USE_SYSTEM_AS_ROOT_IMAGE=1 ENABLE_KASLRSEED=1]
+
+environment:
+  LKLE_CFLAGS: -Werror
 
 ---
 kind: pipeline
@@ -216,6 +243,9 @@ steps:
                OSVERSION_IN_BOOTIMAGE=1 ENABLE_VB_ATTEST=1
                ENABLE_KASLRSEED=1]
 
+environment:
+  LKLE_CFLAGS: -Werror
+
 ---
 kind: pipeline
 type: docker
@@ -235,6 +265,9 @@ steps:
     commands: [./.drone.sh msm8960 EMMC_BOOT=1 ENABLE_DISPLAY=0
                USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
 
+environment:
+  LKLE_CFLAGS: -Werror
+
 ---
 kind: pipeline
 type: docker
@@ -252,6 +285,9 @@ steps:
   - name: signed kernel (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8974 USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
+
+environment:
+  LKLE_CFLAGS: -Werror
 
 ---
 kind: pipeline
@@ -274,6 +310,9 @@ steps:
   - name: verified boot 1 (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8994 USER_BUILD_VARIANT=true VERIFIED_BOOT=1]
+
+environment:
+  LKLE_CFLAGS: -Werror
 
 ---
 kind: pipeline
@@ -303,3 +342,6 @@ steps:
                OSVERSION_IN_BOOTIMAGE=1 ENABLE_VB_ATTEST=1 VB1_KEY_USED=1
                TARGET_USE_SYSTEM_AS_ROOT_IMAGE=1 ENABLE_KASLRSEED=1
                ENABLE_BOOTDEVICE_MOUNT=1]
+
+environment:
+  LKLE_CFLAGS: -Werror
