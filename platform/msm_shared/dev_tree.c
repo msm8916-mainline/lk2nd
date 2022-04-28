@@ -1089,6 +1089,9 @@ dtbo_error dev_tree_appended_with_dtbo(void *kernel, uint32_t kernel_size,
 	void *dtbo_image_buf = NULL;
 	uint32_t dtbo_image_sz = 0;
 
+	if (!target_is_emmc_boot())
+		return DTBO_NOT_SUPPORTED;
+
 	bs_set_timestamp(BS_DTB_OVERLAY_START);
 	ret = load_validate_dtbo_image(&dtbo_image_buf, &dtbo_image_sz);
 	if (ret == DTBO_SUCCESS)
