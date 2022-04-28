@@ -462,7 +462,7 @@ unsigned char *update_cmdline(const char * cmdline)
 	unsigned char *cmdline_final = NULL;
 	int pause_at_bootup = 0;
 	bool warm_boot = false;
-	bool gpt_exists = partition_gpt_exists();
+	bool gpt_exists = target_is_emmc_boot() && partition_gpt_exists();
 	int have_target_boot_params = 0;
 	char *boot_dev_buf = NULL;
 #ifdef MDTP_SUPPORT
@@ -2570,6 +2570,9 @@ void write_device_info_flash(device_info *dev)
 
 static int read_allow_oem_unlock(device_info *dev)
 {
+	if (!target_is_emmc_boot())
+		return -1;
+
 	unsigned offset;
 	int index;
 	unsigned long long ptn;
@@ -2608,6 +2611,9 @@ static int read_allow_oem_unlock(device_info *dev)
 
 static int write_allow_oem_unlock(bool allow_unlock)
 {
+	if (!target_is_emmc_boot())
+		return -1;
+
 	unsigned offset;
 	int index;
 	unsigned long long ptn;
@@ -5527,7 +5533,8 @@ fastboot:
 	aboot_fastboot_register_commands();
 
 	/* dump partition table for debug info */
-	partition_dump();
+	if (target_is_emmc_boot())
+		partition_dump();
 
 	/* initialize and start fastboot */
 #if !VERIFIED_BOOT_2
