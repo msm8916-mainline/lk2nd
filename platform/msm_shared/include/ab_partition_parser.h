@@ -28,6 +28,7 @@
  */
 #include <fastboot.h>
 #include <err.h>
+#include <target.h>
 
 extern const char *suffix_slot[];
 extern const char *suffix_delimiter;
@@ -64,7 +65,7 @@ struct ab_slot_info
 };
 
 /* A/B support API(s) */
-bool partition_multislot_is_supported();/* Check Multislot is supported */
+bool _partition_multislot_is_supported();/* Check Multislot is supported */
 bool partition_scan_for_multislot();	/* Calling to scan part. table. */
 void partition_mark_active_slot();	/* Marking slot active */
 void partition_reset_attributes();	/* Resetting slot attr. */
@@ -76,3 +77,7 @@ int partition_find_boot_slot();		/* Find bootable partition */
 int partition_find_active_slot();	/* Find current active partition*/
 int partition_fill_partition_meta();	/* Fill partition slot info meta*/
 
+static inline bool partition_multislot_is_supported()
+{
+	return target_is_emmc_boot() && _partition_multislot_is_supported();
+}

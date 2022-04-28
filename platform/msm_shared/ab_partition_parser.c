@@ -567,7 +567,7 @@ out:
 }
 
 /* Function to find if multislot is supported */
-bool partition_multislot_is_supported()
+bool _partition_multislot_is_supported()
 {
 	return multislot_support;
 }
