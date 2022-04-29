@@ -42,8 +42,6 @@
 /*---------------------------------------------------------------------------*/
 /* GCDB Panel Database                                                       */
 /*---------------------------------------------------------------------------*/
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 #include "include/panel_toshiba_720p_video.h"
 #include "include/panel_nt35590_720p_video.h"
 #include "include/panel_nt35590_720p_cmd.h"
@@ -54,7 +52,6 @@
 #include "include/panel_jdi_1080p_video.h"
 #include "include/panel_nt35590_qvga_cmd.h"
 #include "include/panel_auo_qvga_cmd.h"
-#pragma GCC diagnostic pop
 
 #define DISPLAY_MAX_PANEL_DETECTION 2
 
