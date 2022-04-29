@@ -155,14 +155,6 @@ const uint32_t sharp_qhd_video_timings[] = {
   0x46, 0x1d, 0x20, 0x00, 0x39, 0x3a, 0x21, 0x21, 0x32, 0x03, 0x04, 0x00
 };
 
-
-
-static struct mipi_dsi_cmd sharp_qhd_video_rotation[] = {
-
-};
-#define SHARP_QHD_VIDEO_ROTATION 0
-
-
 static struct panel_timing sharp_qhd_video_timing_info = {
   4, 4, 0x04, 0x1c
 };

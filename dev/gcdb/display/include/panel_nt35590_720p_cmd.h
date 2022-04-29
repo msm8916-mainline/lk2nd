@@ -2911,14 +2911,6 @@ const uint32_t nt35590_720p_cmd_timings[] = {
   0x7d, 0x25, 0x1d, 0x00, 0x37, 0x33, 0x22, 0x27, 0x1e, 0x03, 0x04, 0x00
 };
 
-
-
-static struct mipi_dsi_cmd nt35590_720p_cmd_rotation[] = {
-
-};
-#define NT35590_720P_CMD_ROTATION 0
-
-
 static struct panel_timing nt35590_720p_cmd_timing_info = {
   0, 4, 0x20, 0x2c
 };

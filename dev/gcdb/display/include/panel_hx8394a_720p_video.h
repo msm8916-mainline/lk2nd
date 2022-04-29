@@ -253,14 +253,6 @@ const uint32_t hx8394a_720p_video_timings[] = {
   0x8d, 0x24, 0x19, 0x00, 0x34, 0x34, 0x1d, 0x26, 0x2a, 0x03, 0x04, 0x00
 };
 
-
-
-static struct mipi_dsi_cmd hx8394a_720p_video_rotation[] = {
-
-};
-#define HX8394A_720P_VIDEO_ROTATION 0
-
-
 static struct panel_timing hx8394a_720p_video_timing_info = {
   0, 4, 0x1f, 0x2d
 };
