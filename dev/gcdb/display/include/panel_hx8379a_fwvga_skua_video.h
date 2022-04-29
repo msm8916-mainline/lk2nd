@@ -218,11 +218,6 @@ static const uint32_t hx8379a_fwvga_skua_video_timings[] = {
 	0x70, 0x23, 0x1C, 0x00, 0x36, 0x36, 0x10, 0x25, 0x2C, 0x03, 0x04, 0x00
 };
 
-static struct mipi_dsi_cmd hx8379a_fwvga_skua_video_rotation[] = {
-
-};
-#define HX8379A_FWVGA_SKUA_VIDEO_ROTATION 0
-
 static struct panel_timing hx8379a_fwvga_skua_video_timing_info = {
 	0, 4, 0x1F, 0x2C
 };

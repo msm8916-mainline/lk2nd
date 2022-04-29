@@ -320,14 +320,6 @@ const uint32_t toshiba_720p_video_timings[] = {
   0xb0, 0x23, 0x1b, 0x00, 0x94, 0x93, 0x1e, 0x25,  0x15, 0x03, 0x04, 0x00
 };
 
-
-
-static struct mipi_dsi_cmd toshiba_720p_video_rotation[] = {
-
-};
-#define TOSHIBA_720P_VIDEO_ROTATION 0
-
-
 static struct panel_timing toshiba_720p_video_timing_info = {
   0x0, 0x04, 0x04, 0x1b
 };

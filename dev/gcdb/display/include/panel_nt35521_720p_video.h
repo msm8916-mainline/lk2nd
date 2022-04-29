@@ -1454,14 +1454,6 @@ const uint32_t nt35521_720p_video_timings[] = {
   0x93, 0x1F, 0x17, 0x00, 0x2F, 0x2E, 0x1C, 0x21, 0x26, 0x03, 0x04, 0x00
 };
 
-
-
-static struct mipi_dsi_cmd nt35521_720p_video_rotation[] = {
-
-};
-#define NT35521_720P_VIDEO_ROTATION 0
-
-
 static struct panel_timing nt35521_720p_video_timing_info = {
   0, 4, 0x20, 0x2D
 };
