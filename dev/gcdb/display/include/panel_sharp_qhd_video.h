@@ -47,7 +47,7 @@
 
 static struct panel_config sharp_qhd_video_panel_data = {
   "qcom,mdss_dsi_sharp_qhd_video", "dsi:0:", "qcom,mdss-dsi-panel",
-  10, 0, "DISPLAY_1", 0, 0, 60, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  10, 0, "DISPLAY_1", 0, 0, 60, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL
 };
 
 /*---------------------------------------------------------------------------*/
@@ -92,12 +92,12 @@ static char sharp_qhd_video_on_cmd5[] = {
 
 
 static struct mipi_dsi_cmd sharp_qhd_video_on_command[] = {
-{ 0x4 , sharp_qhd_video_on_cmd0},
-{ 0x4 , sharp_qhd_video_on_cmd1},
-{ 0x4 , sharp_qhd_video_on_cmd2},
-{ 0x4 , sharp_qhd_video_on_cmd3},
-{ 0x4 , sharp_qhd_video_on_cmd4},
-{ 0x4 , sharp_qhd_video_on_cmd5}
+{ 0x4 , sharp_qhd_video_on_cmd0, 0x00},
+{ 0x4 , sharp_qhd_video_on_cmd1, 0x00},
+{ 0x4 , sharp_qhd_video_on_cmd2, 0x00},
+{ 0x4 , sharp_qhd_video_on_cmd3, 0x00},
+{ 0x4 , sharp_qhd_video_on_cmd4, 0x00},
+{ 0x4 , sharp_qhd_video_on_cmd5, 0x00}
 };
 
 #define SHARP_QHD_VIDEO_ON_COMMAND 6
@@ -113,8 +113,8 @@ static char sharp_qhd_videooff_cmd1[] = {
 
 
 static struct mipi_dsi_cmd sharp_qhd_video_off_command[] = {
-{ 0x4 , sharp_qhd_videooff_cmd0},
-{ 0x4 , sharp_qhd_videooff_cmd1}
+{ 0x4 , sharp_qhd_videooff_cmd0, 0x00},
+{ 0x4 , sharp_qhd_videooff_cmd1, 0x00}
 };
 #define SHARP_QHD_VIDEO_OFF_COMMAND 2
 

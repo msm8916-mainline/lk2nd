@@ -41,7 +41,7 @@
 
 static struct panel_config hx8394d_qhd_video_panel_data = {
 	"qcom,mdss_dsi_hx8394d_qhd_video", "dsi:0:", "qcom,mdss-dsi-panel",
-	10, 0, "DISPLAY_1", 0, 0, 60, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+	10, 0, "DISPLAY_1", 0, 0, 60, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL
 };
 
 /*---------------------------------------------------------------------------*/
@@ -247,7 +247,7 @@ static struct videopanel_info hx8394d_qhd_video_video_panel = {
 /*---------------------------------------------------------------------------*/
 
 static struct lane_configuration hx8394d_qhd_video_lane_config = {
-	4, 0, 1, 1, 1, 1
+	4, 0, 1, 1, 1, 1, 0
 };
 
 /*---------------------------------------------------------------------------*/
