@@ -47,7 +47,7 @@
 
 static struct panel_config nt35590_720p_cmd_panel_data = {
   "qcom,mdss_dsi_nt35590_720p_cmd", "dsi:0:", "qcom,mdss-dsi-panel",
-  10, 1, "DISPLAY_1", 0, 424000000, 60, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  10, 1, "DISPLAY_1", 0, 424000000, 60, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL
 };
 
 /*---------------------------------------------------------------------------*/
@@ -2869,8 +2869,8 @@ static char nt35590_720p_cmdoff_cmd1[] = {
 
 
 static struct mipi_dsi_cmd nt35590_720p_cmd_off_command[] = {
-{ 0x4 , nt35590_720p_cmdoff_cmd0},
-{ 0x4 , nt35590_720p_cmdoff_cmd1}
+{ 0x4 , nt35590_720p_cmdoff_cmd0, 0x00},
+{ 0x4 , nt35590_720p_cmdoff_cmd1, 0x00}
 };
 #define NT35590_720P_CMD_OFF_COMMAND 2
 
@@ -2910,14 +2910,6 @@ static struct lane_configuration nt35590_720p_cmd_lane_config = {
 const uint32_t nt35590_720p_cmd_timings[] = {
   0x7d, 0x25, 0x1d, 0x00, 0x37, 0x33, 0x22, 0x27, 0x1e, 0x03, 0x04, 0x00
 };
-
-
-
-static struct mipi_dsi_cmd nt35590_720p_cmd_rotation[] = {
-
-};
-#define NT35590_720P_CMD_ROTATION 0
-
 
 static struct panel_timing nt35590_720p_cmd_timing_info = {
   0, 4, 0x20, 0x2c

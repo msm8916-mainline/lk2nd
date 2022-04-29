@@ -38,7 +38,7 @@
 /*---------------------------------------------------------------------------*/
 static struct panel_config gc9305_qvga_cmd_panel_data = {
 	"qcom,mdss_spi_gc9305_qvga_cmd", "spi:0:", "qcom,mdss-spi-panel",
-	10, 0, "DISPLAY_1", 0, 0, 30, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+	10, 0, "DISPLAY_1", 0, 0, 30, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL
 };
 
 /*---------------------------------------------------------------------------*/
@@ -246,7 +246,7 @@ static char gc9305_qvga_cmdoff_cmd1[] = {
 	0x10,
 };
 
-static struct mipi_dsi_cmd gc9305_qvga_cmd_off_command[] = {
+static struct mipi_dsi_cmd gc9305_qvga_cmd_off_command[] __UNUSED = {
 	{0x1, gc9305_qvga_cmdoff_cmd0, 0x20},
 	{0x1, gc9305_qvga_cmdoff_cmd1, 0x20}
 };

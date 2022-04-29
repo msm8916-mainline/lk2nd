@@ -47,7 +47,7 @@
 
 static struct panel_config hx8394a_720p_video_panel_data = {
   "qcom,mdss_dsi_hx8394a_720p_video", "dsi:0:", "qcom,mdss-dsi-panel",
-  10, 0, "DISPLAY_1", 0, 424000000, 60, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  10, 0, "DISPLAY_1", 0, 424000000, 60, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL
 };
 
 /*---------------------------------------------------------------------------*/
@@ -180,22 +180,22 @@ static char hx8394a_720p_video_on_cmd15[] = {
 
 
 static struct mipi_dsi_cmd hx8394a_720p_video_on_command[] = {
-{ 0x8 , hx8394a_720p_video_on_cmd0},
-{ 0xc , hx8394a_720p_video_on_cmd1},
-{ 0x8 , hx8394a_720p_video_on_cmd2},
-{ 0x8 , hx8394a_720p_video_on_cmd3},
-{ 0x14 , hx8394a_720p_video_on_cmd4},
-{ 0xc , hx8394a_720p_video_on_cmd5},
-{ 0x8 , hx8394a_720p_video_on_cmd6},
-{ 0x4 , hx8394a_720p_video_on_cmd7},
-{ 0x3c , hx8394a_720p_video_on_cmd8},
-{ 0x1c , hx8394a_720p_video_on_cmd9},
-{ 0x8 , hx8394a_720p_video_on_cmd10},
-{ 0x28 , hx8394a_720p_video_on_cmd11},
-{ 0x4 , hx8394a_720p_video_on_cmd12},
-{ 0x8 , hx8394a_720p_video_on_cmd13},
-{ 0x4 , hx8394a_720p_video_on_cmd14},
-{ 0x4 , hx8394a_720p_video_on_cmd15}
+{ 0x8 , hx8394a_720p_video_on_cmd0, 0x00},
+{ 0xc , hx8394a_720p_video_on_cmd1, 0x00},
+{ 0x8 , hx8394a_720p_video_on_cmd2, 0x00},
+{ 0x8 , hx8394a_720p_video_on_cmd3, 0x00},
+{ 0x14 , hx8394a_720p_video_on_cmd4, 0x00},
+{ 0xc , hx8394a_720p_video_on_cmd5, 0x00},
+{ 0x8 , hx8394a_720p_video_on_cmd6, 0x00},
+{ 0x4 , hx8394a_720p_video_on_cmd7, 0x00},
+{ 0x3c , hx8394a_720p_video_on_cmd8, 0x00},
+{ 0x1c , hx8394a_720p_video_on_cmd9, 0x00},
+{ 0x8 , hx8394a_720p_video_on_cmd10, 0x00},
+{ 0x28 , hx8394a_720p_video_on_cmd11, 0x00},
+{ 0x4 , hx8394a_720p_video_on_cmd12, 0x00},
+{ 0x8 , hx8394a_720p_video_on_cmd13, 0x00},
+{ 0x4 , hx8394a_720p_video_on_cmd14, 0x00},
+{ 0x4 , hx8394a_720p_video_on_cmd15, 0x00}
 };
 #define HX8394A_720P_VIDEO_ON_COMMAND 16
 
@@ -211,8 +211,8 @@ static char hx8394a_720p_videooff_cmd1[] = {
 
 
 static struct mipi_dsi_cmd hx8394a_720p_video_off_command[] = {
-{ 0x4 , hx8394a_720p_videooff_cmd0},
-{ 0x4 , hx8394a_720p_videooff_cmd1}
+{ 0x4 , hx8394a_720p_videooff_cmd0, 0x00},
+{ 0x4 , hx8394a_720p_videooff_cmd1, 0x00}
 };
 #define HX8394A_720P_VIDEO_OFF_COMMAND 2
 
@@ -252,14 +252,6 @@ static struct lane_configuration hx8394a_720p_video_lane_config = {
 const uint32_t hx8394a_720p_video_timings[] = {
   0x8d, 0x24, 0x19, 0x00, 0x34, 0x34, 0x1d, 0x26, 0x2a, 0x03, 0x04, 0x00
 };
-
-
-
-static struct mipi_dsi_cmd hx8394a_720p_video_rotation[] = {
-
-};
-#define HX8394A_720P_VIDEO_ROTATION 0
-
 
 static struct panel_timing hx8394a_720p_video_timing_info = {
   0, 4, 0x1f, 0x2d
