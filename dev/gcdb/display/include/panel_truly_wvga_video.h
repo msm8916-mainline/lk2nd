@@ -47,7 +47,7 @@
 
 static struct panel_config truly_wvga_video_panel_data = {
   "qcom,mdss_dsi_truly_wvga_video", "dsi:0:", "qcom,mdss-dsi-panel",
-  10, 0, "DISPLAY_1", 0, 0, 60, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1
+  10, 0, "DISPLAY_1", 0, 0, 60, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, NULL
 };
 
 /*---------------------------------------------------------------------------*/
@@ -219,32 +219,32 @@ static char truly_wvga_video_on_cmd25[] = {
 
 
 static struct mipi_dsi_cmd truly_wvga_video_on_command[] = {
-{ 0x4 , truly_wvga_video_on_cmd0},
-{ 0x4 , truly_wvga_video_on_cmd1},
-{ 0x8 , truly_wvga_video_on_cmd2},
-{ 0x4 , truly_wvga_video_on_cmd3},
-{ 0x8 , truly_wvga_video_on_cmd4},
-{ 0x14 , truly_wvga_video_on_cmd5},
-{ 0xc , truly_wvga_video_on_cmd6},
-{ 0x20 , truly_wvga_video_on_cmd7},
-{ 0x20 , truly_wvga_video_on_cmd8},
-{ 0x20 , truly_wvga_video_on_cmd9},
-{ 0x18 , truly_wvga_video_on_cmd10},
-{ 0xc , truly_wvga_video_on_cmd11},
-{ 0x4 , truly_wvga_video_on_cmd12},
-{ 0x8 , truly_wvga_video_on_cmd13},
-{ 0x8 , truly_wvga_video_on_cmd14},
-{ 0x4 , truly_wvga_video_on_cmd15},
-{ 0x4 , truly_wvga_video_on_cmd16},
-{ 0x4 , truly_wvga_video_on_cmd17},
-{ 0xc , truly_wvga_video_on_cmd18},
-{ 0xc , truly_wvga_video_on_cmd19},
-{ 0x4 , truly_wvga_video_on_cmd20},
-{ 0x8 , truly_wvga_video_on_cmd21},
-{ 0x4 , truly_wvga_video_on_cmd22},
-{ 0x4 , truly_wvga_video_on_cmd23},
-{ 0x4 , truly_wvga_video_on_cmd24},
-{ 0x4 , truly_wvga_video_on_cmd25}
+{ 0x4 , truly_wvga_video_on_cmd0, 0x00},
+{ 0x4 , truly_wvga_video_on_cmd1, 0x00},
+{ 0x8 , truly_wvga_video_on_cmd2, 0x00},
+{ 0x4 , truly_wvga_video_on_cmd3, 0x00},
+{ 0x8 , truly_wvga_video_on_cmd4, 0x00},
+{ 0x14 , truly_wvga_video_on_cmd5, 0x00},
+{ 0xc , truly_wvga_video_on_cmd6, 0x00},
+{ 0x20 , truly_wvga_video_on_cmd7, 0x00},
+{ 0x20 , truly_wvga_video_on_cmd8, 0x00},
+{ 0x20 , truly_wvga_video_on_cmd9, 0x00},
+{ 0x18 , truly_wvga_video_on_cmd10, 0x00},
+{ 0xc , truly_wvga_video_on_cmd11, 0x00},
+{ 0x4 , truly_wvga_video_on_cmd12, 0x00},
+{ 0x8 , truly_wvga_video_on_cmd13, 0x00},
+{ 0x8 , truly_wvga_video_on_cmd14, 0x00},
+{ 0x4 , truly_wvga_video_on_cmd15, 0x00},
+{ 0x4 , truly_wvga_video_on_cmd16, 0x00},
+{ 0x4 , truly_wvga_video_on_cmd17, 0x00},
+{ 0xc , truly_wvga_video_on_cmd18, 0x00},
+{ 0xc , truly_wvga_video_on_cmd19, 0x00},
+{ 0x4 , truly_wvga_video_on_cmd20, 0x00},
+{ 0x8 , truly_wvga_video_on_cmd21, 0x00},
+{ 0x4 , truly_wvga_video_on_cmd22, 0x00},
+{ 0x4 , truly_wvga_video_on_cmd23, 0x00},
+{ 0x4 , truly_wvga_video_on_cmd24, 0x00},
+{ 0x4 , truly_wvga_video_on_cmd25, 0x00}
 };
 #define TRULY_WVGA_VIDEO_ON_COMMAND 26
 
@@ -260,8 +260,8 @@ static char truly_wvga_videooff_cmd1[] = {
 
 
 static struct mipi_dsi_cmd truly_wvga_video_off_command[] = {
-{ 0x4 , truly_wvga_videooff_cmd0},
-{ 0x4 , truly_wvga_videooff_cmd1}
+{ 0x4 , truly_wvga_videooff_cmd0, 0x00},
+{ 0x4 , truly_wvga_videooff_cmd1, 0x00}
 };
 #define TRULY_WVGA_VIDEO_OFF_COMMAND 2
 

@@ -47,7 +47,7 @@
 
 static struct panel_config toshiba_720p_video_panel_data = {
   "qcom,mdss_dsi_toshiba_720p_video", "dsi:0:", "qcom,mdss-dsi-panel",
-  10, 0, "DISPLAY_1", 0, 424000000, 60, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1
+  10, 0, "DISPLAY_1", 0, 424000000, 60, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, NULL
 };
 
 /*---------------------------------------------------------------------------*/
@@ -235,34 +235,34 @@ static char toshiba_720p_video_on_cmd27[] = {
 
 
 static struct mipi_dsi_cmd toshiba_720p_video_on_command[] = {
-{ 0x4 , toshiba_720p_video_on_cmd0},
-{ 0x4 , toshiba_720p_video_on_cmd1},
-{ 0x4 , toshiba_720p_video_on_cmd2},
-{ 0x4 , toshiba_720p_video_on_cmd3},
-{ 0xc , toshiba_720p_video_on_cmd4},
-{ 0x14 , toshiba_720p_video_on_cmd5},
-{ 0xc , toshiba_720p_video_on_cmd6},
-{ 0x4 , toshiba_720p_video_on_cmd7},
-{ 0x8 , toshiba_720p_video_on_cmd8},
-{ 0x10 , toshiba_720p_video_on_cmd9},
-{ 0x4 , toshiba_720p_video_on_cmd10},
-{ 0xc , toshiba_720p_video_on_cmd11},
-{ 0x14 , toshiba_720p_video_on_cmd12},
-{ 0x14 , toshiba_720p_video_on_cmd13},
-{ 0x14 , toshiba_720p_video_on_cmd14},
-{ 0x14 , toshiba_720p_video_on_cmd15},
-{ 0x14 , toshiba_720p_video_on_cmd16},
-{ 0x14 , toshiba_720p_video_on_cmd17},
-{ 0x8 , toshiba_720p_video_on_cmd18},
-{ 0x8 , toshiba_720p_video_on_cmd19},
-{ 0x4 , toshiba_720p_video_on_cmd20},
-{ 0x8 , toshiba_720p_video_on_cmd21},
-{ 0xc , toshiba_720p_video_on_cmd22},
-{ 0x10 , toshiba_720p_video_on_cmd23},
-{ 0x10 , toshiba_720p_video_on_cmd24},
-{ 0x4 , toshiba_720p_video_on_cmd25},
-{ 0x4 , toshiba_720p_video_on_cmd26},
-{ 0x4 , toshiba_720p_video_on_cmd27}
+{ 0x4 , toshiba_720p_video_on_cmd0, 0x00},
+{ 0x4 , toshiba_720p_video_on_cmd1, 0x00},
+{ 0x4 , toshiba_720p_video_on_cmd2, 0x00},
+{ 0x4 , toshiba_720p_video_on_cmd3, 0x00},
+{ 0xc , toshiba_720p_video_on_cmd4, 0x00},
+{ 0x14 , toshiba_720p_video_on_cmd5, 0x00},
+{ 0xc , toshiba_720p_video_on_cmd6, 0x00},
+{ 0x4 , toshiba_720p_video_on_cmd7, 0x00},
+{ 0x8 , toshiba_720p_video_on_cmd8, 0x00},
+{ 0x10 , toshiba_720p_video_on_cmd9, 0x00},
+{ 0x4 , toshiba_720p_video_on_cmd10, 0x00},
+{ 0xc , toshiba_720p_video_on_cmd11, 0x00},
+{ 0x14 , toshiba_720p_video_on_cmd12, 0x00},
+{ 0x14 , toshiba_720p_video_on_cmd13, 0x00},
+{ 0x14 , toshiba_720p_video_on_cmd14, 0x00},
+{ 0x14 , toshiba_720p_video_on_cmd15, 0x00},
+{ 0x14 , toshiba_720p_video_on_cmd16, 0x00},
+{ 0x14 , toshiba_720p_video_on_cmd17, 0x00},
+{ 0x8 , toshiba_720p_video_on_cmd18, 0x00},
+{ 0x8 , toshiba_720p_video_on_cmd19, 0x00},
+{ 0x4 , toshiba_720p_video_on_cmd20, 0x00},
+{ 0x8 , toshiba_720p_video_on_cmd21, 0x00},
+{ 0xc , toshiba_720p_video_on_cmd22, 0x00},
+{ 0x10 , toshiba_720p_video_on_cmd23, 0x00},
+{ 0x10 , toshiba_720p_video_on_cmd24, 0x00},
+{ 0x4 , toshiba_720p_video_on_cmd25, 0x00},
+{ 0x4 , toshiba_720p_video_on_cmd26, 0x00},
+{ 0x4 , toshiba_720p_video_on_cmd27, 0x00}
 };
 #define TOSHIBA_720P_VIDEO_ON_COMMAND 28
 
@@ -278,8 +278,8 @@ static char toshiba_720p_videooff_cmd1[] = {
 
 
 static struct mipi_dsi_cmd toshiba_720p_video_off_command[] = {
-{ 0x4 , toshiba_720p_videooff_cmd0},
-{ 0x4 , toshiba_720p_videooff_cmd1}
+{ 0x4 , toshiba_720p_videooff_cmd0, 0x00},
+{ 0x4 , toshiba_720p_videooff_cmd1, 0x00}
 };
 #define TOSHIBA_720P_VIDEO_OFF_COMMAND 2
 

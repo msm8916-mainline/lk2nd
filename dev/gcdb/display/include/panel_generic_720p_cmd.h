@@ -47,7 +47,7 @@
 
 static struct panel_config generic_720p_cmd_panel_data = {
   "qcom,mdss_dsi_generic_720p_cmd", "dsi:0:", "qcom,mdss-dsi-panel",
-  10, 1, "DISPLAY_1", 0, 0, 60, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  10, 1, "DISPLAY_1", 0, 0, 60, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL
 };
 
 /*---------------------------------------------------------------------------*/
@@ -90,11 +90,11 @@ static char generic_720p_cmd_on_cmd4[] = {
 
 
 static struct mipi_dsi_cmd generic_720p_cmd_on_command[] = {
-{ 0x4 , generic_720p_cmd_on_cmd0},
-{ 0x4 , generic_720p_cmd_on_cmd1},
-{ 0x4 , generic_720p_cmd_on_cmd2},
-{ 0x4 , generic_720p_cmd_on_cmd3},
-{ 0x4 , generic_720p_cmd_on_cmd4}
+{ 0x4 , generic_720p_cmd_on_cmd0, 0x00},
+{ 0x4 , generic_720p_cmd_on_cmd1, 0x00},
+{ 0x4 , generic_720p_cmd_on_cmd2, 0x00},
+{ 0x4 , generic_720p_cmd_on_cmd3, 0x00},
+{ 0x4 , generic_720p_cmd_on_cmd4, 0x00}
 };
 #define GENERIC_720P_CMD_ON_COMMAND 5
 
@@ -118,10 +118,10 @@ static char generic_720p_cmdoff_cmd3[] = {
 
 
 static struct mipi_dsi_cmd generic_720p_cmd_off_command[] = {
-{ 0x4 , generic_720p_cmdoff_cmd0},
-{ 0x4 , generic_720p_cmdoff_cmd1},
-{ 0x4 , generic_720p_cmdoff_cmd2},
-{ 0x4 , generic_720p_cmdoff_cmd3}
+{ 0x4 , generic_720p_cmdoff_cmd0, 0x00},
+{ 0x4 , generic_720p_cmdoff_cmd1, 0x00},
+{ 0x4 , generic_720p_cmdoff_cmd2, 0x00},
+{ 0x4 , generic_720p_cmdoff_cmd3, 0x00}
 };
 #define GENERIC_720P_CMD_OFF_COMMAND 4
 

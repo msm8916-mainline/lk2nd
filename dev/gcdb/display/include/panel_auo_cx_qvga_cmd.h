@@ -39,7 +39,7 @@
 /*---------------------------------------------------------------------------*/
 static struct panel_config auo_cx_qvga_cmd_panel_data = {
 	"qcom,mdss_dsi_auo_cx_qvga_cmd", "dsi:0:", "qcom,mdss-dsi-panel",
-	10, 1, "DISPLAY_1", 0, 0, 60, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL
+	10, 1, "DISPLAY_1", 0, 0, 60, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL
 };
 
 /*---------------------------------------------------------------------------*/
@@ -363,7 +363,7 @@ static struct videopanel_info auo_cx_qvga_cmd_video_panel = {
 /* Lane configuration                                                        */
 /*---------------------------------------------------------------------------*/
 static struct lane_configuration auo_cx_qvga_cmd_lane_config = {
-	1, 0, 1, 0, 0, 0
+	1, 0, 1, 0, 0, 0, 0
 };
 
 /*---------------------------------------------------------------------------*/
