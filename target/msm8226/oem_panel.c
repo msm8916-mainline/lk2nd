@@ -96,23 +96,7 @@ static uint32_t panel_id;
 
 int oem_panel_rotation()
 {
-	int ret = NO_ERROR;
-	switch (panel_id) {
-	case TOSHIBA_720P_VIDEO_PANEL:
-		ret = mdss_dsi_cmds_tx(NULL, toshiba_720p_video_rotation,
-			TOSHIBA_720P_VIDEO_ROTATION, 0);
-		break;
-	case NT35590_720P_CMD_PANEL:
-		ret = mdss_dsi_cmds_tx(NULL, nt35590_720p_cmd_rotation,
-			NT35590_720P_CMD_ROTATION, 0);
-		break;
-	case NT35590_720P_VIDEO_PANEL:
-		ret = mdss_dsi_cmds_tx(NULL, nt35590_720p_video_rotation,
-			NT35590_720P_VIDEO_ROTATION, 0);
-		break;
-	}
-
-	return ret;
+	return NO_ERROR;
 }
 
 int oem_panel_on()
