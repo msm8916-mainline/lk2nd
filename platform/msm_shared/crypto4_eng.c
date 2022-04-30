@@ -200,7 +200,8 @@ crypto_send_data(void *ctx_ptr, unsigned char *data_ptr,
 	unsigned int ce_status = 0;
 	unsigned int ce_err_bmsk = 0;
 	unsigned int is_not_aligned = FALSE;
-	unsigned char data[4];
+	unsigned int data_uint;
+	unsigned char *data = (unsigned char*)&data_uint;
 	unsigned char *buff_ptr = data_ptr;
 
 	/* Check if the buff_ptr is aligned */
