@@ -259,7 +259,9 @@ static char *target_boot_params = NULL;
 static bool boot_reason_alarm;
 static bool devinfo_present = true;
 bool boot_into_fastboot = false;
+#if DEVICE_TREE
 static uint32_t dt_size = 0;
+#endif
 static char *vbcmdline;
 static bootinfo info = {0};
 static void *recovery_dtbo_buf = NULL;
@@ -1177,7 +1179,7 @@ void boot_linux(void *kernel, unsigned *tags,
 	dprintf(INFO, "Updating device tree: done\n");
 #else
 	/* Generating the Atags */
-	generate_atags(tags, final_cmdline, ramdisk, ramdisk_size);
+	generate_atags(tags, (const char*)final_cmdline, ramdisk, ramdisk_size);
 #endif
 
 #if VERIFIED_BOOT
@@ -1520,10 +1522,7 @@ int boot_linux_from_mmc(void)
 	unsigned ramdisk_actual;
 	unsigned imagesize_actual;
 	unsigned second_actual = 0;
-	void * image_buf = NULL;
 
-	unsigned int dtb_size = 0;
-	unsigned dtb_image_size = 0;
 #ifdef OSVERSION_IN_BOOTIMAGE
 	uint32_t dtb_image_offset = 0;
 #endif
@@ -1545,6 +1544,9 @@ int boot_linux_from_mmc(void)
 #endif
 	char *ptn_name = NULL;
 #if DEVICE_TREE
+	void * image_buf = NULL;
+	unsigned int dtb_size = 0;
+	unsigned dtb_image_size = 0;
 	struct dt_table *table;
 	struct dt_entry dt_entry;
 	unsigned dt_table_offset;
@@ -1643,6 +1645,7 @@ int boot_linux_from_mmc(void)
 		return -1;
 	}
 	imagesize_actual = (page_size + kernel_actual + ramdisk_actual + second_actual + dt_actual);
+	dtb_image_size = hdr->kernel_size;
 #else
 	if (UINT_MAX < ((uint64_t)kernel_actual + (uint64_t)ramdisk_actual + (uint64_t)second_actual + page_size)) {
 		dprintf(CRITICAL, "Integer overflow detected in bootimage header fields at %u in %s\n",__LINE__,__FILE__);
@@ -1650,7 +1653,6 @@ int boot_linux_from_mmc(void)
 	}
 	imagesize_actual = (page_size + kernel_actual + ramdisk_actual + second_actual);
 #endif
-	dtb_image_size = hdr->kernel_size;
 
 #ifdef OSVERSION_IN_BOOTIMAGE
 	/* If header version is ONE and booting into recovery,
@@ -2027,6 +2029,7 @@ int boot_linux_from_mmc(void)
 	}
 
 #ifndef DEVICE_TREE
+	(void)patched_kernel_hdr_size;
 	if (check_aboot_addr_range_overlap(hdr->tags_addr, MAX_TAGS_SIZE) ||
 		check_ddr_addr_range_bound(hdr->tags_addr, MAX_TAGS_SIZE))
 	{
@@ -3069,14 +3072,16 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	struct kernel64_hdr *kptr = NULL;
 	char *ptr = ((char*) data);
 	int ret = 0;
-	uint8_t dtb_copied = 0;
 	unsigned int out_len = 0;
 	unsigned int out_avai_len = 0;
 	unsigned char *out_addr = NULL;
 	uint32_t dtb_offset = 0;
 	unsigned char *kernel_start_addr = NULL;
 	unsigned int kernel_size = 0;
+#if DEVICE_TREE
+	uint8_t dtb_copied = 0;
 	unsigned int scratch_offset = 0;
+#endif
 #if VERIFIED_BOOT_2
 	void *dtbo_image_buf = NULL;
 	uint32_t dtbo_image_sz = 0;
