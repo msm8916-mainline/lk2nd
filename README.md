@@ -27,6 +27,7 @@ and then loaded by lk2nd.
 - Xiaomi Redmi 4X - santoni
 - Xiaomi Redmi Note 4X Snapdragon - mido
 - Xiaomi Redmi Note 5 / 5 Plus Snapdragon - vince
+- Meizu M6 Note - m1721
 - Motorola Moto G7 Power - ocean
 - Xiaomi Mi A2 Lite - daisy
 - Xiaomi Mi A1 - tissot
