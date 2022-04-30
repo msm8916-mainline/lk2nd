@@ -1,5 +1,7 @@
 LOCAL_PATH := $(GET_LOCAL_DIR)
 
+MODULES += lib/libfdt
+
 LIBFDT_INCLUDES = ufdt_util.h fdt_internal.h ufdt_types.h ufdt_overlay.h libufdt.h
 LIBFDT_SRCS =  ufdt_overlay.c ufdt_node_dict.c ufdt_node.c ufdt_convert.c sysdeps/libufdt_sysdeps_vendor.c
 LIBFDT_OBJS = $(LIBFDT_SRCS:%.c=%.o)
