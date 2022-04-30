@@ -27,3 +27,19 @@ LINKER_SCRIPT += $(BUILDDIR)/system-onesegment.ld
 
 include platform/msm_shared/rules.mk
 
+ifeq ($(ENABLE_DISPLAY), 0)
+MODULES := $(filter-out dev/panel/msm, $(MODULES))
+OBJS := $(filter-out \
+	platform/msm_shared/display.o \
+	platform/msm_shared/hdmi.o \
+	platform/msm_shared/lvds.o \
+	platform/msm_shared/mdp_lcdc.o \
+	platform/msm_shared/mdp4.o \
+	platform/msm_shared/mipi_dsi_phy.o \
+	platform/msm_shared/mipi_dsi.o \
+	platform/msm8960/hdmi_core.o \
+	target/msm8960/target_display.o \
+	, $(OBJS))
+else
+$(error Display support in msm8960 is currently broken)
+endif
