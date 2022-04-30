@@ -204,6 +204,13 @@ static bool lk2nd_device_match(const void *fdt, int offset)
 		return match_string(lk2nd_dev.cmdline, val, len);
 	}
 
+	val = fdt_getprop(fdt, offset, "lk2nd,match-device", &len);
+	if (len >= 0) {
+		if (!lk2nd_dev.device)
+			return false;
+		return match_string(lk2nd_dev.device, val, len);
+	}
+
 	fdt_getprop(fdt, offset, "lk2nd,match-panel", &len);
 	if (len >= 0) {
 		if (!lk2nd_dev.panel.name)
