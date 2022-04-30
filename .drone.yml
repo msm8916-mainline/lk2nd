@@ -12,6 +12,10 @@ steps:
     image: alpine:3.15
     commands: [./.drone.sh apq8084]
 
+  - name: crypto disabled (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh apq8084 CRYPTO_BACKEND=none]
+
   - name: signed kernel (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh apq8084 USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
@@ -32,6 +36,10 @@ steps:
   - name: default (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh mdm9607]
+
+  - name: crypto disabled (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh mdm9607 CRYPTO_BACKEND=none]
 
   - name: signed kernel (gcc4)
     image: alpine:3.15
@@ -54,6 +62,10 @@ steps:
     image: alpine:3.15
     commands: [./.drone.sh msm8226]
 
+  - name: crypto disabled (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8226 CRYPTO_BACKEND=none]
+
   - name: signed kernel (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8226 USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
@@ -75,6 +87,10 @@ steps:
     image: alpine:3.15
     commands: [./.drone.sh msm8610]
 
+  - name: crypto disabled (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8610 CRYPTO_BACKEND=none]
+
   - name: signed kernel (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8610 USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
@@ -95,6 +111,10 @@ steps:
   - name: default (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8909]
+
+  - name: crypto disabled (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8909 CRYPTO_BACKEND=none]
 
   - name: signed kernel (gcc4)
     image: alpine:3.15
@@ -127,6 +147,10 @@ steps:
     image: alpine:3.15
     commands: [./.drone.sh msm8916]
 
+  - name: crypto disabled (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8916 CRYPTO_BACKEND=none]
+
   - name: signed kernel (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8916 USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
@@ -147,6 +171,10 @@ steps:
   - name: default (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8952]
+
+  - name: crypto disabled (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8952 CRYPTO_BACKEND=none]
 
   - name: signed kernel (gcc4)
     image: alpine:3.15
@@ -178,6 +206,10 @@ steps:
   - name: default (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8953]
+
+  - name: crypto disabled (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8953 CRYPTO_BACKEND=none]
 
   - name: signed kernel (gcc4)
     image: alpine:3.15
@@ -217,6 +249,11 @@ steps:
     image: alpine:3.15
     commands: [./.drone.sh msm8960 EMMC_BOOT=1 ENABLE_DISPLAY=0]
 
+  - name: crypto disabled (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8960 EMMC_BOOT=1 ENABLE_DISPLAY=0
+               CRYPTO_BACKEND=none]
+
   - name: signed kernel (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8960 EMMC_BOOT=1 ENABLE_DISPLAY=0
@@ -239,6 +276,10 @@ steps:
     image: alpine:3.15
     commands: [./.drone.sh msm8974]
 
+  - name: crypto disabled (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8974 CRYPTO_BACKEND=none]
+
   - name: signed kernel (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8974 USER_BUILD_VARIANT=true SIGNED_KERNEL=1]
@@ -259,6 +300,10 @@ steps:
   - name: default (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8994]
+
+  - name: crypto disabled (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8994 CRYPTO_BACKEND=none]
 
   - name: signed kernel (gcc4)
     image: alpine:3.15
@@ -284,6 +329,10 @@ steps:
   - name: default (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8996]
+
+  - name: crypto disabled (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh msm8996 CRYPTO_BACKEND=none]
 
   - name: signed kernel (gcc4)
     image: alpine:3.15
