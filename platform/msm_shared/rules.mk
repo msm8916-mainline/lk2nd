@@ -699,6 +699,28 @@ ifeq ($(ENABLE_REBOOT_MODULE), 1)
 	OBJS += $(LOCAL_DIR)/reboot.o
 endif
 
+ifneq ($(filter MDP4=1, $(DEFINES)),)
+ifeq ($(ENABLE_DISPLAY), 0)
+MODULES := $(filter-out dev/panel/msm, $(MODULES))
+DISPLAY_OBJS := \
+	$(LOCAL_DIR)/display.o \
+	$(LOCAL_DIR)/hdmi.o \
+	$(LOCAL_DIR)/lcdc.o \
+	$(LOCAL_DIR)/lvds.o \
+	$(LOCAL_DIR)/mddi.o \
+	$(LOCAL_DIR)/mdp_lcdc.o \
+	$(LOCAL_DIR)/mdp4.o \
+	$(LOCAL_DIR)/mipi_dsi.o \
+	$(LOCAL_DIR)/mipi_dsi_phy.o \
+	platform/$(PLATFORM)/hdmi_core.o \
+	platform/$(PLATFORM)/panel%.o \
+	target/$(TARGET)/target_display.o
+OBJS := $(filter-out $(DISPLAY_OBJS), $(OBJS))
+else
+$(error Display support in $(TARGET) is currently broken)
+endif
+endif
+
 ifeq ($(ENABLE_RPMB_SUPPORT), 1)
 include platform/msm_shared/rpmb/rules.mk
 endif
