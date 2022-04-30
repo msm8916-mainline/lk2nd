@@ -208,11 +208,13 @@ static const char *verity_params = " none ro,0 1 android-verity /dev/mmcblk0p";
 #else
 static const char *sys_path = " root=/dev/mmcblk0p";
 
+#if DEVICE_TREE
 #define MAX_DTBO_IDX_STR 64
 static const char *android_boot_dtbo_idx = " androidboot.dtbo_idx=";
 
 #define MAX_DTB_IDX_STR MAX_DTBO_IDX_STR
 static const char *android_boot_dtb_idx = " androidboot.dtb_idx=";
+#endif
 #endif
 
 #if VERIFIED_BOOT
@@ -476,10 +478,12 @@ unsigned char *update_cmdline(const char * cmdline)
 				+ strlen(verity_params) + sizeof(int) + 2;
 #else
 	int syspath_buflen = strlen(sys_path) + sizeof(int) + 2; /*allocate buflen for largest possible string*/
+#if DEVICE_TREE
 	char dtbo_idx_str[MAX_DTBO_IDX_STR] = "\0";
 	int dtbo_idx = INVALID_PTN;
 	char dtb_idx_str[MAX_DTB_IDX_STR] = "\0";
 	int dtb_idx = INVALID_PTN;
+#endif
 #endif
 	char syspath_buf[syspath_buflen];
 #if HIBERNATION_SUPPORT
@@ -732,7 +736,7 @@ unsigned char *update_cmdline(const char * cmdline)
 	cmdline_len += target_cmd_line_len;
 #endif
 
-#if !VERITY_LE
+#if !VERITY_LE && DEVICE_TREE
 	dtbo_idx = get_dtbo_idx ();
 	if (dtbo_idx != INVALID_PTN) {
 		snprintf(dtbo_idx_str, sizeof(dtbo_idx_str), "%s%d",
@@ -1020,7 +1024,7 @@ unsigned char *update_cmdline(const char * cmdline)
 		}
 #endif
 
-#if !VERITY_LE
+#if !VERITY_LE && DEVICE_TREE
 		if (dtbo_idx != INVALID_PTN) {
 			src = dtbo_idx_str;
 			--dst;
