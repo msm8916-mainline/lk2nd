@@ -319,7 +319,7 @@ OBJS += \
 	$(LOCAL_DIR)/sha/asm/sha1-armv4-large.o \
 	$(LOCAL_DIR)/sha/asm/sha256-armv4.o
 
-include $(LOCAL_PATH)/android-config.mk
+include $(OPENSSL_PATH)/android-config.mk
 
 ## Removed files from original openssl in Android space
 
