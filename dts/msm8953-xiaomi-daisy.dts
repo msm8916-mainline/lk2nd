@@ -15,8 +15,8 @@
 
 	panel {
 		compatible = "xiaomi,daisy-panel";
-		qcom,mdss_dsi_ili7807_fhd_video {
-			compatible = "mdss,ili7807-fhd";
+		qcom,mdss_dsi_ili7807_fhdplus_video {
+			compatible = "mdss,ili7807-fhdplus";
 		};
 		qcom,mdss_dsi_hx8399c_fhdplus_video {
 			compatible = "himax,hx8399c-fhdplus";
