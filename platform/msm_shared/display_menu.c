@@ -152,7 +152,7 @@ static void wait_for_exit()
 	select_msg = &msg_info;
 
 	mutex_acquire(&select_msg->msg_lock);
-	while(!select_msg->info.rel_exit == true) {
+	while(!select_msg->info.rel_exit) {
 		mutex_release(&select_msg->msg_lock);
 		thread_sleep(10);
 		mutex_acquire(&select_msg->msg_lock);
