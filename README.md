@@ -69,13 +69,13 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Motorola Moto G (2015) - osprey
 - Motorola Moto G4 Play - harpia
 - Samsung Galaxy A3 (2015) - SM-A300F, SM-A300FU
-- Samsung Galaxy A5 (2015) - SM-A500F, SM-A500FU, SM-A500YZ, SM-A500H
+- Samsung Galaxy A5 (2015) - SM-A500F, SM-A500FU, SM-A500H, SM-A500YZ
 - Samsung Galaxy A7 (2015) - SM-A700YD
 - Samsung Galaxy Ace 4 - SM-G357FZ (quirky - see comment in `dts/msm8916/msm8916-samsung-r02.dts`)
 - Samsung Galaxy Core Max - SM-G5108Q (quirky - see comment in `dts/msm8916/msm8916-samsung-r08.dts`)
 - Samsung Galaxy Core Prime LTE - SM-G360F
 - Samsung Galaxy E7 - SM-E7000
-- Samsung Galaxy Grand Prime - SM-G530FZ, SM-G530W, SM-G530Y (G530Y is quirky - see comment in `dts/msm8916/msm8916-samsung-r11.dts`)
+- Samsung Galaxy Grand Prime - SM-G530FZ, SM-G530H, SM-G530W, SM-G530Y (G530Y is quirky - see comment in `dts/msm8916/msm8916-samsung-r11.dts`)
 - Samsung Galaxy J3 (2016) - SM-J3109, SM-J320YZ
 - Samsung Galaxy J3 Pro - SM-J3110, SM-J3119
 - Samsung Galaxy J5 (2015) - SM-J5008, SM-J500F, SM-J500FN, SM-J500H, SM-J500M
@@ -98,6 +98,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - LG G3 - D855
 - LG Google Nexus 5 - hammerhead D820, D821
 - Samsung Galaxy S5 - SM-G900F
+- Samsung Galaxy S5 China Unicom (Duos) - SM-G9006V/W
 
 ### lk2nd-msm8226
 - ASUS ZenWatch 2 - sparrow
