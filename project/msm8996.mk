@@ -5,7 +5,7 @@ LOCAL_DIR := $(GET_LOCAL_DIR)
 TARGET := msm8996
 
 MODULES += app/aboot
-MODULES += app/mmutest
+#MODULES += app/mmutest
 
 ifeq ($(TARGET_BUILD_VARIANT),user)
 DEBUG := 0
@@ -133,7 +133,7 @@ DEFINES += USE_PON_REBOOT_REG=1
 #enable battery voltage check
 DEFINES += CHECK_BAT_VOLTAGE=1
 # Enable unit test FW
-ENABLE_UNITTEST_FW=1
+#ENABLE_UNITTEST_FW=1
 ifeq ($(ENABLE_UNITTEST_FW),1)
 DEFINES += UNITTEST_FW_SUPPORT=1
 endif
