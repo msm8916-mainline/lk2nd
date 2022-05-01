@@ -54,6 +54,8 @@ INCLUDES := -I$(BUILDDIR) -Iinclude
 CFLAGS := -O2 -g -finline -W -Wall -Wno-multichar -Wno-unused-parameter -Wno-unused-function $(LKLE_CFLAGS) -include $(CONFIGHEADER)
 # -fcommon is needed to build using GCC 10
 CFLAGS += -fcommon
+# causes several warnings in the fastboot code where truncation is expected
+CFLAGS += -Wno-format-truncation
 #CFLAGS += -Werror
 
 ifeq ($(SIGNED_KERNEL),1)
