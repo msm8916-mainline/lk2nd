@@ -120,9 +120,9 @@ void update_partial_goods_dtb_nodes(void *fdt)
 				 * Replace the property value based on the property
 				 * length and type
 				 */
-				if (!(strncmp(subnode_lst->property, "device_type", sizeof(subnode_lst->property))))
+				if (!(strcmp(subnode_lst->property, "device_type")))
 					prop_type = DEVICE_TYPE;
-				else if ((!strncmp(subnode_lst->property, "status", sizeof(subnode_lst->property))))
+				else if ((!strcmp(subnode_lst->property, "status")))
 					prop_type = STATUS_TYPE;
 				else
 				{
