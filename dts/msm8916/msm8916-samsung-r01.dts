@@ -67,10 +67,6 @@
 		model = "Samsung Galaxy Core Prime LTE (SM-G360F)";
 		compatible = "samsung,coreprimelte", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "G360F*";
-
-		samsung,muic-reset {
-			i2c-gpio-pins = <2 3>;
-			i2c-address = <0x14>;
-		};
+		#include "msm8916-samsung-cprime.dtsi"
 	};
 };
