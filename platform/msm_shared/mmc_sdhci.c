@@ -684,7 +684,7 @@ static uint32_t mmc_get_ext_csd(struct sdhci_host *host, struct mmc_card *card)
 
 	ASSERT(card->ext_csd);
 
-	memset(card->ext_csd, 0, sizeof(card->ext_csd));
+	memset(card->ext_csd, 0, 512);
 
 	/* invalidate any cached buf data (controller updates main memory) */
 	arch_invalidate_cache_range((addr_t) card->ext_csd, 512);
