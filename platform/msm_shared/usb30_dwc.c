@@ -1630,7 +1630,7 @@ void dwc_device_add_ep(dwc_dev_t *dev, dwc_ep_t *new_ep)
 	dwc_ep_t *ep = &dev->ep[index];
 	ASSERT(ep != NULL);
 
-	memset(ep, 0, sizeof(ep));
+	memset(ep, 0, sizeof(*ep));
 
 	/* copy client specified params */
 
