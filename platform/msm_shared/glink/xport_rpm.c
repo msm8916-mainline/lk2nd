@@ -807,7 +807,7 @@ glink_err_type xport_rpm_isr( xport_rpm_ctx_type *ctx_ptr )
       case XPORT_RPM_CMD_TX_DATA:
       {
         glink_rx_intent_type desc;
-        memset( &desc, sizeof( glink_rx_intent_type), 0 );
+        memset( &desc, 0, sizeof(glink_rx_intent_type) );
 
         read_ind += sizeof(cmd_arg);
 
