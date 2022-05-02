@@ -9,6 +9,20 @@
 
 #include "fs_boot.h"
 
+#ifdef BOOT_MENU
+#include <dev/keys.h>
+#include <display_menu.h>
+#include <pm8x41.h>
+#include <dev/fbcon.h>
+
+struct pos { 
+	int x;
+	int y;
+};
+
+extern struct pos cur_pos;
+#endif
+
 struct fs_boot_data fs_boot_data;
 
 static const char *bootable_parts[] = {
@@ -185,15 +199,107 @@ void fsboot_test(void)
 	fsboot_find_and_boot(FS_BOOT_DEV_EMMC, NULL, 0);
 }
 
+#ifdef BOOT_MENU
+extern int target_volume_up();
+extern uint32_t target_volume_down();
+
+struct boot_opt {
+	int option;
+	char *name;
+};
+
+static inline fbcon_put_m(char *str, size_t len, int type, int factor, bool advance) {
+	for( int i = 0; i < len; i++) 
+		fbcon_putc_factor_m(str[i], type, factor, advance);
+}
+#endif
+	
 int fsboot_boot_first(void* target, size_t sz)
 {
 	int ret = -1;
 
+#ifdef BOOT_MENU
+	int ind, last_ind; 
+	ind = last_ind = 0;
+#define MSG  "BOOT_FROM:"
+
+	const struct boot_opt btopt[] = { 
+		{ .option = FS_BOOT_DEV_SDCARD, .name = "SD" }, 
+		{ .option = FS_BOOT_DEV_EMMC,	.name = "EMMC"}, 
+	};
+
+	const size_t btoptsz = sizeof(btopt) / sizeof(btopt[0]);
+
+	if(!fbcon_display())
+		return -1;
+
+	fbcon_clear();
+
+	fbcon_put_m(MSG, strlen(MSG), FBCON_TITLE_MSG, 4, true);
+	
+	cur_pos.y += 4;
+	cur_pos.x =2;
+
+	for( register int i = 0; i < btoptsz; i++ ) {
+		fbcon_put_m(btopt[i].name, strlen(btopt[i].name), FBCON_COMMON_MSG, 2, true);
+		cur_pos.y += 2;
+		cur_pos.x =2;
+	}
+
+	goto init;
+
+	while(1) {
+		int count = 0;
+		if(target_volume_down()) {
+			while(count++ < 9 && target_volume_down()) 
+				mdelay(128);
+			last_ind = ind++;
+			goto update;
+		}
+		else if(target_volume_up() || target_key_pressed(KEY_HOME)) {
+			while(count++ < 9 && (target_volume_up() || target_key_pressed(KEY_HOME))) 
+				mdelay(128);
+			last_ind = ind--;
+			goto update;
+		}
+		else if(pm8x41_get_pwrkey_is_pressed()) {
+			break;
+		}
+		continue;
+update:
+		ind = (ind * (ind > 0) + (btoptsz - 1) * (ind < 0)) * !(ind >= btoptsz);
+		if(last_ind != ind) {
+init:
+			cur_pos.x = 0;
+			cur_pos.y = 4 + (ind << 1);
+			fbcon_fill_empty_glyph(0, 4 + (last_ind << 1), 1, 1, 2);
+			fbcon_putc_factor_m('>', FBCON_COMMON_MSG, 2, false);
+		}
+	}
+
+	fbcon_clear();
+
+#define ENTER_MSG "Booting..."
+	fbcon_put_m(ENTER_MSG, strlen(ENTER_MSG), FBCON_COMMON_MSG, 2, true);
+
+	ret = fsboot_find_and_boot(btopt[ind].option, target, sz);
+	if(ret > 0)
+		return ret;
+	//if( ret < 0 ) {
+	//	cur_pos.x = 0;
+	//	cur_pos.y = 6 + (btoptsz << 1);
+	//	fbcon_fill_empty_glyph(0, 0, strlen(ENTER_MSG), 1, 2);
+	//#define ERROR_MSG "Unable to boot that option"
+	//	fbcon_put_m(ERROR_MSG, strlen(ERROR_MSG), FBCON_COMMON_MSG, 2, true);
+	//	goto AGAIN;
+
+	//}
+#else 
 	ret = fsboot_find_and_boot(FS_BOOT_DEV_SDCARD, target, sz);
 	if (ret > 0)
 		return ret;
-
 	ret = fsboot_find_and_boot(FS_BOOT_DEV_EMMC, target, sz);
+#endif
 	if (ret > 0)
 		return ret;
 

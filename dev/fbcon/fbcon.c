@@ -80,7 +80,7 @@ static uint32_t			BGCOLOR;
 static uint32_t			FGCOLOR;
 static uint32_t			SELECT_BGCOLOR;
 
-static struct pos		cur_pos;
+struct pos		cur_pos;
 static struct pos		max_pos;
 static struct fb_color		*fb_color_formats;
 static struct fb_color		fb_color_formats_555[] = {
@@ -300,7 +300,33 @@ void fbcon_clear(void)
 	cur_pos.y = 0;
 }
 
-void fbcon_putc_factor(char c, int type, unsigned scale_factor)
+void fbcon_fill_empty_glyph(int x, int y, int col, int rol, unsigned scale_factor) {
+	char *pixels;
+
+	if (!config)
+		return;
+
+	const int bpp = config->bpp >> 3;
+	const int stride = config->stride - FONT_WIDTH * scale_factor;
+
+	pixels = config->base;
+	pixels += y * (bpp * FONT_HEIGHT * config->width);
+	pixels += x * scale_factor * (bpp * (FONT_WIDTH + 1));
+
+	for (int y = 0; y < FONT_HEIGHT*scale_factor*rol; ++y) {
+		for (int x = 0; x < FONT_WIDTH*scale_factor*col; ++x) {
+			unsigned fg_color = BGCOLOR;
+			for (int k = 0; k < bpp; k++) {
+				*pixels = (unsigned char) fg_color;
+				fg_color = fg_color >> 8;
+				pixels++;
+			}
+		}
+		pixels += (stride * bpp);
+	}
+}
+
+void fbcon_putc_factor_m(char c, int type, unsigned scale_factor, int advance)
 {
 	char *pixels;
 
@@ -311,7 +337,7 @@ void fbcon_putc_factor(char c, int type, unsigned scale_factor)
 	if((unsigned char)c > 127)
 		return;
 
-	if((unsigned char)c < 32) {
+	if((unsigned char)c < 32 && advance) {
 		if(c == '\n')
 			goto newline;
 		else if (c == '\r') {
@@ -336,25 +362,27 @@ void fbcon_putc_factor(char c, int type, unsigned scale_factor)
 	fbcon_drawglyph(pixels, FGCOLOR, config->stride, (config->bpp / 8),
 			font5x12 + (c - 32) * 2, scale_factor);
 
-	cur_pos.x++;
-	if (cur_pos.x >= (int)(max_pos.x / scale_factor))
-		goto newline;
+	if(advance) {
+		cur_pos.x++;
+		if (cur_pos.x >= (int)(max_pos.x / scale_factor))
+			goto newline;
 
-	return;
+		return;
 
 newline:
-	cur_pos.y += scale_factor;
-	cur_pos.x = 0;
-	if((uint32_t)cur_pos.y > max_pos.y-scale_factor) {
-		cur_pos.y = max_pos.y - scale_factor;
-		fbcon_scroll_up();
-	} else
-		fbcon_flush();
+		cur_pos.y += scale_factor;
+		cur_pos.x = 0;
+		if((uint32_t)cur_pos.y > max_pos.y-scale_factor) {
+			cur_pos.y = max_pos.y - scale_factor;
+			fbcon_scroll_up();
+		} else
+			fbcon_flush();
+	}
 }
 
 void fbcon_putc(char c)
 {
-	fbcon_putc_factor(c, FBCON_COMMON_MSG, SCALE_FACTOR);
+	fbcon_putc_factor_m(c, FBCON_COMMON_MSG, SCALE_FACTOR, true);
 }
 
 uint32_t fbcon_get_current_line(void)

@@ -91,6 +91,7 @@ struct fbimage {
 #define FB_FORMAT_RGB666 1
 #define FB_FORMAT_RGB666_LOOSE 2
 #define FB_FORMAT_RGB888 3
+#define fbcon_putc_factor(x, y, z) fbcon_putc_factor_m(x, y, z, true)
 
 struct fbcon_config {
 	void		*base;
@@ -109,7 +110,8 @@ void fbcon_putc(char c);
 void fbcon_clear(void);
 struct fbcon_config* fbcon_display(void);
 void fbcon_extract_to_screen(logo_img_header *header, void* address);
-void fbcon_putc_factor(char c, int type, unsigned scale_factor);
+void fbcon_fill_emtpy_glyph(int x, int y, int col, int row, int scale_factor);
+void fbcon_putc_factor_m(char c, int type, unsigned scale_factor, int advance);
 void fbcon_draw_msg_background(unsigned y_start, unsigned y_end,
 	uint32_t paint, int update);
 void fbcon_draw_line(uint32_t type);
