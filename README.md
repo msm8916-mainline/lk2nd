@@ -153,8 +153,15 @@ $ make TOOLCHAIN_PREFIX=arm-none-eabi- lk2nd-msmXXXX
 **Requirements:**
 - ARM (32 bit) GCC tool chain
   - Arch Linux: `arm-none-eabi-gcc`
+  - Debian and Ubuntu: `gcc-arm-none-eabi`
+  - Fedora: `arm-none-eabi-gcc-cs`
 - [Device Tree Compiler](https://git.kernel.org/pub/scm/utils/dtc/dtc.git)
   - Arch Linux: `dtc`
+  - Debian and Ubuntu: `device-tree-compiler`
+  - Fedora: `dtc`
+- libfdt
+  - Debian and Ubuntu: `libfdt-dev`
+  - Fedora: `libfdt-devel`
 
 Replace `TOOLCHAIN_PREFIX` with the path to your tool chain.
 `lk2nd.img` is built and placed into `build-lk2nd-msmXXXX/lk2nd.img`.
