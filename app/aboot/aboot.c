@@ -2781,6 +2781,7 @@ int write_rollback_index(uint32_t loc, uint64_t roll_back_index)
         return 0;
 }
 
+#if VERIFIED_BOOT_2
 int store_userkey(uint8_t *user_key, uint32_t user_key_size)
 {
         if (!devinfo_present) {
@@ -2821,6 +2822,7 @@ int get_userkey(uint8_t **user_key, uint32_t *user_key_size)
         *user_key_size = device.user_public_key_length;
         return 0;
 }
+#endif /* VERIFIED_BOOT_2 */
 
 void read_device_info(device_info *dev)
 {
@@ -3414,6 +3416,7 @@ void cmd_erase_nand(const char *arg, void *data, unsigned sz)
 		return;
 	}
 
+#if VERIFIED_BOOT_2
 	if (!strncmp(arg, "avb_custom_key", strlen("avb_custom_key"))) {
 		dprintf(INFO, "erasing avb_custom_key\n");
 		if (erase_userkey()) {
@@ -3423,6 +3426,7 @@ void cmd_erase_nand(const char *arg, void *data, unsigned sz)
 		}
 		return;
 	}
+#endif
 
 	if (flash_erase(ptn)) {
 		fastboot_fail("failed to erase partition");
@@ -3480,6 +3484,7 @@ void cmd_erase_mmc(const char *arg, void *data, unsigned sz)
 		}
 	}
 
+#if VERIFIED_BOOT_2
 	if (!strncmp(arg, "avb_custom_key", strlen("avb_custom_key"))) {
                 dprintf(INFO, "erasing avb_custom_key\n");
                 if (erase_userkey()) {
@@ -3489,6 +3494,7 @@ void cmd_erase_mmc(const char *arg, void *data, unsigned sz)
                 }
                 return;
         }
+#endif
 
 	if(ptn == 0) {
 		fastboot_fail("Partition table doesn't exist\n");
@@ -4345,6 +4351,7 @@ void cmd_flash_mmc(const char *arg, void *data, unsigned sz)
 		}
 	}
 
+#if VERIFIED_BOOT_2
 	if (!strncmp(arg, "avb_custom_key", strlen("avb_custom_key"))) {
 		dprintf(INFO, "flashing avb_custom_key\n");
 		if (store_userkey(data, sz)) {
@@ -4354,6 +4361,7 @@ void cmd_flash_mmc(const char *arg, void *data, unsigned sz)
 		}
 		return;
 	}
+#endif
 
 	sparse_header = (sparse_header_t *) data;
 	meta_header = (meta_header_t *) data;
@@ -4428,6 +4436,7 @@ void cmd_flash_nand(const char *arg, void *data, unsigned sz)
 		return;
 	}
 
+#if VERIFIED_BOOT_2
 	if (!strncmp(arg, "avb_custom_key", strlen("avb_custom_key"))) {
 		dprintf(INFO, "flashing avb_custom_key\n");
 		if (store_userkey(data, sz)) {
@@ -4437,6 +4446,7 @@ void cmd_flash_nand(const char *arg, void *data, unsigned sz)
 		}
 		return;
 	}
+#endif
 
 	if (!strcmp(ptn->name, "boot") || !strcmp(ptn->name, "recovery")) {
 		if((sz > BOOT_MAGIC_SIZE) && (!memcmp((void *)data, BOOT_MAGIC, BOOT_MAGIC_SIZE))) {
