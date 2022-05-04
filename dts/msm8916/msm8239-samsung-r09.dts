@@ -1,0 +1,18 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton.dtsi>
+#include <lk2nd.h>
+
+/ {
+	// This is used by the bootloader to find the correct DTB
+	qcom,msm-id = <263 0>;
+	qcom,board-id = <0x1070FF1 9>;
+
+	a73g {
+		model = "Samsung Galaxy A7 (SM-A700H)";
+		compatible = "samsung,a73g", "qcom,msm8239", "lk2nd,device";
+		lk2nd,match-bootloader = "A700H*";
+	};
+};
