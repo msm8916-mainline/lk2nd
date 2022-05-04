@@ -36,7 +36,7 @@
 - Panasonic ELUGA U2
 - Samsung Galaxy A3 (2015) - SM-A300F, SM-A300FU, SM-A300YZ
 - Samsung Galaxy A5 (Duos) (2015) - SM-A5000, SM-A500F, SM-A500FU, SM-A500H, SM-A500YZ
-- Samsung Galaxy A7 (2015) - SM-A700YD
+- Samsung Galaxy A7 (2015) - SM-A700H, SM-A700YD
 - Samsung Galaxy Ace 4 - SM-G357FZ (quirky - see comment in `lk2nd/device/dts/msm8916/msm8916-samsung.dts`)
 - Samsung Galaxy Core Max - SM-G5108Q (quirky - see comment in `lk2nd/device/dts/msm8916/msm8916-samsung.dts`)
 - Samsung Galaxy Core Prime LTE - SM-G360F, SM-G360G, SM-G360T, SM-G360V (rossaltezt is quirky - see comment in `lk2nd/device/dts/msm8916/msm8916-samsung.dts`)
