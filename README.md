@@ -71,6 +71,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Samsung Galaxy A3 (2015) - SM-A300F, SM-A300FU
 - Samsung Galaxy A5 (2015) - SM-A500F, SM-A500FU, SM-A500H, SM-A500YZ
 - Samsung Galaxy A7 (2015) - SM-A700YD
+- Samsung Galaxy A7 (2015) - SM-A700H(It is another model.)
 - Samsung Galaxy Ace 4 - SM-G357FZ (quirky - see comment in `dts/msm8916/msm8916-samsung-r02.dts`)
 - Samsung Galaxy Core Max - SM-G5108Q (quirky - see comment in `dts/msm8916/msm8916-samsung-r08.dts`)
 - Samsung Galaxy Core Prime LTE - SM-G360F
@@ -107,6 +108,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Samsung Galaxy Grand 2 - SM-G7102
 
 ## Installation
+### Default installation:
 1. Download `lk2nd.img` (available in [Releases](https://github.com/msm8916-mainline/lk2nd/releases))
 2. Flash `lk2nd.img` using the stock flashing interface:
     - Fastboot: `fastboot flash boot lk2nd.img`
@@ -116,7 +118,12 @@ If you get `fastboot: error: Couldn't parse partition size '0x'` try one of the 
 
 - `fastboot flash:raw boot lk2nd.img`
 - `fastboot boot lk2nd.img`, then `fastboot flash lk2nd lk2nd.img`
-
+### ONLY FOR SM-A700H:
+1. You need to flash the image in recovery.
+2. Then restart the phone. If it is stock boot.img in device,then it may loop the menu after selecting "start" in menu. It is normal,don't panic.
+3. Connect your phone to PC/Laptop and get your stock boot.img and then write this while device is on menu:
+-`fastboot flash boot stock_boot.img`
+After this,you should be able to reboot into Android and keep the lk2nd.
 ## Usage
 lk2nd provides the standard Android fastboot protocol for flashing/booting Android boot images.
 
