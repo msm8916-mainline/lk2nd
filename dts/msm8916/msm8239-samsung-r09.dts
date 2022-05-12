@@ -8,7 +8,7 @@
 / {
 	// This is used by the bootloader to find the correct DTB
 	qcom,msm-id = <263 0>;
-	qcom,board-id = <0x1070FF1 9>;
+	qcom,board-id = <0x10708FF1 9>;
 
 	a73g {
 		model = "Samsung Galaxy A7 (SM-A700H)";
