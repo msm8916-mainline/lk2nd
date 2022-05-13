@@ -15,8 +15,8 @@
 		compatible = "samsung,a73g", "qcom,msm8239", "lk2nd,device";
 		lk2nd,match-bootloader = "A700H*";
 
- 	 	qcom,msm-id = <263 0>;
- 	 	qcom,board-id = <0x10708FF1 9>;
+		qcom,msm-id = <263 0>;
+		qcom,board-id = <0x10708FF1 9>;
 
 	};
 };
