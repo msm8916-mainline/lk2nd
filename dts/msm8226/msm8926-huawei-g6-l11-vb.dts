@@ -1,0 +1,19 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+/*
+ * To build for huawei-g6-l11, comment out all dtb targets except
+ * $(LOCAL_DIR)/msm8926-huawei-g6-l11-vb.dtb in rules.mk in this directory.
+ * the stock g6-l11 bootloader does will not match this dtb unless it is
+ * in first position in the appended dtb.
+ */
+
+#include <skeleton.dtsi>
+
+/ {
+	model = "Huawei Ascend G6-L11 vb";
+	compatible = "huawei,g6-l11-vb", "qcom,msm8926", "lk2nd,device";
+
+	qcom,msm-id = <0xc8 0x1f51 0x00>;
+};
