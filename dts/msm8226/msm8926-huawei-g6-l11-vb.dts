@@ -2,6 +2,13 @@
 
 /dts-v1/;
 
+/*
+ * To build for huawei-g6-l11, comment out all dtb targets except
+ * $(LOCAL_DIR)/msm8926-huawei-g6-l11-vb.dtb in rules.mk in this directory.
+ * the stock g6-l11 bootloader does will not match this dtb unless it is
+ * in first position in the appended dtb.
+ */
+
 #include <skeleton.dtsi>
 
 / {
