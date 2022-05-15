@@ -71,4 +71,16 @@
 			i2c-address = <0x25>;
 		};
 	};
+
+	/*
+	 * Before building for rossaltezt, please comment out all dtbs except
+	 * "$(LOCAL_DIR)/msm8916-samsung-r03.dtb" at './rules.mk'.
+	 * rossaltezt doesn't work with multi-dtbs; only goes into "Download mode".
+	 */
+	rossaltezt {
+		model = "Samsung Galaxy Core Prime LTE (SM-G360G)";
+		compatible = "samsung,rossaltexsa", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "G360GZT*";
+		#include "msm8916-samsung-cprime.dtsi"
+	};
 };
