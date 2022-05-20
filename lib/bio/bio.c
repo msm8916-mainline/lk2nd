@@ -216,11 +216,13 @@ static ssize_t bio_default_erase(struct bdev *dev, off_t offset, size_t len)
 static ssize_t bio_default_read_block(struct bdev *dev, void *buf, bnum_t block, uint count)
 {
 	panic("%s no reasonable default operation\n", __PRETTY_FUNCTION__);
+	return -1; /* Never reached */
 }
 
 static ssize_t bio_default_write_block(struct bdev *dev, const void *buf, bnum_t block, uint count)
 {
 	panic("%s no reasonable default operation\n", __PRETTY_FUNCTION__);
+	return -1; /* Never reached */
 }
 
 static void bdev_inc_ref(bdev_t *dev)
