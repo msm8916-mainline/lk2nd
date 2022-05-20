@@ -26,6 +26,8 @@
 #include <sys/types.h>
 #include <list.h>
 
+#include <kernel/mutex.h>
+
 typedef uint32_t bnum_t;
 
 typedef struct bdev {
@@ -47,6 +49,11 @@ typedef struct bdev {
 	int (*ioctl)(struct bdev *, int request, void *argp);
 	void (*close)(struct bdev *);
 } bdev_t;
+
+struct bdev_struct {
+	struct list_node list;
+	mutex_t lock;
+};
 
 /* user api */
 bdev_t *bio_open(const char *name);
@@ -70,6 +77,9 @@ void bio_initialize_bdev(bdev_t *dev, const char *name, size_t block_size, bnum_
 
 /* debug stuff */
 void bio_dump_devices(void);
+
+/* low level access to the device list, user must lock the mutex */
+struct bdev_struct *bio_get_bdevs(void);
 
 /* subdevice support */
 status_t bio_publish_subdevice(const char *parent_dev, const char *subdev, bnum_t startblock, size_t len);

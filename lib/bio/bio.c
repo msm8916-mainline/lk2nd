@@ -30,12 +30,10 @@
 
 #define LOCAL_TRACE 0
 
-struct bdev_struct {
-	struct list_node list;
-	mutex_t lock;
-};
-
 static struct bdev_struct *bdevs;
+
+/* low level access to the device list, user must lock the mutex */
+struct bdev_struct *bio_get_bdevs(void) { return bdevs; }
 
 /* default implementation is to use the read_block hook to 'deblock' the device */
 static ssize_t bio_default_read(struct bdev *dev, void *_buf, off_t offset, size_t len)
