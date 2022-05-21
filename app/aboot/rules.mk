@@ -11,6 +11,13 @@ OBJS += \
 	$(LOCAL_DIR)/fastboot.o \
 	$(LOCAL_DIR)/recovery.o
 
+ABOOT_STANDALONE ?= 0
+DEFINES += ABOOT_STANDALONE=$(ABOOT_STANDALONE)
+ifeq ($(ABOOT_STANDALONE), 1)
+OBJS := $(filter-out $(LOCAL_DIR)/recovery.o, $(OBJS))
+DEFINES := $(filter-out SSD_ENABLE TZ_SAVE_KERNEL_HASH TZ_TAMPER_FUSE, $(DEFINES))
+endif
+
 ifeq ($(ENABLE_UNITTEST_FW), 1)
 OBJS += \
 	$(LOCAL_DIR)/fastboot_test.o

@@ -108,6 +108,7 @@ static int aboot_save_boot_hash_mmc(uint32_t image_addr, uint32_t image_size);
 static int aboot_frp_unlock(char *pname, void *data, unsigned sz);
 static inline uint64_t validate_partition_size();
 bool pwr_key_is_pressed = false;
+unsigned boot_into_recovery = 0;
 static bool is_systemd_present=false;
 static void publish_getvar_multislot_vars();
 /* fastboot command function pointer */
@@ -256,7 +257,6 @@ static char ffbm_mode_string[FFBM_MODE_BUF_SIZE];
 static bool boot_into_ffbm;
 static char *target_boot_params = NULL;
 static bool boot_reason_alarm;
-static bool devinfo_present = true;
 bool boot_into_fastboot = false;
 #if DEVICE_TREE
 static uint32_t dt_size = 0;
@@ -268,8 +268,12 @@ static uint32_t recovery_dtbo_size = 0;
 
 /* Assuming unauthorized kernel image by default */
 static int auth_kernel_img = 0;
+#if ABOOT_STANDALONE
+static device_info device; /* Keep uninitialized to save some space */
+#else
 static device_info device = {DEVICE_MAGIC,0,0,0,0,{0},{0},{0},1,{0},0,{0}};
 
+static bool devinfo_present = true;
 static bool is_allow_unlock = 0;
 
 static char frp_ptns[2][8] = {"config","frp"};
@@ -287,6 +291,7 @@ static const char *critical_flash_allowed_ptn[] = {
 	"bootloader",
 	"devinfo",
 	"partition"};
+#endif
 
 static const char *VirtualAbCriticalPartitions[] = {
 	"misc",
@@ -1577,7 +1582,7 @@ int boot_linux_from_mmc(void)
 	if (check_format_bit())
 		boot_into_recovery = 1;
 
-	if (!boot_into_recovery) {
+	if (!ABOOT_STANDALONE && !boot_into_recovery) {
 		memset(ffbm_mode_string, '\0', sizeof(ffbm_mode_string));
 		rcode = get_ffbm(ffbm_mode_string, sizeof(ffbm_mode_string));
 		if (rcode <= 0) {
@@ -2465,6 +2470,7 @@ continue_boot:
 	return 0;
 }
 
+#if !ABOOT_STANDALONE
 void write_device_info_mmc(device_info *dev)
 {
 	unsigned long long ptn = 0;
@@ -2983,6 +2989,7 @@ static bool critical_flash_allowed(const char * entry)
 	}
 	return false;
 }
+#endif /* !ABOOT_STANDALONE */
 
 #if DEVICE_TREE
 int copy_dtb(uint8_t *boot_image_start, unsigned int scratch_offset)
@@ -3762,6 +3769,7 @@ void cmd_flash_mmc_img(const char *arg, void *data, unsigned sz)
 
 	if (pname)
 	{
+#if !ABOOT_STANDALONE
 		if (!strncmp(pname, "frp-unlock", strlen("frp-unlock")))
 		{
 			if (!aboot_frp_unlock(pname, data, sz))
@@ -3774,6 +3782,7 @@ void cmd_flash_mmc_img(const char *arg, void *data, unsigned sz)
 
 			return;
 		}
+#endif
 
 		if (!strcmp(pname, "partition"))
 		{
@@ -3856,6 +3865,9 @@ void cmd_flash_mmc_img(const char *arg, void *data, unsigned sz)
 
 void cmd_flash_meta_img(const char *arg, void *data, unsigned sz)
 {
+#if ABOOT_STANDALONE
+	fastboot_fail("Cannot flash meta image on standalone aboot");
+#else
 	int i, images;
 	meta_header_t *meta_header;
 	img_header_entry_t *img_header_entry;
@@ -3949,6 +3961,7 @@ void cmd_flash_meta_img(const char *arg, void *data, unsigned sz)
 	write_device_info(&device);
 	fastboot_okay("");
 	return;
+#endif /* !ABOOT_STANDALONE */
 }
 
 void cmd_flash_mmc_sparse_img(const char *arg, void *data, unsigned sz)
@@ -4699,6 +4712,7 @@ void cmd_reboot_bootloader(const char *arg, void *data, unsigned sz)
 	reboot_device(FASTBOOT_MODE);
 }
 
+#if !ABOOT_STANDALONE
 void cmd_oem_enable_charger_screen(const char *arg, void *data, unsigned size)
 {
 	dprintf(INFO, "Enabling charger screen check\n");
@@ -4852,6 +4866,7 @@ void cmd_preflash(const char *arg, void *data, unsigned sz)
 {
 	fastboot_okay("");
 }
+#endif /* !ABOOT_STANDALONE */
 
 static uint8_t logo_header[LOGO_IMG_HEADER_SIZE];
 
@@ -5164,13 +5179,13 @@ void get_bootloader_version_iot(unsigned char *buf)
 }
 #endif
 
-void get_bootloader_version(unsigned char *buf)
+__WEAK void get_bootloader_version(unsigned char *buf)
 {
 	snprintf((char*)buf, MAX_RSP_SIZE, "%s",  device.bootloader_version);
 	return;
 }
 
-void get_baseband_version(unsigned char *buf)
+__WEAK void get_baseband_version(unsigned char *buf)
 {
 	snprintf((char*)buf, MAX_RSP_SIZE, "%s", device.radio_version);
 	return;
@@ -5212,6 +5227,7 @@ void aboot_fastboot_register_commands(void)
 						{"continue", cmd_continue},
 						{"reboot", cmd_reboot},
 						{"reboot-bootloader", cmd_reboot_bootloader},
+#if !ABOOT_STANDALONE
 						{"oem unlock", cmd_oem_unlock},
 						{"oem unlock-go", cmd_oem_unlock_go},
 						{"oem lock", cmd_oem_lock},
@@ -5226,6 +5242,7 @@ void aboot_fastboot_register_commands(void)
 						{"oem disable-charger-screen", cmd_oem_disable_charger_screen},
 						{"oem off-mode-charge", cmd_oem_off_mode_charger},
 						{"oem select-display-panel", cmd_oem_select_display_panel},
+#endif
 						{"set_active",cmd_set_active},
 #if DYNAMIC_PARTITION_SUPPORT
 						{"reboot-fastboot",cmd_reboot_fastboot},
@@ -5275,6 +5292,7 @@ void aboot_fastboot_register_commands(void)
 #endif
 
 	fastboot_publish("max-download-size", (const char *) max_download_size);
+#if !ABOOT_STANDALONE
 	/* Is the charger screen check enabled */
 	snprintf(charger_screen_enabled, MAX_RSP_SIZE, "%d",
 			device.charger_screen_enabled);
@@ -5285,6 +5303,7 @@ void aboot_fastboot_register_commands(void)
 			device.display_panel);
 	fastboot_publish("display-panel",
 			(const char *) panel_display_mode);
+#endif
 
         if (target_is_emmc_boot())
         {
@@ -5303,7 +5322,7 @@ void aboot_fastboot_register_commands(void)
 
 	/* Version baseband is n/a for apq iot devices */
 	fastboot_publish("version-baseband", "N/A");
-#else
+#elif !ABOOT_STANDALONE
 	fastboot_publish("version-bootloader", (const char *) device.bootloader_version);
 	fastboot_publish("version-baseband", (const char *) device.radio_version);
 #endif
@@ -5369,8 +5388,12 @@ void aboot_init(const struct app_descriptor *app)
 	}
 	ASSERT((MEMBASE + MEMSIZE) > MEMBASE);
 
+#if !ABOOT_STANDALONE
 	read_device_info(&device);
 	read_allow_oem_unlock(&device);
+#else
+	device.is_unlocked = true;
+#endif
 
 	/* Detect multi-slot support */
 	if (partition_multislot_is_supported())
@@ -5497,7 +5520,7 @@ normal_boot:
 	{
 		if (target_is_emmc_boot())
 		{
-			if(emmc_recovery_init())
+			if(!ABOOT_STANDALONE && emmc_recovery_init())
 				dprintf(ALWAYS,"error in emmc_recovery_init\n");
 			if(target_use_signed_kernel())
 			{
@@ -5547,6 +5570,7 @@ retry_boot:
 		}
 		else
 		{
+		if (!ABOOT_STANDALONE)
 			recovery_init();
 	#if USE_PCOM_SECBOOT
 		if((device.is_unlocked) || (device.is_tampered))
