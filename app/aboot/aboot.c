@@ -3903,7 +3903,7 @@ void cmd_flash_meta_img(const char *arg, void *data, unsigned sz)
 
 	for (i=0; i<images; i++) {
 
-		if((img_header_entry[i].ptn_name == NULL) ||
+		if((!img_header_entry[i].ptn_name[0]) ||
 			(img_header_entry[i].start_offset == 0) ||
 			(img_header_entry[i].size == 0))
 			break;
