@@ -49,7 +49,7 @@
 
 #else
 // end of the binary
-extern int _end;
+extern struct free_heap_chunk _end;
 
 // end of memory
 extern int _end_of_ram;
