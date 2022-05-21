@@ -117,7 +117,7 @@ static void update_device_status(struct select_msg_info* msg_info, int reason)
 	fbcon_clear();
 	switch (reason) {
 		case RECOVER:
-			reset_device_unlock_status(msg_info->info.msg_type);
+			if (!ABOOT_STANDALONE) reset_device_unlock_status(msg_info->info.msg_type);
 			reboot_device(RECOVERY_MODE);
 			break;
 		case RESTART:
@@ -141,9 +141,11 @@ static void update_device_status(struct select_msg_info* msg_info, int reason)
 
 			break;
 		case FFBM:
-			memset(&ffbm_page_buffer, 0, sizeof(ffbm_page_buffer));
-			snprintf(ffbm_page_buffer, sizeof(ffbm_page_buffer), "ffbm-00");
-			write_misc(0, ffbm_page_buffer, sizeof(ffbm_page_buffer));
+			if (!ABOOT_STANDALONE) {
+				memset(&ffbm_page_buffer, 0, sizeof(ffbm_page_buffer));
+				snprintf(ffbm_page_buffer, sizeof(ffbm_page_buffer), "ffbm-00");
+				write_misc(0, ffbm_page_buffer, sizeof(ffbm_page_buffer));
+			}
 
 			reboot_device(0);
 			break;
