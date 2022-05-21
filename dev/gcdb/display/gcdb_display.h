@@ -100,8 +100,7 @@ static inline bool is_dsi_config_dual(void)
 {
 	struct oem_panel_data *oem_data = mdss_dsi_get_oem_data_ptr();
 
-	return !is_dsi_config_split() && oem_data->sec_panel &&
-		strcmp(oem_data->sec_panel, "");
+	return !is_dsi_config_split() && oem_data->sec_panel[0];
 }
 
 static inline bool is_dsi_config_single()
