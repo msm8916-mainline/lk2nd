@@ -60,9 +60,12 @@ OBJS += \
 endif
 
 ifeq ($(ENABLE_FBCON_DISPLAY_MSG),1)
+DEFINES += FBCON_DISPLAY_MSG=1
 OBJS += \
 	$(LOCAL_DIR)/menu_keys_detect.o \
 	$(LOCAL_DIR)/display_menu.o
+else ifeq ($(ENABLE_DISPLAY),0)
+DEFINES := $(filter-out DISPLAY_SPLASH_SCREEN=1, $(DEFINES))
 endif
 
 ifeq ($(ENABLE_GLINK_SUPPORT),1)
