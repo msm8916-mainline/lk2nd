@@ -102,7 +102,8 @@ static int _ufdt_prop_dict_enlarge_if_needed(struct ufdt_prop_dict *dict) {
 
   int new_size = dict->mem_size * 2;
   struct ufdt_prop_dict temp_dict;
-  _ufdt_prop_dict_construct_int(&temp_dict, dict->fdtp, new_size);
+  if (_ufdt_prop_dict_construct_int(&temp_dict, dict->fdtp, new_size) < 0)
+    return -1;
 
   for (int i = 0; i < dict->mem_size; i++) {
     const struct fdt_property *prop = dict->props[i];
