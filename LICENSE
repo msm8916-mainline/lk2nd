@@ -66,5 +66,7 @@ projects, including (but not limited to):
   - lib/openssl: OpenSSL
   - lib/zlib_inflate: Zlib
 
+For code specific to the lk2nd/lk1st project configurations, see lk2nd/LICENSE.
+
 Please check the license headers in the source code files to get a full list
 of involved open-source licenses and copyright notices.
