@@ -14,3 +14,6 @@ DEFINES := $(filter-out SECURE_CODE_MEM=1, $(DEFINES))
 
 # Weak battery charging is handled by the primary bootloader
 DEFINES := $(filter-out ENABLE_WBC=1, $(DEFINES))
+
+# Should be already done by primary bootloader if wanted
+DEFINES := $(filter-out ENABLE_XPU_VIOLATION=1, $(DEFINES))
