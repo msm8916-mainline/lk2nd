@@ -38,3 +38,6 @@ ENABLE_SDHCI_SUPPORT := 1
 ifeq ($(ENABLE_SDHCI_SUPPORT),1)
 DEFINES += MMC_SDHCI_SUPPORT=1
 endif
+
+# No display support in LK
+ENABLE_DISPLAY := 0

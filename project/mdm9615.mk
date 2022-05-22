@@ -14,3 +14,6 @@ DEFINES += WITH_DEBUG_UART=1
 ENABLE_THUMB := false
 
 LD := $(TOOLCHAIN_PREFIX)ld.bfd
+
+# No display support in LK
+ENABLE_DISPLAY := 0
