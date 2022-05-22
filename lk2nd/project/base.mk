@@ -23,6 +23,9 @@ $(info NOTE: Display support is disabled without display/panel selection)
 endif
 endif
 
+# Allow entering fastboot after forced reset
+DEFINES := $(filter-out USER_FORCE_RESET_SUPPORT=1, $(DEFINES))
+
 # Allow flashing independent of battery voltage
 DEFINES := $(filter-out CHECK_BAT_VOLTAGE=1, $(DEFINES))
 
