@@ -82,7 +82,12 @@ void target_serialno(unsigned char *buf);
 void target_fastboot_init(void);
 void target_load_ssd_keystore(void);
 void *target_mmc_device();
+
+#if USER_FORCE_RESET_SUPPORT
 uint32_t is_user_force_reset(void);
+#else
+static inline uint32_t is_user_force_reset(void) { return 0; }
+#endif
 
 bool target_display_panel_node(char *pbuf, uint16_t buf_size);
 void target_display_init(const char *panel_name);
