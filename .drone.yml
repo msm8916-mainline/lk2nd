@@ -8,6 +8,14 @@ platform:
   arch: amd64
 
 steps:
+  - name: lk2nd (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh lk2nd-apq8084]
+
+  - name: lk1st (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh lk1st-apq8084]
+
   - name: default (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh apq8084]
@@ -33,6 +41,14 @@ platform:
   arch: amd64
 
 steps:
+  - name: lk2nd (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh lk2nd-mdm9607]
+
+  - name: lk1st (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh lk1st-mdm9607]
+
   - name: default (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh mdm9607]
@@ -58,6 +74,14 @@ platform:
   arch: amd64
 
 steps:
+  - name: lk2nd (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh lk2nd-msm8226]
+
+  - name: lk1st (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh lk1st-msm8226]
+
   - name: default (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8226]
@@ -83,6 +107,14 @@ platform:
   arch: amd64
 
 steps:
+  - name: lk2nd (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh lk2nd-msm8610]
+
+  - name: lk1st (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh lk1st-msm8610]
+
   - name: default (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8610]
@@ -108,6 +140,14 @@ platform:
   arch: amd64
 
 steps:
+  - name: lk2nd (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh lk2nd-msm8909]
+
+  - name: lk1st (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh lk1st-msm8909]
+
   - name: default (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8909]
@@ -143,6 +183,14 @@ platform:
   arch: amd64
 
 steps:
+  - name: lk2nd (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh lk2nd-msm8916]
+
+  - name: lk1st (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh lk1st-msm8916]
+
   - name: default (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8916]
@@ -168,6 +216,14 @@ platform:
   arch: amd64
 
 steps:
+  - name: lk2nd (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh lk2nd-msm8952]
+
+  - name: lk1st (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh lk1st-msm8952]
+
   - name: default (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8952]
@@ -203,6 +259,14 @@ platform:
   arch: amd64
 
 steps:
+  - name: lk2nd (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh lk2nd-msm8953]
+
+  - name: lk1st (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh lk1st-msm8953]
+
   - name: default (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8953]
@@ -245,6 +309,14 @@ platform:
   arch: amd64
 
 steps:
+  - name: lk2nd (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh lk2nd-msm8960]
+
+  - name: lk1st (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh lk1st-msm8960]
+
   - name: default (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8960 EMMC_BOOT=1 ENABLE_DISPLAY=0]
@@ -272,6 +344,14 @@ platform:
   arch: amd64
 
 steps:
+  - name: lk2nd (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh lk2nd-msm8974]
+
+  - name: lk1st (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh lk1st-msm8974]
+
   - name: default (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8974]
@@ -297,6 +377,14 @@ platform:
   arch: amd64
 
 steps:
+  - name: lk2nd (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh lk2nd-msm8994]
+
+  - name: lk1st (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh lk1st-msm8994]
+
   - name: default (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8994]
@@ -326,6 +414,14 @@ platform:
   arch: amd64
 
 steps:
+  - name: lk2nd (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh lk2nd-msm8996]
+
+  - name: lk1st (gcc10)
+    image: alpine:3.15
+    commands: [./.drone.sh lk1st-msm8996]
+
   - name: default (gcc4)
     image: alpine:3.15
     commands: [./.drone.sh msm8996]
