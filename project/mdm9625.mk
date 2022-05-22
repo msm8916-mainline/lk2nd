@@ -22,3 +22,6 @@ ENABLE_THUMB := false
 
 #Override linker
 LD := $(TOOLCHAIN_PREFIX)ld.bfd
+
+# No display support in LK
+ENABLE_DISPLAY := 0
