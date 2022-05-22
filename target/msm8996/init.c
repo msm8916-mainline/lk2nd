@@ -61,10 +61,8 @@
 #include <secapp_loader.h>
 #include <rpmb.h>
 #include <rpm-glink.h>
-#if ENABLE_WBC
 #include <pm_app_smbchg.h>
 #include <pm_smbchg_common.h>
-#endif
 
 #if LONG_PRESS_POWER_ON
 #include <shutdown_detect.h>
