@@ -11,3 +11,6 @@ DEFINES := $(filter-out LONG_PRESS_POWER_ON=1, $(DEFINES))
 # segments with a fixed 1 MiB offset increases the binary size significantly,
 # since a lot of padding has to be added inbetween. Disable it for now....
 DEFINES := $(filter-out SECURE_CODE_MEM=1, $(DEFINES))
+
+# Weak battery charging is handled by the primary bootloader
+DEFINES := $(filter-out ENABLE_WBC=1, $(DEFINES))
