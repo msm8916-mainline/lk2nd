@@ -47,4 +47,18 @@
 			i2c-address = <0x14>;
 		};
 	};
+
+	grandmaxlteub {
+		model = "Samsung Galaxy Max (SM-G720AX)";
+		compatible = "samsung,grandmaxlteub", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "G720AX*";
+
+		qcom,msm-id = <206 0>;
+		qcom,board-id = <0xCE08FF01 4>;
+
+		samsung,muic-reset {
+			i2c-gpio-pins = <105 106>;
+			i2c-address = <0x14>;
+		};
+	};
 };
