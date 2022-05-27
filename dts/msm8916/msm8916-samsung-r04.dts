@@ -76,4 +76,15 @@
 
 		#include "msm8916-samsung-cprime.dtsi"
 	};
+
+	grandmaxlteub {
+		model = "Samsung Galaxy Grand Max (SM-G720AX)";
+		compatible = "samsung,grandmaxlteub", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "G720AX*";
+
+		samsung,muic-reset {
+			i2c-gpio-pins = <105 106>;
+			i2c-address = <0x14>;
+		};
+	};
 };
