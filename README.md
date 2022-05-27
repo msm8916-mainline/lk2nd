@@ -118,10 +118,11 @@ If you get `fastboot: error: Couldn't parse partition size '0x'` try one of the 
 - `fastboot flash:raw boot lk2nd.img`
 - `fastboot boot lk2nd.img`, then `fastboot flash lk2nd lk2nd.img`
 ### Guide for dualbooting or people who use Magisk/Systemless SuperSU(May not work properly. I don't guarantee that it will work properly):
-1. You need to flash the image in recovery.
-2. Then restart the phone. If it is stock boot.img in device,then it may loop the menu after selecting "start" in menu. It is normal,don't panic.
-3. Connect your phone to PC/Laptop and get your stock boot.img and then write this while device is on menu:  
--`fastboot flash boot stock_boot.img`  
+1. Get your patched boot.img and save it on computer  
+2. You need to flash the image in recovery.
+2. Then restart the phone. It may loop the menu after selecting "start" in menu. It is normal,don't panic.
+3. Connect your phone to PC/Laptop and get your boot.img and then write this while device is on menu:  
+-`fastboot flash boot patched_boot.img`  
 After this,you should be able to reboot into Android and keep the lk2nd.
 ## Usage
 lk2nd provides the standard Android fastboot protocol for flashing/booting Android boot images.
