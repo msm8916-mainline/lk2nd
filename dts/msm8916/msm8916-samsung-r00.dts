@@ -25,9 +25,6 @@
 		qcom,msm-id = <206 0>;
 		qcom,board-id = <0xCE08FF01 1>;
 
-		samsung,muic-reset {
-			i2c-gpio-pins = <2 3>;
-			i2c-address = <0x14>;
-		};
+		#include "msm8916-samsung-cprime.dtsi"
 	};
 };

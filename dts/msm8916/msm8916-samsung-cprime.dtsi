@@ -1,0 +1,16 @@
+samsung,muic-reset {
+	i2c-gpio-pins = <2 3>;
+	i2c-address = <0x14>;
+};
+
+panel {
+	compatible = "samsung,cprime-panel";
+
+	ss_dsi_panel_HX8369B_BV045WVM_WVGA {
+		compatible = "samsung,hx8369b-bv045wvm";
+	};
+
+	ss_dsi_panel_SC7798A_BV045WVM_WVGA {
+		compatible = "samsung,sc7798a-bv045wvm";
+	};
+};
