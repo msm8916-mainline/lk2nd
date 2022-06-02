@@ -22,4 +22,18 @@
 			<KEY_VOLUMEUP   PM_GPIO(5) PM_GPIO_PULL_UP_1_5>,
 			<KEY_VOLUMEDOWN PM_GPIO(2) PM_GPIO_PULL_UP_1_5>;
 	};
+
+	sony-leo {
+		model = "Sony Xperia Z3";
+		compatible = "sony,xperia-leo", "qcom,msm8974", "lk2nd,device";
+		/*
+		 * Probably matches other Sony devices as well, but good enough
+		 * for now.
+		 */
+		lk2nd,match-cmdline = "* androidboot.bootloader=s1 *";
+
+		lk2nd,keys =
+			<KEY_VOLUMEUP   PM_GPIO(5) PM_GPIO_PULL_UP_1_5>,
+			<KEY_VOLUMEDOWN PM_GPIO(2) PM_GPIO_PULL_UP_1_5>;
+	};
 };
