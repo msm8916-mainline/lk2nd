@@ -53,9 +53,5 @@ void fastboot_okay(const char *result);
 void fastboot_fail(const char *reason);
 void fastboot_info(const char *reason);
 
-/* required for upload command
- * should be called before calling upload
- */
-int fboot_set_upload(void *buf, uint32_t buf_size);
 
 #endif
