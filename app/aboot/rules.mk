@@ -18,6 +18,9 @@ OBJS := $(filter-out $(LOCAL_DIR)/recovery.o, $(OBJS))
 DEFINES := $(filter-out SSD_ENABLE TZ_SAVE_KERNEL_HASH TZ_TAMPER_FUSE, $(DEFINES))
 endif
 
+FASTBOOT_HELP ?= 0
+DEFINES += FASTBOOT_HELP=$(FASTBOOT_HELP)
+
 ifeq ($(ENABLE_UNITTEST_FW), 1)
 OBJS += \
 	$(LOCAL_DIR)/fastboot_test.o
