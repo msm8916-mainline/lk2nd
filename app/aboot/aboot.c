@@ -4573,12 +4573,6 @@ void cmd_set_active(const char *arg, void *data, unsigned sz)
 	unsigned i,current_active_slot;
 	const char *current_slot_suffix;
 
-	if (!partition_multislot_is_supported())
-	{
-		fastboot_fail("Command not supported");
-		return;
-	}
-
 	if (target_virtual_ab_supported()) {
 		if (GetSnapshotMergeStatus () == MERGING) {
 			fastboot_fail ("Slot Change is not allowed in merging state");
@@ -5243,7 +5237,6 @@ void aboot_fastboot_register_commands(void)
 						{"oem off-mode-charge", cmd_oem_off_mode_charger},
 						{"oem select-display-panel", cmd_oem_select_display_panel},
 #endif
-						{"set_active",cmd_set_active},
 #if DYNAMIC_PARTITION_SUPPORT
 						{"reboot-fastboot",cmd_reboot_fastboot},
 						{"reboot-recovery",cmd_reboot_recovery},
@@ -5260,6 +5253,11 @@ void aboot_fastboot_register_commands(void)
 	int fastboot_cmds_count = sizeof(cmd_list)/sizeof(cmd_list[0]);
 	for (i = 1; i < fastboot_cmds_count; i++)
 		fastboot_register(cmd_list[i].name,cmd_list[i].cb);
+
+#ifndef DISABLE_FASTBOOT_CMDS
+	if (partition_multislot_is_supported())
+		fastboot_register("set_active", cmd_set_active);
+#endif
 
 	/* publish variables and their values */
 	fastboot_publish("product",  TARGET(BOARD));
