@@ -607,10 +607,24 @@ again:
 		fastboot_state = STATE_COMMAND;
 
 		for (cmd = cmdlist; cmd; cmd = cmd->next) {
+			const char *arg = (const char*)&buffer[cmd->prefix_len];
+
+			/* Check if command prefix matches */
 			if (memcmp(buffer, cmd->prefix, cmd->prefix_len))
 				continue;
-			cmd->handle((const char*) buffer + cmd->prefix_len,
-				    (void*) download_base, download_size);
+
+			/*
+			 * Ensure we did not just match a substring: Should be
+			 * either followed by a space (more arguments), the end
+			 * of the buffer or one of the "prefixed" commands
+			 * (e.g. flash:<partition>).
+			 */
+			if (arg[0] == ' ')
+				++arg; /* Skip space */
+			else if (arg[0] && arg[-1] != ':')
+				continue;
+
+			cmd->handle(arg, download_base, download_size);
 			if (fastboot_state == STATE_COMMAND)
 				fastboot_fail("unknown reason");
 
