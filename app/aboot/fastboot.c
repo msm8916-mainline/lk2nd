@@ -542,6 +542,19 @@ cleanup:
 	return;
 }
 
+static void cmd_oem_help(const char *arg, void *data, unsigned sz)
+{
+	char response[MAX_RSP_SIZE];
+	struct fastboot_cmd *cmd;
+
+	fastboot_info("Available commands:");
+	for (cmd = cmdlist; cmd; cmd = cmd->next) {
+		snprintf(response, sizeof(response), "- %s", cmd->prefix);
+		fastboot_info(response);
+	}
+	fastboot_okay("");
+}
+
 static void fastboot_command_loop(void)
 {
 	struct fastboot_cmd *cmd;
@@ -611,6 +624,9 @@ again:
 #endif
 			goto again;
 		}
+
+		if (IS_ENABLED(FASTBOOT_HELP))
+			fastboot_info("Check 'fastboot oem help' for a list of supported commands.");
 
 		fastboot_fail("unknown command");
 
@@ -714,6 +730,9 @@ int fastboot_init(void *base, unsigned size)
 	/* register gadget */
 	if (usb_if.udc_register_gadget(&fastboot_gadget))
 		goto fail_udc_register;
+
+	if (IS_ENABLED(FASTBOOT_HELP))
+		fastboot_register("oem help", cmd_oem_help);
 
 	fastboot_register("getvar:", cmd_getvar);
 	fastboot_register("download:", cmd_download);
