@@ -33,6 +33,7 @@
 #include <stdlib.h>
 #include <debug.h>
 #include <printf.h>
+#include <string.h>
 #include <arch/arm/dcc.h>
 #include <dev/fbcon.h>
 #include <dev/uart.h>
@@ -93,6 +94,20 @@ static void log_putc(char c)
 	log.header.size_written++;
 	if (unlikely(log.header.idx >= log.header.max_size))
 		log.header.idx = 0;
+}
+
+unsigned log_copy(void *dst)
+{
+	if (log.header.size_written >= log.header.max_size) {
+		unsigned tail = log.header.max_size - log.header.idx;
+
+		memcpy(dst, &log.data[log.header.idx], tail);
+		memcpy(dst + tail, log.data, log.header.idx);
+		return log.header.max_size;
+	} else {
+		memcpy(dst, log.data, log.header.idx);
+		return log.header.idx;
+	}
 }
 #endif /* WITH_DEBUG_LOG_BUF */
 
