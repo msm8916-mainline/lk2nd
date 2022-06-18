@@ -10,6 +10,9 @@ OBJS += \
 	$(LOCAL_DIR)/rand.o \
 	$(LOCAL_DIR)/eabi.o
 
+# Without -fno-builtin the compiler might attempt to optimize the libc code by
+# replacing loops with calls to libc code, potentially causing infinite loops.
+$(BUILDDIR)/$(LOCAL_DIR)/%.o: CFLAGS := $(CFLAGS) -fno-builtin
 
 include $(LOCAL_DIR)/string/rules.mk
 
