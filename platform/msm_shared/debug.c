@@ -79,15 +79,13 @@ struct lk_log {
 	char data[LK_LOG_BUF_SIZE];
 };
 
-static struct lk_log log = {
-	.header = {
-		.cookie = LK_LOG_COOKIE,
-		.max_size = sizeof(log.data),
-		.size_written = 0,
-		.idx = 0,
-	},
-	.data = {0}
-};
+static struct lk_log log;
+
+static void log_init(void)
+{
+	log.header.cookie = LK_LOG_COOKIE;
+	log.header.max_size = sizeof(log.data);
+}
 
 static void log_putc(char c)
 {
@@ -104,6 +102,13 @@ void display_fbcon_message(char *str)
 	while(*str != 0) {
 		fbcon_putc(*str++, 0);
 	}
+#endif
+}
+
+void debug_init(void)
+{
+#if WITH_DEBUG_LOG_BUF
+	log_init();
 #endif
 }
 
