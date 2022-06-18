@@ -32,6 +32,8 @@
 extern "C" {
 #endif
 
+void debug_init(void);
+
 void debug_dump_regs(void);
 
 void debug_dump_memory_bytes(void *mem, int len);
