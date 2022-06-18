@@ -33,6 +33,7 @@ extern "C" {
 #endif
 
 void debug_init(void);
+unsigned log_copy(void *dst);
 
 void debug_dump_regs(void);
 
