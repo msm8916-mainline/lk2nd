@@ -16,6 +16,7 @@ GPL ?= 1
 
 MODULES += \
 	lk2nd \
+	lk2nd/fastboot \
 
 ifeq ($(ENABLE_DISPLAY), 1)
 ifneq ($(LK2ND_DISPLAY),)
@@ -26,6 +27,9 @@ ENABLE_DISPLAY := 0
 $(info NOTE: Display support is disabled without display/panel selection)
 endif
 endif
+
+# Reserve 32 KiB for the log buffer so it can be accessed via fastboot
+DEFINES += WITH_DEBUG_LOG_BUF=1 LK_LOG_BUF_SIZE=32768
 
 # Enable "fastboot oem help" for a list of supported fastboot commands
 DEFINES += FASTBOOT_HELP=1
