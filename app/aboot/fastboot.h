@@ -55,5 +55,19 @@ void fastboot_info(const char *reason);
 void fastboot_stage(const void *data, unsigned sz);
 void fastboot_write_data(void *data, unsigned sz);
 
+static inline void fastboot_register_commands(void)
+{
+	extern void (*__fastboot_start)(void);
+	extern void (*__fastboot_end)(void);
+	void (**func)(void);
+
+	for (func = &__fastboot_start; func < &__fastboot_end; ++func)
+		(*func)();
+}
+#define FASTBOOT_INIT(func) static void (*_fastboot_##func)(void) \
+	__SECTION(".fastboot") __USED = (func)
+#define FASTBOOT_REGISTER(prefix, handlefunc) \
+	static void _register_##handlefunc(void) { fastboot_register(prefix, handlefunc); } \
+	FASTBOOT_INIT(_register_##handlefunc)
 
 #endif

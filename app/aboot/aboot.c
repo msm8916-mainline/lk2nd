@@ -5584,6 +5584,7 @@ fastboot:
 	/* We are here means regular boot did not happen. Start fastboot. */
 
 	/* register aboot specific fastboot commands */
+	fastboot_register_commands();
 	aboot_fastboot_register_commands();
 
 	/* dump partition table for debug info */
