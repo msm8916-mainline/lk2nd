@@ -52,6 +52,10 @@ SECTIONS
 		KEEP (*(.apps))
 		__apps_end = .;
 		. = ALIGN(4);
+		__fastboot_init_start = .;
+		KEEP (*(.fastboot_init))
+		__fastboot_init_end = .;
+		. = ALIGN(4);
 		__rodata_end = . ;
 	}
 
