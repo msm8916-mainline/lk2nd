@@ -50,6 +50,10 @@ reset:
 	.word	0
 	.word	(__data_end - _start)
 1:
+	/* Save boot args and address */
+	adr	r6, _start
+	adr	r7, lk_boot_args
+	stm	r7, {r0-r3, r6}
 
 #ifdef ENABLE_TRUSTZONE
 	/*Add reference to TZ symbol so linker includes it in final image */
@@ -125,6 +129,14 @@ reset:
 	bx		r0
 
 .ltorg
+
+.global lk_boot_args
+.global lk_boot_addr
+lk_boot_args:
+	.word	0, 0, 0, 0
+lk_boot_addr:
+	.word	0
+
 #if WITH_CPU_WARM_BOOT
 warm_boot_tag:
 	.word 0
