@@ -28,6 +28,7 @@
 #if __GNUC__
 #define likely(x)       __builtin_expect(!!(x), 1)
 #define unlikely(x)     __builtin_expect(!!(x), 0)
+#define __USED __attribute__((__used__))
 #define __UNUSED __attribute__((__unused__))
 #define __PACKED __attribute__((packed))
 #define __ALIGNED(x) __attribute__((aligned(x)))
@@ -101,6 +102,7 @@
 
 #define likely(x)       (x)
 #define unlikely(x)     (x)
+#define __USED
 #define __UNUSED 
 #define __PACKED 
 #define __ALIGNED(x)
