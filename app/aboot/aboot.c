@@ -3744,6 +3744,44 @@ static void publish_getvar_partition_info(struct getvar_partition_info *info, ui
 		published = true;
 }
 
+static void flash_publish_getvar_partition_info(struct getvar_partition_info *info)
+{
+	struct ptable *ptable;
+	unsigned num_parts, i;
+
+	ptable = flash_get_ptable();
+	if (!ptable)
+		return;
+
+	num_parts = ptable_size(ptable);
+	memset(info, 0, sizeof(struct getvar_partition_info) * num_parts);
+
+	for (i = 0; i < num_parts; i++) {
+		struct ptentry *ptn = ptable_get(ptable, i);
+
+		strlcpy(info[i].part_name, ptn->name, MAX_RSP_SIZE);
+		strlcpy(info[i].getvar_size, "partition-size:", MAX_GET_VAR_NAME_SIZE);
+		strlcpy(info[i].getvar_type, "partition-type:", MAX_GET_VAR_NAME_SIZE);
+
+		strlcpy(info[i].type_response, RAW_STR, MAX_RSP_SIZE);
+		snprintf(info[i].size_response, MAX_RSP_SIZE, "0x%llx", validate_partition_size(ptn));
+
+		if (strlcat(info[i].getvar_size, info[i].part_name, MAX_GET_VAR_NAME_SIZE) >= MAX_GET_VAR_NAME_SIZE)
+		{
+			dprintf(CRITICAL, "partition size name truncated\n");
+			continue;
+		}
+		if (strlcat(info[i].getvar_type, info[i].part_name, MAX_GET_VAR_NAME_SIZE) >= MAX_GET_VAR_NAME_SIZE)
+		{
+			dprintf(CRITICAL, "partition type name truncated\n");
+			continue;
+		}
+
+		/* publish partition size & type info */
+		fastboot_publish(info[i].getvar_size, info[i].size_response);
+		fastboot_publish(info[i].getvar_type, info[i].type_response);
+	}
+}
 
 void cmd_flash_mmc_img(const char *arg, void *data, unsigned sz)
 {
@@ -5276,6 +5314,8 @@ void aboot_fastboot_register_commands(void)
 	 */
 	if (target_is_emmc_boot())
 		publish_getvar_partition_info(part_info, partition_get_partition_count());
+	else
+		flash_publish_getvar_partition_info(part_info);
 
 	if (partition_multislot_is_supported())
 		publish_getvar_multislot_vars();
