@@ -153,25 +153,6 @@ void target_early_init(void)
 #endif
 }
 
-/* Configure PMIC and Drop PS_HOLD for shutdown */
-void shutdown_device()
-{
-	dprintf(CRITICAL, "Going down for shutdown.\n");
-
-	/* Configure PMIC for shutdown */
-	pm8x41_reset_configure(PON_PSHOLD_SHUTDOWN);
-
-	/* Drop PS_HOLD for MSM */
-	writel(0x00, MPM2_MPM_PS_HOLD);
-
-	mdelay(5000);
-
-	dprintf(CRITICAL, "shutdown failed\n");
-
-	ASSERT(0);
-}
-
-
 void target_init(void)
 {
 	dprintf(INFO, "target_init()\n");
@@ -245,17 +226,6 @@ void target_serialno(unsigned char *buf)
 	uint32_t serialno;
 	serialno = board_chip_serial();
 	snprintf((char *)buf, 13, "%x", serialno);
-}
-
-unsigned check_reboot_mode(void)
-{
-	uint32_t restart_reason = 0;
-
-	/* Read reboot reason and scrub it */
-	restart_reason = readl(RESTART_REASON_ADDR);
-	writel(0x00, RESTART_REASON_ADDR);
-
-	return restart_reason;
 }
 
 int get_target_boot_params(const char *cmdline, const char *part, char **buf)
@@ -333,24 +303,15 @@ void target_uninit(void)
 #endif
 }
 
-void reboot_device(unsigned reboot_reason)
+void pmic_reset_configure(uint8_t reset_type)
 {
-	uint8_t reset_type = 0;
 	struct board_pmic_data pmic_info;
-
-	 /* Write the reboot reason */
-	writel(reboot_reason, RESTART_REASON_ADDR);
 
 	/* Configure PMIC for warm reset */
 	/* PM 8019 v1 aligns with PM8941 v2.
 	* This call should be based on the pmic version
 	* when PM8019 v2 is available.
 	*/
-	if(reboot_reason)
-		reset_type = PON_PSHOLD_WARM_RESET;
-	else
-		reset_type = PON_PSHOLD_HARD_RESET;
-
 	if (board_pmic_info(&pmic_info, SMEM_V7_SMEM_MAX_PMIC_DEVICES))
 	{
 		/* make decision based on pmic major version */
@@ -363,14 +324,6 @@ void reboot_device(unsigned reboot_reason)
 				pm8x41_reset_configure(reset_type);
 		}
 	}
-
-	/* Drop PS_HOLD for MSM */
-	writel(0x00, MPM2_MPM_PS_HOLD);
-
-	mdelay(5000);
-
-	dprintf(CRITICAL, "Rebooting failed\n");
-	return;
 }
 
 crypto_engine_type board_ce_type(void)
