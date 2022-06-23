@@ -2051,6 +2051,11 @@ flash_read_ext(struct ptentry *ptn,
 		count -= 1;
 	}
 
+	if (count == 0) {
+		dprintf(SPEW, "flash_read_image: success (%d errors)\n", errors);
+		return NANDC_RESULT_SUCCESS;
+	}
+
 	/* could not find enough valid pages before we hit the end */
 	dprintf(CRITICAL, "flash_read_image: failed (%d errors)\n", errors);
 	return NANDC_RESULT_FAILURE;
