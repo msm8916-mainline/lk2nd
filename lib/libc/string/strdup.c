@@ -41,3 +41,17 @@ strdup(const char *str)
 	return copy;
 }
 
+char *
+strndup(const char *str, size_t size)
+{
+	size_t len;
+	char *copy;
+
+	len = strnlen(str, size);
+	copy = malloc(len + 1);
+	if (copy == NULL)
+		return NULL;
+	memcpy(copy, str, len);
+	copy[len] = 0;
+	return copy;
+}
