@@ -3,6 +3,10 @@ LK2ND_PROJECT := lk2nd
 LK2ND_DISPLAY ?= cont-splash
 include lk2nd/project/base.mk
 
+MODULES += \
+	lk2nd/device \
+	lk2nd/device/2nd \
+
 # The primary bootloader will implement LONG_PRESS_POWER_ON if needed.
 # If we do it again in lk2nd we might accidentally shutdown the device because
 # the user needs to keep the power key pressed for *really* long.
