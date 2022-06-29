@@ -21,6 +21,9 @@
 		qcom,mdss_dsi_hx8399c_fhdplus_video {
 			compatible = "himax,hx8399c-fhdplus";
 		};
+		qcom,mdss_dsi_otm1911_fhdplus_video {
+			compatible = "mdss,otm1911-fhdplus";
+		};
 	};
 
 	// Bootloader won't continue if it can't delete some nodes from below
