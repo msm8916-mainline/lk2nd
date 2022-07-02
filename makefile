@@ -281,9 +281,9 @@ $(CONFIGHEADER): configheader
 	echo \#ifndef __CONFIG_H > $(CONFIGHEADER).tmp; \
 	echo \#define __CONFIG_H >> $(CONFIGHEADER).tmp; \
 	echo \#define BOARD $(BOARD_NAME) >> $(CONFIGHEADER).tmp; \
-	for d in `echo $(DEFINES) | tr [:lower:] [:upper:]`; do \
-		echo "#define $$d" | sed "s/=/\ /g;s/-/_/g;s/\//_/g" >> $(CONFIGHEADER).tmp; \
-	done; \
+	echo -n '$(DEFINES)' | \
+		awk -F= -vRS=' ' 'NF { gsub(/-|\//, "_", $$1); $$1 = toupper($$1); print "#define", $$0 }' \
+		>> $(CONFIGHEADER).tmp; \
 	echo \#endif >> $(CONFIGHEADER).tmp; \
 	if [ -f "$(CONFIGHEADER)" ]; then \
 		if cmp "$(CONFIGHEADER).tmp" "$(CONFIGHEADER)"; then \
