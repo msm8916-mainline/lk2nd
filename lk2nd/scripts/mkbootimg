@@ -212,10 +212,16 @@ def write_header(args):
     args.output.write(pack('I', args.base + args.tags_offset))
     # flash page size
     args.output.write(pack('I', args.pagesize))
-    # version of boot image header
-    args.output.write(pack('I', args.header_version))
-    # os version and patch level
-    args.output.write(pack('I', (args.os_version << 11) | args.os_patch_level))
+    if args.qcdt:
+        # qcdt size in bytes
+        args.output.write(pack('I', filesize(args.qcdt)))
+        # unused
+        args.output.write(pack('I', 0))
+    else:
+        # version of boot image header
+        args.output.write(pack('I', args.header_version))
+        # os version and patch level
+        args.output.write(pack('I', (args.os_version << 11) | args.os_patch_level))
     # asciiz product name
     args.output.write(pack(f'{BOOT_NAME_SIZE}s', args.board))
     args.output.write(pack(f'{BOOT_ARGS_SIZE}s', args.cmdline))
@@ -224,6 +230,8 @@ def write_header(args):
     update_sha(sha, args.kernel)
     update_sha(sha, args.ramdisk)
     update_sha(sha, args.second)
+    if args.qcdt:
+        update_sha(sha, args.qcdt)
 
     if args.header_version > 0:
         update_sha(sha, args.recovery_dtbo)
@@ -550,6 +558,7 @@ def parse_cmdline():
                         help='path to the vendor ramdisk')
     parser.add_argument('--vendor_bootconfig', type=FileType('rb'),
                         help='path to the vendor bootconfig file')
+    parser.add_argument('--qcdt', type=FileType('rb'), help='path to qcdt')
 
     args, extra_args = parser.parse_known_args()
     if args.vendor_boot is not None and args.header_version > 3:
@@ -626,6 +635,7 @@ def write_data(args, pagesize):
     write_padded_file(args.output, args.kernel, pagesize)
     write_padded_file(args.output, args.ramdisk, pagesize)
     write_padded_file(args.output, args.second, pagesize)
+    write_padded_file(args.output, args.qcdt, pagesize)
 
     if args.header_version > 0 and args.header_version < 3:
         write_padded_file(args.output, args.recovery_dtbo, pagesize)
@@ -650,6 +660,11 @@ def write_vendor_boot_data(args):
 
 def main():
     args = parse_cmdline()
+    if args.qcdt:
+        if args.header_version != 0:
+            raise ValueError('--qcdt not compatible with given header version')
+        if args.os_version or args.os_patch_level:
+            raise ValueError('--qcdt not compatible with OS version')
     if args.vendor_boot is not None:
         if args.header_version not in {3, 4}:
             raise ValueError(
