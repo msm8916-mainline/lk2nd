@@ -1,0 +1,19 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton.dtsi>
+#include <lk2nd.h>
+
+/ {
+	// This is used by the bootloader to find the correct DTB
+	qcom,msm-id = <200 0>;
+	qcom,board-id = <150 0>;
+
+	model = "LG Fx0";
+	compatible = "lg,madai", "qcom,msm8926", "lk2nd,device";
+	lk2nd,keys =
+		<KEY_HOME       107 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>,
+		<KEY_VOLUMEDOWN 106 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>,
+		<KEY_VOLUMEUP   108 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+};
