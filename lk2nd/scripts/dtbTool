@@ -460,7 +460,7 @@ if __name__ == "__main__":
 
 	records.sort()
 	if options.version is None:
-		version = records[0].version
+		version = max(r.version for r in records)
 	else:
 		version = options.version
 
