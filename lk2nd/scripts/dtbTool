@@ -417,8 +417,15 @@ def write_padding(f, pagesize):
 	if count != pagesize:
 		output.write(b"".join([b'\x00' for x in range(count)]))
 
+def find_dtbs(base):
+	if os.path.isfile(base) and base.endswith('.dtb'):
+		return [base]
+	if os.path.isdir(base):
+		return [f for sf in os.listdir(base) for f in find_dtbs(os.path.join(base, sf))]
+	return []
+
 if __name__ == "__main__":
-	usage = ("""%prog -o <output file> <input DTB directory> [options]""")
+	usage = ("""%prog -o <output file> <input DTB files/directories> [options]""")
 	parser = OptionParser(usage=usage)
 	# Standard options
 	parser.add_option("-o", "--output-file", dest="output", metavar="FILE",
@@ -438,15 +445,11 @@ if __name__ == "__main__":
 
 	if options.output is None:
 		parser.error("Output file must be specified")
-	if len(args) != 1:
-		parser.error("Exactly one input directory must be specified")
+	if len(args) < 1:
+		parser.error("At least one input file/directory must be specified")
 
 	pagesize = options.pagesize
-	indir = args[0]
-	flist = [os.path.join(indir, f)
-			for f in os.listdir(indir)
-			if os.path.isfile(os.path.join(indir, f)) and
-			   f.endswith('.dtb')]
+	flist = [f for a in args for f in find_dtbs(a)]
 
 	records = []
 	for f in flist:
