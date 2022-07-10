@@ -70,13 +70,24 @@ static void parse_dtb(const void *dtb)
 		lk2nd_dev.model, lk2nd_dev.compatible);
 }
 
+#ifdef LK2ND_BUNDLE_DTB
+INCFILE(lk2nd_bundled_dtb, lk2nd_bundled_dtb_size, LK2ND_BUNDLE_DTB);
+#endif
+
 void lk2nd_device_init(void)
 {
 	const void *dtb;
 
 	dprintf(INFO, "lk2nd_device_init()\n");
 
+#ifdef LK2ND_COMPATIBLE
+	lk2nd_dev.compatible = LK2ND_COMPATIBLE;
+#endif
+
 	dtb = lk2nd_device2nd_init();
+#ifdef LK2ND_BUNDLE_DTB
+	dtb = lk2nd_bundled_dtb;
+#endif
 	if (!dtb) {
 		dprintf(CRITICAL, "No device DTB provided\n");
 		return;
