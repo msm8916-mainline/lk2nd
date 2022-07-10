@@ -11,6 +11,12 @@ wget https://gist.githubusercontent.com/TravMurav/36c83efbc188115aa9b0fc7f4afba6
 gcc -O2 -shared -o /opt/faccessat.so /opt/faccessat.c
 export LD_PRELOAD=/opt/faccessat.so
 
+case "$1" in
+lk2nd-*)
+	apk add dtc python3
+	;;
+esac
+
 case "$DRONE_STEP_NAME" in
 *gcc4*)
 	wget https://gitlab.com/postmarketOS/pmbootstrap/raw/master/pmb/data/keys/build.postmarketos.org.rsa.pub -P /etc/apk/keys
