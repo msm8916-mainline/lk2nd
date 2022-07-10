@@ -243,8 +243,9 @@ DEFINES += _EMMC_BOOT=1
 endif
 
 ALLOBJS := $(addprefix $(BUILDDIR)/,$(ALLOBJS))
+ALLDTBS := $(addprefix $(BUILDDIR)/,$(ALLDTBS))
 
-DEPS := $(ALLOBJS:%o=%d)
+DEPS := $(ALLOBJS:%o=%d) $(addsuffix .d,$(ALLDTBS))
 
 # default to no ccache
 CCACHE ?= 
@@ -266,7 +267,7 @@ NOECHO ?= @
 include make/build.mk
 
 clean: $(EXTRA_CLEANDEPS)
-	rm -f $(ALLOBJS) $(DEPS) $(GENERATED) $(OUTBIN) $(OUTELF) $(OUTELF).lst $(OUTELF_STRIP)
+	rm -f $(ALLOBJS) $(ALLDTBS) $(DEPS) $(GENERATED) $(OUTBIN) $(OUTELF) $(OUTELF).lst $(OUTELF_STRIP)
 
 install: all
 	scp $(OUTBIN) 192.168.0.4:/tftproot
