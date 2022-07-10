@@ -65,6 +65,10 @@ SECTIONS
 		KEEP (*(.lk2nd_init))
 		__lk2nd_init_end = .;
 		. = ALIGN(4);
+		__lk2nd_device_init_start = .;
+		KEEP (*(.lk2nd_device_init))
+		__lk2nd_device_init_end = .;
+		. = ALIGN(4);
 		__rodata_end = . ;
 	}
 
