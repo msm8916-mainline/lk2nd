@@ -56,6 +56,10 @@ SECTIONS
 		KEEP (*(.fastboot))
 		__fastboot_end = .;
 		. = ALIGN(4);
+		__lk2nd_device_init_start = .;
+		KEEP (*(.lk2nd.device.init))
+		__lk2nd_device_init_end = .;
+		. = ALIGN(4);
 		__rodata_end = . ;
 	}
 

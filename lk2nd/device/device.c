@@ -43,6 +43,46 @@ static int find_device_node(const void *dtb)
 	return lk2nd_device2nd_match_device_node(dtb, lk2nd_node);
 }
 
+static bool do_device_init(const void *dtb, int node,
+			   const struct lk2nd_device_init *di)
+{
+	int ret = fdt_node_check_compatible(dtb, node, di->compatible);
+	switch (ret) {
+	case 0:
+		ret = di->init(dtb, node);
+		if (ret)
+			dprintf(CRITICAL, "lk2nd device init for %s failed: %d\n",
+				di->compatible, ret);
+		return true;
+	case 1:
+		return false;	/* Not compatible */
+	case -FDT_ERR_NOTFOUND:
+		return true;	/* No compatible */
+	default:
+		dprintf(CRITICAL, "Failed to check lk2nd device init compatible: %d\n", ret);
+		return true;
+	}
+}
+
+static void device_init(const void *dtb, int device_node)
+{
+	extern const struct lk2nd_device_init __lk2nd_device_init_start;
+	extern const struct lk2nd_device_init __lk2nd_device_init_end;
+	int node;
+
+	if (&__lk2nd_device_init_start == &__lk2nd_device_init_end)
+		return; /* No initializers */
+
+	fdt_for_each_subnode(node, dtb, device_node) {
+		const struct lk2nd_device_init *di;
+		for (di = &__lk2nd_device_init_start; di < &__lk2nd_device_init_end; ++di)
+			if (do_device_init(dtb, node, di))
+				break;
+	}
+	if (node < 0 && node != -FDT_ERR_NOTFOUND)
+		dprintf(CRITICAL, "Failed to check lk2nd device subnodes: %d\n", node);
+}
+
 static void parse_dtb(const void *dtb)
 {
 	int node, len;
@@ -68,6 +108,7 @@ static void parse_dtb(const void *dtb)
 
 	dprintf(INFO, "Detected device: %s (compatible: %s)\n",
 		lk2nd_dev.model, lk2nd_dev.compatible);
+	device_init(dtb, node);
 }
 
 #ifdef LK2ND_BUNDLE_DTB
