@@ -22,3 +22,7 @@ DEFINES := $(filter-out ENABLE_WBC=1, $(DEFINES))
 
 # Should be already done by primary bootloader if wanted
 DEFINES := $(filter-out ENABLE_XPU_VIOLATION=1, $(DEFINES))
+
+# Build Android boot image
+OUTBOOTIMG := $(BUILDDIR)/lk2nd.img
+MKBOOTIMG_CMDLINE := lk2nd
