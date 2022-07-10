@@ -1,0 +1,6 @@
+// SPDX-License-Identifier: BSD-3-Clause
+#include <dt-bindings/arm/qcom,ids.h>
+
+/ {
+	lk2nd: lk2nd { };
+};
