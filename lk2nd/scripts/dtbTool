@@ -409,6 +409,16 @@ def generate_records(f, pagesize):
 				     x.pmic_id[2], x.pmic_id[3], 0, size, f,
 				     version) for x in ids]
 
+	if f.endswith('/lk2nd/device/dts/msm8916/samsung.dtb'):
+		# The msm8916 samsung.dts results in a lot of QCDT entries (records)
+		# because each qcom,msm-id is combined with each qcom,board-id. However,
+		# each board-id is actually only valid for one particular msm-id,
+		# so we can save quite some space by cleaning them up here.
+		records = filter(lambda r:
+			# Workaround for inconsistent qcom,board-id used on MSM8929
+			r.plat_id & 0xff == r.variant_id >> 24 if r.variant_id & 0xfffff == 0x1ff01
+			else r.plat_id in (r.variant_id >> 24, r.variant_id >> 20), records)
+
 	return records
 
 def write_padding(f, pagesize):
