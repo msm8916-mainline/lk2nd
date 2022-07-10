@@ -1,0 +1,15 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+/dts-v1/;
+
+/ {
+	#address-cells = <1>;
+	#size-cells = <1>;
+
+	chosen { };
+
+	memory@0 {
+		device_type = "memory";
+		reg = <0 0>;
+	};
+};
