@@ -12,7 +12,6 @@
 	model = "Xiaomi Redmi 5 Plus";
 	compatible = "xiaomi,vince", "qcom,msm8953", "lk2nd,device";
 	lk2nd,pstore = <0x9ff00000 0x100000>;
-	lk2nd,match-bootloader = "*DAISY1.0*";
 
 	panel {
 		compatible = "xiaomi,vince-panel";
