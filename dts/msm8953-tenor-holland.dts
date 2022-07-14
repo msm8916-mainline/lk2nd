@@ -1,0 +1,35 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+/include/ "msm8953.dtsi"
+
+/ {
+	// This is used by the bootloader to find the correct DTB 
+	qcom,msm-id = <293 0x0>;
+	qcom,board-id= <0x2000b 0x0>;
+	qcom,pmic-id = <0x10016 0x10011 0x00 0x00>;
+
+	model = "10Or G";
+	compatible = "tenor,g", "qcom,msm8953", "lk2nd,device";
+	lk2nd,pstore = <0x9ff00000 0x100000>;
+	
+	panel {
+		
+			compatible = "tenor,g-panel";
+
+			qcom,mdss_dsi_hx8399c_auo_53_1080p_video {
+				compatible = "tenor,hx8399c_auo";
+			};
+
+			qcom,mdss_dsi_ili7807d_djn_53_1080p_video {
+				compatible = "tenor,ili7807d_djn";
+			};
+
+			qcom,mdss_dsi_ili7807d_djn_auo_53_1080p_video {
+				compatible = "tenor,ili7807d_djn_auo";
+			};
+
+		};
+
+};
