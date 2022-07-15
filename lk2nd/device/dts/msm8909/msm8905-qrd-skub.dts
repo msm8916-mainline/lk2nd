@@ -1,0 +1,44 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8905 0>;
+	qcom,board-id = <QCOM_BOARD_ID_QRD 0x100>;
+};
+
+&lk2nd {
+	cat-b35 {
+		model = "CAT B35";
+		compatible = "cat,b35";
+		lk2nd,match-panel;
+
+		panel {
+			compatible = "cat,b35-panel", "lk2nd,panel";
+
+			qcom,mdss_spi_qtb2d4178_qvga_cmd {
+				compatible = "cat,b35-panel-qtb2d4178";
+			};
+			qcom,mdss_spi_t024f754_qvga_cmd {
+				compatible = "cat,b35-panel-t024f754";
+			};
+			qcom,mdss_spi_gc9306_qvga_cmd {
+				compatible = "cat,b35-panel-gc9306";
+			};
+			qcom,mdss_spi_cqzx24qg528_qvga_cmd {
+				compatible = "cat,b35-panel-cqzx24qg528";
+			};
+		};
+
+		gpio-keys {
+			compatible = "gpio-keys";
+
+			/* Actually KEY_0 but other keys seem to be part of the matrix */
+			volume-down {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&tlmm 28 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+};
