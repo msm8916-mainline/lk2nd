@@ -1,0 +1,18 @@
+// SPDX-License-Identifier: GPL-2.0-only
+#include "msm8916-motorola.dtsi"
+
+&lk2nd {
+	model = "Motorola Moto G4 Play (harpia)";
+	compatible = "motorola,harpia";
+
+	panel {
+		compatible = "motorola,harpia-panel", "lk2nd,panel";
+
+		qcom,mdss_dsi_mot_boe_499_720p_video_v1 {
+			compatible = "motorola,harpia-panel-boe";
+		};
+		qcom,mdss_dsi_mot_tianma_499_720p_video_v2 {
+			compatible = "motorola,harpia-panel-tianma";
+		};
+	};
+};

@@ -1,0 +1,29 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8916 0>;
+	qcom,board-id = <QCOM_BOARD_ID_QRD 9>;
+};
+
+&lk2nd {
+	wileyfox-crackling {
+		model = "Wileyfox Swift (Longcheer L8150)";
+		compatible = "wileyfox,crackling", "longcheer,l8150";
+		lk2nd,match-bootloader = "crackling-*";
+
+		panel {
+			compatible = "longcheer,l8150-panel", "lk2nd,panel";
+
+			/* TODO: qcom,mdss_dsi_truly_otm1288a_720p_video */
+			qcom,mdss_dsi_dijing_ILI9881C_720p_video {
+				compatible = "longcheer,dijing-ili9881c";
+			};
+			qcom,mdss_dsi_booyi_OTM1287_720p_video {
+				compatible = "longcheer,booyi-otm1287";
+			};
+		};
+	};
+};
