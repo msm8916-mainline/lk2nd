@@ -1,0 +1,16 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+#include <skeleton32.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <0xC208FF01 14 0x10000>;
+};
+
+&lk2nd {
+	klte {
+		model = "Samsung Galaxy S5 (SM-G900F)";
+		compatible = "samsung,klte";
+		lk2nd,match-bootloader = "G900F*";
+	};
+};

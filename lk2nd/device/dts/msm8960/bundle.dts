@@ -1,0 +1,11 @@
+// SPDX-License-Identifier: BSD-3-Clause
+#include <skeleton32.dtsi>
+#include <lk2nd.dtsi>
+
+&lk2nd {
+	samsung-serrano {
+		model = "Samsung Galaxy S4 Mini (GT-I9195)";
+		compatible = "samsung,serranolte", "samsung,serrano";
+		lk2nd,match-bootloader = "I9195*";
+	};
+};

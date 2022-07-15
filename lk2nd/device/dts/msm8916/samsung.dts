@@ -1,0 +1,57 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+#define I2C_GPIO_FLAGS	(GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN | GPIO_BIAS_DISABLE)
+
+/ {
+	/* TODO: Add more */
+	qcom,msm-id = <QCOM_ID_MSM8916 0>;
+	qcom,board-id = <0xCE08FF01 1>, <0xCE08FF01 3>, <0xCE08FF01 7>;
+};
+
+&lk2nd {
+	a3lte {
+		model = "Samsung Galaxy A3 (SM-A300F)";
+		compatible = "samsung,a3lte", "samsung,a3";
+		lk2nd,match-bootloader = "A300F*";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 1>;
+	};
+
+	gt58lte {
+		model = "Samsung Galaxy Tab A 8.0 (LTE, SM-T355)";
+		compatible = "samsung,gt58lte", "samsung,gt58";
+		lk2nd,match-bootloader = "T355*";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 1>;
+	};
+
+	gt510lte {
+		model = "Samsung Galaxy Tab A 9.7 (LTE, SM-T555)";
+		compatible = "samsung,gt510lte", "samsung,gt510";
+		lk2nd,match-bootloader = "T555*";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 7>;
+	};
+
+	serranovelte {
+		model = "Samsung Galaxy S4 Mini Value Edition";
+		compatible = "samsung,serranovelte", "samsung,serranove";
+		lk2nd,match-bootloader = "I9195I*";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 3>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x14>;
+			i2c-sda-gpios = <&tlmm 105 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 106 I2C_GPIO_FLAGS>;
+		};
+	};
+};

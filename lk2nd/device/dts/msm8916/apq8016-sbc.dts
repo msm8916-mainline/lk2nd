@@ -1,0 +1,14 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_APQ8016 0>;
+	qcom,board-id = <QCOM_BOARD_ID_SBC 0>;
+};
+
+&lk2nd {
+	model = "APQ8016 SBC";
+	compatible = "apq8016,sbc";
+};
