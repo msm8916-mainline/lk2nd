@@ -1,0 +1,18 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	model = "OnePlus 3T";
+	qcom,msm-id = <QCOM_ID_MSM8996SG 0x10000>;
+	qcom,board-id = <8 0 15811 26>,
+			<8 0 15811 27>,
+			<8 0 15811 28>;
+	qcom,pmic-id = <0x20009 0x10013 0x0 0x0>;
+};
+
+&lk2nd {
+	model = "OnePlus 3T";
+	compatible = "oneplus,oneplus3t";
+};
