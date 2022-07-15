@@ -1,0 +1,64 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8916 0>;
+	qcom,board-id = <QCOM_BOARD_ID_QRD 9>;
+};
+
+&lk2nd {
+	bq-paella {
+		model = "BQ Aquaris X5 (Longcheer L8910)";
+		compatible = "bq,paella", "longcheer,l8910";
+		lk2nd,match-bootloader = "paella-*";
+
+		panel {
+			compatible = "longcheer,l8910-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_truly_otm1288a_720p_video {
+				compatible = "longcheer,truly-otm1288a";
+			};
+			qcom,mdss_dsi_truly_otm1288a_720p_cmd {
+				compatible = "longcheer,truly-otm1288a";
+			};
+			qcom,mdss_dsi_yushun_NT35520_720p_cmd {
+				compatible = "longcheer,yushun-nt35520";
+			};
+			qcom,mdss_dsi_truly_HX8394_720p_video {
+				compatible = "longcheer,truly-hx8394";
+			};
+			qcom,mdss_dsi_yushun_NT35521S_720p_video {
+				compatible = "longcheer,yushun-nt35521s";
+			};
+		};
+
+		smb1360 {
+			compatible = "qcom,smb1360";
+			qcom,batt-profile-select;
+			qcom,batt-id-vref-uv = <1800000>;
+			qcom,batt-id-rpullup-kohm = <100>;
+			qcom,profile-a-rid-kohm = <100>;
+			qcom,profile-b-rid-kohm = <200>;
+		};
+	};
+
+	wileyfox-crackling {
+		model = "Wileyfox Swift (Longcheer L8150)";
+		compatible = "wileyfox,crackling", "longcheer,l8150";
+		lk2nd,match-bootloader = "crackling-*";
+
+		panel {
+			compatible = "longcheer,l8150-panel", "lk2nd,panel";
+
+			/* TODO: qcom,mdss_dsi_truly_otm1288a_720p_video */
+			qcom,mdss_dsi_dijing_ILI9881C_720p_video {
+				compatible = "longcheer,dijing-ili9881c";
+			};
+			qcom,mdss_dsi_booyi_OTM1287_720p_video {
+				compatible = "longcheer,booyi-otm1287";
+			};
+		};
+	};
+};
