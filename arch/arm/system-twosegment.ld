@@ -48,6 +48,10 @@ SECTIONS
 		KEEP (*(.apps))
 		__apps_end = .;
 		. = ALIGN(4); 
+		__dt_update_start = .;
+		KEEP (*(.dt_update))
+		__dt_update_end = .;
+		. = ALIGN(4);
 		__fastboot_start = .;
 		KEEP (*(.fastboot))
 		__fastboot_end = .;
