@@ -1077,6 +1077,19 @@ unsigned char *update_cmdline(const char * cmdline)
 	return cmdline_final;
 }
 
+static unsigned char *update_cmdline2(const char *cmdline, enum boot_type boot_type)
+{
+#if GENERATE_CMDLINE_ONLY_FOR_ANDROID
+	if (!(boot_type & (BOOT_ANDROID | BOOT_LK2ND)))
+		return (unsigned char*)strdup(cmdline);
+#endif
+#if WITH_LK2ND_DEVICE
+	return lk2nd_device_update_cmdline(cmdline, boot_type);
+#else
+	return update_cmdline(cmdline);
+#endif
+}
+
 unsigned *atag_core(unsigned *ptr)
 {
 	/* CORE */
@@ -1194,8 +1207,10 @@ void boot_linux(void *kernel, unsigned *tags,
 		boot_type |= BOOT_ARM64;
 	if (strstr(cmdline, "androidboot"))
 		boot_type |= BOOT_ANDROID;
+	if (strcmp(cmdline, "lk2nd") == 0)
+		boot_type |= BOOT_LK2ND;
 
-	final_cmdline = update_cmdline((const char*)cmdline);
+	final_cmdline = update_cmdline2(cmdline, boot_type);
 
 #if DEVICE_TREE
 	dprintf(INFO, "Updating device tree: start\n");

@@ -137,6 +137,36 @@ void lk2nd_device_init(void)
 	parse_dtb(dtb);
 }
 
+static unsigned char *concat_cmdline(const char *a, const char *b)
+{
+	int lenA = strlen(a), lenB = strlen(b);
+	unsigned char *r = malloc(lenA + lenB + 2); /* space and null terminator */
+
+	ASSERT(r);
+	memcpy(r, a, lenA);
+	r[lenA] = ' ';
+	memcpy(r + lenA + 1, b, lenB + 1);
+	return r;
+}
+
+unsigned char *lk2nd_device_update_cmdline(const char *cmdline, enum boot_type boot_type)
+{
+#ifdef LK2ND_COMPATIBLE
+	/*
+	 * Pass on the hardcoded compatible to the next lk2nd. Note that this
+	 * replaces the original cmdline in the Android boot image, but it
+	 * should be just a simple "lk2nd" anyway.
+	 */
+	if (boot_type & BOOT_LK2ND)
+		cmdline = "lk2nd.compatible=" LK2ND_COMPATIBLE;
+#endif
+#if WITH_LK2ND_DEVICE_2ND
+	if (lk2nd_dev.cmdline)
+		return concat_cmdline(cmdline, lk2nd_dev.cmdline);
+#endif
+	return update_cmdline(cmdline);
+}
+
 static void lk2nd_device_fastboot_register(void)
 {
 	if (lk2nd_dev.compatible)
