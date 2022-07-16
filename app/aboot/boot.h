@@ -8,7 +8,14 @@ enum boot_type {
 	BOOT_ARM64	= BIT(0),
 	BOOT_ANDROID	= BIT(1),
 	BOOT_DOWNSTREAM	= BIT(2),
+#if WITH_LK2ND
+	BOOT_LK2ND	= BIT(3),
+#else
+	BOOT_LK2ND	= 0,
+#endif
 };
+
+unsigned char *update_cmdline(const char *cmdline);
 
 #if DEVICE_TREE
 struct dt_update_handler {
