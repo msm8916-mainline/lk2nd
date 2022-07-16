@@ -38,4 +38,7 @@ DEFINES := $(filter-out USER_FORCE_RESET_SUPPORT=1, $(DEFINES))
 # Allow flashing independent of battery voltage
 DEFINES := $(filter-out CHECK_BAT_VOLTAGE=1, $(DEFINES))
 
+# Keep the kernel command line clean when booting other operating systems
+DEFINES += GENERATE_CMDLINE_ONLY_FOR_ANDROID=1
+
 include $(if $(filter msm8660 msm8960, $(TARGET)), lk2nd/project/msm8x60.mk)
