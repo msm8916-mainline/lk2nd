@@ -81,6 +81,7 @@
 #include <reboot.h>
 #include "image_verify.h"
 #include "recovery.h"
+#include "boot.h"
 #include "bootimg.h"
 #include "fastboot.h"
 #include "sparse_format.h"
@@ -1185,8 +1186,14 @@ void boot_linux(void *kernel, unsigned *tags,
 	void (*entry)(unsigned, unsigned, unsigned*) = (entry_func_ptr*)(PA((addr_t)kernel));
 	uint32_t tags_phys = PA((addr_t)tags);
 	struct kernel64_hdr *kptr = ((struct kernel64_hdr*)(PA((addr_t)kernel)));
+	enum boot_type boot_type = 0;
 
 	ramdisk = (void *)PA((addr_t)ramdisk);
+
+	if (IS_ARM64(kptr))
+		boot_type |= BOOT_ARM64;
+	if (strstr(cmdline, "androidboot"))
+		boot_type |= BOOT_ANDROID;
 
 	final_cmdline = update_cmdline((const char*)cmdline);
 
@@ -1194,7 +1201,8 @@ void boot_linux(void *kernel, unsigned *tags,
 	dprintf(INFO, "Updating device tree: start\n");
 
 	/* Update the Device Tree */
-	ret = update_device_tree((void *)tags,(const char *)final_cmdline, ramdisk, ramdisk_size);
+	ret = update_device_tree((void *)tags,(const char *)final_cmdline,
+				 boot_type, ramdisk, ramdisk_size);
 	if(ret)
 	{
 		dprintf(CRITICAL, "ERROR: Updating Device Tree Failed \n");

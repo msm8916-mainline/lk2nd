@@ -2122,8 +2122,33 @@ int dev_tree_add_mem_info(void *fdt, uint32_t offset, uint64_t addr, uint64_t si
 	return ret;
 }
 
+static int call_dt_update_handlers(void *fdt, const char *cmdline,
+				   enum boot_type boot_type)
+{
+	extern const struct dt_update_handler __dt_update_start;
+	extern const struct dt_update_handler __dt_update_end;
+	const struct dt_update_handler *dtu;
+	int ret;
+
+	if (&__dt_update_start == &__dt_update_end)
+		return 0;
+
+	/* Most downstream/vendor device trees seem to have this node */
+	if (fdt_path_offset(fdt, "/soc/qcom,ion") > 0)
+		boot_type |= BOOT_DOWNSTREAM;
+
+	for (dtu = &__dt_update_start; dtu < &__dt_update_end; ++dtu) {
+		ret = dtu->update_dt(fdt, cmdline, boot_type);
+		if (ret) {
+			dprintf(CRITICAL, "%s failed: %d\n", dtu->name, ret);
+			return ret;
+		}
+	}
+	return 0;
+}
+
 /* Top level function that updates the device tree. */
-int update_device_tree(void *fdt, const char *cmdline,
+int update_device_tree(void *fdt, const char *cmdline, enum boot_type boot_type,
 					   void *ramdisk, uint32_t ramdisk_size)
 {
 	int ret = 0;
@@ -2244,6 +2269,11 @@ int update_device_tree(void *fdt, const char *cmdline,
 	}
 	dprintf(SPEW, "End of fstab node update:%zu ms\n", platform_get_sclk_count());
 #endif
+
+	ret = call_dt_update_handlers(fdt, cmdline, boot_type);
+	if (ret)
+		return ret;
+
 	fdt_pack(fdt);
 
 #if ENABLE_PARTIAL_GOODS_SUPPORT

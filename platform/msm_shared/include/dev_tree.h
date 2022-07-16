@@ -33,6 +33,8 @@
 #ifndef __DEVICE_TREE__
 #define __DEVICE_TREE__
 
+#include <boot.h>
+
 #define DEV_TREE_SUCCESS        0
 #define DEV_TREE_MAGIC          0x54444351 /* "QCDT" */
 #define DEV_TREE_MAGIC_LEN      4
@@ -255,7 +257,7 @@ dtbo_error load_validate_dtbo_image(void **dtbo_img, uint32_t *dtbo_img_size);
 void get_recovery_dtbo_info(uint32_t *dtbo_size, void **dtbo_buf);
 int dev_tree_validate(struct dt_table *table, unsigned int page_size, uint32_t *dt_hdr_size);
 int dev_tree_get_entry_info(struct dt_table *table, struct dt_entry *dt_entry_info);
-int update_device_tree(void *fdt, const char *, void *, unsigned);
+int update_device_tree(void *fdt, const char *, enum boot_type, void *, unsigned);
 int dev_tree_add_mem_info(void *fdt, uint32_t offset, uint64_t size, uint64_t addr);
 void *dev_tree_appended(void *kernel, uint32_t kernel_size, uint32_t dtb_offset, void *tags);
 int get_dtbo_idx (void);
