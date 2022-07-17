@@ -17,6 +17,7 @@ GPL ?= 1
 MODULES += \
 	lk2nd \
 	lk2nd/fastboot \
+	lk2nd/mac \
 
 ifeq ($(ENABLE_DISPLAY), 1)
 ifneq ($(LK2ND_DISPLAY),)
