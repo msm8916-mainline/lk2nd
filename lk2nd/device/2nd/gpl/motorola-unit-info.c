@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
+#include <boot.h>
 #include <debug.h>
 #include <libfdt.h>
 #include <smem.h>
@@ -11,6 +12,8 @@
 #define SMEM_ID_VENDOR0			0x86
 #define SMEM_KERNEL_RESERVE		SMEM_ID_VENDOR0
 #define SMEM_KERNEL_RESERVE_SIZE	1024
+
+static const struct mmi_unit_info *mmi_unit_info;
 
 static void readprop_u32(const void *dtb, int node, const char *name, uint32_t *val) {
 	int len;
@@ -46,6 +49,7 @@ static int motorola_unit_info(const void *dtb, int node)
 			return 1;
 		}
 
+		mmi_unit_info = info;
 		print_unit_info(info);
 		return 0;
 	}
@@ -85,7 +89,46 @@ static int motorola_unit_info(const void *dtb, int node)
 
 	readprop_u32(dtb, chosen, "mmi,powerup_reason", &info->powerup_reason);
 
+	mmi_unit_info = info;
 	print_unit_info(info);
 	return 0;
 }
 LK2ND_DEVICE_INIT("motorola,unit-info", motorola_unit_info);
+
+static int motorola_unit_info_update_dt(void *dtb, const char *cmdline,
+					enum boot_type boot_type)
+{
+	const struct mmi_unit_info *info = mmi_unit_info;
+	int chosen, len;
+
+	if (!info || !(boot_type & BOOT_DOWNSTREAM))
+		return 0;
+
+	chosen = fdt_path_offset(dtb, "/chosen");
+	if (chosen < 0) {
+		dprintf(CRITICAL, "Failed to get /chosen node in device tree: %d\n", chosen);
+		return 0; /* Still continue boot */
+	}
+
+	/*
+	 * Copy the values from SMEM into the downstream DTB since the driver
+	 * from Motorola in the downstream kernel insists on writing the whole
+	 * unit info again...
+	 */
+	if (info->system_rev)
+		fdt_setprop_u32(dtb, chosen, "linux,hwrev", info->system_rev);
+	if (info->system_serial_low)
+		fdt_setprop_u32(dtb, chosen, "linux,seriallow", info->system_serial_low);
+	if (info->system_serial_high)
+		fdt_setprop_u32(dtb, chosen, "linux,serialhigh", info->system_serial_high);
+
+	len = strnlen(info->baseband, BASEBAND_MAX_LEN);
+	if (len > 0)
+		fdt_setprop(dtb, chosen, "mmi,baseband", info->baseband, len + 1);
+
+	if (info->powerup_reason)
+		fdt_setprop_u32(dtb, chosen, "mmi,powerup_reason", info->powerup_reason);
+
+	return 0;
+}
+DEV_TREE_UPDATE(motorola_unit_info_update_dt);
