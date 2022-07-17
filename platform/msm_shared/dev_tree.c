@@ -825,6 +825,7 @@ static int dev_tree_compatible(void *dtb, void *real_dtb, uint32_t dtb_size,
 	if (root_offset < 0)
 		return false;
 
+if (DEBUGLEVEL >= SPEW) {
 	prop = fdt_getprop(dtb, root_offset, "model", &len);
 	if (prop && len > 0) {
 		model = (char *) malloc(sizeof(char) * len);
@@ -833,6 +834,8 @@ static int dev_tree_compatible(void *dtb, void *real_dtb, uint32_t dtb_size,
 	} else {
 		dprintf(INFO, "model does not exist in device tree\n");
 	}
+}
+
 	/* Find the pmic-id prop from DTB , if pmic-id is present then
 	* the DTB is version 3, otherwise find the board-id prop from DTB ,
 	* if board-id is present then the DTB is version 2 */
