@@ -69,6 +69,7 @@
 #define KEY_VOLUMEDOWN	0x116
 #define KEY_MUTE	0x117
 #define KEY_SOUND	0x118
+#define KEY_POWER	0x119
 
 #define KEY_SOFT1	0x11a
 #define KEY_SOFT2	0x11b
