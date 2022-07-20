@@ -64,11 +64,25 @@ struct keys_stru {
 	keys_detect_func keys_pressed_func;
 };
 
+#if WITH_LK2ND_DEVICE
+#include <lk2nd/device/keys.h>
+
+static uint32_t lk2nd_key_vol_up(void) { return lk2nd_keys_pressed(KEY_VOLUMEUP); }
+static uint32_t lk2nd_key_vol_down(void) { return lk2nd_keys_pressed(KEY_VOLUMEDOWN); }
+static uint32_t lk2nd_key_power(void) { return lk2nd_keys_pressed(KEY_POWER); }
+
+struct keys_stru keys[] = {
+	{VOLUME_UP, lk2nd_key_vol_up},
+	{VOLUME_DOWN, lk2nd_key_vol_down},
+	{POWER_KEY, lk2nd_key_power},
+};
+#else
 struct keys_stru keys[] = {
 	{VOLUME_UP, (uint32_t (*)(void))target_volume_up},
 	{VOLUME_DOWN, target_volume_down},
 	{POWER_KEY, pm8x41_get_pwrkey_is_pressed},
 };
+#endif
 
 struct pages_action {
 	keys_action_func up_action_func;
