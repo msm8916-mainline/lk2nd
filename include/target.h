@@ -116,6 +116,9 @@ struct qmp_reg *target_get_qmp_settings(void);
 int target_get_qmp_regsize(void);
 uint32_t target_ddr_cfg_reg(void);
 
+int target_volume_up(void);
+uint32_t target_volume_down(void);
+
 bool target_is_pmi_enabled(void);
 #if PON_VIB_SUPPORT
 struct qpnp_hap;
