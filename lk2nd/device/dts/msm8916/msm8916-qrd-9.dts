@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
+#include <dt-bindings/dev/keys.h>
+
 #include <skeleton64.dtsi>
 #include <lk2nd.dtsi>
 
@@ -58,6 +60,20 @@
 			};
 			qcom,mdss_dsi_booyi_OTM1287_720p_video {
 				compatible = "longcheer,booyi-otm1287";
+			};
+		};
+
+		gpio-keys {
+			compatible = "gpio-keys";
+
+			up {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&tlmm 107 (GPIO_PULL_UP|GPIO_ACTIVE_LOW)>;
+			};
+
+			down {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&pmic_pon GPIO_PMIC_RESIN 0>;
 			};
 		};
 	};
