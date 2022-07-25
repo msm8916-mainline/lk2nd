@@ -84,6 +84,9 @@ void arm_mmu_init(void)
 
 	platform_init_mmu_mappings();
 
+	/* ensure short-descriptor format is selected (clear TTBCR.EAE) */
+	arm_write_ttbcr(0);
+
 	/* set up the translation table base */
 	arm_write_ttbr((uint32_t)tt);
 
