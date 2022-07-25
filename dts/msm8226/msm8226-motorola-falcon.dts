@@ -1,0 +1,14 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton.dtsi>
+#include <lk2nd.h>
+
+/ {
+	// This is used by the bootloader to find the correct DTB
+	qcom,msm-id = <0x91 0x42 0x283C0>;
+
+	model = "Motorola Moto G 2013";
+	compatible = "motorola,falcon", "qcom,msm8226", "lk2nd,device";
+};
