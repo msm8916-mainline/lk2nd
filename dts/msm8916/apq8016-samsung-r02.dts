@@ -12,6 +12,12 @@
 	// Unfortunately, Samsung uses the same qcom,board-id for all its
 	// APQ8016 devices. Therefore, it will always pick this shared device
 	// tree and we need to do more manual work to differentiate the devices.
+	gt58wifi {
+		model = "Samsung Galaxy Tab A 8.0 WiFi 2015 (SM-T350)";
+		compatible = "samsung,gt58", "qcom,apq8016", "lk2nd,device";
+		lk2nd,match-bootloader = "T350*";
+	};
+
 	matissevewifi {
 		model = "Samsung Galaxy Tab 4 10.1 (2015) T533";
 		compatible = "samsung,matissevewifi", "qcom,apq8016", "lk2nd,device";
