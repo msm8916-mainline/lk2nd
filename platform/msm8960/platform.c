@@ -80,6 +80,7 @@ mmu_section_t mmu_section_table[] = {
 	{SCRATCH_ADDR, SCRATCH_ADDR, 768, SCRATCH_MEMORY},
 	{MSM_IOMAP_BASE, MSM_IOMAP_BASE, MSM_IOMAP_SIZE, IOMAP_MEMORY},
 	{MSM_IMEM_BASE, MSM_IMEM_BASE, 1, IMEM_MEMORY},
+	{MSM_SHARED_BASE, MSM_SHARED_BASE, 1, KERNEL_MEMORY},
 };
 
 void platform_early_init(void)
@@ -102,6 +103,24 @@ void platform_uninit(void)
 #endif
 
 	platform_uninit_timer();
+}
+
+int platform_use_identity_mmu_mappings(void)
+{
+	/* Use only the mappings specified in this file. */
+	return 0;
+}
+
+addr_t platform_get_virt_to_phys_mapping(addr_t virt_addr)
+{
+	/* Return same address as we are using 1-1 mapping. */
+	return virt_addr;
+}
+
+addr_t platform_get_phys_to_virt_mapping(addr_t phys_addr)
+{
+	/* Return same address as we are using 1-1 mapping. */
+	return phys_addr;
 }
 
 /* Setup memory for this platform */
