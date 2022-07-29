@@ -4,3 +4,4 @@ MODULES += lib/libfdt
 
 OBJS += \
 	$(LOCAL_DIR)/gpio.o \
+	$(LOCAL_DIR)/tlmm.o \
