@@ -26,6 +26,7 @@
 #include <arch.h>
 #include <arch/arm.h>
 #include <arch/defines.h>
+#include <arch/ops.h>
 #include <arch/arm/mmu.h>
 #include <platform.h>
 
@@ -44,6 +45,16 @@ static uint32_t *tt = (void *)MMU_TRANSLATION_TABLE_ADDR;
 static uint32_t tt[4096] __ALIGNED(16384);
 #endif
 
+static inline uint32_t arm_mmu_section_desc(addr_t paddr, uint flags)
+{
+	/*
+	 * (2<<0): Section entry
+	 * (0<<5): Domain = 0
+	 *  flags: TEX, CB and AP bit settings provided by the caller.
+	 */
+	return (paddr & ~(MB-1)) | (0<<5) | (2<<0) | flags;
+}
+
 void arm_mmu_map_section(addr_t paddr, addr_t vaddr, uint flags)
 {
 	int index;
@@ -51,12 +62,8 @@ void arm_mmu_map_section(addr_t paddr, addr_t vaddr, uint flags)
 	/* Get the index into the translation table */
 	index = vaddr / MB;
 
-	/* Set the entry value:
-	 * (2<<0): Section entry
-	 * (0<<5): Domain = 0
-	 *  flags: TEX, CB and AP bit settings provided by the caller.
-	 */
-	tt[index] = (paddr & ~(MB-1)) | (0<<5) | (2<<0) | flags;
+	/* Set the entry value */
+	tt[index] = arm_mmu_section_desc(paddr, flags);
 
 	arm_invalidate_tlb();
 }
@@ -105,6 +112,49 @@ void arch_disable_mmu(void)
 	dsb();
 	arm_write_cr1(arm_read_cr1() & ~(1<<0));
 	arm_invalidate_tlb();
+}
+
+bool arm_mmu_try_map_sections(addr_t paddr, addr_t vaddr, uint size, uint flags)
+{
+	/* Round up to next MB and handle offsets within sections */
+	uint mb = (size + (paddr % MB) + MB - 1) / MB;
+	uint i, index = vaddr / MB;
+	bool fully_mapped = true;
+
+	/* Offset within mapped section must be equal */
+	if (size == 0 || (paddr % MB) != (vaddr % MB))
+		return false;
+
+	/* Check if any existing mappings conflict */
+	for (i = 0; i < mb; ++i) {
+		uint32_t desc = arm_mmu_section_desc(paddr + i * MB, flags);
+		if (!tt[index + i]) {
+			fully_mapped = false;
+			continue;
+		}
+		if (tt[index + i] != desc) {
+			dprintf(CRITICAL, "MMU mapping mismatch @ %#08x: %#08x != %#08x\n",
+				(index + i) * MB, tt[index + i], desc);
+			return false;
+		}
+	}
+	if (fully_mapped)
+		return true;
+
+	/* Add the new mappings */
+	for (i = 0; i < mb; ++i)
+		tt[index + i] = arm_mmu_section_desc(paddr + i * MB, flags);
+	arm_mmu_flush();
+	return true;
+}
+
+void arm_mmu_flush(void)
+{
+	arch_clean_cache_range((vaddr_t)&tt, sizeof(tt));
+	dsb();
+	arm_invalidate_tlb();
+	dsb();
+	isb();
 }
 
 #endif // ARM_WITH_MMU
