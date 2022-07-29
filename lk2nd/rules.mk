@@ -18,3 +18,5 @@ $(warning WARNING: Apache-2.0 license of libufdt is not compatible with \
 	  Set GPL=0 to exclude GPL-licensed code.)
 endif
 endif
+
+include $(LOCAL_DIR)/util/rules.mk
