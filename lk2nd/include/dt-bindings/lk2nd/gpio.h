@@ -9,6 +9,7 @@
 #define GPIO_DEV_PHANDLE(dev) (0x47494f00 | ((dev) & 0xff))
 
 #define GPIOL_DEVICE_INVALID	0
+#define GPIOL_DEVICE_TLMM	1
 
 /* 0:7 - GPIO configuration flags */
 #ifndef BIT
