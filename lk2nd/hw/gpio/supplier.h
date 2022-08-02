@@ -21,4 +21,11 @@ void lk2nd_gpio_tlmm_output_enable(uint32_t num, bool oe);
 void lk2nd_gpio_tlmm_set(uint32_t num, bool on);
 bool lk2nd_gpio_tlmm_get(uint32_t num);
 
+/* pm8x41.c or pm8921.c */
+int lk2nd_gpio_pmic_config(uint32_t num, int flags);
+int lk2nd_gpio_pmic_set_dir(uint32_t num, bool oe, bool on);
+void lk2nd_gpio_pmic_set(uint32_t num, bool on);
+bool lk2nd_gpio_pmic_get(uint32_t num);
+bool lk2nd_gpio_pmic_pon_get(uint32_t num);
+
 #endif /* GPIO_SUPPLIER_H */
