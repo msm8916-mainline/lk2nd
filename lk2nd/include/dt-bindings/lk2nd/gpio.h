@@ -10,6 +10,8 @@
 
 #define GPIOL_DEVICE_INVALID	0
 #define GPIOL_DEVICE_TLMM	1
+#define GPIOL_DEVICE_PMIC	2
+#define GPIOL_DEVICE_PMIC_PON	3
 
 /* 0:7 - GPIO configuration flags */
 #ifndef BIT
@@ -43,5 +45,12 @@
 /* 24:31 - Device-specific config flags */
 
 #define GPIO_PMIC_VIN_SEL(x)	(((x) & 0x07) << 24 | BIT(27)) /* bits 24:27 */
+
+/* device-specific definitions */
+
+#define GPIO_PMIC_NUM(num, sid) (((num) & 0xff) | ((sid) & 0xff) << 8)
+
+#define GPIO_PMIC_PWRKEY	1
+#define GPIO_PMIC_RESIN		2
 
 #endif /* DT_BINDINGS_LK2ND_GPIO_H */

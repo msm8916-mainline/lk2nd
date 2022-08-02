@@ -59,6 +59,12 @@ int gpiol_direction_input(struct gpiol_desc desc)
 		lk2nd_gpio_tlmm_output_enable(desc.pin, false);
 		return 0;
 
+	case GPIOL_DEVICE_PMIC:
+		return lk2nd_gpio_pmic_set_dir(desc.pin, false, false);
+
+	case GPIOL_DEVICE_PMIC_PON:
+		return 0;
+
 	default:
 		dprintf(CRITICAL, "%s: device %d is not known.\n", __func__, desc.dev);
 		return -1;
@@ -76,6 +82,13 @@ int gpiol_direction_output(struct gpiol_desc desc, bool value)
 		lk2nd_gpio_tlmm_output_enable(desc.pin, true);
 		return 0;
 
+	case GPIOL_DEVICE_PMIC:
+		return lk2nd_gpio_pmic_set_dir(desc.pin, true, value);
+
+	case GPIOL_DEVICE_PMIC_PON:
+		dprintf(CRITICAL, "%s: device %d does not support this action.\n", __func__, desc.dev);
+		return -1;
+
 	default:
 		dprintf(CRITICAL, "%s: device %d is not known.\n", __func__, desc.dev);
 		return -1;
@@ -89,6 +102,14 @@ bool gpiol_is_asserted(struct gpiol_desc desc)
 	switch (desc.dev) {
 	case GPIOL_DEVICE_TLMM:
 		val = lk2nd_gpio_tlmm_get(desc.pin);
+		break;
+
+	case GPIOL_DEVICE_PMIC:
+		val = lk2nd_gpio_pmic_get(desc.pin);
+		break;
+
+	case GPIOL_DEVICE_PMIC_PON:
+		val = lk2nd_gpio_pmic_pon_get(desc.pin);
 		break;
 
 	default:
@@ -109,6 +130,14 @@ void gpiol_set_asserted(struct gpiol_desc desc, bool value)
 		lk2nd_gpio_tlmm_set(desc.pin, value);
 		return;
 
+	case GPIOL_DEVICE_PMIC:
+		lk2nd_gpio_pmic_set(desc.pin, value);
+		return;
+
+	case GPIOL_DEVICE_PMIC_PON:
+		dprintf(CRITICAL, "%s: device %d does not support this action.\n", __func__, desc.dev);
+		return;
+
 	default:
 		dprintf(CRITICAL, "%s: device %d is not known.\n", __func__, desc.dev);
 		return;
@@ -123,6 +152,12 @@ int gpiol_set_config(struct gpiol_desc *desc, uint32_t config)
 	switch (desc->dev) {
 	case GPIOL_DEVICE_TLMM:
 		return lk2nd_gpio_tlmm_config(desc->pin, config);
+
+	case GPIOL_DEVICE_PMIC:
+		return lk2nd_gpio_pmic_config(desc->pin, config);
+
+	case GPIOL_DEVICE_PMIC_PON:
+		return 0;
 
 	default:
 		dprintf(CRITICAL, "%s: device %d is not known.\n", __func__, desc->dev);
