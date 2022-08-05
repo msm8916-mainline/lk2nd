@@ -215,4 +215,7 @@ unsigned partition_get_partition_count(void);
 /* Read Partition entried list pointer */
 struct partition_entry* partition_get_partition_entries(void);
 
+/* Allocate a new (virtual) partition that is added to the partition entries */
+struct partition_entry *partition_allocate(void);
+
 #endif
