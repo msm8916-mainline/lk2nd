@@ -96,6 +96,13 @@ struct partition_entry* partition_get_partition_entries(void)
 	return partition_entries;
 }
 
+struct partition_entry *partition_allocate(void)
+{
+	if (partition_count >= NUM_PARTITIONS)
+		return NULL;
+	return &partition_entries[partition_count++];
+}
+
 unsigned int partition_read_table(void)
 {
 	unsigned int ret;
@@ -338,7 +345,7 @@ static unsigned int mmc_boot_read_gpt(uint32_t block_size)
 	/* Read GPT Entries */
 	for (i = 0; i < (ROUNDUP(max_partition_count, part_entry_cnt)) / part_entry_cnt; i++) {
 		ASSERT(partition_count < NUM_PARTITIONS);
-		
+
 		data = (new_buffer + (i * block_size));
 		for (j = 0; j < part_entry_cnt; j++) {
 			memcpy(&(partition_entries[partition_count].type_guid),
