@@ -57,6 +57,19 @@
 #define APPS_APCS_F0_QTMR_V1_BASE   (APPS_SS_BASE + 0x00021000)
 #define QTMR_BASE                   APPS_APCS_F0_QTMR_V1_BASE
 
+#define APCS_GLB_BASE               (APPS_SS_BASE + 0x011000)
+#define APCS_CMD_RCGR               (APCS_GLB_BASE + 0x50)
+#define APCS_CFG_RCGR               (APCS_GLB_BASE + 0x54)
+#define APCS_PLL_BASE               (APPS_SS_BASE + 0x016000)
+#define APCS_LC_GLB_BASE            (APPS_SS_BASE + 0x111000)
+#define APCS_LC_CMD_RCGR            (APCS_LC_GLB_BASE + 0x50)
+#define APCS_LC_CFG_RCGR            (APCS_LC_GLB_BASE + 0x54)
+#define APCS_LC_PLL_BASE            (APPS_SS_BASE + 0x116000)
+#define APCS_CCI_PLL_BASE           (APPS_SS_BASE + 0x1d0000)
+#define APCS_CCI_GLB_BASE           (APPS_SS_BASE + 0x1d1050)
+#define APCS_CCI_CMD_RCGR           (APCS_CCI_GLB_BASE + 0x50)
+#define APCS_CCI_CFG_RCGR           (APCS_CCI_GLB_BASE + 0x54)
+
 #define PERIPH_SS_BASE              0x07800000
 
 #define MSM_SDC1_BASE               (PERIPH_SS_BASE + 0x00024000)

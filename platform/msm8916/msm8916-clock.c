@@ -587,6 +587,64 @@ static struct branch_clk gcc_blsp1_qup4_i2c_apps_clk = {
 	},
 };
 
+/* Need different gpll0 source value for CPU clocks */
+#undef gpll0_source_val
+#define gpll0_source_val  4
+
+static struct clk_freq_tbl ftbl_a53ssmux[] =
+{
+	F( 19200000,    cxo,  1, 0, 0),
+	F(400000000,  gpll0,  2, 0, 0),
+	F(800000000,  gpll0,  1, 0, 0),
+	F_END
+};
+
+static struct rcg_clk a53ssmux =
+{
+	.cmd_reg      = (uint32_t *) APCS_CMD_RCGR,
+	.cfg_reg      = (uint32_t *) APCS_CFG_RCGR,
+	.set_rate     = clock_lib2_rcg_set_rate_hid,
+	.freq_tbl     = ftbl_a53ssmux,
+	.current_freq = &rcg_dummy_freq,
+
+	.c = {
+		.dbg_name = "a53ssmux",
+		.ops      = &clk_ops_rcg,
+	},
+};
+
+static struct rcg_clk a53ssmux_lc =
+{
+	.cmd_reg      = (uint32_t *) APCS_LC_CMD_RCGR,
+	.cfg_reg      = (uint32_t *) APCS_LC_CFG_RCGR,
+	.set_rate     = clock_lib2_rcg_set_rate_hid,
+	.freq_tbl     = ftbl_a53ssmux,
+	.current_freq = &rcg_dummy_freq,
+
+	.c = {
+		.dbg_name = "a53ssmux_lc",
+		.ops      = &clk_ops_rcg,
+	},
+};
+
+static struct rcg_clk a53ssmux_cci =
+{
+	.cmd_reg      = (uint32_t *) APCS_CCI_CMD_RCGR,
+	.cfg_reg      = (uint32_t *) APCS_CCI_CFG_RCGR,
+	.set_rate     = clock_lib2_rcg_set_rate_hid,
+	.freq_tbl     = ftbl_a53ssmux,
+	.current_freq = &rcg_dummy_freq,
+
+	.c = {
+		.dbg_name = "a53ssmux_cci",
+		.ops      = &clk_ops_rcg,
+	},
+};
+
+/* Restore original gpll0 source value */
+#undef gpll0_source_val
+#define gpll0_source_val  1
+
 /* Clock lookup table */
 static struct clk_lookup msm_clocks_8916[] =
 {
@@ -622,6 +680,11 @@ static struct clk_lookup msm_clocks_8916[] =
 	CLK_LOOKUP("blsp1_qup4_ahb_iface_clk", gcc_blsp1_ahb_clk.c),
 	CLK_LOOKUP("gcc_blsp1_qup4_i2c_apps_clk_src", gcc_blsp1_qup4_i2c_apps_clk_src.c),
 	CLK_LOOKUP("gcc_blsp1_qup4_i2c_apps_clk", gcc_blsp1_qup4_i2c_apps_clk.c),
+
+	CLK_LOOKUP("a53ssmux", a53ssmux.c),
+	CLK_LOOKUP("a53ssmux_bc", a53ssmux.c),
+	CLK_LOOKUP("a53ssmux_lc", a53ssmux_lc.c),
+	CLK_LOOKUP("a53ssmux_cci", a53ssmux_cci.c),
 };
 
 void msm8939_clock_override()
