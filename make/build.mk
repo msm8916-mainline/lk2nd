@@ -9,11 +9,11 @@ $(OUTBIN): $(OUTELF)
 ifeq ($(ENABLE_TRUSTZONE), 1)
 $(OUTELF): $(ALLOBJS) $(LINKER_SCRIPT) $(OUTPUT_TZ_BIN)
 	@echo linking $@
-	$(NOECHO)$(LD) $(LDFLAGS) -T $(LINKER_SCRIPT) $(OUTPUT_TZ_BIN) $(ALLOBJS) $(LIBGCC) -o $@
+	$(NOECHO)$(LD) $(LDFLAGS) -T $(LINKER_SCRIPT) $(OUTPUT_TZ_BIN) $(ALLOBJS) $(LIBGCC) -Map=$(OUTELF).map -o $@
 else
 $(OUTELF): $(ALLOBJS) $(LINKER_SCRIPT)
 	@echo linking $@
-	$(NOECHO)$(LD) $(LDFLAGS) -T $(LINKER_SCRIPT) $(ALLOBJS) $(LIBGCC) -o $@
+	$(NOECHO)$(LD) $(LDFLAGS) -T $(LINKER_SCRIPT) $(ALLOBJS) $(LIBGCC) -Map=$(OUTELF).map -o $@
 endif
 
 
