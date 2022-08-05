@@ -2,6 +2,9 @@
 LOCAL_DIR := $(GET_LOCAL_DIR)
 MODULES += lib/libfdt
 
+# Additional initialization for CPU clocks (if needed)
+OBJS += $(patsubst %.c,%.o, $(wildcard $(LOCAL_DIR)/clock-$(PLATFORM).c))
+
 ifneq ($(filter msm8226 msm8610 msm8909 msm8916, $(PLATFORM)),)
 CPU_BOOT_OBJ := $(LOCAL_DIR)/cortex-a.o
 DEFINES += CPU_BOOT_CORTEX_A=1
