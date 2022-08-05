@@ -96,6 +96,13 @@ struct partition_entry* partition_get_partition_entries()
 	return partition_entries;
 }
 
+struct partition_entry *partition_allocate(void)
+{
+	if (partition_count >= NUM_PARTITIONS)
+		return NULL;
+	return &partition_entries[partition_count++];
+}
+
 unsigned int partition_read_table()
 {
 	unsigned int ret;
