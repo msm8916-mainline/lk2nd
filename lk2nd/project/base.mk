@@ -40,6 +40,9 @@ DEFINES += WITH_DEBUG_LOG_BUF=1 LK_LOG_BUF_SIZE=32768
 # Keep the kernel command line clean when booting other operating systems
 DEFINES += GENERATE_CMDLINE_ONLY_FOR_ANDROID=1
 
+# Disable reading splash partition to avoid crashes on some devices
+DEFINES += DISABLE_SPLASH_PARTITION=1
+
 # Enable "fastboot oem help" for a list of supported fastboot commands
 DEFINES += FASTBOOT_HELP=1
 
