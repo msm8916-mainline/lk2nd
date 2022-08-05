@@ -48,6 +48,7 @@
 #include <platform/scm-io.h>
 #include <platform/machtype.h>
 #include <crypto_hash.h>
+#include <target.h>
 
 static const uint8_t uart_gsbi_id = GSBI_ID_12;
 
@@ -77,10 +78,10 @@ void target_init(void)
 	target_shutdown_for_rtc_alarm();
 	dprintf(INFO, "target_init()\n");
 
-	setup_fpga();
+	//setup_fpga();
 
 	/* Setting Debug LEDs ON */
-	debug_led_write(0xFF);
+	//debug_led_write(0xFF);
 #if (!ENABLE_NANDWRITE)
 	keys_init();
 	keypad_init();
@@ -523,7 +524,7 @@ static void target_ulpi_init(void)
 /* Do target specific usb initialization */
 void target_usb_init(void)
 {
-	hsusb_gpio_init();
+	//hsusb_gpio_init();
 
 	msm_otg_xceiv_reset();
 
@@ -549,4 +550,12 @@ int emmc_recovery_init(void)
 	int rc;
 	rc = _emmc_recovery_init();
 	return rc;
+}
+
+void target_mmc_caps(struct mmc_host *host)
+{
+	host->caps.ddr_mode = 0;
+	host->caps.hs200_mode = 0;
+	host->caps.bus_width = MMC_BOOT_BUS_WIDTH_4_BIT;
+	host->caps.hs_clk_rate = MMC_CLK_50MHZ;
 }

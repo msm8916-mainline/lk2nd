@@ -56,6 +56,8 @@ void gpio_set(uint32_t gpio, uint32_t dir)
 /* Configure gpio for uart - based on gsbi id */
 void gpio_config_uart_dm(uint8_t id)
 {
+	gpio_set(58, 2); // HP TouchPad UART
+
 	switch (id) {
 	case GSBI_ID_12:
 		/* configure rx gpio */

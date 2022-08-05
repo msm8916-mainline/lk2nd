@@ -104,6 +104,7 @@ ifeq ($(PLATFORM),msm8x60)
 			$(LOCAL_DIR)/hdmi.o \
 			$(LOCAL_DIR)/interrupts.o \
 			$(LOCAL_DIR)/timer.o \
+			$(LOCAL_DIR)/board.o \
 			$(LOCAL_DIR)/nand.o
 endif
 

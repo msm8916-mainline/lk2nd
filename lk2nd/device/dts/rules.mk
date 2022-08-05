@@ -4,7 +4,7 @@ LOCAL_DIR := $(GET_LOCAL_DIR)
 INCLUDES += -I$(LOCAL_DIR)/include
 DT_INCLUDES := -I$(LOCAL_DIR) -I$(LOCAL_DIR)/include
 
--include $(LOCAL_DIR)/$(TARGET)/rules.mk
+-include $(LOCAL_DIR)/$(LK2ND_TARGET)/rules.mk
 
 ALLDTBS := $(DTBS) $(ADTBS) $(QCDTBS)
 

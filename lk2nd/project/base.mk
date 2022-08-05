@@ -50,4 +50,5 @@ DEFINES := $(filter-out CHECK_BAT_VOLTAGE=1, $(DEFINES))
 # Keep the kernel command line clean when booting other operating systems
 DEFINES += GENERATE_CMDLINE_ONLY_FOR_ANDROID=1
 
--include lk2nd/project/$(TARGET).mk
+LK2ND_TARGET ?= $(TARGET)
+-include lk2nd/project/$(LK2ND_TARGET).mk

@@ -1,0 +1,7 @@
+// SPDX-License-Identifier: BSD-3-Clause
+#include <skeleton32.dtsi>
+#include <lk2nd.dtsi>
+
+&lk2nd {
+	/* TODO */
+};

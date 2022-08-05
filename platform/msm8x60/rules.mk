@@ -37,3 +37,17 @@ LINKER_SCRIPT += $(BUILDDIR)/system-onesegment.ld
 
 include platform/msm_shared/rules.mk
 
+ifeq ($(ENABLE_DISPLAY), 0)
+OBJS := $(filter-out \
+	platform/msm_shared/hdmi.o \
+	platform/msm_shared/lcdc.o \
+	platform/msm_shared/mddi.o \
+	platform/msm_shared/mdp4.o \
+	platform/msm_shared/mipi_dsi.o \
+	platform/msm_shared/mipi_dsi_phy.o \
+	platform/msm8x60/hdmi_core.o \
+	platform/msm8x60/panel%.o \
+	, $(OBJS))
+else
+$(error Display support in msm8x60 is currently broken)
+endif
