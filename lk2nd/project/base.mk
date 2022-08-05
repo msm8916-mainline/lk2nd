@@ -38,6 +38,9 @@ endif
 # Reserve 32 KiB for the log buffer so it can be accessed via fastboot
 DEFINES += WITH_DEBUG_LOG_BUF=1 LK_LOG_BUF_SIZE=32768
 
+# Disable reading splash partition to avoid crashes on some devices
+DEFINES += DISABLE_SPLASH_PARTITION=1
+
 # Allow entering fastboot after forced reset
 DEFINES := $(filter-out USER_FORCE_RESET_SUPPORT=1, $(DEFINES))
 
