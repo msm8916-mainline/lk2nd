@@ -19,4 +19,6 @@ $(warning WARNING: Apache-2.0 license of libufdt is not compatible with \
 endif
 endif
 
+$(BUILDDIR)/$(LOCAL_DIR)/%.o: CFLAGS := $(CFLAGS) -Wmissing-prototypes
+
 include $(LOCAL_DIR)/util/rules.mk
