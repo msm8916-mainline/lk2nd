@@ -49,20 +49,24 @@
 static uint32_t ticks_per_sec = 0;
 
 /* LK memory - cacheable, write through */
-#define LK_MEMORY         (MMU_MEMORY_TYPE_STRONGLY_ORDERED | \
+#define LK_MEMORY         (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
                            MMU_MEMORY_AP_READ_WRITE)
 
 /* Kernel region - cacheable, write through */
-#define KERNEL_MEMORY     (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH  | \
-                           MMU_MEMORY_AP_READ_WRITE)
+#define KERNEL_MEMORY     (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH   | \
+                           MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
 
 /* Scratch region - cacheable, write through */
-#define SCRATCH_MEMORY    (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH  | \
-                           MMU_MEMORY_AP_READ_WRITE)
+#define SCRATCH_MEMORY    (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH   | \
+                           MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
 
 /* Peripherals - non-shared device */
 #define IOMAP_MEMORY      (MMU_MEMORY_TYPE_DEVICE_NON_SHARED | \
-                           MMU_MEMORY_AP_READ_WRITE)
+                           MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
+
+/* IMEM: Must set execute never bit to avoid instruction prefetch from TZ */
+#define IMEM_MEMORY       (MMU_MEMORY_TYPE_STRONGLY_ORDERED | \
+                           MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
 
 #define MSM_IOMAP_SIZE ((MSM_IOMAP_END - MSM_IOMAP_BASE)/MB)
 
@@ -70,8 +74,10 @@ mmu_section_t mmu_section_table[] = {
 /*  Physical addr,    Virtual addr,    Size (in MB),   Flags */
 	{MEMBASE, MEMBASE, (MEMSIZE / MB), LK_MEMORY},
 	{BASE_ADDR, BASE_ADDR, 44, KERNEL_MEMORY},
-	{SCRATCH_ADDR, SCRATCH_ADDR, 128, SCRATCH_MEMORY},
+	{SCRATCH_ADDR, SCRATCH_ADDR, 384, SCRATCH_MEMORY},
 	{MSM_IOMAP_BASE, MSM_IOMAP_BASE, MSM_IOMAP_SIZE, IOMAP_MEMORY},
+	{MSM_IMEM_BASE, MSM_IMEM_BASE, 1, IMEM_MEMORY},
+	{MSM_SHARED_BASE, MSM_SHARED_BASE, 1, KERNEL_MEMORY},
 };
 
 #define CONVERT_ENDIAN_U32(val)                   \
@@ -156,6 +162,24 @@ uint32_t platform_id_read(void)
 		id = (id & 0x00FF0000) >> 16;
 	}
 	return id;
+}
+
+int platform_use_identity_mmu_mappings(void)
+{
+	/* Use only the mappings specified in this file. */
+	return 0;
+}
+
+addr_t platform_get_virt_to_phys_mapping(addr_t virt_addr)
+{
+	/* Return same address as we are using 1-1 mapping. */
+	return virt_addr;
+}
+
+addr_t platform_get_phys_to_virt_mapping(addr_t phys_addr)
+{
+	/* Return same address as we are using 1-1 mapping. */
+	return phys_addr;
 }
 
 /* Setup memory for this platform */
