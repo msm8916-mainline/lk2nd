@@ -472,24 +472,6 @@ static void hsusb_gpio_init(void)
 #endif
 }
 
-#define USB_CLK             0x00902910
-#define USB_PHY_CLK         0x00902E20
-#define CLK_RESET_ASSERT    0x1
-#define CLK_RESET_DEASSERT  0x0
-#define CLK_RESET(x,y)  writel((y), (x));
-
-static int msm_otg_xceiv_reset(void)
-{
-	CLK_RESET(USB_CLK, CLK_RESET_ASSERT);
-	CLK_RESET(USB_PHY_CLK, CLK_RESET_ASSERT);
-	mdelay(20);
-	CLK_RESET(USB_PHY_CLK, CLK_RESET_DEASSERT);
-	CLK_RESET(USB_CLK, CLK_RESET_DEASSERT);
-	mdelay(20);
-
-	return 0;
-}
-
 static void target_ulpi_init(void)
 {
 	unsigned int reg;
@@ -511,9 +493,6 @@ static void target_ulpi_init(void)
 void target_usb_init(void)
 {
 	hsusb_gpio_init();
-
-	msm_otg_xceiv_reset();
-
 	target_ulpi_init();
 }
 

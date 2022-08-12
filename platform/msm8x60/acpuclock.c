@@ -240,6 +240,24 @@ void uart_clock_init(void)
 	pll8_enable();
 }
 
+#define USB_CLK             0x00902910
+#define USB_PHY_CLK         0x00902E20
+#define CLK_RESET_ASSERT    0x1
+#define CLK_RESET_DEASSERT  0x0
+#define CLK_RESET(x,y)  writel((y), (x));
+
+static int msm_otg_xceiv_reset(void)
+{
+	CLK_RESET(USB_CLK, CLK_RESET_ASSERT);
+	CLK_RESET(USB_PHY_CLK, CLK_RESET_ASSERT);
+	mdelay(20);
+	CLK_RESET(USB_PHY_CLK, CLK_RESET_DEASSERT);
+	CLK_RESET(USB_CLK, CLK_RESET_DEASSERT);
+	mdelay(20);
+
+	return 0;
+}
+
 void hsusb_clock_init(void)
 {
 	int val;
@@ -279,6 +297,8 @@ void hsusb_clock_init(void)
 	val = 1 << 8;
 	val |= readl(USB_HS1_XCVR_FS_CLK_NS);
 	writel(val, USB_HS1_XCVR_FS_CLK_NS);
+
+	msm_otg_xceiv_reset();
 }
 
 void ce_clock_init(void)
