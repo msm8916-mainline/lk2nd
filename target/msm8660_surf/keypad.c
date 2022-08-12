@@ -86,3 +86,13 @@ void keypad_init(void)
 	else
 		ssbi_keypad_init(&qwerty_keypad);
 }
+
+int target_volume_up(void)
+{
+	return keys_get_state(KEY_HOME);
+}
+
+uint32_t target_volume_down(void)
+{
+	return keys_get_state(KEY_BACK);
+}

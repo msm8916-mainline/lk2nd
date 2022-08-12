@@ -49,6 +49,7 @@
 #include <platform/machtype.h>
 #include <crypto_hash.h>
 #include <target.h>
+#include <dev/pm8921.h>
 
 static const uint8_t uart_gsbi_id = GSBI_ID_12;
 
@@ -73,6 +74,18 @@ int pm8901_reset_pwr_off(int reset);
 int pm8058_reset_pwr_off(int reset);
 int pm8058_rtc0_alarm_irq_disable(void);
 static void target_shutdown_for_rtc_alarm(void);
+
+static void pmic_init()
+{
+	static pm8921_dev_t pmic;
+
+	/* Initialize PMIC driver */
+	pmic.read = (pm8921_read_func) &pa1_ssbi2_read_bytes;
+	pmic.write = (pm8921_write_func) &pa1_ssbi2_write_bytes;
+
+	pm8921_init(&pmic);
+}
+
 void target_init(void)
 {
 	target_shutdown_for_rtc_alarm();
@@ -83,16 +96,17 @@ void target_init(void)
 	/* Setting Debug LEDs ON */
 	//debug_led_write(0xFF);
 #if (!ENABLE_NANDWRITE)
+	pmic_init();
 	keys_init();
 	keypad_init();
 #endif
 
 	/* Display splash screen if enabled */
-#if DISPLAY_SPLASH_SCREEN
+/*#if DISPLAY_SPLASH_SCREEN
 	display_init();
 	dprintf(SPEW, "Diplay initialized\n");
 	display_image_on_screen();
-#endif
+#endif*/
 
 	if (mmc_boot_main(MMC_SLOT, MSM_SDC1_BASE)) {
 		dprintf(CRITICAL, "mmc init failed!");
@@ -526,7 +540,7 @@ void target_usb_init(void)
 {
 	//hsusb_gpio_init();
 
-	msm_otg_xceiv_reset();
+	//msm_otg_xceiv_reset();
 
 	target_ulpi_init();
 }

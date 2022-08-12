@@ -9,7 +9,7 @@ $(OUTBIN): $(OUTELF)
 $(OUTUIMAGE): $(OUTBIN)
 	@echo generating uImage: $@
 	$(NOCOPY)$(MKIMAGE) -T kernel -C none -A arm \
-		-a $(MEMBASE) -e $(MEMBASE) -d $(OUTBIN) $@
+		-a 0x50000000 -e 0x50000000 -d $(OUTBIN) $@
 
 ifeq ($(ENABLE_TRUSTZONE), 1)
 $(OUTELF): $(ALLOBJS) $(LINKER_SCRIPT) $(OUTPUT_TZ_BIN)

@@ -1328,6 +1328,8 @@ int check_ddr_addr_range_bound(uintptr_t start, uint32_t size)
 	uint64_t ddr_pa_end_addr = ddr_pa_start_addr + ddr_size;
 	uintptr_t pa_start_addr = PA(start);
 
+	dprintf(CRITICAL, "DDR start: %#lx size: %llx\n", ddr_pa_start_addr, ddr_size);
+
 	/* Check for boundary conditions. */
 	if ((UINT_MAX - start) < size)
 		return -1;
