@@ -713,6 +713,23 @@ struct smem_ptable {
 typedef struct smem_ram_ptable_v2 ram_partition_table;
 typedef struct smem_ram_ptn_v2 ram_partition;
 
+static inline boolean smem_ram_ptn_is_ddr(const ram_partition *ptn_entry)
+{
+	if (ptn_entry->type != SYS_MEMORY)
+		return false;
+
+	switch (ptn_entry->category) {
+		case SDRAM:
+		case EBI0_CS0:
+		case EBI0_CS1:
+		case EBI1_CS0:
+		case EBI1_CS1:
+			return true;
+		default:
+			return false;
+	}
+}
+
 unsigned smem_read_alloc_entry_offset(smem_mem_type_t type, void *buf, int len, int offset);
 int smem_ram_ptable_init(struct smem_ram_ptable *smem_ram_ptable);
 int smem_ram_ptable_init_v1(void); /* Used on platforms that use ram ptable v1 */
