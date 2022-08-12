@@ -1,0 +1,22 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton.dtsi>
+
+/ {
+	qcom,msm-id = <239 0>;
+	qcom,board-id =
+		<8054 0>, <8054 4>, // huawei_rio_cl00_va.dts
+		<8055 0>, <8055 4>, // huawei_rio_l02_va.dts
+		<8070 0>, <8070 4>, // huawei_rio_al00_va.dts
+		<8071 0>, <8071 4>, // huawei_rio_al00_vb.dts
+		<8086 0>, <8086 4>, // huawei_rio_l01_va.dts
+		<8087 0>, <8087 4>, // huawei_rio_l01_vb.dts
+		<8102 0>, <8102 4>, // huawei_rio_tl00_va.dts
+		<8134 0>, <8134 4>, // huawei_rio_cl00_vb.dts
+		<8135 0>, <8135 4>, // huawei_rio_cl00_vc.dts
+		<8118 0>, <8118 4>; // huawei_rio_l03_va.dts
+	model = "Huawei RIO";
+	compatible = "huawei,rio", "qcom,msm8939", "lk2nd,device";
+};
