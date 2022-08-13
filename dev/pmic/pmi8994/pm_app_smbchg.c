@@ -610,7 +610,7 @@ static bool is_power_key_pressed()
 	return false;
 }
 
-static int display_charger_screen()
+static int display_charger_screen(void *arg)
 {
 	static bool display_init_first_time;
 
