@@ -46,7 +46,7 @@ extern void ce_clock_init(void);
  * It works on contiguous data and does single pass calculation.
  */
 
-void
+crypto_result_type
 hash_find(unsigned char *addr, unsigned int size, unsigned char *digest,
 	  unsigned char auth_alg)
 {
@@ -82,6 +82,7 @@ hash_find(unsigned char *addr, unsigned int size, unsigned char *digest,
 	if (ret_val != CRYPTO_SHA_ERR_NONE) {
 		dprintf(CRITICAL, "crypto_sha256 returns error %d\n", ret_val);
 	}
+	return ret_val;
 }
 
 /*
