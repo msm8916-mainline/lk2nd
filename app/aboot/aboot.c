@@ -106,7 +106,7 @@ void write_device_info_mmc(device_info *dev);
 void write_device_info_flash(device_info *dev);
 static int aboot_save_boot_hash_mmc(uint32_t image_addr, uint32_t image_size);
 static int aboot_frp_unlock(char *pname, void *data, unsigned sz);
-static inline uint64_t validate_partition_size();
+static inline uint64_t validate_partition_size(struct ptentry *ptn);
 bool pwr_key_is_pressed = false;
 static bool is_systemd_present=false;
 static void publish_getvar_multislot_vars();
