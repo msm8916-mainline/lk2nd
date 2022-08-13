@@ -56,10 +56,10 @@
 
 #define HW_PLATFORM_8994_INTERPOSER    0x3
 
-extern int platform_is_8974();
-extern int platform_is_8974ac();
+extern int platform_is_8974(void);
+extern int platform_is_8974ac(void);
 extern  bool target_use_signed_kernel(void);
-static void set_sdc_power_ctrl();
+static void set_sdc_power_ctrl(void);
 
 static unsigned int target_id;
 static uint32_t pmic_ver;
@@ -109,13 +109,13 @@ void target_early_init(void)
 #endif
 }
 
-uint32_t target_hw_interposer()
+uint32_t target_hw_interposer(void)
 {
 	return board_hardware_subtype() == HW_PLATFORM_8994_INTERPOSER ? 1 : 0;
 }
 
 /* Return 1 if vol_up pressed */
-int target_volume_up()
+int target_volume_up(void)
 {
 	static uint8_t first_time = 0;
 	uint8_t status = 0;
@@ -150,7 +150,7 @@ int target_volume_up()
 }
 
 /* Return 1 if vol_down pressed */
-uint32_t target_volume_down()
+uint32_t target_volume_down(void)
 {
 	/* Volume down button is tied in with RESIN on MSM8974. */
 	if (platform_is_8974() && (pmic_ver == PM8X41_VERSION_V2))
@@ -159,7 +159,7 @@ uint32_t target_volume_down()
 		return pm8x41_resin_status();
 }
 
-static void target_keystatus()
+static void target_keystatus(void)
 {
 	keys_init();
 
@@ -171,7 +171,7 @@ static void target_keystatus()
 }
 
 /* Set up params for h/w CE. */
-void target_crypto_init_params()
+void target_crypto_init_params(void)
 {
 	struct crypto_init_params ce_params;
 
@@ -207,7 +207,7 @@ crypto_engine_type board_ce_type(void)
 }
 
 #if MMC_SDHCI_SUPPORT
-static void target_mmc_sdhci_init()
+static void target_mmc_sdhci_init(void)
 {
 	struct mmc_config_data config = {0};
 	uint32_t soc_ver = 0;
@@ -271,13 +271,13 @@ static void target_mmc_sdhci_init()
 	}
 }
 
-void *target_mmc_device()
+void *target_mmc_device(void)
 {
 	return (void *) dev;
 }
 
 #else
-static void target_mmc_mci_init()
+static void target_mmc_mci_init(void)
 {
 	uint32_t base_addr;
 	uint8_t slot;
@@ -364,7 +364,7 @@ unsigned board_machtype(void)
 
 /* Do any target specific intialization needed before entering fastboot mode */
 #ifdef SSD_ENABLE
-static void ssd_load_keystore_from_emmc()
+static void ssd_load_keystore_from_emmc(void)
 {
 	uint64_t           ptn    = 0;
 	int                index  = -1;
@@ -412,7 +412,7 @@ void target_fastboot_init(void)
 }
 
 /* Initialize target specific USB handlers */
-target_usb_iface_t* target_usb30_init()
+target_usb_iface_t* target_usb30_init(void)
 {
 	target_usb_iface_t *t_usb_iface;
 
@@ -482,7 +482,7 @@ void target_baseband_detect(struct board_data *board)
 	};
 }
 
-unsigned target_baseband()
+unsigned target_baseband(void)
 {
 	return board_baseband();
 }
@@ -564,7 +564,7 @@ void reboot_device(unsigned reboot_reason)
 }
 
 /* Check if MSM needs VBUS mimic for USB */
-static int target_needs_vbus_mimic()
+static int target_needs_vbus_mimic(void)
 {
 	if (platform_is_8974())
 		return 0;
@@ -619,7 +619,7 @@ void target_usb_init(void)
 	}
 }
 
-uint8_t target_panel_auto_detect_enabled()
+uint8_t target_panel_auto_detect_enabled(void)
 {
 	switch(board_hardware_id())
 	{
@@ -635,7 +635,7 @@ uint8_t target_panel_auto_detect_enabled()
 	return 0;
 }
 
-uint8_t target_is_edp()
+uint8_t target_is_edp(void)
 {
 	switch(board_hardware_id())
 	{
@@ -651,7 +651,7 @@ uint8_t target_is_edp()
 
 static uint8_t splash_override;
 /* Returns 1 if target supports continuous splash screen. */
-int target_cont_splash_screen()
+int target_cont_splash_screen(void)
 {
 	uint8_t splash_screen = 0;
 	if(!splash_override) {
@@ -707,7 +707,7 @@ void target_uninit(void)
 	sdhci_mode_disable(&dev->host);
 }
 
-void shutdown_device()
+void shutdown_device(void)
 {
 	dprintf(CRITICAL, "Going down for shutdown.\n");
 
@@ -725,7 +725,7 @@ void shutdown_device()
 	dprintf(CRITICAL, "Shutdown failed\n");
 }
 
-static void set_sdc_power_ctrl()
+static void set_sdc_power_ctrl(void)
 {
 	uint8_t tlmm_hdrv_clk = 0;
 	uint32_t platform_id = 0;
@@ -795,7 +795,7 @@ void target_usb_stop(void)
 }
 
 /* identify the usb controller to be used for the target */
-const char * target_usb_controller()
+const char * target_usb_controller(void)
 {
 	switch(board_platform_id())
 	{
@@ -834,7 +834,7 @@ void target_usb_phy_mux_configure(void)
 	}
 }
 
-uint32_t target_get_pmic()
+uint32_t target_get_pmic(void)
 {
 	return PMIC_IS_PM8941;
 }

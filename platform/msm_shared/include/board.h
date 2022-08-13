@@ -60,21 +60,21 @@ struct board_data {
 	struct board_pmic_data *pmic_info_array;
 };
 
-void board_init();
+void board_init(void);
 void target_detect(struct board_data *);
 void target_baseband_detect(struct board_data *);
-uint32_t board_platform_id();
-uint32_t board_target_id();
-uint32_t board_baseband();
-uint32_t board_hardware_id();
+uint32_t board_platform_id(void);
+uint32_t board_target_id(void);
+uint32_t board_baseband(void);
+uint32_t board_hardware_id(void);
 uint8_t board_pmic_info(struct board_pmic_data *, uint8_t num_ent);
-uint32_t board_soc_version();
+uint32_t board_soc_version(void);
 uint32_t board_hardware_subtype(void);
 uint32_t board_get_ddr_subtype(void);
 uint32_t board_hlos_subtype(void);
 uint32_t board_pmic_target(uint8_t num_ent);
 uint32_t board_chip_serial(void);
-void pmic_info_populate();
+void pmic_info_populate(void);
 
 /* DDR Subtype Macros
  * Determine the DDR Size on the device and define

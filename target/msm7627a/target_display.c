@@ -36,7 +36,7 @@ static struct msm_fb_panel_data panel;
 static uint8_t display_enabled;
 
 extern int msm_display_init(struct msm_fb_panel_data *pdata);
-extern int msm_display_off();
+extern int msm_display_off(void);
 extern int mipi_renesas_panel_dsi_config(int);
 extern int mipi_nt35510_panel_dsi_config(int);
 extern int lcdc_truly_panel_on(int);

@@ -58,7 +58,7 @@
 
 static void ddr_based_mmu_mappings(mmu_section_t *table, uint32_t table_size);
 static uint64_t ddr_size;
-static void board_ddr_detect();
+static void board_ddr_detect(void);
 
 /* Map all the accesssible memory according to the following rules:
  * 1. Map 1MB from MSM_SHARED_BASE with 1 -1 mapping.
@@ -88,7 +88,7 @@ mmu_section_t mmu_section_table_256[] = {
 	{KERNEL_REGION,       KERNEL_REGION,                  KERNEL_REGION_SIZE/ MB,       SCRATCH_MEMORY},
 };
 
-static void board_ddr_detect()
+static void board_ddr_detect(void)
 {
 	ddr_size = smem_get_ddr_size();
 	/*128MB DDR*/
@@ -124,7 +124,7 @@ uint32_t platform_get_sclk_count(void)
 	return readl(MPM2_MPM_SLEEP_TIMETICK_COUNT_VAL);
 }
 
-addr_t get_bs_info_addr()
+addr_t get_bs_info_addr(void)
 {
 	return ((addr_t)BS_INFO_ADDR);
 }
@@ -296,7 +296,7 @@ int platform_use_identity_mmu_mappings(void)
 	return 0;
 }
 
-bool platform_is_mdm9206()
+bool platform_is_mdm9206(void)
 {
 	uint32_t platform_id = board_platform_id();
 	bool ret;

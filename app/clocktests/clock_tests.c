@@ -38,7 +38,7 @@
 #include <lib/console.h>
 #include <clock.h>
 
-static void print_clock_list()
+static void print_clock_list(void)
 {
 	unsigned i;
 	struct clk_lookup *cl;

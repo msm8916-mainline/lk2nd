@@ -21,7 +21,7 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-void emac_init();
+void emac_init(void);
 
 void platform_init(void)
 {

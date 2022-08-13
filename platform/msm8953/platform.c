@@ -107,7 +107,7 @@ uint32_t platform_get_sclk_count(void)
 	return readl(MPM2_MPM_SLEEP_TIMETICK_COUNT_VAL);
 }
 
-addr_t get_bs_info_addr()
+addr_t get_bs_info_addr(void)
 {
 	return ((addr_t)BS_INFO_ADDR);
 }
@@ -167,7 +167,7 @@ addr_t platform_get_phys_to_virt_mapping(addr_t phys_addr)
 	return phys_addr;
 }
 
-uint32_t platform_get_max_periph()
+uint32_t platform_get_max_periph(void)
 {
         return 256;
 }
@@ -178,7 +178,7 @@ uint32_t platform_get_max_periph()
  * Dynamic SMEM is assumed to be enabled. Read the remaining
  * SMEM info for SMEM Size and Phy_addr from the other bytes.
  */
-uint32_t platform_get_smem_base_addr()
+uint32_t platform_get_smem_base_addr(void)
 {
 	struct smem_addr_info *smem_info = NULL;
 
@@ -189,7 +189,7 @@ uint32_t platform_get_smem_base_addr()
 		return MSM_SHARED_BASE;
 }
 
-int platform_is_msm8953()
+int platform_is_msm8953(void)
 {
 	uint32_t platform = board_platform_id();
 
@@ -208,7 +208,7 @@ int platform_is_msm8953()
 	}
 }
 
-uint32_t platform_get_qmp_rev()
+uint32_t platform_get_qmp_rev(void)
 {
         return readl(USB3_PHY_REVISION_ID3) << 24 | readl(USB3_PHY_REVISION_ID2) << 16 |
                    readl(USB3_PHY_REVISION_ID1) << 8 | readl(USB3_PHY_REVISION_ID0);

@@ -92,17 +92,17 @@ typedef enum {
 } img_type;
 
 int getimage(void **image_buffer, uint32_t *imgsize, const char *imgname);
-void platform_read_boot_config();
-uint32_t platform_get_boot_dev();
+void platform_read_boot_config(void);
+uint32_t platform_get_boot_dev(void);
 #if BOOT_CONFIG_SUPPORT
-uint32_t platform_boot_dev_isemmc();
-uint32_t platform_boot_dev_is_nand();
+uint32_t platform_boot_dev_isemmc(void);
+uint32_t platform_boot_dev_is_nand(void);
 #else
-static inline uint32_t platform_boot_dev_isemmc() { return 1; }
-static inline uint32_t platform_boot_dev_is_nand() { return 0; }
+static inline uint32_t platform_boot_dev_isemmc(void) { return 1; }
+static inline uint32_t platform_boot_dev_is_nand(void) { return 0; }
 #endif
 void platform_boot_dev_cmdline(char *buf, uint32_t buf_size);
 int get_boot_image_info(void **image_buffer, uint32_t *imgsize,char *imgname);
 
-void *target_mmc_device();
+void *target_mmc_device(void);
 #endif

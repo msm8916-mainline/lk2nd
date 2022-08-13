@@ -366,7 +366,7 @@ int pm_batt_alarm_read_regs(struct pm_batt_alarm_device *battdev)
  * Function for battery alarm initialization
  */
 
-int pm_batt_alarm_init()
+int pm_batt_alarm_init(void)
 {
 	int rc = -1;
 

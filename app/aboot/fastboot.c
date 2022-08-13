@@ -431,7 +431,7 @@ void fastboot_okay(const char *info)
 	fastboot_ack("OKAY", info);
 }
 
-static void getvar_all()
+static void getvar_all(void)
 {
 	struct fastboot_var *var;
 	char getvar_all[256];

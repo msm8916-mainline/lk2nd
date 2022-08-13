@@ -339,7 +339,7 @@ void clock_usb30_init(void)
 	pm8x41_lnbb_clock_ctrl(1);
 }
 
-void clock_bumpup_pipe3_clk()
+void clock_bumpup_pipe3_clk(void)
 {
 	int ret = 0;
 
@@ -408,7 +408,7 @@ void mdp_clock_enable(void)
 	}
 }
 
-void mdp_clock_disable()
+void mdp_clock_disable(void)
 {
 	clk_disable(clk_get("mdss_vsync_clk"));
 	clk_disable(clk_get("mdss_mdp_clk"));

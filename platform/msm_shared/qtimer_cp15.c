@@ -41,8 +41,8 @@ static time_t timer_interval;
 static volatile uint32_t current_time;
 static uint32_t tick_count;
 
-extern void isb();
-static void qtimer_enable();
+extern void isb(void);
+static void qtimer_enable(void);
 
 static enum handler_return qtimer_irq(void *arg)
 {
@@ -87,7 +87,7 @@ void qtimer_set_physical_timer(time_t msecs_interval,
 
 }
 
-static void qtimer_enable()
+static void qtimer_enable(void)
 {
 	uint32_t ctrl;
 
@@ -102,7 +102,7 @@ static void qtimer_enable()
 	isb();
 }
 
-void qtimer_disable()
+void qtimer_disable(void)
 {
 	uint32_t ctrl;
 
@@ -121,7 +121,7 @@ void qtimer_disable()
 }
 
 /* Function to return the frequency of the timer */
-uint32_t qtimer_get_frequency()
+uint32_t qtimer_get_frequency(void)
 {
 	uint32_t freq;
 
@@ -132,7 +132,7 @@ uint32_t qtimer_get_frequency()
 
 }
 
-inline __ALWAYS_INLINE uint64_t qtimer_get_phy_timer_cnt()
+inline __ALWAYS_INLINE uint64_t qtimer_get_phy_timer_cnt(void)
 {
 	uint32_t phy_cnt_lo;
 	uint32_t phy_cnt_hi;
@@ -142,7 +142,7 @@ inline __ALWAYS_INLINE uint64_t qtimer_get_phy_timer_cnt()
 	return ((uint64_t)phy_cnt_hi << 32) | phy_cnt_lo;
 }
 
-uint32_t qtimer_current_time()
+uint32_t qtimer_current_time(void)
 {
 	return current_time;
 }

@@ -119,7 +119,7 @@ void clock_ce_enable(uint8_t instance);
 void clock_ce_disable(uint8_t instance);
 void clock_usb30_init(void);
 void clock_usb20_init(void);
-void clock_reset_usb_phy();
+void clock_reset_usb_phy(void);
 
 void mmss_dsi_clock_enable(uint32_t cfg_rcgr, uint32_t dual_dsi);
 void mmss_dsi_clock_disable(uint32_t dual_dsi);
@@ -127,10 +127,10 @@ void mmss_bus_clock_enable(void);
 void mmss_bus_clock_disable(void);
 void mdp_clock_enable(void);
 void mdp_clock_disable(void);
-void mmss_gdsc_enable();
-void mmss_gdsc_disable();
-void video_gdsc_enable();
-void video_gdsc_disable();
+void mmss_gdsc_enable(void);
+void mmss_gdsc_disable(void);
+void video_gdsc_enable(void);
+void video_gdsc_disable(void);
 void clock_config_blsp_i2c(uint8_t blsp_id, uint8_t qup_id);
 
 void hdmi_ahb_core_clk_enable(void);

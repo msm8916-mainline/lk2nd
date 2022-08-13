@@ -111,12 +111,12 @@ static struct panel_list supp_panels[] = {
 static uint32_t panel_id;
 #define TRULY_1080P_PANEL_ON_DELAY 40
 
-int oem_panel_rotation()
+int oem_panel_rotation(void)
 {
 	return NO_ERROR;
 }
 
-int oem_panel_on()
+int oem_panel_on(void)
 {
 	if (panel_id == JDI_QHD_DUALDSI_CMD_PANEL) {
 		/* needs extra delay to avoid unexpected artifacts */
@@ -132,7 +132,7 @@ int oem_panel_on()
 	return NO_ERROR;
 }
 
-int oem_panel_off()
+int oem_panel_off(void)
 {
 	return NO_ERROR;
 }

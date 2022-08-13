@@ -34,32 +34,32 @@
 #include <qtimer.h>
 #include <platform.h>
 
-__WEAK int platform_is_msm8994()
+__WEAK int platform_is_msm8994(void)
 {
 	return 0;
 }
 
-__WEAK int platform_is_msm8996()
+__WEAK int platform_is_msm8996(void)
 {
 	return 0;
 }
 
-__WEAK int platform_is_msm8996sg()
+__WEAK int platform_is_msm8996sg(void)
 {
 	return 0;
 }
 
-__WEAK bool platform_is_mdm9650()
+__WEAK bool platform_is_mdm9650(void)
 {
 	return false;
 }
 
-__WEAK int platform_is_msm8953()
+__WEAK int platform_is_msm8953(void)
 {
 	return 0;
 }
 
-__WEAK bool platform_is_sdx20()
+__WEAK bool platform_is_sdx20(void)
 {
 	return false;
 }

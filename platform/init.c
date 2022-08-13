@@ -99,7 +99,7 @@ __WEAK void ce_clock_init(void)
 {
 }
 
-__WEAK addr_t get_bs_info_addr()
+__WEAK addr_t get_bs_info_addr(void)
 {
 	return 0;
 }
@@ -120,12 +120,12 @@ __WEAK int get_target_boot_params(const char *cmdline, const char *part,
 	return -1;
 }
 
-__WEAK uint32_t platform_get_smem_base_addr()
+__WEAK uint32_t platform_get_smem_base_addr(void)
 {
 	return (uint32_t)MSM_SHARED_BASE;
 }
 
-__WEAK uint32_t platform_get_boot_dev()
+__WEAK uint32_t platform_get_boot_dev(void)
 {
         return 0;
 }
@@ -135,26 +135,26 @@ __WEAK int boot_device_mask(int val)
 	return ((val & 0x3E) >> 1);
 }
 
-__WEAK uint32_t platform_detect_panel()
+__WEAK uint32_t platform_detect_panel(void)
 {
 	return 0;
 }
 
-__WEAK bool use_hsonly_mode()
+__WEAK bool use_hsonly_mode(void)
 {
 	return 0;
 }
 
-__WEAK int platform_partial_goods_val ()
+__WEAK int platform_partial_goods_val (void)
 {
 	return -1;
 }
 
-__WEAK uint32_t check_alarm_boot()
+__WEAK uint32_t check_alarm_boot(void)
 {
 	return 0;
 }
-__WEAK uint32_t platform_get_max_periph()
+__WEAK uint32_t platform_get_max_periph(void)
 {
 	return 128;
 }
@@ -167,7 +167,7 @@ __WEAK uint32_t read_der_message_length(unsigned char* input, unsigned sz)
 }
 
 /* Check if glink is supported or not */
-__WEAK bool platform_is_glink_enabled()
+__WEAK bool platform_is_glink_enabled(void)
 {
 #if GLINK_SUPPORT
 	return 1;
@@ -175,7 +175,7 @@ __WEAK bool platform_is_glink_enabled()
 	return 0;
 #endif
 }
-__WEAK void *target_mmc_device()
+__WEAK void *target_mmc_device(void)
 {
 	return NULL;
 }

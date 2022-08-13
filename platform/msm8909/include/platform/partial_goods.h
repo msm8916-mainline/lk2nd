@@ -30,4 +30,4 @@
 
 #define QFPROM_RAW_PART_ADDR    0x00058000
 
-int platform_partial_goods_val ();
+int platform_partial_goods_val (void);

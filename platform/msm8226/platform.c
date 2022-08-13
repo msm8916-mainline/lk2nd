@@ -83,7 +83,7 @@ uint32_t platform_get_sclk_count(void)
 	return readl(MPM2_MPM_SLEEP_TIMETICK_COUNT_VAL);
 }
 
-addr_t get_bs_info_addr()
+addr_t get_bs_info_addr(void)
 {
 	return ((addr_t)BS_INFO_ADDR);
 }
@@ -144,7 +144,7 @@ void platform_init_mmu_mappings(void)
  * If the feature is enabled(by reading the MAGIC as mentioned below) then the SMEM address is read from
  * MSM_DYNAMIC_SHARED_BASE otherwise revert to the older way of getting SMEM address - MSM_SHARED_BASE */
 
-uint32_t platform_get_smem_base_addr()
+uint32_t platform_get_smem_base_addr(void)
 {
 	uint32_t smem_addr = 0;
 

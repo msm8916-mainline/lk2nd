@@ -58,9 +58,9 @@
 
 #define CENTER_IMAGE_ON_X_AXIS(image_width,screen_width)         (((screen_width)-(image_width))/2)
 
-extern uint32_t target_volume_up();
-extern uint32_t target_volume_down();
-extern int msm_display_on();
+extern uint32_t target_volume_up(void);
+extern uint32_t target_volume_down(void);
+extern int msm_display_on(void);
 
 struct mdtp_fbimage {
 	uint32_t width;
@@ -89,7 +89,7 @@ static struct fbcon_config *fb_config = NULL;
 /**
  * Allocate mdtp image
  */
-static void alloc_mdtp_image() {
+static void alloc_mdtp_image(void) {
 	if (!g_mdtp_header) {
 		g_mdtp_header = (struct mdtp_fbimage *)malloc(sizeof(struct mdtp_fbimage));
 		ASSERT(g_mdtp_header);
@@ -99,7 +99,7 @@ static void alloc_mdtp_image() {
 /**
  * Free mdtp image
  */
-void free_mdtp_image() {
+void free_mdtp_image(void) {
 	if (g_mdtp_header) {
 		free(g_mdtp_header);
 		g_mdtp_header = NULL;
@@ -261,7 +261,7 @@ static void fbcon_putImage_in_location(struct mdtp_fbimage *fbimg, uint32_t x, u
 /**
  * Display main error message
  */
-static int display_error_message()
+static int display_error_message(void)
 {
 	struct mdtp_fbimage *fbimg;
 
@@ -316,7 +316,7 @@ static void display_image(uint32_t offset, uint32_t width, uint32_t height, uint
 /**
  * Display initial delay message
  */
-static void display_initial_delay()
+static void display_initial_delay(void)
 {
 	uint32_t x = CENTER_IMAGE_ON_X_AXIS(get_image_width(MAINTEXT_5SECONDS),fb_config->width);
 	uint32_t y = (fb_config->height)*MAIN_TEXT_RELATIVE_Y_LOCATION;
@@ -326,7 +326,7 @@ static void display_initial_delay()
 /**
  * Display "enter PIN" message
  */
-static void display_enter_pin()
+static void display_enter_pin(void)
 {
 	uint32_t x = CENTER_IMAGE_ON_X_AXIS(get_image_width(MAINTEXT_ENTERPIN),fb_config->width);
 	uint32_t y = (fb_config->height)*MAIN_TEXT_RELATIVE_Y_LOCATION;
@@ -336,7 +336,7 @@ static void display_enter_pin()
 /**
  * Display invalid PIN message
  */
-static void display_invalid_pin()
+static void display_invalid_pin(void)
 {
 	uint32_t x = CENTER_IMAGE_ON_X_AXIS(get_image_width(MAINTEXT_INCORRECTPIN),fb_config->width);
 	uint32_t y = (fb_config->height)*MAIN_TEXT_RELATIVE_Y_LOCATION;
@@ -347,7 +347,7 @@ static void display_invalid_pin()
 /**
  * Clear digits instructions
  */
-static void display_digits_instructions()
+static void display_digits_instructions(void)
 {
 	uint32_t x = CENTER_IMAGE_ON_X_AXIS(get_image_width(PINTEXT),fb_config->width);
 	uint32_t y = (fb_config->height)*PIN_TEXT_RELATIVE_Y_LOCATION;
@@ -358,7 +358,7 @@ static void display_digits_instructions()
 /**
  * Clear digits instructions
  */
-static void clear_digits_instructions()
+static void clear_digits_instructions(void)
 {
 	uint32_t y = (fb_config->height)*PIN_TEXT_RELATIVE_Y_LOCATION;
 	fbcon_clear_section(y, get_image_height(PINTEXT));
@@ -392,7 +392,7 @@ static void display_selected_digit(uint32_t x, uint32_t y, uint32_t digit)
 /**
  * Display OK button as un-selected.
  */
-static void display_ok_button()
+static void display_ok_button(void)
 {
 	uint32_t ok_x = CENTER_IMAGE_ON_X_AXIS(get_image_width(BTN_OK_OFF),fb_config->width);
 	uint32_t ok_y = (fb_config->height)*OK_BUTTON_RELATIVE_Y_LOCATION;
@@ -403,7 +403,7 @@ static void display_ok_button()
 /**
  * Display OK button as selected.
  */
-static void display_selected_ok_button()
+static void display_selected_ok_button(void)
 {
 	uint32_t ok_x = CENTER_IMAGE_ON_X_AXIS(get_image_width(BTN_OK_ON),fb_config->width);
 	uint32_t ok_y = (fb_config->height)*OK_BUTTON_RELATIVE_Y_LOCATION;
@@ -415,7 +415,7 @@ static void display_selected_ok_button()
 /**
  * Display the instructions for the OK button.
  */
-static void display_pin_instructions()
+static void display_pin_instructions(void)
 {
 	uint32_t x = CENTER_IMAGE_ON_X_AXIS(get_image_width(ACCEPTEDIT_TEXT),fb_config->width);
 	uint32_t y = (fb_config->height)*OK_TEXT_RELATIVE_Y_LOCATION;
@@ -426,7 +426,7 @@ static void display_pin_instructions()
 /**
  * Clear the instructions for the OK button.
  */
-static void clear_pin_message()
+static void clear_pin_message(void)
 {
 	uint32_t y = (fb_config->height)*OK_TEXT_RELATIVE_Y_LOCATION;
 
@@ -436,7 +436,7 @@ static void clear_pin_message()
 /**
  * Initialize data structures required for MDTP UI.
  */
-static void init_mdtp_ui_data()
+static void init_mdtp_ui_data(void)
 {
 	fb_config = fbcon_display();
 	alloc_mdtp_image();
@@ -619,7 +619,7 @@ void get_pin_from_user(char *entered_pin, uint32_t pin_length)
  * User has entered invalid PIN, display error message and
  * allow the user to try again.
  */
-void display_invalid_pin_msg()
+void display_invalid_pin_msg(void)
 {
 	clear_pin_message();
 	display_ok_button();
@@ -632,7 +632,7 @@ void display_invalid_pin_msg()
 /**
  *  Display error message and stop boot process.
  */
-void display_error_msg()
+void display_error_msg(void)
 {
 	init_mdtp_ui_data();
 
@@ -651,7 +651,7 @@ void display_error_msg()
 /**
  *  Display error message in case mdtp image is corrupted and stop boot process.
  */
-void display_error_msg_mdtp()
+void display_error_msg_mdtp(void)
 {
 	int big_factor = 8; // Font size
 	char* str = "Device unable to boot";

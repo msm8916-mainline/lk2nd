@@ -140,7 +140,7 @@ static int write_DIP(DIP_t *dip)
 }
 
 /* Deactivate MDTP by storing the default DIP into the EMMC */
-static void write_deactivated_DIP()
+static void write_deactivated_DIP(void)
 {
 	DIP_t *enc_dip;
 	DIP_t *dec_dip;
@@ -399,7 +399,7 @@ static int validate_dip(DIP_t *dip)
 }
 
 /* Display the recovery UI in case mdtp image is corrupted */
-static void display_mdtp_fail_recovery_ui(){
+static void display_mdtp_fail_recovery_ui(void){
 	display_error_msg_mdtp();
 }
 
@@ -898,7 +898,7 @@ static void mdtp_tzbsp_disallow_cipher_DIP(void)
 /** UT functions **/
 
 /** Hashing fuctions UT **/
-int mdtp_verify_hash_ut(){
+int mdtp_verify_hash_ut(void){
 	unsigned char digest[HASH_LEN]={0};
 	unsigned int hash_expected_result = 0xD42B0A29;
 	char *buf = "MTDP LK UT hashing functions sanity check";
@@ -934,7 +934,7 @@ int mdtp_verify_hash_ut(){
 }
 
 /** Validate partitions params UT **/
-int mdtp_validate_partition_params_ut(){
+int mdtp_validate_partition_params_ut(void){
 	int partition_size = 10;
 	//Bad size
 	if(validate_partition_params(BAD_PARAM_SIZE, MDTP_FWLOCK_MODE_SINGLE, 1) != -1){
@@ -959,7 +959,7 @@ int mdtp_validate_partition_params_ut(){
 }
 
 /** Verify partition UT **/
-int mdtp_verify_partition_ut(){
+int mdtp_verify_partition_ut(void){
 	uint8_t partition_force_verify_block = 0;
 	DIP_hash_table_entry_t partition_hash_table;
 	int verify_num_blocks = 10,partition_size = 1;

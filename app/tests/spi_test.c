@@ -81,7 +81,7 @@ static int spidev_read_cmd(struct qup_spi_dev *dev, unsigned char *buf,
 	return ret;
 }
 
-void spi_test()
+void spi_test(void)
 {
 	unsigned char *tx_buf1;
 	unsigned int data_size = 240*320*2;

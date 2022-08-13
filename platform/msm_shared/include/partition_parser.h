@@ -195,9 +195,9 @@ int partition_get_index_in_lun(const char *name, unsigned int lun);
 unsigned long long partition_get_size(int index);
 unsigned long long partition_get_offset(int index);
 uint8_t partition_get_lun(int index);
-unsigned int partition_read_table();
+unsigned int partition_read_table(void);
 unsigned int write_partition(unsigned size, unsigned char *partition);
-bool partition_gpt_exists();
+bool partition_gpt_exists(void);
 /* Return the partition offset & size to app layer
  * Caller should validate the size & offset !=0
  */
@@ -210,9 +210,9 @@ void partition_dump(void);
 int partition_read_only(int index);
 
 /* Get Partition Count */
-unsigned partition_get_partition_count();
+unsigned partition_get_partition_count(void);
 
 /* Read Partition entried list pointer */
-struct partition_entry* partition_get_partition_entries();
+struct partition_entry* partition_get_partition_entries(void);
 
 #endif

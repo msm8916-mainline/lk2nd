@@ -864,7 +864,7 @@ static struct clk_lookup msm_clocks_8974[] =
 	CLK_LOOKUP("usb30_master_clk", gcc_usb30_master_clk.c),
 };
 
-void msm8974_ac_clock_override()
+void msm8974_ac_clock_override(void)
 {
 	sdcc1_apps_clk_src.freq_tbl = ftbl_gcc_sdcc1_apps_clk_ac;
 }

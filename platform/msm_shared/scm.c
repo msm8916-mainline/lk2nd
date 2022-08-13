@@ -71,7 +71,7 @@
 bool scm_arm_support;
 static bool scm_initialized;
 
-bool is_scm_armv8_support()
+bool is_scm_armv8_support(void)
 {
 	if (!scm_initialized)
 	{
@@ -111,7 +111,7 @@ static int scm_arm_support_available(uint32_t svc_id, uint32_t cmd_id)
 	return ret;
 }
 
-void scm_init()
+void scm_init(void)
 {
 	int ret;
 
@@ -761,7 +761,7 @@ uint32_t set_tamper_fuse_cmd(uint32_t fuse_id)
 	return ret;
 }
 
-uint8_t get_tamper_fuse_cmd()
+uint8_t get_tamper_fuse_cmd(void)
 {
 	uint32_t svc_id;
 	uint32_t cmd_id;
@@ -1004,7 +1004,7 @@ uint8_t switch_ce_chn_cmd(enum ap_ce_channel_type channel)
 	return resp_buf;
 }
 
-int scm_halt_pmic_arbiter()
+int scm_halt_pmic_arbiter(void)
 {
 	int ret = 0;
 	scmcall_arg scm_arg = {0};
@@ -1137,7 +1137,7 @@ int scm_random(uintptr_t * rbuf, uint32_t  r_len)
 	return ret;
 }
 
-uintptr_t get_canary()
+uintptr_t get_canary(void)
 {
 	uintptr_t canary;
 	if(scm_random(&canary, sizeof(canary))) {
@@ -1151,7 +1151,7 @@ uintptr_t get_canary()
 	return canary;
 }
 
-int scm_xpu_err_fatal_init()
+int scm_xpu_err_fatal_init(void)
 {
 	uint32_t ret = 0;
 	uint32_t response = 0;
@@ -1263,7 +1263,7 @@ uint32_t scm_call2(scmcall_arg *arg, scmcall_ret *ret)
 static bool secure_boot_enabled = false;
 static bool wdog_debug_fuse_disabled = true;
 
-void scm_check_boot_fuses()
+void scm_check_boot_fuses(void)
 {
 	uint32_t ret = 0;
 	uint32_t *resp = NULL;
@@ -1308,7 +1308,7 @@ void scm_check_boot_fuses()
 	free(resp);
 }
 
-bool is_secure_boot_enable()
+bool is_secure_boot_enable(void)
 {
 	scm_check_boot_fuses();
 	return secure_boot_enabled;
@@ -1373,7 +1373,7 @@ int scm_call2_atomic(uint32_t svc, uint32_t cmd, uint32_t arg1, uint32_t arg2)
 	return ret;
 }
 
-int scm_disable_sdi()
+int scm_disable_sdi(void)
 {
 	int ret = 0;
 
@@ -1425,7 +1425,7 @@ int scm_dload_mode(enum reboot_reason mode)
 #endif
 }
 
-bool scm_device_enter_dload()
+bool scm_device_enter_dload(void)
 {
 	uint32_t ret = 0;
 	uint32_t dload_mode = 0;

@@ -201,7 +201,7 @@ get_set_enable_error:
 }
 
 #ifdef DEBUG_CLOCK
-struct clk_list *clk_get_list()
+struct clk_list *clk_get_list(void)
 {
 	return &msm_clk_list;
 }

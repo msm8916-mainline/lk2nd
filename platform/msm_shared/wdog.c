@@ -64,7 +64,7 @@ static void wdog_feed_func_thread(void)
 	}
 }
 
-void msm_wdog_init()
+void msm_wdog_init(void)
 {
 	/* Set Bite and Bark times  10s */
 	writel(0x77FD3, APPS_WDOG_BARK_VAL_REG);

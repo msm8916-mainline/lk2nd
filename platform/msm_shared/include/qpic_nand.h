@@ -351,9 +351,9 @@ unsigned flash_num_blocks(void);
 unsigned
 flash_block_size(void);
 void
-qpic_nand_uninit();
+qpic_nand_uninit(void);
 /* Api to return the nand base */
-uint32_t nand_device_base();
+uint32_t nand_device_base(void);
 nand_result_t qpic_nand_read(uint32_t start_page, uint32_t num_pages,
 		unsigned char* buffer, unsigned char* spareaddr);
 nand_result_t qpic_nand_write(uint32_t start_page, uint32_t num_pages,

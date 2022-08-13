@@ -40,17 +40,17 @@ bool charge_in_progress = false;
 bool display_initialized = false;
 bool display_shutdown_in_prgs = false;
 
-bool pm_appsbl_charging_in_progress()
+bool pm_appsbl_charging_in_progress(void)
 {
 	return charge_in_progress;
 }
 
-bool pm_appsbl_display_init_done()
+bool pm_appsbl_display_init_done(void)
 {
 	return display_initialized;
 }
 
-bool pm_app_display_shutdown_in_prgs()
+bool pm_app_display_shutdown_in_prgs(void)
 {
 	return display_shutdown_in_prgs;
 }

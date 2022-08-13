@@ -36,7 +36,7 @@
 #include <platform/debug.h>
 
 void platform_init_interrupts(void);
-void platform_init_timer();
+void platform_init_timer(void);
 
 void uart3_clock_init(void);
 void uart_init(void);

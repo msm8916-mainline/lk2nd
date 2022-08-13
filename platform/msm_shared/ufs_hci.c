@@ -37,7 +37,7 @@
 #include <utp.h>
 #include <ufs.h>
 
-uint64_t ufs_alloc_trans_req_list()
+uint64_t ufs_alloc_trans_req_list(void)
 {
 	void *ptr;
 
@@ -51,7 +51,7 @@ uint64_t ufs_alloc_trans_req_list()
 	return (addr_t) ptr;
 }
 
-uint64_t ufs_alloc_task_mgmt_req_list()
+uint64_t ufs_alloc_task_mgmt_req_list(void)
 {
 	addr_t ptr = (addr_t) memalign(1024, 1024);
 

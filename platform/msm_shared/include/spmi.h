@@ -142,7 +142,7 @@ struct pmic_arb_param{
 	uint8_t size;
 };
 
-typedef void (*spmi_callback)();
+typedef void (*spmi_callback)(void);
 
 void spmi_init(uint32_t, uint32_t);
 unsigned int pmic_arb_write_cmd(struct pmic_arb_cmd *cmd,
@@ -152,5 +152,5 @@ unsigned int pmic_arb_read_cmd(struct pmic_arb_cmd *cmd,
 uint8_t pmic_spmi_reg_read(uint32_t addr);
 void pmic_spmi_reg_write(uint32_t addr, uint8_t val);
 void pmic_spmi_reg_mask_write(uint32_t addr, uint8_t mask, uint8_t val);
-bool spmi_initialized();
+bool spmi_initialized(void);
 #endif

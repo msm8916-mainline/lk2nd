@@ -169,23 +169,23 @@ uint32_t platform_get_sclk_count(void)
 	return readl(MPM2_MPM_SLEEP_TIMETICK_COUNT_VAL);
 }
 
-addr_t get_bs_info_addr()
+addr_t get_bs_info_addr(void)
 {
 	return BS_INFO_ADDR;
 }
 
-uint32_t platform_get_qmp_rev()
+uint32_t platform_get_qmp_rev(void)
 {
 	return readl(USB3_PHY_REVISION_ID3) << 24 | readl(USB3_PHY_REVISION_ID2) << 16 |
 		   readl(USB3_PHY_REVISION_ID1) << 8 | readl(USB3_PHY_REVISION_ID0);
 }
 
-uint32_t platform_get_max_periph()
+uint32_t platform_get_max_periph(void)
 {
 	return 256;
 }
 
-int platform_is_msm8996()
+int platform_is_msm8996(void)
 {
 	if (board_platform_id() == MSM8996)
 		return 1;
@@ -193,7 +193,7 @@ int platform_is_msm8996()
 		return 0;
 }
 
-int platform_is_msm8996sg()
+int platform_is_msm8996sg(void)
 {
 	if (board_platform_id() == MSM8996SG)
 		return 1;
@@ -201,19 +201,19 @@ int platform_is_msm8996sg()
 		return 0;
 }
 
-int platform_is_apq8096_mediabox()
+int platform_is_apq8096_mediabox(void)
 {
 		return ((board_platform_id() == APQ8096) &&
 		(board_hardware_id() == HW_PLATFORM_DRAGON) &&
 		(board_hardware_subtype() == HW_PLATFORM_SUBTYPE_SVLTE1));
 }
 
-uint64_t platform_get_ddr_start()
+uint64_t platform_get_ddr_start(void)
 {
 	return ddr_start;
 }
 
-bool platform_use_qmp_misc_settings()
+bool platform_use_qmp_misc_settings(void)
 {
 	if ((board_soc_version() < 0x30000) && (board_platform_id() != MSM8996SG))
 		return true;
@@ -223,7 +223,7 @@ bool platform_use_qmp_misc_settings()
 
 
 /* USB platform specific bases*/
-uint32_t usb_ctrl_base()
+uint32_t usb_ctrl_base(void)
 {
 	if (board_hardware_id() == HW_PLATFORM_SBC)
 		return	MSM_USB20_SEC_BASE;
@@ -232,7 +232,7 @@ uint32_t usb_ctrl_base()
 
 }
 
-uint32_t usb_qscratch_base()
+uint32_t usb_qscratch_base(void)
 {
 	if (board_hardware_id() == HW_PLATFORM_SBC)
 		return	MSM_USB20_SEC_QSCRATCH_BASE;
@@ -240,7 +240,7 @@ uint32_t usb_qscratch_base()
 		return	MSM_USB30_QSCRATCH_PRIM_BASE;
 }
 
-uint32_t usb_phy_base()
+uint32_t usb_phy_base(void)
 {
 	if (board_hardware_id() == HW_PLATFORM_SBC)
 		return	QUSB2_SEC_PHY_BASE;
@@ -248,7 +248,7 @@ uint32_t usb_phy_base()
 		return	QUSB2_PRIM_PHY_BASE;
 }
 
-uint32_t usb_phy_bcr()
+uint32_t usb_phy_bcr(void)
 {
 	if (board_hardware_id() == HW_PLATFORM_SBC)
 		return	GCC_QUSB2_SEC_PHY_BCR;
@@ -256,7 +256,7 @@ uint32_t usb_phy_bcr()
 		return	GCC_QUSB2_PRIM_PHY_BCR;
 }
 
-int usb_irq()
+int usb_irq(void)
 {
 	if (board_hardware_id() == HW_PLATFORM_SBC)
 		return	USB20_IRQ;

@@ -46,7 +46,7 @@
 #define INT_QTMR_FRM_0_PHYSICAL_TIMER_EXP      (GIC_SPI_START + 31)
 
 /* to support secondary port usage, secondary port Interrupt*/
-int usb_irq();
+int usb_irq(void);
 
 #define USB30_EE1_IRQ  			   (usb_irq())
 

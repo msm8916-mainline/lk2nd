@@ -62,7 +62,7 @@
 #define TOTAL_LANE_COUNT                          5
 #define CONFIG_REG_FOR_EACH_LANE                  9
 
-extern int mdp_get_revision();
+extern int mdp_get_revision(void);
 
 static void mipi_dsi_calibration(uint32_t ctl_base)
 {

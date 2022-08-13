@@ -150,6 +150,6 @@ void clock_init_mmc(uint32_t interface);
 void clock_config_mmc(uint32_t interface, uint32_t freq);
 void mdp_clock_init(void);
 void mmss_pixel_clock_configure(uint32_t pclk_index);
-void ce_async_reset();
+void ce_async_reset(void);
 
 #endif

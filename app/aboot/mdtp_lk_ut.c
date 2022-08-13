@@ -34,7 +34,7 @@
 
 
 /** External UT Functions **/
-void cmd_mdtp_runtests(){
+void cmd_mdtp_runtests(void){
 	bool res = false;
 	int tests_res = 0;
 	struct mdtp_target_efuse target_efuse;

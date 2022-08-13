@@ -35,7 +35,7 @@
 #include <platform/scm-io.h>
 
 extern void hdmi_app_clk_init(int);
-extern int hdmi_msm_turn_on();
+extern int hdmi_msm_turn_on(void);
 
 #define FB_ADDR   0x43E00000
 
@@ -55,7 +55,7 @@ struct fbcon_config *get_fbcon(void)
 	return &fb_cfg;
 }
 
-void hdmi_msm_init_phy()
+void hdmi_msm_init_phy(void)
 {
 	dprintf(SPEW, "PHY INIT\n");
 	uint32_t offset = 0;
@@ -82,7 +82,7 @@ void hdmi_msm_init_phy()
 	writel(0x13, HDMI_PHY_REG_12);
 }
 
-static void hdmi_gpio_config()
+static void hdmi_gpio_config(void)
 {
 	uint32_t func;
 	uint32_t pull;
@@ -108,7 +108,7 @@ static void hdmi_gpio_config()
  * This is the start function which initializes clocks , gpios for hdmi
  * & powers on the HDMI core
  */
-void hdmi_power_init()
+void hdmi_power_init(void)
 {
 	// Enable HDMI clocks
 	hdmi_app_clk_init(1);
@@ -124,7 +124,7 @@ void hdmi_power_init()
 	hdmi_msm_turn_on();
 }
 
-static void hdmi_msm_reset_core()
+static void hdmi_msm_reset_core(void)
 {
         uint32_t reg_val = 0;
         hdmi_msm_set_mode(0);
@@ -160,7 +160,7 @@ static void hdmi_msm_reset_core()
         udelay(5);
 }
 
-int hdmi_dtv_on()
+int hdmi_dtv_on(void)
 {
 	uint32_t val, pll_mode, ns_val, pll_config;
 

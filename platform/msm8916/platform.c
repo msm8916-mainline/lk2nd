@@ -71,8 +71,8 @@ static mmu_section_t mmu_section_table[] = {
 };
 
 
-int platform_is_msm8939();
-int platform_is_msm8929();
+int platform_is_msm8939(void);
+int platform_is_msm8929(void);
 
 void platform_early_init(void)
 {
@@ -83,7 +83,7 @@ void platform_early_init(void)
 	scm_init();
 }
 
-int qtmr_irq()
+int qtmr_irq(void)
 {
 	if (platform_is_msm8939() || platform_is_msm8929())
 		return INT_QTMR_FRM_0_PHYSICAL_TIMER_EXP_8x39;
@@ -106,7 +106,7 @@ uint32_t platform_get_sclk_count(void)
 	return readl(MPM2_MPM_SLEEP_TIMETICK_COUNT_VAL);
 }
 
-addr_t get_bs_info_addr()
+addr_t get_bs_info_addr(void)
 {
 	return ((addr_t)BS_INFO_ADDR);
 }
@@ -159,7 +159,7 @@ addr_t platform_get_phys_to_virt_mapping(addr_t phys_addr)
 	return phys_addr;
 }
 
-int platform_is_msm8939()
+int platform_is_msm8939(void)
 {
 	uint32_t platform = board_platform_id();
 	uint32_t ret = 0;
@@ -182,7 +182,7 @@ int platform_is_msm8939()
 	return ret;
 }
 
-int platform_is_msm8929()
+int platform_is_msm8929(void)
 {
 	uint32_t platform = board_platform_id();
 	uint32_t ret = 0;
@@ -202,7 +202,7 @@ int platform_is_msm8929()
 	return ret;
 }
 
-int platform_is_apq8016()
+int platform_is_apq8016(void)
 {
 	return board_platform_id() == APQ8016 ? 1 : 0;
 }
@@ -213,7 +213,7 @@ int platform_is_apq8016()
  * Dynamic SMEM is assumed to be enabled. Read the remaining
  * SMEM info for SMEM Size and Phy_addr from the other bytes.
  */
-uint32_t platform_get_smem_base_addr()
+uint32_t platform_get_smem_base_addr(void)
 {
 	struct smem_addr_info *smem_info = NULL;
 

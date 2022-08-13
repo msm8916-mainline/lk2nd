@@ -47,7 +47,7 @@ int ufs_reg_target_val_timeout_loop(uint32_t reg_addr, uint32_t target_val, uint
 enum handler_return ufs_irq_handler(void* data);
 void ufs_irq_enable(struct ufs_dev *dev, uint32_t irq);
 int ufs_enable_hci(struct ufs_dev *dev);
-uint64_t ufs_alloc_trans_req_list();
-uint64_t ufs_alloc_task_mgmt_req_list();
+uint64_t ufs_alloc_trans_req_list(void);
+uint64_t ufs_alloc_task_mgmt_req_list(void);
 
 #endif

@@ -439,7 +439,7 @@ void mdp_clock_enable(void)
 	}
 }
 
-void mdp_clock_disable()
+void mdp_clock_disable(void)
 {
 	clk_disable(clk_get("mdss_vsync_clk"));
 	clk_disable(clk_get("mdss_mdp_clk"));

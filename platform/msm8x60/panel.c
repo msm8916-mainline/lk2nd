@@ -91,7 +91,7 @@ static int display_common_power(int on)
 {
 }
 
-static int lcd_power_on()
+static int lcd_power_on(void)
 {
 	uint8_t buffer = 0x0, mask = 0x0, prev_val = 0x0;
 	int ret = 0;

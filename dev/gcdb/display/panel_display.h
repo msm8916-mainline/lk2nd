@@ -80,17 +80,17 @@ struct panel_list {
 int dsi_panel_init(struct msm_panel_info *pinfo,
 		struct panel_struct *pstruct);
 
-int dsi_panel_pre_on();
-int dsi_panel_post_on();
-int dsi_panel_pre_off();
-int dsi_panel_post_off();
-int dsi_panel_rotation();
+int dsi_panel_pre_on(void);
+int dsi_panel_post_on(void);
+int dsi_panel_pre_off(void);
+int dsi_panel_post_off(void);
+int dsi_panel_rotation(void);
 int dsi_panel_config(void *);
 
 /* This should be implemented by oem */
-int oem_panel_rotation();
-int oem_panel_on();
-int oem_panel_off();
+int oem_panel_rotation(void);
+int oem_panel_on(void);
+int oem_panel_off(void);
 
 /* OEM support API */
 int32_t panel_name_to_id(struct panel_list supp_panels[],

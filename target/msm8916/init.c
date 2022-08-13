@@ -98,7 +98,7 @@ void target_early_init(void)
 #endif
 }
 
-void target_sdc_init()
+void target_sdc_init(void)
 {
 	struct mmc_config_data config;
 
@@ -130,13 +130,13 @@ void target_sdc_init()
 	}
 }
 
-void *target_mmc_device()
+void *target_mmc_device(void)
 {
 	return (void *) dev;
 }
 
 /* Return 1 if vol_up pressed */
-int target_volume_up()
+int target_volume_up(void)
 {
 	static uint8_t first_time = 0;
 	uint8_t status = 0;
@@ -158,13 +158,13 @@ int target_volume_up()
 }
 
 /* Return 1 if vol_down pressed */
-uint32_t target_volume_down()
+uint32_t target_volume_down(void)
 {
 	/* Volume down button tied in with PMIC RESIN. */
 	return pm8x41_resin_status();
 }
 
-static void target_keystatus()
+static void target_keystatus(void)
 {
 	keys_init();
 
@@ -258,7 +258,7 @@ void target_baseband_detect(struct board_data *board)
 	};
 }
 
-unsigned target_baseband()
+unsigned target_baseband(void)
 {
 	return board_baseband();
 }
@@ -268,7 +268,7 @@ int emmc_recovery_init(void)
 	return _emmc_recovery_init();
 }
 
-static void set_sdc_power_ctrl()
+static void set_sdc_power_ctrl(void)
 {
 	/* Drive strength configs for sdc pins */
 	struct tlmm_cfgs sdc1_hdrv_cfg[] =
@@ -308,7 +308,7 @@ void target_usb_init(void)
 	writel(val, USB_USBCMD);
 }
 
-uint8_t target_panel_auto_detect_enabled()
+uint8_t target_panel_auto_detect_enabled(void)
 {
 	uint8_t ret = 0;
 
@@ -326,7 +326,7 @@ uint8_t target_panel_auto_detect_enabled()
 
 static uint8_t splash_override;
 /* Returns 1 if target supports continuous splash screen. */
-int target_cont_splash_screen()
+int target_cont_splash_screen(void)
 {
 	uint8_t splash_screen = 0;
 	if (!splash_override) {
@@ -464,7 +464,7 @@ crypto_engine_type board_ce_type(void)
 }
 
 /* Set up params for h/w CE. */
-void target_crypto_init_params()
+void target_crypto_init_params(void)
 {
 	struct crypto_init_params ce_params;
 
@@ -494,7 +494,7 @@ void target_crypto_init_params()
 	crypto_init_params(&ce_params);
 }
 
-uint32_t target_get_hlos_subtype()
+uint32_t target_get_hlos_subtype(void)
 {
 	return board_hlos_subtype();
 }
@@ -504,7 +504,7 @@ void pmic_reset_configure(uint8_t reset_type)
 	pm8x41_reset_configure(reset_type);
 }
 
-uint32_t target_get_pmic()
+uint32_t target_get_pmic(void)
 {
 	return PMIC_IS_PM8916;
 }

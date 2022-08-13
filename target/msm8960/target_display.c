@@ -38,7 +38,7 @@ static struct msm_fb_panel_data panel;
 static uint8_t display_enable;
 
 extern int msm_display_init(struct msm_fb_panel_data *pdata);
-extern int msm_display_off();
+extern int msm_display_off(void);
 
 static int apq8064_lvds_panel_power(int enable)
 {

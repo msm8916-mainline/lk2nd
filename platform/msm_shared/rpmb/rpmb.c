@@ -41,7 +41,7 @@
 static void *dev;
 struct rpmb_init_info info;
 
-int rpmb_init()
+int rpmb_init(void)
 {
 	int ret = 0;
 
@@ -126,7 +126,7 @@ err:
 	return ret;
 }
 
-struct rpmb_init_info *rpmb_get_init_info()
+struct rpmb_init_info *rpmb_get_init_info(void)
 {
 	return &info;
 }
@@ -234,7 +234,7 @@ int swp_write(qsee_stor_secure_wp_info_t swp_cb)
 	return 0;
 }
 
-int rpmb_uninit()
+int rpmb_uninit(void)
 {
 	int ret = 0;
 

@@ -715,12 +715,12 @@ typedef struct smem_ram_ptn_v2 ram_partition;
 
 unsigned smem_read_alloc_entry_offset(smem_mem_type_t type, void *buf, int len, int offset);
 int smem_ram_ptable_init(struct smem_ram_ptable *smem_ram_ptable);
-int smem_ram_ptable_init_v1(); /* Used on platforms that use ram ptable v1 */
+int smem_ram_ptable_init_v1(void); /* Used on platforms that use ram ptable v1 */
 void smem_get_ram_ptable_entry(ram_partition*, uint32_t entry);
 uint32_t smem_get_ram_ptable_version(void);
 uint32_t smem_get_ram_ptable_len(void);
 void* smem_get_alloc_entry(smem_mem_type_t type, uint32_t* size);
-uint32_t get_ddr_start();
-uint64_t smem_get_ddr_size();
+uint32_t get_ddr_start(void);
+uint64_t smem_get_ddr_size(void);
 size_t smem_get_hw_platform_name(void *buf, uint32 buf_size);
 #endif				/* __PLATFORM_MSM_SHARED_SMEM_H */

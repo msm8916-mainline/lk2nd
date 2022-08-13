@@ -37,7 +37,7 @@
 
 #define SIZE_1M             (1024 * 1024)
 static struct smem_ram_ptable ram_ptable;
-struct smem_ram_ptable* target_smem_ram_ptable_init()
+struct smem_ram_ptable* target_smem_ram_ptable_init(void)
 {
 	/* Make sure RAM partition table is initialized */
 	ASSERT(smem_ram_ptable_init(&ram_ptable));

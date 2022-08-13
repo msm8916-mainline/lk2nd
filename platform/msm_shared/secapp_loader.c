@@ -35,7 +35,7 @@
 static bool lksec_app_loaded;
 static int app_handle;
 
-int load_sec_app()
+int load_sec_app(void)
 {
 	/* start TZ app */
 	app_handle = qseecom_start_app("keymaster");
@@ -49,13 +49,13 @@ int load_sec_app()
 	return 0;
 }
 
-int get_secapp_handle()
+int get_secapp_handle(void)
 {
 	dprintf(INFO, "LK SEC APP Handle: 0x%x\n", app_handle);
 	return app_handle;
 }
 
-int send_delete_keys_to_tz()
+int send_delete_keys_to_tz(void)
 {
 	int ret = 0;
 	key_op_delete_all_req_t req = {0};
@@ -74,7 +74,7 @@ int send_delete_keys_to_tz()
 	return 0;
 }
 
-int send_milestone_call_to_tz()
+int send_milestone_call_to_tz(void)
 {
 	int ret = 0;
 
@@ -106,7 +106,7 @@ int send_milestone_call_to_tz()
 	return 0;
 }
 
-bool is_sec_app_loaded()
+bool is_sec_app_loaded(void)
 {
 	return lksec_app_loaded;
 }

@@ -348,7 +348,7 @@ int smd_write(smd_channel_info_t *ch, void *data, uint32_t len, int ch_type)
 	return 0;
 }
 
-void smd_notify_rpm()
+void smd_notify_rpm(void)
 {
 	/* Set BIT 0 to notify RPM via IPC interrupt*/
 	writel(BIT(0), APCS_ALIAS0_IPC_INTERRUPT);
@@ -413,7 +413,7 @@ void smd_set_state(smd_channel_info_t *ch, uint32_t state, uint32_t flag)
 	smd_state_update(ch, flag);
 }
 
-static void flush_smd_channel_entries()
+static void flush_smd_channel_entries(void)
 {
 	arch_invalidate_cache_range((addr_t)smd_channel_alloc_entry,
 			SMD_CHANNEL_ALLOC_MAX);

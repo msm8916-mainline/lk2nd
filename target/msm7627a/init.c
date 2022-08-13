@@ -65,7 +65,7 @@ unsigned msm_version = 0;
  */
 static crypto_engine_type platform_ce_type = CRYPTO_ENGINE_TYPE_SW;
 
-int machine_is_evb();
+int machine_is_evb(void);
 
 /* for these partitions, start will be offset by either what we get from
  * smem, or from the above offset if smem is not useful. Also, we should
@@ -560,7 +560,7 @@ int emmc_recovery_init(void)
 }
 #endif
 
-int machine_is_evb()
+int machine_is_evb(void)
 {
 	int ret = 0;
 	unsigned mach_type = board_machtype();
@@ -576,7 +576,7 @@ int machine_is_evb()
 	}
 	return ret;
 }
-int machine_is_qrd()
+int machine_is_qrd(void)
 {
 	int ret = 0;
 	unsigned mach_type = board_machtype();
@@ -592,7 +592,7 @@ int machine_is_qrd()
 	}
 	return ret;
 }
-int machine_is_skud()
+int machine_is_skud(void)
 {
 	int ret = 0;
 	unsigned mach_type = board_machtype();
@@ -606,7 +606,7 @@ int machine_is_skud()
 	}
 	return ret;
 }
-int machine_is_8x25()
+int machine_is_8x25(void)
 {
 	int ret = 0;
 	unsigned mach_type = board_machtype();
@@ -681,7 +681,7 @@ void target_usb_init(void)
 	target_ulpi_init();
 }
 
-int target_cont_splash_screen()
+int target_cont_splash_screen(void)
 {
 	int ret = 0;
 	unsigned mach_type = 0;
@@ -700,7 +700,7 @@ int target_cont_splash_screen()
 	return ret;
 }
 
-int target_is_sku3()
+int target_is_sku3(void)
 {
 	int ret = 0;
 	unsigned mach_type = 0;

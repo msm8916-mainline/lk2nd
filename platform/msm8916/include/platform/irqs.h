@@ -35,7 +35,7 @@
  * 16-31: PPI (private peripheral interrupts)
  * 32+:   SPI (shared peripheral interrupts)
  */
-int qtmr_irq();
+int qtmr_irq(void);
 
 #define GIC_PPI_START                          16
 #define GIC_SPI_START                          32

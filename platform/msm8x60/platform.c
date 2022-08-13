@@ -93,7 +93,7 @@ struct cdt_header {
 	uint32_t reserved2;
 } __attribute__ ((packed));
 
-void platform_init_timer();
+void platform_init_timer(void);
 
 /* CRCI - mmc slot mapping.
  * mmc slot numbering start from 1.

@@ -142,7 +142,7 @@ typedef enum {
 /* forward declare bootinfo */
 typedef struct bootinfo bootinfo;
 
-BOOLEAN VerifiedBootEnabled();
+BOOLEAN VerifiedBootEnabled(void);
 
 /**
  * @return  0 - AVB disabled
@@ -150,7 +150,7 @@ BOOLEAN VerifiedBootEnabled();
  *          2 - VB 2.0
  *          3 - LE VB
  */
-UINT32 GetAVBVersion();
+UINT32 GetAVBVersion(void);
 
 /**
  * Authenticates and loads boot image in

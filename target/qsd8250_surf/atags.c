@@ -35,7 +35,7 @@
 #define EBI1_SIZE2_1G   0x30000000 //768MB for 1GB RAM
 #define EBI1_ADDR2    	0x30000000
 
-static unsigned check_1gb_mem()
+static unsigned check_1gb_mem(void)
 {
 	// check for 1GB
 	unsigned adr1 = 0x57000000;

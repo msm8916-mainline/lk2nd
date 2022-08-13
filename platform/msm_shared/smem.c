@@ -66,7 +66,7 @@ const char *hw_platform[] = {
  */
 
 #if DYNAMIC_SMEM
-uint32_t smem_get_base_addr()
+uint32_t smem_get_base_addr(void)
 {
 	struct smem_addr_info *smem_info = NULL;
 

@@ -79,7 +79,7 @@ static bool pm_app_read_from_sram;
 static char panel_name[256];
 
 pm_err_flag_type pm_appsbl_chg_config_vbat_low_threshold(uint32 device_index, pm_smbchg_specific_data_type *chg_param_ptr);
-static void display_thread_initialize();
+static void display_thread_initialize(void);
 static void pm_app_ima_read_voltage(uint32_t *);
 static void pm_app_pmi8994_read_voltage(uint32_t *voltage);
 /*===========================================================================
@@ -594,7 +594,7 @@ pm_err_flag_type pm_appsbl_set_dcin_suspend(uint32_t device_index)
 	return err_flag;
 }
 
-static bool is_power_key_pressed()
+static bool is_power_key_pressed(void)
 {
 	int count = 0;
 
@@ -650,7 +650,7 @@ static int display_charger_screen(void *arg)
 /* Create a thread to monitor power key press events
  * and turn on/off the display for battery
  */
-static void display_thread_initialize()
+static void display_thread_initialize(void)
 {
 	thread_t *thr = NULL;
 	static bool is_thread_start;

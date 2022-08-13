@@ -221,7 +221,7 @@ int get_target_boot_params(const char *cmdline, const char *part, char **buf)
 }
 #endif
 
-static void set_sdc_power_ctrl()
+static void set_sdc_power_ctrl(void)
 {
 	/* Drive strength configs for sdc pins */
 	struct tlmm_cfgs sdc1_hdrv_cfg[] =
@@ -250,7 +250,7 @@ static void set_sdc_power_ctrl()
 	tlmm_set_pull_ctrl(sdc1_rclk_cfg, ARRAY_SIZE(sdc1_rclk_cfg));
 }
 
-void target_sdc_init()
+void target_sdc_init(void)
 {
 	struct mmc_config_data config;
 
@@ -280,13 +280,13 @@ void target_sdc_init()
 	}
 }
 
-void *target_mmc_device()
+void *target_mmc_device(void)
 {
 	return (void *) dev;
 }
 
 /* Return 1 if vol_up pressed */
-int target_volume_up()
+int target_volume_up(void)
 {
 	uint8_t status = 0;
 
@@ -303,13 +303,13 @@ int target_volume_up()
 }
 
 /* Return 1 if vol_down pressed */
-uint32_t target_volume_down()
+uint32_t target_volume_down(void)
 {
 	/* Volume down button tied in with PMIC RESIN. */
 	return pm8x41_resin_status();
 }
 
-uint32_t target_is_pwrkey_pon_reason()
+uint32_t target_is_pwrkey_pon_reason(void)
 {
 	uint32_t pmic = target_get_pmic();
 	uint8_t pon_reason = 0;
@@ -337,7 +337,7 @@ uint32_t target_is_pwrkey_pon_reason()
 		return 0;
 }
 
-static void target_keystatus()
+static void target_keystatus(void)
 {
 	keys_init();
 
@@ -460,7 +460,7 @@ void target_baseband_detect(struct board_data *board)
 	};
 }
 
-unsigned target_baseband()
+unsigned target_baseband(void)
 {
 	return board_baseband();
 }
@@ -574,7 +574,7 @@ void target_usb_phy_mux_configure(void)
 	}
 }
 
-void target_usb_phy_reset()
+void target_usb_phy_reset(void)
 {
 
         usb30_qmp_phy_reset();
@@ -582,7 +582,7 @@ void target_usb_phy_reset()
 }
 
 /* Initialize target specific USB handlers */
-target_usb_iface_t* target_usb30_init()
+target_usb_iface_t* target_usb30_init(void)
 {
 	target_usb_iface_t *t_usb_iface;
 
@@ -599,7 +599,7 @@ target_usb_iface_t* target_usb30_init()
 }
 
 /* identify the usb controller to be used for the target */
-const char * target_usb_controller()
+const char * target_usb_controller(void)
 {
 	return "dwc";
 }
@@ -661,7 +661,7 @@ crypto_engine_type board_ce_type(void)
 }
 
 /* Set up params for h/w CE. */
-void target_crypto_init_params()
+void target_crypto_init_params(void)
 {
 	struct crypto_init_params ce_params;
 
@@ -691,7 +691,7 @@ void target_crypto_init_params()
 	crypto_init_params(&ce_params);
 }
 
-uint32_t target_get_pmic()
+uint32_t target_get_pmic(void)
 {
 	if (target_is_pmi_enabled()) {
 		uint32_t pmi_type = board_pmic_target(1) & PMIC_TYPE_MASK;
@@ -810,18 +810,18 @@ struct qmp_reg qmp_settings[] =
 	{0x800, 0x00}, /* PCIE_USB3_PCS_SW_RESET */
 };
 
-struct qmp_reg *target_get_qmp_settings()
+struct qmp_reg *target_get_qmp_settings(void)
 {
 	return qmp_settings;
 }
 
-int target_get_qmp_regsize()
+int target_get_qmp_regsize(void)
 {
 	return ARRAY_SIZE(qmp_settings);
 }
 static uint8_t splash_override;
 /* Returns 1 if target supports continuous splash screen. */
-int target_cont_splash_screen()
+int target_cont_splash_screen(void)
 {
 	uint8_t splash_screen = 0;
 	if (!splash_override) {

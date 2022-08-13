@@ -345,7 +345,7 @@ void crypto_get_ctx(void *ctx_ptr)
 }
 
 /* Returns the max authentication block size */
-uint32_t crypto_get_max_auth_blk_size()
+uint32_t crypto_get_max_auth_blk_size(void)
 {
 	return 0xFA00;
 }

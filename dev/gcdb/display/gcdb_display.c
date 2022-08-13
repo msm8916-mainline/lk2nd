@@ -60,7 +60,7 @@ static struct mdss_dsi_phy_ctrl dsi_video_mode_phy_db;
 /* Extern                                                                    */
 /*---------------------------------------------------------------------------*/
 extern int msm_display_init(struct msm_fb_panel_data *pdata);
-extern int msm_display_off();
+extern int msm_display_off(void);
 
 static uint32_t panel_backlight_ctrl(uint8_t enable)
 {
@@ -533,7 +533,7 @@ static int mdss_spi_panel_power(uint8_t enable, struct msm_panel_info *pinfo)
 	return ret;
 }
 
-static int update_dsi_display_config()
+static int update_dsi_display_config(void)
 {
 	int ret = NO_ERROR;
 

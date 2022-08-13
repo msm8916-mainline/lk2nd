@@ -394,7 +394,7 @@ void clock_usb30_init(void)
 	}
 }
 
-void clock_bumpup_pipe3_clk()
+void clock_bumpup_pipe3_clk(void)
 {
 	int ret = 0;
 

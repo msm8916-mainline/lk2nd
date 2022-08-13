@@ -217,7 +217,7 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 	}
 }
 
-void clock_bumpup_pipe3_clk()
+void clock_bumpup_pipe3_clk(void)
 {
 	int ret =0;
 
@@ -236,7 +236,7 @@ void clock_bumpup_pipe3_clk()
 /*
  * This is the clock reset function for USB3
  */
-void clock_reset_usb_phy()
+void clock_reset_usb_phy(void)
 {
 	int ret;
 

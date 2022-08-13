@@ -52,12 +52,12 @@ void mdp_set_revision(int rev)
 	mdp_rev = rev;
 }
 
-int mdp_get_revision()
+int mdp_get_revision(void)
 {
 	return mdp_rev;
 }
 
-static inline bool is_software_pixel_ext_config_needed()
+static inline bool is_software_pixel_ext_config_needed(void)
 {
 	return (MDSS_IS_MAJOR_MINOR_MATCHING(readl(MDP_HW_REV),
 		MDSS_MDP_HW_REV_107) || MDSS_IS_MAJOR_MINOR_MATCHING(readl(MDP_HW_REV),
@@ -66,7 +66,7 @@ static inline bool is_software_pixel_ext_config_needed()
 		MDSS_MDP_HW_REV_115));
 }
 
-static inline bool has_fixed_size_smp()
+static inline bool has_fixed_size_smp(void)
 {
 	return (MDSS_IS_MAJOR_MINOR_MATCHING(readl(MDP_HW_REV),
 		MDSS_MDP_HW_REV_107) || MDSS_IS_MAJOR_MINOR_MATCHING(readl(MDP_HW_REV),
@@ -75,7 +75,7 @@ static inline bool has_fixed_size_smp()
 		MDSS_MDP_HW_REV_115));
 }
 
-uint32_t mdss_mdp_intf_offset()
+uint32_t mdss_mdp_intf_offset(void)
 {
 	uint32_t mdss_mdp_intf_off;
 	uint32_t mdss_mdp_rev = readl(MDP_HW_REV);
@@ -96,7 +96,7 @@ uint32_t mdss_mdp_intf_offset()
 	return mdss_mdp_intf_off;
 }
 
-static uint32_t mdss_mdp_get_ppb_offset()
+static uint32_t mdss_mdp_get_ppb_offset(void)
 {
 	uint32_t mdss_mdp_ppb_off = 0;
 	uint32_t mdss_mdp_rev = readl(MDP_HW_REV);
@@ -115,7 +115,7 @@ static uint32_t mdss_mdp_get_ppb_offset()
 	return mdss_mdp_ppb_off;
 }
 
-static uint32_t mdss_mdp_vbif_qos_remap_get_offset()
+static uint32_t mdss_mdp_vbif_qos_remap_get_offset(void)
 {
 	uint32_t mdss_mdp_rev = readl(MDP_HW_REV);
 
@@ -306,7 +306,7 @@ static void mdss_source_pipe_config(struct fbcon_config *fb, struct msm_panel_in
 	writel(flip_bits, pipe_base + PIPE_SSPP_SRC_OP_MODE);
 }
 
-static void mdss_vbif_setup()
+static void mdss_vbif_setup(void)
 {
 	uint32_t mdp_hw_rev = readl(MDP_HW_REV);
 	int access_secure = false;
@@ -1288,7 +1288,7 @@ int mdp_dsi_video_off(struct msm_panel_info *pinfo)
 	return NO_ERROR;
 }
 
-int mdp_dsi_cmd_off()
+int mdp_dsi_cmd_off(void)
 {
 	if(!target_cont_splash_screen())
 	{

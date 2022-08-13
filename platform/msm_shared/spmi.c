@@ -46,7 +46,7 @@ static uint8_t *chnl_tbl;
 static uint32_t max_peripherals;
 static bool spmi_init_done;
 
-static void spmi_lookup_chnl_number()
+static void spmi_lookup_chnl_number(void)
 {
 	uint32_t i;
 	uint8_t slave_id = 0;
@@ -370,12 +370,12 @@ void pmic_spmi_reg_mask_write(uint32_t addr, uint8_t mask, uint8_t val)
 	pmic_spmi_reg_write(addr, reg);
 }
 
-void spmi_uninit()
+void spmi_uninit(void)
 {
 	mask_interrupt(EE0_KRAIT_HLOS_SPMI_PERIPH_IRQ);
 }
 
-bool spmi_initialized()
+bool spmi_initialized(void)
 {
 	return spmi_init_done;
 }

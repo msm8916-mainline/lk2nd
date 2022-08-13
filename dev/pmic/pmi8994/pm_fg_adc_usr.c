@@ -1210,7 +1210,7 @@ pm_err_flag_type pm_fg_adc_usr_clear_ibat_max(uint32 pmic_device, boolean enable
 
 
 /**
-PmicFgCalibrateIbat()
+PmicFgCalibrateIbat(void)
 
 @brief
 

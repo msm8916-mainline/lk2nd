@@ -53,11 +53,11 @@ struct send_cmd_rsp
 	int32_t status;
 }__PACKED;
 
-int get_secapp_handle();
-bool is_sec_app_loaded();
-int load_sec_app();
-int get_secapp_handle();
-int send_milestone_call_to_tz();
-int send_delete_keys_to_tz();
+int get_secapp_handle(void);
+bool is_sec_app_loaded(void);
+int load_sec_app(void);
+int get_secapp_handle(void);
+int send_milestone_call_to_tz(void);
+int send_delete_keys_to_tz(void);
 
 #endif /* SAL_MAIN_H */

@@ -104,7 +104,7 @@ extern void crypto_get_digest(unsigned char *digest_ptr,
 
 extern void crypto_get_ctx(void *ctx_ptr);
 
-extern uint32_t crypto_get_max_auth_blk_size();
+extern uint32_t crypto_get_max_auth_blk_size(void);
 
 static void crypto_init(void);
 

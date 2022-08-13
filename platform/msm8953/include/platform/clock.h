@@ -103,5 +103,5 @@ void mmss_dsi_clock_enable(uint32_t cfg_rcgr, uint32_t dual_dsi,
 		uint8_t pclk0_m, uint8_t pclk0_n, uint8_t pclk0_d);
 void mmss_dsi_clock_disable(uint32_t dual_dsi);
 void clock_usb30_init(void);
-void clock_reset_usb_phy();
+void clock_reset_usb_phy(void);
 #endif

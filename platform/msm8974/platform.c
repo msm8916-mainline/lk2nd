@@ -86,7 +86,7 @@ uint32_t platform_get_sclk_count(void)
 }
 
 /* Check for 8974 chip */
-int platform_is_8974()
+int platform_is_8974(void)
 {
 	uint32_t platform = board_platform_id();
 	int ret = 0;
@@ -107,7 +107,7 @@ int platform_is_8974()
 }
 
 /* Check for 8974 PRO chip */
-int platform_is_8974Pro()
+int platform_is_8974Pro(void)
 {
 	uint32_t platform = board_platform_id();
 	int ret = 0;
@@ -128,7 +128,7 @@ int platform_is_8974Pro()
 }
 
 /* Check for 8974PRO AC chip */
-int platform_is_8974ac()
+int platform_is_8974ac(void)
 {
 	uint32_t platform = board_platform_id();
 	int ret = 0;
@@ -160,7 +160,7 @@ int platform_is_8974ac()
 	return ret;
 }
 
-addr_t get_bs_info_addr()
+addr_t get_bs_info_addr(void)
 {
 	uint32_t soc_ver = board_soc_version();
 

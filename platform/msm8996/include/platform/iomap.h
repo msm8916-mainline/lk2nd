@@ -76,10 +76,10 @@
 #define GCC_BLSP2_QUP2_CMD_RCGR     (CLK_CTL_BASE + 0x2800C)
 
 /* USB platform specific bases*/
-unsigned int usb_ctrl_base();
-unsigned int usb_qscratch_base();
-unsigned int usb_phy_base();
-unsigned int usb_phy_bcr();
+unsigned int usb_ctrl_base(void);
+unsigned int usb_qscratch_base(void);
+unsigned int usb_phy_base(void);
+unsigned int usb_phy_bcr(void);
 
 #define MSM_USB30_BASE              (usb_ctrl_base())
 #define MSM_USB30_QSCRATCH_BASE     (usb_qscratch_base())

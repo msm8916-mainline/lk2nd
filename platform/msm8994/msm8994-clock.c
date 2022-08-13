@@ -916,7 +916,7 @@ static struct clk_lookup msm_8994_clocks[] =
         CLK_LOOKUP("hdmi_extp_clk",        mdss_extpclk_clk.c),
 };
 
-void msm8992_sdc1_clock_override()
+void msm8992_sdc1_clock_override(void)
 {
 	sdcc1_apps_clk_src.freq_tbl = ftbl_gcc_sdcc1_apps_clk_8992;
 }

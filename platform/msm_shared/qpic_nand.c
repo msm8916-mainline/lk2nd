@@ -1411,7 +1411,7 @@ flash_get_ptable(void)
 }
 
 void
-qpic_nand_uninit()
+qpic_nand_uninit(void)
 {
 	bam_pipe_reset(&bam, DATA_PRODUCER_PIPE_INDEX);
 	bam_pipe_reset(&bam, DATA_CONSUMER_PIPE_INDEX);
@@ -2071,7 +2071,7 @@ flash_erase(struct ptentry *ptn)
 }
 
 int
-flash_ecc_bch_enabled()
+flash_ecc_bch_enabled(void)
 {
 	return (flash.ecc_width == NAND_WITH_4_BIT_ECC)? 0 : 1;
 }
@@ -2192,7 +2192,7 @@ flash_write(struct ptentry *ptn,
 	return 0;
 }
 
-uint32_t nand_device_base()
+uint32_t nand_device_base(void)
 {
 	return nand_base;
 }

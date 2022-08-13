@@ -103,7 +103,7 @@ static void crypto_init(void)
  * Function to return if crypto is initialized
  */
 
-bool crypto_initialized()
+bool crypto_initialized(void)
 {
 	return crypto_init_done;
 }

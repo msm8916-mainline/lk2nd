@@ -718,19 +718,19 @@ static struct clk_lookup msm_clocks_8952[] =
 	CLK_LOOKUP("ce1_src_clk",  ce1_clk_src.c),
 };
 
-void msm8956_clock_override()
+void msm8956_clock_override(void)
 {
 	gpll4_clk_src.status_reg = (void *)GPLL4_STATUS;
 	gpll4_clk_src.status_mask = BIT(17);
 	mdss_mdp_clk_src.freq_tbl = ftbl_mdp_clk_8956;
 }
 
-void msm8976_v_1_1_sdcc_clock_modify()
+void msm8976_v_1_1_sdcc_clock_modify(void)
 {
 	sdcc1_apps_clk_src.freq_tbl = ftbl_gcc_sdcc1_apps_clk_8976_v_1_1;
 }
 
-void msm8937_clock_override()
+void msm8937_clock_override(void)
 {
 	gpll0_clk_src.status_reg = (void *)GPLL0_MODE;
 	gpll0_clk_src.status_mask = BIT(30);

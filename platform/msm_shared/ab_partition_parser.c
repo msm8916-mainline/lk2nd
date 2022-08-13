@@ -52,7 +52,7 @@ static bool multislot_support;		/* to store if multislot support is present */
 static int boot_slot_index[AB_SUPPORTED_SLOTS];	/* store index for boot parition */
 
 /* local functions. */
-static void attributes_update();
+static void attributes_update(void);
 static void mark_all_partitions_active(signed slot);
 /*
 	Function: To read slot attribute of
@@ -149,7 +149,7 @@ partition_activate_slot(int slot)
 	If found than make multislot_boot flag true and
 	scans another partition.
 */
-bool partition_scan_for_multislot()
+bool partition_scan_for_multislot(void)
 {
 	int i, j, count = 0;
 	char *pname = NULL;
@@ -278,7 +278,7 @@ void partition_switch_slots(int old_slot, int new_slot, boolean reset_success_bi
 	also you need to update the global state seperately.
 
 */
-int partition_find_active_slot()
+int partition_find_active_slot(void)
 {
 	unsigned current_priority;
 	int i, count = 0;
@@ -369,7 +369,7 @@ next_active_bootable_slot(struct partition_entry *ptn_entry)
 	return INVALID;
 }
 
-int partition_find_boot_slot()
+int partition_find_boot_slot(void)
 {
 	int boot_slot, next_slot;
 	int slt_index;
@@ -567,7 +567,7 @@ out:
 }
 
 /* Function to find if multislot is supported */
-bool _partition_multislot_is_supported()
+bool _partition_multislot_is_supported(void)
 {
 	return multislot_support;
 }
@@ -787,7 +787,7 @@ out:
 	Function to update the backup and primary gpt
 	partition.
 **/
-static void attributes_update()
+static void attributes_update(void)
 {
 	uint64_t offset;
 	uint64_t gpt_entries_offset, gpt_hdr_offset;

@@ -113,7 +113,7 @@ void crypto_get_ctx(void *ctx_ptr)
 	crypto5_get_ctx(&dev, ctx_ptr);
 }
 
-uint32_t crypto_get_max_auth_blk_size()
+uint32_t crypto_get_max_auth_blk_size(void)
 {
 	return crypto5_get_max_auth_blk_size(&dev);
 }

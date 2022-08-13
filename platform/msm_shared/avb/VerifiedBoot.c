@@ -106,7 +106,7 @@ typedef struct {
 	AvbSlotVerifyData *SlotData;
 } VB2Data;
 
-UINT32 GetAVBVersion()
+UINT32 GetAVBVersion(void)
 {
 #if VERIFIED_BOOT_2
 	return 2;
@@ -117,7 +117,7 @@ UINT32 GetAVBVersion()
 #endif
 }
 
-BOOLEAN VerifiedBootEnabled()
+BOOLEAN VerifiedBootEnabled(void)
 {
 	return (GetAVBVersion() > NO_AVB);
 }
@@ -131,7 +131,7 @@ static int check_img_header(void *ImageHdrBuffer, uint32_t ImageHdrSize, uint32_
 	return 0;
 }
 
-static int HandleActiveSlotUnbootable()
+static int HandleActiveSlotUnbootable(void)
 {
    int curr_slot;
    curr_slot = partition_find_active_slot();

@@ -60,7 +60,7 @@
 
 extern void smem_ptable_init(void);
 extern void smem_add_modem_partitions(struct ptable *flash_ptable);
-void target_sdc_init();
+void target_sdc_init(void);
 
 static struct ptable flash_ptable;
 
@@ -320,12 +320,12 @@ int get_target_boot_params(const char *cmdline, const char *part, char **buf)
 	return ret;
 }
 
-const char * target_usb_controller()
+const char * target_usb_controller(void)
 {
 	return "dwc";
 }
 
-static void set_sdc_power_ctrl()
+static void set_sdc_power_ctrl(void)
 {
 	/* Drive strength configs for sdc pins */
 	struct tlmm_cfgs sdc1_hdrv_cfg[] =
@@ -350,12 +350,12 @@ static void set_sdc_power_ctrl()
 
 static struct mmc_device *dev;
 
-void *target_mmc_device()
+void *target_mmc_device(void)
 {
 	return (void *) dev;
 }
 
-void target_sdc_init()
+void target_sdc_init(void)
 {
 	struct mmc_config_data config;
 
@@ -381,7 +381,7 @@ void target_sdc_init()
 	}
 }
 
-int target_cont_splash_screen()
+int target_cont_splash_screen(void)
 {
 	/* FOR OEMs - Set cont_splash_screen to keep the splash enable after LK.*/
 	return false;
@@ -449,7 +449,7 @@ void target_usb_phy_reset(void)
 	qusb2_phy_reset();
 }
 
-target_usb_iface_t* target_usb30_init()
+target_usb_iface_t* target_usb30_init(void)
 {
 	target_usb_iface_t *t_usb_iface;
 
@@ -465,7 +465,7 @@ target_usb_iface_t* target_usb30_init()
 	return t_usb_iface;
 }
 
-uint32_t target_override_pll()
+uint32_t target_override_pll(void)
 {
 	if (platform_is_mdm9650() || platform_is_sdx20())
 		return 0;
@@ -473,7 +473,7 @@ uint32_t target_override_pll()
 		return 1;
 }
 
-uint32_t target_get_hlos_subtype()
+uint32_t target_get_hlos_subtype(void)
 {
 	return board_hlos_subtype();
 }
@@ -690,7 +690,7 @@ struct qmp_reg qmp_settings_sdx20[] =
 	{0x808, 0x03}, /* USB3PHY_PCIE_USB3_UNI_PCS_START_CONTROL */
 };
 
-struct qmp_reg *target_get_qmp_settings()
+struct qmp_reg *target_get_qmp_settings(void)
 {
 	if (platform_is_mdm9650())
 		return qmp_settings;
@@ -700,7 +700,7 @@ struct qmp_reg *target_get_qmp_settings()
 		return NULL;
 }
 
-int target_get_qmp_regsize()
+int target_get_qmp_regsize(void)
 {
 	if (platform_is_mdm9650())
 		return ARRAY_SIZE(qmp_settings);
@@ -716,7 +716,7 @@ crypto_engine_type board_ce_type(void)
 }
 
 /* Set up params for h/w CE. */
-void target_crypto_init_params()
+void target_crypto_init_params(void)
 {
 	struct crypto_init_params ce_params;
 

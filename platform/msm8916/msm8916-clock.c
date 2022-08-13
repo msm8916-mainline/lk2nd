@@ -624,7 +624,7 @@ static struct clk_lookup msm_clocks_8916[] =
 	CLK_LOOKUP("gcc_blsp1_qup4_i2c_apps_clk", gcc_blsp1_qup4_i2c_apps_clk.c),
 };
 
-void msm8939_clock_override()
+void msm8939_clock_override(void)
 {
 	mdss_mdp_clk_src.freq_tbl = ftbl_mdss_mdp_clk_src;
 }

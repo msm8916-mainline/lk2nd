@@ -91,7 +91,7 @@
 
 extern void smem_ptable_init(void);
 extern void smem_add_modem_partitions(struct ptable *flash_ptable);
-void target_sdc_init();
+void target_sdc_init(void);
 
 static struct ptable flash_ptable;
 
@@ -183,7 +183,7 @@ int target_is_emmc_boot(void)
 	return platform_boot_dev_isemmc();
 }
 
-void target_sdc_init()
+void target_sdc_init(void)
 {
 	struct mmc_config_data config;
 
@@ -215,13 +215,13 @@ void target_sdc_init()
 	}
 }
 
-void *target_mmc_device()
+void *target_mmc_device(void)
 {
 	return (void *) dev;
 }
 
 /* Return 1 if vol_up pressed */
-int target_volume_up()
+int target_volume_up(void)
 {
 	static uint8_t first_time = 0;
 	uint8_t status = 0;
@@ -243,7 +243,7 @@ int target_volume_up()
 }
 
 /* Return 1 if vol_down pressed */
-uint32_t target_volume_down()
+uint32_t target_volume_down(void)
 {
 	if ((board_hardware_id() == HW_PLATFORM_QRD) &&
 			(board_hardware_subtype() == SUB_TYPE_SKUT)) {
@@ -265,7 +265,7 @@ uint32_t target_volume_down()
 	}
 }
 
-static void target_keystatus()
+static void target_keystatus(void)
 {
 	keys_init();
 
@@ -277,7 +277,7 @@ static void target_keystatus()
 
 }
 
-static void set_sdc_power_ctrl()
+static void set_sdc_power_ctrl(void)
 {
 	/* Drive strength configs for sdc pins */
 	struct tlmm_cfgs sdc1_hdrv_cfg[] =
@@ -300,7 +300,7 @@ static void set_sdc_power_ctrl()
 	tlmm_set_pull_ctrl(sdc1_pull_cfg, ARRAY_SIZE(sdc1_pull_cfg));
 }
 
-static void set_ebi2_config()
+static void set_ebi2_config(void)
 {
 	/* Drive strength configs for ebi2 pins */
 	struct tlmm_cfgs ebi2_hdrv_cfg[] =
@@ -499,7 +499,7 @@ void target_baseband_detect(struct board_data *board)
 		ASSERT(0);
 	};
 }
-uint8_t target_panel_auto_detect_enabled()
+uint8_t target_panel_auto_detect_enabled(void)
 {
 	uint8_t ret = 0;
 	uint32_t platform = board_platform_id();
@@ -525,7 +525,7 @@ uint8_t target_panel_auto_detect_enabled()
 	return ret;
 }
 
-uint8_t target_is_spi()
+uint8_t target_is_spi(void)
 {
 	uint32_t platform = board_platform_id();
 	uint32_t hw_id = board_hardware_id();
@@ -538,7 +538,7 @@ uint8_t target_is_spi()
 
 static uint8_t splash_override;
 /* Returns 1 if target supports continuous splash screen. */
-int target_cont_splash_screen()
+int target_cont_splash_screen(void)
 {
 	uint8_t splash_screen = 0;
 	if (!splash_override) {
@@ -653,7 +653,7 @@ int get_target_boot_params(const char *cmdline, const char *part, char **buf)
 	return -1;
 }
 
-unsigned target_baseband()
+unsigned target_baseband(void)
 {
 	return board_baseband();
 }
@@ -858,7 +858,7 @@ crypto_engine_type board_ce_type(void)
 }
 
 /* Set up params for h/w CE. */
-void target_crypto_init_params()
+void target_crypto_init_params(void)
 {
 	struct crypto_init_params ce_params;
 
@@ -888,7 +888,7 @@ void target_crypto_init_params()
 	crypto_init_params(&ce_params);
 }
 
-uint32_t target_get_hlos_subtype()
+uint32_t target_get_hlos_subtype(void)
 {
 	return board_hlos_subtype();
 }
@@ -898,7 +898,7 @@ void pmic_reset_configure(uint8_t reset_type)
 	pm8x41_reset_configure(reset_type);
 }
 
-uint32_t target_get_pmic()
+uint32_t target_get_pmic(void)
 {
 	uint32_t hw_id = board_hardware_id();
 	uint32_t platform = board_platform_id();

@@ -120,7 +120,7 @@ uint32_t mdtp_fs_get_param(mdtp_parameter_id_t param){
 	return mdtp_img.meta_data.params[param];
 }
 
-int mdtp_fs_init(){
+int mdtp_fs_init(void){
 	uint32_t i;
 	struct fbcon_config *fb_config = NULL;
 	mdtp_image_params_t image_params;

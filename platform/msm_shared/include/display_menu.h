@@ -82,8 +82,8 @@ void display_bootverify_option_menu_renew(struct select_msg_info *msg_info);
 void display_bootverify_menu_update (struct select_msg_info *msg_info);
 void display_fastboot_menu_renew(struct select_msg_info *fastboot_msg_info);
 void display_bootverify_menu(int type);
-void display_fastboot_menu();
+void display_fastboot_menu(void);
 void display_unlock_menu(int type, bool status);
-void msg_lock_init();
-void exit_menu_keys_detection();
+void msg_lock_init(void);
+void exit_menu_keys_detection(void);
 #endif				/* __PLATFORM_MSM_SHARED_DISPLAY_MENU_H */

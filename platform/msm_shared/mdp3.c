@@ -227,7 +227,7 @@ int mdp_dsi_cmd_config(struct msm_panel_info *pinfo,
 	return ret;
 }
 
-int mdp_dma_off();
+int mdp_dma_off(void);
 
 void mdp_disable(void)
 {
@@ -292,7 +292,7 @@ int mdp_dma_on(struct msm_panel_info *pinfo)
 	return ret;
 }
 
-int mdp_dma_off()
+int mdp_dma_off(void)
 {
 	int ret = 0;
 

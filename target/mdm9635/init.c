@@ -149,7 +149,7 @@ void target_init(void)
 	rpm_smd_init();
 }
 
-int target_cont_splash_screen()
+int target_cont_splash_screen(void)
 {
 	/*
 	 * FOR OEMs - Set cont_splash_screen to keep the splash enable after LK.
@@ -158,7 +158,7 @@ int target_cont_splash_screen()
 	return false;
 }
 
-void target_uninit()
+void target_uninit(void)
 {
 #if DISPLAY_SPLASH_SCREEN
 	/* target_display_shutdown will uninitialize it in case of cont-splash */
@@ -185,7 +185,7 @@ void target_usb_init(void)
 	writel(val, USB_USBCMD);
 }
 
-target_usb_iface_t* target_usb30_init()
+target_usb_iface_t* target_usb30_init(void)
 {
 	target_usb_iface_t *t_usb_iface;
 
@@ -202,7 +202,7 @@ target_usb_iface_t* target_usb30_init()
 }
 
 
-static int scm_clear_boot_partition_select()
+static int scm_clear_boot_partition_select(void)
 {
 	int ret = 0;
 
@@ -341,13 +341,13 @@ int get_target_boot_params(const char *cmdline, const char *part, char **buf)
 }
 
 /* identify the usb controller to be used for the target */
-const char * target_usb_controller()
+const char * target_usb_controller(void)
 {
     return "dwc";
 }
 
 /* mux hs phy to route to dwc controller */
-static void phy_mux_configure_with_tcsr()
+static void phy_mux_configure_with_tcsr(void)
 {
 	/* As per the hardware team, set the mux for snps controller */
 	RMWREG32(TCSR_PHSS_USB2_PHY_SEL, 0x0, 0x1, 0x1);
@@ -362,7 +362,7 @@ void target_usb_phy_mux_configure(void)
     }
 }
 
-uint32_t target_override_pll()
+uint32_t target_override_pll(void)
 {
 	return board_soc_version() == BOARD_SOC_VERSION2 ? 1 : 0;
 }

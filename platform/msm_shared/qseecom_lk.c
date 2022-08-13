@@ -1334,7 +1334,7 @@ err:
 	return ret;
 }
 
-int qseecom_tz_init()
+int qseecom_tz_init(void)
 {
 	struct qsee_apps_region_info_ireq req;
 	struct qseecom_command_scm_resp resp;
@@ -1381,7 +1381,7 @@ err:
 	return rc;
 }
 
-int qseecom_init()
+int qseecom_init(void)
 {
 	int rc = GENERIC_ERROR;
 	struct qseecom_command_scm_resp resp;
@@ -1408,12 +1408,12 @@ int qseecom_init()
 	return rc;
 }
 
-unsigned int qseecom_get_version()
+unsigned int qseecom_get_version(void)
 {
 	return qseecom.qseos_version;
 }
 
-int qseecom_exit()
+int qseecom_exit(void)
 {
 	dprintf(SPEW, "%s called\n", __func__);
 

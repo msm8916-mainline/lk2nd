@@ -168,7 +168,7 @@ void clock_config_mmc(uint32_t interface, uint32_t freq)
 	}
 }
 
-void clock_bumpup_pipe3_clk()
+void clock_bumpup_pipe3_clk(void)
 {
 	int ret =0;
 	ret = clk_get_set_enable("usb30_pipe_clk", 0, true);
@@ -399,7 +399,7 @@ void clock_config_ce(uint8_t instance)
 }
 
 
-void clock_reset_usb_phy()
+void clock_reset_usb_phy(void)
 {
 	int ret;
 

@@ -35,7 +35,7 @@
 #include <arch/arm.h>
 #include <qgic.h>
 
-static uint8_t qgic_get_cpumask()
+static uint8_t qgic_get_cpumask(void)
 {
 	uint32_t mask=0, i;
 
@@ -88,7 +88,7 @@ void qgic_cpu_init(void)
 	writel(1, GIC_CPU_CTRL);
 }
 
-uint32_t qgic_read_iar()
+uint32_t qgic_read_iar(void)
 {
 	return readl(GIC_CPU_INTACK);
 }

@@ -35,7 +35,7 @@
 #include <platform/iomap.h>
 
 extern void hdmi_app_clk_init(int);
-extern int hdmi_msm_turn_on();
+extern int hdmi_msm_turn_on(void);
 
 /* HDMI PLL macros */
 #define HDMI_PHY_PLL_REFCLK_CFG          (MSM_HDMI_BASE + 0x00000500)
@@ -79,7 +79,7 @@ extern int hdmi_msm_turn_on();
 
 static unsigned hdmi_pll_on;
 
-void hdmi_msm_init_phy()
+void hdmi_msm_init_phy(void)
 {
 	dprintf(INFO, "phy init\n");
 	uint32_t offset;
@@ -96,14 +96,14 @@ void hdmi_msm_init_phy()
 	writel(0x20, HDMI_PHY_REG_3);
 }
 
-static void hdmi_gpio_config()
+static void hdmi_gpio_config(void)
 {
 	writel(0x07, GPIO_CONFIG_ADDR(70));
 	writel(0x07, GPIO_CONFIG_ADDR(71));
 	writel(0x05, GPIO_CONFIG_ADDR(72));
 }
 
-void hdmi_msm_reset_core()
+void hdmi_msm_reset_core(void)
 {
 	uint32_t reg_val = 0;
 
@@ -160,7 +160,7 @@ void hdmi_phy_reset(void)
  * This is the start function which initializes clocks , gpios for hdmi
  * & powers on the HDMI core
  */
-void hdmi_power_init()
+void hdmi_power_init(void)
 {
 	pm8921_low_voltage_switch_enable(lvs_7);
 	apq8064_ext_3p3V_enable();
@@ -298,7 +298,7 @@ void hdmi_pll_enable(void)
 }
 
 
-int hdmi_dtv_on()
+int hdmi_dtv_on(void)
 {
 	uint32_t ahb_en_reg = readl(AHB_EN_REG);
 	uint32_t ahb_enabled = ahb_en_reg & BIT(4);

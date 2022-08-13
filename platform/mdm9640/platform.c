@@ -41,7 +41,7 @@
 #include <qpic_nand.h>
 #include <target.h>
 
-extern struct smem_ram_ptable* target_smem_ram_ptable_init();
+extern struct smem_ram_ptable* target_smem_ram_ptable_init(void);
 
 #define MSM_IOMAP_SIZE                      ((MSM_IOMAP_END - MSM_IOMAP_BASE)/MB)
 
@@ -114,7 +114,7 @@ uint32_t platform_get_sclk_count(void)
 	return readl(MPM2_MPM_SLEEP_TIMETICK_COUNT_VAL);
 }
 
-addr_t get_bs_info_addr()
+addr_t get_bs_info_addr(void)
 {
 	return ((addr_t)BS_INFO_ADDR);
 }
@@ -156,7 +156,7 @@ addr_t platform_get_phys_to_virt_mapping(addr_t phys_addr)
 }
 
 
-bool platform_is_mdm9650()
+bool platform_is_mdm9650(void)
 {
 	uint32_t platform_id = board_platform_id();
 	bool ret;
@@ -177,7 +177,7 @@ bool platform_is_mdm9650()
 	return ret;
 }
 
-bool platform_is_sdx20()
+bool platform_is_sdx20(void)
 {
 	uint32_t platform_id = board_platform_id();
 	bool ret;
@@ -195,7 +195,7 @@ bool platform_is_sdx20()
 	return ret;
 }
 
-uint32_t platform_boot_config()
+uint32_t platform_boot_config(void)
 {
 	uint32_t boot_config;
 
@@ -210,13 +210,13 @@ uint32_t platform_boot_config()
 	return boot_config;
 }
 
-uint32_t platform_get_qmp_rev()
+uint32_t platform_get_qmp_rev(void)
 {
 	return readl(USB3_PHY_REVISION_ID3) << 24 | readl(USB3_PHY_REVISION_ID2) << 16 |
 		   readl(USB3_PHY_REVISION_ID1) << 8 | readl(USB3_PHY_REVISION_ID0);
 }
 
-bool platform_is_glink_enabled()
+bool platform_is_glink_enabled(void)
 {
 	if (platform_is_sdx20())
 		return 1;

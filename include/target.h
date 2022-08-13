@@ -82,28 +82,28 @@ unsigned target_baseband(void);
 void target_serialno(unsigned char *buf);
 void target_fastboot_init(void);
 void target_load_ssd_keystore(void);
-void *target_mmc_device();
+void *target_mmc_device(void);
 uint32_t is_user_force_reset(void);
 
 bool target_display_panel_node(char *pbuf, uint16_t buf_size);
 void target_display_init(const char *panel_name);
 void target_display_shutdown(void);
 
-uint32_t target_get_boot_device();
+uint32_t target_get_boot_device(void);
 
-const char * target_usb_controller();
+const char * target_usb_controller(void);
 void target_usb_phy_reset(void);
 void target_usb_phy_sec_reset(void);
 void target_usb_phy_mux_configure(void);
-target_usb_iface_t * target_usb30_init();
-bool target_is_cdp_qvga();
-uint32_t target_hw_interposer();
-uint32_t target_override_pll();
-uint32_t target_ddr_cfg_val();
+target_usb_iface_t * target_usb30_init(void);
+bool target_is_cdp_qvga(void);
+uint32_t target_hw_interposer(void);
+uint32_t target_override_pll(void);
+uint32_t target_ddr_cfg_val(void);
 void target_usb_init(void);
 void target_usb_stop(void);
 uint32_t target_get_hlos_subtype(void);
-void shutdown_device();
+void shutdown_device(void);
 uint32_t target_is_pwrkey_pon_reason(void);
 bool target_warm_boot(void);
 int _emmc_recovery_init(void);
@@ -112,9 +112,9 @@ void target_crypto_init_params(void);
 int target_cont_splash_screen(void);
 void pmic_reset_configure(uint8_t reset_type);
 bool is_display_disabled(void);
-struct qmp_reg *target_get_qmp_settings();
-int target_get_qmp_regsize();
-uint32_t target_ddr_cfg_reg();
+struct qmp_reg *target_get_qmp_settings(void);
+int target_get_qmp_regsize(void);
+uint32_t target_ddr_cfg_reg(void);
 
 bool target_is_pmi_enabled(void);
 #if PON_VIB_SUPPORT
@@ -126,10 +126,10 @@ void get_vibration_type(struct qpnp_hap *config);
 void update_battery_status(void);
 #endif
 
-uint32_t target_get_battery_voltage();
-bool target_battery_soc_ok();
-bool target_battery_is_present();
-uint32_t target_get_pmic();
+uint32_t target_get_battery_voltage(void);
+bool target_battery_soc_ok(void);
+bool target_battery_is_present(void);
+uint32_t target_get_pmic(void);
 int target_update_cmdline(char *cmdline);
 
 static inline bool target_is_ssd_enabled(void)
@@ -150,7 +150,7 @@ static inline bool target_use_signed_kernel(void)
 #endif
 }
 
-static inline bool target_build_variant_user()
+static inline bool target_build_variant_user(void)
 {
 #if USER_BUILD_VARIANT
 	return true;
@@ -187,9 +187,9 @@ static inline bool is_target_support_dtbo(void)
 }
 
 #if VERIFIED_BOOT || VERIFIED_BOOT_2
-int target_get_vb_version();
+int target_get_vb_version(void);
 #else
-static inline int target_get_vb_version() { return -1; }
+static inline int target_get_vb_version(void) { return -1; }
 #endif
 
 static inline bool target_uses_system_as_root(void)

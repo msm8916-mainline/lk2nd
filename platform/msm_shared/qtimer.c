@@ -51,7 +51,7 @@ time_t current_time(void)
 	return qtimer_current_time();
 }
 
-void qtimer_uninit()
+void qtimer_uninit(void)
 {
 	qtimer_disable();
 }
@@ -113,12 +113,12 @@ bigtime_t current_time_hires(void)
 	return qtimer_current_time() * 1000000ULL;
 }
 
-void qtimer_init()
+void qtimer_init(void)
 {
 	ticks_per_sec = qtimer_get_frequency();
 }
 
-uint32_t qtimer_tick_rate()
+uint32_t qtimer_tick_rate(void)
 {
 	return ticks_per_sec;
 }

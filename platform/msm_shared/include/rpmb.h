@@ -149,11 +149,11 @@ int rpmb_write_ufs(struct ufs_dev *dev, uint32_t *req_buf, uint32_t blk_cnt, uin
 int rpmb_read_ufs(struct ufs_dev *dev, uint32_t *req_buf, uint32_t blk_cnt, uint32_t *resp_buf, uint32_t *resp_len);
 
 /* APIs exposed to applications */
-int rpmb_init();
-int rpmb_uninit();
+int rpmb_init(void);
+int rpmb_uninit(void);
 int rpmb_write(uint32_t *req_buf, uint32_t blk_cnt, uint32_t rel_wr_count, uint32_t *resp_buf, uint32_t *resp_len);
 int rpmb_read(uint32_t *req_buf, uint32_t blk_cnt, uint32_t *resp_buf, uint32_t *resp_len);
-struct rpmb_init_info *rpmb_get_init_info();
+struct rpmb_init_info *rpmb_get_init_info(void);
 /* RPMB API to set secure write protect configuration block */
 int swp_write(qsee_stor_secure_wp_info_t swp_cb);
 #endif

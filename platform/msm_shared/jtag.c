@@ -62,7 +62,7 @@ void jtag_fail(const char *msg)
 	jtag_msg(STATUS_FAIL, msg);
 }
 
-int jtag_cmd_pending()
+int jtag_cmd_pending(void)
 {
 	jtag_hook();
 	return (int)_jtag_cmd;

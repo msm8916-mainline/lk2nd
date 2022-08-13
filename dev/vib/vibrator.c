@@ -51,7 +51,7 @@ static uint32_t vib_time;
 static uint32_t vib_timeout = 1;
 
 /* Function to turn on vibrator */
-void vib_turn_on()
+void vib_turn_on(void)
 {
 	uint32_t pmic = target_get_pmic();
 
@@ -62,7 +62,7 @@ void vib_turn_on()
 }
 
 /* Function to turn off vibrator */
-void vib_turn_off()
+void vib_turn_off(void)
 {
 	uint32_t pmic = target_get_pmic();
 

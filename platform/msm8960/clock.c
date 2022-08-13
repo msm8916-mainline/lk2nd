@@ -989,7 +989,7 @@ static int sr_pll_clk_enable(struct clk *clk)
 
 static unsigned msm_num_clocks_8960 = ARRAY_SIZE(msm_clocks_8960);
 
-void msm_clocks_init()
+void msm_clocks_init(void)
 {
 	clk_ops_pll.enable = sr_pll_clk_enable;
 	clk_init(msm_clocks_8960, msm_num_clocks_8960);

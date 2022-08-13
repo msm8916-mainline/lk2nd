@@ -114,7 +114,7 @@ typedef enum
 } cdp_subtype;
 
 static uint8_t flash_memory_slot = 0;
-static void set_sdc_power_ctrl();
+static void set_sdc_power_ctrl(void);
 static uint32_t mmc_pwrctl_base[] =
 	{ MSM_SDC1_BASE, MSM_SDC2_BASE };
 
@@ -135,7 +135,7 @@ void target_early_init(void)
 }
 
 /* Return 1 if vol_up pressed */
-int target_volume_up()
+int target_volume_up(void)
 {
 	static uint8_t first_time = 0;
 	uint8_t status = 0;
@@ -163,12 +163,12 @@ int target_volume_up()
 }
 
 /* Return 1 if vol_down pressed */
-uint32_t target_volume_down()
+uint32_t target_volume_down(void)
 {
 	return pm8x41_resin_status();
 }
 
-static void target_keystatus()
+static void target_keystatus(void)
 {
 	keys_init();
 
@@ -221,7 +221,7 @@ void target_uninit(void)
 	}
 }
 
-static void set_sdc_power_ctrl()
+static void set_sdc_power_ctrl(void)
 {
 	uint32_t reg = 0;
 	uint8_t clk = 0;
@@ -270,7 +270,7 @@ static void set_sdc_power_ctrl()
 	tlmm_set_pull_ctrl(sdc1_rclk_cfg, ARRAY_SIZE(sdc1_rclk_cfg));
 }
 
-uint32_t target_is_pwrkey_pon_reason()
+uint32_t target_is_pwrkey_pon_reason(void)
 {
 	uint8_t pon_reason = pm8950_get_pon_reason();
 
@@ -290,7 +290,7 @@ uint32_t target_is_pwrkey_pon_reason()
 }
 
 
-void target_sdc_init()
+void target_sdc_init(void)
 {
 	struct mmc_config_data config = {0};
 
@@ -329,7 +329,7 @@ void target_sdc_init()
 	}
 }
 
-void *target_mmc_device()
+void *target_mmc_device(void)
 {
 	if (platform_boot_dev_isemmc())
 		return (void *) dev;
@@ -452,7 +452,7 @@ void target_detect(struct board_data *board)
 
 static uint8_t splash_override;
 /* Returns 1 if target supports continuous splash screen. */
-int target_cont_splash_screen()
+int target_cont_splash_screen(void)
 {
 	uint8_t splash_screen = 0;
 	if(!splash_override && !pm_appsbl_charging_in_progress()) {
@@ -528,7 +528,7 @@ void target_baseband_detect(struct board_data *board)
 	}
 }
 
-unsigned target_baseband()
+unsigned target_baseband(void)
 {
 	return board_baseband();
 }
@@ -547,18 +547,18 @@ int emmc_recovery_init(void)
 	return _emmc_recovery_init();
 }
 
-void target_usb_phy_reset()
+void target_usb_phy_reset(void)
 {
 	usb30_qmp_phy_reset();
 	qusb2_phy_reset();
 }
 
-void target_usb_phy_sec_reset()
+void target_usb_phy_sec_reset(void)
 {
 	qusb2_phy_reset();
 }
 
-target_usb_iface_t* target_usb30_init()
+target_usb_iface_t* target_usb30_init(void)
 {
 	target_usb_iface_t *t_usb_iface;
 
@@ -585,12 +585,12 @@ target_usb_iface_t* target_usb30_init()
 }
 
 /* identify the usb controller to be used for the target */
-const char * target_usb_controller()
+const char * target_usb_controller(void)
 {
 	return "dwc";
 }
 
-uint32_t target_override_pll()
+uint32_t target_override_pll(void)
 {
 	if (board_soc_version() >= 0x20000)
 		return 0;
@@ -604,7 +604,7 @@ crypto_engine_type board_ce_type(void)
 }
 
 /* Set up params for h/w CE. */
-void target_crypto_init_params()
+void target_crypto_init_params(void)
 {
 	struct crypto_init_params ce_params;
 
@@ -698,7 +698,7 @@ void pmic_reset_configure(uint8_t reset_type)
 	}
 }
 
-uint32_t target_get_pmic()
+uint32_t target_get_pmic(void)
 {
 	return PMIC_IS_PMI8996;
 }

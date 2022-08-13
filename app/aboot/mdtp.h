@@ -172,7 +172,7 @@ void get_pin_from_user(char *entered_pin, uint32_t pin_length);
  *
  * @return - None.
  */
-void display_invalid_pin_msg();
+void display_invalid_pin_msg(void);
 
 /**
  * display_error_msg
@@ -181,7 +181,7 @@ void display_invalid_pin_msg();
  *
  * @return - None.
  */
-void display_error_msg();
+void display_error_msg(void);
 
 /**
  * display_error_msg_mdtp
@@ -190,7 +190,7 @@ void display_error_msg();
  *
  * @return - None.
  */
-void display_error_msg_mdtp();
+void display_error_msg_mdtp(void);
 
 /**
  * mdtp_activated
@@ -221,11 +221,11 @@ void mdtp_fwlock_verify_lock(mdtp_ext_partition_verification_t *ext_partition);
 /** Entry point of the MDTP LK UT.
  * Start UT on LK mdtp components during fastboot.
  **/
-void cmd_mdtp_runtests();
+void cmd_mdtp_runtests(void);
 
-int mdtp_verify_hash_ut();
-int mdtp_validate_partition_params_ut();
-int mdtp_verify_partition_ut();
+int mdtp_verify_hash_ut(void);
+int mdtp_validate_partition_params_ut(void);
+int mdtp_verify_partition_ut(void);
 int mdtp_verify_external_partition_ut(mdtp_ext_partition_verification_t* ext_partition);
 
 #endif

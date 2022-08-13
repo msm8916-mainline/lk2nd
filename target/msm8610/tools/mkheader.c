@@ -38,7 +38,7 @@
 
 #include <sys/stat.h>
 
-int print_usage()
+int print_usage(void)
 {
 	fprintf(stderr, "usage: mkheader <bin> <hdr> <none|unified-boot>\n");
 	fprintf(stderr, "       mkheader <bin> <hdr> <unsecure-boot>"

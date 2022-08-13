@@ -32,7 +32,7 @@
 #include <crypto5_eng.h>
 
 void crypto_init_params(struct crypto_init_params * params);
-uint32_t crypto_get_max_auth_blk_size();
+uint32_t crypto_get_max_auth_blk_size(void);
 void crypto_eng_cleanup(void);
 void crypto_unlock(void);
 

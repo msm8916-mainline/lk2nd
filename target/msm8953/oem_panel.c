@@ -83,13 +83,13 @@ static struct panel_list supp_panels[] = {
 
 static uint32_t panel_id;
 
-int oem_panel_rotation()
+int oem_panel_rotation(void)
 {
 	return NO_ERROR;
 }
 
 #define TRULY_1080P_PANEL_ON_DELAY 40
-int oem_panel_on()
+int oem_panel_on(void)
 {
 	if (panel_id == TRULY_1080P_CMD_PANEL ||
 			panel_id == TRULY_1080P_VIDEO_PANEL)
@@ -101,7 +101,7 @@ int oem_panel_on()
 	return NO_ERROR;
 }
 
-int oem_panel_off()
+int oem_panel_off(void)
 {
 	/* OEM can keep their panel specific off instructions
 	 * in this function
@@ -336,7 +336,7 @@ static int init_panel_data(struct panel_struct *panelstruct,
 
 #define DISPLAY_MAX_PANEL_DETECTION 2
 
-uint32_t oem_panel_max_auto_detect_panels()
+uint32_t oem_panel_max_auto_detect_panels(void)
 {
 	return target_panel_auto_detect_enabled() ?
 		DISPLAY_MAX_PANEL_DETECTION : 0;

@@ -51,7 +51,7 @@
 #include <stdlib.h>
 
 extern  bool target_use_signed_kernel(void);
-static void set_sdc_power_ctrl();
+static void set_sdc_power_ctrl(void);
 
 static unsigned int target_id;
 
@@ -101,18 +101,18 @@ void target_early_init(void)
 }
 
 /* Return 1 if vol_up pressed */
-static int target_volume_up()
+static int target_volume_up(void)
 {
 	return 0;
 }
 
 /* Return 1 if vol_down pressed */
-uint32_t target_volume_down()
+uint32_t target_volume_down(void)
 {
 	return 0;
 }
 
-static void target_keystatus()
+static void target_keystatus(void)
 {
 	keys_init();
 
@@ -124,7 +124,7 @@ static void target_keystatus()
 }
 
 /* Set up params for h/w CE. */
-void target_crypto_init_params()
+void target_crypto_init_params(void)
 {
 	struct crypto_init_params ce_params;
 
@@ -160,7 +160,7 @@ crypto_engine_type board_ce_type(void)
 }
 
 #if MMC_SDHCI_SUPPORT
-static void target_mmc_sdhci_init()
+static void target_mmc_sdhci_init(void)
 {
 	static uint32_t mmc_clks[] = {
 		MMC_CLK_96MHZ, MMC_CLK_50MHZ };
@@ -193,14 +193,14 @@ static void target_mmc_sdhci_init()
 	ASSERT(0);
 }
 
-void *target_mmc_device()
+void *target_mmc_device(void)
 {
 	return (void *) dev;
 }
 
 #else
 
-static void target_mmc_mci_init()
+static void target_mmc_mci_init(void)
 {
 	uint32_t base_addr;
 	uint8_t slot;
@@ -263,7 +263,7 @@ unsigned board_machtype(void)
 
 /* Do any target specific intialization needed before entering fastboot mode */
 #ifdef SSD_ENABLE
-static void ssd_load_keystore_from_emmc()
+static void ssd_load_keystore_from_emmc(void)
 {
 	uint64_t           ptn    = 0;
 	int                index  = -1;
@@ -351,7 +351,7 @@ void target_baseband_detect(struct board_data *board)
 	};
 }
 
-unsigned target_baseband()
+unsigned target_baseband(void)
 {
 	return board_baseband();
 }
@@ -419,7 +419,7 @@ void reboot_device(unsigned reboot_reason)
 }
 
 /* Check if MSM needs VBUS mimic for USB */
-static int target_needs_vbus_mimic()
+static int target_needs_vbus_mimic(void)
 {
 	return 1;
 }
@@ -445,7 +445,7 @@ void target_usb_init(void)
 }
 
 /* Returns 1 if target supports continuous splash screen. */
-int target_cont_splash_screen()
+int target_cont_splash_screen(void)
 {
 	return 0;
 }
@@ -467,7 +467,7 @@ void target_uninit(void)
 #endif
 }
 
-void shutdown_device()
+void shutdown_device(void)
 {
 	dprintf(CRITICAL, "Going down for shutdown.\n");
 
@@ -479,7 +479,7 @@ void shutdown_device()
 	dprintf(CRITICAL, "Shutdown failed\n");
 }
 
-static void set_sdc_power_ctrl()
+static void set_sdc_power_ctrl(void)
 {
 	/* Drive strength configs for sdc pins */
 	struct tlmm_cfgs sdc1_hdrv_cfg[] =

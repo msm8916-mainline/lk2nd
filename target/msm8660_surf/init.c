@@ -68,7 +68,7 @@ extern void dmb(void);
 
 int target_is_emmc_boot(void);
 static void debug_led_write(char);
-static char debug_led_read();
+static char debug_led_read(void);
 uint32_t platform_id_read(void);
 static void setup_fpga(void);
 int pm8901_reset_pwr_off(int reset);
@@ -234,7 +234,7 @@ void target_detect(struct board_data *board)
 	board->target = mach_id;
 }
 
-void shutdown_device()
+void shutdown_device(void)
 {
 	gpio_config_pshold();
 	pm8058_reset_pwr_off(0);
@@ -279,7 +279,7 @@ void target_battery_charging_enable(unsigned enable, unsigned disconnect)
 {
 }
 
-void setup_fpga()
+void setup_fpga(void)
 {
 #if TARGET_MSM8660_SURF
 	writel(0x147, GPIO_CFG133_ADDR);
@@ -320,7 +320,7 @@ void debug_led_write(char val)
 #endif
 }
 
-char debug_led_read()
+char debug_led_read(void)
 {
 #if TARGET_MSM8660_SURF
 	return readb(SURF_DEBUG_LED_ADDR);
@@ -329,7 +329,7 @@ char debug_led_read()
 #endif
 }
 
-unsigned target_baseband()
+unsigned target_baseband(void)
 {
 	return board_baseband();
 }
@@ -478,7 +478,7 @@ static void hsusb_gpio_init(void)
 #define CLK_RESET_DEASSERT  0x0
 #define CLK_RESET(x,y)  writel((y), (x));
 
-static int msm_otg_xceiv_reset()
+static int msm_otg_xceiv_reset(void)
 {
 	CLK_RESET(USB_CLK, CLK_RESET_ASSERT);
 	CLK_RESET(USB_PHY_CLK, CLK_RESET_ASSERT);

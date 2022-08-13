@@ -35,8 +35,8 @@ extern bool charge_in_progress;
 extern bool display_initialized;
 extern bool display_shutdown_in_prgs;
 
-bool pm_appsbl_charging_in_progress();
-bool pm_appsbl_display_init_done();
-bool pm_app_display_shutdown_in_prgs();
+bool pm_appsbl_charging_in_progress(void);
+bool pm_appsbl_display_init_done(void);
+bool pm_app_display_shutdown_in_prgs(void);
 
 #endif

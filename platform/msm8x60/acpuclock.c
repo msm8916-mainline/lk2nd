@@ -387,7 +387,7 @@ void mmss_pixel_clock_configure(uint32_t pclk_id)
 	}
 }
 
-void configure_dsicore_dsiclk()
+void configure_dsicore_dsiclk(void)
 {
 	unsigned char mnd_mode, root_en, clk_en;
 	unsigned long src_sel = 0x3;	// dsi_phy_pll0_src
@@ -426,7 +426,7 @@ void configure_dsicore_pclk(void)
 	secure_writel(secure_readl(DSI_PIXEL_CC_REG) | clk_en, DSI_PIXEL_CC_REG);
 }
 /* Async Reset CE2 */
-void ce_async_reset()
+void ce_async_reset(void)
 {
 	/* Enable Async reset bit for HCLK CE2 */
 	writel((1<<7) | (1 << 4), CE2_HCLK_CTL);

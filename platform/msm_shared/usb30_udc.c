@@ -112,12 +112,12 @@ static bool udc_ss_capable;
 static udc_t *udc_dev = NULL;
 
 
-__WEAK int platform_is_8974()
+__WEAK int platform_is_8974(void)
 {
 	return 0;
 }
 
-__WEAK int platform_is_8974Pro()
+__WEAK int platform_is_8974Pro(void)
 {
 	return 0;
 }

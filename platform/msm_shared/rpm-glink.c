@@ -339,7 +339,7 @@ void rpm_glink_open(glink_link_info_type *link_info, void* priv)
 
 }
 
-void rpm_glink_init()
+void rpm_glink_init(void)
 {
 	glink_err_type ret;
 	glink_link_id_type link_id;
@@ -366,7 +366,7 @@ void rpm_glink_init()
 	event_wait(&wait_for_ssr_init);
 }
 
-void rpm_glink_uninit()
+void rpm_glink_uninit(void)
 {
 	rpm_ssr_req req;
 	glink_err_type ret;

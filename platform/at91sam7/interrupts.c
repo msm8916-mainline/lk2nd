@@ -28,7 +28,7 @@
 #include <platform/at91sam7.h>
 #include <arch/arm.h>
 
-static int do_nothing()
+static int do_nothing(void)
 {
     return INT_NO_RESCHEDULE;
 }

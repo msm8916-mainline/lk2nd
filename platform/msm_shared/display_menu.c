@@ -146,7 +146,7 @@ struct unlock_option_msg munlock_option_msg[] = {
 static int big_factor = 2;
 static int common_factor = 1;
 
-static void wait_for_exit()
+static void wait_for_exit(void)
 {
 	struct select_msg_info *select_msg;
 	select_msg = &msg_info;
@@ -164,7 +164,7 @@ static void wait_for_exit()
 	display_image_on_screen();
 }
 
-void wait_for_users_action()
+void wait_for_users_action(void)
 {
 	if (is_display_disabled())
 		return;
@@ -174,7 +174,7 @@ void wait_for_users_action()
 	wait_for_exit();
 }
 
-void exit_menu_keys_detection()
+void exit_menu_keys_detection(void)
 {
 	struct select_msg_info *select_msg;
 	select_msg = &msg_info;
@@ -189,7 +189,7 @@ void exit_menu_keys_detection()
 	wait_for_exit();
 }
 
-static void set_message_factor()
+static void set_message_factor(void)
 {
 	uint32_t tmp_factor = 0;
 	uint32_t max_x_count = 0;
@@ -521,7 +521,7 @@ void display_fastboot_menu_renew(struct select_msg_info *fastboot_msg_info)
 	fastboot_msg_info->info.option_index = option_index;
 }
 
-void msg_lock_init()
+void msg_lock_init(void)
 {
 	static bool is_msg_lock_init = false;
 	struct select_msg_info *msg_lock_info;
@@ -577,7 +577,7 @@ void display_unlock_menu(int type, bool status)
 	display_menu_thread_start(unlock_menu_msg_info);
 }
 
-void display_fastboot_menu()
+void display_fastboot_menu(void)
 {
 	struct select_msg_info *fastboot_menu_msg_info;
 	fastboot_menu_msg_info = &msg_info;

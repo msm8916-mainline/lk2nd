@@ -29,7 +29,7 @@
 #include <pm_vib.h>
 #include <board.h>
 
-void pm_vib_turn_on()
+void pm_vib_turn_on(void)
 {
 	if ((board_pmic_target(1) & PMIC_TYPE_MASK) == PMIC_IS_PMI632)
 		pm_vib_ldo_turn_on();
@@ -37,7 +37,7 @@ void pm_vib_turn_on()
 		pm_haptic_vib_turn_on();
 }
 
-void pm_vib_turn_off()
+void pm_vib_turn_off(void)
 {
 	if ((board_pmic_target(1) & PMIC_TYPE_MASK) == PMIC_IS_PMI632)
 		pm_vib_ldo_turn_off();

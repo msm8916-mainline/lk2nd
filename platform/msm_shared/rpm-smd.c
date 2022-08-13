@@ -39,12 +39,12 @@
 static uint32_t msg_id;
 smd_channel_info_t ch;
 
-void rpm_smd_init()
+void rpm_smd_init(void)
 {
 	smd_init(&ch, SMD_APPS_RPM);
 }
 
-void rpm_smd_uninit()
+void rpm_smd_uninit(void)
 {
 	smd_uninit(&ch);
 }

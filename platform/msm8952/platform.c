@@ -106,7 +106,7 @@ uint32_t platform_get_sclk_count(void)
 	return readl(MPM2_MPM_SLEEP_TIMETICK_COUNT_VAL);
 }
 
-addr_t get_bs_info_addr()
+addr_t get_bs_info_addr(void)
 {
 	return ((addr_t)BS_INFO_ADDR);
 }
@@ -186,7 +186,7 @@ addr_t platform_get_phys_to_virt_mapping(addr_t phys_addr)
  * Dynamic SMEM is assumed to be enabled. Read the remaining
  * SMEM info for SMEM Size and Phy_addr from the other bytes.
  */
-uint32_t platform_get_smem_base_addr()
+uint32_t platform_get_smem_base_addr(void)
 {
 	struct smem_addr_info *smem_info = NULL;
 
@@ -197,12 +197,12 @@ uint32_t platform_get_smem_base_addr()
 		return MSM_SHARED_BASE;
 }
 
-uint32_t platform_get_max_periph()
+uint32_t platform_get_max_periph(void)
 {
 	return 256;
 }
 
-int platform_is_msm8917()
+int platform_is_msm8917(void)
 {
 	uint32_t platform = board_platform_id();
 	uint32_t ret = 0;
@@ -223,7 +223,7 @@ int platform_is_msm8917()
 	return ret;
 }
 
-int platform_is_qm215()
+int platform_is_qm215(void)
 {
 	uint32_t platform = board_platform_id();
 	uint32_t ret = 0;
@@ -241,7 +241,7 @@ int platform_is_qm215()
 	return ret;
 }
 
-int platform_is_msm8937()
+int platform_is_msm8937(void)
 {
 	uint32_t platform = board_platform_id();
 	uint32_t ret = 0;
@@ -260,7 +260,7 @@ int platform_is_msm8937()
 	return ret;
 }
 
-int platform_is_msm8952()
+int platform_is_msm8952(void)
 {
 	uint32_t platform = board_platform_id();
 	uint32_t ret = 0;
@@ -278,7 +278,7 @@ int platform_is_msm8952()
 	return ret;
 }
 
-int platform_is_sdm429()
+int platform_is_sdm429(void)
 {
 	uint32_t platform = board_platform_id();
 	uint32_t ret = 0;
@@ -296,7 +296,7 @@ int platform_is_sdm429()
 	return ret;
 }
 
-int platform_is_sdm439()
+int platform_is_sdm439(void)
 {
 	uint32_t platform = board_platform_id();
 	uint32_t ret = 0;
@@ -314,7 +314,7 @@ int platform_is_sdm439()
 	return ret;
 }
 
-int platform_is_sdm429w()
+int platform_is_sdm429w(void)
 {
 	uint32_t platform = board_platform_id();
 	uint32_t ret = 0;
@@ -331,7 +331,7 @@ int platform_is_sdm429w()
 	return ret;
 }
 
-int platform_is_sda429w()
+int platform_is_sda429w(void)
 {
 	uint32_t platform = board_platform_id();
 	uint32_t ret = 0;
@@ -348,7 +348,7 @@ int platform_is_sda429w()
 	return ret;
 }
 
-int platform_is_msm8956()
+int platform_is_msm8956(void)
 {
 	uint32_t platform = board_platform_id();
 	uint32_t ret = 0;
@@ -368,7 +368,7 @@ int platform_is_msm8956()
 	return ret;
 }
 
-uint32_t platform_get_tz_app_add()
+uint32_t platform_get_tz_app_add(void)
 {
 	if(platform_is_msm8937() || platform_is_msm8917() ||
 		platform_is_sdm429() || platform_is_sdm429w() || platform_is_sda429w() || platform_is_sdm439())
@@ -379,7 +379,7 @@ uint32_t platform_get_tz_app_add()
 		return APP_REGION_ADDR_8952;
 }
 
-uint32_t platform_get_tz_app_size()
+uint32_t platform_get_tz_app_size(void)
 {
 	if(platform_is_msm8937() || platform_is_msm8917() ||
 		platform_is_sdm429() || platform_is_sdm429w() || platform_is_sda429w() || platform_is_sdm439())
@@ -390,7 +390,7 @@ uint32_t platform_get_tz_app_size()
 		return APP_REGION_SIZE_8952;
 }
 
-uint32_t platform_get_apcs_ipc_base()
+uint32_t platform_get_apcs_ipc_base(void)
 {
 	if(platform_is_msm8917() || platform_is_sdm429() ||  platform_is_sdm429w() || platform_is_sda429w() || platform_is_qm215())
 		return APCS_ALIAS1_IPC_INTERRUPT_1;
@@ -398,7 +398,7 @@ uint32_t platform_get_apcs_ipc_base()
 		return APCS_ALIAS0_IPC_INTERRUPT_2;
 }
 
-uint32_t platform_is_msm8976_v_1_1()
+uint32_t platform_is_msm8976_v_1_1(void)
 {
 	uint32_t soc_ver = board_soc_version();
 	uint32_t ret = 0;
@@ -409,7 +409,7 @@ uint32_t platform_is_msm8976_v_1_1()
 	return ret;
 }
 
-void *get_rpmb_snd_rcv_buff()
+void *get_rpmb_snd_rcv_buff(void)
 {
 	if(smem_get_ddr_size() > 0x20000000)
 		return (void *)RPMB_SND_RCV_BUF_STRT;

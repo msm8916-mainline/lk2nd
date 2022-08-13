@@ -72,7 +72,7 @@ int qpic_off(void)
 	return ret;
 }
 
-void qpic_update()
+void qpic_update(void)
 {
 	uint32_t fb_offset, size;
 

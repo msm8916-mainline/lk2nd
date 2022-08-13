@@ -89,7 +89,7 @@ __WEAK uint8_t ufs_get_num_of_luns(struct ufs_dev* dev)
  * Return  : Pointer to mmc card structure
  * Flow    : Get the card pointer from the device structure
  */
-static struct mmc_card *get_mmc_card()
+static struct mmc_card *get_mmc_card(void)
 {
 	void *dev;
 	struct mmc_card *card;
@@ -244,7 +244,7 @@ uint32_t mmc_read(uint64_t data_addr, uint32_t *out, uint32_t data_len)
  * Flow    : Get the erase unit size from the card
  */
 
-uint32_t mmc_get_eraseunit_size()
+uint32_t mmc_get_eraseunit_size(void)
 {
 	uint32_t erase_unit_sz = 0;
 
@@ -448,7 +448,7 @@ uint32_t mmc_get_psn(void)
  * Return  : Returns the density of the emmc card
  * Flow    : Get the density from card
  */
-uint64_t mmc_get_device_capacity()
+uint64_t mmc_get_device_capacity(void)
 {
 	if (platform_boot_dev_isemmc())
 	{
@@ -474,7 +474,7 @@ uint64_t mmc_get_device_capacity()
  * Return  : Returns the block size of the storage
  * Flow    : Get the block size form the card
  */
-uint32_t mmc_get_device_blocksize()
+uint32_t mmc_get_device_blocksize(void)
 {
 	if (platform_boot_dev_isemmc())
 	{
@@ -500,7 +500,7 @@ uint32_t mmc_get_device_blocksize()
  * Return  : Returns the page size for the card
  * Flow    : Get the page size for storage
  */
-uint32_t mmc_page_size()
+uint32_t mmc_page_size(void)
 {
 	if (platform_boot_dev_isemmc())
 	{
@@ -522,7 +522,7 @@ uint32_t mmc_page_size()
  * Return  : Clean up function for storage
  * Flow    : Put the mmc card to sleep
  */
-void mmc_device_sleep()
+void mmc_device_sleep(void)
 {
 	void *dev;
 	dev = target_mmc_device();
@@ -539,7 +539,7 @@ void mmc_device_sleep()
  * Return type : current boot lun
  */
 
-int ufs_get_boot_lun()
+int ufs_get_boot_lun(void)
 {
 	int ret = 0;
 	void *dev;

@@ -87,6 +87,6 @@ struct qmp_reg
 
 void usb30_qmp_phy_reset(void);
 void usb30_qmp_phy_init(void);
-bool use_hsonly_mode();
+bool use_hsonly_mode(void);
 
 #endif

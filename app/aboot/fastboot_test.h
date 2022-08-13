@@ -30,16 +30,16 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef __FASTBOOT_TEST_H__
 #define __FASTBOOT_TEST_H__
 #include <sys/types.h>
-extern void ramdump_table_map();
-void cmd_oem_runtests();
+extern void ramdump_table_map(void);
+void cmd_oem_runtests(void);
 
 #if UNITTEST_FW_SUPPORT
-bool is_test_mode_enabled();
+bool is_test_mode_enabled(void);
 #else
-bool is_test_mode_enabled()
+bool is_test_mode_enabled(void)
 {
 	return false;
 }
 #endif
-extern int boot_linux_from_mmc();
+extern int boot_linux_from_mmc(void);
 #endif

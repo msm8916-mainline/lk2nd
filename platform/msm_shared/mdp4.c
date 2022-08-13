@@ -386,7 +386,7 @@ int mdp_dsi_video_off(struct msm_panel_info *pinfo)
 	return NO_ERROR;
 }
 
-int mdp_dsi_cmd_off()
+int mdp_dsi_cmd_off(void)
 {
 	mdp_dma_off();
 	/*
@@ -404,7 +404,7 @@ void mdp_set_revision(int rev)
 	mdp_rev = rev;
 }
 
-int mdp_get_revision()
+int mdp_get_revision(void)
 {
 	return mdp_rev;
 }

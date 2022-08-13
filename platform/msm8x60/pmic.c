@@ -181,7 +181,7 @@ int pm8058_mwrite(uint16_t addr, uint8_t val, uint8_t mask, uint8_t * reg_save)
 	return rc;
 }
 
-int pm8058_ldo_set_voltage()
+int pm8058_ldo_set_voltage(void)
 {
 	int ret = 0;
 	unsigned vprog = 0x00000110;
@@ -193,7 +193,7 @@ int pm8058_ldo_set_voltage()
 	return ret;
 }
 
-int pm8058_vreg_enable()
+int pm8058_vreg_enable(void)
 {
 	int ret = 0;
 	ret =
@@ -379,7 +379,7 @@ int pm8058_rtc0_alarm_irq_disable(void)
 	return rc;
 }
 
-int pm8901_mpp_enable()
+int pm8901_mpp_enable(void)
 {
 	uint8_t prevval = 0x0;
 	uint16_t mask;
@@ -396,7 +396,7 @@ int pm8901_mpp_enable()
 	return ret;
 }
 
-int pm8901_vs_enable()
+int pm8901_vs_enable(void)
 {
 	uint8_t val = VREG_PMR_STATE_HPM;
 	int prevval = 0x0;

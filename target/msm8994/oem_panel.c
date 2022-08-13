@@ -87,14 +87,14 @@ static struct panel_list supp_panels[] = {
 
 static uint32_t panel_id;
 
-int oem_panel_rotation()
+int oem_panel_rotation(void)
 {
 	/* OEM can keep there panel specific on instructions in this
 	function */
 	return NO_ERROR;
 }
 
-int oem_panel_on()
+int oem_panel_on(void)
 {
 	/* OEM can keep there panel specific on instructions in this
 	function */
@@ -106,7 +106,7 @@ int oem_panel_on()
 	return NO_ERROR;
 }
 
-int oem_panel_off()
+int oem_panel_off(void)
 {
 	/* OEM can keep there panel specific off instructions in this
 	function */

@@ -36,31 +36,31 @@ __WEAK int mdp_lcdc_config(void)
 {
 	return 0;
 }
-__WEAK int lvds_on()
+__WEAK int lvds_on(void)
 {
 	return 0;
 }
-__WEAK int mdp_lcdc_on()
+__WEAK int mdp_lcdc_on(void)
 {
 	return 0;
 }
-__WEAK int mdp_lcdc_off()
+__WEAK int mdp_lcdc_off(void)
 {
 	return 0;
 }
-__WEAK int target_display_pre_on()
+__WEAK int target_display_pre_on(void)
 {
 	return 0;
 }
-__WEAK int target_display_post_on()
+__WEAK int target_display_post_on(void)
 {
 	return 0;
 }
-__WEAK int target_display_pre_off()
+__WEAK int target_display_pre_off(void)
 {
 	return 0;
 }
-__WEAK int target_display_post_off()
+__WEAK int target_display_post_off(void)
 {
 	return 0;
 }

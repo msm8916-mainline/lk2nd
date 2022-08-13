@@ -167,7 +167,7 @@ void _clear(char c,char attr,int x1,int y1,int x2,int y2)
 	curr_x = x1;
 }
 
-void clear()
+void clear(void)
 {
     _clear(' ', curr_attr, view_window.x1, view_window.y1, view_window.x2,
     	view_window.y2);

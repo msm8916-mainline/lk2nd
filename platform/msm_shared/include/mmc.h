@@ -616,8 +616,8 @@ struct mmc_host {
 #define CORE_SW_RST_START                          0x7
 #define CORE_SW_RST_WIDTH                          0x1
 
-uint32_t mmc_get_device_blocksize();
-uint32_t mmc_page_size();
+uint32_t mmc_get_device_blocksize(void);
+uint32_t mmc_page_size(void);
 uint8_t mmc_get_lun(void);
 void mmc_set_lun(uint8_t lun);
 
@@ -632,12 +632,12 @@ unsigned mmc_get_psn(void);
 unsigned int mmc_erase_card(unsigned long long data_addr,
 			    unsigned long long data_len);
 
-void mmc_mclk_reg_wr_delay();
-void mmc_boot_mci_clk_enable();
-void mmc_boot_mci_clk_disable();
-uint8_t card_supports_ddr_mode();
-uint8_t card_supports_hs200_mode();
-uint64_t mmc_get_device_capacity();
+void mmc_mclk_reg_wr_delay(void);
+void mmc_boot_mci_clk_enable(void);
+void mmc_boot_mci_clk_disable(void);
+uint8_t card_supports_ddr_mode(void);
+uint8_t card_supports_hs200_mode(void);
+uint64_t mmc_get_device_capacity(void);
 void mmc_put_card_to_sleep(void);
 
 void target_mmc_caps(struct mmc_host *host);

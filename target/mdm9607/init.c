@@ -131,13 +131,13 @@ void update_ptable_names(void)
 }
 
 /* Return Non zero (i.e 0x2) if vol_down pressed */
-uint32_t target_volume_down()
+uint32_t target_volume_down(void)
 {
 	/* Volume down button tied in with PMIC RESIN. */
 	return pm8x41_resin_status();
 }
 
-static void target_keystatus()
+static void target_keystatus(void)
 {
 	keys_init();
 
@@ -154,7 +154,7 @@ void target_early_init(void)
 }
 
 /* Configure PMIC and Drop PS_HOLD for shutdown */
-void shutdown_device()
+void shutdown_device(void)
 {
 	dprintf(CRITICAL, "Going down for shutdown.\n");
 
@@ -379,7 +379,7 @@ crypto_engine_type board_ce_type(void)
 }
 
 /* Set up params for h/w CE. */
-void target_crypto_init_params()
+void target_crypto_init_params(void)
 {
 	struct crypto_init_params ce_params;
 
@@ -408,7 +408,7 @@ void target_crypto_init_params()
 	crypto_init_params(&ce_params);
 }
 
-void target_fastboot_init()
+void target_fastboot_init(void)
 {
 	/* Enable LDO4 for processing fastboot commands.*/
 	if(platform_is_mdm9206()){

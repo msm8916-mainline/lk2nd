@@ -42,7 +42,7 @@
 
 static struct msm_fb_panel_data panel;
 extern int msm_display_init(struct msm_fb_panel_data *pdata);
-extern int msm_display_off();
+extern int msm_display_off(void);
 
 void target_display_init(const char *panel_name)
 {

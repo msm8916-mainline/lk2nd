@@ -233,7 +233,7 @@ int smem_ram_ptable_init(struct smem_ram_ptable *smem_ram_ptable)
 
 /* RAM Partition table from SMEM */
 static uint32_t buffer[sizeof(struct smem_ram_ptable_v2)];
-int smem_ram_ptable_init_v1()
+int smem_ram_ptable_init_v1(void)
 {
 	uint32_t i;
 	uint32_t ret;
@@ -297,7 +297,7 @@ uint32_t smem_get_ram_ptable_version(void)
 	return ptable.hdr.version;
 }
 
-uint32_t get_ddr_start()
+uint32_t get_ddr_start(void)
 {
 	uint32_t i;
 	ram_partition ptn_entry;
@@ -326,7 +326,7 @@ uint32_t get_ddr_start()
 	return 0;
 }
 
-uint64_t smem_get_ddr_size()
+uint64_t smem_get_ddr_size(void)
 {
 	uint32_t i;
 	ram_partition ptn_entry;

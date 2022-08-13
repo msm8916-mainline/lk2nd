@@ -55,7 +55,7 @@ static uint32_t pon_timer_complete = 0;
  * Return 0 if boot time more than PWRKEY_LONG_PRESS_COUNT.
  * Return 1 if boot time less than PWRKEY_LONG_PRESS_COUNT.
  */
-static uint32_t is_pwrkey_time_expired()
+static uint32_t is_pwrkey_time_expired(void)
 {
 	/* power on button tied in with PMIC KPDPWR. */
 	uint32_t sclk_count = platform_get_sclk_count();
@@ -72,7 +72,7 @@ static uint32_t is_pwrkey_time_expired()
  * Return 1 if it is triggered by power key.
  * Return 0 if it is not triggered by power key.
  */
-static uint32_t is_pwrkey_pon_reason()
+static uint32_t is_pwrkey_pon_reason(void)
 {
 #if PMI_CONFIGURED
 	return target_is_pwrkey_pon_reason();
@@ -124,7 +124,7 @@ static enum handler_return long_press_pwrkey_timer_func(struct timer *p_timer,
 /*
  * Function to wait until the power key is pressed long enough
  */
-static void wait_for_long_pwrkey_pressed()
+static void wait_for_long_pwrkey_pressed(void)
 {
 	uint32_t sclk_count = 0;
 
@@ -148,7 +148,7 @@ static void wait_for_long_pwrkey_pressed()
  * 2. the power key is released before
  * (PWRKEY_LONG_PRESS_COUNT/MPM_SLEEP_TIMETICK_COUNT) seconds.
  */
-void shutdown_detect()
+void shutdown_detect(void)
 {
 	/*
 	 * If it is booted by power key tirigger.

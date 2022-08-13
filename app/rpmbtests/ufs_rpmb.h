@@ -40,8 +40,8 @@ static inline void dump(const void *buff, int count)
 	printf("\n");
 }
 
-bool swp_test();
-void rpmb_run_test();
+bool swp_test(void);
+void rpmb_run_test(void);
 bool rpmb_test(struct ufs_dev *dev, uint16_t address, uint16_t rpmb_num_blocks);
 void dump_rpmb_data(struct rpmb_frame *result_frame);
 int verify_rpmb_frame(struct rpmb_frame *request_frame, struct rpmb_frame *result_frame, int type);

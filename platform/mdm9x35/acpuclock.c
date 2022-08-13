@@ -160,7 +160,7 @@ void clock_usb30_init(void)
 	pm8x41_lnbb_clock_ctrl(1);
 }
 
-void clock_bumpup_pipe3_clk()
+void clock_bumpup_pipe3_clk(void)
 {
 	int ret = 0;
 

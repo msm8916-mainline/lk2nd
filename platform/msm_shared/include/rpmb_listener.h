@@ -32,5 +32,5 @@
 
 #define RPMB_LSTNR_ID               0x2000
 
-int rpmb_listener_start();
+int rpmb_listener_start(void);
 int rpmb_listener_stop(int id);

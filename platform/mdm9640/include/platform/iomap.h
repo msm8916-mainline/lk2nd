@@ -31,7 +31,7 @@
 
 #include <stdint.h>
 
-uint32_t platform_boot_config();
+uint32_t platform_boot_config(void);
 
 /* NAND */
 #define MSM_NAND_BASE               0x079B0000

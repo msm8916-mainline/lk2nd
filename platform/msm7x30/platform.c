@@ -42,7 +42,7 @@
 #include <dev/lcdc.h>
 
 void platform_init_interrupts(void);
-void platform_init_timer();
+void platform_init_timer(void);
 
 void uart2_clock_init(void);
 void uart_init(void);

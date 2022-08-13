@@ -926,7 +926,7 @@ static void mdss_hdmi_add_video_format(uint32_t video_format)
 	mdss_hdmi_mode_count++;
 }
 
-static void mdss_hdmi_get_extended_video_formats()
+static void mdss_hdmi_get_extended_video_formats(void)
 {
 	uint8_t db_len, offset, i;
 	uint8_t hdmi_vic_len;
@@ -968,7 +968,7 @@ static void mdss_hdmi_get_extended_video_formats()
 	}
 }
 
-static void mdss_hdmi_get_cea_video_formats()
+static void mdss_hdmi_get_cea_video_formats(void)
 {
 	uint8_t len, i;
 	uint32_t video_format;
@@ -1835,7 +1835,7 @@ static int mdss_hdmi_get_timeout_in_hysnc(struct mdss_hdmi_timing_info *timing,
 	return lines_needed_for_given_time;
 }
 
-static void mdss_hdmi_scrambler_ddc_reset()
+static void mdss_hdmi_scrambler_ddc_reset(void)
 {
 	uint32_t reg_val;
 
@@ -1852,7 +1852,7 @@ static void mdss_hdmi_scrambler_ddc_reset()
 	writel(reg_val, HDMI_SCRAMBLER_STATUS_DDC_CTRL);
 }
 
-static void mdss_hdmi_scrambler_ddc_disable()
+static void mdss_hdmi_scrambler_ddc_disable(void)
 {
 	uint32_t reg_val;
 
@@ -1865,7 +1865,7 @@ static void mdss_hdmi_scrambler_ddc_disable()
 	writel(reg_val, HDMI_HW_DDC_CTRL);
 }
 
-static int mdss_hdmi_scrambler_ddc_check_status()
+static int mdss_hdmi_scrambler_ddc_check_status(void)
 {
 	int rc = 0;
 	uint32_t reg_val;
@@ -1962,7 +1962,7 @@ static int mdss_hdmi_setup_ddc_timers(uint32_t type, uint32_t to_in_num_lines)
 	return 0;
 }
 
-static int mdss_hdmi_setup_scrambler()
+static int mdss_hdmi_setup_scrambler(void)
 {
 	int rc = 0;
 	uint32_t reg_val = 0;

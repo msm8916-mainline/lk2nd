@@ -61,7 +61,7 @@
 
 struct partition_entry *PtnEntries;
 
-bool IsCurrentSlotSuccessful()
+bool IsCurrentSlotSuccessful(void)
 {
    struct ab_slot_info slot_info[AB_SUPPORTED_SLOTS];
    int slot_idx =INVALID;

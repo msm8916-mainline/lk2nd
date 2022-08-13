@@ -114,7 +114,7 @@ static uint32_t mmc_sdhci_base[] =
 static uint32_t  mmc_sdc_pwrctl_irq[] =
 	{ SDCC1_PWRCTL_IRQ, SDCC2_PWRCTL_IRQ };
 
-static int sdm429_pm660_target()
+static int sdm429_pm660_target(void)
 {
 	if ((platform_is_sdm429() && (board_hardware_subtype() == HW_PLATFORM_SUBTYPE_429W_PM660)) || platform_is_sdm429w() || platform_is_sda429w())
 		return 1;
@@ -129,7 +129,7 @@ void target_early_init(void)
 #endif
 }
 
-static void set_sdc_power_ctrl()
+static void set_sdc_power_ctrl(void)
 {
 	/* Drive strength configs for sdc pins */
 	struct tlmm_cfgs sdc1_hdrv_cfg[] =
@@ -158,7 +158,7 @@ static void set_sdc_power_ctrl()
 	tlmm_set_pull_ctrl(sdc1_rclk_cfg, ARRAY_SIZE(sdc1_rclk_cfg));
 }
 
-void target_sdc_init()
+void target_sdc_init(void)
 {
 	struct mmc_config_data config;
 
@@ -190,13 +190,13 @@ void target_sdc_init()
 	}
 }
 
-void *target_mmc_device()
+void *target_mmc_device(void)
 {
 	return (void *) dev;
 }
 
 /* Return 1 if vol_up pressed */
-int target_volume_up()
+int target_volume_up(void)
 {
 	static uint8_t first_time = 0;
 	uint8_t status = 0;
@@ -228,7 +228,7 @@ int target_volume_up()
 }
 
 /* Return 1 if vol_down pressed */
-uint32_t target_volume_down()
+uint32_t target_volume_down(void)
 {
 	static  bool vol_down_key_init = false;
 
@@ -255,7 +255,7 @@ uint32_t target_volume_down()
 	}
 }
 
-uint32_t target_is_pwrkey_pon_reason()
+uint32_t target_is_pwrkey_pon_reason(void)
 {
 	uint32_t pmic = target_get_pmic();
 	uint8_t pon_reason;
@@ -291,7 +291,7 @@ uint32_t target_is_pwrkey_pon_reason()
 		return 0;
 }
 
-static void target_keystatus()
+static void target_keystatus(void)
 {
 	keys_init();
 
@@ -460,7 +460,7 @@ void target_baseband_detect(struct board_data *board)
 	};
 }
 
-unsigned target_baseband()
+unsigned target_baseband(void)
 {
 	return board_baseband();
 }
@@ -598,7 +598,7 @@ void target_usb_stop(void)
 
 static uint8_t splash_override;
 /* Returns 1 if target supports continuous splash screen. */
-int target_cont_splash_screen()
+int target_cont_splash_screen(void)
 {
 	uint8_t splash_screen = 0;
 	if (!splash_override) {
@@ -623,7 +623,7 @@ void target_force_cont_splash_disable(uint8_t override)
         splash_override = override;
 }
 
-uint8_t target_panel_auto_detect_enabled()
+uint8_t target_panel_auto_detect_enabled(void)
 {
 	uint8_t ret = 0;
 
@@ -697,7 +697,7 @@ crypto_engine_type board_ce_type(void)
 }
 
 /* Set up params for h/w CE. */
-void target_crypto_init_params()
+void target_crypto_init_params(void)
 {
 	struct crypto_init_params ce_params;
 
@@ -775,7 +775,7 @@ int get_target_boot_params(const char *cmdline, const char *part, char **buf)
 }
 #endif
 
-uint32_t target_get_pmic()
+uint32_t target_get_pmic(void)
 {
 	uint32_t pmi_type = 0;
 

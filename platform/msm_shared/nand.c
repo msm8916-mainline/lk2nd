@@ -3601,7 +3601,7 @@ void enable_interleave_mode(int status)
 	return;
 }
 
-int flash_ecc_bch_enabled()
+int flash_ecc_bch_enabled(void)
 {
 	return enable_bch_ecc;
 }

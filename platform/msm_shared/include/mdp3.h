@@ -79,7 +79,7 @@ int mdp_setup_dma_p_video_mode(unsigned short disp_width,
 void mdp_disable(void);
 void mdp_shutdown(void);
 void mdp_set_revision(int rev);
-int mdp_get_revision();
+int mdp_get_revision(void);
 
 /* defining no-op functions that are implemented only for mdp5 */
 int mdp_edp_config(struct msm_panel_info *pinfo, struct fbcon_config *fb);

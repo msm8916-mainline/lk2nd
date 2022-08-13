@@ -60,7 +60,7 @@ uint64_t paddr_4gb[] = {0xc2300000, 0x10d000000, 0x15e000000};
 uint32_t vaddr_3gb[] = {0x23000000, 0xcd000000, 0xde000000};
 uint64_t paddr_3gb[] = {0x23000000, 0xcd000000, 0xde000000};
 
-void ramdump_table_map()
+void ramdump_table_map(void)
 {
 	uint32_t i, j;
 	uint32_t table_sz = 0;

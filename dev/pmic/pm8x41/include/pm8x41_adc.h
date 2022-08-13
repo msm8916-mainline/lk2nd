@@ -212,7 +212,7 @@ int pm8x41_chgr_vdd_max_config(uint32_t voltage);
 /* API: To enable charging */
 int pm8x41_chgr_ctl_enable(uint8_t enable);
 /* API: Get battery voltage*/
-uint32_t pm8x41_get_batt_voltage();
+uint32_t pm8x41_get_batt_voltage(void);
 /* API: Get Voltage based State of Charge */
 uint32_t pm8x41_get_voltage_based_soc(uint32_t cutoff_vol, uint32_t vdd_max);
 /* API: Set the PM8x41 MPP pin as ADC */

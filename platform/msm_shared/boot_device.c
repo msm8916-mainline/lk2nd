@@ -35,13 +35,13 @@
 
 static uint32_t boot_device;
 
-void platform_read_boot_config()
+void platform_read_boot_config(void)
 {
 	boot_device = BOOT_DEVICE_MASK(readl(BOOT_CONFIG_REG));
 	board_update_boot_dev(boot_device);
 }
 
-uint32_t platform_get_boot_dev()
+uint32_t platform_get_boot_dev(void)
 {
 	return boot_device;
 }
@@ -49,7 +49,7 @@ uint32_t platform_get_boot_dev()
 /*
  * Return 1 if boot from emmc else 0
  */
-uint32_t platform_boot_dev_isemmc()
+uint32_t platform_boot_dev_isemmc(void)
 {
 	uint32_t boot_dev_type;
 
@@ -76,7 +76,7 @@ uint32_t platform_boot_dev_isemmc()
  *           It will be treated as NAND.
  * BOOT_DEFAULT in case of Non-MDM targets is EMMC.
  */
-uint32_t platform_boot_dev_is_nand()
+uint32_t platform_boot_dev_is_nand(void)
 {
         uint32_t val = 0;
 

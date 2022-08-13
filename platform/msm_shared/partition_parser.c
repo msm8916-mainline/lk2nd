@@ -86,17 +86,17 @@ static unsigned partition_count;
 /* this is a pointer to ptn_entries_buffer */
 static unsigned char *new_buffer = NULL;
 
-unsigned partition_get_partition_count()
+unsigned partition_get_partition_count(void)
 {
 	return partition_count;
 }
 
-struct partition_entry* partition_get_partition_entries()
+struct partition_entry* partition_get_partition_entries(void)
 {
 	return partition_entries;
 }
 
-unsigned int partition_read_table()
+unsigned int partition_read_table(void)
 {
 	unsigned int ret;
 	uint32_t block_size;
@@ -1098,7 +1098,7 @@ uint8_t partition_get_lun(int index)
 }
 
 /* Debug: Print all parsed partitions */
-void partition_dump()
+void partition_dump(void)
 {
 	unsigned i = 0;
 	for (i = 0; i < partition_count; i++) {
@@ -1348,7 +1348,7 @@ fail:
 	return ret;
 }
 
-bool partition_gpt_exists()
+bool partition_gpt_exists(void)
 {
 	return (gpt_partitions_exist != 0);
 }

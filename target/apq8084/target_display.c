@@ -338,7 +338,7 @@ int target_dsi_phy_config(struct mdss_dsi_phy_ctrl *phy_db)
 	return NO_ERROR;
 }
 
-int target_display_pre_on()
+int target_display_pre_on(void)
 {
 	writel(0x000000FA, MDP_QOS_REMAPPER_CLASS_0);
 	writel(0x00000055, MDP_QOS_REMAPPER_CLASS_1);

@@ -380,7 +380,7 @@ static bool verify_keystore(unsigned char * ks_addr, KEYSTORE *ks)
 	return ret;
 }
 
-static void read_oem_keystore()
+static void read_oem_keystore(void)
 {
 	KEYSTORE *ks = NULL;
 	uint32_t len = sizeof(OEM_KEYSTORE);
@@ -397,7 +397,7 @@ static void read_oem_keystore()
 	}
 }
 
-uint32_t boot_verify_keystore_init()
+uint32_t boot_verify_keystore_init(void)
 {
 	/* Read OEM Keystore */
 	read_oem_keystore();
@@ -823,12 +823,12 @@ void boot_verify_send_event(uint32_t event)
 	}
 }
 
-uint32_t boot_verify_get_state()
+uint32_t boot_verify_get_state(void)
 {
 	return dev_boot_state;
 }
 
-void boot_verify_print_state()
+void boot_verify_print_state(void)
 {
 	switch(dev_boot_state)
 	{
@@ -885,7 +885,7 @@ static bool check_list(const char **list, const char* entry)
 	return false;
 }
 
-KEYSTORE *boot_gerity_get_oem_keystore()
+KEYSTORE *boot_gerity_get_oem_keystore(void)
 {
 	read_oem_keystore();
 	return oem_keystore;

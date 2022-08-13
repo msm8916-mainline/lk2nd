@@ -44,7 +44,7 @@
 
 extern int mipi_dsi_cmd_config(struct fbcon_config mipi_fb_cfg,
 			       unsigned short num_of_lanes);
-extern int mdp_get_revision();
+extern int mdp_get_revision(void);
 extern void mdp_shutdown(void);
 extern void mdp_start_dma(void);
 
@@ -851,7 +851,7 @@ int mipi_dsi_off(struct msm_panel_info *pinfo)
 }
 
 #if (DISPLAY_TYPE_MDSS == 0)
-static int dsi_cmd_dma_trigger_for_panel()
+static int dsi_cmd_dma_trigger_for_panel(void)
 {
 	unsigned long ReadValue;
 	unsigned long count = 0;
@@ -1047,7 +1047,7 @@ void mipi_dsi_shutdown(void)
 #endif
 }
 
-int mipi_cmd_trigger()
+int mipi_cmd_trigger(void)
 {
 #if (DISPLAY_TYPE_MDSS == 0)
 	writel(0x1, DSI_CMD_MODE_MDP_SW_TRIGGER);

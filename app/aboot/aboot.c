@@ -109,10 +109,10 @@ static int aboot_frp_unlock(char *pname, void *data, unsigned sz);
 static inline uint64_t validate_partition_size(struct ptentry *ptn);
 bool pwr_key_is_pressed = false;
 static bool is_systemd_present=false;
-static void publish_getvar_multislot_vars();
+static void publish_getvar_multislot_vars(void);
 /* fastboot command function pointer */
 typedef void (*fastboot_cmd_fn) (const char *, void *, unsigned);
-bool get_perm_attr_status();
+bool get_perm_attr_status(void);
 
 struct fastboot_cmd_desc {
 	char * name;
@@ -243,7 +243,7 @@ struct verified_boot_state_name vbsn[] =
 #define DELAY_WAIT 30000
 static unsigned page_size = BOARD_KERNEL_PAGESIZE;
 
-uint32_t kernel_hdr_page_size()
+uint32_t kernel_hdr_page_size(void)
 {
 	return page_size;
 }
@@ -1432,7 +1432,7 @@ static void verify_signed_bootimg(uint32_t bootimg_addr, uint32_t bootimg_size)
 #endif
 }
 
-static bool check_format_bit()
+static bool check_format_bit(void)
 {
 	bool ret = false;
 	int index;
@@ -1476,7 +1476,7 @@ static bool check_format_bit()
 	return ret;
 }
 
-void boot_verifier_init()
+void boot_verifier_init(void)
 {
 	uint32_t boot_state;
 	/* Check if device unlock */
@@ -2783,7 +2783,7 @@ int store_userkey(uint8_t *user_key, uint32_t user_key_size)
         return 0;
 }
 
-int erase_userkey()
+int erase_userkey(void)
 {
         if (!devinfo_present) {
                 dprintf(CRITICAL, "DeviceInfo not initalized \n");
@@ -2868,14 +2868,14 @@ void read_device_info(device_info *dev)
 	}
 }
 
-void reset_device_info()
+void reset_device_info(void)
 {
 	dprintf(ALWAYS, "reset_device_info called.");
 	device.is_tampered = 0;
 	write_device_info(&device);
 }
 
-void set_device_root()
+void set_device_root(void)
 {
 	dprintf(ALWAYS, "set_device_root called.");
 	device.is_tampered = 1;
@@ -4841,7 +4841,7 @@ int splash_screen_check_header(logo_img_header *header)
 	return 0;
 }
 
-int splash_screen_flash()
+int splash_screen_flash(void)
 {
 	struct ptentry *ptn;
 	struct ptable *ptable;
@@ -4927,7 +4927,7 @@ int splash_screen_flash()
 	return 0;
 }
 
-int splash_screen_mmc()
+int splash_screen_mmc(void)
 {
 	int index = INVALID_PTN;
 	unsigned long long ptn = 0;
@@ -5041,7 +5041,7 @@ int splash_screen_mmc()
 	return 0;
 }
 
-int fetch_image_from_partition()
+int fetch_image_from_partition(void)
 {
 	if (target_is_emmc_boot()) {
 		return splash_screen_mmc();
@@ -5050,7 +5050,7 @@ int fetch_image_from_partition()
 	}
 }
 
-void publish_getvar_multislot_vars()
+void publish_getvar_multislot_vars(void)
 {
 	int i,count;
 	static bool published = false;
@@ -5153,17 +5153,17 @@ void get_baseband_version(unsigned char *buf)
 	return;
 }
 
-bool is_device_locked_critical()
+bool is_device_locked_critical(void)
 {
         return device.is_unlock_critical ? false:true;
 }
 
-bool is_device_locked()
+bool is_device_locked(void)
 {
 	return device.is_unlocked ? false:true;
 }
 
-bool is_verity_enforcing()
+bool is_verity_enforcing(void)
 {
         return device.verity_mode ? true:false;
 }
@@ -5558,7 +5558,7 @@ fastboot:
 #endif
 }
 
-uint32_t get_page_size()
+uint32_t get_page_size(void)
 {
 	return page_size;
 }

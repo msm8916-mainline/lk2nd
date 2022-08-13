@@ -32,7 +32,7 @@
 
 #define EEPROM_HW_I2C_ADDRESS       (0x52)
 
-void eeprom_read_test()
+void eeprom_read_test(void)
 {
 
 	struct qup_i2c_dev  *dev;

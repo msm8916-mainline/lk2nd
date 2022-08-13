@@ -168,15 +168,15 @@ enum boot_verfiy_event
 
 extern char KEYSTORE_PTN_NAME[];
 /* Function to initialize keystore */
-uint32_t boot_verify_keystore_init();
+uint32_t boot_verify_keystore_init(void);
 /* Function to verify boot/recovery image */
 bool boot_verify_image(unsigned char* img_addr, uint32_t img_size, char *pname, uint32_t *bs);
 /* Function to send event to boot state machine */
 void boot_verify_send_event(uint32_t event);
 /* Read current boot state */
-uint32_t boot_verify_get_state();
+uint32_t boot_verify_get_state(void);
 /* Print current boot state */
-void boot_verify_print_state();
+void boot_verify_print_state(void);
 /* Function to validate keystore */
 bool boot_verify_validate_keystore(unsigned char * user_addr, unsigned sz);
 /* Function to send root of trust to trust zone */
@@ -187,7 +187,7 @@ void set_os_version_with_date(unsigned char* img_addr, uint32_t system_security_
 unsigned char* get_boot_fingerprint(unsigned int* buf_size);
 bool boot_verify_compare_sha256(unsigned char *image_ptr,
 		unsigned int image_size, unsigned char *signature_ptr, RSA *rsa);
-KEYSTORE *boot_gerity_get_oem_keystore();
+KEYSTORE *boot_gerity_get_oem_keystore(void);
 uint32_t read_der_message_length(unsigned char* input, unsigned sz);
 /* Function to set verified boot hash in keymaster */
 int set_verified_boot_hash (const char *vbh, size_t vbh_size);

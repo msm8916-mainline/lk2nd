@@ -411,15 +411,15 @@ uint32_t set_tamper_fuse_cmd(uint32_t fuse_id);
  */
 int qfprom_read_row_cmd(uint32_t row_address, uint32_t addr_type, uint32_t *row_data, uint32_t *qfprom_api_status);
 
-int scm_halt_pmic_arbiter();
+int scm_halt_pmic_arbiter(void);
 int scm_call_atomic2(uint32_t svc, uint32_t cmd, uint32_t arg1, uint32_t arg2);
 int restore_secure_cfg(uint32_t id);
 
 void scm_elexec_call(paddr_t kernel_entry, paddr_t dtb_offset);
 int scm_random(uintptr_t * rbuf, uint32_t  r_len);
-uintptr_t get_canary();
+uintptr_t get_canary(void);
 /* API to configure XPU violations as fatal */
-int scm_xpu_err_fatal_init();
+int scm_xpu_err_fatal_init(void);
 
 /* APIs to support ARM scm standard
  * Takes arguments : x0-x5 and returns result
@@ -472,17 +472,17 @@ struct scm_response {
 /* Perform any scm init needed before making scm calls
  * Used for checking if armv8 SCM support present
  */
-void scm_init();
-bool is_secure_boot_enable();
+void scm_init(void);
+bool is_secure_boot_enable(void);
 
 /* Is armv8 supported */
-bool is_scm_armv8_support();
+bool is_scm_armv8_support(void);
 
 int scm_dload_mode(enum reboot_reason mode);
-bool scm_device_enter_dload();
+bool scm_device_enter_dload(void);
 int scm_call2_atomic(uint32_t svc, uint32_t cmd, uint32_t arg1, uint32_t arg2);
 uint32_t scm_io_write(uint32_t address, uint32_t val);
 int is_scm_call_available(uint32_t svc_id, uint32_t cmd_id);
-int scm_disable_sdi();
+int scm_disable_sdi(void);
 bool allow_set_fuse(uint32_t version);
 #endif

@@ -40,7 +40,7 @@
 #include <qpic_nand.h>
 #include <target.h>
 
-extern struct smem_ram_ptable* target_smem_ram_ptable_init();
+extern struct smem_ram_ptable* target_smem_ram_ptable_init(void);
 
 #define MB                                  (1024*1024)
 
@@ -115,7 +115,7 @@ uint32_t platform_get_sclk_count(void)
 	return readl(MPM2_MPM_SLEEP_TIMETICK_COUNT_VAL);
 }
 
-addr_t get_bs_info_addr()
+addr_t get_bs_info_addr(void)
 {
 	return ((addr_t)BS_INFO_ADDR);
 }

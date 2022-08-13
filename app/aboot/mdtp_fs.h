@@ -114,6 +114,6 @@ uint32_t mdtp_fs_get_param(mdtp_parameter_id_t  param);
 /**
  * Loads MDTP image meta data from EMMC
  */
-int mdtp_fs_init();
+int mdtp_fs_init(void);
 
 #endif /* MDTP_FS_H */

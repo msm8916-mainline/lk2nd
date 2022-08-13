@@ -80,7 +80,7 @@ static uint32_t ticks_per_sec = 0;
 
 extern void platform_uninit_timer(void);
 
-void platform_init_timer();
+void platform_init_timer(void);
 
 void platform_early_init(void)
 {

@@ -241,12 +241,12 @@ const uint8 pm_periph_bitmap[][PM_MAX_SLAVE_ID][PM_MAX_BITMAP_ENTRIES] =
 };
 #endif
 
-void *pm_target_information_get_specific_info()
+void *pm_target_information_get_specific_info(void)
 {
 	return (void *) smbchg_specific_data;
 };
 
-void *pm_target_chg_range_data()
+void *pm_target_chg_range_data(void)
 {
 	return (void *) chg_range_data;
 }

@@ -47,5 +47,5 @@ enum keys_option {
 };
 
 int select_msg_keys_detect(void *param);
-void keys_detect_init();
+void keys_detect_init(void);
 #endif				/* __PLATFORM_MSM_SHARED_KEYS_DETECT_H */

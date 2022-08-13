@@ -42,7 +42,7 @@
 #include <target.h>
 #include "ufs_rpmb.h"
 
-void rpmb_run_test()
+void rpmb_run_test(void)
 {
 	bool result;
 	uint16_t sector_address = 1, rpmb_num_blocks = 4;
@@ -86,7 +86,7 @@ void dump_rpmb_data(struct rpmb_frame *result_frame)
 	printf("\n");
 }
 
-bool swp_test()
+bool swp_test(void)
 {
 	int ret = 0;
 	qsee_stor_secure_wp_info_t cb = {0};

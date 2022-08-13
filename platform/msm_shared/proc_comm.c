@@ -229,7 +229,7 @@ static int clock_get_rate(unsigned id)
 	}
 }
 
-void usb_clock_init()
+void usb_clock_init(void)
 {
 	clock_enable(USB_HS_PCLK);
 	clock_enable(USB_HS_CLK);

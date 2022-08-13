@@ -95,7 +95,7 @@ uint32_t platform_get_sclk_count(void)
 	return readl(MPM2_MPM_SLEEP_TIMETICK_COUNT_VAL);
 }
 
-addr_t get_bs_info_addr()
+addr_t get_bs_info_addr(void)
 {
 	return ((addr_t)BS_INFO_ADDR);
 }
@@ -181,7 +181,7 @@ addr_t platform_get_phys_to_virt_mapping(addr_t phys_addr)
  * Dynamic SMEM is assumed to be enabled. Read the remaining
  * SMEM info for SMEM Size and Phy_addr from the other bytes.
  */
-uint32_t platform_get_smem_base_addr()
+uint32_t platform_get_smem_base_addr(void)
 {
 	struct smem_addr_info *smem_info = NULL;
 
@@ -192,7 +192,7 @@ uint32_t platform_get_smem_base_addr()
 		return MSM_SHARED_BASE;
 }
 
-int platform_is_msm8909()
+int platform_is_msm8909(void)
 {
 	uint32_t platform = board_platform_id();
 	uint32_t ret = 0;
@@ -219,7 +219,7 @@ int boot_device_mask(int val)
 	return ((val & 0x0E) >> 1);
 }
 
-int platform_partial_goods_val ()
+int platform_partial_goods_val (void)
 {
 	uint32_t platform = board_platform_id();
 	int reg = -1;
@@ -236,7 +236,7 @@ int platform_partial_goods_val ()
 	return reg;
 }
 
-uint32_t platform_detect_panel()
+uint32_t platform_detect_panel(void)
 {
 	uint32_t panel;
 

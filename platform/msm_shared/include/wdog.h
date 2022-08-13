@@ -30,6 +30,6 @@
 #ifndef __WDOG_H
 #define __WDOG_H
 
-void msm_wdog_init();
+void msm_wdog_init(void);
 
 #endif

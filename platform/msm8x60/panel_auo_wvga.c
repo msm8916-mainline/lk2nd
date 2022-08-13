@@ -64,7 +64,7 @@ static struct lcdc_timing_parameters param = {
 	.lcdc_vsync_front_porch_lines = 28,
 };
 
-struct lcdc_timing_parameters *auo_timing_param()
+struct lcdc_timing_parameters *auo_timing_param(void)
 {
 	return &param;
 }

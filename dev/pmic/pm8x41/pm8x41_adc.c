@@ -342,7 +342,7 @@ int pm8x41_chgr_ctl_enable(uint8_t enable)
  * API: pm8x41_get_batt_voltage
  * Get calibrated battery voltage from VADC, in UV
  */
-uint32_t pm8x41_get_batt_voltage()
+uint32_t pm8x41_get_batt_voltage(void)
 {
 	uint32_t voltage;
 

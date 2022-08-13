@@ -78,6 +78,6 @@ unsigned check_hard_reboot_mode(void);
 uint32_t check_alarm_boot(void);
 
 void reboot_device(unsigned reboot_reason);
-void shutdown_device();
+void shutdown_device(void);
 
 #endif

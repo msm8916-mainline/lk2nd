@@ -38,7 +38,7 @@
 #define GIC_WAKER_PROCESSORSLEEP                 BIT(1)
 #define GIC_WAKER_CHILDRENASLEEP                 BIT(2)
 
-void qgic_dist_init()
+void qgic_dist_init(void)
 {
 	uint32_t num_irq;
 	uint32_t affinity;
@@ -69,7 +69,7 @@ void qgic_dist_init()
 	writel(ENABLE_GRP0_SEC | ENABLE_GRP1_NS | ENABLE_ARE, GIC_DIST_CTRL);
 }
 
-void qgic_cpu_init()
+void qgic_cpu_init(void)
 {
 	uint32_t retry = 1000;
 	uint32_t sre = 0;
@@ -123,7 +123,7 @@ void qgic_cpu_init()
 	isb();
 }
 
-uint32_t qgic_read_iar()
+uint32_t qgic_read_iar(void)
 {
 	uint32_t iar;
 

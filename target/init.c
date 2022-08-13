@@ -136,7 +136,7 @@ __WEAK unsigned target_pause_for_battery_charge(void)
     return 0;
 }
 
-__WEAK unsigned target_baseband()
+__WEAK unsigned target_baseband(void)
 {
 	return 0;
 }
@@ -146,7 +146,7 @@ __WEAK void target_serialno(unsigned char *buf)
 	snprintf((char *) buf, 13, "%s",TARGET(BOARD));
 }
 
-__WEAK void target_fastboot_init()
+__WEAK void target_fastboot_init(void)
 {
 }
 
@@ -160,7 +160,7 @@ __WEAK void target_load_ssd_keystore(void)
 }
 
 /* Default target does not support continuous splash screen feature. */
-__WEAK int target_cont_splash_screen()
+__WEAK int target_cont_splash_screen(void)
 {
 	return 0;
 }
@@ -193,23 +193,23 @@ __WEAK void target_display_shutdown(void)
 {
 }
 
-__WEAK uint8_t target_panel_auto_detect_enabled()
+__WEAK uint8_t target_panel_auto_detect_enabled(void)
 {
 	return 0;
 }
 
-__WEAK uint8_t target_is_edp()
+__WEAK uint8_t target_is_edp(void)
 {
 	return 0;
 }
 
-__WEAK uint8_t target_is_spi()
+__WEAK uint8_t target_is_spi(void)
 {
 	return 0;
 }
 
 /* default usb controller to be used. */
-__WEAK const char * target_usb_controller()
+__WEAK const char * target_usb_controller(void)
 {
 	return "ci";
 }
@@ -232,7 +232,7 @@ __WEAK uint32_t target_get_hlos_subtype(void)
 }
 
 /* Initialize crypto parameters */
-__WEAK void target_crypto_init_params()
+__WEAK void target_crypto_init_params(void)
 {
 }
 
@@ -242,18 +242,18 @@ __WEAK bool target_is_pmi_enabled(void)
 }
 
 /* Default CFG delay value */
-__WEAK uint32_t target_ddr_cfg_val()
+__WEAK uint32_t target_ddr_cfg_val(void)
 {
 	return DDR_CONFIG_VAL;
 }
 
-__WEAK unsigned int qseecom_get_version()
+__WEAK unsigned int qseecom_get_version(void)
 {
 	return 0;
 }
 
 /* Default CFG register value */
-uint32_t target_ddr_cfg_reg()
+uint32_t target_ddr_cfg_reg(void)
 {
 	uint32_t platform = board_platform_id();
 	uint32_t ret = SDCC_HC_REG_DDR_CONFIG;
@@ -289,7 +289,7 @@ uint32_t target_ddr_cfg_reg()
 	return ret;
 }
 #if VERIFIED_BOOT || VERIFIED_BOOT_2
-int target_get_vb_version()
+int target_get_vb_version(void)
 {
 	static int vb_version = INVALID;
 
@@ -385,19 +385,19 @@ void get_vibration_type(struct qpnp_hap *config)
 }
 #endif
 
-__WEAK uint32_t target_get_pmic()
+__WEAK uint32_t target_get_pmic(void)
 {
 	return PMIC_IS_UNKNOWN;
 }
 
-__WEAK bool is_display_disabled()
+__WEAK bool is_display_disabled(void)
 {
 	return false;
 }
 
 #if CHECK_BAT_VOLTAGE
 /* Check battery if it's exist */
-bool target_battery_is_present()
+bool target_battery_is_present(void)
 {
 	bool batt_is_exist;
 	uint8_t value = 0;
@@ -453,7 +453,7 @@ bool target_battery_is_present()
 
 #if CHECK_BAT_VOLTAGE
 /* Return battery voltage */
-uint32_t target_get_battery_voltage()
+uint32_t target_get_battery_voltage(void)
 {
 	uint32_t pmic;
 	uint32_t vbat = 0;
@@ -508,7 +508,7 @@ uint32_t target_get_battery_voltage()
 /* Add safeguards such as refusing to flash if minimum battery levels
  * are not present or be bypass if the device doesn't have a battery
  */
-bool target_battery_soc_ok()
+bool target_battery_soc_ok(void)
 {
 	if (!target_battery_is_present()) {
 		dprintf(INFO, "battery is not present\n");

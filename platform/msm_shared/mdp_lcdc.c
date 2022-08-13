@@ -191,13 +191,13 @@ int mdp_lcdc_config(struct msm_panel_info *pinfo,
 	return NO_ERROR;
 }
 
-int mdp_lcdc_on()
+int mdp_lcdc_on(void)
 {
 	writel(0x1, MDP_LCDC_EN);
 	return NO_ERROR;
 }
 
-int mdp_lcdc_off()
+int mdp_lcdc_off(void)
 {
 	if(!target_cont_splash_screen())
 		writel(0x0, MDP_LCDC_EN);

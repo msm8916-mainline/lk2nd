@@ -173,7 +173,7 @@ int rpmb_cmd_handler(void *buf, uint32_t sz)
 	return ret;
 }
 
-int rpmb_listener_start()
+int rpmb_listener_start(void)
 {
 	int ret;
 	struct qseecom_listener_services rpmb_listener;

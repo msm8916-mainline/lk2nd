@@ -35,7 +35,7 @@ void hsusb_clock_init(void);
 void platform_clock_init(void);
 void clock_config_uart_dm(uint8_t id);
 void clock_usb30_init(void);
-void clock_reset_usb_phy();
+void clock_reset_usb_phy(void);
 void clock_config_ce(uint8_t instance);
 
 #endif

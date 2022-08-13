@@ -561,7 +561,7 @@ int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 	return NO_ERROR;
 }
 
-int target_display_pre_on()
+int target_display_pre_on(void)
 {
 	writel(0xC0000CCC, MDP_CLK_CTRL0);
 	writel(0xC0000CCC, MDP_CLK_CTRL1);

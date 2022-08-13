@@ -307,7 +307,7 @@ int mdss_dsi_cmd_mode_config(struct msm_panel_info *pinfo,
 	uint32_t ctl_base);
 
 int mipi_dsi_on(struct msm_panel_info *pinfo);
-int mipi_cmd_trigger();
+int mipi_cmd_trigger(void);
 int mipi_dsi_off(struct msm_panel_info *pinfo);
 int mdss_dsi_cmds_tx(struct mipi_panel_info *mipi,
 	struct mipi_dsi_cmd *cmds, int count, char dual_dsi);

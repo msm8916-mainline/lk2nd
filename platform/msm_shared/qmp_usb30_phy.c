@@ -142,12 +142,12 @@ struct qmp_reg qmp_misc_settings_rev2[] =
 };
 #endif
 
-__WEAK uint32_t target_override_pll()
+__WEAK uint32_t target_override_pll(void)
 {
 	return 0;
 }
 
-__WEAK uint32_t platform_get_qmp_rev()
+__WEAK uint32_t platform_get_qmp_rev(void)
 {
 	return 0x10000000;
 }
@@ -254,7 +254,7 @@ void usb30_qmp_phy_reset(void)
 }
 
 /* USB 3.0 phy init: HPG for QMP phy*/
-void usb30_qmp_phy_init()
+void usb30_qmp_phy_init(void)
 {
 	int timeout = QMP_PHY_MAX_TIMEOUT;
 	uint32_t phy_status = 0;
@@ -394,7 +394,7 @@ phy_status:
 	clock_bumpup_pipe3_clk();
 }
 
-bool use_hsonly_mode()
+bool use_hsonly_mode(void)
 {
 	return hsonly_mode;
 }

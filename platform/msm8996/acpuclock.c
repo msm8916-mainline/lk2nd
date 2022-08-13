@@ -303,7 +303,7 @@ void clock_usb30_init(void)
 	}
 }
 
-void clock_bumpup_pipe3_clk()
+void clock_bumpup_pipe3_clk(void)
 {
 	int ret = 0;
 
@@ -317,7 +317,7 @@ void clock_bumpup_pipe3_clk()
 	return;
 }
 
-void clock_reset_usb_phy()
+void clock_reset_usb_phy(void)
 {
 	int ret;
 
@@ -386,7 +386,7 @@ deassert_master_clk:
 
 }
 
-void mmss_gdsc_enable()
+void mmss_gdsc_enable(void)
 {
 	uint32_t reg = 0;
 
@@ -421,7 +421,7 @@ void mmss_gdsc_enable()
 	}
 }
 
-void mmss_gdsc_disable()
+void mmss_gdsc_disable(void)
 {
 	uint32_t reg = 0;
 
@@ -441,7 +441,7 @@ void mmss_gdsc_disable()
 	while(readl(MMAGIC_BIMC_GDSCR) & (GDSC_POWER_ON_BIT));
 }
 
-void video_gdsc_enable()
+void video_gdsc_enable(void)
 {
 	uint32_t reg = 0;
 
@@ -466,7 +466,7 @@ void video_gdsc_enable()
 	}
 }
 
-void video_gdsc_disable()
+void video_gdsc_disable(void)
 {
 	uint32_t reg = 0;
 
@@ -523,7 +523,7 @@ void mdp_clock_enable(void)
 
 }
 
-void mdp_clock_disable()
+void mdp_clock_disable(void)
 {
 	clk_disable(clk_get("mdss_vsync_clk"));
 	clk_disable(clk_get("mdss_mdp_clk"));

@@ -75,7 +75,7 @@ void _dputc(char c)
 	ser_putc(c);
 }
 
-void platform_halt()
+void platform_halt(void)
 {
 	arch_disable_ints();
     for(;;);

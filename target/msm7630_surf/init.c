@@ -428,7 +428,7 @@ crypto_engine_type board_ce_type(void)
 	return platform_ce_type;
 }
 
-int machine_is_ffa()
+int machine_is_ffa(void)
 {
 	unsigned mach_type;
 	int ret = 0;

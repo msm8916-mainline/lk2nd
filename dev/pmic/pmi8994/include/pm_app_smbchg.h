@@ -196,8 +196,8 @@ pm_err_flag_type pm_appsbl_chg_config_vbat_low_threshold(uint32 device_index, pm
  */
 pm_err_flag_type pm_appsbl_chg_check_weak_battery_status(uint32 device_index);
 
-void *pm_target_information_get_specific_info();
-void *pm_target_chg_range_data();
+void *pm_target_information_get_specific_info(void);
+void *pm_target_chg_range_data(void);
 pm_err_flag_type pm_appsbl_set_dcin_suspend(uint32_t device_index);
 pm_err_flag_type pm_smbchg_get_charger_path(uint32 device_index, pm_smbchg_usb_chgpth_pwr_pth_type* charger_path);
 #endif  //PM_APP_SMBCHG__H

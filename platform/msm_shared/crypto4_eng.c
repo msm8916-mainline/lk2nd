@@ -38,7 +38,7 @@
 #include <scm.h>
 #include <smem.h>
 
-extern void ce_async_reset();
+extern void ce_async_reset(void);
 
 void wr_ce(uint32_t val,uint32_t reg)
 {
@@ -393,7 +393,7 @@ void crypto_get_ctx(void *ctx_ptr)
 }
 
 /* Returns the max authentication block size */
-uint32_t crypto_get_max_auth_blk_size()
+uint32_t crypto_get_max_auth_blk_size(void)
 {
 	return 0xFA00;
 }

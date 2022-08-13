@@ -40,7 +40,7 @@
 *   Success:	Init succeeded.
 *   Failure:	Error code (negative only).
 */
-int qseecom_init();
+int qseecom_init(void);
 
 /**
  * Qseecom get version.
@@ -50,7 +50,7 @@ int qseecom_init();
  *   Success:	Valid version
  *   Failure:	Garbage value
  */
-unsigned int qseecom_get_version();
+unsigned int qseecom_get_version(void);
 
 /**
 * Qseecom Tz Init
@@ -60,7 +60,7 @@ unsigned int qseecom_get_version();
 *   Success:	Tz init succeeded.
 *   Failure:	Error code (negative only).
 */
-int qseecom_tz_init();
+int qseecom_tz_init(void);
 
 /**
 * Qseecom Exit
@@ -72,7 +72,7 @@ int qseecom_tz_init();
 *   Success:	Exit succeeded.
 *   Failure:	Error code (negative only).
 */
-int qseecom_exit();
+int qseecom_exit(void);
 
 /**
 * Start a Secure App

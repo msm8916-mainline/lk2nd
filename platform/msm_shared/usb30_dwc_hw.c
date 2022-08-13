@@ -62,7 +62,7 @@ extern char* speed_lookup[20];
 
 #define ERR(...) dprintf(ALWAYS, __VA_ARGS__)
 
-__WEAK int platform_is_8974()
+__WEAK int platform_is_8974(void)
 {
 	return 0;
 }

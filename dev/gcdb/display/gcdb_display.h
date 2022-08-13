@@ -59,7 +59,7 @@ int target_dsi_phy_config(struct mdss_dsi_phy_ctrl *phy_db);
 
 int gcdb_display_init(const char *panel_name, uint32_t rev, void *base);
 bool gcdb_display_cmdline_arg(char *pbuf, uint16_t buf_size);
-void gcdb_display_shutdown();
+void gcdb_display_shutdown(void);
 int oem_panel_select(const char *panel_name, struct panel_struct *panelstruct,
 	struct msm_panel_info *pinfo, struct mdss_dsi_phy_ctrl *phy_db);
 void set_panel_cmd_string(const char *panel_name);
@@ -103,7 +103,7 @@ static inline bool is_dsi_config_dual(void)
 	return !is_dsi_config_split() && oem_data->sec_panel[0];
 }
 
-static inline bool is_dsi_config_single()
+static inline bool is_dsi_config_single(void)
 {
 	struct panel_struct panelstruct = mdss_dsi_get_panel_data();
 
