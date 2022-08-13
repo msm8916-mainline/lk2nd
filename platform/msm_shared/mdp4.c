@@ -373,7 +373,7 @@ int mdp_dsi_video_on(struct msm_panel_info *pinfo)
 	return ret;
 }
 
-int mdp_dsi_video_off()
+int mdp_dsi_video_off(struct msm_panel_info *pinfo)
 {
 	if(!target_cont_splash_screen())
 	{

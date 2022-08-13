@@ -105,7 +105,7 @@ int mipi_dsi_cmd_config(struct fbcon_config mipi_fb_cfg,
 void mdp_shutdown(void);
 void mdp_disable(void);
 void mdp_start_dma(void);
-int mdp_dsi_video_off();
+int mdp_dsi_video_off(struct msm_panel_info *pinfo);
 int mdp_dsi_cmd_off(void);
 int mdp_dsi_video_on(struct msm_panel_info *pinfo);
 int mdp_dma_on(struct msm_panel_info *pinfo);

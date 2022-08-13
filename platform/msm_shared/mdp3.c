@@ -235,7 +235,7 @@ void mdp_disable(void)
 		writel(0x00000000, MDP_DSI_VIDEO_EN);
 }
 
-int mdp_dsi_video_off(void)
+int mdp_dsi_video_off(struct msm_panel_info *pinfo)
 {
 	if (!target_cont_splash_screen()) {
 		mdp_disable();

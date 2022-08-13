@@ -197,7 +197,7 @@ int msm_display_on()
 #ifdef DISPLAY_TYPE_MDSS
 	case LVDS_PANEL:
 		dprintf(INFO, "Turn on LVDS PANEL.\n");
-		ret = mdp_lcdc_on(panel);
+		ret = mdp_lcdc_on();
 		if (ret)
 			goto msm_display_on_out;
 		ret = lvds_on(panel);
@@ -238,7 +238,7 @@ int msm_display_on()
 		break;
 	case LCDC_PANEL:
 		dprintf(INFO, "Turn on LCDC PANEL.\n");
-		ret = mdp_lcdc_on(panel);
+		ret = mdp_lcdc_on();
 		if (ret)
 			goto msm_display_on_out;
 		break;
