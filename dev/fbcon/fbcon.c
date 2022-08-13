@@ -611,8 +611,6 @@ void display_default_image_on_screen(void)
 void display_image_on_screen(void)
 {
 #if DISPLAY_TYPE_MIPI
-	int fetch_image_from_partition();
-
 	if (fetch_image_from_partition() < 0) {
 		display_default_image_on_screen();
 	} else {

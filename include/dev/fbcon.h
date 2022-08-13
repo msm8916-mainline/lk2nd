@@ -118,4 +118,5 @@ uint32_t fbcon_get_current_bg(void);
 uint32_t fbcon_get_max_x(void);
 uint32_t fbcon_get_width(void);
 uint32_t fbcon_get_height(void);
+int fetch_image_from_partition();
 #endif /* __DEV_FBCON_H */
