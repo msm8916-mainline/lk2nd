@@ -49,6 +49,7 @@
 #include <platform/machtype.h>
 #include <crypto_hash.h>
 #include <board.h>
+#include <target.h>
 
 static const uint8_t uart_gsbi_id = GSBI_ID_12;
 
@@ -65,10 +66,10 @@ void keypad_init(void);
 extern void dmb(void);
 
 int target_is_emmc_boot(void);
-void debug_led_write(char);
-char debug_led_read();
+static void debug_led_write(char);
+static char debug_led_read();
 uint32_t platform_id_read(void);
-void setup_fpga(void);
+static void setup_fpga(void);
 int pm8901_reset_pwr_off(int reset);
 int pm8058_reset_pwr_off(int reset);
 int pm8058_rtc0_alarm_irq_disable(void);
@@ -279,6 +280,7 @@ void target_battery_charging_enable(unsigned enable, unsigned disconnect)
 
 void setup_fpga()
 {
+#if TARGET_MSM8660_SURF
 	writel(0x147, GPIO_CFG133_ADDR);
 	writel(0x144, GPIO_CFG135_ADDR);
 	writel(0x144, GPIO_CFG136_ADDR);
@@ -307,16 +309,23 @@ void setup_fpga()
 
 	writel(0x00000B31, EBI2_CHIP_SELECT_CFG0);
 	writel(0xA3030020, EBI2_XMEM_CS3_CFG1);
+#endif
 }
 
 void debug_led_write(char val)
 {
+#if TARGET_MSM8660_SURF
 	writeb(val, SURF_DEBUG_LED_ADDR);
+#endif
 }
 
 char debug_led_read()
 {
+#if TARGET_MSM8660_SURF
 	return readb(SURF_DEBUG_LED_ADDR);
+#else
+	return 0;
+#endif
 }
 
 unsigned target_baseband()
@@ -431,8 +440,9 @@ void target_serialno(unsigned char *buf)
 	}
 }
 
-void hsusb_gpio_init(void)
+static void hsusb_gpio_init(void)
 {
+#if TARGET_MSM8660_SURF
 	uint32_t func;
 	uint32_t pull;
 	uint32_t dir;
@@ -458,6 +468,7 @@ void hsusb_gpio_init(void)
 	gpio_set(132, dir);
 
 	return;
+#endif
 }
 
 #define USB_CLK             0x00902910
