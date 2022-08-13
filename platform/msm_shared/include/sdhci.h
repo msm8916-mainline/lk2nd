@@ -117,7 +117,7 @@ struct desc_entry {
 /*
  * Command types for sdhci
  */
-enum {
+typedef enum {
 	SDHCI_CMD_TYPE_NORMAL = 0,
 	SDHCI_CMD_TYPE_SUSPEND,
 	SDHCI_CMD_TYPE_RESUME,
@@ -127,7 +127,7 @@ enum {
 /*
  * Response type values for sdhci
  */
-enum {
+typedef enum {
 	SDHCI_CMD_RESP_NONE = 0,
 	SDHCI_CMD_RESP_136,
 	SDHCI_CMD_RESP_48,

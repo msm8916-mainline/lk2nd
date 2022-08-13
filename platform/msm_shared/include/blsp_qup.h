@@ -28,7 +28,7 @@
 #ifndef __BLSP_QUP_H_
 #define __BLSP_QUP_H_
 
-enum {
+typedef enum {
 	QUP_ID_0 = 0,
 	QUP_ID_1,
 	QUP_ID_2,
@@ -37,7 +37,7 @@ enum {
 	QUP_ID_5,
 } qup_instance;
 
-enum {
+typedef enum {
 	BLSP_ID_1 = 1,
 	BLSP_ID_2,
 } blsp_instance;

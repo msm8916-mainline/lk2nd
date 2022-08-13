@@ -33,7 +33,7 @@
 #define TLMM_HDRV_MASK  0x7
 
 /* Current values for tlmm pins */
-enum {
+typedef enum {
 	TLMM_CUR_VAL_2MA = 0x0,
 	TLMM_CUR_VAL_4MA,
 	TLMM_CUR_VAL_6MA,
@@ -44,14 +44,14 @@ enum {
 	TLMM_CUR_VAL_16MA,
 } tlmm_drive_config;
 
-enum {
+typedef enum {
 	TLMM_PULL_UP = 0x3,
 	TLMM_PULL_DOWN = 0x1,
 	TLMM_NO_PULL = 0x0,
 } tlmm_pull_values;
 
 /* SDC Bit offsets in the TLMM register */
-enum {
+typedef enum {
 	SDC1_DATA_HDRV_CTL_OFF = 0,
 	SDC1_CMD_HDRV_CTL_OFF  = 3,
 	SDC1_CLK_HDRV_CTL_OFF  = 6,
@@ -62,7 +62,7 @@ enum {
 } tlmm_sdc_drv_ctrl;
 
 /* EBI2 Bit offsets in the TLMM register */
-enum {
+typedef enum {
 	EBI2_BUSY_HDRV_CTL_OFF = 29,
 	EBI2_WE_HDRV_CTL_OFF   = 24,
 	EBI2_OE_HDRV_CTL_OFF   = 9,
