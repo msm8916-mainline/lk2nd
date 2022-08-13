@@ -391,7 +391,7 @@ oops:
 
 void fastboot_ack(const char *code, const char *reason)
 {
-	STACKBUF_DMA_ALIGN(response, MAX_RSP_SIZE);
+	STACKBUF_DMA_ALIGN(response, LARGE_RSP_SIZE);
 
 	if (fastboot_state != STATE_COMMAND)
 		return;
@@ -399,7 +399,7 @@ void fastboot_ack(const char *code, const char *reason)
 	if (reason == 0)
 		reason = "";
 
-	snprintf((char *)response, MAX_RSP_SIZE, "%s%s", code, reason);
+	snprintf((char *)response, LARGE_RSP_SIZE, "%s%s", code, reason);
 	fastboot_state = STATE_COMPLETE;
 
 	usb_if.usb_write(response, strlen((const char *)response));
@@ -408,7 +408,7 @@ void fastboot_ack(const char *code, const char *reason)
 
 void fastboot_info(const char *reason)
 {
-	STACKBUF_DMA_ALIGN(response, MAX_RSP_SIZE);
+	STACKBUF_DMA_ALIGN(response, LARGE_RSP_SIZE);
 
 	if (fastboot_state != STATE_COMMAND)
 		return;
@@ -416,7 +416,7 @@ void fastboot_info(const char *reason)
 	if (reason == 0)
 		return;
 
-	snprintf((char *)response, MAX_RSP_SIZE, "INFO%s", reason);
+	snprintf((char *)response, LARGE_RSP_SIZE, "INFO%s", reason);
 
 	usb_if.usb_write(response, strlen((const char *)response));
 }
