@@ -54,6 +54,7 @@ static struct board_data board = {UNKNOWN,
 
 static void platform_detect()
 {
+	struct smem_board_info_v5 board_info_v5;
 	struct smem_board_info_v6 board_info_v6;
 	struct smem_board_info_v7 board_info_v7;
 	struct smem_board_info_v8 board_info_v8;
@@ -80,7 +81,24 @@ static void platform_detect()
 
 	if (format_major == 0x0)
 	{
-		if (format_minor == 6)
+		if (format_minor == 3 || format_minor == 4 || format_minor == 5)
+		{
+			if (format_minor == 3)
+				board_info_len = sizeof(board_info_v5.board_info_v3);
+			else /* v4 has same size as v5, fused_chip is "buffer_align" */
+				board_info_len = sizeof(board_info_v5);
+
+			ret = smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
+					&board_info_v5,
+					board_info_len);
+			if (ret)
+				return;
+
+			board.platform = board_info_v5.board_info_v3.msm_id;
+			board.platform_version = board_info_v5.board_info_v3.msm_version;
+			board.platform_hw = board_info_v5.board_info_v3.hw_platform;
+		}
+		else if (format_minor == 6)
 		{
 			board_info_len = sizeof(board_info_v6);
 
