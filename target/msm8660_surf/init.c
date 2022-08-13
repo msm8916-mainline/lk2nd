@@ -87,13 +87,6 @@ void target_init(void)
 	keypad_init();
 #endif
 
-	/* Display splash screen if enabled */
-#if DISPLAY_SPLASH_SCREEN
-	display_init();
-	dprintf(SPEW, "Diplay initialized\n");
-	display_image_on_screen();
-#endif
-
 	switch (board_platform_id()) {
 		case APQ8060:
 		case MSM8660:

@@ -33,20 +33,15 @@
 #include <debug.h>
 #include <reg.h>
 
-#include <dev/fbcon.h>
 #include <kernel/thread.h>
 #include <platform/debug.h>
 #include <platform/iomap.h>
-#include <platform/clock.h>
-#include <platform/machtype.h>
-#include <platform/pmic.h>
 #include <qgic.h>
 #include <i2c_qup.h>
 #include <gsbi.h>
 #include <uart_dm.h>
 #include <mmu.h>
 #include <arch/arm/mmu.h>
-#include <dev/lcdc.h>
 #include <board.h>
 
 static uint32_t ticks_per_sec = 0;
@@ -100,8 +95,6 @@ struct cdt_header {
 
 void platform_init_timer();
 
-struct fbcon_config *lcdc_init(void);
-
 /* CRCI - mmc slot mapping.
  * mmc slot numbering start from 1.
  * entry at index 0 is just dummy.
@@ -120,64 +113,6 @@ void platform_early_init(void)
 void platform_init(void)
 {
 	dprintf(INFO, "platform_init()\n");
-}
-
-void display_init(void)
-{
-	struct fbcon_config *fb_cfg;
-#if DISPLAY_TYPE_LCDC
-	struct lcdc_timing_parameters *lcd_timing;
-	mdp_clock_init();
-	if (board_machtype() == LINUX_MACHTYPE_8660_FLUID) {
-		mmss_pixel_clock_configure(PIXEL_CLK_INDEX_25M);
-	} else {
-		mmss_pixel_clock_configure(PIXEL_CLK_INDEX_54M);
-	}
-	lcd_timing = get_lcd_timing();
-	fb_cfg = lcdc_init_set(lcd_timing);
-	fbcon_setup(fb_cfg);
-	fbcon_clear();
-	panel_poweron();
-#endif
-#if DISPLAY_TYPE_MIPI
-	mdp_clock_init();
-	configure_dsicore_dsiclk();
-	configure_dsicore_byteclk();
-	configure_dsicore_pclk();
-
-	fb_cfg = mipi_init();
-	fbcon_setup(fb_cfg);
-#endif
-#if DISPLAY_TYPE_HDMI
-	struct hdmi_disp_mode_timing_type *hdmi_timing;
-	mdp_clock_init();
-	hdmi_power_init();
-	fb_cfg = get_fbcon();
-	hdmi_set_fb_addr(fb_cfg.base);
-	fbcon_setup(fb_cfg);
-	hdmi_dtv_init();
-	hdmi_dtv_on();
-	hdmi_msm_turn_on();
-#endif
-}
-
-void display_shutdown(void)
-{
-#if DISPLAY_TYPE_LCDC
-	unsigned rc = 0;
-	/* Turning off LCDC */
-	rc = panel_set_backlight(0);
-	if (rc)
-		dprintf(CRITICAL, "Error in setting panel backlight\n");
-	lcdc_shutdown();
-	pm8901_ldo_disable(LDO_L2);
-#endif
-#if DISPLAY_TYPE_MIPI
-	mipi_dsi_shutdown();
-#endif
-#if DISPLAY_TYPE_HDMI
-	hdmi_display_shutdown();
-#endif
 }
 
 static struct qup_i2c_dev *dev = NULL;
