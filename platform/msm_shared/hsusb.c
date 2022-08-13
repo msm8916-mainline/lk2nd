@@ -472,7 +472,7 @@ static struct udc_endpoint *ep0in, *ep0out;
 static struct udc_request *ep0req;
 
 static void
-ep0_setup_ack_complete()
+ep0_setup_ack_complete(struct udc_request *req, unsigned actual, int status)
 {
 	uint32_t mode;
 

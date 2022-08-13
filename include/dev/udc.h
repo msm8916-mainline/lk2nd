@@ -36,7 +36,7 @@
 struct udc_request {
 	void *buf;
 	unsigned length;
-	void (*complete)();
+	void (*complete)(struct udc_request *req, unsigned actual, int status);
 	void *context;
 };
 

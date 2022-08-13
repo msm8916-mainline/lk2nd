@@ -41,10 +41,10 @@ enum
 
 /* Target helper functions exposed to USB driver */
 typedef struct {
-	void (*mux_config) ();
-	void (*phy_reset) ();
-	void (*phy_init) ();
-	void (*clock_init) ();
+	void (*mux_config) (void);
+	void (*phy_reset) (void);
+	void (*phy_init) (void);
+	void (*clock_init) (void);
 	uint8_t vbus_override;
 } target_usb_iface_t;
 
