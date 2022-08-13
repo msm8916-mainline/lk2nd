@@ -4784,7 +4784,7 @@ void cmd_oem_lock(const char *arg, void *data, unsigned sz)
 
 void cmd_oem_devinfo(const char *arg, void *data, unsigned sz)
 {
-	char response[MAX_RSP_SIZE];
+	char response[LARGE_RSP_SIZE];
 	snprintf(response, sizeof(response), "\tDevice tampered: %s", (device.is_tampered ? "true" : "false"));
 	fastboot_info(response);
 	snprintf(response, sizeof(response), "\tDevice unlocked: %s", (device.is_unlocked ? "true" : "false"));
@@ -5071,8 +5071,11 @@ void publish_getvar_multislot_vars()
 		for(i=0; i<count; i++)
 		{
 			memset(tmpbuff, 0, MAX_GET_VAR_NAME_SIZE);
-			snprintf(tmpbuff, MAX_GET_VAR_NAME_SIZE,"has-slot:%s",
-								has_slot_pname[i]);
+			if (snprintf(tmpbuff, MAX_GET_VAR_NAME_SIZE,"has-slot:%s",
+								has_slot_pname[i]) >= MAX_GET_VAR_NAME_SIZE) {
+				dprintf(CRITICAL, "has-slot truncated\n");
+				continue;
+			}
 			strlcpy(has_slot_pname[i], tmpbuff, MAX_GET_VAR_NAME_SIZE);
 			fastboot_publish(has_slot_pname[i], has_slot_reply[i]);
 		}
@@ -5169,7 +5172,7 @@ bool is_verity_enforcing()
 void aboot_fastboot_register_commands(void)
 {
 	int i;
-	char hw_platform_buf[MAX_RSP_SIZE];
+	char hw_platform_buf[MAX_RSP_SIZE - 8];
 	VirtualAbMergeStatus SnapshotMergeStatus;
 
 	struct fastboot_cmd_desc cmd_list[] = {
