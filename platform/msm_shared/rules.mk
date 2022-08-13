@@ -85,6 +85,7 @@ ifeq ($(PLATFORM),msm8x60)
 	OBJS += $(LOCAL_DIR)/mipi_dsi.o \
 			$(LOCAL_DIR)/i2c_qup.o \
 			$(LOCAL_DIR)/uart_dm.o \
+			$(LOCAL_DIR)/board.o \
 			$(LOCAL_DIR)/crypto_eng.o \
 			$(LOCAL_DIR)/crypto_hash.o \
 			$(LOCAL_DIR)/scm.o \

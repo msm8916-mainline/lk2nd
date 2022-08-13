@@ -48,6 +48,7 @@
 #include <platform/scm-io.h>
 #include <platform/machtype.h>
 #include <crypto_hash.h>
+#include <board.h>
 
 static const uint8_t uart_gsbi_id = GSBI_ID_12;
 
@@ -93,6 +94,14 @@ void target_init(void)
 	display_image_on_screen();
 #endif
 
+	switch (board_platform_id()) {
+		case APQ8060:
+		case MSM8660:
+		case MSM8260:
+			platform_ce_type = CRYPTO_ENGINE_TYPE_HW;
+			break;
+	}
+
 	if (mmc_boot_main(MMC_SLOT, MSM_SDC1_BASE)) {
 		dprintf(CRITICAL, "mmc init failed!");
 		ASSERT(0);
@@ -100,6 +109,12 @@ void target_init(void)
 }
 
 unsigned board_machtype(void)
+{
+	return board_target_id();
+}
+
+/* Detect the target type */
+void target_detect(struct board_data *board)
 {
 	struct smem_board_info_v5 board_info_v5;
 	struct smem_board_info_v6 board_info_v6;
@@ -110,10 +125,8 @@ unsigned board_machtype(void)
 	unsigned hw_platform = 0;
 	unsigned fused_chip = 0;
 	unsigned platform_subtype = 0;
-	static unsigned mach_id = 0xFFFFFFFF;
+	unsigned mach_id = 0xFFFFFFFF;
 
-	if (mach_id != 0xFFFFFFFF)
-		return mach_id;
 	/* Detect external msm if this is a "fusion" */
 	smem_status = smem_read_alloc_entry_offset(SMEM_BOARD_INFO_LOCATION,
 						   &format, sizeof(format), 0);
@@ -223,7 +236,7 @@ unsigned board_machtype(void)
 			mach_id = LINUX_MACHTYPE_8660_FFA;
 		}
 	}
-	return mach_id;
+	board->target = mach_id;
 }
 
 void shutdown_device()
@@ -315,6 +328,12 @@ char debug_led_read()
 
 unsigned target_baseband()
 {
+	return board_baseband();
+}
+
+/* Detect the modem type */
+void target_baseband_detect(struct board_data *board)
+{
 	struct smem_board_info_v5 board_info_v5;
 	struct smem_board_info_v6 board_info_v6;
 	unsigned int board_info_len = 0;
@@ -367,48 +386,11 @@ unsigned target_baseband()
 			}
 		}
 	}
-	return baseband;
+	board->baseband = baseband;
 }
 
 crypto_engine_type board_ce_type(void)
 {
-
-	struct smem_board_info_v5 board_info_v5;
-	struct smem_board_info_v6 board_info_v6;
-	unsigned int board_info_len = 0;
-	unsigned smem_status = 0;
-	unsigned format = 0;
-
-	smem_status = smem_read_alloc_entry_offset(SMEM_BOARD_INFO_LOCATION,
-							&format, sizeof(format), 0);
-	if (!smem_status) {
-		if (format == 5) {
-			board_info_len = sizeof(board_info_v5);
-
-			smem_status = smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
-							&board_info_v5,
-							board_info_len);
-		if (!smem_status) {
-			if ((board_info_v5.board_info_v3.msm_id == APQ8060) ||
-				(board_info_v5.board_info_v3.msm_id == MSM8660) ||
-				(board_info_v5.board_info_v3.msm_id == MSM8260))
-				platform_ce_type = CRYPTO_ENGINE_TYPE_HW;
-            }
-		} else if (format >= 6) {
-			board_info_len = sizeof(board_info_v6);
-
-			smem_status = smem_read_alloc_entry(SMEM_BOARD_INFO_LOCATION,
-							&board_info_v6,
-							board_info_len);
-			if(!smem_status) {
-				if ((board_info_v6.board_info_v3.msm_id == APQ8060) ||
-					(board_info_v6.board_info_v3.msm_id == MSM8660) ||
-					(board_info_v6.board_info_v3.msm_id == MSM8260))
-                    platform_ce_type = CRYPTO_ENGINE_TYPE_HW;
-			}
-		}
-	}
-
 	return platform_ce_type;
 }
 

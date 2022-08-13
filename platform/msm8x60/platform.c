@@ -47,6 +47,7 @@
 #include <mmu.h>
 #include <arch/arm/mmu.h>
 #include <dev/lcdc.h>
+#include <board.h>
 
 static uint32_t ticks_per_sec = 0;
 
@@ -113,6 +114,7 @@ void platform_early_init(void)
 	uart_dm_init(gsbi_id, GSBI_BASE(gsbi_id), GSBI_UART_DM_BASE(gsbi_id));
 	qgic_init();
 	platform_init_timer();
+	board_init();
 }
 
 void platform_init(void)
