@@ -36,6 +36,7 @@
 #include <kernel/thread.h>
 #include <platform/debug.h>
 #include <platform/iomap.h>
+#include <platform/timer.h>
 #include <qgic.h>
 #include <i2c_qup.h>
 #include <gsbi.h>
@@ -43,10 +44,9 @@
 #include <mmu.h>
 #include <arch/arm/mmu.h>
 #include <board.h>
+#include <target.h>
 
 static uint32_t ticks_per_sec = 0;
-
-#define MB (1024*1024)
 
 /* LK memory - cacheable, write through */
 #define LK_MEMORY         (MMU_MEMORY_TYPE_STRONGLY_ORDERED | \
@@ -127,8 +127,8 @@ uint32_t eprom_read(uint16_t addr, uint8_t count)
 	 * read mode and then to read some data.
 	 */
 	struct i2c_msg msg_buf[] = {
-		{EEPROM_I2C_ADDRESS, I2C_M_WR, 2, &addr},
-		{EEPROM_I2C_ADDRESS, I2C_M_RD, count, &ret}
+		{EEPROM_I2C_ADDRESS, I2C_M_WR, 2, (void *)&addr},
+		{EEPROM_I2C_ADDRESS, I2C_M_RD, count, (void *)&ret}
 	};
 
 	qup_i2c_xfer(dev, msg_buf, 2);

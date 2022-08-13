@@ -144,7 +144,7 @@ struct pm_pwm_config {
 	int clk;
 	int pre_div;
 	int pre_div_exp;
-	int pwm_value;
+	unsigned pwm_value;
 	int bypass_lut;
 	uint8_t pwm_ctl[NUM_LPG_CTL_REGS];
 };

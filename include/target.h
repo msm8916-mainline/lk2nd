@@ -74,6 +74,7 @@ static inline int target_is_emmc_boot(void)
 }
 #endif
 
+uint8_t target_uart_gsbi(void);
 unsigned* target_atag_mem(unsigned* ptr);
 void target_battery_charging_enable(unsigned enable, unsigned disconnect);
 unsigned target_pause_for_battery_charge(void);

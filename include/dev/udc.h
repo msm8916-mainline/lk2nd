@@ -145,4 +145,7 @@ struct setup_packet {
 	unsigned short length;
 } __attribute__ ((packed));
 
+unsigned ulpi_read(unsigned reg);
+void ulpi_write(unsigned val, unsigned reg);
+
 #endif

@@ -33,9 +33,6 @@
 #include <platform/iomap.h>
 #include <platform/pmic.h>
 
-#define TRUE  1
-#define FALSE 0
-
 /* FTS regulator PMR registers */
 #define SSBI_REG_ADDR_S1_PMR		(0xA7)
 #define SSBI_REG_ADDR_S2_PMR		(0xA8)
@@ -115,7 +112,7 @@ void pm8058_write_one(unsigned data, unsigned address)
 	pm8058_write_func wr_function = &pa1_ssbi2_write_bytes;
 	if (wr_function == NULL)
 		return;
-	if ((*wr_function) (&data, 1, address))
+	if ((*wr_function) ((void *)&data, 1, address))
 		dprintf(CRITICAL, "Error in initializing register\n");
 
 }
@@ -129,14 +126,14 @@ int pm8058_get_irq_status(pm_irq_id_type irq, bool * rt_status)
 
 	/* select the irq block */
 	errFlag =
-	    pa1_ssbi2_write_bytes(&block_index, 1, IRQ_BLOCK_SEL_USR_ADDR);
+	    pa1_ssbi2_write_bytes((void *)&block_index, 1, IRQ_BLOCK_SEL_USR_ADDR);
 	if (errFlag) {
 		dprintf(INFO, "Device Timeout");
 		return 1;
 	}
 
 	/* read real time status */
-	errFlag = pa1_ssbi2_read_bytes(&reg_data, 1, IRQ_STATUS_RT_USR_ADDR);
+	errFlag = pa1_ssbi2_read_bytes((void *)&reg_data, 1, IRQ_STATUS_RT_USR_ADDR);
 	if (errFlag) {
 		dprintf(INFO, "Device Timeout");
 		return 1;
@@ -393,7 +390,7 @@ int pm8901_mpp_enable()
 	mask = PM8901_MPP_TYPE_MASK | PM8901_MPP_CONFIG_LVL_MASK |
 	    PM8901_MPP_CONFIG_CTL_MASK;
 
-	if (ret = pm8901_vreg_write(&conf, mask, SSBI_MPP_CNTRL(0), prevval)) {
+	if ((ret = pm8901_vreg_write(&conf, mask, SSBI_MPP_CNTRL(0), prevval))) {
 		dprintf(SPEW, "PM8901 MPP failed\n");
 	}
 	return ret;
@@ -405,18 +402,18 @@ int pm8901_vs_enable()
 	int prevval = 0x0;
 	int ret = 0;
 
-	if (ret =
+	if ((ret =
 	    pm8901_vreg_write(&val, VREG_PMR_STATE_HPM, PM8901_HDMI_MVS_PMR,
-			      prevval)) {
+			      prevval))) {
 		dprintf(SPEW,
 			"pm8901_vreg_write failed for MVS PMR register\n");
 		return ret;
 	}
 
 	val = VS_CTRL_USE_PMR;
-	if (ret =
+	if ((ret =
 	    pm8901_vreg_write(&val, VS_CTRL_ENABLE_MASK, PM8901_HDMI_MVS_CTRL,
-			      prevval)) {
+			      prevval))) {
 		dprintf(SPEW,
 			"pm8901_vreg_write failed for MVS ctrl register\n");
 		return ret;

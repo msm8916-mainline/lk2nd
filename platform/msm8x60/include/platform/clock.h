@@ -146,7 +146,10 @@ enum clk_sources {
 void hsusb_clock_init(void);
 void clock_config_uart_dm(uint8_t id);
 void clock_config_i2c(uint8_t id, uint32_t freq);
+void clock_init_mmc(uint32_t interface);
+void clock_config_mmc(uint32_t interface, uint32_t freq);
 void mdp_clock_init(void);
 void mmss_pixel_clock_configure(uint32_t pclk_index);
+void ce_async_reset();
 
 #endif

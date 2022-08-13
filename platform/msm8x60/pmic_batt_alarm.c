@@ -170,7 +170,7 @@ static int pm_batt_alarm_hold_time_set(pm_batt_alarm_hold_time hold_time)
 	int rc = -1;
 	uint8_t reg_ctrl1 = 0;
 
-	if (hold_time < CTRL1_HOLD_TIME_MIN || hold_time > CTRL1_HOLD_TIME_MAX) {
+	if (hold_time > CTRL1_HOLD_TIME_MAX) {
 
 		dprintf(CRITICAL,
 			"hold time, %d, is outside of allowable range: "

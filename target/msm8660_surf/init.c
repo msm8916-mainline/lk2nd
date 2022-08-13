@@ -34,6 +34,7 @@
 #include <dev/keys.h>
 #include <dev/ssbi.h>
 #include <dev/gpio.h>
+#include <dev/udc.h>
 #include <lib/ptable.h>
 #include <dev/flash.h>
 #include <smem.h>

@@ -206,4 +206,7 @@ typedef enum {
 	PM_GPIO40_CHGED_ST_IRQ_ID = 231,
 } pm_irq_id_type;
 
+int pm8058_write(uint16_t addr, uint8_t * data, uint16_t length);
+int pm8058_read(uint16_t addr, uint8_t * data, uint16_t length);
+
 #endif
