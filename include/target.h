@@ -118,7 +118,8 @@ uint32_t target_ddr_cfg_reg();
 
 bool target_is_pmi_enabled(void);
 #if PON_VIB_SUPPORT
-void get_vibration_type();
+struct qpnp_hap;
+void get_vibration_type(struct qpnp_hap *config);
 #endif
 
 #if CHECK_BAT_VOLTAGE
