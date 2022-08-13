@@ -88,7 +88,7 @@ void ufdt_node_pool_destruct(struct ufdt_node_pool *pool) {
   pool->last_block_ptr = NULL;
 }
 
-static struct ufdt_node_pool_block_header *_ufdt_node_pool_create_block() {
+static struct ufdt_node_pool_block_header *_ufdt_node_pool_create_block(void) {
   char *block_buf = (char *)dto_malloc(UFDT_NODE_POOL_BLOCK_SIZE);
   char *block_buf_start = block_buf + sizeof(struct ufdt_node_pool_block_header);
   char *block_buf_end = block_buf + UFDT_NODE_POOL_BLOCK_SIZE;
