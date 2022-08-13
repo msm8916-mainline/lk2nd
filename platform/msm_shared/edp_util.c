@@ -29,8 +29,6 @@
 
 #include "edp.h"
 
-extern struct edp_aux_ctrl edpctrl;
-
 extern int edp_hpd_done;
 extern int edp_video_ready;
 

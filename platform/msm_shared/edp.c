@@ -33,8 +33,6 @@
 #define RGB_COMPONENTS		3
 #define MAX_NUMBER_EDP_LANES	4
 
-struct edp_aux_ctrl edpctrl;
-
 static struct msm_panel_info *edp_pinfo;
 
 static void edp_config_ctrl(void)

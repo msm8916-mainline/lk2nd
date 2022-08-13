@@ -253,7 +253,7 @@ struct edp_aux_ctrl {
         struct edp_edid edid;
         struct dpcd_cap dpcd;
 };
-
+extern struct edp_aux_ctrl edpctrl;
 
 void edp_phy_pll_reset(void);
 void edp_mainlink_reset(void);
