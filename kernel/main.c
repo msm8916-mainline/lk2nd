@@ -61,6 +61,8 @@ static void call_constructors(void)
 	}
 }
 
+uintptr_t __stack_chk_guard;
+
 /* called from crt0.S */
 void kmain(void) __NO_RETURN __EXTERNALLY_VISIBLE;
 void kmain(void)

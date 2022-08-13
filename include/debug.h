@@ -71,7 +71,7 @@ void _panic(void *caller, const char *fmt, ...) __PRINTFLIKE(2, 3);
 
 #define PANIC_UNIMPLEMENTED panic("%s unimplemented\n", __PRETTY_FUNCTION__)
 
-uintptr_t __stack_chk_guard;
+extern uintptr_t __stack_chk_guard;
 
 /*
 * Initialize the stack protector canary value.
