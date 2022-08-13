@@ -67,15 +67,17 @@ struct ab_slot_info
 /* A/B support API(s) */
 bool _partition_multislot_is_supported();/* Check Multislot is supported */
 bool partition_scan_for_multislot();	/* Calling to scan part. table. */
-void partition_mark_active_slot();	/* Marking slot active */
-void partition_reset_attributes();	/* Resetting slot attr. */
-void partition_fill_slot_meta();	/* Fill slot meta infomation */
+void partition_mark_active_slot(signed slot);	/* Marking slot active */
+void partition_reset_attributes(unsigned index);	/* Resetting slot attr. */
+void partition_fill_slot_meta(struct ab_slot_info *slot_info);	/* Fill slot meta infomation */
 void partition_switch_slots(int old_slot, int new_slot, boolean reset_success_bit); /* Switching slots */
 void partition_deactivate_slot(int slot); /* Mark slot unbootable and reset other attributes*/
 void partition_activate_slot(int slot);	 /* Mark slot bootable and set other attributes*/
 int partition_find_boot_slot();		/* Find bootable partition */
 int partition_find_active_slot();	/* Find current active partition*/
-int partition_fill_partition_meta();	/* Fill partition slot info meta*/
+int partition_fill_partition_meta(char has_slot_pname[][MAX_GET_VAR_NAME_SIZE],
+				  char has_slot_reply[][MAX_RSP_SIZE],
+				  int array_size);	/* Fill partition slot info meta*/
 
 static inline bool partition_multislot_is_supported()
 {
