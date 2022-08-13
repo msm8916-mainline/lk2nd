@@ -45,7 +45,7 @@
 #define BATT_STATUS_MASK	0x07
 #define DISABLE_CHARGE	0x07
 
-char panel_name[256];
+static char panel_name[256];
 
 static bool is_battery_present(void)
 {

@@ -76,7 +76,7 @@ static pm_smbchg_bat_if_low_bat_thresh_type pm_dbc_bootup_volt_threshold;
 
 static bool pm_app_read_from_sram;
 
-char panel_name[256];
+static char panel_name[256];
 
 pm_err_flag_type pm_appsbl_chg_config_vbat_low_threshold(uint32 device_index, pm_smbchg_specific_data_type *chg_param_ptr);
 static void display_thread_initialize();
