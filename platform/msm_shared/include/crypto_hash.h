@@ -131,7 +131,7 @@ static crypto_result_type crypto_sha1(unsigned char *buff_ptr,
 				      unsigned char *digest_ptr);
 
 bool crypto_initialized(void);
-void
+crypto_result_type
 hash_find(unsigned char *addr, unsigned int size, unsigned char *digest,
           unsigned char auth_alg);
 
