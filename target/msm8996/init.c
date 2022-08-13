@@ -102,13 +102,13 @@
 #define DCIN_UV_RT_STS  BIT(0)
 #define DCIN_OV_RT_STS  BIT(1)
 
-enum
+typedef enum
 {
 	FUSION_I2S_MTP = 1,
 	FUSION_SLIMBUS = 2,
 } mtp_subtype;
 
-enum
+typedef enum
 {
 	FUSION_I2S_CDP = 2,
 } cdp_subtype;
