@@ -95,6 +95,10 @@
 #include <display_menu.h>
 #include "fastboot_test.h"
 
+#if WITH_LK2ND
+#include <lk2nd/init.h>
+#endif
+
 extern  bool target_use_signed_kernel(void);
 extern void platform_uninit(void);
 extern void target_uninit(void);
@@ -5484,6 +5488,10 @@ void aboot_init(const struct app_descriptor *app)
 	dprintf(SPEW,"serial number: %s\n",sn_buf);
 
 	memset(display_panel_buf, '\0', MAX_PANEL_BUF_SIZE);
+
+#if WITH_LK2ND
+	lk2nd_init();
+#endif
 
 	/*
 	 * Check power off reason if user force reset,

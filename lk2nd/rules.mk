@@ -19,4 +19,5 @@ $(warning WARNING: Apache-2.0 license of libufdt is not compatible with \
 endif
 endif
 
+OBJS += $(LOCAL_DIR)/init.o
 include $(LOCAL_DIR)/util/rules.mk

@@ -57,6 +57,10 @@ SECTIONS
 		KEEP (*(.fastboot_init))
 		__fastboot_init_end = .;
 		. = ALIGN(4);
+		__lk2nd_init_start = .;
+		KEEP (*(.lk2nd_init))
+		__lk2nd_init_end = .;
+		. = ALIGN(4);
 		__rodata_end = . ;
 	}
 
