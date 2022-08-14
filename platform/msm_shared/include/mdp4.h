@@ -40,6 +40,7 @@
 #define MDP_OVERLAYPROC0_START                REG_MDP(0x00004)
 #define MDP_DMA_P_START                       REG_MDP(0x0000C)
 #define MDP_DMA_S_START                       REG_MDP(0x00010)
+#define MDP_DISPLAY_STATUS                    REG_MDP(0x00018)
 #define MDP_AXI_RDMASTER_CONFIG               REG_MDP(0x00028)
 #define MDP_AXI_WRMASTER_CONFIG               REG_MDP(0x00030)
 #define MDP_DISP_INTF_SEL                     REG_MDP(0x00038)
@@ -52,16 +53,32 @@
 #define MDP_LAYERMIXER_IN_CFG                 REG_MDP(0x10100)
 #define MDP_OVERLAY_REG_FLUSH                 REG_MDP(0x18000)
 
-#define MDP_RGB1_SRC_SIZE                     REG_MDP(0x40000)
-#define MDP_RGB1_SRC_XY                       REG_MDP(0x40004)
-#define MDP_RGB1_OUT_SIZE                     REG_MDP(0x40008)
-#define MDP_RGB1_OUT_XY                       REG_MDP(0x4000C)
-#define MDP_RGB1_SRCP0_ADDR                   REG_MDP(0x40010)
-#define MDP_RGB1_SRCP0_ADDR_1                 REG_MDP(0x40014)
-#define MDP_RGB1_SRCP0_ADDR_2                 REG_MDP(0x40018)
-#define MDP_RGB1_SRC_YSTRIDE1                 REG_MDP(0x40040)
-#define MDP_RGB1_SRC_FORMAT                   REG_MDP(0x40050)
-#define MDP_RGB1_CONSTANT_COLOR               REG_MDP(0x41008)
+#define PIPE_SRC_SIZE                         0x0000
+#define PIPE_SRC_XY                           0x0004
+#define PIPE_OUT_SIZE                         0x0008
+#define PIPE_OUT_XY                           0x000C
+#define PIPE_SRCP0_ADDR                       0x0010
+#define PIPE_SRCP0_ADDR_1                     0x0014
+#define PIPE_SRCP0_ADDR_2                     0x0018
+#define PIPE_SRC_YSTRIDE1                     0x0040
+#define PIPE_SRC_FORMAT                       0x0050
+#define PIPE_CONSTANT_COLOR                   0x1008
+
+#define MDP_RGB1_BASE                         REG_MDP(0x40000)
+#define MDP_RGB1_SRC_SIZE                     (MDP_RGB1_BASE + PIPE_SRC_SIZE)
+#define MDP_RGB1_SRC_XY                       (MDP_RGB1_BASE + PIPE_SRC_XY)
+#define MDP_RGB1_OUT_SIZE                     (MDP_RGB1_BASE + PIPE_OUT_SIZE)
+#define MDP_RGB1_OUT_XY                       (MDP_RGB1_BASE + PIPE_OUT_XY)
+#define MDP_RGB1_SRCP0_ADDR                   (MDP_RGB1_BASE + PIPE_SRCP0_ADDR)
+#define MDP_RGB1_SRCP0_ADDR_1                 (MDP_RGB1_BASE + PIPE_SRCP0_ADDR_1)
+#define MDP_RGB1_SRCP0_ADDR_2                 (MDP_RGB1_BASE + PIPE_SRCP0_ADDR_2)
+#define MDP_RGB1_SRC_YSTRIDE1                 (MDP_RGB1_BASE + PIPE_SRC_YSTRIDE1)
+#define MDP_RGB1_SRC_FORMAT                   (MDP_RGB1_BASE + PIPE_SRC_FORMAT)
+#define MDP_RGB1_CONSTANT_COLOR               (MDP_RGB1_BASE + PIPE_CONSTANT_COLOR)
+
+#define MDP_RGB2_BASE                         REG_MDP(0x50000)
+#define MDP_VG1_BASE                          REG_MDP(0x20000)
+#define MDP_VG2_BASE                          REG_MDP(0x30000)
 
 #define MDP_DSI_VIDEO_EN                      REG_MDP(0xE0000)
 #define MDP_DSI_VIDEO_HSYNC_CTL               REG_MDP(0xE0004)
