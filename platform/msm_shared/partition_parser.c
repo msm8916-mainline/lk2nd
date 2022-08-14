@@ -866,6 +866,9 @@ unsigned int write_partition(unsigned size, unsigned char *partition)
 static void
 mbr_fill_name(struct partition_entry *partition_ent, unsigned int type)
 {
+	/* Compute last_lba for consistency with GPT */
+	partition_ent->last_lba = partition_ent->first_lba + partition_ent->size - 1;
+
 	memset(partition_ent->name, 0, MAX_GPT_NAME_SIZE);
 	switch (type) {
 	case MBR_MODEM_TYPE:
