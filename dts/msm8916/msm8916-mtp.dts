@@ -49,7 +49,29 @@
 	oppo-a31t { /* 15005 */
 		model = "OPPO A31t";
 		compatible = "oppo,a31t", "qcom,msm8916", "lk2nd,device";
-		/* FIXME: Add panel match info */
+		lk2nd,match-panel;
+
+		panel {
+			qcom,mdss_dsi_oppo15005tm_fwvga_video {
+				compatible = "oppo,tianma-hx8379-15005";
+			};
+
+			qcom,mdss_dsi_oppo15005boe_fwvga_video {
+				compatible = "oppo,boe-hx8379c-15005";
+			};
+
+			qcom,mdss_dsi_oppo15005truly_fwvga_video {
+				compatible = "oppo,truly-hx8379c-15005";
+			};
+
+			qcom,mdss_dsi_oppo15005tm_nt35512s_fwvga_video {
+				compatible = "oppo,tianma-nt35512s-15005";
+			};
+
+			qcom,mdss_dsi_oppo15005tm_nt35512s_otp_fwvga_video {
+				compatible = "oppo,tianma-otp-nt35512s-15005";
+			};
+		};
 	};
 
 	oppo-a51f { /* 15009 */
