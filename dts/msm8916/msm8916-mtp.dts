@@ -7,6 +7,12 @@
 / {
 	compatible = "qcom,msm8916-mtp", "qcom,msm8916";
 
+	qcom,msm-id = <206 0>, <248 0>, <249 0>, <250 0>; // Provide a set of msm-id for passing dtbTool
+	qcom,board-id = <8 0 15005>, /* OPPO board-id hax */
+					<8 0 15009>,
+					<8 0 15035>,
+					<8 0 15399>;
+
 	// There are devices that identify themselves as qcom,msm8916-mtp,
 	// even when they are really not (at least physically).
 	// Therefore we need other things we can match on (e.g. the cmdline).
@@ -38,5 +44,67 @@
 		model = "Asus Zenfone Max ZC550KL";
 		compatible = "asus,z010d", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-cmdline = "* mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_r69339_720p_video:1:none";
+	};
+
+	oppo-a31t { /* 15005 */
+		model = "OPPO A31t";
+		compatible = "oppo,a31t", "qcom,msm8916", "lk2nd,device";
+		/* FIXME: Add panel match info */
+	};
+
+	oppo-a51f { /* 15009 */
+		model = "OPPO Mirror 5s";
+		compatible = "oppo,a51f", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-panel;
+
+		panel {
+			qcom,mdss_dsi_oppo15009jdi_nt35592_720p_video {
+				compatible = "oppo,jdi-nt35592-15009";
+			};
+
+			qcom,mdss_dsi_oppo15009tm_nt35521_720p_video {
+				compatible = "oppo,tianma-nt35521-15009";
+			};
+
+			qcom,mdss_dsi_oppo15009tm_nt35592_720p_video {
+				compatible = "oppo,tianma-nt35592-15009";
+			};
+		};
+	};
+
+	oppo-a33 { /* 15035 */
+		model = "OPPO A33";
+		compatible = "oppo,a33", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-panel;
+
+		panel {
+			qcom,mdss_dsi_oppo15035tm_otm9605a_540p_video {
+				compatible = "oppo,tianma-tm9605a-15035";
+			};
+
+			qcom,mdss_dsi_oppo15035truly_hx8389c_540p_video {
+				compatible = "oppo,turly-hx8389c-15035";
+			};
+		};
+	};
+
+	oppo-a37 { /* 15399 */
+		model = "OPPO A37";
+		compatible = "oppo,a37", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-panel;
+
+		panel {
+			qcom,mdss_dsi_oppo15399boe_ili9881c_720p_video {
+				compatible = "oppo,boe-ili9881c-15399";
+			};
+
+			qcom,mdss_dsi_oppo15399tm_nt35521s_720p_video {
+				compatible = "oppo,tianma-nt35521s-15399";
+			};
+
+			qcom,mdss_dsi_oppo15399truly_nt35521s_720p_video {
+				compatible = "oppo,turly-nt35521s-15399";
+			};
+		};
 	};
 };

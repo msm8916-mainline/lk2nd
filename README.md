@@ -68,6 +68,16 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Motorola Moto E (2015) - surnia
 - Motorola Moto G (2015) - osprey
 - Motorola Moto G4 Play - harpia
+- OPPO A31t - a31t (use `lk2nd-msm8916-appended-dtb.img`)
+- OPPO A33 - a33 (use `lk2nd-msm8916-appended-dtb.img`)
+- OPPO A37 - a37 (use `lk2nd-msm8916-appended-dtb.img`)
+- OPPO F1f - f1f (use `lk2nd-msm8916-appended-dtb.img`)
+- OPPO Mirror 5s - a51f (use `lk2nd-msm8916-appended-dtb.img`)
+- OPPO R1c - r1c (use `lk2nd-msm8916-appended-dtb.img`)
+- OPPO R5 - r5 (use `lk2nd-msm8916-appended-dtb.img`)
+- OPPO R7f - r7f (use `lk2nd-msm8916-appended-dtb.img`)
+- OPPO R7/R7s Plus - r7plus (use `lk2nd-msm8916-appended-dtb.img`)
+- OPPO R7sf - r7sf (use `lk2nd-msm8916-appended-dtb.img`)
 - Samsung Galaxy A3 (2015) - SM-A300F, SM-A300FU
 - Samsung Galaxy A5 (2015) - SM-A500F, SM-A500FU, SM-A500H, SM-A500YZ
 - Samsung Galaxy A7 (2015) - SM-A700YD
