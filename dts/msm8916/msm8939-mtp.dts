@@ -61,7 +61,25 @@
 	oppo-r1c { /* 14045 */
 		model = "OPPO R1c";
 		compatible = "oppo,r1c", "qcom,msm8939", "lk2nd,device";
-		lk2nd,match-cmdline = "* mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_oppo14017_720p_cmd*";
+		lk2nd,match-panel;
+
+		panel {
+			qcom,mdss_dsi_jdi_720p_video {
+				compatible = "oppo,jdi-td4291";
+			};
+
+			qcom,mdss_dsi_oppo14017_720p_cmd {
+				compatible = "oppo,jdi-otm1282c-14045";
+			};
+
+			qcom,mdss_dsi_oppo14017synaptics_720p_video {
+				compatible = "oppo,jdi-otm1282c-synaptics-14045";
+			};
+
+			qcom,mdss_dsi_oppo14045_720p_cmd {
+				compatible = "oppo,synaptics-14045";
+			};
+		};
 	};
 
 	oppo-r7f { /* 15011 */
