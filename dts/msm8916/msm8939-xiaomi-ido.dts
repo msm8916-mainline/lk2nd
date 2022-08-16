@@ -8,8 +8,8 @@
 	qcom,msm-id = <0xef 0x30000 0xf1 0x30000 0x107 0x30000>;
 	qcom,board-id = <0x1000b 0xb 0x2000b 0xb>;
 
-	model = "Qualcomm Technologies, Inc. MSM8939v3.0 QRD SKUK";	
-	compatible = "qcom,msm8939-qrd-ido", "qcom,msm8939-qrd", "qcom,msm8939", "qcom,qrd", "lk2nd,device";
+	model = "Xiaomi Redmi 3";	
+	compatible = "xiaomi,ido", "qcom,msm8939", "lk2nd,device
 
 
 	panel {
