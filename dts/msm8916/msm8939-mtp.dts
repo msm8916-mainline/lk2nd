@@ -7,14 +7,7 @@
 / {
 	compatible = "qcom,msm8939-mtp", "qcom,msm8939";
 	qcom,msm-id = <239 0>;
-	qcom,board-id = <8 0>,
-					/* OPPO board-id hax */
-					<8 0 14005>,
-					<8 0 14045>,
-					<8 0 15011>,
-					<8 0 15018>,
-					<8 0 15022>,
-					<8 0 15109>;
+	qcom,board-id = <8 0>;
 
 	alcatel-idol3 {
 		model = "Alcatel OneTouch Idol 3 (5.5)";
