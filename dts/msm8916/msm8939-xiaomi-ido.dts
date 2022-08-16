@@ -6,7 +6,7 @@
 
 / {
 	qcom,msm-id = <0xef 0x30000 0xf1 0x30000 0x107 0x30000>;
-	qcom,board-id = <0x1000b 0xb 0x2000b 0xb>;
+	qcom,board-id = <0x1000b 11>, <0x2000b 11>;
 
 	model = "Xiaomi Redmi 3";	
 	compatible = "xiaomi,ido", "qcom,msm8939", "lk2nd,device
