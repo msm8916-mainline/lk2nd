@@ -13,7 +13,17 @@
 
 
 	panel {
+		qcom,mdss_dsi_ili9881c_tianma_720p_video {
+                };
+		qcom,mdss_dsi_nt35521s_ebbg_720p_video {
+	        };
+		qcom,mdss_dsi_nt35596_1080p_video {
+                };
+		qcom,mdss_dsi_r63350_1080p_video {
+                };
+		qcom,mdss_dsi_nt35596_1080p_skuk_video {
+                };
 		qcom,mdss_dsi_hx8394f_boe_720p_video {
-		};
+                };
 	};
 };
