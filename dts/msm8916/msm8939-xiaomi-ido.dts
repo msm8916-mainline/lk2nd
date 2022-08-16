@@ -9,7 +9,7 @@
 	qcom,board-id = <0x1000b 11>, <0x2000b 11>;
 
 	model = "Xiaomi Redmi 3";	
-	compatible = "xiaomi,ido", "qcom,msm8939", "lk2nd,device
+	compatible = "xiaomi,ido", "qcom,msm8939", "lk2nd,device";
 
 
 	panel {
