@@ -3,6 +3,7 @@
 /dts-v1/;
 
 #include <skeleton.dtsi>
+#include <lk2nd.h>
 
 / {
 	compatible = "qcom,msm8939-mtp", "qcom,msm8939";
@@ -48,6 +49,9 @@
 	oppo-r5 { /* 14005 */
 		model = "OPPO R5";
 		compatible = "oppo,r5", "qcom,msm8939", "lk2nd,device";
+		lk2nd,keys =
+			<KEY_VOLUMEDOWN 108 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>,
+			<KEY_VOLUMEUP   107 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
 		lk2nd,match-cmdline = "* mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_samsung_ams520bq04_s6e3fa2x01_1080p_cmd*";
 	};
 
@@ -78,24 +82,36 @@
 	oppo-r7f { /* 15011 */
 		model = "OPPO R7f";
 		compatible = "oppo,r7f", "qcom,msm8939", "lk2nd,device";
+		lk2nd,keys =
+			<KEY_VOLUMEDOWN	108 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>,
+			<KEY_VOLUMEUP	107 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
 		lk2nd,match-cmdline = "* mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_oppo15011samsung_s6e3fa3_1080p_cmd*";
 	};
 
 	oppo-r7plus { /* 15018 */
 		model = "OPPO R7/R7s Plus";
 		compatible = "oppo,r7plus", "qcom,msm8939", "lk2nd,device";
+		lk2nd,keys =
+			<KEY_VOLUMEDOWN	108 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>,
+			<KEY_VOLUMEUP	107 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
 		lk2nd,match-cmdline = "* mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_oppo15018samsung_s6e3fa3_1080p_cmd*";
 	};
 
 	oppo-r7sf { /* 15022 */
 		model = "OPPO R7sf";
 		compatible = "oppo,r7sf", "qcom,msm8939", "lk2nd,device";
+		lk2nd,keys =
+			<KEY_VOLUMEDOWN	108 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>,
+			<KEY_VOLUMEUP	107 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
 		lk2nd,match-cmdline = "* mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_oppo15023samsung_s6e3fa3_1080p_cmd*";
 	};
 
 	oppo-f1f { /* 15109 */
 		model = "OPPO F1f";
 		compatible = "oppo,f1f", "qcom,msm8939", "lk2nd,device";
+		lk2nd,keys =
+			<KEY_VOLUMEDOWN	108 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>,
+			<KEY_VOLUMEUP	107 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
 		lk2nd,match-panel;
 
 		panel {

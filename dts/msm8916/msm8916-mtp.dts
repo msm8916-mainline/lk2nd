@@ -3,6 +3,7 @@
 /dts-v1/;
 
 #include <skeleton.dtsi>
+#include <lk2nd.h>
 
 / {
 	compatible = "qcom,msm8916-mtp", "qcom,msm8916";
@@ -71,6 +72,9 @@
 	oppo-a51f { /* 15009 */
 		model = "OPPO Mirror 5s";
 		compatible = "oppo,a51f", "qcom,msm8916", "lk2nd,device";
+		lk2nd,keys =
+			<KEY_VOLUMEDOWN 108 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>,
+			<KEY_VOLUMEUP   107 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
 		lk2nd,match-panel;
 
 		panel {
@@ -91,6 +95,9 @@
 	oppo-a33 { /* 15035 */
 		model = "OPPO A33";
 		compatible = "oppo,a33", "qcom,msm8916", "lk2nd,device";
+		lk2nd,keys =
+			<KEY_VOLUMEDOWN 108 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>,
+			<KEY_VOLUMEUP   107 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
 		lk2nd,match-panel;
 
 		panel {
@@ -107,6 +114,9 @@
 	oppo-a37 { /* 15399 */
 		model = "OPPO A37";
 		compatible = "oppo,a37", "qcom,msm8916", "lk2nd,device";
+		lk2nd,keys =
+			<KEY_VOLUMEDOWN 108 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>,
+			<KEY_VOLUMEUP   107 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
 		lk2nd,match-panel;
 
 		panel {
