@@ -3,6 +3,9 @@
 # Assume EMMC_BOOT by default for lk2nd configurations
 EMMC_BOOT ?= 1
 
+# Build with proper device tree support
+DEFINES += DEVICE_TREE=1
+
 # Strictly speaking msm8660 uses custom PMIC code inside platform/msm8x60,
 # but pm8921 seems "compatible enough" for purposes in lk2nd.
 MODULES += dev/pmic/pm8921
