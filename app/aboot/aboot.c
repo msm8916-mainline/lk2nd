@@ -1163,6 +1163,12 @@ void generate_atags(unsigned *ptr, const char *cmdline,
                     void *ramdisk, unsigned ramdisk_size)
 {
 	unsigned *orig_ptr = ptr;
+
+#if WITH_LK2ND_DEVICE_2ND
+	if (IS_ENABLED(DEVICE_TREE) || lk2nd_device2nd_have_atags())
+		return lk2nd_device2nd_copy_atags(ptr, cmdline, ramdisk, ramdisk_size);
+#endif
+
 	ptr = atag_core(ptr);
 	ptr = atag_ramdisk(ptr, ramdisk, ramdisk_size);
 	ptr = target_atag_mem(ptr);
@@ -1192,7 +1198,8 @@ void generate_atags(unsigned *ptr, const char *cmdline,
 typedef void entry_func_ptr(unsigned, unsigned, unsigned*);
 void boot_linux(void *kernel, unsigned *tags,
 		const char *cmdline, unsigned machtype,
-		void *ramdisk, unsigned ramdisk_size)
+		void *ramdisk, unsigned ramdisk_size,
+		enum boot_type boot_type)
 {
 	unsigned char *final_cmdline;
 #if DEVICE_TREE
@@ -1202,7 +1209,6 @@ void boot_linux(void *kernel, unsigned *tags,
 	void (*entry)(unsigned, unsigned, unsigned*) = (entry_func_ptr*)(PA((addr_t)kernel));
 	uint32_t tags_phys = PA((addr_t)tags);
 	struct kernel64_hdr *kptr = ((struct kernel64_hdr*)(PA((addr_t)kernel)));
-	enum boot_type boot_type = 0;
 
 	ramdisk = (void *)PA((addr_t)ramdisk);
 
@@ -1214,6 +1220,12 @@ void boot_linux(void *kernel, unsigned *tags,
 		boot_type |= BOOT_LK2ND;
 
 	final_cmdline = update_cmdline2(cmdline, boot_type);
+
+	if (boot_type & BOOT_ATAGS_COPY) {
+		generate_atags(tags, (const char *)final_cmdline,
+			       ramdisk, ramdisk_size);
+		goto tags_done;
+	}
 
 #if DEVICE_TREE
 	dprintf(INFO, "Updating device tree: start\n");
@@ -1232,6 +1244,7 @@ void boot_linux(void *kernel, unsigned *tags,
 	generate_atags(tags, (const char*)final_cmdline, ramdisk, ramdisk_size);
 #endif
 
+tags_done:
 #if VERIFIED_BOOT
 	if (VB_M <= target_get_vb_version())
 	{
@@ -1574,6 +1587,7 @@ int boot_linux_from_mmc(void)
 	unsigned ramdisk_actual;
 	unsigned imagesize_actual;
 	unsigned second_actual = 0;
+	enum boot_type boot_type = 0;
 
 #ifdef OSVERSION_IN_BOOTIMAGE
 	uint32_t dtb_image_offset = 0;
@@ -2187,6 +2201,11 @@ int boot_linux_from_mmc(void)
 				(void *)hdr->tags_addr);
 		if (!dtb) {
 			dprintf(CRITICAL, "ERROR: Appended Device Tree Blob not found\n");
+#if WITH_LK2ND_DEVICE_2ND
+			if (lk2nd_device2nd_have_atags())
+				boot_type |= BOOT_ATAGS_COPY;
+			else
+#endif
 			return -1;
 		}
 	}
@@ -2203,7 +2222,8 @@ unified_boot:
 
 	boot_linux((void *)hdr->kernel_addr, (void *)hdr->tags_addr,
 		   (const char *)hdr->cmdline, board_machtype(),
-		   (void *)hdr->ramdisk_addr, hdr->ramdisk_size);
+		   (void *)hdr->ramdisk_addr, hdr->ramdisk_size,
+		   boot_type);
 
 	return 0;
 }
@@ -2220,6 +2240,7 @@ int boot_linux_from_flash(void)
 	unsigned ramdisk_actual;
 	unsigned imagesize_actual;
 	unsigned second_actual = 0;
+	enum boot_type boot_type = 0;
 
 #if DEVICE_TREE
 	struct dt_table *table = NULL;
@@ -2474,6 +2495,11 @@ int boot_linux_from_flash(void)
 		dtb = dev_tree_appended((void*)(image_addr + page_size ),hdr->kernel_size, dtb_offset, (void *)hdr->tags_addr);
 		if (!dtb) {
 			dprintf(CRITICAL, "ERROR: Appended Device Tree Blob not found\n");
+#if WITH_LK2ND_DEVICE_2ND
+			if (lk2nd_device2nd_have_atags())
+				boot_type |= BOOT_ATAGS_COPY;
+			else
+#endif
 			return -1;
 		}
          }
@@ -2495,7 +2521,8 @@ continue_boot:
 
 	boot_linux((void *)hdr->kernel_addr, (void *)hdr->tags_addr,
 		   (const char *)hdr->cmdline, board_machtype(),
-		   (void *)hdr->ramdisk_addr, hdr->ramdisk_size);
+		   (void *)hdr->ramdisk_addr, hdr->ramdisk_size,
+		   boot_type);
 
 	return 0;
 }
@@ -3134,6 +3161,7 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	uint32_t dtb_offset = 0;
 	unsigned char *kernel_start_addr = NULL;
 	unsigned int kernel_size = 0;
+	enum boot_type boot_type = 0;
 #if DEVICE_TREE
 	uint8_t dtb_copied = 0;
 	unsigned int scratch_offset = 0;
@@ -3408,6 +3436,11 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 		dtb = dev_tree_appended((void*)(ptr + page_size),
 					hdr->kernel_size, dtb_offset,
 					(void *)hdr->tags_addr);
+#if WITH_LK2ND_DEVICE_2ND
+		if (!dtb && lk2nd_device2nd_have_atags())
+			boot_type |= BOOT_ATAGS_COPY;
+		else
+#endif
 		if (!dtb) {
 			fastboot_fail("dtb not found");
 			goto boot_failed;
@@ -3424,7 +3457,8 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 
 	boot_linux((void*) hdr->kernel_addr, (void*) hdr->tags_addr,
 		   (const char*) hdr->cmdline, board_machtype(),
-		   (void*) hdr->ramdisk_addr, hdr->ramdisk_size);
+		   (void*) hdr->ramdisk_addr, hdr->ramdisk_size,
+		   boot_type);
 
 	/* fastboot already stop, it's no need to show fastboot menu */
 	return;
