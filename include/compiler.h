@@ -122,4 +122,10 @@
 /* TODO: add type check */
 #define countof(a) (sizeof(a) / sizeof((a)[0]))
 
+#define IS_ENABLED(define)		_IS_ENABLED(define)
+#define _comma_if_enabled_1		,
+#define _IS_ENABLED(value)		__IS_ENABLED(_comma_if_enabled_##value)
+#define __IS_ENABLED(comma)		___IS_ENABLED(comma 1, 0)
+#define ___IS_ENABLED(_, enabled, ...)	enabled
+
 #endif
