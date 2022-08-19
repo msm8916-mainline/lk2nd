@@ -676,6 +676,12 @@ DEFINES += DISPLAY_TYPE_MDSS=1
 			$(LOCAL_DIR)/mipi_dsi_autopll_thulium.o
 endif
 
+ifneq ($(filter DEVICE_TREE=1, $(DEFINES)),)
+# Add dev_tree.o if it is not already there
+OBJS += $(if $(filter $(LOCAL_DIR)/dev_tree.o,$(OBJS)),,$(LOCAL_DIR)/dev_tree.o)
+MODULES += lib/libfdt
+endif
+
 ifeq ($(ENABLE_BOOT_CONFIG_SUPPORT), 1)
 	DEFINES += BOOT_CONFIG_SUPPORT=1
 	OBJS += \
