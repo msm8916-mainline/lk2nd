@@ -3,9 +3,11 @@
 
 #include <debug.h>
 #include <fastboot.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <libfdt.h>
+#include <lk2nd/device.h>
 #include <lk2nd/util/mmu.h>
 
 #include "device.h"
@@ -83,6 +85,11 @@ static inline size_t atag_data_size(const struct atag *t)
 {
 	return atag_size(t) - sizeof(*t);
 }
+
+struct atag_initrd {
+	uint32_t start;
+	uint32_t size;
+};
 
 /* Copy interesting ATAGS in case we want to boot downstream later */
 static bool copy_atag(const struct atag *t)
@@ -189,3 +196,47 @@ static void lk2nd_device_parse_tags_register(void)
 		fastboot_register("oem parsed-tags", cmd_oem_parsed_tags);
 }
 FASTBOOT_INIT(lk2nd_device_parse_tags_register);
+
+/* ATAGS copy */
+bool lk2nd_device2nd_have_atags(void)
+{
+	return atags_copy != NULL;
+}
+
+void lk2nd_device2nd_copy_atags(void *tags, const char *cmdline,
+				void *ramdisk, unsigned ramdisk_size)
+{
+	struct atag *t = tags;
+
+	dprintf(INFO, "Copying ATAGS from previous bootloader\n");
+
+	t->tag = ATAG_CORE;
+	t->size = ATAG_SIZE(0);
+	tags += sizeof(struct atag);
+
+	memcpy(tags, atags_copy, atags_copy_size);
+	tags += atags_copy_size;
+	t = tags;
+
+	if (cmdline) {
+		size_t len = strlen(cmdline) + 1; /* include null terminator */
+
+		t->tag = ATAG_CMDLINE;
+		t->size = ATAG_SIZE(ROUNDUP(len, sizeof(uint32_t)));
+		memcpy(t->data, cmdline, len);
+		t = next_atag(t);
+	}
+
+	if (ramdisk_size) {
+		struct atag_initrd *initrd = (struct atag_initrd *)t->data;
+
+		t->tag = ATAG_INITRD2;
+		t->size = ATAG_SIZE(sizeof(*initrd));
+		initrd->start = (uint32_t)ramdisk;
+		initrd->size = ramdisk_size;
+		t = next_atag(t);
+	}
+
+	t->tag = ATAG_NONE;
+	t->size = 0;
+}

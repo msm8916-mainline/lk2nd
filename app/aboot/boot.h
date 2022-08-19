@@ -9,6 +9,7 @@ enum boot_type {
 	BOOT_ANDROID	= BIT(1),
 	BOOT_DOWNSTREAM	= BIT(2),
 	BOOT_LK2ND	= IS_ENABLED(WITH_LK2ND) ? BIT(3) : 0,
+	BOOT_ATAGS_COPY	= IS_ENABLED(WITH_LK2ND_DEVICE_2ND) ? BIT(4) : 0,
 };
 
 unsigned char *update_cmdline(const char *cmdline);
