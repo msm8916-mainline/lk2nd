@@ -29,8 +29,9 @@
 #include <err.h>
 
 #include <dev/gpio.h>
-#include <dev/gpio_i2c.h>
 #include <kernel/mutex.h>
+
+#include <lk2nd/hw/gpio_i2c.h>
 
 #if (!(defined(GPIO_I2C_BUS_COUNT)) || (GPIO_I2C_BUS_COUNT <= 0))
 #error ERROR: Must define GPIO_I2C_BUS_COUNT
@@ -277,12 +278,3 @@ status_t gpio_i2c_read_reg_bytes(int bus, uint8_t address, uint8_t reg, uint8_t*
 
     return gpio_i2c_rx_common(s, address, &reg, buf, cnt);
 }
-
-void i2c_init_early(void) __WEAK_ALIAS("gpio_i2c_init_early");
-void i2c_init(void) __WEAK_ALIAS("gpio_i2c_init");
-status_t i2c_transmit(int, uint8_t, const void*, size_t) __WEAK_ALIAS("gpio_i2c_transmit");
-status_t i2c_receive(int, uint8_t, void*, size_t) __WEAK_ALIAS("gpio_i2c_receive");
-status_t i2c_write_reg_bytes(int, uint8_t, uint8_t,
-                             const uint8_t*, size_t) __WEAK_ALIAS("gpio_i2c_write_reg_bytes");
-status_t i2c_read_reg_bytes(int, uint8_t, uint8_t,
-                            uint8_t*, size_t) __WEAK_ALIAS("gpio_i2c_read_reg_bytes");
