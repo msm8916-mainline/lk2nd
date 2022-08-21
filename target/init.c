@@ -138,7 +138,7 @@ __WEAK unsigned target_baseband(void)
 
 __WEAK void target_serialno(unsigned char *buf)
 {
-	snprintf((char *) buf, 13, "%s",TARGET(BOARD));
+	strlcpy((char *)buf, TARGET(BOARD), 13);
 }
 
 __WEAK void target_fastboot_init(void)
