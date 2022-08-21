@@ -28,7 +28,6 @@
 #include <printf.h>
 #include <err.h>
 
-#include <dev/gpio.h>
 #include <kernel/mutex.h>
 #include <platform/timer.h>
 
@@ -52,23 +51,23 @@ static gpio_i2c_state_t gpio_i2c_states[GPIO_I2C_BUS_COUNT];
  ******************************************************************************/
 static inline void send_start(const gpio_i2c_info_t* i)
 {
-    gpio_config(i->sda, GPIO_OUTPUT);
+    gpiol_direction_output(i->sda, 0);
     udelay(i->qcd);
-    gpio_config(i->scl, GPIO_OUTPUT);
+    gpiol_direction_output(i->scl, 0);
     udelay(i->hcd);
 }
 
 static inline void send_stop(const gpio_i2c_info_t* i)
 {
-    gpio_config(i->sda, GPIO_OUTPUT);
-    gpio_config(i->scl, GPIO_INPUT);
+    gpiol_direction_output(i->sda, 0);
+    gpiol_direction_input(i->scl);
     udelay(i->qcd);
-    gpio_config(i->sda, GPIO_INPUT);
+    gpiol_direction_input(i->sda);
 }
 
 static inline void send_restart(const gpio_i2c_info_t* i)
 {
-    gpio_config(i->scl, GPIO_INPUT);
+    gpiol_direction_input(i->scl);
     udelay(i->qcd);
     send_start(i);
 }
@@ -76,16 +75,16 @@ static inline void send_restart(const gpio_i2c_info_t* i)
 static inline void send_nack(const gpio_i2c_info_t* i)
 {
     udelay(i->hcd);
-    gpio_config(i->scl, GPIO_INPUT);
+    gpiol_direction_input(i->scl);
     udelay(i->hcd);
-    gpio_config(i->scl, GPIO_OUTPUT);
-    gpio_config(i->sda, GPIO_INPUT);
+    gpiol_direction_output(i->scl, 0);
+    gpiol_direction_input(i->sda);
     udelay(i->hcd);
 }
 
 static inline void send_ack(const gpio_i2c_info_t* i)
 {
-    gpio_config(i->sda, GPIO_OUTPUT);
+    gpiol_direction_output(i->sda, 0);
     send_nack(i);
 }
 
@@ -95,9 +94,9 @@ static inline bool send_byte(const gpio_i2c_info_t* i, uint32_t b)
 
     for (size_t j = 0; j < 8; ++j) {
         if (b & 0x80)
-            gpio_config(i->sda, GPIO_INPUT);
+            gpiol_direction_input(i->sda);
         else
-            gpio_config(i->sda, GPIO_OUTPUT);
+            gpiol_direction_output(i->sda, 0);
         b <<= 1;
         /* setup time for data (the time between when data becomes stable and
          * clock becomes a stable high) is spec'ed to be 250ns for 100KHz i2c
@@ -106,17 +105,17 @@ static inline bool send_byte(const gpio_i2c_info_t* i, uint32_t b)
          * right here.
          */
         udelay(i->hcd);
-        gpio_config(i->scl, GPIO_INPUT);
+        gpiol_direction_input(i->scl);
         udelay(i->hcd);
-        gpio_config(i->scl, GPIO_OUTPUT);
+        gpiol_direction_output(i->scl, 0);
     }
 
-    gpio_config(i->sda, GPIO_INPUT);
+    gpiol_direction_input(i->sda);
     udelay(i->hcd);
-    gpio_config(i->scl, GPIO_INPUT);
+    gpiol_direction_input(i->scl);
     udelay(i->hcd);
-    ret = (0 == gpio_get(i->sda));
-    gpio_config(i->scl, GPIO_OUTPUT);
+    ret = (0 == gpiol_is_asserted(i->sda));
+    gpiol_direction_output(i->scl, 0);
     udelay(i->hcd);
 
     return ret;
@@ -127,20 +126,20 @@ static inline void recv_byte(const gpio_i2c_info_t* i, uint8_t* b)
     uint32_t tmp = 0;
 
     for (size_t j = 0; j < 7; ++j) {
-        gpio_config(i->scl, GPIO_INPUT);
+        gpiol_direction_input(i->scl);
         udelay(i->hcd);
-        if (gpio_get(i->sda))
+        if (gpiol_is_asserted(i->sda))
             tmp |= 1;
         tmp <<= 1;
-        gpio_config(i->scl, GPIO_OUTPUT);
+        gpiol_direction_output(i->scl, 0);
         udelay(i->hcd);
     }
 
-    gpio_config(i->scl, GPIO_INPUT);
+    gpiol_direction_input(i->scl);
     udelay(i->hcd);
-    if (gpio_get(i->sda))
+    if (gpiol_is_asserted(i->sda))
         tmp |= 1;
-    gpio_config(i->scl, GPIO_OUTPUT);
+    gpiol_direction_output(i->scl, 0);
 
     *b = (uint8_t)tmp;
 }
@@ -226,10 +225,8 @@ void gpio_i2c_add_bus(uint32_t bus_id, const gpio_i2c_info_t* info)
     DEBUG_ASSERT(bus_id < GPIO_I2C_BUS_COUNT);
     DEBUG_ASSERT(!s->info);
 
-    gpio_config(info->scl, GPIO_INPUT);
-    gpio_config(info->sda, GPIO_INPUT);
-    gpio_set(info->scl, 0);
-    gpio_set(info->sda, 0);
+    gpiol_direction_input(info->scl);
+    gpiol_direction_input(info->sda);
 
     mutex_init(&s->lock);
     s->info = info;
