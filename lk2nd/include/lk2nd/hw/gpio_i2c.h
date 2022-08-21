@@ -40,5 +40,15 @@ status_t gpio_i2c_receive(const gpio_i2c_info_t*, uint8_t, void*, size_t);
 status_t gpio_i2c_write_reg_bytes(const gpio_i2c_info_t*, uint8_t, uint8_t, const uint8_t*, size_t);
 status_t gpio_i2c_read_reg_bytes(const gpio_i2c_info_t*, uint8_t, uint8_t, uint8_t*, size_t);
 
+/**
+ * gpio_i2c_get() - Get GPIO I2C bus from the DT definition.
+ * @dtb:   Pointer to the DT.
+ * @node:  Offset of the node containing the i2c-sda/scl-gpios properties.
+ * @i:     Pointer to the I2C info that will be filled.
+ * @addr:  Optional pointer that will be filled with the I2C address (i2c-reg).
+ *
+ * Returns: Status code (0 on success)
+ */
+status_t gpio_i2c_get(const void *dtb, int node, gpio_i2c_info_t *i, uint8_t *addr);
 
 #endif  // __GPIO_I2C__
