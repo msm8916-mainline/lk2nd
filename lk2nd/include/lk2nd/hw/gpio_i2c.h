@@ -27,23 +27,14 @@
 #include <stdint.h>
 #include <dev/i2c.h>
 
+#include <lk2nd/hw/gpio.h>
+
 typedef struct gpio_i2c_info {
-    const int sda;
-    const int scl;
+    struct gpiol_desc sda;
+    struct gpiol_desc scl;
     uint32_t  hcd;  /* 1/2 I2C clock delay in microseconds */
     uint32_t  qcd;  /* 1/4 I2C clock delay in microseconds */
 } gpio_i2c_info_t;
-
-#define DEFINE_GPIO_I2C(_name,                 \
-                        _sda_gpio_id,          \
-                        _scl_gpio_id,          \
-                        _clk_ticks)            \
-static const gpio_i2c_info_t _name = {         \
-    .sda            = _sda_gpio_id,            \
-    .scl            = _scl_gpio_id,            \
-    .hcd            = ((_clk_ticks + 1) >> 1), \
-    .qcd            = ((_clk_ticks + 3) >> 2), \
-}
 
 void gpio_i2c_add_bus(uint32_t bus_id, const gpio_i2c_info_t* info);
 
