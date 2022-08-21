@@ -25,7 +25,6 @@
 #define __GPIO_I2C__
 
 #include <stdint.h>
-#include <dev/i2c.h>
 
 #include <lk2nd/hw/gpio.h>
 
@@ -36,13 +35,10 @@ typedef struct gpio_i2c_info {
     uint32_t  qcd;  /* 1/4 I2C clock delay in microseconds */
 } gpio_i2c_info_t;
 
-void gpio_i2c_add_bus(uint32_t bus_id, const gpio_i2c_info_t* info);
+status_t gpio_i2c_transmit(const gpio_i2c_info_t*, uint8_t, const void*, size_t);
+status_t gpio_i2c_receive(const gpio_i2c_info_t*, uint8_t, void*, size_t);
+status_t gpio_i2c_write_reg_bytes(const gpio_i2c_info_t*, uint8_t, uint8_t, const uint8_t*, size_t);
+status_t gpio_i2c_read_reg_bytes(const gpio_i2c_info_t*, uint8_t, uint8_t, uint8_t*, size_t);
 
-void gpio_i2c_init_early(void);
-void gpio_i2c_init(void);
-status_t gpio_i2c_transmit(int, uint8_t, const void*, size_t);
-status_t gpio_i2c_receive(int, uint8_t, void*, size_t);
-status_t gpio_i2c_write_reg_bytes(int, uint8_t, uint8_t, const uint8_t*, size_t);
-status_t gpio_i2c_read_reg_bytes(int, uint8_t, uint8_t, uint8_t*, size_t);
 
 #endif  // __GPIO_I2C__
