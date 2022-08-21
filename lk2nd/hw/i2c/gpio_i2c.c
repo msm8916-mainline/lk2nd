@@ -33,17 +33,6 @@
 
 #include <lk2nd/hw/gpio_i2c.h>
 
-#if (!(defined(GPIO_I2C_BUS_COUNT)) || (GPIO_I2C_BUS_COUNT <= 0))
-#error ERROR: Must define GPIO_I2C_BUS_COUNT
-#endif
-
-typedef struct gpio_i2c_state {
-    mutex_t                 lock;
-    const gpio_i2c_info_t*  info;
-} gpio_i2c_state_t;
-
-static gpio_i2c_state_t gpio_i2c_states[GPIO_I2C_BUS_COUNT];
-
 /******************************************************************************
  *
  * Internal implementation.
@@ -144,18 +133,17 @@ static inline void recv_byte(const gpio_i2c_info_t* i, uint8_t* b)
     *b = (uint8_t)tmp;
 }
 
-static status_t gpio_i2c_tx_common(gpio_i2c_state_t* s,
+static status_t gpio_i2c_tx_common(const gpio_i2c_info_t* i,
                                    uint8_t address,
                                    const uint8_t* reg,
                                    const void* buf,
                                    size_t cnt)
 {
-    const gpio_i2c_info_t* i = s->info;
     status_t ret = ERR_I2C_NACK;
 
     DEBUG_ASSERT(buf || !cnt);
 
-    mutex_acquire(&s->lock);
+    enter_critical_section();
     send_start(i);
     if (!send_byte(i, address << 1))
         goto finished;
@@ -171,24 +159,23 @@ static status_t gpio_i2c_tx_common(gpio_i2c_state_t* s,
 
 finished:
     send_stop(i);
-    mutex_release(&s->lock);
+    exit_critical_section();
     return ret;
 }
 
-static status_t gpio_i2c_rx_common(gpio_i2c_state_t* s,
+static status_t gpio_i2c_rx_common(const gpio_i2c_info_t* i,
                                    uint8_t address,
                                    const uint8_t* reg,
                                    void* buf,
                                    size_t cnt)
 {
-    const gpio_i2c_info_t* i = s->info;
     status_t ret = ERR_I2C_NACK;
 
     DEBUG_ASSERT(buf && cnt);
 
     address <<= 1;
 
-    mutex_acquire(&s->lock);
+    enter_critical_section();
     send_start(i);
     if (!send_byte(i, address | (!reg ? 0x1 : 0x0)))
         goto finished;
@@ -213,23 +200,8 @@ static status_t gpio_i2c_rx_common(gpio_i2c_state_t* s,
 
 finished:
     send_stop(i);
-    mutex_release(&s->lock);
+    exit_critical_section();
     return ret;
-}
-
-void gpio_i2c_add_bus(uint32_t bus_id, const gpio_i2c_info_t* info)
-{
-    gpio_i2c_state_t* s = gpio_i2c_states + bus_id;
-
-    DEBUG_ASSERT(info);
-    DEBUG_ASSERT(bus_id < GPIO_I2C_BUS_COUNT);
-    DEBUG_ASSERT(!s->info);
-
-    gpiol_direction_input(info->scl);
-    gpiol_direction_input(info->sda);
-
-    mutex_init(&s->lock);
-    s->info = info;
 }
 
 /******************************************************************************
@@ -237,42 +209,22 @@ void gpio_i2c_add_bus(uint32_t bus_id, const gpio_i2c_info_t* info)
 *  LK facing API
 *
 * *****************************************************************************/
-void gpio_i2c_init_early(void) { }
-void gpio_i2c_init(void) { }
-
-status_t gpio_i2c_transmit(int bus, uint8_t address, const void* buf, size_t cnt)
+status_t gpio_i2c_transmit(const gpio_i2c_info_t* i, uint8_t address, const void* buf, size_t cnt)
 {
-    gpio_i2c_state_t* s = gpio_i2c_states + bus;
-    if (((unsigned)bus >= countof(gpio_i2c_states)) || !s->info)
-        return ERR_NOT_FOUND;
-
-    return gpio_i2c_tx_common(s, address, NULL, buf, cnt);
+    return gpio_i2c_tx_common(i, address, NULL, buf, cnt);
 }
 
-status_t gpio_i2c_receive(int bus, uint8_t address, void* buf, size_t cnt)
+status_t gpio_i2c_receive(const gpio_i2c_info_t* i, uint8_t address, void* buf, size_t cnt)
 {
-    gpio_i2c_state_t* s = gpio_i2c_states + bus;
-    if (((unsigned)bus >= countof(gpio_i2c_states)) || !s->info)
-        return ERR_NOT_FOUND;
-
-    return gpio_i2c_rx_common(s, address, NULL, buf, cnt);
+    return gpio_i2c_rx_common(i, address, NULL, buf, cnt);
 }
 
-status_t gpio_i2c_write_reg_bytes(int bus, uint8_t address, uint8_t reg, const uint8_t* buf, size_t cnt)
+status_t gpio_i2c_write_reg_bytes(const gpio_i2c_info_t* i, uint8_t address, uint8_t reg, const uint8_t* buf, size_t cnt)
 {
-    gpio_i2c_state_t* s = gpio_i2c_states + bus;
-    if (((unsigned)bus >= countof(gpio_i2c_states)) || !s->info)
-        return ERR_NOT_FOUND;
-
-    return gpio_i2c_tx_common(s, address, &reg, buf, cnt);
+    return gpio_i2c_tx_common(i, address, &reg, buf, cnt);
 }
 
-status_t gpio_i2c_read_reg_bytes(int bus, uint8_t address, uint8_t reg, uint8_t* buf, size_t cnt)
+status_t gpio_i2c_read_reg_bytes(const gpio_i2c_info_t* i, uint8_t address, uint8_t reg, uint8_t* buf, size_t cnt)
 {
-    gpio_i2c_state_t* s = gpio_i2c_states + bus;
-    if (((unsigned)bus >= countof(gpio_i2c_states)) || !s->info) {
-        return ERR_NOT_FOUND;
-    }
-
-    return gpio_i2c_rx_common(s, address, &reg, buf, cnt);
+    return gpio_i2c_rx_common(i, address, &reg, buf, cnt);
 }
