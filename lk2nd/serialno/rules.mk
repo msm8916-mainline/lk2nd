@@ -4,3 +4,4 @@ MODULES += lib/libfdt
 
 OBJS += \
 	$(LOCAL_DIR)/mac.o \
+	$(LOCAL_DIR)/serialno.o \
