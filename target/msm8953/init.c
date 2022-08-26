@@ -353,8 +353,9 @@ void target_init(void)
 	dprintf(INFO, "target_init()\n");
 
 	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
-
+#if (!WITH_LK2ND_DEVICE)
 	target_keystatus();
+#endif
 
 	target_sdc_init();
 	if (partition_read_table())

@@ -104,8 +104,10 @@ void target_init(void)
 	debug_led_write(0xFF);
 #if (!ENABLE_NANDWRITE)
 	pmic_init();
+#if (!WITH_LK2ND_DEVICE)
 	keys_init();
 	keypad_init();
+#endif
 #endif
 
 	switch (board_platform_id()) {

@@ -162,7 +162,9 @@ void target_init(void)
 #if SMD_SUPPORT
 	rpm_smd_init();
 #endif
+#if (!WITH_LK2ND_DEVICE)
 	target_keystatus();
+#endif
 	config.pipes.read_pipe = DATA_PRODUCER_PIPE;
 	config.pipes.write_pipe = DATA_CONSUMER_PIPE;
 	config.pipes.cmd_pipe = CMD_PIPE;

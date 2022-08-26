@@ -346,7 +346,9 @@ void target_init(void)
 	/* Initialize Glink */
 	rpm_glink_init();
 
+#if (!WITH_LK2ND_DEVICE)
 	target_keystatus();
+#endif
 
 #if defined(LONG_PRESS_POWER_ON) || defined(PON_VIB_SUPPORT)
 	switch(board_hardware_id())

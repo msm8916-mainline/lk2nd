@@ -106,6 +106,7 @@ void target_init(void)
 	pm8921_init(&pmic);
 
 	/* Keypad init */
+#if (!WITH_LK2ND_DEVICE)
 	keys_init();
 
 	switch(platform_id) {
@@ -142,6 +143,7 @@ void target_init(void)
 	default:
 		dprintf(CRITICAL,"Keyboard is not supported for platform: %d\n",platform_id);
 	};
+#endif
 
 	if ((platform_id == MSM8960) || (platform_id == MSM8960AB) ||
 		(platform_id == APQ8060AB) || (platform_id == MSM8260AB) ||

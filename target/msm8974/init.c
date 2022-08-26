@@ -339,7 +339,9 @@ void target_init(void)
 	/* Save PM8941 version info. */
 	pmic_ver = pm8x41_get_pmic_rev();
 
+#if (!WITH_LK2ND_DEVICE)
 	target_keystatus();
+#endif
 
 	if (target_use_signed_kernel())
 		target_crypto_init_params();

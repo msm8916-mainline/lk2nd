@@ -328,7 +328,9 @@ void target_init(void)
 	}
 
 
+#if (!WITH_LK2ND_DEVICE)
 	target_keystatus();
+#endif
 
 	target_sdc_init();
 	if (partition_read_table())
