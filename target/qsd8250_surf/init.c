@@ -104,7 +104,7 @@ void target_init(void)
 
 	dprintf(INFO, "target_init()\n");
 
-#if (!ENABLE_NANDWRITE)
+#if (!ENABLE_NANDWRITE) && (!WITH_LK2ND_DEVICE)
 	keys_init();
 	keypad_init();
 #endif

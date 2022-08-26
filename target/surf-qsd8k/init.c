@@ -86,8 +86,10 @@ void target_init(void)
 
 	dprintf(INFO, "target_init()\n");
 
+#if (!WITH_LK2ND_DEVICE)
 	keys_init();
 	keypad_init();
+#endif
 
 	ptable_init(&flash_ptable);
 	smem_ptable_init();

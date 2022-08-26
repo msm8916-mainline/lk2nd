@@ -232,7 +232,9 @@ void target_init(void)
 {
 	dprintf(INFO, "target_init()\n");
 
+#if (!WITH_LK2ND_DEVICE)
 	target_keystatus();
+#endif
 
 	if (target_use_signed_kernel())
 		target_crypto_init_params();
