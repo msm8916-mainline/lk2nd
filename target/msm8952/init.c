@@ -293,6 +293,10 @@ uint32_t target_is_pwrkey_pon_reason(void)
 
 static void target_keystatus(void)
 {
+	/* Initial key status is handled in lk2nd/device/keys.c */
+	if (IS_ENABLED(WITH_LK2ND_DEVICE))
+		return;
+
 	keys_init();
 
 	if(target_volume_down())
