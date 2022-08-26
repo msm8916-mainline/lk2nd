@@ -5,6 +5,14 @@ MODULES += \
 	   lk2nd/hw/gpio \
 
 LK2ND_DEVICE_OBJ := $(LOCAL_DIR)/device.o
+
+# NOTE: The init functions are performed in the order of linking
+# thus the order might be important here. Notably:
+#
+# - keys.o must be after device.o as device.o will (if needed) probe
+#   the keys driver and the keys.o will then rely on the created data
+#   to report the keys.
+
 OBJS += \
 	$(LK2ND_DEVICE_OBJ) \
 	$(LOCAL_DIR)/panel.o \

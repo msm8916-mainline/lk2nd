@@ -11,6 +11,7 @@
 
 #include <lk2nd/hw/gpio.h>
 #include <lk2nd/keys.h>
+#include <lk2nd/init.h>
 
 #include "device.h"
 
@@ -90,11 +91,14 @@ static void lk2nd_keys_publish(void)
 {
 	unsigned int i;
 
+	keys_init();
+
 	for (i = 0; i < ARRAY_SIZE(published_keys); ++i) {
 		keys_post_event(published_keys[i],
 				lk2nd_keys_pressed(published_keys[i]));
 	}
 }
+LK2ND_INIT(lk2nd_keys_publish);
 
 static int lk2nd_keys_init(const void *dtb, int node)
 {
@@ -138,9 +142,6 @@ static int lk2nd_keys_init(const void *dtb, int node)
 		dprintf(CRITICAL, "keys: Failed to parse subnodes: %d\n", subnode);
 		return 0;
 	}
-
-	keys_init();
-	lk2nd_keys_publish();
 
 	return 0;
 }
