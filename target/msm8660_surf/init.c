@@ -103,7 +103,7 @@ void target_init(void)
 
 	/* Setting Debug LEDs ON */
 	debug_led_write(0xFF);
-#if (!ENABLE_NANDWRITE)
+#if (!ENABLE_NANDWRITE) && (!WITH_LK2ND_DEVICE)
 	keys_init();
 	keypad_init();
 #endif

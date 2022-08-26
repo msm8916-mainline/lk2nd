@@ -197,7 +197,7 @@ void target_init(void)
 		dprintf(SPEW,"Failed to Initialize remote spin locks\n");
 #endif
 
-#if (!ENABLE_NANDWRITE)
+#if (!ENABLE_NANDWRITE) && (!WITH_LK2ND_DEVICE)
 	keys_init();
 	keypad_init();
 #endif

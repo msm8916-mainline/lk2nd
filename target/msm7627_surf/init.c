@@ -127,7 +127,7 @@ void target_init(void)
 	display_image_on_screen();
 #endif
 
-#if (!ENABLE_NANDWRITE)
+#if (!ENABLE_NANDWRITE) && (!WITH_LK2ND_DEVICE)
 	keys_init();
 	keypad_init();
 #endif
