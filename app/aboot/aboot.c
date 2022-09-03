@@ -1195,6 +1195,8 @@ void generate_atags(unsigned *ptr, const char *cmdline,
 	}
 }
 
+#include <lk2nd/playground.h>
+
 typedef void entry_func_ptr(unsigned, unsigned, unsigned*);
 void boot_linux(void *kernel, unsigned *tags,
 		const char *cmdline, unsigned machtype,
@@ -1310,7 +1312,8 @@ tags_done:
 		scm_elexec_call((paddr_t)kernel, tags_phys);
 	else
 		/* Jump to a 32bit kernel */
-		entry(0, machtype, (unsigned*)tags_phys);
+		//entry(0, machtype, (unsigned*)tags_phys);
+		wcnss_handover(0, machtype, tags_phys, entry);
 }
 
 /* Function to check if the memory address range falls within the aboot

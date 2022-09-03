@@ -19,6 +19,8 @@
 #include <reg.h>
 #include <string.h>
 
+#include <lk2nd/playground.h>
+
 #define PRONTO_PMU_COMMON_GDSCR				0x24
 #define PRONTO_PMU_COMMON_GDSCR_SW_COLLAPSE		BIT(0)
 #define CLK_DIS_WAIT					12
@@ -152,3 +154,23 @@ static void cmd_oem_wcnss(const char *arg, void *data, unsigned sz)
 	fastboot_okay("");
 }
 FASTBOOT_REGISTER("oem wcnss", cmd_oem_wcnss);
+
+void wcnss_handover(uint32_t r0, uint32_t r1, uint32_t r2, void *entry)
+{
+	extern uint32_t wcnss_spin_addr;
+	extern uint32_t wcnss_args[3];
+
+	wcnss_args[0] = r0;
+	wcnss_args[1] = r1;
+	wcnss_args[2] = r2;
+	arch_clean_cache_range((uintptr_t)wcnss_args, sizeof(wcnss_args));
+
+	dprintf(CRITICAL, "Handing over control to WCNSS @ %p\n", entry);
+
+	wcnss_spin_addr = (uint32_t)entry;
+	arch_clean_cache_range(wcnss_spin_addr, sizeof(wcnss_spin_addr));
+
+	/* Loop forever on this CPU */
+	while (true)
+		__asm__ volatile("wfi");
+}
