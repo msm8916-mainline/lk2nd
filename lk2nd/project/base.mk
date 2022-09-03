@@ -19,6 +19,7 @@ MODULES += \
 	lk2nd/fastboot \
 	lk2nd/hw/gpio \
 	lk2nd/hw/i2c \
+	lk2nd/playground \
 	lk2nd/serialno \
 	lk2nd/smp \
 	lk2nd/smp/spin-table \

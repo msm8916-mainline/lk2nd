@@ -30,7 +30,7 @@
 #define _PLATFORM_MSM8916_IOMAP_H_
 
 #define MSM_IOMAP_BASE              0x00000000
-#define MSM_IOMAP_END               0x08000000
+#define MSM_IOMAP_END               0x0B000000
 #define A53_SS_BASE                 0x0B000000
 #define A53_SS_END                  0x0B200000
 
