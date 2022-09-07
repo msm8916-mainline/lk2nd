@@ -94,7 +94,7 @@ static int pil_pronto_reset(uint32_t base, uint32_t start_addr)
 
 	/* Use the high vector table */
 	reg = readl_relaxed(base + PRONTO_PMU_CCPU_CTL);
-	reg |= PRONTO_PMU_CCPU_CTL_REMAP_EN | PRONTO_PMU_CCPU_CTL_HIGH_IVT;
+	reg |= PRONTO_PMU_CCPU_CTL_REMAP_EN/* | PRONTO_PMU_CCPU_CTL_HIGH_IVT*/;
 	writel_relaxed(reg, base + PRONTO_PMU_CCPU_CTL);
 
 	/* Turn on AHB clock of common_ss */
@@ -136,6 +136,13 @@ static int pil_pronto_reset(uint32_t base, uint32_t start_addr)
 		dprintf(CRITICAL, "pronto common cpu clk enable timeout\n");
 		return rc;
 	}
+
+	/* Initialize frame counter frequency */
+	writel(19200000, 0x0A211000);
+
+	/* Route UART IRQs to PHSS UART interrupts */
+	writel(BIT(0), 0x0194B080); /* UART1 */
+	writel(BIT(1), 0x0194B080 + 0x10); /* UART2 */
 
 	/* Deassert ARM9 software reset */
 	reg = readl_relaxed(base + PRONTO_PMU_SOFT_RESET);
