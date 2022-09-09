@@ -7,12 +7,27 @@
 / {
 	qcom,msm-id = <239 0>;
 	qcom,board-id =
-		<8001 4>, <8007 4>, <8017 4>, <8019 4>,
-		<8023 4>, <8033 4>, <8039 4>, <8049 4>,
-		<8051 4>, <8054 4>, <8065 4>, <8067 4>,
-		<8070 4>, <8081 4>, <8083 4>, <8086 4>,
-		<8097 4>, <8099 4>, <8103 4>, <8115 4>,
-		<8116 4>, <8119 4>, <8131 4>;
+		<8001 4>, // huawei_kiw_al10_va.dts
+		<8003 4>, // huawei_kiw_al10_vb.dts
+		<8007 4>, // huawei_kiw_cl00_vc.dts
+		<8017 4>, // huawei_kiw_ul00_va.dts
+		<8019 4>, // huawei_kiw_ul00_vb.dts
+		<8023 4>, // huawei_kiw_tl00h_vc.dts
+		<8033 4>, // huawei_kiw_cl00_va.dts
+		<8035 4>, // huawei_kiw_cl00_vb.dts
+		<8039 4>, // huawei_kiw_l21_vc.dts
+		<8049 4>, // huawei_kiw_tl00h_va.dts
+		<8051 4>, // huawei_kiw_tl00h_vb.dts
+		<8065 4>, // huawei_kiw_l21_va.dts
+		<8067 4>, // huawei_kiw_l21_vb.dts
+		<8081 4>, // huawei_kiw_l22_va.dts
+		<8083 4>, // huawei_kiw_l22_vb.dts
+		<8097 4>, // huawei_kiw_l23_va.dts
+		<8099 4>, // huawei_kiw_l23_vb.dts
+		<8103 4>, // huawei_kiw_l22_vc.dts
+		<8115 4>, // huawei_kiw_al10_vc.dts
+		<8119 4>, // huawei_kiw_l23_vc.dts
+		<8131 4>; // huawei_kiw_ul00_vc.dts
 
 	model = "Huawei Honor 5X / GR5 (2016)";
 	compatible = "huawei,kiwi", "qcom,msm8939", "lk2nd,device";
