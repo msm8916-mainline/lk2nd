@@ -94,6 +94,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Xiaomi Redmi 2 - wt86047, wt88047
 - Xiaomi Redmi 3 - ido
 - Yamada EveryPad III (rebrand of Lenovo PHAB Plus)
+
 ### lk2nd-msm8974
 - Fairphone 2 - FP2
 - LG G3 - D855
