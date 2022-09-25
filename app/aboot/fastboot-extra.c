@@ -8,6 +8,7 @@
 #include <platform.h>
 #include <platform/iomap.h>
 #include <platform/timer.h>
+#include <pm8x41_hw.h>
 #include <pm8x41_regulator.h>
 #include <reg.h>
 #include <smd.h>
@@ -32,6 +33,33 @@ static bool parse_write_args(const char *arg, uint32_t *addr, uint32_t *value)
 	*value = atoi(value_str);
 	free(args);
 	return true;
+}
+
+static void cmd_oem_spmi_read(const char *arg, void *data, unsigned sz)
+{
+	char response[MAX_RSP_SIZE];
+	uint32_t addr = 0;
+
+	addr = atoi(arg);
+	snprintf(response, sizeof(response), "0x%02x\n", REG_READ(addr));
+	fastboot_info(response);
+
+	fastboot_okay("");
+}
+
+static void cmd_oem_spmi_write(const char *arg, void *data, unsigned sz)
+{
+	char response[MAX_RSP_SIZE];
+	uint32_t addr = 0, value = 0;
+
+	if (!parse_write_args(arg, &addr, &value)) {
+		fastboot_fail("");
+		return;
+	}
+
+	REG_WRITE(addr, (uint8_t)value);
+
+	fastboot_okay("");
 }
 
 static void cmd_oem_readl(const char *arg, void *data, unsigned sz)
@@ -432,6 +460,9 @@ static void cmd_oem_dump_rpm_data_ram(const char *arg, void *data, unsigned sz)
 #endif
 
 void fastboot_extra_register_commands(void) {
+	fastboot_register("oem spmi read", cmd_oem_spmi_read);
+	fastboot_register("oem spmi write", cmd_oem_spmi_write);
+
 	fastboot_register("oem readl", cmd_oem_readl);
 	fastboot_register("oem writel", cmd_oem_writel);
 	fastboot_register("oem readb", cmd_oem_readb);
