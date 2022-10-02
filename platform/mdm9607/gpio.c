@@ -67,11 +67,21 @@ uint32_t gpio_status(uint32_t gpio)
 /* Configure gpio for blsp uart 2 */
 void gpio_config_uart_dm(uint8_t id)
 {
-	/* configure rx gpio */
-	gpio_tlmm_config(9, 2, GPIO_INPUT, GPIO_NO_PULL,
-				GPIO_8MA, GPIO_DISABLE);
+	switch (id) {
+	case 2:
+		gpio_tlmm_config(4, 2, GPIO_OUTPUT, GPIO_NO_PULL,
+				 GPIO_8MA, GPIO_DISABLE);
+		gpio_tlmm_config(5, 2, GPIO_INPUT, GPIO_NO_PULL,
+				 GPIO_8MA, GPIO_DISABLE);
+		break;
+	case 5:
+		/* configure rx gpio */
+		gpio_tlmm_config(9, 2, GPIO_INPUT, GPIO_NO_PULL,
+					GPIO_8MA, GPIO_DISABLE);
 
-	/* configure tx gpio */
-	gpio_tlmm_config(8, 2, GPIO_OUTPUT, GPIO_NO_PULL,
-				GPIO_8MA, GPIO_DISABLE);
+		/* configure tx gpio */
+		gpio_tlmm_config(8, 2, GPIO_OUTPUT, GPIO_NO_PULL,
+					GPIO_8MA, GPIO_DISABLE);
+		break;
+	}
 }
