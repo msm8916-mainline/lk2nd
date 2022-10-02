@@ -1,0 +1,28 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+#include <skeleton32.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8909 0>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 0x100>;
+};
+
+&lk2nd {
+	nokia-leo {
+		model = "Nokia 6300 4G";
+		compatible = "nokia,leo";
+		lk2nd,match-cmdline = "* androidboot.hw.name=leo *";
+
+		lk2nd,dtb-files = "msm8909-nokia-leo";
+
+	};
+
+	nokia-sparkler {
+		model = "Nokia 8000 4G";
+		compatible = "nokia,sparkler";
+		lk2nd,match-cmdline = "* androidboot.hw.name=sparkler *";
+
+		lk2nd,dtb-files = "msm8909-nokia-sparkler";
+	};
+};
