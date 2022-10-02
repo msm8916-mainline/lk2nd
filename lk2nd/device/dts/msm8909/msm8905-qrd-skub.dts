@@ -1,0 +1,28 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton32.dtsi>
+#include <lk2nd.dtsi>
+
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8905 0>;
+	qcom,board-id = <QCOM_BOARD_ID(QRD, 1, 0) 0x100>;
+};
+
+&lk2nd {
+	nokia-argon {
+		model = "Nokia 8110 4G";
+		compatible = "nokia,argon";
+		lk2nd,match-panel;
+
+		panel {
+			compatible = "nokia,argon-panel";
+
+			qcom,mdss_spi_gc9305_v2_qvga_cmd {
+				compatible = "nokia,argon-gc9305-v2-panel";
+			};
+		};
+	};
+};
