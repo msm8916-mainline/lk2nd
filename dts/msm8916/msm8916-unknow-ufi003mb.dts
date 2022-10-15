@@ -1,0 +1,15 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton.dtsi>
+#include <lk2nd.h>
+
+/ {
+ 	model= "Unbranded 4G UFI stick (UFI003_MB_V02)";
+	compatible = "unknow,ufi003-mb", "qcom,msm8916", "lk2nd,device";
+ 	qcom,board-id = <0x08 0x100>;
+ 	qcom,msm-id = <0xce 0x00 0xf8 0x00 0xf9 0x00 0xfa 0x00>;
+	//Register EDL button as HOME button in order to use the only button on the board into fastboot
+ 	lk2nd,keys = <KEY_HOME 37 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
+};
