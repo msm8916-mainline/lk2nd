@@ -9,6 +9,7 @@
 - Asus Zenfone 2 Laser (1080p) - Z00T
 - Asus Zenfone 2 Laser ZE500KL - Z00E
 - Asus Zenfone Max ZC550KL (2016) - Z010D
+- Asus ZenPad 8.0 - P024
 - BQ Aquaris M5 - piccolo
 - BQ Aquaris X5 - paella, picmt
 - DragonBoard 410c - apq8016-sbc
