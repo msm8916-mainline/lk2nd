@@ -49,6 +49,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Alcatel OneTouch Idol 3 (4.7) - 6039*
 - Alcatel OneTouch Idol 3 (5.5) - 6045*
 - ARK Benefit A3 - peach
+- ASUS ZenPad 8.0 - P024
 - Asus Zenfone 2 Laser (720p) - Z00L
 - Asus Zenfone 2 Laser (1080p) - Z00T
 - Asus Zenfone Max ZC550KL (2016) - Z010D
