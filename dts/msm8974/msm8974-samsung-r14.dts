@@ -12,5 +12,25 @@
 		model = "Samsung Galaxy S5 (SM-G900F)";
 		compatible = "samsung,klte", "qcom,msm8974", "lk2nd,device";
 		lk2nd,match-bootloader = "G900F*";
+
+		/*
+		* samsung-klte has at least 2 known panel variations:
+		* - S6E3FA2 (mdss_mdp.panel=1:dsi:0:mdss_dsi_samsung_1080p_cmd_fa2)
+		* - EA8064G (mdss_mdp.panel=1:dsi:0:mdss_dsi_samsung_1080p_cmd_mag)
+		* Upstream mainline kernel already has "samsung,s6e3fa2" compatible set
+		* for panel in dts, and we'll not change that. We'll only do
+		* replacement for ea8064g one (replace samsung,s6e3fa2 to
+		* samsung,ea8064g).
+		*/
+		panel {
+			/* Default is Samsung S6E3FA2 */
+			compatible = "samsung,s6e3fa2";
+			replace-compatible;
+
+			/* MagnaChip EA8064G */
+			mdss_dsi_samsung_1080p_cmd_mag {
+				compatible = "samsung,ea8064g";
+			};
+		};
 	};
 };
