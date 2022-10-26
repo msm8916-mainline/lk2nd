@@ -26,15 +26,15 @@
 
 #if defined(ARM_ISA_ARMV6) || defined(ARM_ISA_ARMV7)
 dcc_getc:
-	mrc 14, 0, r0, c0, c1, 0 
+	mrc p14, 0, r0, c0, c1, 0
 	tst r0, #(1 << 30)
 	moveq r0, #-1
-	mrcne 14, 0, r0, c0, c5, 0
+	mrcne p14, 0, r0, c0, c5, 0
 	bx lr
 
 dcc_putc:
-	mrc 14, 0, r15, c0, c1, 0 
-	mcrcc 14, 0, r0, c0, c5, 0
+	mrc p14, 0, apsr_nzcv, c0, c1, 0
+	mcrcc p14, 0, r0, c0, c5, 0
 	movcc r0, #0
 	movcs r0, #-1
 	bx lr
