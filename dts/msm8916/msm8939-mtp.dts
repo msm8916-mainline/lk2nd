@@ -35,12 +35,14 @@
 		lk2nd,match-panel;
 
 		panel {
+			compatible = "xiaomi,ferrari-panel";
+
 			qcom,mdss_dsi_sharp_rsp61322_1080p_video {
-				compatible = "xiaomi,sharp-rsp61322";
+				compatible = "xiaomi,ferrari-sharp-rsp61322";
 			};
 
 			qcom,mdss_dsi_jdi_nt35595_1080p_video {
-				compatible = "xiaomi,jdi-nt35595";
+				compatible = "xiaomi,ferrari-jdi-nt35595";
 			};
 		};
 	};
