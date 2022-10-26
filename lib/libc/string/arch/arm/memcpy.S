@@ -139,17 +139,38 @@ FUNCTION(memcpy)
 	msr		CPSR_f, r12				// move into NZCV fields in CPSR
 
 	// move as many bytes as necessary to get the dst aligned
-	ldrvsb	r3, [r1], #1			// V set
-	ldrcsh	r4, [r1], #2			// C set
-	ldreq	r5, [r1], #4			// Z set
+	bvc	v_unset1
+	ldr	r3, [r1], #1			// V set
 
-	strvsb	r3, [r0], #1
-	strcsh	r4, [r0], #2
-	streq	r5, [r0], #4
+v_unset1:
+	bcc	c_unset1
+	ldr	r4, [r1], #2			// C set
 
-	ldmmiia	r1!, {r3-r4}			// N set
-	stmmiia	r0!, {r3-r4}
+c_unset1:
+	bne	z_unset1
+	ldr	r5, [r1], #4			// Z set
 
+z_unset1:
+	bvc	v_unset2
+	str	r3, [r0], #1
+
+v_unset2:
+	bcc	c_unset2
+	str	r4, [r0], #2
+
+c_unset2:
+	bne	z_unset2
+	str	r5, [r0], #4
+
+z_unset2:
+	bpl	n_unset1
+	ldm	r1!, {r3-r4}			// N set
+
+n_unset1:
+	bpl	n_unset2
+	stm	r0!, {r3-r4}
+
+n_unset2:
 	// fix the remaining len
 	sub		r2, r2, r12, lsr #28
 
@@ -157,7 +178,7 @@ FUNCTION(memcpy)
 	cmp		r2, #32
 	bhs		.L_bigcopy
 	b		.L_wordwise
-	
+
 	// src and dest overlap 'forwards' or dst > src
 .L_forwardoverlap:
 

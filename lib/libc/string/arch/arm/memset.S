@@ -99,8 +99,14 @@ FUNCTION(memset)
 	msr     CPSR_f, r3             // move into NZCV fields in CPSR
 
 	// move as many bytes as necessary to get the dst aligned
-	strvsb  r1, [r0], #1			// V set
-	strcsh  r1, [r0], #2			// C set
+	bvc	v_unset
+	str	r1, [r0], #1			// V set
+
+v_unset:
+	bcc	c_unset
+	str	r1, [r0], #2			// C set
+
+c_unset:
 	streq   r1, [r0], #4			// Z set
 	strmi   r1, [r0], #4			// N set
 	strmi   r1, [r0], #4			// N set
