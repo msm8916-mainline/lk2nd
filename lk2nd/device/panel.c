@@ -23,6 +23,7 @@ static int lk2nd_panel_detect(const void *dtb, int node)
 	struct lk2nd_panel *panel = &lk2nd_dev.panel;
 	const char *old, *new, *ts;
 	int old_len, new_len, ts_len;
+	bool replace_mode;
 
 	/* Should have been set from parsed command line or display driver */
 	if (!panel->name) {
@@ -33,6 +34,8 @@ static int lk2nd_panel_detect(const void *dtb, int node)
 	old = getprop_str(dtb, node, "compatible", &old_len);
 	if (!old || old_len < 0)
 		return old_len;
+
+	replace_mode = !!fdt_getprop(dtb, node, "replace-compatible", NULL);
 
 	node = fdt_subnode_offset(dtb, node, panel->name);
 	if (node < 0) {
@@ -53,6 +56,9 @@ static int lk2nd_panel_detect(const void *dtb, int node)
 
 	strlcpy((char *)panel->compatible, new, new_len);
 	strlcpy((char *)panel->old_compatible, old, old_len);
+
+	if (replace_mode)
+		panel->compatible_size = new_len;
 
 	ts = fdt_getprop(dtb, node, "touchscreen-compatible", &ts_len);
 	if (ts && ts_len > 0)
