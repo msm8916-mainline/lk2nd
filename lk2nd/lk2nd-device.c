@@ -257,6 +257,7 @@ static void lk2nd_parse_panels(const void *fdt, int offset)
 	struct lk2nd_panel *panel = &lk2nd_dev.panel;
 	const char *old, *new, *ts;
 	int old_len, new_len, ts_len;
+	bool replace_mode = false;
 
 	offset = fdt_subnode_offset(fdt, offset, "panel");
 	if (offset < 0)
@@ -265,6 +266,8 @@ static void lk2nd_parse_panels(const void *fdt, int offset)
 	old = lkfdt_getprop_str(fdt, offset, "compatible", &old_len);
 	if (!old || old_len < 1)
 		return;
+
+	replace_mode = !!fdt_getprop(fdt, offset, "replace-compatible", NULL);
 
 	offset = fdt_subnode_offset(fdt, offset, panel->name);
 	if (offset < 0) {
@@ -285,6 +288,9 @@ static void lk2nd_parse_panels(const void *fdt, int offset)
 
 	strlcpy((char*) panel->compatible, new, new_len);
 	strlcpy((char*) panel->old_compatible, old, old_len);
+
+	if (replace_mode)
+		panel->compatible_size = new_len;
 
 	ts = lkfdt_getprop_str(fdt, offset, "touchscreen-compatible", &ts_len);
 	if (!ts || ts_len < 1)
