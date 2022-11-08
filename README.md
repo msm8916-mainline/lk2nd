@@ -45,6 +45,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 
 ## Supported devices
 ### lk2nd-msm8916
+- Acer Iconia Talk S A1-724 (quirky - see comment in `dts/msm8916/msm8916-mtp-smb1360.dts`)
 - Alcatel OneTouch Idol 3 (4.7) - 6039*
 - Alcatel OneTouch Idol 3 (5.5) - 6045*
 - ARK Benefit A3 - peach

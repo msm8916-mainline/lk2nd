@@ -9,6 +9,25 @@
 	qcom,msm-id = <206 0>;
 	qcom,board-id = <8 1>;
 
+	/*
+	* To get a working build for acer-a1-724, comment out all lines
+	* except $(LOCAL_DIR)/msm8916-mtp-smb1360.dtb in rules.mk in this
+	* directory.
+	* a1-724 does not work with all dtbs enabled; the bootloader gets
+	* upset and goes into the phone's fastboot.
+	*/
+	acer-a1-724 {
+		model = "Acer Iconia Talk S A1-724";
+		compatible = "acer,a1-724", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-panel;
+
+		panel {
+			qcom,mdss_dsi_hx8394d_720p_video {
+				compatible = "acer,a1-724-hx8394d";
+			};
+		};
+	};
+
 	alcatel-idol347 {
 		model = "Alcatel OneTouch Idol 3 (4.7)";
 		compatible = "alcatel,idol347", "qcom,msm8916", "lk2nd,device";
