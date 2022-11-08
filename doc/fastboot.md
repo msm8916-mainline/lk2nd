@@ -16,7 +16,7 @@ Not all of those commands may be available depending on the platform, use
 - `oem dump-saw2` Get SAW2 configuration.
 
 Data from staged storage can be downloaded using `fastboot get_staged [FILE]` command.
-*FILE* can also be `/dev/stdout` to print the output to the console.  
+*FILE* can also be `/dev/stdout` to print the output to the console.
 Some useful pipelines are:
 - `fastboot oem lk_log && fastboot get_staged /dev/stdout`
 - `fastboot oem screenshot && fastboot get_staged /dev/stdout | convert - lk2nd.png`
@@ -30,4 +30,3 @@ Some useful pipelines are:
 ## msm8916 specific commands
 
 - `oem dump-speedbin` Print speed binning of the SoC.
-

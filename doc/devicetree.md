@@ -110,7 +110,7 @@ lk2nd contains some helper properties described below.
 ```
 This property is used to override default key configuration in case the device
 implements them differently. `lk2nd.h` MUST be included to use constants for
-this property. 
+this property.
 
 ## Panel selection
 Some device models may have different display panels between individual devices.
@@ -134,6 +134,3 @@ Example:
 		};
 	};
 ```
-
-
-
