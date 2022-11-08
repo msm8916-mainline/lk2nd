@@ -7,14 +7,14 @@
 
 lk2nd uses DeviceTree to describe specific devices that it supports.
 
-DT files are stored in the `/dts` dirrectory, categorised by the target pltform,
+DT files are stored in the `/dts` directory, categorised by the target platform,
 e.g. `msm8916`. Each DT file has it's own `board-id` and is responsible for one
 or multiple devices. If only one device is described in the DTS file, it's
-properties can be decribed in the root node of the tree. For multple devices in
+properties can be described in the root node of the tree. For multiple devices in
 one file subnodes are created for each supported device with one of `match-xxx`
-proprties used to choose matching subnods.
+properties used to choose matching subnods.
 
-Many useful constats are defined in `lk2nd.h` header file, C preprocesor style
+Many useful constants are defined in `lk2nd.h` header file, C preprocesor style
 includes **MUST** be used for both including headers and dtsi files.
 
 ## example.dts
@@ -75,7 +75,7 @@ value of SoC in the Linux tree. Third value MUST be `"lk2nd,device"`.
 In the future this property might be used to select DeviceTree for Linux.
 
 ## Matching properties
-lk2nd has multiple ways to detct on which device in the dts it was started.
+lk2nd has multiple ways to detect on which device in the dts it was started.
 If dts file describes multiple devices, one of matching properties MUST be used.
 
 ### `lk2nd,match-bootloader`
@@ -108,7 +108,7 @@ lk2nd contains some helper properties described below.
 		<KEY_VOLUMEDOWN 107 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>,
 		<KEY_VOLUMEUP   108 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
 ```
-This property is used to overide default key configuration in case the device
+This property is used to override default key configuration in case the device
 implements them differently. `lk2nd.h` MUST be included to use constants for
 this property. 
 
