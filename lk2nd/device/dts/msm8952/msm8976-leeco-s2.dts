@@ -1,0 +1,16 @@
+// SPDX-License-Identifier: GPL-2.0
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <278 0x10001>;
+	qcom,board-id= <0xb 0>;
+};
+
+&lk2nd {
+	leeco-s2 {
+		model = "Leeco Le S2";
+		compatible = "leeco,s2";
+	};
+};
