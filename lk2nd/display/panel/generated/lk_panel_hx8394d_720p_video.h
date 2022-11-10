@@ -144,6 +144,9 @@ static char hx8394d_720p_video_on_cmd_22[] = {
 static char hx8394d_720p_video_on_cmd_23[] = {
 	0x55, 0x01, 0x15, 0x80
 };
+static char hx8394d_720p_video_on_cmd_24[] = {
+	0x51, 0xe1, 0x15, 0x80	/* Set brightness to maximum 225 */
+};
 
 static struct mipi_dsi_cmd hx8394d_720p_video_on_command[] = {
 	{ sizeof(hx8394d_720p_video_on_cmd_0), hx8394d_720p_video_on_cmd_0, 0 },
@@ -170,6 +173,7 @@ static struct mipi_dsi_cmd hx8394d_720p_video_on_command[] = {
 	{ sizeof(hx8394d_720p_video_on_cmd_21), hx8394d_720p_video_on_cmd_21, 10 },
 	{ sizeof(hx8394d_720p_video_on_cmd_22), hx8394d_720p_video_on_cmd_22, 0 },
 	{ sizeof(hx8394d_720p_video_on_cmd_23), hx8394d_720p_video_on_cmd_23, 5 },
+	{ sizeof(hx8394d_720p_video_on_cmd_24), hx8394d_720p_video_on_cmd_24, 0 },
 };
 
 static char hx8394d_720p_video_off_cmd_0[] = {
