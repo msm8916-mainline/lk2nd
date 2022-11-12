@@ -59,4 +59,18 @@ int lkfdt_get_reg(const void *fdt, int parent, int node, uint32_t *addr, uint32_
  */
 int lkfdt_lookup_phandle(const void *fdt, int node, const char *prop) __PURE;
 
+/**
+ * lkfdt_setprop_by_node_paths() - Set a property on every specified node
+ * @fdt: Device tree blob
+ * @name: Name of the property
+ * @value: Property value to be set
+ * @len: Length of the property value
+ * @paths: Array of device tree node paths, terminated with NULL
+ *
+ * Return: 0 if successful, <0 libfdt error
+ */
+int lkfdt_setprop_by_node_paths(void *fdt, const char *name,
+				const void *value, int len,
+				const char **paths);
+
 #endif /* LK2ND_UTIL_LKFDT_H */

@@ -79,4 +79,20 @@ int lkfdt_lookup_phandle(const void *fdt, int node, const char *prop)
 
 	return fdt_node_offset_by_phandle(fdt, fdt32_to_cpu(*phandle));
 }
+
+int lkfdt_setprop_by_node_paths(void *fdt, const char *name,
+				const void *value, int len,
+				const char **paths)
+{
+	for (; *paths; paths++) {
+		int ret, offset = fdt_path_offset(fdt, *paths);
+		if (offset < 0)
+			continue;
+
+		ret = fdt_setprop(fdt, offset, name, value, len);
+		if (ret != 0)
+			return ret;
+	}
+	return 0;
+}
 #endif /* WITH_LIB_LIBFDT */
