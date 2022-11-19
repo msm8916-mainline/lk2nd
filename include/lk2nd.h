@@ -13,6 +13,7 @@ struct lk2nd_panel {
 	const char *old_compatible;
 	const char *compatible;
 	int compatible_size;
+	const char *ts_compatible;
 };
 
 struct lk2nd_keymap {
