@@ -21,8 +21,8 @@ static const char *getprop_str(const void *dtb, int node, const char *prop, int 
 static int lk2nd_panel_detect(const void *dtb, int node)
 {
 	struct lk2nd_panel *panel = &lk2nd_dev.panel;
-	const char *old, *new;
-	int old_len, new_len;
+	const char *old, *new, *ts;
+	int old_len, new_len, ts_len;
 
 	/* Should have been set from parsed command line or display driver */
 	if (!panel->name) {
@@ -53,6 +53,11 @@ static int lk2nd_panel_detect(const void *dtb, int node)
 
 	strlcpy((char *)panel->compatible, new, new_len);
 	strlcpy((char *)panel->old_compatible, old, old_len);
+
+	ts = fdt_getprop(dtb, node, "touchscreen-compatible", &ts_len);
+	if (ts && ts_len > 0)
+		panel->ts_compatible = strndup(ts, ts_len);
+
 	return 0;
 }
 LK2ND_DEVICE_INIT("lk2nd,panel", lk2nd_panel_detect);
@@ -61,7 +66,7 @@ static int lk2nd_panel_dt_update(void *dtb, const char *cmdline,
 				 enum boot_type boot_type)
 {
 	struct lk2nd_panel *panel = &lk2nd_dev.panel;
-	int node;
+	int node, ret;
 
 	if (!panel->compatible || boot_type & (BOOT_DOWNSTREAM | BOOT_LK2ND))
 		return 0;
@@ -73,7 +78,25 @@ static int lk2nd_panel_dt_update(void *dtb, const char *cmdline,
 		return 0; /* Still continue boot */
 	}
 
-	return fdt_setprop(dtb, node, "compatible",
-			   panel->compatible, panel->compatible_size);
+	ret = fdt_setprop(dtb, node, "compatible", panel->compatible,
+			  panel->compatible_size);
+	if (ret < 0)
+		return ret;
+
+	/* Enable associated touchscreen if any */
+	if (panel->ts_compatible) {
+		node = fdt_node_offset_by_compatible(dtb, -1, panel->ts_compatible);
+		if (node < 0)
+			return 0;
+
+		ret = fdt_nop_property(dtb, node, "status");
+		if (ret < 0) {
+			dprintf(CRITICAL, "Failed to enable %s touchscreen: %d\n",
+				panel->ts_compatible, ret);
+			return ret;
+		}
+	}
+
+	return 0;
 }
 DEV_TREE_UPDATE(lk2nd_panel_dt_update);
