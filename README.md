@@ -16,6 +16,7 @@ and then loaded by lk2nd.
 
 ### Supported devices
 - Motorola Moto G4 Play (harpia)
+- Motorola Moto G5 Plus (potter)
 - Samsung Galaxy A3 (2015) - SM-A300FU
 - Samsung Galaxy A5 (2015) - SM-A500FU
 - Samsung Galaxy J5 (2016) - SM-J510FN
