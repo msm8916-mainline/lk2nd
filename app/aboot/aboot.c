@@ -2423,9 +2423,6 @@ int boot_linux_from_flash(void)
 		/* Second image loading not implemented. */
 		ASSERT(0);
 	}
-	/* Move kernel and ramdisk to correct address */
-	memmove((void*) hdr->kernel_addr, (char*) (image_addr + page_size), hdr->kernel_size);
-	memmove((void*) hdr->ramdisk_addr, (char*) (image_addr + page_size + kernel_actual), hdr->ramdisk_size);
 
 #if DEVICE_TREE
 	if(dt_size != 0) {
@@ -2504,6 +2501,11 @@ int boot_linux_from_flash(void)
 		}
          }
 #endif
+
+	/* Move kernel and ramdisk to correct address */
+	memmove((void*) hdr->kernel_addr, (char*) (image_addr + page_size), hdr->kernel_size);
+	memmove((void*) hdr->ramdisk_addr, (char*) (image_addr + page_size + kernel_actual), hdr->ramdisk_size);
+
 	if(target_use_signed_kernel() && (!device.is_unlocked))
 	{
 		/* Make sure everything from scratch address is read before next step!*/
