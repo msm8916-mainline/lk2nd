@@ -20,7 +20,7 @@ esac
 case "$DRONE_STEP_NAME" in
 *gcc4*)
 	wget https://gitlab.com/postmarketOS/pmbootstrap/raw/master/pmb/data/keys/build.postmarketos.org.rsa.pub -P /etc/apk/keys
-	echo https://mirror.postmarketos.org/postmarketos/v21.12 >> /etc/apk/repositories
+	echo https://mirror.postmarketos.org/postmarketos/v22.12 >> /etc/apk/repositories
 	apk add gcc4-armv7
 	TOOLCHAIN_PREFIX=gcc4-armv7-alpine-linux-musleabihf-
 	;;
@@ -29,4 +29,5 @@ case "$DRONE_STEP_NAME" in
 	TOOLCHAIN_PREFIX=arm-none-eabi-
 esac
 
+"$TOOLCHAIN_PREFIX"gcc --version
 exec make -j$(nproc) TOOLCHAIN_PREFIX=$TOOLCHAIN_PREFIX "$@"
