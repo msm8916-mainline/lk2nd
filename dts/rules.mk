@@ -8,6 +8,7 @@ endif
 ifeq ($(PROJECT), msm8953-secondary)
 DTBS += \
 	$(LOCAL_DIR)/sdm450-samsung-r04.dtb \
+	$(LOCAL_DIR)/sdm450-xiaomi-rosy.dtb \
 	$(LOCAL_DIR)/msm8953-xiaomi-common.dtb \
 	$(LOCAL_DIR)/sdm632-fairphone-fp3.dtb \
 	$(LOCAL_DIR)/sdm632-motorola-ocean.dtb \
