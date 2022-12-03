@@ -31,7 +31,8 @@ and then loaded by lk2nd.
 - Motorola Moto G7 Power - ocean
 - Xiaomi Mi A2 Lite - daisy
 - Xiaomi Mi A1 - tissot
-- XIaomi Mi A2 Lite - daisy
+- Xiaomi Mi A2 Lite - daisy
+- Xiaomi Redmi 5 - rosy
 
 ## Installation
 1. Download `lk2nd.img` (as of now there's no build available so you'll need to build it yourself.)
