@@ -1,0 +1,36 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+#include <skeleton32.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8226 0>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 0>;
+};
+
+&lk2nd {
+	nokia-dempsey {
+		model = "Microsoft Lumia 640";
+		compatible = "nokia,dempsey";
+	};
+
+	nokia-makepeace {
+		model = "Microsoft Lumia 640 XL";
+		compatible = "nokia,makepeace";
+	};
+
+	nokia-moneypenny {
+		model = "Nokia Lumia 630";
+		compatible = "nokia,moneypenny";
+	};
+
+	nokia-superman {
+		model = "Nokia Lumia 730";
+		compatible = "nokia,superman";
+	};
+	
+	nokia-tesla {
+		model = "Nokia Lumia 830";
+		compatible = "nokia,tesla";
+	};
+};
