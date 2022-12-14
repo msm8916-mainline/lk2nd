@@ -40,6 +40,9 @@ static void mdp_cmd_signal_refresh(void)
 
 static void mdp_cmd_refresh_start(struct fbcon_config *fb)
 {
+#if ENABLE_AUTOREFRESH
+	writel((BIT(31) | 1), MDP_PP_0_BASE + MDSS_MDP_REG_PP_AUTOREFRESH_CONFIG);
+#else
 	thread_t *thr;
 
 	event_init(&refresh_event, false, EVENT_FLAG_AUTOUNSIGNAL);
@@ -53,6 +56,7 @@ static void mdp_cmd_refresh_start(struct fbcon_config *fb)
 
 	thread_resume(thr);
 	fb->update_start = mdp_cmd_signal_refresh;
+#endif
 }
 
 bool mdp_start_refresh(struct fbcon_config *fb)
