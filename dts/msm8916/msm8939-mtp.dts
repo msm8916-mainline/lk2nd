@@ -19,12 +19,15 @@
 
 			qcom,mdss_dsi_nt35596_1080p_video {
 				compatible = "alcatel,idol3-panel-nt35596";
+				touchscreen-compatible = "syna,rmi4-i2c";
 			};
 			qcom,mdss_dsi_nt35596_1080p_video_v03 {
 				compatible = "alcatel,idol3-panel-nt35596-v03";
+				touchscreen-compatible = "syna,rmi4-i2c";
 			};
 			qcom,mdss_dsi_r63315_1080p_video {
 				compatible = "alcatel,idol3-panel-r63315";
+				touchscreen-compatible = "edt,edt-ft5406";
 			};
 		};
 	};

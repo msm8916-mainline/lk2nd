@@ -61,13 +61,12 @@
 	};
 
 	a5ltezt {
-		// In the downstream dts it is called Samsung A5 PROJECT Rev02
 		model = "Samsung Galaxy A5 (SM-A500YZ)";
 		compatible = "samsung,a5u-eur", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "A500YZ*";
 
 		qcom,msm-id = <206 0>;
-		qcom,board-id = <0xCE08FF01 8>;
+		qcom,board-id = <0xCE08FF01 11>;
 		lk2nd,smd-rpm-hack-opening;
 	};
 

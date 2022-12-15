@@ -255,8 +255,8 @@ static const char *lkfdt_getprop_str(const void *fdt, int offset, const char *pr
 static void lk2nd_parse_panels(const void *fdt, int offset)
 {
 	struct lk2nd_panel *panel = &lk2nd_dev.panel;
-	const char *old, *new;
-	int old_len, new_len;
+	const char *old, *new, *ts;
+	int old_len, new_len, ts_len;
 
 	offset = fdt_subnode_offset(fdt, offset, "panel");
 	if (offset < 0)
@@ -285,6 +285,16 @@ static void lk2nd_parse_panels(const void *fdt, int offset)
 
 	strlcpy((char*) panel->compatible, new, new_len);
 	strlcpy((char*) panel->old_compatible, old, old_len);
+
+	ts = lkfdt_getprop_str(fdt, offset, "touchscreen-compatible", &ts_len);
+	if (!ts || ts_len < 1)
+		return;
+
+	panel->ts_compatible = malloc(ts_len);
+	ASSERT(panel->ts_compatible);
+	strlcpy((char*) panel->ts_compatible, ts, ts_len + 1);
+
+	dprintf(INFO, "Found touchscreen-compatible: %s\n", panel->ts_compatible);
 }
 
 static struct lk2nd_keymap* lk2nd_parse_keys(const void *fdt, int offset)
@@ -443,6 +453,17 @@ static void lk2nd_update_panel_compatible(void *fdt)
 	ret = fdt_setprop(fdt, offset, "compatible", panel->compatible, panel->compatible_size);
 	if (ret)
 		dprintf(CRITICAL, "Failed to update panel compatible: %d\n", ret);
+
+	/* Enable associated touchscreen if any */
+	if (panel->ts_compatible) {
+		offset = fdt_node_offset_by_compatible(fdt, -1, panel->ts_compatible);
+		if (offset < 0)
+			return;
+
+		ret = fdt_nop_property(fdt, offset, "status");
+		if (ret)
+			dprintf(CRITICAL, "Failed to NOP touchscreen status: %d\n", ret);
+	}
 }
 
 bool lk2nd_cmdline_scan(const char *cmdline, const char *arg)
