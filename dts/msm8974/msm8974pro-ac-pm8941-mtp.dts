@@ -1,0 +1,25 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton.dtsi>
+#include <lk2nd.h>
+
+/ {
+	// There are devices that identify themselves as msm8974pro-ac-pm8941-mtp,
+	// even when they are really not (at least physically).
+	// Therefore we need other things we can match on (e.g. the cmdline).
+	compatible = "qcom,msm8974-mtp", "qcom,msm8974";
+	qcom,msm-id = <194 0x10000>;
+	qcom,board-id = <8 0>;
+
+	oneplus-bacon {
+		model = "OnePlus One";
+		compatible = "oneplus,bacon", "qcom,msm8974", "lk2nd,device";
+		lk2nd,match-cmdline = "* androidboot.hardware=bacon *";
+
+		lk2nd,keys =
+			<KEY_VOLUMEUP   PM_GPIO(5) PM_GPIO_PULL_UP_1_5>,
+			<KEY_VOLUMEDOWN PM_GPIO(2) PM_GPIO_PULL_UP_1_5>;
+	};
+};
