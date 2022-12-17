@@ -520,6 +520,7 @@ void lk2nd_update_device_tree(void *fdt, const char *cmdline, bool arm64)
 {
 	/* Don't touch lk2nd/downstream dtb */
 	if (lk2nd_cmdline_scan(cmdline, "androidboot.hardware=qcom") ||
+	    lk2nd_cmdline_scan(cmdline, "androidboot.hardware=bacon") ||
 	    lk2nd_cmdline_scan(cmdline, "lk2nd"))
 		return;
 
