@@ -1,0 +1,3 @@
+#include "msm8974-display-stubs.dtsi"
+#include "msm8974pro-ac-shinano_leo_common.dtsi"
+#include "dsi-panel-leo.dtsi"
