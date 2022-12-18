@@ -37,3 +37,12 @@
 			<KEY_VOLUMEDOWN PM_GPIO(2) PM_GPIO_PULL_UP_1_5>;
 	};
 };
+
+/*
+ * The stock bootloader of sony-leo uses parts of the dts to initialize the
+ * screen. So to get continous splash initialized by the first bootloader we
+ * need to include these dts parts here.
+ *
+ * FIXME: This won't work if more Sony devices are added here...
+ */
+#include "sony/msm8974pro-ac-shinano_leo-display.dtsi"
