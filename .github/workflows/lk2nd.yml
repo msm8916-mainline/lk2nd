@@ -1,0 +1,42 @@
+name: lk2nd
+on: [push, pull_request]
+jobs:
+  lk2nd-msm8916:
+    uses: ./.github/workflows/build.yml
+    with:
+      project: lk2nd-msm8916
+
+  lk2nd:
+    needs: lk2nd-msm8916
+    strategy:
+      matrix:
+        project: [lk2nd-msm8226, lk2nd-msm8974]
+    uses: ./.github/workflows/build.yml
+    with:
+      project: ${{ matrix.project }}
+
+  lk1st:
+    needs: lk2nd-msm8916
+    strategy:
+      matrix:
+        project: [lk1st-msm8916]
+    uses: ./.github/workflows/build.yml
+    with:
+      project: ${{ matrix.project }}
+
+  lk1st-msm8916-db410c:
+    needs: lk2nd-msm8916
+    uses: ./.github/workflows/build.yml
+    with:
+      project: lk1st-msm8916
+      vars: FORCE_SDCARD=1 LK1ST_DTB=apq8016-sbc LK1ST_PANEL=adv7533_1080p_video
+
+  caf:
+    needs: lk2nd-msm8916
+    strategy:
+      matrix:
+        project: [msm8916, msm8974, msm8226]
+    uses: ./.github/workflows/build.yml
+    with:
+      project: ${{ matrix.project }}
+
