@@ -639,7 +639,9 @@ unsigned char *update_cmdline(const char *cmdline)
 	bool lk2nd = lk2nd_cmdline_scan(cmdline, "lk2nd");
 
 	/* Only add to cmdline if downstream or lk2nd */
-	if (!lk2nd_cmdline_scan(cmdline, "androidboot.hardware=qcom") && !lk2nd)
+	if (!lk2nd_cmdline_scan(cmdline, "androidboot.hardware=qcom") &&
+	    !lk2nd_cmdline_scan(cmdline, "androidboot.hardware=bacon") &&
+	    !lk2nd)
 		return strdup(cmdline);
 
 	/* Use cmdline from original bootloader if available */

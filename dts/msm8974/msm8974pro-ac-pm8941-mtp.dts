@@ -1,0 +1,48 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton.dtsi>
+#include <lk2nd.h>
+
+/ {
+	// There are devices that identify themselves as msm8974pro-ac-pm8941-mtp,
+	// even when they are really not (at least physically).
+	// Therefore we need other things we can match on (e.g. the cmdline).
+	compatible = "qcom,msm8974-mtp", "qcom,msm8974";
+	qcom,msm-id = <194 0x10000>;
+	qcom,board-id = <8 0>;
+
+	oneplus-bacon {
+		model = "OnePlus One";
+		compatible = "oneplus,bacon", "qcom,msm8974", "lk2nd,device";
+		lk2nd,match-cmdline = "* androidboot.hardware=bacon *";
+
+		lk2nd,keys =
+			<KEY_VOLUMEUP   PM_GPIO(5) PM_GPIO_PULL_UP_1_5>,
+			<KEY_VOLUMEDOWN PM_GPIO(2) PM_GPIO_PULL_UP_1_5>;
+	};
+
+	sony-leo {
+		model = "Sony Xperia Z3";
+		compatible = "sony,xperia-leo", "qcom,msm8974", "lk2nd,device";
+		/*
+		 * Probably matches other Sony devices as well, but good enough
+		 * for now.
+		 */
+		lk2nd,match-cmdline = "* androidboot.bootloader=s1 *";
+
+		lk2nd,keys =
+			<KEY_VOLUMEUP   PM_GPIO(5) PM_GPIO_PULL_UP_1_5>,
+			<KEY_VOLUMEDOWN PM_GPIO(2) PM_GPIO_PULL_UP_1_5>;
+	};
+};
+
+/*
+ * The stock bootloader of sony-leo uses parts of the dts to initialize the
+ * screen. So to get continous splash initialized by the first bootloader we
+ * need to include these dts parts here.
+ *
+ * FIXME: This won't work if more Sony devices are added here...
+ */
+#include "sony/msm8974pro-ac-shinano_leo-display.dtsi"

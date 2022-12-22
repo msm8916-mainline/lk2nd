@@ -6,7 +6,7 @@ include $(LOCAL_DIR)/lk2nd-base.mk
 
 DEFINES += WITH_DEBUG_LOG_BUF=1
 
-APPSBOOTHEADER: $(OUTBOOTIMG) $(OUTODINTAR)
+APPSBOOTHEADER: $(OUTBOOTIMG) $(OUTBOOTIMGADTB) $(OUTODINTAR)
 ANDROID_BOOT_BASE := 0x00000000
 
 # Memory usually reserved for RMTFS, should be fine for early SMP bring-up
