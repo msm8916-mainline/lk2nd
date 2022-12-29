@@ -3343,6 +3343,15 @@ void cmd_continue(const char *arg, void *data, unsigned sz)
 		/* Exit keys' detection thread firstly */
 		exit_menu_keys_detection();
 #endif
+
+		/* Try to boot from first fs we can find */
+		ssize_t loaded_file = fsboot_boot_first(target_get_scratch_address(), target_get_max_flash_size());
+
+		if (loaded_file > 0)
+			cmd_boot(NULL, target_get_scratch_address(), target_get_max_flash_size());
+
+		dprintf(CRITICAL, "Unable to load boot.img from ext2. Continuing legacy boot\n");
+
 		boot_linux_from_mmc();
 	}
 	else
