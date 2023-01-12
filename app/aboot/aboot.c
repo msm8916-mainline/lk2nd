@@ -3465,7 +3465,7 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	/* fastboot already stop, it's no need to show fastboot menu */
 	return;
 boot_failed:
-#if FBCON_DISPLAY_MSG
+#if FBCON_DISPLAY_MSG || WITH_LK2ND_DEVICE_MENU
 	/* revert to fastboot menu if boot failed */
 	display_fastboot_menu();
 #endif
@@ -5713,7 +5713,7 @@ fastboot:
 	fastboot_init(ADD_SALT_BUFF_OFFSET(target_get_scratch_address()),
 		SUB_SALT_BUFF_OFFSET(target_get_max_flash_size()));
 #endif
-#if FBCON_DISPLAY_MSG
+#if FBCON_DISPLAY_MSG || WITH_LK2ND_DEVICE_MENU
 	display_fastboot_menu();
 #endif
 }
