@@ -110,6 +110,7 @@ void fbcon_clear(void);
 void fbcon_clear_msg(unsigned y_start, unsigned y_end);
 struct fbcon_config* fbcon_display(void);
 void fbcon_extract_to_screen(logo_img_header *header, void* address);
+void fbcon_putc_factor_xy(char c, int type, unsigned scale_factor, int x, int y);
 void fbcon_putc_factor(char c, int type, unsigned scale_factor, int y_start);
 void fbcon_draw_msg_background(unsigned y_start, unsigned y_end,
 	uint32_t paint, int update);

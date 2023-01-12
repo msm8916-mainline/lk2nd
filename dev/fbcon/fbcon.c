@@ -360,6 +360,27 @@ void fbcon_clear_msg(unsigned y_start, unsigned y_end)
 	}
 }
 
+void fbcon_putc_factor_xy(char c, int type, unsigned scale_factor, int x, int y)
+{
+	char *pixels;
+
+	/* ignore anything that happens before fbcon is initialized */
+	if (!config)
+		return;
+
+	if((unsigned char)c > 127 || (unsigned char)c < 32)
+		return;
+
+	fbcon_set_colors(type);
+
+	pixels = config->base;
+	pixels += y * (config->bpp / 8) * config->width;
+	pixels += x * (config->bpp / 8);
+
+	fbcon_drawglyph(pixels, FGCOLOR, config->stride, (config->bpp / 8),
+			font5x12 + (c - 32) * 2, scale_factor);
+}
+
 void fbcon_putc_factor(char c, int type, unsigned scale_factor, int y_start)
 {
 	char *pixels;
