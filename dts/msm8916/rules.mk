@@ -36,6 +36,8 @@ DTBS += \
 	$(LOCAL_DIR)/msm8916-samsung-r06.dtb \
 	$(LOCAL_DIR)/msm8916-samsung-r08.dtb \
 	$(LOCAL_DIR)/msm8916-samsung-r11.dtb \
+	$(LOCAL_DIR)/msm8239-samsung-r08.dtb \
+	$(LOCAL_DIR)/msm8239-samsung-r09.dtb \
 	$(LOCAL_DIR)/msm8929-samsung-r00.dtb \
 	$(LOCAL_DIR)/msm8929-samsung-r04.dtb \
 	$(LOCAL_DIR)/msm8939-asus-z00t.dtb \
