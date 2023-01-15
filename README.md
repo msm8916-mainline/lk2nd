@@ -111,7 +111,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Huawei Watch - sturgeon
 - LG G Watch R - lenok
 - Samsung Galaxy Grand 2 - SM-G7102
-- Samsung Galaxy Tab 4 10.1 (2014) - SM-T530
+- Samsung Galaxy Tab 4 10.1 (2014) - SM-T530, SM-T535
 
 ## Installation
 1. Download `lk2nd.img` (available in [Releases](https://github.com/msm8916-mainline/lk2nd/releases))
