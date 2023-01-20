@@ -19,6 +19,10 @@
 #include <reg.h>
 #include <string.h>
 
+#include <clock.h>
+#include <clock_pll.h>
+#include <clock_lib2.h>
+
 #include <lk2nd/playground.h>
 
 #define PRONTO_PMU_COMMON_GDSCR				0x24
@@ -34,6 +38,12 @@
 #define PRONTO_PMU_COMMON_AHB_CBCR			0x34
 #define PRONTO_PMU_COMMON_AHB_CBCR_CLK_EN		BIT(0)
 #define PRONTO_PMU_COMMON_AHB_CLK_OFF			BIT(31)
+
+#define PRONTO_PMU_CPU_AHB_CMD_RCGR			0x120
+#define PRONTO_PMU_CPU_AHB_CFG_RCGR			0x124
+#define PRONTO_PMU_PLL_MODE				0x1C0
+#define PRONTO_PMU_PLL_USER_CTL				0x1D0
+#define PRONTO_PMU_PLL_CONFIG_CTL			0x1D4
 
 #define PRONTO_PMU_COMMON_CSR				0x1040
 #define PRONTO_PMU_COMMON_CSR_A2XB_CFG_EN		BIT(0)
@@ -61,20 +71,100 @@
 
 #define GCC_WCSS_RESTART				0x01811000
 
-#define readl_relaxed readl
-#define writel_relaxed writel
+#define cxo_source_val		0
+#define wcnpll_source_val	1
+static struct clk_freq_tbl rcg_dummy_freq = F_END;
 
-#define readl_tight_poll_timeout(addr, val, cond, timeout_us) \
-({ \
-	unsigned i; \
-	for (i = 0; i < (timeout_us); ++i) { \
-		(val) = readl(addr); \
-		if (cond) \
-			break; \
-		udelay(1); \
-	} \
-	(cond) ? 0 : 1; \
-})
+static struct clk_ops clk_ops_cxo =
+{
+	.enable     = cxo_clk_enable,
+	.disable    = cxo_clk_disable,
+};
+
+static struct clk_ops clk_ops_pll =
+{
+	.enable = pll_clk_enable,
+	.disable = pll_clk_disable,
+	.get_rate = pll_clk_get_rate,
+	.get_parent = pll_clk_get_parent,
+};
+
+static struct clk_ops clk_ops_rcg =
+{
+	.enable     = clock_lib2_rcg_enable,
+	.set_rate   = clock_lib2_rcg_set_rate,
+};
+
+static struct clk_ops clk_ops_branch =
+{
+	.enable     = clock_lib2_branch_clk_enable,
+	.disable    = clock_lib2_branch_clk_disable,
+	.set_rate   = clock_lib2_branch_set_rate,
+};
+
+static struct fixed_clk cxo_clk_src =
+{
+	.c = {
+		.rate     = 19200000,
+		.dbg_name = "cxo_clk_src",
+		.ops      = &clk_ops_cxo,
+	},
+};
+
+static struct pll_clk wcnpll_clk_src = {
+	.rate = 480000000,
+	.mode_reg = (void *)(0xa21b000 + PRONTO_PMU_PLL_MODE),
+	.parent = &cxo_clk_src.c,
+	.c = {
+		.dbg_name = "wcnpll_clk",
+		.ops = &clk_ops_pll,
+	},
+};
+
+static struct clk_freq_tbl ftbl_wcss_cpu_ahb[] =
+{
+	F( 19200000,    cxo,  1, 0, 0),
+	F( 32000000, wcnpll, 15, 0, 0),
+	F(120000000, wcnpll,  4, 0, 0),
+	F(240000000, wcnpll,  2, 0, 0),
+	F(480000000, wcnpll,  1, 0, 0),
+	F_END
+};
+
+static struct rcg_clk wcss_cpu_ahb_clk_src =
+{
+	.cmd_reg      = (uint32_t *)(0xa21b000 + PRONTO_PMU_CPU_AHB_CMD_RCGR),
+	.cfg_reg      = (uint32_t *)(0xa21b000 + PRONTO_PMU_CPU_AHB_CFG_RCGR),
+	.set_rate     = clock_lib2_rcg_set_rate_hid,
+	.freq_tbl     = ftbl_wcss_cpu_ahb,
+	.current_freq = &rcg_dummy_freq,
+	.c = {
+		.dbg_name = "wcss_cpu_ahb_clk_src",
+		.ops      = &clk_ops_rcg,
+	},
+};
+
+static struct branch_clk wcss_ahb_clk =
+{
+	.cbcr_reg     = (uint32_t *)(0xa21b000 + PRONTO_PMU_COMMON_AHB_CBCR),
+	.parent       = &wcss_cpu_ahb_clk_src.c,
+	.halt_check   = 1,
+	.c = {
+		.dbg_name = "wcss_ahb_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
+static struct branch_clk wcss_cpu_clk =
+{
+	.cbcr_reg     = (uint32_t *)(0xa21b000 + PRONTO_PMU_COMMON_CPU_CBCR),
+	.parent       = &wcss_cpu_ahb_clk_src.c,
+	.halt_check   = 1,
+	.c = {
+		.dbg_name = "wcss_cpu_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
 
 static int pil_pronto_reset(uint32_t base, uint32_t start_addr)
 {
@@ -88,24 +178,16 @@ static int pil_pronto_reset(uint32_t base, uint32_t start_addr)
 	dsb();
 	udelay(2);
 
-	/* Configure boot address */
-	writel_relaxed(start_addr >> 16, base +
-			PRONTO_PMU_CCPU_BOOT_REMAP_ADDR);
+	/* Set up boot remapper */
+	writel_relaxed(start_addr >> 16, base + PRONTO_PMU_CCPU_BOOT_REMAP_ADDR);
 
-	/* Use the high vector table */
 	reg = readl_relaxed(base + PRONTO_PMU_CCPU_CTL);
-	reg |= PRONTO_PMU_CCPU_CTL_REMAP_EN/* | PRONTO_PMU_CCPU_CTL_HIGH_IVT*/;
+	reg |= PRONTO_PMU_CCPU_CTL_REMAP_EN;
 	writel_relaxed(reg, base + PRONTO_PMU_CCPU_CTL);
 
-	/* Turn on AHB clock of common_ss */
-	reg = readl_relaxed(base + PRONTO_PMU_COMMON_AHB_CBCR);
-	reg |= PRONTO_PMU_COMMON_AHB_CBCR_CLK_EN;
-	writel_relaxed(reg, base + PRONTO_PMU_COMMON_AHB_CBCR);
-
-	/* Turn on CPU clock of common_ss */
-	reg = readl_relaxed(base + PRONTO_PMU_COMMON_CPU_CBCR);
-	reg |= PRONTO_PMU_COMMON_CPU_CBCR_CLK_EN;
-	writel_relaxed(reg, base + PRONTO_PMU_COMMON_CPU_CBCR);
+	/* Setup WCNSS PLL */
+	writel_relaxed(0x30000109, base + PRONTO_PMU_PLL_USER_CTL);
+	writel_relaxed(0x0300403d, base + PRONTO_PMU_PLL_CONFIG_CTL);
 
 	/* Enable A2XB bridge */
 	reg = readl_relaxed(base + PRONTO_PMU_COMMON_CSR);
@@ -117,23 +199,20 @@ static int pil_pronto_reset(uint32_t base, uint32_t start_addr)
 	reg &= ~PRONTO_PMU_COMMON_GDSCR_SW_COLLAPSE;
 	writel_relaxed(reg, base + PRONTO_PMU_COMMON_GDSCR);
 
-	/* Wait for AHB clock to be on */
-	rc = readl_tight_poll_timeout(base + PRONTO_PMU_COMMON_AHB_CBCR,
-				      reg,
-				      !(reg & PRONTO_PMU_COMMON_AHB_CLK_OFF),
-				      CLK_UPDATE_TIMEOUT_US);
+	rc = clk_set_rate(&wcss_cpu_clk.c, 240000000);
 	if (rc) {
-		dprintf(CRITICAL, "pronto common ahb clk enable timeout\n");
+		dprintf(CRITICAL, "Failed to set WCNSS CPU clock rate: %d\n", rc);
 		return rc;
 	}
 
-	/* Wait for CPU clock to be on */
-	rc = readl_tight_poll_timeout(base + PRONTO_PMU_COMMON_CPU_CBCR,
-				      reg,
-				      !(reg & PRONTO_PMU_COMMON_CPU_CLK_OFF),
-				      CLK_UPDATE_TIMEOUT_US);
+	rc = clk_enable(&wcss_ahb_clk.c);
 	if (rc) {
-		dprintf(CRITICAL, "pronto common cpu clk enable timeout\n");
+		dprintf(CRITICAL, "Failed to enable WCNSS AHB clock: %d\n", rc);
+		return rc;
+	}
+	rc = clk_enable(&wcss_cpu_clk.c);
+	if (rc) {
+		dprintf(CRITICAL, "Failed to enable WCNSS CPU clock: %d\n", rc);
 		return rc;
 	}
 
@@ -143,6 +222,8 @@ static int pil_pronto_reset(uint32_t base, uint32_t start_addr)
 	/* Route UART IRQs to PHSS UART interrupts */
 	writel(BIT(0), 0x0194B080); /* UART1 */
 	writel(BIT(1), 0x0194B080 + 0x10); /* UART2 */
+
+	writel(BIT(3), 0x0194B100); /* I2C4 */
 
 	/* Deassert ARM9 software reset */
 	reg = readl_relaxed(base + PRONTO_PMU_SOFT_RESET);
