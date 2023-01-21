@@ -10,7 +10,7 @@
 	qcom,msm-id = <0xC708FF01 3 0x20000>;
 
 	matissewifi {
-		model = "Samsung Galaxy Tab 4 10.1 (SM-T530)";
+		model = "Samsung Galaxy Tab 4 10.1 WiFi (SM-T530)";
 		compatible = "samsung,matissewifi", "qcom,apq8026", "lk2nd,device";
 		lk2nd,match-bootloader = "T530*";
 
