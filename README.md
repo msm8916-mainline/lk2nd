@@ -102,8 +102,10 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Fairphone 2 - FP2
 - LG G3 - D855
 - LG Google Nexus 5 - hammerhead D820, D821
+- OnePlus One - bacon (use `lk2nd-msm8974-appended-dtb.img`)
 - Samsung Galaxy S5 - SM-G900F
 - Samsung Galaxy S5 China Unicom (Duos) - SM-G9006V/W
+- Sony Xperia Z3 - leo
 
 ### lk2nd-msm8226
 - ASUS ZenWatch 2 - sparrow
