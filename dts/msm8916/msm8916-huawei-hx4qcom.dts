@@ -5,7 +5,7 @@
 
 / {
 	qcom,msm-id = <206 0>,<248 0>,<249 0>,<250 0>;
-	qcom,board-id = <8034,4>,<8050,4>,<8082,4>,<8098,4>,<8114,4>,<8115,4>,<8130,4>,<8131,4>;
+	qcom,board-id = <8034 4>,<8050 4>,<8082 4>,<8098 4>,<8114 4>,<8115 4>,<8130 4>,<8131 4>;
 
 	model = "Huawei Honor 4X Qualcomm";
 	compatible = "huawei,h4xqcom", "qcom,msm8916", "lk2nd,device";
