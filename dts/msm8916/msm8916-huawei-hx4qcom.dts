@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 /dts-v1/;
-//dsi-panel-innolux-720p-video.dtsi
 #include <skeleton.dtsi>
 
 / {
