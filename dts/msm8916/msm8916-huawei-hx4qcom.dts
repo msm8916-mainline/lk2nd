@@ -11,7 +11,7 @@
 	compatible = "huawei,h4xqcom", "qcom,msm8916", "lk2nd,device";
 
 	panel {
-		compatible = "huawei,h4xqcom";
+		compatible = "huawei,h4xqcom-panel";
 
 		qcom,mdss_dsi_boe_nt35521_5p5_720pxa_video {
 			compatible = "huawei,boe-nt35521";
