@@ -113,6 +113,33 @@
 		};
 	};
 
+	fortuna3gdtvvj {
+		model = "Samsung Galaxy Grand Prime Duos TV (SM-G530BT)";
+		compatible = "samsung,fortuna3gdtv";
+		lk2nd,match-bootloader = "G530BT*";
+
+		// FIXME: lk2nd,dtb-files = "msm8216-samsung-fortuna3gdtv";
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x25>;
+			i2c-sda-gpios = <&tlmm 16 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 17 I2C_GPIO_FLAGS>;
+		};
+
+		panel {
+			compatible = "samsung,gprime-panel", "lk2nd,panel";
+
+			ss_dsi_panel_HX8389C_GH9607501A_QHD {
+				compatible = "samsung,hx8389c-gh9607501a";
+			};
+
+			ss_dsi_panel_S6D78A0_GH9607501A_QHD {
+				compatible = "samsung,s6d78a0-gh9607501a";
+			};
+		};
+	};
+
 	/* rev 8 */
 
 	a53g {
