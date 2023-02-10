@@ -6,11 +6,11 @@
 #include <lk2nd.h>
 
 / {
-    // This is used by the bootloader to find the correct DTB
+	// This is used by the bootloader to find the correct DTB
 	qcom,msm-id = <248 0>;
 	qcom,board-id = <0xF808FF01 7>;
 
-    fortuna3g {
+	fortuna3g {
 		model = "Samsung Galaxy Grand Prime 3G (SM-G530H)";
 		compatible = "samsung,fortuna3g", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "G530H*";
