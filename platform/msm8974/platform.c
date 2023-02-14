@@ -106,8 +106,8 @@ int platform_is_8974(void)
 	return ret;
 }
 
-/* Check for 8974 PRO chip */
-int platform_is_8974Pro(void)
+/* Check for 8974Pro AC chip */
+int platform_is_8974ac(void)
 {
 	uint32_t platform = board_platform_id();
 	int ret = 0;
@@ -127,8 +127,8 @@ int platform_is_8974Pro(void)
 	return ret;
 }
 
-/* Check for 8974PRO AC chip */
-int platform_is_8974ac(void)
+/* Check for 8974Pro chip */
+int platform_is_8974Pro(void)
 {
 	uint32_t platform = board_platform_id();
 	int ret = 0;
