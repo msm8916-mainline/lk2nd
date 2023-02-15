@@ -41,6 +41,9 @@
 	};
 
 	lenovo-phab {
+		qcom,msm-id = <206 0>;
+		qcom,board-id = <8 0>;
+		
 		model = "Lenovo PHAB";
 		compatible = "lenovo,phab", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-cmdline = "* mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_nt35590_720p_video:1:none";
