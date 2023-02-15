@@ -62,6 +62,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Huawei Y635 - Y635-L01 (quirky - see comment in `dts/msm8916/msm8916-huawei-y635-l01.dts`)
 - Lenovo A6000
 - Lenovo A6010
+- Lenovo PHAB - PB1-750M
 - Lenovo PHAB Plus - PB1-770M, PB1-770N, PB1-770P
 - Lenovo Vibe K5 - A6020a40, A6020a41
 - LG K10 (m216) - K420
