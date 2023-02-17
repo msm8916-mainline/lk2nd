@@ -42,6 +42,7 @@
 /*---------------------------------------------------------------------------*/
 /* GCDB Panel Database                                                       */
 /*---------------------------------------------------------------------------*/
+#include "include/panel_cmi_nt35521_5p5_720pxa_video.h"
 #include "include/panel_jdi_1080p_video.h"
 #include "include/panel_nt35590_720p_video.h"
 #include "include/panel_nt35590_720p_cmd.h"
@@ -80,6 +81,7 @@ uint32_t panel_regulator_settings[] = {
  * Any panel in this list can be selected using fastboot oem command.
  */
 static struct panel_list supp_panels[] = {
+	{"cmi_nt35521_5p5_720pxa_video", CMI_NT35521_5P5_720P_VIDEO_PANEL},
 	{"jdi_1080p_video", JDI_1080P_VIDEO_PANEL},
 	{"nt35590_720p_video", NT35590_720P_VIDEO_PANEL},
 	{"nt35590_720p_cmd", NT35590_720P_CMD_PANEL},
@@ -138,6 +140,22 @@ static int init_panel_data(struct panel_struct *panelstruct,
 	int pan_type = PANEL_TYPE_DSI;
 
 	switch (panel_id) {
+	case CMI_NT35521_5P5_720P_VIDEO_PANEL:
+	panel->paneldata = &cmi_nt35521_5p5_720pxa_video_panel_data;
+	panel->panelres = &cmi_nt35521_5p5_720pxa_video_panel_res;
+	panel->color = &cmi_nt35521_5p5_720pxa_video_color;
+	panel->videopanel = &cmi_nt35521_5p5_720pxa_video_video_panel;
+	panel->commandpanel = &cmi_nt35521_5p5_720pxa_video_command_panel;
+	panel->state = &cmi_nt35521_5p5_720pxa_video_state;
+	panel->laneconfig = &cmi_nt35521_5p5_720pxa_video_lane_config;
+	panel->paneltiminginfo = &cmi_nt35521_5p5_720pxa_video_timing_info;
+	panel->panelresetseq = &cmi_nt35521_5p5_720pxa_video_reset_seq;
+	panel->backlightinfo = &cmi_nt35521_5p5_720pxa_video_backlight;
+	pinfo->mipi.panel_cmds = cmi_nt35521_5p5_720pxa_video_on_command;
+	pinfo->mipi.num_of_panel_cmds = ARRAY_SIZE(cmi_nt35521_5p5_720pxa_video_on_command);
+	memcpy(phy_db->timing, cmi_nt35521_5p5_720pxa_video_timings, TIMING_SIZE);
+	phy_db->regulator_mode = DSI_PHY_REGULATOR_DCDC_MODE;
+		break;
 	case JDI_1080P_VIDEO_PANEL:
 		panelstruct->paneldata    = &jdi_1080p_video_panel_data;
 		panelstruct->paneldata->panel_with_enable_gpio = 1;
