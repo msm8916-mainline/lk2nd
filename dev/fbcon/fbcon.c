@@ -555,7 +555,7 @@ void fbcon_extract_to_screen(logo_img_header *header, void* address)
 
 }
 
-void display_default_image_on_screen(void)
+__WEAK void display_default_image_on_screen(void)
 {
 	unsigned i = 0;
 	unsigned total_x;
