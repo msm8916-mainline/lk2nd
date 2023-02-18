@@ -4,6 +4,11 @@ $(BUILDDIR)/%.o: %.c $(SRCDEPS)
 	@echo compiling $<
 	$(NOECHO)$(CC) $(CFLAGS) $(THUMBCFLAGS) --std=c99 $(INCLUDES) -c $< -MD -MT $@ -MF $(@:%o=%d) -o $@
 
+$(BUILDDIR)/%.o: $(BUILDDIR)/%.c $(SRCDEPS)
+	@$(MKDIR)
+	@echo compiling $<
+	$(NOECHO)$(CC) $(CFLAGS) $(THUMBCFLAGS) --std=c99 $(INCLUDES) -c $< -MD -MT $@ -MF $(@:%o=%d) -o $@
+
 $(BUILDDIR)/%.o: %.cpp $(SRCDEPS)
 	@$(MKDIR)
 	@echo compiling $<
