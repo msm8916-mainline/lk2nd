@@ -46,6 +46,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 
 ## Supported devices
 ### lk2nd-msm8909
+- Acer Liquid Z330 - T01
 
 ### lk2nd-msm8916
 - Acer Iconia Talk S A1-724 (quirky - see comment in `dts/msm8916/msm8916-mtp-smb1360.dts`)
