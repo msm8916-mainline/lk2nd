@@ -97,6 +97,7 @@ static void parse_boot_args(void)
 			parse_arg(suffix, "panel=", &lk2nd_dev.panel.name);
 		} else {
 			parse_arg(arg, "mdss_mdp.panel=", &panel_name);
+			parse_arg(arg, "mdss_mdp3.panel=", &panel_name);
 		}
 
 		arg = strtok_r(NULL, " ", &saveptr);
