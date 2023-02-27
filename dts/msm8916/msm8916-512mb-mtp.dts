@@ -20,6 +20,12 @@
 		lk2nd,match-cmdline = "* mdss_mdp.panel=1:spi:0:qcom,mdss_spi_st7735s_128128_cmd";
 	};
 
+	/*
+	 * Note:
+	 * Due to some unknown reasons, the stock aboot firmware is incompatible
+	 * with qhypstub and tz firmware from db410c, use lk1st if possible.
+	 */
+
 	zhihe-uz801-v3 {
 		model = "uz801 v3.0 4G Modem Stick";
 		compatible = "zhihe,uz801-v3", "qcom,msm8916", "lk2nd,device";
