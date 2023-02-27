@@ -17,5 +17,6 @@
 		/* Register EDL button as HOME button */
 		/* This is the only button on this device */
 		lk2nd,keys = <KEY_HOME 37 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
+		lk2nd,match-cmdline = "* mdss_mdp.panel=1:spi:0:qcom,mdss_spi_st7735s_128128_cmd";
 	};
 };
