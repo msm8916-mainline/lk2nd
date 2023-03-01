@@ -371,10 +371,12 @@ static void display_fastboot_menu_print_fw_info(char *msg, size_t msg_size)
 	uint32_t psci_version = PSCI_RET_NOT_SUPPORTED;
 	bool hvc_el2 = false;
 
+#if TARGET_MSM8916
 	snprintf(msg, msg_size, "\nARM64 - %s\n",
 		 armv8 ? "available" : "unavailable");
 	display_fbcon_menu_message(msg, armv8 ? FBCON_GREEN_MSG : FBCON_RED_MSG,
 				   common_factor);
+#endif
 
 	if (armv8) {
 		/* Check PSCI version */
