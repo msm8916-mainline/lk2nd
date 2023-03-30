@@ -7,12 +7,12 @@
 
 / {
 	// This is used by the bootloader to find the correct DTB
-	qcom,msm-id = <0xC708FF01 3 0x20000>;
+	qcom,msm-id = <0xC808FF01 2 0x10001>;
 
-	matissewifi {
-		model = "Samsung Galaxy Tab 4 10.1 WiFi (SM-T530)";
-		compatible = "samsung,matissewifi", "qcom,apq8026", "lk2nd,device";
-		lk2nd,match-bootloader = "T530*";
+	matisselte {
+		model = "Samsung Galaxy Tab 4 10.1 LTE (SM-T535)";
+		compatible = "samsung,matisselte", "qcom,msm8926", "lk2nd,device";
+		lk2nd,match-bootloader = "T535*";
 
 		lk2nd,keys =
 			<KEY_HOME       108 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>,

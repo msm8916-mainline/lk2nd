@@ -45,6 +45,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 
 ## Supported devices
 ### lk2nd-msm8916
+- Acer Iconia Talk S A1-724 (quirky - see comment in `dts/msm8916/msm8916-mtp-smb1360.dts`)
 - Alcatel OneTouch Idol 3 (4.7) - 6039*
 - Alcatel OneTouch Idol 3 (5.5) - 6045*
 - ARK Benefit A3 - peach
@@ -54,6 +55,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - BQ Aquaris M5 - piccolo (use `lk2nd-msm8916-appended-dtb.img`)
 - BQ Aquaris X5 - paella, picmt
 - DragonBoard 410c - apq8016-sbc
+- GPLUS FL8005A
 - HTC One M8s - m8qlul (quirky - see comment in `dts/msm8916/msm8939-htc-m8qlul.dts`)
 - Huawei Ascend G7 - G7-L01
 - Huawei Honor 5X - kiwi
@@ -61,6 +63,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Lenovo A6000
 - Lenovo A6010
 - Lenovo PHAB Plus - PB1-770M, PB1-770N, PB1-770P
+- Lenovo Vibe K5 - A6020a40, A6020a41
 - LG K10 (m216) - K420
 - LG Leon LTE (c50) - H340, H342, H343, H345, MS345, etc
 - LYF Wind 1 - ls5010
@@ -85,7 +88,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Samsung Galaxy On7 (2015) - SM-G6000
 - Samsung Galaxy S4 Mini Value Edition - GT-I9195I
 - Samsung Galaxy Tab 4 10.1 (2015) - SM-T533
-- Samsung Galaxy Tab A 8.0 (2015) - SM-T355, SM-T355Y, SM-T357W
+- Samsung Galaxy Tab A 8.0 (2015) - SM-T350, SM-T355, SM-T355Y, SM-T357W
 - Samsung Galaxy Tab A 9.7 (2015) - SM-T550, SM-T555
 - Samsung Galaxy Tab E 9.6 WiFi (2015) - SM-T560NU
 - Vodafone Smart prime 6
@@ -94,13 +97,16 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Xiaomi Redmi 2 - wt86047, wt88047
 - Xiaomi Redmi 3 - ido
 - Yamada EveryPad III (rebrand of Lenovo PHAB Plus)
+- Zhihe-series 4G Modem Stick - ufi-001c(b), uf896
 
 ### lk2nd-msm8974
 - Fairphone 2 - FP2
 - LG G3 - D855
 - LG Google Nexus 5 - hammerhead D820, D821
+- OnePlus One - bacon (use `lk2nd-msm8974-appended-dtb.img`)
 - Samsung Galaxy S5 - SM-G900F
 - Samsung Galaxy S5 China Unicom (Duos) - SM-G9006V/W
+- Sony Xperia Z3 - leo
 
 ### lk2nd-msm8226
 - ASUS ZenWatch 2 - sparrow
@@ -108,7 +114,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Huawei Watch - sturgeon
 - LG G Watch R - lenok
 - Samsung Galaxy Grand 2 - SM-G7102
-- Samsung Galaxy Tab 4 10.1 (2014) - SM-T530
+- Samsung Galaxy Tab 4 10.1 (2014) - SM-T530, SM-T535
 
 ## Installation
 1. Download `lk2nd.img` (available in [Releases](https://github.com/msm8916-mainline/lk2nd/releases))
@@ -157,15 +163,20 @@ $ make TOOLCHAIN_PREFIX=arm-none-eabi- lk2nd-msmXXXX
 **Requirements:**
 - ARM (32 bit) GCC tool chain
   - Arch Linux: `arm-none-eabi-gcc`
+  - Alpine Linux and postmarketOS: `gcc-arm-none-eabi`
   - Debian and Ubuntu: `gcc-arm-none-eabi`
   - Fedora: `arm-none-eabi-gcc-cs`
 - [Device Tree Compiler](https://git.kernel.org/pub/scm/utils/dtc/dtc.git)
   - Arch Linux: `dtc`
+  - Alpine Linux and postmarketOS: `dtc`
   - Debian and Ubuntu: `device-tree-compiler`
   - Fedora: `dtc`
 - libfdt
+  - Alpine Linux and postmarketOS: `dtc-dev`
   - Debian and Ubuntu: `libfdt-dev`
   - Fedora: `libfdt-devel`
+- GNU tar
+  - Alpine Linux and postmarketOS: `tar`
 
 Replace `TOOLCHAIN_PREFIX` with the path to your tool chain.
 `lk2nd.img` is built and placed into `build-lk2nd-msmXXXX/lk2nd.img`.
