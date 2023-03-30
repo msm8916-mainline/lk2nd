@@ -24,6 +24,7 @@
 		qcom,mdss_dsi_nt35596_1080p_skuk_video {
                 };
 		qcom,mdss_dsi_hx8394f_boe_720p_video {
+                        compatible = "xiaomi,hx8394f-boe";
                 };
 	};
 };
