@@ -5,8 +5,8 @@
 / {
 	#address-cells = <0x02>;
 	#size-cells = <0x02>;
-	qcom,msm-id = <0xce 0x00>;
-	qcom,board-id = <0x08 0x00>;
+	qcom,msm-id = <206 0>;
+	qcom,board-id = <8 0>;
 	model = "Coolpad Y80D";
 	compatible = "coolpad,coolpady80d", "qcom,msm8916", "lk2nd,device";
 //	yulong,pcb-id = <0x0a>;
