@@ -1,5 +1,5 @@
 /dts-v1/;
- 
+
 #include <skeleton.dtsi>
 
 / {
@@ -11,4 +11,14 @@
 	compatible = "coolpad,coolpady80d\0qcom,msm8916-mtp\0qcom,msm8916\0lk2nd,device\0qcom,mtp";
 //	yulong,pcb-id = <0x0a>;
 //	yulong,project-id = "Y80D";
+
+	lk2nd,match-panel;
+
+	panel {
+		compatible = "coolpad,coolpady80d-panel";
+
+		qcom,mdss_dsi_otm9605a_lide_qhd_video_550 {
+			compatible = "coolpad,otm9605-lide";
+		};
+	};
 };
