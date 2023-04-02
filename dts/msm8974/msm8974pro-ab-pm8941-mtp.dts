@@ -33,9 +33,11 @@
 
 			qcom,mdss_dsi_otm1902b_1080p_cmd {
 				compatible = "fairphone,fp2-panel-otm1902b";
+				touchscreen-compatible = "syna,rmi4-i2c";
 			};
 			qcom,mdss_dsi_s6d6fa1_1080p_video {
 				compatible = "fairphone,fp2-panel-s6d6fa1";
+				touchscreen-compatible = "ilitek,ili2120";
 			};
 		};
 	};

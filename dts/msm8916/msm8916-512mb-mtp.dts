@@ -1,0 +1,21 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton.dtsi>
+#include <lk2nd.h>
+
+/ {
+	compatible = "qcom,msm8916-512mb-mtp", "qcom,msm8916";
+	qcom,msm-id = <206 0>;
+	qcom,board-id = <8 0x100>;
+	
+	zhihe-ufi-001c {
+		model = "ufi-001b/ufi-001c 4G Modem Stick";
+		compatible = "zhihe,ufi-001c", "qcom,msm8916", "lk2nd,device";
+
+		/* Register EDL button as HOME button */
+		/* This is the only button on this device */
+		lk2nd,keys = <KEY_HOME 37 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
+	};
+};

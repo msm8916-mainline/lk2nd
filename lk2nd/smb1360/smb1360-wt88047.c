@@ -165,7 +165,7 @@ static int bq2022a_read_bat_id(int delay_time, int pimc_pin)
 	for (i = 0; i < 34; i++) {
 		bat_id = bq2022a_sdq_readbyte(delay_time);
 		pr_debug("reset_id:%x is_battery_feedback:%d temp ID:%x!!\n", reset_id, is_battery_feedback, bat_id);
-		if ((bat_id != con_bat_id[i]) && (i < 8)) {
+		if ((i < 8) && (bat_id != con_bat_id[i])) {
 			pr_err("read family code Error!!\n");
 			break;
 		}

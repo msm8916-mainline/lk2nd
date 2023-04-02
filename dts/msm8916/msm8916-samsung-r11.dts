@@ -10,6 +10,13 @@
 	qcom,msm-id = <206 0>;
 	qcom,board-id = <0xCE08FF01 11>;
 
+	a5ltezt {
+		model = "Samsung Galaxy A5 (SM-A500YZ)";
+		compatible = "samsung,a5u-eur", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "A500YZ*";
+		lk2nd,smd-rpm-hack-opening;
+	};
+
 	/*
 	 * Before building for G530Y, please comment out all dtbs except
 	 * "$(LOCAL_DIR)/msm8916-samsung-r11.dtb" at './rules.mk'.

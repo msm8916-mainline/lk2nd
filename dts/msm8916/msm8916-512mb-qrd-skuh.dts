@@ -1,0 +1,19 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton.dtsi>
+#include <lk2nd.h>
+
+/ {
+	compatible = "qcom,msm8916-qrd-skuh", "qcom,msm8916";
+	qcom,msm-id = <206 0>;
+	qcom,board-id = <0x1000b 0x100>;
+
+	zhihe-uf896 {
+		model = "uf896 4G Modem Stick";
+		compatible = "zhihe,uf896", "qcom,msm8916", "lk2nd,device";
+
+		lk2nd,keys = <KEY_HOME 35 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+	};
+};
