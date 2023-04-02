@@ -9,5 +9,6 @@
 #include "lk_panel_r69431_720p_video.h"
 #include "lk_panel_tianma_nt35521_5p5_720p_video.h"
 #include "lk_panel_yushun_nt35520_720p_cmd.h"
+#include "lk_panel_otm9605a_lide_qhd_video_550.h"
 
 #endif /* _LK2ND_GENERATED_PANELS_H_ */
