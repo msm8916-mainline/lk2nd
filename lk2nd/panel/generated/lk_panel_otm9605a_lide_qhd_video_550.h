@@ -563,7 +563,7 @@ static char otm9605a_lide_qhd_video_550_on_cmd_144[] = {
 	0x29, 0x00, 0x05, 0x80
 };
 static char otm9605a_lide_qhd_video_550_on_cmd_145[] = {
-	0x51, 0xfa, 0x15, 0x80 /* https://github.com/msm8916-mainline/lk2nd/commit/3d8b68ddef17afeaba7b34180489370598cdaaea */
+	0x51, 0xff, 0x15, 0x80 /* https://github.com/msm8916-mainline/lk2nd/commit/3d8b68ddef17afeaba7b34180489370598cdaaea */
 };
 
 static struct mipi_dsi_cmd otm9605a_lide_qhd_video_550_on_command[] = {
