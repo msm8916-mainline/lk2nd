@@ -562,6 +562,9 @@ static char otm9605a_lide_qhd_video_550_on_cmd_143[] = {
 static char otm9605a_lide_qhd_video_550_on_cmd_144[] = {
 	0x29, 0x00, 0x05, 0x80
 };
+static char otm9605a_lide_qhd_video_550_on_cmd_145[] = {
+	0x51, 0xfa, 0x15, 0x80 /* https://github.com/msm8916-mainline/lk2nd/commit/3d8b68ddef17afeaba7b34180489370598cdaaea */
+};
 
 static struct mipi_dsi_cmd otm9605a_lide_qhd_video_550_on_command[] = {
 	{ sizeof(otm9605a_lide_qhd_video_550_on_cmd_0), otm9605a_lide_qhd_video_550_on_cmd_0, 0 },
@@ -709,6 +712,7 @@ static struct mipi_dsi_cmd otm9605a_lide_qhd_video_550_on_command[] = {
 	{ sizeof(otm9605a_lide_qhd_video_550_on_cmd_142), otm9605a_lide_qhd_video_550_on_cmd_142, 0 },
 	{ sizeof(otm9605a_lide_qhd_video_550_on_cmd_143), otm9605a_lide_qhd_video_550_on_cmd_143, 120 },
 	{ sizeof(otm9605a_lide_qhd_video_550_on_cmd_144), otm9605a_lide_qhd_video_550_on_cmd_144, 20 },
+	{ sizeof(otm9605a_lide_qhd_video_550_on_cmd_145), otm9605a_lide_qhd_video_550_on_cmd_145, 0}, /* ibid. */
 };
 
 static char otm9605a_lide_qhd_video_550_off_cmd_0[] = {
