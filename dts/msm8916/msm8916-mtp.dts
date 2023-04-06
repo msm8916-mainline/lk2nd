@@ -7,6 +7,10 @@
 / {
 	compatible = "qcom,msm8916-mtp", "qcom,msm8916";
 
+	// The bootloader of UZ801 requires a dts with this board-id to boot
+	qcom,msm-id = <206 0>;
+	qcom,board-id = <8 0>;
+
 	// There are devices that identify themselves as qcom,msm8916-mtp,
 	// even when they are really not (at least physically).
 	// Therefore we need other things we can match on (e.g. the cmdline).
