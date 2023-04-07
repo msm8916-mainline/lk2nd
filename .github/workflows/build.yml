@@ -1,0 +1,20 @@
+name: build
+on:
+  workflow_call:
+    inputs:
+      project:
+        required: true
+        type: string
+      vars:
+        type: string
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install the build dependencies
+        run: |
+          sudo apt-get install -yqq gcc gcc-arm-none-eabi device-tree-compiler libfdt-dev make python3
+      - name: Build ${{ inputs.project }}
+        run: make -j$(nproc) TOOLCHAIN_PREFIX=arm-none-eabi- ${{ inputs.vars }} ${{ inputs.project }}
