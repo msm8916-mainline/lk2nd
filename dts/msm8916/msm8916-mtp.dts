@@ -39,4 +39,17 @@
 		compatible = "asus,z010d", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-cmdline = "* mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_r69339_720p_video:1:none";
 	};
+
+	coolpad-coolpady80d {
+		model = "Coolpad Y80D";
+		compatible = "coolpad,coolpady80d", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-panel;
+
+		panel {
+			compatible = "coolpad,coolpady80d-panel";
+
+			qcom,mdss_dsi_otm9605a_lide_qhd_video_550 {
+				compatible = "coolpad,otm9605a-lide-550";
+			};
+		};
 };
