@@ -41,6 +41,17 @@
 	};
 
 	coolpad-coolpady80d {
+/*
+		This device is very quirky.
+		1. This device comes with a stock ROM of Android 4.4 and 1 GB RAM. The stock bootloader lacks ARM64 support.
+		2. DTBs extracted from the known working boot.img with any tools other than 'extract-dtb' came back with output that has bad magic.
+		One possible theory is that the stock bootloader would expect extra magic before the valid DTB data, which immediately signifies that
+		no custom-built kernel could be loaded directly from the stock bootloader.
+		2.1 To make lk2nd work, you will need to first patch the known working boot.img using a patch-boot-img.py script from the experimental-rebase
+		branch.
+		3. No known EDL testpoints or key combos has been found, so one must enter EDL from the lk2nd to flash qhypstub, new TrustZone and lk1st.
+		4. LK1ST IS MANDATORY FOR MAINLINE TO RUN ON THIS DEVICE!
+*/
 		model = "Coolpad Y80D";
 		compatible = "coolpad,coolpady80d", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-panel;
