@@ -66,6 +66,9 @@ int fdt_check_full(const void *fdt, size_t bufsize)
 				int len;
 
 				name = fdt_get_name(fdt, offset, &len);
+				if (!name)
+					return len;
+
 				if (*name || len)
 					return -FDT_ERR_BADSTRUCTURE;
 			}
