@@ -156,7 +156,7 @@ static struct mdtp_fbimage* mdtp_read_mmc_image(uint32_t offset, uint32_t width,
  *
  * The function is duplicated from fbcon.c
  */
-static void fbcon_flush(void)
+static void mdtp_fbcon_flush(void)
 {
 	if (fb_config->update_start)
 		fb_config->update_start();
@@ -182,7 +182,7 @@ static void fbcon_clear_section(uint32_t y, uint32_t section_height)
 		unsigned count = fb_config->width*section_height;
 		memset(fb_config->base + image_base*bytes_per_bpp, RGB888_BLACK, count*bytes_per_bpp);
 
-		fbcon_flush();
+		mdtp_fbcon_flush();
 	}
 	else
 	{
@@ -252,7 +252,7 @@ static void fbcon_putImage_in_location(struct mdtp_fbimage *fbimg, uint32_t x, u
 	/* Flush the contents to memory before giving the data to dma */
 	arch_clean_invalidate_cache_range((addr_t) fb_config->base, (fb_config->height * fb_config->width * bytes_per_bpp));
 
-	fbcon_flush();
+	mdtp_fbcon_flush();
 	msm_display_on();
 
 #endif
