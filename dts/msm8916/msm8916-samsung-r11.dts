@@ -16,6 +16,13 @@
 		lk2nd,match-bootloader = "A500YZ*";
 		lk2nd,smd-rpm-hack-opening;
 	};
+	
+	a5u-canbmc {
+		// In downstream it is called Samsung A5U CAN PROJECT Rev01
+		model = "Samsung Galaxy A5U (CAN)";
+		compatible = "samsung,a5u-canbmc", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "A500W*";
+	};
 
 	/*
 	 * Before building for G530Y, please comment out all dtbs except
