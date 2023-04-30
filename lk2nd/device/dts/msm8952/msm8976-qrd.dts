@@ -9,6 +9,34 @@
 };
 
 &lk2nd {
+	bq-x5-plus {
+		model = "BQ X5 Plus (Longcheer L9360)";
+		compatible = "longcheer,l9360";
+		lk2nd,match-panel;
+
+		lk2nd,dtb-files = "msm8976-longcheer-l9360";
+
+		panel {
+			compatible = "longcheer,l9360-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_booyi_hx8399b_1080p_command {
+				compatible = "longcheer,booyi-hx8399b";
+			};
+			qcom,mdss_dsi_booyi_hx8399c_1080p_video {
+				compatible = "longcheer,booyi-hx8399c";
+			};
+			qcom,mdss_dsi_truly_nt35695_1080p_command {
+				compatible = "longcheer,truly-nt35695";
+			};
+			qcom,mdss_dsi_truly_otm1906a_1080p_command {
+				compatible = "longcheer,truly-otm1906a";
+			};
+			qcom,mdss_dsi_truly_r63350_1080p_video {
+				compatible = "longcheer,truly-r63350";
+			};
+		};
+	};
+
 	leeco-s2 {
 		model = "Leeco s2";
 		compatible = "leeco,s2";
