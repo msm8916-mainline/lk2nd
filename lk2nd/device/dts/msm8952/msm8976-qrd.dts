@@ -9,6 +9,67 @@
 };
 
 &lk2nd {
+	bq-x5-plus {
+		model = "BQ X5 Plus (Longcheer L9360)";
+		compatible = "longcheer,l9360";
+		lk2nd,match-panel;
+
+		lk2nd,dtb-files = "msm8976-longcheer-l9360";
+
+		panel {
+			compatible = "longcheer,l9360-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_adv7533_1080p {
+				compatible = "longcheer,adv7533-1080p";
+			};
+			qcom,mdss_dsi_adv7533_720p {
+				compatible = "longcheer,adv7533-720p";
+			};
+			qcom,mdss_dsi_booyi_hx8399b_1080p_command {
+				compatible = "longcheer,booyi-hx8399b";
+			};
+			qcom,mdss_dsi_booyi_hx8399c_1080p_video {
+				compatible = "longcheer,booyi-hx8399c";
+			};
+			qcom,mdss_dsi_hx8399a_1080p_video {
+				compatible = "longcheer,hx8399a-video";
+			};
+			qcom,mdss_dsi_nt35523_wqxga_video {
+				compatible = "longcheer,nt35523-video";
+			};
+			qcom,mdss_dsi_nt35597_dsc_wqxga_cmd {
+				compatible = "longcheer,nt35597-dsc-cmd";
+			};
+			qcom,mdss_dsi_nt35597_dsc_wqxga_video {
+				compatible = "longcheer,nt35597-dsc-video";
+			};
+			qcom,mdss_dsi_nt35597_wqxga_cmd {
+				compatible = "longcheer,nt35597-cmd";
+			};
+			qcom,mdss_dsi_nt35597_wqxga_video {
+				compatible = "longcheer,nt35597-video";
+			};
+			qcom,mdss_dsi_otm1906c_1080p_cmd {
+				compatible = "longcheer,otm1906c-1080p-cmd";
+			};
+			qcom,mdss_dsi_truly_1080p_cmd {
+				compatible = "longcheer,truly-1080p-cmd";
+			};
+			qcom,mdss_dsi_truly_1080p_video {
+				compatible = "longcheer,truly-1080p-video";
+			};
+			qcom,mdss_dsi_truly_nt35695_1080p_command {
+				compatible = "longcheer,truly-nt35695";
+			};
+			qcom,mdss_dsi_truly_otm1906a_1080p_command {
+				compatible = "longcheer,truly-otm1906a";
+			};
+			qcom,mdss_dsi_truly_r63350_1080p_video {
+				compatible = "longcheer,truly-r63350";
+			};
+		};
+	};
+
 	leeco-s2 {
 		model = "Leeco s2";
 		compatible = "leeco,s2";
