@@ -91,6 +91,10 @@ static void lk2nd_partition_split_mmc(void)
 #ifdef LK2ND_PARTITION_SIZE
 	partition_split_mmc(LK2ND_PARTITION_BASE, LK2ND_PARTITION_NAME,
 			    LK2ND_PARTITION_SIZE / block_size, false);
+#ifdef QHYPSTUB_PARTITION_SIZE
+	partition_split_mmc(QHYPSTUB_PARTITION_BASE, QHYPSTUB_PARTITION_NAME,
+			    QHYPSTUB_PARTITION_SIZE / block_size, true);
+#endif
 #endif
 }
 
