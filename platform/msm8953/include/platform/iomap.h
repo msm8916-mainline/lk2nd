@@ -52,6 +52,16 @@
 #define QTMR_BASE                          APPS_APCS_F0_QTMR_V1_BASE
 #define APCS_ALIAS0_IPC_INTERRUPT          (APPS_SS_BASE + 0x00111008)
 
+#define APCS_C0_GLB_BASE                   (APPS_SS_BASE + 0x111000)
+#define APCS_C0_CMD_RCGR                   (APCS_C1_GLB_BASE + 0x50)
+#define APCS_C0_CFG_RCGR                   (APCS_C1_GLB_BASE + 0x54)
+#define APCS_C0_PLL_BASE                   (APPS_SS_BASE + 0x116000)
+
+#define APCS_C1_GLB_BASE                   (APPS_SS_BASE + 0x011000)
+#define APCS_C1_CMD_RCGR                   (APCS_C0_GLB_BASE + 0x50)
+#define APCS_C1_CFG_RCGR                   (APCS_C0_GLB_BASE + 0x54)
+#define APCS_C1_PLL_BASE                   (APPS_SS_BASE + 0x016000)
+
 #define PERIPH_SS_BASE                     0x07800000
 
 #define MSM_SDC1_BASE                      (PERIPH_SS_BASE + 0x00024000)
