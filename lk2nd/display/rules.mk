@@ -4,6 +4,9 @@ LOCAL_DIR := $(GET_LOCAL_DIR)
 # Filter out original panel implementation
 OBJS := $(filter-out target/$(TARGET)/oem_panel.o, $(OBJS))
 
+OBJS += \
+	$(LOCAL_DIR)/simplefb.o
+
 ifeq ($(LK2ND_DISPLAY), cont-splash)
 include $(LOCAL_DIR)/cont-splash/rules.mk
 else
