@@ -16,7 +16,7 @@
 	oneplus-bacon {
 		model = "OnePlus One";
 		compatible = "oneplus,bacon", "qcom,msm8974", "lk2nd,device";
-		lk2nd,match-cmdline = "* androidboot.hardware=bacon *";
+		lk2nd,match-cmdline = "* mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_jdi_1080p_cmd *";
 
 		lk2nd,keys =
 			<KEY_VOLUMEUP   PM_GPIO(5) PM_GPIO_PULL_UP_1_5>,
