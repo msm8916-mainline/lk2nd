@@ -5,7 +5,7 @@
 #include <skeleton.dtsi>
 
 / {
-	qcom,msm-id = <0xef>;
+	qcom,msm-id = <239 0x30000>;
 	qcom,board-id = <0x1000b 11>, <0x2000b 11>;
 
 	model = "Xiaomi Redmi 3";	
