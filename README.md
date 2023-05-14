@@ -113,6 +113,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Huawei Ascend G6 4G - G6-L11 (quirky - see comment in `dts/msm8226/msm8926-huawei-g6-l11-vb.dts`)
 - Huawei Watch - sturgeon
 - LG G Watch R - lenok (use `lk2nd-appended-dtb.img`)
+- Motorola Moto G 2013 - falcon
 - Samsung Galaxy Grand 2 - SM-G7102
 - Samsung Galaxy Tab 4 10.1 (2014) - SM-T530, SM-T535
 
