@@ -15,18 +15,23 @@
 		qcom,mdss_dsi_ili9881c_tianma_720p_video {
                         compatible = "xiaomi,tianma-ili9881c";
                 };
+		
 		qcom,mdss_dsi_nt35521s_ebbg_720p_video {
 		        compatible = "xiaomi,nt35521s-ebbg";
 	        };
+		
 		qcom,mdss_dsi_nt35596_1080p_video {
 			compatible = "xiaomi,nt35596";
                 };
+		
 		qcom,mdss_dsi_r63350_1080p_video {
 			compatible = "xiaomi,r63350";
                 };
+		
 		qcom,mdss_dsi_nt35596_1080p_skuk_video {
 			compatible = "mdss,nt35596-skuk";
                 };
+		
 		qcom,mdss_dsi_hx8394f_boe_720p_video {
                         compatible = "xiaomi,hx8394f-boe";
                 };
