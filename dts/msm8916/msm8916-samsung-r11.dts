@@ -9,6 +9,13 @@
 	// This is used by the bootloader to find the correct DTB
 	qcom,msm-id = <206 0>;
 	qcom,board-id = <0xCE08FF01 11>;
+	
+	// In downstream it is called Samsung A5 PROJECT Rev11 and its marketing name is Samsung Galaxy A5 Duos
+	a5ltechn {
+		model = "Samsung Galaxy A5 Duos (SM-A5000)";
+		compatible = "samsung,a5ltechn", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "A5000*";
+	};
 
 	a5ltezt {
 		model = "Samsung Galaxy A5 (SM-A500YZ)";
