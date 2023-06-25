@@ -29,12 +29,12 @@
 		samsung,muic-reset {
 			i2c-gpio-pins = <105 106>;
 			i2c-address = <0x25>;
-		};
-	};
+        	};
+        };
 	
-	j5xnlte {
+	j5xnlteub {
 		model = "Samsung Galaxy J5 2016 (SM-J510MN)";
-		compatible = "samsung,j5xnlte", "qcom,msm8916", "lk2nd,device";
+		compatible = "samsung,j5xnlteub", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "J510MN*";
 
 		samsung,muic-reset {
