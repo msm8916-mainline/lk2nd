@@ -16,6 +16,17 @@
 		lk2nd,match-bootloader = "T355Y*";
 	};
 
+	on7lte-kor {
+		model = "Samsung Galaxy On7 2015 (SM-G600S)";
+		compatible = "samsung,on7lte-kor", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "G600S*";
+
+		samsung,muic-reset {
+			i2c-gpio-pins = <105 106>;
+			i2c-address = <0x25>;
+		};
+	};
+
 	coreprimelte {
 		// In the downstream dts it is called Samsung ROSSA PROJECT Rev00
 		model = "Samsung Galaxy Core Prime LTE (SM-G360F)";
