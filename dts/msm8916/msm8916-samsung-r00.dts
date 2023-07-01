@@ -16,7 +16,7 @@
 		lk2nd,match-bootloader = "T355Y*";
 	};
 
-        on7lte-kor {
+	on7lte-kor {
 		model = "Samsung Galaxy On7 2015 (SM-G600S)";
 		compatible = "samsung,on7lte-kor", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "G600S*";
