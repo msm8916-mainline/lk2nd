@@ -111,6 +111,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 
 ### lk2nd-msm8226
 - ASUS ZenWatch 2 - sparrow
+- Coolpad 8730L - 8730l
 - Huawei Ascend G6 4G - G6-L11 (quirky - see comment in `dts/msm8226/msm8926-huawei-g6-l11-vb.dts`)
 - Huawei Watch - sturgeon
 - LG G Watch R - lenok (use `lk2nd-appended-dtb.img`)

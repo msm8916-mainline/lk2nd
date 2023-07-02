@@ -1,0 +1,28 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton.dtsi>
+#include <lk2nd.h>
+
+/ {
+	compatible = "qcom,msm8926-mtp", "qcom,msm8926";
+
+	qcom,msm-id = <200 0>;
+	qcom,board-id = <8 0>;
+
+	coolpad-8730l {
+		model = "Coolpad 8730L";
+		compatible = "coolpad,8730l", "qcom,msm8926", "lk2nd,device";
+		lk2nd,match-panel;
+
+		panel {
+			qcom,mdss_dsi_otm1283a_boyi_hd_video {};
+			qcom,mdss_dsi_hx8394a_lide_hd_video {};
+			qcom,mdss_dsi_hx8394a_yashi_hd_video {};
+			qcom,mdss_dsi_hx8394a_yashi_cmi_hd_video {};
+			qcom,mdss_dsi_otm1283a_boyi_auo_hd_video {};
+			qcom,mdss_dsi_otm1283a_lide_cpt_hd_video {};
+		};
+	};
+};
