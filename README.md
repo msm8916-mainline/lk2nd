@@ -51,6 +51,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - ARK Benefit A3 - peach
 - Asus Zenfone 2 Laser (720p) - Z00L
 - Asus Zenfone 2 Laser (1080p) - Z00T
+- Asus Zenfone 2 Laser ZE500KL - Z00E
 - Asus Zenfone Max ZC550KL (2016) - Z010D
 - BQ Aquaris M5 - piccolo (use `lk2nd-msm8916-appended-dtb.img`)
 - BQ Aquaris X5 - paella, picmt
