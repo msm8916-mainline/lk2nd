@@ -79,4 +79,13 @@
 		qcom,board-id = <0xEF08FF1 1>;
 		lk2nd,smd-rpm-hack-opening;
 	};
+
+	e5ltexx {
+		model = "Samsung Galaxy E5 (SM-E500F)";
+		compatible = "samsung,e5ltexx", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "E500F*";
+
+		qcom,msm-id = <206 0>;
+		qcom,board-id = <0xCE08FF01 4>;
+	};
 };

@@ -98,4 +98,10 @@
 			i2c-address = <0x14>;
 		};
 	};
+
+	e5ltexx {
+		model = "Samsung Galaxy E5 (SM-E500F)";
+		compatible = "samsung,e5ltexx", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "E500F*";
+	};
 };
