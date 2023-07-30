@@ -7,8 +7,6 @@
 
 / {
 	// This is used by the bootloader to find the correct DTB
-	qcom,msm-id = <0xC808FF01 2 0x10001>;
-
 	kmini3g {
 		model = "Samsung Galaxy S5 Mini Duos (SM-G800H)";
 		compatible = "samsung,kmini3g", "qcom,msm8926", "lk2nd,device";
