@@ -11,4 +11,4 @@ DTBS += \
 	$(LOCAL_DIR)/msm8926-huawei-g6-l11-vb.dtb \
 	$(LOCAL_DIR)/msm8926-samsung-r02.dtb \
 	$(LOCAL_DIR)/msm8926-v2-720p-mtp.dtb \
-	$(LOCAL_DIR)/msm8926-samsung-kmini3g.dtb
+	$(LOCAL_DIR)/msm8926-samsung-r07.dtb
