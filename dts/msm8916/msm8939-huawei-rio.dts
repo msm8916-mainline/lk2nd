@@ -17,6 +17,6 @@
 		<8134 0>, <8134 4>, // huawei_rio_cl00_vb.dts
 		<8135 0>, <8135 4>, // huawei_rio_cl00_vc.dts
 		<8118 0>, <8118 4>; // huawei_rio_l03_va.dts
-	model = "Huawei RIO";
+	model = "Huawei G8 / GX8 / RIO-L01";
 	compatible = "huawei,rio", "qcom,msm8939", "lk2nd,device";
 };
