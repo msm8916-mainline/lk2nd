@@ -65,13 +65,13 @@
 		model = "Samsung Galaxy Core Prime LTE (SM-G360F)";
 		compatible = "samsung,coreprimelte", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "G360F*";
-		#include "msm8916-samsung-cprime.dtsi"
+		#include "msm8916-samsung-rossa.dtsi"
 	};
 
 	rossaltedv {
 		model = "Samsung Galaxy Core Prime LTE (SM-G360G)";
 		compatible = "samsung,rossaltexsa", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "G360GD*";
-		#include "msm8916-samsung-cprime.dtsi"
+		#include "msm8916-samsung-rossa.dtsi"
 	};
 };

@@ -36,6 +36,6 @@
 		model = "Samsung Galaxy Core Prime LTE (T-Mobile)";
 		compatible = "samsung,cprimeltetmo", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "G360T*";
-		#include "msm8916-samsung-cprime.dtsi"
+		#include "msm8916-samsung-rossa.dtsi"
 	};
 };

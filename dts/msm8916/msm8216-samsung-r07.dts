@@ -14,6 +14,6 @@
 		model = "Samsung Galaxy Grand Prime 3G (SM-G530H)";
 		compatible = "samsung,fortuna3g", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "G530H*";
-		#include "msm8916-samsung-gprime.dtsi"
+		#include "msm8916-samsung-fortuna.dtsi"
 	};
 };
