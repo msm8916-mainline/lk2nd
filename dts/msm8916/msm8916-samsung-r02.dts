@@ -27,14 +27,14 @@
 		model = "Samsung Galaxy Grand Prime (CAN)";
 		compatible = "samsung,gprimeltecan", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "G530W*";
-		#include "msm8916-samsung-gprime.dtsi"
+		#include "msm8916-samsung-fortuna.dtsi"
 	};
 
-	gprimeltexx {
+	grandprimelte {
 		model = "Samsung Galaxy Grand Prime (SM-G530FZ)";
-		compatible = "samsung,gprimeltexx", "qcom,msm8916", "lk2nd,device";
+		compatible = "samsung,grandprimelte", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "G530FZ*";
-		#include "msm8916-samsung-gprime.dtsi"
+		#include "msm8916-samsung-fortuna.dtsi"
 	};
 
 	/*
