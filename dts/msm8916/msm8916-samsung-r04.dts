@@ -85,7 +85,7 @@
 		qcom,msm-id = <206 0>;
 		qcom,board-id = <0xCE08FF01 1>;
 
-		#include "msm8916-samsung-cprime.dtsi"
+		#include "msm8916-samsung-rossa.dtsi"
 	};
 
 	grandmaxlteub {
