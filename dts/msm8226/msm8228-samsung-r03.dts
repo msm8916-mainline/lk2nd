@@ -7,15 +7,23 @@
 
 / {
 	// This is used by the bootloader to find the correct DTB
-        qcom,msm-id =  <0xdf08ff01 3 0x20000>;
+        qcom,msm-id = <226 0>;
+	qcom,board-id = <0xdf08ff01 3>;
 	atlantic3g {
-		model = "Samsung Galaxy S5 Mini (Duos)";
-		compatible = "samsung,atlantic3g", "qcom,msm8228", "lk2nd,device";
+		model = "Samsung Galaxy S5 Mini Duos";
+		compatible = "samsung,atlantic3g", "qcom,msm8226", "lk2nd,device";
 		lk2nd,match-bootloader = "G800H*";
+                lk2nd,match-panel;
 
 		lk2nd,keys =
 			<KEY_HOME       108 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>,
 			<KEY_VOLUMEDOWN 107 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>,
 			<KEY_VOLUMEUP   106 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+
+                samsung,muic-reset {
+			i2c-gpio-pins = <9 34>;
+			i2c-address = <0x25>;
+                };
+
 	};
 };
