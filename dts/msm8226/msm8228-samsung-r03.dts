@@ -7,10 +7,10 @@
 
 / {
 	// This is used by the bootloader to find the correct DTB
-        qcom,msm-id =  <0x6E08FF01 4 0x20000>;
+        qcom,msm-id =  <0xdf08ff01 3 0x20000>;
 	atlantic3g {
 		model = "Samsung Galaxy S5 Mini (Duos)";
-		compatible = "samsung,atlantic3g", "qcom,msm8226", "lk2nd,device";
+		compatible = "samsung,atlantic3g", "qcom,msm8228", "lk2nd,device";
 		lk2nd,match-bootloader = "G800H*";
 
 		lk2nd,keys =
