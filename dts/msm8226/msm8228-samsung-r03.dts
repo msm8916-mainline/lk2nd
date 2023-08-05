@@ -12,6 +12,7 @@
 	atlantic3g {
 		model = "Samsung Galaxy S5 Mini Duos";
 		compatible = "samsung,atlantic3g", "qcom,msm8226", "lk2nd,device";
+                lk2nd,match-bootloader = "G800H*";
 
 		lk2nd,keys =
 			<KEY_HOME       108 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>,
