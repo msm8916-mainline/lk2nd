@@ -7,7 +7,7 @@
 
 / {
 	// This is used by the bootloader to find the correct DTB
-        qcom,msm-id = <226 0>;
+        qcom,msm-id = <221 0>;
 	qcom,board-id = <0xdf08ff01 3>;
 	atlantic3g {
 		model = "Samsung Galaxy S5 Mini Duos";
