@@ -8,7 +8,7 @@
 / {
 	// This is used by the bootloader to find the correct DTB
         qcom,msm-id = <221 0>;
-	qcom,board-id = <0xdf08ff01 3>;
+	qcom,board-id = <0xDD08FF01 3>;
 	atlantic3g {
 		model = "Samsung Galaxy S5 Mini Duos";
 		compatible = "samsung,atlantic3g", "qcom,msm8226", "lk2nd,device";
