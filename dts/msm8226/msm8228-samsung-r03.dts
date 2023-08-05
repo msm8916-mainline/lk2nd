@@ -12,8 +12,6 @@
 	atlantic3g {
 		model = "Samsung Galaxy S5 Mini Duos";
 		compatible = "samsung,atlantic3g", "qcom,msm8226", "lk2nd,device";
-		lk2nd,match-bootloader = "G800H*";
-                lk2nd,match-panel;
 
 		lk2nd,keys =
 			<KEY_HOME       108 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>,
@@ -21,7 +19,7 @@
 			<KEY_VOLUMEUP   106 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
 
                 samsung,muic-reset {
-			i2c-gpio-pins = <9 34>;
+			i2c-gpio-pins = <2 3>;
 			i2c-address = <0x25>;
                 };
 
