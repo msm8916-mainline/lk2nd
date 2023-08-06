@@ -42,9 +42,9 @@
 		lk2nd,keys = <KEY_HOME 109 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
 	};
 
-	j3lte-zt {
+	j3ltezt {
 		model = "Samsung Galaxy J3 2016 (SM-J320YZ)";
-		compatible = "samsung,j3lte-zt", "qcom,msm8916", "lk2nd,device";
+		compatible = "samsung,j3ltetw", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "J320YZ*";
 		samsung,muic-reset {
 			i2c-gpio-pins = <0 1>;
