@@ -14,10 +14,7 @@
 		compatible = "samsung,j5nlte-eur", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "J500FN*";
 
-		samsung,muic-reset {
-			i2c-gpio-pins = <105 106>;
-			i2c-address = <0x25>;
-		};
+		#include "msm8916-samsung-j5.dtsi"
 	};
 
 	j3lte-chnctc {
@@ -34,29 +31,23 @@
 		model = "Samsung Galaxy J5 2015 (SM-J500F)";
 		compatible = "samsung,j5lte-eur", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "J500F*";
-		samsung,muic-reset {
-			i2c-gpio-pins = <105 106>;
-			i2c-address = <0x25>;
-		};
+
+		#include "msm8916-samsung-j5.dtsi"
 	};
 
 	j5lte-latam {
 		model = "Samsung Galaxy J5 2015 (SM-J500M)";
 		compatible = "samsung,j5lte-latam", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "J500M*";
-		samsung,muic-reset {
-			i2c-gpio-pins = <105 106>;
-			i2c-address = <0x25>;
-		};
+
+		#include "msm8916-samsung-j5.dtsi"
 	};
 
 	j5ltezt {
 		model = "Samsung Galaxy J5 2015 (SM-J5007)";
 		compatible = "samsung,j5ltezt", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "J5007*";
-		samsung,muic-reset {
-			i2c-gpio-pins = <105 106>;
-			i2c-address = <0x25>;
-		};
+
+		#include "msm8916-samsung-j5.dtsi"
 	};
 };
