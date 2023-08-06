@@ -15,10 +15,7 @@
 		compatible = "samsung,j5xlte-eur", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "J510F*";
 
-		samsung,muic-reset {
-			i2c-gpio-pins = <105 106>;
-			i2c-address = <0x25>;
-		};
+		#include "msm8916-samsung-j5.dtsi"
 	};
 
 	j5xnltezt {
@@ -26,10 +23,7 @@
 		compatible = "samsung,j5xnltezt", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "J510UN*";
 
-		samsung,muic-reset {
-			i2c-gpio-pins = <105 106>;
-			i2c-address = <0x25>;
-		};
+		#include "msm8916-samsung-j5.dtsi"
 	};
 
 	j5xnlteub {
@@ -37,10 +31,7 @@
 		compatible = "samsung,j5xnlteub", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "J510MN*";
 
-		samsung,muic-reset {
-			i2c-gpio-pins = <105 106>;
-			i2c-address = <0x25>;
-		};
+		#include "msm8916-samsung-j5.dtsi"
 	};
 
 	gt58lte-aus {
@@ -71,10 +62,7 @@
 		qcom,msm-id = <206 0>;
 		qcom,board-id = <0xCE08FF01 1>;
 
-		samsung,muic-reset {
-			i2c-gpio-pins = <105 106>;
-			i2c-address = <0x25>;
-		};
+		#include "msm8916-samsung-j5.dtsi"
 	};
 
 	rossaltedv {

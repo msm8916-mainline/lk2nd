@@ -14,9 +14,6 @@
 		compatible = "samsung,j53g-eur", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "J500H*";
 
-		samsung,muic-reset {
-			i2c-gpio-pins = <105 106>;
-			i2c-address = <0x25>;
-		};
+		#include "msm8916-samsung-j5.dtsi"
 	};
 };
