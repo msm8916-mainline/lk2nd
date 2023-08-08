@@ -79,4 +79,70 @@ int lkfdt_lookup_phandle(const void *fdt, int node, const char *prop)
 
 	return fdt_node_offset_by_phandle(fdt, fdt32_to_cpu(*phandle));
 }
+
+/**
+ * lkfdt_stringlist_get_all() - Obtain array of strings for a given prop
+ * @fdt: Device tree blob
+ * @node: Device tree node offset
+ * @prop: Name of property that contains the phandle
+ * @lenp: Return location for array length or an error code.
+ *
+ * This function allocates and array of string pointers and
+ * fills it with the stringlist values.
+ *
+ * See also: fdt_stringlist_get()
+ *
+ * Return: pointer to an array of strings, the length of the array is
+ * returned via @lenp. Negative @lenp indicates error, in which case the
+ * return value is NULL. The array will be terminated with an extra NULL.
+ */
+char **lkfdt_stringlist_get_all(const void *fdt, int node,
+				      const char *prop, int *lenp)
+{
+	int i = 0, len, vlen;
+	char **arr = NULL;
+	const char *tmp;
+
+	len = fdt_stringlist_count(fdt, node, prop);
+	if (len < 0)
+		goto error;
+
+	arr = malloc((len + 1) * sizeof(*arr));
+	if (!arr) {
+		len = -FDT_ERR_INTERNAL;
+		goto error;
+	}
+
+	for (i = 0; i < len; ++i) {
+		tmp = fdt_stringlist_get(fdt, node, prop, i, &vlen);
+		if (vlen < 0) {
+			len = vlen;
+			goto error;
+		}
+
+		arr[i] = strndup(tmp, vlen);
+		if (!arr[i]) {
+			len = -FDT_ERR_INTERNAL;
+			goto error;
+		}
+	}
+	arr[i] = NULL;
+
+	if (lenp)
+		*lenp = len;
+
+	return arr;
+
+error:
+	if (lenp)
+		*lenp = len;
+
+	for (; i > 0; i--)
+		free(arr[i-1]);
+
+	free(arr);
+	return NULL;
+
+}
+
 #endif /* WITH_LIB_LIBFDT */
