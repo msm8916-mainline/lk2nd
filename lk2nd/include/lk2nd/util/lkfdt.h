@@ -59,4 +59,22 @@ int lkfdt_get_reg(const void *fdt, int parent, int node, uint32_t *addr, uint32_
  */
 int lkfdt_lookup_phandle(const void *fdt, int node, const char *prop) __PURE;
 
+/**
+ * lkfdt_stringlist_get_all() - Obtain array of strings for a given prop
+ * @fdt: Device tree blob
+ * @node: Device tree node offset
+ * @prop: Name of property that contains the phandle
+ * @lenp: Return location for array length or an error code.
+ *
+ * This function allocates and array of string pointers and
+ * fills it with the stringlist values.
+ *
+ * See also: fdt_stringlist_get()
+ *
+ * Return: pointer to an array of strings, the length of the array is
+ * returned via @lenp. Negative @lenp indicates error, in which case
+ * partially assembled array may be returned.
+ */
+char **lkfdt_stringlist_get_all(const void *fdt, int node,
+				      const char *prop, int *lenp);
 #endif /* LK2ND_UTIL_LKFDT_H */
