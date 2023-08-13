@@ -7,9 +7,12 @@
 
 / {
 	// This is used by the bootloader to find the correct DTB
-	qcom,msm-id = <0x7e 0x96 0x20002 0x2b>;
+	qcom,msm-id = <126 150 0x20002>;
 
 	hammerhead-d820 {
+		qcom,msm-id = <126 0x20002>;
+		qcom,board-id = <150 0x2b>;
+
 		model = "LG Google Nexus 5 D820";
 		compatible = "lge,hammerhead", "qcom,msm8974", "lk2nd,device";
 		lk2nd,match-cmdline = "* androidboot.hardware.sku=D820 *";
@@ -20,9 +23,8 @@
 	};
 
 	hammerhead-d821 {
-		// Currently unable to use a dedicated device tree because it won't
-		// load D821 after D820 loaded.
-		qcom,msm-id = <0x7e 0x96 0x20002 0x0b>;
+		qcom,msm-id = <126 0x20002>;
+		qcom,board-id = <150 0xb>;
 
 		model = "LG Google Nexus 5 D821";
 		compatible = "lge,hammerhead", "qcom,msm8974", "lk2nd,device";
