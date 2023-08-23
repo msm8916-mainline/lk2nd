@@ -1,4 +1,7 @@
 # lk2nd
+
+![](.assets/FOSDEM22_lk2nd.jpg)
+
 lk2nd is a custom bootloader for many different devices based on Qualcomm
 system-on-chips (SoCs), including smartphones, tablets, smartwatches and a few
 single board computers (SBCs). It simplifies booting standard operating systems
