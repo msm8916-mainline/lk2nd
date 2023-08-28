@@ -1687,6 +1687,9 @@ static char cmi_nt35532_5p5_1080pxa_video_on_cmd_546[] = {
 static char cmi_nt35532_5p5_1080pxa_video_on_cmd_547[] = {
 	0x29, 0x00, 0x05, 0x80
 };
+static char cmi_nt35532_5p5_1080pxa_video_on_cmd_548[] = {
+	0x51, 0xff, 0x15, 0x80	/* Set brightness to maximum 255 */
+};
 
 static struct mipi_dsi_cmd cmi_nt35532_5p5_1080pxa_video_on_command[] = {
 	{ sizeof(cmi_nt35532_5p5_1080pxa_video_on_cmd_0), cmi_nt35532_5p5_1080pxa_video_on_cmd_0, 0 },
@@ -2237,6 +2240,7 @@ static struct mipi_dsi_cmd cmi_nt35532_5p5_1080pxa_video_on_command[] = {
 	{ sizeof(cmi_nt35532_5p5_1080pxa_video_on_cmd_545), cmi_nt35532_5p5_1080pxa_video_on_cmd_545, 0 },
 	{ sizeof(cmi_nt35532_5p5_1080pxa_video_on_cmd_546), cmi_nt35532_5p5_1080pxa_video_on_cmd_546, 120 },
 	{ sizeof(cmi_nt35532_5p5_1080pxa_video_on_cmd_547), cmi_nt35532_5p5_1080pxa_video_on_cmd_547, 20 },
+	{ sizeof(cmi_nt35532_5p5_1080pxa_video_on_cmd_548), cmi_nt35532_5p5_1080pxa_video_on_cmd_548, 0 },
 };
 
 static char cmi_nt35532_5p5_1080pxa_video_off_cmd_0[] = {
