@@ -1,5 +1,13 @@
 name: build
-on: [workflow_dispatch]
+on:
+  workflow_call:
+    inputs:
+      project:
+        required: true
+        type: string
+      vars:
+        type: string
+  [workflow_dispatch]
 jobs:
   build:
     runs-on: ubuntu-22.04
