@@ -27,4 +27,5 @@ jobs:
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
-          files: *.img
+          files: |
+            *.img
