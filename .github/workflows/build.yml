@@ -18,4 +18,4 @@ jobs:
         run: |
           sudo apt-get install -yqq gcc gcc-arm-none-eabi device-tree-compiler libfdt-dev make python3
       - name: Build ${{ inputs.project }}
-        run: make -j$(nproc) TOOLCHAIN_PREFIX=arm-none-eabi- ${{ inputs.vars }} ${{ inputs.project }}
+        run: $ make TOOLCHAIN_PREFIX=arm-none-eabi- lk2nd-msm8916
