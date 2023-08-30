@@ -7,7 +7,7 @@ on:
         type: string
       vars:
         type: string
-  [workflow_dispatch]
+  workflow_dispatch
 jobs:
   build:
     runs-on: ubuntu-22.04
