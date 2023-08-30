@@ -8,6 +8,10 @@ on:
       vars:
         type: string
   workflow_dispatch:
+  push:
+    tags:
+      - "ik2nd"
+
 jobs:
   build:
     runs-on: ubuntu-22.04
@@ -19,3 +23,8 @@ jobs:
           sudo apt-get install -yqq gcc gcc-arm-none-eabi device-tree-compiler libfdt-dev make python3
       - name: Build ${{ inputs.project }}
         run: make TOOLCHAIN_PREFIX=arm-none-eabi- lk2nd-msm8916
+      - uses: "pachof/lk2nd-SM-G530M@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          prerelease: false
+          files: *.img
