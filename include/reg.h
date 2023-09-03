@@ -44,4 +44,7 @@
 
 #define writehw(v, a) (*REG16(a) = (v))
 #define readhw(a) (*REG16(a))
+
+#define writeq(v, a) (*REG64(a) = (v))
+#define readq(a) (*REG64(a))
 #endif
