@@ -36,6 +36,7 @@
 #include "pm8921_hw.h"
 
 static pm8921_dev_t *dev;
+const pm8921_dev_t *pm8921_dev;
 
 static uint8_t ldo_n_voltage_mult[LDO_VOLTAGE_ENTRIES] = {
 	18, /* 1.2V */
@@ -57,6 +58,7 @@ void pm8921_init(pm8921_dev_t *pmic)
 	ASSERT(pmic->write);
 
 	dev = pmic;
+	pm8921_dev = pmic;
 
 	dev->initialized = 1;
 }

@@ -147,6 +147,7 @@ typedef struct
 
 } pm8921_dev_t;
 
+extern const pm8921_dev_t *pm8921_dev;
 
 struct pm8921_gpio {
 	int direction;
