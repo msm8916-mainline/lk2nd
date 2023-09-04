@@ -1,0 +1,19 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8992 0>, <252 0>;
+	qcom,board-id = <12 0>;
+};
+
+&lk2nd {
+	libra {
+		model = "Xiaomi Mi 4C";
+		compatible = "xiaomi,libra";
+		
+		qcom,board-id = <12 0>;
+		qcom,pmic-id = <65545 65546 0 0>;
+	};
+};
