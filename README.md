@@ -226,7 +226,9 @@ To enable support for a SoC that is already present in this repository:
 Good luck!
 
 ## Contact
-Ask on [`#postmarketos-mainline`](https://wiki.postmarketos.org/wiki/Matrix_and_IRC) (Matrix or IRC).
+Ask on Matrix or IRC.
+- [#msm8916:postmarketos.org](https://matrix.to/#/#msm8916:postmarketos.org) (`#msm8916-mainline`)
+- [#lk2nd:postmarketos.org](https://matrix.to/#/#lk2nd:postmarketos.org) (`#lk2nd`)
 
 [PSCI]: https://developer.arm.com/architectures/system-architectures/software-standards/psci
 [Little Kernel Embedded Operating System]: https://github.com/littlekernel/lk
