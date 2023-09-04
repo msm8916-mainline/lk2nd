@@ -1,0 +1,29 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton32.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	/* Actually htc,project-id */
+	qcom,msm-id = <293 0 0>;
+};
+
+&lk2nd {
+	htc-memul {
+		model = "HTC One Mini 2";
+		compatible = "htc,memul";
+		lk2nd,match-cmdline = "* mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_mem_lg_novatek_35521_720p_video *";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			volume-up {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&tlmm 108 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			volume-down {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&tlmm 107 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+};
