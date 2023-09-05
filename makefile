@@ -206,6 +206,8 @@ DEPS := $(ALLOBJS:%o=%d)
 # default to no ccache
 CCACHE ?= 
 CC := $(CCACHE) $(TOOLCHAIN_PREFIX)gcc
+CPP := cpp
+TAR := tar
 ifeq ($(LD),ld)
 LD := $(TOOLCHAIN_PREFIX)ld
 endif
