@@ -1,0 +1,46 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8956 0x10001>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 0>;
+
+	/* Bootloader requires those cpu nodes, or shuts device down */
+	cpus {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		cpu@100 {
+			device_type = "cpu";
+			reg = <0x100>;
+		};
+
+		cpu@101 {
+			device_type = "cpu";
+			reg = <0x101>;
+		};
+
+		cpu@102 {
+			device_type = "cpu";
+			reg = <0x102>;
+		};
+	};
+};
+
+&lk2nd {
+	kugo {
+		model = "Sony Xperia X Compact";
+		compatible = "sony,kugo";
+		lk2nd,match-cmdline = "* androidboot.serialno=BH902H";
+	};
+
+	suzu {
+		model = "Sony Xperia X";
+		compatible = "sony,suzu";
+		lk2nd,match-cmdline = "* androidboot.serialno=BH902F";
+	};
+};
