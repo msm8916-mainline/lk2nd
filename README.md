@@ -162,27 +162,46 @@ write the log to standard output.
 Check [Supported SoCs](#supported-socs) for the make target you should use below.
 (It depends on the SoC of your device.)
 
-```
-$ make TOOLCHAIN_PREFIX=arm-none-eabi- lk2nd-msmXXXX
-```
-
 **Requirements:**
+- Unix-like OS, Linux or FreeBSD
+  - Native
+  - Live USB
+  - Virtual machine
+  - chroot
 - ARM (32 bit) GCC tool chain
   - Arch Linux: `arm-none-eabi-gcc`
   - Alpine Linux and postmarketOS: `gcc-arm-none-eabi`
   - Debian and Ubuntu: `gcc-arm-none-eabi`
   - Fedora: `arm-none-eabi-gcc-cs`
+  - FreeBSD: `arm-none-eabi-gcc`
 - [Device Tree Compiler](https://git.kernel.org/pub/scm/utils/dtc/dtc.git)
   - Arch Linux: `dtc`
   - Alpine Linux and postmarketOS: `dtc`
   - Debian and Ubuntu: `device-tree-compiler`
   - Fedora: `dtc`
+  - FreeBSD: `dtc`
 - libfdt
   - Alpine Linux and postmarketOS: `dtc-dev`
   - Debian and Ubuntu: `libfdt-dev`
   - Fedora: `libfdt-devel`
+  - FreeBSD: `dtc`
+- GNU cpp
+  - FreeBSD: `gcc12`
+- GNU make
+  - FreeBSD: `gmake`
 - GNU tar
   - Alpine Linux and postmarketOS: `tar`
+  - FreeBSD: `gtar`
+
+### Linux
+```
+$ make TOOLCHAIN_PREFIX=arm-none-eabi- lk2nd-msmXXXX
+```
+
+### FreeBSD
+```
+$ gmake CPP=cpp12 TAR=gtar TOOLCHAIN_PREFIX=arm-none-eabi- lk2nd-msmXXXX
+```
 
 Replace `TOOLCHAIN_PREFIX` with the path to your tool chain.
 `lk2nd.img` is built and placed into `build-lk2nd-msmXXXX/lk2nd.img`.
