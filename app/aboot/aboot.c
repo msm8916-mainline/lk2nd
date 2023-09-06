@@ -3991,7 +3991,7 @@ void aboot_init(const struct app_descriptor *app)
 	}
 	if (!boot_into_fastboot)
 	{
-		if (keys_get_state(KEY_VOLUMEDOWN))
+		if (keys_get_state(KEY_VOLUMEUP))
 			boot_into_recovery = 1;
 		if (!boot_into_recovery &&
 			(keys_get_state(KEY_HOME) || keys_get_state(KEY_BACK) || keys_get_state(KEY_VOLUMEDOWN)))
