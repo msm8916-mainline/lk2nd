@@ -6,7 +6,7 @@
 #ifndef __QCOM_SPMI_PMIC_H__
 #define __QCOM_SPMI_PMIC_H__
 
-#include <linux/device.h>
+//#include <linux/device.h>
 
 #define COMMON_SUBTYPE		0x00
 #define PM8941_SUBTYPE		0x01
@@ -67,6 +67,6 @@ struct qcom_spmi_pmic {
 	const char *name;
 };
 
-const struct qcom_spmi_pmic *qcom_pmic_get(struct device *dev);
+//const struct qcom_spmi_pmic *qcom_pmic_get(struct device *dev);
 
 #endif /* __QCOM_SPMI_PMIC_H__ */

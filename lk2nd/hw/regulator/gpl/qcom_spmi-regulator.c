@@ -1,8 +1,14 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
+ * Taken from Linux 6.5 (drivers/regulator/qcom_spmi-regulator.c),
+ * adapted in a minimal way to read regulator voltages from lk2nd.
+ *
  * Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
  */
 
+#define __LK2ND__
+
+#ifndef __LK2ND__
 #include <linux/module.h>
 #include <linux/delay.h>
 #include <linux/devm-helpers.h>
@@ -20,6 +26,29 @@
 #include <linux/list.h>
 #include <linux/mfd/syscon.h>
 #include <linux/io.h>
+#else /* __LK2ND__ */
+#include <debug.h>
+#include <err.h>
+#include <malloc.h>
+#include <pm8x41_hw.h>
+#include <stdint.h>
+#include <sys/types.h>
+
+#include <lk2nd/hw/regulator.h>
+#include "qcom-spmi-pmic.h"
+
+typedef uint8_t u8;
+typedef uint16_t u16;
+typedef uint32_t u32;
+
+#define dev_dbg(dev, ...)	dprintf(SPEW, __VA_ARGS__)
+#define dev_err(dev, ...)	dprintf(CRITICAL, __VA_ARGS__)
+
+static inline struct spmi_regulator *rdev_get_drvdata(struct regulator_dev *rdev)
+{
+	return (struct spmi_regulator *)rdev;
+}
+#endif /* __LK2ND__ */
 
 /* Pin control enable input pins. */
 #define SPMI_REGULATOR_PIN_CTRL_ENABLE_NONE		0x00
@@ -400,11 +429,13 @@ struct spmi_voltage_range {
  * so that range[i].set_point_max_uV < range[i+1].set_point_min_uV.
  */
 struct spmi_voltage_set_points {
+	const char				*type;
 	struct spmi_voltage_range		*range;
 	int					count;
 	unsigned				n_voltages;
 };
 
+#ifndef __LK2ND__
 struct spmi_regulator {
 	struct regulator_desc			desc;
 	struct device				*dev;
@@ -422,6 +453,15 @@ struct spmi_regulator {
 	u16					base;
 	struct list_head			node;
 };
+#else /* __LK2ND__ */
+struct spmi_regulator {
+	struct regulator_dev			desc;
+	struct spmi_voltage_set_points		*set_points;
+	enum spmi_regulator_logical_type	logical_type;
+	int					hpm_min_load;
+	uint32_t				base;
+};
+#endif /* __LK2ND__ */
 
 struct spmi_regulator_mapping {
 	enum spmi_regulator_type		type;
@@ -478,6 +518,7 @@ struct spmi_regulator_data {
 
 #define DEFINE_SPMI_SET_POINTS(name) \
 struct spmi_voltage_set_points name##_set_points = { \
+	.type	= #name, \
 	.range	= name##_ranges, \
 	.count	= ARRAY_SIZE(name##_ranges), \
 }
@@ -621,12 +662,33 @@ static DEFINE_SPMI_SET_POINTS(ht_p600);
 static DEFINE_SPMI_SET_POINTS(nldo_510);
 static DEFINE_SPMI_SET_POINTS(ftsmps510);
 
+#ifndef __LK2ND__
 static inline int spmi_vreg_read(struct spmi_regulator *vreg, u16 addr, u8 *buf,
 				 int len)
 {
 	return regmap_bulk_read(vreg->regmap, vreg->base + addr, buf, len);
 }
+#else /* __LK2ND__ */
+static int spmi_vreg_read(struct spmi_regulator *vreg, u16 addr, u8 *buf,
+			  int len)
+{
+	int i;
 
+	for (i = 0; i < len; ++i)
+		buf[i] = REG_READ(vreg->base + addr + i);
+
+	return 0;
+}
+
+static int regulator_is_enabled_regmap(struct regulator_dev *rdev)
+{
+	struct spmi_regulator *vreg = rdev_get_drvdata(rdev);
+	u8 val = REG_READ(vreg->base + SPMI_COMMON_REG_ENABLE);
+	return (val & SPMI_COMMON_ENABLE_MASK) == SPMI_COMMON_ENABLE;
+};
+#endif /* __LK2ND__ */
+
+#ifndef __LK2ND__
 static inline int spmi_vreg_write(struct spmi_regulator *vreg, u16 addr,
 				u8 *buf, int len)
 {
@@ -747,6 +809,7 @@ static int spmi_sw_selector_to_hw(struct spmi_regulator *vreg,
 
 	return -EINVAL;
 }
+#endif /* !__LK2ND__ */
 
 static int spmi_hw_selector_to_sw(struct spmi_regulator *vreg, u8 hw_sel,
 				  const struct spmi_voltage_range *range)
@@ -800,6 +863,7 @@ spmi_regulator_find_range(struct spmi_regulator *vreg)
 	return NULL;
 }
 
+#ifndef __LK2ND__
 static int spmi_regulator_select_voltage_same_range(struct spmi_regulator *vreg,
 		int min_uV, int max_uV)
 {
@@ -913,6 +977,7 @@ static int spmi_regulator_set_voltage_time_sel(struct regulator_dev *rdev,
 
 	return DIV_ROUND_UP(diff_uV, vreg->slew_rate);
 }
+#endif /* !__LK2ND__ */
 
 static int spmi_regulator_common_get_voltage(struct regulator_dev *rdev)
 {
@@ -944,6 +1009,7 @@ static int spmi_regulator_ftsmps426_get_voltage(struct regulator_dev *rdev)
 	return (uV - range->set_point_min_uV) / range->step_uV;
 }
 
+#ifndef __LK2ND__
 static int spmi_regulator_single_map_voltage(struct regulator_dev *rdev,
 		int min_uV, int max_uV)
 {
@@ -964,6 +1030,7 @@ static int spmi_regulator_single_range_set_voltage(struct regulator_dev *rdev,
 	 */
 	return spmi_vreg_write(vreg, SPMI_COMMON_REG_VOLTAGE_SET, &sel, 1);
 }
+#endif /* !__LK2ND__ */
 
 static int spmi_regulator_single_range_get_voltage(struct regulator_dev *rdev)
 {
@@ -978,6 +1045,7 @@ static int spmi_regulator_single_range_get_voltage(struct regulator_dev *rdev)
 	return selector;
 }
 
+#ifndef __LK2ND__
 static int spmi_regulator_ult_lo_smps_set_voltage(struct regulator_dev *rdev,
 						  unsigned selector)
 {
@@ -1002,6 +1070,7 @@ static int spmi_regulator_ult_lo_smps_set_voltage(struct regulator_dev *rdev,
 	return spmi_vreg_update_bits(vreg, SPMI_COMMON_REG_VOLTAGE_SET,
 				     voltage_sel, 0xff);
 }
+#endif /* !__LK2ND__ */
 
 static int spmi_regulator_ult_lo_smps_get_voltage(struct regulator_dev *rdev)
 {
@@ -1044,6 +1113,7 @@ static int spmi_regulator_common_list_voltage(struct regulator_dev *rdev,
 	return uV;
 }
 
+#ifndef __LK2ND__
 static int
 spmi_regulator_common_set_bypass(struct regulator_dev *rdev, bool enable)
 {
@@ -1056,6 +1126,7 @@ spmi_regulator_common_set_bypass(struct regulator_dev *rdev, bool enable)
 
 	return spmi_vreg_update_bits(vreg, SPMI_COMMON_REG_MODE, val, mask);
 }
+#endif /* !__LK2ND__ */
 
 static int
 spmi_regulator_common_get_bypass(struct regulator_dev *rdev, bool *enable)
@@ -1123,6 +1194,7 @@ static unsigned int spmi_regulator_hfsmps_get_mode(struct regulator_dev *rdev)
 	}
 }
 
+#ifndef __LK2ND__
 static int
 spmi_regulator_common_set_mode(struct regulator_dev *rdev, unsigned int mode)
 {
@@ -1406,175 +1478,176 @@ spmi_regulator_saw_set_voltage(struct regulator_dev *rdev, unsigned selector)
 }
 
 static struct regulator_ops spmi_saw_ops = {};
+#endif /* !__LK2ND__ */
 
 static const struct regulator_ops spmi_smps_ops = {
-	.enable			= regulator_enable_regmap,
-	.disable		= regulator_disable_regmap,
+	//.enable			= regulator_enable_regmap,
+	//.disable		= regulator_disable_regmap,
 	.is_enabled		= regulator_is_enabled_regmap,
-	.set_voltage_sel	= spmi_regulator_common_set_voltage,
-	.set_voltage_time_sel	= spmi_regulator_set_voltage_time_sel,
+	//.set_voltage_sel	= spmi_regulator_common_set_voltage,
+	//.set_voltage_time_sel	= spmi_regulator_set_voltage_time_sel,
 	.get_voltage_sel	= spmi_regulator_common_get_voltage,
-	.map_voltage		= spmi_regulator_common_map_voltage,
+	//.map_voltage		= spmi_regulator_common_map_voltage,
 	.list_voltage		= spmi_regulator_common_list_voltage,
-	.set_mode		= spmi_regulator_common_set_mode,
+	//.set_mode		= spmi_regulator_common_set_mode,
 	.get_mode		= spmi_regulator_common_get_mode,
-	.set_load		= spmi_regulator_common_set_load,
-	.set_pull_down		= spmi_regulator_common_set_pull_down,
+	//.set_load		= spmi_regulator_common_set_load,
+	//.set_pull_down		= spmi_regulator_common_set_pull_down,
 };
 
 static const struct regulator_ops spmi_ldo_ops = {
-	.enable			= regulator_enable_regmap,
-	.disable		= regulator_disable_regmap,
+	//.enable			= regulator_enable_regmap,
+	//.disable		= regulator_disable_regmap,
 	.is_enabled		= regulator_is_enabled_regmap,
-	.set_voltage_sel	= spmi_regulator_common_set_voltage,
+	//.set_voltage_sel	= spmi_regulator_common_set_voltage,
 	.get_voltage_sel	= spmi_regulator_common_get_voltage,
-	.map_voltage		= spmi_regulator_common_map_voltage,
+	//.map_voltage		= spmi_regulator_common_map_voltage,
 	.list_voltage		= spmi_regulator_common_list_voltage,
-	.set_mode		= spmi_regulator_common_set_mode,
+	//.set_mode		= spmi_regulator_common_set_mode,
 	.get_mode		= spmi_regulator_common_get_mode,
-	.set_load		= spmi_regulator_common_set_load,
-	.set_bypass		= spmi_regulator_common_set_bypass,
+	//.set_load		= spmi_regulator_common_set_load,
+	//.set_bypass		= spmi_regulator_common_set_bypass,
 	.get_bypass		= spmi_regulator_common_get_bypass,
-	.set_pull_down		= spmi_regulator_common_set_pull_down,
-	.set_soft_start		= spmi_regulator_common_set_soft_start,
+	//.set_pull_down		= spmi_regulator_common_set_pull_down,
+	//.set_soft_start		= spmi_regulator_common_set_soft_start,
 };
 
 static const struct regulator_ops spmi_ln_ldo_ops = {
-	.enable			= regulator_enable_regmap,
-	.disable		= regulator_disable_regmap,
+	//.enable			= regulator_enable_regmap,
+	//.disable		= regulator_disable_regmap,
 	.is_enabled		= regulator_is_enabled_regmap,
-	.set_voltage_sel	= spmi_regulator_common_set_voltage,
+	//.set_voltage_sel	= spmi_regulator_common_set_voltage,
 	.get_voltage_sel	= spmi_regulator_common_get_voltage,
-	.map_voltage		= spmi_regulator_common_map_voltage,
+	//.map_voltage		= spmi_regulator_common_map_voltage,
 	.list_voltage		= spmi_regulator_common_list_voltage,
-	.set_bypass		= spmi_regulator_common_set_bypass,
+	//.set_bypass		= spmi_regulator_common_set_bypass,
 	.get_bypass		= spmi_regulator_common_get_bypass,
 };
 
 static const struct regulator_ops spmi_vs_ops = {
-	.enable			= spmi_regulator_vs_enable,
-	.disable		= regulator_disable_regmap,
+	//.enable			= spmi_regulator_vs_enable,
+	//.disable		= regulator_disable_regmap,
 	.is_enabled		= regulator_is_enabled_regmap,
-	.set_pull_down		= spmi_regulator_common_set_pull_down,
-	.set_soft_start		= spmi_regulator_common_set_soft_start,
-	.set_over_current_protection = spmi_regulator_vs_ocp,
-	.set_mode		= spmi_regulator_common_set_mode,
+	//.set_pull_down		= spmi_regulator_common_set_pull_down,
+	//.set_soft_start		= spmi_regulator_common_set_soft_start,
+	//.set_over_current_protection = spmi_regulator_vs_ocp,
+	//.set_mode		= spmi_regulator_common_set_mode,
 	.get_mode		= spmi_regulator_common_get_mode,
 };
 
 static const struct regulator_ops spmi_boost_ops = {
-	.enable			= regulator_enable_regmap,
-	.disable		= regulator_disable_regmap,
+	//.enable			= regulator_enable_regmap,
+	//.disable		= regulator_disable_regmap,
 	.is_enabled		= regulator_is_enabled_regmap,
-	.set_voltage_sel	= spmi_regulator_single_range_set_voltage,
+	//.set_voltage_sel	= spmi_regulator_single_range_set_voltage,
 	.get_voltage_sel	= spmi_regulator_single_range_get_voltage,
-	.map_voltage		= spmi_regulator_single_map_voltage,
+	//.map_voltage		= spmi_regulator_single_map_voltage,
 	.list_voltage		= spmi_regulator_common_list_voltage,
-	.set_input_current_limit = spmi_regulator_set_ilim,
+	//.set_input_current_limit = spmi_regulator_set_ilim,
 };
 
 static const struct regulator_ops spmi_ftsmps_ops = {
-	.enable			= regulator_enable_regmap,
-	.disable		= regulator_disable_regmap,
+	//.enable			= regulator_enable_regmap,
+	//.disable		= regulator_disable_regmap,
 	.is_enabled		= regulator_is_enabled_regmap,
-	.set_voltage_sel	= spmi_regulator_common_set_voltage,
-	.set_voltage_time_sel	= spmi_regulator_set_voltage_time_sel,
+	//.set_voltage_sel	= spmi_regulator_common_set_voltage,
+	//.set_voltage_time_sel	= spmi_regulator_set_voltage_time_sel,
 	.get_voltage_sel	= spmi_regulator_common_get_voltage,
-	.map_voltage		= spmi_regulator_common_map_voltage,
+	//.map_voltage		= spmi_regulator_common_map_voltage,
 	.list_voltage		= spmi_regulator_common_list_voltage,
-	.set_mode		= spmi_regulator_common_set_mode,
+	//.set_mode		= spmi_regulator_common_set_mode,
 	.get_mode		= spmi_regulator_common_get_mode,
-	.set_load		= spmi_regulator_common_set_load,
-	.set_pull_down		= spmi_regulator_common_set_pull_down,
+	//.set_load		= spmi_regulator_common_set_load,
+	//.set_pull_down		= spmi_regulator_common_set_pull_down,
 };
 
 static const struct regulator_ops spmi_ult_lo_smps_ops = {
-	.enable			= regulator_enable_regmap,
-	.disable		= regulator_disable_regmap,
+	//.enable			= regulator_enable_regmap,
+	//.disable		= regulator_disable_regmap,
 	.is_enabled		= regulator_is_enabled_regmap,
-	.set_voltage_sel	= spmi_regulator_ult_lo_smps_set_voltage,
-	.set_voltage_time_sel	= spmi_regulator_set_voltage_time_sel,
+	//.set_voltage_sel	= spmi_regulator_ult_lo_smps_set_voltage,
+	//.set_voltage_time_sel	= spmi_regulator_set_voltage_time_sel,
 	.get_voltage_sel	= spmi_regulator_ult_lo_smps_get_voltage,
 	.list_voltage		= spmi_regulator_common_list_voltage,
-	.set_mode		= spmi_regulator_common_set_mode,
+	//.set_mode		= spmi_regulator_common_set_mode,
 	.get_mode		= spmi_regulator_common_get_mode,
-	.set_load		= spmi_regulator_common_set_load,
-	.set_pull_down		= spmi_regulator_common_set_pull_down,
+	//.set_load		= spmi_regulator_common_set_load,
+	//.set_pull_down		= spmi_regulator_common_set_pull_down,
 };
 
 static const struct regulator_ops spmi_ult_ho_smps_ops = {
-	.enable			= regulator_enable_regmap,
-	.disable		= regulator_disable_regmap,
+	//.enable			= regulator_enable_regmap,
+	//.disable		= regulator_disable_regmap,
 	.is_enabled		= regulator_is_enabled_regmap,
-	.set_voltage_sel	= spmi_regulator_single_range_set_voltage,
-	.set_voltage_time_sel	= spmi_regulator_set_voltage_time_sel,
+	//.set_voltage_sel	= spmi_regulator_single_range_set_voltage,
+	//.set_voltage_time_sel	= spmi_regulator_set_voltage_time_sel,
 	.get_voltage_sel	= spmi_regulator_single_range_get_voltage,
-	.map_voltage		= spmi_regulator_single_map_voltage,
+	//.map_voltage		= spmi_regulator_single_map_voltage,
 	.list_voltage		= spmi_regulator_common_list_voltage,
-	.set_mode		= spmi_regulator_common_set_mode,
+	//.set_mode		= spmi_regulator_common_set_mode,
 	.get_mode		= spmi_regulator_common_get_mode,
-	.set_load		= spmi_regulator_common_set_load,
-	.set_pull_down		= spmi_regulator_common_set_pull_down,
+	//.set_load		= spmi_regulator_common_set_load,
+	//.set_pull_down		= spmi_regulator_common_set_pull_down,
 };
 
 static const struct regulator_ops spmi_ult_ldo_ops = {
-	.enable			= regulator_enable_regmap,
-	.disable		= regulator_disable_regmap,
+	//.enable			= regulator_enable_regmap,
+	//.disable		= regulator_disable_regmap,
 	.is_enabled		= regulator_is_enabled_regmap,
-	.set_voltage_sel	= spmi_regulator_single_range_set_voltage,
+	//.set_voltage_sel	= spmi_regulator_single_range_set_voltage,
 	.get_voltage_sel	= spmi_regulator_single_range_get_voltage,
-	.map_voltage		= spmi_regulator_single_map_voltage,
+	//.map_voltage		= spmi_regulator_single_map_voltage,
 	.list_voltage		= spmi_regulator_common_list_voltage,
-	.set_mode		= spmi_regulator_common_set_mode,
+	//.set_mode		= spmi_regulator_common_set_mode,
 	.get_mode		= spmi_regulator_common_get_mode,
-	.set_load		= spmi_regulator_common_set_load,
-	.set_bypass		= spmi_regulator_common_set_bypass,
+	//.set_load		= spmi_regulator_common_set_load,
+	//.set_bypass		= spmi_regulator_common_set_bypass,
 	.get_bypass		= spmi_regulator_common_get_bypass,
-	.set_pull_down		= spmi_regulator_common_set_pull_down,
-	.set_soft_start		= spmi_regulator_common_set_soft_start,
+	//.set_pull_down		= spmi_regulator_common_set_pull_down,
+	//.set_soft_start		= spmi_regulator_common_set_soft_start,
 };
 
 static const struct regulator_ops spmi_ftsmps426_ops = {
-	.enable			= regulator_enable_regmap,
-	.disable		= regulator_disable_regmap,
+	//.enable			= regulator_enable_regmap,
+	//.disable		= regulator_disable_regmap,
 	.is_enabled		= regulator_is_enabled_regmap,
-	.set_voltage_sel	= spmi_regulator_ftsmps426_set_voltage,
-	.set_voltage_time_sel	= spmi_regulator_set_voltage_time_sel,
+	//.set_voltage_sel	= spmi_regulator_ftsmps426_set_voltage,
+	//.set_voltage_time_sel	= spmi_regulator_set_voltage_time_sel,
 	.get_voltage_sel	= spmi_regulator_ftsmps426_get_voltage,
-	.map_voltage		= spmi_regulator_single_map_voltage,
+	//.map_voltage		= spmi_regulator_single_map_voltage,
 	.list_voltage		= spmi_regulator_common_list_voltage,
-	.set_mode		= spmi_regulator_ftsmps426_set_mode,
+	//.set_mode		= spmi_regulator_ftsmps426_set_mode,
 	.get_mode		= spmi_regulator_ftsmps426_get_mode,
-	.set_load		= spmi_regulator_common_set_load,
-	.set_pull_down		= spmi_regulator_common_set_pull_down,
+	//.set_load		= spmi_regulator_common_set_load,
+	//.set_pull_down		= spmi_regulator_common_set_pull_down,
 };
 
 static const struct regulator_ops spmi_hfs430_ops = {
-	.enable			= regulator_enable_regmap,
-	.disable		= regulator_disable_regmap,
+	//.enable			= regulator_enable_regmap,
+	//.disable		= regulator_disable_regmap,
 	.is_enabled		= regulator_is_enabled_regmap,
-	.set_voltage_sel	= spmi_regulator_ftsmps426_set_voltage,
-	.set_voltage_time_sel	= spmi_regulator_set_voltage_time_sel,
+	//.set_voltage_sel	= spmi_regulator_ftsmps426_set_voltage,
+	//.set_voltage_time_sel	= spmi_regulator_set_voltage_time_sel,
 	.get_voltage_sel	= spmi_regulator_ftsmps426_get_voltage,
-	.map_voltage		= spmi_regulator_single_map_voltage,
+	//.map_voltage		= spmi_regulator_single_map_voltage,
 	.list_voltage		= spmi_regulator_common_list_voltage,
-	.set_mode		= spmi_regulator_ftsmps426_set_mode,
+	//.set_mode		= spmi_regulator_ftsmps426_set_mode,
 	.get_mode		= spmi_regulator_ftsmps426_get_mode,
 };
 
 static const struct regulator_ops spmi_hfsmps_ops = {
-	.enable			= regulator_enable_regmap,
-	.disable		= regulator_disable_regmap,
+	//.enable			= regulator_enable_regmap,
+	//.disable		= regulator_disable_regmap,
 	.is_enabled		= regulator_is_enabled_regmap,
-	.set_voltage_sel	= spmi_regulator_ftsmps426_set_voltage,
-	.set_voltage_time_sel	= spmi_regulator_set_voltage_time_sel,
+	//.set_voltage_sel	= spmi_regulator_ftsmps426_set_voltage,
+	//.set_voltage_time_sel	= spmi_regulator_set_voltage_time_sel,
 	.get_voltage_sel	= spmi_regulator_ftsmps426_get_voltage,
-	.map_voltage		= spmi_regulator_single_map_voltage,
+	//.map_voltage		= spmi_regulator_single_map_voltage,
 	.list_voltage		= spmi_regulator_common_list_voltage,
-	.set_mode		= spmi_regulator_hfsmps_set_mode,
+	//.set_mode		= spmi_regulator_hfsmps_set_mode,
 	.get_mode		= spmi_regulator_hfsmps_get_mode,
-	.set_load		= spmi_regulator_common_set_load,
-	.set_pull_down		= spmi_regulator_hfsmps_set_pull_down,
+	//.set_load		= spmi_regulator_common_set_load,
+	//.set_pull_down		= spmi_regulator_hfsmps_set_pull_down,
 };
 
 /* Maximum possible digital major revision value */
@@ -1717,7 +1790,7 @@ static int spmi_regulator_match(struct spmi_regulator *vreg, u16 force_type)
 		subtype = force_type;
 	}
 
-	for (i = 0; i < ARRAY_SIZE(supported_regulators); i++) {
+	for (i = 0; i < (int)ARRAY_SIZE(supported_regulators); i++) {
 		mapping = &supported_regulators[i];
 		if (mapping->type == type && mapping->subtype == subtype
 		    && mapping->revision_min <= dig_major_rev
@@ -1746,6 +1819,7 @@ found:
 	return 0;
 }
 
+#ifndef __LK2ND__
 static int spmi_regulator_init_slew_rate(struct spmi_regulator *vreg)
 {
 	int ret;
@@ -2020,6 +2094,7 @@ static int spmi_regulator_of_parse(struct device_node *node,
 
 	return 0;
 }
+#endif /* !__LK2ND__ */
 
 static const struct spmi_regulator_data pm6125_regulators[] = {
 	{ "s1", 0x1400, "vdd_s1" },
@@ -2349,6 +2424,7 @@ static const struct spmi_regulator_data pms405_regulators[] = {
 	{ }
 };
 
+#ifndef __LK2ND__
 static const struct of_device_id qcom_spmi_regulator_match[] = {
 	{ .compatible = "qcom,pm6125-regulators", .data = &pm6125_regulators },
 	{ .compatible = "qcom,pm660-regulators", .data = &pm660_regulators },
@@ -2494,3 +2570,82 @@ module_platform_driver(qcom_spmi_regulator_driver);
 MODULE_DESCRIPTION("Qualcomm SPMI PMIC regulator driver");
 MODULE_LICENSE("GPL v2");
 MODULE_ALIAS("platform:qcom-spmi-regulator");
+#else /* __LK2ND__ */
+struct spmi_regulator_match {
+	uint8_t subtype;
+	uint8_t sid;
+	const struct spmi_regulator_data *data;
+};
+
+static const struct spmi_regulator_match qcom_spmi_regulator_match[] = {
+	{ .subtype = PM6125_SUBTYPE,  .sid = 1, .data = pm6125_regulators },
+	{ .subtype = PM660_SUBTYPE,   .sid = 1, .data = pm660_regulators },
+	{ .subtype = PM660L_SUBTYPE,  .sid = 3, .data = pm660l_regulators },
+	{ .subtype = PM8004_SUBTYPE,  .sid = 5, .data = pm8004_regulators },
+	{ .subtype = PM8005_SUBTYPE,  .sid = 5, .data = pm8005_regulators },
+	{ .subtype = PM8226_SUBTYPE,  .sid = 1, .data = pm8226_regulators },
+	{ .subtype = PM8841_SUBTYPE,  .sid = 5, .data = pm8841_regulators },
+	{ .subtype = PM8916_SUBTYPE,  .sid = 1, .data = pm8916_regulators },
+	{ .subtype = PM8941_SUBTYPE,  .sid = 1, .data = pm8941_regulators },
+	{ .subtype = PM8950_SUBTYPE,  .sid = 1, .data = pm8950_regulators },
+	{ .subtype = PM8994_SUBTYPE,  .sid = 1, .data = pm8994_regulators },
+	{ .subtype = PMI8994_SUBTYPE, .sid = 3, .data = pmi8994_regulators },
+	{ }
+};
+
+/* PMICs with unknown subtype, listed here only to avoid unused compile warning */
+static const struct spmi_regulator_match unknown_match[] __UNUSED = {
+	{ .data = pmp8074_regulators },
+	{ .data = pms405_regulators },
+	{ }
+};
+
+static const struct spmi_regulator_match *spmi_regulator_find_match(uint8_t subtype)
+{
+	const struct spmi_regulator_match *match;
+
+	for (match = qcom_spmi_regulator_match; match->data; ++match)
+		if (subtype == match->subtype)
+			return match;
+	return NULL;
+}
+
+struct regulator_dev *spmi_regulator_probe(uint8_t subtype)
+{
+	const struct spmi_regulator_match *match = spmi_regulator_find_match(subtype);
+	const struct spmi_regulator_data *data;
+	struct spmi_regulator *vreg;
+	size_t num = 0;
+	unsigned int i;
+	int ret;
+
+	if (!match)
+		return NULL;
+
+	for (data = match->data; data->name; ++data)
+		++num;
+
+	vreg = calloc(num, sizeof(*vreg));
+	if (!vreg)
+		return NULL;
+
+	for (i = 0; i < num; ++i) {
+		const struct spmi_regulator_data *reg = &match->data[i];
+
+		vreg[i].desc.name = reg->name;
+		vreg[i].desc.next = (struct regulator_dev *)&vreg[i + 1];
+		vreg[i].base = (match->sid << 16) | reg->base;
+
+		ret = spmi_regulator_match(&vreg[i], reg->force_type);
+		if (ret)
+			dprintf(CRITICAL, "Failed to match SPMI regulator %s\n",
+				reg->name);
+
+		if (vreg[i].set_points)
+			vreg[i].desc.driver_type = vreg[i].set_points->type;
+	}
+	vreg[num - 1].desc.next = NULL;
+
+	return (struct regulator_dev *)vreg;
+}
+#endif /* __LK2ND__ */
