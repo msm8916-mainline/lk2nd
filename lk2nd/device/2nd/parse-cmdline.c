@@ -41,6 +41,7 @@ static bool parse_panel(struct lk2nd_panel *p, char *panel)
 	ctrl_id = strchr(intf, ':');
 	if (!ctrl_id)
 		return false;
+	*ctrl_id = '\0';
 
 	name = strchr(++ctrl_id, ':');
 	if (!name)
@@ -54,6 +55,8 @@ static bool parse_panel(struct lk2nd_panel *p, char *panel)
 		return true;
 
 	p->name = name;
+	p->intf = intf;
+	p->initialized = panel[0] == '1';
 	return true;
 }
 

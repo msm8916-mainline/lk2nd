@@ -8,6 +8,11 @@ struct lk2nd_panel {
 	const char *compatible;
 	int compatible_size;
 	const char *ts_compatible;
+
+#if WITH_LK2ND_DEVICE_2ND
+	const char *intf;
+	bool initialized;
+#endif
 };
 
 struct lk2nd_device {
