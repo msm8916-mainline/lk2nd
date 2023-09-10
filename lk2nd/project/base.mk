@@ -31,7 +31,6 @@ LK2ND_SMP_OPTIONAL := 1
 ifeq ($(ENABLE_DISPLAY), 1)
 ifneq ($(LK2ND_DISPLAY),)
 MODULES += lk2nd/display
-ENABLE_FBCON_DISPLAY_MSG := 1
 else
 ENABLE_DISPLAY := 0
 $(info NOTE: Display support is disabled without display/panel selection)

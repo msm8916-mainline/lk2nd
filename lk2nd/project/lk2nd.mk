@@ -7,6 +7,10 @@ MODULES += \
 	lk2nd/device \
 	lk2nd/device/2nd \
 
+ifneq ($(ENABLE_FBCON_DISPLAY_MSG),1)
+MODULES += $(if $(filter $(MODULES), lk2nd/display), lk2nd/device/menu)
+endif
+
 # Use part of the "boot" partition for the lk2nd boot image. The real Android
 # boot image can be placed in the partition with 512 KiB offset.
 LK2ND_PARTITION_BASE ?= boot
