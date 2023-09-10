@@ -35,7 +35,7 @@ static bool mdp_read_config(struct fbcon_config *fb)
 #define MDP_GDSCR	MDSS_GDSCR
 #endif
 
-void target_display_init(const char *panel_name)
+static bool mdp_setup_cont_splash(void)
 {
 	static struct fbcon_config fb;
 
@@ -47,17 +47,23 @@ void target_display_init(const char *panel_name)
 	 */
 	if (!(readl(MDP_GDSCR) & GDSC_POWER_ON_BIT)) {
 		dprintf(CRITICAL, "No continuous splash: MDP GDSC is not enabled\n");
-		return;
+		return false;
 	}
 #endif
 
 	if (!mdp_read_config(&fb)) {
 		dprintf(CRITICAL, "Continuous splash not detected\n");
-		return;
+		return false;
 	}
 	if (!mdp_prepare_fb(&fb) || !mdp_start_refresh(&fb))
-		return;
+		return false;
 
 	fbcon_setup(&fb);
-	display_image_on_screen();
+	return true;
+}
+
+void target_display_init(const char *panel_name)
+{
+	if (fbcon_display() || mdp_setup_cont_splash())
+		display_image_on_screen();
 }
