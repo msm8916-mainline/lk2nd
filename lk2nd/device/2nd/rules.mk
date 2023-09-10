@@ -13,6 +13,7 @@ OBJS += \
 	$(LOCAL_DIR)/parse-tags.o \
 	$(LOCAL_DIR)/partition.o \
 	$(LOCAL_DIR)/samsung-muic-reset.o \
+	$(if $(filter %/mdss_spi.o, $(OBJS)), $(LOCAL_DIR)/spi-display.o) \
 
 ifneq ($(LK2ND_PARTITION_SIZE),)
 DEFINES += \
