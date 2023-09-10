@@ -55,7 +55,7 @@ static bool mdp_setup_cont_splash(void)
 		dprintf(CRITICAL, "Continuous splash not detected\n");
 		return false;
 	}
-	if (!mdp_prepare_fb(&fb) || !mdp_start_refresh(&fb))
+	if (!mdp_prepare_fb(&fb) || !mdp_setup_refresh(&fb))
 		return false;
 
 	fbcon_setup(&fb);

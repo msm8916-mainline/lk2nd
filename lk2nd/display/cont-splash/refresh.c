@@ -38,7 +38,7 @@ static void mdp_cmd_signal_refresh(void)
 	event_signal(&refresh_event, false);
 }
 
-static void mdp_cmd_refresh_start(struct fbcon_config *fb)
+static void mdp_cmd_refresh_start_thread(struct fbcon_config *fb)
 {
 	thread_t *thr;
 
@@ -55,7 +55,20 @@ static void mdp_cmd_refresh_start(struct fbcon_config *fb)
 	fb->update_start = mdp_cmd_signal_refresh;
 }
 
-bool mdp_start_refresh(struct fbcon_config *fb)
+static void mdp_setup_cmd_refresh(struct fbcon_config *fb)
+{
+	/*
+	 * Qualcomm's display menu calls update_start() for every line that is
+	 * printed which is very slow. Throttle this using a thread that limits
+	 * refreshes to ~50 Hz.
+	 */
+	if (IS_ENABLED(FBCON_DISPLAY_MSG))
+		mdp_cmd_refresh_start_thread(fb);
+	else
+		fb->update_start = mdp_refresh;
+}
+
+bool mdp_setup_refresh(struct fbcon_config *fb)
 {
 	bool cmd_mode, auto_refresh = false;
 	uint32_t sel;
@@ -89,7 +102,7 @@ bool mdp_start_refresh(struct fbcon_config *fb)
 #endif
 
 	if (cmd_mode && !auto_refresh)
-		mdp_cmd_refresh_start(fb);
+		mdp_setup_cmd_refresh(fb);
 
 	return true;
 }
