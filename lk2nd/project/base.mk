@@ -55,4 +55,11 @@ DEFINES := $(filter-out USER_FORCE_RESET_SUPPORT=1, $(DEFINES))
 # Allow flashing independent of battery voltage
 DEFINES := $(filter-out CHECK_BAT_VOLTAGE=1, $(DEFINES))
 
+# lk2nd provides its own mainline-friendly partial-goods implementation
+ifeq ($(TARGET), msm8909)
+ENABLE_PARTIAL_GOODS_SUPPORT := 0
+DEFINES := $(filter-out ENABLE_PARTIAL_GOODS_SUPPORT=1, $(DEFINES))
+MODULES += lk2nd/partial-goods
+endif
+
 include $(if $(filter msm8660 msm8960, $(TARGET)), lk2nd/project/msm8x60.mk)
