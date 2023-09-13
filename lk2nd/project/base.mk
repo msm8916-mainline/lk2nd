@@ -5,6 +5,13 @@ $(error The lk2nd configurations provide development/debugging helpers and are
 endif
 
 override ENABLE_LPAE_SUPPORT := 0
+
+# lk2nd provides its own mainline-friendly partial-goods implementation
+ifneq ($(filter msm8909, $(TARGET)),)
+override ENABLE_PARTIAL_GOODS_SUPPORT := 0
+MODULES += lk2nd/partial-goods
+endif
+
 include project/$(TARGET).mk
 
 DEBUG := 1
