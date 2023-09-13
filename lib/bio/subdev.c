@@ -98,6 +98,13 @@ status_t bio_publish_subdevice(const char *parent_dev, const char *subdev, bnum_
 	sub->parent = parent;
 	sub->offset = startblock;
 
+	/*
+	 * NOTE: We only mark leaf devices if there are subpartitions.
+	 * This way we don't enumerate nested GPT/MBR as a FS.
+	 */
+	parent->is_leaf = false;
+	sub->dev.is_leaf = true;
+
 	sub->dev.read = &subdev_read;
 	sub->dev.read_block = &subdev_read_block;
 	sub->dev.write = &subdev_write;
