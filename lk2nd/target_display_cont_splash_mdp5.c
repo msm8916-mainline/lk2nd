@@ -92,7 +92,7 @@ static void mdp5_cmd_start_refresh(struct fbcon_config *fb)
 static int mdp5_read_config(struct fbcon_config *fb)
 {
 	const struct pipe *pipe = pipes, *pipe_end = pipe + ARRAY_SIZE(pipes);
-	uint32_t stride, src_size, out_size, src_xy, out_xy, size;
+	uint32_t stride, src_size, out_size, src_xy, out_xy, size, format, bpp;
 	bool cmd_mode;
 
 	for (; pipe < pipe_end; pipe++) {
@@ -110,19 +110,28 @@ static int mdp5_read_config(struct fbcon_config *fb)
 	out_size = readl(pipe->base + PIPE_SSPP_SRC_OUT_SIZE);
 	src_xy = readl(pipe->base + PIPE_SSPP_SRC_XY);
 	out_xy = readl(pipe->base + PIPE_SSPP_OUT_XY);
+	format = readl(pipe->base + PIPE_SSPP_SRC_FORMAT);
+	bpp = BITS_SHIFT(format, 10, 9) + 1; /* SRC_BPP */
 	cmd_mode = !!(readl(MDP_CTL_BASE + CTL_TOP) & MDP_CTL_TOP_MODE_SEL_CMD);
 
 	dprintf(SPEW, "Continuous splash detected: pipe: %d, base: %p, stride: %d, "
-		"source: %dx%d (%d,%d), output: %dx%d (%d,%d) (cmd mode: %d)\n",
+		"source: %dx%d (%d,%d), output: %dx%d (%d,%d), format: %#x (bpp: %d) "
+		"(cmd mode: %d)\n",
 		pipe->type, fb->base, stride,
 		src_size & 0xffff, src_size >> 16, src_xy & 0xffff, src_xy >> 16,
 		out_size & 0xffff, out_size >> 16, out_xy & 0xffff, out_xy >> 16,
-		cmd_mode
+		format, bpp, cmd_mode
 	);
 
-	fb->stride = stride / (fb->bpp/8);
+	fb->stride = stride / bpp;
 	fb->width = fb->stride;
 	fb->height = out_size >> 16;
+	fb->bpp = bpp * 8;
+
+	if (bpp == 2)
+		fb->format = FB_FORMAT_RGB565;
+	else
+		fb->format = FB_FORMAT_RGB888;
 
 	if (cmd_mode)
 		mdp5_cmd_start_refresh(fb);
