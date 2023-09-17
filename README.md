@@ -95,6 +95,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Samsung Galaxy Tab A 8.0 (2015) - SM-T350, SM-T355, SM-T355Y, SM-T357W
 - Samsung Galaxy Tab A 9.7 (2015) - SM-T550, SM-T555
 - Samsung Galaxy Tab E 9.6 WiFi (2015) - SM-T560NU
+- Urovo U2
 - Vodafone Smart prime 6
 - Wileyfox Swift - crackling
 - Xiaomi Mi 4i - ferrari
@@ -102,6 +103,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Xiaomi Redmi 3 - ido
 - Yamada EveryPad III (rebrand of Lenovo PHAB Plus)
 - Zhihe-series 4G Modem Stick - ufi-001c(b), uf896, uz801-v3.0 ( uz801-v3.0 is quirky - see comment in  dts/msm8916/msm8916-512mb-mtp.dts )
+  
 
 ### lk2nd-msm8974
 - Fairphone 2 - FP2
