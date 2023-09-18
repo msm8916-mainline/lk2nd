@@ -103,7 +103,6 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Xiaomi Redmi 3 - ido
 - Yamada EveryPad III (rebrand of Lenovo PHAB Plus)
 - Zhihe-series 4G Modem Stick - ufi-001c(b), uf896, uz801-v3.0 ( uz801-v3.0 is quirky - see comment in  dts/msm8916/msm8916-512mb-mtp.dts )
-  
 
 ### lk2nd-msm8974
 - Fairphone 2 - FP2
