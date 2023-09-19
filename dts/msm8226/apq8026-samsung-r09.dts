@@ -1,0 +1,22 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton.dtsi>
+#include <lk2nd.h>
+
+/ {
+	// This is used by the bootloader to find the correct DTB
+	qcom,msm-id = <0xC708FF01 9 0x20000>;
+
+	milletwifi {
+		model = "Samsung Galaxy Tab 4 8.0 WiFi (SM-T330)";
+		compatible = "samsung,milletwifi", "qcom,apq8026", "lk2nd,device";
+		lk2nd,match-bootloader = "T330*";
+
+		lk2nd,keys =
+			<KEY_HOME       108 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>,
+			<KEY_VOLUMEDOWN 107 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>,
+			<KEY_VOLUMEUP   106 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+	};
+};
