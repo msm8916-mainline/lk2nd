@@ -140,6 +140,9 @@ void display_fastboot_menu(void)
 	int y, y_menu, old_scale, incr;
 	unsigned int sel = 0, i;
 
+	if (!fb)
+		return;
+
 	/*
 	 * Make sure the specified line lenght fits on the screen.
 	 */
