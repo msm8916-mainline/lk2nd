@@ -140,6 +140,8 @@ bool target_battery_is_present(void);
 uint32_t target_get_pmic(void);
 int target_update_cmdline(char *cmdline);
 
+struct mmc_device *target_get_sd_mmc(void);
+
 static inline bool target_is_ssd_enabled(void)
 {
 #ifdef SSD_ENABLE

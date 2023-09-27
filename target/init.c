@@ -252,6 +252,11 @@ __WEAK uint32_t target_ddr_cfg_val(void)
 	return DDR_CONFIG_VAL;
 }
 
+__WEAK struct mmc_device *target_get_sd_mmc(void)
+{
+	return NULL;
+}
+
 __WEAK unsigned int qseecom_get_version(void)
 {
 	return 0;
