@@ -22,8 +22,8 @@ DTBS += \
 	$(LOCAL_DIR)/msm8916-mtp.dtb \
 	$(LOCAL_DIR)/msm8916-mtp-smb1360.dtb \
 	$(LOCAL_DIR)/msm8916-512mb-qrd-skuh.dtb \
+	$(LOCAL_DIR)/msm8916-qrd-skuh.dtb \
 	$(LOCAL_DIR)/msm8916-qrd-skut1.dtb \
-	$(LOCAL_DIR)/msm8916-qrd4-v1.dtb \
 	$(LOCAL_DIR)/msm8916-qrd5-v1.dtb \
 	$(LOCAL_DIR)/msm8916-qrd7+12-v1.dtb \
 	$(LOCAL_DIR)/msm8916-qrd8-v1.dtb \
