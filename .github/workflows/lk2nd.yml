@@ -39,4 +39,3 @@ jobs:
     uses: ./.github/workflows/build.yml
     with:
       project: ${{ matrix.project }}
-
