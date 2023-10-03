@@ -7,11 +7,6 @@ on:
         type: string
       vars:
         type: string
-  workflow_dispatch:
-  push:
-    tags:
-      - "ik2nd"
-
 jobs:
   build:
     runs-on: ubuntu-22.04
@@ -22,6 +17,4 @@ jobs:
         run: |
           sudo apt-get install -yqq gcc gcc-arm-none-eabi device-tree-compiler libfdt-dev make python3
       - name: Build ${{ inputs.project }}
-        run: make TOOLCHAIN_PREFIX=arm-none-eabi- lk2nd-msm8916
-      - uses: marvinpinto/action-automatic-releases@v1.2.1
-            
+        run: make -j$(nproc) TOOLCHAIN_PREFIX=arm-none-eabi- ${{ inputs.vars }} ${{ inputs.project }}
