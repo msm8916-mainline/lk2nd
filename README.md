@@ -1,4 +1,7 @@
 # lk2nd
+
+![](.assets/FOSDEM22_lk2nd.jpg)
+
 lk2nd is a custom bootloader for many different devices based on Qualcomm
 system-on-chips (SoCs), including smartphones, tablets, smartwatches and a few
 single board computers (SBCs). It simplifies booting standard operating systems
@@ -115,12 +118,14 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 ### lk2nd-msm8226
 - ASUS ZenWatch 2 - sparrow
 - Coolpad 8730L - 8730l
+- HTC One Mini 2 - memul (quirky - see comment in `dts/msm8226/msm8926-htc-memul.dts`)
 - Huawei Ascend G6 4G - G6-L11 (quirky - see comment in `dts/msm8226/msm8926-huawei-g6-l11-vb.dts`)
 - Huawei Watch - sturgeon
 - LG G Watch R - lenok (use `lk2nd-appended-dtb.img`)
 - Motorola Moto G 2013 - falcon
 - Samsung Galaxy Grand 2 - SM-G7102
 - Samsung Galaxy Tab 4 10.1 (2014) - SM-T530, SM-T535
+- Samsung Galaxy Tab 4 8.0 (2014) - SM-T330, SM-T330NU
 
 ## Installation
 1. Download `lk2nd.img` (available in [Releases](https://github.com/msm8916-mainline/lk2nd/releases))
