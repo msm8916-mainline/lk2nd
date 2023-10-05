@@ -21,7 +21,7 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #ifndef __ARCH_X86_OPS_H
-#define __ARHC_X86_OPS_H
+#define __ARCH_X86_OPS_H
 
 #if 0
 #include <compiler.h>
