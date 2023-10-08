@@ -20,6 +20,8 @@ struct lk2nd_device {
 	const char *model;
 	const char *battery;
 
+	char **dtbfiles;
+
 	struct lk2nd_panel panel;
 
 #if WITH_LK2ND_DEVICE_2ND
