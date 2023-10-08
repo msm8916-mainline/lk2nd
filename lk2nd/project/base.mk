@@ -63,3 +63,8 @@ DEFINES := $(filter-out USER_FORCE_RESET_SUPPORT=1, $(DEFINES))
 DEFINES := $(filter-out CHECK_BAT_VOLTAGE=1, $(DEFINES))
 
 include $(if $(filter msm8660 msm8960, $(TARGET)), lk2nd/project/msm8x60.mk)
+
+# Enable extlinux boot module for all targets with eMMC/UFS
+ifeq ($(EMMC_BOOT), 1)
+MODULES += lk2nd/boot
+endif
