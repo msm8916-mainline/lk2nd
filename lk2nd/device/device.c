@@ -9,10 +9,19 @@
 #include <libfdt.h>
 #include <lk2nd/device.h>
 #include <lk2nd/init.h>
+#include <lk2nd/util/lkfdt.h>
 
 #include "device.h"
 
 struct lk2nd_device lk2nd_dev;
+
+/**
+ * lk2nd_device_get_dtb_hints() - Get a null-terminated array of DTB names.
+ */
+const char *const *lk2nd_device_get_dtb_hints(void)
+{
+	return lk2nd_dev.dtbfiles;
+}
 
 static int find_device_node(const void *dtb)
 {
@@ -107,6 +116,11 @@ static void parse_dtb(const void *dtb)
 		lk2nd_dev.model = strndup(val, len);
 	else
 		dprintf(CRITICAL, "Failed to read 'model': %d\n", len);
+
+	lk2nd_dev.dtbfiles = (const char *const *)
+		lkfdt_stringlist_get_all(dtb, node, "lk2nd,dtb-files", &len);
+	if (len < 0)
+		dprintf(CRITICAL, "Failed to read 'lk2nd,dtb-files': %d\n", len);
 
 	dprintf(INFO, "Detected device: %s (compatible: %s)\n",
 		lk2nd_dev.model, lk2nd_dev.compatible);
