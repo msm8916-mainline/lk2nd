@@ -34,6 +34,8 @@
 		compatible = "samsung,gt58lte", "samsung,gt58";
 		lk2nd,match-bootloader = "T355*";
 
+		lk2nd,dtb-files = "msm8916-samsung-gt58";
+
 		qcom,msm-id = <QCOM_ID_MSM8916 0>;
 		qcom,board-id = <0xCE08FF01 1>;
 
@@ -50,6 +52,8 @@
 		model = "Samsung Galaxy Tab A 9.7 (LTE, SM-T555)";
 		compatible = "samsung,gt510lte", "samsung,gt510";
 		lk2nd,match-bootloader = "T555*";
+
+		lk2nd,dtb-files = "msm8916-samsung-gt510";
 
 		qcom,msm-id = <QCOM_ID_MSM8916 0>;
 		qcom,board-id = <0xCE08FF01 7>;

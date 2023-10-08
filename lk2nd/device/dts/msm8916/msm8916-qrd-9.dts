@@ -48,6 +48,7 @@
 		model = "Wileyfox Swift (Longcheer L8150)";
 		compatible = "wileyfox,crackling", "longcheer,l8150";
 		lk2nd,match-bootloader = "crackling-*";
+		lk2nd,dtb-files = "msm8916-longcheer-l8150";
 
 		panel {
 			compatible = "longcheer,l8150-panel", "lk2nd,panel";
