@@ -32,6 +32,11 @@ MODULES += \
 	lk2nd/smp/spin-table \
 	lk2nd/version \
 
+ifeq ($(filter msm8660 msm8960 mdm9607 mdm9640, $(TARGET)),)
+MODULES += \
+	lk2nd/boot
+endif
+
 # Disable SMP spin table if unsupported (without throwing errors)
 LK2ND_SMP_OPTIONAL := 1
 
