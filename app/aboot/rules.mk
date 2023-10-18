@@ -8,6 +8,7 @@ MODULES += lib/zlib_inflate
 
 # fs_boot modules:
 MODULES += \
+	lib/elf \
 	lib/fs \
 	lib/bio \
 	lib/partition
