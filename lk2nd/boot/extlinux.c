@@ -347,34 +347,60 @@ extern void boot_linux(void *kernel, unsigned *tags,
 
 #define IS_ARM64(ptr) (ptr->magic_64 == KERNEL64_HDR_MAGIC)
 
-static void *kernel_load_addr(struct kernel64_hdr *kptr)
-{
-	unsigned int addr;
+#define MAX_KERNEL_SIZE			(32 * 1024 * 1024)
+#define MAX_TAGS_SIZE			(2 * 1024 * 1024)
+#define MAX_RAMDISK_SIZE_APPENDED	(48 * 1024 * 1024)
+#define ARM32_LOW_MEM			(768 * 1024 * 1024)
 
-	if (kptr && IS_ARM64(kptr)) {
-		addr = ABOOT_FORCE_KERNEL64_ADDR;
-	} else {
-		addr = ABOOT_FORCE_KERNEL_ADDR;
-	}
+struct load_addrs {
+	void *kernel;
+	void *tags;
+	void *ramdisk;
+	uint32_t kernel_max_size;
+	uint32_t ramdisk_max_size;
+};
+
+
+static void dtmldadrs(const struct kernel64_hdr *kptr, struct load_addrs *addrs)
+{
+	uint32_t kernel_offset;
+	void *base;
+
+#ifdef DDR_START
+	base = (void *)(uintptr_t)DDR_START;
+#else
+	base = (void *)(uintptr_t)BASE_ADDR;
+#endif
+
+	addrs->tags = base + MAX_KERNEL_SIZE;
+	addrs->ramdisk = target_get_scratch_address();
+	addrs->ramdisk_max_size = target_get_max_flash_size();
 
 	/*
 	 * ARM64 kernels specify the expected text offset in kptr->text_offset.
-	 * However, this is not reliable until Linux 3.17.
-	 * Check if image_size != 0 to detect newer kernels and use their
-	 * expected offset in that case to avoid:
-	 *
-	 * [Firmware Bug]: Kernel image misaligned at boot, please fix your bootloader!
+	 * However, this is not reliable until Linux 3.17. Check if
+	 * image_size != 0 to detect newer kernels and use their expected offset.
 	 *
 	 * See Linux commit a2c1d73b94ed49f5fac12e95052d7b140783f800.
 	 */
+	if (IS_ARM64(kptr)) {
+		if (kptr->image_size)
+			kernel_offset = kptr->text_offset;
+		else
+			kernel_offset = 0x80000;
+	} else {
+		kernel_offset = 0x8000;
 
-	if (kptr && IS_ARM64(kptr) && kptr->image_size) {
-		/* text_offset bytes from a 2MB aligned base address */
-		addr &= ~0x1fffff;
-		addr += kptr->text_offset;
+		/* Unfortunate */
+		assert(addrs->ramdisk >= base);
+		if ((uintptr_t)(addrs->ramdisk - base) >= ARM32_LOW_MEM) {
+			addrs->ramdisk = addrs->tags + MAX_TAGS_SIZE;
+			addrs->ramdisk_max_size = MAX_RAMDISK_SIZE_APPENDED;
+		}
 	}
 
-	return (void *)addr;
+	addrs->kernel = base + kernel_offset;
+	addrs->kernel_max_size = MAX_KERNEL_SIZE - kernel_offset;
 }
 
 /**
@@ -382,15 +408,14 @@ static void *kernel_load_addr(struct kernel64_hdr *kptr)
  */
 static void lk2nd_boot_label(struct label *label)
 {
-	int scratch_size = target_get_max_flash_size() / 2;
+	unsigned int scratch_size = target_get_max_flash_size();
 	void *scratch = target_get_scratch_address();
-	void *file_reg = scratch + scratch_size;
-	void *kernel_base, *ramdisk_base, *tags_base;
-	unsigned int ramdisk_reg_size, tags_reg_size;
 	unsigned int kernel_size, ramdisk_size = 0;
+	struct load_addrs addrs;
+	void *kernel_scratch;
 	int ret, i = 0;
 
-	ret = fs_load_file(label->kernel, file_reg, scratch_size);
+	ret = fs_load_file(label->kernel, scratch, scratch_size);
 	if (ret < 0) {
 		dprintf(INFO, "Failed to load the kernel: %d\n", ret);
 		return;
@@ -398,40 +423,41 @@ static void lk2nd_boot_label(struct label *label)
 
 	kernel_size = ret;
 
-	if (is_gzip_package(file_reg, kernel_size)) {
+	if (is_gzip_package(scratch, kernel_size)) {
 		dprintf(INFO, "Decompressing the kernel...\n");
-		ret = decompress(file_reg, kernel_size, scratch, scratch_size, NULL, &kernel_size);
+		kernel_scratch = scratch + kernel_size;
+		ret = decompress(scratch, kernel_size, kernel_scratch,
+				 scratch_size - kernel_size, NULL, &kernel_size);
 		if (ret) {
 			dprintf(INFO, "Failed to decompress the kernel: %d\n", ret);
 			return;
 		}
-	}
-	else {
-		dprintf(INFO, "Copying uncompressed kernel...\n");
-		memcpy(scratch, file_reg, kernel_size);
+	} else {
+		kernel_scratch = scratch;
 	}
 
-	kernel_base	 = kernel_load_addr(scratch);
-	ramdisk_base	 = (void *)(uint32_t)ABOOT_FORCE_RAMDISK_ADDR;
-	ramdisk_reg_size = scratch_size; // XXX HACK
-	tags_base	 = (void *)(uint32_t)ABOOT_FORCE_TAGS_ADDR;
-	tags_reg_size	 = ABOOT_FORCE_RAMDISK_ADDR - ABOOT_FORCE_TAGS_ADDR;
+	dtmldadrs(kernel_scratch, &addrs);
 
-	memcpy(kernel_base, scratch, kernel_size);
+	if (kernel_size > addrs.kernel_max_size) {
+		dprintf(INFO, "Kernel way too big: %u > %u\n",
+			kernel_size, addrs.kernel_max_size);
+		return;
+	}
+	memmove(addrs.kernel, kernel_scratch, kernel_size);
 
-	ret = fs_load_file(label->dtb, scratch, scratch_size);
+	ret = fs_load_file(label->dtb, addrs.tags, MAX_TAGS_SIZE);
 	if (ret < 0) {
 		dprintf(INFO, "Failed to load the dtb: %d\n", ret);
 		return;
 	}
 
-	ret = fdt_open_into(scratch, tags_base, tags_reg_size);
-	if (ret < 0) {
-		dprintf(INFO, "Failed to open the dtb: %d\n", ret);
-		return;
-	}
-
 	if (label->dtboverlays) {
+		ret = fdt_open_into(addrs.tags, addrs.tags, MAX_TAGS_SIZE);
+		if (ret < 0) {
+			dprintf(INFO, "Failed to open the dtb: %d\n", ret);
+			return;
+		}
+
 		while (label->dtboverlays[i]) {
 			ret = fs_load_file(label->dtboverlays[i], scratch, scratch_size);
 			if (ret < 0) {
@@ -439,36 +465,36 @@ static void lk2nd_boot_label(struct label *label)
 				return;
 			}
 
-			ret = fdt_overlay_apply(tags_base, scratch);
+			ret = fdt_overlay_apply(addrs.tags, scratch);
 			if (ret < 0) {
 				dprintf(INFO, "Failed to apply the dtb overlay %s: %d\n", label->dtboverlays[i], ret);
 				return;
 			}
 			i++;
 		}
-	}
 
-	ret = fdt_pack(tags_base);
-	if (ret < 0) {
-		dprintf(INFO, "Failed to pack the dtb: %d\n", ret);
-		return;
+		ret = fdt_pack(addrs.tags);
+		if (ret < 0) {
+			dprintf(INFO, "Failed to pack the dtb: %d\n", ret);
+			return;
+		}
 	}
-
 
 	if (label->initramfs) {
-		ret = fs_load_file(label->initramfs, ramdisk_base, ramdisk_reg_size);
+		ret = fs_load_file(label->initramfs, addrs.ramdisk, addrs.ramdisk_max_size);
 		if (ret < 0) {
 			dprintf(INFO, "Failed to load the initramfs: %d\n", ret);
 			return;
 		}
 		ramdisk_size = ret;
+		arch_clean_invalidate_cache_range((addr_t)addrs.ramdisk, ramdisk_size);
 	}
 
-	boot_linux(kernel_base,
-		   tags_base,
+	boot_linux(addrs.kernel,
+		   addrs.tags,
 		   label->cmdline,
 		   board_machtype(),
-		   ramdisk_base, ramdisk_size,
+		   addrs.ramdisk, ramdisk_size,
 		   0);
 }
 
