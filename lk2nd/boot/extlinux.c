@@ -373,8 +373,13 @@ static void dtmldadrs(const struct kernel64_hdr *kptr, struct load_addrs *addrs)
 #endif
 
 	addrs->tags = base + MAX_KERNEL_SIZE;
-	addrs->ramdisk = target_get_scratch_address();
-	addrs->ramdisk_max_size = target_get_max_flash_size();
+	/*
+	 * FIXME: This is sad but some devices overelap
+	 * rproc memory with scratch so we don't have a good
+	 * bulk storage place for big ramdisk...
+	 */
+	addrs->ramdisk = addrs->tags + MAX_TAGS_SIZE;
+	addrs->ramdisk_max_size = MAX_RAMDISK_SIZE_APPENDED;
 
 	/*
 	 * ARM64 kernels specify the expected text offset in kptr->text_offset.
@@ -393,10 +398,6 @@ static void dtmldadrs(const struct kernel64_hdr *kptr, struct load_addrs *addrs)
 
 		/* Unfortunate */
 		assert(addrs->ramdisk >= base);
-		if ((uintptr_t)(addrs->ramdisk - base) >= ARM32_LOW_MEM) {
-			addrs->ramdisk = addrs->tags + MAX_TAGS_SIZE;
-			addrs->ramdisk_max_size = MAX_RAMDISK_SIZE_APPENDED;
-		}
 	}
 
 	addrs->kernel = base + kernel_offset;
