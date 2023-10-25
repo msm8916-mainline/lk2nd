@@ -28,6 +28,7 @@ MODULES += \
 	lk2nd/hw/gpio \
 	lk2nd/hw/i2c \
 	lk2nd/ramoops \
+	lk2nd/remoteproc \
 	lk2nd/serialno \
 	lk2nd/smp \
 	lk2nd/smp/spin-table \
