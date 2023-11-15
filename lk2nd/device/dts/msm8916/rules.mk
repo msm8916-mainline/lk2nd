@@ -7,4 +7,4 @@ QCDTBS += \
 	$(LOCAL_DIR)/msm8916-motorola-harpia-p1b-4e.dtb \
 	$(LOCAL_DIR)/msm8916-qrd-7+12.dtb \
 	$(LOCAL_DIR)/msm8916-qrd-9.dtb \
-	$(LOCAL_DIR)/samsung.dtb \
+	$(LOCAL_DIR)/msm8916-samsung.dtb \
