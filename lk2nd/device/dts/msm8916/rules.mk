@@ -11,3 +11,4 @@ QCDTBS += \
 	$(LOCAL_DIR)/msm8916-qrd-9.dtb \
 	$(LOCAL_DIR)/msm8916-samsung.dtb \
 	$(LOCAL_DIR)/msm8929-samsung.dtb \
+	$(LOCAL_DIR)/msm8939-samsung.dtb \
