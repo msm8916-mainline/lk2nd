@@ -2,6 +2,7 @@
 LOCAL_DIR := $(GET_LOCAL_DIR)
 
 QCDTBS += \
+	$(LOCAL_DIR)/apq8016-samsung.dtb \
 	$(LOCAL_DIR)/apq8016-sbc.dtb \
 	$(LOCAL_DIR)/msm8916-motorola-harpia-p1b-4d.dtb \
 	$(LOCAL_DIR)/msm8916-motorola-harpia-p1b-4e.dtb \
