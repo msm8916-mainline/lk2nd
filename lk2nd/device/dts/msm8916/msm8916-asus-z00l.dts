@@ -1,0 +1,39 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8916 0>;
+	qcom,board-id = <21 0>;
+};
+
+&lk2nd {
+	model = "Asus Zenfone Laser 2 (720p)";
+	compatible = "asus,z00l";
+
+	lk2nd,dtb-files = "msm8916-asus-z00l";
+
+	gpio-keys {
+		compatible = "gpio-keys";
+		vol-down {
+			lk2nd,code = <KEY_VOLUMEDOWN>;
+			gpios = <&tlmm 117 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+		};
+		vol-up {
+			lk2nd,code = <KEY_VOLUMEUP>;
+			gpios = <&tlmm 107 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+		};
+	};
+
+	panel {
+		compatible = "asus,z00l-panel", "lk2nd,panel";
+
+		qcom,mdss_dsi_otm1284a_720p_video {
+			compatible = "asus,z00l-otm1284a";
+		};
+		qcom,mdss_dsi_cpt5p5_otm1284a_720p_video {
+			compatible = "asus,z00l-cpt5p5-otm1284a";
+		};
+	};
+};
