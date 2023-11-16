@@ -1,0 +1,31 @@
+// SPDX-License-Identifier: BSD-3-Clause
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8916 0>;
+	qcom,board-id = <QCOM_BOARD_ID(QRD, 1, 0) 0x100>;
+};
+
+&lk2nd {
+	thwc-uf896 {
+		model = "uf896 4G Modem Stick";
+		compatible = "thwc,uf896";
+
+		/*
+		 * Use this node with lk1st:
+		 * make ... LK2ND_BUNDLE_DTB="msm8916/msm8916-512mb-qrd-skuh.dtb" LK2ND_COMPATIBLE="thwc,uf896"
+		 */
+
+		lk2nd,dtb-files = "msm8916-thwc-uf896";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			reset {
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&tlmm 35 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+};
+
