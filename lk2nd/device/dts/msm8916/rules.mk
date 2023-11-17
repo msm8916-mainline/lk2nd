@@ -12,6 +12,7 @@ QCDTBS += \
 	$(LOCAL_DIR)/msm8916-huawei-g7-l01.dtb \
 	$(LOCAL_DIR)/msm8916-huawei-hwt1a21l.dtb \
 	$(LOCAL_DIR)/msm8916-huawei-y635-l01.dtb \
+	$(LOCAL_DIR)/msm8916-lg.dtb \
 	$(LOCAL_DIR)/msm8916-motorola-harpia-p1b-4d.dtb \
 	$(LOCAL_DIR)/msm8916-motorola-harpia-p1b-4e.dtb \
 	$(LOCAL_DIR)/msm8916-motorola-osprey.dtb \
