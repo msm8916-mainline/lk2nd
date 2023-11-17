@@ -1,0 +1,64 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8916 0>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 1>;
+};
+
+&lk2nd {
+	/*
+	* To get a working build for acer-a1-724, comment out all lines
+	* except $(LOCAL_DIR)/msm8916-mtp-smb1360.dtb in rules.mk in this
+	* directory.
+	* a1-724 does not work with all dtbs enabled; the bootloader gets
+	* upset and goes into the phone's fastboot.
+	*/
+	acer-a1-724 {
+		model = "Acer Iconia Talk S A1-724";
+		compatible = "acer,a1-724";
+		lk2nd,match-panel;
+
+		lk2nd,dtb-files = "msm8916-acer-a1-724";
+
+		panel {
+			compatible = "acer,a1-724-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_hx8394d_720p_video {
+				compatible = "acer,a1-724-hx8394d";
+			};
+		};
+	};
+
+	alcatel-idol347 {
+		model = "Alcatel OneTouch Idol 3 (4.7)";
+		compatible = "alcatel,idol347";
+		lk2nd,match-panel;
+
+		lk2nd,dtb-files = "msm8916-alcatel-idol347";
+
+		panel {
+			compatible = "alcatel,idol347-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_hx8394d_auo_720p_video {
+				compatible = "alcatel,auo-hx8394d";
+			};
+			qcom,mdss_dsi_hx8394f_auo_720p_video {
+				compatible = "alcatel,auo-hx8394f";
+			};
+			qcom,mdss_dsi_nt35521s_lg_720p_video {
+				compatible = "alcatel,lg-nt35521s";
+			};
+			qcom,mdss_dsi_otm1284a_lg_720p_video {
+				compatible = "alcatel,lg-otm1284a";
+			};
+		};
+
+		smb1360 {
+			compatible = "alcatel,smb1360-idol347", "qcom,smb1360";
+		};
+	};
+};
+
