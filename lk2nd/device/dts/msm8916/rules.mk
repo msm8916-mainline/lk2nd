@@ -29,3 +29,4 @@ QCDTBS += \
 	$(LOCAL_DIR)/msm8939-huawei-rio.dtb \
 	$(LOCAL_DIR)/msm8939-mtp.dtb \
 	$(LOCAL_DIR)/msm8939-samsung.dtb \
+	$(LOCAL_DIR)/msm8939-xiaomi-ido.dtb \
