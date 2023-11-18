@@ -27,4 +27,5 @@ QCDTBS += \
 	$(LOCAL_DIR)/msm8939-htc-m8qlul.dtb \
 	$(LOCAL_DIR)/msm8939-huawei-kiwi.dtb \
 	$(LOCAL_DIR)/msm8939-huawei-rio.dtb \
+	$(LOCAL_DIR)/msm8939-mtp.dtb \
 	$(LOCAL_DIR)/msm8939-samsung.dtb \
