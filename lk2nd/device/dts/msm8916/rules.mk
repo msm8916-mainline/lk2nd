@@ -24,4 +24,5 @@ QCDTBS += \
 	$(LOCAL_DIR)/msm8916-samsung.dtb \
 	$(LOCAL_DIR)/msm8929-samsung.dtb \
 	$(LOCAL_DIR)/msm8939-asus-z00t.dtb \
+	$(LOCAL_DIR)/msm8939-htc-m8qlul.dtb \
 	$(LOCAL_DIR)/msm8939-samsung.dtb \
