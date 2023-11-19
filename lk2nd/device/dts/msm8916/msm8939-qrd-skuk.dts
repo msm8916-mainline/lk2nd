@@ -1,0 +1,55 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8939 0>;
+	qcom,board-id = <QCOM_BOARD_ID(QRD, 1, 0) 5>;
+};
+
+&lk2nd {
+	bq-piccolo {
+		model = "BQ Aquaris M5 (Longcheer L9100)";
+		compatible = "longcheer,l9100";
+		lk2nd,match-panel;
+
+		lk2nd,dtb-files = "msm8939-longcheer-l9100";
+
+		panel {
+			compatible = "longcheer,l9100-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_truly_nt35695_1080p_video {
+				compatible = "longcheer,truly-nt35695";
+			};
+			qcom,mdss_dsi_truly_nt35695_1080p_cmd {
+				compatible = "longcheer,truly-nt35695";
+			};
+			qcom,mdss_dsi_tianma_otm1902a_1080p_cmd {
+				compatible = "longcheer,tianma-otm1902a";
+			};
+			qcom,mdss_dsi_yushun_nt35695_1080p_cmd {
+				compatible = "longcheer,yushun-nt35695";
+			};
+		};
+
+		smb1360 {
+			compatible = "qcom,smb1360";
+			qcom,batt-profile-select;
+			qcom,batt-id-vref-uv = <1800000>;
+			qcom,batt-id-rpullup-kohm = <100>;
+			qcom,profile-a-rid-kohm = <50>;
+			qcom,profile-b-rid-kohm = <200>;
+		};
+	};
+
+	lenovo-phoenix {
+		model = "Lenovo PHAB Plus";
+		compatible = "lenovo,phoenix";
+		lk2nd,match-cmdline = "* mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_nt35532_1080p_skuk_video:1:none*";
+
+		//FIXME: lk2nd,dtb-files = "msm8939-lenovo-phoenix";
+	};
+};
+
+
