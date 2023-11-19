@@ -124,6 +124,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Huawei Watch - sturgeon
 - LG G Watch R - lenok (use `lk2nd-appended-dtb.img`)
 - Motorola Moto G 2013 - falcon
+- Motorola Moto G 4G 2013 - peregrine
 - Samsung Galaxy Grand 2 - SM-G7102
 - Samsung Galaxy Tab 4 10.1 (2014) - SM-T530, SM-T535
 - Samsung Galaxy Tab 4 8.0 (2014) - SM-T330, SM-T330NU
