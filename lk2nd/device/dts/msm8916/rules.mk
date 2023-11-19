@@ -19,8 +19,12 @@ QCDTBS += \
 	$(LOCAL_DIR)/msm8916-motorola-surnia.dtb \
 	$(LOCAL_DIR)/msm8916-mtp.dtb \
 	$(LOCAL_DIR)/msm8916-mtp-smb1360.dtb \
+	$(LOCAL_DIR)/msm8916-qrd-4.dtb \
+	$(LOCAL_DIR)/msm8916-qrd-5.dtb \
 	$(LOCAL_DIR)/msm8916-qrd-7+12.dtb \
+	$(LOCAL_DIR)/msm8916-qrd-8.dtb \
 	$(LOCAL_DIR)/msm8916-qrd-9.dtb \
+	$(LOCAL_DIR)/msm8916-qrd-skut1.dtb \
 	$(LOCAL_DIR)/msm8916-samsung.dtb \
 	$(LOCAL_DIR)/msm8929-samsung.dtb \
 	$(LOCAL_DIR)/msm8939-asus-z00t.dtb \
