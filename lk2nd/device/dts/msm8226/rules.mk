@@ -8,6 +8,7 @@ ADTBS += \
 QCDTBS += \
 	$(LOCAL_DIR)/apq8026-asus-sparrow.dtb \
 	$(LOCAL_DIR)/apq8026-huawei-sturgeon.dtb \
+	$(LOCAL_DIR)/apq8026-samsung.dtb \
 
 
 DTBS += \
