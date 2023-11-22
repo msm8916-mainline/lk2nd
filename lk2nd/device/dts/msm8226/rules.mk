@@ -12,6 +12,7 @@ QCDTBS += \
 	$(LOCAL_DIR)/msm8226-motorola-falcon.dtb \
 	$(LOCAL_DIR)/msm8226-samsung.dtb \
 	$(LOCAL_DIR)/msm8926-htc-memul.dtb \
+	$(LOCAL_DIR)/msm8926-huawei-g6-l11-vb.dtb \
 
 
 DTBS += \
