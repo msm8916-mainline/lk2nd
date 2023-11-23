@@ -1,0 +1,35 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <0xC808FF01 2 0x10001>;
+};
+
+&lk2nd {
+	/* rev 2 */
+	matisselte {
+		model = "Samsung Galaxy Tab 4 10.1 LTE (SM-T535)";
+		compatible = "samsung,matisselte", "samsung,matisse";
+		lk2nd,match-bootloader = "T535*";
+
+		lk2nd,dtb-files = "msm8926-samsung-matisse", "apq8026-samsung-matisse-wifi";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			home {
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&tlmm 108 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			down {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&tlmm 107 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			up {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&tlmm 106 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+};
