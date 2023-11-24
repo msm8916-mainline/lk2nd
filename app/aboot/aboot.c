@@ -1625,6 +1625,7 @@ int boot_linux_from_mmc(void)
 #endif
 	struct kernel64_hdr *kptr = NULL;
 	int current_active_slot = INVALID;
+	bool try_alternate_partition = false;
 
 	if (!IS_ENABLED(ABOOT_STANDALONE) && check_format_bit())
 		boot_into_recovery = 1;
@@ -1653,6 +1654,7 @@ int boot_linux_from_mmc(void)
 		}
 	}
 
+retry_boot:
 	index = partition_get_index(ptn_name);
 	ptn = partition_get_offset(index);
 	image_size = partition_get_size(index);
@@ -1670,8 +1672,21 @@ int boot_linux_from_mmc(void)
 	}
 
 	if (memcmp(hdr->magic, BOOT_MAGIC, BOOT_MAGIC_SIZE)) {
-		dprintf(CRITICAL, "ERROR: Invalid boot image header\n");
-                return ERR_INVALID_BOOT_MAGIC;
+		dprintf(CRITICAL, "ERROR: Invalid boot image header on partition %s\n", ptn_name);
+		if (IS_ENABLED(WITH_LK2ND_DEVICE_2ND) && !try_alternate_partition) {
+			try_alternate_partition = true;
+			if (strcmp(ptn_name, "boot") == 0) {
+				ptn_name = "real_boot";
+			} else if (strcmp(ptn_name, "recovery") == 0) {
+				ptn_name = "real_recovery";
+			} else {
+				dprintf(CRITICAL, "No alternate partition for %s, Abort.\n", ptn_name);
+				return ERR_INVALID_BOOT_MAGIC;
+			}
+			dprintf(CRITICAL, "Retrying boot with %s partition\n", ptn_name);
+			goto retry_boot;
+		}
+		return ERR_INVALID_BOOT_MAGIC;
 	}
 
 	if (hdr->page_size && (hdr->page_size != page_size)) {
