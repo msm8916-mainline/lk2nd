@@ -6,9 +6,6 @@ jobs:
       - uses: ./.github/workflows/build.yml
       with:
         project: lk2nd-msm8916
-        steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
         
       - name: Upload Artifact
         uses: actions/upload-artifact@master
