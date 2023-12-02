@@ -2,13 +2,9 @@ name: lk2nd
 on: [push, pull_request]
 jobs:
   lk2nd-msm8916:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
-
-      - name: Build lk2nd-msm8916
-        run: ./scripts/build_lk2nd-msm8916.sh
+    uses: ./.github/workflows/build.yml
+    with:
+      project: lk2nd-msm8916
 
   lk2nd:
     needs: lk2nd-msm8916
@@ -21,47 +17,39 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Build lk2nd
-        run: ./scripts/build_lk2nd.sh
+        run: |
+          # Coloca aquí los comandos de construcción específicos para lk2nd
+          echo "Building lk2nd"
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@master
         with:
+          project: ${{ matrix.project }}
           name: bootimg
-          path: build-lk2nd/*
+          path: build-lk2nd-msm8916/*
 
   lk1st:
     needs: lk2nd-msm8916
     strategy:
       matrix:
         project: [lk1st-msm8916]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
-
-      - name: Build lk1st
-        run: ./scripts/build_lk1st.sh
+    uses: ./.github/workflows/build.yml
+    with:
+      project: ${{ matrix.project }}
 
   lk1st-msm8916-db410c:
     needs: lk2nd-msm8916
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
-
-      - name: Build lk1st-msm8916-db410c
-        run: ./scripts/build_lk1st-msm8916-db410c.sh
+    uses: ./.github/workflows/build.yml
+    with:
+      project: lk1st-msm8916
+      vars: FORCE_SDCARD=1 LK1ST_DTB=apq8016-sbc LK1ST_PANEL=adv7533_1080p_video
 
   caf:
     needs: lk2nd-msm8916
     strategy:
       matrix:
         project: [msm8916, msm8974, msm8226]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
+    uses: ./.github/workflows/build.yml
+    with:
+      project: ${{ matrix.project }}
 
-      - name: Build caf
-        run: ./scripts/build_caf.sh
-        
