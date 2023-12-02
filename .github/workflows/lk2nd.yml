@@ -14,6 +14,10 @@ jobs:
     uses: ./.github/workflows/build.yml
     with:
       project: ${{ matrix.project }}
+    uses: actions/upload-artifact@master
+    with:
+      name: bootimg
+      path: build-lk2nd-msm8916/*
 
   lk1st:
     needs: lk2nd-msm8916
