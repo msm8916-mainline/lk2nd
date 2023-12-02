@@ -2,9 +2,20 @@ name: lk2nd
 on: [push, pull_request]
 jobs:
   lk2nd-msm8916:
-    uses: ./.github/workflows/build.yml
-    with:
-      project: lk2nd-msm8916
+    steps:
+      - uses: ./.github/workflows/build.yml
+      with:
+        project: lk2nd-msm8916
+        steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        
+      - name: Upload Artifact
+        uses: actions/upload-artifact@master
+        with:
+          project: ${{ matrix.project }}
+          name: bootimg
+          path: ./*
 
   lk2nd:
     needs: lk2nd-msm8916
@@ -20,13 +31,6 @@ jobs:
         run: |
           # Coloca aquí los comandos de construcción específicos para lk2nd
           echo "Building lk2nd"
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@master
-        with:
-          project: ${{ matrix.project }}
-          name: bootimg
-          path: ./*
 
   lk1st:
     needs: lk2nd-msm8916
