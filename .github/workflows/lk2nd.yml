@@ -1,37 +1,39 @@
-name: Build
-on: [push, pull_request]
+name: Build lk2nd
+on:
+  workflow_call:
+    inputs:
+      project:
+        type: string
+        required: true
+      platform:
+        type: string
+        required: true
+      options:
+        type: string
+      artifacts:
+        type: string
+        required: true
 
 jobs:
-  # Build lk2nd-msm8916 separately first to avoid booting lots of runners
-  # for obvious build errors that affect all platforms
-  lk2nd-msm8916:
-    name: lk2nd
-    uses: ./.github/workflows/lk2nd.yml
-    with:
-      project: lk2nd
-      platform: msm8916
-      artifacts: |
-        build-*/lk.bin
-        build-*/lk2nd.img
-  lk2nd:
-    needs: lk2nd-msm8916
-    uses: ./.github/workflows/lk2nd-matrix.yml
-    with:
-      project: lk2nd
-      exclude: msm8916  # Already built separately above
-      artifacts: |
-        build-*/lk.bin
-        build-*/lk2nd.img
-
-  lk1st:
-    needs: lk2nd
-    uses: ./.github/workflows/lk2nd-matrix.yml
-    with:
-      project: lk1st
-      artifacts: |
-        build-*/*.mbn
-        build-*/lk.bin
-
-  stock:
-    needs: lk1st
-    uses: ./.github/workflows/stock-matrix.yml
+  build:
+    name: ${{ inputs.platform }}
+    runs-on: ubuntu-latest
+    steps:
+      # Install dtc for lk2nd (not needed for lk1st without device tree)
+      - name: Install additional build dependencies
+        run: sudo apt-get install -yqq device-tree-compiler
+        if: inputs.project == 'lk2nd'
+      - name: Install cross compiler
+        uses: carlosperate/arm-none-eabi-gcc-action@v1
+      - run: arm-none-eabi-gcc --version
+      - uses: actions/checkout@v3
+      - name: Build
+        run: git clean -dxf && make -j$(nproc) TOOLCHAIN_PREFIX=arm-none-eabi-
+             ${{ inputs.options }} ${{ inputs.project }}-${{ inputs.platform }}
+      - name: Archive artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ inputs.platform }}
+          path: ${{ inputs.artifacts }}
+    env:
+      LKLE_CFLAGS: -Werror
