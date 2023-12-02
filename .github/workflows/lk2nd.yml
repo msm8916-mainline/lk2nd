@@ -3,9 +3,10 @@ on: [push, pull_request]
 jobs:
   lk2nd-msm8916:
     steps:
-      - uses: ./.github/workflows/build.yml
-      with:
-        project: lk2nd-msm8916
+      - name: seting up
+        uses: ./.github/workflows/build.yml
+        with:
+          project: lk2nd-msm8916
         
       - name: Upload Artifact
         uses: actions/upload-artifact@master
