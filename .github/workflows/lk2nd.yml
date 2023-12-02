@@ -1,58 +1,37 @@
-name: lk2nd
+name: Build
 on: [push, pull_request]
-jobs:
-  lk2nd-msm8916:
-  runs-on: ubuntu-latest
-    steps:
-      - name: seting up
-        uses: ./.github/workflows/build.yml
-        with:
-          project: lk2nd-msm8916
-        
-      - name: Upload Artifact
-        uses: actions/upload-artifact@master
-        with:
-          project: ${{ matrix.project }}
-          name: bootimg
-          path: ./*
 
+jobs:
+  # Build lk2nd-msm8916 separately first to avoid booting lots of runners
+  # for obvious build errors that affect all platforms
+  lk2nd-msm8916:
+    name: lk2nd
+    uses: ./.github/workflows/lk2nd.yml
+    with:
+      project: lk2nd
+      platform: msm8916
+      artifacts: |
+        build-*/lk.bin
+        build-*/lk2nd.img
   lk2nd:
     needs: lk2nd-msm8916
-    strategy:
-      matrix:
-        project: [lk2nd-msm8226, lk2nd-msm8974]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
-
-      - name: Build lk2nd
-        run: |
-          # Coloca aquí los comandos de construcción específicos para lk2nd
-          echo "Building lk2nd"
+    uses: ./.github/workflows/lk2nd-matrix.yml
+    with:
+      project: lk2nd
+      exclude: msm8916  # Already built separately above
+      artifacts: |
+        build-*/lk.bin
+        build-*/lk2nd.img
 
   lk1st:
-    needs: lk2nd-msm8916
-    strategy:
-      matrix:
-        project: [lk1st-msm8916]
-    uses: ./.github/workflows/build.yml
+    needs: lk2nd
+    uses: ./.github/workflows/lk2nd-matrix.yml
     with:
-      project: ${{ matrix.project }}
+      project: lk1st
+      artifacts: |
+        build-*/*.mbn
+        build-*/lk.bin
 
-  lk1st-msm8916-db410c:
-    needs: lk2nd-msm8916
-    uses: ./.github/workflows/build.yml
-    with:
-      project: lk1st-msm8916
-      vars: FORCE_SDCARD=1 LK1ST_DTB=apq8016-sbc LK1ST_PANEL=adv7533_1080p_video
-
-  caf:
-    needs: lk2nd-msm8916
-    strategy:
-      matrix:
-        project: [msm8916, msm8974, msm8226]
-    uses: ./.github/workflows/build.yml
-    with:
-      project: ${{ matrix.project }}
-
+  stock:
+    needs: lk1st
+    uses: ./.github/workflows/stock-matrix.yml
