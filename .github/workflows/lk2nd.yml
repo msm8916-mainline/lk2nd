@@ -2,48 +2,66 @@ name: lk2nd
 on: [push, pull_request]
 jobs:
   lk2nd-msm8916:
-    uses: ./.github/workflows/build.yml
-    with:
-      project: lk2nd-msm8916
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Build lk2nd-msm8916
+        run: ./scripts/build_lk2nd-msm8916.sh
 
   lk2nd:
     needs: lk2nd-msm8916
     strategy:
       matrix:
         project: [lk2nd-msm8226, lk2nd-msm8974]
-    jobs:
-      - name: Build
-        uses: ./.github/workflows/build.yml
-        with:
-          project: ${{ matrix.project }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Build lk2nd
+        run: ./scripts/build_lk2nd.sh
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v2
         with:
           name: bootimg
-          path: build-lk2nd-msm8916/*
+          path: build-lk2nd/*
 
   lk1st:
     needs: lk2nd-msm8916
     strategy:
       matrix:
         project: [lk1st-msm8916]
-    uses: ./.github/workflows/build.yml
-    with:
-      project: ${{ matrix.project }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Build lk1st
+        run: ./scripts/build_lk1st.sh
 
   lk1st-msm8916-db410c:
     needs: lk2nd-msm8916
-    uses: ./.github/workflows/build.yml
-    with:
-      project: lk1st-msm8916
-      vars: FORCE_SDCARD=1 LK1ST_DTB=apq8016-sbc LK1ST_PANEL=adv7533_1080p_video
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Build lk1st-msm8916-db410c
+        run: ./scripts/build_lk1st-msm8916-db410c.sh
 
   caf:
     needs: lk2nd-msm8916
     strategy:
       matrix:
         project: [msm8916, msm8974, msm8226]
-    uses: ./.github/workflows/build.yml
-    with:
-      project: ${{ matrix.project }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Build caf
+        run: ./scripts/build_caf.sh
+        
