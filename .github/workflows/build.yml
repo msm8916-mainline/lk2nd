@@ -1,4 +1,4 @@
-name: Build
+name: Building
 on: [push, pull_request]
 
 jobs:
