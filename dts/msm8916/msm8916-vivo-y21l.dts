@@ -1,0 +1,28 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton.dtsi>
+
+/ {
+	qcom,msm-id = <206 0>;
+	qcom,board-id = <8 13>;
+
+	model = "Vivo Y21L";
+	compatible = "vivo,y21l", "qcom,msm8916", "lk2nd,device";
+	lk2nd,match-panel;
+
+	panel {
+		compatible = "vivo,y21l-panel";
+
+		qcom,mdss_dsi_nt35510s_fwvga_cmd_tm {
+			compatible = "vivo,nt35510s-tm";
+		};
+		qcom,mdss_dsi_orise8012a_tmfwvga_cmd {
+			compatible = "vivo,orise8012a-tmfwvga";
+		};
+		qcom,mdss_dsi_orise8012a_tmfwvga_cmd_bkg {
+			compatible = "vivo,orise8012a-tmfwvga-bkg";
+		};
+	};
+};
