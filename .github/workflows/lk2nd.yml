@@ -11,11 +11,11 @@ jobs:
     strategy:
       matrix:
         project: [lk2nd-msm8226, lk2nd-msm8974]
-    uses: ./.github/workflows/build.yml
+    uses: 
+      - ./.github/workflows/build.yml
+      - actions/upload-artifact@master
     with:
       project: ${{ matrix.project }}
-    uses: actions/upload-artifact@master
-    with:
       name: bootimg
       path: build-lk2nd-msm8916/*
 
