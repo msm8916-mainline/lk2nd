@@ -26,7 +26,7 @@ jobs:
         with:
           project: ${{ matrix.project }}
           name: bootimg
-          path: *
+          path: ./*
 
   lk1st:
     needs: lk2nd-msm8916
