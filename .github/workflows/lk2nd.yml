@@ -2,6 +2,7 @@ name: lk2nd
 on: [push, pull_request]
 jobs:
   lk2nd-msm8916:
+  runs-on: ubuntu-latest
     steps:
       - name: seting up
         uses: ./.github/workflows/build.yml
