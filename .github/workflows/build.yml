@@ -1,20 +1,37 @@
-name: build
-on:
-  workflow_call:
-    inputs:
-      project:
-        required: true
-        type: string
-      vars:
-        type: string
+name: Build
+on: [push, pull_request]
+
 jobs:
-  build:
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Install the build dependencies
-        run: |
-          sudo apt-get install -yqq gcc gcc-arm-none-eabi device-tree-compiler libfdt-dev make python3
-      - name: Build ${{ inputs.project }}
-        run: make -j$(nproc) TOOLCHAIN_PREFIX=arm-none-eabi- ${{ inputs.vars }} ${{ inputs.project }}
+  # Build lk2nd-msm8916 separately first to avoid booting lots of runners
+  # for obvious build errors that affect all platforms
+  lk2nd-msm8916:
+    name: lk2nd
+    uses: ./.github/workflows/lk2nd.yml
+    with:
+      project: lk2nd
+      platform: msm8916
+      artifacts: |
+        build-*/lk.bin
+        build-*/lk2nd.img
+  lk2nd:
+    needs: lk2nd-msm8916
+    uses: ./.github/workflows/lk2nd-matrix.yml
+    with:
+      project: lk2nd
+      exclude: msm8916  # Already built separately above
+      artifacts: |
+        build-*/lk.bin
+        build-*/lk2nd.img
+
+  lk1st:
+    needs: lk2nd
+    uses: ./.github/workflows/lk2nd-matrix.yml
+    with:
+      project: lk1st
+      artifacts: |
+        build-*/*.mbn
+        build-*/lk.bin
+
+  stock:
+    needs: lk1st
+    uses: ./.github/workflows/stock-matrix.yml
