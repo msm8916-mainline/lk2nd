@@ -21,7 +21,7 @@ jobs:
     steps:
       # Install dtc for lk2nd (not needed for lk1st without device tree)
       - name: Install additional build dependencies
-        run: sudo apt-get install -yqq device-tree-compiler
+        run: sudo apt-get install -yqq device-tree-compiler libfdt-dev
         if: inputs.project == 'lk2nd'
       - name: Install cross compiler
         uses: carlosperate/arm-none-eabi-gcc-action@v1
