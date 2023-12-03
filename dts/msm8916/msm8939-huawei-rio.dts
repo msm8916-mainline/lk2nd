@@ -11,6 +11,6 @@
 		<8086 4>, <8087 4>, <8102 4>, <8134 4>, 
 		<8135 4>, <8118 4>;
 		
-	model = "Huawei G8 / GX8 / RIO-L01";
+	model = "Huawei G7 Plus / G8 / GX8";
 	compatible = "huawei,rio", "qcom,msm8939", "lk2nd,device";
 };
