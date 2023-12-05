@@ -356,6 +356,9 @@ void target_init(void)
 #else
 	target_mmc_mci_init();
 #endif
+
+	/* Disable Watchdog, if it was enabled by first bootloader. */
+	writel(0, APCS_KPSS_WDT_EN);
 }
 
 unsigned board_machtype(void)
