@@ -12,8 +12,8 @@
 };
 
 &lk2nd {
-	model = "Huawei Honor 5X / GR5 (2016)";
-	compatible = "huawei,kiwi";
+	model = "Huawei G7 Plus / G8 / GX8";
+	compatible = "huawei,rio";
 
 	//FIXME: lk2nd,dtb-files = "msm8939-huawei-rio";
 };
