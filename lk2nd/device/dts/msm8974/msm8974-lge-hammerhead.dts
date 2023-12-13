@@ -1,0 +1,56 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8974 0x96 0x20002 0x2b>;
+};
+
+&lk2nd {
+	hammerhead-d820 {
+		model = "LG Google Nexus 5 D820";
+		compatible = "lge,hammerhead";
+		lk2nd,match-cmdline = "* androidboot.hardware.sku=D820 *";
+
+		lk2nd,dtb-files = "msm8974-lge-nexus5-hammerhead";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			down {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&pmic 3 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+
+			up {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&pmic 2 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+
+	hammerhead-d821 {
+		model = "LG Google Nexus 5 D821";
+		compatible = "lge,hammerhead";
+		lk2nd,match-cmdline = "* androidboot.hardware.sku=D821 *";
+
+		// Currently unable to use a dedicated device tree because it won't
+		// load D821 after D820 loaded.
+		qcom,msm-id = <QCOM_ID_MSM8974 0x96 0x20002 0x0b>;
+
+		lk2nd,dtb-files = "msm8974-lge-nexus5-hammerhead";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			down {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&pmic 3 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+
+			up {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&pmic 2 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+};
