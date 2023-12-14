@@ -222,6 +222,7 @@ static int parse_conf(char *data, size_t size, struct label *label)
 				}
 				break;
 			default:
+				break;
 		}
 	}
 
