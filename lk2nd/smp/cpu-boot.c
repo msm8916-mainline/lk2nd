@@ -67,19 +67,23 @@ static uint32_t read_phandle_reg(const void *dtb, int node, const char *prop)
 
 bool cpu_boot(const void *dtb, int node, uint32_t mpidr)
 {
-	uint32_t acc, extra_reg __UNUSED;
+	uint32_t extra_reg __UNUSED;
 
 	if (mpidr == read_mpidr()) {
 		dprintf(INFO, "Skipping boot of current CPU (%x)\n", mpidr);
 		return true;
 	}
-
+#ifndef CPU_BOOT_CORTEX_A_MSM8994
+	uint32_t acc;
 	/* Boot the CPU core using registers in the ACC node */
 	acc = read_phandle_reg(dtb, node, "qcom,acc");
 	if (!acc)
 		return false;
 
 	dprintf(INFO, "Booting CPU%x @ %#08x\n", mpidr, acc);
+#else
+	dprintf(INFO, "Booting CPU%x\n", mpidr);
+#endif
 
 #if CPU_BOOT_CORTEX_A
 	/*
@@ -90,6 +94,8 @@ bool cpu_boot(const void *dtb, int node, uint32_t mpidr)
 	 */
 	extra_reg = read_phandle_reg(dtb, node, "clocks");
 	cpu_boot_cortex_a(acc, extra_reg);
+#elif CPU_BOOT_CORTEX_A_MSM8994
+	cpu_boot_cortex_a_msm8994(mpidr);
 #elif CPU_BOOT_KPSSV1
 	extra_reg = read_phandle_reg(dtb, node, "qcom,saw");
 	if (!extra_reg)
