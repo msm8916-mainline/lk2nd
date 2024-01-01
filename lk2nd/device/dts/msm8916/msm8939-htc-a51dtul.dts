@@ -1,22 +1,37 @@
-// SPDX-License-Identifier: GPL-2.0-only
+// SPDX-License-Identifier: BSD-3-Clause
 
-/dts-v1/;
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
 
 /*
- * In HBOOT `fastboot boot lk2nd.img` won't boot the image, instead it'll boot
- * whatever is currently flashed to boot partition.
+ * 1. Remove other DTBs from ../rules.mk, otherwise HBOOT will refuse to boot:
+ * [ERR] The device tree entry table should be LESS THAN a page (2048)
+ * 2. In HBOOT `fastboot boot lk2nd.img` won't boot that image, instead it'll
+ * boot whatever is currently flashed to boot partition.
  */
 
-#include <skeleton.dtsi>
-#include <lk2nd.h>
-
 / {
-	model = "HTC Desire 820 Dual SIM";
-	compatible = "htc,a51dtul", "qcom,msm8939", "lk2nd,device";
+	// actually htc,project-id
 	qcom,msm-id = <342 0x10000>, <343 0x10000>, <344 0x10000>, <345 0x10000>;
+	// actually htc,hw-id
 	qcom,board-id = <0x80 0>;
+};
 
-	lk2nd,keys =
-		<KEY_VOLUMEUP	107 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>,
-		<KEY_VOLUMEDOWN	108 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+&lk2nd {
+	model = "HTC Desire 820 Dual SIM";
+	compatible = "htc,a51dtul";
+
+	//FIXME: lk2nd,dtb-files = "msm8939-htc-a51dtul";
+
+	gpio-keys {
+		compatible = "gpio-keys";
+		vol-up {
+			lk2nd,code = <KEY_VOLUMEUP>;
+			gpios = <&tlmm 107 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+		};
+		vol-down {
+			lk2nd,code = <KEY_VOLUMEDOWN>;
+			gpios = <&tlmm 108 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+		};
+	};
 };
