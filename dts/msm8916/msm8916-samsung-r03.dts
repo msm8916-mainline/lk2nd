@@ -70,6 +70,17 @@
 		};
 	};
 
+	on7lte-swa {
+		model = "Samsung Galaxy On7 2015 (SM-G600FY)";
+		compatible = "samsung,o7lte-swa", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "G600FY*";
+
+		samsung,muic-reset {
+			i2c-gpio-pins = <105 106>;
+			i2c-address = <0x25>;
+		};
+	};
+
 	/*
 	 * Before building for rossaltezt, please comment out all dtbs except
 	 * "$(LOCAL_DIR)/msm8916-samsung-r03.dtb" at './rules.mk'.
