@@ -413,6 +413,24 @@
 		};
 	};
 
+	on7lte-swa {
+		model = "Samsung Galaxy On7 2015 (SM-G600FY)";
+		compatible = "samsung,on7lte-swa", "samsung,on7";
+		lk2nd,match-bootloader = "G600FY*";
+
+		lk2nd,dtb-files = "msm8916-samsung-on7";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 3>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x25>;
+			i2c-sda-gpios = <&tlmm 105 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 106 I2C_GPIO_FLAGS>;
+		};
+	};
+
 	/*
 	 * Before building for rossaltezt, please comment out all dtbs except
 	 * "$(LOCAL_DIR)/msm8916-samsung.dtb" at './rules.mk'.
