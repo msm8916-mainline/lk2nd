@@ -16,4 +16,11 @@
 
 		#include "msm8916-samsung-j5.dtsi"
 	};
+	j5xn3g {
+		model = "Samsung Galaxy J5 2016 (SM-J510H)";
+		compatible = "samsung,j5xn3g", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "J510H*";
+
+		#include "msm8916-samsung-j5.dtsi"
+	};
 };
