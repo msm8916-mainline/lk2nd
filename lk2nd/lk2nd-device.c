@@ -183,6 +183,21 @@ static bool match_string(const char *s, const char *match, size_t len)
 	return strncmp(s, match, len + 1) == 0;
 }
 
+static bool match_strings(const char *s, const char *match, size_t len)
+{
+	size_t entry_len, used_len = 0;
+
+	while (used_len < len) {
+		entry_len = strnlen(match + used_len, len - used_len);
+		if (match_string(s, match + used_len, entry_len))
+			return true;
+
+		used_len += entry_len + 1;
+	}
+
+	return false;
+}
+
 static bool match_panel(const void *fdt, int offset, const char *panel_name)
 {
 	offset = fdt_subnode_offset(fdt, offset, "panel");
@@ -206,14 +221,14 @@ static bool lk2nd_device_match(const void *fdt, int offset)
 	if (val && len > 0) {
 		if (!lk2nd_dev.bootloader)
 			return false;
-		return match_string(lk2nd_dev.bootloader, val, len);
+		return match_strings(lk2nd_dev.bootloader, val, len);
 	}
 
 	val = fdt_getprop(fdt, offset, "lk2nd,match-cmdline", &len);
 	if (val && len > 0) {
 		if (!lk2nd_dev.cmdline)
 			return false;
-		return match_string(lk2nd_dev.cmdline, val, len);
+		return match_strings(lk2nd_dev.cmdline, val, len);
 	}
 
 	fdt_getprop(fdt, offset, "lk2nd,match-panel", &len);
