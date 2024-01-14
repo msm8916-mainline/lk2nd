@@ -9,8 +9,8 @@
 	qcom,msm-id = <0xC208FF01 10 0x10000>;
 
 	kltechn {
-		model = "Samsung Galaxy S5 China Unicom (Duos) (SM-G9006V/W)";
+		model = "Samsung Galaxy S5 China Unicom/Mobile (Duos) (SM-G9006V/W,SM-G9008V/W)";
 		compatible = "samsung,klte", "qcom,msm8974", "lk2nd,device";
-		lk2nd,match-bootloader = "G9006*";
+		lk2nd,match-bootloader = "G9006*", "G9008*";
 	};
 };
