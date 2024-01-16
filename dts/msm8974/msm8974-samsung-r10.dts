@@ -8,9 +8,27 @@
 	// This is used by the bootloader to find the correct DTB
 	qcom,msm-id = <0xC208FF01 10 0x10000>;
 
-	kltechn {
+	kltechn-unicom {
 		model = "Samsung Galaxy S5 China Unicom (Duos) (SM-G9006V/W)";
-		compatible = "samsung,klte", "qcom,msm8974", "lk2nd,device";
+		compatible = "samsung,kltechn-unicom",
+			     "samsung,kltechn", "samsung,klte",
+			     "qcom,msm8974", "lk2nd,device";
 		lk2nd,match-bootloader = "G9006*";
+	};
+
+	kltechn-mobile {
+		model = "Samsung Galaxy S5 China Mobile (Duos) (SM-G9008V/W)";
+		compatible = "samsung,kltechn-mobile",
+			     "samsung,kltechn", "samsung,klte",
+			     "qcom,msm8974", "lk2nd,device";
+		lk2nd,match-bootloader = "G9008*";
+	};
+
+	kltechn-telecom {
+		model = "Samsung Galaxy S5 China Telecom LTE (SM-G9009W)";
+		compatible = "samsung,kltechn-telecom",
+			     "samsung,kltechn", "samsung,klte",
+			     "qcom,msm8974", "lk2nd,device";
+		lk2nd,match-bootloader = "G9009W*";
 	};
 };
