@@ -1,0 +1,71 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <271 0 0x10000>, <271 1 0x10000>, <271 2 0x10000>,
+		      <271 3 0x10000>, <271 4 0x10000>, <271 5 0x10000>,
+		      <272 0 0x10000>, <272 1 0x10000>, <272 2 0x10000>,
+		      <272 3 0x10000>, <272 4 0x10000>, <272 5 0x10000>,
+		      <273 0 0x10000>, <273 1 0x10000>, <273 2 0x10000>,
+		      <273 3 0x10000>, <273 4 0x10000>, <273 5 0x10000>,
+		      <280 0 0x10000>, <280 1 0x10000>, <280 2 0x10000>,
+		      <280 3 0x10000>, <280 4 0x10000>, <280 5 0x10000>,
+		      <286 1 0x10000>, <286 2 0x10000>, <286 3 0x10000>,
+		      <286 4 0x10000>, <286 5 0x10000>,
+		      <305 0 0x10000>, <305 1 0x10000>, <305 2 0x10000>,
+		      <305 3 0x10000>, <305 4 0x10000>, <305 5 0x10000>;
+};
+
+&lk2nd {
+	htc-m8 {
+		model = "HTC One (M8)";
+		compatible = "htc,m8";
+		lk2nd,match-panel;
+
+		//FIXME: lk2nd,dtb-files = "msm8974-htc-m8";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			down {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&tlmm 27 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			up {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&tlmm 28 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+
+		panel {
+			compatible = "htc,m8-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_glu_sharp_1080p_cmd {
+				compatible = "htc,m8-glu-sharp-cmd";
+			};
+			qcom,mdss_dsi_m8_lg_1080p_video {
+				compatible = "htc,m8-lg-video";
+			};
+			qcom,mdss_dsi_m8_lg_novatek_35595_1080p_cmd {
+				compatible = "htc,m8-lg-nt35595-cmd";
+			};
+			qcom,mdss_dsi_m8_lg_novatek_35695_1080p_video {
+				compatible = "htc,m8-lg-nt35695-video";
+			};
+			qcom,mdss_dsi_m8_sharp_novatek_35595_1080p_cmd {
+				compatible = "htc,m8-sharp-nt35595-cmd";
+			};
+			qcom,mdss_dsi_m8_sharp_novatek_35695_1080p_cmd {
+				compatible = "htc,m8-sharp-nt35695-cmd";
+			};
+			qcom,mdss_dsi_m8_sharp_novatek_35695_1080p_video {
+				compatible = "htc,m8-sharp-nt35695-video";
+			};
+			qcom,mdss_dsi_sharp_1080p_video {
+				compatible = "htc,m8-sharp-video";
+			};
+		};
+	};
+};
+
