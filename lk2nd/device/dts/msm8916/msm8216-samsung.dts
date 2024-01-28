@@ -33,9 +33,9 @@
 		};
 	};
 
-	j5xn3g {
+	j5x3gjv {
 		model = "Samsung Galaxy J5 2016 (SM-J510H)";
-		compatible = "samsung,j5xn3g", "samsung,j5";
+		compatible = "samsung,j5x3g", "samsung,j5";
 		lk2nd,match-bootloader = "J500H*";
 
 		lk2nd,dtb-files = "msm8916-samsung-j5";
