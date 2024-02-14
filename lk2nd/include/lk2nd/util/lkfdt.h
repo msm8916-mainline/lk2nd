@@ -77,4 +77,16 @@ int lkfdt_lookup_phandle(const void *fdt, int node, const char *prop) __PURE;
  */
 char **lkfdt_stringlist_get_all(const void *fdt, int node,
 				      const char *prop, int *lenp);
+
+/**
+ * lkfdt_get_phandle - retrieve the phandle of a given node or add a new phandle to it.
+ * @fdt:  pointer to the device tree blob
+ * @node: structure block offset of the node
+ *
+ * This function will add a new phandle property to the node if it doesn't exist.
+ *
+ * Return: The phandle value or 0 on error.
+ */
+uint32_t lkfdt_get_phandle(void *fdt, int node);
+
 #endif /* LK2ND_UTIL_LKFDT_H */
