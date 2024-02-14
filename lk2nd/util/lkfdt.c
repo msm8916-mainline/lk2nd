@@ -145,4 +145,23 @@ error:
 
 }
 
+uint32_t lkfdt_get_phandle(void *fdt, int node)
+{
+	uint32_t ph = fdt_get_phandle(fdt, node);
+	int ret;
+
+	if (ph)
+		return ph;
+
+	ret = fdt_generate_phandle(fdt, &ph);
+	if (ret)
+		return 0;
+
+	ret = fdt_setprop_u32(fdt, node, "phandle", ph);
+	if (ret)
+		return 0;
+
+	return ph;
+}
+
 #endif /* WITH_LIB_LIBFDT */
