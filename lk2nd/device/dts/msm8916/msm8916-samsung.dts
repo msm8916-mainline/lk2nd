@@ -62,10 +62,10 @@
 	coreprimelte {
 		// In the downstream dts it is called Samsung ROSSA PROJECT Rev00
 		model = "Samsung Galaxy Core Prime LTE (SM-G360F)";
-		compatible = "samsung,coreprimelte", "samsung,cprime";
+		compatible = "samsung,coreprimelte", "samsung,rossa";
 		lk2nd,match-bootloader = "G360F*";
 
-		lk2nd,dtb-files = "msm8916-samsung-cprime";
+		lk2nd,dtb-files = "msm8916-samsung-rossa";
 
 		qcom,msm-id = <QCOM_ID_MSM8916 0>;
 		qcom,board-id = <0xCE08FF01 1>;
@@ -197,10 +197,10 @@
 
 	rossaltedv {
 		model = "Samsung Galaxy Core Prime LTE (SM-G360GD)";
-		compatible = "samsung,rossaltexsa", "samsung,cprime";
+		compatible = "samsung,rossaltexsa", "samsung,rossa";
 		lk2nd,match-bootloader = "G360GD*";
 
-		lk2nd,dtb-files = "msm8916-samsung-cprime";
+		lk2nd,dtb-files = "msm8916-samsung-rossa";
 
 		qcom,msm-id = <QCOM_ID_MSM8916 0>;
 		qcom,board-id = <0xCE08FF01 1>;
@@ -461,10 +461,10 @@
 	 */
 	rossaltezt {
 		model = "Samsung Galaxy Core Prime LTE (SM-G360GZT)";
-		compatible = "samsung,rossaltexsa", "samsung,cprime";
+		compatible = "samsung,rossaltexsa", "samsung,rossa";
 		lk2nd,match-bootloader = "G360GZT*";
 
-		lk2nd,dtb-files = "msm8916-samsung-cprime";
+		lk2nd,dtb-files = "msm8916-samsung-rossa";
 
 		qcom,msm-id = <QCOM_ID_MSM8916 0>;
 		qcom,board-id = <0xCE08FF01 3>;
@@ -705,10 +705,10 @@
 
 	cprimeltetmo {
 		model = "Samsung Galaxy Core Prime LTE (SM-G360T)";
-		compatible = "samsung,cprimeltetmo", "samsung,cprime";
+		compatible = "samsung,cprimeltetmo", "samsung,rossa";
 		lk2nd,match-bootloader = "G360T*";
 
-		lk2nd,dtb-files = "msm8916-samsung-cprime";
+		lk2nd,dtb-files = "msm8916-samsung-rossa";
 
 		qcom,msm-id = <QCOM_ID_MSM8916 0>;
 		qcom,board-id = <0xCE08FF01 6>;
