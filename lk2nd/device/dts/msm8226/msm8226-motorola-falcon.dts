@@ -1,0 +1,15 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <0x91 0x42 0x283C0>;
+};
+
+&lk2nd {
+	model = "Motorola Moto G 2013";
+	compatible = "motorola,falcon";
+
+	// FIXME: lk2nd,dtb-files = "msm8226-motorola-falcon";
+};

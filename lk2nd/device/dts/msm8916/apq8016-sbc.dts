@@ -10,5 +10,7 @@
 
 &lk2nd {
 	model = "APQ8016 SBC";
-	compatible = "apq8016,sbc";
+	compatible = "qcom,apq8016-sbc";
+
+	lk2nd,dtb-files = "apq8016-sbc";
 };

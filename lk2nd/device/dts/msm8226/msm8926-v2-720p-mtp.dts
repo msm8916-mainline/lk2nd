@@ -1,0 +1,30 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8926 0>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 0>;
+};
+
+&lk2nd {
+	coolpad-8730l {
+		model = "Coolpad 8730L";
+		compatible = "coolpad,8730l";
+		lk2nd,match-panel;
+
+		//FIXME: lk2nd,dtb-files = "msm8926-coolpad-8730l";
+
+		panel {
+			compatible = "lk2nd,panel";
+			qcom,mdss_dsi_otm1283a_boyi_hd_video {};
+			qcom,mdss_dsi_hx8394a_lide_hd_video {};
+			qcom,mdss_dsi_hx8394a_yashi_hd_video {};
+			qcom,mdss_dsi_hx8394a_yashi_cmi_hd_video {};
+			qcom,mdss_dsi_otm1283a_boyi_auo_hd_video {};
+			qcom,mdss_dsi_otm1283a_lide_cpt_hd_video {};
+		};
+	};
+};
+

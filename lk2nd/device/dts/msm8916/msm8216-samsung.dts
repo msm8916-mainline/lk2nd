@@ -1,0 +1,102 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+#define I2C_GPIO_FLAGS	(GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN | GPIO_BIAS_DISABLE)
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8216 0>;
+	qcom,board-id = <0xF808FF01 5>,
+			<0xF808FF01 7>,
+			<0xF808FF01 8>;
+};
+
+&lk2nd {
+	/* rev 5 */
+
+	j53gxx {
+		model = "Samsung Galaxy J5 2015 (SM-J500H)";
+		compatible = "samsung,j53gxx", "samsung,j5";
+		lk2nd,match-bootloader = "J500H*";
+
+		lk2nd,dtb-files = "msm8916-samsung-j5";
+
+		qcom,msm-id = <QCOM_ID_MSM8216 0>;
+		qcom,board-id = <0xF808FF01 5>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x25>;
+			i2c-sda-gpios = <&tlmm 105 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 106 I2C_GPIO_FLAGS>;
+		};
+	};
+
+	j5x3gjv {
+		model = "Samsung Galaxy J5 2016 (SM-J510H)";
+		compatible = "samsung,j5x3g", "samsung,j5";
+		lk2nd,match-bootloader = "J500H*";
+
+		lk2nd,dtb-files = "msm8916-samsung-j5";
+
+		qcom,msm-id = <QCOM_ID_MSM8216 0>;
+		qcom,board-id = <0xF808FF01 5>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x25>;
+			i2c-sda-gpios = <&tlmm 105 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 106 I2C_GPIO_FLAGS>;
+		};
+	};
+
+	/* rev 7 */
+
+	fortuna3g {
+		model = "Samsung Galaxy Grand Prime (SM-G530H)";
+		compatible = "samsung,fortuna3g";
+		lk2nd,match-bootloader = "G530H*";
+
+		lk2nd,dtb-files = "msm8916-samsung-fortuna3g";
+
+		qcom,msm-id = <QCOM_ID_MSM8216 0>;
+		qcom,board-id = <0xF808FF01 7>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x25>;
+			i2c-sda-gpios = <&tlmm 2 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 3 I2C_GPIO_FLAGS>;
+		};
+
+		panel {
+			compatible = "samsung,gprime-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_hx8389c_qhd_video {
+				compatible = "samsung,hx8389c-gh9607501a";
+			};
+			ss_dsi_panel_HX8389C_GH9607501A_QHD {
+				compatible = "samsung,hx8389c-gh9607501a";
+			};
+			ss_dsi_panel_S6D78A0_GH9607501A_QHD {
+				compatible = "samsung,s6d78a0-gh9607501a";
+			};
+		};
+	};
+
+	/* rev 8 */
+
+	a53g {
+		model = "Samsung Galaxy A5 (SM-A500H)";
+		compatible = "samsung,a53g", "samsung,a5u-eur", "samsung,a5";
+		lk2nd,match-bootloader = "A500H*";
+
+		lk2nd,dtb-files = "msm8916-samsung-a5u-eur";
+
+		qcom,msm-id = <QCOM_ID_MSM8216 0>;
+		qcom,board-id = <0xF808FF01 8>;
+	};
+
+};
+

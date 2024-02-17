@@ -5,7 +5,8 @@
 
 / {
 	qcom,msm-id = <QCOM_ID_MSM8916 0>;
-	qcom,board-id = <QCOM_BOARD_ID_QRD 7>, <QCOM_BOARD_ID_QRD 12>;
+	qcom,board-id = <QCOM_BOARD_ID_QRD 7>,
+			<QCOM_BOARD_ID_QRD 12>;
 };
 
 &lk2nd {
@@ -14,8 +15,10 @@
 		compatible = "wingtech,wt88047";
 		lk2nd,match-panel;
 
+		lk2nd,dtb-files = "msm8916-wingtech-wt88047";
+
 		panel {
-			compatible = "wingtech,wt88047-panel";
+			compatible = "wingtech,wt88047-panel", "lk2nd,panel";
 
 			qcom,mdss_dsi_r69431_720p_video {
 				compatible = "wingtech,sharp-r69431";

@@ -1,0 +1,25 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_APQ8026 0x20000>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 4>;
+};
+
+&lk2nd {
+	model = "Huawei Watch";
+	compatible = "huawei,sturgeon";
+
+	lk2nd,dtb-files = "apq8026-huawei-sturgeon";
+
+	gpio-keys {
+		compatible = "gpio-keys";
+
+		power {
+			lk2nd,code = <KEY_HOME>;
+			gpios = <&pmic_pon GPIO_PMIC_PWRKEY 0>;
+		};
+	};
+};

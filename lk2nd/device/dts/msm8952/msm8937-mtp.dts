@@ -1,0 +1,17 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8937 0x00>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 0x00>;
+};
+
+&lk2nd {
+	marmite {
+		model = "Wileyfox Swift 2";
+		compatible = "wileyfox,marmite";
+		lk2nd,match-bootloader = "marmite*";
+	};
+};

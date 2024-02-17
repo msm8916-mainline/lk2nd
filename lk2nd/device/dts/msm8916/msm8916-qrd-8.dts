@@ -1,0 +1,36 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8916 0>;
+	qcom,board-id = <QCOM_BOARD_ID_QRD 8>;
+};
+
+&lk2nd {
+	lenovo-a6000 {
+		model = "Lenovo A6000 (Wingtech WT86518)";
+		compatible = "wingtech,wt86518";
+		lk2nd,match-panel;
+
+		lk2nd,dtb-files = "msm8916-wingtech-wt86518";
+
+		panel {
+			compatible = "wingtech,wt865x8-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_innolux_720p_video {
+				compatible = "wingtech,innolux-otm1283a";
+			};
+			qcom,mdss_dsi_hx8394d_720p_video {
+				compatible = "wingtech,tianma-hx8394d";
+			};
+			qcom,mdss_dsi_ili9881_720p_video {
+				compatible = "wingtech,yassy-ili9881";
+			};
+			qcom,mdss_dsi_ili9881_qimei_720p_video {
+				compatible = "wingtech,qimei-ili9881";
+			};
+		};
+	};
+};

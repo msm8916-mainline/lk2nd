@@ -1,0 +1,47 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8916 0>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 0>;
+};
+
+&lk2nd {
+	marshall-london {
+		model = "Marshall London";
+		compatible = "marshall,london";
+		lk2nd,match-cmdline = "* hw.id=500";
+
+		//FIXME: lk2nd,dtb-files = "msm8916-marshall-london";
+
+	};
+
+	alto5-vdf {
+		model = "Vodafone Smart prime 6";
+		compatible = "alcatel,alto5-vdf";
+		lk2nd,match-panel;
+
+		lk2nd,dtb-files = "msm8916-alcatel-alto5-vdf";
+
+		panel {
+			compatible = "alcatel,alto5-vdf-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_hx8394a_hd_tdt_video {
+				compatible = "alcatel,hx8394a-tdt";
+			};
+			qcom,mdss_dsi_hx8394a_hd_truly_video {
+				compatible = "alcatel,hx8394a-truly";
+			};
+		};
+	};
+
+	asus-z010d {
+		model = "Asus Zenfone Max ZC550KL";
+		compatible = "asus,z010d";
+		lk2nd,match-cmdline = "* mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_r69339_720p_video:1:none";
+
+		lk2nd,dtb-files = "msm8916-asus-z010d";
+	};
+};

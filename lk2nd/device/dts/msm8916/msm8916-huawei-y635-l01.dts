@@ -1,0 +1,38 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8916 0>;
+	qcom,board-id = <8003 4>;
+};
+
+/*
+ * To get a working build for huawei-y635-l01, comment out
+ * $(LOCAL_DIR)/msm8916-mtp.dtb in rules.mk in this directory.
+ * y635-l01 does not work with msm8916-mtp.dtb enabled; the bootloader
+ * gets upset and goes into the phone's fastboot.
+ */
+
+
+&lk2nd {
+	model = "Huawei Y635-L01";
+	compatible = "huawei,y635-l01", "huawei,y635";
+
+	lk2nd,dtb-files = "msm8916-huawei-y635";
+
+	panel {
+		compatible = "huawei,y635-panel", "lk2nd,panel";
+
+		qcom,mdss_dsi_boe_otm8019a_5p0_fwvga_video {
+			compatible = "huawei,boe-otm8019a";
+		};
+		qcom,mdss_dsi_cmi_ili9806e_5p0_fwvga_video {
+			compatible = "huawei,cmi-ili9806e";
+		};
+		qcom,mdss_dsi_tianma_otm8019a_5p0_fwvga_video {
+			compatible = "huawei,tianma-otm8019a";
+		};
+	};
+};

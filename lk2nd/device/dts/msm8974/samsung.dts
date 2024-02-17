@@ -4,14 +4,69 @@
 #include <lk2nd.dtsi>
 
 / {
-	qcom,msm-id = <0xC208FF01 14 0x10000>;
+	qcom,msm-id = <0xC208FF01 10 0x10000>,
+		      <0xC208FF01 14 0x10000>;
 };
 
 &lk2nd {
+	/* rev 10 */
+
+	kltechn-unicom {
+		model = "Samsung Galaxy S5 China Unicom (Duos) (SM-G9006V/W)";
+		compatible = "samsung,kltechn-unicom", "samsung,kltechn", "samsung,klte";
+		lk2nd,match-bootloader = "G9006*";
+
+		lk2nd,dtb-files = "msm8974pro-samsung-klte";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			home {
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&pmic 3 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+
+	kltechn-mobile {
+		model = "Samsung Galaxy S5 China Mobile (Duos) (SM-G9008V/W)";
+		compatible = "samsung,kltechn-mobile", "samsung,kltechn", "samsung,klte";
+		lk2nd,match-bootloader = "G9008*";
+
+		lk2nd,dtb-files = "msm8974pro-samsung-klte";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			home {
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&pmic 3 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+
+	kltechn-telecom {
+		model = "Samsung Galaxy S5 China Telecom LTE (SM-G9009W)";
+		compatible = "samsung,kltechn-telecom", "samsung,kltechn", "samsung,klte";
+		lk2nd,match-bootloader = "G9009*";
+
+		lk2nd,dtb-files = "msm8974pro-samsung-klte";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			home {
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&pmic 3 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+
+	/* rev 14 */
+
 	klte {
 		model = "Samsung Galaxy S5 (SM-G900F)";
 		compatible = "samsung,klte";
 		lk2nd,match-bootloader = "G900F*";
+
+		lk2nd,dtb-files = "msm8974pro-samsung-klte";
 
 		gpio-keys {
 			compatible = "gpio-keys";

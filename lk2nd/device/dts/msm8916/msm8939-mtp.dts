@@ -1,0 +1,55 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8939 0>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 0>;
+};
+
+&lk2nd {
+	alcatel-idol3 {
+		model = "Alcatel OneTouch Idol 3 (5.5)";
+		compatible = "alcatel,idol3";
+		lk2nd,match-panel;
+
+		lk2nd,dtb-files = "msm8916-alcatel-idol3";
+
+		panel {
+			compatible = "alcatel,idol3-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_nt35596_1080p_video {
+				compatible = "alcatel,idol3-panel-nt35596";
+				touchscreen-compatible = "syna,rmi4-i2c";
+			};
+			qcom,mdss_dsi_nt35596_1080p_video_v03 {
+				compatible = "alcatel,idol3-panel-nt35596-v03";
+				touchscreen-compatible = "syna,rmi4-i2c";
+			};
+			qcom,mdss_dsi_r63315_1080p_video {
+				compatible = "alcatel,idol3-panel-r63315";
+				touchscreen-compatible = "edt,edt-ft5406";
+			};
+		};
+	};
+
+	xiaomi-ferrari {
+		model = "Xiaomi Mi 4i";
+		compatible = "xiaomi,ferrari";
+		lk2nd,match-panel;
+
+		//FIXME: lk2nd,dtb-files = "msm8916-xiaomi-ferrari";
+
+		panel {
+			compatible = "xiaomi,ferrari-panel", "lk2nd,panel";
+			qcom,mdss_dsi_sharp_rsp61322_1080p_video {
+				compatible = "xiaomi,sharp-rsp61322";
+			};
+
+			qcom,mdss_dsi_jdi_nt35595_1080p_video {
+				compatible = "xiaomi,jdi-nt35595";
+			};
+		};
+	};
+};

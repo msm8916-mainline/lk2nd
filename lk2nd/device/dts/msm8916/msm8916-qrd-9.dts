@@ -48,6 +48,7 @@
 		model = "Wileyfox Swift (Longcheer L8150)";
 		compatible = "wileyfox,crackling", "longcheer,l8150";
 		lk2nd,match-bootloader = "crackling-*";
+
 		lk2nd,dtb-files = "msm8916-longcheer-l8150";
 
 		panel {
@@ -59,6 +60,51 @@
 			};
 			qcom,mdss_dsi_booyi_OTM1287_720p_video {
 				compatible = "longcheer,booyi-otm1287";
+			};
+		};
+	};
+
+	google-seed {
+		model = "Android One Gen 2 SEED (Longcheer L8150)";
+		compatible = "google,seed", "longcheer,l8150";
+		lk2nd,match-bootloader = "SEED-*";
+
+		lk2nd,dtb-files = "msm8916-longcheer-l8150";
+
+		panel {
+			compatible = "longcheer,l8150-panel", "lk2nd,panel";
+
+			/* TODO: qcom,mdss_dsi_truly_otm1288a_720p_video */
+			qcom,mdss_dsi_dijing_ILI9881C_720p_video {
+				compatible = "longcheer,dijing-ili9881c";
+			};
+			qcom,mdss_dsi_booyi_OTM1287_720p_video {
+				compatible = "longcheer,booyi-otm1287";
+			};
+		};
+	};
+
+	lenovo-a6010 {
+		model = "Lenovo A6010 (Wingtech WT86528)";
+		compatible = "wingtech,wt86528";
+		lk2nd,match-panel;
+
+		lk2nd,dtb-files = "msm8916-wingtech-wt86528";
+
+		panel {
+			compatible = "wingtech,wt865x8-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_innolux_720p_video {
+				compatible = "wingtech,innolux-otm1283a";
+			};
+			qcom,mdss_dsi_hx8394d_720p_video {
+				compatible = "wingtech,tianma-hx8394d";
+			};
+			qcom,mdss_dsi_ili9881_720p_video {
+				compatible = "wingtech,yassy-ili9881";
+			};
+			qcom,mdss_dsi_ili9881_qimei_720p_video {
+				compatible = "wingtech,qimei-ili9881";
 			};
 		};
 	};
