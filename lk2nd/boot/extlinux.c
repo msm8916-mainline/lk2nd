@@ -293,6 +293,10 @@ static bool expand_conf(struct label *label, const char *root)
 			if (!fs_file_exists(path))
 				snprintf(path, sizeof(path), "%s/%s/qcom-%s.dtb", root, label->dtbdir, dtbfiles[i]);
 
+			/* boot-deploy drops the vendor dir when copying dtbs. */
+			if (!fs_file_exists(path))
+				snprintf(path, sizeof(path), "%s/%s/%s.dtb", root, label->dtbdir, dtbfiles[i]);
+
 			if (fs_file_exists(path)) {
 				label->dtb = strndup(path, sizeof(path));
 				break;
