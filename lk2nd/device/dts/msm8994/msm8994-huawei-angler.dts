@@ -1,0 +1,16 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	model = "Huawei Nexus 6P";
+	qcom,msm-id = <QCOM_ID_MSM8994 0x20000>;
+	qcom,board-id = <8026 0>;
+	qcom,pmic-id = <0x10009 0x1000A 0x0 0x0>;
+};
+
+&lk2nd {
+	model = "Huawei Nexus 6P";
+	compatible = "huawei,angler";
+};
