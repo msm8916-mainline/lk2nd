@@ -106,3 +106,40 @@ bool mdp_setup_refresh(struct fbcon_config *fb)
 
 	return true;
 }
+
+#ifdef MDSS_MDP_REG_PP_AUTOREFRESH_CONFIG /* MDP5 */
+
+#define MDP_PP_SYNC_CONFIG_VSYNC	0x004
+#define MDP_PP_AUTOREFRESH_CONFIG	0x030
+
+static void mdp5_enable_auto_refresh(struct fbcon_config *fb)
+{
+	uint32_t vsync_count = 19200000 / (fb->height * 60); /* 60 fps */
+	uint32_t mdss_mdp_rev = readl(MDP_HW_REV);
+	uint32_t pp0_base;
+
+	if (mdss_mdp_rev >= MDSS_MDP_HW_REV_105)
+		pp0_base = REG_MDP(0x71000);
+	else if (mdss_mdp_rev >= MDSS_MDP_HW_REV_102)
+		pp0_base = REG_MDP(0x12D00);
+	else
+		pp0_base = REG_MDP(0x21B00);
+
+	writel(vsync_count | BIT(19), pp0_base + MDP_PP_SYNC_CONFIG_VSYNC);
+	writel(BIT(31) | 1, pp0_base + MDP_PP_AUTOREFRESH_CONFIG);
+	writel(1, MDP_CTL_0_BASE + CTL_START);
+}
+#endif
+
+void mdp_enable_autorefresh(struct fbcon_config *fb)
+{
+	if (!fb || !fb->update_start)
+		return;
+
+	fb->update_start = NULL;
+	thread_sleep(42);
+
+#ifdef MDSS_MDP_REG_PP_AUTOREFRESH_CONFIG /* MDP5 */
+	mdp5_enable_auto_refresh(fb);
+#endif
+}
