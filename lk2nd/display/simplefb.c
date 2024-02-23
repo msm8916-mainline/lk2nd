@@ -10,6 +10,8 @@
 #include <lk2nd/util/cmdline.h>
 #include <lk2nd/util/lkfdt.h>
 
+#include "cont-splash/cont-splash.h"
+
 /*
  * simplefb.c - Pass lk2nd's framebuffer to the OS.
  *
@@ -24,7 +26,7 @@ static int lk2nd_simplefb_dt_update(void *dtb, const char *cmdline,
 	struct fbcon_config *fb = fbcon_display();
 	int ret, resmem_offset, chosen_offset, offset;
 	uint32_t mem_ph, fb_size;
-	char tmp[32];
+	char tmp[32], args[16];
 
 	if (!fb)
 		return 0;
@@ -34,8 +36,13 @@ static int lk2nd_simplefb_dt_update(void *dtb, const char *cmdline,
 	if (boot_type & (BOOT_DOWNSTREAM | BOOT_LK2ND))
 		return 0;
 
-	if (!lk2nd_cmdline_scan(cmdline, "lk2nd.pass-simplefb"))
+	if (!lk2nd_cmdline_scan_arg(cmdline, "lk2nd.pass-simplefb", args, sizeof(args)))
 		return 0;
+
+	if (!strcmp(args, "autorefresh")) {
+		dprintf(INFO, "simplefb: Enabling autorefresh\n");
+		mdp_enable_autorefresh(fb);
+	}
 
 	resmem_offset = fdt_path_offset(dtb, "/reserved-memory");
 	if (resmem_offset < 0)
