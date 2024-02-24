@@ -1,0 +1,14 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton.dtsi>
+
+/ {
+	qcom,msm-id = <239 0>;
+	qcom,board-id = <0x1000b 18>;
+	
+	model = "Lenovo Vibe K5 (Wingtech WT82918)";
+	compatible = "wingtech,wt82918", "qcom,msm8939", "lk2nd,device";
+	#include "wingtech-wt82918.dtsi"
+};
