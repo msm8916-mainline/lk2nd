@@ -8,17 +8,7 @@
 	qcom,msm-id = <239 0>;
 	qcom,board-id = <0x1000b 16>;
 	
-	model = "Lenovo Vibe K5 Plus (Wingtech WT82918)";
+	model = "Lenovo Vibe K5 (Wingtech WT82918)";
 	compatible = "wingtech,wt82918", "qcom,msm8939", "lk2nd,device";
-		
-	panel {
-		compatible = "wingtech,wt82918-panel";
-
-		qcom,mdss_dsi_otm1901a_tm_1080p_video {
-			compatible = "wingtech,tm-otm1901a";
-		};
-		qcom,mdss_dsi_nt35596_1080p_video {
-			compatible = "wingtech,nt35595";
-		};
-	};
+	#include "wingtech-wt82918.dtsi"
 };
