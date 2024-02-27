@@ -82,7 +82,7 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Samsung Galaxy A7 (2015) - SM-A700YD
 - Samsung Galaxy Ace 4 - SM-G357FZ (quirky - see comment in `dts/msm8916/msm8916-samsung-r02.dts`)
 - Samsung Galaxy Core Max - SM-G5108Q (quirky - see comment in `dts/msm8916/msm8916-samsung-r08.dts`)
-- Samsung Galaxy Core Prime LTE - SM-G360F, SM-G360G (rossaltezt is quirky - see comment in `dts/msm8916/msm8916-samsung-r03.dts`)
+- Samsung Galaxy Core Prime LTE - SM-G360F, SM-G360G, SM-G360T (rossaltezt is quirky - see comment in `dts/msm8916/msm8916-samsung-r03.dts`)
 - Samsung Galaxy E5 - SM-E500F
 - Samsung Galaxy E7 - SM-E7000
 - Samsung Galaxy Grand Max - SM-G720AX
