@@ -1,4 +1,7 @@
 # lk2nd
+
+![](.assets/FOSDEM22_lk2nd.jpg)
+
 lk2nd is a custom bootloader for many different devices based on Qualcomm
 system-on-chips (SoCs), including smartphones, tablets, smartwatches and a few
 single board computers (SBCs). It simplifies booting standard operating systems
@@ -59,7 +62,8 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - GPLUS FL8005A
 - HTC One M8s - m8qlul (quirky - see comment in `dts/msm8916/msm8939-htc-m8qlul.dts`)
 - Huawei Ascend G7 - G7-L01
-- Huawei Honor 5X - kiwi
+- Huawei G7 Plus / G8 / GX8 - rio
+- Huawei Honor 5X / GR5 (2016) - kiwi
 - Huawei Y635 - Y635-L01 (quirky - see comment in `dts/msm8916/msm8916-huawei-y635-l01.dts`)
 - Lenovo A6000
 - Lenovo A6010
@@ -78,21 +82,23 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Samsung Galaxy A7 (2015) - SM-A700YD
 - Samsung Galaxy Ace 4 - SM-G357FZ (quirky - see comment in `dts/msm8916/msm8916-samsung-r02.dts`)
 - Samsung Galaxy Core Max - SM-G5108Q (quirky - see comment in `dts/msm8916/msm8916-samsung-r08.dts`)
-- Samsung Galaxy Core Prime LTE - SM-G360F, SM-G360G (rossaltezt is quirky - see comment in `dts/msm8916/msm8916-samsung-r03.dts`)
+- Samsung Galaxy Core Prime LTE - SM-G360F, SM-G360G, SM-G360T (rossaltezt is quirky - see comment in `dts/msm8916/msm8916-samsung-r03.dts`)
+- Samsung Galaxy E5 - SM-E500F
 - Samsung Galaxy E7 - SM-E7000
 - Samsung Galaxy Grand Max - SM-G720AX
 - Samsung Galaxy Grand Prime - SM-G530FZ, SM-G530H, SM-G530W, SM-G530Y (G530Y is quirky - see comment in `dts/msm8916/msm8916-samsung-r11.dts`)
 - Samsung Galaxy J3 (2016) - SM-J3109, SM-J320YZ
 - Samsung Galaxy J3 Pro - SM-J3110, SM-J3119
 - Samsung Galaxy J5 (2015) - SM-J5007, SM-J5008, SM-J500F, SM-J500FN, SM-J500H, SM-J500M
-- Samsung Galaxy J5 (2016) - SM-J5108, SM-J510F, SM-J510FN, SM-J510MN, SM-J510UN
+- Samsung Galaxy J5 (2016) - SM-J5108, SM-J510F, SM-J510FN, SM-J510H, SM-J510MN, SM-J510UN
 - Samsung Galaxy J7 (2015) - SM-J7008, SM-J700P
-- Samsung Galaxy On7 (2015) - SM-G6000, SM-G600S
+- Samsung Galaxy On7 (2015) - SM-G6000, SM-G600FY, SM-G600S
 - Samsung Galaxy S4 Mini Value Edition - GT-I9195I
 - Samsung Galaxy Tab 4 10.1 (2015) - SM-T533
 - Samsung Galaxy Tab A 8.0 (2015) - SM-T350, SM-T355, SM-T355Y, SM-T357W
 - Samsung Galaxy Tab A 9.7 (2015) - SM-T550, SM-T555
 - Samsung Galaxy Tab E 9.6 WiFi (2015) - SM-T560NU
+- Vivo Y21L
 - Vodafone Smart prime 6
 - Wileyfox Swift - crackling
 - Xiaomi Mi 4i - ferrari
@@ -103,23 +109,30 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 
 ### lk2nd-msm8974
 - Fairphone 2 - FP2
+- HTC One M8 - m8
 - LG G3 - D855
 - LG Google Nexus 5 - hammerhead D820, D821
 - OnePlus One - bacon (use `lk2nd-msm8974-appended-dtb.img`)
 - Samsung Galaxy S5 - SM-G900F
-- Samsung Galaxy S5 China Unicom (Duos) - SM-G9006V/W
+- Samsung Galaxy S5 China LTE (Duos) - SM-G9006V/W, SM-G9008V/W, SM-G9009W
 - Sony Xperia Z3 - leo
 
 ### lk2nd-msm8226
 - ASUS ZenWatch 2 - sparrow
 - Coolpad 8730L - 8730l
+- HTC One Mini 2 - memul (quirky - see comment in `dts/msm8226/msm8926-htc-memul.dts`)
 - Huawei Ascend G6 4G - G6-L11 (quirky - see comment in `dts/msm8226/msm8926-huawei-g6-l11-vb.dts`)
 - Huawei Watch - sturgeon
 - LG G Watch R - lenok (use `lk2nd-appended-dtb.img`)
 - Motorola Moto G 2013 - falcon
+- Motorola Moto G 4G 2013 - peregrine
 - Samsung Galaxy Grand 2 - SM-G7102
 - Samsung Galaxy Tab 4 10.1 (2014) - SM-T530, SM-T535
+kmini3g
 - Samsung Galaxy S5 Mini Duos - SM-G800H
+=======
+- Samsung Galaxy Tab 4 8.0 (2014) - SM-T330, SM-T330NU
+master
 
 ## Installation
 1. Download `lk2nd.img` (available in [Releases](https://github.com/msm8916-mainline/lk2nd/releases))

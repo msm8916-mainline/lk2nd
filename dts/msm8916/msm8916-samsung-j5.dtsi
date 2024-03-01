@@ -1,0 +1,4 @@
+samsung,muic-reset {
+	i2c-gpio-pins = <105 106>;
+	i2c-address = <0x25>;
+};

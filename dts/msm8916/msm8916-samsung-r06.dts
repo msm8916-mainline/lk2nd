@@ -31,4 +31,11 @@
 		compatible = "samsung,gt58ltebmc", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "T357W*";
 	};
+
+	cprimeltetmo {
+		model = "Samsung Galaxy Core Prime LTE (T-Mobile)";
+		compatible = "samsung,cprimeltetmo", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "G360T*";
+		#include "msm8916-samsung-cprime.dtsi"
+	};
 };

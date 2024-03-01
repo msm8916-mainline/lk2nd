@@ -9,14 +9,19 @@
 	qcom,msm-id = <248 0>;
 	qcom,board-id = <0xF808FF01 5>;
 
-	j53g-eur {
+	j53gxx {
 		model = "Samsung Galaxy J5 2015 (SM-J500H)";
-		compatible = "samsung,j53g-eur", "qcom,msm8916", "lk2nd,device";
+		compatible = "samsung,j53g", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "J500H*";
 
-		samsung,muic-reset {
-			i2c-gpio-pins = <105 106>;
-			i2c-address = <0x25>;
-		};
+		#include "msm8916-samsung-j5.dtsi"
+	};
+
+	j5x3gjv {
+		model = "Samsung Galaxy J5 2016 (SM-J510H)";
+		compatible = "samsung,j5x3g", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "J510H*";
+
+		#include "msm8916-samsung-j5.dtsi"
 	};
 };
