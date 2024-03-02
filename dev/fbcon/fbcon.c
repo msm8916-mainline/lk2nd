@@ -2,7 +2,7 @@
  * Copyright (c) 2008, Google Inc.
  * All rights reserved.
  *
- * Copyright (c) 2009-2015, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2015, 2018 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -509,7 +509,6 @@ void display_default_image_on_screen(void)
 	image_base = ((((total_y/2) - (SPLASH_IMAGE_HEIGHT / 2) - 1) *
 			(config->width)) + (total_x/2 - (SPLASH_IMAGE_WIDTH / 2)));
 
-#if DISPLAY_TYPE_MIPI
 	if (bytes_per_bpp == 3) {
 		for (i = 0; i < SPLASH_IMAGE_HEIGHT; i++) {
 			memcpy (config->base + ((image_base + (i * (config->width))) * bytes_per_bpp),
@@ -517,13 +516,7 @@ void display_default_image_on_screen(void)
 			SPLASH_IMAGE_WIDTH * bytes_per_bpp);
 		}
 	}
-	fbcon_flush();
-#if DISPLAY_MIPI_PANEL_NOVATEK_BLUE
-	if(is_cmd_mode_enabled())
-		mipi_dsi_cmd_mode_trigger();
-#endif
 
-#else
 	if (bytes_per_bpp == 2) {
 		for (i = 0; i < SPLASH_IMAGE_HEIGHT; i++) {
 			memcpy (config->base + ((image_base + (i * (config->width))) * bytes_per_bpp),
@@ -532,6 +525,10 @@ void display_default_image_on_screen(void)
 		}
 	}
 	fbcon_flush();
+
+#if DISPLAY_MIPI_PANEL_NOVATEK_BLUE
+	if(is_cmd_mode_enabled())
+		mipi_dsi_cmd_mode_trigger();
 #endif
 }
 

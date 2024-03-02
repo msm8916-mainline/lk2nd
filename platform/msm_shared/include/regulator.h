@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -30,6 +30,8 @@
 #ifndef __REGULATOR_H
 #define __REGULATOR_H
 
+#include <stdint.h>
+
 #define KEY_SOFTWARE_ENABLE                0x6E657773 // swen - software enable
 #define KEY_LDO_SOFTWARE_MODE              0X646D736C // lsmd - LDO software mode
 #define KEY_SMPS_SOFTWARE_MODE             0X646D7373 // ssmd - SMPS software mode
@@ -51,7 +53,14 @@
 #define LDOA_RES_TYPE 0x616F646C //aodl
 #define SMPS_RES_TYPE 0x61706D73 //apms
 
-void regulator_enable();
-void regulator_disable();
+#define REG_LDO2	BIT(1)
+#define REG_LDO6	BIT(5)
+#define REG_LDO12	BIT(11)
+#define REG_LDO14	BIT(13)
+#define REG_LDO17	BIT(16)
+#define REG_LDO28	BIT(27)
+
+void regulator_enable(uint32_t enable);
+void regulator_disable(uint32_t enable);
 
 #endif

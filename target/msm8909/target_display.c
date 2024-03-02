@@ -40,6 +40,7 @@
 #include <platform/gpio.h>
 #include <platform/iomap.h>
 #include <target/display.h>
+#include <regulator.h>
 
 #include "include/panel.h"
 #include "include/display_resource.h"
@@ -229,6 +230,15 @@ int target_backlight_ctrl(struct backlight *bl, uint8_t enable)
 				bkl_gpio.pin_strength, bkl_gpio.pin_state);
 				gpio_set(bkl_gpio.pin_id, 2);
 		}
+
+		if (HW_PLATFORM_SUBTYPE_8909_PM660_V1 == platform_subtype) {
+			gpio_tlmm_config(spi_bkl_gpio.pin_id, 0,
+				spi_bkl_gpio.pin_direction,
+				spi_bkl_gpio.pin_pull,
+				spi_bkl_gpio.pin_strength,
+				spi_bkl_gpio.pin_state);
+			gpio_set(spi_bkl_gpio.pin_id, 2);
+		}
 	}
 
 	return 0;
@@ -364,7 +374,7 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 int target_ldo_ctrl(uint8_t enable)
 {
 	if (enable)
-		regulator_enable();     /* L2, L6, and L17 */
+		regulator_enable(REG_LDO2 | REG_LDO6 | REG_LDO17);
 
 	return NO_ERROR;
 }

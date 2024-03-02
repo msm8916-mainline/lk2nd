@@ -343,6 +343,7 @@ ifeq ($(PLATFORM),mdm9x25)
 endif
 
 ifeq ($(PLATFORM),mdm9x35)
+DEFINES += DISPLAY_TYPE_QPIC=1
 	OBJS += $(LOCAL_DIR)/qgic.o \
 			$(LOCAL_DIR)/uart_dm.o \
 			$(LOCAL_DIR)/interrupts.o \
@@ -357,7 +358,10 @@ ifeq ($(PLATFORM),mdm9x35)
 			$(LOCAL_DIR)/clock.o \
 			$(LOCAL_DIR)/clock_pll.o \
 			$(LOCAL_DIR)/clock_lib2.o \
-			$(LOCAL_DIR)/qmp_usb30_phy.o
+			$(LOCAL_DIR)/qmp_usb30_phy.o \
+			$(LOCAL_DIR)/display.o \
+			$(LOCAL_DIR)/qpic.o \
+			$(LOCAL_DIR)/qpic_panel.o
 endif
 
 ifeq ($(PLATFORM),msmzirc)
@@ -494,12 +498,14 @@ DEFINES += DISPLAY_TYPE_MDSS=1
 			$(LOCAL_DIR)/certificate.o \
 			$(LOCAL_DIR)/image_verify.o \
 			$(LOCAL_DIR)/i2c_qup.o \
-                        $(LOCAL_DIR)/qseecom_lk.o \
+			$(LOCAL_DIR)/spi_qup.o \
+            $(LOCAL_DIR)/qseecom_lk.o \
 			$(LOCAL_DIR)/mdp3.o \
 			$(LOCAL_DIR)/display.o \
 			$(LOCAL_DIR)/mipi_dsi.o \
 			$(LOCAL_DIR)/mipi_dsi_phy.o \
-			$(LOCAL_DIR)/mipi_dsi_autopll.o
+			$(LOCAL_DIR)/mipi_dsi_autopll.o \
+			$(LOCAL_DIR)/mdss_spi.o
 endif
 
 

@@ -332,7 +332,8 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 {
 	if (enable) {
-		regulator_enable();	/* L2, L12, L14, and L28 */
+		regulator_enable(REG_LDO2 | REG_LDO12 |
+			REG_LDO14 | REG_LDO28);
 		mdelay(10);
 		qpnp_ibb_enable(true);	/* +5V and -5V */
 		mdelay(50);
@@ -343,7 +344,8 @@ int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 		if (pinfo->lcd_reg_en)
 			lcd_reg_disable();
 
-		regulator_disable();
+		regulator_disable(REG_LDO2 | REG_LDO12 |
+			REG_LDO14 | REG_LDO28);
 	}
 
 	return NO_ERROR;

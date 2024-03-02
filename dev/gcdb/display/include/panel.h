@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2015, 2018, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -48,7 +48,8 @@ enum {
 	PANEL_TYPE_UNKNOWN,
 	PANEL_TYPE_DSI,
 	PANEL_TYPE_EDP,
-	PANEL_TYPE_HDMI
+	PANEL_TYPE_HDMI,
+	PANEL_TYPE_SPI
 };
 
 /*---------------------------------------------------------------------------*/

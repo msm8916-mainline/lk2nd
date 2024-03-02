@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2015, 2018 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -13,6 +13,7 @@
  *       contributors may be used to endorse or promote products derived
  *       from this software without specific prior written permission.
  *
+ 
  * THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT
@@ -68,6 +69,7 @@ int msm_display_config()
 	mdp_set_revision(panel->mdp_rev);
 
 	switch (pinfo->type) {
+#ifdef DISPLAY_TYPE_MDSS
 	case LVDS_PANEL:
 		dprintf(INFO, "Config LVDS_PANEL.\n");
 		ret = mdp_lcdc_config(pinfo, &(panel->fb));
@@ -115,6 +117,15 @@ int msm_display_config()
 		if (ret)
 			goto msm_display_config_out;
 		break;
+	case SPI_PANEL:
+		dprintf(INFO, "Config SPI PANEL.\n");
+		ret = mdss_spi_init();
+		if (ret)
+			goto msm_display_config_out;
+		ret = mdss_spi_panel_init(pinfo);
+		if (ret)
+			goto msm_display_config_out;
+		break;
 	case HDMI_PANEL:
 		dprintf(INFO, "Config HDMI PANEL.\n");
 		ret = mdss_hdmi_config(pinfo, &(panel->fb));
@@ -127,6 +138,13 @@ int msm_display_config()
 		if (ret)
 			goto msm_display_config_out;
 		break;
+#endif
+#ifdef DISPLAY_TYPE_QPIC
+	case QPIC_PANEL:
+		dprintf(INFO, "Config QPIC_PANEL.\n");
+		qpic_init(pinfo, panel->fb.base);
+		break;
+#endif
 	default:
 		return ERR_INVALID_ARGS;
 	};
@@ -158,6 +176,7 @@ int msm_display_on()
 	}
 
 	switch (pinfo->type) {
+#ifdef DISPLAY_TYPE_MDSS
 	case LVDS_PANEL:
 		dprintf(INFO, "Turn on LVDS PANEL.\n");
 		ret = mdp_lcdc_on(panel);
@@ -221,6 +240,24 @@ int msm_display_on()
 		if (ret)
 			goto msm_display_on_out;
 		break;
+	case SPI_PANEL:
+		dprintf(INFO, "Turn on SPI_PANEL.\n");
+		ret = mdss_spi_on(pinfo, &(panel->fb));
+		if (ret)
+			goto msm_display_on_out;
+		break;
+#endif
+#ifdef DISPLAY_TYPE_QPIC
+	case QPIC_PANEL:
+		dprintf(INFO, "Turn on QPIC_PANEL.\n");
+		ret = qpic_on();
+		if (ret) {
+			dprintf(CRITICAL, "QPIC panel on failed\n");
+			goto msm_display_on_out;
+		}
+		qpic_update();
+		break;
+#endif
 	default:
 		return ERR_INVALID_ARGS;
 	};
@@ -325,6 +362,7 @@ int msm_display_off()
 	}
 
 	switch (pinfo->type) {
+#ifdef DISPLAY_TYPE_MDSS
 	case LVDS_PANEL:
 		dprintf(INFO, "Turn off LVDS PANEL.\n");
 		mdp_lcdc_off();
@@ -357,6 +395,13 @@ int msm_display_off()
 		if (ret)
 			goto msm_display_off_out;
 		break;
+#endif
+#ifdef DISPLAY_TYPE_QPIC
+	case QPIC_PANEL:
+		dprintf(INFO, "Turn off QPIC_PANEL.\n");
+		qpic_off();
+		break;
+#endif
 	default:
 		return ERR_INVALID_ARGS;
 	};

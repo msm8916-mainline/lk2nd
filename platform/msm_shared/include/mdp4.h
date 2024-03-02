@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2014, 2018 The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -117,4 +117,7 @@ int mdp_edp_config(struct msm_panel_info *pinfo, struct fbcon_config *fb);
 int mdp_edp_on(struct msm_panel_info *pinfo);
 int mdp_edp_off(void);
 
+int mdss_spi_init(void);
+int mdss_spi_panel_init(struct msm_panel_info *pinfo);
+int mdss_spi_on(struct msm_panel_info *pinfo, struct fbcon_config *fb);
 #endif

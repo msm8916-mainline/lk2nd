@@ -180,6 +180,12 @@
 #define DSI0_PLL_BASE               (0x1AC8300)
 #define DSI1_PLL_BASE               DSI0_PLL_BASE
 #define REG_DSI(off)                (MIPI_DSI_BASE + 0x04 + (off))
+#define MDP_VP_0_VIG_0_BASE                     REG_MDP(0x5000)
+#define MDP_VP_0_VIG_1_BASE                     REG_MDP(0x7000)
+#define MDP_VP_0_RGB_0_BASE                     REG_MDP(0x15000)
+#define MDP_VP_0_RGB_1_BASE                     REG_MDP(0x17000)
+#define MDP_VP_0_DMA_0_BASE                     REG_MDP(0x25000)
+#define MDP_VP_0_DMA_1_BASE                     REG_MDP(0x27000)
 
 
 /* MDP */
