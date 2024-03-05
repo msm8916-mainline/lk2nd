@@ -131,6 +131,24 @@ static void mdp5_enable_auto_refresh(struct fbcon_config *fb)
 }
 #endif
 
+#ifdef MDP_AUTOREFRESH_CONFIG_P /* MDP3/MDP4 */
+
+#define MDP_AUTOREFRESH_CONFIG_P    REG_MDP(0x34C)
+#define MDP_SYNC_CONFIG_0           REG_MDP(0x300)
+
+static void mdp3_enable_auto_refresh(struct fbcon_config *fb)
+{
+	uint32_t sync_cfg = 0;
+
+	sync_cfg |= (fb->height - 1) << 21;
+	sync_cfg |= BIT(19);
+	sync_cfg |= 19200000 / (fb->height * 60); /* 60 fps */
+
+	writel(sync_cfg, MDP_SYNC_CONFIG_0);
+	writel(BIT(28) | 1, MDP_AUTOREFRESH_CONFIG_P);
+}
+#endif
+
 void mdp_enable_autorefresh(struct fbcon_config *fb)
 {
 	if (!fb || !fb->update_start)
@@ -141,5 +159,8 @@ void mdp_enable_autorefresh(struct fbcon_config *fb)
 
 #ifdef MDSS_MDP_REG_PP_AUTOREFRESH_CONFIG /* MDP5 */
 	mdp5_enable_auto_refresh(fb);
+#endif
+#ifdef MDP_AUTOREFRESH_CONFIG_P /* MDP3/MDP4 */
+	mdp3_enable_auto_refresh(fb);
 #endif
 }
