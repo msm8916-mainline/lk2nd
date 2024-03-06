@@ -626,9 +626,9 @@
 
 	/* rev 6 */
 
-	coreprimelte {
+	cprimeltetmo {
 		model = "Samsung Galaxy Core Prime LTE (SM-G360T)";
-		compatible = "samsung,coreprimelte", "samsung,cprime";
+		compatible = "samsung,cprimeltetmo", "samsung,cprime";
 		lk2nd,match-bootloader = "G360T*";
 
 		lk2nd,dtb-files = "msm8916-samsung-cprime";
