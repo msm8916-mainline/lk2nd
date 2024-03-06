@@ -3,6 +3,7 @@
 /dts-v1/;
 
 #include <skeleton.dtsi>
+#include <lk2nd.h>
 
 / {
 	compatible = "qcom,msm8916-mtp", "qcom,msm8916";
@@ -42,5 +43,98 @@
 		model = "Asus Zenfone Max ZC550KL";
 		compatible = "asus,z010d", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-cmdline = "* mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_r69339_720p_video:1:none";
+	};
+
+	oppo-a31t { /* 15005 */
+		model = "OPPO A31t";
+		compatible = "oppo,a31t", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-panel;
+
+		panel {
+			qcom,mdss_dsi_oppo15005tm_fwvga_video {
+				compatible = "oppo,tianma-hx8379-15005";
+			};
+
+			qcom,mdss_dsi_oppo15005boe_fwvga_video {
+				compatible = "oppo,boe-hx8379c-15005";
+			};
+
+			qcom,mdss_dsi_oppo15005truly_fwvga_video {
+				compatible = "oppo,truly-hx8379c-15005";
+			};
+
+			qcom,mdss_dsi_oppo15005tm_nt35512s_fwvga_video {
+				compatible = "oppo,tianma-nt35512s-15005";
+			};
+
+			qcom,mdss_dsi_oppo15005tm_nt35512s_otp_fwvga_video {
+				compatible = "oppo,tianma-otp-nt35512s-15005";
+			};
+		};
+	};
+
+	oppo-a51f { /* 15009 */
+		model = "OPPO Mirror 5s";
+		compatible = "oppo,a51f", "qcom,msm8916", "lk2nd,device";
+		lk2nd,keys =
+			<KEY_VOLUMEDOWN 108 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>,
+			<KEY_VOLUMEUP   107 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+		lk2nd,match-panel;
+
+		panel {
+			qcom,mdss_dsi_oppo15009jdi_nt35592_720p_video {
+				compatible = "oppo,jdi-nt35592-15009";
+			};
+
+			qcom,mdss_dsi_oppo15009tm_nt35521_720p_video {
+				compatible = "oppo,tianma-nt35521-15009";
+			};
+
+			qcom,mdss_dsi_oppo15009tm_nt35592_720p_video {
+				compatible = "oppo,tianma-nt35592-15009";
+			};
+		};
+	};
+
+	oppo-a33 { /* 15035 */
+		model = "OPPO A33";
+		compatible = "oppo,a33", "qcom,msm8916", "lk2nd,device";
+		lk2nd,keys =
+			<KEY_VOLUMEDOWN 108 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>,
+			<KEY_VOLUMEUP   107 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+		lk2nd,match-panel;
+
+		panel {
+			qcom,mdss_dsi_oppo15035tm_otm9605a_540p_video {
+				compatible = "oppo,tianma-tm9605a-15035";
+			};
+
+			qcom,mdss_dsi_oppo15035truly_hx8389c_540p_video {
+				compatible = "oppo,turly-hx8389c-15035";
+			};
+		};
+	};
+
+	oppo-a37 { /* 15399 */
+		model = "OPPO A37";
+		compatible = "oppo,a37", "qcom,msm8916", "lk2nd,device";
+		lk2nd,keys =
+			<KEY_VOLUMEDOWN 108 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>,
+			<KEY_VOLUMEUP   107 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+		lk2nd,match-panel;
+
+		panel {
+			qcom,mdss_dsi_oppo15399boe_ili9881c_720p_video {
+				compatible = "oppo,boe-ili9881c-15399";
+			};
+
+			qcom,mdss_dsi_oppo15399tm_nt35521s_720p_video {
+				compatible = "oppo,tianma-nt35521s-15399";
+			};
+
+			qcom,mdss_dsi_oppo15399truly_nt35521s_720p_video {
+				compatible = "oppo,turly-nt35521s-15399";
+			};
+		};
 	};
 };
