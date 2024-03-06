@@ -4,8 +4,8 @@
 #include <lk2nd.dtsi>
 
 /*
- * To build for htc-m8qlul, comment out all dtbs and add
- * $(LOCAL_DIR)/msm8939-htc-m8qlul.dtb to rules.mk in this directory.
+ * To build for htc-m8qlul, add LK2ND_QCDTBS="msm8939-htc-m8qlul.dtb" to
+ * your make cmdline.
  * m8qlul does not work with all dtbs enabled; the bootloader gets upset and
  * goes into the phone's fastboot.
  */
