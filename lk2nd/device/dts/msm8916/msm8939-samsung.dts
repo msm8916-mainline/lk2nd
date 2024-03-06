@@ -18,7 +18,7 @@
 		compatible = "samsung,a7ltezt", "samsung,a7";
 		lk2nd,match-bootloader = "A700YD*";
 
-		lk2nd,dtb-files = "msm8916-samsung-a7";
+		lk2nd,dtb-files = "msm8939-samsung-a7";
 
 		qcom,msm-id = <QCOM_ID_MSM8939 0>;
 		qcom,board-id = <0xEF08FF1 1>;
