@@ -31,11 +31,12 @@ QCDTBS += \
 	$(LOCAL_DIR)/msm8916-samsung.dtb \
 	$(LOCAL_DIR)/msm8916-vivo-y21l.dtb \
 	$(LOCAL_DIR)/msm8929-samsung.dtb \
-	$(LOCAL_DIR)/msm8929-qrd-wt82918.dtb \
+	$(LOCAL_DIR)/msm8929-qrd-wt82918hd.dtb \
 	$(LOCAL_DIR)/msm8939-asus-z00t.dtb \
 	$(LOCAL_DIR)/msm8939-huawei-kiwi.dtb \
 	$(LOCAL_DIR)/msm8939-huawei-rio.dtb \
 	$(LOCAL_DIR)/msm8939-mtp.dtb \
 	$(LOCAL_DIR)/msm8939-qrd-wt82918.dtb \
+	$(LOCAL_DIR)/msm8939-qrd-wt82918hd.dtb \
 	$(LOCAL_DIR)/msm8939-samsung.dtb \
 	$(LOCAL_DIR)/msm8939-xiaomi-ido.dtb \
