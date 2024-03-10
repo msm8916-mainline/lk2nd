@@ -50,7 +50,7 @@ $(OUTELF_STRIP): $(OUTELF)
 $(BUILDDIR)/%.dtb: %.dts
 	@$(MKDIR)
 	@echo compiling $<
-	$(NOECHO)cpp -nostdinc -I dts -undef -x assembler-with-cpp $< $@.prep
+	$(NOECHO)$(CPP) -nostdinc -I dts -undef -x assembler-with-cpp $< $@.prep
 	$(NOECHO)dtc -O dtb -i dts -o $@ $@.prep
 
 $(OUTDTIMG): $(DTBS)
@@ -74,7 +74,7 @@ $(OUTBOOTIMGADTB): $(OUTBINDTB)
 	$(call mkbootimg)
 
 $(OUTODINTAR): $(OUTBOOTIMG)
-	$(NOECHO)tar \
+	$(NOECHO)$(TAR) \
 		-cf $@ --sort=name --mtime="@0" \
 		--owner=0 --group=0 --numeric-owner \
 		--transform="flags=r;s|$(OUTBOOTIMG)|boot.img|" \
