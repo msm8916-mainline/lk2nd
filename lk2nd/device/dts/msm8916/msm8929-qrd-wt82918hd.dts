@@ -20,8 +20,14 @@
 		qcom,mdss_dsi_hx8394f_boe_720p_video {
 			compatible = "wingtech,boe-hx8394f";
 		};
-		qcom,mdss_dsi_ili9881c_otm_720p_video {
+		qcom,mdss_dsi_ili9881c_720p_video {
 			compatible = "wingtech,otm-ili9881c";
+		};
+		qcom,mdss_dsi_otm1901a_tm_1080p_video {
+			compatible = "wingtech,tm-otm1901a";
+		};
+		qcom,mdss_dsi_nt35596_1080p_video {
+			compatible = "wingtech,nt35595";
 		};
 	};
 };
