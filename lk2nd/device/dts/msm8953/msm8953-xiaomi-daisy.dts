@@ -1,0 +1,36 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8953 0>;
+	qcom,board-id = <QCOM_BOARD_ID(MTP, 1, 0) 0x09>;
+};
+
+&lk2nd {
+	model = "Xiaomi Mi A2 Lite";
+	compatible = "xiaomi,daisy";
+	lk2nd,match-bootloader = "*DAISY*";
+
+	lk2nd,dtb-files = "msm8953-xiaomi-daisy";
+
+	panel {
+		compatible = "xiaomi,daisy-panel", "lk2nd,panel";
+
+		qcom,mdss_dsi_ili7807_fhdplus_video {
+			compatible = "mdss,ili7807-fhdplus";
+			touchscreen-compatible = "goodix,gt917d";
+		};
+		qcom,mdss_dsi_hx8399c_fhdplus_video {
+			compatible = "himax,hx8399c-fhdplus";
+			touchscreen-compatible = "edt,edt-ft5406";
+		};
+		qcom,mdss_dsi_otm1911_fhdplus_video {
+			compatible = "mdss,otm1911-fhdplus";
+			touchscreen-compatible = "goodix,gt917d";
+		};
+	};	
+};

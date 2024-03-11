@@ -1,0 +1,55 @@
+// SPDX-License-Identifier: GPL-2.0-only
+// Copyright (c) 2023, bzy-080408 <Bzy080408@outlook.com>
+
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8953 0>;
+	qcom,board-id = <8000 0>, <8001 0>, <8002 0>, <8003 0>, <8016 0>,
+			<8017 0>, <8018 0>, <8019 0>, <8032 0>, <8033 0>,
+			<8035 0>, <8048 0>, <8049 0>, <8050 0>, <8051 0>,
+			<8066 0>, <8064 0>, <8067 0>, <8080 0>, <8082 0>,
+			<8083 0>, <8098 0>, <8099 0>, <8114 0>, <8130 0>;
+};
+
+&lk2nd {
+	model = "Huawei Maimang 5 / Nova (Plus) / G9 (Plus)";
+	compatible = "huawei,milan";
+
+	// FIXME: lk2nd,dtb-files = "msm8953-huawei-milan";
+
+	panel {
+		compatible = "huawei,milan-panel", "lk2nd,panel";
+
+		qcom,mdss_dsi_boe_otm1906c_5p5_1080p_cmd {
+			compatible = "huawei,milan-boe-otm1906c";
+		};
+		qcom,mdss_dsi_boe_td4322_5p5_1080p_cmd {
+			compatible = "huawei,milan-boe-td4322";
+		};
+		qcom,mdss_dsi_boe_test1906c_5p5_1080p_cmd {
+			compatible = "huawei,milan-boe-test1906c";
+		};
+		qcom,mdss_dsi_ctc_nt35596s_5p5_1080p_video {
+			compatible = "huawei,milan-ctc-nt35596s";
+		};
+		qcom,mdss_dsi_ctc_otm1906c_5p5_1080p_cmd {
+			compatible = "huawei,milan-ctc-otm1906c";
+		};
+		qcom,mdss_dsi_jdi_r63452_5p5_1080p_cmd {
+			compatible = "huawei,milan-jdi-r63452";
+		};
+		qcom,mdss_dsi_tianma_fic8736_5p5_1080p_cmd {
+			compatible = "huawei,milan-tianma-fic8736";
+		};
+		qcom,mdss_dsi_tianma_focal8716_5p5_1080p_video {
+			compatible = "huawei,milan-tianma-focal8716";
+		};
+		qcom,mdss_dsi_tianma_otm1906c_5p5_1080p_cmd {
+			compatible = "huawei,milan-tianma-otm1906c";
+		};
+	};	
+};

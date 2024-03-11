@@ -1,0 +1,18 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8953 0>;
+	qcom,board-id = <0x41 0x82b1>, <0x41 0x83b0>;
+};
+
+&lk2nd {
+	model = "Lenovo P2 (kuntao)";
+	compatible = "lenovo,kuntao";
+	
+	// FIXME: lk2nd,dtb-files = "msm8953-lenovo-kuntao";
+};

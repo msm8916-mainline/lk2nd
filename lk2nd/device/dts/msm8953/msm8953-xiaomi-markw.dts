@@ -1,0 +1,31 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8953 0>;
+	qcom,board-id = <QCOM_BOARD_ID(MTP, 1, 0) 1>;
+};
+
+&lk2nd {
+	model = "Xiaomi Redmi 4 Prime (markw)";
+	compatible = "xiaomi,markw";
+
+	lk2nd,dtb-files = "msm8953-xiaomi-markw";
+
+	panel {
+		compatible = "xiaomi,markw-panel", "lk2nd,panel";
+
+		qcom,mdss_dsi_nt35596_ebbg_1080p_video {
+			compatible = "mdss,nt35596-ebbg";
+			touchscreen-compatible = "edt,edt-ft5336";
+		};
+		qcom,mdss_dsi_r63350_1080p_video {
+			compatible = "mdss,r63350";
+			touchscreen-compatible = "edt,edt-ft5336";
+		};
+	};
+};
