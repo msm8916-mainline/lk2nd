@@ -1,0 +1,95 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8953 0>;
+	qcom,board-id = <QCOM_BOARD_ID(QRD, 1, 0)  0>;
+};
+
+&lk2nd {
+
+	tissot {
+		model = "Xiaomi Mi A1 (tissot)";
+		compatible = "xiaomi,tissot";
+		lk2nd,match-bootloader = "*TISSOT*";
+		
+		lk2nd,dtb-files = "msm8953-xiaomi-tissot";
+
+		panel {
+			compatible = "xiaomi,tissot-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_ili7807_fhd_video {
+				compatible = "mdss,ili7807-fhd";
+			};
+			qcom,mdss_dsi_otm1911_fhd_video {
+				compatible = "mdss,otm1911-fhd";
+			};
+			qcom,mdss_dsi_ft8716_fhd_video {
+				compatible = "mdss,ft8716-fhd";
+			};
+		};
+	};
+
+	sakura {
+		/* Xiaomi Redmi 6 Pro (sakura) and Xiaomi Mi A2 Lite (daisy) are software compatible */
+		model = "Xiaomi Redmi 6 Pro";
+		compatible = "xiaomi,sakura";
+		lk2nd,match-bootloader = "*DAISY*";
+		
+		lk2nd,dtb-files = "msm8953-xiaomi-daisy";
+
+		panel {
+			compatible = "xiaomi,daisy-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_ili7807_fhdplus_video {
+				compatible = "mdss,ili7807-fhdplus";
+				touchscreen-compatible = "goodix,gt917d";
+			};
+			qcom,mdss_dsi_hx8399c_fhdplus_video {
+				compatible = "himax,hx8399c-fhdplus";
+				touchscreen-compatible = "edt,edt-ft5406";
+			};
+			qcom,mdss_dsi_otm1911_fhdplus_video {
+				compatible = "mdss,otm1911-fhdplus";
+				touchscreen-compatible = "goodix,gt917d";
+			};
+		};
+	};
+
+	mido {
+		model = "Xiaomi Redmi Note 4X Snapdragon (mido)";
+		compatible = "xiaomi,mido";
+		lk2nd,match-panel;
+
+		lk2nd,dtb-files = "msm8953-xiaomi-mido";
+
+		panel {
+			compatible = "xiaomi,mido-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_ili9885_boe_fhd_video {
+				compatible = "xiaomi,boe-ili9885";
+				touchscreen-compatible = "edt,edt-ft5406";
+			};
+			qcom,mdss_dsi_nt35532_fhd_video {
+				compatible = "xiaomi,nt35532";
+				touchscreen-compatible = "edt,edt-ft5406";
+			};
+			qcom,mdss_dsi_nt35596_tianma_fhd_video {
+				compatible = "xiaomi,tianma-nt35596";
+				touchscreen-compatible = "edt,edt-ft5406";
+			};
+			qcom,mdss_dsi_otm1911_fhd_video {
+				compatible = "xiaomi,otm1911";
+				touchscreen-compatible = "edt,edt-ft5406";
+			};
+			qcom,mdss_dsi_r63350_ebbg_fhd_video {
+				compatible = "xiaomi,ebbg-r63350";
+				touchscreen-compatible = "edt,edt-ft5406";
+			};
+		};
+	};
+};
