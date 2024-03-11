@@ -1,0 +1,43 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8953 0>;
+	qcom,board-id = <QCOM_BOARD_ID(MTP, 1, 0) 8>;
+};
+
+&lk2nd {
+	model = "Xiaomi Redmi 5 Plus";
+	compatible = "xiaomi,vince";
+
+	lk2nd,dtb-files = "msm8953-xiaomi-vince";
+
+	panel {
+		compatible = "xiaomi,vince-panel", "lk2nd,panel";
+
+		qcom,mdss_dsi_td4310_fhdplus_video_e7 {
+			compatible = "xiaomi,td4310-fhdplus-e7";
+			touchscreen-compatible = "syna,rmi4-i2c";
+		};
+		qcom,mdss_dsi_td4310_fhdplus_video_e7_g55 {
+			compatible = "xiaomi,td4310-fhdplus-e7-g55";
+			touchscreen-compatible = "syna,rmi4-i2c";
+		};
+		qcom,mdss_dsi_td4310_ebbg_fhdplus_video_e7 {
+			compatible = "xiaomi,td4310-ebbg-fhdplus-e7";
+			touchscreen-compatible = "syna,rmi4-i2c";
+		};
+		qcom,mdss_dsi_nt36672_tianma_fhdplus_video_e7 {
+			compatible = "xiaomi,nt36672-tianma-fhdplus-e7";
+			touchscreen-compatible = "syna,rmi4-i2c";
+		};
+		qcom,mdss_dsi_nt36672_csot_fhdplus_video_e7 {
+			compatible = "xiaomi,nt36672-csot-fhdplus-e7";
+			touchscreen-compatible = "syna,rmi4-i2c";
+		};
+	};	
+};

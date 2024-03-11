@@ -1,0 +1,35 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8953 0>;
+	qcom,board-id = <QCOM_BOARD_ID_QRD 0>;
+};
+
+&lk2nd {
+	m1721 {
+		model = "Meizu M6 Note (m1721)";
+		compatible = "meizu,m1721";
+		lk2nd,match-panel;
+
+		// FIXME: lk2nd,dtb-files = "msm8953-meizu-m1721";
+
+		panel {
+			compatible = "meizu,m1721-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_ili7807d_txdkj_1080p_video {
+				compatible = "meizu,m1721-ili7807d-txdkj";
+			};
+			qcom,mdss_dsi_hx8399c_tcl_1080p_video {
+				compatible = "meizu,m1721-hx8399c-tcl";
+			};
+			qcom,mdss_dsi_hx8399c_holitech_1080p_video {
+				compatible = "meizu,m1721-hx8399c-holitech";
+			};
+		};
+	};
+};

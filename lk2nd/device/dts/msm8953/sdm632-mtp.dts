@@ -1,0 +1,35 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_SDM632 0>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 0>;
+	/* Bootloader appears to really want to access symbols */
+	__symbols__ {};
+};
+
+&lk2nd {
+	onclite {
+		model = "Xiaomi Redmi 7 (onclite)";
+		compatible = "xiaomi,onclite";
+		lk2nd,match-panel;
+
+		panel {
+			compatible = "xiaomi,onclite-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_boe_hx8394f_720p_video {
+				compatible = "xiaomi,onclite-hx8394f";
+			};
+			qcom,mdss_dsi_shenchao_ili9881_720p_video {
+				compatible = "xiaomi,onclite-ili9881";
+			};
+			qcom,mdss_dsi_truly_otm1901a_720p_video {
+				compatible = "xiaomi,onclite-otm1901a";
+			};
+		};
+	};
+};
