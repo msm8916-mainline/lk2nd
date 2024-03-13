@@ -1,0 +1,64 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton.dtsi>
+
+/ {
+	compatible = "qcom,msm8909-qrd", "qcom,msm8909", "qcom,qrd";
+
+	// This is used by the bootloader to find the correct DTB
+	qcom,msm-id = <245 0>;
+	qcom,board-id = <0x1000b 0x8>, <0x11000b 0x8>, <0x21000b 0x8>;
+
+	acer-t01 {
+		model = "Acer Liquid Z330";
+		compatible = "acer,t01", "qcom,msm8909", "lk2nd,device";
+
+		qcom,board-id = <0x1000b 0x8>, <0x1000b 0x1008>,
+				<0x11000b 0x8>, <0x11000b 0x1008>,
+				<0x21000b 0x8>, <0x21000b 0x1008>;
+
+		lk2nd,match-panel;
+
+		panel {
+			compatible = "acer,t01-panel";
+
+			qcom,mdss_dsi_hx8379a_fwvga_skua_video {
+				compatible = "acer,hx8379a";
+			};
+
+			qcom,mdss_dsi_ili9806e_fwvga_video {
+				compatible = "acer,ili9806e";
+			};
+
+			qcom,dsi_panel_hx8379c_txd_hsd4p5_fwvga_video {
+				compatible = "acer,hx8379c-txd-hsd4p5";
+			};
+
+			qcom,ili9806e_dijing_hsd4p5inch {
+				compatible = "acer,ili9806e-dijing-hsd4p5inch";
+			};
+
+			qcom,ili9806e_tcl_clag045lj_cpt4p5inch {
+				compatible = "acer,ili9806e-tcl-clag045lj-cpt4p5inch";
+			};
+
+			qcom,ili9806e_txd_t500dkpa_5inch_fwvga {
+				compatible = "acer,ili9806e-txd-t500dkpa-5inch";
+			};
+
+			qcom,mdss_dsi_nt35512s_dijing_90250255218b_5inch_fwvga {
+				compatible = "acer,nt35512s-dijing-90250255218b-5inch";
+			};
+
+			qcom,ili9806e_boyi_byt45mp41t1m_4p5cpt {
+				compatible = "acer,ili9806e-boyi-byt45mp41t1m-4p5cpt";
+			};
+
+			qcom,otm8019a_dijing_90245255470b_auo4p5_fwvga {
+				compatible = "acer,otm8019a-dijing-90245255470b-auo4p5";
+			};
+		};
+	};
+};

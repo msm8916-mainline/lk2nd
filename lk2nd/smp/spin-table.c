@@ -83,7 +83,7 @@ static void smp_spin_table_setup_cpu(struct smp_spin_table *table,
 	}
 	base = fdt32_to_cpu(*val);
 
-#if TARGET_MSM8916 || TARGET_MSM8226
+#if TARGET_MSM8916 || TARGET_MSM8226 || TARGET_MSM8909
 	qcom_power_up_arm_cortex(cpu, base);
 #elif TARGET_MSM8974
 	node = lkfdt_lookup_phandle(fdt, cpu_node, "next-level-cache");
