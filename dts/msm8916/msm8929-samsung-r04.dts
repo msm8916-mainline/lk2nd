@@ -46,7 +46,7 @@
 		qcom,msm-id = <248 0>;
 		qcom,board-id = <0xF808FF01 7>;
 
-		#include "msm8916-samsung-gprime.dtsi"
+		#include "msm8916-samsung-fortuna.dtsi"
 	};
 
 	a3 {

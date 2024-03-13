@@ -4,7 +4,7 @@ samsung,muic-reset {
 };
 
 panel {
-	compatible = "samsung,cprime-panel";
+	compatible = "samsung,rossa-panel";
 
 	ss_dsi_panel_HX8369B_BV045WVM_WVGA {
 		compatible = "samsung,hx8369b-bv045wvm";

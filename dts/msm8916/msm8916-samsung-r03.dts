@@ -42,13 +42,13 @@
 		};
 	};
 
-	gprimeltexx {
+	grandprimelte {
 		model = "Samsung Galaxy Grand Prime (SM-G530FZ)";
-		compatible = "samsung,gprimeltexx", "qcom,msm8916", "lk2nd,device";
+		compatible = "samsung,grandprimelte", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "G530FZ*";
 		qcom,msm-id = <206 0>;
 		qcom,board-id = <0xCE08FF01 2>;
-		#include "msm8916-samsung-gprime.dtsi"
+		#include "msm8916-samsung-fortuna.dtsi"
 	};
 
 	j5xltecmcc {
@@ -90,6 +90,6 @@
 		model = "Samsung Galaxy Core Prime LTE (SM-G360G)";
 		compatible = "samsung,rossaltexsa", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "G360GZT*";
-		#include "msm8916-samsung-cprime.dtsi"
+		#include "msm8916-samsung-rossa.dtsi"
 	};
 };

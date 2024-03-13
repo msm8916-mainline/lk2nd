@@ -6,7 +6,7 @@ samsung,muic-reset {
 };
 
 panel {
-	compatible = "samsung,gprime-panel";
+	compatible = "samsung,fortuna-panel";
 
 	qcom,mdss_dsi_hx8389c_qhd_video {
 		compatible = "samsung,hx8389c-gh9607501a";
