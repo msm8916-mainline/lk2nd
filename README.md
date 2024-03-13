@@ -127,7 +127,11 @@ page on the EFIDroid wiki for an exact mapping of LK targets to SoCs.
 - Motorola Moto G 4G 2013 - peregrine
 - Samsung Galaxy Grand 2 - SM-G7102
 - Samsung Galaxy Tab 4 10.1 (2014) - SM-T530, SM-T535
+kmini3g
+- Samsung Galaxy S5 Mini Duos - SM-G800H
+=======
 - Samsung Galaxy Tab 4 8.0 (2014) - SM-T330, SM-T330NU
+master
 
 ## Installation
 1. Download `lk2nd.img` (available in [Releases](https://github.com/msm8916-mainline/lk2nd/releases))
