@@ -1,0 +1,33 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8976 0x10001>;
+	qcom,board-id = <QCOM_BOARD_ID_QRD 0x0>;
+};
+
+&lk2nd {
+	leeco-s2 {
+		model = "Leeco s2";
+		compatible = "leeco,s2";
+		lk2nd,match-panel;
+
+		lk2nd,dtb-files = "msm8976-leeco-s2";
+
+		panel {
+			compatible = "leeco,s2-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_boe_nt35596s_fhd_5p5boe_vdo {
+				compatible = "leeco,s2-nt35596s-boe";
+			};
+			qcom,mdss_dsi_truly_r69006_5p5lg_1080p_cmd {
+				compatible = "leeco,s2-r69006-lg";
+			};
+			qcom,mdss_dsi_boe_nt36760_fhd_5p5boe_cmd {
+				compatible = "leeco,s2-nt36760-boe";
+			};
+		};
+	};
+};
