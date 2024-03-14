@@ -1,0 +1,71 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8956 0x10001>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 0x00>;
+	
+	/* Bootloader requires those cpu nodes, or shuts device down */
+	cpus {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		cpu@100 {
+			device_type = "cpu";
+			reg = <0x100>;
+		};
+
+		cpu@101 {
+			device_type = "cpu";
+			reg = <0x101>;
+		};
+
+		cpu@102 {
+			device_type = "cpu";
+			reg = <0x102>;
+		};
+	};
+};
+
+&lk2nd {
+	
+	kenzo {
+		model = "Redmi Note 3 Pro (kenzo)";
+		compatible = "xiaomi,kenzo";
+		lk2nd,match-panel;
+		
+		lk2nd,dtb-files = "msm8956-xiaomi-kenzo";
+
+		panel {
+			compatible = "xiaomi,kenzo-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_boe_nt35532_1080p_video {
+				compatible = "xiaomi,kenzo-nt35532-boe";
+			};
+			qcom,mdss_dsi_sharp_r63315_1080p_video {
+				compatible = "xiaomi,kenzo-r63315-sharp";
+			};
+			qcom,mdss_dsi_tianma_nt35596_1080p_video {
+				compatible = "xiaomi,kenzo-nt35596-tianma";
+			};
+		};
+	};
+	
+	kugo {
+		model = "Sony Xperia X Compact";
+		compatible = "sony,kugo";
+		lk2nd,match-cmdline = "* androidboot.serialno=BH902H";
+
+		lk2nd,dtb-files = "msm8956-sony-loire-kugo";
+	};
+
+	suzu {
+		model = "Sony Xperia X";
+		compatible = "sony,suzu";
+		lk2nd,match-cmdline = "* androidboot.serialno=BH902F";
+
+		lk2nd,dtb-files = "msm8956-sony-loire-suzu";
+	};
+};
