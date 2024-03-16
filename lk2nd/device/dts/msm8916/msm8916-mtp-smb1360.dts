@@ -10,12 +10,11 @@
 
 &lk2nd {
 	/*
-	* To get a working build for acer-a1-724, comment out all lines
-	* except $(LOCAL_DIR)/msm8916-mtp-smb1360.dtb in rules.mk in this
-	* directory.
-	* a1-724 does not work with all dtbs enabled; the bootloader gets
-	* upset and goes into the phone's fastboot.
-	*/
+	 * To build for acer-a1-724, add LK2ND_QCDTBS="msm8916-mtp-smb1360.dtb"
+	 * to your make cmdline.
+	 * a1-724 does not work with all dtbs enabled; the bootloader gets
+	 * upset and goes into the phone's fastboot.
+	 */
 	acer-a1-724 {
 		model = "Acer Iconia Talk S A1-724";
 		compatible = "acer,a1-724";
