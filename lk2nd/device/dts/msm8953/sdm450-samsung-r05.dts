@@ -1,0 +1,59 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_SDA450 0>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 5>;
+	
+	/* bootloader refuses the dtb if it cannot delete some nodes. */
+	qcom,memshare {
+		qcom,client_4 {
+			qcom,peripheral-size = <0x6000000>;
+		};
+	};
+
+	reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+
+		sec_debug_region@0 {
+			compatible = "removed-dma-pool";
+			no-map;
+			reg = <0x0 0x85000000 0x0 0x800000>;
+		};
+
+		sec_debug_low_region@0 {
+			compatible = "removed-dma-pool";
+			no-map;
+			reg = <0x0 0x85000000 0x0 0x400000>;
+		};
+
+		lk_region@0 {
+			linux,reserve-contiguous-region;
+			linux,reserve-region;
+			linux,remove-completely;
+			no-map;
+			reg = <0x0 0x8f600000 0x0 0x300000>;
+			label = "lk_mem";
+		};
+
+		modem_shared_mem_region@0x93000000 {
+			reg = <0x0 0x93000000 0x0 0x6000000>;
+		};
+	};	
+};
+
+&lk2nd {
+	gta2xlwifi-generic {
+		model = "Samsung Tab A2 XL WIFI Rev05";
+		compatible = "samsung,gta2xlwifi";
+		lk2nd,match-bootloader = "T590*";
+		
+		lk2nd,dtb-files = "sdm450-samsung-gta2xlwifi";
+	};	
+};

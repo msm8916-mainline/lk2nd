@@ -1,0 +1,843 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+#define I2C_GPIO_FLAGS	(GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN | GPIO_BIAS_DISABLE)
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8916 0>;
+	qcom,board-id = <0xCE08FF01 0>,
+			<0xCE08FF01 1>,
+			<0xCE08FF01 2>,
+			<0xCE08FF01 3>,
+			<0xCE08FF01 4>,
+			<0xCE08FF01 5>,
+			<0xCE08FF01 6>,
+			<0xCE08FF01 7>,
+			<0xCE08FF01 8>,
+			<0xCE08FF01 11>;
+};
+
+&lk2nd {
+	/* rev 0 */
+
+	gt58lte-aus {
+		model = "Samsung Galaxy Tab A 8.0 2015 (SM-T355Y)";
+		compatible = "samsung,gt58lte-aus", "samsung,gt58";
+		lk2nd,match-bootloader = "T355Y*";
+
+		lk2nd,dtb-files = "msm8916-samsung-gt58";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 0>;
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			home {
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&tlmm 109 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+
+	on7lte-kor {
+		model = "Samsung Galaxy On7 2015 (SM-G600S)";
+		compatible = "samsung,on7lte-kor", "samsung,on7";
+		lk2nd,match-bootloader = "G600S*";
+
+		lk2nd,dtb-files = "msm8916-samsung-on7";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 0>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x25>;
+			i2c-sda-gpios = <&tlmm 105 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 106 I2C_GPIO_FLAGS>;
+		};
+	};
+
+	coreprimelte {
+		// In the downstream dts it is called Samsung ROSSA PROJECT Rev00
+		model = "Samsung Galaxy Core Prime LTE (SM-G360F)";
+		compatible = "samsung,coreprimelte", "samsung,cprime";
+		lk2nd,match-bootloader = "G360F*";
+
+		lk2nd,dtb-files = "msm8916-samsung-cprime";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 1>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x14>;
+			i2c-sda-gpios = <&tlmm 2 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 3 I2C_GPIO_FLAGS>;
+		};
+
+		panel {
+			compatible = "samsung,cprime-panel", "lk2nd,panel";
+
+			ss_dsi_panel_HX8369B_BV045WVM_WVGA {
+				compatible = "samsung,hx8369b-bv045wvm";
+			};
+			ss_dsi_panel_SC7798A_BV045WVM_WVGA {
+				compatible = "samsung,sc7798a-bv045wvm";
+			};
+		};
+	};
+
+	/* rev 1 */
+
+	a3u-eur {
+		model = "Samsung Galaxy A3U (SM-A300FU)";
+		compatible = "samsung,a3u-eur", "samsung,a3";
+		lk2nd,match-bootloader = "A300FU*";
+
+		lk2nd,dtb-files = "msm8916-samsung-a3u-eur";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 1>;
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			home {
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&tlmm 109 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+
+	a3lte {
+		model = "Samsung Galaxy A3 (SM-A300F)";
+		compatible = "samsung,a3lte", "samsung,a3u-eur", "samsung,a3";
+		lk2nd,match-bootloader = "A300F*";
+
+		lk2nd,dtb-files = "msm8916-samsung-a3u-eur";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 1>;
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			home {
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&tlmm 109 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+
+	a5u-eur {
+		model = "Samsung Galaxy A5U (SM-A500FU)";
+		compatible = "samsung,a5u-eur", "samsung,a5";
+		lk2nd,match-bootloader = "A500FU*";
+
+		lk2nd,dtb-files = "msm8916-samsung-a5u-eur";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 1>;
+	};
+
+	gt58lte {
+		model = "Samsung Galaxy Tab A 8.0 (LTE, SM-T355)";
+		compatible = "samsung,gt58lte", "samsung,gt58";
+		lk2nd,match-bootloader = "T355*";
+
+		lk2nd,dtb-files = "msm8916-samsung-gt58";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 1>;
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			home {
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&tlmm 109 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+
+	j3ltezt {
+		model = "Samsung Galaxy J3 2016 (SM-J320YZ)";
+		compatible = "samsung,j3ltetw";
+		lk2nd,match-bootloader = "J320YZ*";
+
+		lk2nd,dtb-files = "msm8916-samsung-j3ltetw";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 1>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x25>;
+			i2c-sda-gpios = <&tlmm 0 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 1 I2C_GPIO_FLAGS>;
+		};
+	};
+
+	j5ltezm {
+		model = "Samsung Galaxy J5 2015 (SM-J5008)";
+		compatible = "samsung,j5ltechn", "samsung,j5";
+		lk2nd,match-bootloader = "J5008*";
+
+		lk2nd,dtb-files = "msm8916-samsung-j5";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 1>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x25>;
+			i2c-sda-gpios = <&tlmm 105 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 106 I2C_GPIO_FLAGS>;
+		};
+	};
+
+	rossaltedv {
+		model = "Samsung Galaxy Core Prime LTE (SM-G360GD)";
+		compatible = "samsung,rossaltexsa", "samsung,cprime";
+		lk2nd,match-bootloader = "G360GD*";
+
+		lk2nd,dtb-files = "msm8916-samsung-cprime";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 1>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x14>;
+			i2c-sda-gpios = <&tlmm 2 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 3 I2C_GPIO_FLAGS>;
+		};
+
+		panel {
+			compatible = "samsung,cprime-panel", "lk2nd,panel";
+
+			ss_dsi_panel_HX8369B_BV045WVM_WVGA {
+				compatible = "samsung,hx8369b-bv045wvm";
+			};
+			ss_dsi_panel_SC7798A_BV045WVM_WVGA {
+				compatible = "samsung,sc7798a-bv045wvm";
+			};
+		};
+	};
+
+	/* rev 2 */
+
+	gprimeltecan {
+		model = "Samsung Galaxy Grand Prime (SM-G530W)";
+		compatible = "samsung,gprimeltecan";
+		lk2nd,match-bootloader = "G530W*";
+
+		lk2nd,dtb-files = "msm8916-samsung-gprimeltecan";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 2>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x25>;
+			i2c-sda-gpios = <&tlmm 2 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 3 I2C_GPIO_FLAGS>;
+		};
+
+		panel {
+			compatible = "samsung,gprime-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_hx8389c_qhd_video {
+				compatible = "samsung,hx8389c-gh9607501a";
+			};
+			ss_dsi_panel_HX8389C_GH9607501A_QHD {
+				compatible = "samsung,hx8389c-gh9607501a";
+			};
+			ss_dsi_panel_S6D78A0_GH9607501A_QHD {
+				compatible = "samsung,s6d78a0-gh9607501a";
+			};
+		};
+	};
+
+	gprimeltexx {
+		model = "Samsung Galaxy Grand Prime (SM-G530FZ)";
+		compatible = "samsung,gprimeltexx", "samsung,gprimeltecan";
+		lk2nd,match-bootloader = "G530FZ*";
+
+		lk2nd,dtb-files = "msm8916-samsung-gprimeltecan";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 2>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x25>;
+			i2c-sda-gpios = <&tlmm 2 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 3 I2C_GPIO_FLAGS>;
+		};
+
+		panel {
+			compatible = "samsung,gprime-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_hx8389c_qhd_video {
+				compatible = "samsung,hx8389c-gh9607501a";
+			};
+			ss_dsi_panel_HX8389C_GH9607501A_QHD {
+				compatible = "samsung,hx8389c-gh9607501a";
+			};
+			ss_dsi_panel_S6D78A0_GH9607501A_QHD {
+				compatible = "samsung,s6d78a0-gh9607501a";
+			};
+		};
+	};
+
+	/*
+	 * Before building for G357FZ, please comment out all dtbs except
+	 * "$(LOCAL_DIR)/msm8916-samsung.dtb" at './rules.mk'.
+	 * heatqlte doesn't work with multi-dtbs; only goes into "Download mode".
+	 */
+	heatqlte {
+		model = "Samsung Galaxy Ace 4 (SM-G357FZ)";
+		compatible = "samsung,heatqlte";
+		lk2nd,match-bootloader = "G357FZ*";
+
+		lk2nd,dtb-files = "msm8916-samsung-heatqlte";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 2>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x14>;
+			i2c-sda-gpios = <&tlmm 2 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 3 I2C_GPIO_FLAGS>;
+		};
+	};
+
+	/* rev 3 */
+
+	serranovelte {
+		model = "Samsung Galaxy S4 Mini Value Edition";
+		compatible = "samsung,serranovelte", "samsung,serranove";
+		lk2nd,match-bootloader = "I9195I*";
+
+		lk2nd,dtb-files = "msm8916-samsung-serranove";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 3>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x14>;
+			i2c-sda-gpios = <&tlmm 105 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 106 I2C_GPIO_FLAGS>;
+		};
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			home {
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&tlmm 109 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+
+	j3xprolte-chnopen {
+		model = "Samsung Galaxy J3 Pro (SM-J3110)";
+		compatible = "samsung,j3xprolte-chnopen", "samsung,j3xpro";
+		lk2nd,match-bootloader = "J3110*";
+
+		// FIXME: lk2nd,dtb-files = "msm8916-samsung-j3xpro";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 3>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x25>;
+			i2c-sda-gpios = <&tlmm 0 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 1 I2C_GPIO_FLAGS>;
+		};
+	};
+
+	j3xprolte-chnctc {
+		model = "Samsung Galaxy J3 Pro (SM-J3119)";
+		compatible = "samsung,j3xprolte-chnctc", "samsung,j3xpro";
+		lk2nd,match-bootloader = "J3119*";
+
+		// FIXME: lk2nd,dtb-files = "msm8916-samsung-j3xpro";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 3>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x25>;
+			i2c-sda-gpios = <&tlmm 0 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 1 I2C_GPIO_FLAGS>;
+		};
+	};
+
+	j5xltecmcc {
+		model = "Samsung Galaxy J5 2016 (SM-J5108)";
+		compatible = "samsung,j5xltecmc", "samsung,j5x";
+		lk2nd,match-bootloader = "J5108*";
+
+		lk2nd,dtb-files = "msm8916-samsung-j5x";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 3>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x25>;
+			i2c-sda-gpios = <&tlmm 105 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 106 I2C_GPIO_FLAGS>;
+		};
+	};
+
+	on7lte-chn {
+		model = "Samsung Galaxy On7 2015 (SM-G6000)";
+		compatible = "samsung,on7lte-chn", "samsung,on7";
+		lk2nd,match-bootloader = "G600S*";
+
+		lk2nd,dtb-files = "msm8916-samsung-on7";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 3>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x25>;
+			i2c-sda-gpios = <&tlmm 105 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 106 I2C_GPIO_FLAGS>;
+		};
+	};
+
+	on7lte-swa {
+		model = "Samsung Galaxy On7 2015 (SM-G600FY)";
+		compatible = "samsung,on7lte-swa", "samsung,on7";
+		lk2nd,match-bootloader = "G600FY*";
+
+		lk2nd,dtb-files = "msm8916-samsung-on7";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 3>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x25>;
+			i2c-sda-gpios = <&tlmm 105 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 106 I2C_GPIO_FLAGS>;
+		};
+	};
+
+	/*
+	 * Before building for rossaltezt, please comment out all dtbs except
+	 * "$(LOCAL_DIR)/msm8916-samsung.dtb" at './rules.mk'.
+	 * rossaltezt doesn't work with multi-dtbs; only goes into "Download mode".
+	 */
+	rossaltezt {
+		model = "Samsung Galaxy Core Prime LTE (SM-G360GZT)";
+		compatible = "samsung,rossaltexsa", "samsung,cprime";
+		lk2nd,match-bootloader = "G360GZT*";
+
+		lk2nd,dtb-files = "msm8916-samsung-cprime";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 3>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x14>;
+			i2c-sda-gpios = <&tlmm 2 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 3 I2C_GPIO_FLAGS>;
+		};
+
+		panel {
+			compatible = "samsung,cprime-panel", "lk2nd,panel";
+
+			ss_dsi_panel_HX8369B_BV045WVM_WVGA {
+				compatible = "samsung,hx8369b-bv045wvm";
+			};
+			ss_dsi_panel_SC7798A_BV045WVM_WVGA {
+				compatible = "samsung,sc7798a-bv045wvm";
+			};
+		};
+	};
+
+	/* rev 4 */
+
+	j5xnltejv {
+		model = "Samsung Galaxy J5 2016 (SM-J510F)";
+		compatible = "samsung,j5xnlte", "samsung,j5x";
+		lk2nd,match-bootloader = "J510F*";
+
+		lk2nd,dtb-files = "msm8916-samsung-j5x";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 4>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x25>;
+			i2c-sda-gpios = <&tlmm 105 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 106 I2C_GPIO_FLAGS>;
+		};
+	};
+
+	j5xnlteub {
+		model = "Samsung Galaxy J5 2016 (SM-J510MN)";
+		compatible = "samsung,j5xnlte", "samsung,j5x";
+		lk2nd,match-bootloader = "J510MN*";
+
+		lk2nd,dtb-files = "msm8916-samsung-j5x";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 4>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x25>;
+			i2c-sda-gpios = <&tlmm 105 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 106 I2C_GPIO_FLAGS>;
+		};
+	};
+
+	j5xnltezt {
+		model = "Samsung Galaxy J5 2016 (SM-J510UN)";
+		compatible = "samsung,j5xnlte", "samsung,j5x";
+		lk2nd,match-bootloader = "J510UN*";
+
+		lk2nd,dtb-files = "msm8916-samsung-j5x";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 4>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x25>;
+			i2c-sda-gpios = <&tlmm 105 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 106 I2C_GPIO_FLAGS>;
+		};
+	};
+
+	grandmaxlteub {
+		model = "Samsung Galaxy Grand Max (SM-G720AX)";
+		compatible = "samsung,grandmaxlteub", "samsung,grandmax";
+		lk2nd,match-bootloader = "G720AX*";
+
+		lk2nd,dtb-files = "msm8916-samsung-grandmax";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 4>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x14>;
+			i2c-sda-gpios = <&tlmm 105 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 106 I2C_GPIO_FLAGS>;
+		};
+	};
+
+	e5ltexx {
+		model = "Samsung Galaxy E5 (SM-E500F)";
+		compatible = "samsung,e5ltexx", "samsung,e5";
+		lk2nd,match-bootloader = "A500FU*";
+
+		lk2nd,dtb-files = "msm8916-samsung-e5";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 4>;
+	};
+
+	/* rev5 */
+
+	j3lte-chnctc {
+		model = "Samsung Galaxy J3 2016 (SM-J320YZ)";
+		compatible = "samsung,j3lte-chnctc";
+		lk2nd,match-bootloader = "J3109*";
+
+		lk2nd,dtb-files = "msm8916-samsung-j3ltetw"; // FIXME
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 5>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x25>;
+			i2c-sda-gpios = <&tlmm 0 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 1 I2C_GPIO_FLAGS>;
+		};
+	};
+
+	j5lteub {
+		model = "Samsung Galaxy J5 2015 (SM-J500M)";
+		compatible = "samsung,j5lteub", "samsung,j5";
+		lk2nd,match-bootloader = "J500M*";
+
+		lk2nd,dtb-files = "msm8916-samsung-j5";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 5>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x25>;
+			i2c-sda-gpios = <&tlmm 105 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 106 I2C_GPIO_FLAGS>;
+		};
+	};
+
+	j5nltexx {
+		model = "Samsung Galaxy J5 2015 (SM-J500FN)";
+		compatible = "samsung,j5nltexx", "samsung,j5";
+		lk2nd,match-bootloader = "J500FN*";
+
+		lk2nd,dtb-files = "msm8916-samsung-j5";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 5>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x25>;
+			i2c-sda-gpios = <&tlmm 105 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 106 I2C_GPIO_FLAGS>;
+		};
+	};
+
+	j5ltexx {
+		model = "Samsung Galaxy J5 2015 (SM-J500F)";
+		compatible = "samsung,j5ltexx", "samsung,j5";
+		lk2nd,match-bootloader = "J500F*";
+
+		lk2nd,dtb-files = "msm8916-samsung-j5";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 5>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x25>;
+			i2c-sda-gpios = <&tlmm 105 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 106 I2C_GPIO_FLAGS>;
+		};
+	};
+
+	j5ltezt {
+		model = "Samsung Galaxy J5 2015 (SM-J5007)";
+		compatible = "samsung,j5ltezt", "samsung,j5";
+		lk2nd,match-bootloader = "J5007*";
+
+		lk2nd,dtb-files = "msm8916-samsung-j5";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 5>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x25>;
+			i2c-sda-gpios = <&tlmm 105 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 106 I2C_GPIO_FLAGS>;
+		};
+	};
+
+	/* rev 6 */
+
+	cprimeltetmo {
+		model = "Samsung Galaxy Core Prime LTE (SM-G360T)";
+		compatible = "samsung,cprimeltetmo", "samsung,cprime";
+		lk2nd,match-bootloader = "G360T*";
+
+		lk2nd,dtb-files = "msm8916-samsung-cprime";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 6>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x14>;
+			i2c-sda-gpios = <&tlmm 2 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 3 I2C_GPIO_FLAGS>;
+		};
+
+		panel {
+			compatible = "samsung,cprime-panel", "lk2nd,panel";
+
+			ss_dsi_panel_HX8369B_BV045WVM_WVGA {
+				compatible = "samsung,hx8369b-bv045wvm";
+			};
+			ss_dsi_panel_SC7798A_BV045WVM_WVGA {
+				compatible = "samsung,sc7798a-bv045wvm";
+			};
+		};
+	};
+
+	e7000 {
+		model = "Samsung Galaxy E7 (SM-E7000)";
+		compatible = "samsung,e7000", "samsung,e7";
+		lk2nd,match-bootloader = "E7000*";
+
+		lk2nd,dtb-files = "msm8916-samsung-e7";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF02 6>;
+
+		panel {
+			compatible = "samsung,e7-panel", "lk2nd,panel";
+
+			ss_dsi_panel_EA8061_HD {
+				compatible = "samsung,ea8061-ams549bu19";
+			};
+			ss_dsi_panel_EA8061_ID400418_HD {
+				compatible = "samsung,ea8061-ams549bu19-id400418";
+			};
+		};
+	};
+
+	gt58ltebmc {
+		model = "Samsung Galaxy Tab A 8.0 2015 (SM-T357W)";
+		compatible = "samsung,gt58ltebmc", "samsung,gt58";
+		lk2nd,match-bootloader = "T357W*";
+
+		lk2nd,dtb-files = "msm8916-samsung-gt58";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 6>;
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			home {
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&tlmm 109 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+
+	/* rev 8 */
+
+	a5lte {
+		model = "Samsung Galaxy A5U (SM-A500F)";
+		compatible = "samsung,a5lte", "samsung,a5u-eur", "samsung,a5";
+		lk2nd,match-bootloader = "A500F*";
+
+		lk2nd,dtb-files = "msm8916-samsung-a5u-eur";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 8>;
+	};
+
+	gt510lte {
+		model = "Samsung Galaxy Tab A 9.7 2015 (LTE, SM-T555)";
+		compatible = "samsung,gt510lte", "samsung,gt510";
+		lk2nd,match-bootloader = "T555*";
+
+		lk2nd,dtb-files = "msm8916-samsung-gt510";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 7>;
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			home {
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&tlmm 109 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+
+	/*
+	 * Before building for G5108Q, please comment out all dtbs except
+	 *  "$(LOCAL_DIR)/msm8916-samsung.dtb" at './rules.mk'.
+	 * g5108q doesn't work with multi-dtbs; only goes into "Download mode".
+	 */
+	g5108q {
+		model = "Samsung Galaxy Core Max (SM-G5108Q)";
+		compatible = "samsung,g5108q";
+		lk2nd,match-bootloader = "G5108Q*";
+
+		// FIXME: lk2nd,dtb-files = "msm8916-samsung-???";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 8>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x14>;
+			i2c-sda-gpios = <&tlmm 2 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 3 I2C_GPIO_FLAGS>;
+		};
+	};
+
+	/* rev 11 */
+
+	a5ltechn {
+		model = "Samsung Galaxy A5U (SM-A5000)";
+		compatible = "samsung,a5ltechn", "samsung,a5u-eur", "samsung,a5";
+		lk2nd,match-bootloader = "A5000*";
+
+		lk2nd,dtb-files = "msm8916-samsung-a5u-eur";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 11>;
+	};
+
+	a5ltezt {
+		model = "Samsung Galaxy A5U (SM-A500YZ)";
+		compatible = "samsung,a5ltezt", "samsung,a5u-eur", "samsung,a5";
+		lk2nd,match-bootloader = "A500YZ*";
+
+		lk2nd,dtb-files = "msm8916-samsung-a5u-eur";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 11>;
+	};
+
+	a5u-canbmc {
+		model = "Samsung Galaxy A5U (SM-A500W)";
+		compatible = "samsung,a5u-canbmc", "samsung,a5";
+		lk2nd,match-bootloader = "A500W*";
+
+		lk2nd,dtb-files = "msm8916-samsung-a5u-eur";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 1>;
+	};
+
+	/*
+	 * Before building for G530Y, please comment out all dtbs except
+	 * "$(LOCAL_DIR)/msm8916-samsung.dtb" at './rules.mk'.
+	 * fortunaltezt doesn't work with multi-dtbs; only goes into "Download mode".
+	 */
+	fortunaltezt {
+		model = "Samsung Galaxy Grand Prime (SM-G530Y)";
+		compatible = "samsung,fortunaltezt";
+		lk2nd,match-bootloader = "G530Y*";
+
+		lk2nd,dtb-files = "msm8916-samsung-fortunaltezt";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 11>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x25>;
+			i2c-sda-gpios = <&tlmm 2 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 3 I2C_GPIO_FLAGS>;
+		};
+
+		panel {
+			compatible = "samsung,gprime-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_hx8389c_qhd_video {
+				compatible = "samsung,hx8389c-gh9607501a";
+			};
+			ss_dsi_panel_HX8389C_GH9607501A_QHD {
+				compatible = "samsung,hx8389c-gh9607501a";
+			};
+			ss_dsi_panel_S6D78A0_GH9607501A_QHD {
+				compatible = "samsung,s6d78a0-gh9607501a";
+			};
+		};
+	};
+};

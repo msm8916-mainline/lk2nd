@@ -1,0 +1,35 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8953 0>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 0>;
+};
+
+&lk2nd {
+	ysl {
+		model = "Xiaomi Redmi S2/Y2 (ysl)";
+		compatible = "xiaomi,ysl";
+		lk2nd,match-panel;
+
+		lk2nd,dtb-files = "msm8953-xiaomi-ysl";
+
+		panel {
+			compatible = "xiaomi,ysl-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_auo_hd720_video {
+				compatible = "xiaomi,ysl-ili7807d";
+			};
+			qcom,mdss_dsi_sc_ili9881c_hd720_video {
+				compatible = "xiaomi,ysl-ili9881c";
+			};
+			qcom,mdss_dsi_truly_hd720_video {
+				compatible = "xiaomi,ysl-hx8394f";
+			};
+		};
+	};	
+};

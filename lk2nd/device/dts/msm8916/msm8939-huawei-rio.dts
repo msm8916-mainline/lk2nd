@@ -1,0 +1,19 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8939 0>;
+	qcom,board-id =
+		<8054 4>, <8055 4>, <8070 4>, <8071 4>,
+		<8086 4>, <8087 4>, <8102 4>, <8134 4>,
+		<8135 4>, <8118 4>;
+};
+
+&lk2nd {
+	model = "Huawei G7 Plus / G8 / GX8";
+	compatible = "huawei,rio";
+
+	//FIXME: lk2nd,dtb-files = "msm8939-huawei-rio";
+};

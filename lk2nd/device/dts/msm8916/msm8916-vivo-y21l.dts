@@ -1,0 +1,31 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8916 0>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 13>;
+};
+
+&lk2nd {
+	model = "Vivo Y21L";
+	compatible = "vivo,y21l";
+	lk2nd,match-panel;
+
+	lk2nd,dtb-files = "msm8916-vivo-y21l";
+
+	panel {
+		compatible = "vivo,y21l-panel", "lk2nd,panel";
+
+		qcom,mdss_dsi_nt35510s_fwvga_cmd_tm {
+			compatible = "vivo,nt35510s-tm";
+		};
+		qcom,mdss_dsi_orise8012a_tmfwvga_cmd {
+			compatible = "vivo,orise8012a-tmfwvga";
+		};
+		qcom,mdss_dsi_orise8012a_tmfwvga_cmd_bkg {
+			compatible = "vivo,orise8012a-tmfwvga-bkg";
+		};
+	};
+};

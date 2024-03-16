@@ -1,0 +1,16 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8939 0>;
+	qcom,board-id = <21 0>;
+};
+
+&lk2nd {
+	model = "Asus Zenfone Laser 2 (1080p)";
+	compatible = "asus,z00t";
+
+	//FIXME: lk2nd,dtb-files = "msm8916-asus-z00t";
+};

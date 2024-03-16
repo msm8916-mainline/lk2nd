@@ -1,0 +1,37 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/*
+ * To build for htc-m8qlul, add LK2ND_QCDTBS="msm8939-htc-m8qlul.dtb" to
+ * your make cmdline.
+ * m8qlul does not work with all dtbs enabled; the bootloader gets upset and
+ * goes into the phone's fastboot.
+ */
+
+/ {
+	qcom,msm-id = <382 0x10000>;
+	htc,project-id = <382 0x10000>;
+	htc,hw-id = <0 0>, <1 0>, <2 0>, <128 0>;
+	qcom,board-id = <1 0>;
+};
+
+&lk2nd {
+	model = "HTC One M8s";
+	compatible = "htc,m8qlul";
+
+	//FIXME: lk2nd,dtb-files = "msm8916-htc-m8qlul";
+
+	gpio-keys {
+		compatible = "gpio-keys";
+		vol-down {
+			lk2nd,code = <KEY_VOLUMEDOWN>;
+			gpios = <&tlmm 108 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+		};
+		vol-up {
+			lk2nd,code = <KEY_VOLUMEUP>;
+			gpios = <&tlmm 107 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+		};
+	};
+};

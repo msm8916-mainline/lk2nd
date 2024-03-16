@@ -1,0 +1,15 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <0xc8 0x1f51 0x00>;
+};
+
+&lk2nd {
+	model = "Huawei Ascend G6-L11 vb";
+	compatible = "huawei,g6-l11-vb";
+
+	//FIXME: lk2nd,dtb-files = "msm8926-huawei-g6-l11";
+};

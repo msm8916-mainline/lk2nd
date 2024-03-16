@@ -6,4 +6,5 @@ OBJS += \
 	$(LOCAL_DIR)/inftrees.o \
 	$(LOCAL_DIR)/inflate.o \
 	$(LOCAL_DIR)/inffast.o \
+	$(LOCAL_DIR)/uncompr.o \
 	$(LOCAL_DIR)/decompress.o

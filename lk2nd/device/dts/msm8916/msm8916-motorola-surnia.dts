@@ -1,0 +1,37 @@
+// SPDX-License-Identifier: GPL-2.0-only
+#include "msm8916-motorola.dtsi"
+
+/ {
+	qcom,board-id = <0x46 0x8300>;
+
+	/*
+	 * This is not used by lk2nd, for some reason the Motorola bootloader
+	 * wants to update some properties in here. Meh.
+	 */
+	soc {
+		qcom,mdss_dsi_mot_boe_450_qhd_video_v3 {
+			compatible = "qcom,mdss-dsi-panel";
+		};
+		qcom,mdss_dsi_mot_inx_450_qhd_video_v1 {
+			compatible = "qcom,mdss-dsi-panel";
+		};
+	};
+};
+
+&lk2nd {
+	model = "Motorola Moto E 2015 LTE (surnia)";
+	compatible = "motorola,surnia";
+
+	lk2nd,dtb-files = "msm8916-motorola-harpia";
+
+	panel {
+		compatible = "motorola,surnia-panel", "lk2nd,panel";
+
+		qcom,mdss_dsi_mot_boe_450_qhd_video_v3 {
+			compatible = "motorola,surnia-panel-boe";
+		};
+		qcom,mdss_dsi_mot_inx_450_qhd_video_v1 {
+			compatible = "motorola,surnia-panel-inx";
+		};
+	};
+};

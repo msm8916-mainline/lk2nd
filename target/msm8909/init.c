@@ -127,7 +127,7 @@ static uint32_t mmc_sdhci_base[] =
 static uint32_t  mmc_sdc_pwrctl_irq[] =
 	{ SDCC1_PWRCTL_IRQ, SDCC2_PWRCTL_IRQ };
 
-static void set_sdc_power_ctrl(void);
+static void set_sdc_power_ctrl(int slot);
 static void set_ebi2_config(void);
 
 void update_ptable_names(void)
@@ -188,7 +188,7 @@ void target_sdc_init(void)
 	struct mmc_config_data config;
 
 	/* Set drive strength & pull ctrl values */
-	set_sdc_power_ctrl();
+	set_sdc_power_ctrl(1);
 
 	config.bus_width = DATA_BUS_WIDTH_8BIT;
 	config.max_clk_rate = MMC_CLK_177MHZ;
@@ -202,6 +202,7 @@ void target_sdc_init(void)
 
 	if (!(dev = mmc_init(&config))) {
 	/* Try slot 2 */
+		set_sdc_power_ctrl(2);
 		config.slot         = 2;
 		config.max_clk_rate = MMC_CLK_200MHZ;
 		config.sdhc_base    = mmc_sdhci_base[config.slot - 1];
@@ -213,6 +214,26 @@ void target_sdc_init(void)
 			ASSERT(0);
 		}
 	}
+}
+
+struct mmc_device *target_get_sd_mmc(void)
+{
+	struct mmc_config_data config;
+
+	if (dev->config.slot == 2)
+		return NULL;
+
+	set_sdc_power_ctrl(2);
+
+	config.slot          = 2;
+	config.bus_width     = DATA_BUS_WIDTH_8BIT;
+	config.max_clk_rate  = MMC_CLK_200MHZ;
+	config.sdhc_base     = mmc_sdhci_base[config.slot - 1];
+	config.pwrctl_base   = mmc_pwrctl_base[config.slot - 1];
+	config.pwr_irq       = mmc_sdc_pwrctl_irq[config.slot - 1];
+	config.hs400_support = 0;
+
+	return mmc_init(&config);
 }
 
 void *target_mmc_device(void)
@@ -281,22 +302,24 @@ static void target_keystatus(void)
 
 }
 
-static void set_sdc_power_ctrl(void)
+static void set_sdc_power_ctrl(int slot)
 {
+	uint32_t reg = (slot == 1 ? SDC1_HDRV_PULL_CTL : SDC2_HDRV_PULL_CTL);
+
 	/* Drive strength configs for sdc pins */
 	struct tlmm_cfgs sdc1_hdrv_cfg[] =
 	{
-		{ SDC1_CLK_HDRV_CTL_OFF,  TLMM_CUR_VAL_16MA, TLMM_HDRV_MASK, SDC1_HDRV_PULL_CTL },
-		{ SDC1_CMD_HDRV_CTL_OFF,  TLMM_CUR_VAL_10MA, TLMM_HDRV_MASK, SDC1_HDRV_PULL_CTL },
-		{ SDC1_DATA_HDRV_CTL_OFF, TLMM_CUR_VAL_10MA, TLMM_HDRV_MASK, SDC1_HDRV_PULL_CTL },
+		{ SDC1_CLK_HDRV_CTL_OFF,  TLMM_CUR_VAL_16MA, TLMM_HDRV_MASK, reg },
+		{ SDC1_CMD_HDRV_CTL_OFF,  TLMM_CUR_VAL_10MA, TLMM_HDRV_MASK, reg },
+		{ SDC1_DATA_HDRV_CTL_OFF, TLMM_CUR_VAL_10MA, TLMM_HDRV_MASK, reg },
 	};
 
 	/* Pull configs for sdc pins */
 	struct tlmm_cfgs sdc1_pull_cfg[] =
 	{
-		{ SDC1_CLK_PULL_CTL_OFF,  TLMM_NO_PULL, TLMM_PULL_MASK, SDC1_HDRV_PULL_CTL },
-		{ SDC1_CMD_PULL_CTL_OFF,  TLMM_PULL_UP, TLMM_PULL_MASK, SDC1_HDRV_PULL_CTL },
-		{ SDC1_DATA_PULL_CTL_OFF, TLMM_PULL_UP, TLMM_PULL_MASK, SDC1_HDRV_PULL_CTL },
+		{ SDC1_CLK_PULL_CTL_OFF,  TLMM_NO_PULL, TLMM_PULL_MASK, reg },
+		{ SDC1_CMD_PULL_CTL_OFF,  TLMM_PULL_UP, TLMM_PULL_MASK, reg },
+		{ SDC1_DATA_PULL_CTL_OFF, TLMM_PULL_UP, TLMM_PULL_MASK, reg },
 	};
 
 	/* Set the drive strength & pull control values */

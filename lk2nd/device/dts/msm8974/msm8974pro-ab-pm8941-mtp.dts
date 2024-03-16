@@ -1,0 +1,48 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_APQ8074PRO_AA 0x10000>,
+		      <QCOM_ID_APQ8074PRO_AB 0x10000>,
+		      <QCOM_ID_MSM8274PRO_AA 0x10000>,
+		      <QCOM_ID_MSM8274PRO_AB 0x10000>,
+		      <QCOM_ID_MSM8674PRO_AA 0x10000>,
+		      <QCOM_ID_MSM8674PRO_AB 0x10000>,
+		      <QCOM_ID_MSM8974PRO_AA 0x10000>,
+		      <QCOM_ID_MSM8974PRO_AB 0x10000>;
+
+	qcom,board-id = <QCOM_BOARD_ID_MTP 0>;
+};
+
+&lk2nd {
+	fairphone-fp2 {
+		model = "Fairphone 2";
+		compatible = "fairphone,fp2";
+		lk2nd,match-panel;
+
+		lk2nd,dtb-files = "msm8974pro-fairphone-fp2";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			down {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&pmic 2 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+
+		panel {
+			compatible = "fairphone,fp2-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_otm1902b_1080p_cmd {
+				compatible = "fairphone,fp2-panel-otm1902b";
+				touchscreen-compatible = "syna,rmi4-i2c";
+			};
+			qcom,mdss_dsi_s6d6fa1_1080p_video {
+				compatible = "fairphone,fp2-panel-s6d6fa1";
+				touchscreen-compatible = "ilitek,ili2120";
+			};
+		};
+	};
+};

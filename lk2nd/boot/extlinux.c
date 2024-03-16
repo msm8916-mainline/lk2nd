@@ -293,6 +293,10 @@ static bool expand_conf(struct label *label, const char *root)
 			if (!fs_file_exists(path))
 				snprintf(path, sizeof(path), "%s/%s/qcom-%s.dtb", root, label->dtbdir, dtbfiles[i]);
 
+			/* boot-deploy drops the vendor dir when copying dtbs. */
+			if (!fs_file_exists(path))
+				snprintf(path, sizeof(path), "%s/%s/%s.dtb", root, label->dtbdir, dtbfiles[i]);
+
 			if (fs_file_exists(path)) {
 				label->dtb = strndup(path, sizeof(path));
 				break;
@@ -443,6 +447,10 @@ static void lk2nd_boot_label(struct label *label)
 		dprintf(INFO, "Failed to load the dtb: %d\n", ret);
 		return;
 	}
+	if (ret == MAX_TAGS_SIZE) {
+		dprintf(INFO, "DTB is too big\n");
+		return;
+	}
 
 	if (label->dtboverlays) {
 		ret = fdt_open_into(addrs.tags, addrs.tags, MAX_TAGS_SIZE);
@@ -477,6 +485,10 @@ static void lk2nd_boot_label(struct label *label)
 		ret = fs_load_file(label->initramfs, addrs.ramdisk, addrs.ramdisk_max_size);
 		if (ret < 0) {
 			dprintf(INFO, "Failed to load the initramfs: %d\n", ret);
+			return;
+		}
+		if ((uint32_t)ret == addrs.ramdisk_max_size) {
+			dprintf(INFO, "Initramfs is too big\n");
 			return;
 		}
 		ramdisk_size = ret;

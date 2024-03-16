@@ -1,0 +1,157 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+#define I2C_GPIO_FLAGS	(GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN | GPIO_BIAS_DISABLE)
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8929 0>;
+	qcom,board-id = <0x0C01FF01 0>,
+			<0x0C01FF01 4>;
+};
+
+&lk2nd {
+	/* rev 0 */
+
+	j7-spr {
+		model = "Samsung Galaxy J7 2015 (SM-J700P)";
+		compatible = "samsung,j7-spr", "samsung,j7";
+		lk2nd,match-bootloader = "J700P*";
+
+		// FIXME: lk2nd,dtb-files = "msm8929-samsung-j7";
+
+		qcom,msm-id = <QCOM_ID_MSM8929 0>;
+		qcom,board-id = <0x0C01FF01 0>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x25>;
+			i2c-sda-gpios = <&tlmm 31 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 32 I2C_GPIO_FLAGS>;
+		};
+	};
+
+	/* rev 4 */
+
+	j7-chn {
+		model = "Samsung Galaxy J7 2015 (SM-J7008)";
+		compatible = "samsung,j7-chn", "samsung,j7";
+		lk2nd,match-bootloader = "J7008*";
+
+		// FIXME: lk2nd,dtb-files = "msm8929-samsung-j7";
+
+		qcom,msm-id = <QCOM_ID_MSM8929 0>;
+		qcom,board-id = <0x0C01FF01 4>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x25>;
+			i2c-sda-gpios = <&tlmm 31 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 32 I2C_GPIO_FLAGS>;
+		};
+	};
+
+	on7lte-chn {
+		model = "Samsung Galaxy On7 2015 (SM-G6000)";
+		compatible = "samsung,on7lte-chn", "samsung,on7";
+		lk2nd,match-bootloader = "G600S*";
+
+		lk2nd,dtb-files = "msm8916-samsung-on7";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 3>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x25>;
+			i2c-sda-gpios = <&tlmm 105 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 106 I2C_GPIO_FLAGS>;
+		};
+	};
+
+	fortuna3g {
+		model = "Samsung Galaxy Grand Prime (SM-G530H)";
+		compatible = "samsung,fortuna3g";
+		lk2nd,match-bootloader = "G530H*";
+
+		lk2nd,dtb-files = "msm8916-samsung-fortuna3g";
+
+		qcom,msm-id = <QCOM_ID_MSM8216 0>;
+		qcom,board-id = <0xF808FF01 7>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x25>;
+			i2c-sda-gpios = <&tlmm 2 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 3 I2C_GPIO_FLAGS>;
+		};
+
+		panel {
+			compatible = "samsung,gprime-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_hx8389c_qhd_video {
+				compatible = "samsung,hx8389c-gh9607501a";
+			};
+			ss_dsi_panel_HX8389C_GH9607501A_QHD {
+				compatible = "samsung,hx8389c-gh9607501a";
+			};
+			ss_dsi_panel_S6D78A0_GH9607501A_QHD {
+				compatible = "samsung,s6d78a0-gh9607501a";
+			};
+		};
+	};
+
+	a3lte {
+		model = "Samsung Galaxy A3 (SM-A300F)";
+		compatible = "samsung,a3lte", "samsung,a3u-eur", "samsung,a3";
+		lk2nd,match-bootloader = "A300F*";
+
+		lk2nd,dtb-files = "msm8916-samsung-a3u-eur";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 1>;
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			home {
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&tlmm 109 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+
+	a5ltezt {
+		model = "Samsung Galaxy A5 (SM-A500YZ)";
+		compatible = "samsung,a5ltezt", "samsung,a5u-eur", "samsung,a5";
+		lk2nd,match-bootloader = "A500YZ*";
+
+		lk2nd,dtb-files = "msm8916-samsung-a5u-eur";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 11>;
+	};
+
+	a7ltezt {
+		model = "Samsung Galaxy A7 (SM-A700YD)";
+		compatible = "samsung,a7ltezt", "samsung,a7";
+		lk2nd,match-bootloader = "A700YD*";
+
+		lk2nd,dtb-files = "msm8939-samsung-a7";
+
+		qcom,msm-id = <QCOM_ID_MSM8939 0>;
+		qcom,board-id = <0xEF08FF1 1>;
+	};
+
+	e5ltexx {
+		model = "Samsung Galaxy E5 (SM-E500F)";
+		compatible = "samsung,e5ltexx", "samsung,e5";
+		lk2nd,match-bootloader = "E500F*";
+
+		lk2nd,dtb-files = "msm8916-samsung-e5";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 4>;
+	};
+};
+

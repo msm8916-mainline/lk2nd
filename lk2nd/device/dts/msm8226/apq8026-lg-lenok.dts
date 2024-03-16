@@ -1,0 +1,20 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_APQ8026 0x20000>;
+	qcom,board-id = <132 0x0a>;
+
+	/* The bootloader checks the compatible too... */
+	compatible = "qcom,apq8026";
+};
+
+&lk2nd {
+	model = "LG G Watch R";
+	compatible = "lg,lenok";
+
+	lk2nd,dtb-files = "apq8026-lg-lenok";
+};
+

@@ -1,0 +1,99 @@
+// SPDX-License-Identifier: BSD-3-Clause
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8916 0>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 0x100>;
+};
+
+&lk2nd {
+	zhihe-various {
+		model = "Unknown 4G Modem Stick";
+		compatible = "zhihe,various";
+
+		/*
+		 * NOTE: It's pretty much impossible for lk2nd to detect which of
+		 * those devices is running, since the cmdline is the same. This
+		 * node detects one of:
+		 *
+		 *   - UFI_001B/C
+		 *   - UFI003_MB_V02
+		 *   - MF601
+		 *
+		 * Please use lk1st with fixed dtb/compatible to make use of
+		 * the automatic kernel dtb selection. See below.
+		 */
+
+		lk2nd,match-cmdline = "* mdss_mdp.panel=1:spi:0:qcom,mdss_spi_st7735s_128128_cmd";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			edl {
+				/* The EDL button is the only one available on UFI-001C */
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&tlmm 37 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
+			};
+
+			/* Following keys are listed for mis-detected MF601 */
+
+			reset {
+				/* RESET button on the back of the device */
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&tlmm 34 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+
+			wps {
+				/* WPS button near the power button(may not exist on some variants) */
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&tlmm 107 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+
+	thwc-ufi001c {
+		model = "ufi-001c/ufi-001b 4G Modem Stick";
+		compatible = "thwc,ufi001c";
+
+		/*
+		 * Use this node with lk1st:
+		 * make ... LK2ND_BUNDLE_DTB="msm8916/msm8916-512mb-mtp.dtb" LK2ND_COMPATIBLE="thwc,ufi001c"
+		 */
+
+		lk2nd,dtb-files = "msm8916-thwc-ufi001c";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			edl {
+				/* The EDL button is the only one available on UFI-001C */
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&tlmm 37 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+
+	yiming-uz801-v3 {
+		model = "uz801 v3.0 4G Modem Stick";
+		compatible = "yiming,uz801-v3";
+
+		/*
+		 * Note:
+		 * Due to some unknown reasons, the stock aboot firmware is incompatible
+		 * with qhypstub and tz firmware from db410c, use lk1st if possible.
+		 *
+		 * Use this node with lk1st:
+		 * make ... LK2ND_BUNDLE_DTB="msm8916/msm8916-512mb-mtp.dtb" LK2ND_COMPATIBLE="yiming,uz801-v3" ...
+		 */
+		lk2nd,match-cmdline = "* mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_jdi_1080p_video";
+
+		lk2nd,dtb-files = "msm8916-yiming-uz801v3";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			reset {
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&tlmm 23 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+};

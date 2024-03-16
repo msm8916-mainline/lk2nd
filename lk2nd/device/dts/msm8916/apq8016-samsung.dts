@@ -1,0 +1,89 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+#define I2C_GPIO_FLAGS	(GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN | GPIO_BIAS_DISABLE)
+
+/ {
+	qcom,msm-id = <QCOM_ID_APQ8016 0>;
+	qcom,board-id = <0xF708FF01 1>,
+			<0xF708FF01 2>,
+			<0xF708FF01 5>,
+			<0xF708FF01 7>;
+};
+
+&lk2nd {
+	/* rev 2 */
+
+	gt58lte {
+		model = "Samsung Galaxy Tab A 8.0 (WiFi, SM-T350)";
+		compatible = "samsung,gt58wifi", "samsung,gt58";
+		lk2nd,match-bootloader = "T350*";
+
+		lk2nd,dtb-files = "msm8916-samsung-gt58";
+
+		qcom,msm-id = <QCOM_ID_APQ8016 0>;
+		qcom,board-id = <0xF708FF01 2>;
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			home {
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&tlmm 109 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+
+	matissevewifi {
+		model = "Samsung Galaxy Tab 4 10.1 (2015) T533";
+		compatible = "samsung,matissevewifi";
+		lk2nd,match-bootloader = "T533*";
+
+		lk2nd,dtb-files = "msm8916-samsung-matissevewifi";
+
+		qcom,msm-id = <QCOM_ID_APQ8016 0>;
+		qcom,board-id = <0xF708FF01 2>;
+	};
+
+	/* rev 5 */
+
+	gtelwifiue {
+		model = "Samsung Galaxy Tab E 9.6 WiFi (SM-T560NU)";
+		compatible = "samsung,gtelwifiue";
+		lk2nd,match-bootloader = "T560*";
+
+		lk2nd,dtb-files = "msm8916-samsung-gtelwifiue";
+
+		qcom,msm-id = <QCOM_ID_APQ8016 0>;
+		qcom,board-id = <0xF708FF01 1>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x25>;
+			i2c-sda-gpios = <&tlmm 2 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 3 I2C_GPIO_FLAGS>;
+		};
+	};
+
+	/* rev 7 */
+
+	gt510wifi {
+		model = "Samsung Galaxy Tab A 9.7 2015 (WiFi, SM-T550)";
+		compatible = "samsung,gt510wifi", "samsung,gt510";
+		lk2nd,match-bootloader = "T550*";
+
+		lk2nd,dtb-files = "msm8916-samsung-gt510";
+
+		qcom,msm-id = <QCOM_ID_APQ8016 0>;
+		qcom,board-id = <0xF708FF01 7>;
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			home {
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&tlmm 109 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+};

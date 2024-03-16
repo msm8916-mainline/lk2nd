@@ -1,0 +1,64 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <0xC708FF01 3 0x20000>,
+		      <0xC708FF01 9 0x20000>;
+};
+
+&lk2nd {
+	/* rev 3 */
+
+	matissewifi {
+		model = "Samsung Galaxy Tab 4 10.1 WiFi (SM-T530)";
+		compatible = "samsung,matisse-wifi", "samsung,matisse";
+		lk2nd,match-bootloader = "T530*";
+
+		lk2nd,dtb-files = "apq8026-samsung-matisse-wifi";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			home {
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&tlmm 108 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			down {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&tlmm 107 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			up {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&tlmm 106 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+
+	/* rev 9 */
+
+	milletwifi {
+		model = "Samsung Galaxy Tab 4 8.0 WiFi (SM-T330)";
+		compatible = "samsung,milletwifi", "samsung,millet";
+		lk2nd,match-bootloader = "T330*";
+
+		//FIXME: lk2nd,dtb-files = "apq8026-samsung-millet-wifi";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			home {
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&tlmm 108 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			down {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&tlmm 107 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			up {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&tlmm 106 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+
+};

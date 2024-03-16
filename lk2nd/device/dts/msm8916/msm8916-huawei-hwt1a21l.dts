@@ -1,0 +1,16 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8916 0>;
+	qcom,board-id = <8065 4>;
+};
+
+&lk2nd {
+	model = "Huawei Mediapad T1 A21L";
+	compatible = "huawei,hwt1a21l", "qcom,msm8916", "lk2nd,device";
+
+	//FIXME: lk2nd,dtb-files = "msm8916-huawei-hwt1a21l";
+};

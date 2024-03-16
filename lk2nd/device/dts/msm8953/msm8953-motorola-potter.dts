@@ -1,0 +1,41 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+#include <motorola-carrier-channel-ids.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8953 0>;
+	qcom,board-id = <0x44 0x80a0>,
+			<0x44 0x81a0>,
+			<0x44 0x81b0>,
+			<0x44 0x82a0>,
+			<0x45 0x82a0>,
+			<0x45 0x82a2>,
+			<0x45 0x82b2>,
+			<0x46 0x83a0>;
+};
+
+&lk2nd {
+	model = "Motorola Moto G5 Plus (potter)";
+	compatible = "motorola,potter";
+	
+	lk2nd,dtb-files = "msm8953-motorola-potter";
+	
+	unit-info {
+		compatible = "motorola,unit-info";
+	};
+	
+	panel {
+		compatible = "motorola,potter-panel", "lk2nd,panel";
+
+		qcom,mdss_dsi_mot_tianma_520_1080p_vid_v0 {
+			compatible = "tianma,tl052vdxp02";
+		};
+		qcom,mdss_dsi_mot_boe_520_1080p_vid_v0 {
+			compatible = "boe,bs052fhm-a00-6c01";
+		};
+	};
+};

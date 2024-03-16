@@ -106,3 +106,61 @@ bool mdp_setup_refresh(struct fbcon_config *fb)
 
 	return true;
 }
+
+#ifdef MDSS_MDP_REG_PP_AUTOREFRESH_CONFIG /* MDP5 */
+
+#define MDP_PP_SYNC_CONFIG_VSYNC	0x004
+#define MDP_PP_AUTOREFRESH_CONFIG	0x030
+
+static void mdp5_enable_auto_refresh(struct fbcon_config *fb)
+{
+	uint32_t vsync_count = 19200000 / (fb->height * 60); /* 60 fps */
+	uint32_t mdss_mdp_rev = readl(MDP_HW_REV);
+	uint32_t pp0_base;
+
+	if (mdss_mdp_rev >= MDSS_MDP_HW_REV_105)
+		pp0_base = REG_MDP(0x71000);
+	else if (mdss_mdp_rev >= MDSS_MDP_HW_REV_102)
+		pp0_base = REG_MDP(0x12D00);
+	else
+		pp0_base = REG_MDP(0x21B00);
+
+	writel(vsync_count | BIT(19), pp0_base + MDP_PP_SYNC_CONFIG_VSYNC);
+	writel(BIT(31) | 1, pp0_base + MDP_PP_AUTOREFRESH_CONFIG);
+	writel(1, MDP_CTL_0_BASE + CTL_START);
+}
+#endif
+
+#ifdef MDP_AUTOREFRESH_CONFIG_P /* MDP3/MDP4 */
+
+#define MDP_AUTOREFRESH_CONFIG_P    REG_MDP(0x34C)
+#define MDP_SYNC_CONFIG_0           REG_MDP(0x300)
+
+static void mdp3_enable_auto_refresh(struct fbcon_config *fb)
+{
+	uint32_t sync_cfg = 0;
+
+	sync_cfg |= (fb->height - 1) << 21;
+	sync_cfg |= BIT(19);
+	sync_cfg |= 19200000 / (fb->height * 60); /* 60 fps */
+
+	writel(sync_cfg, MDP_SYNC_CONFIG_0);
+	writel(BIT(28) | 1, MDP_AUTOREFRESH_CONFIG_P);
+}
+#endif
+
+void mdp_enable_autorefresh(struct fbcon_config *fb)
+{
+	if (!fb || !fb->update_start)
+		return;
+
+	fb->update_start = NULL;
+	thread_sleep(42);
+
+#ifdef MDSS_MDP_REG_PP_AUTOREFRESH_CONFIG /* MDP5 */
+	mdp5_enable_auto_refresh(fb);
+#endif
+#ifdef MDP_AUTOREFRESH_CONFIG_P /* MDP3/MDP4 */
+	mdp3_enable_auto_refresh(fb);
+#endif
+}

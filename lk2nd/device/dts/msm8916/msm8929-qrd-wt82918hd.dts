@@ -1,0 +1,33 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8929 0>;
+	qcom,board-id = <QCOM_BOARD_ID(QRD, 1, 0) 17>;
+};
+
+&lk2nd {
+	model = "Lenovo Vibe K5 (Wingtech WT82918)";
+	compatible = "wingtech,wt82918hd", "wingtech,wt82918";
+
+	lk2nd,dtb-files = "msm8929-wingtech-wt82918hd";
+
+	panel {
+		compatible = "wingtech,wt82918-panel", "lk2nd,panel";
+
+		qcom,mdss_dsi_hx8394f_boe_720p_video {
+			compatible = "wingtech,boe-hx8394f";
+		};
+		qcom,mdss_dsi_ili9881c_720p_video {
+			compatible = "wingtech,otm-ili9881c";
+		};
+		qcom,mdss_dsi_otm1901a_tm_1080p_video {
+			compatible = "wingtech,tm-otm1901a";
+		};
+		qcom,mdss_dsi_nt35596_1080p_video {
+			compatible = "wingtech,nt35595";
+		};
+	};
+};

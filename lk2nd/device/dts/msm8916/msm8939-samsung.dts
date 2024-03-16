@@ -1,0 +1,27 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+#define I2C_GPIO_FLAGS	(GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN | GPIO_BIAS_DISABLE)
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8939 0>;
+	qcom,board-id = <0xEF08FF01 1>;
+};
+
+&lk2nd {
+	/* rev 1 */
+
+	a7ltezt {
+		model = "Samsung Galaxy A7 (SM-A700YD)";
+		compatible = "samsung,a7ltezt", "samsung,a7";
+		lk2nd,match-bootloader = "A700YD*";
+
+		lk2nd,dtb-files = "msm8939-samsung-a7";
+
+		qcom,msm-id = <QCOM_ID_MSM8939 0>;
+		qcom,board-id = <0xEF08FF1 1>;
+	};
+};
+
