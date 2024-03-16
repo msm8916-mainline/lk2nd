@@ -15,5 +15,13 @@
 		compatible = "samsung,fortuna3g", "qcom,msm8916", "lk2nd,device";
 		lk2nd,match-bootloader = "G530H*";
 		#include "msm8916-samsung-gprime.dtsi"
+
+};
+
+    fortuna3gtv {
+		model = "Samsung Galaxy Grand Prime Duos TV (SM-G530BT)";
+		compatible = "samsung,fortuna3g", "qcom,msm8916", "lk2nd,device","tv";
+		lk2nd,match-bootloader = "G530BT*";
+		#include "msm8916-samsung-gprime.dtsi"
 	};
 };
