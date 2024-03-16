@@ -291,8 +291,8 @@
 	};
 
 	/*
-	 * Before building for G357FZ, please comment out all dtbs except
-	 * "$(LOCAL_DIR)/msm8916-samsung.dtb" at './rules.mk'.
+	 * To build for heatqlte, add LK2ND_QCDTBS="msm8916-samsung.dtb"
+	 * to your make cmdline.
 	 * heatqlte doesn't work with multi-dtbs; only goes into "Download mode".
 	 */
 	heatqlte {
@@ -432,8 +432,8 @@
 	};
 
 	/*
-	 * Before building for rossaltezt, please comment out all dtbs except
-	 * "$(LOCAL_DIR)/msm8916-samsung.dtb" at './rules.mk'.
+	 * To build for rossaltezt, add LK2ND_QCDTBS="msm8916-samsung.dtb"
+	 * to your make cmdline.
 	 * rossaltezt doesn't work with multi-dtbs; only goes into "Download mode".
 	 */
 	rossaltezt {
@@ -746,9 +746,10 @@
 		};
 	};
 
+
 	/*
-	 * Before building for G5108Q, please comment out all dtbs except
-	 *  "$(LOCAL_DIR)/msm8916-samsung.dtb" at './rules.mk'.
+	 * To build for g5108q, add LK2ND_QCDTBS="msm8916-samsung.dtb"
+	 * to your make cmdline.
 	 * g5108q doesn't work with multi-dtbs; only goes into "Download mode".
 	 */
 	g5108q {
@@ -805,8 +806,8 @@
 	};
 
 	/*
-	 * Before building for G530Y, please comment out all dtbs except
-	 * "$(LOCAL_DIR)/msm8916-samsung.dtb" at './rules.mk'.
+	 * To build for fortunaltezt, add LK2ND_QCDTBS="msm8916-samsung.dtb"
+	 * to your make cmdline.
 	 * fortunaltezt doesn't work with multi-dtbs; only goes into "Download mode".
 	 */
 	fortunaltezt {
