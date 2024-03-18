@@ -110,3 +110,69 @@ bool mdp_read_pipe_config(struct fbcon_config *fb)
 
 	return true;
 }
+
+enum {
+  SSPP_SRC_FORMAT_SRC_RGB565    = 0x1 << 9 | 0x1 << 4 | 0x1 << 2 | 0x2 << 0,
+  SSPP_SRC_FORMAT_SRC_RGB888    = 0x2 << 9 | 0x3 << 4 | 0x3 << 2 | 0x3 << 0,
+  SSPP_SRC_FORMAT_SRC_XRGB8888  = 0x3 << 9 | 0x3 << 6 | 0x3 << 4 | 0x3 << 2 | 0x3 << 0,
+
+  SSPP_SRC_FORMAT_UNPACK_RGB    = 0x1 << 17 | 0x2 << 12,
+  SSPP_SRC_FORMAT_UNPACK_XRGB   = 0x1 << 17 | 0x3 << 12,
+
+  SSPP_SRC_UNPACK_PATTERN_RGB   = 0x0 << 24 | 0x2 << 16 | 0x0 << 8 | 0x1 << 0,
+  SSPP_SRC_UNPACK_PATTERN_XRGB  = 0x3 << 24 | 0x2 << 16 | 0x0 << 8 | 0x1 << 0,
+};
+
+void mdp_set_rgb565(struct fbcon_config *fb)
+{
+	const struct mdp_pipe *pipe;
+
+	if (!fb)
+		return;
+
+	pipe = mdp_find_pipe(fb);
+	if (!pipe)
+		return;
+
+#if MDP4
+	dprintf(INFO, "%s: Not implemented for MDP4.\n", __func__);
+	return;
+#elif MDP5
+	writel(SSPP_SRC_FORMAT_SRC_RGB565 | SSPP_SRC_FORMAT_UNPACK_RGB, pipe->base + PIPE_SRC_FORMAT);
+	writel(SSPP_SRC_UNPACK_PATTERN_RGB, pipe->base + PIPE_SSPP_SRC_UNPACK_PATTERN);
+	writel(fb->width * 2, pipe->base + PIPE_SRC_YSTRIDE);
+
+	writel(1 << 3, MDP_CTL_0_BASE + CTL_FLUSH);
+#endif
+
+	fb->bpp = 2 * 8;
+	fb->format = FB_FORMAT_RGB565;
+}
+
+void mdp_set_xrgb8888(struct fbcon_config *fb)
+{
+	const struct mdp_pipe *pipe;
+
+	if (!fb)
+		return;
+
+	pipe = mdp_find_pipe(fb);
+	if (!pipe)
+		return;
+
+#if MDP4
+	dprintf(INFO, "%s: Not implemented for MDP4.\n", __func__);
+	return;
+#elif MDP5
+	writel(SSPP_SRC_FORMAT_SRC_XRGB8888 | SSPP_SRC_FORMAT_UNPACK_XRGB, pipe->base + PIPE_SRC_FORMAT);
+	writel(SSPP_SRC_UNPACK_PATTERN_XRGB, pipe->base + PIPE_SSPP_SRC_UNPACK_PATTERN);
+	writel(fb->width * 4, pipe->base + PIPE_SRC_YSTRIDE);
+
+	writel(1 << 3, MDP_CTL_0_BASE + CTL_FLUSH);
+#endif
+
+	fb_convert_to_xrgb8888(fb);
+
+	fb->bpp = 4 * 8;
+	fb->format = FB_FORMAT_RGB888;
+}

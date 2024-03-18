@@ -56,3 +56,15 @@ bool mdp_read_dma_config(struct fbcon_config *fb)
 
 	return true;
 }
+
+#if MDP3
+void mdp_set_rgb565(struct fbcon_config *fb)
+{
+	dprintf(INFO, "%s: Not implemented for MDP3.\n", __func__);
+}
+
+void mdp_set_xrgb8888(struct fbcon_config *fb)
+{
+	dprintf(INFO, "%s: Not implemented for MDP3.\n", __func__);
+}
+#endif
