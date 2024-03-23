@@ -44,4 +44,11 @@
 		lk2nd,match-bootloader = "G530Y*";
 		#include "msm8916-samsung-gprime.dtsi"
 	};
+
+	fortunalteub {
+		model = "Samsung Galaxy Grand Prime (SM-G530M)";
+		compatible = "samsung,fortunalteub", "qcom,msm8916", "lk2nd,device";
+		lk2nd,match-bootloader = "G530M*";
+		#include "msm8916-samsung-gprime.dtsi"
+	};
 };

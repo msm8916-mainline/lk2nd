@@ -1,0 +1,52 @@
+name: Build stock
+on:
+  workflow_call:
+    inputs:
+      platform:
+        type: string
+        required: true
+      options:
+        type: string
+
+jobs:
+  build:
+    name: ${{ inputs.platform }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install cross compiler
+        uses: carlosperate/arm-none-eabi-gcc-action@v1
+        with:
+          # Qualcomm recommends building with really old GCC versions :/
+          release: 4.8-2014-q3
+      - run: arm-none-eabi-gcc --version
+      - uses: actions/checkout@v3
+      - name: Build (default)
+        run: git clean -dxf && make -j$(nproc) TOOLCHAIN_PREFIX=arm-none-eabi-
+             ${{ inputs.options }} ${{ inputs.platform }}
+      - name: Build (signed kernel)
+        run: git clean -dxf && make -j$(nproc) TOOLCHAIN_PREFIX=arm-none-eabi-
+             ${{ inputs.options }} ${{ inputs.platform }}
+             USER_BUILD_VARIANT=true SIGNED_KERNEL=1
+      - name: Build (verified boot v1)
+        run: git clean -dxf && make -j$(nproc) TOOLCHAIN_PREFIX=arm-none-eabi-
+             ${{ inputs.options }} ${{ inputs.platform }}
+             USER_BUILD_VARIANT=true VERIFIED_BOOT=1
+        # Only some platforms support verified boot v1
+        if: contains(fromJSON('["msm8909", "msm8952", "msm8953", "msm8994", "msm8996"]'), inputs.platform)
+      - name: Build (verified boot v2)
+        run: git clean -dxf && make -j$(nproc) TOOLCHAIN_PREFIX=arm-none-eabi-
+             ${{ inputs.options }} ${{ inputs.platform }}
+             USER_BUILD_VARIANT=true
+             VERIFIED_BOOT_2=1 OSVERSION_IN_BOOTIMAGE=1 ENABLE_VB_ATTEST=1 VB1_KEY_USED=1
+             TARGET_USE_SYSTEM_AS_ROOT_IMAGE=1 ENABLE_KASLRSEED=1 ENABLE_BOOTDEVICE_MOUNT=1
+        # ... and even less support verified boot v2
+        if: contains(fromJSON('["msm8909", "msm8952", "msm8953", "msm8996"]'), inputs.platform)
+      - name: Build (dynamic partitions)
+        run: git clean -dxf && make -j$(nproc) TOOLCHAIN_PREFIX=arm-none-eabi-
+             ${{ inputs.options }} ${{ inputs.platform }}
+             USER_BUILD_VARIANT=true DYNAMIC_PARTITION_SUPPORT=1 VIRTUAL_AB_OTA=1
+             VERIFIED_BOOT_2=1 OSVERSION_IN_BOOTIMAGE=1 ENABLE_VB_ATTEST=1 VB1_KEY_USED=1
+             TARGET_USE_SYSTEM_AS_ROOT_IMAGE=1 ENABLE_KASLRSEED=1 ENABLE_BOOTDEVICE_MOUNT=1
+        if: contains(fromJSON('["msm8909", "msm8952", "msm8953", "msm8996"]'), inputs.platform)
+    env:
+      LKLE_CFLAGS: -Werror

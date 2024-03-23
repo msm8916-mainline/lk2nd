@@ -1,0 +1,35 @@
+name: Build stock matrix
+on:
+  workflow_call:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - apq8084
+          - mdm9607
+          - mdm9640
+          - msm8226
+          - msm8610
+          - msm8660
+          - msm8909
+          - msm8916
+          - msm8952
+          - msm8953
+          - msm8960
+          - msm8974
+          - msm8994
+          - msm8996
+        include:
+          # No display support on msm8660/msm8960 (with mdp4)
+          - platform: msm8660
+            options: EMMC_BOOT=1 ENABLE_DISPLAY=0
+          - platform: msm8960
+            options: EMMC_BOOT=1 ENABLE_DISPLAY=0
+
+    uses: ./.github/workflows/stock.yml
+    with:
+      platform: ${{ matrix.platform }}
+      options: ${{ matrix.options }}
