@@ -246,9 +246,6 @@
 		panel {
 			compatible = "samsung,gprime-panel", "lk2nd,panel";
 
-			qcom,mdss_dsi_hx8389c_qhd_video {
-				compatible = "samsung,hx8389c-gh9607501a";
-			};
 			ss_dsi_panel_HX8389C_GH9607501A_QHD {
 				compatible = "samsung,hx8389c-gh9607501a";
 			};
@@ -278,9 +275,6 @@
 		panel {
 			compatible = "samsung,gprime-panel", "lk2nd,panel";
 
-			qcom,mdss_dsi_hx8389c_qhd_video {
-				compatible = "samsung,hx8389c-gh9607501a";
-			};
 			ss_dsi_panel_HX8389C_GH9607501A_QHD {
 				compatible = "samsung,hx8389c-gh9607501a";
 			};
@@ -825,20 +819,6 @@
 			i2c-reg = <0x25>;
 			i2c-sda-gpios = <&tlmm 2 I2C_GPIO_FLAGS>;
 			i2c-scl-gpios = <&tlmm 3 I2C_GPIO_FLAGS>;
-		};
-
-		panel {
-			compatible = "samsung,gprime-panel", "lk2nd,panel";
-
-			qcom,mdss_dsi_hx8389c_qhd_video {
-				compatible = "samsung,hx8389c-gh9607501a";
-			};
-			ss_dsi_panel_HX8389C_GH9607501A_QHD {
-				compatible = "samsung,hx8389c-gh9607501a";
-			};
-			ss_dsi_panel_S6D78A0_GH9607501A_QHD {
-				compatible = "samsung,s6d78a0-gh9607501a";
-			};
 		};
 	};
 };
