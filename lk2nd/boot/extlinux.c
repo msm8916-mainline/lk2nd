@@ -424,7 +424,7 @@ static void lk2nd_boot_label(struct label *label)
 		return;
 	}
 
-	kernel_size = ret;
+	kernel_size = ((ret >> 4) + 1) << 4;
 
 	if (is_gzip_package(scratch, kernel_size)) {
 		dprintf(INFO, "Decompressing the kernel...\n");
