@@ -301,3 +301,24 @@ FUNCTION(arm_write_mair1)
 FUNCTION(arm_write_ttbcr)
 	mcr p15, 0, r0, c2, c0, 2
 	bx lr
+
+/* uint32_t arm_read_dfsr(void) */
+FUNCTION(arm_read_dfsr)
+	mrc		p15, 0, r0, c5, c0, 0
+	bx		lr
+
+/* uint32_t arm_read_dfar(void) */
+FUNCTION(arm_read_dfar)
+	mrc		p15, 0, r0, c6, c0, 0
+	bx		lr
+
+/* uint32_t arm_read_ifsr(void) */
+FUNCTION(arm_read_ifsr)
+	mrc		p15, 0, r0, c5, c0, 1
+	bx		lr
+
+/* uint32_t arm_read_ifar(void) */
+FUNCTION(arm_read_ifar)
+	mrc		p15, 0, r0, c6, c0, 2
+	bx		lr
+

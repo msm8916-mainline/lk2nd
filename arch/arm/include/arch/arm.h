@@ -92,6 +92,11 @@ void arm_write_mair1(uint32_t);
 void arm_write_ttbcr(uint32_t);
 void dump_fault_frame(struct arm_fault_frame *frame);
 
+uint32_t arm_read_dfsr(void);
+uint32_t arm_read_dfar(void);
+uint32_t arm_read_ifsr(void);
+uint32_t arm_read_ifar(void);
+
 #if defined(__cplusplus)
 }
 #endif
