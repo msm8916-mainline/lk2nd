@@ -45,3 +45,10 @@
 		#include "msm8916-samsung-gprime.dtsi"
 	};
 };
+
+/ {
+	fortunaltezt {
+		/* Actually hx8389c without PWM. There is no other variant */
+		/delete-node/ panel;
+	};
+};
