@@ -77,7 +77,7 @@ bcache_t bcache_create(bdev_t *dev, size_t block_size, int block_count)
 	for (i=0; i < block_count; i++) {
 		cache->blocks[i].ref_count = 0;
 		cache->blocks[i].is_dirty = false;
-		cache->blocks[i].ptr = malloc(block_size);
+		cache->blocks[i].ptr = memalign(CACHE_LINE, block_size);
 		// add to the free list
 		list_add_head(&cache->free_list, &cache->blocks[i].node);	
 	}
