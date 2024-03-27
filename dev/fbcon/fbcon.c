@@ -79,6 +79,7 @@ static struct fbcon_config *config = NULL;
 
 #define SCALE_FACTOR		2
 
+static uint32_t			last_scale_factor;
 static uint32_t			BGCOLOR;
 static uint32_t			FGCOLOR;
 static uint32_t			SELECT_BGCOLOR;
@@ -116,6 +117,7 @@ static void fbcon_drawglyph(char *pixels, uint32_t paint, unsigned stride,
 	unsigned data, temp;
 	uint32_t fg_color = paint;
 	stride -= FONT_WIDTH * scale_factor;
+	last_scale_factor = scale_factor;
 
 	data = glyph[0];
 	for (y = 0; y < FONT_HEIGHT / 2; ++y) {
@@ -239,11 +241,12 @@ void fbcon_flush(void)
 	arch_clean_invalidate_cache_range((addr_t) config->base, (total_x * total_y * bytes_per_bpp));
 }
 
-/* TODO: Take stride into account */
 static void fbcon_scroll_up(void)
 {
-	unsigned short *dst = NULL;
-	unsigned short *src = NULL;
+	uint8_t *dst = NULL;
+	uint8_t *src = NULL;
+	unsigned bpp = config->bpp / 8;
+	unsigned font_h = FONT_HEIGHT * last_scale_factor;
 	unsigned count = 0;
 
 	/* ignore anything that happens before fbcon is initialized */
@@ -251,17 +254,13 @@ static void fbcon_scroll_up(void)
 		return;
 
 	dst = config->base;
-	src = dst + (config->width * FONT_HEIGHT);
-	count = config->width * (config->height - FONT_HEIGHT);
+	src = dst + (config->width * font_h * bpp);
+	count = config->width * (config->height - font_h) * bpp;
+	memmove(dst, src, count);
 
-	while(count--) {
-		*dst++ = *src++;
-	}
-
-	count = config->width * FONT_HEIGHT;
-	while(count--) {
-		*dst++ = BGCOLOR;
-	}
+	dst += count;
+	count = config->width * font_h * bpp;
+	memset(dst, 0, count); /* FIXME: ignores color */
 
 	fbcon_flush();
 }
@@ -499,7 +498,7 @@ void fbcon_setup(struct fbcon_config *_config)
 	cur_pos.x = 0;
 	cur_pos.y = 0;
 	max_pos.x = config->width / (FONT_WIDTH+1);
-	max_pos.y = (config->height - 1) / FONT_HEIGHT;
+	max_pos.y = (config->height - 1) / FONT_HEIGHT - 1;
 
 #if !DISPLAY_SPLASH_SCREEN
 	fbcon_clear();
