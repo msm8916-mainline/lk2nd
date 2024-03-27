@@ -48,6 +48,10 @@ endif
 # Reserve 32 KiB for the log buffer so it can be accessed via fastboot
 DEFINES += WITH_DEBUG_LOG_BUF=1 LK_LOG_BUF_SIZE=32768
 
+ifeq ($(DEBUG_FBCON), 1)
+	DEFINES += WITH_DEBUG_FBCON=1
+endif
+
 # Keep the kernel command line clean when booting other operating systems
 DEFINES += GENERATE_CMDLINE_ONLY_FOR_ANDROID=1
 
