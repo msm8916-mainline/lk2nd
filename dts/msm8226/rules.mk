@@ -9,6 +9,7 @@ DTBS += \
 	$(LOCAL_DIR)/apq8026-samsung-r09.dtb \
 	$(LOCAL_DIR)/msm8226-motorola-falcon.dtb \
 	$(LOCAL_DIR)/msm8226-samsung-ms013g.dtb \
+	$(LOCAL_DIR)/msm8226-samsung-ms01.dtb \
 	$(LOCAL_DIR)/msm8926-htc-memul.dtb \
 	$(LOCAL_DIR)/msm8926-huawei-g6-l11-vb.dtb \
 	$(LOCAL_DIR)/msm8926-motorola-peregrine.dtb \
