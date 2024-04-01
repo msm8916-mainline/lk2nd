@@ -1,0 +1,39 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton.dtsi>
+#include <lk2nd.h>
+
+/ {
+	// This is used by the bootloader to find the correct DTB
+	qcom,msm-id = <0x7E01FF01 7 0>, <0xB801FF01 7 0>, <0xB901FF01 7 0>;
+
+	hlte {
+		qcom,msm-id = <126 0x00020002 0x00010001 0>;
+
+		model = "Samsung Galaxy Note 3 (SM-N9005)";
+		compatible = "samsung,hlte", "qcom,msm8974", "lk2nd,device";
+		lk2nd,match-bootloader = "N9005*";
+
+		lk2nd,keys =
+			<KEY_HOME		PM_GPIO(3) PM_GPIO_PULL_UP_1_5>,
+			<KEY_VOLUMEDOWN	PM_GPIO(2) PM_GPIO_PULL_UP_1_5>,
+			<KEY_VOLUMEUP	PM_GPIO(5) PM_GPIO_PULL_UP_1_5>;
+
+		panel {
+			/* Default is Samsung S6E3FA0 */
+			compatible = "samsung,s6e3fa0";
+			replace-compatible;
+
+			/* Samsung S6E3FA0 Command Mode */
+			dsi_samsung_fhd_h {
+				compatible = "samsung,S6E3FA0_fhd_cmd";
+			};
+			/* Samsung S6E3FA0 Video Mode */
+			qcom,mdss_dsi_samsung_octa_1080p_video {
+				compatible = "samsung,samsung_octa_1080p_video";
+			};
+		};
+	};
+};
