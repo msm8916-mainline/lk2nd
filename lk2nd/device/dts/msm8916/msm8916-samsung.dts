@@ -258,9 +258,9 @@
 		};
 	};
 
-	gprimeltexx {
+	grandprimelte {
 		model = "Samsung Galaxy Grand Prime (SM-G530FZ)";
-		compatible = "samsung,gprimeltexx", "samsung,gprimeltecan";
+		compatible = "samsung,grandprimelte", "samsung,gprimeltecan";
 		lk2nd,match-bootloader = "G530FZ*";
 
 		lk2nd,dtb-files = "msm8916-samsung-gprimeltecan";
