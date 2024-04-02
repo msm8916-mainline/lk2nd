@@ -10,7 +10,8 @@
 	qcom,msm-id = <0x7E01FF01 7 0>, <0xB801FF01 7 0>, <0xB901FF01 7 0>;
 
 	hlte {
-		qcom,msm-id = <126 0x00020002 0x00010001 0>;
+		qcom,board-id = <1 0x0>;
+		qcom,msm-id = <126 0x10001>;
 
 		model = "Samsung Galaxy Note 3 (SM-N9005)";
 		compatible = "samsung,hlte", "qcom,msm8974", "lk2nd,device";
