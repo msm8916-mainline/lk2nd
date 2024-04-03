@@ -1,0 +1,19 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+#include <skeleton32.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <194 0x4D 0x81B0>,
+		      <194 0x4D 0x82A0>,
+		      <194 0x4D 0x82B0>,
+		      <194 0x4D 0x82BF>;
+};
+
+&lk2nd {
+	motorola-victara {
+		model = "Motorola QC-MSM8974 Pro Victara";
+		compatible = "motorola,victara";
+		lk2nd,match-device = "victara";
+	};
+};
