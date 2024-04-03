@@ -211,8 +211,6 @@ int pm8x41_gpio_get(uint8_t gpio, uint8_t *status)
 	/* Return the value of the GPIO pin */
 	*status &= BIT(GPIO_STATUS_VAL_BIT);
 
-	dprintf(SPEW, "GPIO %d status is %d\n", gpio, *status);
-
 	return 0;
 }
 
@@ -284,8 +282,6 @@ int pm8x41_gpio_get_sid(uint8_t sid, uint8_t gpio, uint8_t *status)
 
 	/* Return the value of the GPIO pin */
 	*status &= BIT(GPIO_STATUS_VAL_BIT);
-
-	dprintf(SPEW, "GPIO %d status is %d\n", gpio, *status);
 
 	return 0;
 }
