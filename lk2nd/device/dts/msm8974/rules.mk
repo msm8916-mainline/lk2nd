@@ -8,3 +8,6 @@ QCDTBS += \
 	$(LOCAL_DIR)/msm8974-htc-m8.dtb \
 	$(LOCAL_DIR)/msm8974-lge-hammerhead.dtb \
 	$(LOCAL_DIR)/msm8974-lge-d855.dtb \
+
+ADTBS += \
+	$(LOCAL_DIR)/victara.dtb \
