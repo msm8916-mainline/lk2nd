@@ -1,0 +1,21 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton32.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <194 0x4D 0x81B0>,
+		      <194 0x4D 0x82A0>,
+		      <194 0x4D 0x82B0>,
+		      <194 0x4D 0x82BF>;
+};
+
+&lk2nd {
+	motorola-victara {
+		model = "Motorola Moto X 2014";
+		compatible = "motorola,victara";
+		lk2nd,match-device = "victara";
+
+		lk2nd,dtb-files = "msm8974pro-motorola-victara";
+	};
+};
