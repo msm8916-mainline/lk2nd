@@ -1,0 +1,29 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8626 0x4b 0x8100>, <QCOM_ID_MSM8626 0x4b 0x8200>,
+		      <QCOM_ID_MSM8626 0x4b 0x8300>, <QCOM_ID_MSM8626 0x4b 0x8400>,
+		      <QCOM_ID_MSM8626 0x4b 0x8500>,
+		      <QCOM_ID_MSM8626 0x4c 0x8100>, <QCOM_ID_MSM8626 0x4c 0x8200>,
+		      <QCOM_ID_MSM8626 0x4c 0x8300>, <QCOM_ID_MSM8626 0x4c 0x8400>,
+		      <QCOM_ID_MSM8626 0x4c 0x8500>,
+		      <QCOM_ID_MSM8626 0x4d 0x8100>, <QCOM_ID_MSM8626 0x4d 0x8200>,
+		      <QCOM_ID_MSM8626 0x4d 0x8300>, <QCOM_ID_MSM8626 0x4d 0x8400>,
+		      <QCOM_ID_MSM8626 0x4d 0x8500>,
+		      <QCOM_ID_MSM8626 0x4e 0x8100>, <QCOM_ID_MSM8626 0x4e 0x8200>,
+		      <QCOM_ID_MSM8626 0x4e 0x8300>, <QCOM_ID_MSM8626 0x4e 0x8400>,
+		      <QCOM_ID_MSM8626 0x4e 0x8500>,
+		      <QCOM_ID_MSM8626 0x4f 0x8100>, <QCOM_ID_MSM8626 0x4f 0x8200>,
+		      <QCOM_ID_MSM8626 0x4f 0x8300>, <QCOM_ID_MSM8626 0x4f 0x8400>,
+		      <QCOM_ID_MSM8626 0x4f 0x8500>;
+};
+
+&lk2nd {
+	model = "Motorola Moto G 2014";
+	compatible = "motorola,titan";
+
+	// FIXME: lk2nd,dtb-files = "msm8226-motorola-titan";
+};
