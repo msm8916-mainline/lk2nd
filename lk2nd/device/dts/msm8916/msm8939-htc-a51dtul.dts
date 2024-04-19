@@ -4,7 +4,8 @@
 #include <lk2nd.dtsi>
 
 /*
- * 1. Remove other DTBs from ../rules.mk, otherwise HBOOT will refuse to boot:
+ * 1. To build for htc-a51dtul, add LK2ND_QCDTBS="msm8939-htc-a51dtul.dtb" to
+ * your make cmdline. With too many DTBs in ../rules.mk HBOOT refuses to boot:
  * [ERR] The device tree entry table should be LESS THAN a page (2048)
  * 2. In HBOOT `fastboot boot lk2nd.img` won't boot that image, instead it'll
  * boot whatever is currently flashed to boot partition.
