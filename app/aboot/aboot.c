@@ -3943,11 +3943,6 @@ void cmd_flash_mmc_img(const char *arg, void *data, unsigned sz)
 			if (!strncmp(pname, "boot", strlen("boot"))
 					|| !strcmp(pname, "recovery"))
 			{
-				if ((sz < BOOT_MAGIC_SIZE) || memcmp((void *)data, BOOT_MAGIC, BOOT_MAGIC_SIZE)) {
-					fastboot_fail("image is not a boot image");
-					return;
-				}
-
 				/* Reset multislot_partition attributes in case of flashing boot */
 				if (partition_multislot_is_supported())
 				{
