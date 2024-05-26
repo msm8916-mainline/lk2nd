@@ -88,7 +88,7 @@ $ make TOOLCHAIN_PREFIX=arm-none-eabi- lk2nd-msmXXXX
 See [building.md](Documentation/building.md) for more info.
 
 ## Contact
-Ask on [`#postmarketos-mainline`](https://wiki.postmarketos.org/wiki/Matrix_and_IRC) (Matrix or IRC).
+Ask on [`#lk2nd:postmarketos.org`](https://matrix.to/#/#lk2nd:postmarketos.org) (`#lk2nd` on [irc.oftc.net](https://www.oftc.net/)).
 
 [PSCI]: https://developer.arm.com/architectures/system-architectures/software-standards/psci
 [Little Kernel Embedded Operating System]: https://github.com/littlekernel/lk
