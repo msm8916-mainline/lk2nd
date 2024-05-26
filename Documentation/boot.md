@@ -66,10 +66,11 @@ lk2nd can read OS cmdline argument and make some decisions while booting it.
 > [!IMPORTANT]  
 > lk2nd reads those values from the OS it boots, not from it's own cmdline.
 
-- `lk2nd.pass-simplefb(=autorefresh,uboot)` - Add simplefb node to the dtb.
+- `lk2nd.pass-simplefb(=...)` - Add simplefb node to the dtb.
   If `autorefresh` is set, display autorefresh for cmdline panels will be enabled.
-  If `uboot` is set, the display mode will be switched to xrgb8888. Options can be
-  combined.
+  If `xrgb8888` or `rgb565` is set, the display mode will be switched to selected one.
+  If `relocate` is set, the framebuffer address will be changed to a large reasonably
+  safe region. Options can be combined. (i.e. `...=xrgb8888,autorefresh`)
 - `lk2nd.pass-ramoops(=zap)` - Add ramoops node to the dtb. If `zap` is set, clear
   the region before booting. Use `fastboot oem ramoops ...` commands to get the data.
 - `lk2nd.spin-table=force` - Force enable spintable even if PSCI is available.
