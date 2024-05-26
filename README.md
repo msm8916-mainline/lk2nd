@@ -31,9 +31,8 @@ There are two different configurations:
     and expert users. In this case, it is the "first" bootloader responsible for
     loading the main operating system.
 
-This repository is a fork of the [original open-source bootloader from Qualcomm](https://git.codelinaro.org/clo/la/kernel/lk)
-(tag `LA.FIXME`), which is a heavily modified version of the
-[Little Kernel Embedded Operating System].
+This repository is a fork of the [original open-source bootloader from Qualcomm](https://git.codelinaro.org/clo/la/kernel/lk/-/tree/lk.lnx.1.0.r54-rel),
+which is a heavily modified version of the [Little Kernel Embedded Operating System].
 
 ## Supported SoCs and devices
 
