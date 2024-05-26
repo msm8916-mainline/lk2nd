@@ -67,4 +67,9 @@ void mdp_set_xrgb8888(struct fbcon_config *fb)
 {
 	dprintf(INFO, "%s: Not implemented for MDP3.\n", __func__);
 }
+
+void mdp_relocate(struct fbcon_config *fb, void *target)
+{
+	dprintf(INFO, "%s: Not implemented for MDP3.\n", __func__);
+}
 #endif

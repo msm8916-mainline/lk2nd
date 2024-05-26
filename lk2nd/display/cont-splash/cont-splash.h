@@ -10,6 +10,7 @@ bool mdp_setup_refresh(struct fbcon_config *fb);
 void mdp_enable_autorefresh(struct fbcon_config *fb);
 void mdp_set_rgb565(struct fbcon_config *fb);
 void mdp_set_xrgb8888(struct fbcon_config *fb);
+void mdp_relocate(struct fbcon_config *fb, void *target);
 
 void fb_convert_to_xrgb8888(struct fbcon_config *fb);
 

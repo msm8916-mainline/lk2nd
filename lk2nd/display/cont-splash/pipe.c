@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /* Copyright (c) 2019-2022, Stephan Gerhold <stephan@gerhold.net> */
 
+#include <string.h>
 #include <bits.h>
 #include <debug.h>
 #include <dev/fbcon.h>
 #include <reg.h>
+#include <arch/ops.h>
 
 #include "cont-splash.h"
 #include "mdp.h"
@@ -175,4 +177,33 @@ void mdp_set_xrgb8888(struct fbcon_config *fb)
 
 	fb->bpp = 4 * 8;
 	fb->format = FB_FORMAT_RGB888;
+}
+
+void mdp_relocate(struct fbcon_config *fb, void *target)
+{
+	const struct mdp_pipe *pipe;
+	size_t fb_size = 0;
+
+	if (!fb)
+		return;
+
+	pipe = mdp_find_pipe(fb);
+	if (!pipe)
+		return;
+
+	fb_size = fb->stride * (fb->bpp / 8) * fb->height;
+
+	memcpy(target, fb->base, fb_size);
+	arch_clean_cache_range((addr_t)target, fb_size);
+
+#if MDP4
+	dprintf(INFO, "%s: Not implemented for MDP4.\n", __func__);
+	return;
+#elif MDP5
+	writel((uint32_t)target, pipe->base + PIPE_SRC0_ADDR);
+
+	writel(1 << 3, MDP_CTL_0_BASE + CTL_FLUSH);
+#endif
+
+	fb->base = target;
 }

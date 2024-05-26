@@ -6,6 +6,7 @@
 #include <dev/fbcon.h>
 #include <boot.h>
 #include <libfdt.h>
+#include <target.h>
 
 #include <lk2nd/util/cmdline.h>
 #include <lk2nd/util/lkfdt.h>
@@ -27,6 +28,7 @@ static int lk2nd_simplefb_dt_update(void *dtb, const char *cmdline,
 	int ret, resmem_offset, chosen_offset, offset;
 	uint32_t mem_ph, fb_size;
 	char tmp[32], args[16];
+	void *rel_base;
 
 	if (!fb)
 		return 0;
@@ -40,6 +42,15 @@ static int lk2nd_simplefb_dt_update(void *dtb, const char *cmdline,
 	if (!strcmp(args, "autorefresh")) {
 		dprintf(INFO, "simplefb: Enabling autorefresh\n");
 		mdp_enable_autorefresh(fb);
+	}
+
+	if (strstr(args, "relocate")) {
+		rel_base = target_get_scratch_address()
+			 + target_get_max_flash_size()
+			 - (10 * 1024 * 1024); /* 8MiB~=fhd 32bpp, +512k ramoops at the end. */
+
+		dprintf(INFO, "simplefb: Framebuffer will be relocated to 0x%x\n", (uint32_t)rel_base);
+		mdp_relocate(fb, rel_base);
 	}
 
 	if (strstr(args, "rgb565"))
