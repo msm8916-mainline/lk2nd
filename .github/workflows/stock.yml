@@ -19,7 +19,7 @@ jobs:
           # Qualcomm recommends building with really old GCC versions :/
           release: 4.8-2014-q3
       - run: arm-none-eabi-gcc --version
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Build (default)
         run: git clean -dxf && make -j$(nproc) TOOLCHAIN_PREFIX=arm-none-eabi-
              ${{ inputs.options }} ${{ inputs.platform }}
