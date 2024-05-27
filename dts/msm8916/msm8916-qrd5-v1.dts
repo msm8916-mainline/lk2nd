@@ -31,6 +31,6 @@
 };
 	Yuphoria {
             model = "YU Yuphoria (lettuce)";
-            compatible = "YU,lettuce", "qcom,msm8916", "lk2nd,device";
+            compatible = "yu,lettuce", "qcom,msm8916", "lk2nd,device";
 	};
 };
