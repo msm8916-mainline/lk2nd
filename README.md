@@ -1,3 +1,5 @@
+![An image of multiple devices showing lk2nd menu](Documentation/.assets/header.jpg)
+
 # lk2nd
 lk2nd is a custom bootloader for many different devices based on Qualcomm
 system-on-chips (SoCs), including smartphones, tablets, smartwatches and a few
