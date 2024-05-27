@@ -6,7 +6,7 @@
 
 / {
 	compatible = "qcom,msm8916-v1-qrd/5-v1", "qcom,msm8916";
-
+	
 	lyf-ls5010 {
 		model = "LYF Wind 1 (lyf-ls5010)";
 		compatible = "lyf,ls5010", "qcom,msm8916", "lk2nd,device";
@@ -28,5 +28,9 @@
 				compatible = "lyf,kd-kd050m7";
 			};
 		};
+};
+	Yuphoria {
+            model = "YU Yuphoria (lettuce)";
+            compatible = "YU,lettuce", "qcom,msm8916", "lk2nd,device";
 	};
 };
