@@ -213,7 +213,7 @@ static int parse_conf(char *data, size_t size, struct label *label)
 
 				cnt += 2;
 
-				label->dtboverlays = calloc(sizeof(*label->dtboverlays), cnt);
+				label->dtboverlays = calloc(cnt, sizeof(*label->dtboverlays));
 				cnt = 0;
 				for (overlay = strtok_r(value, " ", &saveptr); overlay;
 				     overlay = strtok_r(NULL,  " ", &saveptr)) {
