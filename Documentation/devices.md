@@ -61,6 +61,7 @@
 
 ### lk2nd-msm8909
 
+- Acer Liquid Z330 (T01)
 - CAT B35
 - Nokia 8110 4G
 - Nokia 6300 4G
