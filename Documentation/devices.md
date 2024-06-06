@@ -69,6 +69,7 @@
 
 ### lk2nd-msm8952
 
+- Motorola Moto G5 (cedric) (quirky - see comment in `dts/msm8952/msm8937-motorola-cedric.dts`)
 - Wileyfox Swift 2
 - Redmi Note 3 Pro (kenzo)
 - Sony Xperia X Compact
