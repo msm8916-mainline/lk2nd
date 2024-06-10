@@ -57,46 +57,46 @@
 - Xiaomi Redmi 2 - wt86047, wt88047
 - Xiaomi Redmi 3 - ido
 - Yamada EveryPad III (rebrand of Lenovo PHAB Plus)
-- Zhihe-series 4G Modem Stick - ufi-001c(b), uf896, uz801-v3.0 ( uz801-v3.0 is quirky - see comment in `dts/msm8916/msm8916-512mb-mtp.dts` )
+- Zhihe-series 4G Modem Stick - ufi-001c(b), uf896, uz801-v3.0 (uz801-v3.0 is quirky - see comment in `dts/msm8916/msm8916-512mb-mtp.dts`)
 
 ### lk2nd-msm8909
 
 - Acer Liquid Z330 (T01)
 - CAT B35
-- Nokia 8110 4G
 - Nokia 6300 4G
 - Nokia 8000 4G
+- Nokia 8110 4G
 
 ### lk2nd-msm8952
 
-- Motorola Moto G5 (cedric) (quirky - see comment in `dts/msm8952/msm8937-motorola-cedric.dts`)
-- Wileyfox Swift 2
-- Redmi Note 3 Pro (kenzo)
-- Sony Xperia X Compact
-- Sony Xperia X
 - BQ X5 Plus (Longcheer L9360)
 - Leeco s2
+- Motorola Moto G5 (cedric) (quirky - see comment in `dts/msm8952/msm8937-motorola-cedric.dts`)
+- Redmi Note 3 Pro (kenzo)
+- Sony Xperia X
+- Sony Xperia X Compact
+- Wileyfox Swift 2
 
 ### lk2nd-msm8953
 
+- Fairphone 3
 - Huawei Maimang 5 / Nova (Plus) / G9 (Plus)
 - Lenovo P2 (kuntao)
-- Motorola One (deen)
-- Motorola Moto G5 Plus (potter)
-- Xiaomi Redmi S2/Y2 (ysl)
 - Meizu M6 Note (m1721)
+- Motorola Moto G5 Plus (potter)
+- Motorola Moto G7 Power (ocean)
+- Motorola One (deen)
+- Samsung Galaxy A6+
+- Samsung Galaxy J8 LTE
+- Samsung Tab A2 XL WIFI
 - Xiaomi Mi A1 (tissot)
-- Xiaomi Redmi 6 Pro (sakura)
 - Xiaomi Mi A2 Lite (daisy)
-- Xiaomi Redmi Note 4X Snapdragon (mido)
 - Xiaomi Redmi 4 Prime (markw)
 - Xiaomi Redmi 5 Plus (vince)
-- Samsung Galaxy J8 LTE
-- Samsung Galaxy A6+
-- Samsung Tab A2 XL WIFI
-- Fairphone 3
-- Motorola G7 Power (Ocean)
+- Xiaomi Redmi 6 Pro (sakura)
 - Xiaomi Redmi 7 (onclite)
+- Xiaomi Redmi Note 4X Snapdragon (mido)
+- Xiaomi Redmi S2/Y2 (ysl)
 
 ### lk2nd-msm8974
 - Fairphone 2 - FP2
