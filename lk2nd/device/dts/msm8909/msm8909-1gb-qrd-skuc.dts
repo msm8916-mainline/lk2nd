@@ -56,4 +56,34 @@
 			};
 		};
 	};
+
+	fareastone-smart506 {
+		model = "FarEasTone Smart 506";
+		compatible = "fareastone,smart506";
+
+		/*
+		 * NOTE:
+		 * Due to some unknown reasons, the stock aboot firmware is
+		 * incompatible with lk2nd. Use lk1st if possible.
+		 *
+		 * To build lk1st:
+		 * make TOOLCHAIN_PREFIX=arm-none-eabi- \
+		 * LK2ND_BUNDLE_DTB="msm8909/msm8909-1gb-qrd-skuc.dtb" \
+		 * LK2ND_COMPATIBLE="fareastone,smart506" lk2nd-msm8909
+		 */
+
+		lk2nd,dtb-files = "msm8909-fareastone-smart506";
+
+		panel {
+			compatible = "fareastone,smart506-panel";
+
+			qcom,mdss_dsi_ili9881c_hd_video {
+				compatible = "fareastone,ili9881c";
+			};
+
+			qcom,mdss_dsi_ty_hx8394f_hd_video {
+				compatible = "fareastone,ty-hx8394f";
+			};
+		};
+	};
 };
