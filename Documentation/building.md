@@ -70,7 +70,9 @@ Set the board compatible value.
 
 Use this dtb for lk1st build.
 
-#### `LK2ND_DISPLAY=` - Display panel driver (TBD)
+#### `LK2ND_DISPLAY=` - Display panel driver
+
+Set specific panel driver. By default it uses `cont-splash`.
 
 
 
