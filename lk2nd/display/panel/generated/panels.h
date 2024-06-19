@@ -3,4 +3,7 @@
 #ifndef _LK2ND_GENERATED_PANELS_H_
 #define _LK2ND_GENERATED_PANELS_H_
 
+int oem_panel_select(const char *panel_name, struct panel_struct *panel,
+		     struct msm_panel_info *pinfo, struct mdss_dsi_phy_ctrl *phy_db);
+
 #endif /* _LK2ND_GENERATED_PANELS_H_ */
