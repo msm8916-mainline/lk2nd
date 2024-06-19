@@ -57,7 +57,7 @@
 
 		/*
 		 * Use this node with lk1st:
-		 * make ... LK2ND_BUNDLE_DTB="msm8916/msm8916-512mb-mtp.dtb" LK2ND_COMPATIBLE="thwc,ufi001c"
+		 * make ... LK2ND_BUNDLE_DTB="msm8916-512mb-mtp.dtb" LK2ND_COMPATIBLE="thwc,ufi001c"
 		 */
 
 		lk2nd,dtb-files = "msm8916-thwc-ufi001c";
@@ -82,7 +82,7 @@
 		 * with qhypstub and tz firmware from db410c, use lk1st if possible.
 		 *
 		 * Use this node with lk1st:
-		 * make ... LK2ND_BUNDLE_DTB="msm8916/msm8916-512mb-mtp.dtb" LK2ND_COMPATIBLE="yiming,uz801-v3" ...
+		 * make ... LK2ND_BUNDLE_DTB="msm8916-512mb-mtp.dtb" LK2ND_COMPATIBLE="yiming,uz801-v3" ...
 		 */
 		lk2nd,match-cmdline = "* mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_jdi_1080p_video";
 
