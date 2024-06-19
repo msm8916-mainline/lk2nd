@@ -68,7 +68,7 @@
 		 *
 		 * To build lk1st:
 		 * make TOOLCHAIN_PREFIX=arm-none-eabi- \
-		 * LK2ND_BUNDLE_DTB="msm8909/msm8909-1gb-qrd-skuc.dtb" \
+		 * LK2ND_BUNDLE_DTB="msm8909-1gb-qrd-skuc.dtb" \
 		 * LK2ND_COMPATIBLE="fareastone,smart506" lk1st-msm8909
 		 */
 

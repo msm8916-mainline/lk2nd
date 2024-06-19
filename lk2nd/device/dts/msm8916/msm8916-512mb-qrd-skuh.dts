@@ -14,7 +14,7 @@
 
 		/*
 		 * Use this node with lk1st:
-		 * make ... LK2ND_BUNDLE_DTB="msm8916/msm8916-512mb-qrd-skuh.dtb" LK2ND_COMPATIBLE="thwc,uf896"
+		 * make ... LK2ND_BUNDLE_DTB="msm8916-512mb-qrd-skuh.dtb" LK2ND_COMPATIBLE="thwc,uf896"
 		 */
 
 		lk2nd,dtb-files = "msm8916-thwc-uf896";
