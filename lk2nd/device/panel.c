@@ -21,12 +21,13 @@ static const char *getprop_str(const void *dtb, int node, const char *prop, int 
 static int lk2nd_panel_detect(const void *dtb, int node)
 {
 	struct lk2nd_panel *panel = &lk2nd_dev.panel;
-	const char *old, *new, *ts;
-	int old_len, new_len, ts_len;
+	const char *old, *new, *ts, *name;
+	int old_len, new_len, ts_len, name_len;
 	bool replace_mode;
+	const uint32_t *adc_prop;
 
 	/* Should have been set from parsed command line or display driver */
-	if (!panel->name) {
+	if (!panel->name && !panel->lcdid_adc) {
 		dprintf(CRITICAL, "Failed to detect display panel\n");
 		return 404;
 	}
@@ -36,11 +37,25 @@ static int lk2nd_panel_detect(const void *dtb, int node)
 		return old_len;
 
 	replace_mode = !!fdt_getprop(dtb, node, "replace-compatible", NULL);
-
-	node = fdt_subnode_offset(dtb, node, panel->name);
+	if (!panel->name) {
+		for (node = fdt_first_subnode(dtb, node); node >= 0; node = fdt_next_subnode(dtb, node)) {
+			adc_prop = (const uint32_t*)fdt_getprop(dtb, node, "sony,lcd-id-adc", NULL);
+			if (panel->lcdid_adc >= fdt32_to_cpu(adc_prop[0]) &&
+				panel->lcdid_adc <= fdt32_to_cpu(adc_prop[1])) 
+				break;
+		};
+		
+	} else node = fdt_subnode_offset(dtb, node, panel->name);
+	
 	if (node < 0) {
 		dprintf(CRITICAL, "Unsupported panel: %s\n", panel->name);
 		return node;
+	}
+	
+	if (!panel->name) {
+		name = fdt_get_name(dtb, node, &name_len);
+		panel->name = malloc(++name_len);
+		strlcpy((char*) panel->name, name, name_len);
 	}
 
 	new = getprop_str(dtb, node, "compatible", &new_len);
