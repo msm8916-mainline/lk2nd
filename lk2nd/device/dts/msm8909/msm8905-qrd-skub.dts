@@ -56,6 +56,9 @@
 			qcom,mdss_spi_gc9305_v2_qvga_cmd {
 				compatible = "nokia,argon-gc9305-v2-panel";
 			};
+			qcom,mdss_spi_gc9305_qvga_cmd {
+				compatible = "nokia,argon-gc9305-panel";
+			};
 		};
 	};
 };
