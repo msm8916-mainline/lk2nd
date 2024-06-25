@@ -8,11 +8,17 @@
 / {
 	qcom,msm-id = <QCOM_ID_SDM450 0>;
 	qcom,board-id = <QCOM_BOARD_ID_MTP 4>;
-	
+
 	/* bootloader refuses the dtb if it cannot delete some nodes. */
-	qcom,memshare {
-		qcom,client_4 {
-			qcom,peripheral-size = <0x6000000>;
+	soc {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges = <0x0 0x0 0x0 0xffffffff>;
+
+		qcom,memshare {
+			qcom,client_4 {
+				qcom,peripheral-size = <0x6000000>;
+			};
 		};
 	};
 
