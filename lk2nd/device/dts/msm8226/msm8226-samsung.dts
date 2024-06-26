@@ -15,7 +15,7 @@
 		compatible = "samsung,ms013g";
 		lk2nd,match-bootloader = "G7102*";
 
-		//FIXME: lk2nd,dtb-files = "apq8026-samsung-ms013g";
+		lk2nd,dtb-files = "msm8226-samsung-ms013g";
 
 		gpio-keys {
 			compatible = "gpio-keys";
