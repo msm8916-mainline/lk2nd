@@ -1,0 +1,64 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/*
+ * While the bootloader can be unlocked using `fastboot oem-unlock` the
+ * device's lk bootloader will crash as long as the bootloader remains
+ * unlocked. Therefor:
+ * - Secure Boot can not be disabled
+ *   However, the device will happily boot any AVB1 signed image. Tools
+ *   such as magiskboot can be used to sign lk2nd.img and make it bootable.
+ * - lk2nd cannot be flashed in fastboot mode
+ *   Instead, use EDL to write the signed lk2nd.img to the boot partition.
+ */
+
+/ {
+	qcom,msm-id = <QCOM_ID_APQ8053 0>;
+	qcom,board-id= <0x1010520 0>;
+};
+
+&lk2nd {
+	model = "Lenovo ThinkSmart View";
+	compatible = "lenovo,cd-18781y";
+
+	lk2nd,dtb-files = "apq8053-lenovo-cd-18781y";
+
+	gpio-keys {
+		compatible = "gpio-keys";
+
+		/* HACK: map KEY_VOLUMEUP to non-existent button so the actual
+		 * Volume Up button will successfully re-map to KEY_POWER below.
+		 */
+		volume-up-unmap {
+			lk2nd,code = <KEY_VOLUMEUP>;
+			gpios = <&pmic_pon 0 0>;
+		};
+
+		/*
+		 * Remap Volume Up to KEY_POWER to allow selecting menu items as
+		 * there is no power button present on the device.
+		 * Use Volume Down to navigate the menu and Volume Up to select.
+		 */
+		volume-up {
+			lk2nd,code = <KEY_POWER>;
+			gpios = <&tlmm 85 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+		};
+	};
+
+	panel {
+		compatible = "lenovo,cd-18781y-panel", "lk2nd,panel";
+
+		qcom,mdss_dsi_boyift8201_800p_video {
+			compatible = "lenovo,cd-18781y-ft8201";
+			touchscreen-compatible = "edt,edt-ft8201";
+		};
+		qcom,mdss_dsi_hx83100a_800p_video {
+			compatible = "lenovo,cd-18781y-hx83100a";
+			touchscreen-compatible = "himax,hx83100a";
+		};
+	};
+};
