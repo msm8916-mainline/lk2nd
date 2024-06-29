@@ -36,3 +36,7 @@ DEFINES := $(filter-out ENABLE_XPU_VIOLATION=1, $(DEFINES))
 # Build Android boot image
 OUTBOOTIMG := $(BUILDDIR)/lk2nd.img
 MKBOOTIMG_CMDLINE := lk2nd
+
+SIGN_BOOTIMG ?= 0
+BOOTIMG_CERT ?= lk2nd/certs/verity.x509.pem
+BOOTIMG_KEY ?= lk2nd/certs/verity.pk8

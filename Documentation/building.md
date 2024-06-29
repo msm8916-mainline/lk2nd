@@ -17,6 +17,11 @@
   - Fedora: `libfdt-devel`
 - GNU tar
   - Alpine Linux and postmarketOS: `tar`
+- Optional requirements when using image signing
+  - Arch Linux: `python-pyasn1-modules python-pycryptodome`
+  - Alpine Linux and postmarketOS: `py3-asn1-modules py3-pycryptodome`
+  - Debian and Ubuntu: `python3-pyasn1-modules python3-pycryptodome`
+  - Fedora: `python3-pyasn1-modules python3-pycryptodomex`
 
 ## Building lk2nd
 
@@ -74,5 +79,18 @@ Use this dtb for lk1st build.
 
 Set specific panel driver. By default it uses `cont-splash`.
 
+### Signing of images
 
+#### `SIGN_BOOTIMG=` - Sign `lk2nd.img` after build
 
+Set to 1 to have the resulting `lk2nd.img` be signed for AVB1. By default
+images are not signed.
+
+#### `BOOTIMG_CERT=` and `BOOTIMG_KEY=` - Set signing credentials used to sign images
+
+Set the signing certificate and private key to use for signing boot images.
+If signing is enabled and no keys are specified a pair of default test keys
+from the AOSP 13 source tree located in `lk2nd/certs/` are used to sign the
+image.
+`BOOTIMG_CERT` is expected to be in X.509 PEM format and `BOOTIMG_KEY` is
+expected to be in PKCS#8 format.
