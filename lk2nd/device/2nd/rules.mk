@@ -62,6 +62,16 @@ $(OUTBOOTIMG): $(OUTBINDTB) $(OUTQCDT)
 		$(if $(MKBOOTIMG_BASE),--base=$(MKBOOTIMG_BASE)) \
 		$(if $(MKBOOTIMG_PAGESIZE),--pagesize=$(MKBOOTIMG_PAGESIZE)) \
 		$(MKBOOTIMG_ARGS)
+ifeq ($(SIGN_BOOTIMG), 1)
+		$(NOECHO)lk2nd/scripts/bootsignature.py \
+			-s \
+			-t "/boot" \
+			-c "$(BOOTIMG_CERT)" \
+			-k "$(BOOTIMG_KEY)" \
+			-i $@ \
+			-o $@.signed
+		$(NOECHO)mv $@.signed $@
+endif
 	$(NOECHO)echo -n SEANDROIDENFORCE >> $@
 
 APPSBOOTHEADER: $(OUTBOOTIMG)
