@@ -10,10 +10,18 @@
  * device's lk bootloader will crash as long as the bootloader remains
  * unlocked. Therefor:
  * - Secure Boot can not be disabled
- *   However, the device will happily boot any AVB1 signed image. Tools
- *   such as magiskboot can be used to sign lk2nd.img and make it bootable.
+ *   However, the device will happily boot any AVB1 signed image.
+ *   Build the image using the following make command to have it
+ *   appropriately signed during build:
+ *
+ *     make TOOLCHAIN_PREFIX=arm-none-eabi- SIGN_BOOTIMG=1 lk2nd-msm8953
+ *
  * - lk2nd cannot be flashed in fastboot mode
- *   Instead, use EDL to write the signed lk2nd.img to the boot partition.
+ *   Instead, use EDL (https://github.com/bkerler/edl) to write the signed
+ *   lk2nd.img to the boot partition.
+ *   For example:
+ *
+ *     edl w boot build-lk2nd-msm8953/lk2nd.img
  */
 
 / {
