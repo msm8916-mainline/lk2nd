@@ -52,24 +52,6 @@
 		};
 	};
 
-	on7lte-chn {
-		model = "Samsung Galaxy On7 2015 (SM-G6000)";
-		compatible = "samsung,on7lte-chn", "samsung,on7";
-		lk2nd,match-bootloader = "G600S*";
-
-		lk2nd,dtb-files = "msm8916-samsung-on7";
-
-		qcom,msm-id = <QCOM_ID_MSM8916 0>;
-		qcom,board-id = <0xCE08FF01 3>;
-
-		muic-reset {
-			compatible = "samsung,muic-reset";
-			i2c-reg = <0x25>;
-			i2c-sda-gpios = <&tlmm 105 I2C_GPIO_FLAGS>;
-			i2c-scl-gpios = <&tlmm 106 I2C_GPIO_FLAGS>;
-		};
-	};
-
 	fortuna3g {
 		model = "Samsung Galaxy Grand Prime (SM-G530H)";
 		compatible = "samsung,fortuna3g";
