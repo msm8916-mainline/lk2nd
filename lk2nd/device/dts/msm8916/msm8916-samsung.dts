@@ -398,7 +398,7 @@
 	on7lte-chn {
 		model = "Samsung Galaxy On7 2015 (SM-G6000)";
 		compatible = "samsung,on7lte-chn", "samsung,on7";
-		lk2nd,match-bootloader = "G600S*";
+		lk2nd,match-bootloader = "G6000*";
 
 		lk2nd,dtb-files = "msm8916-samsung-on7";
 
