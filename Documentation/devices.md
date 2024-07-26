@@ -80,6 +80,7 @@
 
 ### lk2nd-msm8953
 
+- Asus Zenfone 3 ZE520KL/ZE552KL (zenfone3)
 - Fairphone 3
 - Huawei Maimang 5 / Nova (Plus) / G9 (Plus)
 - Lenovo P2 (kuntao)
