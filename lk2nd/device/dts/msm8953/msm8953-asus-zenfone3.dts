@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-only
+// SPDX-License-Identifier: BSD-3-Clause
 
 /dts-v1/;
 
@@ -13,7 +13,7 @@
 &lk2nd {
 	model = "Asus Zenfone 3";
 	compatible = "asus,zenfone3";
-	lk2nd,dtb-files = "msm8953-asus-zenfone3", "ze552kl-sr1_msm8953-mtp";
+	lk2nd,dtb-files = "msm8953-asus-zenfone3";
 
 	gpio-keys {
 		compatible = "gpio-keys";
