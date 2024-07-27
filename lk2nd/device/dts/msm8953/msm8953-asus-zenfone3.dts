@@ -1,0 +1,26 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8953 0>;
+	qcom,board-id = <21 0>;
+};
+
+&lk2nd {
+	model = "Asus Zenfone 3";
+	compatible = "asus,zenfone3";
+	lk2nd,dtb-files = "msm8953-asus-zenfone3";
+
+	gpio-keys {
+		compatible = "gpio-keys";
+
+		volume-down {
+			lk2nd,code = <KEY_VOLUMEDOWN>;
+			gpios = <&tlmm 13 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+		};
+	};
+};
