@@ -11,16 +11,67 @@
 };
 
 &lk2nd {
-	model = "Asus Zenfone 3";
-	compatible = "asus,zenfone3";
-	lk2nd,dtb-files = "msm8953-asus-zenfone3";
+	ze520kl {
+		model = "Asus Zenfone 3 (ZE520KL)";
+		compatible = "asus,zenfone3", "asus,ze520kl";
+		lk2nd,dtb-files = "msm8953-asus-zenfone3";
+		lk2nd,match-cmdline = "*HW_ID=ZE520KL*";
 
-	gpio-keys {
-		compatible = "gpio-keys";
+		gpio-keys {
+			compatible = "gpio-keys";
 
-		volume-down {
-			lk2nd,code = <KEY_VOLUMEDOWN>;
-			gpios = <&tlmm 13 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			volume-down {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&tlmm 13 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+
+		panel {
+			compatible = "asus,zenfone3-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_tm5p2_r63350_1080p_video {
+				compatible = "asus,tm5p2_r63350";
+			};
+
+			qcom,mdss_dsi_boe5p2_ili7807b_1080p_video {
+				compatible = "asus,boe5p2_ili7807b";
+			};
+		};
+	};
+
+	ze552kl {
+		model = "Asus Zenfone 3 (ZE552KL)";
+		compatible = "asus,zenfone3", "asus,ze552kl";
+		lk2nd,dtb-files = "msm8953-asus-zenfone3";
+		lk2nd,match-cmdline = "*HW_ID=ZE552KL*";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+
+			volume-down {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&tlmm 13 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+
+		panel {
+			compatible = "asus,zenfone3-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_ctc5p5_ili7807b_1080p_video {
+				compatible = "asus,ctc5p5_ili7807b";
+			};
+
+			qcom,mdss_dsi_tm5p5_r63350_1080p_video {
+				compatible = "asus,tm5p5_r63350";
+			};
+
+			qcom,mdss_dsi_txd5p5_nt35596_1080p_video {
+				compatible = "asus,txd5p5_nt35596";
+			};
+
+			qcom,mdss_dsi_lce5p5_otm1901a_1080p_video {
+				compatible = "asus,lce5p5_otm1901a";
+			};
 		};
 	};
 };
