@@ -1,0 +1,28 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8937 0x2000>,
+		      <QCOM_ID_MSM8937 0x3000>;
+	qcom,board-id = <0x9B 0>;
+};
+
+&lk2nd {
+	ple {
+		model = "HMD Global Nokia 6 (ple)";
+		compatible = "nokia,ple";
+		lk2nd,match-device = "PLE";
+
+		lk2nd,dtb-files = "msm8937-nokia-ple";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			up {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&tlmm 91 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+};
