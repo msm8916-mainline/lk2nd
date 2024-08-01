@@ -72,6 +72,7 @@
 
 - BQ X5 Plus (Longcheer L9360)
 - HMD Global Nokia 6 (ple)
+- Huawei Honor 7C (aum-l41) (quirky - see comment in `lk2nd/device/dts/msm8952/msm8937-huawei-aum.dts`)
 - Leeco s2
 - Motorola Moto G5 (cedric) (quirky - see comment in `lk2nd/device/dts/msm8952/msm8937-motorola-cedric.dts`)
 - Redmi Note 3 Pro (kenzo)
