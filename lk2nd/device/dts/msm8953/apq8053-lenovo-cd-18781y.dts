@@ -62,7 +62,7 @@
 
 		qcom,mdss_dsi_boyift8201_800p_video {
 			compatible = "lenovo,cd-18781y-ft8201";
-			touchscreen-compatible = "edt,edt-ft8201";
+			touchscreen-compatible = "focaltech,ft8201";
 		};
 		qcom,mdss_dsi_hx83100a_800p_video {
 			compatible = "lenovo,cd-18781y-hx83100a";
