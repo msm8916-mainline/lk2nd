@@ -38,7 +38,7 @@
 - Samsung Galaxy E5 - SM-E500F
 - Samsung Galaxy E7 - SM-E7000
 - Samsung Galaxy Grand Max - SM-G720AX
-- Samsung Galaxy Grand Prime - SM-G530FZ, SM-G530H, SM-G530W, SM-G530Y (G530Y is quirky - see comment in `lk2nd/device/dts/msm8916/msm8916-samsung.dts`)
+- Samsung Galaxy Grand Prime - SM-G530FZ, SM-G530H, SM-G530R4, SM-G530W, SM-G530Y (G530Y is quirky - see comment in `lk2nd/device/dts/msm8916/msm8916-samsung.dts`)
 - Samsung Galaxy J3 (2016) - SM-J3109, SM-J320YZ
 - Samsung Galaxy J3 Pro - SM-J3110, SM-J3119
 - Samsung Galaxy J5 (2015) - SM-J5007, SM-J5008, SM-J500F, SM-J500FN, SM-J500H, SM-J500M
