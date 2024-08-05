@@ -315,6 +315,35 @@
 
 	/* rev 3 */
 
+	gprimelteusc {
+		model = "Samsung Galaxy Grand Prime (SM-G530R4)";
+		compatible = "samsung,gprimelteusc";
+		lk2nd,match-bootloader = "G530R4*";
+
+		lk2nd,dtb-files = "msm8916-samsung-gprimelteusc";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 3>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x14>;
+			i2c-sda-gpios = <&tlmm 2 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 3 I2C_GPIO_FLAGS>;
+		};
+
+		panel {
+			compatible = "samsung,gprime-panel", "lk2nd,panel";
+
+			ss_dsi_panel_HX8389C_GH9607501A_QHD {
+				compatible = "samsung,hx8389c-gh9607501a";
+			};
+			ss_dsi_panel_S6D78A0_GH9607501A_QHD {
+				compatible = "samsung,s6d78a0-gh9607501a";
+			};
+		};
+	};
+
 	serranovelte {
 		model = "Samsung Galaxy S4 Mini Value Edition";
 		compatible = "samsung,serranovelte", "samsung,serranove";
