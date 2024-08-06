@@ -73,9 +73,6 @@
 		panel {
 			compatible = "samsung,gprime-panel", "lk2nd,panel";
 
-			qcom,mdss_dsi_hx8389c_qhd_video {
-				compatible = "samsung,hx8389c-gh9607501a";
-			};
 			ss_dsi_panel_HX8389C_GH9607501A_QHD {
 				compatible = "samsung,hx8389c-gh9607501a";
 			};
