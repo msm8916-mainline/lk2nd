@@ -1,0 +1,38 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton32.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	model = "Qualcomm APQ8009W"; /* Required by the oem bootloader. */
+	qcom,msm-id = <QCOM_ID_APQ8009W 0>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 0x105>;
+};
+
+&lk2nd {
+	mobvoi-catfish {
+		model = "Mobvoi TicWatch Pro (WF12096)";
+		compatible = "mobvoi,catfish";
+
+		// FIXME: lk2nd,dtb-files = "apq8009w-mobvoi-catfish";
+
+		lk2nd,match-panel;
+
+		panel {
+			compatible = "mobvoi,catfish-panel";
+
+			qcom,mdss_dsi_rm67162_wqvga_cmd {
+				compatible = "mobvoi,rm67162";
+			};
+		};
+
+		gpio-keys {
+			compatible = "gpio-keys";
+
+			volume-down {
+				gpios = <&tlmm 98 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+			};
+		};
+	};
+};
