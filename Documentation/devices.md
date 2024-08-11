@@ -121,6 +121,7 @@
 - HTC One Mini 2 - memul (quirky - see comment in `lk2nd/device/dts/msm8226/msm8926-htc-memul.dts`)
 - Huawei Ascend G6 4G - G6-L11 (quirky - see comment in `lk2nd/device/dts/msm8226/msm8926-huawei-g6-l11-vb.dts`)
 - Huawei Watch - sturgeon
+- LG Fx0 - madai
 - LG G Watch R - lenok <!--(use `lk2nd-appended-dtb.img`)-->
 - Motorola Moto G 2013 - falcon
 - Motorola Moto G 4G 2013 - peregrine
