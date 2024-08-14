@@ -9,7 +9,7 @@
 - Asus Zenfone 2 Laser (1080p) - Z00T
 - Asus Zenfone 2 Laser ZE500KL - Z00E
 - Asus Zenfone Max ZC550KL (2016) - Z010D
-- BQ Aquaris M5 - piccolo <!--(use `lk2nd-msm8916-appended-dtb.img`)-->
+- BQ Aquaris M5 - piccolo (quirky - see comment in `lk2nd/device/dts/msm8916/msm8939-qrd-skuk.dts`)
 - BQ Aquaris X5 - paella, picmt
 - DragonBoard 410c - apq8016-sbc
 - GPLUS FL8005A
