@@ -571,7 +571,7 @@
 	e5ltexx {
 		model = "Samsung Galaxy E5 (SM-E500F)";
 		compatible = "samsung,e5ltexx", "samsung,e5";
-		lk2nd,match-bootloader = "A500FU*";
+		lk2nd,match-bootloader = "E500F*";
 
 		lk2nd,dtb-files = "msm8916-samsung-e5";
 
@@ -746,7 +746,7 @@
 	/* rev 8 */
 
 	a5lte {
-		model = "Samsung Galaxy A5U (SM-A500F)";
+		model = "Samsung Galaxy A5 (SM-A500F)";
 		compatible = "samsung,a5lte", "samsung,a5u-eur", "samsung,a5";
 		lk2nd,match-bootloader = "A500F*";
 
@@ -802,7 +802,7 @@
 	/* rev 11 */
 
 	a5ltechn {
-		model = "Samsung Galaxy A5U (SM-A5000)";
+		model = "Samsung Galaxy A5 (SM-A5000)";
 		compatible = "samsung,a5ltechn", "samsung,a5u-eur", "samsung,a5";
 		lk2nd,match-bootloader = "A5000*";
 
@@ -813,7 +813,7 @@
 	};
 
 	a5ltezt {
-		model = "Samsung Galaxy A5U (SM-A500YZ)";
+		model = "Samsung Galaxy A5 (SM-A500YZ)";
 		compatible = "samsung,a5ltezt", "samsung,a5u-eur", "samsung,a5";
 		lk2nd,match-bootloader = "A500YZ*";
 
