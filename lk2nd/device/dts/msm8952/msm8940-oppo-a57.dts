@@ -1,0 +1,54 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/*
+ * OPPO A57 has a few quirks to be aware of before working with lk2nd:
+ *
+ * - Custom board id is required by the bootloader
+ *   The bootloader will attempt to load the first dtb with
+ *   matching msm id, which fails as the board id does not match.
+ *   Add LK2ND_DTBS="msm8940-oppo-a57.dtb" to your make cmdline.
+ *
+ * - Not unlockable bootloaders
+ *   However, downgrading to earlier bootloader versions allow for
+ *   the exploitation of an unvalidated AVB signature vulnerability.
+ *   You will have to insert OPPO AVB signature found at the end of
+ *   stock boot images before the `SEANDROIDENFORCE` string.
+ *   Generic AVB signatures via SIGN_BOOTIMG do not work!
+ *
+ * - lk2nd cannot be flashed in fastboot mode
+ *   Instead, use EDL (https://github.com/bkerler/edl) to write the signed
+ *   lk2nd.img to the boot partition.
+ *   For example:
+ *
+ *     edl w boot build-lk2nd-msm8952/lk2nd.img
+ */
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8940 0x00>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 0x00 16061>;
+};
+
+&lk2nd {
+	oppo-a57 {
+		model = "OPPO A57 (16061)";
+		compatible = "oppo,a57";
+		lk2nd,match-cmdline = "*oppo16061*";
+
+		// FIXME: lk2nd,dtb-files = "...";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			down {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&tlmm 128 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			up {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&tlmm 127 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+};
