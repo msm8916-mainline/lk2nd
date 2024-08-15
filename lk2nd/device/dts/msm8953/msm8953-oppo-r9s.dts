@@ -1,0 +1,69 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/*
+ * OPPO R9s/k has a few quirks to be aware of before working with lk2nd:
+ *
+ * - Custom board id is required by the bootloader
+ *   The bootloader will attempt to load the first dtb with
+ *   matching msm id, which fails as the board id does not match.
+ *   Add LK2ND_DTBS="msm8953-oppo-r9s.dtb" to your make cmdline.
+ *
+ * - Not unlockable bootloaders
+ *   However, downgrading to earlier bootloader versions allow for
+ *   the exploitation of an unvalidated AVB signature vulnerability.
+ *   You will have to insert OPPO AVB signature found at the end of
+ *   stock boot images before the `SEANDROIDENFORCE` string.
+ *   Generic AVB signatures via SIGN_BOOTIMG do not work!
+ *
+ * - lk2nd cannot be flashed in fastboot mode
+ *   Instead, use EDL (https://github.com/bkerler/edl) to write the signed
+ *   lk2nd.img to the boot partition.
+ *   For example:
+ *
+ *     edl w boot build-lk2nd-msm8952/lk2nd.img
+ */
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8953 0>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 0 16017>,
+					<QCOM_BOARD_ID_MTP 0 16027>;
+};
+
+&lk2nd {
+	oppo-r9s {
+		model = "OPPO R9s (16017)";
+		compatible = "oppo,r9s";
+		lk2nd,match-cmdline = "*oppo16017*";
+
+		// FIXME: lk2nd,dtb-files = "...";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			down {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&tlmm 86 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+
+	oppo-r9sk {
+		model = "OPPO R9sk (16027)";
+		compatible = "oppo,r9sk";
+		lk2nd,match-cmdline = "*oppo16027*";
+
+		// FIXME: lk2nd,dtb-files = "...";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			down {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&tlmm 86 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+};

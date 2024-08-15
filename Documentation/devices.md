@@ -92,6 +92,7 @@
 - Motorola Moto G5 Plus (potter)
 - Motorola Moto G7 Power (ocean)
 - Motorola One (deen)
+- OPPO R9s/R9sk (R9s/R9sk) (quirky - see comments in `lk2nd/device/dts/msm8953/msm8953-oppo-r9s.dts`)
 - Samsung Galaxy A6+
 - Samsung Galaxy J8 LTE
 - Samsung Tab A2 XL WIFI
