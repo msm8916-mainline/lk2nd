@@ -1,0 +1,36 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8917 0>, <308 0>, <309 0>;
+	qcom,board-id = <0x1000b 2>, <0x2000b 2>;
+};
+
+&lk2nd {
+	model = "Xiaomi Redmi 5A (riva)";
+	compatible = "xiaomi,riva";
+
+	lk2nd,dtb-files = "msm8917-xiaomi-riva";
+
+	lk2nd,match-panel;
+	panel {
+		compatible = "xiaomi,riva-panel", "lk2nd,panel";
+
+		qcom,mdss_dsi_hx8394f_boe_c3b_720p_video {
+			compatible = "xiaomi,riva-hx8394f-boe";
+		};
+		qcom,mdss_dsi_ili9881c_ebbg_c3b_720p_video {
+			compatible = "xiaomi,riva-ili9881c-ebbg";
+		};
+		qcom,mdss_dsi_ili9881c_ebbgDJN_c3b_720p_video {
+			compatible = "xiaomi,riva-ili9881c-ebbgdjn";
+		};
+		qcom,mdss_dsi_ili9881c_tianma_c3b_720p_video {
+			compatible = "xiaomi,riva-ili9881c-tianma";
+		};
+	};
+};
