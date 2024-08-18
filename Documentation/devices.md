@@ -99,6 +99,7 @@
 - Xiaomi Mi A1 (tissot)
 - Xiaomi Mi A2 Lite (daisy)
 - Xiaomi Redmi 4 Prime (markw)
+- Xiaomi Redmi 5 (rosy)
 - Xiaomi Redmi 5 Plus (vince)
 - Xiaomi Redmi 6 Pro (sakura)
 - Xiaomi Redmi 7 (onclite)
