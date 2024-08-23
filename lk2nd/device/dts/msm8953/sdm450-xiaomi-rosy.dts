@@ -15,4 +15,19 @@
 	compatible = "xiaomi,rosy";
 
 	lk2nd,dtb-files = "sdm450-xiaomi-rosy";
+
+	lk2nd,match-panel;
+	panel {
+		compatible = "xiaomi,rosy-panel", "lk2nd,panel";
+
+		qcom,mdss_dsi_ft8613_ebbg_5p7_720p_video {
+			compatible = "xiaomi,rosy-ft8613-ebbg";
+		};
+		qcom,mdss_dsi_ft8613_csot_5p7_720p_video {
+			compatible = "xiaomi,rosy-ft8613-csot";
+		};
+		qcom,mdss_dsi_ft8606m_boe_5p7_720p_video {
+			compatible = "xiaomi,rosy-ft8006m-boe";
+		};
+	};
 };
