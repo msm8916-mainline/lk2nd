@@ -30,11 +30,11 @@
 			compatible = "asus,zenfone3-panel", "lk2nd,panel";
 
 			qcom,mdss_dsi_tm5p2_r63350_1080p_video {
-				compatible = "asus,tm5p2_r63350";
+				compatible = "asus,ze520kl-r63350-tm";
 			};
 
 			qcom,mdss_dsi_boe5p2_ili7807b_1080p_video {
-				compatible = "asus,boe5p2_ili7807b";
+				compatible = "asus,ze520kl-ili7807b-boe";
 			};
 		};
 	};
@@ -58,19 +58,19 @@
 			compatible = "asus,zenfone3-panel", "lk2nd,panel";
 
 			qcom,mdss_dsi_ctc5p5_ili7807b_1080p_video {
-				compatible = "asus,ctc5p5_ili7807b";
+				compatible = "asus,ze552kl-ili7807b-ctc";
 			};
 
 			qcom,mdss_dsi_tm5p5_r63350_1080p_video {
-				compatible = "asus,tm5p5_r63350";
+				compatible = "asus,ze552kl-r63350-tm";
 			};
 
 			qcom,mdss_dsi_txd5p5_nt35596_1080p_video {
-				compatible = "asus,txd5p5_nt35596";
+				compatible = "asus,ze552kl-nt35596-txd";
 			};
 
 			qcom,mdss_dsi_lce5p5_otm1901a_1080p_video {
-				compatible = "asus,lce5p5_otm1901a";
+				compatible = "asus,ze552kl-otm1901a-lce";
 			};
 		};
 	};
