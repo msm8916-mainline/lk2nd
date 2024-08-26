@@ -1,0 +1,42 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/*
+ * To build for motorola-montana, add LK2ND_DTBS="msm8937-motorola-montana.dtb"
+ * to your make cmdline.
+ * montana does not work with all dtbs enabled; the bootloader gets upset and
+ * goes into bootloop.
+ */
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8937 0>;
+	qcom,board-id = <0x43 0x8000>,
+			<0x43 0x81A0>,
+			<0x43 0x81A1>,
+			<0x43 0x81B0>,
+			<0x44 0x8200>,
+			<0x44 0x8300>;
+};
+
+&lk2nd {
+	model = "Motorola Moto G5S (montana)";
+	compatible = "motorola,montana";
+
+	lk2nd,dtb-files = "msm8937-motorola-montana";
+
+	lk2nd,match-panel;
+	panel {
+		compatible = "motorola,montana-panel", "lk2nd,panel";
+
+		qcom,mdss_dsi_mot_tianma_521_1080p_video_v0 {
+			compatible = "motorola,montana-r63350-tianma";
+		};
+		qcom,mdss_dsi_mot_inx_521_1080p_video_v0 {
+			compatible = "motorola,montana-nt35596-inx";
+		};
+	};
+};
