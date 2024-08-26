@@ -14,3 +14,4 @@ ADTBS += \
 
 QCDTBS += \
 	$(LOCAL_DIR)/msm8937-motorola-cedric.dtb \
+	$(LOCAL_DIR)/msm8937-motorola-montana.dtb \
