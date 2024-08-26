@@ -2,7 +2,7 @@
 LOCAL_DIR := $(GET_LOCAL_DIR)
 
 INCLUDES += -I$(LOCAL_DIR)/include
-DT_INCLUDES := -I$(LOCAL_DIR) -I$(LOCAL_DIR)/include
+DT_INCLUDES := -I$(LOCAL_DIR) -I$(LOCAL_DIR)/include -I$(BUILDDIR)
 
 -include $(LOCAL_DIR)/$(TARGET)/rules.mk
 
