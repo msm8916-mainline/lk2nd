@@ -2,8 +2,19 @@
 #include <dt-bindings/arm/qcom,ids.h>
 #include <dt-bindings/lk2nd/gpio.h>
 #include <dt-bindings/lk2nd/key-codes.h>
+#include <config.h>
 
 / {
+	/*
+	 * Some bootloaders device tree selection logic requires the model property
+	 * to be present in every device tree included in the boot image.
+	 * This is a hack to include the model property in all device trees
+	 * of affected platforms.
+	 */
+#ifdef TARGET_MSM8953
+	model = "";
+#endif
+
 	lk2nd: lk2nd { };
 
 	lk2nd-hw {
