@@ -76,6 +76,7 @@
 - Leeco s2
 - Motorola Moto G5 (cedric) (quirky - see comment in `lk2nd/device/dts/msm8952/msm8937-motorola-cedric.dts`)
 - OPPO A57 (A57) (quirky - see comment in `lk2nd/device/dts/msm8952/msm8940-oppo-a57.dts`)
+- Redmi 4X (santoni)
 - Redmi Note 3 Pro (kenzo)
 - Sony Xperia X
 - Sony Xperia X Compact
