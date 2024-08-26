@@ -1,0 +1,52 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+#include <motorola-carrier-channel-ids.dtsi>
+
+/ {
+	/* 
+	 * model is required by bootloader to pick dtb.
+	 * The bootloader also crashes if model isn't present in every dtb. (see lk2nd.dtsi for more info)
+	 */
+	model = "ali"; 
+	qcom,msm-id = <QCOM_ID_SDM450 0>;
+	qcom,board-id = <0x41 0xb1a0>,
+			<0x42 0xb1a0>,
+			<0x42 0xb1b0>,
+			<0x42 0xb200>,
+			<0x43 0xb200>,
+			<0x43 0xc100>,
+			<0x43 0xc200>,
+			<0x44 0xc200>;
+};
+
+&lk2nd {
+	model = "Motorola Moto G6 (ali)";
+	compatible = "motorola,ali";
+
+	lk2nd,dtb-files = "sdm450-motorola-ali";
+
+	unit-info {
+		compatible = "motorola,unit-info";
+	};
+
+	panel {
+		compatible = "motorola,ali-panel", "lk2nd,panel";
+
+		qcom,mdss_dsi_mot_auo_565_1080p_vid_v0 {
+			compatible = "motorola,ali-panel-auo";
+		};
+
+		qcom,mdss_dsi_mot_boe_565_1080p_vid_v0 {
+			compatible = "motorola,ali-panel-boe";
+		};
+
+		qcom,mdss_dsi_mot_tianma_565_1080p_vid_v0 {
+			compatible = "motorola,ali-panel-tianma";
+		};
+	};
+
+};
