@@ -11,6 +11,3 @@ ADTBS += \
 	$(LOCAL_DIR)/msm8940-xiaomi-santoni.dtb \
 	$(LOCAL_DIR)/msm8956-mtp.dtb \
 	$(LOCAL_DIR)/msm8976-qrd.dtb \
-
-QCDTBS += \
-	$(LOCAL_DIR)/msm8937-motorola-montana.dtb \

@@ -22,4 +22,24 @@
 		compatible = "wileyfox,marmite";
 		lk2nd,match-bootloader = "marmite*";
 	};
+
+	montana {
+		model = "Motorola Moto G5S (montana)";
+		compatible = "motorola,montana";
+		lk2nd,match-device = "montana";
+
+		lk2nd,dtb-files = "msm8937-motorola-montana";
+
+		lk2nd,match-panel;
+		panel {
+			compatible = "motorola,montana-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_mot_tianma_521_1080p_video_v0 {
+				compatible = "motorola,montana-r63350-tianma";
+			};
+			qcom,mdss_dsi_mot_inx_521_1080p_video_v0 {
+				compatible = "motorola,montana-nt35596-inx";
+			};
+		};
+	};
 };
