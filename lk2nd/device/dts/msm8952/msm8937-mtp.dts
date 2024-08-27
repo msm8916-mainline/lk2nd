@@ -9,6 +9,14 @@
 };
 
 &lk2nd {
+	cedric {
+		model = "Motorola Moto G5 (cedric)";
+		compatible = "motorola,cedric";
+		lk2nd,match-device = "cedric";
+
+		lk2nd,dtb-files = "msm8937-motorola-cedric";
+	};
+
 	marmite {
 		model = "Wileyfox Swift 2";
 		compatible = "wileyfox,marmite";
