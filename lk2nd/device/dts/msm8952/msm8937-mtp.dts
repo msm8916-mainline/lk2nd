@@ -17,6 +17,22 @@
 		lk2nd,dtb-files = "msm8937-motorola-cedric";
 	};
 
+	l38011 {
+		model = "Lenovo K5 Play (l38011)";
+		compatible = "lenovo,l38011";
+		lk2nd,match-panel;
+
+		lk2nd,dtb-files = "msm8937-lenovo-l38011";
+
+		panel {
+			compatible = "lenovo,l38011-panel";
+
+			qcom,mdss_dsi_nt36525_innolux_video {
+				compatible = "lenovo,innolux-nt36525";
+			};
+		};
+	};
+
 	marmite {
 		model = "Wileyfox Swift 2";
 		compatible = "wileyfox,marmite";
