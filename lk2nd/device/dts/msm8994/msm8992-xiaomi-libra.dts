@@ -13,4 +13,5 @@
         model = "Xiaomi Mi 4C";
         compatible = "xiaomi,libra";
         lk2nd,dtb-files = "msm8992-xiaomi-libra";
+        
 };
