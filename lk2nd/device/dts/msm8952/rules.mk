@@ -4,6 +4,7 @@ LOCAL_DIR := $(GET_LOCAL_DIR)
 ADTBS += \
 	$(LOCAL_DIR)/msm8917-xiaomi-riva.dtb \
 	$(LOCAL_DIR)/msm8937-huawei-aum.dtb \
+	$(LOCAL_DIR)/msm8937-motorola-jeter.dtb \
 	$(LOCAL_DIR)/msm8937-mtp.dtb \
 	$(LOCAL_DIR)/msm8937-nokia-ple.dtb \
 	$(LOCAL_DIR)/msm8937-xiaomi-land.dtb \
