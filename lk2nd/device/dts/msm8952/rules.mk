@@ -9,6 +9,7 @@ ADTBS += \
 	$(LOCAL_DIR)/msm8937-mtp.dtb \
 	$(LOCAL_DIR)/msm8937-nokia-ple.dtb \
 	$(LOCAL_DIR)/msm8937-xiaomi-land.dtb \
+	$(LOCAL_DIR)/msm8940-mtp.dtb \
 	$(LOCAL_DIR)/msm8940-oppo-a57.dtb \
 	$(LOCAL_DIR)/msm8940-xiaomi-santoni.dtb \
 	$(LOCAL_DIR)/msm8956-mtp.dtb \
