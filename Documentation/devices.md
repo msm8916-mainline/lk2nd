@@ -83,6 +83,7 @@
 - Redmi 5A (riva)
 - Redmi Note 3 Pro (kenzo)
 - Redmi Note 5A (ugglite)
+- Redmi Note 5A Prime (ugg)
 - Sony Xperia X
 - Sony Xperia X Compact
 - Wileyfox Swift 2

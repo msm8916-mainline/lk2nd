@@ -1,0 +1,35 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8940 0>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 0>;
+};
+
+&lk2nd {
+	xiaomi-ugg {
+		model = "Xiaomi Redmi Note 5A Prime (ugg)";
+		compatible = "xiaomi,ugg";
+
+		lk2nd,dtb-files = "msm8940-xiaomi-ugg";
+
+		lk2nd,match-panel;
+		panel {
+			compatible = "xiaomi,ugg-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_tm_otm1901a_720p_video {
+				compatible = "xiaomi,ugglite-otm1901a-tm";
+			};
+			qcom,mdss_dsi_sc_ili9881c_720p_video {
+				compatible = "xiaomi,ugglite-ili9881c-sc";
+			};
+			qcom,mdss_dsi_hx_otm1901a_720p_video {
+				compatible = "xiaomi,ugglite-otm1901a-hx";
+			};
+		};
+	};
+};
