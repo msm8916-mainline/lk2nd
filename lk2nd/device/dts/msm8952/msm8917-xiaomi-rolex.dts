@@ -26,11 +26,8 @@
 		qcom,mdss_dsi_ili9881c_ebbg_c3a_720p_video {
 			compatible = "xiaomi,rolex-ili9881c-ebbg";
 		};
-		qcom,mdss_dsi_ili9881c_ebbgDJN_c3a_720p_video {
-			compatible = "xiaomi,rolex-ili9881c-ebbgdjn";
-		};
-		qcom,mdss_dsi_ili9881c_tianma_c3a_720p_video {
-			compatible = "xiaomi,rolex-ili9881c-tianma";
+		qcom,mdss_dsi_nt35521s_ebbg_720p_video {
+			compatible = "xiaomi,rolex-nt35521s-ebbg";
 		};
 	};
 };
