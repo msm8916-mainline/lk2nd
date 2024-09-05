@@ -98,6 +98,7 @@
 - Lenovo ThinkSmart View (cd-18781y) (quirky - see comments in `lk2nd/device/dts/msm8953/apq8053-lenovo-cd-18781y.dts`)
 - Meizu M6 Note (m1721)
 - Motorola Moto G5 Plus (potter)
+- Motorola Moto G6 (ali)
 - Motorola Moto G7 Power (ocean)
 - Motorola One (deen)
 - OPPO R9s/R9sk (R9s/R9sk) (quirky - see comments in `lk2nd/device/dts/msm8953/msm8953-oppo-r9s.dts`)
