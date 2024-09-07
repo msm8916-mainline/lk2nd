@@ -139,6 +139,7 @@ void display_fastboot_menu(void)
 	struct fbcon_config *fb = fbcon_display();
 	int y, y_menu, old_scale, incr;
 	unsigned int sel = 0, i;
+	bool armv8 = is_scm_armv8_support();
 
 	if (!fb)
 		return;
@@ -201,6 +202,9 @@ void display_fastboot_menu(void)
 	if (lk2nd_dev.bootloader)
 		fbcon_printf_ln(SILVER, y, incr, false, " Bootloader:  %s", lk2nd_dev.bootloader);
 #endif
+
+	fbcon_printf_ln(armv8 ? GREEN : YELLOW, y, incr, false, " ARM64:  %s",
+			armv8 ? "available" : "unavailable");
 
 	/*
 	 * Loop to render the menu elements
