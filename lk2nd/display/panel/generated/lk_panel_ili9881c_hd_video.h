@@ -882,7 +882,9 @@ static inline void panel_ili9881c_hd_video_select(struct panel_struct *panel,
 	panel->panelresetseq = &ili9881c_hd_video_reset_seq;
 	panel->backlightinfo = &ili9881c_hd_video_backlight;
 	pinfo->mipi.panel_on_cmds = ili9881c_hd_video_on_command;
+	pinfo->mipi.panel_off_cmds = ili9881c_hd_video_off_command;
 	pinfo->mipi.num_of_panel_on_cmds = ARRAY_SIZE(ili9881c_hd_video_on_command);
+	pinfo->mipi.num_of_panel_off_cmds = ARRAY_SIZE(ili9881c_hd_video_off_command);
 	memcpy(phy_db->timing, ili9881c_hd_video_timings, TIMING_SIZE);
 	phy_db->regulator_mode = DSI_PHY_REGULATOR_LDO_MODE;
 }
