@@ -61,6 +61,11 @@ Set to 1 to make lk2nd print the logs on the screen.
 By default lk2nd build system will try to get the version from git. If you need
 to override the version (i.e. if you want to package lk2nd build), set this varable.
 
+#### `LK2ND_FORCE_FASTBOOT=` - Force lk2nd to boot into fastboot menu
+
+By setting this option to 1 lk2nd will always enter the menu upon boot instead of
+continuing with the usual workflow. This is useful for debugging and development.
+
 ### lk2nd specific
 
 #### `LK2ND_ADTBS=`, `LK2ND_QCDTBS=`, `LK2ND_DTBS=` - Only build listed dtbs

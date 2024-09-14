@@ -52,6 +52,10 @@ ifeq ($(DEBUG_FBCON), 1)
 	DEFINES += WITH_DEBUG_FBCON=1
 endif
 
+ifeq ($(LK2ND_FORCE_FASTBOOT), 1)
+	DEFINES += LK2ND_FORCE_FASTBOOT=1
+endif
+
 # Keep the kernel command line clean when booting other operating systems
 DEFINES += GENERATE_CMDLINE_ONLY_FOR_ANDROID=1
 
