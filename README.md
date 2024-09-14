@@ -38,7 +38,7 @@ which is a heavily modified version of the [Little Kernel Embedded Operating Sys
 
 ## Supported SoCs and devices
 
-lk2nd supports a significan amount of devices. See [devices.md](Documentation/devices.md) for a comperhensive list.
+lk2nd supports a significant amount of devices. See [devices.md](Documentation/devices.md) for a comprehensive list.
 
 ## Installation
 1. Download `lk2nd.img` (available in [Releases](https://github.com/msm8916-mainline/lk2nd/releases))
