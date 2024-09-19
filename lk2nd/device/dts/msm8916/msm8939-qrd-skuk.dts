@@ -9,13 +9,6 @@
 };
 
 &lk2nd {
-	/*
-	 * To build for bq-piccolo with the stock bootloader,
-	 * add LK2ND_ADTBS="msm8939-qrd-skuk.dtb" to your make cmdline.
-	 * bq-piccolo is the only device that needs appended DTB (ADTBS)
-	 * at the moment. Adding it by default breaks other devices like
-	 * motorola-harpia.
-	 */
 	bq-piccolo {
 		model = "BQ Aquaris M5 (Longcheer L9100)";
 		compatible = "longcheer,l9100";

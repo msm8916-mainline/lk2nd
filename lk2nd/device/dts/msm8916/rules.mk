@@ -1,6 +1,9 @@
 # SPDX-License-Identifier: BSD-3-Clause
 LOCAL_DIR := $(GET_LOCAL_DIR)
 
+ADTBS += \
+	$(LOCAL_DIR)/msm8939-qrd-skuk.dtb  \
+
 QCDTBS += \
 	$(LOCAL_DIR)/apq8016-samsung.dtb \
 	$(LOCAL_DIR)/apq8016-sbc.dtb \
