@@ -2,7 +2,6 @@
 #include <dt-bindings/arm/qcom,ids.h>
 #include <dt-bindings/lk2nd/gpio.h>
 #include <dt-bindings/lk2nd/key-codes.h>
-#include <config.h>
 
 / {
 	/*
@@ -11,9 +10,7 @@
 	 * This is a hack to include the model property in all device trees
 	 * of affected platforms.
 	 */
-#if defined TARGET_MSM8952 || defined TARGET_MSM8953
-	model = "";
-#endif
+	model = _DTB_NAME_;
 
 	lk2nd: lk2nd { };
 
