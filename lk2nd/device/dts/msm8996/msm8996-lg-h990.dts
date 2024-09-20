@@ -1,0 +1,15 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8996 0x10000>;
+	qcom,board-id = <0xc08 0x00>;
+	qcom,pmic-id = <0x20009 0x10013 0x00 0x00>;
+};
+
+&lk2nd {
+	model = "LG V20 (International)";
+	compatible = "lg,h990";
+};

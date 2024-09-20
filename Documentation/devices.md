@@ -149,6 +149,7 @@
 
 ### lk2nd-msm8996
 
+- LG V20 - h990
 - OnePlus 3T
 
 ### lk2nd-msm8960
