@@ -1,0 +1,17 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+        qcom,msm-id = <QCOM_ID_MSM8992 0>;
+        qcom,board-id = <12 0>;
+        qcom,pmic-id = <0x10009 0x1000a 0x00 0x00>;
+};
+
+&lk2nd {
+        model = "Xiaomi Mi 4C";
+        compatible = "xiaomi,libra";
+        lk2nd,dtb-files = "msm8992-xiaomi-libra";
+        
+};
