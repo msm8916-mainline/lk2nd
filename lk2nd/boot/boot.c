@@ -58,6 +58,8 @@ static void lk2nd_scan_devices(void)
 
 		lk2nd_try_extlinux(mountpoint);
 	}
+
+	dprintf(INFO, "boot: Bootable file system not found. Reverting to android boot.");
 }
 
 /**
