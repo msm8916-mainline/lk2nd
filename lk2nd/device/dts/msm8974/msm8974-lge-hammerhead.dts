@@ -3,6 +3,11 @@
 #include <skeleton64.dtsi>
 #include <lk2nd.dtsi>
 
+/*
+ * To build for hammerhead, add LK2ND_QCDTBS="" to your make cmdline
+ * hammerhead does not work with qcdtbs enabled.
+ */
+
 / {
 	qcom,msm-id = <QCOM_ID_MSM8974 0x96 0x20002 0xb>;
 };
