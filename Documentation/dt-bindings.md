@@ -128,7 +128,7 @@ when you add a new device, if you are planning to make use of this.
 
 ```
 	panel {
-		compatible = "wingtech,wt88047-panel";
+		compatible = "wingtech,wt88047-panel", "lk2nd,panel";
 
 		qcom,mdss_dsi_r69431_720p_video {
 			compatible = "wingtech,sharp-r69431";
