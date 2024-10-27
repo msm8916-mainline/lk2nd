@@ -15,4 +15,12 @@
 	compatible = "lenovo,kuntao";
 	
 	// FIXME: lk2nd,dtb-files = "msm8953-lenovo-kuntao";
+
+	panel {
+		compatible = "lenovo,kuntao-panel", "lk2nd,panel";
+
+		qcom,mdss_dsi_mot_smd_549_1080p_cmd_v0 {
+			compatible = "smd,549-v0";
+		};
+	};
 };
