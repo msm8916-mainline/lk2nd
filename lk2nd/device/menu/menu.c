@@ -140,6 +140,7 @@ void display_fastboot_menu(void)
 	int y, y_menu, old_scale, incr;
 	unsigned int sel = 0, i;
 	bool armv8 = is_scm_armv8_support();
+	bool secure_boot = is_secure_boot_enable();
 
 	if (!fb)
 		return;
@@ -205,6 +206,9 @@ void display_fastboot_menu(void)
 
 	fbcon_printf_ln(armv8 ? GREEN : YELLOW, y, incr, false, " ARM64:  %s",
 			armv8 ? "available" : "unavailable");
+
+	fbcon_printf_ln(secure_boot ? YELLOW : GREEN, y, incr, false, " SECURE BOOT: %s",
+			secure_boot ? "enabled" : "disabled");
 
 	/*
 	 * Loop to render the menu elements
