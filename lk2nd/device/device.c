@@ -122,6 +122,10 @@ static void parse_dtb(const void *dtb)
 	if (len < 0)
 		dprintf(CRITICAL, "Failed to read 'lk2nd,dtb-files': %d\n", len);
 
+	val = fdt_getprop(dtb, node, "lk2nd,single-key-navigation", &len);
+	if (len >= 0)
+		lk2nd_dev.single_key = true;
+
 	dprintf(INFO, "Detected device: %s (compatible: %s)\n",
 		lk2nd_dev.model, lk2nd_dev.compatible);
 

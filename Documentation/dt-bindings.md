@@ -151,6 +151,16 @@ them in the device node and lk2nd will use them instead of autodetecting.
 	qcom,board-id = <0xCE08FF01 1>;
 ```
 
+### Single-key navigation
+
+On some devices, such as smartwatches, there is only one key available for
+navigation. In this case `lk2nd,single-key-navigation` property can be
+used to switch the navigation scheme to short/long press of a single key.
+
+```
+	lk2nd,single-key-navigation;
+```
+
 ## Additional drivers
 
 lk2nd provides a set of optional nodes, following a simple driver
