@@ -2,6 +2,8 @@
 #ifndef LK2ND_DEVICE_DEVICE_H
 #define LK2ND_DEVICE_DEVICE_H
 
+#include <stdbool.h>
+
 struct lk2nd_panel {
 	const char *name;
 	const char *old_compatible;
@@ -23,6 +25,7 @@ struct lk2nd_device {
 	const char *battery;
 
 	const char *const *dtbfiles;
+	bool single_key;
 
 	struct lk2nd_panel panel;
 

@@ -85,15 +85,29 @@ static uint16_t lk2nd_boot_pressed_key(void)
 	return 0;
 }
 
+#define LONG_PRESS_DURATION 1000
+
 static uint16_t wait_key(void)
 {
 	uint16_t keycode = 0;
+	int press_start = 0;
+	int press_duration;
 
 	while (!(keycode = lk2nd_boot_pressed_key()))
 		thread_sleep(1);
 
-	while (lk2nd_keys_pressed(keycode))
+	press_start = current_time();
+
+	while (lk2nd_keys_pressed(keycode)) {
 		thread_sleep(1);
+
+		press_duration = current_time() - press_start;
+		if (lk2nd_dev.single_key && press_duration > LONG_PRESS_DURATION)
+			return KEY_POWER;
+	}
+
+	if (lk2nd_dev.single_key)
+		keycode = KEY_VOLUMEDOWN;
 
 	/* A small debounce delay */
 	thread_sleep(5);
@@ -180,8 +194,13 @@ void display_fastboot_menu(void)
 	y_menu = y;
 	y += incr * (ARRAY_SIZE(menu_options) + 1);
 
-	fbcon_puts_ln(SILVER, y, incr, true, "Volume keys to navigate.");
-	fbcon_puts_ln(SILVER, y, incr, true, "Power key to select.");
+	if (lk2nd_dev.single_key) {
+		fbcon_puts_ln(SILVER, y, incr, true, "Short press to navigate.");
+		fbcon_puts_ln(SILVER, y, incr, true, "Long press to select.");
+	} else {
+		fbcon_puts_ln(SILVER, y, incr, true, "Volume keys to navigate.");
+		fbcon_puts_ln(SILVER, y, incr, true, "Power key to select.");
+	}
 
 	/*
 	 * Draw the device-specific information at the bottom of the screen
