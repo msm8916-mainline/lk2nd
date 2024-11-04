@@ -13,6 +13,8 @@
 	lxf_p5100 {
 		model = "Lenovo Yoga Tab 3 10 LTE";
 		compatible = "lenovo,lxf-p5100";
+		
+		lk2nd,dtb-files = "msm8909-lenovo-lxf-p5100";
 		lk2nd,match-panel;
 
 		panel {
