@@ -11,3 +11,6 @@ target/*/tools/mkheader
 cscope.*
 ncscope.*
 
+# clangd
+.cache
+compile_commands.json
