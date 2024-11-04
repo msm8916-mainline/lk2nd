@@ -12,5 +12,6 @@
 	model = "ASUS ZenWatch 2";
 	compatible = "asus,sparrow";
 
+	lk2nd,single-key-navigation;
 	lk2nd,dtb-files = "apq8026-asus-sparrow";
 };
