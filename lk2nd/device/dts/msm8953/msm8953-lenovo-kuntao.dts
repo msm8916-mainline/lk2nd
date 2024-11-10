@@ -14,5 +14,5 @@
 	model = "Lenovo P2 (kuntao)";
 	compatible = "lenovo,kuntao";
 	
-	// FIXME: lk2nd,dtb-files = "msm8953-lenovo-kuntao";
+	lk2nd,dtb-files = "msm8953-lenovo-kuntao";
 };
