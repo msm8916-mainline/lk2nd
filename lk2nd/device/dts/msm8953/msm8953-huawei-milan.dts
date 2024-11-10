@@ -19,7 +19,7 @@
 	model = "Huawei Maimang 5 / Nova (Plus) / G9 (Plus)";
 	compatible = "huawei,milan";
 
-	// FIXME: lk2nd,dtb-files = "msm8953-huawei-milan";
+	lk2nd,dtb-files = "msm8953-huawei-milan";
 
 	panel {
 		compatible = "huawei,milan-panel", "lk2nd,panel";
