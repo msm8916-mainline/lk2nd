@@ -35,7 +35,7 @@
 - Samsung Galaxy Ace 4 - SM-G357FZ (quirky - see comment in `lk2nd/device/dts/msm8916/msm8916-samsung.dts`)
 - Samsung Galaxy Core Max - SM-G5108Q (quirky - see comment in `lk2nd/device/dts/msm8916/msm8916-samsung.dts`)
 - Samsung Galaxy Core Prime LTE - SM-G360F, SM-G360G, SM-G360T (rossaltezt is quirky - see comment in `lk2nd/device/dts/msm8916/msm8916-samsung.dts`)
-- Samsung Galaxy E5 - SM-E500F
+- Samsung Galaxy E5 - SM-E500F, SM-E500H
 - Samsung Galaxy E7 - SM-E7000
 - Samsung Galaxy Grand Max - SM-G720AX
 - Samsung Galaxy Grand Prime - SM-G530FZ, SM-G530H, SM-G530R4, SM-G530W, SM-G530Y (G530Y is quirky - see comment in `lk2nd/device/dts/msm8916/msm8916-samsung.dts`)
