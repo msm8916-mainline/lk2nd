@@ -9,7 +9,8 @@
 	qcom,msm-id = <QCOM_ID_MSM8216 0>;
 	qcom,board-id = <0xF808FF01 5>,
 			<0xF808FF01 7>,
-			<0xF808FF01 8>;
+			<0xF808FF01 8>,
+			<0xF808FF01 10>;
 };
 
 &lk2nd {
@@ -95,5 +96,17 @@
 		qcom,board-id = <0xF808FF01 8>;
 	};
 
+	/* rev 10 */
+
+	e53g {
+		model = "Samsung Galaxy E5 (SM-E500H)";
+		compatible = "samsung,e35g", "samsung,e5";
+		lk2nd,match-bootloader = "E500H*";
+
+		lk2nd,dtb-files = "msm8916-samsung-e5";
+
+		qcom,msm-id = <QCOM_ID_MSM8216 0>;
+		qcom,board-id = <0xF808FF01 10>;
+	};
 };
 
