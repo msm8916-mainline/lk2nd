@@ -16,6 +16,7 @@
 	onclite {
 		model = "Xiaomi Redmi 7 (onclite)";
 		compatible = "xiaomi,onclite";
+		lk2nd,dtb-files="sdm632-xiaomi-onclite";
 		lk2nd,match-panel;
 
 		panel {
