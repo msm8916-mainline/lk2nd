@@ -1,0 +1,33 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton32.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8909 0>;
+	qcom,board-id = <QCOM_BOARD_ID(QRD, 1, 0) 0x6e>,
+			<QCOM_BOARD_ID(QRD, 1, 4) 0x6e>;
+	compatible = "qcom,msm8909-qrd", "qcom,msm8909", "qcom,qrd";
+};
+
+&lk2nd {
+	zte-sapphire {
+		model = "ZTE N818S (sapphire)";
+		compatible = "zte,sapphire";
+		lk2nd,match-panel;
+		lk2nd,dtb-files = "msm8909-zte-sapphire";
+
+		panel {
+			compatible = "zte,sapphire-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_hlt_jd9161_hsd_4p_fwvga_video {
+				compatible = "zte,helitai-jd9161-hsd";
+			};
+
+			// possible other variant
+			qcom,zte-lianchuang-ili9806e-hsd-4p0-fwvga-video {
+				compatible = "zte,lianchuang-ili9806e-hsd";
+			};
+		};
+	};
+};
