@@ -69,6 +69,7 @@
 - Nokia 6300 4G
 - Nokia 8000 4G
 - Nokia 8110 4G
+- ZTE N818S (sapphire)
 
 ### lk2nd-msm8952
 

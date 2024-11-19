@@ -7,6 +7,7 @@ QCDTBS += \
 	$(LOCAL_DIR)/msm8909-1gb-qrd-skuc.dtb \
 	$(LOCAL_DIR)/msm8909-mtp.dtb \
 	$(LOCAL_DIR)/msm8909-qrd-skue.dtb \
+	$(LOCAL_DIR)/msm8909-zte-sapphire.dtb \
 
 ADTBS += \
         $(LOCAL_DIR)/apq8009w-wtp.dtb \
