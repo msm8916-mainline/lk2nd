@@ -1,0 +1,23 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+/dts-v1/;
+
+#include <skeleton.dtsi>
+
+
+/ {
+	qcom,msm-id = <206 0>;
+	qcom,board-id = <8017 4>;
+	model = "Huawei Mediapad T1-A21W";
+	compatible = "huawei,hwt1a21w","qcom,msm8916", "lk2nd,device";
+
+	
+	panel {
+		compatible = "huawei,hwt1a21w-panel";
+		qcom,mdss_dsi_boe_nt51017_10_800p_video {
+			compatible = "huawei,boe-nt51017";
+		};
+	};
+};
+
+

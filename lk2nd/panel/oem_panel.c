@@ -16,7 +16,7 @@
 
 #if TARGET_MSM8916
 uint32_t panel_regulator_settings[] = {
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	0x00, 0x01, 0x01, 0x00, 0x20, 0x07, 0x00
 };
 #endif
 
@@ -70,7 +70,7 @@ static int target_tps65132_ctrl(uint8_t enable)
 int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
 {
 	if (panel_select(LK1ST_PANEL) == panel_tianma_nt35521_5p5_720p_video_select ||
-	    panel_select(LK1ST_PANEL) == panel_cmi_nt35532_5p5_1080pxa_video_select)
+	    panel_select(LK1ST_PANEL) == panel_cmi_nt35532_5p5_1080pxa_video_select||panel_select(LK1ST_PANEL)==panel_boe_nt51017_10_800p_video_select)
 		return target_tps65132_ctrl(enable);
 
 	return NO_ERROR;
