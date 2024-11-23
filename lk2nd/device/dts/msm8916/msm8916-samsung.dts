@@ -704,7 +704,7 @@
 		lk2nd,dtb-files = "msm8916-samsung-e7";
 
 		qcom,msm-id = <QCOM_ID_MSM8916 0>;
-		qcom,board-id = <0xCE08FF02 6>;
+		qcom,board-id = <0xCE08FF01 6>;
 
 		panel {
 			compatible = "samsung,e7-panel", "lk2nd,panel";
