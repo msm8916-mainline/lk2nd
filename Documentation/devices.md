@@ -74,6 +74,7 @@
 ### lk2nd-msm8952
 
 - BQ X5 Plus (Longcheer L9360)
+- HMD Global Nokia 5 (nd1)
 - HMD Global Nokia 6 (ple)
 - Huawei Honor 7C (aum-l41) (quirky - see comment in `lk2nd/device/dts/msm8952/msm8937-huawei-aum.dts`)
 - Leeco s2
