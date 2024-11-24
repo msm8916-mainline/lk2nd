@@ -490,6 +490,24 @@
 
 	/* rev 4 */
 
+	j5xnltedx {
+		model = "Samsung Galaxy J5 2016 (SM-J510GN)";
+		compatible = "samsung,j5xnlte", "samsung,j5x";
+		lk2nd,match-bootloader = "J510GN*";
+
+		lk2nd,dtb-files = "msm8916-samsung-j5x";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 4>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x25>;
+			i2c-sda-gpios = <&tlmm 105 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 106 I2C_GPIO_FLAGS>;
+		};
+	};
+
 	j5xnltejv {
 		model = "Samsung Galaxy J5 2016 (SM-J510F)";
 		compatible = "samsung,j5xnlte", "samsung,j5x";
