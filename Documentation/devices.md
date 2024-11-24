@@ -77,6 +77,7 @@
 - HMD Global Nokia 5 (nd1)
 - HMD Global Nokia 6 (ple)
 - Huawei Honor 7C (aum-l41) (quirky - see comment in `lk2nd/device/dts/msm8952/msm8937-huawei-aum.dts`)
+- Huawei MediaPad T3 10 (ags- l09/l03/w09) (quirky - see comment in `lk2nd/device/dts/msm8952/msm8917-huawei-agassi.dts`)
 - Leeco s2
 - Lenovo K5 Play (l38011)
 - Motorola Moto G5 (cedric)
