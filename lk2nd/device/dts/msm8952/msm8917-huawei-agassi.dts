@@ -1,0 +1,37 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+
+/*
+ * This device is quirky. It excluded from generic build.
+ * To run lk2nd on this device you need to flash custom bootloader and unlock it.
+ * Read more https://wiki.postmarketos.org/wiki/Huawei_Mediapad_T3_10_(huawei-agassi)#Bootloader_unlocking
+ *
+ * Compile lk2nd with the following flags to run on this device
+ * LK2ND_ADTBS="msm8917-huawei-agassi.dtb"
+ * LK2ND_COMPATIBLE="huawei,agassi"
+ */
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8917 0>;
+	qcom,board-id = <QCOM_BOARD_ID(QRD, 1, 0) 0>;
+};
+
+&lk2nd {
+	/* 
+	 * There are 3 versions: 
+	 *  - L-09 (Global)
+	 *  - L-03 (USA)
+	 *  - W-09 (WiFi only)
+	 */
+
+	huawei-agassi {
+		model = "Huawei MediaPad T3 10 (agassi)";
+		compatible = "huawei,agassi";
+		lk2nd,dtb-files = "msm8917-huawei-agassi";
+	};
+};
