@@ -1,0 +1,30 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+#include "msm8953-motorola.dtsi"
+
+/ {
+	qcom,board-id = <0x4B 0x8100>,
+			<0x4B 0x8200>,
+			<0x4B 0x8300>,
+			<0x4B 0x83B0>,
+			<0x4B 0x8400>,
+			<0x4C 0x8400>;
+};
+
+&lk2nd {
+	model = "Motorola Moto G5s Plus (sanders)";
+	compatible = "motorola,sanders";
+	
+	lk2nd,dtb-files = "msm8953-motorola-sanders";
+	
+	panel {
+		compatible = "motorola,sanders-panel", "lk2nd,panel";
+
+		qcom,mdss_dsi_mot_tianma_550_1080p_vid_v0 {
+			compatible = "motorola,sanders-nt35596-tianma";
+		};
+		qcom,mdss_dsi_mot_djn_550_1080p_vid_v0 {
+			compatible = "motorola,sanders-ili7807d-djn";
+		};
+	};
+};

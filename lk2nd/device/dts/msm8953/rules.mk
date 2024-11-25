@@ -8,6 +8,7 @@ ADTBS += \
 	$(LOCAL_DIR)/msm8953-lenovo-kuntao.dtb  \
 	$(LOCAL_DIR)/msm8953-motorola-deen.dtb  \
 	$(LOCAL_DIR)/msm8953-motorola-potter.dtb  \
+	$(LOCAL_DIR)/msm8953-motorola-sanders.dtb  \
 	$(LOCAL_DIR)/msm8953-mtp.dtb  \
 	$(LOCAL_DIR)/msm8953-oppo-r9s.dtb  \
 	$(LOCAL_DIR)/msm8953-qrd.dtb  \
