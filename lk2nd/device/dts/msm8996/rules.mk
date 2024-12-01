@@ -5,3 +5,4 @@ ADTBS += \
 	$(LOCAL_DIR)/msm8996pro-oneplus3t.dtb \
 	$(LOCAL_DIR)/msm8996-lg-h990.dtb \
 	$(LOCAL_DIR)/msm8996-xiaomi-mi5.dtb \
+	$(LOCAL_DIR)/msm8996-samsung.dtb \
