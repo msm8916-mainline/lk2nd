@@ -30,5 +30,29 @@
 			};
 		};
 	};
+
+	millet3g {
+		model = "Samsung Galaxy Tab 4 8.0 3G (SM-T331)";
+		compatible = "samsung,millet3g", "samsung,millet";
+		lk2nd,match-bootloader = "T331*";
+
+		lk2nd,dtb-files = "msm8226-samsung-millet3g", "msm8226-samsung-milletwifi";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			home {
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&tlmm 108 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			down {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&tlmm 107 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			up {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&tlmm 106 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
 };
 
