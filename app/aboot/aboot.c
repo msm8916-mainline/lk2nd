@@ -3466,6 +3466,12 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	fastboot_okay("");
 	fastboot_stop();
 
+	#ifdef LK2ND_FASTBOOT_DELAY
+	/* This can help with debugging on devices with carkit uart. You need to switch the cable before starting linux to see all the logs */
+	dprintf(INFO, "Waiting %ums before boot\n", LK2ND_FASTBOOT_DELAY);
+	thread_sleep(LK2ND_FASTBOOT_DELAY);
+	#endif
+
 	boot_linux((void*) hdr->kernel_addr, (void*) hdr->tags_addr,
 		   (const char*) hdr->cmdline, board_machtype(),
 		   (void*) hdr->ramdisk_addr, hdr->ramdisk_size,
