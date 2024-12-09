@@ -33,7 +33,7 @@ Following commands are supported:
 - `initrd <initramfs>` - Path to the initramfs file.
 - `fdt <devicetree>` - Path to the devicetree.
 - `fdtdir <directory>` - Path to automatically find the DT in.
-- `append <cmdlie>` - Cmdline to boot the kernel with.
+- `append <cmdline>` - Cmdline to boot the kernel with.
 
 > [!NOTE]
 > lk2nd includes only a very rudimentary extlinux support at this time.
