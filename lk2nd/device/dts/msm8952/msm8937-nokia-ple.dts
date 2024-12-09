@@ -4,9 +4,11 @@
 #include <lk2nd.dtsi>
 
 / {
-	qcom,msm-id = <QCOM_ID_MSM8937 0x2000>,
-		      <QCOM_ID_MSM8937 0x3000>;
-	qcom,board-id = <0x9B 0>;
+	qcom,msm-id = 	<QCOM_ID_MSM8937 0x0>,	  // Variant: FIH_PLE_EVT1 / FIH_D1C_EVT1
+			<QCOM_ID_MSM8937 0x2000>, // Variant: FIH_PLE_DVT1 / FIH_D1C_DVT1
+			<QCOM_ID_MSM8937 0x3000>; // Variant: FIH_PLE_PVT / FIH_D1C_PVT
+	qcom,board-id = <0x9B 0>, // PLE (Global version)
+			<0x91 0>; // D1C (China version)
 };
 
 &lk2nd {
