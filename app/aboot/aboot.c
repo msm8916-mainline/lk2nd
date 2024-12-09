@@ -4051,7 +4051,6 @@ normal_boot:
 		if (target_is_emmc_boot())
 		{
 			if (!boot_into_recovery) {
-				/* Try to boot from first fs we can find */
 				ssize_t loaded_file = fsboot_boot_first(target_get_scratch_address(), target_get_max_flash_size());
 
 				if (loaded_file > 0)
@@ -4114,6 +4113,7 @@ normal_boot:
 #if FBCON_DISPLAY_MSG
 	display_fastboot_menu();
 #endif
+	
 }
 
 uint32_t get_page_size()

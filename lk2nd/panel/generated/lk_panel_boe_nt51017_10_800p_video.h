@@ -107,7 +107,16 @@ static char boe_nt51017_10_800p_video_on_cmd_20[] = {
 	0x96, 0x40, 0x15, 0x80
 };
 static char boe_nt51017_10_800p_video_on_cmd_21[] = {
-	0x51, 0xff, 0x15, 0x80
+	0x83, 0x00, 0x15, 0x80
+};
+static char boe_nt51017_10_800p_video_on_cmd_22[] = {
+	0x84, 0x00, 0x15, 0x80
+};
+static char boe_nt51017_10_800p_video_on_cmd_23[] = {
+	0x96, 0x00, 0x15, 0x80
+};
+static char boe_nt51017_10_800p_video_on_cmd_24[] = {
+	0xf5, 0xfa, 0x15, 0x80
 };
 
 static struct mipi_dsi_cmd boe_nt51017_10_800p_video_on_command[] = {
@@ -133,6 +142,9 @@ static struct mipi_dsi_cmd boe_nt51017_10_800p_video_on_command[] = {
 	{ sizeof(boe_nt51017_10_800p_video_on_cmd_19), boe_nt51017_10_800p_video_on_cmd_19, 0 },
 	{ sizeof(boe_nt51017_10_800p_video_on_cmd_20), boe_nt51017_10_800p_video_on_cmd_20, 0 },
 	{ sizeof(boe_nt51017_10_800p_video_on_cmd_21), boe_nt51017_10_800p_video_on_cmd_21, 0 },
+	{ sizeof(boe_nt51017_10_800p_video_on_cmd_22), boe_nt51017_10_800p_video_on_cmd_22, 0 },
+	{ sizeof(boe_nt51017_10_800p_video_on_cmd_23), boe_nt51017_10_800p_video_on_cmd_23, 0 },
+	{ sizeof(boe_nt51017_10_800p_video_on_cmd_24), boe_nt51017_10_800p_video_on_cmd_24, 0 },
 };
 
 
@@ -167,7 +179,7 @@ static struct lane_configuration boe_nt51017_10_800p_video_lane_config = {
 	.lane1_state = 1,
 	.lane2_state = 1,
 	.lane3_state = 1,
-	.force_clk_lane_hs = 0,
+	.force_clk_lane_hs = 1,
 };
 
 static const uint32_t boe_nt51017_10_800p_video_timings[] = {

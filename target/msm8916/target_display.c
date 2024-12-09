@@ -360,7 +360,7 @@ int target_display_dsi2hdmi_config(struct msm_panel_info *pinfo)
 }
 
 static int target_panel_reset_skuh(uint8_t enable)
-{
+{	dprintf(CRITICAL, "Reset Panel\n");
 	int ret = NO_ERROR;
 	if (enable) {
 		/* for tps65132 ENP pin */
@@ -382,7 +382,7 @@ static int target_panel_reset_skuh(uint8_t enable)
 			dprintf(CRITICAL, "qup_blsp_i2c_init failed \n");
 			ASSERT(0);
 		}
-
+		dprintf(CRITICAL, "Reset Panel\n");
 		ret = qrd_lcd_i2c_write(QRD_LCD_VPOS_ADDRESS, 0x0E); /* 5.4V */
 		if (ret) {
 			dprintf(CRITICAL, "VPOS Register: I2C Write failure\n");
@@ -496,8 +496,10 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 
 			gpio_set_dir(enable_gpio.pin_id, 2);
 		}
-
+		//target_panel_reset_skuh(enable);
+		//dprintf(CRITICAL, "Reset Panel\n");
 #ifndef WITH_LK2ND_PANEL
+		dprintf(CRITICAL, "Reset Panel1\n");
 		if (platform_is_msm8939() || platform_is_msm8929()) {
 			if ((hw_id == HW_PLATFORM_QRD) &&
 				 (hw_subtype == HW_PLATFORM_SUBTYPE_SKUK))

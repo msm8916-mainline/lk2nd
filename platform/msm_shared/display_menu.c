@@ -345,7 +345,7 @@ void display_bootverify_option_menu_renew(struct select_msg_info *msg_info)
 		FBCON_COMMON_MSG, big_factor);
 	display_fbcon_menu_message("Press volume keys to navigate, and "\
 		"press power key to select\n\n", FBCON_COMMON_MSG, common_factor);
-
+	display_fbcon_menu_message("Welcome to HICODE002 BOOTLOADER!\n", FBCON_RED_MSG, common_factor);
 	for (i = 0; i < len; i++) {
 		fbcon_draw_line(FBCON_COMMON_MSG);
 		msg_info->info.option_start[i] = fbcon_get_current_line();
@@ -443,7 +443,7 @@ void display_fastboot_menu_renew(struct select_msg_info *fastboot_msg_info)
 	fbcon_draw_line(msg_type);
 	display_fbcon_menu_message("\n\nPress volume keys to navigate, and "\
 		"press power key to select\n\n", FBCON_COMMON_MSG, common_factor);
-
+	display_fbcon_menu_message("Welcome to HICODE002 BOOTLOADER!\n", FBCON_RED_MSG, common_factor);
 	display_fbcon_menu_message("FASTBOOT MODE\n", FBCON_RED_MSG, common_factor);
 
 #ifdef LK2ND_VERSION

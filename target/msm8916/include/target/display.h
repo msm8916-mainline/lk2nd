@@ -72,7 +72,7 @@ static struct gpio_pin enn_gpio_1 = {
 };
 
 static struct gpio_pin te_gpio = {
-  0, 0, 0, 0, 0, 0
+  "msmgpio", 24, 3, 1, 0, 1
 };
 
 static struct gpio_pin pwm_gpio = {

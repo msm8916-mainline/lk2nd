@@ -16,7 +16,7 @@
 
 #if TARGET_MSM8916
 uint32_t panel_regulator_settings[] = {
-	0x00, 0x01, 0x01, 0x00, 0x20, 0x07, 0x00
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 #endif
 
@@ -47,19 +47,20 @@ uint32_t oem_panel_max_auto_detect_panels()
 static int target_tps65132_ctrl(uint8_t enable)
 {
 	if (enable) {
+		gpio_tlmm_config(enn_gpio.pin_id, 0,
+			enn_gpio.pin_direction, 0,
+			enn_gpio.pin_strength,
+			enn_gpio.pin_state);
+		gpio_set_dir(enn_gpio.pin_id, 2);
 		/* for tps65132 ENP pin */
 		gpio_tlmm_config(enp_gpio.pin_id, 0,
-			enp_gpio.pin_direction, enp_gpio.pin_pull,
+			enp_gpio.pin_direction, 0,
 			enp_gpio.pin_strength,
 			enp_gpio.pin_state);
 		gpio_set_dir(enp_gpio.pin_id, 2);
 
 		/* for tps65132 ENN pin*/
-		gpio_tlmm_config(enn_gpio.pin_id, 0,
-			enn_gpio.pin_direction, enn_gpio.pin_pull,
-			enn_gpio.pin_strength,
-			enn_gpio.pin_state);
-		gpio_set_dir(enn_gpio.pin_id, 2);
+		
 	} else {
 		gpio_set_dir(enp_gpio.pin_id, 0); /* ENP */
 		gpio_set_dir(enn_gpio.pin_id, 0); /* ENN */
