@@ -4052,7 +4052,7 @@ normal_boot:
 		{
 			if (!boot_into_recovery) {
 				ssize_t loaded_file = fsboot_boot_first(target_get_scratch_address(), target_get_max_flash_size());
-
+				/* Try to boot from first fs we can find */
 				if (loaded_file > 0)
 					cmd_boot(NULL, target_get_scratch_address(), target_get_max_flash_size());
 
