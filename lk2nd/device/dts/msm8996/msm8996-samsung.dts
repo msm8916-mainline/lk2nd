@@ -1,0 +1,212 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+#define I2C_GPIO_FLAGS	(GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN | GPIO_BIAS_DISABLE)
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8996 0x30001>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 0>,
+			<QCOM_BOARD_ID_MTP 1>,
+			<QCOM_BOARD_ID_MTP 2>,
+			<QCOM_BOARD_ID_MTP 3>,
+			<QCOM_BOARD_ID_MTP 5>,
+			<QCOM_BOARD_ID_MTP 6>,
+			<QCOM_BOARD_ID_MTP 7>,
+			<QCOM_BOARD_ID_MTP 8>,
+			<QCOM_BOARD_ID_MTP 9>,
+			<QCOM_BOARD_ID_MTP 10>,
+			<QCOM_BOARD_ID_MTP 11>,
+			<QCOM_BOARD_ID_MTP 13>,
+			<QCOM_BOARD_ID_MTP 15>;
+	qcom,pmic-id = <0x20009 0x1000C 0x0 0x0>;
+
+	/* bootloader refuses the dtb if it cannot delete some nodes. */
+	soc {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges = <0x0 0x0 0x0 0xffffffff>;
+		compatible = "simple-bus";
+
+		qcom,memshare {
+			compatible = "qcom,memshare";
+			memory-region = <&modem_shared_mem>;
+
+			qcom,client_1 {
+				compatible = "qcom,memshare-peripheral";
+				qcom,peripheral-size = <0x0>;
+				qcom,client-id = <1>;
+				label = "modem";
+			};
+		};
+	};
+
+	reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+
+		lk_region: lk_region@0 {
+			compatible = "removed-dma-pool";
+			no-map;
+			reg = <0x0 0x84C00000 0x0 0x00400000>;
+
+		};
+
+		sec_debug_region: sec_debug_region@0 {
+			compatible = "removed-dma-pool";
+			no-map;
+			reg = <0x0 0x85000000 0x0 0x00800000>;
+		};
+
+		klog_region: klog_region@0 {
+			compatible = "removed-dma-pool";
+			no-map;
+			reg = <0x0 0x851FF000 0x0 0x00201000>;
+		};
+
+		modem_shared_mem: modem_shared_mem_region@0x93000000 {
+			compatible = "removed-dma-pool";
+			no-map;
+			reg = <0x0 0x93000000 0x0 0x6000000>;
+		};
+	};
+};
+
+&lk2nd {
+	graceqlte {
+		model = "Samsung Galaxy Note 7";
+		compatible = "samsung,graceqlte";
+		lk2nd,match-bootloader = "N930*";
+
+		lk2nd,dtb-files = "msm8996-samsung-graceqlte";
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x66>;
+			i2c-sda-gpios = <&tlmm 33 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 32 I2C_GPIO_FLAGS>;
+		};
+
+		gpio-keys {
+			compatible = "gpio-keys";
+
+			home-key {
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&pmic 2 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+
+			vol-up-key {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&pmic 3 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+
+		panel {
+			compatible = "samsung,graceqlte-panel", "lk2nd,panel";
+
+			ss_dsi_panel_PBA_BOOTING_HD {
+				compatible = "samsung,ea8061v-ams391dt01";
+			};
+			ss_dsi_panel_S6E3HF4_AMB526JS01_WQHD {
+				compatible = "samsung,s6e3hf4-amb526js01";
+			};
+			ss_dsi_panel_S6E3HA5_AMB567MK01_WQHD {
+				compatible = "samsung,s6e3ha5-amb567mk01";
+			};
+		};
+	};
+
+	heroqlte {
+		model = "Samsung Galaxy S7";
+		compatible = "samsung,heroqlte";
+		lk2nd,match-bootloader = "G930*";
+
+		lk2nd,dtb-files = "msm8996-samsung-heroqlte";
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x66>;
+			i2c-sda-gpios = <&tlmm 33 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 32 I2C_GPIO_FLAGS>;
+		};
+
+		gpio-keys {
+			compatible = "gpio-keys";
+
+			home-key {
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&pmic 2 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+
+			vol-up-key {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&pmic 3 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+
+		panel {
+			compatible = "samsung,heroqlte-panel", "lk2nd,panel";
+
+			ss_dsi_panel_PBA_BOOTING_HD {
+				compatible = "samsung,ea8061v-ams391dt01";
+			};
+			ss_dsi_panel_S6E3HA2_AMS509ES01_WQHD {
+				compatible = "samsung,s6e3ha2-ams509es01";
+			};
+			ss_dsi_panel_S6E3HA3_AMS567JA01_WQHD {
+				compatible = "samsung,s6e3ha3-ams567ja01";
+			};
+			ss_dsi_panel_S6E3HF4_AMB526JS01_WQHD {
+				compatible = "samsung,s6e3hf4-amb526js01";
+			};
+		};
+	};
+
+	hero2qlte {
+		model = "Samsung Galaxy S7 Edge";
+		compatible = "samsung,hero2qlte";
+		lk2nd,match-bootloader = "G935*";
+
+		lk2nd,dtb-files = "msm8996-samsung-hero2qlte";
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x66>;
+			i2c-sda-gpios = <&tlmm 33 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 32 I2C_GPIO_FLAGS>;
+		};
+
+		gpio-keys {
+			compatible = "gpio-keys";
+
+			home-key {
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&pmic 2 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+
+			vol-up-key {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&pmic 3 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+
+		panel {
+			compatible = "samsung,hero2qlte-panel", "lk2nd,panel";
+
+			ss_dsi_panel_PBA_BOOTING_HD {
+				compatible = "samsung,ea8061v-ams391dt01";
+			};
+			ss_dsi_panel_S6E3HA2_AMS509ES01_WQHD {
+				compatible = "samsung,s6e3ha2-ams509es01";
+			};
+			ss_dsi_panel_S6E3HA3_AMS567JA01_WQHD {
+				compatible = "samsung,s6e3ha3-ams567ja01";
+			};
+			ss_dsi_panel_S6E3HF4_AMB526JS01_WQHD {
+				compatible = "samsung,s6e3hf4-amb526js01";
+			};
+		};
+	};
+};
