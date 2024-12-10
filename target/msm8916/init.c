@@ -65,7 +65,7 @@
 #define PMIC_ARB_CHANNEL_NUM    0
 #define PMIC_ARB_OWNER_ID       0
 #define TLMM_VOL_UP_BTN_GPIO    107
-#define TLMM_SBC_USR_LED1_GPIO  21
+#define TLMM_SBC_USR_LED1_GPIO  9
 
 #if PON_VIB_SUPPORT
 #define VIBRATE_TIME    250
@@ -299,6 +299,8 @@ void target_init(void)
         /*
          * Turn on Boot LED
          */
+ gpio_tlmm_config(TLMM_SBC_USR_LED1_GPIO, 0, GPIO_OUTPUT,
+                        GPIO_PULL_UP, GPIO_2MA, GPIO_ENABLE);
         if (board_hardware_id() == HW_PLATFORM_SBC)
                 gpio_tlmm_config(TLMM_SBC_USR_LED1_GPIO, 0, GPIO_OUTPUT,
                         GPIO_PULL_UP, GPIO_2MA, GPIO_ENABLE);
