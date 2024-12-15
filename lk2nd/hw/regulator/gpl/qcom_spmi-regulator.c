@@ -2710,12 +2710,16 @@ static const struct spmi_regulator_match qcom_spmi_regulator_match[] = {
 	{ .subtype = PM660L_SUBTYPE,  .sid = 3, .data = pm660l_regulators },
 	{ .subtype = PM8004_SUBTYPE,  .sid = 5, .data = pm8004_regulators },
 	{ .subtype = PM8005_SUBTYPE,  .sid = 5, .data = pm8005_regulators },
+	{ .subtype = PM8019_SUBTYPE,  .sid = 1, .data = pm8019_regulators },
 	{ .subtype = PM8226_SUBTYPE,  .sid = 1, .data = pm8226_regulators },
 	{ .subtype = PM8841_SUBTYPE,  .sid = 5, .data = pm8841_regulators },
+	{ .subtype = PM8909_SUBTYPE,  .sid = 1, .data = pm8909_regulators },
 	{ .subtype = PM8916_SUBTYPE,  .sid = 1, .data = pm8916_regulators },
+	{ .subtype = PM8937_SUBTYPE,  .sid = 1, .data = pm8937_regulators },
 	{ .subtype = PM8941_SUBTYPE,  .sid = 1, .data = pm8941_regulators },
 	{ .subtype = PM8950_SUBTYPE,  .sid = 1, .data = pm8950_regulators },
 	{ .subtype = PM8994_SUBTYPE,  .sid = 1, .data = pm8994_regulators },
+	{ .subtype = PMA8084_SUBTYPE, .sid = 1, .data = pma8084_regulators },
 	{ .subtype = PMI8994_SUBTYPE, .sid = 3, .data = pmi8994_regulators },
 	{ }
 };
