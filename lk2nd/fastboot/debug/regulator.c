@@ -51,7 +51,16 @@ static void cmd_oem_debug_spmi_regulators(const char *arg, void *data, unsigned 
 
 		snprintf(response, sizeof(response), "Detected PMIC %#x", target);
 		fastboot_info(response);
-		dump_regulators(spmi_regulator_probe(target));
+
+		struct regulator_dev *rdev = spmi_regulator_probe(target);
+		if (!rdev) {
+			snprintf(response, sizeof(response), "No regulators found");
+			fastboot_info(response);
+		} else {
+			snprintf(response, sizeof(response), "Regulator list:");
+			fastboot_info(response);
+			dump_regulators(rdev);
+		}
 	}
 	fastboot_okay("");
 }
