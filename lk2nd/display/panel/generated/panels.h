@@ -3,6 +3,7 @@
 #ifndef _LK2ND_GENERATED_PANELS_H_
 #define _LK2ND_GENERATED_PANELS_H_
 
+#include "lk_panel_cmi_nt35532_5p5_1080pxa_video.h"
 #include "lk_panel_hx8394d_720p_video.h"
 #include "lk_panel_ili9806e_boyi_byt45mp41t1m_4p5cpt.h"
 #include "lk_panel_ili9881c_hd_video.h"
