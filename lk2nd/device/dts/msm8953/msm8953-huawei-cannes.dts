@@ -1,0 +1,61 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8953 0>;
+	qcom,board-id = <8002 0>,
+			<8003 0>,
+			<8018 0>,
+			<8019 0>,
+			<8034 0>,
+			<8035 0>,
+			<8050 0>,
+			<8051 0>,
+			<8066 0>,
+			<8067 0>,
+			<8082 0>,
+			<8083 0>,
+			<8098 0>,
+			<8099 0>,
+			<8114 0>,
+			<8130 0>;
+};
+
+&lk2nd {
+	model = "Huawei Nova";
+	compatible = "huawei,cannes";
+
+	lk2nd,dtb-files = "msm8953-huawei-cannes";
+
+	panel {
+		compatible = "huawei,cannes-panel", "lk2nd,panel";
+
+		qcom,mdss_dsi_boe_nt35596s_5p0_1080p_video {
+			compatible = "huawei,cannes-nt35596s-boe";
+		};
+
+		qcom,mdss_dsi_boe_td4300_5p0_1080p_video {
+			compatible = "huawei,cannes-td4300-boe";
+		};
+
+		qcom,mdss_dsi_ctc_td4310_5p0_1080p_video {
+			compatible = "huawei,cannes-td4310-ctc";
+		};
+
+		qcom,mdss_dsi_jdi_sd6fa1_5p0_1080p_video {
+			compatible = "huawei,cannes-sd6fa1-jdi";
+		};
+
+		qcom,mdss_dsi_lg_td4300_5p0_1080p_video {
+			compatible = "huawei,cannes-td4300-lg";
+		};
+
+		qcom,mdss_dsi_tianma_td4300_5p0_1080p_video {
+			compatible = "huawei,cannes-td4300-tianma";
+		};
+	};
+};
