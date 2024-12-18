@@ -1,0 +1,25 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8920 0x00>;
+	qcom,board-id = <0x43 0x8000>,
+			<0x43 0x83a0>;
+
+	/* 
+	 * model is required by bootloader to pick dtb.
+	 * The bootloader also crashes if model isn't present in every dtb. (see lk2nd.dtsi for more info)
+	 */
+	
+	model = "jeter";
+};
+
+&lk2nd {
+	model = "Motorola Moto G6 Play (jeter) (MSM8920)";
+	compatible = "motorola,jeter";
+	lk2nd,match-device = "jeter";
+
+	lk2nd,dtb-files = "msm8920-motorola-jeter";
+};
