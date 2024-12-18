@@ -6,7 +6,8 @@
 / {
 	qcom,msm-id = <QCOM_ID_MSM8937 0x00>;
 	qcom,board-id = <0x4A 0x8100>,
-			<0x4A 0x8000>;
+			<0x4A 0x8000>,
+			<0x4B 0x8000>;
 
 	/* 
 	 * model is required by bootloader to pick dtb.
@@ -17,7 +18,7 @@
 };
 
 &lk2nd {
-	model = "Motorola Moto G6 Play (jeter)";
+	model = "Motorola Moto G6 Play (jeter) (MSM8937)";
 	compatible = "motorola,jeter";
 	lk2nd,match-device = "jeter";
 
