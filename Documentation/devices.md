@@ -99,7 +99,8 @@
 
 - Asus Zenfone 3 ZE520KL/ZE552KL (zenfone3)
 - Fairphone 3
-- Huawei Maimang 5 / Nova (Plus) / G9 (Plus)
+- Huawei Maimang 5 / Nova Plus / G9 (Plus) (milan)
+- Huawei Nova (cannes)
 - Lenovo P2 (kuntao)
 - Lenovo ThinkSmart View (cd-18781y) (quirky - see comments in `lk2nd/device/dts/msm8953/apq8053-lenovo-cd-18781y.dts`)
 - Meizu M6 Note (m1721)
