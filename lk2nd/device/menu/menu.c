@@ -17,7 +17,7 @@
 #include <lk2nd/version.h>
 
 #include "../device.h"
-
+#include "../../../app/aboot/aboot.h"
 #define FONT_WIDTH	(5+1)
 #define FONT_HEIGHT	12
 #define MIN_LINE	40
@@ -118,6 +118,7 @@ static uint16_t wait_key(void)
 #define xstr(s) str(s)
 #define str(s) #s
 
+static void opt_continue(void)   { aboot_normalboot(); }
 static void opt_reboot(void)     { reboot_device(0); }
 static void opt_recoery(void)    { reboot_device(RECOVERY_MODE); }
 static void opt_bootloader(void) { reboot_device(FASTBOOT_MODE); }
@@ -130,6 +131,7 @@ static struct {
 	void (*action)(void);
 } menu_options[] = {
 	{ "  Reboot  ", GREEN,  opt_reboot },
+	{ " Continue ", WHITE,  opt_continue },
 	{ " Recovery ", ORANGE, opt_recoery },
 	{ "Bootloader", ORANGE, opt_bootloader },
 	{ "    EDL   ", RED,    opt_edl },
