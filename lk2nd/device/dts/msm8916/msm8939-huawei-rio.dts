@@ -16,4 +16,18 @@
 	compatible = "huawei,rio";
 
 	lk2nd,dtb-files = "msm8939-huawei-rio";
+
+	panel {
+		compatible = "huawei,rio-panel";
+		
+		qcom,mdss_dsi_boe_otm1901_5p5_1080p_video {
+			compatible = "huawei,rio-boe-otm1901";
+		};
+		qcom,mdss_dsi_cmi_nt35532_5p5_1080p_video {
+			compatible = "huawei,rio-cmi-nt35532";
+		};
+		qcom,mdss_dsi_tianma_nt35596_5p5_1080p_video {
+			compatible = "huawei,rio-tianma-nt35596";
+		};
+	};
 };
