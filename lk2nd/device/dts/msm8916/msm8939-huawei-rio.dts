@@ -12,7 +12,7 @@
 };
 
 &lk2nd {
-	model = "Huawei G7 Plus / G8 / GX8";
+	model = "Huawei G7 Plus / G8 / GX8 / Maimang 4";
 	compatible = "huawei,rio";
 
 	//FIXME: lk2nd,dtb-files = "msm8939-huawei-rio";
