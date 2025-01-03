@@ -8,6 +8,7 @@
 #include <platform.h>
 #include <platform/iomap.h>
 #include <smem.h>
+#include <strings.h>
 #include <stdlib.h>
 #include <target.h>
 
@@ -58,7 +59,7 @@ static enum token cmd_to_tok(char *command)
 	size_t i;
 
 	for (i = 0; i < ARRAY_SIZE(token_map); i++)
-		if (!strcmp(command, token_map[i].command))
+		if (!strcasecmp(command, token_map[i].command))
 			return token_map[i].token;
 
 	return CMD_UNKNOWN;
