@@ -336,6 +336,28 @@ static bool fs_file_exists(const char *file)
 }
 
 /**
+ * normalize_path() - Normalize path against given root.
+ *
+ * Given some path (absolute or relative), normalize it to
+ * the lk "vfs" path; prepending /extlinux/ if the path is
+ * relative.
+ *
+ * Returns: Newly allocated copy of the string with normalized
+ * path.
+ */
+static char *normalize_path(const char *path, const char *root)
+{
+	char tmp[256];
+
+	if (path[0] == '/')
+		snprintf(tmp, sizeof(tmp), "%s/%s", root, path);
+	else
+		snprintf(tmp, sizeof(tmp), "%s/extlinux/%s", root, path);
+
+	return strndup(tmp, sizeof(tmp));
+}
+
+/**
  * expand_conf() - Sanity check and rewrite the parsed config.
  *
  * This function checks if all the values in the config are sane,
@@ -348,7 +370,6 @@ static bool fs_file_exists(const char *file)
 static bool expand_conf(struct label *label, const char *root)
 {
 	const char *const *dtbfiles = lk2nd_device_get_dtb_hints();
-	char path[128];
 	int i = 0;
 
 	/* Cant boot without any kernel. */
@@ -357,8 +378,7 @@ static bool expand_conf(struct label *label, const char *root)
 		return false;
 	}
 
-	snprintf(path, sizeof(path), "%s/%s", root, label->kernel);
-	label->kernel = strndup(path, sizeof(path));
+	label->kernel = normalize_path(label->kernel, root);
 
 	if (!fs_file_exists(label->kernel)) {
 		dprintf(INFO, "Kernel %s does not exist\n", label->kernel);
@@ -378,24 +398,40 @@ static bool expand_conf(struct label *label, const char *root)
 		}
 
 		while (dtbfiles[i]) {
-			/* NOTE: Try aarch64 path, then aarch32 one. */
-			snprintf(path, sizeof(path), "%s/%s/qcom/%s.dtb", root, label->dtbdir, dtbfiles[i]);
-			if (!fs_file_exists(path))
-				snprintf(path, sizeof(path), "%s/%s/qcom-%s.dtb", root, label->dtbdir, dtbfiles[i]);
+			char dtb[128];
+			char *normalized = NULL;
 
-			/* boot-deploy drops the vendor dir when copying dtbs. */
-			if (!fs_file_exists(path))
-				snprintf(path, sizeof(path), "%s/%s/%s.dtb", root, label->dtbdir, dtbfiles[i]);
-
-			if (fs_file_exists(path)) {
-				label->dtb = strndup(path, sizeof(path));
+			/* Try arm64 style path. */
+			snprintf(dtb, sizeof(dtb), "%s/qcom/%s.dtb", label->dtbdir, dtbfiles[i]);
+			normalized = normalize_path(dtb, root);
+			if (fs_file_exists(normalized)) {
+				label->dtb = normalized;
 				break;
 			}
+			free(normalized);
+
+			/* Try arm32 style path. */
+			snprintf(dtb, sizeof(dtb), "%s/qcom-%s.dtb", label->dtbdir, dtbfiles[i]);
+			normalized = normalize_path(dtb, root);
+			if (fs_file_exists(normalized)) {
+				label->dtb = normalized;
+				break;
+			}
+			free(normalized);
+
+			/* boot-deploy drops the vendor dir when copying dtbs. */
+			snprintf(dtb, sizeof(dtb), "%s/%s.dtb", label->dtbdir, dtbfiles[i]);
+			normalized = normalize_path(dtb, root);
+			if (fs_file_exists(normalized)) {
+				label->dtb = normalized;
+				break;
+			}
+			free(normalized);
+
 			i++;
 		}
 	} else {
-		snprintf(path, sizeof(path), "%s/%s", root, label->dtb);
-		label->dtb = strndup(path, sizeof(path));
+		label->dtb = normalize_path(label->dtb, root);
 	}
 
 	if (!fs_file_exists(label->dtb)) {
@@ -406,20 +442,18 @@ static bool expand_conf(struct label *label, const char *root)
 	if (label->dtboverlays) {
 		i = 0;
 		while (label->dtboverlays[i]) {
-			snprintf(path, sizeof(path), "%s/%s", root, label->dtboverlays[i]);
-			if (fs_file_exists(path)) {
-				label->dtboverlays[i] = strndup(path, sizeof(path));
-			} else {
+			label->dtboverlays[i] = normalize_path(label->dtboverlays[i], root);
+			if (!fs_file_exists(label->dtboverlays[i])) {
 				dprintf(INFO, "FDT overlay %s does not exist\n", label->dtboverlays[i]);
 				return false;
 			}
+
 			i++;
 		}
 	}
 
 	if (label->initramfs) {
-		snprintf(path, sizeof(path), "%s/%s", root, label->initramfs);
-		label->initramfs = strndup(path, sizeof(path));
+		label->initramfs = normalize_path(label->initramfs, root);
 
 		if (!fs_file_exists(label->initramfs)) {
 			dprintf(INFO, "Initramfs %s does not exist\n", label->initramfs);
