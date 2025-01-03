@@ -58,4 +58,26 @@
 			};
 		};
 	};
+
+	prada {
+		model = "Xiaomi Redmi 4 (prada)";
+		compatible = "xiaomi,prada";
+
+		lk2nd,dtb-files = "msm8937-xiaomi-prada";
+
+		lk2nd,match-panel;
+		panel {
+			compatible = "xiaomi,prada-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_hx8394f_boe_720p_video {
+				compatible = "xiaomi,prada-hx8394f-boe";
+			};
+			qcom,mdss_dsi_nt35521s_ctc_720p_video {
+				compatible = "xiaomi,prada-nt35521s-ctc";
+			};
+			qcom,mdss_dsi_ili9881c_tianma_720p_video {
+				compatible = "xiaomi,prada-ili9881c-tianma";
+			};
+		};
+	};
 };
