@@ -116,6 +116,7 @@
 - Samsung Tab A2 XL WIFI
 - Xiaomi Mi A1 (tissot)
 - Xiaomi Mi A2 Lite (daisy)
+- Xiaomi Mi Max 2 (oxygen)
 - Xiaomi Redmi 4 Prime (markw)
 - Xiaomi Redmi 5 (rosy)
 - Xiaomi Redmi 5 Plus (vince)
