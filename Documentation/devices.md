@@ -94,6 +94,7 @@
 - Sony Xperia X
 - Sony Xperia X Compact
 - Wileyfox Swift 2
+- Xiaomi Mi Max (hydrogen)
 
 ### lk2nd-msm8953
 
