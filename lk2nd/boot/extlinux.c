@@ -20,6 +20,7 @@
 #include "boot.h"
 
 struct label {
+	const char *name;
 	const char *kernel;
 	const char *initramfs;
 	const char *dtb;
@@ -29,6 +30,8 @@ struct label {
 };
 
 enum token {
+	CMD_LABEL,
+	CMD_DEFAULT,
 	CMD_KERNEL,
 	CMD_APPEND,
 	CMD_INITRD,
@@ -42,6 +45,8 @@ static const struct {
 	char *command;
 	enum token token;
 } token_map[] = {
+	{"label",		CMD_LABEL},
+	{"default",		CMD_DEFAULT},
 	{"kernel",		CMD_KERNEL},
 	{"linux",		CMD_KERNEL},
 	{"fdtdir",		CMD_FDTDIR},
@@ -170,6 +175,25 @@ static int parse_command(char **data, size_t *size, char **command, char **value
 }
 
 /**
+ * count_lines() - Count the amount of lines in the string.
+ */
+static int count_lines(char *data, size_t size)
+{
+	int acc = 0;
+	size_t i;
+
+	for (i = 0; i < size; ++i) {
+		if (data[i] == '\n')
+			acc++;
+
+		if (data[i] == '\0')
+			break;
+	}
+
+	return acc;
+}
+
+/**
  * parse_conf() - Extract default label from extlinux.conf
  * @data: File contents
  * @size: Length of the file
@@ -189,43 +213,108 @@ static int parse_conf(char *data, size_t size, struct label *label)
 	char *command = NULL, *value = NULL;
 	char *overlay, *saveptr;
 	int cnt = 0;
+	struct {
+		enum token cmd;
+		char *val;
+	} *commands;
+	int commands_count;
+	struct label *labels;
+	struct label *default_label = NULL;
+	const char *default_name = "";
+	int labels_count = 0;
+	int label_idx;
+	int i;
 
+	commands_count = count_lines(data, size);
+	commands = calloc(commands_count, sizeof(*commands));
+
+	i = 0;
 	while (parse_command(&data, &size, &command, &value) == 0) {
-		switch (cmd_to_tok(command)) {
+		if (i >= commands_count) {
+			dprintf(INFO, "Failed to parse the extlinux.conf\n");
+			free(commands);
+			return -1;
+		}
+
+		commands[i].cmd = cmd_to_tok(command);
+		commands[i].val = value;
+		i++;
+	}
+
+	commands_count = i;
+
+	i = 0;
+	for (i = 0; i < commands_count; ++i) {
+		if (commands[i].cmd == CMD_LABEL)
+			labels_count++;
+	}
+
+	if (labels_count == 0) {
+		dprintf(INFO, "No labels in the extlinux.conf\n");
+		free(commands);
+		return -1;
+	}
+
+	labels = calloc(labels_count, sizeof(*labels));
+
+	label_idx = -1;
+	for (i = 0; i < commands_count; ++i) {
+		if (commands[i].cmd == CMD_DEFAULT) {
+			default_name = commands[i].val;
+		} else if (commands[i].cmd == CMD_LABEL) {
+			label_idx++;
+			labels[label_idx].name = commands[i].val;
+		} else if (label_idx >= 0 && label_idx < labels_count) {
+			switch (commands[i].cmd) {
 			case CMD_KERNEL:
-				label->kernel = value;
+				labels[label_idx].kernel = commands[i].val;
 				break;
 			case CMD_INITRD:
-				label->initramfs = value;
+				labels[label_idx].initramfs = commands[i].val;
 				break;
 			case CMD_APPEND:
-				label->cmdline = value;
+				labels[label_idx].cmdline = commands[i].val;
 				break;
 			case CMD_FDT:
-				label->dtb = value;
+				labels[label_idx].dtb = commands[i].val;
 				break;
 			case CMD_FDTDIR:
-				label->dtbdir = value;
+				labels[label_idx].dtbdir = commands[i].val;
 				break;
 			case CMD_FDTOVERLAY:
-				for (char *c = value; *c; c++)
+				for (char *c = commands[i].val; *c; c++)
 					if (*c == ' ')
 						cnt++;
 
 				cnt += 2;
 
-				label->dtboverlays = calloc(cnt, sizeof(*label->dtboverlays));
+				labels[label_idx].dtboverlays = calloc(cnt, sizeof(*labels[label_idx].dtboverlays));
 				cnt = 0;
-				for (overlay = strtok_r(value, " ", &saveptr); overlay;
+				for (overlay = strtok_r(commands[i].val, " ", &saveptr); overlay;
 				     overlay = strtok_r(NULL,  " ", &saveptr)) {
-					label->dtboverlays[cnt] = overlay;
+					labels[label_idx].dtboverlays[cnt] = overlay;
 					cnt++;
 				}
 				break;
 			default:
 				break;
+			}
 		}
 	}
+
+	default_label = &labels[0];
+
+	for (i = 0; i < labels_count; ++i) {
+		if (!strcmp(default_name, labels[i].name)) {
+			default_label = &labels[i];
+			break;
+		}
+	}
+
+	memcpy(label, default_label, sizeof(*label));
+
+	free(labels);
+	free(commands);
 
 	return 0;
 }
@@ -418,6 +507,8 @@ static void lk2nd_boot_label(struct label *label)
 	struct load_addrs addrs;
 	void *kernel_scratch;
 	int ret, i = 0;
+
+	dprintf(INFO, "Trying to boot '%s'\n", label->name);
 
 	ret = fs_load_file(label->kernel, scratch, scratch_size);
 	if (ret < 0) {
