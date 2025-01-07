@@ -67,7 +67,7 @@ lk2nd can read OS cmdline argument and make some decisions while booting it.
 > lk2nd reads those values from the OS it boots, not from it's own cmdline.
 
 - `lk2nd.pass-simplefb(=...)` - Add simplefb node to the dtb.
-  If `autorefresh` is set, display autorefresh for cmdline panels will be enabled.
+  If `autorefresh` is set, display autorefresh for command mode panels will be enabled.
   If `xrgb8888` or `rgb565` is set, the display mode will be switched to selected one.
   If `relocate` is set, the framebuffer address will be changed to a large reasonably
   safe region. Options can be combined. (i.e. `...=xrgb8888,autorefresh`)
