@@ -30,6 +30,17 @@ jobs:
       - name: Build
         run: git clean -dxf && make -j$(nproc) TOOLCHAIN_PREFIX=arm-none-eabi-
              ${{ inputs.options }} ${{ inputs.project }}-${{ inputs.platform }}
+      - name: Check image size
+        run: |
+          IMAGE_FILE="build-${{ inputs.project }}-${{ inputs.platform }}/lk2nd.img"
+          IMAGE_SIZE="$(stat -c%s "$IMAGE_FILE")"
+          echo "Checking $IMAGE_FILE with size=$(( IMAGE_SIZE / 1024 ))KiB"
+          if (( IMAGE_SIZE > 512 * 1024 )); then
+            echo "::warning::The lk2nd.img file is too big!"
+            exit 1
+          fi
+        shell: bash
+        if: inputs.project == 'lk2nd'
       - name: Archive artifacts
         uses: actions/upload-artifact@v4
         with:
