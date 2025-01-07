@@ -5,13 +5,6 @@
 #include <skeleton64.dtsi>
 #include <lk2nd.dtsi>
 
-/*
- * To build for xiaomi-land, add LK2ND_DTBS="" LK2ND_ADTBS="msm8937-xiaomi-land.dtb"
- * to your make cmdline.
- * land does not work with all dtbs enabled; the bootloader gets upset and
- * goes into bootloop.
- */
-
 / {
 	qcom,msm-id = <QCOM_ID_MSM8937 0>;
 	qcom,board-id = <0x1000b 1>, <0x2000b 1>;
