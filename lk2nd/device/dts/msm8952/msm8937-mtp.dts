@@ -17,6 +17,30 @@
 		lk2nd,dtb-files = "msm8937-motorola-cedric";
 	};
 
+	hannah {
+		model = "Motorola Moto E5 Plus (hannah) (MSM8937)";
+		compatible = "motorola,hannah";
+		lk2nd,match-device = "hannah";
+
+		lk2nd,dtb-files = "msm8937-motorola-hannah";
+
+		lk2nd,match-panel;
+		panel {
+			compatible = "motorola,hannah-panel", "lk2nd,panel";
+			qcom,mdss_dsi_mot_tianma_599_hd_video_v0 {
+				compatible = "motorola,hannah-599-tianma";
+			};
+
+			qcom,mdss_dsi_mot_djn_599_hd_video_v0 {
+				compatible = "motorola,hannah-599-djn";
+			};
+
+			qcom,qcom,mdss_dsi_mot_djn_600_hd_video_v0 {
+				compatible = "motorola,hannah-600-djn";
+			};
+		};
+	};
+
 	l38011 {
 		model = "Lenovo K5 Play (l38011)";
 		compatible = "lenovo,l38011";
