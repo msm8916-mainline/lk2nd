@@ -22,12 +22,18 @@
 
 		qcom,mdss_dsi_hx8394f_boe_720p_video {
 			compatible = "xiaomi,rolex-hx8394f-boe";
+			touchscreen-compatible = "goodix,gt911";
+			// touchscreen-compatible = "edt,edt-ft5306";
 		};
 		qcom,mdss_dsi_ili9881c_ebbg_720p_video {
 			compatible = "xiaomi,rolex-ili9881c-ebbg";
+			touchscreen-compatible = "goodix,gt911";
+			// touchscreen-compatible = "edt,edt-ft5306";
 		};
 		qcom,mdss_dsi_nt35521s_ebbg_720p_video {
 			compatible = "xiaomi,rolex-nt35521s-ebbg";
+			touchscreen-compatible = "goodix,gt911";
+			// touchscreen-compatible = "edt,edt-ft5306";
 		};
 	};
 };
