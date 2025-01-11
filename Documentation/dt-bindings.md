@@ -161,6 +161,31 @@ used to switch the navigation scheme to short/long press of a single key.
 	lk2nd,single-key-navigation;
 ```
 
+### Custom menu navigation key hint
+
+If your device uses re-mapped keys you can customize the hint that is shown in
+the lk2nd boot menu.
+
+For example, if your device only has `Volume Up` and `Volume Down` keys and no
+`Power` key you can add the following optional property:
+
+```
+	lk2nd,menu-key-strings = "Volume Down", "Volume Up";
+```
+
+The first string describes the key(s) used for navigating the menu, the second
+string describes the key used for selecting a menu item.
+
+With the example setting shown above the boot menu would read:
+
+  Volume Down to navigate.
+  Volume Up to select.
+
+If the property is not set the default hint will be shown:
+
+  Volume keys to navigate.
+  Power key to select.
+
 ## Additional drivers
 
 lk2nd provides a set of optional nodes, following a simple driver
