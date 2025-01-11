@@ -17,6 +17,11 @@ struct lk2nd_panel {
 #endif
 };
 
+struct lk2nd_menu_keys {
+	const char *navigate;
+	const char *select;
+};
+
 struct lk2nd_device {
 	const void *dtb;
 
@@ -26,6 +31,7 @@ struct lk2nd_device {
 
 	const char *const *dtbfiles;
 	bool single_key;
+	struct lk2nd_menu_keys menu_keys;
 
 	struct lk2nd_panel panel;
 

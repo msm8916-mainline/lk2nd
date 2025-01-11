@@ -203,8 +203,10 @@ void display_fastboot_menu(void)
 		fbcon_puts_ln(SILVER, y, incr, true, "Short press to navigate.");
 		fbcon_puts_ln(SILVER, y, incr, true, "Long press to select.");
 	} else {
-		fbcon_puts_ln(SILVER, y, incr, true, "Volume keys to navigate.");
-		fbcon_puts_ln(SILVER, y, incr, true, "Power key to select.");
+		fbcon_printf_ln(SILVER, y, incr, true, "%s to navigate.",
+				(lk2nd_dev.menu_keys.navigate ? lk2nd_dev.menu_keys.navigate : "Volume keys"));
+		fbcon_printf_ln(SILVER, y, incr, true, "%s to select.",
+				(lk2nd_dev.menu_keys.select ? lk2nd_dev.menu_keys.select : "Power key"));
 	}
 
 	/*
