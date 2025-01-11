@@ -6,22 +6,31 @@
 #include <lk2nd.dtsi>
 
 /*
- * While the bootloader can be unlocked using `fastboot oem-unlock` the
- * device's lk bootloader will crash as long as the bootloader remains
- * unlocked. Therefor:
- * - Secure Boot can not be disabled
- *   However, the device will happily boot any AVB1 signed image.
- *   Build the image using the following make command to have it
- *   appropriately signed during build:
+ * This device has a few quirks you need to keep in mind when building and
+ * flashing lk2nd:
  *
- *     make TOOLCHAIN_PREFIX=arm-none-eabi- SIGN_BOOTIMG=1 lk2nd-msm8953
+ * 1. The stock bootloader does not like images built with embedded QCDT.
+ *    Therefor LK2ND_QCDTBS="" must be set when building.
  *
- * - lk2nd cannot be flashed in fastboot mode
- *   Instead, use EDL (https://github.com/bkerler/edl) to write the signed
- *   lk2nd.img to the boot partition.
- *   For example:
+ * 2. While the bootloader can be unlocked using `fastboot oem-unlock` the
+ *    device's lk bootloader will crash as long as the bootloader remains
+ *    unlocked. Therefor:
+ *      - Secure Boot can not be disabled
  *
- *     edl w boot build-lk2nd-msm8953/lk2nd.img
+ *        However, the device will happily boot any AVB1 signed image.
+ *        Build the image using the following make command to have it
+ *        appropriately signed during build:
+ *
+ *          make TOOLCHAIN_PREFIX=arm-none-eabi- SIGN_BOOTIMG=1 \
+ *               LK2ND_QCDTBS="" lk2nd-msm8953
+ *
+ *      - lk2nd cannot be flashed in fastboot mode
+ *
+ *        Instead, use EDL (https://github.com/bkerler/edl) to write the signed
+ *        lk2nd.img to the boot partition.
+ *        For example:
+ *
+ *          edl w boot build-lk2nd-msm8953/lk2nd.img
  */
 
 / {
