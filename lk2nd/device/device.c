@@ -126,6 +126,14 @@ static void parse_dtb(const void *dtb)
 	if (len >= 0)
 		lk2nd_dev.single_key = true;
 
+	val = fdt_stringlist_get(dtb, node, "lk2nd,menu-key-strings", 0, &len);
+	if (val && len > 0)
+		lk2nd_dev.menu_keys.navigate = strndup(val, len);
+
+	val = fdt_stringlist_get(dtb, node, "lk2nd,menu-key-strings", 1, &len);
+	if (val && len > 0)
+		lk2nd_dev.menu_keys.select = strndup(val, len);
+
 	dprintf(INFO, "Detected device: %s (compatible: %s)\n",
 		lk2nd_dev.model, lk2nd_dev.compatible);
 
