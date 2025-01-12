@@ -43,6 +43,7 @@
 	compatible = "lenovo,cd-18781y";
 
 	lk2nd,dtb-files = "apq8053-lenovo-cd-18781y";
+	lk2nd,menu-key-strings = "Volume Down", "Volume Up";
 
 	gpio-keys {
 		compatible = "gpio-keys";
