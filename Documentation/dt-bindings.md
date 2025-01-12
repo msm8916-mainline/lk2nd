@@ -161,6 +161,31 @@ used to switch the navigation scheme to short/long press of a single key.
 	lk2nd,single-key-navigation;
 ```
 
+### Custom menu navigation key hint
+
+If your device uses re-mapped keys you can customize the hint that is shown in
+the lk2nd boot menu.
+
+For example, if your device only has `Volume Up` and `Volume Down` keys and no
+`Power` key you can add the following optional property:
+
+```
+	lk2nd,menu-key-strings = "Volume Down", "Volume Up";
+```
+
+The first string describes the key(s) used for navigating the menu, the second
+string describes the key used for selecting a menu item.
+
+With the example setting shown above the boot menu would read:
+
+  Volume Down to navigate.
+  Volume Up to select.
+
+If the property is not set the default hint will be shown:
+
+  Volume keys to navigate.
+  Power key to select.
+
 ## Additional drivers
 
 lk2nd provides a set of optional nodes, following a simple driver
@@ -187,4 +212,38 @@ binding with an exception of the new `lk2nd,code` property.
 	};
 ```
 
+You can also use this to re-map keys to allow for navigating the menu if the
+default keys are not available on the device.
 
+The following example is for a device that only has Volume Up and Down keys, but
+no Power key. It re-maps the Volume Up key to the Power key to allow selecting
+items in the menu.
+
+Note that you may need to unmap a particular key from its original function by
+assigning an unused GPIO in its place. In this case the order of nodes in your
+device tree matters, so ensure that you unmap the key first before you assign a
+new keycode to the actual key.
+
+```
+	gpio-keys {
+		compatible = "gpio-keys";
+
+		/* HACK: map KEY_VOLUMEUP to non-existent button so the actual
+		 * Volume Up button will successfully re-map to KEY_POWER below.
+		 */
+		volume-up-unmap {
+			lk2nd,code = <KEY_VOLUMEUP>;
+			gpios = <&pmic_pon 0 0>;
+		};
+
+		/*
+		 * Remap Volume Up to KEY_POWER to allow selecting menu items as
+		 * there is no power button present on the device.
+		 * Use Volume Down to navigate the menu and Volume Up to select.
+		 */
+		volume-up {
+			lk2nd,code = <KEY_POWER>;
+			gpios = <&tlmm 85 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+		};
+	};
+```

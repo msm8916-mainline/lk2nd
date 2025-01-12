@@ -98,6 +98,7 @@ static void parse_dtb(const void *dtb)
 {
 	int node, len;
 	const char *val;
+	const char *const *strings;
 
 	node = find_device_node(dtb);
 	if (node < 0) {
@@ -125,6 +126,13 @@ static void parse_dtb(const void *dtb)
 	val = fdt_getprop(dtb, node, "lk2nd,single-key-navigation", &len);
 	if (len >= 0)
 		lk2nd_dev.single_key = true;
+
+	strings = (const char *const *)
+		lkfdt_stringlist_get_all(dtb, node, "lk2nd,menu-key-strings", &len);
+	if(len > 0)
+		lk2nd_dev.menu_keys.navigate = strdup(strings[0]);
+	if(len > 1)
+		lk2nd_dev.menu_keys.select = strdup(strings[1]);
 
 	dprintf(INFO, "Detected device: %s (compatible: %s)\n",
 		lk2nd_dev.model, lk2nd_dev.compatible);
