@@ -96,4 +96,26 @@
 			};
 		};
 	};
+
+	xiaoxun-jz0145-v33 {
+		model = "JZ0145 v33 4G Modem Stick";
+		compatible = "xiaoxun,jz0145-v33";
+
+		/*
+		 * Use this node with lk1st:
+		 * make ... LK2ND_BUNDLE_DTB="msm8916-512mb-mtp.dtb" LK2ND_COMPATIBLE="xiaoxun,jz0145-v33" ...
+		 */
+		lk2nd,match-cmdline = "* mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_st7796s_320p_video";
+
+		lk2nd,dtb-files = "msm8916-xiaoxun-jz0145-v33";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			edl {
+				/* The EDL button is the only one available on JZ0145 v33 */
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&tlmm 37 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
 };
