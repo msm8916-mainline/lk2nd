@@ -25,4 +25,26 @@
 			};
 		};
 	};
+	samsung-loganre {
+		model = "Samsung Galaxy Ace 3 LTE (GT-S7275R)";
+		compatible = "samsung,loganrelte", "samsung,loganre";
+		lk2nd,match-cmdline = "*samsung.hardware=GT-S7275R*";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+
+			volume-up {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&tlmm 50 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			volume-down {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&tlmm 81 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			home {
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&tlmm 35 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
 };
