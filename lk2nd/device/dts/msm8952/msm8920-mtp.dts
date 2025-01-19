@@ -6,17 +6,17 @@
 #include <lk2nd.dtsi>
 
 / {
-	qcom,msm-id = <QCOM_ID_MSM8917 0>;
+	qcom,msm-id = <QCOM_ID_MSM8920 0>;
 	qcom,board-id = <QCOM_BOARD_ID_MTP 0>;
 };
 
 &lk2nd {
 	motorola-nora {
-		model = "Motorola Moto E5 (nora) (MSM8917)";
+		model = "Motorola Moto E5 (nora) (MSM8920)";
 		compatible = "motorola,nora";
 		lk2nd,match-device = "nora";
 
-		lk2nd,dtb-files = "msm8917-motorola-nora";
+		lk2nd,dtb-files = "msm8920-motorola-nora";
 
 		panel {
 			compatible = "motorola,nora-panel", "lk2nd,panel";
@@ -35,28 +35,6 @@
 			};
 			qcom,mdss_dsi_mot_wistron_570_hd_video_v0 {
 				compatible = "motorola,jeter-570-wistron";
-			};
-		};
-	};
-
-	xiaomi-ugglite {
-		model = "Xiaomi Redmi Note 5A (ugglite)";
-		compatible = "xiaomi,ugglite";
-
-		lk2nd,dtb-files = "msm8917-xiaomi-ugglite";
-
-		lk2nd,match-panel;
-		panel {
-			compatible = "xiaomi,ugglite-panel", "lk2nd,panel";
-
-			qcom,mdss_dsi_tm_otm1901a_720p_video {
-				compatible = "xiaomi,ugglite-otm1901a-tm";
-			};
-			qcom,mdss_dsi_sc_ili9881c_720p_video {
-				compatible = "xiaomi,ugglite-ili9881c-sc";
-			};
-			qcom,mdss_dsi_hx_otm1901a_720p_video {
-				compatible = "xiaomi,ugglite-otm1901a-hx";
 			};
 		};
 	};
