@@ -1,0 +1,32 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8939 0>;
+	qcom,board-id =
+		<8000 0>, <8000 4>, 
+		<8016 0>, <8016 4>,
+		<8032 0>, <8032 4>,
+		<8112 0>, <8112 4>,
+		<8128 0>, <8128 4>;
+};
+
+&lk2nd {
+	model = "Huawei MediaPad T2 10.0 Pro";
+	compatible = "huawei,federer";
+
+	lk2nd,dtb-files = "msm8939-huawei-federer";
+
+	panel {
+		compatible = "huawei,federer-panel", "lk2nd,panel";
+
+		qcom,mdss_dsi_boe_nt51021_10_1200p_video {
+			compatible = "huawei,boe-nt51021";
+		};
+		qcom,mdss_dsi_cmi_nt51021_10_1200p_video {
+			compatible = "huawei,cmi-nt51021";
+		};
+	};
+};
