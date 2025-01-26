@@ -17,6 +17,7 @@
 - Huawei Ascend G7 - G7-L01
 - Huawei G7 Plus / G8 / GX8 - rio
 - Huawei Honor 5X / GR5 (2016) - kiwi
+- Huawei MediaPad T2 10.0 Pro - federer
 - Huawei Y635 - Y635-L01 (quirky - see comment in `lk2nd/device/dts/msm8916/msm8916-huawei-y635-l01.dts`)
 - Lenovo A6000
 - Lenovo A6010
