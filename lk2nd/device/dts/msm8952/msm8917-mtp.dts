@@ -25,7 +25,7 @@
 				compatible = "motorola,jeter-570-tianma";
 			};
 			qcom,mdss_dsi_mot_tianma_571_hd_video_v0 {
-				compatible = "motorola,jeter-ili9881h-tianma";
+				compatible = "motorola,jeter-571-tianma";
 			};
 			qcom,mdss_dsi_mot_djn_570_hd_video_v0 {
 				compatible = "motorola,jeter-570-djn";
