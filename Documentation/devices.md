@@ -82,6 +82,7 @@
 - Leeco s2
 - Lenovo K5 Play (l38011)
 - Motorola Moto E5 (nora)
+- Motorola Moto E5 Plus (hannah) (MSM8917)
 - Motorola Moto E5 Plus (hannah) (MSM8937)
 - Motorola Moto G5 (cedric)
 - Motorola Moto G5S (montana)
