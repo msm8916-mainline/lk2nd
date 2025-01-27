@@ -97,9 +97,14 @@ static int lk2nd_panel_dt_update(void *dtb, const char *cmdline,
 
 		ret = fdt_nop_property(dtb, node, "status");
 		if (ret < 0) {
-			dprintf(CRITICAL, "Failed to enable %s touchscreen: %d\n",
-				panel->ts_compatible, ret);
-			return ret;
+			dprintf(CRITICAL,
+				"WARNING!!!!\n"
+				"Failed to enable %s touchscreen: %d\n"
+				"Please check your device tree.\n"
+				"Maybe a status property is missing from touchscreen nodes.\n",
+				panel->ts_compatible,
+				ret);
+			return 0;
 		}
 	}
 
