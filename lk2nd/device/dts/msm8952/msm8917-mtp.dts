@@ -11,6 +11,30 @@
 };
 
 &lk2nd {
+    	motorola-hannah {
+		model = "Motorola Moto E5 Plus (hannah) (MSM8917)";
+		compatible = "motorola,hannah";
+		lk2nd,match-device = "hannah";
+
+		lk2nd,dtb-files = "msm8917-motorola-hannah";
+
+		lk2nd,match-panel;
+		panel {
+			compatible = "motorola,hannah-panel", "lk2nd,panel";
+			qcom,mdss_dsi_mot_tianma_599_hd_video_v0 {
+				compatible = "motorola,hannah-599-tianma";
+			};
+
+			qcom,mdss_dsi_mot_djn_599_hd_video_v0 {
+				compatible = "motorola,hannah-599-djn";
+			};
+
+			qcom,qcom,mdss_dsi_mot_djn_600_hd_video_v0 {
+				compatible = "motorola,hannah-600-djn";
+			};
+		};
+	};
+
 	motorola-nora {
 		model = "Motorola Moto E5 (nora) (MSM8917)";
 		compatible = "motorola,nora";
