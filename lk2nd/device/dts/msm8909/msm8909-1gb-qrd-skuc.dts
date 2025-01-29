@@ -88,4 +88,38 @@
 			};
 		};
 	};
+
+	haier-g151 {
+		model = "Haier G151 / Andromax A";
+		compatible = "haier,g151";
+
+		/* NOTE
+		 * Due to some unknown reasons, the stock aboot firmware is
+		 * incompatible with lk2nd. Use lk1st if possible.
+		 * 
+		 * To build lk1st:
+		 * make TOOLCHAIN_PREFIX=arm-none-eabi- \
+		 * LK2ND_BUNDLE_DTB="msm8909-1gb-qrd-skuc.dtb" \
+		 * LK2ND_COMPATIBLE="haier,g151" \
+		 * LK2ND_DISPLAY="<your_panel>" lk1st-msm8909
+		 */
+
+		lk2nd,dtb-files = "msm8909-haier-g151";
+
+		panel {
+			compatible = "haier,g151-panel";
+
+			qcom,mdss_dsi_ili9806e_fwvga_video {
+				compatible = "haier,ili9806e";
+			};
+
+			qcom,mdss_dsi_ili9806e_fwvga_hsd_huashi_video {
+				compatible = "haier,ili9806e-hsd-huashi";
+			};
+
+			qcom,mdss_dsi_ili9806e_fwvga_hsd_hlt_video {
+				compatible = "haier,ili9806-hsd-hlt";
+			};
+		};
+	};
 };
