@@ -65,6 +65,7 @@
 - Acer Liquid Z330 (T01)
 - CAT B35
 - FarEasTone Smart 506 (quirky - see comment in `lk2nd/device/dts/msm8909/msm8909-1gb-qrd-skuc.dts`)
+- Haier G151 / Andromax A (quirky - see comment in `lk2nd/device/dts/msm8909/msm8909-1gb-qrd-skuc.dts`)
 - Lenovo Yoga Tab 3 10 LTE
 - Mobvoi TicWatch Pro (WF12096)
 - Nokia 6300 4G
