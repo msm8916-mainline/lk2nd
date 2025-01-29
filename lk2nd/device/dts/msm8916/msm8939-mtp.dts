@@ -34,6 +34,33 @@
 		};
 	};
 
+	sony-tulip {
+		model = "Sony Xperia M4 Aqua";
+		compatible = "sony,kanuti-tulip";
+		lk2nd,match-panel;
+		lk2nd,dtb-files = "msm8939-sony-xperia-kanuti-tulip";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+
+			volume-down {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&tlmm 51 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			volume-up {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&tlmm 11 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+
+		panel {
+			compatible = "sony,kanuti-tulip-panel", "lk2nd,panel";
+			qcom,mdss_dsi_nt35521_720p_video {
+				compatible = "sony,tulip-truly-nt35521";
+			};
+		};
+	};
+
 	xiaomi-ferrari {
 		model = "Xiaomi Mi 4i";
 		compatible = "xiaomi,ferrari";
