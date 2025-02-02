@@ -47,4 +47,27 @@
 			};
 		};
 	};
+	samsung-expressatt {
+		model = "Samsung Galaxy Express SGH-I437";
+		compatible = "samsung,expressatt", "qcom,msm8960";
+		lk2nd,match-bootloader = "I437*";
+		lk2nd,dtb-files = "msm8960-samsung-expressatt";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+
+			volume-up {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&tlmm 50 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			volume-down {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&tlmm 81 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			home {
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&tlmm 40 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
 };

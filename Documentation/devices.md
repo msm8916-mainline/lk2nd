@@ -170,6 +170,7 @@
 
 ### lk2nd-msm8960
 
+- Samsung Galaxy Express (SGH-I437)
 - Samsung Galaxy S4 Mini (GT-I9195)
 
 ## Porting new devices
