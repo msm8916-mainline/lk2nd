@@ -366,6 +366,7 @@ void dwc_device_reset(dwc_dev_t *dev)
 {
 	/* start reset */
 	REG_WRITE_FIELD(dev, DCTL, CSFTRST, 1);
+	dwc_device_run(dev, 0);
 
 	/* wait until done */
 	while(REG_READ_FIELD(dev, DCTL, CSFTRST));
