@@ -70,4 +70,13 @@
 
 		lk2nd,dtb-files = "sdm450-samsung-a6plte-r4";
 	};	
+
+	gta2xllte-generic {
+		model = "Samsung Tab A2 XL LTE Rev04";
+		compatible = "samsung,gta2xllte";
+		lk2nd,match-bootloader = "T595*";
+
+		lk2nd,dtb-files = "sdm450-samsung-gta2xllte";
+	};
+
 };
