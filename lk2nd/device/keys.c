@@ -70,6 +70,7 @@ static const uint16_t published_keys[] = {
 	KEY_VOLUMEDOWN,
 	KEY_POWER,
 	KEY_HOME,
+	KEY_BACK,
 };
 
 static void lk2nd_keys_publish(void)
