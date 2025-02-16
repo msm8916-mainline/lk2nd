@@ -31,7 +31,7 @@
 			compatible = "gpio-keys";
 			edl {
 				/* The EDL button is the only one available on UFI-001C */
-				lk2nd,code = <KEY_HOME>;
+				lk2nd,code = <KEY_BACK>;
 				gpios = <&tlmm 37 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
 			};
 
@@ -39,13 +39,13 @@
 
 			reset {
 				/* RESET button on the back of the device */
-				lk2nd,code = <KEY_HOME>;
+				lk2nd,code = <KEY_BACK>;
 				gpios = <&tlmm 34 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
 			};
 
 			wps {
 				/* WPS button near the power button(may not exist on some variants) */
-				lk2nd,code = <KEY_HOME>;
+				lk2nd,code = <KEY_BACK>;
 				gpios = <&tlmm 107 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
 			};
 		};
@@ -66,7 +66,7 @@
 			compatible = "gpio-keys";
 			edl {
 				/* The EDL button is the only one available on UFI-001C */
-				lk2nd,code = <KEY_HOME>;
+				lk2nd,code = <KEY_BACK>;
 				gpios = <&tlmm 37 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
 			};
 		};
@@ -91,7 +91,7 @@
 		gpio-keys {
 			compatible = "gpio-keys";
 			reset {
-				lk2nd,code = <KEY_HOME>;
+				lk2nd,code = <KEY_BACK>;
 				gpios = <&tlmm 23 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
 			};
 		};
@@ -113,7 +113,7 @@
 			compatible = "gpio-keys";
 			edl {
 				/* The EDL button is the only one available on JZ0145 v33 */
-				lk2nd,code = <KEY_HOME>;
+				lk2nd,code = <KEY_BACK>;
 				gpios = <&tlmm 37 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
 			};
 		};

@@ -22,7 +22,7 @@
 		gpio-keys {
 			compatible = "gpio-keys";
 			reset {
-				lk2nd,code = <KEY_HOME>;
+				lk2nd,code = <KEY_BACK>;
 				gpios = <&tlmm 35 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
 			};
 		};
