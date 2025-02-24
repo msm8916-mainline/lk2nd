@@ -162,7 +162,7 @@
 - Samsung Galaxy Tab 4 8.0 (2014) - SM-T330, SM-T330NU, SM-T331
 
 ### lk2nd-msm8994
-
+- Huawei Nexus 6P - Angler
 - LG G4 - h815
 
 ### lk2nd-msm8996
