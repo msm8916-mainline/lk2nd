@@ -1,0 +1,15 @@
+// SPDX-License-Identifier: BSD-3-Clause
+ 
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8916 0>;
+	qcom,board-id = <QCOM_BOARD_ID(QRD, 1, 0) 5>;
+};
+
+&lk2nd {
+	model = "Wiko Pulp 4G";
+	compatible = "wiko,chuppito";
+	lk2nd,dtb-files = "msm8916-wiko-chuppito";
+};

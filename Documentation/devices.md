@@ -54,6 +54,7 @@
 - Vivo Y21L
 - Vodafone Smart prime 6
 - Wileyfox Swift - crackling
+- Wiko Pulp 4G
 - Xiaomi Mi 4i - ferrari
 - Xiaomi Redmi 2 - wt86047, wt88047
 - Xiaomi Redmi 3 - ido
