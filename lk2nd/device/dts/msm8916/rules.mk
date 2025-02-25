@@ -30,6 +30,7 @@ QCDTBS += \
 	$(LOCAL_DIR)/msm8916-qrd-skut1.dtb \
 	$(LOCAL_DIR)/msm8916-samsung.dtb \
 	$(LOCAL_DIR)/msm8916-vivo-y21l.dtb \
+	$(LOCAL_DIR)/msm8916-wiko-chuppito.dtb \
 	$(LOCAL_DIR)/msm8929-samsung.dtb \
 	$(LOCAL_DIR)/msm8929-qrd-wt82918hd.dtb \
 	$(LOCAL_DIR)/msm8939-asus-z00t.dtb \
