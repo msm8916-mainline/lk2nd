@@ -45,6 +45,11 @@ $(OUTQCDT): $(QCDTBS)
 	$(NOECHO)lk2nd/scripts/dtbTool -o $@ $(QCDTBS)
 endif
 
+# Generate a 1-byte RAM disk containing a single zero
+RAMDISK := $(BUILDDIR)/ramdisk.img
+$(RAMDISK):
+	$(NOECHO)printf '\0' > $(RAMDISK)
+
 # Android boot image
 MKBOOTIMG_BASE ?= $(BASE_ADDR)
 
@@ -52,7 +57,7 @@ ifeq ($(ENABLE_UFS_SUPPORT), 1)
 MKBOOTIMG_PAGESIZE ?= 4096
 endif
 
-$(OUTBOOTIMG): $(OUTBINDTB) $(OUTQCDT)
+$(OUTBOOTIMG): $(OUTBINDTB) $(OUTQCDT) $(RAMDISK)
 	@echo generating Android boot image: $@
 	$(NOECHO)lk2nd/scripts/mkbootimg \
 		--kernel=$< \
@@ -61,7 +66,9 @@ $(OUTBOOTIMG): $(OUTBINDTB) $(OUTQCDT)
 		$(if $(OUTQCDT),--qcdt=$(OUTQCDT)) \
 		$(if $(MKBOOTIMG_BASE),--base=$(MKBOOTIMG_BASE)) \
 		$(if $(MKBOOTIMG_PAGESIZE),--pagesize=$(MKBOOTIMG_PAGESIZE)) \
+		--ramdisk=$(RAMDISK) \
 		$(MKBOOTIMG_ARGS)
+
 ifeq ($(SIGN_BOOTIMG), 1)
 		$(NOECHO)lk2nd/scripts/bootsignature.py \
 			-s \
