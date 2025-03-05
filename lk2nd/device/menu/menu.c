@@ -130,6 +130,7 @@ static void opt_shutdown(void)   { shutdown_device(); }
 static void opt_switch_slot(void){
 	int current_active_slot = partition_find_active_slot();
 	partition_switch_slots(current_active_slot, !current_active_slot, true);
+	reboot_device(FASTBOOT_MODE);
 }
 #endif
 
