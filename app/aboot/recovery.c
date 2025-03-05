@@ -468,13 +468,16 @@ out:
 static int read_misc(unsigned page_offset, void *buf, unsigned size)
 {
 	const char *ptn_name = "misc";
-	uint32_t pagesize = get_page_size();
 	unsigned offset;
 
 	if (size == 0 || buf == NULL)
 		return -1;
 
-	offset = page_offset * pagesize;
+#if VIRTUAL_AB_OTA
+		offset = page_offset;
+#else
+		offset = page_offset * BLOCK_SIZE;
+#endif
 
 	if (target_is_emmc_boot())
 	{
