@@ -736,6 +736,28 @@
 		};
 	};
 
+	e7ltexx {
+		model = "Samsung Galaxy E7 (SM-E700F)";
+		compatible = "samsung,e7ltexx", "samsung,e7";
+		lk2nd,match-bootloader = "E700F*";
+
+		lk2nd,dtb-files = "msm8916-samsung-e7";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 6>;
+
+		panel {
+			compatible = "samsung,e7-panel", "lk2nd,panel";
+
+			ss_dsi_panel_EA8061_HD {
+				compatible = "samsung,ea8061-ams549bu19";
+			};
+			ss_dsi_panel_EA8061_ID400418_HD {
+				compatible = "samsung,ea8061-ams549bu19-id400418";
+			};
+		};
+	};
+
 	gt58ltebmc {
 		model = "Samsung Galaxy Tab A 8.0 2015 (SM-T357W)";
 		compatible = "samsung,gt58ltebmc", "samsung,gt58";
