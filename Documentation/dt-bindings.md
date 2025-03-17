@@ -247,3 +247,34 @@ new keycode to the actual key.
 		};
 	};
 ```
+
+### GPIO leds
+
+lk2nd supports the `gpio-leds` node. This node follows upstream binding except
+that most properties are not supported. Currently only `gpios` and
+`default-state` are supported in lk2nd.
+
+```
+gpio-leds {
+    compatible = "gpio-leds";
+
+    red {
+        gpios = <&tlmm 3 GPIO_ACTIVE_HIGH>;
+        default-state = "on";
+    };
+
+    green {
+        gpios = <&tlmm 4 GPIO_ACTIVE_HIGH>;
+        default-state = "off";
+    };
+};
+```
+
+This driver is mainly for lk1st since no previous boot-loader is capable to
+light up an LED in this case. This makes it unclear what state currently the
+device is in. If you wish to make sure some leds are enabled or disabled by
+lk1st on boot, you can use this driver.
+
+lk2nd doesn't implement a fully-fledged led subsystem. The only purpose for
+this driver is for debugging and the LED behavior consistancy between lk1st
+and lk2nd.
