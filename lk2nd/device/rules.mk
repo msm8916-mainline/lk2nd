@@ -18,6 +18,7 @@ OBJS += \
 	$(LK2ND_DEVICE_OBJ) \
 	$(LOCAL_DIR)/panel.o \
 	$(LOCAL_DIR)/keys.o \
+	$(LOCAL_DIR)/leds.o \
 
 ifneq ($(LK2ND_COMPATIBLE),)
 DEFINES += LK2ND_COMPATIBLE="$(LK2ND_COMPATIBLE)"
