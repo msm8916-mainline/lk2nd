@@ -10,6 +10,15 @@
 };
 
 &lk2nd {
-	model = "LG G5 (H850)";
-	compatible = "lg,h850";
+	h850 {
+		model = "LG G5 (H850)";
+		compatible = "lg,h850";
+		lk2nd,match-cmdline = "*androidboot.serialno=LGH850*";
+	};
+
+	rs988 {
+		model = "LG G5 (RS988)";
+		compatible = "lg,rs988";
+		lk2nd,match-cmdline = "*androidboot.serialno=RS988*";
+	};
 };
