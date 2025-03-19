@@ -2750,15 +2750,19 @@ struct regulator_dev *spmi_regulator_probe(uint8_t subtype)
 	unsigned int i;
 	int ret;
 
-	if (!match)
+	if (!match) {
+		dprintf(CRITICAL, "Failed to find SPMI regulator match for subtype 0x%02X\n", subtype);
 		return NULL;
+	}
 
 	for (data = match->data; data->name; ++data)
 		++num;
 
 	vreg = calloc(num, sizeof(*vreg));
-	if (!vreg)
+	if (!vreg) {
+		dprintf(CRITICAL, "Failed to allocate memory for SPMI regulator\n");
 		return NULL;
+	}
 
 	for (i = 0; i < num; ++i) {
 		const struct spmi_regulator_data *reg = &match->data[i];
@@ -2768,9 +2772,11 @@ struct regulator_dev *spmi_regulator_probe(uint8_t subtype)
 		vreg[i].base = (match->sid << 16) | reg->base;
 
 		ret = spmi_regulator_match(&vreg[i], reg->force_type);
-		if (ret)
-			dprintf(CRITICAL, "Failed to match SPMI regulator %s\n",
-				reg->name);
+		if (ret) {
+			dprintf(CRITICAL, "Failed to match SPMI regulator %s\n", reg->name);
+			dprintf(CRITICAL, "subtype=%u, force_type=0x%02X, logical_type=%u\n",
+				subtype, reg->force_type, vreg[i].logical_type);
+		}
 
 		if (vreg[i].set_points)
 			vreg[i].desc.driver_type = vreg[i].set_points->type;
