@@ -35,6 +35,10 @@ static void lk2nd_scan_devices(void)
 		if (!bdev->is_leaf)
 			continue;
 
+		/* Skip partitions without label. */
+		if (NULL == bdev->label)
+			continue;
+
 		/*
 		 * Skip partitions that are too small to have a boot fs on.
 		 *
