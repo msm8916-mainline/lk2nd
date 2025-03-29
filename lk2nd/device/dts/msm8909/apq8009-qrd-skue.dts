@@ -1,0 +1,32 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_APQ8009 0>;
+	qcom,board-id = <QCOM_BOARD_ID_QRD 0x09>,
+			<QCOM_BOARD_ID(QRD, 1, 0) 0x09>;
+};
+
+&lk2nd {
+	lxf_p5100 {
+		model = "Lenovo Yoga Tab 3 10 WIFI";
+		compatible = "lenovo,lxf-p5100";
+		
+		lk2nd,dtb-files = "msm8909-lenovo-lxf-p5100";
+		lk2nd,match-panel;
+
+		panel {
+			compatible = "lenovo,lxf-p5100-panel", "lk2nd,panel";
+			
+			qcom,mdss_dsi_auootm1287a_800p_video {
+				compatible = "lenovo,auo-otm1287a";
+			};
+
+			qcom,mdss_dsi_boent35523b_800p_video {
+				compatible = "lenovo,boe-nt35523b";
+			};
+		};
+	};
+};
