@@ -131,4 +131,20 @@
 			};
 		};
 	};
+
+	kltetmo {
+		model = "Samsung Galaxy S5 (SM-G900T)";
+		compatible = "samsung,klte";
+		lk2nd,match-bootloader = "G900T*";
+
+		lk2nd,dtb-files = "msm8974pro-samsung-klte";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			home {
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&pmic 3 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
 };
