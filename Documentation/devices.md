@@ -141,7 +141,7 @@
 - LG Google Nexus 5 - hammerhead D820, D821 (quirky - see comment in `lk2nd/device/dts/msm8974/msm8974-lge-hammerhead.dts`)
 - Motorola Moto X 2014 - victara
 - OnePlus One - bacon <!--(use `lk2nd-msm8974-appended-dtb.img`)-->
-- Samsung Galaxy Note 3 - SM-N9005
+- Samsung Galaxy Note 3 - SM-N9005, SM-N900T
 - Samsung Galaxy S5 - SM-G900F
 - Samsung Galaxy S5 China LTE (Duos) - SM-G9006V/W, SM-G9008V/W, SM-G9009W
 - Sony Xperia Z3 - leo
