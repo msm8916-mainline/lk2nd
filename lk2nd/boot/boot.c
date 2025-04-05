@@ -35,10 +35,6 @@ static void lk2nd_scan_devices(void)
 		if (!bdev->is_leaf)
 			continue;
 
-		/* Skip partitions without label. */
-		if (NULL == bdev->label)
-			continue;
-
 		/*
 		 * Skip partitions that are too small to have a boot fs on.
 		 *
@@ -46,7 +42,8 @@ static void lk2nd_scan_devices(void)
 		 * in case one installs next stage bootloader package (i.e. u-boot)
 		 * there but still wants to make use of lk2nd's device database.
 		 */
-		if (bdev->size < LK2ND_BOOT_MIN_SIZE && !!strncmp(bdev->label, "boot", strlen("boot")))
+		if (bdev->size < LK2ND_BOOT_MIN_SIZE &&
+		    !(bdev->label && !strncmp(bdev->label, "boot", strlen("boot"))))
 			continue;
 
 		snprintf(mountpoint, sizeof(mountpoint), "/%s", bdev->name);
