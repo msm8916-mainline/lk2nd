@@ -107,9 +107,15 @@ static void lk2nd_partition_split_mmc(void)
 {
 	uint32_t block_size __UNUSED = mmc_get_device_blocksize();
 
-#ifdef LK2ND_PARTITION_SIZE
-	partition_split_mmc(LK2ND_PARTITION_BASE, LK2ND_PARTITION_NAME,
-			    LK2ND_PARTITION_SIZE / block_size, false);
+#ifdef LK2ND_BOOT_PARTITION_SIZE
+	partition_split_mmc(LK2ND_BOOT_PARTITION_BASE,
+			    LK2ND_BOOT_PARTITION_NAME,
+			    LK2ND_BOOT_PARTITION_SIZE / block_size, false);
+#endif
+#ifdef LK2ND_RECOVERY_PARTITION_SIZE
+	partition_split_mmc(LK2ND_RECOVERY_PARTITION_BASE,
+			    LK2ND_RECOVERY_PARTITION_NAME,
+			    LK2ND_RECOVERY_PARTITION_SIZE / block_size, false);
 #endif
 }
 
@@ -121,9 +127,15 @@ static void lk2nd_partition_split_flash(void)
 	if (!ptable)
 		return;
 
-#ifdef LK2ND_PARTITION_SIZE
-	partition_split_flash(ptable, LK2ND_PARTITION_BASE, LK2ND_PARTITION_NAME,
-			      LK2ND_PARTITION_SIZE / block_size, false);
+#ifdef LK2ND_BOOT_PARTITION_SIZE
+	partition_split_flash(ptable, LK2ND_BOOT_PARTITION_BASE,
+			      LK2ND_BOOT_PARTITION_NAME,
+			      LK2ND_BOOT_PARTITION_SIZE / block_size, false);
+#endif
+#ifdef LK2ND_RECOVERY_PARTITION_SIZE
+	partition_split_flash(ptable, LK2ND_RECOVERY_PARTITION_BASE,
+			      LK2ND_RECOVERY_PARTITION_NAME,
+			      LK2ND_RECOVERY_PARTITION_SIZE / block_size, false);
 #endif
 }
 
