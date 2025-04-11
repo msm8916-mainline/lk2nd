@@ -174,6 +174,7 @@
 - OnePlus 3T
 - Xiaomi Mi 5 - gemini
 - Xiaomi Mi 5s - capricorn
+- Xiaomi Mi 5s Plus - natrium
 - ZTE Axon 7
 
 ### lk2nd-msm8960
