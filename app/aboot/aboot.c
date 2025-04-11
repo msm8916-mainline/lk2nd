@@ -1576,6 +1576,53 @@ void get_recovery_dtbo_info(uint32_t *dtbo_size, void **dtbo_buf)
 	return;
 }
 
+bool detect_android_from_mmc(void)
+{
+	char *ptn_names[] = {"boot", "real_boot"};
+	unsigned int i;
+	int index = INVALID_PTN;
+	unsigned long long ptn = 0;
+	uint64_t image_size = 0;
+	unsigned offset = 0;
+	boot_img_hdr *hdr = (void*) buf;
+	static bool finish = false, result = false;
+
+	if (finish)
+		return result;
+
+	for (i = 0; i < ARRAY_SIZE(ptn_names); i++) {
+		index = partition_get_index(ptn_names[i]);
+		if (index != INVALID_PTN) {
+			ptn = partition_get_offset(index);
+			image_size = partition_get_size(index);
+		}
+		if (index == INVALID_PTN || ptn == 0 || image_size == 0) {
+			dprintf(CRITICAL, "ERROR: No %s partition found\n", ptn_names[i]);
+			continue;
+		}
+		goto detect;
+	}
+	goto out;
+
+detect:
+	/* Set Lun for boot & recovery partitions */
+	mmc_set_lun(partition_get_lun(index));
+
+	if (mmc_read(ptn + offset, (uint32_t *) buf, page_size)) {
+		dprintf(CRITICAL, "ERROR: Cannot read boot image header\n");
+		goto out;
+	}
+
+	if (strstr((const char *)hdr->cmdline, "androidboot.")) {
+		dprintf(INFO, "Detected Android boot parameter\n");
+		result = true;
+	}
+
+out:
+	finish = true;
+	return result;
+}
+
 int boot_linux_from_mmc(void)
 {
 	boot_img_hdr *hdr = (void*) buf;
@@ -1627,7 +1674,7 @@ int boot_linux_from_mmc(void)
 	int current_active_slot = INVALID;
 	bool try_alternate_partition = false;
 
-	if (!IS_ENABLED(ABOOT_STANDALONE) && check_format_bit())
+	if (detect_android_from_mmc() && check_format_bit())
 		boot_into_recovery = 1;
 
 	if (!IS_ENABLED(ABOOT_STANDALONE) && !boot_into_recovery) {
@@ -5676,7 +5723,7 @@ normal_boot:
 
 		if (target_is_emmc_boot())
 		{
-			if(!IS_ENABLED(ABOOT_STANDALONE) && emmc_recovery_init())
+			if(detect_android_from_mmc() && emmc_recovery_init())
 				dprintf(ALWAYS,"error in emmc_recovery_init\n");
 			if(target_use_signed_kernel())
 			{
