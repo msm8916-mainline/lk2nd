@@ -173,6 +173,7 @@
 - LG V20 - h990
 - OnePlus 3T
 - Xiaomi Mi 5 - gemini
+- Xiaomi Mi 5s - capricorn
 - ZTE Axon 7
 
 ### lk2nd-msm8960
