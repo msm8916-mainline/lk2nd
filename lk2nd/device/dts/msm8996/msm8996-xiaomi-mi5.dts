@@ -4,7 +4,11 @@
 #include <lk2nd.dtsi>
 
 / {
-	qcom,msm-id = <QCOM_ID_MSM8996 0x30001>;
+	qcom,msm-id =
+		<QCOM_ID_MSM8996 0x20001>,
+		<QCOM_ID_MSM8996 0x30000>,
+		<QCOM_ID_MSM8996 0x30001>,
+		<QCOM_ID_MSM8996SG 0x10000>;
 	qcom,board-id = <31 0>, <32 0>;
 	qcom,pmic-id = <0x20009 0x2000a 0x00 0x00>;
 };
