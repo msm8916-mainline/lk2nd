@@ -261,6 +261,12 @@ void display_fastboot_menu(void)
 
 		switch (wait_key()) {
 		case KEY_POWER:
+			y = y_menu + incr * sel;
+			fbcon_printf_ln(
+				menu_options[sel].color,
+				y, incr, true, ">> %s <<",
+				menu_options[sel].name
+			);
 			menu_options[sel].action();
 			break;
 		case KEY_VOLUMEUP:
