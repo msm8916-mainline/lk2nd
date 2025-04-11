@@ -123,7 +123,13 @@ static uint16_t wait_key(void)
 
 static void opt_continue(void)   { cmd_continue(NULL, NULL, 0); }
 static void opt_reboot(void)     { reboot_device(0); }
-static void opt_recovery(void)   { reboot_device(RECOVERY_MODE); }
+static void opt_recovery(void)
+{
+	extern unsigned boot_into_recovery;
+
+	boot_into_recovery = 1;
+	cmd_continue(NULL, NULL, 0);
+}
 static void opt_bootloader(void) { reboot_device(FASTBOOT_MODE); }
 static void opt_edl(void)        { reboot_device(EMERGENCY_DLOAD); }
 static void opt_shutdown(void)   { shutdown_device(); }
