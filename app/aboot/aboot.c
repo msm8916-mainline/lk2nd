@@ -4813,7 +4813,7 @@ void cmd_reboot_fastboot(const char *arg, void *data, unsigned sz)
 		return;
 	}
 	fastboot_okay("");
-	reboot_device(REBOOT_MODE_UNKNOWN);
+	reboot_device(RECOVERY_MODE);
 
 	//shouldn't come here.
 	dprintf(CRITICAL, "ERROR: Failed to reboot device\n");
@@ -4829,7 +4829,7 @@ void cmd_reboot_recovery(const char *arg, void *data, unsigned sz)
 		return;
 	}
 	fastboot_okay("");
-	reboot_device(REBOOT_MODE_UNKNOWN);
+	reboot_device(RECOVERY_MODE);
 
 	//shouldn't come here.
 	dprintf(CRITICAL, "ERROR: Failed to reboot device\n");
