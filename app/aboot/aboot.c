@@ -1576,6 +1576,53 @@ void get_recovery_dtbo_info(uint32_t *dtbo_size, void **dtbo_buf)
 	return;
 }
 
+bool detect_android_from_mmc(void)
+{
+	char *ptn_names[] = {"boot", "real_boot"};
+	unsigned int i;
+	int index = INVALID_PTN;
+	unsigned long long ptn = 0;
+	uint64_t image_size = 0;
+	unsigned offset = 0;
+	boot_img_hdr *hdr = (void*) buf;
+	static bool finish = false, result = false;
+
+	if (finish)
+		return result;
+
+	for (i = 0; i < ARRAY_SIZE(ptn_names); i++) {
+		index = partition_get_index(ptn_names[i]);
+		if (index != INVALID_PTN) {
+			ptn = partition_get_offset(index);
+			image_size = partition_get_size(index);
+		}
+		if (index == INVALID_PTN || ptn == 0 || image_size == 0) {
+			dprintf(CRITICAL, "ERROR: No %s partition found\n", ptn_names[i]);
+			continue;
+		}
+		goto detect;
+	}
+	goto out;
+
+detect:
+	/* Set Lun for boot & recovery partitions */
+	mmc_set_lun(partition_get_lun(index));
+
+	if (mmc_read(ptn + offset, (uint32_t *) buf, page_size)) {
+		dprintf(CRITICAL, "ERROR: Cannot read boot image header\n");
+		goto out;
+	}
+
+	if (strstr((const char *)hdr->cmdline, "androidboot.")) {
+		dprintf(INFO, "Detected Android boot parameter\n");
+		result = true;
+	}
+
+out:
+	finish = true;
+	return result;
+}
+
 int boot_linux_from_mmc(void)
 {
 	boot_img_hdr *hdr = (void*) buf;
@@ -1611,7 +1658,7 @@ int boot_linux_from_mmc(void)
 	void *vbmeta_image_buf = NULL;
 	uint32_t vbmeta_image_sz = 0;
 #endif
-	char *ptn_name = NULL;
+	char *ptn_name = "boot";
 #if DEVICE_TREE
 	void * image_buf = NULL;
 	unsigned int dtb_size = 0;
@@ -1625,8 +1672,9 @@ int boot_linux_from_mmc(void)
 #endif
 	struct kernel64_hdr *kptr = NULL;
 	int current_active_slot = INVALID;
+	bool try_alternate_partition = false;
 
-	if (!IS_ENABLED(ABOOT_STANDALONE) && check_format_bit())
+	if (detect_android_from_mmc() && check_format_bit())
 		boot_into_recovery = 1;
 
 	if (!IS_ENABLED(ABOOT_STANDALONE) && !boot_into_recovery) {
@@ -1647,15 +1695,13 @@ int boot_linux_from_mmc(void)
 		goto unified_boot;
 	}
 
-	/* For a/b recovery image code is on boot partition.
-	   If we support multislot, always use boot partition. */
-	if (boot_into_recovery &&
-		((!partition_multislot_is_supported()) ||
-		(target_dynamic_partition_supported())))
+	if (boot_into_recovery) {
+		if (partition_get_index("recovery") != INVALID_PTN) {
 			ptn_name = "recovery";
-	else
-			ptn_name = "boot";
+		}
+	}
 
+retry_boot:
 	index = partition_get_index(ptn_name);
 	ptn = partition_get_offset(index);
 	image_size = partition_get_size(index);
@@ -1673,8 +1719,21 @@ int boot_linux_from_mmc(void)
 	}
 
 	if (memcmp(hdr->magic, BOOT_MAGIC, BOOT_MAGIC_SIZE)) {
-		dprintf(CRITICAL, "ERROR: Invalid boot image header\n");
-                return ERR_INVALID_BOOT_MAGIC;
+		dprintf(CRITICAL, "ERROR: Invalid boot image header on partition %s\n", ptn_name);
+		if (!try_alternate_partition) {
+			try_alternate_partition = true;
+			if (strcmp(ptn_name, "boot") == 0) {
+				ptn_name = "real_boot";
+			} else if (strcmp(ptn_name, "recovery") == 0) {
+				ptn_name = "real_recovery";
+			} else {
+				dprintf(CRITICAL, "No alternate partition for %s, Abort.\n", ptn_name);
+				return ERR_INVALID_BOOT_MAGIC;
+			}
+			dprintf(CRITICAL, "Retrying boot with %s partition\n", ptn_name);
+			goto retry_boot;
+		}
+		return ERR_INVALID_BOOT_MAGIC;
 	}
 
 	if (hdr->page_size && (hdr->page_size != page_size)) {
@@ -3480,7 +3539,7 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	/* fastboot already stop, it's no need to show fastboot menu */
 	return;
 boot_failed:
-#if FBCON_DISPLAY_MSG || WITH_LK2ND_DEVICE_MENU
+#if FBCON_DISPLAY_MSG
 	/* revert to fastboot menu if boot failed */
 	display_fastboot_menu();
 #endif
@@ -4754,7 +4813,7 @@ void cmd_reboot_fastboot(const char *arg, void *data, unsigned sz)
 		return;
 	}
 	fastboot_okay("");
-	reboot_device(REBOOT_MODE_UNKNOWN);
+	reboot_device(RECOVERY_MODE);
 
 	//shouldn't come here.
 	dprintf(CRITICAL, "ERROR: Failed to reboot device\n");
@@ -4770,7 +4829,7 @@ void cmd_reboot_recovery(const char *arg, void *data, unsigned sz)
 		return;
 	}
 	fastboot_okay("");
-	reboot_device(REBOOT_MODE_UNKNOWN);
+	reboot_device(RECOVERY_MODE);
 
 	//shouldn't come here.
 	dprintf(CRITICAL, "ERROR: Failed to reboot device\n");
@@ -5661,7 +5720,7 @@ normal_boot:
 
 		if (target_is_emmc_boot())
 		{
-			if(!IS_ENABLED(ABOOT_STANDALONE) && emmc_recovery_init())
+			if(detect_android_from_mmc() && emmc_recovery_init())
 				dprintf(ALWAYS,"error in emmc_recovery_init\n");
 			if(target_use_signed_kernel())
 			{
