@@ -93,4 +93,27 @@
 			};
 		};
 	};
+	samsung-espresso10att {
+		model = "Samsung Galaxy Tab 2 10.1 (SGH-I497)";
+		compatible = "samsung,espresso10att", "qcom,msm8960";
+		lk2nd,match-bootloader = "I497*";
+		lk2nd,dtb-files = "msm8960-samsung-espresso10att";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+
+			volume-up {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&tlmm 50 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			volume-down {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&tlmm 81 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			home {
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&tlmm 40 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
 };
