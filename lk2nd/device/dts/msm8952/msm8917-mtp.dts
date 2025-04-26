@@ -75,12 +75,15 @@
 
 			qcom,mdss_dsi_tm_otm1901a_720p_video {
 				compatible = "xiaomi,ugglite-otm1901a-tm";
+				touchscreen-compatible = "goodix,gt911";
 			};
 			qcom,mdss_dsi_sc_ili9881c_720p_video {
 				compatible = "xiaomi,ugglite-ili9881c-sc";
+				touchscreen-compatible = "edt,edt-ft5406";
 			};
 			qcom,mdss_dsi_hx_otm1901a_720p_video {
 				compatible = "xiaomi,ugglite-otm1901a-hx";
+				touchscreen-compatible = "goodix,gt911";
 			};
 		};
 	};
