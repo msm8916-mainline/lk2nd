@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /* Copyright (c) 2023, Nikita Travkin <nikita@trvn.ru> */
 
+#include <config.h>
 #include <stdlib.h>
 #include <string.h>
 #include <dev/fbcon.h>
@@ -28,9 +29,7 @@ static int lk2nd_simplefb_dt_update(void *dtb, const char *cmdline,
 	int ret, resmem_offset, chosen_offset, offset;
 	uint32_t mem_ph, fb_size;
 	char tmp[32], args[16];
-#if WITH_LK2ND_DISPLAY_CONT_SPLASH
 	void *rel_base;
-#endif
 
 	if (!fb)
 		return 0;
@@ -41,26 +40,26 @@ static int lk2nd_simplefb_dt_update(void *dtb, const char *cmdline,
 	if (!lk2nd_cmdline_scan_arg(cmdline, "lk2nd.pass-simplefb", args, sizeof(args)))
 		return 0;
 
-#if WITH_LK2ND_DISPLAY_CONT_SPLASH
-	if (!strcmp(args, "autorefresh")) {
-		dprintf(INFO, "simplefb: Enabling autorefresh\n");
-		mdp_enable_autorefresh(fb);
+	if (IS_ENABLED(LK2ND_DISPLAY_CONT_SPLASH)) {
+		if (!strcmp(args, "autorefresh")) {
+			dprintf(INFO, "simplefb: Enabling autorefresh\n");
+			mdp_enable_autorefresh(fb);
+		}
+
+		if (strstr(args, "relocate")) {
+			rel_base = target_get_scratch_address()
+				+ target_get_max_flash_size()
+				- (10 * 1024 * 1024); /* 8MiB~=fhd 32bpp, +512k ramoops at the end. */
+
+			dprintf(INFO, "simplefb: Framebuffer will be relocated to 0x%x\n", (uint32_t)rel_base);
+			mdp_relocate(fb, rel_base);
+		}
+
+		if (strstr(args, "rgb565"))
+			mdp_set_rgb565(fb);
+		else if (strstr(args, "xrgb8888"))
+			mdp_set_xrgb8888(fb);
 	}
-
-	if (strstr(args, "relocate")) {
-		rel_base = target_get_scratch_address()
-			 + target_get_max_flash_size()
-			 - (10 * 1024 * 1024); /* 8MiB~=fhd 32bpp, +512k ramoops at the end. */
-
-		dprintf(INFO, "simplefb: Framebuffer will be relocated to 0x%x\n", (uint32_t)rel_base);
-		mdp_relocate(fb, rel_base);
-	}
-
-	if (strstr(args, "rgb565"))
-		mdp_set_rgb565(fb);
-	else if (strstr(args, "xrgb8888"))
-		mdp_set_xrgb8888(fb);
-#endif
 
 	fb_size = fb->stride * fb->bpp/8 * fb->height;
 

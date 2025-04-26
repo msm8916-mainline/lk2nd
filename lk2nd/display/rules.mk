@@ -6,6 +6,7 @@ OBJS += \
 
 ifeq ($(LK2ND_DISPLAY), cont-splash)
 include $(LOCAL_DIR)/cont-splash/rules.mk
+DEFINES += LK2ND_DISPLAY_CONT_SPLASH=1
 else ifneq ($(LK2ND_DISPLAY),)
 DEFINES += LK2ND_DISPLAY=$(LK2ND_DISPLAY)
 include $(LOCAL_DIR)/panel/rules.mk
