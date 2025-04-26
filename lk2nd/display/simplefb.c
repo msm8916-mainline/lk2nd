@@ -28,7 +28,7 @@ static int lk2nd_simplefb_dt_update(void *dtb, const char *cmdline,
 	struct fbcon_config *fb = fbcon_display();
 	int ret, resmem_offset, chosen_offset, offset;
 	uint32_t mem_ph, fb_size;
-	char tmp[32], args[16];
+	char tmp[32], args[64];
 	void *rel_base;
 
 	if (!fb)
@@ -41,7 +41,7 @@ static int lk2nd_simplefb_dt_update(void *dtb, const char *cmdline,
 		return 0;
 
 	if (IS_ENABLED(LK2ND_DISPLAY_CONT_SPLASH)) {
-		if (!strcmp(args, "autorefresh")) {
+		if (strstr(args, "autorefresh")) {
 			dprintf(INFO, "simplefb: Enabling autorefresh\n");
 			mdp_enable_autorefresh(fb);
 		}
