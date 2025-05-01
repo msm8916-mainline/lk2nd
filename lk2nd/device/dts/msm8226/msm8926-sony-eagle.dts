@@ -1,0 +1,30 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8926 0>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 0>;
+};
+
+&lk2nd {
+	model = "Sony Xperia M2 (eagle)";
+	compatible =  "sony,eagle";
+
+	// FIXME: lk2nd,dtb-files = "msm8926-sony-eagle";
+
+	gpio-keys {
+		compatible = "gpio-keys";
+    
+		down {
+			lk2nd,code = <KEY_VOLUMEDOWN>;
+			gpios = <&tlmm 106 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+		};
+    
+		up {
+			lk2nd,code = <KEY_VOLUMEUP>;
+			gpios = <&pmic_pon GPIO_PMIC_RESIN 0>;
+		};
+	};
+};

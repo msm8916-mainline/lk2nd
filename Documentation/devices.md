@@ -165,6 +165,7 @@
 - Samsung Galaxy Grand 2 - SM-G7102
 - Samsung Galaxy Tab 4 10.1 (2014) - SM-T530, SM-T535
 - Samsung Galaxy Tab 4 8.0 (2014) - SM-T330, SM-T330NU, SM-T331
+- Sony Xperia M2 - eagle
 
 ### lk2nd-msm8994
 - Huawei Nexus 6P - Angler
