@@ -26,5 +26,35 @@
 			qcom,mdss_dsi_otm1283a_lide_cpt_hd_video {};
 		};
 	};
-};
 
+	sony-eagle {
+		/*
+		 * To build for sony-eagle, add the following flag in your make cmdline:
+		 *
+		 * make ... LK2ND_DISPLAY="innolux_qhd_video"
+		 *
+		 * `LK2ND_DISPLAY` selects the appropriate display driver. This is required
+		 * because the screen initialization needs specific configuration.
+		 */
+
+		model = "Sony Xperia M2 (eagle)";
+		compatible = "sony,eagle";
+		lk2nd,match-bootloader = "s1*";
+
+		// FIXME: lk2nd,dtb-files = "msm8926-sony-eagle";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+
+			down {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&tlmm 106 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+
+			up {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&pmic_pon GPIO_PMIC_RESIN 0>;
+			};
+		};
+	};
+};
