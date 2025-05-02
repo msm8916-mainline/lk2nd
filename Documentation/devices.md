@@ -77,6 +77,7 @@
 
 ### lk2nd-msm8952
 
+- Alcatel Idol 4 (6055*)
 - BQ X5 Plus (Longcheer L9360)
 - HMD Global Nokia 5 (nd1)
 - HMD Global Nokia 6 (ple)
