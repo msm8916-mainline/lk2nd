@@ -17,7 +17,7 @@ static struct panel_config innolux_qhd_video_panel_data = {
 	.panel_compatible = "qcom,mdss-dsi-panel",
 	.panel_type = 0,
 	.panel_destination = "DISPLAY_1",
-	/* .panel_orientation not supported yet */
+	.panel_orientation = 3,
 	.panel_framerate = 60,
 	.panel_lp11_init = 0,
 	.panel_init_delay = 0,
