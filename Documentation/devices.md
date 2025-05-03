@@ -89,6 +89,7 @@
 - Motorola Moto E5 (nora)
 - Motorola Moto E5 Plus (hannah) (MSM8917)
 - Motorola Moto E5 Plus (hannah) (MSM8937)
+- Motorola Moto G4 / G4 Plus (athene) ( `fastboot boot lk2nd.img`, then `fastboot flash lk2nd lk2nd.img` )
 - Motorola Moto G5 (cedric)
 - Motorola Moto G5S (montana)
 - Motorola Moto G6 Play (jeter)

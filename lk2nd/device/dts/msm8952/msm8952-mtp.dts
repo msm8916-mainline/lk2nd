@@ -9,6 +9,23 @@
 };
 
 &lk2nd {
+	athene {
+		model = "Motorola Moto G4 / G4Plus (athene) (MSM8952)";
+		compatible = "motorola,athene";
+		lk2nd,match-device = "athene*";
+
+		panel {
+			compatible = "motorola,athene-panel", "lk2nd,panel";
+			qcom,mdss_dsi_mot_lgd_546_1080p_cmd_v0 {
+				compatible = "motorola,athene-546-lgd";
+			};
+
+			qcom,mdss_dsi_mot_tdi_546_1080p_cmd_v0 {
+				compatible = "motorola,athene-546-tdi";
+			};
+		};
+	};
+
 	idol4 {
 		model = "Alcatel Idol 4";
 		compatible = "alcatel,idol4";
