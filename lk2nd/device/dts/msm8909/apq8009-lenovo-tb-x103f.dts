@@ -11,7 +11,7 @@
 
 &lk2nd {
 	model = "Lenovo Tab 10 (TB-X103F)";
-	compatible = "lenovo,tb-x103f", "qcom,msm8909", "lk2nd,device";
+	compatible = "lenovo,tb-x103f";
 
 	lk2nd,dtb-files = "msm8909-lenovo-tb-x103f";
 	lk2nd,match-panel;
