@@ -12,6 +12,7 @@
 - BQ Aquaris M5 - piccolo
 - BQ Aquaris X5 - paella, picmt
 - DragonBoard 410c - apq8016-sbc
+- EE Harrier Mini - harrier-mini
 - GPLUS FL8005A
 - HTC One M8s - m8qlul (quirky - see comment in `lk2nd/device/dts/msm8916/msm8939-htc-m8qlul.dts`)
 - Huawei Ascend G7 - G7-L01
