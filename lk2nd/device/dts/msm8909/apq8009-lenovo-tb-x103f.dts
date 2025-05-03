@@ -1,0 +1,34 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+/dts-v1/;
+#include <skeleton32.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id   = <QCOM_ID_APQ8009 0x00020000>;
+	qcom,board-id = <0x0801000b 8>;
+};
+
+&lk2nd {
+	model = "Lenovo Tab 10 (TB-X103F)";
+	compatible = "lenovo,tb-x103f";
+
+	lk2nd,dtb-files = "msm8909-lenovo-tb-x103f";
+	lk2nd,match-panel;
+
+	panel {
+		compatible = "lenovo,tb-x103f-panel", "lk2nd,panel";
+
+		qcom,mdss_dsi_nt35521s_xingyuan_wxga_video {
+			compatible = "lenovo,nt35521s-xingyuan";
+		};
+	};
+
+	gpio-keys {
+		compatible = "gpio-keys";
+		volume-up {
+			lk2nd,code = <KEY_VOLUMEUP>;
+			gpios = <&tlmm 90 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+		};
+	};
+};
