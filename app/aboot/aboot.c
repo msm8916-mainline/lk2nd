@@ -3233,7 +3233,9 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	unsigned int kernel_size = 0;
 	enum boot_type boot_type = 0;
 #if DEVICE_TREE
+	void * image_buf = NULL;
 	uint8_t dtb_copied = 0;
+	unsigned dtb_image_size = 0;
 	unsigned int scratch_offset = 0;
 #endif
 #if VERIFIED_BOOT_2
@@ -3248,6 +3250,9 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 #ifdef MDTP_SUPPORT
         static bool is_mdtp_activated = 0;
 #endif /* MDTP_SUPPORT */
+#endif
+#ifdef OSVERSION_IN_BOOTIMAGE
+	uint32_t dtb_image_offset = 0;
 #endif
 
 #if FBCON_DISPLAY_MSG
@@ -3286,12 +3291,38 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	dt_size = hdr->dt_size;
 #endif
 	dt_actual = ROUND_TO_PAGE(dt_size, page_mask);
+	dtb_image_size = hdr->kernel_size;
 #endif
 
 	image_actual = ADD_OF(page_size, kernel_actual);
 	image_actual = ADD_OF(image_actual, ramdisk_actual);
 	image_actual = ADD_OF(image_actual, second_actual);
 	image_actual = ADD_OF(image_actual, dt_actual);
+
+#ifdef OSVERSION_IN_BOOTIMAGE
+	if (hdr->header_version == BOOT_HEADER_VERSION_TWO) {
+		struct boot_img_hdr_v1 *hdr1 =
+			(struct boot_img_hdr_v1 *) (data + sizeof(boot_img_hdr));
+		struct boot_img_hdr_v2 *hdr2 = (struct boot_img_hdr_v2 *)
+			(data + sizeof(boot_img_hdr) +
+			BOOT_IMAGE_HEADER_V2_OFFSET);
+		unsigned int recovery_dtbo_actual = 0;
+
+		recovery_dtbo_actual =
+			ROUND_TO_PAGE(hdr1->recovery_dtbo_size, page_mask);
+		image_actual += recovery_dtbo_actual;
+
+		image_actual += ROUND_TO_PAGE(hdr2->dtb_size, page_mask);
+
+
+		dtb_image_offset = page_size +/* patched_kernel_hdr_size +*/
+				   kernel_actual + ramdisk_actual + second_actual +
+				   recovery_dtbo_actual;
+
+		dprintf(SPEW, "Header version: %d\n", hdr->header_version);
+		dprintf(SPEW, "Dtb image offset 0x%x\n", dtb_image_offset);
+	}
+#endif
 
 	/* Checking to prevent oob access in read_der_message_length */
 	if (image_actual > sz) {
@@ -3504,10 +3535,20 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	 * memory address to the DTB appended location on RAM.
 	 * Else update with the atags address in the kernel header
 	 */
+	 image_buf = (void*)(ptr + page_size);
+
+#ifdef OSVERSION_IN_BOOTIMAGE
+	if ( hdr->header_version == BOOT_HEADER_VERSION_TWO) {
+		image_buf = (void*)(ptr);
+		dtb_offset = dtb_image_offset;
+		dtb_image_size = image_actual;
+	}
+#endif
+
 	if (!dtb_copied) {
 		void *dtb;
-		dtb = dev_tree_appended((void*)(ptr + page_size),
-					hdr->kernel_size, dtb_offset,
+		dtb = dev_tree_appended(image_buf,
+					dtb_image_size, dtb_offset,
 					(void *)hdr->tags_addr);
 #if WITH_LK2ND_DEVICE_2ND
 		if (!dtb && lk2nd_device2nd_have_atags())
