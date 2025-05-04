@@ -599,14 +599,19 @@ int gcdb_display_init(const char *panel_name, uint32_t rev, void *base)
 		panel.panel_info.dfps.dfps_fb_base = base;
 		base += DFPS_PLL_CODES_SIZE;
 		panel.fb.base = base;
-		dprintf(SPEW, "dfps base=0x%p,d, fb_base=0x%p!\n",
-				panel.panel_info.dfps.dfps_fb_base, base);
-
 		panel.fb.width =  panel.panel_info.xres;
 		panel.fb.height =  panel.panel_info.yres;
 		panel.fb.stride =  panel.panel_info.xres;
 		panel.fb.bpp =  panel.panel_info.bpp;
 		panel.fb.format = panel.panel_info.mipi.dst_format;
+
+		dprintf(INFO, "DSI panel initialized: base: %p, stride: %d, "
+			"img: %dx%d, format: %#x, bpp: %d\n",
+			panel.fb.base, (panel.fb.stride * panel.fb.bpp / 8),
+			panel.fb.width, panel.fb.height,
+			panel.fb.format, panel.fb.bpp
+		);
+
 	} else if (pan_type == PANEL_TYPE_EDP) {
 		mdss_edp_panel_init(&(panel.panel_info));
 		/* prepare func is set up at edp_panel_init */
