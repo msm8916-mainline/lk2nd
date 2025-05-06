@@ -3,12 +3,12 @@ LOCAL_DIR := $(GET_LOCAL_DIR)
 
 
 QCDTBS += \
-	$(LOCAL_DIR)/apq8009-qrd-skue.dtb \
+	$(LOCAL_DIR)/apq8009-1gb-qrd-skue.dtb \
 	$(LOCAL_DIR)/apq8009-lenovo-tb-x103f.dtb \
 	$(LOCAL_DIR)/msm8905-qrd-skub.dtb \
 	$(LOCAL_DIR)/msm8909-1gb-qrd-skuc.dtb \
+	$(LOCAL_DIR)/msm8909-1gb-qrd-skue.dtb \
 	$(LOCAL_DIR)/msm8909-mtp.dtb \
-	$(LOCAL_DIR)/msm8909-qrd-skue.dtb \
 	$(LOCAL_DIR)/msm8909-zte-sapphire.dtb \
 
 ADTBS += \
