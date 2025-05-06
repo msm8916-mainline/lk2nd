@@ -4,14 +4,14 @@
 #include <lk2nd.dtsi>
 
 / {
-	qcom,msm-id = <QCOM_ID_APQ8009 0>;
-	qcom,board-id = <QCOM_BOARD_ID_QRD 0x09>,
-			<QCOM_BOARD_ID(QRD, 1, 0) 0x09>;
+	qcom,msm-id = <QCOM_ID_MSM8909 0>;
+	qcom,board-id = <QCOM_BOARD_ID_QRD 0x9>,
+			<QCOM_BOARD_ID(QRD, 1, 0) 0x9>;
 };
 
 &lk2nd {
-	lxf_p5100 {
-		model = "Lenovo Yoga Tab 3 10 WIFI";
+	lxf-p5100 {
+		model = "Lenovo Yoga Tab 3 10 LTE";
 		compatible = "lenovo,lxf-p5100";
 		
 		lk2nd,dtb-files = "msm8909-lenovo-lxf-p5100";
