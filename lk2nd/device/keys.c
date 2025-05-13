@@ -23,6 +23,7 @@ struct lk2nd_keymap {
 	struct gpiol_desc gpio;
 };
 static struct lk2nd_keymap keymap[LK2ND_MAX_KEYS] = {0};
+static bool swap_volume_keys = false;
 
 static bool target_powerkey(void)
 {
@@ -37,6 +38,18 @@ bool lk2nd_keys_pressed(uint32_t keycode)
 {
 	bool found = false;
 	int i;
+
+	// Swap volume keys if configured
+	if (swap_volume_keys) {
+		switch (keycode) {
+			case KEY_VOLUMEDOWN:
+				keycode = KEY_VOLUMEUP;
+				break;
+			case KEY_VOLUMEUP:
+				keycode = KEY_VOLUMEDOWN;
+				break;
+		}
+	}
 
 	for (i = 0; i < LK2ND_MAX_KEYS; ++i) {
 		if (!keymap[i].keycode)
@@ -90,6 +103,11 @@ static int lk2nd_keys_init(const void *dtb, int node)
 	int i = 0, subnode, keycode, len, ret;
 	struct gpiol_desc gpio;
 	const uint32_t *val;
+
+	swap_volume_keys = fdt_getprop(dtb, node, "lk2nd,swap-volume-keys", NULL) != NULL;
+	if (swap_volume_keys) {
+		dprintf(INFO, "keys: Volume keys swapped\n");
+	}
 
 	dprintf(SPEW, " | label | code  | gpio        |\n");
 
