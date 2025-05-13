@@ -29,22 +29,24 @@ partition (offset by 512k in lk2nd).
 
 Following commands are supported:
 
-- `linux <kernel>` - Path to the kernel image.
-- `initrd <initramfs>` - Path to the initramfs file.
-- `fdt <devicetree>` - Path to the devicetree.
-- `fdtdir <directory>` - Path to automatically find the DT in.
-- `append <cmdline>` - Cmdline to boot the kernel with.
+- `label <label>`       - Start a new boot entry.
+- `default <label>`     - Set label that will be used to boot.
+- `linux <kernel>`      - Path to the kernel image. (alt: `kernel`)
+- `initrd <initramfs>`  - Path to the initramfs file.
+- `fdt <devicetree>`    - Path to the devicetree. (alt: `devicetree`)
+- `fdtdir <directory>`  - Path to automatically find the DT in. (alt: `devicetreedir`)
+- `append <cmdline>`    - Cmdline to boot the kernel with.
+- `fdtoverlays <files>` - A space separated list of DT overlays to apply. (alt: `devicetree-overlay`)
 
 > [!NOTE]
 > lk2nd includes only a very rudimentary extlinux support at this time.
-> only commands listed above are considered and the file should contain only one
-> entry. All other commands are ignored.
+> only commands listed above are considered and lk2nd will always boot the
+> "default" label.
 
 ### Example extlinux.conf
 
-This exapmle showcases a correct extlinux.conf file even though lk2nd will only
-read the above listed commands. Commands like `timeout` and `label` are currently
-ignored.
+The example below shows a "correct" extlinux.conf that includes additional
+directives not supported by lk2nd. lk2nd will ignore unknown commands.
 
 ```
 timeout 1
