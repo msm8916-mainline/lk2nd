@@ -17,6 +17,7 @@ QCDTBS += \
 	$(LOCAL_DIR)/msm8926-huawei-g6-l11-vb.dtb \
 	$(LOCAL_DIR)/msm8926-lg-madai.dtb \
 	$(LOCAL_DIR)/msm8926-samsung.dtb \
+	$(LOCAL_DIR)/msm8926-sony-eagle.dtb \
 	$(LOCAL_DIR)/msm8926-v2-720p-mtp.dtb \
 
 
