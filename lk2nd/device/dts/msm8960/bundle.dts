@@ -116,4 +116,26 @@
 			};
 		};
 	};
+	casio-ca201l {
+		model = "Casio GzOne (CA-201L)";
+		compatible = "casio,ca201l";
+		lk2nd,match-cmdline = "* androidboot.err_folder_lock=true *";
+		lk2nd,dtb-files = "msm8960-casio-ca201l";
+		gpio-keys {
+			compatible = "gpio-keys";
+
+			volume-up {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&pmic 1 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			volume-down {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&pmic 2 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			home {
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&pmic 0 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
 };
