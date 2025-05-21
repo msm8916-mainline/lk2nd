@@ -52,6 +52,7 @@
 - Samsung Galaxy Tab A 8.0 (2015) - SM-T350, SM-T355, SM-T355Y, SM-T357W
 - Samsung Galaxy Tab A 9.7 (2015) - SM-T550, SM-T555
 - Samsung Galaxy Tab E 9.6 WiFi (2015) - SM-T560NU
+- Vivo Y31 (2015) - pd1505
 - Vivo Y21L
 - Vodafone Smart prime 6
 - Wileyfox Swift - crackling
