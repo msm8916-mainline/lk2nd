@@ -101,6 +101,7 @@
 - Redmi 4X (santoni)
 - Redmi 5A (riva)
 - Redmi 7A (pine)
+- Redmi GO (tiare)
 - Redmi Note 3 Pro (kenzo)
 - Redmi Note 5A (ugglite)
 - Redmi Note 5A Prime (ugg)
