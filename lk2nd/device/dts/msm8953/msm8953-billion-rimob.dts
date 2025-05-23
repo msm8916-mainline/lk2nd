@@ -1,0 +1,16 @@
+// SPDX-License-Identifier: BSD-3-Clause
+ 
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8953 0>;
+	qcom,board-id = <0x340008 0>;
+};
+
+&lk2nd {
+	model = "Billion Capture+";
+	compatible = "billion,rimob";
+
+	lk2nd,dtb-files = "msm8953-billion-rimob";
+};
