@@ -1,0 +1,20 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_SDM429 0>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 2>;
+	/* Bootloader appears to really want to access symbols */
+	__symbols__ {};
+};
+
+&lk2nd {
+	model = "Lenovo Tab M10 HD";
+	compatible = "lenovo,tbx505x";
+
+	lk2nd,dtb-files = "sdm429-lenovo-tbx505x";
+};
