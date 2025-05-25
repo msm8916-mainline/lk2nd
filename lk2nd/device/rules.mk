@@ -22,6 +22,10 @@ OBJS += \
 	$(LOCAL_DIR)/regulator-fixed.o \
 	$(LOCAL_DIR)/sdhc.o \
 
+ifeq ($(CONFIG_REGULATOR_LDO),y)
+	OBJS += $(LOCAL_DIR)/regulator-ldo.o
+endif
+
 ifneq ($(LK2ND_COMPATIBLE),)
 DEFINES += LK2ND_COMPATIBLE="$(LK2ND_COMPATIBLE)"
 endif
