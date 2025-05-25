@@ -113,6 +113,7 @@
 ### lk2nd-msm8953
 
 - Asus Zenfone 3 ZE520KL/ZE552KL (zenfone3)
+- Billion Capture+ (rimob)
 - Fairphone 3
 - Huawei Maimang 5 / Nova Plus / G9 (Plus) (milan)
 - Huawei Nova (cannes)
