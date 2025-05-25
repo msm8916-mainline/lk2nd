@@ -272,51 +272,41 @@ void target_uart_init(void)
 	case LINUX_MACHTYPE_8960_FLUID:
 	case LINUX_MACHTYPE_8960_APQ:
 	case LINUX_MACHTYPE_8960_LIQUID:
-
-		if(board_baseband() == BASEBAND_SGLTE || board_baseband() == BASEBAND_SGLTE2)
-		{
-			uart_dm_init(8, 0x1A000000, 0x1A040000);;
+		switch (board_baseband()) {
+		case BASEBAND_MSM:
+		case BASEBAND_SGLTE:
+		case BASEBAND_SGLTE2:
+			return uart_dm_init(8, 0x1A000000, 0x1A040000);
+		default:
+			return uart_dm_init(5, 0x16400000, 0x16440000);
 		}
-		else
-		{
-			uart_dm_init(5, 0x16400000, 0x16440000);
-		}
-		break;
 
 	case LINUX_MACHTYPE_8930_CDP:
 	case LINUX_MACHTYPE_8930_MTP:
 	case LINUX_MACHTYPE_8930_FLUID:
-
-		uart_dm_init(5, 0x16400000, 0x16440000);
-		break;
+		return uart_dm_init(5, 0x16400000, 0x16440000);
 
 	case LINUX_MACHTYPE_8064_SIM:
 	case LINUX_MACHTYPE_8064_RUMI3:
-		uart_dm_init(3, 0x16200000, 0x16240000);
-		break;
+		return uart_dm_init(3, 0x16200000, 0x16240000);
 
 	case LINUX_MACHTYPE_8064_CDP:
 	case LINUX_MACHTYPE_8064_MTP:
 	case LINUX_MACHTYPE_8064_LIQUID:
-		uart_dm_init(7, 0x16600000, 0x16640000);
-		break;
+		return uart_dm_init(7, 0x16600000, 0x16640000);
 
 	case LINUX_MACHTYPE_8064_EP:
-		uart_dm_init(2, 0x12480000, 0x12490000);
-		break;
+		return uart_dm_init(2, 0x12480000, 0x12490000);
 
 	case LINUX_MACHTYPE_8064_MPQ_CDP:
 	case LINUX_MACHTYPE_8064_MPQ_HRD:
 	case LINUX_MACHTYPE_8064_MPQ_DTV:
 	case LINUX_MACHTYPE_8064_MPQ_DMA:
-		uart_dm_init(5, 0x1A200000, 0x1A240000);
-		break;
+		return uart_dm_init(5, 0x1A200000, 0x1A240000);
 
 	case LINUX_MACHTYPE_8627_CDP:
 	case LINUX_MACHTYPE_8627_MTP:
-
-		uart_dm_init(5, 0x16400000, 0x16440000);
-		break;
+		return uart_dm_init(5, 0x16400000, 0x16440000);
 
 	default:
 		dprintf(CRITICAL, "uart gsbi not defined for target: %d\n",
