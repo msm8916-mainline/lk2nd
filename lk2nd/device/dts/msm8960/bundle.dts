@@ -138,4 +138,30 @@
 			};
 		};
 	};
+	sony-huashan {
+		/*
+		 * The display currently not implemented yet due to lk2nd requiring MDP5, which is not available on
+		 * the msm8960t SoC. The display is also not initialized from the bootloader, which further prevents
+		 * lk2nd from working. So, please build lk2nd-msm8960 with ENABLE_DISPLAY=0.
+		 *
+		 * make ENABLE_DISPLAY=0 TOOLCHAIN_PREFIX=arm-none-eabi- lk2nd-msm8960
+		 *
+		 * The UART output for this phone is located on gsbi8. If you have a non-LTE variant, patch
+		 * target_uart_init to use gsbi8 instead of gsbi5.
+		 *
+		 * To load the RPM at init, you must package lk2nd as a Sony ELF instead of the usual boot.img format.
+		 * Use the following command to generate it:
+		 *
+		 * python2 mkelf.py -o lk2nd-sony.elf lk.bin@0x80208000 RPM.bin@0x00020000,rpm cmdline_lk2nd.txt@cmdline
+		 *
+		 * The mkelf.py and RPM.bin are available from the GitHub repository below:
+		 * https://github.com/LineageOS/android_device_sony_huashan/blob/lineage-18.1/boot
+		 *
+		 * For the cmdline_lk2nd.txt, just fill it with "lk2nd".
+		 */
+		model = "Sony Xperia SP (huashan)";
+		compatible = "sony,huashan", "qcom,msm8960";
+		lk2nd,dtb-files = "msm8960-sony-huashan";
+		lk2nd,match-bootloader = "s1";
+	};
 };
