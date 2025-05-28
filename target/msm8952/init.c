@@ -58,6 +58,7 @@
 #include <secapp_loader.h>
 #include <rpmb.h>
 #include <smem.h>
+#include <regulator.h>
 
 #include "target/display.h"
 
@@ -199,10 +200,11 @@ struct mmc_device *target_get_sd_mmc(void)
 	if (dev->config.slot == 2)
 		return NULL;
 
+	regulator_enable(REG_LDO11);
 	set_sdc_power_ctrl(2);
 
 	config.slot          = 2;
-	config.bus_width     = DATA_BUS_WIDTH_8BIT;
+	config.bus_width     = DATA_BUS_WIDTH_4BIT;
 	config.max_clk_rate  = MMC_CLK_200MHZ;
 	config.sdhc_base     = mmc_sdhci_base[config.slot - 1];
 	config.pwrctl_base   = mmc_pwrctl_base[config.slot - 1];
