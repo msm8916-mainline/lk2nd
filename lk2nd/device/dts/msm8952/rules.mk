@@ -20,6 +20,7 @@ ADTBS += \
 	$(LOCAL_DIR)/msm8956-mtp.dtb \
 	$(LOCAL_DIR)/msm8956-xiaomi-hydrogen.dtb \
 	$(LOCAL_DIR)/msm8976-qrd.dtb \
+	$(LOCAL_DIR)/sdm429-lenovo-tbx505x.dtb  \
 	$(LOCAL_DIR)/sdm439-xiaomi-pine.dtb \
 
 DTBS += \

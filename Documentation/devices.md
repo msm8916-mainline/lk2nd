@@ -88,6 +88,7 @@
 - Huawei MediaPad T3 10 (ags- l09/l03/w09) (quirky - see comment in `lk2nd/device/dts/msm8952/msm8917-huawei-agassi.dts`)
 - Leeco s2
 - Lenovo K5 Play (l38011)
+- Lenovo Tab M10 HD (TB-X505X)
 - Motorola Moto E5 (nora)
 - Motorola Moto E5 Plus (hannah) (MSM8917)
 - Motorola Moto E5 Plus (hannah) (MSM8937)
