@@ -75,7 +75,7 @@ struct dt_entry_v1
 	uint32_t size;
 };
 
-#if ENABLE_BOOTDEVICE_MOUNT || DYNAMIC_PARTITION_SUPPORT
+#if !SKIP_UPDATE_ANDROID_FSTAB && (ENABLE_BOOTDEVICE_MOUNT || DYNAMIC_PARTITION_SUPPORT)
 /* Look up table for fstab node */
 struct fstab_node
 {
@@ -2334,7 +2334,7 @@ int update_device_tree(void *fdt, const char *cmdline, enum boot_type boot_type,
 		}
 	}
 
-#if ENABLE_BOOTDEVICE_MOUNT || DYNAMIC_PARTITION_SUPPORT
+#if !SKIP_UPDATE_ANDROID_FSTAB && (ENABLE_BOOTDEVICE_MOUNT || DYNAMIC_PARTITION_SUPPORT)
 	/* Update fstab node */
 	dprintf(SPEW, "Start of fstab node update:%zu ms\n", platform_get_sclk_count());
 	if (update_fstab_node(fdt) != 0) {
@@ -2357,7 +2357,7 @@ int update_device_tree(void *fdt, const char *cmdline, enum boot_type boot_type,
 	return ret;
 }
 
-#if ENABLE_BOOTDEVICE_MOUNT || DYNAMIC_PARTITION_SUPPORT
+#if !SKIP_UPDATE_ANDROID_FSTAB && (ENABLE_BOOTDEVICE_MOUNT || DYNAMIC_PARTITION_SUPPORT)
 /*Update device tree for fstab node */
 static int update_fstab_node(void *fdt)
 {
