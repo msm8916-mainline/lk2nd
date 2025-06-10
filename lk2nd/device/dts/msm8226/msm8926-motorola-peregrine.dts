@@ -4,7 +4,7 @@
 #include <lk2nd.dtsi>
 
 / {
-	qcom,msm-id = <0x91 0x44 0x82D0>;
+	qcom,msm-id = <QCOM_ID_MSM8626 0x44 0x82D0>;
 };
 
 &lk2nd {
