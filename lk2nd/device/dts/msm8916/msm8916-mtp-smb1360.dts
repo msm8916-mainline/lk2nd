@@ -59,5 +59,25 @@
 			compatible = "alcatel,smb1360-idol347", "qcom,smb1360";
 		};
 	};
+
+	panasonic-eluga-u2 {
+		model = "Panasonic ELUGA U2";
+		compatible = "panasonic,eluga-u2";
+		lk2nd,match-panel;
+
+		lk2nd,dtb-files = "msm8916-panasonic-eluga-u2";
+
+		panel {
+			compatible = "panasonic,eluga-u2-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_hx8394a_720p_video {
+				compatible = "panasonic,eluga-u2-hx8394a";
+			};
+
+			qcom,mdss_dsi_otm1284a_720p_video {
+				compatible = "panasonic,eluga-u2-otm1284a";
+			};
+		};
+	};
 };
 
