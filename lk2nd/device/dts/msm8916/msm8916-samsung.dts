@@ -317,6 +317,26 @@
 
 	/* rev 3 */
 
+	a3ltezt {
+		model = "Samsung Galaxy A3 (SM-A300YZ)";
+		compatible = "samsung,a3ltezt", "samsung,a3u-eur", "samsung,a3";
+		lk2nd,match-bootloader = "A300YZ*";
+
+		lk2nd,dtb-files = "msm8916-samsung-a3u-eur";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 3>;
+
+		gpio-keys {
+			compatible = "gpio-keys";
+
+			home {
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&tlmm 109 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+
 	gprimelteusc {
 		model = "Samsung Galaxy Grand Prime (SM-G530R4)";
 		compatible = "samsung,gprimelteusc";
