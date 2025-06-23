@@ -1,0 +1,36 @@
+// SPDX-License-Identifier: BSD-3-Clause
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/*
+ * This device is quirky.
+ * To run lk2nd on this device you need to flash custom dtbo.
+ * Read more https://wiki.postmarketos.org/wiki/Mobvoi_Ticwatch_Pro_3_LTE_(mobvoi-rover)#lk2nd
+ */
+/ {
+	qcom,msm-id = <QCOM_ID_SDM429W 0x00>;
+	qcom,board-id = <0x10b 0x08>;
+	/* Bootloader appears to really want to access symbols */
+	__symbols__ {};
+};
+
+&lk2nd {
+	model = "Mobvoi TicWatch Pro 3 LTE (rover)";
+	compatible = "mobvoi,rover";
+
+	lk2nd,dtb-files = "sdm429w-mobvoi-rover";
+
+	gpio-keys {
+		compatible = "gpio-keys";
+
+		down {
+			lk2nd,code = <KEY_VOLUMEDOWN>;
+			gpios = <&tlmm 48 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+		};
+
+		power {
+			lk2nd,code = <KEY_POWER>;
+			gpios = <&pmic_pon GPIO_PMIC_PWRKEY 0>;
+		};
+	};
+};
