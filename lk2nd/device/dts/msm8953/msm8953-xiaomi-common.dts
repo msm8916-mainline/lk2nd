@@ -7,16 +7,15 @@
 
 / {
 	qcom,msm-id = <QCOM_ID_MSM8953 0>;
-	qcom,board-id = <QCOM_BOARD_ID(QRD, 1, 0)  0>;
+	qcom,board-id = <QCOM_BOARD_ID(QRD, 1, 0) 0>;
 };
 
 &lk2nd {
-
 	tissot {
 		model = "Xiaomi Mi A1 (tissot)";
 		compatible = "xiaomi,tissot";
 		lk2nd,match-bootloader = "*TISSOT*";
-		
+
 		lk2nd,dtb-files = "msm8953-xiaomi-tissot";
 
 		panel {
@@ -39,7 +38,7 @@
 		model = "Xiaomi Redmi 6 Pro";
 		compatible = "xiaomi,sakura";
 		lk2nd,match-bootloader = "*DAISY*";
-		
+
 		lk2nd,dtb-files = "msm8953-xiaomi-daisy";
 
 		panel {

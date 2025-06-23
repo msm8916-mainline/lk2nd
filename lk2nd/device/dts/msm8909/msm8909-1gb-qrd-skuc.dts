@@ -96,7 +96,7 @@
 		/* NOTE
 		 * Due to some unknown reasons, the stock aboot firmware is
 		 * incompatible with lk2nd. Use lk1st if possible.
-		 * 
+		 *
 		 * To build lk1st:
 		 * make TOOLCHAIN_PREFIX=arm-none-eabi- \
 		 * LK2ND_BUNDLE_DTB="msm8909-1gb-qrd-skuc.dtb" \

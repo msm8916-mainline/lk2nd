@@ -13,13 +13,13 @@
 	lxf-p5000 {
 		model = "Lenovo Yoga Tab 3 8 WIFI";
 		compatible = "lenovo,lxf-p5000";
-		
+
 		lk2nd,dtb-files = "msm8909-lenovo-lxf-p5000";
 		lk2nd,match-panel;
 
 		panel {
 			compatible = "lenovo,lxf-p5000-panel", "lk2nd,panel";
-			
+
 			qcom,mdss_dsi_boent35523_800p_video {
 				compatible = "lenovo,auo-otm1287a";
 			};
@@ -33,13 +33,13 @@
 	lxf-p5100 {
 		model = "Lenovo Yoga Tab 3 10 WIFI";
 		compatible = "lenovo,lxf-p5100";
-		
+
 		lk2nd,dtb-files = "msm8909-lenovo-lxf-p5100";
 		lk2nd,match-panel;
 
 		panel {
 			compatible = "lenovo,lxf-p5100-panel", "lk2nd,panel";
-			
+
 			qcom,mdss_dsi_auootm1287a_800p_video {
 				compatible = "lenovo,auo-otm1287a";
 			};

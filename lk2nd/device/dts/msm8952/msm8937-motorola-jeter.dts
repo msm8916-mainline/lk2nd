@@ -9,11 +9,11 @@
 			<0x4A 0x8000>,
 			<0x4B 0x8000>;
 
-	/* 
+	/*
 	 * model is required by bootloader to pick dtb.
 	 * The bootloader also crashes if model isn't present in every dtb. (see lk2nd.dtsi for more info)
 	 */
-	
+
 	model = "jeter";
 };
 

@@ -6,7 +6,7 @@
 / {
 	qcom,msm-id = <QCOM_ID_MSM8956 0x10001>;
 	qcom,board-id = <QCOM_BOARD_ID_MTP 0x00>;
-	
+
 	/* Bootloader requires those cpu nodes, or shuts device down */
 	cpus {
 		#address-cells = <1>;
@@ -30,12 +30,11 @@
 };
 
 &lk2nd {
-	
 	kenzo {
 		model = "Redmi Note 3 Pro (kenzo)";
 		compatible = "xiaomi,kenzo";
 		lk2nd,match-panel;
-		
+
 		lk2nd,dtb-files = "msm8956-xiaomi-kenzo";
 
 		panel {
@@ -52,7 +51,7 @@
 			};
 		};
 	};
-	
+
 	kugo {
 		model = "Sony Xperia X Compact";
 		compatible = "sony,kugo";

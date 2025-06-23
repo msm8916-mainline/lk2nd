@@ -32,5 +32,5 @@
 			compatible = "mdss,otm1911-fhdplus";
 			touchscreen-compatible = "goodix,gt917d";
 		};
-	};	
+	};
 };

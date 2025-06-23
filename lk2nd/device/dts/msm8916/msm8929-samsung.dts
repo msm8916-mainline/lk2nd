@@ -133,4 +133,3 @@
 		qcom,board-id = <0xCE08FF01 4>;
 	};
 };
-

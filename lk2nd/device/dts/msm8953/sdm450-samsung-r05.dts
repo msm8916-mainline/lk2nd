@@ -51,7 +51,7 @@
 		modem_shared_mem_region@0x93000000 {
 			reg = <0x0 0x93000000 0x0 0x6000000>;
 		};
-	};	
+	};
 };
 
 &lk2nd {
@@ -59,7 +59,7 @@
 		model = "Samsung Tab A2 XL WIFI Rev05";
 		compatible = "samsung,gta2xlwifi";
 		lk2nd,match-bootloader = "T590*";
-		
+
 		lk2nd,dtb-files = "sdm450-samsung-gta2xlwifi";
-	};	
+	};
 };

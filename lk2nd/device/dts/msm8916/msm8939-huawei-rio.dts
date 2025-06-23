@@ -19,7 +19,7 @@
 
 	panel {
 		compatible = "huawei,rio-panel", "lk2nd,panel";
-		
+
 		qcom,mdss_dsi_boe_otm1901_5p5_1080p_video {
 			compatible = "huawei,rio-boe-otm1901";
 		};

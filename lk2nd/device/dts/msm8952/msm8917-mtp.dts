@@ -11,7 +11,7 @@
 };
 
 &lk2nd {
-    	motorola-hannah {
+	motorola-hannah {
 		model = "Motorola Moto E5 Plus (hannah) (MSM8917)";
 		compatible = "motorola,hannah";
 		lk2nd,match-device = "hannah";

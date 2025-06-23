@@ -19,6 +19,5 @@ QCDTBS += \
 	$(LOCAL_DIR)/msm8926-samsung.dtb \
 	$(LOCAL_DIR)/msm8926-v2-720p-mtp.dtb \
 
-
 DTBS += \
 	$(LOCAL_DIR)/lumia.dtb \

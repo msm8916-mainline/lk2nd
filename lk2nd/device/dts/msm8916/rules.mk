@@ -2,7 +2,7 @@
 LOCAL_DIR := $(GET_LOCAL_DIR)
 
 ADTBS += \
-	$(LOCAL_DIR)/msm8939-qrd-skuk.dtb  \
+	$(LOCAL_DIR)/msm8939-qrd-skuk.dtb \
 
 QCDTBS += \
 	$(LOCAL_DIR)/apq8016-samsung.dtb \

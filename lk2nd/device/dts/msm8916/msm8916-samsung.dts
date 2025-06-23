@@ -827,7 +827,6 @@
 		};
 	};
 
-
 	/*
 	 * To build for g5108q, add LK2ND_QCDTBS="msm8916-samsung.dtb"
 	 * to your make cmdline.

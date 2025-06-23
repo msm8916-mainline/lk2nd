@@ -13,7 +13,6 @@
 };
 
 &lk2nd {
-
 	oneplus-bacon {
 		model = "OnePlus One";
 		compatible = "oneplus,bacon";

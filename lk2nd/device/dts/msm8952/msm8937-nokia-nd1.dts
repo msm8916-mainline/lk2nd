@@ -13,7 +13,6 @@
 	compatible = "nokia,nd1";
 	lk2nd,match-device = "ND1";
 	lk2nd,dtb-files = "msm8937-nokia-nd1";
-	
 
 	gpio-keys {
 		compatible = "gpio-keys";
@@ -29,7 +28,6 @@
 		};
 	};
 
-	
 	panel {
 		compatible = "nokia,nd1-panel", "lk2nd,panel";
 
