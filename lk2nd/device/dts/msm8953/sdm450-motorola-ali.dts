@@ -7,11 +7,11 @@
 #include <motorola-carrier-channel-ids.dtsi>
 
 / {
-	/* 
+	/*
 	 * model is required by bootloader to pick dtb.
 	 * The bootloader also crashes if model isn't present in every dtb. (see lk2nd.dtsi for more info)
 	 */
-	model = "ali"; 
+	model = "ali";
 	qcom,msm-id = <QCOM_ID_SDM450 0>;
 	qcom,board-id = <0x41 0xb1a0>,
 			<0x42 0xb1a0>,
@@ -48,5 +48,4 @@
 			compatible = "motorola,ali-panel-tianma";
 		};
 	};
-
 };

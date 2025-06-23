@@ -8,10 +8,8 @@
 };
 
 &lk2nd {
-
 	model = "Motorola Moto G 4G 2013";
 	compatible = "motorola,peregrine";
 
 	//FIXME: lk2nd,dtb-files = "msm8926-motorola-peregrine";
 };
-

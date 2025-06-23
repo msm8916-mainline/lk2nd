@@ -56,5 +56,5 @@
 		qcom,mdss_dsi_tianma_otm1906c_5p5_1080p_cmd {
 			compatible = "huawei,milan-tianma-otm1906c";
 		};
-	};	
+	};
 };

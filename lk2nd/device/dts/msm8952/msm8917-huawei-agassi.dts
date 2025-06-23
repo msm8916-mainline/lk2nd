@@ -5,7 +5,6 @@
 #include <skeleton64.dtsi>
 #include <lk2nd.dtsi>
 
-
 /*
  * This device is quirky. It excluded from generic build.
  * To run lk2nd on this device you need to flash custom bootloader and unlock it.
@@ -22,8 +21,8 @@
 };
 
 &lk2nd {
-	/* 
-	 * There are 3 versions: 
+	/*
+	 * There are 3 versions:
 	 *  - L-09 (Global)
 	 *  - L-03 (USA)
 	 *  - W-09 (WiFi only)

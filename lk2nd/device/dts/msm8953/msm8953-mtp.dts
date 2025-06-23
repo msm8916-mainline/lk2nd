@@ -31,5 +31,5 @@
 				compatible = "xiaomi,ysl-hx8394f";
 			};
 		};
-	};	
+	};
 };

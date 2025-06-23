@@ -10,6 +10,6 @@
 &lk2nd {
 	model = "Motorola One";
 	compatible = "motorola,deen";
-	
+
 	lk2nd,dtb-files = "msm8953-motorola-deen";
 };

@@ -8,7 +8,7 @@
 
 / {
 	/* model|msm-name|pmic appears to be required by bootloader to pick dtb */
-	
+
 	model = "Qualcomm Technologies, Inc. SDM632 + PMI632 MTP S3";
 	qcom,msm-name = "SDM632";
 	qcom,msm-id = <QCOM_ID_SDM632 0>;

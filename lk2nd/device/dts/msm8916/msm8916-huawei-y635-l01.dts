@@ -15,7 +15,6 @@
  * gets upset and goes into the phone's fastboot.
  */
 
-
 &lk2nd {
 	model = "Huawei Y635-L01";
 	compatible = "huawei,y635-l01", "huawei,y635";

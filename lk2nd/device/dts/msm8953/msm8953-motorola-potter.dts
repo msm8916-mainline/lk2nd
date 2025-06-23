@@ -16,9 +16,9 @@
 &lk2nd {
 	model = "Motorola Moto G5 Plus (potter)";
 	compatible = "motorola,potter";
-	
+
 	lk2nd,dtb-files = "msm8953-motorola-potter";
-	
+
 	panel {
 		compatible = "motorola,potter-panel", "lk2nd,panel";
 

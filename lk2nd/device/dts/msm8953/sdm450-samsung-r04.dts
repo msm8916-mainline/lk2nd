@@ -51,7 +51,7 @@
 		modem_shared_mem_region@0x93000000 {
 			reg = <0x0 0x93000000 0x0 0x6000000>;
 		};
-	};	
+	};
 };
 
 &lk2nd {
@@ -62,14 +62,14 @@
 
 		lk2nd,dtb-files = "sdm450-samsung-j8y18lte";
 	};
-	
+
 	a6plte-generic {
 		model = "Samsung Galaxy A6+ HW.Rev.4";
 		compatible = "samsung,a6plte";
 		lk2nd,match-bootloader = "A605*";
 
 		lk2nd,dtb-files = "sdm450-samsung-a6plte-r4";
-	};	
+	};
 
 	gta2xllte-generic {
 		model = "Samsung Tab A2 XL LTE Rev04";
@@ -78,5 +78,4 @@
 
 		lk2nd,dtb-files = "sdm450-samsung-gta2xllte";
 	};
-
 };

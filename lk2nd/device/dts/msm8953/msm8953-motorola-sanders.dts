@@ -14,9 +14,9 @@
 &lk2nd {
 	model = "Motorola Moto G5s Plus (sanders)";
 	compatible = "motorola,sanders";
-	
+
 	lk2nd,dtb-files = "msm8953-motorola-sanders";
-	
+
 	panel {
 		compatible = "motorola,sanders-panel", "lk2nd,panel";
 
