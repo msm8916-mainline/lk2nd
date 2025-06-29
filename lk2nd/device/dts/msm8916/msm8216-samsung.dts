@@ -77,6 +77,7 @@
 			ss_dsi_panel_HX8389C_GH9607501A_QHD {
 				compatible = "samsung,hx8389c-gh9607501a";
 			};
+
 			ss_dsi_panel_S6D78A0_GH9607501A_QHD {
 				compatible = "samsung,s6d78a0-gh9607501a";
 			};
