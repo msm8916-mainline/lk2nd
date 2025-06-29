@@ -34,6 +34,7 @@
 
 		gpio-keys {
 			compatible = "gpio-keys";
+
 			home {
 				lk2nd,code = <KEY_HOME>;
 				gpios = <&tlmm 109 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
@@ -83,6 +84,7 @@
 			ss_dsi_panel_HX8369B_BV045WVM_WVGA {
 				compatible = "samsung,hx8369b-bv045wvm";
 			};
+
 			ss_dsi_panel_SC7798A_BV045WVM_WVGA {
 				compatible = "samsung,sc7798a-bv045wvm";
 			};
@@ -103,6 +105,7 @@
 
 		gpio-keys {
 			compatible = "gpio-keys";
+
 			home {
 				lk2nd,code = <KEY_HOME>;
 				gpios = <&tlmm 109 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
@@ -122,6 +125,7 @@
 
 		gpio-keys {
 			compatible = "gpio-keys";
+
 			home {
 				lk2nd,code = <KEY_HOME>;
 				gpios = <&tlmm 109 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
@@ -152,6 +156,7 @@
 
 		gpio-keys {
 			compatible = "gpio-keys";
+
 			home {
 				lk2nd,code = <KEY_HOME>;
 				gpios = <&tlmm 109 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
@@ -218,6 +223,7 @@
 			ss_dsi_panel_HX8369B_BV045WVM_WVGA {
 				compatible = "samsung,hx8369b-bv045wvm";
 			};
+
 			ss_dsi_panel_SC7798A_BV045WVM_WVGA {
 				compatible = "samsung,sc7798a-bv045wvm";
 			};
@@ -249,6 +255,7 @@
 			ss_dsi_panel_HX8389C_GH9607501A_QHD {
 				compatible = "samsung,hx8389c-gh9607501a";
 			};
+
 			ss_dsi_panel_S6D78A0_GH9607501A_QHD {
 				compatible = "samsung,s6d78a0-gh9607501a";
 			};
@@ -278,6 +285,7 @@
 			ss_dsi_panel_HX8389C_GH9607501A_QHD {
 				compatible = "samsung,hx8389c-gh9607501a";
 			};
+
 			ss_dsi_panel_S6D78A0_GH9607501A_QHD {
 				compatible = "samsung,s6d78a0-gh9607501a";
 			};
@@ -332,6 +340,7 @@
 			ss_dsi_panel_HX8389C_GH9607501A_QHD {
 				compatible = "samsung,hx8389c-gh9607501a";
 			};
+
 			ss_dsi_panel_S6D78A0_GH9607501A_QHD {
 				compatible = "samsung,s6d78a0-gh9607501a";
 			};
@@ -357,6 +366,7 @@
 
 		gpio-keys {
 			compatible = "gpio-keys";
+
 			home {
 				lk2nd,code = <KEY_HOME>;
 				gpios = <&tlmm 109 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
@@ -482,6 +492,7 @@
 			ss_dsi_panel_HX8369B_BV045WVM_WVGA {
 				compatible = "samsung,hx8369b-bv045wvm";
 			};
+
 			ss_dsi_panel_SC7798A_BV045WVM_WVGA {
 				compatible = "samsung,sc7798a-bv045wvm";
 			};
@@ -726,6 +737,7 @@
 			ss_dsi_panel_HX8369B_BV045WVM_WVGA {
 				compatible = "samsung,hx8369b-bv045wvm";
 			};
+
 			ss_dsi_panel_SC7798A_BV045WVM_WVGA {
 				compatible = "samsung,sc7798a-bv045wvm";
 			};
@@ -748,6 +760,7 @@
 			ss_dsi_panel_EA8061_HD {
 				compatible = "samsung,ea8061-ams549bu19";
 			};
+
 			ss_dsi_panel_EA8061_ID400418_HD {
 				compatible = "samsung,ea8061-ams549bu19-id400418";
 			};
@@ -770,6 +783,7 @@
 			ss_dsi_panel_EA8061_HD {
 				compatible = "samsung,ea8061-ams549bu19";
 			};
+
 			ss_dsi_panel_EA8061_ID400418_HD {
 				compatible = "samsung,ea8061-ams549bu19-id400418";
 			};
@@ -792,6 +806,7 @@
 			ss_dsi_panel_EA8061_HD {
 				compatible = "samsung,ea8061-ams549bu19";
 			};
+
 			ss_dsi_panel_EA8061_ID400418_HD {
 				compatible = "samsung,ea8061-ams549bu19-id400418";
 			};
@@ -810,6 +825,7 @@
 
 		gpio-keys {
 			compatible = "gpio-keys";
+
 			home {
 				lk2nd,code = <KEY_HOME>;
 				gpios = <&tlmm 109 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
@@ -842,6 +858,7 @@
 
 		gpio-keys {
 			compatible = "gpio-keys";
+
 			home {
 				lk2nd,code = <KEY_HOME>;
 				gpios = <&tlmm 109 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
