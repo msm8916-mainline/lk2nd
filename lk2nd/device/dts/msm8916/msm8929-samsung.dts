@@ -75,6 +75,7 @@
 			ss_dsi_panel_HX8389C_GH9607501A_QHD {
 				compatible = "samsung,hx8389c-gh9607501a";
 			};
+
 			ss_dsi_panel_S6D78A0_GH9607501A_QHD {
 				compatible = "samsung,s6d78a0-gh9607501a";
 			};
@@ -93,6 +94,7 @@
 
 		gpio-keys {
 			compatible = "gpio-keys";
+
 			home {
 				lk2nd,code = <KEY_HOME>;
 				gpios = <&tlmm 109 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;

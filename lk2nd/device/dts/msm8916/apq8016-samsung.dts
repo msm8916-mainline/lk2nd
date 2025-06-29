@@ -28,6 +28,7 @@
 
 		gpio-keys {
 			compatible = "gpio-keys";
+
 			home {
 				lk2nd,code = <KEY_HOME>;
 				gpios = <&tlmm 109 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
@@ -80,6 +81,7 @@
 
 		gpio-keys {
 			compatible = "gpio-keys";
+
 			home {
 				lk2nd,code = <KEY_HOME>;
 				gpios = <&tlmm 109 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
