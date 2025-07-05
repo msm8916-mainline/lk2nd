@@ -1430,6 +1430,9 @@ int dev_tree_validate(struct dt_table *table, unsigned int page_size, uint32_t *
 		dt_entry_size = sizeof(struct dt_entry_v2);
 	} else if (table->version == DEV_TREE_VERSION_V3) {
 		dt_entry_size = DEV_TREE_DT_ENTRY_SIZE_V3;
+		if (table->extended) {
+			dt_entry_size += 0x20; /* 32 bytes for extended data */
+		}
 	} else {
 		dprintf(CRITICAL, "ERROR: Unsupported version (%d) in DT table \n",
 				table->version);
@@ -1943,6 +1946,9 @@ int dev_tree_get_entry_info(struct dt_table *table, struct dt_entry *dt_entry_in
 				cur_dt_entry->board_hw_subtype = (cur_dt_entry->variant_id >> 0x18);
 
 			table_ptr += DEV_TREE_DT_ENTRY_SIZE_V3;
+			if (table->extended) {
+				table_ptr += 0x20; /* 32 bytes for extended data */
+			}
 			break;
 		default:
 			dprintf(CRITICAL, "ERROR: Unsupported version (%d) in DT table \n",

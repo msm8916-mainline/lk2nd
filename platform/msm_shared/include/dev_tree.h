@@ -169,12 +169,15 @@ struct dt_entry
 	uint32_t offset;
 	uint32_t size;
 	uint32_t idx;
+	/* char model[0x20]; */
 };
 
 struct dt_table
 {
 	uint32_t magic;
-	uint32_t version;
+	uint8_t  version;
+	uint8_t  extended;
+	uint16_t reserved;
 	uint32_t num_entries;
 };
 
