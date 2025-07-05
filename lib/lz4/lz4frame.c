@@ -49,6 +49,8 @@
 #  pragma warning(disable : 4127)   /* disable: C4127: conditional expression is constant */
 #endif
 
+#include <compiler.h>
+
 
 /*-************************************
 *  Tuning parameters
@@ -344,7 +346,9 @@ size_t LZ4F_getBlockSize(LZ4F_blockSizeID_t blockSizeID)
 /*-************************************
 *  Private functions
 **************************************/
+#ifndef MIN
 #define MIN(a,b)   ( (a) < (b) ? (a) : (b) )
+#endif
 
 static BYTE LZ4F_headerChecksum (const void* header, size_t length)
 {

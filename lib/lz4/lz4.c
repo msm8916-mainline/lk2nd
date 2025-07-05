@@ -116,6 +116,8 @@
 #include "lz4.h"
 /* see also "memory routines" below */
 
+#include <compiler.h>
+
 
 /*-************************************
 *  Compiler Options

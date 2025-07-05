@@ -54,6 +54,8 @@
 #include "lz4hc.h"
 #include <limits.h>
 
+#include <compiler.h>
+
 
 /*===   Shared lz4.c code   ===*/
 #ifndef LZ4_SRC_INCLUDED
