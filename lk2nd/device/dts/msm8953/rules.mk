@@ -9,7 +9,6 @@ ADTBS += \
 	$(LOCAL_DIR)/msm8953-huawei-milan.dtb \
 	$(LOCAL_DIR)/msm8953-lenovo-kuntao.dtb \
 	$(LOCAL_DIR)/msm8953-motorola-deen.dtb \
-	$(LOCAL_DIR)/msm8953-motorola-sanders.dtb \
 	$(LOCAL_DIR)/msm8953-mtp.dtb \
 	$(LOCAL_DIR)/msm8953-oppo-r9s.dtb \
 	$(LOCAL_DIR)/msm8953-qrd.dtb \
@@ -28,4 +27,5 @@ ADTBS += \
 
 QCDTBS += \
 	$(LOCAL_DIR)/msm8953-motorola-potter.dtb \
+	$(LOCAL_DIR)/msm8953-motorola-sanders.dtb \
 	$(LOCAL_DIR)/sdm450-samsung-r04.dtb \
