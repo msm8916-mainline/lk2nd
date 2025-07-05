@@ -3,6 +3,7 @@
 #include "msm8953-motorola.dtsi"
 
 / {
+	model = "sanders";
 	qcom,board-id = <0x4B 0x8100>,
 			<0x4B 0x8200>,
 			<0x4B 0x8300>,
