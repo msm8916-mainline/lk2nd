@@ -59,6 +59,8 @@
 #include <boot_verifier.h>
 #include <image_verify.h>
 #include <decompress.h>
+#include <lz4.h>
+#include <lz4frame.h>
 #include <platform/timer.h>
 #include <sys/types.h>
 #if USE_RPMB_FOR_DEVINFO
@@ -1576,6 +1578,56 @@ void get_recovery_dtbo_info(uint32_t *dtbo_size, void **dtbo_buf)
 	return;
 }
 
+int decompress_lz4f(const unsigned char* src, unsigned int srcSize, unsigned char* dst, unsigned int dstCapacity)
+{
+	if (!src || srcSize <= 0 || !dst || dstCapacity <= 0) {
+		dprintf(CRITICAL, "Invalid parameters for LZ4F decompression\n");
+		return -1;
+	}
+
+	int result = -1;
+	LZ4F_decompressOptions_t opts;
+	memset(&opts, 0, sizeof(opts));
+	opts.stableDst = 1;
+
+	LZ4F_dctx* dctx;
+	{
+		size_t const dctxStatus = LZ4F_createDecompressionContext(&dctx, LZ4F_VERSION);
+		if (LZ4F_isError(dctxStatus)) {
+			dprintf(CRITICAL, "LZ4F_dctx creation error: %s\n", LZ4F_getErrorName(dctxStatus));
+		}
+	}
+
+	if (dctx) {
+		size_t dstSize = dstCapacity;
+		size_t srcConsumed = srcSize;
+		size_t const rc = LZ4F_decompress(dctx,
+				dst,
+				&dstSize,
+				src,
+				&srcConsumed,
+				&opts);
+		if (LZ4F_isError(rc)) {
+			dprintf(CRITICAL, "LZ4F_decompress error: %s\n", LZ4F_getErrorName(rc));
+		} else {
+			if (rc != 0 || srcConsumed != srcSize) {
+				dprintf(CRITICAL, "LZ4F_decompress did not consume all input data: "
+					"consumed %zu, expected %d\n", srcConsumed, srcSize);
+			} else if (dstSize > dstCapacity) {
+				dprintf(CRITICAL, "Decompressed size exceeds destination capacity: "
+					"dstSize %zu, dstCapacity %d\n", dstSize, dstCapacity);
+			} else {
+				dprintf(INFO, "LZ4F decompression successful: "
+					"dstSize %zu, srcSize %d\n", dstSize, srcSize);
+			}
+			result = (int)dstSize;
+		}
+	}
+
+	LZ4F_freeDecompressionContext(dctx);
+	return result;
+}
+
 int boot_linux_from_mmc(void)
 {
 	boot_img_hdr *hdr = (void*) buf;
@@ -2110,6 +2162,24 @@ int boot_linux_from_mmc(void)
 	#if DEVICE_TREE
 	if(dt_size) {
 		dt_table_offset = ((uint32_t)image_addr + page_size + kernel_actual + ramdisk_actual + second_actual);
+
+		if (*((uint32_t *)dt_table_offset) == LZ4F_MAGICNUMBER) {
+			dprintf(INFO, "found LZ4F compressed dtb\n");
+			out_addr = out_addr ? out_addr + out_len : (unsigned char *)(image_addr + imagesize_actual + page_size);
+			out_avai_len = out_avai_len ? out_avai_len - out_len : target_get_max_flash_size() - imagesize_actual - page_size;
+			dprintf(INFO, "decompressing lz4f dtb: start\n");
+			int rc = decompress_lz4f(
+					(unsigned char *)dt_table_offset,
+					dt_size,
+					out_addr,
+					out_avai_len);
+			if (rc >= 0) {
+				out_len = rc;
+				dt_table_offset = (uint32_t)out_addr;
+			}
+			dprintf(INFO, "decompressing lz4f dtb: done\n");
+		}
+
 		table = (struct dt_table*) dt_table_offset;
 
 		if (dev_tree_validate(table, hdr->page_size, &dt_hdr_size) != 0) {
@@ -3065,6 +3135,7 @@ int copy_dtb(uint8_t *boot_image_start, unsigned int scratch_offset)
 	unsigned int dtb_size = 0;
 	unsigned int out_avai_len = 0;
 	unsigned char *out_addr = NULL;
+	unsigned int out_len = 0;
 	unsigned char *best_match_dt_addr = NULL;
 	int rc;
 
@@ -3091,7 +3162,26 @@ int copy_dtb(uint8_t *boot_image_start, unsigned int scratch_offset)
 		}
 
 		/* offset now point to start of dt.img */
-		table = (struct dt_table*)(boot_image_start + dt_image_offset);
+		unsigned int dt_table_offset = ((uint32_t)boot_image_start + dt_image_offset);
+		
+		if (*((uint32_t *)dt_table_offset) == LZ4F_MAGICNUMBER) {
+			dprintf(INFO, "found LZ4F compressed dtb\n");
+			out_addr = (unsigned char *)target_get_scratch_address() + scratch_offset;
+			out_avai_len = target_get_max_flash_size() - scratch_offset;
+			dprintf(INFO, "decompressing lz4f dtb: start\n");
+			int rc = decompress_lz4f(
+					(unsigned char *)dt_table_offset,
+					dt_size,
+					out_addr,
+					out_avai_len);
+			if (rc >= 0) {
+				out_len = rc;
+				dt_table_offset = (uint32_t)out_addr;
+			}
+			dprintf(INFO, "decompressing lz4f dtb: done\n");
+		}
+
+		table = (struct dt_table*)dt_table_offset;
 
 		if (dev_tree_validate(table, hdr->page_size, &dt_hdr_size) != 0) {
 			dprintf(CRITICAL, "ERROR: Cannot validate Device Tree Table \n");
@@ -3114,8 +3204,8 @@ int copy_dtb(uint8_t *boot_image_start, unsigned int scratch_offset)
 		best_match_dt_addr = (unsigned char *)boot_image_start + dt_image_offset + dt_entry.offset;
 		if (is_gzip_package(best_match_dt_addr, dt_entry.size))
 		{
-			out_addr = (unsigned char *)target_get_scratch_address() + scratch_offset;
-			out_avai_len = target_get_max_flash_size() - scratch_offset;
+			out_addr = out_addr ? out_addr + out_len : (unsigned char *)target_get_scratch_address() + scratch_offset;
+			out_avai_len = out_avai_len ? out_avai_len - out_len :target_get_max_flash_size() - scratch_offset;
 			dprintf(INFO, "decompressing dtb: start\n");
 			rc = decompress(best_match_dt_addr,
 					dt_entry.size, out_addr, out_avai_len,

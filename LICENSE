@@ -63,6 +63,7 @@ projects, including (but not limited to):
 
   - lib/libfdt: (GPL-2.0-or-later OR BSD-2-Clause), used under BSD-2-Clause
   - lib/libufdt: Apache-2.0
+  - lib/lz4: BSD-2-Clause
   - lib/openssl: OpenSSL
   - lib/zlib_inflate: Zlib
 
