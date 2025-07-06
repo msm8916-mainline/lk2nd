@@ -9,6 +9,7 @@
 #include <libfdt.h>
 #include <lk2nd/device.h>
 #include <lk2nd/init.h>
+#include <lk2nd/panel.h>
 #include <lk2nd/util/lkfdt.h>
 
 #include "device.h"
@@ -156,6 +157,9 @@ static void lk2nd_device_init(void)
 
 #ifdef LK2ND_COMPATIBLE
 	lk2nd_dev.compatible = LK2ND_COMPATIBLE;
+#endif
+#ifdef LK2ND_DISPLAY
+	lk2nd_dev.panel.name = lk2nd_oem_panel_name();
 #endif
 
 	dtb = lk2nd_device2nd_init();

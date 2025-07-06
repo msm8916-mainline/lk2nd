@@ -9,9 +9,9 @@
 #include <panel.h>
 #include <panel_display.h>
 
-#include "generated/panels.h"
+#include <lk2nd/panel.h>
 
-#include "../../device/device.h"
+#include "generated/panels.h"
 
 #if TARGET_MSM8916
 uint32_t panel_regulator_settings[] = {
@@ -42,12 +42,20 @@ uint32_t oem_panel_max_auto_detect_panels()
 #define _panel_select(panel)	panel_##panel##_select
 #define panel_select(panel)	_panel_select(panel)
 
+const char *lk2nd_oem_panel_name(void)
+{
+	struct panel_struct panel;
+	struct msm_panel_info pinfo;
+	struct mdss_dsi_phy_ctrl phy_db;
+
+	panel_select(LK2ND_DISPLAY)(&panel, &pinfo, &phy_db);
+	return panel.paneldata->panel_node_id;
+}
+
 int oem_panel_select(const char *panel_name, struct panel_struct *panel,
 		     struct msm_panel_info *pinfo, struct mdss_dsi_phy_ctrl *phy_db)
 {
 	panel_select(LK2ND_DISPLAY)(panel, pinfo, phy_db);
-	lk2nd_dev.panel.name = panel->paneldata->panel_node_id;
-
 
 #if TARGET_MSM8916
 	if (phy_db->regulator_mode == DSI_PHY_REGULATOR_LDO_MODE)
