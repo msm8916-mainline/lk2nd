@@ -13,6 +13,7 @@
 #define SMEM_KERNEL_RESERVE		SMEM_ID_VENDOR0
 #define SMEM_KERNEL_RESERVE_SIZE	1024
 
+static uint32_t prod_id;
 static const struct mmi_unit_info *mmi_unit_info;
 
 static void readprop_u32(const void *dtb, int node, const char *name, uint32_t *val) {
@@ -26,10 +27,10 @@ static void readprop_u32(const void *dtb, int node, const char *name, uint32_t *
 
 static void print_unit_info(const struct mmi_unit_info *info)
 {
-	dprintf(INFO, "Motorola unit info v%d: rev=%#04x, serial=%#08x%08x, "
+	dprintf(INFO, "Motorola unit info v%d: prod_id=%#04x, rev=%#04x, serial=%#08x%08x, "
 		"machine='%s', barcode='%s', carrier='%s', baseband='%s', device='%s', "
 		"radio='%s' (%#x), powerup_reason=%#08x\n",
-		info->version, info->system_rev, info->system_serial_high, info->system_serial_low,
+		info->version, prod_id, info->system_rev, info->system_serial_high, info->system_serial_low,
 		info->machine, info->barcode, info->carrier, info->baseband, info->device,
 		info->radio_str, info->radio, info->powerup_reason);
 }
@@ -67,6 +68,7 @@ static int motorola_unit_info(const void *dtb, int node)
 	memset(info, 0, SMEM_KERNEL_RESERVE_SIZE);
 	info->version = MMI_UNIT_INFO_VER;
 
+	readprop_u32(dtb, chosen, "mmi,prod_id", &prod_id);
 	readprop_u32(dtb, chosen, "linux,hwrev", &info->system_rev);
 	readprop_u32(dtb, chosen, "linux,seriallow", &info->system_serial_low);
 	readprop_u32(dtb, chosen, "linux,serialhigh", &info->system_serial_high);
