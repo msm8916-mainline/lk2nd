@@ -1,5 +1,16 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
+/**
+ Stock Samsung bootloader can choose any supported device tree it wants.
+ But that doesn't mean that stock Samsung kernel will support all of them.
+ For example (graceqlte):
+   - Bootloader selects msm8996-samsung-graceqlte-r11.dtb (from lk2nd)
+   - Kernel is built with: r02, r03, r06, r09
+ While stock bootloader can resolve stock kernel by just using r09.
+ lk2nd will try to use r11, as it was selected by the stock bootloader.
+ To avoid such issue, some dts's are excluded from the build.
+ */
+
 #include <skeleton64.dtsi>
 #include <lk2nd.dtsi>
 
@@ -63,7 +74,7 @@
 
 &lk2nd {
 	graceqlte {
-		model = "Samsung Galaxy Note 7";
+		model = "Samsung Galaxy Note 7 RevXX";
 		compatible = "samsung,graceqlte";
 		lk2nd,match-bootloader = "N930*";
 
@@ -106,7 +117,7 @@
 	};
 
 	heroqlte {
-		model = "Samsung Galaxy S7";
+		model = "Samsung Galaxy S7 RevXX";
 		compatible = "samsung,heroqlte";
 		lk2nd,match-bootloader = "G930*";
 
@@ -152,7 +163,7 @@
 	};
 
 	hero2qlte {
-		model = "Samsung Galaxy S7 Edge";
+		model = "Samsung Galaxy S7 Edge RevXX";
 		compatible = "samsung,hero2qlte";
 		lk2nd,match-bootloader = "G935*";
 
