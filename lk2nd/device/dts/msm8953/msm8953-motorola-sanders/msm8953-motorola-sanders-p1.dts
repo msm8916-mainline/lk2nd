@@ -5,3 +5,7 @@
 / {
 	qcom,board-id = <0x4B 0x8100>;
 };
+
+&lk2nd {
+	lk2nd,dtb-files = "msm8953-sanders-p1";
+};
