@@ -5,7 +5,18 @@ ADTBS += \
 	$(LOCAL_DIR)/msm8996pro-oneplus3t.dtb \
 	$(LOCAL_DIR)/msm8996-lg-h850.dtb \
 	$(LOCAL_DIR)/msm8996-lg-h990.dtb \
-	$(LOCAL_DIR)/msm8996-samsung.dtb \
+	$(LOCAL_DIR)/msm8996-samsung/msm8996-samsung-r01.dtb \
+	$(LOCAL_DIR)/msm8996-samsung/msm8996-samsung-r02.dtb \
+	$(LOCAL_DIR)/msm8996-samsung/msm8996-samsung-r03.dtb \
+	$(LOCAL_DIR)/msm8996-samsung/msm8996-samsung-r05.dtb \
+	$(LOCAL_DIR)/msm8996-samsung/msm8996-samsung-r06.dtb \
+	$(LOCAL_DIR)/msm8996-samsung/msm8996-samsung-r07.dtb \
+	$(LOCAL_DIR)/msm8996-samsung/msm8996-samsung-r08.dtb \
+	$(LOCAL_DIR)/msm8996-samsung/msm8996-samsung-r09.dtb \
+	$(LOCAL_DIR)/msm8996-samsung/msm8996-samsung-r10.dtb \
+	$(LOCAL_DIR)/msm8996-samsung/msm8996-samsung-r11.dtb \
+	$(LOCAL_DIR)/msm8996-samsung/msm8996-samsung-r13.dtb \
+	$(LOCAL_DIR)/msm8996-samsung/msm8996-samsung-r15.dtb \
 	$(LOCAL_DIR)/msm8996-xiaomi-mi5.dtb \
 	$(LOCAL_DIR)/msm8996-xiaomi-mi5s.dtb \
 	$(LOCAL_DIR)/msm8996-xiaomi-mi5s-plus.dtb \
