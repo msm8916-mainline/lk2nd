@@ -1,0 +1,7 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+#include "msm8953-motorola-sanders.dtsi"
+
+/ {
+	qcom,board-id = <0x4C 0x8400>;
+};
