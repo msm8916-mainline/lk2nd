@@ -14,7 +14,7 @@
       ./mkbootimg/mkbootimg \
           --kernel ./out/boot.img-kernel \
           --ramdisk ./out/boot.img-ramdisk \
-          --dt ./out/boot.img-dt-py \
+          --dt ./out/boot.img-dt-patched \
           --cmdline "$(cat ./out/boot.img-cmdline)" \
           --base "$(cat ./out/boot.img-base)" \
           --kernel_offset "$(cat ./out/boot.img-kernel_offset)" \
