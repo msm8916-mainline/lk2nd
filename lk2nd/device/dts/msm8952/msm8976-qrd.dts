@@ -20,19 +20,19 @@
 			compatible = "longcheer,l9360-panel", "lk2nd,panel";
 
 			qcom,mdss_dsi_booyi_hx8399b_1080p_command {
-				compatible = "longcheer,booyi-hx8399b";
+				compatible = "longcheer,l9360-hx8399b";
 			};
 			qcom,mdss_dsi_booyi_hx8399c_1080p_video {
-				compatible = "longcheer,booyi-hx8399c";
+				compatible = "longcheer,l9360-hx8399c";
 			};
 			qcom,mdss_dsi_truly_nt35695_1080p_command {
-				compatible = "longcheer,truly-nt35695";
+				compatible = "longcheer,l9360-nt35695";
 			};
 			qcom,mdss_dsi_truly_otm1906a_1080p_command {
-				compatible = "longcheer,truly-otm1906a";
+				compatible = "longcheer,l9360-otm1906a";
 			};
 			qcom,mdss_dsi_truly_r63350_1080p_video {
-				compatible = "longcheer,truly-r63350";
+				compatible = "longcheer,l9360-r63350";
 			};
 		};
 	};
