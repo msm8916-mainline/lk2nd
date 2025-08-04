@@ -660,6 +660,24 @@
 		};
 	};
 
+	j5ltedx {
+		model = "Samsung Galaxy J5 2015 (SM-J500G)";
+		compatible = "samsung,j5ltedx", "samsung,j5";
+		lk2nd,match-bootloader = "J500G*";
+
+		lk2nd,dtb-files = "msm8916-samsung-j5";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 5>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x25>;
+			i2c-sda-gpios = <&tlmm 105 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 106 I2C_GPIO_FLAGS>;
+		};
+	};
+
 	j5lteub {
 		model = "Samsung Galaxy J5 2015 (SM-J500M)";
 		compatible = "samsung,j5lteub", "samsung,j5";
