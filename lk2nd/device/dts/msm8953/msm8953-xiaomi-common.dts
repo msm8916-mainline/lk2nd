@@ -36,7 +36,7 @@
 	sakura {
 		/* Xiaomi Redmi 6 Pro (sakura) and Xiaomi Mi A2 Lite (daisy) are software compatible */
 		model = "Xiaomi Redmi 6 Pro";
-		compatible = "xiaomi,sakura";
+		compatible = "xiaomi,sakura", "xiaomi,daisy";
 		lk2nd,match-bootloader = "*DAISY*";
 
 		lk2nd,dtb-files = "msm8953-xiaomi-daisy";
