@@ -50,6 +50,9 @@
 #endif
 #include <boot_stats.h>
 #include <verifiedboot.h>
+#if WITH_LK2ND_DEVICE
+#include <lk2nd/device.h>
+#endif
 
 #define NODE_PROPERTY_MAX_LEN   64
 #define ADD_OF(a, b) (UINT_MAX - b > a) ? (a + b) : UINT_MAX
@@ -400,6 +403,15 @@ static boolean dtb_read_find_match(dt_info *current_dtb_info, dt_info *best_dtb_
 		dprintf(CRITICAL, "ERROR: Unable to locate root node\n");
 		return false;
 	}
+
+#if WITH_LK2ND_DEVICE
+	if (fdt_node_check_compatible(dtb, root_offset, lk2nd_device_get_dtb_compatible()) == 0) {
+		dprintf(INFO, "Compatible %s matches, mark as best dtb node\n", lk2nd_device_get_dtb_compatible());
+		current_dtb_info->dt_match_val = UINT_MAX;
+		current_dtb_info->dt_match_val &= ~exact_match;
+		goto cleanup;
+	}
+#endif
 
 	/* Get the msm-id prop from DTB and find best match */
 	platform_prop = (const char *)fdt_getprop(dtb, root_offset, "qcom,msm-id", &platform_id_len);
@@ -823,6 +835,7 @@ static int dev_tree_compatible(const void *dtb, const void *real_dtb, uint32_t d
 	uint32_t board_data_count;
 	uint32_t pmic_data_count;
 	uint32_t dtb_count = 0;;
+	bool set_dt_entry_is_best = false;
 
 	if (!root_offset)
 		root_offset = fdt_path_offset(dtb, "/");
@@ -839,6 +852,13 @@ if (DEBUGLEVEL >= SPEW) {
 		dprintf(INFO, "model does not exist in device tree\n");
 	}
 }
+
+#if WITH_LK2ND_DEVICE
+	if (fdt_node_check_compatible(dtb, root_offset, lk2nd_device_get_dtb_compatible()) == 0) {
+		dprintf(INFO, "Compatible %s matches, mark as best dtb node\n", lk2nd_device_get_dtb_compatible());
+		set_dt_entry_is_best = true;
+	}
+#endif
 
 	/* Find the pmic-id prop from DTB , if pmic-id is present then
 	* the DTB is version 3, otherwise find the board-id prop from DTB ,
@@ -921,6 +941,7 @@ if (DEBUGLEVEL >= SPEW) {
 			cur_dt_entry->pmic_rev[3] = board_pmic_target(3);
 			cur_dt_entry->offset = (uint32_t)real_dtb;
 			cur_dt_entry->size = dtb_size;
+			cur_dt_entry->is_best = set_dt_entry_is_best;
 
 			if (min_plat_id_len == DT_ENTRY_LGE8974_SIZE)
 				cur_dt_entry->board_hw_subtype = fdt32_to_cpu(((const struct dt_entry_v1 *)plat_prop)->offset);
@@ -1076,6 +1097,7 @@ if (DEBUGLEVEL >= SPEW) {
 						dt_entry_array[k].pmic_rev[3]= pmic_data[n].pmic_version[3];
 						dt_entry_array[k].offset = (uint32_t)real_dtb;
 						dt_entry_array[k].size = dtb_size;
+						dt_entry_array[k].is_best = set_dt_entry_is_best;
 						k++;
 					}
 
@@ -1090,6 +1112,7 @@ if (DEBUGLEVEL >= SPEW) {
 					dt_entry_array[k].pmic_rev[3]= board_pmic_target(3);
 					dt_entry_array[k].offset = (uint32_t)real_dtb;
 					dt_entry_array[k].size = dtb_size;
+					dt_entry_array[k].is_best = set_dt_entry_is_best;
 					k++;
 				}
 			}
@@ -1828,6 +1851,20 @@ static struct dt_entry *platform_dt_match_best(struct dt_entry_node *dt_list)
 		return NULL;
 	if (!update_dtb_entry_node(dt_list, DTB_PMIC3))
 		return NULL;
+
+#if WITH_LK2ND_DEVICE
+	list_for_every_entry(&dt_list->node, dt_node_tmp1, dt_node, node) {
+		if (!dt_node_tmp1)
+			break;
+
+		if (!dt_node_tmp1->dt_entry_m)
+			continue;
+
+		if (dt_node_tmp1->dt_entry_m->is_best) {
+			return dt_node_tmp1->dt_entry_m;
+		}
+	}
+#endif
 
 	list_for_every_entry(&dt_list->node, dt_node_tmp1, dt_node, node) {
 		if (!dt_node_tmp1) {
