@@ -12,8 +12,10 @@ void lk2nd_device2nd_copy_atags(void *tags, const char *cmdline,
 
 #if WITH_LK2ND_DEVICE
 const char *const *lk2nd_device_get_dtb_hints(void);
+const char *lk2nd_device_get_dtb_compatible(void);
 #else
 static inline const char *const *lk2nd_device_get_dtb_hints(void) { return NULL; };
+static inline const char *lk2nd_device_get_dtb_compatible(void) { return NULL; };
 #endif
 
 #endif /* LK2ND_DEVICE_H */
