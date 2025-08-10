@@ -27,7 +27,7 @@
  */
 
 #ifndef _UFS_HCI_H
-#define _UFS_HCI_H_
+#define _UFS_HCI_H
 
 #include <kernel/mutex.h>
 #include <kernel/event.h>
