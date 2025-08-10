@@ -27,7 +27,7 @@
  */
 
 #ifndef _PM_VADC_HC_H_
-#define PM_VADC_HC_H_
+#define _PM_VADC_HC_H_
 
 #include <sys/types.h>
 #include <bits.h>
