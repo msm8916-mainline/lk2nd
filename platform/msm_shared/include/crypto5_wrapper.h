@@ -27,7 +27,7 @@
  */
 
 #ifndef __CRYPTO5_WRAPPER_H__
-#define __CRYPYO5_WRAPPER_H__
+#define __CRYPTO5_WRAPPER_H__
 
 #include <crypto5_eng.h>
 

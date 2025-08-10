@@ -27,7 +27,7 @@
  */
 
 #ifndef __CRYPTO_HASH_H__
-#define __CRYPYO_HASH_H__
+#define __CRYPTO_HASH_H__
 
 #include <sys/types.h>
 

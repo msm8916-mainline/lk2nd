@@ -27,7 +27,7 @@
  */
 
 #ifndef __CRYPTO5_ENG_H__
-#define __CRYPYO5_ENG_H__
+#define __CRYPTO5_ENG_H__
 
 #include <bits.h>
 #include <bam.h>

@@ -27,7 +27,7 @@
  */
 
 #ifndef __CRYPTO4_ENG_H__
-#define __CRYPYO4_ENG_H__
+#define __CRYPTO4_ENG_H__
 
 #define CRYPTO_ENG_REG(base, offset)    ((base) + offset)
 
