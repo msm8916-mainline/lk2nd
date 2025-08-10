@@ -4680,6 +4680,27 @@ void cmd_continue(const char *arg, void *data, unsigned sz)
 	}
 }
 
+#if WITH_LK2ND_BOOT
+void cmd_continue_skip_lk2ndboot(const char *arg, void *data, unsigned sz)
+{
+	fastboot_okay("");
+	fastboot_stop();
+
+	if (target_is_emmc_boot())
+	{
+#if FBCON_DISPLAY_MSG
+		/* Exit keys' detection thread firstly */
+		exit_menu_keys_detection();
+#endif
+		boot_linux_from_mmc();
+	}
+	else
+	{
+		boot_linux_from_flash();
+	}
+}
+#endif
+
 void cmd_reboot(const char *arg, void *data, unsigned sz)
 {
 	dprintf(INFO, "rebooting the device\n");
