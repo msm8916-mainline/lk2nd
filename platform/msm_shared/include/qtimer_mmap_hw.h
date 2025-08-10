@@ -28,7 +28,7 @@
  */
 
 #ifndef __PLATFORM_MSM_SHARED_QTMR_MMAP_H
-#define __PLATFORM_MSM_SHARED_QRMR_MMAP_H
+#define __PLATFORM_MSM_SHARED_QTMR_MMAP_H
 
 #include <platform/iomap.h>
 
