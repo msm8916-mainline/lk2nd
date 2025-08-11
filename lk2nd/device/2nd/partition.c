@@ -13,7 +13,7 @@
 static void partition_split_mmc(const char *base_name, const char *name,
 				uint32_t num_blocks, bool end)
 {
-	struct partition_entry *base, *split;
+	struct partition_entry *backup, *base, *split;
 	int index = partition_get_index(base_name);
 
 	if (index == INVALID_PTN) {
@@ -27,6 +27,15 @@ static void partition_split_mmc(const char *base_name, const char *name,
 		dprintf(CRITICAL, "%s partition has not enough space for %s (%llu < %u)\n",
 			base_name, name, base->size, num_blocks);
 		return;
+	}
+
+	backup = partition_allocate();
+	if (backup) {
+		memcpy(backup, base, sizeof(*backup));
+		snprintf((char*)backup->name, sizeof(backup->name), "real_%s", base_name);
+	} else {
+		dprintf(CRITICAL, "Too many partitions, cannot backup %s partition entry\n",
+			base_name);
 	}
 
 	split = partition_allocate();
@@ -68,6 +77,16 @@ static void partition_split_flash(struct ptable *ptable, const char *base_name,
 	}
 
 	if (ptable_size(ptable) < MAX_PTABLE_PARTS) {
+		char backup_name[MAX_PTENTRY_NAME];
+		snprintf(backup_name, sizeof(backup_name), "real_%s", base_name);
+		ptable_add(ptable, backup_name, base->start, base->length,
+			    base->flags, base->type, base->perm);
+	} else {
+		dprintf(CRITICAL, "Too many partitions, cannot backup %s partition entry\n",
+			base_name);
+	}
+
+	if (ptable_size(ptable) < MAX_PTABLE_PARTS) {
 		unsigned start = base->start;
 		if (end)
 			start += base->length - length;
@@ -88,9 +107,15 @@ static void lk2nd_partition_split_mmc(void)
 {
 	uint32_t block_size __UNUSED = mmc_get_device_blocksize();
 
-#ifdef LK2ND_PARTITION_SIZE
-	partition_split_mmc(LK2ND_PARTITION_BASE, LK2ND_PARTITION_NAME,
-			    LK2ND_PARTITION_SIZE / block_size, false);
+#ifdef LK2ND_BOOT_PARTITION_SIZE
+	partition_split_mmc(LK2ND_BOOT_PARTITION_BASE,
+			    LK2ND_BOOT_PARTITION_NAME,
+			    LK2ND_BOOT_PARTITION_SIZE / block_size, false);
+#endif
+#ifdef LK2ND_RECOVERY_PARTITION_SIZE
+	partition_split_mmc(LK2ND_RECOVERY_PARTITION_BASE,
+			    LK2ND_RECOVERY_PARTITION_NAME,
+			    LK2ND_RECOVERY_PARTITION_SIZE / block_size, false);
 #endif
 }
 
@@ -102,9 +127,15 @@ static void lk2nd_partition_split_flash(void)
 	if (!ptable)
 		return;
 
-#ifdef LK2ND_PARTITION_SIZE
-	partition_split_flash(ptable, LK2ND_PARTITION_BASE, LK2ND_PARTITION_NAME,
-			      LK2ND_PARTITION_SIZE / block_size, false);
+#ifdef LK2ND_BOOT_PARTITION_SIZE
+	partition_split_flash(ptable, LK2ND_BOOT_PARTITION_BASE,
+			      LK2ND_BOOT_PARTITION_NAME,
+			      LK2ND_BOOT_PARTITION_SIZE / block_size, false);
+#endif
+#ifdef LK2ND_RECOVERY_PARTITION_SIZE
+	partition_split_flash(ptable, LK2ND_RECOVERY_PARTITION_BASE,
+			      LK2ND_RECOVERY_PARTITION_NAME,
+			      LK2ND_RECOVERY_PARTITION_SIZE / block_size, false);
 #endif
 }
 
