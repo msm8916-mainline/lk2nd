@@ -113,8 +113,10 @@ extern int get_target_boot_params(const char *cmdline, const char *part,
 				  char **buf);
 
 void *info_buf;
+#if !ABOOT_STANDALONE
 void write_device_info_mmc(device_info *dev);
 void write_device_info_flash(device_info *dev);
+#endif
 static int aboot_save_boot_hash_mmc(uint32_t image_addr, uint32_t image_size);
 static int aboot_frp_unlock(char *pname, void *data, unsigned sz);
 static inline uint64_t validate_partition_size(struct ptentry *ptn);
@@ -2513,11 +2515,13 @@ int boot_linux_from_flash(void)
 
 	if(target_use_signed_kernel() && (!device.is_unlocked))
 	{
+#if !ABOOT_STANDALONE
 		/* Make sure everything from scratch address is read before next step!*/
 		if(device.is_tampered)
 		{
 			write_device_info_flash(&device);
 		}
+#endif
 #if USE_PCOM_SECBOOT
 		set_tamper_flag(device.is_tampered);
 #endif
