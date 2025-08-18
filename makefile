@@ -249,6 +249,7 @@ DEPS := $(ALLOBJS:%o=%d) $(addsuffix .d,$(ALLDTBS))
 # default to no ccache
 CCACHE ?= 
 CC := $(CCACHE) $(TOOLCHAIN_PREFIX)gcc
+DTC ?= dtc
 ifeq ($(LD),ld)
 LD := $(TOOLCHAIN_PREFIX)ld
 endif
