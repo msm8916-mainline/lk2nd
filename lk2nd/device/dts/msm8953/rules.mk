@@ -24,6 +24,7 @@ ADTBS += \
 	$(LOCAL_DIR)/sdm450-xiaomi-rosy.dtb \
 	$(LOCAL_DIR)/sdm632-fairphone-fp3.dtb \
 	$(LOCAL_DIR)/sdm632-motorola-ocean.dtb \
+	$(LOCAL_DIR)/sdm632-motorola-river.dtb \
 	$(LOCAL_DIR)/sdm632-mtp.dtb \
 
 QCDTBS += \
