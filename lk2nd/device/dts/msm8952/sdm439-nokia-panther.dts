@@ -1,0 +1,34 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_SDM439 0>;
+	qcom,board-id = <QCOM_BOARD_ID_QRD 2>;
+	/* Bootloader appears to really want to access symbols */
+	__symbols__ {};
+};
+
+&lk2nd {
+	model = "HMD Global Nokia 4.2 (panther)";
+	compatible = "nokia,panther";
+
+	lk2nd,dtb-files = "sdm439-nokia-panther";
+
+	lk2nd,match-panel;
+
+	panel {
+		compatible = "nokia,panther-panel", "lk2nd,panel";
+
+		qcom,mdss_dsi_ili9881c_720p_led_video {
+			compatible = "nokia,panther-ili9881c";
+		};
+
+		qcom,mdss_dsi_ili9881d_720p_led_video {
+			compatible = "nokia,panther-ili9881d";
+		};
+	};
+};
