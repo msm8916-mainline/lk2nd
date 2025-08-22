@@ -196,6 +196,10 @@
 - Samsung Galaxy S4 Mini (GT-I9195)
 - Sony Xperia SP (huashan) (quirky - see comment in `lk2nd/device/dts/msm8960/bundle.dts`)
 
+### lk2nd-msm8610
+
+- Huawei C8816
+
 ## Porting new devices
 
 If you are considering adding support for a new device, you would need to add a

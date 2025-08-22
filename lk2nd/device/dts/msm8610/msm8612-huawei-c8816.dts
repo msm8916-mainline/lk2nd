@@ -1,0 +1,36 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,board-id = <8016 4>;
+	qcom,msm-id = <QCOM_ID_MSM8612 0x10001>;
+};
+
+&lk2nd {
+	model = "Huawei C8816";
+	compatible = "huawei,c8816", "lk2nd,device";
+
+	qcom,board-id = <8016 4>;
+	qcom,msm-id = <QCOM_ID_MSM8612 0x10001>;
+
+	lk2nd,dtb-files = "msm8612-huawei-c8816";
+	lk2nd,match-panel;
+
+	panel {
+		compatible = "huawei,c8816-panel", "lk2nd,panel";
+
+		qcom,mdss_dsi_emulator_qhd_video{
+			compatible = "huawei,emulator-lcd";
+		};
+
+		qcom,mdss_dsi_boe_nt35517_5_qhd_video{
+			compatible = "huawei,boe-nt35517";
+		};
+
+		qcom,mdss_dsi_tianma_otm9605a_5_qhd_video{
+			compatible = "huawei,tianma-otm9605a";
+		};
+	};
+};
