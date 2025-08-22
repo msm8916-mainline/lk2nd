@@ -84,6 +84,7 @@ enum target_subtype {
 	HW_PLATFORM_SUBTYPE_SKUAA = 1,
 	HW_PLATFORM_SUBTYPE_SKUF = 2,
 	HW_PLATFORM_SUBTYPE_SKUAB = 3,
+	HW_PLATFORM_SUBTYPE_NO4 = 4,
 };
 
 static void set_sdc_power_ctrl(void);
@@ -314,6 +315,8 @@ void target_baseband_detect(struct board_data *board)
 	case HW_PLATFORM_SUBTYPE_SKUF:
 		break;
 	case HW_PLATFORM_SUBTYPE_SKUAB:
+		break;
+	case HW_PLATFORM_SUBTYPE_NO4:
 		break;
 	default:
 		dprintf(CRITICAL, "Platform Subtype : %u is not supported\n", platform_subtype);
