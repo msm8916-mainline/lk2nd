@@ -232,6 +232,33 @@
 
 	/* rev 2 */
 
+	coreprimeltevzw {
+		model = "Samsung Galaxy Core Prime LTE (SM-G360V)";
+		compatible = "samsung,coreprimeltevzw", "samsung,rossa";
+		lk2nd,match-bootloader = "G360V*";
+
+		lk2nd,dtb-files = "msm8916-samsung-rossa";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 2>;
+
+		panel {
+			compatible = "samsung,cprime-panel", "lk2nd,panel";
+
+			ss_dsi_panel_HX8369B_BV045WVM_WVGA {
+				compatible = "samsung,hx8369b-bv045wvm";
+			};
+
+			ss_dsi_panel_SC7798A_BV045WVM_WVGA {
+				compatible = "samsung,sc7798a-bv045wvm";
+			};
+
+			ss_dsi_panel_SC7798D_BV045WVM_WVGA {
+				compatible = "samsung,sc7798d-bv045wvm";
+			};
+		};
+	};
+
 	gprimeltecan {
 		model = "Samsung Galaxy Grand Prime (SM-G530W)";
 		compatible = "samsung,gprimeltecan";
