@@ -58,6 +58,7 @@
 #include <secapp_loader.h>
 #include <rpmb.h>
 #include <smem.h>
+#include <regulator.h>
 
 #include "target/display.h"
 
@@ -199,6 +200,11 @@ struct mmc_device *target_get_sd_mmc(void)
 	if (dev->config.slot == 2)
 		return NULL;
 
+	uint32_t pm_type = board_pmic_target(0) & PMIC_TYPE_MASK;
+	if (pm_type == PMIC_IS_PM8953 || pm_type == PMIC_IS_PM8937) {
+		dprintf(INFO, "Enable LDO11 regualtor\n");
+		regulator_enable(REG_LDO11);
+	}
 	set_sdc_power_ctrl(2);
 
 	config.slot          = 2;
