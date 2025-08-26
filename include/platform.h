@@ -91,7 +91,9 @@ uint32_t platform_get_max_periph(void);
 int platform_is_msm8996(void);
 int platform_is_apq8096_mediabox(void);
 bool platform_use_qmp_misc_settings(void);
+#if !ABOOT_STANDALONE
 void set_device_unlock_value(int type, bool status);
+#endif
 void get_product_name(unsigned char *buf);
 void get_bootloader_version(unsigned char *buf);
 void get_baseband_version(unsigned char *buf);
@@ -110,11 +112,15 @@ void* get_rpmb_snd_rcv_buff(void);
 int LoadImage(char *Pname, void **ImgBuf, uint32_t *ImgSzActual);
 void boot_verifier_init(void);
 uint32_t get_page_size(void);
+#if !ABOOT_STANDALONE
 int read_rollback_index(uint32_t loc, uint64_t *roll_back_index);
 int write_rollback_index(uint32_t loc, uint64_t roll_back_index);
+#if VERIFIED_BOOT_2
 int get_userkey(uint8_t **user_key, uint32_t *user_key_size);
 int erase_userkey(void);
 int store_userkey(uint8_t *user_key, uint32_t user_key_size);
+#endif
+#endif
 bool is_device_locked_critical(void);
 bool is_verity_enforcing(void);
 #endif
