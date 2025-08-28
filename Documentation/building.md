@@ -104,3 +104,11 @@ from the AOSP 13 source tree located in `lk2nd/certs/` are used to sign the
 image.
 `BOOTIMG_CERT` is expected to be in X.509 PEM format and `BOOTIMG_KEY` is
 expected to be in PKCS#8 format.
+
+### OS Version and OS Patch Level in lk2nd.img
+
+#### `MKBOOTIMG_OS_VERSION=` AND `MKBOOTIMG_OS_PATCH_LEVEL=` - Set `lk2nd.img` OS version and patch level
+
+Set the OS version and patch level to specific values, as some bootloaders
+may check this. `MKBOOTIMG_OS_VERSION` is in format x.y.z and
+`MKBOOTIMG_OS_PATCH_LEVEL` is in format YYYY-MM-DD

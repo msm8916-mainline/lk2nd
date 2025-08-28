@@ -66,6 +66,8 @@ $(OUTBOOTIMG): $(OUTBINDTB) $(OUTQCDT) $(RAMDISK)
 		$(if $(OUTQCDT),--qcdt=$(OUTQCDT)) \
 		$(if $(MKBOOTIMG_BASE),--base=$(MKBOOTIMG_BASE)) \
 		$(if $(MKBOOTIMG_PAGESIZE),--pagesize=$(MKBOOTIMG_PAGESIZE)) \
+		$(if $(MKBOOTIMG_OS_VERSION),--os_version=$(MKBOOTIMG_OS_VERSION)) \
+		$(if $(MKBOOTIMG_OS_PATCH_LEVEL),--os_patch_level=$(MKBOOTIMG_OS_PATCH_LEVEL)) \
 		--ramdisk=$(RAMDISK) \
 		$(MKBOOTIMG_ARGS)
 
