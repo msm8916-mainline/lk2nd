@@ -112,7 +112,7 @@ lk2nd can check the cmdline from the previous bootloader and match the
 
 In some cases there is no useful cmdline param to match against, so
 it's possible to use a list of possible display panels and match if
-one of them is present. See [Panel selection](#Panel selection)
+one of them is present. See [Panel selection](#panel-selection).
 
 ```
 	lk2nd,match-panel;
