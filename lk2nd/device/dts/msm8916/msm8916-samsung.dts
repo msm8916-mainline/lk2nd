@@ -1011,4 +1011,23 @@
 			i2c-scl-gpios = <&tlmm 3 I2C_GPIO_FLAGS>;
 		};
 	};
+	
+	grandmaxltezc {
+		model = "Samsung Galaxy Grand Max (SM-G7200)";
+		compatible = "samsung,grandmaxltechn", "samsung,grandmax";
+		lk2nd,match-bootloader = "G7200*";
+
+		lk2nd,dtb-files = "msm8916-samsung-grandmax";
+
+		qcom,msm-id = <QCOM_ID_MSM8916 0>;
+		qcom,board-id = <0xCE08FF01 8>;
+
+		muic-reset {
+			compatible = "samsung,muic-reset";
+			i2c-reg = <0x14>;
+			i2c-sda-gpios = <&tlmm 105 I2C_GPIO_FLAGS>;
+			i2c-scl-gpios = <&tlmm 106 I2C_GPIO_FLAGS>;
+		};
+	};
+
 };
