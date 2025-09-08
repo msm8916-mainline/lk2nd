@@ -12,7 +12,7 @@
 	model = "Asus ZenFone 2 Laser/Selfie (1080p)";
 	compatible = "asus,z00t";
 
-	lk2nd,dtb-files = "msm8939-asus-z00l";
+	lk2nd,dtb-files = "msm8939-asus-z00t";
 
 	gpio-keys {
 		compatible = "gpio-keys";
