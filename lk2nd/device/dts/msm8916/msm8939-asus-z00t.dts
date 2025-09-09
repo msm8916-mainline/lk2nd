@@ -30,10 +30,10 @@
 		compatible = "asus,z00t-panel", "lk2nd,panel";
 
 		qcom,mdss_dsi_tm5p5_nt35596_1080p_video {
-			compatible = "asus,z00l-tm5p5-nt35596";
+			compatible = "asus,z00t-tm5p5-nt35596";
 		};
 		qcom,mdss_dsi_auo5p5_nt35596_1080p_video {
-			compatible = "asus,z00l-auo5p5-nt35596";
+			compatible = "asus,z00t-auo5p5-nt35596";
 		};
 	};
 };
