@@ -16,6 +16,7 @@
 
 	gpio-keys {
 		compatible = "gpio-keys";
+
 		vol-down {
 			lk2nd,code = <KEY_VOLUMEDOWN>;
 			gpios = <&tlmm 117 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
