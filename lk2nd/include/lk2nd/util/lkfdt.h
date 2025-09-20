@@ -4,6 +4,7 @@
 
 #include <compiler.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 /**
  * lkfdt_prop_strneq() - Check if property is NOT equal to the specified string.
