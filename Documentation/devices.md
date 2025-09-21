@@ -55,6 +55,7 @@
 - Samsung Galaxy Tab E 9.6 WiFi (2015) - SM-T560NU
 - Vivo Y21L
 - Vivo Y31 (2015) - pd1505
+- Vivo Y51L (2015) - pd1510
 - Vodafone Smart prime 6
 - Wiko Pulp 4G
 - Wileyfox Swift - crackling
