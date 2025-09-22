@@ -100,6 +100,7 @@
 - Motorola Moto G5S (montana)
 - Motorola Moto G6 Play (jeter)
 - OPPO A57 (A57) (quirky - see comment in `lk2nd/device/dts/msm8952/msm8940-oppo-a57.dts`)
+- Palm Phone (pepito) (quirky - see comment in `lk2nd/device/dts/msm8952/msm8940-palm-pepito.dts`)
 - Redmi 3S (land)
 - Redmi 4 (prada)
 - Redmi 4A (rolex)
