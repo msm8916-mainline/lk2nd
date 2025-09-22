@@ -4,13 +4,33 @@
 #include <lk2nd.dtsi>
 
 / {
-	qcom,msm-id = <QCOM_ID_MSM8939 0>;
-	qcom,board-id = <21 0>;
+	qcom,msm-id = <QCOM_ID_MSM8939 0>, <QCOM_ID_MSM8939 30000>;
+	qcom,board-id = <21 0>, <31 0>, <41 0>, <51 0>;
 };
 
 &lk2nd {
-	model = "Asus Zenfone Laser 2 (1080p)";
+	model = "Asus ZenFone 2 Laser/Selfie (1080p)";
 	compatible = "asus,z00t";
 
-	//FIXME: lk2nd,dtb-files = "msm8916-asus-z00t";
+	lk2nd,dtb-files = "msm8939-asus-z00t";
+
+	gpio-keys {
+		compatible = "gpio-keys";
+
+		vol-down {
+			lk2nd,code = <KEY_VOLUMEDOWN>;
+			gpios = <&tlmm 117 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+		};
+	};
+
+	panel {
+		compatible = "asus,z00t-panel", "lk2nd,panel";
+
+		qcom,mdss_dsi_tm5p5_nt35596_1080p_video {
+			compatible = "asus,z00t-tm5p5-nt35596";
+		};
+		qcom,mdss_dsi_auo5p5_nt35596_1080p_video {
+			compatible = "asus,z00t-auo5p5-nt35596";
+		};
+	};
 };
