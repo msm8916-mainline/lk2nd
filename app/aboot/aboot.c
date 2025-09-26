@@ -1487,7 +1487,9 @@ static void verify_signed_bootimg(uint32_t bootimg_addr, uint32_t bootimg_size)
 #if !VERIFIED_BOOT
 	if(device.is_tampered)
 	{
+	#if !ABOOT_STANDALONE
 		write_device_info_mmc(&device);
+	#endif
 	#ifdef TZ_TAMPER_FUSE
 		set_tamper_fuse_cmd(HLOS_IMG_TAMPER_FUSE);
 	#endif
