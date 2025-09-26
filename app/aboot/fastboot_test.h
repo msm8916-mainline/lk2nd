@@ -31,7 +31,7 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define __FASTBOOT_TEST_H__
 #include <sys/types.h>
 extern void ramdump_table_map(void);
-void cmd_oem_runtests(void);
+void cmd_oem_runtests(const char *arg, void *data, unsigned sz);
 
 #if UNITTEST_FW_SUPPORT
 bool is_test_mode_enabled(void);
