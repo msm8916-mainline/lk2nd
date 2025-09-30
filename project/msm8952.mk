@@ -138,3 +138,8 @@ DEFINES += CHECK_BAT_VOLTAGE=1
 #Use PON register for reboot reason
 ENABLE_REBOOT_MODULE := 1
 DEFINES += USE_PON_REBOOT_REG=1
+
+# Enable unit test FW
+ifeq ($(ENABLE_UNITTEST_FW),1)
+DEFINES += UNITTEST_FW_SUPPORT=1
+endif

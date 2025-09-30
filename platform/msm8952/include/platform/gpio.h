@@ -62,6 +62,7 @@
 
 void gpio_config_uart_dm(uint8_t id);
 uint32_t gpio_status(uint32_t gpio);
+void gpio_set(uint32_t gpio, uint32_t dir);
 void gpio_set_dir(uint32_t gpio, uint32_t dir);
 void gpio_tlmm_config(uint32_t gpio,
 			uint8_t func,
