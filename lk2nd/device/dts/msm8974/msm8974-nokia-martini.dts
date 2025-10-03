@@ -1,0 +1,19 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+//this is the cmd used to compile lk1st for Lumia930
+// make TOOLCHAIN_PREFIX=arm-none-eabi- DEBUG=1 DEBUG_FBCON=0 LK2ND_BUNDLE_DTB=msm8974-nokia-martini.dtb lk1st-msm8974
+//CAUTION: this device is quirky cause its a Windows phone, it needs cat build-lk1st-msm8974/lk_s.elf build-lk1st-msm8974/lk2nd/device/dts/msm8974-nokia-martini.dtb > emmc_appsboot.mbn
+//The panel does not work if lk2nds const-splash is disabled which is the case on lk1st so dont expect display support
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8974 0x96 0x20002 0xb>;
+};
+
+&lk2nd {
+	model = "Nokia Lumia 930";
+	compatible = "nokia,martini";
+	lk2nd,match-cmdline = "*Nokia-martini*";
+};
