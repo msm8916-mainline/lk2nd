@@ -111,6 +111,7 @@
 - Redmi Note 3 Pro (kenzo)
 - Redmi Note 5A (ugglite)
 - Redmi Note 5A Prime (ugg)
+- Samsung J3 Emerge (j3poplte)
 - Sony Xperia X
 - Sony Xperia X Compact
 - Wileyfox Swift 2
@@ -134,6 +135,7 @@
 - OPPO R9s/R9sk (R9s/R9sk) (quirky - see comments in `lk2nd/device/dts/msm8953/msm8953-oppo-r9s.dts`)
 - Samsung Galaxy A6+
 - Samsung Galaxy J8 LTE
+- Samsung J7 Perx (j7poplte)
 - Samsung Tab A2 XL WIFI
 - Xiaomi Mi A1 (tissot)
 - Xiaomi Mi A2 Lite (daisy)
