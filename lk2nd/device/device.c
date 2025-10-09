@@ -24,6 +24,14 @@ const char *const *lk2nd_device_get_dtb_hints(void)
 	return lk2nd_dev.dtbfiles;
 }
 
+/**
+ * lk2nd_device_get_dtb_compatible() - Get a compatible string for matching kernel dtb.
+ */
+const char *lk2nd_device_get_dtb_compatible(void)
+{
+	return lk2nd_dev.dtb_compatible ? lk2nd_dev.dtb_compatible : lk2nd_dev.compatible;
+}
+
 static int find_device_node(const void *dtb)
 {
 	int lk2nd_node, node, ret;
@@ -106,11 +114,15 @@ static void parse_dtb(const void *dtb)
 		return;
 	}
 
-	val = fdt_getprop(dtb, node, "compatible", &len);
+	val = fdt_stringlist_get(dtb, node, "compatible", 0, &len);
 	if (val && len > 0)
 		lk2nd_dev.compatible = strndup(val, len);
 	else
 		dprintf(CRITICAL, "Failed to read 'compatible': %d\n", len);
+
+	val = fdt_stringlist_get(dtb, node, "compatible", 1, &len);
+	if (val && len > 0)
+		lk2nd_dev.dtb_compatible = strndup(val, len);
 
 	val = fdt_getprop(dtb, node, "model", &len);
 	if (val && len > 0)
