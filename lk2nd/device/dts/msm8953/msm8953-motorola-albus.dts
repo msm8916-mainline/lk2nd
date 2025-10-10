@@ -11,7 +11,6 @@
 			<0x49 0x8200>,
 			<0x4a 0x8300>,
 			<0x4a 0x8400>;
-
 };
 
 &lk2nd {
@@ -19,5 +18,4 @@
 	compatible = "motorola,albus", "qcom,msm8953-albus";
 
 	lk2nd,dtb-files = "msm8953-motorola-albus";
-
 };
