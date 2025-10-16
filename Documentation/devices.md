@@ -133,6 +133,7 @@
 - Motorola Moto G7 Power (ocean)
 - Motorola One (deen)
 - OPPO R9s/R9sk (R9s/R9sk) (quirky - see comments in `lk2nd/device/dts/msm8953/msm8953-oppo-r9s.dts`)
+- OPPO Realme 2 (RMX1805/RMX1809) / C1 (RMX1811)
 - Samsung Galaxy A6+
 - Samsung Galaxy J8 LTE
 - Samsung Tab A2 XL WIFI
