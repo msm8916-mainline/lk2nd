@@ -18,4 +18,12 @@
 	compatible = "motorola,albus", "qcom,msm8953-albus";
 
 	lk2nd,dtb-files = "msm8953-motorola-albus";
+
+	panel {
+		compatible = "motorola,albus-panel", "lk2nd,panel";
+
+		qcom,mdss_dsi_mot_smd_549_1080p_alb_cmd_v0 {
+			compatible = "smd,549-alb-v0";
+		};
+	};
 };
