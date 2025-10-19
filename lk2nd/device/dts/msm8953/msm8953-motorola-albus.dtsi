@@ -2,17 +2,6 @@
 
 #include "msm8953-motorola.dtsi"
 
-/ {
-	qcom,board-id = <0x48 0x8000>,
-			<0x48 0x8000>,
-			<0x48 0x81a0>,
-			<0x48 0x81a1>,
-			<0x49 0x81b0>,
-			<0x49 0x8200>,
-			<0x4a 0x8300>,
-			<0x4a 0x8400>;
-};
-
 &lk2nd {
 	model = "Motorola Moto Z2 Play (albus)";
 	compatible = "motorola,albus", "qcom,msm8953-albus";

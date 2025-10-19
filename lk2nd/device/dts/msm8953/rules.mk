@@ -28,5 +28,11 @@ ADTBS += \
 
 QCDTBS += \
 	$(LOCAL_DIR)/msm8953-motorola-potter.dtb \
-	$(LOCAL_DIR)/msm8953-motorola-albus.dtb \
+	$(LOCAL_DIR)/msm8953-motorola-albus-p0.dtb \
+        $(LOCAL_DIR)/msm8953-motorola-albus-p1.dtb \
+        $(LOCAL_DIR)/msm8953-motorola-albus-p1a1.dtb \
+        $(LOCAL_DIR)/msm8953-motorola-albus-p1b.dtb \
+        $(LOCAL_DIR)/msm8953-motorola-albus-p2.dtb \
+        $(LOCAL_DIR)/msm8953-motorola-albus-p3.dtb \
+        $(LOCAL_DIR)/msm8953-motorola-albus-p4.dtb \
 	$(LOCAL_DIR)/sdm450-samsung-r04.dtb \
