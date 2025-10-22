@@ -60,6 +60,6 @@
 		compatible = "samsung,gta2xlwifi";
 		lk2nd,match-bootloader = "T590*";
 
-		lk2nd,dtb-files = "sdm450-samsung-gta2xlwifi";
+		lk2nd,dtb-files = "sda450-samsung-gta2xlwifi";
 	};
 };
