@@ -13,7 +13,7 @@
 };
 
 &lk2nd {
-	model = "Xiaomi Redmi 8A (olivelite)";
-	compatible = "qcom,sdm439", "xiaomi,olivelite";
-	lk2nd,dtb-files = "sdm439-xiaomi-olivelite";
+	model = "Xiaomi Redmi 8 (olive)";
+	compatible = "qcom,sdm439", "xiaomi,olive";
+	lk2nd,dtb-files = "sdm439-xiaomi-olive";
 };
