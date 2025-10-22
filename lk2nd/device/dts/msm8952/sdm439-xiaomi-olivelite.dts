@@ -6,15 +6,14 @@
 #include <lk2nd.dtsi>
 
 / {
-  qcom,msm-id = <QCOM_ID_SDM439 0x00>;
-  qcom,board-id = <QCOM_BOARD_ID_QRD 8>;
-  /* Bootloader appears to really want to access symbols */
-  __symbols__ {};
+	qcom,msm-id = <QCOM_ID_SDM439 0x00>;
+	qcom,board-id = <QCOM_BOARD_ID_QRD 8>;
+	/* Bootloader appears to really want to access symbols */
+	__symbols__ {};
 };
 
 &lk2nd {
-  model = "Xiaomi Redmi 8A (olivelite)";
-  compatible = "qcom,sdm439", "xiaomi,olivelite";
-
-  lk2nd,dtb-files = "sdm439-xiaomi-olivelite";
+	model = "Xiaomi Redmi 8A (olivelite)";
+	compatible = "qcom,sdm439", "xiaomi,olivelite";
+	lk2nd,dtb-files = "sdm439-xiaomi-olivelite";
 };
