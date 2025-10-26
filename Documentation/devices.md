@@ -107,6 +107,7 @@
 - Redmi 4X (santoni)
 - Redmi 5A (riva)
 - Redmi 7A (pine)
+- Redmi 8 (olive) / 8A (olivelite) / 8A Dual/Pro (olivewood)
 - Redmi GO (tiare)
 - Redmi Note 3 Pro (kenzo)
 - Redmi Note 5A (ugglite)
