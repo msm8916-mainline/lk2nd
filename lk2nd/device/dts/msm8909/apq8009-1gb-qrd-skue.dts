@@ -48,5 +48,15 @@
 				compatible = "lenovo,boe-nt35523b";
 			};
 		};
+
+		reg_bl {
+			compatible = "regulator-fixed";
+			gpios = <&tlmm 9 GPIO_ACTIVE_HIGH>;
+		};
+
+		reg_lcd_3v3 {
+			compatible = "regulator-fixed";
+			gpios = <&tlmm 24 GPIO_ACTIVE_HIGH>;
+		};
 	};
 };
