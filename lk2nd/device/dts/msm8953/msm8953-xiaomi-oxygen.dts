@@ -24,7 +24,8 @@
 			compatible = "xiaomi,oxygen-r61322-auo";
 		};
 		qcom,mdss_dsi_tianma_r63350_1080p_video {
-			compatible = "xiaomi,oxygen-r63350-tianma";
+			compatible = "xiaomi,tianma-r63350";
+			touchscreen-compatible = "edt,edt-ft5x46";
 		};
 	};
 };
