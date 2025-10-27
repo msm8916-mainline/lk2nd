@@ -1578,6 +1578,56 @@ void get_recovery_dtbo_info(uint32_t *dtbo_size, void **dtbo_buf)
 	return;
 }
 
+bool detect_android_from_mmc(void)
+{
+	const char *ptn_names[] = {"boot", "real_boot"};
+	unsigned int i;
+	int index = INVALID_PTN;
+	unsigned long long ptn = 0;
+	uint64_t image_size = 0;
+	bool partition_found = false;
+	boot_img_hdr *hdr = (void*) buf;
+	static bool detected = false, result = false;
+
+	if (detected)
+		return result;
+
+	for (i = 0; i < ARRAY_SIZE(ptn_names); i++) {
+		index = partition_get_index(ptn_names[i]);
+		if (index != INVALID_PTN) {
+			ptn = partition_get_offset(index);
+			image_size = partition_get_size(index);
+		}
+		if (index != INVALID_PTN && ptn != 0 && image_size != 0) {
+			partition_found = true;
+			break;
+		}
+		dprintf(CRITICAL, "ERROR: No %s partition found\n", ptn_names[i]);
+	}
+
+	if (!partition_found) {
+		detected = true;
+		return result;
+	}
+
+	/* Set Lun for boot & recovery partitions */
+	mmc_set_lun(partition_get_lun(index));
+
+	if (mmc_read(ptn, (uint32_t *) buf, page_size)) {
+		dprintf(CRITICAL, "ERROR: Cannot read boot image header\n");
+		detected = true;
+		return result;
+	}
+
+	if (strstr((const char *)hdr->cmdline, "androidboot.")) {
+		dprintf(INFO, "Detected Android boot parameter\n");
+		result = true;
+	}
+
+	detected = true;
+	return result;
+}
+
 int boot_linux_from_mmc(void)
 {
 	boot_img_hdr *hdr = (void*) buf;
@@ -1627,8 +1677,9 @@ int boot_linux_from_mmc(void)
 #endif
 	struct kernel64_hdr *kptr = NULL;
 	int current_active_slot = INVALID;
+	bool try_alternate_partition = false;
 
-	if (!IS_ENABLED(ABOOT_STANDALONE) && check_format_bit())
+	if (detect_android_from_mmc() && check_format_bit())
 		boot_into_recovery = 1;
 
 	if (!IS_ENABLED(ABOOT_STANDALONE) && !boot_into_recovery) {
@@ -1655,6 +1706,7 @@ int boot_linux_from_mmc(void)
 		}
 	}
 
+retry_boot:
 	index = partition_get_index(ptn_name);
 	ptn = partition_get_offset(index);
 	image_size = partition_get_size(index);
@@ -1672,8 +1724,21 @@ int boot_linux_from_mmc(void)
 	}
 
 	if (memcmp(hdr->magic, BOOT_MAGIC, BOOT_MAGIC_SIZE)) {
-		dprintf(CRITICAL, "ERROR: Invalid boot image header\n");
-                return ERR_INVALID_BOOT_MAGIC;
+		dprintf(CRITICAL, "ERROR: Invalid boot image header on partition %s\n", ptn_name);
+		if (IS_ENABLED(WITH_LK2ND_DEVICE_2ND) && !try_alternate_partition) {
+			try_alternate_partition = true;
+			if (strcmp(ptn_name, "boot") == 0) {
+				ptn_name = "real_boot";
+			} else if (strcmp(ptn_name, "recovery") == 0) {
+				ptn_name = "real_recovery";
+			} else {
+				dprintf(CRITICAL, "No alternate partition for %s, Abort.\n", ptn_name);
+				return ERR_INVALID_BOOT_MAGIC;
+			}
+			dprintf(CRITICAL, "Retrying boot with %s partition\n", ptn_name);
+			goto retry_boot;
+		}
+		return ERR_INVALID_BOOT_MAGIC;
 	}
 
 	if (hdr->page_size && (hdr->page_size != page_size)) {
@@ -3170,7 +3235,9 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	unsigned int kernel_size = 0;
 	enum boot_type boot_type = 0;
 #if DEVICE_TREE
+	void * image_buf = NULL;
 	uint8_t dtb_copied = 0;
+	unsigned dtb_image_size = 0;
 	unsigned int scratch_offset = 0;
 #endif
 #if VERIFIED_BOOT_2
@@ -3185,6 +3252,9 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 #ifdef MDTP_SUPPORT
         static bool is_mdtp_activated = 0;
 #endif /* MDTP_SUPPORT */
+#endif
+#ifdef OSVERSION_IN_BOOTIMAGE
+	uint32_t dtb_image_offset = 0;
 #endif
 
 #if FBCON_DISPLAY_MSG
@@ -3223,12 +3293,38 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	dt_size = hdr->dt_size;
 #endif
 	dt_actual = ROUND_TO_PAGE(dt_size, page_mask);
+	dtb_image_size = hdr->kernel_size;
 #endif
 
 	image_actual = ADD_OF(page_size, kernel_actual);
 	image_actual = ADD_OF(image_actual, ramdisk_actual);
 	image_actual = ADD_OF(image_actual, second_actual);
 	image_actual = ADD_OF(image_actual, dt_actual);
+
+#ifdef OSVERSION_IN_BOOTIMAGE
+	if (hdr->header_version == BOOT_HEADER_VERSION_TWO) {
+		struct boot_img_hdr_v1 *hdr1 =
+			(struct boot_img_hdr_v1 *) (data + sizeof(boot_img_hdr));
+		struct boot_img_hdr_v2 *hdr2 = (struct boot_img_hdr_v2 *)
+			(data + sizeof(boot_img_hdr) +
+			BOOT_IMAGE_HEADER_V2_OFFSET);
+		unsigned int recovery_dtbo_actual = 0;
+
+		recovery_dtbo_actual =
+			ROUND_TO_PAGE(hdr1->recovery_dtbo_size, page_mask);
+		image_actual += recovery_dtbo_actual;
+
+		image_actual += ROUND_TO_PAGE(hdr2->dtb_size, page_mask);
+
+
+		dtb_image_offset = page_size +/* patched_kernel_hdr_size +*/
+				   kernel_actual + ramdisk_actual + second_actual +
+				   recovery_dtbo_actual;
+
+		dprintf(SPEW, "Header version: %d\n", hdr->header_version);
+		dprintf(SPEW, "Dtb image offset 0x%x\n", dtb_image_offset);
+	}
+#endif
 
 	/* Checking to prevent oob access in read_der_message_length */
 	if (image_actual > sz) {
@@ -3441,10 +3537,20 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 	 * memory address to the DTB appended location on RAM.
 	 * Else update with the atags address in the kernel header
 	 */
+	 image_buf = (void*)(ptr + page_size);
+
+#ifdef OSVERSION_IN_BOOTIMAGE
+	if ( hdr->header_version == BOOT_HEADER_VERSION_TWO) {
+		image_buf = (void*)(ptr);
+		dtb_offset = dtb_image_offset;
+		dtb_image_size = image_actual;
+	}
+#endif
+
 	if (!dtb_copied) {
 		void *dtb;
-		dtb = dev_tree_appended((void*)(ptr + page_size),
-					hdr->kernel_size, dtb_offset,
+		dtb = dev_tree_appended(image_buf,
+					dtb_image_size, dtb_offset,
 					(void *)hdr->tags_addr);
 #if WITH_LK2ND_DEVICE_2ND
 		if (!dtb && lk2nd_device2nd_have_atags())
@@ -5660,7 +5766,7 @@ normal_boot:
 
 		if (target_is_emmc_boot())
 		{
-			if(!IS_ENABLED(ABOOT_STANDALONE) && emmc_recovery_init())
+			if(detect_android_from_mmc() && emmc_recovery_init())
 				dprintf(ALWAYS,"error in emmc_recovery_init\n");
 			if(target_use_signed_kernel())
 			{
