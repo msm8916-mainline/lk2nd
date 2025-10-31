@@ -28,3 +28,6 @@ ADTBS += \
 
 DTBS += \
 	$(LOCAL_DIR)/msm8917-huawei-agassi.dtb \
+
+QCDTBS += \
+	$(LOCAL_DIR)/msm8917-samsung-j3poplte.dtb \
