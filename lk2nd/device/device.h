@@ -29,6 +29,7 @@ struct lk2nd_device {
 	const char *model;
 	const char *battery;
 
+	const char *dtb_compatible;
 	const char *const *dtbfiles;
 	bool single_key;
 	struct lk2nd_menu_keys menu_keys;
