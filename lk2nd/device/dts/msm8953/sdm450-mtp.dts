@@ -16,6 +16,8 @@
 	rmx1805 {
 		model = "OPPO Realme 2/C1";
 		compatible = "oppo,rmx1805";
+		lk2nd,match-cmdline = "*board_id=S88051*";
+
 		lk2nd,dtb-files="sdm450-oppo-rmx1805";
 
 		gpio-keys {
