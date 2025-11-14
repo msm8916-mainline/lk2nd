@@ -278,3 +278,26 @@ lk1st on boot, you can use this driver.
 lk2nd doesn't implement a fully-fledged led subsystem. The only purpose for
 this driver is for debugging and the LED behavior consistancy between lk1st
 and lk2nd.
+
+### Fixed Regulator
+
+lk2nd supports the `regulator-fixed` node. This node follows upstream binding except
+that most properties are not supported. Currently only `gpios` are supported in lk2nd.
+
+```
+regulator-backlight {
+    compatible = "regulator-fixed";
+    gpios = <&tlmm 9 GPIO_ACTIVE_HIGH>;
+};
+```
+
+This driver is mainly for lk1st since no previous boot-loader is capable to
+turn on those regulator that is requied by the panel and backlight. 
+If your device panel and backlight requied some regulator to be turned on,
+you can use this driver.
+
+lk2nd doesn't implement a fully-fledged regulator subsystem. The only purpose for
+this driver is for turning on those regulator that is requied by the panel and backlight
+and the regulator behavior consistancy between lk1st and lk2nd.
+
+
