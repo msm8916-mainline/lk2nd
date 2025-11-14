@@ -3,6 +3,20 @@
 #include <skeleton64.dtsi>
 #include <lk2nd.dtsi>
 
+/*
+ * Motorola Moto G 2014 has a quirk to be aware of before working with lk2nd:
+ *
+ * - Custom board id is required by the bootloader
+ *   The bootloader will attempt to load the first dtb with
+ *   matching msm id, which fails as the board id does not match.
+ *
+ *   Add LK2ND_DTBS="msm8226-motorola-titan.dtb" to your make cmdline.
+ *   eg. `make TOOLCHAIN_PREFIX=arm-none-eabi- lk2nd-msm8226 LK2ND_DTBS="msm8226-motorola-titan.dtb"`
+ *
+ *   Alternatively use LK2ND_ADTBS="" instead.
+ *   eg. `make TOOLCHAIN_PREFIX=arm-none-eabi- lk2nd-msm8226 LK2ND_ADTBS=""`
+ */
+
 / {
 	qcom,msm-id = <QCOM_ID_MSM8626 0x4b 0x8100>, <QCOM_ID_MSM8626 0x4b 0x8200>,
 		      <QCOM_ID_MSM8626 0x4b 0x8300>, <QCOM_ID_MSM8626 0x4b 0x8400>,
@@ -24,6 +38,16 @@
 &lk2nd {
 	model = "Motorola Moto G 2014";
 	compatible = "motorola,titan";
+	lk2nd,match-device = "titan";
 
-	// FIXME: lk2nd,dtb-files = "msm8226-motorola-titan";
+	lk2nd,dtb-files = "msm8226-motorola-titan";
+
+	gpio-keys {
+		compatible = "gpio-keys";
+
+		key-volume-down {
+			lk2nd,code = <KEY_VOLUMEDOWN>;
+			gpios = <&tlmm 107 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+		};
+	};
 };
