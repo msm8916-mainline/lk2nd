@@ -19,12 +19,15 @@
 };
 
 &lk2nd {
-	model = "Motorola G7 Power (Ocean)";
-	compatible = "motorola,ocean";
+	motorola-ocean {
+		model = "Motorola Moto G7 Power (Ocean)";
+		compatible = "motorola,ocean";
 
-	lk2nd,dtb-files = "sdm632-motorola-ocean";
+		lk2nd,match-device = "ocean";
+		lk2nd,dtb-files = "sdm632-motorola-ocean";
 
-	unit-info {
-		compatible = "motorola,unit-info";
+		unit-info {
+			compatible = "motorola,unit-info";
+		};
 	};
 };
