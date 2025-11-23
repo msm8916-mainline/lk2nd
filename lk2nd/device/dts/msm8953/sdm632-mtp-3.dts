@@ -30,4 +30,16 @@
 			compatible = "motorola,unit-info";
 		};
 	};
+
+	motorola-river {
+		model = "Motorola Moto G7 (River)";
+		compatible = "motorola,river";
+
+		lk2nd,match-device = "river";
+		lk2nd,dtb-files = "sdm632-motorola-river";
+
+		unit-info {
+			compatible = "motorola,unit-info";
+		};
+	};
 };
