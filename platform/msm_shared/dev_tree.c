@@ -965,6 +965,9 @@ if (DEBUGLEVEL >= SPEW) {
 		/* If dtb version is v2.0, the pmic_data_count will be <= 0 */
 		pmic_data_count = (len_pmic_id / PMIC_ID_SIZE);
 
+		dprintf(SPEW, "DTB Version %d, board_data_count = %u, msm_data_count = %u, pmic_data_count = %u\n",
+			dtb_ver, board_data_count, msm_data_count, pmic_data_count);
+
 #if WITH_LK2ND_DEVICE
 		/* Cannot override with more than one entry */
 		if (dtb_list->dt_entry_m && (board_data_count > 1 || msm_data_count > 1 || pmic_data_count > 1)) {
@@ -1096,31 +1099,31 @@ if (DEBUGLEVEL >= SPEW) {
 		}
 
 		for (i=0 ;i < num_entries; i++) {
-			dprintf(SPEW, "Found an appended flattened device tree (%s - %u %u %u 0x%x)\n",
+			dprintf(SPEW, "Found an appended flattened device tree (%s - %u 0x%x 0x%x 0x%x)\n",
 				model ? model : "unknown",
-				dt_entry_array[i].platform_id, dt_entry_array[i].variant_id, dt_entry_array[i].board_hw_subtype, dt_entry_array[i].soc_rev);
+				dt_entry_array[i].platform_id, dt_entry_array[i].soc_rev, dt_entry_array[i].variant_id, dt_entry_array[i].board_hw_subtype);
 
 			if (platform_dt_absolute_match(&(dt_entry_array[i]), dtb_list)) {
-				dprintf(SPEW, "Device tree exact match the board: <%u %u %u 0x%x> == <%u %u %u 0x%x>\n",
+				dprintf(SPEW, "Device tree exact match the board: <%u 0x%x 0x%x 0x%x> == <%u 0x%x 0x%x 0x%x>\n",
 					dt_entry_array[i].platform_id,
-					dt_entry_array[i].variant_id,
 					dt_entry_array[i].soc_rev,
+					dt_entry_array[i].variant_id,
 					dt_entry_array[i].board_hw_subtype,
 					board_platform_id(),
+					board_soc_version(),
 					board_hardware_id(),
-					board_hardware_subtype(),
-					board_soc_version());
+					board_hardware_subtype());
 
 			} else {
-				dprintf(SPEW, "Device tree's msm_id doesn't match the board: <%u %u %u 0x%x> != <%u %u %u 0x%x>\n",
+				dprintf(SPEW, "Device tree's msm_id doesn't match the board: <%u 0x%x 0x%x 0x%x> != <%u 0x%x 0x%x 0x%x>\n",
 					dt_entry_array[i].platform_id,
-					dt_entry_array[i].variant_id,
 					dt_entry_array[i].soc_rev,
+					dt_entry_array[i].variant_id,
 					dt_entry_array[i].board_hw_subtype,
 					board_platform_id(),
+					board_soc_version(),
 					board_hardware_id(),
-					board_hardware_subtype(),
-					board_soc_version());
+					board_hardware_subtype());
 			}
 		}
 
@@ -1950,6 +1953,13 @@ int dev_tree_get_entry_info(struct dt_table *table, struct dt_entry *dt_entry_in
 			free(dt_entry_queue);
 			return -1;
 		}
+
+		dprintf(SPEW, "DTB entry %u/0x%08x/0x%08x/0x%x/0x%x/0x%x/0x%x/0x%x/0x%x/0x%x\n",
+				cur_dt_entry->platform_id, cur_dt_entry->soc_rev,
+				cur_dt_entry->variant_id, cur_dt_entry->board_hw_subtype,
+				cur_dt_entry->pmic_rev[0], cur_dt_entry->pmic_rev[1],
+				cur_dt_entry->pmic_rev[2], cur_dt_entry->pmic_rev[3],
+				cur_dt_entry->offset, cur_dt_entry->size);
 
 		/* DTBs must match the platform_id, platform_hw_id, platform_subtype and DDR size.
 		* The satisfactory DTBs are stored in dt_entry_queue
