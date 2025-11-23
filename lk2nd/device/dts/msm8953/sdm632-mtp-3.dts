@@ -19,6 +19,18 @@
 };
 
 &lk2nd {
+	motorola-channel {
+		model = "Motorola Moto G7 Play (Channel)";
+		compatible = "motorola,channel";
+
+		lk2nd,match-device = "channel";
+		lk2nd,dtb-files = "sdm632-motorola-channel";
+
+		unit-info {
+			compatible = "motorola,unit-info";
+		};
+	};
+
 	motorola-ocean {
 		model = "Motorola Moto G7 Power (Ocean)";
 		compatible = "motorola,ocean";
