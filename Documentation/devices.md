@@ -84,15 +84,15 @@
 
 - Alcatel Idol 4 (6055*)
 - BQ X5 Plus (Longcheer L9360)
-- Fossil Gen 6 (hoki)
-- HMD Global Nokia 4.2 (panther)
+- Fossil Gen 6 (hoki) (requires flashing [minimal DTBO](#minimal-dtb-overlay))
+- HMD Global Nokia 4.2 (panther) (requires flashing [minimal DTBO](#minimal-dtb-overlay))
 - HMD Global Nokia 5 (nd1)
 - HMD Global Nokia 6 (ple)
 - Huawei Honor 7C (aum-l41) (quirky - see comment in `lk2nd/device/dts/msm8952/msm8937-huawei-aum.dts`)
 - Huawei MediaPad T3 10 (ags- l09/l03/w09) (quirky - see comment in `lk2nd/device/dts/msm8952/msm8917-huawei-agassi.dts`)
 - Leeco s2
 - Lenovo K5 Play (l38011)
-- Lenovo Tab M10 HD (TB-X505X)
+- Lenovo Tab M10 HD (TB-X505X) (requires flashing [minimal DTBO](#minimal-dtb-overlay))
 - Motorola Moto E5 (nora)
 - Motorola Moto E5 Plus (hannah) (MSM8917)
 - Motorola Moto E5 Plus (hannah) (MSM8937)
@@ -106,8 +106,8 @@
 - Redmi 4A (rolex)
 - Redmi 4X (santoni)
 - Redmi 5A (riva)
-- Redmi 7A (pine)
-- Redmi 8 (olive) / 8A (olivelite) / 8A Dual/Pro (olivewood)
+- Redmi 7A (pine) (requires flashing [minimal DTBO](#minimal-dtb-overlay))
+- Redmi 8 (olive) / 8A (olivelite) / 8A Dual/Pro (olivewood) (requires flashing [minimal DTBO](#minimal-dtb-overlay))
 - Redmi GO (tiare)
 - Redmi Note 3 Pro (kenzo)
 - Redmi Note 5A (ugglite)
@@ -130,12 +130,12 @@
 - Motorola Moto G5 Plus (potter)
 - Motorola Moto G5s Plus (sanders)
 - Motorola Moto G6 (ali)
-- Motorola Moto G7 (river)
-- Motorola Moto G7 Power (ocean)
-- Motorola Moto G7 Play (channel)
+- Motorola Moto G7 (river) (requires flashing [minimal DTBO](#minimal-dtb-overlay))
+- Motorola Moto G7 Power (ocean) (requires flashing [minimal DTBO](#minimal-dtb-overlay))
+- Motorola Moto G7 Play (channel) (requires flashing [minimal DTBO](#minimal-dtb-overlay))
 - Motorola One (deen)
 - OPPO R9s/R9sk (R9s/R9sk) (quirky - see comments in `lk2nd/device/dts/msm8953/msm8953-oppo-r9s.dts`)
-- OPPO Realme 2 (RMX1805/RMX1809) / C1 (RMX1811)
+- OPPO Realme 2 (RMX1805/RMX1809) / C1 (RMX1811) (requires flashing [minimal DTBO](#minimal-dtb-overlay))
 - Samsung Galaxy A6+
 - Samsung Galaxy J8 LTE
 - Samsung Tab A2 XL WIFI
@@ -146,7 +146,7 @@
 - Xiaomi Redmi 5 (rosy)
 - Xiaomi Redmi 5 Plus (vince)
 - Xiaomi Redmi 6 Pro (sakura)
-- Xiaomi Redmi 7 (onclite)
+- Xiaomi Redmi 7 (onclite) (requires flashing [minimal DTBO](#minimal-dtb-overlay))
 - Xiaomi Redmi Note 4X Snapdragon (mido)
 - Xiaomi Redmi S2/Y2 (ysl)
 
@@ -204,6 +204,18 @@
 ### lk2nd-msm8610
 
 - Huawei C8816
+
+## Minimal DTB Overlay
+
+The newest devices supported by lk2nd (particularly SDM429/SDM439/SDM632 ones)
+require the installation of a custom, minimal DTBO partition image. Otherwise,
+the boot loader would try to patch lk2nd's device trees with the stock overlay
+which references all the nodes that don't exist anymore, and refuses to proceed.
+
+You can currently find such overlays for supported devices in the [dtbo-lk2nd]
+project.
+
+[dtbo-lk2nd]: https://github.com/barni2000/dtbo-lk2nd/releases
 
 ## Porting new devices
 
