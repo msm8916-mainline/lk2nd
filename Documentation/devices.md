@@ -112,6 +112,7 @@
 - Redmi Note 3 Pro (kenzo)
 - Redmi Note 5A (ugglite)
 - Redmi Note 5A Prime (ugg)
+- Samsung J3 Emerge (j3poplte)
 - Sony Xperia X
 - Sony Xperia X Compact
 - Wileyfox Swift 2
@@ -138,6 +139,7 @@
 - OPPO Realme 2 (RMX1805/RMX1809) / C1 (RMX1811) (requires flashing [minimal DTBO](#minimal-dtb-overlay))
 - Samsung Galaxy A6+
 - Samsung Galaxy J8 LTE
+- Samsung J7 Perx (j7poplte)
 - Samsung Tab A2 XL WIFI
 - Xiaomi Mi A1 (tissot)
 - Xiaomi Mi A2 Lite (daisy)
