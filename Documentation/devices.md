@@ -117,6 +117,7 @@
 - Redmi Note 3 Pro (kenzo)
 - Redmi Note 5A (ugglite)
 - Redmi Note 5A Prime (ugg)
+- Samsung Galaxy J3 Emerge (j3popltespr)
 - Samsung Galaxy Tab A 8.0 2019 (gtowifi)
 - Sony Xperia X
 - Sony Xperia X Compact
