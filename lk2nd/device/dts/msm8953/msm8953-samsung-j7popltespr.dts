@@ -1,0 +1,72 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8953 0>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 1>,
+			<QCOM_BOARD_ID_MTP 2>,
+			<QCOM_BOARD_ID_MTP 3>,
+			<QCOM_BOARD_ID_MTP 4>,
+			<QCOM_BOARD_ID_MTP 5>;
+
+	/* bootloader refuses the dtb if it cannot delete some nodes. */
+	soc {
+		qcom,memshare {
+			memory-region = <0xff>;
+			qcom,client_4 {
+				qcom,peripheral-size = <0x6000000>;
+			};
+		};
+	};
+
+	reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+
+		sec_debug_region@0 {
+			compatible = "removed-dma-pool";
+			no-map;
+			reg = <0x0 0x85000000 0x0 0x800000>;
+		};
+
+		sec_debug_low_region@0 {
+			compatible = "removed-dma-pool";
+			no-map;
+			reg = <0x0 0x85000000 0x0 0x400000>;
+		};
+
+		lk_region@0 {
+			linux,reserve-contiguous-region;
+			linux,reserve-region;
+			linux,remove-completely;
+			no-map;
+			reg = <0x0 0x8f600000 0x0 0x300000>;
+			label = "lk_mem";
+		};
+
+		modem_shared_mem_region@0x93000000 {
+			reg = <0x0 0x93000000 0x0 0x6000000>;
+		};
+	};
+};
+
+&lk2nd {
+	model = "Samsung J7 Perx (SM-J727P)";
+	compatible = "samsung,j7popltespr";
+	lk2nd,match-device = "J7POPLTE";
+	lk2nd,dtb-files = "msm8953-samsung-j7popltespr";
+
+	gpio-keys {
+		compatible = "gpio-keys";
+		home {
+			lk2nd,code = <KEY_HOME>;
+			gpios = <&tlmm 86 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+		};
+	};
+	
+};

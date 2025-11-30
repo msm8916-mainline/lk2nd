@@ -1,0 +1,75 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+/*
+ * Needs to be compiled with the following flag, as lk2nd will otherwise
+ * overwrite protected memory regions when flashing via fastboot. Whoops.
+ *
+ * SCRATCH_ADDR=0xC0000000
+ */
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8917 0x00>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 0x00>,
+			<QCOM_BOARD_ID_MTP 0x01>,
+			<QCOM_BOARD_ID_MTP 0x02>,
+			<QCOM_BOARD_ID_MTP 0x03>,
+			<QCOM_BOARD_ID_MTP 0x04>,
+			<QCOM_BOARD_ID_MTP 0x05>,
+			<QCOM_BOARD_ID_MTP 0x06>;
+
+	soc {
+		qcom,memshare {
+			memory-region = <0xff>;
+			qcom,client_4 {
+				qcom,peripheral-size = <0x00>;
+			};
+		};
+	};
+
+	reserved-memory {
+		#address-cells = <0x02>;
+		#size-cells = <0x02>;
+		ranges;
+
+		sec_debug_region@0 {
+			no-map;
+			reg = <0x00 0x851ff000 0x00 0x201000>;
+		};
+
+		lk_region@0 {
+			no-map;
+			reg = <0x00 0x8f600000 0x00 0x300000>;
+		};
+
+		modem_shared_mem_region@0x93000000 {
+			compatible = "removed-dma-pool";
+			no-map;
+			reg = <0x00 0x93000000 0x00 0x6000000>;
+			linux,phandle = <0xff>;
+			phandle = <0xff>;
+		};
+	};
+};
+
+&lk2nd {
+	model = "Samsung J3 Emerge (SM-J327P)";
+	compatible = "samsung,j3popltespr";
+	lk2nd,match-device = "J3POPLTE";
+	lk2nd,dtb-files = "msm8917-samsung-j3popltespr";
+
+	gpio-keys {
+		compatible = "gpio-keys";
+
+		volume-up {
+			lk2nd,code = <KEY_VOLUMEUP>;
+			gpios = <&tlmm 127 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+		};
+
+		home {
+			lk2nd,code = <KEY_HOME>;
+			gpios = <&tlmm 128 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+		};
+	};
+};
