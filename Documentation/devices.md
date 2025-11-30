@@ -145,6 +145,7 @@
 - OPPO R9s/R9sk (R9s/R9sk) (quirky - see comments in `lk2nd/device/dts/msm8953/msm8953-oppo-r9s.dts`)
 - OPPO Realme 2 (RMX1805/RMX1809) / C1 (RMX1811) (requires flashing [minimal DTBO](#minimal-dtb-overlay))
 - Samsung Galaxy A6+
+- Samsung Galaxy J7 Perx (j7popltespr)
 - Samsung Galaxy J8 LTE
 - Samsung Tab A2 XL WIFI
 - Vsmart Joy 3 (casuarina) (requires flashing [minimal DTBO](#minimal-dtb-overlay)) 
