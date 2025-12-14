@@ -3,6 +3,7 @@
 #ifndef _LK2ND_GENERATED_PANELS_H_
 #define _LK2ND_GENERATED_PANELS_H_
 
+#include "lk_panel_boent35523_800p_video.h"
 #include "lk_panel_boent35523b_800p_video.h"
 #include "lk_panel_boe_otm8019a_5p0_fwvga_video.h"
 #include "lk_panel_boehx8389c_qhd_video.h"
