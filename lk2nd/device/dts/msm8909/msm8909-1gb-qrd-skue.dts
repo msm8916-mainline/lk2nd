@@ -21,11 +21,11 @@
 			compatible = "lenovo,lxf-p5000-panel", "lk2nd,panel";
 
 			qcom,mdss_dsi_boent35523_800p_video {
-				compatible = "lenovo,auo-otm1287a";
+				compatible = "lenovo,boe-nt35523";
 			};
 
 			qcom,mdss_dsi_dsbjs6d7aa0x04_800p_video {
-				compatible = "lenovo,boe-nt35523b";
+				compatible = "lenovo,dsbjs6d7aa0x04";
 			};
 		};
 
