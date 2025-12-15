@@ -162,7 +162,8 @@
 - Samsung Galaxy Note 10.1 2014 (LTE) - SM-P605 (lt03lte)
 - Samsung Galaxy S5 - SM-G900F, SM-G900T
 - Samsung Galaxy S5 China LTE (Duos) - SM-G9006V/W, SM-G9008V/W, SM-G9009W
-- Sony Xperia Z3 - leo
+- Sony Xperia Z3 - leo <!--(`lk2nd-msm8974-leo`)-->
+- Sony Xperia Z3 Compact - aries D5803, D5833 <!--(`lk2nd-msm8974-aries`)-->
 
 ### lk2nd-msm8226
 - ASUS ZenWatch 2 - sparrow
