@@ -1,0 +1,58 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton32.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,board-id = <8 0>;
+	qcom,msm-id = <194 0x10000>,
+					<209 0x10000>,
+					<210 0x10000>,
+					<212 0x10000>,
+					<213 0x10000>,
+					<215 0x10000>,
+					<216 0x10000>,
+					<218 0x10000>;
+};
+
+&lk2nd {
+	model = "Sony Xperia Z3";
+	compatible = "sony,xperia-leo";
+	/*
+	 * Due to insufficient identification information in S1BOOT,
+	 * we treat any device with the specified LCD panel as a Sony Xperia Z3 (leo).
+	 */
+	lk2nd,match-panel;
+
+	lk2nd,dtb-files = "msm8974-sony-leo";
+
+	gpio-keys {
+		compatible = "gpio-keys";
+
+		volume-down {
+			lk2nd,code = <KEY_VOLUMEDOWN>;
+			gpios = <&pmic 2 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+		};
+
+		volume-up {
+			lk2nd,code = <KEY_VOLUMEUP>;
+			gpios = <&pmic 5 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+		};
+	};
+
+	panel {
+		compatible = "sony,leo-panel", "lk2nd,panel";
+
+		novatek_jdi_1080p_cmd_panel {
+			compatible = "sony,novatek-jdi-1080p-cmd-panel";
+		};
+
+		novatek_sharp_1080p_cmd_panel {
+			compatible = "sony,novatek-sharp-1080p-cmd-panel";
+		};
+	};
+};
+
+#include "sony/msm8974pro-ac-shinano_leo_display.dtsi"

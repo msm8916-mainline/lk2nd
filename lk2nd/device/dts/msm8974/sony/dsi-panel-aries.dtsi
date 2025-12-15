@@ -110,7 +110,7 @@
 		somc,pw-down-period = <200>;
 
 		// [...]
-		
+
 		somc,change-fps-command = [15 01 00 00 00 00 02 FF 05
 				15 01 00 00 00 00 02 02 8E
 				15 01 00 00 00 00 02 FF 00];
@@ -226,7 +226,7 @@
 		somc,pw-down-period = <200>;
 
 		// [...]
-		
+
 		somc,change-fps-command = [15 01 00 00 00 00 02 FF 05
 				15 01 00 00 00 00 02 02 8E
 				15 01 00 00 00 00 02 FF 00];
