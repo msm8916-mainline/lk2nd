@@ -1,0 +1,19 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_SDM439 0x00>;
+	qcom,board-id = <QCOM_BOARD_ID_QRD 8>;
+	/* Bootloader appears to really want to access symbols */
+	__symbols__ {};
+};
+
+&lk2nd {
+	model = "Xiaomi Redmi 8 (olive)";
+	compatible = "qcom,sdm439", "xiaomi,olive";
+	lk2nd,dtb-files = "sdm439-xiaomi-olive";
+};

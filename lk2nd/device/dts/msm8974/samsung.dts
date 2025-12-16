@@ -64,6 +64,33 @@
 		};
 	};
 
+	lt03lte {
+		model = "Samsung Galaxy Note 10.1 2014 (LTE)";
+		compatible = "samsung,lt03lte";
+		qcom,msm-id = <0x7E01FF01 7 0>;
+		lk2nd,match-bootloader = "P605*";
+
+		lk2nd,dtb-files = "msm8974-samsung-lt03lte";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			home {
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&pmic 3 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+
+			down {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&pmic 2 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+
+			up {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&pmic 5 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+
 	/* rev 10 */
 
 	kltechn-unicom {

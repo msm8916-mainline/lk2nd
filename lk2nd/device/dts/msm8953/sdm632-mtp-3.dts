@@ -1,0 +1,57 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+#include <motorola-carrier-channel-ids.dtsi>
+
+/ {
+	/* model|msm-name|pmic appears to be required by bootloader to pick dtb */
+
+	model = "Qualcomm Technologies, Inc. SDM632 + PMI632 MTP S3";
+	qcom,msm-name = "SDM632";
+	qcom,msm-id = <QCOM_ID_SDM632 0>;
+	qcom,pmic-id = <0x10016 0x25 0x00 0x00>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 3>;
+	/* Bootloader appears to really want to access symbols */
+	__symbols__ {};
+};
+
+&lk2nd {
+	motorola-channel {
+		model = "Motorola Moto G7 Play (Channel)";
+		compatible = "motorola,channel";
+
+		lk2nd,match-device = "channel";
+		lk2nd,dtb-files = "sdm632-motorola-channel";
+
+		unit-info {
+			compatible = "motorola,unit-info";
+		};
+	};
+
+	motorola-ocean {
+		model = "Motorola Moto G7 Power (Ocean)";
+		compatible = "motorola,ocean";
+
+		lk2nd,match-device = "ocean";
+		lk2nd,dtb-files = "sdm632-motorola-ocean";
+
+		unit-info {
+			compatible = "motorola,unit-info";
+		};
+	};
+
+	motorola-river {
+		model = "Motorola Moto G7 (River)";
+		compatible = "motorola,river";
+
+		lk2nd,match-device = "river";
+		lk2nd,dtb-files = "sdm632-motorola-river";
+
+		unit-info {
+			compatible = "motorola,unit-info";
+		};
+	};
+};

@@ -66,18 +66,62 @@ int lkfdt_get_reg(const void *fdt, int parent, int node,
 	return 0;
 }
 
-int lkfdt_lookup_phandle(const void *fdt, int node, const char *prop)
+int lkfdt_getprop_u32(const void *fdt, int node, const char *prop, uint32_t *val)
 {
-	const fdt32_t *phandle;
+	const fdt32_t *fval;
 	int len;
 
-	phandle = fdt_getprop(fdt, node, prop, &len);
+	fval = fdt_getprop(fdt, node, prop, &len);
 	if (len < 0)
 		return len;
-	if (len != sizeof(*phandle))
+	if (len != sizeof(*fval))
 		return -FDT_ERR_BADVALUE;
 
-	return fdt_node_offset_by_phandle(fdt, fdt32_to_cpu(*phandle));
+	*val = fdt32_to_cpu(*fval);
+	return 0;
+}
+
+int lkfdt_u32list_get(const void *fdt, int node, const char *prop,
+		      int idx, uint32_t *val)
+{
+	const fdt32_t *fvals;
+	int len;
+
+	ASSERT(idx >= 0 && idx < (INT_MAX / (int)sizeof(*fvals)));
+
+	fvals = fdt_getprop(fdt, node, prop, &len);
+	if (len < 0)
+		return len;
+	if (len % sizeof(*fvals))
+		return -FDT_ERR_BADVALUE;
+	if (len < ((idx + 1) * (int)sizeof(*fvals)))
+		return -FDT_ERR_NOTFOUND;
+
+	*val = fdt32_to_cpu(fvals[idx]);
+	return 0;
+}
+
+int lkfdt_lookup_phandle(const void *fdt, int node, const char *prop)
+{
+	uint32_t phandle;
+	int ret;
+
+	ret = lkfdt_getprop_u32(fdt, node, prop, &phandle);
+	if (ret < 0)
+		return ret;
+
+	return fdt_node_offset_by_phandle(fdt, phandle);
+}
+
+int lkfdt_subnode_offset_by_phandle(const void *fdt, int parent, uint32_t phandle)
+{
+	int node;
+
+	fdt_for_each_subnode(node, fdt, parent) {
+		if (fdt_get_phandle(fdt, node) == phandle)
+			return node;
+	}
+	return node;
 }
 
 /**
