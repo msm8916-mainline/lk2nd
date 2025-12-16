@@ -26,6 +26,7 @@ ADTBS += \
 	$(LOCAL_DIR)/sdm632-fairphone-fp3.dtb \
 	$(LOCAL_DIR)/sdm632-mtp.dtb \
 	$(LOCAL_DIR)/sdm632-mtp-3.dtb \
+	$(LOCAL_DIR)/msm8953-meizu-m1871.dtb \
 
 QCDTBS += \
 	$(LOCAL_DIR)/msm8953-motorola-potter.dtb \
