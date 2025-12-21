@@ -18,26 +18,33 @@
 
 	panel {
 		compatible = "meizu,m1871-panel", "lk2nd,panel";
+
 		qcom,mdss_dsi_truly_1080p_video_cmd {
-			compatible = "mdss,truly";
+			compatible = "meizu,m1871-truly";
 		};
+
 		qcom,mdss_dsi_truly_1080p_video {
-			compatible = "mdss,truly";
+			compatible = "meizu,m1871-truly";
 		};
+
 		qcom,mdss_dsi_adv7533_1080p {
-			compatible = "mdss,adv7533";
+			compatible = "meizu,m1871-adv7533";
 		};
+
 		qcom,mdss_dsi_r69006_1080p_video {
-			compatible = "mdss,r69006";
+			compatible = "meizu,m1871-r69006";
 		};
+
 		qcom,mdss_dsi_r69006_1080p_cmd {
-			compatible = "mdss,r69006";
+			compatible = "meizu,m1871-r69006";
 		};
+
 		qcom,mdss_dsi_sharp_1080p_video {
-			compatible = "mdss,sharp";
+			compatible = "meizu,m1871-sharp";
 		};
+
 		qcom,mdss_dsi_djn_1080p_video {
-			compatible = "mdss,djn";
+			compatible = "meizu,m1871-djn";
 		};
 	};
 };
