@@ -4,7 +4,7 @@
 #include <lk2nd.dtsi>
 
 / {
-	qcom,msm-id = <QCOM_ID_MSM8939 0>, <QCOM_ID_MSM8939 30000>;
+	qcom,msm-id = <QCOM_ID_MSM8939 0x0>, <QCOM_ID_MSM8939 0x30000>;
 	qcom,board-id = <21 0>, <31 0>, <41 0>, <51 0>;
 };
 
@@ -32,5 +32,10 @@
 		qcom,mdss_dsi_auo5p5_nt35596_1080p_video {
 			compatible = "asus,z00t-auo5p5-nt35596";
 		};
+	};
+
+	regulator-sdcard {
+		compatible = "regulator-fixed";
+		gpios = <&tlmm 87 GPIO_ACTIVE_HIGH>;
 	};
 };
