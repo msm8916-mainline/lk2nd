@@ -15,6 +15,18 @@
 		lk2nd,match-device = "cedric";
 
 		lk2nd,dtb-files = "msm8937-motorola-cedric";
+		
+		panel {
+			compatible = "motorola,cedric-panel", "lk2nd,panel";
+			
+			qcom,mdss_dsi_mot_tianma_497_1080p_video_v0 {
+				compatible = "motorola,cedric-nt35596-tianma";
+			};
+			
+			qcom,mdss_dsi_mot_inx_497_1080p_video_v0 {
+				compatible = "motorola,cedric-nt35596-inx";
+			};
+		};
 	};
 
 	hannah {
