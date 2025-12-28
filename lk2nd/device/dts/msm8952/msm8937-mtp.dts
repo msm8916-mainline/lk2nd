@@ -12,10 +12,9 @@
 	cedric {
 		model = "Motorola Moto G5 (cedric)";
 		compatible = "motorola,cedric";
+		lk2nd,match-device = "cedric";
 
 		lk2nd,dtb-files = "msm8937-motorola-cedric";
-		
-		lk2nd,match-panel;
 		
 		panel {
 			compatible = "motorola,cedric-panel", "lk2nd,panel";
