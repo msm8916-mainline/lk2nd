@@ -9,6 +9,7 @@
 - Asus Zenfone 2 Laser (1080p) - Z00T
 - Asus Zenfone 2 Laser ZE500KL - Z00E
 - Asus Zenfone Max ZC550KL (2016) - Z010D
+- Asus ZenPad 8.0 - P024
 - BQ Aquaris M5 - piccolo
 - BQ Aquaris X5 - paella, picmt
 - DragonBoard 410c - apq8016-sbc
@@ -127,6 +128,7 @@
 - Lenovo P2 (kuntao)
 - Lenovo ThinkSmart View (cd-18781y) (quirky - see comments in `lk2nd/device/dts/msm8953/apq8053-lenovo-cd-18781y.dts`)
 - Meizu M6 Note (m1721)
+- Meizu M15 (m1871)
 - Motorola Moto G5 Plus (potter)
 - Motorola Moto G5s Plus (sanders)
 - Motorola Moto G6 (ali)

@@ -8,6 +8,7 @@ ADTBS += \
 	$(LOCAL_DIR)/msm8953-huawei-cannes.dtb \
 	$(LOCAL_DIR)/msm8953-huawei-milan.dtb \
 	$(LOCAL_DIR)/msm8953-lenovo-kuntao.dtb \
+	$(LOCAL_DIR)/msm8953-meizu-m1871.dtb \
 	$(LOCAL_DIR)/msm8953-motorola-deen.dtb \
 	$(LOCAL_DIR)/msm8953-motorola-sanders.dtb \
 	$(LOCAL_DIR)/msm8953-mtp.dtb \

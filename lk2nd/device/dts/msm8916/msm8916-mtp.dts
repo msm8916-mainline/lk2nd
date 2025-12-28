@@ -37,6 +37,34 @@
 		};
 	};
 
+	asus-p024 {
+		model = "Asus ZenPad 8.0";
+		compatible = "asus,p024";
+		lk2nd,match-panel;
+
+		lk2nd,dtb-files = "msm8916-asus-p024";
+
+		panel {
+			compatible = "asus,p024-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_ili6136s_800x1280_video {
+				compatible = "asus,p024-ili6136s";
+			};
+			qcom,mdss_dsi_nt35521_800x1280_video {
+				compatible = "asus,p024-nt35521";
+			};
+			qcom,mdss_dsi_rm27013_800x1280_video {
+				compatible = "asus,p024-rm27013";
+			};
+			qcom,mdss_dsi_rm68200_800x1280_video {
+				compatible = "asus,p024-rm68200";
+			};
+			qcom,mdss_dsi_kd_rm68200_800x1280_video {
+				compatible = "asus,p024-rm68200-kd";
+			};
+		};
+	};
+
 	asus-z010d {
 		model = "Asus Zenfone Max ZC550KL";
 		compatible = "asus,z010d";
