@@ -41,17 +41,17 @@ static int lk2nd_panel_detect(const void *dtb, int node)
 		for (node = fdt_first_subnode(dtb, node); node >= 0; node = fdt_next_subnode(dtb, node)) {
 			adc_prop = (const uint32_t*)fdt_getprop(dtb, node, "sony,lcd-id-adc", NULL);
 			if (panel->lcdid_adc >= fdt32_to_cpu(adc_prop[0]) &&
-				panel->lcdid_adc <= fdt32_to_cpu(adc_prop[1])) 
+				panel->lcdid_adc <= fdt32_to_cpu(adc_prop[1]))
 				break;
 		};
-		
+
 	} else node = fdt_subnode_offset(dtb, node, panel->name);
-	
+
 	if (node < 0) {
 		dprintf(CRITICAL, "Unsupported panel: %s\n", panel->name);
 		return node;
 	}
-	
+
 	if (!panel->name) {
 		name = fdt_get_name(dtb, node, &name_len);
 		panel->name = malloc(++name_len);
