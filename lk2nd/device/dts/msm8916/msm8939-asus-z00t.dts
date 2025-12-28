@@ -33,4 +33,9 @@
 			compatible = "asus,z00t-auo5p5-nt35596";
 		};
 	};
+
+	regulator-sdcard {
+		compatible = "regulator-fixed";
+		gpios = <&tlmm 87 GPIO_ACTIVE_HIGH>;
+	};
 };
