@@ -12,6 +12,7 @@
 #include "lk_panel_ili9806e_fwvga_hsd_hlt_video.h"
 #include "lk_panel_ili9881c_hd_video.h"
 #include "lk_panel_innolux_qhd_video.h"
+#include "lk_panel_nt35510s_fwvga_cmd.h"
 #include "lk_panel_r61308_720p_video.h"
 #include "lk_panel_r69431_720p_video.h"
 
