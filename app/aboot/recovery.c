@@ -55,8 +55,10 @@ static const int MISC_COMMAND_PAGE = 1;		// bootloader command is this page
 static char buf[4096];
 
 extern uint32_t get_page_size(void);
+#if !ABOOT_STANDALONE
 extern void reset_device_info(void);
 extern void set_device_root(void);
+#endif
 
 int get_recovery_message(struct recovery_message *out)
 {

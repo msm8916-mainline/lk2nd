@@ -169,6 +169,7 @@ struct dt_entry
 	uint32_t offset;
 	uint32_t size;
 	uint32_t idx;
+	bool is_best;
 };
 
 struct dt_table

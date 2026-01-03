@@ -51,4 +51,4 @@ $(BUILDDIR)/%.dtb: %.dts
 	$(NOECHO)$(TOOLCHAIN_PREFIX)cpp -nostdinc -undef -x assembler-with-cpp \
 		-D_DTB_NAME_=\"$(basename $(notdir $<))\" \
 		$(DT_INCLUDES) $< -MD -MT $@ -MF $@.d -o $@.dts
-	$(NOECHO)dtc -O dtb -I dts --align 16 -o $@ $@.dts
+	$(NOECHO)$(DTC) -O dtb -I dts --align 16 -o $@ $@.dts
