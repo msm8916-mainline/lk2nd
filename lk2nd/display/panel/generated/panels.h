@@ -16,7 +16,6 @@
 #include "lk_panel_r61308_720p_video.h"
 #include "lk_panel_r69431_720p_video.h"
 
-
 int oem_panel_select(const char *panel_name, struct panel_struct *panel,
 		     struct msm_panel_info *pinfo, struct mdss_dsi_phy_ctrl *phy_db);
 
