@@ -1,6 +1,7 @@
 # Supported devices
 
 ### lk2nd-msm8916
+- 10or G (g)
 - Acer Iconia Talk S A1-724 (quirky - see comment in `lk2nd/device/dts/msm8916/msm8916-mtp-smb1360.dts`)
 - Alcatel OneTouch Idol 3 (4.7) - 6039*
 - Alcatel OneTouch Idol 3 (5.5) - 6045*
