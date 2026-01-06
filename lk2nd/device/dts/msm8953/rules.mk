@@ -3,7 +3,6 @@ LOCAL_DIR := $(GET_LOCAL_DIR)
 
 ADTBS += \
 	$(LOCAL_DIR)/apq8053-lenovo-cd-18781y.dtb \
-	$(LOCAL_DIR)/msm8953-10or-g.dtb \
 	$(LOCAL_DIR)/msm8953-asus-zenfone3.dtb \
 	$(LOCAL_DIR)/msm8953-billion-rimob.dtb \
 	$(LOCAL_DIR)/msm8953-huawei-cannes.dtb \
@@ -15,6 +14,7 @@ ADTBS += \
 	$(LOCAL_DIR)/msm8953-mtp.dtb \
 	$(LOCAL_DIR)/msm8953-oppo-r9s.dtb \
 	$(LOCAL_DIR)/msm8953-qrd.dtb \
+	$(LOCAL_DIR)/msm8953-qrd-sku3.dtb \
 	$(LOCAL_DIR)/msm8953-xiaomi-common.dtb \
 	$(LOCAL_DIR)/msm8953-xiaomi-daisy.dtb \
 	$(LOCAL_DIR)/msm8953-xiaomi-markw.dtb \

@@ -1,0 +1,38 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8953 0>;
+	qcom,board-id = <QCOM_BOARD_ID(QRD, 2, 0) 0>;
+};
+
+&lk2nd {
+	10or-g {
+		model = "10or G";
+		compatible = "10or,g";
+
+		lk2nd,dtb-files = "msm8953-10or-g";
+
+		lk2nd,match-panel;
+		panel {
+			compatible = "10or,g-panel", "lk2nd,panel";
+
+			qcom,dsi-panel-hx8399c-auo-53-1080p-video {
+				compatible = "10or,g-hx8399c-auo";
+				touchscreen-compatible = "goodix,gt917d";
+			};
+
+			qcom,dsi-panel-ili7807d-djn-53-1080p-video {
+				compatible = "10or,g-ili7807d-djn";
+			};
+
+			qcom,dsi-panel-ili7807d-djn-auo-53-1080p-video {
+				compatible = "10or,g-ili7807d-djn-auo";
+			};
+		};
+	};
+};
