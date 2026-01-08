@@ -57,7 +57,7 @@
 		compatible = "samsung,fortuna3g";
 		lk2nd,match-bootloader = "G530H*";
 
-		lk2nd,dtb-files = "msm8916-samsung-fortuna3g";
+		lk2nd,dtb-files = "msm8216-samsung-fortuna3g";
 
 		qcom,msm-id = <QCOM_ID_MSM8216 0>;
 		qcom,board-id = <0xF808FF01 7>;
