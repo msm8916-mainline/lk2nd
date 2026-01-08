@@ -4,10 +4,10 @@
 #include <lk2nd.dtsi>
 
 / {
-	qcom,msm-id = <194 0x4D 0x81B0>,
-		      <194 0x4D 0x82A0>,
-		      <194 0x4D 0x82B0>,
-		      <194 0x4D 0x82BF>;
+	qcom,msm-id = <QCOM_ID_MSM8974PRO_AC 0x4D 0x81B0>,
+		      <QCOM_ID_MSM8974PRO_AC 0x4D 0x82A0>,
+		      <QCOM_ID_MSM8974PRO_AC 0x4D 0x82B0>,
+		      <QCOM_ID_MSM8974PRO_AC 0x4D 0x82BF>;
 };
 
 &lk2nd {
