@@ -141,6 +141,8 @@ typedef enum
 	PMIC_IS_PMI8950   = 17,
 	PMIC_IS_PMI8994   = 10,
 	PMIC_IS_PMI8996   = 19,
+	PMIC_IS_PM8953    = 22,
+	PMIC_IS_PM8937    = 25,
 	PMIC_IS_PM660     = 27,
 	PMIC_IS_PMI632    = 37,
 } pm_model_type_bfly;
