@@ -13,6 +13,7 @@
 #include <lk2nd/util/lkfdt.h>
 
 #include "device.h"
+#include "sdhc.h"
 
 struct lk2nd_device lk2nd_dev;
 
@@ -22,6 +23,14 @@ struct lk2nd_device lk2nd_dev;
 const char *const *lk2nd_device_get_dtb_hints(void)
 {
 	return lk2nd_dev.dtbfiles;
+}
+
+/**
+ * lk2nd_device_get_sd_mmc_slot_num() - Get an uint32_t indicating the SDHC slot number for the SD card.
+ */
+uint32_t lk2nd_device_get_sd_mmc_slot_num(void)
+{
+	return lk2nd_dev.sd_mmc_slot_number;
 }
 
 static int find_device_node(const void *dtb)
@@ -134,6 +143,8 @@ static void parse_dtb(const void *dtb)
 	val = fdt_stringlist_get(dtb, node, "lk2nd,menu-key-strings", 1, &len);
 	if (val && len > 0)
 		lk2nd_dev.menu_keys.select = strndup(val, len);
+
+	lk2nd_dev.sd_mmc_slot_number = sdhc_slot_get(dtb, node);
 
 	dprintf(INFO, "Detected device: %s (compatible: %s)\n",
 		lk2nd_dev.model, lk2nd_dev.compatible);

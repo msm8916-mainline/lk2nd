@@ -20,6 +20,7 @@ OBJS += \
 	$(LOCAL_DIR)/keys.o \
 	$(LOCAL_DIR)/leds.o \
 	$(LOCAL_DIR)/regulator-fixed.o \
+	$(LOCAL_DIR)/sdhc.o \
 
 ifneq ($(LK2ND_COMPATIBLE),)
 DEFINES += LK2ND_COMPATIBLE="$(LK2ND_COMPATIBLE)"
