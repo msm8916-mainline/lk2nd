@@ -200,7 +200,11 @@ add the following property:
 
 The available values are `<&sdhc2>` and `<&sdhc3>`.
 
-This setting is currently not in use.
+This setting is only applicable to the following platforms:
+- msm8974
+
+Note: For platforms where this is applicable, this property **must** be set
+in the device's lk2nd DTS for SD card boot to work.
 
 ## Additional drivers
 
