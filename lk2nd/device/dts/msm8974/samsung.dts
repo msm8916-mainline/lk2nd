@@ -72,6 +72,8 @@
 
 		lk2nd,dtb-files = "msm8974-samsung-lt03lte";
 
+		lk2nd,sd-mmc = <&sdhc3>;
+
 		gpio-keys {
 			compatible = "gpio-keys";
 			home {
