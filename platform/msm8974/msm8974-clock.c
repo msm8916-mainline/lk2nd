@@ -265,6 +265,46 @@ static struct branch_clk gcc_sdcc2_ahb_clk =
 	},
 };
 
+static struct rcg_clk sdcc3_apps_clk_src =
+{
+	.cmd_reg      = (uint32_t *) SDCC3_CMD_RCGR,
+	.cfg_reg      = (uint32_t *) SDCC3_CFG_RCGR,
+	.m_reg        = (uint32_t *) SDCC3_M,
+	.n_reg        = (uint32_t *) SDCC3_N,
+	.d_reg        = (uint32_t *) SDCC3_D,
+
+	.set_rate     = clock_lib2_rcg_set_rate_mnd,
+	.freq_tbl     = ftbl_gcc_sdcc1_4_apps_clk,
+	.current_freq = &rcg_dummy_freq,
+
+	.c = {
+		.dbg_name = "sdc3_clk",
+		.ops      = &clk_ops_rcg_mnd,
+	},
+};
+
+static struct branch_clk gcc_sdcc3_apps_clk =
+{
+	.cbcr_reg     = (uint32_t *) SDCC3_APPS_CBCR,
+	.parent       = &sdcc3_apps_clk_src.c,
+
+	.c = {
+		.dbg_name = "gcc_sdcc3_apps_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
+static struct branch_clk gcc_sdcc3_ahb_clk =
+{
+	.cbcr_reg     = (uint32_t *) SDCC3_AHB_CBCR,
+	.has_sibling  = 1,
+
+	.c = {
+		.dbg_name = "gcc_sdcc3_ahb_clk",
+		.ops      = &clk_ops_branch,
+	},
+};
+
 /* UART Clocks */
 static struct clk_freq_tbl ftbl_gcc_blsp1_2_uart1_6_apps_clk[] =
 {
@@ -823,6 +863,9 @@ static struct clk_lookup msm_clocks_8974[] =
 
 	CLK_LOOKUP("sdc2_iface_clk", gcc_sdcc2_ahb_clk.c),
 	CLK_LOOKUP("sdc2_core_clk",  gcc_sdcc2_apps_clk.c),
+
+	CLK_LOOKUP("sdc3_iface_clk", gcc_sdcc3_ahb_clk.c),
+	CLK_LOOKUP("sdc3_core_clk",  gcc_sdcc3_apps_clk.c),
 
 	CLK_LOOKUP("uart2_iface_clk", gcc_blsp1_ahb_clk.c),
 	CLK_LOOKUP("uart2_core_clk",  gcc_blsp1_uart2_apps_clk.c),

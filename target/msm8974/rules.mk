@@ -2,6 +2,7 @@ LOCAL_DIR := $(GET_LOCAL_DIR)
 
 INCLUDES += -I$(LOCAL_DIR)/include -I$(LK_TOP_DIR)/platform/msm_shared
 INCLUDES += -I$(LK_TOP_DIR)/dev/gcdb/display -I$(LK_TOP_DIR)/dev/gcdb/display/include
+INCLUDES += -I$(LK_TOP_DIR)/lk2nd/include
 
 PLATFORM := msm8974
 
