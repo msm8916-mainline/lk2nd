@@ -32,6 +32,7 @@ struct lk2nd_device {
 	const char *const *dtbfiles;
 	bool single_key;
 	struct lk2nd_menu_keys menu_keys;
+	uint32_t sd_mmc_slot_number;
 
 	struct lk2nd_panel panel;
 

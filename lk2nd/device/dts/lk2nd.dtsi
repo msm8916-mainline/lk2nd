@@ -2,6 +2,7 @@
 #include <dt-bindings/arm/qcom,ids.h>
 #include <dt-bindings/lk2nd/gpio.h>
 #include <dt-bindings/lk2nd/key-codes.h>
+#include <dt-bindings/lk2nd/sdhc.h>
 
 / {
 	/*
@@ -40,6 +41,18 @@
 			#gpio-cells = <2>;
 
 			phandle = <GPIO_DEV_PHANDLE(GPIOL_DEVICE_PMIC_PON)>;
+		};
+
+		/omit-if-no-ref/ sdhc2: sdhc-2 {
+			compatible = "lk2nd,sdhci-msm";
+
+			phandle = <SDHC_DEV_PHANDLE(SDHC_SLOT_2)>;
+		};
+
+		/omit-if-no-ref/ sdhc3: sdhc-3 {
+			compatible = "lk2nd,sdhci-msm";
+
+			phandle = <SDHC_DEV_PHANDLE(SDHC_SLOT_3)>;
 		};
 	};
 };
