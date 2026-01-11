@@ -122,4 +122,28 @@
 			};
 		};
 	};
+
+	lenovo-achilles {
+		model = "Lenovo Tab 2 A10-30 (Achilles)";
+		compatible = "lenovo,achilles";
+
+		lk2nd,dtb-files = "msm8909-lenovo-achilles";
+		lk2nd,match-panel;
+
+		panel {
+			compatible = "lenovo,achilles", "lk2nd,panel";
+
+			qcom,mdss_dsi_nt35523b_boe_wxga_video {
+				compatible = "lenovo,nt35523b-boe-wxga";
+			};
+		};
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			volume-up {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&tlmm 90 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
 };
