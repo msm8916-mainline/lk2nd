@@ -140,6 +140,27 @@ when you add a new device, if you are planning to make use of this.
 	};
 ```
 
+#### Sony lcdid_adc
+
+Some Sony devices only pass an `lcdid_adc` parameter to select
+panels. The panel is determined by a range of values.
+
+```
+	panel {
+		compatible = "sony,aries-panel", "lk2nd,panel";
+
+		novatek_jdi_720p_cmd {
+			compatible = "sony,novatek-jdi-720p-cmd";
+			sony,lcd-id-adc = <0x109618 0x12c898>;
+		};
+
+		novatek_sharp_720p_cmd {
+			compatible = "sony,novatek-sharp-720p-cmd";
+			sony,lcd-id-adc = <0x562e8 0x65130>;
+		};
+	};
+```
+
 ### msm-id override
 
 For some devices it may be needed to let lk2nd know what msm- and
