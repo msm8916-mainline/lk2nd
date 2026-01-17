@@ -58,6 +58,59 @@
 			};
 		};
 	};
+
+	xiaomi-virgo {
+		model = "Xiaomi Note LTE(virgo)";
+		compatible = "xiaomi,virgo";
+		lk2nd,match-panel;
+
+		//FIXME:lk2nd,dtb-files = "qcom-msm8974pro-xiaomi-virgo";
+
+		panel {
+			compatible = "xiaomi,virgo-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_jdi_fhd_xcmd {
+				compatible = "xiaomi,virgo-jdi-fhd-xcmd";
+			};
+		};
+	};
+
+	xiaomi-cancro {
+		model = "Xiaomi 4 LTE(cancro)";
+		compatible = "xiaomi,cancro";
+		lk2nd,match-panel;
+
+		//FIXME:lk2nd,dtb-files = "qcom-msm8974pro-xiaomi-cancro";
+
+		panel {
+			compatible = "xiaomi,cancro-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_sharp_fhd_video {
+				compatible = "xiaomi,cancro-sharp-fhd-video";
+			};
+			qcom,mdss_dsi_jdi_fhd_cmd {
+				compatible = "xiaomi,cancro-jdi-fhd-cmd";
+			};
+			qcom,mdss_dsi_jdi_fhd_cmd_95 {
+				compatible = "xiaomi,cancro-jdi-fhd-cmd-95";
+			};
+			om,mdss_dsi_sharp_fhd_cmd {
+				compatible = "xiaomi,cancro-sharp-fhd-cmd";
+			};
+
+			qcom,mdss_dsi_sharp_fhd_cmd_95 {
+				compatible = "xiaomi,cancro-sharp-fhd-cmd-95";
+			};
+
+			qcom,mdss_dsi_sharp_fhd_xcmd {
+				compatible = "xiaomi,cancro-sharp-fhd-xcmd";
+			};
+
+			qcom,mdss_dsi_rsp_fhd_xcmd {
+				compatible = "xiaomi,cancro-rsp-fhd-xcmd";
+			};
+		};
+	};
 };
 
 /*

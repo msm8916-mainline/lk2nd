@@ -167,6 +167,8 @@
 - Samsung Galaxy S5 - SM-G900F, SM-G900T
 - Samsung Galaxy S5 China LTE (Duos) - SM-G9006V/W, SM-G9008V/W, SM-G9009W
 - Sony Xperia Z3 - leo
+- Xiaomi Note LTE - virgo
+- Xiaomi 4 LTE - cancro
 
 ### lk2nd-msm8226
 - ASUS ZenWatch 2 - sparrow
