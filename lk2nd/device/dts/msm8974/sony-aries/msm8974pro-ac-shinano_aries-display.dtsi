@@ -1,0 +1,3 @@
+#include "../sony-leo/msm8974-display-stubs.dtsi"
+#include "msm8974pro-ac-shinano_aries_common.dtsi"
+#include "dsi-panel-aries.dtsi"
