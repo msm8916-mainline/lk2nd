@@ -192,6 +192,7 @@
 ### lk2nd-msm8996
 
 - LG G5 - h850
+- LG G6 - h870
 - LG V20 - h990
 - OnePlus 3T
 - Xiaomi Mi 5 - gemini
