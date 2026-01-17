@@ -60,11 +60,28 @@ static bool parse_panel(struct lk2nd_panel *p, char *panel)
 	return true;
 }
 
+static bool parse_sony_adc(struct lk2nd_panel *p, const char *adc)
+{
+	unsigned long adc_num;
+	if (!adc)
+		return false;
+
+	adc_num = strtoul(adc, NULL, 0);
+
+	if(adc_num != 0) {
+		p->sony_lcdid_adc = adc_num;
+		return true;
+	} else {
+		return false;
+	}
+}
+
 void lk2nd_device2nd_parse_cmdline(void)
 {
 	char *arg, *saveptr;
 	char *args = strdup(lk2nd_dev.cmdline);
 	const char *panel = NULL;
+	const char *lcdid_adc = NULL;
 
 	for (arg = strtok_r(args, " ", &saveptr); arg;
 	     arg = strtok_r(NULL, " ", &saveptr)) {
@@ -81,12 +98,15 @@ void lk2nd_device2nd_parse_cmdline(void)
 		} else {
 			parse_arg(arg, "mdss_mdp.panel=", &panel);
 			parse_arg(arg, "mdss_mdp3.panel=", &panel);
+			parse_arg(arg, "lcdid_adc=", &lcdid_adc);
 		}
 	}
 	free(args);
 
 	if (panel && !parse_panel(&lk2nd_dev.panel, (char *)panel))
 		dprintf(CRITICAL, "Failed to parse panel parameter: %s\n", panel);
+	if (lcdid_adc && !parse_sony_adc(&lk2nd_dev.panel, lcdid_adc))
+		dprintf(CRITICAL, "Failed to parse lcdid_adc parameter: %s\n", lcdid_adc);
 }
 
 /* Fastboot */

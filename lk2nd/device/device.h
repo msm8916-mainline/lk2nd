@@ -6,6 +6,7 @@
 
 struct lk2nd_panel {
 	const char *name;
+	uint32_t sony_lcdid_adc;
 	const char *old_compatible;
 	const char *compatible;
 	int compatible_size;
