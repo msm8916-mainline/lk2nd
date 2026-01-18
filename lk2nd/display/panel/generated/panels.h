@@ -15,6 +15,7 @@
 #include "lk_panel_nt35510s_fwvga_cmd.h"
 #include "lk_panel_r61308_720p_video.h"
 #include "lk_panel_r69431_720p_video.h"
+#include "lk_panel_smd_549_1080p_alb_cmd_v0.h"
 
 int oem_panel_select(const char *panel_name, struct panel_struct *panel,
 		     struct msm_panel_info *pinfo, struct mdss_dsi_phy_ctrl *phy_db);
