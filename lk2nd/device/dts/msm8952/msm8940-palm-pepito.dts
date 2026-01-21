@@ -1,0 +1,31 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/*
+ * There are a few quirks to be aware of
+ *
+ * - Fastboot is not available on this device, lk2nd must be flashed via EDL.
+ *   Some EDL programs (or versions thereof) do not work properly with available
+ *   firehoses (or else need responses ignored).  QDL is a known working implementation
+ *
+ * - The stock bootloader checks the OS version and the OS patch level in the boot.img as
+ *   well as ensuring there is a signature in the boot.img (it does not matter the signature).
+ *   When compiling lk2nd, set MKBOOTIMG_OS_VERSION=8.1.0 MKBOOTIMG_OS_PATCH_LEVEL=2020-09-01
+ *   and SIGN_BOOTIMG=1
+ */
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8940 0>;
+	qcom,board-id = <0xaa000008 0x00>;
+};
+
+&lk2nd {
+	model = "Palm Phone (pepito)";
+	compatible = "palm,pepito";
+
+	lk2nd,dtb-files = "qcom,msm8940-mtp", "qcom,msm8940", "qcom,mtp";
+
+	lk2nd,single-key-navigation;
+};
