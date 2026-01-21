@@ -4,6 +4,7 @@
 
 #include <skeleton64.dtsi>
 #include <lk2nd.dtsi>
+#include <dt-bindings/lk2nd/regulator.h>
 
 / {
 	qcom,msm-id = <QCOM_ID_MSM8917 0>;
@@ -105,6 +106,11 @@
 				touchscreen-compatible = "edt,edt-ft5306";
 				// touchscreen-compatible = "goodix,gt911";
 			};
+		};
+
+		regulator-l11 {
+			compatible = "regulator-ldo";
+			id = <REG_LDO11>;
 		};
 	};
 };
