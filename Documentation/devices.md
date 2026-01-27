@@ -114,7 +114,7 @@
 - Redmi GO (tiare)
 - Redmi Note 3 Pro (kenzo)
 - Redmi Note 5A (ugglite)
-- Samsung Galaxy Tab A 8.0 2019 (samsung-gtowifi)
+- Samsung Galaxy Tab A 8.0 2019 (gtowifi)
 - Redmi Note 5A Prime (ugg)
 - Sony Xperia X
 - Sony Xperia X Compact
