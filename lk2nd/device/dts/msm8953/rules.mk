@@ -10,7 +10,6 @@ ADTBS += \
 	$(LOCAL_DIR)/msm8953-lenovo-kuntao.dtb \
 	$(LOCAL_DIR)/msm8953-meizu-m1871.dtb \
 	$(LOCAL_DIR)/msm8953-motorola-deen.dtb \
-	$(LOCAL_DIR)/msm8953-motorola-sanders.dtb \
 	$(LOCAL_DIR)/msm8953-mtp.dtb \
 	$(LOCAL_DIR)/msm8953-oppo-r9s.dtb \
 	$(LOCAL_DIR)/msm8953-qrd.dtb \
@@ -31,4 +30,10 @@ ADTBS += \
 
 QCDTBS += \
 	$(LOCAL_DIR)/msm8953-motorola-potter.dtb \
+	$(LOCAL_DIR)/msm8953-motorola-sanders/msm8953-motorola-sanders-p1.dtb \
+	$(LOCAL_DIR)/msm8953-motorola-sanders/msm8953-motorola-sanders-p2.dtb \
+	$(LOCAL_DIR)/msm8953-motorola-sanders/msm8953-motorola-sanders-p3-1.dtb \
+	$(LOCAL_DIR)/msm8953-motorola-sanders/msm8953-motorola-sanders-p3-2.dtb \
+	$(LOCAL_DIR)/msm8953-motorola-sanders/msm8953-motorola-sanders-p4-1.dtb \
+	$(LOCAL_DIR)/msm8953-motorola-sanders/msm8953-motorola-sanders-p4-2.dtb \
 	$(LOCAL_DIR)/sdm450-samsung-r04.dtb \
