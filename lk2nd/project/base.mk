@@ -66,8 +66,14 @@ DEFINES += GENERATE_CMDLINE_ONLY_FOR_ANDROID=1
 # Disable reading splash partition to avoid crashes on some devices
 DEFINES += DISABLE_SPLASH_PARTITION=1
 
+# Disable updating Android fstab devicetree node
+DEFINES += SKIP_UPDATE_ANDROID_FSTAB=1
+
 # Enable "fastboot oem help" for a list of supported fastboot commands
 DEFINES += FASTBOOT_HELP=1
+
+# Enable Android dynamic partitions support
+DEFINES += DYNAMIC_PARTITION_SUPPORT=1
 
 # Allow entering fastboot after forced reset
 DEFINES := $(filter-out USER_FORCE_RESET_SUPPORT=1, $(DEFINES))
