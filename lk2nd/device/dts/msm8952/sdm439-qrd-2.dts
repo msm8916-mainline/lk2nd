@@ -4,6 +4,7 @@
 
 #include <skeleton64.dtsi>
 #include <lk2nd.dtsi>
+#include <dt-bindings/lk2nd/regulator.h>
 
 / {
 	qcom,msm-id = <QCOM_ID_SDM439 0>;
@@ -58,6 +59,11 @@
 			qcom,mdss_dsi_jd9365z_hdplus_video_c3e {
 				compatible = "xiaomi,pine-jd9365z-c3e";
 			};
+		};
+
+		regulator-l11 {
+			compatible = "regulator-ldo";
+			id = <REG_LDO11>;
 		};
 	};
 };

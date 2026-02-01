@@ -341,4 +341,17 @@ lk2nd doesn't implement a fully-fledged regulator subsystem. The only purpose fo
 this driver is for turning on those regulator that is requied by the panel and backlight
 and the regulator behavior consistancy between lk1st and lk2nd.
 
+### LDO Regulator
 
+lk2nd supports the `regulator-ldo` node. This node have bindings defined
+at `dt-bindings/lk2nd/regulator.h`.
+This driver is very simple, it is only capable of enabling the selected regulator.
+
+```
+#include <dt-bindings/lk2nd/regulator.h>
+
+regulator-l11 {
+    compatible ="regulator-ldo";
+    id = <REG_LDO11>;
+};
+```
