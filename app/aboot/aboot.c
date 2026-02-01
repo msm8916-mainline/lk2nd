@@ -4788,14 +4788,14 @@ void CmdUpdateSnapshot(const char *arg, void *data, unsigned sz)
 		if (command) {
 			command++;
 
-			if(!strncmp (command, "merge", AsciiStrLen ("merge"))) {
+			if(!strncmp (command, "merge", strlen ("merge"))) {
 				if (GetSnapshotMergeStatus () == MERGING) {
-					cmd_reboot_fastboot(Arg, Data, Size);
+					cmd_reboot_fastboot(arg, data, sz);
 				}
-				FastbootOkay ("");
+				fastboot_okay ("");
 				return;
 			}
-			else if (!strncmp (Command, "cancel", AsciiStrLen ("cancel"))) {
+			else if (!strncmp (command, "cancel", strlen ("cancel"))) {
 				if(!device.is_unlocked) {
 					fastboot_fail ("Snapshot Cancel is not allowed in Lock State");
 					return;

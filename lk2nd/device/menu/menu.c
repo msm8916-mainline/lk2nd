@@ -15,7 +15,6 @@
 #include <lk2nd/device/keys.h>
 #include <lk2nd/util/minmax.h>
 #include <lk2nd/version.h>
-
 #include "../device.h"
 
 // Defined in app/aboot/aboot.c
@@ -133,6 +132,13 @@ static void opt_recovery(void)
 static void opt_bootloader(void) { reboot_device(FASTBOOT_MODE); }
 static void opt_edl(void)        { reboot_device(EMERGENCY_DLOAD); }
 static void opt_shutdown(void)   { shutdown_device(); }
+#if SLOTS_SUPPORTED
+static void opt_switch_slot(void){
+	int current_active_slot = partition_find_active_slot();
+	partition_switch_slots(current_active_slot, !current_active_slot, true);
+	reboot_device(FASTBOOT_MODE);
+}
+#endif
 
 static struct {
 	char *name;
@@ -143,6 +149,9 @@ static struct {
 	{ " Continue ", WHITE,  opt_continue },
 	{ " Recovery ", ORANGE, opt_recovery },
 	{ "Bootloader", ORANGE, opt_bootloader },
+#if SLOTS_SUPPORTED
+	{ "Switch Slot", RED,    opt_switch_slot },
+#endif
 	{ "    EDL   ", RED,    opt_edl },
 	{ " Shutdown ", RED,    opt_shutdown },
 };
@@ -151,6 +160,11 @@ static struct {
 	do { \
 		fbcon_printf(color, y, x); \
 		y += incr; \
+	} while(0)
+
+#define fbcon_printfn(color, y, incr, x...) \
+	do { \
+		fbcon_printf(color, y, x); \
 	} while(0)
 
 #define fbcon_puts_ln(color, y, incr, center, str) \
@@ -233,6 +247,11 @@ void display_fastboot_menu(void)
 #if WITH_LK2ND_DEVICE_2ND
 	if (lk2nd_dev.bootloader)
 		fbcon_printf_ln(SILVER, y, incr, false, " Bootloader:  %s", lk2nd_dev.bootloader);
+#endif
+#if SLOTS_SUPPORTED
+		int current_active_slot = partition_find_active_slot();
+		fbcon_printfn(SILVER, y, incr, false, " Active Slot:  ");
+		fbcon_printf_ln(current_active_slot ? GREEN : RED, y, incr, false, "              %s", current_active_slot ? "B" : "A");
 #endif
 
 	fbcon_printf_ln(armv8 ? GREEN : YELLOW, y, incr, false, " ARM64:  %s",
