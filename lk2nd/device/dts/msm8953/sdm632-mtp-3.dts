@@ -29,6 +29,26 @@
 		unit-info {
 			compatible = "motorola,unit-info";
 		};
+
+		panel {
+			compatible = "motorola,channel-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_mot_djn_569_hd_vid_v0 {
+				compatible = "motorola,channel-569-djn";
+			};
+
+			qcom,mdss_dsi_mot_djn_568_hd_vid_v0 {
+				compatible = "motorola,channel-568-djn";
+			};
+
+			qcom,mdss_dsi_mot_dsbj_569_hd_vid_v0 {
+				compatible = "motorola,channel-569-dsbj";
+			};
+
+			qcom,mdss_dsi_mot_dsbj_570_hd_vid_v0 {
+				compatible = "motorola,channel-570-dsbj";
+			};
+		};
 	};
 
 	motorola-ocean {
@@ -41,6 +61,24 @@
 		unit-info {
 			compatible = "motorola,unit-info";
 		};
+
+		panel {
+			compatible = "motorola,ocean-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_mot_ofilm_622_720p_vid_v0 {
+				compatible = "motorola,ocean-622-ofilm";
+			};
+
+			qcom,mdss_dsi_mot_tianma_622_720p_vid_v0 {
+				compatible = "motorola,ocean-622-tianma";
+				touchscreen-compatible = "ilitek,ili2117"; /* TESTED */
+			};
+
+			qcom,mdss_dsi_mot_csot_622_720p_vid_v0 {
+				compatible = "motorola,ocean-nt36672a-csot";
+				touchscreen-compatible = "novatek,nt36672a-ts"; /* CONFIRMED from downstream src */
+			};
+		};
 	};
 
 	motorola-river {
@@ -52,6 +90,30 @@
 
 		unit-info {
 			compatible = "motorola,unit-info";
+		};
+
+		panel {
+			compatible = "motorola,river-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_mot_boe_624_1080p_vid_v0 {
+				compatible = "motorola,river-624-boe";
+				touchscreen-compatible = "syna,rmi4-i2c"; /* UNTESTED */
+			};
+
+			qcom,mdss_dsi_mot_tianma_624_1080p_vid_v0 {
+				compatible = "motorola,river-624-tianma";
+				touchscreen-compatible = "syna,rmi4-i2c"; /* UNTESTED */
+			};
+
+			qcom,mdss_dsi_mot_tianma_n_624_1080p_vid_v0 {
+				compatible = "motorola,river-nt36672a-tianma";
+				touchscreen-compatible = "novatek,nt36672a-ts"; /* TESTED */
+			};
+
+			qcom,mdss_dsi_mot_tianma_h_624_1080p_vid_v0 {
+				compatible = "motorola,river-hx83112b-tianma";
+				touchscreen-compatible = "himax,hx83112b"; /* UNTESTED */
+			};
 		};
 	};
 };
