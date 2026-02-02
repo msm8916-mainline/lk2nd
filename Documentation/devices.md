@@ -168,6 +168,8 @@
 - Samsung Galaxy S5 China LTE (Duos) - SM-G9006V/W, SM-G9008V/W, SM-G9009W
 - Sony Xperia Z3 - leo (quirky - see comment in `lk2nd/device/dts/msm8974/msm8974pro-sony-leo.dts`)
 - Sony Xperia Z3 Compact - aries (quirky - see comment in `lk2nd/device/dts/msm8974/msm8974pro-sony-aries.dts`)
+- Xiaomi 4 LTE - cancro
+- Xiaomi Note LTE - virgo
 
 ### lk2nd-msm8226
 - ASUS ZenWatch 2 - sparrow
