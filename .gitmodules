@@ -1,0 +1,6 @@
+[submodule "linux"]
+	path = linux
+	url = https://github.com/msm8916-mainline/linux
+[submodule "lk2nd"]
+	path = lk2nd
+	url = https://github.com/msm8916-mainline/lk2nd
