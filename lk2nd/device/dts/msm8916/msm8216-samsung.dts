@@ -104,7 +104,7 @@
 
 	e53g {
 		model = "Samsung Galaxy E5 (SM-E500H)";
-		compatible = "samsung,e35g", "samsung,e5";
+		compatible = "samsung,e53g", "samsung,e5";
 		lk2nd,match-bootloader = "E500H*";
 
 		lk2nd,dtb-files = "msm8916-samsung-e5";
