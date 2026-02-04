@@ -189,6 +189,7 @@
 ### lk2nd-msm8994
 - Huawei Nexus 6P - Angler
 - LG G4 - h815
+- LG Nexus 5X - Bullhead
 
 ### lk2nd-msm8996
 
