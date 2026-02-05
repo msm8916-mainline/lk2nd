@@ -7,6 +7,7 @@
 #include <list.h>
 #include <stdlib.h>
 #include <target.h>
+#include <err.h>
 
 #include <lk2nd/boot.h>
 #include <lk2nd/hw/bdev.h>
@@ -20,7 +21,7 @@
 /**
  * lk2nd_scan_devices() - Scan filesystems and try to boot
  */
-static void lk2nd_scan_devices(void)
+int lk2nd_scan_devices(char **root_out, struct label **labels, int *default_label_idx, int* labels_count)
 {
 	struct bdev_struct *bdevs = bio_get_bdevs();
 	char mountpoint[16];
@@ -34,7 +35,6 @@ static void lk2nd_scan_devices(void)
 		/* Skip top level block devices. */
 		if (!bdev->is_leaf)
 			continue;
-
 		/*
 		 * Skip partitions that are too small to have a boot fs on.
 		 *
@@ -48,7 +48,7 @@ static void lk2nd_scan_devices(void)
 
 		snprintf(mountpoint, sizeof(mountpoint), "/%s", bdev->name);
 		ret = fs_mount(mountpoint, "ext2", bdev->name);
-		if (ret < 0)
+		if (ret < 0 && ret != ERR_ALREADY_MOUNTED)
 			continue;
 
 		if (DEBUGLEVEL >= SPEW) {
@@ -57,10 +57,36 @@ static void lk2nd_scan_devices(void)
 			lk2nd_print_file_tree(mountpoint, " ");
 		}
 
-		lk2nd_try_extlinux(mountpoint);
+		ret = lk2nd_get_extlinux_labels(mountpoint, labels, default_label_idx, labels_count);
+		if (ret < 0)
+			continue;
+		*root_out = strdup(mountpoint);
+		break;
+	}
+	if (*root_out) {
+		return 0;
 	}
 
 	dprintf(INFO, "boot: Bootable file system not found. Reverting to android boot.\n");
+	return -1;
+}
+
+static void lk2nd_scan_and_boot(void) {
+	char *root;
+	struct label *labels;
+	int default_label_idx;
+	int labels_count;
+	int ret;
+
+	lk2nd_bdev_init();
+
+	ret = lk2nd_scan_devices(&root, &labels, &default_label_idx, &labels_count);
+	if (ret < 0) {
+		return;
+	}
+	ret = lk2nd_expand_conf_and_boot_label(
+		&labels[default_label_idx], root
+	);
 }
 
 /**
@@ -72,12 +98,5 @@ static void lk2nd_scan_devices(void)
  */
 void lk2nd_boot(void)
 {
-	static bool init_done = false;
-
-	if (!init_done) {
-		lk2nd_bdev_init();
-		init_done = true;
-	}
-
-	lk2nd_scan_devices();
+	lk2nd_scan_and_boot();
 }
