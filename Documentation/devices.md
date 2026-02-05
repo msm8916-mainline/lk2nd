@@ -88,6 +88,7 @@
 - Alcatel Idol 4 (6055*)
 - BQ X5 Plus (Longcheer L9360)
 - Fossil Gen 6 (hoki) (requires flashing [minimal DTBO](#minimal-dtb-overlay))
+- General Mobile GM 5 Plus (shamrock)
 - HMD Global Nokia 4.2 (panther) (requires flashing [minimal DTBO](#minimal-dtb-overlay))
 - HMD Global Nokia 5 (nd1)
 - HMD Global Nokia 6 (ple)

@@ -1,0 +1,44 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8952 0>;
+	qcom,board-id = <QCOM_BOARD_ID_QRD 1>;
+};
+
+&lk2nd {
+	generalmobile-shamrock {
+		model = "General Mobile GM 5 Plus";
+		compatible = "generalmobile,shamrock";
+		lk2nd,match-bootloader = "SEED-SHAMROCK-BL-MSM8952-*";
+
+		//FIXME: lk2nd,dtb-files = "msm8952-generalmobile-shamrock";
+
+		panel {
+			compatible = "generalmobile,shamrock-panel", "lk2nd,panel";
+			qcom,mdss_dsi_hx8399a_1080p_video {
+				compatible = "generalmobile,shamrock-truly-hx8399a";
+			};
+			qcom,mdss_dsi_truly_hx8399_1080p_video {
+				compatible = "generalmobile,shamrock-truly-hx8399";
+			};
+			qcom,mdss_dsi_otm1906c_1080p_cmd {
+				compatible = "generalmobile,shamrock-otm1906c";
+			};
+			qcom,mdss_dsi_sharp_1080p_cmd {
+				compatible = "generalmobile,shamrock-sharp-cmd";
+			};
+			qcom,mdss_dsi_truly_r63350_1080p_video {
+				compatible = "generalmobile,shamrock-truly-r63350";
+			};
+			qcom,mdss_dsi_truly2_r63350_1080p_video {
+				compatible = "generalmobile,shamrock-truly2-r63350";
+			};
+			qcom,mdss_dsi_dijing_otm1901a_1080p_video {
+				compatible = "generalmobile,shamrock-dijing-otm1901a";
+			};
+		};
+	};
+};
