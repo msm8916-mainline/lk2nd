@@ -1,5 +1,15 @@
 # p839f30 aka ZTE Blade S6
 
+Our device does not support `fastboot`,
+as it is locked by manufacturer.
+We use TWRP and adb with root access
+to flash the device by writing
+the image boot partition with `dd`.
+See `scripts/flash-lk2nd-via-adb.sh`.
+
+We use `export ADB=adb.exe` when developing inside WSL
+to simplify device forwarding instead of `uspipd`.
+
 Output of `adb shell getprop`:
 
 ```ini

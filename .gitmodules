@@ -3,4 +3,4 @@
 	url = https://github.com/msm8916-mainline/linux
 [submodule "lk2nd"]
 	path = lk2nd
-	url = https://github.com/msm8916-mainline/lk2nd
+	url = https://github.com/F1uctus/lk2nd
