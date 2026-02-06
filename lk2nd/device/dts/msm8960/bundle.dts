@@ -25,6 +25,28 @@
 			};
 		};
 	};
+	samsung-jflte {
+		model = "Samsung Galaxy S4 LTE (GT-I9505)";
+		compatible = "samsung,jflte", "qcom,msm8960";
+		lk2nd,match-bootloader = "I9505*";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+
+			volume-up {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&pmic 34 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			volume-down {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&pmic 36 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			volume-down-alt {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&pmic 37 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
 	samsung-loganre {
 		model = "Samsung Galaxy Ace 3 LTE (GT-S7275R)";
 		compatible = "samsung,loganrelte", "samsung,loganre";
