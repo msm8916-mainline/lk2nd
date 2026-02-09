@@ -181,7 +181,7 @@
 - LG G Watch R - lenok <!--(use `lk2nd-appended-dtb.img`)-->
 - Motorola Moto G 2013 - falcon
 - Motorola Moto G 4G 2013 - peregrine
-- Motorola Moto G 2014 - titan
+- Motorola Moto G 2014 - titan (quirky - see comment in `lk2nd/device/dts/msm8226/msm8226-motorola-titan.dts`)
 - Motorola Moto G 2014 LTE - thea
 - Samsung Galaxy Grand 2 - SM-G7102
 - Samsung Galaxy Tab 4 10.1 (2014) - SM-T530, SM-T532, SM-T535
