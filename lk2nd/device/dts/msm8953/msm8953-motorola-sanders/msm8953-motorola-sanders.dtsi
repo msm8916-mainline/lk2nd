@@ -1,0 +1,51 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+#include "../msm8953-motorola.dtsi"
+
+/**
+ To being able to run stock boot.img, we need to:
+ 1. Unpack stock bootloader with: https://github.com/osm0sis/mkbootimg
+    - Example: `./mkbootimg/unpackbootimg -i ../boot.img -o out`
+ 2. Patch stock QCDT with: https://gist.github.com/playday3008/c26833299fe8373a4190ec9360687a77#file-moto-qcdt-patch-py
+    - Example: `python3 moto-qcdt-patch.py ./out/boot.img-dt ./out/boot.img-dt-patched`
+ 3. Repack bootloader with: https://github.com/osm0sis/mkbootimg
+    - Example: 
+      ```
+      ./mkbootimg/mkbootimg \
+          --kernel ./out/boot.img-kernel \
+          --ramdisk ./out/boot.img-ramdisk \
+          --dt ./out/boot.img-dt-patched \
+          --cmdline "$(cat ./out/boot.img-cmdline)" \
+          --base "$(cat ./out/boot.img-base)" \
+          --kernel_offset "$(cat ./out/boot.img-kernel_offset)" \
+          --ramdisk_offset "$(cat ./out/boot.img-ramdisk_offset)" \
+          --second_offset "$(cat ./out/boot.img-second_offset)" \
+          --tags_offset "$(cat ./out/boot.img-tags_offset)" \
+          --os_version "$(cat ./out/boot.img-os_version)" \
+          --os_patch_level "$(cat ./out/boot.img-os_patch_level)" \
+          --board "$(cat ./out/boot.img-board)" \
+          --pagesize "$(cat ./out/boot.img-pagesize)" \
+          --hashtype "$(cat ./out/boot.img-hashtype)" \
+          -o boot.img
+      ```
+ 4. Flash the new boot.img to the device from lk2nd
+    - Example: `fastboot flash boot boot.img`
+*/
+
+&lk2nd {
+	model = "Motorola Moto G5s Plus (sanders)";
+	compatible = "motorola,sanders";
+
+	lk2nd,dtb-files = "msm8953-motorola-sanders";
+
+	panel {
+		compatible = "motorola,sanders-panel", "lk2nd,panel";
+
+		qcom,mdss_dsi_mot_tianma_550_1080p_vid_v0 {
+			compatible = "motorola,sanders-nt35596-tianma";
+		};
+		qcom,mdss_dsi_mot_djn_550_1080p_vid_v0 {
+			compatible = "motorola,sanders-ili7807d-djn";
+		};
+	};
+};
