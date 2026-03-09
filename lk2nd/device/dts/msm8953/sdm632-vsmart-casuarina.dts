@@ -1,0 +1,20 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_SDM632 0>;
+	qcom,board-id = <QCOM_BOARD_ID_QRD 1>;
+	/* Bootloader appears to really want to access symbols */
+	__symbols__ {};
+};
+
+&lk2nd {
+	model = "Vsmart Joy 3 (casuarina)";
+	compatible = "vsmart,casuarina";
+
+	lk2nd,dtb-files = "sdm632-vsmart-casuarina";
+};
