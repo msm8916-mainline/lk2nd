@@ -1,0 +1,54 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8953 0>;
+	qcom,board-id = <9 0>;
+};
+
+&lk2nd {
+	model = "Meizu Note 8";
+	compatible = "meizu,m1822";
+
+	lk2nd,dtb-files = "msm8953-meizu-m1822";
+
+	panel {
+		compatible = "meizu,m1822-panel", "lk2nd,panel";
+
+		qcom,mdss_dsi_hx8399c_hd_video {
+			compatible = "meizu,hx8399c";
+		};
+
+		qcom,mdss_dsi_hx8399c_truly_video {
+			compatible = "meizu,hx8399c-truly";
+		};
+
+		qcom,mdss_dsi_lt8912_1080p_video {
+			compatible = "meizu,lt8912";
+		};
+
+		qcom,mdss_dsi_lt8912_480p_video {
+			compatible = "meizu,lt8912-480p";
+		};
+
+		qcom,mdss_dsi_nt36672_csot_fhdp_video {
+			compatible = "meizu,nt36672-csotp";
+		};
+
+		qcom,mdss_dsi_r69006_1080p_video {
+			compatible = "meizu,r69006";
+		};
+
+		qcom,mdss_dsi_ssd2092_txd_fhdp_video {
+			compatible = "meizu,ssd2092-txdp";
+		};
+
+		qcom,mdss_dsi_td4310_csot_fhdp_video {
+			compatible = "meizu,td4310-csotp";
+		};   
+	};
+};
