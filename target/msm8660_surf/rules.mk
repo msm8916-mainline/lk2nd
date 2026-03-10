@@ -27,6 +27,7 @@ DEFINES += ASYNC_RESET_CE=1
 
 MODULES += \
 	dev/keys \
+	dev/pmic/pm8921 \
 	dev/ssbi \
 	lib/ptable
 
