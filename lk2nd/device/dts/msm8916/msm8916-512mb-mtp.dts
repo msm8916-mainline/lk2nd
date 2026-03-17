@@ -87,14 +87,6 @@
 		lk2nd,match-cmdline = "* mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_jdi_1080p_video";
 
 		lk2nd,dtb-files = "msm8916-yiming-uz801v3";
-
-		gpio-keys {
-			compatible = "gpio-keys";
-			reset {
-				lk2nd,code = <KEY_HOME>;
-				gpios = <&tlmm 23 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
-			};
-		};
 	};
 
 	xiaoxun-jz0145-v33 {

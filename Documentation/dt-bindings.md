@@ -112,7 +112,7 @@ lk2nd can check the cmdline from the previous bootloader and match the
 
 In some cases there is no useful cmdline param to match against, so
 it's possible to use a list of possible display panels and match if
-one of them is present. See [Panel selection](#Panel selection)
+one of them is present. See [Panel selection](#panel-selection).
 
 ```
 	lk2nd,match-panel;
@@ -137,6 +137,27 @@ when you add a new device, if you are planning to make use of this.
 			compatible = "wingtech,auo-nt35521";
 		};
 		/* ... */
+	};
+```
+
+#### Sony lcdid_adc
+
+Some Sony devices only pass an `lcdid_adc` parameter to select
+panels. The panel is determined by a range of values.
+
+```
+	panel {
+		compatible = "sony,aries-panel", "lk2nd,panel";
+
+		novatek_jdi_720p_cmd {
+			compatible = "sony,novatek-jdi-720p-cmd";
+			sony,lcd-id-adc = <0x109618 0x12c898>;
+		};
+
+		novatek_sharp_720p_cmd {
+			compatible = "sony,novatek-sharp-720p-cmd";
+			sony,lcd-id-adc = <0x562e8 0x65130>;
+		};
 	};
 ```
 
@@ -185,6 +206,26 @@ If the property is not set the default hint will be shown:
 
   Volume keys to navigate.
   Power key to select.
+
+### SD MMC card slot
+
+If your device has the external SD card mapped to a different slot number than
+the usual, you can specify the slot that lk2nd will check for an SD card.
+
+For example, if your device has the external SD card mapped to slot 3, you can
+add the following property:
+
+```
+	lk2nd,sd-mmc = <&sdhc3>;
+```
+
+The available values are `<&sdhc2>` and `<&sdhc3>`.
+
+This setting is only applicable to the following platforms:
+- msm8974
+
+Note: For platforms where this is applicable, this property **must** be set
+in the device's lk2nd DTS for SD card boot to work.
 
 ## Additional drivers
 
@@ -278,3 +319,39 @@ lk1st on boot, you can use this driver.
 lk2nd doesn't implement a fully-fledged led subsystem. The only purpose for
 this driver is for debugging and the LED behavior consistancy between lk1st
 and lk2nd.
+
+### Fixed Regulator
+
+lk2nd supports the `regulator-fixed` node. This node follows upstream binding except
+that most properties are not supported. Currently only `gpios` are supported in lk2nd.
+
+```
+regulator-backlight {
+    compatible = "regulator-fixed";
+    gpios = <&tlmm 9 GPIO_ACTIVE_HIGH>;
+};
+```
+
+This driver is mainly for lk1st since no previous boot-loader is capable to
+turn on those regulator that is requied by the panel and backlight. 
+If your device panel and backlight requied some regulator to be turned on,
+you can use this driver.
+
+lk2nd doesn't implement a fully-fledged regulator subsystem. The only purpose for
+this driver is for turning on those regulator that is requied by the panel and backlight
+and the regulator behavior consistancy between lk1st and lk2nd.
+
+### LDO Regulator
+
+lk2nd supports the `regulator-ldo` node. This node have bindings defined
+at `dt-bindings/lk2nd/regulator.h`.
+This driver is very simple, it is only capable of enabling the selected regulator.
+
+```
+#include <dt-bindings/lk2nd/regulator.h>
+
+regulator-l11 {
+    compatible ="regulator-ldo";
+    id = <REG_LDO11>;
+};
+```

@@ -4,6 +4,7 @@
 
 #include <compiler.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 /**
  * lkfdt_prop_strneq() - Check if property is NOT equal to the specified string.
@@ -48,6 +49,32 @@ bool lkfdt_node_is_available(const void *fdt, int node) __PURE;
 int lkfdt_get_reg(const void *fdt, int parent, int node, uint32_t *addr, uint32_t *size) __PURE;
 
 /**
+ * lkfdt_getprop_u32() - Read 32-bit number (e.g. phandle) from property.
+ * @fdt: Device tree blob
+ * @node: Device tree node offset
+ * @prop: Name of property that contains the uint32_t value
+ * @val: Output variable that is filled with the decoded uint32_t value
+ *
+ * The property must contain only a single u32 cell.
+ *
+ * Return: 0 if successful, <0 libfdt error
+ */
+int lkfdt_getprop_u32(const void *fdt, int node, const char *prop, uint32_t *val) __PURE;
+
+/**
+ * lkfdt_u32list_get() - Read one specific 32-bit number from a list.
+ * @fdt: Device tree blob
+ * @node: Device tree node offset
+ * @prop: Name of property that contains the uint32_t list
+ * @idx: Index of uint32_t to return from the list
+ * @val: Output variable that is filled with the uint32_t value
+ *
+ * Return: 0 if successful, <0 libfdt error (e.g. -FDT_ERR_NOTFOUND)
+ */
+int lkfdt_u32list_get(const void *fdt, int node, const char *prop,
+		      int idx, uint32_t *val) __PURE;
+
+/**
  * lkfdt_lookup_phandle() - Read phandle from property and search for the node.
  * @fdt: Device tree blob
  * @node: Device tree node offset
@@ -55,9 +82,24 @@ int lkfdt_get_reg(const void *fdt, int parent, int node, uint32_t *addr, uint32_
  *
  * Return:
  * * >= 0 - The offset of the phandle node, if successful
- * *  < 0 - libfdt error (<0), otherwise
+ * *  < 0 - libfdt error, otherwise
  */
 int lkfdt_lookup_phandle(const void *fdt, int node, const char *prop) __PURE;
+
+/**
+ * lkfdt_subnode_offset_by_phandle() - Return subnode that matches a phandle.
+ * @fdt: Device tree blob
+ * @parent: Device tree node offset of parent
+ * @phandle: The phandle to search for
+ *
+ * Iterate over all subnodes of the "parent" and look for the node that has
+ * the specified "phandle".
+ *
+ * Return:
+ * * >= 0 - The offset of the subnode that matches the phandle, if successful
+ * *  < 0 - libfdt error, otherwise
+ */
+int lkfdt_subnode_offset_by_phandle(const void *fdt, int parent, uint32_t phandle) __PURE;
 
 /**
  * lkfdt_stringlist_get_all() - Obtain array of strings for a given prop

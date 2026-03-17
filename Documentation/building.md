@@ -1,6 +1,8 @@
 # Building lk2nd
 
 ## Requirements
+- `make`
+- Python 3: `python3`
 - ARM (32 bit) GCC tool chain
   - Arch Linux: `arm-none-eabi-gcc`
   - Alpine Linux and postmarketOS: `gcc-arm-none-eabi`

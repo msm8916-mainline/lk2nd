@@ -363,7 +363,7 @@ static char *normalize_path(const char *path, const char *root)
  * This function checks if all the values in the config are sane,
  * all mentioned files exists. It then appends the paths with the
  * root directory and rewrites the dtb field based on dtbdir if
- * possible. This funtion allocates new strings for all values.
+ * possible. This function allocates new strings for all values.
  *
  * Returns: True if the config seems bootable, false otherwise.
  */

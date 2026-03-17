@@ -46,7 +46,7 @@ extern void ramdump_table_map(void);
 extern void kauth_test(void);
 extern int ufs_get_boot_lun(void);
 extern int ufs_set_boot_lun(uint32_t bootlunid);
-extern int fastboot_init(void);
+extern int fastboot_init(void *xfer_buffer, unsigned max);
 static bool enable_test_mode = false;
 
 bool is_test_mode_enabled(void)
@@ -54,7 +54,7 @@ bool is_test_mode_enabled(void)
 	return enable_test_mode;
 }
 
-void cmd_oem_runtests(void)
+void cmd_oem_runtests(const char *arg, void *data, unsigned sz)
 {
 	dprintf(INFO, "Running LK tests ... \n");
 	enable_test_mode = true;

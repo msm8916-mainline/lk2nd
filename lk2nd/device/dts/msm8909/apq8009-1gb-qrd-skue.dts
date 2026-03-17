@@ -21,13 +21,24 @@
 			compatible = "lenovo,lxf-p5000-panel", "lk2nd,panel";
 
 			qcom,mdss_dsi_boent35523_800p_video {
-				compatible = "lenovo,auo-otm1287a";
+				compatible = "lenovo,boe-nt35523";
 			};
 
 			qcom,mdss_dsi_dsbjs6d7aa0x04_800p_video {
-				compatible = "lenovo,boe-nt35523b";
+				compatible = "lenovo,dsbjs6d7aa0x04";
 			};
 		};
+
+		regulator-backlight {
+			compatible = "regulator-fixed";
+			gpios = <&tlmm 9 GPIO_ACTIVE_HIGH>;
+		};
+
+		regulator-lcd-3v3 {
+			compatible = "regulator-fixed";
+			gpios = <&tlmm 24 GPIO_ACTIVE_HIGH>;
+		};
+
 	};
 
 	lxf-p5100 {
@@ -47,6 +58,16 @@
 			qcom,mdss_dsi_boent35523b_800p_video {
 				compatible = "lenovo,boe-nt35523b";
 			};
+		};
+
+		regulator-backlight {
+			compatible = "regulator-fixed";
+			gpios = <&tlmm 9 GPIO_ACTIVE_HIGH>;
+		};
+
+		regulator-lcd-3v3 {
+			compatible = "regulator-fixed";
+			gpios = <&tlmm 24 GPIO_ACTIVE_HIGH>;
 		};
 	};
 };
